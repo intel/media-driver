@@ -73,7 +73,8 @@ public:
         KERNEL_SAMPLER_STATE_GROUP& samplerStateGroup,
         KERNEL_CONFIGS& kernelConfigs,
         KERNEL_OBJECTS& kernelObjs,
-        VP_RENDER_CACHE_CNTL& surfMemCacheCtl);
+        VP_RENDER_CACHE_CNTL& surfMemCacheCtl,
+        VP_PACKET_SHARED_CONTEXT* sharedContext);
 
     virtual MOS_STATUS DestroyKernelObjects(KERNEL_OBJECTS& kernelObjs)
     {

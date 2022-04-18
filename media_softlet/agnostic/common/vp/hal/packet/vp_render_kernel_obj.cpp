@@ -114,7 +114,7 @@ MOS_STATUS VpRenderKernelObj::SetWalkerSetting(KERNEL_THREAD_SPACE& threadSpace,
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpRenderKernelObj::SetKernelArgs(KERNEL_ARGS& kernelArgs)
+MOS_STATUS VpRenderKernelObj::SetKernelArgs(KERNEL_ARGS &kernelArgs, VP_PACKET_SHARED_CONTEXT *sharedContext)
 {
     VP_FUNC_CALL();
     VP_RENDER_CHK_STATUS_RETURN(MOS_STATUS_UNIMPLEMENTED);
@@ -126,13 +126,14 @@ MOS_STATUS VpRenderKernelObj::SetKernelConfigs(
     KERNEL_PARAMS& kernelParams,
     VP_SURFACE_GROUP& surfaces,
     KERNEL_SAMPLER_STATE_GROUP& samplerStateGroup,
-    KERNEL_CONFIGS& kernelConfigs)
+    KERNEL_CONFIGS& kernelConfigs,
+    VP_PACKET_SHARED_CONTEXT* sharedContext)
 {
     VP_FUNC_CALL();
 
     VP_RENDER_CHK_STATUS_RETURN(SetKernelConfigs(kernelConfigs));
 
-    VP_RENDER_CHK_STATUS_RETURN(SetKernelArgs(kernelParams.kernelArgs));
+    VP_RENDER_CHK_STATUS_RETURN(SetKernelArgs(kernelParams.kernelArgs, sharedContext));
 
     VP_RENDER_CHK_STATUS_RETURN(SetProcessSurfaceGroup(surfaces));
 

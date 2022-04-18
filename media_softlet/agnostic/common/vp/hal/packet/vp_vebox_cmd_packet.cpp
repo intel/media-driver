@@ -749,6 +749,7 @@ MOS_STATUS VpVeboxCmdPacket::SetDnParams(
     pRenderData->GetDNDIParams().bProgressiveDN  = pDnParams->bDnEnabled && pDnParams->bProgressive;
     pRenderData->GetHVSParams().QP               = pDnParams->HVSDenoise.QP;
     pRenderData->GetHVSParams().Mode             = pDnParams->HVSDenoise.Mode;
+    pRenderData->GetHVSParams().Strength         = pDnParams->HVSDenoise.Strength;
 
     GetDnLumaParams(pDnParams->bDnEnabled, pDnParams->bAutoDetect, pDnParams->fDenoiseFactor, m_PacketCaps.bRefValid, &lumaParams);
     GetDnChromaParams(pDnParams->bChromaDenoise, pDnParams->bAutoDetect, pDnParams->fDenoiseFactor, &chromaParams);

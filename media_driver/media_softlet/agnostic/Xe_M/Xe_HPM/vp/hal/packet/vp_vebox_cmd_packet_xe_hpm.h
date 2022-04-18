@@ -38,7 +38,46 @@ public:
     VpVeboxCmdPacketXe_Hpm(MediaTask * task, PVP_MHWINTERFACE hwInterface, PVpAllocator &allocator, VPMediaMemComp *mmc, bool disbaleSfcDithering);
 
     virtual ~VpVeboxCmdPacketXe_Hpm();
+
 MEDIA_CLASS_DEFINE_END(VpVeboxCmdPacketXe_Hpm)
+
+    virtual MOS_STATUS AddVeboxDndiState() override;
+
+    virtual MOS_STATUS QueryStatLayoutGNE(
+        VEBOX_STAT_QUERY_TYPE QueryType,
+        uint32_t             *pQuery,
+        uint8_t              *pStatSlice0Base,
+        uint8_t              *pStatSlice1Base);
+
+    virtual MOS_STATUS CheckTGNEValid(
+        uint32_t *pStatSlice0GNEPtr,
+        uint32_t *pStatSlice1GNEPtr,
+        uint32_t *pQuery);
+
+    virtual MOS_STATUS UpdateDnHVSParameters(
+        uint32_t *pStatSlice0GNEPtr,
+        uint32_t *pStatSlice1GNEPtr);
+
+    virtual MOS_STATUS SetupDNTableForHVS(
+        PMHW_VEBOX_STATE_CMD_PARAMS pVeboxStateCmdParams);
+
+    MOS_STATUS GNELumaConsistentCheck(
+        uint32_t &dwGNELuma,
+        uint32_t *pStatSlice0GNEPtr,
+        uint32_t *pStatSlice1GNEPtr);
+
+    // TGNE
+    uint32_t dwGlobalNoiseLevel_Temporal  = 0;  //!< Global Temporal Noise Level for Y
+    uint32_t dwGlobalNoiseLevelU_Temporal = 0;  //!< Global Temporal Noise Level for U
+    uint32_t dwGlobalNoiseLevelV_Temporal = 0;  //!< Global Temporal Noise Level for V
+    uint32_t curNoiseLevel_Temporal       = 0;  //!< Temporal Noise Level for Y
+    uint32_t curNoiseLevelU_Temporal      = 0;  //!< Temporal Noise Level for U
+    uint32_t curNoiseLevelV_Temporal      = 0;  //!< Temporal Noise Level for V
+    bool     m_bTgneEnable                = true;
+    bool     m_bTgneValid                 = false;
+
+    MhwVeboxInterfaceG12::MHW_VEBOX_CHROMA_PARAMS veboxChromaParams = {};
+
 };
 
 }

@@ -348,6 +348,20 @@ struct _RENDER_HDR_3DLUT_CAL_PARAMS
 using RENDER_HDR_3DLUT_CAL_PARAMS  = _RENDER_HDR_3DLUT_CAL_PARAMS;
 using PRENDER_HDR_3DLUT_CAL_PARAMS = RENDER_HDR_3DLUT_CAL_PARAMS *;
 
+struct _RENDER_DN_HVS_CAL_PARAMS
+{
+    uint32_t                        qp;
+    uint32_t                        strength;
+    VPHAL_HVSDN_MODE                hvsMode;
+    VpKernelID                      kernelId;
+    uint32_t                        threadWidth;
+    uint32_t                        threadHeight;
+    KERNEL_ARGS                     kernelArgs;
+};
+
+using RENDER_DN_HVS_CAL_PARAMS  = _RENDER_DN_HVS_CAL_PARAMS;
+using PRENDER_DN_HVS_CAL_PARAMS = RENDER_DN_HVS_CAL_PARAMS *;
+
 struct _STATE_COPY_PARAMS
 {
     bool needed;

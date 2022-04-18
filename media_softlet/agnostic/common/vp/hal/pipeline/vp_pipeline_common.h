@@ -62,10 +62,14 @@ using PCVP_PIPELINE_PARAMS = const VPHAL_RENDER_PARAMS*;
 #define RESOURCE_ASSIGNMENT_HINT_BITS_HDR       \
     uint32_t    is3DLut2DNeeded     : 1;
 
+#define RESOURCE_ASSIGNMENT_HINT_BITS_DENOISE \
+    uint32_t isHVSTableNeeded : 1;
+
 #define RESOURCE_ASSIGNMENT_HINT_BITS           \
         RESOURCE_ASSIGNMENT_HINT_BITS_DI        \
         RESOURCE_ASSIGNMENT_HINT_BITS_SCALING   \
-        RESOURCE_ASSIGNMENT_HINT_BITS_HDR
+        RESOURCE_ASSIGNMENT_HINT_BITS_HDR       \
+        RESOURCE_ASSIGNMENT_HINT_BITS_DENOISE
 
 #define RESOURCE_ASSIGNMENT_HINT_SIZE   4
 
@@ -177,6 +181,7 @@ struct _VP_EXECUTE_CAPS
             uint64_t bComposite     : 1;
             uint64_t bSR            : 1;
             uint64_t b3DLutCalc     : 1;
+            uint64_t bHVSCalc       : 1;
         };
         uint64_t value;
     };

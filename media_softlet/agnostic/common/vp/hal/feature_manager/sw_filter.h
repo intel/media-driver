@@ -70,6 +70,7 @@ enum FeatureType
     FeatureTypeScalingOnRender  = FeatureTypeScaling | FEATURE_TYPE_ENGINE_BITS_RENDER,
     FeatureTypeDn               = 0x400,
     FeatureTypeDnOnVebox        = FeatureTypeDn | FEATURE_TYPE_ENGINE_BITS_VEBOX,
+    FeatureTypeDnHVSCalOnRender = FeatureTypeDn | FEATURE_TYPE_ENGINE_BITS_RENDER | FEATURE_TYPE_ENGINE_BITS_SUB_STEP,
     FeatureTypeDi               = 0x500,
     FeatureTypeDiOnVebox        = FeatureTypeDi | FEATURE_TYPE_ENGINE_BITS_VEBOX,
     FeatureTypeDiOnRender       = FeatureTypeDi | FEATURE_TYPE_ENGINE_BITS_RENDER,
@@ -621,7 +622,8 @@ enum SurfaceType
     SurfaceTypeFBRemappedLM,
     SurfaceTypeFBSamplerIndex,
     SurfaceTypeFBInputSampler,
-
+    // HVS Kernel
+    SurfaceTypeHVSTable,
     NumberOfSurfaceType
 };
 
@@ -937,6 +939,14 @@ private:
 MEDIA_CLASS_DEFINE_END(SwFilterRotMir)
 };
 
+enum DN_STAGE
+{
+    DN_STAGE_DEFAULT = 0,
+    DN_STAGE_HVS_KERNEL,
+    DN_STAGE_VEBOX_HVS_UPDATE,
+    DN_STAGE_VEBOX_HVS_NO_UPDATE,
+};
+
 struct FeatureParamDenoise : public FeatureParam
 {
     VPHAL_SAMPLE_TYPE    sampleTypeInput      = SAMPLE_PROGRESSIVE;
@@ -945,6 +955,7 @@ struct FeatureParamDenoise : public FeatureParam
     uint32_t             heightAlignUnitInput = 0;
     uint32_t             heightInput          = 0;
     bool                 secureDnNeeded       = false;
+    DN_STAGE             stage                = DN_STAGE_DEFAULT;
 };
 
 class SwFilterDenoise : public SwFilter
@@ -958,6 +969,12 @@ public:
     virtual SwFilter* Clone();
     virtual bool operator == (SwFilter& swFilter);
     virtual MOS_STATUS Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSurf, SwFilterSubPipe &pipe);
+    virtual MOS_STATUS           SetResourceAssignmentHint(RESOURCE_ASSIGNMENT_HINT &hint)
+    {
+        hint.isHVSTableNeeded = DN_STAGE_HVS_KERNEL == m_Params.stage ||
+                                DN_STAGE_VEBOX_HVS_UPDATE == m_Params.stage;
+        return MOS_STATUS_SUCCESS;
+    }
 
 private:
     FeatureParamDenoise m_Params = {};

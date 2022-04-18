@@ -430,9 +430,9 @@ protected:
     void DestoryVeboxOutputSurface();
     void DestoryVeboxDenoiseOutputSurface();
     void DestoryVeboxSTMMSurface();
-    virtual MOS_STATUS AssignRenderResource(VP_EXECUTE_CAPS &caps, std::vector<VP_SURFACE *> &inputSurfaces, VP_SURFACE *outputSurface,
-        std::vector<VP_SURFACE *> &pastSurfaces, std::vector<VP_SURFACE *> &futureSurfaces, RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting, SwFilterPipe& executedFilters);
-    virtual MOS_STATUS  Assign3DLutKernelResource(VP_EXECUTE_CAPS &caps, RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting);
+    virtual MOS_STATUS AssignRenderResource(VP_EXECUTE_CAPS &caps, std::vector<VP_SURFACE *> &inputSurfaces, VP_SURFACE *outputSurface, std::vector<VP_SURFACE *> &pastSurfaces, std::vector<VP_SURFACE *> &futureSurfaces, RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting, SwFilterPipe &executedFilters);
+    virtual MOS_STATUS Assign3DLutKernelResource(VP_EXECUTE_CAPS &caps, RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting);
+    virtual MOS_STATUS AssignHVSKernelResource(VP_EXECUTE_CAPS &caps, RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting);
     virtual MOS_STATUS AssignFcResources(VP_EXECUTE_CAPS &caps, std::vector<VP_SURFACE *> &inputSurfaces, VP_SURFACE *outputSurface,
         std::vector<VP_SURFACE *> &pastSurfaces, std::vector<VP_SURFACE *> &futureSurfaces,
         RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting);
@@ -508,6 +508,7 @@ protected:
 
     MOS_STATUS Allocate3DLut(VP_EXECUTE_CAPS& caps);
     MOS_STATUS AllocateResourceFor3DLutKernel(VP_EXECUTE_CAPS& caps);
+    MOS_STATUS AllocateResourceForHVSKernel(VP_EXECUTE_CAPS &caps);
 
 protected:
     MOS_INTERFACE                &m_osInterface;
@@ -529,6 +530,7 @@ protected:
     VP_SURFACE *m_vebox3DLookUpTables                        = nullptr;
     VP_SURFACE *m_vebox3DLookUpTables2D                      = nullptr;
     VP_SURFACE *m_vebox1DLookUpTables                        = nullptr;
+    VP_SURFACE *m_veboxDnHVSTables                           = nullptr;
     VP_SURFACE *m_3DLutKernelCoefSurface                     = nullptr;       //!< Coef surface for 3DLut kernel.
     uint32_t    m_currentDnOutput                            = 0;
     uint32_t    m_currentStmmIndex                           = 0;

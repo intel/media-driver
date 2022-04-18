@@ -539,6 +539,48 @@ public:
     //!
     virtual MOS_STATUS AdjustBlockStatistics();
 
+    //! \brief    Vebox get statistics surface base
+    //! \details  Calculate address of statistics surface address based on the
+    //!           functions which were enabled in the previous call.
+    //! \param    uint8_t* pStat
+    //!           [in] Pointer to Statistics surface
+    //! \param    uint8_t* * pStatSlice0Base
+    //!           [out] Statistics surface Slice 0 base pointer
+    //! \param    uint8_t* * pStatSlice1Base
+    //!           [out] Statistics surface Slice 1 base pointer
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS GetStatisticsSurfaceBase(
+        uint8_t  *pStat,
+        uint8_t **pStatSlice0Base,
+        uint8_t **pStatSlice1Base);
+
+    virtual MOS_STATUS QueryStatLayoutGNE(
+        VEBOX_STAT_QUERY_TYPE QueryType,
+        uint32_t             *pQuery,
+        uint8_t              *pStatSlice0Base,
+        uint8_t              *pStatSlice1Base) { return MOS_STATUS_SUCCESS; };
+
+    //!
+    //! \brief    Vebox update HVS DN states
+    //! \details  CPU update for VEBOX DN states
+    //! \param    bDnEnabled
+    //!           [in] true if DN enabled
+    //! \param    bChromaDenoise
+    //!           [in] true if chroma DN enabled
+    //! \param    bAutoDenoise
+    //!           [in] true if auto DN enabled
+    //! \param    uint32_t* pStatSlice0GNEPtr
+    //!           [out] Pointer to Vebox slice0 GNE data
+    //! \param    uint32_t* pStatSlice1GNEPtr
+    //!           [out] Pointer to Vebox slice1 GNE data
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS UpdateDnHVSParameters(
+        uint32_t *pStatSlice0GNEPtr,
+        uint32_t *pStatSlice1GNEPtr);
 
 protected:
 
@@ -718,6 +760,9 @@ protected:
     virtual MOS_STATUS InitSurfMemCacheControl(VP_EXECUTE_CAPS packetCaps);
 
     virtual MHW_CSPACE VpHalCspace2MhwCspace(VPHAL_CSPACE cspace);
+
+    virtual MOS_STATUS SetupDNTableForHVS(
+        PMHW_VEBOX_STATE_CMD_PARAMS pVeboxStateCmdParams);
 
     virtual MOS_STATUS SetupHDRLuts(
         PMHW_VEBOX_STATE_CMD_PARAMS pVeboxStateCmdParams);

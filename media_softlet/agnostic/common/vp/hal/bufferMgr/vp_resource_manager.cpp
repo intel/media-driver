@@ -210,6 +210,11 @@ VpResourceManager::~VpResourceManager()
         m_allocator.DestroyVpSurface(m_3DLutKernelCoefSurface);
     }
 
+    if (m_veboxDnHVSTables)
+    {
+        m_allocator.DestroyVpSurface(m_veboxDnHVSTables);
+    }
+
     if (m_vebox1DLookUpTables)
     {
         m_allocator.DestroyVpSurface(m_vebox1DLookUpTables);
@@ -1006,6 +1011,10 @@ MOS_STATUS VpResourceManager::AssignRenderResource(VP_EXECUTE_CAPS &caps, std::v
     else if (caps.b3DLutCalc)
     {
         VP_PUBLIC_CHK_STATUS_RETURN(Assign3DLutKernelResource(caps, resHint, surfSetting));
+    }
+    else if (caps.bHVSCalc)
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(AssignHVSKernelResource(caps, resHint, surfSetting));
     }
     else
     {
@@ -1888,6 +1897,42 @@ MOS_STATUS VpResourceManager::Assign3DLutKernelResource(VP_EXECUTE_CAPS &caps, R
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS VpResourceManager::AllocateResourceForHVSKernel(VP_EXECUTE_CAPS &caps)
+{
+    VP_FUNC_CALL();
+    bool     isAllocated = false;
+
+    uint32_t size  = 40 * 4;
+
+    VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.ReAllocateSurface(
+        m_veboxDnHVSTables,
+        "HVSKernelTableSurface",
+        Format_Buffer,
+        MOS_GFXRES_BUFFER,
+        MOS_TILE_LINEAR,
+        size,
+        1,
+        false,
+        MOS_MMC_DISABLED,
+        isAllocated,
+        false,
+        IsDeferredResourceDestroyNeeded(),
+        MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_RENDER));
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpResourceManager::AssignHVSKernelResource(VP_EXECUTE_CAPS &caps, RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting)
+{
+    VP_FUNC_CALL();
+
+    VP_PUBLIC_CHK_STATUS_RETURN(AllocateResourceForHVSKernel(caps));
+
+    surfSetting.surfGroup.insert(std::make_pair(SurfaceTypeHVSTable, m_veboxDnHVSTables));
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS VpResourceManager::AssignSurface(VP_EXECUTE_CAPS caps, VEBOX_SURFACE_ID &surfaceId, SurfaceType surfaceType, VP_SURFACE *inputSurface, VP_SURFACE *outputSurface, VP_SURFACE *pastSurface, VP_SURFACE *futureSurface, VP_SURFACE_GROUP &surfGroup)
 {
     VP_FUNC_CALL();
@@ -2080,6 +2125,13 @@ MOS_STATUS VpResourceManager::AssignVeboxResource(VP_EXECUTE_CAPS& caps, VP_SURF
         VP_PUBLIC_CHK_NULL_RETURN(m_vebox3DLookUpTables2D);
         // Insert Vebox 3Dlut surface
         surfGroup.insert(std::make_pair(SurfaceType3DLut2D, m_vebox3DLookUpTables2D));
+    }
+
+    if (resHint.isHVSTableNeeded)
+    {
+        VP_PUBLIC_CHK_NULL_RETURN(m_veboxDnHVSTables);
+        // Insert Vebox HVS DN surface
+        surfGroup.insert(std::make_pair(SurfaceTypeHVSTable, m_veboxDnHVSTables));
     }
 
     if (Vebox1DlutNeeded(caps))

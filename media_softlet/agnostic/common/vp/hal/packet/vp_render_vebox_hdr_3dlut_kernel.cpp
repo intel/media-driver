@@ -336,7 +336,7 @@ MOS_STATUS VpRenderHdr3DLutKernel::SetWalkerSetting(KERNEL_THREAD_SPACE &threadS
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpRenderHdr3DLutKernel::SetKernelArgs(KERNEL_ARGS &kernelArgs)
+MOS_STATUS VpRenderHdr3DLutKernel::SetKernelArgs(KERNEL_ARGS &kernelArgs, VP_PACKET_SHARED_CONTEXT *sharedContext)
 {
     VP_FUNC_CALL();
     if (kernelArgs.size() != m_kernelArgs.size())

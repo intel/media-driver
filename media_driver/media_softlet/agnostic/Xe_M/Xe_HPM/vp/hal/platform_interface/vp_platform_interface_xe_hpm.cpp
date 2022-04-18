@@ -99,6 +99,7 @@ MOS_STATUS VpPlatformInterfaceXe_Hpm::InitVpRenderHwCaps()
        m_modifyKdllFunctionPointers);
 #if !defined(_FULL_OPEN_SOURCE)
     VP_PUBLIC_CHK_STATUS_RETURN(InitVpCmKernels((const uint32_t *)IGVP3DLUT_GENERATION_XE_HPM, IGVP3DLUT_GENERATION_XE_HPM_SIZE));
+    VP_PUBLIC_CHK_STATUS_RETURN(InitVpCmKernels((const uint32_t *)IGVPHVS_DENOISE_XE_HPM, IGVPHVS_DENOISE_XE_HPM_SIZE));
 #endif
 #endif
 

@@ -83,11 +83,19 @@
 #define VP_VEBOX_STATISTICS_PER_FRAME_SIZE                (32 * sizeof(uint32_t))
 #define VP_VEBOX_STATISTICS_SURFACE_FMD_OFFSET            0
 #define VP_VEBOX_STATISTICS_SURFACE_GNE_OFFSET            0x2C
+#define VP_VEBOX_STATISTICS_SURFACE_TGNE_OFFSET           0x5C
 #define VP_VEBOX_STATISTICS_SURFACE_STD_OFFSET            0x44
 
 //!
+//! \brief Spatial Denoise Definitions
+//!
+#define NOSIE_GNE_CHROMA_THRESHOLD                        1850
+#define NOSIE_GNE_LUMA_THRESHOLD                          32000
+#define NOSIE_GNE_RESOLUTION_THRESHOLD                    2073600  // size of 1080P
+//!
 //! \brief Temporal Denoise Definitions
 //!
+//! 
 #define NOISE_HISTORY_DELTA_DEFAULT                     8
 #define NOISE_HISTORY_MAX_DEFAULT                       192
 #define NOISE_NUMMOTIONPIXELS_THRESHOLD_DEFAULT         0

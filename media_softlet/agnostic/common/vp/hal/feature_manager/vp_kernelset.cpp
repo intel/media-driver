@@ -28,6 +28,7 @@
 #include "vp_kernelset.h"
 #include "vp_render_fc_kernel.h"
 #include "vp_render_vebox_hdr_3dlut_kernel.h"
+#include "vp_render_vebox_hvs_kernel.h"
 
 using namespace vp;
 
@@ -120,6 +121,10 @@ MOS_STATUS VpKernelSet::CreateSingleKernelObject(
         kernel = (VpRenderKernelObj *)MOS_New(VpRenderHdr3DLutKernel, m_hwInterface, kernelId, kernelIndex, m_allocator);
         VP_RENDER_CHK_NULL_RETURN(kernel);
         break;
+    case kernelHVSCalc:
+        kernel = (VpRenderKernelObj *)MOS_New(VpRenderHVSKernel, m_hwInterface, kernelId, kernelIndex, m_allocator);
+        VP_RENDER_CHK_NULL_RETURN(kernel);
+        break;
     default:
         VP_RENDER_ASSERTMESSAGE("No supported kernel, return");
         return MOS_STATUS_UNIMPLEMENTED;
@@ -134,7 +139,8 @@ MOS_STATUS VpKernelSet::CreateKernelObjects(
     KERNEL_SAMPLER_STATE_GROUP& samplerStateGroup,
     KERNEL_CONFIGS& kernelConfigs,
     KERNEL_OBJECTS& kernelObjs,
-    VP_RENDER_CACHE_CNTL& surfMemCacheCtl)
+    VP_RENDER_CACHE_CNTL& surfMemCacheCtl,
+    VP_PACKET_SHARED_CONTEXT *sharedContext)
 {
     VP_FUNC_CALL();
 
@@ -192,7 +198,7 @@ MOS_STATUS VpKernelSet::CreateKernelObjects(
         {
             VP_RENDER_CHK_STATUS_RETURN(VpStatusHandler(FindAndInitKernelObj(kernel)));
 
-            VP_RENDER_CHK_STATUS_RETURN(VpStatusHandler(kernel->SetKernelConfigs(kernelParams[kernelIndex], surfacesGroup, samplerStateGroup, kernelConfigs)));
+            VP_RENDER_CHK_STATUS_RETURN(VpStatusHandler(kernel->SetKernelConfigs(kernelParams[kernelIndex], surfacesGroup, samplerStateGroup, kernelConfigs, sharedContext)));
 
             kernelObjs.insert(std::make_pair(kernelIndex, kernel));
         }

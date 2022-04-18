@@ -163,7 +163,8 @@ MOS_STATUS VpRenderCmdPacket::Prepare()
         m_kernelSamplerStateGroup,
         m_kernelConfigs,
         m_kernelObjs,
-        *m_surfMemCacheCtl));
+        *m_surfMemCacheCtl,
+        m_packetSharedContext));
 
     if (m_submissionMode == MULTI_KERNELS_WITH_MULTI_MEDIA_STATES)
     {
@@ -2047,4 +2048,26 @@ MHW_SETPAR_DECL_SRC(PIPE_CONTROL, VpRenderCmdPacket)
 
     return MOS_STATUS_SUCCESS;
 }
+
+MOS_STATUS VpRenderCmdPacket::SetDnHVSParams(
+    PRENDER_DN_HVS_CAL_PARAMS params)
+{
+    VP_FUNC_CALL();
+    VP_RENDER_CHK_NULL_RETURN(params);
+
+    m_kernelConfigs.insert(std::make_pair(params->kernelId, (void *)params));
+
+    KERNEL_PARAMS kernelParams = {};
+    kernelParams.kernelId      = params->kernelId;
+    // kernelArgs will be initialized in VpRenderHVSKernel::Init with
+    // kernel.GetKernelArgs().
+    kernelParams.kernelThreadSpace.uWidth  = params->threadWidth;
+    kernelParams.kernelThreadSpace.uHeight = params->threadHeight;
+    kernelParams.kernelArgs                = params->kernelArgs;
+    kernelParams.syncFlag                  = true;
+    m_renderKernelParams.push_back(kernelParams);
+
+    return MOS_STATUS_SUCCESS;
+}
+
 }  // namespace vp

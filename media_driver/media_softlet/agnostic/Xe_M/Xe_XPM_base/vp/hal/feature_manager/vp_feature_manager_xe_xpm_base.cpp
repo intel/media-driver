@@ -165,13 +165,6 @@ MOS_STATUS VPFeatureManagerXe_Xpm_Base::CheckFeatures(void * params, bool &bApgF
         return MOS_STATUS_SUCCESS;
     }
 
-    // Disable HVS Denoise in APO path.
-    if (pvpParams->pSrc[0]->pDenoiseParams                       &&
-        pvpParams->pSrc[0]->pDenoiseParams->bEnableHVSDenoise)
-    {
-        return MOS_STATUS_SUCCESS;
-    }
-
     if (nullptr == pvpParams->pSrc[0]->pHDRParams && Is2PassesCSCNeeded(pvpParams->pSrc[0], pvpParams->pTarget[0]))
     {
         return MOS_STATUS_SUCCESS;
@@ -203,8 +196,16 @@ MOS_STATUS VPFeatureManagerXe_Xpm_Base::CheckFeatures(void * params, bool &bApgF
 
     if (pvpParams->pSrc[0]->ScalingPreference == VPHAL_SCALING_PREFER_COMP)
     {
-        VP_PUBLIC_NORMALMESSAGE("DDI choose to use Composition, change to Composition.");
-        return MOS_STATUS_SUCCESS;
+        if (pvpParams->pSrc[0]->pDenoiseParams &&
+            pvpParams->pSrc[0]->pDenoiseParams->bEnableHVSDenoise)
+        {
+            VP_PUBLIC_NORMALMESSAGE("If HVS case, still go to APG path, not need change to Composition");
+        }
+        else
+        {
+            VP_PUBLIC_NORMALMESSAGE("DDI choose to use Composition, change to Composition.");
+            return MOS_STATUS_SUCCESS;
+        }
     }
 
     bApgFuncSupported = true;

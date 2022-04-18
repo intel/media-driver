@@ -135,6 +135,10 @@ MOS_STATUS Policy::RegisterFeatures()
     VP_PUBLIC_CHK_NULL_RETURN(p);
     m_VeboxSfcFeatureHandlers.insert(std::make_pair(FeatureTypeDnOnVebox, p));
 
+    p = MOS_New(PolicyRenderDnHVSCalHandler, m_hwCaps);
+    VP_PUBLIC_CHK_NULL_RETURN(p);
+    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeDnHVSCalOnRender, p));
+
     p = MOS_New(PolicyVeboxCscHandler, m_hwCaps);
     VP_PUBLIC_CHK_NULL_RETURN(p);
     m_VeboxSfcFeatureHandlers.insert(std::make_pair(FeatureTypeCscOnVebox, p));
@@ -1319,27 +1323,40 @@ MOS_STATUS Policy::GetDenoiseExecutionCaps(SwFilter* feature)
 
     if (m_hwCaps.m_veboxHwEntry[inputformat].denoiseSupported)
     {
-        widthAlignUint = MOS_ALIGN_CEIL(m_hwCaps.m_veboxHwEntry[inputformat].horizontalAlignUnit, 2);
-
-        if (inputformat == Format_NV12 ||
-            inputformat == Format_P010 ||
-            inputformat == Format_P016)
+        if (denoiseParams.denoiseParams.bEnableHVSDenoise)
         {
-            heightAlignUnit = MOS_ALIGN_CEIL(m_hwCaps.m_veboxHwEntry[inputformat].verticalAlignUnit, 4);
+            denoiseParams.stage      = DN_STAGE_HVS_KERNEL;
+            denoiseEngine.bEnabled   = 1;
+            denoiseEngine.isolated   = 1;
+            denoiseEngine.RenderNeeded = 1;
+            denoise->SetRenderTargetType(RenderTargetType::RenderTargetTypeParameter);
+            VP_PUBLIC_NORMALMESSAGE("DN_STAGE_HVS_KERNEL");
         }
         else
         {
-            heightAlignUnit = MOS_ALIGN_CEIL(m_hwCaps.m_veboxHwEntry[inputformat].verticalAlignUnit, 2);
-        }
+            denoiseParams.stage = DN_STAGE_DEFAULT;
+            widthAlignUint = MOS_ALIGN_CEIL(m_hwCaps.m_veboxHwEntry[inputformat].horizontalAlignUnit, 2);
 
-        if (MOS_IS_ALIGNED(denoiseParams.heightInput, heightAlignUnit))
-        {
-            denoiseEngine.bEnabled    = 1;
-            denoiseEngine.VeboxNeeded = 1;
-        }
-        else
-        {
-            VP_PUBLIC_NORMALMESSAGE("Denoise Feature is disabled since heightInput (%d) not being %d aligned.", denoiseParams.heightInput, heightAlignUnit);
+            if (inputformat == Format_NV12 ||
+                inputformat == Format_P010 ||
+                inputformat == Format_P016)
+            {
+                heightAlignUnit = MOS_ALIGN_CEIL(m_hwCaps.m_veboxHwEntry[inputformat].verticalAlignUnit, 4);
+            }
+            else
+            {
+                heightAlignUnit = MOS_ALIGN_CEIL(m_hwCaps.m_veboxHwEntry[inputformat].verticalAlignUnit, 2);
+            }
+
+            if (MOS_IS_ALIGNED(denoiseParams.heightInput, heightAlignUnit))
+            {
+                denoiseEngine.bEnabled    = 1;
+                denoiseEngine.VeboxNeeded = 1;
+            }
+            else
+            {
+                VP_PUBLIC_NORMALMESSAGE("Denoise Feature is disabled since heightInput (%d) not being %d aligned.", denoiseParams.heightInput, heightAlignUnit);
+            }
         }
     }
 
@@ -3022,6 +3039,17 @@ MOS_STATUS Policy::UpdateExeCaps(SwFilter* feature, VP_EXECUTE_CAPS& caps, Engin
             else
             {
                 VP_PUBLIC_ASSERTMESSAGE("HDR Kernel has not been enabled in APO path");
+            }
+            break;
+        case FeatureTypeDn:
+            if (feature->GetFilterEngineCaps().isolated)
+            {
+                caps.bHVSCalc = 1;
+                feature->SetFeatureType(FeatureType(FEATURE_TYPE_EXECUTE(DnHVSCal, Render)));
+            }
+            else
+            {
+                VP_PUBLIC_ASSERTMESSAGE("DN HVS Kernel has not been enabled in APO path");
             }
             break;
         default:
