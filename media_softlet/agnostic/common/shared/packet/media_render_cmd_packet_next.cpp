@@ -89,7 +89,10 @@ MOS_STATUS RenderCmdPacketNext::Init()
         m_walkerType = WALKER_TYPE_DISABLED;
     }
 
-    m_miItf = std::static_pointer_cast<mhw::mi::Itf>(m_renderHal->pMhwMiInterface->GetNewMiInterface());
+    if (m_renderHal->pRenderHalPltInterface)
+    {
+        m_miItf = m_renderHal->pRenderHalPltInterface->GetMhwMiItf();
+    }
 
     return MOS_STATUS_SUCCESS;
 }

@@ -518,7 +518,7 @@ MOS_STATUS XRenderHal_Interface_Xe_Hpg_Base::EnableL3Caching(
     MHW_RENDERHAL_CHK_NULL(pRenderHal);
     pMhwRender = pRenderHal->pMhwRenderInterface;
     MHW_RENDERHAL_CHK_NULL(pMhwRender);
-    m_renderItf = std::static_pointer_cast<mhw::render::Itf>(pMhwRender->GetNewRenderInterface());
+    //m_renderItf = std::static_pointer_cast<mhw::render::Itf>(pMhwRender->GetNewRenderInterface());
 
     if (nullptr == pCacheSettings)
     {
@@ -761,12 +761,12 @@ MOS_STATUS XRenderHal_Interface_Xe_Hpg_Base::SetCompositePrologCmd(
     MHW_RENDERHAL_CHK_NULL(pCmdBuffer);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pOsInterface);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwMiInterface);
+    MHW_RENDERHAL_CHK_NULL(m_miItf);
 
     auxTableBaseAddr = pRenderHal->pOsInterface->pfnGetAuxTableBaseAddr(pRenderHal->pOsInterface);
 
     if (auxTableBaseAddr)
     {
-        m_miItf = std::static_pointer_cast<mhw::mi::Itf>(pRenderHal->pMhwMiInterface->GetNewMiInterface());
         auto& parImm = m_miItf->MHW_GETPAR_F(MI_LOAD_REGISTER_IMM)();
         parImm = {};
         parImm.dwRegister = m_miItf->GetMmioInterfaces(mhw::mi::MHW_MMIO_RCS_AUX_TABLE_BASE_LOW);
@@ -844,7 +844,7 @@ MOS_STATUS XRenderHal_Interface_Xe_Hpg_Base::SendComputeWalker(
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pStateHeap);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pStateHeap->pKernelAllocation);
 
-    m_renderItf = std::static_pointer_cast<mhw::render::Itf>(pRenderHal->pMhwRenderInterface->GetNewRenderInterface());
+    //m_renderItf = std::static_pointer_cast<mhw::render::Itf>(pRenderHal->pMhwRenderInterface->GetNewRenderInterface());
     MOS_ZeroMemory(&mhwIdEntryParams, sizeof(mhwIdEntryParams));
 
     pKernelEntry   = &pRenderHal->pStateHeap->pKernelAllocation[pRenderHal->iKernelAllocationID];
@@ -1169,7 +1169,7 @@ MOS_STATUS XRenderHal_Interface_Xe_Hpg_Base::SendTo3DStateBindingTablePoolAlloc(
     MHW_RENDERHAL_CHK_NULL(pRenderHal);
     MHW_RENDERHAL_CHK_NULL(pCmdBuffer);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwRenderInterface);
-    m_renderItf = std::static_pointer_cast<mhw::render::Itf>(pRenderHal->pMhwRenderInterface->GetNewRenderInterface());
+    //m_renderItf = std::static_pointer_cast<mhw::render::Itf>(pRenderHal->pMhwRenderInterface->GetNewRenderInterface());
 
     MHW_RENDERHAL_CHK_NULL(m_renderItf);
     SETPAR_AND_ADDCMD(_3DSTATE_BINDING_TABLE_POOL_ALLOC, m_renderItf, pCmdBuffer);

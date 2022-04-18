@@ -155,20 +155,9 @@ public:
 
         if (m_veboxInterface != nullptr)
         {
-            m_veboxItf = std::static_pointer_cast<mhw::vebox::Itf>(m_veboxInterface->GetNewVeboxInterface());
-
-            if (m_veboxItf)
-            {
-                eStatus = m_veboxItf->DestroyHeap();
-            }
-            else
-            {
-                eStatus = m_veboxInterface->DestroyHeap();
-            }
-
+            eStatus = m_veboxInterface->DestroyHeap();
             MOS_Delete(m_veboxInterface);
             m_veboxInterface = nullptr;
-            m_veboxItf       = nullptr;
             if (eStatus != MOS_STATUS_SUCCESS)
             {
                 VP_PUBLIC_ASSERTMESSAGE("Failed to destroy Vebox Interface, eStatus:%d.\n", eStatus);
@@ -176,7 +165,6 @@ public:
         }
 
         m_veboxInterface = veboxInterface;
-        m_veboxItf = std::static_pointer_cast<mhw::vebox::Itf>(veboxInterface->GetNewVeboxInterface());
     }
 
     void SetMhwSfcInterface(MhwSfcInterface *sfcInterface)
@@ -195,6 +183,72 @@ public:
         m_sfcInterface = sfcInterface;
     }
 
+    void SetMhwVeboxItf(std::shared_ptr<mhw::vebox::Itf> veboxItf)
+    {
+        MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
+        if (veboxItf == nullptr)
+        {
+            return;
+        }
+
+        if (m_veboxItf != nullptr)
+        {
+            eStatus = m_veboxItf->DestroyHeap();
+
+            m_veboxItf       = nullptr;
+            if (eStatus != MOS_STATUS_SUCCESS)
+            {
+                VP_PUBLIC_ASSERTMESSAGE("Failed to destroy Vebox Interface, eStatus:%d.\n", eStatus);
+            }
+        }
+
+        m_veboxItf = veboxItf;
+    }
+
+    void SetMhwSfcItf(std::shared_ptr<mhw::sfc::Itf> sfcItf)
+    {
+        if (sfcItf == nullptr)
+        {
+            return;
+        }
+
+        if (m_sfcItf != nullptr)
+        {
+            m_sfcItf       = nullptr;
+        }
+
+        m_sfcItf = sfcItf;
+    }
+
+    void SetMhwMiItf(std::shared_ptr<mhw::mi::Itf> miItf)
+    {
+        if (miItf == nullptr)
+        {
+            return;
+        }
+        if (m_miItf != nullptr)
+        {
+            m_miItf = nullptr;
+        }
+
+        m_miItf = miItf;
+    }
+
+    void SetMhwRenderItf(std::shared_ptr<mhw::render::Itf> renderItf)
+    {
+        if (renderItf == nullptr)
+        {
+            return;
+        }
+
+        if (m_renderItf != nullptr)
+        {
+            m_renderItf = nullptr;
+        }
+
+        m_renderItf = renderItf;
+    }
+
 protected:
     // Internals
     PLATFORM             m_platform = {};
@@ -207,7 +261,10 @@ protected:
     PMHW_VEBOX_INTERFACE m_veboxInterface = nullptr;
     MhwCpInterface *     m_cpInterface    = nullptr;
     PMHW_SFC_INTERFACE   m_sfcInterface   = nullptr;
-    std::shared_ptr<mhw::vebox::Itf> m_veboxItf = nullptr;
+    std::shared_ptr<mhw::vebox::Itf>  m_veboxItf  = nullptr;
+    std::shared_ptr<mhw::sfc::Itf>    m_sfcItf    = nullptr;
+    std::shared_ptr<mhw::mi::Itf>     m_miItf     = nullptr;
+    std::shared_ptr<mhw::render::Itf> m_renderItf = nullptr;
 
     // StatusTable indicating if command is done by gpu or not
     VPHAL_STATUS_TABLE       m_statusTable = {};

@@ -68,11 +68,7 @@ MOS_STATUS VpPipelineAdapter::Init(
 
     vpMhwinterface.m_settings         = (void *) &settings;
 
-    if (vpMhwinterface.m_veboxInterface)
-    {
-        m_veboxItf = std::static_pointer_cast<mhw::vebox::Itf>(vpMhwinterface.m_veboxInterface->GetNewVeboxInterface());
-    }
-
+    m_veboxItf = vpMhwinterface.m_vpPlatformInterface->GetMhwVeboxItf();
     if (m_veboxItf)
     {
         const MHW_VEBOX_HEAP* veboxHeap = nullptr;

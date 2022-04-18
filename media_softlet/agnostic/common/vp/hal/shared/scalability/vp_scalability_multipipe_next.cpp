@@ -136,7 +136,8 @@ MOS_STATUS VpScalabilityMultiPipeNext::Initialize(const MediaScalabilityOption &
     m_osInterface = m_hwInterface->m_osInterface;
     SCALABILITY_CHK_NULL_RETURN(m_osInterface);
     m_miInterface = m_hwInterface->m_mhwMiInterface;
-    SCALABILITY_CHK_NULL_RETURN(m_miInterface);
+    SCALABILITY_CHK_NULL_RETURN(m_hwInterface->m_vpPlatformInterface);
+    m_miItf = m_hwInterface->m_vpPlatformInterface->GetMhwMiItf();
 
     VpScalabilityOption *vpScalabilityOption = MOS_New(VpScalabilityOption, (const VpScalabilityOption &)option);
     SCALABILITY_CHK_NULL_RETURN(vpScalabilityOption);
@@ -206,7 +207,6 @@ MOS_STATUS VpScalabilityMultiPipeNext::Initialize(const MediaScalabilityOption &
     }
 #endif
     m_gpuCtxCreateOption = (PMOS_GPUCTX_CREATOPTIONS)(gpuCtxCreateOption);
-    m_miItf              = std::static_pointer_cast<mhw::mi::Itf>(m_miInterface->GetNewMiInterface());
 
     //Allocate and init for semaphores
     SCALABILITY_CHK_STATUS_RETURN(AllocateSemaphore());

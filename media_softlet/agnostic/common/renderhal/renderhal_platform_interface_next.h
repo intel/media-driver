@@ -39,6 +39,8 @@
 #include "media_packet.h"
 #include "vp_utils.h"
 #include "media_feature_manager.h"
+#include "media_interfaces_mhw_next.h"
+#include "mhw_mi_itf.h"
 
 class XRenderHal_Platform_Interface_Next : public XRenderHal_Platform_Interface, public mhw::render::Itf::ParSetting
 {
@@ -127,6 +129,12 @@ public:
         PMHW_GENERIC_PROLOG_PARAMS  pParams,
         MHW_MI_MMIOREGISTERS* pMmioReg = nullptr);
 
+    MOS_STATUS CreateMhwInterfaces(
+        PRENDERHAL_INTERFACE        pRenderHal,
+        PMOS_INTERFACE              pOsInterface);
+
+    std::shared_ptr<mhw::mi::Itf> GetMhwMiItf();
+
 protected:
 
     PRENDERHAL_INTERFACE              m_renderHal = nullptr;
@@ -134,7 +142,7 @@ protected:
     PMHW_GPGPU_WALKER_PARAMS          m_gpgpuWalkerParams = nullptr;
     PMHW_ID_ENTRY_PARAMS              m_interfaceDescriptorParams = nullptr;
     std::shared_ptr<mhw::render::Itf> m_renderItf = nullptr;
-    std::shared_ptr<mhw::mi::Itf>      m_miItf                     = nullptr;
+    std::shared_ptr<mhw::mi::Itf>     m_miItf     = nullptr;
 
 MEDIA_CLASS_DEFINE_END(XRenderHal_Platform_Interface_Next)
 };

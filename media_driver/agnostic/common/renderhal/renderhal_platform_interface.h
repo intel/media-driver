@@ -571,6 +571,13 @@ public:
 
         return;
     }
+
+    virtual MOS_STATUS CreateMhwInterfaces(
+        PRENDERHAL_INTERFACE        pRenderHal,
+        PMOS_INTERFACE              pOsInterface) = 0;
+
+    virtual std::shared_ptr<mhw::mi::Itf> GetMhwMiItf() = 0;
+
 };
 
 #endif // __RENDERHAL_PLATFORM_INTERFACE_H__

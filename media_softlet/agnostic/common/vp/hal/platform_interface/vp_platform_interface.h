@@ -197,6 +197,46 @@ public:
         return !m_vpMmcDisabled;
     }
 
+    inline void SetMhwSfcItf(std::shared_ptr<mhw::sfc::Itf> sfcItf)
+    {
+        m_sfcItf = sfcItf;
+    }
+
+    inline void SetMhwVeboxItf(std::shared_ptr<mhw::vebox::Itf> veboxItf)
+    {
+        m_veboxItf = veboxItf;
+    }
+
+    inline void SetMhwRenderItf(std::shared_ptr<mhw::render::Itf> renderItf)
+    {
+        m_renderItf = renderItf;
+    }
+
+    inline void SetMhwMiItf(std::shared_ptr<mhw::mi::Itf> miItf)
+    {
+        m_miItf = miItf;
+    }
+
+    inline std::shared_ptr<mhw::sfc::Itf> GetMhwSfcItf()
+    {
+        return m_sfcItf;
+    }
+
+    inline std::shared_ptr<mhw::vebox::Itf> GetMhwVeboxItf()
+    {
+        return m_veboxItf;
+    }
+
+    inline std::shared_ptr<mhw::render::Itf> GetMhwRenderItf()
+    {
+        return m_renderItf;
+    }
+
+    inline std::shared_ptr<mhw::mi::Itf> GetMhwMiItf()
+    {
+        return m_miItf;
+    }
+
     virtual VpKernelConfig &GetKernelConfig() = 0;
 
     MOS_STATUS GetKernelParam(VpKernelID kernlId, RENDERHAL_KERNEL_PARAM &param);
@@ -213,6 +253,10 @@ protected:
     bool m_sfc2PassScalingPerfMode = false;
     bool m_vpMmcDisabled = false;
     MediaUserSettingSharedPtr m_userSettingPtr  = nullptr;  //!< usersettingInstance
+    std::shared_ptr<mhw::vebox::Itf>        m_veboxItf  = nullptr;
+    std::shared_ptr<mhw::sfc::Itf>          m_sfcItf    = nullptr;
+    std::shared_ptr<mhw::render::Itf>       m_renderItf = nullptr;
+    std::shared_ptr<mhw::mi::Itf>           m_miItf     = nullptr;
 
     MEDIA_CLASS_DEFINE_END(VpPlatformInterface)
 };

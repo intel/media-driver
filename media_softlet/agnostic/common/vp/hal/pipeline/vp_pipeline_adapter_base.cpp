@@ -29,6 +29,7 @@
 #include "media_interfaces_vphal.h"
 #include "vp_platform_interface.h"
 #include "vphal_debug.h"
+#include "media_interfaces_mhw_next.h"
 
 VpPipelineAdapterBase::VpPipelineAdapterBase(
     vp::VpPlatformInterface &vpPlatformInterface,
@@ -79,17 +80,22 @@ MOS_STATUS VpPipelineAdapterBase::GetVpMhwInterface(
     if (MEDIA_IS_SKU(m_skuTable, FtrVERing) ||
         MEDIA_IS_SKU(m_skuTable, FtrSFCPipe))
     {
-        MhwInterfaces *             mhwInterfaces = nullptr;
-        MhwInterfaces::CreateParams params;
+        MhwInterfacesNext *mhwInterfaces = nullptr;
+        MhwInterfacesNext::CreateParams params;
         MOS_ZeroMemory(&params, sizeof(params));
         params.Flags.m_sfc   = MEDIA_IS_SKU(m_skuTable, FtrSFCPipe);
         params.Flags.m_vebox = MEDIA_IS_SKU(m_skuTable, FtrVERing);
 
-        mhwInterfaces = MhwInterfaces::CreateFactory(params, m_osInterface);
+        mhwInterfaces = MhwInterfacesNext::CreateFactory(params, m_osInterface);
         if (mhwInterfaces)
         {
             SetMhwVeboxInterface(mhwInterfaces->m_veboxInterface);
             SetMhwSfcInterface(mhwInterfaces->m_sfcInterface);
+
+            SetMhwVeboxItf(mhwInterfaces->m_veboxItf);
+            SetMhwSfcItf(mhwInterfaces->m_sfcItf);
+            SetMhwMiItf(m_vprenderHal->pRenderHalPltInterface->GetMhwMiItf());
+            //SetMhwRenderItf(mhwInterfaces->m_renderItf);
 
             // MhwInterfaces always create CP and MI interfaces, so we have to delete those we don't need.
             MOS_Delete(mhwInterfaces->m_miInterface);
@@ -115,7 +121,11 @@ MOS_STATUS VpPipelineAdapterBase::GetVpMhwInterface(
     vpMhwinterface.m_cpInterface    = m_cpInterface;
     vpMhwinterface.m_mhwMiInterface = m_vprenderHal->pMhwMiInterface;
     vpMhwinterface.m_statusTable    = &m_statusTable;
-
+    m_vpPlatformInterface.SetMhwSfcItf(m_sfcItf);
+    m_vpPlatformInterface.SetMhwVeboxItf(m_veboxItf);
+    m_vpPlatformInterface.SetMhwMiItf(m_miItf);
+    vpMhwinterface.m_vpPlatformInterface = &m_vpPlatformInterface;
+    //vpMhwinterface.m_vpPlatformInterface->SetMhwRenderItf(m_renderItf);
     return eStatus;
 }
 

@@ -35,6 +35,9 @@
 #include "media_interfaces_mhw.h"
 #include "vp_feature_report.h"
 #include "mhw_vebox_itf.h"
+#include "mhw_sfc_itf.h"
+#include "mhw_mi_itf.h"
+#include "mhw_render_itf.h"
 
 namespace vp
 {
@@ -106,6 +109,7 @@ struct _VP_MHWINTERFACE
 
     void *m_debugInterface;
     vp::VpUserFeatureControl *m_userFeatureControl;
+
 };
 
 using VP_MHWINTERFACE  = _VP_MHWINTERFACE;

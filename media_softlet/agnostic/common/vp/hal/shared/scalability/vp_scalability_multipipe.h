@@ -149,7 +149,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS AddMiStoreDataImmCmd(
+    virtual MOS_STATUS AddMiStoreDataImmCmd(
         PMOS_RESOURCE               resource,
         PMOS_COMMAND_BUFFER         cmdBuffer);
 

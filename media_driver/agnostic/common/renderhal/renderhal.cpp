@@ -6926,21 +6926,12 @@ MOS_STATUS RenderHal_InitInterface(
     pRenderHal->pSkuTable                     = pOsInterface->pfnGetSkuTable(pOsInterface);
     pRenderHal->pWaTable                      = pOsInterface->pfnGetWaTable(pOsInterface);
 
-    // create mhw interfaces including mhw_render, cp, and mi
-    MhwInterfaces::CreateParams params;
-    MOS_ZeroMemory(&params, sizeof(params));
-    params.Flags.m_render = true;
-    params.m_heapMode = pRenderHal->bDynamicStateHeap;
-    MhwInterfaces *mhwInterfaces =  MhwInterfaces::CreateFactory(params, pOsInterface);
-    MHW_RENDERHAL_CHK_NULL(mhwInterfaces);
-    MHW_RENDERHAL_CHK_NULL(mhwInterfaces->m_cpInterface);
-    MHW_RENDERHAL_CHK_NULL(mhwInterfaces->m_miInterface);
-    MHW_RENDERHAL_CHK_NULL(mhwInterfaces->m_renderInterface);
-    pRenderHal->pCpInterface = mhwInterfaces->m_cpInterface;
-    pRenderHal->pMhwMiInterface = mhwInterfaces->m_miInterface;
-    pRenderHal->pMhwRenderInterface = mhwInterfaces->m_renderInterface;
+    // Initialize hardware resources for the current Os/Platform
+    pRenderHal->pRenderHalPltInterface = RenderHalDevice::CreateFactory(pOsInterface);
+    MHW_RENDERHAL_CHK_NULL(pRenderHal->pRenderHalPltInterface);
 
-    MOS_Delete(mhwInterfaces);
+    // create mhw interfaces including mhw_render, cp, and mi
+    pRenderHal->pRenderHalPltInterface->CreateMhwInterfaces(pRenderHal, pOsInterface);
 
     // Set Cp Interface
     *ppCpInterface = pRenderHal->pCpInterface;
@@ -7118,10 +7109,6 @@ MOS_STATUS RenderHal_InitInterface(
     pRenderHal->pfnSetSamplerStates           = RenderHal_SetSamplerStates;
 
     pRenderHal->pfnIs2PlaneNV12Needed         = RenderHal_Is2PlaneNV12Needed;
-
-    // Initialize hardware resources for the current Os/Platform
-    pRenderHal->pRenderHalPltInterface = RenderHalDevice::CreateFactory(pOsInterface);
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pRenderHalPltInterface);
 
     // Set the platform-specific fields in renderhal
     // Set State Heap settings

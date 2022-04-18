@@ -29,10 +29,8 @@
 //!
 
 #include "renderhal_platform_interface_next.h"
-#include "mhw_mi_cmdpar.h"
-#include "mhw_mi_itf.h"
 #include "media_packet.h"
-#include "mhw_utilities.h"
+#include "mhw_utilities_next.h"
 
 MOS_STATUS XRenderHal_Platform_Interface_Next::AddPipelineSelectCmd(
     PRENDERHAL_INTERFACE        pRenderHal,
@@ -45,9 +43,7 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::AddPipelineSelectCmd(
 
     MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
     MHW_RENDERHAL_CHK_NULL_RETURN(pCmdBuffer);
-    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pMhwRenderInterface);
     m_renderHal = pRenderHal;
-    m_renderItf = std::static_pointer_cast<mhw::render::Itf>(pRenderHal->pMhwRenderInterface->GetNewRenderInterface());
 
     MHW_RENDERHAL_CHK_NULL_RETURN(m_renderItf);
 
@@ -68,9 +64,7 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::SendStateBaseAddress(
 
     MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
     MHW_RENDERHAL_CHK_NULL_RETURN(pCmdBuffer);
-    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pMhwRenderInterface);
     m_renderHal = pRenderHal;
-    m_renderItf = std::static_pointer_cast<mhw::render::Itf>(pRenderHal->pMhwRenderInterface->GetNewRenderInterface());
 
     MHW_RENDERHAL_CHK_NULL_RETURN(m_renderItf);
     SETPAR_AND_ADDCMD(STATE_BASE_ADDRESS, m_renderItf, pCmdBuffer);
@@ -87,9 +81,7 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::AddSipStateCmd(
 
     MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
     MHW_RENDERHAL_CHK_NULL_RETURN(pCmdBuffer);
-    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pMhwRenderInterface);
     m_renderHal = pRenderHal;
-    m_renderItf = std::static_pointer_cast<mhw::render::Itf>(pRenderHal->pMhwRenderInterface->GetNewRenderInterface());
 
     MHW_RENDERHAL_CHK_NULL_RETURN(m_renderItf);
     SETPAR_AND_ADDCMD(STATE_SIP, m_renderItf, pCmdBuffer);
@@ -108,9 +100,7 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::AddCfeStateCmd(
 
     MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
     MHW_RENDERHAL_CHK_NULL_RETURN(pCmdBuffer);
-    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pMhwRenderInterface);
     m_renderHal = pRenderHal;
-    m_renderItf = std::static_pointer_cast<mhw::render::Itf>(pRenderHal->pMhwRenderInterface->GetNewRenderInterface());
 
     MHW_RENDERHAL_CHK_NULL_RETURN(m_renderItf);
     SETPAR_AND_ADDCMD(CFE_STATE, m_renderItf, pCmdBuffer);
@@ -131,11 +121,8 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::SendChromaKey(
 
     MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
     MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pOsInterface);
-    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pMhwMiInterface);
     MHW_RENDERHAL_CHK_NULL_RETURN(pCmdBuffer);
-    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pMhwRenderInterface);
     m_renderHal = pRenderHal;
-    m_renderItf = std::static_pointer_cast<mhw::render::Itf>(pRenderHal->pMhwRenderInterface->GetNewRenderInterface());
 
     pChromaKeyParams = pRenderHal->ChromaKey;
     for (int32_t i = pRenderHal->iChromaKeyCount; i > 0; i--, pChromaKeyParams++)
@@ -179,11 +166,8 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::SendPalette(
 
     MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
     MHW_RENDERHAL_CHK_NULL_RETURN(pCmdBuffer);
-    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pMhwRenderInterface);
-    m_renderHal = pRenderHal;
-    m_renderItf = std::static_pointer_cast<mhw::render::Itf>(pRenderHal->pMhwRenderInterface->GetNewRenderInterface());
-
     MHW_RENDERHAL_CHK_NULL_RETURN(m_renderItf);
+    m_renderHal = pRenderHal;
 
     pPaletteLoadParams = pRenderHal->Palette;
     for (int32_t i = pRenderHal->iMaxPalettes; i > 0; i--, pPaletteLoadParams++)
@@ -203,11 +187,9 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::SetL3Cache(
 {
     MOS_STATUS eStatus    = MOS_STATUS_SUCCESS;
     MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
-    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pMhwRenderInterface);
-    m_renderHal = pRenderHal;
-    m_renderItf = std::static_pointer_cast<mhw::render::Itf>(pRenderHal->pMhwRenderInterface->GetNewRenderInterface());
-
     MHW_RENDERHAL_CHK_NULL_RETURN(m_renderItf);
+
+    m_renderHal = pRenderHal;
     MHW_RENDERHAL_CHK_STATUS_RETURN(m_renderItf->SetL3Cache(pCmdBuffer, pRenderHal->pMhwMiInterface));
 
     return eStatus;
@@ -217,10 +199,6 @@ PMHW_MI_MMIOREGISTERS XRenderHal_Platform_Interface_Next::GetMmioRegisters(
     PRENDERHAL_INTERFACE        pRenderHal)
 {
     PMHW_MI_MMIOREGISTERS     pMmioRegisters = nullptr;
-    if (pRenderHal && pRenderHal->pMhwRenderInterface)
-    {
-        m_renderItf = std::static_pointer_cast<mhw::render::Itf>(pRenderHal->pMhwRenderInterface->GetNewRenderInterface());
-    }
 
     if (m_renderItf)
     {
@@ -238,16 +216,10 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::EnablePreemption(
     MEDIA_FEATURE_TABLE* m_skuTable = nullptr;
     MHW_MI_LOAD_REGISTER_IMM_PARAMS loadRegisterParams = {};
     MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
+    MHW_RENDERHAL_CHK_NULL_RETURN(m_miItf);
 
     m_skuTable = pRenderHal->pOsInterface->pfnGetSkuTable(pRenderHal->pOsInterface);
     MHW_MI_CHK_NULL(m_skuTable);
-
-    if (pRenderHal && pRenderHal->pMhwRenderInterface)
-    {
-        m_miItf = std::static_pointer_cast<mhw::mi::Itf>(pRenderHal->pMhwMiInterface->GetNewMiInterface());
-    }
-
-    MHW_RENDERHAL_CHK_NULL_RETURN(m_miItf);
 
     if (MEDIA_IS_SKU(m_skuTable, FtrPerCtxtPreemptionGranularityControl))
     {
@@ -268,9 +240,8 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::SendPredicationCommand(
     MOS_STATUS  eStatus = MOS_STATUS_SUCCESS;
 
     MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
-    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pMhwMiInterface);
-    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pMhwMiInterface);
-    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pMhwMiInterface->GetMmioRegisters());
+    MHW_RENDERHAL_CHK_NULL_RETURN(m_miItf);
+    MHW_RENDERHAL_CHK_NULL_RETURN(m_miItf->GetMmioRegisters());
 
     MOS_SYNC_PARAMS syncParams;
     MOS_ZeroMemory(&syncParams, sizeof(syncParams));
@@ -285,10 +256,6 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::SendPredicationCommand(
 
     MHW_CHK_STATUS_RETURN(pRenderHal->pOsInterface->pfnPerformOverlaySync(pRenderHal->pOsInterface, &syncParams));
     MHW_CHK_STATUS_RETURN(pRenderHal->pOsInterface->pfnResourceWait(pRenderHal->pOsInterface, &syncParams));
-
-    m_miItf = std::static_pointer_cast<mhw::mi::Itf>(pRenderHal->pMhwMiInterface->GetNewMiInterface());
-    MHW_RENDERHAL_CHK_NULL_RETURN(m_miItf);
-    MHW_RENDERHAL_CHK_NULL_RETURN(m_miItf->GetMmioRegisters());
 
     if (pRenderHal->PredicationParams.predicationNotEqualZero)
     {
@@ -461,11 +428,8 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::SendMarkerCommand(
 
     //-----------------------------------------
     MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
-    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pMhwMiInterface);
-    //-----------------------------------------
-
-    m_miItf = std::static_pointer_cast<mhw::mi::Itf>(pRenderHal->pMhwMiInterface->GetNewMiInterface());
     MHW_RENDERHAL_CHK_NULL_RETURN(m_miItf);
+    //-----------------------------------------
 
     if (isRender)
     {
@@ -502,13 +466,10 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::AddMiPipeControl(
 
     //------------------------------------
     MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
-    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pMhwMiInterface);
     MHW_RENDERHAL_CHK_NULL_RETURN(pCmdBuffer);
     MHW_RENDERHAL_CHK_NULL_RETURN(params);
-    //------------------------------------
-
-    m_miItf = std::static_pointer_cast<mhw::mi::Itf>(pRenderHal->pMhwMiInterface->GetNewMiInterface());
     MHW_RENDERHAL_CHK_NULL_RETURN(m_miItf);
+    //------------------------------------
 
     auto& par = m_miItf->MHW_GETPAR_F(PIPE_CONTROL)();
     par = {};
@@ -555,7 +516,7 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::AddMiLoadRegisterImmCmd(
 
     //-----------------------------------------
     MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
-    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pMhwMiInterface);
+    MHW_RENDERHAL_CHK_NULL_RETURN(m_miItf);
     MHW_RENDERHAL_CHK_NULL_RETURN(pCmdBuffer);
     MHW_RENDERHAL_CHK_NULL_RETURN(params);
     //-----------------------------------------
@@ -591,12 +552,48 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::SendGenericPrologCmd(
 
     //-----------------------------------------
     MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
-    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pMhwMiInterface);
+    MHW_RENDERHAL_CHK_NULL_RETURN(m_miItf);
     MHW_RENDERHAL_CHK_NULL_RETURN(pCmdBuffer);
     MHW_RENDERHAL_CHK_NULL_RETURN(pParams);
     //-----------------------------------------
 
-    MHW_CHK_STATUS_RETURN(Mhw_SendGenericPrologCmd_Next(pCmdBuffer, pParams, pMmioReg));
+    MHW_CHK_STATUS_RETURN(Mhw_SendGenericPrologCmdNext(pCmdBuffer, pParams, m_miItf, pMmioReg));
 
     return eStatus;
+}
+
+MOS_STATUS XRenderHal_Platform_Interface_Next::CreateMhwInterfaces(
+    PRENDERHAL_INTERFACE        pRenderHal,
+    PMOS_INTERFACE              pOsInterface)
+{
+    MOS_STATUS  eStatus = MOS_STATUS_SUCCESS;
+
+    //-----------------------------------------
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pOsInterface);
+    //-----------------------------------------
+
+    MhwInterfacesNext::CreateParams params;
+    MOS_ZeroMemory(&params, sizeof(params));
+    params.Flags.m_render = true;
+    params.m_heapMode = pRenderHal->bDynamicStateHeap;
+    MhwInterfacesNext *mhwInterfaces =  MhwInterfacesNext::CreateFactory(params, pOsInterface);
+    MHW_RENDERHAL_CHK_NULL_RETURN(mhwInterfaces);
+    MHW_RENDERHAL_CHK_NULL_RETURN(mhwInterfaces->m_cpInterface);
+    MHW_RENDERHAL_CHK_NULL_RETURN(mhwInterfaces->m_miInterface);
+    MHW_RENDERHAL_CHK_NULL_RETURN(mhwInterfaces->m_renderInterface);
+    pRenderHal->pCpInterface = mhwInterfaces->m_cpInterface;
+    pRenderHal->pMhwMiInterface = mhwInterfaces->m_miInterface;
+    pRenderHal->pMhwRenderInterface = mhwInterfaces->m_renderInterface;
+    m_renderItf = mhwInterfaces->m_renderItf;
+    m_miItf     = mhwInterfaces->m_miItf;
+
+    MOS_Delete(mhwInterfaces);
+
+    return eStatus;
+}
+
+std::shared_ptr<mhw::mi::Itf> XRenderHal_Platform_Interface_Next::GetMhwMiItf()
+{
+    return m_miItf;
 }

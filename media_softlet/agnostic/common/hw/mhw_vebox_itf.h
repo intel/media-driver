@@ -98,6 +98,8 @@ public:
 
     virtual bool IsVeboxScalabilitywith4K() = 0;
 
+    virtual MOS_STATUS Add1DLutState(void *&surface, PMHW_1DLUT_PARAMS p1DLutParams) = 0;
+
     _VEBOX_CMD_DEF(_MHW_CMD_ALL_DEF_FOR_ITF);
 
 };

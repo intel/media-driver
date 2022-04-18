@@ -1690,9 +1690,6 @@ MOS_STATUS VpVeboxCmdPacketNext::RenderVeboxCmd(
     }
     VP_RENDER_CHK_NULL_RETURN(pVeboxHeap);
 
-    m_miItf = std::static_pointer_cast<mhw::mi::Itf>(m_hwInterface->m_mhwMiInterface->GetNewMiInterface());
-
-
 #ifdef _MMC_SUPPORTED
 
     VP_RENDER_CHK_STATUS_RETURN(setVeboxProCmd(pMhwMiInterface, pVeboxInterface, CmdBuffer));
@@ -2048,7 +2045,6 @@ MOS_STATUS VpVeboxCmdPacketNext::SendVecsStatusTag(
                                   true,
                                   true));
 
-    m_miItf = std::static_pointer_cast<mhw::mi::Itf>(pMhwMiInterface->GetNewMiInterface());
     VP_RENDER_CHK_NULL_RETURN(m_miItf);
 
     //SETPAR_AND_ADDCMD(MI_FLUSH_DW, m_miItf, pCmdBuffer);

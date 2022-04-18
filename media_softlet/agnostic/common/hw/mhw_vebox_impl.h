@@ -895,6 +895,11 @@ public:
         return m_veboxScalabilitywith4K;
     }
 
+    MOS_STATUS Add1DLutState(void *&surface, PMHW_1DLUT_PARAMS p1DLutParams)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
     _MHW_SETCMD_OVERRIDE_DECL(VEBOX_SURFACE_STATE)
     {
         _MHW_SETCMD_CALLBASE(VEBOX_SURFACE_STATE);

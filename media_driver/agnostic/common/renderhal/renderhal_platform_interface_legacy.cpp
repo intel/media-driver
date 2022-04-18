@@ -543,3 +543,37 @@ MOS_STATUS XRenderHal_Platform_Interface_Legacy::SendGenericPrologCmd(
 finish:
     return eStatus;
 }
+
+MOS_STATUS XRenderHal_Platform_Interface_Legacy::CreateMhwInterfaces(
+    PRENDERHAL_INTERFACE        pRenderHal,
+    PMOS_INTERFACE              pOsInterface)
+{
+    MOS_STATUS  eStatus = MOS_STATUS_SUCCESS;
+
+    //-----------------------------------------
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pOsInterface);
+    //-----------------------------------------
+
+    MhwInterfaces::CreateParams params;
+    MOS_ZeroMemory(&params, sizeof(params));
+    params.Flags.m_render = true;
+    params.m_heapMode = pRenderHal->bDynamicStateHeap;
+    MhwInterfaces *mhwInterfaces =  MhwInterfaces::CreateFactory(params, pOsInterface);
+    MHW_RENDERHAL_CHK_NULL_RETURN(mhwInterfaces);
+    MHW_RENDERHAL_CHK_NULL_RETURN(mhwInterfaces->m_cpInterface);
+    MHW_RENDERHAL_CHK_NULL_RETURN(mhwInterfaces->m_miInterface);
+    MHW_RENDERHAL_CHK_NULL_RETURN(mhwInterfaces->m_renderInterface);
+    pRenderHal->pCpInterface = mhwInterfaces->m_cpInterface;
+    pRenderHal->pMhwMiInterface = mhwInterfaces->m_miInterface;
+    pRenderHal->pMhwRenderInterface = mhwInterfaces->m_renderInterface;
+
+    MOS_Delete(mhwInterfaces);
+
+    return eStatus;
+}
+
+std::shared_ptr<mhw::mi::Itf> XRenderHal_Platform_Interface_Legacy::GetMhwMiItf()
+{
+    return nullptr;
+}

@@ -466,10 +466,7 @@ MOS_STATUS VpPipeline::GetSystemVeboxNumber()
     else if (m_forceMultiplePipe == MOS_SCALABILITY_ENABLE_MODE_DEFAULT)
     {
         std::shared_ptr<mhw::vebox::Itf> veboxItf = nullptr;
-        if (m_vpMhwInterface.m_veboxInterface)
-        {
-            veboxItf = std::static_pointer_cast<mhw::vebox::Itf>(m_vpMhwInterface.m_veboxInterface->GetNewVeboxInterface());
-        }
+        veboxItf = m_vpMhwInterface.m_vpPlatformInterface->GetMhwVeboxItf();
 
         if (veboxItf && !(veboxItf->IsVeboxScalabilitywith4K()))
         {

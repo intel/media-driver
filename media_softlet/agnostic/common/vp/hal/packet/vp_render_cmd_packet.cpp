@@ -816,8 +816,8 @@ MOS_STATUS VpRenderCmdPacket::InitStateHeapSurface(SurfaceType type, RENDERHAL_S
 
     VP_RENDER_CHK_NULL_RETURN(m_hwInterface);
     VP_RENDER_CHK_NULL_RETURN(m_hwInterface->m_veboxInterface);
-    veboxItf = std::static_pointer_cast<mhw::vebox::Itf>(m_hwInterface->m_veboxInterface->GetNewVeboxInterface());
 
+    veboxItf = m_hwInterface->m_vpPlatformInterface->GetMhwVeboxItf();
     if (veboxItf)
     {
         VP_RENDER_CHK_STATUS_RETURN(veboxItf->GetVeboxHeapInfo(
@@ -1622,7 +1622,6 @@ MOS_STATUS VpRenderCmdPacket::SubmitWithMultiKernel(MOS_COMMAND_BUFFER *commandB
     pPerfProfiler   = m_renderHal->pPerfProfiler;
     pOsContext      = pOsInterface->pOsContext;
     pMmioRegisters  = pMhwRender->GetMmioRegisters();
-    m_miItf         = std::static_pointer_cast<mhw::mi::Itf>(pMhwMiInterface->GetNewMiInterface());
 
     RENDER_PACKET_CHK_STATUS_RETURN(SetPowerMode(kernelCombinedFc));
 

@@ -27,6 +27,7 @@
 //!           this file is for the base interface which is shared by all components.
 //!
 #include "vp_scalability_singlepipe.h"
+#include "vp_platform_interface.h"
 
 namespace vp 
 {
@@ -41,6 +42,7 @@ VpScalabilitySinglePipe::VpScalabilitySinglePipe(void * hwInterface, MediaContex
     m_hwInterface = (PVP_MHWINTERFACE)hwInterface;
     m_osInterface = m_hwInterface->m_osInterface;
     m_miInterface = m_hwInterface->m_mhwMiInterface;
+    m_miItf       = m_hwInterface->m_vpPlatformInterface->GetMhwMiItf();
 }
 
 VpScalabilitySinglePipe::~VpScalabilitySinglePipe()

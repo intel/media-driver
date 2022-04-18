@@ -34,6 +34,8 @@
 #include "vp_render_ief.h"
 #include "mos_interface.h"
 #include "mhw_sfc_itf.h"
+#include "mhw_mi_itf.h"
+#include "vp_platform_interface.h"
 
 namespace vp {
 
@@ -49,7 +51,6 @@ SfcRenderBase::SfcRenderBase(
     VP_PUBLIC_CHK_NULL_NO_STATUS_RETURN(vpMhwinterface.m_skuTable);
     VP_PUBLIC_CHK_NULL_NO_STATUS_RETURN(vpMhwinterface.m_waTable);
     m_osInterface   = vpMhwinterface.m_osInterface;
-    m_sfcItf        = std::static_pointer_cast<mhw::sfc::Itf>(vpMhwinterface.m_sfcInterface->GetNewSfcInterface());
     m_miInterface   = vpMhwinterface.m_mhwMiInterface;
     m_skuTable      = vpMhwinterface.m_skuTable;
     m_waTable       = vpMhwinterface.m_waTable;
@@ -59,6 +60,9 @@ SfcRenderBase::SfcRenderBase(
       &m_AvsParameters,
       k_YCoefficientTableSize,
       k_UVCoefficientTableSize);
+
+    m_sfcItf = vpMhwinterface.m_vpPlatformInterface->GetMhwSfcItf();
+    m_miItf = vpMhwinterface.m_vpPlatformInterface->GetMhwMiItf();
 }
 
 SfcRenderBase::~SfcRenderBase()

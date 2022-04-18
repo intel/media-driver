@@ -37,6 +37,9 @@
 #include "mhw_mi_itf.h"
 #include "mhw_vdbox_hcp_itf.h"
 #include "mhw_vdbox_mfx_itf.h"
+#include "mhw_vebox_itf.h"
+#include "mhw_sfc_itf.h"
+#include "mhw_render_itf.h"
 
 // forward declarations
 class MhwCpInterface;
@@ -117,6 +120,9 @@ public:
     std::shared_ptr<mhw::mi::Itf>           m_miItf    = nullptr;
     std::shared_ptr<mhw::vdbox::hcp::Itf>   m_hcpItf   = nullptr;
     std::shared_ptr<mhw::vdbox::mfx::Itf>   m_mfxItf   = nullptr;
+    std::shared_ptr<mhw::vebox::Itf>        m_veboxItf = nullptr;
+    std::shared_ptr<mhw::sfc::Itf>          m_sfcItf   = nullptr;
+    std::shared_ptr<mhw::render::Itf>       m_renderItf = nullptr;
 
     //!
     //! \brief    Calls the factory function to initialize all requested interfaces.

@@ -34,6 +34,7 @@
 #include "mos_os.h"
 #include "renderhal.h"
 #include "renderhal_platform_interface.h"
+#include "media_interfaces_mhw.h"
 
 class XRenderHal_Platform_Interface_Legacy : public XRenderHal_Platform_Interface
 {
@@ -159,6 +160,12 @@ public:
         PMOS_COMMAND_BUFFER         pCmdBuffer,
         PMHW_GENERIC_PROLOG_PARAMS  pParams,
         MHW_MI_MMIOREGISTERS* pMmioReg = nullptr);
+
+    MOS_STATUS CreateMhwInterfaces(
+        PRENDERHAL_INTERFACE        pRenderHal,
+        PMOS_INTERFACE              pOsInterface);
+
+    std::shared_ptr<mhw::mi::Itf> GetMhwMiItf();
 
 };
 

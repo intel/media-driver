@@ -109,6 +109,7 @@ public:
     VP_EXECUTE_CAPS     m_PacketCaps = {};
     PVpAllocator        &m_allocator;
     VPMediaMemComp      *m_mmc = nullptr;
+    std::shared_ptr<mhw::vebox::Itf> m_vebox_Itf = nullptr;
 
 protected:
     PacketType                  m_PacketId = VP_PIPELINE_PACKET_UNINITIALIZED;
