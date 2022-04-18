@@ -823,6 +823,13 @@ public:
     //!
     virtual MOS_STATUS UpdateVeboxStates();
 
+    //!
+    //! \brief    Vebox state adjust boundary for statistics surface
+    //! \details  Adjust boundary for statistics surface block
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS AdjustBlockStatistics();
 
 protected:
 
