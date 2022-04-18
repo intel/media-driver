@@ -1,7 +1,7 @@
 /**************************************************************************
  *
  * Copyright © 2007 Red Hat Inc.
- * Copyright © 2007-2021 Intel Corporation
+ * Copyright © 2007-2022 Intel Corporation
  * Copyright 2006 Tungsten Graphics, Inc., Bismarck, ND., USA
  * All Rights Reserved.
  *
@@ -4141,6 +4141,56 @@ mos_bufmgr_gem_set_aub_dump(struct mos_bufmgr *bufmgr, int enable)
         "See the intel_aubdump man page for more details.\n");
 }
 
+void initialiaze_recoverable_context(struct mos_bufmgr *bufmgr, uint32_t drmContextId, bool bEnableRecoverable)
+{
+    struct drm_i915_gem_context_param contextParam = {};
+    struct mos_bufmgr_gem            *bufmgr_gem   = (struct mos_bufmgr_gem *)bufmgr;
+    if (bufmgr_gem == nullptr)
+    {
+        return;
+    }
+    contextParam.ctx_id                            = drmContextId;
+    contextParam.param                             = I915_CONTEXT_PARAM_RECOVERABLE;
+    contextParam.value                             = 0;
+    contextParam.size                              = sizeof(struct drm_i915_gem_context_param);
+    uint64_t enableRecoverable                     = 0;
+    int      ret                                   = 0;
+    if (bEnableRecoverable)
+    {
+        enableRecoverable = 1;
+    }
+
+    // Get original recoverable context value.
+    ret                    = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_I915_GEM_CONTEXT_GETPARAM, &contextParam);
+    uint64_t originalValue = contextParam.value;
+
+    if (ret != 0)
+    {
+        fprintf(stderr, "Get original recoverable value fail, ret = %d", ret);
+        return;
+    }
+    // Compare with original value.
+    if (originalValue != enableRecoverable)
+    {
+        contextParam.value = enableRecoverable;
+        ret                = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_I915_GEM_CONTEXT_SETPARAM, &contextParam);
+        if (ret != 0)
+        {
+            fprintf(stderr, "Set recoverable value fail, ret = %d", ret);
+            return;
+        }
+        MOS_OS_NORMALMESSAGE("Set recoverable context value success, the original value is %d, the current value is %d",
+            originalValue,
+            contextParam.value);
+    }
+    else
+    {
+        MOS_OS_NORMALMESSAGE("the original value is %d, the current value is %d, no need to update",
+            originalValue,
+            contextParam.value);
+    }
+}
+
 struct mos_linux_context *
 mos_gem_context_create(struct mos_bufmgr *bufmgr)
 {
@@ -4165,6 +4215,22 @@ mos_gem_context_create(struct mos_bufmgr *bufmgr)
     context->ctx_id = create.ctx_id;
     context->bufmgr = bufmgr;
 
+    char *disableRecoverableEnv = getenv("INTEL_DISABLE_RECOVERABLE_CONTEXT");
+    bool  bDisableRecoverable   = false;
+    if (disableRecoverableEnv != nullptr)
+    {
+        int disableRecoverableValue = atoi(disableRecoverableEnv);
+        if (disableRecoverableValue == 0)
+        {
+            bDisableRecoverable = false;
+        }
+        else
+        {
+            bDisableRecoverable = true;
+        }
+        initialiaze_recoverable_context(bufmgr, create.ctx_id, !bDisableRecoverable);
+    }  
+    
     return context;
 }
 
