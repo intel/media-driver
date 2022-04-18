@@ -230,6 +230,25 @@ public:
     //!
     static void DumpVphalParam(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext, void *pVphalDumper);
 
+    //!
+    //! \brief  Add codechal parameters to oca log section.
+    //! \param  [in] cmdBuffer
+    //!         Command buffer for current BB.
+    //! \param  [in] mosContext
+    //!         Reference to MOS_CONTEXT.
+    //! \param  [in] pCodechalDumper
+    //!         Pointer to codechal dumper object.
+    //! \return void
+    //!         No return value. Handle all exception inside the function.
+    //!
+    static void DumpCodechalParam(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext, void *pCodechalDumper, CODECHAL_STANDARD codec);
+
+    //!
+    //! \brief  Get large resource dump support state
+    //! \return bool
+    //!         Return true when support large reource dump
+    //!
+    static bool IsLargeResouceDumpSupported();
 protected:
     static MOS_STATUS MhwMiLoadRegisterImmCmd(
         std::shared_ptr<mhw::mi::Itf>    miItf,
@@ -250,7 +269,6 @@ protected:
     //!         No return value. Handle all exception inside the function.
     //!
     static void OnOcaError(PMOS_CONTEXT mosContext, MOS_STATUS status, const char *functionName, uint32_t lineNumber);
-
     //!
     //! \brief  Get OCA buffer handle from pool.
     //! \param  [in] cmdBuffer

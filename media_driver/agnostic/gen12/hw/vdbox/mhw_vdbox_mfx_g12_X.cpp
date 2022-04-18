@@ -27,6 +27,7 @@
 #include "mhw_mi_hwcmd_g12_X.h"
 #include "mos_os.h"
 #include "mhw_mmio_g12.h"
+#include "hal_oca_interface.h"
 
 #define GEN12_AVC_MPR_ROWSTORE_BASEADDRESS                                    256
 #define GEN12_AVC_MPR_ROWSTORE_BASEADDRESS_MBAFF                              512
@@ -1130,6 +1131,9 @@ MOS_STATUS MhwVdboxMfxInterfaceG12::AddMfxIndObjBaseAddrCmd(
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(params);
 
+    PMOS_CONTEXT pOsContext = m_osInterface->pOsContext;
+    MHW_MI_CHK_NULL(pOsContext);
+
     MHW_RESOURCE_PARAMS resourceParams;
     MOS_ZeroMemory(&resourceParams, sizeof(resourceParams));
     resourceParams.dwLsbNum = MHW_VDBOX_MFX_UPPER_BOUND_STATE_SHIFT;
@@ -1159,6 +1163,12 @@ MOS_STATUS MhwVdboxMfxInterfaceG12::AddMfxIndObjBaseAddrCmd(
             m_osInterface,
             cmdBuffer,
             &resourceParams));
+
+        if(HalOcaInterface::IsLargeResouceDumpSupported())
+        {
+            HalOcaInterface::OnIndirectState(*cmdBuffer, *pOsContext, resourceParams.presResource, 0, true, 0);
+        }
+
     }
     else if (CodecHalIsDecodeModeIT(params->Mode))
     {

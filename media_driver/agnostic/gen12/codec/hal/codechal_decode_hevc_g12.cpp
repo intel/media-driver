@@ -978,6 +978,15 @@ MOS_STATUS CodechalDecodeHevcG12::SetFrameStates ()
     m_secondField =
         CodecHal_PictureIsBottomField(m_hevcPicParams->CurrPic);
 
+    m_pCodechalOcaDumper->SetHevcDecodeParam(
+        m_hevcPicParams,
+        m_hevcExtPicParams,
+        m_hevcSccPicParams,
+        m_hevcSliceParams,
+        m_hevcExtSliceParams,
+        m_numSlices,
+        m_shortFormatInUse);
+
     CODECHAL_DEBUG_TOOL(
         m_debugInterface->m_currPic     = m_crrPic;
         m_debugInterface->m_secondField = m_secondField;
@@ -2171,10 +2180,13 @@ MOS_STATUS CodechalDecodeHevcG12::DecodePrimitiveLevel()
     if (MOS_VE_SUPPORTED(m_osInterface) && CodecHalDecodeScalabilityIsScalableMode(m_scalabilityState))
     {
         submitCommand = CodecHalDecodeScalabilityIsToSubmitCmdBuffer_G12(m_scalabilityState);
+
+        HalOcaInterface::DumpCodechalParam(scdryCmdBuffer, *m_osInterface->pOsContext, m_pCodechalOcaDumper, CODECHAL_HEVC);
         HalOcaInterface::On1stLevelBBEnd(scdryCmdBuffer, *m_osInterface);
     }
     else
     {
+        HalOcaInterface::DumpCodechalParam(primCmdBuffer, *m_osInterface->pOsContext, m_pCodechalOcaDumper, CODECHAL_HEVC);
         HalOcaInterface::On1stLevelBBEnd(primCmdBuffer, *m_osInterface);
     }
 
