@@ -199,6 +199,7 @@ if(${VC1_Decode_Supported} STREQUAL "yes")
         set(TMP_2_SOURCES_
             ${TMP_2_SOURCES_}
             ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_decode_vc1_g12.cpp
+            ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_decode_vc1_g12_ext.cpp
         )
         set(TMP_2_HEADERS_
             ${TMP_2_HEADERS_}

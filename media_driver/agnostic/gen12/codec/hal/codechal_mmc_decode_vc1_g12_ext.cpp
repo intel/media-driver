@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2019, Intel Corporation
+* Copyright (c) 2017-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -25,6 +25,7 @@
 //!
 
 #include "codechal_mmc_decode_vc1_g12_ext.h"
+#include "mos_interface.h"
 
 CodechalMmcDecodeVc1G12Ext::CodechalMmcDecodeVc1G12Ext(
     CodechalHwInterface* hwInterface,
@@ -55,6 +56,11 @@ MOS_STATUS CodechalMmcDecodeVc1G12Ext::CopyAuxSurfForSkip(
 
     GMM_RESOURCE_FLAG srcFlags  = srcResource->pGmmResInfo->GetResFlags();
     GMM_RESOURCE_FLAG destFlags = destResource->pGmmResInfo->GetResFlags();
+    uint32_t          srcArrayIndex = 0;
+    uint32_t          destArrayIndex = 0;
+
+    srcArrayIndex  = MosInterface::GetResourceArrayIndex(srcResource);
+    destArrayIndex = MosInterface::GetResourceArrayIndex(destResource);
 
     if (m_mmcState->IsMmcEnabled() && srcFlags.Gpu.UnifiedAuxSurface && destFlags.Gpu.UnifiedAuxSurface)
     {
@@ -63,11 +69,11 @@ MOS_STATUS CodechalMmcDecodeVc1G12Ext::CopyAuxSurfForSkip(
 
         // params calculation for aux data
         uint64_t srcGfxAddr     = m_hwInterface->GetOsInterface()->pfnGetResourceGfxAddress(m_hwInterface->GetOsInterface(), srcResource);
-        uint64_t srcAuxYOffset  = srcResource->pGmmResInfo->GetPlanarAuxOffset(0, GMM_AUX_Y_CCS);
+        uint64_t srcAuxYOffset  = srcResource->pGmmResInfo->GetPlanarAuxOffset(srcArrayIndex, GMM_AUX_Y_CCS);
         uint32_t srcAuxSurfSize = (uint32_t)srcResource->pGmmResInfo->GetAuxQPitch();
 
         uint64_t destGfxAddr     = m_hwInterface->GetOsInterface()->pfnGetResourceGfxAddress(m_hwInterface->GetOsInterface(), destResource);
-        uint64_t destAuxYOffset  = destResource->pGmmResInfo->GetPlanarAuxOffset(0, GMM_AUX_Y_CCS);
+        uint64_t destAuxYOffset  = destResource->pGmmResInfo->GetPlanarAuxOffset(destArrayIndex, GMM_AUX_Y_CCS);
         uint32_t destAuxSurfSize = (uint32_t)destResource->pGmmResInfo->GetAuxQPitch();
 
         // Ind Obj Addr command

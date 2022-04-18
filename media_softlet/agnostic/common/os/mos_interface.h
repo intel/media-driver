@@ -1999,6 +1999,16 @@ public:
         const MOS_PLANE_OFFSET &planeOffset);
 
     //!
+    //! \brief    Get Resource array index
+    //! \details  Returns the array index
+    //! \param    PMOS_RESOURCE
+    //!           [in] Pointer to  MOS_RESOURCE
+    //! \return   uint32_t - array index
+    //!
+    static uint32_t GetResourceArrayIndex(
+        PMOS_RESOURCE resource);
+
+    //!
     //! \brief  Translate MOS_FORMAT into GMM_RESOURCE_FORMAT
     //!
     static GMM_RESOURCE_FORMAT MosFmtToGmmFmt(MOS_FORMAT format);

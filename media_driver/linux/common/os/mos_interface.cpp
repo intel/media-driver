@@ -2988,6 +2988,12 @@ int MosInterface::GetPlaneSurfaceOffset(const MOS_PLANE_OFFSET &planeOffset)
     return planeOffset.iSurfaceOffset;
 }
 
+uint32_t MosInterface::GetResourceArrayIndex(
+    PMOS_RESOURCE resource)
+{
+    return 0;
+}
+
 MediaUserSettingSharedPtr MosInterface::MosGetUserSettingInstance(
     MOS_STREAM_HANDLE streamState)
 {
