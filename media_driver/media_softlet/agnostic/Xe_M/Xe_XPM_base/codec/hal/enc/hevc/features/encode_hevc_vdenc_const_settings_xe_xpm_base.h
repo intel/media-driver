@@ -27,9 +27,9 @@
 
 #ifndef __ENCODE_HEVC_VDENC_CONST_SETTINGS_XE_XPM_BASE_H__
 #define __ENCODE_HEVC_VDENC_CONST_SETTINGS_XE_XPM_BASE_H__
-#include <vector>
+
 #include "encode_hevc_vdenc_const_settings.h"
-#include "codec_def_common_encode.h"
+
 namespace encode
 {
 

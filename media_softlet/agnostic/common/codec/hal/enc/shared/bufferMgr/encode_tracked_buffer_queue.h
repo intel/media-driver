@@ -26,9 +26,11 @@
 //!
 #ifndef __ENCODE_TRACKED_BUFFER_QUEUE_H__
 #define __ENCODE_TRACKED_BUFFER_QUEUE_H__
-#include "mos_defs.h"
-#include "mos_os.h"
+#include <stdint.h>
 #include <vector>
+#include "mos_defs.h"
+#include "mos_defs_specific.h"
+#include "mos_os.h"
 
 namespace encode
 {

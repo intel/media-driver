@@ -27,6 +27,7 @@
 //!
 
 #include "encode_recycle_resource.h"
+#include "encode_recycle_res_queue.h"
 #include "mos_utilities.h"
 
 namespace encode {

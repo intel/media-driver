@@ -25,7 +25,8 @@
 //! \details  The slot manages the buffers with the same type
 //!
 #include "encode_tracked_buffer_slot.h"
-#include "encode_utils.h"
+#include <utility>
+#include "encode_tracked_buffer_queue.h"
 
 namespace encode {
 

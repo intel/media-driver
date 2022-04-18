@@ -27,13 +27,12 @@
 
 #ifndef __ENCODE_RECYCLE_RESOURCE_H__
 #define __ENCODE_RECYCLE_RESOURCE_H__
+#include <stdint.h>
 #include <map>
-#include <vector>
+#include <utility>
 #include "mos_defs.h"
 #include "mos_os.h"
-#include "encode_allocator.h"
-#include "encode_recycle_res_queue.h"
-#include "encode_utils.h"
+#include "mos_os_specific.h"
 
 namespace encode
 {
@@ -59,6 +58,9 @@ namespace encode
 #undef RECYCLE_IDS_EXT
 #endif
     };
+
+class EncodeAllocator;
+class RecycleQueue;
 
 class RecycleResource
 {

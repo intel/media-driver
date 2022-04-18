@@ -28,7 +28,11 @@
 
 #ifndef __ENCODE_ALLOCATOR_H__
 #define __ENCODE_ALLOCATOR_H__
-#include "media_allocator.h"
+#include "mos_defs.h"
+#include "mos_os.h"
+#include "mos_os_hw.h"
+#include "mos_os_specific.h"
+class Allocator;
 
 namespace encode {
 

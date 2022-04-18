@@ -28,7 +28,11 @@
 //!
 
 #include "encode_feature_manager.h"
+#include <map>
+#include <utility>
 #include "encode_utils.h"
+#include "media_feature.h"
+#include "media_feature_const_settings.h" 
 
 namespace encode
 {

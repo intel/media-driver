@@ -26,6 +26,10 @@
 //!
 
 #include "encode_scalability_option.h"
+#include <stdint.h>
+#include "encode_scalability_defs.h"
+#include "media_scalability_defs.h"
+#include "mhw_vdbox.h"
 
 namespace encode
 {

@@ -26,14 +26,15 @@
 
 #ifndef __ENCODE_RECYCLE_RES_QUEUE_H__
 #define __ENCODE_RECYCLE_RES_QUEUE_H__
-#include <map>
+#include <stdint.h>
 #include <vector>
 #include "mos_defs.h"
 #include "mos_os.h"
-#include "encode_allocator.h"
 
 namespace encode
 {
+class EncodeAllocator;
+
 class RecycleQueue
 {
 public:

@@ -27,7 +27,8 @@
 #ifndef __ENCODE_SCALABILITY_OPTION_H__
 #define __ENCODE_SCALABILITY_OPTION_H__
 #include "media_scalability_option.h"
-#include "encode_scalability_defs.h"
+#include "mos_defs.h"
+struct ScalabilityPars;
 
 namespace encode {
 class EncodeScalabilityOption : public MediaScalabilityOption

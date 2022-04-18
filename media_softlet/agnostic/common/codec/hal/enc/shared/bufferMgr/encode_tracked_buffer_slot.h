@@ -27,7 +27,11 @@
 #ifndef __ENCODE_TRACKED_BUFFER_SLOT_H__
 #define __ENCODE_TRACKED_BUFFER_SLOT_H__
 
+#include <stdint.h>
+#include <map>
+#include <memory>
 #include "encode_tracked_buffer.h"
+#include "mos_defs.h"
 
 namespace encode {
 

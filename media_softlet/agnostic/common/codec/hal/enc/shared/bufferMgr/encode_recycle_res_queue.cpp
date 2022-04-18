@@ -26,7 +26,10 @@
 //!
 
 #include "encode_recycle_res_queue.h"
+#include "encode_allocator.h"
 #include "encode_utils.h"
+#include "mos_os_specific.h"
+#include "mos_utilities.h"
 
 namespace encode {
 

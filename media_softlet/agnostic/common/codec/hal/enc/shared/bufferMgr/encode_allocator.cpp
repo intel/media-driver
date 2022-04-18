@@ -28,6 +28,9 @@
 
 #include "encode_allocator.h"
 #include "encode_utils.h"
+#include "media_allocator.h"
+#include "mos_resource_defs.h"
+#include "mos_utilities.h"
 
 namespace encode {
 

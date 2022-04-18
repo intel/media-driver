@@ -24,10 +24,13 @@
 //! \brief    Defines the interface for buffer allocator
 //! \details  The allocator manages the buffers with the same type and alloc parameter
 //!
-#include<algorithm>
 #include "encode_tracked_buffer_queue.h"
+#include <algorithm>
 #include "encode_allocator.h"
 #include "encode_utils.h"
+#include "mos_os_hw.h"
+#include "mos_os_specific.h"
+#include "mos_utilities.h"
 
 namespace encode {
 

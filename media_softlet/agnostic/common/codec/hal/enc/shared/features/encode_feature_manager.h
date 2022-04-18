@@ -30,6 +30,7 @@
 #ifndef __ENCODE_FEATURE_MANAGER_H__
 #define __ENCODE_FEATURE_MANAGER_H__
 #include "media_feature_manager.h"
+#include "mos_defs.h"
 
 namespace encode
 {

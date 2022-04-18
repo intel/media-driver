@@ -27,8 +27,10 @@
 //!
 
 #include "encode_tracked_buffer.h"
+#include <iterator>
+#include <utility>
 #include "encode_tracked_buffer_slot.h"
-#include "encode_utils.h"
+#include "mos_utilities.h"
 
 namespace encode {
 constexpr MapBufferResourceType TrackedBuffer::m_mapBufferResourceType[];
