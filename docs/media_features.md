@@ -70,7 +70,7 @@
 |            | Max Res.     | 8k                 |           |           |           |        |        |        |     |
 
 - \*More: KBL/CFL/ICL/TGL AVC encoding supported input formats: NV12/YUY2/YUYV/YVYU/UYVY/AYUV/ARGB
-- \**Note: JPEG encoding supports input format NV12/YUY2/UYVY/AYUV/ABGR/Y8 and output format YUV400/YUV420/YUV422H_2Y/YUV444/RGB24.
+- \**Note: JPEG encoding supports input format NV12/YUY2/UYVY/ABGR/Y8 and output format YUV400/YUV420/YUV422H_2Y/YUV444/RGB24.
 
 
 ### Hardware(PAK) + Shader(media kernel+VME) Encoding
