@@ -175,6 +175,11 @@ VpResourceManager::~VpResourceManager()
         m_allocator.DestroyVpSurface(m_veboxStatisticsSurface);
     }
 
+    if (m_veboxStatisticsSurfacefor1stPassofSfc2Pass)
+    {
+        m_allocator.DestroyVpSurface(m_veboxStatisticsSurfacefor1stPassofSfc2Pass);
+    }
+
     if (m_veboxRgbHistogram)
     {
         m_allocator.DestroyVpSurface(m_veboxRgbHistogram);
@@ -1557,7 +1562,7 @@ void VpResourceManager::DestoryVeboxSTMMSurface()
     }
 }
 
-MOS_STATUS VpResourceManager::FillLinearBufferWithEncZero(uint32_t width, uint32_t height)
+MOS_STATUS VpResourceManager::FillLinearBufferWithEncZero(VP_SURFACE *surface, uint32_t width, uint32_t height)
 {
     VP_FUNC_CALL();
 
@@ -1745,45 +1750,14 @@ MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SU
     dwWidth = MOS_ALIGN_CEIL(inputSurface->osSurface->dwWidth, 64);
     dwHeight = MOS_ROUNDUP_DIVIDE(inputSurface->osSurface->dwHeight, 4) +
                MOS_ROUNDUP_DIVIDE(statistic_size * sizeof(uint32_t), dwWidth);
-    dwSize = dwWidth * dwHeight;
 
-    //Statistics surface can be not lockable, if secure mode is enabled
-    isStatisticsBufNotLockable = caps.bSecureVebox;
-
-    VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.ReAllocateSurface(
-        m_veboxStatisticsSurface,
-        "VeboxStatisticsSurface",
-        Format_Buffer,
-        MOS_GFXRES_BUFFER,
-        MOS_TILE_LINEAR,
-        dwWidth,
-        dwHeight,
-        false,
-        MOS_MMC_DISABLED,
-        bAllocated,
-        false,
-        IsDeferredResourceDestroyNeeded(),
-        MOS_HW_RESOURCE_USAGE_VP_INTERNAL_WRITE_FF,
-        MOS_TILE_UNSET_GMM,
-        memTypeHistStat,
-        isStatisticsBufNotLockable));
-
-    if (bAllocated)
+    if (caps.b1stPassOfSfc2PassScaling)
     {
-        if (caps.bSecureVebox)
-        {
-            VP_PUBLIC_CHK_STATUS_RETURN(FillLinearBufferWithEncZero(dwWidth, dwHeight));
-        }
-        else
-        {
-            // Initialize veboxStatisticsSurface Surface
-            VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.OsFillResource(
-                &(m_veboxStatisticsSurface->osSurface->OsResource),
-                dwSize,
-                InitValue));
-            m_dwVeboxPerBlockStatisticsWidth  = dwWidth;
-            m_dwVeboxPerBlockStatisticsHeight = MOS_ROUNDUP_DIVIDE(inputSurface->osSurface->dwHeight, 4);
-        }
+        VP_PUBLIC_CHK_STATUS_RETURN(ReAllocateVeboxStatisticsSurface(m_veboxStatisticsSurfacefor1stPassofSfc2Pass, caps, inputSurface, dwWidth, dwHeight));
+    }
+    else
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(ReAllocateVeboxStatisticsSurface(m_veboxStatisticsSurface, caps, inputSurface, dwWidth, dwHeight));
     }
 
     VP_PUBLIC_CHK_STATUS_RETURN(Allocate3DLut(caps));
@@ -2084,7 +2058,14 @@ MOS_STATUS VpResourceManager::AssignVeboxResource(VP_EXECUTE_CAPS& caps, VP_SURF
     surfGroup.insert(std::make_pair(SurfaceTypeLaceAceRGBHistogram, m_veboxRgbHistogram));
 
     // Insert Vebox statistics surface
-    surfGroup.insert(std::make_pair(SurfaceTypeStatistics, m_veboxStatisticsSurface));
+    if (caps.b1stPassOfSfc2PassScaling)
+    {
+        surfGroup.insert(std::make_pair(SurfaceTypeStatistics, m_veboxStatisticsSurfacefor1stPassofSfc2Pass));
+    }
+    else
+    {
+        surfGroup.insert(std::make_pair(SurfaceTypeStatistics, m_veboxStatisticsSurface));
+    }
     surfSetting.dwVeboxPerBlockStatisticsHeight = m_dwVeboxPerBlockStatisticsHeight;
     surfSetting.dwVeboxPerBlockStatisticsWidth  = m_dwVeboxPerBlockStatisticsWidth;
 
@@ -2325,4 +2306,57 @@ MOS_STATUS VpResourceManager::Init3DLutSurface2D(VP_SURFACE *surf)
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS VpResourceManager::ReAllocateVeboxStatisticsSurface(VP_SURFACE *&statisticsSurface, VP_EXECUTE_CAPS &caps, VP_SURFACE *inputSurface, uint32_t dwWidth, uint32_t dwHeight)
+{
+    VP_FUNC_CALL();
+    
+    bool        bAllocated                  = false;
+    Mos_MemPool memTypeHistStat             = GetHistStatMemType(caps);
+    //Statistics surface can be not lockable, if secure mode is enabled
+    bool        isStatisticsBufNotLockable  = caps.bSecureVebox;
+    uint8_t     InitValue                   = 0;
+
+    // change the init value when null hw is enabled
+    if (NullHW::IsEnabled())
+    {
+        InitValue = 0x80;
+    }
+
+    VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.ReAllocateSurface(
+        statisticsSurface,
+        "m_veboxStatisticsSurface",
+        Format_Buffer,
+        MOS_GFXRES_BUFFER,
+        MOS_TILE_LINEAR,
+        dwWidth,
+        dwHeight,
+        false,
+        MOS_MMC_DISABLED,
+        bAllocated,
+        false,
+        IsDeferredResourceDestroyNeeded(),
+        MOS_HW_RESOURCE_USAGE_VP_INTERNAL_WRITE_FF,
+        MOS_TILE_UNSET_GMM,
+        memTypeHistStat,
+        isStatisticsBufNotLockable));
+
+    if (bAllocated)
+    {
+        if (caps.bSecureVebox)
+        {
+            VP_PUBLIC_CHK_STATUS_RETURN(FillLinearBufferWithEncZero(statisticsSurface, dwWidth, dwHeight));
+        }
+        else
+        {
+            // Initialize veboxStatisticsSurface Surface
+            VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.OsFillResource(
+                &(statisticsSurface->osSurface->OsResource),
+                dwWidth * dwHeight,
+                InitValue));
+            m_dwVeboxPerBlockStatisticsWidth  = dwWidth;
+            m_dwVeboxPerBlockStatisticsHeight = MOS_ROUNDUP_DIVIDE(inputSurface->osSurface->dwHeight, 4);
+        }
+    }
+    return MOS_STATUS_SUCCESS;
+}
 };
