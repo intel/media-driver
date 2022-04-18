@@ -109,7 +109,7 @@ MOS_STATUS Av1DecodePkt_G12_Base::AddForceWakeup(MOS_COMMAND_BUFFER& cmdBuffer)
     DECODE_FUNC_CALL();
 
     MHW_MI_FORCE_WAKEUP_PARAMS forceWakeupParams;
-    if (MEDIA_IS_WA(m_av1Pipeline->GetWaTable(), WaAv1ForceWakeUp))
+    if (MEDIA_IS_WA(m_av1Pipeline->GetWaTable(), Wa_14016153635))
     {
         MOS_ZeroMemory(&forceWakeupParams, sizeof(MHW_MI_FORCE_WAKEUP_PARAMS));
         forceWakeupParams.bMFXPowerWellControl      = true;
