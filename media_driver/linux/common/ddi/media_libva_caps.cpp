@@ -112,7 +112,8 @@ const uint32_t MediaLibvaCaps::m_jpegEncSurfaceAttr[m_numJpegEncSurfaceAttr] =
     VA_FOURCC_NV12,
     VA_FOURCC_YUY2,
     VA_FOURCC_UYVY,
-    VA_FOURCC_Y800
+    VA_FOURCC_Y800,
+    VA_FOURCC_ABGR
 };
 
 MediaLibvaCaps::MediaLibvaCaps(DDI_MEDIA_CONTEXT *mediaCtx)
