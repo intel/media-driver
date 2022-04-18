@@ -21,18 +21,18 @@
 */
 
 //!
-//! \file     vp_scalability_singlepipe.cpp
+//! \file     vp_scalability_singlepipe_next.cpp
 //! \brief    Defines the common interface for media vpp scalability singlepipe mode.
 //! \details  The media scalability singlepipe interface is further sub-divided by component,
 //!           this file is for the base interface which is shared by all components.
 //!
-#include "vp_scalability_singlepipe.h"
+#include "vp_scalability_singlepipe_next.h"
 #include "vp_platform_interface.h"
 
-namespace vp
+namespace vp 
 {
-VpScalabilitySinglePipe::VpScalabilitySinglePipe(void* hwInterface, MediaContext* mediaContext, uint8_t componentType) :
-    MediaScalabilitySinglePipe(hwInterface, mediaContext, componentType)
+VpScalabilitySinglePipeNext::VpScalabilitySinglePipeNext(void *hwInterface, MediaContext *mediaContext, uint8_t componentType) :
+    MediaScalabilitySinglePipeNext(hwInterface, mediaContext, componentType)
 {
     if (hwInterface == nullptr)
     {
@@ -41,11 +41,10 @@ VpScalabilitySinglePipe::VpScalabilitySinglePipe(void* hwInterface, MediaContext
 
     m_hwInterface = (PVP_MHWINTERFACE)hwInterface;
     m_osInterface = m_hwInterface->m_osInterface;
-    m_miInterface = m_hwInterface->m_mhwMiInterface;
     m_miItf       = m_hwInterface->m_vpPlatformInterface->GetMhwMiItf();
 }
 
-VpScalabilitySinglePipe::~VpScalabilitySinglePipe()
+VpScalabilitySinglePipeNext::~VpScalabilitySinglePipeNext()
 {
     if (m_scalabilityOption)
     {
@@ -54,7 +53,7 @@ VpScalabilitySinglePipe::~VpScalabilitySinglePipe()
     }
 }
 
-MOS_STATUS VpScalabilitySinglePipe::Initialize(const MediaScalabilityOption &option)
+MOS_STATUS VpScalabilitySinglePipeNext::Initialize(const MediaScalabilityOption &option)
 {
     SCALABILITY_CHK_NULL_RETURN(m_osInterface);
 
@@ -65,6 +64,6 @@ MOS_STATUS VpScalabilitySinglePipe::Initialize(const MediaScalabilityOption &opt
         m_osInterface->osStreamState->component = COMPONENT_VPCommon;
     }
 
-    return MediaScalabilitySinglePipe::Initialize(option);
+    return MediaScalabilitySinglePipeNext::Initialize(option);
 }
 }

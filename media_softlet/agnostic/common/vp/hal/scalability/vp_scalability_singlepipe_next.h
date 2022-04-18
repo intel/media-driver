@@ -21,23 +21,23 @@
 */
 
 //!
-//! \file     vp_scalability_singlepipe.h
+//! \file     vp_scalability_singlepipe_next.h
 //! \brief    Defines the common interface for media scalability singlepipe mode.
 //! \details  The media scalability singlepipe interface is further sub-divided by component,
 //!           this file is for the base interface which is shared by all components.
 //!
 
-#ifndef __VP_SCALABILITY_SINGLEPIPE_H__
-#define __VP_SCALABILITY_SINGLEPIPE_H__
+#ifndef __VP_SCALABILITY_SINGLEPIPE_NEXT_H__
+#define __VP_SCALABILITY_SINGLEPIPE_NEXT_H__
 #include "mos_defs.h"
 #include "mos_os.h"
-#include "media_scalability_singlepipe.h"
+#include "media_scalability_singlepipe_next.h"
 #include "vp_scalability_option.h"
 #include "vp_pipeline_common.h"
 
 namespace vp
 {
-class VpScalabilitySinglePipe : public MediaScalabilitySinglePipe
+class VpScalabilitySinglePipeNext : public MediaScalabilitySinglePipeNext
 {
 public:
     //!
@@ -47,22 +47,22 @@ public:
     //! \param  [in] componentType
     //!         Component type
     //!
-    VpScalabilitySinglePipe(void *hwInterface, MediaContext *mediaContext, uint8_t componentType);
+    VpScalabilitySinglePipeNext(void *hwInterface, MediaContext *mediaContext, uint8_t componentType);
 
     //!
     //! \brief  Encode scalability singlepipe destructor
     //!
-    virtual ~VpScalabilitySinglePipe();
+    virtual ~VpScalabilitySinglePipeNext();
 
     //!
     //! \brief    Copy constructor
     //!
-    VpScalabilitySinglePipe(const VpScalabilitySinglePipe& ) = delete;
+    VpScalabilitySinglePipeNext(const VpScalabilitySinglePipeNext &) = delete;
 
     //!
     //! \brief    Copy assignment operator
     //!
-    VpScalabilitySinglePipe& operator=(const VpScalabilitySinglePipe& ) = delete;
+    VpScalabilitySinglePipeNext &operator=(const VpScalabilitySinglePipeNext &) = delete;
 
     //!
     //! \brief   Initialize the vp single scalability
@@ -74,15 +74,19 @@ public:
     //!          MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS Initialize(const MediaScalabilityOption &option) override;
+
 protected:
+
     virtual MOS_STATUS SendAttrWithFrameTracking(MOS_COMMAND_BUFFER &cmdBuffer, bool frameTrackingRequested) override
     {
         return MOS_STATUS_SUCCESS;
     }
-private:
-    PVP_MHWINTERFACE m_hwInterface = nullptr;
 
-MEDIA_CLASS_DEFINE_END(VpScalabilitySinglePipe)
+private:
+    PVP_MHWINTERFACE  m_hwInterface = nullptr;
+
+MEDIA_CLASS_DEFINE_END(VpScalabilitySinglePipeNext)
 };
-}  // namespace vp
-#endif  // !__VP_SCALABILITY_SINGLEPIPE_H__
+}
+#endif // !__VP_SCALABILITY_SINGLEPIPE_NEXT_H__
+
