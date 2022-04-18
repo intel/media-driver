@@ -241,6 +241,8 @@ public:
 
     uint32_t StreamIndex() const { return m_streamIndex; }
 
+    GPU_CONTEXT_HANDLE GpuContextHandle() { return m_gpuContextHandle; };
+
     int32_t EnqueueBufferCopy(  CmBuffer* buffer,
                                 size_t   offset,
                                 const unsigned char* sysMem,
