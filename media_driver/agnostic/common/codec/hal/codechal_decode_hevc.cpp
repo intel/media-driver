@@ -1293,15 +1293,6 @@ MOS_STATUS CodechalDecodeHevc::SetFrameStates ()
     m_secondField =
         CodecHal_PictureIsBottomField(m_hevcPicParams->CurrPic);
 
-    m_pCodechalOcaDumper->SetHevcDecodeParam(
-        m_hevcPicParams,
-        nullptr,
-        nullptr,
-        m_hevcSliceParams,
-        nullptr,
-        m_numSlices,
-        m_shortFormatInUse);
-
     CODECHAL_DEBUG_TOOL(
         m_debugInterface->m_currPic     = m_crrPic;
         m_debugInterface->m_secondField = m_secondField;
@@ -2491,7 +2482,6 @@ MOS_STATUS CodechalDecodeHevc::DecodePrimitiveLevel()
         }
     );
 
-    HalOcaInterface::DumpCodechalParam(cmdBuffer, *m_osInterface->pOsContext, m_pCodechalOcaDumper, CODECHAL_HEVC);
     HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface);
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(

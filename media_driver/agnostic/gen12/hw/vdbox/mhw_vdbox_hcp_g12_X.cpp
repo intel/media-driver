@@ -33,7 +33,6 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include "mhw_mmio_g12.h"
 #include "mhw_sfc_g12_X.h"
 #include "mos_interface.h"
-#include "hal_oca_interface.h"
 
 static uint16_t RDOQLamdas8bits[2][2][2][52] = //[Intra Slice/Inter Slice][Intra/Inter][Luma/Chroma][QP]
 {
@@ -2445,9 +2444,6 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpIndObjBaseAddrCmd(
     MHW_RESOURCE_PARAMS resourceParams;
     mhw_vdbox_hcp_g12_X::HCP_IND_OBJ_BASE_ADDR_STATE_CMD cmd;
 
-    PMOS_CONTEXT pOsContext = m_osInterface->pOsContext;
-    MHW_MI_CHK_NULL(pOsContext);
-
     MOS_ZeroMemory(&resourceParams, sizeof(resourceParams));
     resourceParams.dwLsbNum = MHW_VDBOX_HCP_UPPER_BOUND_STATE_SHIFT;
     resourceParams.HwCommandType = MOS_MFX_INDIRECT_OBJ_BASE_ADDR;
@@ -2474,11 +2470,6 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpIndObjBaseAddrCmd(
             m_osInterface,
             cmdBuffer,
             &resourceParams));
-
-        if(HalOcaInterface::IsLargeResouceDumpSupported())
-        {
-            HalOcaInterface::OnIndirectState(*cmdBuffer, *pOsContext, resourceParams.presResource, 0, true, 0);
-        }
 
         resourceParams.dwUpperBoundLocationOffsetFromCmd = 0;
     }

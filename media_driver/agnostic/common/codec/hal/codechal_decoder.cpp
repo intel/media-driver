@@ -253,10 +253,6 @@ CodechalDecode::CodechalDecode (
 
     m_mode              = standardInfo->Mode;
     m_isHybridDecoder   = standardInfo->bIsHybridCodec ? true : false;
-
-    m_pCodechalOcaDumper = MOS_New(CodechalOcaDumper);
-    CODECHAL_DECODE_CHK_NULL_NO_STATUS_RETURN(m_pCodechalOcaDumper);
-
 #if (_DEBUG || _RELEASE_INTERNAL)
     AllocateDecodeOutputBuf();
 #endif
@@ -870,11 +866,6 @@ CodechalDecode::~CodechalDecode()
     m_osInterface->pfnFreeResource(
         m_osInterface,
         &m_crcBuf);
-
-    if (m_pCodechalOcaDumper)
-    {
-        MOS_Delete(m_pCodechalOcaDumper);
-    }
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     m_debugInterface->PackGoldenReferences({m_debugInterface->GetCrcGoldenReference()});

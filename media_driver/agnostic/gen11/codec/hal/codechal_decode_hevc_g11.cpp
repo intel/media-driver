@@ -414,15 +414,6 @@ MOS_STATUS CodechalDecodeHevcG11::SetFrameStates ()
         m_perfType = MIXED_TYPE;
     }
 
-    m_pCodechalOcaDumper->SetHevcDecodeParam(
-        m_hevcPicParams,
-        m_hevcExtPicParams,
-        nullptr,
-        m_hevcSliceParams,
-        m_hevcExtSliceParams,
-        m_numSlices,
-        m_shortFormatInUse);
-
     m_crrPic = m_hevcPicParams->CurrPic;
     m_secondField =
         CodecHal_PictureIsBottomField(m_hevcPicParams->CurrPic);
@@ -1642,12 +1633,10 @@ MOS_STATUS CodechalDecodeHevcG11::DecodePrimitiveLevel()
     {
         submitCommand = CodecHalDecodeScalabilityIsToSubmitCmdBuffer(m_scalabilityState);
 
-        HalOcaInterface::DumpCodechalParam(scdryCmdBuffer, *m_osInterface->pOsContext, m_pCodechalOcaDumper, CODECHAL_HEVC);
         HalOcaInterface::On1stLevelBBEnd(scdryCmdBuffer, *m_osInterface);
     }
     else
     {
-        HalOcaInterface::DumpCodechalParam(primCmdBuffer, *m_osInterface->pOsContext, m_pCodechalOcaDumper, CODECHAL_HEVC);
         HalOcaInterface::On1stLevelBBEnd(primCmdBuffer, *m_osInterface);
     }
     if (submitCommand)

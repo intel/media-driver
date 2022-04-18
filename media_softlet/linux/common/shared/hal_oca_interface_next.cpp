@@ -33,7 +33,6 @@
 #include "mos_oca_interface_specific.h"
 #include "vphal.h"
 #include "vphal_debug.h"
-#include "codechal_oca_debug.h"
 
 std::map<uint32_t*, MOS_OCA_BUFFER_HANDLE> HalOcaInterfaceNext::s_hOcaMap;
 
@@ -419,60 +418,6 @@ void HalOcaInterfaceNext::DumpVphalParam(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONT
     {
         OnOcaError(&mosContext, status, __FUNCTION__, __LINE__);
     }
-}
-
-//!
-//! \brief  Add codechal parameters to oca log section.
-//! \param  [in] cmdBuffer
-//!         Command buffer for current BB.
-//! \param  [in] mosContext
-//!         Reference to MOS_CONTEXT.
-//! \param  [in] pCodechalDumper
-//!         Pointer to codechal dumper object.
-//! \return void
-//!         No return value. Handle all exception inside the function.
-//!
-void HalOcaInterfaceNext::DumpCodechalParam(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext, void *pCodechalDumper, CODECHAL_STANDARD codec)
-{
-    MosOcaInterface *pOcaInterface       = &MosOcaInterfaceSpecific::GetInstance();
-    MOS_STATUS status                    = MOS_STATUS_SUCCESS;
-    MOS_OCA_BUFFER_HANDLE ocaBufHandle   = 0;
-    uint32_t updateSize                  = 0;
-
-    if (nullptr == pOcaInterface                                   ||
-        !((MosOcaInterfaceSpecific*)pOcaInterface)->IsOcaEnabled() ||
-        nullptr == pCodechalDumper)
-    {
-        return;
-    }
-    if ((ocaBufHandle = GetOcaBufferHandle(cmdBuffer, mosContext)) == MOS_OCA_INVALID_BUFFER_HANDLE)
-    {
-        // May come here for workloads not enabling UMD_OCA.
-        return;
-    }
-
-    CODECHAL_OCA_DECODE_HEADER *pCodechalParam = ((CodechalOcaDumper *)pCodechalDumper)->GetDecodeParam();
-    if (nullptr == pCodechalParam)
-    {
-        return;
-    }
-
-    MOS_OCA_LOG_HEADER_CODECHAL_PARAM header = {};
-    header.header.type                       = MOS_OCA_LOG_TYPE_CODECHAL_PARAM;  // 00000007
-    header.header.headerSize                 = sizeof(MOS_OCA_LOG_HEADER_CODECHAL_PARAM);
-    header.header.dataSize                   = pCodechalParam->Header.size;
-    header.codec                             = (uint32_t)codec;
-    status = pOcaInterface->DumpDataBlock(ocaBufHandle, &mosContext, (PMOS_OCA_LOG_HEADER)&header, pCodechalParam);
-
-    if (MOS_FAILED(status))
-    {
-        OnOcaError(&mosContext, status, __FUNCTION__, __LINE__);
-    }
-}
-
-bool HalOcaInterfaceNext::IsLargeResouceDumpSupported()
-{
-    return true;
 }
 
 void HalOcaInterfaceNext::DumpCpParam(MosOcaInterface &ocaInterface, MOS_OCA_BUFFER_HANDLE &ocaBufHandle, PMOS_CONTEXT mosCtx, void *pCpDumper)
