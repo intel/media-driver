@@ -675,6 +675,9 @@ MOS_STATUS DecodeHistogramDeviceG11Icllp::Initialize(
 }
 
 #define IP_VERSION_M11_0       0x1100
+static bool iclRegisteredHwInfo =
+    MediaInterfacesFactory<MediaInterfacesHwInfoDevice>::RegisterHal<MediaInterfacesHwInfoDeviceG11Icllp>((uint32_t)IGFX_ICELAKE_LP);
+
 MOS_STATUS MediaInterfacesHwInfoDeviceG11Icllp::Initialize(PLATFORM platform)
 {
     m_hwInfo.SetDeviceInfo(IP_VERSION_M11_0, platform.usRevId);

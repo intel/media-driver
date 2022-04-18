@@ -99,3 +99,6 @@ MOS_STATUS CMHalInterfacesG12Adls::Initialize(CM_HAL_STATE *pCmState)
     m_cmhalDevice->m_l3ConfigCount = TGL_L3_CONFIG_NUM;
     return MOS_STATUS_SUCCESS;
 }
+
+static bool adlsRegisteredHwInfo =
+    MediaInterfacesFactory<MediaInterfacesHwInfoDevice>::RegisterHal<MediaInterfacesHwInfoDeviceG12Tgllp>((uint32_t)IGFX_ALDERLAKE_S);

@@ -104,3 +104,6 @@ static bool adlnRegisteredDecodeHistogram =
     MediaInterfacesFactory<DecodeHistogramDevice>::
     RegisterHal<DecodeHistogramDeviceG12Tgllp>((uint32_t)IGFX_ALDERLAKE_N);
 
+static bool adlnRegisteredHwInfo =
+    MediaInterfacesFactory<MediaInterfacesHwInfoDevice>::RegisterHal<MediaInterfacesHwInfoDeviceG12Tgllp>((uint32_t)IGFX_ALDERLAKE_N);
+

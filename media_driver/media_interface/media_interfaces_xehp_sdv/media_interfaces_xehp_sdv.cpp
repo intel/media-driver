@@ -821,6 +821,9 @@ MOS_STATUS DecodeHistogramDeviceXe_Xpm::Initialize(
 }
 
 #define IP_VERSION_XE_XPM      0x1205
+static bool xehpRegisteredHwInfo =
+    MediaInterfacesFactory<MediaInterfacesHwInfoDevice>::RegisterHal<MediaInterfacesHwInfoDeviceXe_Xpm>((uint32_t)IGFX_XE_HP_SDV);
+
 MOS_STATUS MediaInterfacesHwInfoDeviceXe_Xpm::Initialize(PLATFORM platform)
 {
     m_hwInfo.SetDeviceInfo(IP_VERSION_XE_XPM, platform.usRevId);

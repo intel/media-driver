@@ -594,6 +594,9 @@ MOS_STATUS DecodeHistogramDeviceG9Kbl::Initialize(
 }
 
 #define IP_VERSION_M9_0 0x0900
+static bool kblRegisteredHwInfo =
+    MediaInterfacesFactory<MediaInterfacesHwInfoDevice>::RegisterHal<MediaInterfacesHwInfoDeviceG9Kbl>((uint32_t)IGFX_KABYLAKE);
+
 MOS_STATUS MediaInterfacesHwInfoDeviceG9Kbl::Initialize(PLATFORM platform)
 {
     m_hwInfo.SetDeviceInfo(IP_VERSION_M9_0, platform.usRevId);

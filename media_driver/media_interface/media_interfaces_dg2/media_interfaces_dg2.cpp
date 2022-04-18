@@ -845,6 +845,11 @@ MOS_STATUS DecodeHistogramDeviceXe_Hpm::Initialize(
     return MOS_STATUS_SUCCESS;
 }
 
+static bool dg2RegisteredHwInfo =
+    MediaInterfacesFactory<MediaInterfacesHwInfoDevice>::RegisterHal<MediaInterfacesHwInfoDeviceDg2>((uint32_t)IGFX_DG2);
+
+#define IP_VERSION_XE_HPM      0x1207
+
 MOS_STATUS MediaInterfacesHwInfoDeviceDg2::RefreshRevId(PLATFORM &platform, MEDIA_WA_TABLE *waTable)
 {
     if (waTable == nullptr)
@@ -860,7 +865,6 @@ MOS_STATUS MediaInterfacesHwInfoDeviceDg2::RefreshRevId(PLATFORM &platform, MEDI
     return MOS_STATUS_SUCCESS;
 };
 
-#define IP_VERSION_XE_HPM      0x1207
 MOS_STATUS MediaInterfacesHwInfoDeviceDg2::Initialize(PLATFORM platform)
 {
     m_hwInfo.SetDeviceInfo(IP_VERSION_XE_HPM, platform.usRevId);

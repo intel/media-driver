@@ -1046,6 +1046,8 @@ MOS_STATUS DecodeHistogramDeviceG12Tgllp::Initialize(
 }
 
 #define IP_VERSION_M12_0       0x1200
+static bool tglRegisteredHwInfo =
+    MediaInterfacesFactory<MediaInterfacesHwInfoDevice>::RegisterHal<MediaInterfacesHwInfoDeviceG12Tgllp>((uint32_t)IGFX_TIGERLAKE_LP);
 MOS_STATUS MediaInterfacesHwInfoDeviceG12Tgllp::Initialize(PLATFORM platform)
 {
     m_hwInfo.SetDeviceInfo(IP_VERSION_M12_0, platform.usRevId);
