@@ -226,9 +226,6 @@ protected:
     //! \brief  Flag to mark whether the os context is valid
     bool                            m_osContextValid =  false;
 
-    //! \brief  Whether the current driver is of 64 bit
-    bool                            m_64bit = false;
-
     //! \brief  Whether or not need deallocation on exit
     bool                            m_deallocateOnExit = false;
 
