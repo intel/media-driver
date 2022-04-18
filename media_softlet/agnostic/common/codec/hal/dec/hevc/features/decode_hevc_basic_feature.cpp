@@ -184,11 +184,14 @@ MOS_STATUS HevcBasicFeature::SetSliceStructs()
 
     DECODE_CHK_STATUS(m_tileCoding.UpdateSlice(*m_hevcPicParams, m_hevcSliceParams));
 
-    if (m_numSlices > 0)
+    if (m_numSlices == 0)
     {
-        PCODEC_HEVC_SLICE_PARAMS lastSlice = m_hevcSliceParams + (m_numSlices - 1);
-        DECODE_CHK_STATUS(SetRequiredBitstreamSize(lastSlice->slice_data_offset + lastSlice->slice_data_size));
+        DECODE_ASSERTMESSAGE("Invalid Slice Number = 0.");
+        return MOS_STATUS_INVALID_PARAMETER;
     }
+
+    PCODEC_HEVC_SLICE_PARAMS lastSlice = m_hevcSliceParams + (m_numSlices - 1);
+    DECODE_CHK_STATUS(SetRequiredBitstreamSize(lastSlice->slice_data_offset + lastSlice->slice_data_size));
 
     return MOS_STATUS_SUCCESS;
 }

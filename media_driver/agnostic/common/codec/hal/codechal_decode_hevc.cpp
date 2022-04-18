@@ -937,6 +937,12 @@ MOS_STATUS CodechalDecodeHevc::InitializeBitstreamCat ()
     // Need to make sure that pDecoderInterface->CurrPic won't update until all bitstream is copied.
     m_crrPic.PicFlags = PICTURE_INVALID;
 
+    if (m_numSlices == 0)
+    {
+        CODECHAL_DECODE_ASSERTMESSAGE("Invalid Slice Number = 0");
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
     // Estimate Bytes in Bitstream per frame
     PCODEC_HEVC_SLICE_PARAMS hevcLastSliceParamsInFrame = m_hevcSliceParams + (m_numSlices - 1);
     m_estiBytesInBitstream                              = MOS_ALIGN_CEIL(hevcLastSliceParamsInFrame->slice_data_offset + hevcLastSliceParamsInFrame->slice_data_size, 64);
