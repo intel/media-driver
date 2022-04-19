@@ -31,7 +31,7 @@
 #include "mos_interface.h"
 #include "vphal_debug.h"
 #if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
-#include "igvpkrn_isa_xe_hpm.h"
+#include "igvpkrn_isa_xe_hpg.h"
 #endif
 
 VPHAL_VEBOX_STATE_XE_HPM::VPHAL_VEBOX_STATE_XE_HPM(
@@ -52,8 +52,8 @@ VPHAL_VEBOX_STATE_XE_HPM::VPHAL_VEBOX_STATE_XE_HPM(
     MEDIA_SYSTEM_INFO   *gtSystemInfo    = nullptr;
 
 #if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
-    m_hdr3DLutKernelBinary     = (uint32_t *)IGVP3DLUT_GENERATION_XE_HPM;
-    m_hdr3DLutKernelBinarySize = IGVP3DLUT_GENERATION_XE_HPM_SIZE;
+    m_hdr3DLutKernelBinary     = (uint32_t *)IGVP3DLUT_GENERATION_XE_HPG;
+    m_hdr3DLutKernelBinarySize = IGVP3DLUT_GENERATION_XE_HPG_SIZE;
 #endif
 
     // Vebox Scalability

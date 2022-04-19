@@ -390,6 +390,34 @@ MOS_STATUS VpPlatformInterface::GetKernelParam(VpKernelID kernlId, RENDERHAL_KER
     return MOS_STATUS_SUCCESS;
 }
 
+void VpPlatformInterface::SetVpKernelBinary(
+                const uint32_t   *kernelBin,
+                uint32_t         kernelBinSize,
+                const uint32_t   *fcPatchKernelBin,
+                uint32_t         fcPatchKernelBinSize)
+{
+    VP_FUNC_CALL();
+    
+    m_vpKernelBinary.kernelBin            = kernelBin;
+    m_vpKernelBinary.kernelBinSize        = kernelBinSize;
+    m_vpKernelBinary.fcPatchKernelBin     = fcPatchKernelBin;
+    m_vpKernelBinary.fcPatchKernelBinSize = fcPatchKernelBinSize;
+}
+
+void VpPlatformInterface::SetVpISAKernelBinary(
+                const uint32_t   *isa3DLUTKernelBin,
+                uint32_t         isa3DLUTKernelSize,
+                const uint32_t   *isaHVSDenoiseKernelBin,
+                uint32_t         isaHVSDenoiseKernelSize)
+{
+    VP_FUNC_CALL();
+    
+    m_vpKernelBinary.isa3DLUTKernelBin       = isa3DLUTKernelBin;
+    m_vpKernelBinary.isa3DLUTKernelSize      = isa3DLUTKernelSize;
+    m_vpKernelBinary.isaHVSDenoiseKernelBin  = isaHVSDenoiseKernelBin;
+    m_vpKernelBinary.isaHVSDenoiseKernelSize = isaHVSDenoiseKernelSize;
+}
+
 //only for get kernel binary in legacy path not being used in APO path.
 MOS_STATUS VpPlatformInterface ::GetKernelBinary(const void *&kernelBin, uint32_t &kernelSize, const void *&patchKernelBin, uint32_t &patchKernelSize)
 {

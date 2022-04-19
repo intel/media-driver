@@ -34,7 +34,7 @@
 #include "mos_interface.h"
 #if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "igvpkrn_isa_xe_xpm.h"
-#include "igvpkrn_isa_xe_hpm.h"
+#include "igvpkrn_isa_xe_hpg.h"
 #endif
 
 VPHAL_VEBOX_STATE_XE_XPM::VPHAL_VEBOX_STATE_XE_XPM(
@@ -54,8 +54,8 @@ VPHAL_VEBOX_STATE_XE_XPM::VPHAL_VEBOX_STATE_XE_XPM(
     MEDIA_SYSTEM_INFO   *gtSystemInfo    = nullptr;
 
 #if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
-    m_hvsKernelBinary     = (uint8_t *)IGVPHVS_DENOISE_XE_HPM;
-    m_hvsKernelBinarySize = IGVPHVS_DENOISE_XE_HPM_SIZE;
+    m_hvsKernelBinary     = (uint8_t *)IGVPHVS_DENOISE_XE_HPG;
+    m_hvsKernelBinarySize = IGVPHVS_DENOISE_XE_HPG_SIZE;
     m_hdr3DLutKernelBinary     = (uint32_t *)IGVP3DLUT_GENERATION_XE_XPM;
     m_hdr3DLutKernelBinarySize = IGVP3DLUT_GENERATION_XE_XPM_SIZE;
 #endif

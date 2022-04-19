@@ -29,7 +29,7 @@
 
 #include "media_render_copy_xe_hpm.h"
 #if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
-#include "igvpkrn_xe_hpm.h"
+#include "igvpkrn_xe_hpg.h"
 #endif
 
 RenderCopy_Xe_Hpm::RenderCopy_Xe_Hpm(PMOS_INTERFACE  osInterface, MhwInterfaces *mhwInterfaces):
@@ -301,8 +301,8 @@ MOS_STATUS RenderCopy_Xe_Hpm::SetupKernel(
 
 #if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     
-    pcKernelBin = (const void*)IGVPKRN_XE_HPM;
-    dwKernelBinSize = IGVPKRN_XE_HPM_SIZE;
+    pcKernelBin = (const void*)IGVPKRN_XE_HPG;
+    dwKernelBinSize = IGVPKRN_XE_HPG_SIZE;
 #else
     pcKernelBin = nullptr;
     dwKernelBinSize = 0;

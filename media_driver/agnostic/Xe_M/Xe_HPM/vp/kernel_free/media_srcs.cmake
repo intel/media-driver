@@ -21,15 +21,17 @@
 function(gen_vpkernel_from_cm)
     
     set(genx "xe")
-    set(kind "hpm")
+    set(kind "hpg")
     set(name "vp")
-    set(platform "Xe_HPM")
+    set(platform "Xe_HPG")
 
     set(krn ig${name}krn_${genx}_${kind})
     set(krnpatch ig${name}krn_${genx}_${kind}_cmfcpatch)
 
-    set(krn_dir ${CMAKE_SOURCE_DIR}/media_driver/agnostic/Xe_M/${platform}/vp/kernel_free)
-    set(out_dir ${CMAKE_SOURCE_DIR}/media_driver/agnostic/Xe_M/${platform}/vp/kernel_free/cache_kernel)
+    set(krn_dir ${CMAKE_SOURCE_DIR}/media_driver/agnostic/Xe_M/Xe_HPM/vp/kernel_free)
+    set(out_dir ${CMAKE_SOURCE_DIR}/media_driver/agnostic/Xe_M/Xe_HPM/vp/kernel_free/cache_kernel)
+
+    set(new_krn_dir ${CMAKE_SOURCE_DIR}/media_softlet/agnostic/Xe_R/Xe_HPG/vp/kernel_free)
 
 
     set(link_file ${krn_dir}/component_release/LinkFile.txt)
@@ -235,22 +237,22 @@ function(gen_vpkernel_from_cm)
 
     # Generating kernel source files for cmfc kernel and patch.
 
-    message("Kernel file ${krn_dir}/${krn}.h will be generated")
+    message("Kernel file ${new_krn_dir}/${krn}.h will be generated")
     add_custom_command(
-        OUTPUT ${krn_dir}/${krn}.c ${krn_dir}/${krn}.h
+        OUTPUT ${new_krn_dir}/${krn}.c ${new_krn_dir}/${krn}.h
         DEPENDS KernelBinToSource ${kernel_hex_dir}/${krn}.bin
-        COMMAND KernelBinToSource -i ${kernel_hex_dir}/${krn}.bin -o ${krn_dir}
+        COMMAND KernelBinToSource -i ${kernel_hex_dir}/${krn}.bin -o ${new_krn_dir}
         COMMENT "Generating kernel file...\
-            KernelBinToSource -i ${kernel_hex_dir}/${krn}.bin -o ${krn_dir}"
+            KernelBinToSource -i ${kernel_hex_dir}/${krn}.bin -o ${new_krn_dir}"
     )
 
-    message("FC patch file ${krn_dir}/cmfcpatch/${krnpatch}.h will be generated")
+    message("FC patch file ${new_krn_dir}/cmfcpatch/${krnpatch}.h will be generated")
     add_custom_command(
-        OUTPUT ${krn_dir}/cmfcpatch/${krnpatch}.c ${krn_dir}/cmfcpatch/${krnpatch}.h
+        OUTPUT ${new_krn_dir}/cmfcpatch/${krnpatch}.c ${new_krn_dir}/cmfcpatch/${krnpatch}.h
         DEPENDS KernelBinToSource ${patch_hex_dir}/${krnpatch}.bin
-        COMMAND KernelBinToSource -i ${patch_hex_dir}/${krnpatch}.bin -o ${krn_dir}/cmfcpatch
+        COMMAND KernelBinToSource -i ${patch_hex_dir}/${krnpatch}.bin -o ${new_krn_dir}/cmfcpatch
         COMMENT "Generating FC patch file...\
-            KernelBinToSource -i ${patch_hex_dir}/${krnpatch}.bin -o ${krn_dir}/cmfcpatch"
+            KernelBinToSource -i ${patch_hex_dir}/${krnpatch}.bin -o ${new_krn_dir}/cmfcpatch"
     )
 endfunction()
 
@@ -258,40 +260,3 @@ if(BUILD_KERNELS)
     gen_vpkernel_from_cm()
 endif()
 
-media_include_subdirectory(cmfcpatch)
-
-
-set(TMP_SOURCES_
-    ${CMAKE_CURRENT_LIST_DIR}/igvpkrn_xe_hpm.c
-)
-
-
-set(TMP_HEADERS_
-    ${CMAKE_CURRENT_LIST_DIR}/igvpkrn_xe_hpm.h
-)
-
-set(SOURCES_
-    ${SOURCES_}
-    ${TMP_SOURCES_}
-)
-
-set(HEADERS_
-    ${HEADERS_}
-    ${TMP_HEADERS_}
-)
-
-set(VP_SOURCES_
-    ${VP_SOURCES_}
-    ${TMP_SOURCES_}
-)
-
-set(VP_HEADERS_
-    ${VP_HEADERS_}
-    ${TMP_HEADERS_}
-)
-
-source_group( "Kernel\\VpKernel" FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
-set(TMP_SOURCES_ "")
-set(TMP_HEADERS_ "")
-
-media_add_curr_to_include_path()

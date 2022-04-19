@@ -38,6 +38,25 @@ class VPFeatureManager;
 class SfcRenderBase;
 class VpKernelSet;
 
+struct VP_KERNEL_BINARY_ENTRY
+{
+    const uint32_t        *kernelBin    = nullptr;
+    uint32_t              kernelBinSize = 0;
+};
+
+struct VP_KERNEL_BINARY
+{
+    const uint32_t        *kernelBin           = nullptr;
+    uint32_t              kernelBinSize        = 0;
+    const uint32_t        *fcPatchKernelBin    = nullptr;
+    uint32_t              fcPatchKernelBinSize = 0;
+
+    const uint32_t        *isa3DLUTKernelBin      = nullptr;
+    uint32_t              isa3DLUTKernelSize      = 0;
+    const uint32_t        *isaHVSDenoiseKernelBin = nullptr;
+    uint32_t              isaHVSDenoiseKernelSize = 0;
+};
+
 class VpRenderKernel
 {
 public:
@@ -240,6 +259,23 @@ public:
     virtual VpKernelConfig &GetKernelConfig() = 0;
 
     MOS_STATUS GetKernelParam(VpKernelID kernlId, RENDERHAL_KERNEL_PARAM &param);
+
+    void SetVpKernelBinary(
+                const uint32_t   *kernelBin,
+                uint32_t         kernelBinSize,
+                const uint32_t   *fcPatchKernelBin,
+                uint32_t         fcPatchKernelBinSize);
+    
+    void SetVpISAKernelBinary(
+                const uint32_t   *isa3DLUTKernelBin,
+                uint32_t         isa3DLUTKernelSize,
+                const uint32_t   *isaHVSDenoiseKernelBin,
+                uint32_t         isaHVSDenoiseKernelSize);
+
+    virtual void AddVpKernelEntryToList(
+                const uint32_t   *kernelBin,
+                uint32_t         kernelBinSize){}
+
     //only for get kernel binary in legacy path not being used in APO path.
     virtual MOS_STATUS GetKernelBinary(const void *&kernelBin, uint32_t &kernelSize, const void *&patchKernelBin, uint32_t &patchKernelSize);
 
@@ -247,6 +283,7 @@ public:
 
 protected:
     PMOS_INTERFACE m_pOsInterface = nullptr;
+    VP_KERNEL_BINARY m_vpKernelBinary = {};                 //!< vp kernels
     KERNEL_POOL    m_kernelPool;
     void (*m_modifyKdllFunctionPointers)(PKdll_State) = nullptr;
     bool m_sfc2PassScalingEnabled = false;

@@ -43,6 +43,14 @@ unsigned char *pGPUInit_kernel_isa_dg2 = nullptr;
 #include "vp_platform_interface_xe_hpm.h"
 #include "encode_av1_vdenc_pipeline_adapter_xe_hpm.h"
 
+#if defined(ENABLE_KERNELS)
+#include "igvpkrn_xe_hpg.h"
+#include "igvpkrn_xe_hpg_cmfcpatch.h"
+#if !defined(_FULL_OPEN_SOURCE)
+#include "igvpkrn_isa_xe_hpg.h"
+#endif
+#endif
+
 using namespace mhw::vdbox::avp::xe_hpm;
 using namespace mhw::vdbox::vdenc::xe_hpm;
 using namespace mhw::vdbox::huc::xe_hpm;
@@ -94,6 +102,8 @@ MOS_STATUS VphalInterfacesXe_Hpm::Initialize(
             return *eStatus;
         }
 
+        InitPlatformKernelBinary(vpPlatformInterface);
+
         if (!bInitVphalState)
         {
             m_vpPipeline = MOS_New(vp::VpPipeline, osInterface);
@@ -144,10 +154,31 @@ MOS_STATUS VphalInterfacesXe_Hpm::CreateVpPlatformInterface(
     }
     else
     {
+        InitPlatformKernelBinary(vpPlatformInterface);                    
+
         m_vpPlatformInterface = vpPlatformInterface;
         *eStatus              = MOS_STATUS_SUCCESS;
     }
     return *eStatus;
+}
+
+void VphalInterfacesXe_Hpm::InitPlatformKernelBinary(
+    vp::VpPlatformInterface  *&vpPlatformInterface)
+{
+#if defined(ENABLE_KERNELS)
+    vpPlatformInterface->SetVpKernelBinary(
+                        IGVPKRN_XE_HPG,
+                        IGVPKRN_XE_HPG_SIZE,
+                        IGVPKRN_XE_HPG_CMFCPATCH,
+                        IGVPKRN_XE_HPG_CMFCPATCH_SIZE);
+#if !defined(_FULL_OPEN_SOURCE)
+    vpPlatformInterface->SetVpISAKernelBinary(
+                        IGVP3DLUT_GENERATION_XE_HPG,
+                        IGVP3DLUT_GENERATION_XE_HPG_SIZE,
+                        IGVPHVS_DENOISE_XE_HPG,
+                        IGVPHVS_DENOISE_XE_HPG_SIZE);  
+#endif
+#endif
 }
 
 static bool dg2RegisteredMhw =

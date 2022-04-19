@@ -20,3 +20,4 @@
 
 media_include_subdirectory(renderhal)
 media_include_subdirectory(hw)
+media_include_subdirectory(vp)

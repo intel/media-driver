@@ -31,13 +31,6 @@
 #include "vp_render_sfc_xe_xpm_base.h"
 #include "vp_render_ief.h"
 #include "vp_render_cmd_packet.h"
-#if defined(ENABLE_KERNELS)
-#include "igvpkrn_xe_hpm.h"
-#include "igvpkrn_xe_hpm_cmfcpatch.h"
-#if !defined(_FULL_OPEN_SOURCE)
-#include "igvpkrn_isa_xe_hpm.h"
-#endif
-#endif
 #include "vp_kernel_config_m12_base.h"
 
 extern const Kdll_RuleEntry         g_KdllRuleTable_Xe_Hpm[];
@@ -92,14 +85,14 @@ MOS_STATUS VpPlatformInterfaceXe_Hpm::InitVpRenderHwCaps()
 #if defined(ENABLE_KERNELS)
     InitVPFCKernels(
        g_KdllRuleTable_Xe_Hpm,
-       IGVPKRN_XE_HPM,
-       IGVPKRN_XE_HPM_SIZE,
-       IGVPKRN_XE_HPM_CMFCPATCH,
-       IGVPKRN_XE_HPM_CMFCPATCH_SIZE,
+       m_vpKernelBinary.kernelBin,
+       m_vpKernelBinary.kernelBinSize,
+       m_vpKernelBinary.fcPatchKernelBin,
+       m_vpKernelBinary.fcPatchKernelBinSize,
        m_modifyKdllFunctionPointers);
 #if !defined(_FULL_OPEN_SOURCE)
-    VP_PUBLIC_CHK_STATUS_RETURN(InitVpCmKernels((const uint32_t *)IGVP3DLUT_GENERATION_XE_HPM, IGVP3DLUT_GENERATION_XE_HPM_SIZE));
-    VP_PUBLIC_CHK_STATUS_RETURN(InitVpCmKernels((const uint32_t *)IGVPHVS_DENOISE_XE_HPM, IGVPHVS_DENOISE_XE_HPM_SIZE));
+    VP_PUBLIC_CHK_STATUS_RETURN(InitVpCmKernels(m_vpKernelBinary.isa3DLUTKernelBin, m_vpKernelBinary.isa3DLUTKernelSize));
+    VP_PUBLIC_CHK_STATUS_RETURN(InitVpCmKernels(m_vpKernelBinary.isaHVSDenoiseKernelBin, m_vpKernelBinary.isaHVSDenoiseKernelSize));
 #endif
 #endif
 

@@ -371,6 +371,10 @@ public:
     MOS_STATUS CreateVpPlatformInterface(
         PMOS_INTERFACE           osInterface,
         MOS_STATUS *             eStatus);
+
+private:
+    void InitPlatformKernelBinary(
+        vp::VpPlatformInterface  *&vpPlatformInterface);
 };
 
 class RenderHalInterfacesXe_Hpg : public RenderHalDevice
