@@ -158,6 +158,11 @@ public:
         return m_initialized;
     }
 
+    PMOS_MUTEX GetGpuContextArrayMutex()
+    {
+        return m_gpuContextArrayMutex;
+    }
+
     //! \brief   Indicate whether new gpu context is inserted into the first slot w/ null ctx handle 
     //!          or always at the end of the gpucontext array
     bool m_noCycledGpuCxtMgmt = false;
