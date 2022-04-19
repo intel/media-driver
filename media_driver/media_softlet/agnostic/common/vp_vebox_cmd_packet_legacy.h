@@ -531,14 +531,6 @@ public:
     //!
     virtual MOS_STATUS UpdateVeboxStates();
 
-    //!
-    //! \brief    Vebox state adjust boundary for statistics surface
-    //! \details  Adjust boundary for statistics surface block
-    //! \return   MOS_STATUS
-    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
-    //!
-    virtual MOS_STATUS AdjustBlockStatistics();
-
     //! \brief    Vebox get statistics surface base
     //! \details  Calculate address of statistics surface address based on the
     //!           functions which were enabled in the previous call.
