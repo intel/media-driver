@@ -277,34 +277,6 @@ MOS_STATUS HevcEncodeCqp::VerifySliceSAOState()
     return eStatus;
 }
 
-MOS_STATUS HevcEncodeCqp::SetHcpPipeModeSelectParams(MHW_VDBOX_PIPE_MODE_SELECT_PARAMS &pipeModeSelectParams)
-{
-    ENCODE_FUNC_CALL();
-
-    pipeModeSelectParams.bSaoFirstPass = false;  //Always set as flase as won't support 2nd pass SAO.
-    pipeModeSelectParams.bRdoqEnable   = m_rdoqEnable;
-
-    return MOS_STATUS_SUCCESS;
-}
-
-MOS_STATUS HevcEncodeCqp::SetHcpPipeBufAddrParams(MHW_VDBOX_PIPE_BUF_ADDR_PARAMS &pipeBufAddrParams)
-{
-    ENCODE_FUNC_CALL();
-
-    pipeBufAddrParams.presDeblockingFilterTileRowStoreScratchBuffer   = m_resDeblockingFilterTileRowStoreScratchBuffer;
-    pipeBufAddrParams.presDeblockingFilterColumnRowStoreScratchBuffer = m_resDeblockingFilterColumnRowStoreScratchBuffer;
-    pipeBufAddrParams.presMfdDeblockingFilterRowStoreScratchBuffer    = m_resDeblockingFilterRowStoreScratchBuffer;
-
-    pipeBufAddrParams.presSaoLineBuffer       = m_resSAOLineBuffer;
-    pipeBufAddrParams.presSaoTileLineBuffer   = m_resSAOTileLineBuffer;
-    pipeBufAddrParams.presSaoTileColumnBuffer = m_resSAOTileColumnBuffer;
-    pipeBufAddrParams.presSaoStreamOutBuffer  = m_resSAOStreamOutBuffer;
-    //Gen12 specific.
-    pipeBufAddrParams.presSaoRowStoreBuffer = &m_vdencSAORowStoreBuffer;
-
-    return MOS_STATUS_SUCCESS;
-}
-
 MHW_SETPAR_DECL_SRC(HCP_PIC_STATE, HevcEncodeCqp)
 {
     auto hevcFeature = dynamic_cast<HevcBasicFeature *>(m_basicFeature);

@@ -59,24 +59,6 @@ public:
     MOS_STATUS Update(void *params) override;
 
     //!
-    //! \brief  Set CQP basic features setting to pipe mode select parameters
-    //! \param  [in, out] pipeModeSelectParams
-    //!         Pointer to pipe mode select parameters
-    //! \return MOS_STATUS
-    //!         MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    MOS_STATUS SetHcpPipeModeSelectParams(MHW_VDBOX_PIPE_MODE_SELECT_PARAMS &pipeModeSelectParams);
-
-    //!
-    //! \brief  Set CQP basic features setting to hcp pipe buf address parameters
-    //! \param  [in, out] pipeBufAddrParams
-    //!         Pointer to pipe buffer address parameters
-    //! \return MOS_STATUS
-    //!         MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    MOS_STATUS SetHcpPipeBufAddrParams(MHW_VDBOX_PIPE_BUF_ADDR_PARAMS &pipeBufAddrParams);
-
-    //!
     //! \brief    Check if RDOQ enabled
     //!
     //! \return   bool

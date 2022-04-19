@@ -336,26 +336,6 @@ namespace encode
         MOS_STATUS SetDmemForInit(void *params);
 
         //!
-        //! \brief  Set brc features setting to picture state parameters
-        //! \param  [in] currRecycledIndex
-        //!         current recycled index
-        //! \param  [in, out] picStateParams
-        //!         Pointer to picture state parameters
-        //! \return MOS_STATUS
-        //!         MOS_STATUS_SUCCESS if success, else fail reason
-        //!
-        MOS_STATUS SetHcpPicStateParams(uint32_t currRecycledBufIdx, MHW_VDBOX_HEVC_PIC_STATE &picStateParams);
-
-        //!
-        //! \brief  Set hcp pipe buffer address parameter
-        //! \param  [in] pipeBufAddrParams
-        //!         Pointer to parameters
-        //! \return MOS_STATUS
-        //!         MOS_STATUS_SUCCESS if success, else fail reason
-        //!
-        MOS_STATUS SetHcpPipeBufAddrParams(MHW_VDBOX_PIPE_BUF_ADDR_PARAMS& pipeBufAddrParams);
-
-        //!
         //! \brief    Read stats for BRC from PAK
         //!
         //! \param    [in] ucPass

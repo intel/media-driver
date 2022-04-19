@@ -585,15 +585,6 @@ namespace encode
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS HEVCEncodeBRC::SetHcpPicStateParams(uint32_t currRecycledBufIdx, MHW_VDBOX_HEVC_PIC_STATE &picStateParams)
-    {
-        ENCODE_FUNC_CALL();
-
-        m_vdenc2ndLevelBatchBuffer[currRecycledBufIdx].dwOffset = m_hwInterface->m_vdencBatchBuffer1stGroupSize;
-
-        return MOS_STATUS_SUCCESS;
-    }
-
     MOS_STATUS HEVCEncodeBRC::SetVdencBatchBufferState(
         const uint32_t    currRecycledBufIdx,
         const uint32_t    slcIdx,
@@ -617,16 +608,6 @@ namespace encode
                 (m_hwInterface->m_vdencBatchBufferPerSliceConstSize + basicFeature->m_vdencBatchBufferPerSliceVarSize[j]);
         }
 
-        return MOS_STATUS_SUCCESS;
-    }
-
-    MOS_STATUS HEVCEncodeBRC::SetHcpPipeBufAddrParams(MHW_VDBOX_PIPE_BUF_ADDR_PARAMS& pipeBufAddrParams)
-    {
-        ENCODE_FUNC_CALL();
-        ENCODE_CHK_NULL_RETURN(m_basicFeature);
-
-        pipeBufAddrParams.presLcuBaseAddressBuffer = m_basicFeature->m_recycleBuf->GetBuffer(LcuBaseAddressBuffer, 0);
-        pipeBufAddrParams.presFrameStatStreamOutBuffer = m_basicFeature->m_recycleBuf->GetBuffer(FrameStatStreamOutBuffer, 0);
         return MOS_STATUS_SUCCESS;
     }
 
