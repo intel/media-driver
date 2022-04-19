@@ -239,7 +239,7 @@ void GpuContextMgrNext::DestroyGpuContext(GpuContextNext *gpuContext)
         {
             found = true;
             // to keep original order, here should not erase gpucontext, replace with nullptr in array.
-            MOS_Delete(curGpuContext);  // delete gpu context.
+            curGpuContext = nullptr;
             m_gpuContextCount--;
             break;
         }
@@ -254,7 +254,11 @@ void GpuContextMgrNext::DestroyGpuContext(GpuContextNext *gpuContext)
 
     MosUtilities::MosUnlockMutex(m_gpuContextArrayMutex);
 
-    if (!found)
+    if (found)
+    {
+        MOS_Delete(gpuContext);  // delete gpu context.
+    }
+    else
     {
         MOS_OS_ASSERTMESSAGE("cannot find specified gpuContext in the gpucontext pool, something must be wrong");
         MT_ERR3(MT_MOS_GPUCXT_DESTROY, MT_MOS_GPUCXT_MGR_PTR, (int64_t)this, MT_MOS_GPUCXT_PTR, (int64_t)gpuContext, MT_CODE_LINE, __LINE__);
