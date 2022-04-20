@@ -52,7 +52,7 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS SetL3Cache(PMOS_COMMAND_BUFFER cmdBuffer, MhwMiInterface* pMhwMiInterface) override
+    MOS_STATUS SetL3Cache(PMOS_COMMAND_BUFFER cmdBuffer, std::shared_ptr<mhw::mi::Itf> miItf) override
     {
         return MOS_STATUS_SUCCESS;
     }
@@ -148,21 +148,25 @@ public:
         }
     }
 
-    MOS_STATUS EnablePreemption(PMOS_COMMAND_BUFFER cmdBuffer, MhwMiInterface* pMhwMiInterface) override
+    MOS_STATUS EnablePreemption(PMOS_COMMAND_BUFFER cmdBuffer, std::shared_ptr<mhw::mi::Itf> miItf) override
     {
         MOS_STATUS eStatus              = MOS_STATUS_SUCCESS;
         MEDIA_FEATURE_TABLE* skuTable   = nullptr;
         MHW_MI_LOAD_REGISTER_IMM_PARAMS loadRegisterParams = {};
 
+        MHW_MI_CHK_NULL(cmdBuffer);
+        MHW_MI_CHK_NULL(miItf);
+        MHW_MI_CHK_NULL(this->m_osItf);
         MHW_MI_CHK_NULL(skuTable);
 
         skuTable = this->m_osItf->pfnGetSkuTable(this->m_osItf);
         if (MEDIA_IS_SKU(skuTable, FtrPerCtxtPreemptionGranularityControl))
         {
-            MOS_ZeroMemory(&loadRegisterParams, sizeof(loadRegisterParams));
-            loadRegisterParams.dwRegister = m_preemptionCntlRegisterOffset;
-            loadRegisterParams.dwData = m_preemptionCntlRegisterValue;
-            MHW_MI_CHK_STATUS(pMhwMiInterface->AddMiLoadRegisterImmCmd(cmdBuffer, &loadRegisterParams));
+            auto& par = miItf->MHW_GETPAR_F(MI_LOAD_REGISTER_IMM)();
+            par = {};
+            par.dwRegister = m_preemptionCntlRegisterOffset;
+            par.dwData     = m_preemptionCntlRegisterValue;
+            miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(cmdBuffer);
         }
 
         return eStatus;

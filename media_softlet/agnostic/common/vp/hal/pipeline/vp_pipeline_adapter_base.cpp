@@ -125,7 +125,7 @@ MOS_STATUS VpPipelineAdapterBase::GetVpMhwInterface(
     m_vpPlatformInterface.SetMhwVeboxItf(m_veboxItf);
     m_vpPlatformInterface.SetMhwMiItf(m_miItf);
     vpMhwinterface.m_vpPlatformInterface = &m_vpPlatformInterface;
-    //vpMhwinterface.m_vpPlatformInterface->SetMhwRenderItf(m_renderItf);
+
     return eStatus;
 }
 

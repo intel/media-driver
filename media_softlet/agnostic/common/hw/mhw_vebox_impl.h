@@ -521,11 +521,11 @@ public:
             auto& par = miItf->MHW_GETPAR_F(MI_LOAD_REGISTER_IMM)();
             par = {};
             par.dwData     = (auxTableBaseAddr & 0xffffffff);
-            par.dwRegister = MhwMiInterfaceG12::m_mmioVe0AuxTableBaseLow;
+            par.dwRegister        = miItf->GetMmioInterfaces(mhw::mi::MHW_MMIO_VE0_AUX_TABLE_BASE_LOW);
             miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(CmdBuffer);
 
             par.dwData     = ((auxTableBaseAddr >> 32) & 0xffffffff);
-            par.dwRegister = MhwMiInterfaceG12::m_mmioVe0AuxTableBaseHigh;
+            par.dwRegister = miItf->GetMmioInterfaces(mhw::mi::MHW_MMIO_VE0_AUX_TABLE_BASE_HIGH);
             miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(CmdBuffer);
         }
 

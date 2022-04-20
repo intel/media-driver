@@ -61,9 +61,9 @@ public:
 
     virtual MOS_STATUS EnableL3Caching(MHW_RENDER_ENGINE_L3_CACHE_SETTINGS *cacheSettings) = 0;
     // legacy MHW interface will be removed for another pr
-    virtual MOS_STATUS SetL3Cache(PMOS_COMMAND_BUFFER cmdBuffer, MhwMiInterface* pMhwMiInterface) = 0;
+    virtual MOS_STATUS SetL3Cache(PMOS_COMMAND_BUFFER cmdBuffer, std::shared_ptr<mhw::mi::Itf> miItf) = 0;
 
-    virtual MOS_STATUS EnablePreemption(PMOS_COMMAND_BUFFER cmdBuffer, MhwMiInterface* pMhwMiInterface) = 0;
+    virtual MOS_STATUS EnablePreemption(PMOS_COMMAND_BUFFER cmdBuffer, std::shared_ptr<mhw::mi::Itf> miItf) = 0;
 
     virtual MOS_STATUS InitMmioRegisters() = 0;
 

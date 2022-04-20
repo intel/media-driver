@@ -533,6 +533,8 @@ protected:
 
     bool                                                    m_isAdvKernel = false;      // true mean multi kernel can be submitted in one workload.
 
+    std::shared_ptr<mhw::vebox::Itf>                        m_veboxItf = nullptr;
+
 MEDIA_CLASS_DEFINE_END(VpRenderKernelObj)
 };
 }

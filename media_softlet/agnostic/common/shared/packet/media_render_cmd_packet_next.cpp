@@ -140,8 +140,8 @@ MOS_STATUS RenderCmdPacketNext::Submit(MOS_COMMAND_BUFFER* commandBuffer, uint8_
 
     RENDER_PACKET_CHK_STATUS_RETURN(SetPowerMode(0));
 
-    HalOcaInterface::On1stLevelBBStart(*commandBuffer, *pOsContext, pOsInterface->CurrentGpuContextHandle,
-        *m_renderHal->pMhwMiInterface, *pMmioRegisters);
+    HalOcaInterfaceNext::On1stLevelBBStart(*commandBuffer, *pOsContext, pOsInterface->CurrentGpuContextHandle,
+        m_miItf, *pMmioRegisters);
     OcaDumpDbgInfo(*commandBuffer, *pOsContext);
 
     RENDER_PACKET_CHK_STATUS_RETURN(SetMediaFrameTracking(GenericPrologParams));
@@ -150,7 +150,7 @@ MOS_STATUS RenderCmdPacketNext::Submit(MOS_COMMAND_BUFFER* commandBuffer, uint8_
 
     RENDER_PACKET_CHK_STATUS_RETURN(pPerfProfiler->AddPerfCollectStartCmd((void*)m_renderHal, pOsInterface, pMhwMiInterface, commandBuffer));
 
-    RENDER_PACKET_CHK_STATUS_RETURN(NullHW::StartPredicate(pMhwMiInterface, commandBuffer));
+    RENDER_PACKET_CHK_STATUS_RETURN(NullHW::StartPredicateNext(m_miItf, commandBuffer));
 
     // Write timing data for 3P budget
     RENDER_PACKET_CHK_STATUS_RETURN(m_renderHal->pfnSendTimingData(m_renderHal, commandBuffer, true));
@@ -182,7 +182,7 @@ MOS_STATUS RenderCmdPacketNext::Submit(MOS_COMMAND_BUFFER* commandBuffer, uint8_
         RENDER_PACKET_CHK_STATUS_RETURN(m_renderHal->pfnSendRcsStatusTag(m_renderHal, commandBuffer));
     }
 
-    RENDER_PACKET_CHK_STATUS_RETURN(NullHW::StopPredicate(pMhwMiInterface, commandBuffer));
+    RENDER_PACKET_CHK_STATUS_RETURN(NullHW::StopPredicateNext(m_miItf, commandBuffer));
 
     RENDER_PACKET_CHK_STATUS_RETURN(pPerfProfiler->AddPerfCollectEndCmd((void*)m_renderHal, pOsInterface, pMhwMiInterface, commandBuffer));
 
@@ -197,7 +197,7 @@ MOS_STATUS RenderCmdPacketNext::Submit(MOS_COMMAND_BUFFER* commandBuffer, uint8_
     PipeControlParams.bIndirectStatePointersDisable = true;
     PipeControlParams.bDisableCSStall = false;
 
-    RENDER_PACKET_CHK_STATUS_RETURN(AddPipeControl(pMhwMiInterface, commandBuffer, &PipeControlParams));
+    RENDER_PACKET_CHK_STATUS_RETURN(AddPipeControl(commandBuffer, &PipeControlParams));
 
     if (MEDIA_IS_WA(m_renderHal->pWaTable, WaSendDummyVFEafterPipelineSelect))
     {
@@ -219,11 +219,11 @@ MOS_STATUS RenderCmdPacketNext::Submit(MOS_COMMAND_BUFFER* commandBuffer, uint8_
             RENDER_PACKET_ASSERTMESSAGE("ERROR, pWalkerParams is nullptr and cannot get InterfaceDescriptorOffset.");
         }
 
-        MediaStateFlush(pMhwMiInterface, commandBuffer, &FlushParam);
+        MediaStateFlush(commandBuffer, &FlushParam);
     }
     else if (MEDIA_IS_WA(m_renderHal->pWaTable, WaAddMediaStateFlushCmd))
     {
-        MediaStateFlush(pMhwMiInterface, commandBuffer, &FlushParam);
+        MediaStateFlush(commandBuffer, &FlushParam);
     }
 
     HalOcaInterface::On1stLevelBBEnd(*commandBuffer, *pOsInterface);
@@ -231,16 +231,16 @@ MOS_STATUS RenderCmdPacketNext::Submit(MOS_COMMAND_BUFFER* commandBuffer, uint8_
     if (pBatchBuffer)
     {
         // Send Batch Buffer end command (HW/OS dependent)
-        AddMiBatchBufferEnd(pMhwMiInterface, commandBuffer, nullptr);
+        AddMiBatchBufferEnd(commandBuffer, nullptr);
     }
     else if (IsMiBBEndNeeded(pOsInterface))
     {
         // Send Batch Buffer end command for 1st level Batch Buffer
-        AddMiBatchBufferEnd(pMhwMiInterface, commandBuffer, nullptr);
+        AddMiBatchBufferEnd(commandBuffer, nullptr);
     }
     else if (m_renderHal->pOsInterface->bNoParsingAssistanceInKmd)
     {
-        AddMiBatchBufferEnd(pMhwMiInterface, commandBuffer, nullptr);
+        AddMiBatchBufferEnd(commandBuffer, nullptr);
     }
 
     // No need return command buffer here, which will be done in CmdTask::Submit.
@@ -569,6 +569,7 @@ uint32_t RenderCmdPacketNext::SetSurfaceForHwAccess(
 
     return bindingIndex;
 }
+
 
 uint32_t RenderCmdPacketNext::SetBufferForHwAccess(PMOS_SURFACE buffer, PRENDERHAL_SURFACE_NEXT pRenderSurface, PRENDERHAL_SURFACE_STATE_PARAMS pSurfaceParams, bool bWrite)
 {
@@ -1015,9 +1016,9 @@ MOS_STATUS RenderCmdPacketNext::InitRenderHalBuffer(MOS_BUFFER surface, PRENDERH
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS RenderCmdPacketNext::AddPipeControl(PMHW_MI_INTERFACE mhwMiInterface, MOS_COMMAND_BUFFER* commandBuffer, PMHW_PIPE_CONTROL_PARAMS pipeControlParams)
+MOS_STATUS RenderCmdPacketNext::AddPipeControl(MOS_COMMAND_BUFFER* commandBuffer, PMHW_PIPE_CONTROL_PARAMS pipeControlParams)
 {
-    RENDER_PACKET_CHK_NULL_RETURN(mhwMiInterface);
+    RENDER_PACKET_CHK_NULL_RETURN(pipeControlParams);
     RENDER_PACKET_CHK_NULL_RETURN(m_miItf);
 
     auto& params = m_miItf->MHW_GETPAR_F(PIPE_CONTROL)();
@@ -1031,9 +1032,8 @@ MOS_STATUS RenderCmdPacketNext::AddPipeControl(PMHW_MI_INTERFACE mhwMiInterface,
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS RenderCmdPacketNext::MediaStateFlush(PMHW_MI_INTERFACE mhwMiInterface, MOS_COMMAND_BUFFER* commandBuffer, MHW_MEDIA_STATE_FLUSH_PARAM *flushParam)
+MOS_STATUS RenderCmdPacketNext::MediaStateFlush(MOS_COMMAND_BUFFER* commandBuffer, MHW_MEDIA_STATE_FLUSH_PARAM *flushParam)
 {
-    RENDER_PACKET_CHK_NULL_RETURN(mhwMiInterface);
     RENDER_PACKET_CHK_NULL_RETURN(m_miItf);
     RENDER_PACKET_CHK_NULL_RETURN(flushParam);
 
@@ -1046,9 +1046,8 @@ MOS_STATUS RenderCmdPacketNext::MediaStateFlush(PMHW_MI_INTERFACE mhwMiInterface
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS RenderCmdPacketNext::AddMiBatchBufferEnd(PMHW_MI_INTERFACE mhwMiInterface, MOS_COMMAND_BUFFER *commandBuffer, PMHW_BATCH_BUFFER batchBuffer)
+MOS_STATUS RenderCmdPacketNext::AddMiBatchBufferEnd(MOS_COMMAND_BUFFER *commandBuffer, PMHW_BATCH_BUFFER batchBuffer)
 {
-    RENDER_PACKET_CHK_NULL_RETURN(mhwMiInterface);
     RENDER_PACKET_CHK_NULL_RETURN(m_miItf);
 
     m_miItf->AddMiBatchBufferEnd(commandBuffer, nullptr);

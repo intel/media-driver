@@ -256,11 +256,11 @@ protected:
     virtual void UpdateKernelConfigParam(RENDERHAL_KERNEL_PARAM &kernelParam);
 
 protected:
-    MOS_STATUS AddPipeControl(PMHW_MI_INTERFACE mhwMiInterface, MOS_COMMAND_BUFFER* commandBuffer, PMHW_PIPE_CONTROL_PARAMS pipeControlParams);
+    MOS_STATUS AddPipeControl(MOS_COMMAND_BUFFER* commandBuffer, PMHW_PIPE_CONTROL_PARAMS pipeControlParams);
 
-    MOS_STATUS MediaStateFlush(PMHW_MI_INTERFACE mhwMiInterface, MOS_COMMAND_BUFFER* commandBuffer, MHW_MEDIA_STATE_FLUSH_PARAM *flushParam);
+    MOS_STATUS MediaStateFlush(MOS_COMMAND_BUFFER* commandBuffer, MHW_MEDIA_STATE_FLUSH_PARAM *flushParam);
 
-    MOS_STATUS AddMiBatchBufferEnd(PMHW_MI_INTERFACE mhwMiInterface, MOS_COMMAND_BUFFER* commandBuffer, PMHW_BATCH_BUFFER batchBuffer);
+    MOS_STATUS AddMiBatchBufferEnd(MOS_COMMAND_BUFFER* commandBuffer, PMHW_BATCH_BUFFER batchBuffer);
 
 protected:
     PRENDERHAL_INTERFACE        m_renderHal = nullptr;

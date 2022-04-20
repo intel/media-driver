@@ -48,8 +48,6 @@ MOS_STATUS MediaScalabilitySinglePipe::Initialize(const MediaScalabilityOption &
 
     MediaScalabilitySinglePipeNext::Initialize(option);
 
-    //m_miItf = std::static_pointer_cast<mhw::mi::Itf>(m_miInterface->GetNewMiInterface());
-
     return MOS_STATUS_SUCCESS;
 }
 

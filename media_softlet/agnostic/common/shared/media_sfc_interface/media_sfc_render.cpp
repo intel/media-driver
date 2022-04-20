@@ -79,7 +79,7 @@ void MediaSfcRender::Destroy()
     if (m_veboxItf)
     {
         status = m_veboxItf->DestroyHeap();
-        if (MOS_STATUS_SUCCESS != status)
+        if (MOS_FAILED(status))
         {
             VP_PUBLIC_ASSERTMESSAGE("Failed to destroy veboxItf heap, eStatus:%d.\n", status);
         }
@@ -88,7 +88,7 @@ void MediaSfcRender::Destroy()
     if (m_veboxInterface)
     {
         status = m_veboxInterface->DestroyHeap();
-        if (MOS_STATUS_SUCCESS != status)
+        if (MOS_FAILED(status))
         {
             VP_PUBLIC_ASSERTMESSAGE("Failed to destroy vebox heap, eStatus:%d.\n", status);
         }

@@ -139,13 +139,15 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::SendChromaKey(
         {
             if (MEDIA_IS_WA(pWaTable, Wa_16011481064))
             {
-                MOS_ZeroMemory(&PipeControlParams, sizeof(PipeControlParams));
-                PipeControlParams.dwFlushMode                   = MHW_FLUSH_WRITE_CACHE;
-                PipeControlParams.bGenericMediaStateClear       = true;
-                PipeControlParams.bIndirectStatePointersDisable = true;
-                PipeControlParams.bDisableCSStall               = false;
-                PipeControlParams.bHdcPipelineFlush             = true;
-                MHW_RENDERHAL_CHK_STATUS_RETURN(pRenderHal->pMhwMiInterface->AddPipeControl(pCmdBuffer, nullptr, &PipeControlParams));
+                MHW_RENDERHAL_CHK_NULL_RETURN(m_miItf);
+                auto &par                         = m_miItf->MHW_GETPAR_F(PIPE_CONTROL)();
+                par                               = {};
+                par.dwFlushMode                   = MHW_FLUSH_WRITE_CACHE;
+                par.bDisableCSStall               = false;
+                par.bGenericMediaStateClear       = true;
+                par.bIndirectStatePointersDisable = true;
+                par.bHdcPipelineFlush             = true;
+                m_miItf->MHW_ADDCMD_F(PIPE_CONTROL)(pCmdBuffer);
             }
         }
 
@@ -190,7 +192,7 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::SetL3Cache(
     MHW_RENDERHAL_CHK_NULL_RETURN(m_renderItf);
 
     m_renderHal = pRenderHal;
-    MHW_RENDERHAL_CHK_STATUS_RETURN(m_renderItf->SetL3Cache(pCmdBuffer, pRenderHal->pMhwMiInterface));
+    MHW_RENDERHAL_CHK_STATUS_RETURN(m_renderItf->SetL3Cache(pCmdBuffer, m_miItf));
 
     return eStatus;
 }
@@ -214,7 +216,6 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::EnablePreemption(
 {
     MOS_STATUS eStatus              = MOS_STATUS_SUCCESS;
     MEDIA_FEATURE_TABLE* m_skuTable = nullptr;
-    MHW_MI_LOAD_REGISTER_IMM_PARAMS loadRegisterParams = {};
     MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
     MHW_RENDERHAL_CHK_NULL_RETURN(m_miItf);
 
@@ -355,7 +356,7 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::SendPredicationCommand(
     }
     else
     {
-        auto mmioRegistersRender = pRenderHal->pMhwMiInterface->GetMmioRegisters();
+        auto mmioRegistersRender = m_miItf->GetMmioRegisters();
 
         auto& parFlush = m_miItf->MHW_GETPAR_F(MI_FLUSH_DW)();
         parFlush = {};

@@ -101,30 +101,32 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS SetL3Cache(PMOS_COMMAND_BUFFER cmdBuffer, MhwMiInterface* pMhwMiInterface) override
+    MOS_STATUS SetL3Cache(PMOS_COMMAND_BUFFER cmdBuffer, std::shared_ptr<mhw::mi::Itf> miItf) override
     {
         MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
         MHW_MI_CHK_NULL(cmdBuffer);
+        MHW_MI_CHK_NULL(miItf);
 
         if (m_l3CacheConfig.bL3CachingEnabled)
         {
-            MHW_MI_LOAD_REGISTER_IMM_PARAMS loadRegisterParams;
-
             //L3CacheAllocReg_Setting and L3CacheTcCntlReg_Setting
             if ((m_l3CacheConfig.dwL3CacheAllocReg_Setting != 0) || (m_l3CacheConfig.dwL3CacheTcCntlReg_Setting != 0))
             {
                 //update L3 AllocReg setting for RCS; CCS L3 AllocReg setting will be dulicated from RCS
-                MOS_ZeroMemory(&loadRegisterParams, sizeof(loadRegisterParams));
-                loadRegisterParams.dwRegister = m_l3CacheConfig.dwRcsL3CacheAllocReg_Register;
-                loadRegisterParams.dwData     = m_l3CacheConfig.dwL3CacheAllocReg_Setting;
-                MHW_MI_CHK_STATUS(pMhwMiInterface->AddMiLoadRegisterImmCmd(cmdBuffer, &loadRegisterParams));
+                auto& l3CachePar = miItf->MHW_GETPAR_F(MI_LOAD_REGISTER_IMM)();
+                l3CachePar = {};
+                l3CachePar.dwRegister = m_l3CacheConfig.dwRcsL3CacheAllocReg_Register;
+                l3CachePar.dwData     = m_l3CacheConfig.dwL3CacheAllocReg_Setting;
+                miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(cmdBuffer);
 
                 //update L3 TcCntlReg setting for RCS; CCS L3 TcCntlReg setting will be dulicated from RCS
-                MOS_ZeroMemory(&loadRegisterParams, sizeof(loadRegisterParams));
-                loadRegisterParams.dwRegister = m_l3CacheConfig.dwRcsL3CacheTcCntlReg_Register;
-                loadRegisterParams.dwData     = m_l3CacheConfig.dwL3CacheTcCntlReg_Setting;
-                MHW_MI_CHK_STATUS(pMhwMiInterface->AddMiLoadRegisterImmCmd(cmdBuffer, &loadRegisterParams));
+                auto& rcsL3CacheTcCntlPar = miItf->MHW_GETPAR_F(MI_LOAD_REGISTER_IMM)();
+                rcsL3CacheTcCntlPar = {};
+                rcsL3CacheTcCntlPar.dwRegister = m_l3CacheConfig.dwRcsL3CacheTcCntlReg_Register;
+                rcsL3CacheTcCntlPar.dwData     = m_l3CacheConfig.dwL3CacheTcCntlReg_Setting;
+                miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(cmdBuffer);
+
             }
         }
 

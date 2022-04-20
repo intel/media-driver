@@ -158,7 +158,7 @@ public:
             eStatus = m_veboxInterface->DestroyHeap();
             MOS_Delete(m_veboxInterface);
             m_veboxInterface = nullptr;
-            if (eStatus != MOS_STATUS_SUCCESS)
+            if (MOS_FAILED(eStatus))
             {
                 VP_PUBLIC_ASSERTMESSAGE("Failed to destroy Vebox Interface, eStatus:%d.\n", eStatus);
             }
@@ -196,7 +196,7 @@ public:
             eStatus = m_veboxItf->DestroyHeap();
 
             m_veboxItf       = nullptr;
-            if (eStatus != MOS_STATUS_SUCCESS)
+            if (MOS_FAILED(eStatus))
             {
                 VP_PUBLIC_ASSERTMESSAGE("Failed to destroy Vebox Interface, eStatus:%d.\n", eStatus);
             }
