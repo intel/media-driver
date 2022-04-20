@@ -29,7 +29,8 @@
 
 using namespace vp;
 
-VpUserFeatureControl::VpUserFeatureControl(MOS_INTERFACE &osInterface, void *owner) : m_owner(owner), m_osInterface(&osInterface)
+VpUserFeatureControl::VpUserFeatureControl(MOS_INTERFACE &osInterface, VpPlatformInterface *vpPlatformInterface, void *owner) :
+    m_owner(owner), m_osInterface(&osInterface), m_vpPlatformInterface(vpPlatformInterface)
 {
     MOS_STATUS status = MOS_STATUS_SUCCESS;
     MOS_USER_FEATURE_VALUE_DATA userFeatureData = {};
@@ -125,6 +126,17 @@ VpUserFeatureControl::VpUserFeatureControl(MOS_INTERFACE &osInterface, void *own
         m_ctrlValDefault.computeContextEnabled = false;
     }
     VP_PUBLIC_NORMALMESSAGE("computeContextEnabled %d", m_ctrlValDefault.computeContextEnabled);
+
+    if (m_vpPlatformInterface)
+    {
+        m_ctrlValDefault.eufusionBypassWaEnabled = m_vpPlatformInterface->IsEufusionBypassWaEnabled();
+    }
+    else
+    {
+        // Should never come to here.
+        VP_PUBLIC_ASSERTMESSAGE("m_vpPlatformInterface == nullptr");
+    }
+    VP_PUBLIC_NORMALMESSAGE("eufusionBypassWaEnabled %d", m_ctrlValDefault.eufusionBypassWaEnabled);
 
     MT_LOG3(MT_VP_USERFEATURE_CTRL, MT_NORMAL, MT_VP_UF_CTRL_DISABLE_VEOUT, m_ctrlValDefault.disableVeboxOutput,
         MT_VP_UF_CTRL_DISABLE_SFC, m_ctrlValDefault.disableSfc, MT_VP_UF_CTRL_CCS, m_ctrlValDefault.computeContextEnabled);

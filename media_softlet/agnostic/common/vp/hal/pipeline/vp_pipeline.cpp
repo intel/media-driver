@@ -185,7 +185,7 @@ MOS_STATUS VpPipeline::CreateUserFeatureControl()
     VP_FUNC_CALL();
 
     VP_PUBLIC_CHK_NULL_RETURN(m_osInterface);
-    m_userFeatureControl = MOS_New(VpUserFeatureControl, *m_osInterface, this);
+    m_userFeatureControl = MOS_New(VpUserFeatureControl, *m_osInterface, m_vpMhwInterface.m_vpPlatformInterface, this);
     VP_PUBLIC_CHK_NULL_RETURN(m_userFeatureControl);
     return MOS_STATUS_SUCCESS;
 }

@@ -29,6 +29,7 @@
 
 #include "mos_os.h"
 #include "vp_pipeline_common.h"
+#include "vp_platform_interface.h"
 
 namespace vp
 {
@@ -36,7 +37,7 @@ namespace vp
 class VpUserFeatureControl
 {
 public:
-    VpUserFeatureControl(MOS_INTERFACE &osInterface, void *owner = nullptr);
+    VpUserFeatureControl(MOS_INTERFACE &osInterface, VpPlatformInterface *vpPlatformInterface, void *owner = nullptr);
     virtual ~VpUserFeatureControl();
 
     struct CONTROL_VALUES
@@ -45,7 +46,7 @@ public:
         bool disableVeboxOutput             = false; // If true (VPHAL_COMP_BYPASS_DISABLED), output from vebox directly is not allowed, otherwise, output from vebox is allowed.
         bool disableSfc                     = false;
         bool computeContextEnabled          = true;
-        bool eufusionBypassWaEnabled        = true;
+        bool eufusionBypassWaEnabled        = false;
     };
 
     virtual MOS_STATUS Update(PVP_PIPELINE_PARAMS params);
@@ -73,7 +74,8 @@ public:
     const void *m_owner = nullptr; // The object who create current instance.
 
 protected:
-    PMOS_INTERFACE m_osInterface;
+    PMOS_INTERFACE m_osInterface = nullptr;
+    VpPlatformInterface *m_vpPlatformInterface = nullptr;
 
     CONTROL_VALUES m_ctrlValDefault = {};
     CONTROL_VALUES m_ctrlVal        = {};

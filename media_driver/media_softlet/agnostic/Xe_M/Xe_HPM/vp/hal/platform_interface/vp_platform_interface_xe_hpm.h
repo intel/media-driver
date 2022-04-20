@@ -64,6 +64,11 @@ public:
         return MOS_STATUS_SUCCESS;    // the config would be set in MhwVeboxInterfaceG12::CreateGpuContext().
     }
 
+    virtual bool IsEufusionBypassWaEnabled()
+    {
+        return true;
+    }
+
 protected:
     bool m_disableSfcDithering = false;
 

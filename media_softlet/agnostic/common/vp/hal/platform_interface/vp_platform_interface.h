@@ -281,6 +281,11 @@ public:
 
     virtual MOS_STATUS ConfigVirtualEngine() = 0;
 
+    virtual bool IsEufusionBypassWaEnabled()
+    {
+        return false;
+    }
+
 protected:
     PMOS_INTERFACE m_pOsInterface = nullptr;
     VP_KERNEL_BINARY m_vpKernelBinary = {};                 //!< vp kernels
