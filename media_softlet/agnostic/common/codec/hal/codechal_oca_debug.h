@@ -163,6 +163,7 @@ public:
 
 public:
     CODECHAL_OCA_DECODE_HEADER *m_pOcaDecodeParam = nullptr;
+MEDIA_CLASS_DEFINE_END(CodechalOcaDumper)
 };
 
 #endif  /* __MEDIA_OCA_DEBUG_H__ */
