@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2022, Intel Corporation
+# Copyright (c) 2022, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,23 +18,29 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-# external dependency
-# Common path we need to include for now.
+set(TMP_SOURCES_
+    ${CMAKE_CURRENT_LIST_DIR}/cm_mem_os.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/cm_mem_os_c_impl.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/cm_ish.cpp
+    )
 
-if(NOT CMAKE_WDDM_LINUX)
-include_directories(${BS_DIR_INC})
-include_directories(${BS_DIR_INC}/common)
-include_directories(${BS_DIR_INC}/platform/iAlm)
-include_directories(${BS_DIR_INC}/umKmInc)
+set(TMP_HEADERS_
+    ${CMAKE_CURRENT_LIST_DIR}/cm_mem_os.h
+    ${CMAKE_CURRENT_LIST_DIR}/cm_mem_os_c_impl.h
+    ${CMAKE_CURRENT_LIST_DIR}/cm_mem_os_sse4_impl.h
+    ${CMAKE_CURRENT_LIST_DIR}/cm_ish.h)
 
-# external components' header path which media depends on now
-include_directories(${BS_DIR_SKUWA})
-include_directories(${BS_DIR_GMMLIB}/inc)
-include_directories(${BS_DIR_SOURCE}/huc/inc)
-endif()
+set(SOURCES_
+    ${SOURCES_}
+    ${TMP_SOURCES_}
+ )
 
-if(${PLATFORM} STREQUAL "linux" AND NOT CMAKE_WDDM_LINUX)
-    include(${MEDIA_DRIVER_CMAKE}/linux/media_include_paths_linux.cmake)
-else()
-    include(${MEDIA_EXT_CMAKE}/ext/media_include_paths_ext.cmake OPTIONAL)
-endif()
+set(HEADERS_
+    ${HEADERS_}
+    ${TMP_HEADERS_}
+)
+
+set(SOURCES_SSE4
+    ${CMAKE_CURRENT_LIST_DIR}/cm_mem_os_sse4_impl.cpp)
+
+media_add_curr_to_include_path()

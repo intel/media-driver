@@ -1,4 +1,4 @@
-# Copyright (c) 2019, Intel Corporation
+# Copyright (c) 2019-2022, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,13 +18,14 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
+media_include_subdirectory(osservice)
+
+if(NOT CMAKE_WDDM_LINUX)
 set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/cm_device_rt.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_event_rt_os.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_queue_rt_os.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_ftrace.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/cm_mem_os_c_impl.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/cm_mem_os.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_hal_os.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_surface_2d_rt.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_surface_manager.cpp
@@ -33,7 +34,6 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/cm_wrapper_os.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_global_api_os.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_debug_os.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/cm_ish.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_surface_state_manager_os.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_event_ex.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_command_buffer_os.cpp
@@ -46,14 +46,10 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/cm_device_rt.h
     ${CMAKE_CURRENT_LIST_DIR}/cm_ftrace.h
     ${CMAKE_CURRENT_LIST_DIR}/cm_innerdef_os.h
-    ${CMAKE_CURRENT_LIST_DIR}/cm_mem_os_c_impl.h
-    ${CMAKE_CURRENT_LIST_DIR}/cm_mem_os_sse4_impl.h
-    ${CMAKE_CURRENT_LIST_DIR}/cm_mem_os.h
     ${CMAKE_CURRENT_LIST_DIR}/cm_surface_2d.h
     ${CMAKE_CURRENT_LIST_DIR}/cm_surface_2d_rt.h
     ${CMAKE_CURRENT_LIST_DIR}/cm_surface_manager.h
     ${CMAKE_CURRENT_LIST_DIR}/cm_wrapper_os.h
-    ${CMAKE_CURRENT_LIST_DIR}/cm_ish.h
     ${CMAKE_CURRENT_LIST_DIR}/cm_event_ex.h
     ${CMAKE_CURRENT_LIST_DIR}/cm_surface_2d_wrapper.h)
 
@@ -67,7 +63,5 @@ set(HEADERS_
     ${TMP_HEADERS_}
 )
 
-set(SOURCES_SSE4
-    ${CMAKE_CURRENT_LIST_DIR}/cm_mem_os_sse4_impl.cpp)
-
 media_add_curr_to_include_path()
+endif()

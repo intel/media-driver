@@ -20,6 +20,7 @@
 
 media_include_subdirectory(osservice)
 
+if(NOT CMAKE_WDDM_LINUX)
 set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mos_defs_specific.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_util_user_feature_keys_specific.h
@@ -43,3 +44,4 @@ set(HEADERS_
 source_group( "MOS" FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
 
 media_add_curr_to_include_path()
+endif() # CMAKE_WDDM_LINUX

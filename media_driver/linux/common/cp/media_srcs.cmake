@@ -1,4 +1,4 @@
-# Copyright (c) 2017, Intel Corporation
+# Copyright (c) 2017-2022, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -19,6 +19,10 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 media_include_subdirectory(ddi)
+
+if(NOT CMAKE_WDDM_LINUX)
+    media_include_subdirectory(os)
+endif()
+
 media_include_subdirectory(hw)
-media_include_subdirectory(os)
 media_include_subdirectory(shared)

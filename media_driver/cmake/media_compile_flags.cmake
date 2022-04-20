@@ -1,4 +1,4 @@
-# Copyright (c) 2017, Intel Corporation
+# Copyright (c) 2017-2022, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,7 +18,7 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-if(${PLATFORM} STREQUAL "linux")
+if(${PLATFORM} STREQUAL "linux" AND NOT CMAKE_WDDM_LINUX)
     include(${MEDIA_DRIVER_CMAKE}/linux/media_compile_flags_linux.cmake)
 else()
     include(${MEDIA_EXT_CMAKE}/ext/media_compile_flags_ext.cmake OPTIONAL)

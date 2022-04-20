@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Intel Corporation
+# Copyright (c) 2021-2022, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,6 +18,7 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
+if(NOT CMAKE_WDDM_LINUX)
 set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/skuwa_dumper_specific.c
     ${CMAKE_CURRENT_LIST_DIR}/vphal_common_specific_next.c
@@ -37,3 +38,4 @@ set(SOURCES_
 #)
 #
 #media_add_curr_to_include_path()
+endif() #NOT CMAKE_WDDM_LINUX

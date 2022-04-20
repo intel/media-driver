@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2020, Intel Corporation
+# Copyright (c) 2017-2022, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -23,7 +23,11 @@
 
 macro(media_include_subdirectory subd)
     if(EXISTS ${CMAKE_CURRENT_LIST_DIR}/${subd}/media_srcs.cmake)
-        include(${CMAKE_CURRENT_LIST_DIR}/${subd}/media_srcs.cmake)
+        if(CMAKE_WDDM_LINUX)
+            media_wsl_include_subdirectory(${subd})
+        else()
+            include(${CMAKE_CURRENT_LIST_DIR}/${subd}/media_srcs.cmake)
+        endif()
     else()
         message("-- ${CMAKE_CURRENT_LIST_DIR}/${subd}/media_srcs.cmake doesn't exist, macro(media_include_subdirectory) just does nothing")
     endif()

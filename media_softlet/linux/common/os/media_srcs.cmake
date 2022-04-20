@@ -20,6 +20,7 @@
 
 media_include_subdirectory(osservice)
 
+if(NOT CMAKE_WDDM_LINUX)
 set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/mos_context_specific_next.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_graphicsresource_specific_next.cpp
@@ -71,3 +72,4 @@ set(HEADERS_
 
 
 media_add_curr_to_include_path()
+endif() # CMAKE_WDDM_LINUX

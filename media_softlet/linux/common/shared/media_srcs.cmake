@@ -20,6 +20,7 @@
 
 media_include_subdirectory(user_setting)
 
+if(NOT CMAKE_WDDM_LINUX)
 set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/hal_oca_interface_next.cpp
 )
@@ -40,3 +41,4 @@ set(SOURCES_
 
 
 #media_add_curr_to_include_path()
+endif()

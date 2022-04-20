@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2020, Intel Corporation
+# Copyright (c) 2017-2022, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -55,7 +55,7 @@ option (ENABLE_PRODUCTION_KMD "Enable Production KMD header files" OFF)
 
 include(GNUInstallDirs)
 
-if (BUILD_CMRTLIB)
+if (BUILD_CMRTLIB AND NOT CMAKE_WDDM_LINUX)
     add_subdirectory(cmrtlib)
 endif()
 
