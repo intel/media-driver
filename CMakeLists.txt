@@ -25,10 +25,12 @@ set(MEDIA_VERSION "22.4.0${MEDIA_VERSION_EXTRA}" CACHE STRING "" FORCE)
 
 include(os_release_info.cmake)
 
+include(GNUInstallDirs)
+
 get_os_release_info(os_name os_version)
 
 if(NOT DEFINED CMAKE_INSTALL_PREFIX OR CMAKE_INSTALL_PREFIX STREQUAL "")
-    set(CMAKE_INSTALL_PREFIX "/usr/local" CACHE PATH "..." FORCE)
+    set(CMAKE_INSTALL_PREFIX "/usr/lib/x86_64-linux-gnu/" CACHE PATH "..." FORCE)
 endif()
 message(STATUS "CMAKE_INSTALL_PREFIX = ${CMAKE_INSTALL_PREFIX}")
 
@@ -52,8 +54,6 @@ cmake_dependent_option( BUILD_KERNELS
 option (BUILD_CMRTLIB "Build and Install cmrtlib together with media driver" ON)
 
 option (ENABLE_PRODUCTION_KMD "Enable Production KMD header files" OFF)
-
-include(GNUInstallDirs)
 
 if (BUILD_CMRTLIB)
     add_subdirectory(cmrtlib)
@@ -81,7 +81,7 @@ endif()
 add_subdirectory(media_driver)
 
 if("${LIBVA_DRIVERS_PATH}" STREQUAL "")
-    set(LIBVA_DRIVERS_PATH "${CMAKE_INSTALL_FULL_LIBDIR}/dri/")
+    set(LIBVA_DRIVERS_PATH "${CMAKE_INSTALL_FULL_LIBDIR}")
 endif()
 message(STATUS "LIBVA_DRIVERS_PATH = ${LIBVA_DRIVERS_PATH}")
 
@@ -134,4 +134,3 @@ string(TOLOWER "${BUILD_TYPE}.${CPACK_RPM_PACKAGE_ARCHITECTURE}" PACKAGE_TYPE)
 set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${DISTRO_INFO}-${PACKAGE_TYPE}")
 
 include(CPack)
-

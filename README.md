@@ -24,7 +24,7 @@ Equivalents for other distributions should work.
 
 1. Build and install [LibVA](https://github.com/intel/libva)
 2. Build and install [GmmLib](https://github.com/intel/gmmlib) following [GmmLib compatibility](https://github.com/intel/media-driver/wiki/Compatibility-with-GmmLib)
-3. Get media repo and format the workspace folder as below (suggest the workspace to be a dedicated one for media driver build):
+3. Get media repo and format the workspace folder as below (we suggest dedicating the `workspace` directory for building media-driver):
 ```
 <workspace>
     |- media-driver
@@ -43,11 +43,15 @@ then the workspace looks like below
 ```
 $ cd <workspace>/build_media
 ```
-6. 
+6.  (Optional) Export the current LIBVA installation directory(ies)
 ```
-$ cmake ../media-driver
+$  export LIBVA_DRIVERS_PATH=/usr/lib/x86_64-linux-gnu/dri:/usr/lib/dri
 ```
 7. 
+```
+$ cmake ../media-driver -D[options]
+```
+8. 
 ```
 $ make -j"$(nproc)"
 ```
@@ -64,12 +68,39 @@ This will install the following files (e.g. on Ubuntu):
 -- Installing: /usr/lib/x86_64-linux-gnu/igfxcmrt64.so
 ```
 
-For iHD_drv_video.so please export related LIBVA environment variables.
+For iHD_drv_video.so please export the relavent LIBVA environment variables.
 ```
 export LIBVA_DRIVERS_PATH=<path-contains-iHD_drv_video.so>
 export LIBVA_DRIVER_NAME=iHD
 ```
+## Post-Install 
 
+To confirm that the installation completed correctly and that the new driver is loadable, use the following command and compare the VAAPI and Driver Version strings to those from `make install`
+
+    vainfo --display drm  --device /dev/dri/render[device] 
+
+
+Example on AlderLake-S iGPU (i7-12700k) loading Driver 22.3.1, VA-API 1.15 ( libva version 2.13)
+
+    vainfo --display drm  --device /dev/dri/renderD128
+
+ ```
+ libva info: VA-API version 1.15.0
+ libva info: Trying to open /usr/lib/x86_64-linux-gnu/dri/iHD_drv_video.so
+ libva info: Found init function __vaDriverInit_1_14
+ libva info: va_openDriver() returns 0
+ vainfo: VA-API version: 1.15 (libva 2.13.0)
+ vainfo: Driver version: Intel iHD driver for Intel(R) Gen Graphics - 22.3.1 (6547f4658)
+ vainfo: Supported profile and entrypoints
+       VAProfileNone                   :	VAEntrypointVideoProc
+       VAProfileNone                   :	VAEntrypointStats
+       VAProfileMPEG2Simple            :	VAEntrypointVLD
+       VAProfileMPEG2Simple            :	VAEntrypointEncSlice
+       [...]
+       VAProfileHEVCSccMain444_10      :	VAEntrypointVLD
+       VAProfileHEVCSccMain444_10      :	VAEntrypointEncSliceLP
+ 
+```
 
 ## Supported Platforms
 
@@ -192,11 +223,11 @@ build configuration option.
 ## Known Issues and Limitations
 
 1. Intel(R) Media Driver for VAAPI is recommended to be built against gcc compiler v6.1
-or later, which officially supported C++11.
+or later, which officially supports C++11.
 
-2. SKL: Green or other incorrect color will be observed in output frames when using YV12/I420 as input format for csc/scaling/blending/rotation, etc. on Ubuntu 16.04 stock (with kernel 4.10). The issue can be addressed with the kernel patch: [WaEnableYV12BugFixInHalfSliceChicken7](https://cgit.freedesktop.org/drm-tip/commit/?id=0b71cea29fc29bbd8e9dd9c641fee6bd75f68274)
+2. SKL: Green or other incorrect colours will be observed in output frames when using YV12/I420 as input format for csc/scaling/blending/rotation, etc. on Ubuntu 16.04 stock (with kernel 4.10). The issue can be addressed with the kernel patch: [WaEnableYV12BugFixInHalfSliceChicken7](https://cgit.freedesktop.org/drm-tip/commit/?id=0b71cea29fc29bbd8e9dd9c641fee6bd75f68274)
 
-3. HuC firmware is necessary for AVC/HEVC/VP9 low power encoding bitrate control, including CBR, VBR, etc. As of now, HuC firmware support is disabled in Linux kernels by default. kernel command line option "i915.enable_guc=2" for HuC loading can be set e.g. by doing echo "options i915 enable_guc=2" > /etc/modprobe.d/i915.conf (as root). Mind that HuC firmware support presents in the following kernels for the specified platforms:
+3. HuC firmware is necessary for AVC/HEVC/VP9 low power encoding bitrate control, including CBR, VBR, etc. As of now, HuC firmware support is disabled in Linux kernels by default. kernel command line option "i915.enable_guc=2" for HuC loading can be set e.g. by doing echo "options i915 enable_guc=2" > /etc/modprobe.d/i915.conf (as root). Mind that HuC firmware support is present in the following kernels for the specified platforms:
    - APL/KBL: starting from kernel 4.11
    - CFL: starting from kernel 4.15
    - ICL: starting from kernel 5.2
@@ -206,4 +237,9 @@ or later, which officially supported C++11.
    - ADL-N/RPL-S: [drm-tip](https://cgit.freedesktop.org/drm-tip)
    - DG1/SG1: [intel-gpu/kernel](https://github.com/intel-gpu/kernel)
 
+4. Exporting  `LIBVA_DRIVER_NAME=iHD` on a plaform with multiple vendors hardware may cause a conflict when attempting to load vaapi on the second vendors device. If you experience this run `unset LIBVA_DRIVER_NAME` and see if your enviromment is functional with both media-driver and the second vendors device.
+
+	This can be tested for using `  vainfo --display drm  --device /dev/dri/renderD128` followed by `  vainfo --display drm  --device /dev/dri/renderD129` ...   `vainfo --display drm  --device /dev/dri/renderD[n]` for each VAAPI device in the system
+	 
+5. Some users have reported issues with GCC-12.0.1 prerelease when building media-driver. In this case, please build using GCC-11.2 until official support is established. 
 ##### (*) Other names and brands may be claimed as property of others.
