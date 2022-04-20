@@ -21,7 +21,7 @@
 cmake_minimum_required(VERSION 3.5)
 project(IntelMediaDriver)
 
-set(MEDIA_VERSION "22.4.0${MEDIA_VERSION_EXTRA}" CACHE STRING "" FORCE)
+set(MEDIA_VERSION "22.4.1${MEDIA_VERSION_EXTRA}" CACHE STRING "" FORCE)
 
 include(os_release_info.cmake)
 
