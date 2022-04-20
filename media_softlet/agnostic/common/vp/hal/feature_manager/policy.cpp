@@ -2194,6 +2194,7 @@ MOS_STATUS Policy::BypassVeboxFeatures(SwFilterSubPipe *featureSubPipe, VP_Engin
     }
 
     engineCaps.nonVeboxFeatureExists = true;
+    VP_PUBLIC_NORMALMESSAGE("Set nonVeboxFeatureExists to 1 for BypassVeboxFeatures.");
 
     return MOS_STATUS_SUCCESS;
 }
@@ -2289,7 +2290,45 @@ MOS_STATUS Policy::FilterFeatureCombination(SwFilterPipe &swFilterPipe, bool isI
                 feature->GetFilterEngineCaps().VeboxNeeded = 0;
                 feature->GetFilterEngineCaps().SfcNeeded = 0;
                 feature->GetFilterEngineCaps().forceEnableForSfc = 0;
-                VP_PUBLIC_NORMALMESSAGE("Disable Feature 0x%x since vebox cannot be used.", filterID);
+                VP_PUBLIC_NORMALMESSAGE("Disable feature 0x%x since vebox cannot be used.", filterID);
+                PrintFeatureExecutionCaps("Disable feature since vebox cannot be used", feature->GetFilterEngineCaps());
+            }
+        }
+    }
+
+    // For DI on render with scaling case, force to do scaling on render.
+    if (engineCapsCombined.SfcNeeded)
+    {
+        auto di      = pipe->GetSwFilter(FeatureType(FeatureTypeDi));
+
+        if (di && di->GetFilterEngineCaps().bEnabled &&
+            !di->GetFilterEngineCaps().VeboxNeeded && di->GetFilterEngineCaps().RenderNeeded)
+        {
+            for (auto filterID : m_featurePool)
+            {
+                auto feature = pipe->GetSwFilter(FeatureType(filterID));
+                if (nullptr == feature || !feature->GetFilterEngineCaps().bEnabled)
+                {
+                    continue;
+                }
+                if (FeatureType(filterID) == FeatureTypeScaling &&
+                    feature->GetFilterEngineCaps().SfcNeeded &&
+                    !feature->GetFilterEngineCaps().RenderNeeded &&
+                    !m_hwCaps.m_rules.isAvsSamplerSupported)
+                {
+                    feature->GetFilterEngineCaps().SfcNeeded    = 0;
+                    feature->GetFilterEngineCaps().RenderNeeded = 1;
+                    feature->GetFilterEngineCaps().fcSupported  = 1;
+                    PrintFeatureExecutionCaps("Update scaling caps for render DI", feature->GetFilterEngineCaps());
+                }
+                else if (!feature->GetFilterEngineCaps().VeboxNeeded &&
+                         feature->GetFilterEngineCaps().SfcNeeded &&
+                         feature->GetFilterEngineCaps().RenderNeeded)
+                {
+                    feature->GetFilterEngineCaps().SfcNeeded = 0;
+                    VP_PUBLIC_NORMALMESSAGE("Force feature 0x%x to render for render DI", filterID);
+                    PrintFeatureExecutionCaps("Force feature to render for render DI", feature->GetFilterEngineCaps());
+                }
             }
         }
     }
@@ -2305,6 +2344,8 @@ MOS_STATUS Policy::FilterFeatureCombination(SwFilterPipe &swFilterPipe, bool isI
                 if (feature && feature->GetFilterEngineCaps().bEnabled)
                 {
                     feature->GetFilterEngineCaps().bEnabled = false;
+                    VP_PUBLIC_NORMALMESSAGE("Disable feature 0x%x for HDR.", filterID);
+                    PrintFeatureExecutionCaps("Disable feature for HDR", feature->GetFilterEngineCaps());
                 }
             }
             if (filterID == FeatureTypeCsc)
@@ -2314,6 +2355,7 @@ MOS_STATUS Policy::FilterFeatureCombination(SwFilterPipe &swFilterPipe, bool isI
                 {
                     auto &params      = feature->GetSwFilterParams();
                     params.pIEFParams = nullptr;
+                    PrintFeatureExecutionCaps("Disable IEF for HDR", feature->GetFilterEngineCaps());
                 }
             }
         }

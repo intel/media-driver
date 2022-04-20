@@ -796,8 +796,19 @@ MOS_STATUS VpResourceManager::GetIntermediaOutputSurfaceParams(VP_EXECUTE_CAPS& 
     VP_PUBLIC_CHK_STATUS_RETURN(GetIntermediaOutputSurfaceColorAndFormat(caps, executedFilters, params.format, params.colorSpace));
 
     params.tileType = MOS_TILE_Y;
-    params.surfCompressionMode = caps.bRender ? MOS_MMC_RC : MOS_MMC_MC;
-    params.surfCompressible = true;
+
+    if (SAMPLE_PROGRESSIVE == params.sampleType)
+    {
+        params.surfCompressionMode = caps.bRender ? MOS_MMC_RC : MOS_MMC_MC;
+        params.surfCompressible    = true;
+    }
+    else
+    {
+        // MMC does not support interleaved surface.
+        VP_PUBLIC_NORMALMESSAGE("Disable MMC for interleaved intermedia surface, sampleType = %d.", params.sampleType);
+        params.surfCompressionMode = MOS_MMC_DISABLED;
+        params.surfCompressible    = false;
+    }
 
     return MOS_STATUS_SUCCESS;
 }
