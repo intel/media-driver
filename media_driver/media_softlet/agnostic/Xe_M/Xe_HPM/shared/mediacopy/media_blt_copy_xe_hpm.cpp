@@ -636,6 +636,8 @@ MOS_STATUS BltState_Xe_Hpm::SubmitCMD(
     MOS_SURFACE       dstResDetails;
     MOS_ZeroMemory(&srcResDetails, sizeof(MOS_SURFACE));
     MOS_ZeroMemory(&dstResDetails, sizeof(MOS_SURFACE));
+    srcResDetails.Format = Format_Invalid;
+    dstResDetails.Format = Format_Invalid;
     BLT_CHK_STATUS_RETURN(m_osInterface->pfnGetResourceInfo(m_osInterface, pBltStateParam->pSrcSurface, &srcResDetails));
     BLT_CHK_STATUS_RETURN(m_osInterface->pfnGetResourceInfo(m_osInterface, pBltStateParam->pDstSurface, &dstResDetails));
 
