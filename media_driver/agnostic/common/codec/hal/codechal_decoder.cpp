@@ -876,7 +876,7 @@ CodechalDecode::~CodechalDecode()
         MOS_Delete(m_pCodechalOcaDumper);
     }
 
-#if (_DEBUG || _RELEASE_INTERNAL)
+#if (_DEBUG || _RELEASE_INTERNAL) && (!WDDM_LINUX)
     m_debugInterface->PackGoldenReferences({m_debugInterface->GetCrcGoldenReference()});
     m_debugInterface->DumpGoldenReference();
 #endif

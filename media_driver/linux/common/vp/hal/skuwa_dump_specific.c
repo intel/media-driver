@@ -24,7 +24,7 @@
 //! 
 //!
 
-#if (_DEBUG || _RELEASE_INTERNAL)
+#if (_DEBUG || _RELEASE_INTERNAL) && (!WDDM_LINUX)
 #include <stdio.h>
 #include "vphal.h"
 #include "mhw_vebox.h"

@@ -856,7 +856,7 @@ MOS_STATUS XRenderHal_Interface_G12_Base::IsRenderHalMMCEnabled(
     MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
 
     UserFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
-#if(LINUX)
+#if (LINUX) && (!WDDM_LINUX)
     UserFeatureData.bData = !MEDIA_IS_WA(pRenderHal->pWaTable, WaDisableVPMmc) || !MEDIA_IS_WA(pRenderHal->pWaTable, WaDisableCodecMmc); // Enable MMC on Linux based on platforms settings
 #else
     UserFeatureData.bData = true; // init as default value to enable MMCD on Gen12LP

@@ -40,6 +40,9 @@
 #include "codechal_user_settings_mgr_ext.h"
 #include "vphal_user_settings_mgr_ext.h"
 #endif // _MEDIA_RESERVED
+#ifdef WDDM_LINUX
+#include "media_user_settings_mgr_specific.h"
+#endif
 #include "mos_user_setting.h"
 
 #include <sys/ipc.h>  // System V IPC
@@ -113,6 +116,8 @@ uint32_t MosUtilities::m_mosUtilInitCount = 0; // number count of mos utilities 
 MediaUserSettingsMgr *MosUtilities::m_codecUserFeatureExt = nullptr;
 MediaUserSettingsMgr *MosUtilities::m_vpUserFeatureExt    = nullptr;
 #endif
+
+MediaUserSettingsMgr *MosUtilities::m_mediaUserFeatureSpecific  = nullptr;
 
 MOS_STATUS MosUtilities::MosSecureStrcat(char  *strDestination, size_t numberOfElements, const char * const strSource)
 {
@@ -1356,7 +1361,9 @@ MOS_STATUS MosUtilities::MosOsUtilitiesInit(MOS_CONTEXT_HANDLE mosCtx)
         m_codecUserFeatureExt = new CodechalUserSettingsMgr();
         m_vpUserFeatureExt    = new VphalUserSettingsMgr();
 #endif
-
+#ifdef WDDM_LINUX
+        m_mediaUserFeatureSpecific = new MediaUserSettingsMgrSpecific();
+#endif
         eStatus = MosGenerateUserFeatureKeyXML(mosCtx);
 #if MOS_MESSAGES_ENABLED
         // Initialize MOS message params structure and HLT
@@ -1409,6 +1416,13 @@ MOS_STATUS MosUtilities::MosOsUtilitiesClose(MOS_CONTEXT_HANDLE mosCtx)
             m_vpUserFeatureExt = nullptr;
         }
 #endif // _MEDIA_RESERVED
+#ifdef WDDM_LINUX
+        if (m_mediaUserFeatureSpecific)
+        {
+            delete m_mediaUserFeatureSpecific;
+            m_mediaUserFeatureSpecific = nullptr;
+        }
+#endif
         MosUserSetting::DestroyMediaUserSetting();
 
 #if (_DEBUG || _RELEASE_INTERNAL)
@@ -2278,6 +2292,7 @@ int32_t MosUtilities::MosAtomicDecrement(
     return __sync_sub_and_fetch(pValue, 1);
 }
 
+#ifndef WDDM_LINUX
 VAStatus MosUtilities::MosStatusToOsResult(
     MOS_STATUS               eStatus)
 {
@@ -2309,7 +2324,59 @@ MOS_STATUS MosUtilities::OsResultToMOSStatus(
 
     return MOS_STATUS_UNKNOWN;
 }
+#else
+MOS_OSRESULT MosUtilities::MosStatusToOsResult(
+    MOS_STATUS eStatus)
+{
+    if (eStatus < MOS_STATUS_SUCCESS)
+    {
+        // It is in fact an HRESULT already, do nothing
+        return (MOS_OSRESULT)eStatus;
+    }
 
+    switch (eStatus)
+    {
+    case MOS_STATUS_SUCCESS:
+        return MOS_OSSOK;
+    case MOS_STATUS_NO_SPACE:
+        return MOS_OSEOUTOFMEMORY;
+    case MOS_STATUS_INVALID_PARAMETER:
+        return MOS_OSEINVALIDARG;
+    case MOS_STATUS_INVALID_HANDLE:
+        return MOS_OSEHANDLE;
+    case MOS_STATUS_NULL_POINTER:
+        return MOS_OSEPOINTER;
+    case MOS_STATUS_UNIMPLEMENTED:
+        return MOS_OSENOTIMPL;
+    default:
+        return MOS_OSEFAIL;
+    }
+
+    return MOS_OSEFAIL;
+}
+
+MOS_STATUS MosUtilities::OsResultToMOSStatus(
+    MOS_OSRESULT eResult)
+{
+    switch (eResult)
+    {
+    case MOS_OSSOK:
+        return MOS_STATUS_SUCCESS;
+    case MOS_OSEOUTOFMEMORY:
+        return MOS_STATUS_NO_SPACE;
+    case MOS_OSEINVALIDARG:
+        return MOS_STATUS_INVALID_PARAMETER;
+    case MOS_OSEHANDLE:
+        return MOS_STATUS_INVALID_HANDLE;
+    case MOS_OSEPOINTER:
+        return MOS_STATUS_NULL_POINTER;
+    default:
+        return MOS_STATUS_UNKNOWN;
+    }
+
+    return MOS_STATUS_UNKNOWN;
+}
+#endif
 MOS_STATUS MosUtilities::MosGetLocalTime(
     struct tm* Tm)
 {

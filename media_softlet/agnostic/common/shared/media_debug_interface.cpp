@@ -1460,7 +1460,7 @@ MOS_STATUS MediaDebugInterface::DumpMosSpecificResourceInfoToOfs(
 
     PMOS_RESOURCE ptr = pOsResource;
     ofs << "MOS_RESOURCE:" << std::endl;
-#if !defined(LINUX)
+#if !defined(LINUX) || defined(WDDM_LINUX)
     FIELD_TO_OFS(RunTimeHandle, );
 #else
     FIELD_TO_OFS(iWidth, );

@@ -33,8 +33,15 @@
 #include "codechal_secure_decode_interface.h"
 #include "mhw_cp_interface.h"
 #include "mos_os_cp_interface_specific.h"
+#ifndef WDDM_LINUX
 #include "media_libva_cp_interface.h"
 #include "media_libva_caps_cp_interface.h"
+#else
+class DdiCpInterface;
+class MediaLibvaCaps;
+class MediaLibvaCapsCpInterface;
+struct DDI_MEDIA_CONTEXT;
+#endif
 #include "cp_streamout_interface.h"
 #include "decodecp_interface.h"
 

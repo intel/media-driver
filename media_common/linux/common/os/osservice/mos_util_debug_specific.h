@@ -165,6 +165,40 @@ void MOS_Message(
     }                                                                                       \
 }
 
+#define MOS_CHK_NULL_WITH_HR_RETURN(_compID, _subCompID, _ptr)                              \
+{                                                                                           \
+    if ((_ptr) == NULL)                                                                     \
+    {                                                                                       \
+        MOS_ASSERTMESSAGE(_compID, _subCompID, "Invalid (NULL) Pointer.");                  \
+        MT_ERR2(MT_ERR_NULL_CHECK, MT_COMPONENT, _compID, MT_SUB_COMPONENT, _subCompID);    \
+        return -1;                                                                      \
+    }                                                                                       \
+}
+
+#define MOS_CHK_HR_RETURN(_compID, _subCompID, _stmt)                                                         \
+    {                                                                                                         \
+        hr = (_stmt);                                                                                         \
+        if (hr != 0)                                                                                       \
+        {                                                                                                     \
+            return hr;                                                                                        \
+        }                                                                                                     \
+    }
+
+//!
+//! \def MOS_CHK_STATUS_RETURN_HR(_compID, _subCompID, _stmt)
+//!  Check _stmt, assert and return an error for failure
+//!
+#define MOS_CHK_STATUS_RETURN_HR(_compID, _subCompID, _stmt)                                        \
+{                                                                                                   \
+    MOS_STATUS stmtStatus = (MOS_STATUS)(_stmt);                                                    \
+    if (stmtStatus != MOS_STATUS_SUCCESS)                                                           \
+    {                                                                                               \
+        MOS_ASSERTMESSAGE(_compID, _subCompID, "MOS returned error, eStatus = 0x%x", stmtStatus);   \
+        MT_ERR3(MT_ERR_MOS_STATUS_CHECK, MT_COMPONENT, _compID, MT_SUB_COMPONENT, _subCompID, MT_ERROR_CODE, stmtStatus); \
+        return -1;                                                                              \
+    }                                                                                               \
+}
+
 #define MOS_DIRECTORY_DELIMITER            '/'
 
 #ifndef ANDROID

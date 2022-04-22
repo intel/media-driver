@@ -2689,6 +2689,7 @@ private:
     static MediaUserSettingsMgr*        m_codecUserFeatureExt;
     static MediaUserSettingsMgr*        m_vpUserFeatureExt;
 #endif
+    static MediaUserSettingsMgr*        m_mediaUserFeatureSpecific;
 #if (_DEBUG || _RELEASE_INTERNAL)
     static uint32_t                     m_mosAllocMemoryFailSimulateMode;
     static uint32_t                     m_mosAllocMemoryFailSimulateFreq;

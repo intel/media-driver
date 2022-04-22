@@ -165,7 +165,7 @@ MOS_STATUS XRenderHal_Interface_Xe_Hpc::IsRenderHalMMCEnabled(PRENDERHAL_INTERFA
     // Read user feature key to set MMC for Fast Composition surfaces
     MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
     UserFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
-#ifdef LINUX
+#if defined(LINUX) && (!defined(WDDM_LINUX))
     UserFeatureData.bData = !MEDIA_IS_WA(pRenderHal->pWaTable, WaDisableVPMmc) || !MEDIA_IS_WA(pRenderHal->pWaTable, WaDisableCodecMmc);
 #else
     UserFeatureData.bData = false; // init as default value to disable MMCD

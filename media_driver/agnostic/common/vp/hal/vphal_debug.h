@@ -1424,7 +1424,7 @@ public:
 
 #endif // (_DEBUG || _RELEASE_INTERNAL)
 
-#if (!(_DEBUG || _RELEASE_INTERNAL))
+#if (!(_DEBUG || _RELEASE_INTERNAL)) || (WDDM_LINUX)
 
 #define VPHAL_DBG_SURFACE_DUMP(dumper, surf, frameCntr, layerCntr, loc)
 #define VPHAL_DBG_SURFACE_PTRS_DUMP(                                            \

@@ -1231,7 +1231,7 @@ uint64_t VP_SURFACE::GetAllocationHandle(MOS_INTERFACE* osIntf)
     }
 #endif
 
-#if(LINUX)
+#if(LINUX) && !(WDDM_LINUX)
     if (osSurface && osSurface->OsResource.bo)
     {
         return osSurface->OsResource.bo->handle;
