@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2020, Intel Corporation
+* Copyright (c) 2019-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -60,6 +60,11 @@ MOS_STATUS DecodeScalabilityOption::SetScalabilityOption(ScalabilityPars *params
     }
 
     bool isRealTileDecode   = IsRealTileDecode(*decPars);
+    if (!isRealTileDecode && decPars->disableVirtualTile)
+    {
+        //If Not Real Tile Decode and Virtual tile was disabled, use single pipe.
+        return MOS_STATUS_SUCCESS;
+    }
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     if (decPars->forceMultiPipe)
