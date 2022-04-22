@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2020, Intel Corporation
+* Copyright (c) 2018-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -82,6 +82,11 @@ public:
     //!         Point to slice level command buffer if success, else nullptr
     //!
     MHW_BATCH_BUFFER* GetSliceLvlCmdBuffer();
+    //!
+    //! \brief  Declare Regkeys in the scope of hevc decode
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    virtual MOS_STATUS InitUserSetting(MediaUserSettingSharedPtr userSettingPtr) override;
 
     DeclareDecodePacketId(hucS2lPacketId);
     DeclareDecodePacketId(hevcLongPacketId);

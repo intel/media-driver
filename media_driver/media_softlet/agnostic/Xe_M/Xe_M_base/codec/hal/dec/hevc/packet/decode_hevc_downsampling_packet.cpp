@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2021, Intel Corporation
+* Copyright (c) 2020-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -41,8 +41,7 @@ MOS_STATUS HevcDownSamplingPkt::Init()
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     m_dbgOvrdWidthInMinCb =
-        ReadUserFeature(__MEDIA_USER_FEATURE_VALUE_SCALABILITY_OVERRIDE_SPLIT_WIDTH_IN_MINCB, m_osInterface->pOsContext).u32Data ?
-        true : false;
+        ReadUserFeature(m_pipeline->GetUserSetting(), "Scalability Split Width In MinCb", MediaUserSetting::Group::Sequence).Get<bool>();
 #endif
 
     return MOS_STATUS_SUCCESS;

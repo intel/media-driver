@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2021, Intel Corporation
+* Copyright (c) 2018-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -25,6 +25,7 @@
 #include "mos_util_debug.h"
 #include "mos_utilities.h"
 #include "media_class_trace.h"
+#include "media_user_setting.h"
 
 //------------------------------------------------------------------------------
 // Macros specific to MOS_CODEC_SUBCOMP_DECODE sub-comp
@@ -190,16 +191,15 @@ MOS_STATUS FreeDataList(type **dataList, uint32_t length)
     return MOS_STATUS_SUCCESS;
 }
 
-inline MOS_USER_FEATURE_VALUE_DATA ReadUserFeature(uint32_t id, MOS_CONTEXT_HANDLE mosCtx)
+inline MediaUserSetting::Value ReadUserFeature(MediaUserSettingSharedPtr m_userSettingPtr, std::string name, MediaUserSetting::Group userSettingGroup)
 {
-    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
-    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        id,
-        &userFeatureData,
-        mosCtx);
-    return userFeatureData;
+    MediaUserSetting::Value outValue;
+    MOS_STATUS              s_status = ReadUserSetting(
+        m_userSettingPtr,
+        outValue,
+        name,
+        userSettingGroup);
+    return outValue;  //open: how to check read user setting results.
 }
 
 }

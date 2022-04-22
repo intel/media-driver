@@ -56,6 +56,11 @@ public:
     virtual ~Vp9Pipeline() {};
 
     Vp9DecodeMode GetDecodeMode();
+    //!
+    //! \brief  Declare Regkeys in the scope of vp9 decode
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    virtual MOS_STATUS InitUserSetting(MediaUserSettingSharedPtr userSettingPtr) override;
 
     DeclareDecodePacketId(vp9SinglePacketId);
     DeclareDecodePacketId(vp9FrontEndPacketId);

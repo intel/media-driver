@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021, Intel Corporation
+* Copyright (c) 2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -37,6 +37,7 @@ Mpeg2Pipeline::Mpeg2Pipeline(
     CodechalDebugInterface *debugInterface)
     : DecodePipeline(hwInterface, debugInterface)
 {
+    MOS_STATUS m_status = InitUserSetting(m_userSettingPtr);
 }
 
 MOS_STATUS Mpeg2Pipeline::Initialize(void *settings)

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021, Intel Corporation
+* Copyright (c) 2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -47,7 +47,11 @@ public:
         CodechalDebugInterface* debugInterface);
 
     virtual ~Mpeg2Pipeline() {};
-
+    //!
+    //! \brief  Declare Regkeys in the scope of mpeg2 decode
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    virtual MOS_STATUS InitUserSetting(MediaUserSettingSharedPtr userSettingPtr) override;
     DeclareDecodePacketId(mpeg2DecodePacketId);
     DeclareDecodePacketId(mpeg2PictureSubPacketId);
     DeclareDecodePacketId(mpeg2SliceSubPacketId);

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2021, Intel Corporation
+* Copyright (c) 2019-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -57,18 +57,11 @@ MOS_STATUS Av1PipelineG12_Base::Initialize(void *settings)
     auto *codecSettings = (CodechalSetting*)settings;
     DECODE_CHK_NULL(codecSettings);
 
-    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
-    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-
+  bool forceTileBasedDecodingRead = 0;
 #if (_DEBUG || _RELEASE_INTERNAL)
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_FORCE_AV1_TILE_BASED_DECODE_ID,
-        &userFeatureData,
-        m_osInterface ? m_osInterface->pOsContext : nullptr);
+    forceTileBasedDecodingRead = ReadUserFeature(m_userSettingPtr, "Force Av1 Tile Based Decode", MediaUserSetting::Group::Sequence).Get<bool>();
 #endif
-
-    m_forceTileBasedDecoding = userFeatureData.i32Data;
+    m_forceTileBasedDecoding = forceTileBasedDecodingRead;
 
     return MOS_STATUS_SUCCESS;
 }

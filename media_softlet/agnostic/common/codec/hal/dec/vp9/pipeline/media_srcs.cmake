@@ -23,6 +23,7 @@ set(TMP_SOURCES_
     ${TMP_SOURCES_}
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_pipeline.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_buffer_update.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_user_setting.cpp
 )
 
 set(TMP_HEADERS_

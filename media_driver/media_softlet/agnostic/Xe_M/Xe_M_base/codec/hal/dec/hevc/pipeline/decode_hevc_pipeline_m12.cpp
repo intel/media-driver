@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2021, Intel Corporation
+* Copyright (c) 2018-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -112,19 +112,16 @@ MOS_STATUS HevcPipelineM12::InitScalabOption(HevcBasicFeature &basicFeature)
     scalPars.maxTileRow    = HEVC_NUM_MAX_TILE_ROW;
 #if (_DEBUG || _RELEASE_INTERNAL)
     scalPars.disableRealTile =
-        ReadUserFeature(__MEDIA_USER_FEATURE_VALUE_DISABLE_HEVC_REALTILE_DECODE_ID, m_osInterface->pOsContext).u32Data ?
-        true : false;
-
+        ReadUserFeature(m_userSettingPtr, "Disable HEVC Real Tile Decode", MediaUserSetting::Group::Sequence).Get<bool>();
     bool enableRealTileMultiPhase =
-        ReadUserFeature(__MEDIA_USER_FEATURE_VALUE_ENABLE_HEVC_REALTILE_MULTI_PHASE_DECODE_ID, m_osInterface->pOsContext).u32Data ?
-        true : false;
-    if (!enableRealTileMultiPhase)
+        ReadUserFeature(m_userSettingPtr, "Enable HEVC Real Tile Multi Phase Decode", MediaUserSetting::Group::Sequence).Get<bool>();
+        if (!enableRealTileMultiPhase)
     {
         scalPars.maxTileColumn = 2;
     }
 
     scalPars.userPipeNum =
-        uint8_t(ReadUserFeature(__MEDIA_USER_FEATURE_VALUE_HCP_DECODE_USER_PIPE_NUM_ID, m_osInterface->pOsContext).u32Data);
+        uint8_t(ReadUserFeature(m_userSettingPtr, "HCP Decode User Pipe Num", MediaUserSetting::Group::Sequence).Get<uint32_t>());
 #endif
     // Long format real tile requires subset params
     if (!m_shortFormatInUse && basicFeature.m_hevcSubsetParams == nullptr)

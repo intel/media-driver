@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2021, Intel Corporation
+* Copyright (c) 2018-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -37,8 +37,7 @@ DecodeAllocator::DecodeAllocator(PMOS_INTERFACE osInterface, bool limitedLMemBar
 {
     m_allocator = MOS_New(Allocator, m_osInterface);
 #if (_DEBUG || _RELEASE_INTERNAL)
-    m_forceLockable = ReadUserFeature(
-        __MEDIA_USER_FEATURE_VALUE_FORCE_DECODE_RESOURCE_LOCKABLE_ID, m_osInterface->pOsContext).u32Data;
+    m_forceLockable = ReadUserFeature(m_osInterface->pfnGetUserSettingInstance(m_osInterface), "ForceDecodeResourceLockable", MediaUserSetting::Group::Sequence).Get<uint32_t>();
 #endif
 }
 

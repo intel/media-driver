@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2021, Intel Corporation
+* Copyright (c) 2018-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -37,7 +37,7 @@ namespace decode
         CodechalDebugInterface *debugInterface)
         : DecodePipeline(hwInterface, debugInterface)
     {
-
+        MOS_STATUS m_status = InitUserSetting(m_userSettingPtr);
     }
 
     MOS_STATUS AvcPipeline::Initialize(void *settings)

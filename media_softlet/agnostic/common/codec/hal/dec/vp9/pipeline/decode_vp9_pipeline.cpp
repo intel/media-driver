@@ -36,10 +36,11 @@
 namespace decode
 {
 Vp9Pipeline::Vp9Pipeline(
-    CodechalHwInterface *   hwInterface,
+    CodechalHwInterface    *hwInterface,
     CodechalDebugInterface *debugInterface)
     : DecodePipeline(hwInterface, debugInterface)
 {
+    MOS_STATUS m_status = InitUserSetting(m_userSettingPtr);
 }
 
 MOS_STATUS Vp9Pipeline::Initialize(void *settings)
@@ -200,13 +201,13 @@ MOS_STATUS Vp9Pipeline::InitContexOption(Vp9BasicFeature &basicFeature)
         scalPars.disableScalability = false;
     }
     scalPars.modeSwithThreshold1 =
-        ReadUserFeature(__MEDIA_USER_FEATURE_VALUE_HCP_DECODE_MODE_SWITCH_THRESHOLD1_ID, m_osInterface->pOsContext).u32Data;
+        ReadUserFeature(m_userSettingPtr, "HCP Decode Mode Switch TH1", MediaUserSetting::Group::Sequence).Get<uint32_t>();
     scalPars.modeSwithThreshold2 =
-        ReadUserFeature(__MEDIA_USER_FEATURE_VALUE_HCP_DECODE_MODE_SWITCH_THRESHOLD2_ID, m_osInterface->pOsContext).u32Data;
+        ReadUserFeature(m_userSettingPtr, "HCP Decode Mode Switch TH2", MediaUserSetting::Group::Sequence).Get<uint32_t>();
     scalPars.forceMultiPipe =
-        ReadUserFeature(__MEDIA_USER_FEATURE_VALUE_HCP_DECODE_ALWAYS_FRAME_SPLIT_ID, m_osInterface->pOsContext).u32Data ? true : false;
+        ReadUserFeature(m_userSettingPtr, "HCP Decode Always Frame Split", MediaUserSetting::Group::Sequence).Get<bool>();
     scalPars.userPipeNum =
-        uint8_t(ReadUserFeature(__MEDIA_USER_FEATURE_VALUE_HCP_DECODE_USER_PIPE_NUM_ID, m_osInterface->pOsContext).u32Data);
+        ReadUserFeature(m_userSettingPtr, "HCP Decode User Pipe Num", MediaUserSetting::Group::Sequence).Get<uint8_t>();
 #endif
 
 #ifdef _DECODE_PROCESSING_SUPPORTED

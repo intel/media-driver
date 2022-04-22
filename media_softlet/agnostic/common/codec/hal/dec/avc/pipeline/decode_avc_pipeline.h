@@ -62,6 +62,11 @@ public:
     virtual ~AvcPipeline() {};
 
     AvcDecodeMode GetDecodeMode();
+    //!
+    //! \brief  Declare Regkeys in the scope of avc decode
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    virtual MOS_STATUS InitUserSetting(MediaUserSettingSharedPtr userSettingPtr) override;
 
     DeclareDecodePacketId(avcDecodePacketId);
     DeclareDecodePacketId(avcPictureSubPacketId);

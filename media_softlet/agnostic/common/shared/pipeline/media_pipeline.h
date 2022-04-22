@@ -124,6 +124,8 @@ public:
 
     MediaScalability* &GetMediaScalability() { return m_scalability; }
 
+    MediaUserSettingSharedPtr GetUserSetting() { return m_userSettingPtr; }
+
     //!
     //! \brief  Get if frame tracking is enabled from scalability
     //! \return bool

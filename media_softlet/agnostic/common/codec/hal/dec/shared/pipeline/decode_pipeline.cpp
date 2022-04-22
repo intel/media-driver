@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2021, Intel Corporation
+* Copyright (c) 2018-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -51,10 +51,10 @@ DecodePipeline::DecodePipeline(
 
     DECODE_ASSERT(hwInterface != nullptr);
     m_hwInterface = hwInterface;
+    MOS_STATUS m_status = (InitUserSetting(m_userSettingPtr));
 
     m_singleTaskPhaseSupported =
-        ReadUserFeature(__MEDIA_USER_FEATURE_VALUE_DECODE_SINGLE_TASK_PHASE_ENABLE_ID, m_osInterface ? m_osInterface->pOsContext : nullptr).i32Data ? true : false;
-
+        ReadUserFeature(m_userSettingPtr, "Decode Single Task Phase Enable", MediaUserSetting::Group::Sequence).Get<bool>();
     CODECHAL_DEBUG_TOOL(
         DECODE_ASSERT(debugInterface != nullptr);
         m_debugInterface = debugInterface;
@@ -423,8 +423,7 @@ MOS_STATUS DecodePipeline::DumpOutput(const DecodeStatusReportData& reportData)
 #if (_DEBUG || _RELEASE_INTERNAL)
                 //rgb format read from reg key
                 uint32_t sfcOutputRgbFormatFlag =
-                    ReadUserFeature(__MEDIA_USER_FEATURE_VALUE_DECODE_SFC_RGBFORMAT_OUTPUT_DEBUG_ID, m_osInterface->pOsContext).u32Data;
-
+                    ReadUserFeature(m_userSettingPtr, "Decode SFC RGB Format Output", MediaUserSetting::Group::Sequence).Get<uint32_t>();
                 if (sfcOutputRgbFormatFlag)
                 {
                     DECODE_CHK_STATUS(m_debugInterface->DumpRgbDataOnYUVSurface(
@@ -562,8 +561,7 @@ MOS_STATUS DecodePipeline::ReportVdboxIds(const DecodeStatusMfx& status)
     DECODE_FUNC_CALL();
 
     // report the VDBOX IDs to user feature
-    uint32_t vdboxIds = ReadUserFeature(__MEDIA_USER_FEATURE_VALUE_VDBOX_ID_USED, m_osInterface->pOsContext).u32Data;
-
+    uint32_t vdboxIds = ReadUserFeature(m_userSettingPtr, "Used VDBOX ID", MediaUserSetting::Group::Sequence).Get<uint32_t>();
     for (auto i = 0; i < csInstanceIdMax; i++)
     {
         CsEngineId csEngineId;

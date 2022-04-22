@@ -24,6 +24,7 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/decode_sub_pipeline.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_sub_pipeline_manager.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_sfc_histogram_postsubpipeline.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/decode_user_setting.cpp
 )
 
 set(TMP_HEADERS_

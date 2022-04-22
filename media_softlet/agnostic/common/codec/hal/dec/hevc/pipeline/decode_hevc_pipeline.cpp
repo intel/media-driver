@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2021, Intel Corporation
+* Copyright (c) 2018-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -39,6 +39,7 @@ namespace decode {
 HevcPipeline::HevcPipeline(CodechalHwInterface *hwInterface, CodechalDebugInterface *debugInterface)
     : DecodePipeline(hwInterface, debugInterface)
 {
+    MOS_STATUS m_status = InitUserSetting(m_userSettingPtr);
 }
 
 MOS_STATUS HevcPipeline::Initialize(void *settings)
@@ -179,12 +180,11 @@ MOS_STATUS HevcPipeline::InitContexOption(HevcScalabilityPars& scalPars)
         scalPars.disableScalability = false;
     }
     scalPars.modeSwithThreshold1 =
-        ReadUserFeature(__MEDIA_USER_FEATURE_VALUE_HCP_DECODE_MODE_SWITCH_THRESHOLD1_ID, m_osInterface->pOsContext).u32Data;
+        ReadUserFeature(m_userSettingPtr, "HCP Decode Mode Switch TH1", MediaUserSetting::Group::Sequence).Get<uint32_t>();
     scalPars.modeSwithThreshold2 =
-        ReadUserFeature(__MEDIA_USER_FEATURE_VALUE_HCP_DECODE_MODE_SWITCH_THRESHOLD2_ID, m_osInterface->pOsContext).u32Data;
+        ReadUserFeature(m_userSettingPtr, "HCP Decode Mode Switch TH2", MediaUserSetting::Group::Sequence).Get<uint32_t>();
     scalPars.forceMultiPipe =
-        ReadUserFeature(__MEDIA_USER_FEATURE_VALUE_HCP_DECODE_ALWAYS_FRAME_SPLIT_ID, m_osInterface->pOsContext).u32Data ?
-        true : false;
+        ReadUserFeature(m_userSettingPtr, "HCP Decode Always Frame Split", MediaUserSetting::Group::Sequence).Get<bool>();
 #endif
     return MOS_STATUS_SUCCESS;
 }
