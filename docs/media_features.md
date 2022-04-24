@@ -50,43 +50,44 @@
 
 ### Hardware Encoding, Low Power Encoding(VDEnc/Huc)
 
-| Codec      | Type         |  DG2/ATSM          | DG1/SG1   | TGLx      | ICL       | KBLx   | BXTx   | SKL    | BDW |
-|------------|--------------|--------------------|-----------|-----------|-----------|--------|--------|--------|-----|
-| AVC        | Input        | *More              | *More     | *More     | *More     | *More  | NV12   | NV12   |     |
-|            | Max Res.     | 4k                 | 4k        | 4k        | 4k        | 4k     | 4k     | 4k     |     |
-| JPEG       | Input/Output | **Note             | **Note    | **Note    | **Note    | **Note | **Note | **Note |     |
-|            | Max Res.     | 16k                | 16k       | 16k       | 16k       | 16k    | 16k    | 16k    |     |
-| HEVC 8bit  | Input        | NV12/YUY2/AYUV/RGB | NV12/AYUV | NV12/AYUV | NV12/AYUV |        |        |        |     |
-|            | Max Res.     | 16k                | 8k        | 8k        | 8k        |        |        |        |     |
-| HEVC 10bit | Input        | P010/Y210/Y410/RGB | P010/Y410 | P010/Y410 | P010/Y410 |        |        |        |     |
-|            | Max Res.     | 16k                | 8k        | 8k        | 8k        |        |        |        |     |
-| VP9 8bit   | Input        | NV12/AYUV          | NV12/AYUV | NV12/AYUV | NV12/AYUV |        |        |        |     |
-|            | Max Res.     | 8k                 | 8k        | 8k        | 8k        |        |        |        |     |
-| VP9 10bit  | Input        | P010/Y410          | P010/Y410 | P010/Y410 | P010/Y410 |        |        |        |     |
-|            | Max Res.     | 8k                 | 8k        | 8k        | 8k        |        |        |        |     |
-| AV1 8bit   | Input        | NV12               |           |           |           |        |        |        |     |
-|            | Max Res.     | 8k                 |           |           |           |        |        |        |     |
-| AV1 10bit  | Input        | P010               |           |           |           |        |        |        |     |
-|            | Max Res.     | 8k                 |           |           |           |        |        |        |     |
+| Codec      | Type         |  DG2/ATSM          | DG1/SG1            | TGLx               | ICL       | KBLx   | BXTx   | SKL    | BDW |
+|------------|--------------|--------------------|--------------------|--------------------|-----------|--------|--------|--------|-----|
+| AVC        | Input        | *More              | *More              | *More              | *More     | *More  | NV12   | NV12   |     |
+|            | Max Res.     | 4k                 | 4k                 | 4k                 | 4k        | 4k     | 4k     | 4k     |     |
+| JPEG       | Input/Output | **Note             | **Note             | **Note             | **Note    | **Note | **Note | **Note |     |
+|            | Max Res.     | 16k                | 16k                | 16k                | 16k       | 16k    | 16k    | 16k    |     |
+| HEVC 8bit  | Input        | NV12/YUY2/AYUV/RGB | NV12/YUY2/AYUV/RGB | NV12/YUY2/AYUV/RGB | NV12/AYUV |        |        |        |     |
+|            | Max Res.     | 16k***             | 8k                 | 8k                 | 8k        |        |        |        |     |
+| HEVC 10bit | Input        | P010/Y210/Y410/RGB | P010/Y210/Y410/RGB | P010/Y210/Y410/RGB | P010/Y410 |        |        |        |     |
+|            | Max Res.     | 16k***             | 8k                 | 8k                 | 8k        |        |        |        |     |
+| VP9 8bit   | Input        | NV12/AYUV          | NV12/AYUV          | NV12/AYUV          | NV12/AYUV |        |        |        |     |
+|            | Max Res.     | 8k                 | 8k                 | 8k                 | 8k        |        |        |        |     |
+| VP9 10bit  | Input        | P010/Y410          | P010/Y410          | P010/Y410          | P010/Y410 |        |        |        |     |
+|            | Max Res.     | 8k                 | 8k                 | 8k                 | 8k        |        |        |        |     |
+| AV1 8bit   | Input        | NV12               |                    |                    |           |        |        |        |     |
+|            | Max Res.     | 8k                 |                    |                    |           |        |        |        |     |
+| AV1 10bit  | Input        | P010               |                    |                    |           |        |        |        |     |
+|            | Max Res.     | 8k                 |                    |                    |           |        |        |        |     |
 
 - \*More: KBL/CFL/ICL/TGL AVC encoding supported input formats: NV12/YUY2/YUYV/YVYU/UYVY/AYUV/ARGB
 - \**Note: JPEG encoding supports input format NV12/YUY2/UYVY/ABGR/Y8 and output format YUV400/YUV420/YUV422H_2Y/YUV444/RGB24.
+- \***: 16k=16384x12288
 
 
 ### Hardware(PAK) + Shader(media kernel+VME) Encoding
 
-| Codec      | Type     | DG1/SG1   | TGLx      | ICL       | KBLx | BXTx | SKL  | BDW  |
-|------------|----------|-----------|-----------|-----------|------|------|------|------|
-| AVC        | Input    | NV12      | NV12      | NV12      | NV12 | NV12 | NV12 | NV12 |
-|            | Max Res. | 4k        | 4k        | 4k        | 4k   | 4k   | 4k   | 4k   |
-| MPEG2      | Input    | NV12      | NV12      | NV12      | NV12 |      | NV12 | NV12 |
-|            | Max Res. | 2k        | 2k        | 2k        | 2k   |      | 2k   | 2k   |
-| VP8        | Input    | NV12      | NV12      | NV12      | NV12 |      |      |      |
-|            | Max Res. | 4k        | 4k        | 4k        | 4k   |      |      |      |
-| HEVC 8bit  | Input    | NV12/AYUV | NV12/AYUV | NV12/AYUV | NV12 | NV12 | NV12 |      |
-|            | Max Res. | 8k        | 8k        | 8k        | 4k   | 4k   | 4k   |      |
-| HEVC 10bit | Input    | P010/Y410 | P010/Y410 | P010/Y410 |      |      |      |      |
-|            | Max Res. | 8k        | 8k        | 8k        |
+| Codec      | Type     | DG1/SG1        | TGLx           | ICL       | KBLx | BXTx | SKL  | BDW  |
+|------------|----------|----------------|----------------|-----------|------|------|------|------|
+| AVC        | Input    | NV12           | NV12           | NV12      | NV12 | NV12 | NV12 | NV12 |
+|            | Max Res. | 4k             | 4k             | 4k        | 4k   | 4k   | 4k   | 4k   |
+| MPEG2      | Input    | NV12           | NV12           | NV12      | NV12 |      | NV12 | NV12 |
+|            | Max Res. | 2k             | 2k             | 2k        | 2k   |      | 2k   | 2k   |
+| VP8        | Input    | NV12           | NV12           | NV12      | NV12 |      |      |      |
+|            | Max Res. | 4k             | 4k             | 4k        | 4k   |      |      |      |
+| HEVC 8bit  | Input    | NV12/YUY2/AYUV | NV12/YUY2/AYUV | NV12/AYUV | NV12 | NV12 | NV12 |      |
+|            | Max Res. | 8k             | 8k             | 8k        | 4k   | 4k   | 4k   |      |
+| HEVC 10bit | Input    | P010/Y210/Y410 | P010/Y210/Y410 | P010/Y410 |      |      |      |      |
+|            | Max Res. | 8k             | 8k             | 8k        |
 
 ## Supported Video Processing CSC/Scaling Format
 
