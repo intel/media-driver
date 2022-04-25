@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2018-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -531,7 +531,7 @@ MOS_STATUS CmSSH::PrepareResourcesForCp()
 
 using namespace std;
 
-#if defined(ANDROID) || defined(LINUX)
+#if defined(ANDROID) || defined(__linux__)
 #define PLATFORM_DIR_SEPERATOR   "/"
 #else
 #define PLATFORM_DIR_SEPERATOR   "\\"

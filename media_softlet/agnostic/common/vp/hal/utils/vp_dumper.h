@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2021, Intel Corporation
+* Copyright (c) 2018-202, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -36,7 +36,7 @@
 #include "vp_common.h"       // Common interfaces and structures
 #include "vp_pipeline_common.h"
 
-#if !defined(LINUX) && !defined(ANDROID)
+#if !defined(__linux__) && !defined(ANDROID)
 #include "UmdStateSeparation.h"
 #endif
 

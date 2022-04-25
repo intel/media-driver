@@ -346,7 +346,7 @@ MOS_STATUS MosUtilDebug::MosHLTInit(MediaUserSettingSharedPtr userSettingPtr)
     MosLogFileNamePrefix(fileNamePrefix, userSettingPtr);
     MosUtilities::MosSecureStringPrint(hltFileName, MOS_MAX_HLT_FILENAME_LEN, MOS_MAX_HLT_FILENAME_LEN - 1, m_mosLogPathTemplate, fileNamePrefix, nPID, MosUtilities::MosGetCurrentThreadId(), "log");
 
-#if defined(LINUX) || defined(ANDROID)
+#if defined(__linux__) || defined(ANDROID)
     eStatus = MosUtilities::MosCreateDirectory(fileNamePrefix);
     if (MOS_FAILED(eStatus))
     {
