@@ -31,15 +31,6 @@ set(TMP_1_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/igvpkrn_isa_g12_tgllp.h
 )
 
-set(SOURCES_
-    ${SOURCES_}
-    ${TMP_1_SOURCES_}
-)
-
-set(HEADERS_
-    ${HEADERS_}
-    ${TMP_1_HEADERS_}
-)
 
 set(VP_SOURCES_
     ${VP_SOURCES_}

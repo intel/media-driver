@@ -25,11 +25,6 @@ set(TMP_SOURCES_
 set(TMP_HEADERS_ "")
 
 
-set(SOURCES_
-    ${SOURCES_}
-    ${TMP_SOURCES_}
- )
- 
 set(VP_SOURCES_
     ${VP_SOURCES_}
     ${TMP_SOURCES_}

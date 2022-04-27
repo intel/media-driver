@@ -31,10 +31,6 @@ set(TMP_HEADERS_
 #    ${TMP_SOURCES_}
 #)
 
-set(HEADERS_
-    ${HEADERS_}
-    ${TMP_HEADERS_}
-)
 
 set(VP_HEADERS_
     ${VP_HEADERS_}

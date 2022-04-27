@@ -26,16 +26,6 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/vp_status_report.h
 )
 
-set(SOURCES_
-    ${SOURCES_}
-    ${TMP_SOURCES_}
-)
-
-set(HEADERS_
-    ${HEADERS_}
-    ${TMP_HEADERS_}
-)
-
 set(VP_SOURCES_
     ${VP_SOURCES_}
     ${TMP_SOURCES_}

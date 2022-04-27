@@ -22,12 +22,20 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/hal_oca_interface.cpp
 )
 
-set(TMP_HEADERS_ "")
+set(TMP_1_SOURCES_
+    ${CMAKE_CURRENT_LIST_DIR}/skuwa_dump_specific.c
+)
 
+set(TMP_HEADERS_ "")
 
 set(SOURCES_
     ${SOURCES_}
     ${TMP_SOURCES_}
+ )
+
+set(COMMON_SOURCES_
+    ${COMMON_SOURCES_}
+    ${TMP_1_SOURCES_}
  )
 
 #media_add_curr_to_include_path()

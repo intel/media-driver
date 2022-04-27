@@ -32,18 +32,6 @@ set(TMP_2_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/vphal_renderer_g9_glk.h
 )
 
-set(SOURCES_
-    ${SOURCES_}
-    ${TMP_1_SOURCES_}
-    ${TMP_2_SOURCES_}
- )
-
-set(HEADERS_
-    ${HEADERS_}
-    ${TMP_1_HEADERS_}
-    ${TMP_2_HEADERS_}
-)
-
 set(VP_SOURCES_
     ${VP_SOURCES_}
     ${TMP_1_SOURCES_}

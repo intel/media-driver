@@ -23,11 +23,6 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/vp_common_hdr.h
 )
 
-set(HEADERS_
-    ${HEADERS_}
-    ${TMP_HEADERS_}
-)
-
 set(VP_HEADERS_
     ${VP_HEADERS_}
     ${TMP_HEADERS_}
