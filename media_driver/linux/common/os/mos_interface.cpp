@@ -1535,6 +1535,12 @@ MOS_STATUS MosInterface::ConvertResourceFromDdi(
         case Media_Format_A16B16G16R16:
             resource->Format = Format_A16B16G16R16;
             break;
+        case Media_Format_I420:
+            resource->Format = Format_I420;
+            break;
+        case Media_Format_YV12:
+            resource->Format = Format_YV12;
+            break;
         default:
             MOS_OS_ASSERTMESSAGE("MOS: unsupported media format for surface.");
             break;

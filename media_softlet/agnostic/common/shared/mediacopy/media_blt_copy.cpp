@@ -255,6 +255,14 @@ MOS_STATUS BltState::SetupBltCopyParam(
         if (1 == planeIndex || 2 == planeIndex)
         {
            pMhwBltParams->dwDstBottom = pMhwBltParams->dwDstBottom / bytePerTexelScaling;
+           if (ResDetails.Format == Format_I420 || ResDetails.Format == Format_YV12)
+           {
+               pMhwBltParams->dwDstPitch  = pMhwBltParams->dwDstPitch / 2;
+               pMhwBltParams->dwSrcPitch  = pMhwBltParams->dwSrcPitch / 2;
+               pMhwBltParams->dwDstRight  = pMhwBltParams->dwDstRight / 2;
+               pMhwBltParams->dwDstBottom = pMhwBltParams->dwDstBottom / 2;
+           }
+
         }
     }
     pMhwBltParams->pSrcOsResource = inputSurface;
