@@ -34,6 +34,14 @@ namespace decode
     {
     }
 
+    MOS_STATUS AvcDecodeSlcPktM12::Prepare()
+    {
+        DECODE_CHK_STATUS(AvcDecodeSlcPktXe_M_Base::Prepare());
+        //update frame by frame for first valid slice
+        m_firstValidSlice = true;
+        return MOS_STATUS_SUCCESS;
+    }
+
     MOS_STATUS AvcDecodeSlcPktM12::Execute(MOS_COMMAND_BUFFER& cmdBuffer, uint32_t slcIdx)
     {
         //AVC Slice Level Commands
@@ -97,7 +105,9 @@ namespace decode
         }
 
         DECODE_CHK_STATUS(SetAvcPhantomSliceParams(avcSliceState, slcIdx));
+        //both slice state and bsd obj are needed for phantom slice decoding
         DECODE_CHK_STATUS(m_mfxInterface->AddMfxAvcSlice(&cmdBuffer, nullptr, &avcSliceState));
+        DECODE_CHK_STATUS(m_mfxInterface->AddMfdAvcBsdObjectCmd(&cmdBuffer, &avcSliceState));
 
         return MOS_STATUS_SUCCESS;
     }

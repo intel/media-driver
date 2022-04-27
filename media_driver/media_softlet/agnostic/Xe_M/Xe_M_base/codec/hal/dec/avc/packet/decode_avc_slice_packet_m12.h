@@ -45,6 +45,8 @@ namespace decode
         virtual ~AvcDecodeSlcPktM12();
 
         virtual MOS_STATUS Execute(MOS_COMMAND_BUFFER& cmdBuffer, uint32_t slcIdx) override;
+        virtual MOS_STATUS Prepare() override;
+        bool    m_firstValidSlice = true;
 
     protected:
         MOS_STATUS AddMfxSliceState(MOS_COMMAND_BUFFER &cmdBuffer, uint32_t slcIdx);
@@ -54,7 +56,6 @@ namespace decode
         MOS_STATUS AddBsdObj(MOS_COMMAND_BUFFER &cmdBuffer, uint32_t slcIdx);
         MOS_STATUS AddPhantomSliceCmd(MOS_COMMAND_BUFFER &cmdBuffer, uint32_t slcIdx);
 
-        bool m_firstValidSlice = true;
     MEDIA_CLASS_DEFINE_END(AvcDecodeSlcPktM12)
     };
 }  // namespace decode

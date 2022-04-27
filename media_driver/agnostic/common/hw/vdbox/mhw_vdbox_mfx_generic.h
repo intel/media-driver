@@ -601,18 +601,9 @@ protected:
         cmd.DW3.SliceAlphaC0OffsetDiv2 = avcSliceState->ucSliceAlphaC0OffsetDiv2;
 
         auto widthInMb = picParams->pic_width_in_mbs_minus1 + 1;
-        if (avcSliceState->bPhantomSlice)
-        {
-            cmd.DW4.SliceStartMbNum = widthInMb * frameFieldHeightInMb;
-            cmd.DW4.SliceVerticalPosition = frameFieldHeightInMb;
-            cmd.DW4.SliceHorizontalPosition = widthInMb;
-        }
-        else
-        {
-            cmd.DW4.SliceStartMbNum = sliceParams->first_mb_in_slice * mbaffMultiplier;
-            cmd.DW4.SliceVerticalPosition = (sliceParams->first_mb_in_slice / widthInMb) * mbaffMultiplier;
-            cmd.DW4.SliceHorizontalPosition = sliceParams->first_mb_in_slice % widthInMb;
-        }
+        cmd.DW4.SliceStartMbNum = sliceParams->first_mb_in_slice * mbaffMultiplier;
+        cmd.DW4.SliceVerticalPosition = (sliceParams->first_mb_in_slice / widthInMb) * mbaffMultiplier;
+        cmd.DW4.SliceHorizontalPosition = sliceParams->first_mb_in_slice % widthInMb;
 
         if (avcSliceState->bLastSlice)
         {
