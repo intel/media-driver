@@ -69,6 +69,12 @@
 #define DECODE_CP_FUNCTION_EXIT(eStatus) \
     MOS_FUNCTION_EXIT(MOS_COMPONENT_CP, MOS_CP_SUBCOMP_CODEC, eStatus)
 
+namespace decode
+{
+    class DecodePipeline;
+    class DecodeSubPacket;
+}
+
 class DecodeCpInterface
 {
 public:
@@ -85,6 +91,7 @@ public:
         uint32_t            length,
         uint32_t            startoffset,
         uint32_t            dwsliceIndex) = 0;
+    
     //!
     //! \brief  Add Huc State
     //! \return MOS_STATUS
@@ -118,6 +125,42 @@ public:
     virtual bool       IsStreamOutEnabled()                              = 0;
     virtual bool       IsCpEnabled()                                     = 0;
     virtual void       SetCpEnabled(bool isCpInUse)                      = 0;
+
+    //!
+    //! \brief  CreateDecodeCpIndSubPkt
+    //! \return DecodeSubPacket pointer, return nullptr if failed.
+    //! 
+    //!
+    virtual decode::DecodeSubPacket*  CreateDecodeCpIndSubPkt(
+        decode::DecodePipeline *pipeline, 
+        CODECHAL_MODE           mode,
+        CodechalHwInterface    *hwInterface)
+    {
+        MOS_UNUSED(pipeline);
+        MOS_UNUSED(mode);
+        MOS_UNUSED(hwInterface);
+        MOS_ASSERTMESSAGE(MOS_COMPONENT_CP, MOS_CP_SUBCOMP_CODEC, "This function is not implemented.");
+        return nullptr;
+    };
+
+    //!
+    //! \brief  ExecuteDecodeCpIndSubPkt
+    //! \return MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    //!
+    virtual MOS_STATUS ExecuteDecodeCpIndSubPkt(
+        decode::DecodeSubPacket *packet,
+        CODECHAL_MODE            mode,
+        MOS_COMMAND_BUFFER      &cmdBuffer,
+        uint32_t                sliceIndex)
+    {
+        MOS_UNUSED(packet);
+        MOS_UNUSED(mode);
+        MOS_UNUSED(cmdBuffer);
+        MOS_UNUSED(sliceIndex);
+        MOS_ASSERTMESSAGE(MOS_COMPONENT_CP, MOS_CP_SUBCOMP_CODEC, "This function is not implemented.");
+        return MOS_STATUS_UNIMPLEMENTED;
+    };
 
 MEDIA_CLASS_DEFINE_END(DecodeCpInterface)
 };

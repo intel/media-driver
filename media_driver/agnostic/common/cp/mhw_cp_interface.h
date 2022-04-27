@@ -234,6 +234,14 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
+    virtual MOS_STATUS SetProtectionSettingsForReservedPipeModeSelect(uint32_t *data)
+    {
+        MOS_UNUSED(data);
+
+        MhwStubMessage();
+        return MOS_STATUS_SUCCESS;
+    }
+
     virtual MOS_STATUS SetMfxProtectionState(
         bool                      isDecodeInUse,
         PMOS_COMMAND_BUFFER       cmdBuffer,
