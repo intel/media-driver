@@ -112,7 +112,6 @@ MOS_STATUS AvcDecodePktM12::PackSliceLevelCmds(MOS_COMMAND_BUFFER &cmdBuffer)
         {
             if (m_avcBasicFeature->m_sliceRecord[slcIdx].skip)
             {
-                slcIdx++;
                 continue;
             }
             DECODE_CHK_STATUS(m_slicePkt->Execute(cmdBuffer, slcIdx));
