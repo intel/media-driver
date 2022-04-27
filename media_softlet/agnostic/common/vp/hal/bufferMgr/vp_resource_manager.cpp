@@ -2417,10 +2417,12 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxStatisticsSurface(VP_SURFACE *&stat
                 &(statisticsSurface->osSurface->OsResource),
                 dwWidth * dwHeight,
                 InitValue));
-            m_dwVeboxPerBlockStatisticsWidth  = dwWidth;
-            m_dwVeboxPerBlockStatisticsHeight = MOS_ROUNDUP_DIVIDE(inputSurface->osSurface->dwHeight, 4);
         }
     }
+
+    m_dwVeboxPerBlockStatisticsWidth  = dwWidth;
+    m_dwVeboxPerBlockStatisticsHeight = MOS_ROUNDUP_DIVIDE(inputSurface->osSurface->dwHeight, 4);
+
     return MOS_STATUS_SUCCESS;
 }
 };

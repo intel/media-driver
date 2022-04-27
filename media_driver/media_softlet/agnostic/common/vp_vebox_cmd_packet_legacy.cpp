@@ -2250,7 +2250,75 @@ MOS_STATUS VpVeboxCmdPacketLegacy::PrepareState()
     return eStatus;
 }
 
-MOS_STATUS VpVeboxCmdPacketLegacy::PacketInit(
+MOS_STATUS VpVeboxCmdPacketLegacy::AdjustBlockStatistics()
+{
+    VP_FUNC_CALL();
+
+    if (m_surfSetting.dwVeboxPerBlockStatisticsWidth == 0 || m_surfSetting.dwVeboxPerBlockStatisticsHeight == 0)
+    {
+        VP_RENDER_NORMALMESSAGE("Not need update statistic block height and width");
+        return MOS_STATUS_SUCCESS;
+    }
+
+    uint32_t dwWidth  = 0;
+    uint32_t dwHeight = 0;
+    MHW_VEBOX_SURFACE_PARAMS mhwVeboxSurfaceParam = {};
+    PMHW_VEBOX_INTERFACE     pVeboxInterface      = m_hwInterface->m_veboxInterface;
+
+    VP_RENDER_CHK_NULL_RETURN(pVeboxInterface);
+    VP_RENDER_CHK_NULL_RETURN(m_veboxPacketSurface.pCurrInput);
+
+    // Align dwEndingX with surface state
+    VP_RENDER_CHK_STATUS_RETURN(InitVeboxSurfaceParams(
+        m_veboxPacketSurface.pCurrInput, &mhwVeboxSurfaceParam));
+
+    // Update Statistics Block Height and Weight in surfsetting
+
+    if (m_veboxItf)
+    {
+        VP_RENDER_CHK_STATUS_RETURN(m_veboxItf->VeboxAdjustBoundary(
+            &mhwVeboxSurfaceParam,
+            &dwWidth,
+            &dwHeight,
+            m_PacketCaps.bDI));
+    }
+    else
+    {
+        VP_RENDER_CHK_STATUS_RETURN(pVeboxInterface->VeboxAdjustBoundary(
+            &mhwVeboxSurfaceParam,
+            &dwWidth,
+            &dwHeight,
+            m_PacketCaps.bDI));
+    }
+
+    dwWidth  = MOS_ALIGN_CEIL(dwWidth, 64);
+    dwHeight = MOS_ROUNDUP_DIVIDE(dwHeight, 4);
+
+    if (dwWidth > m_surfSetting.dwVeboxPerBlockStatisticsWidth || dwHeight > m_surfSetting.dwVeboxPerBlockStatisticsHeight)
+    {
+        VP_RENDER_ASSERTMESSAGE("Adjust boundary width %d, height %d is larger than origin boundary width %d, height %d, not need update params",
+            dwWidth,
+            dwHeight,
+            m_surfSetting.dwVeboxPerBlockStatisticsWidth,
+            m_surfSetting.dwVeboxPerBlockStatisticsHeight);
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+    else
+    {
+        VP_RENDER_NORMALMESSAGE("Adjust boundary width %d, height %d. Origin boundary width %d, height %d",
+            dwWidth,
+            dwHeight,
+            m_surfSetting.dwVeboxPerBlockStatisticsWidth,
+            m_surfSetting.dwVeboxPerBlockStatisticsHeight);
+
+        m_surfSetting.dwVeboxPerBlockStatisticsHeight = dwHeight;
+        m_surfSetting.dwVeboxPerBlockStatisticsWidth  = dwWidth;
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+    MOS_STATUS VpVeboxCmdPacketLegacy::PacketInit(
     VP_SURFACE                          *inputSurface,
     VP_SURFACE                          *outputSurface,
     VP_SURFACE                          *previousSurface,
@@ -2299,8 +2367,6 @@ MOS_STATUS VpVeboxCmdPacketLegacy::PacketInit(
     m_veboxPacketSurface.pAlphaOrVignette           = GetSurface(SurfaceTypeAlphaOrVignette);
     m_veboxPacketSurface.pLaceOrAceOrRgbHistogram   = GetSurface(SurfaceTypeLaceAceRGBHistogram);
     m_veboxPacketSurface.pSurfSkinScoreOutput       = GetSurface(SurfaceTypeSkinScore);
-    m_dwVeboxPerBlockStatisticsHeight               = surfSetting.dwVeboxPerBlockStatisticsHeight;
-    m_dwVeboxPerBlockStatisticsWidth                = surfSetting.dwVeboxPerBlockStatisticsWidth;
 
     VP_RENDER_CHK_NULL_RETURN(m_veboxPacketSurface.pCurrInput);
     VP_RENDER_CHK_NULL_RETURN(m_veboxPacketSurface.pStatisticsOutput);
@@ -2341,6 +2407,8 @@ MOS_STATUS VpVeboxCmdPacketLegacy::PacketInit(
         }
     }
 
+    // Adjust boundary for statistics surface block
+    VP_RENDER_CHK_STATUS_RETURN(AdjustBlockStatistics());
 
     // Get Vebox Secure mode form policy
     m_useKernelResource = packetCaps.bSecureVebox;
@@ -2493,8 +2561,8 @@ MOS_STATUS VpVeboxCmdPacketLegacy::GetStatisticsSurfaceOffsets(
     if (m_PacketCaps.bDI) // VEBOX, VEBOX+IECP
     {
         // Frame based statistics begins after Encoder statistics
-        iOffset = m_dwVeboxPerBlockStatisticsWidth *
-                  m_dwVeboxPerBlockStatisticsHeight;
+        iOffset = m_surfSetting.dwVeboxPerBlockStatisticsWidth *
+                  m_surfSetting.dwVeboxPerBlockStatisticsHeight;
 
         *pStatSlice0Offset = iOffset + uiPitch;                                     // Slice 0 current frame
         *pStatSlice1Offset = iOffset + uiPitch * 3;                                 // Slice 1 current frame
@@ -2502,8 +2570,8 @@ MOS_STATUS VpVeboxCmdPacketLegacy::GetStatisticsSurfaceOffsets(
     else if (m_PacketCaps.bDN) // DN, DN_IECP, SpatialDI
     {
         // Frame based statistics begins after Encoder statistics
-        iOffset = m_dwVeboxPerBlockStatisticsWidth *
-                  m_dwVeboxPerBlockStatisticsHeight;
+        iOffset = m_surfSetting.dwVeboxPerBlockStatisticsWidth *
+                  m_surfSetting.dwVeboxPerBlockStatisticsHeight;
 
         *pStatSlice0Offset = iOffset;                                               // Slice 0 input frame
         *pStatSlice1Offset = iOffset + uiPitch;                                     // Slice 1 input frame
