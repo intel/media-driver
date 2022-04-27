@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2021, Intel Corporation
+* Copyright (c) 2011-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -3102,35 +3102,34 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::Initialize(
     const VphalSettings         *pSettings,
     Kdll_State                  *pKernelDllState)
 {
-    MOS_STATUS                          eStatus;
-    MOS_USER_FEATURE_VALUE_DATA         UserFeatureData;
+    MOS_STATUS eStatus   = MOS_STATUS_SUCCESS;
     PVPHAL_VEBOX_STATE_G12_BASE         pVeboxState = this;
+    bool       enableMMC   = false;
 
-    eStatus      = MOS_STATUS_SUCCESS;
     VPHAL_VEBOX_STATE::Initialize(pSettings, pKernelDllState);
 
     // Read user feature key for MMC enable
-    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-    UserFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
 #if (LINUX) && (!WDDM_LINUX)
-    UserFeatureData.bData       = !MEDIA_IS_WA(pVeboxState->m_pWaTable, WaDisableVPMmc); // enable MMC by default
+    enableMMC       = !MEDIA_IS_WA(pVeboxState->m_pWaTable, WaDisableVPMmc); // enable MMC by default
 #else
-    UserFeatureData.bData = true;
+    enableMMC         = true;
 #endif
-    MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __VPHAL_ENABLE_MMC_ID,
-        &UserFeatureData,
-        m_pOsInterface->pOsContext));
+    ReadUserSetting(
+        m_userSettingPtr,
+        enableMMC,
+        __VPHAL_ENABLE_MMC,
+        MediaUserSetting::Group::Sequence,
+        enableMMC,
+        true);
 
     // Set Vebox MMC enable
-    pVeboxState->bEnableMMC = UserFeatureData.bData && MEDIA_IS_SKU(pVeboxState->m_pSkuTable, FtrE2ECompression);
+    pVeboxState->bEnableMMC = enableMMC && MEDIA_IS_SKU(pVeboxState->m_pSkuTable, FtrE2ECompression);
 
     // Set SFC MMC enable
     if (MEDIA_IS_SKU(pVeboxState->m_pSkuTable, FtrSFCPipe) &&
         m_sfcPipeState)
     {
-        m_sfcPipeState->SetSfcOutputMmcStatus(UserFeatureData.bData && MEDIA_IS_SKU(pVeboxState->m_pSkuTable, FtrE2ECompression));
+        m_sfcPipeState->SetSfcOutputMmcStatus(enableMMC && MEDIA_IS_SKU(pVeboxState->m_pSkuTable, FtrE2ECompression));
     }
 
     return eStatus;

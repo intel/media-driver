@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2021, Intel Corporation
+* Copyright (c) 2018-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -369,19 +369,18 @@ MOS_STATUS VpPipeline::UpdateExecuteStatus()
 
 #if ((_DEBUG || _RELEASE_INTERNAL) && !EMUL)
         // Decompre output surface for debug
-        MOS_USER_FEATURE_VALUE_DATA userFeatureData;
         bool uiForceDecompressedOutput = false;
-        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+        bool forceDecompressedOutput   = false;
 
-        MOS_STATUS eStatus1 = MOS_UserFeature_ReadValue_ID(
-            nullptr,
-            __VPHAL_RNDR_FORCE_VP_DECOMPRESSED_OUTPUT_ID,
-            &userFeatureData,
-            m_osInterface->pOsContext);
+        MOS_STATUS eStatus1 = ReadUserSettingForDebug(
+            m_userSettingPtr,
+            forceDecompressedOutput,
+            __VPHAL_RNDR_FORCE_VP_DECOMPRESSED_OUTPUT,
+            MediaUserSetting::Group::Sequence);
 
         if (eStatus1 == MOS_STATUS_SUCCESS)
         {
-            uiForceDecompressedOutput = userFeatureData.u32Data;
+            uiForceDecompressedOutput = forceDecompressedOutput;
         }
         else
         {

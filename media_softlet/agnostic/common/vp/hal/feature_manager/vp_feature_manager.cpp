@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2021, Intel Corporation
+* Copyright (c) 2019-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -425,25 +425,21 @@ bool VPFeatureManager::IsVeboxOutFeasible(
 
     // Vebox Comp Bypass is on by default
     uint32_t dwCompBypassMode = VP_COMP_BYPASS_DISABLED;
+    uint32_t customValue    = VP_COMP_BYPASS_ENABLED;
 
     VP_PUBLIC_CHK_NULL_NO_STATUS(params);
     VP_PUBLIC_CHK_NULL_NO_STATUS(params->pSrc[0]);
     VP_PUBLIC_CHK_NULL_NO_STATUS(params->pTarget[0]);
 
-    MOS_USER_FEATURE_VALUE_DATA UserFeatureData;
     // Read user feature key to get the Composition Bypass mode
-    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-    UserFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
-
     // Vebox Comp Bypass is on by default
-    UserFeatureData.u32Data = VP_COMP_BYPASS_ENABLED;
-
-    MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __VPHAL_BYPASS_COMPOSITION_ID,
-        &UserFeatureData,
-        m_hwInterface->m_osInterface->pOsContext));
-    dwCompBypassMode = UserFeatureData.u32Data;
+    ReadUserSetting(
+        m_userSettingPtr,
+        dwCompBypassMode,
+        __VPHAL_BYPASS_COMPOSITION,
+        MediaUserSetting::Group::Sequence,
+        customValue,
+        true);
 
     if (dwCompBypassMode != VP_COMP_BYPASS_DISABLED                            &&
         params->uDstCount ==1                                                  &&

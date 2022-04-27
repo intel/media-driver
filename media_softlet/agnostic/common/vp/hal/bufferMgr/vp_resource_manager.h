@@ -568,6 +568,8 @@ protected:
     // Fc Resource
     VP_SURFACE *m_cmfcCoeff                                   = nullptr;
 
+    MediaUserSettingSharedPtr m_userSettingPtr = nullptr;   //!< usersettingInstance
+
 MEDIA_CLASS_DEFINE_END(VpResourceManager)
 };
 }

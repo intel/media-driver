@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2012-2021, Intel Corporation
+* Copyright (c) 2012-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -39,17 +39,13 @@ VphalSfcStateG12::VphalSfcStateG12(
     PMHW_SFC_INTERFACE   sfcInterface)
     : VphalSfcState(osInterface, renderHal, sfcInterface)
 {
-    MOS_USER_FEATURE_VALUE_DATA UserFeatureData;
-    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-    MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_SFC_OUTPUT_CENTERING_DISABLE_ID,
-        &UserFeatureData,
-        m_osInterface->pOsContext));
-
     // Setup disable render flag controlled by a user feature key for validation purpose
     // Enable output centering by default on Gen12+
-    m_disableOutputCentering = UserFeatureData.bData ? true : false;
+    ReadUserSetting(
+        m_userSettingPtr,
+        m_disableOutputCentering,
+        __MEDIA_USER_FEATURE_VALUE_SFC_OUTPUT_CENTERING_DISABLE,
+        MediaUserSetting::Group::Sequence);
 }
 
 bool VphalSfcStateG12::IsFormatSupported(

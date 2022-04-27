@@ -154,6 +154,7 @@ VpResourceManager::VpResourceManager(MOS_INTERFACE &osInterface, VpAllocator &al
     : m_osInterface(osInterface), m_allocator(allocator), m_reporting(reporting), m_vpPlatformInterface(vpPlatformInterface)
 {
     InitSurfaceConfigMap();
+    m_userSettingPtr = m_osInterface.pfnGetUserSettingInstance(&m_osInterface);
 }
 
 VpResourceManager::~VpResourceManager()

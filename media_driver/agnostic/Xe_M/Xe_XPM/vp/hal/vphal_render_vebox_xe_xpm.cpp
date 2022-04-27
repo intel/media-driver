@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2021, Intel Corporation
+* Copyright (c) 2019-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -833,7 +833,6 @@ MOS_STATUS VPHAL_VEBOX_STATE_XE_XPM::VeboxRenderVeboxCmd(
     bool                              bDiVarianceEnable;
     PMOS_INTERFACE                    pOsInterface;
     uint32_t                          IdxofVebox;
-    MOS_USER_FEATURE_VALUE_WRITE_DATA userFeatureWriteData;
     PMOS_COMMAND_BUFFER               pCmdBufferInUse;
     MHW_GENERIC_PROLOG_PARAMS         genericPrologParams;
     PMHW_MI_INTERFACE                 pMhwMiInterface;
@@ -842,6 +841,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_XE_XPM::VeboxRenderVeboxCmd(
     MOS_CONTEXT                       *pOsContext = nullptr;
     PMHW_MI_MMIOREGISTERS             pMmioRegisters = nullptr;
     MOS_COMMAND_BUFFER                CmdBufferInUse = {};
+    bool                              veboxEnableScalability = true;
 
     VPHAL_RENDER_CHK_NULL(pVeboxState);
     VPHAL_RENDER_CHK_NULL(pVeboxState->m_pOsInterface);
@@ -1287,10 +1287,11 @@ MOS_STATUS VPHAL_VEBOX_STATE_XE_XPM::VeboxRenderVeboxCmd(
 
         VPHAL_RENDER_CHK_STATUS(UnLockVESecondaryCmdBuffers());
 
-        userFeatureWriteData               = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
-        userFeatureWriteData.Value.i32Data = true;
-        userFeatureWriteData.ValueID       = __MEDIA_USER_FEATURE_VALUE_ENABLE_VEBOX_SCALABILITY_MODE_ID;
-        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, m_pOsInterface->pOsContext);
+        ReportUserSetting(
+            m_userSettingPtr,
+            __MEDIA_USER_FEATURE_VALUE_ENABLE_VEBOX_SCALABILITY_MODE,
+            veboxEnableScalability,
+            MediaUserSetting::Group::Sequence);
     }
     else
     {
@@ -1318,10 +1319,12 @@ MOS_STATUS VPHAL_VEBOX_STATE_XE_XPM::VeboxRenderVeboxCmd(
             FlushDwParams,
             pGenericPrologParams));
 
-        userFeatureWriteData               = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
-        userFeatureWriteData.Value.i32Data = false;
-        userFeatureWriteData.ValueID       = __MEDIA_USER_FEATURE_VALUE_ENABLE_VEBOX_SCALABILITY_MODE_ID;
-        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, m_pOsInterface->pOsContext);
+        veboxEnableScalability = false;
+        ReportUserSetting(
+            m_userSettingPtr,
+            __MEDIA_USER_FEATURE_VALUE_ENABLE_VEBOX_SCALABILITY_MODE,
+            veboxEnableScalability,
+            MediaUserSetting::Group::Sequence);
     }
 
 finish:

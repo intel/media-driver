@@ -1775,23 +1775,23 @@ VphalRenderer::VphalRenderer(
     m_renderGpuContext(MOS_GPU_CONTEXT_INVALID_HANDLE)
 {
     MOS_STATUS                          eStatus;
-    MOS_USER_FEATURE_VALUE_DATA         UserFeatureData;
+    uint32_t ssdControl = 0;
 
     VPHAL_RENDER_CHK_NULL(m_pRenderHal);
     VPHAL_RENDER_CHK_NULL(m_pOsInterface);
+    m_userSettingPtr = m_pOsInterface->pfnGetUserSettingInstance(m_pOsInterface);
 
     MOS_ZeroMemory(&pRender, sizeof(pRender));
 
     // Read Slice Shutdown (SSD Control) User Feature Key once during initialization
-    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-    eStatus = MOS_UserFeature_ReadValue_ID(
-            nullptr,
-            __VPHAL_RNDR_SSD_CONTROL_ID,
-            &UserFeatureData,
-            m_pOsInterface->pOsContext);
+    eStatus = ReadUserSetting(
+            m_userSettingPtr,
+            ssdControl,
+            __VPHAL_RNDR_SSD_CONTROL,
+            MediaUserSetting::Group::Sequence);
     if (eStatus == MOS_STATUS_SUCCESS)
     {
-        uiSsdControl = UserFeatureData.u32Data;
+        uiSsdControl = ssdControl;
     }
 
     // Do not fail if User feature keys is not present

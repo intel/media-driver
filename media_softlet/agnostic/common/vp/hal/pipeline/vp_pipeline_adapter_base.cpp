@@ -36,6 +36,12 @@ VpPipelineAdapterBase::VpPipelineAdapterBase(
     MOS_STATUS &eStatus):
     m_vpPlatformInterface(vpPlatformInterface)
 {
+    m_osInterface = m_vpPlatformInterface.GetOsInterface();
+    if (m_osInterface)
+    {
+        m_userSettingPtr = m_osInterface->pfnGetUserSettingInstance(m_osInterface);
+    }
+    VpUtils::DeclareUserSettings(m_userSettingPtr);
     eStatus = MOS_STATUS_SUCCESS;
 }
 

@@ -269,6 +269,7 @@ protected:
     // StatusTable indicating if command is done by gpu or not
     VPHAL_STATUS_TABLE       m_statusTable = {};
     vp::VpPlatformInterface &m_vpPlatformInterface;  //!< vp platform interface. Should be destroyed during deconstruction.
+    MediaUserSettingSharedPtr m_userSettingPtr = nullptr;  //!< usersettingInstance
 
 MEDIA_CLASS_DEFINE_END(VpPipelineAdapterBase)
 };

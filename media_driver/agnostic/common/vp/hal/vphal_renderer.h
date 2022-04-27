@@ -168,7 +168,7 @@ protected:
     // Renderer private data
     PRENDERHAL_INTERFACE        m_pRenderHal;
     PMOS_INTERFACE              m_pOsInterface;
-
+    MediaUserSettingSharedPtr   m_userSettingPtr = nullptr;   //!< usersettingInstance
     // Auxiliary
     MEDIA_FEATURE_TABLE           *m_pSkuTable;
     MEDIA_WA_TABLE              *m_pWaTable;

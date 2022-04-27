@@ -270,7 +270,19 @@ protected:
 #define __VPHAL_VEBOX_DISABLE_SFC                                       "Disable SFC"
 #define __VPHAL_VEBOX_HDR_MODE                                          "VeboxHDRMode"
 #define __MEDIA_USER_FEATURE_VALUE_SFC_OUTPUT_DTR_DISABLE               "Disable SFC DTR"
+#define __MEDIA_USER_FEATURE_VALUE_INIT_CP_OUTPUT_SURFACE               "Init CP Output Surface"
+#define __VPHAL_RNDR_SCOREBOARD_CONTROL                                 "SCOREBOARD Control"
+#define __VPHAL_RNDR_CMFC_CONTROL                                       "CMFC Control"
+#define __VPHAL_RNDR_FORCE_VP_DECOMPRESSED_OUTPUT                       "FORCE VP DECOMPRESSED OUTPUT"
+#define __VPHAL_ENABLE_1K_1DLUT                                         "Enable 1K 1DLUT"
+#define __VPHAL_ENABLE_MMC                                              "Enable VP MMC"
+#define __VPHAL_ENABLE_VEBOX_MMC_DECOMPRESS                             "Enable Vebox Decompress"
+#define __MEDIA_USER_FEATURE_VALUE_ENABLE_VEBOX_SCALABILITY_MODE        "Enable Vebox Scalability"
+#define __MEDIA_USER_FEATURE_VALUE_SFC_OUTPUT_CENTERING_DISABLE         "SFC Output Centering Disable"
+#define __VPHAL_BYPASS_COMPOSITION                                      "Bypass Composition"
+#define __MEDIA_USER_FEATURE_VALUE_VEBOX_TGNE_ENABLE_VP                 "Enable Vebox GNE"
 
+#define __VPHAL_RNDR_SSD_CONTROL                                        "SSD Control"
 
 class VpUtils
 {

@@ -593,13 +593,98 @@ MOS_STATUS VpUtils::DeclareUserSettings(MediaUserSettingSharedPtr userSettingPtr
         0,
         true);
 
+    DeclareUserSettingKey(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_ENABLE_VEBOX_SCALABILITY_MODE,
+        MediaUserSetting::Group::Sequence,
+        0,
+        true);
+
+    DeclareUserSettingKey( //Disabling SFC Centering output. 1 -- Disable, 0 -- Enable.
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_SFC_OUTPUT_CENTERING_DISABLE,
+        MediaUserSetting::Group::Sequence,
+        0,
+        true);
+
+    DeclareUserSettingKey( // VP Bypass Composition Mode
+        userSettingPtr,
+        __VPHAL_BYPASS_COMPOSITION,
+        MediaUserSetting::Group::Sequence,
+        0,
+        true);
+
+    DeclareUserSettingKey(
+        userSettingPtr,
+        __VPHAL_ENABLE_MMC,
+        MediaUserSetting::Group::Sequence,
+        0,
+        true);
+
+    DeclareUserSettingKey( //For debugging purpose. Enable Vebox In-Place decompression
+        userSettingPtr,
+        __VPHAL_ENABLE_VEBOX_MMC_DECOMPRESS,
+        MediaUserSetting::Group::Sequence,
+        0,
+        true);
+
+    DeclareUserSettingKey(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_VEBOX_TGNE_ENABLE_VP,
+        MediaUserSetting::Group::Sequence,
+        1,
+        true);  // Enable Vebox GNE. 1: Enable, 0: Disable
+
+    DeclareUserSettingKey(//Slice Shutdown Control
+        userSettingPtr,
+        __VPHAL_RNDR_SSD_CONTROL,
+        MediaUserSetting::Group::Sequence,
+        0,
+        true);
+
 #if (_DEBUG || _RELEASE_INTERNAL)
+    DeclareUserSettingKeyForDebug( //Init CP output surface with protected 0.
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_INIT_CP_OUTPUT_SURFACE,
+        MediaUserSetting::Group::Sequence,
+        0,
+        true);
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __VPHAL_RNDR_FORCE_VP_DECOMPRESSED_OUTPUT,
+        MediaUserSetting::Group::Sequence,
+        0,
+        true);
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __VPHAL_RNDR_SCOREBOARD_CONTROL,
+        MediaUserSetting::Group::Sequence,
+        1,
+        true);
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __VPHAL_RNDR_CMFC_CONTROL,
+        MediaUserSetting::Group::Sequence,
+        0,
+        true);
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __VPHAL_ENABLE_1K_1DLUT,
+        MediaUserSetting::Group::Sequence,
+        0,
+        true);
+
     DeclareUserSettingKeyForDebug(
         userSettingPtr,
         __VPHAL_VEBOX_HDR_MODE,
         MediaUserSetting::Group::Sequence,
         0,
         true); //"HDR Mode. 0x1: H2S kernel, 0x3: H2H kernel, 0x21 65size H2S, 0x23 65size H2H, 0x31 33size H2S, 0x33 33size H2H."
+
 #endif
 
     return MOS_STATUS_SUCCESS;
