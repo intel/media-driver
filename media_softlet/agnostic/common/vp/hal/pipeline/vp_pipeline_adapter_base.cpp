@@ -95,18 +95,18 @@ MOS_STATUS VpPipelineAdapterBase::GetVpMhwInterface(
         mhwInterfaces = MhwInterfacesNext::CreateFactory(params, m_osInterface);
         if (mhwInterfaces)
         {
-            SetMhwVeboxInterface(mhwInterfaces->m_veboxInterface);
-            SetMhwSfcInterface(mhwInterfaces->m_sfcInterface);
-
             SetMhwVeboxItf(mhwInterfaces->m_veboxItf);
             SetMhwSfcItf(mhwInterfaces->m_sfcItf);
             SetMhwMiItf(m_vprenderHal->pRenderHalPltInterface->GetMhwMiItf());
-            //SetMhwRenderItf(mhwInterfaces->m_renderItf);
 
             // MhwInterfaces always create CP and MI interfaces, so we have to delete those we don't need.
             MOS_Delete(mhwInterfaces->m_miInterface);
             Delete_MhwCpInterface(mhwInterfaces->m_cpInterface);
             mhwInterfaces->m_cpInterface = nullptr;
+            MOS_Delete(mhwInterfaces->m_sfcInterface);
+            mhwInterfaces->m_sfcInterface = nullptr;
+            MOS_Delete(mhwInterfaces->m_veboxInterface);
+            mhwInterfaces->m_veboxInterface = nullptr;
             MOS_Delete(mhwInterfaces);
         }
         else
@@ -122,8 +122,6 @@ MOS_STATUS VpPipelineAdapterBase::GetVpMhwInterface(
     vpMhwinterface.m_skuTable       = m_skuTable;
     vpMhwinterface.m_osInterface    = m_osInterface;
     vpMhwinterface.m_renderHal      = m_vprenderHal;
-    vpMhwinterface.m_veboxInterface = m_veboxInterface;
-    vpMhwinterface.m_sfcInterface   = m_sfcInterface;
     vpMhwinterface.m_cpInterface    = m_cpInterface;
     vpMhwinterface.m_mhwMiInterface = m_vprenderHal->pMhwMiInterface;
     vpMhwinterface.m_statusTable    = &m_statusTable;
@@ -158,26 +156,30 @@ VpPipelineAdapterBase::~VpPipelineAdapterBase()
         m_cpInterface = nullptr;
     }
 
+    if (m_sfcItf)
+    {
+        m_sfcItf = nullptr;
+    }
+
+
     if (m_sfcInterface)
     {
         MOS_Delete(m_sfcInterface);
         m_sfcInterface = nullptr;
     }
 
+    if (m_veboxItf)
+    {
+        eStatus    = m_veboxItf->DestroyHeap();
+        m_veboxItf = nullptr;
+    }
+
     if (m_veboxInterface)
     {
-        if (m_veboxItf)
-        {
-            eStatus = m_veboxItf->DestroyHeap();
-        }
-        else
-        {
-            eStatus = m_veboxInterface->DestroyHeap();
-        }
+        eStatus = m_veboxInterface->DestroyHeap();
 
         MOS_Delete(m_veboxInterface);
         m_veboxInterface = nullptr;
-        m_veboxItf       = nullptr;
         if (eStatus != MOS_STATUS_SUCCESS)
         {
             VPHAL_PUBLIC_ASSERTMESSAGE("Failed to destroy Vebox Interface, eStatus:%d.\n", eStatus);

@@ -900,16 +900,13 @@ protected:
     //! \details  Add MI Flush with write back into command buffer for GPU to write 
     //!           back GPU Tag. This should be the last command in 1st level batch.
     //!           This ensures sync tag will be written after rendering is complete.
-    //! \param    [in] pMhwMiInterface
-    //!           MHW MI interface
     //! \param    [in] pOsInterface
     //!           Pointer to OS Interface
     //! \param    [out] pCmdBuffer
     //!           Pointer to Command Buffer
     //! \return   MOS_STATUS
     //!
-    virtual MOS_STATUS SendVecsStatusTag(
-      PMHW_MI_INTERFACE                   pMhwMiInterface,
+    MOS_STATUS SendVecsStatusTag(
       PMOS_INTERFACE                      pOsInterface,
       PMOS_COMMAND_BUFFER                 pCmdBuffer);
 
@@ -1053,7 +1050,6 @@ private:
         uint32_t                            *pSurfCtrlBits);
 
     MOS_STATUS SetVeboxProCmd(
-        PMHW_MI_INTERFACE     pMhwMiInterface,
         MOS_COMMAND_BUFFER*   CmdBuffer);
 
     MOS_STATUS SetVeboxIndex(

@@ -63,6 +63,21 @@ public:
         return MOS_STATUS_SUCCESS;   // the config would be set in MhwVeboxInterfaceG12::CreateGpuContext().
     }
 
+    virtual MOS_STATUS GetInputFrameWidthHeightAlignUnit(
+        PVP_MHWINTERFACE          pvpMhwInterface,
+        uint32_t                 &widthAlignUnit,
+        uint32_t                 &heightAlignUnit,
+        bool                      bVdbox,
+        CODECHAL_STANDARD         codecStandard,
+        CodecDecodeJpegChromaType jpegChromaType);
+
+    virtual MOS_STATUS GetVeboxHeapInfo(
+        PVP_MHWINTERFACE          pvpMhwInterface,
+        const MHW_VEBOX_HEAP    **ppVeboxHeap);
+
+    virtual bool IsVeboxScalabilitywith4K(
+        VP_MHWINTERFACE           vpMhwInterface);
+
 protected:
     bool m_disableSfcDithering = false;
 MEDIA_CLASS_DEFINE_END(VpPlatformInterfaceXe_Xpm)

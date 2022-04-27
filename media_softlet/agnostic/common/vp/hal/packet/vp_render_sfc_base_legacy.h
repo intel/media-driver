@@ -340,6 +340,8 @@ protected:
     MHW_SFC_IEF_STATE_PARAMS        m_IefStateParamsLegacy = {};  //!< IEF Params state
     // HW intface to access MHW
     PMHW_SFC_INTERFACE              m_sfcInterface         = nullptr;
+    PMHW_MI_INTERFACE               m_miInterface          = nullptr;
+
     VP_SFC_RENDER_DATA_LEGACY       m_renderDataLegacy     = {};       //!< Transient Render data populated for every BLT call
     VPHAL_SFC_AVS_STATE_LEGACY      m_avsStateLegacy       = {};                          //!< AVS State and Coeff. table
 

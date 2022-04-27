@@ -47,8 +47,8 @@ public:
     //!         Reference to MOS_CONTEXT.
     //! \param  [in] gpuContextHandle
     //!         Gpu context handle
-    //! \param  [in] mhwMiInterface
-    //!         Reference to MhwMiInterface.
+    //! \param  [in] miItf
+    //!         Reference to Mhw MiItf.
     //! \param  [in] mmioRegisters
     //!         mmio registers for current engine.
     //! \param  [in] offsetOf1stLevelBB
@@ -72,8 +72,8 @@ public:
     //!         Reference to MOS_CONTEXT.
     //! \param  [in] gpuContextHandle
     //!         Gpu context handle
-    //! \param  [in] mhwMiInterface
-    //!         Reference to MhwMiInterface.
+    //! \param  [in] miItf
+    //!         Reference to Mhw MiItf.
     //! \param  [in] mmioRegisters
     //!         mmio registers for current engine.
     //! \param  [in] offsetOf1stLevelBB
@@ -146,8 +146,8 @@ public:
     //!         Command buffer for current BB.
     //! \param  [in] mosContext
     //!         Reference to MOS_CONTEXT.
-    //! \param  [in] mhwMiInterface
-    //!         Reference to MhwMiInterface.
+    //! \param  [in] miItf
+    //!         Reference to Mhw MiItf.
     //! \param  [in] mmioRegisters
     //!         mmio registers for current engine.
     //! \return void

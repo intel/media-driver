@@ -430,3 +430,50 @@ MOS_STATUS VpPlatformInterface ::GetKernelBinary(const void *&kernelBin, uint32_
 
     return MOS_STATUS_SUCCESS;
 }
+
+MOS_STATUS VpPlatformInterface::GetInputFrameWidthHeightAlignUnit(
+    PVP_MHWINTERFACE          pvpMhwInterface,
+    uint32_t                 &widthAlignUnit,
+    uint32_t                 &heightAlignUnit,
+    bool                      bVdbox,
+    CODECHAL_STANDARD         codecStandard,
+    CodecDecodeJpegChromaType jpegChromaType)
+{
+    VP_FUNC_CALL();
+
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+    VP_PUBLIC_CHK_NULL_RETURN(m_sfcItf);
+    VP_PUBLIC_CHK_STATUS_RETURN(m_sfcItf->GetInputFrameWidthHeightAlignUnit(widthAlignUnit, heightAlignUnit, bVdbox, codecStandard, jpegChromaType));
+
+    return eStatus;
+}
+
+MOS_STATUS VpPlatformInterface::GetVeboxHeapInfo(
+    PVP_MHWINTERFACE          pvpMhwInterface,
+    const MHW_VEBOX_HEAP    **ppVeboxHeap)
+{
+    VP_FUNC_CALL();
+
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+    const MHW_VEBOX_HEAP *pVeboxHeap = nullptr;
+    VP_PUBLIC_CHK_NULL_RETURN(m_veboxItf);
+
+    VP_RENDER_CHK_STATUS_RETURN(m_veboxItf->GetVeboxHeapInfo(
+        &pVeboxHeap));
+    *ppVeboxHeap = (const MHW_VEBOX_HEAP *)pVeboxHeap;
+
+    return eStatus;
+}
+
+bool VpPlatformInterface::IsVeboxScalabilitywith4K(
+    VP_MHWINTERFACE          vpMhwInterface)
+{
+    if(m_veboxItf)
+    {
+        return m_veboxItf->IsVeboxScalabilitywith4K();
+    }
+    else
+    {
+        return false;
+    }
+}
