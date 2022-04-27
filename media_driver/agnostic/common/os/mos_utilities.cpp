@@ -80,16 +80,20 @@ PerfUtility::~PerfUtility()
 
 void PerfUtility::setupFilePath(char *perfFilePath)
 {
-    MOS_SecureStrcpy(sSummaryFileName, MOS_MAX_PERF_FILENAME_LEN, perfFilePath);
-    MOS_SecureStrcat(sSummaryFileName, MOS_MAX_PERF_FILENAME_LEN, "perf_sumamry.csv");
-    MOS_SecureStrcpy(sDetailsFileName, MOS_MAX_PERF_FILENAME_LEN, perfFilePath);
-    MOS_SecureStrcat(sDetailsFileName, MOS_MAX_PERF_FILENAME_LEN, "perf_details.txt");
+    int32_t pid = MosUtilities::MosGetPid();
+    MOS_SecureStringPrint(sSummaryFileName, MOS_MAX_PATH_LENGTH + 1, MOS_MAX_PATH_LENGTH + 1,
+        "%sperf_summary_pid%d.csv", perfFilePath, pid);
+    MOS_SecureStringPrint(sDetailsFileName, MOS_MAX_PATH_LENGTH + 1, MOS_MAX_PATH_LENGTH + 1,
+        "%sperf_details_pid%d.txt", perfFilePath, pid);
 }
 
 void PerfUtility::setupFilePath()
 {
-    MOS_SecureStrcpy(sSummaryFileName, MOS_MAX_PERF_FILENAME_LEN, "perf_sumamry.csv");
-    MOS_SecureStrcpy(sDetailsFileName, MOS_MAX_PERF_FILENAME_LEN, "perf_details.txt");
+    int32_t pid = MosUtilities::MosGetPid();
+    MOS_SecureStringPrint(sSummaryFileName, MOS_MAX_PATH_LENGTH + 1, MOS_MAX_PATH_LENGTH + 1,
+        "perf_summary_pid%d.csv", pid);
+    MOS_SecureStringPrint(sDetailsFileName, MOS_MAX_PATH_LENGTH + 1, MOS_MAX_PATH_LENGTH + 1,
+        "perf_details_pid%d.txt", pid);
 }
 
 void PerfUtility::savePerfData()
