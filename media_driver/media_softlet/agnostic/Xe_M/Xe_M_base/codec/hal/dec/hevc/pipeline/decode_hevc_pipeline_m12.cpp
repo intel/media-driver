@@ -128,6 +128,7 @@ MOS_STATUS HevcPipelineM12::InitScalabOption(HevcBasicFeature &basicFeature)
     {
         scalPars.disableRealTile = true;
     }
+
     scalPars.surfaceFormat  = basicFeature.m_destSurface.Format;
     scalPars.frameWidth     = basicFeature.m_width;
     scalPars.frameHeight    = basicFeature.m_height;
@@ -136,6 +137,17 @@ MOS_STATUS HevcPipelineM12::InitScalabOption(HevcBasicFeature &basicFeature)
                                 (picParams->num_tile_rows_minus1 + 1) : 0;
     scalPars.numTileColumns = picParams->tiles_enabled_flag ?
                                 (picParams->num_tile_columns_minus1 + 1) : 0;
+
+    // HEVC 422 8b/10b && <8k - disable virtual tile sclability
+    if (MEDIA_IS_SKU(m_skuTable, FtrDecodeHEVC422VTScalaDisable))
+    {
+        if ((scalPars.surfaceFormat == Format_YUY2 || scalPars.surfaceFormat == Format_Y210) &&
+            ((scalPars.frameWidth * scalPars.frameHeight) < (7680 * 4320)))
+        {
+            scalPars.disableVirtualTile = true;
+            SCALABILITY_VERBOSEMESSAGE("HEVC 422 && Resolution < 8k - Disable VT Scalability ");
+        }
+    }
 
     DECODE_CHK_STATUS(m_scalabOption.SetScalabilityOption(&scalPars));
 

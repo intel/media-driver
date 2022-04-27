@@ -61,6 +61,12 @@ inline static bool CodechalDecodeResolutionEqualLargerThan5k(uint32_t width, uin
         || ((width >= CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD3_WIDTH) && (height >= CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD1_HEIGHT)));
 }
 
+inline static bool CodechalDecodeResolutionEqualLargerThan8k(uint32_t width, uint32_t height)
+{
+    return (((width * height) >= (CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD4_WIDTH * CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD4_HEIGHT)) 
+        || ((width >= CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD4_WIDTH) && (height >= CODECHAL_HCP_DECODE_SCALABLE_THRESHOLD4_HEIGHT)));
+}
+
 inline static bool CodechalDecodeNonRextFormat(MOS_FORMAT format)
 {
     return ((format == Format_NV12) || (format == Format_P010));

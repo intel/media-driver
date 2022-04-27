@@ -779,6 +779,9 @@ static bool InitDg2MediaSku(struct GfxDeviceInfo *devInfo,
     // Enable down scaling first if 3DLUT enabled
     MEDIA_WR_SKU(skuTable, FtrScalingFirst, 1);
 
+    // Disable HEVC 422 Virtual Tile Scalability
+    MEDIA_WR_SKU(skuTable, FtrDecodeHEVC422VTScalaDisable, 1);
+
     // Tile64
     if (drvInfo->devRev >=0x04 &&
         (drvInfo->devId == 0x4F80 ||

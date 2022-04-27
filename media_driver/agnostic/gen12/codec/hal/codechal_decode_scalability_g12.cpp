@@ -1568,6 +1568,56 @@ void CodecHalDecodeScalability_Destroy_G12(
     return;
 }
 
+bool CodecHalDecodeScalability_DecideEnableScala_G12(
+    PCODECHAL_DECODE_SCALABILITY_STATE       pScalState,
+    PCODECHAL_DECODE_SCALABILITY_INIT_PARAMS pInitParams,
+    bool                                     bCanEnableRealTile)
+{
+    bool    bEnableScala = false;
+
+    CODECHAL_DECODE_FUNCTION_ENTER;
+
+    PMOS_INTERFACE pOsInterface = pScalState->pHwInterface->GetOsInterface();
+
+    if (pInitParams->usingHistogram)
+    {
+        bEnableScala = false;
+    }
+    else if (bCanEnableRealTile && (!pOsInterface->osCpInterface->IsCpEnabled() || pOsInterface->bCanEnableSecureRt))
+    {
+        bEnableScala = true;
+    }
+    else
+    {
+        // NonRextFormat && >=5k - VT Scalability
+        if (CodechalDecodeNonRextFormat(pInitParams->format) &&
+            CodechalDecodeResolutionEqualLargerThan5k(pInitParams->u32PicWidthInPixel, pInitParams->u32PicHeightInPixel))
+        {
+            bEnableScala = true;
+        }
+
+        // RextFormat && >=4k - VT Scalability
+        if (!CodechalDecodeNonRextFormat(pInitParams->format) &&
+            CodechalDecodeResolutionEqualLargerThan4k(pInitParams->u32PicWidthInPixel, pInitParams->u32PicHeightInPixel))
+        {
+            bEnableScala = true;
+
+            if (MEDIA_IS_SKU(pScalState->pHwInterface->GetSkuTable(), FtrDecodeHEVC422VTScalaDisable))
+            {
+                // HEVC 422 8b/10b && <8k - Disable VT Sclability
+                if ((pScalState->Standard == CODECHAL_HEVC && (pInitParams->format == Format_YUY2 || pInitParams->format == Format_Y210)) &&
+                    (!CodechalDecodeResolutionEqualLargerThan8k(pInitParams->u32PicWidthInPixel, pInitParams->u32PicHeightInPixel)))
+                {
+                    bEnableScala = false;
+                    CODECHAL_DECODE_NORMALMESSAGE("HEVC 422 && Resolution < 8k - Disable VT Scalability ");
+                }
+            }         
+        }
+    }
+
+    return bEnableScala;
+}
+
 MOS_STATUS CodecHalDecodeScalability_DecidePipeNum_G12(
     PCODECHAL_DECODE_SCALABILITY_STATE         pScalState,
     PCODECHAL_DECODE_SCALABILITY_INIT_PARAMS   pInitParams)
@@ -1647,11 +1697,7 @@ MOS_STATUS CodecHalDecodeScalability_DecidePipeNum_G12(
                         pScalState->ucScalablePipeNum = CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_2;
                     }
                 }
-                else if ((!pInitParams->usingHistogram) && ((!CodechalDecodeNonRextFormat(pInitParams->format)
-                                    && CodechalDecodeResolutionEqualLargerThan4k(pInitParams->u32PicWidthInPixel, pInitParams->u32PicHeightInPixel))
-                                || (CodechalDecodeNonRextFormat(pInitParams->format)
-                                    && CodechalDecodeResolutionEqualLargerThan5k(pInitParams->u32PicWidthInPixel, pInitParams->u32PicHeightInPixel))
-                                || (bCanEnableRealTile && (!pOsInterface->osCpInterface->IsCpEnabled() || pOsInterface->bCanEnableSecureRt))))
+                else if (CodecHalDecodeScalability_DecideEnableScala_G12(pScalState, pInitParams, bCanEnableRealTile))
                 {
                     pScalState->ucScalablePipeNum = CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_2;
                 }

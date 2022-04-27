@@ -515,6 +515,9 @@ static bool InitAdlsMediaSku(struct GfxDeviceInfo *devInfo,
     //Disable VP8 for ADLS
     MEDIA_WR_SKU(skuTable, FtrIntelVP8VLDDecoding, 0);
 
+    // Disable HEVC 422 Virtual Tile Scalability
+    MEDIA_WR_SKU(skuTable, FtrDecodeHEVC422VTScalaDisable, 1);
+
     return true;
 }
 
@@ -562,6 +565,7 @@ static bool InitAdlpMediaSku(struct GfxDeviceInfo *devInfo,
 
     MEDIA_WR_SKU(skuTable, FtrAV1VLDLSTDecoding, 1);
     MEDIA_WR_SKU(skuTable, FtrGucSubmission, 1);
+    MEDIA_WR_SKU(skuTable, FtrDecodeHEVC422VTScalaDisable, 1);
 
     return true;
 }
@@ -609,6 +613,7 @@ static bool InitAdlnMediaSku(struct GfxDeviceInfo *devInfo,
 
     MEDIA_WR_SKU(skuTable, FtrAV1VLDLSTDecoding, 1);
     MEDIA_WR_SKU(skuTable, FtrGucSubmission, 1);
+    MEDIA_WR_SKU(skuTable, FtrDecodeHEVC422VTScalaDisable, 1);
 
     return true;
 }

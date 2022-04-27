@@ -418,6 +418,11 @@ MOS_STATUS CodecHalDecodeScalability_AllocateResources_VariableSizes_G12(
 MOS_STATUS CodecHalDecodeScalability_AllocateResources_FixedSizes_G12(
     PCODECHAL_DECODE_SCALABILITY_STATE_G12 pScalabilityState);
 
+bool CodecHalDecodeScalability_DecideEnableScala_G12(
+    PCODECHAL_DECODE_SCALABILITY_STATE       pScalState,
+    PCODECHAL_DECODE_SCALABILITY_INIT_PARAMS pInitParams,
+    bool                                     bCanEnableRealTile);
+
 MOS_STATUS CodecHalDecodeScalability_DecidePipeNum_G12(
     PCODECHAL_DECODE_SCALABILITY_STATE         pScalState,
     PCODECHAL_DECODE_SCALABILITY_INIT_PARAMS   pInitParams);
