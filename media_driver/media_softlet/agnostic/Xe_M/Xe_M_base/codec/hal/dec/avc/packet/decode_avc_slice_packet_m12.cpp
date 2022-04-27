@@ -68,6 +68,10 @@ namespace decode
                 slc->first_mb_in_next_slice = nextStartMbNum;
                 m_firstValidSlice = false;
             }
+            else
+            {
+                m_firstValidSlice = false;
+            }
 
             if (!m_mfxInterface->IsAvcISlice(slc->slice_type))
             {
