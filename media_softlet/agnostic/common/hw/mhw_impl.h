@@ -189,8 +189,6 @@ protected:
 
         m_hwcmdParser = mhw::HwcmdParser::GetInstance();
         MHW_CHK_NULL_NO_STATUS_RETURN(m_hwcmdParser);
-
-        m_parseFieldsLayout = m_hwcmdParser->ParseFieldsLayoutEn();
     #endif
     }
 
@@ -237,8 +235,7 @@ protected:
 
 #if MHW_HWCMDPARSER_ENABLED
     std::string                  m_currentCmdName;
-    std::shared_ptr<HwcmdParser> m_hwcmdParser       = nullptr;
-    bool                         m_parseFieldsLayout = false;
+    std::shared_ptr<HwcmdParser> m_hwcmdParser = nullptr;
 #endif  // MHW_HWCMDPARSER_ENABLED
 };
 }  // namespace mhw

@@ -42,6 +42,16 @@ MOS_STATUS HevcPipeline::Initialize(void *settings)
     ENCODE_FUNC_CALL();
     ENCODE_CHK_STATUS_RETURN(EncodePipeline::Initialize(settings));
 
+#if MHW_HWCMDPARSER_ENABLED
+    {
+        auto instance = mhw::HwcmdParser::GetInstance();
+        if (instance)
+        {
+            instance->RegisterAddOn(mhw::HwcmdParser::AddOnMode::HEVCe, (void *)m_featureManager);
+        }
+    }
+#endif
+
     return MOS_STATUS_SUCCESS;
 }
 
