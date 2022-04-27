@@ -1,0 +1,61 @@
+# Encoders Reviewers
+media_driver/agnostic/common/codec/hal/*encoder_base*       thomas.li@intel.com xiaogang.li@intel.com chunbo.chen@intel.com
+media_driver/agnostic/common/codec/hal/*encode_csc_ds*      thomas.li@intel.com xiaogang.li@intel.com chunbo.chen@intel.com
+media_driver/agnostic/common/codec/hal/*encode_sfc*         thomas.li@intel.com xiaogang.li@intel.com chunbo.chen@intel.com
+media_driver/agnostic/gen*/codec/hal/*encode_csc_ds*        thomas.li@intel.com xiaogang.li@intel.com chunbo.chen@intel.com
+
+# AVC and legacy Encoding Reviewers
+media_driver/agnostic/common/codec/hal/*encode_avc*         thomas.li@intel.com xiaogang.li@intel.com
+media_driver/agnostic/common/codec/hal/*encode_mpeg2*       thomas.li@intel.com xiaogang.li@intel.com
+media_driver/agnostic/common/codec/hal/*encode_jpeg*        thomas.li@intel.com xiaogang.li@intel.com
+media_driver/agnostic/common/codec/hal/*vdenc_avc*          thomas.li@intel.com xiaogang.li@intel.com
+media_driver/agnostic/gen*/codec/hal/*encode_avc*           thomas.li@intel.com xiaogang.li@intel.com
+media_driver/agnostic/gen*/codec/hal/*vdenc_avc*            thomas.li@intel.com xiaogang.li@intel.com
+media_driver/agnostic/gen*/codec/hal/*encode_mpeg2*         thomas.li@intel.com xiaogang.li@intel.com
+
+# HEVC Encoding Reviewers
+media_driver/agnostic/common/codec/hal/*encode_hevc_base*   thomas.li@intel.com xiaogang.li@intel.com
+media_driver/agnostic/common/codec/hal/*vdenc_hevc*         thomas.li@intel.com xiaogang.li@intel.com
+media_driver/agnostic/common/codec/shared/*common_hevc*     thomas.li@intel.com xiaogang.li@intel.com
+media_driver/agnostic/common/codec/shared/*encode_hevc*     thomas.li@intel.com xiaogang.li@intel.com
+media_driver/agnostic/gen*/codec/hal/*vdenc_hevc*           thomas.li@intel.com xiaogang.li@intel.com
+
+# VP9 Encoding Reviewers
+media_driver/agnostic/common/codec/hal/*encode_vp9*         xiaogang.li@intel.com chunbo.chen@intel.com
+media_driver/agnostic/common/codec/hal/*vdenc_vp9*          xiaogang.li@intel.com chunbo.chen@intel.com
+media_driver/agnostic/gen*/codec/hal/*encode_vp9*           xiaogang.li@intel.com chunbo.chen@intel.com
+media_driver/agnostic/gen*/codec/hal/*vdenc_vp9*            xiaogang.li@intel.com chunbo.chen@intel.com
+
+# DDI Reviewers
+media_driver/linux/common/*ddi/                             carl.zhang@intel.com
+media_driver/linux/gen*/ddi/                                carl.zhang@intel.com
+
+# Softlet Reviewers
+media_softlet/*                                             yuchen.wang@intel.com
+media_driver/media_softlet/*                                yuchen.wang@intel.com
+
+# Decoding Reviewers
+media_softlet/agnostic/common/codec/hal/dec                 will.guo@intel.com steven.li@intel.com zhengguo.xu@intel.com
+media_common/agnostic/common/codec/shared/*decode*          will.guo@intel.com steven.li@intel.com zhengguo.xu@intel.com
+media_driver/media_softlet/agnostic/gen*/codec/hal/dec      will.guo@intel.com steven.li@intel.com zhengguo.xu@intel.com
+media_driver/media_softlet/agnostic/Xe_*/Xe_*/codec/hal/dec will.guo@intel.com steven.li@intel.com zhengguo.xu@intel.com
+media_driver/linux/gen*/codec/ddi/*decode*                  will.guo@intel.com steven.li@intel.com zhengguo.xu@intel.com
+media_driver/linux/common/codec/ddi/*decode*                will.guo@intel.com steven.li@intel.com zhengguo.xu@intel.com
+media_driver/agnostic/gen*/codec/hal/*decode*               will.guo@intel.com steven.li@intel.com zhengguo.xu@intel.com
+media_driver/agnostic/Xe_*/Xe_*/codec/hal/*decode*          will.guo@intel.com steven.li@intel.com zhengguo.xu@intel.com
+media_driver/agnostic/common/codec/hal/*decode*             will.guo@intel.com steven.li@intel.com zhengguo.xu@intel.com
+
+# Video Processing Reviewers
+media_driver/**/*vphal*                                     furong.zhang@intel.com jay.yang@intel.com billy.ye@intel.com lihao.gu@intel.com
+media_driver/linux/common/vp                                furong.zhang@intel.com jay.yang@intel.com billy.ye@intel.com lihao.gu@intel.com
+
+# Media Common Reviewers
+media_softlet/linux/common/os                               jay.yang@intel.com billy.ye@intel.com carl.zhang@intel.com
+media_softlet/agnostic/common/os                            jay.yang@intel.com billy.ye@intel.com carl.zhang@intel.com
+media_softlet/agnostic/common/shared                        jay.yang@intel.com billy.ye@intel.com carl.zhang@intel.com
+media_driver/agnostic/common/heap_manager                   jay.yang@intel.com billy.ye@intel.com carl.zhang@intel.com
+media_driver/agnostic/common/os                             jay.yang@intel.com billy.ye@intel.com carl.zhang@intel.com
+media_driver/agnostic/common/shared                         jay.yang@intel.com billy.ye@intel.com carl.zhang@intel.com
+media_driver/linux/common/ddi                               jay.yang@intel.com billy.ye@intel.com carl.zhang@intel.com
+media_driver/linux/common/os                                jay.yang@intel.com billy.ye@intel.com carl.zhang@intel.com
+media_common/linux/common/os                                jay.yang@intel.com billy.ye@intel.com carl.zhang@intel.com
