@@ -256,7 +256,7 @@ endfunction()
 
 if(BUILD_KERNELS)
     #gen_vpkernel_from_cm()
-    media_include_subdirectory(${MEDIA_DRIVER_ROOT}/agnostic/Xe_M/Xe_HPM/vp/kernel_free)
+    include(${MEDIA_DRIVER_ROOT}/agnostic/Xe_M/Xe_HPM/vp/kernel_free/media_srcs.cmake OPTIONAL)
 endif()
 
 media_include_subdirectory(cmfcpatch)
