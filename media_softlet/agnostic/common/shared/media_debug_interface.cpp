@@ -1694,7 +1694,7 @@ MOS_STATUS MediaDebugInterface::ReAllocateSurface(
         (pSurface->dwWidth == pSrcSurf->dwWidth) &&
         (pSurface->dwHeight == pSrcSurf->dwHeight) &&
         (pSurface->Format == pSrcSurf->Format) &&
-        (pSurface->bCompressible == pSrcSurf->bCompressible) &&
+        ((pSurface->bCompressible == pSrcSurf->bCompressible) || useLinearResource) && // omit this check as linear surface is uncompressible
         (pSurface->CompressionMode == pSrcSurf->CompressionMode) &&
         ((pSurface->TileType == pSrcSurf->TileType) ||
          (pSurface->TileType == MOS_TILE_LINEAR && useLinearResource))) // when useLinearResource no reallocation needed
