@@ -2521,11 +2521,6 @@ MhwVdboxVdencInterfaceG12<mhw::vdbox::vdenc::xe_hpm::Cmd>::AddVdencRefSurfaceSta
 
     cmd.Dwords25.DW1.SurfaceFormat = MosFormatToVdencSurfaceReconFormat(params->psSurface->Format);
 
-    if ((params->Mode == CODECHAL_ENCODE_MODE_HEVC || params->Mode == CODECHAL_ENCODE_MODE_VP9) && MEDIA_IS_WA(waTable, WaForceTile64ReconSurfaceToTile4) && params->psSurface->Format != Format_NV12 && tilemode == MOS_TILE_64_GMM)
-    {
-        cmd.Dwords25.DW1.TileMode = mhw::vdbox::vdenc::xe_hpm::Cmd::VDENC_Surface_State_Fields_CMD::TILE_F;
-    }
-
     if (cmd.Dwords25.DW1.SurfaceFormat == mhw::vdbox::vdenc::xe_hpm::Cmd::VDENC_Surface_State_Fields_CMD::SURFACE_FORMAT_P010)
     {
         cmd.Dwords25.DW1.SurfaceFormat = mhw::vdbox::vdenc::xe_hpm::Cmd::VDENC_Surface_State_Fields_CMD::SURFACE_FORMAT_P010_VARIANT;

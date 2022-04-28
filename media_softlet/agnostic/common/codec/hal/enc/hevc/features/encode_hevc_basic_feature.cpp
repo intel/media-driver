@@ -740,12 +740,6 @@ MHW_SETPAR_DECL_SRC(VDENC_REF_SURFACE_STATE, HevcBasicFeature)
     params.width       = ((m_hevcSeqParams->wFrameWidthInMinCbMinus1 + 1) << (m_hevcSeqParams->log2_min_coding_block_size_minus3 + 3));
     uint32_t tileMode   = GetHwTileType(params.tileType, params.tileModeGmm, params.gmmTileEn);
 
-    if (MEDIA_IS_WA(m_osInterface->pfnGetWaTable(m_osInterface), WaForceTile64ReconSurfaceToTile4) && params.format != Format_NV12 && tileMode == MOS_TILE_64_GMM)
-    {
-        params.gmmTileEn = false;
-        params.tileType  = MOS_TILE_YF;
-    }
-
     if (m_reconSurface.Format == Format_Y410 || m_reconSurface.Format == Format_444P || m_reconSurface.Format == Format_AYUV)
     {
         if (m_reconSurface.Format == Format_Y410)
