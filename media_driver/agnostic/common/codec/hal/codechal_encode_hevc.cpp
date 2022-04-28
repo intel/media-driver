@@ -1520,13 +1520,14 @@ MOS_STATUS CodechalEncHevcState::GetFrameBrcLevel()
         // LDB
         if (m_pictureCodingType == I_TYPE)
         {
-            if (m_hevcPicParams->HierarchLevelPlus1 == 0)
+            if (m_hevcPicParams->HierarchLevelPlus1 == 0 ||
+                m_hevcPicParams->HierarchLevelPlus1 == 1)
             {
                 m_currFrameBrcLevel = HEVC_BRC_FRAME_TYPE_I;
             }
             else
             {
-                CODECHAL_ENCODE_ASSERTMESSAGE("FrameLevel can only be 0 for I type for LDB\n");
+                CODECHAL_ENCODE_ASSERTMESSAGE("FrameLevel can only be 0 and 1 for I type for LDB\n");
                 return MOS_STATUS_INVALID_PARAMETER;
             }
         }
