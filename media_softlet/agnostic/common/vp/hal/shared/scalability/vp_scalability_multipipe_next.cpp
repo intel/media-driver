@@ -135,6 +135,7 @@ MOS_STATUS VpScalabilityMultiPipeNext::Initialize(const MediaScalabilityOption &
     SCALABILITY_CHK_NULL_RETURN(m_hwInterface);
     m_osInterface = m_hwInterface->m_osInterface;
     SCALABILITY_CHK_NULL_RETURN(m_osInterface);
+    m_miInterface = m_hwInterface->m_mhwMiInterface;
     SCALABILITY_CHK_NULL_RETURN(m_hwInterface->m_vpPlatformInterface);
     m_miItf = m_hwInterface->m_vpPlatformInterface->GetMhwMiItf();
 
@@ -593,6 +594,9 @@ MOS_STATUS VpScalabilityMultiPipeNext::SyncOnePipeWaitOthers(PMOS_COMMAND_BUFFER
     SCALABILITY_FUNCTION_ENTER;
     SCALABILITY_CHK_NULL_RETURN(cmdBuffer);
 
+    MhwMiInterface *miInterface = m_hwInterface->m_mhwMiInterface;
+    SCALABILITY_CHK_NULL_RETURN(miInterface);
+
     SCALABILITY_ASSERT(m_semaphoreIndex < m_resSemaphoreOnePipeWait.size());
     auto &semaphoreBufs = m_resSemaphoreOnePipeWait[m_semaphoreIndex];
     SCALABILITY_ASSERT(semaphoreBufs.size() >= m_scalabilityOption->GetNumPipe());
@@ -746,9 +750,13 @@ MOS_STATUS VpScalabilityMultiPipeNext::SendHwSemaphoreWaitCmd(
     VP_FUNC_CALL();
 
     MOS_STATUS                   eStatus = MOS_STATUS_SUCCESS;
+    PMHW_MI_INTERFACE            pMhwMiInterface;
     MHW_MI_SEMAPHORE_WAIT_PARAMS miSemaphoreWaitParams;
 
     VP_RENDER_CHK_NULL_RETURN(m_hwInterface);
+    VP_RENDER_CHK_NULL_RETURN(m_hwInterface->m_mhwMiInterface);
+
+    pMhwMiInterface = m_hwInterface->m_mhwMiInterface;
 
     auto &params             = m_miItf->MHW_GETPAR_F(MI_SEMAPHORE_WAIT)();
     params                   = {};
@@ -786,10 +794,13 @@ MOS_STATUS VpScalabilityMultiPipeNext::SendMiAtomicDwordCmd(
     VP_FUNC_CALL();
 
     MOS_STATUS           eStatus = MOS_STATUS_SUCCESS;
+    PMHW_MI_INTERFACE    pMhwMiInterface;
     MHW_MI_ATOMIC_PARAMS atomicParams;
 
     VP_RENDER_CHK_NULL_RETURN(m_hwInterface);
-    VP_RENDER_CHK_NULL_RETURN(m_miItf);
+    VP_RENDER_CHK_NULL_RETURN(m_hwInterface->m_mhwMiInterface);
+
+    pMhwMiInterface = m_hwInterface->m_mhwMiInterface;
 
     auto &params             = m_miItf->MHW_GETPAR_F(MI_ATOMIC)();
     params                   = {};
@@ -823,10 +834,13 @@ MOS_STATUS VpScalabilityMultiPipeNext::AddMiFlushDwCmd(
     PMOS_COMMAND_BUFFER                       cmdBuffer)
 {
     MOS_STATUS           eStatus = MOS_STATUS_SUCCESS;
+    PMHW_MI_INTERFACE    pMhwMiInterface;
     MHW_MI_ATOMIC_PARAMS atomicParams;
 
     VP_RENDER_CHK_NULL_RETURN(m_hwInterface);
-    VP_RENDER_CHK_NULL_RETURN(m_miItf);
+    VP_RENDER_CHK_NULL_RETURN(m_hwInterface->m_mhwMiInterface);
+
+    pMhwMiInterface = m_hwInterface->m_mhwMiInterface;
 
     // Send MI_FLUSH command
     auto& parFlush = m_miItf->MHW_GETPAR_F(MI_FLUSH_DW)();
@@ -861,10 +875,13 @@ MOS_STATUS VpScalabilityMultiPipeNext::AddMiStoreDataImmCmd(
     VP_FUNC_CALL();
 
     MOS_STATUS           eStatus = MOS_STATUS_SUCCESS;
+    PMHW_MI_INTERFACE    pMhwMiInterface;
     MHW_MI_ATOMIC_PARAMS atomicParams;
 
     VP_RENDER_CHK_NULL_RETURN(m_hwInterface);
-    VP_RENDER_CHK_NULL_RETURN(m_miItf);
+    VP_RENDER_CHK_NULL_RETURN(m_hwInterface->m_mhwMiInterface);
+
+    pMhwMiInterface = m_hwInterface->m_mhwMiInterface;
 
     auto &params             = m_miItf->MHW_GETPAR_F(MI_STORE_DATA_IMM)();
     params                   = {};

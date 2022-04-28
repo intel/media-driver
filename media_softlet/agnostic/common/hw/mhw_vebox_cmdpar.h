@@ -80,21 +80,6 @@ struct MHW_LACE_COLOR_CORRECTION
     MHW_LACE_COLOR_WEIGHT_LUT colorWeightLut                = {};
 };
 
-//!
-//! \brief  VEBOX Chroma parameters
-//!
-struct MHW_VEBOX_CHROMA_PARAMS
-{
-    uint32_t dwPixRangeThresholdChromaU[MHW_PIXRANGETHRES_NUM];
-    uint32_t dwPixRangeWeightChromaU[MHW_PIXRANGETHRES_NUM];
-    uint32_t dwPixRangeThresholdChromaV[MHW_PIXRANGETHRES_NUM];
-    uint32_t dwPixRangeWeightChromaV[MHW_PIXRANGETHRES_NUM];
-    uint32_t dwHotPixelThresholdChromaU;
-    uint32_t dwHotPixelCountChromaU;
-    uint32_t dwHotPixelThresholdChromaV;
-    uint32_t dwHotPixelCountChromaV;
-};
-
 // H2S Manual Mode Coef
 static const uint16_t g_Hdr_ColorCorrect_EOTF_SMPTE_ST2084_Input[HDR_OETF_1DLUT_POINT_NUMBER] =
 {

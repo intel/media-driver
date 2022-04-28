@@ -43,9 +43,7 @@ namespace vp {
     SfcRenderBase(vpMhwinterface, allocator, disbaleSfcDithering)
 {
     VP_PUBLIC_CHK_NULL_NO_STATUS_RETURN(vpMhwinterface.m_sfcInterface);
-    VP_PUBLIC_CHK_NULL_NO_STATUS_RETURN(vpMhwinterface.m_mhwMiInterface);
 
-    m_miInterface   = vpMhwinterface.m_mhwMiInterface;
     m_sfcInterface  = vpMhwinterface.m_sfcInterface;
 }
 

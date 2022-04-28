@@ -33,7 +33,6 @@
 #ifndef ENABLE_VP_SOFTLET_BUILD
 #include "vp_vebox_cmd_packet_legacy.h"
 #endif
-#include "vp_platform_interface.h"
 
 using namespace vp;
 
@@ -75,15 +74,13 @@ MOS_STATUS VpScalingFilter::SfcAdjustBoundary(
     VP_FUNC_CALL();
 
     VP_PUBLIC_CHK_NULL_RETURN(m_pvpMhwInterface);
-    VP_PUBLIC_CHK_NULL_RETURN(m_pvpMhwInterface->m_vpPlatformInterface);
-    //VP_PUBLIC_CHK_NULL_RETURN(m_pvpMhwInterface->m_sfcInterface);
+    VP_PUBLIC_CHK_NULL_RETURN(m_pvpMhwInterface->m_sfcInterface);
     VP_PUBLIC_CHK_NULL_RETURN(pdwSurfaceWidth);
     VP_PUBLIC_CHK_NULL_RETURN(pdwSurfaceHeight);
 
-    uint32_t widthAlignUnit  = 0;
-    uint32_t heightAlignUnit = 0;
-
-    VP_PUBLIC_CHK_STATUS_RETURN(m_pvpMhwInterface->m_vpPlatformInterface->GetInputFrameWidthHeightAlignUnit(m_pvpMhwInterface, widthAlignUnit, heightAlignUnit,
+    uint32_t widthAlignUnit     = m_pvpMhwInterface->m_sfcInterface->m_veWidthAlignment;
+    uint32_t heightAlignUnit    = m_pvpMhwInterface->m_sfcInterface->m_veHeightAlignment;
+    VP_PUBLIC_CHK_STATUS_RETURN(m_pvpMhwInterface->m_sfcInterface->GetInputFrameWidthHeightAlignUnit(widthAlignUnit, heightAlignUnit,
         m_bVdbox, m_codecStandard, m_jpegChromaType));
 
     uint32_t dwVeboxHeight = m_scalingParams.input.dwHeight;

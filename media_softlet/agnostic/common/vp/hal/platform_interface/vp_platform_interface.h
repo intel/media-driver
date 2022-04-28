@@ -216,21 +216,6 @@ public:
         return !m_vpMmcDisabled;
     }
 
-    virtual MOS_STATUS GetInputFrameWidthHeightAlignUnit(
-        PVP_MHWINTERFACE          pvpMhwInterface,
-        uint32_t                 &widthAlignUnit,
-        uint32_t                 &heightAlignUnit,
-        bool                      bVdbox,
-        CODECHAL_STANDARD         codecStandard,
-        CodecDecodeJpegChromaType jpegChromaType);
-
-    virtual bool IsVeboxScalabilitywith4K(
-        VP_MHWINTERFACE           vpMhwInterface);
-
-    virtual MOS_STATUS GetVeboxHeapInfo(
-        PVP_MHWINTERFACE          pvpMhwInterface,
-        const MHW_VEBOX_HEAP    **ppVeboxHeap);
-
     inline void SetMhwSfcItf(std::shared_ptr<mhw::sfc::Itf> sfcItf)
     {
         m_sfcItf = sfcItf;

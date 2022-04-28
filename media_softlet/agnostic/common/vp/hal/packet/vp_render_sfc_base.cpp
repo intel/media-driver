@@ -47,9 +47,11 @@ SfcRenderBase::SfcRenderBase(
     m_disableSfcDithering(disbaleSfcDithering)
 {
     VP_PUBLIC_CHK_NULL_NO_STATUS_RETURN(vpMhwinterface.m_osInterface);
+    VP_PUBLIC_CHK_NULL_NO_STATUS_RETURN(vpMhwinterface.m_mhwMiInterface);
     VP_PUBLIC_CHK_NULL_NO_STATUS_RETURN(vpMhwinterface.m_skuTable);
     VP_PUBLIC_CHK_NULL_NO_STATUS_RETURN(vpMhwinterface.m_waTable);
     m_osInterface   = vpMhwinterface.m_osInterface;
+    m_miInterface   = vpMhwinterface.m_mhwMiInterface;
     m_skuTable      = vpMhwinterface.m_skuTable;
     m_waTable       = vpMhwinterface.m_waTable;
 
@@ -106,7 +108,7 @@ MOS_STATUS SfcRenderBase::SetCodecPipeMode(CODECHAL_STANDARD codecStandard)
         CODECHAL_VP8 == codecStandard ||
         CODECHAL_JPEG == codecStandard)
     {
-        m_pipeMode = mhw::sfc::SFC_PIPE_MODE_VDBOX;
+        m_pipeMode = MhwSfcInterface::SFC_PIPE_MODE_VDBOX;
     }
     else
     {
@@ -573,7 +575,7 @@ MOS_STATUS SfcRenderBase::SetScalingParams(PSFC_SCALING_PARAMS scalingParams)
 
     VP_PUBLIC_CHK_NULL_RETURN(scalingParams);
 
-    if (mhw::sfc::SFC_PIPE_MODE_VEBOX      != m_pipeMode                          &&
+    if (MhwSfcInterface::SFC_PIPE_MODE_VEBOX != m_pipeMode                          &&
         (scalingParams->dwInputFrameHeight != scalingParams->dwSourceRegionHeight   ||
         scalingParams->dwInputFrameWidth != scalingParams->dwSourceRegionWidth))
     {
@@ -602,7 +604,7 @@ MOS_STATUS SfcRenderBase::SetScalingParams(PSFC_SCALING_PARAMS scalingParams)
     m_renderData.sfcStateParams->dwInputFrameWidth              = scalingParams->dwInputFrameWidth;
     m_renderData.sfcStateParams->dwAVSFilterMode                = scalingParams->bBilinearScaling ?
                                                                     MEDIASTATE_SFC_AVS_FILTER_BILINEAR :
-                                                                    (mhw::sfc::SFC_PIPE_MODE_VDBOX == m_pipeMode ?
+                                                                    (MhwSfcInterface::SFC_PIPE_MODE_VDBOX == m_pipeMode ?
                                                                         MEDIASTATE_SFC_AVS_FILTER_5x5 : MEDIASTATE_SFC_AVS_FILTER_8x8);
     m_renderData.sfcStateParams->dwSourceRegionHeight           = scalingParams->dwSourceRegionHeight;
     m_renderData.sfcStateParams->dwSourceRegionWidth            = scalingParams->dwSourceRegionWidth;
@@ -779,7 +781,7 @@ MOS_STATUS SfcRenderBase::SetCSCParams(PSFC_CSC_PARAMS cscParams)
 
     VP_PUBLIC_CHK_NULL_RETURN(cscParams);
 
-    if (mhw::sfc::SFC_PIPE_MODE_VEBOX == m_pipeMode)
+    if (MhwSfcInterface::SFC_PIPE_MODE_VEBOX == m_pipeMode)
     {
         m_renderData.bIEF           = cscParams->bIEFEnable;
         m_renderData.pIefParams     = cscParams->iefParams;
@@ -816,7 +818,7 @@ MOS_STATUS SfcRenderBase::SetCSCParams(PSFC_CSC_PARAMS cscParams)
     // Chromasitting config
     // VEBOX use polyphase coefficients for 1x scaling for better quality,
     // VDBOX dosen't use polyphase coefficients.
-    if (mhw::sfc::SFC_PIPE_MODE_VEBOX == m_pipeMode)
+    if (MhwSfcInterface::SFC_PIPE_MODE_VEBOX == m_pipeMode)
     {
         m_renderData.bForcePolyPhaseCoefs = cscParams->bChromaUpSamplingEnable;
     }
@@ -843,7 +845,7 @@ MOS_STATUS SfcRenderBase::SetRotMirParams(PSFC_ROT_MIR_PARAMS rotMirParams)
 
     VP_PUBLIC_CHK_NULL_RETURN(rotMirParams);
 
-    if (mhw::sfc::SFC_PIPE_MODE_VEBOX != m_pipeMode      &&
+    if (MhwSfcInterface::SFC_PIPE_MODE_VEBOX != m_pipeMode      &&
         VPHAL_ROTATION_IDENTITY != rotMirParams->rotationMode   &&
         VPHAL_MIRROR_HORIZONTAL != rotMirParams->rotationMode)
     {
@@ -938,7 +940,7 @@ MOS_STATUS SfcRenderBase::SetSfcStateInputOrderingMode(
     {
         VP_PUBLIC_CHK_STATUS_RETURN(SetSfcStateInputOrderingModeVdbox(sfcStateParams));
     }
-    else if (mhw::sfc::SFC_PIPE_MODE_VEBOX == m_pipeMode)
+    else if (MhwSfcInterface::SFC_PIPE_MODE_VEBOX == m_pipeMode)
     {
         sfcStateParams->dwVDVEInputOrderingMode = MEDIASTATE_SFC_INPUT_ORDERING_VE_4x8;
     }
@@ -1197,7 +1199,7 @@ uint32_t SfcRenderBase::GetAvsLineBufferSize(bool lineTiledBuffer, bool b8tapChr
     uint32_t size = 0;
     uint32_t linebufferSizePerPixel = 0;
 
-    if (mhw::sfc::SFC_PIPE_MODE_VDBOX == m_pipeMode)
+    if (MhwSfcInterface::SFC_PIPE_MODE_VDBOX == m_pipeMode)
     {
         if (b8tapChromafiltering)
         {
@@ -1222,7 +1224,7 @@ uint32_t SfcRenderBase::GetAvsLineBufferSize(bool lineTiledBuffer, bool b8tapChr
     }
 
     // For VD+SFC mode, width needs be used. For VE+SFC mode, height needs be used.
-    if (mhw::sfc::SFC_PIPE_MODE_VEBOX == m_pipeMode)
+    if (MhwSfcInterface::SFC_PIPE_MODE_VEBOX == m_pipeMode)
     {
         size = height * linebufferSizePerPixel;
     }
@@ -1249,7 +1251,7 @@ uint32_t SfcRenderBase::GetIefLineBufferSize(bool lineTiledBuffer, uint32_t heig
     uint32_t size = 0;
 
     // For VE+SFC mode, height needs be used.
-    if (mhw::sfc::SFC_PIPE_MODE_VEBOX == m_pipeMode)
+    if (MhwSfcInterface::SFC_PIPE_MODE_VEBOX == m_pipeMode)
     {
         size = heightOutput * SFC_IEF_LINEBUFFER_SIZE_PER_VERTICAL_PIXEL;
     }
@@ -1275,7 +1277,7 @@ uint32_t SfcRenderBase::GetSfdLineBufferSize(bool lineTiledBuffer, MOS_FORMAT fo
     int size = 0;
 
     // For VD+SFC mode, width needs be used. For VE+SFC mode, height needs be used.
-    if (mhw::sfc::SFC_PIPE_MODE_VEBOX == m_pipeMode)
+    if (MhwSfcInterface::SFC_PIPE_MODE_VEBOX == m_pipeMode)
     {
         size = (VPHAL_COLORPACK_444 == VpUtils::GetSurfaceColorPack(formatOutput)) ? 0 : (heightOutput * SFC_SFD_LINEBUFFER_SIZE_PER_PIXEL);
     }

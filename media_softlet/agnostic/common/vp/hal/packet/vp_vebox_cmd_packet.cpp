@@ -505,7 +505,7 @@ MOS_STATUS VpVeboxCmdPacket::SetVeboxBeCSCParams(PVEBOX_CSC_PARAMS cscParams)
     if (m_CscInputCspace  != cscParams->inputColorSpace ||
         m_CscOutputCspace != cscParams->outputColorSpace)
     {
-        // For VE 3DLUT HDR cases, CSC params will be overriden in Vebox Interface_BT2020YUVToRGB
+        // For VE 3DLUT HDR cases, CSC params will be overriden in VeboxInterface_BT2020YUVToRGB
         VeboxGetBeCSCMatrix(
             cscParams->inputColorSpace,
             cscParams->outputColorSpace,
@@ -1405,6 +1405,7 @@ MOS_STATUS VpVeboxCmdPacket::PrepareVeboxCmd(
 }
 
 MOS_STATUS VpVeboxCmdPacket::SetVeboxProCmd(
+    PMHW_MI_INTERFACE     pMhwMiInterface,
     MOS_COMMAND_BUFFER*   CmdBuffer)
 {
     VP_RENDER_CHK_NULL_RETURN(m_veboxItf);
@@ -1517,7 +1518,7 @@ MOS_STATUS VpVeboxCmdPacket::RenderVeboxCmd(
 
 #ifdef _MMC_SUPPORTED
 
-    VP_RENDER_CHK_STATUS_RETURN(SetVeboxProCmd(CmdBuffer));
+    VP_RENDER_CHK_STATUS_RETURN(SetVeboxProCmd(pMhwMiInterface, CmdBuffer));
 
 #endif
 
@@ -1584,7 +1585,7 @@ MOS_STATUS VpVeboxCmdPacket::RenderVeboxCmd(
 
         VP_RENDER_CHK_STATUS_RETURN(pPerfProfiler->AddPerfCollectStartCmd((void *)pRenderHal, pOsInterface, pRenderHal->pMhwMiInterface, pCmdBufferInUse));
 
-        VP_RENDER_CHK_STATUS_RETURN(NullHW::StartPredicateNext(m_miItf, pCmdBufferInUse));
+        VP_RENDER_CHK_STATUS_RETURN(NullHW::StartPredicate(pRenderHal->pMhwMiInterface, pCmdBufferInUse));
 
         // Add compressible info of input/output surface to log
         if (this->m_currentSurface && VeboxSurfaceStateCmdParams.pSurfOutput)
@@ -1599,7 +1600,7 @@ MOS_STATUS VpVeboxCmdPacket::RenderVeboxCmd(
             // Insert prolog with VE params
 #ifdef _MMC_SUPPORTED
 
-            VP_RENDER_CHK_STATUS_RETURN(SetVeboxProCmd(pCmdBufferInUse));
+            VP_RENDER_CHK_STATUS_RETURN(SetVeboxProCmd(pMhwMiInterface, pCmdBufferInUse));
 
 #endif
 
@@ -1608,7 +1609,7 @@ MOS_STATUS VpVeboxCmdPacket::RenderVeboxCmd(
             genericPrologParams.pOsInterface  = pRenderHal->pOsInterface;
             genericPrologParams.pvMiInterface = pRenderHal->pMhwMiInterface;
             genericPrologParams.bMmcEnabled   = pGenericPrologParams ? pGenericPrologParams->bMmcEnabled : false;
-            VP_RENDER_CHK_STATUS_RETURN(Mhw_SendGenericPrologCmdNext(pCmdBufferInUse, &genericPrologParams, m_miItf));
+            VP_RENDER_CHK_STATUS_RETURN(Mhw_SendGenericPrologCmd(pCmdBufferInUse, &genericPrologParams));
 
             VP_RENDER_CHK_STATUS_RETURN(scalability->SyncPipe(syncAllPipes, 0, pCmdBufferInUse));
 
@@ -1699,6 +1700,7 @@ MOS_STATUS VpVeboxCmdPacket::RenderVeboxCmd(
         if (!pOsInterface->bEnableKmdMediaFrameTracking)
         {
             VP_RENDER_CHK_STATUS_RETURN(SendVecsStatusTag(
+                pMhwMiInterface,
                 pOsInterface,
                 pCmdBufferInUse));
         }
@@ -1836,6 +1838,7 @@ MOS_STATUS VpVeboxCmdPacket::InitVeboxSurfaceStateCmdParams(
 }
 
 MOS_STATUS VpVeboxCmdPacket::SendVecsStatusTag(
+    PMHW_MI_INTERFACE                   pMhwMiInterface,
     PMOS_INTERFACE                      pOsInterface,
     PMOS_COMMAND_BUFFER                 pCmdBuffer)
 {
@@ -1846,7 +1849,7 @@ MOS_STATUS VpVeboxCmdPacket::SendVecsStatusTag(
     MOS_STATUS                          eStatus = MOS_STATUS_SUCCESS;
 
     //------------------------------------
-    VP_RENDER_CHK_NULL_RETURN(m_miItf);
+    VP_RENDER_CHK_NULL_RETURN(pMhwMiInterface);
     VP_RENDER_CHK_NULL_RETURN(pOsInterface);
     VP_RENDER_CHK_NULL_RETURN(pCmdBuffer);
 

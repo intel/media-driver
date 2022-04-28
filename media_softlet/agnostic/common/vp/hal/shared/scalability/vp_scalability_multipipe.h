@@ -94,7 +94,7 @@ public:
         PMOS_RESOURCE                             semaMem,
         uint32_t                                  semaData,
         MHW_COMMON_MI_SEMAPHORE_COMPARE_OPERATION opCode,
-        PMOS_COMMAND_BUFFER                       cmdBuffer) override;
+        PMOS_COMMAND_BUFFER                       cmdBuffer);
 
     //!
     //! \brief    Send mi atomic dword cmd
@@ -116,7 +116,7 @@ public:
         PMOS_RESOURCE               resource,
         uint32_t                    immData,
         MHW_COMMON_MI_ATOMIC_OPCODE opCode,
-        PMOS_COMMAND_BUFFER         cmdBuffer) override;
+        PMOS_COMMAND_BUFFER         cmdBuffer);
 
     //!
     //! \brief    Send mi flush dword cmd
@@ -135,7 +135,7 @@ public:
     virtual MOS_STATUS AddMiFlushDwCmd(
         PMOS_RESOURCE                             semaMem,
         uint32_t                                  semaData,
-        PMOS_COMMAND_BUFFER                       cmdBuffer) override;
+        PMOS_COMMAND_BUFFER                       cmdBuffer);
 
     //!
     //! \brief    Send mi store data dword cmd
@@ -151,18 +151,7 @@ public:
     //!
     virtual MOS_STATUS AddMiStoreDataImmCmd(
         PMOS_RESOURCE               resource,
-        PMOS_COMMAND_BUFFER         cmdBuffer) override;
-
-    //!
-    //! \brief   Initialize the media scalability
-    //! \details It will prepare the resources needed in scalability
-    //!          and initialize the state of scalability
-    //! \param   [in] option
-    //!          Input scalability option
-    //! \return  MOS_STATUS
-    //!          MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    MOS_STATUS Initialize(const MediaScalabilityOption &option) override;
+        PMOS_COMMAND_BUFFER         cmdBuffer);
 
     VpPhase                               *m_phase = nullptr;
 

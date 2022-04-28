@@ -57,8 +57,8 @@ MOS_STATUS HalOcaInterfaceNext::MhwMiLoadRegisterImmCmd(
 //!         Reference to MOS_CONTEXT.
 //! \param  [in] gpuContextHandle
 //!         Gpu context handle 
-//! \param  [in] miItf
-//!         Reference to Mhw MiItf.
+//! \param  [in] mhwMiInterface
+//!         Reference to MhwMiInterface.
 //! \param  [in] mmioRegisters
 //!         mmio registers for current engine.
 //! \param  [in] offsetOf1stLevelBB
@@ -84,8 +84,8 @@ void HalOcaInterfaceNext::On1stLevelBBStart(MOS_COMMAND_BUFFER &cmdBuffer, MOS_C
 //!         Reference to MOS_CONTEXT.
 //! \param  [in] gpuContextHandle
 //!         Gpu context handle
-//! \param  [in] miItf
-//!         Reference to Mhw MiItf.
+//! \param  [in] mhwMiInterface
+//!         Reference to MhwMiInterface.
 //! \param  [in] mmioRegisters
 //!         mmio registers for current engine.
 //! \param  [in] offsetOf1stLevelBB
@@ -204,8 +204,8 @@ void HalOcaInterfaceNext::OnIndirectState(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CON
 //!         Command buffer for current BB.
 //! \param  [in] mosContext
 //!         Reference to MOS_CONTEXT.
-//! \param  [in] miItf
-//!         Reference to Mhw MiItf.
+//! \param  [in] mhwMiInterface
+//!         Reference to MhwMiInterface.
 //! \param  [in] mmioRegisters
 //!         mmio registers for current engine.
 //! \return void
