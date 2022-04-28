@@ -197,6 +197,16 @@ public:
         PCVPHAL_RENDER_PARAMS       pcRenderParams);
 
     //!
+    //! \brief    check whether SFC Write have offset which may hit compresed write limitation
+    //! \details  check whether SFC Write have offset which may hit compresed write limitation
+    //! \param    [in] pRenderTarget
+    //!           Pointer to RenderTarget
+    //! \return   the output pipe mode
+    //!
+    virtual bool IsSFCUncompressedWriteNeeded(
+        PVPHAL_SURFACE              pRenderTarget);
+
+    //!
     //! \brief    Check if SFC is feasible to generate output
     //! \param    [in] pcRenderParams
     //!           Pointer to VpHal render parameters

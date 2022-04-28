@@ -553,6 +553,9 @@ MOS_STATUS VphalSfcStateG12::SetSfcMmcStatus(
 {
     MOS_STATUS       eStatus = MOS_STATUS_SUCCESS;
 
+    VPHAL_RENDER_CHK_NULL_RETURN(outSurface);
+    VPHAL_RENDER_CHK_NULL_RETURN(sfcStateParams);
+
     if (outSurface->CompressionMode               &&
         IsFormatMMCSupported(outSurface->Format)  &&
         outSurface->TileType == MOS_TILE_Y        &&
@@ -560,6 +563,11 @@ MOS_STATUS VphalSfcStateG12::SetSfcMmcStatus(
     {
         sfcStateParams->bMMCEnable = true;
         sfcStateParams->MMCMode    = outSurface->CompressionMode;
+
+        if (outSurface->OsResource.bUncompressedWriteNeeded)
+        {
+            sfcStateParams->MMCMode = MOS_MMC_RC;
+        }
     }
     else
     {

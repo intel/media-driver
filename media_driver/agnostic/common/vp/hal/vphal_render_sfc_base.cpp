@@ -288,6 +288,62 @@ finish:
     return;
 }
 
+bool VphalSfcState::IsSFCUncompressedWriteNeeded(
+    PVPHAL_SURFACE pRenderTarget)
+{
+    if (!pRenderTarget)
+    {
+        return false;
+    }
+
+    if (!MEDIA_IS_SKU(m_renderHal->pSkuTable, FtrE2ECompression))
+    {
+        return false;
+    }
+
+    uint32_t byteInpixel = 1;
+#if !EMUL
+    if (!pRenderTarget->OsResource.pGmmResInfo)
+    {
+        VPHAL_RENDER_NORMALMESSAGE("IsSFCUncompressedWriteNeeded cannot support non GMM info cases");
+        return false;
+    }
+
+    byteInpixel = pRenderTarget->OsResource.pGmmResInfo->GetBitsPerPixel() >> 3;
+#endif // !EMUL
+
+    if (byteInpixel == 0)
+    {
+        VPHAL_RENDER_NORMALMESSAGE("surface format is not a valid format for sfc");
+        return false;
+    }
+    uint32_t writeAlignInWidth  = 32 / byteInpixel;
+    uint32_t writeAlignInHeight = 8;
+
+    if ((pRenderTarget->rcSrc.top % writeAlignInHeight) ||
+        ((pRenderTarget->rcSrc.bottom - pRenderTarget->rcSrc.top) % writeAlignInHeight) ||
+        (pRenderTarget->rcSrc.left % writeAlignInWidth) ||
+        ((pRenderTarget->rcSrc.right - pRenderTarget->rcSrc.left) % writeAlignInWidth))
+    {
+        VPHAL_RENDER_NORMALMESSAGE(
+            "SFC Render Target Uncompressed write needed, \
+            pRenderTarget->rcSrc.top % d, \
+            pRenderTarget->rcSrc.bottom % d, \
+            pRenderTarget->rcSrc.left % d, \
+            pRenderTarget->rcSrc.right % d \
+            pRenderTarget->Format % d",
+            pRenderTarget->rcSrc.top,
+            pRenderTarget->rcSrc.bottom,
+            pRenderTarget->rcSrc.left,
+            pRenderTarget->rcSrc.right,
+            pRenderTarget->Format);
+
+        return true;
+    }
+
+    return false;
+}
+
 bool VphalSfcState::IsOutputPipeSfcFeasible(
     PCVPHAL_RENDER_PARAMS       pcRenderParams,
     PVPHAL_SURFACE              pSrcSurface,
@@ -507,6 +563,27 @@ VPHAL_OUTPUT_PIPE_MODE VphalSfcState::GetOutputPipe(
     else
     {
         OutputPipe = VPHAL_OUTPUT_PIPE_MODE_COMP;
+    }
+
+    if (OutputPipe == VPHAL_OUTPUT_PIPE_MODE_SFC)
+    {
+        // Decompress resource if surfaces need write from a un-align offset
+        if ((!pRenderTarget->OsResource.bUncompressedWriteNeeded) &&
+            IsSFCUncompressedWriteNeeded(pRenderTarget))
+        {
+            MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+            eStatus = m_osInterface->pfnDecompResource(m_osInterface, &pRenderTarget->OsResource);
+
+            if (eStatus != MOS_STATUS_SUCCESS)
+            {
+                VPHAL_RENDER_NORMALMESSAGE("inplace decompression failed for sfc target.");
+            }
+            else
+            {
+                VPHAL_RENDER_NORMALMESSAGE("inplace decompression enabled for sfc target RECT is not compression block align.");
+                pRenderTarget->OsResource.bUncompressedWriteNeeded = 1;
+            }
+        }
     }
 
 finish:

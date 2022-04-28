@@ -1225,6 +1225,13 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::SetupDiIecpStateForOutputSurf(
             MOS_ZeroMemory(&VeboxSurfCntlParams, sizeof(VeboxSurfCntlParams));
             VeboxSurfCntlParams.bIsCompressed   = pSurface->bIsCompressed;
             VeboxSurfCntlParams.CompressionMode = pSurface->CompressionMode;
+
+            if (pSurface->OsResource.bUncompressedWriteNeeded)
+            {
+                VPHAL_RENDER_NORMALMESSAGE("Vebox uncompressed write needed as previous write need clear ");
+                VeboxSurfCntlParams.CompressionMode = MOS_MMC_RC;
+            }
+
             VPHAL_RENDER_CHK_STATUS(pVeboxInterface->AddVeboxSurfaceControlBits(
                 &VeboxSurfCntlParams,
                 (uint32_t *)&(pVeboxDiIecpCmdParams->CurrOutputSurfCtrl.Value)));

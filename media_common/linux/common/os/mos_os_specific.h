@@ -297,6 +297,9 @@ struct _MOS_SPECIFIC_RESOURCE
     MOS_TILE_MODE_GMM   TileModeGMM;
     bool                bGMMTileEnabled;
 
+    // Compression track
+    bool                bUncompressedWriteNeeded; //!< set uncompressed write flag to trace media uncomrpessedwrite request
+
     MEMORY_OBJECT_CONTROL_STATE memObjCtrlState;
     MOS_HW_RESOURCE_DEF         mocsMosResUsageType;
 };
