@@ -506,21 +506,53 @@ MOS_STATUS CodechalVdencHevcState::SetupBRCROIStreamIn(PMOS_RESOURCE streamIn, P
     uint32_t deltaQpBufHeight = (MOS_ALIGN_CEIL(m_frameHeight, 32) / 32);
     bool cu64Align = true;
 
-    for (auto i = m_hevcPicParams->NumROI - 1; i >= 0; i--)
+    if ((m_hevcSeqParams->RateControlMethod == RATECONTROL_CBR ||
+         m_hevcSeqParams->RateControlMethod == RATECONTROL_VBR ||
+         m_hevcSeqParams->RateControlMethod == RATECONTROL_QVBR) &&
+         m_encodeParams.bMbQpDataEnabled)
     {
-        //Check if the region is with in the borders
-        uint16_t top    = (uint16_t)CodecHal_Clip3(0, (deltaQpBufHeight - 1), m_hevcPicParams->ROI[i].Top);
-        uint16_t bottom = (uint16_t)CodecHal_Clip3(0, deltaQpBufHeight, m_hevcPicParams->ROI[i].Bottom);
-        uint16_t left   = (uint16_t)CodecHal_Clip3(0, (deltaQpBufWidth - 1), m_hevcPicParams->ROI[i].Left);
-        uint16_t right  = (uint16_t)CodecHal_Clip3(0, deltaQpBufWidth, m_hevcPicParams->ROI[i].Right);
+        cu64Align = false; 
 
-        //Check if all the sides of ROI regions are aligned to 64CU
-        if ((top % 2 == 1) || (bottom % 2 == 1) || (left % 2 == 1) || (right % 2 == 1))
+        MOS_LOCK_PARAMS LockFlagsReadOnly;
+        MOS_ZeroMemory(&LockFlagsReadOnly, sizeof(MOS_LOCK_PARAMS));
+        LockFlagsReadOnly.ReadOnly = true;
+
+        auto pInputDataGfx = (PDeltaQpForROI)m_osInterface->pfnLockResource(
+            m_osInterface, &(m_encodeParams.psMbQpDataSurface->OsResource), &LockFlagsReadOnly);
+        
+        CODECHAL_ENCODE_CHK_NULL_RETURN(pInputDataGfx);
+        
+        for (uint32_t curY = 0; curY < deltaQpBufHeight; curY++)
         {
-            cu64Align = false;
+            for (uint32_t curX = 0; curX < deltaQpBufWidth; curX++)
+            {
+                uint32_t iMB = curY * deltaQpBufHeight + curX;
+                deltaQpData[iMB] = *(pInputDataGfx + m_encodeParams.psMbQpDataSurface->dwPitch * curY + curX);
+            }
         }
 
-        SetBrcRoiDeltaQpMap(streamInWidth, top, bottom, left, right, (uint8_t)i, deltaQpData);
+        m_osInterface->pfnUnlockResource(
+        m_osInterface,
+        &(m_encodeParams.psMbQpDataSurface->OsResource));
+    }
+    else
+    {
+        for (auto i = m_hevcPicParams->NumROI - 1; i >= 0; i--)
+        {
+            //Check if the region is with in the borders
+            uint16_t top    = (uint16_t)CodecHal_Clip3(0, (deltaQpBufHeight - 1), m_hevcPicParams->ROI[i].Top);
+            uint16_t bottom = (uint16_t)CodecHal_Clip3(0, deltaQpBufHeight, m_hevcPicParams->ROI[i].Bottom);
+            uint16_t left   = (uint16_t)CodecHal_Clip3(0, (deltaQpBufWidth - 1), m_hevcPicParams->ROI[i].Left);
+            uint16_t right  = (uint16_t)CodecHal_Clip3(0, deltaQpBufWidth, m_hevcPicParams->ROI[i].Right);
+
+            //Check if all the sides of ROI regions are aligned to 64CU
+            if ((top % 2 == 1) || (bottom % 2 == 1) || (left % 2 == 1) || (right % 2 == 1))
+            {
+                cu64Align = false;
+            }
+
+            SetBrcRoiDeltaQpMap(streamInWidth, top, bottom, left, right, (uint8_t)i, deltaQpData);
+        }
     }
 
     m_osInterface->pfnUnlockResource(
@@ -1463,7 +1495,11 @@ void CodechalVdencHevcState::SetVdencPipeBufAddrParams(
 
     if (m_vdencStreamInEnabled)
     {
-        if (m_vdencHucUsed && m_hevcPicParams->NumROI && !m_vdencNativeROIEnabled)
+        bool useBrcInDeltaQpMap = m_hevcSeqParams->RateControlMethod == RATECONTROL_CBR ||
+                                  m_hevcSeqParams->RateControlMethod == RATECONTROL_VBR ||
+                                  m_hevcSeqParams->RateControlMethod == RATECONTROL_QVBR;
+        if (m_vdencHucUsed && ((m_hevcPicParams->NumROI && !m_vdencNativeROIEnabled) || 
+            (useBrcInDeltaQpMap && m_encodeParams.bMbQpDataEnabled)))  
         {
             pipeBufAddrParams.presVdencStreamInBuffer = &m_vdencOutputROIStreaminBuffer;
         }
@@ -2977,7 +3013,17 @@ MOS_STATUS CodechalVdencHevcState::PrepareVDEncStreamInData()
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
     if (m_vdencStreamInEnabled && m_encodeParams.bMbQpDataEnabled)
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(SetupMbQpStreamIn(&m_resVdencStreamInBuffer[m_currRecycledBufIdx]));
+    {
+        if (m_hevcSeqParams->RateControlMethod == RATECONTROL_CQP)
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(SetupMbQpStreamIn(&m_resVdencStreamInBuffer[m_currRecycledBufIdx]));
+        }
+        else if (m_vdencHucUsed)
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(SetupBRCROIStreamIn(&m_resVdencStreamInBuffer[m_currRecycledBufIdx], &m_vdencDeltaQpBuffer[m_currRecycledBufIdx]));
+        }
+    }
+        
 
     if (m_brcAdaptiveRegionBoostSupported && m_hevcPicParams->TargetFrameSize && !m_lookaheadDepth)
     {
