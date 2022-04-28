@@ -939,6 +939,23 @@ typedef struct _CODEC_HEVC_ENCODE_PICTURE_PARAMS
     } DownScaleRatio;
 
     uint8_t QpModulationStrength;
+
+    /*! \brief StatusReportEnable
+    *
+    *  Request features to be enabled at status report.
+    *  FrameStats: FRAME_STATS_INFO enabled in ENCODE_QUERY_STATUS_PARAMS.
+    *  BlockStats: BLOCK_STATS_INFO enabled in ENCODE_QUERY_STATUS_PARAMS.
+    */
+    union
+    {
+        struct
+        {
+            uint16_t FrameStats : 1;
+            uint16_t BlockStats : 1;
+            uint16_t reserved : 14;
+        } fields;
+        uint16_t value;
+    } StatusReportEnable;
 } CODEC_HEVC_ENCODE_PICTURE_PARAMS, *PCODEC_HEVC_ENCODE_PICTURE_PARAMS;
 
 /*! \brief Slice-level parameters of a compressed picture for HEVC encoding.
