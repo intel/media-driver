@@ -945,8 +945,8 @@ protected:
             this->m_currentCmdBuf,
             &resourceParams));
 
-        cmd.DecodedOutputFrameBufferAddressAttributes.DW0.Value &= MEMORY_ADDRESS_ATTRIBUTES_MOCS_CLEAN_MASK;
-        cmd.DecodedOutputFrameBufferAddressAttributes.DW0.Value |= GetMocsValue(MOS_CODEC_RESOURCE_USAGE_PRE_DEBLOCKING_CODEC);
+        cmd.DecodedOutputFrameBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables =
+            GetMocsValue(MOS_CODEC_RESOURCE_USAGE_PRE_DEBLOCKING_CODEC);
 
         //IntraBC Decoded Output Frame buffer
         if (!Mos_ResourceIsNull(params.intrabcDecodedOutputFrameBuffer))
@@ -2042,9 +2042,9 @@ protected:
 
             resourceParams.dwUpperBoundLocationOffsetFromCmd = 0;
 
-            cmd.AvpIndirectBitstreamObjectMemoryAddressAttributes.DW0.Value &= MEMORY_ADDRESS_ATTRIBUTES_MOCS_CLEAN_MASK;
-            cmd.AvpIndirectBitstreamObjectMemoryAddressAttributes.DW0.Value |= 
-                m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_MFX_INDIRECT_BITSTREAM_OBJECT_DECODE].Gen12.Index;
+            cmd.AvpIndirectBitstreamObjectMemoryAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables =
+                GetMocsValue(MOS_CODEC_RESOURCE_USAGE_MFX_INDIRECT_BITSTREAM_OBJECT_DECODE);
+
         }
 
         if (!Mos_ResourceIsNull(params.pakBaseObjectBuffer))
@@ -2065,9 +2065,8 @@ protected:
                 this->m_currentCmdBuf,
                 &resourceParams));
 
-            cmd.AvpIndirectBitstreamObjectMemoryAddressAttributes.DW0.Value &= MEMORY_ADDRESS_ATTRIBUTES_MOCS_CLEAN_MASK;
-            cmd.AvpIndirectBitstreamObjectMemoryAddressAttributes.DW0.Value |=
-                m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_MFC_INDIRECT_PAKBASE_OBJECT_CODEC].Value;
+            cmd.AvpIndirectBitstreamObjectMemoryAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables =
+                GetMocsValue(MOS_CODEC_RESOURCE_USAGE_MFC_INDIRECT_PAKBASE_OBJECT_CODEC);
         }
 
         if (!Mos_ResourceIsNull(params.mvObjectBuffer))
@@ -2089,9 +2088,8 @@ protected:
                 this->m_currentCmdBuf,
                 &resourceParams));
 
-            cmd.AvpIndirectCuObjectMemoryAddressAttributes.DW0.Value &= MEMORY_ADDRESS_ATTRIBUTES_MOCS_CLEAN_MASK;
-            cmd.AvpIndirectCuObjectMemoryAddressAttributes.DW0.Value |=
-                m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_MFX_INDIRECT_MV_OBJECT_CODEC].Value;
+            cmd.AvpIndirectCuObjectMemoryAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables =
+                GetMocsValue(MOS_CODEC_RESOURCE_USAGE_MFX_INDIRECT_MV_OBJECT_CODEC);
         }
 
         return MOS_STATUS_SUCCESS;
