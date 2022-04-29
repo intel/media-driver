@@ -158,7 +158,7 @@ MOS_STATUS MhwBltInterface::AddFastCopyBlt(
 
     // add source address
     MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
-    ResourceParams.dwLsbNum        = 12;
+    ResourceParams.dwLsbNum        = MHW_BLT_ENGINE_STATE_BASE_ADDRESS_SHIFT;
     ResourceParams.dwOffset        = srcOffset;
     ResourceParams.presResource    = pFastCopyBltParam->pSrcOsResource;
     ResourceParams.pdwCmd          = &(cmd.DW8_9.Value[0]);
@@ -172,7 +172,7 @@ MOS_STATUS MhwBltInterface::AddFastCopyBlt(
 
     // add destination address
     MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
-    ResourceParams.dwLsbNum        = 12;
+    ResourceParams.dwLsbNum        = MHW_BLT_ENGINE_STATE_BASE_ADDRESS_SHIFT;
     ResourceParams.dwOffset        = dstOffset;
     ResourceParams.presResource    = pFastCopyBltParam->pDstOsResource;
     ResourceParams.pdwCmd          = &(cmd.DW4_5.Value[0]);
