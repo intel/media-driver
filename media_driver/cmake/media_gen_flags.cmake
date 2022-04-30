@@ -18,7 +18,7 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-if(${PLATFORM} STREQUAL "linux")
+if(${PLATFORM} STREQUAL "linux" AND NOT CMAKE_WDDM_LINUX)
     include(${MEDIA_DRIVER_CMAKE}/linux/media_gen_flags_linux.cmake)
 else()
     include(${MEDIA_EXT_CMAKE}/ext/media_gen_flags_ext.cmake OPTIONAL)

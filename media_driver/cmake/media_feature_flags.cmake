@@ -19,7 +19,7 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 
-if(${PLATFORM} STREQUAL "linux")
+if(${PLATFORM} STREQUAL "linux" AND NOT CMAKE_WDDM_LINUX)
     include(${MEDIA_DRIVER_CMAKE}/linux/media_feature_flags_linux.cmake)
 else()
     include(${MEDIA_EXT_CMAKE}/ext/media_feature_flags_ext.cmake OPTIONAL)
