@@ -226,8 +226,8 @@ PMHW_BATCH_BUFFER DecodeAllocator::AllocateBatchBuffer(
     // Config setting if running with limited LMem bar config.
     if (m_limitedLMemBar)
     {
-        notLockable = false;
-        inSystemMem = true;
+        notLockable = (accessReq == notLockableVideoMem);
+        inSystemMem = (accessReq == lockableSystemMem);
     }
 
 #if (_DEBUG || _RELEASE_INTERNAL)
