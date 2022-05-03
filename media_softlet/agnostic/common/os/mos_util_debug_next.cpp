@@ -31,8 +31,6 @@
 #include "mos_utilities_next.h"
 #include "media_user_setting.h"
 
-extern const uint8_t                   subComponentCount[MOS_COMPONENT_COUNT];
-
 //!
 //! \brief HLT file name template
 //!
@@ -43,9 +41,30 @@ const char * const MosUtilDebug::m_mosLogPathTemplate = MOS_LOG_PATH_TEMPLATE;
 //!
 const char * const MosUtilDebug::m_DdiLogPathTemplate       = "%s\\ddi_dump_%d.%s";
 
-const char * const *MosUtilDebug::m_mosLogLevelName         = MOS_LogLevelName;
+const char * const MosUtilDebug::m_mosLogLevelName[MOS_MESSAGE_LVL_COUNT] = {
+    "",          // DISABLED
+    "CRITICAL",
+    "NORMAL  ",
+    "VERBOSE ",
+    "ENTER   ",
+    "EXIT    ",
+    "ENTER   ",  // ENTER VERBOSE
+    "EXIT    ",  // EXIT VERBOSE
+};
 
-const char * const *MosUtilDebug::m_mosComponentName        = MOS_ComponentName;
+const char * const MosUtilDebug::m_mosComponentName[MOS_COMPONENT_COUNT] = {
+    "[MOS]:  ",
+    "[MHW]:  ",
+    "[CODEC]:",
+    "[VP]:   ",
+    "[CP]:   ",
+    MOS_COMPONENT_NAME_DDI_STRING,
+    "[CM]:   ",
+    "[CPLIB]:",
+    "[SCAL]: ",
+    "[MMC]:  ",
+    "[MCPY]: "
+};
 
 const char* MosUtilDebug::m_pcComponentUserFeatureKeys[MOS_COMPONENT_COUNT][3] = {
     {
@@ -115,10 +134,17 @@ const char* MosUtilDebug::m_pcComponentUserFeatureKeys[MOS_COMPONENT_COUNT][3] =
     }
 };
 
-const uint8_t* const MosUtilDebug::m_subComponentCount     = subComponentCount;
+const uint8_t MosUtilDebug::m_subComponentCount[MOS_COMPONENT_COUNT] = {
+    MOS_SUBCOMP_COUNT,
+    MOS_HW_SUBCOMP_COUNT,
+    MOS_CODEC_SUBCOMP_COUNT,
+    MOS_VP_SUBCOMP_COUNT,
+    MOS_CP_SUBCOMP_COUNT,
+    MOS_DDI_SUBCOMP_COUNT,
+    MOS_CM_SUBCOMP_COUNT
+};
 
 MOS_MESSAGE_PARAMS MosUtilDebug::m_mosMsgParams            = {};
-MOS_MESSAGE_PARAMS MosUtilDebug::m_mosMsgParamsDdiDump     = {};
 
 void MosUtilDebug::MosSetSubCompMessageLevel(MOS_COMPONENT_ID compID, uint8_t subCompID, MOS_MESSAGE_LEVEL msgLevel)
 {
@@ -387,52 +413,6 @@ MOS_STATUS MosUtilDebug::MosHLTInit(MediaUserSettingSharedPtr userSettingPtr)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS MosUtilDebug::MosDDIDumpInit(MediaUserSettingSharedPtr userSettingPtr)
-{
-    char                                        fileNamePrefix[MOS_MAX_HLT_FILENAME_LEN] = {};
-    char                                        cDDIDumpFilePath[MOS_MAX_HLT_FILENAME_LEN] = { 0 };
-    MOS_STATUS                                  eStatus = MOS_STATUS_SUCCESS;
-    uint32_t                                    enableDump = false;
-
-    m_mosMsgParamsDdiDump.bUseHybridLogTrace = false;
-    m_mosMsgParamsDdiDump.pLogFile = nullptr;
-    m_mosMsgParamsDdiDump.pTraceFile = nullptr;
-
-#if (_DEBUG || _RELEASE_INTERNAL)
-
-    //Check if DDI dump is enabled
-    eStatus = ReadUserSettingForDebug(
-        userSettingPtr,
-        enableDump,
-        __MOS_USER_FEATURE_KEY_ENCODE_DDI_DUMP_ENABLE,
-        MediaUserSetting::Group::Device);
-
-    if (enableDump == 1)
-    {
-        //Check for the DDI dump path from the user feature key
-        MediaUserSetting::Value outValue;
-
-        eStatus = ReadUserSettingForDebug(
-            userSettingPtr, 
-            outValue,
-            __MOS_USER_FEATURE_KEY_DDI_DUMP_DIRECTORY,
-            MediaUserSetting::Group::Device);
-
-        // set-up DDI dump file name
-        MosUtilities::MosSecureStringPrint(cDDIDumpFilePath, MOS_MAX_HLT_FILENAME_LEN, MOS_MAX_HLT_FILENAME_LEN - 1, m_DdiLogPathTemplate,
-            (outValue.ConstString().size() > 0) ? outValue.ConstString().c_str() : fileNamePrefix, MosUtilities::MosGetPid(), "log");
-
-        eStatus = MosUtilities::MosSecureFileOpen(&m_mosMsgParamsDdiDump.pLogFile, cDDIDumpFilePath, "w");
-        if (MOS_FAILED(eStatus))
-        {
-            MOS_OS_NORMALMESSAGE("Failed to open log file '%s'.", cDDIDumpFilePath);
-            m_mosMsgParamsDdiDump.pLogFile = nullptr;
-        }
-     }
-#endif
-    return MOS_STATUS_SUCCESS;
-}
-
 void MosUtilDebug::MosMessageInit(MediaUserSettingSharedPtr userSettingPtr)
 {
     uint8_t                                     i = 0;
@@ -493,7 +473,6 @@ void MosUtilDebug::MosMessageInit(MediaUserSettingSharedPtr userSettingPtr)
         }
 
         MosHLTInit(userSettingPtr);
-        MosDDIDumpInit(userSettingPtr);
 
         // all above action should not be covered by memninja since its destroy is behind memninja counter report to test result.
         MosUtilities::m_mosMemAllocCounter     = 0;
@@ -527,22 +506,11 @@ void MosUtilDebug::MosHLTClose()
     }
 }
 
-void  MosUtilDebug::MosDDIDumpClose()
-{
-    if (m_mosMsgParamsDdiDump.pLogFile != nullptr)
-    {
-        fclose(m_mosMsgParamsDdiDump.pLogFile);
-        m_mosMsgParamsDdiDump.pLogFile = nullptr;
-        MOS_OS_NORMALMESSAGE("Encode DDI Dump file closing");
-    }
-}
-
 void MosUtilDebug::MosMessageClose()
 {
     // uiCounter's thread safety depends on global_lock in VPG_Terminate
     if(m_mosMsgParams.uiCounter == 1)
     {
-        MosDDIDumpClose();
         MosHLTClose();
         MosUtilities::MosZeroMemory(&m_mosMsgParams, sizeof(MOS_MESSAGE_PARAMS));
     }

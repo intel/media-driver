@@ -222,9 +222,6 @@ uint64_t MOS_GetCurTime()
 
 #endif // __cplusplus
 
-int32_t MosMemAllocFakeCounter;
-uint8_t MosUltFlag;
-
 #ifdef __cplusplus
 extern "C" {
 #endif

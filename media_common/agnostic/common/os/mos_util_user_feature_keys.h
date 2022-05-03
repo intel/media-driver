@@ -262,10 +262,6 @@
 
 #define __MOS_USER_FEATURE_KEY_DISABLE_ASSERT               "DisableAssert"
 
-#define __MOS_USER_FEATURE_KEY_DDI_DUMP_DIRECTORY           "DDI Dump Directory"
-
-#define __MOS_USER_FEATURE_KEY_ENCODE_DDI_DUMP_ENABLE       "Encode DDI Dump Enable"
-
 #endif // MOS_MESSAGES_ENABLED
 
 //User feature key for MDF

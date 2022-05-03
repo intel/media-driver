@@ -225,18 +225,6 @@ private:
     static MOS_STATUS MosHLTInit( MediaUserSettingSharedPtr userSettingPtr);
 
     //!
-    //! \brief    Initialize or refresh the DDI Dump facility
-    //! \details  Initialize or refresh the DDI Dump facility
-    //!           Called during MOS init
-    //! \param    [in] mosCtx
-    //!           os device ctx handle
-    //! \return   MOS_STATUS
-    //!           Returns one of the MOS_STATUS error codes if failed,
-    //!           else MOS_STATUS_SUCCESS
-    //!
-    static MOS_STATUS MosDDIDumpInit( MediaUserSettingSharedPtr userSettingPtr);
-
-    //!
     //! \brief    Close file handles and frees resources
     //! \details  Close file handles and frees resources
     //!           Called during MOS close
@@ -244,13 +232,6 @@ private:
     //!
     static void MosHLTClose();
 
-    // !
-    //! \brief    Close file handles and frees resources
-    //! \details  Close file handles and frees resources
-    //!           Called during MOS close
-    //! \return   void
-    //!
-    static void MosDDIDumpClose();
 #endif // MOS_MESSAGES_ENABLED
 
 #if MOS_ASSERT_ENABLED
@@ -269,12 +250,11 @@ private:
 public:
 #if MOS_MESSAGES_ENABLED
 
-    static const char * const *m_mosLogLevelName;
-    static const char * const *m_mosComponentName;
+    static const char * const m_mosLogLevelName[MOS_MESSAGE_LVL_COUNT];
+    static const char * const m_mosComponentName[MOS_COMPONENT_COUNT];
 
     //Temporarily defined as the reference to compatible with the cases using uf key to enable/disable APG.
     static MOS_MESSAGE_PARAMS m_mosMsgParams;
-    static MOS_MESSAGE_PARAMS m_mosMsgParamsDdiDump;
 #endif
 
 #if MOS_MESSAGES_ENABLED
@@ -282,7 +262,7 @@ public:
     static const char* const m_mosLogPathTemplate;
     static const char* const m_DdiLogPathTemplate;
     static const char* m_pcComponentUserFeatureKeys[MOS_COMPONENT_COUNT][3];
-    static const uint8_t* const m_subComponentCount;
+    static const uint8_t m_subComponentCount[MOS_COMPONENT_COUNT];
     static const PCCHAR m_mosUltLogPathPrefix;
     static const PCCHAR m_mosLogPathPrefix;
 #endif

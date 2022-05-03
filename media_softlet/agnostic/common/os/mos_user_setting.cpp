@@ -317,21 +317,6 @@ MOS_STATUS MosUserSetting::InitMosMessageUserSetting(MediaUserSettingSharedPtr u
         0,
         true);
 
-#if (_DEBUG || _RELEASE_INTERNAL)
-    DeclareUserSettingKeyForDebug(
-        userSettingPtr,
-        __MOS_USER_FEATURE_KEY_DDI_DUMP_DIRECTORY,
-        MediaUserSetting::Group::Device,
-        "",
-        true);
-
-    DeclareUserSettingKeyForDebug(
-        userSettingPtr,
-        __MOS_USER_FEATURE_KEY_ENCODE_DDI_DUMP_ENABLE,
-        MediaUserSetting::Group::Device,
-        0,
-        true);
-#endif
     return MOS_STATUS_SUCCESS;
 }
 #endif

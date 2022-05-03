@@ -240,17 +240,6 @@ typedef struct _MOS_MESSAGE_PARAMS
     char                        g_MosMsgBuffer[MOS_MAX_MSG_BUF_SIZE];           //!< Array for debug message
 } MOS_MESSAGE_PARAMS;
 
-//!
-//! \brief    Add preface information to the HLT log when initialized
-//! \details  Add preface information to the HLT log when initialized
-//!           Used internally by MOS_HLTInit().
-//! \param    PFILE pFile
-//!           [out] Pointer to the log file
-//! \return   void
-//!
-void MOS_HltpPreface(
-    PFILE            pFile);
-
 
 //!
 //! \def MOS_FUNCTION_ENTER(_compID, _subCompID)
