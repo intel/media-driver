@@ -28,8 +28,8 @@ function(gen_vpkernel_from_cm)
     set(krn ig${name}krn_${genx}_${kind})
     set(krnpatch ig${name}krn_${genx}_${kind}_cmfcpatch)
 
-    set(krn_dir ${CMAKE_SOURCE_DIR}/media_driver/agnostic/Xe_M/${platform}/vp/kernel_free)
-    set(out_dir ${CMAKE_SOURCE_DIR}/media_driver/agnostic/Xe_M/${platform}/vp/kernel_free/cache_kernel)
+    set(krn_dir ${CMAKE_SOURCE_DIR}/media_softlet/agnostic/Xe_R/${platform}/vp/kernel_free)
+    set(out_dir ${CMAKE_SOURCE_DIR}/media_softlet/agnostic/Xe_R/${platform}/vp/kernel_free/cache_kernel)
 
 
     set(link_file ${krn_dir}/component_release/LinkFile.txt)
@@ -255,8 +255,7 @@ function(gen_vpkernel_from_cm)
 endfunction()
 
 if(BUILD_KERNELS)
-    #gen_vpkernel_from_cm()
-    include(${MEDIA_DRIVER_ROOT}/agnostic/Xe_M/Xe_HPM/vp/kernel_free/media_srcs.cmake OPTIONAL)
+    gen_vpkernel_from_cm()
 endif()
 
 media_include_subdirectory(cmfcpatch)
