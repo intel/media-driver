@@ -717,14 +717,6 @@ VAStatus MediaLibvaCapsG12::LoadHevcEncLpProfileEntrypoints()
     {
         uint32_t configStartIdx = m_encConfigs.size();
         AddEncConfig(VA_RC_CQP);
-        if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEnableMediaKernels))
-        {
-            for (int32_t j = 3; j < rcModeSize; j++)
-            {
-                AddEncConfig(m_encRcMode[j]);
-                AddEncConfig(m_encRcMode[j] | VA_RC_PARALLEL);
-            }
-        }
         AddProfileEntry(VAProfileHEVCSccMain, VAEntrypointEncSliceLP, attributeList,
                 configStartIdx, m_encConfigs.size() - configStartIdx);
     }
@@ -733,14 +725,6 @@ VAStatus MediaLibvaCapsG12::LoadHevcEncLpProfileEntrypoints()
     {
         uint32_t configStartIdx = m_encConfigs.size();
         AddEncConfig(VA_RC_CQP);
-        if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEnableMediaKernels))
-        {
-            for (int32_t j = 3; j < rcModeSize; j++)
-            {
-                AddEncConfig(m_encRcMode[j]);
-                AddEncConfig(m_encRcMode[j] | VA_RC_PARALLEL);
-            }
-        }
         AddProfileEntry(VAProfileHEVCSccMain10, VAEntrypointEncSliceLP, attributeList,
                 configStartIdx, m_encConfigs.size() - configStartIdx);
     }
@@ -749,14 +733,6 @@ VAStatus MediaLibvaCapsG12::LoadHevcEncLpProfileEntrypoints()
     {
         uint32_t configStartIdx = m_encConfigs.size();
         AddEncConfig(VA_RC_CQP);
-        if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEnableMediaKernels))
-        {
-            for (int32_t j = 3; j < rcModeSize; j++)
-            {
-                AddEncConfig(m_encRcMode[j]);
-                AddEncConfig(m_encRcMode[j] | VA_RC_PARALLEL);
-            }
-        }
         AddProfileEntry(VAProfileHEVCSccMain444, VAEntrypointEncSliceLP, attributeList,
                 configStartIdx, m_encConfigs.size() - configStartIdx);
     }
@@ -765,14 +741,6 @@ VAStatus MediaLibvaCapsG12::LoadHevcEncLpProfileEntrypoints()
     {
         uint32_t configStartIdx = m_encConfigs.size();
         AddEncConfig(VA_RC_CQP);
-        if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEnableMediaKernels))
-        {
-            for (int32_t j = 3; j < rcModeSize; j++)
-            {
-                AddEncConfig(m_encRcMode[j]);
-                AddEncConfig(m_encRcMode[j] | VA_RC_PARALLEL);
-            }
-        }
         AddProfileEntry(VAProfileHEVCSccMain444_10, VAEntrypointEncSliceLP, attributeList,
                 configStartIdx, m_encConfigs.size() - configStartIdx);
     }
