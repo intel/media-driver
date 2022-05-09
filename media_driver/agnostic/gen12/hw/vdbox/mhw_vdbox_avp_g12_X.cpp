@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -386,7 +386,8 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::GetAv1BufferSize(
         case lrTileColVBuf:
         case lrMetaTileCol:
             bufferSize = sbPerFrmHgt * CodecAv1BufferSize[index][avpBufSizeParam->m_bitDepthIdc][avpBufSizeParam->m_isSb128x128]
-                + CodecAv1BufferSizeExt[index][avpBufSizeParam->m_bitDepthIdc][avpBufSizeParam->m_isSb128x128];
+                + CodecAv1BufferSizeExt[index][avpBufSizeParam->m_bitDepthIdc][avpBufSizeParam->m_isSb128x128]
+                + MOS_PAGE_SIZE; //Add one page size here to fix page fault issue
             break;
         //frame buffer
         case segmentIdBuf:
