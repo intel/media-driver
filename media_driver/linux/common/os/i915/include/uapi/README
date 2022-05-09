@@ -13,15 +13,18 @@ $ make headers_install INSTALL_HDR_PATH=/path/to/install
 
 The last update was done at the following kernel commit:
 
-commit 6f2f7c83303d2227f47551423e507d77d9ea01c7 
-Merge: 94ff371eb849 ab5d964c001b
-Author: Dave Airlie <airlied@redhat.com>
-Date:   Fri Oct 22 06:30:33 2021 +1000
+commit 8d62a974ac5fa1609e57a54622eef71e87bace78 
+Merge: 7761a3ea172e 88de9f0d4728
+Author: Christian König <christian.koenig@amd.com>
+Date:   Tue May 3 08:36:13 2022 +0200
 
-    Merge tag 'drm-intel-gt-next-2021-10-21' of git://anongit.freedesktop.org/drm/drm-intel into drm-next
+    drm/amdgpu: fix drm-next merge fallout
 
-    <...>
+    That hunk somehow got missing while solving the conflict between the TTM
+    and AMDGPU changes for drm-next.
 
+    Signed-off-by: Christian König <christian.koenig@amd.com>
+    Acked-by: Alex Deucher <alexander.deucher@amd.com>
     Signed-off-by: Dave Airlie <airlied@redhat.com>
-    From: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
-    Link: https://patchwork.freedesktop.org/patch/msgid/YXFmLKoq8Fg9JxSd@jlahtine-mobl.ger.corp.intel.com
+    Link: https://patchwork.freedesktop.org/patch/msgid/20220503063613.46925-1-christian.koenig@amd.com
+

@@ -47,15 +47,6 @@
 #define VA_ENCRYPTION_TYPE_NONE 0x00000000
 #endif
 
-#ifndef I915_FORMAT_MOD_F_TILED
-#define I915_FORMAT_MOD_F_TILED         fourcc_mod_code(INTEL, 12)
-#endif
-#ifndef I915_FORMAT_MOD_F_TILED_DG2_MC_CCS
-#define I915_FORMAT_MOD_F_TILED_DG2_MC_CCS fourcc_mod_code(INTEL, 10)
-#endif
-#ifndef I915_FORMAT_MOD_F_TILED_DG2_RC_CCS_CC
-#define I915_FORMAT_MOD_F_TILED_DG2_RC_CCS_CC fourcc_mod_code(INTEL, 11)
-#endif
 const VAImageFormat m_supportedImageformatsG12[] =
 {   {VA_FOURCC_BGRA,           VA_LSB_FIRST,   32, 32, 0x0000ff00, 0x00ff0000, 0xff000000,  0x000000ff}, /* [31:0] B:G:R:A 8:8:8:8 little endian */
     {VA_FOURCC_ARGB,           VA_LSB_FIRST,   32, 32, 0x00ff0000, 0x0000ff00, 0x000000ff,  0xff000000}, /* [31:0] A:R:G:B 8:8:8:8 little endian */
@@ -2737,12 +2728,12 @@ VAStatus MediaLibvaCapsG12::GetSurfaceModifier(DDI_MEDIA_SURFACE* mediaSurface, 
     {
         if(m_mediaCtx->m_auxTableMgr && bMmcEnabled)
         {
-            modifier = GmmFlags.Info.MediaCompressed ? I915_FORMAT_MOD_F_TILED_DG2_MC_CCS :
--                 (GmmFlags.Info.RenderCompressed ? I915_FORMAT_MOD_F_TILED_DG2_RC_CCS_CC : I915_FORMAT_MOD_F_TILED);
+            modifier = GmmFlags.Info.MediaCompressed ? I915_FORMAT_MOD_4_TILED_DG2_MC_CCS :
+-                 (GmmFlags.Info.RenderCompressed ? I915_FORMAT_MOD_4_TILED_DG2_RC_CCS_CC : I915_FORMAT_MOD_4_TILED);
         }
         else
         {
-            modifier = I915_FORMAT_MOD_F_TILED;
+            modifier = I915_FORMAT_MOD_4_TILED;
         }
         return VA_STATUS_SUCCESS;
     }
@@ -2767,7 +2758,7 @@ VAStatus MediaLibvaCapsG12::SetExternalSurfaceTileFormat(DDI_MEDIA_SURFACE* medi
             tileformat = I915_TILING_X;
             bMemCompEnable = false;
             break;
-        case I915_FORMAT_MOD_F_TILED:
+        case I915_FORMAT_MOD_4_TILED:
         case I915_FORMAT_MOD_Yf_TILED:
         case I915_FORMAT_MOD_Y_TILED:
             tileformat = I915_TILING_Y;
