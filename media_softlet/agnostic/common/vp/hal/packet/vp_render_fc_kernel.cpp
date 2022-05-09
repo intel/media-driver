@@ -79,6 +79,8 @@ const int32_t VpRenderFcKernel::s_bindingTableIndexField[] =
 VpRenderFcKernel::VpRenderFcKernel(PVP_MHWINTERFACE hwInterface, PVpAllocator allocator) :
     VpRenderKernelObj(hwInterface, allocator)
 {
+    bool cscCoeffPatchModeEnabled = false;
+
     m_kernelBinaryID = IDR_VP_EOT;
     m_kernelId       = kernelCombinedFc;
 
@@ -115,14 +117,17 @@ VpRenderFcKernel::VpRenderFcKernel(PVP_MHWINTERFACE hwInterface, PVpAllocator al
     {
         m_cscCoeffPatchModeEnabled = m_hwInterface->m_vpPlatformInterface->GetKernelConfig().IsFcCscCoeffPatchModeEnabled();
 
-        MOS_USER_FEATURE_VALUE_DATA UserFeatureData = {};
-        MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-        MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
-            nullptr,
-            __MEDIA_USER_FEATURE_VALUE_CSC_COEFF_PATCH_MODE_DISABLE_ID,
-            &UserFeatureData,
-            m_hwInterface->m_osInterface->pOsContext));
-        m_cscCoeffPatchModeEnabled = UserFeatureData.bData ? false : true;
+        if (m_hwInterface->m_osInterface)
+        {
+            m_userSettingPtr = m_hwInterface->m_osInterface->pfnGetUserSettingInstance(m_hwInterface->m_osInterface);
+        }
+
+        ReadUserSetting(
+            m_userSettingPtr,
+            cscCoeffPatchModeEnabled,
+            __MEDIA_USER_FEATURE_VALUE_CSC_COEFF_PATCH_MODE_DISABLE,
+            MediaUserSetting::Group::Sequence);
+        m_cscCoeffPatchModeEnabled = cscCoeffPatchModeEnabled ? false : true;
 
         m_computeWalkerEnabled = true;
     }

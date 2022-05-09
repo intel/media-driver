@@ -642,6 +642,13 @@ MOS_STATUS VpUtils::DeclareUserSettings(MediaUserSettingSharedPtr userSettingPtr
         0,
         true);
 
+    DeclareUserSettingKey(  // FALSE if CSC coefficient setting mode is Patch mode, otherwise Curbe mode
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_CSC_COEFF_PATCH_MODE_DISABLE,
+        MediaUserSetting::Group::Sequence,
+        0,
+        true);
+
 #if (_DEBUG || _RELEASE_INTERNAL)
     DeclareUserSettingKeyForDebug( //Init CP output surface with protected 0.
         userSettingPtr,
@@ -684,6 +691,14 @@ MOS_STATUS VpUtils::DeclareUserSettings(MediaUserSettingSharedPtr userSettingPtr
         MediaUserSetting::Group::Sequence,
         0,
         true); //"HDR Mode. 0x1: H2S kernel, 0x3: H2H kernel, 0x21 65size H2S, 0x23 65size H2H, 0x31 33size H2S, 0x33 33size H2H."
+
+
+    DeclareUserSettingKeyForDebug(  // VP Enable Compute Context
+        userSettingPtr,
+        __VPHAL_ENABLE_COMPUTE_CONTEXT,
+        MediaUserSetting::Group::Sequence,
+        0,
+        true);
 
 #endif
 

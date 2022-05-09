@@ -7392,7 +7392,7 @@ CompositeState::CompositeState(
     m_bAvsTableBalancedFilter(false)
 {
     MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
-    MOS_USER_FEATURE_VALUE_DATA UserFeatureData;
+    bool       ftrCSCCoeffPatchMode = false;
 
     MOS_ZeroMemory(&m_Procamp, sizeof(m_Procamp));
     MOS_ZeroMemory(&m_csSrc, sizeof(m_csSrc));
@@ -7444,13 +7444,12 @@ CompositeState::CompositeState(
     pOsInterface->pfnResetResourceAllocationIndex(pOsInterface, &m_Intermediate.OsResource);
     pOsInterface->pfnResetResourceAllocationIndex(pOsInterface, &m_Intermediate1.OsResource);
 
-    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-    MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_CSC_COEFF_PATCH_MODE_DISABLE_ID,
-        &UserFeatureData,
-        m_pOsInterface->pOsContext));
-    m_bFtrCSCCoeffPatchMode = UserFeatureData.bData ? false : true;
+    ReadUserSetting(
+        m_userSettingPtr,
+        ftrCSCCoeffPatchMode,
+        __MEDIA_USER_FEATURE_VALUE_CSC_COEFF_PATCH_MODE_DISABLE,
+        MediaUserSetting::Group::Sequence);
+    m_bFtrCSCCoeffPatchMode = ftrCSCCoeffPatchMode ? false : true;
 
 finish:
     // copy status to output argument to pass status to caller

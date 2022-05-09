@@ -283,6 +283,11 @@ protected:
 #define __MEDIA_USER_FEATURE_VALUE_VEBOX_TGNE_ENABLE_VP                 "Enable Vebox GNE"
 
 #define __VPHAL_RNDR_SSD_CONTROL                                        "SSD Control"
+#define __MEDIA_USER_FEATURE_VALUE_CSC_COEFF_PATCH_MODE_DISABLE         "CSC Patch Mode Disable"
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+#define __VPHAL_ENABLE_COMPUTE_CONTEXT                                  "VP Enable Compute Context"
+#endif
 
 class VpUtils
 {

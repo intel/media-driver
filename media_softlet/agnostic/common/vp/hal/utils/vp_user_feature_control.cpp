@@ -101,16 +101,16 @@ VpUserFeatureControl::VpUserFeatureControl(MOS_INTERFACE &osInterface, VpPlatfor
     if (skuTable && MEDIA_IS_SKU(skuTable, FtrCCSNode))
     {
 #if (_DEBUG || _RELEASE_INTERNAL)
-        MOS_USER_FEATURE_VALUE_DATA UserFeatureData = {};
-        status = MOS_UserFeature_ReadValue_ID(
-            nullptr,
-            __VPHAL_ENABLE_COMPUTE_CONTEXT_ID,
-            &UserFeatureData,
-            m_osInterface->pOsContext);
+        bool computeContextEnabled = false;
+        status = ReadUserSettingForDebug(
+            m_userSettingPtr,
+            computeContextEnabled,
+            __VPHAL_ENABLE_COMPUTE_CONTEXT,
+            MediaUserSetting::Group::Sequence);
 
         if (MOS_SUCCEEDED(status))
         {
-            m_ctrlValDefault.computeContextEnabled = UserFeatureData.bData ? true : false;
+            m_ctrlValDefault.computeContextEnabled = computeContextEnabled ? true : false;
         }
         else
 #endif

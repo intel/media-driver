@@ -74,17 +74,16 @@ public:
         bComputeContextEnabled      = true;
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-        MOS_USER_FEATURE_VALUE_DATA UserFeatureData;
+        bool       computeContextEnabled = false;
         MOS_STATUS                  eRegKeyReadStatus = MOS_STATUS_SUCCESS;
-        MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-        eRegKeyReadStatus = MOS_UserFeature_ReadValue_ID(
-            nullptr,
-            __VPHAL_ENABLE_COMPUTE_CONTEXT_ID,
-            &UserFeatureData,
-            pOsDriverContext);
+        eRegKeyReadStatus = ReadUserSettingForDebug(
+            m_userSettingPtr,
+            computeContextEnabled,
+            __VPHAL_ENABLE_COMPUTE_CONTEXT,
+            MediaUserSetting::Group::Sequence);
         if (eRegKeyReadStatus == MOS_STATUS_SUCCESS)
         {
-            bComputeContextEnabled = UserFeatureData.bData ? true : false;
+            bComputeContextEnabled = computeContextEnabled ? true : false;
         }
 #endif
 

@@ -522,6 +522,7 @@ protected:
     KERNEL_SURFACE_CONFIG                                   m_surfaceState;             // surfaces processed pool where the surface state will generated here, if KERNEL_SURFACE_STATE_PARAM 
     KERNEL_SURFACE_BINDING_INDEX                            m_surfaceBindingIndex;      // store the binding index for processed surface
     PVpAllocator                                            m_allocator = nullptr;
+    MediaUserSettingSharedPtr                               m_userSettingPtr = nullptr;  // usersettingInstance
 
     // kernel attribute 
     std::string                                             m_kernelName = "";

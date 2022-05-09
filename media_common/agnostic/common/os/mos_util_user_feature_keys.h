@@ -58,7 +58,6 @@
 //!
 #define __MEDIA_USER_FEATURE_VALUE_VDI_MODE                             "VDI Mode"
 #define __MEDIA_USER_FEATURE_VALUE_MEDIA_WALKER_MODE                    "Media Walker Mode"
-#define __MEDIA_USER_FEATURE_VALUE_CSC_COEFF_PATCH_MODE_DISABLE         "CSC Patch Mode Disable"
 
 #if (_DEBUG || _RELEASE_INTERNAL)
 //!
