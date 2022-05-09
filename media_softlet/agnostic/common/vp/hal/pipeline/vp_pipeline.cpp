@@ -256,6 +256,22 @@ MOS_STATUS VpPipeline::Init(void *mhwInterface)
         m_vpMhwInterface.m_userFeatureControl = m_userFeatureControl;
     }
 
+    if (m_vpMhwInterface.m_vpPlatformInterface->IsGpuContextCreatedInPipelineInit())
+    {
+        if (m_numVebox > 0)
+        {
+            VP_PUBLIC_NORMALMESSAGE("Create GpuContext for Vebox.");
+            VP_PUBLIC_CHK_STATUS_RETURN(PacketPipe::SwitchContext(VP_PIPELINE_PACKET_VEBOX, m_scalability,
+                m_mediaContext, MOS_VE_SUPPORTED(m_osInterface), m_numVebox));
+        }
+
+        bool computeContextEnabled = m_userFeatureControl->IsComputeContextEnabled();
+        auto packetId              = computeContextEnabled ? VP_PIPELINE_PACKET_COMPUTE : VP_PIPELINE_PACKET_RENDER;
+        VP_PUBLIC_NORMALMESSAGE("Create GpuContext for Compute/Render (PacketId: %d).", packetId);
+        VP_PUBLIC_CHK_STATUS_RETURN(PacketPipe::SwitchContext(packetId, m_scalability,
+            m_mediaContext, MOS_VE_SUPPORTED(m_osInterface), m_numVebox));
+    }
+
     return MOS_STATUS_SUCCESS;
 }
 

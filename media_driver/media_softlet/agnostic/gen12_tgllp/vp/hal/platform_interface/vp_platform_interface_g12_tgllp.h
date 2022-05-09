@@ -73,8 +73,12 @@ public:
     {
         return MOS_STATUS_SUCCESS;    // the config would be set in MhwVeboxInterfaceG12::CreateGpuContext().
     }
-    
-MEDIA_CLASS_DEFINE_END(VpPlatformInterfaceG12Tgllp)
+
+    virtual bool IsGpuContextCreatedInPipelineInit()
+    {
+        return false;
+    }
+    MEDIA_CLASS_DEFINE_END(VpPlatformInterfaceG12Tgllp)
 };
 
 }

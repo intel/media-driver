@@ -69,6 +69,11 @@ public:
         return true;
     }
 
+    virtual bool IsGpuContextCreatedInPipelineInit()
+    {
+        return false;
+    }
+
 protected:
     bool m_disableSfcDithering = false;
 

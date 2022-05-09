@@ -63,6 +63,11 @@ public:
         return MOS_STATUS_SUCCESS;   // the config would be set in MhwVeboxInterfaceG12::CreateGpuContext().
     }
 
+    virtual bool IsGpuContextCreatedInPipelineInit()
+    {
+        return false;
+    }
+
 protected:
     bool m_disableSfcDithering = false;
 MEDIA_CLASS_DEFINE_END(VpPlatformInterfaceXe_Xpm)

@@ -216,6 +216,11 @@ public:
         return !m_vpMmcDisabled;
     }
 
+    virtual bool IsGpuContextCreatedInPipelineInit()
+    {
+        return true;
+    }
+
     inline void SetMhwSfcItf(std::shared_ptr<mhw::sfc::Itf> sfcItf)
     {
         m_sfcItf = sfcItf;
