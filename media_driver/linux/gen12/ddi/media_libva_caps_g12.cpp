@@ -518,7 +518,18 @@ VAStatus MediaLibvaCapsG12::GetPlatformSpecificAttrib(VAProfile profile,
         }
         case VAConfigAttribPredictionDirection:
         {
-            *value = VA_PREDICTION_DIRECTION_PREVIOUS | VA_PREDICTION_DIRECTION_FUTURE | VA_PREDICTION_DIRECTION_BI_NOT_EMPTY;
+            if (!IsHevcSccProfile(profile))
+            {
+                *value = VA_PREDICTION_DIRECTION_PREVIOUS | VA_PREDICTION_DIRECTION_FUTURE | VA_PREDICTION_DIRECTION_BI_NOT_EMPTY;
+            }
+            else
+            {
+                // Here we set
+                // VAConfigAttribPredictionDirection: VA_PREDICTION_DIRECTION_PREVIOUS | VA_PREDICTION_DIRECTION_BI_NOT_EMPTY together with
+                // VAConfigAttribEncMaxRefFrames: L0 != 0, L1 !=0
+                // to indicate SCC only supports I/low delay B
+                *value = VA_PREDICTION_DIRECTION_PREVIOUS | VA_PREDICTION_DIRECTION_BI_NOT_EMPTY;
+            }
             break;
         }
 #if VA_CHECK_VERSION(1, 12, 0)
@@ -2099,7 +2110,18 @@ VAStatus MediaLibvaCapsG12::CreateEncAttributes(
     if (IsHevcProfile(profile))
     {
         attrib.type = (VAConfigAttribType) VAConfigAttribPredictionDirection;
-        attrib.value = VA_PREDICTION_DIRECTION_PREVIOUS | VA_PREDICTION_DIRECTION_FUTURE | VA_PREDICTION_DIRECTION_BI_NOT_EMPTY;
+        if (!IsHevcSccProfile(profile))
+        {
+            attrib.value = VA_PREDICTION_DIRECTION_PREVIOUS | VA_PREDICTION_DIRECTION_FUTURE | VA_PREDICTION_DIRECTION_BI_NOT_EMPTY;
+        }
+        else
+        {
+            // Here we set
+            // VAConfigAttribPredictionDirection: VA_PREDICTION_DIRECTION_PREVIOUS | VA_PREDICTION_DIRECTION_BI_NOT_EMPTY together with
+            // VAConfigAttribEncMaxRefFrames: L0 != 0, L1 !=0
+            // to indicate SCC only supports I/low delay B
+            attrib.value = VA_PREDICTION_DIRECTION_PREVIOUS | VA_PREDICTION_DIRECTION_BI_NOT_EMPTY;
+        }
         (*attribList)[attrib.type] = attrib.value;
 #if VA_CHECK_VERSION(1, 12, 0)
         attrib.type = (VAConfigAttribType)VAConfigAttribEncHEVCFeatures;
