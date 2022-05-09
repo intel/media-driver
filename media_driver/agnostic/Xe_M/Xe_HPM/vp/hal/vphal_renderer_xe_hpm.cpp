@@ -575,7 +575,7 @@ MOS_STATUS VphalRendererXe_Hpm::RenderScaling(
         VPHAL_RENDER_CHK_STATUS(RenderPass(&renderParams));
         m_pDSSurface[0]->rcSrc          = m_pDSSurface[0]->rcDst;
         m_pDSSurface[0]->rcMaxSrc       = m_pDSSurface[0]->rcDst;
-        m_pDSSurface[0]->rcDst          = pTarget->rcDst;
+        m_pDSSurface[0]->rcDst          = pSource->rcDst;
         pDSSurface                      = m_pDSSurface[0];
     }
 
