@@ -77,13 +77,10 @@
 //!
 #define __MEDIA_USER_FEATURE_VALUE_HUC_DRM_ENABLE                           "HuC DRM Enable"                 //!< 0: Disable, Others: enable
 
-#endif // (_DEBUG || _RELEASE_INTERNAL)
+#define __MEDIA_USER_FEATURE_VALUE_MEMORY_NINJA_BEGIN_COUNTER             "MemNinjaBeginCounter"
+#define __MEDIA_USER_FEATURE_VALUE_MEMORY_NINJA_END_COUNTER               "MemNinjaEndCounter"
 
-// !
-// ! \brief User feature key for Split-Screen Demo Mode
-// !
-#define __MEDIA_USER_FEATURE_VALUE_SPLIT_SCREEN_DEMO_POSITION               "Split-Screen Demo Position"
-#define __MEDIA_USER_FEATURE_VALUE_SPLIT_SCREEN_DEMO_PARAMETERS             "Split-Screen Demo Parameters"
+#endif // (_DEBUG || _RELEASE_INTERNAL)
 
 //!
 //! \brief User feature keys to define debug message levels and assertions.
