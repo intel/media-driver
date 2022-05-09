@@ -38,6 +38,10 @@ VpCmdPacket::VpCmdPacket(
     m_surfSetting.Clean();
     m_hwInterface = hwInterface;
     VP_PUBLIC_CHK_NULL_NO_STATUS_RETURN(m_hwInterface);
+    VP_PUBLIC_CHK_NULL_NO_STATUS_RETURN(m_hwInterface->m_osInterface);
+
+    m_userSettingPtr = m_hwInterface->m_osInterface->pfnGetUserSettingInstance(m_hwInterface->m_osInterface);
+
 }
 
 MOS_STATUS VpCmdPacket::VpCmdPacketInit()

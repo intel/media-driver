@@ -445,20 +445,19 @@ MOS_STATUS VpPipeline::GetSystemVeboxNumber()
     VP_FUNC_CALL();
 
     // Check whether scalability being disabled.
-    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
-    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    int32_t enableVeboxScalability = 0;
 
     MOS_STATUS statusKey = MOS_STATUS_SUCCESS;
-    statusKey = MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_ENABLE_VEBOX_SCALABILITY_MODE_ID,
-        &userFeatureData,
-        m_osInterface->pOsContext);
+    statusKey = ReadUserSetting(
+        m_userSettingPtr,
+        enableVeboxScalability,
+        __MEDIA_USER_FEATURE_VALUE_ENABLE_VEBOX_SCALABILITY_MODE,
+        MediaUserSetting::Group::Sequence);
 
     bool disableScalability = false;
     if (statusKey == MOS_STATUS_SUCCESS)
     {
-        disableScalability = userFeatureData.i32Data ? false : true;
+        disableScalability = enableVeboxScalability ? false : true;
         if (disableScalability == false)
         {
             m_forceMultiplePipe = MOS_SCALABILITY_ENABLE_MODE_USER_FORCE | MOS_SCALABILITY_ENABLE_MODE_DEFAULT;
@@ -626,26 +625,21 @@ MOS_STATUS VpPipeline::InitUserFeatureSetting()
     VP_FUNC_CALL();
 
     MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
-    MOS_USER_FEATURE_VALUE_DATA userFeatureData = {0};
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     //SFC NV12/P010 Linear Output.
-    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __VPHAL_ENABLE_SFC_NV12_P010_LINEAR_OUTPUT_ID,
-        &userFeatureData,
-        m_vpMhwInterface.m_osInterface->pOsContext);
-    m_userFeatureSetting.enableSFCNv12P010LinearOutput = userFeatureData.bData;
+    ReadUserSettingForDebug(
+        m_userSettingPtr,
+        m_userFeatureSetting.enableSFCNv12P010LinearOutput,
+        __VPHAL_ENABLE_SFC_NV12_P010_LINEAR_OUTPUT,
+        MediaUserSetting::Group::Sequence);
 
     //SFC RGBP Linear/Tile RGB24 Linear Output.
-    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __VPHAL_ENABLE_SFC_RGBP_RGB24_OUTPUT_ID,
-        &userFeatureData,
-        m_vpMhwInterface.m_osInterface->pOsContext);
-    m_userFeatureSetting.enableSFCRGBPRGB24Output = userFeatureData.u32Data;
+    ReadUserSettingForDebug(
+        m_userSettingPtr,
+        m_userFeatureSetting.enableSFCRGBPRGB24Output,
+        __VPHAL_ENABLE_SFC_RGBP_RGB24_OUTPUT,
+        MediaUserSetting::Group::Sequence);
 #endif
     return eStatus;
 }

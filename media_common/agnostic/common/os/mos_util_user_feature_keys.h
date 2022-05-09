@@ -235,6 +235,7 @@
 //!
 #define __MOS_USER_FEATURE_KEY_MESSAGE_MMC_TAG              "MMC Message Tags"
 #define __MOS_USER_FEATURE_KEY_BY_SUB_COMPONENT_MMC         "MMC Tags By Sub Component"
+
 //!
 //! \brief 63____________________________________________________________________________3__________0
 //!         |                                                                            |   Self   |
@@ -308,6 +309,8 @@
 #define __MEDIA_USER_FEATURE_VALUE_COUNT_FOR_OCA_BUFFER_LEAKED                  "Count For Oca Buffer Leaked"
 #define __MEDIA_USER_FEATURE_VALUE_COUNT_FOR_OCA_1ST_LEVEL_BB_END_MISSED        "Count For Oca 1st Level BB End Missed"
 #define __MEDIA_USER_FEATURE_VALUE_COUNT_FOR_ADDITIONAL_OCA_BUFFER_ALLOCATED    "Count For Additional Oca Buffer Allocated"
+
+#define __VPHAL_ENABLE_VEBOX_MMC_DECOMPRESS                                     "Enable Vebox Decompress"
 
 //User feature key for enable Perf Utility Tool
 #define __MEDIA_USER_FEATURE_VALUE_PERF_UTILITY_TOOL_ENABLE          "Perf Utility Tool Enable"

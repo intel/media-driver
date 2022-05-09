@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2020, Intel Corporation
+* Copyright (c) 2019-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -26,6 +26,7 @@
 //!
 #include "vphal_render_vebox_memdecomp.h"
 #include "vphal_debug.h"
+#include "vp_utils.h"
 
 MediaVeboxDecompState::MediaVeboxDecompState():
     MediaMemDecompBaseState(),
@@ -213,16 +214,11 @@ MOS_STATUS MediaVeboxDecompState::MediaMemoryCopy(
 #if (_DEBUG || _RELEASE_INTERNAL)
     {
         // Read user feature key to force outputCompressed
-        MOS_USER_FEATURE_VALUE_DATA userFeatureData;
-        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-        MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
-            nullptr,
-            __VPHAL_VEBOX_FORCE_VP_MEMCOPY_OUTPUTCOMPRESSED_ID,
-            &userFeatureData,
-            m_osInterface ? m_osInterface->pOsContext : nullptr));
-
-        outputCompressed = userFeatureData.bData ? true : false;
-
+        ReadUserSettingForDebug(
+            m_userSettingPtr,
+            outputCompressed,
+            __VPHAL_VEBOX_FORCE_VP_MEMCOPY_OUTPUTCOMPRESSED,
+            MediaUserSetting::Group::Sequence);
     }
 #endif
 
@@ -368,15 +364,11 @@ MOS_STATUS MediaVeboxDecompState::MediaMemoryCopy2D(
 #if (_DEBUG || _RELEASE_INTERNAL)
     {
         // Read user feature key to Force outputCompressed
-        MOS_USER_FEATURE_VALUE_DATA userFeatureData;
-        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-        MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
-            nullptr,
-            __VPHAL_VEBOX_FORCE_VP_MEMCOPY_OUTPUTCOMPRESSED_ID,
-            &userFeatureData,
-            m_osInterface ? m_osInterface->pOsContext : nullptr));
-
-        outputCompressed = userFeatureData.bData ? true : false;
+        ReadUserSettingForDebug(
+            m_userSettingPtr,
+            outputCompressed,
+            __VPHAL_VEBOX_FORCE_VP_MEMCOPY_OUTPUTCOMPRESSED,
+            MediaUserSetting::Group::Sequence);
     }
 #endif
 
@@ -572,6 +564,8 @@ MOS_STATUS MediaVeboxDecompState::Initialize(
     m_cpInterface     = cpInterface;
     m_mhwMiInterface  = mhwMiInterface;
     m_veboxInterface  = veboxInterface;
+
+    m_userSettingPtr  = m_osInterface->pfnGetUserSettingInstance(m_osInterface);
 
     // Set-Up Vebox decompression enable or not
     IsVeboxDecompressionEnabled();

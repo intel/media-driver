@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2020, Intel Corporation
+* Copyright (c) 2019-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -29,6 +29,7 @@
 #include "mhw_vebox_hwcmd_g12_X.h"
 #include "mhw_vebox_g12_X.h"
 #include "hal_oca_interface.h"
+#include "vp_utils.h"
 
 MediaVeboxDecompStateG12::MediaVeboxDecompStateG12() :
     MediaVeboxDecompState()
@@ -170,21 +171,16 @@ MOS_STATUS MediaVeboxDecompStateG12::RenderDecompCMD(PMOS_SURFACE surface)
 
 MOS_STATUS MediaVeboxDecompStateG12::IsVeboxDecompressionEnabled()
 {
-    MOS_USER_FEATURE_VALUE_DATA         UserFeatureData;
+    bool                                customValue = true;
     MOS_STATUS                          eStatus = MOS_STATUS_SUCCESS;
 
-    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-    UserFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
-
-    UserFeatureData.bData = true;
-
-    MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __VPHAL_ENABLE_VEBOX_MMC_DECOMPRESS_ID,
-        &UserFeatureData,
-        m_osInterface->pOsContext));
-
-    m_veboxMMCResolveEnabled = UserFeatureData.bData ? true: false;
+    ReadUserSetting(
+        m_userSettingPtr,
+        m_veboxMMCResolveEnabled,
+        __VPHAL_ENABLE_VEBOX_MMC_DECOMPRESS,
+        MediaUserSetting::Group::Device,
+        customValue,
+        true);
 
     return eStatus;
 }

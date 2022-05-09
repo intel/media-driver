@@ -621,13 +621,6 @@ MOS_STATUS VpUtils::DeclareUserSettings(MediaUserSettingSharedPtr userSettingPtr
         0,
         true);
 
-    DeclareUserSettingKey( //For debugging purpose. Enable Vebox In-Place decompression
-        userSettingPtr,
-        __VPHAL_ENABLE_VEBOX_MMC_DECOMPRESS,
-        MediaUserSetting::Group::Sequence,
-        0,
-        true);
-
     DeclareUserSettingKey(
         userSettingPtr,
         __MEDIA_USER_FEATURE_VALUE_VEBOX_TGNE_ENABLE_VP,
@@ -692,10 +685,37 @@ MOS_STATUS VpUtils::DeclareUserSettings(MediaUserSettingSharedPtr userSettingPtr
         0,
         true); //"HDR Mode. 0x1: H2S kernel, 0x3: H2H kernel, 0x21 65size H2S, 0x23 65size H2H, 0x31 33size H2S, 0x33 33size H2H."
 
-
     DeclareUserSettingKeyForDebug(  // VP Enable Compute Context
         userSettingPtr,
         __VPHAL_ENABLE_COMPUTE_CONTEXT,
+        MediaUserSetting::Group::Sequence,
+        0,
+        true);
+
+    DeclareUserSettingKeyForDebug(  // Force VP Memorycopy Outputcompressed
+        userSettingPtr,
+        __VPHAL_VEBOX_FORCE_VP_MEMCOPY_OUTPUTCOMPRESSED,
+        MediaUserSetting::Group::Sequence,
+        0,
+        true);
+
+    DeclareUserSettingKeyForDebug(  // VP Composition 8Tap Adaptive Enable
+        userSettingPtr,
+        __VPHAL_COMP_8TAP_ADAPTIVE_ENABLE,
+        MediaUserSetting::Group::Sequence,
+        0,
+        true);
+
+    DeclareUserSettingKeyForDebug(  // Set SFC NV12/P010 Linear Output
+        userSettingPtr,
+        __VPHAL_ENABLE_SFC_NV12_P010_LINEAR_OUTPUT,
+        MediaUserSetting::Group::Sequence,
+        0,
+        true);
+
+    DeclareUserSettingKeyForDebug(  // Set SFC RGBP Linear/Tile RGB24 Linear Output
+        userSettingPtr,
+        __VPHAL_ENABLE_SFC_RGBP_RGB24_OUTPUT,
         MediaUserSetting::Group::Sequence,
         0,
         true);

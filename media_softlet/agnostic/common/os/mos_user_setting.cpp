@@ -73,6 +73,13 @@ MOS_STATUS MosUserSetting::InitMosCommonUserSetting(MediaUserSettingSharedPtr us
         0,
         true);
 
+    DeclareUserSettingKey(  //For debugging purpose. Enable Vebox In-Place decompression
+        userSettingPtr,
+        __VPHAL_ENABLE_VEBOX_MMC_DECOMPRESS,
+        MediaUserSetting::Group::Device,
+        0,
+        true);
+
 #if (_DEBUG || _RELEASE_INTERNAL)
     DeclareUserSettingKeyForDebug(
         userSettingPtr,

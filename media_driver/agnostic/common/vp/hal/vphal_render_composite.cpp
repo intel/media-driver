@@ -1,5 +1,5 @@
 ﻿/*
-* Copyright (c) 2016-2021, Intel Corporation
+* Copyright (c) 2016-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -7205,7 +7205,6 @@ MOS_STATUS CompositeState::Initialize(
     const VphalSettings             *pSettings,
     Kdll_State                      *pKernelDllState)
 {
-    MOS_USER_FEATURE_VALUE_DATA     UserFeatureData;
     MOS_NULL_RENDERING_FLAGS        NullRenderingFlags;
     bool                            bAllocated;
     MOS_STATUS                      eStatus;
@@ -7228,13 +7227,11 @@ MOS_STATUS CompositeState::Initialize(
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     // Read user feature key to enable 8-tap adaptive filter;
-    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-    MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __VPHAL_COMP_8TAP_ADAPTIVE_ENABLE_ID,
-        &UserFeatureData,
-        m_pOsInterface->pOsContext));
-    m_b8TapAdaptiveEnable = UserFeatureData.bData ? true : false;
+    ReadUserSettingForDebug(
+        m_userSettingPtr,
+        m_b8TapAdaptiveEnable,
+        __VPHAL_COMP_8TAP_ADAPTIVE_ENABLE,
+        MediaUserSetting::Group::Sequence);
 #endif
 
     NullRenderingFlags = m_pOsInterface->pfnGetNullHWRenderFlags(

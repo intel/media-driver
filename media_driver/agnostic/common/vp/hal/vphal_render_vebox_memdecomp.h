@@ -351,6 +351,9 @@ protected:
     PMHW_MI_INTERFACE           m_mhwMiInterface;
     MhwCpInterface             *m_cpInterface;
     bool                        m_veboxMMCResolveEnabled;
+
+    MediaUserSettingSharedPtr m_userSettingPtr = nullptr;  //!< UserSettingInstance
+
 #if (_DEBUG || _RELEASE_INTERNAL)
     VphalSurfaceDumper         *m_surfaceDumper = nullptr;
     uint32_t                    m_surfaceDumpCounter = 0;
