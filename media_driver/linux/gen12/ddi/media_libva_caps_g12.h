@@ -331,6 +331,23 @@ protected:
             VADisplayAttribute *attribList,
             int32_t numAttribs) override;
 
-
+    //!
+    //! \brief    Check if the give profile is HEVC SCC
+    //!
+    //! \param    [in] profile
+    //!           Specify the VAProfile
+    //!
+    //! \return   True if the profile is a HEVC SCC profile
+    //!           False if the profile isn't a HEVC profile
+    //!
+    bool IsHevcSccProfile(VAProfile profile)
+    {
+        return (
+            (profile == VAProfileHEVCSccMain)    ||
+            (profile == VAProfileHEVCSccMain10)  ||
+            (profile == VAProfileHEVCSccMain444) ||
+            (profile == VAProfileHEVCSccMain444_10)
+           );
+    }
 };
 #endif
