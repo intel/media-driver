@@ -40,6 +40,9 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mhw_sfc_cmdpar.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_sfc_impl.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_sfc_itf.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_blt_cmdpar.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_blt_impl.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_blt_itf.h
 )
 
 set(TMP_SOURCES_

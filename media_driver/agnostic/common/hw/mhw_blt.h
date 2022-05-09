@@ -543,8 +543,12 @@ public:
     //!
     virtual uint32_t GetFastTilingMode(
         BLT_TILE_TYPE              TileType);
+
+    virtual std::shared_ptr<void> GetNewBltInterface() { return nullptr; }
+
 public:
     PMOS_INTERFACE m_osInterface = nullptr;
+    std::shared_ptr<void>  m_bltItfNew    = nullptr;
 };
 
 typedef class MhwBltInterface *PMHW_BLT_INTERFACE;
