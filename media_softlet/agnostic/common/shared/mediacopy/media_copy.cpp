@@ -142,13 +142,6 @@ MOS_STATUS MediaCopyBaseState::CapabilityCheck()
         m_mcpyEngineCaps.engineRender = false;
     }
 
-    // blt check.
-    if ((m_mcpySrc.CompressionMode != MOS_MMC_DISABLED) ||
-        (m_mcpyDst.CompressionMode != MOS_MMC_DISABLED))
-    {
-        m_mcpyEngineCaps.engineBlt = false;
-    }
-
     if (!m_mcpyEngineCaps.engineVebox && !m_mcpyEngineCaps.engineBlt && !m_mcpyEngineCaps.engineRender)
     {
         return MOS_STATUS_INVALID_PARAMETER; // unsupport copy on each hw engine.
@@ -219,14 +212,14 @@ MOS_STATUS MediaCopyBaseState::SurfaceCopy(PMOS_RESOURCE src, PMOS_RESOURCE dst,
     MOS_SURFACE ResDetails;
     MOS_ZeroMemory(&ResDetails, sizeof(MOS_SURFACE));
     MCPY_CHK_STATUS_RETURN(m_osInterface->pfnGetResourceInfo(m_osInterface, src, &ResDetails));
-    m_mcpySrc.CompressionMode = ResDetails.CompressionMode;
+    MCPY_CHK_STATUS_RETURN(m_osInterface->pfnGetMemoryCompressionMode(m_osInterface, src, (PMOS_MEMCOMP_STATE)&(m_mcpySrc.CompressionMode)));
     m_mcpySrc.CpMode          = src->pGmmResInfo->GetSetCpSurfTag(false, 0)?MCPY_CPMODE_CP:MCPY_CPMODE_CLEAR;
     m_mcpySrc.TileMode        = ResDetails.TileType;
     m_mcpySrc.OsRes           = src;
 
     MOS_ZeroMemory(&ResDetails, sizeof(MOS_SURFACE));
     MCPY_CHK_STATUS_RETURN(m_osInterface->pfnGetResourceInfo(m_osInterface, dst, &ResDetails));
-    m_mcpyDst.CompressionMode = ResDetails.CompressionMode;
+    MCPY_CHK_STATUS_RETURN(m_osInterface->pfnGetMemoryCompressionMode(m_osInterface,dst, (PMOS_MEMCOMP_STATE) &(m_mcpyDst.CompressionMode)));
     m_mcpyDst.CpMode          = dst->pGmmResInfo->GetSetCpSurfTag(false, 0)?MCPY_CPMODE_CP:MCPY_CPMODE_CLEAR;
     m_mcpyDst.TileMode        = ResDetails.TileType;
     m_mcpyDst.OsRes           = dst;
@@ -299,6 +292,11 @@ MOS_STATUS MediaCopyBaseState::TaskDispatch()
             eStatus = MediaVeboxCopy(m_mcpySrc.OsRes, m_mcpyDst.OsRes);
             break;
         case MCPY_ENGINE_BLT:
+            if ((m_mcpySrc.TileMode != MOS_TILE_LINEAR) && (m_mcpySrc.CompressionMode != MOS_MMC_DISABLED))
+            {
+                MCPY_NORMALMESSAGE("mmc on, m_mcpySrc.TileMode= %d, m_mcpySrc.CompressionMode = %d", m_mcpySrc.TileMode, m_mcpySrc.CompressionMode);
+                MCPY_CHK_STATUS_RETURN(m_osInterface->pfnDecompResource(m_osInterface, m_mcpySrc.OsRes));
+            }
             eStatus = MediaBltCopy(m_mcpySrc.OsRes, m_mcpyDst.OsRes);
             break;
         case MCPY_ENGINE_RENDER:
