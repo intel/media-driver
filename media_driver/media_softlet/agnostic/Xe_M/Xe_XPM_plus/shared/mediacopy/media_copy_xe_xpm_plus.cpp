@@ -191,6 +191,13 @@ MOS_STATUS MediaCopyStateXe_Xpm_Plus::CapabilityCheck()
         m_mcpyEngineCaps.engineRender = false;
     }
 
+    // blt check.
+    if ((m_mcpySrc.CompressionMode != MOS_MMC_DISABLED) ||
+        (m_mcpyDst.CompressionMode != MOS_MMC_DISABLED))
+    {
+        m_mcpyEngineCaps.engineBlt = false;
+    }
+
     if (!m_mcpyEngineCaps.engineVebox && !m_mcpyEngineCaps.engineBlt && !m_mcpyEngineCaps.engineRender)
     {
         return MOS_STATUS_INVALID_PARAMETER; // unsupport copy on each hw engine.

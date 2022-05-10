@@ -2419,12 +2419,7 @@ MOS_STATUS MosInterface::DecompResource(
     MOS_OS_CHK_NULL_RETURN(resource->pGmmResInfo);
 
     MOS_LINUX_BO *bo = resource->bo;
-    GMM_RESOURCE_FLAG GmmFlags;
-    GmmFlags = resource->pGmmResInfo->GetResFlags();
-    if (((GmmFlags.Gpu.MMC ||
-        GmmFlags.Gpu.CCS) &&
-        GmmFlags.Gpu.UnifiedAuxSurface) ||
-        resource->pGmmResInfo->IsMediaMemoryCompressed(0))
+    if (resource->pGmmResInfo->IsMediaMemoryCompressed(0))
     {
         OsContextNext *osCtx = streamState->osDeviceContext;
         MOS_OS_CHK_NULL_RETURN(osCtx);
