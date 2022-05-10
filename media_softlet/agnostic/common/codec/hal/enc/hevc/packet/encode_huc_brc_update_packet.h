@@ -214,6 +214,7 @@ namespace encode
         MHW_SETPAR_DECL_HDR(HUC_IMEM_STATE);
         MHW_SETPAR_DECL_HDR(HUC_DMEM_STATE);
         MHW_SETPAR_DECL_HDR(HUC_VIRTUAL_ADDR_STATE);
+        MHW_SETPAR_DECL_HDR(HCP_PIC_STATE);
 
         virtual MOS_STATUS AllocateResources() override;
 

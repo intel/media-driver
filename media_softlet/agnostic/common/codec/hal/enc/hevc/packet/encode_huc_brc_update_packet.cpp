@@ -747,6 +747,13 @@ namespace encode
         return eStatus;
     }
 
+    MHW_SETPAR_DECL_SRC(HCP_PIC_STATE, HucBrcUpdatePkt)
+    {
+        params.bNotFirstPass = !m_pipeline->IsFirstPass();
+
+        return MOS_STATUS_SUCCESS;
+    }
+
     MOS_STATUS HucBrcUpdatePkt::ConstructGroup2Cmds()
     {
         ENCODE_FUNC_CALL();

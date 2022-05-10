@@ -831,7 +831,7 @@ protected:
         DO_FIELD(DW5, BitDepthChromaMinus8, params.bitDepthChromaMinus8);                                                                                              \
         DO_FIELD(DW5, BitDepthLumaMinus8, params.bitDepthLumaMinus8);                                                                                                  \
         DO_FIELD(DW6, LcuMaxBitsizeAllowed, params.lcuMaxBitsizeAllowed);                                                                                              \
-        DO_FIELD(DW6, Nonfirstpassflag, 0);                                                                                                                            \
+        DO_FIELD(DW6, Nonfirstpassflag, params.bNotFirstPass);                                                                                                                            \
         DO_FIELD(DW6, LcuMaxBitSizeAllowedMsb2its, params.lcuMaxBitSizeAllowedMsb2its);                                                                                \
         DO_FIELD(DW6, LcumaxbitstatusenLcumaxsizereportmask, 0);                                                                                                       \
         DO_FIELD(DW6, FrameszoverstatusenFramebitratemaxreportmask, 0);                                                                                                \
