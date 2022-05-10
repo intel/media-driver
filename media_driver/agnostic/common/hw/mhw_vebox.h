@@ -199,7 +199,8 @@ typedef struct _MHW_VEBOX_3D_LUT
     uint32_t    ArbitrationPriorityControl                  : 2;
     uint32_t    Lut3dEnable                                 : 1;
     uint32_t    Lut3dSize                                   : 2;
-    uint32_t                                                : 27; // Reserved
+    uint32_t    ChannelMappingSwapForLut3D                  : 1;
+    uint32_t                                                : 26; // Reserved
 } MHW_VEBOX_3D_LUT, *PMHW_VEBOX_3D_LUT;
 
 //!
