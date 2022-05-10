@@ -166,9 +166,11 @@ MOS_STATUS Av1VdencPipeline::SwitchContext(uint8_t outputChromaFormat, uint16_t 
     *m_scalPars = {};
     m_scalPars->enableVDEnc = true;
     m_scalPars->enableVE = MOS_VE_SUPPORTED(m_osInterface);
-    m_scalPars->numVdbox = m_numVdbox;
 
+    //force to disable scalability for AV1 VDENC
+    m_scalPars->numVdbox = 1;
     m_scalPars->forceMultiPipe = false;
+
     m_scalPars->outputChromaFormat = outputChromaFormat;
 
     m_scalPars->numTileRows = numTileRows;
