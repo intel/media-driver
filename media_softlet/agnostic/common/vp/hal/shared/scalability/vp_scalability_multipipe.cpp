@@ -44,6 +44,20 @@ VpScalabilityMultiPipe::~VpScalabilityMultiPipe()
 
 }
 
+MOS_STATUS VpScalabilityMultiPipe::Initialize(const MediaScalabilityOption &option)
+{
+    VP_FUNC_CALL();
+
+    SCALABILITY_FUNCTION_ENTER;
+
+    SCALABILITY_CHK_NULL_RETURN(m_hwInterface);
+    m_miInterface = m_hwInterface->m_mhwMiInterface;
+
+    VpScalabilityMultiPipeNext::Initialize(option);
+
+    return MOS_STATUS_SUCCESS;
+}
+
 //!
 //! \brief    Send hw semphore wait cmd
 //! \details  Send hw semphore wait cmd for sync perpose

@@ -225,7 +225,7 @@ MOS_STATUS MediaSfcRender::Initialize()
         params.Flags.m_vebox                    = MEDIA_IS_SKU(skuTable, FtrVERing);
         MhwInterfaces *mhwInterfaces            = MhwInterfaces::CreateFactory(params, m_osInterface);
 
-        VP_PUBLIC_CHK_NULL_RETURN(mhwInterfacesNext);
+        VP_PUBLIC_CHK_NULL_RETURN(mhwInterfaces);
 
         m_sfcInterface                          = mhwInterfaces->m_sfcInterface;
         m_veboxInterface                        = mhwInterfaces->m_veboxInterface;

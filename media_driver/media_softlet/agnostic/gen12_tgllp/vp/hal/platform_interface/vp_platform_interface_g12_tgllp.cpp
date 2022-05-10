@@ -219,3 +219,54 @@ VpKernelConfig &VpPlatformInterfaceG12Tgllp::GetKernelConfig()
     static VpKernelConfigM12_Base kernelConfig;
     return kernelConfig;
 }
+
+MOS_STATUS VpPlatformInterfaceG12Tgllp::GetInputFrameWidthHeightAlignUnit(
+    PVP_MHWINTERFACE          pvpMhwInterface,
+    uint32_t                 &widthAlignUnit,
+    uint32_t                 &heightAlignUnit,
+    bool                      bVdbox,
+    CODECHAL_STANDARD         codecStandard,
+    CodecDecodeJpegChromaType jpegChromaType)
+{
+    VP_FUNC_CALL();
+
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+    VP_PUBLIC_CHK_NULL_RETURN(pvpMhwInterface);
+    VP_PUBLIC_CHK_NULL_RETURN(pvpMhwInterface->m_sfcInterface);
+
+    VP_PUBLIC_CHK_STATUS_RETURN(pvpMhwInterface->m_sfcInterface->GetInputFrameWidthHeightAlignUnit(widthAlignUnit, heightAlignUnit, bVdbox, codecStandard, jpegChromaType));
+
+    return eStatus;
+}
+
+MOS_STATUS VpPlatformInterfaceG12Tgllp::GetVeboxHeapInfo(
+    PVP_MHWINTERFACE          pvpMhwInterface,
+    const MHW_VEBOX_HEAP    **ppVeboxHeap)
+{
+    VP_FUNC_CALL();
+
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+    VP_PUBLIC_CHK_NULL_RETURN(pvpMhwInterface);
+    VP_PUBLIC_CHK_NULL_RETURN(pvpMhwInterface->m_veboxInterface);
+
+    const MHW_VEBOX_HEAP *pVeboxHeap = nullptr;
+
+    VP_RENDER_CHK_STATUS_RETURN(pvpMhwInterface->m_veboxInterface->GetVeboxHeapInfo(
+        &pVeboxHeap));
+    *ppVeboxHeap = (const MHW_VEBOX_HEAP *)pVeboxHeap;
+
+    return eStatus;
+}
+
+bool VpPlatformInterfaceG12Tgllp::IsVeboxScalabilitywith4K(
+        VP_MHWINTERFACE          vpMhwInterface)
+{
+    if (vpMhwInterface.m_veboxInterface)
+    {
+        return vpMhwInterface.m_veboxInterface->m_veboxScalabilitywith4K;
+    }
+    else
+    {
+        return false;
+    }
+}

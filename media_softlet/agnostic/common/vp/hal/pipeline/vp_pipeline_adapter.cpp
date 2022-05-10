@@ -82,12 +82,7 @@ MOS_STATUS VpPipelineAdapter::Init(
             VP_PUBLIC_CHK_STATUS_RETURN(m_veboxItf->CreateHeap());
         }
     }
-    else if (vpMhwinterface.m_veboxInterface &&
-        vpMhwinterface.m_veboxInterface->m_veboxSettings.uiNumInstances > 0 &&
-        vpMhwinterface.m_veboxInterface->m_veboxHeap == nullptr)
-    {
-        VP_PUBLIC_CHK_STATUS_RETURN(vpMhwinterface.m_veboxInterface->CreateHeap());
-    }
+
     RENDERHAL_SETTINGS RenderHalSettings;
     RenderHalSettings.iMediaStates = pVpHalSettings->mediaStates;
     VP_PUBLIC_CHK_STATUS_RETURN(vpMhwinterface.m_renderHal->pfnInitialize(vpMhwinterface.m_renderHal, &RenderHalSettings));

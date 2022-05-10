@@ -516,7 +516,6 @@ protected:
     // HW intface to access MHW
     PMOS_INTERFACE                  m_osInterface  = nullptr;
     std::shared_ptr<mhw::sfc::Itf>  m_sfcItf       = nullptr;
-    PMHW_MI_INTERFACE               m_miInterface = nullptr;
     std::shared_ptr<mhw::mi::Itf>   m_miItf       = nullptr;
     MEDIA_FEATURE_TABLE             *m_skuTable = nullptr;
     MEDIA_WA_TABLE                  *m_waTable = nullptr;

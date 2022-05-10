@@ -34,6 +34,7 @@
 #include "vp_user_feature_control.h"
 #include "mhw_mi_itf.h"
 #include "mhw_mi_cmdpar.h"
+#include "vp_platform_interface.h"
 
 namespace vp
 {
@@ -816,19 +817,10 @@ MOS_STATUS VpRenderCmdPacket::InitStateHeapSurface(SurfaceType type, RENDERHAL_S
     std::shared_ptr<mhw::vebox::Itf> veboxItf = nullptr;
 
     VP_RENDER_CHK_NULL_RETURN(m_hwInterface);
-    VP_RENDER_CHK_NULL_RETURN(m_hwInterface->m_veboxInterface);
 
-    veboxItf = m_hwInterface->m_vpPlatformInterface->GetMhwVeboxItf();
-    if (veboxItf)
-    {
-        VP_RENDER_CHK_STATUS_RETURN(veboxItf->GetVeboxHeapInfo(
-            &pVeboxHeap));
-    }
-    else
-    {
-        VP_RENDER_CHK_STATUS_RETURN(m_hwInterface->m_veboxInterface->GetVeboxHeapInfo(
-            &pVeboxHeap));
-    }
+    VP_PUBLIC_CHK_STATUS_RETURN(m_hwInterface->m_vpPlatformInterface->GetVeboxHeapInfo(
+        m_hwInterface,
+        &pVeboxHeap));
 
     VP_RENDER_CHK_NULL_RETURN(pVeboxHeap);
 

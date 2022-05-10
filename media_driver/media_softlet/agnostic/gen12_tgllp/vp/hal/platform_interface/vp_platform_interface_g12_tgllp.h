@@ -78,6 +78,22 @@ public:
     {
         return false;
     }
+
+    virtual MOS_STATUS GetInputFrameWidthHeightAlignUnit(
+        PVP_MHWINTERFACE          pvpMhwInterface,
+        uint32_t                 &widthAlignUnit,
+        uint32_t                 &heightAlignUnit,
+        bool                      bVdbox,
+        CODECHAL_STANDARD         codecStandard,
+        CodecDecodeJpegChromaType jpegChromaType);
+
+    virtual MOS_STATUS GetVeboxHeapInfo(
+        PVP_MHWINTERFACE          pvpMhwInterface,
+        const MHW_VEBOX_HEAP    **ppVeboxHeap);
+
+    virtual bool IsVeboxScalabilitywith4K(
+        VP_MHWINTERFACE           vpMhwInterface);
+
     MEDIA_CLASS_DEFINE_END(VpPlatformInterfaceG12Tgllp)
 };
 
