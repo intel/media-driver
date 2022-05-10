@@ -122,6 +122,33 @@ public:
         return tileMode;
     }
 
+    MOS_STATUS UpdateVeboxSync()
+    {
+        PMHW_VEBOX_HEAP          pVeboxHeap;
+        MOS_STATUS               eStatus = MOS_STATUS_SUCCESS;
+        PMOS_INTERFACE           pOsInterface;
+
+        MHW_FUNCTION_ENTER;
+
+        MHW_CHK_NULL_RETURN(this->m_osItf);
+        MHW_CHK_NULL(m_veboxHeap);
+
+        pVeboxHeap      = m_veboxHeap;
+        pOsInterface    = this->m_osItf;
+
+        // If KMD frame tracking is on, the dwSyncTag has been set to gpu status tag
+        // in Mhw_VeboxInterface_AssignVeboxState(). dwNextTag is not used anymore.
+        if (!pOsInterface->bEnableKmdMediaFrameTracking)
+        {
+            pVeboxHeap->pStates[pVeboxHeap->uiCurState].dwSyncTag =
+                pVeboxHeap->dwNextTag++;
+        }
+        pVeboxHeap->pStates[pVeboxHeap->uiCurState].bBusy = true;
+
+    finish:
+        return eStatus;
+    }
+
     MOS_STATUS GetVeboxHeapInfo(
         const MHW_VEBOX_HEAP** ppVeboxHeap)
     {
