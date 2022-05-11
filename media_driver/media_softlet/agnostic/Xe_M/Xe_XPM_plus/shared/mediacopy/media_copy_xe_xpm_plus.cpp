@@ -185,17 +185,9 @@ MOS_STATUS MediaCopyStateXe_Xpm_Plus::CapabilityCheck()
 
     // Eu cap check.
     if (!RenderFormatSupportCheck(m_mcpySrc.OsRes, m_mcpyDst.OsRes) || // format check, implemented on Gen derivate class.
-        (m_mcpyDst.CompressionMode == MOS_MMC_MC) ||
         m_mcpySrc.bAuxSuface)
     {
         m_mcpyEngineCaps.engineRender = false;
-    }
-
-    // blt check.
-    if ((m_mcpySrc.CompressionMode != MOS_MMC_DISABLED) ||
-        (m_mcpyDst.CompressionMode != MOS_MMC_DISABLED))
-    {
-        m_mcpyEngineCaps.engineBlt = false;
     }
 
     if (!m_mcpyEngineCaps.engineVebox && !m_mcpyEngineCaps.engineBlt && !m_mcpyEngineCaps.engineRender)
