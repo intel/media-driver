@@ -357,7 +357,7 @@ namespace encode{
         }
 
         statusReportData->numberPasses = (uint8_t)encodeStatusMfx->imageStatusCtrl.avpTotalNumPass + 1;  //initial pass is considered to be 0,hence +1 to report;
-        ENCODE_VERBOSEMESSAGE("Exectued PAK Pass number: %d\n", encodeStatusMfx->numberPasses);
+        ENCODE_VERBOSEMESSAGE("statusReportData->numberPasses: %d\n", statusReportData->numberPasses);
 
         uint32_t log2MaxSbSize   = av1MiSizeLog2 + av1MinMibSizeLog2;
         uint32_t frameWidthInSb  = MOS_ALIGN_CEIL(m_basicFeature->m_frameWidth, (1 << log2MaxSbSize)) >> log2MaxSbSize;

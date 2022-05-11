@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2021, Intel Corporation
+* Copyright (c) 2018-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -177,7 +177,7 @@ struct ImageStatusControl
 
         struct
         {
-            uint32_t avpSbBitCountViolateOverrun     : 1;
+            uint32_t                                 : 1;
             uint32_t avpFrameBitCountViolateOverrun  : 1;
             uint32_t avpFrameBitCountViolateUnderrun : 1;
             uint32_t                                 : 5;

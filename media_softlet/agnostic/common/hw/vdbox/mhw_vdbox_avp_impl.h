@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2021, Intel Corporation
+* Copyright (c) 2020-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -38,13 +38,13 @@ namespace vdbox
 namespace avp
 {
 static constexpr uint32_t AVP_AVP_BITSTREAM_BYTECOUNT_TILE_WITH_HEADER_AWM_REG0       = 0x1C2B48;
-static constexpr uint32_t AVP_ENC_BITSTREAM_BYTE_COUNT_TILE_NO_HEADER_REG_OFFSET_INIT = 0x1C2E4C;
-static constexpr uint32_t AVP_ENC_CABAC_BIN_COUNT_TILE_REG_OFFSET_INIT                = 0x1C2E50;
-static constexpr uint32_t AVP_ENC_CABAC_INSERTION_COUNT_REG_OFFSET_INIT               = 0x1C2E54;
-static constexpr uint32_t AVP_ENC_MIN_SIZE_PADDING_COUNT_REG_OFFSET_INIT              = 0x1C2E58;
-static constexpr uint32_t AVP_ENC_IMAGE_STATUS_MASK_REG_OFFSET_INIT                   = 0x1C2E5C;
-static constexpr uint32_t AVP_ENC_IMAGE_STATUS_CONTROL_REG_OFFSET_INIT                = 0x1C2E60;
-static constexpr uint32_t AVP_ENC_QP_STATUS_COUNT_REG_OFFSET_INIT                     = 0x1C2E64;
+static constexpr uint32_t AVP_ENC_BITSTREAM_BYTE_COUNT_TILE_NO_HEADER_REG_OFFSET_INIT = 0x1C2B4C;
+static constexpr uint32_t AVP_ENC_CABAC_BIN_COUNT_TILE_REG_OFFSET_INIT                = 0x1C2B50;
+static constexpr uint32_t AVP_ENC_CABAC_INSERTION_COUNT_REG_OFFSET_INIT               = 0x1C2B54;
+static constexpr uint32_t AVP_ENC_MIN_SIZE_PADDING_COUNT_REG_OFFSET_INIT              = 0x1C2B58;
+static constexpr uint32_t AVP_ENC_IMAGE_STATUS_MASK_REG_OFFSET_INIT                   = 0x1C2B5C;
+static constexpr uint32_t AVP_ENC_IMAGE_STATUS_CONTROL_REG_OFFSET_INIT                = 0x1C2B60;
+static constexpr uint32_t AVP_ENC_QP_STATUS_COUNT_REG_OFFSET_INIT                     = 0x1C2B64;
 static constexpr uint32_t AVP_DEC_ERROR_STATUS_ADDR_REG_OFFSET_INIT                   = 0x1C2B08;
 
 static constexpr uint32_t MEMORY_ADDRESS_ATTRIBUTES_MOCS_CLEAN_MASK = 0xFFFFFF81;
