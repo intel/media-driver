@@ -223,11 +223,20 @@ PMHW_BATCH_BUFFER DecodeAllocator::AllocateBatchBuffer(
     bool notLockable = false;
     bool inSystemMem = false;
 
-    // Config setting if running with limited LMem bar config.
     if (m_limitedLMemBar)
     {
-        notLockable = (accessReq == notLockableVideoMem);
-        inSystemMem = (accessReq == lockableSystemMem);
+        // Config setting if running with limited LMem bar config with CP
+        if (m_osInterface->osCpInterface->IsCpEnabled())
+        {
+            notLockable = (accessReq == notLockableVideoMem);
+            inSystemMem = (accessReq == lockableSystemMem);
+        }
+        else
+        {
+            // allocate decode batch buffer in systemMem with limited LMem bar config due to local memory limitation
+            notLockable = false;
+            inSystemMem = true;
+        }
     }
 
 #if (_DEBUG || _RELEASE_INTERNAL)
