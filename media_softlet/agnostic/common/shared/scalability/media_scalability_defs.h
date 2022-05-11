@@ -51,6 +51,9 @@
 #define SCALABILITY_ASSERT(_expr) \
     MOS_ASSERT(MOS_COMPONENT_SCALABILITY, 0, _expr)
 
+#define SCALABILITY_COND_CHECK(_expr, _message, ...) \
+    MOS_CHK_COND_RETURN(MOS_COMPONENT_SCALABILITY, 0, _expr, _message, ##__VA_ARGS__)
+
 enum ScalabilityComponentType
 {
     scalabilityEncoder = 0,
