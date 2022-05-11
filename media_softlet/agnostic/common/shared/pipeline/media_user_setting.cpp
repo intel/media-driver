@@ -32,19 +32,5 @@ MOS_STATUS MediaPipeline::InitUserSetting(MediaUserSettingSharedPtr userSettingP
         MediaUserSetting::Group::Sequence,
         (int32_t)0,
         false);
-    DeclareUserSettingKey(
-        userSettingPtr,
-        "Enable Codec MMC",
-        MediaUserSetting::Group::Sequence,
-        int32_t(0),
-        false);
-#if (_DEBUG || _RELEASE_INTERNAL)
-    DeclareUserSettingKeyForDebug(
-        userSettingPtr,
-        "Simulation In Use",
-        MediaUserSetting::Group::Sequence,
-        int32_t(0),
-        true);
-#endif
     return MOS_STATUS_SUCCESS;
 }
