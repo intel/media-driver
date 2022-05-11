@@ -159,6 +159,11 @@ public:
     //!
     bool IsVeboxSfcFormatSupported(MOS_FORMAT formatInput, MOS_FORMAT formatOutput);
 
+    virtual MOS_STATUS ProcessBypassHandler(PVP_PIPELINE_PARAMS renderParams, bool &isBypassNeeded)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
     //!
     //! \brief  replace output surface from Tile-Y to Linear
     //! \param  [in] params

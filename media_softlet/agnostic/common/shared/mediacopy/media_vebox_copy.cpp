@@ -618,6 +618,11 @@ bool VeboxCopyState::IsFormatSupported(PMOS_SURFACE surface)
         surface->dwHeight = surface->dwSize / surface->dwPitch;
     }
 
+    if (IS_RGB64_FLOAT_FORMAT(surface->Format))
+    {
+        surface->Format = Format_Y416;
+    }
+
     // Check if Sample Format is supported for decompression
     if (surface->Format != Format_NV12        &&
         surface->Format != Format_AYUV        &&
