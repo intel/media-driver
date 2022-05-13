@@ -1,0 +1,46 @@
+name: Feature Request
+description: Use template to request a new feature
+title: "[Feature]: "
+labels: ["Feature Request"]
+assignees:
+  - XinfengZhang
+body:
+- type: textarea
+  attributes:
+    label: What Feature?
+    description: Please describe what feature you request and more background why you need this feature.
+  validations:
+    required: true
+- type: dropdown
+  id: usage
+  attributes:
+    label: What's the usage scenario would be benifited?
+    multiple: true
+    options:
+      - Transcode for media delivery
+      - Playback
+      - Web browser
+      - Cloud Gaming
+      - Video Analytics
+      - Video Conference
+      - Immersive Media
+      - Content Creation
+      - Game Streaming
+      - Others
+  validations:
+    required: true
+- type: textarea
+  attributes:
+    label: What impacted?
+    description: Any program or milestone would be benifited once the feature is enabled. Please provide the information as detail as possible to help us understand and prioritize the feature request.
+    placeholder: If you select "Others" for above usage, please describe your usage scenario here to help us understand the impact.
+  validations:
+    required: false
+- type: dropdown
+  id: contribute
+  attributes:
+    label: Do you want to contribute a patch to develop this feature?
+    multiple: false
+    options:
+      - Yes, I'm glad to submit a patch for it
+      - No.
