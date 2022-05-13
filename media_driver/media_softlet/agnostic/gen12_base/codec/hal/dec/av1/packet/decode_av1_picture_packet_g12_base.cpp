@@ -1021,11 +1021,6 @@ namespace decode{
     {
         DECODE_FUNC_CALL();
 
-#ifdef _MMC_SUPPORTED
-        //Record each reference surface mmc state
-        uint8_t skipMask = 0;
-#endif
-
         if (m_av1PicParams->m_picInfoFlags.m_fields.m_frameType != keyFrame && m_av1PicParams->m_picInfoFlags.m_fields.m_frameType != intraOnlyFrame)
         {
                 Av1SurfaceId surfaceId[av1TotalRefsPerFrame] = {
@@ -1067,24 +1062,8 @@ namespace decode{
             #ifdef _MMC_SUPPORTED
                 DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcState(refSurfaceParams[i].psSurface, &refSurfaceParams[i].mmcState));
                 DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcFormat(refSurfaceParams[i].psSurface, &refSurfaceParams[i].dwCompressionFormat));
-                if (refSurfaceParams[i].mmcState == MOS_MEMCOMP_DISABLED)
-                {
-                    skipMask |= (1 << i);
-                }
             #endif
             }
-            DECODE_NORMALMESSAGE("AV1 MMC skip masK is %d\n", skipMask);
-
-        #ifdef _MMC_SUPPORTED
-            for (auto i = 0; i < av1TotalRefsPerFrame; i++)
-            {
-                // Set each refSurfaceParams mmcState as MOS_MEMCOMP_MC to satisfy MmcEnable in AddAvpSurfaceCmd
-                // Compression type/enable should be the same for all reference surface state
-                // The actual refSurfac mmcstate is recorded by skipMask
-                refSurfaceParams[i].mmcState    = MOS_MEMCOMP_MC;
-                refSurfaceParams[i].mmcSkipMask = skipMask;
-            }
-        #endif
         }
 
         return MOS_STATUS_SUCCESS;

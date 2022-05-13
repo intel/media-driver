@@ -65,23 +65,18 @@ MOS_STATUS HevcDecodeMemComp::SetRefSurfaceMask(
         DECODE_NORMALMESSAGE("IBC ref index %d, MMC skip mask %d,", IBCRefIdx, skipMask);
     }
 
-    MOS_MEMCOMP_STATE refMmcState = MOS_MEMCOMP_DISABLED;
-    uint8_t           skipMask    = 0;
-    for (uint16_t i = 0; i < CODECHAL_MAX_CUR_NUM_REF_FRAME_HEVC; i++)
+    if (hevcBasicFeature.m_useDummyReference)
     {
-        if (presReferences[i] != nullptr)
+        uint8_t skipMask = 0;
+        for (uint8_t i = 0; i < CODECHAL_MAX_CUR_NUM_REF_FRAME_HEVC; i++)
         {
-            DECODE_CHK_STATUS(m_osInterface->pfnGetMemoryCompressionMode(
-                m_osInterface, presReferences[i], &refMmcState));
+            if (hevcBasicFeature.m_dummyReferenceSlot[i])
+            {
+                skipMask |= (1 << i);
+            }
         }
-
-        if (refMmcState == MOS_MEMCOMP_DISABLED)
-        {
-            skipMask |= (1 << i);
-        }
+        mmcSkipMask |= skipMask;
     }
-    mmcSkipMask |= skipMask;
-    DECODE_NORMALMESSAGE("HEVC MMC skip mask %d\n", mmcSkipMask);
 
     return MOS_STATUS_SUCCESS;
 }

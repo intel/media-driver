@@ -983,9 +983,8 @@ MOS_STATUS MhwVdboxMfxInterfaceG12::AddMfxPipeBufAddrCmd(
             details.Format = Format_Invalid;
             MHW_MI_CHK_STATUS(m_osInterface->pfnGetResourceInfo(m_osInterface, references[i], &details));
 
-            MOS_MEMCOMP_STATE mmcMode = MOS_MEMCOMP_DISABLED;
-            MHW_MI_CHK_STATUS(m_osInterface->pfnGetMemoryCompressionMode(
-                m_osInterface, references[i], &mmcMode));
+            MOS_MEMCOMP_STATE mmcMode = (params->PostDeblockSurfMmcState != MOS_MEMCOMP_DISABLED) ? 
+                params->PostDeblockSurfMmcState : params->PreDeblockSurfMmcState;
             if (mmcMode == MOS_MEMCOMP_RC || mmcMode == MOS_MEMCOMP_MC)
             {
                 cmd.DW61.Value |= (MHW_MEDIA_MEMCOMP_ENABLED << (i * 2 * step)) | ((mmcMode == MOS_MEMCOMP_RC) << (i * 2 * step + 1));
