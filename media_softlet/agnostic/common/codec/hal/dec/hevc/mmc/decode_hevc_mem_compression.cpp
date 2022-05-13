@@ -71,6 +71,12 @@ MOS_STATUS HevcDecodeMemComp::SetRefSurfaceMask(
     {
         if (presReferences[i] != nullptr)
         {
+            if (hevcBasicFeature.m_hasMixedmmcState)
+            {
+                DECODE_NORMALMESSAGE("Decompress reference surface due to mixed mmc state\n");
+                DECODE_CHK_STATUS(m_osInterface->pfnDecompResource(m_osInterface, presReferences[i]));
+            }
+
             DECODE_CHK_STATUS(m_osInterface->pfnGetMemoryCompressionMode(
                 m_osInterface, presReferences[i], &refMmcState));
         }

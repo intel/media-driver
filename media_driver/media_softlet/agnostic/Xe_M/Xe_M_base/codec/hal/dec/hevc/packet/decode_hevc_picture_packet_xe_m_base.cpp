@@ -367,6 +367,12 @@ MOS_STATUS HevcDecodePicPktXe_M_Base::SetHcpDstSurfaceParams(MHW_VDBOX_SURFACE_P
     DECODE_CHK_STATUS(m_mmcState->SetSurfaceMmcState(dstSurfaceParams.psSurface));
     DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcState(dstSurfaceParams.psSurface, &dstSurfaceParams.mmcState));
     DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcFormat(dstSurfaceParams.psSurface, &dstSurfaceParams.dwCompressionFormat));
+
+    if (dstSurfaceParams.mmcState == MOS_MEMCOMP_DISABLED && m_mmcState->IsMmcEnabled())
+    {
+        m_hevcBasicFeature->m_hasMixedmmcState = true;
+        DECODE_NORMALMESSAGE("Current %d frame has mixed mmc state\n", m_hevcBasicFeature->m_frameNum);
+    }
 #endif
 
     return MOS_STATUS_SUCCESS;
