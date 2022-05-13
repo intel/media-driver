@@ -40,7 +40,6 @@ MediaMemComp::MediaMemComp(PMOS_INTERFACE osInterface, MhwMiInterface *miInterfa
 {
     MEDIA_FEATURE_TABLE *skuTable = m_osInterface->pfnGetSkuTable(m_osInterface);
     m_isCompSurfAllocable = MosInterface::IsCompressibelSurfaceSupported(skuTable);
-    m_userSettingPtr = m_osInterface->pfnGetUserSettingInstance(m_osInterface);
 }
 
 MOS_STATUS MediaMemComp::InitMmcEnabled()
