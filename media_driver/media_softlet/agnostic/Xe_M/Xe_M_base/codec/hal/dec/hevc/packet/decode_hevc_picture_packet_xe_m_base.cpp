@@ -388,7 +388,9 @@ MOS_STATUS HevcDecodePicPktXe_M_Base::SetHcpRefSurfaceParams(
 #ifdef _MMC_SUPPORTED
     HevcDecodeMemComp *hevcDecodeMemComp = dynamic_cast<HevcDecodeMemComp *>(m_mmcState);
     DECODE_CHK_NULL(hevcDecodeMemComp);
-    DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcState(refSurfaceParams.psSurface, &refSurfaceParams.mmcState));
+    // Set refSurfaceParams mmcState as MOS_MEMCOMP_MC to satisfy MmcEnable in AddHcpSurfaceCmd
+    // The actual mmcstate is recorded by refSurfaceParams.mmcSkipMask
+    refSurfaceParams.mmcState = MOS_MEMCOMP_MC;
     DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcFormat(refSurfaceParams.psSurface, &refSurfaceParams.dwCompressionFormat));
     DECODE_CHK_STATUS(hevcDecodeMemComp->SetRefSurfaceMask(*m_hevcBasicFeature, pipeBufAddrParams.presReferences, refSurfaceParams.mmcSkipMask));
 #endif
