@@ -95,6 +95,7 @@ typedef enum _MEDIA_EVENT_FILTER_KEYID
     TR_KEY_DECODE_DSTYUV,
     TR_KEY_DECODE_REFYUV,
     TR_KEY_MOSMSG_ALL = 12,
+    TR_KEY_CALL_STACK,
     TR_KEY_DATA_DUMP  = 16,
     TR_KEY_MOSMSG_CP,
     TR_KEY_MOSMSG_VP,
@@ -271,6 +272,7 @@ typedef enum _MEDIA_EVENT
     EVENT_DECODE_FEATURE_DECODEMODE_REPORT,        //! event for Decode Feature Decode Mode Report
     EVENT_DECODE_DST_DUMPINFO,                     //! event for Decode Dst Surface Info
     EVENT_DECODE_REF_DUMPINFO,                     //! event for Decode Ref Surface Info
+    EVENT_CALL_STACK,                              //! event for call stack dump
 } MEDIA_EVENT;
 
 typedef enum _MEDIA_EVENT_TYPE

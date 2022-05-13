@@ -51,6 +51,7 @@
 #include <signal.h>
 #include <unistd.h>  // fork
 #include <algorithm>
+#include <execinfo.h> // backtrace
 
 const char           *MosUtilitiesSpecificNext::m_szUserFeatureFile     = USER_FEATURE_FILE;
 MOS_PUF_KEYLIST      MosUtilitiesSpecificNext::m_ufKeyList              = nullptr;
@@ -2486,6 +2487,25 @@ void MosUtilities::MosTraceEvent(
             if (traceBuf != pTraceBuf)
             {
                 MOS_FreeMemory(pTraceBuf);
+            }
+        }
+        if (m_mosTraceFilter & (1ULL << TR_KEY_CALL_STACK))
+        {
+            // reserve space for header and stack size field.
+            // max 32-2=30 layers call stack in 64bit driver.
+            uint32_t nLen = 4*sizeof(uint32_t);
+            void **stack = (void **)(traceBuf + nLen);
+            int num = backtrace(stack, ((sizeof(traceBuf)-nLen)/sizeof(void *)));
+            if (num > 0)
+            {
+                uint32_t *header = (uint32_t *)traceBuf;
+
+                header[0] = 0x494D5445; // IMTE (IntelMediaTraceEvent) as ftrace raw marker tag
+                header[1] = (EVENT_CALL_STACK << 16) | (num*sizeof(void *)+sizeof(uint32_t));
+                header[2] = 0;
+                header[3] = (uint32_t)num;
+                nLen += num*sizeof(void *);
+                size_t ret = write(MosUtilitiesSpecificNext::m_mosTraceFd, traceBuf, nLen);
             }
         }
     }
