@@ -1411,6 +1411,13 @@ typedef struct _MOS_INTERFACE
         PMOS_INTERFACE              pOsInterface);
 
     //!
+    //! \brief    Check if mismatch order programming model supported in current device
+    //!
+    //! \return   bool
+    //!
+    bool (*pfnIsMismatchOrderProgrammingSupported)();
+
+    //!
     //! \brief   Get User Setting instance
     //!
     //! \param    PMOS_INTERFACE pOsInterface

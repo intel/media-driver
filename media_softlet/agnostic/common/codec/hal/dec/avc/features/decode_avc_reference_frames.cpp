@@ -51,6 +51,7 @@ namespace decode
         DECODE_CHK_STATUS(CodecHalAllocateDataList(m_refList, CODEC_AVC_NUM_UNCOMPRESSED_SURFACE));
         m_prevPic.PicFlags = PICTURE_INVALID;
         m_prevPic.FrameIdx = CODEC_AVC_NUM_UNCOMPRESSED_SURFACE;
+        m_osInterface = basicFeature->GetOsInterface();
 
         return MOS_STATUS_SUCCESS;
     }
@@ -265,7 +266,7 @@ namespace decode
 
                 // Comparing curPic's DPB and prevPic's DPB, if find same reference frame index, will reuse
                 //prevPic's ucFrameId, otherwise, need assign a new ucFrameId in SetFrameStoreIds function.
-                if (!CodecHal_PictureIsInvalid(m_prevPic))
+                if (!CodecHal_PictureIsInvalid(m_prevPic) && !m_osInterface->pfnIsMismatchOrderProgrammingSupported())
                 {
                     uint8_t ii;
                     for (ii = 0; ii < m_refList[m_prevPic.FrameIdx]->ucNumRef; ii++)
@@ -307,6 +308,14 @@ namespace decode
         m_refList[currPic.FrameIdx]->ucNumRef = refIdx;
         m_refList[currPic.FrameIdx]->usNonExistingFrameFlags = nonExistingFrameFlags;
         m_refList[currPic.FrameIdx]->uiUsedForReferenceFlags = usedForReferenceFlags;
+
+        if (m_osInterface->pfnIsMismatchOrderProgrammingSupported())
+        {
+            for (uint32_t ii = 0; ii < CODEC_AVC_NUM_UNCOMPRESSED_SURFACE; ii++)
+            {
+                m_refList[ii]->ucFrameId = 0x7f;
+            }
+        }
 
         DECODE_CHK_STATUS(SetFrameStoreIds(currPic.FrameIdx));
 

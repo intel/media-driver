@@ -7146,6 +7146,11 @@ MediaUserSettingSharedPtr Mos_Specific_GetUserSettingInstance(
     return nullptr;
 }
 
+bool Mos_Specific_IsMismatchOrderProgrammingSupported()
+{
+    return MosInterface::IsMismatchOrderProgrammingSupported();
+}
+
 //! \brief    Unified OS Initializes OS Linux Interface
 //! \details  Linux OS Interface initilization
 //! \param    PMOS_INTERFACE pOsInterface
@@ -7422,6 +7427,8 @@ MOS_STATUS Mos_Specific_InitInterface(
     pOsInterface->pfnGetGpuContextbyHandle                  = Mos_Specific_GetGpuContextbyHandle;
 
     pOsInterface->pfnGetUserSettingInstance                 = Mos_Specific_GetUserSettingInstance;
+
+    pOsInterface->pfnIsMismatchOrderProgrammingSupported    = Mos_Specific_IsMismatchOrderProgrammingSupported;
 
     pOsUserFeatureInterface->bIsNotificationSupported   = false;
     pOsUserFeatureInterface->pOsInterface               = pOsInterface;

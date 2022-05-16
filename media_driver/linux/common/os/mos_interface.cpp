@@ -3312,3 +3312,8 @@ bool MosInterface::IsCompressibelSurfaceSupported(MEDIA_FEATURE_TABLE *skuTable)
     }
     return true;
 }
+
+bool MosInterface::IsMismatchOrderProgrammingSupported()
+{
+    return false;
+}

@@ -227,7 +227,6 @@ public:
         return buffer;
     }
 
-protected:
     //!
     //! \brief  Figure out buffer for current picture, and add it to active buffer list
     //! \param  [in] frameIdx
@@ -278,6 +277,7 @@ protected:
         return MOS_STATUS_SUCCESS;
     }
 
+protected:
     //!
     //! \brief  Update buffers corresponding to reference list
     //! \param  [in] curFrameIdx

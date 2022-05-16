@@ -78,6 +78,15 @@ public:
     //!
     virtual MOS_STATUS Update(void *params) override;
 
+    //!
+    //! \brief  Get os interface
+    //! \return PMOS_INTERFACE
+    //!
+    PMOS_INTERFACE GetOsInterface()
+    {
+        return m_osInterface;
+    }
+
     struct SliceRecord
     {
         uint32_t   skip;

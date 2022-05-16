@@ -136,6 +136,7 @@ protected:
     std::vector<uint8_t>     m_activeReferenceList;                          //!< Active reference list of current picture
     CODEC_PICTURE            m_prevPic;                                      //!< Current Picture Struct
     CODEC_AVC_FRAME_STORE_ID m_avcFrameStoreId[CODEC_AVC_MAX_NUM_REF_FRAME]; //!< Avc Frame Store ID
+    PMOS_INTERFACE           m_osInterface = nullptr;                        //!< Os interface
 
 MEDIA_CLASS_DEFINE_END(AvcReferenceFrames)
 };

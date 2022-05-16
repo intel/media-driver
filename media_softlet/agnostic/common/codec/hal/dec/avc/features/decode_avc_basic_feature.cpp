@@ -184,7 +184,19 @@ namespace decode {
         }
 
         DECODE_CHK_STATUS(m_refFrames.UpdatePicture(*m_avcPicParams));
-        DECODE_CHK_STATUS(m_mvBuffers.UpdatePicture(m_avcPicParams->CurrPic.FrameIdx, m_refFrameIndexList, m_fixedFrameIdx));
+
+        if (m_osInterface->pfnIsMismatchOrderProgrammingSupported())
+        {
+            for (auto &refFrameIdx : m_refFrameIndexList)
+            {
+                DECODE_CHK_STATUS(m_mvBuffers.ActiveCurBuffer(refFrameIdx));
+            }
+            DECODE_CHK_STATUS(m_mvBuffers.ActiveCurBuffer(m_avcPicParams->CurrPic.FrameIdx));
+        }
+        else
+        {
+            DECODE_CHK_STATUS(m_mvBuffers.UpdatePicture(m_avcPicParams->CurrPic.FrameIdx, m_refFrameIndexList, m_fixedFrameIdx));
+        }
 
         return MOS_STATUS_SUCCESS;
     }
