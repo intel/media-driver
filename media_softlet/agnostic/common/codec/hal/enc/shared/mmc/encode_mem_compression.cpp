@@ -36,14 +36,7 @@ EncodeMemComp::EncodeMemComp(CodechalHwInterface *hwInterface) :
     m_mmcFeatureId      = __MEDIA_USER_FEATURE_VALUE_CODEC_MMC_ENABLE_ID;
     m_mmcInuseFeatureId = __MEDIA_USER_FEATURE_VALUE_CODEC_MMC_IN_USE_ID;
 
-    if (hwInterface->m_enableCodecMmc)
-    {
-        m_bComponentMmcEnabled = true;
-    }
-    else
-    {
-        m_bComponentMmcEnabled = false;
-    }
+    m_bComponentMmcEnabled = hwInterface->m_enableCodecMmc;
 
     InitMmcEnabled();
     InitEncodeMmc(hwInterface);
@@ -62,20 +55,20 @@ MOS_STATUS EncodeMemComp::UpdateUserFeatureKey(PMOS_SURFACE surface)
     {
         return MOS_STATUS_SUCCESS;
     }
-    m_compressibleId     = __MEDIA_USER_FEATURE_VALUE_MMC_ENC_RECON_COMPRESSIBLE_ID;
-    m_compressModeId     = __MEDIA_USER_FEATURE_VALUE_MMC_ENC_RECON_COMPRESSMODE_ID;
+
     m_userFeatureUpdated = true;
 
-    MOS_USER_FEATURE_VALUE_WRITE_DATA userFeatureWriteData;
-    userFeatureWriteData               = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
-    userFeatureWriteData.Value.i32Data = surface->bCompressible;
-    userFeatureWriteData.ValueID       = (MOS_USER_FEATURE_VALUE_ID)m_compressibleId;
-    MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, m_osInterface->pOsContext);
+    ReportUserSetting(
+        m_userSettingPtr,
+        "Encode Recon Compressible",
+        surface->bCompressible,
+        MediaUserSetting::Group::Sequence);
 
-    userFeatureWriteData               = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
-    userFeatureWriteData.Value.i32Data = surface->MmcState;
-    userFeatureWriteData.ValueID       = (MOS_USER_FEATURE_VALUE_ID)m_compressModeId;
-    MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, m_osInterface->pOsContext);
+    ReportUserSetting(
+        m_userSettingPtr,
+        "Encode Recon Compress Mode",
+        surface->MmcState,
+        MediaUserSetting::Group::Sequence);
 
     return MOS_STATUS_SUCCESS;
 }
@@ -88,29 +81,23 @@ void EncodeMemComp::InitEncodeMmc(CodechalHwInterface *hwInterface)
     if (MEDIA_IS_SKU(hwInterface->GetSkuTable(), FtrE2ECompression))
     {
         //read encode mmc if available, then report encode mmc in use
-        bool                        encodeMmcEnabled = true;
-        MOS_USER_FEATURE_VALUE_DATA userFeatureData;
-        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-        userFeatureData.i32Data     = encodeMmcEnabled;
-        userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
-        MOS_UserFeature_ReadValue_ID(
-            nullptr,
-            __MEDIA_USER_FEATURE_VALUE_ENCODE_MMC_ENABLE_ID,
-            &userFeatureData,
+
+        bool encodeMmcEnabled = true;
+        MediaUserSetting::Value outValue;
+        ReadUserSetting(
+            m_userSettingPtr,
+            outValue,
+            "Enable Encode MMC",
+            MediaUserSetting::Group::Sequence,
             m_osInterface->pOsContext);
-        encodeMmcEnabled = (userFeatureData.i32Data) ? true : false;
+        encodeMmcEnabled = outValue.Get<bool>();
 
         m_mmcEnabledForEncode = m_mmcEnabled && encodeMmcEnabled;
 
-        MOS_USER_FEATURE_VALUE_WRITE_DATA userFeatureWriteData;
-        MOS_ZeroMemory(&userFeatureWriteData, sizeof(userFeatureWriteData));
-        userFeatureWriteData.Value.i32Data = m_mmcEnabledForEncode;
-        userFeatureWriteData.ValueID       = __MEDIA_USER_FEATURE_VALUE_ENCODE_MMC_IN_USE_ID;
-        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, m_osInterface->pOsContext);
+        ReportUserSetting(
+            m_userSettingPtr,
+            "Encode MMC In Use",
+            m_mmcEnabledForEncode,
+            MediaUserSetting::Group::Sequence);
     }
-
-#if (_DEBUG || _RELEASE_INTERNAL)
-    m_compressibleId = __MEDIA_USER_FEATURE_VALUE_MMC_ENC_RECON_COMPRESSIBLE_ID;
-    m_compressModeId = __MEDIA_USER_FEATURE_VALUE_MMC_ENC_RECON_COMPRESSMODE_ID;
-#endif
 }
