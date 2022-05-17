@@ -512,12 +512,12 @@ MOS_STATUS Vp9DecodePicPktXe_M_Base::SetHcpPipeBufAddrParams(MHW_VDBOX_PIPE_BUF_
     CODECHAL_DEBUG_TOOL(DumpRefResources(pipeBufAddrParams, m_vp9BasicFeature->m_resVp9MvTemporalBuffer[0]->size));
    
 #if MOS_EVENT_TRACE_DUMP_SUPPORTED
-    if (MOS_GetTraceEventKeyword() & EVENT_DECODE_MV_KEYWORD)
+    if (MOS_TraceKeyEnabled(TR_KEY_DECODE_MV))
     {
         TraceDataDumpMV(pipeBufAddrParams, m_vp9BasicFeature->m_resVp9MvTemporalBuffer[0]->size);
     }
 
-    if (MOS_GetTraceEventKeyword() & EVENT_DECODE_REFYUV_KEYWORD)
+    if (MOS_TraceKeyEnabled(TR_KEY_DECODE_REFYUV))
     {
         TraceDataDumpReferences(pipeBufAddrParams);
     }

@@ -326,7 +326,7 @@ MOS_STATUS Vp9PipelineG12::DumpParams(Vp9BasicFeature &basicFeature)
 #if MOS_EVENT_TRACE_DUMP_SUPPORTED
 MOS_STATUS Vp9PipelineG12::TraceDataDumpInternalBuffers(Vp9BasicFeature &basicFeature)
 {  
-    if (MOS_GetTraceEventKeyword() & EVENT_DECODE_INTERNAL_KEYWORD)
+    if (MOS_TraceKeyEnabled(TR_KEY_DECODE_INTERNAL))
     {
         if (!m_allocator->ResourceIsNull(&(basicFeature.m_resVp9SegmentIdBuffer->OsResource)))
         {

@@ -284,7 +284,7 @@ namespace decode{
         CODECHAL_DEBUG_TOOL(DumpResources(pipeBufAddrParams));
 
 #if MOS_EVENT_TRACE_DUMP_SUPPORTED
-        if (MOS_GetTraceEventKeyword() & EVENT_DECODE_REFYUV_KEYWORD)
+        if (MOS_TraceKeyEnabled(TR_KEY_DECODE_REFYUV))
         {
             TraceDataDumpReferences(pipeBufAddrParams);
         }

@@ -300,7 +300,7 @@ MOS_STATUS HevcPipelineM12::Execute()
             CODECHAL_DEBUG_TOOL(DECODE_CHK_STATUS(DumpSecondLevelBatchBuffer()));
 
 #if MOS_EVENT_TRACE_DUMP_SUPPORTED
-            if (MOS_GetTraceEventKeyword() & EVENT_DECODE_COMMAND_KEYWORD)
+            if (MOS_TraceKeyEnabled(TR_KEY_DECODE_COMMAND))
             {
                 TraceDataDump2ndLevelBB(GetSliceLvlCmdBuffer());
             }

@@ -1263,7 +1263,7 @@ namespace decode{
 #endif
 
 #if MOS_EVENT_TRACE_DUMP_SUPPORTED
-        if (MOS_GetTraceEventKeyword() & EVENT_DECODE_REFYUV_KEYWORD)
+        if (MOS_TraceKeyEnabled(TR_KEY_DECODE_REFYUV))
         {
             TraceDataDumpReferences(pipeBufAddrParams);
         }
@@ -1665,7 +1665,7 @@ namespace decode{
 #if MOS_EVENT_TRACE_DUMP_SUPPORTED
     MOS_STATUS Av1DecodePicPkt_G12_Base::TraceDataDumpInternalBuffers(MhwVdboxAvpPipeBufAddrParams &pipeBufAddrParams)
     {        
-        if (MOS_GetTraceEventKeyword() & EVENT_DECODE_INTERNAL_KEYWORD)
+        if (MOS_TraceKeyEnabled(TR_KEY_DECODE_INTERNAL))
         {
             if (m_av1BasicFeature->m_tileCoding.m_curTile == 0)
             {

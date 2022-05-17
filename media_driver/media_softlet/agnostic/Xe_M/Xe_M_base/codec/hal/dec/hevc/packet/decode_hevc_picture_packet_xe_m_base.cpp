@@ -582,12 +582,12 @@ MOS_STATUS HevcDecodePicPktXe_M_Base::SetHcpPipeBufAddrParams(MHW_VDBOX_PIPE_BUF
         })
 
 #if MOS_EVENT_TRACE_DUMP_SUPPORTED
-    if (MOS_GetTraceEventKeyword() & EVENT_DECODE_MV_KEYWORD)
+    if (MOS_TraceKeyEnabled(TR_KEY_DECODE_MV))
     {
         TraceDataDumpMV(pipeBufAddrParams);
     }
     
-    if (MOS_GetTraceEventKeyword() & EVENT_DECODE_REFYUV_KEYWORD)
+    if (MOS_TraceKeyEnabled(TR_KEY_DECODE_REFYUV))
     {
         TraceDataDumpReferences(pipeBufAddrParams);
     }

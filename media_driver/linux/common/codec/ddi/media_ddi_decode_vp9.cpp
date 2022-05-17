@@ -72,7 +72,7 @@ VAStatus DdiDecodeVP9::ParseSliceParams(
     }
 
 #if MOS_EVENT_TRACE_DUMP_SUPPORTED
-    if (MOS_GetTraceEventKeyword() & EVENT_DECODE_PICPARAM_KEYWORD)
+    if (MOS_TraceKeyEnabled(TR_KEY_DECODE_PICPARAM))
     {
         DECODE_EVENTDATA_SEGPARAM_VP9 eventDataSegParam;
         DecodeEventDataVP9SegParamInit(&eventDataSegParam, picParam, segParams->SegData);
@@ -188,7 +188,7 @@ VAStatus DdiDecodeVP9::ParsePicParams(
     MOS_SecureMemcpy(picVp9Params->SegPredProbs, 3, picParam->segment_pred_probs, 3);
 
 #if MOS_EVENT_TRACE_DUMP_SUPPORTED
-    if (MOS_GetTraceEventKeyword() & EVENT_DECODE_PICPARAM_KEYWORD)
+    if (MOS_TraceKeyEnabled(TR_KEY_DECODE_PICPARAM))
     {
         DECODE_EVENTDATA_PICPARAM_VP9 eventDataPicParam;
         DecodeEventDataVP9PicParamInit(&eventDataPicParam, picVp9Params);
@@ -276,7 +276,7 @@ VAStatus DdiDecodeVP9::RenderPicture(
             uint8_t *pDataBuf = (uint8_t *)DdiMediaUtil_LockBuffer(m_ddiDecodeCtx->BufMgr.pBitStreamBuffObject[index], MOS_LOCKFLAG_READONLY);
             DDI_CHK_NULL(pDataBuf, "nullptr bitstream", VA_STATUS_ERROR_INVALID_BUFFER);
 
-            if (MOS_GetTraceEventKeyword() & EVENT_DECODE_BITSTREAM_32BYTE_KEYWORD)
+            if (MOS_TraceKeyEnabled(TR_KEY_DECODE_BITSTREAM_32BYTE))
             {
                 DECODE_EVENTDATA_BITSTREAM eventData;
                 for (int i = 0; i < 32; i++)
@@ -286,7 +286,7 @@ VAStatus DdiDecodeVP9::RenderPicture(
                 MOS_TraceEvent(EVENT_DECODE_BUFFER_Bitstream, EVENT_TYPE_INFO, &eventData, sizeof(eventData), NULL, 0);
             }
 
-            if (MOS_GetTraceEventKeyword() & EVENT_DECODE_BITSTREAM_KEYWORD)
+            if (MOS_TraceKeyEnabled(TR_KEY_DECODE_BITSTREAM))
             {
                 MOS_TraceDataDump(
                 "Decode_Bitstream",

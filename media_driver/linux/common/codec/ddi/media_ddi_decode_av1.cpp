@@ -89,7 +89,7 @@ VAStatus DdiDecodeAV1::ParseTileParams(
     }
 
 #if MOS_EVENT_TRACE_DUMP_SUPPORTED
-    if (MOS_GetTraceEventKeyword() & EVENT_DECODE_TILEPARAM_KEYWORD)
+    if (MOS_TraceKeyEnabled(TR_KEY_DECODE_TILEPARAM))
     {
         CodecAv1PicParams* picAV1Params = (CodecAv1PicParams*)(m_ddiDecodeCtx->DecodeParams.m_picParams);
 
@@ -470,7 +470,7 @@ VAStatus DdiDecodeAV1::ParsePicParams(
                      picParam->height_in_sbs_minus_1,   63 * sizeof(uint16_t));
 
 #if MOS_EVENT_TRACE_DUMP_SUPPORTED
-    if (MOS_GetTraceEventKeyword() & EVENT_DECODE_PICPARAM_KEYWORD)
+    if (MOS_TraceKeyEnabled(TR_KEY_DECODE_PICPARAM))
     {
         DECODE_EVENTDATA_PICPARAM_AV1 eventData;
         DecodeEventDataAV1PicParamInit(&eventData, picAV1Params);
@@ -615,7 +615,7 @@ VAStatus DdiDecodeAV1::RenderPicture(
             uint8_t * pDataBuf = (uint8_t *)DdiMediaUtil_LockBuffer(m_ddiDecodeCtx->BufMgr.pBitStreamBuffObject[index], MOS_LOCKFLAG_READONLY);            
             DDI_CHK_NULL(pDataBuf, "nullptr bitstream", VA_STATUS_ERROR_INVALID_BUFFER);
 
-            if (MOS_GetTraceEventKeyword() & EVENT_DECODE_BITSTREAM_32BYTE_KEYWORD)
+            if (MOS_TraceKeyEnabled(TR_KEY_DECODE_BITSTREAM_32BYTE))
             {
                 DECODE_EVENTDATA_BITSTREAM eventData;
                 for (int i = 0; i < 32; i++)
@@ -625,7 +625,7 @@ VAStatus DdiDecodeAV1::RenderPicture(
                 MOS_TraceEvent(EVENT_DECODE_BUFFER_Bitstream, EVENT_TYPE_INFO, &eventData, sizeof(eventData), NULL, 0);
             }
 
-            if (MOS_GetTraceEventKeyword() & EVENT_DECODE_BITSTREAM_KEYWORD)
+            if (MOS_TraceKeyEnabled(TR_KEY_DECODE_BITSTREAM))
             {
                 MOS_TraceDataDump(
                 "Decode_Bitstream",

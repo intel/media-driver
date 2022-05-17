@@ -140,7 +140,7 @@ VAStatus DdiDecodeHEVC::ParseSliceParams(
     }
 
 #if MOS_EVENT_TRACE_DUMP_SUPPORTED
-    if (MOS_GetTraceEventKeyword() & EVENT_DECODE_SLICEPARAM_KEYWORD)
+    if (MOS_TraceKeyEnabled(TR_KEY_DECODE_SLICEPARAM))
     {
         if (m_ddiDecodeCtx->bShortFormatInUse)
         {
@@ -335,7 +335,7 @@ VAStatus DdiDecodeHEVC::ParsePicParams(
     codecPicParams->StatusReportFeedbackNumber = 0;
 
 #if MOS_EVENT_TRACE_DUMP_SUPPORTED
-    if (MOS_GetTraceEventKeyword() & EVENT_DECODE_PICPARAM_KEYWORD)
+    if (MOS_TraceKeyEnabled(TR_KEY_DECODE_PICPARAM))
     {
         DECODE_EVENTDATA_PICPARAM_HEVC eventData;
         DecodeEventDataHEVCPicParamInit(&eventData, codecPicParams);
@@ -437,7 +437,7 @@ VAStatus DdiDecodeHEVC::RenderPicture(
             uint8_t * pDataBuf = (uint8_t *)DdiMediaUtil_LockBuffer(m_ddiDecodeCtx->BufMgr.pBitStreamBuffObject[index], MOS_LOCKFLAG_READONLY);
             DDI_CHK_NULL(pDataBuf, "nullptr bitstream", VA_STATUS_ERROR_INVALID_BUFFER);
 
-            if (MOS_GetTraceEventKeyword() & EVENT_DECODE_BITSTREAM_32BYTE_KEYWORD)
+            if (MOS_TraceKeyEnabled(TR_KEY_DECODE_BITSTREAM_32BYTE))
             {
                 DECODE_EVENTDATA_BITSTREAM eventData;
                 for (int i = 0; i < 32; i++)
@@ -447,7 +447,7 @@ VAStatus DdiDecodeHEVC::RenderPicture(
                 MOS_TraceEvent(EVENT_DECODE_BUFFER_Bitstream, EVENT_TYPE_INFO, &eventData, sizeof(eventData), NULL, 0);
             }
 
-            if (MOS_GetTraceEventKeyword() & EVENT_DECODE_BITSTREAM_KEYWORD)
+            if (MOS_TraceKeyEnabled(TR_KEY_DECODE_BITSTREAM))
             {
                 MOS_TraceDataDump(
                 "Decode_Bitstream",
@@ -482,7 +482,7 @@ VAStatus DdiDecodeHEVC::RenderPicture(
             DDI_CHK_RET(ParseIQMatrix(mediaCtx, imxBuf),"ParseIQMatrix failed!");
 
 #if MOS_EVENT_TRACE_DUMP_SUPPORTED
-            if (MOS_GetTraceEventKeyword() & EVENT_DECODE_QMATRIX_KEYWORD)
+            if (MOS_TraceKeyEnabled(TR_KEY_DECODE_QMATRIX))
             {
                 MOS_TraceDataDump(
                     "Decode_QMatrix",
@@ -513,7 +513,7 @@ VAStatus DdiDecodeHEVC::RenderPicture(
             MOS_SecureMemcpy(m_ddiDecodeCtx->DecodeParams.m_subsetParams, dataSize, data, dataSize);
 
 #if MOS_EVENT_TRACE_DUMP_SUPPORTED
-            if (MOS_GetTraceEventKeyword() & EVENT_DECODE_SUBSET_KEYWORD)
+            if (MOS_TraceKeyEnabled(TR_KEY_DECODE_SUBSET))
             {
                 MOS_TraceDataDump(
                     "Decode_Subset",

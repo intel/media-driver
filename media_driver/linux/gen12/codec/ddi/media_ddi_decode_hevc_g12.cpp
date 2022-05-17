@@ -201,7 +201,7 @@ VAStatus DdiDecodeHEVCG12::ParseSliceParams(
     }
 
 #if MOS_EVENT_TRACE_DUMP_SUPPORTED
-    if (MOS_GetTraceEventKeyword() & EVENT_DECODE_SLICEPARAM_KEYWORD)
+    if (MOS_TraceKeyEnabled(TR_KEY_DECODE_SLICEPARAM))
     {
         if (m_ddiDecodeCtx->bShortFormatInUse)
         {
@@ -460,7 +460,7 @@ VAStatus DdiDecodeHEVCG12::ParsePicParams(
     }
 
 #if MOS_EVENT_TRACE_DUMP_SUPPORTED
-    if (MOS_GetTraceEventKeyword() & EVENT_DECODE_PICPARAM_KEYWORD)
+    if (MOS_TraceKeyEnabled(TR_KEY_DECODE_PICPARAM))
     {
         DECODE_EVENTDATA_PICPARAM_HEVC eventData;
         DecodeEventDataHEVCPicParamInit(&eventData, codecPicParams);

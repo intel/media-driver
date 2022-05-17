@@ -46,19 +46,6 @@
 
 #define MOS_MAX_PERF_FILENAME_LEN 260
 
-#define EVENT_DECODE_PICPARAM_KEYWORD         0x1
-#define EVENT_DECODE_SLICEPARAM_KEYWORD       0x2
-#define EVENT_DECODE_TILEPARAM_KEYWORD        0x4
-#define EVENT_DECODE_QMATRIX_KEYWORD          0x8
-#define EVENT_DECODE_BITSTREAM_32BYTE_KEYWORD 0x10
-#define EVENT_DECODE_BITSTREAM_KEYWORD        0x20
-#define EVENT_DECODE_INTERNAL_KEYWORD         0x40
-#define EVENT_DECODE_COMMAND_KEYWORD          0x80
-#define EVENT_DECODE_DSTYUV_KEYWORD           0x100
-#define EVENT_DECODE_REFYUV_KEYWORD           0x200
-#define EVENT_DECODE_MV_KEYWORD               0x400
-#define EVENT_DECODE_SUBSET_KEYWORD           0x800
-
 class PerfUtility
 {
 public:
@@ -411,7 +398,7 @@ MOS_FUNC_EXPORT MOS_STATUS MOS_EXPORT_DECL DumpUserFeatureKeyDefinitionsMedia();
 //  trace
 //------------------------------------------------------------------------------
 
-#define MOS_GetTraceEventKeyword()                                      MosUtilities::GetTraceEventKeyword()
+#define MOS_TraceKeyEnabled(key)                                        (MosUtilities::GetTraceEventKeyword() & (1<<key))
 #define MOS_TraceEvent(usId, ucType, pArg1, dwSize1, pArg2, dwSize2)    MosUtilities::MosTraceEvent(usId, ucType, pArg1, dwSize1, pArg2, dwSize2)
 #define MOS_TraceDataDump(pcName, flags, pBuf, dwSize)                  MosUtilities::MosTraceDataDump(pcName, flags, pBuf, dwSize)
 
