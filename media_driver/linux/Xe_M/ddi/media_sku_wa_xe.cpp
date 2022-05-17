@@ -811,6 +811,8 @@ static bool InitDg2MediaSku(struct GfxDeviceInfo *devInfo,
         MEDIA_WR_SKU(skuTable, FtrMediaTile64, 1);
     }
 
+    MEDIA_WR_SKU(skuTable, FtrHDR, 1);
+
     return true;
 }
 

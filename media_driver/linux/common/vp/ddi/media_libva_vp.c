@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2020, Intel Corporation
+* Copyright (c) 2009-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -4486,33 +4486,36 @@ DdiVp_QueryVideoProcFilterCaps (
         {
             if (mediaDrvCtx)
             {
-                uExistCapsNum = 1;
-                *num_filter_caps = uExistCapsNum;
-                if (uQueryFlag == QUERY_CAPS_ATTRIBUTE)
+                if (MEDIA_IS_SKU(&mediaDrvCtx->SkuTable, FtrHDR))
                 {
-                    VAProcFilterCapHighDynamicRange *HdrTmCap = (VAProcFilterCapHighDynamicRange *)filter_caps;
-
-                    if (uQueryCapsNum < uExistCapsNum)
+                    uExistCapsNum = 1;
+                    *num_filter_caps = uExistCapsNum;
+                    if (uQueryFlag == QUERY_CAPS_ATTRIBUTE)
                     {
-                        return VA_STATUS_ERROR_MAX_NUM_EXCEEDED;
-                    }
+                        VAProcFilterCapHighDynamicRange *HdrTmCap = (VAProcFilterCapHighDynamicRange *)filter_caps;
 
-                    if (HdrTmCap)
-                    {
-                        HdrTmCap->metadata_type = VAProcHighDynamicRangeMetadataHDR10;
-                        HdrTmCap->caps_flag = VA_TONE_MAPPING_HDR_TO_HDR | VA_TONE_MAPPING_HDR_TO_SDR | VA_TONE_MAPPING_HDR_TO_EDR;
+                        if (uQueryCapsNum < uExistCapsNum)
+                        {
+                            return VA_STATUS_ERROR_MAX_NUM_EXCEEDED;
+                        }
+
+                        if (HdrTmCap)
+                        {
+                            HdrTmCap->metadata_type = VAProcHighDynamicRangeMetadataHDR10;
+                            HdrTmCap->caps_flag = VA_TONE_MAPPING_HDR_TO_HDR | VA_TONE_MAPPING_HDR_TO_SDR | VA_TONE_MAPPING_HDR_TO_EDR;
+                        }
                     }
                 }
                 else
                 {
-                    VP_DDI_NORMALMESSAGE("VAProcFilterHighDynamicRangeToneMapping uQueryFlag != QUERY_CAPS_ATTRIBUTE.\n");
-                    return VA_STATUS_ERROR_INVALID_VALUE;
+                    uExistCapsNum = 0;
+                    *num_filter_caps = uExistCapsNum;
                 }
             }
             else
             {
-                VP_DDI_NORMALMESSAGE("Other platforms except ICL can not support VAProcFilterHighDynamicRangeToneMapping.\n");
-                return VA_STATUS_ERROR_INVALID_VALUE;
+                VP_DDI_ASSERTMESSAGE("mediaDrvCtx is null pointer.\n");
+                return VA_STATUS_ERROR_INVALID_CONTEXT;
             }
             break;
         }
