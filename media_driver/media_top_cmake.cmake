@@ -62,6 +62,10 @@ set(SOURCES_ "")
 set(COMMON_SOURCES_ "")
 set(CODEC_SOURCES_ "")
 set(VP_SOURCES_ "")
+set(CP_COMMON_SOURCES_ "")        # legacy source group
+set(CP_COMMON_SHARED_SOURCES_ "") # legacy and softlet shared source group
+set(CP_COMMON_NEXT_SOURCES_ "")   # softlet source group
+set(CP_SOURCES_ "")               # common + os part
 set (SHARED_SOURCES_ "")
 set (UPDATED_SOURCES_ "")
 
@@ -96,14 +100,27 @@ set_source_files_properties(${COMMON_SOURCES_} PROPERTIES LANGUAGE "CXX")
 set_source_files_properties(${CODEC_SOURCES_} PROPERTIES LANGUAGE "CXX")
 set_source_files_properties(${VP_SOURCES_} PROPERTIES LANGUAGE "CXX")
 
+set_source_files_properties(${CP_COMMON_SOURCES_} PROPERTIES LANGUAGE "CXX")
+set_source_files_properties(${CP_COMMON_SHARED_SOURCES_} PROPERTIES LANGUAGE "CXX")
+set_source_files_properties(${CP_COMMON_NEXT_SOURCES_} PROPERTIES LANGUAGE "CXX")
+set_source_files_properties(${CP_SOURCES_} PROPERTIES LANGUAGE "CXX")
+
 set_source_files_properties(${SOURCES_SSE2} PROPERTIES LANGUAGE "CXX")
 set_source_files_properties(${SOURCES_SSE4} PROPERTIES LANGUAGE "CXX")
+
+set (CP_SOURCES_
+    ${CP_SOURCES_}
+    ${CP_COMMON_SOURCES_}
+    ${CP_COMMON_SHARED_SOURCES_}
+    ${CP_COMMON_NEXT_SOURCES_})
 
 set (SHARED_SOURCES_
     ${SHARED_SOURCES_}
     ${COMMON_SOURCES_}
     ${CODEC_SOURCES_}
-    ${VP_SOURCES_})
+    ${VP_SOURCES_}
+    ${CP_SOURCES_})
+
 FOREACH(SRC1 ${SOURCES_})
     set (FOUND 0)
     FOREACH(SRC2 ${SHARED_SOURCES_})
@@ -138,10 +155,14 @@ set_property(TARGET ${LIB_NAME}_CODEC PROPERTY POSITION_INDEPENDENT_CODE 1)
 add_library(${LIB_NAME}_VP OBJECT ${VP_SOURCES_})
 set_property(TARGET ${LIB_NAME}_VP PROPERTY POSITION_INDEPENDENT_CODE 1)
 
+add_library(${LIB_NAME}_CP OBJECT ${CP_SOURCES_})
+set_property(TARGET ${LIB_NAME}_CP PROPERTY POSITION_INDEPENDENT_CODE 1)
+
 add_library(${LIB_NAME} SHARED
     $<TARGET_OBJECTS:${LIB_NAME}_COMMON>
     $<TARGET_OBJECTS:${LIB_NAME}_CODEC>
     $<TARGET_OBJECTS:${LIB_NAME}_VP>
+    $<TARGET_OBJECTS:${LIB_NAME}_CP>
     $<TARGET_OBJECTS:${LIB_NAME}_SSE2>
     $<TARGET_OBJECTS:${LIB_NAME}_SSE4>)
 
@@ -149,6 +170,7 @@ add_library(${LIB_NAME_STATIC} STATIC
     $<TARGET_OBJECTS:${LIB_NAME}_COMMON>
     $<TARGET_OBJECTS:${LIB_NAME}_CODEC>
     $<TARGET_OBJECTS:${LIB_NAME}_VP>
+    $<TARGET_OBJECTS:${LIB_NAME}_CP>
     $<TARGET_OBJECTS:${LIB_NAME}_SSE2>
     $<TARGET_OBJECTS:${LIB_NAME}_SSE4>)
 
@@ -159,6 +181,7 @@ if(MEDIA_BUILD_FATAL_WARNINGS)
     set_target_properties(${LIB_NAME}_COMMON PROPERTIES COMPILE_FLAGS "-Werror")
     set_target_properties(${LIB_NAME}_CODEC PROPERTIES COMPILE_FLAGS "-Werror")
     set_target_properties(${LIB_NAME}_VP PROPERTIES COMPILE_FLAGS "-Werror")
+    set_target_properties(${LIB_NAME}_CP PROPERTIES COMPILE_FLAGS "-Werror")
 endif()
 
 set(MEDIA_LINK_FLAGS "-Wl,--no-as-needed -Wl,--gc-sections -z relro -z now -fPIC")
@@ -174,6 +197,7 @@ set_target_properties(${LIB_NAME_STATIC} PROPERTIES PREFIX "")
 MediaAddCommonTargetDefines(${LIB_NAME}_COMMON)
 MediaAddCommonTargetDefines(${LIB_NAME}_CODEC)
 MediaAddCommonTargetDefines(${LIB_NAME}_VP)
+MediaAddCommonTargetDefines(${LIB_NAME}_CP)
 
 bs_ufo_link_libraries_noBsymbolic(
     ${LIB_NAME}
