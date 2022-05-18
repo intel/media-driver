@@ -164,7 +164,18 @@ MOS_STATUS HevcBasicFeature::SetPictureStructs()
     m_reportFrameCrc = m_hevcPicParams->RequestCRC;
 
     DECODE_CHK_STATUS(m_refFrames.UpdatePicture(*m_hevcPicParams, m_isSCCIBCMode));
-    DECODE_CHK_STATUS(m_mvBuffers.UpdatePicture(m_curRenderPic.FrameIdx, m_refFrameIndexList));
+    if (m_osInterface->pfnIsMismatchOrderProgrammingSupported())
+    {
+        for (auto &refFrameIdx : m_refFrameIndexList)
+        {
+            DECODE_CHK_STATUS(m_mvBuffers.ActiveCurBuffer(refFrameIdx));
+        }
+        DECODE_CHK_STATUS(m_mvBuffers.ActiveCurBuffer(m_curRenderPic.FrameIdx));
+    }
+    else
+    {
+        DECODE_CHK_STATUS(m_mvBuffers.UpdatePicture(m_curRenderPic.FrameIdx, m_refFrameIndexList));
+    }
     DECODE_CHK_STATUS(m_tileCoding.UpdatePicture(*m_hevcPicParams));
 
     // Not possible to determine whether P or B is used for short format.

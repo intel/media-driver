@@ -44,6 +44,7 @@ public:
         if (hwInterface != nullptr)
         {
             m_hcpInterface = hwInterface->GetHcpInterface();
+            m_osInterface  = hwInterface->GetOsInterface();
         }
     };
 
@@ -52,6 +53,11 @@ public:
     virtual MOS_STATUS Init(void *setting) override;
 
     virtual MOS_STATUS Update(void *params) override;
+
+    PMOS_INTERFACE GetOsInterface()
+    {
+        return m_osInterface;
+    }
 
     MOS_STATUS CreateReferenceBeforeLoopFilter();
 
@@ -93,6 +99,7 @@ protected:
     MOS_STATUS SetSliceStructs();
 
     MhwVdboxHcpInterface * m_hcpInterface = nullptr;
+    PMOS_INTERFACE        m_osInterface  = nullptr;
 
 MEDIA_CLASS_DEFINE_END(HevcBasicFeature)
 };

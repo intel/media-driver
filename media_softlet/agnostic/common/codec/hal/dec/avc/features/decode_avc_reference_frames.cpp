@@ -207,15 +207,30 @@ namespace decode
         // Override reference list with ref surface passed from DDI
         uint8_t surfCount = 0;
         uint8_t surfIndex = 0;
-        while (surfCount < m_basicFeature->m_refSurfaceNum && surfIndex < CODEC_AVC_NUM_UNCOMPRESSED_SURFACE)
+        if (m_osInterface->pfnIsMismatchOrderProgrammingSupported())
         {
-            if (!m_allocator->ResourceIsNull(&m_basicFeature->m_refFrameSurface[surfIndex].OsResource))
+            while (surfIndex < CODEC_AVC_NUM_UNCOMPRESSED_SURFACE)
             {
-                m_refList[surfIndex]->resRefPic = m_basicFeature->m_refFrameSurface[surfIndex].OsResource;
-                surfCount++;
+                if (!m_allocator->ResourceIsNull(&m_basicFeature->m_refFrameSurface[surfIndex].OsResource))
+                {
+                    m_refList[surfIndex]->resRefPic = m_basicFeature->m_refFrameSurface[surfIndex].OsResource;
+                }
+                surfIndex++;
             }
-            surfIndex++;
         }
+        else
+        {
+            while (surfCount < m_basicFeature->m_refSurfaceNum && surfIndex < CODEC_AVC_NUM_UNCOMPRESSED_SURFACE)
+            {
+                if (!m_allocator->ResourceIsNull(&m_basicFeature->m_refFrameSurface[surfIndex].OsResource))
+                {
+                    m_refList[surfIndex]->resRefPic = m_basicFeature->m_refFrameSurface[surfIndex].OsResource;
+                    surfCount++;
+                }
+                surfIndex++;
+            }
+        }
+
 
         for (uint8_t i = 0; i < CODEC_AVC_MAX_NUM_REF_FRAME; i++)
         {
