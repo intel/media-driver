@@ -4025,12 +4025,13 @@ MOS_STATUS CodechalVdencAvcState::SetSequenceStructs()
 
     if (seqParams->RateControlMethod == RATECONTROL_ICQ)
     {
-        if (seqParams->ICQQualityFactor < CODECHAL_ENCODE_AVC_MIN_ICQ_QUALITYFACTOR ||
+        if (seqParams->ICQQualityFactor < CODECHAL_ENCODE_AVC_VDENC_MIN_ICQ_QUALITYFACTOR ||
             seqParams->ICQQualityFactor > CODECHAL_ENCODE_AVC_MAX_ICQ_QUALITYFACTOR)
         {
-            CODECHAL_ENCODE_ASSERTMESSAGE("Invalid ICQ Quality Factor input\n");
-            eStatus = MOS_STATUS_INVALID_PARAMETER;
-            return eStatus;
+            CODECHAL_ENCODE_ASSERTMESSAGE("Invalid ICQ Quality Factor input %d\n", seqParams->ICQQualityFactor);
+            seqParams->ICQQualityFactor = (uint16_t)CodecHal_Clip3(CODECHAL_ENCODE_AVC_VDENC_MIN_ICQ_QUALITYFACTOR,
+                CODECHAL_ENCODE_AVC_MAX_ICQ_QUALITYFACTOR,
+                seqParams->ICQQualityFactor);
         }
     }
 
