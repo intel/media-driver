@@ -97,7 +97,7 @@ public:
     //!
     //! \brief    IsMmcEnabled
     //!
-    bool IsMmcEnabled();
+    virtual bool IsMmcEnabled();
 
     //!
     //! \brief    DisableMmc
