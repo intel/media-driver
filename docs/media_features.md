@@ -112,4 +112,11 @@
 * TGL/DG1/SG1 capable of max resolution: 16K; ICL/JSL/EHL/SKL/BXT/KBL/BDW capable of max resolution: 4k.
 * Composition path does not support conversion from BT2020 RGB to BT2020 YUV, BT2020->BT601/BT709, BT601/BT709 -> BT2020. So if some formats, RGB444 planar for example, are only supported by compositon path, make sure the color space isn't BT2020.
 
+## Supported Video Processing Feature Combination
+Video processing has various feature filters including Blending(or Composition), CSC(Color Space Conversion), De-Interlace, De-Noise, Luma Key, Mirroring, Procamp, Rotation, Scaling, Sharpening, STD/E, TCC, Color Fill, Chroma Sitting, HDR10 TM, 3DLUT. These features can be divided into VEBOX/SFC/EU 3 categories according to hardware units. Generally, VEBOX+SFC or VEBOX+EU feature combination is valid and HW execution sequence is usually VEBOX first, SFC/EU second.
+* VEBOX: Chroma Sitting, De-Interlace, De-Noise, Procamp, STD/E, TCC, HDR10 TM, 3DLUT, CSC
+     ##### HDR10 TM is the feature for HDR video content, hence, not compatible with denoise, deinterlace, STD/E, TCC.
+* SFC: Chroma Sitting, CSC, Mirroring, Rotation, Scaling, Sharpening, Color Fill
+* EU (Media Kernel or Shader): Blending, CSC, Rotation, Scaling, Color Fill
+
 ##### Resolution definition: 2k=2048x2048, 4k=4096x4096, 8k=8192x8192, 16k=16384x16384
