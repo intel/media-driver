@@ -524,7 +524,7 @@ uint32_t MosOcaInterfaceSpecific::IncreaseSize(uint32_t cmdBufSize)
 
 void MosOcaInterfaceSpecific::InitOcaLogSection(MOS_LINUX_BO *bo)
 {
-    if (bo->size <= OCA_LOG_SECTION_SIZE_MAX)
+    if (bo == nullptr || bo->virt == nullptr || bo->size <= OCA_LOG_SECTION_SIZE_MAX)
     {
         return;
     }

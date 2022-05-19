@@ -1086,6 +1086,7 @@ MOS_STATUS GpuContextSpecificNext::SubmitCommandBuffer(
             }
         }
 
+        MOS_OS_CHK_NULL_RETURN(tempCmdBo->virt);
         if (perStreamParameters->bUse64BitRelocs)
         {
             *((uint64_t *)((uint8_t *)tempCmdBo->virt + currentPatch->PatchOffset)) =

@@ -969,6 +969,7 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
             }
         }
 
+        MOS_OS_CHK_NULL_RETURN(tempCmdBo->virt);
         if (osContext->bUse64BitRelocs)
         {
             *((uint64_t *)((uint8_t *)tempCmdBo->virt + currentPatch->PatchOffset)) =
