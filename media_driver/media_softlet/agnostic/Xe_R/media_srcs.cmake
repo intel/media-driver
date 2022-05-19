@@ -28,7 +28,7 @@ if(XEHP_SDV)
     media_include_subdirectory(Xe_HP)
 endif()
 
-if(DG2)
+if(XE_HPG)
     media_include_subdirectory(Xe_HPG)
 endif()
 

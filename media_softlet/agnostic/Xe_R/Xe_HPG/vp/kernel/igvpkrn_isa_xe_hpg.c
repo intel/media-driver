@@ -24,7 +24,7 @@
 //! \brief    File holds the kernel binary for dg2 isa kernel.
 //! \details  This module must not contain: - OS dependent code - HW dependent code - DDI layer dependencies
 //!
-#ifdef IGFX_DG2_SUPPORTED
+#ifdef IGFX_XE_HPG_SUPPORTED
 unsigned int IGVP3DLUT_GENERATION_XE_HPG_SIZE = 87965;
 unsigned int IGVP3DLUT_GENERATION_XE_HPG[] = 
 {

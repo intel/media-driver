@@ -104,6 +104,11 @@ cmake_dependent_option(DG2
     "Enabled DG2 support" ON
     "Xe_M;ENABLE_PRODUCTION_KMD" OFF)
 
+# Using render IP name for kernel binary
+cmake_dependent_option(XE_HPG
+    "Enabled XE_HPG support" ON
+    "DG2" OFF)
+
 cmake_dependent_option(XEHP_SDV
     "Enabled Xehp_sdv support" ON
     "Xe_M;ENABLE_PRODUCTION_KMD" OFF)
@@ -205,7 +210,6 @@ endif()
 
 if(DG2)
     add_definitions(-DIGFX_DG2_SUPPORTED)
-    add_definitions(-DIGFX_DG2_CMFCPATCH_SUPPORTED)
 endif()
 
 if(PVC)
@@ -216,6 +220,11 @@ endif()
 if(XEHP_SDV)
     add_definitions(-DIGFX_XEHP_SDV_SUPPORTED)
     add_definitions(-DIGFX_XEHP_SDV_CMFCPATCH_SUPPORTED)
+endif()
+
+if(XE_HPG)
+    add_definitions(-DIGFX_XE_HPG_SUPPORTED)
+    add_definitions(-DIGFX_XE_HPG_CMFCPATCH_SUPPORTED)
 endif()
 
 include(${MEDIA_EXT_CMAKE}/ext/linux/media_gen_flags_linux_ext.cmake OPTIONAL)
