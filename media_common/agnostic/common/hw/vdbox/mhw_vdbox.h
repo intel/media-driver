@@ -370,6 +370,7 @@ struct MHW_VDBOX_PIPE_BUF_ADDR_PARAMS
     bool                        isPFrame    = false;                     // Flag to indicate if it is P frame
     bool                        bIBCEnabled = false;
     uint8_t                     IBCRefIdxMask = 0;
+    bool                        bMmcEnabled   = false;
     PMOS_RESOURCE               presVdencCumulativeCuCountStreamoutSurface = nullptr;
     virtual ~MHW_VDBOX_PIPE_BUF_ADDR_PARAMS() {}
 };

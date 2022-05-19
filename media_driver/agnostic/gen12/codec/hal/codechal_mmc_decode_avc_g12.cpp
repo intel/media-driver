@@ -55,6 +55,7 @@ MOS_STATUS CodechalMmcDecodeAvcG12::SetPipeBufAddr(
 
         CODECHAL_DECODE_CHK_NULL_RETURN(m_avcState);
         CODECHAL_DECODE_CHK_NULL_RETURN(m_avcState->m_avcPicParams);
+        pipeBufAddrParams->bMmcEnabled = true;
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetMemoryCompressionMode(m_osInterface,
             &m_avcState->m_destSurface.OsResource,
@@ -66,7 +67,8 @@ MOS_STATUS CodechalMmcDecodeAvcG12::SetPipeBufAddr(
     }
     else
     {
-        pipeBufAddrParams->PreDeblockSurfMmcState = MOS_MEMCOMP_DISABLED;
+        pipeBufAddrParams->bMmcEnabled             = false;
+        pipeBufAddrParams->PreDeblockSurfMmcState  = MOS_MEMCOMP_DISABLED;
         pipeBufAddrParams->PostDeblockSurfMmcState = MOS_MEMCOMP_DISABLED;
     }
 

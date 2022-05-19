@@ -982,9 +982,26 @@ MOS_STATUS MhwVdboxMfxInterfaceG12::AddMfxPipeBufAddrCmd(
             MOS_ZeroMemory(&details, sizeof(details));
             details.Format = Format_Invalid;
             MHW_MI_CHK_STATUS(m_osInterface->pfnGetResourceInfo(m_osInterface, references[i], &details));
+            
+            MOS_MEMCOMP_STATE mmcMode = MOS_MEMCOMP_DISABLED;
+            if (CodecHalIsDecodeModeVLD(params->Mode) || CodecHalIsDecodeModeIT(params->Mode))
+            {
+                if (params->bMmcEnabled)
+                {
+                    MHW_MI_CHK_STATUS(m_osInterface->pfnGetMemoryCompressionMode(
+                        m_osInterface, references[i], &mmcMode));
+                }
+                else
+                {
+                    mmcMode = MOS_MEMCOMP_DISABLED;
+                }
+            }
+            else
+            {
+                mmcMode = (params->PostDeblockSurfMmcState != MOS_MEMCOMP_DISABLED) ?
+                    params->PostDeblockSurfMmcState : params->PreDeblockSurfMmcState;
+            }
 
-            MOS_MEMCOMP_STATE mmcMode = (params->PostDeblockSurfMmcState != MOS_MEMCOMP_DISABLED) ? 
-                params->PostDeblockSurfMmcState : params->PreDeblockSurfMmcState;
             if (mmcMode == MOS_MEMCOMP_RC || mmcMode == MOS_MEMCOMP_MC)
             {
                 cmd.DW61.Value |= (MHW_MEDIA_MEMCOMP_ENABLED << (i * 2 * step)) | ((mmcMode == MOS_MEMCOMP_RC) << (i * 2 * step + 1));
