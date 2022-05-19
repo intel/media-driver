@@ -1526,7 +1526,8 @@ public:
                 uint32_t                 CompressionTypeForBwdrefFrame                    : __CODEGEN_BITFIELD(13, 13)    ; //!< COMPRESSION_TYPE_FOR_BWDREF_FRAME
                 uint32_t                 CompressionTypeForAltref2Frame                   : __CODEGEN_BITFIELD(14, 14)    ; //!< COMPRESSION_TYPE_FOR_ALTREF2_FRAME
                 uint32_t                 CompressionTypeForAltrefFrame                    : __CODEGEN_BITFIELD(15, 15)    ; //!< COMPRESSION_TYPE_FOR_ALTREF_FRAME
-                uint32_t                 Reserved144                                      : __CODEGEN_BITFIELD(16, 31)    ; //!< Reserved
+                uint32_t                 CompressionFormat                                : __CODEGEN_BITFIELD(16, 20)    ; //!< COMPRESSION_FORMAT
+                uint32_t                 Reserved144                                      : __CODEGEN_BITFIELD(21, 31)    ; //!< Reserved
             };
             uint32_t                     Value;
         } DW4;

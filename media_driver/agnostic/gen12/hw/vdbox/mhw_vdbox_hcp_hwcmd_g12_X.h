@@ -485,7 +485,8 @@ public:
             {
                 uint32_t                 MemoryCompressionEnable                          : __CODEGEN_BITFIELD( 0,  7)    ; //!< MEMORY_COMPRESSION_ENABLE
                 uint32_t                 CompressionType                                  : __CODEGEN_BITFIELD( 8, 15)    ; //!< COMPRESSION_TYPE
-                uint32_t                 Reserved144                                      : __CODEGEN_BITFIELD(16, 31)    ; //!< Reserved
+                uint32_t                 CompressionFormat                                : __CODEGEN_BITFIELD(16, 20)    ; //!< COMPRESSION_FORMAT
+                uint32_t                 Reserved144                                      : __CODEGEN_BITFIELD(21, 31)    ; //!< Reserved
             };
             uint32_t                     Value;
         } DW4;

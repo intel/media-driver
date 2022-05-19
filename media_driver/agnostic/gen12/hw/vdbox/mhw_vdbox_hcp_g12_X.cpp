@@ -1714,6 +1714,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpEncodeSurfaceStateCmd(
         cmd->DW3.YOffsetForVCr = params->dwReconSurfHeight;
     }
 
+    cmd->DW4.CompressionFormat       = params->dwCompressionFormat;
     cmd->DW4.MemoryCompressionEnable = MmcEnable(params->mmcState) ? ((~params->mmcSkipMask) & 0xff) : 0;
     cmd->DW4.CompressionType         = MmcIsRc(params->mmcState) ? 0xff : 0;
 
