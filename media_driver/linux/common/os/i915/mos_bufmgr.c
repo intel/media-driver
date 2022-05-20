@@ -154,6 +154,7 @@ struct mos_bufmgr_gem {
     unsigned int has_ext_mmap : 1;
     unsigned int has_fence_reg : 1;
     unsigned int has_lmem : 1;
+    unsigned int has_mmap_offset : 1;
     bool fenced_relocs;
 
     struct {
@@ -1696,7 +1697,7 @@ map_wc(struct mos_linux_bo *bo)
         return -EINVAL;
 
     /* Get a mapping of the buffer if we haven't before. */
-    if (bo_gem->mem_wc_virtual == nullptr && bufmgr_gem->has_lmem) {
+    if (bo_gem->mem_wc_virtual == nullptr && bufmgr_gem->has_mmap_offset) {
         struct drm_i915_gem_mmap_offset mmap_arg;
 
         MOS_DBG("bo_map_wc: mmap_offset %d (%s), map_count=%d\n",
@@ -1705,7 +1706,14 @@ map_wc(struct mos_linux_bo *bo)
         memclear(mmap_arg);
         mmap_arg.handle = bo_gem->gem_handle;
         /* To indicate the uncached virtual mapping to KMD */
-        mmap_arg.flags = I915_MMAP_OFFSET_FIXED;
+        if (bufmgr_gem->has_lmem)
+        {
+            mmap_arg.flags = I915_MMAP_OFFSET_FIXED;
+        }
+        else
+        {
+           mmap_arg.flags = I915_MMAP_OFFSET_WC;
+        }
         ret = drmIoctl(bufmgr_gem->fd,
                    DRM_IOCTL_I915_GEM_MMAP_OFFSET,
                    &mmap_arg);
@@ -1862,7 +1870,7 @@ drm_export int mos_gem_bo_map(struct mos_linux_bo *bo, int write_enable)
 
     pthread_mutex_lock(&bufmgr_gem->lock);
 
-    if (bufmgr_gem->has_lmem) {
+    if (bufmgr_gem->has_mmap_offset) {
         struct drm_i915_gem_wait wait;
 
         if (!bo_gem->mem_virtual) {
@@ -1873,7 +1881,14 @@ drm_export int mos_gem_bo_map(struct mos_linux_bo *bo, int write_enable)
 
             memclear(mmap_arg);
             mmap_arg.handle = bo_gem->gem_handle;
-            mmap_arg.flags = I915_MMAP_OFFSET_FIXED;
+            if (bufmgr_gem->has_lmem)
+            {
+                mmap_arg.flags = I915_MMAP_OFFSET_FIXED;
+            }
+            else
+            {
+               mmap_arg.flags = I915_MMAP_OFFSET_WB;
+            }
             ret = drmIoctl(bufmgr_gem->fd,
                    DRM_IOCTL_I915_GEM_MMAP_OFFSET,
                    &mmap_arg);
@@ -1909,7 +1924,7 @@ drm_export int mos_gem_bo_map(struct mos_linux_bo *bo, int write_enable)
             MOS_DBG("%s:%d: DRM_IOCTL_I915_GEM_WAIT failed (%d)\n",
                 __FILE__, __LINE__, errno);
         }
-    } else { /*!has_lmem*/
+    } else { /*!has_mmap_offset*/
         struct drm_i915_gem_set_domain set_domain;
 
         if (!bo_gem->mem_virtual) {
@@ -4604,6 +4619,10 @@ mos_bufmgr_gem_init(int fd, int batch_size)
     {
         bufmgr_gem->bufmgr.set_object_capture      = mos_gem_bo_set_object_capture;
     }
+
+    gp.param = I915_PARAM_MMAP_GTT_VERSION;
+    ret =  drmIoctl(fd, DRM_IOCTL_I915_GETPARAM, &gp);
+    bufmgr_gem->has_mmap_offset  =  (ret == 0) && (*gp.value >= 4);
 
     struct drm_i915_gem_context_param context_param;
     memset(&context_param, 0, sizeof(context_param));
