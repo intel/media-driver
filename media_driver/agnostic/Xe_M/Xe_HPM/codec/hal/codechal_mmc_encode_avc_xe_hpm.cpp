@@ -37,6 +37,7 @@ MOS_STATUS CodechalMmcEncodeAvcXe_Hpm::SetPipeBufAddr(
 
     if (m_mmcEnabled)
     {
+        pipeBufAddrParams->bMmcEnabled = true;
         CODECHAL_ENCODE_CHK_NULL_RETURN(pipeBufAddrParams->psRawSurface);
         CODECHAL_ENCODE_CHK_COND_RETURN(Mos_ResourceIsNull(&m_avcState->m_reconSurface.OsResource), "m_avcState->m_reconSurface.OsResource is null");
 
@@ -65,6 +66,7 @@ MOS_STATUS CodechalMmcEncodeAvcXe_Hpm::SetPipeBufAddr(
     }
     else
     {
+        pipeBufAddrParams->bMmcEnabled = false;
         pipeBufAddrParams->PreDeblockSurfMmcState = MOS_MEMCOMP_DISABLED;
         pipeBufAddrParams->RawSurfMmcState = MOS_MEMCOMP_DISABLED;
     }

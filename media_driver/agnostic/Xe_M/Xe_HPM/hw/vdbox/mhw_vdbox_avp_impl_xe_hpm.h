@@ -203,28 +203,25 @@ namespace xe_hpm
                 uvPlaneAlignment = params.uvPlaneAlignment ? params.uvPlaneAlignment : m_reconUVPlaneAlignment;
             }
 
-            const bool mmcEn   = MmcEnabled(params.mmcState);
-            const bool mmcRcEn = MmcRcEnabled(params.mmcState);
-
 #define DO_FIELDS()                                       \
     DO_FIELD(DW2, YOffsetForUCbInPixel, MOS_ALIGN_CEIL(params.uOffset, uvPlaneAlignment)); \
                                                                  \
-    DO_FIELD(DW4, MemoryCompressionEnableForAv1IntraFrame, mmcEn ? 0xff : 0);   \
-    DO_FIELD(DW4, MemoryCompressionEnableForAv1LastFrame, mmcEn ? 0xff : 0);    \
-    DO_FIELD(DW4, MemoryCompressionEnableForAv1Last2Frame, mmcEn ? 0xff : 0);   \
-    DO_FIELD(DW4, MemoryCompressionEnableForAv1Last3Frame, mmcEn ? 0xff : 0);   \
-    DO_FIELD(DW4, MemoryCompressionEnableForAv1GoldenFrame, mmcEn ? 0xff : 0);  \
-    DO_FIELD(DW4, MemoryCompressionEnableForAv1BwdrefFrame, mmcEn ? 0xff : 0);  \
-    DO_FIELD(DW4, MemoryCompressionEnableForAv1Altref2Frame, mmcEn ? 0xff : 0); \
-    DO_FIELD(DW4, MemoryCompressionEnableForAv1AltrefFrame, mmcEn ? 0xff : 0);  \
-    DO_FIELD(DW4, CompressionTypeForIntraFrame, mmcRcEn ? 0xff : 0);            \
-    DO_FIELD(DW4, CompressionTypeForLastFrame, mmcRcEn ? 0xff : 0);             \
-    DO_FIELD(DW4, CompressionTypeForLast2Frame, mmcRcEn ? 0xff : 0);            \
-    DO_FIELD(DW4, CompressionTypeForLast3Frame, mmcRcEn ? 0xff : 0);            \
-    DO_FIELD(DW4, CompressionTypeForGoldenFrame, mmcRcEn ? 0xff : 0);           \
-    DO_FIELD(DW4, CompressionTypeForBwdrefFrame, mmcRcEn ? 0xff : 0);           \
-    DO_FIELD(DW4, CompressionTypeForAltref2Frame, mmcRcEn ? 0xff : 0);          \
-    DO_FIELD(DW4, CompressionTypeForAltrefFrame, mmcRcEn ? 0xff : 0)
+    DO_FIELD(DW4, MemoryCompressionEnableForAv1IntraFrame, MmcEnabled(params.mmcState[intraFrame]) ? 0xff : 0);   \
+    DO_FIELD(DW4, MemoryCompressionEnableForAv1LastFrame, MmcEnabled(params.mmcState[lastFrame]) ? 0xff : 0);    \
+    DO_FIELD(DW4, MemoryCompressionEnableForAv1Last2Frame, MmcEnabled(params.mmcState[last2Frame]) ? 0xff : 0);   \
+    DO_FIELD(DW4, MemoryCompressionEnableForAv1Last3Frame, MmcEnabled(params.mmcState[last3Frame]) ? 0xff : 0);   \
+    DO_FIELD(DW4, MemoryCompressionEnableForAv1GoldenFrame, MmcEnabled(params.mmcState[goldenFrame]) ? 0xff : 0);  \
+    DO_FIELD(DW4, MemoryCompressionEnableForAv1BwdrefFrame, MmcEnabled(params.mmcState[bwdRefFrame]) ? 0xff : 0);  \
+    DO_FIELD(DW4, MemoryCompressionEnableForAv1Altref2Frame, MmcEnabled(params.mmcState[altRef2Frame]) ? 0xff : 0); \
+    DO_FIELD(DW4, MemoryCompressionEnableForAv1AltrefFrame, MmcEnabled(params.mmcState[altRefFrame]) ? 0xff : 0);  \
+    DO_FIELD(DW4, CompressionTypeForIntraFrame, MmcRcEnabled(params.mmcState[intraFrame]) ? 0xff : 0);            \
+    DO_FIELD(DW4, CompressionTypeForLastFrame, MmcRcEnabled(params.mmcState[lastFrame]) ? 0xff : 0);             \
+    DO_FIELD(DW4, CompressionTypeForLast2Frame, MmcRcEnabled(params.mmcState[last2Frame]) ? 0xff : 0);            \
+    DO_FIELD(DW4, CompressionTypeForLast3Frame, MmcRcEnabled(params.mmcState[last3Frame]) ? 0xff : 0);            \
+    DO_FIELD(DW4, CompressionTypeForGoldenFrame, MmcRcEnabled(params.mmcState[goldenFrame]) ? 0xff : 0);           \
+    DO_FIELD(DW4, CompressionTypeForBwdrefFrame, MmcRcEnabled(params.mmcState[bwdRefFrame]) ? 0xff : 0);           \
+    DO_FIELD(DW4, CompressionTypeForAltref2Frame, MmcRcEnabled(params.mmcState[altRef2Frame]) ? 0xff : 0);          \
+    DO_FIELD(DW4, CompressionTypeForAltrefFrame, MmcRcEnabled(params.mmcState[altRefFrame]) ? 0xff : 0)
 
 #include "mhw_hwcmd_process_cmdfields.h"
         }
