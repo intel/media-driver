@@ -21,6 +21,7 @@
 */
 
 #include "bitstream_writer.h"
+#include <assert.h>
 
 BitstreamWriter::BitstreamWriter(mfxU8 *bs, mfxU32 size, mfxU8 bitOffset)
     : m_bsStart(bs), m_bsEnd(bs + size), m_bs(bs), m_bitStart(bitOffset & 7), m_bitOffset(bitOffset & 7), m_codILow(0)  // cabac variables

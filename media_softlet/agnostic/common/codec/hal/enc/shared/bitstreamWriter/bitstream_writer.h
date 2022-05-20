@@ -27,9 +27,8 @@
 #ifndef __BITSTREAM_WRITER_H__
 #define __BITSTREAM_WRITER_H__
 
-#include <map>
-#include <assert.h>
 #include "media_class_trace.h"
+#include <map>
 
 typedef unsigned char  mfxU8;
 typedef char           mfxI8;

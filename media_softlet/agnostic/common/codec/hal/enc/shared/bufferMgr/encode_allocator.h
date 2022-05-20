@@ -28,6 +28,8 @@
 
 #ifndef __ENCODE_ALLOCATOR_H__
 #define __ENCODE_ALLOCATOR_H__
+
+#include "media_class_trace.h"
 #include "mos_defs.h"
 #include "mos_os.h"
 #include "mos_os_hw.h"

@@ -26,10 +26,12 @@
 
 #ifndef __ENCODE_RECYCLE_RES_QUEUE_H__
 #define __ENCODE_RECYCLE_RES_QUEUE_H__
-#include <stdint.h>
-#include <vector>
+
+#include "media_class_trace.h"
 #include "mos_defs.h"
 #include "mos_os.h"
+#include <stdint.h>
+#include <vector>
 
 namespace encode
 {

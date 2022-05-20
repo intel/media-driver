@@ -30,13 +30,14 @@
 #ifndef __ENCODE_HEVC_VDENC_CONST_SETTINGS_H__
 #define __ENCODE_HEVC_VDENC_CONST_SETTINGS_H__
 
-#include <stdint.h>
-#include <array>
 #include "codec_def_common_encode.h"
 #include "codec_def_encode_hevc.h"
 #include "encode_const_settings.h"
+#include "media_class_trace.h"
 #include "media_feature_const_settings.h"
 #include "mos_defs.h"
+#include <stdint.h>
+#include <array>
 #if _ENCODE_RESERVED
 #include "encode_hevc_vdenc_const_settings_ext.h"
 #endif // _ENCODE_RESERVED

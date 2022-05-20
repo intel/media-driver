@@ -41,6 +41,19 @@ struct CodechalEncodeSeiData
     uint8_t*   pSEIBuffer;
 };
 
+typedef struct _CODEC_ENCODE_MB_CONTROL
+{
+    union
+    {
+        struct
+        {
+            uint32_t        bForceIntra : 1;
+            uint32_t        Reserved : 31;
+        };
+        uint32_t            value;
+    } MBParams;
+} CODEC_ENCODE_MB_CONTROL, *PCODEC_ENCODE_MB_CONTROL;
+
 struct MetaDataOffset
 {
     uint32_t dwEncodeErrorFlags                         = 0;
