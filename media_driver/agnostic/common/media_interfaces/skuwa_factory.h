@@ -31,7 +31,7 @@
 #include <vector>
 #include <utility>
 #include <cstdarg>
-
+#include <cstdint>
 
 //!
 //! \class    DeviceInfoFactory
