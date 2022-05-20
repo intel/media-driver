@@ -401,6 +401,7 @@ struct VPHAL_DBG_DUMP_SPEC
     VPHAL_DBG_CB_DUMP_SPEC                 *pCBDumpSpec;
     VPHAL_DBG_VEBOXSTATE_DUMP_SPEC         *pVeboxStateDumpSpec;
     VPHAL_DBG_STATISTICS_DUMP_SPEC         *pStatisticsDumpSpec;
+    uint32_t                               enableStateDump;  // Enable state dump
 };
 //-------------------------------------------------------------------------------
 // All information about parameters output dump
@@ -459,11 +460,7 @@ public:
     //!
     //! \brief    VphalSurfaceDumper constuctor
     //!
-    VphalSurfaceDumper(PMOS_INTERFACE pOsInterface)
-    :   m_dumpSpec(),
-        m_osInterface(pOsInterface)
-    {
-    };
+    VphalSurfaceDumper(PMOS_INTERFACE pOsInterface);
 
     //!
     //! \brief    VphalSurfaceDumper destuctor
@@ -563,6 +560,7 @@ protected:
     char                        m_dumpLoc[MAX_PATH];        // to avoid recursive call from diff owner but sharing the same buffer
     static uint32_t             m_frameNumInVp;             // For use when vp dump its compressed surface, override the frame number given from MediaVeboxDecompState
     static char                 m_dumpLocInVp[MAX_PATH];    // For use when vp dump its compressed surface, to distinguish each vp loc's pre/post decomp
+    MediaUserSettingSharedPtr   m_userSettingPtr = nullptr; // userSettingInstance
 
 private:
 
@@ -654,17 +652,7 @@ public:
     //!
     //! \brief    VphalHwStateDumper constuctor
     //!
-    VphalHwStateDumper(PRENDERHAL_INTERFACE             pRenderHal)
-        :   m_dumpSpec(),
-            iDebugStage(0),
-            iPhase(0),
-            m_renderHal(pRenderHal),
-            m_osInterface(pRenderHal->pOsInterface),
-            m_hwSizes(pRenderHal->pHwSizes),
-            m_stateHeap(pRenderHal->pStateHeap),
-            m_stateHeapSettings(&pRenderHal->StateHeapSettings)
-    {
-    };
+    VphalHwStateDumper(PRENDERHAL_INTERFACE pRenderHal);
 
     //!
     //! \brief    VphalHwStateDumper destuctor
@@ -765,7 +753,7 @@ private:
     PMHW_RENDER_STATE_SIZES         m_hwSizes;
     PRENDERHAL_STATE_HEAP           m_stateHeap;
     PRENDERHAL_STATE_HEAP_SETTINGS  m_stateHeapSettings;
-
+    MediaUserSettingSharedPtr       m_userSettingPtr = nullptr;  // userSettingInstance
     //!
     //! \brief    Take dump location strings and break down into individual 
     //!           post-processing pipeline locations and state types.
@@ -1088,11 +1076,7 @@ public:
     //!
     //! \brief    VphalParameterDumper constuctor
     //!
-    VphalParameterDumper(PMOS_INTERFACE pOsInterface)
-    :   m_dumpSpec(),
-        m_osInterface(pOsInterface)
-    {
-    };
+    VphalParameterDumper(PMOS_INTERFACE pOsInterface);
 
     //!
     //! \brief    Get VPHAL Parameters Dump Spec
@@ -1208,7 +1192,7 @@ protected:
 
 private:
     PMOS_INTERFACE  m_osInterface;
-
+    MediaUserSettingSharedPtr m_userSettingPtr = nullptr;  // userSettingInstance
     //!
     //! \brief    Gets Debug Whole Format String
     //! \param    [in] format

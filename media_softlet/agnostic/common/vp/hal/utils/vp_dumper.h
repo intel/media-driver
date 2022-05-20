@@ -281,11 +281,7 @@ public:
     //!
     //! \brief    VpSurfaceDumper constuctor
     //!
-    VpSurfaceDumper(PMOS_INTERFACE pOsInterface)
-    :   m_dumpSpec(),
-        m_osInterface(pOsInterface)
-    {
-    };
+    VpSurfaceDumper(PMOS_INTERFACE pOsInterface);
 
     //!
     //! \brief    VpSurfaceDumper destuctor
@@ -390,6 +386,7 @@ protected:
     PMOS_INTERFACE              m_osInterface;
     char                        m_dumpPrefix[MAX_PATH];     // Called frequently, so avoid repeated stack resizing with member data
     char                        m_dumpLoc[MAX_PATH];        // to avoid recursive call from diff owner but sharing the same buffer
+    MediaUserSettingSharedPtr   m_userSettingPtr = nullptr; // userSettingInstance
 
 private:
 
@@ -478,11 +475,7 @@ public:
     //!
     //! \brief    VphalParameterDumper constuctor
     //!
-    VpParameterDumper(PMOS_INTERFACE pOsInterface)
-    :   m_dumpSpec(),
-        m_osInterface(pOsInterface)
-    {
-    };
+    VpParameterDumper(PMOS_INTERFACE pOsInterface);
 
     //!
     //! \brief    Get VPHAL Parameters Dump Spec
@@ -594,7 +587,7 @@ protected:
 
 private:
     PMOS_INTERFACE  m_osInterface;
-
+    MediaUserSettingSharedPtr m_userSettingPtr = nullptr;  // userSettingInstance
     //!
     //! \brief    Gets Debug Whole Format String
     //! \param    [in] format

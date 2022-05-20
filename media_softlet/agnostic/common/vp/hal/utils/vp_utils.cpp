@@ -565,35 +565,35 @@ uint32_t VpUtils::GetSurfaceBitDepth(
 
 MOS_STATUS VpUtils::DeclareUserSettings(MediaUserSettingSharedPtr userSettingPtr)
 {
-    DeclareUserSettingKey(
+    DeclareUserSettingKey(  //For debugging purpose. true for disabling SFC
         userSettingPtr,
         __VPHAL_VEBOX_DISABLE_SFC,
         MediaUserSetting::Group::Sequence,
         0,
         true);
 
-    DeclareUserSettingKey(
+    DeclareUserSettingKey(  //Disabling SFC DTR output. 1: Disable, 0: Enable
         userSettingPtr,
         __MEDIA_USER_FEATURE_VALUE_SFC_OUTPUT_DTR_DISABLE,
         MediaUserSetting::Group::Sequence,
         1,
         true);
 
-    DeclareUserSettingKey(
+    DeclareUserSettingKey(  // For Notify which datapath Vebox used
         userSettingPtr,
         __VPHAL_VEBOX_OUTPUTPIPE_MODE,
         MediaUserSetting::Group::Sequence,
         0,
         true);
 
-    DeclareUserSettingKey(
+    DeclareUserSettingKey(//For Notify which feature Vebox used
         userSettingPtr,
         __VPHAL_VEBOX_FEATURE_INUSE,
         MediaUserSetting::Group::Sequence,
         0,
         true);
 
-    DeclareUserSettingKey(
+    DeclareUserSettingKey(  //TRUE for Enabling Vebox Scalability. (Default FALSE: disabled")
         userSettingPtr,
         __MEDIA_USER_FEATURE_VALUE_ENABLE_VEBOX_SCALABILITY_MODE,
         MediaUserSetting::Group::Sequence,
@@ -614,7 +614,7 @@ MOS_STATUS VpUtils::DeclareUserSettings(MediaUserSettingSharedPtr userSettingPtr
         0,
         true);
 
-    DeclareUserSettingKey(
+    DeclareUserSettingKey(  //Enable memory compression
         userSettingPtr,
         __VPHAL_ENABLE_MMC,
         MediaUserSetting::Group::Sequence,
@@ -650,28 +650,28 @@ MOS_STATUS VpUtils::DeclareUserSettings(MediaUserSettingSharedPtr userSettingPtr
         0,
         true);
 
-    DeclareUserSettingKeyForDebug(
+    DeclareUserSettingKeyForDebug(  // FORCE VP DECOMPRESSED OUTPUT
         userSettingPtr,
         __VPHAL_RNDR_FORCE_VP_DECOMPRESSED_OUTPUT,
         MediaUserSetting::Group::Sequence,
         0,
         true);
 
-    DeclareUserSettingKeyForDebug(
+    DeclareUserSettingKeyForDebug(  //Software Scoreboard enable Control
         userSettingPtr,
         __VPHAL_RNDR_SCOREBOARD_CONTROL,
         MediaUserSetting::Group::Sequence,
         1,
         true);
 
-    DeclareUserSettingKeyForDebug(
+    DeclareUserSettingKeyForDebug(  // CM based FC enable Control
         userSettingPtr,
         __VPHAL_RNDR_CMFC_CONTROL,
         MediaUserSetting::Group::Sequence,
         0,
         true);
 
-    DeclareUserSettingKeyForDebug(
+    DeclareUserSettingKeyForDebug(  //Enable 1K 1DLUT
         userSettingPtr,
         __VPHAL_ENABLE_1K_1DLUT,
         MediaUserSetting::Group::Sequence,
@@ -716,6 +716,104 @@ MOS_STATUS VpUtils::DeclareUserSettings(MediaUserSettingSharedPtr userSettingPtr
     DeclareUserSettingKeyForDebug(  // Set SFC RGBP Linear/Tile RGB24 Linear Output
         userSettingPtr,
         __VPHAL_ENABLE_SFC_RGBP_RGB24_OUTPUT,
+        MediaUserSetting::Group::Sequence,
+        0,
+        true);
+
+    DeclareUserSettingKeyForDebug(  // Surface Dump Outfile
+        userSettingPtr,
+        __VPHAL_DBG_SURF_DUMP_OUTFILE_KEY_NAME,
+        MediaUserSetting::Group::Sequence,
+        "",
+        true);
+
+    DeclareUserSettingKeyForDebug(  // VP Surface Dump Location
+        userSettingPtr,
+        __VPHAL_DBG_SURF_DUMP_LOCATION_KEY_NAME,
+        MediaUserSetting::Group::Sequence,
+        "",
+        true);
+
+    DeclareUserSettingKeyForDebug(  // Manual trigger to start VP Surface Dump
+        userSettingPtr,
+        __VPHAL_DBG_SURF_DUMP_MANUAL_TRIGGER_KEY_NAME,
+        MediaUserSetting::Group::Sequence,
+        -1,
+        true);
+
+    DeclareUserSettingKeyForDebug(  // VP Surface Dump Start Frame
+        userSettingPtr,
+        __VPHAL_DBG_SURF_DUMP_START_FRAME_KEY_NAME,
+        MediaUserSetting::Group::Sequence,
+        0,
+        true);
+
+    DeclareUserSettingKeyForDebug(  // VP Surface Dump End Frame
+        userSettingPtr,
+        __VPHAL_DBG_SURF_DUMP_END_FRAME_KEY_NAME,
+        MediaUserSetting::Group::Sequence,
+        MOS_USER_FEATURE_MAX_UINT32_STR_VALUE,
+        true);
+
+    DeclareUserSettingKeyForDebug(  // VP Surface dump each plance seprately
+        userSettingPtr,
+        __VPHAL_DBG_SURF_DUMPER_ENABLE_PLANE_DUMP,
+        MediaUserSetting::Group::Sequence,
+        0,
+        true);
+
+    DeclareUserSettingKeyForDebug(  // VP Surface dump aux data enable
+        userSettingPtr,
+        __VPHAL_DBG_SURF_DUMP_ENABLE_AUX_DUMP,
+        MediaUserSetting::Group::Sequence,
+        0,
+        true);
+
+    DeclareUserSettingKeyForDebug(  // VP Surface Dump: Locking Resource
+        userSettingPtr,
+        __VPHAL_DBG_SURF_DUMPER_RESOURCE_LOCK,
+        MediaUserSetting::Group::Sequence,
+        0,
+        true);
+
+    DeclareUserSettingKeyForDebug(  // VP State Dump Enable
+        userSettingPtr,
+        __VPHAL_DBG_STATE_DUMP_ENABLE,
+        MediaUserSetting::Group::Sequence,
+        0,
+        true);
+
+    DeclareUserSettingKeyForDebug(  // VP Parameters Dump Outfile
+        userSettingPtr,
+        __VPHAL_DBG_PARAM_DUMP_OUTFILE_KEY_NAME,
+        MediaUserSetting::Group::Sequence,
+        "",
+        true);
+
+    DeclareUserSettingKeyForDebug(  // VP Parameters Dump Start Frame
+        userSettingPtr,
+        __VPHAL_DBG_PARAM_DUMP_START_FRAME_KEY_NAME,
+        MediaUserSetting::Group::Sequence,
+        1,
+        true);
+
+    DeclareUserSettingKeyForDebug(  // VP Parameters Dump End Frame
+        userSettingPtr,
+        __VPHAL_DBG_PARAM_DUMP_END_FRAME_KEY_NAME,
+        MediaUserSetting::Group::Sequence,
+        0,
+        true);
+
+    DeclareUserSettingKeyForDebug(  // Vphal Debug Dump Output Directory
+        userSettingPtr,
+        __VPHAL_DBG_DUMP_OUTPUT_DIRECTORY,
+        MediaUserSetting::Group::Sequence,
+        "",
+        true);
+
+    DeclareUserSettingKeyForDebug(  // VP parameter dump sku and wa info enable
+        userSettingPtr,
+        __VPHAL_DBG_PARA_DUMP_ENABLE_SKUWA_DUMP,
         MediaUserSetting::Group::Sequence,
         0,
         true);
