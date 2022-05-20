@@ -114,6 +114,7 @@ public:
 
     static MOS_MUTEX m_mosMsgMutex;
     static char m_functionName[256]; // 256 is an arbitrary long enough size.
+MEDIA_CLASS_DEFINE_END(MosUtilDebugSpecific)
 };
 
 #endif //MOS_MESSAGES_ENABLED

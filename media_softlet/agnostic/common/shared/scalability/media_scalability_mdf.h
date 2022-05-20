@@ -184,5 +184,6 @@ protected:
     CmQueue  *m_cmQueue = nullptr;
     std::vector<CmQueue *>  m_cmQueueList = {};
 
+MEDIA_CLASS_DEFINE_END(MediaScalabilityMdf)
 };
 #endif  // !__MEDIA_SCALABILITY_MDF_H__

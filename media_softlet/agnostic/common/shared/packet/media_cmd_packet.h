@@ -41,5 +41,6 @@ public:
     {
         return MOS_STATUS_SUCCESS;
     }
+MEDIA_CLASS_DEFINE_END(CmdPacket)
 };
 #endif // !__MEDIA_CMD_PACKET_H__

@@ -282,6 +282,7 @@ public:
                                                                                //!< Bit 10 of MFD_ERROR_STATUS register is set to a random value during RC6, so it is not used
     _MFX_CMD_DEF(_MHW_CMD_ALL_DEF_FOR_ITF);
 
+MEDIA_CLASS_DEFINE_END(mhw__vdbox__mfx__Itf)
 };
 }//namespace mfx
 }//namespace vdbox

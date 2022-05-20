@@ -46,6 +46,7 @@ protected:
 
 public:
     Impl(PMOS_INTERFACE osItf) : base_t(osItf){};
+MEDIA_CLASS_DEFINE_END(mhw__vdbox__vdenc__xe_hpm__Impl)
 };
 }  // namespace xe_hpm
 }  // namespace vdenc

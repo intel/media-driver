@@ -92,5 +92,6 @@ private:
     //!
     static MOS_STATUS InitUserSettingForDebug(MediaUserSettingSharedPtr userSettingPtr);
 #endif
+MEDIA_CLASS_DEFINE_END(MosUserSetting)
 };
 #endif //_MOS_USER_SETTING_

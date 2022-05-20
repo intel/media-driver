@@ -41,6 +41,7 @@ public:
         }
     }
 
+MEDIA_CLASS_DEFINE_END(MosUtilDevUltSpecific)
 };
 MOS_EXPORT_DECL extern void (*pfnUltGetCmdBuf)(PMOS_COMMAND_BUFFER pCmdBuffer);
 

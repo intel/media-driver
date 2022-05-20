@@ -266,6 +266,7 @@ public:
     static const PCCHAR m_mosUltLogPathPrefix;
     static const PCCHAR m_mosLogPathPrefix;
 #endif
+MEDIA_CLASS_DEFINE_END(MosUtilDebug)
 };
 
 #if MOS_MESSAGES_ENABLED

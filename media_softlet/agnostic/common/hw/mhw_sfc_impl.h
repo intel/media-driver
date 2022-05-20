@@ -710,6 +710,7 @@ protected:
     MHW_MEMORY_OBJECT_CONTROL_PARAMS   m_sfdLineTileBufferCtrl = {};   // SFD Line Tile Buffer caching control bits
     MHW_MEMORY_OBJECT_CONTROL_PARAMS   m_histogramBufferCtrl   = {};   // Histogram Buffer caching control bits
     MHW_SCALING_MODE                   m_scalingMode           = MHW_SCALING_NEAREST;
+MEDIA_CLASS_DEFINE_END(mhw__sfc__Impl)
 };
 }  // namespace sfc
 }  // namespace mhw

@@ -94,6 +94,7 @@ protected:
     std::vector<PacketProperty> m_packets;            //!< media packets pool for execution
     uint32_t                          m_cmdBufSize = 0;     //!< Cmd buffer size for execution
     uint32_t                          m_patchListSize = 0;  //!< Patch list size for execution
+MEDIA_CLASS_DEFINE_END(MediaTask)
 };
 
 #endif // !__MEDIA_TASK_H__

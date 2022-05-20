@@ -455,6 +455,7 @@ public:
     static bool GetCscMatrixForRender8BitWithCoeff(VPHAL_COLOR_SAMPLE_8 *output, VPHAL_COLOR_SAMPLE_8 *input, VPHAL_CSPACE srcCspace, VPHAL_CSPACE dstCspace, int32_t *iCscMatrix);
 
     static MOS_STATUS  DeclareUserSettings(MediaUserSettingSharedPtr userSettingPtr);
+MEDIA_CLASS_DEFINE_END(VpUtils)
 };
 
 #endif // !__VP_UTILS_H__

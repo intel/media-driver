@@ -84,6 +84,7 @@ public:
 protected:
     MediaCopyBaseState *m_mediaCopyState = nullptr;
     PMOS_CONTEXT        m_mosContext     = nullptr;
+MEDIA_CLASS_DEFINE_END(MosMediaCopy)
 };
 
 #endif // __MOS_MEDIACOPY_H__

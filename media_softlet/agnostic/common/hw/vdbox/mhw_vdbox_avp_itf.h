@@ -108,6 +108,7 @@ public:
     virtual AvpMmioRegisters* GetMmioRegisters(MHW_VDBOX_NODE_IND index) = 0;
 
     _AVP_CMD_DEF(_MHW_CMD_ALL_DEF_FOR_ITF);
+MEDIA_CLASS_DEFINE_END(mhw__vdbox__avp__Itf)
 };
 }  // namespace avp
 }  // namespace vdbox

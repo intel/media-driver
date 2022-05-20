@@ -24,6 +24,7 @@
 
 #include "mos_utilities.h"
 #include <map>
+#include "media_class_trace.h"
 
 //!
 //! \class    MediaFactory
@@ -204,5 +205,6 @@ private:
     }
 
 
+MEDIA_CLASS_DEFINE_END(MediaFactory)
 };
 #endif

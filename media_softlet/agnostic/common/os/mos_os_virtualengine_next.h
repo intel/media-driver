@@ -223,6 +223,7 @@ protected:
 
     MOS_VIRTUALENGINE_HINT_PARAMS ScalabilityHintParams = {};
     MOS_VIRTUALENGINE_HINT_PARAMS SinglePipeHintParams = {};
+MEDIA_CLASS_DEFINE_END(MosVeInterface)
 };
 
 #endif //__MOS_OS_VIRTUALENGINE_SCALABILITY_NEXT_H__

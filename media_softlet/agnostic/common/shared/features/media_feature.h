@@ -83,6 +83,7 @@ protected:
     MediaFeatureManager *m_featureManager = nullptr;
     void                *m_constSettings = nullptr;
     MediaUserSettingSharedPtr m_userSettingPtr = nullptr;  //!< usersettingInstance
+MEDIA_CLASS_DEFINE_END(MediaFeature)
 };
 
 #endif  // !__ENCODE_FEATURE_H__

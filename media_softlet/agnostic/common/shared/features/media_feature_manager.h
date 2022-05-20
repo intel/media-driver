@@ -286,6 +286,7 @@ protected:
     uint8_t m_passNum = 1;
     // Media user setting instance
     MediaUserSettingSharedPtr m_userSettingPtr = nullptr;
+MEDIA_CLASS_DEFINE_END(MediaFeatureManager)
 };
 
 #endif  // !__MEDIA_FEATURE_MANAGER_H__

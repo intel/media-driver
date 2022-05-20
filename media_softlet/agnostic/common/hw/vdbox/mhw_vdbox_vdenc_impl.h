@@ -1447,6 +1447,7 @@ protected:
 
 #include "mhw_hwcmd_process_cmdfields.h"
     }
+MEDIA_CLASS_DEFINE_END(mhw__vdbox__vdenc__Impl)
 };
 }  // namespace vdenc
 }  // namespace vdbox

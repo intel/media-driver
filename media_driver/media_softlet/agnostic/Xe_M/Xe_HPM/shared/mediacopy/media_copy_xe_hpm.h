@@ -128,6 +128,7 @@ protected:
     VeboxCopyState     *m_veboxCopyState = nullptr;
     RenderCopy_Xe_Hpm  *m_renderCopy     = nullptr;
 
+MEDIA_CLASS_DEFINE_END(MediaCopyState_Xe_Hpm)
 };
 #endif // __MEDIA_COPY_XE_HPM_H__
 

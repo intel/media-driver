@@ -180,6 +180,7 @@ public:
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS PopulateHintParams(PMOS_COMMAND_BUFFER cmdBuffer);
+MEDIA_CLASS_DEFINE_END(MediaScalabilitySinglePipeNext)
 };
 
 #endif // !__MEDIA_SCALABILITY_SINGLEPIPE_H__

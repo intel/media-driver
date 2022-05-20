@@ -244,6 +244,7 @@ public:
         static const HevcSliceType m_hevcBsdSliceType[3];  //!< HEVC Slice Types for Long Format
 
     _HCP_CMD_DEF(_MHW_CMD_ALL_DEF_FOR_ITF);
+MEDIA_CLASS_DEFINE_END(mhw__vdbox__hcp__Itf)
 };
 }  // namespace hcp
 }  // namespace vdbox

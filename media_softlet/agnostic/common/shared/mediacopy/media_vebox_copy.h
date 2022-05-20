@@ -148,6 +148,7 @@ protected:
     MhwCpInterface* m_cpInterface = nullptr;
     MhwInterfaces::CreateParams params;
     std::shared_ptr<mhw::vebox::Itf> m_veboxItf = nullptr;
+MEDIA_CLASS_DEFINE_END(VeboxCopyState)
 };
 
 #endif //__MEDIA_VEBOX_COPY_H__

@@ -2471,6 +2471,7 @@ protected:
 
         return MOS_STATUS_SUCCESS;
     }
+MEDIA_CLASS_DEFINE_END(mhw__vdbox__hcp__Impl)
 };
 }  // namespace hcp
 }  // namespace vdbox

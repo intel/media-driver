@@ -70,6 +70,7 @@ public:
     virtual PMHW_MI_MMIOREGISTERS GetMmioRegisters() = 0;
 
     _RENDER_CMD_DEF(_MHW_CMD_ALL_DEF_FOR_ITF);
+MEDIA_CLASS_DEFINE_END(mhw__render__Itf)
 };
 }  // namespace render
 }  // namespace mhw

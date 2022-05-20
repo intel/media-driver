@@ -131,6 +131,7 @@ protected:
         MediaContext *mediaContext,
         MOS_GPUCTX_CREATOPTIONS *gpuCtxCreateOption);
 
+MEDIA_CLASS_DEFINE_END(MediaScalabilityFactory)
 };
 
 #endif // !__MEDIA_SCALABILITY_FACTORY_H__

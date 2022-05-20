@@ -336,6 +336,7 @@ protected:
     MediaStatusReport             *m_statusReport = nullptr;
     std::shared_ptr<mhw::mi::Itf> m_miItf         = nullptr;
     MediaUserSettingSharedPtr     m_userSettingPtr = nullptr;  //!< usersettingInstance
+MEDIA_CLASS_DEFINE_END(MediaPacket)
 };
 
 #endif // !__MEDIA_PACKET_H__

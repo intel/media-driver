@@ -30,6 +30,7 @@
 
 #include "mhw_itf.h"
 #include "mhw_utilities.h"
+#include "media_class_trace.h"
 
 //   [Macro Prefixes]                 |   [Macro Suffixes]
 //   No Prefix: for external use      |   _T   : type
@@ -237,6 +238,7 @@ protected:
     std::string                  m_currentCmdName;
     std::shared_ptr<HwcmdParser> m_hwcmdParser = nullptr;
 #endif  // MHW_HWCMDPARSER_ENABLED
+MEDIA_CLASS_DEFINE_END(mhw__Impl)
 };
 }  // namespace mhw
 

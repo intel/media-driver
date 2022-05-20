@@ -84,5 +84,6 @@ protected:
     static constexpr uint32_t m_5KFrameHeightTh = 2880;
     static constexpr uint32_t m_8KFrameWdithTh  = 7680;
     static constexpr uint32_t m_8KFrameHeightTh = 4320;
+MEDIA_CLASS_DEFINE_END(MediaScalabilityOption)
 };
 #endif // !__MEDIA_SCALABILITY_OPTION_H__

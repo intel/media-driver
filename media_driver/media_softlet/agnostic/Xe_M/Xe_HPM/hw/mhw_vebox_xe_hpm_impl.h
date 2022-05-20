@@ -3054,6 +3054,7 @@ public:
 
 protected:
     using base_t = vebox::Impl<mhw::vebox::xe_hpm::Cmd>;
+MEDIA_CLASS_DEFINE_END(mhw__vebox__xe_hpm__Impl)
 };
 
 }  // namespace xe_hpg

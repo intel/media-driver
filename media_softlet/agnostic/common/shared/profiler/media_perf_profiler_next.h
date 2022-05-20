@@ -29,6 +29,7 @@
 #include <map>
 #include "mos_os.h"
 #include "mhw_mi.h"
+#include "media_class_trace.h"
 
 using Map = std::map<void*, uint32_t>;
 
@@ -269,6 +270,7 @@ public:
     char                       m_outputFileName[MOS_MAX_PATH_LENGTH + 1];  //!< Name of output file
     bool                       m_enableProfilerDump = true;   //!< Indicate whether enable UMD Profiler dump
     std::shared_ptr<mhw::mi::Itf> m_miItf           = nullptr;
+MEDIA_CLASS_DEFINE_END(MediaPerfProfilerNext)
 };
 
 #endif // __MEDIA_PERF_PROFILER_NEXT_H__

@@ -113,6 +113,7 @@ protected:
     vp::VpScalingFilter     *m_scalingFilter        = nullptr;
     vp::VpRotMirFilter      *m_rotMirFilter         = nullptr;
     bool                    m_isMmcAllocated        = false;
+MEDIA_CLASS_DEFINE_END(MediaVdboxSfcRender)
 };
 
 #endif // __MEDIA_VDBOX_SFC_RENDER_H__

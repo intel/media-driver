@@ -245,6 +245,7 @@ protected:
     uint32_t    m_l3CacheTcCntlRegisterValueDefault = 0x80000080;
     uint32_t    m_l3CacheAllocRegisterValueDefault  = 0xD0000020;
 
+MEDIA_CLASS_DEFINE_END(mhw__render__xe_hpg__Impl)
 };
 
 }  // namespace xe_hpg

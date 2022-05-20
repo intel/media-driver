@@ -243,6 +243,7 @@ private:
     HybridSem m_hybridSem = {};
 
     uint8_t*  m_systemShadow = nullptr;     //!< System shadow surface for s/w untiling
+MEDIA_CLASS_DEFINE_END(GraphicsResourceSpecificNext)
 };
 #endif // #ifndef __GRAPHICS_RESOURCE_SPECIFIC_NEXT_H__
 

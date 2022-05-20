@@ -29,6 +29,7 @@
 #include <map>
 #include "mos_defs.h"
 #include "mos_utilities_specific.h"
+#include "media_class_trace.h"
 
 class MosMutex;
 
@@ -299,5 +300,6 @@ public:
 
 private:
     static MosMutex             m_userSettingMutex;
+MEDIA_CLASS_DEFINE_END(MosUtilitiesSpecificNext)
 };
 #endif // __MOS_UTILITIES_SPECIFIC_NEXT_H__

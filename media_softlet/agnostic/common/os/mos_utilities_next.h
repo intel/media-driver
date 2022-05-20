@@ -2697,6 +2697,7 @@ private:
     static uint32_t                     m_mosAllocMemoryFailSimulateAllocCounter;
 #endif
     static MOS_USER_FEATURE_KEY_PATH_INFO m_mosUtilUserFeatureKeyPathInfo;
+MEDIA_CLASS_DEFINE_END(MosUtilities)
 };
 
 #endif // __MOS_UTILITIESNext_NEXT_H__

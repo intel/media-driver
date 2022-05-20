@@ -227,6 +227,7 @@ protected:
     PMOS_INTERFACE m_osInterface    = nullptr;
     MediaSfcRender *m_sfcRender     = nullptr;
     MediaMemComp   *m_mmc           = nullptr;
+MEDIA_CLASS_DEFINE_END(MediaSfcInterface)
 };
 
 #endif // __MEDIA_SFC_INTERFACE_H__

@@ -95,6 +95,7 @@ public:
     ~AutoLock() { MosUtilities::MosUnlockMutex(m_mutex); }
 protected:
     PMOS_MUTEX m_mutex;
+MEDIA_CLASS_DEFINE_END(encode__AutoLock)
 };
 
 class Condition
@@ -125,6 +126,7 @@ public:
 
 protected:
     PMOS_SEMAPHORE m_sem;
+MEDIA_CLASS_DEFINE_END(encode__Condition)
 };
 
 }

@@ -85,6 +85,7 @@ public:
 
     bool m_perfModeSupported     = false;
     bool m_rhoDomainStatsEnabled = false;
+MEDIA_CLASS_DEFINE_END(mhw__vdbox__vdenc__Itf)
 };
 }  // namespace vdenc
 }  // namespace vdbox

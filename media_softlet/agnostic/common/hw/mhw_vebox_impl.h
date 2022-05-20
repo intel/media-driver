@@ -1018,6 +1018,7 @@ protected:
 
     int                    m_veboxHeapInUse = 0;
 
+MEDIA_CLASS_DEFINE_END(mhw__vebox__Impl)
 };
 }  // namespace render
 }  // namespace mhw

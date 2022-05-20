@@ -30,6 +30,7 @@
 #define __MEDIA_ALLOCATOR_H__
 #include "mos_os.h"
 #include <map>
+#include "media_class_trace.h"
 
 class Allocator
 {
@@ -272,5 +273,6 @@ protected:
 #endif
 
     PMOS_INTERFACE m_osInterface = nullptr;  //!< PMOS_INTERFACE
+MEDIA_CLASS_DEFINE_END(Allocator)
 };
 #endif  // !__MEDIA_ALLOCATOR_H__

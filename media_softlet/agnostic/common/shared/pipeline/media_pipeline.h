@@ -277,5 +277,6 @@ protected:
     std::vector<PacketProperty>                        m_activePacketList;  //!< Active packets property list
     std::map<MediaTask::TaskType, MediaTask *>         m_taskList;          //!< Task list
     MediaUserSettingSharedPtr                          m_userSettingPtr = nullptr;     //!< usersettingInstance
+MEDIA_CLASS_DEFINE_END(MediaPipeline)
 };
 #endif // !__MEDIA_PIPELINE_H__

@@ -33,6 +33,7 @@
 #include "mhw_cp_interface.h"
 #include "mos_os.h"
 #include "media_copy.h"
+#include "media_class_trace.h"
 
 #define BLT_CHK_STATUS(_stmt)               MOS_CHK_STATUS(MOS_COMPONENT_MCPY, MOS_MCPY_SUBCOMP_BLT, _stmt)
 #define BLT_CHK_STATUS_RETURN(_stmt)        MOS_CHK_STATUS_RETURN(MOS_COMPONENT_MCPY, MOS_MCPY_SUBCOMP_BLT, _stmt)
@@ -195,6 +196,7 @@ public:
     PMHW_BLT_INTERFACE m_bltInterface = nullptr;
     MhwCpInterface *m_cpInterface     = nullptr;
     MhwInterfaces::CreateParams params;
+MEDIA_CLASS_DEFINE_END(BltState)
 };
 
 #endif // __MEDIA_BLT_COPY_H__

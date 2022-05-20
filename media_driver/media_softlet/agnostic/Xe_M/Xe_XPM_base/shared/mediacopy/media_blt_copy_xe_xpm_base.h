@@ -297,6 +297,7 @@ private:
     uint32_t     auxSize     = 0;
     void*        pMainSurface = nullptr;
     void*        pAuxSurface  = nullptr;
+MEDIA_CLASS_DEFINE_END(BltStateXe_Xpm)
 };
 
 #endif // __MEDIA_BLT_COPY_XE_XPM_BASE_H__

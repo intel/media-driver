@@ -29,6 +29,7 @@
 #define __MHW_ITF_H__
 
 #include "mhw_cmdpar.h"
+#include "media_class_trace.h"
 
 #if _MHW_HWCMDPARSER_SUPPORTED
 #include "mhw_hwcmd_parser.h"
