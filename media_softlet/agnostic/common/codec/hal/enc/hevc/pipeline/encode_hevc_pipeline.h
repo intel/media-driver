@@ -51,7 +51,7 @@ public:
 
     enum PacketIds
     {
-        HucBrcInit,
+        HucBrcInit = CONSTRUCTPACKETID(PACKET_COMPONENT_ENCODE, PACKET_SUBCOMPONENT_HEVC, 0),
         HucBrcUpdate,
         hevcVdencPacket,
         hevcPakIntegrate,
@@ -62,11 +62,6 @@ public:
         HucLaUpdate,
 #ifdef _ENCODE_RESERVED
         hevcVdencPacketRsvd,
-#endif
-#if _MEDIA_RESERVED
-#define HEVC_PACKET_IDS_EXT
-#include "encode_hevc_pipeline_ext.h"
-#undef HEVC_PACKET_IDS_EXT
 #endif
     };
 
