@@ -36,7 +36,6 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mos_graphicsresource_next.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_os_next.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_util_debug_next.h
-    ${CMAKE_CURRENT_LIST_DIR}/mos_utilities_next.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_gpucontext_next.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_gpucontextmgr_next.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_cmdbufmgr_next.h
@@ -44,6 +43,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mos_oca_interface_next.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_interface.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_user_setting.h
+    ${CMAKE_CURRENT_LIST_DIR}/mos_utilities.h
 )
 
 set(SOURCES_

@@ -27,7 +27,6 @@
 #ifndef __MOS_OS_VIRTUALENGINE_NEXT_H__
 #define __MOS_OS_VIRTUALENGINE_NEXT_H__
 #include "mos_os_virtualengine.h"
-#include "mos_os_next.h"
 #include "mos_os_virtualengine_specific.h"
 
 class MosVeInterface

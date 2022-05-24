@@ -25,21 +25,15 @@
 //! \details  Common OS service across different platform
 //!
 
-#include "mos_utilities.h"
-#include "mos_util_debug_next.h"
-#include "media_user_settings_mgr.h"
-#include "media_user_setting.h"
 #include <sstream>
 #include <fcntl.h>     //open
 #include <malloc.h>    // For memalign
-#include <string.h>    // memset
 #include <stdlib.h>    // atoi atol
 #include <math.h>
-#include "mos_os.h"
-
-#if MOS_MESSAGES_ENABLED
 #include <time.h>     //for simulate random memory allcation failure
-#endif
+#include "mos_os.h"
+#include "mos_utilities_specific.h"
+#include "media_user_settings_mgr.h"
 
 int32_t MosUtilities::m_mosMemAllocCounterNoUserFeature            = 0;
 int32_t MosUtilities::m_mosMemAllocCounterNoUserFeatureGfx         = 0;
@@ -65,6 +59,19 @@ MOS_FUNC_EXPORT int32_t MosUtilities::MosGetMemNinjaCounter()
 MOS_FUNC_EXPORT int32_t MosUtilities::MosGetMemNinjaCounterGfx()
 {
     return m_mosMemAllocCounterNoUserFeatureGfx;
+}
+
+
+uint64_t MosUtilities::MosGetCurTime()
+{
+    using us = std::chrono::microseconds;
+    using clock = std::chrono::steady_clock;
+
+    clock::time_point Timer = clock::now();
+    uint64_t usStartTime =
+            std::chrono::duration_cast<us>(Timer.time_since_epoch()).count();
+
+    return usStartTime;
 }
 
 #define __MAX_MULTI_STRING_COUNT         128
@@ -2584,3 +2591,187 @@ void MosUtilities::MosSwizzleData(
         }
     }
 }
+
+
+std::shared_ptr<PerfUtility> PerfUtility::instance = nullptr;
+std::mutex PerfUtility::perfMutex;
+
+PerfUtility *PerfUtility::getInstance()
+{
+    if (instance == nullptr)
+    {
+        instance = std::make_shared<PerfUtility>();
+    }
+
+    return instance.get();
+}
+
+PerfUtility::PerfUtility()
+{
+    bPerfUtilityKey = false;
+    dwPerfUtilityIsEnabled = 0;
+}
+
+PerfUtility::~PerfUtility()
+{
+    for (const auto &data : records)
+    {
+        if (data.second)
+        {
+            delete data.second;
+        }
+    }
+    records.clear();
+}
+
+void PerfUtility::setupFilePath(char *perfFilePath)
+{
+    int32_t pid = MosUtilities::MosGetPid();
+    MOS_SecureStringPrint(sSummaryFileName, MOS_MAX_PATH_LENGTH + 1, MOS_MAX_PATH_LENGTH + 1,
+        "%sperf_summary_pid%d.csv", perfFilePath, pid);
+    MOS_SecureStringPrint(sDetailsFileName, MOS_MAX_PATH_LENGTH + 1, MOS_MAX_PATH_LENGTH + 1,
+        "%sperf_details_pid%d.txt", perfFilePath, pid);
+}
+
+void PerfUtility::setupFilePath()
+{
+    int32_t pid = MosUtilities::MosGetPid();
+    MOS_SecureStringPrint(sSummaryFileName, MOS_MAX_PATH_LENGTH + 1, MOS_MAX_PATH_LENGTH + 1,
+        "perf_summary_pid%d.csv", pid);
+    MOS_SecureStringPrint(sDetailsFileName, MOS_MAX_PATH_LENGTH + 1, MOS_MAX_PATH_LENGTH + 1,
+        "perf_details_pid%d.txt", pid);
+}
+
+void PerfUtility::savePerfData()
+{
+    printPerfSummary();
+
+    printPerfDetails();
+}
+
+void PerfUtility::printPerfSummary()
+{
+    std::ofstream fout;
+    fout.open(sSummaryFileName);
+
+    printHeader(fout);
+    printBody(fout);
+    fout.close();
+}
+
+void PerfUtility::printPerfDetails()
+{
+    std::ofstream fout;
+    fout.open(sDetailsFileName);
+
+    for (auto data : records)
+    {
+        fout << getDashString((uint32_t)data.first.length());
+        fout << data.first << std::endl;
+        fout << getDashString((uint32_t)data.first.length());
+        for (auto t : *data.second)
+        {
+            fout << t.time << std::endl;
+        }
+        fout << std::endl;
+    }
+
+    fout.close();
+}
+
+void PerfUtility::printHeader(std::ofstream& fout)
+{
+    fout << "Summary: " << std::endl;
+    std::stringstream ss;
+    ss << "CPU Latency Tag,";
+    ss << "Hit Count,";
+    ss << "Average (ms),";
+    ss << "Minimum (ms),";
+    ss << "Maximum (ms)" << std::endl;
+    fout << ss.str();
+}
+
+void PerfUtility::printBody(std::ofstream& fout)
+{
+    for (const auto& data : records)
+    {
+        fout << formatPerfData(data.first, *data.second);
+    }
+}
+
+std::string PerfUtility::formatPerfData(std::string tag, std::vector<Tick>& record)
+{
+    std::stringstream ss;
+    PerfInfo info = {};
+    getPerfInfo(record, &info);
+
+    ss << tag;
+    ss << ",";
+    ss.precision(3);
+    ss.setf(std::ios::fixed, std::ios::floatfield);
+
+    ss << info.count;
+    ss << ",";
+    ss << info.avg;
+    ss << ",";
+    ss << info.min;
+    ss << ",";
+    ss << info.max << std::endl;
+
+    return ss.str();
+}
+
+void PerfUtility::getPerfInfo(std::vector<Tick>& record, PerfInfo* info)
+{
+    if (record.size() <= 0)
+        return;
+
+    info->count = (uint32_t)record.size();
+    double sum = 0, max = 0, min = 10000000.0;
+    for (auto t : record)
+    {
+        sum += t.time;
+        max = (max < t.time) ? t.time : max;
+        min = (min > t.time) ? t.time : min;
+    }
+    info->avg = sum / info->count;
+    info->max = max;
+    info->min = min;
+}
+
+void PerfUtility::printFooter(std::ofstream& fout)
+{
+    fout << getDashString(80);
+}
+
+std::string PerfUtility::getDashString(uint32_t num)
+{
+    std::stringstream ss;
+    ss.width(num);
+    ss.fill('-');
+    ss << std::left << "" << std::endl;
+    return ss.str();
+}
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+    MOS_FUNC_EXPORT void MOS_SetUltFlag(uint8_t ultFlag)
+    {
+        MosUtilities::MosSetUltFlag(ultFlag);
+    }
+
+    MOS_FUNC_EXPORT int32_t MOS_GetMemNinjaCounter()
+    {
+        return MosUtilities::MosGetMemNinjaCounter();
+    }
+
+    MOS_FUNC_EXPORT int32_t MOS_GetMemNinjaCounterGfx()
+    {
+        return MosUtilities::MosGetMemNinjaCounterGfx();
+    }
+
+#ifdef __cplusplus
+}
+#endif

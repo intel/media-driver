@@ -32,7 +32,6 @@
 
 #include "mos_defs.h"
 #include "mos_util_debug_specific.h"
-#include "mos_utilities.h"
 #include "media_user_setting.h"
 
 class MosUtilDebug

@@ -28,6 +28,7 @@
 #define __MEDIA_USER_SETTINGS_MGR_H__
 
 #include "mos_util_user_interface.h"
+#include "igfxfmid.h"
 
 class MediaUserSettingsMgr
 {

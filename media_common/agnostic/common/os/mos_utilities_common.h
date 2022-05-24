@@ -757,6 +757,8 @@ typedef struct
     uint32_t Length;
 } MOS_USER_FEATURE_KEY_PATH_INFO, *PMOS_USER_FEATURE_KEY_PATH_INFO;
 
+#include "mos_util_user_feature_keys.h"
+
 #ifdef __cplusplus
 //Memory alloc fail simulatiion related defination
 #if (_DEBUG || _RELEASE_INTERNAL)

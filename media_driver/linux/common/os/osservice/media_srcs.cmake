@@ -20,7 +20,6 @@
 
 set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/mos_util_debug_specific.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/mos_utilities_specific.cpp
 )
 
 set(SOURCES_

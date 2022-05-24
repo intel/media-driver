@@ -28,7 +28,6 @@
 #include "mos_util_debug_next.h"
 
 #if MOS_MESSAGES_ENABLED
-#include "mos_utilities_next.h"
 #include "media_user_setting.h"
 
 //!

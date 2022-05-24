@@ -23,15 +23,123 @@
 //! \file        mos_utilities_specific.h 
 //! \brief       This module defines MOS interface on Linux/Android platform 
 //!
-#ifndef __MOS_UTILITIES_SPECIFIC_NEXT_H__
-#define __MOS_UTILITIES_SPECIFIC_NEXT_H__
+#ifndef __MOS_UTILITIES_SPECIFIC_H__
+#define __MOS_UTILITIES_SPECIFIC_H__
 
 #include <map>
+#include <malloc.h>
 #include "mos_defs.h"
-#include "mos_utilities_specific.h"
 #include "media_class_trace.h"
 
+#define LINUX_OS_VERSION_FILE                "/proc/version"
+
+#define NOT_FOUND            -1
+
+#define _aligned_malloc(size, alignment)  memalign(alignment, size)
+#define _aligned_free(ptr)                free(ptr)
+
+typedef void (*MOS_UserFeatureCallback)( void*, bool);
+
 class MosMutex;
+
+#define USER_FEATURE_KEY_INTERNAL            "UFKEY_INTERNAL\\"
+#define USER_FEATURE_KEY_EXTERNAL            "UFKEY_EXTERNAL\\"
+
+//user feature
+#if ANDROID_VERSION >= 800
+#define USER_FEATURE_FILE                   "/data/igfx_user_feature.txt"
+#else
+#define USER_FEATURE_FILE                   "/etc/igfx_user_feature.txt"
+#define USER_FEATURE_FILE_NEXT              "/etc/igfx_user_feature_next.txt"
+#endif
+#define UF_KEY_ID                           "[KEY]"
+#define UF_VALUE_ID                         "[VALUE]"
+#define UF_CAPABILITY                       64
+#define MAX_USERFEATURE_LINE_LENGTH         256
+#define MAX_UF_LINE_STRING_FORMAT           "%255[^\n]\n"
+
+#define UF_NONE                             ( 0 )   // No value type
+#define UF_SZ                               ( 1 )   // Unicode nul terminated string
+#define UF_EXPAND_SZ                        ( 2 )   // Unicode nul terminated string
+                                                    // (with environment variable references)
+#define UF_BINARY                           ( 3 )   // Free form binary
+#define UF_DWORD                            ( 4 )   // 32-bit number
+#define UF_DWORD_LITTLE_ENDIAN              ( 4 )   // 32-bit number (same as UF_DWORD)
+#define UF_DWORD_BIG_ENDIAN                 ( 5 )   // 32-bit number
+#define UF_LINK                             ( 6 )   // Symbolic Link (unicode)
+#define UF_MULTI_SZ                         ( 7 )   // Multiple Unicode strings
+#define UF_RESOURCE_LIST                    ( 8 )   // Resource list in the resource map
+#define UF_FULL_RESOURCE_DESCRIPTOR         ( 9 )   // Resource list in the hardware description
+#define UF_RESOURCE_REQUIREMENTS_LIST       ( 10 )
+#define UF_QWORD                            ( 11 )  // 64-bit number
+#define UF_QWORD_LITTLE_ENDIAN              ( 11 )  // 64-bit number (same as UF_QWORD)
+
+#define RRF_RT_UF_NONE                      0x00000001
+#define RRF_RT_UF_SZ                        0x00000002
+#define RRF_RT_UF_EXPAND_SZ                 0x00000004
+#define RRF_RT_UF_BINARY                    0x00000008
+#define RRF_RT_UF_DWORD                     0x00000010
+#define RRF_RT_UF_MULTI_SZ                  0x00000020
+#define RRF_RT_UF_QWORD                     0x00000040
+
+#define KEY_READ                             0
+#define KEY_WRITE                            1
+
+#define UFKEY_INTERNAL                       (( uint32_t ) 0x80000001 )
+#define UFKEY_EXTERNAL                       (( uint32_t ) 0x80000002 )
+
+#define UFKEY_INTERNAL_NEXT                   ""
+#define USER_SETTING_CONFIG_PATH             "[config]"
+#define USER_SETTING_REPORT_PATH             "[report]"
+
+#define MAX_UF_PATH                 256
+#define DEFAULT_SUBKEY              "LibVa"
+#define UFINT_PATH_LINUX            "UFINT"
+#define UFEXT_PATH_LINUX            "UFEXT"
+
+using RegBufferMap = std::map<std::string, std::map<std::string, std::string>>;
+
+#define __MEDIA_USER_FEATURE_SUBKEY_INTERNAL                        "LibVa"
+#define __MEDIA_USER_FEATURE_SUBKEY_PERFORMANCE                     ""
+#define __MEDIA_USER_FEATURE_SUBKEY_PERMANENT                       ""
+#define __MEDIA_USER_FEATURE_SUBKEY_REPORT                          "Report"
+#define __MOS_USER_FEATURE_KEY_XML_FILEPATH_LOCATION                "LibVa"
+#define __MEDIA_USER_FEATURE_SUBKEY_REPORT_EXTERNAL                 ""
+
+#define __MOS_USER_FEATURE_VALUE_ADAPTIVE_TRANSFORM_DECISION_ENABLE_DEFAULT_VALUE "0"
+
+//!
+//! \brief User feature keys to define debug message levels and assertions.
+//!
+
+#if MOS_MESSAGES_ENABLED
+//!
+//! \brief Default setting is only critical prints are enabled, so users are not bombarded with irrelevant messages
+//!
+#define __MOS_USER_FEATURE_KEY_MESSAGE_DEFAULT_VALUE                (0x1)
+#endif // MOS_MESSAGES_ENABLED
+
+typedef struct _MOS_UF_VALUE {
+    char              pcValueName[MAX_USERFEATURE_LINE_LENGTH];
+    uint32_t          ulValueLen;
+    void              *ulValueBuf;
+    uint32_t          ulValueType;
+} MOS_UF_VALUE;
+
+typedef struct _MOS_UF_KEY {
+    void              *UFKey;
+    char              pcKeyName[MAX_USERFEATURE_LINE_LENGTH];
+    int32_t           valueNum;
+    MOS_UF_VALUE     *pValueArray;
+} MOS_UF_KEY;
+
+typedef struct _MOS_UF_KEY_NODE_T
+{
+    MOS_UF_KEY*                 pElem;
+    struct _MOS_UF_KEY_NODE_T*  pNext;
+} MOS_UF_KEYNODE;
+
+typedef MOS_UF_KEYNODE* MOS_PUF_KEYLIST;
 
 class MosUtilitiesSpecificNext
 {
@@ -302,4 +410,4 @@ private:
     static MosMutex             m_userSettingMutex;
 MEDIA_CLASS_DEFINE_END(MosUtilitiesSpecificNext)
 };
-#endif // __MOS_UTILITIES_SPECIFIC_NEXT_H__
+#endif // __MOS_UTILITIES_SPECIFIC_H__

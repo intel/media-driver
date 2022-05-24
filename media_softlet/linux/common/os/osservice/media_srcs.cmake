@@ -20,11 +20,11 @@
 
 set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/mos_util_debug_specific_next.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/mos_utilities_specific_next.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/mos_utilities_specific.cpp
 )
 
 set(TMP_HEADERS_
-    ${CMAKE_CURRENT_LIST_DIR}/mos_utilities_specific_next.h
+    ${CMAKE_CURRENT_LIST_DIR}/mos_utilities_specific.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_util_debug_specific_next.h
 )
 

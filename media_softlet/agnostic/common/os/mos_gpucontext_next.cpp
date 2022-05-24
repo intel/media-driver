@@ -24,7 +24,6 @@
 //! \brief   Container class for the basic gpu context
 //!
 
-#include "mos_gpucontext_next.h"
 #include "mos_gpucontext_specific_next.h"
 
 GpuContextNext *GpuContextNext::Create(

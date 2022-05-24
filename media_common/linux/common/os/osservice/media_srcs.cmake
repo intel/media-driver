@@ -20,7 +20,6 @@
 
 set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mos_util_debug_specific.h
-    ${CMAKE_CURRENT_LIST_DIR}/mos_utilities_specific.h
 )
 
 set(HEADERS_

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -28,13 +28,6 @@
 #define __MOS_OS_NEXT_H__
 
 #include "mos_os.h"
-
-#if (_RELEASE_INTERNAL || _DEBUG)
-#if defined(CM_DIRECT_GUC_SUPPORT)
-#include "work_queue_mngr.h"
-#include "KmGucClientInterface.h"
-#endif
-#endif
 
 //!
 //! \brief OSNextspecific includes and definitions

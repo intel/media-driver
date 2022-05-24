@@ -21,10 +21,10 @@
 */
 //!
 //! \file        mos_utilities_specific.cpp
-//! \brief        This module implements the MOS wrapper functions for Linux/Android
+//! \brief       This module implements the MOS wrapper functions for Linux/Android
 //!
 
-#include "mos_utilities_specific_next.h"
+#include "mos_utilities_specific.h"
 #include "mos_utilities.h"
 #include "mos_util_debug_next.h"
 #include <fcntl.h>     // open
@@ -2639,4 +2639,77 @@ void MosUtilities::MosGfxInfo(
     ...)
 {
     // not implemented
+}
+
+void PerfUtility::startTick(std::string tag)
+{
+    std::lock_guard<std::mutex> lock(perfMutex);
+    Tick newTick = {};
+    struct timespec ts = {};
+
+    // get start tick count
+    clock_gettime(CLOCK_REALTIME, &ts);
+    newTick.start = int(ts.tv_sec * 1000000) + int(ts.tv_nsec / 1000); // us
+
+    std::vector<Tick> *perf = nullptr;
+    std::map<std::string, std::vector<Tick>*>::iterator it;
+    it = records.find(tag);
+    if (it == records.end())
+    {
+        perf = new std::vector<Tick>;
+        perf->push_back(newTick);
+        records[tag] = perf;
+    }
+    else
+    {
+        it->second->push_back(newTick);
+    }
+}
+
+void PerfUtility::stopTick(std::string tag)
+{
+    std::lock_guard<std::mutex> lock(perfMutex);
+    struct timespec ts = {};
+    std::map<std::string, std::vector<Tick>*>::iterator it;
+    it = records.find(tag);
+    if (it == records.end())
+    {
+        // should not happen
+        return;
+    }
+
+    // get stop tick count
+    clock_gettime(CLOCK_REALTIME, &ts);
+    it->second->back().stop = int(ts.tv_sec * 1000000) + int(ts.tv_nsec / 1000); // us
+
+    // calculate time interval
+    it->second->back().time = double(it->second->back().stop - it->second->back().start) / 1000.0; // ms
+}
+
+/*----------------------------------------------------------------------------
+| Name      : GMMDebugBreak
+| Purpose   : Fix compiling issue for Gmmlib on debug mode
+| Arguments : N/A
+| Returns   : void
+| Calls     : N/A
+| Callers   : Several
+\---------------------------------------------------------------------------*/
+void GMMDebugBreak(const char  *file, const char  *function,const int32_t line)
+{
+    // Not required for media driver
+    return;
+}
+
+/*----------------------------------------------------------------------------
+| Name      : GMMPrintMessage
+| Purpose   : Fix compiling issue for Gmmlib on debug mode
+| Arguments : N/A
+| Returns   : void
+| Calls     : N/A
+| Callers   : Several
+\---------------------------------------------------------------------------*/
+void GMMPrintMessage(int32_t debuglevel, const char  *function, ...)
+{
+    // Not Required for media driver
+    return;
 }

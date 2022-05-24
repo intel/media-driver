@@ -20,16 +20,29 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     mos_utilities_next.h
+//! \file     mos_utilities.h
 //! \brief    Common OS service across different platform
 //! \details  Common OS service across different platform
 //!
-#ifndef __MOS_UTILITIES_NEXT_H__
-#define __MOS_UTILITIES_NEXT_H__
+#ifndef __MOS_UTILITIES_H__
+#define __MOS_UTILITIES_H__
+#include <fstream>
+#include <memory>
+#include <string>
+#include <vector>
+#include <stdint.h>
+#include <fstream>
+#include <string>
+#include <vector>
+#include <map>
+#include <mutex>
 #include "mos_utilities_common.h"
+#include "media_class_trace.h"
 #include "mos_utilities_specific.h"
 #include "mos_resource_defs.h"
-#include "mos_os_trace_event.h"
+
+#define MOS_MAX_PERF_FILENAME_LEN 260
+
 //------------------------------------------------------------------------------
 // SECTION: Media User Feature Control
 //
@@ -37,7 +50,9 @@
 //      to GEN media driver.
 //------------------------------------------------------------------------------
 class MediaUserSettingsMgr;
+
 class MosMutex;
+
 class MosUtilities
 {
 public:
@@ -56,104 +71,57 @@ public:
     //!
     static double MosGetTime();
 
-#if MOS_MESSAGES_ENABLED
-    template<class _Ty, class... _Types>
-    static _Ty* MosNewUtil(const char *functionName,
-        const char *filename,
-        int32_t line, _Types&&... _Args)
-#else
-    template<class _Ty, class... _Types>
-    static _Ty* MosNewUtil(_Types&&... _Args)
-#endif
-    {
-#if (_DEBUG || _RELEASE_INTERNAL)
-        //Simulate allocate memory fail if flag turned on
-        if (MosSimulateAllocMemoryFail(sizeof(_Ty), NO_ALLOC_ALIGNMENT, functionName, filename, line))
-        {
-            return nullptr;
-        }
-#endif
-        _Ty* ptr = new (std::nothrow) _Ty(std::forward<_Types>(_Args)...);
-        if (ptr != nullptr)
-        {
-            MosAtomicIncrement(&m_mosMemAllocCounter);
-            MOS_MEMNINJA_ALLOC_MESSAGE(ptr, sizeof(_Ty), functionName, filename, line);
-        }
-        else
-        {
-            MOS_OS_ASSERTMESSAGE("Fail to create class.");
-        }
-        return ptr;
-    }
+    //!
+    //! \brief    Get current run time
+    //! \details  Get current run time in us
+    //! \return   double
+    //!           Returns time in us
+    //!
+    static uint64_t MosGetCurTime();
 
 #if MOS_MESSAGES_ENABLED
     template<class _Ty, class... _Types>
-    static _Ty *MosNewArrayUtil(const char *functionName,
-        const char *filename,
-        int32_t line, size_t numElements)
+    static _Ty* MosNewUtil(const char* functionName,
+        const char* filename,
+        int32_t line, _Types&&... _Args);
 #else
     template<class _Ty, class... _Types>
-    static _Ty* MosNewArrayUtil(size_t numElements)
+    static _Ty* MosNewUtil(_Types&&... _Args);
 #endif
-    {
-#if (_DEBUG || _RELEASE_INTERNAL)
-        //Simulate allocate memory fail if flag turned on
-        if (MosSimulateAllocMemoryFail(sizeof(_Ty) * numElements, NO_ALLOC_ALIGNMENT, functionName, filename, line))
-        {
-            return nullptr;
-        }
-#endif
-        _Ty* ptr = new (std::nothrow) _Ty[numElements]();
-        if (ptr != nullptr)
-        {
-            MosAtomicIncrement(&m_mosMemAllocCounter);
-            MOS_MEMNINJA_ALLOC_MESSAGE(ptr, numElements*sizeof(_Ty), functionName, filename, line);
-        }
-        return ptr;
-    }
 
 #if MOS_MESSAGES_ENABLED
-    template<class _Ty> inline
+    template<class _Ty, class... _Types>
+    static _Ty* MosNewArrayUtil(const char* functionName,
+        const char* filename,
+        int32_t line, size_t numElements);
+#else
+    template<class _Ty, class... _Types>
+    static _Ty* MosNewArrayUtil(size_t numElements);
+#endif
+
+#if MOS_MESSAGES_ENABLED
+    template<class _Ty>
     static void MosDeleteUtil(
         const char *functionName,
         const char *filename,
         int32_t     line,
-        _Ty&        ptr)
+        _Ty&        ptr);
 #else
-    template<class _Ty> inline
-    static void MosDeleteUtil(_Ty& ptr)
+    template<class _Ty>
+    static void MosDeleteUtil(_Ty& ptr);
 #endif
-    {
-        if (ptr != nullptr)
-        {
-            MosAtomicDecrement(&m_mosMemAllocCounter);
-            MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line);
-            delete(ptr);
-            ptr = nullptr;
-        }
-    }
 
 #if MOS_MESSAGES_ENABLED
-    template<class _Ty> inline
+    template<class _Ty>
     static void MosDeleteArrayUtil(
         const char *functionName,
         const char *filename,
         int32_t     line,
-        _Ty&        ptr)
+        _Ty&        ptr);
 #else
-    template <class _Ty> inline
-    static void MosDeleteArrayUtil(_Ty& ptr)
+    template <class _Ty>
+    static void MosDeleteArrayUtil(_Ty& ptr);
 #endif
-    {
-        if (ptr != nullptr)
-        {
-            MosAtomicDecrement(&m_mosMemAllocCounter);
-            MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line);
-
-            delete[](ptr);
-            ptr = nullptr;
-        }
-    }
 
     //!
     //! \brief    Init Function for MOS utilitiesNext
@@ -2680,7 +2648,7 @@ public:
 
     static bool                         m_enableAddressDump;
 
-    static PMOS_USER_FEATURE_VALUE const m_mosUserFeatureDescFields;
+    static MOS_USER_FEATURE_VALUE       m_mosUserFeatureDescFields[__MOS_USER_FEATURE_KEY_MAX_ID];
 private:
     static MosMutex                     m_mutexLock;
     static char                         m_xmlFilePath[MOS_USER_CONTROL_MAX_DATA_SIZE];
@@ -2700,4 +2668,394 @@ private:
 MEDIA_CLASS_DEFINE_END(MosUtilities)
 };
 
-#endif // __MOS_UTILITIESNext_NEXT_H__
+class MosMutex
+{
+public:
+    MosMutex(void)
+    {
+        m_lock = MosUtilities::MosCreateMutex();
+    }
+
+    ~MosMutex()
+    {
+        MosUtilities::MosDestroyMutex(m_lock);
+    }
+
+    void Lock()
+    {
+        MosUtilities::MosLockMutex(m_lock);
+    }
+
+    void Unlock()
+    {
+        MosUtilities::MosUnlockMutex(m_lock);
+    }
+
+private:
+    PMOS_MUTEX m_lock = nullptr;
+};
+
+#include "mos_util_debug.h"
+
+//! Helper Macros for MEMNINJA debug messages
+#define MOS_MEMNINJA_ALLOC_MESSAGE(ptr, size, functionName, filename, line)                                                                                 \
+    MOS_OS_MEMNINJAMESSAGE(                                                                                                                                 \
+        "MemNinjaSysAlloc: Time = %f, MemNinjaCounter = %d, memPtr = %p, size = %d, functionName = \"%s\", "                                                \
+        "filename = \"%s\", line = %d/", MosUtilities::MosGetTime(), MosUtilities::m_mosMemAllocCounter, ptr, size, functionName, filename, line);          \
+
+
+#define MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line)                                                                                        \
+    MOS_OS_MEMNINJAMESSAGE(                                                                                                                                 \
+        "MemNinjaSysFree: Time = %f, MemNinjaCounter = %d, memPtr = %p, functionName = \"%s\", "                                                            \
+        "filename = \"%s\", line = %d/", MosUtilities::MosGetTime(), MosUtilities::m_mosMemAllocCounter, ptr, functionName, filename, line);                \
+
+
+#define MOS_MEMNINJA_GFX_ALLOC_MESSAGE(ptr, bufName, component, size, arraySize, functionName, filename, line)                                              \
+    MOS_OS_MEMNINJAMESSAGE(                                                                                                                                 \
+        "MemNinjaGfxAlloc: Time = %f, MemNinjaCounterGfx = %d, memPtr = %p, bufName = %s, component = %d, size = %lld, "                                  \
+        "arraySize = %d, functionName = \"%s\", filename = \"%s\", line = %d/", MosUtilities::MosGetTime(), MosUtilities::m_mosMemAllocCounterGfx, ptr,     \
+        bufName, component, size, arraySize, functionName, filename, line);                                                                                 \
+
+#define MOS_MEMNINJA_GFX_FREE_MESSAGE(ptr, functionName, filename, line)                                                                                    \
+    MOS_OS_MEMNINJAMESSAGE(                                                                                                                                 \
+        "MemNinjaGfxFree: Time = %f, MemNinjaCounterGfx = %d, memPtr = %p, functionName = \"%s\", "                                                         \
+        "filename = \"%s\", line = %d/", MosUtilities::MosGetTime(), MosUtilities::m_mosMemAllocCounterGfx, ptr, functionName, filename, line);             \
+
+#if MOS_MESSAGES_ENABLED
+template<class _Ty, class... _Types> inline
+_Ty* MosUtilities::MosNewUtil(const char *functionName,
+    const char *filename,
+    int32_t line, _Types&&... _Args)
+#else
+template<class _Ty, class... _Types> inline
+_Ty* MosUtilities::MosNewUtil(_Types&&... _Args)
+#endif
+{
+#if (_DEBUG || _RELEASE_INTERNAL)
+    //Simulate allocate memory fail if flag turned on
+    if (MosSimulateAllocMemoryFail(sizeof(_Ty), NO_ALLOC_ALIGNMENT, functionName, filename, line))
+    {
+        return nullptr;
+    }
+#endif
+    _Ty* ptr = new (std::nothrow) _Ty(std::forward<_Types>(_Args)...);
+    if (ptr != nullptr)
+    {
+        MosAtomicIncrement(&m_mosMemAllocCounter);
+        MOS_MEMNINJA_ALLOC_MESSAGE(ptr, sizeof(_Ty), functionName, filename, line);
+    }
+    else
+    {
+        MOS_OS_ASSERTMESSAGE("Fail to create class.");
+    }
+    return ptr;
+}
+
+#if MOS_MESSAGES_ENABLED
+template<class _Ty, class... _Types> inline
+_Ty *MosUtilities::MosNewArrayUtil(const char *functionName,
+    const char *filename,
+    int32_t line, size_t numElements)
+#else
+template<class _Ty, class... _Types> inline
+_Ty* MosUtilities::MosNewArrayUtil(size_t numElements)
+#endif
+{
+#if (_DEBUG || _RELEASE_INTERNAL)
+    //Simulate allocate memory fail if flag turned on
+    if (MosSimulateAllocMemoryFail(sizeof(_Ty) * numElements, NO_ALLOC_ALIGNMENT, functionName, filename, line))
+    {
+        return nullptr;
+    }
+#endif
+    _Ty* ptr = new (std::nothrow) _Ty[numElements]();
+    if (ptr != nullptr)
+    {
+        MosAtomicIncrement(&m_mosMemAllocCounter);
+        MOS_MEMNINJA_ALLOC_MESSAGE(ptr, numElements*sizeof(_Ty), functionName, filename, line);
+    }
+    return ptr;
+}
+
+#if MOS_MESSAGES_ENABLED
+template<class _Ty> inline
+void MosUtilities::MosDeleteUtil(
+    const char *functionName,
+    const char *filename,
+    int32_t     line,
+    _Ty&        ptr)
+#else
+template<class _Ty> inline
+void MosUtilities::MosDeleteUtil(_Ty& ptr)
+#endif
+{
+    if (ptr != nullptr)
+    {
+        MosAtomicDecrement(&m_mosMemAllocCounter);
+        MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line);
+        delete(ptr);
+        ptr = nullptr;
+    }
+}
+
+#if MOS_MESSAGES_ENABLED
+template<class _Ty> inline
+void MosUtilities::MosDeleteArrayUtil(
+    const char *functionName,
+    const char *filename,
+    int32_t     line,
+    _Ty&        ptr)
+#else
+template <class _Ty> inline
+void MosUtilities::MosDeleteArrayUtil(_Ty& ptr)
+#endif
+{
+    if (ptr != nullptr)
+    {
+        MosAtomicDecrement(&m_mosMemAllocCounter);
+        MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line);
+
+        delete[](ptr);
+        ptr = nullptr;
+    }
+}
+
+
+//template<class _Ty, class... _Types> inline
+//std::shared_ptr<_Ty> MOS_MakeShared(_Types&&... _Args)
+//{
+//    try
+//    {
+//        return std::make_shared<_Ty>(std::forward<_Types>(_Args)...);
+//    }
+//    catch (const std::bad_alloc&)
+//    {
+//        return nullptr;
+//    }
+//}
+
+#if MOS_MESSAGES_ENABLED
+#define MOS_NewArray(classType, numElements) MosUtilities::MosNewArrayUtil<classType>(__FUNCTION__, __FILE__, __LINE__, numElements)
+#define MOS_New(classType, ...) MosUtilities::MosNewUtil<classType>(__FUNCTION__, __FILE__, __LINE__, ##__VA_ARGS__)
+#else
+#define MOS_NewArray(classType, numElements) MosUtilities::MosNewArrayUtil<classType>(numElements)
+#define MOS_New(classType, ...) MosUtilities::MosNewUtil<classType>(__VA_ARGS__)
+#endif
+
+#if MOS_MESSAGES_ENABLED
+    #define MOS_DeleteUtil(functionName, filename, line, ptr) \
+        if (ptr != nullptr) \
+            { \
+                MosUtilities::MosAtomicDecrement(&MosUtilities::m_mosMemAllocCounter); \
+                MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line); \
+                delete(ptr); \
+                ptr = nullptr; \
+            }
+#else
+    #define MOS_DeleteUtil(ptr) \
+        if (ptr != nullptr) \
+            { \
+                MosUtilities::MosAtomicDecrement(&MosUtilities::m_mosMemAllocCounter); \
+                MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line); \
+                delete(ptr); \
+                ptr = nullptr; \
+            }
+#endif
+
+#if MOS_MESSAGES_ENABLED
+    #define MOS_DeleteArrayUtil(functionName, filename, line, ptr) \
+        if (ptr != nullptr) \
+        { \
+            MosUtilities::MosAtomicDecrement(&MosUtilities::m_mosMemAllocCounter); \
+            MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line); \
+            delete[](ptr); \
+            ptr = nullptr; \
+        }
+#else
+    #define MOS_DeleteArrayUtil(ptr) \
+        if (ptr != nullptr) \
+        { \
+            MosUtilities::MosAtomicDecrement(&MosUtilities::m_mosMemAllocCounter); \
+            MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line); \
+            delete[](ptr); \
+            ptr = nullptr; \
+        }
+#endif
+
+#if MOS_MESSAGES_ENABLED
+#define MOS_DeleteArray(ptr) MOS_DeleteArrayUtil(__FUNCTION__, __FILE__, __LINE__, ptr)
+#define MOS_Delete(ptr) MOS_DeleteUtil(__FUNCTION__, __FILE__, __LINE__, ptr)
+#else
+#define MOS_DeleteArray(ptr) MOS_DeleteArrayUtil(ptr)
+#define MOS_Delete(ptr) MOS_DeleteUtil(ptr)
+#endif
+
+//------------------------------------------------------------------------------
+//  Allocate, free and set a memory region
+//------------------------------------------------------------------------------
+
+#if MOS_MESSAGES_ENABLED
+
+#define MOS_AlignedAllocMemory(size, alignment) \
+   MosUtilities::MosAlignedAllocMemoryUtils(size, alignment, __FUNCTION__, __FILE__, __LINE__)
+#define MOS_AlignedFreeMemory(ptr) \
+    MosUtilities::MosAlignedFreeMemoryUtils(ptr, __FUNCTION__, __FILE__, __LINE__)
+
+#define MOS_AllocMemory(size) \
+    MosUtilities::MosAllocMemoryUtils(size, __FUNCTION__, __FILE__, __LINE__)
+#define MOS_FreeMemory(ptr) \
+    MosUtilities::MosFreeMemoryUtils(ptr, __FUNCTION__, __FILE__, __LINE__)
+
+#define MOS_AllocAndZeroMemory(size) \
+    MosUtilities::MosAllocAndZeroMemoryUtils(size, __FUNCTION__, __FILE__, __LINE__)
+
+#define MOS_ReallocMemory(ptr, newSize) \
+    MosUtilities::MosReallocMemoryUtils(ptr, newSize, __FUNCTION__, __FILE__, __LINE__)
+
+#else // !MOS_MESSAGES_ENABLED
+
+#define MOS_AlignedAllocMemory(size, alignment) \
+   MosUtilities::MosAlignedAllocMemory(size, alignment)
+#define MOS_AlignedFreeMemory(ptr) \
+    MosUtilities::MosAlignedFreeMemory(ptr)
+
+#define MOS_AllocMemory(size) \
+    MosUtilities::MosAllocMemory(size)
+#define MOS_FreeMemory(ptr) \
+    MosUtilities::MosFreeMemory(ptr)
+
+#define MOS_AllocAndZeroMemory(size) \
+    MosUtilities::MosAllocAndZeroMemory(size)
+
+#define MOS_ReallocMemory(ptr, newSize) \
+    MosUtilities::MosReallocMemory(ptr, newSize)
+
+#endif // MOS_MESSAGES_ENABLED
+
+#define MOS_FreeMemAndSetNull(ptr)                      \
+do{                                                     \
+    MOS_FreeMemory(ptr);                                \
+    ptr = nullptr;                                      \
+} while (0)
+
+#define MOS_SafeFreeMemory(ptr)                         \
+    if (ptr) MOS_FreeMemory(ptr);                       \
+
+#define MOS_ZeroMemory(pDestination, stLength)          \
+    MosUtilities::MosZeroMemory(pDestination, stLength)
+
+#define MOS_FillMemory(pDestination, stLength, bFill)   \
+    MosUtilities::MosFillMemory(pDestination, stLength, bFill)
+
+//------------------------------------------------------------------------------
+//  User Settings
+//------------------------------------------------------------------------------
+//ptr could be moscontext or user feature key info
+#define MOS_UserFeature_ReadValue_ID(pOsUserFeatureInterface, valueID, pValueData, ptr)                 \
+    MosUtilities::MosUserFeatureReadValueID(pOsUserFeatureInterface, valueID, pValueData, ptr)
+
+//ptr could be moscontext or user feature key info
+#define MOS_UserFeature_WriteValues_ID(pOsUserFeatureInterface, pWriteValues, uiNumOfValues, ptr)        \
+    MosUtilities::MosUserFeatureWriteValuesID(pOsUserFeatureInterface, pWriteValues, uiNumOfValues, ptr)
+
+// User Feature Report Writeout
+#define WriteUserFeature64(key, value, mosCtx)                                                       \
+{                                                                                                    \
+    MOS_USER_FEATURE_VALUE_WRITE_DATA UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__; \
+    UserFeatureWriteData.Value.i64Data                     = (value);                                \
+    UserFeatureWriteData.ValueID                           = (key);                                  \
+    MosUtilities::MosUserFeatureWriteValuesID(nullptr, &UserFeatureWriteData, 1, mosCtx);            \
+}
+
+#define WriteUserFeature(key, value, mosCtx)                                                         \
+{                                                                                                    \
+    MOS_USER_FEATURE_VALUE_WRITE_DATA UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__; \
+    UserFeatureWriteData.Value.i32Data                     = (value);                                \
+    UserFeatureWriteData.ValueID                           = (key);                                  \
+    MosUtilities::MosUserFeatureWriteValuesID(nullptr, &UserFeatureWriteData, 1, mosCtx);            \
+}
+
+#define WriteUserFeatureString(key, value, len, mosCtx)                                              \
+{                                                                                                    \
+    MOS_USER_FEATURE_VALUE_WRITE_DATA UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__; \
+    UserFeatureWriteData.Value.StringData.pStringData      = (value);                                \
+    UserFeatureWriteData.Value.StringData.uSize            = (len + 1);                              \
+    UserFeatureWriteData.ValueID                           = (key);                                  \
+    MosUtilities::MosUserFeatureWriteValuesID(nullptr, &UserFeatureWriteData, 1, mosCtx);            \
+}
+
+//------------------------------------------------------------------------------
+//  string
+//------------------------------------------------------------------------------
+#define MOS_SecureStrcat(strDestination, numberOfElements, strSource)                               \
+    MosUtilities::MosSecureStrcat(strDestination, numberOfElements, strSource)
+
+#define MOS_SecureStrcpy(strDestination, numberOfElements, strSource)                               \
+    MosUtilities::MosSecureStrcpy(strDestination, numberOfElements, strSource)
+
+#define MOS_SecureMemcpy(pDestination, dstLength, pSource, srcLength)                               \
+    MosUtilities::MosSecureMemcpy(pDestination, dstLength, pSource, srcLength)
+
+#define MOS_SecureStringPrint(buffer, bufSize, length, format, ...)                                 \
+    MosUtilities::MosSecureStringPrint(buffer, bufSize, length, format, ##__VA_ARGS__)
+
+#define  Mos_SwizzleData(pSrc, pDst, SrcTiling, DstTiling, iHeight, iPitch, extFlags)   \
+    MosUtilities::MosSwizzleData(pSrc, pDst, SrcTiling, DstTiling, iHeight, iPitch, extFlags)
+
+//------------------------------------------------------------------------------
+//  trace
+//------------------------------------------------------------------------------
+
+#define MOS_TraceKeyEnabled(key)                                        (MosUtilities::GetTraceEventKeyword() & (1<<key))
+#define MOS_TraceEvent(usId, ucType, pArg1, dwSize1, pArg2, dwSize2)    MosUtilities::MosTraceEvent(usId, ucType, pArg1, dwSize1, pArg2, dwSize2)
+#define MOS_TraceDataDump(pcName, flags, pBuf, dwSize)                  MosUtilities::MosTraceDataDump(pcName, flags, pBuf, dwSize)
+
+class PerfUtility
+{
+public:
+    struct Tick
+    {
+        double freq;
+        int64_t start;
+        int64_t stop;
+        double time;
+    };
+    struct PerfInfo
+    {
+        uint32_t count;
+        double avg;
+        double max;
+        double min;
+    };
+
+public:
+    static PerfUtility *getInstance();
+    ~PerfUtility();
+    PerfUtility();
+    void startTick(std::string tag);
+    void stopTick(std::string tag);
+    void savePerfData();
+    void setupFilePath(char *perfFilePath);
+    void setupFilePath();
+    bool bPerfUtilityKey;
+    char sSummaryFileName[MOS_MAX_PERF_FILENAME_LEN + 1] = {'\0'};
+    char sDetailsFileName[MOS_MAX_PERF_FILENAME_LEN + 1] = {'\0'};
+    int32_t dwPerfUtilityIsEnabled;
+
+private:
+    void printPerfSummary();
+    void printPerfDetails();
+    void printHeader(std::ofstream& fout);
+    void printBody(std::ofstream& fout);
+    void printFooter(std::ofstream& fout);
+    std::string formatPerfData(std::string tag, std::vector<Tick>& record);
+    void getPerfInfo(std::vector<Tick>& record, PerfInfo* info);
+    std::string getDashString(uint32_t num);
+
+private:
+    static std::shared_ptr<PerfUtility> instance;
+    static std::mutex perfMutex;
+    std::map<std::string, std::vector<Tick>*> records;
+};
+
+#endif // __MOS_UTILITIES_H__

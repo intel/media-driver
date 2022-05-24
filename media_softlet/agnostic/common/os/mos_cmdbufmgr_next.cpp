@@ -24,7 +24,7 @@
 //! \brief   Container class for the basic command buffer manager
 //!
 #include "mos_cmdbufmgr_next.h"
-#include <algorithm>
+#include "mos_context_next.h"
 
 CmdBufMgrNext::CmdBufMgrNext()
 {

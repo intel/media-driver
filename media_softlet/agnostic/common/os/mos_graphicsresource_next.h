@@ -26,13 +26,9 @@
 
 #ifndef __MOS_GRAPHICS_RESOURCE_NEXT_H__
 #define __MOS_GRAPHICS_RESOURCE_NEXT_H__
-
-#include "mos_os_next.h"
-#include "mos_resource_defs.h"
 #include <string>
-#include "mos_context_next.h"
-#include "mos_interface.h"
-
+#include "mos_os.h"
+#include "mos_resource_defs.h"
 
 class GraphicsResourceNext
 {
@@ -153,42 +149,8 @@ public:
         //!
         //! \brief   Create the graphics buffer from a PMOS_ALLOC_GFXRES_PARAMS, for wrapper usage, to be deleted
         //!
-        CreateParams(PMOS_ALLOC_GFXRES_PARAMS pParams)
-        {
-            m_arraySize       = pParams->dwArraySize;
-            m_compressionMode = pParams->CompressionMode;
-            m_depth           = pParams->dwDepth;
-            m_format          = pParams->Format;
-            m_height          = pParams->dwHeight;
-            m_isCompressible  = (pParams->bIsCompressible == 1) ? true : false;
-            m_isPersistent    = (pParams->bIsPersistent == 1) ? true : false;
-            if (pParams->pBufName != nullptr)
-            {
-                 m_name = pParams->pBufName;
-            }
-            m_pSystemMemory   = pParams->pSystemMemory;
-            m_tileType        = pParams->TileType;
-            m_tileModeByForce = pParams->m_tileModeByForce;
-            m_type            = pParams->Type;
-            m_flags           = pParams->Flags;
-            m_width           = pParams->dwWidth;
-            m_memType         = pParams->dwMemType;
-
-            if (pParams->ResUsageType >= MOS_HW_RESOURCE_USAGE_MEDIA_BATCH_BUFFERS || pParams->ResUsageType == MOS_CODEC_RESOURCE_USAGE_BEGIN_CODEC)
-            {
-                m_mocsMosResUsageType = MOS_MP_RESOURCE_USAGE_DEFAULT;
-            }
-            else
-            {
-                m_mocsMosResUsageType = pParams->ResUsageType;
-            }
-            m_gmmResUsageType = MosInterface::GetGmmResourceUsageType(pParams->ResUsageType);
-            m_hardwareProtected = pParams->hardwareProtected;
-        };
-
-        CreateParams()
-        {
-        };
+        CreateParams(PMOS_ALLOC_GFXRES_PARAMS pParams);
+        CreateParams() = default;
     };
 
     //!

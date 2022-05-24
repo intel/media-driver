@@ -24,11 +24,8 @@
 //! \brief    Container for parameters shared across different GPU contexts of the same device instance
 //!
 
-#include "mos_context_next.h"
 #include "mos_context_specific_next.h"
 #include "mediamemdecomp.h"
-#include "mos_util_debug_next.h"
-#include <new>
 
 class OsContextNext* OsContextNext::GetOsContextObject()
 {

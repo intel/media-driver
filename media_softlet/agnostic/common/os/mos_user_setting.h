@@ -28,7 +28,7 @@
 #ifndef _MOS_USER_SETTING_
 #define _MOS_USER_SETTING_
 
-#include "mos_os_specific.h"
+#include "mos_defs.h"
 #include "media_user_setting.h"
 
 class MosUserSetting

@@ -25,7 +25,6 @@
 //!
 
 #include "mos_os_next.h"
-#include "mos_util_debug_next.h"
 
 #if MOS_COMMAND_RESINFO_DUMP_SUPPORTED
 

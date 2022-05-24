@@ -29,8 +29,7 @@
 
 #if MOS_MESSAGES_ENABLED
 
-#include "mos_utilities_specific_next.h"
-#include "mos_utilities_next.h"
+#include "mos_utilities_specific.h"
 #include "media_user_setting.h"
 #include "string.h"
 #include <time.h>      //get_clocktime
