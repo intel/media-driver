@@ -228,13 +228,6 @@ MOS_STATUS VpRenderHdr3DLutKernel::InitCoefSurface(const uint32_t maxDLL, const 
 
     VP_RENDER_CHK_NULL_RETURN(lockedAddr);
 
-    uint32_t widthInDWord = surf->osSurface->dwWidth;
-    uint32_t pitchInDWord = surf->osSurface->dwPitch / 4;
-    auto OffsetInDWordPadding = [&](uint32_t offsetInDWord)
-    {
-        return offsetInDWord / widthInDWord * pitchInDWord + offsetInDWord % widthInDWord;
-    };
-
     hdrcoefBuffer = (float *)lockedAddr;
 
     if (hdrMode == VPHAL_HDR_MODE_TONE_MAPPING)  // H2S
@@ -258,25 +251,20 @@ MOS_STATUS VpRenderHdr3DLutKernel::InitCoefSurface(const uint32_t maxDLL, const 
     // Fill Coefficient Surface: Media kernel define the layout of coefficients. Please don't change it.
     const uint32_t pos_coef[17] = {7, 16, 17, 18, 19, 20, 21, 24, 25, 26, 27, 28, 29, 54, 55, 62, 63};
 
-    if (OffsetInDWordPadding(pos_coef[16]) * 4 > surf->osSurface->dwSize)
-    {
-        VP_RENDER_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
-    }
-
     // OETF curve
-    ((int *)hdrcoefBuffer)[OffsetInDWordPadding(pos_coef[0])] = oetfCurve;
+    ((int *)hdrcoefBuffer)[pos_coef[0]] = oetfCurve;
     // CCM
     for (uint32_t i = 0; i < VP_CCM_MATRIX_SIZE; ++i)
     {
-        hdrcoefBuffer[OffsetInDWordPadding(pos_coef[i + 1])] = ccmMatrix[i];
+        hdrcoefBuffer[pos_coef[i + 1]] = ccmMatrix[i];
     }
     // TM Source Type
-    ((int *)hdrcoefBuffer)[OffsetInDWordPadding(pos_coef[13])] = tmSrcType;
+    ((int *)hdrcoefBuffer)[pos_coef[13]] = tmSrcType;
     // TM Mode
-    ((int *)hdrcoefBuffer)[OffsetInDWordPadding(pos_coef[14])] = tmMode;
+    ((int *)hdrcoefBuffer)[pos_coef[14]] = tmMode;
     // Max CLL and DLL
-    hdrcoefBuffer[OffsetInDWordPadding(pos_coef[15])] = tmMaxCLL;
-    hdrcoefBuffer[OffsetInDWordPadding(pos_coef[16])] = tmMaxDLL;
+    hdrcoefBuffer[pos_coef[15]] = tmMaxCLL;
+    hdrcoefBuffer[pos_coef[16]] = tmMaxDLL;
 
     //Unlock
     VP_RENDER_CHK_STATUS_RETURN(m_allocator->UnLock(&surf->osSurface->OsResource));
@@ -443,32 +431,44 @@ MOS_STATUS VpRenderHdr3DLutKernel::SetupSurfaceState()
 
             if (Format_Buffer == surf->osSurface->Format)
             {
-                VP_RENDER_ASSERTMESSAGE("2D surface should be used for SurfType %d", surfType);
-                VP_RENDER_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+                VP_RENDER_NORMALMESSAGE("Buffer should be used for SurfType %d", surfType);
+                KERNEL_SURFACE_STATE_PARAM kernelSurfaceParam                  = {};
+                kernelSurfaceParam.surfaceOverwriteParams.updatedSurfaceParams = true;
+                kernelSurfaceParam.surfaceOverwriteParams.width                = surf->bufferWidth;
+                kernelSurfaceParam.surfaceOverwriteParams.height               = 256;
+                kernelSurfaceParam.surfaceOverwriteParams.pitch                = 0;
+                kernelSurfaceParam.surfaceOverwriteParams.format               = Format_A8R8G8B8;
+                kernelSurfaceParam.surfaceOverwriteParams.tileType             = surf->osSurface->TileType;
+                kernelSurfaceParam.surfaceOverwriteParams.surface_offset       = 0;
+
+                m_surfaceState.insert(std::make_pair(*(SurfaceType *)arg.pData, kernelSurfaceParam));
             }
+            else
+            {
+                VP_RENDER_NORMALMESSAGE("2D should be used for SurfType %d", surfType);
+                KERNEL_SURFACE_STATE_PARAM kernelSurfaceParam                  = {};
+                kernelSurfaceParam.surfaceOverwriteParams.updatedSurfaceParams = true;
+                kernelSurfaceParam.surfaceOverwriteParams.width                = surf->osSurface->dwWidth;
+                kernelSurfaceParam.surfaceOverwriteParams.height               = surf->osSurface->dwHeight;
+                kernelSurfaceParam.surfaceOverwriteParams.pitch                = surf->osSurface->dwPitch;
+                kernelSurfaceParam.surfaceOverwriteParams.format               = Format_A8R8G8B8;
+                kernelSurfaceParam.surfaceOverwriteParams.tileType             = surf->osSurface->TileType;
+                kernelSurfaceParam.surfaceOverwriteParams.surface_offset       = 0;
 
-            KERNEL_SURFACE_STATE_PARAM kernelSurfaceParam = {};
-            kernelSurfaceParam.surfaceOverwriteParams.updatedSurfaceParams  = true;
-            kernelSurfaceParam.surfaceOverwriteParams.width                 = surf->osSurface->dwWidth;
-            kernelSurfaceParam.surfaceOverwriteParams.height                = surf->osSurface->dwHeight;
-            kernelSurfaceParam.surfaceOverwriteParams.pitch                 = surf->osSurface->dwPitch;
-            kernelSurfaceParam.surfaceOverwriteParams.format                = Format_A8R8G8B8;
-            kernelSurfaceParam.surfaceOverwriteParams.tileType              = surf->osSurface->TileType;
-            kernelSurfaceParam.surfaceOverwriteParams.surface_offset        = 0;
-
-            kernelSurfaceParam.surfaceOverwriteParams.updatedRenderSurfaces                 = true;
-            kernelSurfaceParam.surfaceOverwriteParams.renderSurfaceParams.Type              = renderHal->SurfaceTypeDefault;
-            kernelSurfaceParam.surfaceOverwriteParams.renderSurfaceParams.bRenderTarget     = true; // true if no need sync for read.
-            kernelSurfaceParam.surfaceOverwriteParams.renderSurfaceParams.bWidthInDword_Y   = true;
-            kernelSurfaceParam.surfaceOverwriteParams.renderSurfaceParams.bWidthInDword_UV  = true;
-            kernelSurfaceParam.surfaceOverwriteParams.renderSurfaceParams.Boundary          = RENDERHAL_SS_BOUNDARY_ORIGINAL;
-            kernelSurfaceParam.surfaceOverwriteParams.renderSurfaceParams.bWidth16Align     = false;
-            //set mem object control for cache
-            kernelSurfaceParam.surfaceOverwriteParams.renderSurfaceParams.MemObjCtl = (osInterface->pfnCachePolicyGetMemoryObject(
-                        MOS_MP_RESOURCE_USAGE_DEFAULT,
-                        osInterface->pfnGetGmmClientContext(osInterface))).DwordValue;
-
-            m_surfaceState.insert(std::make_pair(*(SurfaceType *)arg.pData, kernelSurfaceParam));
+                kernelSurfaceParam.surfaceOverwriteParams.updatedRenderSurfaces                = true;
+                kernelSurfaceParam.surfaceOverwriteParams.renderSurfaceParams.Type             = renderHal->SurfaceTypeDefault;
+                kernelSurfaceParam.surfaceOverwriteParams.renderSurfaceParams.bRenderTarget    = true;  // true if no need sync for read.
+                kernelSurfaceParam.surfaceOverwriteParams.renderSurfaceParams.bWidthInDword_Y  = true;
+                kernelSurfaceParam.surfaceOverwriteParams.renderSurfaceParams.bWidthInDword_UV = true;
+                kernelSurfaceParam.surfaceOverwriteParams.renderSurfaceParams.Boundary         = RENDERHAL_SS_BOUNDARY_ORIGINAL;
+                kernelSurfaceParam.surfaceOverwriteParams.renderSurfaceParams.bWidth16Align    = false;
+                //set mem object control for cache
+                kernelSurfaceParam.surfaceOverwriteParams.renderSurfaceParams.MemObjCtl = (osInterface->pfnCachePolicyGetMemoryObject(
+                                                                                               MOS_MP_RESOURCE_USAGE_DEFAULT,
+                                                                                               osInterface->pfnGetGmmClientContext(osInterface)))
+                                                                                              .DwordValue;
+                m_surfaceState.insert(std::make_pair(*(SurfaceType *)arg.pData, kernelSurfaceParam));
+            }
         }
     }
     

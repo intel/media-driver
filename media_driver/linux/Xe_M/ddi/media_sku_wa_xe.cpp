@@ -776,6 +776,9 @@ static bool InitDg2MediaSku(struct GfxDeviceInfo *devInfo,
     // Enable AV1 Large Scale Tile decoding
     MEDIA_WR_SKU(skuTable, FtrAV1VLDLSTDecoding, 1);
 
+    // Enable HDR
+    MEDIA_WR_SKU(skuTable, FtrHDR, 1);
+
     // Enable down scaling first if 3DLUT enabled
     MEDIA_WR_SKU(skuTable, FtrScalingFirst, 1);
 
