@@ -186,6 +186,9 @@ MOS_STATUS DecodePipeline::Uninitialize()
 {
     DECODE_FUNC_CALL();
 
+    // Wait all cmd completion before delete resource.
+    m_osInterface->pfnWaitAllCmdCompletion(m_osInterface);
+
     Delete_DecodeCpInterface(m_decodecp);
     m_decodecp = nullptr;
 
