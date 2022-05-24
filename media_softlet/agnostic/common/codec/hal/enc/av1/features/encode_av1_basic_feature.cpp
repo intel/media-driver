@@ -970,7 +970,7 @@ MHW_SETPAR_DECL_SRC(AVP_PIC_STATE, Av1BasicFeature)
         params.autoBistreamStitchingInHardware = false;
     }
 
-    params.postCdefPixelStreamoutEn = true;  // Always needed, since this is recon for VDENC
+    params.postCdefReconPixelStreamoutEn = true;  // Always needed, since this is recon for VDENC
 
     MHW_CHK_STATUS_RETURN(m_ref.MHW_SETPAR_F(AVP_PIC_STATE)(params));
 

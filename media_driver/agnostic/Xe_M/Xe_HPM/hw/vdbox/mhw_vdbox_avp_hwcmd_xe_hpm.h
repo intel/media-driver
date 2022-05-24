@@ -424,7 +424,7 @@ public:
                 uint32_t                 ApplyFilmGrainFlag                               : __CODEGEN_BITFIELD( 7,  7)    ; //!< Apply Film Grain Flag
                 uint32_t                 LargeScaleTileEnableFlag                         : __CODEGEN_BITFIELD( 8,  8)    ; //!< Large Scale Tile Enable Flag
                 uint32_t                 Reserved105                                      : __CODEGEN_BITFIELD( 9, 13)    ; //!< Reserved
-                uint32_t                 PostCdefPixelStreamoutEn                         : __CODEGEN_BITFIELD(14, 14)    ; //!< Post CDEF Pixel Streamout En
+                uint32_t                 PostCdefFilteredReconPixelsWriteoutEn            : __CODEGEN_BITFIELD(14, 14)    ; //!< Post CDEF Filtered Recon Pixels Writeout En
                 uint32_t                 PostWienerFilteredPixelStreamoutEn               : __CODEGEN_BITFIELD(15, 15)    ; //!< Post Wiener Filtered Pixel Streamout En
                 uint32_t                 FrameType                                        : __CODEGEN_BITFIELD(16, 17)    ; //!< Frame Type
                 uint32_t                 Reserved114                                      : __CODEGEN_BITFIELD(18, 18)    ; //!< Reserved (for the expansion of Frame Type)
@@ -503,7 +503,7 @@ public:
                 uint32_t                 Reserved232                                      : __CODEGEN_BITFIELD( 8,  8)    ; //!< Reserved (for future expansion of Skip Mode Frame[0])
                 uint32_t                 SkipModeFrame1                                   : __CODEGEN_BITFIELD( 9, 11)    ; //!< Skip Mode Frame [1]
                 uint32_t                 Reserved236                                      : __CODEGEN_BITFIELD(12, 23)    ; //!< Reserved (for future expansion of Skip Mode Frame[1])
-                uint32_t                 RefFrameSide                                     : __CODEGEN_BITFIELD(24, 31)    ; //!< ref_frame_side for the 8 reference frames INTRA...ALTREF
+                uint32_t                 ReferenceFrameSideI0To7                          : __CODEGEN_BITFIELD(24, 31)    ; //!< ref_frame_side for the 8 reference frames INTRA...ALTREF
             };
             uint32_t                     Value;
         } DW7;

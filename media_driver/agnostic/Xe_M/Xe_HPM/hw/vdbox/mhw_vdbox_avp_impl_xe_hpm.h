@@ -229,17 +229,6 @@ namespace xe_hpm
 #include "mhw_hwcmd_process_cmdfields.h"
         }
 
-        _MHW_SETCMD_OVERRIDE_DECL(AVP_PIC_STATE)
-        {
-            _MHW_SETCMD_CALLBASE(AVP_PIC_STATE);
-
-#define DO_FIELDS()                                                                  \
-    DO_FIELD(DW3, PostCdefPixelStreamoutEn, params.postCdefPixelStreamoutEn? 1 : 0); \
-                                                                                     \
-    DO_FIELD(DW7, RefFrameSide, params.refFrameSide);                                                      
-
-#include "mhw_hwcmd_process_cmdfields.h"
-        }
     };
 } // xe_hpm
 } // avp

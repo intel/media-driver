@@ -235,7 +235,7 @@ struct _MHW_PAR_T(AVP_PIC_STATE)
 
     bool     autoBistreamStitchingInHardware     = false;
 
-    bool     postCdefPixelStreamoutEn            = false;
+    bool     postCdefReconPixelStreamoutEn       = false;
 
     bool     allowScreenContentTools             = false;
     bool     allowIntraBC                        = false;
