@@ -620,7 +620,9 @@ VAStatus DdiDecodeJPEG::SetDecodeParams()
     if((m_ddiDecodeCtx->RTtbl.pCurrentRT->format == Media_Format_NV12)
         &&(jpegPicParam->m_chromaType == jpegYUV444))
     {
+        UnRegisterRTSurfaces(&(m_ddiDecodeCtx->RTtbl), m_ddiDecodeCtx->RTtbl.pCurrentRT);
         m_ddiDecodeCtx->RTtbl.pCurrentRT = DdiMedia_ReplaceSurfaceWithNewFormat(m_ddiDecodeCtx->RTtbl.pCurrentRT, Media_Format_444P);
+        RegisterRTSurfaces(&(m_ddiDecodeCtx->RTtbl), m_ddiDecodeCtx->RTtbl.pCurrentRT);
     }
     if(m_ddiDecodeCtx->RTtbl.pCurrentRT != nullptr)
     {
