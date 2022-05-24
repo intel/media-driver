@@ -406,7 +406,7 @@ struct _MHW_PAR_T(AVP_SURFACE_STATE)
     uint32_t          vOffset            = 0;
     uint8_t           surfaceStateId     = 0;
     uint8_t           bitDepthLumaMinus8 = 0;
-    MOS_MEMCOMP_STATE mmcState[av1TotalRefsPerFrame] = { MOS_MEMCOMP_DISABLED };
+    MOS_MEMCOMP_STATE mmcState           = MOS_MEMCOMP_DISABLED;
     uint32_t          compressionFormat  = 0;
     SURFACE_FORMAT    srcFormat          = SURFACE_FORMAT::SURFACE_FORMAT_PLANAR4208;
     uint32_t          uvPlaneAlignment   = 0;

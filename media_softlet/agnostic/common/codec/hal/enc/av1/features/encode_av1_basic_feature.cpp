@@ -776,15 +776,17 @@ MHW_SETPAR_DECL_SRC(VDENC_PIPE_BUF_ADDR_STATE, Av1BasicFeature)
 {
     if (m_mmcState->IsMmcEnabled())
     {
-        params.mmcEnabled = true;
+        ENCODE_CHK_STATUS_RETURN(m_mmcState->GetSurfaceMmcState(const_cast<PMOS_SURFACE>(&m_reconSurface), &params.mmcStatePreDeblock));
+        ENCODE_CHK_STATUS_RETURN(m_mmcState->GetSurfaceMmcFormat(const_cast<PMOS_SURFACE>(&m_reconSurface), &params.compressionFormatRecon));
         ENCODE_CHK_STATUS_RETURN(m_mmcState->GetSurfaceMmcState(const_cast<PMOS_SURFACE>(m_rawSurfaceToEnc), &params.mmcStateRaw));
         ENCODE_CHK_STATUS_RETURN(m_mmcState->GetSurfaceMmcFormat(const_cast<PMOS_SURFACE>(m_rawSurfaceToEnc), &params.compressionFormatRaw));
     }
     else
     {
-        params.mmcEnabled           = false;
-        params.mmcStateRaw          = MOS_MEMCOMP_DISABLED;
-        params.compressionFormatRaw = GMM_FORMAT_INVALID;
+        params.mmcStatePreDeblock = MOS_MEMCOMP_DISABLED;
+        params.compressionFormatRecon = GMM_FORMAT_INVALID;
+        params.mmcStateRaw        = MOS_MEMCOMP_DISABLED;
+        params.compressionFormatRaw   = GMM_FORMAT_INVALID;
     }
 
     params.surfaceRaw                    = m_rawSurfaceToEnc;
@@ -1114,29 +1116,25 @@ MHW_SETPAR_DECL_SRC(AVP_IND_OBJ_BASE_ADDR_STATE, Av1BasicFeature)
 
 MHW_SETPAR_DECL_SRC(AVP_SURFACE_STATE, Av1BasicFeature)
 {
-    MOS_MEMCOMP_STATE mmcState = {};
     switch (params.surfaceStateId)
     {
     case srcInputPic:
         params.pitch   = m_rawSurfaceToEnc->dwPitch;
         params.uOffset = m_rawSurfaceToEnc->YoffsetForUplane;
         params.vOffset = m_rawSurfaceToEnc->YoffsetForVplane;
-        GetSurfaceMmcInfo(m_rawSurfaceToEnc, mmcState, params.compressionFormat);
-        std::fill(std::begin(params.mmcState), std::end(params.mmcState), mmcState);
+        GetSurfaceMmcInfo(m_rawSurfaceToEnc, params.mmcState, params.compressionFormat);
         break;
     case origUpscaledSrc:
         params.pitch   = m_rawSurfaceToPak->dwPitch;
         params.uOffset = m_rawSurfaceToPak->YoffsetForUplane;
         params.vOffset = m_rawSurfaceToPak->YoffsetForVplane;
-        GetSurfaceMmcInfo(m_rawSurfaceToPak, mmcState, params.compressionFormat);
-        std::fill(std::begin(params.mmcState), std::end(params.mmcState), mmcState);
+        GetSurfaceMmcInfo(m_rawSurfaceToPak, params.mmcState, params.compressionFormat);
         break;
     case reconPic:
         params.pitch   = m_reconSurface.dwPitch;
         params.uOffset = m_reconSurface.YoffsetForUplane;
         params.vOffset = m_reconSurface.YoffsetForVplane;
-        GetSurfaceMmcInfo(const_cast<PMOS_SURFACE>(&m_reconSurface), mmcState, params.compressionFormat);
-        std::fill(std::begin(params.mmcState), std::end(params.mmcState), mmcState);
+        GetSurfaceMmcInfo(const_cast<PMOS_SURFACE>(&m_reconSurface), params.mmcState, params.compressionFormat);
         break;
     case av1CdefPixelsStreamout:
     {
@@ -1147,8 +1145,7 @@ MHW_SETPAR_DECL_SRC(AVP_SURFACE_STATE, Av1BasicFeature)
         params.pitch   = postCdefSurface->dwPitch;
         params.uOffset = postCdefSurface->YoffsetForUplane;
         params.vOffset = postCdefSurface->YoffsetForVplane;
-        GetSurfaceMmcInfo(postCdefSurface, mmcState, params.compressionFormat);
-        std::fill(std::begin(params.mmcState), std::end(params.mmcState), mmcState);
+        GetSurfaceMmcInfo(postCdefSurface, params.mmcState, params.compressionFormat);
         break;
     }
     case av1IntraFrame:

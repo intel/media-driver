@@ -1415,7 +1415,6 @@ namespace encode
         m_mmcState = m_pipeline->GetMmcState();
         ENCODE_CHK_NULL_RETURN(m_mmcState);
         m_basicFeature->m_mmcState = m_mmcState;
-        m_basicFeature->m_ref.m_mmcState = m_mmcState;
 #endif
         m_allocator = m_pipeline->GetEncodeAllocator();
         ENCODE_CHK_STATUS_RETURN(AllocateResources());

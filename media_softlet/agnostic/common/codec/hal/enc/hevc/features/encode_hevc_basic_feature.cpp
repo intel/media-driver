@@ -789,15 +789,17 @@ MHW_SETPAR_DECL_SRC(VDENC_PIPE_BUF_ADDR_STATE, HevcBasicFeature)
 {
     if (m_mmcState->IsMmcEnabled())
     {
-        params.mmcEnabled = true;
+        ENCODE_CHK_STATUS_RETURN(m_mmcState->GetSurfaceMmcState(const_cast<PMOS_SURFACE>(&m_reconSurface), &params.mmcStatePreDeblock));
+        ENCODE_CHK_STATUS_RETURN(m_mmcState->GetSurfaceMmcFormat(const_cast<PMOS_SURFACE>(&m_reconSurface), &params.compressionFormatRecon));
         ENCODE_CHK_STATUS_RETURN(m_mmcState->GetSurfaceMmcState(const_cast<PMOS_SURFACE>(&m_rawSurface), &params.mmcStateRaw));
         ENCODE_CHK_STATUS_RETURN(m_mmcState->GetSurfaceMmcFormat(const_cast<PMOS_SURFACE>(&m_rawSurface), &params.compressionFormatRaw));
     }
     else
     {
-        params.mmcEnabled           = false;
-        params.mmcStateRaw          = MOS_MEMCOMP_DISABLED;
-        params.compressionFormatRaw = 0;
+        params.mmcStatePreDeblock     = MOS_MEMCOMP_DISABLED;
+        params.compressionFormatRecon = 0;
+        params.mmcStateRaw            = MOS_MEMCOMP_DISABLED;
+        params.compressionFormatRaw   = 0;
     }
 
     params.surfaceRaw               = m_rawSurfaceToPak;
@@ -1231,10 +1233,6 @@ MHW_SETPAR_DECL_SRC(HCP_SURFACE_STATE, HevcBasicFeature)
     }
 #ifdef _MMC_SUPPORTED
     GetSurfaceMmcInfo(psSurface, params.mmcState, params.dwCompressionFormat);
-    if (params.surfaceStateId == CODECHAL_HCP_REF_SURFACE_ID)
-    {
-        m_ref.MHW_SETPAR_F(HCP_SURFACE_STATE)(params);
-    }
 #endif
 
     ENCODE_CHK_NULL_RETURN(psSurface);

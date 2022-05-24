@@ -53,11 +53,6 @@ Av1ReferenceFrames::~Av1ReferenceFrames()
     CodecHalFreeDataList(m_refList, CODEC_AV1_NUM_UNCOMPRESSED_SURFACE);
 }
 
-static bool MmcEnabled(MOS_MEMCOMP_STATE state)
-{
-    return state == MOS_MEMCOMP_RC || state == MOS_MEMCOMP_MC;
-}
-
 MOS_STATUS Av1ReferenceFrames::Update()
 {
     ENCODE_FUNC_CALL();
@@ -65,8 +60,6 @@ MOS_STATUS Av1ReferenceFrames::Update()
     // initialize internal structures for current frame before set up
     m_refFrameFlags = 0;
     m_numRefFrames = 0;
-    uint32_t compressionFormat = 0;
-
     MOS_ZeroMemory(m_currRefPic, sizeof(m_currRefPic));
     for (auto i = 0; i < CODEC_AV1_NUM_REF_FRAMES; i++)
     {
@@ -151,8 +144,7 @@ MOS_STATUS Av1ReferenceFrames::Update()
     {
         m_firstValidRefPic = currRawOrRecon;
     }
-    m_basicFeature->GetSurfaceMmcInfo(m_firstValidRefPic, m_refMmcState[intraFrame], compressionFormat);
-    m_refCompressionFormat = MmcEnabled(m_refMmcState[intraFrame])? compressionFormat : m_refCompressionFormat;
+
     return MOS_STATUS_SUCCESS;
 
 }
@@ -233,7 +225,7 @@ MOS_STATUS Av1ReferenceFrames::SetupCurrRefPic()
     auto seqParams = m_basicFeature->m_av1SeqParams;
     ENCODE_CHK_NULL_RETURN(seqParams);
     auto firstValid = false;
-    uint32_t compressionFormat = 0;
+
     for (auto i = 0; i < av1NumInterRefFrames; i++)
     {
         if (m_refFrameFlags & (AV1_ENCODE_GET_REF_FALG(i)))
@@ -254,6 +246,12 @@ MOS_STATUS Av1ReferenceFrames::SetupCurrRefPic()
             }
 
             m_currRefList->m_refOrderHint[i] = m_refList[frameIdx]->m_orderHint;
+            //TBD
+            //if (m_vp9SeqParams->SeqFlags.fields.EnableDynamicScaling &&
+            //    (refList[frameIdx]->dwFrameWidth != m_oriFrameWidth || refList[frameIdx]->dwFrameHeight != m_oriFrameHeight))
+            //{
+            //    m_dysRefFrameFlags |= DYS_REF_LAST;
+            //}
         }
     }
 
@@ -264,8 +262,6 @@ MOS_STATUS Av1ReferenceFrames::SetupCurrRefPic()
         {
             m_currRefPic[i] = m_firstValidRefPic;
         }
-        m_basicFeature->GetSurfaceMmcInfo(m_currRefPic[i], m_refMmcState[i + 1], compressionFormat);
-        m_refCompressionFormat = MmcEnabled(m_refMmcState[i + 1]) ? compressionFormat : m_refCompressionFormat;
     }
 
     return MOS_STATUS_SUCCESS;
@@ -952,7 +948,7 @@ MHW_SETPAR_DECL_SRC(AVP_SURFACE_STATE, Av1ReferenceFrames)
         params.pitch   = m_firstValidRefPic->dwPitch;
         params.uOffset = m_firstValidRefPic->YoffsetForUplane;
         params.vOffset = m_firstValidRefPic->YoffsetForVplane;
-
+        m_basicFeature->GetSurfaceMmcInfo(m_firstValidRefPic, params.mmcState, params.compressionFormat);
     }
     else
     {
@@ -964,10 +960,8 @@ MHW_SETPAR_DECL_SRC(AVP_SURFACE_STATE, Av1ReferenceFrames)
         params.pitch   = m_currRefPic[params.surfaceStateId - av1LastRef]->dwPitch;
         params.uOffset = m_currRefPic[params.surfaceStateId - av1LastRef]->YoffsetForUplane;
         params.vOffset = m_currRefPic[params.surfaceStateId - av1LastRef]->YoffsetForVplane;
-
+        m_basicFeature->GetSurfaceMmcInfo(m_currRefPic[params.surfaceStateId - av1LastRef], params.mmcState, params.compressionFormat);
     }
-    std::copy(std::begin(m_refMmcState), std::end(m_refMmcState), params.mmcState);
-    params.compressionFormat = m_refCompressionFormat;
 
     return MOS_STATUS_SUCCESS;
 }

@@ -252,7 +252,6 @@ struct _MHW_PAR_T(VDENC_PIPE_BUF_ADDR_STATE)
     PMOS_SURFACE      surfaceDsStage2                   = nullptr;
     MOS_MEMCOMP_STATE mmcStateDsStage2                  = MOS_MEMCOMP_DISABLED;
     uint8_t           mmcSkipMask                       = 0;
-    bool              mmcEnabled                        = false;
     bool              lowDelayB                         = false;
     bool              isPFrame                          = false;  //only HEVC should touch this flag
     PMOS_RESOURCE     colocatedMvReadBuffer             = nullptr;

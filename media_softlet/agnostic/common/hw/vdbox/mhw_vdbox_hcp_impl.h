@@ -768,15 +768,17 @@ protected:
     {
         _MHW_SETCMD_CALLBASE(HCP_SURFACE_STATE);
 
-#define DO_FIELDS()                                                                      \
-    DO_FIELD(DW1, SurfaceId, params.surfaceStateId);                                     \
-    DO_FIELD(DW1, SurfacePitchMinus1, params.surfacePitchMinus1);                        \
-    DO_FIELD(DW2, SurfaceFormat, static_cast<uint32_t>(params.surfaceFormat));           \
-    DO_FIELD(DW2, YOffsetForUCbInPixel, params.yOffsetForUCbInPixel);                    \
-    DO_FIELD(DW3, YOffsetForVCr, params.yOffsetForVCr);                                  \
-    DO_FIELD(DW3, DefaultAlphaValue, params.defaultAlphaValue);                          \
-    DO_FIELD(DW4, MemoryCompressionEnable, params.refsMmcEnable & (~params.mmcSkipMask)); \
-    DO_FIELD(DW4, CompressionType, params.refsMmcType);                                  \
+#define DO_FIELDS()                                                                                               \
+    DO_FIELD(DW1, SurfaceId, params.surfaceStateId);                                                              \
+    DO_FIELD(DW1, SurfacePitchMinus1, params.surfacePitchMinus1);                                                 \
+    DO_FIELD(DW2, SurfaceFormat, static_cast<uint32_t>(params.surfaceFormat));                                    \
+    DO_FIELD(DW2, YOffsetForUCbInPixel, params.yOffsetForUCbInPixel);                                             \
+    DO_FIELD(DW3, YOffsetForVCr, params.yOffsetForVCr);                                                           \
+    DO_FIELD(DW3, DefaultAlphaValue, params.defaultAlphaValue);                                                   \
+    DO_FIELD(DW4, MemoryCompressionEnable,                                                                        \
+        ((params.surfaceStateId != CODECHAL_HCP_DECODED_SURFACE_ID) && MmcEnabled(params.mmcState)) ? ((~params.mmcSkipMask) & 0xff) : 0); \
+    DO_FIELD(DW4, CompressionType,                                                                                \
+        ((params.surfaceStateId != CODECHAL_HCP_DECODED_SURFACE_ID) && MmcRcEnabled(params.mmcState)) ? 0xff : 0);\
     DO_FIELD(DW4, CompressionFormat, params.dwCompressionFormat);
 
 #include "mhw_hwcmd_process_cmdfields.h"

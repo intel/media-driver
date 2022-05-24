@@ -587,7 +587,7 @@ MOS_STATUS CodechalDecodeVp9G12::AddPicStateMhwCmds(
                 skipMask |= (1 << (i - 1));
             }
         }
-        CODECHAL_DECODE_NORMALMESSAGE("MMC skip mask is %d\n", skipMask);
+        CODECHAL_DECODE_NORMALMESSAGE("MMC skip masK is %d\n", skipMask);
         for (uint8_t i = 1; i < 4; i++)
         {
             //Set each ref surface state as MOS_MEMCOMP_MC to satisfy MmcEnable in AddHcpSurfaceCmd

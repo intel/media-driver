@@ -1876,15 +1876,9 @@ MhwVdboxVdencInterfaceG12<mhw::vdbox::vdenc::xe_hpm::Cmd>::AddVdencPipeBufAddrCm
             resourceParams.bIsWritable = false;
             resourceParams.pdwCmd = (uint32_t*)&FwdBwdRefs[refIdx]->LowerAddress;
 
-            if (params->bMmcEnabled)
-            {
-                MHW_MI_CHK_STATUS(this->m_osInterface->pfnGetMemoryCompressionMode(
-                    this->m_osInterface, params->presVdencReferences[refIdx], &mmcMode));
-            }
-            else
-            {
-                mmcMode = MOS_MEMCOMP_DISABLED;
-            }
+            mmcMode = (params->PostDeblockSurfMmcState != MOS_MEMCOMP_DISABLED) ?
+                params->PostDeblockSurfMmcState : params->PreDeblockSurfMmcState;
+
             FwdBwdRefs[refIdx]->PictureFields.DW0.MemoryCompressionEnable = MmcEnable(mmcMode) ? 1 : 0;
             FwdBwdRefs[refIdx]->PictureFields.DW0.CompressionType         = MmcIsRc(mmcMode) ? 1 : 0;
             FwdBwdRefs[refIdx]->PictureFields.DW0.MemoryObjectControlState =
@@ -2017,15 +2011,8 @@ MhwVdboxVdencInterfaceG12<mhw::vdbox::vdenc::xe_hpm::Cmd>::AddVdencPipeBufAddrCm
             resourceParams.bIsWritable = false;
             resourceParams.pdwCmd = (uint32_t *)&(cmd.BwdRef0.LowerAddress);
 
-            if (params->bMmcEnabled)
-            {
-                MHW_MI_CHK_STATUS(this->m_osInterface->pfnGetMemoryCompressionMode(
-                    this->m_osInterface, params->presVdencReferences[refIdx], &mmcMode));
-            }
-            else
-            {
-                mmcMode = MOS_MEMCOMP_DISABLED;
-            }
+            mmcMode = (params->PostDeblockSurfMmcState != MOS_MEMCOMP_DISABLED) ?
+                params->PostDeblockSurfMmcState : params->PreDeblockSurfMmcState;
 
             cmd.BwdRef0.PictureFields.DW0.MemoryCompressionEnable = MmcEnable(mmcMode) ? 1 : 0;
             cmd.BwdRef0.PictureFields.DW0.CompressionType         = MmcIsRc(mmcMode) ? 1 : 0;

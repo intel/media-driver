@@ -185,22 +185,6 @@ MOS_STATUS MediaMemComp::GetSurfaceMmcFormat(
     return status;
 }
 
-MOS_STATUS MediaMemComp::GetResourceMmcFormat(
-    PMOS_RESOURCE resource,
-    uint32_t    &mmcFormat)
-{
-    MOS_STATUS status = MOS_STATUS_SUCCESS;
-    MOS_CHK_NULL_RETURN(MOS_COMPONENT_MMC, MOS_MMC_SUBCOMP_SELF, resource);
-    MOS_CHK_NULL_RETURN(MOS_COMPONENT_MMC, MOS_MMC_SUBCOMP_SELF, m_osInterface);
-
-    if (m_mmcEnabled)
-        status = m_osInterface->pfnGetMemoryCompressionFormat(m_osInterface, resource, &mmcFormat);
-    else
-        mmcFormat = 0;
-
-    return status;
-}
-
 MOS_STATUS MediaMemComp::SetSurfaceMmcFormat(
         PMOS_SURFACE surface)
 {

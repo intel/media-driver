@@ -623,45 +623,4 @@ MHW_SETPAR_DECL_SRC(HCP_PIPE_BUF_ADDR_STATE, HevcReferenceFrames)
     return MOS_STATUS_SUCCESS;
 }
 
-MHW_SETPAR_DECL_SRC(HCP_SURFACE_STATE, HevcReferenceFrames)
-{
-    ENCODE_FUNC_CALL();
-
-    if (m_mmcState->IsMmcEnabled())
-    {
-        ENCODE_CHK_NULL_RETURN(m_basicFeature);
-        auto trackedBuf = m_basicFeature->m_trackedBuf;
-        ENCODE_CHK_NULL_RETURN(trackedBuf);
-
-        params.refsMmcEnable       = 0;
-        params.refsMmcType         = 0;
-        params.dwCompressionFormat = 0;
-
-        //add for B frame support
-        if (m_pictureCodingType != I_TYPE)
-        {
-            for (uint8_t i = 0; i < CODEC_MAX_NUM_REF_FRAME_HEVC; i++)
-            {
-                if (i < CODEC_MAX_NUM_REF_FRAME_HEVC &&
-                    m_picIdx[i].bValid && m_currUsedRefPic[i])
-                {
-                    uint8_t idx          = m_picIdx[i].ucPicIdx;
-                    uint8_t frameStoreId = m_refIdxMapping[i];
-
-                    MOS_MEMCOMP_STATE mmcState  = MOS_MEMCOMP_DISABLED;
-                    ENCODE_CHK_STATUS_RETURN(m_mmcState->GetSurfaceMmcState(const_cast<PMOS_SURFACE>(&m_refList[idx]->sRefReconBuffer), &mmcState));
-                    params.refsMmcEnable |= (mmcState == MOS_MEMCOMP_RC || mmcState == MOS_MEMCOMP_MC) ? (1 << frameStoreId) : 0;
-                    params.refsMmcType |= (mmcState == MOS_MEMCOMP_RC) ? (1 << frameStoreId) : 0;
-                    if (mmcState == MOS_MEMCOMP_RC || mmcState == MOS_MEMCOMP_MC)
-                    {
-                        ENCODE_CHK_STATUS_RETURN(m_mmcState->GetSurfaceMmcFormat(const_cast<PMOS_SURFACE>(&m_refList[idx]->sRefReconBuffer), &params.dwCompressionFormat));
-                    }
-                }
-            }
-        }
-    }
-
-    return MOS_STATUS_SUCCESS;
-}
-
 }  // namespace encode
