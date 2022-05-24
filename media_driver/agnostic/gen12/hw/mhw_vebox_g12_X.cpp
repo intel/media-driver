@@ -2947,15 +2947,15 @@ MOS_STATUS MhwVeboxInterfaceG12::AddVeboxTilingConvert(
 
         if (outSurParams->CompressionMode != MOS_MMC_DISABLED)
         {
-            veboxInputSurfCtrlBits.DW0.MemoryCompressionEnable = true;
+            veboxOutputSurfCtrlBits.DW0.MemoryCompressionEnable = true;
 
             if (outSurParams->CompressionMode == MOS_MMC_RC)
             {
-                veboxInputSurfCtrlBits.DW0.CompressionType = 1;
+                veboxOutputSurfCtrlBits.DW0.CompressionType = 1;
             }
             else
             {
-                veboxInputSurfCtrlBits.DW0.CompressionType = 0;
+                veboxOutputSurfCtrlBits.DW0.CompressionType = 0;
             }
         }
 
