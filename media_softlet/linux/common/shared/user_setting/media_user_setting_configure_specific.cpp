@@ -29,7 +29,7 @@ namespace MediaUserSetting
 {
 namespace Internal
 {
-const std::map<uint32_t, ExtPathCFG> Configure::m_pathOption = {};
+const std::map<uint32_t, const char *> Configure::m_pathOption = {};
 
 }  // namespace Internal
 }  // namespace MediaUserSetting
