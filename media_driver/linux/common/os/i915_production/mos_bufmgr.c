@@ -5433,10 +5433,6 @@ mos_gem_bo_is_exec_object_async(struct mos_linux_bo *bo)
 
 #include "intel_hwconfig_types.h"
 
-#ifndef DRM_I915_QUERY_DEVICE_BLOB
-#define DRM_I915_QUERY_DEVICE_BLOB 6
-#endif
-
 #define DEBUG_BLOB_QUERY 0
 #if DEBUG_BLOB_QUERY
 static const char * key_string[INTEL_HWCONFIG_MAX];
