@@ -734,7 +734,7 @@ namespace encode
 
         TempBatchBuffer.iCurrent    = constructedCmdBuf.iOffset;
         TempBatchBuffer.iRemaining  = constructedCmdBuf.iRemaining;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miItf->AddMiBatchBufferEnd(nullptr, &TempBatchBuffer));
+        ENCODE_CHK_STATUS_RETURN(m_miItf->AddMiBatchBufferEnd(nullptr, &TempBatchBuffer));
         constructedCmdBuf.pCmdPtr     += (TempBatchBuffer.iCurrent - constructedCmdBuf.iOffset) / 4;
         constructedCmdBuf.iOffset      = TempBatchBuffer.iCurrent;
         constructedCmdBuf.iRemaining   = TempBatchBuffer.iRemaining;
@@ -783,7 +783,7 @@ namespace encode
 
         TempBatchBuffer.iCurrent    = constructedCmdBuf.iOffset;
         TempBatchBuffer.iRemaining  = constructedCmdBuf.iRemaining;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miItf->AddMiBatchBufferEnd(nullptr, &TempBatchBuffer));
+        ENCODE_CHK_STATUS_RETURN(m_miItf->AddMiBatchBufferEnd(nullptr, &TempBatchBuffer));
         constructedCmdBuf.pCmdPtr     += (TempBatchBuffer.iCurrent - constructedCmdBuf.iOffset) / 4;
         constructedCmdBuf.iOffset      = TempBatchBuffer.iCurrent;
         constructedCmdBuf.iRemaining   = TempBatchBuffer.iRemaining;
@@ -850,7 +850,7 @@ namespace encode
 
             TempBatchBuffer.iCurrent    = constructedCmdBuf.iOffset;
             TempBatchBuffer.iRemaining  = constructedCmdBuf.iRemaining;
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miItf->AddMiBatchBufferEnd(nullptr, &TempBatchBuffer));
+            ENCODE_CHK_STATUS_RETURN(m_miItf->AddMiBatchBufferEnd(nullptr, &TempBatchBuffer));
             constructedCmdBuf.pCmdPtr     += (TempBatchBuffer.iCurrent - constructedCmdBuf.iOffset) / 4;
             constructedCmdBuf.iOffset      = TempBatchBuffer.iCurrent;
             constructedCmdBuf.iRemaining   = TempBatchBuffer.iRemaining;

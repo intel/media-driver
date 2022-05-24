@@ -29,7 +29,6 @@
 #include "encode_basic_feature.h"
 #include "codec_def_encode_av1.h"
 #include "encode_av1_reference_frames.h"
-#include "mhw_vdbox_g12_X.h"
 #include "encode_av1_stream_in.h"
 #include "encode_av1_vdenc_feature_defs.h"
 #include "mhw_vdbox_vdenc_itf.h"

@@ -29,6 +29,7 @@
 #include "encode_status_report_defs.h"
 #include "codec_def_common_av1.h"
 #include "codechal_mmc.h"
+#include "media_perf_profiler_next.h"
 
 namespace encode{
     Av1VdencPkt::Av1VdencPkt(MediaPipeline* pipeline, MediaTask* task, CodechalHwInterface* hwInterface) :
@@ -103,7 +104,7 @@ namespace encode{
     {
         ENCODE_FUNC_CALL();
 
-        CODECHAL_HW_FUNCTION_ENTER;
+        CODEC_HW_FUNCTION_ENTER;
 
         return MOS_STATUS_SUCCESS;
     }
@@ -158,7 +159,7 @@ namespace encode{
         miConditionalBatchBufferEndParams.presSemaphoreBuffer =
             m_basicFeature->m_recycleBuf->GetBuffer(VdencBrcPakMmioBuffer, 0);
 
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_CONDITIONAL_BATCH_BUFFER_END)(&cmdBuffer));
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_CONDITIONAL_BATCH_BUFFER_END)(&cmdBuffer));
 
         return MOS_STATUS_SUCCESS;
     }
@@ -200,7 +201,7 @@ namespace encode{
         ENCODE_FUNC_CALL();
 
 #ifdef _MMC_SUPPORTED
-        CODECHAL_ENCODE_CHK_NULL_RETURN(m_mmcState);
+        ENCODE_CHK_NULL_RETURN(m_mmcState);
         ENCODE_CHK_STATUS_RETURN(m_mmcState->SendPrologCmd(&cmdBuffer, false));
 #endif
 
@@ -455,14 +456,14 @@ namespace encode{
         allocParamsForBufferLinear.pBufName = "vdencIntraRowStoreScratch";
         allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
         m_vdencIntraRowStoreScratch         = m_allocator->AllocateResource(allocParamsForBufferLinear, false);
-        CODECHAL_ENCODE_CHK_NULL_RETURN(m_vdencIntraRowStoreScratch);
+        ENCODE_CHK_NULL_RETURN(m_vdencIntraRowStoreScratch);
 
         allocParamsForBufferLinear.Flags.bNotLockable = !(m_basicFeature->m_lockableResource);
         allocParamsForBufferLinear.dwBytes  = MOS_ALIGN_CEIL(m_basicFeature->m_vdencBrcStatsBufferSize * maxTileNumber, MHW_CACHELINE_SIZE);
         allocParamsForBufferLinear.pBufName = "VDEncStatsBuffer";
         allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_NOCACHE;
         m_resVDEncStatsBuffer               = m_allocator->AllocateResource(allocParamsForBufferLinear, false);
-        CODECHAL_ENCODE_CHK_NULL_RETURN(m_resVDEncStatsBuffer);
+        ENCODE_CHK_NULL_RETURN(m_resVDEncStatsBuffer);
 
         return MOS_STATUS_SUCCESS;
     }
@@ -471,13 +472,13 @@ namespace encode{
     {
         ENCODE_FUNC_CALL();
 
-        CODECHAL_ENCODE_CHK_NULL_RETURN(cmdBuf);
+        ENCODE_CHK_NULL_RETURN(cmdBuf);
 
         auto mmioRegs = m_miItf->GetMmioRegisters();
         auto mmioRegsAvp = m_avpItf->GetMmioRegisters(MHW_VDBOX_NODE_1);
-        CODECHAL_ENCODE_CHK_NULL_RETURN(mmioRegs);
+        ENCODE_CHK_NULL_RETURN(mmioRegs);
         PMOS_RESOURCE bsSizeBuf = m_basicFeature->m_recycleBuf->GetBuffer(PakInfo, 0);
-        CODECHAL_ENCODE_CHK_NULL_RETURN(bsSizeBuf);
+        ENCODE_CHK_NULL_RETURN(bsSizeBuf);
 
         if (firstTile)
         {
@@ -487,7 +488,7 @@ namespace encode{
             miStoreDataParams.pOsResource      = bsSizeBuf;
             miStoreDataParams.dwResourceOffset = 0;
             miStoreDataParams.dwValue          = 0;
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(cmdBuf));
+            ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(cmdBuf));
         }
 
         // load current tile size to VCS_GPR0_Lo
@@ -495,7 +496,7 @@ namespace encode{
         miLoadRegaParams               = {};
         miLoadRegaParams.dwSrcRegister = mmioRegsAvp->avpAv1BitstreamByteCountTileRegOffset;
         miLoadRegaParams.dwDstRegister = mmioRegs->generalPurposeRegister0LoOffset;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_REG)(cmdBuf));
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_REG)(cmdBuf));
       
         // load bitstream size buffer to VCS_GPR4_Lo
         auto &miLoadRegMemParams           = m_miItf->MHW_GETPAR_F(MI_LOAD_REGISTER_MEM)();
@@ -503,7 +504,7 @@ namespace encode{
         miLoadRegMemParams.presStoreBuffer = bsSizeBuf;
         miLoadRegMemParams.dwOffset        = 0;
         miLoadRegMemParams.dwRegister      = mmioRegs->generalPurposeRegister4LoOffset;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_MEM)(cmdBuf));
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_MEM)(cmdBuf));
 
         mhw::mi::MHW_MI_ALU_PARAMS aluParams[4] = {};
         int32_t aluCount               = 0;
@@ -534,8 +535,8 @@ namespace encode{
         miMathParams                    = {};
         miMathParams.dwNumAluParams     = aluCount;
         miMathParams.pAluPayload        = aluParams;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_MATH)(cmdBuf));
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(Mos_AddCommand(
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_MATH)(cmdBuf));
+        ENCODE_CHK_STATUS_RETURN(Mos_AddCommand(
                 cmdBuf,
                 &miMathParams.pAluPayload[0],
                 sizeof(mhw::mi::MHW_MI_ALU_PARAMS) * miMathParams.dwNumAluParams));
@@ -546,12 +547,12 @@ namespace encode{
         miStoreRegMemParams.presStoreBuffer                  = bsSizeBuf;
         miStoreRegMemParams.dwOffset                         = 0;
         miStoreRegMemParams.dwRegister                       = mmioRegs->generalPurposeRegister0LoOffset;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_REGISTER_MEM)(cmdBuf));
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_REGISTER_MEM)(cmdBuf));
 
         // Make Flush DW call to make sure all previous work is done
         auto &flushDwParams              = m_miItf->MHW_GETPAR_F(MI_FLUSH_DW)();
         flushDwParams                    = {};
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(cmdBuf));
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(cmdBuf));
 
         return MOS_STATUS_SUCCESS;
     }
@@ -643,13 +644,13 @@ namespace encode{
         uint32_t avpTilePatchListSize    = 0;
 
         // Picture Level Commands
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(CalculateAvpPictureStateCommandSize(&avpPictureStatesSize, &avpPicturePatchListSize));
+        ENCODE_CHK_STATUS_RETURN(CalculateAvpPictureStateCommandSize(&avpPictureStatesSize, &avpPicturePatchListSize));
 
         m_pictureStatesSize    += avpPictureStatesSize;
         m_picturePatchListSize += avpPicturePatchListSize;
 
         // Tile Level Commands
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(GetAvpPrimitiveCommandsDataSize(
+        ENCODE_CHK_STATUS_RETURN(GetAvpPrimitiveCommandsDataSize(
             &avpTileStatesSize,
             &avpTilePatchListSize));
 

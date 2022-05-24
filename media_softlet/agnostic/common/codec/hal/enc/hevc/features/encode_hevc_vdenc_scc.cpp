@@ -38,7 +38,7 @@ namespace encode
         void *constSettings) :
         MediaFeature(constSettings, hwInterface ? hwInterface->GetOsInterface() : nullptr)
     {
-        CODECHAL_ENCODE_FUNCTION_ENTER;
+        ENCODE_FUNC_CALL();
         auto encFeatureManager = dynamic_cast<EncodeHevcVdencFeatureManager *>(featureManager);
         ENCODE_CHK_NULL_NO_STATUS_RETURN(encFeatureManager);
         ENCODE_CHK_NULL_NO_STATUS_RETURN(hwInterface);
@@ -59,7 +59,7 @@ namespace encode
 
     MOS_STATUS HevcVdencScc::Init(void *settings)
     {
-        CODECHAL_ENCODE_FUNCTION_ENTER;
+        ENCODE_FUNC_CALL();
 
         CodechalSetting* codecSettings = (CodechalSetting*)settings;
         m_enableSCC = codecSettings->isSCCEnabled;
@@ -83,7 +83,7 @@ namespace encode
 
     MOS_STATUS HevcVdencScc::Update(void *params)
     {
-        CODECHAL_ENCODE_FUNCTION_ENTER;
+        ENCODE_FUNC_CALL();
 
         auto hevcFeature = dynamic_cast<HevcBasicFeature *>(m_basicFeature);
         ENCODE_CHK_NULL_RETURN(hevcFeature);
@@ -107,7 +107,7 @@ namespace encode
 
     MOS_STATUS HevcVdencScc::AllocateEncResources()
     {
-        CODECHAL_ENCODE_FUNCTION_ENTER;
+        ENCODE_FUNC_CALL();
 
         if (!m_enableSCC)
         {
@@ -193,7 +193,7 @@ namespace encode
 
     MOS_STATUS HevcVdencScc::FreeEncResources()
     {
-        CODECHAL_ENCODE_FUNCTION_ENTER;
+        ENCODE_FUNC_CALL();
         ENCODE_CHK_NULL_RETURN(m_osInterface);
         m_osInterface->pfnFreeResource(m_osInterface, &m_vdencRecNotFilteredBuffer);
         return MOS_STATUS_SUCCESS;
@@ -201,11 +201,11 @@ namespace encode
 
     MOS_STATUS HevcVdencScc::SetHucBrcUpdateDmem(void* hucVdencBrcUpdateDmem)
     {
-        CODECHAL_ENCODE_FUNCTION_ENTER;
+        ENCODE_FUNC_CALL();
 
         MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
         VdencHevcHucBrcUpdateDmem *phucVdencBrcUpdateDmem = (VdencHevcHucBrcUpdateDmem *)hucVdencBrcUpdateDmem;
-        CODECHAL_ENCODE_CHK_NULL_RETURN(hucVdencBrcUpdateDmem);
+        ENCODE_CHK_NULL_RETURN(hucVdencBrcUpdateDmem);
         // SCC is in conflict with PAK only pass
         if (m_enableSCC)
         {
@@ -218,7 +218,7 @@ namespace encode
 
     MOS_STATUS HevcVdencScc::SetVdencWalkerStateParams(MHW_VDBOX_VDENC_WALKER_STATE_PARAMS_G12 &vdencWalkerStateParams)
     {
-        CODECHAL_ENCODE_FUNCTION_ENTER;
+        ENCODE_FUNC_CALL();
 
         vdencWalkerStateParams.IBCControl = m_enableLBCOnly ? 1 : 3;
         return MOS_STATUS_SUCCESS;
@@ -226,7 +226,7 @@ namespace encode
 
     MOS_STATUS HevcVdencScc::SetRecNotFilteredID(unsigned char &slotForRecNotFiltered)
     {
-        CODECHAL_ENCODE_FUNCTION_ENTER;
+        ENCODE_FUNC_CALL();
         slotForRecNotFiltered = m_slotForRecNotFiltered;
         return MOS_STATUS_SUCCESS;
     }
@@ -399,7 +399,7 @@ namespace encode
 
     MHW_SETPAR_DECL_SRC(HCP_REF_IDX_STATE, HevcVdencScc)
     {
-        CODECHAL_ENCODE_FUNCTION_ENTER;
+        ENCODE_FUNC_CALL();
 
         auto hevcFeature = dynamic_cast<HevcBasicFeature *>(m_basicFeature);
         ENCODE_CHK_NULL_RETURN(hevcFeature);

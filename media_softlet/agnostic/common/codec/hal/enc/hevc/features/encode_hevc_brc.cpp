@@ -660,7 +660,7 @@ namespace encode
         {
             if (m_basicFeature->m_hevcSeqParams->VBVBufferSizeInBit < m_basicFeature->m_hevcSeqParams->InitVBVBufferFullnessInBit)
             {
-                CODECHAL_ENCODE_NORMALMESSAGE(
+                ENCODE_NORMALMESSAGE(
                     "VBVBufferSizeInBit is less than InitVBVBufferFullnessInBit, \
                     min(VBVBufferSizeInBit, InitVBVBufferFullnessInBit) will set to \
                     hucVdencBrcInitDmem->InitBufFull_U32 and hucVdencBrcUpdateDmem->TARGETSIZE_U32(except Low Delay BRC).\n");
