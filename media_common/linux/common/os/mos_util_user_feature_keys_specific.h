@@ -37,15 +37,4 @@
 \*--------------------------------------------------------------------------*/
 #define MEDIA_USER_SETTING_INTERNAL             0x1
 
-//!
-//! \brief User feature keys to define debug message levels and assertions.
-//!
-
-#if MOS_MESSAGES_ENABLED
-//!
-//! \brief Default setting is only critical prints are enabled, so users are not bombarded with irrelevant messages
-//!
-#define __MOS_USER_FEATURE_KEY_MESSAGE_DEFAULT_VALUE                (0x1)
-#endif // MOS_MESSAGES_ENABLED
-
 #endif // __MOS_UTIL_USER_FEATURE_KEYS_SPECIFIC_H__

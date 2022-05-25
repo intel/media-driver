@@ -24,8 +24,8 @@
 //! \brief    This module implments Linux MOS debug functionalities
 //!
 
-#include "mos_util_debug_next.h"
-#include "mos_util_debug_specific_next.h"
+#include "mos_util_debug.h"
+#include "mos_util_debug_specific.h"
 
 #if MOS_MESSAGES_ENABLED
 
@@ -42,15 +42,15 @@
 #include <signal.h>
 #endif // ANDROID
 
+#define MOS_ULT_LOG_PATH_PREFIX     "./"
+
 //!
 //! \brief HLT log file prefix
 //!
-const PCCHAR MosUtilDebug::m_mosLogPathPrefix = "/etc/log";
-const PCCHAR MosUtilDebug::m_mosUltLogPathPrefix = "./";
-
-MOS_MUTEX MosUtilDebugSpecific::m_mosMsgMutex = PTHREAD_MUTEX_INITIALIZER;
+#define MOS_LOG_PATH_PREFIX     "/etc/log"
 
 #define HLT_COPY_BUFFER_LENGTH 200
+
 MOS_STATUS MosUtilDebug::MosHltpCopyFile(PFILE pFile, const PCCHAR szFileName)
 {
     PFILE   pFileSrc;
@@ -136,7 +136,7 @@ MOS_STATUS MosUtilDebug::MosLogFileNamePrefix(char *fileNamePrefix, MediaUserSet
                      fileNamePrefix,
                      MOS_MAX_HLT_FILENAME_LEN,
                      MOS_MAX_HLT_FILENAME_LEN,
-                     m_mosUltLogPathPrefix);
+                     MOS_ULT_LOG_PATH_PREFIX);
 
         if (iRet > 0)
         {
@@ -164,7 +164,7 @@ MOS_STATUS MosUtilDebug::MosLogFileNamePrefix(char *fileNamePrefix, MediaUserSet
                      fileNamePrefix,
                      MOS_MAX_HLT_FILENAME_LEN,
                      MOS_MAX_HLT_FILENAME_LEN,
-                     m_mosLogPathPrefix);
+                     MOS_LOG_PATH_PREFIX);
 
         if (iRet > 0)
         {
@@ -183,9 +183,8 @@ MOS_STATUS MosUtilDebug::MosLogFileNamePrefix(char *fileNamePrefix, MediaUserSet
     return eStatus;
 }
 
-void MosUtilDebugSpecific::MosMessageInternal(
+void MosUtilDebug::MosMessageInternal(
     MOS_MESSAGE_LEVEL level,
-    const PCCHAR      logtag,
     MOS_COMPONENT_ID  compID,
     uint8_t           subCompID,
     const PCCHAR      functionName,
@@ -195,13 +194,14 @@ void MosUtilDebugSpecific::MosMessageInternal(
 {
     uint32_t nLen = 0;
     PCCHAR func = functionName;
+    static MOS_MUTEX mosMsgMutex = PTHREAD_MUTEX_INITIALIZER;
 
     if (MosShouldPrintMessage(level, compID, subCompID, message) == false)
     {
         return;
     }
 
-    MosUtilities::MosLockMutex(&m_mosMsgMutex);
+    MosUtilities::MosLockMutex(&mosMsgMutex);
     // Proceed to print the message
     if (functionName == nullptr)
     {
@@ -271,25 +271,8 @@ void MosUtilDebugSpecific::MosMessageInternal(
             printf("ERROR: m_mosMsgParams.pLogFile is NULL!\n");
         }
     }
-    MosUtilities::MosUnlockMutex(&m_mosMsgMutex);
+    MosUtilities::MosUnlockMutex(&mosMsgMutex);
 
-    return;
-}
-
-void MosUtilDebugSpecific::MosMessage(
-    MOS_MESSAGE_LEVEL level,
-    const PCCHAR      logtag,
-    MOS_COMPONENT_ID  compID,
-    uint8_t           subCompID,
-    const PCCHAR      functionName,
-    int32_t           lineNum,
-    const PCCHAR      message,
-    ...)
-{
-    va_list var_args;
-    va_start(var_args, message);
-    MosMessageInternal(level, logtag, compID, subCompID, functionName, lineNum, message, var_args);
-    va_end(var_args);
     return;
 }
 
@@ -302,17 +285,17 @@ void MosUtilDebugSpecific::MosMessage(
 #if USE_PRETTY_FUNCTION
 
 //!
-//! m_functionName is used to temporarily store the concatinated __PRETTY_FUNCTION__,
+//! functionName is used to temporarily store the concatinated __PRETTY_FUNCTION__,
 //! when calling MosGetClassMethod().
 //!
-char MosUtilDebugSpecific::m_functionName[256] = {}; // 256 is an arbitrary long enough size.
 
-PCCHAR MosUtilDebugSpecific::MosGetClassMethod(PCCHAR pcPrettyFunction)
+PCCHAR MosUtilDebug::MosGetClassMethod(PCCHAR pcPrettyFunction)
 {
     PCCHAR end  = nullptr;
     uint32_t len  = 0;
+    static char functionName[256] = {}; // 256 is an arbitrary long enough size.
 
-    memset(m_functionName, '\0', sizeof(m_functionName));
+    memset(functionName, '\0', sizeof(functionName));
 
     // Find the first '(', if it exists.
     end = strchr(pcPrettyFunction, '(');
@@ -320,10 +303,10 @@ PCCHAR MosUtilDebugSpecific::MosGetClassMethod(PCCHAR pcPrettyFunction)
     // We want to copy pcPrettyFunction into gFunction, only up to the first '('.
     len = end ? (uint32_t)(end - pcPrettyFunction) : strlen(pcPrettyFunction);
 
-    MosUtilities::MosSecureMemcpy(m_functionName, sizeof(m_functionName), pcPrettyFunction, len);
+    MosUtilities::MosSecureMemcpy(functionName, sizeof(functionName), pcPrettyFunction, len);
 
     // dismiss anything before the last ' '.
-    return strrchr(m_functionName, ' ') ? strrchr(m_functionName, ' ') + 1 : m_functionName;
+    return strrchr(functionName, ' ') ? strrchr(functionName, ' ') + 1 : functionName;
 }
 
 #endif // USE_PRETTY_FUNCTION

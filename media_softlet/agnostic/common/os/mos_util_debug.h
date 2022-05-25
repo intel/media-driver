@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2013-2022, Intel Corporation
+* Copyright (c) 2019-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -22,9 +22,6 @@
 //!
 //! \file        mos_util_debug.h 
 //! \brief 
-//!
-//!
-//! \file     mos_util_debug.h
 //! \brief    Common OS Debug and Print utilities across different platform
 //! \details  Provides assert and print to debug console functionality
 //!           All MOS debug and print utilities will only function in debug or
@@ -32,26 +29,10 @@
 //!
 #ifndef __MOS_UTIL_DEBUG_H__
 #define __MOS_UTIL_DEBUG_H__
+#include <memory>
 #include "mos_defs.h"
-#include "mos_util_debug_specific.h"
 #include "mos_os_trace_event.h"
 #include "media_class_trace.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-//!
-//! \def MOS_TraceData new trace interface, special interface for zero trace data
-//!
-#define MOS_TraceData0(usId, usType) \
-    MosUtilities::MosTraceEvent(usId, usType, nullptr, 0, nullptr, 0);
-
-#define MOS_TraceData(usId, usType, ...)                           \
-    {                                                              \
-        TR_FILL_PARAM(__VA_ARGS__);                                \
-        TR_WRITE_PARAM(MosUtilities::MosTraceEvent, usId, usType); \
-    }
 
 #if MOS_MESSAGES_ENABLED
 
@@ -69,16 +50,6 @@ extern "C" {
 //! \brief Max length of HLT file name
 //!
 #define MOS_MAX_HLT_FILENAME_LEN    260
-
-//!
-//! \brief Debug message prefix string to identify component
-//!
-extern const PCCHAR MOS_ComponentName[MOS_COMPONENT_COUNT];
-
-//!
-//! \brief Debug message string to identify log level
-//!
-extern const PCCHAR MOS_LogLevelName[MOS_MESSAGE_LVL_COUNT];
 
 //!
 //! \brief Define MOS Sub-Component IDs
@@ -203,6 +174,46 @@ typedef enum
     MOS_MCPY_SUBCOMP_COUNT
 } MOS_MCPY_SUBCOMP_ID;
 
+//!
+//! \brief Define messaging levels here in the order of importance
+//!
+typedef enum
+{
+    MOS_MESSAGE_LVL_DISABLED                  = 0,
+    MOS_MESSAGE_LVL_CRITICAL                  = 1,
+    MOS_MESSAGE_LVL_NORMAL                    = 2,
+    MOS_MESSAGE_LVL_VERBOSE                   = 3,
+    MOS_MESSAGE_LVL_FUNCTION_ENTRY            = 4,
+    MOS_MESSAGE_LVL_FUNCTION_EXIT             = 5,
+    MOS_MESSAGE_LVL_FUNCTION_ENTRY_VERBOSE    = 6,
+    MOS_MESSAGE_LVL_MEMNINJA                  = 7,
+    MOS_MESSAGE_LVL_COUNT
+} MOS_MESSAGE_LEVEL;
+
+//!
+//! \brief Define Component IDs
+//! When adding a component, need to update
+//!   MOS_COMPONENT_ID,
+//!   MOS_ComponentName,
+//!   pcComponentUserFeatureKeys,
+//!   subComponentCount
+//!   and MOS_MESSAGE_COMPONENT_TAG.
+//!
+typedef enum
+{
+    MOS_COMPONENT_OS,
+    MOS_COMPONENT_HW,
+    MOS_COMPONENT_CODEC,
+    MOS_COMPONENT_VP,
+    MOS_COMPONENT_CP,
+    MOS_COMPONENT_DDI,
+    MOS_COMPONENT_CM,
+    MOS_COMPONENT_CPLIB,
+    MOS_COMPONENT_SCALABILITY,
+    MOS_COMPONENT_MMC,
+    MOS_COMPONENT_MCPY,
+    MOS_COMPONENT_COUNT
+} MOS_COMPONENT_ID;
 
 //!
 //! \brief MOS debug params structure, includes debug level and asserts enabled.
@@ -241,6 +252,353 @@ typedef struct _MOS_MESSAGE_PARAMS
     char                        g_MosMsgBuffer[MOS_MAX_MSG_BUF_SIZE];           //!< Array for debug message
 } MOS_MESSAGE_PARAMS;
 
+//!
+//! When printing from a C++ class, we'd like the class and function to be printed.
+//! With our current Linux compiler, __FUNCTION__ does not include the class name.
+//! So we use __PRETTY_FUNCTION__ and MOS_Message will remove extra data.
+//! This is not needed for prints from C files so they will usually use __FUNCTION__.
+//!
+
+#if USE_PRETTY_FUNCTION
+#define MOS_FUNCTION __PRETTY_FUNCTION__
+#else
+#define MOS_FUNCTION __FUNCTION__
+#endif // USE_PRETTY_FUNCTION
+#endif
+
+namespace MediaUserSetting {
+    class MediaUserSetting;
+};
+
+using MediaUserSettingSharedPtr = std::shared_ptr<MediaUserSetting::MediaUserSetting>;
+
+class MosUtilDebug
+{
+public:
+    MosUtilDebug()          = delete;
+    ~MosUtilDebug()         = delete;
+
+#if MOS_MESSAGES_ENABLED
+    //!
+    //! \brief    Initialize the MOS message params structure and HLT.
+    //! \details  Initialize the MOS message params structure and HLT,
+    //!           to be called during device creation
+    //! \param    [in] mosCtx
+    //!           os device ctx handle
+    //! \return   void
+    //!
+    static void MosMessageInit(MediaUserSettingSharedPtr userSettingPtr);
+
+    //!
+    //! \brief    Frees the MOS message buffer and MOS message parameters structure
+    //! \details  Frees the MOS message buffer and MOS message parameters structure,
+    //!           to be called during device destruction
+    //! \return   void
+    //!
+    static void MosMessageClose();
+
+    //!
+    //! \brief    Form a string that will prefix MOS's log file name
+    //! \details  Form a string that will prefix MOS's log file name
+    //!           The default log file location will be under 
+    //!           %ProgramData%\Intel\Logs or %DriverData%\Intel\Logs 
+    //!           depending on OS version
+    //! \param    PCHAR fileNamePrefix
+    //!           [out] Pointer to the string where the prefix is returned
+    //! \param    [in] userSettingPtr
+    //!           MediaUserSettingSharedPtr
+    //! \return   MOS_STATUS
+    //!           Returns one of the MOS_STATUS error codes if failed,
+    //!           else MOS_STATUS_SUCCESS
+    //!
+    static MOS_STATUS MosLogFileNamePrefix(char *fileNamePrefix, MediaUserSettingSharedPtr userSettingPtr);
+
+    //!
+    //! \brief    Enable or disable asserts of a particular component, it is used by ULT also
+    //! \details  Enable or disable asserts of a particular component
+    //! \param    MOS_COMPONENT_ID compID
+    //!           [in] Indicates which component
+    //! \param    int32_t bEnable
+    //!           [in] Enable/disable flag
+    //! \return   void
+    //!
+    static void MosCompAssertEnableDisable(MOS_COMPONENT_ID compID, int32_t bEnable);
+
+    //!
+    //! \brief    Prints debug messages in debug mode when enabled
+    //! \details  Prints debug messages if the level of the comp and sub-comp is
+    //!           set to less than the message level. Nop in release version.
+    //! \param    MOS_MESSAGE_LEVEL level
+    //!           [in] Level of the message
+    //! \param    MOS_COMPONENT_ID compID
+    //!           [in] Indicates which component
+    //! \param    uint8_t subCompID
+    //!           [in] Indicates which sub-component
+    //! \param    const PCHAR functionName
+    //!           [in] pointer to the function name
+    //! \param    int32_t lineNum
+    //!           [in] Indicates which line the message locate, -1 for no line output
+    //! \param    const PCHAR message
+    //!           [in] pointer to the message format string
+    //! \param    var_args
+    //!           [in] variable list of arguments for the message
+    //! \return   VOID
+    //!
+    static void MosMessage(
+        MOS_MESSAGE_LEVEL level,
+        MOS_COMPONENT_ID  compID,
+        uint8_t           subCompID,
+        const PCCHAR      functionName,
+        int32_t           lineNum,
+        const PCCHAR      message,
+        ...);
+
+    //!
+    //! \brief    Prints debug messages in debug mode when enabled
+    //! \details  Prints debug messages if the level of the comp and sub-comp is
+    //!           set to less than the message level. Nop in release version.
+    //! \param    MOS_MESSAGE_LEVEL level
+    //!           [in] Level of the message
+    //! \param    MOS_COMPONENT_ID compID
+    //!           [in] Indicates which component
+    //! \param    uint8_t subCompID
+    //!           [in] Indicates which sub-component
+    //! \param    const PCHAR functionName
+    //!           [in] pointer to the function name
+    //! \param    int32_t lineNum
+    //!           [in] Indicates which line the message locate, -1 for no line output
+    //! \param    const PCHAR message
+    //!           [in] pointer to the message format string
+    //! \param    var_args
+    //!           [in] variable list of arguments for the message
+    //! \return   VOID
+    //!
+    static void MosMessageInternal(
+        MOS_MESSAGE_LEVEL level,
+        MOS_COMPONENT_ID  compID,
+        uint8_t           subCompID,
+        const PCCHAR      functionName,
+        int32_t           lineNum,
+        const PCCHAR      message,
+        va_list           var_args);
+
+    //!
+    //! \brief    Checks whether debug messages should be printed.
+    //! \details  Determines by the print level, component and sub-component IDs
+    //!           whether the debug message should be printed.
+    //! \param    MOS_MESSAGE_LEVEL level
+    //!           [in] Level of the message
+    //! \param    MOS_COMPONENT_ID compID
+    //!           [in] Indicates which component
+    //! \param    uint8_t subCompID
+    //!           [in] Indicates which sub-component
+    //! \param    const char  *message
+    //!           [in] pointer to the message format string
+    //! \return   int32_t
+    //!
+    static int32_t MosShouldPrintMessage(
+        MOS_MESSAGE_LEVEL level,
+        MOS_COMPONENT_ID  compID,
+        uint8_t           subCompID,
+        const char *const message);
+#endif
+
+#if MOS_ASSERT_ENABLED
+    //!
+    //! \brief    MOS assert function for MOS internal use
+    //! \details  Halts the cpu in debug mode when expression resolves to zero
+    //!           and only if assert enabled for both comp and sub-comp.
+    //!           Nop in release version
+    //!           Called by MOS_ASSERT macro only
+    //! \param    MOS_COMPONENT_ID compID
+    //!           [in] Indicates which component
+    //! \param    uint8_t subCompID
+    //!           [in] Indicates which sub-component
+    //! \return   void
+    //!
+    static void MosAssert(
+        MOS_COMPONENT_ID compID,
+        uint8_t          subCompID);
+
+#endif // MOS_ASSERT_ENABLED
+
+private:
+
+#if MOS_MESSAGES_ENABLED
+    //!
+    //! \brief    Add preface information to the HLT log when initialized
+    //! \details  Add preface information to the HLT log when initialized
+    //!           Used internally by MOS_HLTInit().
+    //! \param    PFILE pFile
+    //!           [out] Pointer to the log file
+    //! \return   void
+    //!
+    static void MosHltpPreface(
+        PFILE            pFile);
+
+    /*----------------------------------------------------------------------------
+    | Name      : MOS_HltpCopyFile
+    | Purpose   : Copy all file content from the source file to the target file.
+    | Arguments : szFileName - source file name to copy from
+    |             pFile - target file
+    | Returns   : Returns one of the MOS_STATUS error codes if failed,
+    |             else MOS_STATUS_SUCCESS
+    | Comments  :
+    \---------------------------------------------------------------------------*/
+    static MOS_STATUS MosHltpCopyFile(PFILE pFile, const PCCHAR szFileName);
+
+    //!
+    //! \brief    Set debug message level for a sub-component within a component
+    //! \details  Set debug message level for a sub-component within a component
+    //! \param    MOS_COMPONENT_ID compID
+    //!           [in] Indicates which component
+    //! \param    uint8_t subCompID
+    //!           [in] Indicates which sub-component
+    //! \param    MOS_MESSAGE_LEVEL msgLevel
+    //!           [in] Message level that the sub component allows
+    //! \return   void
+    //!
+    static void MosSetSubCompMessageLevel(MOS_COMPONENT_ID compID, uint8_t subCompID, MOS_MESSAGE_LEVEL msgLevel);
+
+    //!
+    //! \brief    Set debug message level for a particular component
+    //! \details  Set debug message level for a particular component
+    //! \param    MOS_COMPONENT_ID compID
+    //!           [in] Indicates which component
+    //! \param    MOS_MESSAGE_LEVEL msgLevel
+    //!           [in] Message level that the component allows
+    //! \return   void
+    //!
+    static void MosSetCompMessageLevel(MOS_COMPONENT_ID compID, MOS_MESSAGE_LEVEL msgLevel);
+
+    //!
+    //! \brief    Set debug message level for all components
+    //! \details  Set all component to the same msg level
+    //! \param    MOS_MESSAGE_LEVEL msgLevel
+    //!           [in] Message level that all components allow
+    //! \return   void
+    //!
+    static void MosSetCompMessageLevelAll(MOS_MESSAGE_LEVEL msgLevel);
+
+    //!
+    //! \brief    Enable/disable asserts for a sub-component within a component
+    //! \details  Enable/disable asserts for a sub-component within a component
+    //! \param    MOS_COMPONENT_ID compID
+    //!           [in] Indicates which component
+    //! \param    uint8_t subCompID
+    //!           [in] Indicates which sub-component
+    //! \param    int32_t iFlag
+    //!           [in] Enable/disable flag
+    //! \return   void
+    //!
+    static void MosSubCompAssertEnableDisable(MOS_COMPONENT_ID compID, uint8_t subCompID, int32_t bEnable);
+
+    //!
+    //! \brief    Set debug message level and asserts for a component and its sub-components.
+    //! \details  Set debug message level and asserts for a component and its sub-components.
+    //!              This includes registering all sub-components.
+    //! \param    MOS_COMPONENT_ID compID
+    //!           [in] Indicates which component
+    //! \param    [in] mosCtx
+    //!           os device ctx handle
+    //! \return   void
+    //!
+    static void MosMessageInitComponent(MOS_COMPONENT_ID compID, MediaUserSettingSharedPtr userSettingPtr);
+
+    //!
+    //! \brief    Initialize or refresh the Hybrid Log and Trace facility
+    //! \details  Initialize or refresh the Hybrid Log and Trace facility
+    //!           Called during MOS init
+    //! \param    [in] mosCtx
+    //!           os device ctx handle
+    //! \return   MOS_STATUS
+    //!           Returns one of the MOS_STATUS error codes if failed,
+    //!           else MOS_STATUS_SUCCESS
+    //!
+    static MOS_STATUS MosHLTInit( MediaUserSettingSharedPtr userSettingPtr);
+
+    //!
+    //! \brief    Close file handles and frees resources
+    //! \details  Close file handles and frees resources
+    //!           Called during MOS close
+    //! \return   void
+    //!
+    static void MosHLTClose();
+
+#if USE_PRETTY_FUNCTION
+    //!
+    //! \brief    Converts a __PRETTY_FUNCTION__ into Class::Method
+    //! \details  Converts a __PRETTY_FUNCTION__ into Class::Method to allow prettier debug output
+    //! \param    PCCHAR pcPrettyFunction
+    //!           [in] in the form of "TYPE [CLASS::]FUNCTION(INPUT LIST)"
+    //! \return   PCCHAR in the form of [CLASS::]FUNCTION
+    //!
+    static PCCHAR MosGetClassMethod(PCCHAR pcPrettyFunction);
+#endif
+
+#endif // MOS_MESSAGES_ENABLED
+
+#if MOS_ASSERT_ENABLED
+    //!
+    //! \brief    Checks whether assert should be hit.
+    //! \details  Determines by the component and sub-component IDs
+    //!           whether an assert should be hit.
+    //! \param    MOS_COMPONENT_ID compID
+    //!           [in] Indicates which component
+    //! \param    uint8_t subCompID
+    //!           [in] Indicates which sub-component
+    //! \return   int32_t
+    //!
+    static int32_t MosShouldAssert(MOS_COMPONENT_ID compID, uint8_t subCompID);
+#endif
+public:
+#if MOS_MESSAGES_ENABLED
+
+    static const char * const m_mosLogLevelName[MOS_MESSAGE_LVL_COUNT];
+    static const char * const m_mosComponentName[MOS_COMPONENT_COUNT];
+
+    //Temporarily defined as the reference to compatible with the cases using uf key to enable/disable APG.
+    static MOS_MESSAGE_PARAMS m_mosMsgParams;
+    static const char* m_pcComponentUserFeatureKeys[MOS_COMPONENT_COUNT][3];
+    static const uint8_t m_subComponentCount[MOS_COMPONENT_COUNT];
+#endif
+};
+
+#if MOS_ASSERT_ENABLED
+
+//!
+//! \def MOS_ASSERT(_compID, _subCompID, _expr)
+//!  If \a _expr is not true, asserts with \a _compID and \a _subCompID info
+//!
+#define MOS_ASSERT(_compID, _subCompID, _expr)                   \
+    if(!(_expr))                                                 \
+    {                                                            \
+        MosUtilDebug::MosAssert(_compID, _subCompID);            \
+    }
+
+#else // MOS_ASSERT_ENABLED
+
+#define MOS_ASSERT(_compID, _subCompID, _expr)
+
+#endif // MOS_ASSERT_ENABLED
+
+
+#if MOS_MESSAGES_ENABLED
+
+
+//!
+//! \def MOS_DEBUGMESSAGE(_compID, _subCompID, _message, ...)
+//!  Output DEBUG message \a _message with \_a _compID and \_a _subCompID info
+//!
+#define MOS_DEBUGMESSAGE(_level, _compID, _subCompID, _message, ...)                        \
+    MosUtilDebug::MosMessage(_level, _compID, _subCompID, MOS_FUNCTION, __LINE__, _message, ##__VA_ARGS__)
+
+//!
+//! \def MOS_DEBUGMESSAGE(_compID, _subCompID, _message, ...)
+//!  Output DEBUG message \a _message with \_a _compID and \_a _subCompID info
+//!
+#define MOS_DEBUGMESSAGE_NOLINE(_level, _compID, _subCompID, _message, ...)                 \
+    MosUtilDebug::MosMessage(_level, _compID, _subCompID, MOS_FUNCTION, -1, _message, ##__VA_ARGS__)
 
 //!
 //! \def MOS_FUNCTION_ENTER(_compID, _subCompID)
@@ -262,6 +620,13 @@ typedef struct _MOS_MESSAGE_PARAMS
 //!
 #define MOS_FUNCTION_ENTER_VERBOSE(_compID, _subCompID)                                     \
     MOS_DEBUGMESSAGE(MOS_MESSAGE_LVL_FUNCTION_ENTRY_VERBOSE, _compID, _subCompID, "")
+
+//!
+//! \def MOS_CRITICALMESSAGE(_compID, _subCompID, _message, ...)
+//!  Output DEBUG message \a _message with \_a _compID and \_a _subCompID info
+//!
+#define MOS_CRITICALMESSAGE(_compID, _subCompID, _message, ...)                             \
+    MOS_DEBUGMESSAGE(MOS_MESSAGE_LVL_CRITICAL, _compID, _subCompID, _message, ##__VA_ARGS__)
 
 //!
 //! \def MOS_ASSERTMESSAGE(_compID, _subCompID, _message, ...)
@@ -292,13 +657,6 @@ typedef struct _MOS_MESSAGE_PARAMS
 //!
 #define MOS_MEMNINJAMESSAGE(_compID, _subCompID, _message, ...)                             \
     MOS_DEBUGMESSAGE(MOS_MESSAGE_LVL_MEMNINJA, _compID, _subCompID, _message, ##__VA_ARGS__)
-
-//!
-//! \def MOS_CRITICALMESSAGE(_compID, _subCompID, _message, ...)
-//!  Output DEBUG message \a _message with \_a _compID and \_a _subCompID info
-//!
-#define MOS_CRITICALMESSAGE(_compID, _subCompID, _message, ...)                             \
-    MOS_DEBUGMESSAGE(MOS_MESSAGE_LVL_CRITICAL, _compID, _subCompID, _message, ##__VA_ARGS__)
 
 //!
 //! \def MOS_DEBUGMESSAGE_IF(_cond, _level, _compID, _subCompID, _message, ...)
@@ -517,40 +875,6 @@ typedef struct _MOS_MESSAGE_PARAMS
 #define MOS_MEMNINJAMESSAGE(_compID, _subCompID, _message, ...)
 
 #endif // MOS_MESSAGES_ENABLED
-
-#if MOS_ASSERT_ENABLED
-
-//!
-//! \def MOS_ASSERT(_compID, _subCompID, _expr)
-//!  If \a _expr is not true, asserts with \a _compID and \a _subCompID info
-//!
-#define MOS_ASSERT(_compID, _subCompID, _expr)                   \
-    if(!(_expr))                                                 \
-    {                                                            \
-        _MOS_Assert(_compID, _subCompID);                        \
-    }
-
-//!
-//! \brief    MOS assert function for MOS internal use
-//! \details  Halts the cpu in debug mode when expression resolves to zero
-//!           and only if assert enabled for both comp and sub-comp.
-//!           Nop in release version
-//!           Called by MOS_ASSERT macro only
-//! \param    MOS_COMPONENT_ID compID
-//!           [in] Indicates which component
-//! \param    uint8_t subCompID
-//!           [in] Indicates which sub-component
-//! \return   void
-//!
-void _MOS_Assert(
-    MOS_COMPONENT_ID compID,
-    uint8_t          subCompID);
-
-#else // MOS_ASSERT_ENABLED
-
-#define MOS_ASSERT(_compID, _subCompID, _expr)
-
-#endif // MOS_ASSERT_ENABLED
 
 //------------------------------------------------------------------------------
 // Generic Macros for use by all components.
@@ -1021,8 +1345,37 @@ void _MOS_Assert(
 #define MOS_OS_FUNCTION_TRACE()                                                             \
     MOS_FUNCTION_TRACE(MOS_COMPONENT_OS, MOS_SUBCOMP_SELF)
 
-#ifdef __cplusplus
-}
-#endif
+#include "mos_util_debug_specific.h"
 
+#if MOS_MESSAGES_ENABLED
+
+class FunctionTrace
+{
+public:
+    FunctionTrace(MOS_COMPONENT_ID compID, uint8_t subCompID, const char* name) :
+        m_compID(compID),
+        m_subCompID(subCompID),
+        m_name(name)
+    {
+        MOS_VERBOSEMESSAGE(m_compID, m_subCompID, "Enter Function: %s\r\n", m_name);
+    }
+
+    virtual ~FunctionTrace()
+    {
+        MOS_VERBOSEMESSAGE(m_compID, m_subCompID, "Exit Function: %s\r\n", m_name);
+    }
+
+protected:
+    MOS_COMPONENT_ID m_compID    = MOS_COMPONENT_COUNT;
+    uint8_t          m_subCompID = 0;
+    const char       *m_name     = nullptr;
+};
+
+#define MOS_FUNCTION_TRACE(_compID, _subCompID) FunctionTrace trace(_compID, _subCompID, __FUNCTION__);
+
+#else
+
+#define MOS_FUNCTION_TRACE(_compID, _subCompID)
+
+#endif // #if MOS_MESSAGES_ENABLED
 #endif // __MOS_UTIL_DEBUG_H__

@@ -30,7 +30,7 @@
 #include "mos_defs.h"
 #include "mos_utilities.h"
 #include "media_skuwa_specific.h"
-#include "mos_util_debug_next.h"
+#include "mos_util_debug.h"
 #include "mos_os_hw.h"         //!< HW specific details that flow through OS pathes
 #ifndef MEDIA_SOFTLET
 #include "mos_os_cp_interface_specific.h"         //!< CP specific OS functionality

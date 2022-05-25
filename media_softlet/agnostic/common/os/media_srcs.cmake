@@ -22,7 +22,7 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/mos_context_next.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_graphicsresource_next.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_os_next.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/mos_util_debug_next.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/mos_util_debug.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_utilities_next.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_gpucontext_next.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_gpucontextmgr_next.cpp
@@ -35,7 +35,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mos_context_next.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_graphicsresource_next.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_os_next.h
-    ${CMAKE_CURRENT_LIST_DIR}/mos_util_debug_next.h
+    ${CMAKE_CURRENT_LIST_DIR}/mos_util_debug.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_gpucontext_next.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_gpucontextmgr_next.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_cmdbufmgr_next.h

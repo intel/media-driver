@@ -102,8 +102,8 @@ public:
 #if MOS_MESSAGES_ENABLED
     template<class _Ty>
     static void MosDeleteUtil(
-        const char *functionName,
-        const char *filename,
+        const char* functionName,
+        const char* filename,
         int32_t     line,
         _Ty&        ptr);
 #else
@@ -3009,6 +3009,18 @@ do{                                                     \
 #define MOS_TraceKeyEnabled(key)                                        (MosUtilities::GetTraceEventKeyword() & (1<<key))
 #define MOS_TraceEvent(usId, ucType, pArg1, dwSize1, pArg2, dwSize2)    MosUtilities::MosTraceEvent(usId, ucType, pArg1, dwSize1, pArg2, dwSize2)
 #define MOS_TraceDataDump(pcName, flags, pBuf, dwSize)                  MosUtilities::MosTraceDataDump(pcName, flags, pBuf, dwSize)
+
+//!
+//! \def MOS_TraceData new trace interface, special interface for zero trace data
+//!
+#define MOS_TraceData0(usId, usType) \
+    MosUtilities::MosTraceEvent(usId, usType, nullptr, 0, nullptr, 0);
+
+#define MOS_TraceData(usId, usType, ...)                           \
+    {                                                              \
+        TR_FILL_PARAM(__VA_ARGS__);                                \
+        TR_WRITE_PARAM(MosUtilities::MosTraceEvent, usId, usType); \
+    }
 
 class PerfUtility
 {

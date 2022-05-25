@@ -25,7 +25,7 @@
 //!
 
 #include "mos_defs.h"
-#include "mos_util_debug_next.h"
+#include "mos_util_debug.h"
 
 #include "mos_graphicsresource_specific_next.h"
 #include "mos_context_specific_next.h"

@@ -25,7 +25,7 @@
 //!
 
 #include "mos_os.h"
-#include "mos_util_debug_next.h"
+#include "mos_util_debug.h"
 #include "mos_resource_defs.h"
 #include <unistd.h>
 #include <dlfcn.h>

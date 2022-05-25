@@ -20,25 +20,20 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     mos_util_debug_next.cpp
+//! \file     mos_util_debug.cpp
 //! \brief    Common OS debug across different platform
 //! \details  Common OS debug across different platform
 //!
 
-#include "mos_util_debug_next.h"
+#include "mos_util_debug.h"
 
 #if MOS_MESSAGES_ENABLED
 #include "media_user_setting.h"
 
 //!
-//! \brief HLT file name template
-//!
-const char * const MosUtilDebug::m_mosLogPathTemplate = MOS_LOG_PATH_TEMPLATE;
-
-//!
 //! \brief DDI dump file name template
 //!
-const char * const MosUtilDebug::m_DdiLogPathTemplate       = "%s\\ddi_dump_%d.%s";
+#define DDILogPathTemplate  "%s\\ddi_dump_%d.%s"
 
 const char * const MosUtilDebug::m_mosLogLevelName[MOS_MESSAGE_LVL_COUNT] = {
     "",          // DISABLED
@@ -369,7 +364,7 @@ MOS_STATUS MosUtilDebug::MosHLTInit(MediaUserSettingSharedPtr userSettingPtr)
 
     // Get logfile directory.
     MosLogFileNamePrefix(fileNamePrefix, userSettingPtr);
-    MosUtilities::MosSecureStringPrint(hltFileName, MOS_MAX_HLT_FILENAME_LEN, MOS_MAX_HLT_FILENAME_LEN - 1, m_mosLogPathTemplate, fileNamePrefix, nPID, MosUtilities::MosGetCurrentThreadId(), "log");
+    MosUtilities::MosSecureStringPrint(hltFileName, MOS_MAX_HLT_FILENAME_LEN, MOS_MAX_HLT_FILENAME_LEN - 1, MOS_LOG_PATH_TEMPLATE, fileNamePrefix, nPID, MosUtilities::MosGetCurrentThreadId(), "log");
 
 #if defined(LINUX) || defined(ANDROID)
     eStatus = MosUtilities::MosCreateDirectory(fileNamePrefix);
@@ -400,7 +395,7 @@ MOS_STATUS MosUtilDebug::MosHLTInit(MediaUserSettingSharedPtr userSettingPtr)
     MOS_OS_NORMALMESSAGE("HLT initialized successfuly (%s).", hltFileName);
 
     //[SH]: Trace and log are enabled with the same key right now. This can be changed to enable/disable them independently.
-    MosUtilities::MosSecureStringPrint(hltFileName, MOS_MAX_HLT_FILENAME_LEN, MOS_MAX_HLT_FILENAME_LEN - 1, m_mosLogPathTemplate, fileNamePrefix, nPID, MosUtilities::MosGetCurrentThreadId(), "hlt");
+    MosUtilities::MosSecureStringPrint(hltFileName, MOS_MAX_HLT_FILENAME_LEN, MOS_MAX_HLT_FILENAME_LEN - 1, MOS_LOG_PATH_TEMPLATE, fileNamePrefix, nPID, MosUtilities::MosGetCurrentThreadId(), "hlt");
 
     eStatus = MosUtilities::MosSecureFileOpen(&m_mosMsgParams.pTraceFile, hltFileName, "w");
 
@@ -517,6 +512,22 @@ void MosUtilDebug::MosMessageClose()
     {
         m_mosMsgParams.uiCounter--;
     }
+}
+
+void MosUtilDebug::MosMessage(
+    MOS_MESSAGE_LEVEL level,
+    MOS_COMPONENT_ID  compID,
+    uint8_t           subCompID,
+    const PCCHAR      functionName,
+    int32_t           lineNum,
+    const PCCHAR      message,
+    ...)
+{
+    va_list var_args;
+    va_start(var_args, message);
+    MosMessageInternal(level, compID, subCompID, functionName, lineNum, message, var_args);
+    va_end(var_args);
+    return;
 }
 
 int32_t MosUtilDebug::MosShouldPrintMessage(

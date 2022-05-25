@@ -30,7 +30,7 @@
 #include "mos_graphicsresource_next.h"
 #include "mos_graphicsresource_specific_next.h"
 #include "mos_interface.h"
-#include "mos_util_debug_next.h"
+#include "mos_util_debug.h"
 
 uint32_t GraphicsResourceNext::m_memAllocCounterGfx;
 

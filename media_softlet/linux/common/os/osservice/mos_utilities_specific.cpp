@@ -26,7 +26,7 @@
 
 #include "mos_utilities_specific.h"
 #include "mos_utilities.h"
-#include "mos_util_debug_next.h"
+#include "mos_util_debug.h"
 #include <fcntl.h>     // open
 #include <stdlib.h>    // atoi
 #include <string.h>    // strlen, strcat, etc.
