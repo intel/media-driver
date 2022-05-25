@@ -90,7 +90,7 @@ MOS_STATUS HevcBasicFeature::Update(void *params)
     ENCODE_FUNC_CALL();
     ENCODE_CHK_NULL_RETURN(params);
 
-    EncodeBasicFeature::Update(params);
+    ENCODE_CHK_STATUS_RETURN(EncodeBasicFeature::Update(params));
 
     EncoderParams* encodeParams = (EncoderParams*)params;
 

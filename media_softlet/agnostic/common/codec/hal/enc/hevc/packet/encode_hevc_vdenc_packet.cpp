@@ -2578,14 +2578,16 @@ namespace encode
 
         auto          streamInBufferSize = (MOS_ALIGN_CEIL(m_basicFeature->m_frameWidth, 64) / 32) * (MOS_ALIGN_CEIL(m_basicFeature->m_frameHeight, 64) / 32) * CODECHAL_CACHELINE_SIZE;
         PMOS_RESOURCE streamInbuffer     = m_basicFeature->m_recycleBuf->GetBuffer(RecycleResId::StreamInBuffer, debugInterface->m_bufferDumpFrameNum);
-        ENCODE_CHK_NULL_RETURN(streamInbuffer);
-        ENCODE_CHK_STATUS_RETURN(debugInterface->DumpBuffer(
-            streamInbuffer,
-            CodechalDbgAttr::attrStreamIn,
-            "_ROIStreamin",
-            streamInBufferSize,
-            0,
-            CODECHAL_NUM_MEDIA_STATES))
+        if (streamInbuffer)
+        {
+            ENCODE_CHK_STATUS_RETURN(debugInterface->DumpBuffer(
+                streamInbuffer,
+                CodechalDbgAttr::attrStreamIn,
+                "_ROIStreamin",
+                streamInBufferSize,
+                0,
+                CODECHAL_NUM_MEDIA_STATES))
+        }
 
         ENCODE_CHK_STATUS_RETURN(debugInterface->DumpBltOutput(
             &currRefList.sRefReconBuffer,
