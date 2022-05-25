@@ -3049,10 +3049,10 @@ public:
     void savePerfData();
     void setupFilePath(char *perfFilePath);
     void setupFilePath();
-    bool bPerfUtilityKey;
+    bool bPerfUtilityKey    = false;
     char sSummaryFileName[MOS_MAX_PERF_FILENAME_LEN + 1] = {'\0'};
     char sDetailsFileName[MOS_MAX_PERF_FILENAME_LEN + 1] = {'\0'};
-    int32_t dwPerfUtilityIsEnabled;
+    int32_t dwPerfUtilityIsEnabled = false;
 
 private:
     void printPerfSummary();
@@ -3067,7 +3067,7 @@ private:
 private:
     static std::shared_ptr<PerfUtility> instance;
     static std::mutex perfMutex;
-    std::map<std::string, std::vector<Tick>*> records;
+    std::map<std::string, std::vector<Tick>*> records {};
 };
 
 #endif // __MOS_UTILITIES_H__

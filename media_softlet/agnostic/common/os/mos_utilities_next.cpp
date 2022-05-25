@@ -2653,17 +2653,26 @@ void PerfUtility::printPerfSummary()
 {
     std::ofstream fout;
     fout.open(sSummaryFileName);
-
+    if(fout.good() == false)
+    {
+        fout.close();
+        return;
+    }
     printHeader(fout);
     printBody(fout);
     fout.close();
+    return;
 }
 
 void PerfUtility::printPerfDetails()
 {
     std::ofstream fout;
     fout.open(sDetailsFileName);
-
+    if(fout.good() == false)
+    {
+        fout.close();
+        return;
+    }
     for (auto data : records)
     {
         fout << getDashString((uint32_t)data.first.length());
@@ -2677,6 +2686,7 @@ void PerfUtility::printPerfDetails()
     }
 
     fout.close();
+    return;
 }
 
 void PerfUtility::printHeader(std::ofstream& fout)
