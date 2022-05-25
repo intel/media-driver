@@ -742,7 +742,7 @@ MOS_STATUS  MosUtilitiesSpecificNext::UserFeatureDumpFile(const char * const szF
     int32_t         iCount;
     PFILE           File;
     int32_t         bEmpty;
-    int32_t         iCurId;
+    uint32_t        iCurId;
     MOS_STATUS      eStatus;
     char            *tmpChar; // Used in the 64-bit case to read uint64_t
 
