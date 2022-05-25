@@ -573,13 +573,20 @@ protected:
                 resourceParams.pdwCmd          = (uint32_t *)&fwdRefs[refIdx]->LowerAddress;
                 resourceParams.HwCommandType   = MOS_VDENC_PIPE_BUF_ADDR;
 
-                uint8_t mmcSkip = (params.mmcSkipMask) & (1 << refIdx);
-
-                auto mmcMode = (params.mmcStatePostDeblock != MOS_MEMCOMP_DISABLED) ? params.mmcStatePostDeblock : params.mmcStatePreDeblock;
+                uint8_t  mmcSkip   = (params.mmcSkipMask) & (1 << refIdx);
+                auto     mmcMode   = MOS_MEMCOMP_DISABLED;
+                uint32_t mmcFormat = 0;
+                if (params.mmcEnabled)
+                {
+                    MHW_CHK_STATUS_RETURN(this->m_osItf->pfnGetMemoryCompressionMode(
+                        this->m_osItf, params.refs[refIdx], &mmcMode));
+                    MHW_CHK_STATUS_RETURN(this->m_osItf->pfnGetMemoryCompressionFormat(
+                        this->m_osItf, params.refs[refIdx], &mmcFormat));
+                }
 
                 fwdRefs[refIdx]->PictureFields.DW0.MemoryCompressionEnable = mmcSkip ? 0 : MmcEnabled(mmcMode);
                 fwdRefs[refIdx]->PictureFields.DW0.CompressionType         = mmcSkip ? MOS_MEMCOMP_DISABLED : MmcRcEnabled(mmcMode);
-                fwdRefs[refIdx]->PictureFields.DW0.CompressionFormat       = params.compressionFormatRecon;
+                fwdRefs[refIdx]->PictureFields.DW0.CompressionFormat       = mmcFormat;
 
                 InitMocsParams(resourceParams, &fwdRefs[refIdx]->PictureFields.DW0.Value, 1, 6);
 
@@ -686,11 +693,19 @@ protected:
                 resourceParams.pdwCmd          = (uint32_t *)&(cmd.BwdRef0.LowerAddress);
                 resourceParams.HwCommandType   = MOS_VDENC_PIPE_BUF_ADDR;
 
-                auto mmcMode = (params.mmcStatePostDeblock != MOS_MEMCOMP_DISABLED) ? params.mmcStatePostDeblock : params.mmcStatePreDeblock;
+                auto     mmcMode   = MOS_MEMCOMP_DISABLED;
+                uint32_t mmcFormat = 0;
+                if (params.mmcEnabled)
+                {
+                    MHW_CHK_STATUS_RETURN(this->m_osItf->pfnGetMemoryCompressionMode(
+                        this->m_osItf, params.refs[refIdx], &mmcMode));
+                    MHW_CHK_STATUS_RETURN(this->m_osItf->pfnGetMemoryCompressionFormat(
+                        this->m_osItf, params.refs[refIdx], &mmcFormat));
+                }
 
                 cmd.BwdRef0.PictureFields.DW0.MemoryCompressionEnable = MmcEnabled(mmcMode);
                 cmd.BwdRef0.PictureFields.DW0.CompressionType         = MmcRcEnabled(mmcMode);
-                cmd.BwdRef0.PictureFields.DW0.CompressionFormat       = params.compressionFormatRecon;
+                cmd.BwdRef0.PictureFields.DW0.CompressionFormat       = mmcFormat;
 
                 InitMocsParams(resourceParams, &cmd.BwdRef0.PictureFields.DW0.Value, 1, 6);
 

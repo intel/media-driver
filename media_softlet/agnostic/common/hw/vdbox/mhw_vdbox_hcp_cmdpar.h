@@ -295,6 +295,8 @@ struct _MHW_PAR_T(HCP_SURFACE_STATE)
     MOS_MEMCOMP_STATE mmcState             = MOS_MEMCOMP_DISABLED;
     uint8_t           mmcSkipMask          = 0;
     uint32_t          dwCompressionFormat  = 0;
+    uint8_t           refsMmcEnable        = 0;
+    uint8_t           refsMmcType          = 0;
 };
 
 struct _MHW_PAR_T(HCP_PIPE_MODE_SELECT)

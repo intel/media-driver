@@ -387,34 +387,37 @@ MOS_STATUS CodechalVdencVp9StateG12::ExecuteDysPictureLevel()
 #endif
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpSurfaceCmd(&cmdBuffer, &surfaceParams[CODECHAL_HCP_SRC_SURFACE_ID]));
 
-    // Last reference picture
-    if (refSurface[0])
+    if (m_pictureCodingType != I_TYPE)
     {
 #ifdef _MMC_SUPPORTED
-        CODECHAL_ENCODE_CHK_NULL_RETURN(m_mmcState);
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SetSurfaceState(&surfaceParams[CODECHAL_HCP_LAST_SURFACE_ID]));
+        //Get each reference surface state and be recorded by skipMask if current surface state is mmc disabled
+        //In VP9 mode, Bit 8is (here is bit0 in skipMask ) for Previous Reference; 
+        //Bit 9is (here is bit1 in skipMask ) for Golden Reference and Bit 10is (here is bit2 in skipMask ) for Alterante Reference; 
+        //Bits11-15are unused and should be programmed to 0 (skipped)
+        uint8_t skipMask = 0xf8;
+        for (uint8_t i = CODECHAL_HCP_LAST_SURFACE_ID; i <= CODECHAL_HCP_ALTREF_SURFACE_ID; i++)
+        {
+            CODECHAL_ENCODE_CHK_NULL_RETURN(m_mmcState);
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SetSurfaceState(&surfaceParams[i]));
+            if (surfaceParams[i].mmcState == MOS_MEMCOMP_DISABLED)
+            {
+                skipMask |= (1 << (i - 2));
+            }
+        }
+        CODECHAL_ENCODE_NORMALMESSAGE("MMC skip mask is %d\n", skipMask);
+        for (uint8_t i = CODECHAL_HCP_LAST_SURFACE_ID; i <= CODECHAL_HCP_ALTREF_SURFACE_ID; i++)
+        {
+            //Set each ref surface state as MOS_MEMCOMP_MC to satisfy MmcEnable in AddHcpSurfaceCmd
+            //Because each ref surface state should be programmed as the same
+            //The actual mmc state is recorded by skipMask and set each ref surface too
+            surfaceParams[i].mmcState = MOS_MEMCOMP_MC;
+            surfaceParams[i].mmcSkipMask = skipMask;
+        }
 #endif
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpSurfaceCmd(&cmdBuffer, &surfaceParams[CODECHAL_HCP_LAST_SURFACE_ID]));
-    }
-
-    // Golden reference picture
-    if (refSurface[1])
-    {
-#ifdef _MMC_SUPPORTED
-        CODECHAL_ENCODE_CHK_NULL_RETURN(m_mmcState);
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SetSurfaceState(&surfaceParams[CODECHAL_HCP_GOLDEN_SURFACE_ID]));
-#endif
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpSurfaceCmd(&cmdBuffer, &surfaceParams[CODECHAL_HCP_GOLDEN_SURFACE_ID]));
-    }
-
-    // Alt reference picture
-    if (refSurface[2])
-    {
-#ifdef _MMC_SUPPORTED
-        CODECHAL_ENCODE_CHK_NULL_RETURN(m_mmcState);
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SetSurfaceState(&surfaceParams[CODECHAL_HCP_ALTREF_SURFACE_ID]));
-#endif
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpSurfaceCmd(&cmdBuffer, &surfaceParams[CODECHAL_HCP_ALTREF_SURFACE_ID]));
+        for (uint8_t i = CODECHAL_HCP_LAST_SURFACE_ID; i <= CODECHAL_HCP_ALTREF_SURFACE_ID; i++)
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpSurfaceCmd(&cmdBuffer, &surfaceParams[i]));
+        }
     }
 
     // set HCP_PIPE_BUF_ADDR_STATE values
@@ -3851,35 +3854,39 @@ MOS_STATUS CodechalVdencVp9StateG12::ExecutePictureLevel()
 #endif
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpSurfaceCmd(&cmdBuffer, &surfaceParams[CODECHAL_HCP_SRC_SURFACE_ID]));
 
-    // Last reference picture
-    if (refSurface[0])
+    if (m_pictureCodingType != I_TYPE)
     {
 #ifdef _MMC_SUPPORTED
-        CODECHAL_ENCODE_CHK_NULL_RETURN(m_mmcState);
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SetSurfaceState(&surfaceParams[CODECHAL_HCP_LAST_SURFACE_ID]));
+        //Get each reference surface state and be recorded by skipMask if current surface state is mmc disabled
+        //In VP9 mode, Bit 8is (here is bit0 in skipMask ) for Previous Reference; 
+        //Bit 9is (here is bit1 in skipMask ) for Golden Reference and Bit 10is (here is bit2 in skipMask ) for Alterante Reference; 
+        //Bits11-15are unused and should be programmed to 0 (skipped)
+        uint8_t skipMask = 0xf8;
+        for (uint8_t i = CODECHAL_HCP_LAST_SURFACE_ID; i <= CODECHAL_HCP_ALTREF_SURFACE_ID; i++)
+        {
+            CODECHAL_ENCODE_CHK_NULL_RETURN(m_mmcState);
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SetSurfaceState(&surfaceParams[i]));
+            if (surfaceParams[i].mmcState == MOS_MEMCOMP_DISABLED)
+            {
+                skipMask |= (1 << (i - 2));
+            }
+        }
+        CODECHAL_ENCODE_NORMALMESSAGE("MMC skip mask is %d\n", skipMask);
+        for (uint8_t i = CODECHAL_HCP_LAST_SURFACE_ID; i <= CODECHAL_HCP_ALTREF_SURFACE_ID; i++)
+        {
+            //Set each ref surface state as MOS_MEMCOMP_MC to satisfy MmcEnable in AddHcpSurfaceCmd
+            //Because each ref surface state should be programmed as the same
+            //The actual mmc state is recorded by skipMask and set each ref surface too
+            surfaceParams[i].mmcState = MOS_MEMCOMP_MC;
+            surfaceParams[i].mmcSkipMask = skipMask;
+        }
 #endif
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpSurfaceCmd(&cmdBuffer, &surfaceParams[CODECHAL_HCP_LAST_SURFACE_ID]));
+        for (uint8_t i = CODECHAL_HCP_LAST_SURFACE_ID; i <= CODECHAL_HCP_ALTREF_SURFACE_ID; i++)
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpSurfaceCmd(&cmdBuffer, &surfaceParams[i]));
+        }
     }
 
-    // Golden reference picture
-    if (refSurface[1])
-    {
-#ifdef _MMC_SUPPORTED
-        CODECHAL_ENCODE_CHK_NULL_RETURN(m_mmcState);
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SetSurfaceState(&surfaceParams[CODECHAL_HCP_GOLDEN_SURFACE_ID]));
-#endif
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpSurfaceCmd(&cmdBuffer, &surfaceParams[CODECHAL_HCP_GOLDEN_SURFACE_ID]));
-    }
-
-    // Alt reference picture
-    if (refSurface[2])
-    {
-#ifdef _MMC_SUPPORTED
-        CODECHAL_ENCODE_CHK_NULL_RETURN(m_mmcState);
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SetSurfaceState(&surfaceParams[CODECHAL_HCP_ALTREF_SURFACE_ID]));
-#endif
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpSurfaceCmd(&cmdBuffer, &surfaceParams[CODECHAL_HCP_ALTREF_SURFACE_ID]));
-    }
 
     // set HCP_PIPE_BUF_ADDR_STATE values
     PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS pipeBufAddrParams = nullptr;
