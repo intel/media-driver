@@ -1541,7 +1541,7 @@ MOS_STATUS CodechalDecode::EndStatusReport(
     MHW_MI_STORE_REGISTER_MEM_PARAMS regParams;
     regParams.presStoreBuffer   = &m_decodeStatusBuf.m_statusBuffer;
     regParams.dwOffset          = errStatusOffset;
-    regParams.dwRegister        = (m_standard == CODECHAL_HEVC && mmioRegistersHcp) ?
+    regParams.dwRegister        = ((m_standard == CODECHAL_HEVC || m_standard == CODECHAL_VP9) && mmioRegistersHcp) ?
         mmioRegistersHcp->hcpCabacStatusRegOffset : mmioRegistersMfx->mfxErrorFlagsRegOffset;
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(
         cmdBuffer,
@@ -1580,7 +1580,7 @@ MOS_STATUS CodechalDecode::EndStatusReport(
 
     regParams.presStoreBuffer   = &m_decodeStatusBuf.m_statusBuffer;
     regParams.dwOffset          = mbCountOffset;
-    regParams.dwRegister        = (m_standard == CODECHAL_HEVC && mmioRegistersHcp) ?
+    regParams.dwRegister        = ((m_standard == CODECHAL_HEVC || m_standard == CODECHAL_VP9) && mmioRegistersHcp) ?
         mmioRegistersHcp->hcpDecStatusRegOffset : mmioRegistersMfx->mfxMBCountRegOffset;
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(
         cmdBuffer,
@@ -1773,7 +1773,7 @@ MOS_STATUS CodechalDecode::GetStatusReport(
                     // No problem in execution
                     codecStatus[j].m_codecStatus = CODECHAL_STATUS_SUCCESSFUL;
 
-                    if (m_standard == CODECHAL_HEVC)
+                    if (m_standard == CODECHAL_HEVC || m_standard == CODECHAL_VP9)
                     {
                         if ((m_decodeStatusBuf.m_decodeStatus[i].m_mmioErrorStatusReg &
                              m_hcpInterface->GetHcpCabacErrorFlagsMask()) != 0)
