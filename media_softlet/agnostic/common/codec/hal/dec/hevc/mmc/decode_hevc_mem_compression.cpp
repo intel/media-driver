@@ -71,12 +71,6 @@ MOS_STATUS HevcDecodeMemComp::SetRefSurfaceMask(
     {
         if (presReferences[i] != nullptr)
         {
-            if (hevcBasicFeature.m_hasMixedmmcState)
-            {
-                DECODE_NORMALMESSAGE("Decompress reference surface due to mixed mmc state\n");
-                DECODE_CHK_STATUS(m_osInterface->pfnDecompResource(m_osInterface, presReferences[i]));
-            }
-
             DECODE_CHK_STATUS(m_osInterface->pfnGetMemoryCompressionMode(
                 m_osInterface, presReferences[i], &refMmcState));
         }
@@ -88,6 +82,37 @@ MOS_STATUS HevcDecodeMemComp::SetRefSurfaceMask(
     }
     mmcSkipMask |= skipMask;
     DECODE_NORMALMESSAGE("HEVC MMC skip mask %d\n", mmcSkipMask);
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS HevcDecodeMemComp::SetRefSurfaceCompressionFormat(
+    HevcBasicFeature    &hevcBasicFeature,
+    const PMOS_RESOURCE *presReferences,
+    uint32_t            &mmcCompressionFormat)
+{
+    MOS_MEMCOMP_STATE refMmcState       = MOS_MEMCOMP_DISABLED;
+    uint32_t          compressionFormat = 0;
+    uint32_t          refcompressionFormat = 0;
+
+    for (uint16_t i = 0; i < CODECHAL_MAX_CUR_NUM_REF_FRAME_HEVC; i++)
+    {
+        if (presReferences[i] != nullptr)
+        {
+            DECODE_CHK_STATUS(m_osInterface->pfnGetMemoryCompressionMode(
+                m_osInterface, presReferences[i], &refMmcState));
+
+            if (refMmcState == MOS_MEMCOMP_MC || refMmcState == MOS_MEMCOMP_RC)
+            {
+                DECODE_CHK_STATUS(m_osInterface->pfnGetMemoryCompressionFormat(
+                    m_osInterface, presReferences[i], &compressionFormat));
+
+                refcompressionFormat = compressionFormat;
+            }
+        }
+    }
+    mmcCompressionFormat = refcompressionFormat;
+    DECODE_NORMALMESSAGE("HEVC reference surface compression format %d\n", mmcCompressionFormat);
 
     return MOS_STATUS_SUCCESS;
 }

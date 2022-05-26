@@ -367,12 +367,6 @@ MOS_STATUS HevcDecodePicPktXe_M_Base::SetHcpDstSurfaceParams(MHW_VDBOX_SURFACE_P
     DECODE_CHK_STATUS(m_mmcState->SetSurfaceMmcState(dstSurfaceParams.psSurface));
     DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcState(dstSurfaceParams.psSurface, &dstSurfaceParams.mmcState));
     DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcFormat(dstSurfaceParams.psSurface, &dstSurfaceParams.dwCompressionFormat));
-
-    if (dstSurfaceParams.mmcState == MOS_MEMCOMP_DISABLED && m_mmcState->IsMmcEnabled())
-    {
-        m_hevcBasicFeature->m_hasMixedmmcState = true;
-        DECODE_NORMALMESSAGE("Current %d frame has mixed mmc state\n", m_hevcBasicFeature->m_frameNum);
-    }
 #endif
 
     return MOS_STATUS_SUCCESS;
@@ -397,8 +391,8 @@ MOS_STATUS HevcDecodePicPktXe_M_Base::SetHcpRefSurfaceParams(
     // Set refSurfaceParams mmcState as MOS_MEMCOMP_MC to satisfy MmcEnable in AddHcpSurfaceCmd
     // The actual mmcstate is recorded by refSurfaceParams.mmcSkipMask
     refSurfaceParams.mmcState = MOS_MEMCOMP_MC;
-    DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcFormat(refSurfaceParams.psSurface, &refSurfaceParams.dwCompressionFormat));
     DECODE_CHK_STATUS(hevcDecodeMemComp->SetRefSurfaceMask(*m_hevcBasicFeature, pipeBufAddrParams.presReferences, refSurfaceParams.mmcSkipMask));
+    DECODE_CHK_STATUS(hevcDecodeMemComp->SetRefSurfaceCompressionFormat(*m_hevcBasicFeature, pipeBufAddrParams.presReferences, refSurfaceParams.dwCompressionFormat));
 #endif
 
     return MOS_STATUS_SUCCESS;
