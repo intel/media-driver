@@ -29,6 +29,8 @@
 #define __ENCODE_HEVC_VDENC_CONST_SETTINGS_XE_XPM_BASE_H__
 
 #include "encode_hevc_vdenc_const_settings.h"
+#include "media_class_trace.h"
+#include "mos_defs.h"
 
 namespace encode
 {

@@ -47,6 +47,8 @@ MOS_STATUS HevcReferenceFrames::Init(HevcBasicFeature *basicFeature, DecodeAlloc
     m_allocator = &allocator;
     DECODE_CHK_STATUS(CodecHalAllocateDataList(m_refList, CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC));
 
+    m_osInterface = basicFeature->GetOsInterface();
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -214,14 +216,28 @@ MOS_STATUS HevcReferenceFrames::UpdateCurRefList(const CODEC_HEVC_PIC_PARAMS & p
     // Override reference list with ref surface passed from DDI if needed
     uint8_t surfCount = 0;
     uint8_t surfIndex = 0;
-    while (surfCount < m_basicFeature->m_refSurfaceNum && surfIndex < CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC)
+    if (m_osInterface->pfnIsMismatchOrderProgrammingSupported())
     {
-        if (!m_allocator->ResourceIsNull(&m_basicFeature->m_refFrameSurface[surfIndex].OsResource))
+        while (surfIndex < CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC)
         {
-            m_refList[surfIndex]->resRefPic = m_basicFeature->m_refFrameSurface[surfIndex].OsResource;
-            surfCount++;
+            if (!m_allocator->ResourceIsNull(&m_basicFeature->m_refFrameSurface[surfIndex].OsResource))
+            {
+                m_refList[surfIndex]->resRefPic = m_basicFeature->m_refFrameSurface[surfIndex].OsResource;
+            }
+            surfIndex++;
         }
-        surfIndex++;
+    }
+    else
+    {
+        while (surfCount < m_basicFeature->m_refSurfaceNum && surfIndex < CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC)
+        {
+            if (!m_allocator->ResourceIsNull(&m_basicFeature->m_refFrameSurface[surfIndex].OsResource))
+            {
+                m_refList[surfIndex]->resRefPic = m_basicFeature->m_refFrameSurface[surfIndex].OsResource;
+                surfCount++;
+            }
+            surfIndex++;
+        }
     }
 
     memset(m_frameUsedAsCurRef, 0, sizeof(m_frameUsedAsCurRef));

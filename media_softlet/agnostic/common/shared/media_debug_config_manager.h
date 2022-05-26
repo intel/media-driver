@@ -90,6 +90,7 @@ protected:
     std::string              m_outputFolderPath;
     std::vector<MediaDbgCfg> m_debugFrameConfigs;
     MediaDbgCfg *            m_debugAllConfigs = nullptr;
+MEDIA_CLASS_DEFINE_END(MediaDebugConfigMgr)
 };
 
 #endif  //USE_MEDIA_DEBUG_TOOL

@@ -290,6 +290,8 @@ static bool InitTglMediaSku(struct GfxDeviceInfo *devInfo,
         MEDIA_WR_SKU(skuTable, FtrCompressibleSurfaceDefault, 1);
     }
 
+    MEDIA_WR_SKU(skuTable, FtrHDR, 1);
+
     return true;
 }
 

@@ -213,7 +213,7 @@ namespace encode
             syncParams.GpuContext = m_osInterface->pfnGetGpuContext(m_osInterface);
             syncParams.presSyncResource = &m_basicFeature->m_rawSurface.OsResource;
             syncParams.bReadOnly = true;
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnResourceWait(m_osInterface, &syncParams));
+            ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnResourceWait(m_osInterface, &syncParams));
             m_osInterface->pfnSetResourceSyncTag(m_osInterface, &syncParams);
         }
 
@@ -292,7 +292,7 @@ namespace encode
             miStoreRegMemParams.presStoreBuffer = m_basicFeature->m_recycleBuf->GetBuffer(PakInfo, 0);;
             miStoreRegMemParams.dwOffset        = 0;
             miStoreRegMemParams.dwRegister      = mmioRegisters->hcpEncBitstreamBytecountFrameRegOffset;
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_REGISTER_MEM)(&cmdBuffer));
+            ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_REGISTER_MEM)(&cmdBuffer));
 
             ENCODE_CHK_STATUS_RETURN(Mos_Solo_PostProcessEncode(m_osInterface, &m_basicFeature->m_resBitstreamBuffer, &m_basicFeature->m_reconSurface));
         }
@@ -562,7 +562,7 @@ namespace encode
         SETPAR_AND_ADDCMD(VDENC_CMD2, m_vdencItf, &constructedCmdBuf);
 
         // set MI_BATCH_BUFFER_END command
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miItf->AddMiBatchBufferEnd(&constructedCmdBuf, nullptr));
+        ENCODE_CHK_STATUS_RETURN(m_miItf->AddMiBatchBufferEnd(&constructedCmdBuf, nullptr));
 
         // End patching 3rd level batch cmds
         RUN_FEATURE_INTERFACE_RETURN(HevcEncodeTile, HevcFeatureIDs::encodeTile, EndPatch3rdLevelBatch);
@@ -703,7 +703,7 @@ namespace encode
             ENCODE_CHK_NULL_RETURN(tileLevelBatchBuffer);
             tileLevelBatchBuffer->iCurrent   = tempCmdBuffer->iOffset;
             tileLevelBatchBuffer->iRemaining = tempCmdBuffer->iRemaining;
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miItf->AddMiBatchBufferEnd(nullptr, tileLevelBatchBuffer));
+            ENCODE_CHK_STATUS_RETURN(m_miItf->AddMiBatchBufferEnd(nullptr, tileLevelBatchBuffer));
 
         #if USE_CODECHAL_DEBUG_TOOL
             if (tempCmdBuffer->pCmdPtr && tempCmdBuffer->pCmdBase &&
@@ -1415,6 +1415,7 @@ namespace encode
         m_mmcState = m_pipeline->GetMmcState();
         ENCODE_CHK_NULL_RETURN(m_mmcState);
         m_basicFeature->m_mmcState = m_mmcState;
+        m_basicFeature->m_ref.m_mmcState = m_mmcState;
 #endif
         m_allocator = m_pipeline->GetEncodeAllocator();
         ENCODE_CHK_STATUS_RETURN(AllocateResources());
@@ -1579,7 +1580,7 @@ namespace encode
         cmdBuffer.Attributes.bFrequencyBoost = (m_basicFeature->m_hevcSeqParams->ScenarioInfo == ESCENARIO_REMOTEGAMING);
 
 #ifdef _MMC_SUPPORTED
-        CODECHAL_ENCODE_CHK_NULL_RETURN(m_mmcState);
+        ENCODE_CHK_NULL_RETURN(m_mmcState);
         ENCODE_CHK_STATUS_RETURN(m_mmcState->SendPrologCmd(&cmdBuffer, false));
 #endif
 
@@ -1767,7 +1768,7 @@ namespace encode
 
         MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
-        CODECHAL_HW_FUNCTION_ENTER;
+        CODEC_HW_FUNCTION_ENTER;
 
         ENCODE_CHK_NULL_RETURN(statusReport);
         ENCODE_CHK_NULL_RETURN(m_hwInterface);
@@ -1926,7 +1927,7 @@ namespace encode
         // When tile replay is enabled with tile replay, need to report out the tile size and the bit stream is not continous
         if (m_pipeline->GetPipeNum() == 1)
         {
-            //CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalVdencHevcState::GetStatusReport(encodeStatus, encodeStatusReport));
+            //ENCODE_CHK_STATUS_RETURN(CodechalVdencHevcState::GetStatusReport(encodeStatus, encodeStatusReport));
             MOS_LOCK_PARAMS lockFlags;
             MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
             lockFlags.ReadOnly = 1;
@@ -1936,7 +1937,7 @@ namespace encode
             if (encodeStatusMfx->sliceReport.sliceSize)
             {
                 sliceSize = (uint32_t *)m_osInterface->pfnLockResource(m_osInterface, encodeStatusMfx->sliceReport.sliceSize, &lockFlags);
-                CODECHAL_ENCODE_CHK_NULL_RETURN(sliceSize);
+                ENCODE_CHK_NULL_RETURN(sliceSize);
 
                 statusReportData->numberSlices           = encodeStatusMfx->sliceReport.numberSlices;
                 statusReportData->sizeOfSliceSizesBuffer = sizeof(uint16_t) * encodeStatusMfx->sliceReport.numberSlices;
@@ -1948,7 +1949,7 @@ namespace encode
                 for (auto sliceCount = 0; sliceCount < encodeStatusMfx->sliceReport.numberSlices; sliceCount++)
                 {
                     // PAK output the sliceSize at 16DW intervals.
-                    CODECHAL_ENCODE_CHK_NULL_RETURN(&sliceSize[sliceCount * 16]);
+                    ENCODE_CHK_NULL_RETURN(&sliceSize[sliceCount * 16]);
                     uint32_t CurrAccumulatedSliceSize = sliceSize[sliceCount * 16];
 
                     //convert cummulative slice size to individual, first slice may have PPS/SPS,
@@ -2578,14 +2579,16 @@ namespace encode
 
         auto          streamInBufferSize = (MOS_ALIGN_CEIL(m_basicFeature->m_frameWidth, 64) / 32) * (MOS_ALIGN_CEIL(m_basicFeature->m_frameHeight, 64) / 32) * CODECHAL_CACHELINE_SIZE;
         PMOS_RESOURCE streamInbuffer     = m_basicFeature->m_recycleBuf->GetBuffer(RecycleResId::StreamInBuffer, debugInterface->m_bufferDumpFrameNum);
-        ENCODE_CHK_NULL_RETURN(streamInbuffer);
-        ENCODE_CHK_STATUS_RETURN(debugInterface->DumpBuffer(
-            streamInbuffer,
-            CodechalDbgAttr::attrStreamIn,
-            "_ROIStreamin",
-            streamInBufferSize,
-            0,
-            CODECHAL_NUM_MEDIA_STATES))
+        if (streamInbuffer)
+        {
+            ENCODE_CHK_STATUS_RETURN(debugInterface->DumpBuffer(
+                streamInbuffer,
+                CodechalDbgAttr::attrStreamIn,
+                "_ROIStreamin",
+                streamInBufferSize,
+                0,
+                CODECHAL_NUM_MEDIA_STATES))
+        }
 
         ENCODE_CHK_STATUS_RETURN(debugInterface->DumpBltOutput(
             &currRefList.sRefReconBuffer,

@@ -147,6 +147,7 @@ protected:
 
     BltStateXe_Xpm_Plus           *m_bltState       = nullptr;
     RenderCopy_Xe_Xpm_Plus        *m_renderCopy     = nullptr;
+MEDIA_CLASS_DEFINE_END(MediaCopyStateXe_Xpm_Plus)
 };
 
 #endif // __MEDIA_COPY_XE_XPM_PLUS_H__

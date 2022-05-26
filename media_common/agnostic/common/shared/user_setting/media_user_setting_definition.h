@@ -33,6 +33,24 @@
 #include "media_user_setting_value.h"
 
 namespace MediaUserSetting {
+
+//!
+//! The media user setting group
+//! Device - for regkeys which are touched per device
+//! Sequence - for regkeys which are touched per video sequence
+//! Frame - for regkeys which are touched per frame
+//! MaxCount - is used to configure size of Configure::m_definitions array
+//! Note: you must not assign any numeric values to the enum items, except for
+//! the device being set to 0
+//!
+enum Group
+{
+    Device = 0,
+    Sequence,
+    Frame,
+    MaxCount
+};
+
 namespace Internal {
 
 class Definition
@@ -149,5 +167,6 @@ private:
 
 using Definitions = std::map<std::size_t, std::shared_ptr<Definition>>;
 
-}}
+}
+}
 #endif

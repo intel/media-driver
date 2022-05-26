@@ -309,5 +309,6 @@ protected:
     uint32_t                m_bKernelFenceEnabled : 1;
     bool                    m_bFlushToGo;
     uint8_t                 m_ui8InterfaceDescriptorOffset;
+MEDIA_CLASS_DEFINE_END(RenderCmdPacketNext)
 };
 #endif // __MEDIA_RENDER_CMD_PACKET_NEXT_H__

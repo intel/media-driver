@@ -28,28 +28,10 @@
 #define __MEDIA_USER_SETTING_CONFIGURE__H__
 
 #include <string>
-#include "mos_utilities.h"
-#include "media_user_setting_value.h"
 #include "media_user_setting_definition.h"
+#include "mos_utilities.h"
 
 namespace MediaUserSetting {
-
-//!
-//! The media user setting group
-//! Device - for regkeys which are touched per device
-//! Sequence - for regkeys which are touched per video sequence
-//! Frame - for regkeys which are touched per frame
-//! MaxCount - is used to configure size of Configure::m_definitions array
-//! Note: you must not assign any numeric values to the enum items, except for
-//! the device being set to 0
-//!
-enum Group
-{
-    Device = 0,
-    Sequence,
-    Frame,
-    MaxCount
-};
 
 namespace Internal {
 
@@ -242,7 +224,7 @@ protected:
     }
 
 protected:
-    MosMutex m_mutexLock = {}; //!< mutex for protecting definitions
+    MosMutex m_mutexLock; //!< mutex for protecting definitions
     Definitions m_definitions[Group::MaxCount]{}; //!< definitions of media user setting
     bool m_isDebugMode = false; //!< whether in debug/release-internal mode
     RegBufferMap m_regBufferMap{};
@@ -253,6 +235,6 @@ protected:
     static const char *m_reportPath;
     static const std::map<uint32_t, const char *> m_pathOption;
 };
-
-}}
+}
+}
 #endif

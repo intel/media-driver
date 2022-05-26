@@ -183,6 +183,7 @@ protected:
     std::vector<uint8_t> m_activeReferenceList;                             //!< Active reference list of current picture
 
     std::vector<int8_t>  m_duplicationPocMap[CODEC_MAX_NUM_REF_FRAME_HEVC];  //!< duplication POC map
+    PMOS_INTERFACE       m_osInterface = nullptr;                            //!< Os interface
 
 MEDIA_CLASS_DEFINE_END(HevcReferenceFrames)
 };

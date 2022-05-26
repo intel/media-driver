@@ -255,6 +255,7 @@ protected:
 
     std::string          m_outputFileName;
     MediaDebugConfigMgr *m_configMgr = nullptr;
+MEDIA_CLASS_DEFINE_END(MediaDebugInterface)
 };
 
 #else

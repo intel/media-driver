@@ -231,7 +231,7 @@ int32_t writePartialSourceFile(
     {
         sPlatformName.erase(0, underPos + 1);
         std::map<std::string, std::string> nameMap = {
-            {"XE_HPG", "DG2"}, {"XE_HPG_CMFCPATCH", "DG2_CMFCPATCH"}
+            {"XE_HPG", "XE_HPG"}, {"XE_HPG_CMFCPATCH", "XE_HPG_CMFCPATCH"}
         };
 
         if (nameMap.find(sPlatformName) == nameMap.end())
@@ -365,7 +365,7 @@ int32_t writeSourceFile(
     {
         sPlatformName.erase(0, underPos + 1);
         std::map<std::string, std::string> nameMap = {
-            {"XE_HPG", "DG2"}, {"XE_HPG_CMFCPATCH", "DG2_CMFCPATCH"}
+            {"XE_HPG", "XE_HPG"}, {"XE_HPG_CMFCPATCH", "XE_HPG_CMFCPATCH"}
         };
 
         if (nameMap.find(sPlatformName) == nameMap.end())

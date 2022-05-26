@@ -199,6 +199,7 @@ protected:
     StatusBufAddr    *m_statusBufAddr        = nullptr;
 
     std::vector<MediaStatusReportObserver *>  m_completeObservers;
+MEDIA_CLASS_DEFINE_END(MediaStatusReport)
 };
 
 #endif // !__MEDIA_STATUS_REPORT_H__

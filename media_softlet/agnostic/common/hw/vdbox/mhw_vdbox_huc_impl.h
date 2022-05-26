@@ -307,6 +307,7 @@ protected:
 
 #include "mhw_hwcmd_process_cmdfields.h"
     }
+MEDIA_CLASS_DEFINE_END(mhw__vdbox__huc__Impl)
 };
 }  // namespace huc
 }  // namespace vdbox

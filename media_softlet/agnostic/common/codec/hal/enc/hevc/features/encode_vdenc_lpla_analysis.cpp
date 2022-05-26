@@ -472,7 +472,7 @@ namespace encode
 
 #if (_SW_BRC)
         CodechalVdencHevcLaData *data = (CodechalVdencHevcLaData *)m_allocator->LockResourceForRead(m_vdencLaDataBuffer);
-        CODECHAL_ENCODE_CHK_NULL_RETURN(data);
+        ENCODE_CHK_NULL_RETURN(data);
 
         LookaheadReport *lookaheadStatus     = &encodeStatusMfx->lookaheadStatus;
         lookaheadStatus->targetFrameSize     = data[m_offset].targetFrameSize;
@@ -558,7 +558,7 @@ namespace encode
         ENCODE_CHK_NULL_RETURN(debugInterface);
         int32_t currentPass = pipeline->GetCurrentPass();
 
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(debugInterface->DumpBuffer(
+        ENCODE_CHK_STATUS_RETURN(debugInterface->DumpBuffer(
             m_vdencLaUpdateDmemBuffer[pipeline->m_currRecycledBufIdx][currentPass],
             CodechalDbgAttr::attrVdencOutput,
             "_LookaheadDmem",
@@ -566,7 +566,7 @@ namespace encode
             0,
             CODECHAL_NUM_MEDIA_STATES));
 
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(debugInterface->DumpBuffer(
+        ENCODE_CHK_STATUS_RETURN(debugInterface->DumpBuffer(
             m_vdencLaDataBuffer,
             CodechalDbgAttr::attrVdencOutput,
             "_LookaheadData",
@@ -574,7 +574,7 @@ namespace encode
             0,
             CODECHAL_NUM_MEDIA_STATES));
 
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(debugInterface->DumpBuffer(
+        ENCODE_CHK_STATUS_RETURN(debugInterface->DumpBuffer(
             m_vdencLaHistoryBuffer,
             CodechalDbgAttr::attrVdencOutput,
             "_LookaheadHistory",
@@ -582,7 +582,7 @@ namespace encode
             0,
             CODECHAL_NUM_MEDIA_STATES));
 
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(debugInterface->DumpBuffer(
+        ENCODE_CHK_STATUS_RETURN(debugInterface->DumpBuffer(
             m_vdencLaStatsBuffer,
             CodechalDbgAttr::attrVdencOutput,
             "_LookaheadStats",
@@ -644,7 +644,7 @@ namespace encode
             flushDwParams       = {};
             MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
             // Make Flush DW call to make sure all previous work is done
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(&cmdBuffer));
+            ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(&cmdBuffer));
         }
         else
         {
@@ -683,7 +683,7 @@ namespace encode
             ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(&cmdBuffer));
 
             auto mmioRegs = m_miItf->GetMmioRegisters();
-            CODECHAL_ENCODE_CHK_NULL_RETURN(mmioRegs);
+            ENCODE_CHK_NULL_RETURN(mmioRegs);
             // VCS_GPR0_Lo = LCUHdrBits
             miLoadRegMemParams.presStoreBuffer = m_basicFeature->m_recycleBuf->GetBuffer(FrameStatStreamOutBuffer, 0);  // LCUHdrBits is in m_resFrameStatStreamOutBuffer DW4
             miLoadRegMemParams.dwOffset        = 4 * sizeof(uint32_t);

@@ -61,6 +61,7 @@ public:
     MOS_STATUS PopulateDbgOvrdParams(
         MOS_STREAM_HANDLE stream);
 #endif
+MEDIA_CLASS_DEFINE_END(MosOsVeSinglePipe)
 };
 #endif //__MOS_OS_VIRTUALENGINE_SINGLEPIPE_NEXT_H__
 

@@ -297,7 +297,7 @@ VAStatus MediaLibvaCapsG11::GetPlatformSpecificAttrib(VAProfile profile,
         case VAConfigAttribDecProcessing:
         {
 #ifdef _DECODE_PROCESSING_SUPPORTED
-            if (IsAvcProfile(profile) || IsHevcProfile(profile))
+            if ((IsAvcProfile(profile) || IsHevcProfile(profile)) && !(MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrDisableVDBox2SFC)))
             {
                 *value = VA_DEC_PROCESSING;
             }

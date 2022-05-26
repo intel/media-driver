@@ -27,6 +27,7 @@
 #include "mos_solo_generic.h"
 #include "media_user_settings_mgr_g12_plus.h"
 #include "mhw_mi_itf.h"
+#include "mhw_vdbox_g12_X.h"
 
 namespace encode
 {
@@ -686,7 +687,7 @@ namespace encode
         ENCODE_FUNC_CALL();
         MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
-        CODECHAL_HW_FUNCTION_ENTER;
+        CODEC_HW_FUNCTION_ENTER;
 
         ENCODE_CHK_NULL_RETURN(statusReport);
         ENCODE_CHK_NULL_RETURN(m_hwInterface);

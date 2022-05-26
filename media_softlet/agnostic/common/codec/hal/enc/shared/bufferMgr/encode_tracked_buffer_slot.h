@@ -27,11 +27,12 @@
 #ifndef __ENCODE_TRACKED_BUFFER_SLOT_H__
 #define __ENCODE_TRACKED_BUFFER_SLOT_H__
 
+#include "encode_tracked_buffer.h"
+#include "media_class_trace.h"
+#include "mos_defs.h"
 #include <stdint.h>
 #include <map>
 #include <memory>
-#include "encode_tracked_buffer.h"
-#include "mos_defs.h"
 
 namespace encode {
 

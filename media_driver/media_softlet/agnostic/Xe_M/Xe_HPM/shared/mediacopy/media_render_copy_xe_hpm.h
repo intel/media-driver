@@ -72,6 +72,7 @@ protected:
 
     MOS_STATUS SetupKernel(int32_t iKDTIndex);
 
+MEDIA_CLASS_DEFINE_END(RenderCopy_Xe_Hpm)
 };
 
 #endif // __MEDIA_RENDER_COPY_XE_HPM_H__

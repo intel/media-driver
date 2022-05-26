@@ -28,8 +28,6 @@
 
 #include "codec_def_encode_av1.h"
 #include "mhw_vdbox.h"
-#include "mhw_vdbox_avp_interface.h"
-#include "mhw_vdbox_vdenc_interface.h"
 #include "mhw_vdbox_vdenc_itf.h"
 #include "mhw_vdbox_avp_itf.h"
 #include "encode_tracked_buffer.h"
@@ -217,8 +215,10 @@ protected:
     // m_refFrameFlags & 0x40 != 0: Alt2 ref frames used as reference
     uint8_t                 m_refFrameFlags = 0;                     //!< m_refFrameFlags is to indicate which frames to be used as reference
     uint8_t                 m_numRefFrames  = 0;                     //!< number of current used reference surfaces
-    PMOS_SURFACE            m_currRefPic[7] = {};                    //!< pointer to the current used reference surfaces
+    PMOS_SURFACE            m_currRefPic[av1NumInterRefFrames] = {}; //!< pointer to the current used reference surfaces
     PMOS_SURFACE            m_firstValidRefPic = nullptr;            //!< pointer to the first valid reference surfaces
+    MOS_MEMCOMP_STATE       m_refMmcState[av1TotalRefsPerFrame] = { MOS_MEMCOMP_DISABLED };
+    uint32_t                m_refCompressionFormat = 0;
     CODEC_PIC_ID            m_picIdx[CODEC_AV1_NUM_REF_FRAMES] = {}; //!< keep a map of frame index
     bool                    m_lowDelay = true;                       //!< Low delay flag
     bool                    m_PFrame   = true;                       //!< P frame flag

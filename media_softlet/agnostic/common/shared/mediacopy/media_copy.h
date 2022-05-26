@@ -288,5 +288,6 @@ public:
 
 protected:
     PMOS_MUTEX           m_inUseGPUMutex = nullptr; // Mutex for in-use GPU context
+MEDIA_CLASS_DEFINE_END(MediaCopyBaseState)
 };
 #endif

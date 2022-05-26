@@ -235,19 +235,6 @@ typedef struct _CODEC_ROI_MAP
     CODEC_ROI           Rect[16];   // disconnected areas which have same PriorityLevelOrDQp
 } CODEC_ROI_MAP, *PCODEC_ROI_MAP;
 
-typedef struct _CODEC_ENCODE_MB_CONTROL
-{
-    union
-    {
-        struct
-        {
-            uint32_t        bForceIntra : 1;
-            uint32_t        Reserved : 31;
-        };
-        uint32_t            value;
-    } MBParams;
-} CODEC_ENCODE_MB_CONTROL, *PCODEC_ENCODE_MB_CONTROL;
-
 typedef struct _CODEC_PIC_REORDER
 {
     uint32_t           PicNum;

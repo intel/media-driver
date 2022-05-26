@@ -60,6 +60,11 @@ struct FeatureIDs
     {
         basicFeature = CONSTRUCTFEATUREID(FEATURE_COMPONENT_COMMON, FEATURE_SUBCOMPONENT_COMMON, 0),
         encodeTile,
+#if _MEDIA_RESERVED
+#define ENCODE_FEATURE_IDS_EXT
+#include "media_feature_defs_ext.h"
+#undef ENCODE_FEATURE_IDS_EXT
+#endif
     };
 };
 //!
@@ -286,6 +291,7 @@ protected:
     uint8_t m_passNum = 1;
     // Media user setting instance
     MediaUserSettingSharedPtr m_userSettingPtr = nullptr;
+MEDIA_CLASS_DEFINE_END(MediaFeatureManager)
 };
 
 #endif  // !__MEDIA_FEATURE_MANAGER_H__

@@ -367,5 +367,6 @@ protected:
     MOS_VE_HANDLE     m_veState = nullptr; //!< Virtual Engine State
     std::shared_ptr<mhw::mi::Itf> m_miItf = nullptr;
 
+MEDIA_CLASS_DEFINE_END(MediaScalability)
 };
 #endif  // !__MEDIA_SCALABILITY_H__

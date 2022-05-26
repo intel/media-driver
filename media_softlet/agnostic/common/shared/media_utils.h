@@ -23,6 +23,7 @@
 #define __MEDIA_UTILS_H__
 #include <mutex>
 #include "mos_util_debug.h"
+#include "media_class_trace.h"
 
 //------------------------------------------------------------------------------
 // Macros specific to MOS_CODEC_SUBCOMP_ENCODE sub-comp
@@ -63,6 +64,7 @@ public:
 
 protected:
     const char* m_name;
+MEDIA_CLASS_DEFINE_END(Trace)
 };
 
 class AutoLock
@@ -72,6 +74,7 @@ public:
     ~AutoLock() { MosUtilities::MosUnlockMutex(m_mutex); }
 protected:
     PMOS_MUTEX m_mutex;
+MEDIA_CLASS_DEFINE_END(AutoLock)
 };
 
 class Condition
@@ -102,6 +105,7 @@ public:
 
 protected:
     PMOS_SEMAPHORE m_sem;
+MEDIA_CLASS_DEFINE_END(Condition)
 };
 
 #define MEDIA_FUNC_CALL() Trace trace(__FUNCTION__);

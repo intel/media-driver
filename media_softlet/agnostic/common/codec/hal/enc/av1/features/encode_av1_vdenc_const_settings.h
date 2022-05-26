@@ -29,10 +29,19 @@
 
 #ifndef __ENCODE_AV1_VDENC_CONST_SETTINGS_H__
 #define __ENCODE_AV1_VDENC_CONST_SETTINGS_H__
-#include <vector>
-#include "encode_const_settings.h"
+
 #include "codec_def_common_encode.h"
 #include "codec_def_encode_av1.h"
+#include "encode_const_settings.h"
+#include "media_class_trace.h"
+#include "media_feature_const_settings.h"
+#include "mos_defs.h"
+#include "mos_os.h"
+#include "mos_os_specific.h"
+#include <stdint.h>
+#if _ENCODE_RESERVED
+#include "mhw_vdbox_vdenc_cmdpar_ext.h"
+#endif // _ENCODE_RESERVED
 
 namespace encode
 {

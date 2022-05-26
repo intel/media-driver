@@ -895,6 +895,7 @@ public:
 
         return MOS_STATUS_SUCCESS;
     }
+MEDIA_CLASS_DEFINE_END(mhw__mi__xe_xpm_base__Impl)
 };
 
 }  // namespace xe_xpm_base

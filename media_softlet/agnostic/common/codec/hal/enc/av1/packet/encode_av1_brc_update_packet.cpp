@@ -209,7 +209,7 @@ namespace encode
         TempBatchBuffer.iCurrent = cmdBuffer.iOffset;
         TempBatchBuffer.iRemaining = cmdBuffer.iRemaining;
 
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miItf->AddMiBatchBufferEnd(nullptr, &TempBatchBuffer));
+        ENCODE_CHK_STATUS_RETURN(m_miItf->AddMiBatchBufferEnd(nullptr, &TempBatchBuffer));
             
         cmdBuffer.pCmdPtr += (TempBatchBuffer.iCurrent - cmdBuffer.iOffset) / 4;
         cmdBuffer.iOffset = TempBatchBuffer.iCurrent;

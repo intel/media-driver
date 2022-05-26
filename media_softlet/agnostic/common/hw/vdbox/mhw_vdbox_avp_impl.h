@@ -601,6 +601,7 @@ protected:
     DO_FIELD(DW3, UseSuperResFlag, params.enableSuperres ? 1 : 0);                                           \
     DO_FIELD(DW3, FrameLevelLoopRestorationFilterEnableFlag, params.enableRestoration ? 1 : 0);              \
     DO_FIELD(DW3, LargeScaleTileEnableFlag, params.enableLargeScaleTile ? 1 : 0);                            \
+    DO_FIELD(DW3, PostCdefFilteredReconPixelsWriteoutEn, params.postCdefReconPixelStreamoutEn ? 1 : 0);      \
     DO_FIELD(DW3, FrameType, params.frameType);                                                              \
     DO_FIELD(DW3, IntraonlyFlag, (params.frameType == keyFrame || params.frameType == intraOnlyFrame));      \
     DO_FIELD(DW3, ErrorResilientModeFlag, params.errorResilientMode);                                        \
@@ -640,6 +641,7 @@ protected:
     DO_FIELD(DW7, SkipModePresentFlag, params.skipModePresent ? 1 : 0);                                      \
     DO_FIELD(DW7, SkipModeFrame0, params.skipModeFrame[0]);                                                  \
     DO_FIELD(DW7, SkipModeFrame1, params.skipModeFrame[1]);                                                  \
+    DO_FIELD(DW7, ReferenceFrameSideI0To7, params.refFrameSide);                                             \
                                                                                                              \
     DO_FIELD(DW8, GlobalMotionType1, params.globalMotionType[0]);                                            \
     DO_FIELD(DW8, GlobalMotionType2, params.globalMotionType[1]);                                            \
@@ -2149,6 +2151,7 @@ protected:
 
 #include "mhw_hwcmd_process_cmdfields.h"
     }
+MEDIA_CLASS_DEFINE_END(mhw__vdbox__avp__Impl)
 };
 }  // namespace avp
 }  // namespace vdbox

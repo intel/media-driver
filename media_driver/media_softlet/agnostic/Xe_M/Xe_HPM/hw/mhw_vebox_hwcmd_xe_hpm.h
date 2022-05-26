@@ -36,6 +36,8 @@
 #include <cstdint>
 #include <cstddef>
 #include "mhw_hwcmd.h"
+#include "media_class_trace.h"
+
 #pragma once
 #pragma pack(1)
 
@@ -26068,6 +26070,7 @@ namespace xe_hpm
             static const size_t byteSize = 69772;
         };
 
+    MEDIA_CLASS_DEFINE_END(mhw__vebox__xe_hpm__Cmd)
     };
 }  // namespace xe_hpm
 }  // namespace vebox

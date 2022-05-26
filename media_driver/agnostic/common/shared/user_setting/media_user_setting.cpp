@@ -26,7 +26,6 @@
 
 #include <algorithm>
 #include "media_user_setting.h"
-#include "media_user_setting_configure.h"
 
 namespace MediaUserSetting {
 
@@ -92,7 +91,12 @@ MOS_STATUS MediaUserSetting::Read(Value &value,
     bool useCustomValue,
     uint32_t option)
 {
-    return m_configure.Read(value, valueName, group, customValue, useCustomValue, option);
+    auto status = m_configure.Read(value, valueName, group, customValue, useCustomValue, option);
+    if(status != MOS_STATUS_SUCCESS)
+    {
+        MOS_OS_NORMALMESSAGE("User setting %s read error", valueName.c_str());
+    }
+    return status;
 }
 
 MOS_STATUS MediaUserSetting::Write(

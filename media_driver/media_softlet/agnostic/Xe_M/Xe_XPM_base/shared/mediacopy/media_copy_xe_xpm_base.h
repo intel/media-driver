@@ -128,6 +128,7 @@ protected:
 
     BltStateXe_Xpm     *m_bltState       = nullptr;
     VeboxCopyState     *m_veboxCopyState = nullptr;
+MEDIA_CLASS_DEFINE_END(MediaCopyStateXe_Xpm_Base)
 };
 #endif // __MEDIA_COPY_XE_XPM_BASE_H__
 

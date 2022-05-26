@@ -472,7 +472,7 @@ bool HevcHeaderPacker::PackSSHPWT(
 
 MOS_STATUS HevcHeaderPacker::LoadSliceHeaderParams(CodecEncodeHevcSliceHeaderParams* pSH)
 {
-    CODECHAL_ENCODE_CHK_NULL_RETURN(pSH);
+    ENCODE_CHK_NULL_RETURN(pSH);
 
     m_spsParams.log2_max_pic_order_cnt_lsb_minus4       = pSH->log2_max_pic_order_cnt_lsb_minus4;
     m_sliceParams.pic_order_cnt_lsb                     &= ~(0xFFFFFFFF << (m_spsParams.log2_max_pic_order_cnt_lsb_minus4 + 4));
@@ -530,21 +530,21 @@ MOS_STATUS HevcHeaderPacker::SliceHeaderPacker(EncoderParams *encodeParams)
     mfxU32          BitLenRecorded = 0;
 
     EncoderParams *pCodecHalEncodeParams = encodeParams;
-    CODECHAL_ENCODE_CHK_NULL_RETURN(pCodecHalEncodeParams);
+    ENCODE_CHK_NULL_RETURN(pCodecHalEncodeParams);
     BSBuffer *pBSBuffer = pCodecHalEncodeParams->pBSBuffer;
-    CODECHAL_ENCODE_CHK_NULL_RETURN(pBSBuffer);
+    ENCODE_CHK_NULL_RETURN(pBSBuffer);
     PCODEC_ENCODER_SLCDATA pSlcData = (PCODEC_ENCODER_SLCDATA)pCodecHalEncodeParams->pSlcHeaderData;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(GetSPSParams(static_cast<PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS>(encodeParams->pSeqParams)));
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(GetPPSParams(static_cast<PCODEC_HEVC_ENCODE_PICTURE_PARAMS>(encodeParams->pPicParams)));
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(GetNaluParams(nalType, 0, 0, pBSBuffer->pCurrent == pBSBuffer->pBase));
+    ENCODE_CHK_STATUS_RETURN(GetSPSParams(static_cast<PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS>(encodeParams->pSeqParams)));
+    ENCODE_CHK_STATUS_RETURN(GetPPSParams(static_cast<PCODEC_HEVC_ENCODE_PICTURE_PARAMS>(encodeParams->pPicParams)));
+    ENCODE_CHK_STATUS_RETURN(GetNaluParams(nalType, 0, 0, pBSBuffer->pCurrent == pBSBuffer->pBase));
 
     //uint8_t *pCurrent = pBSBuffer->pCurrent;
     //uint32_t
     for (uint32_t startLcu = 0, slcCount = 0; slcCount < encodeParams->dwNumSlices; slcCount++)
     {
         //startLcu += m_hevcSliceParams[slcCount].NumLCUsInSlice;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(GetSliceParams(static_cast<PCODEC_HEVC_ENCODE_SLICE_PARAMS>(encodeParams->pSliceParams)[slcCount]));
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(LoadSliceHeaderParams((CodecEncodeHevcSliceHeaderParams*) pCodecHalEncodeParams->pSliceHeaderParams));
+        ENCODE_CHK_STATUS_RETURN(GetSliceParams(static_cast<PCODEC_HEVC_ENCODE_SLICE_PARAMS>(encodeParams->pSliceParams)[slcCount]));
+        ENCODE_CHK_STATUS_RETURN(LoadSliceHeaderParams((CodecEncodeHevcSliceHeaderParams*) pCodecHalEncodeParams->pSliceHeaderParams));
         
         rbsp.Reset(pBegin, mfxU32(pEnd - pBegin));
         m_naluParams.long_start_code = 0/*pBSBuffer->pCurrent + (BitLenRecorded + 7) / 8 == pBSBuffer->pBase*/;

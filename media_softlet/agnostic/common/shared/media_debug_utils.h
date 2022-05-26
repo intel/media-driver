@@ -33,6 +33,7 @@
 #include <vector>
 #include "mos_defs.h"
 #include "codechal_hw.h"
+#include "media_class_trace.h"
 
 typedef CODECHAL_MEDIA_STATE_TYPE MEDIA_DEBUG_STATE_TYPE;
 
@@ -151,6 +152,7 @@ public:
         static kernelMapType m_kernelStateMap;
         return m_kernelStateMap;
     }
+MEDIA_CLASS_DEFINE_END(MediaDbgKernel__KernelStateMap)
 };
 
 //Codec Kernel

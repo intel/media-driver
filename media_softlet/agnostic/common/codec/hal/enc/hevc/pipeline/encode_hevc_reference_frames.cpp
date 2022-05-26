@@ -503,6 +503,9 @@ MHW_SETPAR_DECL_SRC(VDENC_PIPE_BUF_ADDR_STATE, HevcReferenceFrames)
     auto trackedBuf = m_basicFeature->m_trackedBuf;
     ENCODE_CHK_NULL_RETURN(trackedBuf);
 
+    auto picParams = m_basicFeature->m_hevcPicParams;
+    ENCODE_CHK_NULL_RETURN(picParams);
+
     auto sliceParams = m_basicFeature->m_hevcSliceParams;
     ENCODE_CHK_NULL_RETURN(sliceParams);
 
@@ -515,7 +518,9 @@ MHW_SETPAR_DECL_SRC(VDENC_PIPE_BUF_ADDR_STATE, HevcReferenceFrames)
         {
             // L0 references
             uint8_t refPicIdx    = m_picIdx[refPic.FrameIdx].ucPicIdx;
-            params.refs[refIdx] = &m_refList[refPicIdx]->sRefReconBuffer.OsResource;
+
+            params.refs[refIdx] = (picParams->bUseRawPicForRef) ? 
+                &m_refList[refPicIdx]->sRefBuffer.OsResource : &m_refList[refPicIdx]->sRefReconBuffer.OsResource;
 
             // 4x/8x DS surface for VDEnc
             uint8_t scaledIdx        = m_refList[refPicIdx]->ucScalingIdx;
@@ -546,8 +551,9 @@ MHW_SETPAR_DECL_SRC(VDENC_PIPE_BUF_ADDR_STATE, HevcReferenceFrames)
         {
             // L1 references
             uint8_t refPicIdx = m_picIdx[refPic.FrameIdx].ucPicIdx;
-            params.refs[refIdx + sliceParams->num_ref_idx_l0_active_minus1 + 1] =
-                &m_refList[refPicIdx]->sRefReconBuffer.OsResource;
+
+            params.refs[refIdx + sliceParams->num_ref_idx_l0_active_minus1 + 1] = (picParams->bUseRawPicForRef) ? 
+                &m_refList[refPicIdx]->sRefBuffer.OsResource : &m_refList[refPicIdx]->sRefReconBuffer.OsResource;
 
             // 4x/8x DS surface for VDEnc
             uint8_t scaledIdx        = m_refList[refPicIdx]->ucScalingIdx;
@@ -597,6 +603,8 @@ MHW_SETPAR_DECL_SRC(HCP_PIPE_BUF_ADDR_STATE, HevcReferenceFrames)
     ENCODE_CHK_NULL_RETURN(m_basicFeature);
     auto trackedBuf = m_basicFeature->m_trackedBuf;
     ENCODE_CHK_NULL_RETURN(trackedBuf);
+    auto picParams = m_basicFeature->m_hevcPicParams;
+    ENCODE_CHK_NULL_RETURN(picParams);
 
     //add for B frame support
     if (m_pictureCodingType != I_TYPE)
@@ -611,11 +619,54 @@ MHW_SETPAR_DECL_SRC(HCP_PIPE_BUF_ADDR_STATE, HevcReferenceFrames)
 
                 uint8_t frameStoreId                            = m_refIdxMapping[i];
                 params.presReferences[frameStoreId] = &(m_refList[idx]->sRefReconBuffer.OsResource);
+                params.presReferences[frameStoreId] = (picParams->bUseRawPicForRef) ? 
+                    &(m_refList[idx]->sRefBuffer.OsResource) : &(m_refList[idx]->sRefReconBuffer.OsResource);
 
                 uint8_t refMbCodeIdx = m_refList[idx]->ucScalingIdx;
                 auto    mvTmpBuffer  = trackedBuf->GetBuffer(BufferType::mvTemporalBuffer, refMbCodeIdx);
                 ENCODE_CHK_NULL_RETURN(mvTmpBuffer);
                 params.presColMvTempBuffer[frameStoreId] = mvTmpBuffer;
+            }
+        }
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MHW_SETPAR_DECL_SRC(HCP_SURFACE_STATE, HevcReferenceFrames)
+{
+    ENCODE_FUNC_CALL();
+
+    if (m_mmcState->IsMmcEnabled())
+    {
+        ENCODE_CHK_NULL_RETURN(m_basicFeature);
+        auto trackedBuf = m_basicFeature->m_trackedBuf;
+        ENCODE_CHK_NULL_RETURN(trackedBuf);
+
+        params.refsMmcEnable       = 0;
+        params.refsMmcType         = 0;
+        params.dwCompressionFormat = 0;
+
+        //add for B frame support
+        if (m_pictureCodingType != I_TYPE)
+        {
+            for (uint8_t i = 0; i < CODEC_MAX_NUM_REF_FRAME_HEVC; i++)
+            {
+                if (i < CODEC_MAX_NUM_REF_FRAME_HEVC &&
+                    m_picIdx[i].bValid && m_currUsedRefPic[i])
+                {
+                    uint8_t idx          = m_picIdx[i].ucPicIdx;
+                    uint8_t frameStoreId = m_refIdxMapping[i];
+
+                    MOS_MEMCOMP_STATE mmcState  = MOS_MEMCOMP_DISABLED;
+                    ENCODE_CHK_STATUS_RETURN(m_mmcState->GetSurfaceMmcState(const_cast<PMOS_SURFACE>(&m_refList[idx]->sRefReconBuffer), &mmcState));
+                    params.refsMmcEnable |= (mmcState == MOS_MEMCOMP_RC || mmcState == MOS_MEMCOMP_MC) ? (1 << frameStoreId) : 0;
+                    params.refsMmcType |= (mmcState == MOS_MEMCOMP_RC) ? (1 << frameStoreId) : 0;
+                    if (mmcState == MOS_MEMCOMP_RC || mmcState == MOS_MEMCOMP_MC)
+                    {
+                        ENCODE_CHK_STATUS_RETURN(m_mmcState->GetSurfaceMmcFormat(const_cast<PMOS_SURFACE>(&m_refList[idx]->sRefReconBuffer), &params.dwCompressionFormat));
+                    }
+                }
             }
         }
     }

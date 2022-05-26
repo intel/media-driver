@@ -569,6 +569,7 @@ VPHAL_OUTPUT_PIPE_MODE VphalSfcState::GetOutputPipe(
     {
         // Decompress resource if surfaces need write from a un-align offset
         if ((!pRenderTarget->OsResource.bUncompressedWriteNeeded) &&
+            (pRenderTarget->CompressionMode == MOS_MMC_MC)        &&
             IsSFCUncompressedWriteNeeded(pRenderTarget))
         {
             MOS_STATUS eStatus = MOS_STATUS_SUCCESS;

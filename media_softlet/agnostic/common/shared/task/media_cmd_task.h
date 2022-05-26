@@ -60,6 +60,7 @@ protected:
 
     PMOS_INTERFACE m_osInterface = nullptr;        //!< PMOS_INTERFACE
 
+MEDIA_CLASS_DEFINE_END(CmdTask)
 };
 
 

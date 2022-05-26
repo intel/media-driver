@@ -110,5 +110,6 @@ public:
 
 protected:
     MediaMemDecompBaseState *m_mediaMemDecompState = nullptr;  //!> Internal media state for memory decompression
+MEDIA_CLASS_DEFINE_END(MosDecompression)
 };
 #endif // __MOS_DECOMPRESSION_H__

@@ -95,9 +95,16 @@ public:
         MOS_MEMCOMP_STATE &mmcMode);
 
     //!
+    //! \brief    GetResourceMmcFormat
+    //!
+    virtual MOS_STATUS GetResourceMmcFormat(
+        PMOS_RESOURCE resource,
+        uint32_t    &mmcFormat);
+
+    //!
     //! \brief    IsMmcEnabled
     //!
-    bool IsMmcEnabled();
+    virtual bool IsMmcEnabled();
 
     //!
     //! \brief    DisableMmc

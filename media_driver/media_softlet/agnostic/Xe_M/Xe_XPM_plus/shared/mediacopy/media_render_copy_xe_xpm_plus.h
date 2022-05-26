@@ -70,6 +70,7 @@ protected:
     virtual MOS_STATUS SubmitCMD( );
 
     MOS_STATUS SetupKernel(int32_t iKDTIndex);
+MEDIA_CLASS_DEFINE_END(RenderCopy_Xe_Xpm_Plus)
 };
 
 #endif // __MEDIA_RENDER_COPY_XE_XPM_PLUS_H__

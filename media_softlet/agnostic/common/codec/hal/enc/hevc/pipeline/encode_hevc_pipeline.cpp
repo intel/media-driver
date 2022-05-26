@@ -98,15 +98,15 @@ MOS_STATUS HevcPipeline::Prepare(void *params)
         m_debugInterface->m_frameType          = basicFeature->m_pictureCodingType;
 
         if (basicFeature->m_newSeq) {
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(DumpSeqParams(
+            ENCODE_CHK_STATUS_RETURN(DumpSeqParams(
                 basicFeature->m_hevcSeqParams));
         }
         
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(DumpPicParams(
+        ENCODE_CHK_STATUS_RETURN(DumpPicParams(
             basicFeature->m_hevcPicParams));
         
         for (uint32_t i = 0; i < basicFeature->m_numSlices; i++) {
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(DumpSliceParams(
+            ENCODE_CHK_STATUS_RETURN(DumpSliceParams(
                 &basicFeature->m_hevcSliceParams[i],
                 basicFeature->m_hevcPicParams));
         }

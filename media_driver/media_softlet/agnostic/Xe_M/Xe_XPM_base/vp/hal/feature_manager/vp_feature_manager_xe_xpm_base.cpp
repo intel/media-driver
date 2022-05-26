@@ -178,7 +178,11 @@ MOS_STATUS VPFeatureManagerXe_Xpm_Base::CheckFeatures(void * params, bool &bApgF
     if (!IsVeboxOutFeasible(pvpParams) &&
         !IsSfcOutputFeasible(pvpParams))
     {
-        return MOS_STATUS_SUCCESS;
+        if (!isHdrNeeded)
+        {
+            return MOS_STATUS_SUCCESS;
+        }
+        VP_PUBLIC_NORMALMESSAGE("Enable APG for HDR.");
     }
 
     bool bVeboxNeeded = IsVeboxSupported(pvpParams);

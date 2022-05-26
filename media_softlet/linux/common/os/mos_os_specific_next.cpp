@@ -27,7 +27,7 @@
 #include "mos_os_specific_next.h"
 
 #include "mos_os_next.h"
-#include "mos_util_debug_next.h"
+#include "mos_util_debug.h"
 #include <unistd.h>
 #include <dlfcn.h>
 #include "hwinfo_linux.h"

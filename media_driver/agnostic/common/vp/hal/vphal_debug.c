@@ -617,15 +617,11 @@ MOS_STATUS VphalSurfaceDumper::DumpSurfaceToFile(
         VPHAL_DEBUG_CHK_NULL(pData);
 
         // Write error to user feauture key
-        MOS_ZeroMemory(&UserFeatureWriteData, sizeof(UserFeatureWriteData));
-        UserFeatureWriteData.Value.u32Data  = 1;
-        UserFeatureWriteData.ValueID        = __VPHAL_DBG_SURF_DUMPER_RESOURCE_LOCK_ID;
-
-        eStatus = MOS_UserFeature_WriteValues_ID(
-            nullptr,
-            &UserFeatureWriteData,
+        eStatus = ReportUserSettingForDebug(
+            m_userSettingPtr,
+            __VPHAL_DBG_SURF_DUMPER_RESOURCE_LOCK,
             1,
-            pOsInterface->pOsContext);
+            MediaUserSetting::Group::Sequence);
 
         VPHAL_DEBUG_ASSERT(eStatus == MOS_STATUS_SUCCESS);
         isSurfaceLocked = true;
@@ -2106,58 +2102,46 @@ finish:
 void VphalSurfaceDumper::GetSurfaceDumpSpec()
 {
     MOS_STATUS                      eStatus = MOS_STATUS_SUCCESS;
-    MOS_USER_FEATURE_VALUE_DATA     UserFeatureData;
-    bool                            bDumpEnabled;
-    char                            cStringData[MOS_USER_CONTROL_MAX_DATA_SIZE];
     char                            pcDumpLocData[VPHAL_DBG_SURF_DUMP_MAX_DATA_LEN];
     VPHAL_DBG_SURF_DUMP_SPEC        *pDumpSpec = &m_dumpSpec;
+    MediaUserSetting::Value         outValue;
 
     pDumpSpec->uiStartFrame    = 0xFFFFFFFF;
     pDumpSpec->uiEndFrame      = 0;
     pDumpSpec->pcOutputPath[0] = '\0';
     pcDumpLocData[0]           = '\0';
-    bDumpEnabled               = false;
 
     // Get start frame
     // if start frame is not got assign a default value of 0
-    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-    MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __VPHAL_DBG_SURF_DUMP_START_FRAME_KEY_NAME_ID,
-        &UserFeatureData,
-        m_osInterface->pOsContext));
-    pDumpSpec->uiStartFrame = UserFeatureData.u32Data;
+    ReadUserSettingForDebug(
+        m_userSettingPtr,
+        pDumpSpec->uiStartFrame,
+        __VPHAL_DBG_SURF_DUMP_START_FRAME_KEY_NAME,
+        MediaUserSetting::Group::Sequence);
 
     // Get end frame
     // if end frame is not got assign a default value of max
-    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-    MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __VPHAL_DBG_SURF_DUMP_END_FRAME_KEY_NAME_ID,
-        &UserFeatureData,
-        m_osInterface->pOsContext));
-    pDumpSpec->uiEndFrame = UserFeatureData.u32Data;
+    ReadUserSettingForDebug(
+        m_userSettingPtr,
+        pDumpSpec->uiEndFrame,
+        __VPHAL_DBG_SURF_DUMP_END_FRAME_KEY_NAME,
+        MediaUserSetting::Group::Sequence);
 
     // Get out file path
-    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-    UserFeatureData.StringData.pStringData = cStringData;
-    UserFeatureData.StringData.uMaxSize    = MOS_USER_CONTROL_MAX_DATA_SIZE;
-    UserFeatureData.StringData.uSize       = 0;    //set the default value. 0 is empty buffer.
+    ReadUserSettingForDebug(
+        m_userSettingPtr,
+        outValue,
+        __VPHAL_DBG_SURF_DUMP_OUTFILE_KEY_NAME,
+        MediaUserSetting::Group::Sequence);
 
-    MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __VPHAL_DBG_SURF_DUMP_OUTFILE_KEY_NAME_ID,
-        &UserFeatureData,
-        m_osInterface->pOsContext));
-
-    if (UserFeatureData.StringData.uSize > 0)
+    if (outValue.ConstString().size() > 0 && outValue.ConstString().size() < MOS_USER_CONTROL_MAX_DATA_SIZE)
     {
         // Copy the Output path
         MOS_SecureMemcpy(
             pDumpSpec->pcOutputPath,
             MAX_PATH,
-            UserFeatureData.StringData.pStringData,
-            UserFeatureData.StringData.uSize);
+            outValue.ConstString().c_str(),
+            outValue.ConstString().size());
     }
 #if !defined(LINUX) && !defined(ANDROID)
     else
@@ -2168,7 +2152,6 @@ void VphalSurfaceDumper::GetSurfaceDumpSpec()
         if (SUCCEEDED(GetDriverPersistentStorageLocation(vphalDumpFilePath)))
         {
             std::string m_outputFilePath;
-            MOS_USER_FEATURE_VALUE_WRITE_DATA userFeatureWriteData;
 
             m_outputFilePath = vphalDumpFilePath.c_str();
             m_outputFilePath.append(VPHAL_DBG_DUMP_OUTPUT_FOLDER);
@@ -2180,63 +2163,45 @@ void VphalSurfaceDumper::GetSurfaceDumpSpec()
                 m_outputFilePath.c_str(),
                 m_outputFilePath.size());
 
-            MOS_ZeroMemory(&userFeatureWriteData, sizeof(userFeatureWriteData));
-            userFeatureWriteData.Value.StringData.pStringData = cStringData;
-            userFeatureWriteData.Value.StringData.pStringData = const_cast<char *>(m_outputFilePath.c_str());
-            userFeatureWriteData.Value.StringData.uSize       = m_outputFilePath.size();
-            userFeatureWriteData.ValueID                      = __VPHAL_DBG_DUMP_OUTPUT_DIRECTORY_ID;
-            MOS_UserFeature_WriteValues_ID(NULL, &userFeatureWriteData, 1, m_osInterface->pOsContext);
+            ReportUserSettingForDebug(m_userSettingPtr, __VPHAL_DBG_DUMP_OUTPUT_DIRECTORY, m_outputFilePath, MediaUserSetting::Group::Sequence);
         }
     }
 #endif
 
     // Get dump locations
-    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-    UserFeatureData.StringData.pStringData = cStringData;
-    UserFeatureData.StringData.uMaxSize    = MOS_USER_CONTROL_MAX_DATA_SIZE;
-    UserFeatureData.StringData.uSize       = 0;    //set the default value. 0 is empty buffer.
-
-    MOS_CHK_STATUS_SAFE(MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __VPHAL_DBG_SURF_DUMP_LOCATION_KEY_NAME_ID,
-        &UserFeatureData,
-        m_osInterface->pOsContext));
-    if (UserFeatureData.StringData.uSize > 0)
+    outValue = "";
+    eStatus = ReadUserSettingForDebug(
+        m_userSettingPtr,
+        outValue,
+        __VPHAL_DBG_SURF_DUMP_LOCATION_KEY_NAME,
+        MediaUserSetting::Group::Sequence);
+    if (outValue.ConstString().size() > 0 && outValue.ConstString().size() < MOS_USER_CONTROL_MAX_DATA_SIZE
+        && pDumpSpec->pcOutputPath[0] != '\0')
     {
-        bDumpEnabled =  ((pDumpSpec->pcOutputPath[0] != '\0') &&
-                         (UserFeatureData.StringData.pStringData[0] != '\0'));
-    }
-
-    if (bDumpEnabled)
-    {
-        VPHAL_DEBUG_CHK_STATUS(ProcessDumpLocations(
-            UserFeatureData.StringData.pStringData));
+        VPHAL_DEBUG_CHK_STATUS(ProcessDumpLocations(const_cast<char*>(outValue.ConstString().c_str())));
     }
 
     // Get enableAuxDump
-    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-    MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __VPHAL_DBG_SURF_DUMP_ENABLE_AUX_DUMP_ID,
-        &UserFeatureData,
-        m_osInterface->pOsContext));
-    pDumpSpec->enableAuxDump = UserFeatureData.u32Data;
+    ReadUserSettingForDebug(
+        m_userSettingPtr,
+        pDumpSpec->enableAuxDump,
+        __VPHAL_DBG_SURF_DUMP_ENABLE_AUX_DUMP,
+        MediaUserSetting::Group::Sequence);
 
     // Get plane dump enabled flag
-    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-    MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
-        nullptr,
+    ReadUserSettingForDebug(
+        m_userSettingPtr,
+        pDumpSpec->enablePlaneDump,
         __VPHAL_DBG_SURF_DUMPER_ENABLE_PLANE_DUMP,
-        &UserFeatureData,
-        m_osInterface->pOsContext));
-    pDumpSpec->enablePlaneDump = UserFeatureData.u32Data;
+        MediaUserSetting::Group::Sequence);
 
 finish:
-    if ((eStatus != MOS_STATUS_SUCCESS) || (!bDumpEnabled))
+    if ((eStatus != MOS_STATUS_SUCCESS) || pDumpSpec->pcOutputPath[0] == '\0')
     {
         pDumpSpec->uiStartFrame = 1;
         pDumpSpec->uiEndFrame   = 0;
     }
+    return;
 }
 
 MOS_STATUS VphalHwStateDumper::ProcessDumpStateLocations(
@@ -2466,58 +2431,59 @@ finish:
 void VphalHwStateDumper::GetStateDumpSpec()
 {
     MOS_STATUS                      eStatus = MOS_STATUS_SUCCESS;
-    MOS_USER_FEATURE_VALUE_DATA     UserFeatureData;
-    PMOS_USER_FEATURE_VALUE_DATA    pUserFeatureData = &UserFeatureData;
-    bool                            bDumpEnabled;
     char                            pcDumpLocData[VPHAL_DBG_SURF_DUMP_MAX_DATA_LEN];
-    char                            cStringData[MOS_USER_CONTROL_MAX_DATA_SIZE];
     VPHAL_DBG_DUMP_SPEC             *pDumpSpec = &m_dumpSpec;
+    MediaUserSetting::Value         outValue;
 
     pDumpSpec->uiStartFrame    = 0xFFFFFFFF;
     pDumpSpec->uiEndFrame      = 0;
     pDumpSpec->pcOutputPath[0] = '\0';
     pcDumpLocData[0]           = '\0';
-    bDumpEnabled               = false;
+
+    // Get enableStateDump
+    // when enableStateDump = true will enable State dump, use the same outputfile path and dump locations as surface dump
+    ReadUserSettingForDebug(
+        m_userSettingPtr,
+        pDumpSpec->enableStateDump,
+        __VPHAL_DBG_STATE_DUMP_ENABLE,
+        MediaUserSetting::Group::Sequence);
+
+    if (pDumpSpec->enableStateDump == false)
+    {
+        goto finish;
+    }
 
     // Get start frame
     // if start frame is not got assign a default value of 0
-    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-    MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __VPHAL_DBG_STATE_DUMP_START_FRAME_KEY_NAME_ID,
-        &UserFeatureData,
-        m_osInterface->pOsContext));
-    pDumpSpec->uiStartFrame = UserFeatureData.u32Data;
+    ReadUserSettingForDebug(
+        m_userSettingPtr,
+        pDumpSpec->uiStartFrame,
+        __VPHAL_DBG_SURF_DUMP_START_FRAME_KEY_NAME,
+        MediaUserSetting::Group::Sequence);
 
     // Get end frame
     // if end frame is not got assign a default value of max
-    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-    MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __VPHAL_DBG_STATE_DUMP_END_FRAME_KEY_NAME_ID,
-        &UserFeatureData,
-        m_osInterface->pOsContext));
-    pDumpSpec->uiEndFrame = UserFeatureData.u32Data;
+    ReadUserSettingForDebug(
+        m_userSettingPtr,
+        pDumpSpec->uiEndFrame,
+        __VPHAL_DBG_SURF_DUMP_END_FRAME_KEY_NAME,
+        MediaUserSetting::Group::Sequence);
 
     // Get out file path
-    UserFeatureData.StringData.pStringData = cStringData;
-    UserFeatureData.StringData.uMaxSize    = MOS_USER_CONTROL_MAX_DATA_SIZE;
-    UserFeatureData.StringData.uSize       = 0;    // set the default value. 0 is empty buffer.
+    ReadUserSettingForDebug(
+        m_userSettingPtr,
+        outValue,
+        __VPHAL_DBG_SURF_DUMP_OUTFILE_KEY_NAME,
+        MediaUserSetting::Group::Sequence);
 
-    MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __VPHAL_DBG_STATE_DUMP_OUTFILE_KEY_NAME_ID,
-        &UserFeatureData,
-        m_osInterface->pOsContext));
-
-    if (pUserFeatureData->StringData.uSize > 0)
+    if (outValue.ConstString().size() > 0 && outValue.ConstString().size() < MOS_USER_CONTROL_MAX_DATA_SIZE)
     {
         // Copy the Output path
         MOS_SecureMemcpy(
             pDumpSpec->pcOutputPath,
             MAX_PATH,
-            pUserFeatureData->StringData.pStringData,
-            pUserFeatureData->StringData.uSize);
+            outValue.ConstString().c_str(),
+            outValue.ConstString().size());
     }
 #if !defined(LINUX) && !defined(ANDROID)
     else
@@ -2528,7 +2494,6 @@ void VphalHwStateDumper::GetStateDumpSpec()
         if (SUCCEEDED(GetDriverPersistentStorageLocation(vphalDumpFilePath)))
         {
             std::string m_outputFilePath;
-            MOS_USER_FEATURE_VALUE_WRITE_DATA userFeatureWriteData;
 
             m_outputFilePath = vphalDumpFilePath.c_str();
             m_outputFilePath.append(VPHAL_DBG_DUMP_OUTPUT_FOLDER);
@@ -2540,50 +2505,63 @@ void VphalHwStateDumper::GetStateDumpSpec()
                 m_outputFilePath.c_str(),
                 m_outputFilePath.size());
 
-            MOS_ZeroMemory(&userFeatureWriteData, sizeof(userFeatureWriteData));
-            userFeatureWriteData.Value.StringData.pStringData = cStringData;
-            userFeatureWriteData.Value.StringData.pStringData = const_cast<char *>(m_outputFilePath.c_str());
-            userFeatureWriteData.Value.StringData.uSize       = m_outputFilePath.size();
-            userFeatureWriteData.ValueID                      = __VPHAL_DBG_DUMP_OUTPUT_DIRECTORY_ID;
-            MOS_UserFeature_WriteValues_ID(NULL, &userFeatureWriteData, 1, m_osInterface->pOsContext);
+            ReportUserSettingForDebug(m_userSettingPtr, __VPHAL_DBG_DUMP_OUTPUT_DIRECTORY, m_outputFilePath, MediaUserSetting::Group::Sequence);
         }
     }
 #endif
 
     // Get dump locations
-    UserFeatureData.StringData.pStringData = cStringData;
-    UserFeatureData.StringData.uMaxSize    = MOS_USER_CONTROL_MAX_DATA_SIZE;
-    UserFeatureData.StringData.uSize       = 0;    // set the default value. 0 is empty buffer.
+    outValue = "";
+    ReadUserSettingForDebug(
+        m_userSettingPtr,
+        outValue,
+        __VPHAL_DBG_SURF_DUMP_LOCATION_KEY_NAME,
+        MediaUserSetting::Group::Sequence);
 
-    MOS_CHK_STATUS_SAFE(MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __VPHAL_DBG_STATE_DUMP_LOCATION_KEY_NAME_ID,
-        &UserFeatureData,
-        m_osInterface->pOsContext));
-
-    if (pUserFeatureData->StringData.uSize > 0)
+    if (outValue.ConstString().size() > 0 && outValue.ConstString().size() < MOS_USER_CONTROL_MAX_DATA_SIZE
+        && pDumpSpec->pcOutputPath[0] != '\0')
     {
-        bDumpEnabled =  ((pDumpSpec->pcOutputPath[0] != '\0') &&
-                         (pUserFeatureData->StringData.pStringData[0] != '\0'));
-    }
-
-    if (bDumpEnabled)
-    {
-        VPHAL_DEBUG_CHK_STATUS(ProcessDumpStateLocations(
-            pUserFeatureData->StringData.pStringData));
+        VPHAL_DEBUG_CHK_STATUS(ProcessDumpStateLocations(const_cast<char *>(outValue.ConstString().c_str())));
     }
 
 finish:
-    if ((eStatus != MOS_STATUS_SUCCESS) || (!bDumpEnabled))
+    if ((eStatus != MOS_STATUS_SUCCESS) || (pDumpSpec->pcOutputPath[0] == '\0'))
     {
         pDumpSpec->uiStartFrame = 1;
         pDumpSpec->uiEndFrame   = 0;
+    }
+    return;
+}
+
+VphalSurfaceDumper::VphalSurfaceDumper(PMOS_INTERFACE pOsInterface) :
+    m_dumpSpec(),
+    m_osInterface(pOsInterface)
+{
+    if (m_osInterface)
+    {
+        m_userSettingPtr = m_osInterface->pfnGetUserSettingInstance(m_osInterface);
     }
 }
 
 VphalSurfaceDumper::~VphalSurfaceDumper()
 {
     MOS_SafeFreeMemory(m_dumpSpec.pDumpLocations);
+}
+
+VphalHwStateDumper::VphalHwStateDumper(PRENDERHAL_INTERFACE pRenderHal) :
+    m_dumpSpec(),
+    iDebugStage(0),
+    iPhase(0),
+    m_renderHal(pRenderHal),
+    m_osInterface(pRenderHal->pOsInterface),
+    m_hwSizes(pRenderHal->pHwSizes),
+    m_stateHeap(pRenderHal->pStateHeap),
+    m_stateHeapSettings(&pRenderHal->StateHeapSettings)
+{
+    if (m_osInterface)
+    {
+        m_userSettingPtr = m_osInterface->pfnGetUserSettingInstance(m_osInterface);
+    }
 }
 
 VphalHwStateDumper::~VphalHwStateDumper()
@@ -2623,7 +2601,6 @@ MOS_STATUS VphalSurfaceDumper::DumpSurface(
     uint32_t                        uiCounter,
     uint32_t                        Location)
 {
-    MOS_USER_FEATURE_VALUE_DATA UserFeatureData;
     int32_t VphalSurfDumpManualTrigger = VPHAL_DBG_SURF_DUMP_MANUAL_TRIGGER_DEFAULT_NOT_SET;
 
     MOS_STATUS                 eStatus;
@@ -2663,13 +2640,11 @@ MOS_STATUS VphalSurfaceDumper::DumpSurface(
     }
 
     // Get if manual triggered build
-    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __VPHAL_DBG_SURF_DUMP_MANUAL_TRIGGER_KEY_NAME_ID,
-        &UserFeatureData,
-        m_osInterface->pOsContext);
-    VphalSurfDumpManualTrigger = UserFeatureData.u32Data;
+    ReadUserSettingForDebug(
+        m_userSettingPtr,
+        VphalSurfDumpManualTrigger,
+        __VPHAL_DBG_SURF_DUMP_MANUAL_TRIGGER_KEY_NAME,
+        MediaUserSetting::Group::Sequence);
 
     if (VphalSurfDumpManualTrigger != VPHAL_DBG_SURF_DUMP_MANUAL_TRIGGER_DEFAULT_NOT_SET)
     {
@@ -3110,55 +3085,44 @@ finish:
 void VphalParameterDumper::GetParametersDumpSpec()
 {
     MOS_STATUS                      eStatus = MOS_STATUS_SUCCESS;
-    MOS_USER_FEATURE_VALUE_DATA     UserFeatureData;
     bool                            bDumpEnabled;
-    char                            cStringData[MOS_USER_CONTROL_MAX_DATA_SIZE];
     VPHAL_DBG_PARAMS_DUMP_SPEC      *pDumpSpec = &m_dumpSpec;
+    MediaUserSetting::Value         outValue;
 
     pDumpSpec->uiStartFrame       = 0xFFFFFFFF;
     pDumpSpec->uiEndFrame         = 0;
     pDumpSpec->outFileLocation[0] = '\0';
-    cStringData[0]                = '\0';
     bDumpEnabled                  = false;
     // Get start frame
     // if start frame is not got assign a default value of 0
-    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-    MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __VPHAL_DBG_PARAM_DUMP_START_FRAME_KEY_NAME_ID,
-        &UserFeatureData,
-        m_osInterface->pOsContext));
-    pDumpSpec->uiStartFrame = UserFeatureData.u32Data;
+    ReadUserSettingForDebug(
+        m_userSettingPtr,
+        pDumpSpec->uiStartFrame,
+        __VPHAL_DBG_PARAM_DUMP_START_FRAME_KEY_NAME,
+        MediaUserSetting::Group::Sequence);
 
     // Get end frame
     // if end frame is not got assign a default value of max
-    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-    MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __VPHAL_DBG_PARAM_DUMP_END_FRAME_KEY_NAME_ID,
-        &UserFeatureData,
-        m_osInterface->pOsContext));
-    pDumpSpec->uiEndFrame = UserFeatureData.u32Data;
+    ReadUserSettingForDebug(
+        m_userSettingPtr,
+        pDumpSpec->uiEndFrame,
+        __VPHAL_DBG_PARAM_DUMP_END_FRAME_KEY_NAME,
+        MediaUserSetting::Group::Sequence);
 
     // Get out file path
-    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-    UserFeatureData.StringData.pStringData = cStringData;
-    UserFeatureData.StringData.uMaxSize = MOS_USER_CONTROL_MAX_DATA_SIZE;
-    UserFeatureData.StringData.uSize = 0;  //set the default value. 0 is empty buffer.
-
-    MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __VPHAL_DBG_PARAM_DUMP_OUTFILE_KEY_NAME_ID,
-        &UserFeatureData,
-        m_osInterface->pOsContext));
-    if (UserFeatureData.StringData.uSize > 0)
+    ReadUserSettingForDebug(
+        m_userSettingPtr,
+        outValue,
+        __VPHAL_DBG_PARAM_DUMP_OUTFILE_KEY_NAME,
+        MediaUserSetting::Group::Sequence);
+    if (outValue.ConstString().size() > 0 && outValue.ConstString().size() < MOS_USER_CONTROL_MAX_DATA_SIZE)
     {
         // Copy the Output path
         MOS_SecureMemcpy(
             pDumpSpec->outFileLocation,
             MAX_PATH,
-            UserFeatureData.StringData.pStringData,
-            UserFeatureData.StringData.uSize);
+            outValue.ConstString().c_str(),
+            outValue.ConstString().size());
         bDumpEnabled = true;
     }
 #if !defined(LINUX) && !defined(ANDROID)
@@ -3170,7 +3134,6 @@ void VphalParameterDumper::GetParametersDumpSpec()
         if (SUCCEEDED(GetDriverPersistentStorageLocation(vphalDumpFilePath)))
         {
             std::string m_outputFilePath;
-            MOS_USER_FEATURE_VALUE_WRITE_DATA userFeatureWriteData;
 
             m_outputFilePath = vphalDumpFilePath.c_str();
             m_outputFilePath.append(VPHAL_DBG_DUMP_OUTPUT_FOLDER);
@@ -3182,12 +3145,7 @@ void VphalParameterDumper::GetParametersDumpSpec()
                 m_outputFilePath.c_str(),
                 m_outputFilePath.size());
 
-            MOS_ZeroMemory(&userFeatureWriteData, sizeof(userFeatureWriteData));
-            userFeatureWriteData.Value.StringData.pStringData = cStringData;
-            userFeatureWriteData.Value.StringData.pStringData = const_cast<char *>(m_outputFilePath.c_str());
-            userFeatureWriteData.Value.StringData.uSize       = m_outputFilePath.size();
-            userFeatureWriteData.ValueID                      = __VPHAL_DBG_DUMP_OUTPUT_DIRECTORY_ID;
-            MOS_UserFeature_WriteValues_ID(NULL, &userFeatureWriteData, 1, m_osInterface->pOsContext);
+            ReportUserSettingForDebug(m_userSettingPtr, __VPHAL_DBG_DUMP_OUTPUT_DIRECTORY, m_outputFilePath, MediaUserSetting::Group::Sequence);
 
             bDumpEnabled = true;
         }
@@ -3195,13 +3153,11 @@ void VphalParameterDumper::GetParametersDumpSpec()
 #endif
 
     // Get enableSkuWaDump
-    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-    MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __VPHAL_DBG_PARA_DUMP_ENABLE_SKUWA_DUMP_ID,
-        &UserFeatureData,
-        m_osInterface->pOsContext));
-    pDumpSpec->enableSkuWaDump = UserFeatureData.u32Data;
+    ReadUserSettingForDebug(
+        m_userSettingPtr,
+        pDumpSpec->enableSkuWaDump,
+        __VPHAL_DBG_PARA_DUMP_ENABLE_SKUWA_DUMP,
+        MediaUserSetting::Group::Sequence);
 
     if ((eStatus != MOS_STATUS_SUCCESS) || (!bDumpEnabled)) 
     {
@@ -3591,6 +3547,16 @@ finish:
         pcOutContents = nullptr;
     }
     return eStatus;
+}
+
+VphalParameterDumper::VphalParameterDumper(PMOS_INTERFACE pOsInterface) :
+    m_dumpSpec(),
+    m_osInterface(pOsInterface)
+{
+    if (m_osInterface)
+    {
+        m_userSettingPtr = m_osInterface->pfnGetUserSettingInstance(m_osInterface);
+    }
 }
 
 VphalParameterDumper::~VphalParameterDumper()

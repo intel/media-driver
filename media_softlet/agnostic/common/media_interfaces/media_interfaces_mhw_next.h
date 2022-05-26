@@ -164,6 +164,7 @@ public:
 
 private:
     bool m_isDestroyed = false;
+MEDIA_CLASS_DEFINE_END(MhwInterfacesNext)
 };
 
 extern template class MediaFactory<uint32_t, MhwInterfacesNext>;

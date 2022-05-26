@@ -18,8 +18,6 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-media_include_subdirectory(osservice)
-
 if(NOT CMAKE_WDDM_LINUX)
 media_include_subdirectory(i915)
 

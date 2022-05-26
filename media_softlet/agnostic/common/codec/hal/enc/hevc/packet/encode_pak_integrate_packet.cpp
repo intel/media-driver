@@ -261,7 +261,7 @@ namespace encode {
 
         MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
-        CODECHAL_HW_FUNCTION_ENTER;
+        CODEC_HW_FUNCTION_ENTER;
 
         ENCODE_CHK_NULL_RETURN(statusReport);
         ENCODE_CHK_NULL_RETURN(m_hwInterface);
@@ -439,7 +439,7 @@ namespace encode {
         HucPakIntegrateDmem *hucPakStitchDmem =
             (HucPakIntegrateDmem *)m_allocator->LockResourceForWrite(m_resHucPakStitchDmemBuffer[m_pipeline->m_currRecycledBufIdx][currentPass]);
 
-        CODECHAL_ENCODE_CHK_NULL_RETURN(hucPakStitchDmem);
+        ENCODE_CHK_NULL_RETURN(hucPakStitchDmem);
         MOS_ZeroMemory(hucPakStitchDmem, sizeof(HucPakIntegrateDmem));
 
         // Reset all the offsets to be shared in the huc dmem (6*5 DW's)
@@ -697,7 +697,7 @@ namespace encode {
         if (encodeStatusMfx->sliceReport.sliceSize)
         {
             sliceSize = (uint32_t *)m_osInterface->pfnLockResource(m_osInterface, encodeStatusMfx->sliceReport.sliceSize, &lockFlags);
-            CODECHAL_ENCODE_CHK_NULL_RETURN(sliceSize);
+            ENCODE_CHK_NULL_RETURN(sliceSize);
         }
         encodeStatusMfx->imageStatusCtrlOfLastBRCPass.hcpCumulativeFrameDeltaQP = 0;
 
@@ -734,7 +734,7 @@ namespace encode {
                 for (uint32_t idx = 0; idx < tileStatusReport[i].Hcp_Slice_Count_Tile; idx++)
                 {
                     // PAK output the sliceSize at 16DW intervals.
-                    CODECHAL_ENCODE_CHK_NULL_RETURN(&sliceSize[sliceCount * 16]);
+                    ENCODE_CHK_NULL_RETURN(&sliceSize[sliceCount * 16]);
 
                     //convert cummulative slice size to individual, first slice may have PPS/SPS,
                     uint32_t CurrAccumulatedSliceSize           = sliceSize[sliceCount * 16];
@@ -863,7 +863,7 @@ namespace encode {
     MOS_STATUS HevcPakIntegratePkt::PerformHwStitch(
         PMOS_COMMAND_BUFFER cmdBuffer)
     {
-        CODECHAL_ENCODE_FUNCTION_ENTER;
+        ENCODE_FUNC_CALL();
 
         // 2nd level BB buffer for stitching cmd
         // Current location to add cmds in 2nd level batch buffer

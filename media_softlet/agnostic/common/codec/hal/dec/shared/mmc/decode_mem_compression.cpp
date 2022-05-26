@@ -113,3 +113,13 @@ void DecodeMemComp::InitDecodeMmc(CodechalHwInterface *hwInterface)
     m_compressModeId = __MEDIA_USER_FEATURE_VALUE_MMC_DEC_RT_COMPRESSMODE_ID;
 #endif
 }
+
+bool DecodeMemComp::IsMmcEnabled()
+{
+    if (!m_mmcEnabledForDecode)
+    {
+        m_mmcEnabled = false;
+    }
+
+    return m_mmcEnabledForDecode;
+}

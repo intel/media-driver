@@ -50,6 +50,7 @@ protected:
     CmDevice *m_CmDevice = nullptr;        //!< PMOS_INTERFACE
     CmTask *m_cmTask = nullptr;
 
+MEDIA_CLASS_DEFINE_END(MdfTask)
 };
 
 

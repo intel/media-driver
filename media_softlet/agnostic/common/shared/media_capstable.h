@@ -25,6 +25,7 @@
 
 #include "igfxfmid.h"
 #include "stdint.h"
+#include "media_class_trace.h"
 
 // This struct is designed to store common information
 
@@ -133,6 +134,7 @@ public:
 private:
     // m_plt_caps: map to store the captable information
     static OsCapsTable m_pltCaps;
+MEDIA_CLASS_DEFINE_END(MediaCapsTable)
 };
 
 #endif

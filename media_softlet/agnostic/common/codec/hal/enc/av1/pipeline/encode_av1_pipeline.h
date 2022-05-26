@@ -49,11 +49,11 @@ public:
 
     enum Av1PacketIds
     {
-        Av1HucBrcInit     = 0,
-        Av1HucBrcUpdate   = 1,
-        Av1VdencPacket    = 2,
-        Av1PakIntegrate   = 3,
-        Av1BackAnnotation = 4,
+        Av1HucBrcInit = CONSTRUCTPACKETID(PACKET_COMPONENT_ENCODE, PACKET_SUBCOMPONENT_AV1, 0),
+        Av1HucBrcUpdate,
+        Av1VdencPacket,
+        Av1PakIntegrate,
+        Av1BackAnnotation,
 #if _MEDIA_RESERVED
 #define AV1_PACKET_IDS_EXT
 #include "encode_av1_pipeline_ext.h"

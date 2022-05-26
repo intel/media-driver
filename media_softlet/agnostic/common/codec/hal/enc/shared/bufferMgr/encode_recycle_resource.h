@@ -27,12 +27,14 @@
 
 #ifndef __ENCODE_RECYCLE_RESOURCE_H__
 #define __ENCODE_RECYCLE_RESOURCE_H__
-#include <stdint.h>
-#include <map>
-#include <utility>
+
+#include "media_class_trace.h"
 #include "mos_defs.h"
 #include "mos_os.h"
 #include "mos_os_specific.h"
+#include <stdint.h>
+#include <map>
+#include <utility>
 
 namespace encode
 {

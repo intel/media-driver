@@ -51,6 +51,11 @@ public:
     DecodeMemComp& operator=(const DecodeMemComp&) = delete;
 
     //!
+    //! \brief    IsMmcEnabled
+    //!
+    bool IsMmcEnabled();
+
+    //!
     //! \brief    Destructor
     //!
     virtual ~DecodeMemComp() {};

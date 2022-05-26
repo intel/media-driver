@@ -178,5 +178,6 @@ protected:
     MOS_STATUS FunctionToGpuContextDecode(const MOS_GPUCTX_CREATOPTIONS_ENHANCED &option, const MOS_GPU_NODE &node, MOS_GPU_CONTEXT &ctx);
     MOS_STATUS FunctionToGpuContextEncode(const MOS_GPUCTX_CREATOPTIONS_ENHANCED &option, MOS_GPU_CONTEXT &ctx);
 
+MEDIA_CLASS_DEFINE_END(MediaContext)
 };
 #endif  // !__MEDIA_CONTEXT_H__

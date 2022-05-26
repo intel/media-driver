@@ -27,11 +27,10 @@
 #define __ENCODE_AV1_TILE_H__
 #include "encode_tile.h"
 #include "codec_def_encode_av1.h"
-#include "mhw_vdbox_avp_interface.h"
-#include "mhw_vdbox_vdenc_g12_X.h"
 #include "encode_back_annotation_packet.h"
 #include "mhw_vdbox_vdenc_itf.h"
 #include "mhw_vdbox_avp_itf.h"
+#include "mhw_hwcmd.h"
 
 namespace encode
 {

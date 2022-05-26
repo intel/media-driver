@@ -68,6 +68,7 @@ public:
     MOS_STATUS CheckHintParamsValidity() { return MOS_STATUS_SUCCESS; }
 
     void Destroy() {}
+MEDIA_CLASS_DEFINE_END(MosOsVeScalabilitySpecific)
 };
 
 #endif //__MOS_OS_VIRTUALENGINE_SCALABILITY_SPECIFIC_NEXT_H__

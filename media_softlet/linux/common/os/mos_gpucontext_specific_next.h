@@ -320,5 +320,6 @@ private:
 #if MOS_COMMAND_RESINFO_DUMP_SUPPORTED
     std::vector<const void *> m_cmdResPtrs; //!< Command OS resource pointers registered by pfnRegisterResource
 #endif // MOS_COMMAND_RESINFO_DUMP_SUPPORTED
+MEDIA_CLASS_DEFINE_END(GpuContextSpecificNext)
 };
 #endif  // __GPU_CONTEXT_SPECIFIC_NEXT_H__

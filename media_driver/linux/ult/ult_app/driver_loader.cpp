@@ -31,9 +31,8 @@
 using namespace std;
 
 #if MOS_MESSAGES_ENABLED
-extern "C" void MOS_Message(
+void MosUtilDebug::MosMessage(
     MOS_MESSAGE_LEVEL level,
-    const PCCHAR      logtag,
     MOS_COMPONENT_ID  compID,
     uint8_t           subCompID,
     const PCCHAR      functionName,

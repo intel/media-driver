@@ -27,6 +27,7 @@
 #include "mos_gpucontextmgr_next.h"
 #include "mos_gpucontext_specific_next.h"
 #include "mos_graphicsresource_specific_next.h"
+#include "mos_context_next.h"
 
 GpuContextMgrNext::GpuContextMgrNext(OsContextNext *osContext)
 {

@@ -377,6 +377,7 @@ public:
 
     uint32_t                     m_WalkerWidthBlockSize = 128;
     uint32_t                     m_WalkerHeightBlockSize = 8;
+MEDIA_CLASS_DEFINE_END(RenderCopyState)
 };
 
 #endif // __MEDIA_RENDER_COPY_H__

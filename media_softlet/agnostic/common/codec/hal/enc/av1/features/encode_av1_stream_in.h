@@ -28,7 +28,6 @@
 #include "mhw_vdbox.h"
 #include "encode_allocator.h"
 #include "codec_def_encode_av1.h"
-#include "mhw_vdbox_vdenc_interface.h"
 #include "mhw_vdbox_vdenc_itf.h"
 #include "mhw_vdbox_avp_itf.h"
 

@@ -62,6 +62,7 @@ public:
 
 protected:
     MhwMiInterface *         m_miInterface          = nullptr;  //!< Mi interface used to add BB end
+MEDIA_CLASS_DEFINE_END(MediaScalabilitySinglePipe)
 };
 
 #endif // !__MEDIA_SCALABILITY_SINGLEPIPE_LEGACY_H__

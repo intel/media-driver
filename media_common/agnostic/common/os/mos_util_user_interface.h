@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2021, Intel Corporation
+* Copyright (c) 2017-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -27,9 +27,7 @@
 #ifndef __MOS_UTIL_USER_INTERFACE_H__
 #define __MOS_UTIL_USER_INTERFACE_H__
 
-#include "igfxfmid.h"
 #include "mos_utilities.h"
-#include <map>
 
 using UserFeatureValueMapType = std::map<uint32_t, PMOS_USER_FEATURE_VALUE>;
 

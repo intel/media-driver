@@ -25,11 +25,6 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/media_user_setting.cpp
 )
 
-set(SOURCES_
-    ${SOURCES_}
-    ${TMP_SOURCES_}
-)
-
 set(COMMON_SOURCES_
     ${COMMON_SOURCES_}
     ${TMP_SOURCES_})

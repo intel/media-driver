@@ -136,6 +136,7 @@ protected:
     std::shared_ptr<mhw::vebox::Itf> m_veboxItf     = nullptr;
     std::shared_ptr<mhw::sfc::Itf>   m_sfcItf       = nullptr;
     std::shared_ptr<mhw::mi::Itf>    m_miItf        = nullptr;
+MEDIA_CLASS_DEFINE_END(MediaSfcRender)
 };
 
 #endif // __MEDIA_SFC_RENDER_H__

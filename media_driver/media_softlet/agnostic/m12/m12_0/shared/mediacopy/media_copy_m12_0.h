@@ -116,5 +116,6 @@ protected:
 
     BltState        * m_bltState       = nullptr;
     VeboxCopyState  * m_veboxCopyState = nullptr;
+MEDIA_CLASS_DEFINE_END(MediaCopyStateM12_0)
 };
 #endif // __MEDIA_COPY_M12_0_H__

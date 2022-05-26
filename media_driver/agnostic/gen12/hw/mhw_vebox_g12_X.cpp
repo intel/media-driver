@@ -1553,7 +1553,8 @@ MOS_STATUS MhwVeboxInterfaceG12::AddVeboxGamutState(
             pIecpState->CscState.DW11.OffsetIn3  = MOS_BITFIELD_VALUE((uint32_t)-16384, 16);
             pIecpState->CscState.DW11.OffsetOut3 = 0;
         }
-        else if (pVeboxGamutParams->ColorSpace == MHW_CSpace_BT2020)
+        else if (pVeboxGamutParams->ColorSpace == MHW_CSpace_BT2020 ||
+                 pVeboxGamutParams->ColorSpace == MHW_CSpace_BT2020_FullRange)
         {
             VeboxInterface_BT2020YUVToRGB(m_veboxHeap, pVeboxIecpParams, pVeboxGamutParams);
         }
@@ -2947,15 +2948,15 @@ MOS_STATUS MhwVeboxInterfaceG12::AddVeboxTilingConvert(
 
         if (outSurParams->CompressionMode != MOS_MMC_DISABLED)
         {
-            veboxInputSurfCtrlBits.DW0.MemoryCompressionEnable = true;
+            veboxOutputSurfCtrlBits.DW0.MemoryCompressionEnable = true;
 
             if (outSurParams->CompressionMode == MOS_MMC_RC)
             {
-                veboxInputSurfCtrlBits.DW0.CompressionType = 1;
+                veboxOutputSurfCtrlBits.DW0.CompressionType = 1;
             }
             else
             {
-                veboxInputSurfCtrlBits.DW0.CompressionType = 0;
+                veboxOutputSurfCtrlBits.DW0.CompressionType = 0;
             }
         }
 

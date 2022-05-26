@@ -214,12 +214,7 @@ inline MOS_STATUS ReadUserSetting(
     {
         instance = MediaUserSetting::MediaUserSetting::Instance();
     }
-    auto status = instance->Read(value, valueName, group, customValue, useCustomValue, option);
-    if(status != MOS_STATUS_SUCCESS)
-    {
-        MOS_OS_NORMALMESSAGE("User setting %s read error", valueName.c_str());
-    }
-    return status;
+    return instance->Read(value, valueName, group, customValue, useCustomValue, option);
 }
 
 template <typename T>
@@ -315,12 +310,7 @@ inline MOS_STATUS ReadUserSettingForDebug(
     {
         instance = MediaUserSetting::MediaUserSetting::Instance();
     }
-    auto status   = instance->Read(value, valueName, group, customValue, useCustomValue, option);
-    if(status != MOS_STATUS_SUCCESS)
-    {
-        MOS_OS_NORMALMESSAGE("User setting %s read error", valueName.c_str());
-    }
-    return status;
+    return instance->Read(value, valueName, group, customValue, useCustomValue, option);
 }
 
 template <typename T>

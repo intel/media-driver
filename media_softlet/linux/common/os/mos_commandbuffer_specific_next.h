@@ -72,5 +72,6 @@ public:
     //! \detail   This function will call mos_bo_wait_rendering()
     //!
     void waitReady();
+MEDIA_CLASS_DEFINE_END(CommandBufferSpecificNext)
 };
 #endif // __COMMAND_BUFFER_SPECIFIC_NEXT_H__

@@ -25,10 +25,24 @@
 //! \brief    Defines the common interface for M12.5 Plus hevc vdenc const settings
 //!
 
-#include "codec_def_common.h"
 #include "encode_hevc_vdenc_const_settings_xe_xpm_base.h"
+#include "codec_def_common.h"
+#include "codec_def_common_encode.h"
+#include "codec_def_encode_hevc.h"
+#include "encode_const_settings.h"
 #include "encode_utils.h"
+#include "mhw_vdbox_vdenc_cmdpar.h"
+#include "mos_os.h"
 #include "mos_solo_generic.h"
+#include <stddef.h>
+#include <algorithm>
+#include <array>
+#include <cstdint>
+#include <functional>
+#include <vector>
+#if _ENCODE_RESERVED
+#include "mhw_vdbox_vdenc_cmdpar_ext.h"
+#endif // _ENCODE_RESERVED
 
 namespace encode
 {

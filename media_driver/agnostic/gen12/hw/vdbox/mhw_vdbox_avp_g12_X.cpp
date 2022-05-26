@@ -617,13 +617,14 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpDecodeSurfaceStateCmd(
     uint32_t DW4 = 0;
     if(MmcEnable(params->mmcState))
     {
-        DW4 |= 0xff;
+        DW4 |= ((~params->mmcSkipMask) & 0xff);
     }
     if(MmcIsRc(params->mmcState))
     {
         DW4 |= 0xff00;
     }
-    cmd->DW4.Value = DW4;
+    
+    cmd->DW4.Value             = (DW4 | params->dwCompressionFormat << 16);
 
     return MOS_STATUS_SUCCESS;
 }

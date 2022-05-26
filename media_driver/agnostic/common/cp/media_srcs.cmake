@@ -28,12 +28,6 @@ set(HEADERS_
     ${TMP_HEADERS_}
 )
 
-
-set(COMMON_HEADERS_
-    ${COMMON_HEADERS_}
-    ${TMP_HEADERS_}
-)
-
 set(TMP_DIRECTORIES_
     ${CMAKE_CURRENT_LIST_DIR}
 )

@@ -29,6 +29,8 @@
 
 #ifndef __ENCODE_FEATURE_MANAGER_H__
 #define __ENCODE_FEATURE_MANAGER_H__
+
+#include "media_class_trace.h"
 #include "media_feature_manager.h"
 #include "mos_defs.h"
 

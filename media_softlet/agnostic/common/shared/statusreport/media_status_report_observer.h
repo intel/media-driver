@@ -45,6 +45,7 @@ public:
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS Completed(void *mfxStatus, void *rcsStatus, void *statusReport) = 0;
+MEDIA_CLASS_DEFINE_END(MediaStatusReportObserver)
 };
 
 #endif // !__MEDIA_STATUS_REPORT_OBSERVER_H__

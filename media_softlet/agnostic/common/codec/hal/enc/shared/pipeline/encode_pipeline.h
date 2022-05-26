@@ -41,6 +41,9 @@
 #include "encodecp.h"
 #include "encode_packet_utilities.h"
 
+#define CONSTRUCTPACKETID(_componentId, _subComponentId, _packetId) \
+    (_componentId << 24 | _subComponentId << 16 | _packetId)
+
 namespace encode
 {
 class EncodePipeline : public MediaPipeline
@@ -99,6 +102,34 @@ public:
     //! \return void
     //!
     void SetFrameTrackingForMultiTaskPhase();
+
+    enum ComponentPacketIds
+    {
+        PACKET_COMPONENT_COMMON = 0,
+        PACKET_COMPONENT_ENCODE,
+        PACKET_COMPONENT_DECODE,
+        PACKET_COMPONENT_VP,
+    };
+
+    enum SubComponentPacketIds
+    {
+        PACKET_SUBCOMPONENT_COMMON = 0,
+        PACKET_SUBCOMPONENT_HEVC,
+        PACKET_SUBCOMPONENT_VP9,
+        PACKET_SUBCOMPONENT_AVC,
+        PACKET_SUBCOMPONENT_AV1,
+        PACKET_SUBCOMPONENT_JPEG
+    };
+
+    enum CommonPacketIds
+    {
+        basicPacket  = CONSTRUCTPACKETID(PACKET_COMPONENT_ENCODE, PACKET_SUBCOMPONENT_COMMON, 0),
+#if _MEDIA_RESERVED
+#define ENCODE_PACKET_IDS_EXT
+#include "encode_pipeline_ext.h"
+#undef ENCODE_PACKET_IDS_EXT
+#endif
+    };
 
 protected:
     //!

@@ -160,7 +160,20 @@ MOS_STATUS EncodePipeline::InitUserSetting(MediaUserSettingSharedPtr userSetting
         MediaUserSetting::Group::Sequence,
         int32_t(3),
         true);
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        "CodecHal Debug Output Directory",
+        MediaUserSetting::Group::Sequence,
+        "",
+        false);
 #endif
+
+#if _MEDIA_RESERVED
+#define ENCODE_USER_SETTING_EXT
+#include "encode_user_setting_ext.h"
+#undef ENCODE_USER_SETTING_EXT
+#endif
+
     return MOS_STATUS_SUCCESS;
 }
 }  // namespace encode

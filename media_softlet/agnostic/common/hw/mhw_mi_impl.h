@@ -644,6 +644,7 @@ public:
 
         return MOS_STATUS_SUCCESS;
     }
+MEDIA_CLASS_DEFINE_END(mhw__mi__Impl)
 };
 }  // namespace render
 }  // namespace mhw

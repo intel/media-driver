@@ -28,8 +28,15 @@
 //!
 
 #include "encode_av1_vdenc_const_settings.h"
+#include "codec_def_common_av1.h"
+#include "codec_def_encode.h"
 #include "encode_utils.h"
-#include "mos_interface.h"
+#include "mhw_vdbox_vdenc_cmdpar.h"
+#include "mos_utilities.h"
+#include <array>
+#include <cstdint>
+#include <functional>
+#include <vector>
 
 namespace encode
 {

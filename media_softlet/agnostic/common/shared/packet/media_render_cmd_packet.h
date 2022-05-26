@@ -46,6 +46,7 @@ protected:
 
     MOS_STATUS AddMiBatchBufferEnd(PMHW_MI_INTERFACE mhwMiInterface, PMOS_COMMAND_BUFFER commandBuffer, PMHW_BATCH_BUFFER batchBuffer);
 
+MEDIA_CLASS_DEFINE_END(RenderCmdPacket)
 };
 
 #endif // __MEDIA_RENDER_CMD_PACKET_H__

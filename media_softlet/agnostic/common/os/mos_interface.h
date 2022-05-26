@@ -49,6 +49,7 @@
 
 #include "mos_defs.h"
 #include "mos_os.h"
+#include "media_class_trace.h"
 
 class GpuContextSpecificNext;
 struct _MOS_VIRTUALENGINE_SET_PARAMS;
@@ -2141,6 +2142,7 @@ private:
     static uint32_t m_mosOsApiFailSimulateHint;
     static uint32_t m_mosOsApiFailSimulateCounter;
 #endif
+MEDIA_CLASS_DEFINE_END(MosInterface)
 };
 
 #endif  // __MOS_INTERFACE_H__

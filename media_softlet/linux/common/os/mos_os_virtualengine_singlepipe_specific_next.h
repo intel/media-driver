@@ -67,6 +67,7 @@ public:
     MOS_STATUS CheckHintParamsValidity() { return MOS_STATUS_SUCCESS; }
 
     void Destroy() {}
+MEDIA_CLASS_DEFINE_END(MosOsVeSinglePipeSpecific)
 };
 
 #endif //__MOS_OS_VIRTUALENGINE_SINGLEPIPE_SPECIFIC_NEXT_H__

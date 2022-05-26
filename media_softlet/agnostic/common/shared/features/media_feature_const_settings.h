@@ -105,6 +105,7 @@ protected:
 
     MediaFeatureSettings *m_featureSetting = nullptr;
     MediaUserSettingSharedPtr m_userSettingPtr = nullptr;  //!< usersettingInstance
+MEDIA_CLASS_DEFINE_END(MediaFeatureConstSettings)
 };
 
 #endif  // !__MEDIA_FEATURE_CONST_SETTINGS_H__

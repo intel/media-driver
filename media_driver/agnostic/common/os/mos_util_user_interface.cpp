@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -24,7 +24,6 @@
 //! \brief    Common MOS util user feature key service across different platform
 //!
 
-#include "mos_os.h"
 #include "mos_util_user_interface.h"
 
 std::map<uint32_t, PMOS_USER_FEATURE_VALUE> MosUtilUserInterface::m_userFeatureKeyMap;
