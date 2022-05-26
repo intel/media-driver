@@ -23,6 +23,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mos_defs_specific.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_util_user_feature_keys_specific.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_os_specific.h
+    ${CMAKE_CURRENT_LIST_DIR}/mos_os_private.h
 )
 
 if(${Media_Scalability_Supported} STREQUAL "yes")
