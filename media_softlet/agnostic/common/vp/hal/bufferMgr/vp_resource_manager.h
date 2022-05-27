@@ -564,6 +564,7 @@ protected:
     VP_SURFACE *m_veboxPwlfSurface[VP_NUM_LACE_PWLF_SURFACES] = {};            //!< VEBOX 1D LUT surface for Vebox Gen12
     VP_SURFACE *m_veboxWeitCoefSurface                        = nullptr;       //!< VEBOX 1D LUT surface for Vebox Gen12
     VP_SURFACE *m_veboxGlobalToneMappingCurveLUTSurface       = nullptr;       //!< VEBOX 1D LUT surface for Vebox Gen12
+    VP_SURFACE *m_temperalInput                               = nullptr;
 
     // Fc Resource
     VP_SURFACE *m_cmfcCoeff                                   = nullptr;

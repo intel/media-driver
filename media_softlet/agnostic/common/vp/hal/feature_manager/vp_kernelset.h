@@ -81,7 +81,7 @@ public:
         while (!kernelObjs.empty())
         {
             auto it = kernelObjs.begin();
-            if (m_cachedKernels.end() == m_cachedKernels.find(it->second->GetKernelId()))
+            if (m_cachedKernels.size() == 0 || m_cachedKernels.end() == m_cachedKernels.find(it->second->GetKernelId()))
             {
                 // Only destroy the kernels not exists in m_cachedKernels.
                 MOS_Delete(it->second);

@@ -221,6 +221,10 @@ VpResourceManager::~VpResourceManager()
         m_allocator.DestroyVpSurface(m_vebox1DLookUpTables);
     }
 
+    if (m_temperalInput)
+    {
+        m_allocator.DestroyVpSurface(m_temperalInput);
+    }
     while (!m_intermediaSurfaces.empty())
     {
         VP_SURFACE * surf = m_intermediaSurfaces.back();
@@ -2078,7 +2082,15 @@ MOS_STATUS VpResourceManager::AssignVeboxResource(VP_EXECUTE_CAPS& caps, VP_SURF
     }
     else
     {
-        surfGroup.insert(std::make_pair(SurfaceTypeVeboxInput, inputSurface));
+        if (caps.bTemperalInputInuse)
+        {
+            VP_PUBLIC_CHK_NULL_RETURN(m_temperalInput);
+            surfGroup.insert(std::make_pair(SurfaceTypeVeboxInput, m_temperalInput));
+        }
+        else
+        {
+            surfGroup.insert(std::make_pair(SurfaceTypeVeboxInput, inputSurface));
+        }
         surfGroup.insert(std::make_pair(SurfaceTypeVeboxCurrentOutput, GetVeboxOutputSurface(caps, outputSurface)));
 
         if (caps.bDN)

@@ -276,6 +276,15 @@ MOS_STATUS PacketPipe::Execute(MediaStatusReport *statusReport, MediaScalability
         prop.immediateSubmit = true;
         prop.stateProperty.statusReport = statusReport;
 
+        bool isSkip = false;
+        // Checking if extra processing is needed.
+        isSkip      = pPacket->ExtraProcessing();
+        if (isSkip)
+        {
+            VP_PUBLIC_NORMALMESSAGE("Skip this packet.");
+            continue;
+        }
+
         MediaTask *pTask = pPacket->GetActiveTask();
         VP_PUBLIC_CHK_NULL_RETURN(pTask);
 

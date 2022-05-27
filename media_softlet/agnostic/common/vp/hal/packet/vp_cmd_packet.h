@@ -94,6 +94,11 @@ public:
         return m_surfSetting;
     }
 
+    virtual bool ExtraProcessing()
+    {
+        return false;
+    }
+
 protected:
     virtual MOS_STATUS VpCmdPacketInit();
     bool IsOutputPipeVebox()

@@ -123,6 +123,8 @@ enum FeatureType
     FeatureTypeFDFB             = 0x2100,
     FeatureTypeFDFBOnVebox      = FeatureTypeFDFB | FEATURE_TYPE_ENGINE_BITS_VEBOX,
     FeatureTypeFDFBOnRender     = FeatureTypeFDFB | FEATURE_TYPE_ENGINE_BITS_RENDER,
+    FeatureTypeSegmentation     = 0x2200,
+    FeatureTypeSegmentationOnRender = FeatureTypeSegmentation | FEATURE_TYPE_ENGINE_BITS_RENDER,
     // ...
     NumOfFeatureType
 };
@@ -624,14 +626,76 @@ enum SurfaceType
     SurfaceTypeFBInputSampler,
     // HVS Kernel
     SurfaceTypeHVSTable,
+    //Segmentation
+    SurfaceTypeRenderPreviousInput,
+    SurfaceTypeRenderTempOutput,  //Used for seg out only
+    SurfaceTypeSegBackground,
+    SurfaceTypeSegGaussianCoeffBuffer,
+    SurfaceTypeSegTFMask,
+    SurfaceTypeSegTFOutMask,
+    SurfaceTypeSegWindowSize,
+    SurfaceTypeSegMaskScaling,
+    SurfaceTypeSegMaskBlur,
+    SurfaceTypeSegBlurScaling,
+    SurfaceTypeSegGaussianBlur,
+    SurfaceTypeSegBlur,
+    SurfaceTypeSegBlur2,
+    SurfaceTypeSegBlur3,
+    SurfaceTypeSegGFLayer,
+    SurfaceTypeSegGFLayerEnd = SurfaceTypeSegGFLayer + 8,
+    SurfaceTypeSegGFOut,
+    SurfaceTypeSegGFOut2,
+    SurfaceTypeSegGFOut3,
+    SurfaceTypeSegGFOut4,
+    SurfaceTypeSegInputMotion,
+    SurfaceTypeSegInputMotionEnd = SurfaceTypeSegInputMotion + 2,
+    SurfaceTypeSegPreInputMotion,
+    SurfaceTypeSegPreInputMotionEnd = SurfaceTypeSegPreInputMotion +2,
+    SurfaceTypeSegDiffMotion,
+    SurfaceTypeSegDiffMotionEnd = SurfaceTypeSegDiffMotion + 2,
+    SurfaceTypeSegErode1x2Motion,
+    SurfaceTypeSegErode1x2MotionEnd = SurfaceTypeSegErode1x2Motion + 2,
+    SurfaceTypeSegErode2x1Motion,
+    SurfaceTypeSegErode2x1Motion2,
+    SurfaceTypeSegErode2x1Motion3,
+    SurfaceTypeSegSumMotion,
+    // Segmentation layers
+    SurfaceTypeSegModelLayer,
+    SurfaceTypeSegModelLayerEnd = SurfaceTypeSegModelLayer + 85,
+    SurfaceTypeSegWeights,
+    SurfaceTypeSegWeightsEnd = SurfaceTypeSegWeights + 85,
+    SurfaceTypeSegBias,
+    SurfaceTypeSegBiasEnd = SurfaceTypeSegBias + 85,
+
     NumberOfSurfaceType
 };
 
 using  VP_SURFACE_GROUP = std::map<SurfaceType, VP_SURFACE*>;
 
+struct REMOVE_BB_SETTING
+{
+    bool     isRemoveBB    = false;
+    bool     isKeepMaxBlob = false;
+    uint32_t index         = 0;
+};
+
+struct MOTIONLESS_SETTING
+{
+    bool     isEnable        = false;
+    bool     isSkipDetection = false;
+    bool     isInfer         = false;
+    bool     isFirstConv     = false;
+    bool     isMotion        = false;
+    bool     isResUpdate     = false;
+    uint32_t width           = 0;
+    uint32_t height          = 0;
+};
+
 struct VP_SURFACE_SETTING
 {
     VP_SURFACE_GROUP    surfGroup;
+    REMOVE_BB_SETTING   removeBBSetting;
+    MOTIONLESS_SETTING  motionlessSetting;
     bool                isPastHistogramValid       = false;
     uint32_t            imageWidthOfPastHistogram  = 0;
     uint32_t            imageHeightOfPastHistogram = 0;
@@ -648,6 +712,8 @@ struct VP_SURFACE_SETTING
     void Clean()
     {
         surfGroup.clear();
+        removeBBSetting             = {};
+        motionlessSetting           = {};
         isPastHistogramValid        = false;
         imageWidthOfPastHistogram   = 0;
         imageHeightOfPastHistogram  = 0;

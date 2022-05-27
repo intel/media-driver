@@ -143,6 +143,7 @@ struct _VP_EXECUTE_CAPS
             uint64_t bForceCscToRender : 1; // If true, force to use render for csc.
             uint64_t bForceProcampToRender : 1;   // If true, force to use render for procamp.
             uint64_t lastSubmission : 1;    // If true, it's the last submission of current DDI.
+            uint64_t bTemperalInputInuse : 1; // If true, will use temperal input instead of input
 
             // Vebox Features
             uint64_t bDN            : 1;   // Vebox DN needed
@@ -182,6 +183,7 @@ struct _VP_EXECUTE_CAPS
             uint64_t bSR            : 1;
             uint64_t b3DLutCalc     : 1;
             uint64_t bHVSCalc       : 1;
+            uint64_t bSegmentation  : 1;
         };
         uint64_t value;
     };
@@ -221,6 +223,7 @@ typedef struct _VP_EngineEntry
             uint32_t veboxNotSupported : 1;     // true if vebox cannot be selected.
             uint32_t onlyParamCalculation : 1;  // true if the feature is used for parameter calculation.
             uint32_t sfcOnlyFeatureExists : 1;  // The feature exists, which only support sfc.
+            uint32_t bTemperalInputInuse : 1;   // true if replace input
         };
         uint32_t value;
     };
