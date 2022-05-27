@@ -304,6 +304,13 @@ namespace decode {
         {
             DECODE_CHK_STATUS(m_decodecp->SetHucDmemS2LPicBss(&hucHevcS2LPicBss.reserve, &(m_hevcBasicFeature->m_resDataBuffer.OsResource)));
         }
+        else
+        {
+            hucHevcS2LPicBss.reserve.reserve_0 = 0;
+            hucHevcS2LPicBss.reserve.reserve_1 = 0;
+            hucHevcS2LPicBss.reserve.reserve_2 = 0;
+            hucHevcS2LPicBss.reserve.reserve_3 = 0;
+        }
         return MOS_STATUS_SUCCESS;
     }
 

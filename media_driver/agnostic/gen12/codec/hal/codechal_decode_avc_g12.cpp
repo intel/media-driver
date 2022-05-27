@@ -119,6 +119,12 @@ MOS_STATUS CodechalDecodeAvcG12::InitMmcState()
     m_mmc = MOS_New(CodechalMmcDecodeAvcG12, m_hwInterface, this);
     CODECHAL_DECODE_CHK_NULL_RETURN(m_mmc);
 #endif
+
+    if (m_osInterface->pfnIsMismatchOrderProgrammingSupported())
+    {
+        m_mmc->SetMmcDisabled();
+    }
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -418,7 +424,6 @@ MOS_STATUS CodechalDecodeAvcG12::DecodePrimitiveLevel()
         m_debugInterface->DetectCorruptionHw(m_hwInterface, &m_frameCountTypeBuf, curIdx, frameCrcOffset, vSemaResource, &cmdBuffer, m_frameNum);
     }
 #endif
-
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
 
     m_osInterface->pfnReturnCommandBuffer(m_osInterface, &cmdBuffer, 0);

@@ -222,6 +222,28 @@ public:
         MOS_RESOURCE                *avcDmvBuffers);
 
     //!
+    //! \brief    Set and Alloc Dmv Buffer
+    //! \details  Set and Alloc Dmv Buffer in AVC decode driver
+    //!
+    //! \param    [in] frameIdx
+    //!           frame idx
+    //! \param    [in] avcDmvBufferSize
+    //!           Dmv Bufer Size
+    //! \param    [out] dmvIdx
+    //!           Dmv Index
+    //! \param    [out] avcDmvBuffers
+    //!           Dmv Buffers
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS SetAndAllocateDmvBufferIndexMismatched(
+        uint8_t             frameIdx,
+        uint32_t            avcDmvBufferSize,
+        uint8_t            *dmvIdx,
+        MOS_RESOURCE       *avcDmvBuffers);
+
+    //!
     //! \brief    Init Mvc Dummy Dmv Buffer
     //! \details  Init Mvc Dummy Dmv Buffer in AVC decode driver
     //!
@@ -399,7 +421,7 @@ public:
     MOS_RESOURCE  m_resMfdDeblockingFilterRowStoreScratchBuffer;  //!< Handle of MFD Deblocking Filter Row Store Scratch data surface
     MOS_RESOURCE  m_resBsdMpcRowStoreScratchBuffer;               //!< Handle of BSD/MPC Row Store Scratch data surface
     MOS_RESOURCE  m_resMprRowStoreScratchBuffer;                  //!< Handle of MPR Row Store Scratch data surface
-    MOS_RESOURCE  m_resAvcDmvBuffers[CODEC_AVC_NUM_DMV_BUFFERS];  //!< Handle of Dmv Buffers
+    MOS_RESOURCE  m_resAvcDmvBuffers[CODEC_AVC_NUM_UNCOMPRESSED_SURFACE];  //!< Handle of Dmv Buffers, only used CODEC_AVC_NUM_DMV_BUFFERS normally
     MOS_RESOURCE  m_resInvalidRefBuffer;                          //!< Handle of Invalid Ref Buffer
     MOS_RESOURCE  m_resMvcDummyDmvBuffer[2];                      //!< Handle of Mvc Dummy Dmv Buffer
     MOS_SURFACE   m_destSurface;                                  //!< Handle of Dest data surface

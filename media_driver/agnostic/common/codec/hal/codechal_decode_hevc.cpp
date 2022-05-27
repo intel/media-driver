@@ -513,7 +513,8 @@ MOS_STATUS CodechalDecodeHevc::AllocateMvTemporalBuffer(
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
     CODECHAL_DECODE_FUNCTION_ENTER;
 
-    if (hevcMvBuffIndex == CODEC_NUM_HEVC_MV_BUFFERS)
+    // Non-mismatch order programming mode has the limiation of mv buffer num CODEC_NUM_HEVC_MV_BUFFERS
+    if (hevcMvBuffIndex == CODEC_NUM_HEVC_MV_BUFFERS && !m_osInterface->pfnIsMismatchOrderProgrammingSupported())
     {
         // Should never happen, something must be wrong
         CODECHAL_DECODE_ASSERTMESSAGE("Failed to get avaiable MV buffer.");
@@ -622,7 +623,10 @@ CodechalDecodeHevc::~CodechalDecodeHevc ()
         m_osInterface,
         &m_resSaoTileColumnBuffer);
 
-    for (uint32_t i = 0; i < CODEC_NUM_HEVC_MV_BUFFERS; i++)
+    uint32_t mvBufNum = m_osInterface->pfnIsMismatchOrderProgrammingSupported() ?
+        CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC :
+        CODEC_NUM_HEVC_MV_BUFFERS;
+    for (uint32_t i = 0; i < mvBufNum; i++)
     {
         m_osInterface->pfnFreeResource(
             m_osInterface,
@@ -1388,41 +1392,70 @@ MOS_STATUS CodechalDecodeHevc::SetPictureStructs()
         hevcRefList[m_currPic.FrameIdx]->RefList[i] = picParams->RefFrameList[i];
     }
 
-    if(!CodecHal_PictureIsInvalid(prevPic))
+    if(m_osInterface->pfnIsMismatchOrderProgrammingSupported())
     {
-        for(i = 0; i < CODEC_NUM_HEVC_MV_BUFFERS; i++)
+        for (i = 0; i < CODEC_MAX_NUM_REF_FRAME_HEVC; i++)
         {
-            hevcMVBufferList[i].bInUse    = false;
-            hevcMVBufferList[i].u8FrameId = 0;
-        }
-
-        //Mark Referenced frame's MV buffer as used
-        for(i = 0; i < CODEC_MAX_NUM_REF_FRAME_HEVC; i++)
-        {
-            uint8_t index = picParams->RefFrameList[i].FrameIdx;
-            if(!CodecHal_PictureIsInvalid(picParams->RefFrameList[i])
-                && index != picParams->CurrPic.FrameIdx)
+            auto frameIdx = picParams->RefFrameList[i].FrameIdx;
+            if (frameIdx != CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC)
             {
-                if (index < CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC)
-                {
-                    hevcMVBufferList[hevcRefList[index]->ucDMVIdx[0]].bInUse = true;
-                    hevcMVBufferList[hevcRefList[index]->ucDMVIdx[0]].u8FrameId = index;
-                }
+                hevcRefList[frameIdx]->resRefPic         = m_decodeParams.m_refFrameSurface[frameIdx].OsResource;
+                hevcRefList[frameIdx]->sFrameNumber      = (int16_t)picParams->PicOrderCntValList[i];
+                hevcRefList[frameIdx]->iFieldOrderCnt[0] = picParams->PicOrderCntValList[i];
+                hevcRefList[frameIdx]->RefPic            = picParams->RefFrameList[i];
             }
         }
     }
 
-    //Find out an unused MvBuffer for current frame
-    m_hevcMvBufferIndex = GetMvBufferIndex(
-        m_currPic.FrameIdx);
-
-    if (m_mvBufferProgrammed)
+    if (m_osInterface->pfnIsMismatchOrderProgrammingSupported())
     {
-        AllocateMvTemporalBuffer(m_hevcMvBufferIndex);
+        for (i = 0; i < CODEC_MAX_NUM_REF_FRAME_HEVC; i++)
+        {
+            auto frameIdx = picParams->RefFrameList[i].FrameIdx;
+            if (frameIdx != CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC)
+            {
+                AllocateMvTemporalBuffer(frameIdx);
+            }
+        }
+        AllocateMvTemporalBuffer(m_currPic.FrameIdx);
+        m_hevcMvBufferIndex = m_currPic.FrameIdx;
     }
+    else
+    {
+        if (!CodecHal_PictureIsInvalid(prevPic))
+        {
+            for (i = 0; i < CODEC_NUM_HEVC_MV_BUFFERS; i++)
+            {
+                hevcMVBufferList[i].bInUse    = false;
+                hevcMVBufferList[i].u8FrameId = 0;
+            }
 
-    hevcRefList[m_currPic.FrameIdx]->ucDMVIdx[0] = m_hevcMvBufferIndex;
+            //Mark Referenced frame's MV buffer as used
+            for (i = 0; i < CODEC_MAX_NUM_REF_FRAME_HEVC; i++)
+            {
+                uint8_t index = picParams->RefFrameList[i].FrameIdx;
+                if (!CodecHal_PictureIsInvalid(picParams->RefFrameList[i]) && index != picParams->CurrPic.FrameIdx)
+                {
+                    if (index < CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC)
+                    {
+                        hevcMVBufferList[hevcRefList[index]->ucDMVIdx[0]].bInUse    = true;
+                        hevcMVBufferList[hevcRefList[index]->ucDMVIdx[0]].u8FrameId = index;
+                    }
+                }
+            }
+        }
 
+        //Find out an unused MvBuffer for current frame
+        m_hevcMvBufferIndex = GetMvBufferIndex(
+            m_currPic.FrameIdx);
+
+        if (m_mvBufferProgrammed)
+        {
+            AllocateMvTemporalBuffer(m_hevcMvBufferIndex);
+        }
+
+        hevcRefList[m_currPic.FrameIdx]->ucDMVIdx[0] = m_hevcMvBufferIndex;
+    }
     return eStatus;
 }
 
@@ -1677,18 +1710,29 @@ MOS_STATUS CodechalDecodeHevc::InitPicLongFormatMhwParams()
                 {
                     m_presReferences[k] = &(m_hevcRefList[refFrameValue]->resRefPic);
 
-                    for (uint8_t j = 0; j < CODEC_NUM_HEVC_MV_BUFFERS; j++)
+                    if (m_osInterface->pfnIsMismatchOrderProgrammingSupported())
                     {
-                        if ((m_hevcMvList[j].bInUse) &&
-                            (m_hevcMvList[j].u8FrameId == refFrameValue) &&
-                            !Mos_ResourceIsNull(&m_resMvTemporalBuffer[j]))
+                        m_picMhwParams.PipeBufAddrParams->presColMvTempBuffer[m++] = &m_resMvTemporalBuffer[refFrameValue];
+                        if (firstValidMvBuf == nullptr)
                         {
-                            m_picMhwParams.PipeBufAddrParams->presColMvTempBuffer[m++] = &m_resMvTemporalBuffer[j];
-                            if (firstValidMvBuf == nullptr)
+                            firstValidMvBuf = &m_resMvTemporalBuffer[refFrameValue];
+                        }
+                    }
+                    else
+                    {
+                        for (uint8_t j = 0; j < CODEC_NUM_HEVC_MV_BUFFERS; j++)
+                        {
+                            if ((m_hevcMvList[j].bInUse) &&
+                                (m_hevcMvList[j].u8FrameId == refFrameValue) &&
+                                !Mos_ResourceIsNull(&m_resMvTemporalBuffer[j]))
                             {
-                                firstValidMvBuf = &m_resMvTemporalBuffer[j];
+                                m_picMhwParams.PipeBufAddrParams->presColMvTempBuffer[m++] = &m_resMvTemporalBuffer[j];
+                                if (firstValidMvBuf == nullptr)
+                                {
+                                    firstValidMvBuf = &m_resMvTemporalBuffer[j];
+                                }
+                                break;
                             }
-                            break;
                         }
                     }
 
@@ -1768,12 +1812,25 @@ MOS_STATUS CodechalDecodeHevc::InitPicLongFormatMhwParams()
             }
         }
 
-        for (uint32_t n = 0; n < CODEC_NUM_HEVC_MV_BUFFERS; n++)
+        if (m_osInterface->pfnIsMismatchOrderProgrammingSupported())
         {
-            if (m_picMhwParams.PipeBufAddrParams->presColMvTempBuffer[n] == nullptr &&
-                !Mos_ResourceIsNull(&m_resMvTemporalBuffer[n]))
+            for (uint32_t n = 0; n < CODEC_NUM_HEVC_MV_BUFFERS; n++)
             {
-                m_picMhwParams.PipeBufAddrParams->presColMvTempBuffer[n] = &m_resMvTemporalBuffer[n];
+                if (m_picMhwParams.PipeBufAddrParams->presColMvTempBuffer[n] == nullptr)
+                {
+                    m_picMhwParams.PipeBufAddrParams->presColMvTempBuffer[n] = firstValidMvBuf;
+                }
+            }
+        }
+        else
+        {
+            for (uint32_t n = 0; n < CODEC_NUM_HEVC_MV_BUFFERS; n++)
+            {
+                if (m_picMhwParams.PipeBufAddrParams->presColMvTempBuffer[n] == nullptr &&
+                    !Mos_ResourceIsNull(&m_resMvTemporalBuffer[n]))
+                {
+                    m_picMhwParams.PipeBufAddrParams->presColMvTempBuffer[n] = &m_resMvTemporalBuffer[n];
+                }
             }
         }
     }

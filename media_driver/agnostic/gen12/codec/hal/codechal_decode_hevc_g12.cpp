@@ -583,9 +583,15 @@ MOS_STATUS CodechalDecodeHevcG12::SetHucDmemParams (
     CODECHAL_DECODE_CHK_NULL_RETURN(dmemBuffer);
 
     CodechalResLock DmemLock(m_osInterface, dmemBuffer);
-    auto hucHevcS2LBss = (PHUC_HEVC_S2L_BSS_G12)DmemLock.Lock(CodechalResLock::writeOnly);
+
+    PHUC_HEVC_S2L_BSS_G12 hucHevcS2LBss = (PHUC_HEVC_S2L_BSS_G12)DmemLock.Lock(CodechalResLock::writeOnly);
 
     CODECHAL_DECODE_CHK_NULL_RETURN(hucHevcS2LBss);
+    hucHevcS2LBss->PictureBss.reserve.reserve_0 = 0;
+    hucHevcS2LBss->PictureBss.reserve.reserve_1 = 0;
+    hucHevcS2LBss->PictureBss.reserve.reserve_2 = 0;
+    hucHevcS2LBss->PictureBss.reserve.reserve_3 = 0;
+
     hucHevcS2LBss->ProductFamily = m_hucInterface->GetHucProductFamily();
     hucHevcS2LBss->RevId = m_hwInterface->GetPlatform().usRevId;
     hucHevcS2LBss->DummyRefIdxState = 
@@ -2279,6 +2285,11 @@ MOS_STATUS CodechalDecodeHevcG12::InitMmcState()
     m_mmc = MOS_New(CodechalMmcDecodeHevcG12, m_hwInterface, this);
     CODECHAL_DECODE_CHK_NULL_RETURN(m_mmc);
 #endif
+    if (m_osInterface->pfnIsMismatchOrderProgrammingSupported())
+    {
+        m_mmc->SetMmcDisabled();
+    }
+
     return MOS_STATUS_SUCCESS;
 }
 
