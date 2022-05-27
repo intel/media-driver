@@ -35,6 +35,12 @@ namespace MediaUserSetting {
 
 namespace Internal {
 
+typedef struct _ExtPathCFG
+{
+    const char *subPath;
+    bool        bStated;
+} ExtPathCFG;
+
 class Configure
 {
 public:
@@ -129,39 +135,22 @@ public:
         uint32_t option = MEDIA_USER_SETTING_INTERNAL);
 
     //!
-    //! \brief    Get the path of the key
+    //! \brief    Get the report path of the key
     //! \return   std::string
     //!           the path
     //!
-    std::string GetPath(
+    std::string GetReportPath(
         std::shared_ptr<Definition> def,
-        uint32_t                    option,
-        bool                        bReport);
+        uint32_t option);
 
     //!
-    //! \brief    Get the report path of the internal key
+    //! \brief    Get the read path of the key
     //! \return   std::string
     //!           the path
     //!
-    std::string GetInteranlReportPath(
-        std::shared_ptr<Definition> def);
-
-    //!
-    //! \brief    Get the read path of the internal key
-    //! \return   std::string
-    //!           the path
-    //!
-    std::string GetInteranlReadPath(
-        std::shared_ptr<Definition> def);
-
-    //!
-    //! \brief    Get the path of the internal key
-    //! \return   std::string
-    //!           the path
-    //!
-    std::string GetInternalPath(
+    std::string GetReadPath(
         std::shared_ptr<Definition> def,
-        bool                        bReport);
+        uint32_t option);
 
     //!
     //! \brief    Get the path of the external key
@@ -233,7 +222,9 @@ protected:
     static const UFKEY_NEXT m_rootKey;
     static const char *m_configPath;
     static const char *m_reportPath;
-    static const std::map<uint32_t, const char *> m_pathOption;
+    static const std::map<uint32_t, ExtPathCFG> m_pathOption;
+    std::string                                 m_statedConfigPath = "";
+    std::string                                 m_statedReportPath = "";
 };
 }
 }
