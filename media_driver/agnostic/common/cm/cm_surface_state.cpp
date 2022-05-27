@@ -1057,7 +1057,7 @@ int CmSurfaceState2Dor3D::GetPlaneDefinitionRender()
         case Format_Y210:
         case Format_Y216:
         {
-            RENDERHAL_PLANE_DEFINITION temp;
+            RENDERHAL_PLANE_DEFINITION temp = RENDERHAL_PLANES_DEFINITION_COUNT;
             m_renderhal->pRenderHalPltInterface->GetPlaneDefForFormatY216(
                 isRenderOutTarget,
                 m_renderhal,
