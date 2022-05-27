@@ -20,10 +20,12 @@
 
 set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/codec_mem_compression_g12.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/codec_mem_compression_g12_next.cpp
 )
 
 set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/codec_mem_compression_g12.h
+    ${CMAKE_CURRENT_LIST_DIR}/codec_mem_compression_g12_next.h
 )
 
 set(SOURCES_NEW

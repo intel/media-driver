@@ -30,9 +30,9 @@
 #define __MEDIA_ENCODE_MEM_COMPRESSION_G12_H__
 
 #include "encode_mem_compression.h"
-#include "codec_mem_compression_g12.h"
+#include "codec_mem_compression_g12_next.h"
 
-class EncodeMemCompG12 : public EncodeMemComp, public CodecMmcAuxTableG12
+class EncodeMemCompG12 : public EncodeMemComp, public CodecMmcAuxTableG12Next
 {
     public:
     //!

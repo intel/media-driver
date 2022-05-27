@@ -31,7 +31,7 @@
 #include "encode_mem_compression.h"
 
 EncodeMemComp::EncodeMemComp(CodechalHwInterface *hwInterface) :
-    MediaMemComp(hwInterface->GetOsInterface(), hwInterface->GetMiInterface())
+    MediaMemCompNext(hwInterface->GetOsInterface(), std::static_pointer_cast<mhw::mi::Itf>(hwInterface->GetMiInterface()->GetNewMiInterface()))
 {
     m_mmcFeatureId      = __MEDIA_USER_FEATURE_VALUE_CODEC_MMC_ENABLE_ID;
     m_mmcInuseFeatureId = __MEDIA_USER_FEATURE_VALUE_CODEC_MMC_IN_USE_ID;

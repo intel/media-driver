@@ -1,5 +1,5 @@
-﻿/*
-* Copyright (c) 2018-2022, Intel Corporation
+/*
+* Copyright (c) 2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -21,26 +21,38 @@
 */
 
 //!
-//! \file     media_mem_compression.h
-//! \brief    Defines the common interface for mmc
-//! \details
+//! \file     codec_mem_compression_g12_next.h
+//! \brief    Defines the common interface for codec mmc
+//! \details  The codec mmc is to handle mmc operations
 //!
 
-#ifndef __MEDIA_MEM_COMPRESSION_H__
-#define __MEDIA_MEM_COMPRESSION_H__
+#ifndef __MEDIA_CODEC_MEM_COMPRESSION_G12_NEXT_H__
+#define __MEDIA_CODEC_MEM_COMPRESSION_G12_NEXT_H__
 
-#include "media_mem_compression_next.h"
+#include "media_context.h"
 
-class MediaMemComp : public MediaMemCompNext
+class CodecMmcAuxTableG12Next
 {
 public:
     //!
     //! \brief    Construct
     //!
-    MediaMemComp(PMOS_INTERFACE osInterface, MhwMiInterface *miInterface);
+    CodecMmcAuxTableG12Next() {};
 
-protected:
-    MhwMiInterface *m_mhwMiInterface = nullptr;
+    //!
+    //! \brief    Destructor
+    //!
+    virtual ~CodecMmcAuxTableG12Next() {};
+
+    //!
+    //! \brief    LoadAuxTableMmio
+    //!
+    MOS_STATUS LoadAuxTableMmio(
+        PMOS_INTERFACE      osItf,
+        mhw::mi::Itf        &miItf,
+        PMOS_COMMAND_BUFFER cmdBuffer,
+        bool                bRcsIsUsed);
+    MEDIA_CLASS_DEFINE_END(CodecMmcAuxTableG12Next)
 };
 
-#endif //__MEDIA_MEM_COMPRESSION_H__
+#endif //__MEDIA_CODEC_MEM_COMPRESSION_G12_NEXT_H__

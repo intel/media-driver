@@ -28,12 +28,11 @@
 //!
 
 #include "encode_mem_compression_g12.h"
-#include "mhw_mi_g12_X.h"
 #include "encode_utils.h"
 
 EncodeMemCompG12::EncodeMemCompG12(
     CodechalHwInterface *hwInterface):
-    EncodeMemComp(hwInterface), CodecMmcAuxTableG12()
+    EncodeMemComp(hwInterface), CodecMmcAuxTableG12Next()
 {
 
 }
@@ -44,7 +43,8 @@ MOS_STATUS EncodeMemCompG12::SendPrologCmd(
 {
     MOS_STATUS status = MOS_STATUS_SUCCESS;
 
-    ENCODE_CHK_STATUS_RETURN(CodecMmcAuxTableG12::LoadAuxTableMmio(m_osInterface, m_mhwMiInterface, cmdBuffer, bRcsIsUsed));
+    ENCODE_CHK_NULL_RETURN(m_miItf);
+    ENCODE_CHK_STATUS_RETURN(CodecMmcAuxTableG12Next::LoadAuxTableMmio(m_osInterface, *m_miItf, cmdBuffer, bRcsIsUsed));
 
     return MOS_STATUS_SUCCESS;
 }
