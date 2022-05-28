@@ -202,7 +202,7 @@ MediaAddCommonTargetDefines(${LIB_NAME}_CP)
 bs_ufo_link_libraries_noBsymbolic(
     ${LIB_NAME}
     "${INCLUDED_LIBS}"
-    "${PKG_PCIACCESS_LIBRARIES} m pthread dl"
+    "${PKG_PCIACCESS_LIBRARIES} m pthread ${CMAKE_DL_LIBS}"
 )
 
 if (NOT DEFINED INCLUDED_LIBS OR "${INCLUDED_LIBS}" STREQUAL "")
@@ -222,7 +222,7 @@ if (NOT DEFINED INCLUDED_LIBS OR "${INCLUDED_LIBS}" STREQUAL "")
     endif()
 
     target_compile_options( ${LIB_NAME} PUBLIC ${LIBGMM_CFLAGS_OTHER})
-    target_link_libraries ( ${LIB_NAME} ${LIBGMM_LIBRARIES})
+    target_link_libraries ( ${LIB_NAME} ${LIBGMM_LIBRARIES} drm)
 
     include(${MEDIA_EXT_CMAKE}/ext/media_feature_include_ext.cmake OPTIONAL)
 
