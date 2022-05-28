@@ -61,6 +61,7 @@ class CmSurface2D;
 class CmThreadSpaceRT;
 class CmThreadSpaceEx;
 class CmThreadGroupSpace;
+struct CM_SW_SCOREBOARD_UNIT;
 
 class CmThreadSpaceRT: public CmThreadSpace
 {
@@ -69,7 +70,8 @@ public:
                           uint32_t indexTsArray,
                           uint32_t width,
                           uint32_t height,
-                          CmThreadSpaceRT* &threadSpace);
+                          CmThreadSpaceRT* &threadSpace,
+                          CM_SW_SCOREBOARD_UNIT *swScoreBoardUnit);
 
     static int32_t Destroy(CmThreadSpaceRT* &threadSpace);
 
@@ -183,6 +185,8 @@ public:
 
     int32_t GetMediaWalkerGroupSelect(CM_MW_GROUP_SELECT &groupSelect);
 
+    int32_t InitSwScoreBoardUnit();
+
     int32_t UpdateDependency();
     int32_t SetDependencyArgToKernel(CmKernelRT *pKernel) const;
 
@@ -198,13 +202,14 @@ protected:
     CmThreadSpaceRT(CmDeviceRT *device,
                     uint32_t indexTsArray,
                     uint32_t width,
-                    uint32_t height);
+                    uint32_t height,
+                    CM_SW_SCOREBOARD_UNIT *swScoreBoardUnit);
 
     ~CmThreadSpaceRT();
 
     int32_t Initialize();
 
-    int32_t InitSwScoreBoard();
+    int32_t InitSwScoreBoard(uint32_t *swBoard);
 
 #ifdef _DEBUG
     int32_t PrintBoardOrder();
@@ -244,8 +249,8 @@ protected:
     bool m_threadSpaceOrderSet;
 
     CmSurface2D *m_swBoardSurf; // SWSB 2D atomic
-    uint32_t *m_swBoard; // SWSB system memory store
     bool m_swScoreBoardEnabled;
+    CM_SW_SCOREBOARD_UNIT *m_swScoreBoardUnit;
 
     // used to emulate thread space when media walker is not available
     CmThreadGroupSpace *m_threadGroupSpace; 
