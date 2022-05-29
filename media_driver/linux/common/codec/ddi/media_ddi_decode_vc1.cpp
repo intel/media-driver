@@ -349,7 +349,7 @@ VAStatus DdiDecodeVC1::ParsePicParams(
     if (picParam->mv_fields.bits.mv_mode == VAMvModeIntensityCompensation)
     {
         codecPicParam->mv_fields.UnifiedMvMode = (picParam->mv_fields.bits.mv_mode2 + 1) & 0x3;
-        ;
+        codecPicParam->picture_fields.intensity_compensation = 1;
     }
     else
     {
