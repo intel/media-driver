@@ -19,7 +19,6 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 media_include_subdirectory(include)
-
 set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/mos_bufmgr_api.c
     ${CMAKE_CURRENT_LIST_DIR}/xf86drm.c
@@ -35,17 +34,7 @@ if(NOT ENABLE_PRODUCTION_KMD)
     )
 endif()
 
-set(TMP_HEADERS_ "")
-
-set(SOURCES_
-    ${SOURCES_}
+set(MOS_COMMON_SOURCES_
+    ${MOS_COMMON_SOURCES_}
     ${TMP_SOURCES_}
-)
-
-# no header in this folder
-#set(HEADERS_
-#    ${HEADERS_}
-#    ${TMP_HEADERS_}
-#)
-#
-#media_add_curr_to_include_path()
+ )

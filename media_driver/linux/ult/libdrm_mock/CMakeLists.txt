@@ -1,4 +1,4 @@
-# Copyright (c) 2018-2021, Intel Corporation
+# Copyright (c) 2018-2022, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -40,5 +40,8 @@ set(SOURCES
 
 set_source_files_properties(${SOURCES} PROPERTIES LANGUAGE "CXX")
 add_library(drm_mock SHARED ${SOURCES})
-
+target_include_directories(drm_mock BEFORE PRIVATE
+${MOS_PREPEND_INCLUDE_DIRS_}
+${MOS_PUBLIC_INCLUDE_DIRS_}
+)
 set_target_properties(drm_mock PROPERTIES VERSION 2.4.0 SOVERSION 2)

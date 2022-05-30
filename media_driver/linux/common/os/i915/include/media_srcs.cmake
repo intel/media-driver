@@ -20,8 +20,6 @@
 
 media_include_subdirectory(uapi)
 
-set(TMP_SOURCES_ "")
-
 set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/intel_aub.h
     ${CMAKE_CURRENT_LIST_DIR}/libdrm_lists.h
@@ -35,17 +33,13 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/xf86drmRandom.h
 )
 
-# no source in this folder
-#set(SOURCES_
-#    ${SOURCES_}
-#    ${TMP_SOURCES_}
-#)
-
-set(HEADERS_
-    ${HEADERS_}
+set(MOS_COMMON_HEADERS_
+    ${MOS_COMMON_HEADERS_}
     ${TMP_HEADERS_}
 )
 
-
-# use 'BEFORE' as below to make this folder higher priority in include path. This could avoid libdrm headers in system path are used unproperly.
-include_directories(BEFORE ${CMAKE_CURRENT_LIST_DIR})
+#use 'BEFORE' as below to make this folder higher priority in include path. This could avoid libdrm headers in system path are used unproperly.
+set (MOS_PREPEND_INCLUDE_DIRS_
+    ${CMAKE_CURRENT_LIST_DIR}
+    ${MOS_PREPEND_INCLUDE_DIRS_}
+)

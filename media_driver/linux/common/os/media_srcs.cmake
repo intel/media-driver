@@ -18,16 +18,15 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
+set(TMP_HEADERS_ "")
+set(TMP_SOURCES_ "")
+
 if(NOT CMAKE_WDDM_LINUX)
 media_include_subdirectory(i915)
 
 if(ENABLE_PRODUCTION_KMD)
     media_include_subdirectory(i915_production)
 endif()
-
-# This is to include drm_device.h in cmrtlib, no cpp file needed.
-include_directories(${BS_DIR_MEDIA}/cmrtlib/linux/hardware)
-
 
 set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/hwinfo_linux.c
@@ -75,16 +74,18 @@ set(TMP_HEADERS_
 
 endif()
 
-set(SOURCES_
-    ${SOURCES_}
+set(MOS_COMMON_SOURCES_
+    ${MOS_COMMON_SOURCES_}
     ${TMP_SOURCES_}
  )
 
-set(HEADERS_
-    ${HEADERS_}
+set(MOS_COMMON_HEADERS_
+    ${MOS_COMMON_HEADERS_}
     ${TMP_HEADERS_}
 )
 
-
-media_add_curr_to_include_path()
+set (MOS_PUBLIC_INCLUDE_DIRS_
+    ${MOS_PUBLIC_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)
 endif() #NOT CMAKE_WDDM_LINUX

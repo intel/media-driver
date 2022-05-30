@@ -23,13 +23,13 @@
 #define __VP_UTILS_H__
 
 #include <mutex>
+#include <functional>
+#include <algorithm>
 #include "mos_util_debug.h"
 #include "mos_os.h"
 #include "vp_common.h"
 #include "media_class_trace.h"
 #include "hal_kerneldll_next.h"
-#include <functional>
-#include <algorithm>
 
 using MosFormatArray = std::vector<MOS_FORMAT>;
 
