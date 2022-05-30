@@ -387,6 +387,7 @@ MOS_STATUS Vp9DecodePicPktXe_M_Base::SetHcpRefSurfaceParams(MHW_VDBOX_SURFACE_PA
 #ifdef _MMC_SUPPORTED
     Vp9DecodeMemComp *vp9DecodeMemComp = dynamic_cast<Vp9DecodeMemComp *>(m_mmcState);
     DECODE_CHK_STATUS(vp9DecodeMemComp->SetRefSurfaceMask(*m_vp9BasicFeature, refSurfaceParams));
+    DECODE_CHK_STATUS(vp9DecodeMemComp->SetRefSurfaceCompressionFormat(*m_vp9BasicFeature, refSurfaceParams));
 #endif
     return MOS_STATUS_SUCCESS;
 }

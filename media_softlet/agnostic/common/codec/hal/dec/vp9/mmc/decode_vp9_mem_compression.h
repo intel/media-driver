@@ -66,6 +66,10 @@ public:
         Vp9BasicFeature         &vp9BasicFeature,
         MHW_VDBOX_SURFACE_PARAMS refSurfaceParams[]);
 
+    MOS_STATUS SetRefSurfaceCompressionFormat(
+        Vp9BasicFeature         &vp9BasicFeature,
+        MHW_VDBOX_SURFACE_PARAMS refSurfaceParams[]);
+
     virtual MOS_STATUS SetRefSurfaceMask(
         Vp9BasicFeature                       &vp9BasicFeature,
         mhw::vdbox::hcp::HCP_SURFACE_STATE_PAR refSurfaceParams[]);

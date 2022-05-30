@@ -174,5 +174,27 @@ MOS_STATUS Vp9DecodeMemComp::SetRefSurfaceMask(
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS Vp9DecodeMemComp::SetRefSurfaceCompressionFormat(
+    Vp9BasicFeature         &vp9BasicFeature,
+    MHW_VDBOX_SURFACE_PARAMS refSurfaceParams[])
+{
+    uint32_t compressionFormat = 0;
+    for (uint8_t i = 0; i < CODECHAL_MAX_CUR_NUM_REF_FRAME_VP9; i++)
+    {
+        if (refSurfaceParams[i].mmcState == MOS_MEMCOMP_MC || refSurfaceParams[i].mmcState == MOS_MEMCOMP_RC)
+        {
+            compressionFormat = refSurfaceParams[i].dwCompressionFormat;
+        }
+    }
+
+    for (uint8_t i = 0; i < CODECHAL_MAX_CUR_NUM_REF_FRAME_VP9; i++)
+    {
+        refSurfaceParams[i].dwCompressionFormat = compressionFormat;
+    }
+
+    DECODE_NORMALMESSAGE("Reference surfaces compression format is %d,", compressionFormat);
+
+    return MOS_STATUS_SUCCESS;
+}
 
 }  // namespace decode
