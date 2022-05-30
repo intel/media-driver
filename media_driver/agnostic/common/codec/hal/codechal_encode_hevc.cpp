@@ -1520,7 +1520,7 @@ MOS_STATUS CodechalEncHevcState::GetFrameBrcLevel()
         // LDB
         if (m_pictureCodingType == I_TYPE)
         {
-            if (m_hevcPicParams->HierarchLevelPlus1 == 0)
+            if (m_hevcSeqParams->HierarchicalFlag > 0 || m_hevcPicParams->HierarchLevelPlus1 == 0)
             {
                 m_currFrameBrcLevel = HEVC_BRC_FRAME_TYPE_I;
             }
