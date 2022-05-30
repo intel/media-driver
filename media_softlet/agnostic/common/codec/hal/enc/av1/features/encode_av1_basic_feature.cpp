@@ -373,7 +373,13 @@ MOS_STATUS Av1BasicFeature::UpdateFormat(void *params)
         m_is10Bit  = true;
         m_bitDepth = 10;
         break;
+    case Format_NV12:
+        m_is10Bit  = false;
+        m_bitDepth = 8;
+        break;
     default:
+        m_is10Bit  = false;
+        m_bitDepth = 8;
         break;
     }
 

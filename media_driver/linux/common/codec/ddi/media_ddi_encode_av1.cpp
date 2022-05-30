@@ -108,7 +108,7 @@ VAStatus DdiEncodeAV1::ContextInitialize(
     codecHalSettings->mode             = m_encodeCtx->wModeType;
     codecHalSettings->standard         = CODECHAL_AV1;
     codecHalSettings->chromaFormat     = AVP_CHROMA_FORMAT_YUV420;
-    codecHalSettings->lumaChromaDepth  = CODECHAL_LUMA_CHROMA_DEPTH_8_BITS;
+    codecHalSettings->lumaChromaDepth  = CODECHAL_LUMA_CHROMA_DEPTH_10_BITS;
 
     VAStatus eStatus = VA_STATUS_SUCCESS;
 
