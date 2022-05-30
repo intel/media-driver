@@ -337,7 +337,7 @@ VAStatus DdiEncodeVp9::ContextInitialize(CodechalSetting *codecHalSettings)
     codecHalSettings->lumaChromaDepth = CODECHAL_LUMA_CHROMA_DEPTH_8_BITS;
     if (m_is10Bit)
     {
-        codecHalSettings->lumaChromaDepth |= CODECHAL_LUMA_CHROMA_DEPTH_10_BITS;
+        codecHalSettings->lumaChromaDepth = CODECHAL_LUMA_CHROMA_DEPTH_10_BITS;
     }
 
     VAStatus vaStatus = VA_STATUS_SUCCESS;

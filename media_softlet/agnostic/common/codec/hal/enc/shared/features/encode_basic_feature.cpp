@@ -58,10 +58,10 @@ MOS_STATUS EncodeBasicFeature::Init(void *setting)
     m_mode = codecSettings->mode;
     m_codecFunction = codecSettings->codecFunction;
 
-    m_is10Bit       = (codecSettings->lumaChromaDepth & CODECHAL_LUMA_CHROMA_DEPTH_10_BITS) ? true : false;
+    m_is10Bit       = codecSettings->lumaChromaDepth == CODECHAL_LUMA_CHROMA_DEPTH_10_BITS ? true : false;
     m_chromaFormat  = codecSettings->chromaFormat;
-    m_bitDepth      = (codecSettings->lumaChromaDepth & CODECHAL_LUMA_CHROMA_DEPTH_8_BITS) ?
-                        8 : ((codecSettings->lumaChromaDepth & CODECHAL_LUMA_CHROMA_DEPTH_10_BITS) ? 10 : 12);
+    m_bitDepth      = codecSettings->lumaChromaDepth == CODECHAL_LUMA_CHROMA_DEPTH_8_BITS ?
+                        8 : (codecSettings->lumaChromaDepth == CODECHAL_LUMA_CHROMA_DEPTH_10_BITS ? 10 : 12);
     m_standard      = codecSettings->standard;
 
     m_oriFrameWidth   = codecSettings->width;
