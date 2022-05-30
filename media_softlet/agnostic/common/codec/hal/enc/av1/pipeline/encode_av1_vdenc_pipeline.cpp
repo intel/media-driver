@@ -63,6 +63,12 @@ MOS_STATUS Av1VdencPipeline::UserFeatureReport()
         "VDENC In Use",
         1,
         MediaUserSetting::Group::Sequence);
+
+    ReportUserSetting(
+        m_userSettingPtr,
+        "AV1 Encode Mode",
+        m_codecFunction,
+        MediaUserSetting::Group::Sequence);
 #endif
 
     return MOS_STATUS_SUCCESS;
