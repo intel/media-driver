@@ -6330,7 +6330,7 @@ MOS_STATUS CompositeState::RenderPhase(
         Kdll_SearchState *pSearchState = &m_KernelSearch;
 
         // Remove kernel entry from kernel caches
-        if (bKernelEntryUpdate)
+        if (bKernelEntryUpdate && pKernelEntry)
         {
             KernelDll_ReleaseHashEntry(&(pKernelDllState->KernelHashTable), pKernelEntry->wHashEntry);
             KernelDll_ReleaseCacheEntry(&(pKernelDllState->KernelCache), pKernelEntry);
