@@ -888,7 +888,7 @@ MOS_STATUS MediaInterfacesHwInfoDeviceDg2::RefreshRevId(PLATFORM &platform, MEDI
         CODECHAL_PUBLIC_ASSERTMESSAGE("waTable is null!");
         return MOS_STATUS_INVALID_PARAMETER;
     }
-    if (!MEDIA_IS_WA(waTable, WaEnableOnlyASteppingFeatures) && platform.usRevId == 0)
+    if (!MEDIA_IS_WA(waTable, WaEnableOnlyASteppingFeatures) && (platform.usRevId == 0 || platform.usRevId == 1))
     {
         platform.usRevId = 4;
     }
