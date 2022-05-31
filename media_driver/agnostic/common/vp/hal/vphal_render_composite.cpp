@@ -7179,7 +7179,7 @@ bool CompositeState::IsSamplerLumakeySupported(PVPHAL_SURFACE pSrc)
     // 5 Enable sampler lumakey only on YUY2 and NV12 surfaces due to hw limitation.
     // 6 Enable sampler lumakey feature only if this lumakey layer is not the bottom layer.
     // 7 Enable sampler lumakey only when sample unorm being used.
-    // 8 Disable sampler lumakey for mirror case, since mirror is done after sampler scaling, which cause the lumakey mask
+    // 8 Disable sampler lumakey for mirror/rotation case
     //   not matching the layer any more.
     return m_bEnableSamplerLumakey                                                              &&
             pSrc->pLumaKeyParams != NULL                                                        &&
@@ -7188,7 +7188,7 @@ bool CompositeState::IsSamplerLumakeySupported(PVPHAL_SURFACE pSrc)
             (pSrc->Format == Format_YUY2 || pSrc->Format == Format_NV12)                        &&
             pSrc->iLayerID                                                                      &&
             pSrc->bUseSampleUnorm                                                               &&
-            pSrc->Rotation < VPHAL_MIRROR_HORIZONTAL;
+            pSrc->Rotation == VPHAL_ROTATION_IDENTITY;
 }
 
 //!
