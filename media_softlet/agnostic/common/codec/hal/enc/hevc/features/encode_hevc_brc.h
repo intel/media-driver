@@ -435,6 +435,7 @@ namespace encode
         bool m_hevcVDEncAcqpEnabled = false;  //!< ACQP enable flag
         bool m_vdencBrcEnabled      = false;  //!< Vdenc bitrate control enabled flag
         bool m_vdencHucUsed         = false;  //!< HUC usage flag
+        bool m_fastPakEnable        = true;
 
         //Resources
         MHW_BATCH_BUFFER m_vdenc2ndLevelBatchBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM] = {};  //!< VDEnc 2nd level batch buffer

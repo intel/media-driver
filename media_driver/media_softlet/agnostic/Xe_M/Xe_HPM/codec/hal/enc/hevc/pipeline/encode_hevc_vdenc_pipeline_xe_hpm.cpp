@@ -35,6 +35,7 @@
 
 #ifdef _ENCODE_RESERVED
 #include "encode_hevc_vdenc_packet_rsvd.h"
+#include "encode_hevc_vdenc_packet_xe_hpm_ext.h"
 #endif
 
 namespace encode {
@@ -66,7 +67,11 @@ MOS_STATUS HevcVdencPipelineXe_Hpm::Init(void *settings)
 
     RegisterPacket(HucBrcUpdate, [=]() -> MediaPacket * { return MOS_New(HucBrcUpdatePkt, this, task, m_hwInterface); });
 
+#ifdef _ENCODE_RESERVED
+    RegisterPacket(hevcVdencPacket, [=]() -> MediaPacket * { return MOS_New(HevcVdencPktXeHpmExt, this, task, m_hwInterface); });
+#else
     RegisterPacket(hevcVdencPacket, [=]() -> MediaPacket * { return MOS_New(HevcVdencPkt, this, task, m_hwInterface); });
+#endif
 
     RegisterPacket(hevcPakIntegrate, [=]() -> MediaPacket * { return MOS_New(HevcPakIntegratePkt, this, task, m_hwInterface); });
 

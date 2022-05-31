@@ -492,7 +492,7 @@ namespace encode
             RUN_FEATURE_INTERFACE_RETURN(HEVCEncodeBRC, HevcFeatureIDs::hevcBrcFeature, SetReadBrcPakStatsParams, ucPass, offset, osResource, readBrcPakStatsParams);
             ReadBrcPakStatistics(&cmdBuffer, &readBrcPakStatsParams);
         }
-        ENCODE_CHK_STATUS_RETURN(ReadSseStatistics(cmdBuffer));
+        ENCODE_CHK_STATUS_RETURN(ReadExtStatistics(cmdBuffer));
         ENCODE_CHK_STATUS_RETURN(ReadSliceSize(cmdBuffer));
         ENCODE_CHK_STATUS_RETURN(PrepareHWMetaData(&cmdBuffer));
         RUN_FEATURE_INTERFACE_RETURN(VdencLplaAnalysis, HevcFeatureIDs::vdencLplaAnalysisFeature, StoreLookaheadStatistics, cmdBuffer, m_vdboxIndex);
@@ -1633,7 +1633,7 @@ namespace encode
         return eStatus;
     }
 
-    MOS_STATUS HevcVdencPkt::ReadSseStatistics(MOS_COMMAND_BUFFER &cmdBuffer)
+    MOS_STATUS HevcVdencPkt::ReadExtStatistics(MOS_COMMAND_BUFFER &cmdBuffer)
     {
         ENCODE_FUNC_CALL();
 
@@ -1917,11 +1917,19 @@ namespace encode
             // all these qp are accumulated for entire frame.
             // the HW will ceil the CumulativeQp number to max (24 bit)
 
-            uint32_t log2LcuSize = m_basicFeature->m_hevcSeqParams->log2_max_coding_block_size_minus3 + 3;
+            uint32_t log2McuSize = m_basicFeature->m_hevcSeqParams->log2_min_coding_block_size_minus3 + 3;
 
-            statusReportData->qpY = statusReportData->averageQP =
-                (uint8_t)(((uint32_t)encodeStatusMfx->qpStatusCount.hcpCumulativeQP) / ((MOS_ALIGN_CEIL(m_basicFeature->m_frameWidth, (1 << log2CBSize)) >> log2CBSize) *
-                                                                                           (MOS_ALIGN_CEIL(m_basicFeature->m_frameHeight, (1 << log2CBSize)) >> log2CBSize)));
+            uint32_t numLumaPixels = ((m_basicFeature->m_hevcSeqParams->wFrameHeightInMinCbMinus1 + 1) << log2McuSize) *
+                            ((m_basicFeature->m_hevcSeqParams->wFrameWidthInMinCbMinus1 + 1) << log2McuSize);
+
+            statusReportData->qpY = statusReportData->averageQP = static_cast<uint8_t>(
+                static_cast<double>(encodeStatusMfx->qpStatusCount.hcpCumulativeQP)
+                / (numLumaPixels / 16) - (m_basicFeature->m_hevcSeqParams->bit_depth_luma_minus8 != 0) * 12);
+            if (statusReportData->pFrmStatsInfo != NULL)
+            {
+                statusReportData->pFrmStatsInfo->Qp = (float)(((uint32_t)encodeStatusMfx->qpStatusCount.hcpCumulativeQP)
+                    / (float)(numLumaPixels / 16) - (m_basicFeature->m_hevcSeqParams->bit_depth_luma_minus8 != 0) * 12);
+            }
         }
 
         // When tile replay is enabled with tile replay, need to report out the tile size and the bit stream is not continous
@@ -1960,10 +1968,7 @@ namespace encode
             }
         }
 
-        if (!Mos_ResourceIsNull(m_basicFeature->m_recycleBuf->GetBuffer(FrameStatStreamOutBuffer, 0)))
-        {
-            ENCODE_CHK_STATUS_RETURN(CalculatePSNR(encodeStatusMfx, statusReportData));
-        }
+        ENCODE_CHK_STATUS_RETURN(ReportExtStatistics(*encodeStatusMfx, *statusReportData));
 
         CODECHAL_DEBUG_TOOL(
             ENCODE_CHK_STATUS_RETURN(DumpResources(encodeStatusMfx, statusReportData)););
@@ -1978,14 +1983,12 @@ namespace encode
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS HevcVdencPkt::CalculatePSNR(
-        EncodeStatusMfx *       encodeStatusMfx,
-        EncodeStatusReportData *statusReportData)
+    MOS_STATUS HevcVdencPkt::ReportExtStatistics(
+        EncodeStatusMfx        &encodeStatusMfx,
+        EncodeStatusReportData &statusReportData)
     {
         ENCODE_FUNC_CALL();
 
-        ENCODE_CHK_NULL_RETURN(encodeStatusMfx);
-        ENCODE_CHK_NULL_RETURN(statusReportData);
         ENCODE_CHK_NULL_RETURN(m_basicFeature);
 
         uint32_t numLumaPixels = 0, numPixelsPerChromaChannel = 0;
@@ -2019,11 +2022,11 @@ namespace encode
             if (m_basicFeature->m_hevcSeqParams->bit_depth_luma_minus8 == 0)
             {
                 //8bit pixel data is represented in 10bit format in HW. so SSE should right shift by 4.
-                encodeStatusMfx->sumSquareError[i] >>= 4;
+                encodeStatusMfx.sumSquareError[i] >>= 4;
             }
-            statusReportData->psnrX100[i] = (uint16_t)CodecHal_Clip3(0, 10000, (uint16_t)(encodeStatusMfx->sumSquareError[i] ? 1000 * log10(squarePeakPixelValue * numPixels / encodeStatusMfx->sumSquareError[i]) : -1));
+            statusReportData.psnrX100[i] = (uint16_t)CodecHal_Clip3(0, 10000, (uint16_t)(encodeStatusMfx.sumSquareError[i] ? 1000 * log10(squarePeakPixelValue * numPixels / encodeStatusMfx.sumSquareError[i]) : -1));
 
-            ENCODE_VERBOSEMESSAGE("psnrX100[%d]:%d.\n", i, statusReportData->psnrX100[i]);
+            ENCODE_VERBOSEMESSAGE("psnrX100[%d]:%d.\n", i, statusReportData.psnrX100[i]);
         }
 
         return MOS_STATUS_SUCCESS;
@@ -2162,8 +2165,7 @@ namespace encode
     {
         //params.tlbPrefetch = true;
 
-        // can be enabled by reg key (disabled by default)
-        params.pakObjCmdStreamOut = m_vdencPakObjCmdStreamOutEnabled;
+        params.pakObjCmdStreamOut = m_hevcPicParams->StatusReportEnable.fields.BlockStats;
 
         // needs to be enabled for 1st pass in multi-pass case
         // This bit is ignored if PAK only second pass is enabled.

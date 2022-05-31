@@ -54,6 +54,7 @@ namespace encode
         BrcPakStatisticBuffer,
         PakSliceSizeStreamOutBuffer,
         RhoDomainStreamoutBuffer,
+        CuRecordStreamOutBuffer,
 #if _MEDIA_RESERVED
 #define RECYCLE_IDS_EXT
 #include "encode_recycle_resource_ext.h"
