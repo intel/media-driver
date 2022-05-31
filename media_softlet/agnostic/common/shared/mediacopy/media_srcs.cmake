@@ -1,4 +1,4 @@
-# Copyright (c) 2020, Intel Corporation
+# Copyright (c) 2020-2022, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -21,17 +21,18 @@
 set(TMP_SOURCES_
     ${TMP_SOURCES_}
     ${CMAKE_CURRENT_LIST_DIR}/media_copy.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/media_blt_copy.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/media_vebox_copy.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/media_render_copy.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/media_blt_copy_next.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/media_vebox_copy_next.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/media_render_copy_next.cpp
 )
 
 set(TMP_HEADERS_
     ${TMP_HEADERS_}
+    ${CMAKE_CURRENT_LIST_DIR}/media_copy_common.h
     ${CMAKE_CURRENT_LIST_DIR}/media_copy.h
-    ${CMAKE_CURRENT_LIST_DIR}/media_blt_copy.h
-    ${CMAKE_CURRENT_LIST_DIR}/media_vebox_copy.h
-    ${CMAKE_CURRENT_LIST_DIR}/media_render_copy.h
+    ${CMAKE_CURRENT_LIST_DIR}/media_blt_copy_next.h
+    ${CMAKE_CURRENT_LIST_DIR}/media_vebox_copy_next.h
+    ${CMAKE_CURRENT_LIST_DIR}/media_render_copy_next.h
 )
 
 media_add_curr_to_include_path()

@@ -26,7 +26,7 @@
 //!
 
 #include "media_copy_xe_hpm.h"
-
+#include "media_vebox_copy.h"
 MediaCopyState_Xe_Hpm::MediaCopyState_Xe_Hpm() :
     MediaCopyBaseState()
 {
@@ -41,19 +41,21 @@ MOS_STATUS MediaCopyState_Xe_Hpm::Initialize(  PMOS_INTERFACE  osInterface, MhwI
     MCPY_CHK_NULL_RETURN(mhwInterfaces);
 
     m_osInterface   = osInterface;
-    m_mhwInterfaces = mhwInterfaces;
+    m_mhwInterfacesXeHpm = mhwInterfaces;
 
-    MCPY_CHK_STATUS_RETURN(MediaCopyBaseState::Initialize(osInterface, mhwInterfaces));
+    MCPY_CHK_STATUS_RETURN(MediaCopyBaseState::Initialize(osInterface));
 
     // blt init
-    m_bltState = MOS_New(BltState_Xe_Hpm, m_osInterface, m_mhwInterfaces);
-    MCPY_CHK_NULL_RETURN(m_bltState);
-    MCPY_CHK_STATUS_RETURN(m_bltState->Initialize());
-
+    if (nullptr == m_bltState)
+    {
+        m_bltState = MOS_New(BltState_Xe_Hpm, m_osInterface, m_mhwInterfacesXeHpm);
+        MCPY_CHK_NULL_RETURN(m_bltState);
+        MCPY_CHK_STATUS_RETURN(m_bltState->Initialize());
+    }
     // vebox init
     if (nullptr == m_veboxCopyState)
     {
-        m_veboxCopyState = MOS_New(VeboxCopyState, m_osInterface, m_mhwInterfaces);
+        m_veboxCopyState = MOS_New(VeboxCopyState, m_osInterface, m_mhwInterfacesXeHpm);
         MCPY_CHK_NULL_RETURN(m_veboxCopyState);
         MCPY_CHK_STATUS_RETURN(m_veboxCopyState->Initialize());
     }
@@ -64,7 +66,7 @@ MOS_STATUS MediaCopyState_Xe_Hpm::Initialize(  PMOS_INTERFACE  osInterface, MhwI
         // render copy init
         if (nullptr == m_renderCopy )
         {
-            m_renderCopy = MOS_New(RenderCopy_Xe_Hpm, m_osInterface, m_mhwInterfaces);
+            m_renderCopy = MOS_New(RenderCopy_Xe_Hpm, m_osInterface, m_mhwInterfacesXeHpm);
             MCPY_CHK_NULL_RETURN(m_renderCopy);
             MCPY_CHK_STATUS_RETURN(m_renderCopy->Initialize());
         }
@@ -81,6 +83,20 @@ MediaCopyState_Xe_Hpm::~MediaCopyState_Xe_Hpm()
     MOS_Delete(m_bltState);
     MOS_Delete(m_veboxCopyState);
     MOS_Delete(m_renderCopy);
+    if (m_mhwInterfacesXeHpm)
+    {
+        if (m_mhwInterfacesXeHpm->m_cpInterface)
+        {
+            Delete_MhwCpInterface(m_mhwInterfacesXeHpm->m_cpInterface);
+            m_mhwInterfacesXeHpm->m_cpInterface = nullptr;
+        }
+        MOS_Delete(m_mhwInterfacesXeHpm->m_miInterface);
+        MOS_Delete(m_mhwInterfacesXeHpm->m_veboxInterface);
+        MOS_Delete(m_mhwInterfacesXeHpm->m_bltInterface);
+        MOS_Delete(m_mhwInterfacesXeHpm->m_renderInterface);
+        MOS_Delete(m_mhwInterfacesXeHpm);
+        m_mhwInterfacesXeHpm = nullptr;
+    }
 }
 
 bool MediaCopyState_Xe_Hpm::RenderFormatSupportCheck(PMOS_RESOURCE src, PMOS_RESOURCE dst)

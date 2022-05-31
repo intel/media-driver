@@ -41,9 +41,9 @@ MOS_STATUS MediaCopyStateXe_Xpm_Plus::Initialize(  PMOS_INTERFACE  osInterface, 
     MEDIA_FEATURE_TABLE* pSkuTable;
 
     m_osInterface   = osInterface;
-    m_mhwInterfaces = mhwInterfaces;
+    m_mhwInterfacesXeXpmPlus = mhwInterfaces;
 
-    MCPY_CHK_STATUS_RETURN(MediaCopyBaseState::Initialize(osInterface, mhwInterfaces));
+    MCPY_CHK_STATUS_RETURN(MediaCopyBaseState::Initialize(osInterface));
 
     pSkuTable = osInterface->pfnGetSkuTable(osInterface);
     if (MEDIA_IS_SKU(pSkuTable, FtrCCSNode))
@@ -51,7 +51,7 @@ MOS_STATUS MediaCopyStateXe_Xpm_Plus::Initialize(  PMOS_INTERFACE  osInterface, 
         // render copy init
         if (nullptr == m_renderCopy )
         {
-            m_renderCopy = MOS_New(RenderCopy_Xe_Xpm_Plus, m_osInterface, m_mhwInterfaces);
+            m_renderCopy = MOS_New(RenderCopy_Xe_Xpm_Plus, m_osInterface, m_mhwInterfacesXeXpmPlus);
             MCPY_CHK_NULL_RETURN(m_renderCopy);
             MCPY_CHK_STATUS_RETURN(m_renderCopy->Initialize());
         }
@@ -64,7 +64,7 @@ MOS_STATUS MediaCopyStateXe_Xpm_Plus::Initialize(  PMOS_INTERFACE  osInterface, 
     // blt copy init
     if (nullptr == m_bltState)
     {
-        m_bltState = MOS_New(BltStateXe_Xpm_Plus, m_osInterface, m_mhwInterfaces);
+        m_bltState = MOS_New(BltStateXe_Xpm_Plus, m_osInterface, m_mhwInterfacesXeXpmPlus);
         MCPY_CHK_NULL_RETURN(m_bltState);
         MCPY_CHK_STATUS_RETURN(m_bltState->Initialize());
     }
@@ -74,8 +74,21 @@ MOS_STATUS MediaCopyStateXe_Xpm_Plus::Initialize(  PMOS_INTERFACE  osInterface, 
 MediaCopyStateXe_Xpm_Plus::~MediaCopyStateXe_Xpm_Plus()
 {
     MOS_Delete(m_renderCopy);
-
     MOS_Delete(m_bltState);
+    if (m_mhwInterfacesXeXpmPlus)
+    {
+        if (m_mhwInterfacesXeXpmPlus->m_cpInterface)
+        {
+            Delete_MhwCpInterface(m_mhwInterfacesXeXpmPlus->m_cpInterface);
+            m_mhwInterfacesXeXpmPlus->m_cpInterface = nullptr;
+        }
+        MOS_Delete(m_mhwInterfacesXeXpmPlus->m_miInterface);
+        MOS_Delete(m_mhwInterfacesXeXpmPlus->m_veboxInterface);
+        MOS_Delete(m_mhwInterfacesXeXpmPlus->m_bltInterface);
+        MOS_Delete(m_mhwInterfacesXeXpmPlus->m_renderInterface);
+        MOS_Delete(m_mhwInterfacesXeXpmPlus);
+        m_mhwInterfacesXeXpmPlus = nullptr;
+    }
 }
 
 bool MediaCopyStateXe_Xpm_Plus::RenderFormatSupportCheck(PMOS_RESOURCE src, PMOS_RESOURCE dst)

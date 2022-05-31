@@ -29,7 +29,10 @@
 #define __MEDIA_COPY_M12_0_H__
 
 #include "media_copy.h"
-#include "media_blt_copy.h"
+
+class VeboxCopyState;
+class BltState;
+class MhwInterfaces;
 
 class MediaCopyStateM12_0: public MediaCopyBaseState
 {
@@ -114,8 +117,9 @@ protected:
 
     virtual bool IsVeboxCopySupported(PMOS_RESOURCE src, PMOS_RESOURCE dst);
 
-    BltState        * m_bltState       = nullptr;
-    VeboxCopyState  * m_veboxCopyState = nullptr;
-MEDIA_CLASS_DEFINE_END(MediaCopyStateM12_0)
+    MhwInterfaces   *m_mhwInterfaces  = nullptr;
+    BltState        *m_bltState       = nullptr;
+    VeboxCopyState  *m_veboxCopyState = nullptr;
+    MEDIA_CLASS_DEFINE_END(MediaCopyStateM12_0)
 };
 #endif // __MEDIA_COPY_M12_0_H__

@@ -26,7 +26,8 @@
 //!
 
 #include "media_copy.h"
-#include "vphal_debug.h"
+#include "media_copy_common.h"
+#include "vp_dumper.h"
 
 MediaCopyBaseState::MediaCopyBaseState():
     m_osInterface(nullptr)
@@ -37,21 +38,6 @@ MediaCopyBaseState::MediaCopyBaseState():
 MediaCopyBaseState::~MediaCopyBaseState()
 {
     MOS_STATUS              eStatus;
-
-    if (m_mhwInterfaces)
-    {
-        if (m_mhwInterfaces->m_cpInterface)
-        {
-            Delete_MhwCpInterface(m_mhwInterfaces->m_cpInterface);
-            m_mhwInterfaces->m_cpInterface = nullptr;
-        }
-        MOS_Delete(m_mhwInterfaces->m_miInterface);
-        MOS_Delete(m_mhwInterfaces->m_veboxInterface);
-        MOS_Delete(m_mhwInterfaces->m_bltInterface);
-        MOS_Delete(m_mhwInterfaces->m_renderInterface);
-        MOS_Delete(m_mhwInterfaces);
-        m_mhwInterfaces = nullptr;
-    }
 
     if (m_osInterface)
     {
@@ -82,7 +68,7 @@ MediaCopyBaseState::~MediaCopyBaseState()
 //! \return   MOS_STATUS
 //!           Return MOS_STATUS_SUCCESS if success, otherwise return failed.
 //!
-MOS_STATUS MediaCopyBaseState::Initialize(PMOS_INTERFACE osInterface, MhwInterfaces *mhwInterfaces)
+MOS_STATUS MediaCopyBaseState::Initialize(PMOS_INTERFACE osInterface)
 {
     if (m_inUseGPUMutex == nullptr)
     {
@@ -93,7 +79,7 @@ MOS_STATUS MediaCopyBaseState::Initialize(PMOS_INTERFACE osInterface, MhwInterfa
    #if (_DEBUG || _RELEASE_INTERNAL)
     if (m_surfaceDumper == nullptr)
     {
-       m_surfaceDumper = MOS_New(VphalSurfaceDumper, osInterface);
+       m_surfaceDumper = MOS_New(VpSurfaceDumper, osInterface);
        MOS_OS_CHK_NULL_RETURN(m_surfaceDumper);
     }
    #endif

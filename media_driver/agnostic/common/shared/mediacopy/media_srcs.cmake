@@ -18,44 +18,24 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-media_include_subdirectory(user_setting)
-media_include_subdirectory(mediacopy)
-
 set(TMP_SOURCES_
-    ${CMAKE_CURRENT_LIST_DIR}/mediamemdecomp.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/media_perf_profiler.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/media_user_settings_mgr.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/memory_policy_manager.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/null_hardware.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/media_debug_interface_misc.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/media_blt_copy.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/media_render_copy.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/media_vebox_copy.cpp
 )
-
 set(TMP_HEADERS_
-    ${CMAKE_CURRENT_LIST_DIR}/mediamemdecomp.h
-    ${CMAKE_CURRENT_LIST_DIR}/media_perf_profiler.h
-    ${CMAKE_CURRENT_LIST_DIR}/media_user_settings_mgr.h
-    ${CMAKE_CURRENT_LIST_DIR}/memory_policy_manager.h
+    ${CMAKE_CURRENT_LIST_DIR}/media_blt_copy.h
+    ${CMAKE_CURRENT_LIST_DIR}/media_render_copy.h
+    ${CMAKE_CURRENT_LIST_DIR}/media_vebox_copy.h
 )
-
 set(SOURCES_
     ${SOURCES_}
     ${TMP_SOURCES_}
 )
 
-set(HEADERS_
-    ${HEADERS_}
-    ${TMP_HEADERS_}
-)
-
 set(COMMON_SOURCES_
     ${COMMON_SOURCES_}
-    ${TMP_SOURCES_}
-)
-
-set(COMMON_HEADERS_
-    ${COMMON_HEADERS_}
-    ${TMP_HEADERS_}
-)
+    ${TMP_SOURCES_})
 
 source_group( "Common Files" FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
 

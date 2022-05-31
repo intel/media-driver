@@ -26,6 +26,9 @@
 //!
 
 #include "media_copy_m12_0.h"
+#include "media_vebox_copy.h"
+#include "media_blt_copy.h"
+#include "media_interfaces_mhw.h"
 
 MediaCopyStateM12_0::MediaCopyStateM12_0() :
     MediaCopyBaseState()
@@ -33,7 +36,7 @@ MediaCopyStateM12_0::MediaCopyStateM12_0() :
 
 }
 
-MOS_STATUS MediaCopyStateM12_0::Initialize(  PMOS_INTERFACE  osInterface, MhwInterfaces *mhwInterfaces)
+MOS_STATUS MediaCopyStateM12_0::Initialize(PMOS_INTERFACE  osInterface, MhwInterfaces *mhwInterfaces)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -43,7 +46,7 @@ MOS_STATUS MediaCopyStateM12_0::Initialize(  PMOS_INTERFACE  osInterface, MhwInt
     m_osInterface   = osInterface;
     m_mhwInterfaces = mhwInterfaces;
 
-    MCPY_CHK_STATUS_RETURN(MediaCopyBaseState::Initialize(osInterface, mhwInterfaces));
+    MCPY_CHK_STATUS_RETURN(MediaCopyBaseState::Initialize(osInterface));
 
     // blt init
     if ( nullptr == m_bltState )
@@ -66,6 +69,19 @@ MediaCopyStateM12_0::~MediaCopyStateM12_0()
 {
     MOS_Delete(m_bltState);
     MOS_Delete(m_veboxCopyState);
+    if (m_mhwInterfaces)
+    {
+        if (m_mhwInterfaces->m_cpInterface)
+        {
+            Delete_MhwCpInterface(m_mhwInterfaces->m_cpInterface);
+            m_mhwInterfaces->m_cpInterface = nullptr;
+        }
+        MOS_Delete(m_mhwInterfaces->m_miInterface);
+        MOS_Delete(m_mhwInterfaces->m_veboxInterface);
+        MOS_Delete(m_mhwInterfaces->m_bltInterface);
+        MOS_Delete(m_mhwInterfaces);
+        m_mhwInterfaces = nullptr;
+    }
 }
 
 bool MediaCopyStateM12_0::RenderFormatSupportCheck(PMOS_RESOURCE src, PMOS_RESOURCE dst)

@@ -29,21 +29,9 @@
 #define __MEDIA_COPY_H__
 
 #include "mos_os.h"
-#include "media_interfaces_mhw.h"
-#include "mhw_cp_interface.h"
-#include "mhw_blt.h"
-#include "mhw_vebox.h"
-#include "mhw_render.h"
-#include "media_vebox_copy.h"
+#include "mos_interface.h"
 
-#define MCPY_CHK_STATUS(_stmt)               MOS_CHK_STATUS(MOS_COMPONENT_MCPY, MOS_MCPY_SUBCOMP_SELF, _stmt)
-#define MCPY_CHK_STATUS_RETURN(_stmt)        MOS_CHK_STATUS_RETURN(MOS_COMPONENT_MCPY, MOS_MCPY_SUBCOMP_SELF, _stmt)
-#define MCPY_CHK_NULL(_ptr)                  MOS_CHK_NULL(MOS_COMPONENT_MCPY, MOS_MCPY_SUBCOMP_SELF, _ptr)
-#define MCPY_CHK_NULL_RETURN(_ptr)           MOS_CHK_NULL_RETURN(MOS_COMPONENT_MCPY, MOS_MCPY_SUBCOMP_SELF, _ptr)
-#define MCPY_ASSERTMESSAGE(_message, ...)    MOS_ASSERTMESSAGE(MOS_COMPONENT_MCPY, MOS_MCPY_SUBCOMP_SELF, _message, ##__VA_ARGS__)
-#define MCPY_NORMALMESSAGE(_message, ...)    MOS_NORMALMESSAGE(MOS_COMPONENT_MCPY, MOS_MCPY_SUBCOMP_SELF, _message, ##__VA_ARGS__)
-
-class VphalSurfaceDumper;
+class VpSurfaceDumper;
 typedef struct VPHAL_SURFACE* PVPHAL_SURFACE;
 
 typedef struct _MCPY_ENGINE_CAPS
@@ -103,7 +91,7 @@ public:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if success, otherwise return failed.
     //!
-    virtual MOS_STATUS Initialize(PMOS_INTERFACE osInterface, MhwInterfaces *mhwInterfaces);
+    virtual MOS_STATUS Initialize(PMOS_INTERFACE osInterface);
 
     //!
     //! \brief    check copy capability.
@@ -278,13 +266,12 @@ protected:
 
 public:
     PMOS_INTERFACE      m_osInterface    = nullptr;
-    MhwInterfaces      *m_mhwInterfaces  = nullptr;
     MCPY_ENGINE_CAPS    m_mcpyEngineCaps = {1,1,1,1};
     MCPY_ENGINE         m_mcpyEngine     = MCPY_ENGINE_RENDER;
     MCPY_STATE_PARAMS   m_mcpySrc        = {nullptr, MOS_MMC_DISABLED,MOS_TILE_LINEAR, MCPY_CPMODE_CLEAR, false}; // source surface.
     MCPY_STATE_PARAMS   m_mcpyDst        = {nullptr, MOS_MMC_DISABLED,MOS_TILE_LINEAR, MCPY_CPMODE_CLEAR, false}; // destination surface.
     bool                m_allowCPBltCopy  = false;  // allow cp call media copy only for output clear cases.
-    VphalSurfaceDumper  *m_surfaceDumper  = nullptr;
+    VpSurfaceDumper     *m_surfaceDumper  = nullptr;
 
 protected:
     PMOS_MUTEX           m_inUseGPUMutex = nullptr; // Mutex for in-use GPU context

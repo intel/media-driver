@@ -145,6 +145,7 @@ protected:
     //!
     virtual MOS_STATUS MediaVeboxCopy(PMOS_RESOURCE src, PMOS_RESOURCE dst){return MOS_STATUS_INVALID_PARAMETER;}
 
+    MhwInterfaces                 *m_mhwInterfacesXeXpmPlus = nullptr;
     BltStateXe_Xpm_Plus           *m_bltState       = nullptr;
     RenderCopy_Xe_Xpm_Plus        *m_renderCopy     = nullptr;
 MEDIA_CLASS_DEFINE_END(MediaCopyStateXe_Xpm_Plus)

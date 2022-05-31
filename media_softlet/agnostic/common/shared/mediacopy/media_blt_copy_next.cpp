@@ -20,30 +20,31 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     media_blt_copy.cpp
+//! \file     media_blt_copy_next.cpp
 //! \brief    Common interface used in Blitter Engine
 //! \details  Common interface used in Blitter Engine which are platform independent
 //!
 
-#include "media_blt_copy.h"
+#include "media_blt_copy_next.h"
 #define BIT( n )                            ( 1 << (n) )
 
 //!
-//! \brief    BltState constructor
-//! \details  Initialize the BltState members.
+//! \brief    BltStateNext constructor
+//! \details  Initialize the BltStateNext members.
 //! \param    osInterface
 //!           [in] Pointer to MOS_INTERFACE.
 //!
-BltState::BltState(PMOS_INTERFACE    osInterface) :
+BltStateNext::BltStateNext(PMOS_INTERFACE    osInterface) :
     m_osInterface(osInterface),
     m_mhwInterfaces(nullptr),
     m_miInterface(nullptr),
     m_bltInterface(nullptr),
     m_cpInterface(nullptr)
 {
+    MhwInterfacesNext::CreateParams params;
     MOS_ZeroMemory(&params, sizeof(params));
     params.Flags.m_blt = 1;
-    m_mhwInterfaces = MhwInterfaces::CreateFactory(params, osInterface);
+    m_mhwInterfaces = MhwInterfacesNext::CreateFactory(params, osInterface);
     if (m_mhwInterfaces != nullptr)
     {
         m_bltInterface = m_mhwInterfaces->m_bltInterface;
@@ -52,12 +53,12 @@ BltState::BltState(PMOS_INTERFACE    osInterface) :
 }
 
 //!
-//! \brief    BltState constructor
-//! \details  Initialize the BltState members.
+//! \brief    BltStateNext constructor
+//! \details  Initialize the BltStateNext members.
 //! \param    osInterface
 //!           [in] Pointer to MOS_INTERFACE.
 //!
-BltState::BltState(PMOS_INTERFACE    osInterface, MhwInterfaces* mhwInterfaces) :
+BltStateNext::BltStateNext(PMOS_INTERFACE    osInterface, MhwInterfacesNext* mhwInterfaces) :
     m_osInterface(osInterface),
     m_mhwInterfaces(nullptr),
     m_miInterface(nullptr),
@@ -70,7 +71,7 @@ BltState::BltState(PMOS_INTERFACE    osInterface, MhwInterfaces* mhwInterfaces) 
 }
 
 
-BltState::~BltState()
+BltStateNext::~BltStateNext()
 {
     // component interface will be relesed in media copy.
     if (m_mhwInterfaces)
@@ -81,12 +82,12 @@ BltState::~BltState()
 }
 
 //!
-//! \brief    BltState initialize
-//! \details  Initialize the BltState, create BLT context.
+//! \brief    BltStateNext initialize
+//! \details  Initialize the BltStateNext, create BLT context.
 //! \return   MOS_STATUS
 //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
 //!
-MOS_STATUS BltState::Initialize()
+MOS_STATUS BltStateNext::Initialize()
 {
     MOS_GPU_NODE            BltGpuNode;
     MOS_GPU_CONTEXT         BltGpuContext;
@@ -123,7 +124,7 @@ MOS_STATUS BltState::Initialize()
 //! \return   MOS_STATUS
 //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
 //!
-MOS_STATUS BltState::CopyMainSurface(
+MOS_STATUS BltStateNext::CopyMainSurface(
     PMOS_SURFACE src,
     PMOS_SURFACE dst)
 {
@@ -141,22 +142,22 @@ MOS_STATUS BltState::CopyMainSurface(
 //! \return   MOS_STATUS
 //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
 //!
-MOS_STATUS BltState::CopyMainSurface(
+MOS_STATUS BltStateNext::CopyMainSurface(
     PMOS_RESOURCE src,
     PMOS_RESOURCE dst)
 {
-    BLT_STATE_PARAM bltStateParam;
+    BLT_STATE_PARAM BltStateNextParam;
 
     BLT_CHK_NULL_RETURN(src);
     BLT_CHK_NULL_RETURN(dst);
     MOS_TraceEventExt(EVENT_MEDIA_COPY, EVENT_TYPE_START, nullptr, 0, nullptr, 0);
 
-    MOS_ZeroMemory(&bltStateParam, sizeof(BLT_STATE_PARAM));
-    bltStateParam.bCopyMainSurface = true;
-    bltStateParam.pSrcSurface      = src;
-    bltStateParam.pDstSurface      = dst;
+    MOS_ZeroMemory(&BltStateNextParam, sizeof(BLT_STATE_PARAM));
+    BltStateNextParam.bCopyMainSurface = true;
+    BltStateNextParam.pSrcSurface      = src;
+    BltStateNextParam.pDstSurface      = dst;
 
-    BLT_CHK_STATUS_RETURN(SubmitCMD(&bltStateParam));
+    BLT_CHK_STATUS_RETURN(SubmitCMD(&BltStateNextParam));
 
     MOS_TraceEventExt(EVENT_MEDIA_COPY, EVENT_TYPE_END, nullptr, 0, nullptr, 0);
     return MOS_STATUS_SUCCESS;
@@ -175,7 +176,7 @@ MOS_STATUS BltState::CopyMainSurface(
 //! \return   MOS_STATUS
 //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
 //!
-MOS_STATUS BltState::SetupBltCopyParam(
+MOS_STATUS BltStateNext::SetupBltCopyParam(
     PMHW_FAST_COPY_BLT_PARAM pMhwBltParams,
     PMOS_RESOURCE            inputSurface,
     PMOS_RESOURCE            outputSurface,
@@ -274,13 +275,13 @@ MOS_STATUS BltState::SetupBltCopyParam(
 //!
 //! \brief    Submit command2
 //! \details  Submit BLT command2
-//! \param    pBltStateParam
+//! \param    pBltStateNextParam
 //!           [in] Pointer to BLT_STATE_PARAM
 //! \return   MOS_STATUS
 //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
 //!
-MOS_STATUS BltState::SubmitCMD(
-    PBLT_STATE_PARAM pBltStateParam)
+MOS_STATUS BltStateNext::SubmitCMD(
+    PBLT_STATE_PARAM pBltStateNextParam)
 {
     MOS_STATUS                   eStatus;
     MOS_COMMAND_BUFFER           cmdBuffer;
@@ -310,8 +311,8 @@ MOS_STATUS BltState::SubmitCMD(
     MOS_SURFACE       dstResDetails;
     MOS_ZeroMemory(&srcResDetails, sizeof(MOS_SURFACE));
     MOS_ZeroMemory(&dstResDetails, sizeof(MOS_SURFACE));
-    BLT_CHK_STATUS_RETURN(m_osInterface->pfnGetResourceInfo(m_osInterface, pBltStateParam->pSrcSurface, &srcResDetails));
-    BLT_CHK_STATUS_RETURN(m_osInterface->pfnGetResourceInfo(m_osInterface, pBltStateParam->pDstSurface, &dstResDetails));
+    BLT_CHK_STATUS_RETURN(m_osInterface->pfnGetResourceInfo(m_osInterface, pBltStateNextParam->pSrcSurface, &srcResDetails));
+    BLT_CHK_STATUS_RETURN(m_osInterface->pfnGetResourceInfo(m_osInterface, pBltStateNextParam->pDstSurface, &dstResDetails));
 
     if (srcResDetails.Format != dstResDetails.Format)
     {
@@ -320,13 +321,13 @@ MOS_STATUS BltState::SubmitCMD(
     }
     planeNum = GetPlaneNum(dstResDetails.Format);
 
-    if (pBltStateParam->bCopyMainSurface)
+    if (pBltStateNextParam->bCopyMainSurface)
     {
         m_blokCopyon = true;
         BLT_CHK_STATUS_RETURN(SetupBltCopyParam(
             &fastCopyBltParam,
-            pBltStateParam->pSrcSurface,
-            pBltStateParam->pDstSurface,
+            pBltStateNextParam->pSrcSurface,
+            pBltStateNextParam->pDstSurface,
             0));
 
         MHW_MI_LOAD_REGISTER_IMM_PARAMS RegisterDwParams;
@@ -334,12 +335,12 @@ MOS_STATUS BltState::SubmitCMD(
         RegisterDwParams.dwRegister = mhw_blt_state::BCS_SWCTRL_CMD::REGISTER_OFFSET;
 
         mhw_blt_state::BCS_SWCTRL_CMD swctrl;
-        if (pBltStateParam->pSrcSurface->TileType != MOS_TILE_LINEAR)
+        if (pBltStateNextParam->pSrcSurface->TileType != MOS_TILE_LINEAR)
         {
            swctrl.DW0.TileYSource = 1;
            swctrl.DW0.Mask |= BIT(0);
         }
-        if (pBltStateParam->pDstSurface->TileType != MOS_TILE_LINEAR)
+        if (pBltStateNextParam->pDstSurface->TileType != MOS_TILE_LINEAR)
         {//output tiled
            swctrl.DW0.TileYDestination = 1;
            swctrl.DW0.Mask |= BIT(1);
@@ -358,8 +359,8 @@ MOS_STATUS BltState::SubmitCMD(
         {
             BLT_CHK_STATUS_RETURN(SetupBltCopyParam(
              &fastCopyBltParam,
-             pBltStateParam->pSrcSurface,
-             pBltStateParam->pDstSurface,
+             pBltStateNextParam->pSrcSurface,
+             pBltStateNextParam->pDstSurface,
              1));
             BLT_CHK_STATUS_RETURN(m_bltInterface->AddBlockCopyBlt(
                  &cmdBuffer,
@@ -371,8 +372,8 @@ MOS_STATUS BltState::SubmitCMD(
               {
                   BLT_CHK_STATUS_RETURN(SetupBltCopyParam(
                       &fastCopyBltParam,
-                      pBltStateParam->pSrcSurface,
-                      pBltStateParam->pDstSurface,
+                      pBltStateNextParam->pSrcSurface,
+                      pBltStateNextParam->pDstSurface,
                       2));
                   BLT_CHK_STATUS_RETURN(m_bltInterface->AddBlockCopyBlt(
                       &cmdBuffer,
@@ -399,7 +400,7 @@ MOS_STATUS BltState::SubmitCMD(
     return MOS_STATUS_SUCCESS;
 }
 
-uint32_t BltState::GetBlkCopyColorDepth(
+uint32_t BltStateNext::GetBlkCopyColorDepth(
     GMM_RESOURCE_FORMAT dstFormat,
     uint32_t            BytesPerTexel)
 {
@@ -437,7 +438,7 @@ uint32_t BltState::GetBlkCopyColorDepth(
 
  }
 
-uint32_t BltState::GetFastCopyColorDepth(
+uint32_t BltStateNext::GetFastCopyColorDepth(
      GMM_RESOURCE_FORMAT dstFormat,
      uint32_t            BytesPerTexel)
  {
@@ -471,7 +472,7 @@ uint32_t BltState::GetFastCopyColorDepth(
      }
  }
 
- int BltState::GetBytesPerTexelScaling(MOS_FORMAT format)
+ int BltStateNext::GetBytesPerTexelScaling(MOS_FORMAT format)
 {
   int  dstBytesPerTexel = 1;
 
@@ -487,7 +488,7 @@ uint32_t BltState::GetFastCopyColorDepth(
    return dstBytesPerTexel;
  }
 
-int BltState::GetPlaneNum(MOS_FORMAT format)
+int BltStateNext::GetPlaneNum(MOS_FORMAT format)
 {
 
   int  planeNum = 1;

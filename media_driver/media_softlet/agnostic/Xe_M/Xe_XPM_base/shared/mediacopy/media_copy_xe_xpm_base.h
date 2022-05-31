@@ -30,7 +30,8 @@
 
 #include "media_copy.h"
 #include "media_blt_copy_xe_xpm_base.h"
-
+class VeboxCopyState;
+class MhwInterfaces;
 class MediaCopyStateXe_Xpm_Base: public MediaCopyBaseState
 {
 public:
@@ -125,7 +126,7 @@ protected:
     virtual bool IsVeboxCopySupported(PMOS_RESOURCE src, PMOS_RESOURCE dst);
 
 protected:
-
+    MhwInterfaces      *m_mhwInterfaces  = nullptr;
     BltStateXe_Xpm     *m_bltState       = nullptr;
     VeboxCopyState     *m_veboxCopyState = nullptr;
 MEDIA_CLASS_DEFINE_END(MediaCopyStateXe_Xpm_Base)

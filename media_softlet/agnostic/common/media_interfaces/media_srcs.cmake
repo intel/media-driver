@@ -20,6 +20,7 @@
 
 set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/media_interfaces_mhw_next.h
+    ${CMAKE_CURRENT_LIST_DIR}/media_interfaces_mcpy_next.h
 )
 
 set(SOURCES_

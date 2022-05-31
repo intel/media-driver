@@ -20,68 +20,38 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     media_blt_copy.h
+//! \file     media_blt_copy_next.h
 //! \brief    Common interface and structure used in Blitter Engine
 //! \details  Common interface and structure used in Blitter Engine which are platform independent
 //!
-#ifndef __MEDIA_BLT_COPY_H__
-#define __MEDIA_BLT_COPY_H__
+#ifndef __MEDIA_BLT_COPY_NEXT_H__
+#define __MEDIA_BLT_COPY_NEXT_H__
 
-#include "media_interfaces_mhw.h"
+#include "media_interfaces_mhw_next.h"
 #include "mhw_blt.h"
 #include "mhw_mi.h"
 #include "mhw_cp_interface.h"
 #include "mos_os.h"
 #include "media_copy.h"
-#include "media_class_trace.h"
+#include "media_copy_common.h"
 
-#define BLT_CHK_STATUS(_stmt)               MOS_CHK_STATUS(MOS_COMPONENT_MCPY, MOS_MCPY_SUBCOMP_BLT, _stmt)
-#define BLT_CHK_STATUS_RETURN(_stmt)        MOS_CHK_STATUS_RETURN(MOS_COMPONENT_MCPY, MOS_MCPY_SUBCOMP_BLT, _stmt)
-#define BLT_CHK_NULL(_ptr)                  MOS_CHK_NULL(MOS_COMPONENT_MCPY, MOS_MCPY_SUBCOMP_BLT, _ptr)
-#define BLT_CHK_NULL_RETURN(_ptr)           MOS_CHK_NULL_RETURN(MOS_COMPONENT_MCPY, MOS_MCPY_SUBCOMP_BLT, _ptr)
-#define BLT_ASSERTMESSAGE(_message, ...)    MOS_ASSERTMESSAGE(MOS_COMPONENT_MCPY, MOS_MCPY_SUBCOMP_BLT, _message, ##__VA_ARGS__)
-#define BLT_BITS_PER_BYTE                   8
-
-//!
-//! \brief  Enum for CCS read/write flag
-//!
-enum CCS_FLAG
-{
- CCS_READ = 0,
- CCS_WRITE,
-};
-
-//!
-//! \brief  Structure for BLT parameter
-//!
-typedef struct _BLT_STATE_PARAM
-{
-    bool             bCopyMainSurface;
-    PMOS_RESOURCE    pSrcSurface;
-    PMOS_RESOURCE    pDstSurface;
-    bool             bCopyCCS;
-    CCS_FLAG         ccsFlag;
-    PMOS_SURFACE     pSrcCCS;
-    PMOS_SURFACE     pDstCCS;
-}BLT_STATE_PARAM, *PBLT_STATE_PARAM;
-
-class BltState
+class BltStateNext
 {
 public:
     //!
-    //! \brief    BltState constructor
-    //! \details  Initialize the BltState members.
+    //! \brief    BltStateNext constructor
+    //! \details  Initialize the BltStateNext members.
     //! \param    osInterface
     //!           [in] Pointer to MOS_INTERFACE.
     //!
-    BltState(PMOS_INTERFACE     osInterface);
-    BltState(PMOS_INTERFACE    osInterface, MhwInterfaces* mhwInterfaces);
+    BltStateNext(PMOS_INTERFACE     osInterface);
+    BltStateNext(PMOS_INTERFACE    osInterface, MhwInterfacesNext* mhwInterfaces);
 
-    virtual ~BltState();
+    virtual ~BltStateNext();
 
     //!
-    //! \brief    BltState initialize
-    //! \details  Initialize the BltState, create BLT context.
+    //! \brief    BltStateNext initialize
+    //! \details  Initialize the BltStateNext, create BLT context.
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
@@ -137,13 +107,13 @@ public:
     //!
     //! \brief    Submit command
     //! \details  Submit BLT command
-    //! \param    pBltStateParam
+    //! \param    pBltStateNextParam
     //!           [in] Pointer to BLT_STATE_PARAM
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     virtual MOS_STATUS SubmitCMD(
-        PBLT_STATE_PARAM pBltStateParam);
+        PBLT_STATE_PARAM pBltStateNextParam);
 
     //!
     //! \brief    Get Block copy color depth.
@@ -189,14 +159,13 @@ public:
     int GetPlaneNum(MOS_FORMAT format);
 
 public:
-    bool           m_blokCopyon       = false;
-    PMOS_INTERFACE m_osInterface      = nullptr;
-    MhwInterfaces *m_mhwInterfaces    = nullptr;
-    MhwMiInterface *m_miInterface     = nullptr;
-    PMHW_BLT_INTERFACE m_bltInterface = nullptr;
-    MhwCpInterface *m_cpInterface     = nullptr;
-    MhwInterfaces::CreateParams params;
-MEDIA_CLASS_DEFINE_END(BltState)
+    bool               m_blokCopyon       = false;
+    PMOS_INTERFACE     m_osInterface      = nullptr;
+    MhwInterfacesNext *m_mhwInterfaces    = nullptr;
+    MhwMiInterface    *m_miInterface      = nullptr;
+    PMHW_BLT_INTERFACE m_bltInterface     = nullptr;
+    MhwCpInterface    *m_cpInterface      = nullptr;
+    MEDIA_CLASS_DEFINE_END(BltStateNext)
 };
 
 #endif // __MEDIA_BLT_COPY_H__

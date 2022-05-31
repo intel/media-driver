@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -20,15 +20,15 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     media_vebox_copy.h
+//! \file     media_vebox_copy_next.h
 //! \brief    Common Copy interface and structure used in Vebox Engine
 //! \details  Common Copy interface and structure used in Vebox Engine
 
-#ifndef __MEDIA_VEBOX_COPY_H__
-#define __MEDIA_VEBOX_COPY_H__
+#ifndef __MEDIA_VEBOX_COPY_NEXT_H__
+#define __MEDIA_VEBOX_COPY_NEXT_H__
 
 #include "mos_interface.h"
-#include "media_interfaces_mhw.h"
+#include "media_interfaces_mhw_next.h"
 #include "mhw_vebox.h"
 #include "mhw_vebox_itf.h"
 
@@ -39,19 +39,19 @@
 #define VEBOX_COPY_ASSERTMESSAGE(_message, ...)    MOS_ASSERTMESSAGE(MOS_COMPONENT_MCPY, MOS_MCPY_SUBCOMP_VEBOX, _message, ##__VA_ARGS__)
 #define VEBOX_COPY_NORMALMESSAGE(_message, ...)    MOS_NORMALMESSAGE(MOS_COMPONENT_MCPY, MOS_MCPY_SUBCOMP_VEBOX, _message, ##__VA_ARGS__)
 
-class VeboxCopyState
+class VeboxCopyStateNext
 {
 public:
     //!
     //! \brief    Vebox Copy State constructor
-    //! \details  Initialize the VeboxCopyState members.
+    //! \details  Initialize the VeboxCopyStateNext members.
     //! \param    osInterface
     //!           [in] Pointer to MOS_INTERFACE.
     //!
-    VeboxCopyState(PMOS_INTERFACE     osInterface);
-    VeboxCopyState(PMOS_INTERFACE    osInterface, MhwInterfaces* mhwInterfaces);
+    VeboxCopyStateNext(PMOS_INTERFACE     osInterface);
+    VeboxCopyStateNext(PMOS_INTERFACE    osInterface, MhwInterfacesNext* mhwInterfaces);
 
-    virtual ~VeboxCopyState();
+    virtual ~VeboxCopyStateNext();
     //!
     //! \brief    Vebox Copy State initialize
     //! \details  Initialize the Vebox Copy State, create Vebox Copy State context.
@@ -141,14 +141,14 @@ protected:
     bool IsFormatSupported(PMOS_SURFACE surface);
 
 protected:
-    PMOS_INTERFACE m_osInterface = nullptr;
-    MhwInterfaces* m_mhwInterfaces = nullptr;
-    MhwMiInterface* m_miInterface = nullptr;
-    MhwVeboxInterface *m_veboxInterface = nullptr;
-    MhwCpInterface* m_cpInterface = nullptr;
-    MhwInterfaces::CreateParams params;
+    PMOS_INTERFACE      m_osInterface   = nullptr;
+    MhwInterfacesNext  *m_mhwInterfaces = nullptr;
+    MhwMiInterface     *m_miInterface   = nullptr;
+    MhwVeboxInterface  *m_veboxInterface = nullptr;
+    MhwCpInterface     *m_cpInterface    = nullptr;
+    MhwInterfacesNext::CreateParams params;
     std::shared_ptr<mhw::vebox::Itf> m_veboxItf = nullptr;
-MEDIA_CLASS_DEFINE_END(VeboxCopyState)
+    MEDIA_CLASS_DEFINE_END(VeboxCopyStateNext)
 };
 
-#endif //__MEDIA_VEBOX_COPY_H__
+#endif //__MEDIA_VEBOX_COPY_NEXT_H__
