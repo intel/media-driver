@@ -527,11 +527,14 @@ struct _MOS_GPUCTX_CREATOPTIONS
         uint32_t SSEUValue;
     };
 
+    uint8_t isRealTimePriority;  // 1 if context is created from real time priority command queue (run GT at higher frequency)
+
     _MOS_GPUCTX_CREATOPTIONS() : CmdBufferNumScale(MOS_GPU_CONTEXT_CREATE_DEFAULT),
         RAMode(0),
         ProtectMode(0),
         gpuNode(0),
-        SSEUValue(0){}
+        SSEUValue(0),
+        isRealTimePriority(0){}
 
     virtual ~_MOS_GPUCTX_CREATOPTIONS(){}
 };

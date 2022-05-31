@@ -631,6 +631,8 @@ protected:
 
     bool           m_preloadKernelEnabled;
 
+    uint8_t        m_queuePriority;
+
     static const uint32_t m_maxPrintBuffer;
 private:
     CmDeviceRTBase(const CmDeviceRTBase& other);

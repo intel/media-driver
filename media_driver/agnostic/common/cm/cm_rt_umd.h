@@ -65,6 +65,28 @@ CM_RT_API int32_t CreateCmDevice(MOS_CONTEXT *mosContext,
                                  uint32_t devCreateOption);
 
 //!
+//! \brief    Creates a CmDevice from a MOS context.
+//! \details  If an existing CmDevice has already associated to the MOS context,
+//!           the existing CmDevice will be returned. Otherwise, a new CmDevice
+//!           instance will be created and associatied with that MOS context.
+//! \param    mosContext
+//!           [in] pointer to MOS conetext.
+//! \param    device
+//!           [in,out] reference to the pointer to the CmDevice.
+//! \param    devCreateOption
+//!           [in] option to customize CmDevice.
+//! \param    priority
+//!           [in] priority for queue.
+//! \retval   CM_SUCCESS if the CmDevice is successfully created.
+//! \retval   CM_NULL_POINTER if pMosContext is null.
+//! \retval   CM_FAILURE otherwise.
+//!
+CM_RT_API int32_t CreateCmDevice(MOS_CONTEXT *mosContext,
+                                 CmDevice *&  device,
+                                 uint32_t devCreateOption,
+                                 uint8_t  priority);
+
+//!
 //! \brief    Destroys the CmDevice. 
 //! \details  This function also destroys surfaces, kernels, programs, samplers,
 //!           threadspaces, tasks and the queues that were created using this

@@ -284,6 +284,7 @@ int32_t CmQueueRT::Initialize()
             }
 
             ctxCreateOption.RAMode = m_queueOption.RAMode;
+            ctxCreateOption.isRealTimePriority = m_queueOption.IsRealTimePrioriy;
 
             // Create render GPU context.
             CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(
@@ -320,6 +321,8 @@ int32_t CmQueueRT::Initialize()
 
                 m_usingVirtualEngine = true;
             }
+
+            ctxCreateOption.isRealTimePriority = m_queueOption.IsRealTimePrioriy;
 
             CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(
                 CreateGpuContext(cmHalState, MOS_GPU_CONTEXT_CM_COMPUTE,

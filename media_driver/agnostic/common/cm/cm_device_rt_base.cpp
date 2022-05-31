@@ -147,7 +147,8 @@ CmDeviceRTBase::CmDeviceRTBase(uint32_t options):
     m_hasGpuCopyKernel(false),
     m_hasGpuInitKernel(false),
     m_kernelsLoaded(0),
-    m_preloadKernelEnabled(true)
+    m_preloadKernelEnabled(true),
+    m_queuePriority(CM_DEVICE_CREATE_PRIORITY_DEFAULT)
 {
     //Initialize the structures in the class
     MOS_ZeroMemory(&m_halMaxValues, sizeof(m_halMaxValues));
@@ -1627,6 +1628,7 @@ CM_RT_API int32_t CmDeviceRTBase::CreateQueue(CmQueue* &queue)
 {
     INSERT_API_CALL_LOG(GetHalState());
     CM_QUEUE_CREATE_OPTION queueCreateOption = CM_DEFAULT_QUEUE_CREATE_OPTION;
+    queueCreateOption.IsRealTimePrioriy = m_queuePriority;
 
     // Check queue type redirect is needed.
     PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)GetAccelData();

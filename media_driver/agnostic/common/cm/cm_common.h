@@ -295,6 +295,9 @@ typedef enum _CM_RETURN_CODE
 
 #define CM_DEVICE_CREATE_OPTION_TDR_DISABLE                 64  //Reserved, used only in CMRT Thin
 
+#define CM_DEVICE_CREATE_PRIORITY_DEFAULT                   0
+#define CM_DEVICE_CREATE_PRIORITY_REALTIME                  1
+
 #define CM_DEVICE_CREATE_OPTION_DEFAULT                     CM_DEVICE_CREATE_OPTION_SCRATCH_SPACE_ENABLE
 
 #define CM_DEVICE_CONFIG_SCRATCH_SPACE_SIZE_OFFSET          1
@@ -439,11 +442,12 @@ struct _CM_QUEUE_CREATE_OPTION
     unsigned int                  GPUContext              : 8; // user-provided GPU Context ordinal
     CM_QUEUE_SSEU_USAGE_HINT_TYPE SseuUsageHint           : 3;
     unsigned int                  Reserved1               : 1;
-    unsigned int                  Reserved2               : 12;
+    unsigned int                  IsRealTimePrioriy       : 1; // Create Context with real-time priority
+    unsigned int                  Reserved2               : 11;
 };
 #define CM_QUEUE_CREATE_OPTION _CM_QUEUE_CREATE_OPTION
 
-const CM_QUEUE_CREATE_OPTION CM_DEFAULT_QUEUE_CREATE_OPTION = { CM_QUEUE_TYPE_RENDER, false, 0, false, 0, CM_QUEUE_SSEU_USAGE_HINT_DEFAULT, 0, 0 };
+const CM_QUEUE_CREATE_OPTION CM_DEFAULT_QUEUE_CREATE_OPTION = { CM_QUEUE_TYPE_RENDER, false, 0, false, 0, CM_QUEUE_SSEU_USAGE_HINT_DEFAULT, 0, 0, 0};
 
 //------------------------------------------------------------------------------
 //|GT-PIN
