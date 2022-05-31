@@ -53,6 +53,11 @@ struct VdencFeatureSettings: MediaFeatureSettings
         std::function<
             MOS_STATUS(mhw::vdbox::vdenc::_MHW_PAR_T(VDENC_CMD2) & par, bool isLowDelay)> >
         vdencCmd2Settings;
+
+    std::vector<
+        std::function<
+            MOS_STATUS(mhw::vdbox::vdenc::_MHW_PAR_T(VDENC_CMD3) & par)> >
+        vdencCmd3Settings;
 };
 
 class VdencConstSettings : public MediaFeatureConstSettings
@@ -97,7 +102,7 @@ protected:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS SetVdencCmd1Settings() = 0;
+    virtual MOS_STATUS SetVdencCmd1Settings() { return MOS_STATUS_SUCCESS; };
 
     //!
     //! \brief  Prepare VDENC CMD2 related settings
@@ -121,6 +126,7 @@ MEDIA_CLASS_DEFINE_END(VdencConstSettings)
 
 #define VDENC_CMD1_LAMBDA() [&](mhw::vdbox::vdenc::_MHW_PAR_T(VDENC_CMD1) & par, bool isLowDelay) -> MOS_STATUS
 #define VDENC_CMD2_LAMBDA() [&](mhw::vdbox::vdenc::_MHW_PAR_T(VDENC_CMD2) & par, bool isLowDelay) -> MOS_STATUS
+#define VDENC_CMD3_LAMBDA() [&](mhw::vdbox::vdenc::_MHW_PAR_T(VDENC_CMD3) & par) -> MOS_STATUS
 #define VDENC_STREAMIN_STATE_LAMBDA() [&](mhw::vdbox::vdenc::_MHW_PAR_T(VDENC_STREAMIN_STATE) & par, bool cu64Align) -> MOS_STATUS
 
 #endif  // __ENCODE_CONST_SETTINGS_H__
