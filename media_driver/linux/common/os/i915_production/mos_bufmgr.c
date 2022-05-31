@@ -4141,54 +4141,82 @@ mos_bufmgr_gem_set_aub_dump(struct mos_bufmgr *bufmgr, int enable)
         "See the intel_aubdump man page for more details.\n");
 }
 
-void initialiaze_recoverable_context(struct mos_bufmgr *bufmgr, uint32_t drmContextId, bool bEnableRecoverable)
+int mos_gem_ctx_set_user_ctx_params(struct mos_linux_context *context)
 {
-    struct drm_i915_gem_context_param contextParam = {};
-    struct mos_bufmgr_gem            *bufmgr_gem   = (struct mos_bufmgr_gem *)bufmgr;
-    if (bufmgr_gem == nullptr)
+    /*
+     * INTEL_I915_CTX_CONTROL=0, 1, 2, 3
+     * 0: default, do nothing
+     * 1: disable ctx recoverable
+     * 2: disable ctx bannable
+     * 3: disable both
+     * */
+
+    if (context == nullptr)
     {
-        return;
-    }
-    contextParam.ctx_id                            = drmContextId;
-    contextParam.param                             = I915_CONTEXT_PARAM_RECOVERABLE;
-    contextParam.value                             = 0;
-    contextParam.size                              = sizeof(struct drm_i915_gem_context_param);
-    uint64_t enableRecoverable                     = 0;
-    int      ret                                   = 0;
-    if (bEnableRecoverable)
-    {
-        enableRecoverable = 1;
+        return -EINVAL;
     }
 
-    // Get original recoverable context value.
-    ret                    = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_I915_GEM_CONTEXT_GETPARAM, &contextParam);
-    uint64_t originalValue = contextParam.value;
+    int ret = 0;
+    char *user_ctx_env = getenv("INTEL_I915_CTX_CONTROL");
+    bool disable_recoverable = false;
+    bool disable_bannable = false;
+    struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *)context->bufmgr;
 
-    if (ret != 0)
+    if (user_ctx_env != nullptr)
     {
-        fprintf(stderr, "Get original recoverable value fail, ret = %d", ret);
-        return;
-    }
-    // Compare with original value.
-    if (originalValue != enableRecoverable)
-    {
-        contextParam.value = enableRecoverable;
-        ret                = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_I915_GEM_CONTEXT_SETPARAM, &contextParam);
-        if (ret != 0)
+        uint8_t  user_ctx_env_value = (uint8_t)atoi(user_ctx_env);
+        if(user_ctx_env_value > 3)
         {
-            fprintf(stderr, "Set recoverable value fail, ret = %d", ret);
-            return;
+            MOS_DBG("INTEL_I915_CTX_CONTROL: invalid value %u setting\n",
+                user_ctx_env_value);
         }
-        MOS_OS_NORMALMESSAGE("Set recoverable context value success, the original value is %d, the current value is %d",
-            originalValue,
-            contextParam.value);
+        else
+        {
+            if (user_ctx_env_value & 0x1)
+            {
+                disable_recoverable = true;
+            }
+
+            if(user_ctx_env_value & 0x2)
+            {
+                disable_bannable = true;
+            }
+        }
     }
-    else
+
+    if(disable_recoverable)
     {
-        MOS_OS_NORMALMESSAGE("the original value is %d, the current value is %d, no need to update",
-            originalValue,
-            contextParam.value);
+        ret = mos_set_context_param(context,
+                    0,
+                    I915_CONTEXT_PARAM_RECOVERABLE,
+                    0);
+        if(ret != 0) {
+            MOS_DBG("I915_CONTEXT_PARAM_RECOVERABLE failed: %s\n",
+                strerror(errno));
+        }
+        else
+        {
+            MOS_DBG("successfull to disable context recoverable\n");
+        }
     }
+
+    if(disable_bannable)
+    {
+        ret = mos_set_context_param(context,
+                    0,
+                    I915_CONTEXT_PARAM_BANNABLE,
+                    0);
+        if(ret != 0) {
+            MOS_DBG("I915_CONTEXT_PARAM_BANNABLE failed: %s\n",
+                strerror(errno));
+        }
+        else
+        {
+            MOS_DBG("successfull to disable context bannable\n");
+        }
+    }
+
+    return ret;
 }
 
 struct mos_linux_context *
@@ -4215,22 +4243,8 @@ mos_gem_context_create(struct mos_bufmgr *bufmgr)
     context->ctx_id = create.ctx_id;
     context->bufmgr = bufmgr;
 
-    char *disableRecoverableEnv = getenv("INTEL_DISABLE_RECOVERABLE_CONTEXT");
-    bool  bDisableRecoverable   = false;
-    if (disableRecoverableEnv != nullptr)
-    {
-        int disableRecoverableValue = atoi(disableRecoverableEnv);
-        if (disableRecoverableValue == 0)
-        {
-            bDisableRecoverable = false;
-        }
-        else
-        {
-            bDisableRecoverable = true;
-        }
-        initialiaze_recoverable_context(bufmgr, create.ctx_id, !bDisableRecoverable);
-    }  
-    
+    ret = mos_gem_ctx_set_user_ctx_params(context);
+
     return context;
 }
 
@@ -4869,6 +4883,8 @@ mos_gem_context_create_ext(struct mos_bufmgr *bufmgr, __u32 flags)
     context->ctx_id = create.ctx_id;
     context->bufmgr = bufmgr;
 
+    ret = mos_gem_ctx_set_user_ctx_params(context);
+
     return context;
 }
 
@@ -4960,6 +4976,8 @@ mos_gem_context_create_shared(struct mos_bufmgr *bufmgr, mos_linux_context* ctx,
         free(context);
         return nullptr;
     }
+
+    ret = mos_gem_ctx_set_user_ctx_params(context);
 
     return context;
 }
