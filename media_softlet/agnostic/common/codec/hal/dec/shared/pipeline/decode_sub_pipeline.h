@@ -153,7 +153,7 @@ protected:
 
     DecodeScalabilityPars   m_decodeScalabilityPars; //!< Decode scalability parameters
 
-MEDIA_CLASS_DEFINE_END(DecodeSubPipeline)
+MEDIA_CLASS_DEFINE_END(decode__DecodeSubPipeline)
 };
 
 }//decode

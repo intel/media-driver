@@ -132,7 +132,7 @@ protected:
 private:
     CodechalHwInterface *m_hwInterface   = nullptr;
 
-MEDIA_CLASS_DEFINE_END(DecodeScalabilitySinglePipe)
+MEDIA_CLASS_DEFINE_END(decode__DecodeScalabilitySinglePipe)
 };
 
 }

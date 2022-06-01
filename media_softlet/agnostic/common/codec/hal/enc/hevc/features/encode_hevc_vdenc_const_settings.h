@@ -284,7 +284,7 @@ protected:
     bool m_hevcVdencRoundingPrecisionEnabled = true;  //!<  Roinding Precision enabled
     bool m_hevcRdoqEnabled                   = false;
 
-MEDIA_CLASS_DEFINE_END(EncodeHevcVdencConstSettings)
+MEDIA_CLASS_DEFINE_END(encode__EncodeHevcVdencConstSettings)
 };
 
 }

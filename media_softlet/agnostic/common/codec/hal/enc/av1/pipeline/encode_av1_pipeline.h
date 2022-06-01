@@ -106,7 +106,7 @@ protected:
         uint32_t                                  index);
 #endif
 
-MEDIA_CLASS_DEFINE_END(Av1Pipeline)
+MEDIA_CLASS_DEFINE_END(encode__Av1Pipeline)
 };
 
 }

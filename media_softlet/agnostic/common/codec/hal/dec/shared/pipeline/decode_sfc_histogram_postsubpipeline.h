@@ -107,7 +107,7 @@ private:
     PMOS_INTERFACE                  m_osInterface       = nullptr; //!< MOS interface
     DecodeDownSamplingFeature*      m_downsampFeature   = nullptr; //!< Downsampling feature
 
-MEDIA_CLASS_DEFINE_END(DecodeSfcHistogramSubPipeline)
+MEDIA_CLASS_DEFINE_END(decode__DecodeSfcHistogramSubPipeline)
 };
 
 }  // namespace decode

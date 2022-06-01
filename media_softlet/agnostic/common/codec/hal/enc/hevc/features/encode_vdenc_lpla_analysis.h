@@ -578,7 +578,7 @@ namespace encode
         uint32_t                   m_statsBuffer[600][4]                                                                       = {};
         bool                       m_useDSData = false;
 
-    MEDIA_CLASS_DEFINE_END(VdencLplaAnalysis)
+    MEDIA_CLASS_DEFINE_END(encode__VdencLplaAnalysis)
     };
 } // namespace encode
 

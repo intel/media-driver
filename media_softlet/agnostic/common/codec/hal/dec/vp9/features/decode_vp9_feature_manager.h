@@ -78,7 +78,7 @@ namespace decode
         //!
         virtual MOS_STATUS CreateFeatures(void *constSettings);
 
-    MEDIA_CLASS_DEFINE_END(DecodeVp9FeatureManager)
+    MEDIA_CLASS_DEFINE_END(decode__DecodeVp9FeatureManager)
     };
 
 }

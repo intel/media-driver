@@ -566,7 +566,7 @@ protected:
 
     bool                            m_disableSfcDithering = false;
 
-MEDIA_CLASS_DEFINE_END(SfcRenderBase)
+MEDIA_CLASS_DEFINE_END(vp__SfcRenderBase)
 };
 
 

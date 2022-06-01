@@ -134,7 +134,7 @@ private:
     FilmGrainRp1Packet *    m_filmGrainRp1Pkt   = nullptr;        //!< RegressPhase1 kernel packet
     FilmGrainRp2Packet *    m_filmGrainRp2Pkt   = nullptr;        //!< RegressPhase2 kernel packet
     Av1DecodeFilmGrainG12 * m_filmGrainFeature  = nullptr;        //!< Film Grain feature
-MEDIA_CLASS_DEFINE_END(FilmGrainPreSubPipeline)
+MEDIA_CLASS_DEFINE_END(decode__FilmGrainPreSubPipeline)
 };
 
 }  // namespace decode

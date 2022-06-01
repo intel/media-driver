@@ -80,7 +80,7 @@ public:
 private:
     bool m_enabledVdenc = false;
 
-MEDIA_CLASS_DEFINE_END(EncodeScalabilityOption)
+MEDIA_CLASS_DEFINE_END(encode__EncodeScalabilityOption)
 };
 }
 #endif // !__ENCODE_SCALABILITY_OPTION_H__

@@ -159,7 +159,7 @@ protected:
     CODECHAL_STANDARD            m_codecStandard     = CODECHAL_STANDARD_MAX;
     CodecDecodeJpegChromaType    m_jpegChromaType    = jpegYUV400;
 
-MEDIA_CLASS_DEFINE_END(VpScalingFilter)
+MEDIA_CLASS_DEFINE_END(vp__VpScalingFilter)
 };
 
 struct HW_FILTER_SCALING_PARAM : public HW_FILTER_PARAM
@@ -180,7 +180,7 @@ private:
 
     HW_FILTER_SCALING_PARAM         m_Params = {};
 
-MEDIA_CLASS_DEFINE_END(HwFilterScalingParameter)
+MEDIA_CLASS_DEFINE_END(vp__HwFilterScalingParameter)
 };
 
 class VpSfcScalingParameter : public VpPacketParameter
@@ -196,7 +196,7 @@ private:
 
     VpScalingFilter m_ScalingFilter;
 
-MEDIA_CLASS_DEFINE_END(VpSfcScalingParameter)
+MEDIA_CLASS_DEFINE_END(vp__VpSfcScalingParameter)
 };
 
 class PolicySfcScalingHandler : public PolicyFeatureHandler
@@ -227,7 +227,7 @@ private:
 
     PacketParamFactory<VpSfcScalingParameter> m_PacketParamFactory;
 
-MEDIA_CLASS_DEFINE_END(PolicySfcScalingHandler)
+MEDIA_CLASS_DEFINE_END(vp__PolicySfcScalingHandler)
 };
 
 class PolicySfcColorFillHandler : public PolicyFeatureHandler
@@ -256,7 +256,7 @@ public:
         return nullptr;
     }
 
-MEDIA_CLASS_DEFINE_END(PolicySfcColorFillHandler)
+MEDIA_CLASS_DEFINE_END(vp__PolicySfcColorFillHandler)
 };
 
 class PolicySfcAlphaHandler : public PolicyFeatureHandler
@@ -285,7 +285,7 @@ public:
         return nullptr;
     }
 
-MEDIA_CLASS_DEFINE_END(PolicySfcAlphaHandler)
+MEDIA_CLASS_DEFINE_END(vp__PolicySfcAlphaHandler)
 };
 }
 #endif // !__VP_SCALING_FILTER_H__

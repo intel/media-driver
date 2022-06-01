@@ -237,7 +237,7 @@ protected:
 
     VEBOX_HVS_STATIC_DATA m_curbe = {};
 
-    MEDIA_CLASS_DEFINE_END(VpRenderHVSKernel)
+    MEDIA_CLASS_DEFINE_END(vp__VpRenderHVSKernel)
 };
 
 }  // namespace vp

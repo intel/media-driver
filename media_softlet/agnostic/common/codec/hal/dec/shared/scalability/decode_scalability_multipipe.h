@@ -268,7 +268,7 @@ protected:
 
     DecodePhase                    *m_phase = nullptr;
 
-MEDIA_CLASS_DEFINE_END(DecodeScalabilityMultiPipe)
+MEDIA_CLASS_DEFINE_END(decode__DecodeScalabilityMultiPipe)
 };
 }  // namespace decode
 #endif  // !__DECODE_SCALABILITY_MULTIPIPE_H__

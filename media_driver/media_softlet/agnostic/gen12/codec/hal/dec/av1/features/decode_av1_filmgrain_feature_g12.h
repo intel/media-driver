@@ -368,7 +368,7 @@ protected:
     BufferArray *                     m_yGammaLUTSurfaceArray                 = nullptr;                      //!< Input Y Gamma LUT surface, size = 256 * sizeof(short), 1D buffer
     BufferArray *                     m_uGammaLUTSurfaceArray                 = nullptr;                      //!< Input U Gamma LUT surface, size = 256 * sizeof(short), 1D buffer
     BufferArray *                     m_vGammaLUTSurfaceArray                 = nullptr;                      //!< Input V Gamma LUT surface, size = 256 * sizeof(short), 1D buffer
-MEDIA_CLASS_DEFINE_END(Av1DecodeFilmGrainG12)
+MEDIA_CLASS_DEFINE_END(decode__Av1DecodeFilmGrainG12)
 };
 
 }  // namespace decode

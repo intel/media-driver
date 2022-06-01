@@ -122,7 +122,7 @@ protected:
 #if (_DEBUG || _RELEASE_INTERNAL)
     uint32_t                  m_dbgOvrdWidthInMinCb = 0; //!< debug override for picture width in min ctb
 #endif
-MEDIA_CLASS_DEFINE_END(HevcDecodeTilePktM12)
+MEDIA_CLASS_DEFINE_END(decode__HevcDecodeTilePktM12)
 };
 
 }  // namespace decode

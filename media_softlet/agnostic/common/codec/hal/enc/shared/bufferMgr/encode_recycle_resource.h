@@ -140,7 +140,7 @@ protected:
 
     std::map<RecycleResId, RecycleQueue *> m_resourceQueues{};  //!< resource queues
 
-MEDIA_CLASS_DEFINE_END(RecycleResource)
+MEDIA_CLASS_DEFINE_END(encode__RecycleResource)
 };
 }  // namespace encode
 #endif  // !__ENCODE_RECYCLE_RESOURCE_H__

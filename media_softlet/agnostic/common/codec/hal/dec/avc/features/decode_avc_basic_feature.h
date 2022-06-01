@@ -180,7 +180,7 @@ protected:
     MhwVdboxMfxInterface *m_mfxInterface = nullptr;
     PMOS_INTERFACE        m_osInterface  = nullptr;
 
-MEDIA_CLASS_DEFINE_END(AvcBasicFeature)
+MEDIA_CLASS_DEFINE_END(decode__AvcBasicFeature)
 };
 
 }//decode

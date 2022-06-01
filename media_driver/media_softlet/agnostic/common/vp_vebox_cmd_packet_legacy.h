@@ -868,7 +868,7 @@ protected:
     uint32_t                    m_inputDepth               = 0;
     std::shared_ptr<mhw::vebox::Itf> m_veboxItf            = nullptr;
 
-MEDIA_CLASS_DEFINE_END(VpVeboxCmdPacketLegacy)
+MEDIA_CLASS_DEFINE_END(vp__VpVeboxCmdPacketLegacy)
 };
 
 }

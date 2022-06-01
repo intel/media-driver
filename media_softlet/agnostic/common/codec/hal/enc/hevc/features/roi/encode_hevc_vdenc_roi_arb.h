@@ -64,7 +64,7 @@ protected:
     uint8_t m_roiCtrl    = 0;
     uint8_t m_maxCuSize  = 0;
 
-MEDIA_CLASS_DEFINE_END(ArbROI)
+MEDIA_CLASS_DEFINE_END(encode__ArbROI)
 };
 }  // namespace encode
 

@@ -70,7 +70,7 @@ protected:
 
     VP_SURFACE *m_tempFieldSurface = nullptr;
 
-MEDIA_CLASS_DEFINE_END(SfcRenderXe_Xpm_Base)
+MEDIA_CLASS_DEFINE_END(vp__SfcRenderXe_Xpm_Base)
 };
 
 }

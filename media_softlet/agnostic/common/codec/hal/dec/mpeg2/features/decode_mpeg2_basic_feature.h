@@ -212,7 +212,7 @@ protected:
     MhwVdboxMfxInterface *m_mfxInterface = nullptr;
     PMOS_INTERFACE        m_osInterface  = nullptr;
 
-MEDIA_CLASS_DEFINE_END(Mpeg2BasicFeature)
+MEDIA_CLASS_DEFINE_END(decode__Mpeg2BasicFeature)
 };
 
 }//decode

@@ -59,7 +59,7 @@ protected:
     MOS_STATUS SetVdencCmd1Settings() override;
 
     MOS_STATUS SetVdencCmd2Settings() override;
-MEDIA_CLASS_DEFINE_END(EncodeHevcVdencConstSettingsXe_Xpm_Base)
+MEDIA_CLASS_DEFINE_END(encode__EncodeHevcVdencConstSettingsXe_Xpm_Base)
 };
 
 

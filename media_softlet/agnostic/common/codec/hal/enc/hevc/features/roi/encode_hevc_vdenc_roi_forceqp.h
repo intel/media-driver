@@ -80,7 +80,7 @@ protected:
 private:
 
     
-MEDIA_CLASS_DEFINE_END(ForceQPROI)
+MEDIA_CLASS_DEFINE_END(encode__ForceQPROI)
 };
 
 }  // namespace encode

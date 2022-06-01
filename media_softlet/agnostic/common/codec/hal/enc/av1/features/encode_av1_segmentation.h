@@ -132,7 +132,7 @@ protected:
 
     bool m_hasZeroSegmentQIndex = false;                     //!< Indicates if any of segments has zero qIndex
 
-MEDIA_CLASS_DEFINE_END(Av1Segmentation)
+MEDIA_CLASS_DEFINE_END(encode__Av1Segmentation)
 };
 
 }  // namespace encode

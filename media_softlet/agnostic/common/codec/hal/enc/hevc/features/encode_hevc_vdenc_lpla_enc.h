@@ -103,7 +103,7 @@ namespace encode
         uint32_t             m_averageFrameSize         = 0;            //!< Average frame size based on targed bitrate and frame rate, in unit of bits
         EncodeLPLA *         m_lplaHelper               = nullptr;      //!< Lookahead helper
 
-    MEDIA_CLASS_DEFINE_END(HEVCVdencLplaEnc)
+    MEDIA_CLASS_DEFINE_END(encode__HEVCVdencLplaEnc)
     };
 } // encode
 

@@ -110,7 +110,7 @@ protected:
     std::map<BufferType, void *>                        m_buffers      = {};  //!< buffers attached with current slot
     std::map<BufferType, std::shared_ptr<BufferQueue> > m_bufferQueues = {};  //!< buffer queue for all types
 
-MEDIA_CLASS_DEFINE_END(BufferSlot)
+MEDIA_CLASS_DEFINE_END(encode__BufferSlot)
 };
 }
 #endif // !__ENCODE_TRACKED_BUFFER_SLOT_H__

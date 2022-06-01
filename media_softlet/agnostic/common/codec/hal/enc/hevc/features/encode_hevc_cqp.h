@@ -137,7 +137,7 @@ protected:
     uint16_t m_rdoqIntraTuThresholdOverride = 0;      //!< Override RDOQ intra TU threshold
 #endif
 
-MEDIA_CLASS_DEFINE_END(HevcEncodeCqp)
+MEDIA_CLASS_DEFINE_END(encode__HevcEncodeCqp)
 };
 
 }  // namespace encode

@@ -243,7 +243,7 @@ protected:
     std::map<BufferType, std::shared_ptr<BufferQueue> > m_bufferQueue = {};  //!< buffer queues
     std::map<BufferType, std::shared_ptr<BufferQueue> > m_oldQueue = {};     //!< old queues for resolution change
 
-MEDIA_CLASS_DEFINE_END(TrackedBuffer)
+MEDIA_CLASS_DEFINE_END(encode__TrackedBuffer)
 };
 }  // namespace encode
 #endif  // !__ENCODE_BUFFER_TRACKER_H__

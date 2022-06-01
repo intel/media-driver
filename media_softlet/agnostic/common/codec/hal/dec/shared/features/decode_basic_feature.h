@@ -157,7 +157,7 @@ protected:
     bool                   m_isMmcEnabled = false;   //!< Indicate MMC enabled for current picture
 #endif
 
-MEDIA_CLASS_DEFINE_END(DecodeBasicFeature)
+MEDIA_CLASS_DEFINE_END(decode__DecodeBasicFeature)
 };
 
 }//decode

@@ -85,7 +85,7 @@ public:
 
 protected:
     bool m_disableSfcDithering = false;
-MEDIA_CLASS_DEFINE_END(VpPlatformInterfaceXe_Xpm)
+MEDIA_CLASS_DEFINE_END(vp__VpPlatformInterfaceXe_Xpm)
 };
 
 }

@@ -101,7 +101,7 @@ protected:
     MhwVdboxHcpInterface * m_hcpInterface = nullptr;
     PMOS_INTERFACE        m_osInterface  = nullptr;
 
-MEDIA_CLASS_DEFINE_END(HevcBasicFeature)
+MEDIA_CLASS_DEFINE_END(decode__HevcBasicFeature)
 };
 
 }  // namespace encode

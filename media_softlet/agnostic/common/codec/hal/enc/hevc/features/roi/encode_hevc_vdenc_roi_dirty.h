@@ -247,7 +247,7 @@ protected:
     uint8_t    m_numDirtyRects = 0;
     CODEC_ROI *m_dirtyRegions  = nullptr;
 
-MEDIA_CLASS_DEFINE_END(DirtyROI)
+MEDIA_CLASS_DEFINE_END(encode__DirtyROI)
 };
 
 }  // namespace encode

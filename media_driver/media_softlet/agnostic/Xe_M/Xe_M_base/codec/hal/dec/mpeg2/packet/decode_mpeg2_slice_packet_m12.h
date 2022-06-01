@@ -45,7 +45,7 @@ namespace decode
         virtual ~Mpeg2DecodeSlcPktM12(){};
 
         virtual MOS_STATUS Execute(MHW_BATCH_BUFFER& batchBuffer, uint16_t slcIdx) override;
-    MEDIA_CLASS_DEFINE_END(Mpeg2DecodeSlcPktM12)
+    MEDIA_CLASS_DEFINE_END(decode__Mpeg2DecodeSlcPktM12)
     };
 }  // namespace decode
 #endif

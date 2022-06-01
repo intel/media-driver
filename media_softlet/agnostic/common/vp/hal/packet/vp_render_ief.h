@@ -126,7 +126,7 @@ protected:
     //brief  Const IEF R3C coefficient array
     static const uint32_t           s_r3c[s_iefMaxItem];
 
-MEDIA_CLASS_DEFINE_END(VpIef)
+MEDIA_CLASS_DEFINE_END(vp__VpIef)
 };
 
 }

@@ -54,7 +54,7 @@ private:
     bool             m_completeJpegScan = false;  //to indicate the scan was complete
     bool             m_completeBitStream = false;
 
-MEDIA_CLASS_DEFINE_END(DecodeJpegInputBitstream)
+MEDIA_CLASS_DEFINE_END(decode__DecodeJpegInputBitstream)
 };
 
 }//decode

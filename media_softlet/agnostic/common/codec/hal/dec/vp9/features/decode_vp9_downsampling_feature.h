@@ -45,7 +45,7 @@ protected:
     virtual MOS_STATUS UpdateDecodeTarget(MOS_SURFACE &surface) override;
     virtual MOS_STATUS GetDecodeTargetSize(SurfaceWidthT &width, SurfaceHeightT &height) override;
 
-MEDIA_CLASS_DEFINE_END(Vp9DownSamplingFeature)
+MEDIA_CLASS_DEFINE_END(decode__Vp9DownSamplingFeature)
 };
 }
 

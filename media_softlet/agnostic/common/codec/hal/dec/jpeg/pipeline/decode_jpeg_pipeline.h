@@ -133,7 +133,7 @@ protected:
 
     JpegBasicFeature *m_basicFeature = nullptr;  //!< Jpeg Basic Feature
 
-MEDIA_CLASS_DEFINE_END(JpegPipeline)
+MEDIA_CLASS_DEFINE_END(decode__JpegPipeline)
 };
 
 }

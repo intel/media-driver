@@ -238,7 +238,7 @@ namespace decode
         PMOS_SURFACE m_tempAltRefSurf                              = nullptr;
 #endif
 
-MEDIA_CLASS_DEFINE_END(Vp9DecodePicPktXe_M_Base)
+MEDIA_CLASS_DEFINE_END(decode__Vp9DecodePicPktXe_M_Base)
     };
 
 }  // namespace decode

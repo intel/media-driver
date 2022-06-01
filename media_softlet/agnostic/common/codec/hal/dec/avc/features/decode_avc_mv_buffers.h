@@ -47,7 +47,7 @@ protected:
     uint16_t m_picWidthInMB  = 0;
     uint16_t m_picHeightInMB = 0;
 
-MEDIA_CLASS_DEFINE_END(AvcMvBufferOpInf)
+MEDIA_CLASS_DEFINE_END(decode__AvcMvBufferOpInf)
 };
 
 }  // namespace decode

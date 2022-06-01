@@ -55,7 +55,7 @@ protected:
     MhwCpInterface *    m_cpInterface  = nullptr;
     PMOS_INTERFACE      m_osInterface  = nullptr;
 
-MEDIA_CLASS_DEFINE_END(EncodeCp)
+MEDIA_CLASS_DEFINE_END(encode__EncodeCp)
 };
 }
 #endif //__ENCODECP_H__

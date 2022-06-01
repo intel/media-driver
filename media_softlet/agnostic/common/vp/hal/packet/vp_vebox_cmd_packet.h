@@ -1109,7 +1109,7 @@ protected:
     MediaFeatureManager        *m_featureManager           = nullptr;
     std::shared_ptr<mhw::mi::Itf> m_miItf                  = nullptr;
 
-MEDIA_CLASS_DEFINE_END(VpVeboxCmdPacket)
+MEDIA_CLASS_DEFINE_END(vp__VpVeboxCmdPacket)
 };
 
 }

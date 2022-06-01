@@ -103,7 +103,7 @@ namespace encode
         bool m_bEnableGPUWeightedPrediction = false;
         HevcBasicFeature *m_basicFeature  = nullptr;
 
-    MEDIA_CLASS_DEFINE_END(HevcVdencWeightedPred)
+    MEDIA_CLASS_DEFINE_END(encode__HevcVdencWeightedPred)
     };
 
 }  // namespace encode

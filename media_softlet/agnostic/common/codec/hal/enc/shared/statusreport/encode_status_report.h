@@ -422,7 +422,7 @@ namespace encode {
         static const uint32_t  m_maxCodecFuncNum = 12;
         static const uint32_t  m_codecFuncToFuncIdPairs[m_maxCodecFuncNum];
 
-    MEDIA_CLASS_DEFINE_END(EncoderStatusReport)
+    MEDIA_CLASS_DEFINE_END(encode__EncoderStatusReport)
     };
 }
 

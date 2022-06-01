@@ -146,7 +146,7 @@ namespace encode
 
         Av1BasicFeature    *m_basicFeature = nullptr;  //!< AV1 Basic Feature used in each frame
 
-    MEDIA_CLASS_DEFINE_END(Av1BackAnnotationPkt)
+    MEDIA_CLASS_DEFINE_END(encode__Av1BackAnnotationPkt)
     };
 
 }  // namespace encode

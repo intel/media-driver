@@ -398,7 +398,7 @@ protected:
         anInputUGammaLut,
         anInputVGammaLut,
     };
-MEDIA_CLASS_DEFINE_END(FilmGrainAppNoisePkt)
+MEDIA_CLASS_DEFINE_END(decode__FilmGrainAppNoisePkt)
 };
 }
 

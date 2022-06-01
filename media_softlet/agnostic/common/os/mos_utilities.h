@@ -2693,6 +2693,7 @@ public:
 
 private:
     PMOS_MUTEX m_lock = nullptr;
+MEDIA_CLASS_DEFINE_END(MosMutex)
 };
 
 #include "mos_util_debug.h"
@@ -3068,6 +3069,7 @@ private:
     static std::shared_ptr<PerfUtility> instance;
     static std::mutex perfMutex;
     std::map<std::string, std::vector<Tick>*> records {};
+MEDIA_CLASS_DEFINE_END(PerfUtility)
 };
 
 #endif // __MOS_UTILITIES_H__

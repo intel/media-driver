@@ -129,7 +129,7 @@ private:
     MOS_RESOURCE *m_deltaQpBuffer = nullptr;
     MOS_RESOURCE *m_hucRoiOutput = nullptr;
 
-MEDIA_CLASS_DEFINE_END(HucForceQpROI)
+MEDIA_CLASS_DEFINE_END(encode__HucForceQpROI)
 };
 
 }  // namespace encode

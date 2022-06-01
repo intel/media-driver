@@ -94,7 +94,7 @@ public:
     virtual bool IsVeboxScalabilitywith4K(
         VP_MHWINTERFACE           vpMhwInterface);
 
-    MEDIA_CLASS_DEFINE_END(VpPlatformInterfaceG12Tgllp)
+    MEDIA_CLASS_DEFINE_END(vp__VpPlatformInterfaceG12Tgllp)
 };
 
 }

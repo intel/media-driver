@@ -332,7 +332,7 @@ protected:
 
     uint32_t m_recycledBufStatusNum[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM] = {0};  //!< Recycled buffer status num list
 
-MEDIA_CLASS_DEFINE_END(EncodePipeline)
+MEDIA_CLASS_DEFINE_END(encode__EncodePipeline)
 };
 
 }  // namespace encode

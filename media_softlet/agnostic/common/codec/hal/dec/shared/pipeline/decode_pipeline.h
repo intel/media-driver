@@ -503,7 +503,7 @@ protected:
 
     PMOS_SURFACE            m_tempOutputSurf = nullptr;
 
-MEDIA_CLASS_DEFINE_END(DecodePipeline)
+MEDIA_CLASS_DEFINE_END(decode__DecodePipeline)
 };
 
 }//decode

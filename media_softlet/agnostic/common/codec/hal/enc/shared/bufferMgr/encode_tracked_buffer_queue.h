@@ -118,7 +118,7 @@ protected:
 
     ResourceType m_resourceType = ResourceType::bufferResource;
 
-MEDIA_CLASS_DEFINE_END(BufferQueue)
+MEDIA_CLASS_DEFINE_END(encode__BufferQueue)
 };
 
 }  // namespace encode

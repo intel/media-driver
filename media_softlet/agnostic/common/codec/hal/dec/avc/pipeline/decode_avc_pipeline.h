@@ -148,7 +148,7 @@ protected:
     HucCopyPktItf   *m_formatMonoPicPkt  = nullptr;          //!< Format Avc Mono Chroma with HuC Copy
     AvcBasicFeature *m_basicFeature     = nullptr;           //!< Avc Basic Feature
 
-MEDIA_CLASS_DEFINE_END(AvcPipeline)
+MEDIA_CLASS_DEFINE_END(decode__AvcPipeline)
 };
 
 }

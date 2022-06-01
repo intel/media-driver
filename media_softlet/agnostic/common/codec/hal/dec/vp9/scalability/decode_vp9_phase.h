@@ -92,7 +92,7 @@ protected:
     Vp9Pipeline             *m_pipeline = nullptr;
     DecodeScalabilityOption &m_scalabOption;
 
-MEDIA_CLASS_DEFINE_END(Vp9Phase)
+MEDIA_CLASS_DEFINE_END(decode__Vp9Phase)
 };
 
 }

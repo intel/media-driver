@@ -1110,7 +1110,7 @@ protected:
     std::shared_ptr<mhw::mi::Itf> m_miItf                  = nullptr;
     std::shared_ptr<mhw::vebox::Itf> m_veboxItf            = nullptr;
 
-MEDIA_CLASS_DEFINE_END(VpVeboxCmdPacketNext)
+MEDIA_CLASS_DEFINE_END(vp__VpVeboxCmdPacketNext)
 };
 
 }

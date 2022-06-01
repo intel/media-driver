@@ -74,7 +74,7 @@ protected:
     uint32_t m_HVSStrength = 0;
     uint32_t m_HVSFormat   = 0;
 
-MEDIA_CLASS_DEFINE_END(VpDnFilter)
+MEDIA_CLASS_DEFINE_END(vp__VpDnFilter)
 };
 
 struct HW_FILTER_DN_PARAM : public HW_FILTER_PARAM
@@ -95,7 +95,7 @@ public:
 private:
     HW_FILTER_DN_PARAM m_Params = {};
 
-MEDIA_CLASS_DEFINE_END(HwFilterDnParameter)
+MEDIA_CLASS_DEFINE_END(vp__HwFilterDnParameter)
 };
 
 class VpVeboxDnParameter : public VpPacketParameter
@@ -112,7 +112,7 @@ private:
 
     VpDnFilter m_dnFilter;
 
-MEDIA_CLASS_DEFINE_END(VpVeboxDnParameter)
+MEDIA_CLASS_DEFINE_END(vp__VpVeboxDnParameter)
 };
 
 class PolicyVeboxDnHandler : public PolicyFeatureHandler
@@ -138,7 +138,7 @@ public:
 private:
     PacketParamFactory<VpVeboxDnParameter> m_PacketParamFactory;
 
-MEDIA_CLASS_DEFINE_END(PolicyVeboxDnHandler)
+MEDIA_CLASS_DEFINE_END(vp__PolicyVeboxDnHandler)
 };
 
 /*****************DN HVS Calculate Kernel********************/
@@ -156,7 +156,7 @@ private:
 
     VpDnFilter m_DnFilter;
 
-    MEDIA_CLASS_DEFINE_END(VpRenderDnHVSCalParameter)
+    MEDIA_CLASS_DEFINE_END(vp__VpRenderDnHVSCalParameter)
 };
 
 class PolicyRenderDnHVSCalHandler : public PolicyFeatureHandler
@@ -182,7 +182,7 @@ public:
 private:
     PacketParamFactory<VpRenderDnHVSCalParameter> m_PacketParamFactory;
 
-    MEDIA_CLASS_DEFINE_END(PolicyRenderDnHVSCalHandler)
+    MEDIA_CLASS_DEFINE_END(vp__PolicyRenderDnHVSCalHandler)
 };
 }
 #endif

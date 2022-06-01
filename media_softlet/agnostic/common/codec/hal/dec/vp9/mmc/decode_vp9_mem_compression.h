@@ -78,7 +78,7 @@ protected:
     PMOS_INTERFACE m_osInterface = nullptr;
     uint8_t        m_skipMask    = 0;
 
-MEDIA_CLASS_DEFINE_END(Vp9DecodeMemComp)
+MEDIA_CLASS_DEFINE_END(decode__Vp9DecodeMemComp)
 };
 }  // namespace decode
 

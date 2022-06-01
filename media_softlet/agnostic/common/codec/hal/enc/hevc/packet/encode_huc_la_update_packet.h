@@ -115,7 +115,7 @@ protected:
     HevcBasicFeature              *m_basicFeature = nullptr;  //!< Hevc Basic Feature used in each frame
     std::shared_ptr<mhw::mi::Itf> m_miItf         = nullptr;
 
-MEDIA_CLASS_DEFINE_END(HucLaUpdatePkt)
+MEDIA_CLASS_DEFINE_END(encode__HucLaUpdatePkt)
 };
 }  // namespace encode
 

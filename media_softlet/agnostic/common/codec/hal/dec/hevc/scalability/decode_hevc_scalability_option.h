@@ -62,7 +62,7 @@ public:
     //!
     virtual MOS_STATUS SetScalabilityOption(ScalabilityPars *params) override;
 
-MEDIA_CLASS_DEFINE_END(DecodeHevcScalabilityOption)
+MEDIA_CLASS_DEFINE_END(decode__DecodeHevcScalabilityOption)
 };
 
 }

@@ -71,7 +71,7 @@ protected:
     virtual MOS_STATUS ActivateVdencTileReplayVideoPackets();
     virtual MOS_STATUS CreateFeatureManager() override;
 
-MEDIA_CLASS_DEFINE_END(HevcVdencPipeline)
+MEDIA_CLASS_DEFINE_END(encode__HevcVdencPipeline)
 };
 
 }

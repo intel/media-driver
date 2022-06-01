@@ -60,7 +60,7 @@ public:
     //!
     virtual MOS_STATUS Init(void *settings) override;
 
-MEDIA_CLASS_DEFINE_END(EncodeFeatureManager)
+MEDIA_CLASS_DEFINE_END(encode__EncodeFeatureManager)
 };
 
 }

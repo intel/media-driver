@@ -152,7 +152,7 @@ protected:
     //! \brief Hcp Interface
     MhwVdboxHcpInterface *m_hcpInterface = nullptr;
 
-MEDIA_CLASS_DEFINE_END(Vp9BasicFeature)
+MEDIA_CLASS_DEFINE_END(decode__Vp9BasicFeature)
 };
 
 }  // namespace decode

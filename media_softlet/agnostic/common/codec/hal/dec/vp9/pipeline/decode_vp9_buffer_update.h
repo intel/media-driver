@@ -114,7 +114,7 @@ private:
     HucCopyPktItf     *m_sgementbufferResetPkt = nullptr;  //!< Segment id reset packet
     PMOS_BUFFER        m_segmentInitBuffer     = nullptr; //!< Segment id init buffer
 
-MEDIA_CLASS_DEFINE_END(DecodeVp9BufferUpdate)
+MEDIA_CLASS_DEFINE_END(decode__DecodeVp9BufferUpdate)
 };
 
 }

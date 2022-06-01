@@ -51,7 +51,7 @@ public:
         MediaTask           *task,
         CodechalHwInterface *hwInterface) = 0;
 
-MEDIA_CLASS_DEFINE_END(HucPacketCreatorBase)
+MEDIA_CLASS_DEFINE_END(decode__HucPacketCreatorBase)
 };
 
 }  // namespace decode

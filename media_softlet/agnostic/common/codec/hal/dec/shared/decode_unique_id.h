@@ -47,7 +47,7 @@ private:
     static uint32_t m_decodeUniqueId;
     static Mutex    m_mutex;
 
-MEDIA_CLASS_DEFINE_END(DecodeUniqueId)
+MEDIA_CLASS_DEFINE_END(decode__DecodeUniqueId)
 };
 
 #define DeclareDecodeUniqueId(type, name) \

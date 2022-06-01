@@ -71,7 +71,7 @@ protected:
     PVEBOX_DI_PARAMS            m_pVeboxDiParams = nullptr;
     PRENDER_DI_FMD_PARAMS       m_pRenderDiFmdParams = nullptr;
 
-MEDIA_CLASS_DEFINE_END(VpDiFilter)
+MEDIA_CLASS_DEFINE_END(vp__VpDiFilter)
 };
 
 struct HW_FILTER_DI_PARAM : public HW_FILTER_PARAM
@@ -92,7 +92,7 @@ public:
 private:
     HW_FILTER_DI_PARAM m_Params = {};
 
-MEDIA_CLASS_DEFINE_END(HwFilterDiParameter)
+MEDIA_CLASS_DEFINE_END(vp__HwFilterDiParameter)
 };
 
 class VpDiParameter : public VpPacketParameter
@@ -109,7 +109,7 @@ private:
 
     VpDiFilter m_diFilter;
 
-MEDIA_CLASS_DEFINE_END(VpDiParameter)
+MEDIA_CLASS_DEFINE_END(vp__VpDiParameter)
 };
 
 class PolicyDiHandler : public PolicyFeatureHandler
@@ -136,7 +136,7 @@ public:
 private:
     PacketParamFactory<VpDiParameter> m_PacketParamFactory;
 
-MEDIA_CLASS_DEFINE_END(PolicyDiHandler)
+MEDIA_CLASS_DEFINE_END(vp__PolicyDiHandler)
 };
 }
 #endif

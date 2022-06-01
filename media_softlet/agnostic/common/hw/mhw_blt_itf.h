@@ -53,6 +53,7 @@ public:
     virtual ~Itf() = default;
 
     _BLT_CMD_DEF(_MHW_CMD_ALL_DEF_FOR_ITF);
+MEDIA_CLASS_DEFINE_END(mhw__blt__Itf)
 };
 }  // namespace blt
 }  // namespace mhw

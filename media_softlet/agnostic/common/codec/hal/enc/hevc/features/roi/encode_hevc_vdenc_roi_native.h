@@ -92,7 +92,7 @@ protected:
         StreamInParams *streaminParams,
         HevcVdencStreamInState *data) override;
 
-MEDIA_CLASS_DEFINE_END(NativeROI)
+MEDIA_CLASS_DEFINE_END(encode__NativeROI)
 };
 
 }  // namespace encode

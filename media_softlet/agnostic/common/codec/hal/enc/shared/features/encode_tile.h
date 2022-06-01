@@ -514,7 +514,7 @@ protected:
 
     bool              m_enableTileReplay = false;  //!< TileReplay Enable
 
-MEDIA_CLASS_DEFINE_END(EncodeTile)
+MEDIA_CLASS_DEFINE_END(encode__EncodeTile)
 };
 
 }  // namespace encode

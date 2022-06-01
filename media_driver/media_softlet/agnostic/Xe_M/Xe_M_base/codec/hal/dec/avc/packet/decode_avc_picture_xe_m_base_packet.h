@@ -179,7 +179,7 @@ namespace decode
 #if MOS_EVENT_TRACE_DUMP_SUPPORTED
         PMOS_SURFACE m_tempRefSurf = nullptr;
 #endif
-    MEDIA_CLASS_DEFINE_END(AvcDecodePicPktXe_M_Base)
+    MEDIA_CLASS_DEFINE_END(decode__AvcDecodePicPktXe_M_Base)
     };
 
 }  // namespace decode

@@ -34,7 +34,7 @@ public:
 
 private:
     void InitKernelParams();
-MEDIA_CLASS_DEFINE_END(VpKernelConfigM12_Base)
+MEDIA_CLASS_DEFINE_END(vp__VpKernelConfigM12_Base)
 };
 }
 #endif // __VP_KERNEL_CONFIG_M12_BASE_H__

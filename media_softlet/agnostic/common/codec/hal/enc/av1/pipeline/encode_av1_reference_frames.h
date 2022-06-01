@@ -248,7 +248,7 @@ protected:
         uint8_t value;
     } m_refFrameBiasFlagsForPak, m_refFrameBiasFlagsForRefManagement;
 
-MEDIA_CLASS_DEFINE_END(Av1ReferenceFrames)
+MEDIA_CLASS_DEFINE_END(encode__Av1ReferenceFrames)
 };
 
 }  // namespace encode

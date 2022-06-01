@@ -64,7 +64,7 @@ public:
 protected:
     DecodeAllocator* m_allocator;                        //!< Decode allocator
 
-MEDIA_CLASS_DEFINE_END(DecodePredication)
+MEDIA_CLASS_DEFINE_END(decode__DecodePredication)
 };
 
 }//decode

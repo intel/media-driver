@@ -74,7 +74,7 @@ public:
         StreamInParams *streaminParams,
         HevcVdencStreamInState *data) override;
 
-MEDIA_CLASS_DEFINE_END(ForceDeltaQPROI)
+MEDIA_CLASS_DEFINE_END(encode__ForceDeltaQPROI)
 };
 
 }  // namespace encode

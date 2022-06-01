@@ -170,7 +170,7 @@ namespace decode {
         uint32_t m_slicePatchListSize = 0;
         uint32_t m_mbStatesSize = 0;
         uint32_t m_mbPatchListSize = 0;
-    MEDIA_CLASS_DEFINE_END(Mpeg2DecodePktXe_M_Base)
+    MEDIA_CLASS_DEFINE_END(decode__Mpeg2DecodePktXe_M_Base)
     };
 
 }

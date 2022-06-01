@@ -571,7 +571,7 @@ protected:
 
     MediaUserSettingSharedPtr m_userSettingPtr = nullptr;   //!< usersettingInstance
 
-MEDIA_CLASS_DEFINE_END(VpResourceManager)
+MEDIA_CLASS_DEFINE_END(vp__VpResourceManager)
 };
 }
 #endif // _VP_RESOURCE_MANAGER_H__

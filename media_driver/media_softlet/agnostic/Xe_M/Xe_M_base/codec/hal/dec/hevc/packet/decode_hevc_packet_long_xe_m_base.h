@@ -105,7 +105,7 @@ protected:
 
     HevcDecodePicPktXe_M_Base *       m_picturePkt = nullptr;
     HevcDecodeSlcPktXe_M_Base *       m_slicePkt   = nullptr;
-MEDIA_CLASS_DEFINE_END(HevcDecodeLongPktXe_M_Base)
+MEDIA_CLASS_DEFINE_END(decode__HevcDecodeLongPktXe_M_Base)
 };
 
 }  // namespace decode

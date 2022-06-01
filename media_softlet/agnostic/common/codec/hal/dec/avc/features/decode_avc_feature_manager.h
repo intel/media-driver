@@ -69,7 +69,7 @@ protected:
     //!
     virtual MOS_STATUS CreateFeatures(void *codecSettings) override;
 
-MEDIA_CLASS_DEFINE_END(DecodeAvcFeatureManager)
+MEDIA_CLASS_DEFINE_END(decode__DecodeAvcFeatureManager)
 };
 
 

@@ -117,7 +117,7 @@ public:
     DecodeAllocator *m_allocator    = nullptr;  //!< Decode allocator
     std::vector<uint8_t> m_activeReferenceList; //!< Active reference list of current picture   
 
-  MEDIA_CLASS_DEFINE_END(Vp9ReferenceFrames)
+  MEDIA_CLASS_DEFINE_END(decode__Vp9ReferenceFrames)
 };
 
 }  // namespace decode

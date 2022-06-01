@@ -161,7 +161,7 @@ protected:
 
     uint32_t m_pictureStatesSize    = 0;
     uint32_t m_picturePatchListSize = 0;
-MEDIA_CLASS_DEFINE_END(JpegDecodePktXe_M_Base)
+MEDIA_CLASS_DEFINE_END(decode__JpegDecodePktXe_M_Base)
 };
 
 }

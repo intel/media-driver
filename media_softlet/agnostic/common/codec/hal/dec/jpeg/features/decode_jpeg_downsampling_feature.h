@@ -49,7 +49,7 @@ namespace decode
 
             MOS_SURFACE m_sfcInSurface;
 
-            MEDIA_CLASS_DEFINE_END(JpegDownSamplingFeature)
+            MEDIA_CLASS_DEFINE_END(decode__JpegDownSamplingFeature)
     };
 }
 #endif

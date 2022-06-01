@@ -62,7 +62,7 @@ private:
     std::vector<HwFilter*>  m_Pipe;
     VpInterface             &m_vpInterface;
 
-MEDIA_CLASS_DEFINE_END(HwFilterPipe)
+MEDIA_CLASS_DEFINE_END(vp__HwFilterPipe)
 };
 }
 #endif // !__HW_FILTER_PIPE_H__

@@ -293,7 +293,7 @@ namespace encode
         std::shared_ptr<mhw::mi::Itf>           m_miItf    = nullptr;
         std::shared_ptr<MediaFeatureManager::ManagerLite> m_featureManager = nullptr;
 
-    MEDIA_CLASS_DEFINE_END(HucBrcUpdatePkt)
+    MEDIA_CLASS_DEFINE_END(encode__HucBrcUpdatePkt)
     };
 
 }  // namespace encode

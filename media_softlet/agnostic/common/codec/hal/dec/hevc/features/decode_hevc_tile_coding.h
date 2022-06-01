@@ -248,7 +248,7 @@ protected:
 
     std::vector<SliceTileInfo*> m_sliceTileInfoList;                //!< List of slice tile info
 
-MEDIA_CLASS_DEFINE_END(HevcTileCoding)
+MEDIA_CLASS_DEFINE_END(decode__HevcTileCoding)
 };
 
 }  // namespace decode

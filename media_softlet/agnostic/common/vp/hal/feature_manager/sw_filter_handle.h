@@ -62,7 +62,7 @@ protected:
     VpInterface& m_vpInterface;
     FeatureType     m_type;
 
-MEDIA_CLASS_DEFINE_END(SwFilterFeatureHandler)
+MEDIA_CLASS_DEFINE_END(vp__SwFilterFeatureHandler)
 };
 
 class SwFilterCscHandler : public SwFilterFeatureHandler
@@ -78,7 +78,7 @@ protected:
 protected:
     SwFilterFactory<SwFilterCsc> m_swFilterFactory;
 
-MEDIA_CLASS_DEFINE_END(SwFilterCscHandler)
+MEDIA_CLASS_DEFINE_END(vp__SwFilterCscHandler)
 };
 
 class SwFilterRotMirHandler : public SwFilterFeatureHandler
@@ -94,7 +94,7 @@ protected:
 protected:
     SwFilterFactory<SwFilterRotMir> m_swFilterFactory;
 
-MEDIA_CLASS_DEFINE_END(SwFilterRotMirHandler)
+MEDIA_CLASS_DEFINE_END(vp__SwFilterRotMirHandler)
 };
 
 class SwFilterScalingHandler : public SwFilterFeatureHandler
@@ -112,7 +112,7 @@ protected:
 protected:
     SwFilterFactory<SwFilterScaling> m_swFilterFactory;
 
-MEDIA_CLASS_DEFINE_END(SwFilterScalingHandler)
+MEDIA_CLASS_DEFINE_END(vp__SwFilterScalingHandler)
 };
 
 class SwFilterDnHandler : public SwFilterFeatureHandler
@@ -127,7 +127,7 @@ protected:
 protected:
     SwFilterFactory<SwFilterDenoise> m_swFilterFactory;
 
-MEDIA_CLASS_DEFINE_END(SwFilterDnHandler)
+MEDIA_CLASS_DEFINE_END(vp__SwFilterDnHandler)
 };
 
 class SwFilterDiHandler : public SwFilterFeatureHandler
@@ -142,7 +142,7 @@ protected:
 protected:
     SwFilterFactory<SwFilterDeinterlace> m_swFilterFactory;
 
-MEDIA_CLASS_DEFINE_END(SwFilterDiHandler)
+MEDIA_CLASS_DEFINE_END(vp__SwFilterDiHandler)
 };
 
 class SwFilterSteHandler : public SwFilterFeatureHandler
@@ -157,7 +157,7 @@ protected:
 protected:
     SwFilterFactory<SwFilterSte> m_swFilterFactory;
 
-MEDIA_CLASS_DEFINE_END(SwFilterSteHandler)
+MEDIA_CLASS_DEFINE_END(vp__SwFilterSteHandler)
 };
 
 class SwFilterTccHandler : public SwFilterFeatureHandler
@@ -172,7 +172,7 @@ protected:
 protected:
     SwFilterFactory<SwFilterTcc> m_swFilterFactory;
 
-MEDIA_CLASS_DEFINE_END(SwFilterTccHandler)
+MEDIA_CLASS_DEFINE_END(vp__SwFilterTccHandler)
 };
 
 class SwFilterProcampHandler : public SwFilterFeatureHandler
@@ -187,7 +187,7 @@ protected:
 protected:
     SwFilterFactory<SwFilterProcamp> m_swFilterFactory;
 
-MEDIA_CLASS_DEFINE_END(SwFilterProcampHandler)
+MEDIA_CLASS_DEFINE_END(vp__SwFilterProcampHandler)
 };
 
 class SwFilterHdrHandler : public SwFilterFeatureHandler
@@ -204,7 +204,7 @@ protected:
 protected:
     SwFilterFactory<SwFilterHdr> m_swFilterFactory;
 
-MEDIA_CLASS_DEFINE_END(SwFilterHdrHandler)
+MEDIA_CLASS_DEFINE_END(vp__SwFilterHdrHandler)
 };
 
 class SwFilterLumakeyHandler : public SwFilterFeatureHandler
@@ -221,7 +221,7 @@ protected:
 protected:
     SwFilterFactory<SwFilterLumakey>    m_swFilterFactory;
 
-MEDIA_CLASS_DEFINE_END(SwFilterLumakeyHandler)
+MEDIA_CLASS_DEFINE_END(vp__SwFilterLumakeyHandler)
 };
 
 class SwFilterBlendingHandler : public SwFilterFeatureHandler
@@ -238,7 +238,7 @@ protected:
 protected:
     SwFilterFactory<SwFilterBlending>   m_swFilterFactory;
 
-MEDIA_CLASS_DEFINE_END(SwFilterBlendingHandler)
+MEDIA_CLASS_DEFINE_END(vp__SwFilterBlendingHandler)
 };
 
 class SwFilterColorFillHandler : public SwFilterFeatureHandler
@@ -255,7 +255,7 @@ protected:
 protected:
     SwFilterFactory<SwFilterColorFill>  m_swFilterFactory;
 
-MEDIA_CLASS_DEFINE_END(SwFilterColorFillHandler)
+MEDIA_CLASS_DEFINE_END(vp__SwFilterColorFillHandler)
 };
 
 class SwFilterAlphaHandler : public SwFilterFeatureHandler
@@ -272,7 +272,7 @@ protected:
 protected:
     SwFilterFactory<SwFilterAlpha>      m_swFilterFactory;
 
-MEDIA_CLASS_DEFINE_END(SwFilterAlphaHandler)
+MEDIA_CLASS_DEFINE_END(vp__SwFilterAlphaHandler)
 };
 }
 

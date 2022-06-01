@@ -65,7 +65,7 @@ public:
 private:
     DecodeScalabilityOption m_FEScalabOption;
 
-MEDIA_CLASS_DEFINE_END(Vp9PhaseFrontEnd)
+MEDIA_CLASS_DEFINE_END(decode__Vp9PhaseFrontEnd)
 };
 
 }

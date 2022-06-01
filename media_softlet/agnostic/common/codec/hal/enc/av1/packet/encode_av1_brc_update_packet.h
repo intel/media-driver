@@ -248,7 +248,7 @@ namespace encode
 
         MOS_RESOURCE m_vdencBrcInitDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM] = {}; //!< VDEnc BrcInit DMEM buffer
 
-    MEDIA_CLASS_DEFINE_END(Av1BrcUpdatePkt)
+    MEDIA_CLASS_DEFINE_END(encode__Av1BrcUpdatePkt)
     };
 
 }  // namespace encode

@@ -144,7 +144,7 @@ protected:
     uint32_t        m_maxContentLevelLum    = 4000;         //!< Maximum Content Level Luminance
     VPHAL_HDR_MODE  m_hdrMode               = VPHAL_HDR_MODE_NONE;
 
-    MEDIA_CLASS_DEFINE_END(VpRenderHdr3DLutKernel)
+    MEDIA_CLASS_DEFINE_END(vp__VpRenderHdr3DLutKernel)
 };
 
 }  // namespace vp

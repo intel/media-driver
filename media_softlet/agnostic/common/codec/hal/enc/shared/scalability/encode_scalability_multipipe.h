@@ -289,7 +289,7 @@ protected:
     uint32_t                       m_numDelay = 15;
     MOS_RESOURCE                   m_resDelayMinus = {0};
 
-MEDIA_CLASS_DEFINE_END(EncodeScalabilityMultiPipe)
+MEDIA_CLASS_DEFINE_END(encode__EncodeScalabilityMultiPipe)
 };
 }  // namespace encode
 #endif  // !__ENCODE_SCALABILITY_MULTIPIPE_H__

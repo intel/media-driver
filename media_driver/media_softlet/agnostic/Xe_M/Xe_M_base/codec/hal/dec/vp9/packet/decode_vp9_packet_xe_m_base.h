@@ -115,7 +115,7 @@ protected:
     uint32_t m_sliceStatesSize      = 0;
     uint32_t m_slicePatchListSize   = 0;
 
-MEDIA_CLASS_DEFINE_END(Vp9DecodePktXe_M_Base)
+MEDIA_CLASS_DEFINE_END(decode__Vp9DecodePktXe_M_Base)
 };
 
 }  // namespace decode

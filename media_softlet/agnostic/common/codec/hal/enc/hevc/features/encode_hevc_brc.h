@@ -449,7 +449,7 @@ namespace encode
         MHW_VDBOX_NODE_IND m_vdboxIndex = MHW_VDBOX_NODE_1;
         uint32_t           m_currRecycledBufIdx = 0;
 
-    MEDIA_CLASS_DEFINE_END(HEVCEncodeBRC)
+    MEDIA_CLASS_DEFINE_END(encode__HEVCEncodeBRC)
     };
 
 }  // namespace encode

@@ -591,7 +591,7 @@ protected:
     MediaMemComp    *m_mmc          = nullptr;
     std::vector<VP_SURFACE *> m_recycler;   // Container for delayed destroyed surface.
 
-MEDIA_CLASS_DEFINE_END(VpAllocator)
+MEDIA_CLASS_DEFINE_END(vp__VpAllocator)
 };
 
 typedef VpAllocator* PVpAllocator;

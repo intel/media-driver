@@ -54,7 +54,7 @@ protected:
     JpegPipeline *m_jpegPipeline  = nullptr;
     DecodeMemComp *m_mmcState     = nullptr;
 
-MEDIA_CLASS_DEFINE_END(JpegDownSamplingPkt)
+MEDIA_CLASS_DEFINE_END(decode__JpegDownSamplingPkt)
 };
 }
 

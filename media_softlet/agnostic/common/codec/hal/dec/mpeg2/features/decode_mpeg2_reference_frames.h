@@ -99,7 +99,7 @@ protected:
     DecodeAllocator*         m_allocator    = nullptr;                       //!< Decode allocator
     std::vector<uint8_t>     m_activeReferenceList;                          //!< Active reference list of current picture
 
-MEDIA_CLASS_DEFINE_END(Mpeg2ReferenceFrames)
+MEDIA_CLASS_DEFINE_END(decode__Mpeg2ReferenceFrames)
 };
 
 }  // namespace decode

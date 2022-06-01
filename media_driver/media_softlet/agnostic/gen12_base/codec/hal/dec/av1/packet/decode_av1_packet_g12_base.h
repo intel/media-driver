@@ -177,7 +177,7 @@ protected:
     BatchBufferArray     *m_secondLevelBBArray = nullptr; //!< Point to second level batch buffer
     MOS_COMMAND_BUFFER    m_picCmdBuffer;
     PMHW_BATCH_BUFFER     m_batchBuf = nullptr;
-MEDIA_CLASS_DEFINE_END(Av1DecodePkt_G12_Base)
+MEDIA_CLASS_DEFINE_END(decode__Av1DecodePkt_G12_Base)
 };
 
 }  // namespace decode

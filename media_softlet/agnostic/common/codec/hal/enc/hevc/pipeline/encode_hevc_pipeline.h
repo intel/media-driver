@@ -112,7 +112,7 @@ protected:
 #endif
 
 
-MEDIA_CLASS_DEFINE_END(HevcPipeline)
+MEDIA_CLASS_DEFINE_END(encode__HevcPipeline)
 };
 
 }

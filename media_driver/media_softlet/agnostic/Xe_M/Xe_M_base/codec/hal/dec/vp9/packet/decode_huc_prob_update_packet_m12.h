@@ -158,7 +158,7 @@ protected:
     uint32_t m_picturePatchListSize = 0;
     uint32_t m_sliceStatesSize      = 0;
     uint32_t m_slicePatchListSize   = 0;
-MEDIA_CLASS_DEFINE_END(HucVp9ProbUpdatePktM12)
+MEDIA_CLASS_DEFINE_END(decode__HucVp9ProbUpdatePktM12)
 };
 
 }  // namespace decode

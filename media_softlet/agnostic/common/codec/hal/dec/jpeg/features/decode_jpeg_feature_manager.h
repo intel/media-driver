@@ -69,7 +69,7 @@ protected:
     //!
     virtual MOS_STATUS CreateFeatures(void *codecSettings);
 
-MEDIA_CLASS_DEFINE_END(DecodeJpegFeatureManager)
+MEDIA_CLASS_DEFINE_END(decode__DecodeJpegFeatureManager)
 };
 
 

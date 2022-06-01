@@ -107,7 +107,7 @@ protected:
     DecodePipeline* m_decodePipeline = nullptr;
     std::vector<DecodeSubPipeline *> m_subPipelineList; //!< sub pipeline list
 
-MEDIA_CLASS_DEFINE_END(DecodeSubPipelineManager)
+MEDIA_CLASS_DEFINE_END(decode__DecodeSubPipelineManager)
 };
 
 }//decode

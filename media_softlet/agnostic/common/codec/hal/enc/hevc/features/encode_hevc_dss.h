@@ -118,7 +118,7 @@ namespace encode
         std::shared_ptr<mhw::mi::Itf>           m_miItf    = nullptr;
         std::shared_ptr<mhw::vdbox::vdenc::Itf> m_vdencItf = nullptr;
 
-    MEDIA_CLASS_DEFINE_END(HevcEncodeDss)
+    MEDIA_CLASS_DEFINE_END(encode__HevcEncodeDss)
     };
 
 }

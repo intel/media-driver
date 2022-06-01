@@ -128,7 +128,7 @@ protected:
     static const int32_t s_bindingTableIndex[];
     static const int32_t s_bindingTableIndexField[];
 
-MEDIA_CLASS_DEFINE_END(VpRenderFcKernel)
+MEDIA_CLASS_DEFINE_END(vp__VpRenderFcKernel)
 };
 }
 

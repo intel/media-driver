@@ -173,7 +173,7 @@ private:
 
     T* m_empty = nullptr;
 
-MEDIA_CLASS_DEFINE_END(ResourceArray)
+MEDIA_CLASS_DEFINE_END(decode__ResourceArray)
 };
 
 }  // namespace decode

@@ -104,7 +104,7 @@ protected:
     bool IsPrologRequired();
 
     HevcDecodePicPktXe_M_Base *m_picturePkt = nullptr;
-MEDIA_CLASS_DEFINE_END(HevcDecodeBackEndPktXe_M_Base)
+MEDIA_CLASS_DEFINE_END(decode__HevcDecodeBackEndPktXe_M_Base)
 };
 
 }  // namespace decode

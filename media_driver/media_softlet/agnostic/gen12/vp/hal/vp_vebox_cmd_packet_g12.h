@@ -109,7 +109,7 @@ public:
         VEBOX_STAT_QUERY_TYPE QueryType,
         uint32_t*             pQuery) override;
 
-MEDIA_CLASS_DEFINE_END(VpVeboxCmdPacketG12)
+MEDIA_CLASS_DEFINE_END(vp__VpVeboxCmdPacketG12)
 };
 
 }

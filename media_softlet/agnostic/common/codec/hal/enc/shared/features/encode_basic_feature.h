@@ -199,7 +199,7 @@ protected:
     EncodeAllocator *m_allocator = nullptr;
     MOS_INTERFACE   *m_osInterface = nullptr;
 
-MEDIA_CLASS_DEFINE_END(EncodeBasicFeature)
+MEDIA_CLASS_DEFINE_END(encode__EncodeBasicFeature)
 };
 
 }  // namespace encode

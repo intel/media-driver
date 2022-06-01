@@ -39,7 +39,7 @@ public:
     VpVeboxCmdPacketBase(MediaTask * task, PVP_MHWINTERFACE hwInterface, PVpAllocator &allocator, VPMediaMemComp *mmc);
     virtual ~VpVeboxCmdPacketBase();
 
-MEDIA_CLASS_DEFINE_END(VpVeboxCmdPacketBase)
+MEDIA_CLASS_DEFINE_END(vp__VpVeboxCmdPacketBase)
 };
 
 }

@@ -121,7 +121,7 @@ protected:
 
 private:
     Mpeg2DecodePktM12 *m_mpeg2DecodePkt = nullptr;
-MEDIA_CLASS_DEFINE_END(Mpeg2PipelineM12)
+MEDIA_CLASS_DEFINE_END(decode__Mpeg2PipelineM12)
 };
 
 }

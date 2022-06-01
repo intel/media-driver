@@ -156,7 +156,7 @@ namespace decode
             CodechalDecodeRstSecndBackHorz = 6, //!< second backward horizontal
             CodechalDecodeRstSecndBackVert = 7  //!< second backward vertical
         };
-    MEDIA_CLASS_DEFINE_END(Mpeg2DecodeMbPktXe_M_Base)
+    MEDIA_CLASS_DEFINE_END(decode__Mpeg2DecodeMbPktXe_M_Base)
     };
 
 }  // namespace decode

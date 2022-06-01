@@ -61,7 +61,7 @@ public:
     virtual bool       ImmediateSubmit() override;
     virtual bool       RequiresContextSwitch() override;
 
-MEDIA_CLASS_DEFINE_END(HevcPhaseLong)
+MEDIA_CLASS_DEFINE_END(decode__HevcPhaseLong)
 };
 
 }

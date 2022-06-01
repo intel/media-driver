@@ -166,7 +166,7 @@ protected:
     RecycleResource     *m_recycleResource = nullptr;
     TrackedBuffer       *m_trackedBuf = nullptr;
 
-MEDIA_CLASS_DEFINE_END(EncodeHevcVdencFeatureManager)
+MEDIA_CLASS_DEFINE_END(encode__EncodeHevcVdencFeatureManager)
 };
 
 

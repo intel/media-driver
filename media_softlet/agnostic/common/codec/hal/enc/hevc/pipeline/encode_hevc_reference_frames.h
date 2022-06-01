@@ -229,7 +229,7 @@ protected:
     HevcBasicFeature        *m_basicFeature = nullptr;                              //!<  HEVC paramter
     EncodeAllocator         *m_allocator = nullptr;                                 //!< Encode allocator
 
-MEDIA_CLASS_DEFINE_END(HevcReferenceFrames)
+MEDIA_CLASS_DEFINE_END(encode__HevcReferenceFrames)
 };
 
 }  // namespace encode

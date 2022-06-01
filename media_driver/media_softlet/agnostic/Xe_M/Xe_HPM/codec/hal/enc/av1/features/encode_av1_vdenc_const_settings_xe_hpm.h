@@ -60,7 +60,7 @@ public:
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS SetVdencCmd2Settings() override;
-MEDIA_CLASS_DEFINE_END(EncodeAv1VdencConstSettingsXe_Hpm)
+MEDIA_CLASS_DEFINE_END(encode__EncodeAv1VdencConstSettingsXe_Hpm)
 };
 
 }

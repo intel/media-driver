@@ -106,7 +106,7 @@ protected:
     SwFilterPipe        *m_swFilterPipe = nullptr;
     VP_EXECUTE_CAPS     m_vpExecuteCaps = {};
 
-MEDIA_CLASS_DEFINE_END(HwFilter)
+MEDIA_CLASS_DEFINE_END(vp__HwFilter)
 };
 
 class HwFilterVebox: public HwFilter
@@ -124,7 +124,7 @@ public:
 protected:
     HwFilterVebox(VpInterface &vpInterface, EngineType type);
 
-MEDIA_CLASS_DEFINE_END(HwFilterVebox)
+MEDIA_CLASS_DEFINE_END(vp__HwFilterVebox)
 };
 
 class HwFilterVeboxSfc: public HwFilterVebox  // VEBOX+SFC
@@ -139,7 +139,7 @@ public:
     }
     virtual MOS_STATUS SetPacketParams(VpCmdPacket &package);
 
-MEDIA_CLASS_DEFINE_END(HwFilterVeboxSfc)
+MEDIA_CLASS_DEFINE_END(vp__HwFilterVeboxSfc)
 };
 
 class HwFilterRender: public HwFilter
@@ -156,7 +156,7 @@ public:
 
     virtual MOS_STATUS SetPacketParams(VpCmdPacket &package);
 
-MEDIA_CLASS_DEFINE_END(HwFilterRender)
+MEDIA_CLASS_DEFINE_END(vp__HwFilterRender)
 };
 
 }

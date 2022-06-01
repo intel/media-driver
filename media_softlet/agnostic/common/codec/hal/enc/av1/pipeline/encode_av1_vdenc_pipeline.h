@@ -63,7 +63,7 @@ protected:
 protected:
     std::shared_ptr<EncodeScalabilityPars> m_scalPars = nullptr;
 
-MEDIA_CLASS_DEFINE_END(Av1VdencPipeline)
+MEDIA_CLASS_DEFINE_END(encode__Av1VdencPipeline)
 };
 
 }

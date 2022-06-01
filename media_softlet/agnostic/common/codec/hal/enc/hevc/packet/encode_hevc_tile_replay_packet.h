@@ -62,7 +62,7 @@ public:
 protected:
     HevcVdencPkt* m_hevcVdencPkt = nullptr;
 
-MEDIA_CLASS_DEFINE_END(HevcVdencPicPacket)
+MEDIA_CLASS_DEFINE_END(encode__HevcVdencPicPacket)
 };
 
 class HevcVdencTileRowPkt : public CmdPacket, public MediaStatusReportObserver
@@ -84,7 +84,7 @@ protected:
 
     HevcVdencPkt* m_hevcVdencPkt = nullptr;
 
-MEDIA_CLASS_DEFINE_END(HevcVdencTileRowPkt)
+MEDIA_CLASS_DEFINE_END(encode__HevcVdencTileRowPkt)
 };
 }  // namespace encode
 #endif

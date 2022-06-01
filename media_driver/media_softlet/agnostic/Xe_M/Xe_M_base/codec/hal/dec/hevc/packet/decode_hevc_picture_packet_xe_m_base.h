@@ -189,7 +189,7 @@ protected:
 #if MOS_EVENT_TRACE_DUMP_SUPPORTED
     PMOS_SURFACE m_tempRefSurf                                   = nullptr;
 #endif
-MEDIA_CLASS_DEFINE_END(HevcDecodePicPktXe_M_Base)
+MEDIA_CLASS_DEFINE_END(decode__HevcDecodePicPktXe_M_Base)
 };
 
 }  // namespace decode

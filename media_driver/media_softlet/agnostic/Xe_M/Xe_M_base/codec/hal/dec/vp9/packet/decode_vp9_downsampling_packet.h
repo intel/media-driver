@@ -112,7 +112,7 @@ protected:
     uint32_t m_dbgOvrdWidthInMinCb = 0;
 #endif
 
-MEDIA_CLASS_DEFINE_END(Vp9DownSamplingPkt)
+MEDIA_CLASS_DEFINE_END(decode__Vp9DownSamplingPkt)
 };
 
 }

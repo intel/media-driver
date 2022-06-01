@@ -209,7 +209,7 @@ protected:
     uint32_t m_vtFrameCount = 0; //!< frame count for virtual tile decoding
 #endif
 
-MEDIA_CLASS_DEFINE_END(Vp9Pipeline)
+MEDIA_CLASS_DEFINE_END(decode__Vp9Pipeline)
 };
 
 }

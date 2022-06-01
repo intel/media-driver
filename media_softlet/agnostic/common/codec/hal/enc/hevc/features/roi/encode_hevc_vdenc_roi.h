@@ -269,7 +269,7 @@ protected:
     bool IFrameIsSet = false;
     bool PBFrameIsSet = false;
 
-MEDIA_CLASS_DEFINE_END(HevcVdencRoi)
+MEDIA_CLASS_DEFINE_END(encode__HevcVdencRoi)
 };
 
 }  // namespace encode

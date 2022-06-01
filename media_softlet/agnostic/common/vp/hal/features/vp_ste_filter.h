@@ -62,7 +62,7 @@ protected:
     FeatureParamSte         m_steParams = {};
     PVEBOX_STE_PARAMS       m_pVeboxSteParams = nullptr;
 
-MEDIA_CLASS_DEFINE_END(VpSteFilter)
+MEDIA_CLASS_DEFINE_END(vp__VpSteFilter)
 };
 
 struct HW_FILTER_STE_PARAM : public HW_FILTER_PARAM
@@ -83,7 +83,7 @@ public:
 private:
     HW_FILTER_STE_PARAM m_Params = {};
 
-MEDIA_CLASS_DEFINE_END(HwFilterSteParameter)
+MEDIA_CLASS_DEFINE_END(vp__HwFilterSteParameter)
 };
 
 class VpVeboxSteParameter : public VpPacketParameter
@@ -100,7 +100,7 @@ private:
 
     VpSteFilter m_steFilter;
 
-MEDIA_CLASS_DEFINE_END(VpVeboxSteParameter)
+MEDIA_CLASS_DEFINE_END(vp__VpVeboxSteParameter)
 };
 
 class PolicyVeboxSteHandler : public PolicyFeatureHandler
@@ -126,7 +126,7 @@ public:
 private:
     PacketParamFactory<VpVeboxSteParameter> m_PacketParamFactory;
 
-MEDIA_CLASS_DEFINE_END(PolicyVeboxSteHandler)
+MEDIA_CLASS_DEFINE_END(vp__PolicyVeboxSteHandler)
 };
 }
 #endif

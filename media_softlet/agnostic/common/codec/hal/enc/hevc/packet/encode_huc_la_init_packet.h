@@ -77,7 +77,7 @@ protected:
 
     HevcBasicFeature *m_basicFeature = nullptr;  //!< Hevc Basic Feature used in each frame
 
-MEDIA_CLASS_DEFINE_END(HucLaInitPkt)
+MEDIA_CLASS_DEFINE_END(encode__HucLaInitPkt)
 };
 } //encode
 

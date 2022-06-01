@@ -73,7 +73,7 @@ private:
         return ((GetPipe() + 1) == m_scalabOption.GetNumPipe());
     }
 
-MEDIA_CLASS_DEFINE_END(HevcPhaseBackEnd)
+MEDIA_CLASS_DEFINE_END(decode__HevcPhaseBackEnd)
 };
 
 }

@@ -531,7 +531,7 @@ protected:
     HevcVdencFeatureSettings *m_FeatureSettings = nullptr;
     PMOS_INTERFACE m_osInterface = nullptr;
 
-MEDIA_CLASS_DEFINE_END(RoiStrategy)
+MEDIA_CLASS_DEFINE_END(encode__RoiStrategy)
 };
 
 //!
@@ -620,7 +620,7 @@ private:
     RoiStrategy *m_QPMapROI  = nullptr;
     RoiStrategy *m_deltaQpRoi = nullptr;
 
-MEDIA_CLASS_DEFINE_END(RoiStrategyFactory)
+MEDIA_CLASS_DEFINE_END(encode__RoiStrategyFactory)
 };
 
 }  // namespace encode

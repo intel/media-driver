@@ -44,7 +44,7 @@ namespace encode
 #if USE_CODECHAL_DEBUG_TOOL
         MOS_STATUS DumpSeqParFile();
 #endif  // USE_CODECHAL_DEBUG_TOOL
-    MEDIA_CLASS_DEFINE_END(Av1VdencPktXe_Hpm)
+    MEDIA_CLASS_DEFINE_END(encode__Av1VdencPktXe_Hpm)
     };
 }
 #endif //_ENCODE_AV1_VDENC_PACKET_XE_HPM_H__

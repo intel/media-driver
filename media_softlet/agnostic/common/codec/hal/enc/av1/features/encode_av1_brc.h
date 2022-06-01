@@ -227,7 +227,7 @@ enum AV1_BRC_FRAME_TYPE
         int32_t m_frameRate    = 0;
         double m_inputbitsperframe = 0;
 
-    MEDIA_CLASS_DEFINE_END(Av1Brc)
+    MEDIA_CLASS_DEFINE_END(encode__Av1Brc)
     };
 
 }  // namespace encode

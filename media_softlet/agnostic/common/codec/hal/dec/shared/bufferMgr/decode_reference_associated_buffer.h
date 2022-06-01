@@ -59,7 +59,7 @@ protected:
     DecodeAllocator*     m_allocator    = nullptr;
     BasicFeature*        m_basicFeature = nullptr;
 
-MEDIA_CLASS_DEFINE_END(BufferOpInf)
+MEDIA_CLASS_DEFINE_END(decode__BufferOpInf)
 };
 
 template<typename BufferType, typename BufferOp, typename BasicFeature>
@@ -355,7 +355,7 @@ protected:
     std::vector<BufferType*>        m_availableBuffers;        //!< Buffers in idle
     BufferType*                     m_currentBuffer = nullptr; //!< Point to buffer of current picture
 
-MEDIA_CLASS_DEFINE_END(RefrenceAssociatedBuffer)
+MEDIA_CLASS_DEFINE_END(decode__RefrenceAssociatedBuffer)
 };
 
 }

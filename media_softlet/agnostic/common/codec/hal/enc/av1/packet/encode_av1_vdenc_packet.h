@@ -313,7 +313,7 @@ protected:
 
     virtual MOS_STATUS GetAvpPrimitiveCommandsDataSize(uint32_t *commandsSize, uint32_t *patchListSize) const;
 
-MEDIA_CLASS_DEFINE_END(Av1VdencPkt)
+MEDIA_CLASS_DEFINE_END(encode__Av1VdencPkt)
 };
 
 }  // namespace encode

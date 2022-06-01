@@ -562,6 +562,7 @@ public:
     static const char* m_pcComponentUserFeatureKeys[MOS_COMPONENT_COUNT][3];
     static const uint8_t m_subComponentCount[MOS_COMPONENT_COUNT];
 #endif
+MEDIA_CLASS_DEFINE_END(MosUtilDebug)
 };
 
 #if MOS_ASSERT_ENABLED

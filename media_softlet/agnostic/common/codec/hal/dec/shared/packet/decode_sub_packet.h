@@ -91,7 +91,7 @@ protected:
     DecodeCpInterface *     m_decodecp = nullptr;
     std::shared_ptr<mhw::mi::Itf> m_miItf = nullptr;
 
-MEDIA_CLASS_DEFINE_END(DecodeSubPacket)
+MEDIA_CLASS_DEFINE_END(decode__DecodeSubPacket)
 };
 
 }

@@ -56,7 +56,7 @@ namespace decode
         MOS_STATUS AddBsdObj(MOS_COMMAND_BUFFER &cmdBuffer, uint32_t slcIdx);
         MOS_STATUS AddPhantomSliceCmd(MOS_COMMAND_BUFFER &cmdBuffer, uint32_t slcIdx);
 
-    MEDIA_CLASS_DEFINE_END(AvcDecodeSlcPktM12)
+    MEDIA_CLASS_DEFINE_END(decode__AvcDecodeSlcPktM12)
     };
 }  // namespace decode
 #endif

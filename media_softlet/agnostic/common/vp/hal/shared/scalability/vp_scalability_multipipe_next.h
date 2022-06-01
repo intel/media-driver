@@ -348,7 +348,7 @@ public:
     VpPhase                               *m_phase = nullptr;
     std::shared_ptr<mhw::mi::Itf>          m_miItf = nullptr;
 
-MEDIA_CLASS_DEFINE_END(VpScalabilityMultiPipeNext)
+MEDIA_CLASS_DEFINE_END(vp__VpScalabilityMultiPipeNext)
 };
 }  // namespace vp
 #endif  // !__VP_SCALABILITY_MULTIPIPE_H__

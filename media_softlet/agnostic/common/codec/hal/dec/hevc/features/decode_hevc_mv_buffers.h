@@ -46,7 +46,7 @@ public:
 protected:
     MhwVdboxHcpInterface* m_hcpInterface;
 
-MEDIA_CLASS_DEFINE_END(HevcMvBufferOpInf)
+MEDIA_CLASS_DEFINE_END(decode__HevcMvBufferOpInf)
 };
 
 }  // namespace decode

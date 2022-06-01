@@ -64,7 +64,7 @@ public:
 protected:
     std::map<VpKernelID, RENDERHAL_KERNEL_PARAM> m_kernelParams;    // Kernel params.
 
-MEDIA_CLASS_DEFINE_END(VpKernelConfig)
+MEDIA_CLASS_DEFINE_END(vp__VpKernelConfig)
 };
 }
 #endif // __VP_KERNEL_CONFIG_H__

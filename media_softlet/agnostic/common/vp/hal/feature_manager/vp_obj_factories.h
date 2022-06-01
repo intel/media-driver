@@ -91,7 +91,7 @@ private:
     std::vector<Type *> m_Pool;
     VpInterface      &m_vpInterface;
 
-MEDIA_CLASS_DEFINE_END(VpObjAllocator)
+MEDIA_CLASS_DEFINE_END(vp__VpObjAllocator)
 };
 
 class HwFilterPipeFactory
@@ -109,7 +109,7 @@ public:
 private:
     VpObjAllocator<HwFilterPipe> m_allocator;
 
-MEDIA_CLASS_DEFINE_END(HwFilterPipeFactory)
+MEDIA_CLASS_DEFINE_END(vp__HwFilterPipeFactory)
 };
 
 class HwFilterFactory
@@ -125,7 +125,7 @@ private:
     VpObjAllocator<HwFilterVeboxSfc> m_allocatorVeboxSfc;
     VpObjAllocator<HwFilterRender> m_allocatorRender;
 
-MEDIA_CLASS_DEFINE_END(HwFilterFactory)
+MEDIA_CLASS_DEFINE_END(vp__HwFilterFactory)
 };
 
 class SwFilterPipeFactory
@@ -147,7 +147,7 @@ private:
     VpObjAllocator<SwFilterPipe> m_allocator;
     VpInterface &m_vpInterface;
 
-MEDIA_CLASS_DEFINE_END(SwFilterPipeFactory)
+MEDIA_CLASS_DEFINE_END(vp__SwFilterPipeFactory)
 };
 
 template <class _T>
@@ -183,7 +183,7 @@ public:
 private:
     VpObjAllocator<_T> m_allocator;
 
-MEDIA_CLASS_DEFINE_END(SwFilterFactory)
+MEDIA_CLASS_DEFINE_END(vp__SwFilterFactory)
 };
 }
 #endif // !__VP_OBJ_FACTORIES_H__

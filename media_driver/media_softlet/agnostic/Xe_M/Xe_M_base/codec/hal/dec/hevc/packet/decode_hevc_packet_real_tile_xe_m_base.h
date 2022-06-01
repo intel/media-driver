@@ -128,7 +128,7 @@ protected:
     HevcDecodeSlcPktXe_M_Base *       m_slicePkt   = nullptr;
 
     std::vector<MOS_COMMAND_BUFFER> m_sliceLevelCmdBuffer;
-MEDIA_CLASS_DEFINE_END(HevcDecodeRealTilePktXe_M_Base)
+MEDIA_CLASS_DEFINE_END(decode__HevcDecodeRealTilePktXe_M_Base)
 };
 
 }  // namespace decode

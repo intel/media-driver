@@ -61,7 +61,7 @@ protected:
 
     AvcPipeline                *m_avcPipeline     = nullptr;
     DecodeMemComp              *m_mmcState        = nullptr;
-MEDIA_CLASS_DEFINE_END(AvcDownSamplingPkt)
+MEDIA_CLASS_DEFINE_END(decode__AvcDownSamplingPkt)
 };
 
 }

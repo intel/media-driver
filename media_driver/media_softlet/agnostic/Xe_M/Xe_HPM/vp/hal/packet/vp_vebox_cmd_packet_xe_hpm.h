@@ -39,8 +39,6 @@ public:
 
     virtual ~VpVeboxCmdPacketXe_Hpm();
 
-MEDIA_CLASS_DEFINE_END(VpVeboxCmdPacketXe_Hpm)
-
     virtual MOS_STATUS AddVeboxDndiState() override;
 
     virtual MOS_STATUS QueryStatLayoutGNE(
@@ -78,6 +76,7 @@ MEDIA_CLASS_DEFINE_END(VpVeboxCmdPacketXe_Hpm)
 
     MhwVeboxInterfaceG12::MHW_VEBOX_CHROMA_PARAMS veboxChromaParams = {};
 
+MEDIA_CLASS_DEFINE_END(vp__VpVeboxCmdPacketXe_Hpm)
 };
 
 }

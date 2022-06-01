@@ -74,7 +74,7 @@ protected:
     SwFilterPipe            *m_executedPipe = nullptr;
     PRENDER_FC_PARAMS       m_renderFcParams = nullptr;
 
-MEDIA_CLASS_DEFINE_END(VpFcFilter)
+MEDIA_CLASS_DEFINE_END(vp__VpFcFilter)
 };
 
 struct HW_FILTER_FC_PARAM : public HW_FILTER_PARAM
@@ -95,7 +95,7 @@ public:
 private:
     HW_FILTER_FC_PARAM m_Params = {};
 
-MEDIA_CLASS_DEFINE_END(HwFilterFcParameter)
+MEDIA_CLASS_DEFINE_END(vp__HwFilterFcParameter)
 };
 
 class VpRenderFcParameter : public VpPacketParameter
@@ -112,7 +112,7 @@ private:
 
     VpFcFilter m_fcFilter;
 
-MEDIA_CLASS_DEFINE_END(VpRenderFcParameter)
+MEDIA_CLASS_DEFINE_END(vp__VpRenderFcParameter)
 };
 
 #define VP_COMP_MAX_LAYERS          8
@@ -151,7 +151,7 @@ public:
     }
     virtual MOS_STATUS UpdateUnusedFeature(VP_EXECUTE_CAPS caps, SwFilter &feature, SwFilterPipe &featurePipe, SwFilterPipe &executePipe, bool isInputPipe, int index);
 
-MEDIA_CLASS_DEFINE_END(PolicyFcFeatureHandler)
+MEDIA_CLASS_DEFINE_END(vp__PolicyFcFeatureHandler)
 };
 
 class PolicyFcHandler : public PolicyFeatureHandler
@@ -208,7 +208,7 @@ private:
         }
     } m_resCounter = {};
 
-MEDIA_CLASS_DEFINE_END(PolicyFcHandler)
+MEDIA_CLASS_DEFINE_END(vp__PolicyFcHandler)
 };
 }
 #endif

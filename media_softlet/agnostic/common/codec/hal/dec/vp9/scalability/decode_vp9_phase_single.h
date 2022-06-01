@@ -61,7 +61,7 @@ public:
     virtual bool       ImmediateSubmit() override;
     virtual bool       RequiresContextSwitch() override;
 
-MEDIA_CLASS_DEFINE_END(Vp9PhaseSingle)
+MEDIA_CLASS_DEFINE_END(decode__Vp9PhaseSingle)
 };
 
 }

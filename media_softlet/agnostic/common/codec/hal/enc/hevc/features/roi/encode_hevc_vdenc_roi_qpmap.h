@@ -107,7 +107,7 @@ namespace encode
     private:
 
 
-    MEDIA_CLASS_DEFINE_END(QPMapROI)
+    MEDIA_CLASS_DEFINE_END(encode__QPMapROI)
     };
 
 }  // namespace encode

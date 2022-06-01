@@ -185,7 +185,7 @@ protected:
     std::vector<int8_t>  m_duplicationPocMap[CODEC_MAX_NUM_REF_FRAME_HEVC];  //!< duplication POC map
     PMOS_INTERFACE       m_osInterface = nullptr;                            //!< Os interface
 
-MEDIA_CLASS_DEFINE_END(HevcReferenceFrames)
+MEDIA_CLASS_DEFINE_END(decode__HevcReferenceFrames)
 };
 
 }  // namespace encode

@@ -49,7 +49,7 @@ public:
     MHW_SETPAR_DECL_HDR(VDENC_HEVC_VP9_TILE_SLICE_STATE);
 
     MHW_SETPAR_DECL_HDR(VDENC_PIPE_BUF_ADDR_STATE); 
-MEDIA_CLASS_DEFINE_END(Av1BasicFeatureXe_Hpm)
+MEDIA_CLASS_DEFINE_END(encode__Av1BasicFeatureXe_Hpm)
 };
 
 }  // namespace encode

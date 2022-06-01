@@ -708,7 +708,7 @@ protected:
     static const uint32_t m_av1VdencStateSize = 1216;    // VDEnc Statistic: 48DWs (3CLs) of HMDC Frame Stats + 256 DWs (16CLs) of Histogram Stats = 1216 bytes
     std::vector<uint8_t>  m_tgHeaderBuf       = {};
 
-MEDIA_CLASS_DEFINE_END(Av1EncodeTile)
+MEDIA_CLASS_DEFINE_END(encode__Av1EncodeTile)
 };
 
 }  // namespace encode

@@ -54,7 +54,7 @@ public:
 protected:
     virtual MOS_STATUS Initialize(void *settings) override;
     virtual MOS_STATUS CreateFeatureManager() override;
-MEDIA_CLASS_DEFINE_END(Av1VdencPipelineXe_Hpm)
+MEDIA_CLASS_DEFINE_END(encode__Av1VdencPipelineXe_Hpm)
 };
 
 }

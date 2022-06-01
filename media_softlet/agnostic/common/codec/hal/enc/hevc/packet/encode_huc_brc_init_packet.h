@@ -92,7 +92,7 @@ namespace encode
 
         HevcBasicFeature    *m_basicFeature = nullptr;  //!< Hevc Basic Feature used in each frame
 
-    MEDIA_CLASS_DEFINE_END(HucBrcInitPkt)
+    MEDIA_CLASS_DEFINE_END(encode__HucBrcInitPkt)
     };
 
 }  // namespace encode

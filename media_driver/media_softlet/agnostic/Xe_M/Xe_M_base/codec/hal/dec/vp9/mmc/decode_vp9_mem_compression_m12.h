@@ -59,7 +59,7 @@ public:
 
 protected:
     PMOS_INTERFACE m_osInterface = nullptr;
-MEDIA_CLASS_DEFINE_END(Vp9DecodeMemCompM12)
+MEDIA_CLASS_DEFINE_END(decode__Vp9DecodeMemCompM12)
 };
 
 }  // namespace decode

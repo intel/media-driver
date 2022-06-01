@@ -103,7 +103,7 @@ namespace encode
             uint8_t  &DeltaQP,
             uint32_t &prevQpModulationStrength);
 
-    MEDIA_CLASS_DEFINE_END(EncodeLPLA)
+    MEDIA_CLASS_DEFINE_END(encode__EncodeLPLA)
     };
 } // encode
 

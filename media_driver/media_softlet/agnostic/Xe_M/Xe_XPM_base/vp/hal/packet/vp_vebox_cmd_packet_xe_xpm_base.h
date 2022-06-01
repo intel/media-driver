@@ -45,7 +45,7 @@ public:
 protected:
 
     bool m_disableSfcDithering;             //!< flag for dithering enable or disable, for debug purpose.
-MEDIA_CLASS_DEFINE_END(VpVeboxCmdPacketXe_Xpm_Base)
+MEDIA_CLASS_DEFINE_END(vp__VpVeboxCmdPacketXe_Xpm_Base)
 };
 
 }

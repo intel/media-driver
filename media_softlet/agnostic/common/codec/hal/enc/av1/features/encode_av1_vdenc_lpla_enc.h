@@ -91,7 +91,7 @@ namespace encode
 
         EncodeAllocator      *m_allocator               = nullptr;
 
-    MEDIA_CLASS_DEFINE_END(AV1VdencLplaEnc)
+    MEDIA_CLASS_DEFINE_END(encode__AV1VdencLplaEnc)
     };
 } // encode
 

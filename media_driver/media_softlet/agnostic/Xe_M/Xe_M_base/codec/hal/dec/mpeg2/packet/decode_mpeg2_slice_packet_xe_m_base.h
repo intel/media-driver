@@ -108,7 +108,7 @@ namespace decode
 
         uint32_t m_sliceStatesSize = 0;  //!< Slice state command size
         uint32_t m_slicePatchListSize = 0;  //!< Slice patch list size
-    MEDIA_CLASS_DEFINE_END(Mpeg2DecodeSlcPktXe_M_Base)
+    MEDIA_CLASS_DEFINE_END(decode__Mpeg2DecodeSlcPktXe_M_Base)
     };
 
 }  // namespace decode

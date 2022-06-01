@@ -136,6 +136,7 @@ _MHW_SETCMD_OVERRIDE_DECL(XY_BLOCK_COPY_BLT)
 
 protected:
     using base_t = Itf;
+MEDIA_CLASS_DEFINE_END(mhw__blt__Impl)
 };
 }  // namespace blt
 }  // namespace mhw

@@ -307,7 +307,7 @@ protected:
     bool     m_reportHucCriticalError = false; //!< Flag for reporting huc critical error to regkey
 #endif
 
-MEDIA_CLASS_DEFINE_END(HevcPipeline)
+MEDIA_CLASS_DEFINE_END(decode__HevcPipeline)
 };
 
 }

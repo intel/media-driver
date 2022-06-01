@@ -228,7 +228,7 @@ protected:
         return (OverlapMarker)(data & m_maskOverlapMarker);
     }
 
-MEDIA_CLASS_DEFINE_END(RoiOverlap)
+MEDIA_CLASS_DEFINE_END(encode__RoiOverlap)
 };
 
 }  // namespace encode

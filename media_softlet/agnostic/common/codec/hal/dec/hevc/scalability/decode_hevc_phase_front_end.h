@@ -65,7 +65,7 @@ public:
 private:
     DecodeHevcScalabilityOption m_FEScalabOption;
 
-MEDIA_CLASS_DEFINE_END(HevcPhaseFrontEnd)
+MEDIA_CLASS_DEFINE_END(decode__HevcPhaseFrontEnd)
 };
 
 }

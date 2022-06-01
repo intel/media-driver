@@ -68,7 +68,7 @@ protected:
     MhwVdboxVdencInterface          *m_vdencInterface   = nullptr;
     MhwVdboxAvpInterface            *m_avpInterface     = nullptr;
     CodechalHwInterface             *m_hwInterface      = nullptr;
-MEDIA_CLASS_DEFINE_END(Av1DecodePktG12)
+MEDIA_CLASS_DEFINE_END(decode__Av1DecodePktG12)
 };
 
 }

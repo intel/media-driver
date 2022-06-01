@@ -111,7 +111,7 @@ protected:
 
     VDBOX_SFC_PARAMS           m_sfcParams;
 
-MEDIA_CLASS_DEFINE_END(DecodeDownSamplingPkt)
+MEDIA_CLASS_DEFINE_END(decode__DecodeDownSamplingPkt)
 };
 
 }

@@ -48,7 +48,7 @@ namespace decode
 
     private:
          uint16_t m_lastMbAddress = 0;             //!< Address of last macro block
-    MEDIA_CLASS_DEFINE_END(Mpeg2DecodeMbPktM12)
+    MEDIA_CLASS_DEFINE_END(decode__Mpeg2DecodeMbPktM12)
     };
 }  // namespace decode
 #endif

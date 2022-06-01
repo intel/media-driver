@@ -166,7 +166,7 @@ public:
 
     VpPhase                               *m_phase = nullptr;
 
-MEDIA_CLASS_DEFINE_END(VpScalabilityMultiPipe)
+MEDIA_CLASS_DEFINE_END(vp__VpScalabilityMultiPipe)
 };
 }  // namespace vp
 #endif  // !__VP_SCALABILITY_MULTIPIPE_H__

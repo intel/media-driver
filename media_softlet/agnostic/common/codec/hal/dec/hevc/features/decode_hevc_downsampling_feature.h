@@ -45,7 +45,7 @@ protected:
     virtual MOS_STATUS GetDecodeTargetFormat(MOS_FORMAT &format) override;
     virtual MOS_STATUS UpdateDecodeTarget(MOS_SURFACE &surface) override;
 
-MEDIA_CLASS_DEFINE_END(HevcDownSamplingFeature)
+MEDIA_CLASS_DEFINE_END(decode__HevcDownSamplingFeature)
 };
 }//decode
 

@@ -223,7 +223,7 @@ protected:
         grvOutputVRandomValue,
         grvOutputCoordinates
     };
-MEDIA_CLASS_DEFINE_END(FilmGrainGrvPacket)
+MEDIA_CLASS_DEFINE_END(decode__FilmGrainGrvPacket)
 };
 }
 

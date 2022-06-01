@@ -228,7 +228,7 @@ private:
     PMOS_SURFACE                     m_currentSurface = nullptr; //!< Point to surface of current picture
     DecodeAllocator*                 m_allocator = nullptr;
 
-MEDIA_CLASS_DEFINE_END(InternalTargets)
+MEDIA_CLASS_DEFINE_END(decode__InternalTargets)
 };
 
 }  // namespace decode

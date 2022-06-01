@@ -143,7 +143,7 @@ protected:
     uint8_t m_pipe = 0;          //!< Pipe index for current phase
     uint8_t m_activePipeNum = 1; //!< Number of active pipe number for current pass
 
-MEDIA_CLASS_DEFINE_END(DecodePhase)
+MEDIA_CLASS_DEFINE_END(decode__DecodePhase)
 };
 
 }

@@ -92,7 +92,7 @@ protected:
     HevcPipeline            *m_pipeline = nullptr;
     DecodeScalabilityOption &m_scalabOption;
 
-MEDIA_CLASS_DEFINE_END(HevcPhase)
+MEDIA_CLASS_DEFINE_END(decode__HevcPhase)
 };
 
 }

@@ -159,7 +159,7 @@ protected:
         rp1OutputYDitheringSurface,
         rp1InputYCoeff,
     };
-MEDIA_CLASS_DEFINE_END(FilmGrainRp1Packet)
+MEDIA_CLASS_DEFINE_END(decode__FilmGrainRp1Packet)
 };
 }
 #endif

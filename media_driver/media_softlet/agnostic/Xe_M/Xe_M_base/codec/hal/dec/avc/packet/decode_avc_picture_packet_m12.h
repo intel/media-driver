@@ -67,7 +67,7 @@ namespace decode
         //!           MOS_STATUS_SUCCESS if success, else fail reason
         //!
         MOS_STATUS CalculatePictureStateCommandSize();
-    MEDIA_CLASS_DEFINE_END(AvcDecodePicPktM12)
+    MEDIA_CLASS_DEFINE_END(decode__AvcDecodePicPktM12)
     };
 }  // namespace decode
 #endif

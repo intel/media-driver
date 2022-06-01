@@ -345,7 +345,7 @@ protected:
     VP_SFC_RENDER_DATA_LEGACY       m_renderDataLegacy     = {};       //!< Transient Render data populated for every BLT call
     VPHAL_SFC_AVS_STATE_LEGACY      m_avsStateLegacy       = {};                          //!< AVS State and Coeff. table
 
-MEDIA_CLASS_DEFINE_END(SfcRenderBaseLegacy)
+MEDIA_CLASS_DEFINE_END(vp__SfcRenderBaseLegacy)
 };
 
 }

@@ -230,7 +230,7 @@ namespace encode
         uint32_t m_hucStatus2ImemLoadedMask = 0x40;
         bool m_enableHucStatusReport        = false;
 
-    MEDIA_CLASS_DEFINE_END(EncodeHucBasic)
+    MEDIA_CLASS_DEFINE_END(encode__EncodeHucBasic)
     };
 
 
@@ -275,7 +275,7 @@ namespace encode
         void LoadLegacyHucRegions();
         void LoadLegacyHucDmemParams();
 
-    MEDIA_CLASS_DEFINE_END(EncodeHucPkt)
+    MEDIA_CLASS_DEFINE_END(encode__EncodeHucPkt)
     };
 }
 #endif  // !__ENCODE_HUC_H__

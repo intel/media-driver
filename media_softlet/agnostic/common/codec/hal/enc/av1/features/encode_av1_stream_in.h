@@ -316,7 +316,7 @@ protected:
 
     CommonStreamInParams m_commonPar = {};
 
-MEDIA_CLASS_DEFINE_END(Av1StreamIn)
+MEDIA_CLASS_DEFINE_END(encode__Av1StreamIn)
 };
 
 }  // namespace encode

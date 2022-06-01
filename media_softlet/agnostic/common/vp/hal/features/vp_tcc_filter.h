@@ -62,7 +62,7 @@ protected:
     FeatureParamTcc         m_tccParams = {};
     PVEBOX_TCC_PARAMS       m_pVeboxTccParams = nullptr;
 
-MEDIA_CLASS_DEFINE_END(VpTccFilter)
+MEDIA_CLASS_DEFINE_END(vp__VpTccFilter)
 };
 
 struct HW_FILTER_TCC_PARAM : public HW_FILTER_PARAM
@@ -83,7 +83,7 @@ public:
 private:
     HW_FILTER_TCC_PARAM m_Params = {};
 
-MEDIA_CLASS_DEFINE_END(HwFilterTccParameter)
+MEDIA_CLASS_DEFINE_END(vp__HwFilterTccParameter)
 };
 
 class VpVeboxTccParameter : public VpPacketParameter
@@ -100,7 +100,7 @@ private:
 
     VpTccFilter m_tccFilter;
 
-MEDIA_CLASS_DEFINE_END(VpVeboxTccParameter)
+MEDIA_CLASS_DEFINE_END(vp__VpVeboxTccParameter)
 };
 
 class PolicyVeboxTccHandler : public PolicyFeatureHandler
@@ -126,7 +126,7 @@ public:
 private:
     PacketParamFactory<VpVeboxTccParameter> m_PacketParamFactory;
 
-MEDIA_CLASS_DEFINE_END(PolicyVeboxTccHandler)
+MEDIA_CLASS_DEFINE_END(vp__PolicyVeboxTccHandler)
 };
 }
 #endif

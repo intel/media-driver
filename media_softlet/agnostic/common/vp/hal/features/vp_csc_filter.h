@@ -134,7 +134,7 @@ protected:
     PSFC_CSC_PARAMS     m_sfcCSCParams   = nullptr;
     PVEBOX_CSC_PARAMS   m_veboxCSCParams = nullptr;
 
-MEDIA_CLASS_DEFINE_END(VpCscFilter)
+MEDIA_CLASS_DEFINE_END(vp__VpCscFilter)
 };
 
 
@@ -156,7 +156,7 @@ public:
 private:
     HW_FILTER_CSC_PARAM m_Params = {};
 
-MEDIA_CLASS_DEFINE_END(HwFilterCscParameter)
+MEDIA_CLASS_DEFINE_END(vp__HwFilterCscParameter)
 };
 
 class VpSfcCscParameter : public VpPacketParameter
@@ -173,7 +173,7 @@ private:
 
     VpCscFilter m_CscFilter;
 
-MEDIA_CLASS_DEFINE_END(VpSfcCscParameter)
+MEDIA_CLASS_DEFINE_END(vp__VpSfcCscParameter)
 };
 
 class PolicySfcCscHandler : public PolicyFeatureHandler
@@ -199,7 +199,7 @@ public:
 private:
     PacketParamFactory<VpSfcCscParameter> m_PacketParamFactory;
 
-MEDIA_CLASS_DEFINE_END(PolicySfcCscHandler)
+MEDIA_CLASS_DEFINE_END(vp__PolicySfcCscHandler)
 };
 
 class VpVeboxCscParameter : public VpPacketParameter
@@ -216,7 +216,7 @@ private:
 
     VpCscFilter m_CscFilter;
 
-MEDIA_CLASS_DEFINE_END(VpVeboxCscParameter)
+MEDIA_CLASS_DEFINE_END(vp__VpVeboxCscParameter)
 };
 
 class PolicyVeboxCscHandler : public PolicyFeatureHandler
@@ -242,7 +242,7 @@ public:
 private:
     PacketParamFactory<VpVeboxCscParameter> m_PacketParamFactory;
 
-MEDIA_CLASS_DEFINE_END(PolicyVeboxCscHandler)
+MEDIA_CLASS_DEFINE_END(vp__PolicyVeboxCscHandler)
 };
 }
 #endif // !__VP_CSC_FILTER_H__

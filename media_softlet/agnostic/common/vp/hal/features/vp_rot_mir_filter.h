@@ -86,7 +86,7 @@ protected:
     FeatureParamRotMir      m_rotMirParams = {};
     PSFC_ROT_MIR_PARAMS     m_sfcRotMirParams = nullptr;
 
-MEDIA_CLASS_DEFINE_END(VpRotMirFilter)
+MEDIA_CLASS_DEFINE_END(vp__VpRotMirFilter)
 };
 
 struct HW_FILTER_ROT_MIR_PARAM : public HW_FILTER_PARAM
@@ -106,7 +106,7 @@ public:
 private:
     HW_FILTER_ROT_MIR_PARAM m_Params = {};
 
-MEDIA_CLASS_DEFINE_END(HwFilterRotMirParameter)
+MEDIA_CLASS_DEFINE_END(vp__HwFilterRotMirParameter)
 };
 
 class VpSfcRotMirParameter : public VpPacketParameter
@@ -123,7 +123,7 @@ private:
 
     VpRotMirFilter m_RotMirFilter;
 
-MEDIA_CLASS_DEFINE_END(VpSfcRotMirParameter)
+MEDIA_CLASS_DEFINE_END(vp__VpSfcRotMirParameter)
 };
 
 class PolicySfcRotMirHandler : public PolicyFeatureHandler
@@ -149,7 +149,7 @@ public:
 private:
     PacketParamFactory<VpSfcRotMirParameter> m_PacketParamFactory;
 
-MEDIA_CLASS_DEFINE_END(PolicySfcRotMirHandler)
+MEDIA_CLASS_DEFINE_END(vp__PolicySfcRotMirHandler)
 };
 }
 #endif//__VP_ROT_MIR_FILTER_H__

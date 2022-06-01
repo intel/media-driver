@@ -80,7 +80,7 @@ protected:
         return true;
     }
 
-MEDIA_CLASS_DEFINE_END(VPFeatureManagerXe_Xpm_Base)
+MEDIA_CLASS_DEFINE_END(vp__VPFeatureManagerXe_Xpm_Base)
 };
 
 }

@@ -103,7 +103,7 @@ protected:
     PVpAllocator          m_allocator   = nullptr;
     std::map<VpKernelID, VpRenderKernelObj *> m_cachedKernels;
 
-MEDIA_CLASS_DEFINE_END(VpKernelSet)
+MEDIA_CLASS_DEFINE_END(vp__VpKernelSet)
 };
 }
 

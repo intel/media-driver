@@ -152,7 +152,7 @@ protected:
     Mpeg2BasicFeature *m_basicFeature = nullptr;  //!< Mpeg2 Basic Feature
     HucCopyPktItf     *m_mpeg2BsCopyPkt = nullptr;  //!< Mpeg2 bitstream with HuC Copy
 
-MEDIA_CLASS_DEFINE_END(Mpeg2Pipeline)
+MEDIA_CLASS_DEFINE_END(decode__Mpeg2Pipeline)
 };
 
 }

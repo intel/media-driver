@@ -84,7 +84,7 @@ protected:
 
     virtual bool IsOutputChannelSwapNeeded(MOS_FORMAT outputFormat);
     virtual bool IsCscNeeded(SFC_CSC_PARAMS &cscParams);
-MEDIA_CLASS_DEFINE_END(SfcRenderM12)
+MEDIA_CLASS_DEFINE_END(vp__SfcRenderM12)
 };
 
 }

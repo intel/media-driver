@@ -203,7 +203,7 @@ protected:
     Av1BasicFeatureG12 *m_basicFeature = nullptr;  //!< AV1 basic feature
     DecodeAllocator *m_allocator = nullptr;        //!< Decode allocator
     std::vector<uint8_t> m_activeReferenceList;    //!< Active reference list of current picture
-MEDIA_CLASS_DEFINE_END(Av1ReferenceFramesG12)
+MEDIA_CLASS_DEFINE_END(decode__Av1ReferenceFramesG12)
 };
 
 }  // namespace decode

@@ -143,7 +143,7 @@ namespace encode
         bool                        m_mmcEnabled = false;
         MOS_CONTEXT_HANDLE          m_mosCtx = nullptr;
 
-    MEDIA_CLASS_DEFINE_END(HevcVdencScc)
+    MEDIA_CLASS_DEFINE_END(encode__HevcVdencScc)
     };
 
 }  // namespace encode

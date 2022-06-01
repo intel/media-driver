@@ -87,7 +87,7 @@ protected:
         PCODEC_HEVC_ENCODE_SLICE_PARAMS hevcSliceParams) override;
 
     MOS_STATUS CreateFeatures(void *constSettings) override;
-MEDIA_CLASS_DEFINE_END(EncodeHevcVdencFeatureManagerXe_Xpm_Base)
+MEDIA_CLASS_DEFINE_END(encode__EncodeHevcVdencFeatureManagerXe_Xpm_Base)
 };
 
 }

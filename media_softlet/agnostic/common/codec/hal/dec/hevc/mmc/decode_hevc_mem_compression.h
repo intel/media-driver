@@ -77,7 +77,7 @@ public:
 protected:
     PMOS_INTERFACE m_osInterface = nullptr;
 
-MEDIA_CLASS_DEFINE_END(HevcDecodeMemComp)
+MEDIA_CLASS_DEFINE_END(decode__HevcDecodeMemComp)
 };
 
 }

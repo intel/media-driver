@@ -82,7 +82,7 @@ public:
 protected:
     std::map<uint32_t, DecodeSubPacket *> m_subPacketList; //!< sub packet list
 
-MEDIA_CLASS_DEFINE_END(DecodeSubPacketManager)
+MEDIA_CLASS_DEFINE_END(decode__DecodeSubPacketManager)
 };
 
 }

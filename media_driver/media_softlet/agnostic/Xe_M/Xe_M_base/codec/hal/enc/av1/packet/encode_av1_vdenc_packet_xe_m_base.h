@@ -127,7 +127,7 @@ namespace encode
     private:
         uint16_t m_tileColStartSb[64];  //!< tile column start SB
         uint16_t m_tileRowStartSb[64];  //!< tile row start SB
-    MEDIA_CLASS_DEFINE_END(Av1VdencPktXe_M_Base)
+    MEDIA_CLASS_DEFINE_END(encode__Av1VdencPktXe_M_Base)
     };
 
 }

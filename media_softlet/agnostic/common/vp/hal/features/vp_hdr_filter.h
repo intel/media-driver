@@ -69,7 +69,7 @@ protected:
     uint32_t    m_3DLutSurfaceWidth     = 0;
     uint32_t    m_3DLutSurfaceHeight    = 0;
 
-MEDIA_CLASS_DEFINE_END(VpHdrFilter)
+MEDIA_CLASS_DEFINE_END(vp__VpHdrFilter)
 };
 
 struct HW_FILTER_HDR_PARAM : public HW_FILTER_PARAM
@@ -90,7 +90,7 @@ public:
 private:
     HW_FILTER_HDR_PARAM m_Params = {};
 
-MEDIA_CLASS_DEFINE_END(HwFilterHdrParameter)
+MEDIA_CLASS_DEFINE_END(vp__HwFilterHdrParameter)
 };
 
 class VpVeboxHdrParameter : public VpPacketParameter
@@ -107,7 +107,7 @@ private:
 
     VpHdrFilter m_HdrFilter;
 
-MEDIA_CLASS_DEFINE_END(VpVeboxHdrParameter)
+MEDIA_CLASS_DEFINE_END(vp__VpVeboxHdrParameter)
 };
 
 class PolicyVeboxHdrHandler : public PolicyFeatureHandler
@@ -133,7 +133,7 @@ public:
 private:
     PacketParamFactory<VpVeboxHdrParameter> m_PacketParamFactory;
 
-MEDIA_CLASS_DEFINE_END(PolicyVeboxHdrHandler)
+MEDIA_CLASS_DEFINE_END(vp__PolicyVeboxHdrHandler)
 };
 
 /*****************HDR 3DLUT Calculate Kernel********************/
@@ -151,7 +151,7 @@ private:
 
     VpHdrFilter m_HdrFilter;
 
-MEDIA_CLASS_DEFINE_END(VpRenderHdr3DLutCalParameter)
+MEDIA_CLASS_DEFINE_END(vp__VpRenderHdr3DLutCalParameter)
 };
 
 class PolicyRenderHdr3DLutCalHandler : public PolicyFeatureHandler
@@ -177,7 +177,7 @@ public:
 private:
     PacketParamFactory<VpRenderHdr3DLutCalParameter> m_PacketParamFactory;
 
-    MEDIA_CLASS_DEFINE_END(PolicyRenderHdr3DLutCalHandler)
+    MEDIA_CLASS_DEFINE_END(vp__PolicyRenderHdr3DLutCalHandler)
 };
 
 }  // namespace vp

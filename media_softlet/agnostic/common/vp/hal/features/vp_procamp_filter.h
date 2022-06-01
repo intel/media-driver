@@ -62,7 +62,7 @@ protected:
     FeatureParamProcamp     m_procampParams = {};
     PVEBOX_PROCAMP_PARAMS   m_pVeboxProcampParams = nullptr;
 
-MEDIA_CLASS_DEFINE_END(VpProcampFilter)
+MEDIA_CLASS_DEFINE_END(vp__VpProcampFilter)
 };
 
 struct HW_FILTER_PROCAMP_PARAM : public HW_FILTER_PARAM
@@ -83,7 +83,7 @@ public:
 private:
     HW_FILTER_PROCAMP_PARAM m_Params = {};
 
-MEDIA_CLASS_DEFINE_END(HwFilterProcampParameter)
+MEDIA_CLASS_DEFINE_END(vp__HwFilterProcampParameter)
 };
 
 class VpVeboxProcampParameter : public VpPacketParameter
@@ -100,7 +100,7 @@ private:
 
     VpProcampFilter m_procampFilter;
 
-MEDIA_CLASS_DEFINE_END(VpVeboxProcampParameter)
+MEDIA_CLASS_DEFINE_END(vp__VpVeboxProcampParameter)
 };
 
 class PolicyVeboxProcampHandler : public PolicyFeatureHandler
@@ -126,7 +126,7 @@ public:
 private:
     PacketParamFactory<VpVeboxProcampParameter> m_PacketParamFactory;
 
-MEDIA_CLASS_DEFINE_END(PolicyVeboxProcampHandler)
+MEDIA_CLASS_DEFINE_END(vp__PolicyVeboxProcampHandler)
 };
 }
 #endif

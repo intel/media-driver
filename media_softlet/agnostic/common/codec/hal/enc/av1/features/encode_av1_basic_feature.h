@@ -217,7 +217,7 @@ protected:
     uint32_t m_appHdrSize                = 0;
     uint32_t m_appHdrSizeExcludeFrameHdr = 0;
 
-MEDIA_CLASS_DEFINE_END(Av1BasicFeature)
+MEDIA_CLASS_DEFINE_END(encode__Av1BasicFeature)
 };
 
 }  // namespace encode

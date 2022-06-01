@@ -95,7 +95,7 @@ private:
 
     uint8_t m_numTileColumns = 0;
 
-MEDIA_CLASS_DEFINE_END(HevcPhaseRealTile)
+MEDIA_CLASS_DEFINE_END(decode__HevcPhaseRealTile)
 };
 
 }

@@ -235,7 +235,7 @@ protected:
     PCODEC_AV1_ENCODE_SEQUENCE_PARAMS m_av1SeqParams = nullptr;
     PCODEC_AV1_ENCODE_PICTURE_PARAMS  m_av1PicParams = nullptr;
 
-MEDIA_CLASS_DEFINE_END(EncodeAv1VdencConstSettings)
+MEDIA_CLASS_DEFINE_END(encode__EncodeAv1VdencConstSettings)
 };
 
 

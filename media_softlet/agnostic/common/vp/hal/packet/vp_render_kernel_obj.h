@@ -536,7 +536,7 @@ protected:
 
     std::shared_ptr<mhw::vebox::Itf>                        m_veboxItf = nullptr;
 
-MEDIA_CLASS_DEFINE_END(VpRenderKernelObj)
+MEDIA_CLASS_DEFINE_END(vp__VpRenderKernelObj)
 };
 }
 #endif // __VP_RENDER_KERNEL_OBJ_H__

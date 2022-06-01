@@ -146,7 +146,7 @@ protected:
     uint32_t        m_requiredSize      = 0;         //!< Size of bitstream in bytes of current frame
     uint32_t        m_segmentsTotalSize = 0;         //!< Total size of segments in m_segments
 
-MEDIA_CLASS_DEFINE_END(DecodeInputBitstream)
+MEDIA_CLASS_DEFINE_END(decode__DecodeInputBitstream)
 };
 
 }

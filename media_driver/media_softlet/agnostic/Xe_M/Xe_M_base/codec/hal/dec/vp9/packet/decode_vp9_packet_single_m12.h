@@ -61,7 +61,7 @@ protected:
     MOS_STATUS VdPipelineFlush(MOS_COMMAND_BUFFER &cmdBuffer);
 
     CodechalHwInterfaceG12 *m_hwInterface = nullptr;
-MEDIA_CLASS_DEFINE_END(Vp9DecodeSinglePktM12)
+MEDIA_CLASS_DEFINE_END(decode__Vp9DecodeSinglePktM12)
 };
 
 }

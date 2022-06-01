@@ -204,7 +204,7 @@ protected:
     PMOS_INTERFACE m_osInterface = nullptr;  //!< PMOS_INTERFACE
     Allocator *m_allocator = nullptr;
 
-MEDIA_CLASS_DEFINE_END(EncodeAllocator)
+MEDIA_CLASS_DEFINE_END(encode__EncodeAllocator)
 };
 }
 #endif // !__ENCODE_ALLOCATOR_H__

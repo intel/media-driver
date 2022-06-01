@@ -42,7 +42,7 @@ public:
     MOS_SURFACE   m_destSurface = {};    //!< Dest data surface
     PMOS_RESOURCE m_streamOutBuffer = nullptr;//!< Stream Out Buffer
 
-MEDIA_CLASS_DEFINE_END(DecodeVdboxMfxData)
+MEDIA_CLASS_DEFINE_END(decode__DecodeVdboxMfxData)
 };
 }
 #endif // !__DECODE_VDBOX_MFX_COMMON_H__

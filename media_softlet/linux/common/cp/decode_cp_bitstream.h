@@ -81,7 +81,7 @@ protected:
     //!
     virtual void InitScalabilityPars(PMOS_INTERFACE osInterface) {}
 
-MEDIA_CLASS_DEFINE_END(DecodeStreamOut)
+MEDIA_CLASS_DEFINE_END(decode__DecodeStreamOut)
 };
 }  // namespace decode
 

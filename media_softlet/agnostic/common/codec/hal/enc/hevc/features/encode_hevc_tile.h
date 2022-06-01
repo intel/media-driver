@@ -294,7 +294,7 @@ protected:
 
     std::shared_ptr<mhw::vdbox::hcp::Itf> m_hcpItf = nullptr;
 
-MEDIA_CLASS_DEFINE_END(HevcEncodeTile)
+MEDIA_CLASS_DEFINE_END(encode__HevcEncodeTile)
 };
 
 }  // namespace encode

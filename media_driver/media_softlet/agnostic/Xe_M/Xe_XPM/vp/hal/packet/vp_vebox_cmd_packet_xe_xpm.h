@@ -38,7 +38,7 @@ public:
     VpVeboxCmdPacketXe_Xpm(MediaTask * task, PVP_MHWINTERFACE hwInterface, PVpAllocator &allocator, VPMediaMemComp *mmc, bool disbaleSfcDithering);
 
     virtual ~VpVeboxCmdPacketXe_Xpm();
-MEDIA_CLASS_DEFINE_END(VpVeboxCmdPacketXe_Xpm)
+MEDIA_CLASS_DEFINE_END(vp__VpVeboxCmdPacketXe_Xpm)
 };
 
 }

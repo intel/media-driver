@@ -99,7 +99,7 @@ private:
     EncodeAllocator         *m_allocator = nullptr;  //!< encoder allocator
     std::vector<void *>     m_resources;      //<! All resources
 
-MEDIA_CLASS_DEFINE_END(RecycleQueue)
+MEDIA_CLASS_DEFINE_END(encode__RecycleQueue)
 };
 }  // namespace encode
 #endif  // !__ENCODE_RECYCLE_RES_QUEUE_H__
