@@ -289,6 +289,12 @@ VAStatus MediaLibvaCapsPVC::GetDisplayAttributes(
     {
         switch(attribList->type)
         {
+#if VA_CHECK_VERSION(1, 15, 0)
+            case VADisplayPCIID:
+                attribList->min_value = attribList->value = attribList->max_value = (m_mediaCtx->iDeviceId & 0xffff) | 0x80860000;
+                attribList->flags = VA_DISPLAY_ATTRIB_GETTABLE;
+                break;
+#endif
             case VADisplayAttribCopy:
                 attribList->min_value = attribList->value = attribList->max_value =
                     (1 << VA_EXEC_MODE_POWER_SAVING) | (1 << VA_EXEC_MODE_PERFORMANCE);
