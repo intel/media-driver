@@ -275,6 +275,14 @@ typedef enum _MEDIA_EVENT
     EVENT_DECODE_DST_DUMPINFO,                     //! event for Decode Dst Surface Info
     EVENT_DECODE_REF_DUMPINFO,                     //! event for Decode Ref Surface Info
     EVENT_CALL_STACK,                              //! event for call stack dump
+    EVENT_ENCODE_DDI_11_CREATEVIDEOENCODER,        //! event for Encode Create Device
+    EVENT_ENCODE_DDI_11_ENCODEFRAME,               //! event for Encode frame, mainly excute
+    EVENT_ENCODE_DDI_11_GETCAPS,                   //! event for Encode getting caps
+    EVENT_ENCODE_DDI_11_GETPROFILECOUNT,           //! event for Encode get profile count
+    EVENT_ENCODE_DDI_11_GETPROFILE,                //! event for Encode get profile
+    EVENT_ENCODE_DDI_11_CHECKFORMAT,               //! event for Encode check format
+    EVENT_ENCODE_DDI_11_GETCONFIGCOUNT,            //! event for Encode get config count
+    EVENT_ENCODE_DDI_11_GETCONFIG,                 //! event for Encode get config
 } MEDIA_EVENT;
 
 typedef enum _MEDIA_EVENT_TYPE
