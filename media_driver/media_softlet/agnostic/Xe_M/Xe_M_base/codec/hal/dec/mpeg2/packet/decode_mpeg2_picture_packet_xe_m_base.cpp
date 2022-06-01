@@ -211,6 +211,10 @@ namespace decode {
 
 #ifdef _MMC_SUPPORTED
         DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcState(pipeBufAddrParams.psPreDeblockSurface, &pipeBufAddrParams.PreDeblockSurfMmcState));
+        if (m_mmcState->IsMmcEnabled())
+        {
+            pipeBufAddrParams.bMmcEnabled = true;
+        }
 #endif
 
         DECODE_CHK_STATUS(FixMfxPipeBufAddrParams(pipeBufAddrParams));

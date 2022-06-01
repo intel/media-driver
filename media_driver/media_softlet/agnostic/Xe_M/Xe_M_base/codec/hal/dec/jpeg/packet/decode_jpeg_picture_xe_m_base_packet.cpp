@@ -130,6 +130,10 @@ MOS_STATUS JpegDecodePicPktXe_M_Base::SetMfxPipeBufAddrParams(MHW_VDBOX_PIPE_BUF
 
 #ifdef _MMC_SUPPORTED
     DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcState(pipeBufAddrParams.psPreDeblockSurface, &pipeBufAddrParams.PreDeblockSurfMmcState));
+    if (m_mmcState->IsMmcEnabled())
+    {
+        pipeBufAddrParams.bMmcEnabled = true;
+    }
 #endif
 
     CODECHAL_DEBUG_TOOL(DumpResources(pipeBufAddrParams));

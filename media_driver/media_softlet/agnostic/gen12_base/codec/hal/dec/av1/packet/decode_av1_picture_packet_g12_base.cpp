@@ -1076,9 +1076,9 @@ namespace decode{
                 {
                     DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcFormat(refSurfaceParams[i].psSurface, &compressionFormat));
                 }
+                DECODE_NORMALMESSAGE("AV1 MMC skip mask is %d compression format %d\n", skipMask, compressionFormat);
             #endif
             }
-            DECODE_NORMALMESSAGE("AV1 MMC skip mask is %d compression format %d\n", skipMask, compressionFormat);
 
 #ifdef _MMC_SUPPORTED
             for (auto i = 0; i < av1TotalRefsPerFrame; i++)

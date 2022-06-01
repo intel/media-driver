@@ -97,6 +97,7 @@ namespace decode
 
         if (m_mmcState->IsMmcEnabled())
         {
+            pipeBufAddrParams.bMmcEnabled = true;
             if (m_avcBasicFeature->m_deblockingEnabled)
             {
                 DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcState(

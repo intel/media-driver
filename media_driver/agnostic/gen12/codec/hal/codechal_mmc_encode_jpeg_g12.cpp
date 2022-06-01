@@ -46,6 +46,7 @@ MOS_STATUS CodechalMmcEncodeJpegG12::SetPipeBufAddr(
 
     if (m_mmcEnabled)
     {
+        pipeBufAddrParams->bMmcEnabled = true;
         MOS_CHK_STATUS_RETURN(MOS_COMPONENT_CODEC, MOS_CODEC_SUBCOMP_ENCODE, m_osInterface->pfnGetMemoryCompressionMode(m_osInterface,
             &pipeBufAddrParams->psRawSurface->OsResource, &pipeBufAddrParams->RawSurfMmcState));
         MOS_CHK_STATUS_RETURN(MOS_COMPONENT_CODEC, MOS_CODEC_SUBCOMP_ENCODE, m_osInterface->pfnGetMemoryCompressionFormat(m_osInterface,
@@ -53,6 +54,7 @@ MOS_STATUS CodechalMmcEncodeJpegG12::SetPipeBufAddr(
     }
     else
     {
+        pipeBufAddrParams->bMmcEnabled     = false;
         pipeBufAddrParams->RawSurfMmcState = MOS_MEMCOMP_DISABLED;
     }
 
