@@ -3090,10 +3090,17 @@ VAStatus MediaLibvaCaps::QueryDisplayAttributes(
 {
     DDI_CHK_NULL(attribList, "Null attribList", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(numAttribs, "Null num_attribs", VA_STATUS_ERROR_INVALID_PARAMETER);
+    VADisplayAttribute * attrib = attribList;
     *numAttribs = 0;
 
-    attribList->type = VADisplayAttribCopy;
+    attrib->type = VADisplayAttribCopy;
     (*numAttribs) ++;
+#if VA_CHECK_VERSION(1, 15, 0)
+    attrib ++;
+
+    attrib->type = VADisplayPCIID;
+    (*numAttribs) ++;
+#endif
 
     return GetDisplayAttributes(attribList, *numAttribs);
 }
@@ -3111,6 +3118,12 @@ VAStatus MediaLibvaCaps::GetDisplayAttributes(
                 attribList->min_value = attribList->value = attribList->max_value = 0;
                 attribList->flags = VA_DISPLAY_ATTRIB_GETTABLE;
                 break;
+#if VA_CHECK_VERSION(1, 15, 0)
+            case VADisplayPCIID:
+                attribList->min_value = attribList->value = attribList->max_value = (m_mediaCtx->iDeviceId & 0xffff) | 0x80860000;
+                attribList->flags = VA_DISPLAY_ATTRIB_GETTABLE;
+                break;
+#endif
             default:
                 attribList->min_value = VA_ATTRIB_NOT_SUPPORTED;
                 attribList->max_value = VA_ATTRIB_NOT_SUPPORTED;

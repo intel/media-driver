@@ -61,7 +61,11 @@
 #if VA_MAJOR_VERSION < 1
 #define DDI_MEDIA_GEN_MAX_DISPLAY_ATTRIBUTES       4
 #else
+#if VA_CHECK_VERSION(1, 15, 0)
+#define DDI_MEDIA_GEN_MAX_DISPLAY_ATTRIBUTES       2
+#else
 #define DDI_MEDIA_GEN_MAX_DISPLAY_ATTRIBUTES       1
+#endif
 #endif
 #define DDI_CODEC_GEN_MAX_ATTRIBS_TYPE             4    //VAConfigAttribRTFormat,    VAConfigAttribRateControl,    VAConfigAttribDecSliceMode,    VAConfigAttribEncPackedHeaders
 
