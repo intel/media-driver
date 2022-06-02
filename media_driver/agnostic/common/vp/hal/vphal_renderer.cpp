@@ -1397,6 +1397,14 @@ MOS_STATUS VphalRenderer::Initialize(
     // We MUST NOT create a writable global memory since it can cause issues
     // in multi-device cases (multiple threads operating on the memory)
     // NOTE: KDLL will release the allocated memory.
+    // NOTE: Need to check kernel binary pointer and bin size firstly,
+    // Because calling malloc(0) will usually returns a valid pointer, and any usage of this pointer excluding free memory is undefined in C/C++.
+    if(pcKernelBin == nullptr || dwKernelBinSize == 0)
+    {
+        eStatus = MOS_STATUS_NULL_POINTER;
+        VPHAL_RENDER_ASSERTMESSAGE("Could not allocate KDLL state with no kernel binary");
+        goto finish;
+    }
     pKernelBin = MOS_AllocMemory(dwKernelBinSize);
     VPHAL_RENDER_CHK_NULL(pKernelBin);
     MOS_SecureMemcpy(pKernelBin,
