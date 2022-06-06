@@ -7060,6 +7060,8 @@ static uint32_t DdiMedia_GetDrmFormatOfCompositeObject(uint32_t fourcc)
         return DRM_FORMAT_VYUY;
     case VA_FOURCC_UYVY:
         return DRM_FORMAT_UYVY;
+    case VA_FOURCC_AYUV:
+        return DRM_FORMAT_AYUV;
     case VA_FOURCC_Y210:
         return DRM_FORMAT_Y210;
 #if VA_CHECK_VERSION(1, 9, 0)
