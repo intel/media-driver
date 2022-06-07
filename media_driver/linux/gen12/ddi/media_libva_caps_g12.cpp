@@ -554,7 +554,7 @@ VAStatus MediaLibvaCapsG12::GetPlatformSpecificAttrib(VAProfile profile,
             if (entrypoint == VAEntrypointEncSlice && IsHevcProfile(profile))
             {
                 VAConfigAttribValEncHEVCBlockSizes hevcBlockSize = {0};
-                hevcBlockSize.bits.log2_max_coding_tree_block_size_minus3     = 2;
+                hevcBlockSize.bits.log2_max_coding_tree_block_size_minus3     = 3;
                 hevcBlockSize.bits.log2_min_coding_tree_block_size_minus3     = 1;
                 hevcBlockSize.bits.log2_min_luma_coding_block_size_minus3     = 0;
                 hevcBlockSize.bits.log2_max_luma_transform_block_size_minus2  = 3;
@@ -712,6 +712,19 @@ VAStatus MediaLibvaCapsG12::LoadHevcEncLpProfileEntrypoints()
         }
         AddProfileEntry(VAProfileHEVCMain444_10, VAEntrypointEncSliceLP, attributeList,
                 configStartIdx, m_encConfigs.size() - configStartIdx);
+    }
+
+    // SCC needs a separate attribute list from other profiles
+    if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeHEVCVdencMainSCC)
+            || MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeHEVCVdencMain10bitSCC)
+            || MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeHEVCVdencMain444SCC)
+            || MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeHEVCVdencMain10bit444SCC))
+    {
+        status = CreateEncAttributes(VAProfileHEVCSccMain, VAEntrypointEncSliceLP, &attributeList);
+        DDI_CHK_RET(status, "Failed to initialize Caps!");
+        (*attributeList)[VAConfigAttribMaxPictureWidth] = CODEC_16K_MAX_PIC_WIDTH;
+        (*attributeList)[VAConfigAttribMaxPictureHeight] = CODEC_12K_MAX_PIC_HEIGHT;
+        (*attributeList)[VAConfigAttribEncTileSupport] = 1;
     }
 
     if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeHEVCVdencMainSCC))
@@ -1778,7 +1791,9 @@ VAStatus MediaLibvaCapsG12::CreateEncAttributes(
     attrib.type = VAConfigAttribRateControl;
     attrib.value = VA_RC_CQP;
     if (entrypoint != VAEntrypointEncSliceLP ||
-            (entrypoint == VAEntrypointEncSliceLP && MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEnableMediaKernels)))
+            (entrypoint == VAEntrypointEncSliceLP &&
+             MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEnableMediaKernels) &&
+             !IsHevcSccProfile(profile))) // Currently, SCC doesn't support BRC
     {
         attrib.value |= VA_RC_CBR | VA_RC_VBR | VA_RC_MB;
         if (IsHevcProfile(profile))
@@ -2070,18 +2085,8 @@ VAStatus MediaLibvaCapsG12::CreateEncAttributes(
     if (IsHevcProfile(profile))
     {
         attrib.type = (VAConfigAttribType) VAConfigAttribPredictionDirection;
-        if (!IsHevcSccProfile(profile))
-        {
-            attrib.value = VA_PREDICTION_DIRECTION_PREVIOUS | VA_PREDICTION_DIRECTION_FUTURE | VA_PREDICTION_DIRECTION_BI_NOT_EMPTY;
-        }
-        else
-        {
-            // Here we set
-            // VAConfigAttribPredictionDirection: VA_PREDICTION_DIRECTION_PREVIOUS | VA_PREDICTION_DIRECTION_BI_NOT_EMPTY together with
-            // VAConfigAttribEncMaxRefFrames: L0 != 0, L1 !=0
-            // to indicate SCC only supports I/low delay B
-            attrib.value = VA_PREDICTION_DIRECTION_PREVIOUS | VA_PREDICTION_DIRECTION_BI_NOT_EMPTY;
-        }
+        GetPlatformSpecificAttrib(profile, entrypoint,
+                (VAConfigAttribType)VAConfigAttribPredictionDirection, &attrib.value);
         (*attribList)[attrib.type] = attrib.value;
 #if VA_CHECK_VERSION(1, 12, 0)
         attrib.type = (VAConfigAttribType)VAConfigAttribEncHEVCFeatures;
