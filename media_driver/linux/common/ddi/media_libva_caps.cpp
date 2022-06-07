@@ -104,7 +104,8 @@ const uint32_t MediaLibvaCaps::m_jpegSurfaceAttr[m_numJpegSurfaceAttr] =
     VA_FOURCC_411P,
     VA_FOURCC_422H,
     VA_FOURCC_422V,
-    VA_FOURCC_444P
+    VA_FOURCC_444P,
+    VA_FOURCC_RGBP
 };
 
 const uint32_t MediaLibvaCaps::m_jpegEncSurfaceAttr[m_numJpegEncSurfaceAttr] =
