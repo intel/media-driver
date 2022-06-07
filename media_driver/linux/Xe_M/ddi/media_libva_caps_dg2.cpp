@@ -647,7 +647,9 @@ VAStatus MediaLibvaCapsDG2::CreateEncAttributes(
     attrib.type = VAConfigAttribRateControl;
     attrib.value = VA_RC_CQP;
     if (entrypoint != VAEntrypointEncSliceLP ||
-            (entrypoint == VAEntrypointEncSliceLP && MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEnableMediaKernels)))
+            (entrypoint == VAEntrypointEncSliceLP &&
+             MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEnableMediaKernels) &&
+             !IsHevcSccProfile(profile))) // Currently, SCC doesn't support BRC
     {
         attrib.value |= VA_RC_CBR | VA_RC_VBR | VA_RC_MB;
         if (IsHevcProfile(profile))
@@ -928,18 +930,8 @@ VAStatus MediaLibvaCapsDG2::CreateEncAttributes(
     if (IsHevcProfile(profile))
     {
         attrib.type = (VAConfigAttribType) VAConfigAttribPredictionDirection;
-        if (!IsHevcSccProfile(profile))
-        {
-            attrib.value = VA_PREDICTION_DIRECTION_PREVIOUS | VA_PREDICTION_DIRECTION_FUTURE | VA_PREDICTION_DIRECTION_BI_NOT_EMPTY;
-        }
-        else
-        {
-            // Here we set
-            // VAConfigAttribPredictionDirection: VA_PREDICTION_DIRECTION_PREVIOUS | VA_PREDICTION_DIRECTION_BI_NOT_EMPTY together with
-            // VAConfigAttribEncMaxRefFrames: L0 != 0, L1 !=0
-            // to indicate SCC only supports I/low delay B
-            attrib.value = VA_PREDICTION_DIRECTION_PREVIOUS | VA_PREDICTION_DIRECTION_BI_NOT_EMPTY;
-        }
+        GetPlatformSpecificAttrib(profile, entrypoint,
+                (VAConfigAttribType)VAConfigAttribPredictionDirection, &attrib.value);
         (*attribList)[attrib.type] = attrib.value;
     }
 
