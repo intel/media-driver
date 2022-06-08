@@ -316,6 +316,21 @@ MOS_STATUS VphalSfcStateG12::SetSfcStateParams(
         sfcStateParams->bRGBASwapEnable = false;
     }
 
+    // Enable Adaptive Filtering for YUV input only on Gen12LP, if it is being upscaled
+    // in either direction. We must check for this before clamping the SF.
+    if ((IS_YUV_FORMAT(m_renderData.SfcInputFormat) || (m_renderData.SfcInputFormat == Format_AYUV)) &&  // YUV format
+        (m_renderData.fScaleX > 1.0F || m_renderData.fScaleY > 1.0F) && // scaling ratio > 1
+        (sfcStateParams->dwAVSFilterMode != MEDIASTATE_SFC_AVS_FILTER_BILINEAR)) // AVS 8x8(VE+SFC) or 5X5 (VD+SFC)
+    {
+        sfcStateParams->bBypassXAdaptiveFilter = false;
+        sfcStateParams->bBypassYAdaptiveFilter = false;
+    }
+    else
+    {
+        sfcStateParams->bBypassXAdaptiveFilter = true;
+        sfcStateParams->bBypassYAdaptiveFilter = true;
+    }
+
     return eStatus;
 }
 
