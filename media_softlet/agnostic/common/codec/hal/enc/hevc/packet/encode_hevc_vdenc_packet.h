@@ -461,7 +461,7 @@ namespace encode
 
         MOS_STATUS SetBatchBufferForPakSlices();
 
-        virtual MOS_STATUS ReadExtStatistics(MOS_COMMAND_BUFFER &cmdBuffer);
+        MOS_STATUS ReadSseStatistics(MOS_COMMAND_BUFFER &cmdBuffer);
 
         //!
         //! \brief    Retreive BRC Pak statistics
@@ -480,19 +480,19 @@ namespace encode
 
         virtual MOS_STATUS AddForceWakeup(MOS_COMMAND_BUFFER &cmdBuffer);
 
-        //! \brief    Report extended statistics
+        //! \brief    Calculates the PSNR values for luma/ chroma
         //!
         //! \param    [in] encodeStatusMfx
-        //!           Reference to encoder status for vdbox
+        //!           Pointer to encoder status for vdbox
         //! \param    [in, out] statusReportData
-        //!           Reference to encoder status report data
+        //!           Pointer to encoder status report data
         //!
         //! \return   MOS_STATUS
         //!           MOS_STATUS_SUCCESS if success, else fail reason
         //!
-       virtual MOS_STATUS ReportExtStatistics(
-            EncodeStatusMfx        &encodeStatusMfx,
-            EncodeStatusReportData &statusReportData);
+        MOS_STATUS CalculatePSNR(
+            EncodeStatusMfx *       encodeStatusMfx,
+            EncodeStatusReportData *statusReportData);
 
         //! \brief    Set Rowstore Cache offset
         //!
@@ -586,8 +586,9 @@ namespace encode
         const CODECHAL_HEVC_IQ_MATRIX_PARAMS *   m_hevcIqMatrixParams = nullptr;  //!< Pointer to IQ matrix parameter
         const PCODECHAL_NAL_UNIT_PARAMS *        m_nalUnitParams      = nullptr;  //!< Pointer to NAL unit parameters
 
-        bool m_pakOnlyPass     = false;
-        bool m_streamInEnabled = false;  //!< Vdenc stream in enabled flag
+        bool m_pakOnlyPass                    = false;
+        bool m_vdencPakObjCmdStreamOutEnabled = false;  //!< Pakobj stream out enable flag
+        bool m_streamInEnabled                = false;  //!< Vdenc stream in enabled flag
 
         uint8_t m_currRecycledBufIdx = 0;  //!< Current recycled buffer index
 

@@ -26,7 +26,6 @@
 #ifndef __ENCODE_HEVC_BASIC_FEATURE_H__
 #define __ENCODE_HEVC_BASIC_FEATURE_H__
 
-#include <deque>
 #include "encode_basic_feature.h"
 #include "codec_def_encode_hevc.h"
 #include "encode_hevc_reference_frames.h"
@@ -103,10 +102,9 @@ public:
 
     EncodeMemComp *m_mmcState = nullptr;
 
-    static constexpr uint32_t                   m_maxSliceQP   = 52;          //!< Max QP
-    static constexpr uint32_t                   m_maxLCUSize   = 64;          //!< Max LCU size 64
-    static constexpr uint32_t                   m_qpNum        = 52;          //!< Number of QP values
-    static constexpr uint32_t                   m_maxSyncDepth = 10;
+    static constexpr uint32_t                   m_maxSliceQP = 52;          //!< Max QP
+    static constexpr uint32_t                   m_maxLCUSize = 64;          //!< Max LCU size 64
+    static constexpr uint32_t                   m_qpNum      = 52;          //!< Number of QP values
 
     // Parameters passed from application
     PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS  m_hevcSeqParams = nullptr;          //!< Pointer to sequence parameter
@@ -154,8 +152,6 @@ public:
     MOS_STATUS            InitRsvdState();
 #endif
 
-    std::deque<uint32_t> m_recycleBufferIdxes;
-
 protected:
     MOS_STATUS SetPictureStructs();
     virtual MOS_STATUS UpdateTrackedBufferParameters() override;
@@ -171,7 +167,6 @@ protected:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS CalcLCUMaxCodingSize();
-    MOS_STATUS GetRecycleBuffers();
 
 MEDIA_CLASS_DEFINE_END(encode__HevcBasicFeature)
 };

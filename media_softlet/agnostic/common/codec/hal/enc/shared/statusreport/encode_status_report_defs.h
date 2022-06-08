@@ -120,10 +120,6 @@ enum EncodeStatusReportType
     statusReportImageStatusCtrlOfLastBRCPass,
     statusReportSceneChangedFlag,
     statusReportSumSquareError,
-    statusReportSadLuma,
-    statusReportNumIntra4x4Block,
-    statusReportNumInterSkip4x4Block,
-    statusReportNumSkip8x8Block,
     statusReportSliceReport,
     statusReportLpla,
     statusReportHucStatus2Reg,
@@ -388,11 +384,7 @@ struct EncodeStatusMfx
     uint32_t                        loopFilterLevel;        //!< The level of loop filter
     ImageStatusControl              imageStatusCtrlOfLastBRCPass; //!< The level of loop filter
     uint32_t                        sceneChangedFlag;       //!< The flag indicate if the scene is changed
-    uint64_t                        sumSquareError[3];      //!< The list of sum square error, luma, Cb, Cr respectively
-    uint32_t                        sadLuma;                //!< Luma SAD
-    uint32_t                        numIntra4x4Block;       //!< Number of intra 4x4 blocks
-    uint32_t                        numInterSkip4x4Block;   //!< Number of inter and skipped 4x4 blocks
-    uint32_t                        numSkip8x8Block;        //!< Number of skipped 8x8 blocks
+    uint64_t                        sumSquareError[3];      //!< The list of sum square error
     EncodeStatusSliceReport         sliceReport;
     uint32_t                        hucStatus2Reg;          //!< Register value saving HuC Status2
 };

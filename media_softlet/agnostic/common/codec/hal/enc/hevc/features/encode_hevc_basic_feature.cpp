@@ -66,26 +66,6 @@ MOS_STATUS HevcBasicFeature::Init(void *setting)
     m_maxTileNumber = CODECHAL_GET_WIDTH_IN_BLOCKS(m_frameWidth, CODECHAL_HEVC_MIN_TILE_SIZE) *
         CODECHAL_GET_HEIGHT_IN_BLOCKS(m_frameHeight, CODECHAL_HEVC_MIN_TILE_SIZE);
 
-    MOS_ALLOC_GFXRES_PARAMS allocParams{};
-    allocParams.Type     = MOS_GFXRES_BUFFER;
-    allocParams.TileType = MOS_TILE_LINEAR;
-    allocParams.Format   = Format_Buffer;
-
-    allocParams.dwBytes  = MOS_ALIGN_CEIL(m_sizeOfHcpPakFrameStats * m_maxTileNumber, CODECHAL_PAGE_SIZE);
-    allocParams.pBufName = "FrameStatStreamOutBuffer";
-    m_recycleBuf->RegisterResource(FrameStatStreamOutBuffer, allocParams, 1);
-
-    allocParams.dwBytes  = MOS_ALIGN_CEIL(1216 * m_maxTileNumber, CODECHAL_PAGE_SIZE);
-    allocParams.pBufName = "vdencStats";
-    m_recycleBuf->RegisterResource(VdencStatsBuffer, allocParams, 1);
-
-    uint32_t numOfLCU    = MOS_ROUNDUP_DIVIDE(m_frameWidth, m_maxLCUSize) * (MOS_ROUNDUP_DIVIDE(m_frameHeight, m_maxLCUSize) + 1);
-    allocParams.dwBytes  = MOS_ALIGN_CEIL(2 * sizeof(uint32_t) * (numOfLCU * 5 + numOfLCU * 64 * 8), CODECHAL_PAGE_SIZE);
-    allocParams.pBufName = "CuRecordStreamOutBuffer";
-    allocParams.dwMemType        = MOS_MEMPOOL_SYSTEMMEMORY;
-    allocParams.Flags.bCacheable = true;
-    m_recycleBuf->RegisterResource(CuRecordStreamOutBuffer, allocParams, m_maxSyncDepth);
-
     ENCODE_CHK_STATUS_RETURN(m_ref.Init(this, m_allocator));
 
     MediaUserSetting::Value outValue;
@@ -217,7 +197,6 @@ MOS_STATUS HevcBasicFeature::Update(void *params)
     }
 
     ENCODE_CHK_STATUS_RETURN(GetTrackedBuffers());
-    ENCODE_CHK_STATUS_RETURN(GetRecycleBuffers());
 
     if (m_hevcSeqParams->LowDelayMode)
     {
@@ -576,29 +555,6 @@ MOS_STATUS HevcBasicFeature::GetTrackedBuffers()
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS HevcBasicFeature::GetRecycleBuffers()
-{
-    ENCODE_CHK_NULL_RETURN(m_recycleBuf);
-
-    uint32_t recycleBufferIdx = -1;
-    for (uint32_t i = 0; i < m_maxSyncDepth; i++)
-    {
-        auto pos = find(m_recycleBufferIdxes.begin(), m_recycleBufferIdxes.end(), i);
-        if (pos == m_recycleBufferIdxes.end())
-        {
-            recycleBufferIdx = i;
-            break;
-        }
-    }
-    ENCODE_ASSERT(recycleBufferIdx >= m_maxSyncDepth);
-    m_resMbCodeBuffer = m_recycleBuf->GetBuffer(RecycleResId::CuRecordStreamOutBuffer, recycleBufferIdx);
-    ENCODE_CHK_NULL_RETURN(m_resMbCodeBuffer);
-
-    m_recycleBufferIdxes.push_back(recycleBufferIdx);
-
-    return MOS_STATUS_SUCCESS;
-}
-
 MOS_STATUS HevcBasicFeature::SetRoundingValues()
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
@@ -706,7 +662,6 @@ MOS_STATUS HevcBasicFeature::GetSurfaceMmcInfo(PMOS_SURFACE surface, MOS_MEMCOMP
 
 MHW_SETPAR_DECL_SRC(VDENC_PIPE_MODE_SELECT, HevcBasicFeature)
 {
-    params.frameStatisticsStreamOut              = m_hevcPicParams->StatusReportEnable.fields.FrameStats;
     params.bitDepthMinus8                        = m_hevcSeqParams->bit_depth_luma_minus8;
     params.chromaType                            = m_hevcSeqParams->chroma_format_idc;
     params.wirelessSessionId                     = 0;
