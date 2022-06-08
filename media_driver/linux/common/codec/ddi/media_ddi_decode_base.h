@@ -451,6 +451,7 @@ protected:
     CodechalSetting             *m_codechalSettings = nullptr;    //!<Codechal Settings
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
+    bool                          m_requireInputRegion = false;
     VAProcPipelineParameterBuffer *m_procBuf = nullptr; //!< Process parameters for vp sfc input
 #endif
 };
