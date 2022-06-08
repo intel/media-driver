@@ -52,7 +52,7 @@ set(MEDIA_COMPILER_FLAGS_COMMON
     -Wl,--gc-sections
 
     # -m32 or -m64
-    -m${ARCH}
+    #-m${ARCH}
 
     # Global defines
     -DLINUX=1
@@ -62,6 +62,10 @@ set(MEDIA_COMPILER_FLAGS_COMMON
     -DINTEL_NOT_PUBLIC
     -g
 )
+
+if(ENABLE_X86_INTRINSICS)
+set(MEDIA_COMPILER_FLAGS_COMMON ${MEDIA_COMPILER_FLAGS_COMMON} -m${ARCH})
+endif()
 
 if(MEDIA_BUILD_HARDENING)
     set(MEDIA_COMPILER_FLAGS_COMMON

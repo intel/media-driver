@@ -89,7 +89,6 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/cm_kernel_data.h
     ${CMAKE_CURRENT_LIST_DIR}/cm_log.h
     ${CMAKE_CURRENT_LIST_DIR}/cm_mem_c_impl.h
-    ${CMAKE_CURRENT_LIST_DIR}/cm_mem_sse2_impl.h
     ${CMAKE_CURRENT_LIST_DIR}/cm_mem.h
     ${CMAKE_CURRENT_LIST_DIR}/cm_mov_inst.h
     ${CMAKE_CURRENT_LIST_DIR}/cm_perf.h
@@ -137,6 +136,10 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/cm_wrapper.h
     ${CMAKE_CURRENT_LIST_DIR}/cm_surface_2d_rt_base.h)
 
+if(ENABLE_X86_INTRINSICS)
+set(TMP_HEADERS_ ${TMP_HEADERS_} ${CMAKE_CURRENT_LIST_DIR}/cm_mem_sse2_impl.h)
+endif()
+
 set(SOURCES_
     ${SOURCES_}
     ${TMP_SOURCES_})
@@ -153,9 +156,10 @@ set(COMMON_HEADERS_
     ${COMMON_HEADERS_}
     ${TMP_HEADERS_})
 
+if(ENABLE_X86_INTRINSICS)
 set(SOURCES_SSE2
     ${CMAKE_CURRENT_LIST_DIR}/cm_mem_sse2_impl.cpp)
-
+endif()
 source_group(CM FILES ${TMP_SOURCES_} ${TMP_HEADERS_})
 
 media_add_curr_to_include_path()

@@ -115,8 +115,10 @@ set_source_files_properties(${CP_COMMON_SHARED_SOURCES_} PROPERTIES LANGUAGE "CX
 set_source_files_properties(${CP_COMMON_NEXT_SOURCES_} PROPERTIES LANGUAGE "CXX")
 set_source_files_properties(${CP_SOURCES_} PROPERTIES LANGUAGE "CXX")
 
+if(ENABLE_X86_INTRINSICS)
 set_source_files_properties(${SOURCES_SSE2} PROPERTIES LANGUAGE "CXX")
 set_source_files_properties(${SOURCES_SSE4} PROPERTIES LANGUAGE "CXX")
+endif()
 
 set (CP_SOURCES_
     ${CP_SOURCES_}
@@ -150,6 +152,7 @@ set (COMMON_SOURCES_
     ${COMMON_SOURCES_}
     ${UPDATED_SOURCES_})
 
+if(ENABLE_X86_INTRINSICS)
 add_library(${LIB_NAME}_SSE2 OBJECT ${SOURCES_SSE2})
 target_compile_options(${LIB_NAME}_SSE2 PRIVATE -msse2)
 target_include_directories(${LIB_NAME}_SSE2 BEFORE PRIVATE ${MOS_PREPEND_INCLUDE_DIRS_} ${MOS_PUBLIC_INCLUDE_DIRS_})
@@ -157,6 +160,7 @@ target_include_directories(${LIB_NAME}_SSE2 BEFORE PRIVATE ${MOS_PREPEND_INCLUDE
 add_library(${LIB_NAME}_SSE4 OBJECT ${SOURCES_SSE4})
 target_compile_options(${LIB_NAME}_SSE4 PRIVATE -msse4.1)
 target_include_directories(${LIB_NAME}_SSE4 BEFORE PRIVATE ${MOS_PREPEND_INCLUDE_DIRS_} ${MOS_PUBLIC_INCLUDE_DIRS_})
+endif()
 
 add_library(${LIB_NAME}_COMMON OBJECT ${COMMON_SOURCES_})
 set_property(TARGET ${LIB_NAME}_COMMON PROPERTY POSITION_INDEPENDENT_CODE 1)
@@ -200,6 +204,7 @@ target_include_directories(${LIB_NAME}_mos BEFORE PRIVATE
 
 ######################################################
 
+if(ENABLE_X86_INTRINSICS)
 add_library(${LIB_NAME} SHARED
     $<TARGET_OBJECTS:${LIB_NAME}_mos>
     $<TARGET_OBJECTS:${LIB_NAME}_COMMON>
@@ -208,7 +213,16 @@ add_library(${LIB_NAME} SHARED
     $<TARGET_OBJECTS:${LIB_NAME}_CP>
     $<TARGET_OBJECTS:${LIB_NAME}_SSE2>
     $<TARGET_OBJECTS:${LIB_NAME}_SSE4>)
+else()
+add_library(${LIB_NAME} SHARED
+    $<TARGET_OBJECTS:${LIB_NAME}_mos>
+    $<TARGET_OBJECTS:${LIB_NAME}_COMMON>
+    $<TARGET_OBJECTS:${LIB_NAME}_CODEC>
+    $<TARGET_OBJECTS:${LIB_NAME}_VP>
+    $<TARGET_OBJECTS:${LIB_NAME}_CP>)
+endif()
 
+if(ENABLE_X86_INTRINSICS)
 add_library(${LIB_NAME_STATIC} STATIC
     $<TARGET_OBJECTS:${LIB_NAME}_mos>
     $<TARGET_OBJECTS:${LIB_NAME}_COMMON>
@@ -217,6 +231,14 @@ add_library(${LIB_NAME_STATIC} STATIC
     $<TARGET_OBJECTS:${LIB_NAME}_CP>
     $<TARGET_OBJECTS:${LIB_NAME}_SSE2>
     $<TARGET_OBJECTS:${LIB_NAME}_SSE4>)
+else()
+add_library(${LIB_NAME_STATIC} STATIC
+    $<TARGET_OBJECTS:${LIB_NAME}_mos>
+    $<TARGET_OBJECTS:${LIB_NAME}_COMMON>
+    $<TARGET_OBJECTS:${LIB_NAME}_CODEC>
+    $<TARGET_OBJECTS:${LIB_NAME}_VP>
+    $<TARGET_OBJECTS:${LIB_NAME}_CP>)
+endif()
 
 set_target_properties(${LIB_NAME_STATIC} PROPERTIES OUTPUT_NAME ${LIB_NAME})
 

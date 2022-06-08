@@ -26,9 +26,10 @@
 #pragma once
 
 #include <iostream>
+#ifdef IGFX_ENABLE_X86_INTRINSICS
 #include "cpuid.h"
 #include <smmintrin.h>
-
+#endif
 typedef uintptr_t           UINT_PTR;
 #define __fastcall
 #define __noop
@@ -120,11 +121,11 @@ Output:
 \*****************************************************************************/
 inline void GetCPUID(int cpuInfo[4], int infoType)
 {
+#ifdef IGFX_ENABLE_X86_INTRINSICS
 #ifndef NO_EXCEPTION_HANDLING
     __try
     {
 #endif //NO_EXCEPTION_HANDLING
-
     __get_cpuid(infoType, (unsigned int*)cpuInfo, (unsigned int*)cpuInfo + 1, (unsigned int*)cpuInfo + 2, (unsigned int*)cpuInfo + 3);
 
 #ifndef NO_EXCEPTION_HANDLING
@@ -135,6 +136,7 @@ inline void GetCPUID(int cpuInfo[4], int infoType)
         return;
     }
 #endif  //NO_EXCEPTION_HANDLING
+#endif
 }
 
 void CmFastMemCopyFromWC( void* dst, const void* src, const size_t bytes, CPU_INSTRUCTION_LEVEL cpuInstructionLevel );

@@ -38,15 +38,21 @@ typedef void(*t_CmFastMemCopyWC)( void* dst,   const void* src, const size_t byt
 void CmFastMemCopy( void* dst, const void* src, const size_t bytes )
 {
     static const bool is_SSE2_available = (GetCpuInstructionLevel() >= CPU_INSTRUCTION_LEVEL_SSE2);
+#ifdef IGFX_ENABLE_X86_INTRINSICS
     static const t_CmFastMemCopy CmFastMemCopy_impl = CM_FAST_MEM_COPY_CPU_INIT(CmFastMemCopy);
-
+#else
+    static const t_CmFastMemCopy CmFastMemCopy_impl = CM_FAST_MEM_COPY_CPU_INIT_C(CmFastMemCopy);
+#endif
     CmFastMemCopy_impl(dst, src, bytes);
 }
 
 void CmFastMemCopyWC( void* dst, const void* src, const size_t bytes )
 {
     static const bool is_SSE2_available = (GetCpuInstructionLevel() >= CPU_INSTRUCTION_LEVEL_SSE2);
+#ifdef IGFX_ENABLE_X86_INTRINSICS
     static const t_CmFastMemCopyWC CmFastMemCopyWC_impl = CM_FAST_MEM_COPY_CPU_INIT(CmFastMemCopyWC);
-
+#else
+    static const t_CmFastMemCopyWC CmFastMemCopyWC_impl = CM_FAST_MEM_COPY_CPU_INIT_C(CmFastMemCopyWC);
+#endif
     CmFastMemCopyWC_impl(dst, src, bytes);
 }

@@ -53,7 +53,7 @@ set(MEDIA_COMPILER_FLAGS_COMMON
     -Wl,--gc-sections
 
     # -m32 or -m64
-    -m${ARCH}
+    #-m${ARCH}
 
     # Global defines
     -DLINUX=1
