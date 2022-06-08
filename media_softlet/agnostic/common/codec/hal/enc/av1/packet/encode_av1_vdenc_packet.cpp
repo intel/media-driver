@@ -536,10 +536,6 @@ namespace encode{
         miMathParams.dwNumAluParams     = aluCount;
         miMathParams.pAluPayload        = aluParams;
         ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_MATH)(cmdBuf));
-        ENCODE_CHK_STATUS_RETURN(Mos_AddCommand(
-                cmdBuf,
-                &miMathParams.pAluPayload[0],
-                sizeof(mhw::mi::MHW_MI_ALU_PARAMS) * miMathParams.dwNumAluParams));
 
         //store VCS_GPR0_Lo to bitstream size buffer
         auto &miStoreRegMemParams              = m_miItf->MHW_GETPAR_F(MI_STORE_REGISTER_MEM)();

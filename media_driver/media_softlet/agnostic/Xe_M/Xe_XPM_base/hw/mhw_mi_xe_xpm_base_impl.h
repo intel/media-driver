@@ -684,6 +684,16 @@ public:
             cmd.DW1.RegisterAddress      = reg >> 2;
         }
 
+        if (params.dwOption == CCS_HW_FRONT_END_MMIO_REMAP)
+        {
+            MOS_GPU_CONTEXT gpuContext = m_osItf->pfnGetGpuContext(m_osItf);
+            if (MOS_RCS_ENGINE_USED(gpuContext))
+            {
+                reg &= M_CCS_HW_FRONT_END_MMIO_MASK;
+                reg += M_MMIO_CCS0_HW_FRONT_END_BASE_BEGIN;
+            }
+        }
+
         cmd.DW0.MmioRemapEnable = IsRemappingMMIO(reg);
 
         return MOS_STATUS_SUCCESS;
@@ -889,12 +899,32 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
+    __MHW_ADDCMD_DECL(MI_MATH) override
+    {
+        MHW_FUNCTION_ENTER;
+        const auto &params = __MHW_CMDINFO_M(MI_MATH)->first;
+
+        if (params.dwNumAluParams == 0 || params.pAluPayload == nullptr)
+        {
+            MHW_ASSERTMESSAGE("MI_MATH requires a valid payload");
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+
+        base_t::MHW_ADDCMD_F(MI_MATH)(cmdBuf, batchBuf);
+
+        return Mhw_AddCommandCmdOrBB(cmdBuf, nullptr, &params.pAluPayload[0],
+            sizeof(MHW_MI_ALU_PARAMS)* params.dwNumAluParams);
+    }
+
     _MHW_SETCMD_OVERRIDE_DECL(MI_MATH)
     {
         _MHW_SETCMD_CALLBASE(MI_MATH);
 
+        cmd.DW0.DwordLength = params.dwNumAluParams - 1;
+
         return MOS_STATUS_SUCCESS;
     }
+
 MEDIA_CLASS_DEFINE_END(mhw__mi__xe_xpm_base__Impl)
 };
 

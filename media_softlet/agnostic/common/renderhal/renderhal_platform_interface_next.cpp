@@ -291,8 +291,8 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::SendPredicationCommand(
         m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(pCmdBuffer);
 
         //perform the add operation
-        MHW_MI_ALU_PARAMS   miAluParams[4];
-        MOS_ZeroMemory(&miAluParams, sizeof(miAluParams));
+        mhw::mi::MHW_MI_ALU_PARAMS miAluParams[4] = {};
+
         // load     srcA, reg0
         miAluParams[0].AluOpcode    = MHW_MI_ALU_LOAD;
         miAluParams[0].Operand1     = MHW_MI_ALU_SRCA;
@@ -312,7 +312,7 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::SendPredicationCommand(
 
         auto& par = m_miItf->MHW_GETPAR_F(MI_MATH)();
         par = {};
-        par.pAluPayload    = (mhw::mi::MHW_MI_ALU_PARAMS*) miAluParams;
+        par.pAluPayload    = miAluParams;
         par.dwNumAluParams = 4; // four ALU commands needed for this substract opertaion. see following ALU commands.
         m_miItf->MHW_ADDCMD_F(MI_MATH)(pCmdBuffer);
 

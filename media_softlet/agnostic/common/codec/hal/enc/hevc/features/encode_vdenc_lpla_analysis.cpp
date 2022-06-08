@@ -727,10 +727,6 @@ namespace encode
             miMathParams.dwNumAluParams = aluCount;
             miMathParams.pAluPayload    = aluParams;
             ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_MATH)(&cmdBuffer));
-            ENCODE_CHK_STATUS_RETURN(Mos_AddCommand(
-                &cmdBuffer,
-                &miMathParams.pAluPayload[0],
-                sizeof(mhw::mi::MHW_MI_ALU_PARAMS) * miMathParams.dwNumAluParams));
 
             //store VCS_GPR0_Lo to m_vdencLaStatsBuffer
             miStoreRegMemParams.presStoreBuffer = m_vdencLaStatsBuffer;
