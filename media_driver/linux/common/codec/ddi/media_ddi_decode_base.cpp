@@ -126,16 +126,34 @@ VAStatus DdiMediaDecode::ParseProcessingBuffer(
         decProcessingSurface->TileType = decProcessingSurface->OsResource.TileType;
         decProcessingSurface->Format   = decProcessingSurface->OsResource.Format;
 
-        decProcessingParams->m_inputSurfaceRegion.m_x      = procBuf->surface_region->x;
-        decProcessingParams->m_inputSurfaceRegion.m_y      = procBuf->surface_region->y;
-        decProcessingParams->m_inputSurfaceRegion.m_width  = procBuf->surface_region->width;
-        decProcessingParams->m_inputSurfaceRegion.m_height = procBuf->surface_region->height;
+        if(procBuf->surface_region != nullptr)
+        {
+            m_requireInputRegion                               = false;
+            decProcessingParams->m_inputSurfaceRegion.m_x      = procBuf->surface_region->x;
+            decProcessingParams->m_inputSurfaceRegion.m_y      = procBuf->surface_region->y;
+            decProcessingParams->m_inputSurfaceRegion.m_width  = procBuf->surface_region->width;
+            decProcessingParams->m_inputSurfaceRegion.m_height = procBuf->surface_region->height;
+        }
+        else
+        {
+            m_requireInputRegion = true;
+        }
 
         decProcessingParams->m_outputSurface                = decProcessingSurface;
-        decProcessingParams->m_outputSurfaceRegion.m_x      = procBuf->output_region->x;
-        decProcessingParams->m_outputSurfaceRegion.m_y      = procBuf->output_region->y;
-        decProcessingParams->m_outputSurfaceRegion.m_width  = procBuf->output_region->width;
-        decProcessingParams->m_outputSurfaceRegion.m_height = procBuf->output_region->height;
+        if(procBuf->output_region != nullptr)
+        {
+            decProcessingParams->m_outputSurfaceRegion.m_x      = procBuf->output_region->x;
+            decProcessingParams->m_outputSurfaceRegion.m_y      = procBuf->output_region->y;
+            decProcessingParams->m_outputSurfaceRegion.m_width  = procBuf->output_region->width;
+            decProcessingParams->m_outputSurfaceRegion.m_height = procBuf->output_region->height;
+        }
+        else
+        {
+            decProcessingParams->m_outputSurfaceRegion.m_x      = 0;
+            decProcessingParams->m_outputSurfaceRegion.m_y      = 0;
+            decProcessingParams->m_outputSurfaceRegion.m_width  = decProcessingSurface->dwWidth;
+            decProcessingParams->m_outputSurfaceRegion.m_height = decProcessingSurface->dwHeight;
+        }
 
         // Interpolation flags
         // Set the vdbox scaling mode
