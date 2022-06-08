@@ -31,6 +31,12 @@ MOS_STATUS HevcPipeline::InitUserSetting(MediaUserSettingSharedPtr userSettingPt
 {
     ENCODE_FUNC_CALL();
     ENCODE_CHK_STATUS_RETURN(EncodePipeline::InitUserSetting(userSettingPtr));
+    DeclareUserSettingKey(
+        userSettingPtr,
+        "HEVC Encode Mode",
+        MediaUserSetting::Group::Sequence,
+        int32_t(0),
+        true);
 #if (_DEBUG || _RELEASE_INTERNAL)
     DeclareUserSettingKey(
         userSettingPtr,
@@ -79,12 +85,6 @@ MOS_STATUS HevcPipeline::InitUserSetting(MediaUserSettingSharedPtr userSettingPt
         "HEVC VDEnc Force Delta QP Enable",
         MediaUserSetting::Group::Sequence,
         int32_t(1),
-        true);
-    DeclareUserSettingKey(
-        userSettingPtr,
-        "HEVC Encode Mode",
-        MediaUserSetting::Group::Sequence,
-        int32_t(0),
         true);
     DeclareUserSettingKeyForDebug(
         userSettingPtr,
