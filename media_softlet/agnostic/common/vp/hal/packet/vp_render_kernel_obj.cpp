@@ -168,6 +168,7 @@ MOS_STATUS VpRenderKernelObj::InitKernel(void* binary, uint32_t size, KERNEL_CON
     VP_RENDER_CHK_STATUS_RETURN(SetProcessSurfaceGroup(surfacesGroup));
 
     VP_RENDER_NORMALMESSAGE("Kernel %d is in use.", m_kernelId);
+    MT_LOG1(MT_VP_KERNEL_Init, MT_NORMAL, MT_VP_KERNEL_ID, m_kernelId);
 
     return MOS_STATUS_SUCCESS;
 }

@@ -2330,7 +2330,12 @@ MOS_STATUS Policy::FilterFeatureCombination(SwFilterPipe &swFilterPipe, bool isI
                 {
                     feature->GetFilterEngineCaps().SfcNeeded = 0;
                     VP_PUBLIC_NORMALMESSAGE("Force feature 0x%x to render for render DI", filterID);
-                    PrintFeatureExecutionCaps("Force feature to render for render DI", feature->GetFilterEngineCaps());
+                    MT_LOG2(MT_VP_HAL_POLICY_FLITER_FTR_COMBINE, MT_NORMAL, MT_VP_HAL_FEATUERTYPE, filterID, MT_VP_HAL_EXECCAPS_FORCE_DI2RENDER, feature->GetFilterEngineCaps().RenderNeeded);
+                    auto engineCaps = feature->GetFilterEngineCaps();
+                    PrintFeatureExecutionCaps("Force feature to render for render DI", engineCaps);
+                    MT_LOG7(MT_VP_HAL_POLICY_FLITER_FTR_COMBINE, MT_NORMAL, MT_VP_HAL_FEATUERTYPE, filterID, MT_VP_HAL_ENGINECAPS, engineCaps.value, MT_VP_HAL_ENGINECAPS_EN, engineCaps.bEnabled,
+                        MT_VP_HAL_ENGINECAPS_VE_NEEDED, engineCaps.VeboxNeeded, MT_VP_HAL_ENGINECAPS_SFC_NEEDED, engineCaps.SfcNeeded, 
+                        MT_VP_HAL_ENGINECAPS_RENDER_NEEDED, engineCaps.RenderNeeded, MT_VP_HAL_ENGINECAPS_FC_SUPPORT, engineCaps.fcSupported);
                 }
             }
         }

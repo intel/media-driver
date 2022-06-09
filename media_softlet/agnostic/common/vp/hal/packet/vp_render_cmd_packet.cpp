@@ -685,6 +685,7 @@ MOS_STATUS VpRenderCmdPacket::SetupSurfaceState()
 MOS_STATUS VpRenderCmdPacket::SetupCurbeState()
 {
     VP_FUNC_CALL();
+    MT_LOG1(MT_VP_HAL_RENDER_SETUP_CURBE_STATE, MT_NORMAL, MT_FUNC_START, 1);
     VP_RENDER_CHK_NULL_RETURN(m_kernel);
 
     // set the Curbe Data length
@@ -711,6 +712,7 @@ MOS_STATUS VpRenderCmdPacket::SetupCurbeState()
     m_totalCurbeSize += m_renderData.iCurbeLength;
 
     m_kernel->FreeCurbe(curbeData);
+    MT_LOG2(MT_VP_HAL_RENDER_SETUP_CURBE_STATE, MT_NORMAL, MT_FUNC_END, 1, MT_MOS_STATUS, MOS_STATUS_SUCCESS);
 
     return MOS_STATUS_SUCCESS;
 }
@@ -753,9 +755,11 @@ MOS_STATUS VpRenderCmdPacket::SetupMediaWalker()
 MOS_STATUS VpRenderCmdPacket::SetupWalkerParams()
 {
     VP_FUNC_CALL();
+    MT_LOG1(MT_VP_HAL_RENDER_SETUP_WALKER_PARAM, MT_NORMAL, MT_FUNC_START, 1);
     VP_RENDER_CHK_NULL_RETURN(m_kernel);
 
     VP_RENDER_CHK_STATUS_RETURN(m_kernel->GetWalkerSetting(m_renderData.walkerParam, m_renderData));
+    MT_LOG2(MT_VP_CREATE, MT_NORMAL, MT_FUNC_END, 1, MT_MOS_STATUS, MOS_STATUS_SUCCESS);
 
     return MOS_STATUS_SUCCESS;
 }

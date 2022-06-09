@@ -1537,6 +1537,8 @@ MOS_STATUS VpRenderFcKernel::InitLayerInCurbeData(VP_FC_LAYER *layer)
     VP_RENDER_NORMALMESSAGE("Scaling Info: layer %d, chromaSitingEnabled %d, isChromaUpSamplingNeeded %d, isChromaDownSamplingNeeded %d",
         layer->layerID, layer->calculatedParams.chromaSitingEnabled, layer->calculatedParams.isChromaUpSamplingNeeded, layer->calculatedParams.isChromaDownSamplingNeeded);
 
+    MT_LOG6(MT_VP_HAL_FC_SCALINGINFO, MT_NORMAL, MT_VP_HAL_FC_LAYER, layer->layerID, MT_RECT_LEFT, clipedDstRect.left, MT_RECT_TOP, clipedDstRect.top, MT_RECT_RIGHT, clipedDstRect.right - 1, MT_RECT_BOTTOM, clipedDstRect.bottom - 1, MT_VP_BLT_CHROMASITING, layer->calculatedParams.chromaSitingEnabled);
+
     switch (layer->layerID)
     {
     case 0:
@@ -2171,6 +2173,7 @@ MOS_STATUS VpRenderFcKernel::InitFcDpBasedCurbeData()
 MOS_STATUS VpRenderFcKernel::GetCurbeState(void*& curbe, uint32_t& curbeLength)
 {
     VP_FUNC_CALL();
+    MT_LOG1(MT_VP_HAL_FC_GET_CURBE_STATE, MT_NORMAL, MT_FUNC_START, 1);
 
     if (m_hwInterface->m_vpPlatformInterface->GetKernelConfig().IsDpFcKernelEnabled())
     {
@@ -2185,6 +2188,7 @@ MOS_STATUS VpRenderFcKernel::GetCurbeState(void*& curbe, uint32_t& curbeLength)
         curbe       = &m_curbeData;
         curbeLength = sizeof(VP_FC_CURBE_DATA);
     }
+    MT_LOG2(MT_VP_HAL_FC_GET_CURBE_STATE, MT_NORMAL, MT_FUNC_END, 1, MT_MOS_STATUS, MOS_STATUS_SUCCESS);
 
     return MOS_STATUS_SUCCESS;
 }
@@ -2599,7 +2603,7 @@ MOS_STATUS VpRenderFcKernel::UpdateCompParams()
     m_renderHal->eufusionBypass = IsEufusionBypassed();
 
     VP_RENDER_NORMALMESSAGE("eufusionBypass = %d", m_renderHal->eufusionBypass ? 1 : 0);
-
+    MT_LOG1(MT_VP_HAL_FC_UPDATE_COMP_PARAM, MT_NORMAL, MT_VP_HAL_EUFUSION_BYPASS, m_renderHal->eufusionBypass);
     for (uint32_t i = 0; i < compParams.sourceCount; ++i)
     {
         VP_FC_LAYER &layer = compParams.source[i];

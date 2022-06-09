@@ -3010,6 +3010,7 @@ void VPHAL_VEBOX_STATE_G12_BASE::VeboxSetRenderingFlags(
     pRenderData->bHdr3DLut = bToneMapping;
     pRenderData->bHdr3DLut |= (pSrc->p3DLutParams != nullptr);
     VPHAL_RENDER_NORMALMESSAGE("Enable 3DLut for HDR ToneMapping %d or 3DLUT filter %d.", bToneMapping, (pSrc->p3DLutParams != nullptr));
+    MT_LOG1(MT_VP_HAL_RENDER_VE, MT_NORMAL, MT_VP_RENDERDATA_HDR3DLUT, pRenderData->bHdr3DLut);
 
     VPHAL_VEBOX_STATE::VeboxSetRenderingFlags(pSrc, pRenderTarget);
 

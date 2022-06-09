@@ -628,6 +628,8 @@ public:
                 (uint32_t)pCurrSurf->rcSrc.right,
                 *pdwSurfaceHeight,
                 *pdwSurfaceWidth);
+            MT_LOG5(MT_VP_MHW_VE_ADJUST_SURFPARAM, MT_NORMAL, MT_VP_RENDER_VE_CROPPING, 1, MT_RECT_BOTTOM, pCurrSurf->rcSrc.bottom, 
+                MT_RECT_RIGHT, pCurrSurf->rcSrc.right, MT_SURF_HEIGHT, *pdwSurfaceHeight, MT_SURF_WIDTH, *pdwSurfaceWidth);
         }
         else
         {

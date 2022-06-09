@@ -258,6 +258,7 @@ MOS_STATUS VpResourceManager::OnNewFrameProcessStart(SwFilterPipe &pipe)
 {
     VP_FUNC_CALL();
 
+    MT_LOG1(MT_VP_HAL_ONNEWFRAME_PROC_START, MT_NORMAL, MT_FUNC_START, 1);
     VP_SURFACE *inputSurface    = pipe.GetSurface(true, 0);
     VP_SURFACE *outputSurface   = pipe.GetSurface(false, 0);
     SwFilter   *diFilter        = pipe.GetSwFilter(true, 0, FeatureTypeDi);
@@ -584,6 +585,7 @@ MOS_STATUS VpResourceManager::PrepareFcIntermediateSurface(SwFilterPipe &feature
 void VpResourceManager::OnNewFrameProcessEnd()
 {
     VP_FUNC_CALL();
+    MT_LOG1(MT_VP_HAL_ONNEWFRAME_PROC_END, MT_NORMAL, MT_FUNC_END, 1);
     m_allocator.CleanRecycler();
     m_currentPipeIndex = 0;
     CleanTempSurfaces();
