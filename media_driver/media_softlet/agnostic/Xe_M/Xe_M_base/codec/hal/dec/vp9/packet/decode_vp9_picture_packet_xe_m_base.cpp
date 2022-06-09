@@ -790,7 +790,7 @@ MOS_STATUS Vp9DecodePicPktXe_M_Base::TraceDataDumpReferences(MHW_VDBOX_PIPE_BUF_
             m_tempLastRefSurf->UPlaneOffset.iSurfaceOffset,
             m_tempLastRefSurf->VPlaneOffset.iSurfaceOffset,
         };
-        MOS_TraceEvent(EVENT_DECODE_REF_DUMPINFO, EVENT_TYPE_INFO, &eventData, sizeof(eventData), NULL, 0);
+        MOS_TraceEvent(EVENT_DECODE_DUMPINFO_REF, EVENT_TYPE_INFO, &eventData, sizeof(eventData), NULL, 0);
 
         ResourceAutoLock resLock(m_allocator, &m_tempLastRefSurf->OsResource);
         auto             pData = (uint8_t *)resLock.LockResourceForRead();
@@ -865,7 +865,7 @@ MOS_STATUS Vp9DecodePicPktXe_M_Base::TraceDataDumpReferences(MHW_VDBOX_PIPE_BUF_
             m_tempGoldenRefSurf->UPlaneOffset.iSurfaceOffset,
             m_tempGoldenRefSurf->VPlaneOffset.iSurfaceOffset,
         };
-        MOS_TraceEvent(EVENT_DECODE_REF_DUMPINFO, EVENT_TYPE_INFO, &eventData, sizeof(eventData), NULL, 0);
+        MOS_TraceEvent(EVENT_DECODE_DUMPINFO_REF, EVENT_TYPE_INFO, &eventData, sizeof(eventData), NULL, 0);
 
         ResourceAutoLock resLock(m_allocator, &m_tempGoldenRefSurf->OsResource);
         auto             pData = (uint8_t *)resLock.LockResourceForRead();
@@ -940,7 +940,7 @@ MOS_STATUS Vp9DecodePicPktXe_M_Base::TraceDataDumpReferences(MHW_VDBOX_PIPE_BUF_
             m_tempAltRefSurf->UPlaneOffset.iSurfaceOffset,
             m_tempAltRefSurf->VPlaneOffset.iSurfaceOffset,
         };
-        MOS_TraceEvent(EVENT_DECODE_REF_DUMPINFO, EVENT_TYPE_INFO, &eventData, sizeof(eventData), NULL, 0);
+        MOS_TraceEvent(EVENT_DECODE_DUMPINFO_REF, EVENT_TYPE_INFO, &eventData, sizeof(eventData), NULL, 0);
 
         ResourceAutoLock resLock(m_allocator, &m_tempAltRefSurf->OsResource);
         auto             pData = (uint8_t *)resLock.LockResourceForRead();

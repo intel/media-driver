@@ -446,14 +446,14 @@ VAStatus DdiDecodeAVC::RenderPicture(
             uint8_t * pDataBuf = (uint8_t *)DdiMediaUtil_LockBuffer(m_ddiDecodeCtx->BufMgr.pBitStreamBuffObject[index], MOS_LOCKFLAG_READONLY);
             DDI_CHK_NULL(pDataBuf, "nullptr bitstream", VA_STATUS_ERROR_INVALID_BUFFER);
 
-            if (MOS_TraceKeyEnabled(TR_KEY_DECODE_BITSTREAM_32BYTE))
+            if (MOS_TraceKeyEnabled(TR_KEY_DECODE_BITSTREAM_INFO))
             {
                 DECODE_EVENTDATA_BITSTREAM eventData;
                 for (int i = 0; i < 32; i++)
                 {
                     eventData.Data[i] = pDataBuf[i];
                 }
-                MOS_TraceEvent(EVENT_DECODE_BUFFER_Bitstream, EVENT_TYPE_INFO, &eventData, sizeof(eventData), NULL, 0);
+                MOS_TraceEvent(EVENT_DECODE_INFO_BITSTREAM, EVENT_TYPE_INFO, &eventData, sizeof(eventData), NULL, 0);
             }
 
             if (MOS_TraceKeyEnabled(TR_KEY_DECODE_BITSTREAM))

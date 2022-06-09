@@ -516,7 +516,7 @@ MOS_STATUS DecodePipeline::TraceDataDumpOutput(const DecodeStatusReportData &rep
             m_tempOutputSurf->UPlaneOffset.iSurfaceOffset,
             m_tempOutputSurf->VPlaneOffset.iSurfaceOffset,
         };
-        MOS_TraceEvent(EVENT_DECODE_DST_DUMPINFO, EVENT_TYPE_INFO, &eventData, sizeof(eventData), NULL, 0); 
+        MOS_TraceEvent(EVENT_DECODE_DUMPINFO_DST, EVENT_TYPE_INFO, &eventData, sizeof(eventData), NULL, 0); 
 
         ResourceAutoLock resLock(m_allocator, &m_tempOutputSurf->OsResource);
         auto             pData = (uint8_t *)resLock.LockResourceForRead();

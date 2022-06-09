@@ -88,7 +88,7 @@ typedef enum _MEDIA_EVENT_FILTER_KEYID
     TR_KEY_DECODE_SLICEPARAM,
     TR_KEY_DECODE_TILEPARAM,
     TR_KEY_DECODE_QMATRIX,
-    TR_KEY_DECODE_BITSTREAM_32BYTE,
+    TR_KEY_DECODE_BITSTREAM_INFO,
     TR_KEY_DECODE_BITSTREAM,
     TR_KEY_DECODE_INTERNAL,
     TR_KEY_DECODE_COMMAND,
@@ -247,8 +247,8 @@ typedef enum _MEDIA_EVENT
     EVENT_DECODE_BUFFER_PICPARAM_VP9,              //! event for Decode VP9 Pic Paramters
     EVENT_DECODE_BUFFER_SEGPARAM_VP9,              //! event for Decode VP9 Segment Paramters
     EVENT_DECODE_BUFFER_SLICEPARAM_VP9,            //! event for Decode VP9 Slice Paramters
-    EVENT_DECODE_BUFFER_Bitstream,                 //! event for Decode Bitstream
-    EVENT_DECODE_CMD_HCP_PIPEMODESELECT,           //! event for Decode HcpPipeModeSelect Cmd
+    EVENT_DECODE_INFO_BITSTREAM,                   //! event for Decode Bitstream Info
+    EVENT_DECODE_INFO_PICTURE,                     //! event for Decode Picture Info
     EVENT_DECODE_CMD_HCP_SURFACESTATE,             //! event for Decode HcpSurfaceState Cmd
     EVENT_DECODE_CMD_HCP_PIPEBUFADDRSTATE,         //! event for Decode HcpPipeBufAddrState Cmd
     EVENT_DECODE_CMD_HCP_INDOBJBASEADDRSTATE,      //! event for Decode HcpIndObjBaseAddrState Cmd
@@ -272,8 +272,8 @@ typedef enum _MEDIA_EVENT
     EVENT_DECODE_FEATURE_VT_SCALABILITY,           //! event for Decode Feature Virtual Tile Scalability
     EVENT_DECODE_FEATURE_RT_SCALABILITY,           //! event for Decode Feature Real Tile Scalability
     EVENT_DECODE_FEATURE_DECODEMODE_REPORT,        //! event for Decode Feature Decode Mode Report
-    EVENT_DECODE_DST_DUMPINFO,                     //! event for Decode Dst Surface Info
-    EVENT_DECODE_REF_DUMPINFO,                     //! event for Decode Ref Surface Info
+    EVENT_DECODE_DUMPINFO_DST,                     //! event for Decode Dst Dump Info
+    EVENT_DECODE_DUMPINFO_REF,                     //! event for Decode Ref Dump Info
     EVENT_CALL_STACK,                              //! event for call stack dump
     EVENT_ENCODE_DDI_11_CREATEVIDEOENCODER,        //! event for Encode Create Device
     EVENT_ENCODE_DDI_11_ENCODEFRAME,               //! event for Encode frame, mainly excute

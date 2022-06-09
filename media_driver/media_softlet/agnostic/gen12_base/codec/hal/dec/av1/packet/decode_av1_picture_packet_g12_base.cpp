@@ -1805,7 +1805,7 @@ namespace decode{
                                 m_tempRefSurf->UPlaneOffset.iSurfaceOffset,
                                 m_tempRefSurf->VPlaneOffset.iSurfaceOffset,
                             };
-                            MOS_TraceEvent(EVENT_DECODE_REF_DUMPINFO, EVENT_TYPE_INFO, &eventData, sizeof(eventData), NULL, 0);
+                            MOS_TraceEvent(EVENT_DECODE_DUMPINFO_REF, EVENT_TYPE_INFO, &eventData, sizeof(eventData), NULL, 0);
 
                             bReport = true;
                         }
