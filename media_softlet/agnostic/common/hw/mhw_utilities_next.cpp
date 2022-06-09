@@ -24,11 +24,17 @@
 //! \brief         This modules implements utilities which are shared by both the HW interface     and the state heap interface.
 //!
 
+#include <math.h>
 #include "mhw_utilities_next.h"
-#include "mhw_render.h"
 #include "mhw_state_heap.h"
 #include "hal_oca_interface.h"
 #include "mos_interface.h"
+#include "hal_oca_interface_next.h"
+#include "media_skuwa_specific.h"
+#include "mhw_itf.h"
+#include "mhw_mi.h"
+#include "mhw_mi_cmdpar.h"
+#include "mhw_mi_itf.h"
 
 #define MHW_NS_PER_TICK_RENDER_ENGINE 80  // 80 nano seconds per tick in render engine
 

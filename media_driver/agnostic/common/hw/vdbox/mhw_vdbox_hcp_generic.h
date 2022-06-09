@@ -29,6 +29,7 @@
 #define _MHW_VDBOX_HCP_GENERIC_H_
 
 #include "mhw_vdbox_hcp_interface.h"
+#include "mhw_cp_interface.h"
 
 //!  MHW Vdbox Hcp generic interface
 /*!

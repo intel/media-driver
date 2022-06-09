@@ -30,6 +30,7 @@
 
 #include "mhw_itf.h"
 #include "mhw_render_cmdpar.h"
+#include "mhw_mi_itf.h"
 
 #define _RENDER_CMD_DEF(DEF)                \
     DEF(PIPELINE_SELECT);                   \

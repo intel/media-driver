@@ -34,6 +34,7 @@
 #include "vp_feature_caps.h"
 #include "vp_platform_interface.h"
 #include "mhw_vebox_itf.h"
+#include "mhw_mi_itf.h"
 
 namespace vp {
 
@@ -1464,9 +1465,9 @@ MOS_STATUS VpVeboxCmdPacketLegacy::setVeboxProCmd(
     VP_RENDER_CHK_NULL_RETURN(pVeboxInterface);
 
     miItf = std::static_pointer_cast<mhw::mi::Itf>(pMhwMiInterface->GetNewMiInterface());
-    if (m_veboxItf)
+    if (miItf)
     {
-        VP_RENDER_CHK_STATUS_RETURN(m_veboxItf->setVeboxPrologCmd(miItf, CmdBuffer));
+        VP_RENDER_CHK_STATUS_RETURN(miItf->SetPrologCmd(CmdBuffer));
     }
     else
     {

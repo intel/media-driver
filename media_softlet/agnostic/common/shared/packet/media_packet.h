@@ -33,6 +33,7 @@
 #include "mhw_mi.h"
 #include "media_status_report.h"
 #include "mhw_cmdpar.h"
+#include "mhw_mi_itf.h"
 
 #define __SETPAR(CMD, itf)                                                              \
                                                                                         \

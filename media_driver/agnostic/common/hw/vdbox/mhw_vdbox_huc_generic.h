@@ -29,6 +29,7 @@
 #define _MHW_VDBOX_HUC_GENERIC_H_
 
 #include "mhw_vdbox_huc_interface.h"
+#include "mhw_cp_interface.h"
 
 //!  MHW Vdbox Huc generic interface
 /*!

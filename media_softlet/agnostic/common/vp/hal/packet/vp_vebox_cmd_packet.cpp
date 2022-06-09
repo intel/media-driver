@@ -1407,9 +1407,9 @@ MOS_STATUS VpVeboxCmdPacket::PrepareVeboxCmd(
 MOS_STATUS VpVeboxCmdPacket::SetVeboxProCmd(
     MOS_COMMAND_BUFFER*   CmdBuffer)
 {
-    VP_RENDER_CHK_NULL_RETURN(m_veboxItf);
+    VP_RENDER_CHK_NULL_RETURN(m_miItf);
 
-    VP_RENDER_CHK_STATUS_RETURN(m_veboxItf->setVeboxPrologCmd(m_miItf, CmdBuffer));
+    VP_RENDER_CHK_STATUS_RETURN(m_miItf->SetPrologCmd(CmdBuffer));
 
     return MOS_STATUS_SUCCESS;
 }

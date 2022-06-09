@@ -29,6 +29,7 @@
 #define _MHW_VDBOX_MFX_GENERIC_H_
 
 #include "mhw_vdbox_mfx_interface.h"
+#include "mhw_cp_interface.h"
 
 //!  MHW Vdbox Mfx generic interface
 /*!

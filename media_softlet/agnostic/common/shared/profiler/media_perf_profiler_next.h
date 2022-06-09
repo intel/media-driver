@@ -27,9 +27,22 @@
 #define __MEDIA_PERF_PROFILER_NEXT_H__
 
 #include <map>
+#include <stdint.h>
+#include <memory>
+#include "mos_defs.h"
 #include "mos_os.h"
-#include "mhw_mi.h"
 #include "media_class_trace.h"
+#include "mhw_mi_itf.h"
+#include "igfxfmid.h"
+#include "mos_defs_specific.h"
+#include "mos_os_specific.h"
+namespace mhw
+{
+    namespace mi
+    {
+        class Itf;
+    }
+}  // namespace mhw
 
 using Map = std::map<void*, uint32_t>;
 

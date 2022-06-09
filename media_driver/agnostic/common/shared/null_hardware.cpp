@@ -25,6 +25,7 @@
 #include "mos_os_mock_adaptor.h"
 #include "null_hardware.h"
 #include "mhw_mi.h"
+#include "mhw_mi_itf.h"
 
 bool  NullHW::m_initilized = false;
 bool  NullHW::m_enabled = false;

@@ -26,6 +26,7 @@
 //!
 
 #include "mhw_mi.h"
+#include "mhw_cp_interface.h"
 
 MhwMiInterface::MhwMiInterface(
     MhwCpInterface      *cpInterface,

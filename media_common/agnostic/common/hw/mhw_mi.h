@@ -28,13 +28,14 @@
 #ifndef __MHW_MI_H__
 #define __MHW_MI_H__
 
-class MhwCpInterface;
-
+#include <memory>
+#include "mos_defs.h"
 #include "mos_os.h"
-#include "mhw_utilities.h"
-#include "mhw_cp_interface.h"
 #include "mhw_mmio.h"
-#include "mhw_mi_itf.h"
+#include "mhw_utilities_next.h"
+#include "mos_os_specific.h"
+
+class MhwCpInterface;
 
 #define MHW_MI_WATCHDOG_ENABLE_COUNTER                  0x0
 #define MHW_MI_WATCHDOG_DISABLE_COUNTER                 0x1

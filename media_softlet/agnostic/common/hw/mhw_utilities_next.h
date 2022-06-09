@@ -26,10 +26,16 @@
 #ifndef __MHW_UTILITIES_NEXT_H__
 #define __MHW_UTILITIES_NEXT_H__
 
+#include <memory>
+#include "mos_defs.h"
 #include "mos_os.h"
-#include <math.h>
 #include "mos_util_debug.h"
 #include "mhw_mmio.h"
+#include "mos_os_hw.h"
+#include "mos_os_specific.h"
+#include "mos_resource_defs.h"
+#include "mos_utilities.h"
+struct _MHW_BATCH_BUFFER;
 
 typedef struct _MHW_RCS_SURFACE_PARAMS MHW_RCS_SURFACE_PARAMS, * PMHW_RCS_SURFACE_PARAMS;
 typedef struct _MHW_BATCH_BUFFER MHW_BATCH_BUFFER, * PMHW_BATCH_BUFFER;

@@ -29,6 +29,7 @@
 #define __MHW_SFC_CMDPAR_H__
 
 #include "mhw_sfc.h"
+#include "mhw_cmdpar.h"
 
 #ifdef IGFX_SFC_INTERFACE_EXT_SUPPORT
 #include "mhw_sfc_cmdpar_ext.h"
