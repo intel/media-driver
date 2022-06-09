@@ -1028,9 +1028,12 @@ MOS_STATUS MosUtilitiesSpecificNext::UserFeatureDumpDataToFile(const char *szFil
                         (char *)(pKeyTmp->pElem->pValueArray[j].ulValueBuf));
                     break;
                 case UF_DWORD:
-                case UF_QWORD:
-                    fprintf(File, "\t\t\t%d\n",
+                    fprintf(File, "\t\t\t%u\n",
                         *(uint32_t*)(pKeyTmp->pElem->pValueArray[j].ulValueBuf));
+                    break;
+                case UF_QWORD:
+                    fprintf(File, "\t\t\t%lu\n",
+                        *(uint64_t*)(pKeyTmp->pElem->pValueArray[j].ulValueBuf));
                     break;
                 default:
                     fprintf(File, "\t\t\t%s\n",
