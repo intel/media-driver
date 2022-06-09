@@ -104,6 +104,11 @@ private:
         return m_hucStatus2ImemLoadedMask;
     }
 
+    uint32_t GetHucErrorFlagsMask()
+    {
+        return m_hucErrorFlagsMask;
+    }
+
     uint32_t GetHucProductFamily()
     {
         return m_hucFamily;
@@ -115,6 +120,7 @@ protected:
     MhwCpInterface        *m_cpItf = nullptr;
     static const uint32_t m_hucStatusHevcS2lFailureMask       = 0x8000;
     static const uint32_t m_hucStatus2ImemLoadedMask          = 0x40;
+    static const uint32_t m_hucErrorFlagsMask                 = 0xFFFE;          //!< HuC error 2 flags mask
     static const uint32_t m_hucFamily = 8;
 
     MHW_MEMORY_OBJECT_CONTROL_PARAMS m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_END_CODEC] = {};
