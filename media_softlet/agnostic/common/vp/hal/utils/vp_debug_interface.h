@@ -28,9 +28,10 @@
 #define __VP_DEBUG_INTERFACE_H__
 
 #include "media_debug_interface.h"
-#include "media_debug_config_manager.h"
 #include "vp_dumper.h"
-#include "vp_utils.h"
+#include "vp_common.h"
+#include "vp_pipeline_common.h"
+
 #if USE_MEDIA_DEBUG_TOOL
 #define USE_VP_DEBUG_TOOL 1
 #define VP_DEBUG_TOOL(expr) expr;
@@ -74,7 +75,7 @@ protected:
     MOS_USER_FEATURE_VALUE_ID SetOutputPathKey() override;
     MOS_USER_FEATURE_VALUE_ID InitDefaultOutput() override;
 
-    VpSurfaceDumper *  m_surfaceDumper   = nullptr;
+    VpSurfaceDumper   *m_surfaceDumper   = nullptr;
     VpParameterDumper *m_parameterDumper = nullptr;
 
 MEDIA_CLASS_DEFINE_END(VpDebugInterface)

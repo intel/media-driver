@@ -28,6 +28,10 @@
 #ifndef __VP_PIPELINE_ADAPTER_BASE_H__
 #define __VP_PIPELINE_ADAPTER_BASE_H__
 #include "vp_base.h"
+#include "mhw_vebox_itf.h"
+#include "vp_utils.h"
+#include "mhw_sfc_itf.h"
+#include "mhw_render_itf.h"
 
 //!
 //! \brief Deinterlace Mode enum

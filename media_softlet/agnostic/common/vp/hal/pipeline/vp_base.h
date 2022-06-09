@@ -27,17 +27,20 @@
 //!
 #ifndef __VP_BASE_H__
 #define __VP_BASE_H__
+
+#include <stdint.h>
+#include "mos_defs.h"
 #include "vp_common.h"
 #include "vphal_common_tools.h"
 #include "mhw_vebox.h"
 #include "mhw_sfc.h"
-#include "vp_utils.h"
-#include "media_interfaces_mhw.h"
-#include "vp_feature_report.h"
-#include "mhw_vebox_itf.h"
-#include "mhw_sfc_itf.h"
-#include "mhw_mi_itf.h"
-#include "mhw_render_itf.h"
+#include "igfxfmid.h"
+#include "media_class_trace.h"
+#include "media_skuwa_specific.h"
+#include "mos_os.h"
+#include "mos_os_specific.h"
+class MhwCpInterface;
+class VpFeatureReport;
 
 namespace vp
 {

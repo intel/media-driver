@@ -29,8 +29,12 @@
 #ifndef __VP_STATUS_REPORT_H__
 #define __VP_STATUS_REPORT_H__
 
+#include "mos_defs.h"
 #include "vp_pipeline_common.h"
-#include "media_context.h"
+#include "media_class_trace.h"
+#include "mos_os.h"
+#include "mos_os_specific.h"
+#include "vphal_common_tools.h"
 
 namespace vp
 {

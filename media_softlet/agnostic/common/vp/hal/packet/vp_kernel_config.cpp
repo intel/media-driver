@@ -25,6 +25,7 @@
 //! \details  vp kernel config
 //!
 
+#include <utility>
 #include "vp_kernel_config.h"
 #include "vp_utils.h"
 

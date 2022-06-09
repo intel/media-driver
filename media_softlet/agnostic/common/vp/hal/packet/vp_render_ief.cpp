@@ -28,6 +28,7 @@
 #include "vp_render_ief.h"
 #include "vp_utils.h"
 #include "mos_resource_defs.h"
+#include "mhw_sfc_cmdpar.h"
 
 namespace vp{
 

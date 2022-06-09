@@ -26,6 +26,8 @@
 //!
 
 #include "vp_kernel_config_m12_base.h"
+#include "vp_utils.h"
+#include "vphal.h"
 
 using namespace vp;
 

@@ -30,6 +30,7 @@
 #include "media_copy.h"
 #include "media_copy_common.h"
 #include "vphal_render_common.h"
+#include "media_interfaces_mhw.h"
 
 const VphalSseuSetting VpDefaultSSEUTable[baseKernelMaxNumID] =
 {// Slice    Sub-Slice       EU      Rsvd(freq)

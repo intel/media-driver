@@ -27,6 +27,8 @@
 //!
 #include "vp_base.h"
 #include "media_interfaces_vphal.h"
+#include "mos_utilities.h"
+#include "vp_utils.h"
 
 VpBase::VpBase()
 {

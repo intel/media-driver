@@ -23,6 +23,7 @@
 #define __VP_KERNEL_CONFIG_M12_BASE_H__
 
 #include "vp_kernel_config.h"
+#include "media_class_trace.h"
 
 namespace vp {
 

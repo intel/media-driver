@@ -26,7 +26,13 @@
 
 #ifndef __VP_SCALABILITY_OPTION_H__
 #define __VP_SCALABILITY_OPTION_H__
+
+#include <stdint.h>
+#include "mos_defs.h"
 #include "media_scalability_option.h"
+#include "media_class_trace.h"
+
+struct ScalabilityPars;
 
 namespace vp {
 class VpScalabilityOption : public MediaScalabilityOption

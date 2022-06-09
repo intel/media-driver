@@ -26,7 +26,11 @@
 //!           can use directly
 //!
 
+#include <stdint.h>
 #include "vp_status_report.h"
+#include "mos_utilities.h"
+#include "vp_common.h"
+#include "vphal.h"
 
 namespace vp
 {

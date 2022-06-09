@@ -22,14 +22,18 @@
 #ifndef __VP_UTILS_H__
 #define __VP_UTILS_H__
 
-#include <mutex>
-#include <functional>
-#include <algorithm>
+#include <stdint.h>
+#include <vector>
+#include "mos_defs.h"
+#include "mos_os_hw.h"
+#include "mos_os_specific.h"
+#include "mos_resource_defs.h"
+#include "mos_util_debug_specific.h"
+#include "mos_utilities.h"
 #include "mos_util_debug.h"
 #include "mos_os.h"
 #include "vp_common.h"
-#include "media_class_trace.h"
-#include "hal_kerneldll_next.h"
+#include "media_user_setting.h"
 
 using MosFormatArray = std::vector<MOS_FORMAT>;
 
