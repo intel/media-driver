@@ -81,7 +81,6 @@ void EncodeMemComp::InitEncodeMmc(CodechalHwInterface *hwInterface)
     if (MEDIA_IS_SKU(hwInterface->GetSkuTable(), FtrE2ECompression))
     {
         //read encode mmc if available, then report encode mmc in use
-
         bool encodeMmcEnabled = true;
         MediaUserSetting::Value outValue;
         ReadUserSetting(
@@ -89,7 +88,8 @@ void EncodeMemComp::InitEncodeMmc(CodechalHwInterface *hwInterface)
             outValue,
             "Enable Encode MMC",
             MediaUserSetting::Group::Sequence,
-            m_osInterface->pOsContext);
+            m_osInterface->pOsContext,
+            encodeMmcEnabled, true);
         encodeMmcEnabled = outValue.Get<bool>();
 
         m_mmcEnabledForEncode = m_mmcEnabled && encodeMmcEnabled;
