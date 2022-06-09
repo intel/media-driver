@@ -97,6 +97,7 @@ protected:
 
     MOS_STATUS SetPictureStructs();
     MOS_STATUS SetSliceStructs();
+    MOS_STATUS ErrorDetectAndConceal();
 
     MhwVdboxHcpInterface * m_hcpInterface = nullptr;
     PMOS_INTERFACE        m_osInterface  = nullptr;

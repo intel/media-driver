@@ -83,6 +83,189 @@ MOS_STATUS HevcBasicFeature::Update(void *params)
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS HevcBasicFeature::ErrorDetectAndConceal()
+{
+
+    DECODE_FUNC_CALL();
+
+    DECODE_CHK_COND(m_curRenderPic.FrameIdx >= CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC,
+        "currPic.FrameIdx is out of range!");
+
+    // check LCU size
+    // LCU is restricted based on the picture size.
+    // LCU 16x16 can only be used with picture width and height both fewer than or equal to 4222 pixels
+    if (m_width > CODECHAL_HEVC_MAX_DIM_FOR_MIN_LCU ||
+        m_height > CODECHAL_HEVC_MAX_DIM_FOR_MIN_LCU)
+    {
+        DECODE_CHK_COND(m_ctbSize == CODECHAL_HEVC_MIN_LCU, "Invalid LCU size.");
+    }
+
+    // Todo: The maximum support picture size is 16384 pixels for both encoder and decoder.
+    // check if slice number is valid
+    DECODE_CHK_COND(m_numSlices > CODECHAL_HEVC_MAX_NUM_SLICES_LVL_6 || m_numSlices == 0,
+        "slice number is out of range!");
+
+    // check if min CtbSize is valid
+    if (!(m_minCtbSize == 8 || m_minCtbSize == 16 || m_minCtbSize == 32 || m_minCtbSize == 64))
+    {
+        DECODE_ASSERTMESSAGE("MinCtbSize is invalid\n");
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    // check if CtbSize is valid
+    if (!(m_ctbSize == 16 || m_ctbSize == 32 || m_ctbSize == 64))
+    {
+        DECODE_ASSERTMESSAGE("CtbSize is invalid\n");
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    if (m_hevcPicParams->tiles_enabled_flag)
+    {
+        // check if tile_columns and tile_rows is valid
+        DECODE_CHK_COND((m_hevcPicParams->num_tile_columns_minus1 + 1 > HEVC_NUM_MAX_TILE_COLUMN) ||
+                            (m_hevcPicParams->num_tile_rows_minus1 + 1 > HEVC_NUM_MAX_TILE_ROW),
+            "num_tile_columns_minus1 or num_tile_rows_minus1 is out of range!");
+
+        // valid range is [0, m_widthInCtb - 1]
+        if (m_hevcPicParams->num_tile_columns_minus1 < 0 ||
+            m_hevcPicParams->num_tile_columns_minus1 > m_widthInCtb - 1)
+        {
+            DECODE_ASSERTMESSAGE("num_tile_columns_minus1 out of range: %d\n",
+                m_hevcPicParams->num_tile_columns_minus1);
+
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+
+        // valid range is [0, m_heightInCtb - 1]
+        if (m_hevcPicParams->num_tile_rows_minus1 < 0 ||
+            m_hevcPicParams->num_tile_rows_minus1 > m_heightInCtb - 1)
+        {
+            DECODE_ASSERTMESSAGE("num_tile_rows_minus1 out of range: %d\n",
+                m_hevcPicParams->num_tile_rows_minus1);
+
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+    }
+
+    if (m_hevcPicParams->tiles_enabled_flag && !m_hevcPicParams->uniform_spacing_flag)
+    {
+        uint8_t  num_tile_columns_minus1                = m_hevcPicParams->num_tile_columns_minus1;
+        uint8_t  num_tile_rows_minus1                   = m_hevcPicParams->num_tile_rows_minus1;
+        uint16_t tileColWidth[HEVC_NUM_MAX_TILE_COLUMN] = {0};  //!< Table of tile column width
+        uint16_t tileRowHeight[HEVC_NUM_MAX_TILE_ROW]   = {0};  //!< Table of tile row height
+
+        tileColWidth[num_tile_columns_minus1]           = m_widthInCtb & 0xffff;
+        for (auto i = 0; i < num_tile_columns_minus1; i++)
+        {
+            tileColWidth[i]                       = m_hevcPicParams->column_width_minus1[i] + 1;
+            DECODE_CHK_COND(tileColWidth[i] == 0,
+                "column_width_minus1 is invalid");
+            DECODE_CHK_COND(tileColWidth[i] > tileColWidth[num_tile_columns_minus1],
+                "column_width_minus1 is out of range");
+            tileColWidth[num_tile_columns_minus1] -= tileColWidth[i];
+        }
+
+        tileRowHeight[num_tile_rows_minus1] = m_heightInCtb & 0xffff;
+        for (auto i = 0; i < num_tile_rows_minus1; i++)
+        {
+            tileRowHeight[i]                    = m_hevcPicParams->row_height_minus1[i] + 1;
+            DECODE_CHK_COND(tileRowHeight[i] == 0,
+                "row_height_minus1 is invalid");
+            DECODE_CHK_COND(tileRowHeight[i] > tileRowHeight[num_tile_rows_minus1],
+                "row_height_minus1 is out of range");
+            tileRowHeight[num_tile_rows_minus1] -= tileRowHeight[i];
+        }
+    }
+
+    // diff_cu_qp_delta_depth range is [0, log2_diff_max_min_luma_coding_block_size]
+    if (m_hevcPicParams->diff_cu_qp_delta_depth < 0 ||
+        m_hevcPicParams->diff_cu_qp_delta_depth > m_hevcPicParams->log2_diff_max_min_luma_coding_block_size)
+    {
+        DECODE_ASSERTMESSAGE("diff_cu_qp_delta_depth %d is invalid\n", m_hevcPicParams->diff_cu_qp_delta_depth);
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    // cb_qp_offset range is [-12, 12]
+    if (m_hevcPicParams->pps_cb_qp_offset > 12 || m_hevcPicParams->pps_cb_qp_offset < -12)
+    {
+        DECODE_ASSERTMESSAGE("cb_qp_offset is invalid\n", m_hevcPicParams->pps_cb_qp_offset);
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    // cr_qp_offset range is [-12, 12]
+    if (m_hevcPicParams->pps_cr_qp_offset > 12 || m_hevcPicParams->pps_cr_qp_offset < -12)
+    {
+        DECODE_ASSERTMESSAGE("cr_qp_offset is invalid\n", m_hevcPicParams->pps_cr_qp_offset);
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    // log2_parallel_merge_level_minus2 is in range [0, 4]
+    if (m_hevcPicParams->log2_parallel_merge_level_minus2 < 0 || m_hevcPicParams->log2_parallel_merge_level_minus2 > 4)
+    {
+        DECODE_ASSERTMESSAGE("log2_parallel_merge_level_minus2 is out of range\n");
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    // The value of log2_parallel_merge_level_minus2 shall be in the range of 0 to CtbLog2SizeY - 2
+    if (m_hevcPicParams->log2_parallel_merge_level_minus2 >
+        (m_hevcPicParams->log2_min_luma_coding_block_size_minus3 + 1 + m_hevcPicParams->log2_diff_max_min_luma_coding_block_size))
+    {
+        DECODE_ASSERTMESSAGE("log2_parallel_merge_level_minus2 is out of range\n");
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    // Todo: check error detect for Rext
+    if (m_hevcRextPicParams != nullptr)
+    {
+        if (m_hevcPicParams->transform_skip_enabled_flag == 0)
+        {
+            m_hevcRextPicParams->log2_max_transform_skip_block_size_minus2 = 0;
+            DECODE_ASSERTMESSAGE("log2_max_transform_skip_block_size_minus2 should equal to 0 when transform_skip_enabled_flag not present\n");
+        }
+
+        if (m_hevcRextPicParams->diff_cu_chroma_qp_offset_depth < 0
+            || m_hevcRextPicParams->diff_cu_chroma_qp_offset_depth > m_hevcPicParams->log2_diff_max_min_luma_coding_block_size)
+        {
+            DECODE_ASSERTMESSAGE("diff_cu_chroma_qp_offset_depth is out of range\n");
+        }
+
+        // only for 4:4:4 it can be program to non-zero
+        if (m_hevcPicParams->chroma_format_idc != 3)
+        {
+            DECODE_ASSERTMESSAGE("chroma_qp_offset_list_enabled_flag is only supported in 4:4:4\n");
+        }
+
+        // chroma_qp_offset_list_len_minus1 range is [0, 5]
+        if (m_hevcRextPicParams->chroma_qp_offset_list_len_minus1 < 0
+            || m_hevcRextPicParams->chroma_qp_offset_list_len_minus1 > 5)
+        {
+            DECODE_ASSERTMESSAGE("chroma_qp_offset_list_len_minus1 is out of range [0, 5]\n");
+        }
+
+        // check if TU size is valid
+        auto maxTUSize = m_hevcPicParams->log2_diff_max_min_transform_block_size + m_hevcPicParams->log2_min_transform_block_size_minus2;
+        if (m_hevcRextPicParams->log2_max_transform_skip_block_size_minus2 < 0 ||
+            m_hevcRextPicParams->log2_max_transform_skip_block_size_minus2 > maxTUSize)
+        {
+            DECODE_ASSERTMESSAGE("log2_max_transform_skip_block_size_minus2 is out of range\n");
+        }
+    }
+
+    // Todo: check error detect for SCC
+    if (m_hevcSccPicParams != nullptr)
+    {
+        if (m_hevcPicParams->chroma_format_idc != 3)
+        {
+            if (m_hevcPicParams->entropy_coding_sync_enabled_flag && m_hevcPicParams->tiles_enabled_flag)
+            {
+                DECODE_ASSERTMESSAGE("Only SCC 4:4:4 allows both tiles_enabled_flag andentropy_coding_sync_enabled_flag to be ON at the same time\n");
+            }
+        }
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
 bool HevcBasicFeature::IsLastSlice(uint32_t sliceIdx)
 {
     return (sliceIdx == (m_numSlices-1)) ||
@@ -111,9 +294,20 @@ MOS_STATUS HevcBasicFeature::SetPictureStructs()
 {
     DECODE_FUNC_CALL();
 
+    m_minCtbSize = 1 << (m_hevcPicParams->log2_min_luma_coding_block_size_minus3 + 3);
+    m_width      = m_hevcPicParams->PicWidthInMinCbsY * m_minCtbSize;
+    m_height     = m_hevcPicParams->PicHeightInMinCbsY * m_minCtbSize;
+
+    m_ctbSize     = 1 << (m_hevcPicParams->log2_diff_max_min_luma_coding_block_size +
+                      m_hevcPicParams->log2_min_luma_coding_block_size_minus3 + 3);
+    m_widthInCtb  = MOS_ROUNDUP_DIVIDE(m_width, m_ctbSize);
+    m_heightInCtb = MOS_ROUNDUP_DIVIDE(m_height, m_ctbSize);
+
     m_curRenderPic = m_hevcPicParams->CurrPic;
-    DECODE_CHK_COND(m_curRenderPic.FrameIdx >= CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC,
-                    "currPic.FrameIdx is out of range!");
+
+    // Do error detection and concealment
+    DECODE_CHK_STATUS(ErrorDetectAndConceal());
+
     m_secondField = CodecHal_PictureIsBottomField(m_curRenderPic);
 
     m_isWPPMode = m_hevcPicParams->entropy_coding_sync_enabled_flag;
@@ -143,22 +337,6 @@ MOS_STATUS HevcBasicFeature::SetPictureStructs()
         {
             m_refFrameIndexList.push_back(m_hevcPicParams->RefFrameList[i].FrameIdx);
         }
-    }
-
-    m_minCtbSize = 1 << (m_hevcPicParams->log2_min_luma_coding_block_size_minus3 + 3);
-    m_width      = m_hevcPicParams->PicWidthInMinCbsY * m_minCtbSize;
-    m_height     = m_hevcPicParams->PicHeightInMinCbsY * m_minCtbSize;
-
-    m_ctbSize    = 1 << (m_hevcPicParams->log2_diff_max_min_luma_coding_block_size +
-                         m_hevcPicParams->log2_min_luma_coding_block_size_minus3 + 3);
-    m_widthInCtb  = MOS_ROUNDUP_DIVIDE(m_width, m_ctbSize);
-    m_heightInCtb = MOS_ROUNDUP_DIVIDE(m_height, m_ctbSize);
-
-    // Check LCU size
-    if (m_width > CODECHAL_HEVC_MAX_DIM_FOR_MIN_LCU ||
-        m_height > CODECHAL_HEVC_MAX_DIM_FOR_MIN_LCU)
-    {
-        DECODE_CHK_COND(m_ctbSize == CODECHAL_HEVC_MIN_LCU, "Invalid LCU size.");
     }
 
     m_reportFrameCrc = m_hevcPicParams->RequestCRC;
@@ -195,14 +373,11 @@ MOS_STATUS HevcBasicFeature::SetSliceStructs()
 
     DECODE_CHK_STATUS(m_tileCoding.UpdateSlice(*m_hevcPicParams, m_hevcSliceParams));
 
-    if (m_numSlices == 0)
+    if (m_numSlices > 0)
     {
-        DECODE_ASSERTMESSAGE("Invalid Slice Number = 0.");
-        return MOS_STATUS_INVALID_PARAMETER;
+        PCODEC_HEVC_SLICE_PARAMS lastSlice = m_hevcSliceParams + (m_numSlices - 1);
+        DECODE_CHK_STATUS(SetRequiredBitstreamSize(lastSlice->slice_data_offset + lastSlice->slice_data_size));
     }
-
-    PCODEC_HEVC_SLICE_PARAMS lastSlice = m_hevcSliceParams + (m_numSlices - 1);
-    DECODE_CHK_STATUS(SetRequiredBitstreamSize(lastSlice->slice_data_offset + lastSlice->slice_data_size));
 
     return MOS_STATUS_SUCCESS;
 }
