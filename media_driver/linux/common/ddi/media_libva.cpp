@@ -6548,14 +6548,21 @@ DdiMedia_QueryVideoProcFilters(
 
     // Set the filters
     uint32_t i = 0;
-    while(i < *num_filters && i < DDI_VP_MAX_NUM_FILTERS)
+    uint32_t num_supported_filters = 0;
+    while(num_supported_filters < *num_filters && i < DDI_VP_MAX_NUM_FILTERS)
     {
-        filters[i] = vp_supported_filters[i];
+        uint32_t num_filter_caps = 0;
+        VAStatus vaStatus = DdiVp_QueryVideoProcFilterCaps(ctx, context, vp_supported_filters[i], nullptr, &num_filter_caps);
+        if(vaStatus == VA_STATUS_SUCCESS && num_filter_caps != 0)
+        {
+            filters[num_supported_filters] = vp_supported_filters[i];
+            num_supported_filters++;
+        }
         i++;
     }
 
     // Tell the app how many valid filters are filled in the array
-    *num_filters = DDI_VP_MAX_NUM_FILTERS;
+    *num_filters = num_supported_filters;
 
     return VA_STATUS_SUCCESS;
 }
