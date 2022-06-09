@@ -33,7 +33,7 @@
 #ifndef __VPHAL_DEBUG_H__
 #define __VPHAL_DEBUG_H__
 
-#include "vphal_common.h"       // Common interfaces and structures
+#include "vp_oca_defs.h"       // Common interfaces and structures
 
 #if (_DEBUG || _RELEASE_INTERNAL)
 
@@ -1445,130 +1445,6 @@ public:
     if (pRenderHal && pRenderHal->pVphalOcaDumper)                                    \
         ((VphalOcaDumper*)pRenderHal->pVphalOcaDumper)->SetRenderParam(pRenderParams);
 
-
-struct VPHAL_OCA_LOG_HEADER
-{
-    uint32_t size;                          //!< Size of valid data occupied, which is used when filling OCA buffer.
-    uint32_t allocSize;                     //!< Size of allocation. Only used for buffer reusing. This value in OCA
-                                            //!< buffer is invalid.
-};
-
-struct VPHAL_OCA_SURFACE_INFO
-{
-    MOS_FORMAT              Format;         //!< Surface format
-    VPHAL_SURFACE_TYPE      SurfType;       //!< Surface type (context)
-    VPHAL_SAMPLE_TYPE       SampleType;     //!< Interlaced/Progressive sample type
-    VPHAL_CSPACE            ColorSpace;     //!< Color Space
-    VPHAL_SCALING_MODE      ScalingMode;    //!< Scaling Mode
-    MOS_TILE_TYPE           TileType;       //!< Tile Type
-    uint32_t                dwWidth;        //!< Surface width
-    uint32_t                dwHeight;       //!< Surface height
-    uint32_t                dwPitch;        //!< Surface pitch
-    RECT                    rcSrc;          //!< Source rectangle
-    RECT                    rcDst;          //!< Destination rectangle
-};
-
-struct VPHAL_OCA_TARGET_INFO
-{
-    VPHAL_OCA_SURFACE_INFO  surfInfo;
-
-    struct
-    {
-        bool                bValid;
-        VPHAL_HDR_PARAMS    params;
-    } HDRParams;
-};
-
-struct VPHAL_OCA_SOURCE_INFO
-{
-    VPHAL_OCA_SURFACE_INFO  surfInfo;
-    VPHAL_ROTATION          Rotation;       //!< 0: 0 degree, 1: 90 degree, 2: 180 degree, 3: 270 degree
-    int32_t                 iPalette;       //!< Palette Allocation
-    VPHAL_PALETTE           PaletteParams;
-
-    struct
-    {
-        bool                    bValid;
-        VPHAL_BLENDING_PARAMS   params;
-    } BlendingParams;
-
-    struct
-    {
-        bool                    bValid;
-        VPHAL_LUMAKEY_PARAMS    params;
-    } LumaKeyParams;
-
-    struct
-    {
-        bool                    bValid;
-        VPHAL_PROCAMP_PARAMS    params;
-    } ProcampParams;
-
-    struct
-    {
-        bool                    bValid;
-        float                   fIEFFactor;
-        VPHAL_IEF_PARAMS        params;
-    } IEFParams;
-
-    struct
-    {
-        bool                    bValid;
-        VPHAL_DI_PARAMS         params;
-    } DIParams;
-
-    struct
-    {
-        bool                    bValid;
-        VPHAL_DENOISE_PARAMS    params;
-    } DNParams;
-
-    struct
-    {
-        bool                    bValid;
-        VPHAL_COLORPIPE_PARAMS  params;
-    } ColorPipeParams;
-
-    struct
-    {
-        bool                    bValid;
-        uint32_t                uBwdRefCount;
-    } BwdRefInfo;
-
-    struct
-    {
-        bool                    bValid;
-        uint32_t                uFwdRefCount;
-    } FwdRefInfo;
-
-    struct
-    {
-        bool                    bValid;
-        VPHAL_HDR_PARAMS        params;
-    } HDRParams;
-};
-
-struct VPHAL_OCA_RENDER_PARAM
-{
-    VPHAL_OCA_LOG_HEADER  Header;
-    MOS_COMPONENT               Component;  //!< DDI component
-    int32_t                     FrameID;
-    int32_t                     Pid;
-    struct
-    {
-        bool                    bValid;
-        VPHAL_COLORFILL_PARAMS  params;
-    } ColorFillParams;
-
-    uint32_t uSrcCount;             //!< Number of sources
-    uint32_t uSrcCountDumped;       //!< Number of source info to be dumped into OCA buffer.
-                                    //!< This value is used to avoid OCA buffer log section overflow.
-    uint32_t uDstCount;             //!< Number of targets
-    uint32_t uDstCountDumped;       //!< Number of target info to be dumped into OCA buffer.
-                                    //!< This value is used to avoid OCA buffer log section overflow.
-    // Followed by VPHAL_OCA_SOURCE_INFO list and VPHAL_OCA_TARGET_INFO list.
-};
-
 class VphalOcaDumper
 {
 public:
@@ -1590,5 +1466,4 @@ public:
 
     VPHAL_OCA_RENDER_PARAM *m_pOcaRenderParam = nullptr;
 };
-
 #endif  // __VPHAL_DEBUG_H__

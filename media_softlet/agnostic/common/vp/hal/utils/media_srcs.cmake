@@ -32,6 +32,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/vp_debug_interface.h
     ${CMAKE_CURRENT_LIST_DIR}/vp_debug_config_manager.h
     ${CMAKE_CURRENT_LIST_DIR}/vp_user_feature_control.h
+    ${CMAKE_CURRENT_LIST_DIR}/vp_oca_defs.h
 )
 
 set(VP_SOURCES_
