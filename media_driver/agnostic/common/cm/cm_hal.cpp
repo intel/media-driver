@@ -11011,7 +11011,7 @@ MOS_STATUS HalCm_GetSurfaceDetails(
     surfaceInfos  = taskParam->surfEntryInfoArrays.surfEntryInfosArray[curKernelIndex].surfEntryInfos;
     pgSurfaceInfos = taskParam->surfEntryInfoArrays.surfEntryInfosArray[curKernelIndex].globalSurfInfos;
 
-    tempOsFormat   = cmState->osInterface->pfnFmt_MosToOs(surface.Format);
+    tempOsFormat = (MOS_OS_FORMAT)MosInterface::MosFmtToOsFmt(surface.Format);
 
     switch (argKind)
     {

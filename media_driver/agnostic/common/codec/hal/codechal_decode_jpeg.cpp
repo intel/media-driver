@@ -28,6 +28,7 @@
 #include "codechal_decode_jpeg.h"
 #include "codechal_mmc_decode_jpeg.h"
 #include "hal_oca_interface.h"
+#include "mos_interface.h"
 #if USE_CODECHAL_DEBUG_TOOL
 #include <sstream>
 #include "codechal_debug.h"
@@ -379,7 +380,7 @@ MOS_STATUS CodechalDecodeJpeg::CheckSupportedFormat(
     // real output format (ARGB8888) should also be from JPEG PPS; MSDK would handle the details of treating AYUV as ARGB.
     if (*format == Format_420O || *format == Format_AYUV)
     {
-        *format = m_osInterface->pfnFmt_OsToMos((MOS_OS_FORMAT)m_jpegPicParams->m_renderTargetFormat);
+        *format = MosInterface::OsFmtToMosFmt(m_jpegPicParams->m_renderTargetFormat);
     }
 
     //No support for RGBP/BGRP channel swap or YUV/RGB conversion!

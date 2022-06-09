@@ -35,6 +35,7 @@
 #include "mos_graphicsresource_specific_next.h"
 #include "mos_bufmgr_priv.h"
 #include "drm_device.h"
+#include "media_fourcc.h"
 
 #if (_DEBUG || _RELEASE_INTERNAL)
 #include <stdlib.h>   //for simulate random OS API failure
@@ -3302,6 +3303,130 @@ GMM_RESOURCE_FORMAT MosInterface::MosFmtToGmmFmt(MOS_FORMAT format)
     }
     return GMM_FORMAT_INVALID;
 
+}
+
+uint32_t MosInterface::MosFmtToOsFmt(MOS_FORMAT format)
+{
+    static const std::map<MOS_FORMAT, MOS_OS_FORMAT> mos2OsFmtMap = {
+        {Format_A8R8G8B8,   (MOS_OS_FORMAT)DDI_FORMAT_A8R8G8B8},
+        {Format_X8R8G8B8,   (MOS_OS_FORMAT)DDI_FORMAT_X8R8G8B8},
+        {Format_A8B8G8R8,   (MOS_OS_FORMAT)DDI_FORMAT_A8B8G8R8},
+        {Format_R32U,       (MOS_OS_FORMAT)DDI_FORMAT_R32F},
+        {Format_R32F,       (MOS_OS_FORMAT)DDI_FORMAT_R32F},
+        {Format_R5G6B5,     (MOS_OS_FORMAT)DDI_FORMAT_R5G6B5},
+        {Format_YUY2,       (MOS_OS_FORMAT)DDI_FORMAT_YUY2},
+        {Format_P8,         (MOS_OS_FORMAT)DDI_FORMAT_P8},
+        {Format_A8P8,       (MOS_OS_FORMAT)DDI_FORMAT_A8P8},
+        {Format_A8,         (MOS_OS_FORMAT)DDI_FORMAT_A8},
+        {Format_L8,         (MOS_OS_FORMAT)DDI_FORMAT_L8},
+        {Format_L16,        (MOS_OS_FORMAT)DDI_FORMAT_L16},
+        {Format_A4L4,       (MOS_OS_FORMAT)DDI_FORMAT_A4L4},
+        {Format_A8L8,       (MOS_OS_FORMAT)DDI_FORMAT_A8L8},
+        {Format_V8U8,       (MOS_OS_FORMAT)DDI_FORMAT_V8U8},
+        {Format_YVYU,       (MOS_OS_FORMAT)FOURCC_YVYU},
+        {Format_UYVY,       (MOS_OS_FORMAT)FOURCC_UYVY},
+        {Format_VYUY,       (MOS_OS_FORMAT)FOURCC_VYUY},
+        {Format_AYUV,       (MOS_OS_FORMAT)FOURCC_AYUV},
+        {Format_NV12,       (MOS_OS_FORMAT)FOURCC_NV12},
+        {Format_NV21,       (MOS_OS_FORMAT)FOURCC_NV21},
+        {Format_NV11,       (MOS_OS_FORMAT)FOURCC_NV11},
+        {Format_P208,       (MOS_OS_FORMAT)FOURCC_P208},
+        {Format_IMC1,       (MOS_OS_FORMAT)FOURCC_IMC1},
+        {Format_IMC2,       (MOS_OS_FORMAT)FOURCC_IMC2},
+        {Format_IMC3,       (MOS_OS_FORMAT)FOURCC_IMC3},
+        {Format_IMC4,       (MOS_OS_FORMAT)FOURCC_IMC4},
+        {Format_I420,       (MOS_OS_FORMAT)FOURCC_I420},
+        {Format_IYUV,       (MOS_OS_FORMAT)FOURCC_IYUV},
+        {Format_YV12,       (MOS_OS_FORMAT)FOURCC_YV12},
+        {Format_YVU9,       (MOS_OS_FORMAT)FOURCC_YVU9},
+        {Format_AI44,       (MOS_OS_FORMAT)FOURCC_AI44},
+        {Format_IA44,       (MOS_OS_FORMAT)FOURCC_IA44},
+        {Format_400P,       (MOS_OS_FORMAT)FOURCC_400P},
+        {Format_411P,       (MOS_OS_FORMAT)FOURCC_411P},
+        {Format_411R,       (MOS_OS_FORMAT)FOURCC_411R},
+        {Format_422H,       (MOS_OS_FORMAT)FOURCC_422H},
+        {Format_422V,       (MOS_OS_FORMAT)FOURCC_422V},
+        {Format_444P,       (MOS_OS_FORMAT)FOURCC_444P},
+        {Format_RGBP,       (MOS_OS_FORMAT)FOURCC_RGBP},
+        {Format_BGRP,       (MOS_OS_FORMAT)FOURCC_BGRP},
+        {Format_STMM,       (MOS_OS_FORMAT)DDI_FORMAT_P8},
+        {Format_P010,       (MOS_OS_FORMAT)FOURCC_P010},
+        {Format_P016,       (MOS_OS_FORMAT)FOURCC_P016},
+        {Format_Y216,       (MOS_OS_FORMAT)FOURCC_Y216},
+        {Format_Y416,       (MOS_OS_FORMAT)FOURCC_Y416},
+        {Format_A16B16G16R16, (MOS_OS_FORMAT)DDI_FORMAT_A16B16G16R16},
+        {Format_Y210,       (MOS_OS_FORMAT)FOURCC_Y210},
+        {Format_Y410,       (MOS_OS_FORMAT)FOURCC_Y410},
+        {Format_R32G32B32A32F, (MOS_OS_FORMAT)DDI_FORMAT_R32G32B32A32F}};
+
+    auto iter = mos2OsFmtMap.find(format);
+    if (iter != mos2OsFmtMap.end())
+    {
+        return iter->second;
+    }
+    return (MOS_OS_FORMAT)DDI_FORMAT_UNKNOWN;
+}
+
+MOS_FORMAT MosInterface::OsFmtToMosFmt(uint32_t format)
+{
+    static const std::map<MOS_OS_FORMAT, MOS_FORMAT> os2MosFmtMap = {
+        {DDI_FORMAT_A8B8G8R8,       Format_A8R8G8B8},
+        {DDI_FORMAT_X8B8G8R8,       Format_X8R8G8B8},
+        {DDI_FORMAT_R32F,           Format_R32F},
+        {DDI_FORMAT_A8R8G8B8,       Format_A8R8G8B8},
+        {DDI_FORMAT_X8R8G8B8,       Format_X8R8G8B8},
+        {DDI_FORMAT_R5G6B5,         Format_R5G6B5},
+        {DDI_FORMAT_YUY2,           Format_YUY2},
+        {DDI_FORMAT_P8,             Format_P8},
+        {DDI_FORMAT_A8P8,           Format_A8P8},
+        {DDI_FORMAT_A8,             Format_A8},
+        {DDI_FORMAT_L8,             Format_L8},
+        {DDI_FORMAT_L16,            Format_L16},
+        {DDI_FORMAT_A4L4,           Format_A4L4},
+        {DDI_FORMAT_A8L8,           Format_A8L8},
+        {DDI_FORMAT_V8U8,           Format_V8U8},
+        {DDI_FORMAT_A16B16G16R16,   Format_A16B16G16R16},
+        {DDI_FORMAT_R32G32B32A32F,  Format_R32G32B32A32F},
+        {FOURCC_YVYU,               Format_YVYU},
+        {FOURCC_UYVY,               Format_UYVY},
+        {FOURCC_VYUY,               Format_VYUY},
+        {FOURCC_AYUV,               Format_AYUV},
+        {FOURCC_NV12,               Format_NV12},
+        {FOURCC_NV21,               Format_NV21},
+        {FOURCC_NV11,               Format_NV11},
+        {FOURCC_P208,               Format_P208},
+        {FOURCC_IMC1,               Format_IMC1},
+        {FOURCC_IMC2,               Format_IMC2},
+        {FOURCC_IMC3,               Format_IMC3},
+        {FOURCC_IMC4,               Format_IMC4},
+        {FOURCC_I420,               Format_I420},
+        {FOURCC_IYUV,               Format_IYUV},
+        {FOURCC_YV12,               Format_YV12},
+        {FOURCC_YVU9,               Format_YVU9},
+        {FOURCC_AI44,               Format_AI44},
+        {FOURCC_IA44,               Format_IA44},
+        {FOURCC_400P,               Format_400P},
+        {FOURCC_411P,               Format_411P},
+        {FOURCC_411R,               Format_411R},
+        {FOURCC_422H,               Format_422H},
+        {FOURCC_422V,               Format_422V},
+        {FOURCC_444P,               Format_444P},
+        {FOURCC_RGBP,               Format_RGBP},
+        {FOURCC_BGRP,               Format_BGRP},
+        {FOURCC_P010,               Format_P010},
+        {FOURCC_P016,               Format_P016},
+        {FOURCC_Y216,               Format_Y216},
+        {FOURCC_Y416,               Format_Y416},
+        {FOURCC_Y210,               Format_Y210},
+        {FOURCC_Y410,               Format_Y410}
+    };
+
+    auto iter = os2MosFmtMap.find(format);
+    if (iter != os2MosFmtMap.end())
+    {
+        return iter->second;
+    }
+    return Format_Invalid;
 }
 
 bool MosInterface::IsCompressibelSurfaceSupported(MEDIA_FEATURE_TABLE *skuTable)

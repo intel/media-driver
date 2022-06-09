@@ -31,7 +31,6 @@
 #include <unistd.h>
 #include <dlfcn.h>
 #include "hwinfo_linux.h"
-#include "media_fourcc.h"
 #include <stdlib.h>
 
 #include "mos_graphicsresource.h"
@@ -5109,141 +5108,6 @@ int32_t Mos_Specific_IsPerfTagSet(
 }
 
 //!
-//! \brief    Convet from OS to Mos format
-//! \details  need to refactor this function after libva ddi interface done, or after OS format defined
-//!          for Linux/Android
-//! \param    MOS_OS_FORMAT format
-//!           [in] OS surface format
-//! \return   MOS_FORMAT
-//!           Return Mos format
-//!
-MOS_FORMAT Mos_Specific_FmtOsToMos(
-    MOS_OS_FORMAT   format)
-{
-    switch (static_cast<int>(format))
-    {
-        case DDI_FORMAT_A8B8G8R8     : return Format_A8R8G8B8;
-        case DDI_FORMAT_X8B8G8R8     : return Format_X8R8G8B8;
-        case DDI_FORMAT_R32F         : return Format_R32F;
-        case DDI_FORMAT_A8R8G8B8     : return Format_A8R8G8B8;
-        case DDI_FORMAT_X8R8G8B8     : return Format_X8R8G8B8;
-        case DDI_FORMAT_R5G6B5       : return Format_R5G6B5;
-        case DDI_FORMAT_YUY2         : return Format_YUY2;
-        case DDI_FORMAT_P8           : return Format_P8;
-        case DDI_FORMAT_A8P8         : return Format_A8P8;
-        case DDI_FORMAT_A8           : return Format_A8;
-        case DDI_FORMAT_L8           : return Format_L8;
-        case DDI_FORMAT_L16          : return Format_L16;
-        case DDI_FORMAT_A4L4         : return Format_A4L4;
-        case DDI_FORMAT_A8L8         : return Format_A8L8;
-        case DDI_FORMAT_V8U8         : return Format_V8U8;
-        case DDI_FORMAT_A16B16G16R16 : return Format_A16B16G16R16;
-        case DDI_FORMAT_R32G32B32A32F: return Format_R32G32B32A32F;
-        case FOURCC_YVYU             : return Format_YVYU;
-        case FOURCC_UYVY             : return Format_UYVY;
-        case FOURCC_VYUY             : return Format_VYUY;
-        case FOURCC_AYUV             : return Format_AYUV;
-        case FOURCC_NV12             : return Format_NV12;
-        case FOURCC_NV21             : return Format_NV21;
-        case FOURCC_NV11             : return Format_NV11;
-        case FOURCC_P208             : return Format_P208;
-        case FOURCC_IMC1             : return Format_IMC1;
-        case FOURCC_IMC2             : return Format_IMC2;
-        case FOURCC_IMC3             : return Format_IMC3;
-        case FOURCC_IMC4             : return Format_IMC4;
-        case FOURCC_I420             : return Format_I420;
-        case FOURCC_IYUV             : return Format_IYUV;
-        case FOURCC_YV12             : return Format_YV12;
-        case FOURCC_YVU9             : return Format_YVU9;
-        case FOURCC_AI44             : return Format_AI44;
-        case FOURCC_IA44             : return Format_IA44;
-        case FOURCC_400P             : return Format_400P;
-        case FOURCC_411P             : return Format_411P;
-        case FOURCC_411R             : return Format_411R;
-        case FOURCC_422H             : return Format_422H;
-        case FOURCC_422V             : return Format_422V;
-        case FOURCC_444P             : return Format_444P;
-        case FOURCC_RGBP             : return Format_RGBP;
-        case FOURCC_BGRP             : return Format_BGRP;
-        case FOURCC_P010             : return Format_P010;
-        case FOURCC_P016             : return Format_P016;
-        case FOURCC_Y216             : return Format_Y216;
-        case FOURCC_Y416             : return Format_Y416;
-        case FOURCC_Y210             : return Format_Y210;
-        case FOURCC_Y410             : return Format_Y410;
-        default                      : return Format_Invalid;
-    }
-}
-
-//!
-//! \brief    Convet from MOS OS to OS format
-//! \details  need to refactor this function after libva ddi interface done, or after OS format defined
-//!          for Linux/Android
-//! \param    MOS_FORMAT format
-//!           [in] MOS OS surface format
-//! \return   MOS_OS_FORMAT
-//!           Return OS format
-//!
-MOS_OS_FORMAT Mos_Specific_FmtMosToOs(
-    MOS_FORMAT     format)
-{
-    switch (format)
-    {
-    case Format_A8R8G8B8     : return (MOS_OS_FORMAT)DDI_FORMAT_A8R8G8B8;
-    case Format_X8R8G8B8     : return (MOS_OS_FORMAT)DDI_FORMAT_X8R8G8B8;
-    case Format_A8B8G8R8     : return (MOS_OS_FORMAT)DDI_FORMAT_A8B8G8R8;
-    case Format_R32U         : return (MOS_OS_FORMAT)DDI_FORMAT_R32F;
-    case Format_R32F         : return (MOS_OS_FORMAT)DDI_FORMAT_R32F;
-    case Format_R5G6B5       : return (MOS_OS_FORMAT)DDI_FORMAT_R5G6B5;
-    case Format_YUY2         : return (MOS_OS_FORMAT)DDI_FORMAT_YUY2;
-    case Format_P8           : return (MOS_OS_FORMAT)DDI_FORMAT_P8;
-    case Format_A8P8         : return (MOS_OS_FORMAT)DDI_FORMAT_A8P8;
-    case Format_A8           : return (MOS_OS_FORMAT)DDI_FORMAT_A8;
-    case Format_L8           : return (MOS_OS_FORMAT)DDI_FORMAT_L8;
-    case Format_L16          : return (MOS_OS_FORMAT)DDI_FORMAT_L16;
-    case Format_A4L4         : return (MOS_OS_FORMAT)DDI_FORMAT_A4L4;
-    case Format_A8L8         : return (MOS_OS_FORMAT)DDI_FORMAT_A8L8;
-    case Format_V8U8         : return (MOS_OS_FORMAT)DDI_FORMAT_V8U8;
-    case Format_YVYU         : return (MOS_OS_FORMAT)FOURCC_YVYU;
-    case Format_UYVY         : return (MOS_OS_FORMAT)FOURCC_UYVY;
-    case Format_VYUY         : return (MOS_OS_FORMAT)FOURCC_VYUY;
-    case Format_AYUV         : return (MOS_OS_FORMAT)FOURCC_AYUV;
-    case Format_NV12         : return (MOS_OS_FORMAT)FOURCC_NV12;
-    case Format_NV21         : return (MOS_OS_FORMAT)FOURCC_NV21;
-    case Format_NV11         : return (MOS_OS_FORMAT)FOURCC_NV11;
-    case Format_P208         : return (MOS_OS_FORMAT)FOURCC_P208;
-    case Format_IMC1         : return (MOS_OS_FORMAT)FOURCC_IMC1;
-    case Format_IMC2         : return (MOS_OS_FORMAT)FOURCC_IMC2;
-    case Format_IMC3         : return (MOS_OS_FORMAT)FOURCC_IMC3;
-    case Format_IMC4         : return (MOS_OS_FORMAT)FOURCC_IMC4;
-    case Format_I420         : return (MOS_OS_FORMAT)FOURCC_I420;
-    case Format_IYUV         : return (MOS_OS_FORMAT)FOURCC_IYUV;
-    case Format_YV12         : return (MOS_OS_FORMAT)FOURCC_YV12;
-    case Format_YVU9         : return (MOS_OS_FORMAT)FOURCC_YVU9;
-    case Format_AI44         : return (MOS_OS_FORMAT)FOURCC_AI44;
-    case Format_IA44         : return (MOS_OS_FORMAT)FOURCC_IA44;
-    case Format_400P         : return (MOS_OS_FORMAT)FOURCC_400P;
-    case Format_411P         : return (MOS_OS_FORMAT)FOURCC_411P;
-    case Format_411R         : return (MOS_OS_FORMAT)FOURCC_411R;
-    case Format_422H         : return (MOS_OS_FORMAT)FOURCC_422H;
-    case Format_422V         : return (MOS_OS_FORMAT)FOURCC_422V;
-    case Format_444P         : return (MOS_OS_FORMAT)FOURCC_444P;
-    case Format_RGBP         : return (MOS_OS_FORMAT)FOURCC_RGBP;
-    case Format_BGRP         : return (MOS_OS_FORMAT)FOURCC_BGRP;
-    case Format_STMM         : return (MOS_OS_FORMAT)DDI_FORMAT_P8;
-    case Format_P010         : return (MOS_OS_FORMAT)FOURCC_P010;
-    case Format_P016         : return (MOS_OS_FORMAT)FOURCC_P016;
-    case Format_Y216         : return (MOS_OS_FORMAT)FOURCC_Y216;
-    case Format_Y416         : return (MOS_OS_FORMAT)FOURCC_Y416;
-    case Format_A16B16G16R16 : return (MOS_OS_FORMAT)DDI_FORMAT_A16B16G16R16;
-    case Format_Y210         : return (MOS_OS_FORMAT)FOURCC_Y216;
-    case Format_Y410         : return (MOS_OS_FORMAT)FOURCC_Y410;
-    case Format_R32G32B32A32F: return (MOS_OS_FORMAT)DDI_FORMAT_R32G32B32A32F;
-    default                  : return (MOS_OS_FORMAT)DDI_FORMAT_UNKNOWN;
-    }
-}
-
-//!
 //! \brief    Check for GPU context valid
 //! \details  Always returns MOS_STATUS_SUCCESS on Linux.
 //            This interface is implemented for compatibility.
@@ -7340,8 +7204,6 @@ MOS_STATUS Mos_Specific_InitInterface(
     pOsInterface->pfnWaitAndReleaseCmdBuffer                = Mos_Specific_WaitAndReleaseCmdBuffer;
     pOsInterface->pfnVerifyCommandBufferSize                = Mos_Specific_VerifyCommandBufferSize;
     pOsInterface->pfnResizeCommandBufferAndPatchList        = Mos_Specific_ResizeCommandBufferAndPatchList;
-    pOsInterface->pfnFmt_OsToMos                            = Mos_Specific_FmtOsToMos;
-    pOsInterface->pfnFmt_MosToOs                            = Mos_Specific_FmtMosToOs;
     pOsInterface->pfnFmt_MosToGmm                           = Mos_Specific_ConvertMosFmtToGmmFmt;
     pOsInterface->pfnSetPerfTag                             = Mos_Specific_SetPerfTag;
     pOsInterface->pfnResetPerfBufferID                      = Mos_Specific_ResetPerfBufferID;

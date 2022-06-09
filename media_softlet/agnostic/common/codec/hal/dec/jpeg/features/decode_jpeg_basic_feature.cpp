@@ -86,7 +86,7 @@ void JpegBasicFeature::GetRenderTargetFormat(PMOS_FORMAT format)
 {
     if (*format == Format_420O || *format == Format_AYUV)
     {
-        *format = m_osInterface->pfnFmt_OsToMos((MOS_OS_FORMAT)m_jpegPicParams->m_renderTargetFormat);
+        *format = MosInterface::OsFmtToMosFmt((MOS_OS_FORMAT)m_jpegPicParams->m_renderTargetFormat);
     }
 }
 

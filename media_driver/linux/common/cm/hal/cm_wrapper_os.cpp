@@ -33,12 +33,6 @@
 #include "cm_extension_creator.h"
 #include "mos_os_specific.h"
 
-extern MOS_FORMAT Mos_Specific_FmtOsToMos(
-    MOS_OS_FORMAT     format);
-
-extern MOS_OS_FORMAT Mos_Specific_FmtMosToOs(
-    MOS_FORMAT     format);
-
 using CMRT_UMD::CmDeviceRT;
 //!
 //! \brief    Create Cm Device from VA Driver Context.
@@ -256,7 +250,7 @@ MOS_FORMAT CmOSFmtToMosFmt(CM_OSAL_SURFACE_FORMAT format)
       case CM_SURFACE_FORMAT_R8U:  return Format_R8U;
       case CM_SURFACE_FORMAT_R16U: return Format_R16U;
       default:
-        return Mos_Specific_FmtOsToMos(format);
+          return MosInterface::OsFmtToMosFmt(format);
     }
 }
 
@@ -269,7 +263,7 @@ CM_OSAL_SURFACE_FORMAT  CmMosFmtToOSFmt(MOS_FORMAT format)
         case Format_R8U:   return CM_SURFACE_FORMAT_R8U;
         case Format_R16U:  return CM_SURFACE_FORMAT_R16U;
         default:
-           return Mos_Specific_FmtMosToOs(format);
+           return (CM_OSAL_SURFACE_FORMAT)MosInterface::MosFmtToOsFmt(format);
     }
 }
 

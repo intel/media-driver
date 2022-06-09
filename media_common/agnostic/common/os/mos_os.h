@@ -1185,12 +1185,6 @@ typedef struct _MOS_INTERFACE
         PMOS_INTERFACE              pOsInterface,
         PMOS_COMMAND_BUFFER         pCmdBuffer);
 
-    MOS_FORMAT (* pfnFmt_OsToMos) (
-        MOS_OS_FORMAT               format);
-
-    MOS_OS_FORMAT (* pfnFmt_MosToOs) (
-        MOS_FORMAT                  format);
-
     GMM_RESOURCE_FORMAT (* pfnFmt_MosToGmm) (
         MOS_FORMAT                  format);
 

@@ -2017,12 +2017,12 @@ public:
     //!
     //! \brief  Translate MOS_FORMAT into MOS_OS_FORMAT
     //!
-    static MOS_OS_FORMAT MosFmtToOsFmt(MOS_FORMAT format);
+    static uint32_t MosFmtToOsFmt(MOS_FORMAT format);
 
     //!
     //! \brief  Translate MOS_OS_FORMT into MOS_FORMAT
     //!
-    static MOS_FORMAT OsFmtToMosFmt(MOS_OS_FORMAT format);
+    static MOS_FORMAT OsFmtToMosFmt(uint32_t format);
 
     //! \brief    Get usersetting instance for each stream
     //! \details  the user setting instance
