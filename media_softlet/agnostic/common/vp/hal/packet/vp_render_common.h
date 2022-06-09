@@ -51,13 +51,19 @@ enum KRN_ARG_KIND
     // compiler-defined kind
     ARG_KIND_GENERAL = 0x0,
     ARG_KIND_SAMPLER = 0x1,
-
+    ARG_KIND_VME_INDEX = 0x6,
     ARG_KIND_SURFACE = 0x8, //basic surface value
     // using 3 LSB to classify surface further
     ARG_KIND_SURFACE_2D = 0x9,
     ARG_KIND_SURFACE_1D = 0xa,
     ARG_KIND_SURFACE_SAMPLER8X8_AVS = 0xb,
-    ARG_KIND_SURFACE_SAMPLER = 0xc
+    ARG_KIND_SURFACE_SAMPLER = 0xc,
+    ARG_KIND_IMPLICT_LOCALSIZE      = 0xe,
+    ARG_KIND_IMPLICT_GROUPSIZE      = 0xf,
+    ARG_KIND_IMPLICIT_LOCALID       = 0x10,
+    ARG_KIND_GENERAL_DEPVEC         = 0x20,
+    ARG_KIND_SURFACE_2D_SCOREBOARD  = 0x2A,
+    ARG_KIND_GENERAL_DEPCNT         = 0x30
 };
 
 struct KRN_ARG

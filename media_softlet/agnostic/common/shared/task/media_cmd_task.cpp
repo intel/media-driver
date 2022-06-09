@@ -123,7 +123,7 @@ MOS_STATUS CmdTask::Submit(bool immediateSubmit, MediaScalability *scalability, 
         MEDIA_CHK_STATUS_RETURN(scalability->ReturnCmdBuffer(&cmdBuffer));
     }
 
-#if (_DEBUG || _RELEASE_INTERNAL)
+#if (_DEBUG || _RELEASE_INTERNAL) && !EMUL
     MEDIA_CHK_STATUS_RETURN(DumpCmdBufferAllPipes(&cmdBuffer, debugInterface, scalability));
 #endif  // _DEBUG || _RELEASE_INTERNAL
 
@@ -147,7 +147,7 @@ MOS_STATUS CmdTask::Submit(bool immediateSubmit, MediaScalability *scalability, 
     return MOS_STATUS_SUCCESS;
 }
 
-#if (_DEBUG || _RELEASE_INTERNAL)
+#if ((_DEBUG || _RELEASE_INTERNAL) && !EMUL)
 MOS_STATUS CmdTask::DumpCmdBuffer(PMOS_COMMAND_BUFFER cmdBuffer, CodechalDebugInterface *debugInterface, uint8_t pipeIdx)
 {
     MEDIA_CHK_NULL_RETURN(cmdBuffer);

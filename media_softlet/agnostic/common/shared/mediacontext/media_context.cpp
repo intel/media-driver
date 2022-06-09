@@ -31,8 +31,10 @@
 #include "mos_gpucontextmgr.h"
 #include "mos_interface.h"
 #include "mos_os_virtualengine_next.h"
+#if !EMUL
 #include "codechal_hw.h"
 #include "decode_scalability_defs.h"
+#endif
 
 MediaContext::MediaContext(uint8_t componentType, void *hwInterface, PMOS_INTERFACE osInterface)
 {
@@ -102,7 +104,19 @@ MediaContext::~MediaContext()
                     return;
                 }
             }
-#if !_VULKAN
+#if EMUL
+            else
+            {
+                auto status = m_osInterface->pfnDestroyGpuContext(
+                    m_osInterface,
+                    curAttribute.ctxForLegacyMos);
+                if (status != MOS_STATUS_SUCCESS)
+                {
+                    MOS_OS_NORMALMESSAGE("Gpu Context destory failed, something must be wrong");
+                    return;
+                }
+            }
+#elif !_VULKAN
             else
             {
                 auto gpuContextMgr = m_osInterface->pfnGetGpuContextMgr(m_osInterface);
@@ -134,9 +148,10 @@ MediaContext::~MediaContext()
             MOS_OS_ASSERTMESSAGE("Invalid gpu Context handle in entry, something must be wrong");
             return;
         }
-
+#if !EMUL
         // Be compatible to legacy MOS
         m_osInterface->pfnSetGpuContextHandle(m_osInterface, MOS_GPU_CONTEXT_INVALID_HANDLE, curAttribute.ctxForLegacyMos);
+#endif
     }
 
     m_gpuContextAttributeTable.clear();
@@ -180,7 +195,9 @@ MOS_STATUS MediaContext::SwitchContext(MediaFunction func, ContextRequirement *r
     }
 
     uint32_t index = m_invalidContextAttribute;
+#if !EMUL
     MOS_OS_CHK_STATUS_RETURN(SearchContext<ScalabilityPars*>(func, (ScalabilityPars*)requirement, index));
+#endif
     if (index == m_invalidContextAttribute)
     {
         MOS_OS_CHK_STATUS_RETURN(CreateContext<ScalabilityPars*>(func, (ScalabilityPars*)requirement, index));
@@ -341,7 +358,9 @@ MOS_STATUS MediaContext::SwitchContext(
     MediaScalability * veStateProvided = nullptr;
 
     uint32_t index = m_invalidContextAttribute;
+#if !EMUL
     MOS_OS_CHK_STATUS_RETURN(SearchContext<MediaScalabilityOption&>(func, scalabilityOption, index));
+#endif
     if (index == m_invalidContextAttribute)
     {
         MOS_OS_CHK_STATUS_RETURN(CreateContext<MediaScalabilityOption *>(func, &scalabilityOption, index));
@@ -394,10 +413,12 @@ MOS_STATUS MediaContext::FunctionToNode(MediaFunction func, const MOS_GPUCTX_CRE
         {
             node = MOS_GPU_NODE_VIDEO; // multiple pipe decode or encode always using VIDEO node
         }
+#if !EMUL
         else
         {
             MOS_OS_CHK_STATUS_RETURN(FunctionToNodeCodec(node));
         }
+#endif
         break;
     case VdboxDecodeWaFunc:
     case VdboxDecrpytFunc:
@@ -420,7 +441,7 @@ MOS_STATUS MediaContext::FunctionToNode(MediaFunction func, const MOS_GPUCTX_CRE
 
     return status;
 }
-
+#if !EMUL
 MOS_STATUS MediaContext::FunctionToNodeCodec(MOS_GPU_NODE& node)
 {
     CodechalHwInterface *hwInterface = static_cast<CodechalHwInterface *>(m_hwInterface);
@@ -441,7 +462,7 @@ MOS_STATUS MediaContext::FunctionToNodeCodec(MOS_GPU_NODE& node)
 
     return MOS_STATUS_SUCCESS;
 }
-
+#endif
 MOS_STATUS MediaContext::FunctionToGpuContext(MediaFunction func, const MOS_GPUCTX_CREATOPTIONS_ENHANCED &option, const MOS_GPU_NODE &node, MOS_GPU_CONTEXT &ctx)
 {
     MOS_OS_FUNCTION_ENTER;

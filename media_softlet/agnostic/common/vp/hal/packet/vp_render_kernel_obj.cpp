@@ -26,7 +26,7 @@
 //!
 #include "vp_render_kernel_obj.h"
 #include "vp_dumper.h"
-#include  "hal_oca_interface.h"
+#include "hal_oca_interface.h"
 
 using namespace vp;
 
@@ -188,7 +188,7 @@ void VpRenderKernelObj::DumpSurface(VP_SURFACE* pSurface, PCCHAR fileName)
     MOS_LOCK_PARAMS         LockFlags;
 
     VP_FUNC_CALL();
-
+#if !EMUL
     PMOS_INTERFACE        pOsInterface = m_hwInterface->m_osInterface;
 
     pDst = nullptr;
@@ -256,4 +256,6 @@ void VpRenderKernelObj::DumpSurface(VP_SURFACE* pSurface, PCCHAR fileName)
     }
 
     m_allocator->UnLock(&pSurface->osSurface->OsResource);
+#endif
 }
+

@@ -32,6 +32,7 @@
 class CmdBufMgr;
 class CommandBuffer;
 class CommandBufferSpecific;
+class GraphicsResource;
 
 //!
 //! \class  GpuContext

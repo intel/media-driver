@@ -782,7 +782,7 @@ MOS_STATUS SwFilterDenoise::Configure(VP_PIPELINE_PARAMS& params, bool isInputSu
 
     m_Params.denoiseParams.bEnableChroma =
         m_Params.denoiseParams.bEnableChroma && m_Params.denoiseParams.bEnableLuma;
-
+#if !EMUL
     GMM_RESOURCE_INFO* pSrcGmmResInfo    = surfInput->OsResource.pGmmResInfo;
     GMM_RESOURCE_INFO* pTargetGmmResInfo = params.pTarget[0]->OsResource.pGmmResInfo;
     VP_PUBLIC_CHK_NULL_RETURN(pSrcGmmResInfo);
@@ -797,7 +797,7 @@ MOS_STATUS SwFilterDenoise::Configure(VP_PIPELINE_PARAMS& params, bool isInputSu
     {
         m_Params.secureDnNeeded = true;
     }
-
+#endif
     return MOS_STATUS_SUCCESS;
 }
 

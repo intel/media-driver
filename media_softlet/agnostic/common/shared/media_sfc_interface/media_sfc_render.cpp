@@ -36,6 +36,7 @@
 #include "mos_os.h"
 #include "renderhal.h"
 #include "media_mem_compression.h"
+#include "media_interfaces_mhw_next.h"
 
 using namespace vp;
 

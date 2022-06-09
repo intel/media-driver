@@ -60,7 +60,7 @@ struct FeatureIDs
     {
         basicFeature = CONSTRUCTFEATUREID(FEATURE_COMPONENT_COMMON, FEATURE_SUBCOMPONENT_COMMON, 0),
         encodeTile,
-#if _MEDIA_RESERVED
+#if _MEDIA_RESERVED && !EMUL
 #define ENCODE_FEATURE_IDS_EXT
 #include "media_feature_defs_ext.h"
 #undef ENCODE_FEATURE_IDS_EXT

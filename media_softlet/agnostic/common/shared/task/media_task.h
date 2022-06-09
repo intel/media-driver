@@ -32,7 +32,6 @@
 #include <vector>
 #include "mos_defs.h"
 #include "media_scalability.h"
-#include "codechal_debug.h"
 
 class CodechalDebugInterface;
 class MediaPacket;

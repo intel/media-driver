@@ -72,8 +72,9 @@ protected:
     //!         Pointer to the option for GPU ctx create.
     //! \return pointer of media scalability
     //!
+#if !EMUL
     MediaScalability *CreateEncodeScalability(T params, void *hwInterface, MediaContext *mediaContext, MOS_GPUCTX_CREATOPTIONS *gpuCtxCreateOption);
-
+#endif
     //!
     //! \brief  Create decode scalability, it should be invoked when new scalability mode needed
     //! \param  [in] params
@@ -86,8 +87,9 @@ protected:
     //!         Pointer to the option for GPU ctx create.
     //! \return pointer of media scalability
     //!
+#if !EMUL
     MediaScalability *CreateDecodeScalability(T params, void *hwInterface, MediaContext *mediaContext, MOS_GPUCTX_CREATOPTIONS *gpuCtxCreateOption);
-
+#endif
     //!
     //! \param  [in] params
     //!         Pointer to the input parameters which is ScalabilityPars or ScalabilityOption
@@ -108,8 +110,9 @@ protected:
     //!         Pointer to the input parameters which is ScalabilityPars or ScalabilityOption
     //! \return pointer of media scalability
     //!
+#if !EMUL
     MediaScalability *CreateScalabilityMdf(T params);
-
+#endif
     //!
     //! \brief  Create scalability with CMD Buf interfaces, it should be invoked when new scalability mode needed
     //! \param  [in] componentType

@@ -31,6 +31,7 @@
 #include "media_cmd_task.h"
 #include "media_packet.h"
 #include "media_interfaces_mcpy.h"
+#include "media_debug_interface.h"
 
 MediaPipeline::MediaPipeline(PMOS_INTERFACE osInterface) : m_osInterface(osInterface)
 {
@@ -71,7 +72,7 @@ MediaPipeline::~MediaPipeline()
 
     MOS_Delete(m_mediaCopy);
 
-    CODECHAL_DEBUG_TOOL(MOS_Delete(m_debugInterface));
+    MEDIA_DEBUG_TOOL(MOS_Delete(m_debugInterface));
 
     MediaPerfProfiler *perfProfiler = MediaPerfProfiler::Instance();
 

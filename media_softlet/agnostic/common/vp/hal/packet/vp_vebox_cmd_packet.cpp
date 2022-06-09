@@ -1697,12 +1697,14 @@ MOS_STATUS VpVeboxCmdPacket::RenderVeboxCmd(
         //---------------------------------
         // Write GPU Status Tag for Tag based synchronization
         //---------------------------------
+#if !EMUL
         if (!pOsInterface->bEnableKmdMediaFrameTracking)
         {
             VP_RENDER_CHK_STATUS_RETURN(SendVecsStatusTag(
                 pOsInterface,
                 pCmdBufferInUse));
         }
+#endif
 
         //---------------------------------
         // Write Sync tag for Vebox Heap Synchronization
@@ -1913,7 +1915,7 @@ MOS_STATUS VpVeboxCmdPacket::DumpVeboxStateHeap()
     VP_FUNC_CALL();
 
     MOS_STATUS    eStatus = MOS_STATUS_SUCCESS;
-#if (_DEBUG || _RELEASE_INTERNAL)
+#if USE_VP_DEBUG_TOOL
     static uint32_t counter = 0;
     VP_SURFACE driverResource = {};
     VP_SURFACE kernelResource = {};

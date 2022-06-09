@@ -32,10 +32,13 @@
 #include "mos_os.h"
 #include "media_scalability_defs.h"
 #include "media_scalability_option.h"
+#if !EMUL
 #include "cm_rt_umd.h"
+#endif
 #include "mos_interface.h"
 #include "mhw_mi_itf.h"
 
+#define COMMAND_BUFFER_RESERVED_SPACE 0x80
 class MediaStatusReport;
 class MediaContext;
 class MhwMiInterface;
@@ -165,8 +168,9 @@ public:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
+#if !EMUL
     virtual MOS_STATUS GetQueue(bool newQueue, CmQueue *&queue) { return MOS_STATUS_SUCCESS; };
-
+#endif
     //!
     //! \brief  Return command buffer
     //! \param  [in, out] cmdBuffer

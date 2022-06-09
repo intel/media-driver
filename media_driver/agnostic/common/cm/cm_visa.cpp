@@ -27,6 +27,7 @@
 #include "cm_visa.h"
 #include "cm_def_os.h"
 #include <fstream>
+#include "mos_utilities.h"
 
 using namespace vISA;
 

@@ -700,7 +700,7 @@ MOS_STATUS VpAllocator::AllocParamsInitType(
     //  Need to reallocate surface according to expected tiletype instead of tiletype of the surface what we have
     if (surface != nullptr                                      &&
         surface->osSurface != nullptr                           &&
-        surface->osSurface->OsResource.pGmmResInfo != nullptr   &&
+        !Mos_ResourceIsNull(&surface->osSurface->OsResource)    &&
         surface->osSurface->TileType == defaultTileType)
     {
         // Reallocate but use same tile type and resource type as current
@@ -1242,6 +1242,16 @@ uint64_t VP_SURFACE::GetAllocationHandle(MOS_INTERFACE* osIntf)
     }
 #elif (_VULKAN)
     return 0;
+#elif (EMUL)
+    uint64_t handle = osSurface ? (uint64_t)osSurface->OsResource.pData : 0;
+    if (handle)
+    {
+        return handle;
+    }
+    else
+    {
+        return 0;
+    }
 #else
     return osSurface ? osSurface->OsResource.AllocationInfo.m_AllocationHandle : 0;
 #endif

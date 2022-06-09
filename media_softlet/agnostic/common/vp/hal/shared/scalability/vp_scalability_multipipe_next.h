@@ -31,7 +31,6 @@
 #define __VP_SCALABILITY_MULTIPIPE_NEXT_H__
 #include "mos_defs.h"
 #include "mos_os.h"
-#include "codechal_hw.h"
 #include "media_scalability_multipipe.h"
 #include "vp_scalability_option.h"
 #include "mos_os_virtualengine_scalability.h"

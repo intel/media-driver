@@ -27,11 +27,13 @@
 
 #include "media_scalability_factory.h"
 #include "media_scalability_singlepipe.h"
+#if !EMUL
 #include "encode_scalability_singlepipe.h"
 #include "encode_scalability_multipipe.h"
 #include "decode_scalability_singlepipe.h"
 #include "decode_scalability_multipipe.h"
 #include "media_scalability_mdf.h"
+#endif
 #include "vp_scalability_singlepipe.h"
 #include "vp_scalability_multipipe.h"
 
@@ -42,7 +44,7 @@ MediaScalability *MediaScalabilityFactory<T>::CreateScalability(uint8_t componen
     {
         return nullptr;
     }
-
+#if !EMUL
     if (std::is_same<decltype(params), ScalabilityPars*>::value)
     {
         auto scalabPars = reinterpret_cast<ScalabilityPars *>(params);
@@ -51,11 +53,11 @@ MediaScalability *MediaScalabilityFactory<T>::CreateScalability(uint8_t componen
             return CreateScalabilityMdf(params);
         }
     }
-
+#endif
     //Create SinglePipe/MultiPipe scalability.
     return CreateScalabilityCmdBuf(componentType, params, hwInterface, mediaContext, gpuCtxCreateOption);
 }
-
+#if !EMUL
 template<typename T>
 MediaScalability *MediaScalabilityFactory<T>::CreateScalabilityMdf(T params)
 {
@@ -64,23 +66,25 @@ MediaScalability *MediaScalabilityFactory<T>::CreateScalabilityMdf(T params)
 
     return scalabilityHandle;
 }
-
+#endif
 template<typename T>
 MediaScalability *MediaScalabilityFactory<T>::CreateScalabilityCmdBuf(uint8_t componentType, T params, void *hwInterface, MediaContext *mediaContext, MOS_GPUCTX_CREATOPTIONS *gpuCtxCreateOption)
 {
     switch (componentType)
     {
+#if !EMUL
     case scalabilityEncoder:
         return CreateEncodeScalability(params, hwInterface, mediaContext, gpuCtxCreateOption);
     case scalabilityDecoder:
         return CreateDecodeScalability(params, hwInterface, mediaContext, gpuCtxCreateOption);
+#endif
     case scalabilityVp:
         return CreateVpScalability(params, hwInterface, mediaContext, gpuCtxCreateOption);
     default:
         return nullptr;
     }
 }
-
+#if !EMUL
 template<typename T>
 MediaScalability *MediaScalabilityFactory<T>::CreateEncodeScalability(T params, void *hwInterface, MediaContext *mediaContext, MOS_GPUCTX_CREATOPTIONS *gpuCtxCreateOption)
 {
@@ -225,7 +229,7 @@ MediaScalability *MediaScalabilityFactory<T>::CreateDecodeScalability(T params, 
 
     return scalabilityHandle;
 }
-
+#endif
 template<typename T>
 MediaScalability *MediaScalabilityFactory<T>::CreateVpScalability(T params, void *hwInterface, MediaContext *mediaContext, MOS_GPUCTX_CREATOPTIONS *gpuCtxCreateOption)
 {

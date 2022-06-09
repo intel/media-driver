@@ -46,7 +46,7 @@ MediaScalabilitySinglePipeNext::MediaScalabilitySinglePipeNext(void *hwInterface
 MOS_STATUS MediaScalabilitySinglePipeNext::Initialize(const MediaScalabilityOption &option)
 {
     SCALABILITY_CHK_NULL_RETURN(m_osInterface);
-
+#if !EMUL
     if (MOS_VE_SUPPORTED(m_osInterface))
     {
         MOS_VIRTUALENGINE_INIT_PARAMS VEInitParams;
@@ -75,7 +75,7 @@ MOS_STATUS MediaScalabilitySinglePipeNext::Initialize(const MediaScalabilityOpti
             }
         }
     }
-
+#endif
     PMOS_GPUCTX_CREATOPTIONS_ENHANCED gpuCtxCreateOption = MOS_New(MOS_GPUCTX_CREATOPTIONS_ENHANCED);
     SCALABILITY_CHK_NULL_RETURN(gpuCtxCreateOption);
 
@@ -84,7 +84,7 @@ MOS_STATUS MediaScalabilitySinglePipeNext::Initialize(const MediaScalabilityOpti
     gpuCtxCreateOption->LRCACount = 1;
     // This setting is only for encode, please override it in decode/vpp
     gpuCtxCreateOption->UsingSFC = false;
-#if (_DEBUG || _RELEASE_INTERNAL)
+#if (_DEBUG || _RELEASE_INTERNAL) && !EMUL
     if (m_osInterface->bEnableDbgOvrdInVE)
     {
         gpuCtxCreateOption->DebugOverride = true;

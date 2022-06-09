@@ -114,10 +114,17 @@ MOS_STATUS MediaScalability::VerifySpaceAvailable(uint32_t requestedSize, uint32
                 m_osInterface,
                 requestedPatchListSize);
         }
-        statusCmdBuf = (MOS_STATUS)m_osInterface->pfnVerifyCommandBufferSize(
-            m_osInterface,
-            requestedSize,
-            0);
+        if (m_osInterface->pfnVerifyCommandBufferSize)
+        {
+            statusCmdBuf = (MOS_STATUS)m_osInterface->pfnVerifyCommandBufferSize(
+                m_osInterface,
+                requestedSize,
+                0);
+        }
+        else
+        {
+            statusCmdBuf = MOS_STATUS_SUCCESS;
+        }
 
         if (statusPatchList != MOS_STATUS_SUCCESS && statusCmdBuf != MOS_STATUS_SUCCESS)
         {

@@ -887,9 +887,8 @@ public:
                 uint32_t                 Reserved9                                        : __CODEGEN_BITFIELD( 9,  9)      ; //!< Reserved, 
                 uint32_t                 Reserved10                                       : __CODEGEN_BITFIELD(10, 14)    ; //!< Reserved, 
                 uint32_t                 PredicationEnable                                : __CODEGEN_BITFIELD(15, 15)    ; //!< Predication Enable, 
-                uint32_t                 Reserved16                                       : __CODEGEN_BITFIELD(16, 31)    ; //!< Reserved, 
+                uint32_t                 Reserved16                                       : __CODEGEN_BITFIELD(16, 21)    ; //!< Reserved,
                 uint32_t                 NestedLevelBatchBuffer                           : __CODEGEN_BITFIELD(22, 22)    ; //!< NESTED_LEVEL_BATCH_BUFFER, MI_MODE:NestedBatchBufferEnable=='1'
-                uint32_t                 Reserved23                                       : __CODEGEN_BITFIELD(23, 31)    ; //!< Reserved, MI_MODE:NestedBatchBufferEnable=='1'
                 uint32_t                 MiCommandOpcode                                  : __CODEGEN_BITFIELD(23, 28)    ; //!< MI_COMMAND_OPCODE, 
                 uint32_t                 CommandType                                      : __CODEGEN_BITFIELD(29, 31)    ; //!< COMMAND_TYPE, 
             } Obj3;

@@ -29,7 +29,9 @@
 #include "media_interfaces_vphal.h"
 #include "vp_platform_interface.h"
 #include "vphal_debug.h"
+#if !EMUL
 #include "media_interfaces_mhw_next.h"
+#endif
 
 VpPipelineAdapterBase::VpPipelineAdapterBase(
     vp::VpPlatformInterface &vpPlatformInterface,
@@ -97,7 +99,11 @@ MOS_STATUS VpPipelineAdapterBase::GetVpMhwInterface(
         {
             SetMhwVeboxItf(mhwInterfaces->m_veboxItf);
             SetMhwSfcItf(mhwInterfaces->m_sfcItf);
+#if EMUL
+            SetMhwMiItf(mhwInterfaces->m_miItf);
+#else
             SetMhwMiItf(m_vprenderHal->pRenderHalPltInterface->GetMhwMiItf());
+#endif
 
             // MhwInterfaces always create CP and MI interfaces, so we have to delete those we don't need.
             MOS_Delete(mhwInterfaces->m_miInterface);
