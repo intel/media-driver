@@ -1663,7 +1663,8 @@ MOS_STATUS VpVeboxCmdPacket::RenderVeboxCmd(
                 pCmdBufferInUse));
         }
 
-        HalOcaInterfaceNext::OnDispatch(*pCmdBufferInUse, *pOsContext, m_miItf, *pMmioRegisters);
+        pRenderHal->pRenderHalPltInterface->OnDispatch(pRenderHal, pCmdBufferInUse, pOsContext, pMmioRegisters);
+        //HalOcaInterfaceNext::OnDispatch(*pCmdBufferInUse, *pOsContext, m_miItf, *pMmioRegisters);
 
         //---------------------------------
         // Send CMD: Vebox_DI_IECP

@@ -144,7 +144,7 @@ public:
     virtual ~RenderCmdPacketNext();
     virtual MOS_STATUS Init();
     virtual MOS_STATUS Destroy();
-    virtual MOS_STATUS Submit(MOS_COMMAND_BUFFER* commandBuffer, uint8_t packetPhase = otherPacket);
+    //virtual MOS_STATUS Submit(MOS_COMMAND_BUFFER* commandBuffer, uint8_t packetPhase = otherPacket);
 
     // Currently only support HDC read/write, for sampler enabling will be in next step
     // Step1 : render engine set up
@@ -254,13 +254,6 @@ protected:
     }
 
     virtual void UpdateKernelConfigParam(RENDERHAL_KERNEL_PARAM &kernelParam);
-
-protected:
-    MOS_STATUS AddPipeControl(MOS_COMMAND_BUFFER* commandBuffer, PMHW_PIPE_CONTROL_PARAMS pipeControlParams);
-
-    MOS_STATUS MediaStateFlush(MOS_COMMAND_BUFFER* commandBuffer, MHW_MEDIA_STATE_FLUSH_PARAM *flushParam);
-
-    MOS_STATUS AddMiBatchBufferEnd(MOS_COMMAND_BUFFER* commandBuffer, PMHW_BATCH_BUFFER batchBuffer);
 
 protected:
     PRENDERHAL_INTERFACE        m_renderHal = nullptr;

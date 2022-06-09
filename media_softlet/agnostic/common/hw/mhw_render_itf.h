@@ -69,6 +69,16 @@ public:
 
     virtual PMHW_MI_MMIOREGISTERS GetMmioRegisters() = 0;
 
+    virtual MOS_STATUS AllocateHeaps(MHW_STATE_HEAP_SETTINGS stateHeapSettings) = 0;
+
+    virtual PMHW_STATE_HEAP_INTERFACE GetStateHeapInterface() = 0;
+
+    virtual bool IsPreemptionEnabled() =0;
+
+    virtual void GetSamplerResolutionAlignUnit(bool isAVSSampler, uint32_t &widthAlignUnit, uint32_t &heightAlignUnit) = 0;
+
+    virtual MHW_RENDER_ENGINE_CAPS* GetHwCaps() = 0;
+
     _RENDER_CMD_DEF(_MHW_CMD_ALL_DEF_FOR_ITF);
 MEDIA_CLASS_DEFINE_END(mhw__render__Itf)
 };

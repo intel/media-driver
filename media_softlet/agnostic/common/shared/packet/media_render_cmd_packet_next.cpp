@@ -104,169 +104,6 @@ MOS_STATUS RenderCmdPacketNext::Destroy()
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS RenderCmdPacketNext::Submit(MOS_COMMAND_BUFFER* commandBuffer, uint8_t packetPhase)
-{
-    PMOS_INTERFACE                      pOsInterface = nullptr;
-    MOS_STATUS                          eStatus = MOS_STATUS_SUCCESS;
-    uint32_t                            dwSyncTag = 0;
-    int32_t                             i = 0, iRemaining = 0;
-    PMHW_MI_INTERFACE                   pMhwMiInterface = nullptr;
-    MhwRenderInterface* pMhwRender = nullptr;
-    MHW_MEDIA_STATE_FLUSH_PARAM         FlushParam = {};
-    bool                                bEnableSLM = false;
-    RENDERHAL_GENERIC_PROLOG_PARAMS     GenericPrologParams = {};
-    MOS_RESOURCE                        GpuStatusBuffer = {};
-    MediaPerfProfiler* pPerfProfiler = nullptr;
-    MOS_CONTEXT* pOsContext = nullptr;
-    PMHW_MI_MMIOREGISTERS               pMmioRegisters = nullptr;
-
-    RENDER_PACKET_CHK_NULL_RETURN(m_renderHal);
-    RENDER_PACKET_CHK_NULL_RETURN(m_renderHal->pMhwRenderInterface);
-    RENDER_PACKET_CHK_NULL_RETURN(m_renderHal->pMhwMiInterface);
-    RENDER_PACKET_CHK_NULL_RETURN(m_renderHal->pMhwRenderInterface->GetMmioRegisters());
-    RENDER_PACKET_CHK_NULL_RETURN(m_renderHal->pOsInterface);
-    RENDER_PACKET_CHK_NULL_RETURN(m_renderHal->pOsInterface->pOsContext);
-    RENDER_PACKET_CHK_NULL_RETURN(commandBuffer);
-
-    eStatus = MOS_STATUS_UNKNOWN;
-    pOsInterface = m_renderHal->pOsInterface;
-    pMhwMiInterface = m_renderHal->pMhwMiInterface;
-    pMhwRender = m_renderHal->pMhwRenderInterface;
-    iRemaining = 0;
-    FlushParam = g_cRenderHal_InitMediaStateFlushParams;
-    pPerfProfiler = m_renderHal->pPerfProfiler;
-    pOsContext = pOsInterface->pOsContext;
-    pMmioRegisters = pMhwRender->GetMmioRegisters();
-
-    RENDER_PACKET_CHK_STATUS_RETURN(SetPowerMode(0));
-
-    HalOcaInterfaceNext::On1stLevelBBStart(*commandBuffer, *pOsContext, pOsInterface->CurrentGpuContextHandle,
-        m_miItf, *pMmioRegisters);
-    OcaDumpDbgInfo(*commandBuffer, *pOsContext);
-
-    RENDER_PACKET_CHK_STATUS_RETURN(SetMediaFrameTracking(GenericPrologParams));
-    // Initialize command buffer and insert prolog
-    RENDER_PACKET_CHK_STATUS_RETURN(m_renderHal->pfnInitCommandBuffer(m_renderHal, commandBuffer, &GenericPrologParams));
-
-    RENDER_PACKET_CHK_STATUS_RETURN(pPerfProfiler->AddPerfCollectStartCmd((void*)m_renderHal, pOsInterface, pMhwMiInterface, commandBuffer));
-
-    RENDER_PACKET_CHK_STATUS_RETURN(NullHW::StartPredicateNext(m_miItf, commandBuffer));
-
-    // Write timing data for 3P budget
-    RENDER_PACKET_CHK_STATUS_RETURN(m_renderHal->pfnSendTimingData(m_renderHal, commandBuffer, true));
-
-    bEnableSLM = false;  // Media walker first
-    RENDER_PACKET_CHK_STATUS_RETURN(m_renderHal->pfnSetCacheOverrideParams(
-        m_renderHal,
-        &m_renderHal->L3CacheSettings,
-        bEnableSLM));
-
-    if (m_renderHal->bCmfcCoeffUpdate)
-    {
-        RENDER_PACKET_CHK_STATUS_RETURN(m_renderHal->pfnSendCscCoeffSurface(m_renderHal,
-            commandBuffer,
-            m_renderHal->pCmfcCoeffSurface,
-            m_renderHal->pStateHeap->pKernelAllocation[m_renderHal->iKernelAllocationID].pKernelEntry));
-    }
-
-    // Flush media states
-    RENDER_PACKET_CHK_STATUS_RETURN(m_renderHal->pfnSendMediaStates(
-        m_renderHal,
-        commandBuffer,
-        (m_walkerType == WALKER_TYPE_MEDIA) ? &m_mediaWalkerParams : nullptr,
-        &m_gpgpuWalkerParams));
-
-    // Write back GPU Status tag
-    if (!pOsInterface->bEnableKmdMediaFrameTracking)
-    {
-        RENDER_PACKET_CHK_STATUS_RETURN(m_renderHal->pfnSendRcsStatusTag(m_renderHal, commandBuffer));
-    }
-
-    RENDER_PACKET_CHK_STATUS_RETURN(NullHW::StopPredicateNext(m_miItf, commandBuffer));
-
-    RENDER_PACKET_CHK_STATUS_RETURN(pPerfProfiler->AddPerfCollectEndCmd((void*)m_renderHal, pOsInterface, pMhwMiInterface, commandBuffer));
-
-    // Write timing data for 3P budget
-    RENDER_PACKET_CHK_STATUS_RETURN(m_renderHal->pfnSendTimingData(m_renderHal, commandBuffer, false));
-
-    MHW_PIPE_CONTROL_PARAMS PipeControlParams;
-
-    MOS_ZeroMemory(&PipeControlParams, sizeof(PipeControlParams));
-    PipeControlParams.dwFlushMode = MHW_FLUSH_WRITE_CACHE;
-    PipeControlParams.bGenericMediaStateClear = true;
-    PipeControlParams.bIndirectStatePointersDisable = true;
-    PipeControlParams.bDisableCSStall = false;
-
-    RENDER_PACKET_CHK_STATUS_RETURN(AddPipeControl(commandBuffer, &PipeControlParams));
-
-    if (MEDIA_IS_WA(m_renderHal->pWaTable, WaSendDummyVFEafterPipelineSelect))
-    {
-        MHW_VFE_PARAMS VfeStateParams = {};
-        VfeStateParams.dwNumberofURBEntries = 1;
-        RENDER_PACKET_CHK_STATUS_RETURN(pMhwRender->AddMediaVfeCmd(commandBuffer, &VfeStateParams));
-    }
-
-    // Add media flush command in case HW not cleaning the media state
-    if (MEDIA_IS_WA(m_renderHal->pWaTable, WaMSFWithNoWatermarkTSGHang))
-    {
-        FlushParam.bFlushToGo = true;
-        if (m_walkerType == WALKER_TYPE_MEDIA)
-        {
-            FlushParam.ui8InterfaceDescriptorOffset = m_mediaWalkerParams.InterfaceDescriptorOffset;
-        }
-        else
-        {
-            RENDER_PACKET_ASSERTMESSAGE("ERROR, pWalkerParams is nullptr and cannot get InterfaceDescriptorOffset.");
-        }
-
-        MediaStateFlush(commandBuffer, &FlushParam);
-    }
-    else if (MEDIA_IS_WA(m_renderHal->pWaTable, WaAddMediaStateFlushCmd))
-    {
-        MediaStateFlush(commandBuffer, &FlushParam);
-    }
-
-    HalOcaInterface::On1stLevelBBEnd(*commandBuffer, *pOsInterface);
-
-    if (pBatchBuffer)
-    {
-        // Send Batch Buffer end command (HW/OS dependent)
-        AddMiBatchBufferEnd(commandBuffer, nullptr);
-    }
-    else if (IsMiBBEndNeeded(pOsInterface))
-    {
-        // Send Batch Buffer end command for 1st level Batch Buffer
-        AddMiBatchBufferEnd(commandBuffer, nullptr);
-    }
-    else if (m_renderHal->pOsInterface->bNoParsingAssistanceInKmd)
-    {
-        AddMiBatchBufferEnd(commandBuffer, nullptr);
-    }
-
-    // No need return command buffer here, which will be done in CmdTask::Submit.
-
-    MOS_NULL_RENDERING_FLAGS  NullRenderingFlags;
-
-    NullRenderingFlags =
-        pOsInterface->pfnGetNullHWRenderFlags(pOsInterface);
-
-    if ((NullRenderingFlags.VPLgca ||
-        NullRenderingFlags.VPGobal) == false)
-    {
-        dwSyncTag = m_renderHal->pStateHeap->dwNextTag++;
-
-        // Set media state and batch buffer as busy
-        m_renderHal->pStateHeap->pCurMediaState->bBusy = true;
-        if (pBatchBuffer)
-        {
-            pBatchBuffer->bBusy = true;
-            pBatchBuffer->dwSyncTag = dwSyncTag;
-        }
-    }
-
-    return MOS_STATUS_SUCCESS;
-}
-
 MOS_STATUS RenderCmdPacketNext::RenderEngineSetup()
 {
     // pls make sure the context already switched to render/compute engine before submit
@@ -299,6 +136,7 @@ MOS_STATUS RenderCmdPacketNext::RenderEngineSetup()
 
     return MOS_STATUS_SUCCESS;
 }
+
 
 MOS_STATUS RenderCmdPacketNext::InitKernelEntry()
 {
@@ -1016,6 +854,7 @@ MOS_STATUS RenderCmdPacketNext::InitRenderHalBuffer(MOS_BUFFER surface, PRENDERH
     return MOS_STATUS_SUCCESS;
 }
 
+#if 0
 MOS_STATUS RenderCmdPacketNext::AddPipeControl(MOS_COMMAND_BUFFER* commandBuffer, PMHW_PIPE_CONTROL_PARAMS pipeControlParams)
 {
     RENDER_PACKET_CHK_NULL_RETURN(pipeControlParams);
@@ -1054,3 +893,4 @@ MOS_STATUS RenderCmdPacketNext::AddMiBatchBufferEnd(MOS_COMMAND_BUFFER *commandB
 
     return MOS_STATUS_SUCCESS;
 }
+#endif

@@ -39,13 +39,6 @@ public:
     //virtual MOS_STATUS Destroy();
     virtual MOS_STATUS Submit(MOS_COMMAND_BUFFER* commandBuffer, uint8_t packetPhase = otherPacket);
 
-protected:
-    MOS_STATUS AddPipeControl(PMHW_MI_INTERFACE mhwMiInterface, MOS_COMMAND_BUFFER* commandBuffer, PMHW_PIPE_CONTROL_PARAMS pipeControlParams);
-
-    MOS_STATUS MediaStateFlush(PMHW_MI_INTERFACE mhwMiInterface, MOS_COMMAND_BUFFER* commandBuffer, MHW_MEDIA_STATE_FLUSH_PARAM *flushParam);
-
-    MOS_STATUS AddMiBatchBufferEnd(PMHW_MI_INTERFACE mhwMiInterface, PMOS_COMMAND_BUFFER commandBuffer, PMHW_BATCH_BUFFER batchBuffer);
-
 MEDIA_CLASS_DEFINE_END(RenderCmdPacket)
 };
 

@@ -75,11 +75,46 @@ protected:
     bool        m_preemptionEnabled = false;
     uint32_t    m_preemptionCntlRegisterOffset = 0;
     uint32_t    m_preemptionCntlRegisterValue = 0;
+    MHW_STATE_HEAP_INTERFACE *m_stateHeapInterface = nullptr;
+    MHW_RENDER_ENGINE_CAPS    m_hwCaps             = {};
+    uint8_t                   m_heapMode           = MHW_RENDER_HAL_MODE;
 
     Impl(PMOS_INTERFACE osItf) : mhw::Impl(osItf)
     {
         MHW_FUNCTION_ENTER;
+
+        if (!osItf->bUsesGfxAddress && !osItf->bUsesPatchList)
+        {
+            MHW_ASSERTMESSAGE("No valid addressing mode indicated");
+            return;
+        }
+
+        m_stateHeapInterface = nullptr;
+
+        MEDIA_SYSTEM_INFO *gtSystemInfo     = osItf->pfnGetGtSystemInfo(osItf);
+
+        InitPlatformCaps(gtSystemInfo);
+
         InitPreemption();
+
+        if (Mhw_StateHeapInterface_InitInterface(
+                &m_stateHeapInterface,
+                osItf,
+                m_heapMode) != MOS_STATUS_SUCCESS)
+        {
+            MHW_ASSERTMESSAGE("State heap initialization failed!");
+            return;
+        }
+    }
+
+    ~Impl()
+    {
+        MHW_FUNCTION_ENTER;
+
+        if (m_stateHeapInterface)
+        {
+            m_stateHeapInterface->pfnDestroy(m_stateHeapInterface);
+        }
     }
 
     void inline InitMocsParams(
@@ -95,6 +130,73 @@ protected:
     }
 
 public:
+
+    //!
+    //! \brief    Allocates the MHW render interface internal parameters
+    //! \details  Internal MHW function to allocate all parameters needed for the
+    //!           render interface including the state heap interface
+    //! \param    MHW_STATE_HEAP_SETTINGS stateHeapSettings
+    //!           [in] Setting used to initialize the state heap interface
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS AllocateHeaps(
+        MHW_STATE_HEAP_SETTINGS         stateHeapSettings)
+    {
+        MOS_STATUS                      eStatus = MOS_STATUS_SUCCESS;
+        MHW_STATE_HEAP_INTERFACE        *stateHeapInterface = nullptr;
+
+        MHW_FUNCTION_ENTER;
+
+        if ((stateHeapSettings.dwIshSize > 0 ||
+            stateHeapSettings.dwDshSize > 0 ) &&
+            stateHeapSettings.dwNumSyncTags > 0)
+        {
+            MHW_MI_CHK_STATUS(m_stateHeapInterface->pfnCreate(
+                &m_stateHeapInterface,
+                stateHeapSettings));
+        }
+
+        return eStatus;
+    }
+
+    PMHW_STATE_HEAP_INTERFACE GetStateHeapInterface()
+    {
+        MHW_FUNCTION_ENTER;
+
+        return m_stateHeapInterface;
+    }
+
+    void InitPlatformCaps(
+        MEDIA_SYSTEM_INFO         *gtSystemInfo)
+    {
+        if (gtSystemInfo == nullptr)
+        {
+            MHW_ASSERTMESSAGE("Invalid input pointer provided");
+            return;
+        }
+
+        MOS_ZeroMemory(&m_hwCaps, sizeof(MHW_RENDER_ENGINE_CAPS));
+
+        m_hwCaps.dwMaxUnormSamplers       = MHW_RENDER_ENGINE_SAMPLERS_MAX;
+        m_hwCaps.dwMaxAVSSamplers         = MHW_RENDER_ENGINE_SAMPLERS_AVS_MAX;
+        m_hwCaps.dwMaxBTIndex             = MHW_RENDER_ENGINE_SSH_SURFACES_PER_BT_MAX - 1;
+        m_hwCaps.dwMaxThreads             = gtSystemInfo->ThreadCount;
+        m_hwCaps.dwMaxMediaPayloadSize    = MHW_RENDER_ENGINE_MEDIA_PALOAD_SIZE_MAX;
+        m_hwCaps.dwMaxURBSize             = MHW_RENDER_ENGINE_URB_SIZE_MAX;
+        m_hwCaps.dwMaxURBEntries          = MHW_RENDER_ENGINE_URB_ENTRIES_MAX;
+        m_hwCaps.dwMaxSubslice            = gtSystemInfo->MaxSubSlicesSupported;
+        m_hwCaps.dwMaxEUIndex             = MHW_RENDER_ENGINE_EU_INDEX_MAX;
+        m_hwCaps.dwNumThreadsPerEU        = (gtSystemInfo->EUCount > 0) ?
+            gtSystemInfo->ThreadCount / gtSystemInfo->EUCount : 0;
+        m_hwCaps.dwSizeRegistersPerThread = MHW_RENDER_ENGINE_SIZE_REGISTERS_PER_THREAD;
+
+        m_hwCaps.dwMaxInterfaceDescriptorEntries  = MHW_RENDER_ENGINE_INTERFACE_DESCRIPTOR_ENTRIES_MAX;
+        m_hwCaps.dwMaxURBEntryAllocationSize      =
+            m_hwCaps.dwMaxCURBEAllocationSize     =
+            m_hwCaps.dwMaxURBSize - m_hwCaps.dwMaxInterfaceDescriptorEntries;
+    }
+
     void InitPreemption()
     {
         auto skuTable = this->m_osItf->pfnGetSkuTable(this->m_osItf);
@@ -170,6 +272,24 @@ public:
         }
 
         return eStatus;
+    }
+
+    bool IsPreemptionEnabled()
+    {
+        return m_preemptionEnabled;
+    }
+
+    void GetSamplerResolutionAlignUnit(bool isAVSSampler, uint32_t &widthAlignUnit, uint32_t &heightAlignUnit)
+    {
+        // enable 2 plane NV12 when width is not multiple of 2 or height is
+        // not multiple of 4. For AVS sampler, no limitation for 4 alignment.
+        widthAlignUnit  = isAVSSampler ? MHW_AVS_SAMPLER_WIDTH_ALIGN_UNIT : MHW_SAMPLER_WIDTH_ALIGN_UNIT_G12;
+        heightAlignUnit = isAVSSampler ? MHW_AVS_SAMPLER_HEIGHT_ALIGN_UNIT : MHW_SAMPLER_HEIGHT_ALIGN_UNIT_G12;
+    }
+
+    MHW_RENDER_ENGINE_CAPS* GetHwCaps()
+    {
+        return &m_hwCaps;
     }
 
     _MHW_SETCMD_OVERRIDE_DECL(PIPELINE_SELECT)

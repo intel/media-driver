@@ -1204,7 +1204,6 @@ MOS_STATUS RenderHal_AllocateStateHeaps(
     //---------------------------------------
     MHW_RENDERHAL_CHK_NULL(pRenderHal);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pOsInterface);
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwRenderInterface);
     MHW_RENDERHAL_CHK_NULL(pSettings);
     // verify GSH parameters and alignments
     MHW_RENDERHAL_ASSERT((pSettings->iSyncSize        % RENDERHAL_SYNC_BLOCK_ALIGN)   == 0);
@@ -1469,8 +1468,8 @@ MOS_STATUS RenderHal_AllocateStateHeaps(
     MhwStateHeapSettings.dwIshSize     = pStateHeap->dwSizeISH;
     MhwStateHeapSettings.dwNumSyncTags = pStateHeap->dwSizeSync;
 
-    MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwRenderInterface->AllocateHeaps(MhwStateHeapSettings));
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwRenderInterface->m_stateHeapInterface);
+    MHW_RENDERHAL_CHK_STATUS(pRenderHal->pRenderHalPltInterface->AllocateHeaps(pRenderHal, MhwStateHeapSettings));
+    MHW_RENDERHAL_CHK_NULL(pRenderHal->pRenderHalPltInterface->GetStateHeapInterface(pRenderHal));
 
     pDshHeap = pRenderHal->pMhwStateHeap->GetDSHPointer();
     MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwStateHeap->LockStateHeap(pDshHeap));
@@ -4222,18 +4221,7 @@ MOS_STATUS RenderHal_Destroy(PRENDERHAL_INTERFACE pRenderHal)
     }
 
     // Destroy MHW Render Interface
-    if (pRenderHal->pMhwRenderInterface)
-    {
-        MOS_Delete(pRenderHal->pMhwRenderInterface);
-        pRenderHal->pMhwRenderInterface = nullptr;
-    }
-
-    // Destroy MHW MI Interface
-    if (pRenderHal->pMhwMiInterface)
-    {
-        MOS_Delete(pRenderHal->pMhwMiInterface);
-        pRenderHal->pMhwMiInterface = nullptr;
-    }
+    pRenderHal->pRenderHalPltInterface->DestoryMhwInterface(pRenderHal);
 
     // Release pBatchBufferMemPool
     if (pRenderHal->pBatchBufferMemPool)
@@ -4358,7 +4346,6 @@ MOS_STATUS RenderHal_SendCurbeLoad(
     MHW_RENDERHAL_CHK_NULL(pRenderHal);
     MHW_RENDERHAL_CHK_NULL(pCmdBuffer);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pStateHeap);
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwRenderInterface);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pStateHeap->pCurMediaState);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pOsInterface);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pOsInterface->pOsContext);
@@ -4377,7 +4364,7 @@ MOS_STATUS RenderHal_SendCurbeLoad(
         CurbeLoadParams.dwCURBETotalDataLength  = pStateHeap->pCurMediaState->iCurbeOffset;
         CurbeLoadParams.dwCURBEDataStartAddress = pStateHeap->pCurMediaState->dwOffset + pStateHeap->dwOffsetCurbe;
 
-        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwRenderInterface->AddMediaCurbeLoadCmd(pCmdBuffer, &CurbeLoadParams));
+        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pRenderHalPltInterface->AddMediaCurbeLoadCmd(pRenderHal, pCmdBuffer, &CurbeLoadParams));
 
         HalOcaInterface::OnIndirectState(*pCmdBuffer, *pOsContext,pRenderHal->StateBaseAddressParams.presDynamicState,
             CurbeLoadParams.dwCURBEDataStartAddress, false, CurbeLoadParams.dwCURBETotalDataLength);
@@ -4403,7 +4390,6 @@ MOS_STATUS RenderHal_SendMediaIdLoad(
     MHW_RENDERHAL_CHK_NULL(pCmdBuffer);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pStateHeap);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pStateHeap->pCurMediaState);
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwRenderInterface);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pOsInterface);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pOsInterface->pOsContext);
     //-----------------------------------------
@@ -4417,7 +4403,7 @@ MOS_STATUS RenderHal_SendMediaIdLoad(
     IdLoadParams.dwInterfaceDescriptorStartOffset = pStateHeap->pCurMediaState->dwOffset +  pStateHeap->dwOffsetMediaID;
     IdLoadParams.dwInterfaceDescriptorLength      = pRenderHal->StateHeapSettings.iMediaIDs * pStateHeap->dwSizeMediaID;
 
-    MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwRenderInterface->AddMediaIDLoadCmd(pCmdBuffer, &IdLoadParams));
+    MHW_RENDERHAL_CHK_STATUS(pRenderHal->pRenderHalPltInterface->AddMediaIDLoadCmd(pRenderHal, pCmdBuffer, &IdLoadParams));
 
     HalOcaInterface::OnIndirectState(*pCmdBuffer, *pOsContext, pRenderHal->StateBaseAddressParams.presDynamicState,
         IdLoadParams.dwInterfaceDescriptorStartOffset, false, IdLoadParams.dwInterfaceDescriptorLength);
@@ -4439,7 +4425,6 @@ MOS_STATUS RenderHal_SendChromaKey(
     PRENDERHAL_INTERFACE    pRenderHal,
     PMOS_COMMAND_BUFFER     pCmdBuffer)
 {
-    MhwRenderInterface           *pMhwRender;
     PMHW_CHROMAKEY_PARAMS        pChromaKeyParams;
     int32_t                      i;
     MOS_STATUS                   eStatus;
@@ -4447,17 +4432,15 @@ MOS_STATUS RenderHal_SendChromaKey(
     //----------------------------------
     MHW_RENDERHAL_CHK_NULL(pRenderHal);
     MHW_RENDERHAL_CHK_NULL(pCmdBuffer);
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwRenderInterface);
     //----------------------------------
 
     eStatus     = MOS_STATUS_SUCCESS;
-    pMhwRender  = pRenderHal->pMhwRenderInterface;
 
     // Send Chroma Keys in use
     pChromaKeyParams = pRenderHal->ChromaKey;
     for (i = pRenderHal->iChromaKeyCount; i > 0; i--, pChromaKeyParams++)
     {
-        MHW_RENDERHAL_CHK_STATUS(pMhwRender->AddChromaKeyCmd(pCmdBuffer, pChromaKeyParams));
+        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pRenderHalPltInterface->SendChromaKey(pRenderHal, pCmdBuffer, pChromaKeyParams));
     }
 
 finish:
@@ -4477,7 +4460,6 @@ MOS_STATUS RenderHal_SendPalette(
     PRENDERHAL_INTERFACE    pRenderHal,
     PMOS_COMMAND_BUFFER     pCmdBuffer)
 {
-    MhwRenderInterface           *pMhwRender;
     PMHW_PALETTE_PARAMS          pPaletteLoadParams;
     int32_t                      i;
     MOS_STATUS                   eStatus;
@@ -4485,11 +4467,9 @@ MOS_STATUS RenderHal_SendPalette(
     //-----------------------------------------
     MHW_RENDERHAL_CHK_NULL(pRenderHal);
     MHW_RENDERHAL_CHK_NULL(pCmdBuffer);
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwRenderInterface);
     //-----------------------------------------
 
     eStatus     = MOS_STATUS_SUCCESS;
-    pMhwRender  = pRenderHal->pMhwRenderInterface;
 
     // Send Palettes in use
     pPaletteLoadParams = pRenderHal->Palette;
@@ -4497,7 +4477,7 @@ MOS_STATUS RenderHal_SendPalette(
     {
         if (pPaletteLoadParams->iNumEntries > 0)
         {
-            MHW_RENDERHAL_CHK_STATUS(pMhwRender->AddPaletteLoadCmd(pCmdBuffer, pPaletteLoadParams));
+            MHW_RENDERHAL_CHK_STATUS(pRenderHal->pRenderHalPltInterface->SendPalette(pRenderHal, pCmdBuffer, pPaletteLoadParams));
         }
     }
 
@@ -4588,285 +4568,6 @@ finish:
 }
 
 //!
-//! \brief    Adds predication attributes in command buffer
-//! \param    PRENDERHAL_INTERFACE pRenderHal
-//!           [in] Pointer to RenderHal Interface Structure
-//! \param    PMOS_COMMAND_BUFFER pcmdBuffer
-//!           [in] Pointer to Command Buffer 
-//! \return   MOS_STATUS
-//!
-MOS_STATUS RenderHal_SendPredicationCommand(
-    PRENDERHAL_INTERFACE        pRenderHal,
-    PMOS_COMMAND_BUFFER         pCmdBuffer)
-{
-    MOS_STATUS  eStatus = MOS_STATUS_SUCCESS;
-
-    //-----------------------------------------
-    MHW_RENDERHAL_CHK_NULL(pRenderHal);
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pOsInterface);
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwMiInterface);
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwMiInterface->GetMmioRegisters());
-    //-----------------------------------------
-
-    MHW_MI_CONDITIONAL_BATCH_BUFFER_END_PARAMS  condBBEndParams;
-    MOS_ZeroMemory(&condBBEndParams, sizeof(condBBEndParams));
-
-    MOS_SYNC_PARAMS syncParams;
-    MOS_ZeroMemory(&syncParams, sizeof(syncParams));
-    syncParams.uiSemaphoreCount         = 1;
-    // Currently only sync between VEBOX and 3D, also need to consider sync between Render Engine and 3D
-    // low priority since current VP Predication test case does not cover this scenario.
-    syncParams.GpuContext               = MOS_GPU_CONTEXT_VEBOX;
-    syncParams.presSyncResource         = pRenderHal->PredicationParams.pPredicationResource;
-    syncParams.bReadOnly                = true;
-    syncParams.bDisableDecodeSyncLock   = false;
-    syncParams.bDisableLockForTranscode = false;
-
-    MHW_RENDERHAL_CHK_STATUS(pRenderHal->pOsInterface->pfnPerformOverlaySync(pRenderHal->pOsInterface, &syncParams));
-    MHW_RENDERHAL_CHK_STATUS(pRenderHal->pOsInterface->pfnResourceWait(pRenderHal->pOsInterface, &syncParams));
-
-    // This function is only support VEBox right now, since register returned by pMhwMiInterface->GetMmioRegisters() is for VEBox.
-    // Keep implementation same between Render and VEBox engines - for Render it is highly inefficient
-    // Skip current frame if presPredication is not equal to zero
-    if (pRenderHal->PredicationParams.predicationNotEqualZero)
-    {
-        auto mmioRegistersRender = pRenderHal->pMhwMiInterface->GetMmioRegisters();
-        MHW_MI_FLUSH_DW_PARAMS  flushDwParams;
-        MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
-        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddMiFlushDwCmd(pCmdBuffer, &flushDwParams));
-
-        // load presPredication to general purpose register0
-        MHW_MI_STORE_REGISTER_MEM_PARAMS    loadRegisterMemParams;
-        MOS_ZeroMemory(&loadRegisterMemParams, sizeof(loadRegisterMemParams));
-        loadRegisterMemParams.presStoreBuffer   = pRenderHal->PredicationParams.pPredicationResource;
-        loadRegisterMemParams.dwOffset          = (uint32_t)pRenderHal->PredicationParams.predicationResOffset;
-        loadRegisterMemParams.dwRegister        = mmioRegistersRender->generalPurposeRegister0LoOffset;
-        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddMiLoadRegisterMemCmd(
-            pCmdBuffer,
-            &loadRegisterMemParams));
-
-        MHW_MI_LOAD_REGISTER_IMM_PARAMS     loadRegisterImmParams;
-        MOS_ZeroMemory(&loadRegisterImmParams, sizeof(loadRegisterImmParams));
-        loadRegisterImmParams.dwData            = 0;
-        loadRegisterImmParams.dwRegister        = mmioRegistersRender->generalPurposeRegister0HiOffset;
-        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddMiLoadRegisterImmCmd(
-            pCmdBuffer,
-            &loadRegisterImmParams));
-
-        // load 0 to general purpose register4
-        MOS_ZeroMemory(&loadRegisterImmParams, sizeof(loadRegisterImmParams));
-        loadRegisterImmParams.dwData            = 0;
-        loadRegisterImmParams.dwRegister        = mmioRegistersRender->generalPurposeRegister4LoOffset;
-        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddMiLoadRegisterImmCmd(
-            pCmdBuffer,
-            &loadRegisterImmParams));
-
-        MOS_ZeroMemory(&loadRegisterImmParams, sizeof(loadRegisterImmParams));
-        loadRegisterImmParams.dwData            = 0;
-        loadRegisterImmParams.dwRegister        = mmioRegistersRender->generalPurposeRegister4HiOffset;
-        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddMiLoadRegisterImmCmd(
-            pCmdBuffer,
-            &loadRegisterImmParams));
-
-        //perform the add operation
-        MHW_MI_MATH_PARAMS  miMathParams;
-        MHW_MI_ALU_PARAMS   miAluParams[4];
-        MOS_ZeroMemory(&miMathParams, sizeof(miMathParams));
-        MOS_ZeroMemory(&miAluParams, sizeof(miAluParams));
-        // load     srcA, reg0
-        miAluParams[0].AluOpcode    = MHW_MI_ALU_LOAD;
-        miAluParams[0].Operand1     = MHW_MI_ALU_SRCA;
-        miAluParams[0].Operand2     = MHW_MI_ALU_GPREG0;
-        // load     srcB, reg4
-        miAluParams[1].AluOpcode    = MHW_MI_ALU_LOAD;
-        miAluParams[1].Operand1     = MHW_MI_ALU_SRCB;
-        miAluParams[1].Operand2     = MHW_MI_ALU_GPREG4;
-        // add      srcA, srcB
-        miAluParams[2].AluOpcode    = MHW_MI_ALU_ADD;
-        miAluParams[2].Operand1     = MHW_MI_ALU_SRCB;
-        miAluParams[2].Operand2     = MHW_MI_ALU_GPREG4;
-        // store      reg0, ZF
-        miAluParams[3].AluOpcode    = MHW_MI_ALU_STORE;
-        miAluParams[3].Operand1     = MHW_MI_ALU_GPREG0;
-        miAluParams[3].Operand2     = MHW_MI_ALU_ZF;
-        miMathParams.pAluPayload    = miAluParams;
-        miMathParams.dwNumAluParams = 4; // four ALU commands needed for this substract opertaion. see following ALU commands.
-        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddMiMathCmd(
-            pCmdBuffer,
-            &miMathParams));
-
-        // if zero, the zero flag will be 0xFFFFFFFF, else zero flag will be 0x0.
-        MHW_MI_STORE_REGISTER_MEM_PARAMS    storeRegParams;
-        MOS_ZeroMemory(&storeRegParams, sizeof(storeRegParams));
-        storeRegParams.presStoreBuffer  = &pRenderHal->PredicationBuffer;
-        storeRegParams.dwOffset         = 0x10;
-        storeRegParams.dwRegister       = mmioRegistersRender->generalPurposeRegister0LoOffset;
-        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddMiStoreRegisterMemCmd(
-            pCmdBuffer,
-            &storeRegParams));
-
-        // Programming of 4 dummy MI_STORE_DATA_IMM commands prior to programming of MiConditionalBatchBufferEnd
-        MHW_MI_STORE_DATA_PARAMS dataParams;
-        MOS_ZeroMemory(&dataParams, sizeof(dataParams));
-        dataParams.pOsResource = &pRenderHal->PredicationBuffer;
-        dataParams.dwValue = 1;
-        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddMiStoreDataImmCmd(
-            pCmdBuffer,
-            &dataParams));
-
-        dataParams.dwValue = 2;
-        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddMiStoreDataImmCmd(
-            pCmdBuffer,
-            &dataParams));
-
-        dataParams.dwValue = 3;
-        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddMiStoreDataImmCmd(
-            pCmdBuffer,
-            &dataParams));
-
-        dataParams.dwValue = 4;
-        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddMiStoreDataImmCmd(
-            pCmdBuffer,
-            &dataParams));
-
-        MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
-        flushDwParams.postSyncOperation = 1;
-        flushDwParams.pOsResource = &pRenderHal->PredicationBuffer;
-        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddMiFlushDwCmd(pCmdBuffer, &flushDwParams));
-
-        condBBEndParams.presSemaphoreBuffer = &pRenderHal->PredicationBuffer;
-        condBBEndParams.dwOffset            = 0x10;
-        condBBEndParams.dwValue             = 0;
-        condBBEndParams.bDisableCompareMask = true;
-        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddMiConditionalBatchBufferEndCmd(
-            pCmdBuffer,
-            &condBBEndParams));
-
-        pRenderHal->PredicationParams.ptempPredicationBuffer = &pRenderHal->PredicationBuffer;
-    }
-    else
-    {
-        auto mmioRegistersRender = pRenderHal->pMhwMiInterface->GetMmioRegisters();
-
-        MHW_MI_FLUSH_DW_PARAMS  flushDwParams;
-        MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
-        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddMiFlushDwCmd(pCmdBuffer, &flushDwParams));
-
-        // load presPredication to general purpose register0
-        MHW_MI_STORE_REGISTER_MEM_PARAMS    loadRegisterMemParams;
-        MOS_ZeroMemory(&loadRegisterMemParams, sizeof(loadRegisterMemParams));
-        loadRegisterMemParams.presStoreBuffer = pRenderHal->PredicationParams.pPredicationResource;
-        loadRegisterMemParams.dwOffset        = (uint32_t)pRenderHal->PredicationParams.predicationResOffset;
-        loadRegisterMemParams.dwRegister      = mmioRegistersRender->generalPurposeRegister0LoOffset;
-        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddMiLoadRegisterMemCmd(
-            pCmdBuffer,
-            &loadRegisterMemParams));
-
-        // if zero, the zero flag will be 0xFFFFFFFF, else zero flag will be 0x0.
-        MHW_MI_STORE_REGISTER_MEM_PARAMS    storeRegParams;
-        MOS_ZeroMemory(&storeRegParams, sizeof(storeRegParams));
-        storeRegParams.presStoreBuffer = &pRenderHal->PredicationBuffer;
-        storeRegParams.dwOffset        = 0x10;
-        storeRegParams.dwRegister      = mmioRegistersRender->generalPurposeRegister0LoOffset;
-        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddMiStoreRegisterMemCmd(
-            pCmdBuffer,
-            &storeRegParams));
-
-        // Programming of 4 dummy MI_STORE_DATA_IMM commands prior to programming of MiConditionalBatchBufferEnd
-        MHW_MI_STORE_DATA_PARAMS dataParams;
-        MOS_ZeroMemory(&dataParams, sizeof(dataParams));
-        dataParams.pOsResource = &pRenderHal->PredicationBuffer;
-        dataParams.dwValue     = 1;
-        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddMiStoreDataImmCmd(
-            pCmdBuffer,
-            &dataParams));
-
-        dataParams.dwValue = 2;
-        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddMiStoreDataImmCmd(
-            pCmdBuffer,
-            &dataParams));
-
-        dataParams.dwValue = 3;
-        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddMiStoreDataImmCmd(
-            pCmdBuffer,
-            &dataParams));
-
-        dataParams.dwValue = 4;
-        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddMiStoreDataImmCmd(
-            pCmdBuffer,
-            &dataParams));
-
-        MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
-        flushDwParams.postSyncOperation = 1;
-        flushDwParams.pOsResource       = &pRenderHal->PredicationBuffer;
-        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddMiFlushDwCmd(pCmdBuffer, &flushDwParams));
-
-        // Skip current frame if presPredication is equal to zero
-        condBBEndParams.presSemaphoreBuffer = &pRenderHal->PredicationBuffer;
-        condBBEndParams.dwOffset            = 0x10;
-        condBBEndParams.bDisableCompareMask = true;
-        condBBEndParams.dwValue             = 0;
-        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddMiConditionalBatchBufferEndCmd(
-            pCmdBuffer,
-            &condBBEndParams));
-    }
-
-finish:
-    return eStatus;
-}
-
-//!
-//! \brief    Adds marker attributes in command buffer
-//! \param    PRENDERHAL_INTERFACE pRenderHal
-//!           [in] Pointer to RenderHal Interface Structure
-//! \param    PMOS_COMMAND_BUFFER pcmdBuffer
-//!           [in] Pointer to Command Buffer
-//! \param    bool isRender
-//!           [in] Flag of Render Engine
-//! \return   MOS_STATUS 
-//!
-MOS_STATUS RenderHal_SendMarkerCommand(
-    PRENDERHAL_INTERFACE    pRenderHal,
-    PMOS_COMMAND_BUFFER     cmdBuffer,
-    bool                    isRender)
-{
-    MOS_STATUS  eStatus = MOS_STATUS_SUCCESS;
-
-    //-----------------------------------------
-    MHW_RENDERHAL_CHK_NULL(pRenderHal);
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwMiInterface);
-    //-----------------------------------------
-
-    if (isRender)
-    {
-        // Send pipe_control to get the timestamp
-        MHW_PIPE_CONTROL_PARAMS             pipeControlParams;
-        MOS_ZeroMemory(&pipeControlParams, sizeof(pipeControlParams));
-        pipeControlParams.presDest          = pRenderHal->SetMarkerParams.pSetMarkerResource;
-        pipeControlParams.dwResourceOffset  = 0;
-        pipeControlParams.dwPostSyncOp      = MHW_FLUSH_WRITE_TIMESTAMP_REG;
-        pipeControlParams.dwFlushMode       = MHW_FLUSH_WRITE_CACHE;
-
-        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddPipeControl(cmdBuffer, nullptr, &pipeControlParams));
-    }
-    else
-    {
-        // Send flush_dw to get the timestamp 
-        MHW_MI_FLUSH_DW_PARAMS  flushDwParams;
-        MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
-        flushDwParams.pOsResource           = pRenderHal->SetMarkerParams.pSetMarkerResource;
-        flushDwParams.dwResourceOffset      = 0;
-        flushDwParams.postSyncOperation     = MHW_FLUSH_WRITE_TIMESTAMP_REG;
-        flushDwParams.bQWordEnable          = 1;
-
-        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddMiFlushDwCmd(cmdBuffer, &flushDwParams));
-    }
-
-finish:
-    return eStatus;
-}
-
-//!
 //! \brief    Initializes command buffer attributes and inserts prolog
 //! \param    PRENDERHAL_INTERFACE pRenderHal
 //!           [in] Pointer to RenderHal Interface Structure
@@ -4891,7 +4592,6 @@ MOS_STATUS RenderHal_InitCommandBuffer(
     MHW_RENDERHAL_CHK_NULL(pCmdBuffer);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pOsInterface);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwMiInterface);
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwRenderInterface);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pRenderHalPltInterface);
     //---------------------------------------------
 
@@ -4934,7 +4634,7 @@ MOS_STATUS RenderHal_InitCommandBuffer(
     pCmdBuffer->Attributes.bMediaPreemptionEnabled =
         (pRenderHal->bEnableGpgpuMidBatchPreEmption ||
         pRenderHal->bEnableGpgpuMidThreadPreEmption ||
-        pRenderHal->pMhwRenderInterface->IsPreemptionEnabled());
+        pRenderHal->pRenderHalPltInterface->IsPreemptionEnabled(pRenderHal));
 
     if (pGenericPrologParams)
     {
@@ -4993,17 +4693,14 @@ MOS_STATUS RenderHal_SendSyncTag(
 {
     PRENDERHAL_STATE_HEAP           pStateHeap;
     MOS_STATUS                      eStatus;
-    PMHW_MI_INTERFACE               pMhwMiInterface;
     MHW_PIPE_CONTROL_PARAMS         PipeCtl;
 
     //-------------------------------------
     MHW_RENDERHAL_CHK_NULL(pRenderHal);
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwMiInterface);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pStateHeap);
     //-------------------------------------
 
     pStateHeap      = pRenderHal->pStateHeap;
-    pMhwMiInterface = pRenderHal->pMhwMiInterface;
 
     // Send PIPE_CONTROL Token
     // CMD_MI_FLUSH is disabled by default on GT, use PIPE_CONTROL
@@ -5036,16 +4733,13 @@ MOS_STATUS RenderHal_SendSyncTagIndex(
     PRENDERHAL_STATE_HEAP           pStateHeap;
     MOS_STATUS                      eStatus;
     MHW_PIPE_CONTROL_PARAMS         PipeCtl;
-    PMHW_MI_INTERFACE               pMhwMiInterface;
 
     //-------------------------------------
     MHW_RENDERHAL_CHK_NULL(pRenderHal);
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwMiInterface);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pStateHeap);
     //-------------------------------------
 
     pStateHeap      = pRenderHal->pStateHeap;
-    pMhwMiInterface = pRenderHal->pMhwMiInterface;
 
     // Invalidate read-only caches and perform a post sync write
     PipeCtl = g_cRenderHal_InitPipeControlParams;
@@ -5168,19 +4862,16 @@ MOS_STATUS RenderHal_SendRcsStatusTag(
 {
     MOS_STATUS                   eStatus = MOS_STATUS_SUCCESS;
     PMOS_INTERFACE               pOsInterface;
-    PMHW_MI_INTERFACE            pMhwMiInterface;
     MHW_PIPE_CONTROL_PARAMS      PipeCtl;
     PMOS_RESOURCE                osResource = nullptr;
 
     //------------------------------------
     MHW_RENDERHAL_CHK_NULL(pRenderHal);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pOsInterface);
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwMiInterface);
     MHW_RENDERHAL_CHK_NULL(pCmdBuffer);
     //------------------------------------
 
     pOsInterface    = pRenderHal->pOsInterface;
-    pMhwMiInterface = pRenderHal->pMhwMiInterface;
 
     // Get the Os Resource
     MHW_RENDERHAL_CHK_STATUS(pOsInterface->pfnGetGpuStatusBufferResource(pOsInterface, osResource));
@@ -5228,7 +4919,6 @@ MOS_STATUS RenderHal_SendCscCoeffSurface(
 {
     MOS_STATUS                   eStatus = MOS_STATUS_SUCCESS;
     PMOS_INTERFACE               pOsInterface;
-    PMHW_MI_INTERFACE            pMhwMiInterface;
     MHW_PIPE_CONTROL_PARAMS      PipeCtl;
     MOS_SURFACE                  Surface;
     uint64_t                     *pTempCoeff;
@@ -5241,7 +4931,6 @@ MOS_STATUS RenderHal_SendCscCoeffSurface(
     //------------------------------------
     MHW_RENDERHAL_CHK_NULL(pRenderHal);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pOsInterface);
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwMiInterface);
     MHW_RENDERHAL_CHK_NULL(pCmdBuffer);
     MHW_RENDERHAL_CHK_NULL(presCscCoeff);
     MHW_RENDERHAL_CHK_NULL(pKernelEntry);
@@ -5249,7 +4938,6 @@ MOS_STATUS RenderHal_SendCscCoeffSurface(
     //------------------------------------
 
     pOsInterface    = pRenderHal->pOsInterface;
-    pMhwMiInterface = pRenderHal->pMhwMiInterface;
     dwOffset        = 0;
     static_assert(
         (sizeof(pKernelEntry->pCscParams->Matrix[0].Coeff) % sizeof(uint64_t)) == 0,
@@ -5305,16 +4993,13 @@ MOS_STATUS RenderHal_SendStateBaseAddress(
     PRENDERHAL_INTERFACE        pRenderHal,
     PMOS_COMMAND_BUFFER         pCmdBuffer)
 {
-    MhwRenderInterface    *pMhwRender;
     MOS_STATUS            eStatus;
 
     MHW_RENDERHAL_CHK_NULL(pRenderHal);
     MHW_RENDERHAL_CHK_NULL(pCmdBuffer);
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwRenderInterface);
 
-    pMhwRender = pRenderHal->pMhwRenderInterface;
-    eStatus    = pMhwRender->AddStateBaseAddrCmd(pCmdBuffer,
-                                                 &pRenderHal->StateBaseAddressParams);
+    eStatus = pRenderHal->pRenderHalPltInterface->SendStateBaseAddress(pRenderHal,
+        pCmdBuffer);
 finish:
     return eStatus;
 }
@@ -5337,8 +5022,6 @@ MOS_STATUS RenderHal_SendMediaStates(
     PMHW_GPGPU_WALKER_PARAMS  pGpGpuWalkerParams)
 {
     PMOS_INTERFACE               pOsInterface = nullptr;
-    MhwRenderInterface           *pMhwRender = nullptr;
-    PMHW_MI_INTERFACE            pMhwMiInterface = nullptr;
     PRENDERHAL_STATE_HEAP        pStateHeap = nullptr;
     MOS_STATUS                   eStatus = MOS_STATUS_SUCCESS;
     MHW_VFE_PARAMS               *pVfeStateParams = nullptr;
@@ -5349,8 +5032,6 @@ MOS_STATUS RenderHal_SendMediaStates(
 
     //---------------------------------------
     MHW_RENDERHAL_CHK_NULL(pRenderHal);
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwRenderInterface);
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwMiInterface);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pStateHeap);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pRenderHalPltInterface);
     MHW_RENDERHAL_ASSERT(pRenderHal->pStateHeap->bGshLocked);
@@ -5358,8 +5039,6 @@ MOS_STATUS RenderHal_SendMediaStates(
 
     //---------------------------------------
     pOsInterface            = pRenderHal->pOsInterface;
-    pMhwRender              = pRenderHal->pMhwRenderInterface;
-    pMhwMiInterface         = pRenderHal->pMhwMiInterface;
     pStateHeap              = pRenderHal->pStateHeap;
     pOsContext              = pOsInterface->pOsContext;
     pMmioRegisters          = pRenderHal->pRenderHalPltInterface->GetMmioRegisters(pRenderHal);
@@ -5389,7 +5068,7 @@ MOS_STATUS RenderHal_SendMediaStates(
         pStateHeap->CurIDEntryParams.dwKernelOffset, false, pStateHeap->iKernelUsedForDump);
 
     // Send State Base Address command
-    MHW_RENDERHAL_CHK_STATUS(pRenderHal->pRenderHalPltInterface->SendStateBaseAddress(pRenderHal, pCmdBuffer));
+    MHW_RENDERHAL_CHK_STATUS(pRenderHal->pfnSendStateBaseAddress(pRenderHal, pCmdBuffer));
 
     if (pRenderHal->bComputeContextInUse)
     {
@@ -5409,7 +5088,7 @@ MOS_STATUS RenderHal_SendMediaStates(
     if (!pRenderHal->bComputeContextInUse)
     {
         // set VFE State
-        MHW_RENDERHAL_CHK_STATUS(pMhwRender->AddMediaVfeCmd(pCmdBuffer, pVfeStateParams));
+        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pRenderHalPltInterface->AddMediaVfeCmd(pRenderHal, pCmdBuffer, pVfeStateParams));
     }
     else
     {
@@ -5430,23 +5109,25 @@ MOS_STATUS RenderHal_SendMediaStates(
     }
 
     // Send Chroma Keys
-    MHW_RENDERHAL_CHK_STATUS(pRenderHal->pRenderHalPltInterface->SendChromaKey(pRenderHal, pCmdBuffer));
+    MHW_RENDERHAL_CHK_STATUS(pRenderHal->pfnSendChromaKey(pRenderHal, pCmdBuffer));
 
     // Send Palettes in use
-    MHW_RENDERHAL_CHK_STATUS(pRenderHal->pRenderHalPltInterface->SendPalette(pRenderHal, pCmdBuffer));
+    MHW_RENDERHAL_CHK_STATUS(pRenderHal->pfnSendPalette(pRenderHal, pCmdBuffer));
 
-    HalOcaInterface::OnDispatch(*pCmdBuffer, *pOsContext, *pRenderHal->pMhwMiInterface, *pMmioRegisters);
+    pRenderHal->pRenderHalPltInterface->OnDispatch(pRenderHal, pCmdBuffer, pOsContext, pMmioRegisters);
 
     // Send Media object walker
     if(pWalkerParams)
     {
-        MHW_RENDERHAL_CHK_STATUS(pMhwRender->AddMediaObjectWalkerCmd(
+        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pRenderHalPltInterface->AddMediaObjectWalkerCmd(
+            pRenderHal,
             pCmdBuffer,
             pWalkerParams));
     }
     else if (pGpGpuWalkerParams && (!pRenderHal->bComputeContextInUse))
     {
-        MHW_RENDERHAL_CHK_STATUS(pMhwRender->AddGpGpuWalkerStateCmd(
+        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pRenderHalPltInterface->AddGpGpuWalkerStateCmd(
+            pRenderHal,
             pCmdBuffer,
             pGpGpuWalkerParams));
     }
@@ -6000,7 +5681,7 @@ MOS_STATUS RenderHal_SendSurfaces_PatchList(
 //! \brief    Set Vfe State Params
 //! \details  Sets VFE State parameters
 //!           this functions must be called to setup
-//!           parameters for pMhwRender->AddMediaVfeCmd()
+//!           parameters for Mhw Render->AddMediaVfeCmd()
 //! \param    PRENDERHAL_INTERFACE pRenderHal
 //!           [in] Pointer to Hardware Interface Structure
 //! \param    uint32_t dwDebugCounterControl
@@ -6248,7 +5929,11 @@ bool RenderHal_Is2PlaneNV12Needed(
 
     // NV12 format needs the width and height to be a multiple for both 3D sampler and 8x8 sampler.
     // For AVS sampler, no limitation for 4 alignment.
-    pRenderHal->pMhwRenderInterface->GetSamplerResolutionAlignUnit(RENDERHAL_SCALING_AVS == pRenderHalSurface->ScalingMode, widthAlignUnit, heightAlignUnit);
+    pRenderHal->pRenderHalPltInterface->GetSamplerResolutionAlignUnit(pRenderHal,
+        RENDERHAL_SCALING_AVS == pRenderHalSurface->ScalingMode,
+        widthAlignUnit,
+        heightAlignUnit);
+
     bRet = (!MOS_IS_ALIGNED(dwSurfaceHeight, heightAlignUnit) || !MOS_IS_ALIGNED(dwSurfaceWidth, widthAlignUnit));
 
     // Note: Always using 2 plane NV12 as WA for the corruption of NV12 input
@@ -6939,12 +6624,12 @@ MOS_STATUS RenderHal_InitInterface(
     // Initialize MHW State Heap Interface
     // Note: there are two pStateHeapInterface in below line. First one is pointer to legacy MHW_STATE_HEAP
     // sturcture, while the last one points to the new class.
-    if (pRenderHal->pMhwRenderInterface->m_stateHeapInterface != nullptr)
+    if (pRenderHal->pRenderHalPltInterface->GetStateHeapInterface(pRenderHal) != nullptr)
     {
-        pRenderHal->pMhwStateHeap = pRenderHal->pMhwRenderInterface->m_stateHeapInterface->pStateHeapInterface;
+        pRenderHal->pMhwStateHeap = pRenderHal->pRenderHalPltInterface->GetStateHeapInterface(pRenderHal)->pStateHeapInterface;
     }
 
-    pRenderHal->pHwCaps  = pRenderHal->pMhwRenderInterface->GetHwCaps();
+    pRenderHal->pHwCaps = pRenderHal->pRenderHalPltInterface->GetHwCaps(pRenderHal);
 
     pRenderHal->pHwSizes = pRenderHal->pMhwStateHeap->GetHwSizesPointer();
 

@@ -829,7 +829,6 @@ MOS_STATUS XRenderHal_Interface_Xe_Hpg_Base::SendComputeWalker(
 {
     VP_FUNC_CALL();
 
-    MhwRenderInterface *      pMhwRender;
     MOS_STATUS                eStatus = MOS_STATUS_SUCCESS;
     MHW_ID_ENTRY_PARAMS       mhwIdEntryParams;
     PRENDERHAL_KRN_ALLOCATION pKernelEntry;
@@ -837,7 +836,6 @@ MOS_STATUS XRenderHal_Interface_Xe_Hpg_Base::SendComputeWalker(
 
     MHW_RENDERHAL_CHK_NULL(pRenderHal);
     MHW_RENDERHAL_CHK_NULL(pCmdBuffer);
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwRenderInterface);
     MHW_RENDERHAL_CHK_NULL(pGpGpuWalkerParams);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pStateHeap);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pStateHeap->pKernelAllocation);
@@ -1165,7 +1163,6 @@ MOS_STATUS XRenderHal_Interface_Xe_Hpg_Base::SendTo3DStateBindingTablePoolAlloc(
     mhw_render_xe_xpm_base::_3DSTATE_BINDING_TABLE_POOL_ALLOC_CMD cmd;
     MHW_RENDERHAL_CHK_NULL(pRenderHal);
     MHW_RENDERHAL_CHK_NULL(pCmdBuffer);
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwRenderInterface);
     MHW_RENDERHAL_CHK_NULL(m_renderItf);
     SETPAR_AND_ADDCMD(_3DSTATE_BINDING_TABLE_POOL_ALLOC, m_renderItf, pCmdBuffer);
 

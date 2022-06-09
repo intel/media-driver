@@ -1268,6 +1268,7 @@ typedef struct _RENDERHAL_INTERFACE
     bool                        isMMCEnabled;
 
     MediaPerfProfiler               *pPerfProfiler = nullptr;  //!< Performance data profiler
+    MediaPerfProfilerNext           *pPerfProfilerNext  = nullptr;  //!< Performance data profiler
     bool                            eufusionBypass = false;
 
     //---------------------------
@@ -1735,6 +1736,15 @@ typedef struct _RENDERHAL_INTERFACE
                 PRENDERHAL_INTERFACE            pRenderHal,
                 PRENDERHAL_L3_CACHE_SETTINGS    pCacheSettings,
                 bool                            bEnableSLM);
+
+    //!
+    //! \brief    Get mmio registers address
+    //! \details  Get mmio registers address
+    //! \return   [out] PMHW_MI_MMIOREGISTERS*
+    //!           mmio registers got.
+    //!
+    PMHW_MI_MMIOREGISTERS GetMmioRegisters();
+
 
     //-----------------------------
     //Platform related interface
