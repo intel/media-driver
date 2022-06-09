@@ -90,23 +90,6 @@ MOS_STATUS Av1VdencPipeline::Prepare(void *params)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS Av1VdencPipeline::ContextSwitchBack()
-{
-    ENCODE_FUNC_CALL();
-
-    ENCODE_CHK_NULL_RETURN(m_scalPars);
-
-    m_scalPars->IsContextSwitchBack = true;
-    m_mediaContext->SwitchContext(VdboxEncodeFunc, m_scalPars.get(), &m_scalability);
-    m_scalPars->IsContextSwitchBack = false;
-
-    ENCODE_CHK_NULL_RETURN(m_scalability);
-
-    m_scalability->SetPassNumber(m_featureManager->GetNumPass());
-
-    return MOS_STATUS_SUCCESS;
-}
-
 MOS_STATUS Av1VdencPipeline::ActivateVdencVideoPackets()
 {
     ENCODE_FUNC_CALL();

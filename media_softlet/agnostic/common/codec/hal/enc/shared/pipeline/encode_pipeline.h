@@ -40,6 +40,7 @@
 #include "encode_mem_compression.h"
 #include "encodecp.h"
 #include "encode_packet_utilities.h"
+#include "encode_scalability_defs.h"
 
 #define CONSTRUCTPACKETID(_componentId, _subComponentId, _packetId) \
     (_componentId << 24 | _subComponentId << 16 | _packetId)
@@ -63,6 +64,8 @@ public:
     virtual ~EncodePipeline() {}
 
     virtual MOS_STATUS Prepare(void *params) override;
+
+    MOS_STATUS ContextSwitchBack();
 
     EncodeAllocator *    GetEncodeAllocator() { return m_allocator; };
     CodechalHwInterface *GetHWInterface() { return m_hwInterface; };
@@ -331,6 +334,8 @@ protected:
     bool m_singleTaskPhaseSupportedInPak = false;
 
     uint32_t m_recycledBufStatusNum[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM] = {0};  //!< Recycled buffer status num list
+
+    std::shared_ptr<EncodeScalabilityPars> m_scalPars = nullptr;
 
 MEDIA_CLASS_DEFINE_END(encode__EncodePipeline)
 };

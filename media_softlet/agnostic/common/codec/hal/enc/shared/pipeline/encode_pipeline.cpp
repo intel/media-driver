@@ -33,7 +33,6 @@
 #include "codechal_setting.h"
 #include "encode_status_report_defs.h"
 #include "encode_status_report.h"
-#include "encode_scalability_defs.h"
 #include "mos_solo_generic.h"
 
 namespace encode {
@@ -226,6 +225,23 @@ MOS_STATUS EncodePipeline::Prepare(void *params)
     ENCODE_CHK_STATUS_RETURN(Mos_Solo_SetGpuAppTaskEvent(m_osInterface, encodeParams->gpuAppTaskEvent));
 
     m_osInterface->pfnIncPerfFrameID(m_osInterface);
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS EncodePipeline::ContextSwitchBack()
+{
+    ENCODE_FUNC_CALL();
+
+    ENCODE_CHK_NULL_RETURN(m_scalPars);
+
+    m_scalPars->IsContextSwitchBack = true;
+    m_mediaContext->SwitchContext(VdboxEncodeFunc, m_scalPars.get(), &m_scalability);
+    m_scalPars->IsContextSwitchBack = false;
+
+    ENCODE_CHK_NULL_RETURN(m_scalability);
+
+    m_scalability->SetPassNumber(m_featureManager->GetNumPass());
 
     return MOS_STATUS_SUCCESS;
 }

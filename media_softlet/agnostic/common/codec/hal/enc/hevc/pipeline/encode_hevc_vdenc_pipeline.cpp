@@ -220,4 +220,36 @@ MOS_STATUS HevcVdencPipeline::CreateFeatureManager()
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS HevcVdencPipeline::SwitchContext(uint8_t outputChromaFormat, uint16_t numTileRows, uint16_t numTileColumns, bool enableTileReplay)
+{
+    ENCODE_FUNC_CALL();
+
+    if (!m_scalPars)
+    {
+        m_scalPars = std::make_shared<EncodeScalabilityPars>();
+    }
+
+    *m_scalPars             = {};
+    m_scalPars->enableVDEnc = true;
+    m_scalPars->enableVE    = MOS_VE_SUPPORTED(m_osInterface);
+    m_scalPars->numVdbox    = m_numVdbox;
+
+    m_scalPars->forceMultiPipe     = true;
+    m_scalPars->outputChromaFormat = outputChromaFormat;
+
+    m_scalPars->numTileRows    = numTileRows;
+    m_scalPars->numTileColumns = numTileColumns;
+
+    m_scalPars->IsPak = true;
+
+    m_scalPars->enableTileReplay = enableTileReplay;
+
+    m_mediaContext->SwitchContext(VdboxEncodeFunc, &*m_scalPars, &m_scalability);
+    ENCODE_CHK_NULL_RETURN(m_scalability);
+
+    m_scalability->SetPassNumber(m_featureManager->GetNumPass());
+
+    return MOS_STATUS_SUCCESS;
+}
+
 }

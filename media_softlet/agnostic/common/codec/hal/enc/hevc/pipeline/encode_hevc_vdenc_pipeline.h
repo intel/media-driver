@@ -28,6 +28,7 @@
 
 #include "encode_hevc_pipeline.h"
 #include "encode_hevc_cqp.h"
+#include "encode_scalability_defs.h"
 namespace encode {
 //!
 //! \struct   CODECHAL_ENCODE_HEVC_PAK_STATS_BUFFER
@@ -70,6 +71,7 @@ protected:
     virtual MOS_STATUS ActivateVdencVideoPackets();
     virtual MOS_STATUS ActivateVdencTileReplayVideoPackets();
     virtual MOS_STATUS CreateFeatureManager() override;
+    virtual MOS_STATUS SwitchContext(uint8_t outputChromaFormat, uint16_t numTileRows, uint16_t numTileColumns, bool enableTileReplay);
 
 MEDIA_CLASS_DEFINE_END(encode__HevcVdencPipeline)
 };
