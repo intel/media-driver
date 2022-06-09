@@ -40,8 +40,8 @@ class MhwVdboxAvpInterfaceG12 : public MhwVdboxAvpInterfaceGeneric<mhw_vdbox_avp
 {
 protected:
     #define PATCH_LIST_COMMAND(x)  (x##_NUMBER_OF_ADDRESSES)
-     bool m_scalabilitySupported = false; //!< Indicate if scalability supported
-
+    bool m_scalabilitySupported = false; //!< Indicate if scalability supported
+    bool m_disableLstCmd        = false; //!< Indicate if lst cmd is used
     enum CommandsNumberOfAddresses
     {
         MI_BATCH_BUFFER_START_CMD_NUMBER_OF_ADDRESSES              =  1, //  2 DW for  1 address field
@@ -99,6 +99,15 @@ public:
             this->m_osInterface->pOsContext);
     #endif // _DEBUG || _RELEASE_INTERNAL
         m_scalabilitySupported = userFeatureData.i32Data ? true : false;
+
+        memset(&userFeatureData, 0, sizeof(userFeatureData));
+        userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
+        MOS_UserFeature_ReadValue_ID(
+            nullptr,
+            __MEDIA_USER_FEATURE_VALUE_AV1_DECODE_ON_SIMULATION_ID,
+            &userFeatureData,
+            this->m_osInterface->pOsContext);
+        m_disableLstCmd = userFeatureData.i32Data ? true : false;
     }
 
     //!

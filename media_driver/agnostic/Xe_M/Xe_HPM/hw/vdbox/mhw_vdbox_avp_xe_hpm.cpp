@@ -132,7 +132,7 @@ MOS_STATUS MhwVdboxAvpInterfaceXe_Hpm::GetAvpPrimitiveCommandSize(
 
     if (m_decodeInUse)
     {
-        if (MEDIA_IS_SKU(m_osInterface->pfnGetSkuTable(m_osInterface), FtrAV1VLDLSTDecoding) && !m_osInterface->bSimIsActive)
+        if (MEDIA_IS_SKU(m_osInterface->pfnGetSkuTable(m_osInterface), FtrAV1VLDLSTDecoding) && !m_disableLstCmd)
         {
             maxSize =
                 mhw_vdbox_avp_g12_X::AVP_TILE_CODING_CMD_LST::byteSize +
