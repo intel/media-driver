@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2021, Intel Corporation
+* Copyright (c) 2017-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -379,6 +379,11 @@ MOS_STATUS MmdDeviceG12Tgllp::Initialize(
         mhwInterfaces->m_miInterface,
         mhwInterfaces->m_veboxInterface) != MOS_STATUS_SUCCESS)
     {
+        // Vebox/mi/cp interface will gove control to mmd device, will release will be in destructure func
+        // set as null to avoid double free in driver
+        mhwInterfaces->m_cpInterface = nullptr;
+        mhwInterfaces->m_miInterface = nullptr;
+        mhwInterfaces->m_veboxInterface = nullptr;
         MMD_FAILURE();
     }
 
