@@ -80,7 +80,7 @@ public:
         PVP_MHWINTERFACE          pvpMhwInterface,
         const MHW_VEBOX_HEAP    **ppVeboxHeap);
 
-    virtual bool IsVeboxScalabilitywith4K(
+    virtual bool VeboxScalabilitywith4K(
         VP_MHWINTERFACE           vpMhwInterface);
 
 protected:

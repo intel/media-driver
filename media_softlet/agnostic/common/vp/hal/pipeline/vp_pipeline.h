@@ -344,6 +344,8 @@ protected:
         return (m_numVebox > 1) ? true : false;
     }
 
+    MOS_STATUS UpdateVeboxNumberforScalability();
+
 protected:
     VP_PARAMS              m_pvpParams              = {};   //!< vp Pipeline params
     VP_MHWINTERFACE        m_vpMhwInterface         = {};   //!< vp Pipeline Mhw Interface

@@ -229,7 +229,7 @@ public:
         CODECHAL_STANDARD         codecStandard,
         CodecDecodeJpegChromaType jpegChromaType);
 
-    virtual bool IsVeboxScalabilitywith4K(
+    virtual bool VeboxScalabilitywith4K(
         VP_MHWINTERFACE           vpMhwInterface);
 
     virtual MOS_STATUS GetVeboxHeapInfo(

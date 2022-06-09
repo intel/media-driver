@@ -209,12 +209,12 @@ MOS_STATUS VpPlatformInterfaceXe_Xpm::GetVeboxHeapInfo(
     return eStatus;
 }
 
-bool VpPlatformInterfaceXe_Xpm::IsVeboxScalabilitywith4K(
+bool VpPlatformInterfaceXe_Xpm::VeboxScalabilitywith4K(
         VP_MHWINTERFACE          vpMhwInterface)
 {
-    if (vpMhwInterface.m_veboxInterface)
+    if (vpMhwInterface.m_veboxInterface && !(vpMhwInterface.m_veboxInterface->m_veboxScalabilitywith4K))
     {
-        return vpMhwInterface.m_veboxInterface->m_veboxScalabilitywith4K;
+        return true;
     }
     else
     {
