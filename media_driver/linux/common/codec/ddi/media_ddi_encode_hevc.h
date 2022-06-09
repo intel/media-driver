@@ -315,6 +315,8 @@ private:
     //!
     bool IsSccProfile();
 
+    VAStatus ValidateRefFrameData(PCODEC_HEVC_ENCODE_PICTURE_PARAMS hevcPicParams, PCODEC_HEVC_ENCODE_SLICE_PARAMS slcParams);
+
     //! \brief Number of Rectangle
     uint32_t    m_numDirtyRects = 0;
 
