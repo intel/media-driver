@@ -25,9 +25,10 @@
 //! \brief    Defines the interface for Hevc decode scalability option.
 //!
 
-#include "decode_hevc_scalability_defs.h"
 #include "decode_hevc_scalability_option.h"
-#include "decode_utils.h"
+#include "decode_hevc_scalability_defs.h"
+#include "decode_scalability_defs.h"
+#include "media_scalability_defs.h"
 
 namespace decode
 {

@@ -30,6 +30,8 @@
 #define __DECODE_UNIQUE_ID_H__
 
 #include "decode_utils.h"
+#include "media_class_trace.h"
+#include <stdint.h>
 
 namespace decode {
 

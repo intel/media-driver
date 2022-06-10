@@ -24,8 +24,9 @@
 //! \brief    Defines the common interface for decode status reporter
 //! \details
 //!
-#include <cmath>
 #include "decode_status_report.h"
+#include "decode_allocator.h"
+#include "mos_utilities.h"
 
 namespace decode {
 

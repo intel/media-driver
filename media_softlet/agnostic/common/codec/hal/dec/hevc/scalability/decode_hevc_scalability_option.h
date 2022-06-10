@@ -27,6 +27,10 @@
 #ifndef __DECODE_HEVC_SCALABILITY_OPTION_H__
 #define __DECODE_HEVC_SCALABILITY_OPTION_H__
 #include "decode_scalability_option.h"
+#include "media_class_trace.h"
+#include "mos_defs.h"
+
+struct ScalabilityPars;
 
 namespace decode
 {

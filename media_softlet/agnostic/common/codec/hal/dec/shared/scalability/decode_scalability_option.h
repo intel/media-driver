@@ -28,6 +28,10 @@
 #define __DECODE_SCALABILITY_OPTION_H__
 #include "media_scalability_option.h"
 #include "decode_scalability_defs.h"
+#include "media_class_trace.h"
+#include "mos_defs.h"
+#include "mos_resource_defs.h"
+struct ScalabilityPars;
 
 namespace decode {
 class DecodeScalabilityOption : public MediaScalabilityOption

@@ -28,11 +28,16 @@
 #define __DECODE_STATUS_REPORT_H__
 
 #include "media_status_report.h"
-#include "decode_utils.h"
-#include "decode_allocator.h"
 #include "decode_status_report_defs.h"
+#include "codec_def_common.h"
+#include "media_class_trace.h"
+#include "mos_defs.h"
+#include "mos_os_specific.h"
+#include "decode_utils.h"
+#include <stdint.h>
 
 namespace decode {
+    class DecodeAllocator;
 
     //!
     //! \struct DecodeStatusReportData

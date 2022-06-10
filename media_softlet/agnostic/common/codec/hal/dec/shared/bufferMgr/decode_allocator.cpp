@@ -28,6 +28,12 @@
 
 #include "decode_allocator.h"
 #include "decode_utils.h"
+#include "External/Common/GmmResourceInfoExt.h"
+#include "External/Common/GmmCachePolicyExt.h"
+#include "decode_utils.h"
+#include "media_allocator.h"
+#include "mos_os_cp_interface_specific.h"
+#include "mos_utilities.h"
 #include "decode_resource_array.h"
 
 namespace decode {

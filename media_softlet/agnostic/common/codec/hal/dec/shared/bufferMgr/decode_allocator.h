@@ -29,8 +29,17 @@
 #ifndef __DECODE_ALLOCATOR_H__
 #define __DECODE_ALLOCATOR_H__
 
-#include "media_allocator.h"
-#include "mhw_utilities.h"
+#include "media_class_trace.h"
+#include "mhw_utilities_next.h"
+#include "mos_defs.h"
+#include "mos_os.h"
+#include "mos_os_hw.h"
+#include "mos_os_specific.h"
+#include "mos_resource_defs.h"
+#include "External/Common/GmmCachePolicyExt.h"
+#include <stdint.h>
+#include <vector>
+class Allocator;
 
 namespace decode {
 
