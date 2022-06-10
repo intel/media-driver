@@ -4624,10 +4624,7 @@ MOS_STATUS RenderHal_InitCommandBuffer(
     pCmdBuffer->Attributes.bTurboMode = pRenderHal->bTurboMode;
 
     // Set power option status
-    if (pRenderHal->pRenderHalPltInterface)
-    {
-        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pRenderHalPltInterface->SetPowerOptionStatus(pRenderHal, pCmdBuffer));
-    }
+    MHW_RENDERHAL_CHK_STATUS(pRenderHal->pRenderHalPltInterface->SetPowerOptionStatus(pRenderHal, pCmdBuffer));
 
     // Preemption: Need to set UsesMediaPipeline, UsesGPGPUPipeline, NeedsMidBatchPreEmptionSupport in command buffer header
     // Use IsMDFLoad to distinguish MDF context from other Media Contexts
