@@ -39,8 +39,6 @@
 
 namespace vp {
 
-#define ESR_LAYER_NUM       10
-
 class VpCmdPacket;
 
 class VpFilter
@@ -431,30 +429,6 @@ struct CHROMA_LAYER_PARAMS
     uint32_t                                          uThreadWidth;
     uint32_t                                          uThreadHeight;
 };
-
-struct  _RENDER_SR_PARAMS
-{
-    bool bEnableSR;
-    std::vector<SR_LAYER_PARAMS> layersParam;
-    CHROMA_LAYER_PARAMS chromaLayerParam;
-    const uint8_t *(*sr2xConvWeightTable)[ESR_LAYER_NUM];
-    const uint8_t *(*sr2xConvBiasTable)[ESR_LAYER_NUM];
-    const uint8_t *(*sr2xConvPreluTable)[ESR_LAYER_NUM];
-
-    const uint32_t (*sr2xConvWeightTableSize)[ESR_LAYER_NUM];
-    const uint32_t (*sr2xConvBiasTableSize)[ESR_LAYER_NUM];
-    const uint32_t (*sr2xConvPreluTableSize)[ESR_LAYER_NUM];
-    uint32_t uInputWidth;
-    uint32_t uInputHeight;
-    MOS_FORMAT inputFormat;
-    RECT                    rcSrcInput;
-    RECT                    rcDstInput;                     //!< Input dst rect without rotate being applied.
-    uint32_t                uOutputWidth;
-    uint32_t                uOutputHeight;
-};
-
-using RENDER_SR_PARAMS = _RENDER_SR_PARAMS;
-using PRENDER_SR_PARAMS = RENDER_SR_PARAMS*;
 
 struct _RENDER_DI_FMD_PARAMS
 {

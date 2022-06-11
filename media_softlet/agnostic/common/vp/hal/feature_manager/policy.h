@@ -86,8 +86,9 @@ protected:
     MOS_STATUS GetCSCExecutionCaps(SwFilter* feature);
     bool IsSfcSupported(MOS_FORMAT format);
     MOS_STATUS GetScalingExecutionCaps(SwFilter* feature);
-    MOS_STATUS GetScalingExecutionCaps(SwFilter *feature, bool isHdrEnabled);
+    MOS_STATUS GetScalingExecutionCaps(SwFilter *feature, bool isHdrEnabled, bool isSREnabled);
     MOS_STATUS GetScalingExecutionCapsHdr(SwFilter *feature);
+    MOS_STATUS GetScalingExecutionCapsSR(SwFilter *feature);
     bool IsSfcRotationSupported(FeatureParamRotMir *rotationParams);
     MOS_STATUS GetRotationExecutionCaps(SwFilter* feature);
     virtual MOS_STATUS GetDenoiseExecutionCaps(SwFilter* feature);

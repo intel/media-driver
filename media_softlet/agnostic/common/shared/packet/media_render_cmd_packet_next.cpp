@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021, Intel Corporation
+* Copyright (c) 2021-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -118,7 +118,7 @@ MOS_STATUS RenderCmdPacketNext::RenderEngineSetup()
     RENDER_PACKET_CHK_NULL_RETURN(m_renderData.mediaState);
 
     // Allocate and reset SSH instance
-    if ((isMultiBindingTables == false) || (m_renderHal->pStateHeap->iCurrentBindingTable >= m_renderHal->StateHeapSettings.iBindingTables) ||
+    if ((m_isMultiBindingTables == false) || (m_renderHal->pStateHeap->iCurrentBindingTable >= m_renderHal->StateHeapSettings.iBindingTables) ||
         (m_renderHal->pStateHeap->iCurrentSurfaceState >= m_renderHal->StateHeapSettings.iSurfaceStates))
     {
         RENDER_PACKET_CHK_STATUS_RETURN(m_renderHal->pfnAssignSshInstance(m_renderHal));
@@ -285,10 +285,21 @@ uint32_t RenderCmdPacketNext::SetSurfaceForHwAccess(PMOS_SURFACE surface, PRENDE
         pSurfaceEntries,
         nullptr));
 
-    if (m_renderData.bindingTableEntry > 15)
+    if (!m_isLargeSurfaceStateNeeded)
     {
-        RENDER_PACKET_ASSERTMESSAGE("input surface support up to 16 RSS");
-        m_renderData.bindingTableEntry = 0;
+        if (m_renderData.bindingTableEntry > 15)
+        {
+            RENDER_PACKET_ASSERTMESSAGE("input surface support up to 16 RSS");
+            m_renderData.bindingTableEntry = 0;
+        }
+    }
+    else
+    {
+        if (m_renderData.bindingTableEntry > 255)
+        {
+            RENDER_PACKET_ASSERTMESSAGE("input surface support up to 256 RSS");
+            m_renderData.bindingTableEntry = 0;
+        }
     }
 
     uint32_t iBTEntry = m_renderData.bindingTableEntry;

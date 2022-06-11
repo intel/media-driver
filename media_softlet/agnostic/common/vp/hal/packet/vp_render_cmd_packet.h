@@ -108,8 +108,6 @@ protected:
     // comments here: Hight overwite params if needed
     MOS_STATUS UpdateRenderSurface(RENDERHAL_SURFACE_NEXT &renderSurface, KERNEL_SURFACE_STATE_PARAM& kernelParams);
 
-    MOS_STATUS SetSamplerAvsParams(MHW_SAMPLER_STATE_PARAM& samplerStateParam, PRENDER_SR_PARAMS params);
-
    MOS_STATUS SamplerAvsCalcScalingTable(
         MHW_AVS_PARAMS& avsParameters,
         MOS_FORMAT      SrcFormat,

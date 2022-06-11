@@ -878,21 +878,29 @@ MOS_STATUS Policy::GetCSCExecutionCaps(SwFilter* feature)
     PrintFeatureExecutionCaps(__FUNCTION__, *cscEngine);
     return MOS_STATUS_SUCCESS;
 }
+
 MOS_STATUS Policy::GetScalingExecutionCapsHdr(SwFilter *feature)
 {
     VP_FUNC_CALL();
-    VP_PUBLIC_CHK_STATUS_RETURN(GetScalingExecutionCaps(feature, true));
+    VP_PUBLIC_CHK_STATUS_RETURN(GetScalingExecutionCaps(feature, true, false));
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS Policy::GetScalingExecutionCapsSR(SwFilter *feature)
+{
+    VP_FUNC_CALL();
+    VP_PUBLIC_CHK_STATUS_RETURN(GetScalingExecutionCaps(feature, false, true));
     return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter *feature)
 {
     VP_FUNC_CALL();
-    VP_PUBLIC_CHK_STATUS_RETURN(GetScalingExecutionCaps(feature, false));
+    VP_PUBLIC_CHK_STATUS_RETURN(GetScalingExecutionCaps(feature, false, false));
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter *feature, bool isHdrEnabled)
+MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter *feature, bool isHdrEnabled, bool isSREnabled)
 {
     VP_FUNC_CALL();
 
@@ -920,6 +928,16 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter *feature, bool isHdrEnabled)
         IsAlphaSettingSupportedBySfc(scalingParams->formatInput, scalingParams->formatOutput, scalingParams->pCompAlpha);
     bool isAlphaSettingSupportedByVebox =
         IsAlphaSettingSupportedByVebox(scalingParams->formatInput, scalingParams->formatOutput, scalingParams->pCompAlpha);
+
+    if (isSREnabled)
+    {
+        // SR is enabled, scaling is not needed
+        scalingEngine->value = 0;
+        VP_PUBLIC_NORMALMESSAGE("SR is enabled, scaling is not needed.");
+
+        PrintFeatureExecutionCaps(__FUNCTION__, *scalingEngine);
+        return MOS_STATUS_SUCCESS;
+    }
 
     // Clean usedForNextPass flag.
     if (scalingEngine->usedForNextPass)

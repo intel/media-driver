@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2021, Intel Corporation
+* Copyright (c) 2011-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -4401,6 +4401,7 @@ const char * VphalParameterDumper::GetScalingModeStr(VPHAL_SCALING_MODE scaling_
     case VPHAL_SCALING_NEAREST:         return _T("VPHAL_SCALING_NEAREST");
     case VPHAL_SCALING_BILINEAR:        return _T("VPHAL_SCALING_BILINEAR");
     case VPHAL_SCALING_AVS:             return _T("VPHAL_SCALING_AVS");
+    case VPHAL_SCALING_ADV_QUALITY:     return _T("VPHAL_SCALING_ADV_QUALITY");
     default:                            return _T("Err");
     }
 

@@ -55,6 +55,11 @@ class SwFilterSubPipe;
 #define FEATURE_TYPE_MASK                   0xffffff00
 #define FEATURE_TYPE_ENGINE_ASSIGNED(feature) (((feature)&FEATURE_TYPE_MASK) != (feature))
 
+#define SURFACETYPE_SIZE32                  31
+#define SURFACETYPE_SIZE16                  15
+#define SURFACETYPE_SIZE5                   4
+#define SURFACETYPE_SIZE10                  9
+
 enum FeatureType
 {
     FeatureTypeInvalid          = 0,
@@ -666,6 +671,29 @@ enum SurfaceType
     SurfaceTypeSegWeightsEnd = SurfaceTypeSegWeights + 85,
     SurfaceTypeSegBias,
     SurfaceTypeSegBiasEnd = SurfaceTypeSegBias + 85,
+
+    // SR
+    SurfaceTypeSRLumaInputSurf,
+    SurfaceTypeSRTempOutputSurf,
+    SurfaceTypeSRTempLumaOutput,
+    SurfaceTypeSRTempLumaOutputEnd = SurfaceTypeSRTempLumaOutput + SURFACETYPE_SIZE32,
+    SurfaceTypeSRTempLuma2Output,
+    SurfaceTypeSRTempLuma2OutputEnd = SurfaceTypeSRTempLuma2Output + SURFACETYPE_SIZE16,
+    SurfaceTypeSRTempLuma3Output,
+    SurfaceTypeSRTempLuma3OutputEnd = SurfaceTypeSRTempLuma3Output + SURFACETYPE_SIZE5,
+    SurfaceTypeSRTempLuma4Output,
+    SurfaceTypeSRTempLuma4OutputEnd = SurfaceTypeSRTempLuma4Output + SURFACETYPE_SIZE32,
+    SurfaceTypeSRTempLuma5Output,
+    SurfaceTypeSRWeightBuffer,
+    SurfaceTypeSRWeightBufferEnd = SurfaceTypeSRWeightBuffer + SURFACETYPE_SIZE10,
+    SurfaceTypeSRBiasBuffer,
+    SurfaceTypeSRBiasBufferEnd = SurfaceTypeSRBiasBuffer + SURFACETYPE_SIZE10,
+    SurfaceTypeSRPreluBuffer,
+    SurfaceTypeSRPreluBufferEnd = SurfaceTypeSRPreluBuffer + SURFACETYPE_SIZE10,
+    SurfaceTypeSRSlopeBuffer,
+    SurfaceTypeSRSlopeBufferEnd = SurfaceTypeSRSlopeBuffer + SURFACETYPE_SIZE5,
+    SurfaceTypeSROutput,
+    SurfaceTypeSRChromaInput,
 
     NumberOfSurfaceType
 };

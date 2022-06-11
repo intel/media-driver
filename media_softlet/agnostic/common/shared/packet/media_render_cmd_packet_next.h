@@ -210,7 +210,9 @@ public:
 
     MOS_STATUS PrepareComputeWalkerParams(KERNEL_WALKER_PARAMS params, MHW_GPGPU_WALKER_PARAMS &gpgpuWalker);
 
-    bool isMultiBindingTables = false;
+    bool m_isMultiBindingTables = false;
+
+    bool m_isLargeSurfaceStateNeeded = false;
 
 protected:
     // Step5: Load Kernel
