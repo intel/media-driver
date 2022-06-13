@@ -2093,6 +2093,7 @@ MOS_STATUS CodechalVdencVp9StateG12::GetStatusReport(
     {
         encodeStatusReport->bitstreamSize = encodeStatus->dwMFCBitstreamByteCountPerFrame + encodeStatus->dwHeaderBytesInserted;
         encodeStatusReport->NumberPasses = (uint8_t)encodeStatus->dwNumberPasses;
+        ENCODE_VERBOSEMESSAGE("statusReportData->numberPasses: %d\n", encodeStatusReport->NumberPasses);
         encodeStatusReport->CodecStatus = CODECHAL_STATUS_SUCCESSFUL;
         return eStatus;
     }
@@ -2579,6 +2580,34 @@ MOS_STATUS CodechalVdencVp9StateG12::SetTileCommands(
     return eStatus;
 }
 
+MOS_STATUS CodechalVdencVp9StateG12::StoreNumPasses(
+    EncodeStatusBuffer *encodeStatusBuf,
+    MhwMiInterface     *miInterface,
+    PMOS_COMMAND_BUFFER cmdBuffer,
+    uint32_t            currPass)
+{
+    MHW_MI_STORE_DATA_PARAMS storeDataParams;
+    uint32_t                 offset;
+    MOS_STATUS               eStatus = MOS_STATUS_SUCCESS;
+
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    CODECHAL_ENCODE_CHK_NULL_RETURN(encodeStatusBuf);
+    CODECHAL_ENCODE_CHK_NULL_RETURN(miInterface);
+    CODECHAL_ENCODE_CHK_NULL_RETURN(cmdBuffer);
+
+    offset =
+        (encodeStatusBuf->wCurrIndex * encodeStatusBuf->dwReportSize) +
+        encodeStatusBuf->dwNumPassesOffset +  // Num passes offset
+        sizeof(uint32_t) * 2;                 // pEncodeStatus is offset by 2 DWs in the resource
+
+    storeDataParams.pOsResource      = &encodeStatusBuf->resStatusBuffer;
+    storeDataParams.dwResourceOffset = offset;
+    storeDataParams.dwValue          = currPass + 1;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(miInterface->AddMiStoreDataImmCmd(cmdBuffer, &storeDataParams));
+
+    return MOS_STATUS_SUCCESS;
+}
 MOS_STATUS CodechalVdencVp9StateG12::ExecuteTileLevel()
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
@@ -2700,6 +2729,11 @@ MOS_STATUS CodechalVdencVp9StateG12::ExecuteTileLevel()
     {
         m_lastTaskInPhase = true; //HPU singletask phase mode only
     }
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(StoreNumPasses(
+        &(m_encodeStatusBuf),
+        m_miInterface,
+        &cmdBuffer,
+        m_currPass));
 
     if (!m_singleTaskPhaseSupported || m_lastTaskInPhase || m_scalableMode)
     {

@@ -1308,5 +1308,10 @@ public:
         PMOS_COMMAND_BUFFER cmdBuffer);
     MOS_STATUS SetDmemHuCVp9Prob() override;
     MOS_STATUS InsertConditionalBBEndWithHucErrorStatus(PMOS_COMMAND_BUFFER cmdBuffer);
+    MOS_STATUS StoreNumPasses(
+        EncodeStatusBuffer *encodeStatusBuf,
+        MhwMiInterface     *miInterface,
+        PMOS_COMMAND_BUFFER cmdBuffer,
+        uint32_t            currPass);
 };
 #endif  // __CODECHAL_VDENC_VP9_G12_H__

@@ -1091,6 +1091,7 @@ MOS_STATUS CodechalVdencVp9StateXe_Xpm::ConstructPicStateBatchBuf(
     picState.uiMaxBitRate = m_vp9SeqParams->MaxBitRate * CODECHAL_ENCODE_BRC_KBPS;
     picState.uiMinBitRate = m_vp9SeqParams->MinBitRate * CODECHAL_ENCODE_BRC_KBPS;
     m_hucPicStateOffset = (uint16_t)constructedCmdBuf.iOffset;
+    picState.bNonFirstPassFlag = !IsFirstPass();
 
     eStatus = m_hcpInterface->AddHcpVp9PicStateEncCmd(&constructedCmdBuf, nullptr, &picState);
     if (eStatus != MOS_STATUS_SUCCESS)
