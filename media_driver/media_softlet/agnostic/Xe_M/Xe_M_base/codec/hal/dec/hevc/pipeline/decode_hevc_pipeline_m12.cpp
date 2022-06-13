@@ -220,6 +220,7 @@ MOS_STATUS HevcPipelineM12::Prepare(void *params)
     if (IsFirstProcessPipe(*pipelineParams))
     {
         DECODE_CHK_STATUS(HevcPipeline::Prepare(params));
+        DECODE_CHK_STATUS(HevcPipeline::DestoryPhaseList());
     }
 
     DECODE_CHK_STATUS(m_preSubPipeline->Prepare(*pipelineParams));
