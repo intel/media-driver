@@ -146,12 +146,6 @@ public:
 
 protected:
     //!
-    //! \brief  Converts MOS format infot GMM format.
-    //! \return the converting result.
-    //!
-    GMM_RESOURCE_FORMAT ConvertMosFmtToGmmFmt(MOS_FORMAT format);
-
-    //!
     //! \brief  Set tilemode by force to GMM info flag.
     //! \return MOS_SUCCESS on success case.
     //!

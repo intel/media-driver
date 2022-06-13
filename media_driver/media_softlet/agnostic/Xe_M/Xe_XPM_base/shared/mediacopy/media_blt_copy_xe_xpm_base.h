@@ -76,15 +76,6 @@ public:
         PMOS_RESOURCE dst);
 
     //!
-    //! \brief    ConvertFormatGmmToMos
-    //! \param    format
-    //!           [in] GMM format (GMM_FORMAT_*)
-    //! \return   MOS_FORMAT
-    //!           Return MOS_FORMAT corresponding to GMM format or Format_Invalid if no mapping
-    //!
-    MOS_FORMAT ConvertFormatGmmToMos(GMM_RESOURCE_FORMAT format);
-
-    //!
     //! \brief    MapTileType
     //! \param    flags
     //!           [in] GMM resource flags

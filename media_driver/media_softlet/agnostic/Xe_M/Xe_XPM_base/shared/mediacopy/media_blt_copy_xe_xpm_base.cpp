@@ -120,7 +120,7 @@ MOS_STATUS BltStateXe_Xpm::InitProtectResource(PMOS_RESOURCE target)
         MOS_ZeroMemory(&AllocParams, sizeof(MOS_ALLOC_GFXRES_PARAMS));
         AllocParams.Type = MOS_GFXRES_2D;
         AllocParams.TileType = MapTileType(target->pGmmResInfo->GetResFlags(), target->pGmmResInfo->GetTileType());
-        AllocParams.Format = ConvertFormatGmmToMos(target->pGmmResInfo->GetResourceFormat());
+        AllocParams.Format = MosInterface::GmmFmtToMosFmt(target->pGmmResInfo->GetResourceFormat());
         AllocParams.dwWidth = (uint32_t)target->pGmmResInfo->GetBaseWidth();
         AllocParams.dwHeight = (uint32_t)target->pGmmResInfo->GetBaseHeight();
 
@@ -220,91 +220,6 @@ MOS_STATUS BltStateXe_Xpm::CopyProtectSurface(
 
     return MOS_STATUS_SUCCESS;
 }
-
-//!
-//! \brief    ConvertFormatGmmToMos
-//! \param    format
-//!           [in] GMM format (GMM_FORMAT_*)
-//! \return   MOS_FORMAT
-//!           Return MOS_FORMAT corresponding to GMM format or Format_Invalid if no mapping
-//!
-MOS_FORMAT BltStateXe_Xpm::ConvertFormatGmmToMos(GMM_RESOURCE_FORMAT format)
-{
-    switch (format)
-    {
-        case GMM_FORMAT_B8G8R8A8_UNORM_TYPE:        return Format_A8R8G8B8;
-        case GMM_FORMAT_B8G8R8X8_UNORM_TYPE:        return Format_X8R8G8B8;
-        case GMM_FORMAT_R8G8B8A8_UNORM_TYPE:        return Format_A8B8G8R8;
-        case GMM_FORMAT_B5G6R5_UNORM_TYPE:          return Format_R5G6B5;
-        case GMM_FORMAT_R8G8B8_UNORM:               return Format_R8G8B8;
-        case GMM_FORMAT_R32_UINT_TYPE:              return Format_R32U;
-        case GMM_FORMAT_R32_FLOAT_TYPE:             return Format_R32F;
-        case GMM_FORMAT_MEDIA_Y8_UNORM:             return Format_Y8;
-        case GMM_FORMAT_MEDIA_Y1_UNORM:             return Format_Y8;
-        case GMM_FORMAT_MEDIA_Y16_UNORM:            return Format_Y16U;
-        case GMM_FORMAT_MEDIA_Y16_SNORM:            return Format_Y16S;
-        case GMM_FORMAT_YUY2_2x1:                   return Format_YUY2;
-        case GMM_FORMAT_YUY2:                       return Format_YUY2;
-        case GMM_FORMAT_P8:                         return Format_P8;
-        case GMM_FORMAT_R16_UNORM_TYPE:             return Format_R16UN;
-        case GMM_FORMAT_A8_UNORM_TYPE:              return Format_A8;
-        case GMM_FORMAT_GENERIC_8BIT:               return Format_L8;
-        case GMM_FORMAT_L16_UNORM_TYPE:             return Format_L16;
-        case GMM_FORMAT_GENERIC_16BIT_TYPE:         return Format_D16;
-        case GMM_FORMAT_YVYU:                       return Format_YVYU;
-        case GMM_FORMAT_UYVY:                       return Format_UYVY;
-        case GMM_FORMAT_VYUY_2x1:                   return Format_VYUY;
-        case GMM_FORMAT_VYUY:                       return Format_VYUY;
-        case GMM_FORMAT_P016_TYPE:                  return Format_P016;
-        case GMM_FORMAT_P010_TYPE:                  return Format_P010;
-        case GMM_FORMAT_NV12_TYPE:                  return Format_NV12;
-        case GMM_FORMAT_NV11_TYPE:                  return Format_NV11;
-        case GMM_FORMAT_P208_TYPE:                  return Format_P208;
-        case GMM_FORMAT_IMC1_TYPE:                  return Format_IMC1;
-        case GMM_FORMAT_IMC2_TYPE:                  return Format_IMC2;
-        case GMM_FORMAT_IMC3_TYPE:                  return Format_IMC3;
-        case GMM_FORMAT_IMC4_TYPE:                  return Format_IMC4;
-        case GMM_FORMAT_I420_TYPE:                  return Format_I420;
-        case GMM_FORMAT_IYUV_TYPE:                  return Format_IYUV;
-        case GMM_FORMAT_YV12_TYPE:                  return Format_YV12;
-        case GMM_FORMAT_YVU9_TYPE:                  return Format_YVU9;
-        case GMM_FORMAT_R8_UNORM_TYPE:              return Format_R8UN;
-        case GMM_FORMAT_R16_UINT_TYPE:              return Format_R16U;
-        case GMM_FORMAT_R8G8_SNORM:                 return Format_V8U8;
-        case GMM_FORMAT_R8_UINT_TYPE:               return Format_R8U;
-        case GMM_FORMAT_R32_SINT:                   return Format_R32S;
-        case GMM_FORMAT_R8G8_UNORM_TYPE:            return Format_R8G8UN;
-        case GMM_FORMAT_R16_SINT_TYPE:              return Format_R16S;
-        case GMM_FORMAT_R16G16B16A16_UNORM_TYPE:    return Format_A16B16G16R16;
-        case GMM_FORMAT_R16G16B16A16_FLOAT_TYPE:    return Format_A16B16G16R16F;
-        case GMM_FORMAT_R10G10B10A2_UNORM_TYPE:     return Format_R10G10B10A2;
-        case GMM_FORMAT_MFX_JPEG_YUV422H_TYPE:      return Format_422H;
-        case GMM_FORMAT_MFX_JPEG_YUV411_TYPE:       return Format_411P;
-        case GMM_FORMAT_MFX_JPEG_YUV422V_TYPE:      return Format_422V;
-        case GMM_FORMAT_MFX_JPEG_YUV444_TYPE:       return Format_444P;
-        case GMM_FORMAT_BAYER_BGGR16:               return Format_IRW0;
-        case GMM_FORMAT_BAYER_RGGB16:               return Format_IRW1;
-        case GMM_FORMAT_BAYER_GRBG16:               return Format_IRW2;
-        case GMM_FORMAT_BAYER_GBRG16:               return Format_IRW3;
-        case GMM_FORMAT_R8G8B8A8_UINT_TYPE:         return Format_AYUV;
-        case GMM_FORMAT_AYUV:                       return Format_AYUV;
-        case GMM_FORMAT_R16G16_UNORM_TYPE:          return Format_R16G16UN;
-        case GMM_FORMAT_R16_FLOAT:                  return Format_R16F;
-        case GMM_FORMAT_Y416_TYPE:                  return Format_Y416;
-        case GMM_FORMAT_Y410_TYPE:                  return Format_Y410;
-        case GMM_FORMAT_Y210_TYPE:                  return Format_Y210;
-        case GMM_FORMAT_Y216_TYPE:                  return Format_Y216;
-        case GMM_FORMAT_MFX_JPEG_YUV411R_TYPE:      return Format_411R;
-        case GMM_FORMAT_RGBP_TYPE:                  return Format_RGBP;
-        case GMM_FORMAT_BGRP_TYPE:                  return Format_RGBP;
-        case GMM_FORMAT_R24_UNORM_X8_TYPELESS:      return Format_D24S8UN;
-        case GMM_FORMAT_R32_FLOAT_X8X24_TYPELESS:   return Format_D32S8X24_FLOAT;
-        case GMM_FORMAT_R16G16_SINT_TYPE:           return Format_R16G16S;
-        case GMM_FORMAT_R32G32B32A32_FLOAT:         return Format_R32G32B32A32F;
-        default:                                    return Format_Invalid;
-    }
-}
-
 
 //!
 //! \brief    MapTileType

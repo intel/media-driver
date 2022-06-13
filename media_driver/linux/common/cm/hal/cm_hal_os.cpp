@@ -322,7 +322,7 @@ MOS_STATUS HalCm_GetSurfPitchSize(
     gmmFlags.Gpu.Texture    = true;
 
     gmmParams.Type           = RESOURCE_2D;
-    gmmParams.Format         = state->osInterface->pfnFmt_MosToGmm( format );
+    gmmParams.Format         = MosInterface::MosFmtToGmmFmt( format );
     gmmParams.Flags          = gmmFlags;
     gmmParams.BaseWidth      = width;
     gmmParams.BaseHeight     = height;
@@ -524,7 +524,7 @@ MOS_STATUS HalCm_AllocateBuffer_Linux(
             gmmParams.BaseWidth = param->size;
             gmmParams.BaseHeight = 1;
             gmmParams.ArraySize = 1;
-            gmmParams.Format = osInterface->pfnFmt_MosToGmm(Format_Buffer);
+            gmmParams.Format = MosInterface::MosFmtToGmmFmt(Format_Buffer);
 
             GMM_CLIENT_CONTEXT* pGmmClientContext = osInterface->pfnGetGmmClientContext(osInterface);
             GMM_RESOURCE_INFO* tmpGmmResInfoPtr = pGmmClientContext->CreateResInfoObject(&gmmParams);

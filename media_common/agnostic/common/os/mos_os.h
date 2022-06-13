@@ -1185,9 +1185,6 @@ typedef struct _MOS_INTERFACE
         PMOS_INTERFACE              pOsInterface,
         PMOS_COMMAND_BUFFER         pCmdBuffer);
 
-    GMM_RESOURCE_FORMAT (* pfnFmt_MosToGmm) (
-        MOS_FORMAT                  format);
-
     void (* pfnSetPerfTag) (
         PMOS_INTERFACE              pOsInterface,
         uint32_t                    PerfTag);

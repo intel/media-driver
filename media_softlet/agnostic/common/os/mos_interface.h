@@ -2015,6 +2015,11 @@ public:
     static GMM_RESOURCE_FORMAT MosFmtToGmmFmt(MOS_FORMAT format);
 
     //!
+    //! \brief  Translate GMM_RESOURCE_FORMAT into MOS_FORMAT
+    //!
+    static MOS_FORMAT GmmFmtToMosFmt(GMM_RESOURCE_FORMAT format);
+
+    //!
     //! \brief  Translate MOS_FORMAT into MOS_OS_FORMAT
     //!
     static uint32_t MosFmtToOsFmt(MOS_FORMAT format);

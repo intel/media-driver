@@ -2227,68 +2227,6 @@ void Mos_Specific_ResetOsStates(
  }
 
 //!
-//! \brief    Convert MOS format to gmm format
-//! \details  convert MOS format to gmm format
-//! \param    MOS_FORMAT format
-//!           [in] Surface
-//! \return   MEDIA_WA_TABLE *
-//!           Returns the pointer to WA table
-//!
-GMM_RESOURCE_FORMAT Mos_Specific_ConvertMosFmtToGmmFmt(
-    MOS_FORMAT format)
-{
-    switch (format)
-    {
-        case Format_Buffer      : return GMM_FORMAT_GENERIC_8BIT;
-        case Format_Buffer_2D   : return GMM_FORMAT_GENERIC_8BIT;               // matching size as format
-        case Format_L8          : return GMM_FORMAT_GENERIC_8BIT;               // matching size as format
-        case Format_L16         : return GMM_FORMAT_L16_UNORM_TYPE;
-        case Format_STMM        : return GMM_FORMAT_R8_UNORM_TYPE;              // matching size as format
-        case Format_AI44        : return GMM_FORMAT_GENERIC_8BIT;               // matching size as format
-        case Format_IA44        : return GMM_FORMAT_GENERIC_8BIT;               // matching size as format
-        case Format_R5G6B5      : return GMM_FORMAT_B5G6R5_UNORM_TYPE;
-        case Format_R8G8B8      : return GMM_FORMAT_R8G8B8_UNORM;
-        case Format_X8R8G8B8    : return GMM_FORMAT_B8G8R8X8_UNORM_TYPE;
-        case Format_A8R8G8B8    : return GMM_FORMAT_B8G8R8A8_UNORM_TYPE;
-        case Format_X8B8G8R8    : return GMM_FORMAT_R8G8B8X8_UNORM_TYPE;
-        case Format_A8B8G8R8    : return GMM_FORMAT_R8G8B8A8_UNORM_TYPE;
-        case Format_R32F        : return GMM_FORMAT_R32_FLOAT_TYPE;
-        case Format_V8U8        : return GMM_FORMAT_GENERIC_16BIT;              // matching size as format
-        case Format_YUY2        : return GMM_FORMAT_YUY2;
-        case Format_UYVY        : return GMM_FORMAT_UYVY;
-        case Format_P8          : return GMM_FORMAT_RENDER_8BIT_TYPE;           // matching size as format
-        case Format_A8          : return GMM_FORMAT_A8_UNORM_TYPE;
-        case Format_AYUV        : return GMM_FORMAT_R8G8B8A8_UINT_TYPE;
-        case Format_NV12        : return GMM_FORMAT_NV12_TYPE;
-        case Format_NV21        : return GMM_FORMAT_NV21_TYPE;
-        case Format_YV12        : return GMM_FORMAT_YV12_TYPE;
-        case Format_R32U        : return GMM_FORMAT_R32_UINT_TYPE;
-        case Format_R32S        : return GMM_FORMAT_R32_SINT_TYPE;
-        case Format_RAW         : return GMM_FORMAT_GENERIC_8BIT;
-        case Format_444P        : return GMM_FORMAT_MFX_JPEG_YUV444_TYPE;
-        case Format_422H        : return GMM_FORMAT_MFX_JPEG_YUV422H_TYPE;
-        case Format_422V        : return GMM_FORMAT_MFX_JPEG_YUV422V_TYPE;
-        case Format_IMC3        : return GMM_FORMAT_IMC3_TYPE;
-        case Format_411P        : return GMM_FORMAT_MFX_JPEG_YUV411_TYPE;
-        case Format_411R        : return GMM_FORMAT_MFX_JPEG_YUV411R_TYPE;
-        case Format_RGBP        : return GMM_FORMAT_RGBP_TYPE;
-        case Format_BGRP        : return GMM_FORMAT_BGRP_TYPE;
-        case Format_R8U         : return GMM_FORMAT_R8_UINT_TYPE;
-        case Format_R8UN        : return GMM_FORMAT_R8_UNORM;
-        case Format_R16U        : return GMM_FORMAT_R16_UINT_TYPE;
-        case Format_R16F        : return GMM_FORMAT_R16_FLOAT_TYPE;
-        case Format_P010        : return GMM_FORMAT_P010_TYPE;
-        case Format_P016        : return GMM_FORMAT_P016_TYPE;
-        case Format_Y216        : return GMM_FORMAT_Y216_TYPE;
-        case Format_Y416        : return GMM_FORMAT_Y416_TYPE;
-        case Format_P208        : return GMM_FORMAT_P208_TYPE;
-        case Format_Y210        : return GMM_FORMAT_Y210_TYPE;
-        case Format_Y410        : return GMM_FORMAT_Y410_TYPE;
-        default                 : return GMM_FORMAT_INVALID;
-    }
-}
-
-//!
 //! \brief    Allocate resource
 //! \details  To Allocate Buffer, pass Format as Format_Buffer and set the iWidth as size of the buffer.
 //! \param    PMOS_INTERFACE pOsInterface
@@ -2499,7 +2437,7 @@ MOS_STATUS Mos_Specific_AllocateResource(
     GmmParams.BaseHeight            = iAlignedHeight;
     GmmParams.ArraySize             = 1;
     GmmParams.Type                  = resourceType;
-    GmmParams.Format                = Mos_Specific_ConvertMosFmtToGmmFmt(pParams->Format);
+    GmmParams.Format                = MosInterface::MosFmtToGmmFmt(pParams->Format);
 
     MOS_OS_CHECK_CONDITION(GmmParams.Format == GMM_FORMAT_INVALID,
                          "Unsupported format",
@@ -7204,7 +7142,6 @@ MOS_STATUS Mos_Specific_InitInterface(
     pOsInterface->pfnWaitAndReleaseCmdBuffer                = Mos_Specific_WaitAndReleaseCmdBuffer;
     pOsInterface->pfnVerifyCommandBufferSize                = Mos_Specific_VerifyCommandBufferSize;
     pOsInterface->pfnResizeCommandBufferAndPatchList        = Mos_Specific_ResizeCommandBufferAndPatchList;
-    pOsInterface->pfnFmt_MosToGmm                           = Mos_Specific_ConvertMosFmtToGmmFmt;
     pOsInterface->pfnSetPerfTag                             = Mos_Specific_SetPerfTag;
     pOsInterface->pfnResetPerfBufferID                      = Mos_Specific_ResetPerfBufferID;
     pOsInterface->pfnIncPerfFrameID                         = Mos_Specific_IncPerfFrameID;

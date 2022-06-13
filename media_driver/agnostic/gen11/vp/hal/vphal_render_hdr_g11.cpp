@@ -28,6 +28,7 @@
 
 #include "vphal_render_hdr_g11.h"
 #include "renderhal.h"
+#include "mos_interface.h"
 
 static const std::string DumpRoot("C:\\temp\\");
 static const std::string OutputDumpDirectory(DumpRoot + "Output\\");
@@ -323,7 +324,7 @@ void Hdr3DLutGenerator::AllocateResources()
     m_hdr3DLutSysBuffer = MOS_NewArray(uint8_t, m_lutSizeInBytes);
     Init3DLutSurface();
     // Allocate 3DLut Surface
-    m_hdr3DLutSurface = MOS_New(VpCmSurfaceHolder<CmSurface2D>, lutWidth, lutHeight, 1, ConvertMosFmtToGmmFmt(Format_A8R8G8B8), m_cmContext);
+    m_hdr3DLutSurface = MOS_New(VpCmSurfaceHolder<CmSurface2D>, lutWidth, lutHeight, 1, MosInterface::MosFmtToGmmFmt(Format_A8R8G8B8), m_cmContext);
     m_hdr3DLutSurface->GetCmSurface()->WriteSurface(m_hdr3DLutSysBuffer, nullptr);
 
     // Allocate Coefficient Surface in GPU memory

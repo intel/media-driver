@@ -44,7 +44,6 @@ class MosOsSpecificNext
 public:
 
     static GpuContextSpecific * Linux_GetGpuContext(PMOS_INTERFACE pOsInterface, uint32_t gpuContextHandle);
-    static GMM_RESOURCE_FORMAT Mos_Specific_ConvertMosFmtToGmmFmt(MOS_FORMAT format);
 
 MEDIA_CLASS_DEFINE_END(MosOsSpecificNext)
 };
