@@ -103,11 +103,11 @@ MOS_STATUS EncodePipeline::Initialize(void *settings)
     ENCODE_CHK_STATUS_RETURN(CreateFeatureManager());
     ENCODE_CHK_NULL_RETURN(m_featureManager);
 
-    ENCODE_CHK_STATUS_RETURN(m_featureManager->Init(codecSettings));
-
     m_encodecp = MOS_New(EncodeCp, m_hwInterface);
     m_encodecp->RegisterParams(codecSettings);
     bool cpenable = m_encodecp->isCpEnabled();
+
+    ENCODE_CHK_STATUS_RETURN(m_featureManager->Init(codecSettings));
 
     m_packetUtilities = MOS_New(PacketUtilities, m_hwInterface, m_featureManager);
     ENCODE_CHK_NULL_RETURN(m_packetUtilities);

@@ -166,6 +166,12 @@ MOS_STATUS EncodePipeline::InitUserSetting(MediaUserSettingSharedPtr userSetting
         MediaUserSetting::Group::Sequence,
         "",
         false);
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        "FAST PAK ENABLE",
+        MediaUserSetting::Group::Sequence,
+        int32_t(1),
+        false);
 #endif
 
 #if _MEDIA_RESERVED

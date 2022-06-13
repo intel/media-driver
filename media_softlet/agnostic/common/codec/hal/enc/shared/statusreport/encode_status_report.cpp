@@ -166,7 +166,11 @@ namespace encode {
         m_statusBufAddr[statusReportLoopFilterLevel].offset                       = CODECHAL_OFFSETOF(EncodeStatusMfx, loopFilterLevel);
         m_statusBufAddr[statusReportImageStatusCtrlOfLastBRCPass].offset          = CODECHAL_OFFSETOF(EncodeStatusMfx, imageStatusCtrlOfLastBRCPass);
         m_statusBufAddr[statusReportSceneChangedFlag].offset                      = CODECHAL_OFFSETOF(EncodeStatusMfx, sceneChangedFlag);
-        m_statusBufAddr[statusReportSumSquareError].offset                        = CODECHAL_OFFSETOF(EncodeStatusMfx, sumSquareError[3]);
+        m_statusBufAddr[statusReportSumSquareError].offset                        = CODECHAL_OFFSETOF(EncodeStatusMfx, sumSquareError[0]);
+        m_statusBufAddr[statusReportSadLuma].offset                               = CODECHAL_OFFSETOF(EncodeStatusMfx, sadLuma);
+        m_statusBufAddr[statusReportNumIntra4x4Block].offset                      = CODECHAL_OFFSETOF(EncodeStatusMfx, numIntra4x4Block);
+        m_statusBufAddr[statusReportNumInterSkip4x4Block].offset                  = CODECHAL_OFFSETOF(EncodeStatusMfx, numInterSkip4x4Block);
+        m_statusBufAddr[statusReportNumSkip8x8Block].offset                       = CODECHAL_OFFSETOF(EncodeStatusMfx, numSkip8x8Block);
         m_statusBufAddr[statusReportSliceReport].offset                           = CODECHAL_OFFSETOF(EncodeStatusMfx, sliceReport);
         m_statusBufAddr[statusReportLpla].offset                                  = CODECHAL_OFFSETOF(EncodeStatusMfx, lookaheadStatus);
     }
@@ -337,6 +341,9 @@ namespace encode {
         bool            completed        = false;
 
         EncodeStatusReportData *statusReportData = &m_statusReportData[index];
+
+        statusReportData->pFrmStatsInfo = ((EncodeStatusReportData *)report)->pFrmStatsInfo;
+        statusReportData->pBlkStatsInfo = ((EncodeStatusReportData *)report)->pBlkStatsInfo;
 
         if (m_enableRcs)
         {
