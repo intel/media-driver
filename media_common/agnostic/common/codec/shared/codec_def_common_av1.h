@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2021, Intel Corporation
+* Copyright (c) 2020-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -179,15 +179,14 @@ enum CodecAv1ReferenceMode
 
 //!
 //! \enum CodecAv1TxType
-//! AV1 transformation type, defined in AOM
+//! AV1 transformation type, defined in AOM errata.1
 //!
 enum class CodecAv1TxType
 {
-    ONLY_4X4    = 0,
-    ALLOW_8X8   = 1,
-    ALLOW_16X16 = 2,
-    ALLOW_32X32 = 3,
-    SELECTABLE  = 4,
+    ONLY_4X4        = 0,    // use only 4x4 transform
+    TX_MODE_LARGEST = 1,    // transform size is the largest possible for pu size
+    TX_MODE_SELECT  = 2,    // transform specified for each block
+    TX_MODES,
 };
 
 //!
