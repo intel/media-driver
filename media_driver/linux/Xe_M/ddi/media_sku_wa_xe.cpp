@@ -816,6 +816,9 @@ static bool InitDg2MediaSku(struct GfxDeviceInfo *devInfo,
 
     MEDIA_WR_SKU(skuTable, FtrHDR, 1);
 
+    // Enable HVS Denoise
+    MEDIA_WR_SKU(skuTable, FtrHVSDenoise, 1);
+
     return true;
 }
 

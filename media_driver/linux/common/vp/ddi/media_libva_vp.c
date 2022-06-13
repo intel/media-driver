@@ -4358,7 +4358,24 @@ DdiVp_QueryVideoProcFilterCaps (
         
         /* HVS Noise reduction filter */
         case VAProcFilterHVSNoiseReduction:
-            /* Add it later */
+            if (mediaDrvCtx)
+            {
+                if (MEDIA_IS_SKU(&mediaDrvCtx->SkuTable, FtrHVSDenoise))
+                {
+                    uExistCapsNum = 4;
+                    *num_filter_caps = uExistCapsNum;
+                }
+                else
+                {
+                    uExistCapsNum = 0;
+                    *num_filter_caps = uExistCapsNum;
+                }
+            }
+            else
+            {
+                VP_DDI_ASSERTMESSAGE("mediaDrvCtx is null pointer.\n");
+                return VA_STATUS_ERROR_INVALID_CONTEXT;
+            }
             break;
 
         /* Deinterlacing filter */
