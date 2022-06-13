@@ -29,9 +29,7 @@
 #include "media_interfaces_vphal.h"
 #include "vp_platform_interface.h"
 #include "vphal_debug.h"
-#if !EMUL
 #include "media_interfaces_mhw_next.h"
-#endif
 
 VpPipelineAdapterBase::VpPipelineAdapterBase(
     vp::VpPlatformInterface &vpPlatformInterface,

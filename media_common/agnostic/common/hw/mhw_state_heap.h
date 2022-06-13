@@ -1593,11 +1593,13 @@ struct _MHW_STATE_HEAP_INTERFACE
 
 };
 
+MOS_STATUS Mhw_StateHeapInterface_AssignInterfaces(
+    PMHW_STATE_HEAP_INTERFACE    pCommonStateHeapInterface);
+
 MOS_STATUS Mhw_StateHeapInterface_InitInterface(
     PMHW_STATE_HEAP_INTERFACE   *ppCommonStateHeapInterface,
     PMOS_INTERFACE               pOsInterface,
-    uint8_t                      bDynamicMode
-);
+    uint8_t                      bDynamicMode);
 
 extern const uint8_t g_cMhw_VDirection[MHW_NUM_FRAME_FIELD_TYPES];
 

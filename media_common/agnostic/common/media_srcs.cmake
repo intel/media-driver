@@ -21,6 +21,7 @@
 media_include_subdirectory(os)
 media_include_subdirectory(codec)
 media_include_subdirectory(vp)
+media_include_subdirectory(heap_manager)
 media_include_subdirectory(hw)
 media_include_subdirectory(shared)
 media_include_subdirectory(media_interfaces)

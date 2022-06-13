@@ -72,7 +72,7 @@ set(TMP_4_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/mhw_memory_pool.c
     ${CMAKE_CURRENT_LIST_DIR}/mhw_mi.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mhw_render.c
-    ${CMAKE_CURRENT_LIST_DIR}/mhw_state_heap.c
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_state_heap_legacy.c
     ${CMAKE_CURRENT_LIST_DIR}/mhw_utilities.c
 )
 
@@ -81,7 +81,7 @@ set(TMP_4_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mhw_memory_pool.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_mi_generic.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_render_generic.h
-    ${CMAKE_CURRENT_LIST_DIR}/mhw_state_heap.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_state_heap_legacy.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_state_heap_generic.h
 )
 

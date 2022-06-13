@@ -30,7 +30,7 @@
 
 #include "mos_os.h"
 #include "mhw_utilities.h"
-#include "mhw_state_heap.h"
+#include "mhw_state_heap_legacy.h"
 #include "mhw_mi.h"
 #include "mhw_render_itf.h"
 
@@ -682,7 +682,7 @@ protected:
 
         InitPreemption();
 
-        if (Mhw_StateHeapInterface_InitInterface(
+        if (Mhw_StateHeapInterface_InitInterface_Legacy(
             &m_stateHeapInterface,
             m_osInterface,
             newStateHeapManagerRequested) != MOS_STATUS_SUCCESS)

@@ -26,7 +26,7 @@
 #include "mhw_state_heap.h"
 #include "mhw_utilities.h"
 #include "mhw_block_manager.h"
-#include "media_interfaces_mhw.h"
+#include "media_interfaces_mhw_next.h"
 #include "mhw_mi.h"
 #include "mhw_cp_interface.h"
 #include "mos_interface.h"
@@ -729,34 +729,19 @@ MOS_STATUS Mhw_StateHeapInterface_Destroy(
 }
 
 //!
-//! \brief    Initializes the state heap interface
-//! \details  Internal MHW function to initialize all function pointers and some parameters
-//! \param    PMHW_STATE_HEAP_INTERFACE* ppStateHeapInterface
-//!           [in/out] Poitner to state heap interface pointer to be allocated
-//! \param    PMOS_INTERFACE pOsInterface
-//!           [in] OS interface
+//! \brief    Assign the state heap interfaces
+//! \details  Internal MHW function to assign all function pointers
+//! \param    PMHW_STATE_HEAP_INTERFACE pStateHeapInterface
+//!           [in/out] Pointer to state heap interface
 //! \return   MOS_STATUS
 //!           MOS_STATUS_SUCCESS if success, else fail reason
 //!
-MOS_STATUS Mhw_StateHeapInterface_InitInterface(
-    PMHW_STATE_HEAP_INTERFACE   *ppCommonStateHeapInterface,
-    PMOS_INTERFACE              pOsInterface,
-    uint8_t                     bDynamicMode)
+MOS_STATUS Mhw_StateHeapInterface_AssignInterfaces(
+    PMHW_STATE_HEAP_INTERFACE   pCommonStateHeapInterface)
 {
-    PMHW_STATE_HEAP_INTERFACE   pCommonStateHeapInterface = nullptr;
-    MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
-    MhwInterfaces::CreateParams params;
-    MhwInterfaces               *mhwInterfaces = nullptr;
-
     MHW_FUNCTION_ENTER;
-
-    MHW_CHK_NULL(ppCommonStateHeapInterface);
-    MHW_CHK_NULL(pOsInterface);
-
-    pCommonStateHeapInterface =
-        (PMHW_STATE_HEAP_INTERFACE)MOS_AllocAndZeroMemory(sizeof(MHW_STATE_HEAP_INTERFACE));
-    MHW_CHK_NULL(pCommonStateHeapInterface);
-
+    
+    MHW_CHK_NULL_RETURN(pCommonStateHeapInterface);
     //Common Interfaces
     pCommonStateHeapInterface->pfnCreate                          = Mhw_StateHeapInterface_Create;
     pCommonStateHeapInterface->pfnDestroy                         = Mhw_StateHeapInterface_Destroy;
@@ -789,10 +774,43 @@ MOS_STATUS Mhw_StateHeapInterface_InitInterface(
     pCommonStateHeapInterface->pfnInitSamplerStates           = Mhw_StateHeapInterface_InitSamplerStates;
     pCommonStateHeapInterface->pfnSetSamplerState             = Mhw_StateHeapInterface_SetSamplerState;
 
+    return MOS_STATUS_SUCCESS;
+}
+
+//!
+//! \brief    Initializes the state heap interface
+//! \details  Internal MHW function to initialize all function pointers and some parameters
+//! \param    PMHW_STATE_HEAP_INTERFACE* ppStateHeapInterface
+//!           [in/out] Poitner to state heap interface pointer to be allocated
+//! \param    PMOS_INTERFACE pOsInterface
+//!           [in] OS interface
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+MOS_STATUS Mhw_StateHeapInterface_InitInterface(
+    PMHW_STATE_HEAP_INTERFACE   *ppCommonStateHeapInterface,
+    PMOS_INTERFACE              pOsInterface,
+    uint8_t                     bDynamicMode)
+{
+    PMHW_STATE_HEAP_INTERFACE   pCommonStateHeapInterface = nullptr;
+    MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
+    MhwInterfacesNext::CreateParams params;
+    MhwInterfacesNext           *mhwInterfaces = nullptr;
+
+    MHW_FUNCTION_ENTER;
+
+    MHW_CHK_NULL(ppCommonStateHeapInterface);
+    MHW_CHK_NULL(pOsInterface);
+
+    pCommonStateHeapInterface =
+        (PMHW_STATE_HEAP_INTERFACE)MOS_AllocAndZeroMemory(sizeof(MHW_STATE_HEAP_INTERFACE));
+    MHW_CHK_NULL(pCommonStateHeapInterface);
+    MHW_CHK_STATUS(Mhw_StateHeapInterface_AssignInterfaces(pCommonStateHeapInterface));
+
     MOS_ZeroMemory(&params, sizeof(params));
     params.Flags.m_stateHeap = true;
     params.m_heapMode = bDynamicMode;
-    mhwInterfaces = MhwInterfaces::CreateFactory(params, pOsInterface);
+    mhwInterfaces = MhwInterfacesNext::CreateFactory(params, pOsInterface);
     if (mhwInterfaces)
     {
         MHW_CHK_NULL(mhwInterfaces->m_stateHeapInterface);
