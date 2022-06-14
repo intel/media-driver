@@ -1247,6 +1247,9 @@ uint32_t CodechalEncodeAvcEnc::GetMaxMvsPer2Mb(uint8_t levelIdc)
     case CODEC_AVC_LEVEL_5:
     case CODEC_AVC_LEVEL_51:
     case CODEC_AVC_LEVEL_52:
+    case CODEC_AVC_LEVEL_6:
+    case CODEC_AVC_LEVEL_61:
+    case CODEC_AVC_LEVEL_62:
         maxMvsPer2Mb = 16;
         break;
     default:

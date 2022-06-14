@@ -86,7 +86,10 @@ typedef enum
     CODEC_AVC_LEVEL_42                   = 42,
     CODEC_AVC_LEVEL_5                    = 50,
     CODEC_AVC_LEVEL_51                   = 51,
-    CODEC_AVC_LEVEL_52                   = 52
+    CODEC_AVC_LEVEL_52                   = 52,
+    CODEC_AVC_LEVEL_6                    = 60,
+    CODEC_AVC_LEVEL_61                   = 61,
+    CODEC_AVC_LEVEL_62                   = 62
 } CODEC_AVC_LEVEL_IDC;
 
 // H.264 Inverse Quantization Matrix Buffer

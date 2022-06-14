@@ -1301,7 +1301,7 @@ typedef struct _CODECHAL_ENCODE_AVC_SFD_CURBE_PARAMS
      //! \return   uint16_t
      //!           return uiMaxAllowedNumSlices
      //!
-     uint16_t CodecHalAvcEncode_GetMaxNumSlicesAllowed(
+     uint32_t CodecHalAvcEncode_GetMaxNumSlicesAllowed(
         CODEC_AVC_PROFILE_IDC profileIdc,
         CODEC_AVC_LEVEL_IDC   levelIdc,
         uint32_t                 framesPer100Sec);
