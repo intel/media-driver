@@ -24,13 +24,14 @@
 //! \brief    Common interface and structure used in sfc interface
 //! \details  Common interface and structure used in sfc interface which are platform independent
 //!
-#ifndef __MEDIA_SFC_RENDER_H__
-#define __MEDIA_SFC_RENDER_H__
+#ifndef __MEDIA_SFC_RENDER_LEGACY_H__
+#define __MEDIA_SFC_RENDER_LEGACY_H__
 
 #include "mos_os_specific.h"
 #include "mhw_vebox_itf.h"
 #include "mhw_sfc_itf.h"
 #include "mhw_mi_itf.h"
+#include "media_sfc_render.h"
 
 namespace vp
 {
@@ -38,18 +39,8 @@ class VpPlatformInterface;
 class VpPipeline;
 struct FeatureParamScaling;
 };
-struct _VP_MHWINTERFACE;
-class MhwCpInterface;
-class MhwMiInterface;
-class MhwSfcInterface;
-class MhwVeboxInterface;
-struct _VPHAL_STATUS_TABLE;
-class MediaVdboxSfcRender;
-struct VEBOX_SFC_PARAMS;
-struct VDBOX_SFC_PARAMS;
-struct _RENDERHAL_INTERFACE;
 
-class MediaSfcRender
+class MediaSfcRenderLegacy : public MediaSfcRender
 {
 public:
     //!
@@ -60,11 +51,11 @@ public:
     //! \param    mode
     //!           [in] 1: VEBOX-SFC only, 2: VDBOX-SFC only, 3: Both VEBOX-SFC and VDBOX-SFC.
     //!
-    MediaSfcRender(PMOS_INTERFACE osInterface, MEDIA_SFC_INTERFACE_MODE mode, MediaMemComp *mmc);
+    MediaSfcRenderLegacy(PMOS_INTERFACE osInterface, MEDIA_SFC_INTERFACE_MODE mode, MediaMemComp *mmc);
 
-    virtual ~MediaSfcRender();
+    virtual ~MediaSfcRenderLegacy();
 
-    virtual void Destroy();
+    virtual void Destroy() override;
 
     //!
     //! \brief    Check whether the Parameter for VDBOX-SFC supported
@@ -74,7 +65,7 @@ public:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if supported, otherwise failed
     //!
-    virtual MOS_STATUS IsParameterSupported(VDBOX_SFC_PARAMS &param);
+    virtual MOS_STATUS IsParameterSupported(VDBOX_SFC_PARAMS &param) override;
 
     //!
     //! \brief    Check whether the Parameter for VEBOX-SFC supported
@@ -84,29 +75,7 @@ public:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if supported, otherwise failed
     //!
-    virtual MOS_STATUS IsParameterSupported(VEBOX_SFC_PARAMS &param);
-
-    //!
-    //! \brief    Render Vdbox-SFC States
-    //! \details  Only valid when MEDIA_SFC_INTERFACE_MODE::vdboxSfcEnabled being 1.
-    //! \param    cmdBuffer
-    //!           [in/out] Command Buffer to be Filled.
-    //! \param    param
-    //!           [in] Pointer to VDBOX_SFC_PARAMS.
-    //! \return   MOS_STATUS
-    //!           Return MOS_STATUS_SUCCESS if supported, otherwise failed
-    //!
-    MOS_STATUS Render(MOS_COMMAND_BUFFER *cmdBuffer, VDBOX_SFC_PARAMS &param);
-
-    //!
-    //! \brief    Render Vebox-SFC States
-    //! \details  Only valid when MEDIA_SFC_INTERFACE_MODE::veboxSfcEnabled being 1.
-    //! \param    param
-    //!           [in] Pointer to VEBOX_SFC_PARAMS.
-    //! \return   MOS_STATUS
-    //!           Return MOS_STATUS_SUCCESS if supported, otherwise failed
-    //!
-    MOS_STATUS Render(VEBOX_SFC_PARAMS &param);
+    virtual MOS_STATUS IsParameterSupported(VEBOX_SFC_PARAMS &param) override;
 
     //!
     //! \brief    MediaSfcInterface initialize
@@ -114,27 +83,13 @@ public:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    virtual MOS_STATUS Initialize();
+    virtual MOS_STATUS Initialize() override;
 
 protected:
-    MOS_STATUS InitScalingParams(vp::FeatureParamScaling &scalingParams, VDBOX_SFC_PARAMS &sfcParam);
-    MOS_STATUS InitScalingParams(vp::FeatureParamScaling &scalingParams, VEBOX_SFC_PARAMS &sfcParam);
+    MhwSfcInterface   *m_sfcInterface   = nullptr;
+    MhwVeboxInterface *m_veboxInterface = nullptr;
 
-    _VP_MHWINTERFACE        *m_vpMhwinterface       = nullptr;
-    vp::VpPlatformInterface *m_vpPlatformInterface  = nullptr;
-    vp::VpPipeline          *m_vpPipeline           = nullptr;
-    _RENDERHAL_INTERFACE    *m_renderHal            = nullptr;
-    MhwCpInterface          *m_cpInterface          = nullptr;
-    _VPHAL_STATUS_TABLE     *m_statusTable          = nullptr;
-    PMOS_INTERFACE          m_osInterface           = nullptr;
-    MediaVdboxSfcRender     *m_vdboxSfcRender       = nullptr;
-    bool                    m_initialized           = false;
-    MEDIA_SFC_INTERFACE_MODE m_mode                 = {};
-    MediaMemComp            *m_mmc                  = nullptr;
-    std::shared_ptr<mhw::vebox::Itf> m_veboxItf     = nullptr;
-    std::shared_ptr<mhw::sfc::Itf>   m_sfcItf       = nullptr;
-    std::shared_ptr<mhw::mi::Itf>    m_miItf        = nullptr;
-MEDIA_CLASS_DEFINE_END(MediaSfcRender)
+    MEDIA_CLASS_DEFINE_END(MediaSfcRenderLegacy)
 };
 
 #endif // __MEDIA_SFC_RENDER_H__

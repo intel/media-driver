@@ -22,6 +22,7 @@ set(TMP_SOURCES_
     ${TMP_SOURCES_}
     ${CMAKE_CURRENT_LIST_DIR}/media_sfc_interface.cpp
     ${CMAKE_CURRENT_LIST_DIR}/media_sfc_render.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/media_sfc_render_legacy.cpp
     ${CMAKE_CURRENT_LIST_DIR}/media_vdbox_sfc_render.cpp
 )
 
@@ -29,6 +30,7 @@ set(TMP_HEADERS_
     ${TMP_HEADERS_}
     ${CMAKE_CURRENT_LIST_DIR}/media_sfc_interface.h
     ${CMAKE_CURRENT_LIST_DIR}/media_sfc_render.h
+    ${CMAKE_CURRENT_LIST_DIR}/media_sfc_render_legacy.h
     ${CMAKE_CURRENT_LIST_DIR}/media_vdbox_sfc_render.h
 )
 

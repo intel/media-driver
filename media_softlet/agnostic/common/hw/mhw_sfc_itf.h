@@ -97,6 +97,12 @@ public:
         CODECHAL_STANDARD         codecStandard,
         CodecDecodeJpegChromaType jpegChromaType) = 0;
 
+    virtual MOS_STATUS GetMinWidthHeightInfo(uint32_t &width, uint32_t &height) = 0;
+
+    virtual MOS_STATUS GetMaxWidthHeightInfo(uint32_t &width, uint32_t &height) = 0;
+
+    virtual MOS_STATUS GetScalingRatioLimit(float &minScalingRatio, float &maxScalingRatio) = 0;
+
         //!
         //! \brief      Sets AVS Scaling Mode. Will configure the different coefficients of 8-Tap polyphase filter according to scaling mode.
         //! \param      [in] ScalingMode

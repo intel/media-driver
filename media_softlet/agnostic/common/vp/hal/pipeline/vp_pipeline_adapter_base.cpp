@@ -107,10 +107,6 @@ MOS_STATUS VpPipelineAdapterBase::GetVpMhwInterface(
             MOS_Delete(mhwInterfaces->m_miInterface);
             Delete_MhwCpInterface(mhwInterfaces->m_cpInterface);
             mhwInterfaces->m_cpInterface = nullptr;
-            MOS_Delete(mhwInterfaces->m_sfcInterface);
-            mhwInterfaces->m_sfcInterface = nullptr;
-            MOS_Delete(mhwInterfaces->m_veboxInterface);
-            mhwInterfaces->m_veboxInterface = nullptr;
             MOS_Delete(mhwInterfaces);
         }
         else

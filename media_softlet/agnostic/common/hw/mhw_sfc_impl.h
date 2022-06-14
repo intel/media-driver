@@ -270,6 +270,27 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
+    MOS_STATUS GetMinWidthHeightInfo(uint32_t &width, uint32_t &height)
+    {
+        width = m_minWidth;
+        height = m_minHeight;
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MOS_STATUS GetMaxWidthHeightInfo(uint32_t &width, uint32_t &height)
+    {
+        width  = m_maxWidth;
+        height = m_maxHeight;
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MOS_STATUS GetScalingRatioLimit(float &minScalingRatio, float &maxScalingRatio)
+    {
+        minScalingRatio = m_minScalingRatio;
+        maxScalingRatio = m_maxScalingRatio;
+        return MOS_STATUS_SUCCESS;
+    }
+
     MOS_STATUS SetSfcSamplerTable(
         SFC_AVS_LUMA_Coeff_Table_PAR   *pLumaTable,
         SFC_AVS_CHROMA_Coeff_Table_PAR *pChromaTable,
