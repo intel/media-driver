@@ -112,14 +112,17 @@
 #define DDI_CODEC_STATS_INTERLACED_SUPPORT    1
 
 #define DDI_CODEC_GEN_CONFIG_ATTRIBUTES_DEC_BASE   0    // Dec config_id starts at this value
+#define DDI_CODEC_GEN_CONFIG_ATTRIBUTES_DEC_MAX    1023
 
 #define DDI_CODEC_GEN_CONFIG_ATTRIBUTES_ENC_BASE   1024 // Enc config_id starts at this value
-
+#define DDI_CODEC_GEN_CONFIG_ATTRIBUTES_ENC_MAX    2047
 /* Some filters in va_private.h */
 #define DDI_VP_MAX_NUM_FILTERS  VAProcFilterCount
 
 #define DDI_VP_GEN_CONFIG_ATTRIBUTES_BASE    2048 // VP config_id starts at this value
+#define DDI_VP_GEN_CONFIG_ATTRIBUTES_MAX     4091
 #define DDI_CP_GEN_CONFIG_ATTRIBUTES_BASE    4092 // CP config_id starts at this value
+
 #define DDI_CP_ENCRYPT_TYPES_NUM             5    // CP encryption types number
 
 // Enable unlimited output buffer, delete this build option (remove multiple output buffer) when it is verified
