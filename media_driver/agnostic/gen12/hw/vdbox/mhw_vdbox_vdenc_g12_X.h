@@ -32,6 +32,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include "mhw_vdbox_vdenc_generic.h"
 #include "mhw_vdbox_vdenc_hwcmd_g12_X.h"
 #include "mhw_vdbox_g12_X.h"
+#include "mos_interface.h"
 
 #define VDENCHEVC_RSC_OFFSET_C420OR422_DXX_LCU32OR64_4K_G12               1824
 #define VDENCHEVC_RSC_OFFSET_C420OR422_DXX_LCU32OR64_8K_G12               2304

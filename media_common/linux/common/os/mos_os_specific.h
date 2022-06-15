@@ -725,17 +725,6 @@ extern "C" {
 #endif
 
 //!
-//! \brief    Check if OS resource is nullptr
-//! \details  Check if OS resource is nullptr
-//! \param    PMOS_RESOURCE pOsResource
-//!           [in] Pointer to OS Resource
-//! \return   int32_t
-//!           Return true if nullptr, otherwise false
-//!
-int32_t Mos_ResourceIsNull(
-    PMOS_RESOURCE pOsResource);
-
-//!
 //! \brief    Get Buffer Type
 //! \details  Returns the type of buffer, 1D, 2D or volume
 //! \param    PMOS_RESOURCE pOsResource
@@ -743,17 +732,6 @@ int32_t Mos_ResourceIsNull(
 //! \return   GFX resource Type
 //!
 MOS_GFXRES_TYPE GetResType(
-    PMOS_RESOURCE pOsResource);
-
-//!
-//! \brief    OS reset resource
-//! \details  Resets the OS resource
-//! \param    PMOS_RESOURCE pOsResource
-//!           [in] Pointer to OS Resource
-//! \return   void
-//!           Return NONE
-//!
-void Mos_ResetResource(
     PMOS_RESOURCE pOsResource);
 
 //!

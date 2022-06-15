@@ -28,7 +28,6 @@
 #include "media_blt_copy_xe_xpm_base.h"
 #include "mhw_cp_interface.h"
 #include "media_interfaces_xehp_sdv.h"
-#include "mos_os_specific_next.h"
 
 //!
 //! \brief    BltStateXe_Xpm constructor

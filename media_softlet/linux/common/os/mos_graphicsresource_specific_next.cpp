@@ -29,7 +29,6 @@
 
 #include "mos_graphicsresource_specific_next.h"
 #include "mos_context_specific_next.h"
-#include "mos_os_specific_next.h"
 #include "memory_policy_manager.h"
 
 GraphicsResourceSpecificNext::GraphicsResourceSpecificNext()

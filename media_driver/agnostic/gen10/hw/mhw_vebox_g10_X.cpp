@@ -27,6 +27,7 @@
 //!
 
 #include "mhw_vebox_g10_X.h"
+#include "mos_interface.h"
 
 // H2S Manual Mode Coef
 static const uint16_t g_Hdr_ColorCorrect_EOTF_SMPTE_ST2084_Input_g10[HDR_OETF_1DLUT_POINT_NUMBER] =

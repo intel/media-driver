@@ -27,7 +27,6 @@
 
 #include "media_blt_copy_xe_hpm.h"
 #include "mhw_cp_interface.h"
-#include "mos_os_specific_next.h"
 
 //!
 //! \brief    BltState_Xe_Hpm constructor

@@ -30,6 +30,7 @@
 
 #include "mhw_vdbox_avp_itf.h"
 #include "mhw_impl.h"
+#include "mos_interface.h"
 
 namespace mhw
 {

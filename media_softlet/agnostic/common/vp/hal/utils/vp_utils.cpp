@@ -28,6 +28,7 @@
 #include "hal_kerneldll_next.h"
 #include "media_common_defs.h"
 #include "media_user_setting_configure.h"
+#include "mos_interface.h"
 
 MOS_SURFACE VpUtils::VpHalConvertVphalSurfaceToMosSurface(PVPHAL_SURFACE surface)
 {

@@ -39,7 +39,6 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mos_util_devult_specific_next.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_commandbuffer_specific_next.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_gpucontext_specific_next.h
-    ${CMAKE_CURRENT_LIST_DIR}/mos_os_specific_next.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_decompression.h
     ${CMAKE_CURRENT_LIST_DIR}/media_skuwa_specific.h
 )

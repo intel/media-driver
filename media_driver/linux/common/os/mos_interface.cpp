@@ -27,7 +27,6 @@
 #include "mos_interface.h"
 #include "mos_context_specific_next.h"
 #include "mos_gpucontext_specific_next.h"
-#include "mos_os_specific_next.h"
 #include "media_libva_common.h"
 #include "mos_auxtable_mgr.h"
 #include "mos_os_virtualengine_singlepipe_specific_next.h"
@@ -2993,6 +2992,43 @@ PMOS_RESOURCE MosInterface::GetMarkerResource(
     MOS_STREAM_HANDLE   streamState)
 {
     return nullptr;
+}
+
+void MosInterface::MosResetResource(PMOS_RESOURCE   resource)
+{
+    int32_t i = 0;
+
+    MOS_OS_FUNCTION_ENTER;
+
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(resource);
+
+    MOS_ZeroMemory(resource, sizeof(MOS_RESOURCE));
+    resource->Format  = Format_None;
+    for (i = 0; i < MOS_GPU_CONTEXT_MAX; i++)
+    {
+        resource->iAllocationIndex[i] = MOS_INVALID_ALLOC_INDEX;
+    }
+    return;
+}
+
+bool MosInterface::MosResourceIsNull(PMOS_RESOURCE   resource)
+{
+    if( nullptr == resource )
+    {
+        MOS_OS_ASSERTMESSAGE("found pOsResource nullptr\n");
+        return true;
+    }
+
+    return ((resource->bo == nullptr)
+#if (_DEBUG || _RELEASE_INTERNAL)
+         && ((resource->pData == nullptr) )
+#endif // (_DEBUG || _RELEASE_INTERNAL)
+    );
+}
+
+MOS_STATUS MosInterface::GetGmmResourceInfo(PMOS_RESOURCE resource)
+{
+    return MOS_STATUS_SUCCESS;
 }
 
 int MosInterface::GetPlaneSurfaceOffset(const MOS_PLANE_OFFSET &planeOffset)

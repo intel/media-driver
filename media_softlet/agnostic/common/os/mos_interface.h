@@ -1990,6 +1990,36 @@ public:
         MOS_STREAM_HANDLE streamState);
 
     //!
+    //! \brief    Check if OS resource is nullptr
+    //! \details  Check if OS resource is nullptr
+    //! \param    PMOS_RESOURCE pOsResource
+    //!           [in] Pointer to OS Resource
+    //! \return   int32_t
+    //!           Return true if nullptr, otherwise false
+    //!
+    static bool MosResourceIsNull(PMOS_RESOURCE   resource);
+
+    //!
+    //! \brief    OS reset resource
+    //! \details  Resets the OS resource
+    //! \param    PMOS_RESOURCE pOsResource
+    //!           [in] Pointer to OS Resource
+    //! \return   void
+    //!           Return NONE
+    //!
+    static void MosResetResource(PMOS_RESOURCE   resource);
+
+//!
+//! \brief    Get Gmm Resource Info
+//! \details  Get Gmm Resource Info
+//! \param    PMOS_RESOURCE resource
+//!           [in/out] pointer to OS resource
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if successful
+//!
+    static MOS_STATUS GetGmmResourceInfo(PMOS_RESOURCE resource);
+
+    //!
     //! \brief    Get plane offset inside surface
     //! \details  Returns the offset
     //! \param    MOS_PLANE_OFFSET planeOffset
@@ -2149,5 +2179,8 @@ private:
 #endif
 MEDIA_CLASS_DEFINE_END(MosInterface)
 };
+
+#define Mos_ResetResource(resource)     MosInterface::MosResetResource(resource)
+#define Mos_ResourceIsNull(resource)    MosInterface::MosResourceIsNull(resource)
 
 #endif  // __MOS_INTERFACE_H__

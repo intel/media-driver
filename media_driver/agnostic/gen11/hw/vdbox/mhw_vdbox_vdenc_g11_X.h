@@ -30,6 +30,7 @@
 #include "mhw_vdbox_vdenc_generic.h"
 #include "mhw_vdbox_vdenc_hwcmd_g11_X.h"
 #include "mhw_vdbox_g11_X.h"
+#include "mos_interface.h"
 
 #define MHW_VDBOX_PICWIDTH_1920                                               1920
 #define MHW_VDBOX_PICWIDTH_3840                                               3840

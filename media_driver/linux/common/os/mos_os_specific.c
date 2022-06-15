@@ -7346,58 +7346,6 @@ finish:
 }
 
 //!
-//! \brief    Check if OS resource is nullptr
-//! \details  Check if OS resource is nullptr
-//! \param    PMOS_RESOURCE pOsResource
-//!           [in] Pointer to OS Resource
-//! \return   int32_t
-//!           Return true if nullptr, otherwise false
-//!
-int32_t Mos_ResourceIsNull(
-    PMOS_RESOURCE   pOsResource)
-{
-    //---------------------
-    if( nullptr == pOsResource )
-    {
-        MOS_OS_ASSERTMESSAGE("found pOsResource nullptr\n");
-        return true;
-    }
-    //---------------------
-
-    return ((pOsResource->bo == nullptr)
-#if (_DEBUG || _RELEASE_INTERNAL)
-         && ((pOsResource->pData == nullptr) )
-#endif // (_DEBUG || _RELEASE_INTERNAL)
-    );
-
-}
-
-//!
-//! \brief    OS reset resource
-//! \details  Resets the OS resource
-//! \param    PMOS_RESOURCE pOsResource
-//!           [in] Pointer to OS Resource
-//! \return   void
-//!           Return NONE
-//!
-void Mos_ResetResource(
-    PMOS_RESOURCE   pOsResource)
-{
-    int32_t i;
-
-    MOS_OS_FUNCTION_ENTER;
-
-    MOS_OS_ASSERT(pOsResource);
-
-    MOS_ZeroMemory(pOsResource, sizeof(MOS_RESOURCE));
-    pOsResource->Format  = Format_None;
-    for (i = 0; i < MOS_GPU_CONTEXT_MAX; i++)
-    {
-        pOsResource->iAllocationIndex[i] = MOS_INVALID_ALLOC_INDEX;
-    }
-}
-
-//!
 //! \brief    Convert to MOS tile type
 //! \details  Convert from Linux to MOS tile type
 //! \param    uint32_t type

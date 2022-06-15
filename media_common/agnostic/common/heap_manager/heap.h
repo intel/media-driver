@@ -32,6 +32,7 @@
 
 #include "mos_os.h"
 #include "mos_util_debug.h"
+#include "mos_interface.h"
 
 //! Evaluates the status and returns if failure
 #define HEAP_CHK_STATUS(_stmt)                                               \

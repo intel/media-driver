@@ -24,19 +24,22 @@
 //! \brief     Common interface used in MOS LINUX OS
 //! \details   Common interface used in MOS LINUX OS
 //!
-#include "mos_os_specific_next.h"
+
+#include <unistd.h>
+#include <dlfcn.h>
+#include <stdlib.h>
+
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <sys/sem.h>
+#include <sys/types.h>
 
 #include "mos_os_next.h"
 #include "mos_util_debug.h"
-#include <unistd.h>
-#include <dlfcn.h>
 #include "hwinfo_linux.h"
 #include "media_fourcc.h"
-#include <stdlib.h>
-
 #include "mos_graphicsresource_next.h"
-#include "mos_context_specific.h"
-#include "mos_gpucontext_specific.h"
+#include "mos_gpucontext_specific_next.h"
 #include "mos_gpucontextmgr_next.h"
 
 #if MOS_MEDIASOLO_SUPPORTED
@@ -44,41 +47,6 @@
 #endif // MOS_MEDIASOLO_SUPPORTED
 #include "mos_solo_generic.h"
 
-#include <sys/ipc.h>
-#include <sys/shm.h>
-#include <sys/sem.h>
-#include <sys/types.h>
-
-GpuContextSpecific * MosOsSpecificNext::Linux_GetGpuContext(PMOS_INTERFACE pOsInterface, uint32_t gpuContextHandle)
-{
-    MOS_OS_FUNCTION_ENTER;
-
-    if (pOsInterface == nullptr || pOsInterface->osContextPtr == nullptr)
-    {
-        MOS_OS_ASSERTMESSAGE("invalid input parameters!");
-        return nullptr;
-    }
-
-    auto osCxtSpecific = static_cast<OsContextSpecific *>(pOsInterface->osContextPtr);
-
-    auto gpuContextMgr = osCxtSpecific->GetGpuContextMgr();
-    if (gpuContextMgr == nullptr)
-    {
-        MOS_OS_ASSERTMESSAGE("m_gpuContextMgr cannot be nullptr");
-        return nullptr;
-    }
-
-    auto gpuContext = gpuContextMgr->GetGpuContext(gpuContextHandle);
-    if (gpuContext == nullptr)
-    {
-        MOS_OS_ASSERTMESSAGE("cannot find the gpuContext corresponding to the active gpuContextHandle");
-        return nullptr;
-    }
-
-    auto gpuContextSpecific = static_cast<GpuContextSpecific *>(gpuContext);
-
-    return gpuContextSpecific;
-}
 
 #if MOS_COMMAND_RESINFO_DUMP_SUPPORTED
 struct GpuCmdResInfoDumpNext::GpuCmdResInfo
@@ -107,8 +75,9 @@ void GpuCmdResInfoDumpNext::StoreCmdResPtr(PMOS_INTERFACE pOsInterface, const vo
     {
         return;
     }
-    auto gpuContext = MosOsSpecificNext::Linux_GetGpuContext(pOsInterface, pOsInterface->CurrentGpuContextHandle);
-    MOS_OS_ASSERT(gpuContext != nullptr);
+
+    auto gpuContext = MosInterface::GetGpuContext(pOsInterface->osStreamState, pOsInterface->CurrentGpuContextHandle);
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(gpuContext);
 
     auto pResTmp1 = (const MOS_RESOURCE *)(pRes);
     auto pResTmp2 = (GpuCmdResInfo *)MOS_AllocMemory(sizeof(GpuCmdResInfo));
@@ -143,8 +112,8 @@ void GpuCmdResInfoDumpNext::ClearCmdResPtrs(PMOS_INTERFACE pOsInterface) const
         return;
     }
 
-    auto gpuContext = MosOsSpecificNext::Linux_GetGpuContext(pOsInterface, pOsInterface->CurrentGpuContextHandle);
-    MOS_OS_ASSERT(gpuContext != nullptr);
+    auto gpuContext = MosInterface::GetGpuContext(pOsInterface->osStreamState, pOsInterface->CurrentGpuContextHandle);
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(gpuContext);
 
     auto &cmdResInfoPtrs = gpuContext->GetCmdResPtrs();
 
@@ -189,8 +158,13 @@ void GpuCmdResInfoDumpNext::Dump(const void *cmdResInfoPtr, std::ofstream &outpu
 
 const std::vector<const void *> &GpuCmdResInfoDumpNext::GetCmdResPtrs(PMOS_INTERFACE pOsInterface) const
 {
-    const auto *gpuContext = MosOsSpecificNext::Linux_GetGpuContext(pOsInterface, pOsInterface->CurrentGpuContextHandle);
-    MOS_OS_ASSERT(gpuContext != nullptr);
+    const auto *gpuContext = MosInterface::GetGpuContext(pOsInterface->osStreamState, pOsInterface->CurrentGpuContextHandle);
+    if(gpuContext == nullptr)
+    {
+        MOS_OS_ASSERTMESSAGE("gpuContext == nullptr");
+        static const std::vector<const void*> dummyVec = {nullptr};
+        return dummyVec;
+    }
 
     return gpuContext->GetCmdResPtrs();
 }

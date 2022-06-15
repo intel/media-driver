@@ -35,6 +35,7 @@
 #include "mos_os_cp_interface_specific.h"
 #include "mos_utilities.h"
 #include "decode_resource_array.h"
+#include "mos_interface.h"
 
 namespace decode {
 
