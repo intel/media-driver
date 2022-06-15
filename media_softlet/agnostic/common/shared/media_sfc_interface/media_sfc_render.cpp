@@ -428,7 +428,7 @@ MOS_STATUS MediaSfcRender::IsParameterSupported(
         return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
     }
 
-    float minScalingRatio, maxScalingRatio;
+    float minScalingRatio = 0, maxScalingRatio = 0;
     VP_PUBLIC_CHK_STATUS_RETURN(m_sfcItf->GetScalingRatioLimit(minScalingRatio, maxScalingRatio));
 
     // Check scaling ratio
@@ -510,7 +510,7 @@ MOS_STATUS MediaSfcRender::IsParameterSupported(
         return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
     }
 
-    float minScalingRatio, maxScalingRatio;
+    float minScalingRatio = 0, maxScalingRatio = 0;
     VP_PUBLIC_CHK_STATUS_RETURN(m_sfcItf->GetScalingRatioLimit(minScalingRatio, maxScalingRatio));
     // Check scaling ratio
     if (!MOS_WITHIN_RANGE(params->fAVSXScalingRatio, minScalingRatio, maxScalingRatio) ||
