@@ -260,13 +260,6 @@ MOS_STATUS VPFeatureManager::CheckFeatures(void * params, bool &bApgFuncSupporte
         return MOS_STATUS_SUCCESS;
     }
 
-    bool isHdrNeeded = IsHdrNeeded(pvpParams->pSrc[0], pvpParams->pTarget[0]);
-    if (isHdrNeeded && IsCroppingNeeded(pvpParams->pSrc[0]))
-    {
-        VP_PUBLIC_NORMALMESSAGE("Disable APO Path for HDR Cropping");
-        return MOS_STATUS_SUCCESS;
-    }
-
     if (pvpParams->pConstriction)
     {
         return MOS_STATUS_SUCCESS;
