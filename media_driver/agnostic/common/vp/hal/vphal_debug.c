@@ -3227,6 +3227,16 @@ MOS_STATUS VphalParameterDumper::DumpSourceSurface(
         }
         VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "\t\t</VPHAL_LUMAKEY_PARAMS>\n"));
 
+        //ChromaSitting params
+        VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "\t\t<VPHAL_CHROMASITTING_PARAMS>\n"));
+        VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "\t\t\t<CHROMA_SITING_HORZ_LEFT>%d</CHROMA_SITING_HORZ_LEFT>\n", (pSrc->ChromaSiting & CHROMA_SITING_HORZ_LEFT) == CHROMA_SITING_HORZ_LEFT ? 1 : 0));
+        VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "\t\t\t<CHROMA_SITING_HORZ_CENTER>%d</CHROMA_SITING_HORZ_CENTER>\n", (pSrc->ChromaSiting & CHROMA_SITING_HORZ_CENTER) == CHROMA_SITING_HORZ_CENTER ? 1 : 0));
+        VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "\t\t\t<CHROMA_SITING_HORZ_RIGHT>%d</CHROMA_SITING_HORZ_RIGHT>\n", (pSrc->ChromaSiting & CHROMA_SITING_HORZ_RIGHT) == CHROMA_SITING_HORZ_RIGHT ? 1 : 0));
+        VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "\t\t\t<CHROMA_SITING_VERT_TOP>%d</CHROMA_SITING_VERT_TOP>\n", (pSrc->ChromaSiting & CHROMA_SITING_VERT_TOP) == CHROMA_SITING_VERT_TOP ? 1 : 0));
+        VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "\t\t\t<CHROMA_SITING_VERT_CENTER>%d</CHROMA_SITING_VERT_CENTER>\n", (pSrc->ChromaSiting & CHROMA_SITING_VERT_CENTER) == CHROMA_SITING_VERT_CENTER ? 1 : 0));
+        VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "\t\t\t<CHROMA_SITING_VERT_BOTTOM>%d</CHROMA_SITING_VERT_BOTTOM>\n", (pSrc->ChromaSiting & CHROMA_SITING_VERT_BOTTOM) == CHROMA_SITING_VERT_BOTTOM ? 1 : 0));
+        VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "\t\t</VPHAL_CHROMASITTING_PARAMS>\n"));
+
         //Propcamp params
         VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "\t\t<VPHAL_PROCAMP_PARAMS>\n"));
         if (pSrc->pProcampParams)
