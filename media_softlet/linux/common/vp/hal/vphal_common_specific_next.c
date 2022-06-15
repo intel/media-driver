@@ -27,7 +27,7 @@
 //!           some macro, enum, union, structure, function
 
 #include "vp_utils.h"
-
+#include "mos_interface.h"
 MOS_STATUS VpHal_GetSurfaceInfo(
     PMOS_INTERFACE          osInterface,
     PVPHAL_GET_SURFACE_INFO info,
