@@ -206,6 +206,6 @@ or later, which officially supported C++11.
    - TGL: starting from kernel 5.9
    - RKL/ADL-S/ADL-P: starting from kernel 5.17
    - ADL-N/RPL-S/RPL-P: [drm-tip](https://cgit.freedesktop.org/drm-tip)
-   - DG1/SG1: [intel-gpu/kernel](https://github.com/intel-gpu/kernel)
+   - DG1/SG1/Alchemist(DG2)/ATSM: [intel-gpu/intel-gpu-i915-backports](https://github.com/intel-gpu/intel-gpu-i915-backports)
 
 ##### (*) Other names and brands may be claimed as property of others.
