@@ -59,9 +59,9 @@
 #if (_DEBUG || _RELEASE_INTERNAL)
 typedef struct _DDI_VP_DUMP_PARAM
 {
-    VAProcPipelineParameterBuffer             *pPipelineParamBuffers[VPHAL_MAX_SOURCES];
-    MOS_FORMAT                                SrcFormat[VPHAL_MAX_SOURCES];
-    MOS_FORMAT                                TargetFormat[VPHAL_MAX_TARGETS];
+    VAProcPipelineParameterBuffer             *pPipelineParamBuffers[VPHAL_MAX_SOURCES] = {};
+    MOS_FORMAT                                SrcFormat[VPHAL_MAX_SOURCES]              = {};
+    MOS_FORMAT                                TargetFormat[VPHAL_MAX_TARGETS]           = {};
 } DDI_VP_DUMP_PARAM, *PDDI_VP_DUMP_PARAM;
 #endif //(_DEBUG || _RELEASE_INTERNAL)
 
@@ -82,24 +82,24 @@ typedef struct _DDI_VP_FRAMEID_TRACER
 typedef struct DDI_VP_CONTEXT
 {
     // VPHAL internal structure
-    MOS_CONTEXT                               MosDrvCtx;
-    VpBase                                    *pVpHal;
-    VPHAL_RENDER_PARAMS                       *pVpHalRenderParams;
+    MOS_CONTEXT                               MosDrvCtx           = {};
+    VpBase                                    *pVpHal             = nullptr;
+    VPHAL_RENDER_PARAMS                       *pVpHalRenderParams = nullptr;
 
-    DdiCpInterface                            *pCpDdiInterface;
+    DdiCpInterface                            *pCpDdiInterface    = nullptr;
 
     // target surface id
-    VASurfaceID                               TargetSurfID;
+    VASurfaceID                               TargetSurfID        = 0;
 
     // Primary surface number
-    int32_t                                   iPriSurfs;
+    int32_t                                   iPriSurfs           = 0;
 
-    DDI_VP_FRAMEID_TRACER                     FrameIDTracer;
+    DDI_VP_FRAMEID_TRACER                     FrameIDTracer       = {};
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-    DDI_VP_DUMP_PARAM                         *pCurVpDumpDDIParam;
-    DDI_VP_DUMP_PARAM                         *pPreVpDumpDDIParam;
-    FILE                                      *fpDumpFile;
+    DDI_VP_DUMP_PARAM                         *pCurVpDumpDDIParam = nullptr;
+    DDI_VP_DUMP_PARAM                         *pPreVpDumpDDIParam = nullptr;
+    FILE                                      *fpDumpFile         = nullptr;
 #endif //(_DEBUG || _RELEASE_INTERNAL)
 
 } DDI_VP_CONTEXT, *PDDI_VP_CONTEXT;

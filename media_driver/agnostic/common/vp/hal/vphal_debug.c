@@ -4551,8 +4551,7 @@ void VphalOcaDumper::SetRenderParam(VPHAL_RENDER_PARAMS *pRenderParams)
             return;
         }
     }
-
-    memset(m_pOcaRenderParam, 0, size);
+    MOS_ZeroMemory(m_pOcaRenderParam, size);
 
     m_pOcaRenderParam->Header.size          = size;
     m_pOcaRenderParam->Header.allocSize     = allocSize;

@@ -885,11 +885,11 @@ typedef struct _VPHAL_NLAS_PARAMS
 //!
 typedef struct _VPHAL_COLORFILL_PARAMS
 {
-    bool         bYCbCr;
-    uint32_t     Color;
-    VPHAL_CSPACE CSpace;
-    bool         bDisableColorfillinSFC;
-    bool         bOnePixelBiasinSFC;
+    bool         bYCbCr                 = false;
+    uint32_t     Color                  = 0;
+    VPHAL_CSPACE CSpace                 = CSpace_None;
+    bool         bDisableColorfillinSFC = false;
+    bool         bOnePixelBiasinSFC     = false;
 } VPHAL_COLORFILL_PARAMS, *PVPHAL_COLORFILL_PARAMS;
 
 //!
@@ -957,37 +957,37 @@ typedef struct _VPHAL_SPLIT_SCREEN_DEMO_MODE_PARAMS
 struct VPHAL_RENDER_PARAMS
 {
     // Input/output surfaces
-    uint32_t       uSrcCount;                   //!< Num sources
-    VPHAL_SURFACE *pSrc[VPHAL_MAX_SOURCES];     //!< Source Samples
-    uint32_t       uDstCount;                   //!< Num Targets
-    VPHAL_SURFACE *pTarget[VPHAL_MAX_TARGETS];  //!< Render Target
+    uint32_t       uSrcCount                   = 0;   //!< Num sources
+    VPHAL_SURFACE  *pSrc[VPHAL_MAX_SOURCES]    = {};  //!< Source Samples
+    uint32_t       uDstCount                   = 0;   //!< Num Targets
+    VPHAL_SURFACE  *pTarget[VPHAL_MAX_TARGETS] = {};  //!< Render Target
 
     // Additional parameters not included in PVPHAL_SURFACE
-    PRECT                                pConstriction;               //!< Constriction rectangle
-    PVPHAL_COLORFILL_PARAMS              pColorFillParams;            //!< ColorFill - BG only
-    bool                                 bTurboMode;                  //!< Enable Media Turbo Mode
-    bool                                 bStereoMode;                 //!< Stereo BLT mode
-    PVPHAL_ALPHA_PARAMS                  pCompAlpha;                  //!< Alpha for composited surfaces
-    bool                                 bDisableDemoMode;            //!< Enable/Disable demo mode function calls
-    PVPHAL_SPLIT_SCREEN_DEMO_MODE_PARAMS pSplitScreenDemoModeParams;  //!< Split-screen demo mode for VP features
-    bool                                 bIsDefaultStream;            //!< Identifier to differentiate default stream
+    PRECT                                pConstriction              = nullptr;  //!< Constriction rectangle
+    PVPHAL_COLORFILL_PARAMS              pColorFillParams           = nullptr;  //!< ColorFill - BG only
+    bool                                 bTurboMode                 = false;    //!< Enable Media Turbo Mode
+    bool                                 bStereoMode                = false;    //!< Stereo BLT mode
+    PVPHAL_ALPHA_PARAMS                  pCompAlpha                 = nullptr;  //!< Alpha for composited surfaces
+    bool                                 bDisableDemoMode           = false;    //!< Enable/Disable demo mode function calls
+    PVPHAL_SPLIT_SCREEN_DEMO_MODE_PARAMS pSplitScreenDemoModeParams = nullptr;  //!< Split-screen demo mode for VP features
+    bool                                 bIsDefaultStream           = false;    //!< Identifier to differentiate default stream
 
     // Debugging parameters
-    MOS_COMPONENT Component;  //!< DDI component (for DEBUGGING only)
+    MOS_COMPONENT Component = COMPONENT_UNKNOWN;  //!< DDI component (for DEBUGGING only)
 
     // Status Report
-    bool     bReportStatus;     //!< Report current media BB status (Pre-Processing)
-    uint32_t StatusFeedBackID;  //!< Unique Staus ID;
+    bool     bReportStatus    = false; //!< Report current media BB status (Pre-Processing)
+    uint32_t StatusFeedBackID = 0;     //!< Unique Staus ID;
 #if (_DEBUG || _RELEASE_INTERNAL)
-    bool bTriggerGPUHang;  //!< Trigger GPU HANG
+    bool bTriggerGPUHang = false;  //!< Trigger GPU HANG
 #endif
 
-    bool bCalculatingAlpha;  //!< Alpha calculation parameters
+    bool bCalculatingAlpha  = false;  //!< Alpha calculation parameters
 
     // extension parameters
-    void *pExtensionData;  //!< Extension data
+    void *pExtensionData    = nullptr;  //!< Extension data
 
-    bool bPathKernel;                 // HDR path config if use kernel
+    bool bPathKernel        = false;  // HDR path config if use kernel
     bool bAPGWorkloadEnable = false;  //!< Identify Whether APG workload Enabled or not
 
     bool bDisableVeboxFor8K = false;
