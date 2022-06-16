@@ -30,7 +30,16 @@
 
 using namespace vp;
 
+//!
+//! \brief Kernel Name for HDR 3DLut kernel
+//!
 #define VP_HDR_KERNEL_NAME "hdr_3dlut"
+
+//!
+//! \brief Binding Table Index for HDR 3DLut kernel
+//!
+#define BI_VEBOX_HDR_3DLUT_3DLUT 0
+#define BI_VEBOX_HDR_3DLUT_COEF 1
 
 static const float ccm_identity[12]               = {1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f};
 static float       color_matrix_calculation[3][4] = {0.0f};
@@ -411,66 +420,14 @@ MOS_STATUS VpRenderHdr3DLutKernel::SetupSurfaceState()
     PRENDERHAL_INTERFACE renderHal = m_hwInterface->m_renderHal;
     PMOS_INTERFACE osInterface = m_hwInterface->m_osInterface;
 
-    for (auto arg : m_kernelArgs)
-    {
-        VP_RENDER_CHK_NULL_RETURN(arg.pData);
+    KERNEL_SURFACE_STATE_PARAM kernelSurfaceParam            = {};
+    kernelSurfaceParam.surfaceOverwriteParams.bindedKernel   = true;
+    kernelSurfaceParam.surfaceOverwriteParams.bufferResource = true;
 
-        if (arg.eArgKind == ARG_KIND_SURFACE)
-        {
-            SurfaceType surfType = *(SurfaceType *)arg.pData;
-
-            auto it = m_surfaceGroup->find(surfType);
-            if (m_surfaceGroup->end() == it)
-            {
-                VP_RENDER_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
-            }
-
-            auto surf = it->second;
-            VP_RENDER_CHK_NULL_RETURN(surf);
-            VP_RENDER_CHK_NULL_RETURN(surf->osSurface);
-
-            if (Format_Buffer == surf->osSurface->Format)
-            {
-                VP_RENDER_NORMALMESSAGE("Buffer should be used for SurfType %d", surfType);
-                KERNEL_SURFACE_STATE_PARAM kernelSurfaceParam                  = {};
-                kernelSurfaceParam.surfaceOverwriteParams.updatedSurfaceParams = true;
-                kernelSurfaceParam.surfaceOverwriteParams.width                = surf->bufferWidth;
-                kernelSurfaceParam.surfaceOverwriteParams.height               = 256;
-                kernelSurfaceParam.surfaceOverwriteParams.pitch                = 0;
-                kernelSurfaceParam.surfaceOverwriteParams.format               = Format_A8R8G8B8;
-                kernelSurfaceParam.surfaceOverwriteParams.tileType             = surf->osSurface->TileType;
-                kernelSurfaceParam.surfaceOverwriteParams.surface_offset       = 0;
-
-                m_surfaceState.insert(std::make_pair(*(SurfaceType *)arg.pData, kernelSurfaceParam));
-            }
-            else
-            {
-                VP_RENDER_NORMALMESSAGE("2D should be used for SurfType %d", surfType);
-                KERNEL_SURFACE_STATE_PARAM kernelSurfaceParam                  = {};
-                kernelSurfaceParam.surfaceOverwriteParams.updatedSurfaceParams = true;
-                kernelSurfaceParam.surfaceOverwriteParams.width                = surf->osSurface->dwWidth;
-                kernelSurfaceParam.surfaceOverwriteParams.height               = surf->osSurface->dwHeight;
-                kernelSurfaceParam.surfaceOverwriteParams.pitch                = surf->osSurface->dwPitch;
-                kernelSurfaceParam.surfaceOverwriteParams.format               = Format_A8R8G8B8;
-                kernelSurfaceParam.surfaceOverwriteParams.tileType             = surf->osSurface->TileType;
-                kernelSurfaceParam.surfaceOverwriteParams.surface_offset       = 0;
-
-                kernelSurfaceParam.surfaceOverwriteParams.updatedRenderSurfaces                = true;
-                kernelSurfaceParam.surfaceOverwriteParams.renderSurfaceParams.Type             = renderHal->SurfaceTypeDefault;
-                kernelSurfaceParam.surfaceOverwriteParams.renderSurfaceParams.bRenderTarget    = true;  // true if no need sync for read.
-                kernelSurfaceParam.surfaceOverwriteParams.renderSurfaceParams.bWidthInDword_Y  = true;
-                kernelSurfaceParam.surfaceOverwriteParams.renderSurfaceParams.bWidthInDword_UV = true;
-                kernelSurfaceParam.surfaceOverwriteParams.renderSurfaceParams.Boundary         = RENDERHAL_SS_BOUNDARY_ORIGINAL;
-                kernelSurfaceParam.surfaceOverwriteParams.renderSurfaceParams.bWidth16Align    = false;
-                //set mem object control for cache
-                kernelSurfaceParam.surfaceOverwriteParams.renderSurfaceParams.MemObjCtl = (osInterface->pfnCachePolicyGetMemoryObject(
-                                                                                               MOS_MP_RESOURCE_USAGE_DEFAULT,
-                                                                                               osInterface->pfnGetGmmClientContext(osInterface)))
-                                                                                              .DwordValue;
-                m_surfaceState.insert(std::make_pair(*(SurfaceType *)arg.pData, kernelSurfaceParam));
-            }
-        }
-    }
+    kernelSurfaceParam.surfaceOverwriteParams.bindIndex = BI_VEBOX_HDR_3DLUT_3DLUT;
+    m_surfaceState.insert(std::make_pair(SurfaceType3DLut, kernelSurfaceParam));
+    kernelSurfaceParam.surfaceOverwriteParams.bindIndex = BI_VEBOX_HDR_3DLUT_COEF;
+    m_surfaceState.insert(std::make_pair(SurfaceType3DLutCoef, kernelSurfaceParam));
     
     VP_RENDER_CHK_STATUS_RETURN(InitCoefSurface(m_maxDisplayLum, m_maxContentLevelLum, m_hdrMode));
 

@@ -67,7 +67,6 @@ void VpVeboxCmdPacketLegacy::SetupSurfaceStates(
 MOS_STATUS VpVeboxCmdPacketLegacy::Init3DLutTable(PVP_SURFACE surf3DLut)
 {
     VP_FUNC_CALL();
-    PVP_SURFACE        surf3DLut2D  = nullptr;
     VpVeboxRenderData *renderData   = GetLastExecRenderData();
 
     VP_RENDER_CHK_NULL_RETURN(renderData);
@@ -77,49 +76,7 @@ MOS_STATUS VpVeboxCmdPacketLegacy::Init3DLutTable(PVP_SURFACE surf3DLut)
         VP_RENDER_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
     }
 
-    // kernel already update this surface
-    surf3DLut2D = GetSurface(SurfaceType3DLut2D);
-
-    if (nullptr == surf3DLut2D)
-    {
-        // HDR_STAGE_VEBOX_3DLUT_NO_UPDATE should come here.
-        VP_RENDER_NORMALMESSAGE("3DLut table is calculated by kernel and no need be updated.");
-        return MOS_STATUS_SUCCESS;
-    }
-
-    VP_RENDER_CHK_NULL_RETURN(m_allocator);
-    VP_RENDER_CHK_NULL_RETURN(renderData);
-    VP_RENDER_CHK_NULL_RETURN(surf3DLut);
-    VP_RENDER_CHK_NULL_RETURN(surf3DLut->osSurface);
-    VP_RENDER_CHK_NULL_RETURN(surf3DLut2D->osSurface);
-
     VP_RENDER_NORMALMESSAGE("3DLut table is calculated by kernel.");
-
-    uint8_t *buf3DLut = (uint8_t *)m_allocator->LockResourceForWrite(&surf3DLut->osSurface->OsResource);
-    VP_RENDER_CHK_NULL_RETURN(buf3DLut);
-    uint8_t *buf3DLut2D = (uint8_t *)m_allocator->LockResourceForWrite(&surf3DLut2D->osSurface->OsResource);
-    VP_RENDER_CHK_NULL_RETURN(buf3DLut2D);
-
-    uint32_t widthInByte = surf3DLut2D->osSurface->dwWidth * 4;
-    uint32_t pitchInByte = surf3DLut2D->osSurface->dwPitch;
-    uint32_t height      = surf3DLut2D->osSurface->dwHeight;
-    uint32_t size        = surf3DLut->osSurface->dwSize;
-
-    if (size < widthInByte * height)
-    {
-        VP_RENDER_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
-    }
-
-    uint32_t offset   = 0;
-    uint32_t offset2D = 0;
-    for (uint32_t h = 0; h < height;
-         ++h, offset += widthInByte, offset2D += pitchInByte)
-    {
-        MOS_SecureMemcpy(buf3DLut + offset, widthInByte, buf3DLut2D + offset2D, widthInByte);
-    }
-
-    VP_PUBLIC_CHK_STATUS_RETURN(m_allocator->UnLock(&surf3DLut2D->osSurface->OsResource));
-    VP_PUBLIC_CHK_STATUS_RETURN(m_allocator->UnLock(&surf3DLut->osSurface->OsResource));
 
     return MOS_STATUS_SUCCESS;
 }

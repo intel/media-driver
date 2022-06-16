@@ -64,7 +64,7 @@ protected:
     VEBOX_HDR_PARAMS m_veboxHdrParams = {};
     RENDER_HDR_3DLUT_CAL_PARAMS m_renderHdr3DLutParams = {};
 
-    SurfaceType m_surfType3DLut2D       = SurfaceType3DLut2D;
+    SurfaceType m_surfType3DLut         = SurfaceType3DLut;
     SurfaceType m_surfType3DLutCoef     = SurfaceType3DLutCoef;
     uint32_t    m_3DLutSurfaceWidth     = 0;
     uint32_t    m_3DLutSurfaceHeight    = 0;
