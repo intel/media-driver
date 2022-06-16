@@ -486,7 +486,7 @@ MOS_STATUS VpHal_ReAllocateSurface(
 
     //---------------------------------
     VPHAL_PUBLIC_ASSERT(pOsInterface);
-    VPHAL_PUBLIC_ASSERT(&pSurface->OsResource);
+    VPHAL_PUBLIC_ASSERT(pSurface);
     //---------------------------------
 
     eStatus      = MOS_STATUS_SUCCESS;

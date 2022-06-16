@@ -178,7 +178,7 @@ MOS_STATUS VpUtils::ReAllocateSurface(
 
     //---------------------------------
     VP_PUBLIC_ASSERT(osInterface);
-    VP_PUBLIC_ASSERT(&surface->OsResource);
+    VP_PUBLIC_ASSERT(surface);
     //---------------------------------
 
     *bAllocated = false;

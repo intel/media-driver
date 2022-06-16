@@ -876,7 +876,7 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
     bool                                enableAuxDump;
     bool                                enablePlaneDump = false;
     PMOS_RESOURCE                       pLockedResource = nullptr;
-
+    PVPHAL_SURFACE                      temp2DSurfForCopy = nullptr;
     VPHAL_DEBUG_ASSERT(pSurface);
     VPHAL_DEBUG_ASSERT(pOsInterface);
     VPHAL_DEBUG_ASSERT(psPathPrefix);
@@ -941,10 +941,11 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
         {
             bool bAllocated;
 
-            PVPHAL_SURFACE m_temp2DSurfForCopy = (PVPHAL_SURFACE)MOS_AllocAndZeroMemory(sizeof(VPHAL_SURFACE));
+            temp2DSurfForCopy = (PVPHAL_SURFACE)MOS_AllocAndZeroMemory(sizeof(VPHAL_SURFACE));
+            VPHAL_DEBUG_CHK_NULL(temp2DSurfForCopy);
             VPHAL_RENDER_CHK_STATUS(VpUtils::ReAllocateSurface(
                 pOsInterface,
-                m_temp2DSurfForCopy,
+                temp2DSurfForCopy,
                 "Temp2DSurfForSurfDumper",
                 pSurface->Format,
                 MOS_GFXRES_2D,
@@ -961,18 +962,18 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
             m_osInterface->pfnDoubleBufferCopyResource(
                 m_osInterface,
                 &pSurface->OsResource,
-                &m_temp2DSurfForCopy->OsResource,
+                &temp2DSurfForCopy->OsResource,
                 false);
 
             pData = (uint8_t *)pOsInterface->pfnLockResource(
                 pOsInterface,
-                &m_temp2DSurfForCopy->OsResource,
+                &temp2DSurfForCopy->OsResource,
                 &LockFlags);
-            pLockedResource = &m_temp2DSurfForCopy->OsResource;
+            pLockedResource = &temp2DSurfForCopy->OsResource;
 
             // get plane definitions
             VPHAL_DEBUG_CHK_STATUS(GetPlaneDefs(
-                m_temp2DSurfForCopy,
+                temp2DSurfForCopy,
                 planes,
                 &dwNumPlanes,
                 &dwSize,
@@ -1213,6 +1214,16 @@ finish:
         eStatus = (MOS_STATUS)pOsInterface->pfnUnlockResource(pOsInterface, pLockedResource);
         VPHAL_DEBUG_ASSERT(eStatus == MOS_STATUS_SUCCESS);
     }
+    if (temp2DSurfForCopy)
+    {
+        MOS_GFXRES_FREE_FLAGS resFreeFlags = {0};
+        if (VpUtils::IsSyncFreeNeededForMMCSurface(temp2DSurfForCopy, pOsInterface))
+        {
+            resFreeFlags.SynchronousDestroy = 1;
+        }
+        pOsInterface->pfnFreeResourceWithFlag(pOsInterface, &(temp2DSurfForCopy->OsResource), resFreeFlags.Value);
+    }
+    MOS_SafeFreeMemory(temp2DSurfForCopy);
 
     return eStatus;
 }
