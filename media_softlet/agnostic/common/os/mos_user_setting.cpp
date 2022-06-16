@@ -80,6 +80,34 @@ MOS_STATUS MosUserSetting::InitMosCommonUserSetting(MediaUserSettingSharedPtr us
         0,
         true);
 
+    DeclareUserSettingKey(
+        userSettingPtr,
+        "Enable Codec MMC",
+        MediaUserSetting::Group::Device,
+        int32_t(0),
+        false);
+
+    DeclareUserSettingKey(
+        userSettingPtr,
+        "HEVC Encode",
+        MediaUserSetting::Group::Device,
+        int32_t(1),
+        false);
+
+    DeclareUserSettingKey(
+        userSettingPtr,
+        "Encode MMC In Use",
+        MediaUserSetting::Group::Sequence,
+        int32_t(0),
+        true);
+
+    DeclareUserSettingKey(
+        userSettingPtr,
+        "Enable Encode MMC",
+        MediaUserSetting::Group::Sequence,
+        int32_t(0),
+        false);
+
 #if (_DEBUG || _RELEASE_INTERNAL)
     DeclareUserSettingKeyForDebug(
         userSettingPtr,
@@ -93,6 +121,13 @@ MOS_STATUS MosUserSetting::InitMosCommonUserSetting(MediaUserSettingSharedPtr us
         __MEDIA_USER_FEATURE_VALUE_MEMORY_NINJA_END_COUNTER,
         MediaUserSetting::Group::Device,
         0,
+        true);
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        "Simulation In Use",
+        MediaUserSetting::Group::Device,
+        int32_t(0),
         true);
 #endif
 

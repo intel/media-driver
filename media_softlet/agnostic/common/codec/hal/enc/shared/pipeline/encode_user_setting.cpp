@@ -79,20 +79,6 @@ MOS_STATUS EncodePipeline::InitUserSetting(MediaUserSettingSharedPtr userSetting
         int32_t(0),
         true);
 
-    DeclareUserSettingKey(
-        userSettingPtr,
-        "Encode MMC In Use",
-        MediaUserSetting::Group::Sequence,
-        int32_t(0),
-        true);
-
-    DeclareUserSettingKey(
-        userSettingPtr,
-        "Enable Encode MMC",
-        MediaUserSetting::Group::Sequence,
-        int32_t(0),
-        false);
-
 #if (_DEBUG || _RELEASE_INTERNAL)
     DeclareUserSettingKeyForDebug(
         userSettingPtr,
