@@ -1901,6 +1901,7 @@ MOS_STATUS CodecHalDecodeScalability_ReadCSEngineIDReg(
         pDecodeStatusBuf->m_csEngineIdOffset + sizeof(uint32_t)* ucPhaseIndex +
         sizeof(uint32_t)* 2;
 
+    MOS_ZeroMemory(&StoreRegParams, sizeof(MHW_MI_STORE_REGISTER_MEM_PARAMS));
     StoreRegParams.presStoreBuffer  = &pDecodeStatusBuf->m_statusBuffer;
     StoreRegParams.dwOffset         = dwOffset;
     StoreRegParams.dwRegister       = pMmioRegisters->csEngineIdOffset;

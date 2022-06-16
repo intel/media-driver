@@ -546,11 +546,12 @@ MOS_STATUS CodechalDecodeHevcG11::EndStatusReport(
     auto mmioRegistersMfx = m_mfxInterface->GetMmioRegisters(m_vdboxIndex);
     uint32_t currIndex = m_decodeStatusBuf.m_currIndex;
 
-    MHW_MI_STORE_REGISTER_MEM_PARAMS regParams;
-
     //Frame CRC
     if (m_reportFrameCrc)
     {
+        MHW_MI_STORE_REGISTER_MEM_PARAMS regParams;
+        MOS_ZeroMemory(&regParams, sizeof(MHW_MI_STORE_REGISTER_MEM_PARAMS));
+
         uint32_t frameCrcOffset =
             currIndex * sizeof(CodechalDecodeStatus) +
             m_decodeStatusBuf.m_decFrameCrcOffset +
@@ -626,6 +627,7 @@ MOS_STATUS CodechalDecodeHevcG11::EndStatusReportForFE(
         sizeof(uint32_t) * 2;
 
     MHW_MI_STORE_REGISTER_MEM_PARAMS regParams;
+    MOS_ZeroMemory(&regParams, sizeof(MHW_MI_STORE_REGISTER_MEM_PARAMS));
     regParams.presStoreBuffer = &m_decodeStatusBuf.m_statusBuffer;
     regParams.dwOffset = errStatusOffset;
     regParams.dwRegister = mmioRegistersHcp ?

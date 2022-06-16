@@ -4027,6 +4027,7 @@ MOS_STATUS CodechalEncodeVp8::ReadImageStatus(PMOS_COMMAND_BUFFER cmdBuffer)
         (encodeStatusBuf->wCurrIndex * m_encodeStatusBuf.dwReportSize) +
         sizeof(uint32_t) * 2;  // pEncodeStatus is offset by 2 DWs in the resource
 
+    MOS_ZeroMemory(&miStoreRegMemParams, sizeof(MHW_MI_STORE_REGISTER_MEM_PARAMS));
     miStoreRegMemParams.presStoreBuffer = &encodeStatusBuf->resStatusBuffer;
     miStoreRegMemParams.dwOffset = baseOffset + encodeStatusBuf->dwImageStatusMaskOffset;
     miStoreRegMemParams.dwRegister = mmioRegisters->mfcVP8ImageStatusMaskRegOffset;
@@ -4072,6 +4073,7 @@ MOS_STATUS CodechalEncodeVp8::ReadMfcStatus(PMOS_COMMAND_BUFFER cmdBuffer)
     MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
     CODECHAL_ENCODE_CHK_STATUS_RETURN(commonMiInterface->AddMiFlushDwCmd(cmdBuffer, &flushDwParams));
 
+    MOS_ZeroMemory(&miStoreRegMemParams, sizeof(MHW_MI_STORE_REGISTER_MEM_PARAMS));
     miStoreRegMemParams.presStoreBuffer = &encodeStatusBuf->resStatusBuffer;
     miStoreRegMemParams.dwOffset = baseOffset + encodeStatusBuf->dwBSByteCountOffset;
     miStoreRegMemParams.dwRegister = mmioRegisters->mfcVP8BitstreamBytecountFrameRegOffset;
