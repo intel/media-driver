@@ -1458,7 +1458,53 @@ protected:
     {
         _MHW_SETCMD_CALLBASE(VDENC_AVC_IMG_STATE);
 
-#define DO_FIELDS() __MHW_VDBOX_VDENC_WRAPPER_EXT(VDENC_AVC_IMG_STATE_IMPL_EXT)
+#define DO_FIELDS()                                                                                                 \
+    DO_FIELD(DW1, PictureType, params.pictureType);                                                                 \
+    DO_FIELD(DW1, Transform8X8Flag, params.transform8X8Flag);                                                       \
+    DO_FIELD(DW1, colloc_mv_wr_en, params.colMVWriteEnable);                                                        \
+    DO_FIELD(DW1, SubpelMode, params.subpelMode);                                                                   \
+                                                                                                                    \
+    DO_FIELD(DW2, colloc_mv_rd_en, params.colMVReadEnable);                                                         \
+    DO_FIELD(DW2, BidirectionalWeight, params.bidirectionalWeight);                                                 \
+                                                                                                                    \
+    DO_FIELD(DW3, PictureHeightMinusOne, params.pictureHeightMinusOne);                                             \
+    DO_FIELD(DW3, PictureWidth, params.pictureWidth);                                                               \
+                                                                                                                    \
+    DO_FIELD(DW5, FwdRefIdx0ReferencePicture, params.fwdRefIdx0ReferencePicture);                                   \
+    DO_FIELD(DW5, BwdRefIdx0ReferencePicture, params.bwdRefIdx0ReferencePicture);                                   \
+    DO_FIELD(DW5, FwdRefIdx1ReferencePicture, params.fwdRefIdx1ReferencePicture);                                   \
+    DO_FIELD(DW5, FwdRefIdx2ReferencePicture, params.fwdRefIdx2ReferencePicture);                                   \
+    DO_FIELD(DW5, NumberOfL0ReferencesMinusOne, params.numberOfL0ReferencesMinusOne);                               \
+    DO_FIELD(DW5, NumberOfL1ReferencesMinusOne, params.numberOfL1ReferencesMinusOne);                               \
+                                                                                                                    \
+    DO_FIELD(DW6, IntraRefreshMbPos, params.intraRefreshMbPos);                                                     \
+    DO_FIELD(DW6, IntraRefreshMbSizeMinusOne, params.intraRefreshMbSizeMinusOne);                                   \
+    DO_FIELD(DW6, IntraRefreshEnableRollingIEnable, params.intraRefreshEnableRollingIEnable);                       \
+    DO_FIELD(DW6, IntraRefreshMode, params.intraRefreshMode);                                                       \
+    DO_FIELD(DW6, QpAdjustmentForRollingI, params.qpAdjustmentForRollingI);                                         \
+                                                                                                                    \
+    DO_FIELD(DW9, RoiQpAdjustmentForZone0, params.roiQpAdjustmentForZone0);                                         \
+    DO_FIELD(DW9, RoiQpAdjustmentForZone1, params.roiQpAdjustmentForZone1);                                         \
+    DO_FIELD(DW9, RoiQpAdjustmentForZone2, params.roiQpAdjustmentForZone2);                                         \
+    DO_FIELD(DW9, RoiQpAdjustmentForZone3, params.roiQpAdjustmentForZone3);                                         \
+                                                                                                                    \
+    DO_FIELD(DW12, MinQp, params.minQp);                                                                            \
+    DO_FIELD(DW12, MaxQp, params.maxQp);                                                                            \
+                                                                                                                    \
+    DO_FIELD(DW13, RoiEnable, params.roiEnable);                                                                    \
+    DO_FIELD(DW13, MbLevelQpEnable, params.mbLevelQpEnable);                                                        \
+    DO_FIELD(DW13, MbLevelDeltaQpEnable, params.mbLevelDeltaQpEnable);                                              \
+    DO_FIELD(DW13, LongtermReferenceFrameBwdRef0Indicator, params.longtermReferenceFrameBwdRef0Indicator);          \
+                                                                                                                    \
+    DO_FIELD(DW14, QpPrimeY, params.qpPrimeY);                                                                      \
+    DO_FIELD(DW14, TrellisQuantEn, params.trellisQuantEn);                                                          \
+                                                                                                                    \
+    DO_FIELD(DW15, PocNumberForCurrentPicture, params.pocNumberForCurrentPicture);                                  \
+    DO_FIELD(DW16, PocNumberForFwdRef0, params.pocNumberForFwdRef0);                                                \
+    DO_FIELD(DW17, PocNumberForFwdRef1, params.pocNumberForFwdRef1);                                                \
+    DO_FIELD(DW18, PocNumberForFwdRef2, params.pocNumberForFwdRef2);                                                \
+    DO_FIELD(DW19, PocNumberForBwdRef0, params.pocNumberForBwdRef0);                                                \
+    __MHW_VDBOX_VDENC_WRAPPER_EXT(VDENC_AVC_IMG_STATE_IMPL_EXT)
 
 #include "mhw_hwcmd_process_cmdfields.h"
     }

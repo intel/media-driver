@@ -355,6 +355,45 @@ struct _MHW_PAR_T(VDENC_AVC_SLICE_STATE)
 
 struct _MHW_PAR_T(VDENC_AVC_IMG_STATE)
 {
+    uint8_t  pictureType                                 = 0;
+    uint8_t  transform8X8Flag                            = 0;
+    bool     colMVWriteEnable                            = false;
+    uint8_t  subpelMode                                  = 3;
+    bool     colMVReadEnable                             = false;
+    uint8_t  bidirectionalWeight                         = 0;
+    uint16_t pictureHeightMinusOne                       = 0;
+    uint16_t pictureWidth                                = 0;
+    uint8_t  fwdRefIdx0ReferencePicture                  = 0;
+    uint8_t  bwdRefIdx0ReferencePicture                  = 0;
+    uint8_t  fwdRefIdx1ReferencePicture                  = 0;
+    uint8_t  fwdRefIdx2ReferencePicture                  = 0;
+    uint8_t  numberOfL0ReferencesMinusOne                = 0;
+    uint8_t  numberOfL1ReferencesMinusOne                = 0;
+    uint8_t  intraRefreshMbPos                           = 0;
+    uint8_t  intraRefreshMbSizeMinusOne                  = 0;
+    uint8_t  intraRefreshEnableRollingIEnable            = 0;
+    uint8_t  intraRefreshMode                            = 0;
+    uint8_t  qpAdjustmentForRollingI                     = 0;
+    uint8_t  roiQpAdjustmentForZone0                     = 0;
+    uint8_t  roiQpAdjustmentForZone1                     = 0;
+    uint8_t  roiQpAdjustmentForZone2                     = 0;
+    uint8_t  roiQpAdjustmentForZone3                     = 0;
+    uint8_t  minQp                                       = 0xa;
+    uint8_t  maxQp                                       = 0x33;
+    bool     roiEnable                                   = false;
+    bool     mbLevelQpEnable                             = false;
+    bool     mbLevelDeltaQpEnable                        = false;
+    bool     longtermReferenceFrameBwdRef0Indicator      = false;
+    uint8_t  qpPrimeY                                    = 0;
+    uint8_t  trellisQuantEn                              = 0;
+    uint8_t  pocNumberForCurrentPicture                  = 0;
+    uint8_t  pocNumberForFwdRef0                         = 0;
+    uint8_t  pocNumberForFwdRef1                         = 0;
+    uint8_t  pocNumberForFwdRef2                         = 0;
+    uint8_t  pocNumberForBwdRef0                         = 0;
+
+    std::vector<std::function<MOS_STATUS(uint32_t*)>> extSettings;
+
     __MHW_VDBOX_VDENC_WRAPPER_EXT(VDENC_AVC_IMG_STATE_CMDPAR_EXT);
 };
 
