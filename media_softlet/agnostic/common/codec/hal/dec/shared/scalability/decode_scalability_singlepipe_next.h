@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2020, Intel Corporation
+* Copyright (c) 2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -21,24 +21,24 @@
 */
 
 //!
-//! \file     decode_scalability_singlepipe.h
+//! \file     decode_scalability_singlepipe_next.h
 //! \brief    Defines the common interface for decode scalability singlepipe mode.
 //! \details  The decode scalability singlepipe interface is further sub-divided by codecs,
 //!           this file is for the base interface which is shared by all codecs.
 //!
 
-#ifndef __DECODE_SCALABILITY_SINGLEPIPE_H__
-#define __DECODE_SCALABILITY_SINGLEPIPE_H__
+#ifndef __DECODE_SCALABILITY_SINGLEPIPE_NEXT_H__
+#define __DECODE_SCALABILITY_SINGLEPIPE_NEXT_H__
 #include "mos_defs.h"
 #include "mos_os.h"
 #include "codechal_hw.h"
-#include "decode_scalability_singlepipe_next.h"
+#include "media_scalability_singlepipe.h"
 #include "decode_scalability_option.h"
 
 namespace decode
 {
 
-class DecodeScalabilitySinglePipe: public DecodeScalabilitySinglePipeNext
+class DecodeScalabilitySinglePipeNext: public MediaScalabilitySinglePipe
 {
 public:
     //!
@@ -50,22 +50,22 @@ public:
     //! \param  [in] componentType
     //!         Component type
     //!
-    DecodeScalabilitySinglePipe(void *hwInterface, MediaContext *mediaContext, uint8_t componentType);
+    DecodeScalabilitySinglePipeNext(void *hwInterface, MediaContext *mediaContext, uint8_t componentType);
 
     //!
     //! \brief  decode scalability singlepipe destructor
     //!
-    virtual ~DecodeScalabilitySinglePipe() {};
+    virtual ~DecodeScalabilitySinglePipeNext(){};
 
     //!
     //! \brief    Copy constructor
     //!
-    DecodeScalabilitySinglePipe(const DecodeScalabilitySinglePipe&) = delete;
+    DecodeScalabilitySinglePipeNext(const DecodeScalabilitySinglePipeNext &) = delete;
 
     //!
     //! \brief    Copy assignment operator
     //!
-    DecodeScalabilitySinglePipe& operator=(const DecodeScalabilitySinglePipe&) = delete;
+    DecodeScalabilitySinglePipeNext &operator=(const DecodeScalabilitySinglePipeNext &) = delete;
 
     //!
     //! \brief   Initialize the decode single scalability
@@ -132,9 +132,9 @@ protected:
 private:
     CodechalHwInterface *m_hwInterface   = nullptr;
 
-MEDIA_CLASS_DEFINE_END(decode__DecodeScalabilitySinglePipe)
+MEDIA_CLASS_DEFINE_END(decode__DecodeScalabilitySinglePipeNext)
 };
 
 }
-#endif // !__MEDIA_SCALABILITY_SINGLEPIPE_H__
+#endif // !__MEDIA_SCALABILITY_SINGLEPIPE_NEXT_H__
 

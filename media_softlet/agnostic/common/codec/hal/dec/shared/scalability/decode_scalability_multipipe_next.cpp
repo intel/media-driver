@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2021, Intel Corporation
+* Copyright (c) 2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -21,11 +21,11 @@
 */
 
 //!
-//! \file     decode_scalability_multipipe.cpp
+//! \file     decode_scalability_multipipe_next.cpp
 //! \brief    Defines the common interface for decode scalability multipipe mode.
 //!
 
-#include "decode_scalability_multipipe.h"
+#include "decode_scalability_multipipe_next.h"
 
 #include "media_context.h"
 #include "media_status_report.h"
@@ -34,18 +34,18 @@
 
 namespace decode
 {
-DecodeScalabilityMultiPipe::DecodeScalabilityMultiPipe(void *hwInterface, MediaContext *mediaContext, uint8_t componentType)
-    : DecodeScalabilityMultiPipeNext(mediaContext, mediaContext, componentType)
+DecodeScalabilityMultiPipeNext::DecodeScalabilityMultiPipeNext(void *hwInterface, MediaContext *mediaContext, uint8_t componentType)
+    : MediaScalabilityMultiPipe(mediaContext)
 {
     m_hwInterface   = (CodechalHwInterface *)hwInterface;
     m_componentType = componentType;
 }
 
-DecodeScalabilityMultiPipe::~DecodeScalabilityMultiPipe()
+DecodeScalabilityMultiPipeNext::~DecodeScalabilityMultiPipeNext()
 {
 }
 
-MOS_STATUS DecodeScalabilityMultiPipe::AllocateSemaphore()
+MOS_STATUS DecodeScalabilityMultiPipeNext::AllocateSemaphore()
 {
     SCALABILITY_FUNCTION_ENTER;
     SCALABILITY_CHK_NULL_RETURN(m_osInterface);
@@ -117,16 +117,15 @@ MOS_STATUS DecodeScalabilityMultiPipe::AllocateSemaphore()
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS DecodeScalabilityMultiPipe::Initialize(const MediaScalabilityOption &option)
+MOS_STATUS DecodeScalabilityMultiPipeNext::Initialize(const MediaScalabilityOption &option)
 {
     SCALABILITY_FUNCTION_ENTER;
 
     SCALABILITY_CHK_NULL_RETURN(m_hwInterface);
     m_osInterface = m_hwInterface->GetOsInterface();
     SCALABILITY_CHK_NULL_RETURN(m_osInterface);
-    m_miInterface = m_hwInterface->GetMiInterface();
-    SCALABILITY_CHK_NULL_RETURN(m_miInterface);
     m_miItf = m_hwInterface->GetMiInterfaceNext();
+    SCALABILITY_CHK_NULL_RETURN(m_miItf);
 
     DecodeScalabilityOption *decodeScalabilityOption = MOS_New(DecodeScalabilityOption, (const DecodeScalabilityOption &)option);
     SCALABILITY_CHK_NULL_RETURN(decodeScalabilityOption);
@@ -206,7 +205,7 @@ MOS_STATUS DecodeScalabilityMultiPipe::Initialize(const MediaScalabilityOption &
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS DecodeScalabilityMultiPipe::GetGpuCtxCreationOption(MOS_GPUCTX_CREATOPTIONS *gpuCtxCreateOption)
+MOS_STATUS DecodeScalabilityMultiPipeNext::GetGpuCtxCreationOption(MOS_GPUCTX_CREATOPTIONS *gpuCtxCreateOption)
 {
     SCALABILITY_FUNCTION_ENTER;
     SCALABILITY_CHK_NULL_RETURN(gpuCtxCreateOption);
@@ -222,7 +221,7 @@ MOS_STATUS DecodeScalabilityMultiPipe::GetGpuCtxCreationOption(MOS_GPUCTX_CREATO
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS DecodeScalabilityMultiPipe::Destroy()
+MOS_STATUS DecodeScalabilityMultiPipeNext::Destroy()
 {
     SCALABILITY_FUNCTION_ENTER;
 
@@ -255,7 +254,7 @@ MOS_STATUS DecodeScalabilityMultiPipe::Destroy()
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS DecodeScalabilityMultiPipe::ResizeCommandBufferAndPatchList(
+MOS_STATUS DecodeScalabilityMultiPipeNext::ResizeCommandBufferAndPatchList(
     uint32_t                    requestedCommandBufferSize,
     uint32_t                    requestedPatchListSize)
 {
@@ -265,7 +264,7 @@ MOS_STATUS DecodeScalabilityMultiPipe::ResizeCommandBufferAndPatchList(
     return m_hwInterface->ResizeCommandBufferAndPatchList(requestedCommandBufferSize, requestedPatchListSize);
 }
 
-MOS_STATUS DecodeScalabilityMultiPipe::VerifySpaceAvailable(uint32_t requestedSize, uint32_t requestedPatchListSize, bool &singleTaskPhaseSupportedInPak)
+MOS_STATUS DecodeScalabilityMultiPipeNext::VerifySpaceAvailable(uint32_t requestedSize, uint32_t requestedPatchListSize, bool &singleTaskPhaseSupportedInPak)
 {
     SCALABILITY_FUNCTION_ENTER;
     SCALABILITY_CHK_NULL_RETURN(m_hwInterface);
@@ -305,7 +304,7 @@ MOS_STATUS DecodeScalabilityMultiPipe::VerifySpaceAvailable(uint32_t requestedSi
     return MOS_STATUS_NO_SPACE;
 }
 
-MOS_STATUS DecodeScalabilityMultiPipe::VerifyCmdBuffer(uint32_t requestedSize, uint32_t requestedPatchListSize, bool &singleTaskPhaseSupportedInPak)
+MOS_STATUS DecodeScalabilityMultiPipeNext::VerifyCmdBuffer(uint32_t requestedSize, uint32_t requestedPatchListSize, bool &singleTaskPhaseSupportedInPak)
 {
     SCALABILITY_FUNCTION_ENTER;
     SCALABILITY_CHK_NULL_RETURN(m_hwInterface);
@@ -338,7 +337,7 @@ MOS_STATUS DecodeScalabilityMultiPipe::VerifyCmdBuffer(uint32_t requestedSize, u
     return MOS_STATUS_NO_SPACE;
 }
 
-MOS_STATUS DecodeScalabilityMultiPipe::GetCmdBuffer(PMOS_COMMAND_BUFFER cmdBuffer, bool frameTrackingRequested)
+MOS_STATUS DecodeScalabilityMultiPipeNext::GetCmdBuffer(PMOS_COMMAND_BUFFER cmdBuffer, bool frameTrackingRequested)
 {
     SCALABILITY_FUNCTION_ENTER;
     SCALABILITY_CHK_NULL_RETURN(cmdBuffer);
@@ -348,8 +347,7 @@ MOS_STATUS DecodeScalabilityMultiPipe::GetCmdBuffer(PMOS_COMMAND_BUFFER cmdBuffe
     SCALABILITY_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &m_primaryCmdBuffer, 0));
 
     uint32_t bufIdx = m_phase->GetCmdBufIndex();
-    SCALABILITY_COND_CHECK(bufIdx < DecodePhase::m_secondaryCmdBufIdxBase, " bufIdx(%d) is less than m_secondaryCmdBufIdxBase(%d), invalid !", bufIdx, DecodePhase::m_secondaryCmdBufIdxBase);
-
+    SCALABILITY_ASSERT(bufIdx >= DecodePhase::m_secondaryCmdBufIdxBase);
     uint32_t secondaryIdx = bufIdx - DecodePhase::m_secondaryCmdBufIdxBase;
     if (secondaryIdx >= m_secondaryCmdBuffers.size())
     {
@@ -374,13 +372,13 @@ MOS_STATUS DecodeScalabilityMultiPipe::GetCmdBuffer(PMOS_COMMAND_BUFFER cmdBuffe
     {
         SCALABILITY_CHK_STATUS_RETURN(SendAttrWithFrameTracking(m_primaryCmdBuffer, frameTrackingRequested));
         // Insert noop to primary command buffer, avoid zero length command buffer
-        SCALABILITY_CHK_STATUS_RETURN(m_miInterface->AddMiNoop(&m_primaryCmdBuffer, nullptr));
+        SCALABILITY_CHK_STATUS_RETURN(m_miItf->ADDCMD_MI_NOOP(&m_primaryCmdBuffer, nullptr));
         m_attrReady = true;
     }
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS DecodeScalabilityMultiPipe::ReturnCmdBuffer(PMOS_COMMAND_BUFFER cmdBuffer)
+MOS_STATUS DecodeScalabilityMultiPipeNext::ReturnCmdBuffer(PMOS_COMMAND_BUFFER cmdBuffer)
 {
     SCALABILITY_FUNCTION_ENTER;
     SCALABILITY_CHK_NULL_RETURN(cmdBuffer);
@@ -398,7 +396,7 @@ MOS_STATUS DecodeScalabilityMultiPipe::ReturnCmdBuffer(PMOS_COMMAND_BUFFER cmdBu
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS DecodeScalabilityMultiPipe::SetHintParams()
+MOS_STATUS DecodeScalabilityMultiPipeNext::SetHintParams()
 {
     SCALABILITY_FUNCTION_ENTER;
 
@@ -434,7 +432,7 @@ MOS_STATUS DecodeScalabilityMultiPipe::SetHintParams()
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS DecodeScalabilityMultiPipe::PopulateHintParams(PMOS_COMMAND_BUFFER cmdBuffer)
+MOS_STATUS DecodeScalabilityMultiPipeNext::PopulateHintParams(PMOS_COMMAND_BUFFER cmdBuffer)
 {
     SCALABILITY_FUNCTION_ENTER;
     SCALABILITY_CHK_NULL_RETURN(cmdBuffer);
@@ -449,7 +447,7 @@ MOS_STATUS DecodeScalabilityMultiPipe::PopulateHintParams(PMOS_COMMAND_BUFFER cm
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS DecodeScalabilityMultiPipe::SubmitCmdBuffer(PMOS_COMMAND_BUFFER cmdBuffer)
+MOS_STATUS DecodeScalabilityMultiPipeNext::SubmitCmdBuffer(PMOS_COMMAND_BUFFER cmdBuffer)
 {
     SCALABILITY_FUNCTION_ENTER;
     SCALABILITY_CHK_NULL_RETURN(m_osInterface);
@@ -466,7 +464,7 @@ MOS_STATUS DecodeScalabilityMultiPipe::SubmitCmdBuffer(PMOS_COMMAND_BUFFER cmdBu
         MOS_COMMAND_BUFFER& scdryCmdBuffer = m_secondaryCmdBuffers[secondaryIdx];
         uint32_t bufIdx = secondaryIdx + DecodePhase::m_secondaryCmdBufIdxBase;
         SCALABILITY_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &scdryCmdBuffer, bufIdx));
-        SCALABILITY_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(&scdryCmdBuffer, nullptr));
+        SCALABILITY_CHK_STATUS_RETURN(m_miItf->AddMiBatchBufferEnd(&scdryCmdBuffer, nullptr));
         m_osInterface->pfnReturnCommandBuffer(m_osInterface, &scdryCmdBuffer, bufIdx);
     }
 
@@ -489,7 +487,7 @@ MOS_STATUS DecodeScalabilityMultiPipe::SubmitCmdBuffer(PMOS_COMMAND_BUFFER cmdBu
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS DecodeScalabilityMultiPipe::SyncAllPipes(PMOS_COMMAND_BUFFER cmdBuffer)
+MOS_STATUS DecodeScalabilityMultiPipeNext::SyncAllPipes(PMOS_COMMAND_BUFFER cmdBuffer)
 {
     SCALABILITY_FUNCTION_ENTER;
     SCALABILITY_CHK_NULL_RETURN(cmdBuffer);
@@ -530,7 +528,7 @@ MOS_STATUS DecodeScalabilityMultiPipe::SyncAllPipes(PMOS_COMMAND_BUFFER cmdBuffe
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS DecodeScalabilityMultiPipe::SyncOnePipeWaitOthers(PMOS_COMMAND_BUFFER cmdBuffer, uint32_t pipeIdx)
+MOS_STATUS DecodeScalabilityMultiPipeNext::SyncOnePipeWaitOthers(PMOS_COMMAND_BUFFER cmdBuffer, uint32_t pipeIdx)
 {
     SCALABILITY_FUNCTION_ENTER;
     SCALABILITY_CHK_NULL_RETURN(cmdBuffer);
@@ -583,7 +581,7 @@ MOS_STATUS DecodeScalabilityMultiPipe::SyncOnePipeWaitOthers(PMOS_COMMAND_BUFFER
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS DecodeScalabilityMultiPipe::SyncPipe(uint32_t syncType, uint32_t semaphoreId, PMOS_COMMAND_BUFFER cmdBuffer)
+MOS_STATUS DecodeScalabilityMultiPipeNext::SyncPipe(uint32_t syncType, uint32_t semaphoreId, PMOS_COMMAND_BUFFER cmdBuffer)
 {
     SCALABILITY_FUNCTION_ENTER;
     if (syncType == syncAllPipes)
@@ -600,14 +598,14 @@ MOS_STATUS DecodeScalabilityMultiPipe::SyncPipe(uint32_t syncType, uint32_t sema
     }
 }
 
-MOS_STATUS DecodeScalabilityMultiPipe::ResetSemaphore(uint32_t syncType, uint32_t semaphoreId, PMOS_COMMAND_BUFFER cmdBuffer)
+MOS_STATUS DecodeScalabilityMultiPipeNext::ResetSemaphore(uint32_t syncType, uint32_t semaphoreId, PMOS_COMMAND_BUFFER cmdBuffer)
 {
     SCALABILITY_FUNCTION_ENTER;
     // Don't need to reset semaphore
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS DecodeScalabilityMultiPipe::UpdateState(void *statePars)
+MOS_STATUS DecodeScalabilityMultiPipeNext::UpdateState(void *statePars)
 {
     SCALABILITY_FUNCTION_ENTER;
 
@@ -633,7 +631,7 @@ MOS_STATUS DecodeScalabilityMultiPipe::UpdateState(void *statePars)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS DecodeScalabilityMultiPipe::SendAttrWithFrameTracking(
+MOS_STATUS DecodeScalabilityMultiPipeNext::SendAttrWithFrameTracking(
     MOS_COMMAND_BUFFER &cmdBuffer,
     bool                frameTrackingRequested)
 {

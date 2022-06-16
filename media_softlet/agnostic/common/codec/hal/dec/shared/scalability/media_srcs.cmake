@@ -23,7 +23,9 @@ set(TMP_SOURCES_
     ${TMP_SOURCES_}
     ${CMAKE_CURRENT_LIST_DIR}/decode_scalability_option.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_scalability_singlepipe.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/decode_scalability_singlepipe_next.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_scalability_multipipe.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/decode_scalability_multipipe_next.cpp
 )
 
 set(TMP_HEADERS_
@@ -31,7 +33,9 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/decode_scalability_defs.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_scalability_option.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_scalability_singlepipe.h
+    ${CMAKE_CURRENT_LIST_DIR}/decode_scalability_singlepipe_next.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_scalability_multipipe.h
+    ${CMAKE_CURRENT_LIST_DIR}/decode_scalability_multipipe_next.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_phase.h
 )
 endif()

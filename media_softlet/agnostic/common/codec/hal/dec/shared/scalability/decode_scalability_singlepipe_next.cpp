@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2020, Intel Corporation
+* Copyright (c) 2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -21,7 +21,7 @@
 */
 
 //!
-//! \file     decode_scalability_singlepipe.cpp
+//! \file     decode_scalability_singlepipe_next.cpp
 //! \brief    Defines the common interface for media scalability singlepipe mode.
 //! \details  The media scalability singlepipe interface is further sub-divided by component,
 //!           this file is for the base interface which is shared by all components.
@@ -29,7 +29,7 @@
 
 #include "codechal_hw.h"
 #include "decode_scalability_defs.h"
-#include "decode_scalability_singlepipe.h"
+#include "decode_scalability_singlepipe_next.h"
 
 #include "media_context.h"
 #include "media_status_report.h"
@@ -39,8 +39,8 @@
 namespace decode
 {
 
-DecodeScalabilitySinglePipe::DecodeScalabilitySinglePipe(void *hwInterface, MediaContext *mediaContext, uint8_t componentType) :
-    DecodeScalabilitySinglePipeNext(hwInterface, mediaContext, componentType)
+DecodeScalabilitySinglePipeNext::DecodeScalabilitySinglePipeNext(void *hwInterface, MediaContext *mediaContext, uint8_t componentType) :
+    MediaScalabilitySinglePipe(hwInterface, mediaContext, componentType)
 {
     if (hwInterface == nullptr)
     {
@@ -50,7 +50,7 @@ DecodeScalabilitySinglePipe::DecodeScalabilitySinglePipe(void *hwInterface, Medi
     m_osInterface = m_hwInterface->GetOsInterface();
 }
 
-MOS_STATUS DecodeScalabilitySinglePipe::Initialize(const MediaScalabilityOption &option)
+MOS_STATUS DecodeScalabilitySinglePipeNext::Initialize(const MediaScalabilityOption &option)
 {
     SCALABILITY_CHK_NULL_RETURN(m_osInterface);
 
@@ -63,10 +63,10 @@ MOS_STATUS DecodeScalabilitySinglePipe::Initialize(const MediaScalabilityOption 
     // !Don't check the return status here, because this function will return fail if there's no regist key in register.
     // But it's normal that regist key not in register.
     Mos_CheckVirtualEngineSupported(m_osInterface, false, true);
-    m_miInterface = m_hwInterface->GetMiInterface();
-    SCALABILITY_CHK_NULL_RETURN(m_miInterface);
+    m_miItf = m_hwInterface->GetMiInterfaceNext();
+    SCALABILITY_CHK_NULL_RETURN(m_miItf);
 
-    SCALABILITY_CHK_STATUS_RETURN(MediaScalabilitySinglePipe::Initialize(option));
+    SCALABILITY_CHK_STATUS_RETURN(MediaScalabilitySinglePipeNext::Initialize(option));
     PMOS_GPUCTX_CREATOPTIONS_ENHANCED gpuCtxCreateOption = dynamic_cast<PMOS_GPUCTX_CREATOPTIONS_ENHANCED>(m_gpuCtxCreateOption);
     SCALABILITY_CHK_NULL_RETURN(gpuCtxCreateOption);
     gpuCtxCreateOption->UsingSFC = decodeScalabilityOption->IsUsingSFC();
@@ -78,14 +78,14 @@ MOS_STATUS DecodeScalabilitySinglePipe::Initialize(const MediaScalabilityOption 
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS DecodeScalabilitySinglePipe::VerifyCmdBuffer(uint32_t requestedSize, uint32_t requestedPatchListSize, bool &singleTaskPhaseSupportedInPak)
+MOS_STATUS DecodeScalabilitySinglePipeNext::VerifyCmdBuffer(uint32_t requestedSize, uint32_t requestedPatchListSize, bool &singleTaskPhaseSupportedInPak)
 {
     SCALABILITY_FUNCTION_ENTER;
 
-    return MediaScalabilitySinglePipe::VerifyCmdBuffer(requestedSize, requestedPatchListSize, singleTaskPhaseSupportedInPak);
+    return MediaScalabilitySinglePipeNext::VerifyCmdBuffer(requestedSize, requestedPatchListSize, singleTaskPhaseSupportedInPak);
 }
 
-MOS_STATUS DecodeScalabilitySinglePipe::VerifySpaceAvailable(uint32_t requestedSize, uint32_t requestedPatchListSize, bool &singleTaskPhaseSupportedInPak)
+MOS_STATUS DecodeScalabilitySinglePipeNext::VerifySpaceAvailable(uint32_t requestedSize, uint32_t requestedPatchListSize, bool &singleTaskPhaseSupportedInPak)
 {
     SCALABILITY_FUNCTION_ENTER;
 
@@ -124,12 +124,12 @@ MOS_STATUS DecodeScalabilitySinglePipe::VerifySpaceAvailable(uint32_t requestedS
     return MOS_STATUS_NO_SPACE;
 }
 
-MOS_STATUS DecodeScalabilitySinglePipe::UpdateState(void *statePars)
+MOS_STATUS DecodeScalabilitySinglePipeNext::UpdateState(void *statePars)
 {
     SCALABILITY_FUNCTION_ENTER;
     SCALABILITY_CHK_NULL_RETURN(statePars);
 
-    SCALABILITY_CHK_STATUS_RETURN(MediaScalabilitySinglePipe::UpdateState(statePars));
+    SCALABILITY_CHK_STATUS_RETURN(MediaScalabilitySinglePipeNext::UpdateState(statePars));
 
     StateParams *stateParams     = (StateParams *)statePars;
     m_singleTaskPhaseSupported   = stateParams->singleTaskPhaseSupported;
@@ -141,7 +141,7 @@ MOS_STATUS DecodeScalabilitySinglePipe::UpdateState(void *statePars)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS DecodeScalabilitySinglePipe::ResizeCommandBufferAndPatchList(
+MOS_STATUS DecodeScalabilitySinglePipeNext::ResizeCommandBufferAndPatchList(
     uint32_t                    requestedCommandBufferSize,
     uint32_t                    requestedPatchListSize)
 {
@@ -151,7 +151,7 @@ MOS_STATUS DecodeScalabilitySinglePipe::ResizeCommandBufferAndPatchList(
     return m_hwInterface->ResizeCommandBufferAndPatchList(requestedCommandBufferSize, requestedPatchListSize);
 }
 
-MOS_STATUS DecodeScalabilitySinglePipe::SendAttrWithFrameTracking(
+MOS_STATUS DecodeScalabilitySinglePipeNext::SendAttrWithFrameTracking(
     MOS_COMMAND_BUFFER &cmdBuffer,
     bool                frameTrackingRequested)
 {

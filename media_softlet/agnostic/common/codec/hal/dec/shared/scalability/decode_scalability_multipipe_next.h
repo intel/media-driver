@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2020, Intel Corporation
+* Copyright (c) 2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -21,25 +21,25 @@
 */
 
 //!
-//! \file     decode_scalability_multipipe.h
+//! \file     decode_scalability_multipipe_next.h
 //! \brief    Defines the common interface for decode scalability mulitpipe mode.
 //! \details  The decode scalability mulitpipe interface is further sub-divided by codecs,
 //!           this file is for the base interface which is shared by all codecs.
 //!
 
-#ifndef __DECODE_SCALABILITY_MULTIPIPE_H__
-#define __DECODE_SCALABILITY_MULTIPIPE_H__
+#ifndef __DECODE_SCALABILITY_MULTIPIPE_NEXT_H__
+#define __DECODE_SCALABILITY_MULTIPIPE_NEXT_H__
 #include "mos_defs.h"
 #include "mos_os.h"
 #include "codechal_hw.h"
-#include "decode_scalability_multipipe_next.h"
+#include "media_scalability_multipipe.h"
 #include "decode_scalability_option.h"
 #include "mos_os_virtualengine_scalability.h"
 #include "decode_phase.h"
 
 namespace decode
 {
-class DecodeScalabilityMultiPipe : public DecodeScalabilityMultiPipeNext
+class DecodeScalabilityMultiPipeNext : public MediaScalabilityMultiPipe
 {
 public:
     //!
@@ -51,22 +51,22 @@ public:
     //! \param  [in] componentType
     //!         Component type
     //!
-    DecodeScalabilityMultiPipe(void *hwInterface, MediaContext *mediaContext, uint8_t componentType);
+    DecodeScalabilityMultiPipeNext(void *hwInterface, MediaContext *mediaContext, uint8_t componentType);
 
     //!
     //! \brief  Decode scalability mulitipipe destructor
     //!
-    ~DecodeScalabilityMultiPipe();
+    ~DecodeScalabilityMultiPipeNext();
 
     //!
     //! \brief    Copy constructor
     //!
-    DecodeScalabilityMultiPipe(const DecodeScalabilityMultiPipe &) = delete;
+    DecodeScalabilityMultiPipeNext(const DecodeScalabilityMultiPipeNext &) = delete;
 
     //!
     //! \brief    Copy assignment operator
     //!
-    DecodeScalabilityMultiPipe &operator=(const DecodeScalabilityMultiPipe &) = delete;
+    DecodeScalabilityMultiPipeNext &operator=(const DecodeScalabilityMultiPipeNext &) = delete;
 
     //!
     //! \brief   Initialize the media scalability
@@ -268,7 +268,7 @@ protected:
 
     DecodePhase                    *m_phase = nullptr;
 
-MEDIA_CLASS_DEFINE_END(decode__DecodeScalabilityMultiPipe)
+MEDIA_CLASS_DEFINE_END(decode__DecodeScalabilityMultiPipeNext)
 };
 }  // namespace decode
-#endif  // !__DECODE_SCALABILITY_MULTIPIPE_H__
+#endif  // !__DECODE_SCALABILITY_MULTIPIPE_NEXT_H__
