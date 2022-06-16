@@ -567,7 +567,11 @@ static int parse_separate_sysfs_files(int maj, int min,
 
     get_pci_path(maj, min, pci_path);
     dev_path = strrchr(pci_path, '/');
-    dev_path++;
+    if(dev_path)
+    {
+        // Skip '/' if we found one
+        dev_path++;
+    }
 
     snprintf(driverpath, sizeof(driverpath), "%s/driver", pci_path);
     snprintf(irqpath, sizeof(irqpath), "%s/irq", pci_path);
@@ -584,7 +588,8 @@ static int parse_separate_sysfs_files(int maj, int min,
 
     snprintf(resourcename, sizeof(resourcename), "%s/resource", pci_path);
 
-    if (readlink(driverpath, drivername, PATH_MAX) < 0)
+    ssize_t dn_len = readlink(driverpath, drivername, PATH_MAX);
+	if (dn_len < 0)
     {
         /* Some devices might not be bound to a driver */
         if (errno == ENOENT)
@@ -592,10 +597,18 @@ static int parse_separate_sysfs_files(int maj, int min,
         else
             printf("   readlink -errno %d\n", errno);
     }
-
-    driver_name = strrchr(drivername, '/');
-    driver_name++;
-    snprintf(device->driverInfo, sizeof(device->driverInfo), "Driver Module %s  Bus %s IRQ %s", driver_name, dev_path, buffer);
+    else
+    {
+        /* readlink does not null terminate strings, so add our own */
+        drivername[dn_len] = 0;
+        driver_name = strrchr(drivername, '/');
+        if(driver_name)
+        {
+            // Skip '/' if we found one
+            driver_name++;
+        }
+        snprintf(device->driverInfo, sizeof(device->driverInfo), "Driver Module %s  Bus %s IRQ %s", driver_name, dev_path, buffer);
+    }
 
     FILE*resource = fopen(resourcename, "r");
 
