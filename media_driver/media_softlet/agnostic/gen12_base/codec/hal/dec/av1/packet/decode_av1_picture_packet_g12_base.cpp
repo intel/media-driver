@@ -1081,14 +1081,17 @@ namespace decode{
             }
 
 #ifdef _MMC_SUPPORTED
-            for (auto i = 0; i < av1TotalRefsPerFrame; i++)
+            if (m_mmcState->IsMmcEnabled())
             {
-                // Set each refSurfaceParams mmcState as MOS_MEMCOMP_MC to satisfy MmcEnable in AddAvpSurfaceCmd
-                // Compression type/enable should be the same for all reference surface state
-                // The actual refSurfac mmcstate is recorded by skipMask
-                refSurfaceParams[i].mmcState            = MOS_MEMCOMP_MC;
-                refSurfaceParams[i].mmcSkipMask         = skipMask;
-                refSurfaceParams[i].dwCompressionFormat = compressionFormat;
+                for (auto i = 0; i < av1TotalRefsPerFrame; i++)
+                {
+                    // Set each refSurfaceParams mmcState as MOS_MEMCOMP_MC to satisfy MmcEnable in AddAvpSurfaceCmd
+                    // Compression type/enable should be the same for all reference surface state
+                    // The actual refSurfac mmcstate is recorded by skipMask
+                    refSurfaceParams[i].mmcState            = MOS_MEMCOMP_MC;
+                    refSurfaceParams[i].mmcSkipMask         = skipMask;
+                    refSurfaceParams[i].dwCompressionFormat = compressionFormat;
+                }
             }
 #endif
         }
