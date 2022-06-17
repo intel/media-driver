@@ -413,9 +413,6 @@ MOS_STATUS VpVeboxCmdPacket::SetScalingParams(PSFC_SCALING_PARAMS scalingParams)
         VP_PUBLIC_CHK_NULL_RETURN(m_sfcRender);
         VP_PUBLIC_CHK_STATUS_RETURN(m_sfcRender->SetScalingParams(scalingParams));
 
-        m_sfcInputFrameWidth    = scalingParams->dwInputFrameWidth;
-        m_sfcInputFrameHeight   = scalingParams->dwInputFrameHeight;
-
         //---------------------------------
         // Set SFC State:  mmc
         //---------------------------------
@@ -1234,51 +1231,28 @@ MOS_STATUS VpVeboxCmdPacket::InitVeboxSurfaceParams(
 
     MOS_ZeroMemory(pMhwVeboxSurface, sizeof(*pMhwVeboxSurface));
     pMhwVeboxSurface->bActive                = true;
-
-    if (m_IsSfcUsed)
+    pMhwVeboxSurface->Format                 = pVpHalVeboxSurface->osSurface->Format;
+    pMhwVeboxSurface->dwWidth                = pVpHalVeboxSurface->osSurface->dwWidth;
+    pMhwVeboxSurface->dwHeight               = pVpHalVeboxSurface->osSurface->dwHeight;
+    pMhwVeboxSurface->dwPitch                = pVpHalVeboxSurface->osSurface->dwPitch;
+    pMhwVeboxSurface->dwBitDepth             = pVpHalVeboxSurface->osSurface->dwDepth;
+    pMhwVeboxSurface->TileType               = pVpHalVeboxSurface->osSurface->TileType;
+    pMhwVeboxSurface->TileModeGMM            = pVpHalVeboxSurface->osSurface->TileModeGMM;
+    pMhwVeboxSurface->bGMMTileEnabled        = pVpHalVeboxSurface->osSurface->bGMMTileEnabled;
+    if (pVpHalVeboxSurface->rcMaxSrc.top == pVpHalVeboxSurface->rcMaxSrc.bottom ||
+        pVpHalVeboxSurface->rcMaxSrc.left == pVpHalVeboxSurface->rcMaxSrc.right)
     {
-        VP_RENDER_NORMALMESSAGE("Align vebox input with sfc input, %d x %d -> %d x %d",
-            pVpHalVeboxSurface->osSurface->dwWidth, pVpHalVeboxSurface->osSurface->dwHeight,
-            m_sfcInputFrameWidth, m_sfcInputFrameHeight);
-        if (0 == m_sfcInputFrameWidth || 0 == m_sfcInputFrameHeight)
-        {
-            VP_RENDER_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
-        }
-        pMhwVeboxSurface->dwWidth           = m_sfcInputFrameWidth;
-        pMhwVeboxSurface->dwHeight          = m_sfcInputFrameHeight;
-        pMhwVeboxSurface->rcSrc.left        = 0;
-        pMhwVeboxSurface->rcSrc.top         = 0;
-        pMhwVeboxSurface->rcSrc.right       = m_sfcInputFrameWidth;
-        pMhwVeboxSurface->rcSrc.bottom      = m_sfcInputFrameHeight;
-        pMhwVeboxSurface->rcMaxSrc          = pMhwVeboxSurface->rcSrc;
+        // If rcMaxSrc is invalid, just use rcSrc.
+        pMhwVeboxSurface->rcMaxSrc           = pVpHalVeboxSurface->rcSrc;
     }
     else
     {
-        pMhwVeboxSurface->dwWidth           = pVpHalVeboxSurface->osSurface->dwWidth;
-        pMhwVeboxSurface->dwHeight          = pVpHalVeboxSurface->osSurface->dwHeight;
-
-        if (pVpHalVeboxSurface->rcMaxSrc.top == pVpHalVeboxSurface->rcMaxSrc.bottom ||
-            pVpHalVeboxSurface->rcMaxSrc.left == pVpHalVeboxSurface->rcMaxSrc.right)
-        {
-            // If rcMaxSrc is invalid, just use rcSrc.
-            pMhwVeboxSurface->rcMaxSrc      = pVpHalVeboxSurface->rcSrc;
-        }
-        else
-        {
-            pMhwVeboxSurface->rcMaxSrc      = pVpHalVeboxSurface->rcMaxSrc;
-        }
-        pMhwVeboxSurface->rcSrc             = pVpHalVeboxSurface->rcSrc;
+        pMhwVeboxSurface->rcMaxSrc           = pVpHalVeboxSurface->rcMaxSrc;
     }
-
-    pMhwVeboxSurface->Format                = pVpHalVeboxSurface->osSurface->Format;
-    pMhwVeboxSurface->dwPitch               = pVpHalVeboxSurface->osSurface->dwPitch;
-    pMhwVeboxSurface->dwBitDepth            = pVpHalVeboxSurface->osSurface->dwDepth;
-    pMhwVeboxSurface->TileType              = pVpHalVeboxSurface->osSurface->TileType;
-    pMhwVeboxSurface->TileModeGMM           = pVpHalVeboxSurface->osSurface->TileModeGMM;
-    pMhwVeboxSurface->bGMMTileEnabled       = pVpHalVeboxSurface->osSurface->bGMMTileEnabled;
-    pMhwVeboxSurface->bVEBOXCroppingUsed    = pVpHalVeboxSurface->bVEBOXCroppingUsed;
-    pMhwVeboxSurface->pOsResource           = &pVpHalVeboxSurface->osSurface->OsResource;
-    pMhwVeboxSurface->bIsCompressed         = pVpHalVeboxSurface->osSurface->bIsCompressed;
+    pMhwVeboxSurface->rcSrc                  = pVpHalVeboxSurface->rcSrc;
+    pMhwVeboxSurface->bVEBOXCroppingUsed     = pVpHalVeboxSurface->bVEBOXCroppingUsed;
+    pMhwVeboxSurface->pOsResource            = &pVpHalVeboxSurface->osSurface->OsResource;
+    pMhwVeboxSurface->bIsCompressed          = pVpHalVeboxSurface->osSurface->bIsCompressed;
 
     if (pVpHalVeboxSurface->osSurface->dwPitch > 0)
     {
@@ -2163,18 +2137,6 @@ MOS_STATUS VpVeboxCmdPacket::PacketInit(
         {
             curOutput->bVEBOXCroppingUsed = false;
         }
-    }
-
-    if (m_IsSfcUsed)
-    {
-        // Will be updated in VpVeboxCmdPacket::SetScalingParams
-        m_sfcInputFrameWidth    = curInput->osSurface->dwWidth;
-        m_sfcInputFrameHeight   = curInput->osSurface->dwHeight;
-    }
-    else
-    {
-        m_sfcInputFrameWidth    = 0;
-        m_sfcInputFrameHeight   = 0;
     }
 
     // Adjust boundary for statistics surface block

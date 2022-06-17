@@ -1108,8 +1108,6 @@ protected:
     std::shared_ptr<mhw::vebox::Itf> m_veboxItf            = nullptr;
     MediaFeatureManager        *m_featureManager           = nullptr;
     std::shared_ptr<mhw::mi::Itf> m_miItf                  = nullptr;
-    uint32_t                    m_sfcInputFrameWidth       = 0;                  //!< Sfc Input Frame Width
-    uint32_t                    m_sfcInputFrameHeight      = 0;                  //!< Sfc Input Frame Height
 
 MEDIA_CLASS_DEFINE_END(vp__VpVeboxCmdPacket)
 };

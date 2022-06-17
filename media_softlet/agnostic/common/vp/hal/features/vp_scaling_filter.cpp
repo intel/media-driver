@@ -157,22 +157,12 @@ MOS_STATUS VpScalingFilter::IsColorfillEnable()
 {
     VP_FUNC_CALL();
 
-    if (ISCALING_NONE != m_scalingParams.interlacedScalingType)
-    {
-        // No colorfill for interlacedScaling.
-        // dwOutputFrameWidth/dwOutputFrameHeight will be set to dwScaledRegionWidth/dwScaledRegionHeight
-        // by SetInterlacedScalingParams
-        m_bColorfillEnable = false;
-    }
-    else
-    {
-        m_bColorfillEnable = (m_scalingParams.pColorFillParams &&
-            (!m_scalingParams.pColorFillParams->bDisableColorfillinSFC) &&
-            (m_scalingParams.pColorFillParams->bOnePixelBiasinSFC ?
-            (!RECT1_CONTAINS_RECT2_ONEPIXELBIAS(m_scalingParams.input.rcDst, m_scalingParams.output.rcDst)) :
-            (!RECT1_CONTAINS_RECT2(m_scalingParams.input.rcDst, m_scalingParams.output.rcDst)))) ?
-            true : false;
-    }
+    m_bColorfillEnable = (m_scalingParams.pColorFillParams &&
+        (!m_scalingParams.pColorFillParams->bDisableColorfillinSFC) &&
+        (m_scalingParams.pColorFillParams->bOnePixelBiasinSFC ?
+        (!RECT1_CONTAINS_RECT2_ONEPIXELBIAS(m_scalingParams.input.rcDst, m_scalingParams.output.rcDst)) :
+        (!RECT1_CONTAINS_RECT2(m_scalingParams.input.rcDst, m_scalingParams.output.rcDst)))) ?
+        true : false;
 
     return MOS_STATUS_SUCCESS;
 }
