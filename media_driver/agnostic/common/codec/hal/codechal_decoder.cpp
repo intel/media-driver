@@ -1776,7 +1776,8 @@ MOS_STATUS CodechalDecode::GetStatusReport(
                     if (m_standard == CODECHAL_HEVC || m_standard == CODECHAL_VP9)
                     {
                         if ((m_decodeStatusBuf.m_decodeStatus[i].m_mmioErrorStatusReg &
-                             m_hcpInterface->GetHcpCabacErrorFlagsMask()) != 0)
+                             m_hcpInterface->GetHcpCabacErrorFlagsMask()) != 0
+                            && ((m_decodeStatusBuf.m_decodeStatus[i].m_mmioMBCountReg & 0xFFFC0000) >> 18) != 0)
                         {
                             codecStatus[j].m_codecStatus = CODECHAL_STATUS_ERROR;
                             codecStatus[j].m_numMbsAffected =
