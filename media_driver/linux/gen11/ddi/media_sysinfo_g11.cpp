@@ -177,6 +177,7 @@ static bool InitEhlShadowSku(struct GfxDeviceInfo *devInfo,
     skuTable->FtrDisplayYTiling = 1;
     skuTable->FtrEDram          = 0;
     skuTable->FtrLLCBypass      = 1;
+    skuTable->FtrTileY = 1;
 
     return true;
 }

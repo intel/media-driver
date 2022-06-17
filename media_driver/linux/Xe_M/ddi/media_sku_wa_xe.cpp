@@ -341,7 +341,7 @@ static bool InitTglMediaSkuExt(struct GfxDeviceInfo *devInfo,
     //Tile64
     if (GFX_IS_DG2_G11_CONFIG(drvInfo->devId))
     {
-        MEDIA_WR_SKU(skuTable, FtrMediaTile64, 1);
+        MEDIA_WR_SKU(skuTable, FtrTileY, 0);
     }
 
     return true;
@@ -786,7 +786,7 @@ static bool InitDg2MediaSku(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_SKU(skuTable, FtrDecodeHEVC422VTScalaDisable, 1);
 
     // Tile64
-    if (drvInfo->devRev >=0x04 &&
+    if (drvInfo->devRev >= 0x04 &&
         (drvInfo->devId == 0x4F80 ||
          drvInfo->devId == 0x4F81 ||
          drvInfo->devId == 0x4F82 ||
@@ -811,7 +811,7 @@ static bool InitDg2MediaSku(struct GfxDeviceInfo *devInfo,
          drvInfo->devId == 0x56A9 ||
          drvInfo->devId == 0x56C0))
     {
-        MEDIA_WR_SKU(skuTable, FtrMediaTile64, 1);
+        MEDIA_WR_SKU(skuTable, FtrTileY, 0);
     }
 
     MEDIA_WR_SKU(skuTable, FtrHDR, 1);

@@ -720,7 +720,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::AllocateResources()
 
     tileModeByForce = MOS_TILE_UNSET_GMM;
     //DN output surface must be tile64 only when input format is bayer
-    if (MEDIA_IS_SKU(pVeboxState->m_pSkuTable, FtrMediaTile64) &&
+    if (!MEDIA_IS_SKU(pVeboxState->m_pSkuTable, FtrTileY) &&
         IS_BAYER_FORMAT(pVeboxState->m_currentSurface->Format))
     {
         VPHAL_RENDER_NORMALMESSAGE("tilemode: media support tile encoding 1");
@@ -813,7 +813,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::AllocateResources()
     }
 
     tileModeByForce = MOS_TILE_UNSET_GMM;
-    if (MEDIA_IS_SKU(pVeboxState->m_pSkuTable, FtrMediaTile64))
+    if (!MEDIA_IS_SKU(pVeboxState->m_pSkuTable, FtrTileY))
     {
         VPHAL_RENDER_NORMALMESSAGE("tilemode: media support tile encoding 1");
         tileModeByForce = MOS_TILE_64_GMM;
