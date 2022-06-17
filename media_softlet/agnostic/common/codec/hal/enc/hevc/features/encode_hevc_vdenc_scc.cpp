@@ -42,7 +42,7 @@ namespace encode
         auto encFeatureManager = dynamic_cast<EncodeHevcVdencFeatureManager *>(featureManager);
         ENCODE_CHK_NULL_NO_STATUS_RETURN(encFeatureManager);
         ENCODE_CHK_NULL_NO_STATUS_RETURN(hwInterface);
-        CODECHAL_HW_ASSERT(hwInterface->GetOsInterface());
+        CODEC_HW_ASSERT(hwInterface->GetOsInterface());
         m_osInterface = hwInterface->GetOsInterface();
 
         m_basicFeature = dynamic_cast<EncodeBasicFeature *>(encFeatureManager->GetFeature(FeatureIDs::basicFeature));
@@ -214,14 +214,6 @@ namespace encode
         }
 
         return eStatus;
-    }
-
-    MOS_STATUS HevcVdencScc::SetVdencWalkerStateParams(MHW_VDBOX_VDENC_WALKER_STATE_PARAMS_G12 &vdencWalkerStateParams)
-    {
-        ENCODE_FUNC_CALL();
-
-        vdencWalkerStateParams.IBCControl = m_enableLBCOnly ? 1 : 3;
-        return MOS_STATUS_SUCCESS;
     }
 
     MOS_STATUS HevcVdencScc::SetRecNotFilteredID(unsigned char &slotForRecNotFiltered)

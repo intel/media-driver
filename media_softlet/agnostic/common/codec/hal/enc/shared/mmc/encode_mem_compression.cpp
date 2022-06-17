@@ -76,8 +76,8 @@ MOS_STATUS EncodeMemComp::UpdateUserFeatureKey(PMOS_SURFACE surface)
 
 void EncodeMemComp::InitEncodeMmc(CodechalHwInterface *hwInterface)
 {
-    CODECHAL_HW_ASSERT(hwInterface);
-    CODECHAL_HW_ASSERT(hwInterface->GetSkuTable());
+    CODEC_HW_ASSERT(hwInterface);
+    CODEC_HW_ASSERT(hwInterface->GetSkuTable());
     if (MEDIA_IS_SKU(hwInterface->GetSkuTable(), FtrE2ECompression))
     {
         //read encode mmc if available, then report encode mmc in use

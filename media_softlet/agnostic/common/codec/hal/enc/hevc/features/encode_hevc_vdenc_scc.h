@@ -28,11 +28,7 @@
 
 #include "media_feature.h"
 #include "encode_allocator.h"
-#include "mhw_vdbox_hcp_interface.h"
-#include "mhw_vdbox_vdenc_g12_X.h"
-#include "mhw_vdbox_hcp_interface.h"
 #include "encode_basic_feature.h"
-#include "mhw_vdbox_hcp_g12_X.h"
 #include "mhw_vdbox_vdenc_itf.h"
 #include "mhw_vdbox_hcp_itf.h"
 
@@ -81,17 +77,6 @@ namespace encode
         //!         MOS_STATUS_SUCCESS if success, else fail reason
         //!
         MOS_STATUS SetHucBrcUpdateDmem(void* hucVdencBrcUpdateDmem);
-
-        //!
-        //! \brief  Set scc features setting to vdenc walker state parameters
-        //!
-        //! \param  [in, out] vdencWalkerStateParams
-        //!         Reference to Vdenc walker state parameters
-        //!
-        //! \return MOS_STATUS
-        //!         MOS_STATUS_SUCCESS if success, else fail reason
-        //!
-        MOS_STATUS SetVdencWalkerStateParams(MHW_VDBOX_VDENC_WALKER_STATE_PARAMS_G12 &vdencWalkerStateParams);
 
         //!
         //! \brief  SetRecNotFilteredID parameters

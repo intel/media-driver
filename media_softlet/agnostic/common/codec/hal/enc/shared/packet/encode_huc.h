@@ -31,9 +31,6 @@
 #define __ENCODE_HUC_H__
 
 #include "codechal_hw.h"
-#include "mhw_vdbox_huc_interface.h"
-#include "mhw_vdbox_hcp_interface.h"
-#include "mhw_vdbox_mfx_interface.h"
 #include "mos_defs.h"
 #include "media_cmd_packet.h"
 #include "encode_pipeline.h"

@@ -260,30 +260,6 @@ enum BrcUpdateFlag
     brcUpdateIsReference     = (0x01 << 7)
 };
 
-//!
-//! \enum   TrellisSetting
-//! \brief  Indicate the different Trellis Settings
-//!
-enum TrellisSetting
-{
-    trellisInternal = 0,
-    trellisDisabled = 1,
-    trellisEnabledI = 2,
-    trellisEnabledP = 4,
-    trellisEnabledB = 8
-};
-
-//!
-//! \enum   MbBrcSetting
-//! \brief  Indicate the MBBRC settings
-//!
-enum MbBrcSetting
-{
-    mbBrcInternal = 0,
-    mbBrcEnabled  = 1,
-    mbBrcDisabled = 2,
-};
-
 // User Feature Key Report Writeout
 #define CodecHalEncodeWriteKey64(key, value, mosCtx)\
 {\
@@ -702,25 +678,6 @@ struct HwCounter
 {
     uint64_t IV;         // Big-Endian IV
     uint64_t Count;      // Big-Endian Block Count
-};
-
-//!
-//! \struct PerfTagSetting
-//! \brief  Setting of performance tags
-//!
-struct PerfTagSetting
-{
-    union
-    {
-        struct
-        {
-            uint16_t    PictureCodingType   : 2;
-            uint16_t    CallType            : 6;
-            uint16_t    Mode                : 4;
-            uint16_t                        : 4;
-        };
-        uint16_t        Value;
-    };
 };
 
 //!
@@ -1219,15 +1176,6 @@ struct CodechalEncodeIdOffsetParams
     uint16_t                                wPictureCodingType;
     uint8_t                                 ucDmvPredFlag;
     bool                                    interlacedField;
-};
-
-//!
-//! \struct VdencBrcPakMmio
-//! \brief  MMIO of BRC and PAK
-//!
-struct VdencBrcPakMmio
-{
-    uint32_t                dwReEncode[4];
 };
 
 //!

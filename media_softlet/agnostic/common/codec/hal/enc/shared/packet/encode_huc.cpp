@@ -29,7 +29,6 @@
 
 #include "encode_huc.h"
 #include "codechal_debug.h"
-#include "codechal_encoder_base.h"
 #include <algorithm>
 
 namespace encode

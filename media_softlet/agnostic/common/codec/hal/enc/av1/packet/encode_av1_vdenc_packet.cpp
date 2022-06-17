@@ -24,11 +24,9 @@
 //! \brief    Defines the interface for av1 encode vdenc packet
 //!
 #include <numeric>
-#include "codechal_utilities.h"
 #include "encode_av1_vdenc_packet.h"
 #include "encode_status_report_defs.h"
 #include "codec_def_common_av1.h"
-#include "codechal_mmc.h"
 #include "media_perf_profiler_next.h"
 
 namespace encode{

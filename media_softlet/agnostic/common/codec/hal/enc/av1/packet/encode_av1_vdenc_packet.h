@@ -34,7 +34,6 @@
 #include "encode_av1_basic_feature.h"
 #include "encode_status_report.h"
 #include "codec_def_encode_av1.h"
-#include "mhw_vdbox_avp_interface.h"
 #include "mhw_vdbox_vdenc_itf.h"
 #include "mhw_vdbox_avp_itf.h"
 #include "mhw_mi_itf.h"

@@ -47,14 +47,6 @@ namespace encode
         uint32_t  FrameByteCount;
         uint8_t   PAKPassNum;
     };
-    //!
-    //! \struct VdencBrcPakMmio
-    //! \brief  MMIO of BRC and PAK
-    //!
-    struct VdencBrcPakMmio
-    {
-        uint32_t dwReEncode[4];
-    };
 
     //!
     //! \struct    HevcVdencBrcBuffers

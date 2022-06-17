@@ -48,16 +48,6 @@ namespace encode
 #define CODECHAL_HEVC_MIN_TILE_SIZE            128
 #define CODECHAL_ENCODE_HEVC_MIN_ICQ_QUALITYFACTOR      1
 #define CODECHAL_ENCODE_HEVC_MAX_ICQ_QUALITYFACTOR      51
-    //!
-    //! \enum   MbBrcSetting
-    //! \brief  Indicate the MBBRC settings
-    //!
-    enum MbBrcSetting
-    {
-        mbBrcInternal = 0,
-        mbBrcEnabled  = 1,
-        mbBrcDisabled = 2,
-    };
 
 class HevcBasicFeature : public EncodeBasicFeature, public mhw::vdbox::vdenc::Itf::ParSetting, public mhw::vdbox::hcp::Itf::ParSetting
 {

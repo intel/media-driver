@@ -21,6 +21,7 @@
 */
 
 #include "encode_hevc_header_packer.h"
+#include "encode_utils.h"
 
 HevcHeaderPacker::HevcHeaderPacker()
 {
@@ -153,12 +154,12 @@ void HevcHeaderPacker::PackSSH(
 
     if (pps.tiles_enabled_flag || pps.entropy_coding_sync_enabled_flag)
     {
-        assert(slice.num_entry_point_offsets == 0);
+        ENCODE_ASSERT(slice.num_entry_point_offsets == 0);
 
         bs.PutUE(slice.num_entry_point_offsets);
     }
 
-    assert(0 == pps.slice_segment_header_extension_present_flag);
+    ENCODE_ASSERT(0 == pps.slice_segment_header_extension_present_flag);
 
     if (!dyn_slice_size)  // no trailing bits for dynamic slice size
         bs.PutTrailingBits();
@@ -256,7 +257,7 @@ void HevcHeaderPacker::PackSSHPartIndependent(
 
     nSE += bPackSliceLF && PutBit(bs, slice.loop_filter_across_slices_enabled_flag);
 
-    assert(nSE >= 2);
+    ENCODE_ASSERT(nSE >= 2);
 }
 
 void HevcHeaderPacker::PackSSHPartNonIDR(
@@ -301,7 +302,7 @@ void HevcHeaderPacker::PackSSHPartNonIDR(
 
     nSE += sps.temporal_mvp_enabled_flag && PutBit(bs, slice.temporal_mvp_enabled_flag);
 
-    assert(nSE >= 2);
+    ENCODE_ASSERT(nSE >= 2);
 }
 
 void HevcHeaderPacker::PackSTRPS(BitstreamWriter &bs, const STRPS *sets, mfxU32 num, mfxU32 idx)
@@ -396,7 +397,7 @@ void HevcHeaderPacker::PackSSHPartPB(
 
     nSE += PutUE(bs, slice.five_minus_max_num_merge_cand);
 
-    assert(nSE >= 2);
+    ENCODE_ASSERT(nSE >= 2);
 }
 
 bool HevcHeaderPacker::PackSSHPWT(

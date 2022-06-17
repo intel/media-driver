@@ -30,6 +30,7 @@
 #include "codec_def_common_avc.h"
 #include "codec_def_common_encode.h"
 #include "codec_def_common.h"
+#include "codec_def_encode.h"
 
 #define CODEC_AVC_NUM_MAX_DIRTY_RECT        4
 #define CODEC_AVC_NUM_QP                    52
@@ -60,6 +61,12 @@
 #define CODECHAL_ENCODE_AVC_ROI_FRAME_HEIGHT_SCALE_FACTOR   16
 #define CODECHAL_ENCODE_AVC_ROI_FIELD_HEIGHT_SCALE_FACTOR   32
 #define CODECHAL_ENCODE_AVC_MAX_ROI_NUMBER                  4
+#define CODECHAL_ENCODE_AVC_MAX_SLICE_QP                    (CODEC_AVC_NUM_QP - 1) // 0 - 51 inclusive
+#define CODECHAL_ENCODE_AVC_MAX_ICQ_QUALITYFACTOR           51
+#define CODECHAL_ENCODE_AVC_MIN_ICQ_QUALITYFACTOR           1
+#define CODECHAL_ENCODE_AVC_MAX_SLICES_SUPPORTED            256
+#define CODECHAL_DEBUG_ENCODE_AVC_NAL_START_CODE_SEI        0x00000106
+#define CODECHAL_DEBUG_ENCODE_AVC_NAL_START_CODE_PPS        0x00000128
 
 typedef struct _CODECHAL_ENCODE_AVC_ROUNDING_PARAMS
 {
@@ -1207,4 +1214,78 @@ struct CodecEncodeAvcFeiPicParams
     uint32_t                    dwNumPasses;     //number of QPs
     uint8_t                    *pDeltaQp;        //list of detla QPs
 };
+
+typedef struct _CODECHAL_ENCODE_AVC_PACK_PIC_HEADER_PARAMS
+{
+    PBSBuffer                               pBsBuffer;
+    PCODEC_AVC_ENCODE_PIC_PARAMS            pPicParams;     // pAvcPicParams[ucPPSIdx]
+    PCODEC_AVC_ENCODE_SEQUENCE_PARAMS       pSeqParams;     // pAvcSeqParams[ucSPSIdx]
+    PCODECHAL_ENCODE_AVC_VUI_PARAMS         pAvcVuiParams;
+    PCODEC_AVC_IQ_MATRIX_PARAMS             pAvcIQMatrixParams;
+    PCODECHAL_NAL_UNIT_PARAMS               *ppNALUnitParams;
+    CodechalEncodeSeiData*                  pSeiData;
+    uint32_t                                dwFrameHeight;
+    uint32_t                                dwOriFrameHeight;
+    uint16_t                                wPictureCodingType;
+    bool                                    bNewSeq;
+    bool                                   *pbNewPPSHeader;
+    bool                                   *pbNewSeqHeader;
+} CODECHAL_ENCODE_AVC_PACK_PIC_HEADER_PARAMS, *PCODECHAL_ENCODE_AVC_PACK_PIC_HEADER_PARAMS;
+
+typedef struct _CODECHAL_ENCODE_AVC_VALIDATE_NUM_REFS_PARAMS
+{
+    PCODEC_AVC_ENCODE_SEQUENCE_PARAMS       pSeqParams;     // pAvcSeqParams[ucSPSIdx]
+    PCODEC_AVC_ENCODE_PIC_PARAMS            pPicParams;
+    PCODEC_AVC_ENCODE_SLICE_PARAMS          pAvcSliceParams;
+    uint16_t                                wPictureCodingType;
+    uint16_t                                wPicHeightInMB;
+    uint16_t                                wFrameFieldHeightInMB;
+    bool                                    bFirstFieldIPic;
+    bool                                    bVDEncEnabled;
+    bool                                    bPAKonly;
+} CODECHAL_ENCODE_AVC_VALIDATE_NUM_REFS_PARAMS, *PCODECHAL_ENCODE_AVC_VALIDATE_NUM_REFS_PARAMS;
+
+typedef struct _CODECHAL_ENCODE_AVC_TQ_INPUT_PARAMS
+{
+    uint16_t  wPictureCodingType;
+    uint8_t   ucTargetUsage;
+    uint8_t   ucQP;
+    bool      bBrcEnabled;
+    bool      bVdEncEnabled;
+} CODECHAL_ENCODE_AVC_TQ_INPUT_PARAMS, *PCODECHAL_ENCODE_AVC_TQ_INPUT_PARAMS;
+
+typedef struct _CODECHAL_ENCODE_AVC_TQ_PARAMS
+{
+    uint32_t    dwTqEnabled;
+    uint32_t    dwTqRounding;
+} CODECHAL_ENCODE_AVC_TQ_PARAMS, *PCODECHAL_ENCODE_AVC_TQ_PARAMS;
+
+//!
+//! \enum   TrellisSetting
+//! \brief  Indicate the different Trellis Settings
+//!
+enum TrellisSetting
+{
+    trellisInternal = 0,
+    trellisDisabled = 1,
+    trellisEnabledI = 2,
+    trellisEnabledP = 4,
+    trellisEnabledB = 8
+};
+
+typedef struct _CODECHAL_ENCODE_AVC_PACK_SLC_HEADER_PARAMS
+{
+    PBSBuffer                               pBsBuffer;
+    PCODEC_AVC_ENCODE_PIC_PARAMS            pPicParams;     // pAvcPicParams[ucPPSIdx]
+    PCODEC_AVC_ENCODE_SEQUENCE_PARAMS       pSeqParams;     // pAvcSeqParams[ucSPSIdx]
+    PCODEC_AVC_ENCODE_SLICE_PARAMS          pAvcSliceParams;
+    PCODEC_REF_LIST                         *ppRefList;
+    CODEC_PICTURE                           CurrPic;
+    CODEC_PICTURE                           CurrReconPic;
+    CODEC_AVC_ENCODE_USER_FLAGS             UserFlags;
+    CODECHAL_ENCODE_AVC_NAL_UNIT_TYPE       NalUnitType;
+    uint16_t                                wPictureCodingType;
+    bool                                    bVdencEnabled;
+} CODECHAL_ENCODE_AVC_PACK_SLC_HEADER_PARAMS, *PCODECHAL_ENCODE_AVC_PACK_SLC_HEADER_PARAMS;
+
 #endif  // __CODEC_DEF_ENCODE_AVC_H__
