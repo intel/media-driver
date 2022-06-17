@@ -38,5 +38,5 @@ elseif (IS_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../libdrm-install/usr/lib64)
 endif()
 
 if (IS_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../msdk-install/mediasdk)
-    install (DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../msdk-install/mediasdk DESTINATION ${CMAKE_INSTALL_PREFIX} USE_SOURCE_PERMISSIONS COMPONENT media)
+    install (DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../msdk-install/mediasdk DESTINATION /opt/intel USE_SOURCE_PERMISSIONS COMPONENT media)
 endif()
