@@ -634,6 +634,8 @@ namespace encode
         std::shared_ptr<HevcVdencParDump> m_hevcParDump = nullptr;
 #endif  // _ENCODE_RESERVED
 
+        bool m_enableVdencStatusReport = false;
+
     MEDIA_CLASS_DEFINE_END(encode__HevcVdencPkt)
     };
 

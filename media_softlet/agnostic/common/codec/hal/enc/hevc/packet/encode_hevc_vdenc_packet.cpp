@@ -353,6 +353,8 @@ namespace encode
             }
         }
 
+        m_enableVdencStatusReport = true;
+
     #if USE_CODECHAL_DEBUG_TOOL && _ENCODE_RESERVED
         m_hevcParDump->SetParFile();
     #endif
@@ -1869,6 +1871,11 @@ namespace encode
     MOS_STATUS HevcVdencPkt::Completed(void *mfxStatus, void *rcsStatus, void *statusReport)
     {
         ENCODE_FUNC_CALL();
+
+        if (!m_enableVdencStatusReport)
+        {
+            return MOS_STATUS_SUCCESS;
+        }
 
         ENCODE_CHK_NULL_RETURN(mfxStatus);
         ENCODE_CHK_NULL_RETURN(statusReport);
