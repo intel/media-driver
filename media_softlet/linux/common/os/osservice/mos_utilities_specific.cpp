@@ -51,7 +51,9 @@
 #include <signal.h>
 #include <unistd.h>  // fork
 #include <algorithm>
+#ifdef HAVE_EXECINFO_H
 #include <execinfo.h> // backtrace
+#endif
 
 const char           *MosUtilitiesSpecificNext::m_szUserFeatureFile     = USER_FEATURE_FILE;
 MOS_PUF_KEYLIST      MosUtilitiesSpecificNext::m_ufKeyList              = nullptr;
@@ -2489,6 +2491,7 @@ void MosUtilities::MosTraceEvent(
                 MOS_FreeMemory(pTraceBuf);
             }
         }
+#ifdef HAVE_EXECINFO_H
         if (m_mosTraceFilter & (1ULL << TR_KEY_CALL_STACK))
         {
             // reserve space for header and stack size field.
@@ -2508,6 +2511,7 @@ void MosUtilities::MosTraceEvent(
                 size_t ret = write(MosUtilitiesSpecificNext::m_mosTraceFd, traceBuf, nLen);
             }
         }
+#endif /* HAVE_EXECINFO_H */
     }
     return;
 }
