@@ -95,6 +95,24 @@ VpUserFeatureControl::VpUserFeatureControl(MOS_INTERFACE &osInterface, VpPlatfor
         VP_PUBLIC_NORMALMESSAGE("disableSfc %d", m_ctrlValDefault.disableSfc);
     }
 
+    // If AutoDn need to be disabled
+    bool disableAutoDN = false;
+    status = ReadUserSetting(
+        m_userSettingPtr,
+        disableAutoDN,
+        __MEDIA_USER_FEATURE_VALUE_DISABLE_AUTODN,
+        MediaUserSetting::Group::Sequence);
+    if (MOS_SUCCEEDED(status))
+    {
+        m_ctrlValDefault.disableAutoDn = disableAutoDN;
+    }
+    else
+    {
+        // Default value
+        m_ctrlValDefault.disableAutoDn = false;
+    }
+    VP_PUBLIC_NORMALMESSAGE("disableAutoDn %d", m_ctrlValDefault.disableAutoDn);
+
     // bComputeContextEnabled is true only if Gen12+. 
     // Gen12+, compute context(MOS_GPU_NODE_COMPUTE, MOS_GPU_CONTEXT_COMPUTE) can be used for render engine.
     // Before Gen12, we only use MOS_GPU_NODE_3D and MOS_GPU_CONTEXT_RENDER.

@@ -649,6 +649,13 @@ MOS_STATUS VpUtils::DeclareUserSettings(MediaUserSettingSharedPtr userSettingPtr
         0,
         true);
 
+    DeclareUserSettingKey(  
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_DISABLE_AUTODN,
+        MediaUserSetting::Group::Sequence,
+        0,
+        true);
+
 #if (_DEBUG || _RELEASE_INTERNAL)
     DeclareUserSettingKeyForDebug( //Init CP output surface with protected 0.
         userSettingPtr,

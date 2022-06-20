@@ -47,6 +47,7 @@ public:
         bool disableSfc                     = false;
         bool computeContextEnabled          = true;
         bool eufusionBypassWaEnabled        = false;
+        bool disableAutoDn                  = false;
     };
 
     virtual MOS_STATUS Update(PVP_PIPELINE_PARAMS params);
@@ -69,6 +70,11 @@ public:
     bool IsEufusionBypassWaEnabled()
     {
         return m_ctrlVal.eufusionBypassWaEnabled;
+    }
+
+    bool IsAutoDnDisabled()
+    {
+        return m_ctrlVal.disableAutoDn;
     }
 
     const void *m_owner = nullptr; // The object who create current instance.
