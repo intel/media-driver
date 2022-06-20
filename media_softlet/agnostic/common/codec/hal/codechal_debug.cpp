@@ -116,6 +116,71 @@ MOS_STATUS CodechalDebugInterface::Initialize(
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS CodechalDebugInterface::Initialize(
+    CodechalHwInterfaceNext *hwInterface,
+    CODECHAL_FUNCTION        codecFunction)
+{
+    CODECHAL_DEBUG_FUNCTION_ENTER;
+
+    CODECHAL_DEBUG_CHK_NULL(hwInterface);
+    m_hwInterfaceNext  = hwInterface;
+    m_codecFunction    = codecFunction;
+    m_osInterface      = m_hwInterfaceNext->GetOsInterface();
+    m_cpInterface      = m_hwInterfaceNext->GetCpInterface();
+    //#ifndef softlet_build
+    //m_miInterface = m_hwInterfaceNext->GetMiInterfaceNext();
+    //#endif
+
+    //dump loctaion is codechaldump
+    MediaDebugInterface::SetOutputFilePath();
+
+    m_configMgr = MOS_New(CodecDebugConfigMgr, this, m_codecFunction, m_outputFilePath);
+    CODECHAL_DEBUG_CHK_NULL(m_configMgr);
+    CODECHAL_DEBUG_CHK_STATUS(m_configMgr->ParseConfig(m_osInterface->pOsContext));
+
+    MediaDebugInterface::InitDumpLocation();
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    userFeatureData.i32Data     = 0;
+    userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
+    MOS_UserFeature_ReadValue_ID(
+        NULL,
+        __MEDIA_USER_FEATURE_ENABLE_HW_DEBUG_HOOKS_ID,
+        &userFeatureData,
+        m_osInterface->pOsContext);
+    m_enableHwDebugHooks = userFeatureData.u32Data ? true : false;
+    CheckGoldenReferenceExist();
+    if (m_enableHwDebugHooks && m_goldenReferenceExist)
+    {
+        LoadGoldenReference();
+    }
+
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    userFeatureData.i32Data     = -1;
+    userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_CODECHAL_FRAME_NUMBER_TO_STOP_ID,
+        &userFeatureData,
+        m_osInterface->pOsContext);
+    m_stopFrameNumber = userFeatureData.i32Data;
+
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    userFeatureData.i32Data     = 0;
+    userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_CODECHAL_ENABLE_SW_CRC_ID,
+        &userFeatureData,
+        m_osInterface->pOsContext);
+    m_swCRC = userFeatureData.i32Data == 0 ? false : true;
+#endif
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS CodechalDebugInterface::DumpHucDmem(
     PMOS_RESOURCE             dmemResource,
     uint32_t                  dmemSize,

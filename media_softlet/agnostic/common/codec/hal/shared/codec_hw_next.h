@@ -95,7 +95,6 @@ public:
     //! \brief    Destructor
     //!
     virtual ~CodechalHwInterfaceNext() {}
-
     //!
     //! \brief    Get mfx interface
     //! \details  Get mfx interface in codechal hw interface next
@@ -161,6 +160,41 @@ public:
         return m_hcpItf;
     }
 
+    //!
+    //! \brief    Get Os interface
+    //! \details  Get Os interface in codechal hw interface
+    //!
+    //! \return   [out] PMOS_INTERFACE
+    //!           Interface got.
+    //!
+    inline PMOS_INTERFACE GetOsInterface()
+    {
+        return m_osInterface;
+    }
+
+    //!
+    //! \brief    Get Sku table
+    //! \details  Get Sku table in codechal hw interface
+    //!
+    //! \return   [out] MEDIA_FEATURE_TABLE *
+    //!           Sku table got.
+    //!
+    inline MEDIA_FEATURE_TABLE *GetSkuTable()
+    {
+        return m_skuTable;
+    }
+
+    //!
+    //! \brief    Get cp interface
+    //! \details  Get cp interface in codechal hw interface
+    //!
+    //! \return   [out] MhwCpInterface*
+    //!           Interface got.
+    //!
+    inline MhwCpInterface *GetCpInterface()
+    {
+        return m_cpInterface;
+    }
     //!
     //! \brief    Calculates the maximum size for AVP picture level commands
     //! \details  Client facing function to calculate the maximum size for AVP picture level commands
@@ -230,6 +264,46 @@ public:
             uint32_t* commandsSize,
             uint32_t* patchListSize,
             PMHW_VDBOX_STATE_CMDSIZE_PARAMS params);
+    //!
+    //! \brief    Calculates maximum size for all slice/MB level commands
+    //! \details  Client facing function to calculate maximum size for all slice/MB level commands in mfx pipeline
+    //!
+    //! \param    [in] mode
+    //!           Codec mode
+    //! \param    [out] commandsSize
+    //!           The maximum command buffer size
+    //! \param    [out] patchListSize
+    //!           The maximum command patch list size
+    //! \param    [in] modeSpecific
+    //!           Indicate the long or short format for decoder or single take phase for encoder
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS GetMfxPrimitiveCommandsDataSize(
+        uint32_t  mode,
+        uint32_t *commandsSize,
+        uint32_t *patchListSize,
+        bool      modeSpecific);
+    //!
+    //! \brief    Calculates maximum size for HCP slice/MB level commands
+    //! \details  Client facing function to calculate maximum size for HCP slice/MB level commands
+    //! \param    [in] mode
+    //!           Indicate the codec mode
+    //! \param    [out] commandsSize
+    //!            The maximum command buffer size
+    //! \param    [out] patchListSize
+    //!           The maximum command patch list size
+    //! \param    [in] modeSpecific
+    //!           Indicate the long or short format
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS GetHcpPrimitiveCommandSize(
+        uint32_t  mode,
+        uint32_t *commandsSize,
+        uint32_t *patchListSize,
+        bool      modeSpecific);
 
 protected:
     std::shared_ptr<mhw::vdbox::avp::Itf>    m_avpItf   = nullptr;      //!< Pointer to Mhw avp interface
@@ -238,6 +312,12 @@ protected:
     std::shared_ptr<mhw::mi::Itf>            m_miItf    = nullptr;      //!< Pointer to Mhw mi interface
     std::shared_ptr<mhw::vdbox::hcp::Itf>    m_hcpItf   = nullptr;      //!< Pointer to Mhw hcp interface
     std::shared_ptr<mhw::vdbox::mfx::Itf>    m_mfxItf   = nullptr;      //!< Pointer to Mhw mfx interface
+
+    // States
+    PMOS_INTERFACE       m_osInterface;  //!< Pointer to OS interface
+
+    // Auxiliary
+    MEDIA_FEATURE_TABLE *m_skuTable = nullptr;  //!< Pointer to SKU table
 
     // Next: remove legacy Interfaces
     MhwCpInterface                  *m_cpInterface = nullptr;         //!< Pointer to Mhw cp interface

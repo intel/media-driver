@@ -108,6 +108,10 @@ public:
         CodechalHwInterface *hwInterface,
         CODECHAL_FUNCTION    codecFunction);
 
+    virtual MOS_STATUS Initialize(
+        CodechalHwInterfaceNext *hwInterface,
+        CODECHAL_FUNCTION        codecFunction);
+
     MOS_STATUS DumpHucDmem(
         PMOS_RESOURCE             dmemResource,
         uint32_t                  dmemSize,
@@ -134,9 +138,10 @@ public:
 
     void CheckGoldenReferenceExist();
 
-    CodechalHwInterface *m_hwInterface   = nullptr;
-    CODECHAL_FUNCTION    m_codecFunction = CODECHAL_FUNCTION_INVALID;
-    PCODECHAL_DBG_CFG    m_dbgCfgHead    = nullptr;
+    CodechalHwInterface     *m_hwInterface      = nullptr;
+    CodechalHwInterfaceNext *m_hwInterfaceNext  = nullptr;
+    CODECHAL_FUNCTION        m_codecFunction    = CODECHAL_FUNCTION_INVALID;
+    PCODECHAL_DBG_CFG        m_dbgCfgHead       = nullptr;
 
 protected:
     MOS_USER_FEATURE_VALUE_ID SetOutputPathKey() override;

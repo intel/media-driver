@@ -41,6 +41,12 @@ CodechalHwInterfaceNext::CodechalHwInterfaceNext(
     m_hcpItf   = mhwInterfacesNext->m_hcpItf;
     m_mfxItf   = mhwInterfacesNext->m_mfxItf;
 
+    CODEC_HW_ASSERT(osInterface);
+    m_osInterface = osInterface;
+
+    m_skuTable = m_osInterface->pfnGetSkuTable(m_osInterface);
+    CODEC_HW_ASSERT(m_skuTable);
+
     // Remove legacy mhw sub interfaces.
     m_cpInterface = mhwInterfacesNext->m_cpInterface;
     m_mfxInterface = mhwInterfacesNext->m_mfxInterface;
@@ -343,3 +349,61 @@ MOS_STATUS CodechalHwInterfaceNext::SetCacheabilitySettings(
 
         return MOS_STATUS_SUCCESS;
     }
+
+MOS_STATUS CodechalHwInterfaceNext::GetMfxPrimitiveCommandsDataSize(
+    uint32_t                        mode,
+    uint32_t                       *commandsSize,
+    uint32_t                       *patchListSize,
+    bool                            modeSpecific)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODEC_HW_FUNCTION_ENTER;
+
+    uint32_t cpCmdsize = 0;
+    uint32_t cpPatchListSize = 0;
+
+    if (m_mfxInterface)
+    {
+        CODEC_HW_CHK_STATUS_RETURN(m_mfxInterface->GetMfxPrimitiveCommandsDataSize(
+            mode, (uint32_t*)commandsSize, (uint32_t*)patchListSize, modeSpecific ? true : false));
+
+        m_cpInterface->GetCpSliceLevelCmdSize(cpCmdsize, cpPatchListSize);
+    }
+
+    *commandsSize += (uint32_t)cpCmdsize;
+    *patchListSize += (uint32_t)cpPatchListSize;
+
+    return eStatus;
+}
+
+MOS_STATUS CodechalHwInterfaceNext::GetHcpPrimitiveCommandSize(
+    uint32_t  mode,
+    uint32_t *commandsSize,
+    uint32_t *patchListSize,
+    bool      modeSpecific)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODEC_HW_FUNCTION_ENTER;
+
+    uint32_t standard = CodecHal_GetStandardFromMode(mode);
+
+    uint32_t hcpCommandsSize  = 0;
+    uint32_t hcpPatchListSize = 0;
+    uint32_t cpCmdsize        = 0;
+    uint32_t cpPatchListSize  = 0;
+
+    if (m_hcpItf && (standard == CODECHAL_HEVC || standard == CODECHAL_VP9))
+    {
+        CODEC_HW_CHK_STATUS_RETURN(m_hcpItf->GetHcpPrimitiveCommandSize(
+            mode, &hcpCommandsSize, &hcpPatchListSize, modeSpecific ? true : false));
+
+        m_cpInterface->GetCpSliceLevelCmdSize(cpCmdsize, cpPatchListSize);
+    }
+
+    *commandsSize  = hcpCommandsSize + cpCmdsize;
+    *patchListSize = hcpPatchListSize + cpPatchListSize;
+
+    return eStatus;
+}
