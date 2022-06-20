@@ -6982,126 +6982,6 @@ MOS_STATUS Mos_Specific_InitInterface(
     eStatus                 = MOS_STATUS_UNKNOWN;
     MOS_OS_CHK_NULL(pOsInterface);
     MOS_OS_CHK_NULL(pOsDriverContext);
-    pOsContext              = nullptr;
-    pOsUserFeatureInterface = (PMOS_USER_FEATURE_INTERFACE)&pOsInterface->UserFeatureInterface;
-    MOS_OS_CHK_NULL(pOsUserFeatureInterface);
-
-    MOS_OS_NORMALMESSAGE("mm:Mos_Specific_InitInterface called.");
-
-    pOsInterface->modularizedGpuCtxEnabled  = true;
-    pOsInterface->veDefaultEnable           = true;
-    pOsInterface->phasedSubmission          = true;
-
-    pOsInterface->apoMosEnabled             = pOsDriverContext->m_apoMosEnabled;
-    if (pOsInterface->apoMosEnabled)
-    {
-        pOsInterface->streamStateIniter = true;
-        MOS_OS_CHK_STATUS(MosInterface::CreateOsStreamState(
-            &pOsInterface->osStreamState,
-            (MOS_DEVICE_HANDLE)pOsDriverContext->m_osDeviceContext,
-            (MOS_INTERFACE_HANDLE)pOsInterface,
-            pOsInterface->Component,
-            pOsDriverContext));
-
-        // Set interface functions for legacy HAL
-        pOsContext                          = (PMOS_OS_CONTEXT)pOsInterface->osStreamState->perStreamParameters;
-        MOS_OS_CHK_NULL_RETURN(pOsContext);
-
-        pOsContext->GetGPUTag                  = Linux_GetGPUTag;
-    }
-    else
-    {
-        // Create Linux OS Context
-        pOsContext = (PMOS_OS_CONTEXT)MOS_AllocAndZeroMemory(sizeof(MOS_OS_CONTEXT));
-        MOS_OS_CHK_NULL_RETURN(pOsContext);
-    }
-
-    if (pOsInterface->modulizedMosEnabled && !Mos_Solo_IsEnabled(nullptr))
-    {
-        OsContext *osContextPtr = OsContext::GetOsContextObject();
-        if (osContextPtr == nullptr)
-        {
-            MOS_OS_ASSERTMESSAGE("Unable to get the active OS context.");
-            eStatus = MOS_STATUS_INVALID_PARAMETER;
-            goto finish;
-        }
-
-        pOsInterface->osContextPtr = osContextPtr;
-
-        if (pOsInterface->osContextPtr->GetOsContextValid() == false)
-        {
-            eStatus = pOsInterface->osContextPtr->Init(pOsDriverContext);
-            if (MOS_STATUS_SUCCESS != eStatus)
-            {
-                MOS_OS_ASSERTMESSAGE("Unable to initialize MODS context.");
-                eStatus = MOS_STATUS_INVALID_PARAMETER;
-                goto finish;
-            }
-        }
-
-        //ApoMos do it in CreateOsStreamState
-        if (!pOsInterface->apoMosEnabled)
-        {
-            OsContextSpecific *pOsContextSpecific = static_cast<OsContextSpecific *>(pOsInterface->osContextPtr);
-            pOsContext->intel_context             = pOsContextSpecific->GetDrmContext();
-            pOsContext->pGmmClientContext         = pOsDriverContext->pGmmClientContext;
-        }
-    }
-    else
-    {
-        pOsContext->pGmmClientContext = pOsDriverContext->pGmmClientContext;
-    }
-
-    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-#if MOS_MEDIASOLO_SUPPORTED
-    if (pOsInterface->bSoloInUse)
-    {
-        UserFeatureData.i32Data = pOsInterface->bSimIsActive;
-        UserFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
-    }
-#endif
-#if (_DEBUG || _RELEASE_INTERNAL)
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_SIM_ENABLE_ID,
-        &UserFeatureData,
-        (MOS_CONTEXT_HANDLE)pOsContext);
-#endif
-    pOsInterface->bSimIsActive = (int32_t)UserFeatureData.i32Data;
-    if (!pOsInterface->apoMosEnabled)
-    {
-        pOsContext->bSimIsActive = pOsInterface->bSimIsActive;
-    }
-
-    // Initialize
-    if (!pOsInterface->apoMosEnabled)
-    {
-        modularizedGpuCtxEnabled = pOsInterface->modularizedGpuCtxEnabled && !Mos_Solo_IsEnabled(pOsContext);
-        eStatus = Linux_InitContext(pOsContext, pOsDriverContext, pOsInterface->modulizedMosEnabled && !Mos_Solo_IsEnabled(pOsContext), modularizedGpuCtxEnabled);
-        if( MOS_STATUS_SUCCESS != eStatus )
-        {
-            MOS_OS_ASSERTMESSAGE("Unable to initialize context.");
-            goto finish;
-        }
-
-        pOsContext->bFreeContext = true;
-
-        //Added by Ben for video memory allocation
-        pOsContext->bufmgr = pOsDriverContext->bufmgr;
-        mos_bufmgr_gem_enable_reuse(pOsDriverContext->bufmgr);
-    }
-
-    pOsInterface->pOsContext                  = pOsContext;
-
-    pOsInterface->bUsesPatchList              = true;
-    pOsInterface->bUsesGfxAddress             = false;
-    pOsInterface->bNoParsingAssistanceInKmd   = true;
-    pOsInterface->bUsesCmdBufHeaderInResize   = false;
-    pOsInterface->bUsesCmdBufHeader           = false;
-    pOsInterface->dwNumNalUnitBytesIncluded   = MOS_NAL_UNIT_LENGTH - MOS_NAL_UNIT_STARTCODE_LENGTH;
-
-    pOsInterface->bInlineCodecStatusUpdate    = true;
-    pOsInterface->bAllowExtraPatchToSameLoc   = false;
 
     // Initialize OS interface functions
     pOsInterface->pfnSetGpuContext                          = Mos_Specific_SetGpuContext;
@@ -7228,6 +7108,127 @@ MOS_STATUS Mos_Specific_InitInterface(
     pOsInterface->pfnGetUserSettingInstance                 = Mos_Specific_GetUserSettingInstance;
 
     pOsInterface->pfnIsMismatchOrderProgrammingSupported    = Mos_Specific_IsMismatchOrderProgrammingSupported;
+
+    pOsContext              = nullptr;
+    pOsUserFeatureInterface = (PMOS_USER_FEATURE_INTERFACE)&pOsInterface->UserFeatureInterface;
+    MOS_OS_CHK_NULL(pOsUserFeatureInterface);
+
+    MOS_OS_NORMALMESSAGE("mm:Mos_Specific_InitInterface called.");
+
+    pOsInterface->modularizedGpuCtxEnabled  = true;
+    pOsInterface->veDefaultEnable           = true;
+    pOsInterface->phasedSubmission          = true;
+
+    pOsInterface->apoMosEnabled             = pOsDriverContext->m_apoMosEnabled;
+    if (pOsInterface->apoMosEnabled)
+    {
+        pOsInterface->streamStateIniter = true;
+        MOS_OS_CHK_STATUS(MosInterface::CreateOsStreamState(
+            &pOsInterface->osStreamState,
+            (MOS_DEVICE_HANDLE)pOsDriverContext->m_osDeviceContext,
+            (MOS_INTERFACE_HANDLE)pOsInterface,
+            pOsInterface->Component,
+            pOsDriverContext));
+
+        // Set interface functions for legacy HAL
+        pOsContext                          = (PMOS_OS_CONTEXT)pOsInterface->osStreamState->perStreamParameters;
+        MOS_OS_CHK_NULL_RETURN(pOsContext);
+
+        pOsContext->GetGPUTag                  = Linux_GetGPUTag;
+    }
+    else
+    {
+        // Create Linux OS Context
+        pOsContext = (PMOS_OS_CONTEXT)MOS_AllocAndZeroMemory(sizeof(MOS_OS_CONTEXT));
+        MOS_OS_CHK_NULL_RETURN(pOsContext);
+    }
+
+    if (pOsInterface->modulizedMosEnabled && !Mos_Solo_IsEnabled(nullptr))
+    {
+        OsContext *osContextPtr = OsContext::GetOsContextObject();
+        if (osContextPtr == nullptr)
+        {
+            MOS_OS_ASSERTMESSAGE("Unable to get the active OS context.");
+            eStatus = MOS_STATUS_INVALID_PARAMETER;
+            goto finish;
+        }
+
+        pOsInterface->osContextPtr = osContextPtr;
+
+        if (pOsInterface->osContextPtr->GetOsContextValid() == false)
+        {
+            eStatus = pOsInterface->osContextPtr->Init(pOsDriverContext);
+            if (MOS_STATUS_SUCCESS != eStatus)
+            {
+                MOS_OS_ASSERTMESSAGE("Unable to initialize MODS context.");
+                eStatus = MOS_STATUS_INVALID_PARAMETER;
+                goto finish;
+            }
+        }
+
+        //ApoMos do it in CreateOsStreamState
+        if (!pOsInterface->apoMosEnabled)
+        {
+            OsContextSpecific *pOsContextSpecific = static_cast<OsContextSpecific *>(pOsInterface->osContextPtr);
+            pOsContext->intel_context             = pOsContextSpecific->GetDrmContext();
+            pOsContext->pGmmClientContext         = pOsDriverContext->pGmmClientContext;
+        }
+    }
+    else
+    {
+        pOsContext->pGmmClientContext = pOsDriverContext->pGmmClientContext;
+    }
+
+    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+#if MOS_MEDIASOLO_SUPPORTED
+    if (pOsInterface->bSoloInUse)
+    {
+        UserFeatureData.i32Data = pOsInterface->bSimIsActive;
+        UserFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
+    }
+#endif
+#if (_DEBUG || _RELEASE_INTERNAL)
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_SIM_ENABLE_ID,
+        &UserFeatureData,
+        (MOS_CONTEXT_HANDLE)pOsContext);
+#endif
+    pOsInterface->bSimIsActive = (int32_t)UserFeatureData.i32Data;
+    if (!pOsInterface->apoMosEnabled)
+    {
+        pOsContext->bSimIsActive = pOsInterface->bSimIsActive;
+    }
+
+    // Initialize
+    if (!pOsInterface->apoMosEnabled)
+    {
+        modularizedGpuCtxEnabled = pOsInterface->modularizedGpuCtxEnabled && !Mos_Solo_IsEnabled(pOsContext);
+        eStatus = Linux_InitContext(pOsContext, pOsDriverContext, pOsInterface->modulizedMosEnabled && !Mos_Solo_IsEnabled(pOsContext), modularizedGpuCtxEnabled);
+        if( MOS_STATUS_SUCCESS != eStatus )
+        {
+            MOS_OS_ASSERTMESSAGE("Unable to initialize context.");
+            goto finish;
+        }
+
+        pOsContext->bFreeContext = true;
+
+        //Added by Ben for video memory allocation
+        pOsContext->bufmgr = pOsDriverContext->bufmgr;
+        mos_bufmgr_gem_enable_reuse(pOsDriverContext->bufmgr);
+    }
+
+    pOsInterface->pOsContext                  = pOsContext;
+
+    pOsInterface->bUsesPatchList              = true;
+    pOsInterface->bUsesGfxAddress             = false;
+    pOsInterface->bNoParsingAssistanceInKmd   = true;
+    pOsInterface->bUsesCmdBufHeaderInResize   = false;
+    pOsInterface->bUsesCmdBufHeader           = false;
+    pOsInterface->dwNumNalUnitBytesIncluded   = MOS_NAL_UNIT_LENGTH - MOS_NAL_UNIT_STARTCODE_LENGTH;
+
+    pOsInterface->bInlineCodecStatusUpdate    = true;
+    pOsInterface->bAllowExtraPatchToSameLoc   = false;
 
     pOsUserFeatureInterface->bIsNotificationSupported   = false;
     pOsUserFeatureInterface->pOsInterface               = pOsInterface;
