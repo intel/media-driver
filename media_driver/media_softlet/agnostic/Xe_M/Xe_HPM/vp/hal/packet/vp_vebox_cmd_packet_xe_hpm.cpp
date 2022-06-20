@@ -205,7 +205,7 @@ MOS_STATUS VpVeboxCmdPacketXe_Hpm::UpdateDnHVSParameters(
     auto &tgneParams = sharedContext->tgneParams;
     auto &hvsParams  = sharedContext->hvsParams;
     veboxInterface   = static_cast<MhwVeboxInterfaceXe_Hpm *>(m_hwInterface->m_veboxInterface);
-    resltn           = m_currentSurface->osSurface->dwWidth * m_currentSurface->osSurface->dwHeight;
+    resltn           = m_currentSurface->rcSrc.right * m_currentSurface->rcSrc.bottom;
 
     // Set HVS kernel params
     hvsParams.Format            = 0;
@@ -215,8 +215,8 @@ MOS_STATUS VpVeboxCmdPacketXe_Hpm::UpdateDnHVSParameters(
     hvsParams.FirstFrame        = sharedContext->bFirstFrame;
     hvsParams.TgneFirstFrame    = !sharedContext->bFirstFrame && tgneParams.bTgneFirstFrame;
     hvsParams.EnableTemporalGNE = m_bTgneEnable;
-    hvsParams.Width             = (uint16_t)m_currentSurface->osSurface->dwWidth;
-    hvsParams.Height            = (uint16_t)m_currentSurface->osSurface->dwHeight;
+    hvsParams.Width             = (uint16_t)m_currentSurface->rcSrc.right;
+    hvsParams.Height            = (uint16_t)m_currentSurface->rcSrc.bottom;
 
     // Set QP
     if (renderData->GetHVSParams().Mode == HVSDENOISE_MANUAL)
