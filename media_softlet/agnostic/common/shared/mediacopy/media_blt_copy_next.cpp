@@ -268,6 +268,11 @@ MOS_STATUS BltStateNext::SetupBltCopyParam(
     }
     pMhwBltParams->pSrcOsResource = inputSurface;
     pMhwBltParams->pDstOsResource = outputSurface;
+    MCPY_NORMALMESSAGE("BLT params: format %d, planeNum %d, planeIndex %d, dwColorDepth %d, dwSrcTop %d,dwSrcLeft %d dwSrcPitch %d"
+                       "dwDstTop %d, dwDstLeft %d, dwDstRight %d , dwDstBottom %d, dwDstPitch %d",
+                       ResDetails.Format, planeNum, planeIndex, pMhwBltParams->dwColorDepth, pMhwBltParams->dwSrcTop, pMhwBltParams->dwSrcLeft,
+                       pMhwBltParams->dwSrcPitch, pMhwBltParams->dwDstTop, pMhwBltParams->dwDstLeft, pMhwBltParams->dwDstRight, 
+                       pMhwBltParams->dwDstBottom, pMhwBltParams->dwDstPitch);
 
     return MOS_STATUS_SUCCESS;
 }

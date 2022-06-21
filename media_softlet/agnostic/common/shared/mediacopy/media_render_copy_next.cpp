@@ -232,7 +232,7 @@ MOS_STATUS RenderCopyStateNext::GetCurentKernelID( )
         }
 
     }
-
+    MCPY_NORMALMESSAGE("Used Render copy and currentKernel id = %d.", m_currKernelId);
     return MOS_STATUS_SUCCESS;
 }
 
@@ -439,7 +439,15 @@ MOS_STATUS RenderCopyStateNext::LoadStaticData(
         }
 
         iCurbeLength = sizeof(DP_RENDERCOPY_NV12_STATIC_DATA);
-
+        MCPY_NORMALMESSAGE("Load Curbe data: DW0.Inputsurfaceindex = %d, DW1.Outputsurfaceindex = %d, DW2.WidthDWord= %d, DW3.Height= %d,"
+            "DW4.ShiftLeftOffsetInBytes= %d,DW5.Widthstride = %d, DW6.Heightstride = % d.",
+            WalkerNV12Static.DW0.Inputsurfaceindex,
+            WalkerNV12Static.DW1.Outputsurfaceindex,
+            WalkerNV12Static.DW2.Widthdword,
+            WalkerNV12Static.DW3.Height,
+            WalkerNV12Static.DW4.ShiftLeftOffsetInBytes,
+            WalkerNV12Static.DW5.Widthstride,
+            WalkerNV12Static.DW6.Heightstride);
         *piCurbeOffset = pRenderHal->pfnLoadCurbeData(
          pRenderHal,
          pRenderData->pMediaState,
@@ -496,6 +504,21 @@ MOS_STATUS RenderCopyStateNext::LoadStaticData(
         WalkerPlanarStatic.DW11.Dst2DStartY = 0;
 
         iCurbeLength = sizeof(DP_RENDERCOPY_RGBP_STATIC_DATA);
+        MCPY_NORMALMESSAGE("Load Curbe data: DW0.InputsurfaceRindex = %d, DW1.InputsurfaceGindex = %d, DW2.InputsurfaceBindex= %d, DW3.Height= %d,"
+            "DW4.OutputsurfaceGindex = %d, DW5.OutputsurfaceBindex = %d, DW6.Widthdword = %d, DW7.Height = %d, DW8.ShiftLeftOffsetInByte= %d,"
+            "DW9.WidthdwordNoPadding = %d, WalkerPlanarStatic.DW10.Dst2DStartX = %d, WalkerPlanarStatic.DW11.Dst2DStartY = %d.",
+            WalkerPlanarStatic.DW0.InputsurfaceRindex,
+            WalkerPlanarStatic.DW1.InputsurfaceGindex,
+            WalkerPlanarStatic.DW2.InputsurfaceBindex,
+            WalkerPlanarStatic.DW3.OutputsurfaceRindex,
+            WalkerPlanarStatic.DW4.OutputsurfaceGindex,
+            WalkerPlanarStatic.DW5.OutputsurfaceBindex,
+            WalkerPlanarStatic.DW6.Widthdword,
+            WalkerPlanarStatic.DW7.Height,
+            WalkerPlanarStatic.DW8.ShiftLeftOffsetInBytes,
+            WalkerPlanarStatic.DW9.WidthdwordNoPadding,
+            WalkerPlanarStatic.DW10.Dst2DStartX,
+            WalkerPlanarStatic.DW11.Dst2DStartY);
 
         *piCurbeOffset = pRenderHal->pfnLoadCurbeData(
                                          pRenderHal,
@@ -546,6 +569,17 @@ MOS_STATUS RenderCopyStateNext::LoadStaticData(
         WalkerSinglePlaneStatic.DW8.Dst2DStartY = 0;
 
         iCurbeLength = sizeof(DP_RENDERCOPY_PACKED_STATIC_DATA);
+        MCPY_NORMALMESSAGE("Load Curbe data: DW0.InputSurfaceIndex = %d, DW1.OutputSurfaceIndex = %d, DW2.WidthDWord= %d, DW3.Height= %d,"
+            "DW4.ShiftLeftOffsetInBytes= %d,DW5.ThreadHeight = %d, DW6.WidthdwordNoPadding = %d, DW7.Dst2DStartX = %d, DW8.Dst2DStartY = %d.",
+            WalkerSinglePlaneStatic.DW0.InputSurfaceIndex,
+            WalkerSinglePlaneStatic.DW1.OutputSurfaceIndex,
+            WalkerSinglePlaneStatic.DW2.WidthDWord,
+            WalkerSinglePlaneStatic.DW3.Height,
+            WalkerSinglePlaneStatic.DW4.ShiftLeftOffsetInBytes,
+            WalkerSinglePlaneStatic.DW5.ThreadHeight,
+            WalkerSinglePlaneStatic.DW6.WidthdwordNoPadding,
+            WalkerSinglePlaneStatic.DW7.Dst2DStartX,
+            WalkerSinglePlaneStatic.DW8.Dst2DStartY);
 
         *piCurbeOffset = pRenderHal->pfnLoadCurbeData(
          pRenderHal,
@@ -654,6 +688,8 @@ MOS_STATUS RenderCopyStateNext::LoadStaticData(
     // Indirect Data Length is a multiple of 64 bytes (size of L3 cacheline). Bits [5:0] are zero.
     pWalkerParams->IndirectDataLength = MOS_ALIGN_CEIL(pRenderData->iCurbeLength, 1 << MHW_COMPUTE_INDIRECT_SHIFT);
     pWalkerParams->BindingTableID = pRenderData->iBindingTable;
+    MCPY_NORMALMESSAGE("WidthBlockSize %d, HeightBlockSize %d, Widththreads %d, Heightthreads%d",
+        m_WalkerWidthBlockSize, m_WalkerHeightBlockSize, pWalkerParams->GroupWidth, pWalkerParams->GroupHeight);
 
     return eStatus;
 }
