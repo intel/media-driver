@@ -551,7 +551,39 @@ struct _MHW_PAR_T(VDENC_CMD2)
 
 struct _MHW_PAR_T(VDENC_CMD3)
 {
-    __MHW_VDBOX_VDENC_WRAPPER_EXT(VDENC_CMD3_CMDPAR_EXT);
+    uint8_t  vdencCmd3Par0[8]  = {};
+    uint8_t  vdencCmd3Par1[12] = {};
+    uint8_t  vdencCmd3Par2[12] = {};
+    uint8_t  vdencCmd3Par3     = 0;
+    uint8_t  vdencCmd3Par4     = 0;
+    uint8_t  vdencCmd3Par5     = 0;
+    uint8_t  vdencCmd3Par6     = 0;
+    uint8_t  vdencCmd3Par7     = 0;
+    uint8_t  vdencCmd3Par8     = 0;
+    uint8_t  vdencCmd3Par9     = 0;
+    uint8_t  vdencCmd3Par10    = 0;
+    uint8_t  vdencCmd3Par11    = 0;
+    uint8_t  vdencCmd3Par12    = 0;
+    uint8_t  vdencCmd3Par13    = 0;
+    uint8_t  vdencCmd3Par14    = 0;
+    uint8_t  vdencCmd3Par15    = 0;
+    uint8_t  vdencCmd3Par16    = 0;
+    uint8_t  vdencCmd3Par17    = 0;
+    uint8_t  vdencCmd3Par18    = 0;
+    uint8_t  vdencCmd3Par19    = 0;
+    uint8_t  vdencCmd3Par20    = 0;
+    uint8_t  vdencCmd3Par21    = 0;
+    uint8_t  vdencCmd3Par22    = 0;
+    uint8_t  vdencCmd3Par23    = 0;
+    uint8_t  vdencCmd3Par24    = 0;
+    uint8_t  vdencCmd3Par25    = 0;
+    uint8_t  vdencCmd3Par26    = 0;
+    uint8_t  vdencCmd3Par27    = 0;
+    uint8_t  vdencCmd3Par28    = 0;
+    uint8_t  vdencCmd3Par29    = 0;
+    uint8_t  vdencCmd3Par30    = 0;
+    uint16_t vdencCmd3Par31    = 0;
+    uint16_t vdencCmd3Par32    = 0;
 };
 }  // namespace vdenc
 }  // namespace vdbox
