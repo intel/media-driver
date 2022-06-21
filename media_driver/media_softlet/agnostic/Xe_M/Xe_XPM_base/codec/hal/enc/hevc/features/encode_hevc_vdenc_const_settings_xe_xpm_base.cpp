@@ -76,10 +76,10 @@ MOS_STATUS EncodeHevcVdencConstSettingsXe_Xpm_Base::SetTUSettings()
                     NUM_TARGET_USAGE_MODES + 1>,
                 4>
                 numMergeCandidates = {{
-                    {0, 3, 3, 2, 2, 2, 1, 1},
                     {0, 3, 3, 2, 2, 2, 2, 2},
-                    {0, 3, 3, 3, 3, 3, 2, 2},
-                    {0, 3, 3, 3, 3, 3, 2, 2},
+                    {0, 3, 3, 2, 2, 2, 2, 2},
+                    {0, 3, 3, 2, 2, 2, 2, 2},
+                    {0, 3, 3, 2, 2, 2, 2, 2},
                 }};
 
             static const std::array<

@@ -169,25 +169,16 @@ namespace encode {
         RUN_FEATURE_INTERFACE_RETURN(HevcEncodeTile, HevcFeatureIDs::encodeTile, IsTileReplayEnabled, enableTileReplay);
 
         hucVdencBrcInitDmem->BRCFunc_U32 = enableTileReplay ? 1 : 0 << 7;  //bit0 0: Init; 1: Reset, bit7 0: frame-based; 1: tile-based
-        hucVdencBrcInitDmem->UserMaxFrame      = m_basicFeature->GetProfileLevelMaxFrameSize();
         hucVdencBrcInitDmem->InitBufFull_U32   = MOS_MIN(m_basicFeature->m_hevcSeqParams->InitVBVBufferFullnessInBit, m_basicFeature->m_hevcSeqParams->VBVBufferSizeInBit);
         hucVdencBrcInitDmem->BufSize_U32       = m_basicFeature->m_hevcSeqParams->VBVBufferSizeInBit;
         hucVdencBrcInitDmem->MinRate_U32 = 0;
         hucVdencBrcInitDmem->FrameRateM_U32    = m_basicFeature->m_hevcSeqParams->FrameRate.Numerator;
         hucVdencBrcInitDmem->FrameRateD_U32    = m_basicFeature->m_hevcSeqParams->FrameRate.Denominator;
         hucVdencBrcInitDmem->ACQP_U32          = 0;
-        if (m_basicFeature->m_hevcSeqParams->UserMaxPBFrameSize > 0)
-        {
-            //Backup CodingType as need to set it as B_Tpye to get MaxFrameSize for P/B frames.
-            auto CodingTypeTemp = m_basicFeature->m_hevcPicParams->CodingType;
-            m_basicFeature->m_hevcPicParams->CodingType = B_TYPE;
-            hucVdencBrcInitDmem->ProfileLevelMaxFramePB_U32 = m_basicFeature->GetProfileLevelMaxFrameSize();
-            m_basicFeature->m_hevcPicParams->CodingType = CodingTypeTemp;
-        }
-        else
-        {
-            hucVdencBrcInitDmem->ProfileLevelMaxFramePB_U32 = hucVdencBrcInitDmem->UserMaxFrame;
-        }
+
+        auto CalculatedMaxFrame                         = m_basicFeature->GetProfileLevelMaxFrameSize();
+        hucVdencBrcInitDmem->UserMaxFrame               = m_basicFeature->m_hevcSeqParams->UserMaxIFrameSize > 0 ? MOS_MIN(m_basicFeature->m_hevcSeqParams->UserMaxIFrameSize, CalculatedMaxFrame) : CalculatedMaxFrame;
+        hucVdencBrcInitDmem->ProfileLevelMaxFramePB_U32 = m_basicFeature->m_hevcSeqParams->UserMaxPBFrameSize > 0 ? MOS_MIN(m_basicFeature->m_hevcSeqParams->UserMaxPBFrameSize, CalculatedMaxFrame) : CalculatedMaxFrame;
 
         hucVdencBrcInitDmem->SSCFlag = m_basicFeature->m_hevcSeqParams->SliceSizeControl;
 

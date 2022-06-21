@@ -478,7 +478,12 @@ namespace encode
         hucVdencBrcUpdateDmem->FrameSizeBoostForSceneChange = m_tcbrcQualityBoost;
         hucVdencBrcUpdateDmem->TargetFrameSize              = m_basicFeature->m_hevcPicParams->TargetFrameSize << 3;
 
-        if (!(m_basicFeature->GetProfileLevelMaxFrameSize() < hucVdencBrcUpdateDmem->TargetFrameSize / 4) 
+        auto CalculatedMaxFrame                   = m_basicFeature->GetProfileLevelMaxFrameSize();
+        hucVdencBrcUpdateDmem->UPD_UserMaxFrame   = m_basicFeature->m_hevcSeqParams->UserMaxIFrameSize > 0 ? MOS_MIN(m_basicFeature->m_hevcSeqParams->UserMaxIFrameSize, CalculatedMaxFrame) : CalculatedMaxFrame;
+        hucVdencBrcUpdateDmem->UPD_UserMaxFramePB = m_basicFeature->m_hevcSeqParams->UserMaxPBFrameSize > 0 ? MOS_MIN(m_basicFeature->m_hevcSeqParams->UserMaxPBFrameSize, CalculatedMaxFrame) : CalculatedMaxFrame;
+
+        auto UserMaxFrame = m_basicFeature->m_hevcPicParams->CodingType == I_TYPE ? hucVdencBrcUpdateDmem->UPD_UserMaxFrame : hucVdencBrcUpdateDmem->UPD_UserMaxFramePB;
+        if (!(UserMaxFrame < hucVdencBrcUpdateDmem->TargetFrameSize / 4)  
             && !(hucVdencBrcUpdateDmem->FrameSizeBoostForSceneChange == 2) 
             && (m_basicFeature->m_hevcSeqParams->LookaheadDepth == 0))
         {

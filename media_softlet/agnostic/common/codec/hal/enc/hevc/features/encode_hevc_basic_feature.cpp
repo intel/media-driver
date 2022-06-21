@@ -539,21 +539,7 @@ uint32_t HevcBasicFeature::GetProfileLevelMaxFrameSize()
     auto     maxBytePerPicNot0    = (uint64_t)((((float_t)maxMBPS * (float_t)m_hevcSeqParams->FrameRate.Denominator) / (float_t)m_hevcSeqParams->FrameRate.Numerator) * formatFactor);
     uint32_t profileLevelMaxFrame = 0;
 
-    uint32_t userMaxFrameSize = m_hevcSeqParams->UserMaxIFrameSize;
-    if ((m_hevcPicParams->CodingType != I_TYPE) && (m_hevcSeqParams->UserMaxPBFrameSize > 0))
-    {
-        userMaxFrameSize = m_hevcSeqParams->UserMaxPBFrameSize;
-    }
-
-    if (userMaxFrameSize != 0)
-    {
-        profileLevelMaxFrame = (uint32_t)MOS_MIN(userMaxFrameSize, maxBytePerPic);
-        profileLevelMaxFrame = (uint32_t)MOS_MIN(maxBytePerPicNot0, profileLevelMaxFrame);
-    }
-    else {
-        profileLevelMaxFrame = (uint32_t)MOS_MIN(maxBytePerPicNot0, maxBytePerPic);
-    }
-
+    profileLevelMaxFrame = (uint32_t)MOS_MIN(maxBytePerPicNot0, maxBytePerPic);
     profileLevelMaxFrame = (uint32_t)MOS_MIN((m_frameHeight * m_frameWidth), profileLevelMaxFrame);
 
     return profileLevelMaxFrame;
