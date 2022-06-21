@@ -242,7 +242,7 @@ MOS_STATUS Configure::Write(
         }
         else
         {
-            MOS_OS_ASSERTMESSAGE("Failed to write media user setting %s value.", valueName.c_str());
+            MOS_OS_NORMALMESSAGE("Failed to write media user setting %s value.", valueName.c_str());
         }
     }
 

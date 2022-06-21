@@ -2284,15 +2284,7 @@ MOS_USER_FEATURE_VALUE MosUtilities::m_mosUserFeatureDescFields[__MOS_USER_FEATU
         MOS_USER_FEATURE_VALUE_TYPE_INT32,
         "3",   // Default is 3 which is huc copy kernel
         "Id of demo huc kernel to load"),
-    MOS_DECLARE_UF_KEY(__MEDIA_USER_FEATURE_VALUE_SIM_ENABLE_ID,
-        "Simulation Enable",
-        __MEDIA_USER_FEATURE_SUBKEY_PERMANENT,
-        __MEDIA_USER_FEATURE_SUBKEY_REPORT,
-        "Codec",
-        MOS_USER_FEATURE_TYPE_USER,
-        MOS_USER_FEATURE_VALUE_TYPE_INT32,
-        "0",
-        "If enabled, specify this is in pre-si simulation/emulation mode."),
+
     MOS_DECLARE_UF_KEY(__MEDIA_USER_FEATURE_VALUE_IS_CODEC_ROW_STORE_CACHE_ENABLED_ID,
         "Codec Row Store Cache Enabled",
         __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,

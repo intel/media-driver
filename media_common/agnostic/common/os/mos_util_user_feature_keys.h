@@ -74,10 +74,12 @@
 //!
 //! \brief enable Huc based DRM for CHV
 //!
-#define __MEDIA_USER_FEATURE_VALUE_HUC_DRM_ENABLE                           "HuC DRM Enable"                 //!< 0: Disable, Others: enable
+#define __MEDIA_USER_FEATURE_VALUE_HUC_DRM_ENABLE                         "HuC DRM Enable"                 //!< 0: Disable, Others: enable
 
 #define __MEDIA_USER_FEATURE_VALUE_MEMORY_NINJA_BEGIN_COUNTER             "MemNinjaBeginCounter"
 #define __MEDIA_USER_FEATURE_VALUE_MEMORY_NINJA_END_COUNTER               "MemNinjaEndCounter"
+
+#define __MEDIA_USER_FEATURE_VALUE_SIM_ENABLE                             "Simulation Enable"
 
 #endif // (_DEBUG || _RELEASE_INTERNAL)
 

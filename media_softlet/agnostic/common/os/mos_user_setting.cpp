@@ -389,6 +389,15 @@ MOS_STATUS MosUserSetting::InitUserSettingForDebug(MediaUserSettingSharedPtr use
         0,
         true);
 
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_SIM_ENABLE,
+        MediaUserSetting::Group::Device,
+        0,
+        true,
+        true,
+        USER_SETTING_CONFIG_PERMANENT_PATH);//"If enabled, specify this is in pre-si simulation/emulation mode."
+
     return MOS_STATUS_SUCCESS;
 }
 #endif

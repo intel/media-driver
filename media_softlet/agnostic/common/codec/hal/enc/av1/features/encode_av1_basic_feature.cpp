@@ -53,8 +53,7 @@ MOS_STATUS Av1BasicFeature::Init(void *setting)
         m_userSettingPtr,
         outValue,
         "AV1 Enable SW Back Annotation",
-        MediaUserSetting::Group::Sequence,
-        m_osInterface->pOsContext);
+        MediaUserSetting::Group::Sequence);
     m_enableSWBackAnnotation = outValue.Get<bool>();
 
     ReadUserSettingForDebug(

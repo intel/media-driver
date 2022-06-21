@@ -6974,6 +6974,10 @@ MOS_STATUS Mos_Specific_InitInterface(
     uint32_t                        dwResetCount = 0;
     int32_t                         ret = 0;
     bool                            modularizedGpuCtxEnabled = false;
+    MediaUserSettingSharedPtr       userSettingPtr = nullptr;
+    bool                            bSimIsActive = false;
+    bool                            useCustomerValue = false;
+
     char *pMediaWatchdog = nullptr;
     long int watchdog = 0;
 
@@ -7179,22 +7183,24 @@ MOS_STATUS Mos_Specific_InitInterface(
         pOsContext->pGmmClientContext = pOsDriverContext->pGmmClientContext;
     }
 
-    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+    userSettingPtr = Mos_Specific_GetUserSettingInstance(pOsInterface);
+
 #if MOS_MEDIASOLO_SUPPORTED
     if (pOsInterface->bSoloInUse)
     {
-        UserFeatureData.i32Data = pOsInterface->bSimIsActive;
-        UserFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
+        bSimIsActive = pOsInterface->bSimIsActive;
+        useCustomerValue = true;
     }
 #endif
 #if (_DEBUG || _RELEASE_INTERNAL)
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_SIM_ENABLE_ID,
-        &UserFeatureData,
-        (MOS_CONTEXT_HANDLE)pOsContext);
+    ReadUserSettingForDebug(
+        userSettingPtr,
+        pOsInterface->bSimIsActive,
+        __MEDIA_USER_FEATURE_VALUE_SIM_ENABLE,
+        MediaUserSetting::Group::Device,
+        bSimIsActive,
+        useCustomerValue);
 #endif
-    pOsInterface->bSimIsActive = (int32_t)UserFeatureData.i32Data;
     if (!pOsInterface->apoMosEnabled)
     {
         pOsContext->bSimIsActive = pOsInterface->bSimIsActive;

@@ -189,15 +189,13 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
 
         m_auxTableMgr = AuxTableMgr::CreateAuxTableMgr(m_bufmgr, &m_skuTable, m_gmmClientContext);
 
-        MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
 #if (_DEBUG || _RELEASE_INTERNAL)
-        MOS_UserFeature_ReadValue_ID(
+        ReadUserSettingForDebug(
             nullptr,
-            __MEDIA_USER_FEATURE_VALUE_SIM_ENABLE_ID,
-            &UserFeatureData,
-            osDriverContext);
+            osDriverContext->bSimIsActive,
+            __MEDIA_USER_FEATURE_VALUE_SIM_ENABLE,
+            MediaUserSetting::Group::Device);
 #endif
-        osDriverContext->bSimIsActive = (int32_t)UserFeatureData.i32Data;
 
         m_useSwSwizzling = osDriverContext->bSimIsActive || MEDIA_IS_SKU(&m_skuTable, FtrUseSwSwizzling);
 

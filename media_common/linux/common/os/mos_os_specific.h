@@ -594,7 +594,7 @@ struct _MOS_OS_CONTEXT
 
     std::vector< struct MOS_CONTEXT_OFFSET> contextOffsetList;
 
-    bool                bSimIsActive;   //!< To indicate if simulation environment
+    bool                bSimIsActive = false;   //!< To indicate if simulation environment
     bool                m_apoMosEnabled;  //!< apo mos or not
 
     // Media memory decompression function

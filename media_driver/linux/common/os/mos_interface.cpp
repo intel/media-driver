@@ -149,6 +149,7 @@ MOS_STATUS MosInterface::CreateOsStreamState(
     MOS_COMPONENT        component,
     EXTRA_PARAMS         extraParams)
 {
+    MediaUserSettingSharedPtr userSettingPtr = nullptr;
     MOS_USER_FEATURE_VALUE_DATA userFeatureData     = {};
     MOS_STATUS                  eStatusUserFeature  = MOS_STATUS_SUCCESS;
 
@@ -169,14 +170,14 @@ MOS_STATUS MosInterface::CreateOsStreamState(
     (*streamState)->usesPatchList           = true;
     (*streamState)->usesGfxAddress          = !(*streamState)->usesPatchList;
 
-    MosUtilities::MosZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    userSettingPtr = MosInterface::MosGetUserSettingInstance(*streamState);
+
 #if (_DEBUG || _RELEASE_INTERNAL)
-    MosUtilities::MosUserFeatureReadValueID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_SIM_ENABLE_ID,
-        &userFeatureData,
-        (MOS_CONTEXT_HANDLE) nullptr);
-    (*streamState)->simIsActive = (int32_t)userFeatureData.i32Data;
+    ReadUserSettingForDebug(
+        userSettingPtr,
+        (*streamState)->simIsActive,
+        __MEDIA_USER_FEATURE_VALUE_SIM_ENABLE,
+        MediaUserSetting::Group::Device);
 
     // Null HW Driver
     // 0: Disabled
