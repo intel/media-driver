@@ -124,7 +124,7 @@ MOS_STATUS VpPlatformInterfaceXe_Hpm::VeboxQueryStatLayout(VEBOX_STAT_QUERY_TYPE
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
-    VPHAL_RENDER_ASSERT(pQuery);
+    VP_RENDER_ASSERT(pQuery);
 
     switch (queryType)
     {
@@ -145,7 +145,7 @@ MOS_STATUS VpPlatformInterfaceXe_Hpm::VeboxQueryStatLayout(VEBOX_STAT_QUERY_TYPE
         break;
 
     default:
-        VPHAL_RENDER_ASSERTMESSAGE("Vebox Statistics Layout Query, type ('%d') is not implemented.", queryType);
+        VP_RENDER_ASSERTMESSAGE("Vebox Statistics Layout Query, type ('%d') is not implemented.", queryType);
         eStatus = MOS_STATUS_UNKNOWN;
         break;
     }

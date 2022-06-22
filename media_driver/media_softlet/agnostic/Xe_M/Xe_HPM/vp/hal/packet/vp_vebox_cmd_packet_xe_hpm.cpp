@@ -161,13 +161,13 @@ MOS_STATUS VpVeboxCmdPacketXe_Hpm::GNELumaConsistentCheck(
     if (dwGNEChromaU == 0xFFFFFFFF || dwGNECountChromaU == 0xFFFFFFFF ||
         dwGNEChromaV == 0xFFFFFFFF || dwGNECountChromaV == 0xFFFFFFFF)
     {
-        VPHAL_RENDER_ASSERTMESSAGE("Incorrect GNE / GNE count.");
+        VP_RENDER_ASSERTMESSAGE("Incorrect GNE / GNE count.");
         return MOS_STATUS_UNKNOWN;
     }
 
     dwGNEChromaU = dwGNEChromaU * 100 / (dwGNECountChromaU + 1);
     dwGNEChromaV = dwGNEChromaV * 100 / (dwGNECountChromaV + 1);
-    VPHAL_RENDER_NORMALMESSAGE("Consistent Check: dwGNEChromaU %d  dwGNEChromaV %d", dwGNEChromaU, dwGNEChromaV);
+    VP_RENDER_NORMALMESSAGE("Consistent Check: dwGNEChromaU %d  dwGNEChromaV %d", dwGNEChromaU, dwGNEChromaV);
     if ((dwGNEChromaU < NOSIE_GNE_CHROMA_THRESHOLD) &&
         (dwGNEChromaV < NOSIE_GNE_CHROMA_THRESHOLD) &&
         (dwGNEChromaU != 0) &&
@@ -264,7 +264,7 @@ MOS_STATUS VpVeboxCmdPacketXe_Hpm::UpdateDnHVSParameters(
         dwGNEChromaU == 0xFFFFFFFF || dwGNECountChromaU == 0xFFFFFFFF ||
         dwGNEChromaV == 0xFFFFFFFF || dwGNECountChromaV == 0xFFFFFFF)
     {
-        VPHAL_RENDER_ASSERTMESSAGE("Incorrect GNE / GNE count.");
+        VP_RENDER_ASSERTMESSAGE("Incorrect GNE / GNE count.");
         return MOS_STATUS_UNKNOWN;
     }
 
@@ -356,7 +356,7 @@ MOS_STATUS VpVeboxCmdPacketXe_Hpm::UpdateDnHVSParameters(
             dwSGNEChromaU == 0xFFFFFFFF || dwSGNECountChromaU == 0xFFFFFFFF ||
             dwSGNEChromaV == 0xFFFFFFFF || dwSGNECountChromaV == 0xFFFFFFF)
         {
-            VPHAL_RENDER_ASSERTMESSAGE("Incorrect GNE count.");
+            VP_RENDER_ASSERTMESSAGE("Incorrect GNE count.");
             return MOS_STATUS_UNKNOWN;
         }
 

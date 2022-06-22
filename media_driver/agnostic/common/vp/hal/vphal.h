@@ -33,19 +33,9 @@
 #include "mhw_vebox.h"
 #include "mhw_sfc.h"
 #include "vp_pipeline_adapter_base.h"
-#include "vp_feature_report.h"
 #include "vphal_common_hdr.h"
+#include "vp_common.h"
 #include "vp_base.h"
-
-//*-----------------------------------------------------------------------------
-//| DEFINITIONS
-//*-----------------------------------------------------------------------------
-// Incremental size for allocating/reallocating resource
-#define VPHAL_BUFFER_SIZE_INCREMENT     128
- 
-// VPP internal resource NotLockable flag macro
-#define VPP_INTER_RESOURCE_NOTLOCKABLE  true
-#define VPP_INTER_RESOURCE_LOCKABLE     false
 
 // YUV input ranges
 #define YUV_RANGE_16_235                1
@@ -55,29 +45,6 @@
 // RGB input ranges
 #define RGB_RANGE_16_235                1
 #define RGB_RANGE_0_255                 0
-
-// Media Features width
-#define VPHAL_RNDR_8K_WIDTH (7680)
-#define VPHAL_RNDR_16K_HEIGHT_LIMIT (16352)
-
-// Media Features height
-#define VPHAL_RNDR_2K_HEIGHT  1080
-// The reason that the definition is not (VPHAL_RNDR_2K_HEIGHT*2) is because some 4K clips have 1200 height.
-#define VPHAL_RNDR_4K_HEIGHT  1200
-#define VPHAL_RNDR_4K_MAX_HEIGHT  3112
-#define VPHAL_RNDR_4K_MAX_WIDTH  4096
-#define VPHAL_RNDR_6K_HEIGHT  (VPHAL_RNDR_2K_HEIGHT*3)
-#define VPHAL_RNDR_8K_HEIGHT  (VPHAL_RNDR_2K_HEIGHT*4)
-#define VPHAL_RNDR_10K_HEIGHT (VPHAL_RNDR_2K_HEIGHT*5)
-#define VPHAL_RNDR_12K_HEIGHT (VPHAL_RNDR_2K_HEIGHT*6)
-#define VPHAL_RNDR_14K_HEIGHT (VPHAL_RNDR_2K_HEIGHT*7)
-#define VPHAL_RNDR_16K_HEIGHT (VPHAL_RNDR_2K_HEIGHT*8)
-#define VPHAL_RNDR_18K_HEIGHT (VPHAL_RNDR_2K_HEIGHT*9)
-#define VPHAL_RNDR_20K_HEIGHT (VPHAL_RNDR_2K_HEIGHT*10)
-#define VPHAL_RNDR_22K_HEIGHT (VPHAL_RNDR_2K_HEIGHT*11)
-#define VPHAL_RNDR_24K_HEIGHT (VPHAL_RNDR_2K_HEIGHT*12)
-#define VPHAL_RNDR_26K_HEIGHT (VPHAL_RNDR_2K_HEIGHT*13)
-#define VPHAL_RNDR_28K_HEIGHT (VPHAL_RNDR_2K_HEIGHT*14)
 
 //------------------------------------------------------------------------------
 // Simplified macros for debug message, Assert, Null check and MOS eStatus check
@@ -256,41 +223,6 @@
     MOS_CHK_NULL_WITH_HR(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_DDI, _ptr)
 
 //!
-//! \brief Base VP kernel list
-//!
-enum VpKernelID
-{
-    // FC
-    kernelCombinedFc = 0,
-
-    // 2 VEBOX KERNELS
-    kernelVeboxSecureBlockCopy,
-    kernelVeboxUpdateDnState,
-
-    // User Ptr
-    kernelUserPtr,
-    // Fast 1toN
-    kernelFast1toN,
-
-    // HDR
-    kernelHdrMandatory,
-    kernelHdrPreprocess,
-
-    // mediacopy-render copy
-    kernelRenderCopy,
-
-    baseKernelMaxNumID
-};
-
-enum VpKernelIDNext
-{
-    vpKernelIDNextBase  = 0x100,
-    kernelHdr3DLutCalc  = vpKernelIDNextBase,
-    kernelHVSCalc,
-    vpKernelIDNextMax
-};
-
-//!
 //! \brief VPHAL SS/EU setting
 //!
 struct VphalSseuSetting
@@ -324,12 +256,6 @@ struct VPHAL_GPU_CONTEXT_ENTRY
 using VphalSettings =  VpSettings;
 #pragma pack(push)
 #pragma pack(1)
-
-//!
-//! Structure VphalFeatureReport
-//! \brief    Vphal Feature Report Structure
-//!
-using VphalFeatureReport = VpFeatureReport;
 
 #pragma pack(pop)
 
@@ -394,7 +320,7 @@ public:
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     virtual MOS_STATUS Allocate(
-        const VphalSettings     *pVpHalSettings);
+        const VphalSettings *pVpHalSettings) override;
 
     //!
     //! \brief    Performs VP Rendering
@@ -406,7 +332,7 @@ public:
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     virtual MOS_STATUS Render(
-        PCVPHAL_RENDER_PARAMS   pcRenderParams);
+        PCVPHAL_RENDER_PARAMS pcRenderParams) override;
 
     //!
     //! \brief    Get feature reporting from renderer
@@ -414,7 +340,7 @@ public:
     //! \return   VphalFeatureReport*
     //!           Pointer to VPHAL_FEATURE_REPOR: rendering features reported
     //!
-    virtual VphalFeatureReport*       GetRenderFeatureReport();
+    virtual VphalFeatureReport*       GetRenderFeatureReport() override;
 
     //!
     //! \brief    Get Status Report
@@ -427,7 +353,7 @@ public:
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     virtual MOS_STATUS GetStatusReport(
         PQUERY_STATUS_REPORT_APP        pQueryReport,
-        uint16_t                        numStatus);
+        uint16_t                 numStatus) override;
 
     //!
     //! \brief    Get Status Report's entry length from head to tail
@@ -438,14 +364,14 @@ public:
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     virtual MOS_STATUS GetStatusReportEntryLength(
-        uint32_t                         *puiLength);
+        uint32_t                         *puiLength) override;
 
-    virtual PLATFORM &GetPlatform()
+    virtual PLATFORM &GetPlatform() override
     {
         return m_platform;
     }
 
-    virtual MEDIA_FEATURE_TABLE* GetSkuTable()
+    virtual MEDIA_FEATURE_TABLE *GetSkuTable() override
     {
         return m_skuTable;
     }
@@ -455,12 +381,12 @@ public:
         return m_waTable;
     }
 
-    virtual PMOS_INTERFACE GetOsInterface()
+    virtual PMOS_INTERFACE GetOsInterface() override
     {
         return m_osInterface;
     }
 
-    virtual PRENDERHAL_INTERFACE GetRenderHal()
+    virtual PRENDERHAL_INTERFACE GetRenderHal() override
     {
         return m_renderHal;
     }
@@ -577,7 +503,7 @@ protected:
     //!
     virtual MOS_STATUS CreateRenderer() = 0;
 
-    virtual bool IsApoEnabled()
+    virtual bool IsApoEnabled() override
     {
         return false;
     }

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2016-2018, Intel Corporation
+* Copyright (c) 2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -20,13 +20,13 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     vphal_common_tools.h
+//! \file     vp_common_tools.h
 //! \brief    vphal tools interface clarification
 //! \details  vphal tools interface clarification inlcuding:
 //!           some marcro, enum, structure, function
 //!
-#ifndef __VPHAL_COMMON_TOOLS_H__
-#define __VPHAL_COMMON_TOOLS_H__
+#ifndef __VP_COMMON_TOOLS_H__
+#define __VP_COMMON_TOOLS_H__
 
 // max size of status table, this value must be power of 2 such as 256, 512, 1024, etc.
 // so VPHAL_STATUS_TABLE_MAX_SIZE-1 can form a one-filled mask to wind back a VPHAL_STATUS_TABLE ring table.
@@ -217,4 +217,4 @@ typedef struct _VPHAL_BATCHQUERYVARIANCE_PARAMS
 } VPHAL_BATCHQUERYVARIANCE_PARAMS, *PVPHAL_BATCHQUERYVARIANCE_PARAMS;
 
 
-#endif  // __VPHAL_COMMON_TOOLS_H__
+#endif  // __VP_COMMON_TOOLS_H__

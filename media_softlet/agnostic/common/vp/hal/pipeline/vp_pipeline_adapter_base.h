@@ -120,7 +120,7 @@ public:
     virtual MOS_STATUS GetStatusReportEntryLength(
         uint32_t                         *puiLength);
 
-    virtual VpFeatureReport *GetRenderFeatureReport() = 0;
+    virtual VphalFeatureReport *GetRenderFeatureReport() = 0;
 
     //!
     //! \brief    VpPipelineAdapterBase Destuctor

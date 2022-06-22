@@ -30,7 +30,7 @@
 #include "mos_utilities.h"
 #include "vp_common.h"
 #include "renderhal.h"
-#include "vphal.h"
+#include "vp_base.h"
 
 namespace vp
 {

@@ -123,6 +123,73 @@ extern "C" {
 #define VPHAL_TOP_FIELD_FIRST 0
 #define VPHAL_BOTTOM_FIELD_FIRST 1
 
+//*-----------------------------------------------------------------------------
+//| DEFINITIONS
+//*-----------------------------------------------------------------------------
+// Incremental size for allocating/reallocating resource
+#define VPHAL_BUFFER_SIZE_INCREMENT 128
+
+// VPP internal resource NotLockable flag macro
+#define VPP_INTER_RESOURCE_NOTLOCKABLE true
+#define VPP_INTER_RESOURCE_LOCKABLE false
+
+// Media Features width
+#define VPHAL_RNDR_8K_WIDTH (7680)
+#define VPHAL_RNDR_16K_HEIGHT_LIMIT (16352)
+
+// Media Features height
+#define VPHAL_RNDR_2K_HEIGHT 1080
+// The reason that the definition is not (VPHAL_RNDR_2K_HEIGHT*2) is because some 4K clips have 1200 height.
+#define VPHAL_RNDR_4K_HEIGHT 1200
+#define VPHAL_RNDR_4K_MAX_HEIGHT 3112
+#define VPHAL_RNDR_4K_MAX_WIDTH 4096
+#define VPHAL_RNDR_6K_HEIGHT (VPHAL_RNDR_2K_HEIGHT * 3)
+#define VPHAL_RNDR_8K_HEIGHT (VPHAL_RNDR_2K_HEIGHT * 4)
+#define VPHAL_RNDR_10K_HEIGHT (VPHAL_RNDR_2K_HEIGHT * 5)
+#define VPHAL_RNDR_12K_HEIGHT (VPHAL_RNDR_2K_HEIGHT * 6)
+#define VPHAL_RNDR_14K_HEIGHT (VPHAL_RNDR_2K_HEIGHT * 7)
+#define VPHAL_RNDR_16K_HEIGHT (VPHAL_RNDR_2K_HEIGHT * 8)
+#define VPHAL_RNDR_18K_HEIGHT (VPHAL_RNDR_2K_HEIGHT * 9)
+#define VPHAL_RNDR_20K_HEIGHT (VPHAL_RNDR_2K_HEIGHT * 10)
+#define VPHAL_RNDR_22K_HEIGHT (VPHAL_RNDR_2K_HEIGHT * 11)
+#define VPHAL_RNDR_24K_HEIGHT (VPHAL_RNDR_2K_HEIGHT * 12)
+#define VPHAL_RNDR_26K_HEIGHT (VPHAL_RNDR_2K_HEIGHT * 13)
+#define VPHAL_RNDR_28K_HEIGHT (VPHAL_RNDR_2K_HEIGHT * 14)
+
+//!
+//! \brief Base VP kernel list
+//!
+enum VpKernelID
+{
+    // FC
+    kernelCombinedFc = 0,
+
+    // 2 VEBOX KERNELS
+    kernelVeboxSecureBlockCopy,
+    kernelVeboxUpdateDnState,
+
+    // User Ptr
+    kernelUserPtr,
+    // Fast 1toN
+    kernelFast1toN,
+
+    // HDR
+    kernelHdrMandatory,
+    kernelHdrPreprocess,
+
+    // mediacopy-render copy
+    kernelRenderCopy,
+
+    baseKernelMaxNumID
+};
+
+enum VpKernelIDNext
+{
+    vpKernelIDNextBase = 0x100,
+    kernelHdr3DLutCalc = vpKernelIDNextBase,
+    kernelHVSCalc,
+    vpKernelIDNextMax
+};
 
 
 typedef struct _VPHAL_COMPOSITE_CACHE_CNTL
@@ -132,6 +199,16 @@ typedef struct _VPHAL_COMPOSITE_CACHE_CNTL
     VPHAL_MEMORY_OBJECT_CONTROL InputSurfMemObjCtl;
     VPHAL_MEMORY_OBJECT_CONTROL TargetSurfMemObjCtl;
 } VPHAL_COMPOSITE_CACHE_CNTL, *PVPHAL_COMPOSITE_CACHE_CNTL;
+
+//!
+//! \brief Vphal Gamma Values configuration enum
+//!
+typedef enum _VPHAL_GAMMA_VALUE
+{
+    GAMMA_1P0 = 0,
+    GAMMA_2P2,
+    GAMMA_2P6
+} VPHAL_GAMMA_VALUE;
 
 typedef struct _VPHAL_DNDI_CACHE_CNTL
 {
@@ -760,6 +837,20 @@ typedef struct _VPHAL_3DLUT_PARAMS
     uint16_t       BitDepthPerChannel;  // Bit Depth Per Channel(4 channels for 3DLUT).
     uint16_t       ByteCountPerEntry;   // Byte Count Per Entry including reserved bytes.
 } VPHAL_3DLUT_PARAMS, *PVPHAL_3DLUT_PARAMS;
+
+//!
+//! Structure VPHAL_GAMUT_PARAMS
+//! \brief IECP Gamut Mapping Parameters
+//!
+typedef struct _VPHAL_GAMUT_PARAMS
+{
+    VPHAL_GAMUT_MODE  GCompMode;
+    VPHAL_GAMUT_MODE  GExpMode;
+    VPHAL_GAMMA_VALUE GammaValue;
+    uint32_t          dwAttenuation;  //!< U2.10 [0, 1024] 0 = No down scaling, 1024 = Full down scaling
+    float             displayRGBW_x[4];
+    float             displayRGBW_y[4];
+} VPHAL_GAMUT_PARAMS, *PVPHAL_GAMUT_PARAMS;
 
 //!
 //! Structure VPHAL_SURFACE

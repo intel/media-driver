@@ -34,7 +34,7 @@
 #include "media_class_trace.h"
 #include "mos_os.h"
 #include "mos_os_specific.h"
-#include "vphal_common_tools.h"
+#include "vp_common_tools.h"
 
 namespace vp
 {

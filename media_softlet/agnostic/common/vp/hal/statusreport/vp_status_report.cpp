@@ -30,7 +30,7 @@
 #include "vp_status_report.h"
 #include "mos_utilities.h"
 #include "vp_common.h"
-#include "vphal.h"
+#include "vp_utils.h"
 
 namespace vp
 {
@@ -69,14 +69,14 @@ MOS_STATUS VPStatusReport::UpdateStatusTableAfterSubmit(
         goto finish;
     }
 
-    VPHAL_PUBLIC_CHK_NULL(m_StatusTableUpdateParams.pStatusTable);
-    VPHAL_PUBLIC_CHK_NULL(m_osInterface);
+    VP_PUBLIC_CHK_NULL(m_StatusTableUpdateParams.pStatusTable);
+    VP_PUBLIC_CHK_NULL(m_osInterface);
 
     pStatusTable       = m_StatusTableUpdateParams.pStatusTable;
     dwStatusFeedBackID = m_StatusTableUpdateParams.StatusFeedBackID;
 
-    VPHAL_PUBLIC_ASSERT(pStatusTable->uiHead < VPHAL_STATUS_TABLE_MAX_SIZE);
-    VPHAL_PUBLIC_ASSERT(pStatusTable->uiCurrent < VPHAL_STATUS_TABLE_MAX_SIZE);
+    VP_PUBLIC_ASSERT(pStatusTable->uiHead < VPHAL_STATUS_TABLE_MAX_SIZE);
+    VP_PUBLIC_ASSERT(pStatusTable->uiCurrent < VPHAL_STATUS_TABLE_MAX_SIZE);
 
     bEmptyTable = (pStatusTable->uiCurrent == pStatusTable->uiHead);
     if (!bEmptyTable)

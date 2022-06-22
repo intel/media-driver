@@ -22,7 +22,6 @@
 #ifndef __VP_SFC_COMMON_H__
 #define __VP_SFC_COMMON_H__
 
-#include "mhw_sfc.h"
 #include "vp_common.h"
 #include "vp_pipeline_common.h"
 #include "mhw_sfc_itf.h"

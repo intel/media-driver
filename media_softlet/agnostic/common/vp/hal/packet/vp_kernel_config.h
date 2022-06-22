@@ -25,7 +25,6 @@
 #include <map>
 #include "mos_defs.h"
 #include "renderhal.h"
-#include "vphal.h"
 #include "hal_kerneldll_next.h"
 #include "media_class_trace.h"
 #include "vpkrnheader.h"

@@ -31,6 +31,7 @@
 #include "vp_dumper.h"
 #include "vp_common.h"
 #include "vp_pipeline_common.h"
+#include "vp_utils.h"
 
 #if USE_MEDIA_DEBUG_TOOL
 #define USE_VP_DEBUG_TOOL 1

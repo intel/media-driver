@@ -31,7 +31,6 @@
 #define USE_MEDIA_DEBUG_TOOL 1
 #define MEDIA_DEBUG_TOOL(expr) expr;
 
-#include "BRCIF.h"
 #include "mhw_utilities.h"
 #include "mhw_state_heap.h"
 #include "media_debug_config_manager.h"

@@ -21,6 +21,7 @@
 set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/vp_common.h
     ${CMAKE_CURRENT_LIST_DIR}/vp_common_hdr.h
+    ${CMAKE_CURRENT_LIST_DIR}/vp_common_tools.h
 )
 
 set(VP_HEADERS_

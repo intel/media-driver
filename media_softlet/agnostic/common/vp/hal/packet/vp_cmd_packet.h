@@ -24,6 +24,7 @@
 
 #include "media_cmd_packet.h"
 #include "mhw_sfc.h"
+#include "mhw_vebox_itf.h"
 #include "vp_pipeline_common.h"
 #include "vp_allocator.h"
 #include "vp_packet_shared_context.h"

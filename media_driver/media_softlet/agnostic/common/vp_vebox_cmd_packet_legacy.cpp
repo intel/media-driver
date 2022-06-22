@@ -312,7 +312,7 @@ MOS_STATUS VpVeboxCmdPacketLegacy::InitSTMMHistory()
         &stmmSurface->osSurface->OsResource,
         &LockFlags);
 
-    VPHAL_RENDER_CHK_NULL(pByte);
+    VP_RENDER_CHK_NULL(pByte);
 
     dwSize = stmmSurface->osSurface->dwWidth >> 2;
 
@@ -330,7 +330,7 @@ MOS_STATUS VpVeboxCmdPacketLegacy::InitSTMMHistory()
     }
 
     // Unlock the surface
-    VPHAL_RENDER_CHK_STATUS(m_allocator->UnLock(&stmmSurface->osSurface->OsResource));
+    VP_RENDER_CHK_STATUS(m_allocator->UnLock(&stmmSurface->osSurface->OsResource));
 
 finish:
     return eStatus;
@@ -1117,7 +1117,7 @@ MOS_STATUS VpVeboxCmdPacketLegacy::SetupDiIecpState(
         MOS_ZeroMemory(&VeboxSurfCntlParams, sizeof(VeboxSurfCntlParams));
         VeboxSurfCntlParams.bIsCompressed       = pSurface->osSurface->bIsCompressed;
         VeboxSurfCntlParams.CompressionMode     = pSurface->osSurface->CompressionMode;
-        VPHAL_RENDER_CHK_STATUS(SetVeboxSurfaceControlBits(
+        VP_RENDER_CHK_STATUS(SetVeboxSurfaceControlBits(
             pVeboxInterface,
             &VeboxSurfCntlParams,
             (uint32_t *)&(pVeboxDiIecpCmdParams->CurrInputSurfCtrl.Value)));
@@ -1138,7 +1138,7 @@ MOS_STATUS VpVeboxCmdPacketLegacy::SetupDiIecpState(
             MOS_ZeroMemory(&VeboxSurfCntlParams, sizeof(VeboxSurfCntlParams));
             VeboxSurfCntlParams.bIsCompressed       = pSurface->osSurface->bIsCompressed;
             VeboxSurfCntlParams.CompressionMode     = pSurface->osSurface->CompressionMode;
-            VPHAL_RENDER_CHK_STATUS(SetVeboxSurfaceControlBits(
+            VP_RENDER_CHK_STATUS(SetVeboxSurfaceControlBits(
                 pVeboxInterface,
                 &VeboxSurfCntlParams,
                 (uint32_t *)&(pVeboxDiIecpCmdParams->PrevInputSurfCtrl.Value)));
@@ -1160,7 +1160,7 @@ MOS_STATUS VpVeboxCmdPacketLegacy::SetupDiIecpState(
             MOS_ZeroMemory(&VeboxSurfCntlParams, sizeof(VeboxSurfCntlParams));
             VeboxSurfCntlParams.bIsCompressed   = pSurface->osSurface->bIsCompressed;
             VeboxSurfCntlParams.CompressionMode = pSurface->osSurface->CompressionMode;
-            VPHAL_RENDER_CHK_STATUS(SetVeboxSurfaceControlBits(
+            VP_RENDER_CHK_STATUS(SetVeboxSurfaceControlBits(
                 pVeboxInterface,
                 &VeboxSurfCntlParams,
                 (uint32_t *)&(pVeboxDiIecpCmdParams->CurrOutputSurfCtrl.Value)));
@@ -1180,7 +1180,7 @@ MOS_STATUS VpVeboxCmdPacketLegacy::SetupDiIecpState(
             MOS_ZeroMemory(&VeboxSurfCntlParams, sizeof(VeboxSurfCntlParams));
             VeboxSurfCntlParams.bIsCompressed   = pSurface->osSurface->bIsCompressed;
             VeboxSurfCntlParams.CompressionMode = pSurface->osSurface->CompressionMode;
-            VPHAL_RENDER_CHK_STATUS(SetVeboxSurfaceControlBits(
+            VP_RENDER_CHK_STATUS(SetVeboxSurfaceControlBits(
                 pVeboxInterface,
                 &VeboxSurfCntlParams,
                 (uint32_t *)&(pVeboxDiIecpCmdParams->PrevOutputSurfCtrl.Value)));
@@ -1201,7 +1201,7 @@ MOS_STATUS VpVeboxCmdPacketLegacy::SetupDiIecpState(
             MOS_ZeroMemory(&VeboxSurfCntlParams, sizeof(VeboxSurfCntlParams));
             VeboxSurfCntlParams.bIsCompressed   = pSurface->osSurface->bIsCompressed;
             VeboxSurfCntlParams.CompressionMode = pSurface->osSurface->CompressionMode;
-            VPHAL_RENDER_CHK_STATUS(SetVeboxSurfaceControlBits(
+            VP_RENDER_CHK_STATUS(SetVeboxSurfaceControlBits(
                 pVeboxInterface,
                 &VeboxSurfCntlParams,
                 (uint32_t *)&(pVeboxDiIecpCmdParams->DenoisedCurrOutputSurfCtrl.Value)));
@@ -1225,7 +1225,7 @@ MOS_STATUS VpVeboxCmdPacketLegacy::SetupDiIecpState(
             MOS_ZeroMemory(&VeboxSurfCntlParams, sizeof(VeboxSurfCntlParams));
             VeboxSurfCntlParams.bIsCompressed   = pSurface->osSurface->bIsCompressed;
             VeboxSurfCntlParams.CompressionMode = pSurface->osSurface->CompressionMode;
-            VPHAL_RENDER_CHK_STATUS(SetVeboxSurfaceControlBits(
+            VP_RENDER_CHK_STATUS(SetVeboxSurfaceControlBits(
                 pVeboxInterface,
                 &VeboxSurfCntlParams,
                 (uint32_t *)&(pVeboxDiIecpCmdParams->StmmInputSurfCtrl.Value)));
@@ -1242,7 +1242,7 @@ MOS_STATUS VpVeboxCmdPacketLegacy::SetupDiIecpState(
             MOS_ZeroMemory(&VeboxSurfCntlParams, sizeof(VeboxSurfCntlParams));
             VeboxSurfCntlParams.bIsCompressed   = pSurface->osSurface->bIsCompressed;
             VeboxSurfCntlParams.CompressionMode = pSurface->osSurface->CompressionMode;
-            VPHAL_RENDER_CHK_STATUS(SetVeboxSurfaceControlBits(
+            VP_RENDER_CHK_STATUS(SetVeboxSurfaceControlBits(
                 pVeboxInterface,
                 &VeboxSurfCntlParams,
                 (uint32_t *)&(pVeboxDiIecpCmdParams->StmmOutputSurfCtrl.Value)));
@@ -2891,7 +2891,7 @@ MOS_STATUS VpVeboxCmdPacketLegacy::VeboxSetPerfTag()
             break;
 
         default:
-            VPHAL_RENDER_ASSERTMESSAGE("Format Not found.");
+            VP_RENDER_ASSERTMESSAGE("Format Not found.");
             *pPerfTag = VPHAL_NONE;
             eStatus = MOS_STATUS_INVALID_PARAMETER;
     } // switch (srcFmt)
@@ -3021,7 +3021,7 @@ MOS_STATUS VpVeboxCmdPacketLegacy::VeboxSetPerfTagNv12()
                         *pPerfTag = VPHAL_NONE;
                         break;
                     default:
-                        VPHAL_RENDER_ASSERTMESSAGE("Output Format Not found.");
+                        VP_RENDER_ASSERTMESSAGE("Output Format Not found.");
                         return MOS_STATUS_INVALID_PARAMETER;
                 }
             }
@@ -3113,7 +3113,7 @@ MOS_STATUS VpVeboxCmdPacketLegacy::VeboxSetPerfTagPaFormat()
                         *pPerfTag = VPHAL_NONE;
                         break;
                     default:
-                        VPHAL_RENDER_ASSERTMESSAGE("Output Format Not found.");
+                        VP_RENDER_ASSERTMESSAGE("Output Format Not found.");
                         return MOS_STATUS_INVALID_PARAMETER;
                 }
             }
@@ -3160,7 +3160,7 @@ MOS_STATUS VpVeboxCmdPacketLegacy::VeboxSetPerfTagPaFormat()
                         *pPerfTag = VPHAL_NONE;
                         break;
                     default:
-                        VPHAL_RENDER_ASSERTMESSAGE("Output Format Not found.");
+                        VP_RENDER_ASSERTMESSAGE("Output Format Not found.");
                         return MOS_STATUS_INVALID_PARAMETER;
                 }
             }

@@ -160,16 +160,6 @@ typedef enum _VPHAL_CHROMA_SUBSAMPLING
     CHROMA_SUBSAMPLING_BOTTOM_LEFT
 } VPHAL_CHROMA_SUBSAMPLING;
 
-//!
-//! \brief Vphal Gamma Values configuration enum
-//!
-typedef enum _VPHAL_GAMMA_VALUE
-{
-    GAMMA_1P0 = 0,
-    GAMMA_2P2,
-    GAMMA_2P6
-} VPHAL_GAMMA_VALUE;
-
 typedef enum _VPHAL_DP_ROTATION_MODE
 {
     VPHAL_DP_ROTATION_NV12_AVG            = 0,   //!< nv12 -> yuy2 by chroma average
@@ -284,21 +274,6 @@ typedef enum _VPHAL_3DLUT_CHANNEL_MAPPING
     CHANNEL_MAPPING_YUV_RGB          = 1 << 0,
     CHANNEL_MAPPING_VUY_RGB          = 1 << 1,
 } VPHAL_3DLUT_CHANNEL_MAPPING;
-
-
-//!
-//! Structure VPHAL_GAMUT_PARAMS
-//! \brief IECP Gamut Mapping Parameters
-//!
-typedef struct _VPHAL_GAMUT_PARAMS
-{
-    VPHAL_GAMUT_MODE    GCompMode;
-    VPHAL_GAMUT_MODE    GExpMode;
-    VPHAL_GAMMA_VALUE   GammaValue;
-    uint32_t            dwAttenuation;       //!< U2.10 [0, 1024] 0 = No down scaling, 1024 = Full down scaling
-    float               displayRGBW_x[4];
-    float               displayRGBW_y[4];
-} VPHAL_GAMUT_PARAMS, *PVPHAL_GAMUT_PARAMS;
 
 //!
 //! Structure VPHAL_CONSTRICTION_PARAMS

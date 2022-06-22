@@ -31,7 +31,7 @@
 #include <stdint.h>
 #include "mos_defs.h"
 #include "vp_common.h"
-#include "vphal_common_tools.h"
+#include "vp_common_tools.h"
 #include "mhw_vebox.h"
 #include "mhw_sfc.h"
 #include "igfxfmid.h"
@@ -39,8 +39,11 @@
 #include "media_skuwa_specific.h"
 #include "mos_os.h"
 #include "mos_os_specific.h"
+#include "vp_feature_report.h"
+
 class MhwCpInterface;
-class VpFeatureReport;
+
+using VphalFeatureReport = VpFeatureReport;
 
 namespace vp
 {
@@ -143,7 +146,7 @@ public:
     virtual MOS_STATUS Allocate(
         const VpSettings *pVpSettings) = 0;
 
-    virtual VpFeatureReport* GetRenderFeatureReport() = 0;
+    virtual VphalFeatureReport *GetRenderFeatureReport() = 0;
 
     virtual PLATFORM& GetPlatform() = 0;
 

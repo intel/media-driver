@@ -391,7 +391,7 @@ MOS_STATUS VpRenderFcKernel::PrintSearchFilter(Kdll_FilterEntry *filter, int32_t
     // Log for debug
     for (int32_t i = 0; i < filterSize; i++)
     {
-        VPHAL_RENDER_NORMALMESSAGE("Kernel Search Filter %d: layer %d, format %d, cspace %d, \
+        VP_RENDER_NORMALMESSAGE("Kernel Search Filter %d: layer %d, format %d, cspace %d, \
                                    bEnableDscale %d, bIsDitherNeeded %d, chromasiting %d, colorfill %d, dualout %d, \
                                    lumakey %d, procamp %d, RenderMethod %d, sampler %d, samplerlumakey %d ",
                                    i, filter[i].layer, filter[i].format, filter[i].cspace,
@@ -454,7 +454,7 @@ static inline RENDERHAL_SCALING_MODE ConvertVpScalingModeToRenderScalingMode(VPH
             return RENDERHAL_SCALING_AVS;
 
         default:
-            VPHAL_RENDER_ASSERTMESSAGE("Invalid VPHAL_SCALING_MODE %d, force to nearest mode.", vpScalingMode);
+            VP_RENDER_ASSERTMESSAGE("Invalid VPHAL_SCALING_MODE %d, force to nearest mode.", vpScalingMode);
             return RENDERHAL_SCALING_NEAREST;
     }
 }
@@ -486,7 +486,7 @@ static inline RENDERHAL_SAMPLE_TYPE ConvertVpSampleTypeToRenderSampleType(VPHAL_
 
         case SAMPLE_INVALID:
         default:
-            VPHAL_RENDER_ASSERTMESSAGE("Invalid VPHAL_SAMPLE_TYPE %d.\n", SampleType);
+            VP_RENDER_ASSERTMESSAGE("Invalid VPHAL_SAMPLE_TYPE %d.\n", SampleType);
             return RENDERHAL_SAMPLE_INVALID;
     }
 }
@@ -530,7 +530,7 @@ static inline MHW_ROTATION VpRotationModeToRenderRotationMode(VPHAL_ROTATION Rot
             break;
 
         default:
-            VPHAL_RENDER_ASSERTMESSAGE("Invalid Rotation Angle.");
+            VP_RENDER_ASSERTMESSAGE("Invalid Rotation Angle.");
             break;
     }
 
@@ -551,9 +551,9 @@ MOS_STATUS VpRenderFcKernel::InitRenderHalSurface(
 
     auto osInterface = m_hwInterface->m_osInterface;
 
-    VPHAL_RENDER_CHK_NULL_RETURN(osInterface);
-    VPHAL_RENDER_CHK_NULL_RETURN(osInterface->pfnGetMemoryCompressionMode);
-    VPHAL_RENDER_CHK_NULL_RETURN(osInterface->pfnGetMemoryCompressionFormat);
+    VP_RENDER_CHK_NULL_RETURN(osInterface);
+    VP_RENDER_CHK_NULL_RETURN(osInterface->pfnGetMemoryCompressionMode);
+    VP_RENDER_CHK_NULL_RETURN(osInterface->pfnGetMemoryCompressionFormat);
 
     MOS_ZeroMemory(renderHalSurface, sizeof(*renderHalSurface));
 
@@ -608,8 +608,8 @@ MOS_STATUS VpRenderFcKernel::InitRenderHalSurface(
 {
     MOS_STATUS              eStatus = MOS_STATUS_SUCCESS;
 
-    VPHAL_RENDER_CHK_NULL_RETURN(surf);
-    VPHAL_RENDER_CHK_NULL_RETURN(m_fcParams);
+    VP_RENDER_CHK_NULL_RETURN(surf);
+    VP_RENDER_CHK_NULL_RETURN(m_fcParams);
 
     auto &compParams = m_fcParams->compParams;
 
@@ -1215,7 +1215,7 @@ MOS_STATUS VpRenderFcKernel::GetKernelEntry(Kdll_CacheEntry &entry)
         }
         else
         {
-            VPHAL_RENDER_NORMALMESSAGE("Array Index Out of Bounds.");
+            VP_RENDER_NORMALMESSAGE("Array Index Out of Bounds.");
         }
     }
 
@@ -1241,14 +1241,14 @@ MOS_STATUS VpRenderFcKernel::GetKernelEntry(Kdll_CacheEntry &entry)
         // Search kernel
         if (!kernelDllState->pfnSearchKernel(kernelDllState, pSearchState))
         {
-            VPHAL_RENDER_ASSERTMESSAGE("Failed to find a kernel.");
+            VP_RENDER_ASSERTMESSAGE("Failed to find a kernel.");
             return MOS_STATUS_UNKNOWN;
         }
 
         // Build kernel
         if (!kernelDllState->pfnBuildKernel(kernelDllState, pSearchState))
         {
-            VPHAL_RENDER_ASSERTMESSAGE("Failed to build kernel.");
+            VP_RENDER_ASSERTMESSAGE("Failed to build kernel.");
             return MOS_STATUS_UNKNOWN;
         }
 
@@ -1262,13 +1262,13 @@ MOS_STATUS VpRenderFcKernel::GetKernelEntry(Kdll_CacheEntry &entry)
 
         if (!kernelEntry)
         {
-            VPHAL_RENDER_ASSERTMESSAGE("Failed to store kernel in local cache.");
+            VP_RENDER_ASSERTMESSAGE("Failed to store kernel in local cache.");
             return MOS_STATUS_UNKNOWN;
         }
     }
     else
     {
-        VPHAL_RENDER_NORMALMESSAGE("Use previous kernel list.");
+        VP_RENDER_NORMALMESSAGE("Use previous kernel list.");
     }
     m_kernelEntry = kernelEntry;
     entry = *kernelEntry;
@@ -1422,7 +1422,7 @@ MOS_STATUS Set3DSamplerStatus(
 {
     if (layer.layerID > 7)
     {
-        VPHAL_RENDER_ASSERTMESSAGE("Invalid parameter.");
+        VP_RENDER_ASSERTMESSAGE("Invalid parameter.");
         return MOS_STATUS_INVALID_PARAMETER;
     }
 
@@ -1488,7 +1488,7 @@ MOS_STATUS VpRenderFcKernel::InitCscInCurbeData()
         }
         else
         {
-            VPHAL_RENDER_ASSERTMESSAGE("CSC matrix coefficient id is non-zero.");
+            VP_RENDER_ASSERTMESSAGE("CSC matrix coefficient id is non-zero.");
             return MOS_STATUS_INVALID_PARAMETER;
         }
     }
@@ -1696,7 +1696,7 @@ MOS_STATUS VpRenderFcKernel::InitLayerInCurbeData(VP_FC_LAYER *layer)
         m_curbeData.DW63.DestYBottomRightLayer7             = clipedDstRect.bottom - 1;
         break;
     default:
-        VPHAL_RENDER_ASSERTMESSAGE("Invalid layer.");
+        VP_RENDER_ASSERTMESSAGE("Invalid layer.");
         break;
     }
 
@@ -1836,7 +1836,7 @@ MOS_STATUS VpRenderFcKernel::InitColorFillInCurbeData()
 
             if (dstCspace == CSpace_None) // if color space is invlaid return false
             {
-                VPHAL_RENDER_ASSERTMESSAGE("Failed to assign dst color spcae for iScale case.");
+                VP_RENDER_ASSERTMESSAGE("Failed to assign dst color spcae for iScale case.");
                 return MOS_STATUS_INVALID_PARAMETER;
             }
         }
@@ -1932,7 +1932,7 @@ MOS_STATUS VpSetYUVComponents(
             break;
 
         default:
-            VPHAL_RENDER_ASSERTMESSAGE("Unknown Packed YUV Format.");
+            VP_RENDER_ASSERTMESSAGE("Unknown Packed YUV Format.");
             eStatus = MOS_STATUS_UNKNOWN;
     }
 
@@ -2104,7 +2104,7 @@ MOS_STATUS VpRenderFcKernel::InitCscInDpCurbeData()
         }
         else
         {
-            VPHAL_RENDER_ASSERTMESSAGE("CSC matrix coefficient id is non-zero.");
+            VP_RENDER_ASSERTMESSAGE("CSC matrix coefficient id is non-zero.");
             return MOS_STATUS_INVALID_PARAMETER;
         }
     }

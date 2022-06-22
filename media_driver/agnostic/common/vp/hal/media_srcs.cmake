@@ -46,7 +46,6 @@ set(TMP_SOURCES_
 set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/vphal.h
     ${CMAKE_CURRENT_LIST_DIR}/vphal_common.h
-    ${CMAKE_CURRENT_LIST_DIR}/vphal_common_tools.h
     ${CMAKE_CURRENT_LIST_DIR}/vphal_ddi.h
     ${CMAKE_CURRENT_LIST_DIR}/vphal_debug.h
     ${CMAKE_CURRENT_LIST_DIR}/vphal_render_common.h

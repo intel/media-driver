@@ -22,7 +22,6 @@
 #ifndef __VP_PIPELINE_ADAPTER_H__
 #define __VP_PIPELINE_ADAPTER_H__
 
-#include "vphal.h"
 #include "vp_pipeline.h"
 #include "vp_pipeline_common.h"
 

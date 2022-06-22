@@ -31,7 +31,7 @@
 
 #include <stdint.h>
 #include "vp_common.h"
-#include "vphal_common_tools.h"
+#include "vp_common_tools.h"
 #include "media_class_trace.h"
 #include "vp_common_hdr.h"
 
