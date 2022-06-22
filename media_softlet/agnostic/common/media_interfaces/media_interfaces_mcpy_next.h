@@ -52,7 +52,7 @@ public:
     //! \return   Pointer to Gen specific  mediacopy instance if
     //!           successful, otherwise return nullptr
     //!
-    void* CreateFactory(
+    static void* CreateFactory(
         PMOS_CONTEXT osDriverContext);
 
     //!
