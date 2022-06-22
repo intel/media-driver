@@ -85,6 +85,10 @@ MediaPipeline::~MediaPipeline()
         //Destruction of APO perfProfile will be done inside legacy one.
         MediaPerfProfiler::Destroy(perfProfiler, (void *)this, m_osInterface);
     }
+
+#if MHW_HWCMDPARSER_ENABLED
+    mhw::HwcmdParser::DestroyInstance();
+#endif
 }
 
 MOS_STATUS MediaPipeline::DeletePackets()

@@ -135,30 +135,6 @@ MOS_STATUS HevcBasicFeature::Update(void *params)
     ENCODE_CHK_NULL_RETURN(m_nalUnitParams);
     m_NumNalUnits   = encodeParams->uiNumNalUnits;
 
-#if MHW_HWCMDPARSER_ENABLED
-    {
-        char frameType;
-        switch (m_hevcPicParams->CodingType)
-        {
-        case I_TYPE:
-            frameType = 'I';
-            break;
-        case P_TYPE:
-            frameType = 'P';
-            break;
-        case B_TYPE:
-            frameType = m_hevcSeqParams->LowDelayMode ? 'G' : 'B';
-            break;
-        }
-
-        auto instance = mhw::HwcmdParser::GetInstance();
-        if (instance)
-        {
-            instance->UpdateFrameInfo(frameType);
-        }
-    }
-#endif
-
 #ifdef _ENCODE_RESERVED
     if (m_rsvdState && m_rsvdState->GetFeatureRsvdFlag())
     {

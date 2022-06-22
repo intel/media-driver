@@ -41,6 +41,10 @@ MOS_STATUS Av1Pipeline::Initialize(void *settings)
     ENCODE_FUNC_CALL();
     ENCODE_CHK_STATUS_RETURN(EncodePipeline::Initialize(settings));
 
+#if MHW_HWCMDPARSER_ENABLED
+    mhw::HwcmdParser::InitInstance(m_osInterface, mhw::HwcmdParser::AddOnMode::AV1e);
+#endif
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -101,6 +105,33 @@ MOS_STATUS Av1Pipeline::Prepare(void *params)
             ENCODE_CHK_STATUS_RETURN(DumpTileGroupParams(
                 tileGroupParams, i))}
         )
+
+#if MHW_HWCMDPARSER_ENABLED
+    char frameType = '\0';
+    switch (basicFeature->m_pictureCodingType)
+    {
+    case I_TYPE:
+        frameType = 'I';
+        break;
+    case P_TYPE:
+        if (basicFeature->m_ref.IsLowDelay())
+            frameType = 'G';
+        else if (basicFeature->m_av1PicParams->ref_frame_ctrl_l1.RefFrameCtrl.value != 0)
+            frameType = 'B';
+        else
+            frameType = 'P';
+        break;
+    default:
+        frameType = '\0';
+        break;
+    }
+
+    auto instance = mhw::HwcmdParser::GetInstance();
+    if (instance)
+    {
+        instance->Update(frameType, nullptr);
+    }
+#endif
 
     return MOS_STATUS_SUCCESS;
 }

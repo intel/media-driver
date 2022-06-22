@@ -26,19 +26,22 @@
 //!
 
 #ifdef DO_FIELDS
-    #define DO_FIELD(dw, field, value) _MHW_CMD_ASSIGN_FIELD(dw, field, value)
-        DO_FIELDS();
-    #undef DO_FIELD
-    #if MHW_HWCMDPARSER_ENABLED
-        if (m_hwcmdParser->ParseFieldsLayoutEn())
+#define DO_FIELD(dw, field, value) _MHW_CMD_ASSIGN_FIELD(dw, field, value)
+    DO_FIELDS();
+#undef DO_FIELD
+#if MHW_HWCMDPARSER_ENABLED
+    {
+        auto instance = mhw::HwcmdParser::GetInstance();
+        if (instance && instance->ParseFieldsLayoutEn())
         {
-    #define DO_FIELD(dw, field, value) MHW_HWCMDPARSER_PARSEFIELDLAYOUT(dw, field)
+#define DO_FIELD(dw, field, value) MHW_HWCMDPARSER_PARSEFIELDLAYOUT(dw, field)
             DO_FIELDS();
-    #undef DO_FIELD
+#undef DO_FIELD
         }
-    #endif  // MHW_HWCMDPARSER_ENABLED
-    #undef DO_FIELDS
+    }
+#endif  // MHW_HWCMDPARSER_ENABLED
+#undef DO_FIELDS
 #endif  // DO_FIELDS
 #ifndef NO_RETURN
-        return MOS_STATUS_SUCCESS;
+    return MOS_STATUS_SUCCESS;
 #endif  // NO_RETURN

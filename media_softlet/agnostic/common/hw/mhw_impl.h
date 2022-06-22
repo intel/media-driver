@@ -184,22 +184,11 @@ protected:
         {
             AddResourceToCmd = Mhw_AddResourceToCmd_PatchList;
         }
-
-    #if MHW_HWCMDPARSER_ENABLED
-        mhw::HwcmdParser::InitInstance(osItf);
-
-        m_hwcmdParser = mhw::HwcmdParser::GetInstance();
-        MHW_CHK_NULL_NO_STATUS_RETURN(m_hwcmdParser);
-    #endif
     }
 
     virtual ~Impl()
     {
         MHW_FUNCTION_ENTER;
-
-    #if MHW_HWCMDPARSER_ENABLED
-        mhw::HwcmdParser::DestroyInstance();
-    #endif
     }
 
     template <typename Cmd, typename CmdSetting>
@@ -217,9 +206,13 @@ protected:
 
         // call MHW cmd parser
     #if MHW_HWCMDPARSER_ENABLED
-        this->m_hwcmdParser->ParseCmd(this->m_currentCmdName,
-            reinterpret_cast<uint32_t *>(&cmd),
-            sizeof(cmd) / sizeof(uint32_t));
+        auto instance = mhw::HwcmdParser::GetInstance();
+        if (instance)
+        {
+            instance->ParseCmd(this->m_currentCmdName,
+                reinterpret_cast<uint32_t *>(&cmd),
+                sizeof(cmd) / sizeof(uint32_t));
+        }
     #endif
 
         // add cmd to cmd buffer
@@ -235,8 +228,7 @@ protected:
     PMHW_BATCH_BUFFER   m_currentBatchBuf = nullptr;
 
 #if MHW_HWCMDPARSER_ENABLED
-    std::string                  m_currentCmdName;
-    std::shared_ptr<HwcmdParser> m_hwcmdParser = nullptr;
+    std::string m_currentCmdName;
 #endif  // MHW_HWCMDPARSER_ENABLED
 MEDIA_CLASS_DEFINE_END(mhw__Impl)
 };

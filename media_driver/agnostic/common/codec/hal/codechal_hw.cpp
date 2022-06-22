@@ -49,10 +49,6 @@ CodechalHwInterface::CodechalHwInterface(
 {
     CODECHAL_HW_FUNCTION_ENTER;
 
-#if MHW_HWCMDPARSER_ENABLED
-    mhw::HwcmdParser::InitInstance(osInterface);
-#endif
-
     // Basic intialization
     m_osInterface = osInterface;
 
@@ -92,10 +88,6 @@ CodechalHwInterface::CodechalHwInterface(
     bool              disableScalability)
 {
     CODECHAL_HW_FUNCTION_ENTER;
-
-#if MHW_HWCMDPARSER_ENABLED
-    mhw::HwcmdParser::InitInstance(osInterface);
-#endif
 
     // Basic intialization
     m_osInterface = osInterface;

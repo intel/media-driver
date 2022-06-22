@@ -5869,7 +5869,7 @@ MOS_STATUS CodechalVdencAvcState::ExecutePictureLevel()
     auto instance = mhw::HwcmdParser::GetInstance();
     if (instance)
     {
-        instance->UpdateFrameInfo(frameType);
+        instance->Update(frameType, nullptr);
     }
 #endif
 

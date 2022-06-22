@@ -170,33 +170,6 @@ MOS_STATUS Av1BasicFeature::Update(void *params)
         }
     }
 
-#if MHW_HWCMDPARSER_ENABLED
-    char frameType = '\0';
-    switch (m_pictureCodingType)
-    {
-    case I_TYPE:
-        frameType = 'I';
-        break;
-    case P_TYPE:
-        if (m_ref.IsLowDelay())
-            frameType = 'G';
-        else if (m_av1PicParams->ref_frame_ctrl_l1.RefFrameCtrl.value != 0)
-            frameType = 'B';
-        else
-            frameType = 'P';
-        break;
-    default:
-        frameType = '\0';
-        break;
-    }
-
-    auto instance = mhw::HwcmdParser::GetInstance();
-    if (instance)
-    {
-        instance->UpdateFrameInfo(frameType);
-    }
-#endif
-
     uint32_t frameWidth = m_av1PicParams->frame_width_minus1 + 1;
 
     uint32_t frameHeight = m_av1PicParams->frame_height_minus1 + 1;

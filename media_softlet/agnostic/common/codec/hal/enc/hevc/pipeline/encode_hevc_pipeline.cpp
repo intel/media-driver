@@ -34,7 +34,6 @@ HevcPipeline::HevcPipeline(
     CodechalDebugInterface *debugInterface)
     : EncodePipeline(hwInterface, debugInterface)
 {
-
 }
 
 MOS_STATUS HevcPipeline::Initialize(void *settings)
@@ -43,13 +42,7 @@ MOS_STATUS HevcPipeline::Initialize(void *settings)
     ENCODE_CHK_STATUS_RETURN(EncodePipeline::Initialize(settings));
 
 #if MHW_HWCMDPARSER_ENABLED
-    {
-        auto instance = mhw::HwcmdParser::GetInstance();
-        if (instance)
-        {
-            instance->RegisterAddOn(mhw::HwcmdParser::AddOnMode::HEVCe, (void *)m_featureManager);
-        }
-    }
+    mhw::HwcmdParser::InitInstance(m_osInterface, mhw::HwcmdParser::AddOnMode::HEVCe);
 #endif
 
     return MOS_STATUS_SUCCESS;
@@ -112,6 +105,30 @@ MOS_STATUS HevcPipeline::Prepare(void *params)
                 basicFeature->m_hevcPicParams));
         }
     )
+
+#if MHW_HWCMDPARSER_ENABLED
+    {
+        char frameType;
+        switch (basicFeature->m_hevcPicParams->CodingType)
+        {
+        case I_TYPE:
+            frameType = 'I';
+            break;
+        case P_TYPE:
+            frameType = 'P';
+            break;
+        case B_TYPE:
+            frameType = basicFeature->m_hevcSeqParams->LowDelayMode ? 'G' : 'B';
+            break;
+        }
+
+        auto instance = mhw::HwcmdParser::GetInstance();
+        if (instance)
+        {
+            instance->Update(frameType, (void *)m_featureManager);
+        }
+    }
+#endif
 
     return MOS_STATUS_SUCCESS;
 }
