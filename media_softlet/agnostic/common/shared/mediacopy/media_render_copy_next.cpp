@@ -412,6 +412,19 @@ MOS_STATUS RenderCopyStateNext::LoadStaticData(
         return MOS_STATUS_INVALID_PARAMETER;
     }
 
+    int32_t srcResourceOffset = (int32_t)(m_Source.OsResource.pGmmResInfo->GetPlanarXOffset(GMM_NO_PLANE));
+    int32_t dstResourceOffset = (int32_t)(m_Target.OsResource.pGmmResInfo->GetPlanarXOffset(GMM_NO_PLANE));
+
+    if (srcResourceOffset)
+    {
+        m_Source.dwOffset -= srcResourceOffset;
+    }
+
+    if (dstResourceOffset)
+    {
+        m_Target.dwOffset -= dstResourceOffset;
+    }
+
     if ((m_Target.Format == Format_NV12) || ((m_Target.Format == Format_P010) || (m_Target.Format == Format_P016)))
     {
         // Set relevant static data
