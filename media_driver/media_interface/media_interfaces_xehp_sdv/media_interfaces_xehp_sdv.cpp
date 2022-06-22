@@ -28,7 +28,7 @@
 //!
 
 #include "media_interfaces_xehp_sdv.h"
-#include "codechal_debug_xe_xpm_ext.h"
+#include "codechal_debug.h"
 #if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "igcodeckrn_g12.h"
 #endif
@@ -416,7 +416,7 @@ MOS_STATUS CodechalInterfacesXe_Xpm::Initialize(
         return MOS_STATUS_NO_SPACE;
     }
 #if USE_CODECHAL_DEBUG_TOOL
-    CodechalDebugInterface *debugInterface = MOS_New(CodechalDebugInterfaceXe_Xpm);
+    CodechalDebugInterface *debugInterface = MOS_New(CodechalDebugInterface);
     if (debugInterface == nullptr)
     {
         MOS_Delete(hwInterface);

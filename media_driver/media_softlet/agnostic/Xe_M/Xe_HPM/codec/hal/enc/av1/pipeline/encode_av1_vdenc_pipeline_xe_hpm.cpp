@@ -28,7 +28,7 @@
 #include "encode_av1_vdenc_feature_manager_xe_hpm.h"
 #include "encode_av1_brc_init_packet.h"
 #include "encode_av1_brc_update_packet.h"
-#include "codechal_debug_xe_hpm_ext.h"
+#include "codechal_debug.h"
 
 namespace encode {
 
@@ -85,7 +85,7 @@ MOS_STATUS Av1VdencPipelineXe_Hpm::Initialize(void *settings)
         {
             MOS_Delete(m_debugInterface);
         }
-        m_debugInterface = MOS_New(CodechalDebugInterfaceXe_Hpm);
+        m_debugInterface = MOS_New(CodechalDebugInterface);
         ENCODE_CHK_NULL_RETURN(m_debugInterface);
         ENCODE_CHK_STATUS_RETURN(
             m_debugInterface->Initialize(m_hwInterface, m_codecFunction));
@@ -94,7 +94,7 @@ MOS_STATUS Av1VdencPipelineXe_Hpm::Initialize(void *settings)
         {
             MOS_Delete(m_statusReportDebugInterface);
         }
-        m_statusReportDebugInterface = MOS_New(CodechalDebugInterfaceXe_Hpm);
+        m_statusReportDebugInterface = MOS_New(CodechalDebugInterface);
         ENCODE_CHK_NULL_RETURN(m_statusReportDebugInterface);
         ENCODE_CHK_STATUS_RETURN(
             m_statusReportDebugInterface->Initialize(m_hwInterface, m_codecFunction));

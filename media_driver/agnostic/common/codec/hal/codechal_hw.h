@@ -36,6 +36,7 @@
 #include "mhw_vebox.h"
 #include "mhw_sfc.h"
 #include "mhw_cp_interface.h"
+#include "media_blt_copy.h"
 
 #include "mhw_vdbox_mfx_interface.h"
 #include "mhw_vdbox_hcp_interface.h"
@@ -774,6 +775,17 @@ public:
     inline MHW_MEMORY_OBJECT_CONTROL_PARAMS *GetCacheabilitySettings()
     {
         return m_cacheabilitySettings;
+    }
+
+    //! \brief    Get blt state
+    //! \details  Get blt interface in codechal hw interface
+    //!
+    //! \return   [out] BltState*
+    //!           Interface got.
+    //!
+    virtual BltState *GetBltState()
+    {
+        return nullptr;
     }
 
     //!

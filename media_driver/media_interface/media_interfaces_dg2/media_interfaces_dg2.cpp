@@ -29,7 +29,7 @@
 
 #include "media_interfaces_dg2.h"
 #include "codechal.h"
-#include "codechal_debug_xe_hpm_ext.h"
+#include "codechal_debug.h"
 #if defined(ENABLE_KERNELS) && defined(_MEDIA_RESERVED)
 #include "cm_gpucopy_kernel_xe_hpm.h"
 #include "cm_gpuinit_kernel_xe_hpm.h"
@@ -917,7 +917,7 @@ MOS_STATUS CodechalInterfacesXe_Hpm::CreateCodecHalInterface(MhwInterfaces      
         return MOS_STATUS_NO_SPACE;
     }
 #if USE_CODECHAL_DEBUG_TOOL
-    pDebugInterface = MOS_New(CodechalDebugInterfaceXe_Hpm);
+    pDebugInterface = MOS_New(CodechalDebugInterface);
     if (pDebugInterface == nullptr)
     {
         MOS_Delete(pHwInterface);
@@ -979,7 +979,7 @@ MOS_STATUS CodechalInterfacesXe_Hpm::CreateCodecHalInterface(MhwInterfaces      
         return MOS_STATUS_NO_SPACE;
     }
 #if USE_CODECHAL_DEBUG_TOOL
-    pDebugInterface = MOS_New(CodechalDebugInterfaceXe_Hpm);
+    pDebugInterface = MOS_New(CodechalDebugInterface);
     if (pDebugInterface == nullptr)
     {
         MOS_Delete(pHwInterface);

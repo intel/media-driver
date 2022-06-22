@@ -29,7 +29,7 @@
 
 #include "media_interfaces_pvc.h"
 #include "codechal.h"
-#include "codechal_debug_xe_xpm_plus_ext.h"
+#include "codechal_debug.h"
 #if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "igcodeckrn_g12.h"
 #endif
@@ -789,7 +789,7 @@ MOS_STATUS CodechalInterfacesXe_Xpm_Plus::CreateCodecHalInterface(MhwInterfaces 
         return MOS_STATUS_NO_SPACE;
     }
 #if USE_CODECHAL_DEBUG_TOOL
-    pDebugInterface = MOS_New(CodechalDebugInterfaceXe_Xpm_Plus);
+    pDebugInterface = MOS_New(CodechalDebugInterface);
     if (pDebugInterface == nullptr)
     {
         MOS_Delete(pHwInterface);
@@ -851,7 +851,7 @@ MOS_STATUS CodechalInterfacesXe_Xpm_Plus::CreateCodecHalInterface(MhwInterfaces 
         return MOS_STATUS_NO_SPACE;
     }
 #if USE_CODECHAL_DEBUG_TOOL
-    pDebugInterface = MOS_New(CodechalDebugInterfaceXe_Xpm_Plus);
+    pDebugInterface = MOS_New(CodechalDebugInterface);
     if (pDebugInterface == nullptr)
     {
         MOS_Delete(pHwInterface);

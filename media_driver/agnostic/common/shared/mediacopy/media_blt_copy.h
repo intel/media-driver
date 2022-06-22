@@ -124,6 +124,23 @@ public:
         PBLT_STATE_PARAM pBltStateParam);
 
     //!
+    //! \brief    Get control surface
+    //! \details  BLT engine will copy aux data of source surface to destination
+    //! \param    src
+    //!           [in] Pointer to source surface
+    //! \param    dst
+    //!           [in] Pointer to destination buffer which is created for aux data
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS GetCCS(
+        PMOS_SURFACE src,
+        PMOS_SURFACE dst)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    //!
     //! \brief    Get Block copy color depth.
     //! \details  get different format's color depth.
     //! \param    surface 

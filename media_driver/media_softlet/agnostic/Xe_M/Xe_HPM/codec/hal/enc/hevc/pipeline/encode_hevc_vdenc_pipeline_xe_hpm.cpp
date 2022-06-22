@@ -29,7 +29,7 @@
 #include "encode_huc_brc_update_packet.h"
 #include "encode_pak_integrate_packet.h"
 #include "encode_hevc_tile_replay_packet.h"
-#include "codechal_debug_xe_hpm_ext.h"
+#include "codechal_debug.h"
 #include "encode_huc_la_init_packet.h"
 #include "encode_huc_la_update_packet.h"
 
@@ -113,7 +113,7 @@ MOS_STATUS HevcVdencPipelineXe_Hpm::Initialize(void *settings)
         if (m_debugInterface != nullptr) {
             MOS_Delete(m_debugInterface);
         }
-        m_debugInterface = MOS_New(CodechalDebugInterfaceXe_Hpm);
+        m_debugInterface = MOS_New(CodechalDebugInterface);
         ENCODE_CHK_NULL_RETURN(m_debugInterface);
         ENCODE_CHK_STATUS_RETURN(
             m_debugInterface->Initialize(m_hwInterface, m_codecFunction));
@@ -121,7 +121,7 @@ MOS_STATUS HevcVdencPipelineXe_Hpm::Initialize(void *settings)
         if (m_statusReportDebugInterface != nullptr) {
             MOS_Delete(m_statusReportDebugInterface);
         }
-        m_statusReportDebugInterface = MOS_New(CodechalDebugInterfaceXe_Hpm);
+        m_statusReportDebugInterface = MOS_New(CodechalDebugInterface);
         ENCODE_CHK_NULL_RETURN(m_statusReportDebugInterface);
         ENCODE_CHK_STATUS_RETURN(
             m_statusReportDebugInterface->Initialize(m_hwInterface, m_codecFunction)););
