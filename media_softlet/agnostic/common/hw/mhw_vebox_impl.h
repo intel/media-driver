@@ -428,6 +428,12 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
+    MOS_STATUS SetDisableHistogram(
+        PMHW_VEBOX_IECP_PARAMS pVeboxIecpParams)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
     MOS_STATUS SetVeboxLaceColorParams(
         MHW_LACE_COLOR_CORRECTION *pLaceColorParams)
     {

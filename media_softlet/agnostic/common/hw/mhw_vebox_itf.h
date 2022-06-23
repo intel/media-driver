@@ -76,6 +76,8 @@ public:
 
     virtual MOS_STATUS SetVeboxIecpState(PMHW_VEBOX_IECP_PARAMS pVeboxIecpParams) = 0;
 
+    virtual MOS_STATUS SetDisableHistogram(PMHW_VEBOX_IECP_PARAMS pVeboxIecpParams) = 0;
+
     virtual MOS_STATUS SetVeboxLaceColorParams(MHW_LACE_COLOR_CORRECTION *pLaceColorParams)  = 0;
 
     virtual MOS_STATUS SetVeboxIecpAceState(PMHW_VEBOX_IECP_PARAMS pVeboxIecpParams) = 0;
