@@ -1928,11 +1928,6 @@ namespace encode
             statusReportData->qpY = statusReportData->averageQP = static_cast<uint8_t>(
                 static_cast<double>(encodeStatusMfx->qpStatusCount.hcpCumulativeQP)
                 / (numLumaPixels / 16) - (m_basicFeature->m_hevcSeqParams->bit_depth_luma_minus8 != 0) * 12);
-            if (statusReportData->pFrmStatsInfo != NULL)
-            {
-                statusReportData->pFrmStatsInfo->Qp = (float)(((uint32_t)encodeStatusMfx->qpStatusCount.hcpCumulativeQP)
-                    / (float)(numLumaPixels / 16) - (m_basicFeature->m_hevcSeqParams->bit_depth_luma_minus8 != 0) * 12);
-            }
         }
 
         // When tile replay is enabled with tile replay, need to report out the tile size and the bit stream is not continous
