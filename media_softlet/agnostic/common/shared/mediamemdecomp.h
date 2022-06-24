@@ -171,6 +171,8 @@ public:
     virtual PMOS_INTERFACE GetDecompStateMosInterface() = 0;
 
     MOS_RESOURCE_HANDLE    m_syncResource               = nullptr;   //!> Auxiliary resource to sync with decompression
+
+    MEDIA_CLASS_DEFINE_END(MediaMemDecompBaseState)
 };
 
 #endif // __MEDIAMEMORYDECOMP_H__

@@ -24,7 +24,7 @@
 //! \brief    Implements the MOS interface extension for Linux,  supporting virtual engine scalability mode.
 //! \details  Implements the MOS interface extension for Linux,  supporting virtual engine scalability mode. Only necessary when KMD virtual engine is supported.
 //!
-
+#include "mos_os.h"
 #include "mos_os_virtualengine_scalability.h"
 
 MOS_STATUS Mos_Specific_VirtualEngine_Scalability_Initialize(

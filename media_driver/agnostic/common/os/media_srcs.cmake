@@ -35,7 +35,6 @@ set(TMP_SOURCES_
 set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mos_context.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_graphicsresource.h
-    ${CMAKE_CURRENT_LIST_DIR}/mos_solo_generic.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_gpucontext.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_gpucontextmgr.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_cmdbufmgr.h

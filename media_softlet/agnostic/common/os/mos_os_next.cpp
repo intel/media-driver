@@ -25,6 +25,8 @@
 //!
 
 #include "mos_os_next.h"
+#include "mos_interface.h"
+#include "mos_gpucontext_specific_next.h"
 
 #if MOS_COMMAND_RESINFO_DUMP_SUPPORTED
 
@@ -93,7 +95,11 @@ void GpuCmdResInfoDumpNext::Dump(PMOS_INTERFACE pOsInterface) const
 
     std::ofstream outputFile;
     outputFile.open(m_path, std::ios_base::app);
-    MOS_OS_ASSERT(outputFile.is_open());
+    if(!outputFile.is_open())
+    {
+        MOS_OS_ASSERTMESSAGE("file open failed");
+        return;
+    }
 
     auto &cmdResInfoPtrs = GetCmdResPtrs(pOsInterface);
 

@@ -24,7 +24,7 @@
 //! \brief    Implements the MOS interface extension for Linux, supporting virtual engine single pipe mode.
 //! \details  Implements the MOS interface extension for Linux, supporting virtual engine single pipe mode. Only necessary when KMD supports virtual engine.
 //!
-
+#include "mos_os.h"
 #include "mos_os_virtualengine_singlepipe.h"
 
 MOS_STATUS Mos_Specific_VirtualEngine_SinglePipe_Initialize(

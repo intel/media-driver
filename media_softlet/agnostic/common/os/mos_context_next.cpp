@@ -25,7 +25,6 @@
 //!
 
 #include "mos_context_specific_next.h"
-#include "mediamemdecomp.h"
 
 class OsContextNext* OsContextNext::GetOsContextObject()
 {

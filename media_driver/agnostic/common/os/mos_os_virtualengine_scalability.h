@@ -30,8 +30,6 @@
 
 #include "mos_os_virtualengine.h"
 
-#define MOS_VE_MAXNUM_SDRYBUFFER_SET  (16)
-
 //!
 //! \brief    populate debug override parameters in scalability virtual engine
 //! \details  populate debug override parameters used in scalability virtual engine for debug override or Linux target submission

@@ -28,6 +28,7 @@
 //!
 #include <typeinfo>
 #include <iostream>
+#include "mos_os.h"
 #include "mos_os_virtualengine_scalability.h"
 #include "media_scalability_defs.h"
 #include "media_scalability_singlepipe.h"

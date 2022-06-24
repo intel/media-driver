@@ -78,6 +78,8 @@ private:
 
     //! \return  new memory policy
     static int UpdateMemoryPolicyWithWA(MemoryPolicyParameter* memPolicyPar, int& mem_type);
+
+MEDIA_CLASS_DEFINE_END(MemoryPolicyManager)
 };
 
 

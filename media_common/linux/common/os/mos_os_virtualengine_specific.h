@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2016-2018, Intel Corporation
+* Copyright (c) 2016-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -27,6 +27,7 @@
 
 #ifndef __MOS_OS_VIRTUALENGINE_SPECIFIC_H__
 #define __MOS_OS_VIRTUALENGINE_SPECIFIC_H__
+#include <cstdint>
 
 typedef struct _MOS_SPECIFIC_VE_HINT_PARAMS MOS_VIRTUALENGINE_HINT_PARAMS, *PMOS_VIRTUALENGINE_HINT_PARAMS;
 

@@ -43,6 +43,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mos_interface.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_user_setting.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_utilities.h
+    ${CMAKE_CURRENT_LIST_DIR}/mos_solo_generic.h
 )
 
 if(${Media_Scalability_Supported} STREQUAL "yes")

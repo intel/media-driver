@@ -24,7 +24,7 @@
 //! \brief    Implements the MOS interface extension cross OS,  supporting virtual engine scalability mode.
 //! \details  Implements the MOS interface extension cross OS,  supporting virtual engine scalability mode. Only necessary when KMD virtual engine is supported.
 //!
-#include "mos_util_debug.h"
+#include "mos_os.h"
 #include "mos_os_virtualengine.h"
 
 //==<Functions>=======================================================
