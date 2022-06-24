@@ -149,9 +149,9 @@ MOS_STATUS MosInterface::CreateOsStreamState(
     MOS_COMPONENT        component,
     EXTRA_PARAMS         extraParams)
 {
-    MediaUserSettingSharedPtr userSettingPtr = nullptr;
-    MOS_USER_FEATURE_VALUE_DATA userFeatureData     = {};
-    MOS_STATUS                  eStatusUserFeature  = MOS_STATUS_SUCCESS;
+    MOS_STATUS                  eStatusUserFeature = MOS_STATUS_SUCCESS;
+    uint32_t                    regValue = 0;
+    MediaUserSettingSharedPtr   userSettingPtr = nullptr;
 
     MOS_OS_FUNCTION_ENTER;
     MOS_OS_CHK_NULL_RETURN(streamState);
@@ -181,13 +181,12 @@ MOS_STATUS MosInterface::CreateOsStreamState(
 
     // Null HW Driver
     // 0: Disabled
-    MosUtilities::MosZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    MosUtilities::MosUserFeatureReadValueID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_NULL_HW_ACCELERATION_ENABLE_ID,
-        &userFeatureData,
-        (MOS_CONTEXT_HANDLE) nullptr);
-    (*streamState)->nullHwAccelerationEnable.Value = userFeatureData.u32Data;
+    ReadUserSettingForDebug(
+        userSettingPtr,
+        (*streamState)->nullHwAccelerationEnable.Value,
+        __MEDIA_USER_FEATURE_VALUE_NULL_HW_ACCELERATION_ENABLE,
+        MediaUserSetting::Group::Device);
+
 #endif
 
     // SupportVirtualEngine flag is set by Hals
@@ -207,24 +206,23 @@ MOS_STATUS MosInterface::CreateOsStreamState(
 #if (_DEBUG || _RELEASE_INTERNAL)
     // read the "Force VDBOX" user feature key
     // 0: not force
-    MosUtilities::MosZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    MosUtilities::MosUserFeatureReadValueID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_FORCE_VDBOX_ID,
-        &userFeatureData,
-        (MOS_CONTEXT_HANDLE) nullptr);
-    (*streamState)->eForceVdbox = userFeatureData.u32Data;
+    ReadUserSettingForDebug(
+        userSettingPtr,
+        (*streamState)->eForceVdbox,
+        __MEDIA_USER_FEATURE_VALUE_FORCE_VDBOX,
+        MediaUserSetting::Group::Device);
 
     //Read Scalable/Legacy Decode mode on Gen11+
     //1:by default for scalable decode mode
     //0:for legacy decode mode
-    MosUtilities::MosZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    eStatusUserFeature = MosUtilities::MosUserFeatureReadValueID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_ENABLE_HCP_SCALABILITY_DECODE_ID,
-        &userFeatureData,
-        (MOS_CONTEXT_HANDLE) nullptr);
-    (*streamState)->hcpDecScalabilityMode = userFeatureData.u32Data ? MOS_SCALABILITY_ENABLE_MODE_DEFAULT : MOS_SCALABILITY_ENABLE_MODE_FALSE;
+    regValue = 0;
+    eStatusUserFeature = ReadUserSetting(
+        userSettingPtr,
+        regValue,
+        __MEDIA_USER_FEATURE_VALUE_ENABLE_HCP_SCALABILITY_DECODE,
+        MediaUserSetting::Group::Device);
+
+    (*streamState)->hcpDecScalabilityMode = regValue ? MOS_SCALABILITY_ENABLE_MODE_DEFAULT : MOS_SCALABILITY_ENABLE_MODE_FALSE;
     if((*streamState)->hcpDecScalabilityMode
         && (eStatusUserFeature == MOS_STATUS_SUCCESS))
     {
@@ -233,31 +231,27 @@ MOS_STATUS MosInterface::CreateOsStreamState(
     }
 
     (*streamState)->frameSplit = false;
-    MosUtilities::MosZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    MosUtilities::MosUserFeatureReadValueID(
-        NULL,
-        __MEDIA_USER_FEATURE_VALUE_ENABLE_LINUX_FRAME_SPLIT_ID,
-        &userFeatureData,
-        (MOS_CONTEXT_HANDLE) nullptr);
-    (*streamState)->frameSplit = (uint32_t)userFeatureData.i32Data;
+    ReadUserSettingForDebug(
+        userSettingPtr,
+        (*streamState)->frameSplit,
+        __MEDIA_USER_FEATURE_VALUE_ENABLE_LINUX_FRAME_SPLIT,
+        MediaUserSetting::Group::Device);
 
-    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    MOS_UserFeature_ReadValue_ID(
-        NULL,
-        __MEDIA_USER_FEATURE_VALUE_ENABLE_GUC_SUBMISSION_ID,
-        &userFeatureData,
-        (MOS_CONTEXT_HANDLE) nullptr);
-    (*streamState)->bGucSubmission = (*streamState)->bGucSubmission && ((uint32_t)userFeatureData.i32Data);
+    regValue = 0;
+    ReadUserSettingForDebug(
+        userSettingPtr,
+        regValue,
+        __MEDIA_USER_FEATURE_VALUE_ENABLE_GUC_SUBMISSION,
+        MediaUserSetting::Group::Device);
+    (*streamState)->bGucSubmission = (*streamState)->bGucSubmission && regValue;
 
     //KMD Virtual Engine DebugOverride
     // 0: not Override
-    MosUtilities::MosZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    MosUtilities::MosUserFeatureReadValueID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_ENABLE_VE_DEBUG_OVERRIDE_ID,
-        &userFeatureData,
-        (MOS_CONTEXT_HANDLE) nullptr);
-    (*streamState)->enableDbgOvrdInVirtualEngine = userFeatureData.u32Data ? true : false;
+    ReadUserSettingForDebug(
+        userSettingPtr,
+        (*streamState)->enableDbgOvrdInVirtualEngine,
+        __MEDIA_USER_FEATURE_VALUE_ENABLE_VE_DEBUG_OVERRIDE,
+        MediaUserSetting::Group::Device);
 #endif
 
     if (component == COMPONENT_VPCommon ||
@@ -266,13 +260,13 @@ MOS_STATUS MosInterface::CreateOsStreamState(
     {
         // UMD Vebox Virtual Engine Scalability Mode
         // 0: disable. can set to 1 only when KMD VE is enabled.
-        MosUtilities::MosZeroMemory(&userFeatureData, sizeof(userFeatureData));
-        eStatusUserFeature = MosUtilities::MosUserFeatureReadValueID(
-            nullptr,
-            __MEDIA_USER_FEATURE_VALUE_ENABLE_VEBOX_SCALABILITY_MODE_ID,
-            &userFeatureData,
-            (MOS_CONTEXT_HANDLE) nullptr);
-        (*streamState)->veboxScalabilityMode = userFeatureData.u32Data ? MOS_SCALABILITY_ENABLE_MODE_DEFAULT : MOS_SCALABILITY_ENABLE_MODE_FALSE;
+        regValue = 0;
+        eStatusUserFeature = ReadUserSetting(
+            userSettingPtr,
+            regValue,
+            __MEDIA_USER_FEATURE_VALUE_ENABLE_VEBOX_SCALABILITY_MODE,
+            MediaUserSetting::Group::Device);
+        (*streamState)->veboxScalabilityMode = regValue ? MOS_SCALABILITY_ENABLE_MODE_DEFAULT : MOS_SCALABILITY_ENABLE_MODE_FALSE;
 
 #if (_DEBUG || _RELEASE_INTERNAL)
         if((*streamState)->veboxScalabilityMode
@@ -296,13 +290,13 @@ MOS_STATUS MosInterface::CreateOsStreamState(
 
         // read the "Force VEBOX" user feature key
         // 0: not force
-        MosUtilities::MosZeroMemory(&userFeatureData, sizeof(userFeatureData));
-        MosUtilities::MosUserFeatureReadValueID(
-            nullptr,
-            __MEDIA_USER_FEATURE_VALUE_FORCE_VEBOX_ID,
-            &userFeatureData,
-            (MOS_CONTEXT_HANDLE) nullptr);
-        (*streamState)->eForceVebox = (MOS_FORCE_VEBOX)userFeatureData.u32Data;
+        regValue = 0;
+        ReadUserSettingForDebug(
+            userSettingPtr,
+            regValue,
+            __MEDIA_USER_FEATURE_VALUE_FORCE_VEBOX,
+            MediaUserSetting::Group::Device);
+        (*streamState)->eForceVebox = (MOS_FORCE_VEBOX)regValue;
 #endif
     }
 

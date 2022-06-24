@@ -48,6 +48,7 @@ Codechal::Codechal(
     {
         m_hwInterface->m_getVdboxNodeByUMD = true;
     }
+    m_userSettingPtr = m_osInterface->pfnGetUserSettingInstance(m_osInterface);;
 
 #if USE_CODECHAL_DEBUG_TOOL
     CODECHAL_PUBLIC_CHK_NULL_NO_STATUS_RETURN(debugInterface);
@@ -126,14 +127,11 @@ MOS_STATUS Codechal::Allocate(CodechalSetting *codecHalSettings)
             m_statusReportDebugInterface->Initialize(m_hwInterface, codecHalSettings->codecFunction));
     }
 
-    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
-    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_NULL_HW_ACCELERATION_ENABLE_ID,
-        &userFeatureData,
-        m_osInterface->pOsContext);
-    nullHWAccelerationEnable.Value = userFeatureData.u32Data;
+    ReadUserSettingForDebug(
+        m_userSettingPtr,
+        nullHWAccelerationEnable.Value,
+        __MEDIA_USER_FEATURE_VALUE_NULL_HW_ACCELERATION_ENABLE,
+        MediaUserSetting::Group::Device);
 
     m_useNullHw[MOS_GPU_CONTEXT_VIDEO]         =
         (nullHWAccelerationEnable.CodecGlobal || nullHWAccelerationEnable.CtxVideo);

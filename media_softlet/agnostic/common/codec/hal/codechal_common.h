@@ -245,6 +245,8 @@ protected:
     //! \brief    Apogeios Enable Flag
     bool                    m_apogeiosEnable = false;
 
+    //!< usersettingInstance
+    MediaUserSettingSharedPtr   m_userSettingPtr = nullptr;
 MEDIA_CLASS_DEFINE_END(Codechal)
 };
 

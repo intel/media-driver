@@ -274,7 +274,6 @@ protected:
 #define __VPHAL_VEBOX_DISABLE_SFC                                       "Disable SFC"
 #define __MEDIA_USER_FEATURE_VALUE_SFC_OUTPUT_DTR_DISABLE               "Disable SFC DTR"
 #define __VPHAL_ENABLE_MMC                                              "Enable VP MMC"
-#define __MEDIA_USER_FEATURE_VALUE_ENABLE_VEBOX_SCALABILITY_MODE        "Enable Vebox Scalability"
 #define __MEDIA_USER_FEATURE_VALUE_SFC_OUTPUT_CENTERING_DISABLE         "SFC Output Centering Disable"
 #define __VPHAL_BYPASS_COMPOSITION                                      "Bypass Composition"
 #define __MEDIA_USER_FEATURE_VALUE_VEBOX_TGNE_ENABLE_VP                 "Enable Vebox GNE"

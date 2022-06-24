@@ -891,6 +891,8 @@ MOS_STATUS MediaMemDecompState::Initialize(
     MhwRenderInterface              *renderInterface)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+    MediaUserSettingSharedPtr   userSettingPtr = nullptr;
+    MOS_USER_FEATURE_VALUE_DATA userFeatureData = {};
 
     MHW_FUNCTION_ENTER;
 
@@ -903,6 +905,7 @@ MOS_STATUS MediaMemDecompState::Initialize(
     m_cpInterface = cpInterface;
     m_miInterface = miInterface;
     m_renderInterface = renderInterface;
+    userSettingPtr = osInterface->pfnGetUserSettingInstance(osInterface);
 
     for (uint8_t kernelIdx = decompKernelStatePa; kernelIdx < decompKernelStateMax; kernelIdx++)
     {
@@ -940,14 +943,11 @@ MOS_STATUS MediaMemDecompState::Initialize(
     nullHWAccelerationEnable.Value = 0;
     m_disableDecodeSyncLock        = false;
 #if (_DEBUG || _RELEASE_INTERNAL)
-    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
-    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_NULL_HW_ACCELERATION_ENABLE_ID,
-        &userFeatureData,
-        m_osInterface->pOsContext);
-    nullHWAccelerationEnable.Value = userFeatureData.u32Data;
+    ReadUserSettingForDebug(
+        userSettingPtr,
+        nullHWAccelerationEnable.Value,
+        __MEDIA_USER_FEATURE_VALUE_NULL_HW_ACCELERATION_ENABLE,
+        MediaUserSetting::Group::Device);
 
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     MOS_UserFeature_ReadValue_ID(

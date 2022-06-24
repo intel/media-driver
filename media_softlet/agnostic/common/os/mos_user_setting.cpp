@@ -108,28 +108,19 @@ MOS_STATUS MosUserSetting::InitMosCommonUserSetting(MediaUserSettingSharedPtr us
         int32_t(0),
         false);
 
-#if (_DEBUG || _RELEASE_INTERNAL)
-    DeclareUserSettingKeyForDebug(
+    DeclareUserSettingKey(
         userSettingPtr,
-        __MEDIA_USER_FEATURE_VALUE_MEMORY_NINJA_BEGIN_COUNTER,
+        __MEDIA_USER_FEATURE_VALUE_ENABLE_VEBOX_SCALABILITY_MODE,
         MediaUserSetting::Group::Device,
         0,
         true);
 
-    DeclareUserSettingKeyForDebug(
+    DeclareUserSettingKey(
         userSettingPtr,
-        __MEDIA_USER_FEATURE_VALUE_MEMORY_NINJA_END_COUNTER,
+        __MEDIA_USER_FEATURE_VALUE_ENABLE_HCP_SCALABILITY_DECODE,
         MediaUserSetting::Group::Device,
-        0,
-        true);
-
-    DeclareUserSettingKeyForDebug(
-        userSettingPtr,
-        "Simulation In Use",
-        MediaUserSetting::Group::Device,
-        int32_t(0),
-        true);
-#endif
+        1,
+        true); //"Enable HCP Scalability decode mode. (Default 1: Scalable Decode Mode "
 
     return MOS_STATUS_SUCCESS;
 }
@@ -384,6 +375,27 @@ MOS_STATUS MosUserSetting::InitUserSettingForDebug(MediaUserSettingSharedPtr use
 {
     DeclareUserSettingKeyForDebug(
         userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_MEMORY_NINJA_BEGIN_COUNTER,
+        MediaUserSetting::Group::Device,
+        0,
+        true);
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_MEMORY_NINJA_END_COUNTER,
+        MediaUserSetting::Group::Device,
+        0,
+        true);
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        "Simulation In Use",
+        MediaUserSetting::Group::Device,
+        int32_t(0),
+        true);
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
         "Resource Addr Dump Enable",
         MediaUserSetting::Group::Device,
         0,
@@ -397,6 +409,62 @@ MOS_STATUS MosUserSetting::InitUserSettingForDebug(MediaUserSettingSharedPtr use
         true,
         true,
         USER_SETTING_CONFIG_PERMANENT_PATH);//"If enabled, specify this is in pre-si simulation/emulation mode."
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_FORCE_VDBOX,
+        MediaUserSetting::Group::Device,
+        0,
+        true); //"Force the VDBox to be used. (Default 0: FORCE_VDBOX_NONE )"
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_FORCE_VEBOX,
+        MediaUserSetting::Group::Device,
+        0,
+        true); //"Force the VEBox to be used. (Default 0: FORCE_VEBOX_NONE )"
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_FORCE_YFYS,
+        MediaUserSetting::Group::Device,
+        0,
+        true); //"Force to allocate internal surface as Yf or Ys"
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_NULL_HW_ACCELERATION_ENABLE,
+        MediaUserSetting::Group::Device,
+        0,
+        true); //"If enabled, go through the nullptr HW driver. (0: Disable, 1: Null HW enabled)."
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_ENABLE_VE_DEBUG_OVERRIDE,
+        MediaUserSetting::Group::Device,
+        0,
+        true); //"TRUE for Enabling KMD Virtual Engine Debug Override. (Default FALSE: not override)"
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_ENABLE_LINUX_FRAME_SPLIT,
+        MediaUserSetting::Group::Device,
+        0,
+        true); //"TRUE for Enabling Frame Split. (Default false: disabled)"
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_ENABLE_GUC_SUBMISSION,
+        MediaUserSetting::Group::Device,
+        1,
+        true); // "To decide if using guc submission."
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_SOFT_RESET_ENABLE,
+        MediaUserSetting::Group::Device,
+        0,
+        true); // "If enabled, soft reset will be enabled. This key is not valid on Linux."
 
     return MOS_STATUS_SUCCESS;
 }

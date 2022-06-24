@@ -37,12 +37,7 @@ MOS_STATUS Vp9Pipeline::InitUserSetting(MediaUserSettingSharedPtr userSettingPtr
         MediaUserSetting::Group::Sequence,
         int32_t(0),
         true);
-    DeclareUserSettingKey(
-        userSettingPtr,
-        "Enable HCP Scalability Decode",
-        MediaUserSetting::Group::Sequence,
-        int32_t(0),
-        false);
+
 #if (_DEBUG || _RELEASE_INTERNAL)
     DeclareUserSettingKeyForDebug(
         userSettingPtr,
