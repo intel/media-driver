@@ -62,8 +62,7 @@ void VpFeatureReport::InitReportValue()
 }
 
 void VpFeatureReport::SetConfigValues(
-    PVP_CONFIG configValues,
-    uint32_t   &laceInUse)
+    PVP_CONFIG configValues)
 {
     VP_FUNC_CALL();
 

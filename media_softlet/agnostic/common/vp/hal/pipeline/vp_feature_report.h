@@ -92,8 +92,7 @@ public:
     //! \details  set VphalFeatureReport value
     //!
     virtual void SetConfigValues(
-        PVP_CONFIG configValues,
-        uint32_t   &laceInUse);
+        PVP_CONFIG configValues);
 
     VP_FEATURES &GetFeatures()
     {
