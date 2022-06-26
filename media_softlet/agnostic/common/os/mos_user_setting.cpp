@@ -108,7 +108,7 @@ MOS_STATUS MosUserSetting::InitMosCommonUserSetting(MediaUserSettingSharedPtr us
         int32_t(0),
         false);
 
-    DeclareUserSettingKey(
+    DeclareUserSettingKey(  //TRUE for Enabling Vebox Scalability. (Default FALSE: disabled")
         userSettingPtr,
         __MEDIA_USER_FEATURE_VALUE_ENABLE_VEBOX_SCALABILITY_MODE,
         MediaUserSetting::Group::Device,

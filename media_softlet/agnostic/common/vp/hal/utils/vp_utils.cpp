@@ -600,13 +600,6 @@ MOS_STATUS VpUtils::DeclareUserSettings(MediaUserSettingSharedPtr userSettingPtr
         0,
         true);
 
-    DeclareUserSettingKey(  //TRUE for Enabling Vebox Scalability. (Default FALSE: disabled")
-        userSettingPtr,
-        __MEDIA_USER_FEATURE_VALUE_ENABLE_VEBOX_SCALABILITY_MODE,
-        MediaUserSetting::Group::Sequence,
-        0,
-        true);
-
     DeclareUserSettingKey( //Disabling SFC Centering output. 1 -- Disable, 0 -- Enable.
         userSettingPtr,
         __MEDIA_USER_FEATURE_VALUE_SFC_OUTPUT_CENTERING_DISABLE,

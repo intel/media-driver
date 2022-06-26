@@ -471,7 +471,7 @@ MOS_STATUS VpPipeline::UpdateVeboxNumberforScalability()
         m_userSettingPtr,
         enableVeboxScalability,
         __MEDIA_USER_FEATURE_VALUE_ENABLE_VEBOX_SCALABILITY_MODE,
-        MediaUserSetting::Group::Sequence);
+        MediaUserSetting::Group::Device);
 
     bool disableScalability = false;
     if (statusKey == MOS_STATUS_SUCCESS)

@@ -1291,7 +1291,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_XE_XPM::VeboxRenderVeboxCmd(
             m_userSettingPtr,
             __MEDIA_USER_FEATURE_VALUE_ENABLE_VEBOX_SCALABILITY_MODE,
             veboxEnableScalability,
-            MediaUserSetting::Group::Sequence);
+            MediaUserSetting::Group::Device);
     }
     else
     {
@@ -1324,7 +1324,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_XE_XPM::VeboxRenderVeboxCmd(
             m_userSettingPtr,
             __MEDIA_USER_FEATURE_VALUE_ENABLE_VEBOX_SCALABILITY_MODE,
             veboxEnableScalability,
-            MediaUserSetting::Group::Sequence);
+            MediaUserSetting::Group::Device);
     }
 
 finish:
