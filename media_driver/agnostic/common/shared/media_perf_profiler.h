@@ -70,6 +70,8 @@ public:
     //!           Pointer of MI interface
     //! \param    [in] cmdBuffer
     //!           Pointer of OS command buffer
+    //! \param    [in] pOsContext
+    //!           Pointer of DEVICE CONTEXT
     //! \param    [in] offset
     //!           Offset in the buffer
     //! \param    [in] value       
@@ -80,6 +82,7 @@ public:
     //!
     virtual MOS_STATUS StoreData(MhwMiInterface *miInterface,
                          PMOS_COMMAND_BUFFER cmdBuffer,
+                         PMOS_CONTEXT pOsContext,
                          uint32_t offset,
                          uint32_t value);
 
@@ -90,6 +93,8 @@ public:
     //!           Pointer of MI interface
     //! \param    [in] cmdBuffer
     //!           Pointer of OS command buffer
+    //! \param    [in] pOsContext
+    //!           Pointer of DEVICE CONTEXT
     //! \param    [in] offset
     //!           Offset in the buffer
     //! \param    [in] value       
@@ -100,6 +105,7 @@ public:
     //!
     MOS_STATUS StoreDataNext(MhwMiInterface *miInterface, 
                          PMOS_COMMAND_BUFFER cmdBuffer,
+                         PMOS_CONTEXT pOsContext,
                          uint32_t offset,
                          uint32_t value);
 
@@ -158,6 +164,8 @@ public:
     //!           Pointer of MI interface
     //! \param    [in] cmdBuffer
     //!           Pointer of OS command buffer
+    //! \param    [in] pOsContext
+    //!           Pointer of DEVICE CONTEXT
     //! \param    [in] offset
     //!           Offset in the buffer
     //!
@@ -166,6 +174,7 @@ public:
     //!
     virtual MOS_STATUS StoreTSByPipeCtrl(MhwMiInterface *miInterface,
                          PMOS_COMMAND_BUFFER cmdBuffer,
+                         PMOS_CONTEXT pOsContext,
                          uint32_t offset);
 
     //!
@@ -175,6 +184,8 @@ public:
     //!           Pointer of MI interface
     //! \param    [in] cmdBuffer
     //!           Pointer of OS command buffer
+    //! \param    [in] pOsContext
+    //!           Pointer of DEVICE CONTEXT
     //! \param    [in] offset
     //!           Offset in the buffer
     //!
@@ -183,6 +194,7 @@ public:
     //!
     MOS_STATUS StoreTSByPipeCtrlNext(MhwMiInterface *miInterface,
                          PMOS_COMMAND_BUFFER cmdBuffer,
+                         PMOS_CONTEXT pOsContext,
                          uint32_t offset);
 
     //!
@@ -192,6 +204,8 @@ public:
     //!           Pointer of MI interface
     //! \param    [in] cmdBuffer
     //!           Pointer of OS command buffer
+    //! \param    [in] pOsContext
+    //!           Pointer of DEVICE CONTEXT
     //! \param    [in] offset
     //!           Offset in the buffer
     //!
@@ -200,6 +214,7 @@ public:
     //!
     virtual MOS_STATUS StoreTSByMiFlush(MhwMiInterface *miInterface,
                          PMOS_COMMAND_BUFFER cmdBuffer,
+                         PMOS_CONTEXT pOsContext,
                          uint32_t offset);
 
     //!
@@ -209,6 +224,8 @@ public:
     //!           Pointer of MI interface
     //! \param    [in] cmdBuffer
     //!           Pointer of OS command buffer
+    //! \param    [in] pOsContext
+    //!           Pointer of DEVICE CONTEXT
     //! \param    [in] offset
     //!           Offset in the buffer
     //!
@@ -217,6 +234,7 @@ public:
     //!
         MOS_STATUS StoreTSByMiFlushNext(MhwMiInterface* miInterface,
             PMOS_COMMAND_BUFFER cmdBuffer,
+            PMOS_CONTEXT pOsContext,
             uint32_t offset);
 
      //!

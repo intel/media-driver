@@ -27,6 +27,7 @@
 #define __MEDIA_PERF_PROFILER_NEXT_H__
 
 #include <map>
+#include<unordered_map>
 #include <stdint.h>
 #include <memory>
 #include "mos_defs.h"
@@ -149,10 +150,12 @@ public:
     //!
     //! \brief    Save data to the buffer which store the performance data
     //!
-    //! \param  [in] miItf
-    //!         Reference to Mhw MiItf.
+    //! \param    [in] miItf
+    //!           Reference to Mhw MiItf.
     //! \param    [in] cmdBuffer
     //!           Pointer of OS command buffer
+    //! \param    [in] pOsContext
+    //!           Pointer of DEVICE CONTEXT
     //! \param    [in] offset
     //!           Offset in the buffer
     //! \param    [in] value
@@ -163,6 +166,7 @@ public:
     //!
     virtual MOS_STATUS StoreData(std::shared_ptr<mhw::mi::Itf> miItf,
                          PMOS_COMMAND_BUFFER cmdBuffer,
+                         PMOS_CONTEXT pOsContext,
                          uint32_t offset,
                          uint32_t value);
 
@@ -171,8 +175,8 @@ public:
     //! \param    [in] osInterface
     //!           Pointer of MOS_INTERFACE
     //!
-    //! \param  [in] miItf
-    //!         Reference to Mhw MiItf.
+    //! \param    [in] miItf
+    //!           Reference to Mhw MiItf.
     //! \param    [in] cmdBuffer
     //!           Pointer of OS command buffer
     //! \param    [in] offset
@@ -193,10 +197,12 @@ public:
     //!
     //! \brief    Save timestamp to the buffer by Pipe control command
     //!
-    //! \param  [in] miItf
-    //!         Reference to Mhw MiItf.
+    //! \param    [in] miItf
+    //!            Reference to Mhw MiItf.
     //! \param    [in] cmdBuffer
     //!           Pointer of OS command buffer
+    //! \param    [in] pOsContext
+    //!           Pointer of DEVICE CONTEXT
     //! \param    [in] offset
     //!           Offset in the buffer
     //!
@@ -205,13 +211,16 @@ public:
     //!
     virtual MOS_STATUS StoreTSByPipeCtrl(std::shared_ptr<mhw::mi::Itf> miItf,
                          PMOS_COMMAND_BUFFER cmdBuffer,
+                         PMOS_CONTEXT pOsContext,
                          uint32_t offset);
 
     //!
     //! \brief    Save timestamp to the buffer by MI command
     //!
-    //! \param  [in] miItf
-    //!         Reference to Mhw MiItf.
+    //! \param    [in] miItf
+    //!           Reference to Mhw MiItf.
+    //! \param    [in] pOsContext
+    //!           Pointer of DEVICE CONTEXT
     //! \param    [in] cmdBuffer
     //!           Pointer of OS command buffer
     //! \param    [in] offset
@@ -222,6 +231,7 @@ public:
     //!
     virtual MOS_STATUS StoreTSByMiFlush(std::shared_ptr<mhw::mi::Itf> miItf,
                          PMOS_COMMAND_BUFFER cmdBuffer,
+                         PMOS_CONTEXT pOsContext,
                          uint32_t offset);
 
     //!
@@ -267,22 +277,21 @@ public:
     virtual uint32_t PlatFormIdMap(PLATFORM platform);
 
 public:
-    MOS_RESOURCE               m_perfStoreBuffer;       //!< Buffer for perf data collection
-    Map                        m_contextIndexMap;       //!< Map between CodecHal/VPHal and PerfDataContext
-    PMOS_MUTEX                 m_mutex = nullptr;       //!< Mutex for protecting data of profiler when refereced multi times
+    std::unordered_map<PMOS_CONTEXT, PMOS_RESOURCE>  m_perfStoreBufferMap;   //!< Buffer for perf data collection
+    std::unordered_map<PMOS_CONTEXT,uint32_t>        m_refMap;               //!< The number of refereces
+    std::unordered_map<PMOS_CONTEXT,uint32_t>        m_perfDataIndexMap;     //!< The index of performance data node in buffer
+    std::unordered_map<PMOS_CONTEXT,bool>            m_initializedMap;       //!< Indicate whether profiler was initialized
 
-    int32_t                    m_profilerEnabled = 0;   //!< UMD Perf Profiler enable or not
-    uint32_t                   m_perfDataIndex = 0;     //!< The index of performance data node in buffer
-    uint32_t                   m_ref = 0;               //!< The number of refereces
-    uint32_t                   m_bufferSize = 10000000; //!< The size of perf data buffer
-    uint32_t                   m_timerBase  = 0;        //!< time frequency
-    int32_t                    m_multiprocess = 0;      //!< multi process support
-    uint32_t                   m_registers[8] = { 0 };  //!< registers of Memory information
-
-    bool                       m_initialized = false;   //!< Indicate whether profiler was initialized
-    char                       m_outputFileName[MOS_MAX_PATH_LENGTH + 1];  //!< Name of output file
-    bool                       m_enableProfilerDump = true;   //!< Indicate whether enable UMD Profiler dump
-    std::shared_ptr<mhw::mi::Itf> m_miItf           = nullptr;
+    Map                           m_contextIndexMap;       //!< Map between CodecHal/VPHal and PerfDataContext
+    PMOS_MUTEX                    m_mutex = nullptr;       //!< Mutex for protecting data of profiler when refereced multi times
+    uint32_t                      m_bufferSize = 10000000; //!< The size of perf data buffer
+    uint32_t                      m_timerBase  = 0;        //!< time frequency
+    int32_t                       m_multiprocess = 0;      //!< multi process support
+    uint32_t                      m_registers[8] = { 0 };  //!< registers of Memory information
+    int32_t                       m_profilerEnabled;   //!< UMD Perf Profiler enable or not
+    char                          m_outputFileName[MOS_MAX_PATH_LENGTH + 1];  //!< Name of output file
+    bool                          m_enableProfilerDump = true;   //!< Indicate whether enable UMD Profiler dump
+    std::shared_ptr<mhw::mi::Itf> m_miItf = nullptr;
 MEDIA_CLASS_DEFINE_END(MediaPerfProfilerNext)
 };
 
