@@ -396,20 +396,6 @@ public:
         MOS_STREAM_HANDLE streamState,
         GPU_CONTEXT_HANDLE gpuContext);
 
-    //!
-    //! \brief    Get GPU context pointer
-    //! \details  Get GPU context pointer
-    //! \param    [in] streamState
-    //!           Handle of Os Stream State
-    //! \param    GPU_CONTEXT_HANDLE gpuContextHandle
-    //!           [in] GPU Context Handle
-    //! \return   void *
-    //!           a pointer to a gpu context
-    //!
-    static void *GetGpuContextbyHandle(
-        MOS_STREAM_HANDLE  streamState,
-        GPU_CONTEXT_HANDLE gpuContextHandle);
-
     //! \brief    Sets the object capture flags for Linux OCA dump
     //! \details  Sets the object capture flags for Linux OCA dump
     //!

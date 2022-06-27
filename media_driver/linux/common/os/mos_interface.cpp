@@ -664,32 +664,6 @@ MOS_STATUS MosInterface::SetGpuContext(
     return MOS_STATUS_SUCCESS;
 }
 
-void *MosInterface::GetGpuContextbyHandle(
-    MOS_STREAM_HANDLE  streamState,
-    GPU_CONTEXT_HANDLE gpuContextHandle)
-{
-    if (!streamState || !streamState->osDeviceContext)
-    {
-        MOS_OS_ASSERTMESSAGE("Invalid nullptr");
-        return nullptr;
-    }
-
-    auto gpuContextMgr = streamState->osDeviceContext->GetGpuContextMgr();
-    if (!gpuContextMgr)
-    {
-        MOS_OS_ASSERTMESSAGE("Invalid nullptr");
-        return nullptr;
-    }
-
-    GpuContextNext *gpuContext = gpuContextMgr->GetGpuContext(gpuContextHandle);
-
-    if (!gpuContext)
-    {
-        MOS_OS_ASSERTMESSAGE("Invalid nullptr");
-    }
-    return (void *)gpuContext;
-}
-
 MOS_STATUS MosInterface:: SetObjectCapture(
     PMOS_RESOURCE osResource)
 {

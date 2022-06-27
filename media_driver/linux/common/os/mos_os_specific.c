@@ -1707,7 +1707,7 @@ void *Mos_Specific_GetGpuContextbyHandle(
 
     if (pOsInterface->apoMosEnabled)
     {
-        return MosInterface::GetGpuContextbyHandle(pOsInterface->osStreamState, gpuContextHandle);
+        return MosInterface::GetGpuContext(pOsInterface->osStreamState, gpuContextHandle);
     }
 
     OsContextSpecific *pOsContextSpecific = static_cast<OsContextSpecific *>(pOsInterface->osContextPtr);
