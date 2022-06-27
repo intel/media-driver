@@ -1910,6 +1910,7 @@ VAStatus DdiMediaUtil_UnRegisterRTSurfaces(
 
 VAStatus DdiMediaUtil_SetMediaResetEnableFlag(PDDI_MEDIA_CONTEXT mediaCtx)
 {
+    bool enableReset = false;
     mediaCtx->bMediaResetEnable = false;
     
     DDI_CHK_NULL(mediaCtx,"nullptr mediaCtx!", VA_STATUS_ERROR_INVALID_CONTEXT);
@@ -1921,15 +1922,15 @@ VAStatus DdiMediaUtil_SetMediaResetEnableFlag(PDDI_MEDIA_CONTEXT mediaCtx)
     }
 
     mediaCtx->bMediaResetEnable = true;
+#if (_DEBUG || _RELEASE_INTERNAL)
+    ReadUserSettingForDebug(
+        nullptr,
+        enableReset,
+        __MEDIA_USER_FEATURE_VALUE_MEDIA_RESET_ENABLE,
+        MediaUserSetting::Group::Device);
+    mediaCtx->bMediaResetEnable = enableReset;
+#endif
 
-    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
-    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    MOS_USER_FEATURE_INVALID_KEY_ASSERT(
-        MOS_UserFeature_ReadValue_ID(nullptr,
-                                     __MEDIA_USER_FEATURE_VALUE_MEDIA_RESET_ENABLE_ID,
-                                     &userFeatureData,
-                                     (MOS_CONTEXT_HANDLE)nullptr));
-    mediaCtx->bMediaResetEnable = userFeatureData.i32Data ? true : false;
     if(!mediaCtx->bMediaResetEnable)
     {
         return VA_STATUS_SUCCESS;

@@ -63,6 +63,9 @@
 #define __MEDIA_USER_FEATURE_VALUE_ENABLE_VEBOX_SCALABILITY_MODE        "Enable Vebox Scalability"
 
 #if (_DEBUG || _RELEASE_INTERNAL)
+
+#define __MEDIA_USER_FEATURE_VALUE_MEDIA_RESET_ENABLE                   "Media Reset"
+
 //!
 //! \brief ISA ASM Debug Enable and Debug Surface BTI
 //!

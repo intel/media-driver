@@ -396,6 +396,13 @@ MOS_STATUS MosUserSetting::InitUserSettingForDebug(MediaUserSettingSharedPtr use
 
     DeclareUserSettingKeyForDebug(
         userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_MEDIA_RESET_ENABLE,
+        MediaUserSetting::Group::Device,
+        1,
+        true); //"If enabled, media reset will be enabled."
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
         "Resource Addr Dump Enable",
         MediaUserSetting::Group::Device,
         0,
