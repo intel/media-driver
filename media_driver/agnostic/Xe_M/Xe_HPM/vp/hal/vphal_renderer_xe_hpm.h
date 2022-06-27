@@ -57,6 +57,10 @@ public:
         bEnableCMFC = true;
 
         m_modifyKdllFunctionPointers = KernelDll_ModifyFunctionPointers_g12hp;
+        for (uint32_t nIndex = 0; nIndex < VPHAL_MAX_NUM_DS_SURFACES; nIndex++)
+        {
+            m_pDSSurface[nIndex] = nullptr;
+        }
     }
 
     //!
@@ -69,6 +73,20 @@ public:
     //!
     ~VphalRendererXe_Hpm()
     {
+        for (uint32_t nIndex = 0; nIndex < VPHAL_MAX_NUM_DS_SURFACES; nIndex++)
+        {
+            if (m_pDSSurface[nIndex])
+            {
+                m_pOsInterface->pfnFreeResource(m_pOsInterface, &m_pDSSurface[nIndex]->OsResource);
+                //release 3dlut params
+                if (m_pDSSurface[nIndex]->p3DLutParams)
+                {
+                    MOS_FreeMemory(m_pDSSurface[nIndex]->p3DLutParams);
+                    m_pDSSurface[nIndex]->p3DLutParams = nullptr;
+                }
+            }
+            MOS_FreeMemAndSetNull(m_pDSSurface[nIndex]);
+        }
     }
 
     //!
