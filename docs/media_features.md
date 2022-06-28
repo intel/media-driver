@@ -16,13 +16,13 @@
 |            | Max Res. | 16k            | 8k             | 8k             | 8k             | 8k   | 8k   | 8k   |      |
 | HEVC 10bit | Output   | P010/Y210/Y410 | P010/Y210/Y410 | P010/Y210/Y410 | P010/Y210/Y410 | P010 | P010 |      |      |
 |            | Max Res. | 16k            | 8k             | 8k             | 8k             | 8k   | 8k   |      |      |
-| HEVC 12bit | Output   | P016/Y216/Y416 | P016/Y216/Y416 | P016/Y216/Y416 |                |      |      |      |      |
+| HEVC 12bit | Output** | P016/Y216/Y416 | P016/Y216/Y416 | P016/Y216/Y416 |                |      |      |      |      |
 |            | Max Res. | 16k            | 8k             | 8k             |                |      |      |      |      |
 | VP9 8bit   | Output   | NV12/AYUV      | NV12/AYUV      | NV12/AYUV      | NV12/AYUV      | NV12 | NV12 |      |      |
 |            | Max Res. | 16k            | 8k             | 8k             | 8k             | 8k   | 4k   |      |      |
 | VP9 10bit  | Output   | P010/Y410      | P010/Y410      | P010/Y410      | P010/Y410      | P010 |      |      |      |
 |            | Max Res. | 16k            | 8k             | 8k             | 8k             | 8k   |      |      |      |
-| VP9 12bit  | Output   | P016/Y216/Y416 | P016/Y216/Y416 | P016/Y216/Y416 |                |      |      |      |      |
+| VP9 12bit  | Output** | P016/Y216/Y416 | P016/Y216/Y416 | P016/Y216/Y416 |                |      |      |      |      |
 |            | Max Res. | 16k            | 8k             | 8k             |                |      |      |      |      |
 | AV1 8bit   | Output   | NV12           | NV12           | NV12           |                |      |      |      |      |
 |            | Max Res. | 16k            | 8k             | 8k             |                |      |      |      |      |
@@ -30,6 +30,7 @@
 |            | Max Res. | 16k            | 8k             | 8k             |
 
 - \* VP8 is only supported on TGL platform
+- \** HVEC/VP9 12bit use P016/Y216/Y416 with the least significant 4 bits are set to zero
 
 ### JPEG Decoding Format Support
 | Input Format                                         | Output Format | Max resolution | Supported Platforms |
