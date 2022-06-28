@@ -804,6 +804,8 @@ static bool InitDg2MediaSku(struct GfxDeviceInfo *devInfo,
          drvInfo->devId == 0x56A0 ||
          drvInfo->devId == 0x56A1 ||
          drvInfo->devId == 0x56A2 ||
+         drvInfo->devId == 0x56A3 ||
+         drvInfo->devId == 0x56A4 ||
          drvInfo->devId == 0x56A5 ||
          drvInfo->devId == 0x56A6 ||
          drvInfo->devId == 0x56A7 ||
@@ -871,6 +873,8 @@ static bool InitDg2MediaWa(struct GfxDeviceInfo *devInfo,
         drvInfo->devId == 0x56A0 ||
         drvInfo->devId == 0x56A1 ||
         drvInfo->devId == 0x56A2 ||
+        drvInfo->devId == 0x56A3 ||
+        drvInfo->devId == 0x56A4 ||
         drvInfo->devId == 0x56A5 ||
         drvInfo->devId == 0x56A6 ||
         drvInfo->devId == 0x56A7 ||
