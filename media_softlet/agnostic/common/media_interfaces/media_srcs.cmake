@@ -18,10 +18,19 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
+media_include_subdirectory(mmd)
+
 set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/media_interfaces_mhw_next.h
     ${CMAKE_CURRENT_LIST_DIR}/media_interfaces_mcpy_next.h
 )
+
+ if(${MMC_Supported} STREQUAL "yes")
+    set(TMP_HEADERS_
+        ${TMP_HEADERS_}
+        ${CMAKE_CURRENT_LIST_DIR}/media_interfaces_mmd_next.h
+    )
+endif()
 
 set(SOURCES_
     ${SOURCES_}

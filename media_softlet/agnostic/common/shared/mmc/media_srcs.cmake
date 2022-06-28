@@ -22,12 +22,14 @@ set(TMP_SOURCES_
     ${TMP_SOURCES_}
     ${CMAKE_CURRENT_LIST_DIR}/media_mem_compression.cpp
     ${CMAKE_CURRENT_LIST_DIR}/media_mem_compression_next.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/media_mem_decompression_next.cpp
 )
 
 set(TMP_HEADERS_
     ${TMP_HEADERS_}
     ${CMAKE_CURRENT_LIST_DIR}/media_mem_compression.h
     ${CMAKE_CURRENT_LIST_DIR}/media_mem_compression_next.h
+    ${CMAKE_CURRENT_LIST_DIR}/media_mem_decompression_next.h
 )
 
 media_add_curr_to_include_path()

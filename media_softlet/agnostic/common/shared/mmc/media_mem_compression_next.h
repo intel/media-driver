@@ -147,6 +147,7 @@ protected:
     uint32_t                      m_mmcFeatureId = __MOS_USER_FEATURE_KEY_MAX_ID;
     uint32_t                      m_mmcInuseFeatureId = __MOS_USER_FEATURE_KEY_MAX_ID;
     MediaUserSettingSharedPtr     m_userSettingPtr = nullptr;
+MEDIA_CLASS_DEFINE_END(MediaMemCompNext)
 };
 
 #endif //__MEDIA_MEM_COMPRESSION_NEXT_H__

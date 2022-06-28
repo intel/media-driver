@@ -27,13 +27,21 @@
 
 #include "mos_decompression.h"
 #include "media_interfaces_mmd.h"
+#include "media_interfaces_mmd_next.h"
 
 MosDecompression::MosDecompression(PMOS_CONTEXT osDriverContext)
 {
 #ifdef _MMC_SUPPORTED
     MOS_OS_CHK_NULL_NO_STATUS_RETURN(osDriverContext);
-    m_mediaMemDecompState =
-        static_cast<MediaMemDecompBaseState *>(MmdDevice::CreateFactory(osDriverContext));
+
+    m_mediaMemDecompState = static_cast<MediaMemDecompBaseState *>(MmdDeviceNext::CreateFactory(osDriverContext));
+
+    if (nullptr == m_mediaMemDecompState)
+    {
+        MOS_OS_NORMALMESSAGE("Next MMD Device created failed, try w/ legacy mmd device");
+        m_mediaMemDecompState =
+            static_cast<MediaMemDecompBaseState *>(MmdDevice::CreateFactory(osDriverContext));
+    }
 #endif
 }
 
