@@ -389,7 +389,7 @@ MOS_STATUS MosUserSetting::InitUserSettingForDebug(MediaUserSettingSharedPtr use
 
     DeclareUserSettingKeyForDebug(
         userSettingPtr,
-        "Simulation In Use",
+        "__MEDIA_USER_FEATURE_VALUE_SIM_IN_USE",
         MediaUserSetting::Group::Device,
         int32_t(0),
         true);

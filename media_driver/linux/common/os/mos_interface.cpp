@@ -299,17 +299,13 @@ MOS_STATUS MosInterface::CreateOsStreamState(
         (*streamState)->eForceVebox = (MOS_FORCE_VEBOX)regValue;
 #endif
     }
-
-    MOS_USER_FEATURE_VALUE_WRITE_DATA userFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
-    // Report if pre-si environment is in use
-    userFeatureWriteData.Value.i32Data = (*streamState)->simIsActive;
-    userFeatureWriteData.ValueID       = __MEDIA_USER_FEATURE_VALUE_SIM_IN_USE_ID;
-    MosUtilities::MosUserFeatureWriteValuesID(
-        nullptr,
-        &userFeatureWriteData,
-        1,
-        (MOS_CONTEXT_HANDLE)nullptr);
-
+#if (_DEBUG || _RELEASE_INTERNAL)
+    ReportUserSettingForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_SIM_IN_USE,
+        (*streamState)->simIsActive,
+        MediaUserSetting::Group::Device);
+#endif
 #if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
     DumpCommandBufferInit(*streamState);
 #endif  // MOS_COMMAND_BUFFER_DUMP_SUPPORTED

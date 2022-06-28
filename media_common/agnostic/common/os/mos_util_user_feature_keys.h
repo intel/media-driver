@@ -86,6 +86,7 @@
 #define __MEDIA_USER_FEATURE_VALUE_MEMORY_NINJA_END_COUNTER               "MemNinjaEndCounter"
 
 #define __MEDIA_USER_FEATURE_VALUE_SIM_ENABLE                             "Simulation Enable"
+#define __MEDIA_USER_FEATURE_VALUE_SIM_IN_USE                             "Simulation In Use"
 
 #define __MEDIA_USER_FEATURE_VALUE_ENABLE_VE_DEBUG_OVERRIDE               "Enable VE Debug Override"
 #define __MEDIA_USER_FEATURE_VALUE_FORCE_VDBOX                            "Force VDBOX"

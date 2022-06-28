@@ -721,11 +721,7 @@ MOS_STATUS Mos_InitInterface(
     MOS_OS_CHK_NULL_RETURN(pOsDriverContext);
 #endif
     MOS_STATUS                  eStatus = MOS_STATUS_UNKNOWN;
-    PMOS_USER_FEATURE_INTERFACE pOsUserFeatureInterface = nullptr;
-    MOS_USER_FEATURE_VALUE_WRITE_DATA UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
-
-    pOsUserFeatureInterface = &pOsInterface->UserFeatureInterface;
-    MOS_OS_CHK_NULL_RETURN(pOsUserFeatureInterface);
+    MediaUserSettingSharedPtr   userSettingPtr = nullptr;
 
     // Setup Member functions
     pOsInterface->pfnFillResource       = Mos_OsFillResource;
@@ -745,18 +741,21 @@ MOS_STATUS Mos_InitInterface(
         MOS_OS_ASSERTMESSAGE("Mos_Specific_InitInterface FAILED, errno = 0x%x", eStatus);
         return eStatus;
     }
+
+    userSettingPtr = pOsInterface->pfnGetUserSettingInstance(pOsInterface);
+
 #if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
     Mos_DumpCommandBufferInit(pOsInterface);
 #endif // MOS_COMMAND_BUFFER_DUMP_SUPPORTED
 
+#if (_DEBUG || _RELEASE_INTERNAL)
     // Report if pre-si environment is in use
-    UserFeatureWriteData.Value.i32Data  = pOsInterface->bSimIsActive;
-    UserFeatureWriteData.ValueID        = __MEDIA_USER_FEATURE_VALUE_SIM_IN_USE_ID;
-    MOS_UserFeature_WriteValues_ID(
-        nullptr,
-        &UserFeatureWriteData,
-        1,
-        pOsInterface->pOsContext);
+    ReportUserSettingForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_SIM_IN_USE,
+        pOsInterface->bSimIsActive,
+        MediaUserSetting::Group::Device);
+#endif
 
     // Apo wrapper
     if (pOsInterface->apoMosEnabled && !pOsInterface->streamStateIniter)

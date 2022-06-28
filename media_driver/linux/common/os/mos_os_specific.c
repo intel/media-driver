@@ -7117,7 +7117,6 @@ MOS_STATUS Mos_Specific_InitInterface(
 
     pOsContext              = nullptr;
     pOsUserFeatureInterface = (PMOS_USER_FEATURE_INTERFACE)&pOsInterface->UserFeatureInterface;
-    MOS_OS_CHK_NULL(pOsUserFeatureInterface);
 
     MOS_OS_NORMALMESSAGE("mm:Mos_Specific_InitInterface called.");
 

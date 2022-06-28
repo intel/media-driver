@@ -2167,6 +2167,7 @@ MOS_STATUS CodechalEncodeHevcBase::ReadImageStatus(PMOS_COMMAND_BUFFER cmdBuffer
 MOS_STATUS CodechalEncodeHevcBase::UserFeatureKeyReport()
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+    MediaUserSettingSharedPtr       userSettingPtr = nullptr;
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
@@ -2180,7 +2181,12 @@ MOS_STATUS CodechalEncodeHevcBase::UserFeatureKeyReport()
     CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_ENCODE_RATECONTROL_METHOD_ID, m_hevcSeqParams->RateControlMethod, m_osInterface->pOsContext);
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-    CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_SIM_IN_USE_ID, m_osInterface->bSimIsActive, m_osInterface->pOsContext);
+    userSettingPtr = m_osInterface->pfnGetUserSettingInstance(m_osInterface);
+    ReportUserSettingForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_SIM_IN_USE,
+        m_osInterface->bSimIsActive,
+        MediaUserSetting::Group::Device);
     CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_RDOQ_ENABLE_ID, m_hevcRdoqEnabled, m_osInterface->pOsContext);
 #endif
 

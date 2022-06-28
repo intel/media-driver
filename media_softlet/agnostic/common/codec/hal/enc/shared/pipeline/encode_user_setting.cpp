@@ -100,12 +100,6 @@ MOS_STATUS EncodePipeline::InitUserSetting(MediaUserSettingSharedPtr userSetting
         true);
     DeclareUserSettingKeyForDebug(
         userSettingPtr,
-        "Simulation In Use",
-        MediaUserSetting::Group::Sequence,
-        (int32_t)0,
-        true);
-    DeclareUserSettingKeyForDebug(
-        userSettingPtr,
         "Enable Encode VE CtxBasedScheduling",
         MediaUserSetting::Group::Sequence,
         false,

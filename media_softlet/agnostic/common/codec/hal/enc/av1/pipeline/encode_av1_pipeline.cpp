@@ -65,9 +65,9 @@ MOS_STATUS Av1Pipeline::UserFeatureReport()
 #if (_DEBUG || _RELEASE_INTERNAL)
     ReportUserSettingForDebug(
         m_userSettingPtr,
-        "Simulation In Use",
+        __MEDIA_USER_FEATURE_VALUE_SIM_IN_USE,
         m_osInterface->bSimIsActive,
-        MediaUserSetting::Group::Sequence);
+        MediaUserSetting::Group::Device);
 #endif
 
     return MOS_STATUS_SUCCESS;
