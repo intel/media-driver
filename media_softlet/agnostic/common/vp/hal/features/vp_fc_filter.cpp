@@ -714,7 +714,7 @@ MOS_STATUS PolicyFcFeatureHandler::UpdateUnusedFeature(VP_EXECUTE_CAPS caps, SwF
     if (0 == caps.bOutputPipeFeatureInuse &&
         !feature.GetFilterEngineCaps().bEnabled &&
         (feature.GetFilterEngineCaps().forceEnableForSfc ||
-         feature.GetFilterEngineCaps().forceEnableForFc))
+         feature.GetFilterEngineCaps().forceEnableForRender))
     {
         // To avoid filter being destroyed in Policy::UpdateFeaturePipe.
         feature.GetFilterEngineCaps().usedForNextPass = 1;

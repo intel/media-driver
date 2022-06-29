@@ -206,7 +206,7 @@ typedef struct _VP_EngineEntry
             uint32_t bypassIfVeboxSfcInUse : 1; // Bypass the feature if vebox or sfc in use. In such case, VeboxNeeded and
                                                 // SfcNeeded are 0 but it should not block vebox or sfc being selected. 
             uint32_t forceEnableForSfc : 1;     // Force enabled when sfc being selected.
-            uint32_t forceEnableForFc : 1;      // Force enabled when fc being selected.
+            uint32_t forceEnableForRender : 1;  // Force enabled when render being selected.
             uint32_t nonFcFeatureExists : 1;    // The feature exists, which do not support fc
             uint32_t nonVeboxFeatureExists : 1; // The feature exists, which do not support vebox
             uint32_t fcOnlyFeatureExists : 1;   // The feature exists, which only support render fc, and not support vebox/sfc.
@@ -221,7 +221,7 @@ typedef struct _VP_EngineEntry
             uint32_t usedForNextPass : 1;       // true if current feature should be bypassed for current pass and be processed during next pass.
             uint32_t sfcNotSupported : 1;       // true if sfc cannot be selected.
             uint32_t veboxNotSupported : 1;     // true if vebox cannot be selected.
-            uint32_t isOutputPipeNeeded : 1;    // true if the feature is used for parameter calculation.
+            uint32_t onlyParamCalculation : 1;  // true if the feature is used for parameter calculation.
             uint32_t sfcOnlyFeatureExists : 1;  // The feature exists, which only support sfc.
             uint32_t bTemperalInputInuse : 1;   // true if replace input
         };
