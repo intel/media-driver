@@ -7292,6 +7292,7 @@ MOS_STATUS CodechalEncodeAvcEnc::AllocateResources()
                 m_osInterface,
                 &(resVMEScratchBuffer),
                 &lockFlagsWriteOnly);
+            CODECHAL_ENCODE_CHK_NULL_RETURN(data);
             MOS_ZeroMemory(data, size);
             m_osInterface->pfnUnlockResource(
                 m_osInterface,
@@ -7678,6 +7679,7 @@ MOS_STATUS CodechalEncodeAvcEnc::AllocateResourcesBrc()
             m_osInterface,
             &(BrcBuffers.resMbBrcConstDataBuffer[i]),
             &lockFlagsWriteOnly);
+        CODECHAL_ENCODE_CHK_NULL_RETURN(pData);
         MOS_ZeroMemory(pData, size);
         m_osInterface->pfnUnlockResource(
             m_osInterface,

@@ -366,6 +366,7 @@ MOS_STATUS MediaDebugInterface::FillSemaResource(std::vector<uint32_t*> &vSemaDa
     }
     for (uint32_t i = 0; i < vSemaData.size(); i++)
     {
+        MEDIA_DEBUG_CHK_NULL(vSemaData[i]);
         *vSemaData[i] = data[i];
     }
     return MOS_STATUS_SUCCESS;
