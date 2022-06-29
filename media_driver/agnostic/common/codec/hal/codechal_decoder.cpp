@@ -444,6 +444,7 @@ MOS_STATUS CodechalDecode::Allocate (CodechalSetting * codecHalSettings)
             &m_decodeStatusBuf.m_statusBuffer,
             &lockFlagsNoOverWrite);
 
+        CODECHAL_DECODE_CHK_NULL_RETURN(data);
         MOS_ZeroMemory(data, statusBufferSize);
         m_decodeStatusBuf.m_data            = (uint32_t *)data;
         m_decodeStatusBuf.m_decodeStatus    = (CodechalDecodeStatus *)(data + sizeof(uint32_t) * 2);

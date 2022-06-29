@@ -1081,6 +1081,7 @@ MOS_STATUS CodechalDecodeHevcG12::SetFrameStates ()
     {
         CodechalResLock bbLock(m_osInterface, &m_secondLevelBatchBuffer[m_secondLevelBatchBufferIndex].OsResource);
         uint8_t *bbBase = (uint8_t*)bbLock.Lock(CodechalResLock::writeOnly);
+        CODECHAL_DECODE_CHK_NULL_RETURN(bbBase);
 
         HevcDecodeSliceLongG12 hevcLong(this, m_hcpInterface, m_miInterface);
 
