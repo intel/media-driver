@@ -33,11 +33,23 @@
 
 namespace vp {
 
-class VpVeboxCmdPacketBase : public VpCmdPacket
+class VpVeboxCmdPacketBase : virtual public VpCmdPacket
 {
 public:
     VpVeboxCmdPacketBase(MediaTask * task, PVP_MHWINTERFACE hwInterface, PVpAllocator &allocator, VPMediaMemComp *mmc);
     virtual ~VpVeboxCmdPacketBase();
+    virtual MOS_STATUS SetSfcCSCParams(PSFC_CSC_PARAMS cscParams)       = 0;
+    virtual MOS_STATUS SetVeboxBeCSCParams(PVEBOX_CSC_PARAMS cscParams) = 0;
+    virtual MOS_STATUS SetDiParams(PVEBOX_DI_PARAMS diParams)           = 0;
+    virtual MOS_STATUS SetDnParams(PVEBOX_DN_PARAMS pDnParams)          = 0;
+    virtual MOS_STATUS SetHdrParams(PVEBOX_HDR_PARAMS hdrParams)        = 0;
+    virtual MOS_STATUS SetProcampParams(PVEBOX_PROCAMP_PARAMS pProcampParams) = 0;
+    virtual MOS_STATUS SetSfcRotMirParams(PSFC_ROT_MIR_PARAMS rotMirParams)   = 0;
+    virtual MOS_STATUS SetScalingParams(PSFC_SCALING_PARAMS scalingParams)    = 0;
+    virtual MOS_STATUS SetSteParams(PVEBOX_STE_PARAMS pSteParams)             = 0;
+    virtual MOS_STATUS SetTccParams(PVEBOX_TCC_PARAMS pTccParams)             = 0;
+
+
 
 MEDIA_CLASS_DEFINE_END(vp__VpVeboxCmdPacketBase)
 };

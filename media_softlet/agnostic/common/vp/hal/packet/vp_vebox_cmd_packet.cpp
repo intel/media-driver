@@ -2202,6 +2202,7 @@ VpVeboxCmdPacket::VpVeboxCmdPacket(
     PVpAllocator &allocator,
     VPMediaMemComp *mmc) :
     CmdPacket(task),
+    VpCmdPacket(task, hwInterface, allocator, mmc, VP_PIPELINE_PACKET_VEBOX),
     VpVeboxCmdPacketBase(task, hwInterface, allocator, mmc)
 {
     m_veboxItf = hwInterface->m_vpPlatformInterface->GetMhwVeboxItf();

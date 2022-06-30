@@ -29,9 +29,6 @@
 #include "vp_render_cmd_packet.h"
 #include "hw_filter.h"
 #include "sw_filter_pipe.h"
-#ifndef ENABLE_VP_SOFTLET_BUILD
-#include "vp_vebox_cmd_packet_legacy.h"
-#endif
 
 namespace vp {
 VpDnFilter::VpDnFilter(PVP_MHWINTERFACE vpMhwInterface) :
@@ -239,18 +236,11 @@ bool VpVeboxDnParameter::SetPacketParam(VpCmdPacket *pPacket)
         return false;
     }
 
-    VpVeboxCmdPacket *packet = dynamic_cast<VpVeboxCmdPacket *>(pPacket);
+    VpVeboxCmdPacketBase *packet = dynamic_cast<VpVeboxCmdPacketBase *>(pPacket);
     if (packet)
     {
         return MOS_SUCCEEDED(packet->SetDnParams(pParams));
     }
-#ifndef ENABLE_VP_SOFTLET_BUILD
-    VpVeboxCmdPacketLegacy *packetLegacy = dynamic_cast<VpVeboxCmdPacketLegacy *>(pPacket);
-    if (packetLegacy)
-    {
-        return MOS_SUCCEEDED(packetLegacy->SetDnParams(pParams));
-    }
-#endif
 
     VP_PUBLIC_ASSERTMESSAGE("Invalid packet for Vebox DN");
     return false;

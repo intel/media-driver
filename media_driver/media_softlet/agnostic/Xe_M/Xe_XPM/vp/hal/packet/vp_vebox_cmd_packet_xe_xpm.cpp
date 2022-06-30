@@ -33,6 +33,8 @@ using namespace vp;
 
 VpVeboxCmdPacketXe_Xpm::VpVeboxCmdPacketXe_Xpm(MediaTask * task, PVP_MHWINTERFACE hwInterface, PVpAllocator &allocator, VPMediaMemComp *mmc, bool disbaleSfcDithering) :
     CmdPacket(task),
+    VpCmdPacket(task, hwInterface, allocator, mmc, VP_PIPELINE_PACKET_VEBOX),
+    VpVeboxCmdPacketBase(task, hwInterface, allocator, mmc),
     VpVeboxCmdPacketLegacy(task, hwInterface, allocator, mmc),
     VpVeboxCmdPacketG12(task, hwInterface, allocator, mmc),
     VpVeboxCmdPacketXe_Xpm_Base(task, hwInterface, allocator, mmc, disbaleSfcDithering)

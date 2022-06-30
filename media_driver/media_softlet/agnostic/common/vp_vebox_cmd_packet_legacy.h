@@ -36,7 +36,7 @@
 
 namespace vp {
 
-class VpVeboxCmdPacketLegacy : public VpVeboxCmdPacketBase
+class VpVeboxCmdPacketLegacy : virtual public VpVeboxCmdPacketBase
 {
 public:
     VpVeboxCmdPacketLegacy(MediaTask * task, PVP_MHWINTERFACE hwInterface, PVpAllocator &allocator, VPMediaMemComp *mmc);
@@ -131,7 +131,7 @@ public:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    virtual MOS_STATUS SetScalingParams(PSFC_SCALING_PARAMS scalingParams);
+    virtual MOS_STATUS SetScalingParams(PSFC_SCALING_PARAMS scalingParams) override;
 
     //!
     //! \brief    Setup CSC Params for Vebox/SFC
@@ -141,7 +141,7 @@ public:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    virtual MOS_STATUS SetSfcCSCParams(PSFC_CSC_PARAMS cscParams);
+    virtual MOS_STATUS SetSfcCSCParams(PSFC_CSC_PARAMS cscParams) override;
 
     //!
     //! \brief    Setup CSC Params for Vebox back end
@@ -151,7 +151,7 @@ public:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    virtual MOS_STATUS SetVeboxBeCSCParams(PVEBOX_CSC_PARAMS cscParams);
+    virtual MOS_STATUS SetVeboxBeCSCParams(PVEBOX_CSC_PARAMS cscParams) override;
 
     //!
     //! \brief    Setup Vebox Output Alpha Value
@@ -181,7 +181,7 @@ public:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    virtual MOS_STATUS SetSfcRotMirParams(PSFC_ROT_MIR_PARAMS rotMirParams);
+    virtual MOS_STATUS SetSfcRotMirParams(PSFC_ROT_MIR_PARAMS rotMirParams) override;
 
     //!
     //! \brief    Setup DN Params for Vebox
@@ -191,7 +191,7 @@ public:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    virtual MOS_STATUS SetDnParams(PVEBOX_DN_PARAMS dnParams);
+    virtual MOS_STATUS SetDnParams(PVEBOX_DN_PARAMS dnParams) override;
 
     //!
     //! \brief    Setup STE Params for Vebox
@@ -201,7 +201,7 @@ public:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    virtual MOS_STATUS SetSteParams(PVEBOX_STE_PARAMS steParams);
+    virtual MOS_STATUS SetSteParams(PVEBOX_STE_PARAMS steParams) override;
 
     //!
     //! \brief    Setup HDR Params for Vebox
@@ -211,7 +211,7 @@ public:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    virtual MOS_STATUS SetHdrParams(PVEBOX_HDR_PARAMS hdrParams);
+    virtual MOS_STATUS SetHdrParams(PVEBOX_HDR_PARAMS hdrParams) override;
 
     //!
     //! \brief    Setup TCC Params for Vebox
@@ -221,7 +221,7 @@ public:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    virtual MOS_STATUS SetTccParams(PVEBOX_TCC_PARAMS tccParams);
+    virtual MOS_STATUS SetTccParams(PVEBOX_TCC_PARAMS tccParams) override;
 
     //!
     //! \brief    Setup Procamp Params for Vebox
@@ -231,7 +231,7 @@ public:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    virtual MOS_STATUS SetProcampParams(PVEBOX_PROCAMP_PARAMS procampParams);
+    virtual MOS_STATUS SetProcampParams(PVEBOX_PROCAMP_PARAMS procampParams) override;
 
     //!
     //! \brief    Setup DI Params for Vebox
@@ -241,7 +241,7 @@ public:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    virtual MOS_STATUS SetDiParams(PVEBOX_DI_PARAMS diParams);
+    virtual MOS_STATUS SetDiParams(PVEBOX_DI_PARAMS diParams) override;
 
     //!
     //! \brief    Get DN luma parameters

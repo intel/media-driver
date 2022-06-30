@@ -200,6 +200,8 @@ const uint32_t   dwSTADThresholdUV[NOISEFACTOR_MAX + 1] = {
 namespace vp {
 VpVeboxCmdPacketG12::VpVeboxCmdPacketG12(MediaTask * task, PVP_MHWINTERFACE hwInterface, PVpAllocator &allocator, VPMediaMemComp *mmc) :
     CmdPacket(task),
+    VpCmdPacket(task, hwInterface, allocator, mmc, VP_PIPELINE_PACKET_VEBOX),
+    VpVeboxCmdPacketBase(task, hwInterface, allocator, mmc),
     VpVeboxCmdPacketLegacy(task, hwInterface, allocator, mmc)
 {
 

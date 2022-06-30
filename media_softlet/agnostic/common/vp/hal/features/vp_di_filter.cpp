@@ -25,13 +25,10 @@
 //!           this file is for the base interface which is shared by all Ace in driver.
 //!
 #include "vp_di_filter.h"
-#include "vp_vebox_cmd_packet.h"
+#include "vp_vebox_cmd_packet_base.h"
 #include "hw_filter.h"
 #include "sw_filter_pipe.h"
 #include "vp_render_cmd_packet.h"
-#ifndef ENABLE_VP_SOFTLET_BUILD
-#include "vp_vebox_cmd_packet_legacy.h"
-#endif
 
 using namespace vp;
 
@@ -232,18 +229,11 @@ bool VpDiParameter::SetPacketParam(VpCmdPacket *pPacket)
             return false;
         }
 
-        VpVeboxCmdPacket *packet = dynamic_cast<VpVeboxCmdPacket *>(pPacket);
+        VpVeboxCmdPacketBase *packet = dynamic_cast<VpVeboxCmdPacketBase *>(pPacket);
         if (packet)
         {
             return MOS_SUCCEEDED(packet->SetDiParams(params));
         }
-    #ifndef ENABLE_VP_SOFTLET_BUILD
-        VpVeboxCmdPacketLegacy *packetLegacy = dynamic_cast<VpVeboxCmdPacketLegacy *>(pPacket);
-        if (packetLegacy)
-        {
-            return MOS_SUCCEEDED(packetLegacy->SetDiParams(params));
-        }
-    #endif
 
         VP_PUBLIC_ASSERTMESSAGE("Invalid packet for vebox di");
         return false;

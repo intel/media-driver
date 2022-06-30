@@ -26,12 +26,9 @@
 //!
 
 #include "vp_csc_filter.h"
-#include "vp_vebox_cmd_packet.h"
+#include "vp_vebox_cmd_packet_base.h"
 #include "hw_filter.h"
 #include "sw_filter_pipe.h"
-#ifndef ENABLE_VP_SOFTLET_BUILD
-#include "vp_vebox_cmd_packet_legacy.h"
-#endif
 
 namespace vp {
 
@@ -780,18 +777,11 @@ bool VpSfcCscParameter::SetPacketParam(VpCmdPacket *_packet)
         return false;
     }
 
-    VpVeboxCmdPacket *packet = dynamic_cast<VpVeboxCmdPacket *>(_packet);
+    VpVeboxCmdPacketBase *packet = dynamic_cast<VpVeboxCmdPacketBase *>(_packet);
     if (packet)
     {
         return MOS_SUCCEEDED(packet->SetSfcCSCParams(params));
     }
-#ifndef ENABLE_VP_SOFTLET_BUILD
-    VpVeboxCmdPacketLegacy *packetLegacy = dynamic_cast<VpVeboxCmdPacketLegacy *>(_packet);
-    if (packetLegacy)
-    {
-        return MOS_SUCCEEDED(packetLegacy->SetSfcCSCParams(params));
-    }
-#endif
 
     VP_PUBLIC_ASSERTMESSAGE("Invalid packet for sfc csc");
     return false;
@@ -983,18 +973,11 @@ bool VpVeboxCscParameter::SetPacketParam(VpCmdPacket* pPacket)
         return false;
     }
 
-    VpVeboxCmdPacket *packet = dynamic_cast<VpVeboxCmdPacket *>(pPacket);
+    VpVeboxCmdPacketBase *packet = dynamic_cast<VpVeboxCmdPacketBase *>(pPacket);
     if (packet)
     {
         return MOS_SUCCEEDED(packet->SetVeboxBeCSCParams(params));
     }
-#ifndef ENABLE_VP_SOFTLET_BUILD
-    VpVeboxCmdPacketLegacy *packetLegacy = dynamic_cast<VpVeboxCmdPacketLegacy *>(pPacket);
-    if (packetLegacy)
-    {
-        return MOS_SUCCEEDED(packetLegacy->SetVeboxBeCSCParams(params));
-    }
-#endif
 
     VP_PUBLIC_ASSERTMESSAGE("Invalid packet for vebox be csc");
     return false;

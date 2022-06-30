@@ -25,12 +25,9 @@
 //!           this file is for the base interface which is shared by all TCC in driver.
 //!
 #include "vp_tcc_filter.h"
-#include "vp_vebox_cmd_packet.h"
+#include "vp_vebox_cmd_packet_base.h"
 #include "hw_filter.h"
 #include "sw_filter_pipe.h"
-#ifndef ENABLE_VP_SOFTLET_BUILD
-#include "vp_vebox_cmd_packet_legacy.h"
-#endif
 
 namespace vp {
 VpTccFilter::VpTccFilter(PVP_MHWINTERFACE vpMhwInterface) :
@@ -199,18 +196,11 @@ bool VpVeboxTccParameter::SetPacketParam(VpCmdPacket *pPacket)
         return false;
     }
 
-    VpVeboxCmdPacket *packet = dynamic_cast<VpVeboxCmdPacket *>(pPacket);
+    VpVeboxCmdPacketBase *packet = dynamic_cast<VpVeboxCmdPacketBase *>(pPacket);
     if (packet)
     {
         return MOS_SUCCEEDED(packet->SetTccParams(params));
     }
-#ifndef ENABLE_VP_SOFTLET_BUILD
-    VpVeboxCmdPacketLegacy *packetLegacy = dynamic_cast<VpVeboxCmdPacketLegacy *>(pPacket);
-    if (packetLegacy)
-    {
-        return MOS_SUCCEEDED(packetLegacy->SetTccParams(params));
-    }
-#endif
 
     VP_PUBLIC_ASSERTMESSAGE("Invalid packet for vebox csc");
     return false;
