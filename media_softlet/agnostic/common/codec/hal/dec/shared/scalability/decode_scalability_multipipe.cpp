@@ -39,6 +39,9 @@ DecodeScalabilityMultiPipe::DecodeScalabilityMultiPipe(void *hwInterface, MediaC
 {
     m_hwInterface   = (CodechalHwInterface *)hwInterface;
     m_componentType = componentType;
+    m_secondaryCmdBuffers.clear();
+    m_resSemaphoreAllPipes.clear();
+    m_resSemaphoreOnePipeWait.clear();
 }
 
 DecodeScalabilityMultiPipe::~DecodeScalabilityMultiPipe()
