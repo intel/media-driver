@@ -60,6 +60,17 @@ public:
         PMOS_RESOURCE src,
         PMOS_RESOURCE dst);
 
+    //!
+    //! \brief    Render copy omputer walker setup
+    //! \details  Computer walker setup for render copy
+    //! \param    PMHW_WALKER_PARAMS pWalkerParams
+    //!           [in/out] Pointer to Walker params
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+   virtual MOS_STATUS RenderCopyComputerWalker(
+     PMHW_GPGPU_WALKER_PARAMS    pWalkerParams);
+
 protected:
 
     //!

@@ -134,7 +134,7 @@ public:
 //! \return   MOS_STATUS
 //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
 //!
-    MOS_STATUS RenderCopyComputerWalker(
+   virtual MOS_STATUS RenderCopyComputerWalker(
      PMHW_GPGPU_WALKER_PARAMS    pWalkerParams);
 
     //!

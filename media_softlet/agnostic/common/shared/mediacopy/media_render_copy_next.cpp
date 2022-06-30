@@ -662,6 +662,13 @@ MOS_STATUS RenderCopyStateNext::LoadStaticData(
         m_WalkerHeightBlockSize = 8;
     }
 
+    if ((m_currKernelId == KERNEL_CopyKernel_2D_to_1D_Packed) ||
+        (m_currKernelId == KERNEL_CopyKernel_2D_to_1D_NV12) ||
+        (m_currKernelId == KERNEL_CopyKernel_2D_to_1D_Planar))
+    {
+        m_WalkerWidthBlockSize = 16;
+    }
+
     // Set walker cmd params - Rasterscan
     MOS_ZeroMemory(pWalkerParams, sizeof(*pWalkerParams));
 
