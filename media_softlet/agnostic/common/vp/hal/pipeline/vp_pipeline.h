@@ -164,6 +164,7 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
+    virtual MOS_STATUS CreateVPDebugInterface();
     //!
     //! \brief  replace output surface from Tile-Y to Linear
     //! \param  [in] params

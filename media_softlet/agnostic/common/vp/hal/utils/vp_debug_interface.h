@@ -43,7 +43,7 @@ public:
     VpDebugInterface();
     virtual ~VpDebugInterface();
 
-    MOS_STATUS Initialize(PMOS_INTERFACE pOsInterface);
+    virtual MOS_STATUS Initialize(PMOS_INTERFACE pOsInterface);
 
     void DumpToXML(
         PVPHAL_RENDER_PARAMS            pRenderParams,

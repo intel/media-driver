@@ -191,6 +191,17 @@ MOS_STATUS VpPipeline::CreateUserFeatureControl()
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS VpPipeline::CreateVPDebugInterface()
+{
+    VP_FUNC_CALL();
+
+#if ((_DEBUG || _RELEASE_INTERNAL) && !EMUL)
+    VP_DEBUG_INTERFACE_CREATE(m_debugInterface);
+    SkuWaTable_DUMP_XML(m_skuTable, m_waTable);
+#endif
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS VpPipeline::Init(void *mhwInterface)
 {
     VP_FUNC_CALL();
@@ -221,10 +232,7 @@ MOS_STATUS VpPipeline::Init(void *mhwInterface)
     VP_PUBLIC_CHK_STATUS_RETURN(CreateFeatureManager());
     VP_PUBLIC_CHK_NULL_RETURN(m_featureManager);
     VP_PUBLIC_CHK_STATUS_RETURN(InitUserFeatureSetting());
-#if ((_DEBUG || _RELEASE_INTERNAL) && !EMUL)
-    VP_DEBUG_INTERFACE_CREATE(m_debugInterface)
-    SkuWaTable_DUMP_XML(m_skuTable, m_waTable)
-#endif
+    VP_PUBLIC_CHK_STATUS_RETURN(CreateVPDebugInterface());
 
     m_vpMhwInterface.m_debugInterface = (void*)m_debugInterface;
 
