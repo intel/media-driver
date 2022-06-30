@@ -1395,10 +1395,13 @@ MOS_STATUS CodechalDecodeAvc::SetFrameStates()
         m_secondField = true;
     }
 
-    m_pCodechalOcaDumper->SetAvcDecodeParam(
-        m_avcPicParams,
-        m_avcSliceParams,
-        m_numSlices);
+    if (m_pCodechalOcaDumper)
+    {
+        m_pCodechalOcaDumper->SetAvcDecodeParam(
+            m_avcPicParams,
+            m_avcSliceParams,
+            m_numSlices);
+    }
 
     CODECHAL_DEBUG_TOOL(
         m_debugInterface->m_currPic     = m_crrPic;

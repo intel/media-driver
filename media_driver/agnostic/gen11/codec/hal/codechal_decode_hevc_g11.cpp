@@ -413,15 +413,18 @@ MOS_STATUS CodechalDecodeHevcG11::SetFrameStates ()
         // B, so in order to avoid this, declare all other pictures MIXED_TYPE.
         m_perfType = MIXED_TYPE;
     }
+    if (m_pCodechalOcaDumper)
+    {
+        m_pCodechalOcaDumper->SetHevcDecodeParam(
+            m_hevcPicParams,
+            m_hevcExtPicParams,
+            nullptr,
+            m_hevcSliceParams,
+            m_hevcExtSliceParams,
+            m_numSlices,
+            m_shortFormatInUse);
+    }
 
-    m_pCodechalOcaDumper->SetHevcDecodeParam(
-        m_hevcPicParams,
-        m_hevcExtPicParams,
-        nullptr,
-        m_hevcSliceParams,
-        m_hevcExtSliceParams,
-        m_numSlices,
-        m_shortFormatInUse);
 
     m_crrPic = m_hevcPicParams->CurrPic;
     m_secondField =

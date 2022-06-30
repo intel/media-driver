@@ -984,14 +984,17 @@ MOS_STATUS CodechalDecodeHevcG12::SetFrameStates ()
     m_secondField =
         CodecHal_PictureIsBottomField(m_hevcPicParams->CurrPic);
 
-    m_pCodechalOcaDumper->SetHevcDecodeParam(
-        m_hevcPicParams,
-        m_hevcExtPicParams,
-        m_hevcSccPicParams,
-        m_hevcSliceParams,
-        m_hevcExtSliceParams,
-        m_numSlices,
-        m_shortFormatInUse);
+    if (m_pCodechalOcaDumper)
+    {
+        m_pCodechalOcaDumper->SetHevcDecodeParam(
+            m_hevcPicParams,
+            m_hevcExtPicParams,
+            m_hevcSccPicParams,
+            m_hevcSliceParams,
+            m_hevcExtSliceParams,
+            m_numSlices,
+            m_shortFormatInUse);
+    }
 
     CODECHAL_DEBUG_TOOL(
         m_debugInterface->m_currPic     = m_crrPic;
