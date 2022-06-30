@@ -27,7 +27,7 @@
 #ifndef __CODECHAL_MEDIAMEMCOMP_H__
 #define __CODECHAL_MEDIAMEMCOMP_H__
 
-#include "mhw_render.h"
+#include "mhw_render_legacy.h"
 #include "mos_os.h"
 #include "mediamemdecomp.h"
 

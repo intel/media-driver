@@ -32,7 +32,7 @@
 #define __VPHAL_RENDER_COMMON_H__
 
 #include "vphal.h"
-#include "renderhal.h"
+#include "renderhal_legacy.h"
 #include "mhw_utilities.h"
 #include "mos_os.h"
 #include "hal_kerneldll.h"

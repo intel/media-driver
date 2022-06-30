@@ -28,7 +28,7 @@
 
 #include "mhw_vebox_generic.h"
 #include "mhw_vebox_hwcmd_g12_X.h"
-#include "renderhal.h"
+#include "renderhal_legacy.h"
 
 #define MHW_VEBOX_TIMESTAMP_PER_TICK_IN_NS_G12              83.333f
 

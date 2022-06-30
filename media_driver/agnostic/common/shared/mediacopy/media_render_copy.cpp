@@ -72,10 +72,10 @@ RenderCopyState:: ~RenderCopyState()
 
 MOS_STATUS RenderCopyState::Initialize()
 {
-    MOS_GPU_NODE            RenderGpuNode;
-    MOS_GPU_CONTEXT         RenderGpuContext;
-    MOS_GPUCTX_CREATOPTIONS createOption;
-    RENDERHAL_SETTINGS      RenderHalSettings;
+    MOS_GPU_NODE              RenderGpuNode;
+    MOS_GPU_CONTEXT           RenderGpuContext;
+    MOS_GPUCTX_CREATOPTIONS   createOption;
+    RENDERHAL_SETTINGS_LEGACY RenderHalSettings;
 
     RenderGpuContext   = MOS_GPU_CONTEXT_COMPUTE;
     RenderGpuNode      = MOS_GPU_NODE_COMPUTE;
@@ -96,9 +96,9 @@ MOS_STATUS RenderCopyState::Initialize()
         m_osInterface,
         RenderGpuContext));
 
-    m_renderHal = (PRENDERHAL_INTERFACE)MOS_AllocAndZeroMemory(sizeof(*m_renderHal));
+    m_renderHal = (PRENDERHAL_INTERFACE_LEGACY)MOS_AllocAndZeroMemory(sizeof(RENDERHAL_INTERFACE_LEGACY));
     MCPY_CHK_NULL_RETURN(m_renderHal);
-    MCPY_CHK_STATUS_RETURN(RenderHal_InitInterface(
+    MCPY_CHK_STATUS_RETURN(RenderHal_InitInterface_Legacy(
         m_renderHal,
         &m_cpInterface,
         m_osInterface));

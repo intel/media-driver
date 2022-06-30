@@ -350,13 +350,14 @@ int32_t HalCm_DumpCurbeData(PCM_HAL_STATE state)
     // write curbe data dwords.
     if (state->dshEnabled)
     {
-        numberOfDwords = stateHeap->pCurMediaState->pDynamicState->Curbe.dwSize / sizeof(uint32_t);
+        PRENDERHAL_MEDIA_STATE_LEGACY pCurMediaStateLegacy = (PRENDERHAL_MEDIA_STATE_LEGACY)stateHeap->pCurMediaState;
+        numberOfDwords = pCurMediaStateLegacy->pDynamicState->Curbe.dwSize / sizeof(uint32_t);
         sizeToAllocate = numberOfDwords*SIZE_OF_DWORD_PLUS_ONE+2;
         outputBuffer = (char *)MOS_AllocAndZeroMemory(sizeToAllocate);
-        curbeData = (uint32_t *)MOS_AllocAndZeroMemory(stateHeap->pCurMediaState->pDynamicState->Curbe.dwSize);
-        stateHeap->pCurMediaState->pDynamicState->memoryBlock.ReadData(curbeData,
-            stateHeap->pCurMediaState->pDynamicState->Curbe.dwOffset,
-            stateHeap->pCurMediaState->pDynamicState->Curbe.dwSize);
+        curbeData = (uint32_t *)MOS_AllocAndZeroMemory(pCurMediaStateLegacy->pDynamicState->Curbe.dwSize);
+        pCurMediaStateLegacy->pDynamicState->memoryBlock.ReadData(curbeData,
+            pCurMediaStateLegacy->pDynamicState->Curbe.dwOffset,
+            pCurMediaStateLegacy->pDynamicState->Curbe.dwSize);
 
         bytesWritten += HalCm_CopyHexDwordLine(outputBuffer,
                           sizeToAllocate - bytesWritten,
@@ -667,13 +668,14 @@ int32_t HalCm_DumpInterfaceDescriptorData(PCM_HAL_STATE state)
     // write interface descriptor data dwords.
     if (state->dshEnabled)
     {
-        numberOfDwords = stateHeap->pCurMediaState->pDynamicState->MediaID.dwSize / sizeof(uint32_t);
+        PRENDERHAL_MEDIA_STATE_LEGACY pCurMediaStateLegacy = (PRENDERHAL_MEDIA_STATE_LEGACY)stateHeap->pCurMediaState;
+        numberOfDwords = pCurMediaStateLegacy->pDynamicState->MediaID.dwSize / sizeof(uint32_t);
         sizeToAllocate = numberOfDwords * SIZE_OF_DWORD_PLUS_ONE + 2;
         outputBuffer = (char *)MOS_AllocAndZeroMemory(sizeToAllocate);
-        InterfaceDescriptorData = (uint32_t *)MOS_AllocAndZeroMemory(stateHeap->pCurMediaState->pDynamicState->MediaID.dwSize);
-        stateHeap->pCurMediaState->pDynamicState->memoryBlock.ReadData(InterfaceDescriptorData,
-            stateHeap->pCurMediaState->pDynamicState->MediaID.dwOffset,
-            stateHeap->pCurMediaState->pDynamicState->MediaID.dwSize);
+        InterfaceDescriptorData = (uint32_t *)MOS_AllocAndZeroMemory(pCurMediaStateLegacy->pDynamicState->MediaID.dwSize);
+        pCurMediaStateLegacy->pDynamicState->memoryBlock.ReadData(InterfaceDescriptorData,
+            pCurMediaStateLegacy->pDynamicState->MediaID.dwOffset,
+            pCurMediaStateLegacy->pDynamicState->MediaID.dwSize);
 
         bytesWritten += HalCm_CopyHexDwordLine(outputBuffer,
             sizeToAllocate - bytesWritten,

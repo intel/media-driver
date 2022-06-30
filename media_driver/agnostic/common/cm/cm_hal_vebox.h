@@ -28,7 +28,7 @@
 #define MEDIADRIVER_AGNOSTIC_COMMON_CM_CMHALVEBOX_H_
 
 #include "mos_os.h"
-#include "renderhal.h"
+#include "renderhal_legacy.h"
 #include "mhw_vebox.h"
 
 struct CM_VEBOX_SURFACE

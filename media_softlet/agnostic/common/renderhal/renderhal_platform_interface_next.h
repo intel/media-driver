@@ -79,6 +79,20 @@ public:
     MOS_STATUS SetL3Cache(
         PRENDERHAL_INTERFACE        pRenderHal,
         PMOS_COMMAND_BUFFER         pCmdBuffer);
+    
+    //!
+    //! \brief    Get the size of render hal media state
+    //! \return   size_t
+    //!           The size of render hal media state
+    //!
+    size_t GetRenderHalMediaStateSize();
+    
+    //!
+    //! \brief    Get the size of render hal state heap
+    //! \return   size_t
+    //!           The size of render hal state heap
+    //!
+    size_t GetRenderHalStateHeapSize();
 
     PMHW_MI_MMIOREGISTERS GetMmioRegisters(
         PRENDERHAL_INTERFACE        pRenderHal);
@@ -148,6 +162,12 @@ public:
         PMOS_CONTEXT         pOsContext,
         MHW_MI_MMIOREGISTERS *pMmioReg);
 
+    MOS_STATUS CreatePerfProfiler(
+        PRENDERHAL_INTERFACE pRenderHal);
+
+    MOS_STATUS DestroyPerfProfiler(
+        PRENDERHAL_INTERFACE pRenderHal);
+        
     MOS_STATUS AddPerfCollectStartCmd(
         PRENDERHAL_INTERFACE pRenderHal,
         MOS_INTERFACE        *osInterface,

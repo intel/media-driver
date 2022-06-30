@@ -32,6 +32,8 @@
 #include "media_packet.h"
 #include "mhw_utilities_next.h"
 #include "hal_oca_interface_next.h"
+// After removing MhwRenderInterface from Mhw Next, need to remove this mhw_render_legacy header file
+#include "mhw_render_legacy.h"
 
 MOS_STATUS XRenderHal_Platform_Interface_Next::AddPipelineSelectCmd(
     PRENDERHAL_INTERFACE        pRenderHal,
@@ -176,6 +178,26 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::SetL3Cache(
     MHW_RENDERHAL_CHK_STATUS_RETURN(m_renderItf->SetL3Cache(pCmdBuffer, m_miItf));
 
     return eStatus;
+}
+
+//!
+//! \brief    Get the size of render hal media state
+//! \return   size_t
+//!           The size of render hal media state
+//!
+size_t XRenderHal_Platform_Interface_Next::GetRenderHalMediaStateSize()
+{
+    return sizeof(RENDERHAL_MEDIA_STATE);
+}
+
+//!
+//! \brief    Get the size of render hal state heap
+//! \return   size_t
+//!           The size of render hal state heap
+//!
+size_t XRenderHal_Platform_Interface_Next::GetRenderHalStateHeapSize()
+{
+    return sizeof(RENDERHAL_STATE_HEAP);
 }
 
 PMHW_MI_MMIOREGISTERS XRenderHal_Platform_Interface_Next::GetMmioRegisters(
@@ -563,12 +585,16 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::CreateMhwInterfaces(
     MHW_RENDERHAL_CHK_NULL_RETURN(mhwInterfaces);
     MHW_RENDERHAL_CHK_NULL_RETURN(mhwInterfaces->m_cpInterface);
     MHW_RENDERHAL_CHK_NULL_RETURN(mhwInterfaces->m_miInterface);
-    MHW_RENDERHAL_CHK_NULL_RETURN(mhwInterfaces->m_renderInterface);
     pRenderHal->pCpInterface = mhwInterfaces->m_cpInterface;
     pRenderHal->pMhwMiInterface = mhwInterfaces->m_miInterface;
-    pRenderHal->pMhwRenderInterface = mhwInterfaces->m_renderInterface;
     m_renderItf = mhwInterfaces->m_renderItf;
     m_miItf     = mhwInterfaces->m_miItf;
+
+    // After removing MhwRenderInterface from Mhw Next, need to clean this WA delete m_renderInterface code
+    if (mhwInterfaces->m_renderInterface)
+    {
+        MOS_Delete(mhwInterfaces->m_renderInterface);
+    }
 
     MOS_Delete(mhwInterfaces);
 
@@ -612,6 +638,38 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::OnDispatch(
     return eStatus;
 }
 
+MOS_STATUS XRenderHal_Platform_Interface_Next::CreatePerfProfiler(
+    PRENDERHAL_INTERFACE pRenderHal)
+{
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pOsInterface);
+
+    if (!pRenderHal->pPerfProfilerNext)
+    {
+        pRenderHal->pPerfProfilerNext = MediaPerfProfilerNext::Instance();
+        MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pPerfProfilerNext);
+
+        MHW_RENDERHAL_CHK_STATUS_RETURN(pRenderHal->pPerfProfilerNext->Initialize((void*)pRenderHal, pRenderHal->pOsInterface));
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS XRenderHal_Platform_Interface_Next::DestroyPerfProfiler(
+    PRENDERHAL_INTERFACE pRenderHal)
+{
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pOsInterface);
+
+    if (pRenderHal->pPerfProfilerNext)
+    {
+       MediaPerfProfilerNext::Destroy(pRenderHal->pPerfProfilerNext, (void*)pRenderHal, pRenderHal->pOsInterface);
+       pRenderHal->pPerfProfilerNext = nullptr;
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS XRenderHal_Platform_Interface_Next::AddPerfCollectStartCmd(
     PRENDERHAL_INTERFACE pRenderHal,
     MOS_INTERFACE        *osInterface,
@@ -619,12 +677,12 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::AddPerfCollectStartCmd(
 {
     MOS_STATUS  eStatus = MOS_STATUS_SUCCESS;
     MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pPerfProfilerNext);
     MHW_RENDERHAL_CHK_NULL_RETURN(osInterface);
-    //MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pPerfProfiler);
-    MediaPerfProfilerNext *perfProfiler = MediaPerfProfilerNext::Instance();
-    MHW_RENDERHAL_CHK_NULL_RETURN(perfProfiler);
-
-    MHW_CHK_STATUS_RETURN(perfProfiler->AddPerfCollectStartCmd((void *)pRenderHal, osInterface, m_miItf, cmdBuffer));
+    MHW_RENDERHAL_CHK_NULL_RETURN(m_miItf);
+    MHW_RENDERHAL_CHK_NULL_RETURN(cmdBuffer);
+    
+    MHW_CHK_STATUS_RETURN(pRenderHal->pPerfProfilerNext->AddPerfCollectStartCmd((void *)pRenderHal, osInterface, m_miItf, cmdBuffer));
 
     return eStatus;
 }
@@ -664,14 +722,12 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::AddPerfCollectEndCmd(
 {
     MOS_STATUS  eStatus = MOS_STATUS_SUCCESS;
     MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pPerfProfilerNext);
     MHW_RENDERHAL_CHK_NULL_RETURN(pOsInterface);
     MHW_RENDERHAL_CHK_NULL_RETURN(m_miItf);
     MHW_RENDERHAL_CHK_NULL_RETURN(cmdBuffer);
-    //MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pPerfProfilerNext);
-    MediaPerfProfilerNext *perfProfiler = MediaPerfProfilerNext::Instance();
-    MHW_RENDERHAL_CHK_NULL_RETURN(perfProfiler);
 
-    MHW_CHK_STATUS_RETURN(perfProfiler->AddPerfCollectEndCmd((void *)pRenderHal, pOsInterface, m_miItf, cmdBuffer));
+    MHW_CHK_STATUS_RETURN(pRenderHal->pPerfProfilerNext->AddPerfCollectEndCmd((void *)pRenderHal, pOsInterface, m_miItf, cmdBuffer));
 
     return eStatus;
 }
@@ -771,14 +827,6 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::DestoryMhwInterface(
 {
     MOS_STATUS  eStatus = MOS_STATUS_SUCCESS;
     MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
-    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pMhwRenderInterface);
-
-    if (pRenderHal->pMhwRenderInterface)
-    {
-        MOS_Delete(pRenderHal->pMhwRenderInterface);
-        pRenderHal->pMhwRenderInterface = nullptr;
-    }
-
     // Destroy MHW MI Interface
     if (pRenderHal->pMhwMiInterface)
     {

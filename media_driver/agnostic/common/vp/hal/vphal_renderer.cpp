@@ -1768,7 +1768,7 @@ VphalRenderer::VphalRenderer(
     m_statusTable(nullptr),
     maxSrcRect(),
     pHdrState(nullptr),
-    m_pRenderHal(pRenderHal),
+    m_pRenderHal((PRENDERHAL_INTERFACE_LEGACY)pRenderHal),
     m_pOsInterface(pRenderHal ? pRenderHal->pOsInterface : nullptr),
     m_pSkuTable(nullptr),
     m_pWaTable(nullptr),

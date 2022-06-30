@@ -32,7 +32,7 @@
 #define __VPHAL_RENDER_VEBOX_UTIL_BASE_H__
 
 #include "mos_os.h"
-#include "renderhal.h"
+#include "renderhal_legacy.h"
 #include "mhw_vebox.h"
 #include "vphal_render_vebox_base.h"
 

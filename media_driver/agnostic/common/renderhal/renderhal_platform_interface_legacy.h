@@ -24,7 +24,7 @@
 //! \brief     abstract the platfrom specific APIs into one class 
 //!
 //!
-//! \file     renderhal.h
+//! \file     renderhal_platform_interface_legacy.h
 //! \brief    Render Engine Interfaces shared across platforms
 //! \details  Platform Independent Hardware Interfaces
 //!
@@ -32,7 +32,7 @@
 #define __RENDERHAL_PLATFORM_INTERFACE_LEGACY_H__
 
 #include "mos_os.h"
-#include "renderhal.h"
+#include "renderhal_legacy.h"
 #include "renderhal_platform_interface.h"
 #include "media_interfaces_mhw.h"
 
@@ -122,6 +122,20 @@ public:
     MOS_STATUS SetL3Cache(
         PRENDERHAL_INTERFACE        pRenderHal,
         PMOS_COMMAND_BUFFER         pCmdBuffer);
+    
+    //!
+    //! \brief    Get the size of render hal media state
+    //! \return   size_t
+    //!           The size of render hal media state
+    //!
+    size_t GetRenderHalMediaStateSize();
+
+    //!
+    //! \brief    Get the size of render hal state heap
+    //! \return   size_t
+    //!           The size of render hal state heap
+    //!
+    size_t GetRenderHalStateHeapSize();
 
     PMHW_MI_MMIOREGISTERS GetMmioRegisters(
         PRENDERHAL_INTERFACE        pRenderHal);
@@ -179,6 +193,12 @@ public:
         PMOS_COMMAND_BUFFER  pCmdBuffer,
         PMOS_CONTEXT         pOsContext,
         MHW_MI_MMIOREGISTERS *pMmioReg);
+
+    MOS_STATUS CreatePerfProfiler(
+        PRENDERHAL_INTERFACE pRenderHal);
+
+    MOS_STATUS DestroyPerfProfiler(
+        PRENDERHAL_INTERFACE pRenderHal);
 
     MOS_STATUS AddPerfCollectStartCmd(
         PRENDERHAL_INTERFACE pRenderHal,

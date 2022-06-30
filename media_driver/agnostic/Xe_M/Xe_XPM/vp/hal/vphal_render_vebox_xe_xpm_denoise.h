@@ -27,7 +27,7 @@
 #ifndef __VPHAL_RENDER_VEBOX_XE_XPM_DENOISE_H__
 #define __VPHAL_RENDER_VEBOX_XE_XPM_DENOISE_H__
 
-#include "renderhal.h"
+#include "renderhal_legacy.h"
 
 #if !EMUL
 #include "vphal_mdf_wrapper.h"

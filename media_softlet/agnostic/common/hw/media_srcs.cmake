@@ -47,6 +47,8 @@ set(TMP_HEADERS_
 
 set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/mhw_state_heap.c
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_block_manager.c
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_memory_pool.c
     ${CMAKE_CURRENT_LIST_DIR}/mhw_utilities_next.cpp  
 )
 

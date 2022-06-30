@@ -68,18 +68,15 @@ source_group("MHW\\VEBOX" FILES ${TMP_2_SOURCES_} ${TMP_2_HEADERS_})
 
 
 set(TMP_4_SOURCES_
-    ${CMAKE_CURRENT_LIST_DIR}/mhw_block_manager.c
-    ${CMAKE_CURRENT_LIST_DIR}/mhw_memory_pool.c
     ${CMAKE_CURRENT_LIST_DIR}/mhw_mi.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/mhw_render.c
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_render_legacy.c
     ${CMAKE_CURRENT_LIST_DIR}/mhw_state_heap_legacy.c
     ${CMAKE_CURRENT_LIST_DIR}/mhw_utilities.c
 )
 
 set(TMP_4_HEADERS_
-    ${CMAKE_CURRENT_LIST_DIR}/mhw_block_manager.h
-    ${CMAKE_CURRENT_LIST_DIR}/mhw_memory_pool.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_mi_generic.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_render_legacy.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_render_generic.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_state_heap_legacy.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_state_heap_generic.h

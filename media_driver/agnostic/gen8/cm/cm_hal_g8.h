@@ -28,7 +28,7 @@
 #define __CM_HAL_G8_H__
 
 #include "mos_os.h"
-#include "renderhal.h"
+#include "renderhal_legacy.h"
 #include "cm_def.h"
 #include "cm_hal.h"
 #include "mhw_vebox_hwcmd_g8_X.h"

@@ -824,12 +824,12 @@ MOS_STATUS VPHAL_VEBOX_STATE_XE_XPM::VeboxRenderVeboxCmd(
 {
     MOS_STATUS                        eStatus     = MOS_STATUS_SUCCESS;
     PVPHAL_VEBOX_RENDER_DATA          pRenderData = GetLastExecRenderData();
-    MhwVeboxInterfaceXe_Xpm *       pVeboxInterfaceXe_Xpm;
+    MhwVeboxInterfaceXe_Xpm *         pVeboxInterfaceXe_Xpm;
     PMHW_VEBOX_INTERFACE              pVeboxInterface;
     MHW_MI_ATOMIC_PARAMS              AtomicParams;
     MHW_MI_SEMAPHORE_WAIT_PARAMS      MiSemaphoreWaitParams;
-    PVPHAL_VEBOX_STATE_XE_XPM        pVeboxState = this;
-    PRENDERHAL_INTERFACE              pRenderHal;
+    PVPHAL_VEBOX_STATE_XE_XPM         pVeboxState = this;
+    PRENDERHAL_INTERFACE_LEGACY       pRenderHal;
     bool                              bDiVarianceEnable;
     PMOS_INTERFACE                    pOsInterface;
     uint32_t                          IdxofVebox;

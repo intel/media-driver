@@ -19,12 +19,12 @@
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 * OTHER DEALINGS IN THE SOFTWARE.
 */
-//! \file     mhw_render.c
+//! \file     mhw_render_legacy.c
 //! \brief    MHW interface for constructing commands for the render engine
 //! \details  Impelements the functionalities common across all platforms for MHW_RENDER
 //!
 
-#include "mhw_render.h"
+#include "mhw_render_legacy.h"
 
 //!
 //! \brief    Allocates the MHW render interface internal parameters

@@ -29,7 +29,7 @@
 
 #include "cm_hal.h"
 #include "mos_os.h"
-#include "renderhal.h"
+#include "renderhal_legacy.h"
 #include "cm_def.h"
 #include "mhw_vebox_hwcmd_g9_X.h"
 #include "mhw_render_hwcmd_g9_X.h"

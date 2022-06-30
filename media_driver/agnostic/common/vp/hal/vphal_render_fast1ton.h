@@ -29,7 +29,7 @@
 #define __VPHAL_RENDER_FAST1TON_H__
 
 #include "mos_os.h"
-#include "renderhal.h"
+#include "renderhal_legacy.h"
 #include "vphal_render_common.h"
 
 #define MAX_1TON_SUPPORT 3    // currently the multi output number max support 3

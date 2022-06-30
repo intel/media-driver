@@ -29,7 +29,7 @@
 #include "mhw_state_heap_hwcmd_g10_X.h"
 #include "cm_def.h"
 #include "renderhal_platform_interface.h"
-#include "mhw_render.h"
+#include "mhw_render_legacy.h"
 #if defined(ENABLE_KERNELS) && (!defined(_FULL_OPEN_SOURCE))
 #include "cm_gpucopy_kernel_g10.h"
 #include "cm_gpuinit_kernel_g10.h"
@@ -75,7 +75,7 @@ MOS_STATUS CM_HAL_G10_X::SubmitCommands(
 {
     MOS_STATUS                   eStatus        = MOS_STATUS_SUCCESS;
     PCM_HAL_STATE                state          = m_cmState;
-    PRENDERHAL_INTERFACE         renderHal      = state->renderHal;
+    PRENDERHAL_INTERFACE_LEGACY  renderHal      = state->renderHal;
     PMOS_INTERFACE               osInterface    = renderHal->pOsInterface;
     MhwRenderInterface           *mhwRender     = renderHal->pMhwRenderInterface;
     PMHW_MI_INTERFACE            mhwMiInterface = renderHal->pMhwMiInterface;
@@ -313,7 +313,7 @@ MOS_STATUS CM_HAL_G10_X::SubmitCommands(
     // Send Interface Descriptor Load
     if (state->dshEnabled)
     {
-        PRENDERHAL_DYNAMIC_STATE dynamicState = stateHeap->pCurMediaState->pDynamicState;
+        PRENDERHAL_DYNAMIC_STATE dynamicState = ((PRENDERHAL_MEDIA_STATE_LEGACY)stateHeap->pCurMediaState)->pDynamicState;
         idLoadParams.dwInterfaceDescriptorStartOffset = dynamicState->memoryBlock.GetOffset() +
                                                         dynamicState->MediaID.dwOffset;
         idLoadParams.dwInterfaceDescriptorLength      = dynamicState->MediaID.iCount * stateHeap->dwSizeMediaID;

@@ -27,7 +27,7 @@
 #if !EMUL
 
 #include "vphal_render_hdr_g11.h"
-#include "renderhal.h"
+#include "renderhal_legacy.h"
 #include "mos_interface.h"
 
 static const std::string DumpRoot("C:\\temp\\");

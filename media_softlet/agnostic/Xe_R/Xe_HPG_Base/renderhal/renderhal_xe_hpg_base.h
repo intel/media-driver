@@ -215,39 +215,6 @@ public:
         PRENDERHAL_L3_CACHE_SETTINGS pCacheSettings);
 
     //!
-    //! \brief    Get offset and/or pointer to sampler state
-    //! \details  Get offset and/or pointer to sampler state in General State Heap
-    //! \param    PRENDERHAL_INTERFACE pRenderHal
-    //!           [in] Pointer to RenderHal Interface
-    //! \param    int32_t iMediaID
-    //!           [in] Media ID associated with sampler
-    //! \param    int32_t iSamplerID
-    //!           [in] Sampler ID
-    //! \param    uint32_t *pdwSamplerOffset
-    //!           [out] optional; offset of sampler state from GSH base
-    //! \param    void  **ppSampler
-    //!           [out] optional; pointer to sampler state in GSH
-    //! \return   MOS_STATUS
-    //!
-    virtual MOS_STATUS GetSamplerOffsetAndPtr_DSH(
-        PRENDERHAL_INTERFACE     pRenderHal,
-        int32_t                  iMediaID,
-        int32_t                  iSamplerID,
-        PMHW_SAMPLER_STATE_PARAM pSamplerParams,
-        uint32_t *               pdwSamplerOffset,
-        void **                  ppSampler);
-
-    //!
-    //! \brief      Initialize the DSH Settings
-    //! \details    Initialize the structure DynamicHeapSettings in pRenderHal
-    //! \param      PRENDERHAL_INTERFACE pRenderHal
-    //!             [in]    Pointer to HW interface
-    //! \return     void
-    //!
-    virtual void InitDynamicHeapSettings(
-        PRENDERHAL_INTERFACE pRenderHal);
-
-    //!
     //! \brief      Get the pointer to the MHW_VFE_PARAMS
     //! \return     MHW_VFE_PARAMS*
     //!             pointer to the MHW_VFE_PARAMS

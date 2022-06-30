@@ -28,7 +28,7 @@
 #define __VPHAL_RENDER_VEBOX_BASE_H__
 
 #include "mos_os.h"
-#include "renderhal.h"
+#include "renderhal_legacy.h"
 #include "mhw_vebox.h"
 #include "vphal.h"
 #include "vphal_render_renderstate.h"

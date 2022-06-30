@@ -29,9 +29,9 @@
 #ifndef __MEDIA_MEM_COMPRESSION_NEXT_H__
 #define __MEDIA_MEM_COMPRESSION_NEXT_H__
 
-#include "mhw_render.h"
 #include "mos_os.h"
 #include "mos_os_specific.h"
+#include "mhw_mi_itf.h"
 
 class MediaMemCompNext
 {

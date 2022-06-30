@@ -24,7 +24,7 @@
 //! \brief    Common Copy interface and structure used in Vebox Engine
 //! \details  Common Copy interface and structure used in Vebox Engine
 #include "media_vebox_copy.h"
-#include "renderhal.h"
+#include "renderhal_legacy.h"
 #include "mhw_vebox_itf.h"
 
 #define SURFACE_DW_UY_OFFSET(pSurface) \

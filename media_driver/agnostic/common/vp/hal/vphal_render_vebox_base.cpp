@@ -1211,7 +1211,7 @@ finish:
 //!
 MOS_STATUS VPHAL_VEBOX_STATE::VeboxFlushUpdateStateCmdBuffer()
 {
-    PRENDERHAL_INTERFACE                pRenderHal = nullptr;
+    PRENDERHAL_INTERFACE_LEGACY         pRenderHal = nullptr;
     PRENDERHAL_STATE_HEAP               pStateHeap = nullptr;
     MhwRenderInterface                  *pMhwRender = nullptr;
     PMOS_INTERFACE                      pOsInterface = nullptr;
@@ -1226,7 +1226,6 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxFlushUpdateStateCmdBuffer()
     MHW_ID_LOAD_PARAMS                  IdLoadParams = {};
     PVPHAL_VEBOX_STATE                  pVeboxState = this;
     PVPHAL_VEBOX_RENDER_DATA            pRenderData = GetLastExecRenderData();
-    MediaPerfProfiler                   *pPerfProfiler = nullptr;
     MOS_CONTEXT                         *pOsContext = nullptr;
     PMHW_MI_MMIOREGISTERS               pMmioRegisters = nullptr;
 
@@ -1237,13 +1236,13 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxFlushUpdateStateCmdBuffer()
     VPHAL_RENDER_CHK_NULL(pVeboxState->m_pRenderHal->pMhwRenderInterface->GetMmioRegisters());
     VPHAL_RENDER_CHK_NULL(pVeboxState->m_pRenderHal->pOsInterface);
     VPHAL_RENDER_CHK_NULL(pVeboxState->m_pRenderHal->pOsInterface->pOsContext);
+    VPHAL_RENDER_CHK_NULL(pVeboxState->m_pRenderHal->pRenderHalPltInterface);
 
     pRenderHal              = pVeboxState->m_pRenderHal;
     pStateHeap              = pRenderHal->pStateHeap;
     pMhwRender              = pRenderHal->pMhwRenderInterface;
     pMhwMiInterface         = pRenderHal->pMhwMiInterface;
     pOsInterface            = pRenderHal->pOsInterface;
-    pPerfProfiler           = pRenderHal->pPerfProfiler;
     pOsContext              = pOsInterface->pOsContext;
     pMmioRegisters          = pMhwRender->GetMmioRegisters();
 
@@ -1263,7 +1262,8 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxFlushUpdateStateCmdBuffer()
 
     // Initialize command buffer and insert prolog
     VPHAL_RENDER_CHK_STATUS(pRenderHal->pfnInitCommandBuffer(pRenderHal, &CmdBuffer, nullptr));
-    VPHAL_RENDER_CHK_STATUS(pPerfProfiler->AddPerfCollectStartCmd((void*)pRenderHal, pOsInterface, pRenderHal->pMhwMiInterface, &CmdBuffer));
+    
+    VPHAL_RENDER_CHK_STATUS(pRenderHal->pRenderHalPltInterface->AddPerfCollectStartCmd(pRenderHal, pOsInterface, &CmdBuffer));
 
     VPHAL_RENDER_CHK_STATUS(NullHW::StartPredicate(pRenderHal->pMhwMiInterface, &CmdBuffer));
 
@@ -1372,7 +1372,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxFlushUpdateStateCmdBuffer()
 
     VPHAL_RENDER_CHK_STATUS(NullHW::StopPredicate(pRenderHal->pMhwMiInterface, &CmdBuffer));
 
-    VPHAL_RENDER_CHK_STATUS(pPerfProfiler->AddPerfCollectEndCmd((void*)pRenderHal, pOsInterface, pRenderHal->pMhwMiInterface, &CmdBuffer));
+    VPHAL_RENDER_CHK_STATUS(pRenderHal->pRenderHalPltInterface->AddPerfCollectEndCmd(pRenderHal, pOsInterface, &CmdBuffer));
 
     HalOcaInterface::On1stLevelBBEnd(CmdBuffer, *pOsInterface);
 
@@ -1956,7 +1956,6 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxRenderVeboxCmd(
     const MHW_VEBOX_HEAP                    *pVeboxHeap = nullptr;
     PVPHAL_VEBOX_STATE                      pVeboxState = this;
     PVPHAL_VEBOX_RENDER_DATA                pRenderData = GetLastExecRenderData();
-    MediaPerfProfiler                       *pPerfProfiler = nullptr;
     MOS_CONTEXT                             *pOsContext = nullptr;
     PMHW_MI_MMIOREGISTERS                   pMmioRegisters = nullptr;
 
@@ -1966,13 +1965,13 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxRenderVeboxCmd(
     VPHAL_RENDER_CHK_NULL(pVeboxState->m_pRenderHal->pMhwMiInterface->GetMmioRegisters());
     VPHAL_RENDER_CHK_NULL(pVeboxState->m_pRenderHal->pOsInterface);
     VPHAL_RENDER_CHK_NULL(pVeboxState->m_pRenderHal->pOsInterface->pOsContext);
+    VPHAL_RENDER_CHK_NULL(pVeboxState->m_pRenderHal->pRenderHalPltInterface);
 
     eStatus                 = MOS_STATUS_SUCCESS;
     pRenderHal              = pVeboxState->m_pRenderHal;
     pMhwMiInterface         = pRenderHal->pMhwMiInterface;
     pOsInterface            = pVeboxState->m_pOsInterface;
     pVeboxInterface         = pVeboxState->m_pVeboxInterface;
-    pPerfProfiler           = pRenderHal->pPerfProfiler;
     pOsContext              = pOsInterface->pOsContext;
     pMmioRegisters          = pMhwMiInterface->GetMmioRegisters();
 
@@ -1991,7 +1990,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxRenderVeboxCmd(
     // Initialize command buffer and insert prolog
     VPHAL_RENDER_CHK_STATUS(pRenderHal->pfnInitCommandBuffer(pRenderHal, &CmdBuffer, pGenericPrologParams));
 
-    VPHAL_RENDER_CHK_STATUS(pPerfProfiler->AddPerfCollectStartCmd((void*)pRenderHal, pOsInterface, pRenderHal->pMhwMiInterface, &CmdBuffer));
+    VPHAL_RENDER_CHK_STATUS(pRenderHal->pRenderHalPltInterface->AddPerfCollectStartCmd(pRenderHal, pOsInterface, &CmdBuffer));
 
     VPHAL_RENDER_CHK_STATUS(NullHW::StartPredicate(pRenderHal->pMhwMiInterface, &CmdBuffer));
 
@@ -2158,7 +2157,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxRenderVeboxCmd(
 
     VPHAL_RENDER_CHK_STATUS(NullHW::StopPredicate(pRenderHal->pMhwMiInterface, &CmdBuffer));
 
-    VPHAL_RENDER_CHK_STATUS(pPerfProfiler->AddPerfCollectEndCmd((void*)pRenderHal, pOsInterface, pRenderHal->pMhwMiInterface, &CmdBuffer));
+    VPHAL_RENDER_CHK_STATUS(pRenderHal->pRenderHalPltInterface->AddPerfCollectEndCmd(pRenderHal, pOsInterface, &CmdBuffer));
 
     HalOcaInterface::On1stLevelBBEnd(CmdBuffer, *pOsInterface);
 

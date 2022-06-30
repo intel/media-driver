@@ -32,7 +32,7 @@
 #define __VPHAL_RENDER_16ALIGNMENT_H__
 
 #include "mos_os.h"
-#include "renderhal.h"
+#include "renderhal_legacy.h"
 #include "vphal_render_common.h"
 
 // Static Data for Gen9 16ALIGN kernel

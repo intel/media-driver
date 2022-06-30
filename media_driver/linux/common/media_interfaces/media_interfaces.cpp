@@ -38,7 +38,7 @@
 
 #include "mhw_cp_interface.h"
 #include "mhw_mi.h"
-#include "mhw_render.h"
+#include "mhw_render_legacy.h"
 #include "mhw_sfc.h"
 #include "mhw_state_heap.h"
 #include "mhw_vebox.h"

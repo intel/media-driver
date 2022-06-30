@@ -28,7 +28,7 @@
 #ifndef __MHW_RENDER_GENERIC_H__
 #define __MHW_RENDER_GENERIC_H__
 
-#include "mhw_render.h"
+#include "mhw_render_legacy.h"
 
 template <class TRenderCmds>
 class MhwRenderInterfaceGeneric : public MhwRenderInterface

@@ -26,6 +26,8 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mhw_render.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_utilities.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_state_heap.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_block_manager.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_memory_pool.h
 )
 
 set(HEADERS_

@@ -19,16 +19,15 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 set(TMP_SOURCES_
-    ${CMAKE_CURRENT_LIST_DIR}/renderhal.cpp
     ${CMAKE_CURRENT_LIST_DIR}/renderhal_dsh.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/renderhal_legacy.cpp
     ${CMAKE_CURRENT_LIST_DIR}/renderhal_common.cpp
     ${CMAKE_CURRENT_LIST_DIR}/renderhal_platform_interface_legacy.cpp
 )
 
 set(TMP_HEADERS_
-    ${CMAKE_CURRENT_LIST_DIR}/renderhal.h
     ${CMAKE_CURRENT_LIST_DIR}/renderhal_dsh.h
-    ${CMAKE_CURRENT_LIST_DIR}/renderhal_platform_interface.h
+    ${CMAKE_CURRENT_LIST_DIR}/renderhal_legacy.h
     ${CMAKE_CURRENT_LIST_DIR}/renderhal_platform_interface_legacy.h
     ${CMAKE_CURRENT_LIST_DIR}/vphal_renderhal_common.h
 )

@@ -25,7 +25,7 @@
 //! \details  Linux-specific Render Engine state heap management interfaces
 //!
 #include "mos_os.h"
-#include "renderhal.h"
+#include "renderhal_legacy.h"
 
 void RenderHal_SetupPrologParams(
     PRENDERHAL_INTERFACE              renderHal,
@@ -439,6 +439,19 @@ MOS_STATUS RenderHal_AddDebugControl(
     MHW_RENDERHAL_UNUSED(pRenderHal);
     MHW_RENDERHAL_UNUSED(pCmdBuffer);
     return MOS_STATUS_SUCCESS;
+}
+
+//!
+//! \brief    Init Special Interface
+//! \details  Initializes RenderHal Interface structure, responsible for HW
+//!           abstraction of HW Rendering Engine for CM(MDF) and VP.
+//! \param    PRENDERHAL_INTERFACE pRenderHal
+//!           [in] Pointer to RenderHal Interface Structure
+//!
+void RenderHal_InitInterfaceEx_Legacy(PRENDERHAL_INTERFACE_LEGACY pRenderHal)
+{
+    RenderHal_InitInterfaceEx(pRenderHal);
+    return;
 }
 
 //!

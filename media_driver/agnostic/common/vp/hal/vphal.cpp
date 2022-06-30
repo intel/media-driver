@@ -29,7 +29,7 @@
 #include "mos_os.h"
 #include "mos_interface.h"
 #include "mhw_vebox.h"
-#include "renderhal.h"
+#include "renderhal_legacy.h"
 #include "vphal_renderer.h"
 #include "mos_solo_generic.h"
 #include "media_interfaces_vphal.h"
@@ -50,7 +50,7 @@ MOS_STATUS VphalState::Allocate(
     const VphalSettings       *pVpHalSettings)
 {
     MHW_VEBOX_GPUNODE_LIMIT     GpuNodeLimit;
-    RENDERHAL_SETTINGS          RenderHalSettings;
+    RENDERHAL_SETTINGS_LEGACY   RenderHalSettings;
     MOS_GPU_NODE                VeboxGpuNode;
     MOS_GPU_CONTEXT             VeboxGpuContext;
     bool                        checkGpuCtxOverwriten = false;
@@ -704,9 +704,9 @@ VphalState::VphalState(
     m_userSettingPtr = m_osInterface->pfnGetUserSettingInstance(m_osInterface);
     VpUtils::DeclareUserSettings(m_userSettingPtr);
 
-    m_renderHal = (PRENDERHAL_INTERFACE)MOS_AllocAndZeroMemory(sizeof(*m_renderHal));
+    m_renderHal = (PRENDERHAL_INTERFACE_LEGACY)MOS_AllocAndZeroMemory(sizeof(RENDERHAL_INTERFACE_LEGACY));
     VPHAL_PUBLIC_CHK_NULL(m_renderHal);
-    VPHAL_PUBLIC_CHK_STATUS(RenderHal_InitInterface(
+    VPHAL_PUBLIC_CHK_STATUS(RenderHal_InitInterface_Legacy(
         m_renderHal,
         &m_cpInterface,
         m_osInterface));

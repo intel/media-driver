@@ -30,7 +30,7 @@
 #define __VPHAL_RENDER_SFC_BASE_H__
 
 #include "mhw_sfc.h"
-#include "renderhal.h"
+#include "renderhal_legacy.h"
 #include "vphal.h"
 #include "vphal_render_common.h"
 #include "vphal_render_vebox_iecp.h"

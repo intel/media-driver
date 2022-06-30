@@ -37,7 +37,7 @@
 
 #if (_DEBUG || _RELEASE_INTERNAL)
 
-#include "renderhal.h"
+#include "renderhal_legacy.h"
 #include "mhw_vebox.h"
 
 #if !defined(LINUX) && !defined(ANDROID)

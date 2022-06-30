@@ -26,7 +26,7 @@
 //!
 
 #include "mos_os.h"
-#include "renderhal.h"
+#include "renderhal_legacy.h"
 #include "renderhal_g9.h"
 #include "mhw_state_heap_g9.h"
 
@@ -496,9 +496,10 @@ MOS_STATUS XRenderHal_Interface_g9::EnableL3Caching(
     MHW_RENDER_ENGINE_L3_CACHE_SETTINGS  mHwL3CacheConfig = {};
     PMHW_RENDER_ENGINE_L3_CACHE_SETTINGS pCacheConfig;
     MhwRenderInterface                   *pMhwRender;
+    PRENDERHAL_INTERFACE_LEGACY          pRenderHalLegacy = (PRENDERHAL_INTERFACE_LEGACY)pRenderHal;
 
-    MHW_RENDERHAL_CHK_NULL(pRenderHal);
-    pMhwRender = pRenderHal->pMhwRenderInterface;
+    MHW_RENDERHAL_CHK_NULL(pRenderHalLegacy);
+    pMhwRender = pRenderHalLegacy->pMhwRenderInterface;
     MHW_RENDERHAL_CHK_NULL(pMhwRender);
 
     if (nullptr == pCacheSettings)
@@ -565,7 +566,7 @@ MOS_STATUS XRenderHal_Interface_g9::GetSamplerOffsetAndPtr_DSH(
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pHwSizes);
 
     pStateHeap    = pRenderHal->pStateHeap;
-    pDynamicState = pStateHeap->pCurMediaState->pDynamicState;
+    pDynamicState = ((PRENDERHAL_MEDIA_STATE_LEGACY)pStateHeap->pCurMediaState)->pDynamicState;
 
     MHW_RENDERHAL_CHK_NULL(pDynamicState);
 
@@ -643,10 +644,10 @@ finish:
 void XRenderHal_Interface_g9::InitDynamicHeapSettings(
     PRENDERHAL_INTERFACE  pRenderHal)
 {
-    MHW_RENDERHAL_CHK_NULL_NO_STATUS_RETURN(pRenderHal);
-
+    PRENDERHAL_INTERFACE_LEGACY pRenderHalLegacy = static_cast<PRENDERHAL_INTERFACE_LEGACY>(pRenderHal);
+    MHW_RENDERHAL_CHK_NULL_NO_STATUS_RETURN(pRenderHalLegacy);
     // Additional Dynamic State Heap settings for g9
-    pRenderHal->DynamicHeapSettings           = g_cRenderHal_DSH_Settings_g9;
+    pRenderHalLegacy->DynamicHeapSettings           = g_cRenderHal_DSH_Settings_g9;
 }
 
 //!

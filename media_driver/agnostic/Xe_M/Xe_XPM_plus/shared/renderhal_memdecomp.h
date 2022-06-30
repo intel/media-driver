@@ -28,10 +28,10 @@
 #ifndef __RENDERHAL_MEMDECOMP_H__
 #define __RENDERHAL_MEMDECOMP_H__
 
-#include "mhw_render.h"
+#include "mhw_render_legacy.h"
 #include "mos_os.h"
 #include "mediamemdecomp.h"
-#include "renderhal.h"
+#include "renderhal_legacy.h"
 
 //------------------------------------------------------------------------------
 // Macros specific to MOS_VP_SUBCOMP_RENDER sub-comp

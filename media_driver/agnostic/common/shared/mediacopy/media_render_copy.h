@@ -162,7 +162,7 @@ public:
     PMOS_INTERFACE               m_osInterface     = nullptr;
     MhwInterfaces               *m_mhwInterfaces   = nullptr;
     MhwRenderInterface          *m_renderInterface = nullptr;
-    RENDERHAL_INTERFACE         *m_renderHal       = nullptr;
+    RENDERHAL_INTERFACE_LEGACY  *m_renderHal       = nullptr;
     MhwCpInterface              *m_cpInterface     = nullptr;
     void                        *m_pKernelBin      = nullptr;
     Kdll_State                  *m_pKernelDllState = nullptr;//!< Kernel DLL state 

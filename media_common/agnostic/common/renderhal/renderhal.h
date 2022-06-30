@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2021, Intel Corporation
+* Copyright (c) 2009-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -34,12 +34,8 @@
 #include "mos_os.h"                     // Interface to OS functions
 #include "mhw_state_heap.h"
 #include "mhw_render.h"
-
-#include "renderhal_dsh.h"
 #include "mhw_memory_pool.h"
-#include "cm_hal_hashtable.h"
-#include "media_perf_profiler.h"
-
+#include "media_perf_profiler_next.h"
 #include "frame_tracker.h"
 #include "media_common_defs.h"
 
@@ -434,8 +430,6 @@ struct SURFACE_STATE_TOKEN_COMMON
 
 };
 
-extern const SURFACE_STATE_TOKEN_COMMON g_cInit_SURFACE_STATE_TOKEN_COMMON;
-
 // Forward declarations
 typedef struct _RENDERHAL_SURFACE    RENDERHAL_SURFACE, *PRENDERHAL_SURFACE;
 typedef struct _RENDERHAL_INTERFACE  RENDERHAL_INTERFACE, *PRENDERHAL_INTERFACE;
@@ -449,9 +443,6 @@ typedef const struct _RENDERHAL_KERNEL_PARAM CRENDERHAL_KERNEL_PARAM, *PCRENDERH
 typedef struct _RENDERHAL_SETTINGS
 {
     int32_t iMediaStates;
-
-    PRENDERHAL_DYN_HEAP_SETTINGS pDynSettings; // Dynamic State Heap Settings
-
 } RENDERHAL_SETTINGS, *PRENDERHAL_SETTINGS;
 
 //!
@@ -790,8 +781,6 @@ typedef struct _RENDERHAL_KRN_ALLOC_LIST
 
 typedef struct _RENDERHAL_MEDIA_STATE *PRENDERHAL_MEDIA_STATE;
 
-typedef struct _RENDERHAL_DYNAMIC_STATE *PRENDERHAL_DYNAMIC_STATE;
-
 typedef struct _RENDERHAL_MEDIA_STATE
 {
     // set at creation time
@@ -809,7 +798,6 @@ typedef struct _RENDERHAL_MEDIA_STATE
 
     PRENDERHAL_MEDIA_STATE      pPrev;                                          // Next Media State
     PRENDERHAL_MEDIA_STATE      pNext;                                          // Previous Media State
-    PRENDERHAL_DYNAMIC_STATE    pDynamicState;                                  // Dynamic states (nullptr if DSH not in use)
 } RENDERHAL_MEDIA_STATE, *PRENDERHAL_MEDIA_STATE;
 
 typedef struct _RENDERHAL_MEDIA_STATE_LIST
@@ -974,8 +962,7 @@ typedef struct _RENDERHAL_STATE_HEAP
     PMHW_MEMORY_POOL               pKernelAllocMemPool;                         // Kernel states memory pool (mallocs)
     RENDERHAL_KRN_ALLOC_LIST       KernelAllocationPool;                        // Pool of kernel allocation objects
     RENDERHAL_KRN_ALLOC_LIST       KernelsSubmitted;                            // Kernel submission list
-    RENDERHAL_KRN_ALLOC_LIST       KernelsAllocated;                            // kernel allocation list (kernels in ISH not currently being executed)                         
-    CmHashTable                    kernelHashTable;                             // Kernel hash table for faster kernel search
+    RENDERHAL_KRN_ALLOC_LIST       KernelsAllocated;                            // kernel allocation list (kernels in ISH not currently being executed)
 
 } RENDERHAL_STATE_HEAP, *PRENDERHAL_STATE_HEAP;
 
@@ -1143,7 +1130,6 @@ typedef struct _RENDERHAL_INTERFACE
     MhwCpInterface               *pCpInterface;
     PXMHW_STATE_HEAP_INTERFACE   pMhwStateHeap;
     PMHW_MI_INTERFACE            pMhwMiInterface;
-    MhwRenderInterface           *pMhwRenderInterface;
 
     // RenderHal State Heap
     PRENDERHAL_STATE_HEAP        pStateHeap;
@@ -1169,7 +1155,6 @@ typedef struct _RENDERHAL_INTERFACE
     PMHW_RENDER_ENGINE_CAPS       pHwCaps;                                      // HW Capabilities
     PMHW_RENDER_STATE_SIZES       pHwSizes;                                     // Sizes of HW commands/states
     RENDERHAL_STATE_HEAP_SETTINGS StateHeapSettings;                            // State Heap Settings
-    RENDERHAL_DYN_HEAP_SETTINGS   DynamicHeapSettings;                          // Dynamic State Heap Settings
 
     // MHW parameters
     MHW_STATE_BASE_ADDR_PARAMS   StateBaseAddressParams;
@@ -1267,7 +1252,6 @@ typedef struct _RENDERHAL_INTERFACE
 
     bool                        isMMCEnabled;
 
-    MediaPerfProfiler               *pPerfProfiler = nullptr;  //!< Performance data profiler
     MediaPerfProfilerNext           *pPerfProfilerNext  = nullptr;  //!< Performance data profiler
     bool                            eufusionBypass = false;
 
@@ -1558,22 +1542,6 @@ typedef struct _RENDERHAL_INTERFACE
         uint32_t                            dwAdditionalKernelSpaceNeeded);
 
     //---------------------------
-    // ISA ASM Debug support functions
-    //---------------------------
-    int32_t (* pfnLoadDebugKernel)(
-                PRENDERHAL_INTERFACE        pRenderHal,
-                PMHW_KERNEL_PARAM           pKernel);
-
-    MOS_STATUS (* pfnLoadSipKernel) (
-                PRENDERHAL_INTERFACE        pRenderHal,
-                void                        *pSipKernel,
-                uint32_t                    dwSipSize);
-
-    MOS_STATUS (* pfnSendSipStateCmd) (
-        PRENDERHAL_INTERFACE                pRenderHal,
-        PMOS_COMMAND_BUFFER                 pCmdBuffer);
-
-    //---------------------------
     // HW interface configuration functions
     //---------------------------
     MOS_STATUS (* pfnSetVfeStateParams) (
@@ -1618,13 +1586,6 @@ typedef struct _RENDERHAL_INTERFACE
                 PMOS_COMMAND_BUFFER         pCmdBuffer,
                 PMOS_RESOURCE               presCscCoeff,
                 Kdll_CacheEntry             *pKernelEntry);
-
-    void       (* pfnSetupPrologParams) (
-                PRENDERHAL_INTERFACE             renderHal,
-                RENDERHAL_GENERIC_PROLOG_PARAMS  *prologParams,
-                PMOS_RESOURCE                    osResource,
-                uint32_t                         offset,
-                uint32_t                         tag);
 
     // Samplers and other states
     MOS_STATUS (*pfnGetSamplerOffsetAndPtr) (
@@ -1745,7 +1706,6 @@ typedef struct _RENDERHAL_INTERFACE
     //!
     PMHW_MI_MMIOREGISTERS GetMmioRegisters();
 
-
     //-----------------------------
     //Platform related interface
     XRenderHal_Platform_Interface           *pRenderHalPltInterface;
@@ -1770,25 +1730,6 @@ typedef struct _RENDERHAL_INTERFACE
 //!           MOS_STATUS_UNKNOWN : Invalid parameters
 //!
 MOS_STATUS RenderHal_InitInterface(
-    PRENDERHAL_INTERFACE        pRenderHal,
-    MhwCpInterface              **ppCpInterface,
-    PMOS_INTERFACE              pOsInterface);
-
-//!
-//! \brief    Init Interface using Dynamic State Heap
-//! \details  Initializes RenderHal Interface structure, responsible for HW
-//!           abstraction of HW Rendering Engine for CM(MDF) and VP.
-//! \param    PRENDERHAL_INTERFACE pRenderHal
-//!           [in] Pointer to RenderHal Interface Structure
-//! \param    MhwCpInterface** ppCpInterface
-//!           [in/out] Pointer of pointer to MHW CP Interface Structure, which 
-//!           is created during renderhal initialization
-//! \param    PMOS_INTERFACE pOsInterface
-//!           [in] Pointer to OS Interface Structure
-//! \return   MOS_STATUS
-//!           MOS_STATUS_UNKNOWN : Invalid parameters
-//!
-MOS_STATUS RenderHal_InitInterface_Dynamic(
     PRENDERHAL_INTERFACE        pRenderHal,
     MhwCpInterface              **ppCpInterface,
     PMOS_INTERFACE              pOsInterface);
@@ -1904,7 +1845,64 @@ MOS_STATUS RenderHal_SendTimingData(
     PMOS_COMMAND_BUFFER          pCmdBuffer,
     bool                         bStartTime);
 
+//!
+//! \brief    Get Y Offset according to the planeOffset struct and surface pitch
+//! \details  Get Y Offset according to the planeOffset struct and surface pitch
+//! \param    pOsInterface
+//!           [in] pointer to OS Interface
+//! \param    pOsResource
+//!           [in] Pointers to Surface OsResource
+//! \return   uint16_t
+//!           [out] the plane Y offset
+//!
+uint16_t RenderHal_CalculateYOffset(
+    PMOS_INTERFACE      pOsInterface, 
+    PMOS_RESOURCE       pOsResource);
+
+MOS_STATUS RenderHal_AllocateDebugSurface(
+    PRENDERHAL_INTERFACE    pRenderHal);
+
+MOS_STATUS RenderHal_SetupDebugSurfaceState(
+    PRENDERHAL_INTERFACE    pRenderHal);
+
+void RenderHal_FreeDebugSurface(
+    PRENDERHAL_INTERFACE    pRenderHal);
+
+MOS_STATUS RenderHal_AddDebugControl(
+    PRENDERHAL_INTERFACE    pRenderHal,
+    PMOS_COMMAND_BUFFER     pCmdBuffer);
+
+
+MOS_STATUS RenderHal_SetSurfaceStateToken(
+    PRENDERHAL_INTERFACE        pRenderHal,
+    PMHW_SURFACE_TOKEN_PARAMS   pParams,
+    void                        *pSurfaceStateToken);
+
+//!
+//! \brief    Send Surfaces PatchList
+//! \details  Send Surface State commands
+//! \param    PRENDERHAL_INTERFACE pRenderHal
+//!           [in] Pointer to Hardware Interface Structure
+//! \param    PMOS_COMMAND_BUFFER pCmdBuffer
+//!           [in] Pointer to Command Buffer
+//! \return   MOS_STATUS
+//!
+MOS_STATUS RenderHal_SendSurfaces_PatchList(
+    PRENDERHAL_INTERFACE    pRenderHal,
+    PMOS_COMMAND_BUFFER     pCmdBuffer);
+
+//!
+//! \brief    Init Special Interface
+//! \details  Initializes RenderHal Interface structure, responsible for HW
+//!           abstraction of HW Rendering Engine for CM(MDF) and VP.
+//! \param    PRENDERHAL_INTERFACE pRenderHal
+//!           [in] Pointer to RenderHal Interface Structure
+//!
+void RenderHal_InitInterfaceEx(
+    PRENDERHAL_INTERFACE    pRenderHal);
+
 // Constants defined in RenderHal interface
+extern const SURFACE_STATE_TOKEN_COMMON   g_cInit_SURFACE_STATE_TOKEN_COMMON;
 extern const MHW_PIPE_CONTROL_PARAMS      g_cRenderHal_InitPipeControlParams;
 extern const MHW_VFE_PARAMS               g_cRenderHal_InitVfeParams;
 extern const MHW_MEDIA_STATE_FLUSH_PARAM  g_cRenderHal_InitMediaStateFlushParams;

@@ -31,7 +31,7 @@
 
 #include "media_render_copy.h"
 #include "media_interfaces_mhw.h"
-#include "mhw_render.h"
+#include "mhw_render_legacy.h"
 #include "mhw_mi.h"
 #include "mhw_cp_interface.h"
 #include "mos_os.h"

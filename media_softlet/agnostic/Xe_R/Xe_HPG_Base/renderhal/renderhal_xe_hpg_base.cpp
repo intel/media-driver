@@ -78,23 +78,6 @@ const uint32_t g_cLookup_RotationMode_hpg_base[8] =
 
 #define RENDERHAL_NS_PER_TICK_RENDER_HPG_BASE        (83.333)                                  // Assume it same as SKL, 83.333 nano seconds per tick in render engine
 
-//!
-//! DSH State Heap settings for Xe_hpg_base
-//!
-const RENDERHAL_DYN_HEAP_SETTINGS g_cRenderHal_DSH_Settings_hpg_base =
-{
-    0x0080000,  // dwDshInitialSize    = 512MB
-    0x0080000,  // dwDshSizeIncrement  = 512kB
-    0x8000000,  // dwDshMaximumSize    = 128MB (all heaps)
-    0x0100000,  // dwIshInitialSize    = 1M
-    0x0040000,  // dwIshSizeIncrement  = 256kB
-    0x0400000,  // dwIshMaximumSize    = 4MB
-    16,         // iMinMediaStates
-    256,        // iMaxMediaStates
-    16,         // iMinKernels
-    2048        // iMaxKernels
-};
-
 XRenderHal_Interface_Xe_Hpg_Base::XRenderHal_Interface_Xe_Hpg_Base()
 {
     MOS_ZeroMemory(&m_scratchSpaceResource, sizeof(m_scratchSpaceResource));
@@ -511,159 +494,29 @@ MOS_STATUS XRenderHal_Interface_Xe_Hpg_Base::EnableL3Caching(
     VP_FUNC_CALL();
 
     MOS_STATUS                              eStatus = MOS_STATUS_SUCCESS;
-    MHW_RENDER_ENGINE_L3_CACHE_SETTINGS_G12 mHwL3CacheConfig = {};
-    PMHW_RENDER_ENGINE_L3_CACHE_SETTINGS    pCacheConfig;
-    MhwRenderInterface *                    pMhwRender;
+    mhw::render::MHW_RENDER_ENGINE_L3_CACHE_SETTINGS cacheConfig = {};
 
     MHW_RENDERHAL_CHK_NULL(pRenderHal);
-    pMhwRender = pRenderHal->pMhwRenderInterface;
-    MHW_RENDERHAL_CHK_NULL(pMhwRender);
+    MHW_RENDERHAL_CHK_NULL(m_renderItf);
 
     if (nullptr == pCacheSettings)
     {
-        MHW_RENDERHAL_CHK_STATUS(pMhwRender->EnableL3Caching(nullptr));
+        MHW_RENDERHAL_CHK_STATUS(m_renderItf->EnableL3Caching(nullptr));
         goto finish;
     }
-
-    // customize the cache config for renderhal and let mhw_render overwrite it
-    pCacheConfig = &mHwL3CacheConfig;
-
-    pCacheConfig->dwCntlReg = RENDERHAL_L3_CACHE_CONFIG_CNTLREG_VALUE_XE_HPG_BASE_RENDERHAL;
-
+    cacheConfig.dwCntlReg = RENDERHAL_L3_CACHE_CONFIG_CNTLREG_VALUE_XE_HPG_BASE_RENDERHAL;
     // Override L3 cache configuration
     if (pCacheSettings->bOverride)
     {
         if (pCacheSettings->bCntlRegOverride)
         {
-            pCacheConfig->dwCntlReg = pCacheSettings->dwCntlReg;
+            cacheConfig.dwCntlReg = pCacheSettings->dwCntlReg;
         }
     }
-
-    MHW_RENDERHAL_CHK_NULL(m_renderItf);
-    MHW_RENDERHAL_CHK_STATUS(m_renderItf->EnableL3Caching((mhw::render::MHW_RENDER_ENGINE_L3_CACHE_SETTINGS *) pCacheConfig));
-
+    MHW_RENDERHAL_CHK_STATUS(m_renderItf->EnableL3Caching(&cacheConfig));
+    
 finish:
     return eStatus;
-}
-
-//!
-//! \brief    Get offset and/or pointer to sampler state
-//! \details  Get offset and/or pointer to sampler state in General State Heap
-//! \param    PRENDERHAL_INTERFACE pRenderHal
-//!           [in] Pointer to RenderHal Interface
-//! \param    int32_t iMediaID
-//!           [in] Media ID associated with sampler
-//! \param    int32_t iSamplerID
-//!           [in] Sampler ID
-//! \param    uint32_t *pdwSamplerOffset
-//!           [out] optional; offset of sampler state from GSH base
-//! \param    void  **ppSampler
-//!           [out] optional; pointer to sampler state in GSH
-//! \return   MOS_STATUS
-//!
-MOS_STATUS XRenderHal_Interface_Xe_Hpg_Base::GetSamplerOffsetAndPtr_DSH(
-    PRENDERHAL_INTERFACE     pRenderHal,
-    int32_t                  iMediaID,
-    int32_t                  iSamplerID,
-    PMHW_SAMPLER_STATE_PARAM pSamplerParams,
-    uint32_t                 *pdwSamplerOffset,
-    void                    **ppSampler)
-{
-    PRENDERHAL_STATE_HEAP       pStateHeap;
-    PRENDERHAL_DYNAMIC_STATE    pDynamicState;
-    MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
-    uint32_t                    dwSamplerIndirect;
-    uint32_t                    dwOffset;
-    MHW_SAMPLER_TYPE            SamplerType;
-
-    MHW_RENDERHAL_CHK_NULL(pRenderHal);
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pStateHeap);
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pStateHeap->pCurMediaState);
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pHwSizes);
-
-    pStateHeap    = pRenderHal->pStateHeap;
-    pDynamicState = pStateHeap->pCurMediaState->pDynamicState;
-
-    MHW_RENDERHAL_CHK_NULL(pDynamicState);
-
-    MHW_RENDERHAL_ASSERT(iMediaID   < pDynamicState->MediaID.iCount);
-
-    dwOffset    = iMediaID * pDynamicState->dwSizeSamplers;                    // Go to Media ID sampler offset
-
-    SamplerType = (pSamplerParams) ? pSamplerParams->SamplerType : MHW_SAMPLER_TYPE_3D;
-
-    switch (SamplerType)
-    {
-        case MHW_SAMPLER_TYPE_AVS:
-            MHW_RENDERHAL_ASSERT(iSamplerID < pDynamicState->SamplerAVS.iCount);
-            dwOffset += pDynamicState->SamplerAVS.dwOffset +                    // Go to AVS sampler area
-                        iSamplerID * MHW_SAMPLER_STATE_AVS_INC_G12;              // 16: size of one element, 128 elements for SKL
-            break;
-
-        case MHW_SAMPLER_TYPE_CONV:
-            MHW_RENDERHAL_ASSERT(iSamplerID < pDynamicState->SamplerConv.iCount);
-            dwOffset = pDynamicState->SamplerConv.dwOffset;                     // Goto Conv sampler base
-            if ( pSamplerParams->Convolve.ui8ConvolveType == 0 && pSamplerParams->Convolve.skl_mode )
-            {   // 2D convolve
-                dwOffset += iSamplerID * MHW_SAMPLER_STATE_CONV_INC_G12;         // 16: size of one element, 128 elements for SKL
-            }
-            else if ( pSamplerParams->Convolve.ui8ConvolveType == 1 )
-            {   // 1D convolve
-                dwOffset += iSamplerID * MHW_SAMPLER_STATE_CONV_1D_INC;      // 16: size of one element, 8 elements for SKL
-            }
-            else
-            {   // 1P convolve (same as gen8) and 2D convolve BDW mode
-                dwOffset += iSamplerID * MHW_SAMPLER_STATE_CONV_INC_LEGACY;  // 16: size of one element, 32: 32 entry
-            }
-            break;
-
-        case MHW_SAMPLER_TYPE_MISC:
-            MHW_RENDERHAL_ASSERT(iSamplerID < pDynamicState->SamplerMisc.iCount);
-            dwOffset += pDynamicState->Sampler3D.dwOffset          +             // Goto sampler base
-                        iSamplerID * MHW_SAMPLER_STATE_VA_INC;                   // 16: size of one element, 2: 2 entries
-            break;
-
-        case MHW_SAMPLER_TYPE_3D:
-        case MHW_SAMPLER_TYPE_VME:
-        default:
-            MHW_RENDERHAL_ASSERT(iSamplerID < pDynamicState->Sampler3D.iCount);
-            dwSamplerIndirect = dwOffset;
-            dwOffset += pDynamicState->Sampler3D.dwOffset          +             // Go 3D Sampler base
-                        iSamplerID * pRenderHal->pHwSizes->dwSizeSamplerState;   // Goto to "samplerID" sampler state
-
-            if (pSamplerParams)
-            {
-                dwSamplerIndirect += pDynamicState->SamplerInd.dwOffset +                              // offset to indirect sampler area
-                                     iSamplerID * pRenderHal->pHwSizes->dwSizeSamplerIndirectState;   // Goto to "samplerID" indirect state
-                pSamplerParams->Unorm.IndirectStateOffset = dwSamplerIndirect;
-            }
-
-            break;
-    }
-
-    if (pdwSamplerOffset)
-    {
-        *pdwSamplerOffset = dwOffset;
-    }
-
-finish:
-    return eStatus;
-}
-
-//!
-//! \brief      Initialize the DSH Settings
-//! \details    Initialize the structure DynamicHeapSettings in pRenderHal
-//! \param      PRENDERHAL_INTERFACE pRenderHal
-//!             [in]    Pointer to HW interface
-//! \return     void
-//!
-void XRenderHal_Interface_Xe_Hpg_Base::InitDynamicHeapSettings(
-    PRENDERHAL_INTERFACE  pRenderHal)
-{
-    MHW_RENDERHAL_ASSERT(pRenderHal);
-
-    // Additional Dynamic State Heap settings for hpg_base
-    pRenderHal->DynamicHeapSettings           = g_cRenderHal_DSH_Settings_hpg_base;
 }
 
 void XRenderHal_Interface_Xe_Hpg_Base::SetFusedEUDispatch(bool enable)

@@ -28,9 +28,9 @@
 #define __CODECHAL_HW_H__
 
 #include "codechal.h"
-#include "renderhal.h"
+#include "renderhal_legacy.h"
 #include "mhw_mi.h"
-#include "mhw_render.h"
+#include "mhw_render_legacy.h"
 #include "mhw_state_heap.h"
 #include "mhw_vdbox.h"
 #include "mhw_vebox.h"

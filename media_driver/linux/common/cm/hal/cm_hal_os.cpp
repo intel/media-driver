@@ -109,10 +109,10 @@ MOS_STATUS HalCm_GetSurfaceAndRegister(
     bool                         pixelPitch)
 {
     MOS_STATUS eStatus = MOS_STATUS_UNKNOWN;
-    RENDERHAL_GET_SURFACE_INFO info;
-    PRENDERHAL_INTERFACE     renderHal     = state->renderHal;
-    PMOS_SURFACE             surface       = &renderHalSurface->OsSurface;
-    PRENDERHAL_MEDIA_STATE   mediaState = nullptr;
+    RENDERHAL_GET_SURFACE_INFO      info;
+    PRENDERHAL_INTERFACE            renderHal   = state->renderHal;
+    PMOS_SURFACE                    surface     = &renderHalSurface->OsSurface;
+    PRENDERHAL_MEDIA_STATE_LEGACY   mediaState  = nullptr;
 
     if (!renderHalSurface)
     {
@@ -126,7 +126,7 @@ MOS_STATUS HalCm_GetSurfaceAndRegister(
     switch(surfKind)
     {
         case CM_ARGUMENT_STATE_BUFFER:
-            mediaState = state->pfnGetMediaStatePtrForSurfaceIndex( state, index );
+            mediaState = (PRENDERHAL_MEDIA_STATE_LEGACY)state->pfnGetMediaStatePtrForSurfaceIndex( state, index );
             CM_CHK_HRESULT_GOTOFINISH_MOSERROR(renderHal->pOsInterface->pfnRegisterResource(
                 renderHal->pOsInterface, mediaState->pDynamicState->memoryBlock.GetResource(), true, true));
             surface->OsResource.user_provided_va = state->pfnGetStateBufferVAPtrForSurfaceIndex( state, index );

@@ -30,7 +30,7 @@
 #include "vphal.h"
 #include "vphal_render_renderstate.h"
 #include "vphal_render_common.h"
-#include "mhw_render.h"
+#include "mhw_render_legacy.h"
 
 //!
 //! \brief Compositing buffers

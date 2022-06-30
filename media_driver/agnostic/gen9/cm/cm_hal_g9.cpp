@@ -27,7 +27,7 @@
 #include "cm_hal_g9.h"
 #include "mhw_render_hwcmd_g9_X.h"
 #include "renderhal_platform_interface.h"
-#include "mhw_render.h"
+#include "mhw_render_legacy.h"
 #include "hal_oca_interface.h"
 
 #if defined(ENABLE_KERNELS) && (!defined(_FULL_OPEN_SOURCE))
@@ -526,7 +526,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitDummyCommands(
 {
     MOS_STATUS                   eStatus = MOS_STATUS_SUCCESS;
     PCM_HAL_STATE                state = m_cmState;
-    PRENDERHAL_INTERFACE         renderHal = state->renderHal;
+    PRENDERHAL_INTERFACE_LEGACY  renderHal = state->renderHal;
     MhwRenderInterface           *mhwRender = renderHal->pMhwRenderInterface;
     PRENDERHAL_STATE_HEAP        stateHeap = renderHal->pStateHeap;
     PMOS_INTERFACE               osInterface = renderHal->pOsInterface;
@@ -679,7 +679,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
 {
     MOS_STATUS                   eStatus     = MOS_STATUS_SUCCESS;
     PCM_HAL_STATE                state       = m_cmState;
-    PRENDERHAL_INTERFACE         renderHal   = state->renderHal;
+    PRENDERHAL_INTERFACE_LEGACY  renderHal   = state->renderHal;
     MhwRenderInterface           *mhwRender  = renderHal->pMhwRenderInterface;
     PRENDERHAL_STATE_HEAP        stateHeap   = renderHal->pStateHeap;
     PMOS_INTERFACE               osInterface = renderHal->pOsInterface;
@@ -936,7 +936,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
     // Send Interface Descriptor Load
     if (state->dshEnabled)
     {
-        PRENDERHAL_DYNAMIC_STATE dynamicState = stateHeap->pCurMediaState->pDynamicState;
+        PRENDERHAL_DYNAMIC_STATE dynamicState = ((PRENDERHAL_MEDIA_STATE_LEGACY)stateHeap->pCurMediaState)->pDynamicState;
         idLoadParams.dwInterfaceDescriptorStartOffset = dynamicState->memoryBlock.GetOffset() +
                                                         dynamicState->MediaID.dwOffset;
         idLoadParams.dwInterfaceDescriptorLength      = dynamicState->MediaID.iCount * stateHeap->dwSizeMediaID;

@@ -21,6 +21,7 @@
 
 set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/media_interfaces_hwinfo.h
+    ${CMAKE_CURRENT_LIST_DIR}/media_interfaces_renderhal.h
 )
 
 

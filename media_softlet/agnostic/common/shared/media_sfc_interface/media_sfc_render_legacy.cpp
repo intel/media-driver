@@ -34,7 +34,7 @@
 #include "media_vdbox_sfc_render.h"
 #include "media_interfaces_vphal.h"
 #include "mos_os.h"
-#include "renderhal.h"
+#include "renderhal_legacy.h"
 #include "media_mem_compression.h"
 #include "media_interfaces_mhw_next.h"
 
@@ -221,13 +221,13 @@ MOS_STATUS MediaSfcRenderLegacy::Initialize()
     }
 
     // Initialize render hal.
-    m_renderHal = (PRENDERHAL_INTERFACE)MOS_AllocAndZeroMemory(sizeof(RENDERHAL_INTERFACE));
+    m_renderHal = (PRENDERHAL_INTERFACE_LEGACY)MOS_AllocAndZeroMemory(sizeof(RENDERHAL_INTERFACE_LEGACY));
     VP_PUBLIC_CHK_NULL_RETURN(m_renderHal);
-    VP_PUBLIC_CHK_STATUS_RETURN(RenderHal_InitInterface(
-        m_renderHal,
+    VP_PUBLIC_CHK_STATUS_RETURN(RenderHal_InitInterface_Legacy(
+        (PRENDERHAL_INTERFACE_LEGACY)m_renderHal,
         &m_cpInterface,
         m_osInterface));
-    RENDERHAL_SETTINGS  RenderHalSettings = {};
+    RENDERHAL_SETTINGS_LEGACY  RenderHalSettings = {};
     RenderHalSettings.iMediaStates = 32; // Init MEdia state values
     VP_PUBLIC_CHK_STATUS_RETURN(m_renderHal->pfnInitialize(m_renderHal, &RenderHalSettings));
     m_miItf = m_renderHal->pRenderHalPltInterface->GetMhwMiItf();

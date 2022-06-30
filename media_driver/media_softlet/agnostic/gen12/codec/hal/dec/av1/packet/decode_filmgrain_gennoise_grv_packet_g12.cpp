@@ -155,29 +155,30 @@ MOS_STATUS FilmGrainGrvPacket::Submit(MOS_COMMAND_BUFFER *commandBuffer, uint8_t
     MediaPerfProfiler *             pPerfProfiler       = nullptr;
     MOS_CONTEXT *                   pOsContext          = nullptr;
     PMHW_MI_MMIOREGISTERS           pMmioRegisters      = nullptr;
+    PRENDERHAL_INTERFACE_LEGACY     pRenderHalLegacy    = (PRENDERHAL_INTERFACE_LEGACY)m_renderHal;
 
-    RENDER_PACKET_CHK_NULL_RETURN(m_renderHal);
-    RENDER_PACKET_CHK_NULL_RETURN(m_renderHal->pMhwRenderInterface);
-    RENDER_PACKET_CHK_NULL_RETURN(m_renderHal->pMhwMiInterface);
-    RENDER_PACKET_CHK_NULL_RETURN(m_renderHal->pMhwRenderInterface->GetMmioRegisters());
-    RENDER_PACKET_CHK_NULL_RETURN(m_renderHal->pOsInterface);
-    RENDER_PACKET_CHK_NULL_RETURN(m_renderHal->pOsInterface->pOsContext);
+    RENDER_PACKET_CHK_NULL_RETURN(pRenderHalLegacy);
+    RENDER_PACKET_CHK_NULL_RETURN(pRenderHalLegacy->pMhwRenderInterface);
+    RENDER_PACKET_CHK_NULL_RETURN(pRenderHalLegacy->pMhwMiInterface);
+    RENDER_PACKET_CHK_NULL_RETURN(pRenderHalLegacy->pMhwRenderInterface->GetMmioRegisters());
+    RENDER_PACKET_CHK_NULL_RETURN(pRenderHalLegacy->pOsInterface);
+    RENDER_PACKET_CHK_NULL_RETURN(pRenderHalLegacy->pOsInterface->pOsContext);
 
     eStatus         = MOS_STATUS_UNKNOWN;
-    pOsInterface    = m_renderHal->pOsInterface;
-    pMhwMiInterface = m_renderHal->pMhwMiInterface;
-    pMhwRender      = m_renderHal->pMhwRenderInterface;
+    pOsInterface    = pRenderHalLegacy->pOsInterface;
+    pMhwMiInterface = pRenderHalLegacy->pMhwMiInterface;
+    pMhwRender      = pRenderHalLegacy->pMhwRenderInterface;
     iRemaining      = 0;
     FlushParam      = g_cRenderHal_InitMediaStateFlushParams;
 
-    pPerfProfiler   = m_renderHal->pPerfProfiler;
+    pPerfProfiler   = pRenderHalLegacy->pPerfProfiler;
     pOsContext      = pOsInterface->pOsContext;
     pMmioRegisters  = pMhwRender->GetMmioRegisters();
 
     RENDER_PACKET_CHK_STATUS_RETURN(SetPowerMode(CODECHAl_MEDIA_STATE_AV1_FILM_GRAIN_GRV));
 
     // Initialize command buffer and insert prolog
-    RENDER_PACKET_CHK_STATUS_RETURN(m_renderHal->pfnInitCommandBuffer(m_renderHal, commandBuffer, &GenericPrologParams));
+    RENDER_PACKET_CHK_STATUS_RETURN(pRenderHalLegacy->pfnInitCommandBuffer(pRenderHalLegacy, commandBuffer, &GenericPrologParams));
 
     HalOcaInterface::On1stLevelBBStart(*commandBuffer, *m_osInterface->pOsContext, m_osInterface->CurrentGpuContextHandle,
         *m_hwInterface->GetMiInterface(), *m_hwInterface->GetMiInterface()->GetMmioRegisters());
@@ -194,21 +195,21 @@ MOS_STATUS FilmGrainGrvPacket::Submit(MOS_COMMAND_BUFFER *commandBuffer, uint8_t
             pOsInterface->pfnSetPerfTag(pOsInterface, ((PERFTAG_CALL_FILM_GRAIN_GRV_KERNEL << 8) | CODECHAL_DECODE_MODE_AV1VLD << 4 | m_av1BasicFeature->m_pictureCodingType));
         }
 
-        RENDER_PACKET_CHK_STATUS_RETURN(pPerfProfiler->AddPerfCollectStartCmd((void *)m_renderHal, pOsInterface, pMhwMiInterface, commandBuffer));
+        RENDER_PACKET_CHK_STATUS_RETURN(pPerfProfiler->AddPerfCollectStartCmd((void *)pRenderHalLegacy, pOsInterface, pMhwMiInterface, commandBuffer));
     }
 
     // Write timing data for 3P budget
-    RENDER_PACKET_CHK_STATUS_RETURN(m_renderHal->pfnSendTimingData(m_renderHal, commandBuffer, true));
+    RENDER_PACKET_CHK_STATUS_RETURN(pRenderHalLegacy->pfnSendTimingData(pRenderHalLegacy, commandBuffer, true));
 
     bEnableSLM = false;  // Media walker first
-    RENDER_PACKET_CHK_STATUS_RETURN(m_renderHal->pfnSetCacheOverrideParams(
-        m_renderHal,
-        &m_renderHal->L3CacheSettings,
+    RENDER_PACKET_CHK_STATUS_RETURN(pRenderHalLegacy->pfnSetCacheOverrideParams(
+        pRenderHalLegacy,
+        &pRenderHalLegacy->L3CacheSettings,
         bEnableSLM));
 
     // Flush media states
-    RENDER_PACKET_CHK_STATUS_RETURN(m_renderHal->pfnSendMediaStates(
-        m_renderHal,
+    RENDER_PACKET_CHK_STATUS_RETURN(pRenderHalLegacy->pfnSendMediaStates(
+        pRenderHalLegacy,
         commandBuffer,
         m_walkerType == WALKER_TYPE_MEDIA ? &m_mediaWalkerParams : nullptr,
         m_walkerType == WALKER_TYPE_MEDIA ? nullptr : &m_gpgpuWalkerParams));
@@ -216,16 +217,16 @@ MOS_STATUS FilmGrainGrvPacket::Submit(MOS_COMMAND_BUFFER *commandBuffer, uint8_t
     // Write back GPU Status tag
     if (!pOsInterface->bEnableKmdMediaFrameTracking)
     {
-        RENDER_PACKET_CHK_STATUS_RETURN(m_renderHal->pfnSendRcsStatusTag(m_renderHal, commandBuffer));
+        RENDER_PACKET_CHK_STATUS_RETURN(pRenderHalLegacy->pfnSendRcsStatusTag(pRenderHalLegacy, commandBuffer));
     }
 
     if (!m_av1BasicFeature->m_singleKernelPerfFlag)
     {
-        RENDER_PACKET_CHK_STATUS_RETURN(pPerfProfiler->AddPerfCollectEndCmd((void *)m_renderHal, pOsInterface, pMhwMiInterface, commandBuffer));
+        RENDER_PACKET_CHK_STATUS_RETURN(pPerfProfiler->AddPerfCollectEndCmd((void *)pRenderHalLegacy, pOsInterface, pMhwMiInterface, commandBuffer));
     }
 
     // Write timing data for 3P budget
-    RENDER_PACKET_CHK_STATUS_RETURN(m_renderHal->pfnSendTimingData(m_renderHal, commandBuffer, false));
+    RENDER_PACKET_CHK_STATUS_RETURN(pRenderHalLegacy->pfnSendTimingData(pRenderHalLegacy, commandBuffer, false));
 
     MHW_PIPE_CONTROL_PARAMS PipeControlParams;
 
@@ -236,7 +237,7 @@ MOS_STATUS FilmGrainGrvPacket::Submit(MOS_COMMAND_BUFFER *commandBuffer, uint8_t
     PipeControlParams.bDisableCSStall               = false;
     RENDER_PACKET_CHK_STATUS_RETURN(pMhwMiInterface->AddPipeControl(commandBuffer, nullptr, &PipeControlParams));
 
-    if (MEDIA_IS_WA(m_renderHal->pWaTable, WaSendDummyVFEafterPipelineSelect))
+    if (MEDIA_IS_WA(pRenderHalLegacy->pWaTable, WaSendDummyVFEafterPipelineSelect))
     {
         MHW_VFE_PARAMS VfeStateParams       = {};
         VfeStateParams.dwNumberofURBEntries = 1;
@@ -244,7 +245,7 @@ MOS_STATUS FilmGrainGrvPacket::Submit(MOS_COMMAND_BUFFER *commandBuffer, uint8_t
     }
 
     // Add media flush command in case HW not cleaning the media state
-    if (MEDIA_IS_WA(m_renderHal->pWaTable, WaMSFWithNoWatermarkTSGHang))
+    if (MEDIA_IS_WA(pRenderHalLegacy->pWaTable, WaMSFWithNoWatermarkTSGHang))
     {
         FlushParam.bFlushToGo = true;
         if (m_walkerType == WALKER_TYPE_MEDIA)
@@ -257,7 +258,7 @@ MOS_STATUS FilmGrainGrvPacket::Submit(MOS_COMMAND_BUFFER *commandBuffer, uint8_t
         }
         RENDER_PACKET_CHK_STATUS_RETURN(pMhwMiInterface->AddMediaStateFlush(commandBuffer, nullptr, &FlushParam));
     }
-    else if (MEDIA_IS_WA(m_renderHal->pWaTable, WaAddMediaStateFlushCmd))
+    else if (MEDIA_IS_WA(pRenderHalLegacy->pWaTable, WaAddMediaStateFlushCmd))
     {
         RENDER_PACKET_CHK_STATUS_RETURN(pMhwMiInterface->AddMediaStateFlush(commandBuffer, nullptr, &FlushParam));
     }
@@ -274,7 +275,7 @@ MOS_STATUS FilmGrainGrvPacket::Submit(MOS_COMMAND_BUFFER *commandBuffer, uint8_t
         // Send Batch Buffer end command for 1st level Batch Buffer
         RENDER_PACKET_CHK_STATUS_RETURN(pMhwMiInterface->AddMiBatchBufferEnd(commandBuffer, nullptr));
     }
-    else if (m_renderHal->pOsInterface->bNoParsingAssistanceInKmd)
+    else if (pRenderHalLegacy->pOsInterface->bNoParsingAssistanceInKmd)
     {
         RENDER_PACKET_CHK_STATUS_RETURN(pMhwMiInterface->AddMiBatchBufferEnd(commandBuffer, nullptr));
     }
@@ -289,10 +290,10 @@ MOS_STATUS FilmGrainGrvPacket::Submit(MOS_COMMAND_BUFFER *commandBuffer, uint8_t
     if ((NullRenderingFlags.VPLgca ||
             NullRenderingFlags.VPGobal) == false)
     {
-        dwSyncTag = m_renderHal->pStateHeap->dwNextTag++;
+        dwSyncTag = pRenderHalLegacy->pStateHeap->dwNextTag++;
 
         // Set media state and batch buffer as busy
-        m_renderHal->pStateHeap->pCurMediaState->bBusy = true;
+        pRenderHalLegacy->pStateHeap->pCurMediaState->bBusy = true;
         if (pBatchBuffer)
         {
             pBatchBuffer->bBusy     = true;
@@ -341,6 +342,7 @@ MOS_STATUS FilmGrainGrvPacket::KernelStateSetup()
 
     m_kernelCount = 1;
 
+    PRENDERHAL_INTERFACE_LEGACY pRenderHalLegacy = (PRENDERHAL_INTERFACE_LEGACY)m_renderHal;
     // Initialize States
     MOS_ZeroMemory(m_filter, sizeof(m_filter));
     MOS_ZeroMemory(&m_renderData.KernelEntry, sizeof(Kdll_CacheEntry));
@@ -349,14 +351,14 @@ MOS_STATUS FilmGrainGrvPacket::KernelStateSetup()
     m_renderData.KernelParam.GRF_Count          = 0;
     m_renderData.KernelParam.BT_Count           = btCount;
     m_renderData.KernelParam.Sampler_Count      = 0;
-    m_renderData.KernelParam.Thread_Count       = m_renderHal->pMhwRenderInterface->GetHwCaps()->dwMaxThreads;
+    m_renderData.KernelParam.Thread_Count       = pRenderHalLegacy->pMhwRenderInterface->GetHwCaps()->dwMaxThreads;
     m_renderData.KernelParam.GRF_Start_Register = 0;
     m_renderData.KernelParam.CURBE_Length       = curbeLength;
     m_renderData.KernelParam.block_width        = CODECHAL_MACROBLOCK_WIDTH;
     m_renderData.KernelParam.block_height       = CODECHAL_MACROBLOCK_HEIGHT;
     m_renderData.KernelParam.blocks_x           = 4;
     m_renderData.KernelParam.blocks_y           = 1;
-    m_renderData.iCurbeOffset                   = m_renderHal->pMhwStateHeap->GetSizeofCmdInterfaceDescriptorData();
+    m_renderData.iCurbeOffset                   = pRenderHalLegacy->pMhwStateHeap->GetSizeofCmdInterfaceDescriptorData();
 
     // Set Parameters for Kernel Entry
     m_renderData.KernelEntry.iKUID              = 0;

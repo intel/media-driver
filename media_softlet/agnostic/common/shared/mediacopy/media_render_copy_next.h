@@ -161,7 +161,6 @@ protected:
 public:
     PMOS_INTERFACE               m_osInterface     = nullptr;
     MhwInterfacesNext           *m_mhwInterfaces   = nullptr;
-    MhwRenderInterface          *m_renderInterface = nullptr;
     RENDERHAL_INTERFACE         *m_renderHal       = nullptr;
     MhwCpInterface              *m_cpInterface     = nullptr;
     void                        *m_pKernelBin      = nullptr;

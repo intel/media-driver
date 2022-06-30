@@ -78,7 +78,7 @@ MOS_STATUS CM_HAL_G8_X::SubmitCommands(
     MOS_STATUS                      eStatus        = MOS_STATUS_SUCCESS;
     PCM_HAL_STATE                   state          = m_cmState;
     PMOS_INTERFACE                  osInterface    = m_cmState->osInterface;
-    PRENDERHAL_INTERFACE            renderHal      = m_cmState->renderHal;
+    PRENDERHAL_INTERFACE_LEGACY     renderHal      = m_cmState->renderHal;
     MhwRenderInterface              *mhwRender     = renderHal->pMhwRenderInterface;
     PMHW_MI_INTERFACE               mhwMiInterface = renderHal->pMhwMiInterface;
     PRENDERHAL_STATE_HEAP           stateHeap      = renderHal->pStateHeap;
@@ -262,7 +262,7 @@ MOS_STATUS CM_HAL_G8_X::SubmitCommands(
     // Send Interface Descriptor Load
     if (state->dshEnabled)
     {
-        PRENDERHAL_DYNAMIC_STATE dynamicState = stateHeap->pCurMediaState->pDynamicState;
+        PRENDERHAL_DYNAMIC_STATE dynamicState = ((PRENDERHAL_MEDIA_STATE_LEGACY)stateHeap->pCurMediaState)->pDynamicState;
         idLoadParams.dwInterfaceDescriptorStartOffset = dynamicState->memoryBlock.GetOffset() +
                                                         dynamicState->MediaID.dwOffset;
         idLoadParams.dwInterfaceDescriptorLength      = dynamicState->MediaID.iCount * stateHeap->dwSizeMediaID;

@@ -23,7 +23,7 @@
 //! \file      renderhal_dsh_specific.c 
 //! \brief     OS-specific implements for renderhal_dsh module. 
 //!
-#include "renderhal.h"
+#include "renderhal_legacy.h"
 
 //!
 //! \brief    Issue command to write timestamp

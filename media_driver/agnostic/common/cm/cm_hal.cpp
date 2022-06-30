@@ -2695,7 +2695,8 @@ MOS_STATUS HalCm_GetSamplerOffset(
     PMHW_SAMPLER_STATE_PARAM samplerParam,
     uint32_t                *pdwSamplerOffset)
 {
-    unsigned int tmpSamplerOffset = renderHal->pStateHeap->pCurMediaState->pDynamicState->Sampler3D.dwOffset +
+    PRENDERHAL_MEDIA_STATE_LEGACY pCurMediaStateLegacy = (PRENDERHAL_MEDIA_STATE_LEGACY)renderHal->pStateHeap->pCurMediaState;
+    unsigned int tmpSamplerOffset = pCurMediaStateLegacy->pDynamicState->Sampler3D.dwOffset +
                                   state->taskParam->samplerOffsetsByKernel[mediaID] +
                                   samplerOffset;
 
@@ -2706,7 +2707,7 @@ MOS_STATUS HalCm_GetSamplerOffset(
 
     if (samplerParam->SamplerType == MHW_SAMPLER_TYPE_3D)
     {
-        samplerParam->Unorm.IndirectStateOffset = MOS_ALIGN_CEIL( renderHal->pStateHeap->pCurMediaState->pDynamicState->Sampler3D.dwOffset +
+        samplerParam->Unorm.IndirectStateOffset = MOS_ALIGN_CEIL( pCurMediaStateLegacy->pDynamicState->Sampler3D.dwOffset +
                                                                   state->taskParam->samplerIndirectOffsetsByKernel[mediaID] +
                                                                   samplerBTI * renderHal->pHwSizes->dwSizeSamplerIndirectState,
                                                                   1 << MHW_SAMPLER_INDIRECT_SHIFT);
@@ -2745,18 +2746,19 @@ MOS_STATUS HalCm_SetupInterfaceDescriptor(
     PRENDERHAL_STATE_HEAP    stateHeap;
     PRENDERHAL_DYNAMIC_STATE dynamicState;
     unsigned long            mediaStateOffset;
-
+    
+    PRENDERHAL_MEDIA_STATE_LEGACY mediaStateLegacy = (PRENDERHAL_MEDIA_STATE_LEGACY)mediaState;
     //-----------------------------------------
     MHW_RENDERHAL_CHK_NULL(renderHal);
     MHW_RENDERHAL_CHK_NULL(renderHal->pMhwStateHeap);
-    MHW_RENDERHAL_CHK_NULL(mediaState);
-    MHW_RENDERHAL_CHK_NULL(mediaState->pDynamicState);
+    MHW_RENDERHAL_CHK_NULL(mediaStateLegacy);
+    MHW_RENDERHAL_CHK_NULL(mediaStateLegacy->pDynamicState);
     MHW_RENDERHAL_CHK_NULL(interfaceDescriptorParams);
     //-----------------------------------------
 
     // Get states, params
     stateHeap = renderHal->pStateHeap;
-    dynamicState = mediaState->pDynamicState;
+    dynamicState = mediaStateLegacy->pDynamicState;
     mediaStateOffset = dynamicState->memoryBlock.GetOffset();
 
     params.dwMediaIdOffset = mediaStateOffset + dynamicState->MediaID.dwOffset;
@@ -2820,16 +2822,16 @@ int32_t HalCm_AllocateMediaID(
     int32_t                    bindingTableID,
     int32_t                    curbeOffset)
 {
-    PRENDERHAL_INTERFACE    renderHal = state->renderHal;
-    PRENDERHAL_MEDIA_STATE  curMediaState;
-    int32_t                 curbeSize, iCurbeCurrent;
-    int32_t                 interfaceDescriptor;
+    PRENDERHAL_INTERFACE            renderHal = state->renderHal;
+    PRENDERHAL_MEDIA_STATE_LEGACY   curMediaState;
+    int32_t                         curbeSize, iCurbeCurrent;
+    int32_t                         interfaceDescriptor;
     RENDERHAL_INTERFACE_DESCRIPTOR_PARAMS interfaceDescriptorParams;
 
     interfaceDescriptor = -1;
 
     // Obtain pointer and validate current media state
-    curMediaState = renderHal->pStateHeap->pCurMediaState;
+    curMediaState = (PRENDERHAL_MEDIA_STATE_LEGACY)renderHal->pStateHeap->pCurMediaState;
 
     if (state->dshEnabled)
     {
@@ -3471,7 +3473,7 @@ MOS_STATUS HalCm_SetupSamplerState(
     }
     CM_CHK_MOSSTATUS_GOTOFINISH(renderHal->pMhwStateHeap->AddSamplerStateData(
         samplerOffset, 
-        &(renderHal->pStateHeap->pCurMediaState->pDynamicState->memoryBlock), 
+        &(((PRENDERHAL_MEDIA_STATE_LEGACY)renderHal->pStateHeap->pCurMediaState)->pDynamicState->memoryBlock), 
         samplerParam));
 
     state->samplerIndexTable[index] = (unsigned char)samplerIndex;
@@ -3561,7 +3563,7 @@ MOS_STATUS HalCm_SetupSamplerStateWithBTIndex(
 
     CM_CHK_MOSSTATUS_GOTOFINISH(renderHal->pMhwStateHeap->AddSamplerStateData(
         samplerOffset,
-        &(renderHal->pStateHeap->pCurMediaState->pDynamicState->memoryBlock),
+        &(((PRENDERHAL_MEDIA_STATE_LEGACY)renderHal->pStateHeap->pCurMediaState)->pDynamicState->memoryBlock),
         samplerParam));
 
 finish:
@@ -7530,6 +7532,7 @@ MOS_STATUS HalCm_SetupStatesForKernelInitial(
 
     bool                            vmeUsed = false;
     CM_PLATFORM_INFO                platformInfo;
+    PRENDERHAL_MEDIA_STATE_LEGACY   mediaStateLegacy = (PRENDERHAL_MEDIA_STATE_LEGACY)mediaState;
 
     localIdIndex = kernelParam->localIdIndex;
 
@@ -7578,11 +7581,11 @@ MOS_STATUS HalCm_SetupStatesForKernelInitial(
         // Update Curbe offset after curbe load command
         if (state->dshEnabled)
         {
-            mediaState->pDynamicState->Curbe.iCurrent += MOS_ALIGN_CEIL(kernelParam->totalCurbeSize, state->renderHal->dwCurbeBlockAlign);
+            mediaStateLegacy->pDynamicState->Curbe.iCurrent += MOS_ALIGN_CEIL(kernelParam->totalCurbeSize, state->renderHal->dwCurbeBlockAlign);
         }
         else
         {
-            mediaState->iCurbeOffset += MOS_ALIGN_CEIL(kernelParam->totalCurbeSize, state->renderHal->dwCurbeBlockAlign);
+            mediaStateLegacy->iCurbeOffset += MOS_ALIGN_CEIL(kernelParam->totalCurbeSize, state->renderHal->dwCurbeBlockAlign);
         }
     }
 
@@ -7801,7 +7804,8 @@ MOS_STATUS HalCm_SetupStatesForKernelInitial(
             // tell pfnLoadCurbeData the current curbe offset
             if (state->dshEnabled)
             {
-                PRENDERHAL_DYNAMIC_STATE dynamicState = stateHeap->pCurMediaState->pDynamicState;
+                PRENDERHAL_MEDIA_STATE_LEGACY pCurMediaStateLegacy = (PRENDERHAL_MEDIA_STATE_LEGACY)stateHeap->pCurMediaState;
+                PRENDERHAL_DYNAMIC_STATE dynamicState = pCurMediaStateLegacy->pDynamicState;
                 dynamicState->Curbe.iCurrent -= MOS_ALIGN_CEIL(kernelParam->totalCurbeSize, state->renderHal->dwCurbeBlockAlign);
                 kernelParam->curbeOffset = dynamicState->Curbe.iCurrent;
             }
@@ -7823,7 +7827,8 @@ MOS_STATUS HalCm_SetupStatesForKernelInitial(
             // tell pfnLoadCurbeData the current curbe offset
             if (state->dshEnabled)
             {
-                PRENDERHAL_DYNAMIC_STATE dynamicState = stateHeap->pCurMediaState->pDynamicState;
+                PRENDERHAL_MEDIA_STATE_LEGACY pCurMediaStateLegacy = (PRENDERHAL_MEDIA_STATE_LEGACY)stateHeap->pCurMediaState;
+                PRENDERHAL_DYNAMIC_STATE dynamicState = pCurMediaStateLegacy->pDynamicState;
                 dynamicState->Curbe.iCurrent -= MOS_ALIGN_CEIL(kernelParam->totalCurbeSize, state->renderHal->dwCurbeBlockAlign);
                 kernelParam->curbeOffset = dynamicState->Curbe.iCurrent;
             }
@@ -7903,14 +7908,14 @@ MOS_STATUS HalCm_SetConditionalEndInfo(
 MOS_STATUS HalCm_Allocate(
     PCM_HAL_STATE state)                                                       // [in] Pointer to CM State
 {
-    MOS_STATUS              eStatus;
-    PCM_HAL_DEVICE_PARAM    deviceParam;
-    PRENDERHAL_INTERFACE     renderHal;
+    MOS_STATUS                     eStatus;
+    PCM_HAL_DEVICE_PARAM           deviceParam;
+    PRENDERHAL_INTERFACE           renderHal;
     PRENDERHAL_STATE_HEAP_SETTINGS stateHeapSettings;
-    uint32_t                i;
-    MOS_NULL_RENDERING_FLAGS nullHWAccelerationEnable;
-    RENDERHAL_SETTINGS       renderHalSettings;
-    uint32_t                maxTasks;
+    uint32_t                       i;
+    MOS_NULL_RENDERING_FLAGS       nullHWAccelerationEnable;
+    RENDERHAL_SETTINGS_LEGACY      renderHalSettings;
+    uint32_t                       maxTasks;
 
     PMHW_BATCH_BUFFER        batchBuffer = nullptr;
 
@@ -10501,8 +10506,8 @@ MOS_STATUS HalCm_Create(
         &createOption));
 
     // Allocate/Initialize CM Rendering Interface
-    state->renderHal = (PRENDERHAL_INTERFACE)
-                                MOS_AllocAndZeroMemory(sizeof(RENDERHAL_INTERFACE));
+    state->renderHal = (PRENDERHAL_INTERFACE_LEGACY)
+                                MOS_AllocAndZeroMemory(sizeof(RENDERHAL_INTERFACE_LEGACY));
     CM_CHK_NULL_GOTOFINISH_MOSERROR(state->renderHal);
 
     state->dshEnabled                   = param->dynamicStateHeap;
@@ -10514,7 +10519,7 @@ MOS_STATUS HalCm_Create(
     }
     else
     {
-        CM_CHK_MOSSTATUS_GOTOFINISH(RenderHal_InitInterface(state->renderHal, &state->cpInterface, state->osInterface));
+        CM_CHK_MOSSTATUS_GOTOFINISH(RenderHal_InitInterface_Legacy(state->renderHal, &state->cpInterface, state->osInterface));
     }
 
     // Allocate/Initialize VEBOX Interface
@@ -11884,9 +11889,9 @@ MOS_STATUS HalCm_SendMediaWalkerState(
     PCM_HAL_KERNEL_PARAM        kernelParam,
     PMOS_COMMAND_BUFFER         cmdBuffer)
 {
-    PRENDERHAL_INTERFACE      renderHal;
-    MHW_WALKER_PARAMS         mediaWalkerParams;
-    MOS_STATUS                eStatus;
+    PRENDERHAL_INTERFACE_LEGACY     renderHal;
+    MHW_WALKER_PARAMS               mediaWalkerParams;
+    MOS_STATUS                      eStatus;
 
     eStatus         = MOS_STATUS_SUCCESS;
     renderHal = state->renderHal;

@@ -36,6 +36,7 @@
 #include "vphal_common_hdr.h"
 #include "vp_common.h"
 #include "vp_base.h"
+#include "renderhal_legacy.h"
 
 // YUV input ranges
 #define YUV_RANGE_16_235                1
@@ -473,7 +474,7 @@ protected:
 
     // States
     PMOS_INTERFACE              m_osInterface;
-    PRENDERHAL_INTERFACE        m_renderHal;
+    PRENDERHAL_INTERFACE_LEGACY m_renderHal;
     PMHW_VEBOX_INTERFACE        m_veboxInterface;
     MhwCpInterface              *m_cpInterface;
     PMHW_SFC_INTERFACE          m_sfcInterface;

@@ -32,7 +32,6 @@ RenderCopyStateNext::RenderCopyStateNext(PMOS_INTERFACE osInterface, MhwInterfac
     m_osInterface(osInterface),
     m_mhwInterfaces(mhwInterfaces)
 {
-    m_renderInterface = mhwInterfaces->m_renderInterface;
     m_RenderData.pKernelParam = (PRENDERHAL_KERNEL_PARAM)g_rendercopy_KernelParam;
     Mos_SetVirtualEngineSupported(osInterface, true);
     Mos_CheckVirtualEngineSupported(osInterface, true, false);

@@ -24,7 +24,7 @@
 //! \brief         This modules implements utilities which are shared by both the HW interface     and the state heap interface.
 //!
 #include "mhw_utilities.h"
-#include "mhw_render.h"
+#include "mhw_render_legacy.h"
 #include "mhw_state_heap.h"
 #include "hal_oca_interface.h"
 #include "mos_interface.h"

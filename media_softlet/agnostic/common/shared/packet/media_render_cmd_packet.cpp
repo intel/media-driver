@@ -55,7 +55,6 @@ MOS_STATUS RenderCmdPacket::Submit(MOS_COMMAND_BUFFER *commandBuffer, uint8_t pa
     bool                                bEnableSLM = false;
     RENDERHAL_GENERIC_PROLOG_PARAMS     GenericPrologParams = {};
     MOS_RESOURCE                        GpuStatusBuffer = {};
-    MediaPerfProfiler*                  pPerfProfiler = nullptr;
     MOS_CONTEXT*                        pOsContext = nullptr;
     PMHW_MI_MMIOREGISTERS               pMmioRegisters = nullptr;
 
@@ -70,7 +69,6 @@ MOS_STATUS RenderCmdPacket::Submit(MOS_COMMAND_BUFFER *commandBuffer, uint8_t pa
     pOsInterface = m_renderHal->pOsInterface;
     iRemaining = 0;
     FlushParam = g_cRenderHal_InitMediaStateFlushParams;
-    pPerfProfiler = m_renderHal->pPerfProfiler;
     pOsContext = pOsInterface->pOsContext;
     pMmioRegisters = m_renderHal->pRenderHalPltInterface->GetMmioRegisters(m_renderHal);
 

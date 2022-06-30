@@ -5241,7 +5241,7 @@ bool CompositeState::RenderBuffer(
     PMHW_BATCH_BUFFER               pBatchBuffer,
     PVPHAL_RENDERING_DATA_COMPOSITE pRenderingData)
 {
-    PRENDERHAL_INTERFACE                pRenderHal;
+    PRENDERHAL_INTERFACE_LEGACY         pRenderHal;
     PMHW_MI_INTERFACE                   pMhwMiInterface;
     MOS_STATUS                          eStatus;
     PVPHAL_BB_COMP_ARGS                 pBbArgs;

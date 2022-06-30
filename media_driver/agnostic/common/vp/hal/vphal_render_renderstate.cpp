@@ -45,7 +45,7 @@ RenderState::RenderState(
     PVPHAL_RNDR_PERF_DATA       pPerfData,
     MOS_STATUS                  *peStatus) :
     m_pOsInterface(pOsInterface),
-    m_pRenderHal(pRenderHal),
+    m_pRenderHal((PRENDERHAL_INTERFACE_LEGACY)pRenderHal),
     m_pSkuTable(nullptr),
     m_pWaTable(nullptr),
     m_bDisableRender(false),

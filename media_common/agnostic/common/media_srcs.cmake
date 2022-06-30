@@ -25,4 +25,5 @@ media_include_subdirectory(heap_manager)
 media_include_subdirectory(hw)
 media_include_subdirectory(shared)
 media_include_subdirectory(media_interfaces)
+media_include_subdirectory(renderhal)
 

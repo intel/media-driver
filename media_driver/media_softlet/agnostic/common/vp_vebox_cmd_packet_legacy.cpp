@@ -1627,7 +1627,6 @@ MOS_STATUS VpVeboxCmdPacketLegacy::RenderVeboxCmd(
     bool                  bDiVarianceEnable;
     const MHW_VEBOX_HEAP *pVeboxHeap     = nullptr;
     VpVeboxRenderData *   pRenderData    = GetLastExecRenderData();
-    MediaPerfProfiler *   pPerfProfiler  = nullptr;
     MOS_CONTEXT *         pOsContext     = nullptr;
     PMHW_MI_MMIOREGISTERS pMmioRegisters = nullptr;
     MOS_COMMAND_BUFFER    CmdBufferInUse;
@@ -1638,6 +1637,7 @@ MOS_STATUS VpVeboxCmdPacketLegacy::RenderVeboxCmd(
     bool                  bMultipipe      = false;
 
     VP_RENDER_CHK_NULL_RETURN(m_hwInterface->m_renderHal);
+    VP_RENDER_CHK_NULL_RETURN(m_hwInterface->m_renderHal->pRenderHalPltInterface);
     VP_RENDER_CHK_NULL_RETURN(m_hwInterface->m_mhwMiInterface);
     VP_RENDER_CHK_NULL_RETURN(m_hwInterface->m_osInterface);
     VP_RENDER_CHK_NULL_RETURN(m_hwInterface->m_veboxInterface);
@@ -1650,7 +1650,6 @@ MOS_STATUS VpVeboxCmdPacketLegacy::RenderVeboxCmd(
     pMhwMiInterface = m_hwInterface->m_mhwMiInterface;
     pOsInterface    = m_hwInterface->m_osInterface;
     pVeboxInterface = m_hwInterface->m_veboxInterface;
-    pPerfProfiler   = pRenderHal->pPerfProfiler;
     pOsContext      = m_hwInterface->m_osInterface->pOsContext;
     pMmioRegisters  = pMhwMiInterface->GetMmioRegisters();
     pCmdBufferInUse = CmdBuffer;
@@ -1736,8 +1735,8 @@ MOS_STATUS VpVeboxCmdPacketLegacy::RenderVeboxCmd(
         // Add vphal param to log.
         HalOcaInterface::DumpVphalParam(*pCmdBufferInUse, *pOsContext, pRenderHal->pVphalOcaDumper);
 
-        VP_RENDER_CHK_STATUS_RETURN(pPerfProfiler->AddPerfCollectStartCmd((void *)pRenderHal, pOsInterface, pRenderHal->pMhwMiInterface, pCmdBufferInUse));
-
+        VP_RENDER_CHK_STATUS_RETURN(pRenderHal->pRenderHalPltInterface->AddPerfCollectStartCmd(pRenderHal, pOsInterface, pCmdBufferInUse));
+       
         VP_RENDER_CHK_STATUS_RETURN(NullHW::StartPredicate(pRenderHal->pMhwMiInterface, pCmdBufferInUse));
 
         // Add compressible info of input/output surface to log
@@ -1887,7 +1886,7 @@ MOS_STATUS VpVeboxCmdPacketLegacy::RenderVeboxCmd(
 
         VP_RENDER_CHK_STATUS_RETURN(NullHW::StopPredicate(pRenderHal->pMhwMiInterface, pCmdBufferInUse));
 
-        VP_RENDER_CHK_STATUS_RETURN(pPerfProfiler->AddPerfCollectEndCmd((void *)pRenderHal, pOsInterface, pRenderHal->pMhwMiInterface, pCmdBufferInUse));
+        VP_RENDER_CHK_STATUS_RETURN(pRenderHal->pRenderHalPltInterface->AddPerfCollectEndCmd(pRenderHal, pOsInterface, pCmdBufferInUse));
 
         HalOcaInterface::On1stLevelBBEnd(*pCmdBufferInUse, *pOsInterface);
 

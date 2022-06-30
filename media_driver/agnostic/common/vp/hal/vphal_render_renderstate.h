@@ -320,7 +320,7 @@ public:
 
     // External components
     PMOS_INTERFACE              m_pOsInterface;
-    PRENDERHAL_INTERFACE        m_pRenderHal;
+    PRENDERHAL_INTERFACE_LEGACY m_pRenderHal;
 
 protected:
     // External tables

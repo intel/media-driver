@@ -25,7 +25,7 @@
 //! \details    Render functions
 //!
 
-#include "renderhal.h"
+#include "renderhal_legacy.h"
 #include "renderhal_g12_1.h"
 #include "mhw_mi_g12_X.h"
 
@@ -46,9 +46,10 @@ MOS_STATUS XRenderHal_Interface_G12_1::EnableL3Caching(
     MHW_RENDER_ENGINE_L3_CACHE_SETTINGS_G12  mHwL3CacheConfig = {};
     PMHW_RENDER_ENGINE_L3_CACHE_SETTINGS pCacheConfig;
     MhwRenderInterface                   *pMhwRender;
+    PRENDERHAL_INTERFACE_LEGACY          pRenderHalLegacy = (PRENDERHAL_INTERFACE_LEGACY)pRenderHal;
 
-    MHW_RENDERHAL_CHK_NULL(pRenderHal);
-    pMhwRender = pRenderHal->pMhwRenderInterface;
+    MHW_RENDERHAL_CHK_NULL(pRenderHalLegacy);
+    pMhwRender = pRenderHalLegacy->pMhwRenderInterface;
     MHW_RENDERHAL_CHK_NULL(pMhwRender);
 
     if (nullptr == pCacheSettings)

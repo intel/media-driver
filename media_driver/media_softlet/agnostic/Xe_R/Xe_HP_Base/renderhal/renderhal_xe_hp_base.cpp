@@ -27,7 +27,7 @@
 //! \details    Render functions
 //!
 
-#include "renderhal.h"
+#include "renderhal_legacy.h"
 #include "renderhal_xe_hp_base.h"
 #include "mhw_mi_g12_X.h"
 #include "vp_utils.h"
@@ -301,9 +301,10 @@ MOS_STATUS XRenderHal_Interface_Xe_Hp_Base::EnableL3Caching(
     MHW_RENDER_ENGINE_L3_CACHE_SETTINGS_G12  mHwL3CacheConfig = {};
     PMHW_RENDER_ENGINE_L3_CACHE_SETTINGS     pCacheConfig;
     MhwRenderInterface                       *pMhwRender;
+    PRENDERHAL_INTERFACE_LEGACY              pRenderHalLegacy = (PRENDERHAL_INTERFACE_LEGACY)pRenderHal;
 
-    MHW_RENDERHAL_CHK_NULL(pRenderHal);
-    pMhwRender = pRenderHal->pMhwRenderInterface;
+    MHW_RENDERHAL_CHK_NULL(pRenderHalLegacy);
+    pMhwRender = pRenderHalLegacy->pMhwRenderInterface;
     MHW_RENDERHAL_CHK_NULL(pMhwRender);
 
     if (nullptr == pCacheSettings)
@@ -416,18 +417,19 @@ MOS_STATUS XRenderHal_Interface_Xe_Hp_Base::SendComputeWalker(
     MHW_ID_ENTRY_PARAMS         mhwIdEntryParams;
     PRENDERHAL_KRN_ALLOCATION   pKernelEntry;
     PRENDERHAL_MEDIA_STATE      pCurMediaState;
+    PRENDERHAL_INTERFACE_LEGACY pRenderHalLegacy = (PRENDERHAL_INTERFACE_LEGACY)pRenderHal;
 
-    MHW_RENDERHAL_CHK_NULL(pRenderHal);
+    MHW_RENDERHAL_CHK_NULL(pRenderHalLegacy);
     MHW_RENDERHAL_CHK_NULL(pCmdBuffer);
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwRenderInterface);
+    MHW_RENDERHAL_CHK_NULL(pRenderHalLegacy->pMhwRenderInterface);
     MHW_RENDERHAL_CHK_NULL(pGpGpuWalkerParams);
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pStateHeap);
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pStateHeap->pKernelAllocation);
+    MHW_RENDERHAL_CHK_NULL(pRenderHalLegacy->pStateHeap);
+    MHW_RENDERHAL_CHK_NULL(pRenderHalLegacy->pStateHeap->pKernelAllocation);
 
     MOS_ZeroMemory(&mhwIdEntryParams, sizeof(mhwIdEntryParams));
 
-    pKernelEntry = &pRenderHal->pStateHeap->pKernelAllocation[pRenderHal->iKernelAllocationID];
-    pCurMediaState = pRenderHal->pStateHeap->pCurMediaState;
+    pKernelEntry = &pRenderHalLegacy->pStateHeap->pKernelAllocation[pRenderHalLegacy->iKernelAllocationID];
+    pCurMediaState = pRenderHalLegacy->pStateHeap->pCurMediaState;
 
     MHW_RENDERHAL_CHK_NULL(pKernelEntry);
     MHW_RENDERHAL_CHK_NULL(pCurMediaState);
@@ -435,14 +437,14 @@ MOS_STATUS XRenderHal_Interface_Xe_Hp_Base::SendComputeWalker(
     mhwIdEntryParams.dwKernelOffset = pKernelEntry->dwOffset;
     mhwIdEntryParams.dwSamplerCount = pKernelEntry->Params.Sampler_Count;
     mhwIdEntryParams.dwSamplerOffset = pCurMediaState->dwOffset +
-                                        pRenderHal->pStateHeap->dwOffsetSampler +
-                                        pGpGpuWalkerParams->InterfaceDescriptorOffset * pRenderHal->pStateHeap->dwSizeSampler;
-    mhwIdEntryParams.dwBindingTableOffset = pGpGpuWalkerParams->BindingTableID * pRenderHal->pStateHeap->iBindingTableSize;
+                                        pRenderHalLegacy->pStateHeap->dwOffsetSampler +
+                                        pGpGpuWalkerParams->InterfaceDescriptorOffset * pRenderHalLegacy->pStateHeap->dwSizeSampler;
+    mhwIdEntryParams.dwBindingTableOffset = pGpGpuWalkerParams->BindingTableID * pRenderHalLegacy->pStateHeap->iBindingTableSize;
     mhwIdEntryParams.dwSharedLocalMemorySize = pGpGpuWalkerParams->SLMSize;
     mhwIdEntryParams.dwNumberofThreadsInGPGPUGroup = pGpGpuWalkerParams->ThreadWidth * pGpGpuWalkerParams->ThreadHeight;
-    pGpGpuWalkerParams->IndirectDataStartAddress = pGpGpuWalkerParams->IndirectDataStartAddress + pRenderHal->pStateHeap->pCurMediaState->dwOffset;
+    pGpGpuWalkerParams->IndirectDataStartAddress = pGpGpuWalkerParams->IndirectDataStartAddress + pRenderHalLegacy->pStateHeap->pCurMediaState->dwOffset;
 
-    MHW_RENDERHAL_CHK_STATUS(static_cast<MhwRenderInterfaceXe_Xpm_Base*>(pRenderHal->pMhwRenderInterface)->AddComputeWalkerCmd(pCmdBuffer,
+    MHW_RENDERHAL_CHK_STATUS(static_cast<MhwRenderInterfaceXe_Xpm_Base*>(pRenderHalLegacy->pMhwRenderInterface)->AddComputeWalkerCmd(pCmdBuffer,
         pGpGpuWalkerParams,
         &mhwIdEntryParams,
         nullptr,
@@ -467,11 +469,13 @@ MOS_STATUS XRenderHal_Interface_Xe_Hp_Base::SendTo3DStateBindingTablePoolAlloc(
 
     MOS_STATUS                  eStatus;
     mhw_render_xe_xpm_base::_3DSTATE_BINDING_TABLE_POOL_ALLOC_CMD cmd;
-    MHW_RENDERHAL_CHK_NULL(pRenderHal);
-    MHW_RENDERHAL_CHK_NULL(pCmdBuffer);
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwRenderInterface);
+    PRENDERHAL_INTERFACE_LEGACY pRenderHalLegacy = (PRENDERHAL_INTERFACE_LEGACY)pRenderHal;
 
-    MHW_RENDERHAL_CHK_STATUS(static_cast<MhwRenderInterfaceXe_Xpm_Base*>(pRenderHal->pMhwRenderInterface)->Add3DStateBindingTablePoolAllocCmd(pCmdBuffer, cmd));
+    MHW_RENDERHAL_CHK_NULL(pRenderHalLegacy);
+    MHW_RENDERHAL_CHK_NULL(pCmdBuffer);
+    MHW_RENDERHAL_CHK_NULL(pRenderHalLegacy->pMhwRenderInterface);
+
+    MHW_RENDERHAL_CHK_STATUS(static_cast<MhwRenderInterfaceXe_Xpm_Base*>(pRenderHalLegacy->pMhwRenderInterface)->Add3DStateBindingTablePoolAllocCmd(pCmdBuffer, cmd));
 
 finish:
     return eStatus;

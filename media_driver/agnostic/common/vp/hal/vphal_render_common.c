@@ -432,22 +432,24 @@ MOS_STATUS VpHal_RndrCommonSubmitCommands(
     MediaPerfProfiler                   *pPerfProfiler = nullptr;
     MOS_CONTEXT                         *pOsContext = nullptr;
     PMHW_MI_MMIOREGISTERS               pMmioRegisters = nullptr;
+    PRENDERHAL_INTERFACE_LEGACY         pRenderHalLegacy = (PRENDERHAL_INTERFACE_LEGACY)pRenderHal;
 
-    MHW_RENDERHAL_CHK_NULL(pRenderHal);
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwRenderInterface);
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwMiInterface);
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwRenderInterface->GetMmioRegisters());
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pOsInterface);
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pOsInterface->pOsContext);
+    MHW_RENDERHAL_CHK_NULL(pRenderHalLegacy);
+    MHW_RENDERHAL_CHK_NULL(pRenderHalLegacy->pMhwRenderInterface);
+    MHW_RENDERHAL_CHK_NULL(pRenderHalLegacy->pMhwMiInterface);
+    MHW_RENDERHAL_CHK_NULL(pRenderHalLegacy->pMhwRenderInterface->GetMmioRegisters());
+    MHW_RENDERHAL_CHK_NULL(pRenderHalLegacy->pOsInterface);
+    MHW_RENDERHAL_CHK_NULL(pRenderHalLegacy->pOsInterface->pOsContext);
+    MHW_RENDERHAL_CHK_NULL(pRenderHalLegacy->pPerfProfiler);
 
     eStatus             = MOS_STATUS_UNKNOWN;
-    pOsInterface        = pRenderHal->pOsInterface;
-    pMhwMiInterface     = pRenderHal->pMhwMiInterface;
-    pMhwRender          = pRenderHal->pMhwRenderInterface;
+    pOsInterface        = pRenderHalLegacy->pOsInterface;
+    pMhwMiInterface     = pRenderHalLegacy->pMhwMiInterface;
+    pMhwRender          = pRenderHalLegacy->pMhwRenderInterface;
     iRemaining          = 0;
     FlushParam          = g_cRenderHal_InitMediaStateFlushParams;
     MOS_ZeroMemory(&CmdBuffer, sizeof(CmdBuffer));
-    pPerfProfiler       = pRenderHal->pPerfProfiler;
+    pPerfProfiler       = pRenderHalLegacy->pPerfProfiler;
     pOsContext          = pOsInterface->pOsContext;
     pMmioRegisters      = pMhwRender->GetMmioRegisters();
 
@@ -458,7 +460,7 @@ MOS_STATUS VpHal_RndrCommonSubmitCommands(
     iRemaining = CmdBuffer.iRemaining;
 
     VPHAL_RENDER_CHK_STATUS(VpHal_RndrCommonSetPowerMode(
-        pRenderHal,
+        pRenderHalLegacy,
         KernelID));
 
 #ifndef EMUL
@@ -481,31 +483,31 @@ MOS_STATUS VpHal_RndrCommonSubmitCommands(
 #endif
 
     HalOcaInterface::On1stLevelBBStart(CmdBuffer, *pOsContext, pOsInterface->CurrentGpuContextHandle,
-        *pRenderHal->pMhwMiInterface, *pMmioRegisters);
+        *pRenderHalLegacy->pMhwMiInterface, *pMmioRegisters);
 
     // Add kernel info to log.
     HalOcaInterface::DumpVpKernelInfo(CmdBuffer, *pOsContext, KernelID, 0, nullptr);
     // Add vphal param to log.
-    HalOcaInterface::DumpVphalParam(CmdBuffer, *pOsContext, pRenderHal->pVphalOcaDumper);
+    HalOcaInterface::DumpVphalParam(CmdBuffer, *pOsContext, pRenderHalLegacy->pVphalOcaDumper);
 
     // Initialize command buffer and insert prolog
-    VPHAL_RENDER_CHK_STATUS(pRenderHal->pfnInitCommandBuffer(pRenderHal, &CmdBuffer, &GenericPrologParams));
+    VPHAL_RENDER_CHK_STATUS(pRenderHalLegacy->pfnInitCommandBuffer(pRenderHalLegacy, &CmdBuffer, &GenericPrologParams));
 
     // Write timing data for 3P budget
-    VPHAL_RENDER_CHK_STATUS(pRenderHal->pfnSendTimingData(pRenderHal, &CmdBuffer, true));
-    VPHAL_RENDER_CHK_STATUS(pPerfProfiler->AddPerfCollectStartCmd((void*)pRenderHal, pOsInterface, pMhwMiInterface, &CmdBuffer));
+    VPHAL_RENDER_CHK_STATUS(pRenderHalLegacy->pfnSendTimingData(pRenderHalLegacy, &CmdBuffer, true));
+    VPHAL_RENDER_CHK_STATUS(pPerfProfiler->AddPerfCollectStartCmd((void*)pRenderHalLegacy, pOsInterface, pMhwMiInterface, &CmdBuffer));
 
-    VPHAL_RENDER_CHK_STATUS(NullHW::StartPredicate(pRenderHal->pMhwMiInterface, &CmdBuffer));
+    VPHAL_RENDER_CHK_STATUS(NullHW::StartPredicate(pRenderHalLegacy->pMhwMiInterface, &CmdBuffer));
 
     bEnableSLM = (pGpGpuWalkerParams && pGpGpuWalkerParams->SLMSize > 0)? true : false;
-    VPHAL_RENDER_CHK_STATUS(pRenderHal->pfnSetCacheOverrideParams(
-        pRenderHal,
-        &pRenderHal->L3CacheSettings,
+    VPHAL_RENDER_CHK_STATUS(pRenderHalLegacy->pfnSetCacheOverrideParams(
+        pRenderHalLegacy,
+        &pRenderHalLegacy->L3CacheSettings,
         bEnableSLM));
 
     // Flush media states
-    VPHAL_RENDER_CHK_STATUS(pRenderHal->pfnSendMediaStates(
-        pRenderHal,
+    VPHAL_RENDER_CHK_STATUS(pRenderHalLegacy->pfnSendMediaStates(
+        pRenderHalLegacy,
         &CmdBuffer,
         pWalkerParams,
         pGpGpuWalkerParams));
@@ -530,17 +532,17 @@ MOS_STATUS VpHal_RndrCommonSubmitCommands(
     // Write back GPU Status tag
     if (!pOsInterface->bEnableKmdMediaFrameTracking)
     {
-        VPHAL_RENDER_CHK_STATUS(pRenderHal->pfnSendRcsStatusTag(pRenderHal, &CmdBuffer));
+        VPHAL_RENDER_CHK_STATUS(pRenderHalLegacy->pfnSendRcsStatusTag(pRenderHalLegacy, &CmdBuffer));
     }
 
-    VPHAL_RENDER_CHK_STATUS(NullHW::StopPredicate(pRenderHal->pMhwMiInterface, &CmdBuffer));
+    VPHAL_RENDER_CHK_STATUS(NullHW::StopPredicate(pRenderHalLegacy->pMhwMiInterface, &CmdBuffer));
 
-    VPHAL_RENDER_CHK_STATUS(pPerfProfiler->AddPerfCollectEndCmd((void*)pRenderHal, pOsInterface, pMhwMiInterface, &CmdBuffer));
+    VPHAL_RENDER_CHK_STATUS(pPerfProfiler->AddPerfCollectEndCmd((void*)pRenderHalLegacy, pOsInterface, pMhwMiInterface, &CmdBuffer));
 
     // Write timing data for 3P budget
-    VPHAL_RENDER_CHK_STATUS(pRenderHal->pfnSendTimingData(pRenderHal, &CmdBuffer, false));
+    VPHAL_RENDER_CHK_STATUS(pRenderHalLegacy->pfnSendTimingData(pRenderHalLegacy, &CmdBuffer, false));
 
-    if (GFX_IS_GEN_9_OR_LATER(pRenderHal->Platform))
+    if (GFX_IS_GEN_9_OR_LATER(pRenderHalLegacy->Platform))
     {
         MHW_PIPE_CONTROL_PARAMS PipeControlParams;
 
@@ -551,7 +553,7 @@ MOS_STATUS VpHal_RndrCommonSubmitCommands(
         PipeControlParams.bDisableCSStall               = false;
         VPHAL_RENDER_CHK_STATUS(pMhwMiInterface->AddPipeControl(&CmdBuffer, nullptr, &PipeControlParams));
 
-        if (MEDIA_IS_WA(pRenderHal->pWaTable, WaSendDummyVFEafterPipelineSelect))
+        if (MEDIA_IS_WA(pRenderHalLegacy->pWaTable, WaSendDummyVFEafterPipelineSelect))
         {
             MHW_VFE_PARAMS VfeStateParams = {};
             VfeStateParams.dwNumberofURBEntries = 1;
@@ -559,10 +561,10 @@ MOS_STATUS VpHal_RndrCommonSubmitCommands(
         }
     }
 
-    if (GFX_IS_GEN_8_OR_LATER(pRenderHal->Platform))
+    if (GFX_IS_GEN_8_OR_LATER(pRenderHalLegacy->Platform))
     {
         // Add media flush command in case HW not cleaning the media state
-        if (MEDIA_IS_WA(pRenderHal->pWaTable, WaMSFWithNoWatermarkTSGHang))
+        if (MEDIA_IS_WA(pRenderHalLegacy->pWaTable, WaMSFWithNoWatermarkTSGHang))
         {
             FlushParam.bFlushToGo = true;
             if (pWalkerParams)
@@ -575,7 +577,7 @@ MOS_STATUS VpHal_RndrCommonSubmitCommands(
             }
             VPHAL_RENDER_CHK_STATUS(pMhwMiInterface->AddMediaStateFlush(&CmdBuffer, nullptr, &FlushParam));
         }
-        else if (MEDIA_IS_WA(pRenderHal->pWaTable, WaAddMediaStateFlushCmd))
+        else if (MEDIA_IS_WA(pRenderHalLegacy->pWaTable, WaAddMediaStateFlushCmd))
         {
             VPHAL_RENDER_CHK_STATUS(pMhwMiInterface->AddMediaStateFlush(&CmdBuffer, nullptr, &FlushParam));
         }
@@ -593,9 +595,9 @@ MOS_STATUS VpHal_RndrCommonSubmitCommands(
         // Send Batch Buffer end command for 1st level Batch Buffer
         VPHAL_RENDER_CHK_STATUS(pMhwMiInterface->AddMiBatchBufferEnd(&CmdBuffer, nullptr));
     }
-    else if (GFX_IS_GEN_8_OR_LATER(pRenderHal->Platform) &&
+    else if (GFX_IS_GEN_8_OR_LATER(pRenderHalLegacy->Platform) &&
                 Mos_Solo_IsInUse(pOsInterface) &&
-                pRenderHal->pOsInterface->bNoParsingAssistanceInKmd)
+                pRenderHalLegacy->pOsInterface->bNoParsingAssistanceInKmd)
     {
         VPHAL_RENDER_CHK_STATUS(pMhwMiInterface->AddMiBatchBufferEnd(&CmdBuffer, nullptr));
     }
@@ -610,10 +612,10 @@ MOS_STATUS VpHal_RndrCommonSubmitCommands(
 
     if (bNullRendering == false)
     {
-        dwSyncTag = pRenderHal->pStateHeap->dwNextTag++;
+        dwSyncTag = pRenderHalLegacy->pStateHeap->dwNextTag++;
 
         // Set media state and batch buffer as busy
-        pRenderHal->pStateHeap->pCurMediaState->bBusy = true;
+        pRenderHalLegacy->pStateHeap->pCurMediaState->bBusy = true;
         if (pBatchBuffer)
         {
             pBatchBuffer->bBusy     = true;
@@ -701,22 +703,24 @@ MOS_STATUS VpHal_RndrSubmitCommands(
     MediaPerfProfiler                   *pPerfProfiler = nullptr;
     MOS_CONTEXT                         *pOsContext = nullptr;
     PMHW_MI_MMIOREGISTERS               pMmioRegisters = nullptr;
+    PRENDERHAL_INTERFACE_LEGACY         pRenderHalLegacy = (PRENDERHAL_INTERFACE_LEGACY)pRenderHal;
 
-    MHW_RENDERHAL_CHK_NULL(pRenderHal);
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwRenderInterface);
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwMiInterface);
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwRenderInterface->GetMmioRegisters());
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pOsInterface);
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pOsInterface->pOsContext);
+    MHW_RENDERHAL_CHK_NULL(pRenderHalLegacy);
+    MHW_RENDERHAL_CHK_NULL(pRenderHalLegacy->pMhwRenderInterface);
+    MHW_RENDERHAL_CHK_NULL(pRenderHalLegacy->pMhwMiInterface);
+    MHW_RENDERHAL_CHK_NULL(pRenderHalLegacy->pMhwRenderInterface->GetMmioRegisters());
+    MHW_RENDERHAL_CHK_NULL(pRenderHalLegacy->pOsInterface);
+    MHW_RENDERHAL_CHK_NULL(pRenderHalLegacy->pOsInterface->pOsContext);
+    MHW_RENDERHAL_CHK_NULL(pRenderHalLegacy->pPerfProfiler);
 
     eStatus              = MOS_STATUS_UNKNOWN;
-    pOsInterface         = pRenderHal->pOsInterface;
-    pMhwMiInterface      = pRenderHal->pMhwMiInterface;
-    pMhwRender           = pRenderHal->pMhwRenderInterface;
+    pOsInterface         = pRenderHalLegacy->pOsInterface;
+    pMhwMiInterface      = pRenderHalLegacy->pMhwMiInterface;
+    pMhwRender           = pRenderHalLegacy->pMhwRenderInterface;
     iRemaining           = 0;
     FlushParam           = g_cRenderHal_InitMediaStateFlushParams;
     MOS_ZeroMemory(&CmdBuffer, sizeof(CmdBuffer));
-    pPerfProfiler       = pRenderHal->pPerfProfiler;
+    pPerfProfiler       = pRenderHalLegacy->pPerfProfiler;
     pOsContext          = pOsInterface->pOsContext;
     pMmioRegisters      = pMhwRender->GetMmioRegisters();
 
@@ -727,7 +731,7 @@ MOS_STATUS VpHal_RndrSubmitCommands(
     iRemaining = CmdBuffer.iRemaining;
 
     VPHAL_RENDER_CHK_STATUS(VpHal_RndrCommonSetPowerMode(
-        pRenderHal,
+        pRenderHalLegacy,
         KernelID));
 
 #ifndef EMUL
@@ -751,40 +755,40 @@ MOS_STATUS VpHal_RndrSubmitCommands(
 #endif
 
     HalOcaInterface::On1stLevelBBStart(CmdBuffer, *pOsContext, pOsInterface->CurrentGpuContextHandle,
-        *pRenderHal->pMhwMiInterface, *pMmioRegisters);
+        *pRenderHalLegacy->pMhwMiInterface, *pMmioRegisters);
 
     // Add kernel info to log.
     HalOcaInterface::DumpVpKernelInfo(CmdBuffer, *pOsContext, KernelID, FcKernelCount, FcKernelList);
     // Add vphal param to log.
-    HalOcaInterface::DumpVphalParam(CmdBuffer, *pOsContext, pRenderHal->pVphalOcaDumper);
+    HalOcaInterface::DumpVphalParam(CmdBuffer, *pOsContext, pRenderHalLegacy->pVphalOcaDumper);
 
     // Initialize command buffer and insert prolog
-    VPHAL_RENDER_CHK_STATUS(pRenderHal->pfnInitCommandBuffer(pRenderHal, &CmdBuffer, &GenericPrologParams));
+    VPHAL_RENDER_CHK_STATUS(pRenderHalLegacy->pfnInitCommandBuffer(pRenderHalLegacy, &CmdBuffer, &GenericPrologParams));
 
-    VPHAL_RENDER_CHK_STATUS(pPerfProfiler->AddPerfCollectStartCmd((void*)pRenderHal, pOsInterface, pMhwMiInterface, &CmdBuffer));
+    VPHAL_RENDER_CHK_STATUS(pPerfProfiler->AddPerfCollectStartCmd((void*)pRenderHalLegacy, pOsInterface, pMhwMiInterface, &CmdBuffer));
 
-    VPHAL_RENDER_CHK_STATUS(NullHW::StartPredicate(pRenderHal->pMhwMiInterface, &CmdBuffer));
+    VPHAL_RENDER_CHK_STATUS(NullHW::StartPredicate(pRenderHalLegacy->pMhwMiInterface, &CmdBuffer));
 
     // Write timing data for 3P budget
-    VPHAL_RENDER_CHK_STATUS(pRenderHal->pfnSendTimingData(pRenderHal, &CmdBuffer, true));
+    VPHAL_RENDER_CHK_STATUS(pRenderHalLegacy->pfnSendTimingData(pRenderHalLegacy, &CmdBuffer, true));
 
     bEnableSLM = (pGpGpuWalkerParams && pGpGpuWalkerParams->SLMSize > 0)? true : false;
-    VPHAL_RENDER_CHK_STATUS(pRenderHal->pfnSetCacheOverrideParams(
-        pRenderHal,
-        &pRenderHal->L3CacheSettings,
+    VPHAL_RENDER_CHK_STATUS(pRenderHalLegacy->pfnSetCacheOverrideParams(
+        pRenderHalLegacy,
+        &pRenderHalLegacy->L3CacheSettings,
         bEnableSLM));
 
-    if (pRenderHal->bCmfcCoeffUpdate)
+    if (pRenderHalLegacy->bCmfcCoeffUpdate)
     {
-        VPHAL_RENDER_CHK_STATUS(pRenderHal->pfnSendCscCoeffSurface(pRenderHal,
+        VPHAL_RENDER_CHK_STATUS(pRenderHalLegacy->pfnSendCscCoeffSurface(pRenderHalLegacy,
             &CmdBuffer,
-            pRenderHal->pCmfcCoeffSurface,
-            pRenderHal->pStateHeap->pKernelAllocation[pRenderHal->iKernelAllocationID].pKernelEntry));
+            pRenderHalLegacy->pCmfcCoeffSurface,
+            pRenderHalLegacy->pStateHeap->pKernelAllocation[pRenderHalLegacy->iKernelAllocationID].pKernelEntry));
     }
 
     // Flush media states
-    VPHAL_RENDER_CHK_STATUS(pRenderHal->pfnSendMediaStates(
-        pRenderHal,
+    VPHAL_RENDER_CHK_STATUS(pRenderHalLegacy->pfnSendMediaStates(
+        pRenderHalLegacy,
         &CmdBuffer,
         pWalkerParams,
         pGpGpuWalkerParams));
@@ -809,17 +813,17 @@ MOS_STATUS VpHal_RndrSubmitCommands(
     // Write back GPU Status tag
     if (!pOsInterface->bEnableKmdMediaFrameTracking)
     {
-        VPHAL_RENDER_CHK_STATUS(pRenderHal->pfnSendRcsStatusTag(pRenderHal, &CmdBuffer));
+        VPHAL_RENDER_CHK_STATUS(pRenderHalLegacy->pfnSendRcsStatusTag(pRenderHalLegacy, &CmdBuffer));
     }
 
-    VPHAL_RENDER_CHK_STATUS(NullHW::StopPredicate(pRenderHal->pMhwMiInterface, &CmdBuffer));
+    VPHAL_RENDER_CHK_STATUS(NullHW::StopPredicate(pRenderHalLegacy->pMhwMiInterface, &CmdBuffer));
 
-    VPHAL_RENDER_CHK_STATUS(pPerfProfiler->AddPerfCollectEndCmd((void*)pRenderHal, pOsInterface, pMhwMiInterface, &CmdBuffer));
+    VPHAL_RENDER_CHK_STATUS(pPerfProfiler->AddPerfCollectEndCmd((void*)pRenderHalLegacy, pOsInterface, pMhwMiInterface, &CmdBuffer));
 
     // Write timing data for 3P budget
-    VPHAL_RENDER_CHK_STATUS(pRenderHal->pfnSendTimingData(pRenderHal, &CmdBuffer, false));
+    VPHAL_RENDER_CHK_STATUS(pRenderHalLegacy->pfnSendTimingData(pRenderHalLegacy, &CmdBuffer, false));
 
-    if (GFX_IS_GEN_9_OR_LATER(pRenderHal->Platform))
+    if (GFX_IS_GEN_9_OR_LATER(pRenderHalLegacy->Platform))
     {
         MHW_PIPE_CONTROL_PARAMS PipeControlParams;
 
@@ -830,7 +834,7 @@ MOS_STATUS VpHal_RndrSubmitCommands(
         PipeControlParams.bDisableCSStall               = false;
         VPHAL_RENDER_CHK_STATUS(pMhwMiInterface->AddPipeControl(&CmdBuffer, nullptr, &PipeControlParams));
 
-        if (MEDIA_IS_WA(pRenderHal->pWaTable, WaSendDummyVFEafterPipelineSelect))
+        if (MEDIA_IS_WA(pRenderHalLegacy->pWaTable, WaSendDummyVFEafterPipelineSelect))
         {
             MHW_VFE_PARAMS VfeStateParams = {};
             VfeStateParams.dwNumberofURBEntries = 1;
@@ -838,10 +842,10 @@ MOS_STATUS VpHal_RndrSubmitCommands(
         }
     }
 
-    if (GFX_IS_GEN_8_OR_LATER(pRenderHal->Platform))
+    if (GFX_IS_GEN_8_OR_LATER(pRenderHalLegacy->Platform))
     {
         // Add media flush command in case HW not cleaning the media state
-        if (MEDIA_IS_WA(pRenderHal->pWaTable, WaMSFWithNoWatermarkTSGHang))
+        if (MEDIA_IS_WA(pRenderHalLegacy->pWaTable, WaMSFWithNoWatermarkTSGHang))
         {
             FlushParam.bFlushToGo = true;
             if (pWalkerParams)
@@ -854,7 +858,7 @@ MOS_STATUS VpHal_RndrSubmitCommands(
             }
             VPHAL_RENDER_CHK_STATUS(pMhwMiInterface->AddMediaStateFlush(&CmdBuffer, nullptr, &FlushParam));
         }
-        else if (MEDIA_IS_WA(pRenderHal->pWaTable, WaAddMediaStateFlushCmd))
+        else if (MEDIA_IS_WA(pRenderHalLegacy->pWaTable, WaAddMediaStateFlushCmd))
         {
             VPHAL_RENDER_CHK_STATUS(pMhwMiInterface->AddMediaStateFlush(&CmdBuffer, nullptr, &FlushParam));
         }
@@ -872,9 +876,9 @@ MOS_STATUS VpHal_RndrSubmitCommands(
         // Send Batch Buffer end command for 1st level Batch Buffer
         VPHAL_RENDER_CHK_STATUS(pMhwMiInterface->AddMiBatchBufferEnd(&CmdBuffer, nullptr));
     }
-    else if (GFX_IS_GEN_8_OR_LATER(pRenderHal->Platform) &&
+    else if (GFX_IS_GEN_8_OR_LATER(pRenderHalLegacy->Platform) &&
                 Mos_Solo_IsInUse(pOsInterface)  &&
-                pRenderHal->pOsInterface->bNoParsingAssistanceInKmd)
+                pRenderHalLegacy->pOsInterface->bNoParsingAssistanceInKmd)
     {
         VPHAL_RENDER_CHK_STATUS(pMhwMiInterface->AddMiBatchBufferEnd(&CmdBuffer, nullptr));
     }
@@ -898,10 +902,10 @@ MOS_STATUS VpHal_RndrSubmitCommands(
 
     if (bNullRendering == false)
     {
-        dwSyncTag = pRenderHal->pStateHeap->dwNextTag++;
+        dwSyncTag = pRenderHalLegacy->pStateHeap->dwNextTag++;
 
         // Set media state and batch buffer as busy
-        pRenderHal->pStateHeap->pCurMediaState->bBusy = true;
+        pRenderHalLegacy->pStateHeap->pCurMediaState->bBusy = true;
         if (pBatchBuffer)
         {
             pBatchBuffer->bBusy     = true;

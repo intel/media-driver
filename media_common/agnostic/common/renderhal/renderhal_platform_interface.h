@@ -24,7 +24,7 @@
 //! \brief     abstract the platfrom specific APIs into one class 
 //!
 //!
-//! \file     renderhal.h
+//! \file     renderhal_platform_interface.h 
 //! \brief    Render Engine Interfaces shared across platforms
 //! \details  Platform Independent Hardware Interfaces
 //!
@@ -202,7 +202,10 @@ public:
         int32_t                  iSamplerID,
         PMHW_SAMPLER_STATE_PARAM pSamplerParams,
         uint32_t                 *pdwSamplerOffset,
-        void                    **ppSampler) = 0;
+        void                    **ppSampler)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
 
     //!
     //! \brief      Initialize the DSH Settings
@@ -212,7 +215,9 @@ public:
     //! \return     void
     //!
     virtual void InitDynamicHeapSettings(
-        PRENDERHAL_INTERFACE  pRenderHal) = 0;
+        PRENDERHAL_INTERFACE  pRenderHal)
+    {
+    }
 
     //!
     //! \brief      Get the depth bit mask for buffer 
@@ -236,6 +241,20 @@ public:
     //!             pointer to the MHW_VFE_PARAMS
     //!
     virtual MHW_VFE_PARAMS* GetVfeStateParameters() = 0;
+
+    //!
+    //! \brief      Get the size of render hal media state
+    //! \return     size_t
+    //!             The size of render hal media state
+    //!
+    virtual size_t GetRenderHalMediaStateSize() = 0;
+
+    //!
+    //! \brief      Get the size of render hal state heap
+    //! \return     size_t
+    //!             The size of render hal state heap
+    //!
+    virtual size_t GetRenderHalStateHeapSize() = 0;
 
     //!
     //! \brief    Set Power Option Status
@@ -590,6 +609,12 @@ public:
         PMOS_COMMAND_BUFFER  pCmdBuffer,
         PMOS_CONTEXT         pOsContext,
         MHW_MI_MMIOREGISTERS *pMmioReg) = 0;
+
+    virtual MOS_STATUS CreatePerfProfiler(
+        PRENDERHAL_INTERFACE pRenderHal) = 0;
+
+    virtual MOS_STATUS DestroyPerfProfiler(
+        PRENDERHAL_INTERFACE pRenderHal) = 0;
 
     virtual MOS_STATUS AddPerfCollectStartCmd(
         PRENDERHAL_INTERFACE pRenderHal,

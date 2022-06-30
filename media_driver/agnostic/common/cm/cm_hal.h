@@ -26,7 +26,7 @@
 #ifndef __CM_HAL_H__
 #define __CM_HAL_H__
 
-#include "renderhal.h"
+#include "renderhal_legacy.h"
 #include "cm_common.h"
 #include "cm_debug.h"
 #include "cm_csync.h"
@@ -1482,7 +1482,7 @@ typedef struct _CM_HAL_STATE
     MEDIA_FEATURE_TABLE         *skuTable;
     MEDIA_WA_TABLE              *waTable;
     PMOS_INTERFACE              osInterface;                                   // OS Interface                                 [*]
-    PRENDERHAL_INTERFACE        renderHal;                                     // Render Engine Interface                      [*]
+    PRENDERHAL_INTERFACE_LEGACY renderHal;                                     // Render Engine Interface                      [*]
     MhwVeboxInterface           *veboxInterface;                               // Vebox Interface
     MhwCpInterface*             cpInterface;                                   // Cp  Interface
     PMHW_BATCH_BUFFER           batchBuffers;                                  // Array of Batch Buffers                       [*]

@@ -551,7 +551,7 @@ MOS_STATUS MediaVeboxDecompState::Initialize(
     MHW_VEBOX_GPUNODE_LIMIT     GpuNodeLimit;
     MOS_GPU_NODE                VeboxGpuNode;
     MOS_GPU_CONTEXT             VeboxGpuContext;
-    RENDERHAL_SETTINGS          RenderHalSettings;
+    RENDERHAL_SETTINGS_LEGACY   RenderHalSettings;
 
     eStatus = MOS_STATUS_SUCCESS;
 
