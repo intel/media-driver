@@ -49,7 +49,8 @@
 
 MOS_STATUS MosInterface::InitOsUtilities(DDI_DEVICE_CONTEXT ddiDeviceContext)
 {
-    MOS_UNUSED(ddiDeviceContext);
+    MediaUserSettingSharedPtr   userSettingPtr = ::GetUserSettingInstance((PMOS_CONTEXT)ddiDeviceContext);
+
     MosUtilities::MosUtilitiesInit(nullptr);
 
     // MOS_OS_FUNCTION_ENTER need mos utilities init
@@ -63,29 +64,25 @@ MOS_STATUS MosInterface::InitOsUtilities(DDI_DEVICE_CONTEXT ddiDeviceContext)
     //Read user feature key here for Per Utility Tool Enabling
     if (!g_perfutility->bPerfUtilityKey)
     {
-        MOS_USER_FEATURE_VALUE_DATA UserFeatureData;
-        MosUtilities::MosZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-        MosUtilities::MosUserFeatureReadValueID(
-            NULL,
-            __MEDIA_USER_FEATURE_VALUE_PERF_UTILITY_TOOL_ENABLE_ID,
-            &UserFeatureData,
-            (MOS_CONTEXT_HANDLE) nullptr);
-        g_perfutility->dwPerfUtilityIsEnabled = UserFeatureData.i32Data;
+        g_perfutility->dwPerfUtilityIsEnabled = 0;
+        ReadUserSetting(
+            userSettingPtr,
+            g_perfutility->dwPerfUtilityIsEnabled,
+            __MEDIA_USER_FEATURE_VALUE_PERF_UTILITY_TOOL_ENABLE,
+            MediaUserSetting::Group::Device);
 
-        char                        sFilePath[MOS_MAX_PERF_FILENAME_LEN + 1] = "";
-        MOS_USER_FEATURE_VALUE_DATA perfFilePath;
+
         MOS_STATUS                  eStatus_Perf = MOS_STATUS_SUCCESS;
+        std::string                 perfOutputDir = "";
 
-        MosUtilities::MosZeroMemory(&perfFilePath, sizeof(perfFilePath));
-        perfFilePath.StringData.pStringData = sFilePath;
-        eStatus_Perf                        = MosUtilities::MosUserFeatureReadValueID(
-            nullptr,
-            __MEDIA_USER_FEATURE_VALUE_PERF_OUTPUT_DIRECTORY_ID,
-            &perfFilePath,
-            (MOS_CONTEXT_HANDLE) nullptr);
+        eStatus_Perf = ReadUserSetting(
+            userSettingPtr,
+            perfOutputDir,
+            __MEDIA_USER_FEATURE_VALUE_PERF_OUTPUT_DIRECTORY,
+            MediaUserSetting::Group::Device);
         if (eStatus_Perf == MOS_STATUS_SUCCESS)
         {
-            g_perfutility->setupFilePath(sFilePath);
+            g_perfutility->setupFilePath(perfOutputDir.c_str());
         }
         else
         {

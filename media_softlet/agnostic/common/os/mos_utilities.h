@@ -3048,7 +3048,7 @@ public:
     void startTick(std::string tag);
     void stopTick(std::string tag);
     void savePerfData();
-    void setupFilePath(char *perfFilePath);
+    void setupFilePath(const char *perfFilePath);
     void setupFilePath();
     bool bPerfUtilityKey    = false;
     char sSummaryFileName[MOS_MAX_PERF_FILENAME_LEN + 1] = {'\0'};

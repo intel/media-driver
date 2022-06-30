@@ -113,7 +113,7 @@ MOS_STATUS MosUserSetting::InitMosCommonUserSetting(MediaUserSettingSharedPtr us
         __MEDIA_USER_FEATURE_VALUE_ENABLE_VEBOX_SCALABILITY_MODE,
         MediaUserSetting::Group::Device,
         0,
-        true);
+        true); //"TRUE for Enabling Vebox Scalability. (Default FALSE: disabled)"
 
     DeclareUserSettingKey(
         userSettingPtr,
@@ -121,6 +121,20 @@ MOS_STATUS MosUserSetting::InitMosCommonUserSetting(MediaUserSettingSharedPtr us
         MediaUserSetting::Group::Device,
         1,
         true); //"Enable HCP Scalability decode mode. (Default 1: Scalable Decode Mode "
+
+    DeclareUserSettingKey(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_PERF_UTILITY_TOOL_ENABLE,
+        MediaUserSetting::Group::Device,
+        0,
+        true); //"Enable Perf Utility Tool. "
+
+    DeclareUserSettingKey(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_PERF_OUTPUT_DIRECTORY,
+        MediaUserSetting::Group::Device,
+        "",
+        true); //" Perf Utility Tool Customize Output Directory. "
 
     return MOS_STATUS_SUCCESS;
 }

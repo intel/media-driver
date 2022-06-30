@@ -2624,7 +2624,7 @@ PerfUtility::~PerfUtility()
     records.clear();
 }
 
-void PerfUtility::setupFilePath(char *perfFilePath)
+void PerfUtility::setupFilePath(const char *perfFilePath)
 {
     int32_t pid = MosUtilities::MosGetPid();
     MOS_SecureStringPrint(sSummaryFileName, MOS_MAX_PATH_LENGTH + 1, MOS_MAX_PATH_LENGTH + 1,
