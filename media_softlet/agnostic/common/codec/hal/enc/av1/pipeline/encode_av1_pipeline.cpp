@@ -129,7 +129,7 @@ MOS_STATUS Av1Pipeline::Prepare(void *params)
     auto instance = mhw::HwcmdParser::GetInstance();
     if (instance)
     {
-        instance->Update(frameType, nullptr);
+        instance->Update(frameType, (void *)m_featureManager);
     }
 #endif
 
