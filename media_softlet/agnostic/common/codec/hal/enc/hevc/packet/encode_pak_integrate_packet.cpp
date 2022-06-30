@@ -266,8 +266,8 @@ namespace encode {
         ENCODE_CHK_NULL_RETURN(statusReport);
         ENCODE_CHK_NULL_RETURN(m_hwInterface);
 
-        MOS_RESOURCE *osResource;
-        uint32_t      offset;
+        MOS_RESOURCE *osResource = nullptr;
+        uint32_t      offset = 0;
 
         EncodeStatusReadParams params;
         MOS_ZeroMemory(&params, sizeof(params));
