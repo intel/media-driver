@@ -968,7 +968,7 @@ MOS_STATUS PolicySfcScalingHandler::UpdateUnusedFeature(VP_EXECUTE_CAPS caps, Sw
         // To avoid scaling filter being destroyed in Policy::UpdateFeaturePipe.
         feature.GetFilterEngineCaps().value = 0;
         feature.GetFilterEngineCaps().forceEnableForSfc = 1;
-        feature.GetFilterEngineCaps().forceEnableForRender = 1;
+        feature.GetFilterEngineCaps().forceEnableForFc = 1;
         feature.GetFilterEngineCaps().usedForNextPass = 1;
     }
     return MOS_STATUS_SUCCESS;

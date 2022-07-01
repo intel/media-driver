@@ -130,6 +130,7 @@ protected:
 
     bool IsAlphaSettingSupportedBySfc(MOS_FORMAT formatInput, MOS_FORMAT formatOutput, PVPHAL_ALPHA_PARAMS compAlpha);
     bool IsAlphaSettingSupportedByVebox(MOS_FORMAT formatInput, MOS_FORMAT formatOutput, PVPHAL_ALPHA_PARAMS compAlpha);
+    bool IsIsolateFeatureOutputPipeNeeded(SwFilterSubPipe *featureSubPipe, SwFilter *swFilter);
 
     virtual MOS_STATUS AddFiltersBasedOnCaps(
         SwFilterPipe& featurePipe,
