@@ -259,7 +259,6 @@ MOS_STATUS HevcBasicFeature::ErrorDetectAndConceal()
             if (m_hevcPicParams->entropy_coding_sync_enabled_flag && m_hevcPicParams->tiles_enabled_flag)
             {
                 DECODE_ASSERTMESSAGE("Only SCC 4:4:4 allows both tiles_enabled_flag andentropy_coding_sync_enabled_flag to be ON at the same time\n");
-                return MOS_STATUS_INVALID_PARAMETER;
             }
         }
     }
