@@ -83,6 +83,7 @@ MOS_STATUS HevcDecodeFrontEndPktM12::Submit(
         DECODE_CHK_STATUS(PackSliceLevelCmds(*cmdBuffer));
     }
 
+    HalOcaInterface::DumpCodechalParam(*cmdBuffer, *m_osInterface->pOsContext, m_hevcPipeline->GetCodechalOcaDumper(), CODECHAL_HEVC);
     HalOcaInterface::On1stLevelBBEnd(*cmdBuffer, *m_osInterface);
 
     DECODE_CHK_STATUS(m_allocator->SyncOnResource(&m_hevcBasicFeature->m_resDataBuffer, false));

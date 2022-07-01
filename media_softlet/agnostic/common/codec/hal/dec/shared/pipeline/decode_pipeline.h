@@ -41,6 +41,7 @@
 #include "decode_cp_bitstream.h"
 #include "decode_mem_compression.h"
 #include "decode_downsampling_feature.h"
+#include "codechal_oca_debug.h"
 
 namespace decode {
 
@@ -92,7 +93,10 @@ public:
         CodechalHwInterface *   hwInterface,
         CodechalDebugInterface *debugInterface);
 
-    virtual ~DecodePipeline() { };
+    virtual ~DecodePipeline()
+    {
+        MOS_Delete(m_pCodechalOcaDumper);
+    };
 
     //!
     //! \brief  Prepare interal parameters, should be invoked for each frame
@@ -313,6 +317,13 @@ public:
     //!
     bool IsFirstProcessPipe(const DecodePipelineParams &pipelineParams);
 
+    //!
+    //! \brief    Gets oca dump interface.
+    //! \return   CodechalOcaDumper
+    //!           return oca debug interface
+    //!
+    CodechalOcaDumper *GetCodechalOcaDumper() { return m_pCodechalOcaDumper; }
+
 protected:
     //!
     //! \brief  Initialize the decode pipeline
@@ -476,6 +487,7 @@ protected:
     friend class DecodeSubPipelineManager;
 
     CodechalHwInterface*    m_hwInterface    = nullptr; //!< Codechal HwInterface
+    CodechalOcaDumper      *m_pCodechalOcaDumper = nullptr;
     CodechalDebugInterface* m_debugInterface = nullptr; //!< Debug Interface
     MediaTask *             m_task           = nullptr; //!< Command task
 

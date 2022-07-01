@@ -187,6 +187,14 @@ MOS_STATUS AvcPipelineM12::Prepare(void *params)
     {
         if (IsCompleteBitstream())
         {
+            if (m_pCodechalOcaDumper)
+            {
+                m_pCodechalOcaDumper->SetAvcDecodeParam(
+                    m_basicFeature->m_avcPicParams,
+                    m_basicFeature->m_avcSliceParams,
+                    m_basicFeature->m_numSlices);
+            }
+
             CODECHAL_DEBUG_TOOL(DECODE_CHK_STATUS(DumpParams(*m_basicFeature)));
 
             DecodeStatusParameters inputParameters = {};

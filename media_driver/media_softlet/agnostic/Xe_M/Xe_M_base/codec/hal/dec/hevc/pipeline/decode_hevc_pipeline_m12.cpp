@@ -230,6 +230,18 @@ MOS_STATUS HevcPipelineM12::Prepare(void *params)
     {
         if (IsCompleteBitstream())
         {
+            if (m_pCodechalOcaDumper)
+            {
+                m_pCodechalOcaDumper->SetHevcDecodeParam(
+                    m_basicFeature->m_hevcPicParams,
+                    m_basicFeature->m_hevcRextPicParams,
+                    m_basicFeature->m_hevcSccPicParams,
+                    m_basicFeature->m_hevcSliceParams,
+                    m_basicFeature->m_hevcRextSliceParams,
+                    m_basicFeature->m_numSlices,
+                    m_shortFormatInUse);
+            }
+
             CODECHAL_DEBUG_TOOL(
                 m_debugInterface->m_bufferDumpFrameNum = m_basicFeature->m_frameNum;
                 DECODE_CHK_STATUS(DumpParams(*m_basicFeature))

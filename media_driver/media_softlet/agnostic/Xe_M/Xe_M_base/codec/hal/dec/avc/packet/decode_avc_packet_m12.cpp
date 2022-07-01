@@ -74,6 +74,7 @@ MOS_STATUS AvcDecodePktM12::Submit(
     DECODE_CHK_STATUS(PackPictureLevelCmds(*cmdBuffer));
     DECODE_CHK_STATUS(PackSliceLevelCmds(*cmdBuffer));
 
+    HalOcaInterface::DumpCodechalParam(*cmdBuffer, *m_osInterface->pOsContext, m_avcPipeline->GetCodechalOcaDumper(), CODECHAL_AVC);
     HalOcaInterface::On1stLevelBBEnd(*cmdBuffer, *m_osInterface);
 
     DECODE_CHK_STATUS(m_allocator->SyncOnResource(&m_avcBasicFeature->m_resDataBuffer, false));

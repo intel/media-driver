@@ -55,6 +55,13 @@ DecodePipeline::DecodePipeline(
 
     m_singleTaskPhaseSupported =
         ReadUserFeature(m_userSettingPtr, "Decode Single Task Phase Enable", MediaUserSetting::Group::Sequence).Get<bool>();
+
+    m_pCodechalOcaDumper = MOS_New(CodechalOcaDumper);
+    if (!m_pCodechalOcaDumper)
+    {
+        MOS_OS_ASSERTMESSAGE("Initialize CodechalOcaDumper failed!");
+    }
+
     CODECHAL_DEBUG_TOOL(
         DECODE_ASSERT(debugInterface != nullptr);
         m_debugInterface = debugInterface;
