@@ -1875,9 +1875,12 @@ MOS_STATUS CodechalDecodeHevcG12::AddPipeEpilog(
         cmdBufferInUse,
         &flushDwParams));
 
-    CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(
-        cmdBufferInUse,
-        nullptr));
+    if (!m_osInterface->pfnIsMismatchOrderProgrammingSupported())
+    {
+        CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(
+            cmdBufferInUse,
+            nullptr));
+    }
 
     return eStatus;
 }

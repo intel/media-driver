@@ -157,7 +157,10 @@ MOS_STATUS HevcDecodeLongPktM12::PackPictureLevelCmds(MOS_COMMAND_BUFFER &cmdBuf
     DECODE_CHK_STATUS(UpdateStatusReport(statusReportGlobalCount, &cmdBuffer));
     DECODE_CHK_STATUS(MiFlush(cmdBuffer));
 
-    DECODE_CHK_STATUS(m_miInterface->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
+    if (!m_osInterface->pfnIsMismatchOrderProgrammingSupported())
+    {
+        DECODE_CHK_STATUS(m_miInterface->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
+    }
 
     return MOS_STATUS_SUCCESS;
 }

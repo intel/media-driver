@@ -130,7 +130,10 @@ MOS_STATUS AvcDecodePktM12::PackSliceLevelCmds(MOS_COMMAND_BUFFER &cmdBuffer)
             m_mmcState->UpdateUserFeatureKey(&(m_avcBasicFeature->m_destSurface));
         })
 
-    DECODE_CHK_STATUS(m_miInterface->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
+    if (!m_osInterface->pfnIsMismatchOrderProgrammingSupported())
+    {
+        DECODE_CHK_STATUS(m_miInterface->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
+    }
 
     return MOS_STATUS_SUCCESS;
 }
