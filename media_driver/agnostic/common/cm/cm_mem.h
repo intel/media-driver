@@ -24,10 +24,11 @@
 //! \brief     Contains CM memory function definitions 
 //!
 #pragma once
-
+#ifdef IGFX_ENABLE_X86_INTRINSICS
 #include <mmintrin.h>
 #include <xmmintrin.h>
 #include <emmintrin.h>
+#endif
 #include "cm_debug.h"
 #include "mos_utilities.h"
 
@@ -42,8 +43,11 @@ enum CPU_INSTRUCTION_LEVEL
     CPU_INSTRUCTION_LEVEL_SSE4_1,
     NUM_CPU_INSTRUCTION_LEVELS
 };
-
+#ifdef IGFX_ENABLE_X86_INTRINSICS
 typedef __m128              DQWORD;         // 128-bits,   16-bytes
+#else
+typedef unsigned __int128           DQWORD;
+#endif
 typedef uint32_t            PREFETCH[8];    //             32-bytes
 typedef uint32_t            CACHELINE[8];   //             32-bytes
 typedef uint16_t            DHWORD[32];     // 512-bits,   64-bytes
@@ -68,6 +72,7 @@ void CmFastMemCopyWC( void* dst,   const void* src, const size_t bytes );
 
 inline void Prefetch( const void* ptr );
 
+#ifdef IGFX_ENABLE_X86_INTRINSICS
 /*****************************************************************************\
 MACROS:
     EMIT_R_MR
@@ -115,6 +120,8 @@ Description:
 #define MOVNTDQA_R_MR_OFFSET(DST, SRC, OFFSET)  \
     EMIT_R_MR_OFFSET(MOVNTDQA_OP, DST, SRC, OFFSET)
 
+#endif
+
 #ifndef BIT
 #define BIT( n )    ( 1 << (n) )
 #endif
@@ -130,6 +137,7 @@ Description:
 \*****************************************************************************/
 inline void CmSafeMemSet( void* dst, const int data, const size_t bytes )
 {
+
 #if defined(_DEBUG)
     __try
 #endif
@@ -227,6 +235,8 @@ Output:
 \*****************************************************************************/
 inline CPU_INSTRUCTION_LEVEL GetCpuInstructionLevel( void )
 {
+
+#ifdef IGFX_ENABLE_X86_INTRINSICS
     int cpuInfo[4];
     memset( cpuInfo, 0, 4*sizeof(int) );
 
@@ -253,7 +263,9 @@ inline CPU_INSTRUCTION_LEVEL GetCpuInstructionLevel( void )
     {
         cpuInstructionLevel = CPU_INSTRUCTION_LEVEL_MMX;
     }
-
+#else
+    CPU_INSTRUCTION_LEVEL cpuInstructionLevel = CPU_INSTRUCTION_LEVEL_UNKNOWN;
+#endif
     return cpuInstructionLevel;
 }
 

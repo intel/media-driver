@@ -52,6 +52,10 @@ cmake_dependent_option( BUILD_KERNELS
 option (BUILD_CMRTLIB "Build and Install cmrtlib together with media driver" ON)
 
 option (ENABLE_PRODUCTION_KMD "Enable Production KMD header files" OFF)
+option (ENABLE_X86_INTRINSICS "Enable x86 intrinsics" ON)
+if(ENABLE_X86_INTRINSICS)
+    add_definitions(-DIGFX_ENABLE_X86_INTRINSICS)
+endif()
 
 include(GNUInstallDirs)
 

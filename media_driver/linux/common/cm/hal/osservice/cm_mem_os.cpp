@@ -38,7 +38,10 @@ typedef void(*t_CmFastMemCopyFromWC)( void* dst, const void* src, const size_t b
 void CmFastMemCopyFromWC( void* dst, const void* src, const size_t bytes, CPU_INSTRUCTION_LEVEL cpuInstructionLevel )
 {
     static const bool is_SSE4_available = (cpuInstructionLevel >= CPU_INSTRUCTION_LEVEL_SSE4_1);
+#ifdef IGFX_ENABLE_X86_INTRINSICS
     static const t_CmFastMemCopyFromWC CmFastMemCopyFromWC_impl = CM_FAST_MEM_COPY_CPU_INIT(CmFastMemCopyFromWC);
-
+#else
+    static const t_CmFastMemCopyFromWC CmFastMemCopyFromWC_impl = CM_FAST_MEM_COPY_CPU_INIT_C(CmFastMemCopyFromWC);
+#endif
     CmFastMemCopyFromWC_impl(dst, src, bytes);
 }
