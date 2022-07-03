@@ -487,6 +487,13 @@ MOS_STATUS MosUserSetting::InitUserSettingForDebug(MediaUserSettingSharedPtr use
         0,
         true); // "If enabled, soft reset will be enabled. This key is not valid on Linux."
 
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_SSEU_SETTING_OVERRIDE,
+        MediaUserSetting::Group::Device,
+        0xDEADC0DE,
+        true); // "Override Slice/Sub-Slice/EU request"
+
     return MOS_STATUS_SUCCESS;
 }
 #endif

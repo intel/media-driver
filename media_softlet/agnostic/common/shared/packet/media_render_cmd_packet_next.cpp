@@ -158,6 +158,7 @@ MOS_STATUS RenderCmdPacketNext::SetPowerMode(uint32_t KernelID)
     RENDERHAL_POWEROPTION PowerOption;
     bool                  bSetRequestedSlices = false;
     const SseuSetting *   pcSSEUTable         = nullptr;
+    MediaUserSettingSharedPtr   userSettingPtr  = nullptr;
 
     RENDER_PACKET_CHK_NULL_RETURN(m_renderHal);
 
@@ -198,19 +199,19 @@ MOS_STATUS RenderCmdPacketNext::SetPowerMode(uint32_t KernelID)
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     // User feature key reads
-    MOS_USER_FEATURE_VALUE_DATA UserFeatureData;
-    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_SSEU_SETTING_OVERRIDE_ID,
-        &UserFeatureData,
-        m_osInterface->pOsContext);
+    userSettingPtr = m_osInterface->pfnGetUserSettingInstance(m_osInterface);
 
-    if (UserFeatureData.u32Data != 0xDEADC0DE)
+    uint32_t value = 0;
+    ReadUserSettingForDebug(
+        userSettingPtr,
+        value,
+        __MEDIA_USER_FEATURE_VALUE_SSEU_SETTING_OVERRIDE,
+        MediaUserSetting::Group::Device);
+    if (value != 0xDEADC0DE)
     {
-        wNumRequestedEUSlices  = UserFeatureData.u32Data & 0xFF;            // Bits 0-7
-        wNumRequestedSubSlices = (UserFeatureData.u32Data >> 8) & 0xFF;     // Bits 8-15
-        wNumRequestedEUs       = (UserFeatureData.u32Data >> 16) & 0xFFFF;  // Bits 16-31
+        wNumRequestedEUSlices  = value & 0xFF;            // Bits 0-7
+        wNumRequestedSubSlices = (value >> 8) & 0xFF;     // Bits 8-15
+        wNumRequestedEUs       = (value >> 16) & 0xFFFF;  // Bits 16-31
     }
 #endif
 

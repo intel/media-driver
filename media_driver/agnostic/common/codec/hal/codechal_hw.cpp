@@ -650,7 +650,9 @@ MOS_STATUS CodechalHwInterface::GetStreamoutCommandSize(
 MOS_STATUS CodechalHwInterface::Initialize(
     CodechalSetting *settings)
 {
-    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+    MOS_STATUS                  eStatus         = MOS_STATUS_SUCCESS;
+    MediaUserSettingSharedPtr   userSettingPtr  = nullptr;
+    uint32_t                    value           = 0;
 
     CODECHAL_HW_FUNCTION_ENTER;
 
@@ -676,19 +678,19 @@ MOS_STATUS CodechalHwInterface::Initialize(
     }
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
-    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_SSEU_SETTING_OVERRIDE_ID,
-        &userFeatureData,
-        m_osInterface->pOsContext);
-    if (userFeatureData.i32Data != 0xDEADC0DE)
+    userSettingPtr = m_osInterface->pfnGetUserSettingInstance(m_osInterface);
+    ReadUserSettingForDebug(
+        userSettingPtr,
+        value,
+        __MEDIA_USER_FEATURE_VALUE_SSEU_SETTING_OVERRIDE,
+        MediaUserSetting::Group::Device);
+
+    if (value != 0xDEADC0DE)
     {
-        m_numRequestedEuSlicesOverride = userFeatureData.i32Data & 0xFF;              // Bits 0-7
-        m_numRequestedSubSlicesOverride = (userFeatureData.i32Data >> 8) & 0xFF;      // Bits 8-15
-        m_numRequestedEusOverride = (userFeatureData.i32Data >> 16) & 0xFFFF;         // Bits 16-31
-        m_numRequestedOverride = true;
+        m_numRequestedEuSlicesOverride  = value & 0xFF;              // Bits 0-7
+        m_numRequestedSubSlicesOverride = (value >> 8) & 0xFF;      // Bits 8-15
+        m_numRequestedEusOverride       = (value >> 16) & 0xFFFF;         // Bits 16-31
+        m_numRequestedOverride          = true;
     }
 #endif
 

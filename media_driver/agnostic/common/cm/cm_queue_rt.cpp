@@ -264,21 +264,25 @@ int32_t CmQueueRT::Initialize()
                 }
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-                MOS_USER_FEATURE_VALUE_DATA UserFeatureData = {0};
-                MOS_UserFeature_ReadValue_ID(
-                    nullptr,
-                    __MEDIA_USER_FEATURE_VALUE_SSEU_SETTING_OVERRIDE_ID,
-                    &UserFeatureData, cmHalState->osInterface->pOsContext);
-
-                // +---------------+----------------+----------------+----------------+
-                // |   EUCountMax  |   EUCountMin   |     SSCount    |   SliceCount   |
-                // +-------------24+--------------16+---------------8+---------------0+
-                if (UserFeatureData.u32Data != 0xDEADC0DE)
                 {
-                    ctxCreateOption.packed.SliceCount            = UserFeatureData.u32Data         & 0xFF;       // Bits 0-7
-                    ctxCreateOption.packed.SubSliceCount         = (UserFeatureData.u32Data >>  8) & 0xFF;       // Bits 8-15
-                    ctxCreateOption.packed.MaxEUcountPerSubSlice = (UserFeatureData.u32Data >> 16) & 0xFF;       // Bits 16-23
-                    ctxCreateOption.packed.MinEUcountPerSubSlice = (UserFeatureData.u32Data >> 24) & 0xFF;       // Bits 24-31
+                    MediaUserSettingSharedPtr   userSettingPtr = cmHalState->osInterface->pfnGetUserSettingInstance(cmHalState->osInterface);
+                    uint32_t                    value          = 0;
+                    ReadUserSettingForDebug(
+                        userSettingPtr,
+                        value,
+                        __MEDIA_USER_FEATURE_VALUE_SSEU_SETTING_OVERRIDE,
+                        MediaUserSetting::Group::Device);
+
+                    // +---------------+----------------+----------------+----------------+
+                    // |   EUCountMax  |   EUCountMin   |     SSCount    |   SliceCount   |
+                    // +-------------24+--------------16+---------------8+---------------0+
+                    if (value != 0xDEADC0DE)
+                    {
+                        ctxCreateOption.packed.SliceCount            = value         & 0xFF;       // Bits 0-7
+                        ctxCreateOption.packed.SubSliceCount         = (value >>  8) & 0xFF;       // Bits 8-15
+                        ctxCreateOption.packed.MaxEUcountPerSubSlice = (value >> 16) & 0xFF;       // Bits 16-23
+                        ctxCreateOption.packed.MinEUcountPerSubSlice = (value >> 24) & 0xFF;       // Bits 24-31
+                    }
                 }
 #endif
             }
