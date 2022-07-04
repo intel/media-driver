@@ -182,12 +182,12 @@ MOS_STATUS Av1PipelineG12_Base::DumpParams(Av1BasicFeatureG12 &basicFeature)
         basicFeature.m_av1PicParams));
 
     DECODE_CHK_STATUS(DumpBitstreamControlParams(
-        basicFeature.m_av1TileParams));
+        basicFeature.m_av1TileParams, basicFeature.m_tileCoding.m_numTiles));
 
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS Av1PipelineG12_Base::DumpBitstreamControlParams(CodecAv1TileParams *tileParams)
+MOS_STATUS Av1PipelineG12_Base::DumpBitstreamControlParams(CodecAv1TileParams *tileParams, uint32_t tileNum)
 {
     CODECHAL_DEBUG_FUNCTION_ENTER;
 
@@ -201,16 +201,19 @@ MOS_STATUS Av1PipelineG12_Base::DumpBitstreamControlParams(CodecAv1TileParams *t
     std::ostringstream oss;
     oss.setf(std::ios::showbase | std::ios::uppercase);
 
-    oss << "BSTileDataLocation: " << +tileParams->m_bsTileDataLocation << std::endl;
-    oss << "BSTileBytesInBuffer: " << +tileParams->m_bsTileBytesInBuffer << std::endl;
-    oss << "wBadBSBufferChopping: " << +tileParams->m_badBSBufferChopping << std::endl;
-    oss << "tile_row: " << +tileParams->m_tileRow << std::endl;
-    oss << "tile_column: " << +tileParams->m_tileColumn << std::endl;
-    oss << "tile_index: " << +tileParams->m_tileIndex << std::endl;
-    oss << "StartTileIdx: " << +tileParams->m_startTileIdx << std::endl;
-    oss << "EndTileIdx: " << +tileParams->m_endTileIdx << std::endl;
-    oss << "anchor_frame_idx: " << +tileParams->m_anchorFrameIdx.FrameIdx << std::endl;
-    oss << "BSTilePayloadSizeInBytes: " << +tileParams->m_bsTilePayloadSizeInBytes << std::endl;
+    for(uint32_t i = 0; i <  tileNum; i++)
+    {
+        oss << "BSTileDataLocation: " << +(tileParams+i)->m_bsTileDataLocation << std::endl;
+        oss << "BSTileBytesInBuffer: " << +(tileParams+i)->m_bsTileBytesInBuffer << std::endl;
+        oss << "wBadBSBufferChopping: " << +(tileParams+i)->m_badBSBufferChopping << std::endl;
+        oss << "tile_row: " << +(tileParams+i)->m_tileRow << std::endl;
+        oss << "tile_column: " << +(tileParams+i)->m_tileColumn << std::endl;
+        oss << "tile_index: " << +(tileParams+i)->m_tileIndex << std::endl;
+        oss << "StartTileIdx: " << +(tileParams+i)->m_startTileIdx << std::endl;
+        oss << "EndTileIdx: " << +(tileParams+i)->m_endTileIdx << std::endl;
+        oss << "anchor_frame_idx: " << +(tileParams+i)->m_anchorFrameIdx.FrameIdx << std::endl;
+        oss << "BSTilePayloadSizeInBytes: " << +(tileParams+i)->m_bsTilePayloadSizeInBytes << std::endl;
+    }
 
     const char *fileName = m_debugInterface->CreateFileName(
         "DEC",

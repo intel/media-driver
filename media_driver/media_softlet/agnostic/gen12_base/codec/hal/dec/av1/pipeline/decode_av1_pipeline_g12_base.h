@@ -143,10 +143,13 @@ protected:
         //! \param    [in] tileParams
         //!           Pointer to CodecAv1TileParams
         //!
+        //! \param    [in] tileNum
+        //!           Number of tiles
+        //!
         //! \return   MOS_STATUS
         //!           MOS_STATUS_SUCCESS if success, else fail reason
         //!
-        MOS_STATUS DumpBitstreamControlParams(CodecAv1TileParams *tileParams);
+        MOS_STATUS DumpBitstreamControlParams(CodecAv1TileParams *tileParams, uint32_t tileNum);
 #endif
 
 protected:
