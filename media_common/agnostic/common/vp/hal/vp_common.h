@@ -658,8 +658,8 @@ typedef struct _VPHAL_PALETTE
 //!
 typedef struct _VPHAL_BLENDING_PARAMS
 {
-    VPHAL_BLEND_TYPE BlendType;
-    float            fAlpha;
+    VPHAL_BLEND_TYPE BlendType = BLEND_NONE;
+    float            fAlpha    = 0.0;
 } VPHAL_BLENDING_PARAMS, *PVPHAL_BLENDING_PARAMS;
 
 //!
@@ -668,8 +668,8 @@ typedef struct _VPHAL_BLENDING_PARAMS
 //!
 typedef struct _VPHAL_LUMAKEY_PARAMS
 {
-    int16_t LumaLow;
-    int16_t LumaHigh;
+    int16_t LumaLow  = 0;
+    int16_t LumaHigh = 0;
 } VPHAL_LUMAKEY_PARAMS, *PVPHAL_LUMAKEY_PARAMS;
 
 //!
@@ -678,11 +678,11 @@ typedef struct _VPHAL_LUMAKEY_PARAMS
 //!
 typedef struct _VPHAL_PROCAMP_PARAMS
 {
-    bool  bEnabled;
-    float fBrightness;
-    float fContrast;
-    float fHue;
-    float fSaturation;
+    bool  bEnabled    = false;
+    float fBrightness = 0.0;
+    float fContrast   = 0.0;
+    float fHue        = 0.0;
+    float fSaturation = 0.0;
 } VPHAL_PROCAMP_PARAMS, *PVPHAL_PROCAMP_PARAMS;
 
 //!
@@ -691,15 +691,15 @@ typedef struct _VPHAL_PROCAMP_PARAMS
 //!
 typedef struct _VPHAL_IEF_PARAMS
 {
-    bool     bEnabled;
-    bool     bSmoothMode;
-    bool     bSkintoneTuned;
-    bool     bEmphasizeSkinDetail;
-    float    fIEFFactor;
-    uint16_t StrongEdgeWeight;
-    uint16_t RegularWeight;
-    uint16_t StrongEdgeThreshold;
-    void *   pExtParam;
+    bool     bEnabled             = false;
+    bool     bSmoothMode          = false;
+    bool     bSkintoneTuned       = false;
+    bool     bEmphasizeSkinDetail = false;
+    float    fIEFFactor           = 0.0;
+    uint16_t StrongEdgeWeight     = 0;
+    uint16_t RegularWeight        = 0;
+    uint16_t StrongEdgeThreshold  = 0;
+    void *   pExtParam            = nullptr;
 } VPHAL_IEF_PARAMS, *PVPHAL_IEF_PARAMS;
 
 //!
@@ -708,10 +708,10 @@ typedef struct _VPHAL_IEF_PARAMS
 //!
 typedef struct _VPHAL_DI_PARAMS
 {
-    VPHAL_DI_MODE DIMode;        //!< DeInterlacing mode
-    bool          bEnableFMD;    //!< FMD
-    bool          bSingleField;  //!< Used in frame Recon - if 30fps (one call per sample pair)
-    bool          bSCDEnable;    //!< Scene change detection
+    VPHAL_DI_MODE DIMode       = DI_MODE_BOB;        //!< DeInterlacing mode
+    bool          bEnableFMD   = false;              //!< FMD
+    bool          bSingleField = false;              //!< Used in frame Recon - if 30fps (one call per sample pair)
+    bool          bSCDEnable   = false;              //!< Scene change detection
 } VPHAL_DI_PARAMS, *PVPHAL_DI_PARAMS;
 
 //!
@@ -792,7 +792,7 @@ typedef struct _VPHAL_DENOISE_PARAMS
 //!
 typedef struct _VPHAL_STE_PARAMS
 {
-    uint32_t dwSTEFactor;
+    uint32_t dwSTEFactor = 0;
 } VPHAL_STE_PARAMS, *PVPHAL_STE_PARAMS;
 
 //!
@@ -801,12 +801,12 @@ typedef struct _VPHAL_STE_PARAMS
 //!
 typedef struct _VPHAL_TCC_PARAMS
 {
-    uint8_t Red;
-    uint8_t Green;
-    uint8_t Blue;
-    uint8_t Cyan;
-    uint8_t Magenta;
-    uint8_t Yellow;
+    uint8_t Red     = 0;
+    uint8_t Green   = 0;
+    uint8_t Blue    = 0;
+    uint8_t Cyan    = 0;
+    uint8_t Magenta = 0;
+    uint8_t Yellow  = 0;
 } VPHAL_TCC_PARAMS, *PVPHAL_TCC_PARAMS;
 
 //!
@@ -815,14 +815,14 @@ typedef struct _VPHAL_TCC_PARAMS
 //!
 typedef struct _VPHAL_COLORPIPE_PARAMS
 {
-    bool             bEnableACE;
-    bool             bEnableSTE;
-    bool             bEnableTCC;
-    bool             bAceLevelChanged;
-    uint32_t         dwAceLevel;
-    uint32_t         dwAceStrength;
-    VPHAL_STE_PARAMS SteParams;
-    VPHAL_TCC_PARAMS TccParams;
+    bool             bEnableACE       = false;
+    bool             bEnableSTE       = false;
+    bool             bEnableTCC       = false;
+    bool             bAceLevelChanged = false;
+    uint32_t         dwAceLevel       = 0;
+    uint32_t         dwAceStrength    = 0;
+    VPHAL_STE_PARAMS SteParams        = {};
+    VPHAL_TCC_PARAMS TccParams        = {};
 } VPHAL_COLORPIPE_PARAMS, *PVPHAL_COLORPIPE_PARAMS;
 
 //!
@@ -831,11 +831,11 @@ typedef struct _VPHAL_COLORPIPE_PARAMS
 //!
 typedef struct _VPHAL_3DLUT_PARAMS
 {
-    PVPHAL_SURFACE pExt3DLutSurface;    // Pointer to the 3DLUT surface which app passes to driver.
-    uint32_t       LutSize;             // Size of 3DLUT, i.e, how many entries LUT has.
-    uint32_t       ChannelMapping;      // Channel Mapping for the 3DLUT input to 3DLUT output.
-    uint16_t       BitDepthPerChannel;  // Bit Depth Per Channel(4 channels for 3DLUT).
-    uint16_t       ByteCountPerEntry;   // Byte Count Per Entry including reserved bytes.
+    PVPHAL_SURFACE pExt3DLutSurface   = nullptr;   // Pointer to the 3DLUT surface which app passes to driver.
+    uint32_t       LutSize            = 0;    // Size of 3DLUT, i.e, how many entries LUT has.
+    uint32_t       ChannelMapping     = 0;    // Channel Mapping for the 3DLUT input to 3DLUT output.
+    uint16_t       BitDepthPerChannel = 0;    // Bit Depth Per Channel(4 channels for 3DLUT).
+    uint16_t       ByteCountPerEntry  = 0;    // Byte Count Per Entry including reserved bytes.
 } VPHAL_3DLUT_PARAMS, *PVPHAL_3DLUT_PARAMS;
 
 //!

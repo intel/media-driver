@@ -330,33 +330,33 @@ typedef struct _DDI_MEDIA_SURFACE
 
 typedef struct _DDI_MEDIA_BUFFER
 {
-    uint32_t               iSize;
-    uint32_t               uiWidth;
-    uint32_t               uiHeight;
-    uint32_t               uiPitch;
-    uint32_t               uiNumElements;
-    uint32_t               uiOffset;
+    uint32_t               iSize             = 0;
+    uint32_t               uiWidth           = 0;
+    uint32_t               uiHeight          = 0;
+    uint32_t               uiPitch           = 0;
+    uint32_t               uiNumElements     = 0;
+    uint32_t               uiOffset          = 0;
     // vaBuffer type
-    uint32_t               uiType;
-    DDI_MEDIA_FORMAT       format;
-    uint32_t               uiLockedBufID;
-    uint32_t               uiLockedImageID;
-    int32_t                iRefCount;
-    uint32_t               TileType;
-    uint8_t               *pData;
-    uint32_t               bMapped;
-    MOS_LINUX_BO          *bo;
-    uint32_t               name;
-    uint32_t               uiMemtype;
-    uint32_t               uiExportcount;
-    uintptr_t              handle;
-    bool                   bPostponedBufFree;
+    uint32_t               uiType            = 0;
+    DDI_MEDIA_FORMAT       format            = Media_Format_Count;
+    uint32_t               uiLockedBufID     = 0;
+    uint32_t               uiLockedImageID   = 0;
+    int32_t                iRefCount         = 0;
+    uint32_t               TileType          = 0;
+    uint8_t               *pData             = nullptr;
+    uint32_t               bMapped           = 0;
+    MOS_LINUX_BO          *bo                = nullptr;
+    uint32_t               name              = 0;
+    uint32_t               uiMemtype         = 0;
+    uint32_t               uiExportcount     = 0;
+    uintptr_t              handle            = 0;
+    bool                   bPostponedBufFree = false;
 
-    bool                   bCFlushReq; // No LLC between CPU & GPU, requries to call CPU Flush for CPU mapped buffer
-    bool                   bUseSysGfxMem;
-    PDDI_MEDIA_SURFACE     pSurface;
-    GMM_RESOURCE_INFO     *pGmmResourceInfo; // GMM resource descriptor
-    PDDI_MEDIA_CONTEXT     pMediaCtx; // Media driver Context
+    bool                   bCFlushReq        = false; // No LLC between CPU & GPU, requries to call CPU Flush for CPU mapped buffer
+    bool                   bUseSysGfxMem     = false;
+    PDDI_MEDIA_SURFACE     pSurface          = nullptr;
+    GMM_RESOURCE_INFO     *pGmmResourceInfo  = nullptr; // GMM resource descriptor
+    PDDI_MEDIA_CONTEXT     pMediaCtx         = nullptr; // Media driver Context
 } DDI_MEDIA_BUFFER, *PDDI_MEDIA_BUFFER;
 
 typedef struct _DDI_MEDIA_SURFACE_HEAP_ELEMENT

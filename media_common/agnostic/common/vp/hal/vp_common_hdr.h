@@ -97,17 +97,17 @@ typedef enum _VPHAL_HDR_EOTF_TYPE
 //!
 typedef struct _VPHAL_HDR_PARAMS
 {
-    VPHAL_HDR_EOTF_TYPE EOTF;                 //!< Electronic-Optimal Transfer Function
-    uint16_t display_primaries_x[3];          //!< Display Primaries X chromaticity coordinates
-    uint16_t display_primaries_y[3];          //!< Display Primaries Y chromaticity coordinates
-    uint16_t white_point_x;                   //!< X Chromaticity coordinate of White Point
-    uint16_t white_point_y;                   //!< Y Chromaticity coordinate of White Point
-    uint16_t max_display_mastering_luminance; //!< The nominal maximum display luminance of the mastering display
-    uint16_t min_display_mastering_luminance; //!< The nominal minimum display luminance of the mastering display
-    uint16_t MaxCLL;                          //!< Max Content Light Level
-    uint16_t MaxFALL;                         //!< Max Frame Average Light Level
-    bool     bAutoMode;                       //!< Hdr auto mode.
-    bool     bPathKernel;                     //!< Hdr path config to use kernel
+    VPHAL_HDR_EOTF_TYPE EOTF                 = VPHAL_HDR_EOTF_INVALID;    //!< Electronic-Optimal Transfer Function
+    uint16_t display_primaries_x[3]          = {0};                       //!< Display Primaries X chromaticity coordinates
+    uint16_t display_primaries_y[3]          = {0};                       //!< Display Primaries Y chromaticity coordinates
+    uint16_t white_point_x                   = 0;                         //!< X Chromaticity coordinate of White Point
+    uint16_t white_point_y                   = 0;                         //!< Y Chromaticity coordinate of White Point
+    uint16_t max_display_mastering_luminance = 0;                         //!< The nominal maximum display luminance of the mastering display
+    uint16_t min_display_mastering_luminance = 0;                         //!< The nominal minimum display luminance of the mastering display
+    uint16_t MaxCLL                          = 0;                         //!< Max Content Light Level
+    uint16_t MaxFALL                         = 0;                         //!< Max Frame Average Light Level
+    bool     bAutoMode                       = false;                     //!< Hdr auto mode.
+    bool     bPathKernel                     = false;                     //!< Hdr path config to use kernel
 } VPHAL_HDR_PARAMS, *PVPHAL_HDR_PARAMS;
 
 #endif  // __VP_COMMON_HDR_H__
