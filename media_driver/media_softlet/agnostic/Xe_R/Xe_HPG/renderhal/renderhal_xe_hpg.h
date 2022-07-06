@@ -30,6 +30,11 @@
 #define __RENDERHAL_XE_HPG_H__
 
 #include "renderhal_xe_hp_base.h"
+#include "media_class_trace.h"
+#include "mhw_render.h"
+#include "mos_defs.h"
+#include "mos_os_specific.h"
+#include "renderhal.h"
 
 class XRenderHal_Interface_Xe_Hpg : public XRenderHal_Interface_Xe_Hp_Base
 {

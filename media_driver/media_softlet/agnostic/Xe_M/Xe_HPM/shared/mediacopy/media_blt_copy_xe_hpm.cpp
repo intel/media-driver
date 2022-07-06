@@ -27,6 +27,12 @@
 
 #include "media_blt_copy_xe_hpm.h"
 #include "mhw_cp_interface.h"
+#include "media_copy.h"
+#include "mhw_mi.h"
+#include "mos_os.h"
+#include "mos_util_debug.h"
+#include "mos_utilities.h"
+class MhwInterfaces;
 
 //!
 //! \brief    BltState_Xe_Hpm constructor

@@ -29,8 +29,16 @@
 
 #include "renderhal_legacy.h"
 #include "renderhal_xe_hpc.h"
-#include "mhw_mi_g12_X.h"
 #include "vp_utils.h"
+#include "mhw_render_hwcmd_xe_hp_base.h"
+#include "mhw_render_xe_hp_base.h"
+#include "mhw_render_xe_hpc.h"
+#include "mhw_state_heap.h"
+#include "mhw_utilities_next.h"
+#include "mos_resource_defs.h"
+#include "mos_utilities.h"
+#include "mos_utilities_common.h"
+#include "vp_common.h"
 
 //!
 //! \brief    Send Compute Walker

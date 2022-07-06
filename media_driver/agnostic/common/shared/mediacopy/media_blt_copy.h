@@ -27,14 +27,18 @@
 #ifndef __MEDIA_BLT_COPY_H__
 #define __MEDIA_BLT_COPY_H__
 
+#include <stdint.h>
+#include "mos_defs.h"
+#include "mos_os_specific.h"
+#include "mos_resource_defs.h"
+#include "mos_util_debug.h"
 #include "media_interfaces_mhw.h"
 #include "mhw_blt.h"
-#include "mhw_mi.h"
-#include "mhw_cp_interface.h"
 #include "mos_os.h"
-#include "media_copy.h"
 #include "media_class_trace.h"
 #include "media_copy_common.h"
+class MhwCpInterface;
+class MhwMiInterface;
 
 #define BLT_CHK_STATUS(_stmt)               MOS_CHK_STATUS(MOS_COMPONENT_MCPY, MOS_MCPY_SUBCOMP_BLT, _stmt)
 #define BLT_CHK_STATUS_RETURN(_stmt)        MOS_CHK_STATUS_RETURN(MOS_COMPONENT_MCPY, MOS_MCPY_SUBCOMP_BLT, _stmt)

@@ -29,7 +29,13 @@
 
 #ifndef __MEDIA_SCALABILITY_SINGLEPIPE_H__
 #define __MEDIA_SCALABILITY_SINGLEPIPE_H__
+#include <stdint.h>
+#include "mos_defs.h"
+#include "mos_os_specific.h"
 #include "media_scalability_singlepipe_next.h"
+class MediaContext;
+class MediaScalabilityOption;
+class MhwMiInterface;
 
 class MediaScalabilitySinglePipe : public MediaScalabilitySinglePipeNext
 {

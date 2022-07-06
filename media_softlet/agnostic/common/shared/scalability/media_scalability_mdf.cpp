@@ -27,7 +27,14 @@
 //!           this file is for the base interface which is shared by all components.
 //!
 
+#include <algorithm>
+#include "cm_common.h"
+#include "cm_device.h"
+#include "cm_rt_umd.h"
+#include "media_scalability_defs.h"
 #include "media_scalability_mdf.h"
+class MediaScalabilityOption;
+namespace CMRT_UMD { class CmQueue; }
 
 MOS_STATUS MediaScalabilityMdf::Initialize(const MediaScalabilityOption &option)
 {

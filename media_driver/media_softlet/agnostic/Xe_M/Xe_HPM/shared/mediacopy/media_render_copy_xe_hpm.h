@@ -29,13 +29,12 @@
 #ifndef __MEDIA_RENDER_COPY_XE_HPM_H__
 #define __MEDIA_RENDER_COPY_XE_HPM_H__
 
+#include <stdint.h>
+#include "mos_defs.h"
+#include "mos_os_specific.h"
 #include "media_render_copy.h"
-#include "media_interfaces_mhw.h"
 #include "mhw_render_legacy.h"
-#include "mhw_mi.h"
-#include "mhw_cp_interface.h"
-#include "mos_os.h"
-#include "mhw_render_xe_hp.h"
+class MhwInterfaces;
 
 typedef class  RenderCopy_Xe_Hpm  *PRenderCopy_Xe_Hpm;
 class RenderCopy_Xe_Hpm: public RenderCopyState

@@ -27,10 +27,21 @@
 #ifndef __MEDIA_RENDER_COPY_H__
 #define __MEDIA_RENDER_COPY_H__
 
-#include "media_copy.h"
+#include <stdint.h>
+#include "mos_os_specific.h"
 #include "media_copy_common.h"
-#include "vphal_render_common.h"
 #include "media_interfaces_mhw.h"
+#include "hal_kerneldll_next.h"
+#include "mhw_render.h"
+#include "mos_defs.h"
+#include "mos_os.h"
+#include "mos_resource_defs.h"
+#include "renderhal.h"
+#include "umKmInc/UmKmDmaPerfTimer.h"
+#include "vp_common.h"
+#include "vphal.h"
+class MhwCpInterface;
+class MhwInterfaces;
 
 const VphalSseuSetting VpDefaultSSEUTable[baseKernelMaxNumID] =
 {// Slice    Sub-Slice       EU      Rsvd(freq)

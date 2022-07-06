@@ -23,6 +23,8 @@
 //! \file     media_user_setting_configure_specific.cpp
 //! \brief    The interface of media user setting configure.
 
+#include <stdint.h>
+#include <map>
 #include "media_user_setting_configure.h"
 
 namespace MediaUserSetting

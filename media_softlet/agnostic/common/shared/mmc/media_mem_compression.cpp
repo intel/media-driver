@@ -27,6 +27,12 @@
 //!
 
 #include "media_mem_compression.h"
+#include "media_skuwa_specific.h"
+#include "mos_resource_defs.h"
+#include "mos_util_debug.h"
+#include "mos_utilities.h"
+#include "null_hardware.h"
+class MhwMiInterface;
 
 MediaMemComp::MediaMemComp(PMOS_INTERFACE osInterface, MhwMiInterface *miInterface) :
     MediaMemCompNext(osInterface, std::static_pointer_cast<mhw::mi::Itf>(miInterface->GetNewMiInterface())),

@@ -25,14 +25,35 @@
 //! \details  The media cmd packet is dedicated for command buffer sequenece submit
 //!
 
-#include "media_render_cmd_packet.h"
-#include "mos_oca_interface.h"
+#include <stdint.h>
+#include <memory>
+#include "hal_oca_interface_next.h"
+#include "media_cmd_packet.h"
+#include "media_perf_profiler.h"
+#include "media_render_cmd_packet_next.h"
+#include "mhw_itf.h"
+#include "mhw_mi.h"
+#include "mhw_mmio.h"
+#include "mhw_render.h"
+#include "mhw_state_heap.h"
+#include "mhw_utilities_next.h"
+#include "mos_defs.h"
+#include "mos_defs_specific.h"
+#include "mos_os.h"
+#include "mos_os_cp_interface_specific.h"
+#include "mos_os_hw.h"
+#include "mos_os_specific.h"
+#include "mos_resource_defs.h"
+#include "mos_utilities.h"
+#include "null_hardware.h"
+#include "renderhal.h"
+#include "vp_common.h"
 #include "renderhal_platform_interface.h"
-#include "hal_oca_interface.h"
 #include "hal_oca_interface.h"
 #include "mos_interface.h"
 #include "mhw_mi_itf.h"
 #include "mhw_mi_cmdpar.h"
+class MediaTask;
 
 #define COMPUTE_WALKER_THREAD_SPACE_WIDTH 1
 #define COMPUTE_WALKER_THREAD_SPACE_HEIGHT 1

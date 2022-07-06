@@ -28,8 +28,19 @@
 //!
 
 #include "renderhal_legacy.h"
+#include "media_skuwa_specific.h"
+#include "mhw_render_g12_X.h"
+#include "mhw_render_hwcmd_xe_hp_base.h"
+#include "mhw_render_xe_hp_base.h"
+#include "mhw_state_heap.h"
+#include "mhw_utilities_next.h"
+#include "mos_os.h"
+#include "mos_resource_defs.h"
+#include "mos_utilities.h"
+#include "mos_utilities_common.h"
+#include "vp_common.h"
+#include "renderhal.h"
 #include "renderhal_xe_hp_base.h"
-#include "mhw_mi_g12_X.h"
 #include "vp_utils.h"
 
 MOS_STATUS XRenderHal_Interface_Xe_Hp_Base::IsRenderHalMMCEnabled(

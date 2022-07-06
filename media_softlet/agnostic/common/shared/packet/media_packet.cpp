@@ -29,6 +29,12 @@
 
 #include "media_packet.h"
 #include "media_utils.h"
+#include "codec_def_common.h"
+#include "media_status_report.h"
+#include "mhw_mi.h"
+#include "mhw_mi_cmdpar.h"
+#include "mhw_mi_itf.h"
+#include "null_hardware.h"
 
 MOS_STATUS MediaPacket::StartStatusReport(
     uint32_t srType,

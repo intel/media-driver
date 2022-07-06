@@ -27,6 +27,15 @@
 
 #include "media_copy_xe_hpm.h"
 #include "media_vebox_copy.h"
+#include "media_blt_copy_xe_hpm.h"
+#include "media_render_copy_xe_hpm.h"
+#include "media_skuwa_specific.h"
+#include "media_vebox_copy.h"
+#include "mos_os.h"
+#include "mos_resource_defs.h"
+#include "mos_utilities.h"
+#include "vp_common.h"
+class MhwInterfaces;
 MediaCopyState_Xe_Hpm::MediaCopyState_Xe_Hpm() :
     MediaCopyBaseState()
 {

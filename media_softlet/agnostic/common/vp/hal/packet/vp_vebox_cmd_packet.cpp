@@ -38,6 +38,7 @@
 #include "mhw_mi_cmdpar.h"
 #include "mhw_utilities.h"
 #include "hal_oca_interface.h"
+#include "media_scalability_defs.h"
 
 namespace vp {
 

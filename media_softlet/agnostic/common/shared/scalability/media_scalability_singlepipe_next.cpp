@@ -26,17 +26,20 @@
 //! \details  The media scalability singlepipe interface is further sub-divided by component,
 //!           this file is for the base interface which is shared by all components.
 //!
+
+#include <stddef.h>
+#include <memory>
+#include "media_scalability_option.h"
+#include "mos_interface.h"
+#include "mos_os_virtualengine.h"
+#include "mos_os_virtualengine_specific.h"
+#include "mos_utilities.h"
 #include <typeinfo>
-#include <iostream>
 #include "mos_os.h"
-#include "mos_os_virtualengine_scalability.h"
 #include "media_scalability_defs.h"
 #include "media_scalability_singlepipe_next.h"
-#include "mhw_mi.h"
-#include "hal_oca_interface.h"
 #include "mhw_mi_itf.h"
-#include "mhw_mi_cmdpar.h"
-#include "media_packet.h"
+class MediaContext;
 
 MediaScalabilitySinglePipeNext::MediaScalabilitySinglePipeNext(void *hwInterface, MediaContext *mediaContext, uint8_t componentType) :
     MediaScalability(mediaContext)

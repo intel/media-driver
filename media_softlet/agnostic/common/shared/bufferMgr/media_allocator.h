@@ -28,8 +28,13 @@
 
 #ifndef __MEDIA_ALLOCATOR_H__
 #define __MEDIA_ALLOCATOR_H__
+
+#include <stdint.h>
+#include <vector>
+#include "mos_defs.h"
+#include "mos_os_hw.h"
+#include "mos_os_specific.h"
 #include "mos_os.h"
-#include <map>
 #include "media_class_trace.h"
 
 class Allocator

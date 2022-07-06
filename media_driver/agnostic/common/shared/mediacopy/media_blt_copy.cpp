@@ -26,6 +26,9 @@
 //!
 
 #include "media_blt_copy.h"
+#include "media_copy.h"
+#include "mhw_mi.h"
+#include "mos_utilities.h"
 #define BIT( n )                            ( 1 << (n) )
 
 //!

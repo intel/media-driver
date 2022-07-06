@@ -27,11 +27,17 @@
 #ifndef __MEDIA_VEBOX_COPY_H__
 #define __MEDIA_VEBOX_COPY_H__
 
-#include "mos_interface.h"
+#include <memory>
+#include "mos_defs.h"
+#include "mos_os.h"
+#include "mos_os_specific.h"
+#include "mos_util_debug.h"
 #include "media_interfaces_mhw.h"
 #include "mhw_vebox.h"
-#include "mhw_vebox_itf.h"
 #include "media_copy_common.h"
+class MhwCpInterface;
+class MhwMiInterface;
+namespace mhw { namespace vebox { class Itf; } }
 
 #define VEBOX_COPY_CHK_STATUS(_stmt)               MOS_CHK_STATUS(MOS_COMPONENT_MCPY, MOS_MCPY_SUBCOMP_VEBOX, _stmt)
 #define VEBOX_COPY_CHK_STATUS_RETURN(_stmt)        MOS_CHK_STATUS_RETURN(MOS_COMPONENT_MCPY, MOS_MCPY_SUBCOMP_VEBOX, _stmt)

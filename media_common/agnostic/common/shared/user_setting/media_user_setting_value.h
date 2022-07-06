@@ -27,7 +27,6 @@
 #ifndef __MEDIA_USER_SETTING_VALUE_H__
 #define __MEDIA_USER_SETTING_VALUE_H__
 
-#include "mos_defs.h"
 #include <string>
 #include <sstream>
 

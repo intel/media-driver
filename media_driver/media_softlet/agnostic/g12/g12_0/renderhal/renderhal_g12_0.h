@@ -28,9 +28,7 @@
 #define __RENDERHAL_G12_0_H__
 
 #include "renderhal_g12_base.h"
-#include "mhw_render_g12_X.h"
-#include "mhw_render_hwcmd_g12_X.h" 
-#include "mhw_state_heap_hwcmd_g12_X.h"
+#include "media_class_trace.h"
 
 class XRenderHal_Interface_G12_0 : public XRenderHal_Interface_G12_Base
 {

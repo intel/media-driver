@@ -29,10 +29,12 @@
 #define __MEDIA_CMD_TASK_H__
 #include "media_task.h"
 #include "mos_os.h"
+#include "mos_defs.h"
+#include "mos_os_specific.h"
 #if !EMUL
 #include "codechal_debug.h"
 #endif
-class CodechalDebugInterface;
+class MediaScalability;
 class CmdTask : public MediaTask
 {
 public:

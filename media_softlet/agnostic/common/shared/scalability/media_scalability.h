@@ -29,20 +29,25 @@
 
 #ifndef __MEDIA_SCALABILITY_H__
 #define __MEDIA_SCALABILITY_H__
+#include <stdint.h>
+#include <memory>
+#include "mos_defs.h"
+#include "mos_os_specific.h"
+#include "mos_os_virtualengine.h"
+#include "mos_os_virtualengine_specific.h"
+
 #include "mos_os.h"
-#include "media_scalability_defs.h"
-#include "media_scalability_option.h"
 #if !EMUL
 #include "cm_rt_umd.h"
 #endif
-#include "mos_interface.h"
 #include "mhw_mi_itf.h"
-
+class MediaScalabilityOption;
+namespace CMRT_UMD { class CmQueue; }
+struct ComponentState;
+struct ScalabilityPars;
 #define COMMAND_BUFFER_RESERVED_SPACE 0x80
 class MediaStatusReport;
 class MediaContext;
-class MhwMiInterface;
-class CodechalHwInterface;
 class MediaScalability : public mhw::mi::Itf::ParSetting
 {
     friend class MediaContext;

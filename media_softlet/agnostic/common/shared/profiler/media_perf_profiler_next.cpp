@@ -25,7 +25,17 @@
 //! \details
 //!
 
+#include <stddef.h>
 #include "media_perf_profiler_next.h"
+#include "media_skuwa_specific.h"
+#include "mhw_itf.h"
+#include "mhw_mi.h"
+#include "mhw_mi_cmdpar.h"
+#include "mhw_mi_itf.h"
+#include "mos_resource_defs.h"
+#include "mos_util_debug.h"
+#include "mos_utilities.h"
+#include "mos_utilities_common.h"
 
 #define UMD_PERF_LOG            8
 #define NAME_LEN                60

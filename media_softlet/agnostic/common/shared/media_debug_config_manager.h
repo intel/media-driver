@@ -28,6 +28,7 @@
 #if USE_MEDIA_DEBUG_TOOL
 #include "media_debug_utils.h"
 #include "media_common_defs.h"
+#include "media_debug_interface.h"
 
 struct MediaKernelDumpConfig
 {

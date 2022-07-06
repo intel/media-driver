@@ -27,11 +27,27 @@
 #ifndef __MEDIA_RENDER_CMD_PACKET_NEXT_H__
 #define __MEDIA_RENDER_CMD_PACKET_NEXT_H__
 
+#include <stdint.h>
+#include "hal_kerneldll_next.h"
+#include "media_packet.h"
+#include "mhw_mi.h"
+#include "mhw_render.h"
+#include "mhw_state_heap.h"
+#include "mhw_utilities_next.h"
+#include "mos_defs.h"
+#include "mos_defs_specific.h"
+#include "mos_os.h"
+#include "mos_os_specific.h"
+#include "mos_util_debug.h"
+#include "mos_utilities.h"
+#include "umKmInc/UmKmDmaPerfTimer.h"
+#include "vp_common.h"
 #include "media_cmd_packet.h"
 #include "renderhal.h"
-#include "hal_kerneldll.h"
 #include "mhw_mi_itf.h"
-#include "media_feature_manager.h"
+class MediaFeatureManager;
+class MediaTask;
+class MhwCpInterface;
 
 #define RENDER_PACKET_CHK_NULL_RETURN(_ptr) \
     MOS_CHK_NULL_RETURN(MOS_COMPONENT_HW, 0, _ptr)

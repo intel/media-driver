@@ -30,7 +30,13 @@
 #ifndef __MEDIA_FEATURE_MANAGER_H__
 #define __MEDIA_FEATURE_MANAGER_H__
 #include <vector>
-#include "media_feature.h"
+#include <stdint.h>
+#include <map>
+#include <memory>
+#include <utility>
+#include "media_user_setting.h"
+#include "media_utils.h"
+#include "mos_defs.h"
 #include "media_feature_const_settings.h"
 
 #define CONSTRUCTFEATUREID(_componentID, _subComponentID, _featureID) \

@@ -29,7 +29,11 @@
 #ifndef __MEDIA_MEM_COMPRESSION_H__
 #define __MEDIA_MEM_COMPRESSION_H__
 
+#include <stdint.h>
+#include "mos_defs.h"
+#include "mos_utilities_common.h"
 #include "media_mem_compression_next.h"
+class MhwMiInterface;
 
 class MediaMemComp : public MediaMemCompNext
 {
@@ -41,6 +45,7 @@ public:
 
 protected:
     MhwMiInterface *m_mhwMiInterface = nullptr;
+MEDIA_CLASS_DEFINE_END(MediaMemComp)
 };
 
 #endif //__MEDIA_MEM_COMPRESSION_H__

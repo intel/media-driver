@@ -28,9 +28,15 @@
 #ifndef __MEDIA_COPY_H__
 #define __MEDIA_COPY_H__
 
+#include <stdint.h>
+#include "mos_defs.h"
+#include "mos_defs_specific.h"
+#include "mos_os_specific.h"
+#include "mos_resource_defs.h"
+#include "mos_util_debug.h"
 #include "mos_os.h"
 #include "mos_interface.h"
-
+class MhwInterfaces;
 class VpSurfaceDumper;
 typedef struct VPHAL_SURFACE* PVPHAL_SURFACE;
 

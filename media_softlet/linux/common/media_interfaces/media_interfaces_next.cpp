@@ -24,13 +24,21 @@
 //! \brief    Helps with gen-specific factory creation.
 //!
 
+#include <stdint.h>
+#include "igfxfmid.h"
+#include "media_factory.h"
+#include "media_interfaces.h"
+#include "mhw_utilities_next.h"
+#include "mos_defs.h"
+#include "mos_os.h"
+#include "mos_os_specific.h"
+#include "mos_utilities.h"
 #include "mhw_cp_interface.h"
 
 #ifdef IGFX_MHW_INTERFACES_NEXT_SUPPORT
 #include "media_interfaces_mcpy_next.h"
 #include "media_interfaces_mmd_next.h"
 #include "media_interfaces_mhw_next.h"
-#include "media_interfaces_hwinfo_device.h"
 
 template class MediaFactory<uint32_t, MhwInterfacesNext>;
 template class MediaFactory<uint32_t, McpyDeviceNext>;

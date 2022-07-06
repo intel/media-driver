@@ -27,7 +27,16 @@
 #ifndef __MEDIA_RENDER_CMD_PACKET_H__
 #define __MEDIA_RENDER_CMD_PACKET_H__
 
+#include <stdint.h>
+#include "media_packet.h"
+#include "mhw_mi.h"
+#include "mhw_utilities_next.h"
+#include "mos_defs.h"
+#include "mos_os.h"
+#include "mos_os_specific.h"
+#include "renderhal.h"
 #include "media_render_cmd_packet_next.h"
+class MediaTask;
 
 class RenderCmdPacket : public RenderCmdPacketNext
 {

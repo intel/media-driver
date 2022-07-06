@@ -25,6 +25,9 @@
 //!
 
 #include "media_feature.h"
+#include "media_utils.h"
+#include "mos_os.h"
+#include "mos_util_debug.h"
 
 MediaFeature::MediaFeature(void *constSettings, PMOS_INTERFACE mosInterface) : MediaFeature(mosInterface)
 {

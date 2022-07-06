@@ -25,7 +25,17 @@
 //! \details  Implementation of functions for Hal OCA Interface
 //!
 
-#include "stdint.h"
+#include <stdint.h>
+#include <map>
+#include <memory>
+#include <utility>
+#include "codec_def_common.h"
+#include "mhw_mi.h"
+#include "mos_defs.h"
+#include "mos_defs_specific.h"
+#include "mos_oca_interface.h"
+#include "mos_os_hw.h"
+#include "mos_os_specific.h"
 #include "mos_os.h"
 #include "hal_oca_interface_next.h"
 #include "mhw_mmio.h"
@@ -34,6 +44,7 @@
 #include "vphal.h"
 #include "vphal_debug.h"
 #include "codechal_oca_debug.h"
+namespace mhw { namespace mi { class Itf; } }
 
 std::map<uint32_t*, MOS_OCA_BUFFER_HANDLE> HalOcaInterfaceNext::s_hOcaMap;
 

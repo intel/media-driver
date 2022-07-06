@@ -29,6 +29,8 @@
 #define __MEDIA_COPY_M12_0_H__
 
 #include "media_copy.h"
+#include "mos_defs.h"
+#include "mos_os_specific.h"
 
 class VeboxCopyState;
 class BltState;

@@ -25,9 +25,20 @@
 //! \brief    Defines the interface for media mdf task
 //! \details  The media mdf task is dedicated for mdf kernel submission
 //!
+
+#include <stdint.h>
+#include <vector>
+#include "cm_def.h"
+#include "cm_device.h"
+#include "cm_queue.h"
+#include "cm_task.h"
+#include "media_scalability.h"
 #include "media_mdf_task.h"
 #include "media_packet.h"
 #include "media_utils.h"
+class CodechalDebugInterface;
+namespace CMRT_UMD { class CmEvent; }
+namespace CMRT_UMD { class CmKernel; }
 
 
 #if USE_PROPRIETARY_CODE

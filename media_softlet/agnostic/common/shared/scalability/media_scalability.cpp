@@ -27,8 +27,13 @@
 //!           this file is for the base interface which is shared by all components.
 //!
 
+#include "media_scalability_defs.h"
+#include "media_scalability_option.h"
 #include "media_scalability.h"
 #include "mos_os_virtualengine.h"
+#include "mos_interface.h"
+#include "mos_utilities.h"
+
 
 MediaScalability::MediaScalability(MediaContext *mediaContext) :
     m_mediaContext(mediaContext) 

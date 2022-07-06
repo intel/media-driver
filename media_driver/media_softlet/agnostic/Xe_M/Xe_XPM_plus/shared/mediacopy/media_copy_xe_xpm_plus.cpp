@@ -25,6 +25,14 @@
 //! \details  Common interface and structure used in media copy which are platform independent
 //!
 #include "media_copy_xe_xpm_plus.h"
+#include "media_blt_copy_xe_xpm_plus.h"
+#include "media_render_copy_xe_xpm_plus.h"
+#include "media_skuwa_specific.h"
+#include "mos_os.h"
+#include "mos_resource_defs.h"
+#include "mos_utilities.h"
+#include "vp_common.h"
+class MhwInterfaces;
 
 MediaCopyStateXe_Xpm_Plus::MediaCopyStateXe_Xpm_Plus() :
     MediaCopyBaseState()

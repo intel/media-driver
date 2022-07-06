@@ -27,16 +27,16 @@
 
 #ifndef __MEDIA_SCALABILITY_MDF_H__
 #define __MEDIA_SCALABILITY_MDF_H__
+#include <stdint.h>
+#include <vector>
+#include "mos_defs.h"
+#include "mos_os_specific.h"
 #include "mos_os.h"
-#include "media_scalability_defs.h"
-#include "media_scalability_option.h"
 #include "media_scalability.h"
-#include "cm_rt_umd.h"
 
-class MediaStatusReport;
-class MediaContext;
-class MhwMiInterface;
-class CodechalHwInterface;
+class MediaScalabilityOption;
+namespace CMRT_UMD { class CmDevice; }
+namespace CMRT_UMD { class CmQueue; }
 class MediaScalabilityMdf : public MediaScalability
 {
 public:

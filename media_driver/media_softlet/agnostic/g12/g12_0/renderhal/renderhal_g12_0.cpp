@@ -27,4 +27,3 @@
 
 #include "renderhal_legacy.h"
 #include "renderhal_g12_0.h"
-#include "mhw_mi_g12_X.h"

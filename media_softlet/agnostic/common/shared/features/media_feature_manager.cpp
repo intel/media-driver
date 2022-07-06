@@ -28,6 +28,8 @@
 //!
 
 #include "media_feature_manager.h"
+#include "media_feature.h"
+#include "mos_utilities.h"
 
 MOS_STATUS MediaFeatureManager::RegisterFeatures(
     int                featureID,

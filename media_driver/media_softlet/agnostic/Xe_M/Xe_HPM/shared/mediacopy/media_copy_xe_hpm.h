@@ -29,8 +29,11 @@
 #define __MEDIA_COPY_XE_HPM_H__
 
 #include "media_copy.h"
-#include "media_render_copy_xe_hpm.h"
-#include "media_blt_copy_xe_hpm.h"
+#include "mos_defs.h"
+#include "mos_os_specific.h"
+class BltState_Xe_Hpm;
+class MhwInterfaces;
+class RenderCopy_Xe_Hpm;
 class VeboxCopyState;
 class MediaCopyState_Xe_Hpm: public MediaCopyBaseState
 {

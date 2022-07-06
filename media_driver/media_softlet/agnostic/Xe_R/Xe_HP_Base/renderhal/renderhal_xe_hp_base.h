@@ -29,8 +29,13 @@
 #ifndef __RENDERHAL_XE_HP_BASE_H__
 #define __RENDERHAL_XE_HP_BASE_H__
 
+#include <stdint.h>
+#include "media_class_trace.h"
+#include "mhw_render.h"
+#include "mos_defs.h"
+#include "mos_os_specific.h"
+#include "renderhal.h"
 #include "renderhal_g12_base.h"
-#include "mhw_render_xe_hp_base.h"
 
 //! \brief      for XeXPM+ VP and MDF
 //!              SLM     URB     DC      RO      Rest/L3 Client Pool

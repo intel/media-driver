@@ -27,10 +27,12 @@
 //!
 #ifndef __MEDIA_MDF_TASK_H__
 #define __MEDIA_MDF_TASK_H__
+#include "mos_defs.h"
 #include "media_task.h"
-#include "mos_os.h"
-#include "codechal_debug.h"
-#include "cm_rt_umd.h"
+class CodechalDebugInterface;
+class MediaScalability;
+namespace CMRT_UMD { class CmDevice; }
+namespace CMRT_UMD { class CmTask; }
 
 class MdfTask : public MediaTask
 {

@@ -27,11 +27,21 @@
 #ifndef __RENDERHAL_G12_BASE_H__
 #define __RENDERHAL_G12_BASE_H__
 
+#include <stddef.h>
+#include <stdint.h>
+#include "media_class_trace.h"
+#include "mhw_state_heap.h"
+#include "mos_defs.h"
+#include "mos_os_specific.h"
+#include "mos_os_virtualengine_specific.h"
+#include "mos_resource_defs.h"
+#include "renderhal.h"
 #include "renderhal_platform_interface_legacy.h"
 #include "mhw_render_g12_X.h"
 #include "mhw_render_hwcmd_g12_X.h" 
 #include "mhw_state_heap_hwcmd_g12_X.h"
 
+struct MHW_VFE_PARAMS;
 extern const uint32_t g_cLookup_RotationMode_g12[8];
 
 typedef struct _RENDERHAL_GENERIC_PROLOG_PARAMS_G12 : _RENDERHAL_GENERIC_PROLOG_PARAMS

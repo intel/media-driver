@@ -25,6 +25,12 @@
 //! \brief    Defines the interface for media cmd task
 //! \details  The media cmd task is dedicated for command buffer submission
 //!
+#include <stdint.h>
+#include <memory>
+#include <vector>
+#include "media_scalability.h"
+#include "media_scalability_defs.h"
+#include "mos_utilities.h"
 #include "media_cmd_task.h"
 #include "media_packet.h"
 #include "media_utils.h"

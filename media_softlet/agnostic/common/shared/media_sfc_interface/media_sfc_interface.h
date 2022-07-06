@@ -27,9 +27,15 @@
 #ifndef __MEDIA_SFC_INTERFACE_H__
 #define __MEDIA_SFC_INTERFACE_H__
 
+#include <stdint.h>
 #include "mos_os_specific.h"
 #include "codec_def_decode_jpeg.h"
 #include "media_common_defs.h"
+#include "codec_def_common.h"
+#include "mos_defs.h"
+#include "mos_defs_specific.h"
+#include "mos_os.h"
+#include "mos_resource_defs.h"
 
 class MediaSfcRender;
 class MediaMemComp;

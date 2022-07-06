@@ -28,6 +28,18 @@
 #include "renderhal_legacy.h"
 #include "renderhal_g12_base.h"
 #include "mhw_mi_g12_X.h"
+#include "media_common_defs.h"
+#include "media_skuwa_specific.h"
+#include "mhw_mi.h"
+#include "mhw_render.h"
+#include "mhw_state_heap_g12.h"
+#include "mhw_utilities_next.h"
+#include "mos_defs_specific.h"
+#include "mos_os.h"
+#include "mos_os_hw.h"
+#include "mos_utilities.h"
+#include "mos_utilities_common.h"
+#include "renderhal_dsh.h"
 
 //!
 //! \brief      GSH settings for G12

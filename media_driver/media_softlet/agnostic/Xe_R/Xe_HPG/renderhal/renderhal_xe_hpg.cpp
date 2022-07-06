@@ -29,8 +29,13 @@
 
 #include "renderhal_legacy.h"
 #include "renderhal_xe_hpg.h"
-#include "mhw_mi_g12_X.h"
 #include "vp_utils.h"
+#include "mhw_render_xe_hp_base.h"
+#include "mhw_state_heap.h"
+#include "mos_os.h"
+#include "mos_utilities.h"
+#include "mos_utilities_common.h"
+#include "vp_common.h"
 
 MOS_STATUS XRenderHal_Interface_Xe_Hpg::IsRenderHalMMCEnabled(
     PRENDERHAL_INTERFACE pRenderHal)

@@ -30,8 +30,9 @@
 #ifndef __MEDIA_SCALABILITY_MULTIPIPE_H__
 #define __MEDIA_SCALABILITY_MULTIPIPE_H__
 #include "mos_defs.h"
-#include "mos_os.h"
 #include "media_scalability.h"
+class MediaContext;
+class MhwMiInterface;
 
 class MediaScalabilityMultiPipe: public MediaScalability
 {

@@ -25,11 +25,11 @@
 //!
 #ifndef __MEDIA_FEATURE_H__
 #define __MEDIA_FEATURE_H__
-#include "mos_os.h"
-#include "media_feature_manager.h"
-#include "media_utils.h"
 
-class MediaFeatureManager;
+#include "media_user_setting.h"
+#include "mos_defs.h"
+#include "mos_os_specific.h"
+#include "media_feature_manager.h"
 
 class MediaFeature
 {

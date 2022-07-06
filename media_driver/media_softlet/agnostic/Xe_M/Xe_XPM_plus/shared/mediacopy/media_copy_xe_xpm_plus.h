@@ -28,9 +28,12 @@
 #ifndef __MEDIA_COPY_XE_XPM_PLUS_H__
 #define __MEDIA_COPY_XE_XPM_PLUS_H__
 
+#include "mos_defs.h"
+#include "mos_os_specific.h"
 #include "media_copy.h"
-#include "media_blt_copy_xe_xpm_plus.h"
-#include "media_render_copy_xe_xpm_plus.h"
+class BltStateXe_Xpm_Plus;
+class MhwInterfaces;
+class RenderCopy_Xe_Xpm_Plus;
 
 class MediaCopyStateXe_Xpm_Plus: public MediaCopyBaseState
 {

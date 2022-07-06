@@ -23,9 +23,19 @@
 //! \file     media_vebox_copy.cpp
 //! \brief    Common Copy interface and structure used in Vebox Engine
 //! \details  Common Copy interface and structure used in Vebox Engine
+
+#include <stdint.h>
 #include "media_vebox_copy.h"
 #include "renderhal_legacy.h"
 #include "mhw_vebox_itf.h"
+#include "mhw_mi.h"
+#include "mhw_utilities.h"
+#include "mhw_utilities_next.h"
+#include "mos_defs_specific.h"
+#include "mos_os_cp_interface_specific.h"
+#include "mos_resource_defs.h"
+#include "mos_utilities.h"
+#include "renderhal.h"
 
 #define SURFACE_DW_UY_OFFSET(pSurface) \
     ((pSurface) != nullptr ? ((pSurface)->UPlaneOffset.iSurfaceOffset - (pSurface)->dwOffset) / (pSurface)->dwPitch + (pSurface)->UPlaneOffset.iYOffset : 0)

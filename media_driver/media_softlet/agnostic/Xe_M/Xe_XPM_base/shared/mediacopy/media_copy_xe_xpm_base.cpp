@@ -29,6 +29,10 @@
 #include "media_vebox_copy.h"
 #include "media_blt_copy_xe_xpm_base.h"
 #include "media_interfaces_mhw.h"
+#include "mos_os.h"
+#include "mos_resource_defs.h"
+#include "mos_utilities.h"
+
 MediaCopyStateXe_Xpm_Base::MediaCopyStateXe_Xpm_Base() :
     MediaCopyBaseState()
 {

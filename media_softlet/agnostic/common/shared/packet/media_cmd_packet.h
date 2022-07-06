@@ -27,7 +27,11 @@
 #ifndef __MEDIA_CMD_PACKET_H__
 #define __MEDIA_CMD_PACKET_H__
 
+#include <stdint.h>
+#include "mos_defs.h"
+#include "mos_os.h"
 #include "media_packet.h"
+class MediaTask;
 
 class CmdPacket : public MediaPacket
 {

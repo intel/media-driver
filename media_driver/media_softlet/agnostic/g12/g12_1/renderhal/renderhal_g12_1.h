@@ -28,6 +28,9 @@
 #define __RENDERHAL_G12_1_H__
 
 #include "renderhal_g12_base.h"
+#include "media_class_trace.h"
+#include "mos_defs.h"
+#include "renderhal.h"
 
 //! \brief      for Gen12LP/DG1 VP and MDF
 //!              SLM     URB     DC      RO      Rest/L3 Client Pool

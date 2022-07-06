@@ -30,6 +30,8 @@
 #include <string>
 #include <map>
 #include <memory>
+#include <iosfwd>
+#include "mos_defs_specific.h"
 #include "media_user_setting_value.h"
 
 namespace MediaUserSetting {

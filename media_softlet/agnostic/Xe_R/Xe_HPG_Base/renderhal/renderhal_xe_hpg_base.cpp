@@ -30,7 +30,7 @@
 #include "mhw_mi_g12_X.h"
 #include "vp_utils.h"
 #include "media_packet.h"
-
+#include "media_feature.h"
 //!
 //! \brief      GSH settings for Xe_hpg_base
 //!

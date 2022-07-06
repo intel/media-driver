@@ -27,7 +27,8 @@
 
 #include "renderhal_legacy.h"
 #include "renderhal_g12_1.h"
-#include "mhw_mi_g12_X.h"
+#include "mhw_render.h"
+#include "mhw_render_g12_X.h"
 
 //!
 //! \brief    Enables L3 cacheing flag and sets related registers/values

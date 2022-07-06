@@ -29,8 +29,8 @@
 #ifndef __RENDERHAL_XE_HP_H__
 #define __RENDERHAL_XE_HP_H__
 
+#include "media_class_trace.h"
 #include "renderhal_xe_hp_base.h"
-#include "mhw_render_xe_hp.h"
 
 class XRenderHal_Interface_Xe_Hp : public XRenderHal_Interface_Xe_Hp_Base
 {

@@ -27,8 +27,13 @@
 #ifndef __MEDIA_BLT_COPY_XE_HPM_H__
 #define __MEDIA_BLT_COPY_XE_HPM_H__
 
+#include <stdint.h>
+#include "mos_defs.h"
+#include "mos_os_specific.h"
+#include "mos_resource_defs.h"
 #include "media_blt_copy.h"
 #include "mhw_blt_xe_hp_base.h"
+class MhwInterfaces;
 
 class BltState_Xe_Hpm: virtual public BltState
 {

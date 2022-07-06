@@ -35,6 +35,7 @@
 #include "vp_platform_interface.h"
 #include "mhw_vebox_itf.h"
 #include "mhw_mi_itf.h"
+#include "media_scalability_defs.h"
 
 namespace vp {
 

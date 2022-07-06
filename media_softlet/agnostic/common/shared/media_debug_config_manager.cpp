@@ -25,8 +25,8 @@
 //! \brief    Defines the dump configuration manager.
 //! \details  The debug interface dumps configuration manager file which parse attributes.
 //!
-#include "codechal_debug.h"
-#include "vp_debug_interface.h"
+
+#include "media_debug_interface.h"
 #if USE_MEDIA_DEBUG_TOOL
 #include "media_debug_config_manager.h"
 #include <fstream>

@@ -29,11 +29,20 @@
 
 #ifndef __MEDIA_PACKET_H__
 #define __MEDIA_PACKET_H__
+#include <stdint.h>
+#include <memory>
+#include <string>
+#include "media_user_setting.h"
+#include "mhw_itf.h"
+#include "mhw_utilities_next.h"
+#include "mos_defs.h"
+#include "mos_os_specific.h"
 #include "mos_os.h"
-#include "mhw_mi.h"
-#include "media_status_report.h"
 #include "mhw_cmdpar.h"
 #include "mhw_mi_itf.h"
+class MediaStatusReport;
+class MhwMiInterface;
+namespace mhw{namespace mi{class Itf;}}  // namespace mhw
 
 #define __SETPAR(CMD, itf)                                                              \
                                                                                         \
