@@ -3528,11 +3528,11 @@ mos_gem_bo_check_mem_region_internal(struct mos_linux_bo *bo,
 
     if (bo_gem->mem_region ==  PRELIM_I915_MEMORY_CLASS_SYSTEM                        &&
         (mem_type == MOS_MEMPOOL_VIDEOMEMORY || mem_type == MOS_MEMPOOL_DEVICEMEMORY))
-        return -errno;
+        return -EINVAL;
 
     if (bo_gem->mem_region ==  PRELIM_I915_MEMORY_CLASS_DEVICE                        &&
         (mem_type == MOS_MEMPOOL_SYSTEMMEMORY))
-        return -errno;
+        return -EINVAL;
 
     return 0;
 }
@@ -3783,7 +3783,7 @@ mos_bufmgr_gem_enable_reuse(struct mos_bufmgr *bufmgr)
 {
     struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *) bufmgr;
 
-    bufmgr_gem->bo_reuse = bufmgr_gem->has_lmem ? false : true;
+    bufmgr_gem->bo_reuse = true;
 }
 
 /**

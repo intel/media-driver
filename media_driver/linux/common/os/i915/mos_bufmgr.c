@@ -3454,11 +3454,11 @@ mos_gem_bo_check_mem_region_internal(struct mos_linux_bo *bo,
     // when re-cycle the gem_bo, need to keep the VA space is keeping consistent on memory type
     if (bo_gem->mem_region ==  I915_MEMORY_CLASS_SYSTEM                            &&
         (mem_type == MOS_MEMPOOL_VIDEOMEMORY || mem_type == MOS_MEMPOOL_DEVICEMEMORY))
-        return -errno;
+        return -EINVAL;
 
     if (bo_gem->mem_region ==  I915_MEMORY_CLASS_DEVICE                      &&
         (mem_type == MOS_MEMPOOL_SYSTEMMEMORY))
-        return -errno;
+        return -EINVAL;
 
     return 0;
 }
