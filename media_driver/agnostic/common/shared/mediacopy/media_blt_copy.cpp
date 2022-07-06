@@ -25,6 +25,9 @@
 //! \details  Common interface used in Blitter Engine which are platform independent
 //!
 
+#define NOMINMAX
+#include <algorithm>
+
 #include "media_blt_copy.h"
 #include "media_copy.h"
 #include "mhw_mi.h"
@@ -195,6 +198,9 @@ MOS_STATUS BltState::SetupBltCopyParam(
     ResDetails.Format = Format_Invalid;
     BLT_CHK_STATUS_RETURN(m_osInterface->pfnGetResourceInfo(m_osInterface, inputSurface, &ResDetails));
 
+    uint32_t inputHeight = ResDetails.dwHeight;
+    uint32_t inputPitch  = ResDetails.dwPitch;
+
     if (inputSurface->TileType != MOS_TILE_LINEAR)
     { 
         pMhwBltParams->dwSrcPitch = ResDetails.dwPitch / 4;
@@ -210,6 +216,9 @@ MOS_STATUS BltState::SetupBltCopyParam(
     MOS_ZeroMemory(&ResDetails, sizeof(MOS_SURFACE));
     ResDetails.Format = Format_Invalid;
     BLT_CHK_STATUS_RETURN(m_osInterface->pfnGetResourceInfo(m_osInterface, outputSurface, &ResDetails));
+
+    uint32_t outputHeight = ResDetails.dwHeight;
+    uint32_t outputPitch  = ResDetails.dwPitch;
 
     if (outputSurface->TileType != MOS_TILE_LINEAR)
     {
@@ -242,10 +251,10 @@ MOS_STATUS BltState::SetupBltCopyParam(
 
     if( 1 == planeNum )
     {// handle as whole memory
-       pMhwBltParams->dwDstBottom = (uint32_t)outputSurface->pGmmResInfo->GetSizeMainSurface() / ResDetails.dwPitch;
+       pMhwBltParams->dwDstBottom = std::min(inputHeight, outputHeight);
        if (false == m_blokCopyon)
        {// fastcopy
-           pMhwBltParams->dwDstRight   = ResDetails.dwPitch / 4;  // Regard as 32 bit per pixel format, i.e. 4 byte per pixel.
+           pMhwBltParams->dwDstRight   = std::min(inputPitch, outputPitch) / 4;  // Regard as 32 bit per pixel format, i.e. 4 byte per pixel.
            pMhwBltParams->dwColorDepth = 3;  //0:8bit 1:16bit 3:32bit 4:64bit
        }
     }
