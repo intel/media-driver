@@ -43,25 +43,3 @@ void OsContext::CleanUp()
 
     Destroy();
 }
-
-#if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
-MOS_STATUS OsContext::CommandBufferDumpInit(PMOS_CONTEXT mosCtx)
-{
-    MOS_OS_FUNCTION_ENTER;
-    char                                sFileName[MOS_MAX_HLT_FILENAME_LEN];
-    MOS_STATUS                          eStatus = MOS_STATUS_UNKNOWN;
-    MOS_USER_FEATURE_VALUE_DATA         UserFeatureData;
-
-    // Check if command buffer dump was enabled in user feature.
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_DUMP_COMMAND_BUFFER_ENABLE_ID,
-        &UserFeatureData,
-        mosCtx);
-    m_dumpCommandBuffer           = (UserFeatureData.i32Data != 0);
-    m_dumpCommandBufferToFile     = ((UserFeatureData.i32Data & 1) != 0);
-    m_dumpCommandBufferAsMessages = ((UserFeatureData.i32Data & 2) != 0);
-
-    return MOS_STATUS_SUCCESS;
-}
-#endif // #if MOS_COMMAND_BUFFER_DUMP_SUPPORTED

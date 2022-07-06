@@ -30,6 +30,9 @@
 MOS_STATUS MosUserSetting::InitMosUserSetting(MediaUserSettingSharedPtr userSettingPtr)
 {
     InitMosCommonUserSetting(userSettingPtr);
+
+    InitMosUserSettingSpecific(userSettingPtr);
+
 #if MOS_MESSAGES_ENABLED
     InitMosMessageUserSetting(userSettingPtr);
 #endif
@@ -37,9 +40,6 @@ MOS_STATUS MosUserSetting::InitMosUserSetting(MediaUserSettingSharedPtr userSett
 #if (_DEBUG || _RELEASE_INTERNAL)
     InitUserSettingForDebug(userSettingPtr);
 #endif
-
-    InitMosUserSettingSpecific(userSettingPtr);
-
     return MOS_STATUS_SUCCESS;
 }
 
@@ -135,6 +135,31 @@ MOS_STATUS MosUserSetting::InitMosCommonUserSetting(MediaUserSettingSharedPtr us
         MediaUserSetting::Group::Device,
         "",
         true); //" Perf Utility Tool Customize Output Directory. "
+
+#if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
+    DeclareUserSettingKey(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_DUMP_COMMAND_BUFFER_ENABLE,
+        MediaUserSetting::Group::Device,
+        0,
+        true); // "If enabled, all of the command buffers submitted through MOS will be dumped (0: disabled, 1: to a file, 2: as a normal message)."
+#endif
+
+#if MOS_COMMAND_RESINFO_DUMP_SUPPORTED
+    DeclareUserSettingKey(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_DUMP_COMMAND_INFO_ENABLE,
+        MediaUserSetting::Group::Device,
+        0,
+        true); //"If enabled, gpu command info will be dumped (0: disabled, 1: to a file)."
+
+    DeclareUserSettingKey(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_DUMP_COMMAND_INFO_PATH,
+        MediaUserSetting::Group::Device,
+        "",
+        true); //"Path where command info will be dumped, for example: ./"
+#endif // MOS_COMMAND_RESINFO_DUMP_SUPPORTED
 
     return MOS_STATUS_SUCCESS;
 }
@@ -494,8 +519,86 @@ MOS_STATUS MosUserSetting::InitUserSettingForDebug(MediaUserSettingSharedPtr use
         0xDEADC0DE,
         true); // "Override Slice/Sub-Slice/EU request"
 
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_ALLOC_MEMORY_FAIL_SIMULATE_MODE,
+        MediaUserSetting::Group::Device,
+        0,
+        true); // "MOS memory alloc fail simulate mode,  0-Disable, 1-Random, 2-Traverse."
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_ALLOC_MEMORY_FAIL_SIMULATE_FREQ,
+        MediaUserSetting::Group::Device,
+        0,
+        true); // "MOS memory alloc fail simulate frequence."
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_ALLOC_MEMORY_FAIL_SIMULATE_HINT,
+        MediaUserSetting::Group::Device,
+        0,
+        true); // "MOS memory alloc fail simulate counter."
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_OS_API_FAIL_SIMULATE_TYPE,
+        MediaUserSetting::Group::Device,
+        0,
+        true); // "the OS API fail type to simulate"
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_OS_API_FAIL_SIMULATE_MODE,
+        MediaUserSetting::Group::Device,
+        0,
+        true); // "MOS OS API fail simulate mode, 0-Disable, 1-Random, 2-Traverse."
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_OS_API_FAIL_SIMULATE_FREQ,
+        MediaUserSetting::Group::Device,
+        0,
+        true); // "MOS OS API fail simulate frequence."
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_OS_API_FAIL_SIMULATE_HINT,
+        MediaUserSetting::Group::Device,
+        0,
+        true); // "MOS OS API fail simulate counter."
+
+/**********************MOCK ADAPTER**********************************/
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_NULLHW_ENABLE,
+        MediaUserSetting::Group::Device,
+        0,
+        true); // "Enable NULL HW or not"
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_MOCKADAPTOR_PLATFORM,
+        MediaUserSetting::Group::Device,
+        33,
+        true); //"Sets the platform for MockAdaptor, default is tgllp"
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_MOCKADAPTOR_STEPPING,
+        MediaUserSetting::Group::Device,
+        "a0",
+        true); //"Sets the platform stepping for MockAdaptor. (For example a0, b1, c0, etc)"
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_MOCKADAPTOR_DEVICE,
+        MediaUserSetting::Group::Device,
+        39497,
+        true); //"Device ID of mock device, default is 0x9A49"
     return MOS_STATUS_SUCCESS;
 }
+
 #endif
 
 MOS_STATUS MosUserSetting::DestroyMediaUserSetting()

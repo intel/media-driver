@@ -83,16 +83,6 @@ public:
     //!
     void CleanUp();
 
-#if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
-    //!
-    //! \brief    Unified dump command buffer initialization
-    //! \details  check if dump command buffer was enabled and create the output directory
-    //! \return   MOS_STATUS
-    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
-    //!
-    MOS_STATUS CommandBufferDumpInit(PMOS_CONTEXT mosCtx);
-#endif
-
     //!
     //! \brief  Get the skuTable
     //! \return The active SKU Table
@@ -213,20 +203,5 @@ protected:
 
     //! \brief   Component info
     MOS_COMPONENT                   m_component = COMPONENT_UNKNOWN;
-
-#if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
-    //! \brief   Command buffer dump.
-    //! \brief   Flag to indicate if Dump command buffer is enabled
-    bool                            m_dumpCommandBuffer = false;
-
-    //! \brief   Indicates that the command buffer should be dumped to a file
-    bool                            m_dumpCommandBufferToFile = false;
-
-    //! \brief   Indicates that the command buffer should be dumped via MOS normal messages
-    bool                            m_dumpCommandBufferAsMessages = false;
-
-    //! \brief   Platform name - maximum 4 bytes length
-    char                            m_platformName[MOS_COMMAND_BUFFER_PLATFORM_LEN] = {0};
-#endif // MOS_COMMAND_BUFFER_DUMP_SUPPORTED
 };
 #endif // #ifndef __MOS_CONTEXT_H__

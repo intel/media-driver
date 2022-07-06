@@ -1325,10 +1325,9 @@ MOS_STATUS MosUtilitiesSpecificNext::MosUserFeatureSetValueExFile(
     return eStatus;
 }
 
-MOS_STATUS MosUtilities::MosOsUtilitiesInit(MOS_CONTEXT_HANDLE mosCtx)
+MOS_STATUS MosUtilities::MosOsUtilitiesInit(MediaUserSettingSharedPtr userSettingPtr)
 {
     MOS_STATUS     eStatus = MOS_STATUS_SUCCESS;
-    MOS_UNUSED(mosCtx);
 
     // lock mutex to avoid multi init in multi-threading env
     m_mutexLock.Lock();
@@ -1358,7 +1357,7 @@ MOS_STATUS MosUtilities::MosOsUtilitiesInit(MOS_CONTEXT_HANDLE mosCtx)
     if (m_mosUtilInitCount == 0)
     {
         //Init MOS User Feature Key from mos desc table
-        eStatus = MosUserSetting::InitMosUserSetting(nullptr);
+        eStatus = MosUserSetting::InitMosUserSetting(userSettingPtr);
         eStatus = MosDeclareUserFeatureKeysForAllDescFields();
         MosUtilitiesSpecificNext::UserFeatureDumpFile(MosUtilitiesSpecificNext::m_szUserFeatureFile, &MosUtilitiesSpecificNext::m_ufKeyList);
 #if _MEDIA_RESERVED
@@ -1368,10 +1367,10 @@ MOS_STATUS MosUtilities::MosOsUtilitiesInit(MOS_CONTEXT_HANDLE mosCtx)
 #ifdef WDDM_LINUX
         m_mediaUserFeatureSpecific = new MediaUserSettingsMgrSpecific();
 #endif
-        eStatus = MosGenerateUserFeatureKeyXML(mosCtx);
+
 #if MOS_MESSAGES_ENABLED
         // Initialize MOS message params structure and HLT
-        MosUtilDebug::MosMessageInit(nullptr);
+        MosUtilDebug::MosMessageInit(userSettingPtr);
 #endif // MOS_MESSAGES_ENABLED
         m_mosMemAllocCounter     = 0;
         m_mosMemAllocFakeCounter = 0;
@@ -1384,7 +1383,7 @@ MOS_STATUS MosUtilities::MosOsUtilitiesInit(MOS_CONTEXT_HANDLE mosCtx)
     return eStatus;
 }
 
-MOS_STATUS MosUtilities::MosOsUtilitiesClose(MOS_CONTEXT_HANDLE mosCtx)
+MOS_STATUS MosUtilities::MosOsUtilitiesClose(MediaUserSettingSharedPtr userSettingPtr)
 {
     int32_t                             memoryCounter = 0;
     MOS_STATUS                          eStatus = MOS_STATUS_SUCCESS;
@@ -1402,7 +1401,7 @@ MOS_STATUS MosUtilities::MosOsUtilitiesClose(MOS_CONTEXT_HANDLE mosCtx)
         MOS_OS_VERBOSEMESSAGE("MemNinja leak detection end");
 
         ReportUserSetting(
-            nullptr,
+            userSettingPtr,
             __MEDIA_USER_FEATURE_VALUE_MEMNINJA_COUNTER,
             memoryCounter,
             MediaUserSetting::Group::Device);
@@ -1595,6 +1594,16 @@ MOS_STATUS MosUtilities::MosUninitializeReg(RegBufferMap &regBufferMap)
     {
         return MOS_STATUS_SUCCESS;
     }
+
+    auto iter = regBufferMap.find(USER_SETTING_REPORT_PATH);
+    // No need to write the user setting files if no session [report].
+    // The session [config] is read only.
+    if(iter == regBufferMap.end() || iter->second.size() == 0)
+    {
+        MOS_OS_NORMALMESSAGE("no report session");
+        return MOS_STATUS_SUCCESS;
+    }
+
     std::ofstream regStream;
     try
     {

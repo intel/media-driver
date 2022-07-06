@@ -521,27 +521,28 @@ finish:
 MOS_STATUS Mos_DumpCommandBufferInit(
     PMOS_INTERFACE pOsInterface)
 {
-    char                                sFileName[MOS_MAX_HLT_FILENAME_LEN];
-    MOS_STATUS                          eStatus = MOS_STATUS_UNKNOWN;
-    MOS_USER_FEATURE_VALUE_DATA         UserFeatureData;
-    char                                *psFileNameAfterPrefix = nullptr;
-    size_t                              nSizeFileNamePrefix = 0;
-    MediaUserSettingSharedPtr           userSettingPtr = nullptr;
-
+    char                                sFileName[MOS_MAX_HLT_FILENAME_LEN] = {};
+    MOS_STATUS                          eStatus                             = MOS_STATUS_UNKNOWN;
+    size_t                              nSizeFileNamePrefix                 = 0;
+    MediaUserSettingSharedPtr           userSettingPtr                      = nullptr;
+    uint32_t                            value                               = 0;
     MOS_OS_CHK_NULL_RETURN(pOsInterface);
 
     userSettingPtr = pOsInterface->pfnGetUserSettingInstance(pOsInterface);
+
     // Setup member function and variable.
     pOsInterface->pfnDumpCommandBuffer  = Mos_DumpCommandBuffer;
+
     // Check if command buffer dump was enabled in user feature.
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_DUMP_COMMAND_BUFFER_ENABLE_ID,
-        &UserFeatureData,
-        pOsInterface->pOsContext);
-    pOsInterface->bDumpCommandBuffer = (UserFeatureData.i32Data != 0);
-    pOsInterface->bDumpCommandBufferToFile = ((UserFeatureData.i32Data & 1) != 0);
-    pOsInterface->bDumpCommandBufferAsMessages = ((UserFeatureData.i32Data & 2) != 0);
+    ReadUserSetting(
+        userSettingPtr,
+        value,
+        __MEDIA_USER_FEATURE_VALUE_DUMP_COMMAND_BUFFER_ENABLE,
+        MediaUserSetting::Group::Device);
+
+    pOsInterface->bDumpCommandBuffer            = (value != 0);
+    pOsInterface->bDumpCommandBufferToFile      = ((value & 1) != 0);
+    pOsInterface->bDumpCommandBufferAsMessages  = ((value & 2) != 0);
 
     if (pOsInterface->bDumpCommandBufferToFile)
     {
@@ -550,7 +551,7 @@ MOS_STATUS Mos_DumpCommandBufferInit(
         if (eStatus != MOS_STATUS_SUCCESS)
         {
             MOS_OS_NORMALMESSAGE("Failed to create log file prefix. Status = %d", eStatus);
-            goto finish;
+            return eStatus;
         }
 
         memcpy(sFileName, pOsInterface->sDirName, MOS_MAX_HLT_FILENAME_LEN);
@@ -566,16 +567,13 @@ MOS_STATUS Mos_DumpCommandBufferInit(
         if (eStatus != MOS_STATUS_SUCCESS)
         {
             MOS_OS_NORMALMESSAGE("Failed to create output directory. Status = %d", eStatus);
-            goto finish;
+            return eStatus;
         }
     }
 
     Mos_GetPlatformName(pOsInterface, pOsInterface->sPlatformName);
 
-    eStatus = MOS_STATUS_SUCCESS;
-
-finish:
-    return eStatus;
+    return MOS_STATUS_SUCCESS;
 }
 #endif // MOS_COMMAND_BUFFER_DUMP_SUPPORTED
 
@@ -594,45 +592,38 @@ const GpuCmdResInfoDump *GpuCmdResInfoDump::GetInstance(PMOS_CONTEXT mosCtx)
 
 GpuCmdResInfoDump::GpuCmdResInfoDump(PMOS_CONTEXT mosCtx)
 {
-    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
-    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_DUMP_COMMAND_INFO_ENABLE_ID,
-        &userFeatureData,
-        mosCtx);
-    m_dumpEnabled = userFeatureData.bData;
+    MediaUserSettingSharedPtr   userSettingPtr  = nullptr;
+    MediaUserSetting::Value     value;
+
+    userSettingPtr = ::GetUserSettingInstance(mosCtx);
+
+    ReadUserSetting(
+        userSettingPtr,
+        m_dumpEnabled,
+        __MEDIA_USER_FEATURE_VALUE_DUMP_COMMAND_INFO_ENABLE,
+        MediaUserSetting::Group::Device);
 
     if (!m_dumpEnabled)
     {
         return;
     }
 
-    char path[MOS_MAX_PATH_LENGTH + 1];
-    MOS_ZeroMemory(path, sizeof(path));
-    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    userFeatureData.StringData.pStringData = path;
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_DUMP_COMMAND_INFO_PATH_ID,
-        &userFeatureData,
-        mosCtx);
-    if (userFeatureData.StringData.uSize > MOS_MAX_PATH_LENGTH)
-    {
-        userFeatureData.StringData.uSize = 0;
-    }
-    if (userFeatureData.StringData.uSize > 0)
-    {
-        userFeatureData.StringData.pStringData[userFeatureData.StringData.uSize] = '\0';
-        userFeatureData.StringData.uSize++;
-    }
+    ReadUserSetting(
+        userSettingPtr,
+        value,
+        __MEDIA_USER_FEATURE_VALUE_DUMP_COMMAND_INFO_PATH,
+        MediaUserSetting::Group::Device);
 
-    auto tmpPath = std::string(path);
-    if (tmpPath.back() != '/' && tmpPath.back() != '\\')
+    auto path = value.ConstString();
+    if(path.size() > 0)
     {
-        tmpPath += '/';
+        m_path = path;
+        if (path.back() != '/' && path.back() != '\\')
+        {
+            m_path += '/';
+        }
     }
-    m_path = tmpPath + "gpuCmdResInfo_" + std::to_string(MosUtilities::MosGetPid()) + ".txt";
+    m_path = m_path + "gpuCmdResInfo_" + std::to_string(MosUtilities::MosGetPid()) + ".txt";
 }
 
 void GpuCmdResInfoDump::Dump(PMOS_INTERFACE pOsInterface) const

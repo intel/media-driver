@@ -189,22 +189,14 @@ MOS_STATUS MosMockAdaptorSpecific::InitializeSkuWaTable(PMOS_CONTEXT context)
 
 MOS_STATUS MosMockAdaptorSpecific::UpdateUserFeatureKey(PMOS_CONTEXT osContext)
 {
-    PLATFORM platForm = osContext->platform;
-    int iDeviceId      = osContext->iDeviceId;
+    MOS_OS_CHK_NULL_RETURN(osContext);
+    MediaUserSettingSharedPtr   userSettingPtr  = ::GetUserSettingInstance(osContext);
+    PLATFORM                    platForm        = osContext->platform;
+    int32_t                     iDeviceId       = osContext->iDeviceId;
+    int32_t                     eProductFaimily = (int32_t)platForm.eProductFamily;
 
-    uint32_t platFormId = __MEDIA_USER_FEATURE_VALUE_MOCKADAPTOR_PLATFORM_ID;
-    uint32_t deviceId   = __MEDIA_USER_FEATURE_VALUE_MOCKADAPTOR_DEVICE_ID;
-
-    MOS_USER_FEATURE_VALUE_WRITE_DATA userFeatureWriteData;
-    userFeatureWriteData               = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
-    userFeatureWriteData.Value.i32Data = (int32_t)platForm.eProductFamily;
-    userFeatureWriteData.ValueID       = (MOS_USER_FEATURE_VALUE_ID)platFormId;
-    MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, osContext);
-
-    userFeatureWriteData               = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
-    userFeatureWriteData.Value.i32Data = (int32_t)iDeviceId;
-    userFeatureWriteData.ValueID       = (MOS_USER_FEATURE_VALUE_ID)deviceId;
-    MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, osContext);
+    ReportUserSettingForDebug(userSettingPtr, __MEDIA_USER_FEATURE_VALUE_MOCKADAPTOR_PLATFORM,eProductFaimily,MediaUserSetting::Group::Device);
+    ReportUserSettingForDebug(userSettingPtr, __MEDIA_USER_FEATURE_VALUE_MOCKADAPTOR_DEVICE,iDeviceId,MediaUserSetting::Group::Device);
 
     return MOS_STATUS_SUCCESS;
 }
