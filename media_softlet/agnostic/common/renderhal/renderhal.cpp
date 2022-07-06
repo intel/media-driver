@@ -1372,8 +1372,7 @@ MOS_STATUS RenderHal_AllocateStateHeaps(
         dwSizeGSH                     += pStateHeap->dwScratchSpaceSize;
     }
 
-    pStateHeap->dwSizeGSH        = dwSizeGSH;
-    pStateHeap->dwSizeMediaState = dwSizeMediaState;
+    pStateHeap->dwSizeGSH = dwSizeGSH;
 
     //----------------------------------
     // Instruction State Heap (Kernel Heap)
@@ -1482,186 +1481,6 @@ finish:
     return eStatus;
 }
 
-MOS_STATUS RenderHal_ReAllocateStateHeapsforAdvFeature(
-    PRENDERHAL_INTERFACE           pRenderHal,
-    bool                           &bAllocated)
-{
-    PMOS_INTERFACE                 pOsInterface     = nullptr;
-    PRENDERHAL_STATE_HEAP          pStateHeap       = nullptr;
-    PRENDERHAL_STATE_HEAP          pOldStateHeap    = nullptr;
-    uint8_t                       *ptr              = nullptr;
-    int32_t                       *pAllocations     = nullptr;
-    PRENDERHAL_STATE_HEAP_SETTINGS pSettings        = nullptr;
-    uint8_t                       *ptrMediaState    = nullptr;
-    MOS_STATUS                     eStatus          = MOS_STATUS_SUCCESS;
-    PMHW_RENDER_STATE_SIZES        pHwSizes         = {};
-    uint32_t                       dwSizeAlloc      = 0;
-    uint32_t                       dwSizeSSH        = 0;
-    int32_t                        i                = 0;
-    uint32_t                       dwSizeGSH        = 0;
-    uint32_t                       dwSizeMediaState = 0;
-    size_t                         mediaStateSize   = 0;
-    size_t                         stateHeapSize    = 0;
-
-    //------------------------------------------------
-    MHW_RENDERHAL_CHK_NULL(pRenderHal);
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pOsInterface);
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pHwSizes);
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pRenderHalPltInterface);
-
-    pSettings  = &pRenderHal->StateHeapSettings;
-    bAllocated = false;
-    //------------------------------------------------
-
-    if (pRenderHal->pStateHeap == nullptr)
-    {
-        return MOS_STATUS_SUCCESS;
-    }
-
-    if ((pSettings->iBindingTables == RENDERHAL_SSH_BINDING_TABLES_MAX) &&
-        (pSettings->iSurfaceStates == RENDERHAL_SSH_SURFACE_STATES_MAX))
-    {
-        return MOS_STATUS_SUCCESS;
-    }
-
-    pOsInterface  = pRenderHal->pOsInterface;
-    pOldStateHeap = pRenderHal->pStateHeap;
-    pHwSizes      = pRenderHal->pHwSizes;
-
-    // Free SSH Resource
-    if (pOldStateHeap->pSshBuffer)
-    {
-        MOS_FreeMemory(pOldStateHeap->pSshBuffer);
-        pOldStateHeap->pSshBuffer = nullptr;
-    }
-
-    // Free MOS surface in surface state entry
-    for (int32_t index = 0; index < pSettings->iSurfaceStates; ++index)
-    {
-        PRENDERHAL_SURFACE_STATE_ENTRY entry = pOldStateHeap->pSurfaceEntry + index;
-        MOS_SafeFreeMemory(entry->pSurface);
-        entry->pSurface = nullptr;
-    }
-
-    // Enlarge the binding table size and surface state size
-    pSettings->iBindingTables = RENDERHAL_SSH_BINDING_TABLES_MAX;
-    pSettings->iSurfaceStates = RENDERHAL_SSH_SURFACE_STATES_MAX;
-
-    mediaStateSize = pRenderHal->pRenderHalPltInterface->GetRenderHalMediaStateSize();
-    stateHeapSize  = pRenderHal->pRenderHalPltInterface->GetRenderHalStateHeapSize();
-    //---------------------------------------
-    // Setup General State Heap
-    //---------------------------------------
-    // Calculate size of State Heap control structure
-    dwSizeAlloc  = MOS_ALIGN_CEIL(stateHeapSize                                                      , 16);
-    dwSizeAlloc += MOS_ALIGN_CEIL(pSettings->iKernelCount     * sizeof(RENDERHAL_KRN_ALLOCATION)     , 16);
-    dwSizeAlloc += MOS_ALIGN_CEIL(pSettings->iMediaStateHeaps * mediaStateSize                       , 16);
-    dwSizeAlloc += MOS_ALIGN_CEIL(pSettings->iMediaStateHeaps * pSettings->iMediaIDs * sizeof(int32_t)   , 16);
-    dwSizeAlloc += MOS_ALIGN_CEIL(pSettings->iSurfaceStates   * sizeof(RENDERHAL_SURFACE_STATE_ENTRY), 16);
-
-    // Allocate State Heap control structure (aligned)
-    pStateHeap = (PRENDERHAL_STATE_HEAP)MOS_AlignedAllocMemory(dwSizeAlloc, 16);
-    pRenderHal->dwStateHeapSize = dwSizeAlloc;
-
-    MHW_RENDERHAL_CHK_NULL(pStateHeap);
-    MOS_ZeroMemory(pStateHeap, dwSizeAlloc);
-
-    MOS_SecureMemcpy(pStateHeap, dwSizeAlloc, pOldStateHeap, dwSizeAlloc - MOS_ALIGN_CEIL(pSettings->iSurfaceStates * sizeof(RENDERHAL_SURFACE_STATE_ENTRY), 16));
-
-    // Update the State Heap
-    pRenderHal->pStateHeap = pStateHeap;
-
-    //-------------------------------------------------------------------------
-    // Setup State Heap control structures
-    //-------------------------------------------------------------------------
-    // Skip RENDERHAL_STATE_HEAP structure
-    ptr = (uint8_t *)pStateHeap;
-    ptr += MOS_ALIGN_CEIL(stateHeapSize, 16);
-
-    // Pointer to Kernel allocations
-    pStateHeap->pKernelAllocation = (PRENDERHAL_KRN_ALLOCATION)ptr;
-    ptr += MOS_ALIGN_CEIL(pSettings->iKernelCount * sizeof(RENDERHAL_KRN_ALLOCATION), 16);
-
-    // Pointer to Media State allocations
-    pStateHeap->pMediaStates = (PRENDERHAL_MEDIA_STATE)ptr;
-    ptr += MOS_ALIGN_CEIL(pSettings->iMediaStateHeaps * mediaStateSize, 16);
-
-    // Pointer to Media ID allocations
-    pAllocations = (int32_t *)ptr;
-    ptr += MOS_ALIGN_CEIL(pSettings->iMediaStateHeaps * pSettings->iMediaIDs * sizeof(int32_t), 16);
-
-    // Pointer to Surface State allocations
-    pStateHeap->pSurfaceEntry = (PRENDERHAL_SURFACE_STATE_ENTRY)ptr;
-
-    dwSizeMediaState = pStateHeap->dwSizeMediaState;
-
-    // Reset current media state
-    pStateHeap->iCurMediaState  = 0;
-    pStateHeap->iNextMediaState = 0;
-
-    dwSizeGSH = pStateHeap->dwSizeSync;
-
-    // Align Media State base
-    dwSizeGSH = MOS_ALIGN_CEIL(dwSizeGSH, MHW_MEDIA_STATE_ALIGN);
-
-    // Create multiple instances of Media state heaps for Dynamic GSH
-    ptrMediaState = (uint8_t *)pStateHeap->pMediaStates;
-    for (i = 0; i < pSettings->iMediaStateHeaps; i++)
-    {
-        PRENDERHAL_MEDIA_STATE pStat = (PRENDERHAL_MEDIA_STATE)ptrMediaState;
-        pStat->dwOffset              = dwSizeGSH;
-        pStat->piAllocation          = pAllocations;
-        dwSizeGSH += dwSizeMediaState;
-        pAllocations += pSettings->iMediaIDs;
-        // Pointer moves to next MEDIA STATE position
-        ptrMediaState += mediaStateSize;
-    }
-
-    //----------------------------------
-    // Surface State Heap
-    //----------------------------------
-    // Reset initial SSH allocations
-    pStateHeap->iCurSshBufferIndex    = 0;
-    pStateHeap->iCurrentBindingTable  = 0;
-    pStateHeap->iCurrentSurfaceState  = 0;
-
-    // Set BT sizes
-    pStateHeap->iBindingTableSize = MOS_ALIGN_CEIL(pSettings->iSurfacesPerBT * pHwSizes->dwSizeBindingTableState,
-                                                   pSettings->iBTAlignment);
-
-    // Set offsets to BT and SS entries
-    pStateHeap->iBindingTableOffset  = 0;
-    pStateHeap->iSurfaceStateOffset  = pSettings->iBindingTables * pStateHeap->iBindingTableSize;
-
-    // Calculate size of a single SSH instance and total SSH buffer size
-    dwSizeSSH = pStateHeap->iSurfaceStateOffset +
-                pSettings->iSurfaceStates * pRenderHal->pRenderHalPltInterface->GetSurfaceStateCmdSize();
-    pStateHeap->dwSshIntanceSize   = dwSizeSSH;
-    pRenderHal->dwIndirectHeapSize = MOS_ALIGN_CEIL(dwSizeSSH, MHW_PAGE_SIZE);
-
-    // Allocate SSH buffer in system memory, not Gfx
-    pStateHeap->dwSizeSSH  = dwSizeSSH; // Single SSH instance
-    pStateHeap->pSshBuffer = (uint8_t*)MOS_AllocAndZeroMemory(dwSizeSSH);
-    if (!pStateHeap->pSshBuffer)
-    {
-        MHW_RENDERHAL_ASSERTMESSAGE("Fail to Allocate SSH buffer.");
-        eStatus = MOS_STATUS_NO_SPACE;
-        goto finish;
-    }
-
-    pStateHeap->bSshLocked = true;
-
-    // Free State Heap Control structure
-    MOS_AlignedFreeMemory(pOldStateHeap);
-    pOldStateHeap = nullptr;
-
-    eStatus = MOS_STATUS_SUCCESS;
-    bAllocated = true;
-
-finish:
-    return eStatus;
-}
-
 //!
 //! \brief    Free State Heaps (including MHW interfaces)
 //! \details  Free State Heap resources allocated by RenderHal
@@ -1678,12 +1497,8 @@ MOS_STATUS RenderHal_FreeStateHeaps(PRENDERHAL_INTERFACE pRenderHal)
     //------------------------------------------------
     MHW_RENDERHAL_CHK_NULL(pRenderHal);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pOsInterface);
+    MHW_RENDERHAL_CHK_NULL(pRenderHal->pStateHeap);
     //------------------------------------------------
-
-    if (pRenderHal->pStateHeap == nullptr)
-    {
-        return MOS_STATUS_SUCCESS;
-    }
 
     eStatus      = MOS_STATUS_UNKNOWN;
 
@@ -4655,42 +4470,26 @@ MOS_STATUS RenderHal_Reset(
     PRENDERHAL_INTERFACE pRenderHal)
 {
     PMOS_INTERFACE          pOsInterface;
+    PRENDERHAL_STATE_HEAP   pStateHeap;
     MOS_STATUS              eStatus;
 
     //----------------------------------
     MHW_RENDERHAL_CHK_NULL(pRenderHal);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pOsInterface);
+    MHW_RENDERHAL_CHK_NULL(pRenderHal->pStateHeap);
     //----------------------------------
 
     eStatus         = MOS_STATUS_SUCCESS;
     pOsInterface    = pRenderHal->pOsInterface;
-
-    if (pRenderHal->pStateHeap == nullptr)
-    {
-        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pfnAllocateStateHeaps(pRenderHal, &pRenderHal->StateHeapSettings));
-        if (pRenderHal->pStateHeap)
-        {
-            MHW_STATE_BASE_ADDR_PARAMS *pStateBaseParams = &pRenderHal->StateBaseAddressParams;
-
-            pStateBaseParams->presGeneralState           = &pRenderHal->pStateHeap->GshOsResource;
-            pStateBaseParams->dwGeneralStateSize         = pRenderHal->pStateHeap->dwSizeGSH;
-            pStateBaseParams->presDynamicState           = &pRenderHal->pStateHeap->GshOsResource;
-            pStateBaseParams->dwDynamicStateSize         = pRenderHal->pStateHeap->dwSizeGSH;
-            pStateBaseParams->bDynamicStateRenderTarget  = false;
-            pStateBaseParams->presIndirectObjectBuffer   = &pRenderHal->pStateHeap->GshOsResource;
-            pStateBaseParams->dwIndirectObjectBufferSize = pRenderHal->pStateHeap->dwSizeGSH;
-            pStateBaseParams->presInstructionBuffer      = &pRenderHal->pStateHeap->IshOsResource;
-            pStateBaseParams->dwInstructionBufferSize    = pRenderHal->pStateHeap->dwSizeISH;
-        }
-    }
+    pStateHeap      = pRenderHal->pStateHeap;
 
     MHW_RENDERHAL_CHK_STATUS(pOsInterface->pfnRegisterResource(pOsInterface,
-                                            &pRenderHal->pStateHeap->GshOsResource,
+                                            &pStateHeap->GshOsResource,
                                             true,
                                             true));
 
     MHW_RENDERHAL_CHK_STATUS(pOsInterface->pfnRegisterResource(pOsInterface,
-                                            &pRenderHal->pStateHeap->IshOsResource,
+                                            &pStateHeap->IshOsResource,
                                             true,
                                             true));
 
@@ -4965,21 +4764,9 @@ MOS_STATUS RenderHal_Initialize(
     pRenderHal->StateHeapSettings.iSurfaceStateHeaps =
                                 pRenderHal->StateHeapSettings.iMediaStateHeaps;
 
-    if (pOsInterface->CurrentGpuContextOrdinal == MOS_GPU_CONTEXT_RENDER ||
-        pOsInterface->CurrentGpuContextOrdinal == MOS_GPU_CONTEXT_COMPUTE)
-    {
-        if ((pRenderHal->pOsInterface->osStreamState == nullptr) ||
-            (pRenderHal->pOsInterface->osStreamState &&
-            (pRenderHal->pOsInterface->osStreamState->component == COMPONENT_VPCommon   ||
-             pRenderHal->pOsInterface->osStreamState->component == COMPONENT_VPreP      ||
-             pRenderHal->pOsInterface->osStreamState->component == COMPONENT_LibVA      ||
-             pRenderHal->pOsInterface->osStreamState->component == COMPONENT_MCPY)))
-        {
-            // Initialize MHW interfaces
-            // Allocate and initialize state heaps (GSH, SSH, ISH)
-            MHW_RENDERHAL_CHK_STATUS(pRenderHal->pfnAllocateStateHeaps(pRenderHal, &pRenderHal->StateHeapSettings));
-        }
-    }
+    // Initialize MHW interfaces
+    // Allocate and initialize state heaps (GSH, SSH, ISH)
+    MHW_RENDERHAL_CHK_STATUS(pRenderHal->pfnAllocateStateHeaps(pRenderHal, &pRenderHal->StateHeapSettings));
 
     // If ASM debug is enabled, allocate debug resource
     MHW_RENDERHAL_CHK_STATUS(RenderHal_AllocateDebugSurface(pRenderHal));
@@ -4999,19 +4786,16 @@ MOS_STATUS RenderHal_Initialize(
 
     // Setup State Base Address command
     pStateBaseParams   = &pRenderHal->StateBaseAddressParams;
-    if (pRenderHal->pStateHeap)
-    {
-        pStateBaseParams->presGeneralState           = &pRenderHal->pStateHeap->GshOsResource;
-        pStateBaseParams->dwGeneralStateSize         = pRenderHal->pStateHeap->dwSizeGSH;
-        pStateBaseParams->presDynamicState           = &pRenderHal->pStateHeap->GshOsResource;
-        pStateBaseParams->dwDynamicStateSize         = pRenderHal->pStateHeap->dwSizeGSH;
-        pStateBaseParams->bDynamicStateRenderTarget  = false;
-        pStateBaseParams->presIndirectObjectBuffer   = &pRenderHal->pStateHeap->GshOsResource;
-        pStateBaseParams->dwIndirectObjectBufferSize = pRenderHal->pStateHeap->dwSizeGSH;
-        pStateBaseParams->presInstructionBuffer      = &pRenderHal->pStateHeap->IshOsResource;
-        pStateBaseParams->dwInstructionBufferSize    = pRenderHal->pStateHeap->dwSizeISH;
-    }
-
+    pStateBaseParams->presGeneralState              = &pRenderHal->pStateHeap->GshOsResource;
+    pStateBaseParams->dwGeneralStateSize            = pRenderHal->pStateHeap->dwSizeGSH;
+    pStateBaseParams->presDynamicState              = &pRenderHal->pStateHeap->GshOsResource;
+    pStateBaseParams->dwDynamicStateSize            = pRenderHal->pStateHeap->dwSizeGSH;
+    pStateBaseParams->bDynamicStateRenderTarget     = false;
+    pStateBaseParams->presIndirectObjectBuffer      = &pRenderHal->pStateHeap->GshOsResource;
+    pStateBaseParams->dwIndirectObjectBufferSize    = pRenderHal->pStateHeap->dwSizeGSH;
+    pStateBaseParams->presInstructionBuffer         = &pRenderHal->pStateHeap->IshOsResource;
+    pStateBaseParams->dwInstructionBufferSize       = pRenderHal->pStateHeap->dwSizeISH;
+    
     MHW_RENDERHAL_CHK_STATUS(pRenderHal->pRenderHalPltInterface->CreatePerfProfiler(pRenderHal));
     new(&pRenderHal->trackerProducer) FrameTrackerProducer();
 
@@ -6840,9 +6624,8 @@ MOS_STATUS RenderHal_InitInterface(
     pRenderHal->pfnDestroy                    = RenderHal_Destroy;
 
     // Allocate/Destroy state heaps
-    pRenderHal->pfnAllocateStateHeaps                = RenderHal_AllocateStateHeaps;
-    pRenderHal->pfnFreeStateHeaps                    = RenderHal_FreeStateHeaps;
-    pRenderHal->pfnReAllocateStateHeapsforAdvFeature = RenderHal_ReAllocateStateHeapsforAdvFeature;
+    pRenderHal->pfnAllocateStateHeaps         = RenderHal_AllocateStateHeaps;
+    pRenderHal->pfnFreeStateHeaps             = RenderHal_FreeStateHeaps;
 
     // Slice Shutdown Mode
     pRenderHal->pfnSetSliceShutdownMode       = RenderHal_SetSliceShutdownMode;

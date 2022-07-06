@@ -64,15 +64,6 @@ public:
         PRENDERHAL_INTERFACE        pRenderHal,
         PMOS_COMMAND_BUFFER         pCmdBuffer,
         PMHW_GPGPU_WALKER_PARAMS    pGpGpuWalkerParams);
-
-    //!
-    //! \brief    Initialize the State Heap Settings per platform
-    //! \param    PRENDERHAL_INTERFACE    pRenderHal
-    //!           [out] Pointer to PRENDERHAL_INTERFACE
-    //! \return   void
-    //!
-    void InitStateHeapSettings(
-        PRENDERHAL_INTERFACE    pRenderHal);
 MEDIA_CLASS_DEFINE_END(XRenderHal_Interface_Xe_Hpg)
 };
 

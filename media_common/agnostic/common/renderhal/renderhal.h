@@ -866,7 +866,6 @@ typedef struct _RENDERHAL_STATE_HEAP
     int32_t                 iCurMediaState;                                     // Current Media State Index
     int32_t                 iNextMediaState;                                    // Next Media State Index
     PRENDERHAL_MEDIA_STATE  pCurMediaState;                                     // Current Media state in use
-    uint32_t                dwSizeMediaState;                                   // Size of Media state
 
     uint32_t                dwOffsetMediaID;                                    // Offset to Media IDs from Media State Base
     uint32_t                dwSizeMediaID;                                      // Size of each Media ID
@@ -1275,10 +1274,6 @@ typedef struct _RENDERHAL_INTERFACE
     MOS_STATUS (* pfnAllocateStateHeaps) (
                 PRENDERHAL_INTERFACE            pRenderHal,
                 PRENDERHAL_STATE_HEAP_SETTINGS  pSettings);
-
-    MOS_STATUS (* pfnReAllocateStateHeapsforAdvFeature) (
-                PRENDERHAL_INTERFACE            pRenderHal,
-                bool                            &bAllocated);
 
     MOS_STATUS (* pfnFreeStateHeaps) (
                 PRENDERHAL_INTERFACE     pRenderHal);

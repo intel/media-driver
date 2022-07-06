@@ -32,36 +32,6 @@
 #include "mhw_mi_g12_X.h"
 #include "vp_utils.h"
 
-#define RENDERHAL_SAMPLERS_AVS_HPG 0
-
-extern const RENDERHAL_STATE_HEAP_SETTINGS g_cRenderHal_State_Heap_Settings_xe_hpg =
-{
-    // Global GSH Allocation parameters
-    RENDERHAL_SYNC_SIZE,                       //!< iSyncSize
-
-    // Media State Allocation parameters
-    RENDERHAL_MEDIA_STATES,                    //!< iMediaStateHeaps - Set by Initialize
-    RENDERHAL_MEDIA_IDS,                       //!< iMediaIDs
-    RENDERHAL_CURBE_SIZE,                      //!< iCurbeSize
-    RENDERHAL_SAMPLERS,                        //!< iSamplers
-    RENDERHAL_SAMPLERS_AVS_HPG,                //!< iSamplersAVS
-    RENDERHAL_SAMPLERS_VA,                     //!< iSamplersVA
-    RENDERHAL_KERNEL_COUNT,                    //!< iKernelCount
-    RENDERHAL_KERNEL_HEAP,                     //!< iKernelHeapSize
-    RENDERHAL_KERNEL_BLOCK_SIZE,               //!< iKernelBlockSize
-
-    // Media VFE/ID configuration, limits
-    0,                                         //!< iPerThreadScratchSize
-    RENDERHAL_MAX_SIP_SIZE,                    //!< iSipSize
-
-    // Surface State Heap Settings
-    RENDERHAL_SSH_INSTANCES,                   //!< iSurfaceStateHeaps
-    RENDERHAL_SSH_BINDING_TABLES,              //!< iBindingTables
-    RENDERHAL_SSH_SURFACE_STATES,              //!< iSurfaceStates
-    RENDERHAL_SSH_SURFACES_PER_BT,             //!< iSurfacesPerBT
-    RENDERHAL_SSH_BINDING_TABLE_ALIGN          //!< iBTAlignment
-};
-
 MOS_STATUS XRenderHal_Interface_Xe_Hpg::IsRenderHalMMCEnabled(
     PRENDERHAL_INTERFACE pRenderHal)
 {
@@ -146,18 +116,4 @@ MOS_STATUS XRenderHal_Interface_Xe_Hpg::SendComputeWalker(
 
 finish:
     return eStatus;
-}
-
-//!
-//! \brief    Initialize the State Heap Settings per platform
-//! \param    PRENDERHAL_STATE_HEAP_SETTINGS pSettings
-//!           [out] Pointer to PRENDERHAL_STATE_HEAP_SETTINGSStructure
-//! \return   void
-//!
-void XRenderHal_Interface_Xe_Hpg::InitStateHeapSettings(
-    PRENDERHAL_INTERFACE    pRenderHal)
-{
-    MHW_RENDERHAL_CHK_NULL_NO_STATUS_RETURN(pRenderHal);
-    // Set State Heap settings for xe hpg
-    pRenderHal->StateHeapSettings = g_cRenderHal_State_Heap_Settings_xe_hpg;
 }
