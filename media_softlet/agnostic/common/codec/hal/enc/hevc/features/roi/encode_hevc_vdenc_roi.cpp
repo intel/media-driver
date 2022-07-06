@@ -393,20 +393,6 @@ MOS_STATUS HevcVdencRoi::SetVdencPipeBufAddrParams(
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS HevcVdencRoi::SetRegionsHuCBrcUpdate(
-    PMHW_VDBOX_HUC_VIRTUAL_ADDR_PARAMS virtualAddrParams)
-{
-    if (!m_enabled)
-    {
-        return MOS_STATUS_SUCCESS;
-    }
-
-    RoiStrategy *strategy = GetStrategyForParamsSetting();
-    ENCODE_CHK_NULL_RETURN(strategy);
-
-    return strategy->SetRegionsHuCBrcUpdate(m_streamIn, virtualAddrParams->regionParams);
-}
-
 MOS_STATUS HevcVdencRoi::SetDmemHuCBrcInitReset(
     VdencHevcHucBrcInitDmem *hucVdencBrcInitDmem)
 {

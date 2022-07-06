@@ -33,6 +33,7 @@
 #include "codechal_hw.h"
 #include "codechal_debug.h"
 #include "encode_basic_feature.h"
+#include "mhw_vdbox.h"
 
 namespace encode
 {

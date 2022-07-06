@@ -28,6 +28,7 @@
 #ifndef __CODEC_DEF_ENCODE_H__
 #define __CODEC_DEF_ENCODE_H__
 #include "mos_os.h"
+#include "codec_def_common.h"
 
 #define CODECHAL_VDENC_BRC_NUM_OF_PASSES        2
 

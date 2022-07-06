@@ -92,18 +92,6 @@ public:
         MHW_VDBOX_PIPE_BUF_ADDR_PARAMS &pipeBufAddrParams);
 
     //!
-    //! \brief    Setup Virtual Address Regions for HuC BRC update
-    //!
-    //! \param    [in] virtualAddrParams
-    //!           Huc Virtual Address parameters
-    //!
-    //! \return   MOS_STATUS
-    //!           MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    MOS_STATUS SetRegionsHuCBrcUpdate(
-        PMHW_VDBOX_HUC_VIRTUAL_ADDR_PARAMS virtualAddrParams);
-
-    //!
     //! \brief    Setup HuC BRC init/reset parameters
     //!
     //! \param    [in,out] hucVdencBrcInitDmem

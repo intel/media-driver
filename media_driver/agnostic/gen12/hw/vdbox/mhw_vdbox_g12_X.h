@@ -71,10 +71,6 @@ const uint32_t RowStoreCacheAddrVP9[13][4] =
 
 struct MHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G12 : public MHW_VDBOX_PIPE_MODE_SELECT_PARAMS
 {
-    // GEN11+ specific
-    MHW_VDBOX_HCP_PIPE_WORK_MODE      PipeWorkMode = MHW_VDBOX_HCP_PIPE_WORK_MODE_LEGACY;
-    MHW_VDBOX_HCP_MULTI_ENGINE_MODE   MultiEngineMode = MHW_VDBOX_HCP_MULTI_ENGINE_MODE_FE_LEGACY;
-
     // GEN12 specific
     bool                        bTileBasedReplayMode = false;
     bool                        bWirelessEncodeEnabled = false;

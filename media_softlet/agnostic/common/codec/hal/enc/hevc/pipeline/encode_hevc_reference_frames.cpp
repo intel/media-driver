@@ -41,7 +41,7 @@ MOS_STATUS HevcReferenceFrames::Init(HevcBasicFeature *basicFeature, EncodeAlloc
     m_basicFeature = basicFeature;
     m_allocator = allocator;
     ENCODE_CHK_NULL_RETURN(m_allocator);
-    ENCODE_CHK_STATUS_RETURN(CodecHalAllocateDataList(
+    ENCODE_CHK_STATUS_RETURN(EncodeAllocateDataList(
         m_refList,
         CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC));
 
@@ -52,7 +52,7 @@ HevcReferenceFrames::~HevcReferenceFrames()
 {
     ENCODE_FUNC_CALL();
 
-    CodecHalFreeDataList(m_refList, CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC);
+    EncodeFreeDataList(m_refList, CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC);
 
 }
 

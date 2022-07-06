@@ -27,8 +27,7 @@
 #ifndef __ENCODE_PIPELINE_ADAPTER_H__
 #define __ENCODE_PIPELINE_ADAPTER_H__
 
-#include "codechal.h"
-#include "codechal_encoder_base.h"
+#include "codechal_common.h"
 
 class EncoderPipelineAdapter: public Codechal
 {
@@ -45,9 +44,6 @@ public:
         CodechalDebugInterface *debugInterface) : Codechal(hwInterface, debugInterface)
     {
         m_apogeiosEnable = true;
-        m_mfeEncodeParams.submitIndex  = 0;
-        m_mfeEncodeParams.submitNumber = 1; //By default we only use one stream
-        m_mfeEncodeParams.streamId  = 0;
     };
 
     uint32_t                        m_mvOffset = 0;                 //!< MV data offset, in 64 byte
@@ -55,14 +51,6 @@ public:
     uint32_t                        m_mvBottomFieldOffset = 0;      //!< MV data offset frame/TopField - zero, BottomField - nonzero
 
     bool                            m_vdencEnabled = false;         //!< Vdenc enabled flag
-
-    bool                            m_mfeEnabled = false;                //!< Mfe enabled
-    bool                            m_mfeMbEncEanbled = false;           //!< Mfe MBEnc kernel enabled
-    bool                            m_mfeLastStream = false;             //!< Is last stream during this submission
-    bool                            m_mfeFirstStream = false;            //!< Is first stream during this submission
-    bool                            m_mfeInitialized = false;            //!< Used for initializing MFE resources during first execute
-    MfeParams                       m_mfeEncodeParams = {0};             //!< Mfe encode params during this submission
-    MfeSharedState                  *m_mfeEncodeSharedState = nullptr;   //!< shared state from the parent context
 
 MEDIA_CLASS_DEFINE_END(EncoderPipelineAdapter)
 };

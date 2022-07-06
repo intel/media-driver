@@ -937,42 +937,6 @@ namespace encode
         return eStatus;
     }
 
-    MOS_STATUS VdencLplaAnalysis::SetLaInitRegions(MHW_VDBOX_HUC_VIRTUAL_ADDR_PARAMS &virtualAddrParams)
-    {
-        ENCODE_FUNC_CALL();
-        MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-
-        if (!m_enabled)
-        {
-            return eStatus;
-        }
-        // Add Virtual addr
-        virtualAddrParams.regionParams[0].presRegion = m_vdencLaHistoryBuffer;
-        virtualAddrParams.regionParams[0].isWritable = true;
-        m_lookaheadInit                              = false;
-
-        return eStatus;
-    }
-
-    MOS_STATUS VdencLplaAnalysis::SetLaUpdateRegions(MHW_VDBOX_HUC_VIRTUAL_ADDR_PARAMS &virtualAddrParams)
-    {
-        ENCODE_FUNC_CALL();
-        MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-
-        if (!m_enabled)
-        {
-            return eStatus;
-        }
-        // Add Virtual addr
-        virtualAddrParams.regionParams[0].presRegion = m_vdencLaHistoryBuffer;
-        virtualAddrParams.regionParams[0].isWritable = true;
-        virtualAddrParams.regionParams[1].presRegion = m_vdencLaStatsBuffer;
-        virtualAddrParams.regionParams[2].presRegion = m_vdencLaDataBuffer;
-        virtualAddrParams.regionParams[2].isWritable = true;
-
-        return eStatus;
-    }
-
     MOS_STATUS VdencLplaAnalysis::SetVdencPipeModeSelectParams(MHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G12 &pipeModeSelectParams)
     {
         ENCODE_FUNC_CALL();

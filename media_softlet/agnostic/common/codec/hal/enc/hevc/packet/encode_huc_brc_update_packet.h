@@ -34,7 +34,6 @@
 #include "encode_utils.h"
 #include "encode_hevc_vdenc_pipeline.h"
 #include "encode_hevc_basic_feature.h"
-#include "mhw_vdbox_g12_X.h"
 #if _ENCODE_RESERVED
 #include "encode_huc_brc_update_packet_ext.h"
 #endif // _ENCODE_RESERVED

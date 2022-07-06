@@ -26,6 +26,7 @@
 #include "encodecp.h"
 #include "encode_utils.h"
 #include "encode_status_report.h"
+#include "codechal_setting.h"
 
 namespace encode {
 
@@ -70,7 +71,7 @@ namespace encode {
 
         PMOS_RESOURCE m_hwcounterBuf = (static_cast<EncoderStatusReport *>(m_statusReport))->GetHwCtrBuf(); 
         ENCODE_CHK_NULL_RETURN(m_hwcounterBuf);
-        CODECHAL_ENCODE_CHK_NULL_RETURN(m_cpInterface);
+        ENCODE_CHK_NULL_RETURN(m_cpInterface);
 
         uint32_t offset      = m_statusReport->GetIndex(m_statusReport->GetSubmittedCount());
 
@@ -100,7 +101,7 @@ namespace encode {
         //IV value computation
         statusReportData->hwCounterValue.IV = *(++hwcounter);
         statusReportData->hwCounterValue.IV = SwapEndianness(statusReportData->hwCounterValue.IV);
-        CODECHAL_ENCODE_ASSERTMESSAGE(
+        ENCODE_ASSERTMESSAGE(
             "encodeStatusReport->HWCounterValue.Count = 0x%llx, encodeStatusReport->HWCounterValue.IV = 0x%llx",
             statusReportData->hwCounterValue.Count,
             statusReportData->hwCounterValue.IV);

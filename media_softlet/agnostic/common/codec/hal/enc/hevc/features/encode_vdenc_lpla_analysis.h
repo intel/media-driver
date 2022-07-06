@@ -407,24 +407,6 @@ namespace encode
             uint32_t numValidLaRecords, uint16_t curPass, uint16_t numPasses);
 
         //!
-        //! \brief  Set look ahead init regions
-        //! \param  [in] virtualAddrParams
-        //!         Virtual address parameters
-        //! \return MOS_STATUS
-        //!         MOS_STATUS_SUCCESS if success, else fail reason
-        //!
-        MOS_STATUS SetLaInitRegions(MHW_VDBOX_HUC_VIRTUAL_ADDR_PARAMS &virtualAddrParams);
-
-        //!
-        //! \brief  Set look ahead update regions
-        //! \param  [in] virtualAddrParams
-        //!         Virtual address parameters
-        //! \return MOS_STATUS
-        //!         MOS_STATUS_SUCCESS if success, else fail reason
-        //!
-        MOS_STATUS SetLaUpdateRegions(MHW_VDBOX_HUC_VIRTUAL_ADDR_PARAMS &virtualAddrParams);
-
-        //!
         //! \brief  Get look ahead status report
         //! \param  [in] encodeStatusMfx
         //!         encode status

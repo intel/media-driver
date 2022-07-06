@@ -28,12 +28,9 @@
 #define __CODECHAL_HEVC_VDENC_PACKET_H__
 
 #include "media_cmd_packet.h"
-#include "mhw_vdbox_vdenc_g12_X.h"
-#include "mhw_mi_g12_X.h"
 #include "encode_utils.h"
 #include "encode_hevc_vdenc_pipeline.h"
 #include "encode_hevc_basic_feature.h"
-#include "codechal_encode_tracked_buffer_hevc.h"
 #include "encode_status_report.h"
 #include "mhw_vdbox_vdenc_itf.h"
 #include "mhw_vdbox_hcp_itf.h"

@@ -301,24 +301,6 @@ public:
     virtual PMOS_RESOURCE GetStreamInBuf() const { return nullptr; }
 
     //!
-    //! \brief    Setup Virtual Address Regions for HuC BRC update
-    //!
-    //! \param    [in] streamIn
-    //!           Stream in buffer
-    //! \param    [out] virtualAddrParams
-    //!           Huc Virtual Address parameters
-    //!
-    //! \return   MOS_STATUS
-    //!           MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    virtual MOS_STATUS SetRegionsHuCBrcUpdate(
-        PMOS_RESOURCE streamin,
-        MHW_VDBOX_HUC_REGION_PARAMS* virtualAddrParams)
-    {
-        return MOS_STATUS_SUCCESS;
-    }
-
-    //!
     //! \brief    Setup HuC BRC init/reset parameters
     //!
     //! \param    [out] hucVdencBrcInitDmem

@@ -72,33 +72,6 @@ public:
     PMOS_RESOURCE GetStreamInBuf() const override { return m_hucRoiOutput; }
 
     //!
-    //! \brief    Setup Virtual Address Regions for HuC BRC update
-    //!
-    //! \param    [in] streamIn
-    //!           Stream in buffer
-    //! \param    [out] virtualAddrParams
-    //!           Huc Virtual Address parameters
-    //!
-    //! \return   MOS_STATUS
-    //!           MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    MOS_STATUS SetRegionsHuCBrcUpdate(
-        PMOS_RESOURCE                      streamin,
-        MHW_VDBOX_HUC_REGION_PARAMS* regionParams) override
-    {
-        ENCODE_CHK_NULL_RETURN(regionParams);
-
-        // Region 9 - Streamin Buffer for ROI (Input)
-        regionParams[9].presRegion  = streamin;
-        // Region 10 - Delta QP Buffer for ROI (Input)
-        regionParams[10].presRegion = m_deltaQpBuffer;
-        // Region 11 - Streamin Buffer for ROI (Output)
-        regionParams[11].presRegion = m_hucRoiOutput;
-        regionParams[11].isWritable = true;
-        return MOS_STATUS_SUCCESS;
-    }
-
-    //!
     //! \brief    Setup HuC BRC init/reset parameters
     //!
     //! \param    [out] hucVdencBrcInitDmem

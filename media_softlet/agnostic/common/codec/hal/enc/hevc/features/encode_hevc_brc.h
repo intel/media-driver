@@ -272,17 +272,6 @@ namespace encode
         MOS_STATUS GetBrcDataBuffer(MOS_RESOURCE *&buffer);
 
         //!
-        //! \brief  Set regions for brc update
-        //! \param  [in] params
-        //!         Pointer to parameters
-        //! \param  [in] currRecycledIndex
-        //!         current recycled index
-        //! \return MOS_STATUS
-        //!         MOS_STATUS_SUCCESS if success, else fail reason
-        //!
-        MOS_STATUS SetRegionsForUpdate(MHW_VDBOX_HUC_VIRTUAL_ADDR_PARAMS& params, uint32_t currRecycledBufIdx);
-
-        //!
         //! \brief  Set Dmem buffer for brc update
         //! \param  [in] params
         //!         Pointer to parameters

@@ -235,27 +235,6 @@ namespace encode
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS HEVCEncodeBRC::SetRegionsForUpdate(MHW_VDBOX_HUC_VIRTUAL_ADDR_PARAMS& params, uint32_t currRecycledBufIdx)
-    {
-        ENCODE_FUNC_CALL();
-        ENCODE_CHK_NULL_RETURN(m_basicFeature);
-
-        MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-
-        // Add Virtual addr
-        MOS_ZeroMemory(&params, sizeof(MHW_VDBOX_HUC_VIRTUAL_ADDR_PARAMS));
-        params.regionParams[0].presRegion = m_basicFeature->m_recycleBuf->GetBuffer(VdencBRCHistoryBuffer, 0);  // Region 0 - History Buffer (Input/Output)
-        params.regionParams[0].isWritable = true;
-        
-        params.regionParams[5].presRegion = &m_vdenc2ndLevelBatchBuffer[currRecycledBufIdx].OsResource;         // Region 5 - Output SLB Buffer (Output)
-        params.regionParams[5].isWritable = true;
-
-        // region 15 always in clear
-        params.regionParams[15].presRegion = m_basicFeature->m_recycleBuf->GetBuffer(VdencBrcDebugBuffer, 0);   // Region 15 - Debug Buffer (Output)
-        params.regionParams[15].isWritable = true;
-        return MOS_STATUS_SUCCESS;
-    }
-
     MOS_STATUS HEVCEncodeBRC::SetDmemForUpdate(void* params)
     {
         ENCODE_FUNC_CALL();

@@ -28,6 +28,8 @@
 #include "encode_vdenc_lpla_analysis.h"
 #include "encode_hevc_vdenc_weighted_prediction.h"
 #include "mhw_mi_itf.h"
+#include "media_perf_profiler_next.h"
+#include "codec_hw_next.h"
 
 using namespace mhw::vdbox;
 

@@ -31,7 +31,7 @@
 #include "encode_status_report_defs.h"
 #include "encode_utils.h"
 #include "encode_allocator.h"
-#include "codechal_encoder_base.h"
+#include "codec_def_common_encode.h"
 #include "media_status_report.h"
 
 namespace encode {

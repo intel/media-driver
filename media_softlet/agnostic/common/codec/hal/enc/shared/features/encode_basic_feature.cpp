@@ -28,6 +28,9 @@
 #include "encode_utils.h"
 #include "encode_allocator.h"
 #include "mos_interface.h"
+#include "codec_def_common_encode.h"
+#include "codec_def_encode_vp9.h"
+#include "codec_def_encode_hevc.h"
 
 namespace encode
 {

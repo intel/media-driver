@@ -27,8 +27,6 @@
 
 #include "encode_huc_brc_update_packet.h"
 #include "codechal_debug.h"
-#include "mhw_vdbox_hcp_g12_X.h"
-#include "codechal_vdenc_hevc_g12.h"
 #include "encode_hevc_vdenc_weighted_prediction.h"
 #include "encode_hevc_brc.h"
 #include "encode_hevc_vdenc_scc.h"

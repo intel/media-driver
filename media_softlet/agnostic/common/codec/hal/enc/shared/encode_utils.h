@@ -23,6 +23,7 @@
 #define __ENCODE_UTILS_H__
 #include <mutex>
 #include "mos_util_debug.h"
+#include "mos_utilities.h"
 
 #define _SW_BRC _MEDIA_RESERVED && (_DEBUG || _RELEASE_INTERNAL)
 
@@ -128,6 +129,62 @@ protected:
     PMOS_SEMAPHORE m_sem;
 MEDIA_CLASS_DEFINE_END(encode__Condition)
 };
+
+//!
+//! \brief    Allocate data list with specific type and length 
+//!
+//! \param    [in,out] dataList
+//!           Pointer to a type * pointer. Specify the address of the memory handles 
+//! \param    [in] length
+//!           Specify the number of data members 
+//!
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+template <class type>
+MOS_STATUS EncodeAllocateDataList(type **dataList, uint32_t length)
+{
+    type *ptr;
+    ptr = (type *)MOS_AllocAndZeroMemory(sizeof(type) * length);
+    if (ptr == nullptr)
+    {
+        ENCODE_ASSERTMESSAGE("No memory to allocate CodecHal data list.");
+        return MOS_STATUS_NO_SPACE;
+    }
+    for (uint32_t i = 0; i < length; i++)
+    {
+        dataList[i] = &(ptr[i]);
+    }
+    return MOS_STATUS_SUCCESS;
+}
+
+//!
+//! \brief    Free data list
+//!
+//! \param    [in,out] dataList
+//!           Pointer to a type * pointer. Specify the address of the memory handles 
+//! \param    [in] length
+//!           Specify the number of data members 
+//!
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+template <class type>
+MOS_STATUS EncodeFreeDataList(type **dataList, uint32_t length)
+{
+    type* ptr;
+    ptr = dataList[0];
+    if (ptr)
+    {
+        MOS_FreeMemory(ptr);
+    }
+    for (uint32_t i = 0; i < length; i++)
+    {
+        dataList[i] = nullptr;
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
 
 }
 

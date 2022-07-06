@@ -25,6 +25,8 @@
 //!
 
 #include "encode_packet_utilities.h"
+#include "codec_def_common_encode.h"
+
 namespace encode {
     MOS_STATUS PacketUtilities::Init()
     {

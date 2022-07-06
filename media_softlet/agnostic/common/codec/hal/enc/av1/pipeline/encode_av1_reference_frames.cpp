@@ -39,7 +39,7 @@ MOS_STATUS Av1ReferenceFrames::Init(Av1BasicFeature *basicFeature)
     ENCODE_CHK_NULL_RETURN(basicFeature);
 
     m_basicFeature = basicFeature;
-    ENCODE_CHK_STATUS_RETURN(CodecHalAllocateDataList(
+    ENCODE_CHK_STATUS_RETURN(EncodeAllocateDataList(
         m_refList,
         CODEC_AV1_NUM_UNCOMPRESSED_SURFACE));
 
@@ -50,7 +50,7 @@ Av1ReferenceFrames::~Av1ReferenceFrames()
 {
     ENCODE_FUNC_CALL();
 
-    CodecHalFreeDataList(m_refList, CODEC_AV1_NUM_UNCOMPRESSED_SURFACE);
+    EncodeFreeDataList(m_refList, CODEC_AV1_NUM_UNCOMPRESSED_SURFACE);
 }
 
 static bool MmcEnabled(MOS_MEMCOMP_STATE state)
