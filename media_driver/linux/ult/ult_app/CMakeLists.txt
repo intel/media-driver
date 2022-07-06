@@ -65,6 +65,8 @@ target_link_libraries(devult libgtest libdl.so)
 target_include_directories(devult BEFORE PRIVATE
     ${MOS_PREPEND_INCLUDE_DIRS_}
     ${MOS_PUBLIC_INCLUDE_DIRS_}
+    ${VP_PRIVATE_INCLUDE_DIRS_}
+    ${SOFTLET_VP_PRIVATE_INCLUDE_DIRS_}
 )
 if (DEFINED BYPASS_MEDIA_ULT AND "${BYPASS_MEDIA_ULT}" STREQUAL "yes")
     # must explictly pass along BYPASS_MEDIA_ULT as yes then could bypass the running of media ult

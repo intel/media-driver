@@ -62,6 +62,9 @@ set(SOURCES_ "")
 set(COMMON_SOURCES_ "")
 set(CODEC_SOURCES_ "")
 set(VP_SOURCES_ "")
+set(SOFTLET_VP_SOURCES_ "")       # softlet source group
+set (VP_PRIVATE_INCLUDE_DIRS_ "")
+set (SOFTLET_VP_PRIVATE_INCLUDE_DIRS_ "")
 set(CP_COMMON_SOURCES_ "")        # legacy source group
 set(CP_COMMON_SHARED_SOURCES_ "") # legacy and softlet shared source group
 set(CP_COMMON_NEXT_SOURCES_ "")   # softlet source group
@@ -109,7 +112,7 @@ set_source_files_properties(${SOURCES_} PROPERTIES LANGUAGE "CXX")
 set_source_files_properties(${COMMON_SOURCES_} PROPERTIES LANGUAGE "CXX")
 set_source_files_properties(${CODEC_SOURCES_} PROPERTIES LANGUAGE "CXX")
 set_source_files_properties(${VP_SOURCES_} PROPERTIES LANGUAGE "CXX")
-
+set_source_files_properties(${SOFTLET_VP_SOURCES_} PROPERTIES LANGUAGE "CXX")
 set_source_files_properties(${CP_COMMON_SOURCES_} PROPERTIES LANGUAGE "CXX")
 set_source_files_properties(${CP_COMMON_SHARED_SOURCES_} PROPERTIES LANGUAGE "CXX")
 set_source_files_properties(${CP_COMMON_NEXT_SOURCES_} PROPERTIES LANGUAGE "CXX")
@@ -150,6 +153,14 @@ set (COMMON_SOURCES_
     ${COMMON_SOURCES_}
     ${UPDATED_SOURCES_})
 
+set (VP_SOURCES_
+    ${VP_SOURCES_}
+    ${SOFTLET_VP_SOURCES_})
+
+set (VP_PRIVATE_INCLUDE_DIRS_
+    ${VP_PRIVATE_INCLUDE_DIRS_}
+    ${SOFTLET_VP_PRIVATE_INCLUDE_DIRS_})
+
 add_library(${LIB_NAME}_SSE2 OBJECT ${SOURCES_SSE2})
 target_compile_options(${LIB_NAME}_SSE2 PRIVATE -msse2)
 target_include_directories(${LIB_NAME}_SSE2 BEFORE PRIVATE ${MOS_PREPEND_INCLUDE_DIRS_} ${MOS_PUBLIC_INCLUDE_DIRS_})
@@ -161,22 +172,22 @@ target_include_directories(${LIB_NAME}_SSE4 BEFORE PRIVATE ${MOS_PREPEND_INCLUDE
 add_library(${LIB_NAME}_COMMON OBJECT ${COMMON_SOURCES_})
 set_property(TARGET ${LIB_NAME}_COMMON PROPERTY POSITION_INDEPENDENT_CODE 1)
 MediaAddCommonTargetDefines(${LIB_NAME}_COMMON)
-target_include_directories(${LIB_NAME}_COMMON  BEFORE PRIVATE ${MOS_PREPEND_INCLUDE_DIRS_} ${MOS_PUBLIC_INCLUDE_DIRS_})
+target_include_directories(${LIB_NAME}_COMMON  BEFORE PRIVATE ${MOS_PREPEND_INCLUDE_DIRS_} ${MOS_PUBLIC_INCLUDE_DIRS_} ${VP_PRIVATE_INCLUDE_DIRS_})
 
 add_library(${LIB_NAME}_CODEC OBJECT ${CODEC_SOURCES_})
 set_property(TARGET ${LIB_NAME}_CODEC PROPERTY POSITION_INDEPENDENT_CODE 1)
 MediaAddCommonTargetDefines(${LIB_NAME}_CODEC)
-target_include_directories(${LIB_NAME}_CODEC BEFORE PRIVATE ${MOS_PREPEND_INCLUDE_DIRS_} ${MOS_PUBLIC_INCLUDE_DIRS_})
+target_include_directories(${LIB_NAME}_CODEC BEFORE PRIVATE ${MOS_PREPEND_INCLUDE_DIRS_} ${MOS_PUBLIC_INCLUDE_DIRS_} ${VP_PRIVATE_INCLUDE_DIRS_})
 
 add_library(${LIB_NAME}_VP OBJECT ${VP_SOURCES_})
 set_property(TARGET ${LIB_NAME}_VP PROPERTY POSITION_INDEPENDENT_CODE 1)
 MediaAddCommonTargetDefines(${LIB_NAME}_VP)
-target_include_directories(${LIB_NAME}_VP BEFORE PRIVATE ${MOS_PREPEND_INCLUDE_DIRS_} ${MOS_PUBLIC_INCLUDE_DIRS_})
+target_include_directories(${LIB_NAME}_VP BEFORE PRIVATE ${MOS_PREPEND_INCLUDE_DIRS_} ${MOS_PUBLIC_INCLUDE_DIRS_} ${VP_PRIVATE_INCLUDE_DIRS_})
 
 add_library(${LIB_NAME}_CP OBJECT ${CP_SOURCES_})
 set_property(TARGET ${LIB_NAME}_CP PROPERTY POSITION_INDEPENDENT_CODE 1)
 MediaAddCommonTargetDefines(${LIB_NAME}_CP)
-target_include_directories(${LIB_NAME}_CP BEFORE PRIVATE ${MOS_PREPEND_INCLUDE_DIRS_} ${MOS_PUBLIC_INCLUDE_DIRS_})
+target_include_directories(${LIB_NAME}_CP BEFORE PRIVATE ${MOS_PREPEND_INCLUDE_DIRS_} ${MOS_PUBLIC_INCLUDE_DIRS_} ${VP_PRIVATE_INCLUDE_DIRS_})
 
 ######################################################
 #MOS LIB
@@ -195,6 +206,7 @@ target_include_directories(${LIB_NAME}_mos BEFORE PRIVATE
     ${MOS_PREPEND_INCLUDE_DIRS_}
     ${MOS_PUBLIC_INCLUDE_DIRS_}
     ${MOS_EXT_INCLUDE_DIRS_}
+    ${VP_PRIVATE_INCLUDE_DIRS_}
 )
 
 

@@ -28,15 +28,6 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/vp_render_sfc_xe_xpm_base.h
 )
 
-set(SOURCES_NEW
-    ${SOURCES_NEW}
-    ${TMP_SOURCES_}
-)
-
-set(HEADERS_NEW
-    ${HEADERS_NEW}
-    ${TMP_HEADERS_}
-)
 
 set(VP_SOURCES_
     ${VP_SOURCES_}
@@ -52,4 +43,7 @@ source_group( VpHalNext\\Gen12 FILES ${TMP_SOURCES_} ${TMP_HEADERS_})
 set(TMP_SOURCES_ "")
 set(TMP_HEADERS_ "")
 
-media_add_curr_to_include_path()
+set(VP_PRIVATE_INCLUDE_DIRS_
+    ${VP_PRIVATE_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)

@@ -25,12 +25,6 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/vpkrnheader.h
 )
 
-# no source for now
-#set(SOURCES_
-#    ${SOURCES_}
-#    ${TMP_SOURCES_}
-#)
-
 
 set(VP_HEADERS_
     ${VP_HEADERS_}
@@ -40,4 +34,7 @@ set(VP_HEADERS_
 source_group( "VpHal\\Kernel DLL" FILES ${TMP_HEADERS_} )
 set(TMP_HEADERS_ "")
 
-media_add_curr_to_include_path()
+set(VP_PRIVATE_INCLUDE_DIRS_
+    ${VP_PRIVATE_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)

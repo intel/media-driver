@@ -270,23 +270,13 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/igvpkrn_xe_hpg.h
 )
 
-set(SOURCES_
-    ${SOURCES_}
+set(SOFTLET_VP_SOURCES_
+    ${SOFTLET_VP_SOURCES_}
     ${TMP_SOURCES_}
 )
 
-set(HEADERS_
-    ${HEADERS_}
-    ${TMP_HEADERS_}
-)
-
-set(VP_SOURCES_
-    ${VP_SOURCES_}
-    ${TMP_SOURCES_}
-)
-
-set(VP_HEADERS_
-    ${VP_HEADERS_}
+set(SOFTLET_VP_HEADERS_
+    ${SOFTLET_VP_HEADERS_}
     ${TMP_HEADERS_}
 )
 
@@ -294,4 +284,7 @@ source_group( "Kernel\\VpKernel" FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
 set(TMP_SOURCES_ "")
 set(TMP_HEADERS_ "")
 
-media_add_curr_to_include_path()
+set(SOFTLET_VP_PRIVATE_INCLUDE_DIRS_
+    ${SOFTLET_VP_PRIVATE_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)

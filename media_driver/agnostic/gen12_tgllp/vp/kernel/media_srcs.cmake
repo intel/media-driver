@@ -23,27 +23,30 @@ media_include_subdirectory(cmfc)
 media_include_subdirectory(cmfcpatch)
 media_include_subdirectory(cmfccmlpch)
 
-set(TMP_1_SOURCES_
+set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/igvpkrn_isa_g12_tgllp.c
 )
 
-set(TMP_1_HEADERS_
+set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/igvpkrn_isa_g12_tgllp.h
 )
 
 
 set(VP_SOURCES_
     ${VP_SOURCES_}
-    ${TMP_1_SOURCES_}
+    ${TMP_SOURCES_}
 )
 
 set(VP_HEADERS_
     ${VP_HEADERS_}
-    ${TMP_1_HEADERS_}
+    ${TMP_HEADERS_}
 )
 
 source_group( "Kernel\\VpKernel" FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
 set(TMP_SOURCES_ "")
 set(TMP_HEADERS_ "")
 
-media_add_curr_to_include_path()
+set(VP_PRIVATE_INCLUDE_DIRS_
+    ${VP_PRIVATE_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)

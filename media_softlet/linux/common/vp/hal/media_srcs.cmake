@@ -23,18 +23,9 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/vphal_common_specific_next.c
 )
 
-set(TMP_HEADERS_ "")
-
-set(VP_SOURCES_
-    ${VP_SOURCES_}
+set(SOFTLET_VP_SOURCES_
+    ${SOFTLET_VP_SOURCES_}
     ${TMP_SOURCES_}
 )
 
-# no header for now
-#set(HEADERS_
-#    ${HEADERS_}
-#    ${TMP_HEADERS_}
-#)
-#
-#media_add_curr_to_include_path()
 endif() #NOT CMAKE_WDDM_LINUX

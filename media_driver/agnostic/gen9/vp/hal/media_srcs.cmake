@@ -62,4 +62,7 @@ set(TMP_1_HEADERS_ "")
 set(TMP_2_SOURCES_ "")
 set(TMP_2_HEADERS_ "")
 
-media_add_curr_to_include_path()
+set(VP_PRIVATE_INCLUDE_DIRS_
+    ${VP_PRIVATE_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)

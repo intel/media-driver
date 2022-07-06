@@ -31,14 +31,6 @@ set(VP_SOURCES_
 )
 
 
-# no header for now
-#set(HEADERS_
-#    ${HEADERS_}
-#    ${TMP_HEADERS_}
-#)
-
 source_group( "VpHal\\Kernel DLL" FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
 set(TMP_SOURCES_ "")
 set(TMP_HEADERS_ "")
-
-#media_add_curr_to_include_path()
