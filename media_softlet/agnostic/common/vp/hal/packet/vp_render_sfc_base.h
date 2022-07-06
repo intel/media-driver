@@ -477,20 +477,16 @@ protected:
         PMHW_SFC_OUT_SURFACE_PARAMS pOutSurface);
 
     virtual MOS_STATUS AddSfcAvsState(
-        PMOS_COMMAND_BUFFER            pCmdBuffer,
-        mhw::sfc::SFC_AVS_STATE_PAR    *pSfcAvsStateParams);
+        PMOS_COMMAND_BUFFER            pCmdBuffer);
 
     virtual MOS_STATUS AddSfcIefState(
-        PMOS_COMMAND_BUFFER                 pCmdBuffer,
-        mhw::sfc::SFC_IEF_STATE_PAR         *pSfcIefStateParams);
+        PMOS_COMMAND_BUFFER                 pCmdBuffer);
 
     virtual MOS_STATUS AddSfcAvsLumaTable(
-        PMOS_COMMAND_BUFFER                    pCmdBuffer,
-        mhw::sfc::SFC_AVS_LUMA_Coeff_Table_PAR *pLumaTable);
+        PMOS_COMMAND_BUFFER                    pCmdBuffer);
 
     virtual MOS_STATUS AddSfcAvsChromaTable(
-        PMOS_COMMAND_BUFFER                      pCmdBuffer,
-        mhw::sfc::SFC_AVS_CHROMA_Coeff_Table_PAR *pChromaTable);
+        PMOS_COMMAND_BUFFER                      pCmdBuffer);
 
     virtual MOS_STATUS AddSfcFrameStart(
         PMOS_COMMAND_BUFFER pCmdBuffer,
