@@ -623,6 +623,8 @@ namespace encode
         uint32_t m_defaultSlicePatchListSize   = 0;  //!< Slice state patch list size
         uint32_t m_slicePatchListSize          = 0;  //!< Slice patch list size
 
+        bool m_vdencPakObjCmdStreamOutForceEnabled = false;
+
         bool m_lastSliceInTile = false;
 
         FlushCmd m_flushCmd = waitHevc;

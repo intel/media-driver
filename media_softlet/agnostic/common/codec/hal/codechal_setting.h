@@ -73,6 +73,7 @@ public:
 
     bool isMmcEnabled = false; //!< Flag to indicate if Mmc is enabled
 
+    uint32_t reservedMode = 0;
     //!
     //! \brief    Destructor 
     //!

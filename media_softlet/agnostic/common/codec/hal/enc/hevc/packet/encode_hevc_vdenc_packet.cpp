@@ -2165,7 +2165,7 @@ namespace encode
     {
         //params.tlbPrefetch = true;
 
-        params.pakObjCmdStreamOut = m_hevcPicParams->StatusReportEnable.fields.BlockStats;
+        params.pakObjCmdStreamOut = m_vdencPakObjCmdStreamOutForceEnabled? true : m_hevcPicParams->StatusReportEnable.fields.BlockStats;
 
         // needs to be enabled for 1st pass in multi-pass case
         // This bit is ignored if PAK only second pass is enabled.

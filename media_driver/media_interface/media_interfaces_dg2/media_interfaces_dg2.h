@@ -304,21 +304,21 @@ public:
     using Encode = CodechalEncodeInterfacesXe_Hpm;
     using Hw = CodechalHwInterfaceXe_Hpm;
 
-    MOS_STATUS Initialize(
+    virtual MOS_STATUS Initialize(
         void *standardInfo,
         void *settings,
         MhwInterfaces *mhwInterfaces,
         PMOS_INTERFACE osInterface) override;
 
-private:
-    MOS_STATUS CreateCodecHalInterface(MhwInterfaces          *mhwInterfaces,
+protected:
+    virtual MOS_STATUS CreateCodecHalInterface(MhwInterfaces          *mhwInterfaces,
                                        CodechalHwInterface    *&pHwInterface,
                                        CodechalDebugInterface *&pDebugInterface,
                                        PMOS_INTERFACE         osInterface,
                                        CODECHAL_FUNCTION      CodecFunction,
                                        bool                   disableScalability);
 
-    MOS_STATUS CreateCodecHalInterface(MhwInterfaces          *mhwInterfaces,
+    virtual MOS_STATUS CreateCodecHalInterface(MhwInterfaces          *mhwInterfaces,
                                        MhwInterfacesNext      *&pMhwInterfacesNext,
                                        CodechalHwInterface    *&pHwInterface,
                                        CodechalDebugInterface *&pDebugInterface,

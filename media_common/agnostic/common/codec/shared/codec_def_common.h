@@ -193,9 +193,11 @@ enum CODECHAL_MODE
     CODECHAL_ENCODE_MODE_AV1                = 24,
     CODECHAL_NUM_ENCODE_MODES               = 8,
 
-    CODECHAL_NUM_MODES                      = 25,   // Use the value for the last encode mode to determine this
-    CODECHAL_UNSUPPORTED_MODE               = 25,
-    CODECHAL_MODE_MAX                       = 25
+    CODECHAL_Rsvd                           = 25,
+    CODECHAL_NUM_MODES                      = 26,   // Use the value for the last encode mode to determine this
+    CODECHAL_UNSUPPORTED_MODE               = 26,
+    CODECHAL_MODE_MAX                       = 26
+
 };
 
 // Slice group mask
