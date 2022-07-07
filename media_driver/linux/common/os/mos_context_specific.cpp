@@ -572,7 +572,11 @@ MOS_STATUS OsContextSpecific::Init(PMOS_CONTEXT pOsDriverContext)
         m_usesGfxAddress            = false;
     
         m_inlineCodecStatusUpdate   = true;
-
+    
+    #if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
+        CommandBufferDumpInit(pOsDriverContext);
+    #endif
+    
         SetOsContextValid(true);
     }
     return eStatus;

@@ -6970,22 +6970,22 @@ MOS_STATUS Mos_Specific_InitInterface(
 {
     PMOS_OS_CONTEXT                 pOsContext = nullptr;
     PMOS_USER_FEATURE_INTERFACE     pOsUserFeatureInterface = nullptr;
-    MOS_STATUS                      eStatus = MOS_STATUS_UNKNOWN;
+    MOS_STATUS                      eStatus;
     MediaFeatureTable              *pSkuTable = nullptr;
+    MOS_USER_FEATURE_VALUE_DATA     UserFeatureData;
     uint32_t                        dwResetCount = 0;
     int32_t                         ret = 0;
     bool                            modularizedGpuCtxEnabled = false;
     MediaUserSettingSharedPtr       userSettingPtr = nullptr;
     bool                            bSimIsActive = false;
     bool                            useCustomerValue = false;
-    uint32_t                        regValue = 0;
-    MOS_USER_FEATURE_VALUE_DATA     UserFeatureData;
 
     char *pMediaWatchdog = nullptr;
     long int watchdog = 0;
 
     MOS_OS_FUNCTION_ENTER;
 
+    eStatus                 = MOS_STATUS_UNKNOWN;
     MOS_OS_CHK_NULL(pOsInterface);
     MOS_OS_CHK_NULL(pOsDriverContext);
 
@@ -7314,17 +7314,14 @@ MOS_STATUS Mos_Specific_InitInterface(
 #endif // MOS_MEDIASOLO_SUPPORTED
     if (!pOsInterface->apoMosEnabled)
     {
-#if (_DEBUG || _RELEASE_INTERNAL)
         // read the "Disable KMD Watchdog" user feature key
-        regValue = 0;
-        ReadUserSettingForDebug(
-            userSettingPtr,
-            regValue,
-            __MEDIA_USER_FEATURE_VALUE_DISABLE_KMD_WATCHDOG,
-            MediaUserSetting::Group::Device);
-
-        pOsContext->bDisableKmdWatchdog = regValue ? true : false;
-#endif
+        MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+        MOS_UserFeature_ReadValue_ID(
+            nullptr,
+            __MEDIA_USER_FEATURE_VALUE_DISABLE_KMD_WATCHDOG_ID,
+            &UserFeatureData,
+            (MOS_CONTEXT_HANDLE)pOsContext);
+        pOsContext->bDisableKmdWatchdog = (UserFeatureData.i32Data) ? true : false;
 
         // read "Linux PerformanceTag Enable" user feature key
         MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));

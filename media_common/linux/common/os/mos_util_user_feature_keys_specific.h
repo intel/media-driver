@@ -37,7 +37,4 @@
 \*--------------------------------------------------------------------------*/
 #define MEDIA_USER_SETTING_INTERNAL             0x1
 
-#define __MEDIA_USER_FEATURE_VALUE_ENABLE_SOFTPIN       "Enable Softpin"
-#define __MEDIA_USER_FEATURE_VALUE_DISABLE_KMD_WATCHDOG "Disable KMD Watchdog"
-
 #endif // __MOS_UTIL_USER_FEATURE_KEYS_SPECIFIC_H__

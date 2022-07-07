@@ -96,10 +96,10 @@ uint32_t MosUtilities::m_mosAllocMemoryFailSimulateAllocCounter = 0;
     (m_mosAllocMemoryFailSimulateMode == MEMORY_ALLOC_FAIL_SIMULATE_MODE_RANDOM ||  \
      m_mosAllocMemoryFailSimulateMode == MEMORY_ALLOC_FAIL_SIMULATE_MODE_TRAVERSE)
 
-void MosUtilities::MosInitAllocMemoryFailSimulateFlag(MediaUserSettingSharedPtr userSettingPtr)
+void MosUtilities::MosInitAllocMemoryFailSimulateFlag(MOS_CONTEXT_HANDLE mosCtx)
 {
-    MOS_STATUS  eStatus = MOS_STATUS_SUCCESS;
-    uint32_t    value   = 0;
+    MOS_USER_FEATURE_VALUE_DATA userFeatureValueData;
+    MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
 
     //default off for simulate random fail
     m_mosAllocMemoryFailSimulateMode            = MEMORY_ALLOC_FAIL_SIMULATE_MODE_DEFAULT;
@@ -108,37 +108,38 @@ void MosUtilities::MosInitAllocMemoryFailSimulateFlag(MediaUserSettingSharedPtr 
     m_mosAllocMemoryFailSimulateAllocCounter    = 0;
 
     // Read Config : memory allocation failure simulate mode
-    ReadUserSetting(
-        userSettingPtr,
-        value,
-        __MEDIA_USER_FEATURE_VALUE_ALLOC_MEMORY_FAIL_SIMULATE_MODE,
-        MediaUserSetting::Group::Device);
+    MosZeroMemory(&userFeatureValueData, sizeof(userFeatureValueData));
+    MosUserFeatureReadValueID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_ALLOC_MEMORY_FAIL_SIMULATE_MODE_ID,
+        &userFeatureValueData,
+        mosCtx);
 
-    if ((value == MEMORY_ALLOC_FAIL_SIMULATE_MODE_DEFAULT)  ||
-        (value == MEMORY_ALLOC_FAIL_SIMULATE_MODE_RANDOM)   ||
-        (value == MEMORY_ALLOC_FAIL_SIMULATE_MODE_TRAVERSE))
+    if ((userFeatureValueData.u32Data == MEMORY_ALLOC_FAIL_SIMULATE_MODE_DEFAULT) ||
+        (userFeatureValueData.u32Data == MEMORY_ALLOC_FAIL_SIMULATE_MODE_RANDOM) ||
+        (userFeatureValueData.u32Data == MEMORY_ALLOC_FAIL_SIMULATE_MODE_TRAVERSE))
     {
-        m_mosAllocMemoryFailSimulateMode = value;
+        m_mosAllocMemoryFailSimulateMode = userFeatureValueData.u32Data;
         MOS_OS_NORMALMESSAGE("Init MosSimulateAllocMemoryFailSimulateMode as %d \n ", m_mosAllocMemoryFailSimulateMode);
     }
     else
     {
         m_mosAllocMemoryFailSimulateMode = MEMORY_ALLOC_FAIL_SIMULATE_MODE_DEFAULT;
-        MOS_OS_NORMALMESSAGE("Invalid Alloc Memory Fail Simulate Mode from config: %d \n ", value);
+        MOS_OS_NORMALMESSAGE("Invalid Alloc Memory Fail Simulate Mode from config: %d \n ", userFeatureValueData.u32Data);
     }
 
     // Read Config : memory allocation failure simulate frequence
-    value = 0;
-    ReadUserSetting(
-        userSettingPtr,
-        value,
-        __MEDIA_USER_FEATURE_VALUE_ALLOC_MEMORY_FAIL_SIMULATE_FREQ,
-        MediaUserSetting::Group::Device);
+    MosZeroMemory(&userFeatureValueData, sizeof(userFeatureValueData));
+    MosUserFeatureReadValueID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_ALLOC_MEMORY_FAIL_SIMULATE_FREQ_ID,
+        &userFeatureValueData,
+        mosCtx);
 
-    if ((value >= MIN_MEMORY_ALLOC_FAIL_FREQ) &&
-        (value <= MAX_MEMORY_ALLOC_FAIL_FREQ))
+    if ((userFeatureValueData.u32Data >= MIN_MEMORY_ALLOC_FAIL_FREQ) &&
+        (userFeatureValueData.u32Data <= MAX_MEMORY_ALLOC_FAIL_FREQ))
     {
-        m_mosAllocMemoryFailSimulateFreq = value;
+        m_mosAllocMemoryFailSimulateFreq = userFeatureValueData.u32Data;
         MOS_OS_NORMALMESSAGE("Init m_MosSimulateRandomAllocMemoryFailFreq as %d \n ", m_mosAllocMemoryFailSimulateFreq);
 
         if (m_mosAllocMemoryFailSimulateMode == MEMORY_ALLOC_FAIL_SIMULATE_MODE_RANDOM)
@@ -149,25 +150,26 @@ void MosUtilities::MosInitAllocMemoryFailSimulateFlag(MediaUserSettingSharedPtr 
     else
     {
         m_mosAllocMemoryFailSimulateFreq = 0;
-        MOS_OS_NORMALMESSAGE("Invalid Alloc Memory Fail Simulate Freq from config: %d \n ", value);
+        MOS_OS_NORMALMESSAGE("Invalid Alloc Memory Fail Simulate Freq from config: %d \n ", userFeatureValueData.u32Data);
     }
 
     // Read Config : memory allocation failure simulate counter
-    value = 0;
-    ReadUserSetting(
-        userSettingPtr,
-        value,
-        __MEDIA_USER_FEATURE_VALUE_ALLOC_MEMORY_FAIL_SIMULATE_HINT,
-        MediaUserSetting::Group::Device);
-    if (value <= m_mosAllocMemoryFailSimulateFreq)
+    MosZeroMemory(&userFeatureValueData, sizeof(userFeatureValueData));
+    MosUserFeatureReadValueID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_ALLOC_MEMORY_FAIL_SIMULATE_HINT_ID,
+        &userFeatureValueData,
+        mosCtx);
+
+    if (userFeatureValueData.u32Data <= m_mosAllocMemoryFailSimulateFreq)
     {
-        m_mosAllocMemoryFailSimulateHint = value;
+        m_mosAllocMemoryFailSimulateHint = userFeatureValueData.u32Data;
         MOS_OS_NORMALMESSAGE("Init m_MosAllocMemoryFailSimulateHint as %d \n ", m_mosAllocMemoryFailSimulateHint);
     }
     else
     {
         m_mosAllocMemoryFailSimulateHint = m_mosAllocMemoryFailSimulateFreq;
-        MOS_OS_NORMALMESSAGE("Set m_mosAllocMemoryFailSimulateHint as %d since INVALID CONFIG %d \n ", m_mosAllocMemoryFailSimulateHint, value);
+        MOS_OS_NORMALMESSAGE("Set m_mosAllocMemoryFailSimulateHint as %d since INVALID CONFIG %d \n ", m_mosAllocMemoryFailSimulateHint, userFeatureValueData.u32Data);
     }
 }
 
@@ -225,17 +227,19 @@ bool MosUtilities::MosSimulateAllocMemoryFail(
 }
 #endif  // #if (_DEBUG || _RELEASE_INTERNAL)
 
-MOS_STATUS MosUtilities::MosUtilitiesInit(MediaUserSettingSharedPtr userSettingPtr)
+MOS_STATUS MosUtilities::MosUtilitiesInit(MOS_CONTEXT_HANDLE mosCtx)
 {
-    MOS_STATUS                  eStatus         = MOS_STATUS_SUCCESS;
+    MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
+
     MOS_OS_FUNCTION_ENTER;
 
-    eStatus = MosOsUtilitiesInit(userSettingPtr);
+    eStatus = MosOsUtilitiesInit(mosCtx);
 
 #if (_DEBUG || _RELEASE_INTERNAL)
+    MediaUserSettingSharedPtr userSettingPtr = GetUserSettingInstance((PMOS_CONTEXT)mosCtx);
 
     //Initialize MOS simulate random alloc memorflag
-    MosInitAllocMemoryFailSimulateFlag(userSettingPtr);
+    MosInitAllocMemoryFailSimulateFlag(mosCtx);
 
     eStatus = ReadUserSettingForDebug(
         userSettingPtr,
@@ -247,7 +251,7 @@ MOS_STATUS MosUtilities::MosUtilitiesInit(MediaUserSettingSharedPtr userSettingP
     return eStatus;
 }
 
-MOS_STATUS MosUtilities::MosUtilitiesClose(MediaUserSettingSharedPtr userSettingPtr)
+MOS_STATUS MosUtilities::MosUtilitiesClose(MOS_CONTEXT_HANDLE mosCtx)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -258,11 +262,11 @@ MOS_STATUS MosUtilities::MosUtilitiesClose(MediaUserSettingSharedPtr userSetting
     // MOS_OS_Utilitlies_Close must be called right before end of function
     // Because Memninja will calc mem leak here.
     // Any memory allocation release after MosOsUtilitiesClose() will be treated as mem leak.
-    eStatus = MosOsUtilitiesClose(userSettingPtr);
+    eStatus = MosOsUtilitiesClose(mosCtx);
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     //Reset Simulate Alloc Memory Fail flags
-    MosInitAllocMemoryFailSimulateFlag(userSettingPtr);
+    MosInitAllocMemoryFailSimulateFlag(mosCtx);
 #endif
 
     return eStatus;

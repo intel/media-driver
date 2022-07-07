@@ -67,7 +67,7 @@ private:
     static std::shared_ptr<GpuCmdResInfoDumpNext> m_instance;
     mutable uint32_t         m_cnt         = 0;
     bool                     m_dumpEnabled = false;
-    std::string              m_path        = "";
+    std::string              m_path;
 MEDIA_CLASS_DEFINE_END(GpuCmdResInfoDumpNext)
 };
 #endif // MOS_COMMAND_RESINFO_DUMP_SUPPORTED

@@ -2047,21 +2047,12 @@ public:
 
     //! \brief    Get usersetting instance for each stream
     //! \details  the user setting instance
-    //! \param    MOS_STREAM_HANDLE streamState
-    //!           [in] streamState
-    //! \return   MediaUserSettingSharedPtr - user setting instance
+    //! \param    MOS_PLANE_OFFSET planeOffset
+    //!           [in] Reference to MOS_PLANE_OFFSET structure
+    //! \return   int - offset of the plane
     //!
     static MediaUserSettingSharedPtr MosGetUserSettingInstance(
         MOS_STREAM_HANDLE streamState);
-
-    //! \brief    Get usersetting instance for each stream
-    //! \details  the user setting instance
-    //! \param    PMOS_CONTEXT mosCtx
-    //!           [in] mosCtx
-    //! \return   MediaUserSettingSharedPtr - user setting instance
-    //!
-    static MediaUserSettingSharedPtr MosGetUserSettingInstance(
-        PMOS_CONTEXT mosCtx);
 
     //!
     //! \brief  Translate MOS_OS_FORMT into MOS_FORMAT
@@ -2150,7 +2141,7 @@ private:
     //!           os device ctx handle
     //! \return   void
     //!
-    static void MosInitOsApiFailSimulateFlag(MediaUserSettingSharedPtr userSettingPtr);
+    static void MosInitOsApiFailSimulateFlag(MOS_CONTEXT_HANDLE mosCtx);
 
     //!
     //! \brief    Deinit OS API fail simulate flags

@@ -44,6 +44,7 @@
 #ifndef __MEDIA_USER_SETTING__H__
 #define __MEDIA_USER_SETTING__H__
 
+#include <memory>
 #include <string>
 #include <map>
 #include "media_user_setting_configure.h"
@@ -178,6 +179,8 @@ protected:
 };
 
 }
+
+using MediaUserSettingSharedPtr = std::shared_ptr<MediaUserSetting::MediaUserSetting>;
 
 inline MOS_STATUS DeclareUserSettingKey(
     MediaUserSettingSharedPtr userSetting,
@@ -361,8 +364,8 @@ inline MOS_STATUS ReportUserSettingForDebug(
 
 #else
 #define DeclareUserSettingKeyForDebug(userSetting, valueName, group, defaultValue, isReportKey, ...) MOS_STATUS_SUCCESS
-#define ReadUserSettingForDebug(userSetting, value, valueName, group, ...) MOS_STATUS_SUCCESS
-#define WriteUserSettingForDebug(userSetting, valueName, value, group, ...) MOS_STATUS_SUCCESS
+#define ReadUserSettingForDebug(userSetting, value, valueName, group, customValue, useCustomValue) MOS_STATUS_SUCCESS
+#define WriteUserSettingForDebug(userSetting, valueName, value, group) MOS_STATUS_SUCCESS
 #define ReportUserSettingForDebug(userSetting, valueName, value, group) MOS_STATUS_SUCCESS
 #endif
 

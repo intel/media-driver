@@ -267,6 +267,12 @@ typedef struct _MOS_MESSAGE_PARAMS
 #endif // USE_PRETTY_FUNCTION
 #endif
 
+namespace MediaUserSetting {
+    class MediaUserSetting;
+};
+
+using MediaUserSettingSharedPtr = std::shared_ptr<MediaUserSetting::MediaUserSetting>;
+
 class MosUtilDebug
 {
 public:

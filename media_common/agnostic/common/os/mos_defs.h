@@ -35,12 +35,11 @@
 #define BASIC_TYPES_DEFINED 1
 #define BOOL_DEF            1  
 
-#include <cstdio>       // FILE
-#include <cstdint>
+#include <stdio.h>       // FILE
+#include <stdint.h>
 #include <string>
 #include <map>
 #include <algorithm>
-#include <memory>
 #include "mos_defs_specific.h"
 
 //!
@@ -497,13 +496,5 @@ typedef uint32_t               GPU_CONTEXT_HANDLE;
 
 #define MOS_INVALID_HANDLE 0
 #define MOS_DUMMY_FENCE (uint64_t)(-1)
-
-
-namespace MediaUserSetting {
-    class MediaUserSetting;
-};
-
-using MediaUserSettingSharedPtr = std::shared_ptr<MediaUserSetting::MediaUserSetting>;
-
 
 #endif // __MOS_DEFS_H__

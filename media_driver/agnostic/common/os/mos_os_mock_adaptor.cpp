@@ -49,28 +49,33 @@ MosMockAdaptor::~MosMockAdaptor()
 
 MOS_STATUS MosMockAdaptor::RegkeyRead(PMOS_CONTEXT osContext)
 {
-    MOS_STATUS  eStatus = MOS_STATUS_SUCCESS;
-    int32_t     value   = 0;
-    MediaUserSetting::Value  id;
-    const char *pcDefaultValue  = nullptr;
-    MediaUserSettingSharedPtr   userSettingPtr  = ::GetUserSettingInstance(osContext);
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
-    ReadUserSettingForDebug(
-        userSettingPtr,
-        value,
-        __MEDIA_USER_FEATURE_VALUE_MOCKADAPTOR_PLATFORM,
-        MediaUserSetting::Group::Device);
-    m_productFamily = (PRODUCT_FAMILY)value;
+    MOS_USER_FEATURE_VALUE_DATA         UserFeatureData = {};
+    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
 
-    ReadUserSettingForDebug(
-        userSettingPtr,
-        id,
-        __MEDIA_USER_FEATURE_VALUE_MOCKADAPTOR_STEPPING,
-        MediaUserSetting::Group::Device);
+    char cStringData[MOS_USER_CONTROL_MAX_DATA_SIZE] = {0};
+    const char *pcDefaultValue;
 
-    if (id.ConstString().size() > 0)
+    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_MOCKADAPTOR_PLATFORM_ID,
+        &UserFeatureData,
+        osContext);
+
+    m_productFamily = (PRODUCT_FAMILY)UserFeatureData.u32Data;
+
+    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+    UserFeatureData.StringData.pStringData = cStringData;
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_MOCKADAPTOR_STEPPING_ID,
+        &UserFeatureData,
+        osContext);
+    if (UserFeatureData.StringData.uSize > 0)
     {
-        m_stepping += id.ConstString();
+        m_stepping.append(UserFeatureData.StringData.pStringData);
     }
     else
     {
@@ -78,13 +83,13 @@ MOS_STATUS MosMockAdaptor::RegkeyRead(PMOS_CONTEXT osContext)
         m_stepping.append(pcDefaultValue);
     }
 
-    value = 0;
-    ReadUserSettingForDebug(
-        userSettingPtr,
-        value,
-        __MEDIA_USER_FEATURE_VALUE_MOCKADAPTOR_DEVICE,
-        MediaUserSetting::Group::Device);
-    m_deviceId = (uint16_t)value;
+    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_MOCKADAPTOR_DEVICE_ID,
+        &UserFeatureData,
+        osContext);
+        m_deviceId = (uint16_t)UserFeatureData.u32Data;
 
     return eStatus;
 }
