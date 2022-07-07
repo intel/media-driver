@@ -221,6 +221,57 @@ public:
 
             break;
         }
+        case RowStorePar::VP9:
+        {
+            // HVD, Meta/MV, DeBlock, VDEnc
+            const bool enableVP9[13][4] =
+            {
+            { 1, 1, 1, 1 }, { 0, 0, 1, 1 }, { 1, 0, 1, 1 }, { 1, 1, 0, 1 },
+            { 1, 1, 1, 1 }, { 0, 0, 1, 1 }, { 0, 0, 1, 0 }, { 1, 1, 0, 1 },
+            { 1, 1, 1, 1 }, { 1, 1, 0, 1 }, { 1, 1, 1, 1 }, { 1, 1, 0, 1 },
+            { 1, 1, 0, 1 }
+            };
+
+            const uint32_t addressVP9[13][4] =
+            {
+            { 0,  64, 384, 1536, }, { 0,   0,   0, 2304, }, { 0,   0,  64, 2368, }, { 0, 128,   0,  768, },
+            { 0,  64, 384, 1536, }, { 0,   0,   0, 2304, }, { 0,   0,   0,    0, }, { 0, 128,   0,  768, },
+            { 0,  64, 384, 2112, }, { 0, 128,   0,  768, }, { 0,  32, 192, 1920, }, { 0, 128,   0,  768, },
+            { 0, 128,   0,  768, }
+            };
+
+            if(this->m_rowStoreCache.vdenc.supported)
+            {
+                bool     is8bit      = par.bitDepth == RowStorePar::DEPTH_8;
+                bool     isGt2k      = par.frameWidth > 2048;
+                bool     isGt4k      = par.frameWidth > 4096;
+                bool     isGt8k      = par.frameWidth > 8192;
+                uint32_t index       = 0;
+
+                if((par.format >= RowStorePar::YUV420) && (par.format <= RowStorePar::YUV444))
+                {
+                    index = 4 * (par.format - RowStorePar::YUV420) + 2 * (!is8bit) + isGt4k;
+                }
+                else
+                {
+                    return MOS_STATUS_SUCCESS;
+                }
+
+                if(par.format == RowStorePar::YUV444 && !is8bit)
+                {
+                    index += isGt2k;
+                }
+
+                if(!isGt8k)
+                {
+                    this->m_rowStoreCache.vdenc.enabled = enableVP9[index][3];
+                    if(this->m_rowStoreCache.vdenc.enabled)
+                    {
+                        this->m_rowStoreCache.vdenc.dwAddress = addressVP9[index][3];
+                    }
+                }
+            }
+        }
         default:
         {
             break;
