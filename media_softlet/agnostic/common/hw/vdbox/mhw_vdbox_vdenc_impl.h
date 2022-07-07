@@ -1555,9 +1555,28 @@ protected:
     DO_FIELD(DW17, PocNumberForFwdRef1, params.pocNumberForFwdRef1);                                                \
     DO_FIELD(DW18, PocNumberForFwdRef2, params.pocNumberForFwdRef2);                                                \
     DO_FIELD(DW19, PocNumberForBwdRef0, params.pocNumberForBwdRef0);                                                \
+    
+#define NO_RETURN
+#include "mhw_hwcmd_process_cmdfields.h"
+
+        if (params.extSettings.empty())
+        {
+#define DO_FIELDS() \
     __MHW_VDBOX_VDENC_WRAPPER_EXT(VDENC_AVC_IMG_STATE_IMPL_EXT)
 
 #include "mhw_hwcmd_process_cmdfields.h"
+        }
+        else
+        {
+            for (const auto &func : params.extSettings)
+            {
+                MHW_CHK_STATUS_RETURN(func(reinterpret_cast<uint32_t *>(&cmd)));
+            }
+        }
+
+        return MOS_STATUS_SUCCESS;
+#undef NO_RETURN
+
     }
 MEDIA_CLASS_DEFINE_END(mhw__vdbox__vdenc__Impl)
 };
