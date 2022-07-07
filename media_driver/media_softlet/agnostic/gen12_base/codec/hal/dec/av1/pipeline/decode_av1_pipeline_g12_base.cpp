@@ -111,13 +111,15 @@ MOS_STATUS Av1PipelineG12_Base::UserFeatureReport()
 MOS_STATUS Av1PipelineG12_Base::ActivateDecodePackets()
 {
     DECODE_FUNC_CALL();
-
+    auto basicFeature    = dynamic_cast<Av1BasicFeatureG12 *>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
+    DECODE_CHK_NULL(basicFeature);
     bool immediateSubmit = true;
 
     if (m_isFirstTileInFrm)
     {
         DECODE_CHK_STATUS(ActivatePacket(DecodePacketId(this, defaultCdfBufCopyPacketId), immediateSubmit, 0, 0));
         m_isFirstTileInFrm = false;
+        m_activePacketList.back().frameTrackingRequested = false;
     }
 
     if (!m_forceTileBasedDecoding)
@@ -128,6 +130,10 @@ MOS_STATUS Av1PipelineG12_Base::ActivateDecodePackets()
     for (uint16_t curPass = 0; curPass < GetPassNum(); curPass++)
     {
         DECODE_CHK_STATUS(ActivatePacket(DecodePacketId(this, av1DecodePacketId), immediateSubmit, curPass, 0));
+        if (basicFeature->m_filmGrainEnabled)
+        {
+            m_activePacketList.back().frameTrackingRequested = false;
+        }
     }
 
     return MOS_STATUS_SUCCESS;
