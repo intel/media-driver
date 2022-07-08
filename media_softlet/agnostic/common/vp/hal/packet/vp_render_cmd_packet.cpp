@@ -667,6 +667,7 @@ MOS_STATUS VpRenderCmdPacket::SetupSurfaceState()
                 }
                 else
                 {
+                    VP_RENDER_NORMALMESSAGE("If 1D buffer overwrite to 2D for use, it will go SetSurfaceForHwAccess()");
                     index = SetSurfaceForHwAccess(
                         &renderHalSurface.OsSurface,
                         &renderHalSurface,
