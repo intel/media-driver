@@ -53,7 +53,7 @@ public:
     MediaFeatureConstSettings(){};
     MediaFeatureConstSettings(PMOS_INTERFACE osInterface)
     {
-        if (osInterface)
+        if (osInterface && osInterface->pfnGetUserSettingInstance)
         {
             m_userSettingPtr = osInterface->pfnGetUserSettingInstance(osInterface);
         }
