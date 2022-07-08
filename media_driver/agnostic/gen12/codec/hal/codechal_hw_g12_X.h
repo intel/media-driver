@@ -30,6 +30,7 @@
 #include "mhw_mi_hwcmd_g12_X.h"
 #include "mhw_render_hwcmd_g12_X.h"
 #include "mhw_vdbox_avp_interface.h"
+#include "media_sfc_interface_legacy.h"
 #ifdef IGFX_MHW_INTERFACES_NEXT_SUPPORT
 #include "media_interfaces_mhw_next.h"
 #endif

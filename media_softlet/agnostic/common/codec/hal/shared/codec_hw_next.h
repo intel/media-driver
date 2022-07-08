@@ -36,6 +36,7 @@
 #include "mhw_vdbox_vdenc_interface.h"
 #include "mhw_vdbox_huc_interface.h"
 #include "mhw_mi_itf.h"
+#include "media_sfc_interface.h"
 //------------------------------------------------------------------------------
 // Macros specific to MOS_CODEC_SUBCOMP_HW sub-comp
 //------------------------------------------------------------------------------
@@ -195,6 +196,12 @@ public:
     {
         return m_cpInterface;
     }
+
+    inline std::shared_ptr<MediaSfcInterface> GetMediaSfcInterface()
+    {
+        return m_mediaSfcItf;
+    }
+
     //!
     //! \brief    Calculates the maximum size for AVP picture level commands
     //! \details  Client facing function to calculate the maximum size for AVP picture level commands
@@ -312,6 +319,7 @@ protected:
     std::shared_ptr<mhw::mi::Itf>            m_miItf    = nullptr;      //!< Pointer to Mhw mi interface
     std::shared_ptr<mhw::vdbox::hcp::Itf>    m_hcpItf   = nullptr;      //!< Pointer to Mhw hcp interface
     std::shared_ptr<mhw::vdbox::mfx::Itf>    m_mfxItf   = nullptr;      //!< Pointer to Mhw mfx interface
+    std::shared_ptr<MediaSfcInterface>       m_mediaSfcItf = nullptr;   //!< Pointer to Media sfc interface
 
     // States
     PMOS_INTERFACE       m_osInterface;  //!< Pointer to OS interface

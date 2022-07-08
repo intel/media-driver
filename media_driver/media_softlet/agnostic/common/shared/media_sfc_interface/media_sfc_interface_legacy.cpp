@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2021, Intel Corporation
+* Copyright (c) 2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -20,55 +20,17 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     meida_sfc_interface.cpp
+//! \file     meida_sfc_interface_legacy.cpp
 //! \brief    Common interface for sfc
 //! \details  Common interface for sfc
 //!
-#include "media_sfc_interface.h"
-#include "media_sfc_render.h"
+#include "media_sfc_interface_legacy.h"
 #include "media_sfc_render_legacy.h"
-#include "mos_utilities.h"
 #include "vp_utils.h"
 
-MediaSfcInterface::MediaSfcInterface(PMOS_INTERFACE osInterface, MediaMemComp *mmc) : m_osInterface(osInterface), m_mmc(mmc)
+MediaSfcInterfaceLegacy::MediaSfcInterfaceLegacy(PMOS_INTERFACE osInterface, MediaMemComp *mmc) 
+    : MediaSfcInterface(osInterface, mmc)
 {
-}
-
-MediaSfcInterface::~MediaSfcInterface()
-{
-    Destroy();
-}
-
-void MediaSfcInterface::Destroy()
-{
-    MOS_Delete(m_sfcRender);
-}
-
-MOS_STATUS MediaSfcInterface::IsParameterSupported(
-    VDBOX_SFC_PARAMS                    &sfcParam)
-{
-    VP_PUBLIC_CHK_NULL_RETURN(m_sfcRender);
-    return m_sfcRender->IsParameterSupported(sfcParam);
-}
-
-MOS_STATUS MediaSfcInterface::IsParameterSupported(
-    VEBOX_SFC_PARAMS                    &sfcParam)
-{
-    VP_PUBLIC_CHK_NULL_RETURN(m_sfcRender);
-    return m_sfcRender->IsParameterSupported(sfcParam);
-}
-
-MOS_STATUS MediaSfcInterface::Render(VEBOX_SFC_PARAMS &param)
-{
-    VP_PUBLIC_CHK_NULL_RETURN(m_sfcRender);
-    return m_sfcRender->Render(param);
-}
-
-MOS_STATUS MediaSfcInterface::Render(MOS_COMMAND_BUFFER *cmdBuffer, VDBOX_SFC_PARAMS &param)
-{
-    VP_PUBLIC_CHK_NULL_RETURN(cmdBuffer);
-    VP_PUBLIC_CHK_NULL_RETURN(m_sfcRender);
-    return m_sfcRender->Render(cmdBuffer, param);
 }
 
 //!
@@ -77,7 +39,7 @@ MOS_STATUS MediaSfcInterface::Render(MOS_COMMAND_BUFFER *cmdBuffer, VDBOX_SFC_PA
 //! \return   MOS_STATUS
 //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
 //!
-MOS_STATUS MediaSfcInterface::Initialize(MEDIA_SFC_INTERFACE_MODE mode)
+MOS_STATUS MediaSfcInterfaceLegacy::Initialize(MEDIA_SFC_INTERFACE_MODE mode)
 {
     VP_PUBLIC_CHK_NULL_RETURN(m_osInterface);
     if (m_sfcRender)
@@ -85,7 +47,7 @@ MOS_STATUS MediaSfcInterface::Initialize(MEDIA_SFC_INTERFACE_MODE mode)
         Destroy();
     }
 
-    m_sfcRender = MOS_New(MediaSfcRender, m_osInterface, mode, m_mmc);
+    m_sfcRender = MOS_New(MediaSfcRenderLegacy, m_osInterface, mode, m_mmc);
     VP_PUBLIC_CHK_NULL_RETURN(m_sfcRender);
     VP_PUBLIC_CHK_STATUS_RETURN(m_sfcRender->Initialize());
 

@@ -200,6 +200,7 @@ CodechalHwInterfaceG12::CodechalHwInterfaceG12(
 {
     CODECHAL_HW_FUNCTION_ENTER;
     m_avpInterface = static_cast<MhwInterfacesG12Tgllp*>(mhwInterfaces)->m_avpInterface;
+    m_mediaSfcItf  = std::make_shared<MediaSfcInterfaceLegacy>(m_osInterface);
 
     InternalInit(codecFunction);
 }

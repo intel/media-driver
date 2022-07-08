@@ -18,5 +18,24 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-media_include_subdirectory(shared)
-media_include_subdirectory(vp)
+set(TMP_SOURCES_
+    ${CMAKE_CURRENT_LIST_DIR}/media_sfc_render_legacy.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/media_sfc_interface_legacy.cpp
+)
+set(TMP_HEADERS_
+    ${CMAKE_CURRENT_LIST_DIR}/media_sfc_render_legacy.h
+    ${CMAKE_CURRENT_LIST_DIR}/media_sfc_interface_legacy.h
+)
+
+set(COMMON_HEADERS_
+    ${COMMON_HEADERS_}
+    ${TMP_HEADERS_}
+)
+
+set(COMMON_SOURCES_
+    ${COMMON_SOURCES_}
+    ${TMP_SOURCES_})
+
+source_group( "Common Files" FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
+
+media_add_curr_to_include_path()

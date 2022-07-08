@@ -40,7 +40,6 @@ DecodeDownSamplingPkt::DecodeDownSamplingPkt(DecodePipeline *pipeline, CodechalH
 
 DecodeDownSamplingPkt::~DecodeDownSamplingPkt()
 {
-    MOS_Delete(m_sfcInterface);
 }
 
 MOS_STATUS DecodeDownSamplingPkt::Init()
@@ -83,7 +82,7 @@ MOS_STATUS DecodeDownSamplingPkt::Execute(MOS_COMMAND_BUFFER& cmdBuffer)
 
     if (m_sfcInterface == nullptr)
     {
-        m_sfcInterface = MOS_New(MediaSfcInterface, m_hwInterface->GetOsInterface(), m_pipeline->GetMmcState());
+        m_sfcInterface = m_hwInterface->GetMediaSfcInterface();
         DECODE_CHK_NULL(m_sfcInterface);
 
         MEDIA_SFC_INTERFACE_MODE mode;

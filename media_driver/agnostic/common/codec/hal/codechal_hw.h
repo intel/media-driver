@@ -46,6 +46,7 @@
 #include "mhw_vdbox_hcp_itf.h"
 
 #include "media_interfaces_mhw.h"
+#include "media_sfc_interface.h"
 
 #include "gfxmacro.h"
 
@@ -287,6 +288,7 @@ protected:
     MhwVdboxVdencInterface          *m_vdencInterface = nullptr;      //!< Pointer to Mhw vdenc interface
     std::shared_ptr<mhw::vdbox::hcp::Itf>   m_hcpItf   = nullptr;
     std::shared_ptr<mhw::vdbox::vdenc::Itf> m_vdencItf = nullptr;
+    std::shared_ptr<MediaSfcInterface> m_mediaSfcItf = nullptr;
 
     CODECHAL_SSEU_SETTING const         *m_ssEuTable = nullptr;       //!< Pointer to the default SSEU settings table
     uint16_t                            m_numMediaStates = CODECHAL_NUM_MEDIA_STATES;  //!< number of media states
@@ -583,6 +585,11 @@ public:
     inline PMOS_INTERFACE GetOsInterface()
     {
         return m_osInterface;
+    }
+
+    inline std::shared_ptr<MediaSfcInterface> GetMediaSfcInterface()
+    {
+        return m_mediaSfcItf;
     }
 
     //!
