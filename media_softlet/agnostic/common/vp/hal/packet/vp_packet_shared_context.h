@@ -31,8 +31,12 @@ struct VP_PACKET_SHARED_CONTEXT
     struct
     {
         bool     bTgneFirstFrame            = true;
+        bool     bTgneEnable                = false;
         uint32_t lumaStadTh                 = 3200;
         uint32_t chromaStadTh               = 1600;
+        uint32_t dw4X4TGNEThCnt             = 576;
+        uint32_t dwBSDThreshold             = 480;
+        uint32_t dwHistoryInit              = 32;
         uint32_t globalNoiseLevel_Temporal  = 0;  //!< Global Temporal Noise Level for Y
         uint32_t globalNoiseLevelU_Temporal = 0;  //!< Global Temporal Noise Level for U
         uint32_t globalNoiseLevelV_Temporal = 0;  //!< Global Temporal Noise Level for V
@@ -64,6 +68,9 @@ struct VP_PACKET_SHARED_CONTEXT
         uint32_t         dwGlobalNoiseLevel  = 0;  //!< Global Noise Level for Y
         uint32_t         dwGlobalNoiseLevelU = 0;  //!< Global Noise Level for U
         uint32_t         dwGlobalNoiseLevelV = 0;  //!< Global Noise Level for V
+        bool             hVSAutoBdrateEnable     = false;
+        bool             hVSAutoSubjectiveEnable = false;
+        bool             hVSfallback             = false;
     } hvsParams;
     virtual ~VP_PACKET_SHARED_CONTEXT(){};
 };

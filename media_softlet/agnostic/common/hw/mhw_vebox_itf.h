@@ -94,6 +94,10 @@ public:
 
     virtual MOS_STATUS SetgnChromaWgts(uint32_t dwChromaStadTh) = 0;
 
+    virtual MOS_STATUS SetgnHVSParams(bool tGNEEnable, uint32_t lumaStadTh, uint32_t chromaStadTh, uint32_t tGNEThCnt, uint32_t historyInit, bool fallBack) = 0;
+
+    virtual MOS_STATUS SetgnHVSMode(bool hVSAutoBdrate, bool hVSAutoSubjective, uint32_t bSDThreshold) = 0;
+
     virtual MOS_STATUS FindVeboxGpuNodeToUse(PMHW_VEBOX_GPUNODE_LIMIT pVeboxGpuNodeLimit) = 0;
 
     virtual MOS_STATUS CreateGpuContext(PMOS_INTERFACE  pOsInterface, MOS_GPU_CONTEXT VeboxGpuContext, MOS_GPU_NODE VeboxGpuNode) = 0;

@@ -351,6 +351,30 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
+    MOS_STATUS SetgnHVSParams(
+        bool tGNEEnable, uint32_t lumaStadTh, uint32_t chromaStadTh, 
+        uint32_t tGNEThCnt, uint32_t historyInit, bool fallBack)
+    {
+        dw4X4TGNEThCnt = tGNEThCnt;
+        bTGNEEnable    = tGNEEnable;
+        dwLumaStadTh   = lumaStadTh;
+        dwChromaStadTh = chromaStadTh;
+        bHVSfallback   = fallBack;
+        dwHistoryInit  = historyInit;
+
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MOS_STATUS SetgnHVSMode(bool hVSAutoBdrate, bool hVSAutoSubjective, uint32_t bSDThreshold)
+    {
+        bHVSAutoBdrateEnable     = hVSAutoBdrate;
+        bHVSAutoSubjectiveEnable = hVSAutoSubjective;
+        dwBSDThreshold           = bSDThreshold;
+
+        return MOS_STATUS_SUCCESS;
+    }
+
+
     void RefreshVeboxSync()
     {
         MHW_VEBOX_HEAP              *pVeboxHeap;
@@ -979,6 +1003,8 @@ protected:
     uint32_t                  dwLumaStadTh                = 3200;
     uint32_t                  dwChromaStadTh              = 1600;
     uint32_t                  dw4X4TGNEThCnt              = 576;
+    uint32_t                  dwHistoryInit               = 32;
+    uint32_t                  dwBSDThreshold              = 480;
     bool                      bTGNEEnable                 = false;
     bool                      bHVSAutoBdrateEnable        = false;
     bool                      bHVSAutoSubjectiveEnable    = false;

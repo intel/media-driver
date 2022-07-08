@@ -265,14 +265,6 @@ MOS_STATUS VPFeatureManager::CheckFeatures(void * params, bool &bApgFuncSupporte
         return MOS_STATUS_SUCCESS;
     }
 
-    // Disable HVS Denoise in APO path.
-    if (pvpParams->pSrc[0]->pDenoiseParams                       &&
-        pvpParams->pSrc[0]->pDenoiseParams->bEnableHVSDenoise)
-    {
-        VP_PUBLIC_NORMALMESSAGE("Disable APO Path for HVS.");
-        return MOS_STATUS_SUCCESS;
-    }
-
     // Disable FP16 mode in APO path.
     bool bFP16 = IS_RGB64_FLOAT_FORMAT(pvpParams->pTarget[0]->Format) || IS_RGB64_FLOAT_FORMAT(pvpParams->pSrc[0]->Format);
     if (bFP16)

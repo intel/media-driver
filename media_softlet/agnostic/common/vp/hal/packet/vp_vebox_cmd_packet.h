@@ -830,6 +830,53 @@ public:
     //!
     virtual MOS_STATUS UpdateVeboxStates();
 
+    //! \brief    Vebox get statistics surface base
+    //! \details  Calculate address of statistics surface address based on the
+    //!           functions which were enabled in the previous call.
+    //! \param    uint8_t* pStat
+    //!           [in] Pointer to Statistics surface
+    //! \param    uint8_t* * pStatSlice0Base
+    //!           [out] Statistics surface Slice 0 base pointer
+    //! \param    uint8_t* * pStatSlice1Base
+    //!           [out] Statistics surface Slice 1 base pointer
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS GetStatisticsSurfaceBase(
+        uint8_t  *pStat,
+        uint8_t **pStatSlice0Base,
+        uint8_t **pStatSlice1Base);
+
+    virtual MOS_STATUS QueryStatLayoutGNE(
+        VEBOX_STAT_QUERY_TYPE QueryType,
+        uint32_t             *pQuery,
+        uint8_t              *pStatSlice0Base,
+        uint8_t              *pStatSlice1Base);
+
+    virtual MOS_STATUS CheckTGNEValid(
+        uint32_t *pStatSlice0GNEPtr,
+        uint32_t *pStatSlice1GNEPtr,
+        uint32_t *pQuery);
+    //!
+    //! \brief    Vebox update HVS DN states
+    //! \details  CPU update for VEBOX DN states
+    //! \param    bDnEnabled
+    //!           [in] true if DN enabled
+    //! \param    bChromaDenoise
+    //!           [in] true if chroma DN enabled
+    //! \param    bAutoDenoise
+    //!           [in] true if auto DN enabled
+    //! \param    uint32_t* pStatSlice0GNEPtr
+    //!           [out] Pointer to Vebox slice0 GNE data
+    //! \param    uint32_t* pStatSlice1GNEPtr
+    //!           [out] Pointer to Vebox slice1 GNE data
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS UpdateDnHVSParameters(
+        uint32_t *pStatSlice0GNEPtr,
+        uint32_t *pStatSlice1GNEPtr);
+
     //!
     //! \brief    Vebox state adjust boundary for statistics surface
     //! \details  Adjust boundary for statistics surface block
@@ -837,6 +884,23 @@ public:
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     virtual MOS_STATUS AdjustBlockStatistics();
+
+    virtual MOS_STATUS GNELumaConsistentCheck(
+        uint32_t &dwGNELuma,
+        uint32_t *pStatSlice0GNEPtr,
+        uint32_t *pStatSlice1GNEPtr);
+
+    // TGNE
+    uint32_t dwGlobalNoiseLevel_Temporal  = 0;  //!< Global Temporal Noise Level for Y
+    uint32_t dwGlobalNoiseLevelU_Temporal = 0;  //!< Global Temporal Noise Level for U
+    uint32_t dwGlobalNoiseLevelV_Temporal = 0;  //!< Global Temporal Noise Level for V
+    uint32_t curNoiseLevel_Temporal       = 0;  //!< Temporal Noise Level for Y
+    uint32_t curNoiseLevelU_Temporal      = 0;  //!< Temporal Noise Level for U
+    uint32_t curNoiseLevelV_Temporal      = 0;  //!< Temporal Noise Level for V
+    bool     m_bTgneEnable                = true;
+    bool     m_bTgneValid                 = false;
+
+    mhw::vebox::MHW_VEBOX_CHROMA_PARAMS veboxChromaParams = {};
 
 protected:
 
@@ -1011,6 +1075,9 @@ protected:
     virtual MOS_STATUS InitSurfMemCacheControl(VP_EXECUTE_CAPS packetCaps);
 
     virtual MHW_CSPACE VpHalCspace2MhwCspace(VPHAL_CSPACE cspace);
+
+    virtual MOS_STATUS SetupDNTableForHVS(
+        mhw::vebox::VEBOX_STATE_PAR &veboxStateCmdParams);
 
     virtual MOS_STATUS SetupHDRLuts(
         mhw::vebox::VEBOX_STATE_PAR &veboxStateCmdParams);
