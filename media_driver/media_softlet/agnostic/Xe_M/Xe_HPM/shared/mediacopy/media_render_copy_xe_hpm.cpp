@@ -427,6 +427,10 @@ MOS_STATUS RenderCopy_Xe_Hpm::SetupKernel(
     {
         m_WalkerWidthBlockSize = 16;
     }
+    else
+    {
+        m_WalkerWidthBlockSize = 128;
+    }
     // Set walker cmd params - Rasterscan
     MOS_ZeroMemory(pWalkerParams, sizeof(*pWalkerParams));
 

@@ -137,7 +137,9 @@ MhwRenderInterfaceXe_Hpg::AddComputeWalkerCmd(MOS_COMMAND_BUFFER *cmdBuffer,
 
     // when Barriers is not 0, the EU fusion will close.
     // Assigns barrier count.
-    MHW_NORMALMESSAGE(" bBarrierEnable  = %d", interfaceDescriptorParams->bBarrierEnable);
+    MHW_NORMALMESSAGE(" bBarrierEnable  = %d, block threads x=%d, y = %d", interfaceDescriptorParams->bBarrierEnable,
+        cmd.DW7.ThreadGroupIDXDimension, cmd.DW8.ThreadGroupIDYDimension);
+
     if (interfaceDescriptorParams->bBarrierEnable)
     {   // Bits [28:30] represent the number of barriers on DG2.
         cmd.interface_descriptor_data.DW5.Reserved188 = 1;
