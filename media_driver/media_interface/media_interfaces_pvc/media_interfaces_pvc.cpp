@@ -289,6 +289,11 @@ MOS_STATUS MmdDeviceXe_Xpm_Plus::Initialize(
             mhwInterfaces->m_miInterface,
             mhwInterfaces->m_renderInterface) != MOS_STATUS_SUCCESS)
     {
+        // Vebox/mi/cp interface will gove control to mmd device, will release will be in destructure func
+        // set as null to avoid double free in driver
+        mhwInterfaces->m_cpInterface = nullptr;
+        mhwInterfaces->m_miInterface = nullptr;
+        mhwInterfaces->m_veboxInterface = nullptr;
         MMD_FAILURE();
     }
 
