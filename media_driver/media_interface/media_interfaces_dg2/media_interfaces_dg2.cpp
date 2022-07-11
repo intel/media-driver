@@ -558,8 +558,8 @@ MOS_STATUS CodechalInterfacesXe_Hpm::Initialize(
     bool disableScalability = false;
     PLATFORM platform = {};
     osInterface->pfnGetPlatform(osInterface, &platform);
-    if((platform.usDeviceID == 0x56C0)
-        || (platform.usDeviceID == 0x56C1))
+    if((platform.usDeviceID >= 0x56C0)
+        && (platform.usDeviceID <= 0x56CF))
     {
         disableScalability = true;
     }
@@ -569,6 +569,10 @@ MOS_STATUS CodechalInterfacesXe_Hpm::Initialize(
 
     if (CodecHalIsDecode(CodecFunction))
     {
+        if(osInterface->bHcpDecScalabilityMode = MOS_SCALABILITY_ENABLE_MODE_USER_FORCE)
+        {
+            disableScalability = false;
+        }
         CreateCodecHalInterface(mhwInterfaces, hwInterface, debugInterface, osInterface, CodecFunction, disableScalability);
 
     #ifdef _MPEG2_DECODE_SUPPORTED
