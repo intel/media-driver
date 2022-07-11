@@ -342,7 +342,7 @@ namespace encode
         hucStreamOutParams.inputRelativeOffset  = sourceOffset - hucStreamOutParams.dataOffset;
         hucStreamOutParams.outputRelativeOffset = destOffset - hucStreamOutParams.streamOutObjectOffset;
 
-        ENCODE_CHK_STATUS_RETURN(m_hwInterface->PerformHucStreamOut(
+        ENCODE_CHK_STATUS_RETURN(m_hwInterface->m_hwInterfaceNext->PerformHucStreamOut(
             &hucStreamOutParams,
             &cmdBuffer));
 

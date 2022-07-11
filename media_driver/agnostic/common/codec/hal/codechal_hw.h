@@ -107,9 +107,6 @@
 #define CODECHAL_VLINESTRIDEOFFSET_TOP_FIELD    0
 #define CODECHAL_VLINESTRIDEOFFSET_BOT_FIELD    1
 
-// Params for Huc
-#define HUC_DMEM_OFFSET_RTOS_GEMS                       0x2000
-
 #define CODECHAL_MAX_DEPENDENCY_COUNT  8
 
 #define CODECHAL_INVALID_BINDING_TABLE_IDX  0xFFFFFFFF
@@ -187,36 +184,6 @@ struct CodechalQpStatusCount
             uint32_t value[2];
         };
     };
-};
-
-//!
-//! \struct    CodechalHucStreamoutParams
-//! \brief     Codechal Huc streamout parameters
-//!
-struct CodechalHucStreamoutParams
-{
-    CODECHAL_MODE       mode;
-
-    // Indirect object addr command params
-    PMOS_RESOURCE       dataBuffer;
-    uint32_t            dataSize;              // 4k aligned
-    uint32_t            dataOffset;            // 4k aligned
-    PMOS_RESOURCE       streamOutObjectBuffer;
-    uint32_t            streamOutObjectSize;   // 4k aligned
-    uint32_t            streamOutObjectOffset; //4k aligned
-
-    // Stream object params
-    uint32_t            indStreamInLength;
-    uint32_t            inputRelativeOffset;
-    uint32_t            outputRelativeOffset;
-
-    // Segment Info
-    void               *segmentInfo;
-
-    // Indirect Security State
-    MOS_RESOURCE        hucIndState;
-    uint32_t            curIndEntriesNum;
-    uint32_t            curNumSegments;
 };
 
 //!

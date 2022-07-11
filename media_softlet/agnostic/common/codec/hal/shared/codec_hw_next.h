@@ -95,7 +95,13 @@ public:
     //!
     //! \brief    Destructor
     //!
-    virtual ~CodechalHwInterfaceNext() {}
+    virtual ~CodechalHwInterfaceNext() {
+        CODEC_HW_FUNCTION_ENTER;
+        m_osInterface->pfnFreeResource(m_osInterface, &m_hucDmemDummy);
+        m_osInterface->pfnFreeResource(m_osInterface, &m_dummyStreamIn);
+        m_osInterface->pfnFreeResource(m_osInterface, &m_dummyStreamOut);
+    }
+
     //!
     //! \brief    Get mfx interface
     //! \details  Get mfx interface in codechal hw interface next
@@ -312,6 +318,35 @@ public:
         uint32_t *patchListSize,
         bool      modeSpecific);
 
+    //!
+    //! \brief    Add Huc stream out copy cmds
+    //! \details  Prepare and add Huc stream out copy cmds
+    //!
+    //! \param    [in,out] cmdBuffer
+    //!           Command buffer
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS AddHucDummyStreamOut(
+        PMOS_COMMAND_BUFFER cmdBuffer);
+
+    //!
+    //! \brief    Perform Huc stream out copy
+    //! \details  Implement the copy using huc stream out
+    //!
+    //! \param    [in] hucStreamOutParams
+    //!           Huc stream out parameters
+    //! \param    [in,out] cmdBuffer
+    //!           Command buffer
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS PerformHucStreamOut(
+        CodechalHucStreamoutParams  *hucStreamOutParams,
+        PMOS_COMMAND_BUFFER         cmdBuffer);
+
 protected:
     std::shared_ptr<mhw::vdbox::avp::Itf>    m_avpItf   = nullptr;      //!< Pointer to Mhw avp interface
     std::shared_ptr<mhw::vdbox::vdenc::Itf>  m_vdencItf = nullptr;      //!< Pointer to Mhw vdenc interface
@@ -326,6 +361,13 @@ protected:
 
     // Auxiliary
     MEDIA_FEATURE_TABLE *m_skuTable = nullptr;  //!< Pointer to SKU table
+    MEDIA_WA_TABLE      *m_waTable  = nullptr;  //!< Pointer to WA table
+
+    // HuC WA implementation
+    MOS_RESOURCE                m_dummyStreamIn;          //!> Resource of dummy stream in
+    MOS_RESOURCE                m_dummyStreamOut;         //!> Resource of dummy stream out
+    MOS_RESOURCE                m_hucDmemDummy;           //!> Resource of Huc DMEM for dummy streamout WA
+    uint32_t                    m_dmemBufSize = 0;        //!>
 
     // Next: remove legacy Interfaces
     MhwCpInterface                  *m_cpInterface = nullptr;         //!< Pointer to Mhw cp interface

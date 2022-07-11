@@ -26,8 +26,6 @@
 #include "codechal_hw.h"
 #include "codechal_setting.h"
 
-#define VDBOX_HUC_VDENC_BRC_INIT_KERNEL_DESCRIPTOR 4
-
 //| HW parameter initializers
 const MOS_SYNC_PARAMS     g_cInitSyncParams =
 {

@@ -45,7 +45,13 @@ CodechalHwInterfaceNext::CodechalHwInterfaceNext(
     m_osInterface = osInterface;
 
     m_skuTable = m_osInterface->pfnGetSkuTable(m_osInterface);
+    m_waTable  = m_osInterface->pfnGetWaTable(m_osInterface);
     CODEC_HW_ASSERT(m_skuTable);
+    CODEC_HW_ASSERT(m_waTable);
+
+    MOS_ZeroMemory(&m_hucDmemDummy, sizeof(m_hucDmemDummy));
+    MOS_ZeroMemory(&m_dummyStreamIn, sizeof(m_dummyStreamIn));
+    MOS_ZeroMemory(&m_dummyStreamOut, sizeof(m_dummyStreamOut));
 
     // Remove legacy mhw sub interfaces.
     m_cpInterface = mhwInterfacesNext->m_cpInterface;
@@ -404,6 +410,188 @@ MOS_STATUS CodechalHwInterfaceNext::GetHcpPrimitiveCommandSize(
 
     *commandsSize  = hcpCommandsSize + cpCmdsize;
     *patchListSize = hcpPatchListSize + cpPatchListSize;
+
+    return eStatus;
+}
+
+MOS_STATUS CodechalHwInterfaceNext::AddHucDummyStreamOut(
+    PMOS_COMMAND_BUFFER cmdBuffer)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    if (!MEDIA_IS_WA(m_waTable, WaHucStreamoutEnable))
+    {
+        return eStatus;
+    }
+
+    CODEC_HW_FUNCTION_ENTER;
+
+    CODEC_HW_CHK_NULL_RETURN(cmdBuffer);
+    CODEC_HW_CHK_NULL_RETURN(m_miItf);
+
+    if (Mos_ResourceIsNull(&m_dummyStreamOut))
+    {
+        MOS_LOCK_PARAMS         lockFlags;
+        uint8_t*                data;
+        MOS_ALLOC_GFXRES_PARAMS allocParamsForBufferLinear;
+
+        MOS_ZeroMemory(&allocParamsForBufferLinear, sizeof(MOS_ALLOC_GFXRES_PARAMS));
+        allocParamsForBufferLinear.Type = MOS_GFXRES_BUFFER;
+        allocParamsForBufferLinear.TileType = MOS_TILE_LINEAR;
+        allocParamsForBufferLinear.Format = Format_Buffer;
+
+        m_dmemBufSize = MHW_CACHELINE_SIZE;
+
+        allocParamsForBufferLinear.dwBytes = m_dmemBufSize;
+        allocParamsForBufferLinear.pBufName = "HucDmemBufferDummy";
+        CODEC_HW_CHK_STATUS_RETURN((MOS_STATUS)m_osInterface->pfnAllocateResource(
+            m_osInterface,
+            &allocParamsForBufferLinear,
+            &m_hucDmemDummy));
+        // set lock flag to WRITE_ONLY
+        MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
+        lockFlags.WriteOnly = 1;
+        data =
+            (uint8_t*)m_osInterface->pfnLockResource(m_osInterface, &m_hucDmemDummy, &lockFlags);
+        CODEC_HW_CHK_NULL_RETURN(data);
+        MOS_ZeroMemory(data, m_dmemBufSize);
+        *data = 8;
+        m_osInterface->pfnUnlockResource(m_osInterface, &m_hucDmemDummy);
+
+        allocParamsForBufferLinear.dwBytes = CODECHAL_CACHELINE_SIZE;
+
+        allocParamsForBufferLinear.pBufName = "HucDummyStreamInBuffer";
+        CODEC_HW_CHK_STATUS_RETURN(m_osInterface->pfnAllocateResource(
+            m_osInterface,
+            &allocParamsForBufferLinear,
+            &m_dummyStreamIn));
+        allocParamsForBufferLinear.pBufName = "HucDummyStreamOutBuffer";
+        CODEC_HW_CHK_STATUS_RETURN(m_osInterface->pfnAllocateResource(
+            m_osInterface,
+            &allocParamsForBufferLinear,
+            &m_dummyStreamOut));
+    }
+
+    auto &flushDwParams = m_miItf->MHW_GETPAR_F(MI_FLUSH_DW)();
+    flushDwParams       = {};
+    CODEC_HW_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(cmdBuffer));
+
+    // pipe mode select
+    auto &pipeModeSelectParams = m_hucItf->MHW_GETPAR_F(HUC_PIPE_MODE_SELECT)();
+    pipeModeSelectParams       = {};
+
+    pipeModeSelectParams.mediaSoftResetCounterValue = 2400;
+
+    // pass bit-stream buffer by Ind Obj Addr command. Set size to 1 for dummy stream
+    auto &indObjParams                 = m_hucItf->MHW_GETPAR_F(HUC_IND_OBJ_BASE_ADDR_STATE)();
+    indObjParams                       = {};
+    indObjParams.DataBuffer            = &m_dummyStreamIn;
+    indObjParams.DataSize              = 1;
+    indObjParams.StreamOutObjectBuffer = &m_dummyStreamOut;
+    indObjParams.StreamOutObjectSize   = 1;
+
+    // set stream object with stream out enabled
+    auto &streamObjParams                         = m_hucItf->MHW_GETPAR_F(HUC_STREAM_OBJECT)();
+    streamObjParams                               = {};
+    streamObjParams.IndirectStreamInDataLength    = 1;
+    streamObjParams.IndirectStreamInStartAddress  = 0;
+    streamObjParams.HucProcessing                 = true;
+    streamObjParams.IndirectStreamOutStartAddress = 0;
+    streamObjParams.StreamOut                     = 1;
+
+    CODEC_HW_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(cmdBuffer));
+
+    auto &imemParams            = m_hucItf->MHW_GETPAR_F(HUC_IMEM_STATE)();
+    imemParams                  = {};
+    imemParams.kernelDescriptor = VDBOX_HUC_VDENC_BRC_INIT_KERNEL_DESCRIPTOR;
+
+    // set HuC DMEM param
+    auto &dmemParams             = m_hucItf->MHW_GETPAR_F(HUC_DMEM_STATE)();
+    dmemParams                   = {};
+    dmemParams.hucDataSource = &m_hucDmemDummy;
+    dmemParams.dataLength    = m_dmemBufSize;
+    dmemParams.dmemOffset    = HUC_DMEM_OFFSET_RTOS_GEMS;
+
+    auto &virtualAddrParams                      = m_hucItf->MHW_GETPAR_F(HUC_VIRTUAL_ADDR_STATE)();
+    virtualAddrParams                            = {};
+    virtualAddrParams.regionParams[0].presRegion = &m_dummyStreamOut;
+
+    streamObjParams.HucProcessing      = true;
+    streamObjParams.HucBitstreamEnable = 1;
+
+    CODEC_HW_CHK_STATUS_RETURN(m_hucItf->MHW_ADDCMD_F(HUC_IMEM_STATE)(cmdBuffer));
+    CODEC_HW_CHK_STATUS_RETURN(m_hucItf->MHW_ADDCMD_F(HUC_PIPE_MODE_SELECT)(cmdBuffer));
+    CODEC_HW_CHK_STATUS_RETURN(m_hucItf->MHW_ADDCMD_F(HUC_DMEM_STATE)(cmdBuffer));
+    CODEC_HW_CHK_STATUS_RETURN(m_hucItf->MHW_ADDCMD_F(HUC_VIRTUAL_ADDR_STATE)(cmdBuffer));
+    CODEC_HW_CHK_STATUS_RETURN(m_hucItf->MHW_ADDCMD_F(HUC_IND_OBJ_BASE_ADDR_STATE)(cmdBuffer));
+    CODEC_HW_CHK_STATUS_RETURN(m_hucItf->MHW_ADDCMD_F(HUC_STREAM_OBJECT)(cmdBuffer));
+    CODEC_HW_CHK_STATUS_RETURN(m_hucItf->MHW_ADDCMD_F(HUC_START)(cmdBuffer));
+
+    CODEC_HW_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(cmdBuffer));
+
+    return eStatus;
+}
+
+MOS_STATUS CodechalHwInterfaceNext::PerformHucStreamOut(
+    CodechalHucStreamoutParams *hucStreamOutParams,
+    PMOS_COMMAND_BUFFER         cmdBuffer)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODEC_HW_FUNCTION_ENTER;
+    CODEC_HW_CHK_NULL_RETURN(cmdBuffer);
+
+    if (MEDIA_IS_SKU(m_skuTable, FtrEnableMediaKernels) && MEDIA_IS_WA(m_waTable, WaHucStreamoutEnable))
+    {
+        CODEC_HW_CHK_STATUS_RETURN(AddHucDummyStreamOut(cmdBuffer));
+    }
+
+    // pipe mode select
+    auto &pipeModeSelectParams                      = m_hucItf->MHW_GETPAR_F(HUC_PIPE_MODE_SELECT)();
+    pipeModeSelectParams                            = {};
+    pipeModeSelectParams.mode = hucStreamOutParams->mode;
+    pipeModeSelectParams.mediaSoftResetCounterValue = 2400;
+    pipeModeSelectParams.streamOutEnabled = true;
+    if (hucStreamOutParams->segmentInfo == nullptr && m_osInterface->osCpInterface->IsCpEnabled())
+    {
+        // Disable protection control setting in huc drm
+        pipeModeSelectParams.disableProtectionSetting = true;
+    }
+
+    // Enlarge the stream in/out data size to avoid upper bound hit assert in HuC
+    hucStreamOutParams->dataSize += hucStreamOutParams->inputRelativeOffset;
+    hucStreamOutParams->streamOutObjectSize += hucStreamOutParams->outputRelativeOffset;
+
+    // pass bit-stream buffer by Ind Obj Addr command
+    auto &indObjParams                 = m_hucItf->MHW_GETPAR_F(HUC_IND_OBJ_BASE_ADDR_STATE)();
+    indObjParams                       = {};
+    indObjParams.DataBuffer            = hucStreamOutParams->dataBuffer;
+    indObjParams.DataSize              = MOS_ALIGN_CEIL(hucStreamOutParams->dataSize, MHW_PAGE_SIZE);
+    indObjParams.DataOffset            = hucStreamOutParams->dataOffset;
+    indObjParams.StreamOutObjectBuffer = hucStreamOutParams->streamOutObjectBuffer;
+    indObjParams.StreamOutObjectSize   = MOS_ALIGN_CEIL(hucStreamOutParams->streamOutObjectSize, MHW_PAGE_SIZE);
+    indObjParams.StreamOutObjectOffset = hucStreamOutParams->streamOutObjectOffset;
+
+    // set stream object with stream out enabled
+    auto &streamObjParams                         = m_hucItf->MHW_GETPAR_F(HUC_STREAM_OBJECT)();
+    streamObjParams                               = {};
+    streamObjParams.IndirectStreamInDataLength    = hucStreamOutParams->indStreamInLength;
+    streamObjParams.IndirectStreamInStartAddress  = hucStreamOutParams->inputRelativeOffset;
+    streamObjParams.IndirectStreamOutStartAddress = hucStreamOutParams->outputRelativeOffset;
+    streamObjParams.HucProcessing                 = true;
+    streamObjParams.HucBitstreamEnable            = true;
+    streamObjParams.StreamOut                     = true;
+
+    CODEC_HW_CHK_STATUS_RETURN(m_hucItf->MHW_ADDCMD_F(HUC_PIPE_MODE_SELECT)(cmdBuffer));
+    CODEC_HW_CHK_STATUS_RETURN(m_hucItf->MHW_ADDCMD_F(HUC_IND_OBJ_BASE_ADDR_STATE)(cmdBuffer));
+    CODEC_HW_CHK_STATUS_RETURN(m_hucItf->MHW_ADDCMD_F(HUC_STREAM_OBJECT)(cmdBuffer));
+
+    // This flag is always false if huc fw is not loaded.
+    if (MEDIA_IS_SKU(m_skuTable, FtrEnableMediaKernels) &&
+        MEDIA_IS_WA(m_waTable, WaHucStreamoutOnlyDisable))
+    {
+        CODEC_HW_CHK_STATUS_RETURN(AddHucDummyStreamOut(cmdBuffer));
+    }
 
     return eStatus;
 }
