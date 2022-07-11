@@ -497,9 +497,6 @@ MOS_STATUS HWInfo_GetGmmInfo(int32_t                 fd,
     }
 
     LinuxDriverInfo drvInfo = {18, 3, 0, 23172, 3, 1, 0, 1, 0, 0, 1, 0};
-#if (_DEBUG || _RELEASE_INTERNAL)
-    MOS_USER_FEATURE_VALUE_DATA         UserFeatureData;
-#endif
 
     if (!Mos_Solo_IsEnabled(nullptr) && HWInfoGetLinuxDrvInfo(fd, &drvInfo) != MOS_STATUS_SUCCESS)
     {

@@ -49,16 +49,16 @@
 
 MOS_STATUS MosInterface::InitOsUtilities(DDI_DEVICE_CONTEXT ddiDeviceContext)
 {
-    MediaUserSettingSharedPtr   userSettingPtr = ::GetUserSettingInstance((PMOS_CONTEXT)ddiDeviceContext);
+    MediaUserSettingSharedPtr   userSettingPtr = MosGetUserSettingInstance((PMOS_CONTEXT)ddiDeviceContext);
 
-    MosUtilities::MosUtilitiesInit(nullptr);
+    MosUtilities::MosUtilitiesInit(userSettingPtr);
 
     // MOS_OS_FUNCTION_ENTER need mos utilities init
     MOS_OS_FUNCTION_ENTER;
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     //Init MOS OS API fail simulate flags
-    MosInitOsApiFailSimulateFlag(ddiDeviceContext);
+    MosInitOsApiFailSimulateFlag(userSettingPtr);
 #endif
 
     //Read user feature key here for Per Utility Tool Enabling
@@ -98,8 +98,11 @@ MOS_STATUS MosInterface::InitOsUtilities(DDI_DEVICE_CONTEXT ddiDeviceContext)
 MOS_STATUS MosInterface::CloseOsUtilities(PMOS_CONTEXT mosCtx)
 {
     MOS_OS_FUNCTION_ENTER;
+
+    MediaUserSettingSharedPtr userSettingPtr = MosInterface::MosGetUserSettingInstance(mosCtx);
+
     // Close MOS utlities
-    MosUtilities::MosUtilitiesClose(nullptr);
+    MosUtilities::MosUtilitiesClose(userSettingPtr);
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     //reset MOS init OS API simulate flags
@@ -3005,9 +3008,14 @@ uint32_t MosInterface::GetResourceArrayIndex(
 }
 
 MediaUserSettingSharedPtr MosInterface::MosGetUserSettingInstance(
+    PMOS_CONTEXT osContext)
+{
+    return nullptr;
+}
+
+MediaUserSettingSharedPtr MosInterface::MosGetUserSettingInstance(
     MOS_STREAM_HANDLE streamState)
 {
-
     return nullptr;
 }
 
@@ -3015,24 +3023,24 @@ MediaUserSettingSharedPtr MosInterface::MosGetUserSettingInstance(
 MOS_STATUS MosInterface::DumpCommandBufferInit(
     MOS_STREAM_HANDLE streamState)
 {
-    char sFileName[MOS_MAX_HLT_FILENAME_LEN] = {0};
-    MOS_STATUS eStatus = MOS_STATUS_UNKNOWN;
-    MOS_USER_FEATURE_VALUE_DATA UserFeatureData = {0};
-    char *psFileNameAfterPrefix = nullptr;
-    size_t nSizeFileNamePrefix = 0;
-    MediaUserSettingSharedPtr   userSettingPtr  = MosInterface::MosGetUserSettingInstance(streamState);
+    char                        sFileName[MOS_MAX_HLT_FILENAME_LEN] = {0};
+    MOS_STATUS                  eStatus                             = MOS_STATUS_UNKNOWN;
+    uint32_t                    value                               = 0;
+    size_t                      nSizeFileNamePrefix                 = 0;
+    MediaUserSettingSharedPtr   userSettingPtr                      = MosInterface::MosGetUserSettingInstance(streamState);
 
     MOS_OS_CHK_NULL_RETURN(streamState);
 
     // Check if command buffer dump was enabled in user feature.
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_DUMP_COMMAND_BUFFER_ENABLE_ID,
-        &UserFeatureData,
-        (MOS_CONTEXT_HANDLE)streamState->perStreamParameters);
-    streamState->dumpCommandBuffer            = (UserFeatureData.i32Data != 0);
-    streamState->dumpCommandBufferToFile      = ((UserFeatureData.i32Data & 1) != 0);
-    streamState->dumpCommandBufferAsMessages  = ((UserFeatureData.i32Data & 2) != 0);
+    ReadUserSetting(
+        userSettingPtr,
+        value,
+        __MEDIA_USER_FEATURE_VALUE_DUMP_COMMAND_BUFFER_ENABLE,
+        MediaUserSetting::Group::Device);
+
+    streamState->dumpCommandBuffer            = (value != 0);
+    streamState->dumpCommandBufferToFile      = ((value & 1) != 0);
+    streamState->dumpCommandBufferAsMessages  = ((value & 2) != 0);
 
     if (streamState->dumpCommandBufferToFile)
     {
@@ -3062,9 +3070,7 @@ MOS_STATUS MosInterface::DumpCommandBufferInit(
         }
     }
 
-    eStatus = MOS_STATUS_SUCCESS;
-
-    return eStatus;
+    return MOS_STATUS_SUCCESS;
 }
 #endif  // MOS_COMMAND_BUFFER_DUMP_SUPPORTED
 
@@ -3076,10 +3082,10 @@ uint32_t MosInterface::m_mosOsApiFailSimulateFreq         = 0;
 uint32_t MosInterface::m_mosOsApiFailSimulateHint         = 0;
 uint32_t MosInterface::m_mosOsApiFailSimulateCounter      = 0;
 
-void MosInterface::MosInitOsApiFailSimulateFlag(MOS_CONTEXT_HANDLE mosCtx)
+void MosInterface::MosInitOsApiFailSimulateFlag(MediaUserSettingSharedPtr userSettingPtr)
 {
-    MOS_USER_FEATURE_VALUE_DATA userFeatureValueData;
-    MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
+    MOS_STATUS                  eStatus         = MOS_STATUS_SUCCESS;
+    uint32_t                    value           = 0;
 
     //default off for simulate random fail
     m_mosOsApiFailSimulateType         = OS_API_FAIL_TYPE_NONE;
@@ -3089,57 +3095,54 @@ void MosInterface::MosInitOsApiFailSimulateFlag(MOS_CONTEXT_HANDLE mosCtx)
     m_mosOsApiFailSimulateCounter      = 0;
 
     // Read Config : memory allocation failure simulate mode
-    MosUtilities::MosZeroMemory(&userFeatureValueData, sizeof(userFeatureValueData));
-    MosUtilities::MosUserFeatureReadValueID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_OS_API_FAIL_SIMULATE_TYPE_ID,
-        &userFeatureValueData,
-        mosCtx);
+    ReadUserSetting(
+        userSettingPtr,
+        value,
+        __MEDIA_USER_FEATURE_VALUE_OS_API_FAIL_SIMULATE_TYPE,
+        MediaUserSetting::Group::Device);
 
-    if (userFeatureValueData.u32Data & OS_API_FAIL_TYPE_MAX)
+    if (value & OS_API_FAIL_TYPE_MAX)
     {
-        m_mosOsApiFailSimulateType = userFeatureValueData.u32Data;
+        m_mosOsApiFailSimulateType = value;
         MOS_OS_NORMALMESSAGE("Init MosSimulateOsApiFailSimulateType as %d \n ", m_mosOsApiFailSimulateType);
     }
     else
     {
         m_mosOsApiFailSimulateType = OS_API_FAIL_TYPE_NONE;
-        MOS_OS_NORMALMESSAGE("Invalid OS API Fail Simulate Type from config: %d \n ", userFeatureValueData.u32Data);
+        MOS_OS_NORMALMESSAGE("Invalid OS API Fail Simulate Type from config: %d \n ", value);
     }
 
     // Read Config : memory allocation failure simulate mode
-    MosUtilities::MosZeroMemory(&userFeatureValueData, sizeof(userFeatureValueData));
-    MosUtilities::MosUserFeatureReadValueID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_OS_API_FAIL_SIMULATE_MODE_ID,
-        &userFeatureValueData,
-        mosCtx);
-
-    if ((userFeatureValueData.u32Data == OS_API_FAIL_SIMULATE_MODE_DEFAULT) ||
-        (userFeatureValueData.u32Data == OS_API_FAIL_SIMULATE_MODE_RANDOM) ||
-        (userFeatureValueData.u32Data == OS_API_FAIL_SIMULATE_MODE_TRAVERSE))
+    value = 0;
+    ReadUserSetting(
+        userSettingPtr,
+        value,
+        __MEDIA_USER_FEATURE_VALUE_OS_API_FAIL_SIMULATE_MODE,
+        MediaUserSetting::Group::Device);
+    if ((value == OS_API_FAIL_SIMULATE_MODE_DEFAULT) ||
+        (value == OS_API_FAIL_SIMULATE_MODE_RANDOM) ||
+        (value == OS_API_FAIL_SIMULATE_MODE_TRAVERSE))
     {
-        m_mosOsApiFailSimulateMode = userFeatureValueData.u32Data;
+        m_mosOsApiFailSimulateMode = value;
         MOS_OS_NORMALMESSAGE("Init MosSimulateOsApiFailSimulateMode as %d \n ", m_mosOsApiFailSimulateMode);
     }
     else
     {
         m_mosOsApiFailSimulateMode = OS_API_FAIL_SIMULATE_MODE_DEFAULT;
-        MOS_OS_NORMALMESSAGE("Invalid OS API Fail Simulate Mode from config: %d \n ", userFeatureValueData.u32Data);
+        MOS_OS_NORMALMESSAGE("Invalid OS API Fail Simulate Mode from config: %d \n ", value);
     }
 
     // Read Config : memory allocation failure simulate frequence
-    MosUtilities::MosZeroMemory(&userFeatureValueData, sizeof(userFeatureValueData));
-    MosUtilities::MosUserFeatureReadValueID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_OS_API_FAIL_SIMULATE_FREQ_ID,
-        &userFeatureValueData,
-        mosCtx);
-
-    if ((userFeatureValueData.u32Data >= MIN_OS_API_FAIL_FREQ) &&
-        (userFeatureValueData.u32Data <= MAX_OS_API_FAIL_FREQ))
+    value = 0;
+    ReadUserSetting(
+        userSettingPtr,
+        value,
+        __MEDIA_USER_FEATURE_VALUE_OS_API_FAIL_SIMULATE_FREQ,
+        MediaUserSetting::Group::Device);
+    if ((value >= MIN_OS_API_FAIL_FREQ) &&
+        (value <= MAX_OS_API_FAIL_FREQ))
     {
-        m_mosOsApiFailSimulateFreq = userFeatureValueData.u32Data;
+        m_mosOsApiFailSimulateFreq = value;
         MOS_OS_NORMALMESSAGE("Init m_MosSimulateRandomOsApiFailFreq as %d \n ", m_mosOsApiFailSimulateFreq);
 
         if (m_mosOsApiFailSimulateMode == OS_API_FAIL_SIMULATE_MODE_RANDOM)
@@ -3150,26 +3153,25 @@ void MosInterface::MosInitOsApiFailSimulateFlag(MOS_CONTEXT_HANDLE mosCtx)
     else
     {
         m_mosOsApiFailSimulateFreq = 0;
-        MOS_OS_NORMALMESSAGE("Invalid OS API Fail Simulate Freq from config: %d \n ", userFeatureValueData.u32Data);
+        MOS_OS_NORMALMESSAGE("Invalid OS API Fail Simulate Freq from config: %d \n ", value);
     }
 
     // Read Config : memory allocation failure simulate counter
-    MosUtilities::MosZeroMemory(&userFeatureValueData, sizeof(userFeatureValueData));
-    MosUtilities::MosUserFeatureReadValueID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_OS_API_FAIL_SIMULATE_HINT_ID,
-        &userFeatureValueData,
-        mosCtx);
-
-    if (userFeatureValueData.u32Data <= m_mosOsApiFailSimulateFreq)
+    value = 0;
+    ReadUserSetting(
+        userSettingPtr,
+        value,
+        __MEDIA_USER_FEATURE_VALUE_OS_API_FAIL_SIMULATE_HINT,
+        MediaUserSetting::Group::Device);
+    if (value <= m_mosOsApiFailSimulateFreq)
     {
-        m_mosOsApiFailSimulateHint = userFeatureValueData.u32Data;
+        m_mosOsApiFailSimulateHint = value;
         MOS_OS_NORMALMESSAGE("Init m_MosOsApiFailSimulateHint as %d \n ", m_mosOsApiFailSimulateHint);
     }
     else
     {
         m_mosOsApiFailSimulateHint = m_mosOsApiFailSimulateFreq;
-        MOS_OS_NORMALMESSAGE("Set m_mosOsApiFailSimulateHint as %d since INVALID CONFIG %d \n ", m_mosOsApiFailSimulateHint, userFeatureValueData.u32Data);
+        MOS_OS_NORMALMESSAGE("Set m_mosOsApiFailSimulateHint as %d since INVALID CONFIG %d \n ", m_mosOsApiFailSimulateHint, value);
     }
 }
 

@@ -358,11 +358,8 @@ MOS_STATUS MosUtilDebug::MosHLTInit(MediaUserSettingSharedPtr userSettingPtr)
 {
     uint32_t                                    nPID = 0;
     char                                        hltFileName[MOS_MAX_HLT_FILENAME_LEN] = {0};
-    MOS_USER_FEATURE_VALUE                      UserFeatureValue = __NULL_USER_FEATURE_VALUE__;
     char                                        fileNamePrefix[MOS_MAX_HLT_FILENAME_LEN];
     int32_t                                     bUseHybridLogTrace = false;
-    MOS_USER_FEATURE_VALUE_DATA                 UserFeatureData;
-    MOS_USER_FEATURE_VALUE_WRITE_DATA           UserFeatureWriteData;
     MOS_STATUS                                  eStatus = MOS_STATUS_SUCCESS;
 
     if (m_mosMsgParams.uiCounter != 0 )

@@ -43,45 +43,38 @@ const GpuCmdResInfoDumpNext *GpuCmdResInfoDumpNext::GetInstance(PMOS_CONTEXT mos
 
 GpuCmdResInfoDumpNext::GpuCmdResInfoDumpNext(PMOS_CONTEXT mosCtx)
 {
-    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
-    MosUtilities::MosZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_DUMP_COMMAND_INFO_ENABLE_ID,
-        &userFeatureData,
-        mosCtx);
-    m_dumpEnabled = userFeatureData.bData;
+    MediaUserSettingSharedPtr   userSettingPtr  = nullptr;
+    MediaUserSetting::Value     value;
+
+    userSettingPtr = MosInterface::MosGetUserSettingInstance(mosCtx);
+
+    ReadUserSetting(
+        userSettingPtr,
+        m_dumpEnabled,
+        __MEDIA_USER_FEATURE_VALUE_DUMP_COMMAND_INFO_ENABLE,
+        MediaUserSetting::Group::Device);
 
     if (!m_dumpEnabled)
     {
         return;
     }
 
-    char path[MOS_MAX_PATH_LENGTH + 1];
-    MosUtilities::MosZeroMemory(path, sizeof(path));
-    MosUtilities::MosZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    userFeatureData.StringData.pStringData = path;
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_DUMP_COMMAND_INFO_PATH_ID,
-        &userFeatureData,
-        mosCtx);
-    if (userFeatureData.StringData.uSize > MOS_MAX_PATH_LENGTH)
-    {
-        userFeatureData.StringData.uSize = 0;
-    }
-    if (userFeatureData.StringData.uSize > 0)
-    {
-        userFeatureData.StringData.pStringData[userFeatureData.StringData.uSize] = '\0';
-        userFeatureData.StringData.uSize++;
-    }
+    ReadUserSetting(
+        userSettingPtr,
+        value,
+        __MEDIA_USER_FEATURE_VALUE_DUMP_COMMAND_INFO_PATH,
+        MediaUserSetting::Group::Device);
 
-    auto tmpPath = std::string(path);
-    if (tmpPath.back() != '/' && tmpPath.back() != '\\')
+    auto path = value.ConstString();
+    if(path.size() > 0)
     {
-        tmpPath += '/';
+        m_path = path;
+        if (path.back() != '/' && path.back() != '\\')
+        {
+            m_path += '/';
+        }
     }
-    m_path = tmpPath + "gpuCmdResInfo_" + std::to_string(MosUtilities::MosGetPid()) + ".txt";
+    m_path = m_path + "gpuCmdResInfo_" + std::to_string(MosUtilities::MosGetPid()) + ".txt";
 }
 
 void GpuCmdResInfoDumpNext::Dump(PMOS_INTERFACE pOsInterface) const

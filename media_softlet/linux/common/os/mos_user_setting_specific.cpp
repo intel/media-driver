@@ -29,5 +29,20 @@
 
 MOS_STATUS MosUserSetting::InitMosUserSettingSpecific(MediaUserSettingSharedPtr userSettingPtr)
 {
+    DeclareUserSettingKey(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_ENABLE_SOFTPIN,
+        MediaUserSetting::Group::Device,
+        1,
+        true); //"Switch between softpin and relocation."
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_DISABLE_KMD_WATCHDOG,
+        MediaUserSetting::Group::Device,
+        0,
+        true); //"Disable KMD Watchdog"
+#endif
     return MOS_STATUS_SUCCESS;
 }

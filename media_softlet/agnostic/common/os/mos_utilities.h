@@ -126,36 +126,36 @@ public:
     //!
     //! \brief    Init Function for MOS utilitiesNext
     //! \details  Initial MOS utilitiesNext related structures, and only execute once for multiple entries
-    //! \param    [in] mosCtx
-    //!           os device ctx handle
+    //! \param    [in] userSettingPtr
+    //!           user setting ptr
     //! \return   MOS_STATUS
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MosUtilitiesInit(MOS_CONTEXT_HANDLE mosCtx);
+    static MOS_STATUS MosUtilitiesInit(MediaUserSettingSharedPtr userSettingPtr);
 
     //!
     //! \brief    Close Function for MOS utilitiesNext
     //! \details  close/remove MOS utilitiesNext related structures, and only execute once for multiple entries
-    //! \param    [in] mosCtx
-    //!           os device ctx handle
+    //! \param    [in] userSettingPtr
+    //!           MediaUserSettingSharedPtr
     //! \return   MOS_STATUS
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MosUtilitiesClose(MOS_CONTEXT_HANDLE mosCtx);
+    static MOS_STATUS MosUtilitiesClose(MediaUserSettingSharedPtr userSettingPtr);
 
 private:
     //!
     //! \brief    Init Function for MOS OS specific utilitiesNext
     //! \details  Initial MOS OS specific utilitiesNext related structures, and only execute once for multiple entries
-    //! \param    [in] mosCtx
-    //!           os device ctx handle
+    //! \param    [in] userSettingPtr
+    //!           MediaUserSettingSharedPtr
     //! \return   MOS_STATUS
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MosOsUtilitiesInit(MOS_CONTEXT_HANDLE mosCtx);
+    static MOS_STATUS MosOsUtilitiesInit(MediaUserSettingSharedPtr userSettingPtr);
 
     //!
     //! \brief    Close Function for MOS OS utilitiesNext
@@ -164,18 +164,18 @@ private:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MosOsUtilitiesClose(MOS_CONTEXT_HANDLE mosCtx);
+    static MOS_STATUS MosOsUtilitiesClose(MediaUserSettingSharedPtr userSettingPtr);
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     //!
     //! \brief    Init simulate random memory allocation fail flag
     //! \details  init MosSimulateRandomAllocMemoryFailFlag according user feature value:
     //!           __MEDIA_USER_FEATURE_VALUE_SIMULATE_RANDOM_ALLOC_MEMORY_FAIL
-    //! \param    [in] mosCtx
-    //!           os device ctx handle
+    //! \param    [in] userSettingPtr
+    //!           MediaUserSettingSharedPtr
     //! \return   void
     //!
-    static void MosInitAllocMemoryFailSimulateFlag(MOS_CONTEXT_HANDLE mosCtx);
+    static void MosInitAllocMemoryFailSimulateFlag(MediaUserSettingSharedPtr userSettingPtr);
 
     static bool MosSimulateAllocMemoryFail(
         size_t      size,

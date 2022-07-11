@@ -100,6 +100,14 @@
 #define __MEDIA_USER_FEATURE_VALUE_SOFT_RESET_ENABLE                      "Soft Reset"
 #endif // (_DEBUG || _RELEASE_INTERNAL)
 
+#if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
+#define __MEDIA_USER_FEATURE_VALUE_DUMP_COMMAND_BUFFER_ENABLE             "Dump Command Buffer Enable"
+#endif
+
+#if MOS_COMMAND_RESINFO_DUMP_SUPPORTED
+#define __MEDIA_USER_FEATURE_VALUE_DUMP_COMMAND_INFO_ENABLE               "Dump Command Info Enable"
+#define __MEDIA_USER_FEATURE_VALUE_DUMP_COMMAND_INFO_PATH                 "Dump Command Info Path"
+#endif
 //!
 //! \brief User feature keys to define debug message levels and assertions.
 //!
@@ -330,6 +338,11 @@
 #define __MEDIA_USER_FEATURE_VALUE_COUNT_FOR_ADDITIONAL_OCA_BUFFER_ALLOCATED    "Count For Additional Oca Buffer Allocated"
 
 #define __VPHAL_ENABLE_VEBOX_MMC_DECOMPRESS                                     "Enable Vebox Decompress"
+
+#define __MEDIA_USER_FEATURE_VALUE_NULLHW_ENABLE                                "NULL HW Enable"
+#define __MEDIA_USER_FEATURE_VALUE_MOCKADAPTOR_PLATFORM                         "MockAdaptor Platform"
+#define __MEDIA_USER_FEATURE_VALUE_MOCKADAPTOR_STEPPING                         "MockAdaptor Stepping"
+#define __MEDIA_USER_FEATURE_VALUE_MOCKADAPTOR_DEVICE                           "MockAdaptor Device ID"
 
 //User feature key for enable Perf Utility Tool
 #define __MEDIA_USER_FEATURE_VALUE_PERF_UTILITY_TOOL_ENABLE          "Perf Utility Tool Enable"
