@@ -1082,6 +1082,7 @@ MHW_SETPAR_DECL_SRC(HCP_PIC_STATE, HevcBasicFeature)
     {
         params.sseEnable = false;
     }
+    params.constrainedIntraPredFlag = m_hevcPicParams->constrained_intra_pred_flag;
 
     return MOS_STATUS_SUCCESS;
 }
