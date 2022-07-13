@@ -269,9 +269,7 @@ VAStatus DdiDecodeAVC::ParsePicParams(
 
     //Accoding to RecList, if the surface id is invalid, set PicFlags equal to PICTURE_INVALID
     for (i = 0; i < CODEC_MAX_NUM_REF_FRAME; i++)
-    {
-        if (avcPicParams->RefFrameList[i].FrameIdx >= CODEC_AVC_NUM_UNCOMPRESSED_SURFACE)
-            return VA_STATUS_ERROR_INVALID_PARAMETER;        
+    {     
         //Check the surface id of reference list
         if (VA_INVALID_ID == m_ddiDecodeCtx->RecListSurfaceID[avcPicParams->RefFrameList[i].FrameIdx])
         {
@@ -928,8 +926,15 @@ void DdiDecodeAVC::SetupCodecPicture(
     if(vaPic.picture_id != DDI_CODEC_INVALID_FRAME_INDEX)
     {
         DDI_MEDIA_SURFACE *surface = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, vaPic.picture_id);
-        vaPic.frame_idx    = GetRenderTargetID(rtTbl, surface);
-        codecHalPic->FrameIdx = (uint8_t)vaPic.frame_idx;
+        vaPic.frame_idx    = GetRenderTargetID(rtTbl, surface);    
+        if(vaPic.frame_idx == DDI_CODEC_INVALID_FRAME_INDEX)
+        {
+            codecHalPic->FrameIdx = CODEC_AVC_NUM_UNCOMPRESSED_SURFACE - 1;
+        }
+        else
+        {
+            codecHalPic->FrameIdx = (uint8_t)vaPic.frame_idx;
+        }
     }
     else
     {
