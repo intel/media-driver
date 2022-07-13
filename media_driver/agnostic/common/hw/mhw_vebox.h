@@ -547,7 +547,7 @@ typedef struct _MHW_ICC_COLOR_CONVERSION_PARAMS
 
 typedef struct _MHW_DEBAYER_PARAMS
 {
-    uint32_t BayerInput;                  //!< 0 – MSB (default); 1 – LSB
+    uint32_t BayerInput;                  //!< 0: MSB (default); 1: LSB
     uint32_t LSBBayerBitDepth;            //!< 10, 12 or 14 for varies bayer input
 } MHW_DEBAYER_PARAMS, *PMHW_DEBAYER_PARAMS;
 
@@ -701,6 +701,10 @@ typedef struct _MHW_VEBOX_GAMUT_PARAMS
 
     // FDFB
     bool                                gamutstateforFDFB;
+
+    // Segmentation
+    bool                                bColorBalance;
+
 } MHW_VEBOX_GAMUT_PARAMS, *PMHW_VEBOX_GAMUT_PARAMS;
 
 //!

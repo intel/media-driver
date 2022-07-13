@@ -1432,7 +1432,69 @@ MOS_STATUS MhwVeboxInterfaceG12::AddVeboxGamutState(
 
     // Initialize the Gamut_Expansion_Gamma_Correction.
     *pVeboxGEGammaCorrection = VeboxGEGammaCorrection;
-    if (pVeboxGamutParams->GExpMode != MHW_GAMUT_MODE_NONE)
+    if (pVeboxGamutParams->bColorBalance)
+    {
+        // Need to convert YUV input to RGB before GE
+        pIecpState->CscState.DW0.TransformEnable = true;
+        if (pVeboxGamutParams->ColorSpace == MHW_CSpace_BT601 ||
+            pVeboxGamutParams->ColorSpace == MHW_CSpace_xvYCC601 ||
+            pVeboxGamutParams->ColorSpace == MHW_CSpace_BT601_FullRange)
+        {
+            pIecpState->CscState.DW0.C0          = 76309;
+            pIecpState->CscState.DW1.C1          = 0;
+            pIecpState->CscState.DW2.C2          = 104597;
+            pIecpState->CscState.DW3.C3          = 76309;
+            pIecpState->CscState.DW4.C4          = MOS_BITFIELD_VALUE((uint32_t)-25675, 19);
+            pIecpState->CscState.DW5.C5          = MOS_BITFIELD_VALUE((uint32_t)-53279, 19);
+            pIecpState->CscState.DW6.C6          = 76309;
+            pIecpState->CscState.DW7.C7          = 132201;
+            pIecpState->CscState.DW8.C8          = 0;
+            pIecpState->CscState.DW9.OffsetIn1   = MOS_BITFIELD_VALUE((uint32_t)-2048, 16);
+            pIecpState->CscState.DW9.OffsetOut1  = 0;
+            pIecpState->CscState.DW10.OffsetIn2  = MOS_BITFIELD_VALUE((uint32_t)-16384, 16);
+            pIecpState->CscState.DW10.OffsetOut2 = 0;
+            pIecpState->CscState.DW11.OffsetIn3  = MOS_BITFIELD_VALUE((uint32_t)-16384, 16);
+            pIecpState->CscState.DW11.OffsetOut3 = 0;
+        }
+        else if (pVeboxGamutParams->ColorSpace == MHW_CSpace_BT709 ||
+                 pVeboxGamutParams->ColorSpace == MHW_CSpace_xvYCC709 ||
+                 pVeboxGamutParams->ColorSpace == MHW_CSpace_BT709_FullRange)
+        {
+            pIecpState->CscState.DW0.C0          = 76309;
+            pIecpState->CscState.DW1.C1          = 0;
+            pIecpState->CscState.DW2.C2          = 117489;
+            pIecpState->CscState.DW3.C3          = 76309;
+            pIecpState->CscState.DW4.C4          = MOS_BITFIELD_VALUE((uint32_t)-13975, 19);
+            pIecpState->CscState.DW5.C5          = MOS_BITFIELD_VALUE((uint32_t)-34925, 19);
+            pIecpState->CscState.DW6.C6          = 76309;
+            pIecpState->CscState.DW7.C7          = 138438;
+            pIecpState->CscState.DW8.C8          = 0;
+            pIecpState->CscState.DW9.OffsetIn1   = MOS_BITFIELD_VALUE((uint32_t)-2048, 16);
+            pIecpState->CscState.DW9.OffsetOut1  = 0;
+            pIecpState->CscState.DW10.OffsetIn2  = MOS_BITFIELD_VALUE((uint32_t)-16384, 16);
+            pIecpState->CscState.DW10.OffsetOut2 = 0;
+            pIecpState->CscState.DW11.OffsetIn3  = MOS_BITFIELD_VALUE((uint32_t)-16384, 16);
+            pIecpState->CscState.DW11.OffsetOut3 = 0;
+        }
+        else
+        {
+            MHW_ASSERTMESSAGE("Unknown primary");
+        }
+
+        pGamutState->DW0.GlobalModeEnable = true;
+        pGamutState->DW1.CmW              = 1023;
+
+        pGamutState->DW1.C0 = pVeboxGamutParams->Matrix[0][0];
+        pGamutState->DW0.C1 = pVeboxGamutParams->Matrix[0][1];
+        pGamutState->DW3.C2 = pVeboxGamutParams->Matrix[0][2];
+        pGamutState->DW2.C3 = pVeboxGamutParams->Matrix[1][0];
+        pGamutState->DW5.C4 = pVeboxGamutParams->Matrix[1][1];
+        pGamutState->DW4.C5 = pVeboxGamutParams->Matrix[1][2];
+        pGamutState->DW7.C6 = pVeboxGamutParams->Matrix[2][0];
+        pGamutState->DW6.C7 = pVeboxGamutParams->Matrix[2][1];
+        pGamutState->DW8.C8 = pVeboxGamutParams->Matrix[2][2];
+    }
+    else if (pVeboxGamutParams->GExpMode != MHW_GAMUT_MODE_NONE)
     {
         // Need to convert YUV input to RGB before GE
         pIecpState->CscState.DW0.TransformEnable = true;

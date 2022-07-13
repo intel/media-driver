@@ -850,6 +850,8 @@ typedef struct _VPHAL_GAMUT_PARAMS
     uint32_t          dwAttenuation;  //!< U2.10 [0, 1024] 0 = No down scaling, 1024 = Full down scaling
     float             displayRGBW_x[4];
     float             displayRGBW_y[4];
+    bool              bColorBalance;
+    int32_t           colorBalanceMatrix[3][3];
 } VPHAL_GAMUT_PARAMS, *PVPHAL_GAMUT_PARAMS;
 
 //!
