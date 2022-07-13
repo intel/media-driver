@@ -182,7 +182,7 @@ VpPipelineAdapterBase::~VpPipelineAdapterBase()
         m_veboxInterface = nullptr;
         if (eStatus != MOS_STATUS_SUCCESS)
         {
-            VPHAL_PUBLIC_ASSERTMESSAGE("Failed to destroy Vebox Interface, eStatus:%d.\n", eStatus);
+            VP_PUBLIC_ASSERTMESSAGE("Failed to destroy Vebox Interface, eStatus:%d.\n", eStatus);
         }
     }
 
@@ -335,7 +335,7 @@ MOS_STATUS VpPipelineAdapterBase::GetStatusReportEntryLength(
 #if(!EMUL)        // this function is dummy for emul
     PVPHAL_STATUS_TABLE            pStatusTable;
 
-    VPHAL_PUBLIC_CHK_NULL(puiLength);
+    VP_PUBLIC_CHK_NULL(puiLength);
 
     pStatusTable = &m_statusTable;
 

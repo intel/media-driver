@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -28,7 +28,8 @@
 #define __MEDIA_INTERFACES_VPHAL_H__
 
 #include "media_interfaces.h"
-#include "vphal.h"
+#include "vp_base.h"
+#include "vp_utils.h"
 
 namespace vp
 {
@@ -45,7 +46,7 @@ class VphalDevice
 public:
     virtual ~VphalDevice() {}
 
-    VphalState              *m_vphalState           = nullptr;  //!< VpHal State created for specific gen.
+    VpBase                  *m_vphalState           = nullptr;  //!< VpHal State created for specific gen.
     VpBase                  *m_vpBase               = nullptr;
     bool                    m_isNextEnabled         = false;
     vp::VpPipeline          *m_vpPipeline           = nullptr;  //!< vp pipeline created for specific gen, which is used for sfc service.
@@ -60,14 +61,25 @@ public:
     //!           OS context used by to initialize the MOS_INTERFACE, includes information necessary for resource management and interfacing with KMD in general
     //! \param    [out] eStatus
     //!           MOS_STATUS, return MOS_STATUS_SUCCESS if successful, otherwise failed.
-    //! \return   VphalState*
+    //! \return   VpBase*
     //!           returns a valid pointer if successful and nullptr if failed.
     //!
-    static VphalState* CreateFactory(
+    static VpBase* CreateFactory(
         PMOS_INTERFACE  osInterface,
         PMOS_CONTEXT    osDriverContext,
         MOS_STATUS      *eStatus);
-
+    //!
+    //! \brief    Creates the VpHal device.
+    //! \details  Allocates all interfaces necessary for VpHal to function in the requested configuration and sets up all function pointers.
+    //! \param    [in] osInterface
+    //!           If an OS interface already exists, it may be passed in here for use by the VpHal device, if not, one is created.
+    //! \param    [in] osDriverContext
+    //!           OS context used by to initialize the MOS_INTERFACE, includes information necessary for resource management and interfacing with KMD in general
+    //! \param    [out] eStatus
+    //!           MOS_STATUS, return MOS_STATUS_SUCCESS if successful, otherwise failed.
+    //! \return   VpBase*
+    //!           returns a valid pointer if successful and nullptr if failed.
+    //!
     static VpBase *CreateFactoryNext(
         PMOS_INTERFACE osInterface,
         PMOS_CONTEXT   osDriverContext,

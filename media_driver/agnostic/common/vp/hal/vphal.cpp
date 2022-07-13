@@ -803,7 +803,13 @@ VphalState* VphalState::VphalStateFactory(
     PMOS_CONTEXT            pOsDriverContext,
     MOS_STATUS              *peStatus)
 {
-    return VphalDevice::CreateFactory(pOsInterface, pOsDriverContext, peStatus);
+    VphalState* vphalState = dynamic_cast<VphalState*>(VphalDevice::CreateFactory(pOsInterface, pOsDriverContext, peStatus));
+    if(nullptr == vphalState)
+    {
+        VPHAL_PUBLIC_ASSERTMESSAGE("vphal state pointer is nullptr");
+        *peStatus = MOS_STATUS_NULL_POINTER;
+    }
+    return vphalState;
 }
 
 //!
