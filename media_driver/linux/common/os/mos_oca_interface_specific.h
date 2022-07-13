@@ -240,7 +240,7 @@ public:
     //!
     //! \brief  Oca Interface Initialize.
     //!
-    static void InitInterface();
+    static void InitInterface(PMOS_CONTEXT mosCtx);
 
     //!
     //! \brief  Oca Interface uninitialize.
@@ -250,7 +250,7 @@ public:
     //!
     //! \brief  Initialize oca error handler related items.
     //!
-    static void InitOcaErrorHandler(MOS_CONTEXT *mosCtx);
+    static void InitOcaErrorHandler(PMOS_CONTEXT mosCtx);
 
     //!
     //! \brief  Oca Error Handler.
@@ -264,11 +264,6 @@ public:
     //!         The line number where the failure happened.
     //!
     static void OnOcaError(PMOS_CONTEXT mosCtx, MOS_STATUS status, const char *functionName, uint32_t lineNumber);
-
-    //!
-    //! \brief  Initialize oca error handler related items.
-    //!
-    static void InitOcaErrorHandler();
 
     bool IsOcaEnabled()
     {
@@ -285,7 +280,7 @@ private:
     //!
     //! \brief  Oca Interface Initialize.
     //!
-    void Initialize();
+    void Initialize(PMOS_CONTEXT mosCtx);
 
     virtual MOS_STATUS InsertData(MOS_OCA_BUFFER_HANDLE ocaBufHandle, uint8_t *p, uint32_t size);
 

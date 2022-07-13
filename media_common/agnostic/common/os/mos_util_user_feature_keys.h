@@ -98,6 +98,10 @@
 #define __MEDIA_USER_FEATURE_VALUE_ENABLE_LINUX_FRAME_SPLIT               "Enable Linux Frame Split"
 #define __MEDIA_USER_FEATURE_VALUE_ENABLE_GUC_SUBMISSION                  "Enable Guc Submission"
 #define __MEDIA_USER_FEATURE_VALUE_SOFT_RESET_ENABLE                      "Soft Reset"
+
+#define __MEDIA_USER_FEATURE_VALUE_ENABLE_DECODE_VE_CTXSCHEDULING         "Enable Decode VE CtxBasedScheduling"
+#define __MEDIA_USER_FEATURE_VALUE_ENABLE_DECODE_VIRTUAL_ENGINE           "Enable Decode VE"
+#define __MEDIA_USER_FEATURE_VALUE_ENABLE_ENCODE_VIRTUAL_ENGINE           "Enable Encode VE"
 #endif // (_DEBUG || _RELEASE_INTERNAL)
 
 #if MOS_COMMAND_BUFFER_DUMP_SUPPORTED

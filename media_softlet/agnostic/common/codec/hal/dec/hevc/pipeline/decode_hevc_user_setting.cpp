@@ -136,12 +136,6 @@ MOS_STATUS HevcPipeline::InitUserSetting(MediaUserSettingSharedPtr userSettingPt
         false);
     DeclareUserSettingKeyForDebug(
         userSettingPtr,
-        "Enable Decode VE CtxBasedScheduling",
-        MediaUserSetting::Group::Sequence,
-        int32_t(0),
-        false);
-    DeclareUserSettingKeyForDebug(
-        userSettingPtr,
         "HCP Decode User Pipe Num",
         MediaUserSetting::Group::Sequence,
         int32_t(2),

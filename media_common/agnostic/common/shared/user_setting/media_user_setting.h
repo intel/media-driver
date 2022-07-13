@@ -363,7 +363,7 @@ inline MOS_STATUS ReportUserSettingForDebug(
 #define DeclareUserSettingKeyForDebug(userSetting, valueName, group, defaultValue, isReportKey, ...) MOS_STATUS_SUCCESS
 #define ReadUserSettingForDebug(userSetting, value, valueName, group, ...) MOS_STATUS_SUCCESS
 #define WriteUserSettingForDebug(userSetting, valueName, value, group, ...) MOS_STATUS_SUCCESS
-#define ReportUserSettingForDebug(userSetting, valueName, value, group) MOS_STATUS_SUCCESS
+#define ReportUserSettingForDebug(userSetting, valueName, value, group, ...) MOS_STATUS_SUCCESS
 #endif
 
 template <typename T, typename U = int>

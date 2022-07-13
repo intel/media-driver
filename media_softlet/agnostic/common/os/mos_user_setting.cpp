@@ -161,6 +161,54 @@ MOS_STATUS MosUserSetting::InitMosCommonUserSetting(MediaUserSettingSharedPtr us
         true); //"Path where command info will be dumped, for example: ./"
 #endif // MOS_COMMAND_RESINFO_DUMP_SUPPORTED
 
+    DeclareUserSettingKey(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_ENABLE_UMD_OCA,
+        MediaUserSetting::Group::Device,
+        1,
+        true); //"Enable UMD_OCA in media driver."
+
+    DeclareUserSettingKey(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_OCA_STATUS,
+        MediaUserSetting::Group::Device,
+        0,
+        true); //Reports out the first OCA error.
+
+    DeclareUserSettingKey(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_OCA_ERROR_HINT,
+        MediaUserSetting::Group::Device,
+        0,
+        true); //Reports out the line number of first OCA error.
+
+    DeclareUserSettingKey(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_COUNT_FOR_OCA_BUFFER_LEAKED,
+        MediaUserSetting::Group::Device,
+        0,
+        true); //Reports out the line number of first OCA error.
+
+    DeclareUserSettingKey(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_COUNT_FOR_OCA_1ST_LEVEL_BB_END_MISSED,
+        MediaUserSetting::Group::Device,
+        0,
+        true); //Reports out the count for OCA buffer which missed to call On1stLevelBBEnd.
+
+    DeclareUserSettingKey(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_COUNT_FOR_ADDITIONAL_OCA_BUFFER_ALLOCATED,
+        MediaUserSetting::Group::Device,
+        0,
+        true); //Reports out the count for additional OCA buffer allocated.
+
+    DeclareUserSettingKey(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_IS_INDIRECT_STATE_HEAP_INVALID,
+        MediaUserSetting::Group::Device,
+        0,
+        true); //Reports out whether indirect state heap invalid
     return MOS_STATUS_SUCCESS;
 }
 
@@ -568,7 +616,49 @@ MOS_STATUS MosUserSetting::InitUserSettingForDebug(MediaUserSettingSharedPtr use
         0,
         true); // "MOS OS API fail simulate counter."
 
-/**********************MOCK ADAPTER**********************************/
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_ENABLE_DECODE_VE_CTXSCHEDULING,
+        MediaUserSetting::Group::Device,
+        0,
+        true); // "TRUE for Enabling Decode Virtual Engine context based scheduling. (Default false: disabled"
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_ENABLE_DECODE_VIRTUAL_ENGINE,
+        MediaUserSetting::Group::Device,
+        1,
+        true); // "TRUE for Enabling Decode Virtual Engine. (Default TRUE: enabled)"
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_ENABLE_ENCODE_VIRTUAL_ENGINE,
+        MediaUserSetting::Group::Device,
+        1,
+        true); // "TRUE for Enabling Encode Virtual Engine. (Default TRUE: enabled)"
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_MEDIA_TILE_ENCODING_1_DEFAULT,
+        MediaUserSetting::Group::Device,
+        0,
+        true); // "DDI Res tile as 1 default"
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_TILE_ENCODING_1_INTERNAL_USED,
+        MediaUserSetting::Group::Device,
+        0,
+        true); // "Internal Res tile as 1 used"
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_TILE_ENCODING_3_INTERNAL_USED,
+        MediaUserSetting::Group::Device,
+        0,
+        true); // "Internal Res tile as 3 used"
+
+    /**********************MOCK ADAPTER**********************************/
     DeclareUserSettingKeyForDebug(
         userSettingPtr,
         __MEDIA_USER_FEATURE_VALUE_NULLHW_ENABLE,
@@ -596,6 +686,7 @@ MOS_STATUS MosUserSetting::InitUserSettingForDebug(MediaUserSettingSharedPtr use
         MediaUserSetting::Group::Device,
         39497,
         true); //"Device ID of mock device, default is 0x9A49"
+
     return MOS_STATUS_SUCCESS;
 }
 

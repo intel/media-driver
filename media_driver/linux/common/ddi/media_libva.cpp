@@ -1773,7 +1773,7 @@ VAStatus DdiMedia_InitMediaContext (
         mosCtx.fd              = mediaCtx->fd;
         mosCtx.m_apoMosEnabled = mediaCtx->m_apoMosEnabled;
 
-        MosOcaInterfaceSpecific::InitInterface();
+        MosOcaInterfaceSpecific::InitInterface(&mosCtx);
 
         mediaCtx->pGtSystemInfo = (MEDIA_SYSTEM_INFO *)MOS_AllocAndZeroMemory(sizeof(MEDIA_SYSTEM_INFO));
         if (nullptr == mediaCtx->pGtSystemInfo)

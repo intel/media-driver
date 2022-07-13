@@ -590,24 +590,30 @@ void MosOcaInterfaceSpecific::OnOcaError(PMOS_CONTEXT mosCtx, MOS_STATUS status,
 
     if (MOS_SUCCEEDED(s_ocaStatus))
     {
+        MediaUserSettingSharedPtr   userSettingPtr = nullptr;
+
         s_ocaStatus = status;
         s_lineNumForOcaErr = lineNumber;
 
-        MOS_USER_FEATURE_VALUE_WRITE_DATA UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
-        UserFeatureWriteData.Value.i32Data = status;
-        UserFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_OCA_STATUS_ID;
-        MOS_UserFeature_WriteValues_ID(NULL, &UserFeatureWriteData, 1, mosCtx);
+        userSettingPtr = MosInterface::MosGetUserSettingInstance(mosCtx);
+        ReportUserSetting(
+            userSettingPtr,
+            __MEDIA_USER_FEATURE_VALUE_OCA_STATUS,
+            status,
+            MediaUserSetting::Group::Device);
 
-        UserFeatureWriteData.Value.i32Data = lineNumber;
-        UserFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_OCA_ERROR_HINT_ID;
-        MOS_UserFeature_WriteValues_ID(NULL, &UserFeatureWriteData, 1, mosCtx);
+        ReportUserSetting(
+            userSettingPtr,
+            __MEDIA_USER_FEATURE_VALUE_OCA_ERROR_HINT,
+            lineNumber,
+            MediaUserSetting::Group::Device);
     }
 }
 
 //!
 //! \brief  Initialize oca error handler related items.
 //!
-void MosOcaInterfaceSpecific::InitOcaErrorHandler()
+void MosOcaInterfaceSpecific::InitOcaErrorHandler(PMOS_CONTEXT mosCtx)
 {
     if (!s_bOcaStatusExistInReg)
     {
@@ -616,10 +622,13 @@ void MosOcaInterfaceSpecific::InitOcaErrorHandler()
         // "Oca Status" should already be added into reg for MOS_FAILED(s_ocaStatus) case by OnOcaError.
         if (MOS_SUCCEEDED(s_ocaStatus))
         {
-            MOS_USER_FEATURE_VALUE_WRITE_DATA UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
-            UserFeatureWriteData.Value.i32Data = s_ocaStatus;
-            UserFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_OCA_STATUS_ID;
-            MOS_UserFeature_WriteValues_ID(NULL, &UserFeatureWriteData, 1, (MOS_CONTEXT_HANDLE) nullptr);
+            MediaUserSettingSharedPtr   userSettingPtr = nullptr;
+            userSettingPtr = MosInterface::MosGetUserSettingInstance(mosCtx);
+            ReportUserSetting(
+                userSettingPtr,
+                __MEDIA_USER_FEATURE_VALUE_OCA_STATUS,
+                s_ocaStatus,
+                MediaUserSetting::Group::Device);
         }
     }
 }
@@ -627,20 +636,21 @@ void MosOcaInterfaceSpecific::InitOcaErrorHandler()
 //!
 //! \brief  Oca Interface Initialize.
 //!
-void MosOcaInterfaceSpecific::Initialize()
+void MosOcaInterfaceSpecific::Initialize(PMOS_CONTEXT mosContext)
 {
-    MosOcaInterfaceSpecific::InitOcaErrorHandler();
+    MosOcaInterfaceSpecific::InitOcaErrorHandler(mosContext);
     if (m_isInitialized == false)
     {
+        MediaUserSettingSharedPtr userSettingPtr = MosInterface::MosGetUserSettingInstance(mosContext);
         // read isOcaEnabled from reg key
-        MOS_USER_FEATURE_VALUE_DATA userFeatureData     = {};
-        MosUtilities::MosZeroMemory(&userFeatureData, sizeof(userFeatureData));
-        MosUtilities::MosUserFeatureReadValueID(
-            nullptr,
-            __MEDIA_USER_FEATURE_VALUE_ENABLE_UMD_OCA_ID,
-            &userFeatureData,
-            (MOS_CONTEXT_HANDLE) nullptr);
-        m_isOcaEnabled = (int32_t)userFeatureData.i32Data;
+        int32_t value = 0;
+        ReadUserSetting(
+            userSettingPtr,
+            value,
+            __MEDIA_USER_FEATURE_VALUE_ENABLE_UMD_OCA,
+            MediaUserSetting::Group::Device);
+
+        m_isOcaEnabled = value;
         if (!m_isOcaEnabled)
         {
             return;
@@ -718,18 +728,19 @@ void MosOcaInterfaceSpecific::Uninitialize()
             }
         }
         m_isInitialized = false;
+        s_bOcaStatusExistInReg = false;
     }
 }
 
 //!
 //! \brief  Oca Interface Initialize.
 //!
-void MosOcaInterfaceSpecific::InitInterface()
+void MosOcaInterfaceSpecific::InitInterface(PMOS_CONTEXT mosContext)
 {
     if (MosUtilities::MosAtomicIncrement(&s_refCount) == 1)
     {
         MosOcaInterfaceSpecific &ins = (MosOcaInterfaceSpecific &)MosOcaInterfaceSpecific::GetInstance();
-        ins.Initialize();
+        ins.Initialize(mosContext);
     }
     return;
 }

@@ -966,27 +966,28 @@ MOS_STATUS Mos_CheckVirtualEngineSupported(
     bool                veDefaultEnable)
 {
     MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
-    PLATFORM                    platform;
-    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
+    PLATFORM                    platform = {};
+    MediaUserSettingSharedPtr   userSettingPtr = nullptr;
+    uint32_t                    value = 0;
 
     MOS_OS_CHK_NULL_RETURN(osInterface);
-    MOS_ZeroMemory(&platform, sizeof(PLATFORM));
-
     osInterface->pfnGetPlatform(osInterface, &platform);
 
+    userSettingPtr = osInterface->pfnGetUserSettingInstance(osInterface);
     if (isNotEncode)
     {
         //UMD Decode Virtual Engine Override
         // 0: disable. can set to 1 only when KMD VE is enabled.
         // Default value is 1 if not set this key
-        memset(&userFeatureData, 0, sizeof(userFeatureData));
-        eStatus = MOS_UserFeature_ReadValue_ID(
-            nullptr,
-            __MEDIA_USER_FEATURE_VALUE_ENABLE_DECODE_VIRTUAL_ENGINE_ID,
-            &userFeatureData,
-            osInterface->pOsContext);
-        osInterface->bSupportVirtualEngine = userFeatureData.u32Data ? true : false;
-
+        osInterface->bSupportVirtualEngine = true;
+#if (_DEBUG || _RELEASE_INTERNAL)
+        ReadUserSettingForDebug(
+            userSettingPtr,
+            value,
+            __MEDIA_USER_FEATURE_VALUE_ENABLE_DECODE_VIRTUAL_ENGINE,
+            MediaUserSetting::Group::Device);
+        osInterface->bSupportVirtualEngine = value ? true : false;
+#endif
         // force bSupportVirtualEngine to false when virtual engine not enabled by default
         if ((!veDefaultEnable || !osInterface->veDefaultEnable) && 
             (eStatus == MOS_STATUS_USER_FEATURE_KEY_OPEN_FAILED))
@@ -1013,23 +1014,26 @@ MOS_STATUS Mos_CheckVirtualEngineSupported(
         osInterface->multiNodeScaling = osInterface->ctxBasedScheduling && MEDIA_IS_SKU(skuTable, FtrVcs2) ? true : false;
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-        MOS_USER_FEATURE_VALUE_WRITE_DATA  userFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
-        userFeatureWriteData.Value.i32Data = osInterface->ctxBasedScheduling ? true : false;
-        userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_ENABLE_DECODE_VE_CTXSCHEDULING_ID;
-        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, osInterface->pOsContext);
+        value = osInterface->ctxBasedScheduling ? true : false;
+        ReportUserSettingForDebug(
+            userSettingPtr,
+            __MEDIA_USER_FEATURE_VALUE_ENABLE_DECODE_VE_CTXSCHEDULING,
+            value,
+            MediaUserSetting::Group::Device);
 #endif
     }
     else
     {
         //UMD Encode Virtual Engine Override
-        memset(&userFeatureData, 0, sizeof(userFeatureData));
-        eStatus = MOS_UserFeature_ReadValue_ID(
-            nullptr,
-            __MEDIA_USER_FEATURE_VALUE_ENABLE_ENCODE_VIRTUAL_ENGINE_ID,
-            &userFeatureData,
-            osInterface->pOsContext);
-        osInterface->bSupportVirtualEngine = userFeatureData.u32Data ? true : false;
-
+        osInterface->bSupportVirtualEngine = true;
+#if (_DEBUG || _RELEASE_INTERNAL)
+        ReadUserSettingForDebug(
+            userSettingPtr,
+            value,
+            __MEDIA_USER_FEATURE_VALUE_ENABLE_ENCODE_VIRTUAL_ENGINE,
+            MediaUserSetting::Group::Device);
+        osInterface->bSupportVirtualEngine = value ? true : false;
+#endif
         // force bSupportVirtualEngine to false when virtual engine not enabled by default
         if (!osInterface->veDefaultEnable && (eStatus == MOS_STATUS_USER_FEATURE_KEY_READ_FAILED || eStatus == MOS_STATUS_USER_FEATURE_KEY_OPEN_FAILED))
         {
