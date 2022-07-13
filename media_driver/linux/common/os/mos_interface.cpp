@@ -2980,7 +2980,7 @@ bool MosInterface::MosResourceIsNull(PMOS_RESOURCE   resource)
 {
     if( nullptr == resource )
     {
-        MOS_OS_ASSERTMESSAGE("found pOsResource nullptr\n");
+        MOS_OS_NORMALMESSAGE("found pOsResource nullptr\n");
         return true;
     }
 
