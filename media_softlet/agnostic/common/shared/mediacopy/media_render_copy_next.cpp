@@ -292,7 +292,7 @@ MOS_STATUS RenderCopyStateNext::SetupSurfaceStates()
         {
            m_Source.dwWidth = (m_Source.dwHeight * m_Source.dwPitch) * 3 / 2;
         }
-        else if ((format == Format_RGBP) || (format == Format_Y410) || (format == Format_Y416))
+        else if (format == Format_RGBP)
         {
            m_Source.dwWidth = (m_Source.dwHeight * m_Source.dwPitch) * 3;
         }
