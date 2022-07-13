@@ -28,15 +28,6 @@ set(TMP_RENDER_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mhw_render_hwcmd_g12_X.h
 )
 
-set(SOURCES_
-    ${SOURCES_}
-    ${TMP_RENDER_SOURCES_}
-)
-
-set(HEADERS_
-    ${HEADERS_}
-    ${TMP_RENDER_HEADERS_}
-)
 
 set(COMMON_SOURCES_
     ${COMMON_SOURCES_}
@@ -50,4 +41,7 @@ set(COMMON_HEADERS_
 
 source_group("MHW\\Render Engine" FILES ${TMP_RENDER_SOURCES_} ${TMP_RENDER_HEADERS_})
 
-media_add_curr_to_include_path()
+set(COMMON_PRIVATE_INCLUDE_DIRS_
+    ${COMMON_PRIVATE_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)

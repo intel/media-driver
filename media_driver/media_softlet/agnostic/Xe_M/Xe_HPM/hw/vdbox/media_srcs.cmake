@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Intel Corporation
+# Copyright (c) 2021-2022, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -24,10 +24,6 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_vdenc_impl_xe_hpm.h
 )
 
-set(HEADERS_
-    ${HEADERS_}
-    ${TMP_HEADERS_}
-)
 
 set(COMMON_HEADERS_
     ${COMMON_HEADERS_}
@@ -36,4 +32,7 @@ set(COMMON_HEADERS_
 
 source_group( "MHW\\Vdbox" FILES ${TMP_HEADERS_} )
 
-media_add_curr_to_include_path()
+set(COMMON_PRIVATE_INCLUDE_DIRS_
+    ${COMMON_PRIVATE_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)

@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Intel Corporation
+# Copyright (c) 2021-2022, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -27,15 +27,12 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/media_interfaces_hwinfo_device.h
 )
 
-
-set(HEADERS_
-    ${HEADERS_}
+set(SOFTLET_COMMON_HEADERS_
+    ${SOFTLET_COMMON_HEADERS_}
     ${TMP_HEADERS_}
 )
 
-set(COMMON_HEADERS_
-    ${COMMON_HEADERS_}
-    ${TMP_HEADERS_}
+set(SOFTLET_COMMON_PRIVATE_INCLUDE_DIRS_
+    ${SOFTLET_COMMON_PRIVATE_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
 )
-
-media_add_curr_to_include_path()

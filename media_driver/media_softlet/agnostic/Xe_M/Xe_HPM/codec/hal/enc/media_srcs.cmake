@@ -25,23 +25,13 @@ set(TMP_HEADERS_ "")
 media_include_subdirectory(av1)
 media_include_subdirectory(hevc)
 
-set(SOURCES_NEW
-    ${SOURCES_NEW}
+set(CODEC_SOURCES_
+    ${CODEC_SOURCES_}
     ${TMP_SOURCES_}
 )
 
-set(HEADERS_NEW
-    ${HEADERS_NEW}
-    ${TMP_HEADERS_}
-)
-
-set(COMMON_SOURCES_
-    ${COMMON_SOURCES_}
-    ${TMP_SOURCES_}
-)
-
-set(COMMON_HEADERS_
-    ${COMMON_HEADERS_}
+set(CODEC_HEADERS_
+    ${CODEC_HEADERS_}
     ${TMP_HEADERS_}
 )
 

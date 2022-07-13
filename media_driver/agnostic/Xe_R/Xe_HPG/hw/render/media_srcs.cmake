@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Intel Corporation
+# Copyright (c) 2021-2022, Intel Corporation
 
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -26,15 +26,6 @@ set(TMP_RENDER_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mhw_render_xe_hpg.h
 )
 
-set(SOURCES_
-    ${SOURCES_}
-    ${TMP_RENDER_SOURCES_}
-)
-
-set(HEADERS_
-    ${HEADERS_}
-    ${TMP_RENDER_HEADERS_}
-)
 
 set(COMMON_SOURCES_
     ${COMMON_SOURCES_}
@@ -48,4 +39,7 @@ set(COMMON_HEADERS_
 
 source_group("MHW\\Render Engine" FILES ${TMP_RENDER_SOURCES_} ${TMP_RENDER_HEADERS_})
 
-media_add_curr_to_include_path()
+set(COMMON_PRIVATE_INCLUDE_DIRS_
+    ${COMMON_PRIVATE_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)

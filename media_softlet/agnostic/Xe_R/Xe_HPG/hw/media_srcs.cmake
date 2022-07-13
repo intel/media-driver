@@ -23,17 +23,15 @@ set(TMP_RENDER_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mhw_render_xe_hpg_impl.h
 )
 
-set(HEADERS_
-    ${HEADERS_}
-    ${TMP_RENDER_HEADERS_}
-)
 
-set(COMMON_HEADERS_
-    ${COMMON_HEADERS_}
+set(SOFTLET_COMMON_HEADERS_
+    ${SOFTLET_COMMON_HEADERS_}
     ${TMP_RENDER_HEADERS_}
-    ${TMP_MI_HEADERS_}
 )
 
 source_group("MHW\\Render Engine" FILES ${TMP_RENDER_HEADERS_})
 
-media_add_curr_to_include_path()
+set(SOFTLET_COMMON_PRIVATE_INCLUDE_DIRS_
+    ${SOFTLET_COMMON_PRIVATE_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)

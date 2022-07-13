@@ -38,4 +38,3 @@ set(COMMON_SOURCES_
     ${TMP_1_SOURCES_}
  )
 
-#media_add_curr_to_include_path()

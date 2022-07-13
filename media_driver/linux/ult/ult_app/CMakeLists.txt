@@ -65,6 +65,8 @@ target_link_libraries(devult libgtest libdl.so)
 target_include_directories(devult BEFORE PRIVATE
     ${MOS_PREPEND_INCLUDE_DIRS_}
     ${MOS_PUBLIC_INCLUDE_DIRS_}
+    ${COMMON_PRIVATE_INCLUDE_DIRS_}
+    ${SOFTLET_COMMON_PRIVATE_INCLUDE_DIRS_}
     ${VP_PRIVATE_INCLUDE_DIRS_}
     ${SOFTLET_VP_PRIVATE_INCLUDE_DIRS_}
 )

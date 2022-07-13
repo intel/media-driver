@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2020, Intel Corporation
+# Copyright (c) 2017-2022, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -47,15 +47,6 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_avp_interface.h
 )
 
-set(SOURCES_
-    ${SOURCES_}
-    ${TMP_SOURCES_}
- )
-
-set(HEADERS_
-    ${HEADERS_}
-    ${TMP_HEADERS_}
-)
 
 set(COMMON_SOURCES_
     ${COMMON_SOURCES_}
@@ -69,5 +60,7 @@ set(COMMON_HEADERS_
 
 source_group( "MHW\\Vdbox" FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
 
-
-media_add_curr_to_include_path()
+set(COMMON_PRIVATE_INCLUDE_DIRS_
+    ${COMMON_PRIVATE_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)

@@ -43,5 +43,7 @@ add_library(drm_mock SHARED ${SOURCES})
 target_include_directories(drm_mock BEFORE PRIVATE
 ${MOS_PREPEND_INCLUDE_DIRS_}
 ${MOS_PUBLIC_INCLUDE_DIRS_}
+${COMMON_PRIVATE_INCLUDE_DIRS_}
+${SOFTLET_COMMON_PRIVATE_INCLUDE_DIRS_}
 )
 set_target_properties(drm_mock PROPERTIES VERSION 2.4.0 SOVERSION 2)

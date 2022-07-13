@@ -26,17 +26,14 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/frame_tracker.h
 )
 
-set(HEADERS_
-    ${HEADERS_}
-    ${TMP_HEADERS_}
-)
-
-set(COMMON_HEADERS_
-    ${COMMON_HEADERS_}
+set(SOFTLET_COMMON_HEADERS_
+    ${SOFTLET_COMMON_HEADERS_}
     ${TMP_HEADERS_}
 )
 
 source_group( "Common Files" FILES ${TMP_HEADERS_} )
 
-
-media_add_curr_to_include_path()
+set(SOFTLET_COMMON_PRIVATE_INCLUDE_DIRS_
+    ${SOFTLET_COMMON_PRIVATE_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)
