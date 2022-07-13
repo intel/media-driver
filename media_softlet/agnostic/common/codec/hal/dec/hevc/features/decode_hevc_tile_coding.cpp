@@ -194,7 +194,8 @@ MOS_STATUS HevcTileCoding::UpdateSubTileInfo(const CODEC_HEVC_PIC_PARAMS & picPa
                                              const CODEC_HEVC_SLICE_PARAMS & sliceParams,
                                              SliceTileInfo &sliceTileInfo)
 {
-    DECODE_ASSERT(sliceTileInfo.numTiles == (sliceParams.num_entry_point_offsets + 1));
+    DECODE_CHK_COND(sliceTileInfo.numTiles != (sliceParams.num_entry_point_offsets + 1),
+        "tiles number does not equal to current num_entry_point_offsets.");
 
     uint32_t* entryPointOffsets = nullptr;
     if (m_basicFeature->m_hevcSubsetParams != nullptr)
