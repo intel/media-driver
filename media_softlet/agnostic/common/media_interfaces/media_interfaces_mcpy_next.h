@@ -26,12 +26,11 @@
 
 #ifndef __MEDIA_INTERFACES_MCPY_NEXT_H__
 #define __MEDIA_INTERFACES_MCPY_NEXT_H__
-
-#include "media_interfaces_mhw_next.h"
+#include "media_factory.h"
 
 // forward declaration
 class MediaCopyBaseState;
-
+class MhwInterfacesNext;
 //!
 //! \class    McpyDevice
 //! \brief    MCPY device

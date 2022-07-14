@@ -1757,7 +1757,6 @@ VAStatus DdiMedia_InitMediaContext (
     MOS_CONTEXT mosCtx     = {};
     mosCtx.fd              = mediaCtx->fd;
     MosInterface::InitOsUtilities(&mosCtx);
-
     mediaCtx->m_apoMosEnabled = SetupApoMosSwitch(devicefd);
 
 #ifdef _MMC_SUPPORTED
@@ -1800,6 +1799,8 @@ VAStatus DdiMedia_InitMediaContext (
         mediaCtx->m_tileYFlag               = mosCtx.bTileYFlag;
         mediaCtx->bIsAtomSOC                = mosCtx.bIsAtomSOC;
         mediaCtx->perfData                  = mosCtx.pPerfData;
+
+        MediaUserSettingsMgr::MediaUserSettingsInit(mediaCtx->platform.eProductFamily);
 
 #ifdef _MMC_SUPPORTED
         if (mosCtx.ppMediaMemDecompState == nullptr)

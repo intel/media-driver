@@ -26,11 +26,10 @@
 
 #ifndef __MEDIA_INTERFACES_MMD_NEXT_H__
 #define __MEDIA_INTERFACES_MMD_NEXT_H__
-
-#include "media_interfaces_mhw_next.h"
-
+#include "media_factory.h"
 // forward declaration
 class MediaMemDecompBaseState;
+class MhwInterfacesNext;
 
 //!
 //! \class    MmdDevice

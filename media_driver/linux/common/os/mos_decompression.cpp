@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -27,14 +27,12 @@
 
 #include "mos_decompression.h"
 #include "media_interfaces_mmd.h"
-#include "media_interfaces_mmd_next.h"
 
-MosDecompression::MosDecompression(PMOS_CONTEXT osDriverContext)
+MosDecompression::MosDecompression(PMOS_CONTEXT osDriverContext):
+    MosDecompressionBase(osDriverContext)
 {
 #ifdef _MMC_SUPPORTED
     MOS_OS_CHK_NULL_NO_STATUS_RETURN(osDriverContext);
-
-    m_mediaMemDecompState = static_cast<MediaMemDecompBaseState *>(MmdDeviceNext::CreateFactory(osDriverContext));
 
     if (nullptr == m_mediaMemDecompState)
     {
@@ -43,58 +41,4 @@ MosDecompression::MosDecompression(PMOS_CONTEXT osDriverContext)
             static_cast<MediaMemDecompBaseState *>(MmdDevice::CreateFactory(osDriverContext));
     }
 #endif
-}
-
-MosDecompression::~MosDecompression()
-{
-#ifdef _MMC_SUPPORTED
-    MOS_Delete(m_mediaMemDecompState);
-#endif
-}
-
-MOS_STATUS MosDecompression::MemoryDecompress(
-    PMOS_RESOURCE osResource)
-{
-    MOS_OS_CHK_NULL_RETURN(m_mediaMemDecompState);
-    m_mediaMemDecompState->MemoryDecompress(osResource);
-    return MOS_STATUS_SUCCESS;
-}
-
-MOS_STATUS MosDecompression::MediaMemoryCopy(
-    PMOS_RESOURCE inputResource,
-    PMOS_RESOURCE outputResource,
-    bool          outputCompressed)
-{
-    MOS_OS_CHK_NULL_RETURN(m_mediaMemDecompState);
-    m_mediaMemDecompState->MediaMemoryCopy(
-        inputResource,
-        outputResource,
-        outputCompressed);
-
-    return MOS_STATUS_SUCCESS;
-}
-
-MOS_STATUS MosDecompression::MediaMemoryCopy2D(
-    PMOS_RESOURCE inputResource,
-    PMOS_RESOURCE outputResource,
-    uint32_t      copyWidth,
-    uint32_t      copyHeight,
-    uint32_t      copyInputOffset,
-    uint32_t      copyOutputOffset,
-    uint32_t      bpp,
-    bool          outputCompressed)
-{
-    MOS_OS_CHK_NULL_RETURN(m_mediaMemDecompState);
-
-    m_mediaMemDecompState->MediaMemoryCopy2D(
-        inputResource,
-        outputResource,
-        copyWidth,
-        copyHeight,
-        copyInputOffset,
-        copyOutputOffset,
-        bpp,
-        outputCompressed);
-
-    return MOS_STATUS_SUCCESS;
 }

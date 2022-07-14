@@ -44,6 +44,8 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mos_user_setting.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_utilities.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_solo_generic.h
+    ${CMAKE_CURRENT_LIST_DIR}/mos_mediacopy.h
+    ${CMAKE_CURRENT_LIST_DIR}/mos_mediacopy_base.h
 )
 
 if(${Media_Scalability_Supported} STREQUAL "yes")
@@ -77,4 +79,4 @@ set(MOS_PUBLIC_INCLUDE_DIRS_
     ${CMAKE_CURRENT_LIST_DIR}
 )
 
-source_group( "MOSNext" FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
+source_group( "mos_softlet" FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )

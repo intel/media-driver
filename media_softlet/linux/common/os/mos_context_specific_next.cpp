@@ -145,8 +145,6 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
             MEDIA_WR_WA(&m_waTable, WaHucStreamoutOnlyDisable, 0);
         }
 
-        MediaUserSettingsMgr::MediaUserSettingsInit(m_platformInfo.eProductFamily);
-
         MosUtilities::MosTraceSetupInfo(
             (VA_MAJOR_VERSION << 16) | VA_MINOR_VERSION,
             m_platformInfo.eProductFamily,

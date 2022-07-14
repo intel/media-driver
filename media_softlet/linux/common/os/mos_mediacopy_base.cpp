@@ -19,26 +19,50 @@
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 * OTHER DEALINGS IN THE SOFTWARE.
 */
-
 //!
-//! \file        mos_mediacopy.h
-//! \brief       This module defines MOS decompression on linux platform
+//! \file     mos_mediacopy.cpp
+//! \brief    MOS media copy functions
+//! \details  MOS media copy functions
 //!
-#ifndef __MOS_MEDIACOPY_H__
-#define __MOS_MEDIACOPY_H__
 
 #include "mos_mediacopy_base.h"
+#include "media_interfaces_mcpy_next.h"
 
-class MosMediaCopy : public MosMediaCopyBase
+MosMediaCopyBase::MosMediaCopyBase(PMOS_CONTEXT mosCtx)
 {
-public:
-    //!
-    //! \brief    constructor
-    //!
-    MosMediaCopy(PMOS_CONTEXT mosCtx);
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(mosCtx);
+    m_mediaCopyState = static_cast<MediaCopyBaseState *>(McpyDeviceNext::CreateFactory(mosCtx));
+}
 
-    virtual MediaCopyBaseState **GetMediaCopyState() override;
-MEDIA_CLASS_DEFINE_END(MosMediaCopy)
-};
+MosMediaCopyBase::~MosMediaCopyBase()
+{
+    MOS_Delete(m_mediaCopyState);
+}
 
-#endif // __MOS_MEDIACOPY_H__
+MediaCopyBaseState **MosMediaCopyBase::GetMediaCopyState()
+{
+    return &m_mediaCopyState;
+}
+
+MOS_STATUS MosMediaCopyBase::MediaCopy(
+    PMOS_RESOURCE inputResource,
+    PMOS_RESOURCE outputResource,
+    MCPY_METHOD   preferMethod)
+{
+    MOS_OS_CHK_STATUS_RETURN(m_mediaCopyState->SurfaceCopy(
+        inputResource,
+        outputResource,
+        preferMethod));
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MosMediaCopyBase::MediaCopy(
+    MEDIAUMD_RESOURCE inputResource,
+    uint32_t          inputResourceIndex,
+    MEDIAUMD_RESOURCE outputResource,
+    uint32_t          outputResourceIndex,
+    MCPY_METHOD       preferMethod)
+{
+    return MOS_STATUS_UNIMPLEMENTED;
+}

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -19,24 +19,26 @@
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 * OTHER DEALINGS IN THE SOFTWARE.
 */
-
 //!
-//! \file        mos_decompression.h
-//! \brief       This module defines MOS decompression on linux platform
+//! \file     mos_mediacopy.cpp
+//! \brief    MOS media copy functions
+//! \details  MOS media copy functions
 //!
-#ifndef __MOS_DECOMPRESSION_H__
-#define __MOS_DECOMPRESSION_H__
 
-#include "mos_decompression_base.h"
+#include "mos_mediacopy.h"
+#include "media_interfaces_mcpy.h"
 
-class MosDecompression : public MosDecompressionBase
+MosMediaCopy::MosMediaCopy(PMOS_CONTEXT mosCtx):
+    MosMediaCopyBase(mosCtx)
 {
-public:
-    //!
-    //! \brief    constructor
-    //!
-    MosDecompression(PMOS_CONTEXT osDriverContext);
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(mosCtx);
+    if(m_mediaCopyState == nullptr)
+    {
+        m_mediaCopyState = static_cast<MediaCopyBaseState *>(McpyDevice::CreateFactory(mosCtx));
+    }
+}
 
-MEDIA_CLASS_DEFINE_END(MosDecompression)
-};
-#endif // __MOS_DECOMPRESSION_H__
+MediaCopyBaseState **MosMediaCopy::GetMediaCopyState()
+{
+    return &m_mediaCopyState;
+}

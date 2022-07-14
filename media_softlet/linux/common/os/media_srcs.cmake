@@ -28,8 +28,8 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/mos_gpucontext_specific_next.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_gpucontext_specific_next_ext.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_os_specific_next.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/mos_decompression.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/mos_mediacopy.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/mos_decompression_base.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/mos_mediacopy_base.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_user_setting_specific.cpp
 )
 
@@ -40,6 +40,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mos_commandbuffer_specific_next.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_gpucontext_specific_next.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_decompression.h
+    ${CMAKE_CURRENT_LIST_DIR}/mos_decompression_base.h
     ${CMAKE_CURRENT_LIST_DIR}/media_skuwa_specific.h
 )
 
@@ -71,6 +72,6 @@ set(MOS_PUBLIC_INCLUDE_DIRS_
     ${MOS_PUBLIC_INCLUDE_DIRS_}
     ${CMAKE_CURRENT_LIST_DIR}
 )
-source_group( "MOSNext" FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
+source_group( "mos_softlet" FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
 
 endif() # CMAKE_WDDM_LINUX
