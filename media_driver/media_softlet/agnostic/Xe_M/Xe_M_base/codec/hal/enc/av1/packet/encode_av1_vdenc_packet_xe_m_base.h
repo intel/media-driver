@@ -103,8 +103,6 @@ namespace encode
         MOS_STATUS RegisterPostCdef();
         MOS_STATUS UpdateUserFeatureKey(PMOS_SURFACE surface);
 
-        virtual MOS_STATUS UpdateStatusReport(uint32_t srType, MOS_COMMAND_BUFFER *cmdBuffer) override;
-
         MHW_SETPAR_DECL_HDR(AVP_IND_OBJ_BASE_ADDR_STATE);
 
         MHW_SETPAR_DECL_HDR(AVP_PIC_STATE);
@@ -122,7 +120,6 @@ namespace encode
 #endif  // USE_CODECHAL_DEBUG_TOOL
 
         bool  m_userFeatureUpdated_post_cdef = false;  //!< Inidate if mmc user feature key for post cdef is updated
-        AtomicScratchBufferAv1 m_atomicScratchBuf = {}; //!< Stores atomic operands and result
 
     private:
         uint16_t m_tileColStartSb[64];  //!< tile column start SB
