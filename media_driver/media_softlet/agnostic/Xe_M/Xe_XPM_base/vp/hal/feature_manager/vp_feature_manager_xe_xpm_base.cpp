@@ -131,13 +131,6 @@ MOS_STATUS VPFeatureManagerXe_Xpm_Base::CheckFeatures(void * params, bool &bApgF
         return MOS_STATUS_SUCCESS;
     }
 
-    bool isHdrNeeded = IsHdrNeeded(pvpParams->pSrc[0], pvpParams->pTarget[0]);
-    if (isHdrNeeded && IsCroppingNeeded(pvpParams->pSrc[0]))
-    {
-        VP_PUBLIC_NORMALMESSAGE("Disable APO Path for HDR Cropping");
-        return MOS_STATUS_SUCCESS;
-    }
-
     // Check whether VEBOX is available
     // VTd doesn't support VEBOX
     if (!MEDIA_IS_SKU(m_hwInterface->m_skuTable, FtrVERing))
@@ -178,6 +171,8 @@ MOS_STATUS VPFeatureManagerXe_Xpm_Base::CheckFeatures(void * params, bool &bApgF
     if (!IsVeboxOutFeasible(pvpParams) &&
         !IsSfcOutputFeasible(pvpParams))
     {
+        bool isHdrNeeded = IsHdrNeeded(pvpParams->pSrc[0], pvpParams->pTarget[0]);
+
         if (!isHdrNeeded)
         {
             return MOS_STATUS_SUCCESS;
