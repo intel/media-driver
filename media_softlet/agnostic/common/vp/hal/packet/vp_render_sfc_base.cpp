@@ -1383,9 +1383,6 @@ MOS_STATUS SfcRenderBase::AllocateResources()
         VP_RENDER_CHK_NULL_RETURN(m_SFDLineBufferSurfaceArray);
     }
 
-    // for AVSLineBuffer, IEFLineBuffer and SFDLineBuffer, they are only needed when surface allocation bigger than 4150.
-    // for AVSLineTileBuffer, IEFLineTileBuffer and SFDLineTileBuffer, they are only needed for VdBox SFC scalability case and not needed for VeBox SFC case.
-
     // Allocate AVS Line Buffer surface----------------------------------------------
     size = GetAvsLineBufferSize(false, m_renderData.sfcStateParams->b8tapChromafiltering, m_renderData.sfcStateParams->dwInputFrameWidth, m_renderData.sfcStateParams->dwInputFrameHeight);
     VP_RENDER_CHK_STATUS_RETURN(AllocateLineBufferArray(m_AVSLineBufferSurfaceArray, size, "SfcAVSLineBufferSurface"));
@@ -1394,27 +1391,21 @@ MOS_STATUS SfcRenderBase::AllocateResources()
     size = GetIefLineBufferSize(false, m_renderData.sfcStateParams->dwScaledRegionHeight);
     VP_RENDER_CHK_STATUS_RETURN(AllocateLineBufferArray(m_IEFLineBufferSurfaceArray, size, "SfcIEFLineBufferSurface"));
 
-    if (m_renderData.sfcStateParams->dwScaledRegionHeight > SFC_LINEBUFEER_SIZE_LIMITED)
-    {
-        // Allocate SFD Line Buffer surface
-        size = GetSfdLineBufferSize(false, m_renderData.sfcStateParams->OutputFrameFormat, m_renderData.sfcStateParams->dwScaledRegionWidth, m_renderData.sfcStateParams->dwScaledRegionHeight);
-        VP_RENDER_CHK_STATUS_RETURN(AllocateLineBufferArray(m_SFDLineBufferSurfaceArray, size, "SfcSFDLineBufferSurface"));
-    }
+    // Allocate SFD Line Buffer surface
+    size = GetSfdLineBufferSize(false, m_renderData.sfcStateParams->OutputFrameFormat, m_renderData.sfcStateParams->dwScaledRegionWidth, m_renderData.sfcStateParams->dwScaledRegionHeight);
+    VP_RENDER_CHK_STATUS_RETURN(AllocateLineBufferArray(m_SFDLineBufferSurfaceArray, size, "SfcSFDLineBufferSurface"));
 
-    if (m_bVdboxToSfc && m_scalabilityParams.numPipe > 1)
-    {
-        // Allocate AVS Line Tile Buffer surface----------------------------------------------
-        size = GetAvsLineBufferSize(true, m_renderData.sfcStateParams->b8tapChromafiltering, m_renderData.sfcStateParams->dwInputFrameWidth, m_renderData.sfcStateParams->dwInputFrameHeight);
-        VP_RENDER_CHK_STATUS_RETURN(AllocateLineBuffer(m_AVSLineTileBufferSurface, size, "SfcAVSLineTileBufferSurface"));
+    // Allocate AVS Line Tile Buffer surface----------------------------------------------
+    size = GetAvsLineBufferSize(true, m_renderData.sfcStateParams->b8tapChromafiltering, m_renderData.sfcStateParams->dwInputFrameWidth, m_renderData.sfcStateParams->dwInputFrameHeight);
+    VP_RENDER_CHK_STATUS_RETURN(AllocateLineBuffer(m_AVSLineTileBufferSurface, size, "SfcAVSLineTileBufferSurface"));
 
-        // Allocate IEF Line Tile Buffer surface----------------------------------------------
-        size = GetIefLineBufferSize(true, m_renderData.sfcStateParams->dwScaledRegionHeight);
-        VP_RENDER_CHK_STATUS_RETURN(AllocateLineBuffer(m_IEFLineTileBufferSurface, size, "SfcIEFLineTileBufferSurface"));
+    // Allocate IEF Line Tile Buffer surface----------------------------------------------
+    size = GetIefLineBufferSize(true, m_renderData.sfcStateParams->dwScaledRegionHeight);
+    VP_RENDER_CHK_STATUS_RETURN(AllocateLineBuffer(m_IEFLineTileBufferSurface, size, "SfcIEFLineTileBufferSurface"));
 
-        // Allocate SFD Line Tile Buffer surface
-        size = GetSfdLineBufferSize(true, m_renderData.sfcStateParams->OutputFrameFormat, m_renderData.sfcStateParams->dwScaledRegionWidth, m_renderData.sfcStateParams->dwScaledRegionHeight);
-        VP_RENDER_CHK_STATUS_RETURN(AllocateLineBuffer(m_SFDLineTileBufferSurface, size, "SfcSFDLineTileBufferSurface"));
-    }
+    // Allocate SFD Line Tile Buffer surface
+    size = GetSfdLineBufferSize(true, m_renderData.sfcStateParams->OutputFrameFormat, m_renderData.sfcStateParams->dwScaledRegionWidth, m_renderData.sfcStateParams->dwScaledRegionHeight);
+    VP_RENDER_CHK_STATUS_RETURN(AllocateLineBuffer(m_SFDLineTileBufferSurface, size, "SfcSFDLineTileBufferSurface"));
 
     return MOS_STATUS_SUCCESS;
 }
