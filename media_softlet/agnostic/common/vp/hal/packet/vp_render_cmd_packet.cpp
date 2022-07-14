@@ -152,6 +152,25 @@ MOS_STATUS VpRenderCmdPacket::Prepare()
     VP_RENDER_CHK_NULL_RETURN(m_kernelSet);
     VP_RENDER_CHK_NULL_RETURN(m_surfMemCacheCtl);
 
+    if (m_renderHal->pStateHeap == nullptr)
+    {
+        VP_RENDER_CHK_STATUS_RETURN(m_renderHal->pfnAllocateStateHeaps(m_renderHal, &m_renderHal->StateHeapSettings));
+        if (m_renderHal->pStateHeap)
+        {
+            MHW_STATE_BASE_ADDR_PARAMS *pStateBaseParams = &m_renderHal->StateBaseAddressParams;
+
+            pStateBaseParams->presGeneralState           = &m_renderHal->pStateHeap->GshOsResource;
+            pStateBaseParams->dwGeneralStateSize         = m_renderHal->pStateHeap->dwSizeGSH;
+            pStateBaseParams->presDynamicState           = &m_renderHal->pStateHeap->GshOsResource;
+            pStateBaseParams->dwDynamicStateSize         = m_renderHal->pStateHeap->dwSizeGSH;
+            pStateBaseParams->bDynamicStateRenderTarget  = false;
+            pStateBaseParams->presIndirectObjectBuffer   = &m_renderHal->pStateHeap->GshOsResource;
+            pStateBaseParams->dwIndirectObjectBufferSize = m_renderHal->pStateHeap->dwSizeGSH;
+            pStateBaseParams->presInstructionBuffer      = &m_renderHal->pStateHeap->IshOsResource;
+            pStateBaseParams->dwInstructionBufferSize    = m_renderHal->pStateHeap->dwSizeISH;
+        }
+    }
+
     if (m_packetResourcesdPrepared)
     {
         VP_RENDER_NORMALMESSAGE("Resource Prepared, skip this time");
@@ -170,6 +189,28 @@ MOS_STATUS VpRenderCmdPacket::Prepare()
     if (m_submissionMode == MULTI_KERNELS_WITH_MULTI_MEDIA_STATES)
     {
         m_kernelRenderData.clear();
+
+        if (m_bindingtableMode == MULTI_KERNELS_WITH_MULTI_BINDINGTABLES)
+        {
+            bool bAllocated = false;
+            VP_RENDER_CHK_STATUS_RETURN(m_renderHal->pfnReAllocateStateHeapsforAdvFeature(m_renderHal, bAllocated));
+
+            if (bAllocated && m_renderHal->pStateHeap)
+            {
+                MHW_STATE_BASE_ADDR_PARAMS *pStateBaseParams = &m_renderHal->StateBaseAddressParams;
+
+                pStateBaseParams->presGeneralState           = &m_renderHal->pStateHeap->GshOsResource;
+                pStateBaseParams->dwGeneralStateSize         = m_renderHal->pStateHeap->dwSizeGSH;
+                pStateBaseParams->presDynamicState           = &m_renderHal->pStateHeap->GshOsResource;
+                pStateBaseParams->dwDynamicStateSize         = m_renderHal->pStateHeap->dwSizeGSH;
+                pStateBaseParams->bDynamicStateRenderTarget  = false;
+                pStateBaseParams->presIndirectObjectBuffer   = &m_renderHal->pStateHeap->GshOsResource;
+                pStateBaseParams->dwIndirectObjectBufferSize = m_renderHal->pStateHeap->dwSizeGSH;
+                pStateBaseParams->presInstructionBuffer      = &m_renderHal->pStateHeap->IshOsResource;
+                pStateBaseParams->dwInstructionBufferSize    = m_renderHal->pStateHeap->dwSizeISH;
+            }
+        }
+
         VP_RENDER_CHK_NULL_RETURN(m_renderHal->pStateHeap);
 
         m_renderHal->pStateHeap->iCurrentBindingTable = 0;
