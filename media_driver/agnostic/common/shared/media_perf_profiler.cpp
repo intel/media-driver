@@ -134,6 +134,8 @@ void MediaPerfProfiler::Destroy(MediaPerfProfiler* profiler, void* context, MOS_
     PERF_UTILITY_PRINT;
 
     CHK_NULL_NO_STATUS_RETURN(profiler);
+    CHK_NULL_NO_STATUS_RETURN(osInterface);
+
     if (profiler->m_profilerEnabled == 0 || profiler->m_mutex == nullptr)
     {
         return;
@@ -247,6 +249,8 @@ MOS_STATUS MediaPerfProfiler::StoreData(
     uint32_t offset,
     uint32_t value)
 {
+    CHK_NULL_RETURN(miInterface);
+
     if (m_miItf)
     {
         CHK_STATUS_RETURN(MediaPerfProfilerNext::StoreData(m_miItf, cmdBuffer, pOsContext, offset, value));
@@ -273,6 +277,9 @@ MOS_STATUS MediaPerfProfiler::StoreRegister(
     uint32_t offset,
     uint32_t reg)
 {
+    CHK_NULL_RETURN(osInterface);
+    CHK_NULL_RETURN(miInterface);
+
     PMOS_CONTEXT pOsContext = osInterface->pOsContext;
     CHK_NULL_RETURN(pOsContext);
 
@@ -307,6 +314,8 @@ MOS_STATUS MediaPerfProfiler::StoreTSByPipeCtrl(
     PMOS_CONTEXT pOsContext,
     uint32_t offset)
 {
+    CHK_NULL_RETURN(miInterface);
+
     if (m_miItf)
     {
         CHK_STATUS_RETURN(MediaPerfProfilerNext::StoreTSByPipeCtrl(m_miItf, cmdBuffer, pOsContext, offset));
@@ -336,6 +345,8 @@ MOS_STATUS MediaPerfProfiler::StoreTSByMiFlush(
     PMOS_CONTEXT pOsContext,
     uint32_t offset)
 {
+    CHK_NULL_RETURN(miInterface);
+
     if (m_miItf)
     {
         CHK_STATUS_RETURN(MediaPerfProfilerNext::StoreTSByMiFlush(m_miItf, cmdBuffer, pOsContext, offset));
@@ -364,6 +375,8 @@ MOS_STATUS MediaPerfProfiler::StoreDataNext(
     uint32_t offset,
     uint32_t value)
 {
+    CHK_NULL_RETURN(miInterface);
+
     std::shared_ptr<mhw::mi::Itf> miItf = std::static_pointer_cast<mhw::mi::Itf>(miInterface->GetNewMiInterface());
 
     if (miItf == nullptr)
@@ -389,6 +402,9 @@ MOS_STATUS MediaPerfProfiler::StoreRegisterNext(
     uint32_t offset,
     uint32_t reg)
 {
+    CHK_NULL_RETURN(osInterface);
+    CHK_NULL_RETURN(miInterface);
+
     std::shared_ptr<mhw::mi::Itf> miItf = std::static_pointer_cast<mhw::mi::Itf>(miInterface->GetNewMiInterface());
 
     if (miItf == nullptr)
@@ -422,6 +438,8 @@ MOS_STATUS MediaPerfProfiler::StoreTSByPipeCtrlNext(
     PMOS_CONTEXT pOsContext,
     uint32_t offset)
 {
+    CHK_NULL_RETURN(miInterface);
+
     std::shared_ptr<mhw::mi::Itf> miItf = std::static_pointer_cast<mhw::mi::Itf>(miInterface->GetNewMiInterface());
 
     if (miItf == nullptr)
@@ -447,6 +465,8 @@ MOS_STATUS MediaPerfProfiler::StoreTSByMiFlushNext(
     PMOS_CONTEXT pOsContext,
     uint32_t offset)
 {
+    CHK_NULL_RETURN(miInterface);
+
     std::shared_ptr<mhw::mi::Itf> miItf = std::static_pointer_cast<mhw::mi::Itf>(miInterface->GetNewMiInterface());
 
     if (miItf == nullptr)
@@ -472,18 +492,18 @@ MOS_STATUS MediaPerfProfiler::AddPerfCollectStartCmd(void* context,
 {
     MOS_STATUS status = MOS_STATUS_SUCCESS;
 
-    PMOS_CONTEXT pOsContext = osInterface->pOsContext;
-    CHK_NULL_RETURN(pOsContext);
-
-    if (m_initializedMap[pOsContext] == false)
-    {
-        return status;
-    }
-
     CHK_NULL_RETURN(osInterface);
     CHK_NULL_RETURN(miInterface);
     CHK_NULL_RETURN(cmdBuffer);
     CHK_NULL_RETURN(m_mutex);
+
+    PMOS_CONTEXT pOsContext = osInterface->pOsContext;
+    CHK_NULL_RETURN(pOsContext);
+
+    if (m_profilerEnabled == 0 || m_initializedMap[pOsContext] == false)
+    {
+        return status;
+    }
 
     uint32_t perfDataIndex = 0;
 
@@ -603,17 +623,17 @@ MOS_STATUS MediaPerfProfiler::AddPerfCollectEndCmd(void* context,
 {
     MOS_STATUS       status        = MOS_STATUS_SUCCESS;
 
-    PMOS_CONTEXT pOsContext = osInterface->pOsContext;
-    CHK_NULL_RETURN(pOsContext);
-
-    if (m_initializedMap[pOsContext] == false)
-    {
-        return status;
-    }
-
     CHK_NULL_RETURN(osInterface);
     CHK_NULL_RETURN(miInterface);
     CHK_NULL_RETURN(cmdBuffer);
+
+    PMOS_CONTEXT pOsContext = osInterface->pOsContext;
+    CHK_NULL_RETURN(pOsContext);
+
+    if (m_profilerEnabled == 0 || m_initializedMap[pOsContext] == false)
+    {
+        return status;
+    }
 
     MOS_GPU_CONTEXT  gpuContext;
     bool             rcsEngineUsed = false;
