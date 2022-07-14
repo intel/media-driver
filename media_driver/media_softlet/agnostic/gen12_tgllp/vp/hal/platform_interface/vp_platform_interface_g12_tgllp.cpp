@@ -34,6 +34,8 @@
 #include "igvpkrn_g12_tgllp_cmfcpatch.h"
 #endif
 #include "vp_kernel_config_m12_base.h"
+#include "vp_scalability_multipipe.h"
+#include "vp_scalability_singlepipe.h"
 
 extern const Kdll_RuleEntry         g_KdllRuleTable_g12lp[];
 extern const Kdll_RuleEntry         g_KdllRuleTable_g12lpcmfc[];
@@ -269,4 +271,14 @@ bool VpPlatformInterfaceG12Tgllp::VeboxScalabilitywith4K(
     {
         return false;
     }
+}
+
+MOS_STATUS VpPlatformInterfaceG12Tgllp::ConfigureVpScalability(VP_MHWINTERFACE &vpMhwInterface)
+{
+    VP_FUNC_CALL();
+
+    vpMhwInterface.pfnCreateSinglePipe = vp::VpScalabilitySinglePipe::CreateSinglePipe;
+    vpMhwInterface.pfnCreateMultiPipe  = vp::VpScalabilityMultiPipe::CreateMultiPipe;
+
+    return MOS_STATUS_SUCCESS;
 }

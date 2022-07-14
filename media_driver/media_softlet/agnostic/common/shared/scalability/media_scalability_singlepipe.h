@@ -66,9 +66,23 @@ public:
 
     virtual MOS_STATUS Initialize(const MediaScalabilityOption &option) override;
 
+    //!
+    //! \brief  Set hint parameters
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS SetHintParams() override;
+
+    //!
+    //! \brief  Destroy the media scalability
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS Destroy() override;
+
 protected:
     MhwMiInterface *         m_miInterface          = nullptr;  //!< Mi interface used to add BB end
-MEDIA_CLASS_DEFINE_END(MediaScalabilitySinglePipe)
+    MEDIA_CLASS_DEFINE_END(MediaScalabilitySinglePipe)
 };
 
 #endif // !__MEDIA_SCALABILITY_SINGLEPIPE_LEGACY_H__

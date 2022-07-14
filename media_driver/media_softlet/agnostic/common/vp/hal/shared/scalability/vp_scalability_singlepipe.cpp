@@ -67,4 +67,14 @@ MOS_STATUS VpScalabilitySinglePipe::Initialize(const MediaScalabilityOption &opt
 
     return MediaScalabilitySinglePipe::Initialize(option);
 }
+
+MOS_STATUS VpScalabilitySinglePipe::CreateSinglePipe(void *hwInterface, MediaContext *mediaContext, uint8_t componentType)
+{
+    SCALABILITY_CHK_NULL_RETURN(hwInterface);
+    SCALABILITY_CHK_NULL_RETURN(mediaContext);
+
+    ((PVP_MHWINTERFACE)hwInterface)->m_singlePipeScalability = MOS_New(VpScalabilitySinglePipe, hwInterface, mediaContext, scalabilityVp);
+    SCALABILITY_CHK_NULL_RETURN(((PVP_MHWINTERFACE)hwInterface)->m_singlePipeScalability);
+    return MOS_STATUS_SUCCESS;
+}
 }

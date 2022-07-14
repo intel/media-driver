@@ -42,6 +42,8 @@
 #include "vp_feature_report.h"
 
 class MhwCpInterface;
+class MediaScalability;
+class MediaContext;
 
 using VphalFeatureReport = VpFeatureReport;
 
@@ -115,6 +117,15 @@ struct _VP_MHWINTERFACE
 
     void *m_debugInterface;
     vp::VpUserFeatureControl *m_userFeatureControl;
+
+    MediaScalability *m_singlePipeScalability;
+    MediaScalability *m_multiPipeScalability;
+
+    MOS_STATUS (*pfnCreateSinglePipe)(
+    void *hwInterface, MediaContext *mediaContext, uint8_t componentType);
+
+    MOS_STATUS (*pfnCreateMultiPipe)(
+    void *hwInterface, MediaContext *mediaContext, uint8_t componentType);
 
 };
 

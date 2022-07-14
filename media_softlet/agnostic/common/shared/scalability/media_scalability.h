@@ -33,7 +33,7 @@
 #include <memory>
 #include "mos_defs.h"
 #include "mos_os_specific.h"
-#include "mos_os_virtualengine.h"
+
 #include "mos_os_virtualengine_specific.h"
 
 #include "mos_os.h"
@@ -370,11 +370,11 @@ protected:
     bool                     m_attrReady            = false;    //!< Indicate if cmd buf attribute is ready
     bool                     m_frameTrackingEnabled = true;     //!< Indicate if frame tracking is enabled
 
-    PMOS_VIRTUALENGINE_INTERFACE   m_veInterface = nullptr;  //!< Virtual Engine Interface
     PMOS_VIRTUALENGINE_HINT_PARAMS m_veHitParams = nullptr;  //!< Virtual Engine hint parameters
 
     MOS_VE_HANDLE     m_veState = nullptr; //!< Virtual Engine State
     std::shared_ptr<mhw::mi::Itf> m_miItf = nullptr;
+    PMOS_VIRTUALENGINE_INTERFACE  m_veInterface = nullptr;  //!< Virtual Engine Interface
 
 MEDIA_CLASS_DEFINE_END(MediaScalability)
 };

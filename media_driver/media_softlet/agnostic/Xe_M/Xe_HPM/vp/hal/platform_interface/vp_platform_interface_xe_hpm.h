@@ -89,6 +89,8 @@ public:
     virtual bool VeboxScalabilitywith4K(
         VP_MHWINTERFACE           vpMhwInterface);
 
+    virtual MOS_STATUS ConfigureVpScalability(VP_MHWINTERFACE &vpMhwInterface);
+
 protected:
     bool m_disableSfcDithering = false;
 

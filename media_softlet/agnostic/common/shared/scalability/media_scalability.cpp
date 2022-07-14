@@ -30,7 +30,6 @@
 #include "media_scalability_defs.h"
 #include "media_scalability_option.h"
 #include "media_scalability.h"
-#include "mos_os_virtualengine.h"
 #include "mos_interface.h"
 #include "mos_utilities.h"
 
@@ -183,24 +182,6 @@ MOS_STATUS MediaScalability::Destroy()
 
         // No VE state to destroy in some scalability instances
         return MOS_STATUS_SUCCESS;
-    }
-
-    if (m_veInterface)
-    {
-        if(m_veInterface->pfnVEDestroy)
-        {
-            m_veInterface->pfnVEDestroy(m_veInterface);
-        }
-        MOS_FreeMemAndSetNull(m_veInterface);
-    }
-    else
-    {
-        // For VE not enabled/supported case, such as vp vebox on some platform, m_veInterface is nullptr.
-        // MOS_STATUS_SUCCESS should be returned for such case.
-        if (MOS_VE_SUPPORTED(m_osInterface))
-        {
-            SCALABILITY_CHK_NULL_RETURN(m_veInterface);
-        }
     }
 
     return MOS_STATUS_SUCCESS;

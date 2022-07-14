@@ -174,7 +174,7 @@ public:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS SetHintParams();
+    virtual MOS_STATUS SetHintParams();
 
     //!
     //! \brief  Populate hint parameters

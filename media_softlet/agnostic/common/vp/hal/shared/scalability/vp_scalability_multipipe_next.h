@@ -33,7 +33,7 @@
 #include "mos_os.h"
 #include "media_scalability_multipipe.h"
 #include "vp_scalability_option.h"
-#include "mos_os_virtualengine_scalability.h"
+#include "mos_os_virtualengine_scalability_next.h"
 #include "vp_phase.h"
 #include "mhw_mi_itf.h"
 
@@ -202,7 +202,7 @@ public:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS SetHintParams();
+    virtual MOS_STATUS SetHintParams();
 
     //!
     //! \brief  Populate hint parameters
@@ -332,6 +332,8 @@ public:
         PMOS_RESOURCE               resource,
         PMOS_COMMAND_BUFFER         cmdBuffer);
 
+    static MOS_STATUS CreateMultiPipe(void *hwInterface, MediaContext *mediaContext, uint8_t componentType);
+
     PVP_MHWINTERFACE                m_hwInterface      = nullptr;
     MOS_COMMAND_BUFFER              m_primaryCmdBuffer = {};            //!< The primary command buffer
     std::vector<MOS_COMMAND_BUFFER> m_secondaryCmdBuffers;              //!< The secondary command buffer
@@ -350,4 +352,4 @@ public:
 MEDIA_CLASS_DEFINE_END(vp__VpScalabilityMultiPipeNext)
 };
 }  // namespace vp
-#endif  // !__VP_SCALABILITY_MULTIPIPE_H__
+#endif  // !__VP_SCALABILITY_MULTIPIPE_NEXT_H__

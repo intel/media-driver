@@ -94,6 +94,8 @@ public:
     virtual bool VeboxScalabilitywith4K(
         VP_MHWINTERFACE           vpMhwInterface);
 
+    virtual MOS_STATUS ConfigureVpScalability(VP_MHWINTERFACE &vpMhwInterface);
+
     MEDIA_CLASS_DEFINE_END(vp__VpPlatformInterfaceG12Tgllp)
 };
 

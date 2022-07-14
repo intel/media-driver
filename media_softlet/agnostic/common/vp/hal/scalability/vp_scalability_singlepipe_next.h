@@ -75,6 +75,8 @@ public:
     //!
     virtual MOS_STATUS Initialize(const MediaScalabilityOption &option) override;
 
+    static MOS_STATUS CreateSinglePipe(void *hwInterface, MediaContext *mediaContext, uint8_t componentType);
+
 protected:
 
     virtual MOS_STATUS SendAttrWithFrameTracking(MOS_COMMAND_BUFFER &cmdBuffer, bool frameTrackingRequested) override

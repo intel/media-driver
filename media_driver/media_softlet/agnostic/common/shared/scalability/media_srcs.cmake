@@ -1,4 +1,4 @@
-# Copyright (c) 2018-2022, Intel Corporation
+# Copyright (c) 2022, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -20,35 +20,25 @@
 
 set(TMP_SOURCES_
     ${TMP_SOURCES_}
-    ${CMAKE_CURRENT_LIST_DIR}/media_scalability.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/media_scalability_multipipe.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/media_scalability_singlepipe_next.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/media_scalability_mdf.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/media_scalability_factory.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/media_scalability_singlepipe.cpp
 )
 
 set(TMP_HEADERS_
     ${TMP_HEADERS_}
-    ${CMAKE_CURRENT_LIST_DIR}/media_scalability_defs.h
-    ${CMAKE_CURRENT_LIST_DIR}/media_scalability.h
-    ${CMAKE_CURRENT_LIST_DIR}/media_scalability_multipipe.h
-    ${CMAKE_CURRENT_LIST_DIR}/media_scalability_singlepipe_next.h
-    ${CMAKE_CURRENT_LIST_DIR}/media_scalability_option.h
-    ${CMAKE_CURRENT_LIST_DIR}/media_scalability_mdf.h
-    ${CMAKE_CURRENT_LIST_DIR}/media_scalability_factory.h
+    ${CMAKE_CURRENT_LIST_DIR}/media_scalability_singlepipe.h
 )
 
-set(SOFTLET_COMMON_SOURCES_
-    ${SOFTLET_COMMON_SOURCES_}
+set(COMMON_SOURCES_
+    ${COMMON_SOURCES_}
     ${TMP_SOURCES_}
 )
 
-set(SOFTLET_COMMON_HEADERS_
-    ${SOFTLET_COMMON_HEADERS_}
+set(COMMON_HEADERS_
+    ${COMMON_HEADERS_}
     ${TMP_HEADERS_}
 )
 
-set(SOFTLET_COMMON_PRIVATE_INCLUDE_DIRS_
-    ${SOFTLET_COMMON_PRIVATE_INCLUDE_DIRS_}
+set(COMMON_PRIVATE_INCLUDE_DIRS_
+    ${COMMON_PRIVATE_INCLUDE_DIRS_}
     ${CMAKE_CURRENT_LIST_DIR}
 )

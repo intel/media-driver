@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -164,9 +164,43 @@ public:
     //!
     MOS_STATUS Initialize(const MediaScalabilityOption &option) override;
 
+    //!
+    //! \brief  Get command buffer
+    //! \param  [in, out] cmdBuffer
+    //!         Pointer to command buffer
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS GetCmdBuffer(PMOS_COMMAND_BUFFER cmdBuffer, bool frameTrackingRequested = true) override;
+
+    //!
+    //! \brief  Set hint parameters
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS SetHintParams() override;
+
+    //!
+    //! \brief  Destroy the media scalability
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS Destroy() override;
+
+    //!
+    //! \brief  Submit command buffer
+    //! \param  [in, out] cmdBuffer
+    //!         Pointer to command buffer
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS SubmitCmdBuffer(PMOS_COMMAND_BUFFER cmdBuffer) override;
+
+    static MOS_STATUS CreateMultiPipe(void *hwInterface, MediaContext *mediaContext, uint8_t componentType);
+
     VpPhase                               *m_phase = nullptr;
 
 MEDIA_CLASS_DEFINE_END(vp__VpScalabilityMultiPipe)
 };
 }  // namespace vp
-#endif  // !__VP_SCALABILITY_MULTIPIPE_H__
+#endif  // __VP_SCALABILITY_MULTIPIPE_H__

@@ -31,6 +31,8 @@
 #include "vp_render_sfc_xe_xpm_base.h"
 #include "vp_render_ief.h"
 #include "vp_kernel_config_m12_base.h"
+#include "vp_scalability_multipipe.h"
+#include "vp_scalability_singlepipe.h"
 
 using namespace vp;
 
@@ -220,4 +222,14 @@ bool VpPlatformInterfaceXe_Xpm::VeboxScalabilitywith4K(
     {
         return false;
     }
+}
+
+MOS_STATUS VpPlatformInterfaceXe_Xpm::ConfigureVpScalability(VP_MHWINTERFACE &vpMhwInterface)
+{
+    VP_FUNC_CALL();
+
+    vpMhwInterface.pfnCreateSinglePipe = vp::VpScalabilitySinglePipe::CreateSinglePipe;
+    vpMhwInterface.pfnCreateMultiPipe  = vp::VpScalabilityMultiPipe::CreateMultiPipe;
+
+    return MOS_STATUS_SUCCESS;
 }

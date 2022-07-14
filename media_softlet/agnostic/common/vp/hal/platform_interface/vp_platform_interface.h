@@ -301,6 +301,8 @@ public:
 
     virtual MOS_STATUS ConfigVirtualEngine() = 0;
 
+    virtual MOS_STATUS ConfigureVpScalability(VP_MHWINTERFACE &vpMhwInterface) = 0;
+
     virtual bool IsEufusionBypassWaEnabled()
     {
         return false;

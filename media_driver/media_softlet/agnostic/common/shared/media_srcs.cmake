@@ -19,3 +19,4 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 media_include_subdirectory(media_sfc_interface)
+media_include_subdirectory(scalability)
