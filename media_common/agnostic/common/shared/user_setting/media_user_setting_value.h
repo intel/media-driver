@@ -27,6 +27,7 @@
 #ifndef __MEDIA_USER_SETTING_VALUE_H__
 #define __MEDIA_USER_SETTING_VALUE_H__
 
+#include "mos_utilities_common.h"
 #include <string>
 #include <sstream>
 
@@ -85,12 +86,15 @@ public:
     const std::string &ConstString() const { return m_value; }
 
     const std::size_t &Size() const { return m_size; }
+    const MOS_USER_FEATURE_VALUE_TYPE &ValueType() const { return m_type; }
+
 private:
     template <class T>
     std::string ToString(const T &data);
 private:
     std::size_t m_size = 0;
     std::string m_value{};
+    MOS_USER_FEATURE_VALUE_TYPE m_type = MOS_USER_FEATURE_VALUE_TYPE_INVALID;
 };
 }
 

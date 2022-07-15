@@ -226,8 +226,31 @@ MOS_STATUS Configure::Write(
     if (status == MOS_STATUS_SUCCESS)
     {
         uint32_t size = def->DefaultValue().Size();
+        uint32_t value_type;
+        switch (def->DefaultValue().ValueType())
+        {
+        case MOS_USER_FEATURE_VALUE_TYPE_BOOL:
+            value_type = UF_BINARY;
+            break;
+        case MOS_USER_FEATURE_VALUE_TYPE_FLOAT:
+        case MOS_USER_FEATURE_VALUE_TYPE_UINT32:
+        case MOS_USER_FEATURE_VALUE_TYPE_INT32:
+            value_type = UF_DWORD;
+            break;
+        case MOS_USER_FEATURE_VALUE_TYPE_UINT64:
+        case MOS_USER_FEATURE_VALUE_TYPE_INT64:
+            value_type = UF_QWORD;
+            break;
+        case MOS_USER_FEATURE_VALUE_TYPE_MULTI_STRING:
+        case MOS_USER_FEATURE_VALUE_TYPE_STRING:
+            value_type = UF_SZ;
+            break;
+        default:
+            value_type = UF_NONE;
+            break;
+        }
 
-        status = MosUtilities::MosSetRegValue(key, valueName, UF_SZ, value.ConstString(), m_regBufferMap);
+        status = MosUtilities::MosSetRegValue(key, valueName, value_type, value.ConstString(), m_regBufferMap);
 
         MosUtilities::MosCloseRegKey(key);
     }
