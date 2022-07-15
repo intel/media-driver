@@ -27,7 +27,7 @@
 #ifndef __MOS_CONTEXT_NEXT_H__
 #define __MOS_CONTEXT_NEXT_H__
 
-#include "mos_os_next.h"
+#include "mos_os.h"
 #include "mos_cmdbufmgr_next.h" 
 #include "mos_gpucontextmgr_next.h"
 #include "mos_decompression.h"

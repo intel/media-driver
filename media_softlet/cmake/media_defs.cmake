@@ -35,3 +35,6 @@ bs_set_if_undefined(MEDIA_COMMON            "${BS_DIR_MEDIA}/media_common")
 
 include( ${MEDIA_SOFTLET_EXT_CMAKE}/media_defs_ext.cmake OPTIONAL )
 include( ${MEDIA_COMMON_EXT_CMAKE}/media_defs_ext.cmake OPTIONAL )
+
+#need to clean when softlet completed
+bs_set_if_undefined(MEDIA_DRIVER_ROOT        "${BS_DIR_MEDIA}/media_driver")

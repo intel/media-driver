@@ -64,6 +64,7 @@
 
 #include "memory_policy_manager.h"
 #include "mos_oca_interface_specific.h"
+#include "mos_os_next.h"
 
 //!
 //! \brief DRM VMAP patch
