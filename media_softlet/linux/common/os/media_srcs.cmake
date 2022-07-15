@@ -19,6 +19,7 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 media_include_subdirectory(osservice)
+media_include_subdirectory(private)
 
 if(NOT CMAKE_WDDM_LINUX)
 set(TMP_SOURCES_

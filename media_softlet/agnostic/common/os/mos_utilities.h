@@ -146,6 +146,16 @@ public:
     static MOS_STATUS MosUtilitiesClose(MediaUserSettingSharedPtr userSettingPtr);
 
 private:
+
+    //!
+    //! \brief    Init user feature
+    //! \details  Initial MOS OS specific utilitiesNext related structures, and only execute once for multiple entries
+    //! \return   MOS_STATUS
+    //!           Returns one of the MOS_STATUS error codes if failed,
+    //!           else MOS_STATUS_SUCCESS
+    //!
+    static MOS_STATUS MosDeclareUserFeature();
+
     //!
     //! \brief    Init Function for MOS OS specific utilitiesNext
     //! \details  Initial MOS OS specific utilitiesNext related structures, and only execute once for multiple entries
@@ -156,6 +166,15 @@ private:
     //!           else MOS_STATUS_SUCCESS
     //!
     static MOS_STATUS MosOsUtilitiesInit(MediaUserSettingSharedPtr userSettingPtr);
+
+    //!
+    //! \brief    Init user feature
+    //! \details  Initial MOS OS specific utilitiesNext related structures, and only execute once for multiple entries
+    //! \return   MOS_STATUS
+    //!           Returns one of the MOS_STATUS error codes if failed,
+    //!           else MOS_STATUS_SUCCESS
+    //!
+    static MOS_STATUS MosDestroyUserFeature();
 
     //!
     //! \brief    Close Function for MOS OS utilitiesNext

@@ -24,34 +24,27 @@
 //! \brief       This module implements the MOS wrapper functions for Linux/Android
 //!
 
-#include "mos_utilities_specific.h"
-#include "mos_utilities.h"
-#include "mos_util_debug.h"
 #include <fcntl.h>     // open
 #include <stdlib.h>    // atoi
 #include <string.h>    // strlen, strcat, etc.
 #include <errno.h>     // strerror(errno)
 #include <time.h>      // get_clocktime
-#include <sys/stat.h>  // fstat
 #include <dlfcn.h>     // dlopen, dlsym, dlclose
-#include <sys/types.h>
 #include <unistd.h>
-#if _MEDIA_RESERVED
-#include "codechal_user_settings_mgr_ext.h"
-#include "vphal_user_settings_mgr_ext.h"
-#endif // _MEDIA_RESERVED
-#ifdef WDDM_LINUX
-#include "media_user_settings_mgr_specific.h"
-#endif
-#include "mos_user_setting.h"
-
-#include <sys/ipc.h>  // System V IPC
-#include <sys/types.h>
-#include <sys/sem.h>
 #include <signal.h>
 #include <unistd.h>  // fork
 #include <algorithm>
 #include <execinfo.h> // backtrace
+#include <sys/types.h>
+#include <sys/stat.h>  // fstat
+#include <sys/ipc.h>  // System V IPC
+#include <sys/types.h>
+#include <sys/sem.h>
+#include "mos_user_setting.h"
+#include "mos_utilities_specific.h"
+#include "mos_utilities.h"
+#include "mos_util_debug.h"
+
 
 const char           *MosUtilitiesSpecificNext::m_szUserFeatureFile     = USER_FEATURE_FILE;
 MOS_PUF_KEYLIST      MosUtilitiesSpecificNext::m_ufKeyList              = nullptr;
@@ -112,11 +105,6 @@ MosMutex          MosUtilitiesSpecificNext::m_userSettingMutex;
 //!
 MosMutex MosUtilities::m_mutexLock;
 uint32_t MosUtilities::m_mosUtilInitCount = 0; // number count of mos utilities init
-
-#if _MEDIA_RESERVED
-MediaUserSettingsMgr *MosUtilities::m_codecUserFeatureExt = nullptr;
-MediaUserSettingsMgr *MosUtilities::m_vpUserFeatureExt    = nullptr;
-#endif
 
 MediaUserSettingsMgr *MosUtilities::m_mediaUserFeatureSpecific  = nullptr;
 
@@ -1363,15 +1351,9 @@ MOS_STATUS MosUtilities::MosOsUtilitiesInit(MediaUserSettingSharedPtr userSettin
         MosUserSetting::DestroyMediaUserSetting();
 
         eStatus = MosUserSetting::InitMosUserSetting(userSettingPtr);
-        eStatus = MosDeclareUserFeatureKeysForAllDescFields();
         MosUtilitiesSpecificNext::UserFeatureDumpFile(MosUtilitiesSpecificNext::m_szUserFeatureFile, &MosUtilitiesSpecificNext::m_ufKeyList);
-#if _MEDIA_RESERVED
-        m_codecUserFeatureExt = new CodechalUserSettingsMgr();
-        m_vpUserFeatureExt    = new VphalUserSettingsMgr();
-#endif
-#ifdef WDDM_LINUX
-        m_mediaUserFeatureSpecific = new MediaUserSettingsMgrSpecific();
-#endif
+
+        MosDeclareUserFeature();
 
 #if MOS_MESSAGES_ENABLED
         // Initialize MOS message params structure and HLT
@@ -1411,26 +1393,7 @@ MOS_STATUS MosUtilities::MosOsUtilitiesClose(MediaUserSettingSharedPtr userSetti
             memoryCounter,
             MediaUserSetting::Group::Device);
 
-        eStatus = MosDestroyUserFeatureKeysForAllDescFields();
-#if _MEDIA_RESERVED
-        if (m_codecUserFeatureExt)
-        {
-            delete m_codecUserFeatureExt;
-            m_codecUserFeatureExt = nullptr;
-        }
-        if (m_vpUserFeatureExt)
-        {
-            delete m_vpUserFeatureExt;
-            m_vpUserFeatureExt = nullptr;
-        }
-#endif // _MEDIA_RESERVED
-#ifdef WDDM_LINUX
-        if (m_mediaUserFeatureSpecific)
-        {
-            delete m_mediaUserFeatureSpecific;
-            m_mediaUserFeatureSpecific = nullptr;
-        }
-#endif
+        MosDestroyUserFeature();
         MosUserSetting::DestroyMediaUserSetting();
 
 #if (_DEBUG || _RELEASE_INTERNAL)
