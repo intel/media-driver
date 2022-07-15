@@ -104,16 +104,6 @@ protected:
     MediaScalability *CreateVpScalability(T params, void *hwInterface, MediaContext *mediaContext, MOS_GPUCTX_CREATOPTIONS *gpuCtxCreateOption);
 
     //!
-    //! \brief  Create scalability with Mdf interfaces, it should be invoked when new scalability mode needed
-    //!
-    //! \param  [in] params
-    //!         Pointer to the input parameters which is ScalabilityPars or ScalabilityOption
-    //! \return pointer of media scalability
-    //!
-#if !EMUL
-    MediaScalability *CreateScalabilityMdf(T params);
-#endif
-    //!
     //! \brief  Create scalability with CMD Buf interfaces, it should be invoked when new scalability mode needed
     //! \param  [in] componentType
     //!         component type for create related scalability

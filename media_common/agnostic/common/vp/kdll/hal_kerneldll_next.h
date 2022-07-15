@@ -20,26 +20,67 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      hal_kerneldll_next.h 
-//! \brief         Fast Compositing dynamic kernel linking/loading definitions 
+//! \file      hal_kerneldll_next.h
+//! \brief         Fast Compositing dynamic kernel linking/loading definitions
 //!
 #ifndef __HAL_KERNELDLL_NEXT_H__
 #define __HAL_KERNELDLL_NEXT_H__
 
 #include "vp_common.h"
+// Kernel IDs and Kernel Names
+#include "vpkrnheader.h"  // IDR_VP_TOTAL_NUM_KERNELS
+#include "cm_fc_ld.h"
+
+#if EMUL
+
+#include "support.h"
+
+// Search callback codes
+#define CB_REASON_SEARCH_FAILED -1
+#define CB_REASON_UPDATE_FAILED -2
+#define CB_REASON_BEGIN_SEARCH 0
+#define CB_REASON_BEGIN_UPDATE 1
+#define CB_REASON_END_SEARCH 2
+
+#else  // EMUL
+
+#endif  // EMUL
+
+#define ROUND_FLOAT(n, factor) ((n) * (factor) + (((n) > 0.0f) ? 0.5f : -0.5f))
+
+#define MIN_SHORT -32768.0f
+#define MAX_SHORT 32767.0f
+#define FLOAT_TO_SHORT(n) (short)(MOS_MIN(MOS_MAX(MIN_SHORT, n), MAX_SHORT))
 
 #define DL_MAX_SEARCH_FILTER_SIZE 10  // max number of entries to describe a compositing filter
 
-#define DL_MAX_KERNELS 150  // Max component kernels to combine
+#define DL_MAX_KERNELS 150         // Max component kernels to combine
 #define DL_MAX_PATCH_DATA_SIZE 64  // Max size of a patch block
 #define DL_MAX_PATCH_BLOCKS 8      // Max number of blocks to patch per patch data
 #define DL_MAX_PATCHES 4           // Max patches to use
+#define DL_MAX_EXPORT_COUNT 64     // size of the symbol export table
 
-#define DL_MAX_COMBINED_KERNELS 64  // Max number of kernels in cache
-#define DL_MAX_SYMBOLS 100          // max number of import/export symbols in a combined kernels
+#define DL_MAX_COMBINED_KERNELS 64       // Max number of kernels in cache
+#define DL_MAX_SYMBOLS 100               // max number of import/export symbols in a combined kernels
 #define DL_MAX_KERNEL_SIZE (128 * 1024)  // max output kernel size
 
-#define DL_CSC_MAX 6  // 6 CSC matrices max
+#define DL_CSC_MAX 6                      // 6 CSC matrices max
+#define DL_MAX_SEARCH_NODES_PER_KERNEL 6  // max number of search nodes for a component kernel (max tree depth)
+#define DL_MAX_COMPONENT_KERNELS 25       // max number of component kernels that can be combined
+
+#define DL_DEFAULT_COMBINED_KERNELS 4                                                  // Default number of kernels in cache
+#define DL_NEW_COMBINED_KERNELS 4                                                      // The increased number of kernels in cache each time
+#define DL_CACHE_BLOCK_SIZE (128 * 1024)                                               // Kernel allocation block size
+#define DL_COMBINED_KERNEL_CACHE_SIZE (DL_CACHE_BLOCK_SIZE * DL_NEW_COMBINED_KERNELS)  // Combined kernel size
+
+#define DL_PROCAMP_DISABLED -1  // procamp is disabled
+#define DL_PROCAMP_MAX 1        // 1 Procamp entry
+
+#define DL_CSC_DISABLED -1  // CSC is disabled
+
+#define DL_CSC_MAX_G5 2  // 2 CSC matrices max for Gen5
+
+#define DL_CHROMASITING_DISABLE -1  // Chromasiting is disabled
 
 #ifdef __cplusplus
 extern "C" {
@@ -47,72 +88,141 @@ extern "C" {
 
 typedef enum _MEDIA_CSPACE Kdll_CSpace;
 
-const float g_cCSC_sRGB_stRGB[12] =
+#define LumaKey_False 0
+
+// Parameters for RID_Op_NewEntry
+#define RULE_DEFAULT 0
+#define RULE_CUSTOM 1
+#define RULE_NO_OVERRIDE 255
+
+#define GROUP_DEFAULT RULE_DEFAULT
+#define GROUP_CUSTOM RULE_CUSTOM
+#define GROUP_NO_OVERRIDE RULE_NO_OVERRIDE
+
+#define ColorFill_Source -1
+#define ColorFill_False 0
+#define ColorFill_True 1
+
+#define LumaKey_Source -1
+
+#define LumaKey_True 1
+
+#define Procamp_Source -1
+
+// Dynamic Linking rule definitions
+#define RID_IS_MATCH(rid) ((rid & 0xFE00) == 0x0000)
+#define RID_IS_SET(rid) ((rid & 0xFE00) == 0x0200)
+#define RID_IS_EXTENDED(rid) ((rid & 0xFD00) == 0x0100)
+
+// Rotation Mode
+typedef enum tagKdll_Rotation
 {
-    0.858824f,  0.000000f,  0.000000f,  16.000000f,   // stR = C0 * sR + C1 * sG + C2  * sB + C3
-    0.000000f,  0.858824f,  0.000000f,  16.000000f,   // stG = C4 * sR + C5 * sG + C6  * sB + C7
-    0.000000f,  0.000000f,  0.858824f,  16.000000f    // stB = C8 * sR + C9 * sG + C10 * sB + C11
+    Rotate_Source
+} Kdll_Rotation;
+
+// Kernel patches
+typedef enum tagKdll_PatchKind
+{
+    PatchKind_None           = 0,
+    PatchKind_CSC_Coeff_Src0 = 1,
+    PatchKind_CSC_Coeff_Src1 = 2,
+} Kdll_PatchKind;
+
+// Patch rule entry (rule extension)
+typedef struct tagKdll_PatchRuleEntry
+{
+    uint32_t Dest : 16;   // Patch destination in bytes (LSB)
+    uint32_t Source : 8;  // Patch data source in bytes
+    uint32_t Size : 8;    // Patch size in bytes (MSB)
+} Kdll_PatchRuleEntry;
+
+extern const char *g_cInit_ComponentNames[];
+
+//------------------------------------------------------------
+// KERNEL CACHE / LINK
+//------------------------------------------------------------
+// Import/export structure from kernel binary file
+#pragma pack(4)
+typedef struct tagKdll_LinkFileHeader
+{
+    uint32_t dwVersion;
+    uint32_t dwSize;
+    uint32_t dwImports;
+    uint32_t dwExports;
+} Kdll_LinkFileHeader;
+#pragma pack()
+
+const float g_cCSC_sRGB_stRGB[12] =
+    {
+        0.858824f, 0.000000f, 0.000000f, 16.000000f,  // stR = C0 * sR + C1 * sG + C2  * sB + C3
+        0.000000f,
+        0.858824f,
+        0.000000f,
+        16.000000f,  // stG = C4 * sR + C5 * sG + C6  * sB + C7
+        0.000000f,
+        0.000000f,
+        0.858824f,
+        16.000000f  // stB = C8 * sR + C9 * sG + C10 * sB + C11
 };
 
 const float g_cCSC_stRGB_sRGB[12] =
-{
-    1.164384f,  0.000000f,  0.000000f, -18.630137f,   // sR   = C0 * stR + C1 * stG + C2  * stB + C3
-    0.000000f,  1.164384f,  0.000000f, -18.630137f,   // sG   = C4 * stR + C5 * stG + C6  * stB + C7
-    0.000000f,  0.000000f,  1.164384f, -18.630137f    // sB   = C8 * stR + C9 * stG + C10 * stB + C11
+    {
+        1.164384f, 0.000000f, 0.000000f, -18.630137f,  // sR   = C0 * stR + C1 * stG + C2  * stB + C3
+        0.000000f,
+        1.164384f,
+        0.000000f,
+        -18.630137f,  // sG   = C4 * stR + C5 * stG + C6  * stB + C7
+        0.000000f,
+        0.000000f,
+        1.164384f,
+        -18.630137f  // sB   = C8 * stR + C9 * stG + C10 * stB + C11
 };
 
 const float g_cCSC_Identity[12] =
-{
-    1.0f,  0.0f, 0.0f, 0.0f,
-    0.0f,  1.0f, 0.0f, 0.0f,
-    0.0f,  0.0f, 1.0f, 0.0f
-};
+    {
+        1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f};
 
 // Generic RGB to YUV conversion matrix from BT.601 standard
 const float g_cCSC_BT601_RGB_YUV[9] =
-{
-    0.299000f,  0.587000f,  0.114000f,
-   -0.168736f, -0.331264f,  0.500000f,
-    0.500000f, -0.418688f, -0.081312f
-};
+    {
+        0.299000f, 0.587000f, 0.114000f, -0.168736f, -0.331264f, 0.500000f, 0.500000f, -0.418688f, -0.081312f};
 
 // Generic RGB to YUV conversion matrix from BT.709 standard
 const float g_cCSC_BT709_RGB_YUV[9] =
-{
-    0.212600f,  0.715200f,  0.072200f,
-   -0.114572f, -0.385428f,  0.500000f,
-    0.500000f, -0.454153f, -0.045847f
-};
+    {
+        0.212600f, 0.715200f, 0.072200f, -0.114572f, -0.385428f, 0.500000f, 0.500000f, -0.454153f, -0.045847f};
 
 // Generic YUV to RGB conversion matrix from BT.601 standard
 const float g_cCSC_BT601_YUV_RGB[9] =
-{
-    1.000000f,  0.000000f,  1.402000f,
-    1.000000f, -0.344136f, -0.714136f,
-    1.000000f,  1.772000f,  0.000000f
-};
+    {
+        1.000000f, 0.000000f, 1.402000f, 1.000000f, -0.344136f, -0.714136f, 1.000000f, 1.772000f, 0.000000f};
 
 // Generic YUV to RGB conversion matrix from BT.709 standard
 const float g_cCSC_BT709_YUV_RGB[9] =
-{
-    1.000000f,  0.000000f,  1.574800f,
-    1.000000f, -0.187324f, -0.468124f,
-    1.000000f,  1.855600f,  0.000000f
-};
+    {
+        1.000000f, 0.000000f, 1.574800f, 1.000000f, -0.187324f, -0.468124f, 1.000000f, 1.855600f, 0.000000f};
 // BT2020 RGB to Non-constant YUV conversion matrix from R-REC-BT.2020-1-201406-I!!PDF-E.pdf
 const float g_cCSC_BT2020_RGB_YUV[9] =
-{
-    0.262700f,  0.678000f,  0.059300f,     // Y
-    -0.139630f, -0.360370f, 0.500000f,     // U
-    0.500000f,  -0.459786f, -0.040214f     // V
+    {
+        0.262700f, 0.678000f, 0.059300f,  // Y
+        -0.139630f,
+        -0.360370f,
+        0.500000f,  // U
+        0.500000f,
+        -0.459786f,
+        -0.040214f  // V
 };
 
 // BT2020 Non-constant YUV to RGB conversion matrix from R-REC-BT.2020-1-201406-I!!PDF-E.pdf
 const float g_cCSC_BT2020_YUV_RGB[9] =
-{
-    1.000000f, 0.000000f,  1.474600f,     //R
-    1.000000f, -0.164553f, -0.571353f,    //G
-    1.000000f, 1.881400f,  0.000000f      //B
+    {
+        1.000000f, 0.000000f, 1.474600f,  //R
+        1.000000f,
+        -0.164553f,
+        -0.571353f,  //G
+        1.000000f,
+        1.881400f,
+        0.000000f  //B
 };
 
 // Layer definition
@@ -539,7 +649,7 @@ typedef struct tagKdll_KernelHashTable
 //--------------------------------------------------------------
 // Dynamic linking state
 //--------------------------------------------------------------
-typedef struct tagKdll_State *PKdll_State;
+typedef struct tagKdll_State *      PKdll_State;
 typedef struct tagKdll_SearchState *PKdll_SearchState;
 
 typedef struct tagKdll_State
@@ -695,6 +805,33 @@ typedef struct tagKdll_SearchState
 
 void KernelDll_ModifyFunctionPointers_Next(Kdll_State *pState);
 
+//---------------------------------
+// Kernel DLL function prototypes
+//---------------------------------
+
+bool KernelDll_IsYUVFormat(MOS_FORMAT format);
+
+bool KernelDll_IsFormat(
+    MOS_FORMAT   format,
+    VPHAL_CSPACE cspace,
+    MOS_FORMAT   match);
+
+VPHAL_CSPACE KernelDll_TranslateCspace(VPHAL_CSPACE cspace);
+
+bool KernelDll_MapCSCMatrix(
+    Kdll_CSCType type,
+    const float *matrix,
+    short *      coeff);
+
+// Kernel Rule Search / State Update
+bool KernelDll_FindRule(
+    Kdll_State *      pState,
+    Kdll_SearchState *pSearchState);
+
+bool KernelDll_UpdateState(
+    Kdll_State *      pState,
+    Kdll_SearchState *pSearchState);
+
 bool KernelDll_IsCspace(
     VPHAL_CSPACE cspace,
     VPHAL_CSPACE match);
@@ -704,8 +841,65 @@ void KernelDll_GetCSCMatrix(
     Kdll_CSpace dst,
     float *     pCSC_Matrix);
 
+//---------------------------------------------------------------------------------------
+// KernelDll_SetupFunctionPointers - Setup Function pointers based on platform
+//
+// Parameters:
+//    char  *pState    - [in] Kernel Dll state
+//           platform  - [in] platform
+//
+// Output: true  - Function pointers are set
+//         false - Failed to setup function pointers (invalid platform)
+//-----------------------------------------------------------------------------------------
+static bool KernelDll_SetupFunctionPointers(
+    Kdll_State *pState,
+    void (*ModifyFunctionPointers)(PKdll_State));
+
+// Allocate Kernel Dll State
+Kdll_State *KernelDll_AllocateStates(
+    void *                pKernelCache,
+    uint32_t              uKernelCacheSize,
+    void *                pFcPatchCache,
+    uint32_t              uFcPatchCacheSize,
+    const Kdll_RuleEntry *pInternalRules,
+    void (*ModifyFunctionPointers)(PKdll_State));
+
+// Release Kernel Dll State
+void KernelDll_ReleaseStates(Kdll_State *pState);
+
+// Update CSC coefficients
+void KernelDll_UpdateCscCoefficients(Kdll_State *pState,
+    Kdll_CSC_Matrix *                            pMatrix);
+
+//Release the additional kernel cache entries
+void KernelDll_ReleaseAdditionalCacheEntries(Kdll_KernelCache *pCache);
+
+// Search kernel, output is in pSearchState
+bool KernelDll_SearchKernel(
+    Kdll_State *      pState,
+    Kdll_SearchState *pSearchState);
+
+// Build kernel in SearchState
+bool KernelDll_BuildKernel(Kdll_State *pState, Kdll_SearchState *pSearchState);
+
+bool KernelDll_SetupCSC(
+    Kdll_State *      pState,
+    Kdll_SearchState *pSearchState);
+
+//---------------------------------------------------------------------------------------
+// KernelDll_SetupFunctionPointers_Ext - Setup Extension Function pointers
+//
+// Parameters:
+//    KdllState  *pState    - [in/out] Kernel Dll state
+//
+// Output: true  - Function pointers are set
+//         false - Failed to setup function pointers (invalid platform)
+//-----------------------------------------------------------------------------------------
+bool KernelDll_SetupFunctionPointers_Ext(
+    Kdll_State *pState);
+
 #ifdef __cplusplus
 }
 #endif
 
-#endif // __HAL_KERNELDLL_NEXT_H__
+#endif  // __HAL_KERNELDLL_NEXT_H__

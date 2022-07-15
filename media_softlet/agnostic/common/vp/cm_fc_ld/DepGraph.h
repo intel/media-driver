@@ -59,6 +59,7 @@ public:
 protected:
   DepNode *getDepNode(Binary *B, unsigned R, bool Barrier);
   DepEdge *getDepEdge(DepNode *From, DepNode *To, bool FromDef);
+ MEDIA_CLASS_DEFINE_END(cm__patch__DepGraph)
 };
 
 } // End namespace patch

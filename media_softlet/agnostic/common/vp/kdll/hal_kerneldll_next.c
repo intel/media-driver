@@ -24,13 +24,392 @@
 //! \brief         Kernel Dynamic Linking/Loading routines for FC
 //!
 
+#ifndef VPHAL_LIB
+
+#if IMOLA
+#include <stdlib.h>
+#endif             // IMOLA
+#include <math.h>  //for sin & cos
+#endif             // VPHAL_LIB
+
+#if EMUL || VPHAL_LIB
+#include <math.h>
+#include "support.h"
+#elif LINUX
+#else  // !(EMUL | VPHAL_LIB) && !LINUX
+
+#endif  // EMUL | VPHAL_LIB
 
 #include "hal_kerneldll_next.h"
 #include "vp_utils.h"
 
+// Define _DEBUG symbol for KDLL Release build before loading the "vpkrnheader.h" file
+// This is necessary for full kernels names in both Release/Debug versions of KDLL app
+#if EMUL || VPHAL_LIB
+#ifndef _DEBUG
+#define _DEBUG 2
+#endif  // _DEBUG
+#endif  // EMUL || VPHAL_LIB
+
+// Kernel IDs and Kernel Names
+#include "vpkrnheader.h"  // IDR_VP_TOTAL_NUM_KERNELS
+
+// Undefine _DEBUG symbol for the remaining of the KDLL Release build
+#if _DEBUG == 2
+#undef _DEBUG
+#endif  // _DEBUG
+
+
+#ifndef PI
+#define PI 3.1415926535897932f
+#endif  // PI
+
 #ifdef __cplusplus
 extern "C" {
-#endif // __cplusplus
+#endif  // __cplusplus
+
+const bool g_cIsFormatYUV[Format_Count] =
+    {
+        false,  // Format_Any
+        false,  // Format_A8R8G8B8
+        false,  // Format_X8R8G8B8
+        false,  // Format_A8B8G8R8
+        false,  // Format_X8B8G8R8
+        false,  // Format_A16B16G16R16
+        false,  // Format_A16R16G16B16
+        false,  // Format_R5G6B5
+        false,  // Format_R32U
+        false,  // Format_R32F
+        false,  // Format_R8G8B8
+        false,  // Format_RGBP
+        false,  // Format_BGRP
+        true,   // Format_YUY2
+        true,   // Format_YUYV
+        true,   // Format_YVYU
+        true,   // Format_UYVY
+        true,   // Format_VYUY
+        true,   // Format_Y216
+        true,   // Format_Y210
+        true,   // Format_Y416
+        true,   // Format_AYUV
+        true,   // Format_AUYV
+        true,   // Format_Y410
+        true,   // Format_400P
+        true,   // Format_NV12
+        true,   // Format_NV12_UnAligned
+        true,   // Format_NV21
+        true,   // Format_NV11
+        true,   // Format_NV11_UnAligned
+        true,   // Format_P208
+        true,   // Format_P208_UnAligned
+        true,   // Format_IMC1
+        true,   // Format_IMC2
+        true,   // Format_IMC3
+        true,   // Format_IMC4
+        true,   // Format_422H
+        true,   // Format_422V
+        true,   // Format_444P
+        true,   // Format_411P
+        true,   // Format_411R
+        true,   // Format_I420
+        true,   // Format_IYUV
+        true,   // Format_YV12
+        true,   // Format_YVU9
+        true,   // Format_AI44    (YUV originally, palette may be converted to RGB)
+        true,   // Format_IA44    (same as above)
+        false,  // Format_P8      (using RGB since P8 is uncommon in FC)
+        false,  // Format_A8P8    (same as above)
+        false,  // Format_A8
+        false,  // Format_L8
+        false,  // Format_A4L4
+        false,  // Format_A8L8
+        true,   // Format_IRW0
+        true,   // Format_IRW1
+        true,   // Format_IRW2
+        true,   // Format_IRW3
+        true,   // Format_IRW4
+        true,   // Format_IRW5
+        true,   // Format_IRW6
+        true,   // Format_IRW7
+        false,  // Format_STMM
+        false,  // Format_Buffer
+        false,  // Format_Buffer_2D
+        false,  // Format_V8U8
+        false,  // Format_R32S
+        false,  // Format_R8U
+        false,  // Format_R8G8UN
+        false,  // Format_R8G8SN
+        false,  // Format_G8R8_G8B8
+        false,  // Format_R16U
+        false,  // Format_R16S
+        false,  // Format_R16UN
+        false,  // Format_RAW
+        false,  // Format_Y8
+        false,  // Format_Y1
+        false,  // Format_Y16U
+        false,  // Format_Y16S
+        false,  // Format_L16
+        false,  // Format_D16
+        false,  // Format_R10G10B10A2
+        false,  // Format_B10G10R10A2
+        true,   // Format_P016
+        true,   // Format_P010
+        true    // Format_YV12_Planar
+};
+
+bool KernelDll_IsYUVFormat(MOS_FORMAT format)
+{
+    if (format >= Format_Any && format < Format_Count)
+    {
+        return g_cIsFormatYUV[format];
+    }
+    else
+    {
+        return false;
+    }
+}
+
+/*----------------------------------------------------------------------------
+| Purpose   : Group common color spaces into one
+| Returns   : Return the representative color space of the group
+\---------------------------------------------------------------------------*/
+VPHAL_CSPACE KernelDll_TranslateCspace(VPHAL_CSPACE cspace)
+{
+    switch (cspace)
+    {
+    case CSpace_BT709:
+    case CSpace_xvYCC709:
+        return CSpace_BT709;
+
+    case CSpace_BT601:
+    case CSpace_xvYCC601:
+        return CSpace_BT601;
+
+    case CSpace_BT601_FullRange:
+        return CSpace_BT601_FullRange;
+
+    case CSpace_BT709_FullRange:
+        return CSpace_BT709_FullRange;
+
+    case CSpace_RGB:
+    case CSpace_sRGB:
+        return CSpace_sRGB;
+
+    case CSpace_stRGB:
+        return CSpace_stRGB;
+
+    case CSpace_Gray:
+    case CSpace_BT601Gray:
+        return CSpace_BT601Gray;
+
+    case CSpace_BT601Gray_FullRange:
+        return CSpace_BT601Gray_FullRange;
+
+    case CSpace_BT2020:
+        return CSpace_BT2020;
+
+    case CSpace_BT2020_FullRange:
+        return CSpace_BT2020_FullRange;
+
+    case CSpace_BT2020_RGB:
+        return CSpace_BT2020_RGB;
+
+    case CSpace_BT2020_stRGB:
+        return CSpace_BT2020_stRGB;
+
+    default:
+        return CSpace_None;
+    }
+}
+
+void KernelDll_MatrixProduct(
+    float *      dest,
+    const float *m1,
+    const float *m2)
+{
+    bool  save;
+    float temp[12];
+
+    // setup temp matrix to allow the following operations:
+    //   dest = dest * m2
+    //   dest = m1 * dest
+    //   dest = dest * dest
+    save = (m1 == dest) || (m2 == dest);
+    m1   = (m1 == dest) ? temp : m1;
+    m2   = (m2 == dest) ? temp : m2;
+    if (save)
+        MOS_SecureMemcpy(temp, sizeof(temp), (void *)dest, sizeof(temp));
+
+    // Multiply the matrices
+    dest[0]  = m1[0] * m2[0] + m1[1] * m2[4] + m1[2] * m2[8];
+    dest[1]  = m1[0] * m2[1] + m1[1] * m2[5] + m1[2] * m2[9];
+    dest[2]  = m1[0] * m2[2] + m1[1] * m2[6] + m1[2] * m2[10];
+    dest[3]  = m1[0] * m2[3] + m1[1] * m2[7] + m1[2] * m2[11] + m1[3];
+    dest[4]  = m1[4] * m2[0] + m1[5] * m2[4] + m1[6] * m2[8];
+    dest[5]  = m1[4] * m2[1] + m1[5] * m2[5] + m1[6] * m2[9];
+    dest[6]  = m1[4] * m2[2] + m1[5] * m2[6] + m1[6] * m2[10];
+    dest[7]  = m1[4] * m2[3] + m1[5] * m2[7] + m1[6] * m2[11] + m1[7];
+    dest[8]  = m1[8] * m2[0] + m1[9] * m2[4] + m1[10] * m2[8];
+    dest[9]  = m1[8] * m2[1] + m1[9] * m2[5] + m1[10] * m2[9];
+    dest[10] = m1[8] * m2[2] + m1[9] * m2[6] + m1[10] * m2[10];
+    dest[11] = m1[8] * m2[3] + m1[9] * m2[7] + m1[10] * m2[11] + m1[11];
+}
+
+void KernelDll_UpdateCscCoefficients(Kdll_State *pState,
+    Kdll_CSC_Matrix *                            pMatrix)
+{
+    float         csc[12];     // CSC  matrix (YUV->RGB)
+    float         icsc[12];    // ICSC matrix (RGB->YUV), (YUV->YUV)
+    float         m[12];       // auxiliary matrix
+    float         matrix[12];  // final matrix
+    Kdll_CSCType  csctype;
+    Kdll_Procamp *pProcamp = nullptr;
+    VPHAL_CSPACE  src      = pMatrix->SrcSpace;
+    VPHAL_CSPACE  dst      = pMatrix->DstSpace;
+    bool          bCSC, bICSC;
+
+    bCSC = bICSC = false;
+    MOS_ZeroMemory(m, sizeof(m));
+    MOS_ZeroMemory(csc, sizeof(csc));
+    MOS_ZeroMemory(icsc, sizeof(icsc));
+
+    // Select procamp parameters
+    if (pMatrix->iProcampID > DL_PROCAMP_DISABLED &&
+        pMatrix->iProcampID < pState->iProcampSize &&
+        pState->pProcamp != nullptr)
+    {
+        pProcamp = pState->pProcamp + pMatrix->iProcampID;
+    }
+
+    // Setup CSC matrix
+    if (src != dst)
+    {
+        if ((dst == CSpace_sRGB) && (src != CSpace_stRGB))
+        {
+            KernelDll_GetCSCMatrix(src, dst, csc);
+            MOS_SecureMemcpy(m, sizeof(csc), (void *)csc, sizeof(csc));
+            bCSC    = true;
+            csctype = CSC_YUV_RGB;
+        }
+        else if ((dst == CSpace_stRGB) && (src != CSpace_sRGB))
+        {
+            KernelDll_GetCSCMatrix(src, dst, csc);
+            MOS_SecureMemcpy(m, sizeof(csc), (void *)csc, sizeof(csc));
+            bCSC    = true;
+            csctype = CSC_YUV_RGB;
+        }
+        else
+        {
+            KernelDll_GetCSCMatrix(src, dst, icsc);
+            MOS_SecureMemcpy(m, sizeof(icsc), (void *)icsc, sizeof(icsc));
+            bICSC = true;
+            if (KernelDll_IsCspace(src, CSpace_RGB) && !KernelDll_IsCspace(dst, CSpace_RGB))
+            {
+                csctype = CSC_RGB_YUV;
+            }
+            else if (KernelDll_IsCspace(src, CSpace_BT2020_RGB) && KernelDll_IsCspace(dst, CSpace_BT2020))
+            {
+                csctype = CSC_RGB_YUV;
+            }
+            else if (KernelDll_IsCspace(src, CSpace_BT2020) && KernelDll_IsCspace(dst, CSpace_BT2020_RGB))
+            {
+                csctype = CSC_YUV_RGB;
+            }
+            else
+            {
+                csctype = CSC_YUV_YUV;
+            }
+        }
+    }
+    // Setup CSC matrix for procamp in sRGB space
+    else if ((dst == CSpace_sRGB) && (pProcamp))
+    {
+        KernelDll_GetCSCMatrix(CSpace_sRGB, CSpace_BT709, icsc);
+        KernelDll_GetCSCMatrix(CSpace_BT709, CSpace_sRGB, csc);
+        bICSC = bCSC = true;
+        csctype      = CSC_RGB_RGB;
+    }
+    // Setup CSC matrix for procamp in stRGB space
+    else if ((dst == CSpace_stRGB) && (pProcamp))
+    {
+        KernelDll_GetCSCMatrix(CSpace_stRGB, CSpace_BT709, icsc);
+        KernelDll_GetCSCMatrix(CSpace_BT709, CSpace_stRGB, csc);
+        bICSC = bCSC = true;
+        csctype      = CSC_RGB_RGB;
+    }
+    else
+    {
+        MOS_SecureMemcpy(m, sizeof(g_cCSC_Identity), (void *)g_cCSC_Identity, sizeof(g_cCSC_Identity));
+        csctype = CSC_YUV_YUV;
+    }
+
+    // Product only happens if Procamp is present
+    // Otherwise use the original matrix
+    if (pProcamp)
+    {
+        float b, c, h, s;
+
+        // Calculate procamp parameters
+        b = pProcamp->fBrightness;
+        c = pProcamp->fContrast;
+        h = pProcamp->fHue * (PI / 180.0f);
+        s = pProcamp->fSaturation;
+
+        // procamp matrix
+        //
+        // [Y']   [ c            0          0  ] [Y]   [ 16  - 16 * c + b              ]
+        // [U'] = [ 0   c*s*cos(h)  c*s*sin(h) ] [U] + [ 128 - 128*c*s*(cos(h)+sin(h)) ]
+        // [V']   [ 0  -c*s*sin(h)  c*s*cos(h) ] [V]   [ 128 - 128*c*s*(cos(h)-sin(h)) ]
+
+        matrix[0]  = c;
+        matrix[1]  = 0.0f;
+        matrix[2]  = 0.0f;
+        matrix[3]  = 16.0f - 16.0f * c + b;
+        matrix[4]  = 0.0f;
+        matrix[5]  = (float)cos(h) * c * s;
+        matrix[6]  = (float)sin(h) * c * s;
+        matrix[7]  = 128.0f * (1.0f - matrix[5] - matrix[6]);
+        matrix[8]  = 0.0f;
+        matrix[9]  = -matrix[6];
+        matrix[10] = matrix[5];
+        matrix[11] = 128.0f * (1.0f - matrix[5] + matrix[6]);
+
+        // Calculate final CSC matrix (csc * pa * icsc)
+        if (bICSC)
+        {  // Calculate [pa] * [icsc]
+            KernelDll_MatrixProduct(matrix, matrix, icsc);
+        }
+
+        if (bCSC)
+        {  // Calculate [csc] * [pa]     (if no icsc)
+            //        or [csc] * [pa] * [icsc]
+            KernelDll_MatrixProduct(matrix, csc, matrix);
+        }
+
+        // Update procamp version
+        pMatrix->iProcampVersion = pProcamp->iProcampVersion;
+
+        // Use the output matrix to generate kernel CSC parameters
+        MOS_SecureMemcpy(m, sizeof(m), (void *)matrix, sizeof(m));
+    }
+
+    // normalize for kernel use
+    matrix[0]  = ROUND_FLOAT(m[0], 128.0f);   // 9.7
+    matrix[1]  = ROUND_FLOAT(m[1], 128.0f);   // 9.7
+    matrix[2]  = ROUND_FLOAT(m[2], 128.0f);   // 9.7
+    matrix[3]  = ROUND_FLOAT(m[3], 0.5f);     // 16.0 (value/2)
+    matrix[4]  = ROUND_FLOAT(m[4], 128.0f);   // 9.7
+    matrix[5]  = ROUND_FLOAT(m[5], 128.0f);   // 9.7
+    matrix[6]  = ROUND_FLOAT(m[6], 128.0f);   // 9.7
+    matrix[7]  = ROUND_FLOAT(m[7], 0.5f);     // 16.0 (value/2)
+    matrix[8]  = ROUND_FLOAT(m[8], 128.0f);   // 9.7
+    matrix[9]  = ROUND_FLOAT(m[9], 128.0f);   // 9.7
+    matrix[10] = ROUND_FLOAT(m[10], 128.0f);  // 9.7
+    matrix[11] = ROUND_FLOAT(m[11], 0.5f);    // 16.0 (value/2)
+
+    // Save matrix as kernel CSC coefficients
+    pState->pfnMapCSCMatrix(csctype, matrix, pMatrix->Coeff);
+}
 
 //---------------------------------------------------------------------------------------
 // KernelDll_StartKernelSearch_Next - Starts kernel search
@@ -44,11 +423,11 @@ extern "C" {
 // Output: none
 //---------------------------------------------------------------------------------------
 void KernelDll_StartKernelSearch_Next(
-    Kdll_State       *pState,
+    Kdll_State *      pState,
     Kdll_SearchState *pSearchState,
     Kdll_FilterEntry *pFilter,
-    int32_t          iFilterSize,
-    uint32_t         uiIs64BInstrEnabled)
+    int32_t           iFilterSize,
+    uint32_t          uiIs64BInstrEnabled)
 {
     int32_t nLayer;
 
@@ -58,22 +437,22 @@ void KernelDll_StartKernelSearch_Next(
     MOS_ZeroMemory(pSearchState, sizeof(Kdll_SearchState));
 
     // Setup KDLL state
-    pSearchState->pKdllState    = pState;     // KDLL state
+    pSearchState->pKdllState = pState;  // KDLL state
 
     // Cleanup kernel table
-    pSearchState->KernelCount   = 0;          // # of kernels
+    pSearchState->KernelCount = 0;  // # of kernels
 
     // Cleanup patch data
-    memset(pSearchState->Patches ,  0, sizeof(pSearchState->Patches));
-    memset(pSearchState->PatchID , -1, sizeof(pSearchState->PatchID));
+    memset(pSearchState->Patches, 0, sizeof(pSearchState->Patches));
+    memset(pSearchState->PatchID, -1, sizeof(pSearchState->PatchID));
     pSearchState->PatchCount = 0;
 
     // Copy original filter; filter will be modified as part of the search
     if (pFilter && iFilterSize > 0)
     {
         MOS_SecureMemcpy(pSearchState->Filter, iFilterSize * sizeof(Kdll_FilterEntry), pFilter, iFilterSize * sizeof(Kdll_FilterEntry));
-        pSearchState->pFilter      = pSearchState->Filter;
-        pSearchState->iFilterSize  = iFilterSize;
+        pSearchState->pFilter     = pSearchState->Filter;
+        pSearchState->iFilterSize = iFilterSize;
 
         // Copy the render target format
         pSearchState->target_format = pSearchState->pFilter[iFilterSize - 1].format;
@@ -82,9 +461,9 @@ void KernelDll_StartKernelSearch_Next(
         pSearchState->target_tiletype = pSearchState->pFilter[iFilterSize - 1].tiletype;
 
         // Indicate whether to use 64B save kernel for render target surface
-        if (uiIs64BInstrEnabled                               &&
-            ((pSearchState->target_tiletype == MOS_TILE_X)    ||
-            (pSearchState->target_tiletype  == MOS_TILE_LINEAR)))
+        if (uiIs64BInstrEnabled &&
+            ((pSearchState->target_tiletype == MOS_TILE_X) ||
+                (pSearchState->target_tiletype == MOS_TILE_LINEAR)))
         {
             pSearchState->b64BSaveEnabled = true;
         }
@@ -471,7 +850,6 @@ finish:
     return res;
 }
 
-
 /*----------------------------------------------------------------------------
 | Name      : KernelDll_GetCSCMatrix
 | Purpose   : Get the required matrix for the given CSC conversion
@@ -601,6 +979,2943 @@ void KernelDll_GetCSCMatrix(
             pCSC_Matrix[4 * i + 2],
             pCSC_Matrix[4 * i + 3]);
     }
+}
+
+bool KernelDll_MapCSCMatrix(
+    Kdll_CSCType csctype,
+    const float *matrix,
+    short *      coeff)
+{
+    // Unified kernel architecture requires that the color space
+    // conversion coefficients programmed in specific orders, depends on the
+    // type of the color space conversion.
+    //
+    // M (matrix)  ---> C (coeff)
+
+    switch (csctype)
+    {
+    case CSC_YUV_RGB:
+        // direct mapping from matrix to coeff
+        coeff[0]  = FLOAT_TO_SHORT(matrix[0]);   // M0  --> C0
+        coeff[1]  = FLOAT_TO_SHORT(matrix[1]);   // M1  --> C1
+        coeff[2]  = FLOAT_TO_SHORT(matrix[2]);   // M2  --> C2
+        coeff[3]  = FLOAT_TO_SHORT(matrix[3]);   // M3  --> C3
+        coeff[4]  = FLOAT_TO_SHORT(matrix[4]);   // M4  --> C4
+        coeff[5]  = FLOAT_TO_SHORT(matrix[5]);   // M5  --> C5
+        coeff[6]  = FLOAT_TO_SHORT(matrix[6]);   // M6  --> C6
+        coeff[7]  = FLOAT_TO_SHORT(matrix[7]);   // M7  --> C7
+        coeff[8]  = FLOAT_TO_SHORT(matrix[8]);   // M8  --> C8
+        coeff[9]  = FLOAT_TO_SHORT(matrix[9]);   // M9  --> C9
+        coeff[10] = FLOAT_TO_SHORT(matrix[10]);  // M10 --> C10
+        coeff[11] = FLOAT_TO_SHORT(matrix[11]);  // M11 --> C11
+        break;
+
+    case CSC_RGB_YUV:
+        coeff[6]  = FLOAT_TO_SHORT(matrix[0]);   // M0   --> C6
+        coeff[4]  = FLOAT_TO_SHORT(matrix[1]);   // M1   --> C4
+        coeff[5]  = FLOAT_TO_SHORT(matrix[2]);   // M2   --> C5
+        coeff[7]  = FLOAT_TO_SHORT(matrix[3]);   // M3   --> C7
+        coeff[10] = FLOAT_TO_SHORT(matrix[4]);   // M4   --> C10
+        coeff[8]  = FLOAT_TO_SHORT(matrix[5]);   // M5   --> C8
+        coeff[9]  = FLOAT_TO_SHORT(matrix[6]);   // M6   --> C9
+        coeff[11] = FLOAT_TO_SHORT(matrix[7]);   // M7   --> C11
+        coeff[2]  = FLOAT_TO_SHORT(matrix[8]);   // M8   --> C2
+        coeff[0]  = FLOAT_TO_SHORT(matrix[9]);   // M9   --> C0
+        coeff[1]  = FLOAT_TO_SHORT(matrix[10]);  // M10  --> C1
+        coeff[3]  = FLOAT_TO_SHORT(matrix[11]);  // M11  --> C3
+        break;
+
+    case CSC_YUV_YUV:
+        coeff[4]  = FLOAT_TO_SHORT(matrix[0]);   // M0   --> C4
+        coeff[5]  = FLOAT_TO_SHORT(matrix[1]);   // M1   --> C5
+        coeff[6]  = FLOAT_TO_SHORT(matrix[2]);   // M2   --> C6
+        coeff[7]  = FLOAT_TO_SHORT(matrix[3]);   // M3   --> C7
+        coeff[8]  = FLOAT_TO_SHORT(matrix[4]);   // M4   --> C8
+        coeff[9]  = FLOAT_TO_SHORT(matrix[5]);   // M5   --> C9
+        coeff[10] = FLOAT_TO_SHORT(matrix[6]);   // M6   --> C10
+        coeff[11] = FLOAT_TO_SHORT(matrix[7]);   // M7   --> C11
+        coeff[0]  = FLOAT_TO_SHORT(matrix[8]);   // M8   --> C0
+        coeff[1]  = FLOAT_TO_SHORT(matrix[9]);   // M9   --> C1
+        coeff[2]  = FLOAT_TO_SHORT(matrix[10]);  // M10  --> C2
+        coeff[3]  = FLOAT_TO_SHORT(matrix[11]);  // M11  --> C3
+        break;
+
+    default:
+        //CSC_RGB_RGB
+        coeff[2]  = FLOAT_TO_SHORT(matrix[0]);   // M0   --> C2
+        coeff[0]  = FLOAT_TO_SHORT(matrix[1]);   // M1   --> C0
+        coeff[1]  = FLOAT_TO_SHORT(matrix[2]);   // M2   --> C1
+        coeff[3]  = FLOAT_TO_SHORT(matrix[3]);   // M3   --> C3
+        coeff[6]  = FLOAT_TO_SHORT(matrix[4]);   // M4   --> C6
+        coeff[4]  = FLOAT_TO_SHORT(matrix[5]);   // M5   --> C4
+        coeff[5]  = FLOAT_TO_SHORT(matrix[6]);   // M6   --> C5
+        coeff[7]  = FLOAT_TO_SHORT(matrix[7]);   // M7   --> C7
+        coeff[10] = FLOAT_TO_SHORT(matrix[8]);   // M8   --> C10
+        coeff[8]  = FLOAT_TO_SHORT(matrix[9]);   // M9   --> C8
+        coeff[9]  = FLOAT_TO_SHORT(matrix[10]);  // M10  --> C9
+        coeff[11] = FLOAT_TO_SHORT(matrix[11]);  // M11  --> C11
+        break;
+    }
+
+    return true;
+}
+
+bool KernelDll_IsFormat(
+    MOS_FORMAT   format,
+    VPHAL_CSPACE cspace,
+    MOS_FORMAT   match)
+{
+    switch (match)
+    {
+    case Format_Any:
+        return (format != Format_None);
+        break;
+
+    case Format_RGB_Swap:
+        return (IS_RGB_SWAP(format));
+
+    case Format_RGB_No_Swap:
+        return (IS_RGB_NO_SWAP(format));
+
+    case Format_RGB:
+        if (IS_PAL_FORMAT(format))
+        {
+            return (KernelDll_IsCspace(cspace, CSpace_RGB));
+        }
+        else
+        {
+            return (IS_RGB_FORMAT(format) && !IS_PL3_RGB_FORMAT(format));
+        }
+
+    case Format_RGB32:
+        return (IS_RGB32_FORMAT(format));
+
+    case Format_PA:
+        if (IS_PAL_FORMAT(format))
+        {
+            return (KernelDll_IsCspace(cspace, CSpace_YUV));
+        }
+        else
+        {
+            return (IS_PA_FORMAT(format) ||
+                    format == Format_AUYV);
+        }
+
+    case Format_PL2:
+        return (IS_PL2_FORMAT(format));
+
+    case Format_PL2_UnAligned:
+        return (IS_PL2_FORMAT_UnAligned(format));
+
+    case Format_PL3:
+        return (IS_PL3_FORMAT(format));
+
+    case Format_PL3_RGB:
+        return (IS_PL3_RGB_FORMAT(format));
+
+    case Format_AYUV:
+        return (format == Format_AYUV);
+
+    case Format_PAL:
+        return (IS_PAL_FORMAT(format));
+
+    default:
+        return (format == match);
+    }
+
+    return false;
+}
+
+/*----------------------------------------------------------------------------
+| Name      : KernelDll_FindRule
+| Purpose   : Find a rule that matches the current search/input state
+|
+| Input     : pState       - Kernel Dll state
+|             pSearchState - current DL search state
+|
+| Return    :
+\---------------------------------------------------------------------------*/
+bool KernelDll_FindRule(
+    Kdll_State *      pState,
+    Kdll_SearchState *pSearchState)
+{
+    uint32_t              parser_state = (uint32_t)pSearchState->state;
+    Kdll_RuleEntrySet *   pRuleSet;
+    const Kdll_RuleEntry *pRuleEntry;
+    int32_t               iRuleCount;
+    int32_t               iMatchCount;
+    bool                  bLayerFormatMatched;
+    bool                  bSrc0FormatMatched;
+    bool                  bSrc1FormatMatched;
+    bool                  bTargetFormatMatched;
+    bool                  bSrc0SampingMatched;
+
+    VP_RENDER_FUNCTION_ENTER;
+
+    // All Custom states are handled as a single group
+    if (parser_state >= Parser_Custom)
+    {
+        parser_state = Parser_Custom;
+    }
+
+    pRuleSet   = pState->pDllRuleTable[parser_state];
+    iRuleCount = pState->iDllRuleCount[parser_state];
+
+    if (pRuleSet == nullptr || iRuleCount == 0)
+    {
+        VP_RENDER_NORMALMESSAGE("Search rules undefined.");
+        pSearchState->pMatchingRuleSet = nullptr;
+        return false;
+    }
+
+    // Search matching entry
+    for (; iRuleCount > 0; iRuleCount--, pRuleSet++)
+    {
+        // Points to the first rule, get number of matches
+        pRuleEntry  = pRuleSet->pRuleEntry;
+        iMatchCount = pRuleSet->iMatchCount;
+
+        // Initialize for each Ruleset
+        bLayerFormatMatched  = false;
+        bSrc0FormatMatched   = false;
+        bSrc1FormatMatched   = false;
+        bTargetFormatMatched = false;
+        bSrc0SampingMatched  = false;
+
+        // Match all rules within the same RuleSet
+        for (; iMatchCount > 0; iMatchCount--, pRuleEntry++)
+        {
+            switch (pRuleEntry->id)
+            {
+            // Match current Parser State
+            case RID_IsParserState:
+                if (pSearchState->state == (Kdll_ParserState)pRuleEntry->value)
+                {
+                    continue;
+                }
+                else
+                {
+                    break;
+                }
+
+            // Match render method
+            case RID_IsRenderMethod:
+                if (pSearchState->pFilter->RenderMethod == (Kdll_RenderMethod)pRuleEntry->value)
+                {
+                    continue;
+                }
+                else
+                {
+                    break;
+                }
+
+            // Match target color space
+            case RID_IsTargetCspace:
+                if (KernelDll_IsCspace(pSearchState->cspace, (VPHAL_CSPACE)pRuleEntry->value))
+                {
+                    continue;
+                }
+                else
+                {
+                    break;
+                }
+
+            // Match current layer ID
+            case RID_IsLayerID:
+                if (pSearchState->pFilter->layer == (Kdll_Layer)pRuleEntry->value)
+                {
+                    continue;
+                }
+                else
+                {
+                    break;
+                }
+
+            // Match current layer format
+            case RID_IsLayerFormat:
+                if (pRuleEntry->logic == Kdll_Or && bLayerFormatMatched)
+                {
+                    // Already found matching format in the ruleset
+                    continue;
+                }
+                else
+                {
+                    // Check if the layer format matches the rule
+                    if (KernelDll_IsFormat(pSearchState->pFilter->format,
+                            pSearchState->pFilter->cspace,
+                            (MOS_FORMAT)pRuleEntry->value))
+                    {
+                        bLayerFormatMatched = true;
+                    }
+
+                    if (pRuleEntry->logic == Kdll_None && !bLayerFormatMatched)
+                    {
+                        // Last entry and No matching format was found
+                        break;
+                    }
+                    else
+                    {
+                        continue;
+                    }
+                }
+
+            // Match shuffling requirement
+            case RID_IsShuffling:
+                if (pSearchState->ShuffleSamplerData == (Kdll_Shuffling)pRuleEntry->value)
+                {
+                    continue;
+                }
+                else
+                {
+                    break;
+                }
+
+            // Check if RT rotates
+            case RID_IsRTRotate:
+                if (pSearchState->bRTRotate == (pRuleEntry->value ? true : false))
+                {
+                    continue;
+                }
+                else
+                {
+                    break;
+                }
+
+            // Match current layer rotation
+            case RID_IsLayerRotation:
+                if (pSearchState->pFilter->rotation == (VPHAL_ROTATION)pRuleEntry->value)
+                {
+                    continue;
+                }
+                else
+                {
+                    break;
+                }
+
+            // Match Src0 source format (surface)
+            case RID_IsSrc0Format:
+                if (pRuleEntry->logic == Kdll_Or && bSrc0FormatMatched)
+                {
+                    // Already found matching format in the ruleset
+                    continue;
+                }
+                else
+                {
+                    // Check if the source 0 format matches the rule
+                    // The intermediate colorspace is used to determine
+                    // if palettized input is given in RGB or YUV format.
+                    if (KernelDll_IsFormat(pSearchState->src0_format,
+                            pSearchState->cspace,
+                            (MOS_FORMAT)pRuleEntry->value))
+                    {
+                        bSrc0FormatMatched = true;
+                    }
+
+                    if (pRuleEntry->logic == Kdll_None && !bSrc0FormatMatched)
+                    {
+                        // Last entry and No matching format was found
+                        break;
+                    }
+                    else
+                    {
+                        continue;
+                    }
+                }
+
+            // Match Src0 sampling mode
+            case RID_IsSrc0Sampling:
+                // Check if the layer format matches the rule
+                if (pSearchState->src0_sampling == (Kdll_Sampling)pRuleEntry->value)
+                {
+                    bSrc0SampingMatched = true;
+                    continue;
+                }
+                else if (bSrc0SampingMatched || pRuleEntry->logic == Kdll_Or)
+                {
+                    continue;
+                }
+                else if ((Kdll_Sampling)pRuleEntry->value == Sample_Any &&
+                         pSearchState->src0_sampling != Sample_None)
+                {
+                    continue;
+                }
+                else
+                {
+                    break;
+                }
+
+            // Match Src0 rotation
+            case RID_IsSrc0Rotation:
+                if (pSearchState->src0_rotation == (VPHAL_ROTATION)pRuleEntry->value)
+                {
+                    continue;
+                }
+                else
+                {
+                    break;
+                }
+
+            // Match Src0 Colorfill
+            case RID_IsSrc0ColorFill:
+                if (pSearchState->src0_colorfill == (int32_t)pRuleEntry->value)
+                {
+                    continue;
+                }
+                else
+                {
+                    break;
+                }
+
+            // Match Src0 Luma Key
+            case RID_IsSrc0LumaKey:
+                if (pSearchState->src0_lumakey == (int32_t)pRuleEntry->value)
+                {
+                    continue;
+                }
+                else
+                {
+                    break;
+                }
+
+            // Match Src0 Procamp
+            case RID_IsSrc0Procamp:
+                if (pSearchState->pFilter->procamp == (int32_t)pRuleEntry->value)
+                {
+                    continue;
+                }
+                else
+                {
+                    break;
+                }
+
+            // Match Src0 CSC coefficients
+            case RID_IsSrc0Coeff:
+                if (pSearchState->src0_coeff == (Kdll_CoeffID)pRuleEntry->value)
+                {
+                    continue;
+                }
+                else if ((Kdll_CoeffID)pRuleEntry->value == CoeffID_Any &&
+                         pSearchState->src0_coeff != CoeffID_None)
+                {
+                    continue;
+                }
+                else
+                {
+                    break;
+                }
+
+            // Match Src0 CSC coefficients setting mode
+            case RID_IsSetCoeffMode:
+                if (pSearchState->pFilter->SetCSCCoeffMode == (Kdll_SetCSCCoeffMethod)pRuleEntry->value)
+                {
+                    continue;
+                }
+                else
+                {
+                    break;
+                }
+
+            // Match Src0 processing mode
+            case RID_IsSrc0Processing:
+                if (pSearchState->src0_process == (Kdll_Processing)pRuleEntry->value)
+                {
+                    continue;
+                }
+                if ((Kdll_Processing)pRuleEntry->value == Process_Any &&
+                    pSearchState->src0_process != Process_None)
+                {
+                    continue;
+                }
+                else
+                {
+                    break;
+                }
+
+            // Match Src0 chromasiting mode
+            case RID_IsSrc0Chromasiting:
+                if (pSearchState->Filter->chromasiting == (int32_t)pRuleEntry->value)
+                {
+                    continue;
+                }
+                else
+                {
+                    break;
+                }
+
+            // Match Src1 source format (surface)
+            case RID_IsSrc1Format:
+                if (pRuleEntry->logic == Kdll_Or && bSrc1FormatMatched)
+                {
+                    // Already found matching format in the ruleset
+                    continue;
+                }
+                else
+                {
+                    // Check if the source 1 format matches the rule
+                    // The intermediate colorspace is used to determine
+                    // if palettized input is given in RGB or YUV format.
+                    if (KernelDll_IsFormat(pSearchState->src1_format,
+                            pSearchState->cspace,
+                            (MOS_FORMAT)pRuleEntry->value))
+                    {
+                        bSrc1FormatMatched = true;
+                    }
+
+                    if (pRuleEntry->logic == Kdll_None && !bSrc1FormatMatched)
+                    {
+                        // Last entry and No matching format was found
+                        break;
+                    }
+                    else
+                    {
+                        continue;
+                    }
+                }
+            // Match Src1 sampling mode
+            case RID_IsSrc1Sampling:
+                if (pSearchState->src1_sampling == (Kdll_Sampling)pRuleEntry->value)
+                {
+                    continue;
+                }
+                else if ((Kdll_Sampling)pRuleEntry->value == Sample_Any &&
+                         pSearchState->src1_sampling != Sample_None)
+                {
+                    continue;
+                }
+                else
+                {
+                    break;
+                }
+
+            // Match Src1 Luma Key
+            case RID_IsSrc1LumaKey:
+                if (pSearchState->src1_lumakey == (int32_t)pRuleEntry->value)
+                {
+                    continue;
+                }
+                else
+                {
+                    break;
+                }
+
+            // Match Src1 Sampler LumaKey
+            case RID_IsSrc1SamplerLumaKey:
+                if (pSearchState->src1_samplerlumakey == (int32_t)pRuleEntry->value)
+                {
+                    continue;
+                }
+                else
+                {
+                    break;
+                }
+
+            // Match Src1 Procamp
+            case RID_IsSrc1Procamp:
+                if (pSearchState->pFilter->procamp == (int32_t)pRuleEntry->value)
+                {
+                    continue;
+                }
+                else
+                {
+                    break;
+                }
+
+            // Match Src1 CSC coefficients
+            case RID_IsSrc1Coeff:
+                if (pSearchState->src1_coeff == (Kdll_CoeffID)pRuleEntry->value)
+                {
+                    continue;
+                }
+                else if ((Kdll_CoeffID)pRuleEntry->value == CoeffID_Any &&
+                         pSearchState->src1_coeff != CoeffID_None)
+                {
+                    continue;
+                }
+                else
+                {
+                    break;
+                }
+
+            // Match Src1 processing mode
+            case RID_IsSrc1Processing:
+                if (pSearchState->src1_process == (Kdll_Processing)pRuleEntry->value)
+                {
+                    continue;
+                }
+                if ((Kdll_Processing)pRuleEntry->value == Process_Any &&
+                    pSearchState->src1_process != Process_None)
+                {
+                    continue;
+                }
+                else
+                {
+                    break;
+                }
+
+            // Match Src1 chromasiting mode
+            case RID_IsSrc1Chromasiting:
+                //pSearchState->pFilter is pointed to the real sub layer
+                if (pSearchState->pFilter->chromasiting == (int32_t)pRuleEntry->value)
+                {
+                    continue;
+                }
+                else
+                {
+                    break;
+                }
+
+            // Match Layer number
+            case RID_IsLayerNumber:
+                if (pSearchState->layer_number == (int32_t)pRuleEntry->value)
+                {
+                    continue;
+                }
+                else
+                {
+                    break;
+                }
+
+            // Match quadrant
+            case RID_IsQuadrant:
+                if (pSearchState->quadrant == (int32_t)pRuleEntry->value)
+                {
+                    continue;
+                }
+                else
+                {
+                    break;
+                }
+
+            // Set CSC flag before Mix
+            case RID_IsCSCBeforeMix:
+                if (pSearchState->bCscBeforeMix == (pRuleEntry->value ? true : false))
+                {
+                    continue;
+                }
+                else
+                {
+                    break;
+                }
+
+            case RID_IsDualOutput:
+                if (pSearchState->pFilter->dualout == (pRuleEntry->value ? true : false))
+                {
+                    continue;
+                }
+                else
+                {
+                    break;
+                }
+
+            case RID_IsTargetFormat:
+                if (pRuleEntry->logic == Kdll_Or && bTargetFormatMatched)
+                {
+                    // Already found matching format in the ruleset
+                    continue;
+                }
+                else
+                {
+                    if (pSearchState->target_format == (MOS_FORMAT)pRuleEntry->value)
+                    {
+                        bTargetFormatMatched = true;
+                    }
+
+                    if (pRuleEntry->logic == Kdll_None && !bTargetFormatMatched)
+                    {
+                        // Last entry and No matching format was found
+                        break;
+                    }
+                    else
+                    {
+                        continue;
+                    }
+                }
+
+            case RID_Is64BSaveEnabled:
+                if (pSearchState->b64BSaveEnabled == (pRuleEntry->value ? true : false))
+                {
+                    continue;
+                }
+                else
+                {
+                    break;
+                }
+
+            case RID_IsTargetTileType:
+                if (pRuleEntry->logic == Kdll_None &&
+                    pSearchState->target_tiletype == (MOS_TILE_TYPE)pRuleEntry->value)
+                {
+                    continue;
+                }
+                else if (pRuleEntry->logic == Kdll_Not &&
+                         pSearchState->target_tiletype != (MOS_TILE_TYPE)pRuleEntry->value)
+                {
+                    continue;
+                }
+                else
+                {
+                    break;
+                }
+
+            case RID_IsProcampEnabled:
+                if (pSearchState->bProcamp == (pRuleEntry->value ? true : false))
+                {
+                    continue;
+                }
+                else
+                {
+                    break;
+                }
+
+            case RID_IsConstOutAlpha:
+                if (pSearchState->pFilter->bFillOutputAlphaWithConstant == (pRuleEntry->value ? true : false))
+                {
+                    continue;
+                }
+                else
+                {
+                    break;
+                }
+
+            case RID_IsDitherNeeded:
+                if (pSearchState->pFilter->bIsDitherNeeded == (pRuleEntry->value ? true : false))
+                {
+                    continue;
+                }
+                else
+                {
+                    break;
+                }
+            // Undefined search rule will fail
+            default:
+                VP_RENDER_ASSERTMESSAGE("Invalid rule %d @ layer %d, state %d.", pRuleEntry->id, pSearchState->layer_number, pSearchState->state);
+                MT_ERR3(MT_VP_KERNEL_RULE, MT_VP_KERNEL_RULE_ID, pRuleEntry->id, MT_VP_KERNEL_RULE_LAYERNUM, pSearchState->layer_number, MT_VP_KERNEL_RULE_SEARCH_STATE, pSearchState->state);
+                break;
+            }  // End of switch to deal with all matching rule IDs
+
+            // Rule didn't match - try another RuleSet
+            break;
+        }  // End of file loop to test all rules for the current RuleSet
+
+        // Match
+        if (iMatchCount == 0)
+        {
+            pSearchState->pMatchingRuleSet = pRuleSet;
+            return true;
+        }
+    }  // End of for loop to test all RuleSets for the current parser state
+
+    // Failed to find a matching rule -> kernel search will fail
+    VP_RENDER_NORMALMESSAGE("Fail to find a matching rule @ layer %d, state %d.", pSearchState->layer_number, pSearchState->state);
+    MT_ERR2(MT_VP_KERNEL_RULE, MT_VP_KERNEL_RULE_LAYERNUM, pSearchState->layer_number, MT_VP_KERNEL_RULE_SEARCH_STATE, pSearchState->state);
+
+    // No match -> return
+    pSearchState->pMatchingRuleSet = nullptr;
+    return false;
+}
+
+//--------------------------------------------------------------
+// Append kernel, include symbols to resolve
+//--------------------------------------------------------------
+bool Kdll_AppendKernel(Kdll_KernelCache *pKernelCache,
+    Kdll_SearchState *                   pSearchState,
+    int32_t                              iKUID,
+    Kdll_PatchData *                     pKernelPatch)
+{
+    Kdll_State *     pState;
+    Kdll_Symbol *    pSymbols;
+    Kdll_CacheEntry *kernels;
+    Kdll_LinkData *  link;
+    Kdll_LinkData *  liSearch_reloc;
+    uint8_t *        kernel;
+    int *            size;
+    int *            left;
+    int              dwSize;
+    int              i;
+    int              base;
+    bool             bInline;
+    bool             res;
+
+    VP_RENDER_FUNCTION_ENTER;
+
+    res = false;
+
+    // Check if Kernel ID is valid
+    if (iKUID >= pKernelCache->iCacheEntries)
+    {
+        VP_RENDER_NORMALMESSAGE("invalid Kernel ID %d.", iKUID);
+        goto cleanup;
+    }
+
+    // Get KDLL state
+    pState = pSearchState->pKdllState;
+
+    // Get current combined kernel
+    kernel   = pSearchState->Kernel;
+    size     = &pSearchState->KernelSize;
+    left     = &pSearchState->KernelLeft;
+    pSymbols = &pSearchState->KernelLink;
+    base     = (*size) >> 2;
+
+    // Find selected kernel and kernel size; check if there is enough space
+    kernels = &pKernelCache->pCacheEntries[iKUID];
+    dwSize  = kernels->iSize;
+    if (*left < dwSize)
+    {
+        VP_RENDER_NORMALMESSAGE("exceeded maximum kernel size.");
+        goto cleanup;
+    }
+
+    // Check if there is enough space for symbols
+    if (pSymbols->dwCount + kernels->nLink >= pSymbols->dwSize)
+    {
+        VP_RENDER_NORMALMESSAGE("exceeded maximum numbers of symbols to resolve.");
+        goto cleanup;
+    }
+
+#if EMUL || VPHAL_LIB
+    VP_RENDER_NORMALMESSAGE("%s.", kernels->szName);
+
+    if (pState->pfnCbListKernel)
+    {
+        pState->pfnCbListKernel(pState->pToken, kernels->szName);
+    }
+#elif _DEBUG  // EMUL || VPHAL_LIB
+    VP_RENDER_NORMALMESSAGE("%s.", kernels->szName);
+#endif  // _DEBUG
+
+    // Append symbols to resolve, relocate symbols
+    link           = kernels->pLink;
+    liSearch_reloc = pSymbols->pLink + pSymbols->dwCount;
+
+    bInline = false;
+    if (link)
+    {
+        for (i = kernels->nLink; i > 0; i--, link++)
+        {
+            if (link->bInline)
+            {
+                // Inline code included
+                if (!link->bExport)
+                {
+                    bInline = true;
+                }
+            }
+            else
+            {
+                *liSearch_reloc = *link;
+                liSearch_reloc->dwOffset += base;
+                liSearch_reloc++;
+
+                pSymbols->dwCount++;
+            }
+        }
+    }
+
+    // Append kernel
+    MOS_SecureMemcpy(&kernel[*size], dwSize, (void *)kernels->pBinary, dwSize);
+
+    // Patch kernel
+    if (pKernelPatch)
+    {
+        uint8_t *pSource      = pKernelPatch->Data;
+        uint8_t *pDestination = kernel + (*size);
+        int32_t  i;
+
+        Kdll_PatchBlock *pBlock = pKernelPatch->Patch;
+        for (i = pKernelPatch->nPatches; i > 0; i--, pBlock++)
+        {
+            MOS_SecureMemcpy(pDestination + pBlock->DstOffset, pBlock->BlockSize, (void *)(pSource + pBlock->SrcOffset), pBlock->BlockSize);
+        }
+    }
+
+    res = true;
+    *size += dwSize;
+    *left -= dwSize;
+
+    // Insert inline code
+    if (bInline)
+    {
+        for (link = kernels->pLink, i = kernels->nLink; (i > 0) && (res); i--, link++)
+        {
+            if (link->bInline && (!link->bExport))
+            {
+                iKUID = pKernelCache->pExports[link->iLabelID].iKUID;
+                res &= Kdll_AppendKernel(pKernelCache, pSearchState, iKUID, pKernelPatch);
+            }
+        }
+    }
+
+cleanup:
+    return res;
+}
+
+//--------------------------------------------------------------
+// Resolve kernel dependencies and perform patching
+//--------------------------------------------------------------
+bool Kdll_ResolveKernelDependencies(
+    Kdll_State *      pState,
+    Kdll_SearchState *pSearchState)
+{
+    Kdll_KernelCache *cache    = &pState->ComponentKernelCache;
+    uint8_t *         kernel   = pSearchState->Kernel;
+    Kdll_Symbol *     pSymbols = &pSearchState->KernelLink;
+    uint32_t          nExports = cache->nExports;
+    Kdll_LinkData *   pExports = cache->pExports;
+    Kdll_LinkData *   pLink;
+    int32_t           iKUID;
+    int32_t           iOffset;
+    uint32_t          dwResolveOffset[DL_MAX_EXPORT_COUNT];
+    bool              bResolveDone;
+    int32_t           i;
+    uint32_t *        d;
+
+    VP_RENDER_FUNCTION_ENTER;
+
+    MOS_ZeroMemory(dwResolveOffset, sizeof(dwResolveOffset));
+
+    do
+    {
+        // Update exports
+        for (pLink = pSymbols->pLink, i = pSymbols->dwCount; i > 0; i--, pLink++)
+        {
+            if (pLink->bExport)
+            {
+                dwResolveOffset[pLink->iLabelID] = pLink->dwOffset;
+            }
+        }
+
+        bResolveDone = true;
+        for (pLink = pSymbols->pLink, i = pSymbols->dwCount; i > 0; i--, pLink++)
+        {
+            // validate label
+            if (pLink->iLabelID > nExports ||            // invalid label
+                pExports[pLink->iLabelID].bExport == 0)  // label not in the export table
+            {
+                VP_RENDER_ASSERTMESSAGE("Invalid/unresolved label %d.", pLink->iLabelID);
+                return false;
+            }
+
+            // load dependencies
+            if (!pLink->bExport && !dwResolveOffset[pLink->iLabelID])
+            {
+                // set flag for another pass as newly loaded
+                // kernels may contain dependencies of their own
+                bResolveDone = false;
+
+                // Load dependencies
+                iKUID = pExports[pLink->iLabelID].iKUID;
+                Kdll_AppendKernel(cache, pSearchState, iKUID, nullptr);
+
+                // Restart
+                break;
+            }
+        }  // for
+    } while (!bResolveDone);
+
+    // All modules must be loaded by now, start patching
+    for (pLink = pSymbols->pLink, i = pSymbols->dwCount; i > 0; i--, pLink++)
+    {
+        iOffset = (int32_t)dwResolveOffset[pLink->iLabelID] - 4;
+        iOffset -= pLink->dwOffset;
+
+        d = ((uint32_t *)kernel) + pLink->dwOffset;
+
+        // Patch offset
+        if (!pLink->bExport && !pLink->bInline)
+        {
+            d[3] = iOffset << 2;  // jmpi - index * 8 bits
+        }
+    }
+
+    return true;
+}
+
+//---------------------------------------------------------------------------------------
+// Kdll_SearchKernel - Performs full kernel search, including selection of best match
+//                     Search state must be initialized by KernelDll_StartKernelSearch
+//
+// Parameters:
+//    Kdll_State       *pState       - [in]     Dynamic Linking state
+//    Kdll_SearchState *pSearchState - [in/out] Kernel search state
+//
+// Output: true if suceeded, false otherwise
+//---------------------------------------------------------------------------------------
+bool KernelDll_SearchKernel(Kdll_State *pState,
+    Kdll_SearchState *                  pSearchState)
+{
+    VP_RENDER_FUNCTION_ENTER;
+
+    // Check parameters
+    if ((!pSearchState) || pSearchState->iFilterSize < 1)
+    {
+        VP_RENDER_NORMALMESSAGE("Search is empty, must contain 2 or more layers.");
+        return false;
+    }
+
+    // Setup CSC; allocate and calculate CSC matrices
+    if (!pState->pfnSetupCSC(pState, pSearchState))
+    {
+        VP_RENDER_NORMALMESSAGE("CSC setup failed.");
+        return false;
+    }
+
+    // Initial search states
+    pSearchState->bCscBeforeMix = false;
+    pSearchState->state         = Parser_Begin;
+    pSearchState->cspace        = pSearchState->CscParams.ColorSpace;
+    pSearchState->quadrant      = 0;
+    pSearchState->layer_number  = 0;
+
+    pSearchState->pMatchingRuleSet = nullptr;
+
+    // Reset Src0 state
+    pSearchState->src0_format    = Format_None;
+    pSearchState->src0_sampling  = Sample_None;
+    pSearchState->src0_colorfill = false;
+    pSearchState->src0_lumakey   = LumaKey_False;
+    pSearchState->src0_coeff     = CoeffID_None;
+
+    // Reset Src1 state
+    pSearchState->src1_format         = Format_None;
+    pSearchState->src1_sampling       = Sample_None;
+    pSearchState->src1_lumakey        = LumaKey_False;
+    pSearchState->src1_samplerlumakey = LumaKey_False;
+    pSearchState->src1_coeff          = CoeffID_None;
+    pSearchState->src1_process        = Process_None;
+
+    // Search loop
+    while (pSearchState->state != Parser_End)
+    {
+#if EMUL || VPHAL_LIB
+        if (pState->pfnCbSearchSate)
+        {
+            pState->pfnCbSearchSate(pState->pToken, CB_REASON_BEGIN_SEARCH, pSearchState);
+        }
+#endif
+        // Find rule that matches
+        if (!pState->pfnFindRule(pState, pSearchState))
+        {
+#if EMUL || VPHAL_LIB
+            if (pState->pfnCbSearchSate)
+            {
+                pState->pfnCbSearchSate(pState->pToken, CB_REASON_SEARCH_FAILED, pSearchState);
+            }
+#endif
+            return false;
+        }
+
+#if EMUL || VPHAL_LIB
+        if (pState->pfnCbSearchSate)
+        {
+            pState->pfnCbSearchSate(pState->pToken, CB_REASON_BEGIN_UPDATE, pSearchState);
+        }
+#endif
+        // Update state
+        if (!pState->pfnUpdateState(pState, pSearchState))
+        {
+#if EMUL || VPHAL_LIB
+            if (pState->pfnCbSearchSate)
+            {
+                pState->pfnCbSearchSate(pState->pToken, CB_REASON_UPDATE_FAILED, pSearchState);
+            }
+#endif
+            return false;
+        }
+    }
+
+#if EMUL || VPHAL_LIB
+    if (pState->pfnCbSearchSate)
+    {
+        pState->pfnCbSearchSate(pState->pToken, CB_REASON_END_SEARCH, pSearchState);
+    }
+#endif
+
+    VP_RENDER_VERBOSEMESSAGE("Search completed successfully.");
+    return true;
+}
+
+//--------------------------------------------------------------
+// KernelDll_BuildKernel - build kernel
+//--------------------------------------------------------------
+bool KernelDll_BuildKernel(Kdll_State *pState, Kdll_SearchState *pSearchState)
+{
+    Kdll_KernelCache *pKernelCache = &pState->ComponentKernelCache;
+    Kdll_KernelCache *pCustomCache = pState->pCustomKernelCache;
+    Kdll_PatchData *  pKernelPatch;
+    bool              res;
+    int32_t           offset = 0;
+    int32_t *         pKernelID, *pGroupID, *pPatchID;
+
+    VP_RENDER_FUNCTION_ENTER;
+
+    pSearchState->KernelLink.dwSize  = DL_MAX_SYMBOLS;
+    pSearchState->KernelLink.dwCount = 0;
+    pSearchState->KernelLink.pLink   = pSearchState->LinkArray;
+    pSearchState->KernelSize         = 0;
+    pSearchState->KernelLeft         = sizeof(pSearchState->Kernel);
+    pSearchState->KernelLink.dwCount = 0;
+
+#if EMUL || VPHAL_LIB || _DEBUG || _RELEASE_INTERNAL
+    VP_RENDER_NORMALMESSAGE("Component Kernels:");
+#endif  // EMUL || VPHAL_LIB || _DEBUG
+
+    pKernelID = pSearchState->KernelID;
+    pGroupID  = pSearchState->KernelGrp;
+    pPatchID  = pSearchState->PatchID;
+
+    for (offset = 0; offset < pSearchState->KernelCount; offset++, pKernelID++, pGroupID++, pPatchID++)
+    {
+        // Get patch information associated with the kernel
+        pKernelPatch = (*pPatchID >= 0) ? &(pSearchState->Patches[*pPatchID]) : nullptr;
+
+        // Append/Patch kernel from custom cache
+        if (*pGroupID == GROUP_CUSTOM)
+        {
+            res = Kdll_AppendKernel(pCustomCache, pSearchState, *pKernelID, pKernelPatch);
+        }
+        // Append/Patch kernel from internal cache
+        else
+        {
+            res = Kdll_AppendKernel(pKernelCache, pSearchState, *pKernelID, pKernelPatch);
+        }
+
+        if (!res)
+        {
+            VP_RENDER_ASSERTMESSAGE("Failed to build kernel ID %d.", pSearchState->KernelID[offset]);
+            return false;
+        }
+        else
+        {
+            Kdll_CacheEntry *kernels = (*pGroupID == GROUP_CUSTOM) ? &pCustomCache->pCacheEntries[*pKernelID] : &pKernelCache->pCacheEntries[*pKernelID];
+            VP_RENDER_NORMALMESSAGE("Component kernels [%d]: %s", *pKernelID, kernels->szName);
+        }
+    }
+
+    // Resolve kernel dependencies
+    res = Kdll_ResolveKernelDependencies(pState, pSearchState);
+    if (!res)
+    {
+        VP_RENDER_ASSERTMESSAGE("Failed to resolve symbols.");
+        return false;
+    }
+
+    return true;
+}
+
+//---------------------------------------------------------------------------------------
+// KernelDll_StartKernelSearch - Starts kernel search
+//
+// Parameters:
+//    Kdll_State       *pState       - [in]     Dynamic Linking State
+//    Kdll_FilterEntry *pFilter      - [in]     Search filter (array of search entries)
+//    int               iFilterSize  - [in]     Search filter size
+//    Kdll_SearchState *pSearchState - [in/out] Kernel search state
+//
+// Output: none
+//---------------------------------------------------------------------------------------
+void KernelDll_StartKernelSearch(
+    Kdll_State *      pState,
+    Kdll_SearchState *pSearchState,
+    Kdll_FilterEntry *pFilter,
+    int32_t           iFilterSize,
+    uint32_t          uiIs64BInstrEnabled)
+{
+    int32_t nLayer;
+
+    VP_RENDER_FUNCTION_ENTER;
+
+    // Reset all states
+    MOS_ZeroMemory(pSearchState, sizeof(Kdll_SearchState));
+
+    // Setup KDLL state
+    pSearchState->pKdllState = pState;  // KDLL state
+
+    // Cleanup kernel table
+    pSearchState->KernelCount = 0;  // # of kernels
+
+    // Cleanup patch data
+    memset(pSearchState->Patches, 0, sizeof(pSearchState->Patches));
+    memset(pSearchState->PatchID, -1, sizeof(pSearchState->PatchID));
+    pSearchState->PatchCount = 0;
+
+    // Copy original filter; filter will be modified as part of the search
+    if (pFilter && iFilterSize > 0)
+    {
+        MOS_SecureMemcpy(pSearchState->Filter, iFilterSize * sizeof(Kdll_FilterEntry), pFilter, iFilterSize * sizeof(Kdll_FilterEntry));
+        pSearchState->pFilter     = pSearchState->Filter;
+        pSearchState->iFilterSize = iFilterSize;
+
+        for (nLayer = 0; nLayer < iFilterSize; nLayer++)
+        {
+            // DScale Kernels are enabled for all gen9 stepping.
+            //For Gen9+, kernel don't support sublayer DScale+rotation
+            //Sampler_unorm does not support Y410/RGB10, we need to use sampler_16 to support Y410/RGB10
+            if (!pFilter[nLayer].bEnableDscale &&
+                (!pFilter[nLayer].bWaEnableDscale ||
+                    (pFilter[nLayer].layer == Layer_SubVideo &&
+                        pFilter[nLayer].rotation != VPHAL_ROTATION_IDENTITY)))
+            {
+                if (pFilter[nLayer].sampler == Sample_Scaling_034x)
+                {
+                    pSearchState->pFilter[nLayer].sampler = Sample_Scaling;
+                }
+                else if (pFilter[nLayer].sampler == Sample_iScaling_034x)
+                {
+                    pSearchState->pFilter[nLayer].sampler = Sample_iScaling;
+                }
+                else if (pFilter[nLayer].sampler == Sample_iScaling_AVS)
+                {
+                    pSearchState->pFilter[nLayer].sampler = Sample_iScaling_AVS;
+                }
+            }
+        }
+
+        // Copy the render target format
+        pSearchState->target_format = pSearchState->pFilter[iFilterSize - 1].format;
+
+        // Copy the render target tile type
+        pSearchState->target_tiletype = pSearchState->pFilter[iFilterSize - 1].tiletype;
+
+        // Indicate whether to use 64B save kernel for render target surface
+        if (uiIs64BInstrEnabled &&
+            ((pSearchState->target_tiletype == MOS_TILE_X) ||
+                (pSearchState->target_tiletype == MOS_TILE_LINEAR)))
+        {
+            pSearchState->b64BSaveEnabled = true;
+        }
+    }
+}
+
+/*----------------------------------------------------------------------------
+| Name      : KernelDll_SetupCSC
+| Purpose   : Defines CSC conversions necessary for a given filter
+|
+| Input     : pState       - Kernel Dll state
+|             pSearchState - current DL search state
+|
+| Return    :
+\---------------------------------------------------------------------------*/
+bool KernelDll_SetupCSC(
+    Kdll_State *      pState,
+    Kdll_SearchState *pSearchState)
+{
+    int i, m;  // Integer iterators
+
+    bool bCoeffID_0_Used = false;
+
+    VPHAL_CSPACE cspace      = CSpace_None;  // Current ColorSpace
+    VPHAL_CSPACE out_cspace  = CSpace_None;  // Render Target CS
+    VPHAL_CSPACE main_cspace = CSpace_None;  // Main video CS
+    VPHAL_CSPACE sel_cspace  = CSpace_Any;   // Selected CS
+
+    Kdll_FilterEntry *pFilter;  // Current Filter information
+    int               iFilterSize = pSearchState->iFilterSize;
+    Kdll_CSC_Params * pCSC        = &pSearchState->CscParams;
+
+    int     csc_count;                    // Number of CSC operations
+    int     matrix_count;                 // Number of Matrices in use
+    int     procamp_count = 0;            // Number of PA operations
+    int     sel_csc_count = -1;           // Minimum number of CSC operations
+    int     iCoeffID;                     // coeffID for layers other than main video
+    uint8_t cspace_in_use[CSpace_Count];  // Color Spaces in use
+
+    Kdll_CSC_Matrix  curr_matrix;
+    Kdll_CSC_Matrix *matrix   = pCSC->Matrix;    // Color Space conversion matrix
+    uint8_t *        matrixID = pCSC->MatrixID;  // CSC coefficient allocation table
+
+    // Clear all CSC matrices
+    MOS_ZeroMemory(matrix, sizeof(pCSC->Matrix));
+    memset(matrixID, DL_CSC_DISABLED, sizeof(pCSC->MatrixID));
+    memset(pCSC->PatchMatrixID, DL_CSC_DISABLED, sizeof(pCSC->PatchMatrixID));
+    pCSC->PatchMatrixNum = 0;
+
+    // Clear array of color spaces in use
+    MOS_ZeroMemory(cspace_in_use, sizeof(cspace_in_use));
+
+    //---------------------------------------------------------------//
+    // Collect information about Color Spaces in use
+    // Get Primary Video and Render Target Color Spaces
+    // Force xvYCC passthrough if enabled
+    //---------------------------------------------------------------//
+    for (i = iFilterSize, pFilter = pSearchState->Filter; i > 0; i--, pFilter++)
+    {
+        // Disable Procamp for all layers except Main Video
+        // Disable Procamp if source is RGB
+        if (pFilter->layer != Layer_MainVideo ||
+            pFilter->cspace == CSpace_sRGB ||
+            pFilter->cspace == CSpace_stRGB)
+        {
+            pFilter->procamp = DL_PROCAMP_DISABLED;
+        }
+
+        // Count number of procamp operations (limited by number of independent coefficients)
+        // Ignore layers with palletized/constant colors
+        if (pFilter->procamp != DL_PROCAMP_DISABLED &&
+            pFilter->cspace != CSpace_Any)
+        {
+            procamp_count++;
+        }
+
+        // Set xvYCC passthrough mode
+        if (pFilter->cspace == CSpace_xvYCC709 ||
+            pFilter->cspace == CSpace_xvYCC601)
+        {
+            sel_cspace = pFilter->cspace;
+        }
+
+        // Get Main Video color space
+        if (pFilter->layer == Layer_MainVideo)
+        {
+            main_cspace = pFilter->cspace;
+        }
+
+        // Get Render Target color space
+        if (pFilter->layer == Layer_RenderTarget)
+        {
+            // Target is sRGB/stRGB
+            if (!KernelDll_IsYUVFormat(pFilter->format))
+            {
+                // Disable xvYCC passthrough (sRGB cannot have extended gamut)
+                sel_cspace = CSpace_Any;
+            }
+            out_cspace = pFilter->cspace;
+        }
+
+        // Mark color spaces in use for search that follows
+        if (pFilter->cspace > CSpace_Any && pFilter->cspace < CSpace_Count)
+        {
+            cspace_in_use[pFilter->cspace] = 1;
+        }
+    }
+
+    // Check max number of procamp operations
+    if (procamp_count > DL_PROCAMP_MAX)
+    {
+        return false;
+    }
+
+    //---------------------------------------------------------------//
+    // Search Color Space that provides minimum number of CSC conversions
+    // If there are multiple solutions, select main video cspace (quality)
+    //---------------------------------------------------------------//
+    if (sel_cspace == CSpace_Any)
+    {
+        int cs;
+        for (cs = (CSpace_Any + 1); cs < CSpace_Count; cs++)
+        {
+            // Skip color spaces not in use
+            cspace = (VPHAL_CSPACE)cs;
+            if (!cspace_in_use[cspace])
+            {
+                continue;
+            }
+
+            // xvYCC and BT are treated as same for CSC considerations (BT.x to xvYCC.x matrix is I)
+            cspace = KernelDll_TranslateCspace(cspace);
+
+            // Count # of CS conversions and matrices
+            csc_count = 0;
+            for (i = iFilterSize, pFilter = pSearchState->Filter; i > 0; i--, pFilter++)
+            {
+                // Ignore layers where the Color Space may be set in software (colorfill, palletized)
+                if (pFilter->cspace == CSpace_Any)
+                {
+                    continue;
+                }
+
+                // Check if CSC/PA is required
+                if (KernelDll_TranslateCspace(pFilter->cspace) != cspace ||
+                    pFilter->procamp != DL_PROCAMP_DISABLED)
+                {
+                    csc_count++;
+                }
+            }
+
+            // Save best choice as requiring minimum number of CSC operations
+            if ((sel_csc_count < 0) ||                              // Initial value
+                (csc_count < sel_csc_count) ||                      // Minimum number of CSC operations
+                (csc_count == sel_csc_count && cs == main_cspace))  // Use main cspace as default if same CSC count
+            {
+                sel_cspace    = cspace;
+                sel_csc_count = csc_count;
+            }
+        }
+    }
+
+    // Due to put the colorfill behind CSC, so Src0 cspace needs to change
+    // to selspace in order to fill colorfill values correctly.
+    pState->colorfill_cspace = sel_cspace;
+
+    // color space is selected by now... setup CSC matrices
+    matrix_count = 0;
+    iCoeffID     = 1;
+    for (i = iFilterSize, pFilter = pSearchState->Filter; i > 0; i--, pFilter++)
+    {
+        // Setup CSC for palettized/colorfill layers
+        if (pFilter->cspace == CSpace_Any)
+        {
+            // Set Color Space and format (for software)
+            if (pFilter->format == Format_Any)
+            {
+                pFilter->format = KernelDll_IsCspace(sel_cspace, CSpace_YUV) ? Format_AYUV : Format_A8R8G8B8;
+            }
+
+            pFilter->cspace = sel_cspace;
+            pFilter->matrix = DL_CSC_DISABLED;
+        }
+        else
+        {
+            // Setup CSC parameters: SrcSpace is the layer color space,
+            //                       DstSpace is the internal color space selected
+            curr_matrix.SrcSpace   = KernelDll_TranslateCspace(pFilter->cspace);
+            curr_matrix.DstSpace   = KernelDll_TranslateCspace(sel_cspace);
+            curr_matrix.iProcampID = pFilter->procamp;
+
+            // Check if CSC is necessary
+            if (curr_matrix.SrcSpace == curr_matrix.DstSpace &&
+                curr_matrix.iProcampID == DL_PROCAMP_DISABLED)
+            {
+                pFilter->matrix      = DL_CSC_DISABLED;
+                curr_matrix.iCoeffID = CoeffID_None;
+                continue;
+            }
+
+            // Reserve CoeffID_0 for main video - CoeffID_0 gets CSC coeff from static parameters
+            // If main video doesn't use CoeffID_0, assign to RT
+            if ((pFilter->layer == Layer_MainVideo) ||
+                (pFilter->layer == Layer_RenderTarget))
+            {
+                if (bCoeffID_0_Used)
+                {
+                    curr_matrix.iCoeffID = (Kdll_CoeffID)iCoeffID++;
+                }
+                else
+                {
+                    curr_matrix.iCoeffID = CoeffID_0;
+                    bCoeffID_0_Used      = true;
+                }
+            }
+            else
+            {
+                curr_matrix.iCoeffID = (Kdll_CoeffID)iCoeffID++;
+            }
+
+            // CSC at the target layer is from internal cspace (SrcSpace)
+            //                              to external cspace (DstCspace)
+            if (pFilter->layer == Layer_RenderTarget)
+            {
+                VPHAL_CSPACE aux     = curr_matrix.SrcSpace;
+                curr_matrix.SrcSpace = curr_matrix.DstSpace;
+                curr_matrix.DstSpace = aux;
+            }
+
+            // Search CSC matrix - avoid duplicated CSC matrices
+            for (m = 0; m < matrix_count; m++)
+            {
+                if (curr_matrix.SrcSpace == matrix[m].SrcSpace &&
+                    curr_matrix.DstSpace == matrix[m].DstSpace &&
+                    curr_matrix.iProcampID == matrix[m].iProcampID)
+                {
+                    break;
+                }
+            }
+
+            // Check limit
+            if (m == matrix_count)
+            {
+                // Exceeded number of CSC matrices allowed
+                if (matrix_count == DL_CSC_MAX)
+                {
+                    return false;
+                }
+
+                matrix[m].bInUse     = true;
+                matrix[m].SrcSpace   = curr_matrix.SrcSpace;
+                matrix[m].DstSpace   = curr_matrix.DstSpace;
+                matrix[m].iProcampID = curr_matrix.iProcampID;
+                matrix[m].iCoeffID   = curr_matrix.iCoeffID;
+
+                // Calculate coefficients for the first time
+                KernelDll_UpdateCscCoefficients(pState, &matrix[m]);
+
+                // Next matrix
+                matrix_count++;
+            }
+
+            // point to the matrix
+            pFilter->matrix = m;
+        }
+    }
+
+    // Link matrices to kernel coefficients (and vice-versa)
+    matrix = pCSC->Matrix;
+    for (m = 0; m < matrix_count; m++, matrix++)
+    {
+        // Coefficient table points to matrix index
+        matrixID[matrix->iCoeffID] = (uint8_t)m;
+    }
+
+    // Save selected color space
+    pCSC->ColorSpace = sel_cspace;
+
+    return true;
+}
+
+/*----------------------------------------------------------------------------
+| Name      : KernelDll_GetPatchData
+| Purpose   : Get binary data block to be used for kernel patching
+|
+| Input     : pState       - [in]  Current DL state
+|             pSearchState - [in]  Current DL search state
+|             iPatchKind   - [in]  Patch kind
+|             pSize        - [out] Data block Size
+|
+| Return    : nullptr - Unsupported patch data kind
+|             <>nullptr - Pointer to data block
+\---------------------------------------------------------------------------*/
+static uint8_t *KernelDll_GetPatchData(
+    Kdll_State *      pState,
+    Kdll_SearchState *pSearchState,
+    int32_t           iPatchKind,
+    int32_t *         pSize)
+{
+    MOS_UNUSED(pState);
+
+    VP_RENDER_FUNCTION_ENTER;
+
+    if (iPatchKind == PatchKind_CSC_Coeff_Src0 ||
+        iPatchKind == PatchKind_CSC_Coeff_Src1)
+    {
+        Kdll_CoeffID coeffID  = CoeffID_None;
+        uint8_t      matrixID = DL_CSC_DISABLED;
+
+        // Get matrix id
+        if (iPatchKind == PatchKind_CSC_Coeff_Src0)
+        {
+            coeffID = pSearchState->src0_coeff;
+        }
+        else
+        {
+            coeffID = pSearchState->src1_coeff;
+        }
+
+        // Get matrix associated with the coefficient ID
+        if (coeffID > CoeffID_None)
+        {
+            matrixID = pSearchState->CscParams.MatrixID[coeffID];
+        }
+
+        // Found matrix
+        if (matrixID < DL_CSC_MAX)
+        {
+            Kdll_CSC_Matrix *pMatrix = &(pSearchState->CscParams.Matrix[matrixID]);
+
+            *pSize = 12 * sizeof(uint16_t);
+
+            if (pState->bEnableCMFC)
+            {
+                if (pSearchState->CscParams.PatchMatrixNum < DL_CSC_MAX)
+                {
+                    pSearchState->CscParams.PatchMatrixID[pSearchState->CscParams.PatchMatrixNum] = matrixID;
+                    pSearchState->CscParams.PatchMatrixNum++;
+                }
+                else
+                {
+                    VP_RENDER_NORMALMESSAGE("Patch CSC coefficient exceed limitation");
+                }
+            }
+
+            return ((uint8_t *)pMatrix->Coeff);
+        }
+    }
+    else
+    {
+        VP_RENDER_NORMALMESSAGE("Invalid patch kind %d.", iPatchKind);
+    }
+
+    return nullptr;
+}
+
+/*----------------------------------------------------------------------------
+| Name      : KernelDll_UpdateState
+| Purpose   : Update search state using current matching rule
+|
+| Input     : pState       - Kernel Dll state
+|             pSearchState - current DL search state
+|
+| Return    :
+\---------------------------------------------------------------------------*/
+bool KernelDll_UpdateState(
+    Kdll_State *      pState,
+    Kdll_SearchState *pSearchState)
+{
+    Kdll_RuleEntrySet *   pRuleSet = pSearchState->pMatchingRuleSet;
+    const Kdll_RuleEntry *pRuleEntry;
+    int32_t               iSetCount;
+
+    VP_RENDER_FUNCTION_ENTER;
+
+    // Ensures that we have a matching rule
+    if (pRuleSet == nullptr)
+    {
+        return false;
+    }
+
+    // Get rule entry and number of state update ("Set") rules; validate
+    pRuleEntry = pRuleSet->pRuleEntry;
+    iSetCount  = pRuleSet->iSetCount;
+    if (pRuleEntry == nullptr || iSetCount < 1)
+    {
+        VP_RENDER_NORMALMESSAGE("Invalid rule set.");
+        return false;
+    }
+
+    // Jump to set rules (skip match rules)
+    pRuleEntry += pRuleSet->iMatchCount;
+
+    // Apply state update rules
+    for (; iSetCount > 0; iSetCount--, pRuleEntry++)
+    {
+        switch (pRuleEntry->id)
+        {
+        // Add kernel to the Dynamic Linking array
+        case RID_SetKernel:
+            if (pSearchState->KernelCount < DL_MAX_KERNELS)
+            {
+                int32_t i                  = pSearchState->KernelCount++;
+                pSearchState->KernelID[i]  = pRuleEntry->value;
+                pSearchState->KernelGrp[i] = pRuleSet->iGroup;  // Group associated with the kernel ID
+            }
+            else
+            {
+                VP_RENDER_ASSERTMESSAGE("reached maximum number of component kernels.");
+                MT_ERR1(MT_VP_KERNEL_RULE, MT_CODE_LINE, __LINE__);
+                return false;
+            }
+            break;
+
+        // Set Parser State
+        case RID_SetParserState:
+            pSearchState->state = (Kdll_ParserState)pRuleEntry->value;
+            break;
+
+        // Move to Next/Prev Layer
+        case RID_SetNextLayer:
+            if (pRuleEntry->value == -1)
+            {
+                pSearchState->layer_number--;
+                pSearchState->pFilter--;
+            }
+            else if (pRuleEntry->value == -2)  // jump to layer main video
+            {
+                do
+                {
+                    pSearchState->layer_number--;
+                    pSearchState->pFilter--;
+                    if (pSearchState->pFilter == nullptr || pSearchState->layer_number < 0)
+                    {
+                        return false;
+                    }
+                } while (pSearchState->pFilter->layer != Layer_MainVideo);
+            }
+            else if (pRuleEntry->value == 2)  // jump to target layer
+            {
+                while (pSearchState->pFilter->layer < Layer_RenderTarget)
+                {
+                    pSearchState->layer_number++;
+                    pSearchState->pFilter++;
+                }
+            }
+            else
+            {
+                pSearchState->layer_number++;
+                pSearchState->pFilter++;
+            }
+            break;
+
+        // Set patch data
+        case RID_SetPatchData: {
+            uint8_t *       pData        = nullptr;
+            int32_t         iSize        = 0;
+            int32_t         iKernelIndex = pSearchState->KernelCount - 1;
+            int32_t         iPatchIndex;
+            Kdll_PatchData *pPatch;
+
+            // Get block of data for patching
+            pData = KernelDll_GetPatchData(pState, pSearchState, (Kdll_PatchKind)pRuleEntry->value, &iSize);
+            if (pData == nullptr || iSize == 0)
+            {
+                VP_RENDER_ASSERTMESSAGE("invalid patch.");
+                MT_ERR1(MT_VP_KERNEL_RULE, MT_CODE_LINE, __LINE__);
+                return false;
+            }
+
+            // Append to the existing patch data block
+            iPatchIndex = pSearchState->PatchID[iKernelIndex];
+
+            // Allocate new patch structure
+            if (iPatchIndex < 0)
+            {
+                // Fail to allocate
+                if (pSearchState->PatchCount >= DL_MAX_PATCHES)
+                {
+                    VP_RENDER_ASSERTMESSAGE("reached maximum number of patches.");
+                    MT_ERR1(MT_VP_KERNEL_RULE, MT_CODE_LINE, __LINE__);
+                    return false;
+                }
+
+                // Get new patch block
+                iPatchIndex                         = pSearchState->PatchCount++;
+                pSearchState->PatchID[iKernelIndex] = iPatchIndex;
+
+                // Reset new patch entry
+                pPatch = &(pSearchState->Patches[iPatchIndex]);
+                MOS_ZeroMemory(pPatch, sizeof(Kdll_PatchData));
+            }
+            else
+            {
+                // Get Patch entry already in use
+                pPatch = &(pSearchState->Patches[iPatchIndex]);
+            }
+
+            // Check if data can be appended
+            if (pPatch->iPatchDataSize + iSize > DL_MAX_PATCH_DATA_SIZE)
+            {
+                VP_RENDER_ASSERTMESSAGE("exceeded maximum patch size.");
+                MT_ERR1(MT_VP_KERNEL_RULE, MT_CODE_LINE, __LINE__);
+                return false;
+            }
+
+            // Append patch data
+            MOS_SecureMemcpy(pPatch->Data + pPatch->iPatchDataSize, iSize, (void *)pData, iSize);
+            pPatch->iPatchDataSize += iSize;
+        }
+        break;
+
+        // Set patch operation
+        case RID_SetPatch: {
+            int32_t          iKernelIndex = pSearchState->KernelCount - 1;
+            int32_t          iPatchIndex  = pSearchState->PatchID[iKernelIndex];
+            Kdll_PatchData * pPatch;
+            uint8_t *        pPatchRule;
+            Kdll_PatchBlock *pPatchBlock;
+            int32_t          nPatches;
+
+            // No patch associated with the current kernel
+            if (iPatchIndex < 0)
+            {
+                return false;
+            }
+
+            // Get Patch entry
+            pPatch = &(pSearchState->Patches[iPatchIndex]);
+
+            // Get number of patches and pointer to first rule extension (patch rule)
+            nPatches   = pRuleEntry->value;
+            pPatchRule = (uint8_t *)(pRuleEntry + 1);
+
+            // Check if rules can be applied
+            if (nPatches + pPatch->nPatches > DL_MAX_PATCH_BLOCKS)
+            {
+                VP_RENDER_ASSERTMESSAGE("exceeded number of patch blocks.");
+                MT_ERR1(MT_VP_KERNEL_RULE, MT_CODE_LINE, __LINE__);
+                return false;
+            }
+
+            // Set Patches
+            pPatchBlock = &(pPatch->Patch[pPatch->nPatches]);
+            for (; nPatches > 0; nPatches--, pPatchBlock++, pPatch->nPatches++)
+            {
+                pPatchBlock->BlockSize = ((Kdll_PatchRuleEntry *)pPatchRule)->Size;
+                pPatchBlock->SrcOffset = ((Kdll_PatchRuleEntry *)pPatchRule)->Source;
+                pPatchBlock->DstOffset = ((Kdll_PatchRuleEntry *)pPatchRule)->Dest;
+                pPatchRule += sizeof(Kdll_RuleEntry);
+            }
+
+            // Skip rule extensions
+            iSetCount -= pRuleEntry->value;
+            pRuleEntry += pRuleEntry->value;
+        }
+        break;
+
+        // Set destination colorspace
+        case RID_SetTargetCspace:
+            if ((VPHAL_CSPACE)pRuleEntry->value == CSpace_Source)
+            {
+                pSearchState->cspace = pSearchState->pFilter->cspace;
+            }
+            else
+            {
+                pSearchState->cspace = (VPHAL_CSPACE)pRuleEntry->value;
+            }
+            break;
+
+        // Set Src0 source format
+        case RID_SetSrc0Format:
+            if ((MOS_FORMAT)pRuleEntry->value == Format_Source)
+            {
+                pSearchState->src0_format = pSearchState->pFilter->format;
+            }
+            else
+            {
+                pSearchState->src0_format = (MOS_FORMAT)pRuleEntry->value;
+            }
+            break;
+
+        // Set Src0 sampling mode
+        case RID_SetSrc0Sampling:
+            if ((Kdll_Sampling)pRuleEntry->value == Sample_Source)
+            {
+                pSearchState->src0_sampling = pSearchState->pFilter->sampler;
+            }
+            else
+            {
+                pSearchState->src0_sampling = (Kdll_Sampling)pRuleEntry->value;
+            }
+            break;
+
+        // Set Src0 Rotation
+        case RID_SetSrc0Rotation:
+            pSearchState->src0_rotation = pSearchState->pFilter->rotation;
+            break;
+
+        // Set Src0 Colorfill
+        case RID_SetSrc0ColorFill:
+            if ((int32_t)pRuleEntry->value == ColorFill_Source)
+            {
+                pSearchState->src0_colorfill = pSearchState->pFilter->colorfill;
+            }
+            else
+            {
+                pSearchState->src0_colorfill = (int32_t)pRuleEntry->value;
+            }
+            break;
+
+        // Set Src0 luma key
+        case RID_SetSrc0LumaKey:
+            if (pRuleEntry->value == LumaKey_Source)
+            {
+                pSearchState->src0_lumakey = pSearchState->pFilter->lumakey;
+            }
+            else
+            {
+                pSearchState->src0_lumakey = (int32_t)pRuleEntry->value;
+            }
+            break;
+
+        // Set Src0 Procamp
+        case RID_SetSrc0Procamp:
+            if (pRuleEntry->value == Procamp_Source)
+            {
+                pSearchState->src0_procamp = pSearchState->pFilter->procamp;
+            }
+            else
+            {
+                pSearchState->src0_procamp = (int32_t)pRuleEntry->value;
+            }
+            break;
+
+        // Set Src0 CSC coefficients
+        case RID_SetSrc0Coeff:
+            if ((Kdll_CoeffID)pRuleEntry->value == CoeffID_Source)
+            {
+                if (pSearchState->pFilter->matrix == DL_CSC_DISABLED)
+                {
+                    pSearchState->src0_coeff = CoeffID_None;
+                }
+                else
+                {
+                    Kdll_CSC_Matrix *matrix = pSearchState->CscParams.Matrix;
+                    matrix += pSearchState->pFilter->matrix;
+
+                    pSearchState->src0_coeff = matrix->iCoeffID;
+                }
+            }
+            else
+            {
+                pSearchState->src0_coeff = (Kdll_CoeffID)pRuleEntry->value;
+            }
+            break;
+
+        case RID_SetSrc0Processing:
+            if ((Kdll_Processing)pRuleEntry->value == Process_Source)
+            {
+                pSearchState->src0_process = pSearchState->pFilter->process;
+            }
+            else
+            {
+                pSearchState->src0_process = (Kdll_Processing)pRuleEntry->value;
+            }
+            break;
+
+        // Set Src1 source format
+        case RID_SetSrc1Format:
+            if ((MOS_FORMAT)pRuleEntry->value == Format_Source)
+            {
+                pSearchState->src1_format = pSearchState->pFilter->format;
+            }
+            else
+            {
+                pSearchState->src1_format = (MOS_FORMAT)pRuleEntry->value;
+            }
+            break;
+
+        // Set Src1 sampling mode
+        case RID_SetSrc1Sampling:
+            if ((Kdll_Sampling)pRuleEntry->value == Sample_Source)
+            {
+                pSearchState->src1_sampling = pSearchState->pFilter->sampler;
+            }
+            else
+            {
+                pSearchState->src1_sampling = (Kdll_Sampling)pRuleEntry->value;
+            }
+            break;
+
+        // Set Src1 Rotation
+        case RID_SetSrc1Rotation:
+            pSearchState->src1_rotation = pSearchState->pFilter->rotation;
+            break;
+
+        // Set Src1 luma key
+        case RID_SetSrc1LumaKey:
+            if (pRuleEntry->value == LumaKey_Source)
+            {
+                pSearchState->src1_lumakey = pSearchState->pFilter->lumakey;
+            }
+            else
+            {
+                pSearchState->src1_lumakey = (int32_t)pRuleEntry->value;
+            }
+            break;
+
+        // Set Src1 Sampler LumaKey
+        case RID_SetSrc1SamplerLumaKey:
+            if (pRuleEntry->value == LumaKey_Source)
+            {
+                pSearchState->src1_samplerlumakey = pSearchState->pFilter->samplerlumakey;
+            }
+            else
+            {
+                pSearchState->src1_samplerlumakey = (int32_t)pRuleEntry->value;
+            }
+            break;
+
+        // Set Src1 Procamp
+        case RID_SetSrc1Procamp:
+            if (pRuleEntry->value == Procamp_Source)
+            {
+                pSearchState->src1_procamp = pSearchState->pFilter->procamp;
+            }
+            else
+            {
+                pSearchState->src1_procamp = (int32_t)pRuleEntry->value;
+            }
+            break;
+
+        // Set Src1 CSC coefficients
+        case RID_SetSrc1Coeff:
+            if ((Kdll_CoeffID)pRuleEntry->value == CoeffID_Source)
+            {
+                if (pSearchState->pFilter->matrix == DL_CSC_DISABLED)
+                {
+                    pSearchState->src1_coeff = CoeffID_None;
+                }
+                else
+                {
+                    Kdll_CSC_Matrix *matrix = pSearchState->CscParams.Matrix;
+                    matrix += pSearchState->pFilter->matrix;
+
+                    pSearchState->src1_coeff = matrix->iCoeffID;
+                }
+            }
+            else
+            {
+                pSearchState->src1_coeff = (Kdll_CoeffID)pRuleEntry->value;
+            }
+            break;
+
+        // Set Src1 processing mode
+        case RID_SetSrc1Processing:
+            if ((Kdll_Processing)pRuleEntry->value == Process_Source)
+            {
+                pSearchState->src1_process = pSearchState->pFilter->process;
+            }
+            else
+            {
+                pSearchState->src1_process = (Kdll_Processing)pRuleEntry->value;
+            }
+            break;
+
+        // Set current quadrant
+        case RID_SetQuadrant:
+            pSearchState->quadrant = (int32_t)pRuleEntry->value;
+            break;
+
+        // Set CSC flag before Mix
+        case RID_SetCSCBeforeMix:
+            pSearchState->bCscBeforeMix = pRuleEntry->value ? true : false;
+            break;
+
+        // Unsupported "Set" rule
+        default:
+            // Failed to find a matching rule -> kernel search will fail
+            VP_RENDER_ASSERTMESSAGE("Invalid rule %d @ layer %d, state %d.", pRuleEntry->id, pSearchState->layer_number, pSearchState->state);
+            MT_ERR1(MT_VP_KERNEL_RULE, MT_CODE_LINE, __LINE__);
+            return false;
+        }
+    }
+
+    // Reset matching rule
+    pSearchState->pMatchingRuleSet = nullptr;
+    return true;
+}
+
+//-----------------------------------------------------------------------------------------
+// KernelDll_SortRuleTable - Sort master dynamic linking rule table
+//
+// Parameters:
+//    char  *pState    - [in] Kernel Dll state
+//
+// Output: true  - Master rule table (and acceleration table) successfully created
+//         false - Failed to setup master rule table
+//-----------------------------------------------------------------------------------------
+bool KernelDll_SortRuleTable(Kdll_State *pState)
+{
+    uint8_t               group;
+    int32_t               state;
+    const Kdll_RuleEntry *pRule = nullptr;
+    Kdll_RuleEntrySet *   pRuleSet;
+    int32_t               i, j;
+
+    int32_t iTotal = 0;
+    int32_t iNoOverr[Parser_Count];  // Non-overridable (enforced) rules
+    int32_t iDefault[Parser_Count];  // Default rules
+    int32_t iCustom[Parser_Count];   // Custom rules
+
+    VP_RENDER_FUNCTION_ENTER;
+
+    // Release previous table (rule table update)
+    if (pState->pSortedRules)
+    {
+        MOS_FreeMemory(pState->pSortedRules);
+        pState->pSortedRules = nullptr;
+
+        MOS_ZeroMemory(pState->pDllRuleTable, sizeof(pState->pDllRuleTable));
+        MOS_ZeroMemory(pState->iDllRuleCount, sizeof(pState->iDllRuleCount));
+    }
+
+    // Zero counters
+    MOS_ZeroMemory(iNoOverr, sizeof(iNoOverr));
+    MOS_ZeroMemory(iDefault, sizeof(iDefault));
+    MOS_ZeroMemory(iCustom, sizeof(iCustom));
+
+    // Count number of entries for each state
+    for (i = 0; i < 2; i++)
+    {
+        if (i == 0)
+        {
+            pRule = pState->pRuleTableDefault;
+        }
+        else if (i == 1)
+        {
+            pRule = pState->pRuleTableCustom;
+        }
+
+        // Table not set - continue
+        if (!pRule)
+            continue;
+
+        for (; pRule->id != RID_Op_EOF; pRule++)
+        {
+            // Skip extended rules (variable lenght)
+            if (RID_IS_EXTENDED(pRule->id))
+            {  // value contains number of entries
+                pRule += pRule->value;
+            }
+            else if (pRule->id == RID_Op_NewEntry)
+            {
+                // Save Rule Group
+                if (i == 0)
+                {
+                    group = pRule->value;
+                }
+                else
+                {
+                    group = RULE_CUSTOM;
+                }
+
+                // Second rule must always be RID_IsParserState
+                pRule++;
+                if (pRule->id != RID_IsParserState)
+                {
+                    VP_RENDER_ASSERTMESSAGE("Rule does not start with State.");
+                    MT_ERR1(MT_VP_KERNEL_RULE, MT_CODE_LINE, __LINE__);
+                    return false;
+                }
+
+                // Get Parser State -> validate value
+                state = pRule->value;
+                if (state < Parser_Begin)
+                {
+                    VP_RENDER_ASSERTMESSAGE("Invalid State %d.", state);
+                    MT_ERR1(MT_VP_KERNEL_RULE, MT_CODE_LINE, __LINE__);
+                    return false;
+                }
+                else if (state >= Parser_Custom)
+                {  // Custom states are set together in the same entry
+                    state = Parser_Custom;
+                }
+
+                if (group == RULE_NO_OVERRIDE)
+                {
+                    iNoOverr[state]++;
+                }
+                else if (group == RULE_DEFAULT)
+                {
+                    iDefault[state]++;
+                }
+                else
+                {
+                    iCustom[state]++;
+                }
+
+                iTotal++;
+            }
+        }
+    }
+
+    // Allocate rules
+    pState->pSortedRules = (Kdll_RuleEntrySet *)MOS_AllocAndZeroMemory(iTotal * sizeof(Kdll_RuleEntrySet));
+    if (!pState->pSortedRules)
+    {
+        VP_RENDER_ASSERTMESSAGE("Failed to allocate rule table.");
+        MT_ERR1(MT_VP_KERNEL_RULE, MT_CODE_LINE, __LINE__);
+        return false;
+    }
+
+    // Setup pointers to sorted rules
+    pState->pDllRuleTable[0] = pState->pSortedRules;
+    for (j = 0, i = 0; i < Parser_Count; i++)
+    {
+        // Setup start pointer and number of entries to search for each state
+        pState->pDllRuleTable[i] = pState->pDllRuleTable[j] + pState->iDllRuleCount[j];
+        pState->iDllRuleCount[i] = iNoOverr[i] + iCustom[i] + iDefault[i];
+
+        // Setup offsets to rules for sorting
+        iDefault[i] = iNoOverr[i] + iCustom[i];  // Last set of rules
+        iCustom[i]  = iNoOverr[i];               // 2nd set of rules
+        iNoOverr[i] = 0;                         // 1st set of rules
+
+        j = i;
+    }
+
+    // Sort rules for fast access
+    // Integrate enforced, custom, default rules into one single access table
+    for (i = 0; i < 2; i++)
+    {
+        if (i == 0)
+        {
+            pRule = pState->pRuleTableDefault;
+        }
+        else if (i == 1)
+        {
+            pRule = pState->pRuleTableCustom;
+        }
+
+        // Table not set - continue
+        if (!pRule)
+            continue;
+
+        while (pRule->id != RID_Op_EOF)
+        {
+            if (pRule->id != RID_Op_NewEntry)
+            {
+                VP_RENDER_ASSERTMESSAGE("New rule entry expected.");
+                MT_ERR1(MT_VP_KERNEL_RULE, MT_CODE_LINE, __LINE__);
+                return false;
+            }
+
+            // Save Rule Group
+            if (i == 0)
+            {
+                group = pRule->value;
+            }
+            else
+            {
+                group = RULE_CUSTOM;
+            }
+
+            // Get Parser State -> validate value
+            pRule++;
+            state = pRule->value;
+            if (state >= Parser_Custom)
+            {  // Custom states are set together in the same entry
+                state = Parser_Custom;
+            }
+            else
+            {  // Skip state check - already handled by acceleration table
+                pRule++;
+            }
+
+            // Point to sorted rule set entry
+            if (group == RULE_NO_OVERRIDE)
+            {
+                j = iNoOverr[state]++;
+            }
+            else if (group == RULE_DEFAULT)
+            {
+                j = iDefault[state]++;
+            }
+            else
+            {
+                j = iCustom[state]++;
+            }
+
+            // Point to sorted ruleset for the current parser state
+            pRuleSet = pState->pDllRuleTable[state] + j;
+
+            // Fill RuleSet
+            pRuleSet->pRuleEntry = pRule;
+            pRuleSet->iGroup     = group;
+
+            // Count number of match rules, including extended rules
+            while (RID_IS_MATCH(pRule->id))
+            {
+                if (RID_IS_EXTENDED(pRule->id))
+                {
+                    pRuleSet->iMatchCount += pRule->value;
+                    pRule += pRule->value;
+                }
+
+                pRuleSet->iMatchCount++;
+                pRule++;
+            }
+
+            // Count number of set rules, including extended rules
+            while (RID_IS_SET(pRule->id))
+            {
+                if (RID_IS_EXTENDED(pRule->id))
+                {
+                    pRuleSet->iSetCount += pRule->value;
+                    pRule += pRule->value;
+                }
+
+                pRuleSet->iSetCount++;
+                pRule++;
+            }
+
+            // Rule must have at least one "Set" rule
+            if (pRuleSet->iSetCount < 1)
+            {
+                VP_RENDER_ASSERTMESSAGE("Ruleset must have at least one set rule.");
+                MT_ERR1(MT_VP_KERNEL_RULE, MT_CODE_LINE, __LINE__);
+                return false;
+            }
+        }
+    }
+
+    // Rule table is now sorted and integrated with custom rules
+    return true;
+}
+
+//---------------------------------------------------------------------------------------
+// KernelDll_AllocateStates - Allocate Kernel Dynamic Linking/Loading (Dll) States
+//
+//    - Allocate DL states
+//    - Setup export/import list for linking
+//    - Prepare pool of search nodes
+//    - Load component kernels from binary file
+//    - Setup kernel cache
+//    - Setup kernel dynamic linking rules
+//
+// Parameters: [in] pKernelBin        - Pointer to Kernel binary file loaded in sys memory
+//             [in] uKernelSize       - Kernel file size
+//             [in] pFcPatchBin       - Pointer to FC patch binary file loaded in sys memory
+//             [in] uFcPatchCacheSize - FC patch binary file size
+//             [in] platform          - Gfx platform
+//             [in] pDefaultRules     - Dynamic Linking Rules Table
+//
+// Output: Pointer to allocated Kernel dll state
+//         nullptr - Failed to allocate Kernel dll state
+//-----------------------------------------------------------------------------------------
+Kdll_State *KernelDll_AllocateStates(
+    void *                pKernelBin,
+    uint32_t              uKernelSize,
+    void *                pFcPatchCache,
+    uint32_t              uFcPatchCacheSize,
+    const Kdll_RuleEntry *pDefaultRules,
+    void (*ModifyFunctionPointers)(PKdll_State))
+{
+    Kdll_State *          pState;
+    Kdll_CacheEntry *     pCacheEntry;
+    Kdll_KernelCache *    pKernelCache;
+    Kdll_KernelHashTable *pHashTable;
+    Kdll_KernelHashEntry *pHashEntries;
+
+    int32_t              iSize;
+    int32_t              nExports    = 0;
+    int32_t              nImports    = 0;
+    uint32_t *           pLinkOffset = nullptr;
+    Kdll_LinkData *      pLinkSort   = nullptr;
+    Kdll_LinkData *      pLinkData;
+    Kdll_LinkData *      pExports;
+    Kdll_LinkFileHeader *pLinkHeader;
+
+    int32_t   i, j;
+    uint32_t *pOffsets;
+    uint8_t * pBase;
+
+    VP_RENDER_FUNCTION_ENTER;
+
+    // Allocate dynamic linking states
+    i = sizeof(Kdll_State);                                      // Dynamic linking states
+    i += sizeof(Kdll_CacheEntry) * IDR_VP_TOTAL_NUM_KERNELS;     // Component kernel cache entries
+    i += sizeof(Kdll_CacheEntry) * IDR_VP_TOTAL_NUM_KERNELS;     // CMFC kernel patch cache entries
+    i += sizeof(Kdll_CacheEntry) * DL_DEFAULT_COMBINED_KERNELS;  // Combined kernel cache entries
+    i += DL_COMBINED_KERNEL_CACHE_SIZE;                          // Combined kernel buffer
+    i += sizeof(Kdll_LinkData) * DL_MAX_EXPORT_COUNT;            // Kernel Export table
+
+    pState = (Kdll_State *)MOS_AllocAndZeroMemory(i);
+    if (!pState)
+    {
+        VP_RENDER_ASSERTMESSAGE("Failed to allocate kernel dll states.");
+        MT_ERR1(MT_VP_KERNEL_RULE, MT_CODE_LINE, __LINE__);
+        goto cleanup;
+    }
+    pState->iSize        = i;
+    pState->dwRefresh    = 0;
+    pState->pProcamp     = nullptr;
+    pState->iProcampSize = 0;
+    pState->pSortedRules = nullptr;
+
+    if ((pFcPatchCache != nullptr) && (uFcPatchCacheSize != 0))
+    {
+        pState->bEnableCMFC = true;
+    }
+
+    // Initialize platform specific function pointers
+    if (!KernelDll_SetupFunctionPointers(pState, ModifyFunctionPointers))
+    {
+        VP_RENDER_ASSERTMESSAGE("Failed to setup function pointers.");
+        MT_ERR1(MT_VP_KERNEL_RULE, MT_CODE_LINE, __LINE__);
+        goto cleanup;
+    }
+
+    pKernelCache = &pState->ComponentKernelCache;
+
+    // No custom kernels/rules
+    pState->pRuleTableCustom   = nullptr;
+    pState->pCustomKernelCache = nullptr;
+
+    // Set Kernel DLL Rules
+    pState->pRuleTableDefault = pDefaultRules;
+
+    // Integrate and sort rule tables
+    KernelDll_SortRuleTable(pState);
+
+    // Setup component kernel cache
+    pKernelCache->pCache           = (uint8_t *)pKernelBin;
+    pKernelCache->iCacheSize       = (int32_t)uKernelSize;
+    pKernelCache->iCacheFree       = 0;
+    pKernelCache->iCacheMaxEntries = IDR_VP_TOTAL_NUM_KERNELS;
+    pKernelCache->iCacheEntries    = IDR_VP_TOTAL_NUM_KERNELS;
+    pKernelCache->pCacheEntries    = (Kdll_CacheEntry *)(pState + 1);
+
+    pOffsets    = (uint32_t *)pKernelCache->pCache;
+    pBase       = (uint8_t *)(pOffsets + IDR_VP_TOTAL_NUM_KERNELS + 1);
+    pCacheEntry = pKernelCache->pCacheEntries;
+    for (i = 0; i < IDR_VP_TOTAL_NUM_KERNELS; i++, pCacheEntry++)
+    {
+        pCacheEntry->iKUID      = i;
+        pCacheEntry->iKCID      = -1;
+        pCacheEntry->dwLoaded   = 0;
+        pCacheEntry->dwRefresh  = 0;
+        pCacheEntry->wHashEntry = 0;
+        pCacheEntry->szName     = g_cInit_ComponentNames[i];
+        pCacheEntry->iSize      = pOffsets[i + 1] - pOffsets[i];
+        pCacheEntry->pBinary    = (pCacheEntry->iSize > 0) ? (pBase + pOffsets[i]) : nullptr;
+    }
+
+    // Setup CMFC kernel patch cache
+    pKernelCache = &pState->CmFcPatchCache;
+
+    if (pState->bEnableCMFC && pFcPatchCache)
+    {
+        pKernelCache->pCache           = (uint8_t *)pFcPatchCache;
+        pKernelCache->iCacheSize       = (int32_t)uFcPatchCacheSize;
+        pKernelCache->iCacheFree       = 0;
+        pKernelCache->iCacheMaxEntries = IDR_VP_TOTAL_NUM_KERNELS;
+        pKernelCache->iCacheEntries    = IDR_VP_TOTAL_NUM_KERNELS;
+        pKernelCache->pCacheEntries    = pCacheEntry;
+
+        pOffsets = (uint32_t *)pKernelCache->pCache;
+        pBase    = (uint8_t *)(pOffsets + IDR_VP_TOTAL_NUM_KERNELS + 1);
+        for (i = 0; i < IDR_VP_TOTAL_NUM_KERNELS; i++, pCacheEntry++)
+        {
+            pCacheEntry->iKUID      = i;
+            pCacheEntry->iKCID      = -1;
+            pCacheEntry->dwLoaded   = 0;
+            pCacheEntry->dwRefresh  = 0;
+            pCacheEntry->wHashEntry = 0;
+            pCacheEntry->szName     = g_cInit_ComponentNames[i];
+            pCacheEntry->iSize      = pOffsets[i + 1] - pOffsets[i];
+            pCacheEntry->pBinary    = (pCacheEntry->iSize > 0) ? (pBase + pOffsets[i]) : nullptr;
+        }
+    }
+    else
+    {
+        pCacheEntry += IDR_VP_TOTAL_NUM_KERNELS;
+    }
+
+    // Setup combined kernel cache
+    pKernelCache                   = &pState->KernelCache;
+    pKernelCache->iCacheMaxEntries = DL_DEFAULT_COMBINED_KERNELS;
+    pKernelCache->iCacheEntries    = 0;
+    pKernelCache->iCacheSize       = DL_COMBINED_KERNEL_CACHE_SIZE;                           // Size of kernel cache
+    pKernelCache->iCacheFree       = DL_COMBINED_KERNEL_CACHE_SIZE;                           // Free cache size
+    pKernelCache->iCacheID         = 0x00010000;                                              // Cache ID
+    pKernelCache->pCacheEntries    = pCacheEntry;                                             // Cached kernel entries
+    pKernelCache->pCache           = (uint8_t *)(pCacheEntry + DL_DEFAULT_COMBINED_KERNELS);  // kernels
+
+    // reset cache entries
+    for (i = 0; i < DL_DEFAULT_COMBINED_KERNELS; i++, pCacheEntry++)
+    {
+        pCacheEntry->iKUID   = -1;
+        pCacheEntry->iKCID   = -1;
+        pCacheEntry->pBinary = pKernelCache->pCache + i * DL_CACHE_BLOCK_SIZE;
+        if (i != DL_DEFAULT_COMBINED_KERNELS - 1)
+        {
+            pCacheEntry->pNextEntry = pCacheEntry + 1;
+        }
+        else
+        {
+            pCacheEntry->pNextEntry = nullptr;
+        }
+    }
+
+    //------------------------------------
+    // Setup hash table
+    //------------------------------------
+    pHashTable   = &pState->KernelHashTable;
+    pHashEntries = pState->KernelHashTable.HashEntry - 1;
+
+    pHashTable->pool = 1;                        // first in pool (1 based index)
+    pHashTable->last = DL_MAX_COMBINED_KERNELS;  // last in pool (for releasing)
+
+    for (i = 1; i <= DL_MAX_COMBINED_KERNELS; i++)
+    {
+        pHashEntries[i].next = i + 1;
+    }
+    pHashEntries[i - 1].next = 0;  // last entry
+
+    //------------------------------------
+    // Setup dynamic linking import/export array
+    //------------------------------------
+    pCacheEntry = pState->ComponentKernelCache.pCacheEntries;
+    iSize       = pCacheEntry[IDR_VP_LinkFile].iSize;
+    if (iSize == 0)
+    {
+        VP_RENDER_NORMALMESSAGE("Link file is missing.");
+        goto cleanup;
+    }
+
+    // Get link file binary data
+    pLinkHeader = (Kdll_LinkFileHeader *)pCacheEntry[IDR_VP_LinkFile].pBinary;
+    if (pLinkHeader == nullptr ||
+        pLinkHeader->dwVersion != IDR_VP_LINKFILE_VERSION ||
+        sizeof(Kdll_LinkFileHeader) != IDR_VP_LINKFILE_HEADER)
+    {
+        VP_RENDER_ASSERTMESSAGE("Invalid link file version.");
+        goto cleanup;
+    }
+    iSize = (iSize - IDR_VP_LINKFILE_HEADER) / sizeof(Kdll_LinkData);
+
+    // Create temporary list of sorted link data and offsets
+    pLinkSort   = (Kdll_LinkData *)MOS_AllocAndZeroMemory(iSize * sizeof(Kdll_LinkData));
+    pLinkOffset = (uint32_t *)MOS_AllocAndZeroMemory((IDR_VP_TOTAL_NUM_KERNELS + 1) * sizeof(uint32_t));
+    if (!pLinkSort || !pLinkOffset)
+    {
+        VP_RENDER_ASSERTMESSAGE("Failed to allocate temporary buffers.");
+        goto cleanup;
+    }
+
+    // Count number of imports for each component kernel
+    pCacheEntry[0].pLink = pLinkData = (Kdll_LinkData *)(pLinkHeader + 1);
+    for (i = iSize; i > 0; i--, pLinkData++)
+    {
+        if (pLinkData->iKUID < IDR_VP_TOTAL_NUM_KERNELS)
+        {
+            pCacheEntry[pLinkData->iKUID].nLink++;
+        }
+
+        nExports += pLinkData->bExport;
+        nImports += !pLinkData->bExport;
+    }
+
+    // Sanity check
+    if (nExports != (int32_t)pLinkHeader->dwExports ||
+        nImports != (int32_t)pLinkHeader->dwImports)
+    {
+        VP_RENDER_ASSERTMESSAGE("Inconsistent header data.");
+        goto cleanup;
+    }
+
+    if (nExports > DL_MAX_EXPORT_COUNT)
+    {
+        VP_RENDER_ASSERTMESSAGE("Unsupported number of exports %d > %d.", nExports, DL_MAX_EXPORT_COUNT);
+        goto cleanup;
+    }
+
+    pState->ComponentKernelCache.pExports = pExports = (Kdll_LinkData *)(pKernelCache->pCache + pKernelCache->iCacheSize);
+    pState->ComponentKernelCache.nExports            = nExports;
+
+    // Calculate offsets for sorting
+    pLinkOffset[0] = 0;
+    pLinkData      = pCacheEntry[0].pLink;
+    for (i = 1; i < IDR_VP_TOTAL_NUM_KERNELS; i++)
+    {
+        pLinkOffset[i]       = pLinkOffset[i - 1] + pCacheEntry[i - 1].nLink;
+        pCacheEntry[i].pLink = (pCacheEntry[i].nLink) ? (pLinkData + pLinkOffset[i]) : nullptr;
+    }
+    pLinkOffset[i] = pLinkOffset[i - 1] + pCacheEntry[i - 1].nLink;
+
+    // Sort link data
+    for (i = iSize; i > 0; i--, pLinkData++)
+    {
+        j            = pLinkOffset[MOS_MIN(pLinkData->iKUID, IDR_VP_TOTAL_NUM_KERNELS)]++;
+        pLinkSort[j] = *pLinkData;
+
+        // Add to export table
+        if (pLinkData->bExport &&
+            pLinkData->iLabelID < DL_MAX_EXPORT_COUNT)
+        {
+            pExports[pLinkData->iLabelID] = *pLinkData;
+        }
+    }
+
+    // Copy sort data
+    pLinkData = pCacheEntry[0].pLink;
+    MOS_SecureMemcpy(pLinkData, iSize * sizeof(Kdll_LinkData), (void *)pLinkSort, iSize * sizeof(Kdll_LinkData));
+
+    // Release sort buffers
+    MOS_FreeMemory(pLinkOffset);
+    MOS_FreeMemory(pLinkSort);
+
+    // Return
+    return pState;
+
+cleanup:
+    if (pState)
+    {
+        MOS_FreeMemory(pState->pSortedRules);
+        pState->pSortedRules = nullptr;
+    }
+
+    // Free DL States and temporary sort buffers
+    MOS_FreeMemory(pState);
+    MOS_FreeMemory(pLinkSort);
+    MOS_FreeMemory(pLinkOffset);
+
+    return nullptr;
+}
+
+//--------------------------------------------------------------
+// KernelDll_ReleaseAdditionalCacheEntries - Release the additional kernel cache entries
+//--------------------------------------------------------------
+void KernelDll_ReleaseAdditionalCacheEntries(Kdll_KernelCache *pCache)
+{
+    VP_RENDER_FUNCTION_ENTER;
+    if (pCache->iCacheMaxEntries > DL_DEFAULT_COMBINED_KERNELS)
+    {
+        Kdll_CacheEntry *pNewEntries, *pEntries;
+        pNewEntries = (pCache->pCacheEntries + DL_DEFAULT_COMBINED_KERNELS - 1)->pNextEntry;
+        for (int i = 0; i < (pCache->iCacheMaxEntries - DL_DEFAULT_COMBINED_KERNELS) / DL_NEW_COMBINED_KERNELS; i++)
+        {
+            pEntries = (pNewEntries + DL_NEW_COMBINED_KERNELS - 1)->pNextEntry;
+            MOS_FreeMemory(pNewEntries);
+            pNewEntries = pEntries;
+        }
+    }
+}
+
+//---------------------------------------------------------------------------------------
+// KernelDll_ReleaseStates - Release Kernel Dynamic Linking/Loading (Dll) States
+//
+// Parameters:
+//    Kdll_State *pState - [in] Kernel dll State to release
+//
+// Output: Pointer to allocated Kernel dll state
+//         nullptr - Failed to allocate Kernel dll state
+//-----------------------------------------------------------------------------------------
+void KernelDll_ReleaseStates(Kdll_State *pState)
+{
+    VP_RENDER_FUNCTION_ENTER;
+
+    if (!pState)
+        return;
+    KernelDll_ReleaseAdditionalCacheEntries(&pState->KernelCache);
+    MOS_FreeMemory(pState->ComponentKernelCache.pCache);
+    MOS_FreeMemory(pState->CmFcPatchCache.pCache);
+    MOS_FreeMemory(pState->pSortedRules);
+    MOS_FreeMemory(pState);
+}
+
+//---------------------------------------------------------------------------------------
+// KernelDll_SetupFunctionPointers - Setup Function pointers based on platform
+//
+// Parameters:
+//    char  *pState    - [in/out] Kernel Dll state
+//           platform  - [in] platform
+//
+// Output: true  - Function pointers are set
+//         false - Failed to setup function pointers (invalid platform)
+//-----------------------------------------------------------------------------------------
+static bool KernelDll_SetupFunctionPointers(
+    Kdll_State *pState,
+    void (*ModifyFunctionPointers)(PKdll_State))
+{
+    VP_RENDER_FUNCTION_ENTER;
+
+    pState->pfnSetupCSC          = KernelDll_SetupCSC;
+    pState->pfnMapCSCMatrix      = KernelDll_MapCSCMatrix;
+    pState->pfnFindRule          = KernelDll_FindRule;
+    pState->pfnUpdateState       = KernelDll_UpdateState;
+    pState->pfnSearchKernel      = KernelDll_SearchKernel;
+    pState->pfnBuildKernel       = KernelDll_BuildKernel;
+    pState->pfnStartKernelSearch = KernelDll_StartKernelSearch;
+
+    if (ModifyFunctionPointers != nullptr)
+    {
+        (*ModifyFunctionPointers)(pState);
+    }
+
+#if EMUL || VPHAL_LIB
+    // Disable callbacks
+    pState->pToken          = nullptr;
+    pState->pfnCbListKernel = nullptr;
+    pState->pfnCbSearchSate = nullptr;
+#endif  // EMUL || VPHAL_LIB
+
+    return true;
+}
+
+//---------------------------------------------------------------------------------------
+// Kdll_AddKernelList - Add kernel to CM FC kernel list
+//
+// Parameters:
+//    Kdll_KernelCache *pKernelCache     - [in]     Component kernel cache
+//    Kdll_KernelCache *pCmFcPatchCache  - [in]     Component kernel patch data cache
+//    Kdll_SearchState *pSearchState     - [in/out] Kernel search state
+//    Kdll_PatchData   *pKernelPatch     - [in]     Kernel Patch data
+//    void             *pPatchDst         - [in]     Patch data Dst address
+//    int32_t          iKUID             - [in]     Kernel Unique ID
+//    cm_fc_kernel_t   *Cm_Fc_Kernels    - [in/out] CM FC Kernels
+//
+// Output: true if suceeded, false otherwise
+//---------------------------------------------------------------------------------------
+bool Kdll_AddKernelList(Kdll_KernelCache *pKernelCache,
+    Kdll_KernelCache *                    pCmFcPatchCache,
+    Kdll_SearchState *                    pSearchState,
+    int32_t                               iKUID,
+    Kdll_PatchData *                      pKernelPatch,
+    void *                                pPatchDst,
+    cm_fc_kernel_t *                      Cm_Fc_Kernels)
+{
+    Kdll_State *     pState;
+    Kdll_Symbol *    pSymbols;
+    Kdll_CacheEntry *kernels;
+    Kdll_CacheEntry *pPatch;
+    Kdll_LinkData *  link;
+    Kdll_LinkData *  liSearch_reloc;
+    int *            size;
+    int *            left;
+    int              dwSize;
+    int              i;
+    int              base;
+    bool             bInline;
+    bool             res;
+
+    VP_RENDER_FUNCTION_ENTER;
+
+    res = false;
+
+    // Check if Kernel ID is valid
+    if (iKUID >= pKernelCache->iCacheEntries)
+    {
+        VP_RENDER_NORMALMESSAGE("invalid Kernel ID %d.", iKUID);
+        goto finish;
+    }
+
+    // Get KDLL state
+    pState = pSearchState->pKdllState;
+
+    // Get current combined kernel
+    size     = &pSearchState->KernelSize;
+    left     = &pSearchState->KernelLeft;
+    pSymbols = &pSearchState->KernelLink;
+    base     = (*size) >> 2;
+
+    // Find selected kernel/patch and kernel size; check if there is enough space
+    kernels = &pKernelCache->pCacheEntries[iKUID];
+    pPatch  = &pCmFcPatchCache->pCacheEntries[iKUID];
+    dwSize  = kernels->iSize;
+    if (*left < dwSize)
+    {
+        VP_RENDER_NORMALMESSAGE("exceeded maximum kernel size.");
+        goto finish;
+    }
+
+    // Check if there is enough space for symbols
+    if (pSymbols->dwCount + kernels->nLink >= pSymbols->dwSize)
+    {
+        VP_RENDER_NORMALMESSAGE("exceeded maximum numbers of symbols to resolve.");
+        goto finish;
+    }
+
+#if EMUL || VPHAL_LIB
+    VP_RENDER_NORMALMESSAGE("%s.", kernels->szName);
+
+    if (pState->pfnCbListKernel)
+    {
+        pState->pfnCbListKernel(pState->pToken, kernels->szName);
+    }
+#elif _DEBUG || _RELEASE_INTERNAL  // EMUL || VPHAL_LIB
+    VP_RENDER_NORMALMESSAGE("%s.", kernels->szName);
+#endif  // _DEBUG
+
+    MT_LOG1(MT_VP_KERNEL_LIST_ADD, MT_NORMAL, MT_VP_KERNEL_ID, iKUID);
+
+    // Append symbols to resolve, relocate symbols
+    link           = kernels->pLink;
+    liSearch_reloc = pSymbols->pLink + pSymbols->dwCount;
+
+    bInline = false;
+    if (link)
+    {
+        for (i = kernels->nLink; i > 0; i--, link++)
+        {
+            if (link->bInline)
+            {
+                // Inline code included
+                if (!link->bExport)
+                {
+                    bInline = true;
+                }
+            }
+            else
+            {
+                *liSearch_reloc = *link;
+                liSearch_reloc->dwOffset += base;
+                liSearch_reloc++;
+
+                pSymbols->dwCount++;
+            }
+        }
+    }
+
+    *size += dwSize;
+    *left -= dwSize;
+    Cm_Fc_Kernels->binary_buf  = (const char *)kernels->pBinary;
+    Cm_Fc_Kernels->binary_size = kernels->iSize;
+    Cm_Fc_Kernels->patch_buf   = (const char *)pPatch->pBinary;
+    Cm_Fc_Kernels->patch_size  = pPatch->iSize;
+    res                        = true;
+
+finish:
+    return res;
+}
+
+//---------------------------------------------------------------------------------------
+// KernelDll_BuildKernel_CmFc - Build CM based FC combine Kernel
+//
+// Parameters: [in/out] pState        - Pointer to Kernel binary file loaded in sys memory
+//             [in/out] pSearchState       - Kernel file size
+//
+// Output: bool
+//         TRUE - Successful FALSE - Failed
+//-----------------------------------------------------------------------------------------
+bool KernelDll_BuildKernel_CmFc(Kdll_State *pState, Kdll_SearchState *pSearchState)
+{
+    Kdll_KernelCache *pKernelCache = &pState->ComponentKernelCache;
+    Kdll_KernelCache *pPatchCache  = &pState->CmFcPatchCache;
+    Kdll_KernelCache *pCustomCache = pState->pCustomKernelCache;
+    bool              res;
+    int32_t           offset = 0;
+    int32_t *         pKernelID, *pPatchID;
+    uint8_t *         pPatchData;
+    Kdll_PatchData *  pKernelPatch;
+    uint8_t *         kernel   = pSearchState->Kernel;
+    Kdll_Symbol *     pSymbols = &pSearchState->KernelLink;
+    uint32_t          nExports = pKernelCache->nExports;
+    Kdll_LinkData *   pExports = pKernelCache->pExports;
+    Kdll_LinkData *   pLink;
+    int32_t           iOffset;
+    uint32_t          dwResolveOffset[DL_MAX_EXPORT_COUNT];
+    uint32_t          dwTotalKernelCount;
+    size_t            stEstimatedKernelSize;
+    int32_t           iKUID;
+    bool              bResolveDone;
+    int32_t           i;
+    cm_fc_kernel_t    Cm_Fc_kernels[DL_MAX_KERNELS];
+
+    VP_RENDER_FUNCTION_ENTER;
+
+    // Disable pop-up box window for STL assertion to avoid VM hang in auto test.
+#if (!LINUX)
+    ::SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX);
+#if defined(_MSC_VER)
+    ::_set_error_mode(_OUT_TO_STDERR);
+    _CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_FILE | _CRTDBG_MODE_DEBUG);
+    _CrtSetReportFile(_CRT_WARN, _CRTDBG_FILE_STDERR);
+    _CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_FILE | _CRTDBG_MODE_DEBUG);
+    _CrtSetReportFile(_CRT_ERROR, _CRTDBG_FILE_STDERR);
+    _CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_FILE | _CRTDBG_MODE_DEBUG);
+    _CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDERR);
+#endif
+#endif
+
+    pSearchState->KernelLink.dwSize  = DL_MAX_SYMBOLS;
+    pSearchState->KernelLink.dwCount = 0;
+    pSearchState->KernelLink.pLink   = pSearchState->LinkArray;
+    pSearchState->KernelSize         = 0;
+    pSearchState->KernelLeft         = sizeof(pSearchState->Kernel);
+    pSearchState->KernelLink.dwCount = 0;
+
+    MOS_ZeroMemory(Cm_Fc_kernels, sizeof(Cm_Fc_kernels));
+    dwTotalKernelCount    = 0;
+    stEstimatedKernelSize = 0;
+
+#if EMUL || VPHAL_LIB || _DEBUG
+    VP_RENDER_NORMALMESSAGE("Component Kernels:");
+#endif  // EMUL || VPHAL_LIB || _DEBUG
+
+    pKernelID  = pSearchState->KernelID;
+    pPatchID   = pSearchState->PatchID;
+    pPatchData = nullptr;
+
+    for (offset = 0; offset < pSearchState->KernelCount; offset++, pKernelID++, pPatchID++, dwTotalKernelCount++)
+    {
+        // Get patch information associated with the kernel
+        pKernelPatch = (*pPatchID >= 0) ? &(pSearchState->Patches[*pPatchID]) : nullptr;
+
+        // Append/Patch kernel from internal cache
+        res = Kdll_AddKernelList(pKernelCache, pPatchCache, pSearchState, *pKernelID, pKernelPatch, pPatchData, &Cm_Fc_kernels[dwTotalKernelCount]);
+
+        stEstimatedKernelSize += Cm_Fc_kernels[dwTotalKernelCount].binary_size;
+
+        if (*pKernelID == IDR_VP_EOT)
+        {
+            dwTotalKernelCount--;
+        }
+
+        if (!res)
+        {
+            VP_RENDER_NORMALMESSAGE("Failed to build kernel ID %d.", pSearchState->KernelID[offset]);
+            res = false;
+            goto finish;
+        }
+    }
+
+    // Resolve kernel dependencies
+    MOS_ZeroMemory(dwResolveOffset, sizeof(dwResolveOffset));
+
+    do
+    {
+        // Update exports
+        for (pLink = pSymbols->pLink, i = pSymbols->dwCount; i > 0; i--, pLink++)
+        {
+            if (pLink->bExport)
+            {
+                dwResolveOffset[pLink->iLabelID] = pLink->dwOffset;
+            }
+        }
+
+        bResolveDone = true;
+        for (pLink = pSymbols->pLink, i = pSymbols->dwCount; i > 0; i--, pLink++)
+        {
+            // validate label
+            if (pLink->iLabelID > nExports ||            // invalid label
+                pExports[pLink->iLabelID].bExport == 0)  // label not in the export table
+            {
+                VP_RENDER_NORMALMESSAGE("Invalid/unresolved label %d.", pLink->iLabelID);
+                res = false;
+                goto finish;
+            }
+
+            // load dependencies
+            if (!pLink->bExport && !dwResolveOffset[pLink->iLabelID])
+            {
+                // set flag for another pass as newly loaded
+                // kernels may contain dependencies of their own
+                bResolveDone = false;
+
+                // Add dependencies to kernel list
+                iKUID = pExports[pLink->iLabelID].iKUID;
+                res   = Kdll_AddKernelList(pKernelCache, pPatchCache, pSearchState, iKUID, nullptr, nullptr, &Cm_Fc_kernels[dwTotalKernelCount]);
+
+                if (!res)
+                {
+                    VP_RENDER_NORMALMESSAGE("Failed to build kernel ID %d.", pSearchState->KernelID[offset]);
+                    res = false;
+                    goto finish;
+                }
+
+                dwTotalKernelCount++;
+
+                // Restart
+                break;
+            }
+        }  // for
+    } while (!bResolveDone);
+
+    if (stEstimatedKernelSize > DL_MAX_KERNEL_SIZE)
+    {
+        res = false;
+        VP_RENDER_NORMALMESSAGE("Kernel size exceeded kdll limitatin.");
+        goto finish;
+    }
+
+    stEstimatedKernelSize = DL_MAX_KERNEL_SIZE;
+
+    // Get combine kernel binary from CMFC lib
+    if (CM_FC_OK != cm_fc_combine_kernels(dwTotalKernelCount, Cm_Fc_kernels, (char *)pSearchState->Kernel, &stEstimatedKernelSize, nullptr))
+    {
+        res = false;
+        VP_RENDER_NORMALMESSAGE("cm_fc_combine_kernels() function call failed.");
+        goto finish;
+    }
+
+    // Get combine kernel binary size from CMFC lib
+    pSearchState->KernelSize = (int)stEstimatedKernelSize;
+
+    res = true;
+
+finish:
+    return res;
+}
+
+//---------------------------------------------------------------------------------------
+// KernelDll_SetupFunctionPointers - Setup Function pointers based on platform
+//
+// Parameters:
+//    KdllState  *pState    - [in/out] Kernel Dll state
+//
+// Output: true  - Function pointers are set
+//         false - Failed to setup function pointers (invalid platform)
+//-----------------------------------------------------------------------------------------
+bool KernelDll_SetupFunctionPointers_Ext(
+    Kdll_State *pState)
+{
+    VP_RENDER_FUNCTION_ENTER;
+
+    if (pState && pState->bEnableCMFC)
+    {
+        pState->pfnBuildKernel = KernelDll_BuildKernel_CmFc;
+    }
+
+    return true;
 }
 
 #ifdef __cplusplus

@@ -27,7 +27,7 @@
 #ifndef __VP_PLATFORM_INTERFACE_H__
 #define __VP_PLATFORM_INTERFACE_H__
 
-#include "hal_kerneldll.h"
+#include "hal_kerneldll_next.h"
 #include "vp_feature_manager.h"
 #include "vp_render_common.h"
 #include "vp_kernel_config.h"

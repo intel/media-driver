@@ -22,14 +22,12 @@ set(TMP_SOURCES_
     ${TMP_SOURCES_}
     ${CMAKE_CURRENT_LIST_DIR}/media_task.cpp
     ${CMAKE_CURRENT_LIST_DIR}/media_cmd_task.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/media_mdf_task.cpp
 )
 
 set(TMP_HEADERS_
     ${TMP_HEADERS_}
     ${CMAKE_CURRENT_LIST_DIR}/media_task.h
     ${CMAKE_CURRENT_LIST_DIR}/media_cmd_task.h
-    ${CMAKE_CURRENT_LIST_DIR}/media_mdf_task.h
 )
 
 media_add_curr_to_include_path()

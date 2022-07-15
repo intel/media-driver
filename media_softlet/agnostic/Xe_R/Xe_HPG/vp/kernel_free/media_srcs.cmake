@@ -37,7 +37,7 @@ function(gen_vpkernel_from_cm)
     set(patch_dir ${out_dir}/fcpatch)
     set(kernel_hex_dir ${kernel_dir}/hex)
     set(patch_hex_dir ${patch_dir}/hex)
-    set(krn_header ${CMAKE_SOURCE_DIR}/media_driver/agnostic/common/vp/kernel/${name}krnheader.h)
+    set(krn_header ${CMAKE_SOURCE_DIR}/media_common/agnostic/common/vp/kernel/${name}krnheader.h)
 
     message("krn: " ${krn})
     message("krnpatch: " ${krnpatch})

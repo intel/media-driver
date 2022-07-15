@@ -62,26 +62,12 @@ extern "C" {
 #endif
 
 //!
-//! \def WITHIN_BOUNDS(a, min, max)
-//! Calcualte if \a a within the range of  [\a min, \a max].
-//!
-#define WITHIN_BOUNDS(a, min, max) ( ((a) >= (min)) && ((a) <= (max)) )
-
-//!
 //! \def VPHAL_ABS(x)
 //! Calcualte the Abslute value of \a x.
 //!
 #define VPHAL_ABS(x)               (((x) > 0) ? (x) : -(x))
 
 #define VPHAL_PI                   3.14159265358979324f //!< Definition the const pi
-
-//!
-//! \def SAME_SIZE_RECT(rect1, rect2)
-//! Compare if the size of two rectangles is the same
-//!
-#define SAME_SIZE_RECT(rect1, rect2)                                            \
-    (((rect1).right  - (rect1).left == (rect2).right  - (rect2).left) &&        \
-     ((rect1).bottom - (rect1).top  == (rect2).bottom - (rect2).top))
 
 //!
 //! \def RECT1_EQUALS_RECT2(rect1, rect2)
@@ -107,24 +93,6 @@ extern "C" {
 #define AVS_TBL_COEF_PREC         6           //!< Table coef precision (after decimal point
 #define SAME_SAMPLE_THRESHOLD     1000        //!< When checking whether 2 timestamps are the same, leave room for some error
 
-//!
-//! \def MEDIA_IS_HDCONTENT(dwWidth, dwHeight)
-//! Determine if the size of content is HD
-//!
-#define MEDIA_SDCONTENT_MAX_WIDTH        720
-#define MEDIA_SDCONTENT_MAX_PAL_HEIGHT   576
-#define MEDIA_SDCONTENT_MAX_SW_WIDTH     768
-#define MEDIA_IS_HDCONTENT(dwWidth, dwHeight)    ((dwWidth > MEDIA_SDCONTENT_MAX_SW_WIDTH) || (dwHeight > MEDIA_SDCONTENT_MAX_PAL_HEIGHT))
-
-//! \brief  Surface cache attributes
-//!
-#define VPHAL_SET_SURF_MEMOBJCTL(VpField, GmmUsageEnum)                                                         \
-    {                                                                                                           \
-        Usage = GmmUsageEnum;                                                                                   \
-        MemObjCtrl = pOsInterface->pfnCachePolicyGetMemoryObject(Usage, pOsInterface->pfnGetGmmClientContext(pOsInterface));                                        \
-        VpField = MemObjCtrl.DwordValue;                                                                        \
-    }
-
 // Compositing Block size
 #define VPHAL_COMP_BLOCK_WIDTH  16
 #define VPHAL_COMP_BLOCK_HEIGHT 16
@@ -145,20 +113,6 @@ extern "C" {
 
 #define VPHAL_MAX_CHANNELS              2
 #define VPHAL_MAX_FUTURE_FRAMES         18       //!< maximum future frames supported in VPHAL
-
-
-//!
-//! \brief Vphal Output chroma configuration enum
-//!
-typedef enum _VPHAL_CHROMA_SUBSAMPLING
-{
-    CHROMA_SUBSAMPLING_TOP_CENTER       = 0,
-    CHROMA_SUBSAMPLING_CENTER_CENTER,
-    CHROMA_SUBSAMPLING_BOTTOM_CENTER,
-    CHROMA_SUBSAMPLING_TOP_LEFT,
-    CHROMA_SUBSAMPLING_CENTER_LEFT,
-    CHROMA_SUBSAMPLING_BOTTOM_LEFT
-} VPHAL_CHROMA_SUBSAMPLING;
 
 typedef enum _VPHAL_DP_ROTATION_MODE
 {
@@ -190,16 +144,6 @@ typedef enum _VPHAL_DP_ROTATION_MODE
                                                 _a == CSpace_BT709       || \
                                                 _a == CSpace_BT601Gray   || \
                                                 _a == CSpace_BT2020)
-
-//!
-//! \def IS_YUV_FULL_RANGE(_a)
-//! Check if YUV full range
-//!
-#define IS_YUV_FULL_RANGE(_a)                  (_a == CSpace_BT601_FullRange       || \
-                                                _a == CSpace_BT709_FullRange       || \
-                                                _a == CSpace_BT601Gray_FullRange   || \
-                                                _a == CSpace_BT2020_FullRange)
-
 
 //!
 //! \def SET_VPHAL_OUTPUT_PIPE(_a, _Pipe)
@@ -303,28 +247,6 @@ bool VpHal_CSC_8(
     VPHAL_COLOR_SAMPLE_8    *pInput,
     VPHAL_CSPACE            srcCspace,
     VPHAL_CSPACE            dstCspace);
-
-//!
-//! \brief
-//! \details  Get CSC matrix in a form usable by Vebox, SFC and IECP kernels
-//! \param    [in] SrcCspace
-//!           Source Cspace
-//! \param    [in] DstCspace
-//!           Destination Cspace
-//! \param    [out] pfCscCoeff
-//!           [3x3] Coefficients matrix
-//! \param    [out] pfCscInOffset
-//!           [3x1] Input Offset matrix
-//! \param    [out] pfCscOutOffset
-//!           [3x1] Output Offset matrix
-//! \return   void
-//!
-void VpHal_GetCscMatrix(
-    VPHAL_CSPACE                        SrcCspace,
-    VPHAL_CSPACE                        DstCspace,
-    float*                              pfCscCoeff,
-    float*                              pfCscInOffset,
-    float*                              pfCscOutOffset);
 
 //!
 //! \brief    sinc
@@ -452,18 +374,6 @@ MOS_STATUS VpHal_WriteSurface (
     PVPHAL_SURFACE              pSurface,
     uint32_t                    uBpp,
     const uint8_t*              pSrc);
-
-//!
-//! \brief    Get the color pack type of a surface
-//! \details  Map mos surface format to color pack format and return.
-//!           For unknown format return VPHAL_COLORPACK_UNKNOWN
-//! \param    [in] Format
-//!           MOS_FORMAT of a surface
-//! \return   VPHAL_COLORPACK
-//!           Color pack type of the surface
-//!
-VPHAL_COLORPACK VpHal_GetSurfaceColorPack (
-    MOS_FORMAT                  Format);
 
 //!
 //! \brief    Decide whether Chroma up sampling is needed

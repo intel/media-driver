@@ -38,6 +38,7 @@
 #include <tuple>
 
 #include "PatchInfo.h"
+#include "media_class_trace.h"
 
 namespace cm {
 
@@ -73,6 +74,7 @@ public:
 
   unsigned getAddr() const { return Addr; }
   void setAddr(unsigned A) { Addr = A; }
+MEDIA_CLASS_DEFINE_END(cm__patch__Symbol)
 };
 
 /// Relocation defines a location referencing a symbol. That location is
@@ -91,6 +93,7 @@ public:
 
   unsigned getOffset() const { return Offset; }
   void setOffset(unsigned Off) { Offset = Off; }
+ MEDIA_CLASS_DEFINE_END(cm__patch__Relocation)
 };
 
 
@@ -150,6 +153,7 @@ public:
            RegNo == Other.RegNo &&
            DefUseToken == Other.DefUseToken;
   }
+MEDIA_CLASS_DEFINE_END(cm__patch__RegAccess)
 };
 
 class Token {
@@ -159,6 +163,7 @@ public:
   Token(unsigned T) : TokenNo(T) {}
 
   unsigned getTokenNo() const { return TokenNo; }
+MEDIA_CLASS_DEFINE_END(cm__patch__Token)
 };
 
 class DepNode {
@@ -311,6 +316,7 @@ public:
     }
     return true;
   }
+MEDIA_CLASS_DEFINE_END(cm__patch__DepNode)
 };
 
 class DepEdge {
@@ -326,6 +332,7 @@ public:
   DepNode *getTail() const { return Tail; }
 
   bool isHeadDef() const { return HeadDef; }
+MEDIA_CLASS_DEFINE_END(cm__patch__DepEdge)
 };
 
 
@@ -446,6 +453,7 @@ public:
 
   const Symbol *getName() const { return Name; }
   void setName(const Symbol *S) { Name = S; }
+ MEDIA_CLASS_DEFINE_END(cm__patch__Binary)
 };
 
 /// Collection
@@ -523,6 +531,7 @@ public:
 
   void setLinkedBinary(std::string &&L) { Linked = L; }
   const std::string &getLinkedBinary() const { return Linked; }
+MEDIA_CLASS_DEFINE_END(cm__patch__Collection)
 };
 
 } // End namespace patch

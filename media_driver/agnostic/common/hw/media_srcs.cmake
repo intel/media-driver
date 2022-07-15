@@ -26,7 +26,6 @@ set(TMP_1_SOURCES_
 )
 
 set(TMP_1_HEADERS_
-    ${CMAKE_CURRENT_LIST_DIR}/mhw_sfc.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_sfc_generic.h
 )
 
@@ -35,7 +34,6 @@ set(TMP_2_SOURCES_
 )
 
 set(TMP_2_HEADERS_
-    ${CMAKE_CURRENT_LIST_DIR}/mhw_vebox.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vebox_generic.h
 )
 

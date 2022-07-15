@@ -37,12 +37,10 @@
 #include "mos_os_virtualengine_specific.h"
 
 #include "mos_os.h"
-#if !EMUL
-#include "cm_rt_umd.h"
-#endif
+
 #include "mhw_mi_itf.h"
 class MediaScalabilityOption;
-namespace CMRT_UMD { class CmQueue; }
+
 struct ComponentState;
 struct ScalabilityPars;
 #define COMMAND_BUFFER_RESERVED_SPACE 0x80
@@ -165,18 +163,7 @@ public:
     virtual MOS_STATUS GetCmdBuffer(PMOS_COMMAND_BUFFER cmdBuffer, bool frameTrackingRequested = true) = 0;
 
     //!
-    //! \brief  Get command buffer
-    //! \param  [in] newQueue
-    //!         if need a new queue
-    //! \param  [out] queue
-    //!         Pointer to cmQueue
-    //! \return MOS_STATUS
-    //!         MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-#if !EMUL
-    virtual MOS_STATUS GetQueue(bool newQueue, CmQueue *&queue) { return MOS_STATUS_SUCCESS; };
-#endif
-    //!
+
     //! \brief  Return command buffer
     //! \param  [in, out] cmdBuffer
     //!         Pointer to command buffer

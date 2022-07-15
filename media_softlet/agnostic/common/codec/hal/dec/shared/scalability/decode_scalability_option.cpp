@@ -121,11 +121,6 @@ bool DecodeScalabilityOption::IsScalabilityOptionMatched(ScalabilityPars *params
         return false;
     }
 
-    if (params->enableMdf == true)
-    {
-        return true;
-    }
-
     bool                   matched  = false;
     DecodeScalabilityPars *decPars = (DecodeScalabilityPars *)params;
 

@@ -157,6 +157,47 @@ extern "C" {
 #define VPHAL_RNDR_28K_HEIGHT (VPHAL_RNDR_2K_HEIGHT * 14)
 
 //!
+//! \def MEDIA_IS_HDCONTENT(dwWidth, dwHeight)
+//! Determine if the size of content is HD
+//!
+#define MEDIA_SDCONTENT_MAX_WIDTH 720
+#define MEDIA_SDCONTENT_MAX_PAL_HEIGHT 576
+#define MEDIA_SDCONTENT_MAX_SW_WIDTH 768
+#define MEDIA_IS_HDCONTENT(dwWidth, dwHeight) ((dwWidth > MEDIA_SDCONTENT_MAX_SW_WIDTH) || (dwHeight > MEDIA_SDCONTENT_MAX_PAL_HEIGHT))
+
+//! \brief  Surface cache attributes
+//!
+#define VPHAL_SET_SURF_MEMOBJCTL(VpField, GmmUsageEnum)                                                                      \
+    {                                                                                                                        \
+        Usage      = GmmUsageEnum;                                                                                           \
+        MemObjCtrl = pOsInterface->pfnCachePolicyGetMemoryObject(Usage, pOsInterface->pfnGetGmmClientContext(pOsInterface)); \
+        VpField    = MemObjCtrl.DwordValue;                                                                                  \
+    }
+
+//!
+//! \def WITHIN_BOUNDS(a, min, max)
+//! Calcualte if \a a within the range of  [\a min, \a max].
+//!
+#define WITHIN_BOUNDS(a, min, max) (((a) >= (min)) && ((a) <= (max)))
+
+//!
+//! \def SAME_SIZE_RECT(rect1, rect2)
+//! Compare if the size of two rectangles is the same
+//!
+#define SAME_SIZE_RECT(rect1, rect2)                                   \
+    (((rect1).right - (rect1).left == (rect2).right - (rect2).left) && \
+        ((rect1).bottom - (rect1).top == (rect2).bottom - (rect2).top))
+
+//!
+//! \def IS_YUV_FULL_RANGE(_a)
+//! Check if YUV full range
+//!
+#define IS_YUV_FULL_RANGE(_a) (_a == CSpace_BT601_FullRange ||     \
+                               _a == CSpace_BT709_FullRange ||     \
+                               _a == CSpace_BT601Gray_FullRange || \
+                               _a == CSpace_BT2020_FullRange)
+
+//!
 //! \brief Base VP kernel list
 //!
 enum VpKernelID
@@ -199,6 +240,19 @@ typedef struct _VPHAL_COMPOSITE_CACHE_CNTL
     VPHAL_MEMORY_OBJECT_CONTROL InputSurfMemObjCtl;
     VPHAL_MEMORY_OBJECT_CONTROL TargetSurfMemObjCtl;
 } VPHAL_COMPOSITE_CACHE_CNTL, *PVPHAL_COMPOSITE_CACHE_CNTL;
+
+//!
+//! \brief Vphal Output chroma configuration enum
+//!
+typedef enum _VPHAL_CHROMA_SUBSAMPLING
+{
+    CHROMA_SUBSAMPLING_TOP_CENTER = 0,
+    CHROMA_SUBSAMPLING_CENTER_CENTER,
+    CHROMA_SUBSAMPLING_BOTTOM_CENTER,
+    CHROMA_SUBSAMPLING_TOP_LEFT,
+    CHROMA_SUBSAMPLING_CENTER_LEFT,
+    CHROMA_SUBSAMPLING_BOTTOM_LEFT
+} VPHAL_CHROMA_SUBSAMPLING;
 
 //!
 //! \brief Vphal Gamma Values configuration enum
@@ -1232,6 +1286,40 @@ MOS_STATUS VpHal_GetSurfaceInfo(
     PMOS_INTERFACE          pOsInterface,
     PVPHAL_GET_SURFACE_INFO pInfo,
     PVPHAL_SURFACE          pSurface);
+
+//!
+//! \brief
+//! \details  Get CSC matrix in a form usable by Vebox, SFC and IECP kernels
+//! \param    [in] SrcCspace
+//!           Source Cspace
+//! \param    [in] DstCspace
+//!           Destination Cspace
+//! \param    [out] pfCscCoeff
+//!           [3x3] Coefficients matrix
+//! \param    [out] pfCscInOffset
+//!           [3x1] Input Offset matrix
+//! \param    [out] pfCscOutOffset
+//!           [3x1] Output Offset matrix
+//! \return   void
+//!
+void VpHal_GetCscMatrix(
+    VPHAL_CSPACE SrcCspace,
+    VPHAL_CSPACE DstCspace,
+    float *      pfCscCoeff,
+    float *      pfCscInOffset,
+    float *      pfCscOutOffset);
+
+//!
+//! \brief    Get the color pack type of a surface
+//! \details  Map mos surface format to color pack format and return.
+//!           For unknown format return VPHAL_COLORPACK_UNKNOWN
+//! \param    [in] Format
+//!           MOS_FORMAT of a surface
+//! \return   VPHAL_COLORPACK
+//!           Color pack type of the surface
+//!
+VPHAL_COLORPACK VpHal_GetSurfaceColorPack(
+    MOS_FORMAT Format);
 
 #ifdef __cplusplus
 }

@@ -27,7 +27,6 @@
 #include "renderhal.h"
 #include "hal_kerneldll_next.h"
 #include "media_class_trace.h"
-#include "vpkrnheader.h"
 
 #define VP_USE_MEDIA_THREADS_MAX    0
 // Compositing Block size

@@ -249,8 +249,6 @@ MediaTask *MediaPipeline::CreateTask(MediaTask::TaskType type)
     case MediaTask::TaskType::cmdTask:
         task = MOS_New(CmdTask, m_osInterface);
         break;
-    case MediaTask::TaskType::mdfTask:
-        break;
     default:
         break;
     }

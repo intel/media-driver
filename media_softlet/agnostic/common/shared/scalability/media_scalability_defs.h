@@ -71,7 +71,6 @@ enum ScalabilitySyncType
 
 struct ScalabilityPars : public ContextRequirement
 {
-    bool    enableMdf      = false;
     bool    enableVE       = false;
     bool    forceMultiPipe = false;
 

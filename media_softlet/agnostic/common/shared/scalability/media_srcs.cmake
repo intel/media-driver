@@ -23,7 +23,7 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/media_scalability.cpp
     ${CMAKE_CURRENT_LIST_DIR}/media_scalability_multipipe.cpp
     ${CMAKE_CURRENT_LIST_DIR}/media_scalability_singlepipe_next.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/media_scalability_mdf.cpp
+
     ${CMAKE_CURRENT_LIST_DIR}/media_scalability_factory.cpp
 )
 
@@ -34,7 +34,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/media_scalability_multipipe.h
     ${CMAKE_CURRENT_LIST_DIR}/media_scalability_singlepipe_next.h
     ${CMAKE_CURRENT_LIST_DIR}/media_scalability_option.h
-    ${CMAKE_CURRENT_LIST_DIR}/media_scalability_mdf.h
+
     ${CMAKE_CURRENT_LIST_DIR}/media_scalability_factory.h
 )
 

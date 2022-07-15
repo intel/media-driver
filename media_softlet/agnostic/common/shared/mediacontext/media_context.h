@@ -31,7 +31,6 @@
 #define __MEDIA_CONTEXT_H__
 
 #include "mos_os.h"
-#include "mos_gpucontext.h"
 #include "media_scalability_factory.h"
 
 enum MediaFunction

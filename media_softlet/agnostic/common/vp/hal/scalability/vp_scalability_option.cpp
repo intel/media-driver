@@ -63,11 +63,6 @@ bool VpScalabilityOption::IsScalabilityOptionMatched(ScalabilityPars *params)
         return false;
     }
 
-    if (params->enableMdf == true)
-    {
-        return true;
-    }
-
     bool                   matched  = false;
 
     VpScalabilityOption newOption;

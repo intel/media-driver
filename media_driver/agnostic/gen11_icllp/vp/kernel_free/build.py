@@ -53,8 +53,8 @@ class WinKernel2Source(object):
     def bin2source(self):
         cmd = '.\\compile\\KernelBinToSource.exe -i .\\component_release\\igvpkrn_g11_icllp.bin -o .\\'
         os.system(cmd)
-        os.remove(r'..\\..\\..\\common\\vp\\kernel\\vpkrnheader.h')
-        os.rename('.\\component_release\\igvpkrn_g11_icllp.h', '..\\..\\..\\common\\vp\\kernel\\vpkrnheader.h')
+        os.remove(r'..\\..\\..\\..\\..\\media_common\\agnostic\\common\\vp\\kernel\\vpkrnheader.h')
+        os.rename('.\\component_release\\igvpkrn_g11_icllp.h', '..\\..\\..\\..\\..\\media_common\\agnostic\\common\\vp\\kernel\\vpkrnheader.h')
         os.remove(r'.\\component_release\\igvpkrn_g11_icllp.bin')
 
 class LinuxKernel2Source(object):
@@ -108,8 +108,8 @@ class LinuxKernel2Source(object):
     def bin2source(self):
         cmd = './compile/KernelBinToSource -i ./component_release/igvpkrn_g11_icllp.bin -o ./'
         os.system(cmd)
-        os.remove(r'../../../common/vp/kernel/vpkrnheader.h')
-        os.rename('./component_release/igvpkrn_g11_icllp.h', '../../../common/vp/kernel/vpkrnheader.h')
+        os.remove(r'../../../../../media_common/agnostic/common/vp/kernel/vpkrnheader.h')
+        os.rename('./component_release/igvpkrn_g11_icllp.h', '../../../../../media_common/agnostic/common/vp/kernel/vpkrnheader.h')
         os.remove(r'./component_release/igvpkrn_g11_icllp.bin')
 
 def main():

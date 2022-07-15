@@ -29,3 +29,21 @@ media_include_subdirectory(statusreport)
 media_include_subdirectory(utils)
 media_include_subdirectory(platform_interface)
 media_include_subdirectory(shared)
+
+set(TMP_SOURCES_
+    ${CMAKE_CURRENT_LIST_DIR}/vp_common.c
+)
+
+
+set(SOFTLET_VP_SOURCES_
+    ${SOFTLET_VP_SOURCES_}
+    ${TMP_SOURCES_}
+)
+
+source_group( "VpHalNext" FILES ${TMP_SOURCES_} )
+set(TMP_SOURCES_ "")
+set (SOFTLET_VP_PRIVATE_INCLUDE_DIRS_
+    ${SOFTLET_VP_PRIVATE_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)
+
