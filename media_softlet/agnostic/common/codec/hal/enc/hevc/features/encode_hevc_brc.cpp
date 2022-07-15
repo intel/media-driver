@@ -507,7 +507,7 @@ namespace encode
             int8_t DevThreshI0_S8[8] = {};
 
             uint64_t inputbitsperframe = uint64_t(hucVdencBrcInitDmem->MaxRate_U32*100. / (hucVdencBrcInitDmem->FrameRateM_U32 * 100.0 / hucVdencBrcInitDmem->FrameRateD_U32));
-            if (m_brcEnabled && !hucVdencBrcInitDmem->BufSize_U32)
+            if (m_brcEnabled && (m_rcMode != RATECONTROL_ICQ) && !hucVdencBrcInitDmem->BufSize_U32)
             {
                 ENCODE_ASSERTMESSAGE("VBV BufSize should not be 0 for BRC case\n");
                 return MOS_STATUS_INVALID_PARAMETER;
