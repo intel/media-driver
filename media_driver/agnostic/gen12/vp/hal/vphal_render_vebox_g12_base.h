@@ -28,7 +28,7 @@
 #define __VPHAL_RENDER_VEBOX_G12_BASE_H__
 
 #include "vphal_render_vebox_base.h"
-#include "vphal_render_hdr_g11.h"
+#include "vphal_render_hdr_3dlut_g12.h"
 #include "vp_common_hdr.h"
 
 #define VPHAL_VEBOX_RGB_HISTOGRAM_SIZE_G12                      (VPHAL_VEBOX_RGB_HISTOGRAM_SIZE_PER_SLICE * \
@@ -492,7 +492,7 @@ protected:
 
 protected:
     VPHAL_SURFACE      Vebox3DLutOutputSurface     = {};
-    Hdr3DLutGenerator  *m_hdr3DLutGenerator        = nullptr;   //!< HDR 3DLut Generator - Media Kernel to generate HDR 3DLut table
+    Hdr3DLutGeneratorG12  *m_hdr3DLutGenerator        = nullptr;   //!< HDR 3DLut Generator - Media Kernel to generate HDR 3DLut table
     uint32_t *          m_hdr3DLutKernelBinary      = nullptr;  //!< HDR 3DLut Generator - Pointer to HDR 3DLut kernel Binary
     uint32_t            m_hdr3DLutKernelBinarySize  = 0;        //!< HDR 3DLut Generator - Size of HDR 3DLut kernel Binary
 };
