@@ -91,6 +91,7 @@ public:
     uint32_t                        m_heightInCtb  = 0;             //!< Frame height in LCU
 
     bool                            m_dummyReferenceSlot[CODECHAL_MAX_CUR_NUM_REF_FRAME_HEVC];
+    bool                            m_shortFormatInUse = false;     //!< Indicate if short format
 
 protected:
     virtual MOS_STATUS SetRequiredBitstreamSize(uint32_t requiredSize) override;

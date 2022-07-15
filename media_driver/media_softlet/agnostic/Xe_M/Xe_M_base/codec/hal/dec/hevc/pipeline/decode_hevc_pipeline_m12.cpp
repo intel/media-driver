@@ -49,7 +49,7 @@ MOS_STATUS HevcPipelineM12::Init(void *settings)
 
     DECODE_CHK_STATUS(Initialize(settings));
 
-    if (m_shortFormatInUse)
+    if (m_basicFeature->m_shortFormatInUse)
     {
         HucS2lPktM12 *hucS2lPkt = MOS_New(HucS2lPktM12, this, m_task, m_hwInterface);
         DECODE_CHK_NULL(hucS2lPkt);
@@ -124,7 +124,7 @@ MOS_STATUS HevcPipelineM12::InitScalabOption(HevcBasicFeature &basicFeature)
         uint8_t(ReadUserFeature(m_userSettingPtr, "HCP Decode User Pipe Num", MediaUserSetting::Group::Sequence).Get<uint32_t>());
 #endif
     // Long format real tile requires subset params
-    if (!m_shortFormatInUse && basicFeature.m_hevcSubsetParams == nullptr)
+    if (!basicFeature.m_shortFormatInUse && basicFeature.m_hevcSubsetParams == nullptr)
     {
         scalPars.disableRealTile = true;
     }
@@ -191,7 +191,7 @@ MOS_STATUS HevcPipelineM12::AllocateResources(HevcBasicFeature &basicFeature)
     if (m_secondLevelBBArray == nullptr)
     {
         m_secondLevelBBArray = m_allocator->AllocateBatchBufferArray(
-            size, count, m_secondLevelBBNum, true, m_shortFormatInUse ? notLockableVideoMem : lockableVideoMem);
+            size, count, m_secondLevelBBNum, true, basicFeature.m_shortFormatInUse ? notLockableVideoMem : lockableVideoMem);
         DECODE_CHK_NULL(m_secondLevelBBArray);
         PMHW_BATCH_BUFFER &batchBuf = m_secondLevelBBArray->Fetch();
         DECODE_CHK_NULL(batchBuf);
@@ -201,7 +201,7 @@ MOS_STATUS HevcPipelineM12::AllocateResources(HevcBasicFeature &basicFeature)
         PMHW_BATCH_BUFFER &batchBuf = m_secondLevelBBArray->Fetch();
         DECODE_CHK_NULL(batchBuf);
         DECODE_CHK_STATUS(m_allocator->Resize(
-            batchBuf, size, count, m_shortFormatInUse ? notLockableVideoMem : lockableVideoMem));
+            batchBuf, size, count, basicFeature.m_shortFormatInUse ? notLockableVideoMem : lockableVideoMem));
     }
 
     return MOS_STATUS_SUCCESS;
@@ -239,7 +239,7 @@ MOS_STATUS HevcPipelineM12::Prepare(void *params)
                     m_basicFeature->m_hevcSliceParams,
                     m_basicFeature->m_hevcRextSliceParams,
                     m_basicFeature->m_numSlices,
-                    m_shortFormatInUse);
+                    m_basicFeature->m_shortFormatInUse);
             }
 
             CODECHAL_DEBUG_TOOL(
@@ -488,7 +488,7 @@ MOS_STATUS HevcPipelineM12::DumpParams(HevcBasicFeature &basicFeature)
             basicFeature.m_hevcSliceParams,
             basicFeature.m_hevcRextSliceParams,
             basicFeature.m_numSlices,
-            m_shortFormatInUse));
+            basicFeature.m_shortFormatInUse));
     }
 
     if(basicFeature.m_hevcSubsetParams != nullptr)

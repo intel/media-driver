@@ -49,7 +49,6 @@ MOS_STATUS HevcPipeline::Initialize(void *settings)
 
     auto *codecSettings = (CodechalSetting*)settings;
     DECODE_CHK_NULL(codecSettings);
-    m_shortFormatInUse  = (codecSettings->shortFormatInUse) ? true : false;
 
     // Create basic GPU context
     DecodeScalabilityPars scalPars;
@@ -234,7 +233,7 @@ MOS_STATUS HevcPipeline::CreatePhaseList(HevcBasicFeature &basicFeature, const S
     DECODE_FUNC_CALL();
     DECODE_ASSERT(m_phaseList.empty());
 
-    if (m_shortFormatInUse)
+    if (basicFeature.m_shortFormatInUse)
     {
         DECODE_CHK_STATUS(CreatePhase<HevcPhaseS2L>());
     }
@@ -299,7 +298,7 @@ MOS_STATUS HevcPipeline::HwStatusCheck(const DecodeStatusMfx &status)
 {
     DECODE_FUNC_CALL();
 
-    if (m_shortFormatInUse)
+    if (m_basicFeature->m_shortFormatInUse)
     {
         // Check HuC_status2 Imem loaded bit, if 0, return error
         if (((status.m_hucErrorStatus2 >> 32) && (m_hwInterface->GetHucInterface()->GetHucStatus2ImemLoadedMask())) == 0)
@@ -334,7 +333,7 @@ MOS_STATUS HevcPipeline::HwStatusCheck(const DecodeStatusMfx &status)
 
 bool HevcPipeline::IsShortFormat()
 {
-    return m_shortFormatInUse;
+    return m_basicFeature->m_shortFormatInUse;
 }
 
 HevcPipeline::HevcDecodeMode HevcPipeline::GetDecodeMode()

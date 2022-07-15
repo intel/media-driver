@@ -38,6 +38,8 @@ MOS_STATUS HevcBasicFeature::Init(void *setting)
     DECODE_CHK_NULL(setting);
     DECODE_CHK_NULL(m_hwInterface);
 
+    m_shortFormatInUse = ((CodechalSetting*)setting)->shortFormatInUse;
+
     DECODE_CHK_STATUS(DecodeBasicFeature::Init(setting));
 
     DECODE_CHK_STATUS(m_refFrames.Init(this, *m_allocator));

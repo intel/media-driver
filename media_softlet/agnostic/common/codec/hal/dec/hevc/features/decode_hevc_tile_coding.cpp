@@ -49,7 +49,6 @@ MOS_STATUS HevcTileCoding::Init(HevcBasicFeature *basicFeature, CodechalSetting 
     DECODE_CHK_NULL(codecSettings);
 
     m_basicFeature = basicFeature;
-    m_shortFormatInUse  = codecSettings->shortFormatInUse;
 
     return MOS_STATUS_SUCCESS;
 }
@@ -71,7 +70,7 @@ MOS_STATUS HevcTileCoding::UpdateSlice(const CODEC_HEVC_PIC_PARAMS & picParams,
 {
     DECODE_FUNC_CALL();
 
-    if (m_shortFormatInUse)
+    if (m_basicFeature->m_shortFormatInUse)
     {
         return MOS_STATUS_SUCCESS;
     }
@@ -139,7 +138,7 @@ MOS_STATUS HevcTileCoding::UpdateSliceTileInfo()
 {
     DECODE_FUNC_CALL();
 
-    if (m_shortFormatInUse)
+    if (m_basicFeature->m_shortFormatInUse)
     {
         return MOS_STATUS_SUCCESS;
     }

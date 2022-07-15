@@ -244,8 +244,6 @@ protected:
     uint16_t            m_tileColWidth[HEVC_NUM_MAX_TILE_COLUMN];   //!< Table of tile column width
     uint16_t            m_tileRowHeight[HEVC_NUM_MAX_TILE_ROW];     //!< Table of tile row height
 
-    bool                m_shortFormatInUse = false;                 //!< Indicate if short format
-
     std::vector<SliceTileInfo*> m_sliceTileInfoList;                //!< List of slice tile info
 
 MEDIA_CLASS_DEFINE_END(decode__HevcTileCoding)

@@ -289,7 +289,6 @@ protected:
 protected:
     HevcBasicFeature   *m_basicFeature = nullptr; //!< Point to hevc basic feature
 
-    bool                m_shortFormatInUse = false; //!< Indicate it is Short Format
     HevcDecodeMode      m_decodeMode = baseDecodeMode;
 
     BatchBufferArray   *m_secondLevelBBArray = nullptr; //!< Point to second level batch buffer
