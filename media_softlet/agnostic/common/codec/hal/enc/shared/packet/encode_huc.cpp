@@ -46,8 +46,9 @@ namespace encode
 
         HUC_CHK_NULL_RETURN(m_hwInterface);
         m_skuFtrEnableMediaKernels = MEDIA_IS_SKU(m_hwInterface->GetSkuTable(), FtrEnableMediaKernels);
-        HUC_CHK_NULL_RETURN(m_hucInterface);
-        m_hucStatus2ImemLoadedMask = m_hucInterface->GetHucStatus2ImemLoadedMask();
+        m_hucItf = m_hwInterface->GetHucInterfaceNext();
+        HUC_CHK_NULL_RETURN(m_hucItf);
+        m_hucStatus2ImemLoadedMask = m_hucItf->GetHucStatus2ImemLoadedMask();
 
         return MOS_STATUS_SUCCESS;
     }
@@ -120,9 +121,8 @@ namespace encode
     {
         HUC_CHK_NULL_RETURN(cmdBuffer);
         HUC_CHK_NULL_RETURN(m_statusReport);
-        HUC_CHK_NULL_RETURN(m_hucInterface);
 
-        auto mmioRegisters = m_hucInterface->GetMmioRegisters(m_vdboxIndex);
+        auto mmioRegisters = m_hucItf->GetMmioRegisters(m_vdboxIndex);
         HUC_CHK_NULL_RETURN(mmioRegisters);
 
         PMOS_RESOURCE osResource = nullptr;
@@ -144,7 +144,7 @@ namespace encode
             storeDataParams                  = {};
             storeDataParams.pOsResource      = &m_resHucStatus2Buffer;
             storeDataParams.dwResourceOffset = 0;
-            storeDataParams.dwValue          = m_hucInterface->GetHucStatus2ImemLoadedMask();
+            storeDataParams.dwValue          = m_hucItf->GetHucStatus2ImemLoadedMask();
             HUC_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(cmdBuffer));
 
             // Store HUC_STATUS2 register
@@ -462,9 +462,8 @@ namespace encode
         HUC_CHK_NULL_RETURN(cmdBuffer);
         HUC_CHK_NULL_RETURN(m_statusReport);
         HUC_CHK_NULL_RETURN(m_miInterface);
-        HUC_CHK_NULL_RETURN(m_hucInterface);
 
-        auto mmioRegisters = m_hucInterface->GetMmioRegisters(m_vdboxIndex);
+        auto mmioRegisters = m_hucItf->GetMmioRegisters(m_vdboxIndex);
         HUC_CHK_NULL_RETURN(mmioRegisters);
 
         PMOS_RESOURCE osResource = nullptr;
