@@ -210,6 +210,16 @@ MOS_STATUS VpPipeline::Init(void *mhwInterface)
 
     m_vpMhwInterface = *(PVP_MHWINTERFACE)mhwInterface;
 
+    if (m_vpMhwInterface.m_userFeatureControl)
+    {
+        m_userFeatureControl = m_vpMhwInterface.m_userFeatureControl;
+    }
+    else
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(CreateUserFeatureControl());
+        m_vpMhwInterface.m_userFeatureControl = m_userFeatureControl;
+    }
+
     VP_PUBLIC_CHK_STATUS_RETURN(m_vpMhwInterface.m_vpPlatformInterface->ConfigVirtualEngine());
 
     VP_PUBLIC_CHK_STATUS_RETURN(m_vpMhwInterface.m_vpPlatformInterface->ConfigureVpScalability(m_vpMhwInterface));
@@ -256,16 +266,6 @@ MOS_STATUS VpPipeline::Init(void *mhwInterface)
     VP_PUBLIC_CHK_STATUS_RETURN(SetVideoProcessingSettings(m_vpMhwInterface.m_settings));
 
     m_vpMhwInterface.m_settings = m_vpSettings;
-
-    if (m_vpMhwInterface.m_userFeatureControl)
-    {
-        m_userFeatureControl = m_vpMhwInterface.m_userFeatureControl;
-    }
-    else
-    {
-        VP_PUBLIC_CHK_STATUS_RETURN(CreateUserFeatureControl());
-        m_vpMhwInterface.m_userFeatureControl = m_userFeatureControl;
-    }
 
     if (m_vpMhwInterface.m_vpPlatformInterface->IsGpuContextCreatedInPipelineInit())
     {
@@ -407,22 +407,7 @@ MOS_STATUS VpPipeline::UpdateExecuteStatus()
 
         // Decompre output surface for debug
         bool uiForceDecompressedOutput = false;
-        bool forceDecompressedOutput   = false;
-
-        MOS_STATUS eStatus1 = ReadUserSettingForDebug(
-            m_userSettingPtr,
-            forceDecompressedOutput,
-            __VPHAL_RNDR_FORCE_VP_DECOMPRESSED_OUTPUT,
-            MediaUserSetting::Group::Sequence);
-
-        if (eStatus1 == MOS_STATUS_SUCCESS)
-        {
-            uiForceDecompressedOutput = forceDecompressedOutput;
-        }
-        else
-        {
-            uiForceDecompressedOutput = false;
-        }
+        uiForceDecompressedOutput = m_userFeatureControl->IsForceDecompressedOutput();
 
         if (uiForceDecompressedOutput)
         {
@@ -661,18 +646,12 @@ MOS_STATUS VpPipeline::InitUserFeatureSetting()
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     //SFC NV12/P010 Linear Output.
-    ReadUserSettingForDebug(
-        m_userSettingPtr,
-        m_userFeatureSetting.enableSFCNv12P010LinearOutput,
-        __VPHAL_ENABLE_SFC_NV12_P010_LINEAR_OUTPUT,
-        MediaUserSetting::Group::Sequence);
+    uint32_t enableSFCNv12P010LinearOutput             = m_userFeatureControl->IsEnableSFCNv12P010LinearOutput();
+    m_userFeatureSetting.enableSFCNv12P010LinearOutput = enableSFCNv12P010LinearOutput;
 
     //SFC RGBP Linear/Tile RGB24 Linear Output.
-    ReadUserSettingForDebug(
-        m_userSettingPtr,
-        m_userFeatureSetting.enableSFCRGBPRGB24Output,
-        __VPHAL_ENABLE_SFC_RGBP_RGB24_OUTPUT,
-        MediaUserSetting::Group::Sequence);
+    uint32_t enableSFCRGBPRGB24Output             = m_userFeatureControl->IsEnableSFCRGBPRGB24Output();
+    m_userFeatureSetting.enableSFCRGBPRGB24Output = enableSFCRGBPRGB24Output;
 #endif
     return eStatus;
 }

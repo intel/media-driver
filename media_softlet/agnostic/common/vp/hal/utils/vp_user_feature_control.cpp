@@ -113,6 +113,24 @@ VpUserFeatureControl::VpUserFeatureControl(MOS_INTERFACE &osInterface, VpPlatfor
     }
     VP_PUBLIC_NORMALMESSAGE("disableAutoDn %d", m_ctrlValDefault.disableAutoDn);
 
+    // __MEDIA_USER_FEATURE_VALUE_CSC_COEFF_PATCH_MODE_DISABLE
+    bool cscCoeffPatchModeDisabled = false;
+    status = ReadUserSetting(
+        m_userSettingPtr,
+        cscCoeffPatchModeDisabled,
+        __MEDIA_USER_FEATURE_VALUE_CSC_COEFF_PATCH_MODE_DISABLE,
+        MediaUserSetting::Group::Sequence);
+    if (MOS_SUCCEEDED(status))
+    {
+        m_ctrlValDefault.cscCosffPatchModeDisabled = cscCoeffPatchModeDisabled;
+    }
+    else
+    {
+        // Default value
+        m_ctrlValDefault.cscCosffPatchModeDisabled = false;
+    }
+    VP_PUBLIC_NORMALMESSAGE("cscCosffPatchModeDisabled %d", m_ctrlValDefault.cscCosffPatchModeDisabled);
+
     // bComputeContextEnabled is true only if Gen12+. 
     // Gen12+, compute context(MOS_GPU_NODE_COMPUTE, MOS_GPU_CONTEXT_COMPUTE) can be used for render engine.
     // Before Gen12, we only use MOS_GPU_NODE_3D and MOS_GPU_CONTEXT_RENDER.
@@ -143,6 +161,9 @@ VpUserFeatureControl::VpUserFeatureControl(MOS_INTERFACE &osInterface, VpPlatfor
     }
     VP_PUBLIC_NORMALMESSAGE("computeContextEnabled %d", m_ctrlValDefault.computeContextEnabled);
 
+    // Read userSettingForDebug
+    CreateUserSettingForDebug();
+
     if (m_vpPlatformInterface)
     {
         m_ctrlValDefault.eufusionBypassWaEnabled = m_vpPlatformInterface->IsEufusionBypassWaEnabled();
@@ -162,6 +183,82 @@ VpUserFeatureControl::VpUserFeatureControl(MOS_INTERFACE &osInterface, VpPlatfor
 
 VpUserFeatureControl::~VpUserFeatureControl()
 {
+}
+
+MOS_STATUS VpUserFeatureControl::CreateUserSettingForDebug()
+{
+    MOS_STATUS eRegKeyReadStatus = MOS_STATUS_SUCCESS;
+#if ((_DEBUG || _RELEASE_INTERNAL) && !EMUL)
+    bool forceDecompressedOutput = false;
+    eRegKeyReadStatus = ReadUserSettingForDebug(
+        m_userSettingPtr,
+        forceDecompressedOutput,
+        __VPHAL_RNDR_FORCE_VP_DECOMPRESSED_OUTPUT,
+        MediaUserSetting::Group::Sequence);
+    if (MOS_SUCCEEDED(eRegKeyReadStatus))
+    {
+        m_ctrlValDefault.forceDecompressedOutput = forceDecompressedOutput;
+    }
+    else
+    {
+        // Default value
+        m_ctrlValDefault.forceDecompressedOutput = false;
+    }
+#endif
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    //SFC NV12/P010 Linear Output.
+    uint32_t enableSFCNv12P010LinearOutput = 0;
+    eRegKeyReadStatus = ReadUserSettingForDebug(
+        m_userSettingPtr,
+        enableSFCNv12P010LinearOutput,
+        __VPHAL_ENABLE_SFC_NV12_P010_LINEAR_OUTPUT,
+        MediaUserSetting::Group::Sequence);
+    if (MOS_SUCCEEDED(eRegKeyReadStatus))
+    {
+        m_ctrlValDefault.enableSFCNv12P010LinearOutput = enableSFCNv12P010LinearOutput;
+    }
+    else
+    {
+        // Default value
+        m_ctrlValDefault.enableSFCNv12P010LinearOutput = 0;
+    }
+
+    //SFC RGBP Linear/Tile RGB24 Linear Output.
+    uint32_t enableSFCRGBPRGB24Output = 0;
+    eRegKeyReadStatus =ReadUserSettingForDebug(
+        m_userSettingPtr,
+        enableSFCRGBPRGB24Output,
+        __VPHAL_ENABLE_SFC_RGBP_RGB24_OUTPUT,
+        MediaUserSetting::Group::Sequence);
+    if (MOS_SUCCEEDED(eRegKeyReadStatus))
+    {
+        m_ctrlValDefault.enableSFCRGBPRGB24Output = enableSFCRGBPRGB24Output;
+    }
+    else
+    {
+        // Default value
+        m_ctrlValDefault.enableSFCRGBPRGB24Output = 0;
+    }
+
+    // Init CP Output Surface
+    bool surfaceInitEnabled = false;
+    eRegKeyReadStatus = ReadUserSettingForDebug(
+        m_userSettingPtr,
+        surfaceInitEnabled,
+        __MEDIA_USER_FEATURE_VALUE_INIT_CP_OUTPUT_SURFACE,
+        MediaUserSetting::Group::Sequence);
+    if (MOS_SUCCEEDED(eRegKeyReadStatus))
+    {
+        m_ctrlValDefault.cpOutputSurfaceInitEnabled = surfaceInitEnabled;
+    }
+    else
+    {
+        // Default value
+        m_ctrlValDefault.cpOutputSurfaceInitEnabled = false;
+    }
+#endif
+    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS VpUserFeatureControl::Update(PVP_PIPELINE_PARAMS params)

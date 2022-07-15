@@ -218,6 +218,10 @@ VPFeatureManager::VPFeatureManager(
     {
         m_userSettingPtr = m_hwInterface->m_osInterface->pfnGetUserSettingInstance(m_hwInterface->m_osInterface);
     }
+    if (m_hwInterface)
+    {
+        m_vpUserFeatureControl = m_hwInterface->m_userFeatureControl;
+    }
 }
 
 MOS_STATUS VPFeatureManager::CheckFeatures(void * params, bool &bApgFuncSupported)
@@ -407,10 +411,7 @@ bool VPFeatureManager::IsVeboxOutFeasible(
     VP_FUNC_CALL();
 
     bool    bRet = false;
-
-    // Vebox Comp Bypass is on by default
-    uint32_t dwCompBypassMode = VP_COMP_BYPASS_DISABLED;
-    uint32_t customValue    = VP_COMP_BYPASS_ENABLED;
+    bool disableVeboxOutput = false;
 
     VP_PUBLIC_CHK_NULL_NO_STATUS(params);
     VP_PUBLIC_CHK_NULL_NO_STATUS(params->pSrc[0]);
@@ -418,15 +419,10 @@ bool VPFeatureManager::IsVeboxOutFeasible(
 
     // Read user feature key to get the Composition Bypass mode
     // Vebox Comp Bypass is on by default
-    ReadUserSetting(
-        m_userSettingPtr,
-        dwCompBypassMode,
-        __VPHAL_BYPASS_COMPOSITION,
-        MediaUserSetting::Group::Sequence,
-        customValue,
-        true);
+    VP_PUBLIC_CHK_NULL_NO_STATUS(m_vpUserFeatureControl);
+    disableVeboxOutput  = m_vpUserFeatureControl->IsVeboxOutputDisabled();
 
-    if (dwCompBypassMode != VP_COMP_BYPASS_DISABLED                            &&
+    if (!disableVeboxOutput                                                    &&
         params->uDstCount ==1                                                  &&
         SAME_SIZE_RECT(params->pSrc[0]->rcSrc, params->pSrc[0]->rcDst)         &&
         RECT1_CONTAINS_RECT2(params->pSrc[0]->rcMaxSrc, params->pSrc[0]->rcSrc) &&
@@ -578,12 +574,8 @@ bool VPFeatureManager::IsSfcOutputFeasible(PVP_PIPELINE_PARAMS params)
     if (MEDIA_IS_SKU(m_hwInterface->m_skuTable, FtrSFCPipe))
     {
         // Read user feature key to Disable SFC
-        ReadUserSetting(
-            m_userSettingPtr,
-            disableSFC,
-            __VPHAL_VEBOX_DISABLE_SFC,
-            MediaUserSetting::Group::Sequence);
-
+        VP_PUBLIC_CHK_NULL_NO_STATUS(m_vpUserFeatureControl);
+        disableSFC = m_vpUserFeatureControl->IsSfcDisabled();
         if (disableSFC)
         {
             VPHAL_RENDER_NORMALMESSAGE("SFC is disabled.");

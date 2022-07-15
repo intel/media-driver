@@ -79,8 +79,6 @@ const int32_t VpRenderFcKernel::s_bindingTableIndexField[] =
 VpRenderFcKernel::VpRenderFcKernel(PVP_MHWINTERFACE hwInterface, PVpAllocator allocator) :
     VpRenderKernelObj(hwInterface, allocator)
 {
-    bool cscCoeffPatchModeEnabled = false;
-
     m_kernelBinaryID = IDR_VP_EOT;
     m_kernelId       = kernelCombinedFc;
 
@@ -121,13 +119,11 @@ VpRenderFcKernel::VpRenderFcKernel(PVP_MHWINTERFACE hwInterface, PVpAllocator al
         {
             m_userSettingPtr = m_hwInterface->m_osInterface->pfnGetUserSettingInstance(m_hwInterface->m_osInterface);
         }
-
-        ReadUserSetting(
-            m_userSettingPtr,
-            cscCoeffPatchModeEnabled,
-            __MEDIA_USER_FEATURE_VALUE_CSC_COEFF_PATCH_MODE_DISABLE,
-            MediaUserSetting::Group::Sequence);
-        m_cscCoeffPatchModeEnabled = cscCoeffPatchModeEnabled ? false : true;
+        auto userFeatureControl = m_hwInterface->m_userFeatureControl;
+        if (userFeatureControl != nullptr)
+        {
+            m_cscCoeffPatchModeEnabled = !userFeatureControl->IsCscCosffPatchModeDisabled();
+        }
 
         m_computeWalkerEnabled = true;
     }
