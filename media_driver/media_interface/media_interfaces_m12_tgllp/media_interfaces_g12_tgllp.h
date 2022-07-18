@@ -49,7 +49,7 @@
 #include "mhw_vdbox_hcp_g12_X.h"
 #include "mhw_vdbox_huc_g12_X.h"
 #include "mhw_vdbox_vdenc_g12_X.h"
-#include "mhw_blt.h"
+#include "mhw_blt_legacy.h"
 #include "mhw_vdbox_avp_g12_X.h"
 
 #ifdef IGFX_VDENC_INTERFACE_EXT_SUPPORT

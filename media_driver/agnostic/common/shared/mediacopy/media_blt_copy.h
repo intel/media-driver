@@ -33,7 +33,7 @@
 #include "mos_resource_defs.h"
 #include "mos_util_debug.h"
 #include "media_interfaces_mhw.h"
-#include "mhw_blt.h"
+#include "mhw_blt_legacy.h"
 #include "mos_os.h"
 #include "media_class_trace.h"
 #include "media_copy_common.h"

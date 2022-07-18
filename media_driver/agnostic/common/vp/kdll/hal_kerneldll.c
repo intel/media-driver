@@ -1074,7 +1074,6 @@ KernelDll_AllocateAdditionalCacheEntries(Kdll_KernelCache *pCache)
     return (Kdll_CacheEntry *)(pNewEntry - DL_NEW_COMBINED_KERNELS);
 }
 
-
 //--------------------------------------------------------------
 // KernelDll_AllocateCacheEntry - Allocate cache entry for a given size
 //--------------------------------------------------------------

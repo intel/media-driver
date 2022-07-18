@@ -26,19 +26,7 @@
 #ifndef __MHW_BLT_XE_HP_BASE__H__
 #define __MHW_BLT_XE_HP_BASE__H__
 
-#include "mhw_blt.h"
-
-//!
-//! \brief  Control surface copy blt parameters
-//!
-typedef struct _MHW_CTRL_SURF_COPY_BLT_PARAM
-{
-    uint32_t        dwSrcMemoryType;
-    uint32_t        dwDstMemoryType;
-    uint32_t        dwSizeofControlSurface;
-    PMOS_RESOURCE   pSrcOsResource;
-    PMOS_RESOURCE   pDstOsResource;
-}MHW_CTRL_SURF_COPY_BLT_PARAM, *PMHW_CTRL_SURF_COPY_BLT_PARAM;
+#include "mhw_blt_legacy.h"
 
 class mhw_blt_state_xe_hp_base: public mhw_blt_state
 {

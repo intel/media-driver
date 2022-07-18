@@ -30,8 +30,7 @@
 
 #include "mhw_vebox_itf.h"
 #include "mhw_impl.h"
-#include "hal_oca_interface.h"
-#include "mhw_mi_g12_X.h"
+#include "hal_oca_interface_next.h"
 #include "mos_solo_generic.h"
 
 #ifdef IGFX_VEBOX_INTERFACE_EXT_SUPPORT
@@ -688,19 +687,19 @@ public:
         if (isCmBuffer)
         {
             char ocaLog[] = "Vebox indirect state use CmBuffer";
-            HalOcaInterface::TraceMessage(cmdBuffer, mosContext, ocaLog, sizeof(ocaLog));
+            HalOcaInterfaceNext::TraceMessage(cmdBuffer, mosContext, ocaLog, sizeof(ocaLog));
         }
         else
         {
             if (useVeboxHeapKernelResource)
             {
                 char ocaLog[] = "Vebox indirect state use KernelResource";
-                HalOcaInterface::TraceMessage(cmdBuffer, mosContext, ocaLog, sizeof(ocaLog));
+                HalOcaInterfaceNext::TraceMessage(cmdBuffer, mosContext, ocaLog, sizeof(ocaLog));
             }
             else
             {
                 char ocaLog[] = "Vebox indirect state use DriverResource";
-                HalOcaInterface::TraceMessage(cmdBuffer, mosContext, ocaLog, sizeof(ocaLog));
+                HalOcaInterfaceNext::TraceMessage(cmdBuffer, mosContext, ocaLog, sizeof(ocaLog));
             }
         }
         return MOS_STATUS_SUCCESS;

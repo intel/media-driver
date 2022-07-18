@@ -33,9 +33,4 @@ MOS_STATUS Mhw_SendGenericPrologCmd(
     PMHW_GENERIC_PROLOG_PARAMS  pParams,
     MHW_MI_MMIOREGISTERS       *pMmioReg = nullptr);
 
-MOS_STATUS Mhw_SendGenericPrologCmd_Next(
-    PMOS_COMMAND_BUFFER         pCmdBuffer,
-    PMHW_GENERIC_PROLOG_PARAMS  pParams,
-    MHW_MI_MMIOREGISTERS        *pMmioReg = nullptr);
-
 #endif // __MHW_UTILITIES_H__

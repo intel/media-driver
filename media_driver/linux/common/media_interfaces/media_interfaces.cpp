@@ -46,7 +46,7 @@
 #include "mhw_vdbox_hcp_interface.h"
 #include "mhw_vdbox_huc_interface.h"
 #include "mhw_vdbox_vdenc_interface.h"
-#include "mhw_blt.h"
+#include "mhw_blt_legacy.h"
 #include "vp_pipeline.h"
 #include "vp_platform_interface.h"
 

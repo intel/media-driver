@@ -38,6 +38,7 @@ set(TMP_SOURCES_
     ${TMP_SOURCES_}
     ${CMAKE_CURRENT_LIST_DIR}/media_debug_config_manager.cpp
     ${CMAKE_CURRENT_LIST_DIR}/media_debug_interface.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/media_render_common.cpp
     ${CMAKE_CURRENT_LIST_DIR}/memory_policy_manager.cpp
 )
 
@@ -50,6 +51,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/media_debug_config_manager.h
     ${CMAKE_CURRENT_LIST_DIR}/media_debug_interface.h
     ${CMAKE_CURRENT_LIST_DIR}/media_debug_utils.h
+    ${CMAKE_CURRENT_LIST_DIR}/media_render_common.h
     ${CMAKE_CURRENT_LIST_DIR}/memory_policy_manager.h
     ${CMAKE_CURRENT_LIST_DIR}/mediamemdecomp.h
 )

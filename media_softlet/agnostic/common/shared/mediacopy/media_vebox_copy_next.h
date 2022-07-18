@@ -143,11 +143,12 @@ protected:
 protected:
     PMOS_INTERFACE      m_osInterface   = nullptr;
     MhwInterfacesNext  *m_mhwInterfaces = nullptr;
-    MhwMiInterface     *m_miInterface   = nullptr;
-    MhwVeboxInterface  *m_veboxInterface = nullptr;
     MhwCpInterface     *m_cpInterface    = nullptr;
     MhwInterfacesNext::CreateParams params;
+    
+    std::shared_ptr<mhw::mi::Itf>    m_miItf    = nullptr;
     std::shared_ptr<mhw::vebox::Itf> m_veboxItf = nullptr;
+
     MEDIA_CLASS_DEFINE_END(VeboxCopyStateNext)
 };
 

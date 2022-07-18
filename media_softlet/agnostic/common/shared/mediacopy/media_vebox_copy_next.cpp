@@ -36,8 +36,6 @@
 VeboxCopyStateNext::VeboxCopyStateNext(PMOS_INTERFACE osInterface) :
     m_osInterface(osInterface),
     m_mhwInterfaces(nullptr),
-    m_miInterface(nullptr),
-    m_veboxInterface(nullptr),
     m_cpInterface(nullptr)
 {
     MOS_ZeroMemory(&params, sizeof(params));
@@ -45,42 +43,33 @@ VeboxCopyStateNext::VeboxCopyStateNext(PMOS_INTERFACE osInterface) :
     m_mhwInterfaces = MhwInterfacesNext::CreateFactory(params, osInterface);
     if (m_mhwInterfaces != nullptr)
     {
-        m_veboxInterface = m_mhwInterfaces->m_veboxInterface;
-        m_miInterface = m_mhwInterfaces->m_miInterface;
+        m_miItf    = m_mhwInterfaces->m_miItf;
+        m_veboxItf = m_mhwInterfaces->m_veboxItf;
     }
 }
 
 VeboxCopyStateNext::VeboxCopyStateNext(PMOS_INTERFACE osInterface, MhwInterfacesNext* mhwInterfaces) :
     m_osInterface(osInterface),
     m_mhwInterfaces(nullptr),
-    m_miInterface(nullptr),
-    m_veboxInterface(nullptr),
     m_cpInterface(nullptr)
-{
-    m_veboxInterface = mhwInterfaces->m_veboxInterface;
-    m_miInterface = mhwInterfaces->m_miInterface;
+{   
     m_cpInterface = mhwInterfaces->m_cpInterface;
-
-    if (m_veboxInterface)
-    {
-        m_veboxItf = std::static_pointer_cast<mhw::vebox::Itf>(m_veboxInterface->GetNewVeboxInterface());
-    }
+    m_miItf       = mhwInterfaces->m_miItf;
+    m_veboxItf    = mhwInterfaces->m_veboxItf;
 }
 
 VeboxCopyStateNext::~VeboxCopyStateNext()
 {
-    if (m_veboxInterface)
+    if (m_veboxItf != nullptr)
     {
-        if (m_veboxItf)
-        {
-            m_veboxItf->DestroyHeap();
-        }
-        else
-        {
-            m_veboxInterface->DestroyHeap();
-            m_veboxInterface = nullptr;
-        }
+        m_veboxItf->DestroyHeap();
     }
+
+    if(m_mhwInterfaces != nullptr)
+    {
+        m_mhwInterfaces->Destroy();
+        MOS_Delete(m_mhwInterfaces);
+    }  
 }
 
 MOS_STATUS VeboxCopyStateNext::Initialize()
@@ -89,61 +78,31 @@ MOS_STATUS VeboxCopyStateNext::Initialize()
     MOS_GPU_NODE                VeboxGpuNode;
     MOS_GPU_CONTEXT             VeboxGpuContext;
 
-    if (m_veboxInterface)
+    VEBOX_COPY_CHK_NULL_RETURN(m_veboxItf);
+    
+    GpuNodeLimit.bCpEnabled = (m_osInterface->osCpInterface->IsCpEnabled())? true : false;
+    VEBOX_COPY_CHK_STATUS_RETURN(m_veboxItf->FindVeboxGpuNodeToUse(&GpuNodeLimit));
+    VeboxGpuNode = (MOS_GPU_NODE)(GpuNodeLimit.dwGpuNodeToUse);
+    VeboxGpuContext = (VeboxGpuNode == MOS_GPU_NODE_VE) ? MOS_GPU_CONTEXT_VEBOX : MOS_GPU_CONTEXT_VEBOX2;
+    // Create VEBOX/VEBOX2 Context
+    VEBOX_COPY_CHK_STATUS_RETURN(m_veboxItf->CreateGpuContext(
+            m_osInterface,
+            VeboxGpuContext,
+            VeboxGpuNode));
+
+    // Register Vebox GPU context with the Batch Buffer completion event
+    VEBOX_COPY_CHK_STATUS_RETURN(m_osInterface->pfnRegisterBBCompleteNotifyEvent(
+            m_osInterface,
+            MOS_GPU_CONTEXT_VEBOX));
+
+    const MHW_VEBOX_HEAP* veboxHeap = nullptr;
+    m_veboxItf->GetVeboxHeapInfo(&veboxHeap);
+
+    if (veboxHeap == nullptr)
     {
-        GpuNodeLimit.bCpEnabled = (m_osInterface->osCpInterface->IsCpEnabled())? true : false;
-
-        if (m_veboxItf)
-        {
-            VEBOX_COPY_CHK_STATUS_RETURN(m_veboxItf->FindVeboxGpuNodeToUse(&GpuNodeLimit));
-
-            VeboxGpuNode = (MOS_GPU_NODE)(GpuNodeLimit.dwGpuNodeToUse);
-            VeboxGpuContext = (VeboxGpuNode == MOS_GPU_NODE_VE) ? MOS_GPU_CONTEXT_VEBOX : MOS_GPU_CONTEXT_VEBOX2;
-
-            // Create VEBOX/VEBOX2 Context
-            VEBOX_COPY_CHK_STATUS_RETURN(m_veboxItf->CreateGpuContext(
-                m_osInterface,
-                VeboxGpuContext,
-                VeboxGpuNode));
-
-            // Register Vebox GPU context with the Batch Buffer completion event
-            VEBOX_COPY_CHK_STATUS_RETURN(m_osInterface->pfnRegisterBBCompleteNotifyEvent(
-                m_osInterface,
-                MOS_GPU_CONTEXT_VEBOX));
-
-            const MHW_VEBOX_HEAP* veboxHeap = nullptr;
-            m_veboxItf->GetVeboxHeapInfo(&veboxHeap);
-
-            if (veboxHeap == nullptr)
-            {
-                m_veboxItf->CreateHeap();
-            }
-        }
-        else
-        {
-            // Check GPU Node decide logic together in this function
-            VEBOX_COPY_CHK_STATUS_RETURN(m_veboxInterface->FindVeboxGpuNodeToUse(&GpuNodeLimit));
-
-            VeboxGpuNode = (MOS_GPU_NODE)(GpuNodeLimit.dwGpuNodeToUse);
-            VeboxGpuContext = (VeboxGpuNode == MOS_GPU_NODE_VE) ? MOS_GPU_CONTEXT_VEBOX : MOS_GPU_CONTEXT_VEBOX2;
-
-            // Create VEBOX/VEBOX2 Context
-            VEBOX_COPY_CHK_STATUS_RETURN(m_veboxInterface->CreateGpuContext(
-                m_osInterface,
-                VeboxGpuContext,
-                VeboxGpuNode));
-
-            // Register Vebox GPU context with the Batch Buffer completion event
-            VEBOX_COPY_CHK_STATUS_RETURN(m_osInterface->pfnRegisterBBCompleteNotifyEvent(
-                m_osInterface,
-                MOS_GPU_CONTEXT_VEBOX));
-
-            if (m_veboxInterface->m_veboxHeap == nullptr)
-            {
-                m_veboxInterface->CreateHeap();
-            }
-        }
+        m_veboxItf->CreateHeap();
     }
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -159,15 +118,15 @@ MOS_STATUS VeboxCopyStateNext::CopyMainSurface(PMOS_RESOURCE src, PMOS_RESOURCE 
     MOS_STATUS                          eStatus = MOS_STATUS_SUCCESS;
     MHW_VEBOX_STATE_CMD_PARAMS          veboxStateCmdParams;
     MOS_COMMAND_BUFFER                  cmdBuffer;
-    MhwVeboxInterface                   *veboxInterface;
     MHW_VEBOX_SURFACE_STATE_CMD_PARAMS  mhwVeboxSurfaceStateCmdParams;
-    MHW_MI_FLUSH_DW_PARAMS              flushDwParams;
     uint32_t                            streamID = 0;
     const MHW_VEBOX_HEAP                *veboxHeap = nullptr;
     MOS_SURFACE inputSurface, outputSurface;
 
     VEBOX_COPY_CHK_NULL_RETURN(src);
     VEBOX_COPY_CHK_NULL_RETURN(dst);
+    VEBOX_COPY_CHK_NULL_RETURN(m_miItf);
+    VEBOX_COPY_CHK_NULL_RETURN(m_veboxItf);
 
     // Get input resource info
     MOS_ZeroMemory(&inputSurface, sizeof(MOS_SURFACE));
@@ -184,8 +143,6 @@ MOS_STATUS VeboxCopyStateNext::CopyMainSurface(PMOS_RESOURCE src, PMOS_RESOURCE 
         VEBOX_COPY_ASSERTMESSAGE("UnSupported Format.");
         return MOS_STATUS_UNIMPLEMENTED;
     }
-
-    veboxInterface = m_veboxInterface;
 
     MOS_GPUCTX_CREATOPTIONS      createOption;
 
@@ -210,7 +167,7 @@ MOS_STATUS VeboxCopyStateNext::CopyMainSurface(PMOS_RESOURCE src, PMOS_RESOURCE 
     // Reset allocation list and house keeping
     m_osInterface->pfnResetOsStates(m_osInterface);
 
-    VEBOX_COPY_CHK_STATUS_RETURN(veboxInterface->GetVeboxHeapInfo(&veboxHeap));
+    VEBOX_COPY_CHK_STATUS_RETURN(m_veboxItf->GetVeboxHeapInfo(&veboxHeap));
     VEBOX_COPY_CHK_NULL_RETURN(m_osInterface->osCpInterface);
 
     //there is a new usage that input surface is clear and output surface is secure.
@@ -235,33 +192,29 @@ MOS_STATUS VeboxCopyStateNext::CopyMainSurface(PMOS_RESOURCE src, PMOS_RESOURCE 
     //---------------------------------
     // Send CMD: Vebox_Surface_State
     //---------------------------------
-    VEBOX_COPY_CHK_STATUS_RETURN(veboxInterface->AddVeboxSurfaces(
+    VEBOX_COPY_CHK_STATUS_RETURN(m_veboxItf->AddVeboxSurfaces(
         &cmdBuffer,
         &mhwVeboxSurfaceStateCmdParams));
 
     //---------------------------------
     // Send CMD: Vebox_Tiling_Convert
     //---------------------------------
-    VEBOX_COPY_CHK_STATUS_RETURN(m_veboxInterface->AddVeboxTilingConvert(&cmdBuffer, &mhwVeboxSurfaceStateCmdParams.SurfInput, &mhwVeboxSurfaceStateCmdParams.SurfOutput));
+    VEBOX_COPY_CHK_STATUS_RETURN(m_veboxItf->AddVeboxTilingConvert(&cmdBuffer, &mhwVeboxSurfaceStateCmdParams.SurfInput, &mhwVeboxSurfaceStateCmdParams.SurfOutput));
 
-    MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
-
-    VEBOX_COPY_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(
-        &cmdBuffer,
-        &flushDwParams));
+    auto& flushDwParams = m_miItf->MHW_GETPAR_F(MI_FLUSH_DW)();
+    flushDwParams = {};
+    VEBOX_COPY_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(&cmdBuffer));
 
     if (!m_osInterface->bEnableKmdMediaFrameTracking && veboxHeap)
     {
-        MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
+        flushDwParams = {};
         flushDwParams.pOsResource = (PMOS_RESOURCE)&veboxHeap->DriverResource;
         flushDwParams.dwResourceOffset = veboxHeap->uiOffsetSync;
         flushDwParams.dwDataDW1 = veboxHeap->dwNextTag;
-        VEBOX_COPY_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(
-            &cmdBuffer,
-            &flushDwParams));
+        VEBOX_COPY_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(&cmdBuffer));
     }
 
-    VEBOX_COPY_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(
+    VEBOX_COPY_CHK_STATUS_RETURN(m_miItf->AddMiBatchBufferEnd(
         &cmdBuffer,
         nullptr));
 
@@ -277,7 +230,7 @@ MOS_STATUS VeboxCopyStateNext::CopyMainSurface(PMOS_RESOURCE src, PMOS_RESOURCE 
         &cmdBuffer,
         false));
 
-    veboxInterface->UpdateVeboxSync();
+    m_veboxItf->UpdateVeboxSync();
 
     return eStatus;
 }
@@ -524,7 +477,6 @@ MOS_STATUS VeboxCopyStateNext::InitCommandBuffer(PMOS_COMMAND_BUFFER cmdBuffer)
     //---------------------------------------------
     VEBOX_COPY_CHK_NULL_RETURN(cmdBuffer);
     VEBOX_COPY_CHK_NULL_RETURN(m_osInterface);
-    VEBOX_COPY_CHK_NULL_RETURN(m_miInterface);
     //---------------------------------------------
 
     eStatus = MOS_STATUS_SUCCESS;
@@ -569,12 +521,12 @@ MOS_STATUS VeboxCopyStateNext::InitCommandBuffer(PMOS_COMMAND_BUFFER cmdBuffer)
     MHW_GENERIC_PROLOG_PARAMS genericPrologParams;
     MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
     genericPrologParams.pOsInterface = m_osInterface;
-    genericPrologParams.pvMiInterface = m_miInterface;
     genericPrologParams.bMmcEnabled = true;
 
-    VEBOX_COPY_CHK_STATUS_RETURN(Mhw_SendGenericPrologCmd(
+    VEBOX_COPY_CHK_STATUS_RETURN(Mhw_SendGenericPrologCmdNext(
         cmdBuffer,
-        &genericPrologParams));
+        &genericPrologParams,
+        m_miItf));
 
     return eStatus;
 }

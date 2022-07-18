@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -37,8 +37,6 @@
 BltStateNext::BltStateNext(PMOS_INTERFACE    osInterface) :
     m_osInterface(osInterface),
     m_mhwInterfaces(nullptr),
-    m_miInterface(nullptr),
-    m_bltInterface(nullptr),
     m_cpInterface(nullptr)
 {
     MhwInterfacesNext::CreateParams params;
@@ -47,8 +45,8 @@ BltStateNext::BltStateNext(PMOS_INTERFACE    osInterface) :
     m_mhwInterfaces = MhwInterfacesNext::CreateFactory(params, osInterface);
     if (m_mhwInterfaces != nullptr)
     {
-        m_bltInterface = m_mhwInterfaces->m_bltInterface;
-        m_miInterface  = m_mhwInterfaces->m_miInterface;
+        m_miItf  = m_mhwInterfaces->m_miItf;
+        m_bltItf = m_mhwInterfaces->m_bltItf;
     }
 }
 
@@ -61,12 +59,10 @@ BltStateNext::BltStateNext(PMOS_INTERFACE    osInterface) :
 BltStateNext::BltStateNext(PMOS_INTERFACE    osInterface, MhwInterfacesNext* mhwInterfaces) :
     m_osInterface(osInterface),
     m_mhwInterfaces(nullptr),
-    m_miInterface(nullptr),
-    m_bltInterface(nullptr),
     m_cpInterface(nullptr)
 {
-    m_bltInterface = mhwInterfaces->m_bltInterface;
-    m_miInterface  = mhwInterfaces->m_miInterface;
+    m_miItf        = mhwInterfaces->m_miItf;
+    m_bltItf       = mhwInterfaces->m_bltItf;
     m_cpInterface  = mhwInterfaces->m_cpInterface;
 }
 
@@ -74,7 +70,7 @@ BltStateNext::BltStateNext(PMOS_INTERFACE    osInterface, MhwInterfacesNext* mhw
 BltStateNext::~BltStateNext()
 {
     // component interface will be relesed in media copy.
-    if (m_mhwInterfaces)
+    if (m_mhwInterfaces != nullptr)
     {
         m_mhwInterfaces->Destroy();
         MOS_Delete(m_mhwInterfaces);
@@ -97,8 +93,6 @@ MOS_STATUS BltStateNext::Initialize()
     BltGpuNode    = MOS_GPU_NODE_BLT;
 
     BLT_CHK_NULL_RETURN(m_osInterface);
-    BLT_CHK_NULL_RETURN(m_bltInterface);
-
     // Create BLT Context
     BLT_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(
         m_osInterface,
@@ -294,6 +288,9 @@ MOS_STATUS BltStateNext::SubmitCMD(
     MOS_GPUCTX_CREATOPTIONS      createOption;
     int                          planeNum = 1;
 
+    BLT_CHK_NULL_RETURN(m_miItf);
+    BLT_CHK_NULL_RETURN(m_bltItf);
+
     // no gpucontext will be created if the gpu context has been created before.
     BLT_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(
         m_osInterface,
@@ -308,9 +305,9 @@ MOS_STATUS BltStateNext::SubmitCMD(
     BLT_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
 
     // Add flush DW
-    MHW_MI_FLUSH_DW_PARAMS FlushDwParams;
-    MOS_ZeroMemory(&FlushDwParams, sizeof(FlushDwParams));
-    BLT_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(&cmdBuffer, &FlushDwParams));
+    auto& flushDwParams = m_miItf->MHW_GETPAR_F(MI_FLUSH_DW)();
+    flushDwParams = {};
+    BLT_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(&cmdBuffer));
 
     MOS_SURFACE       srcResDetails;
     MOS_SURFACE       dstResDetails;
@@ -335,26 +332,7 @@ MOS_STATUS BltStateNext::SubmitCMD(
             pBltStateNextParam->pDstSurface,
             0));
 
-        MHW_MI_LOAD_REGISTER_IMM_PARAMS RegisterDwParams;
-        MOS_ZeroMemory(&RegisterDwParams, sizeof(RegisterDwParams));
-        RegisterDwParams.dwRegister = mhw_blt_state::BCS_SWCTRL_CMD::REGISTER_OFFSET;
-
-        mhw_blt_state::BCS_SWCTRL_CMD swctrl;
-        if (pBltStateNextParam->pSrcSurface->TileType != MOS_TILE_LINEAR)
-        {
-           swctrl.DW0.TileYSource = 1;
-           swctrl.DW0.Mask |= BIT(0);
-        }
-        if (pBltStateNextParam->pDstSurface->TileType != MOS_TILE_LINEAR)
-        {//output tiled
-           swctrl.DW0.TileYDestination = 1;
-           swctrl.DW0.Mask |= BIT(1);
-        }
-
-        RegisterDwParams.dwData = swctrl.DW0.Value;
-        m_miInterface->AddMiLoadRegisterImmCmd(&cmdBuffer, &RegisterDwParams);
-
-        BLT_CHK_STATUS_RETURN(m_bltInterface->AddBlockCopyBlt(
+        BLT_CHK_STATUS_RETURN(m_bltItf->AddBlockCopyBlt(
             &cmdBuffer,
             &fastCopyBltParam,
             srcResDetails.YPlaneOffset.iSurfaceOffset,
@@ -367,7 +345,7 @@ MOS_STATUS BltStateNext::SubmitCMD(
              pBltStateNextParam->pSrcSurface,
              pBltStateNextParam->pDstSurface,
              1));
-            BLT_CHK_STATUS_RETURN(m_bltInterface->AddBlockCopyBlt(
+            BLT_CHK_STATUS_RETURN(m_bltItf->AddBlockCopyBlt(
                  &cmdBuffer,
                  &fastCopyBltParam,
                  srcResDetails.UPlaneOffset.iSurfaceOffset,
@@ -380,7 +358,7 @@ MOS_STATUS BltStateNext::SubmitCMD(
                       pBltStateNextParam->pSrcSurface,
                       pBltStateNextParam->pDstSurface,
                       2));
-                  BLT_CHK_STATUS_RETURN(m_bltInterface->AddBlockCopyBlt(
+                  BLT_CHK_STATUS_RETURN(m_bltItf->AddBlockCopyBlt(
                       &cmdBuffer,
                       &fastCopyBltParam,
                       srcResDetails.VPlaneOffset.iSurfaceOffset,
@@ -394,11 +372,10 @@ MOS_STATUS BltStateNext::SubmitCMD(
          }
     }
     // Add flush DW
-    BLT_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(&cmdBuffer, &FlushDwParams));
-
+    flushDwParams = {};
+    BLT_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(&cmdBuffer));
     // Add Batch Buffer end
-    BLT_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
-
+    BLT_CHK_STATUS_RETURN(m_miItf->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
     // Flush the command buffer
     BLT_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, false));
 
@@ -440,7 +417,6 @@ uint32_t BltStateNext::GetBlkCopyColorDepth(
          return mhw_blt_state::XY_BLOCK_COPY_BLT_CMD::COLOR_DEPTH_32BITCOLOR;
          break;
     }
-
  }
 
 uint32_t BltStateNext::GetFastCopyColorDepth(

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2021, Intel Corporation
+* Copyright (c) 2014-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -27,7 +27,6 @@
 #include <math.h>
 #include "mhw_utilities_next.h"
 #include "mhw_state_heap.h"
-#include "hal_oca_interface.h"
 #include "mos_interface.h"
 #include "hal_oca_interface_next.h"
 #include "media_skuwa_specific.h"
@@ -247,7 +246,7 @@ MOS_STATUS Mhw_AddResourceToCmd_GfxAddress(
         MOS_MFX_INDIRECT_OBJ_BASE_ADDR == pParams->HwCommandType   ||
         MOS_MI_BATCH_BUFFER_START      == pParams->HwCommandType)
     {
-        HalOcaInterface::DumpResourceInfo(*pCmdBuffer, *pOsInterface, *pParams->presResource, pParams->HwCommandType,
+        HalOcaInterfaceNext::DumpResourceInfo(*pCmdBuffer, *pOsInterface, *pParams->presResource, pParams->HwCommandType,
             pParams->dwLocationInCmd, pParams->dwOffset);
     }
 
@@ -389,7 +388,7 @@ MOS_STATUS Mhw_AddResourceToCmd_PatchList(
         MOS_MFX_INDIRECT_OBJ_BASE_ADDR == pParams->HwCommandType   ||
         MOS_MI_BATCH_BUFFER_START      == pParams->HwCommandType)
     {
-        HalOcaInterface::DumpResourceInfo(*pCmdBuffer, *pOsInterface, *pParams->presResource, pParams->HwCommandType,
+        HalOcaInterfaceNext::DumpResourceInfo(*pCmdBuffer, *pOsInterface, *pParams->presResource, pParams->HwCommandType,
             pParams->dwLocationInCmd, pParams->dwOffset);
     }
 
@@ -469,12 +468,13 @@ MOS_STATUS Mhw_SendGenericPrologCmdNext(
     MHW_MI_FLUSH_DW_PARAMS          FlushDwParams;
     bool                            bRcsEngineUsed = false;
     MOS_STATUS                      eStatus = MOS_STATUS_SUCCESS;
-
+    std::shared_ptr<mhw::mi::Itf>   miItf = std::static_pointer_cast<mhw::mi::Itf>(pMiItf);
     MHW_FUNCTION_ENTER;
 
     MHW_CHK_NULL_RETURN(pCmdBuffer);
     MHW_CHK_NULL_RETURN(pParams);
     MHW_CHK_NULL_RETURN(pParams->pOsInterface);
+    MHW_CHK_NULL_RETURN(miItf);
 
     pOsInterface = pParams->pOsInterface;
 
@@ -482,8 +482,7 @@ MOS_STATUS Mhw_SendGenericPrologCmdNext(
     MHW_CHK_NULL_RETURN(pSkuTable);
     pWaTable = pOsInterface->pfnGetWaTable(pOsInterface);
     MHW_CHK_NULL_RETURN(pWaTable);
-    std::shared_ptr<mhw::mi::Itf> miItf = std::static_pointer_cast<mhw::mi::Itf>(pMiItf);
-    MHW_CHK_NULL_RETURN(miItf);
+    
 
     GpuContext = pOsInterface->pfnGetGpuContext(pOsInterface);
 

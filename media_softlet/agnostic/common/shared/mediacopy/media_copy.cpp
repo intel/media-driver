@@ -28,7 +28,6 @@
 #include "media_copy.h"
 #include "media_copy_common.h"
 #include "vp_dumper.h"
-#include "media_interfaces_mhw.h"
 #include "mhw_cp_interface.h"
 #include "mos_utilities.h"
 

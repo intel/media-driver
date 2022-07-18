@@ -59,11 +59,11 @@ set(TMP_4_HEADERS_
 source_group("MHW" FILES ${TMP_4_SOURCES_} ${TMP_4_HEADERS_})
 
 set(TMP_5_SOURCES_
-    ${CMAKE_CURRENT_LIST_DIR}/mhw_blt.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_blt_legacy.cpp
 )
 
 set(TMP_5_HEADERS_
-    ${CMAKE_CURRENT_LIST_DIR}/mhw_blt.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_blt_legacy.h
 )
 
 set(COMMON_HEADERS_

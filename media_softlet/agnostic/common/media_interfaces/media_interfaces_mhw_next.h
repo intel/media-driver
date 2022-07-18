@@ -35,6 +35,7 @@
 #include "mhw_vdbox_vdenc_itf.h"
 #include "mhw_vdbox_huc_itf.h"
 #include "mhw_mi_itf.h"
+#include "mhw_blt_itf.h"
 #include "mhw_vdbox_hcp_itf.h"
 #include "mhw_vdbox_mfx_itf.h"
 #include "mhw_vebox_itf.h"
@@ -114,14 +115,15 @@ public:
     MhwBltInterface           *m_bltInterface       = nullptr;
 
     /* New mhw sub interfaces*/
-    std::shared_ptr<mhw::vdbox::avp::Itf>   m_avpItf   = nullptr;
-    std::shared_ptr<mhw::vdbox::vdenc::Itf> m_vdencItf = nullptr;
-    std::shared_ptr<mhw::vdbox::huc::Itf>   m_hucItf   = nullptr;
-    std::shared_ptr<mhw::mi::Itf>           m_miItf    = nullptr;
-    std::shared_ptr<mhw::vdbox::hcp::Itf>   m_hcpItf   = nullptr;
-    std::shared_ptr<mhw::vdbox::mfx::Itf>   m_mfxItf   = nullptr;
-    std::shared_ptr<mhw::vebox::Itf>        m_veboxItf = nullptr;
-    std::shared_ptr<mhw::sfc::Itf>          m_sfcItf   = nullptr;
+    std::shared_ptr<mhw::vdbox::avp::Itf>   m_avpItf    = nullptr;
+    std::shared_ptr<mhw::vdbox::vdenc::Itf> m_vdencItf  = nullptr;
+    std::shared_ptr<mhw::vdbox::huc::Itf>   m_hucItf    = nullptr;
+    std::shared_ptr<mhw::mi::Itf>           m_miItf     = nullptr;
+    std::shared_ptr<mhw::vdbox::hcp::Itf>   m_hcpItf    = nullptr;
+    std::shared_ptr<mhw::vdbox::mfx::Itf>   m_mfxItf    = nullptr;
+    std::shared_ptr<mhw::vebox::Itf>        m_veboxItf  = nullptr;
+    std::shared_ptr<mhw::sfc::Itf>          m_sfcItf    = nullptr;
+    std::shared_ptr<mhw::blt::Itf>          m_bltItf    = nullptr;
     std::shared_ptr<mhw::render::Itf>       m_renderItf = nullptr;
 
     //!

@@ -162,9 +162,11 @@ public:
     bool               m_blokCopyon       = false;
     PMOS_INTERFACE     m_osInterface      = nullptr;
     MhwInterfacesNext *m_mhwInterfaces    = nullptr;
-    MhwMiInterface    *m_miInterface      = nullptr;
-    PMHW_BLT_INTERFACE m_bltInterface     = nullptr;
     MhwCpInterface    *m_cpInterface      = nullptr;
+
+    std::shared_ptr<mhw::mi::Itf>   m_miItf  = nullptr;
+    std::shared_ptr<mhw::blt::Itf>  m_bltItf = nullptr;
+    
     MEDIA_CLASS_DEFINE_END(BltStateNext)
 };
 
