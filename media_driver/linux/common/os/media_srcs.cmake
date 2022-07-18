@@ -45,7 +45,7 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/mos_oca_specific.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_decompression.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_mediacopy.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/mos_utilities_usersetting.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/mos_utilities_specific_usersetting.cpp
 )
 
 set(TMP_HEADERS_

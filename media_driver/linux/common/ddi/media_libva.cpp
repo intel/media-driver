@@ -2256,6 +2256,7 @@ VAStatus DdiMedia_Terminate (
         mediaCtx->m_osDeviceContext = MOS_INVALID_HANDLE;
         MOS_FreeMemory(mediaCtx->pGtSystemInfo);
         MosOcaInterfaceSpecific::UninitInterface();
+        MediaUserSettingsMgr::MediaUserSettingClose();
         MosInterface::CloseOsUtilities(nullptr);
     }
     else if (mediaCtx->modularizedGpuCtxEnabled)
@@ -2294,6 +2295,7 @@ VAStatus DdiMedia_Terminate (
         gmmOutArgs.pGmmClientContext = mediaCtx->pGmmClientContext;
         GmmAdapterDestroy(&gmmOutArgs);
         mediaCtx->pGmmClientContext = nullptr;
+        MediaUserSettingsMgr::MediaUserSettingClose();
         MosUtilities::MosUtilitiesClose(nullptr);
     }
 

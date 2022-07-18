@@ -2670,7 +2670,6 @@ public:
     static MOS_USER_FEATURE_VALUE       m_mosUserFeatureDescFields[__MOS_USER_FEATURE_KEY_MAX_ID];
 private:
     static MosMutex                     m_mutexLock;
-    static char                         m_xmlFilePath[MOS_USER_CONTROL_MAX_DATA_SIZE];
     static uint32_t                     m_mosUtilInitCount; // number count of mos utilities init
 #if _MEDIA_RESERVED
     static MediaUserSettingsMgr*        m_codecUserFeatureExt;

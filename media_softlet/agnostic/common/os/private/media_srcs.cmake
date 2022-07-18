@@ -19,9 +19,7 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 set(TMP_SOURCES_
-    ${CMAKE_CURRENT_LIST_DIR}/mos_decompression.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/mos_mediacopy.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/mos_utilities_specific_usersetting.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/mos_utilities_usersetting.cpp
 )
 
 set(SOFTLET_MOS_PRIVATE_SOURCES_

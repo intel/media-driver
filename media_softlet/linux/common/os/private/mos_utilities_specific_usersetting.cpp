@@ -20,7 +20,7 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file        mos_utilities_usersetting.cpp
+//! \file        mos_utilities_specific_usersetting.cpp
 //! \brief       This module implements the MOS wrapper functions for Linux
 //!
 

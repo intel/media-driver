@@ -18,6 +18,8 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
+media_include_subdirectory(private)
+
 set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/mos_context_next.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_graphicsresource_next.cpp

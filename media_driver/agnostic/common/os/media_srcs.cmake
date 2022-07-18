@@ -30,6 +30,7 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/mos_commandbuffer.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_os_mock_adaptor.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_os_mock_adaptor_ext.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/mos_utilities_usersetting.cpp
 )
 
 set(TMP_HEADERS_
