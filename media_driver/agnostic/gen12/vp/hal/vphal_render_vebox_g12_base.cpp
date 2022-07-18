@@ -34,8 +34,6 @@
 #if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "igvpkrn_isa_g12_tgllp.h"
 #endif
-#include "vphal_render_hdr_3dlut_g12.h"
-
 const char g_KernelDNDI_Str_g12[KERNEL_VEBOX_BASE_MAX][MAX_PATH] =
 {
     DBG_TEXT("Reserved"),
@@ -1050,7 +1048,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::AllocateResources()
             {
 #if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
                 PRENDERHAL_INTERFACE pRenderHal = pVeboxState->m_pRenderHal;
-                m_hdr3DLutGenerator             = MOS_New(Hdr3DLutGeneratorG12, pRenderHal, m_hdr3DLutKernelBinary, m_hdr3DLutKernelBinarySize);
+                m_hdr3DLutGenerator             = MOS_New(Hdr3DLutGenerator, pRenderHal, m_hdr3DLutKernelBinary, m_hdr3DLutKernelBinarySize);
 #endif
             }
         }
