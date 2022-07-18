@@ -102,6 +102,7 @@ CodechalHwInterface::CodechalHwInterface(
     m_cpInterface = mhwInterfacesNext->m_cpInterface;
     m_mfxInterface = mhwInterfacesNext->m_mfxInterface;
     m_hcpInterface = mhwInterfacesNext->m_hcpInterface;
+    m_hucInterface = mhwInterfacesNext->m_hucInterface;
     m_vdencInterface = mhwInterfacesNext->m_vdencInterface;
     m_veboxInterface = mhwInterfacesNext->m_veboxInterface;
     m_sfcInterface = mhwInterfacesNext->m_sfcInterface;

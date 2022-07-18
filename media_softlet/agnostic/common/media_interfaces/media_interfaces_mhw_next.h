@@ -109,6 +109,7 @@ public:
     MhwVeboxInterface         *m_veboxInterface     = nullptr;
     MhwVdboxMfxInterface      *m_mfxInterface       = nullptr;
     MhwVdboxHcpInterface      *m_hcpInterface       = nullptr;
+    MhwVdboxHucInterface      *m_hucInterface       = nullptr;
     MhwVdboxVdencInterface    *m_vdencInterface     = nullptr;
     MhwBltInterface           *m_bltInterface       = nullptr;
 

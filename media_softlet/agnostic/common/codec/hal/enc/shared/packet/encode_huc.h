@@ -72,6 +72,7 @@ namespace encode
             m_hwInterface = hwInterface;
             m_hcpInterface = hwInterface->GetHcpInterface();
             m_mfxInterface = hwInterface->GetMfxInterface();
+            m_hucInterface = hwInterface->GetHucInterface();
             m_vdencInterface = hwInterface->GetVdencInterface();
             m_miInterface = hwInterface->GetMiInterface();
             m_osInterface = hwInterface->GetOsInterface();
@@ -203,6 +204,7 @@ namespace encode
         CodechalHwInterface    *m_hwInterface    = nullptr;
         MhwVdboxMfxInterface   *m_mfxInterface   = nullptr;
         MhwVdboxHcpInterface   *m_hcpInterface   = nullptr;
+        MhwVdboxHucInterface   *m_hucInterface   = nullptr;
         MhwVdboxVdencInterface *m_vdencInterface = nullptr;
         MOS_INTERFACE          *m_osInterface    = nullptr;
 
@@ -225,7 +227,6 @@ namespace encode
         uint32_t m_hucStatus2ImemLoadedMask = 0x40;
         bool m_enableHucStatusReport        = false;
 
-        std::shared_ptr<mhw::vdbox::huc::Itf> m_hucItf = nullptr;
     MEDIA_CLASS_DEFINE_END(encode__EncodeHucBasic)
     };
 
@@ -243,7 +244,7 @@ namespace encode
             ENCODE_CHK_NULL_NO_STATUS_RETURN(hwInterface);
             ENCODE_CHK_NULL_NO_STATUS_RETURN(m_pipeline);
 
-            m_hucItf   = std::static_pointer_cast<mhw::vdbox::huc::Itf>(hwInterface->GetHucInterfaceNext());
+            m_hucItf   = std::static_pointer_cast<mhw::vdbox::huc::Itf>(m_hucInterface->GetNewHucInterface());
             m_vdencItf = std::static_pointer_cast<mhw::vdbox::vdenc::Itf>(m_hwInterface->GetVdencInterfaceNext());
             m_avpItf   = std::static_pointer_cast<mhw::vdbox::avp::Itf>((hwInterface->GetAvpInterfaceNext()));
             m_mfxItf   = std::static_pointer_cast<mhw::vdbox::mfx::Itf>(hwInterface->GetMfxInterfaceNext());

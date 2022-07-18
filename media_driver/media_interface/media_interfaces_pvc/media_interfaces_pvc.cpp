@@ -220,6 +220,7 @@ MOS_STATUS MhwInterfacesPvc_Next::Initialize(
     }
     if (params.Flags.m_vdboxAll || params.Flags.m_huc)
     {
+        m_hucInterface = MOS_New(Huc, osInterface, m_miInterface, m_cpInterface);
         m_hucItf = std::make_shared<mhw::vdbox::huc::xe_xpm_plus::Impl>(osInterface, m_cpInterface);
     }
     if (params.Flags.m_vdboxAll || params.Flags.m_vdenc)

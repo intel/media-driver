@@ -498,6 +498,7 @@ MOS_STATUS MhwInterfacesDg2_Next::Initialize(
     }
     if (params.Flags.m_vdboxAll || params.Flags.m_huc)
     {
+        m_hucInterface = MOS_New(Huc, osInterface, m_miInterface, m_cpInterface);
         auto ptr = std::make_shared<mhw::vdbox::huc::xe_hpm::Impl>(osInterface, m_cpInterface);
         m_hucItf = std::static_pointer_cast<mhw::vdbox::huc::Itf>(ptr);
     }

@@ -101,6 +101,7 @@ void MhwInterfacesNext::Destroy()
     MOS_Delete(m_veboxInterface);
     MOS_Delete(m_mfxInterface);
     MOS_Delete(m_hcpInterface);
+    MOS_Delete(m_hucInterface);
     MOS_Delete(m_vdencInterface);
     MOS_Delete(m_bltInterface);
 }
