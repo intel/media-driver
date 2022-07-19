@@ -146,8 +146,8 @@ struct VDBOX_SFC_PARAMS
         RECT                        rcDst;              //!< rectangle on output surface after scaling.
     } output;
 
-    VIDEO_PARAMS                    videoParams;        //!< standard related params.
-    CODECHAL_SCALING_MODE           scalingMode;
+    VIDEO_PARAMS                    videoParams = {};        //!< standard related params.
+    CODECHAL_SCALING_MODE           scalingMode = CODECHAL_SCALING_BILINEAR;
 };
 
 union MEDIA_SFC_INTERFACE_MODE
