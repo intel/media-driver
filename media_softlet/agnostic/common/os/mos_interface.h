@@ -2073,6 +2073,11 @@ public:
     //!
     static bool IsMismatchOrderProgrammingSupported();
 
+    //!
+    //! \brief  Translate GMM_TILE_TYPE to MOS_TILE_TYPE
+    //!
+    static MOS_TILE_TYPE MapTileType(GMM_RESOURCE_FLAG flags, GMM_TILE_TYPE type);
+
 private:
     //!
     //! \brief    Init per stream parameters

@@ -33,8 +33,8 @@
 
 typedef struct _CPCPY_STATE_PARAMS
 {
-    bool        bForceMediaCopy  = false;                // If true will use MediaCopy directly.
-    MCPY_METHOD mediaCopyMethiod = MCPY_METHOD_BALANCE;  // Read it when bForceMediaCopy is true, otherwise ignore it.
+    bool        bForceMediaCopy  = false;               // If true will use MediaCopy directly.
+    MCPY_METHOD mediaCopyMethod = MCPY_METHOD_BALANCE;  // Read it when bForceMediaCopy is true, otherwise ignore it.
 } CPCPY_STATE_PARAMS;
 
 class CpCopyInterface
@@ -45,6 +45,8 @@ public:
     virtual MOS_STATUS InitCpCopy(PMOS_CONTEXT pOsDriverContext) = 0;
 
     virtual MOS_STATUS CopyResource(PMOS_SURFACE src, PMOS_SURFACE dst, CPCPY_STATE_PARAMS params) = 0;
+
+    virtual MOS_STATUS Fill2DSurfaceWithProtectedZero(PMOS_RESOURCE dst) = 0;
 
     MEDIA_CLASS_DEFINE_END(CpCopyInterface)
 };
