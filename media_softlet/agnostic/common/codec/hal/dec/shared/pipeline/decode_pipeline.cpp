@@ -426,11 +426,8 @@ MOS_STATUS DecodePipeline::DumpOutput(const DecodeStatusReportData& reportData)
 
             if (!Mos_ResourceIsNull(&sfcDstSurface.OsResource))
             {
-                DECODE_CHK_STATUS(m_allocator->GetSurfaceInfo(&sfcDstSurface));
-                DECODE_CHK_STATUS(m_debugInterface->DumpYUVSurface(
-                    &sfcDstSurface, CodechalDbgAttr::attrSfcOutputSurface, "SfcDstSurf"));
-
 #if (_DEBUG || _RELEASE_INTERNAL)
+                DECODE_CHK_STATUS(m_allocator->GetSurfaceInfo(&sfcDstSurface));
                 //rgb format read from reg key
                 uint32_t sfcOutputRgbFormatFlag =
                     ReadUserFeature(m_userSettingPtr, "Decode SFC RGB Format Output", MediaUserSetting::Group::Sequence).Get<uint32_t>();
@@ -438,6 +435,11 @@ MOS_STATUS DecodePipeline::DumpOutput(const DecodeStatusReportData& reportData)
                 {
                     DECODE_CHK_STATUS(m_debugInterface->DumpRgbDataOnYUVSurface(
                         &sfcDstSurface, CodechalDbgAttr::attrSfcOutputSurface, "SfcDstRgbSurf"));
+                }
+                else
+                {
+                    DECODE_CHK_STATUS(m_debugInterface->DumpYUVSurface(
+                        &sfcDstSurface, CodechalDbgAttr::attrSfcOutputSurface, "SfcDstSurf"));
                 }
 #endif
             }
