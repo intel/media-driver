@@ -2078,6 +2078,11 @@ public:
     //!
     static MOS_TILE_TYPE MapTileType(GMM_RESOURCE_FLAG flags, GMM_TILE_TYPE type);
 
+    //!
+    //! \brief  Check if Multiple Codec Devices is in use
+    //!
+    static bool IsMultipleCodecDevicesInUse(PMOS_INTERFACE osInterface);
+
 private:
     //!
     //! \brief    Init per stream parameters

@@ -169,6 +169,10 @@ MOS_STATUS HevcPipeline::InitContexOption(HevcScalabilityPars& scalPars)
     scalPars.usingHcp = true;
     scalPars.enableVE = MOS_VE_SUPPORTED(m_osInterface);
     scalPars.disableScalability = m_hwInterface->IsDisableScalability();
+    if (m_osInterface->pfnIsMultipleCodecDevicesInUse(m_osInterface))
+    {
+        scalPars.disableScalability = true;
+    }
 #if (_DEBUG || _RELEASE_INTERNAL)
     if (m_osInterface->bHcpDecScalabilityMode == MOS_SCALABILITY_ENABLE_MODE_FALSE)
     {

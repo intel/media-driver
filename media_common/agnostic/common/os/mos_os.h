@@ -1318,6 +1318,9 @@ typedef struct _MOS_INTERFACE
     int32_t (*pfnIsGPUHung)(
         PMOS_INTERFACE              pOsInterface);
 
+    bool (*pfnIsMultipleCodecDevicesInUse)(
+        PMOS_INTERFACE              pOsInterface);
+
     //!
     //! \brief    Get Aux Table base address
     //!

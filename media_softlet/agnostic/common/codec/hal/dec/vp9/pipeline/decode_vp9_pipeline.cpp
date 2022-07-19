@@ -190,7 +190,10 @@ MOS_STATUS Vp9Pipeline::InitContexOption(Vp9BasicFeature &basicFeature)
     scalPars.frameWidth         = basicFeature.m_frameWidthAlignedMinBlk;
     scalPars.frameHeight        = basicFeature.m_frameHeightAlignedMinBlk;
     scalPars.numVdbox           = m_numVdbox;
-
+    if (m_osInterface->pfnIsMultipleCodecDevicesInUse(m_osInterface))
+    {
+        scalPars.disableScalability = true;
+    }
 #if (_DEBUG || _RELEASE_INTERNAL)
     if (m_osInterface->bHcpDecScalabilityMode == MOS_SCALABILITY_ENABLE_MODE_FALSE)
     {

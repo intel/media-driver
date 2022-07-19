@@ -6956,6 +6956,14 @@ bool Mos_Specific_IsMismatchOrderProgrammingSupported()
     return MosInterface::IsMismatchOrderProgrammingSupported();
 }
 
+bool Mos_Specific_pfnIsMultipleCodecDevicesInUse(
+    PMOS_INTERFACE pOsInterface)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    return false;
+}
+
 //! \brief    Unified OS Initializes OS Linux Interface
 //! \details  Linux OS Interface initilization
 //! \param    PMOS_INTERFACE pOsInterface
@@ -7115,6 +7123,7 @@ MOS_STATUS Mos_Specific_InitInterface(
     pOsInterface->pfnGetUserSettingInstance                 = Mos_Specific_GetUserSettingInstance;
 
     pOsInterface->pfnIsMismatchOrderProgrammingSupported    = Mos_Specific_IsMismatchOrderProgrammingSupported;
+    pOsInterface->pfnIsMultipleCodecDevicesInUse            = Mos_Specific_pfnIsMultipleCodecDevicesInUse;
 
     pOsContext              = nullptr;
     pOsUserFeatureInterface = (PMOS_USER_FEATURE_INTERFACE)&pOsInterface->UserFeatureInterface;
