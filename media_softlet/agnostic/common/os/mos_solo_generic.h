@@ -33,7 +33,6 @@
 #if MOS_MEDIASOLO_SUPPORTED
 
 #include "mos_os_solo.h"
-#include "mos_os_solo_specific.h"
 #include "mos_os_solo_next_specific.h"
 
 #include "mos_os_solo_next.h"
