@@ -347,9 +347,7 @@ namespace encode
 
         ENCODE_CHK_STATUS_RETURN(m_miItf->SetWatchdogTimerThreshold(m_basicFeature->m_frameWidth, m_basicFeature->m_frameHeight, true));
 
-        uint16_t perfTag = m_pipeline->IsFirstPass() ? CODECHAL_ENCODE_PERFTAG_CALL_PAK_ENGINE : CODECHAL_ENCODE_PERFTAG_CALL_PAK_ENGINE_SECOND_PASS;
-        uint16_t pictureType = (m_basicFeature->m_pictureCodingType == I_TYPE) ? 1 : (m_basicFeature->m_ref.IsLowDelay() ? (m_basicFeature->m_ref.IsPFrame() ? 2 : 0) : 3);
-        SetPerfTag(perfTag, (uint16_t)m_basicFeature->m_mode, pictureType);
+        SetPerfTag();
 
         bool firstTaskInPhase = packetPhase & firstPacket;
         if (!m_pipeline->IsSingleTaskPhaseSupported() || firstTaskInPhase)

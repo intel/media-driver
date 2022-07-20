@@ -305,7 +305,7 @@ protected:
     MOS_STATUS SetSurfaceState(
         PMHW_VDBOX_SURFACE_PARAMS surfaceStateParams);
 
-    void SetPerfTag(uint16_t type, uint16_t mode, uint16_t picCodingType);
+    void SetPerfTag();
     MOS_STATUS AddForceWakeup(MOS_COMMAND_BUFFER &cmdBuffer);
     MOS_STATUS SendPrologCmds(MOS_COMMAND_BUFFER &cmdBuffer);
     MOS_STATUS SetRowstoreCachingOffsets();

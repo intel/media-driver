@@ -162,15 +162,20 @@ namespace encode{
         return MOS_STATUS_SUCCESS;
     }
 
-    void Av1VdencPkt::SetPerfTag(uint16_t type, uint16_t mode, uint16_t picCodingType)
+    void Av1VdencPkt::SetPerfTag()
     {
         ENCODE_FUNC_CALL();
 
+        uint16_t callType = m_pipeline->IsFirstPass() ? CODECHAL_ENCODE_PERFTAG_CALL_PAK_ENGINE :
+            CODECHAL_ENCODE_PERFTAG_CALL_PAK_ENGINE_SECOND_PASS;
+        uint16_t picType  = (m_basicFeature->m_pictureCodingType == I_TYPE) ? 1 :
+            (m_basicFeature->m_ref.IsLowDelay() ? (m_basicFeature->m_ref.IsPFrame() ? 2 : 0) : 3);
+
         PerfTagSetting perfTag;
         perfTag.Value             = 0;
-        perfTag.Mode              = mode & CODECHAL_ENCODE_MODE_BIT_MASK;
-        perfTag.CallType          = type;
-        perfTag.PictureCodingType = picCodingType > 3 ? 0 : picCodingType;
+        perfTag.Mode              = (uint16_t)m_basicFeature->m_mode & CODECHAL_ENCODE_MODE_BIT_MASK;
+        perfTag.CallType          = callType;
+        perfTag.PictureCodingType = picType > 3 ? 0 : picType;
         m_osInterface->pfnSetPerfTag(m_osInterface, perfTag.Value);
         m_osInterface->pfnIncPerfBufferID(m_osInterface);
     }
