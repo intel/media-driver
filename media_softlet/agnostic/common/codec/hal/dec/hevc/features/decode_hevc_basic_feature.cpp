@@ -275,6 +275,37 @@ MOS_STATUS HevcBasicFeature::ErrorDetectAndConceal()
         }
     }
 
+    if (!m_shortFormatInUse)
+    {
+        if (m_hevcPicParams->tiles_enabled_flag || m_hevcPicParams->entropy_coding_sync_enabled_flag)
+        {
+            if (m_hevcPicParams->tiles_enabled_flag == 0 && m_hevcPicParams->entropy_coding_sync_enabled_flag == 1)
+            {
+                if (m_hevcSliceParams->num_entry_point_offsets < 0 || m_hevcSliceParams->num_entry_point_offsets > m_hevcPicParams->PicHeightInMinCbsY - 1)
+                {
+                    DECODE_ASSERTMESSAGE("num_entry_point_offsets is out of range\n");
+                    return MOS_STATUS_INVALID_PARAMETER;
+                }
+            }
+            else if (m_hevcPicParams->tiles_enabled_flag == 1 && m_hevcPicParams->entropy_coding_sync_enabled_flag == 0)
+            {
+                if (m_hevcSliceParams->num_entry_point_offsets < 0 || m_hevcSliceParams->num_entry_point_offsets > ((m_hevcPicParams->num_tile_columns_minus1 + 1) * (m_hevcPicParams->num_tile_rows_minus1 + 1) - 1))
+                {
+                    DECODE_ASSERTMESSAGE("num_entry_point_offsets is out of range\n");
+                    return MOS_STATUS_INVALID_PARAMETER;
+                }
+            }
+            else
+            {
+                if (m_hevcSliceParams->num_entry_point_offsets < 0 || m_hevcSliceParams->num_entry_point_offsets > ((m_hevcPicParams->num_tile_columns_minus1 + 1) * m_hevcPicParams->PicHeightInMinCbsY - 1))
+                {
+                    DECODE_ASSERTMESSAGE("num_entry_point_offsets is out of range\n");
+                    return MOS_STATUS_INVALID_PARAMETER;
+                }
+            }
+        }
+    }
+
     return MOS_STATUS_SUCCESS;
 }
 

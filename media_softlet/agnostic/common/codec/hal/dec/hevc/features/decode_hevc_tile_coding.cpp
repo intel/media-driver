@@ -231,6 +231,9 @@ MOS_STATUS HevcTileCoding::UpdateSubTileInfo(const CODEC_HEVC_PIC_PARAMS & picPa
             sliceTileInfo.tileArrayBuf[i].bsdLength = (entryPointOffsets != nullptr) ? entryPointOffsets[i] + 1 : 1;
         }
 
+        // Check BSD data length
+        DECODE_CHK_COND(sliceTileInfo.tileArrayBuf[i].bsdLength > sliceParams.slice_data_size, "Slice tile bsd length exceeds slice data size!");
+
         bsdOffset += sliceTileInfo.tileArrayBuf[i].bsdLength;
 
         if (++tileX > picParams.num_tile_columns_minus1)
