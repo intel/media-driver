@@ -794,7 +794,7 @@ MOS_STATUS SwFilterDenoise::Configure(VP_PIPELINE_PARAMS& params, bool isInputSu
 
     auto userFeatureControl = m_vpInterface.GetHwInterface()->m_userFeatureControl;
     VP_PUBLIC_CHK_NULL_RETURN(userFeatureControl);
-    bool disableAutoDN      = userFeatureControl->IsAutoDnDisabled();
+    bool bypassVeboxDnStateUpdate = userFeatureControl->IsBypassVeboxDnStateUpdate();
 
     if (inputProtected || outputProtected ||
        (m_vpInterface.GetHwInterface()->m_osInterface->osCpInterface &&
@@ -802,7 +802,7 @@ MOS_STATUS SwFilterDenoise::Configure(VP_PIPELINE_PARAMS& params, bool isInputSu
     {
         m_Params.secureDnNeeded = true;
     }
-    else if (disableAutoDN && m_Params.denoiseParams.bAutoDetect)
+    else if (bypassVeboxDnStateUpdate && m_Params.denoiseParams.bAutoDetect)
     {
         // disable AutoDN in clear mode
         m_Params.denoiseParams.bAutoDetect = false;

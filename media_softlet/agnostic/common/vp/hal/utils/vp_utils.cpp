@@ -644,7 +644,7 @@ MOS_STATUS VpUtils::DeclareUserSettings(MediaUserSettingSharedPtr userSettingPtr
 
     DeclareUserSettingKey(  
         userSettingPtr,
-        __MEDIA_USER_FEATURE_VALUE_DISABLE_AUTODN,
+        __MEDIA_USER_FEATURE_VALUE_BYPASS_VEBOX_DN_STATE_UPDATE,
         MediaUserSetting::Group::Sequence,
         0,
         true);

@@ -95,23 +95,23 @@ VpUserFeatureControl::VpUserFeatureControl(MOS_INTERFACE &osInterface, VpPlatfor
         VP_PUBLIC_NORMALMESSAGE("disableSfc %d", m_ctrlValDefault.disableSfc);
     }
 
-    // If AutoDn need to be disabled
-    bool disableAutoDN = false;
+    // If bypass vebox Dn states update
+    bool bypassVeboxDnStateUpdate = false;
     status = ReadUserSetting(
         m_userSettingPtr,
-        disableAutoDN,
-        __MEDIA_USER_FEATURE_VALUE_DISABLE_AUTODN,
+        bypassVeboxDnStateUpdate,
+        __MEDIA_USER_FEATURE_VALUE_BYPASS_VEBOX_DN_STATE_UPDATE,
         MediaUserSetting::Group::Sequence);
     if (MOS_SUCCEEDED(status))
     {
-        m_ctrlValDefault.disableAutoDn = disableAutoDN;
+        m_ctrlValDefault.bypassVeboxDnStateUpdate = bypassVeboxDnStateUpdate;
     }
     else
     {
         // Default value
-        m_ctrlValDefault.disableAutoDn = false;
+        m_ctrlValDefault.bypassVeboxDnStateUpdate = false;
     }
-    VP_PUBLIC_NORMALMESSAGE("disableAutoDn %d", m_ctrlValDefault.disableAutoDn);
+    VP_PUBLIC_NORMALMESSAGE("bypassVeboxDnStateUpdate %d", m_ctrlValDefault.bypassVeboxDnStateUpdate);
 
     // __MEDIA_USER_FEATURE_VALUE_CSC_COEFF_PATCH_MODE_DISABLE
     bool cscCoeffPatchModeDisabled = false;

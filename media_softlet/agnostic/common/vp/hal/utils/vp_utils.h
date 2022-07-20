@@ -280,7 +280,7 @@ protected:
 
 #define __VPHAL_RNDR_SSD_CONTROL                                        "SSD Control"
 #define __MEDIA_USER_FEATURE_VALUE_CSC_COEFF_PATCH_MODE_DISABLE         "CSC Patch Mode Disable"
-#define __MEDIA_USER_FEATURE_VALUE_DISABLE_AUTODN                       "Disable AutoDn"
+#define __MEDIA_USER_FEATURE_VALUE_BYPASS_VEBOX_DN_STATE_UPDATE         "Bypass Vebox Dn State Update"
 
 #if (_DEBUG || _RELEASE_INTERNAL)
 #define __VPHAL_ENABLE_COMPUTE_CONTEXT                                  "VP Enable Compute Context"
