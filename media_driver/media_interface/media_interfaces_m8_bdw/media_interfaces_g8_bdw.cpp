@@ -55,7 +55,7 @@ MOS_STATUS VphalInterfacesG8Bdw::Initialize(
     bool            bInitVphalState,
     MOS_STATUS      *eStatus)
 {
-    m_vphalState = MOS_New(
+    m_vpBase = MOS_New(
         VphalState,
         osInterface,
         osDriverContext,

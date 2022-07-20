@@ -133,7 +133,7 @@ MOS_STATUS VphalInterfacesXe_Hpm::Initialize(
     }
     else
     {
-        m_vphalState = MOS_New(
+        m_vpBase = MOS_New(
             VphalState,
             osInterface,
             osDriverContext,

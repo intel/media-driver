@@ -90,13 +90,13 @@ MOS_STATUS VphalInterfacesG12Tgllp::Initialize(
             return *eStatus;
         }
 
-        m_vphalState = MOS_New(
+        m_vpBase = MOS_New(
             VpPipelineG12Adapter,
             osInterface,
             osDriverContext,
             *vpPlatformInterface,
             *eStatus);
-        if (nullptr == m_vphalState)
+        if (nullptr == m_vpBase)
         {
             MOS_Delete(vpPlatformInterface);
             *eStatus = MOS_STATUS_NULL_POINTER;
@@ -106,7 +106,7 @@ MOS_STATUS VphalInterfacesG12Tgllp::Initialize(
     else
 #endif
     {
-        m_vphalState = MOS_New(
+        m_vpBase = MOS_New(
         VphalState,
         osInterface,
         osDriverContext,

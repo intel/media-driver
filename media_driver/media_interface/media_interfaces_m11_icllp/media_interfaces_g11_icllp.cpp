@@ -52,7 +52,7 @@ MOS_STATUS VphalInterfacesG11Icllp::Initialize(
     bool            bInitVphalState,
     MOS_STATUS      *eStatus)
 {
-    m_vphalState = MOS_New(
+    m_vpBase = MOS_New(
         VphalState,
         osInterface,
         osDriverContext,

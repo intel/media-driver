@@ -103,13 +103,13 @@ MOS_STATUS VphalInterfacesXe_Xpm::Initialize(
             return *eStatus;
         }
 
-        m_vphalState = MOS_New(
+        m_vpBase = MOS_New(
             VpPipelineAdapterXe_Xpm,
             osInterface,
             osDriverContext,
             *vpPlatformInterface,
             *eStatus);
-        if (nullptr == m_vphalState)
+        if (nullptr == m_vpBase)
         {
             MOS_Delete(vpPlatformInterface);
             *eStatus = MOS_STATUS_NULL_POINTER;
@@ -118,7 +118,7 @@ MOS_STATUS VphalInterfacesXe_Xpm::Initialize(
     }
     else
     {
-        m_vphalState = MOS_New(
+        m_vpBase = MOS_New(
             VphalState,
             osInterface,
             osDriverContext,

@@ -139,8 +139,8 @@ VpBase* VphalDevice::CreateFactory(
     {
         VP_DEBUG_ASSERTMESSAGE("VPHal interfaces were not successfully allocated!");
 
-         // If m_vphalState has been created, osInterface should be released in VphalState::~VphalState.
-        if (osInterface->bDeallocateOnExit && nullptr == vphalDevice->m_vphalState)
+         // If m_vpBase has been created, osInterface should be released in VphalState::~VphalState.
+        if (osInterface->bDeallocateOnExit && nullptr == vphalDevice->m_vpBase)
         {
             // Deallocate OS interface structure (except if externally provided)
             if (osInterface->pfnDestroy)
@@ -155,7 +155,7 @@ VpBase* VphalDevice::CreateFactory(
         return nullptr;
     }
 
-    vphalState = vphalDevice->m_vphalState;
+    vphalState = vphalDevice->m_vpBase;
     MOS_Delete(vphalDevice);
 
     return vphalState;
@@ -226,10 +226,8 @@ VpBase *VphalDevice::CreateFactoryNext(
     {
         VP_DEBUG_ASSERTMESSAGE("VPHal interfaces were not successfully allocated!");
 
-        // If m_vphalState has been created, osInterface should be released in VphalState::~VphalState.
-        if (osInterface->bDeallocateOnExit 
-            && ((vphalDevice->m_isNextEnabled && nullptr == vphalDevice->m_vpBase)
-            || ((!vphalDevice->m_isNextEnabled) && nullptr == vphalDevice->m_vphalState)))
+        // If m_vpBase has been created, osInterface should be released in VphalState::~VphalState.
+        if (osInterface->bDeallocateOnExit && nullptr == vphalDevice->m_vpBase)
         {
             // Deallocate OS interface structure (except if externally provided)
             if (osInterface->pfnDestroy)
@@ -246,22 +244,14 @@ VpBase *VphalDevice::CreateFactoryNext(
         return nullptr;
     }
 
-    if (vphalDevice->m_isNextEnabled)
-    {
-        vpBase = vphalDevice->m_vpBase;
-    }
-    else
-    {
-        vpBase = vphalDevice->m_vphalState;
-    }
-
+    vpBase = vphalDevice->m_vpBase;
+   
     MOS_Delete(vphalDevice);
     return vpBase;
 }
 
 void VphalDevice::Destroy()
 {
-    MOS_Delete(m_vphalState);
     MOS_Delete(m_vpBase);
     MOS_Delete(m_vpPipeline);
     MOS_Delete(m_vpPlatformInterface);
