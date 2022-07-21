@@ -64,33 +64,38 @@ m_renderHal(renderHal),
 m_cpInterface(nullptr),
 m_osInterface(pOsinterface)
 {
-    Init();
 }
 
 RenderCmdPacketNext::~RenderCmdPacketNext()
 {
+    if (m_renderHal && m_renderhalSelfCreated)
+    {
+        MOS_STATUS status = MOS_STATUS_SUCCESS;
+        if (m_renderHal->pfnDestroy)
+        {
+            status = m_renderHal->pfnDestroy(m_renderHal);
+
+            if (status != MOS_STATUS_SUCCESS)
+            {
+                RENDER_PACKET_ASSERTMESSAGE("Failed to destroy RenderHal, eStatus:%d.\n", status);
+
+            }
+            MOS_FreeMemory(m_renderHal);
+            m_renderHal = nullptr;
+        }
+
+        if (m_cpInterface)
+        {
+            Delete_MhwCpInterface(m_cpInterface);
+            m_cpInterface = nullptr;
+        }
+    }
     Destroy();
 }
 
 MOS_STATUS RenderCmdPacketNext::Init()
 {
-    if (!m_renderHal)
-    {
-        m_renderHal = (PRENDERHAL_INTERFACE)MOS_AllocAndZeroMemory(sizeof(RENDERHAL_INTERFACE));
-        RENDER_PACKET_CHK_NULL_RETURN(m_renderHal);
-        RENDER_PACKET_CHK_STATUS_RETURN(RenderHal_InitInterface(
-            m_renderHal,
-            &m_cpInterface,
-            m_osInterface));
-
-        RENDERHAL_SETTINGS          RenderHalSettings;
-        RenderHalSettings.iMediaStates = 32; // Init MEdia state values
-        RENDER_PACKET_CHK_STATUS_RETURN(m_renderHal->pfnInitialize(m_renderHal, &RenderHalSettings));
-    }
-    else
-    {
-        RENDER_PACKET_NORMALMESSAGE("RenderHal Already been created");
-    }
+    RENDER_PACKET_CHK_STATUS_RETURN(CreateRenderHal());
 
     bool mediaWalkerUsed = false;
     bool computeWalkerUsed = false;
@@ -115,6 +120,29 @@ MOS_STATUS RenderCmdPacketNext::Init()
         m_miItf = m_renderHal->pRenderHalPltInterface->GetMhwMiItf();
     }
 
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS RenderCmdPacketNext::CreateRenderHal()
+{
+    if (!m_renderHal)
+    {
+        m_renderHal = (PRENDERHAL_INTERFACE)MOS_AllocAndZeroMemory(sizeof(RENDERHAL_INTERFACE));
+        RENDER_PACKET_CHK_NULL_RETURN(m_renderHal);
+        RENDER_PACKET_CHK_STATUS_RETURN(RenderHal_InitInterface(
+            m_renderHal,
+            &m_cpInterface,
+            m_osInterface));
+
+        RENDERHAL_SETTINGS          RenderHalSettings;
+        RenderHalSettings.iMediaStates = 32; // Init MEdia state values
+        RENDER_PACKET_CHK_STATUS_RETURN(m_renderHal->pfnInitialize(m_renderHal, &RenderHalSettings));
+        m_renderhalSelfCreated = true;
+    }
+    else
+    {
+        RENDER_PACKET_NORMALMESSAGE("RenderHal Already been created");
+    }
     return MOS_STATUS_SUCCESS;
 }
 

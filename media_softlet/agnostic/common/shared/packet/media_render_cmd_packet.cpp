@@ -30,6 +30,7 @@
 #include "renderhal_platform_interface.h"
 #include "hal_oca_interface_next.h"
 #include "mos_interface.h"
+#include "renderhal_legacy.h"
 
 #define COMPUTE_WALKER_THREAD_SPACE_WIDTH 1
 #define COMPUTE_WALKER_THREAD_SPACE_HEIGHT 1
@@ -43,6 +44,29 @@ RenderCmdPacket::RenderCmdPacket(MediaTask* task, PMOS_INTERFACE pOsinterface, R
 
 RenderCmdPacket::~RenderCmdPacket()
 {
+}
+
+MOS_STATUS RenderCmdPacket::CreateRenderHal()
+{
+    if (!m_renderHal)
+    {
+        m_renderHal = (PRENDERHAL_INTERFACE)MOS_AllocAndZeroMemory(sizeof(RENDERHAL_INTERFACE_LEGACY));
+        RENDER_PACKET_CHK_NULL_RETURN(m_renderHal);
+        RENDER_PACKET_CHK_STATUS_RETURN(RenderHal_InitInterface_Legacy(
+            (RENDERHAL_INTERFACE_LEGACY*)m_renderHal,
+            &m_cpInterface,
+            m_osInterface));
+
+        RENDERHAL_SETTINGS          RenderHalSettings;
+        RenderHalSettings.iMediaStates = 32; // Init MEdia state values
+        RENDER_PACKET_CHK_STATUS_RETURN(m_renderHal->pfnInitialize(m_renderHal, &RenderHalSettings));
+        m_renderhalSelfCreated = true;
+    }
+    else
+    {
+        RENDER_PACKET_NORMALMESSAGE("RenderHal Already been created");
+    }
+    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS RenderCmdPacket::Submit(MOS_COMMAND_BUFFER *commandBuffer, uint8_t packetPhase)

@@ -141,6 +141,15 @@ VpCmdPacket *PacketFactory::CreateRenderPacket()
     VpCmdPacket *p = m_vpPlatformInterface ? m_vpPlatformInterface->CreateRenderPacket(m_pTask, m_pHwInterface, m_pAllocator, m_pMmc, m_kernelSet) : nullptr;
     if (p)
     {
+        MOS_STATUS status = MOS_STATUS_SUCCESS;
+        
+        status = p->Init();
+        
+        if (MOS_STATUS_SUCCESS != status)
+        {
+            VP_PUBLIC_ASSERTMESSAGE("Render CMD Packet Init Fail");
+        }
+
         p->SetPacketSharedContext(m_packetSharedContext);
     }
     return p;

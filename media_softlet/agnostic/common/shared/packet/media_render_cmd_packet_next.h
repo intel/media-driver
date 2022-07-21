@@ -159,6 +159,7 @@ public:
 
     virtual ~RenderCmdPacketNext();
     virtual MOS_STATUS Init();
+    virtual MOS_STATUS CreateRenderHal();
     virtual MOS_STATUS Destroy();
     //virtual MOS_STATUS Submit(MOS_COMMAND_BUFFER* commandBuffer, uint8_t packetPhase = otherPacket);
 
@@ -275,7 +276,8 @@ protected:
 
 protected:
     PRENDERHAL_INTERFACE        m_renderHal = nullptr;
-    MhwCpInterface* m_cpInterface = nullptr;
+    bool                        m_renderhalSelfCreated = false;
+    MhwCpInterface            * m_cpInterface = nullptr;
     PMOS_INTERFACE              m_osInterface = nullptr;
     MediaFeatureManager* m_featureManager = nullptr;
 

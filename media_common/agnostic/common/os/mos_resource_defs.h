@@ -185,10 +185,11 @@ typedef enum _MOS_FORMAT
     Format_R32G8X24     ,
     Format_R8UN         ,           //!< R8 UNORM
     Format_R32G32B32A32F,           //ARGB 128bpp
+    Format_G32R32F      ,           // G32R32 64 bpp
     // Last Format
     Format_Count
 } MOS_FORMAT, *PMOS_FORMAT;
-C_ASSERT(Format_Count == 103); //!< When adding, update assert & vphal_solo_scenario.cpp::VpFromXml_GetFormat() & hal_kerneldll.c::g_cIsFormatYUV.
+C_ASSERT(Format_Count == 104); //!< When adding, update assert & vphal_solo_scenario.cpp::VpFromXml_GetFormat() & hal_kerneldll.c::g_cIsFormatYUV.
 
 //!
 //! \brief Macros for format checking

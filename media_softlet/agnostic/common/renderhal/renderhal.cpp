@@ -799,6 +799,12 @@ extern const MHW_SURFACE_PLANES g_cRenderHal_SurfacePlanes[RENDERHAL_PLANES_DEFI
         {
             { MHW_GENERIC_PLANE, 1, 1, 1, 1, 4, 1, MHW_MEDIASTATE_SURFACEFORMAT_Y8_UNORM }
         }
+    },
+    //RENDERHAL_PLANES_G32R32F
+    {   1,
+        {
+            { MHW_GENERIC_PLANE, 1, 1, 1, 1, 0, 0, MHW_GFX3DSTATE_SURFACEFORMAT_R16G16B16A16_UNORM }
+    }
     }
 };
 
@@ -3656,6 +3662,10 @@ MOS_STATUS RenderHal_GetSurfaceStateEntries(
                 PlaneDefinition = RENDERHAL_PLANES_R32F;
                 break;
 
+            case Format_G32R32F:
+                PlaneDefinition = RENDERHAL_PLANES_G32R32F;
+                break;
+
             case Format_Y8:
                 PlaneDefinition = RENDERHAL_PLANES_R8;
                 break;
@@ -3905,11 +3915,12 @@ MOS_STATUS RenderHal_GetSurfaceStateEntries(
                 dwSurfaceWidth = dwSurfaceWidth << 2;
             }
             else if (PlaneDefinition == RENDERHAL_PLANES_A16B16G16R16     ||
-                PlaneDefinition == RENDERHAL_PLANES_A16B16G16R16_ADV ||
-                PlaneDefinition == RENDERHAL_PLANES_A16B16G16R16F    ||
-                PlaneDefinition == RENDERHAL_PLANES_A16R16G16B16F    ||
-                PlaneDefinition == RENDERHAL_PLANES_Y210_RT          ||
-                PlaneDefinition == RENDERHAL_PLANES_Y416_RT          ||
+                PlaneDefinition == RENDERHAL_PLANES_A16B16G16R16_ADV      ||
+                PlaneDefinition == RENDERHAL_PLANES_A16B16G16R16F         ||
+                PlaneDefinition == RENDERHAL_PLANES_A16R16G16B16F         ||
+                PlaneDefinition == RENDERHAL_PLANES_G32R32F               ||
+                PlaneDefinition == RENDERHAL_PLANES_Y210_RT               ||
+                PlaneDefinition == RENDERHAL_PLANES_Y416_RT               ||
                 PlaneDefinition == RENDERHAL_PLANES_R32_FLOAT_X8X24_TYPELESS)
             {
                 dwSurfaceWidth = dwSurfaceWidth << 1;

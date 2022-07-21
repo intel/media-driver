@@ -44,6 +44,7 @@ public:
     RenderCmdPacket(MediaTask *task, PMOS_INTERFACE pOsinterface, RENDERHAL_INTERFACE *m_renderHal);
 
     virtual ~RenderCmdPacket();
+    virtual MOS_STATUS CreateRenderHal();
     //virtual MOS_STATUS Init();
     //virtual MOS_STATUS Destroy();
     virtual MOS_STATUS Submit(MOS_COMMAND_BUFFER* commandBuffer, uint8_t packetPhase = otherPacket);
