@@ -28,6 +28,7 @@
 #define __CODEC_DEBUG_H__
 
 #include "media_debug_interface.h"
+#include "codec_hw_next.h"
 
 #if USE_MEDIA_DEBUG_TOOL
 
