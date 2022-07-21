@@ -992,7 +992,7 @@ DdiVp_SetProcPipelineParams(
     uint32_t                    uChromaSitingFlags;
     VAStatus                    vaStatus;
     MOS_STATUS                  eStatus;
-    DDI_VP_STATE                vpStateFlags;
+    DDI_VP_STATE                vpStateFlags = {};
     PMOS_INTERFACE              pOsInterface;
 
     VP_DDI_FUNCTION_ENTER;
@@ -1009,8 +1009,6 @@ DdiVp_SetProcPipelineParams(
     uSurfIndex          = 0;
     pOsInterface        = pVpCtx->pVpHal->GetOsInterface();
     uInterpolationflags = 0;
-
-    memset(&vpStateFlags, 0, sizeof(vpStateFlags));
 
     DDI_CHK_NULL(pMediaSrcSurf, "Null pMediaSrcSurf.", VA_STATUS_ERROR_INVALID_BUFFER);
     DDI_CHK_NULL(pOsInterface, "Null pOsInterface.", VA_STATUS_ERROR_INVALID_BUFFER);

@@ -106,10 +106,10 @@ typedef struct DDI_VP_CONTEXT
 
 typedef struct _DDI_VP_STATE
 {
-    bool      bProcampEnable;
-    bool      bDeinterlaceEnable;
-    bool      bDenoiseEnable;
-    bool      bIEFEnable;
+    bool      bProcampEnable     = false;
+    bool      bDeinterlaceEnable = false;
+    bool      bDenoiseEnable     = false;
+    bool      bIEFEnable         = false;
 } DDI_VP_STATE;
 
 // public APIs
