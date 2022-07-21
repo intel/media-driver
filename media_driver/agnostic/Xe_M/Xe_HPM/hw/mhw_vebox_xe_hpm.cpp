@@ -104,6 +104,51 @@ finish:
     return eStatus;
 }
 
+MOS_STATUS MhwVeboxInterfaceXe_Hpm::DumpDNDIStates(uint8_t *pDnDiSate)
+{
+    MOS_STATUS                              eStatus         = MOS_STATUS_SUCCESS;
+    mhw_vebox_xe_xpm::VEBOX_DNDI_STATE_CMD *pVeboxDndiState = (mhw_vebox_xe_xpm::VEBOX_DNDI_STATE_CMD *)pDnDiSate;
+
+    MHW_CHK_NULL(pDnDiSate);
+
+    MHW_VERBOSEMESSAGE("VeboxDndiState");
+    MHW_VERBOSEMESSAGE("DW0:DenoiseMaximumHistory %d, DenoiseStadThreshold %d", pVeboxDndiState->DW0.DenoiseMaximumHistory, pVeboxDndiState->DW0.DenoiseStadThreshold);
+    MHW_VERBOSEMESSAGE("DW1:DenoiseAsdThreshold %d, DenoiseHistoryIncrease %d, DenoiseMovingPixelThreshold %d", pVeboxDndiState->DW1.DenoiseAsdThreshold, pVeboxDndiState->DW1.DenoiseHistoryIncrease, pVeboxDndiState->DW1.DenoiseMovingPixelThreshold);
+    MHW_VERBOSEMESSAGE("DW2:InitialDenoiseHistory %d, TemporalDifferenceThreshold %d", pVeboxDndiState->DW2.InitialDenoiseHistory, pVeboxDndiState->DW2.TemporalDifferenceThreshold);
+    MHW_VERBOSEMESSAGE("DW3:HotPixelCountLuma %d, LowTemporalDifferenceThreshold %d, ProgressiveDn %d, TemporalGneEnable %d", pVeboxDndiState->DW3.HotPixelCountLuma, pVeboxDndiState->DW3.LowTemporalDifferenceThreshold, pVeboxDndiState->DW3.ProgressiveDn, pVeboxDndiState->DW3.TemporalGneEnable);
+    MHW_VERBOSEMESSAGE("DW4:BlockNoiseEstimateNoiseThreshold %d, DenoiseThresholdForSumOfComplexityMeasureLuma %d, DW4.HotPixelThresholdLuma", pVeboxDndiState->DW4.BlockNoiseEstimateNoiseThreshold, pVeboxDndiState->DW4.DenoiseThresholdForSumOfComplexityMeasureLuma, pVeboxDndiState->DW4.HotPixelThresholdLuma);
+    MHW_VERBOSEMESSAGE("DW5:ChromaDenoiseStadThreshold %d, HotPixelCountChromaU %d, HotPixelThresholdChromaU %d", pVeboxDndiState->DW5.ChromaDenoiseStadThreshold, pVeboxDndiState->DW5.HotPixelCountChromaU, pVeboxDndiState->DW5.HotPixelThresholdChromaU);
+    MHW_VERBOSEMESSAGE("DW6:BlockNoiseEstimateEdgeThreshold %d, ChromaDenoiseEnable %d, ChromaTemporalDifferenceThreshold %d", pVeboxDndiState->DW6.BlockNoiseEstimateEdgeThreshold, pVeboxDndiState->DW6.ChromaDenoiseEnable, pVeboxDndiState->DW6.ChromaTemporalDifferenceThreshold);
+    MHW_VERBOSEMESSAGE("DW7:ChromaLowTemporalDifferenceThreshold %d, HotPixelCountChromaV %d, HotPixelThresholdChromaV %d", pVeboxDndiState->DW7.ChromaLowTemporalDifferenceThreshold, pVeboxDndiState->DW7.HotPixelCountChromaV, pVeboxDndiState->DW7.HotPixelThresholdChromaV);
+    MHW_VERBOSEMESSAGE("DW8:ChromaDenoiseAsdThreshold %d, ChromaDenoiseMovingPixelThreshold %d, ChromaDenoiseThresholdForSumOfComplexityMeasure %d", pVeboxDndiState->DW8.ChromaDenoiseAsdThreshold, pVeboxDndiState->DW8.ChromaDenoiseMovingPixelThreshold, pVeboxDndiState->DW8.ChromaDenoiseThresholdForSumOfComplexityMeasure);
+    MHW_VERBOSEMESSAGE("DW9:DnyWr040 %d, DnyWr140 %d, DnyWr240 %d, DnyWr340 %d, DnyWr440 %d, DnyWr540 %d", pVeboxDndiState->DW9.DnyWr040, pVeboxDndiState->DW9.DnyWr140, pVeboxDndiState->DW9.DnyWr240, pVeboxDndiState->DW9.DnyWr340, pVeboxDndiState->DW9.DnyWr440, pVeboxDndiState->DW9.DnyWr540);
+    MHW_VERBOSEMESSAGE("DW10:DnyThmax120 %d, DnyThmin120 %d, DW11: DnyDynThmin120 %d, DnyPrt5120 %d", pVeboxDndiState->DW10.DnyThmax120, pVeboxDndiState->DW10.DnyThmin120, pVeboxDndiState->DW11.DnyDynThmin120, pVeboxDndiState->DW11.DnyPrt5120);
+    MHW_VERBOSEMESSAGE("DW12:DnyPrt3120 %d, DnyPrt4120 %d, DW13:DnyPrt1120 %d, DnyPrt2120 %d", pVeboxDndiState->DW12.DnyPrt3120, pVeboxDndiState->DW12.DnyPrt4120, pVeboxDndiState->DW13.DnyPrt1120, pVeboxDndiState->DW13.DnyPrt2120);
+    MHW_VERBOSEMESSAGE("DW14:DnyPrt0120 %d, DnyWd2040 %d, DnyWd2140 %d, DnyWd2240 %d", pVeboxDndiState->DW14.DnyPrt0120, pVeboxDndiState->DW14.DnyWd2040, pVeboxDndiState->DW14.DnyWd2140, pVeboxDndiState->DW14.DnyWd2240);
+    MHW_VERBOSEMESSAGE("DW15:DnyWd0040 %d, DnyWd0140 %d, DnyWd0240 %d, DnyWd1040 %d, DnyWd1140 %d, DnyWd1240 %d", pVeboxDndiState->DW15.DnyWd0040, pVeboxDndiState->DW15.DnyWd0140, pVeboxDndiState->DW15.DnyWd0240, pVeboxDndiState->DW15.DnyWd1040, pVeboxDndiState->DW15.DnyWd1140, pVeboxDndiState->DW15.DnyWd1240);
+    MHW_VERBOSEMESSAGE("DW16:DnuWr040 %d, DnuWr140 %d, DnuWr240 %d, DnuWr340 %d, DnuWr440 %d, DnuWr540 %d", pVeboxDndiState->DW16.DnuWr040, pVeboxDndiState->DW16.DnuWr140, pVeboxDndiState->DW16.DnuWr240, pVeboxDndiState->DW16.DnuWr340, pVeboxDndiState->DW16.DnuWr440, pVeboxDndiState->DW16.DnuWr540);
+    MHW_VERBOSEMESSAGE("DW17:DnuThmax120 %d, DnuThmin120 %d", pVeboxDndiState->DW17.DnuThmax120, pVeboxDndiState->DW17.DnuThmin120);
+    MHW_VERBOSEMESSAGE("DW18:DnuDynThmin120 %d, DnuPrt5120 %d", pVeboxDndiState->DW18.DnuDynThmin120, pVeboxDndiState->DW18.DnuPrt5120);
+    MHW_VERBOSEMESSAGE("DW19:DnuPrt3120 %d, DnuPrt4120 %d, DW20:DnuPrt1120 %d, DnuPrt2120 %d", pVeboxDndiState->DW19.DnuPrt3120, pVeboxDndiState->DW19.DnuPrt4120, pVeboxDndiState->DW20.DnuPrt1120, pVeboxDndiState->DW20.DnuPrt2120);
+    MHW_VERBOSEMESSAGE("DW21:DnuPrt0120 %d, DnuWd2040 %d, DnuWd2140 %d, DnuWd2240 %d", pVeboxDndiState->DW21.DnuPrt0120, pVeboxDndiState->DW21.DnuWd2040, pVeboxDndiState->DW21.DnuWd2140, pVeboxDndiState->DW21.DnuWd2240);
+    MHW_VERBOSEMESSAGE("DW22:DnuWd0040 %d, DnuWd0140 %d, DnuWd0240 %d, DnuWd1040 %d, DnuWd1140 %d, DnuWd1240 %d", pVeboxDndiState->DW22.DnuWd0040, pVeboxDndiState->DW22.DnuWd0140, pVeboxDndiState->DW22.DnuWd0240, pVeboxDndiState->DW22.DnuWd1040, pVeboxDndiState->DW22.DnuWd1140, pVeboxDndiState->DW22.DnuWd1240);
+    MHW_VERBOSEMESSAGE("DW23:DnvWr040 %d, DnvWr240 %d, DnvWr340 %d, DnvWr440 %d, DnvWr5140 %d, DnvWr540", pVeboxDndiState->DW23.DnvWr040, pVeboxDndiState->DW23.DnvWr240, pVeboxDndiState->DW23.DnvWr340, pVeboxDndiState->DW23.DnvWr440, pVeboxDndiState->DW23.DnvWr5140, pVeboxDndiState->DW23.DnvWr540);
+    MHW_VERBOSEMESSAGE("DW24:DnvThmax120 %d, DnvThmin120 %d, DW25:DnvDynThmin120 %d, DnvPrt5120 %d", pVeboxDndiState->DW24.DnvThmax120, pVeboxDndiState->DW24.DnvThmin120, pVeboxDndiState->DW25.DnvDynThmin120, pVeboxDndiState->DW25.DnvPrt5120);
+    MHW_VERBOSEMESSAGE("DW26:DnvPrt3120 %d, DnvPrt4120 %d, DW27:DnvPrt1120 %d, DnvPrt2120 %d", pVeboxDndiState->DW26.DnvPrt3120, pVeboxDndiState->DW26.DnvPrt4120, pVeboxDndiState->DW27.DnvPrt1120, pVeboxDndiState->DW27.DnvPrt2120);
+    MHW_VERBOSEMESSAGE("DW28:DnvPrt0120 %d, DnvWd2040 %d, DnvWd2140 %d, DnvWd2240 %d", pVeboxDndiState->DW28.DnvPrt0120, pVeboxDndiState->DW28.DnvWd2040, pVeboxDndiState->DW28.DnvWd2140, pVeboxDndiState->DW28.DnvWd2240);
+    MHW_VERBOSEMESSAGE("DW29:DnvWd0040 %d, DnvWd0140 %d, DnvWd0240 %d, DnvWd1040 %d, DnvWd1140 %d, DnvWd1240 %d", pVeboxDndiState->DW29.DnvWd0040, pVeboxDndiState->DW29.DnvWd0140, pVeboxDndiState->DW29.DnvWd0240, pVeboxDndiState->DW29.DnvWd1040, pVeboxDndiState->DW29.DnvWd1140, pVeboxDndiState->DW29.DnvWd1240);
+    MHW_VERBOSEMESSAGE("DW30:EightDirectionEdgeThreshold %d, ValidPixelThreshold %d", pVeboxDndiState->DW30.EightDirectionEdgeThreshold, pVeboxDndiState->DW30.ValidPixelThreshold);
+    MHW_VERBOSEMESSAGE("DW31:LargeSobelThreshold %d, SmallSobelCountThreshold %d, SmallSobelThreshold %d", pVeboxDndiState->DW31.LargeSobelThreshold, pVeboxDndiState->DW31.SmallSobelCountThreshold, pVeboxDndiState->DW31.SmallSobelThreshold);
+    MHW_VERBOSEMESSAGE("DW32:BlockSigmaDiffThreshold %d, LargeSobelCountThreshold %d, MedianSobelCountThreshold %d, DW33:MaxSobelThreshold %d", pVeboxDndiState->DW32.BlockSigmaDiffThreshold, pVeboxDndiState->DW32.LargeSobelCountThreshold, pVeboxDndiState->DW32.MedianSobelCountThreshold, pVeboxDndiState->DW33.MaxSobelThreshold);
+    MHW_VERBOSEMESSAGE("DW49:ChromaStadTh %d, LumaStadTh %d", pVeboxDndiState->DW49.ChromaStadTh, pVeboxDndiState->DW49.LumaStadTh);
+    MHW_VERBOSEMESSAGE("DW50:LumaUniformityHighTh1 %d, LumaUniformityHighTh2 %d, LumaUniformityLowTh1 %d, LumaUniformityLowTh2 %d", pVeboxDndiState->DW50.LumaUniformityHighTh1, pVeboxDndiState->DW50.LumaUniformityHighTh2, pVeboxDndiState->DW50.LumaUniformityLowTh1, pVeboxDndiState->DW50.LumaUniformityLowTh2);
+    MHW_VERBOSEMESSAGE("DW51: ChromaUniformityHighTh1 %d, ChromaUniformityHighTh2 %d, ChromaUniformityLowTh1 %d, ChromaUniformityLowTh2 %d", pVeboxDndiState->DW51.ChromaUniformityHighTh1, pVeboxDndiState->DW51.ChromaUniformityHighTh2, pVeboxDndiState->DW51.ChromaUniformityLowTh1, pVeboxDndiState->DW51.ChromaUniformityLowTh2);
+    MHW_VERBOSEMESSAGE("DW52:_4X4TemporalGneThresholdCount %d", pVeboxDndiState->DW52._4X4TemporalGneThresholdCount);
+
+finish:
+    return eStatus;
+}
+
 MOS_STATUS MhwVeboxInterfaceXe_Hpm::AddVeboxDndiState(
     PMHW_VEBOX_DNDI_PARAMS pVeboxDndiParams)
 {
@@ -248,7 +293,7 @@ MOS_STATUS MhwVeboxInterfaceXe_Hpm::AddVeboxDndiState(
             pVeboxDndiState->DW52._4X4TemporalGneThresholdCount   = 0;
         }
     }
-
+    DumpDNDIStates((uint8_t *)pVeboxDndiState);
 finish:
     return eStatus;
 }

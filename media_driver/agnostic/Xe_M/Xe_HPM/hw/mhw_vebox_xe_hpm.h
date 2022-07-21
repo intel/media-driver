@@ -47,6 +47,7 @@ public:
         PMHW_VEBOX_DNDI_PARAMS pVeboxDndiParams) override;
 
     MOS_STATUS ForceGNEParams(uint8_t *pDnDiSate);
+    MOS_STATUS DumpDNDIStates(uint8_t *pDnDiSate);
     uint32_t dwLumaStadTh             = 3200;
     uint32_t dwChromaStadTh           = 1600;
     bool     bTGNEEnable              = false;
