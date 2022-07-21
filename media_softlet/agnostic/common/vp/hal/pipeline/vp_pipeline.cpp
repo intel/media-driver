@@ -44,6 +44,7 @@ VpPipeline::VpPipeline(PMOS_INTERFACE osInterface) :
 
 VpPipeline::~VpPipeline()
 {
+    MOS_Delete(m_packetReuseMgr);
     // Delete m_pPacketPipeFactory before m_pPacketFactory, since
     // m_pPacketFactory is referenced by m_pPacketPipeFactory.
     MOS_Delete(m_pPacketPipeFactory);
@@ -133,6 +134,7 @@ MOS_STATUS VpPipeline::UserFeatureReport()
     {
         m_reporting->GetFeatures().outputPipeMode = m_vpOutputPipe;
         m_reporting->GetFeatures().veFeatureInUse = m_veboxFeatureInuse;
+        m_reporting->GetFeatures().packetReused   = m_packetReused;
 
         if (m_mmc)
         {
@@ -243,7 +245,6 @@ MOS_STATUS VpPipeline::Init(void *mhwInterface)
 
     VP_PUBLIC_CHK_STATUS_RETURN(CreateFeatureManager());
     VP_PUBLIC_CHK_NULL_RETURN(m_featureManager);
-    VP_PUBLIC_CHK_STATUS_RETURN(InitUserFeatureSetting());
     VP_PUBLIC_CHK_STATUS_RETURN(CreateVPDebugInterface());
 
     m_vpMhwInterface.m_debugInterface = (void*)m_debugInterface;
@@ -283,6 +284,8 @@ MOS_STATUS VpPipeline::Init(void *mhwInterface)
             m_mediaContext, MOS_VE_SUPPORTED(m_osInterface), m_numVebox));
     }
 
+    VP_PUBLIC_CHK_STATUS_RETURN(CreatePacketReuseManager());
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -307,15 +310,17 @@ MOS_STATUS VpPipeline::ExecuteVpPipeline()
     PacketPipe                 *pPacketPipe = nullptr;
     std::vector<SwFilterPipe*> swFilterPipes;
     VpFeatureManagerNext       *featureManagerNext = dynamic_cast<VpFeatureManagerNext *>(m_featureManager);
-    bool                        isBypassNeeded     = false;
+    bool                       isBypassNeeded     = false;
+    PVP_PIPELINE_PARAMS        params = nullptr;
+    Policy                     *policy = nullptr;
 
     VP_PUBLIC_CHK_NULL_RETURN(featureManagerNext);
     VP_PUBLIC_CHK_NULL_RETURN(m_pPacketPipeFactory);
 
     if (PIPELINE_PARAM_TYPE_LEGACY == m_pvpParams.type)
     {
-        PVP_PIPELINE_PARAMS params = m_pvpParams.renderParams;
-        VP_PUBLIC_CHK_NULL(params);
+        params = m_pvpParams.renderParams;
+        VP_PUBLIC_CHK_NULL_RETURN(params);
         // Set Pipeline status Table
         m_statusReport->SetPipeStatusReportParams(params, m_vpMhwInterface.m_statusTable);
 
@@ -346,18 +351,93 @@ MOS_STATUS VpPipeline::ExecuteVpPipeline()
     }
 
     VP_PUBLIC_CHK_STATUS_RETURN(CreateSwFilterPipe(m_pvpParams, swFilterPipes));
+
+    auto retHandler = [&]()
+    {
+        m_pPacketPipeFactory->ReturnPacketPipe(pPacketPipe);
+        for (auto &pipe : swFilterPipes)
+        {
+            m_vpInterface->GetSwFilterPipeFactory().Destory(pipe);
+        }
+        m_statusReport->UpdateStatusTableAfterSubmit(eStatus);
+        // Notify resourceManager for end of new frame processing.
+        m_resourceManager->OnNewFrameProcessEnd();
+        MT_LOG1(MT_VP_HAL_ONNEWFRAME_PROC_END, MT_NORMAL, MT_VP_HAL_ONNEWFRAME_COUNTER, m_frameCounter);
+        m_frameCounter++;
+    };
+
+    auto chkStatusHandler = [&](MOS_STATUS status)
+    {
+        if (MOS_FAILED(status))
+        {
+            retHandler();
+        }
+        return status;
+    };
+
+    auto chkNullHandler = [&](void *p)
+    {
+        if (nullptr == p)
+        {
+            retHandler();
+        }
+        return p;
+    };
+
     // Notify resourceManager for start of new frame processing.
     MT_LOG1(MT_VP_HAL_ONNEWFRAME_PROC_START, MT_NORMAL, MT_VP_HAL_ONNEWFRAME_COUNTER, m_frameCounter);
-    VP_PUBLIC_CHK_STATUS_RETURN(m_resourceManager->OnNewFrameProcessStart(*swFilterPipes[0]));
+    VP_PUBLIC_CHK_STATUS_RETURN(chkStatusHandler(m_resourceManager->OnNewFrameProcessStart(*swFilterPipes[0])));
+
+    policy = featureManagerNext->GetPolicy();
+    VP_PUBLIC_CHK_NULL_RETURN(chkNullHandler(policy));
+
+    bool isPacketPipeReused = false;
+    VP_PUBLIC_CHK_STATUS_RETURN(chkStatusHandler(m_packetReuseMgr->PreparePacketPipeReuse(swFilterPipes, *policy, *m_resourceManager, isPacketPipeReused)));
+
+    if (isPacketPipeReused)
+    {
+        VP_PUBLIC_NORMALMESSAGE("Packet reused.");
+        m_packetReused = true;
+
+        PacketPipe *pipeReused = m_packetReuseMgr->GetPacketPipeReused();
+        VP_PUBLIC_CHK_NULL_RETURN(chkNullHandler(pipeReused));
+
+        // Update output pipe mode.
+        m_vpOutputPipe = pipeReused->GetOutputPipeMode();
+        m_veboxFeatureInuse = pipeReused->IsVeboxFeatureInuse();
+
+        // MediaPipeline::m_statusReport is always nullptr in VP APO path right now.
+        eStatus = pipeReused->Execute(MediaPipeline::m_statusReport, m_scalability, m_mediaContext, MOS_VE_SUPPORTED(m_osInterface), m_numVebox);
+
+        if (MOS_SUCCEEDED(eStatus))
+        {
+            VP_PUBLIC_CHK_STATUS_RETURN(chkStatusHandler(UpdateExecuteStatus()));
+        }
+
+        for (auto &pipe : swFilterPipes)
+        {
+            m_vpInterface->GetSwFilterPipeFactory().Destory(pipe);
+        }
+        m_statusReport->UpdateStatusTableAfterSubmit(eStatus);
+        // Notify resourceManager for end of new frame processing.
+        m_resourceManager->OnNewFrameProcessEnd();
+        MT_LOG1(MT_VP_HAL_ONNEWFRAME_PROC_END, MT_NORMAL, MT_VP_HAL_ONNEWFRAME_COUNTER, m_frameCounter);
+        m_frameCounter++;
+        return eStatus;
+    }
+    else
+    {
+        m_packetReused = false;
+    }
 
     for (auto &pipe : swFilterPipes)
     {
         pPacketPipe = m_pPacketPipeFactory->CreatePacketPipe();
-        VP_PUBLIC_CHK_NULL(pPacketPipe);
+        VP_PUBLIC_CHK_NULL_RETURN(chkNullHandler(pPacketPipe));
 
         eStatus = featureManagerNext->InitPacketPipe(*pipe, *pPacketPipe);
         m_vpInterface->GetSwFilterPipeFactory().Destory(pipe);
-        VP_PUBLIC_CHK_STATUS(eStatus);
+        VP_PUBLIC_CHK_STATUS_RETURN(chkStatusHandler(eStatus));
 
         // Update output pipe mode.
         m_vpOutputPipe = pPacketPipe->GetOutputPipeMode();
@@ -366,25 +446,17 @@ MOS_STATUS VpPipeline::ExecuteVpPipeline()
         // MediaPipeline::m_statusReport is always nullptr in VP APO path right now.
         eStatus = pPacketPipe->Execute(MediaPipeline::m_statusReport, m_scalability, m_mediaContext, MOS_VE_SUPPORTED(m_osInterface), m_numVebox);
 
-        m_pPacketPipeFactory->ReturnPacketPipe(pPacketPipe);
-
         if (MOS_SUCCEEDED(eStatus))
         {
-            VP_PUBLIC_CHK_STATUS(UpdateExecuteStatus());
+            VP_PUBLIC_CHK_STATUS_RETURN(chkStatusHandler(m_packetReuseMgr->UpdatePacketPipeConfig(pPacketPipe)));
+            VP_PUBLIC_CHK_STATUS_RETURN(chkStatusHandler(UpdateExecuteStatus()));
         }
+
+        m_pPacketPipeFactory->ReturnPacketPipe(pPacketPipe);
     }
 
-finish:
-    m_pPacketPipeFactory->ReturnPacketPipe(pPacketPipe);
-    for (auto &pipe : swFilterPipes)
-    {
-        m_vpInterface->GetSwFilterPipeFactory().Destory(pipe);
-    }
-    m_statusReport->UpdateStatusTableAfterSubmit(eStatus);
-    // Notify resourceManager for end of new frame processing.
-    m_resourceManager->OnNewFrameProcessEnd();
-    MT_LOG1(MT_VP_HAL_ONNEWFRAME_PROC_END, MT_NORMAL, MT_VP_HAL_ONNEWFRAME_COUNTER, m_frameCounter);
-    m_frameCounter++;
+    retHandler();
+
     return eStatus;
 }
 
@@ -636,27 +708,7 @@ VPHAL_SURFACE *VpPipeline::AllocateTempTargetSurface(VPHAL_SURFACE *m_tempTarget
     }
     return m_tempTargetSurface;
 }
-#endif
 
-MOS_STATUS VpPipeline::InitUserFeatureSetting()
-{
-    VP_FUNC_CALL();
-
-    MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
-
-#if (_DEBUG || _RELEASE_INTERNAL)
-    //SFC NV12/P010 Linear Output.
-    uint32_t enableSFCNv12P010LinearOutput             = m_userFeatureControl->IsEnableSFCNv12P010LinearOutput();
-    m_userFeatureSetting.enableSFCNv12P010LinearOutput = enableSFCNv12P010LinearOutput;
-
-    //SFC RGBP Linear/Tile RGB24 Linear Output.
-    uint32_t enableSFCRGBPRGB24Output             = m_userFeatureControl->IsEnableSFCRGBPRGB24Output();
-    m_userFeatureSetting.enableSFCRGBPRGB24Output = enableSFCRGBPRGB24Output;
-#endif
-    return eStatus;
-}
-
-#if (_DEBUG || _RELEASE_INTERNAL)
 MOS_STATUS VpPipeline::SurfaceReplace(PVP_PIPELINE_PARAMS params)
 {
     MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
@@ -665,8 +717,9 @@ MOS_STATUS VpPipeline::SurfaceReplace(PVP_PIPELINE_PARAMS params)
     MEDIA_FEATURE_TABLE *skuTable = nullptr;
     skuTable                      = m_vpMhwInterface.m_osInterface->pfnGetSkuTable(m_vpMhwInterface.m_osInterface);
     VP_PUBLIC_CHK_NULL_RETURN(skuTable);
+    VP_PUBLIC_CHK_NULL_RETURN(m_userFeatureControl);
 
-    if (m_userFeatureSetting.enableSFCNv12P010LinearOutput &&
+    if (m_userFeatureControl->EnabledSFCNv12P010LinearOutput() &&
         MOS_TILE_LINEAR != params->pTarget[0]->TileType &&
         (Format_P010 == params->pTarget[0]->Format || Format_NV12 == params->pTarget[0]->Format) &&
         MEDIA_IS_SKU(skuTable, FtrSFC420LinearOutputSupport))
@@ -714,13 +767,13 @@ MOS_STATUS VpPipeline::SurfaceReplace(PVP_PIPELINE_PARAMS params)
         {Format_BGRP, MOS_TILE_Y}
     };
 
-    if (m_userFeatureSetting.enableSFCRGBPRGB24Output == VP_RGB_OUTPUT_OVERRIDE_ID_INVALID ||
-        m_userFeatureSetting.enableSFCRGBPRGB24Output >= VP_RGB_OUTPUT_OVERRIDE_ID_MAX)
+    if (m_userFeatureControl->EnabledSFCRGBPRGB24Output() == VP_RGB_OUTPUT_OVERRIDE_ID_INVALID ||
+        m_userFeatureControl->EnabledSFCRGBPRGB24Output() >= VP_RGB_OUTPUT_OVERRIDE_ID_MAX)
     {
         return MOS_STATUS_SUCCESS;
     }
 
-    if (rgbCfg[m_userFeatureSetting.enableSFCRGBPRGB24Output].format != params->pTarget[0]->Format &&
+    if (rgbCfg[m_userFeatureControl->EnabledSFCRGBPRGB24Output()].format != params->pTarget[0]->Format &&
         MEDIA_IS_SKU(skuTable, FtrSFCRGBPRGB24OutputSupport))
     {
         if (!m_tempTargetSurface)
@@ -731,9 +784,9 @@ MOS_STATUS VpPipeline::SurfaceReplace(PVP_PIPELINE_PARAMS params)
         eStatus = m_allocator->ReAllocateSurface(
             m_tempTargetSurface,
             "TempTargetSurface",
-            rgbCfg[m_userFeatureSetting.enableSFCRGBPRGB24Output].format,
+            rgbCfg[m_userFeatureControl->EnabledSFCRGBPRGB24Output()].format,
             MOS_GFXRES_2D,
-            rgbCfg[m_userFeatureSetting.enableSFCRGBPRGB24Output].tielType,
+            rgbCfg[m_userFeatureControl->EnabledSFCRGBPRGB24Output()].tielType,
             params->pTarget[0]->dwWidth,
             params->pTarget[0]->dwHeight,
             false,

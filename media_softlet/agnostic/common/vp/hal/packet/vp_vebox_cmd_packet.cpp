@@ -764,6 +764,47 @@ MOS_STATUS VpVeboxCmdPacket::SetSteParams(
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS VpVeboxCmdPacket::UpdateCscParams(FeatureParamCsc &params)
+{
+    VP_FUNC_CALL();
+    // Scaing only can be apply to SFC path
+    if (m_PacketCaps.bSfcCsc)
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(m_sfcRender->UpdateCscParams(params));
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpVeboxCmdPacket::UpdateTccParams(FeatureParamTcc &params)
+{
+    VP_FUNC_CALL();
+    VpVeboxRenderData               *pRenderData = GetLastExecRenderData();
+    MHW_VEBOX_IECP_PARAMS&           mhwVeboxIecpParams = pRenderData->GetIECPParams();
+
+    VP_RENDER_CHK_NULL_RETURN(pRenderData);
+
+    if (params.bEnableTCC)
+    {
+        pRenderData->IECP.TCC.bTccEnabled = true;
+        mhwVeboxIecpParams.ColorPipeParams.bActive = true;
+        mhwVeboxIecpParams.ColorPipeParams.bEnableTCC = true;
+        mhwVeboxIecpParams.ColorPipeParams.TccParams.Magenta = params.Magenta;
+        mhwVeboxIecpParams.ColorPipeParams.TccParams.Red = params.Red;
+        mhwVeboxIecpParams.ColorPipeParams.TccParams.Yellow = params.Yellow;
+        mhwVeboxIecpParams.ColorPipeParams.TccParams.Green = params.Green;
+        mhwVeboxIecpParams.ColorPipeParams.TccParams.Cyan = params.Cyan;
+        mhwVeboxIecpParams.ColorPipeParams.TccParams.Blue = params.Blue;
+    }
+    else
+    {
+        pRenderData->IECP.TCC.bTccEnabled = false;
+        mhwVeboxIecpParams.ColorPipeParams.bEnableTCC = false;
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS VpVeboxCmdPacket::SetTccParams(
     PVEBOX_TCC_PARAMS                    pTccParams)
 {
@@ -1913,7 +1954,6 @@ MOS_STATUS VpVeboxCmdPacket::DumpVeboxStateHeap()
         VPHAL_DUMP_TYPE_VEBOX_KERNELHEAP);
 
     counter++;
-finish:
 #endif
     return eStatus;
 }
@@ -1979,7 +2019,7 @@ MOS_STATUS VpVeboxCmdPacket::PrepareState()
 
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
-    if (m_packetResourcesdPrepared)
+    if (m_packetResourcesPrepared)
     {
         VP_RENDER_NORMALMESSAGE("Resource Prepared, skip this time");
         return MOS_STATUS_SUCCESS;
@@ -1989,7 +2029,7 @@ MOS_STATUS VpVeboxCmdPacket::PrepareState()
 
     VP_RENDER_CHK_STATUS_RETURN(UpdateVeboxStates());
 
-    m_packetResourcesdPrepared = true;
+    m_packetResourcesPrepared = true;
 
     return eStatus;
 }
@@ -2050,6 +2090,44 @@ MOS_STATUS VpVeboxCmdPacket::AdjustBlockStatistics()
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS VpVeboxCmdPacket::SetUpdatedExecuteResource(
+    VP_SURFACE                          *inputSurface,
+    VP_SURFACE                          *outputSurface,
+    VP_SURFACE                          *previousSurface,
+    VP_SURFACE_SETTING                  &surfSetting)
+{
+    VP_FUNC_CALL();
+
+    m_allocator->UpdateResourceUsageType(&inputSurface->osSurface->OsResource, MOS_HW_RESOURCE_USAGE_VP_INPUT_PICTURE_FF);
+    m_allocator->UpdateResourceUsageType(&outputSurface->osSurface->OsResource, MOS_HW_RESOURCE_USAGE_VP_OUTPUT_PICTURE_FF);
+
+    // Set current src = current primary input
+    VP_PUBLIC_CHK_STATUS_RETURN(m_allocator->CopyVpSurface(*m_renderTarget ,*outputSurface));
+
+    // Init packet surface params.
+    m_surfSetting                                   = surfSetting;
+    m_veboxPacketSurface.pCurrInput                 = GetSurface(SurfaceTypeVeboxInput);
+    m_veboxPacketSurface.pStatisticsOutput          = GetSurface(SurfaceTypeStatistics);
+    m_veboxPacketSurface.pCurrOutput                = GetSurface(SurfaceTypeVeboxCurrentOutput);
+    m_veboxPacketSurface.pPrevInput                 = GetSurface(SurfaceTypeVeboxPreviousInput);
+    m_veboxPacketSurface.pSTMMInput                 = GetSurface(SurfaceTypeSTMMIn);
+    m_veboxPacketSurface.pSTMMOutput                = GetSurface(SurfaceTypeSTMMOut);
+    m_veboxPacketSurface.pDenoisedCurrOutput        = GetSurface(SurfaceTypeDNOutput);
+    m_veboxPacketSurface.pPrevOutput                = GetSurface(SurfaceTypeVeboxPreviousOutput);
+    m_veboxPacketSurface.pAlphaOrVignette           = GetSurface(SurfaceTypeAlphaOrVignette);
+    m_veboxPacketSurface.pLaceOrAceOrRgbHistogram   = GetSurface(SurfaceTypeLaceAceRGBHistogram);
+    m_veboxPacketSurface.pSurfSkinScoreOutput       = GetSurface(SurfaceTypeSkinScore);
+
+    VP_RENDER_CHK_NULL_RETURN(m_veboxPacketSurface.pCurrInput);
+    VP_RENDER_CHK_NULL_RETURN(m_veboxPacketSurface.pStatisticsOutput);
+    VP_RENDER_CHK_NULL_RETURN(m_veboxPacketSurface.pLaceOrAceOrRgbHistogram);
+
+    // Adjust boundary for statistics surface block
+    VP_RENDER_CHK_STATUS_RETURN(AdjustBlockStatistics());
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS VpVeboxCmdPacket::PacketInit(
     VP_SURFACE                          *inputSurface,
     VP_SURFACE                          *outputSurface,
@@ -2060,7 +2138,7 @@ MOS_STATUS VpVeboxCmdPacket::PacketInit(
     VP_FUNC_CALL();
 
     VpVeboxRenderData       *pRenderData = GetLastExecRenderData();
-    m_packetResourcesdPrepared = false;
+    m_packetResourcesPrepared = false;
 
     VP_RENDER_CHK_NULL_RETURN(pRenderData);
     VP_RENDER_CHK_NULL_RETURN(inputSurface);
@@ -2068,6 +2146,7 @@ MOS_STATUS VpVeboxCmdPacket::PacketInit(
     VP_RENDER_CHK_STATUS_RETURN(pRenderData->Init());
 
     m_PacketCaps      = packetCaps;
+    VP_RENDER_NORMALMESSAGE("m_PacketCaps %x", m_PacketCaps.value);
 
     VP_RENDER_CHK_STATUS_RETURN(Init());
     VP_RENDER_CHK_NULL_RETURN(m_allocator);

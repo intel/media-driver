@@ -64,8 +64,8 @@
 #define VP_SURFACE_DUMP(                                       \
     debuginterface, surf, frameCntr, layerCntr, loc)           \
     if (debuginterface)                                        \
-        VP_DEBUG_CHK_STATUS(debuginterface->DumpVpSurface(     \
-           surf, frameCntr, layerCntr, loc));
+        debuginterface->DumpVpSurface(                         \
+           surf, frameCntr, layerCntr, loc);
 
 //------------------------------------------------------------------------------
 // Dump array of surfaces

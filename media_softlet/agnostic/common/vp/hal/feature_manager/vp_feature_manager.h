@@ -194,6 +194,11 @@ public:
     //!
     bool IsVeboxSfcFormatSupported(MOS_FORMAT formatInput, MOS_FORMAT formatOutput);
 
+    Policy *GetPolicy()
+    {
+        return m_policy;
+    }
+
 protected:
     MOS_STATUS CreateHwFilterPipe(SwFilterPipe& swFilterPipe, HwFilterPipe*& pHwFilterPipe);
     MOS_STATUS UpdateResources(HwFilterPipe& hwFilterPipe);

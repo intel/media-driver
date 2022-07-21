@@ -649,14 +649,14 @@ MOS_STATUS VpUtils::DeclareUserSettings(MediaUserSettingSharedPtr userSettingPtr
         0,
         true);
 
-#if (_DEBUG || _RELEASE_INTERNAL)
-    DeclareUserSettingKeyForDebug( //Init CP output surface with protected 0.
+    DeclareUserSettingKey(
         userSettingPtr,
-        __MEDIA_USER_FEATURE_VALUE_INIT_CP_OUTPUT_SURFACE,
+        __MEDIA_USER_FEATURE_VALUE_DISABLE_PACKET_REUSE,
         MediaUserSetting::Group::Sequence,
         0,
         true);
 
+#if (_DEBUG || _RELEASE_INTERNAL)
     DeclareUserSettingKeyForDebug(  // FORCE VP DECOMPRESSED OUTPUT
         userSettingPtr,
         __VPHAL_RNDR_FORCE_VP_DECOMPRESSED_OUTPUT,

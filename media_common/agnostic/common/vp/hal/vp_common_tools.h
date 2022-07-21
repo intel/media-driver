@@ -158,6 +158,8 @@ typedef struct _VP_CONFIG
     uint32_t   dwIEFPreprocessInUseReported;        // Reported Vebox IEF Pre-process for HDR
     bool       bAdvancedScalingInUse;              // Advanced Scaling Enabled
     bool       bAdvancedScalingInUseReported;      // Reported Advanced Scaling Enabled
+    bool       isPacketReused;              // true if vp packet reused.
+    bool       isPacketReusedReported;      // Reported vp packet reused.
 
     // Configurations for cache control
     uint32_t   dwDndiReferenceBuffer;

@@ -911,6 +911,10 @@ struct FeatureParamCsc : public FeatureParam
     {
         VPHAL_CSPACE    colorSpace      = CSpace_None;
         uint32_t        chromaSiting    = 0;
+        bool operator == (struct CSC_PARAMS &b)
+        {
+            return colorSpace == b.colorSpace && chromaSiting == b.chromaSiting;
+        }
     };
     CSC_PARAMS          input           = {};
     CSC_PARAMS          output          = {};
@@ -951,6 +955,10 @@ struct FeatureParamScaling : public FeatureParam
         RECT                    rcDst    = {0, 0, 0, 0};  //!< Input dst rect without rotate being applied.
         RECT                    rcMaxSrc = {0, 0, 0, 0};
         VPHAL_SAMPLE_TYPE       sampleType = SAMPLE_PROGRESSIVE;
+        bool operator == (struct SCALING_PARAMS &b)
+        {
+            return 0 == memcmp(this, &b, sizeof(SCALING_PARAMS));
+        }
     };
 
     // Parameters maintained by scaling feature parameters
@@ -973,6 +981,28 @@ struct FeatureParamScaling : public FeatureParam
     struct {
         bool                    rotationNeeded = false;                 //!< Whether rotate SwFilter exists on SwFilterPipe.
     } rotation;
+
+    bool operator == (struct FeatureParamScaling &b)
+    {
+        return formatInput          == b.formatInput            &&
+            formatOutput            == b.formatOutput           &&
+            input                   == b.input                  &&
+            output                  == b.output                 &&
+            isPrimary               == b.isPrimary              &&
+            scalingMode             == b.scalingMode            &&
+            scalingPreference       == b.scalingPreference      &&
+            bDirectionalScalar      == b.bDirectionalScalar     &&
+            bTargetRectangle        == b.bTargetRectangle       &&
+            interlacedScalingType   == b.interlacedScalingType  &&
+            csc.colorSpaceOutput    == b.csc.colorSpaceOutput   &&
+            rotation.rotationNeeded == b.rotation.rotationNeeded &&
+            (nullptr == pColorFillParams    && nullptr == b.pColorFillParams ||
+            nullptr != pColorFillParams     && nullptr != b.pColorFillParams &&
+            0 == memcmp(pColorFillParams, b.pColorFillParams, sizeof(VPHAL_COLORFILL_PARAMS))) &&
+            (nullptr == pCompAlpha          && nullptr == b.pCompAlpha ||
+            nullptr != pCompAlpha           && nullptr != b.pCompAlpha &&
+            0 == memcmp(pCompAlpha, b.pCompAlpha, sizeof(VPHAL_ALPHA_PARAMS)));
+    }
 
     FeatureParamScaling        *next = nullptr;                           //!< pointe to new/next generated scaling params
 };
@@ -1012,6 +1042,12 @@ struct FeatureParamRotMir : public FeatureParam
     struct {
         MOS_TILE_TYPE tileOutput = MOS_TILE_X;
     } surfInfo;
+
+    bool operator == (struct FeatureParamRotMir &b)
+    {
+        return rotation == b.rotation &&
+            surfInfo.tileOutput == b.surfInfo.tileOutput;
+    }
 };
 
 class SwFilterRotMir : public SwFilter
@@ -1279,6 +1315,12 @@ MEDIA_CLASS_DEFINE_END(vp__SwFilterBlending)
 struct FeatureParamColorFill : public FeatureParam
 {
     PVPHAL_COLORFILL_PARAMS colorFillParams = nullptr;     //!< ColorFill - BG only
+    bool operator == (struct FeatureParamColorFill &b)
+    {
+        return (nullptr == colorFillParams && nullptr == b.colorFillParams ||
+            nullptr != colorFillParams && nullptr != b.colorFillParams &&
+            0 == memcmp(colorFillParams, b.colorFillParams, sizeof(*b.colorFillParams)));
+    }
 };
 
 class SwFilterColorFill : public SwFilter
@@ -1304,6 +1346,13 @@ struct FeatureParamAlpha : public FeatureParam
 {
     PVPHAL_ALPHA_PARAMS     compAlpha         = nullptr;      //!< Alpha for composited surface
     bool                    calculatingAlpha  = false;        //!< Alpha calculation parameters
+    bool operator == (struct FeatureParamAlpha &b)
+    {
+        return calculatingAlpha == b.calculatingAlpha &&
+            (nullptr == compAlpha   && nullptr == b.compAlpha ||
+            nullptr != compAlpha    && nullptr != b.compAlpha &&
+            0 == memcmp(compAlpha, b.compAlpha, sizeof(*b.compAlpha)));
+    }
 };
 
 class SwFilterAlpha : public SwFilter

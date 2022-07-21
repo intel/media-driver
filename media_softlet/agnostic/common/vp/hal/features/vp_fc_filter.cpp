@@ -435,7 +435,7 @@ MOS_STATUS VpFcFilter::CalculateScalingParams(VP_FC_LAYER *layer, VP_FC_LAYER *t
 
     if (VPHAL_SCALING_NEAREST == layer->scalingMode && (isChromaUpSamplingNeeded || isChromaDownSamplingNeeded))
     {
-        VP_PUBLIC_ASSERTMESSAGE("Scaling Info: Nearest scaling with isChromaUpSamplingNeeded (%d) and isChromaDownSamplingNeeded (%d)",
+        VP_PUBLIC_NORMALMESSAGE("Scaling Info: Nearest scaling with isChromaUpSamplingNeeded (%d) and isChromaDownSamplingNeeded (%d)",
             isChromaUpSamplingNeeded, isChromaDownSamplingNeeded);
     }
 

@@ -2017,8 +2017,12 @@ bool Policy::IsIsolateFeatureOutputPipeNeeded(SwFilterSubPipe *featureSubPipe, S
         for (auto featureType : m_featurePool)
         {
             SwFilter      *curSwFilter = featureSubPipe->GetSwFilter(featureType);
+            if (nullptr == curSwFilter)
+            {
+                continue;
+            }
             VP_EngineEntry caps        = curSwFilter->GetFilterEngineCaps();
-            if (nullptr == curSwFilter || caps.bEnabled == false || featureType == swFilter->GetFeatureType())
+            if (caps.bEnabled == false || featureType == swFilter->GetFeatureType())
             {
                 continue;
             }
@@ -2146,7 +2150,7 @@ MOS_STATUS Policy::GetInputPipeEngineCaps(SwFilterPipe& featurePipe, VP_EngineEn
                 singlePipeSelected = featureSubPipe;
                 engineCapsForVeboxSfc.value |= engineCaps.value;
                 engineCapsForVeboxSfc.nonFcFeatureExists = true;
-                engineCapsForVeboxSfc.nonVeboxFeatureExists |= !engineCaps.VeboxNeeded;
+                engineCapsForVeboxSfc.nonVeboxFeatureExists |= ~engineCaps.VeboxNeeded;
             }
             else
             {
@@ -2154,7 +2158,7 @@ MOS_STATUS Policy::GetInputPipeEngineCaps(SwFilterPipe& featurePipe, VP_EngineEn
                 if (engineCaps.SfcNeeded || engineCaps.VeboxNeeded)
                 {
                     engineCapsForVeboxSfc.value |= engineCaps.value;
-                    engineCapsForVeboxSfc.nonVeboxFeatureExists |= !engineCaps.VeboxNeeded;
+                    engineCapsForVeboxSfc.nonVeboxFeatureExists |= ~engineCaps.VeboxNeeded;
                 }
                 else
                 {

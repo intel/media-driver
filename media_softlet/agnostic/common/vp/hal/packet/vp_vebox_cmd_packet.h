@@ -543,6 +543,9 @@ public:
     //!
     virtual MOS_STATUS SetDiParams(PVEBOX_DI_PARAMS diParams) override;
 
+    virtual MOS_STATUS UpdateCscParams(FeatureParamCsc &params) override;
+    virtual MOS_STATUS UpdateTccParams(FeatureParamTcc &params) override;
+
     //!
     //! \brief    Get DN luma parameters
     //! \details  Get DN luma parameters
@@ -766,8 +769,13 @@ public:
         VP_SURFACE                          *outputSurface,
         VP_SURFACE                          *previousSurface,
         VP_SURFACE_SETTING                  &surfSetting,
-        VP_EXECUTE_CAPS                     packetCaps)override;
+        VP_EXECUTE_CAPS                     packetCaps) override;
 
+    virtual MOS_STATUS SetUpdatedExecuteResource(
+        VP_SURFACE                          *inputSurface,
+        VP_SURFACE                          *outputSurface,
+        VP_SURFACE                          *previousSurface,
+        VP_SURFACE_SETTING                  &surfSetting) override;
 
     //!
     //! \brief    Check whether the Vebox command parameters are correct

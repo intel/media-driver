@@ -133,6 +133,9 @@ public:
     //!
     virtual MOS_STATUS SetScalingParams(PSFC_SCALING_PARAMS scalingParams) override;
 
+    virtual MOS_STATUS UpdateCscParams(FeatureParamCsc &params) override;
+    virtual MOS_STATUS UpdateTccParams(FeatureParamTcc &params) override;
+
     //!
     //! \brief    Setup CSC Params for Vebox/SFC
     //! \details  Setup surface CSC Params for Vebox/SFC
@@ -469,6 +472,11 @@ public:
         VP_SURFACE_SETTING                  &surfSetting,
         VP_EXECUTE_CAPS                     packetCaps)override;
 
+    virtual MOS_STATUS SetUpdatedExecuteResource(
+        VP_SURFACE                          *inputSurface,
+        VP_SURFACE                          *outputSurface,
+        VP_SURFACE                          *previousSurface,
+        VP_SURFACE_SETTING                  &surfSetting) override;
 
     //!
     //! \brief    Check whether the Vebox command parameters are correct

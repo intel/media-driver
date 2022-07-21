@@ -68,6 +68,7 @@ public:
         bool                          veFeatureInUse      = false;                        //!< If any VEBOX feature is in use, excluding pure bypass for SFC
         bool                          diScdMode           = false;                        //!< Scene change detection
         VPHAL_HDR_MODE                hdrMode             = VPHAL_HDR_MODE_NONE;          //!< HDR mode
+        bool                          packetReused        = false;                        //!< true if packet reused.
     };
 
     virtual ~VpFeatureReport(){};

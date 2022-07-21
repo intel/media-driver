@@ -167,6 +167,8 @@ MOS_STATUS SwFilterCsc::Configure(VP_PIPELINE_PARAMS &params, bool isInputSurf, 
     // Alpha should be handled in input pipe to avoid alpha data lost from image.
     m_Params.pAlphaParams           = params.pCompAlpha;
 
+    VP_PUBLIC_NORMALMESSAGE("formatInput %d, formatOutput %d", m_Params.formatInput, m_Params.formatOutput);
+
     return MOS_STATUS_SUCCESS;
 }
 

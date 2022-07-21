@@ -460,6 +460,8 @@ MOS_STATUS VpScalabilityMultiPipeNext::SubmitCmdBuffer(PMOS_COMMAND_BUFFER cmdBu
 {
     VP_FUNC_CALL();
 
+    MOS_STATUS status = MOS_STATUS_SUCCESS;
+
     SCALABILITY_FUNCTION_ENTER;
     SCALABILITY_CHK_NULL_RETURN(m_osInterface);
 
@@ -473,7 +475,11 @@ MOS_STATUS VpScalabilityMultiPipeNext::SubmitCmdBuffer(PMOS_COMMAND_BUFFER cmdBu
     {
         for (uint32_t i = 0; i < m_pipeNum; i++)
         {
-            SCALABILITY_CHK_STATUS_RETURN(m_osInterface->pfnDumpCommandBuffer(m_osInterface, &m_secondaryCmdBuffers[i]));
+            status = m_osInterface->pfnDumpCommandBuffer(m_osInterface, &m_secondaryCmdBuffers[i]);
+            if (MOS_FAILED(status))
+            {
+                SCALABILITY_ASSERTMESSAGE("DumpCommandBuffer failed with status=%d", status);
+            }
         }
     }
 #endif  // MOS_COMMAND_BUFFER_DUMP_SUPPORTED

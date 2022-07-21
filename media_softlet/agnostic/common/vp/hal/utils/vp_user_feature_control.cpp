@@ -131,6 +131,23 @@ VpUserFeatureControl::VpUserFeatureControl(MOS_INTERFACE &osInterface, VpPlatfor
     }
     VP_PUBLIC_NORMALMESSAGE("cscCosffPatchModeDisabled %d", m_ctrlValDefault.cscCosffPatchModeDisabled);
 
+    bool disablePacketReuse = false;
+    status = ReadUserSetting(
+        m_userSettingPtr,
+        disablePacketReuse,
+        __MEDIA_USER_FEATURE_VALUE_DISABLE_PACKET_REUSE,
+        MediaUserSetting::Group::Sequence);
+    if (MOS_SUCCEEDED(status))
+    {
+        m_ctrlValDefault.disablePacketReuse = disablePacketReuse;
+    }
+    else
+    {
+        // Default value
+        m_ctrlValDefault.disablePacketReuse = false;
+    }
+    VP_PUBLIC_NORMALMESSAGE("disablePacketReuse %d", m_ctrlValDefault.disablePacketReuse);
+
     // bComputeContextEnabled is true only if Gen12+. 
     // Gen12+, compute context(MOS_GPU_NODE_COMPUTE, MOS_GPU_CONTEXT_COMPUTE) can be used for render engine.
     // Before Gen12, we only use MOS_GPU_NODE_3D and MOS_GPU_CONTEXT_RENDER.
@@ -208,54 +225,37 @@ MOS_STATUS VpUserFeatureControl::CreateUserSettingForDebug()
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     //SFC NV12/P010 Linear Output.
-    uint32_t enableSFCNv12P010LinearOutput = 0;
+    uint32_t enabledSFCNv12P010LinearOutput = 0;
     eRegKeyReadStatus = ReadUserSettingForDebug(
         m_userSettingPtr,
-        enableSFCNv12P010LinearOutput,
+        enabledSFCNv12P010LinearOutput,
         __VPHAL_ENABLE_SFC_NV12_P010_LINEAR_OUTPUT,
         MediaUserSetting::Group::Sequence);
     if (MOS_SUCCEEDED(eRegKeyReadStatus))
     {
-        m_ctrlValDefault.enableSFCNv12P010LinearOutput = enableSFCNv12P010LinearOutput;
+        m_ctrlValDefault.enabledSFCNv12P010LinearOutput = enabledSFCNv12P010LinearOutput;
     }
     else
     {
         // Default value
-        m_ctrlValDefault.enableSFCNv12P010LinearOutput = 0;
+        m_ctrlValDefault.enabledSFCNv12P010LinearOutput = 0;
     }
 
     //SFC RGBP Linear/Tile RGB24 Linear Output.
-    uint32_t enableSFCRGBPRGB24Output = 0;
+    uint32_t enabledSFCRGBPRGB24Output = 0;
     eRegKeyReadStatus =ReadUserSettingForDebug(
         m_userSettingPtr,
-        enableSFCRGBPRGB24Output,
+        enabledSFCRGBPRGB24Output,
         __VPHAL_ENABLE_SFC_RGBP_RGB24_OUTPUT,
         MediaUserSetting::Group::Sequence);
     if (MOS_SUCCEEDED(eRegKeyReadStatus))
     {
-        m_ctrlValDefault.enableSFCRGBPRGB24Output = enableSFCRGBPRGB24Output;
+        m_ctrlValDefault.enabledSFCRGBPRGB24Output = enabledSFCRGBPRGB24Output;
     }
     else
     {
         // Default value
-        m_ctrlValDefault.enableSFCRGBPRGB24Output = 0;
-    }
-
-    // Init CP Output Surface
-    bool surfaceInitEnabled = false;
-    eRegKeyReadStatus = ReadUserSettingForDebug(
-        m_userSettingPtr,
-        surfaceInitEnabled,
-        __MEDIA_USER_FEATURE_VALUE_INIT_CP_OUTPUT_SURFACE,
-        MediaUserSetting::Group::Sequence);
-    if (MOS_SUCCEEDED(eRegKeyReadStatus))
-    {
-        m_ctrlValDefault.cpOutputSurfaceInitEnabled = surfaceInitEnabled;
-    }
-    else
-    {
-        // Default value
-        m_ctrlValDefault.cpOutputSurfaceInitEnabled = false;
+        m_ctrlValDefault.enabledSFCRGBPRGB24Output = 0;
     }
 #endif
     return MOS_STATUS_SUCCESS;

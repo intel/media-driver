@@ -281,10 +281,10 @@ protected:
 #define __VPHAL_RNDR_SSD_CONTROL                                        "SSD Control"
 #define __MEDIA_USER_FEATURE_VALUE_CSC_COEFF_PATCH_MODE_DISABLE         "CSC Patch Mode Disable"
 #define __MEDIA_USER_FEATURE_VALUE_BYPASS_VEBOX_DN_STATE_UPDATE         "Bypass Vebox Dn State Update"
+#define __MEDIA_USER_FEATURE_VALUE_DISABLE_PACKET_REUSE                 "Disable PacketReuse"
 
 #if (_DEBUG || _RELEASE_INTERNAL)
 #define __VPHAL_ENABLE_COMPUTE_CONTEXT                                  "VP Enable Compute Context"
-#define __MEDIA_USER_FEATURE_VALUE_INIT_CP_OUTPUT_SURFACE               "Init CP Output Surface"
 #define __VPHAL_RNDR_SCOREBOARD_CONTROL                                 "SCOREBOARD Control"
 #define __VPHAL_RNDR_CMFC_CONTROL                                       "CMFC Control"
 #define __VPHAL_ENABLE_1K_1DLUT                                         "Enable 1K 1DLUT"

@@ -323,6 +323,10 @@ MOS_STATUS SfcRenderBase::SetIefStateCscParams(
                 m_cscInputSwapNeeded = false;
             }
 
+            VP_RENDER_NORMALMESSAGE("sfc csc coeff calculated. (sfcInputCspace, cscRTCspace) current (%d, %d), previous (%d, %d), swap flag %d",
+                m_renderData.SfcInputCspace, m_renderData.pSfcPipeOutSurface->ColorSpace,
+                m_cscInputCspace, m_cscRTCspace, m_cscInputSwapNeeded ? 1 :0);
+
             m_cscInputCspace = m_renderData.SfcInputCspace;
             m_cscRTCspace    = m_renderData.pSfcPipeOutSurface->ColorSpace;
         }
@@ -342,10 +346,15 @@ MOS_STATUS SfcRenderBase::SetIefStateCscParams(
             m_cscCoeff[8]   = fTemp[2];
 
             m_cscInputSwapNeeded = IsInputChannelSwapNeeded(m_renderData.SfcInputFormat);
+
+            VP_RENDER_NORMALMESSAGE("sfc csc coeff swap flag need be updated to %d. sfcInputFormat %d, sfcInputCspace %d, cscRTCspace %d",
+                (m_cscInputSwapNeeded ? 1 : 0),
+                m_renderData.SfcInputFormat, m_cscInputCspace, m_cscRTCspace);
         }
         else
         {
-            VP_PUBLIC_NORMALMESSAGE("Keep the value of m_cscInputSwapNeeded.");
+            VP_RENDER_NORMALMESSAGE("sfc csc coeff reused. sfcInputFormat %d, sfcInputCspace %d, cscRTCspace %d, swap flag %d",
+                m_renderData.SfcInputFormat, m_cscInputCspace, m_cscRTCspace, (m_cscInputSwapNeeded ? 1 : 0));
         }
 
         pIEFStateParams->pfCscCoeff     = m_cscCoeff;
@@ -779,6 +788,22 @@ bool SfcRenderBase::IsInputChannelSwapNeeded(MOS_FORMAT inputFormat)
     {
         return false;
     }
+}
+
+MOS_STATUS SfcRenderBase::UpdateIefParams(PVPHAL_IEF_PARAMS iefParams)
+{
+    VP_FUNC_CALL();
+    m_renderData.bIEF           = (iefParams &&
+        iefParams->bEnabled &&
+        iefParams->fIEFFactor > 0.0F);
+    m_renderData.pIefParams     = iefParams;
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS SfcRenderBase::UpdateCscParams(FeatureParamCsc &cscParams)
+{
+    VP_RENDER_CHK_STATUS_RETURN(UpdateIefParams(cscParams.pIEFParams));
+    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS SfcRenderBase::SetCSCParams(PSFC_CSC_PARAMS cscParams)

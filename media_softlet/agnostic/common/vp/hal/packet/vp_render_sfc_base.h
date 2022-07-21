@@ -107,6 +107,8 @@ public:
     //!
     virtual MOS_STATUS SetupSfcState(PVP_SURFACE targetSurface);
 
+    virtual MOS_STATUS UpdateCscParams(FeatureParamCsc &cscParams);
+
     //!
     //! \brief    Set scaling parameters
     //! \details  Set scaling parameters
@@ -218,6 +220,8 @@ public:
         MOS_UNUSED(dwSfcNum);
         return eStatus;
     }
+
+    virtual MOS_STATUS UpdateIefParams(PVPHAL_IEF_PARAMS iefParams);
 
 protected:
     //!

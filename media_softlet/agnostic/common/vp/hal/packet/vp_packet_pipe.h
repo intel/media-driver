@@ -92,6 +92,16 @@ public:
         return m_veboxFeatureInuse;
     }
 
+    uint32_t PacketNum()
+    {
+        return m_Pipe.size();
+    }
+
+    VpCmdPacket *GetPacket(uint32_t idx)
+    {
+        return idx < m_Pipe.size() ? m_Pipe[idx] : nullptr;
+    }
+
     static MOS_STATUS SwitchContext(PacketType type, MediaScalability *&scalability, MediaContext *mediaContext, bool bEnableVirtualEngine, uint8_t numVebox);
 
 private:

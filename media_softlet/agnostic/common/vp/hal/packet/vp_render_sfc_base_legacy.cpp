@@ -198,6 +198,7 @@ MOS_STATUS SfcRenderBaseLegacy::SetIefStateCscParams(
         pIEFStateParams->bCSCEnable = true;
         if (m_bVdboxToSfc && m_videoConfig.codecStandard == CODECHAL_JPEG)
         {
+            m_cscInputSwapNeeded = false;
             if (m_videoConfig.jpeg.jpegChromaType == jpegRGB)
             {
                 m_cscCoeff[0] = 1.000000000f;
@@ -274,11 +275,47 @@ MOS_STATUS SfcRenderBaseLegacy::SetIefStateCscParams(
                 m_cscCoeff[2] = fTemp[0];
                 m_cscCoeff[5] = fTemp[1];
                 m_cscCoeff[8] = fTemp[2];
+                m_cscInputSwapNeeded = true;
             }
+            else
+            {
+                m_cscInputSwapNeeded = false;
+            }
+
+            VP_RENDER_NORMALMESSAGE("sfc csc coeff calculated. (sfcInputCspace, cscRTCspace) current (%d, %d), previous (%d, %d) swap flag %d",
+                m_renderDataLegacy.SfcInputCspace, m_renderDataLegacy.pSfcPipeOutSurface->ColorSpace,
+                m_cscInputCspace, m_cscRTCspace, m_cscInputSwapNeeded ? 1 :0);
 
             m_cscInputCspace = m_renderDataLegacy.SfcInputCspace;
             m_cscRTCspace    = m_renderDataLegacy.pSfcPipeOutSurface->ColorSpace;
         }
+        else if (m_cscInputSwapNeeded != IsInputChannelSwapNeeded(m_renderDataLegacy.SfcInputFormat))
+        {
+            float fTemp[3] = {};
+            fTemp[0]       = m_cscCoeff[0];
+            fTemp[1]       = m_cscCoeff[3];
+            fTemp[2]       = m_cscCoeff[6];
+
+            m_cscCoeff[0] = m_cscCoeff[2];
+            m_cscCoeff[3] = m_cscCoeff[5];
+            m_cscCoeff[6] = m_cscCoeff[8];
+
+            m_cscCoeff[2]   = fTemp[0];
+            m_cscCoeff[5]   = fTemp[1];
+            m_cscCoeff[8]   = fTemp[2];
+
+            m_cscInputSwapNeeded = IsInputChannelSwapNeeded(m_renderDataLegacy.SfcInputFormat);
+
+            VP_RENDER_NORMALMESSAGE("sfc csc coeff swap flag need be updated to %d. sfcInputFormat %d, sfcInputCspace %d, cscRTCspace %d",
+                (m_cscInputSwapNeeded ? 1 : 0),
+                m_renderDataLegacy.SfcInputFormat, m_cscInputCspace, m_cscRTCspace);
+        }
+        else
+        {
+            VP_RENDER_NORMALMESSAGE("sfc csc coeff reused. sfcInputFormat %d, sfcInputCspace %d, cscRTCspace %d, swap flag %d",
+                m_renderDataLegacy.SfcInputFormat, m_cscInputCspace, m_cscRTCspace, (m_cscInputSwapNeeded ? 1 : 0));
+        }
+
         pIEFStateParams->pfCscCoeff     = m_cscCoeff;
         pIEFStateParams->pfCscInOffset  = m_cscInOffset;
         pIEFStateParams->pfCscOutOffset = m_cscOutOffset;
@@ -557,6 +594,22 @@ MOS_STATUS SfcRenderBaseLegacy::SetScalingParams(PSFC_SCALING_PARAMS scalingPara
         VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
     }
 
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS SfcRenderBaseLegacy::UpdateIefParams(PVPHAL_IEF_PARAMS iefParams)
+{
+    VP_FUNC_CALL();
+    m_renderDataLegacy.bIEF           = (iefParams &&
+        iefParams->bEnabled &&
+        iefParams->fIEFFactor > 0.0F);
+    m_renderDataLegacy.pIefParams     = iefParams;
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS SfcRenderBaseLegacy::UpdateCscParams(FeatureParamCsc &cscParams)
+{
+    VP_RENDER_CHK_STATUS_RETURN(UpdateIefParams(cscParams.pIEFParams));
     return MOS_STATUS_SUCCESS;
 }
 

@@ -68,6 +68,11 @@ public:
     //!
     bool IsVeboxSfcFormatSupported(MOS_FORMAT formatInput, MOS_FORMAT formatOutput);
 
+    std::vector<FeatureType> &GetFeatureRegistered()
+    {
+        return m_featurePool;
+    }
+
 protected:
     virtual MOS_STATUS RegisterFeatures();
     virtual void UnregisterFeatures();

@@ -171,7 +171,7 @@ MOS_STATUS VpRenderCmdPacket::Prepare()
         }
     }
 
-    if (m_packetResourcesdPrepared)
+    if (m_packetResourcesPrepared)
     {
         VP_RENDER_NORMALMESSAGE("Resource Prepared, skip this time");
         return MOS_STATUS_SUCCESS;
@@ -557,7 +557,7 @@ MOS_STATUS VpRenderCmdPacket::PacketInit(
     // Init packet surface params.
     m_surfSetting = surfSetting;
 
-    m_packetResourcesdPrepared = false;
+    m_packetResourcesPrepared = false;
     m_kernelConfigs.clear();
     m_renderKernelParams.clear();
 

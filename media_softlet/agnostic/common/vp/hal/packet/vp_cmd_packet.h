@@ -60,6 +60,13 @@ public:
         VP_SURFACE_SETTING                  &surfSetting,
         VP_EXECUTE_CAPS                     packetCaps) = 0;
 
+    virtual MOS_STATUS PacketInitForReuse()
+    {
+        VP_FUNC_CALL();
+        m_packetResourcesPrepared = false;
+        return MOS_STATUS_SUCCESS;
+    }
+
     virtual MOS_STATUS Prepare()
     {
         return MOS_STATUS_SUCCESS;
@@ -74,6 +81,16 @@ public:
     {
         return MOS_STATUS_SUCCESS;
     };
+
+    virtual MOS_STATUS SetUpdatedExecuteResource(
+        VP_SURFACE                          *inputSurface,
+        VP_SURFACE                          *outputSurface,
+        VP_SURFACE                          *previousSurface,
+        VP_SURFACE_SETTING &surfSetting)
+    {
+        VP_RENDER_ASSERTMESSAGE("Should not come here!");
+        return MOS_STATUS_SUCCESS;
+    }
 
     PacketType GetPacketId()
     {
@@ -100,6 +117,16 @@ public:
         return false;
     }
 
+    MOS_STATUS UpdateFeature(SwFilterPipe *swFilter)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    VP_EXECUTE_CAPS GetExecuteCaps()
+    {
+        return m_PacketCaps;
+    }
+
 protected:
     virtual MOS_STATUS VpCmdPacketInit();
     bool IsOutputPipeVebox()
@@ -121,7 +148,7 @@ protected:
     PacketType                  m_PacketId = VP_PIPELINE_PACKET_UNINITIALIZED;
     VP_PACKET_SHARED_CONTEXT*   m_packetSharedContext = nullptr;
     VP_SURFACE_SETTING          m_surfSetting;
-    bool                        m_packetResourcesdPrepared = false;
+    bool                        m_packetResourcesPrepared = false;
 
 private:
     MediaScalability *          m_scalability = nullptr;

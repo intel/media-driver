@@ -95,6 +95,9 @@ void VpFeatureReport::SetConfigValues(
     // Report VE Feature In Use
     configValues->dwCurrentVEFeatureInUse = m_features.veFeatureInUse;
 
+    // Report vp packet reused flag.
+    configValues->isPacketReused        = m_features.packetReused;
+
     // Report MMC status
     configValues->dwVPMMCInUse          = m_features.vpMMCInUse;
     configValues->dwRTCompressible      = m_features.rtCompressible;

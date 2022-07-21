@@ -145,6 +145,9 @@ public:
     //!
     virtual MOS_STATUS SetMmcParams(PMOS_SURFACE renderTarget, bool isFormatMmcSupported, bool isMmcEnabled) override;
 
+    virtual MOS_STATUS UpdateIefParams(PVPHAL_IEF_PARAMS iefParams) override;
+    virtual MOS_STATUS UpdateCscParams(FeatureParamCsc &cscParams) override;
+
     bool IsCSC() { return m_renderDataLegacy.bCSC; }
     bool IsScaling() { return m_renderDataLegacy.bScaling; }
 

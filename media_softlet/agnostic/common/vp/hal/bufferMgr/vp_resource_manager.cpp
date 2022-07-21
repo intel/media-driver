@@ -1094,6 +1094,36 @@ MOS_STATUS VpResourceManager::AssignExecuteResource(std::vector<FeatureType> &fe
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS VpResourceManager::GetUpdatedExecuteResource(std::vector<FeatureType> &featurePool, VP_EXECUTE_CAPS caps, SwFilterPipe &swfilterPipe, VP_SURFACE_SETTING &surfSetting)
+{
+    VP_FUNC_CALL();
+
+    std::vector<VP_SURFACE *> inputSurfaces, pastSurfaces, futureSurfaces;
+    for (uint32_t i = 0; i < swfilterPipe.GetSurfaceCount(true); ++i)
+    {
+        VP_SURFACE *inputSurface = GetCopyInstOfExtSurface(swfilterPipe.GetSurface(true, i));
+        VP_PUBLIC_CHK_NULL_RETURN(inputSurface);
+        inputSurfaces.push_back(inputSurface);
+
+        VP_SURFACE *pastSurface = GetCopyInstOfExtSurface(swfilterPipe.GetPastSurface(i));
+        pastSurfaces.push_back(pastSurface ? pastSurface : nullptr);
+
+        VP_SURFACE *futureSurface = GetCopyInstOfExtSurface(swfilterPipe.GetFutureSurface(i));
+        futureSurfaces.push_back(futureSurface ? futureSurface : nullptr);
+    }
+    VP_SURFACE *outputSurface  = GetCopyInstOfExtSurface(swfilterPipe.GetSurface(false, 0));
+
+    RESOURCE_ASSIGNMENT_HINT resHint = {};
+
+    VP_PUBLIC_CHK_STATUS_RETURN(GetResourceHint(featurePool, swfilterPipe, resHint));
+
+    VP_PUBLIC_CHK_STATUS_RETURN(AssignExecuteResource(caps, inputSurfaces, outputSurface,
+        pastSurfaces, futureSurfaces, resHint, surfSetting, swfilterPipe));
+    ++m_currentPipeIndex;
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS VpResourceManager::AssignExecuteResource(VP_EXECUTE_CAPS& caps, std::vector<VP_SURFACE *> &inputSurfaces, VP_SURFACE *outputSurface,
     std::vector<VP_SURFACE *> &pastSurfaces, std::vector<VP_SURFACE *> &futureSurfaces, RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting, SwFilterPipe& executedFilters)
 {

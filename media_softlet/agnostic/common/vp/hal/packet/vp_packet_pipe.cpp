@@ -322,9 +322,6 @@ MOS_STATUS PacketPipe::Execute(MediaStatusReport *statusReport, MediaScalability
 #endif
     }
 
-#if USE_MEDIA_DEBUG_TOOL
-finish:
-#endif
     return eStatus;
 }
 
