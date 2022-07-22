@@ -945,6 +945,8 @@ MOS_STATUS Av1DecodeFilmGrainG12::Update(void *params)
         m_resourceAllocated = true;
     }
 
+    /*Note: for scenario that m_applyGrain=true but (applyY | applyCb | applyCr)=false,
+     * umd no need to generate noise for perf optimization, but need to apply noise with default value directly*/
     bool applyY  = (m_picParams->m_filmGrainParams.m_numYPoints > 0) ? 1 : 0;
     bool applyCb = (m_picParams->m_filmGrainParams.m_numCbPoints > 0 || m_picParams->m_filmGrainParams.m_filmGrainInfoFlags.m_fields.m_chromaScalingFromLuma) ? 1 : 0;
     bool applyCr = (m_picParams->m_filmGrainParams.m_numCrPoints > 0 || m_picParams->m_filmGrainParams.m_filmGrainInfoFlags.m_fields.m_chromaScalingFromLuma) ? 1 : 0;

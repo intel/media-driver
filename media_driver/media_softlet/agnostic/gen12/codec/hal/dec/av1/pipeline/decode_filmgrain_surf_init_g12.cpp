@@ -77,7 +77,8 @@ MOS_STATUS FilmGrainSurfaceInit::Prepare(DecodePipelineParams &params)
     }
     else if (params.m_pipeMode == decodePipeModeProcess)
     {
-        if (m_filmGrainFeature->m_filmGrainEnabled)
+        /*DON't use m_filmGrainFeature->m_filmGrainEnabled*/
+        if (m_filmGrainFeature->m_picParams->m_filmGrainParams.m_filmGrainInfoFlags.m_fields.m_applyGrain)
         {
             InitCoordinateSurface();
         }

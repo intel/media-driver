@@ -93,6 +93,7 @@ MOS_STATUS FilmGrainPostSubPipeline::Begin()
 
 MOS_STATUS FilmGrainPostSubPipeline::DoFilmGrainApplyNoise(const CodechalDecodeParams &decodeParams)
 {
+    /*DON't use m_filmGrainFeature->m_filmGrainEnabled*/
     if (m_filmGrainFeature->m_picParams->m_filmGrainParams.m_filmGrainInfoFlags.m_fields.m_applyGrain)
     {
         Av1PipelineG12 *pipeline = dynamic_cast<Av1PipelineG12 *>(m_pipeline);
