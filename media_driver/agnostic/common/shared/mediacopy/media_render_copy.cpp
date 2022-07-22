@@ -275,7 +275,7 @@ MOS_STATUS RenderCopyState::SetupSurfaceStates()
 
     SurfaceParams.bAVS              = false;
     SurfaceParams.Boundary          = RENDERHAL_SS_BOUNDARY_SRCRECT;
-    SurfaceParams.bRenderTarget     = false;
+    SurfaceParams.isOutput     = false;
     SurfaceParams.MemObjCtl         = pRenderData->SurfMemObjCtl.SourceSurfMemObjCtl;
 
     SurfaceParams.Type              = RENDERHAL_SURFACE_TYPE_G10;
@@ -340,7 +340,7 @@ MOS_STATUS RenderCopyState::SetupSurfaceStates()
     // Target surface
     SurfaceParams.MemObjCtl         = pRenderData->SurfMemObjCtl.TargetSurfMemObjCtl;
     SurfaceParams.Type              = pRenderHal->SurfaceTypeDefault;
-    SurfaceParams.bRenderTarget     = true;
+    SurfaceParams.isOutput     = true;
     SurfaceParams.bAVS              = false;
     SurfaceParams.Boundary          = RENDERHAL_SS_BOUNDARY_DSTRECT;
 

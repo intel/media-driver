@@ -390,7 +390,7 @@ public:
 
             cmd.DW13.DynamicStateBufferSize = (params.dwDynamicStateSize + MHW_PAGE_SIZE - 1) / MHW_PAGE_SIZE;
 
-            //Reset bRenderTarget as it should be enabled only for Dynamic State
+            //Reset isOutput as it should be enabled only for Dynamic State
             resourceParams.bIsWritable = false;
         }
 

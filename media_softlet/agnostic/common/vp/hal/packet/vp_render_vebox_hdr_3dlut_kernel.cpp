@@ -425,10 +425,10 @@ MOS_STATUS VpRenderHdr3DLutKernel::SetupSurfaceState()
     kernelSurfaceParam.surfaceOverwriteParams.bufferResource = true;
 
     kernelSurfaceParam.surfaceOverwriteParams.bindIndex = BI_VEBOX_HDR_3DLUT_3DLUT;
-    kernelSurfaceParam.renderTarget                     = true; // renderTarget will rename for avoid confuse
+    kernelSurfaceParam.isOutput                         = true;
     m_surfaceState.insert(std::make_pair(SurfaceType3DLut, kernelSurfaceParam));
     kernelSurfaceParam.surfaceOverwriteParams.bindIndex = BI_VEBOX_HDR_3DLUT_COEF;
-    kernelSurfaceParam.renderTarget                     = false; // renderTarget will rename for avoid confuse
+    kernelSurfaceParam.isOutput                         = false;
     m_surfaceState.insert(std::make_pair(SurfaceType3DLutCoef, kernelSurfaceParam));
     
     VP_RENDER_CHK_STATUS_RETURN(InitCoefSurface(m_maxDisplayLum, m_maxContentLevelLum, m_hdrMode));

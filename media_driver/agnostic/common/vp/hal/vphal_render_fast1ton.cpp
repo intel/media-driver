@@ -1014,7 +1014,7 @@ MOS_STATUS VpHal_Fast1toNSetupSurfaceStates(
 
     SurfaceParams.bAVS              = true;
     SurfaceParams.Boundary          = RENDERHAL_SS_BOUNDARY_SRCRECT;
-    SurfaceParams.bRenderTarget     = false;
+    SurfaceParams.isOutput     = false;
     SurfaceParams.MemObjCtl         =
         pFast1toNState->SurfMemObjCtl.SourceSurfMemObjCtl;
     SurfaceParams.Type              = RENDERHAL_SURFACE_TYPE_ADV_G9;
@@ -1035,7 +1035,7 @@ MOS_STATUS VpHal_Fast1toNSetupSurfaceStates(
     SurfaceParams.MemObjCtl         =
         pFast1toNState->SurfMemObjCtl.TargetSurfMemObjCtl;
     SurfaceParams.Type              = pRenderHal->SurfaceTypeDefault;
-    SurfaceParams.bRenderTarget     = true;
+    SurfaceParams.isOutput     = true;
     SurfaceParams.bAVS              = false;
     SurfaceParams.Boundary          = RENDERHAL_SS_BOUNDARY_DSTRECT;
 

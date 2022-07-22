@@ -378,7 +378,7 @@ MOS_STATUS FilmGrainAppNoisePkt::SetUpSurfaceState()
     RENDERHAL_SURFACE_STATE_PARAMS surfaceParams;
     MOS_ZeroMemory(&surfaceParams, sizeof(RENDERHAL_SURFACE_STATE_PARAMS));
     surfaceParams.MemObjCtl         = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_ELLC_LLC_L3].Value;
-    surfaceParams.bRenderTarget     = true;
+    surfaceParams.isOutput     = true;
     surfaceParams.Boundary          = RENDERHAL_SS_BOUNDARY_ORIGINAL;
     if (m_hwInterface->Uses2PlanesInputSurfaceFilmGrain())
     {
@@ -412,7 +412,7 @@ MOS_STATUS FilmGrainAppNoisePkt::SetUpSurfaceState()
     isWritable                  = true;
     MOS_ZeroMemory(&surfaceParams, sizeof(surfaceParams));
     surfaceParams.MemObjCtl     = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_ELLC_LLC_L3].Value;
-    surfaceParams.bRenderTarget = true;
+    surfaceParams.isOutput = true;
     surfaceParams.Boundary      = RENDERHAL_SS_BOUNDARY_ORIGINAL;
     surfaceParams.bWidthInDword_Y = true;
     surfaceParams.bWidthInDword_UV = true;
@@ -431,7 +431,7 @@ MOS_STATUS FilmGrainAppNoisePkt::SetUpSurfaceState()
     isWritable                  = true;
     MOS_ZeroMemory(&surfaceParams, sizeof(RENDERHAL_SURFACE_STATE_PARAMS));
     surfaceParams.MemObjCtl     = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_ELLC_LLC_L3].Value;
-    surfaceParams.bRenderTarget = true;
+    surfaceParams.isOutput = true;
     surfaceParams.Boundary      = RENDERHAL_SS_BOUNDARY_ORIGINAL;
     MOS_ZeroMemory(&renderHalSurfaceNext, sizeof(RENDERHAL_SURFACE_NEXT));
     m_bindingTableIndex[anInputYDithering] = SetSurfaceForHwAccess(
@@ -445,7 +445,7 @@ MOS_STATUS FilmGrainAppNoisePkt::SetUpSurfaceState()
     isWritable                  = true;
     MOS_ZeroMemory(&surfaceParams, sizeof(RENDERHAL_SURFACE_STATE_PARAMS));
     surfaceParams.MemObjCtl     = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_ELLC_LLC_L3].Value;
-    surfaceParams.bRenderTarget = true;
+    surfaceParams.isOutput = true;
     surfaceParams.Boundary      = RENDERHAL_SS_BOUNDARY_ORIGINAL;
     MOS_ZeroMemory(&renderHalSurfaceNext, sizeof(RENDERHAL_SURFACE_NEXT));
     m_bindingTableIndex[anInputUDithering] = SetSurfaceForHwAccess(
@@ -459,7 +459,7 @@ MOS_STATUS FilmGrainAppNoisePkt::SetUpSurfaceState()
     isWritable                  = true;
     MOS_ZeroMemory(&surfaceParams, sizeof(RENDERHAL_SURFACE_STATE_PARAMS));
     surfaceParams.MemObjCtl     = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_ELLC_LLC_L3].Value;
-    surfaceParams.bRenderTarget = true;
+    surfaceParams.isOutput = true;
     surfaceParams.Boundary      = RENDERHAL_SS_BOUNDARY_ORIGINAL;
     MOS_ZeroMemory(&renderHalSurfaceNext, sizeof(RENDERHAL_SURFACE_NEXT));
     m_bindingTableIndex[anInputVDithering] = SetSurfaceForHwAccess(
@@ -473,7 +473,7 @@ MOS_STATUS FilmGrainAppNoisePkt::SetUpSurfaceState()
     isWritable = true;
     MOS_ZeroMemory(&surfaceParams, sizeof(RENDERHAL_SURFACE_STATE_PARAMS));
     surfaceParams.MemObjCtl     = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_ELLC_LLC_L3].Value;
-    surfaceParams.bRenderTarget = true;
+    surfaceParams.isOutput = true;
     surfaceParams.Boundary      = RENDERHAL_SS_BOUNDARY_ORIGINAL;
     surfaceParams.bBufferUse    = true;
     MOS_ZeroMemory(&renderHalSurfaceNext, sizeof(RENDERHAL_SURFACE_NEXT));
@@ -490,7 +490,7 @@ MOS_STATUS FilmGrainAppNoisePkt::SetUpSurfaceState()
 
     MOS_ZeroMemory(&surfaceParams, sizeof(RENDERHAL_SURFACE_STATE_PARAMS));
     surfaceParams.MemObjCtl     = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_ELLC_LLC_L3].Value;
-    surfaceParams.bRenderTarget = false;
+    surfaceParams.isOutput = false;
     surfaceParams.Boundary      = RENDERHAL_SS_BOUNDARY_ORIGINAL;
     surfaceParams.bBufferUse    = true;
 
@@ -508,7 +508,7 @@ MOS_STATUS FilmGrainAppNoisePkt::SetUpSurfaceState()
 
     MOS_ZeroMemory(&surfaceParams, sizeof(RENDERHAL_SURFACE_STATE_PARAMS));
     surfaceParams.MemObjCtl     = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_ELLC_LLC_L3].Value;
-    surfaceParams.bRenderTarget = false;
+    surfaceParams.isOutput = false;
     surfaceParams.Boundary      = RENDERHAL_SS_BOUNDARY_ORIGINAL;
     surfaceParams.bBufferUse    = true;
 
@@ -526,7 +526,7 @@ MOS_STATUS FilmGrainAppNoisePkt::SetUpSurfaceState()
 
     MOS_ZeroMemory(&surfaceParams, sizeof(RENDERHAL_SURFACE_STATE_PARAMS));
     surfaceParams.MemObjCtl     = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_ELLC_LLC_L3].Value;
-    surfaceParams.bRenderTarget = false;
+    surfaceParams.isOutput = false;
     surfaceParams.Boundary      = RENDERHAL_SS_BOUNDARY_ORIGINAL;
     surfaceParams.bBufferUse    = true;
 

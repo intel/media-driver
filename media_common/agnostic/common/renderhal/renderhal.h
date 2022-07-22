@@ -1002,7 +1002,7 @@ typedef struct _RENDERHAL_INTERFACE_DESCRIPTOR_PARAMS
 typedef struct _RENDERHAL_SURFACE_STATE_PARAMS
 {
     RENDERHAL_SURFACE_STATE_TYPE    Type                      : 5;              // Type of surface state
-    uint32_t                        bRenderTarget             : 1;              // Render target flag
+    uint32_t                        isOutput                  : 1;              // Render output flag
     uint32_t                        bVertStride               : 1;              // VL Stride
     uint32_t                        bVertStrideOffs           : 1;              // VL Stride Offset
     uint32_t                        bWidthInDword_Y           : 1;              // Width in dwords
@@ -1041,7 +1041,7 @@ typedef struct _RENDERHAL_SURFACE_STATE_ENTRY
     uint32_t                        dwQPitch;                                       // Surface qpitch
     uint32_t                        YUVPlane         :  2;                          // Plane
     uint32_t                        bAVS             :  1;                          // AVS scaling
-    uint32_t                        bRenderTarget    :  1;                          // Render target flag
+    uint32_t                        isOutput         :  1;                          // Render output flag
     uint32_t                        bVertStride      :  1;                          // VL Stride
     uint32_t                        bVertStrideOffs  :  1;                          // VL Stride Offset
     uint32_t                        bWidthInDword    :  1;                          // Width in dwords

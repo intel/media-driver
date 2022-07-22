@@ -617,7 +617,7 @@ MOS_STATUS VpRenderCmdPacket::SetupSurfaceState()
             }
             else
             {
-                renderSurfaceParams.bRenderTarget    = (kernelSurfaceParam->renderTarget == true) ? 1 : 0;
+                renderSurfaceParams.isOutput         = (kernelSurfaceParam->isOutput == true) ? 1 : 0;
                 renderSurfaceParams.Boundary         = RENDERHAL_SS_BOUNDARY_ORIGINAL;  // Add conditional in future for Surfaces out of range
                 renderSurfaceParams.bWidth16Align    = false;
                 renderSurfaceParams.bWidthInDword_Y  = true;
@@ -676,7 +676,7 @@ MOS_STATUS VpRenderCmdPacket::SetupSurfaceState()
                     &renderHalSurface,
                     &renderSurfaceParams,
                     kernelSurfaceParam->surfaceOverwriteParams.bindIndex,
-                    renderSurfaceParams.bRenderTarget,
+                    renderSurfaceParams.isOutput,
                     kernelSurfaceParam->surfaceEntries,
                     kernelSurfaceParam->sizeOfSurfaceEntries);
             }
@@ -691,7 +691,7 @@ MOS_STATUS VpRenderCmdPacket::SetupSurfaceState()
                         &renderHalSurface,
                         &renderSurfaceParams,
                         kernelSurfaceParam->surfaceOverwriteParams.bindIndex,
-                        renderSurfaceParams.bRenderTarget);
+                        renderSurfaceParams.isOutput);
                 }
                 else if ((kernelSurfaceParam->surfaceOverwriteParams.updatedSurfaceParams &&
                      kernelSurfaceParam->surfaceOverwriteParams.bufferResource            &&
@@ -704,7 +704,7 @@ MOS_STATUS VpRenderCmdPacket::SetupSurfaceState()
                         &renderHalSurface.OsSurface,
                         &renderHalSurface,
                         &renderSurfaceParams,
-                        renderSurfaceParams.bRenderTarget);
+                        renderSurfaceParams.isOutput);
                 }
                 else
                 {
@@ -713,7 +713,7 @@ MOS_STATUS VpRenderCmdPacket::SetupSurfaceState()
                         &renderHalSurface.OsSurface,
                         &renderHalSurface,
                         &renderSurfaceParams,
-                        renderSurfaceParams.bRenderTarget);
+                        renderSurfaceParams.isOutput);
                 }
             }
             VP_RENDER_CHK_STATUS_RETURN(m_kernel->UpdateCurbeBindingIndex(type, index));

@@ -2178,7 +2178,7 @@ MOS_STATUS VpHal_HdrSetupSurfaceStates_g9(
             pSource->bIEF        = false;
 
             // Set flags for RT
-            SurfaceParams.bRenderTarget    = true;
+            SurfaceParams.isOutput    = true;
             SurfaceParams.bWidthInDword_Y  = true;
             SurfaceParams.bWidthInDword_UV = true;
             SurfaceParams.Boundary         = RENDERHAL_SS_BOUNDARY_DSTRECT;
@@ -2186,7 +2186,7 @@ MOS_STATUS VpHal_HdrSetupSurfaceStates_g9(
         // other surfaces
         else
         {
-            SurfaceParams.bRenderTarget    = false;
+            SurfaceParams.isOutput    = false;
             SurfaceParams.bWidthInDword_Y  = false;
             SurfaceParams.bWidthInDword_UV = false;
             SurfaceParams.Boundary         = RENDERHAL_SS_BOUNDARY_SRCRECT;
@@ -2229,7 +2229,7 @@ MOS_STATUS VpHal_HdrSetupSurfaceStates_g9(
         {
             MOS_ZeroMemory(&SurfaceParams, sizeof(SurfaceParams));
             SurfaceParams.Type          = pRenderHal->SurfaceTypeDefault;
-            SurfaceParams.bRenderTarget = false;
+            SurfaceParams.isOutput = false;
             SurfaceParams.Boundary      = RENDERHAL_SS_BOUNDARY_ORIGINAL;
             SurfaceParams.bWidth16Align = false;
             SurfaceParams.MemObjCtl     = pHdrState->SurfMemObjCtl.Lut2DSurfMemObjCtl;
@@ -2276,7 +2276,7 @@ MOS_STATUS VpHal_HdrSetupSurfaceStates_g9(
             pTarget->bIEF        = false;
 
             // Set flags for RT
-            SurfaceParams.bRenderTarget    = true;
+            SurfaceParams.isOutput    = true;
             SurfaceParams.bWidthInDword_Y  = true;
             SurfaceParams.bWidthInDword_UV = true;
             SurfaceParams.Boundary         = RENDERHAL_SS_BOUNDARY_DSTRECT;
@@ -2284,7 +2284,7 @@ MOS_STATUS VpHal_HdrSetupSurfaceStates_g9(
         // other surfaces
         else
         {
-            SurfaceParams.bRenderTarget    = false;
+            SurfaceParams.isOutput    = false;
             SurfaceParams.bWidthInDword_Y  = false;
             SurfaceParams.bWidthInDword_UV = false;
             SurfaceParams.Boundary         = RENDERHAL_SS_BOUNDARY_SRCRECT;
@@ -2328,7 +2328,7 @@ MOS_STATUS VpHal_HdrSetupSurfaceStates_g9(
     pRenderHalSurfaceTemp = &pHdrState->RenderHalCoeffSurface;
     MOS_ZeroMemory(&SurfaceParams, sizeof(SurfaceParams));
     SurfaceParams.Type = pRenderHal->SurfaceTypeDefault;
-    SurfaceParams.bRenderTarget = false;
+    SurfaceParams.isOutput = false;
     SurfaceParams.Boundary = RENDERHAL_SS_BOUNDARY_ORIGINAL;
     SurfaceParams.bWidth16Align = false;
     SurfaceParams.MemObjCtl = pHdrState->SurfMemObjCtl.CoeffSurfMemObjCtl;
@@ -3483,7 +3483,7 @@ MOS_STATUS VpHal_HdrSetupPreProcessSurfaceStates_g9(
 
     MOS_ZeroMemory(&SurfaceParams, sizeof(SurfaceParams));
     SurfaceParams.Type              = pRenderHal->SurfaceTypeDefault;
-    SurfaceParams.bRenderTarget     = false;
+    SurfaceParams.isOutput     = false;
     SurfaceParams.Boundary          = RENDERHAL_SS_BOUNDARY_ORIGINAL;
     SurfaceParams.bWidth16Align     = false;
     SurfaceParams.MemObjCtl         = pHdrState->SurfMemObjCtl.CoeffSurfMemObjCtl;

@@ -3679,8 +3679,8 @@ MOS_STATUS HalCm_SetupBufferSurfaceState(
         //Cache configurations
         state->cmHalInterface->HwSetSurfaceMemoryObjectControl(memObjCtl, &surfaceParam);
 
-        // Set the bRenderTarget by default
-        surfaceParam.bRenderTarget = true;
+        // Set the isOutput by default
+        surfaceParam.isOutput = true;
 
         // Setup Buffer surface
         CM_CHK_MOSSTATUS_GOTOFINISH(renderHal->pfnSetupBufferSurfaceState(
@@ -3866,7 +3866,7 @@ MOS_STATUS HalCm_Setup3DSurfaceState(
         MOS_ZeroMemory(&surfaceParam, sizeof(surfaceParam));
         surfaceParam.Type       = renderHal->SurfaceTypeDefault;
         surfaceParam.Boundary   = RENDERHAL_SS_BOUNDARY_ORIGINAL;
-        surfaceParam.bRenderTarget = true;
+        surfaceParam.isOutput = true;
 
         //Cache configurations
         state->cmHalInterface->HwSetSurfaceMemoryObjectControl(memObjCtl, &surfaceParam);
@@ -4188,7 +4188,7 @@ MOS_STATUS HalCm_Setup2DSurfaceStateBasic(
         surfaceParam.bWidthInDword_Y = true;
     }
 
-    surfaceParam.bRenderTarget = isRenderTarget(state, index);
+    surfaceParam.isOutput = isRenderTarget(state, index);
     surfStateParam = &(state->umdSurf2DTable[index].surfaceStateParam[argParam->aliasIndex / state->surfaceArraySize]);
     if (surfStateParam->width)
     {
@@ -4456,7 +4456,7 @@ MOS_STATUS HalCm_Setup2DSurfaceUPStateBasic(
             surfaceParam.bWidthInDword_Y = true;
         }
 
-        surfaceParam.bRenderTarget = true;
+        surfaceParam.isOutput = true;
 
         //Cache configurations
         state->cmHalInterface->HwSetSurfaceMemoryObjectControl(memObjCtl, &surfaceParam);
@@ -4656,7 +4656,7 @@ MOS_STATUS HalCm_SetupSpecificVmeSurfaceState(
     // Setup 2D surface
     MOS_ZeroMemory(&surfaceParam, sizeof(surfaceParam));
     surfaceParam.Type              = renderHal->SurfaceTypeAdvanced;
-    surfaceParam.bRenderTarget     = true;
+    surfaceParam.isOutput     = true;
     surfaceParam.bWidthInDword_Y   = false;
     surfaceParam.bWidthInDword_UV  = false;
     surfaceParam.Boundary          = RENDERHAL_SS_BOUNDARY_ORIGINAL;
@@ -4972,7 +4972,7 @@ MOS_STATUS HalCm_SetupSampler8x8SurfaceState(
         // Setup surface
         MOS_ZeroMemory( &surfaceParam, sizeof( surfaceParam ) );
         surfaceParam.Type = renderHal->SurfaceTypeAdvanced;
-        surfaceParam.bRenderTarget = true;
+        surfaceParam.isOutput = true;
         surfaceParam.bWidthInDword_Y = false;
         surfaceParam.bWidthInDword_UV = false;
         surfaceParam.Boundary = RENDERHAL_SS_BOUNDARY_ORIGINAL;
@@ -5125,8 +5125,8 @@ MOS_STATUS HalCm_SetupStateBufferSurfaceState(
 
     MOS_ZeroMemory( &surfaceParam, sizeof( surfaceParam ) );
 
-    // Set the bRenderTarget by default
-    surfaceParam.bRenderTarget = true;
+    // Set the isOutput by default
+    surfaceParam.isOutput = true;
 
     //Cache configurations default
     state->cmHalInterface->HwSetSurfaceMemoryObjectControl( memObjCtl, &surfaceParam );
@@ -11353,7 +11353,7 @@ MOS_STATUS HalCm_Setup2DSurfaceStateWithBTIndex(
         surfaceParam.bWidthInDword_Y = true;
     }
 
-    surfaceParam.bRenderTarget = isRenderTarget(state, surfIndex);
+    surfaceParam.isOutput = isRenderTarget(state, surfIndex);
 
     //Cache configurations
     state->cmHalInterface->HwSetSurfaceMemoryObjectControl(memObjCtl, &surfaceParam);
@@ -11459,8 +11459,8 @@ MOS_STATUS HalCm_SetupBufferSurfaceStateWithBTIndex(
     // set up buffer surface
     MOS_ZeroMemory(&surfaceParam, sizeof(surfaceParam));
 
-    // Set bRenderTarget by default
-    surfaceParam.bRenderTarget = true;
+    // Set isOutput by default
+    surfaceParam.isOutput = true;
 
     //Cache configurations default
     state->cmHalInterface->HwSetSurfaceMemoryObjectControl(memObjCtl, &surfaceParam);
@@ -11576,7 +11576,7 @@ MOS_STATUS HalCm_Setup2DSurfaceUPStateWithBTIndex(
         surfaceParam.bWidthInDword_Y = true;
     }
 
-    surfaceParam.bRenderTarget = true;
+    surfaceParam.isOutput = true;
 
     //Cache configurations
     state->cmHalInterface->HwSetSurfaceMemoryObjectControl(memObjCtl, &surfaceParam);
@@ -11672,7 +11672,7 @@ MOS_STATUS HalCm_SetupSampler8x8SurfaceStateWithBTIndex(
     // Setup surface
     MOS_ZeroMemory( &surfaceParam, sizeof( surfaceParam ) );
     surfaceParam.Type = renderHal->SurfaceTypeAdvanced;
-    surfaceParam.bRenderTarget = true;
+    surfaceParam.isOutput = true;
     surfaceParam.bWidthInDword_Y = false;
     surfaceParam.bWidthInDword_UV = false;
     surfaceParam.Boundary = RENDERHAL_SS_BOUNDARY_ORIGINAL;
@@ -11792,8 +11792,8 @@ MOS_STATUS HalCm_Setup3DSurfaceStateWithBTIndex(
     //Cache configurations
     state->cmHalInterface->HwSetSurfaceMemoryObjectControl(memObjCtl, &surfaceParam);
 
-    //Set bRenderTarget by default
-    surfaceParam.bRenderTarget = true;
+    //Set isOutput by default
+    surfaceParam.isOutput = true;
 
     CM_CHK_MOSSTATUS_GOTOFINISH(renderHal->pfnSetupSurfaceState(
         renderHal,

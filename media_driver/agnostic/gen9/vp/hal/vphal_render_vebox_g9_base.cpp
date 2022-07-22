@@ -2061,7 +2061,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G9_BASE::SetupSurfaceStatesForDenoise()
     MOS_ZeroMemory(&SurfaceParams, sizeof(SurfaceParams));
 
     SurfaceParams.Type              = pRenderHal->SurfaceTypeDefault;
-    SurfaceParams.bRenderTarget     = true;
+    SurfaceParams.isOutput     = true;
     SurfaceParams.bWidthInDword_Y   = true;
     SurfaceParams.bWidthInDword_UV  = true;
     SurfaceParams.Boundary          = RENDERHAL_SS_BOUNDARY_ORIGINAL;
@@ -2080,16 +2080,16 @@ MOS_STATUS VPHAL_VEBOX_STATE_G9_BASE::SetupSurfaceStatesForDenoise()
     MOS_ZeroMemory(&SurfaceParams, sizeof(SurfaceParams));
 
     SurfaceParams.Type              = pRenderHal->SurfaceTypeDefault;
-    SurfaceParams.bRenderTarget     = true;
+    SurfaceParams.isOutput     = true;
     SurfaceParams.bWidthInDword_Y   = true;
     SurfaceParams.bWidthInDword_UV  = true;
     SurfaceParams.Boundary          = RENDERHAL_SS_BOUNDARY_ORIGINAL;
     SurfaceParams.bWidth16Align     = false;
 
-    // set bRenderTarget=false to skip first frame for PermeatePatchForHM().
+    // set isOutput=false to skip first frame for PermeatePatchForHM().
     if (pVeboxState->bFirstFrame && pOsInterface->osCpInterface->IsHMEnabled())
     {
-        SurfaceParams.bRenderTarget = false;
+        SurfaceParams.isOutput = false;
     }
 
     VPHAL_RENDER_CHK_STATUS(VpHal_CommonSetSurfaceForHwAccess(

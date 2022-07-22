@@ -2864,7 +2864,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::SetupSurfaceStatesForDenoise()
     MOS_ZeroMemory(&SurfaceParams, sizeof(SurfaceParams));
 
     SurfaceParams.Type             = pRenderHal->SurfaceTypeDefault;
-    SurfaceParams.bRenderTarget    = true;
+    SurfaceParams.isOutput    = true;
     SurfaceParams.bWidthInDword_Y  = true;
     SurfaceParams.bWidthInDword_UV = true;
     SurfaceParams.Boundary         = RENDERHAL_SS_BOUNDARY_ORIGINAL;
@@ -2886,7 +2886,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::SetupSurfaceStatesForDenoise()
     MOS_ZeroMemory(&SurfaceParams, sizeof(SurfaceParams));
 
     SurfaceParams.Type             = pRenderHal->SurfaceTypeDefault;
-    SurfaceParams.bRenderTarget    = true;
+    SurfaceParams.isOutput    = true;
     SurfaceParams.bWidthInDword_Y  = true;
     SurfaceParams.bWidthInDword_UV = true;
     SurfaceParams.Boundary         = RENDERHAL_SS_BOUNDARY_ORIGINAL;

@@ -3702,7 +3702,7 @@ MOS_STATUS RenderHal_GetSurfaceStateEntries(
             case Format_X8R8G8B8:
                 // h/w doesn't support XRGB render target
                 PlaneDefinition =
-                    (pParams->bRenderTarget) ? RENDERHAL_PLANES_ARGB : RENDERHAL_PLANES_XRGB;
+                    (pParams->isOutput) ? RENDERHAL_PLANES_ARGB : RENDERHAL_PLANES_XRGB;
                 break;
 
             case Format_A8B8G8R8:
@@ -3712,7 +3712,7 @@ MOS_STATUS RenderHal_GetSurfaceStateEntries(
             case Format_X8B8G8R8:
                 // h/w doesn't support XBGR render target
                 PlaneDefinition =
-                    (pParams->bRenderTarget) ? RENDERHAL_PLANES_ABGR : RENDERHAL_PLANES_XBGR;
+                    (pParams->isOutput) ? RENDERHAL_PLANES_ABGR : RENDERHAL_PLANES_XBGR;
                 break;
 
             case Format_R5G6B5:
@@ -3970,7 +3970,7 @@ MOS_STATUS RenderHal_GetSurfaceStateEntries(
 
         pSurfaceEntry->YUVPlane          = pPlane->ui8PlaneID;
         pSurfaceEntry->bAVS              = pPlane->bAdvanced;
-        pSurfaceEntry->bRenderTarget     = pParams->bRenderTarget;
+        pSurfaceEntry->isOutput     = pParams->isOutput;
         pSurfaceEntry->bVertStride       = pParams->bVertStride;
         pSurfaceEntry->bVertStrideOffs   = pParams->bVertStrideOffs;
         pSurfaceEntry->bTiledSurface     = (pSurface->TileType != MOS_TILE_LINEAR)
@@ -5443,8 +5443,8 @@ MOS_STATUS RenderHal_SetupBufferSurfaceState(
     RcsSurfaceParams.psSurface             = &pRenderHalSurface->OsSurface;
     RcsSurfaceParams.dwOffsetInSSH         = pSurfaceEntry->dwSurfStateOffset;
     RcsSurfaceParams.dwCacheabilityControl = pRenderHal->pfnGetSurfaceMemoryObjectControl(pRenderHal, pParams);
-    RcsSurfaceParams.bIsWritable           = pParams->bRenderTarget;
-    RcsSurfaceParams.bRenderTarget         = pParams->bRenderTarget;
+    RcsSurfaceParams.bIsWritable           = pParams->isOutput;
+    RcsSurfaceParams.bRenderTarget         = pParams->isOutput;
 
     // Call MHW to setup the Surface State Heap entry for Buffer
     MHW_RENDERHAL_CHK_STATUS(pRenderHal->pfnSetSurfaceStateBuffer(pRenderHal, &RcsSurfaceParams, pSurfaceEntry->pSurfaceState));
@@ -5767,7 +5767,7 @@ MOS_STATUS RenderHal_SetupSurfaceStatesOs(
     }
 
     // Surface type
-    TokenParams.bRenderTarget   = pParams->bRenderTarget;
+    TokenParams.bRenderTarget   = pParams->isOutput;
     TokenParams.bSurfaceTypeAvs = pSurfaceEntry->bAVS;
 
     MHW_RENDERHAL_CHK_STATUS(pRenderHal->pfnSetSurfaceStateToken(

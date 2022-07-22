@@ -213,7 +213,7 @@ MOS_STATUS XRenderHal_Interface_Xe_Hpg_Base::SetupSurfaceState(
                 SurfStateParams.dwCompressionFormat = 0;
             }
 
-            if (!pParams->bRenderTarget &&
+            if (!pParams->isOutput &&
                 pSurface->MmcState != MOS_MEMCOMP_DISABLED &&
                 pSurfaceEntry->bVertStride)
             {
@@ -960,7 +960,7 @@ MOS_STATUS XRenderHal_Interface_Xe_Hpg_Base::SetScratchSpaceBufferState(
     RENDERHAL_SURFACE_STATE_PARAMS renderhal_surface_state_param;
     MOS_ZeroMemory(&renderhal_surface_state_param,
                    sizeof(renderhal_surface_state_param));
-    renderhal_surface_state_param.bRenderTarget = 1;
+    renderhal_surface_state_param.isOutput = 1;
     renderhal_surface_state_param.MemObjCtl = 2;
 
     RENDERHAL_SURFACE_STATE_ENTRY *renderhal_surface_state_entry = nullptr;

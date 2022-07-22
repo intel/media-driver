@@ -191,7 +191,7 @@ MOS_STATUS XRenderHal_Interface_Xe_Hp_Base::SetupSurfaceState(
                 SurfStateParams.dwCompressionFormat = 0;
             }
 
-            if (!pParams->bRenderTarget                    &&
+            if (!pParams->isOutput                    &&
                 pSurface->MmcState != MOS_MEMCOMP_DISABLED &&
                 pSurfaceEntry->bVertStride)
             {

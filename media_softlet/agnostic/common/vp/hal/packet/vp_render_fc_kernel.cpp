@@ -165,8 +165,8 @@ MOS_STATUS VpRenderFcKernel::SetSurfaceParams(KERNEL_SURFACE_STATE_PARAM &surfPa
         layer.iefEnabled    = false;
 
         // Set flags for RT
-        surfParam.renderTarget              = true;
-        renderSurfParams.bRenderTarget      = true;
+        surfParam.isOutput                  = true;
+        renderSurfParams.isOutput           = true;
         renderSurfParams.bWidthInDword_Y    = true;
         renderSurfParams.bWidthInDword_UV   = true;
         renderSurfParams.Boundary           = RENDERHAL_SS_BOUNDARY_DSTRECT;
@@ -174,8 +174,8 @@ MOS_STATUS VpRenderFcKernel::SetSurfaceParams(KERNEL_SURFACE_STATE_PARAM &surfPa
     // other surfaces
     else
     {
-        surfParam.renderTarget              = false;
-        renderSurfParams.bRenderTarget      = false;
+        surfParam.isOutput                  = false;
+        renderSurfParams.isOutput           = false;
         renderSurfParams.bWidthInDword_Y    = false;
         renderSurfParams.bWidthInDword_UV   = false;
         renderSurfParams.Boundary           = RENDERHAL_SS_BOUNDARY_SRCRECT;
@@ -371,7 +371,7 @@ MOS_STATUS VpRenderFcKernel::SetupSurfaceState()
 
         surfParam.surfaceOverwriteParams.updatedRenderSurfaces             = true;
         surfParam.surfaceOverwriteParams.renderSurfaceParams.Type          = RENDERHAL_SURFACE_TYPE_G10;
-        surfParam.surfaceOverwriteParams.renderSurfaceParams.bRenderTarget = false;
+        surfParam.surfaceOverwriteParams.renderSurfaceParams.isOutput = false;
         surfParam.surfaceOverwriteParams.renderSurfaceParams.Boundary      = RENDERHAL_SS_BOUNDARY_ORIGINAL;
         surfParam.surfaceOverwriteParams.renderSurfaceParams.bWidth16Align = false;
         surfParam.surfaceOverwriteParams.renderSurfaceParams.MemObjCtl     = m_surfMemCacheCtl.InputSurfMemObjCtl;

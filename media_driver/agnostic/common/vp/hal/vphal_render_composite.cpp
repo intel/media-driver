@@ -2870,7 +2870,7 @@ void CompositeState::SetSurfaceParams(
         pSource->bIEF        = false;
 
         // Set flags for RT
-        pSurfaceParams->bRenderTarget    = true;
+        pSurfaceParams->isOutput    = true;
         pSurfaceParams->bWidthInDword_Y  = true;
         pSurfaceParams->bWidthInDword_UV = true;
         pSurfaceParams->Boundary         = RENDERHAL_SS_BOUNDARY_DSTRECT;
@@ -2878,7 +2878,7 @@ void CompositeState::SetSurfaceParams(
     // other surfaces
     else
     {
-        pSurfaceParams->bRenderTarget    = false;
+        pSurfaceParams->isOutput    = false;
         pSurfaceParams->bWidthInDword_Y  = false;
         pSurfaceParams->bWidthInDword_UV = false;
         pSurfaceParams->Boundary         = RENDERHAL_SS_BOUNDARY_SRCRECT;
@@ -4648,7 +4648,7 @@ bool CompositeState::SubmitStates(
         MOS_ZeroMemory(&SurfaceParams, sizeof(SurfaceParams));
 
         SurfaceParams.Type          = pRenderHal->SurfaceTypeDefault;
-        SurfaceParams.bRenderTarget = false;
+        SurfaceParams.isOutput = false;
         SurfaceParams.Boundary      = RENDERHAL_SS_BOUNDARY_ORIGINAL;
         SurfaceParams.bWidth16Align = false;
         SurfaceParams.MemObjCtl     = m_SurfMemObjCtl.InputSurfMemObjCtl;

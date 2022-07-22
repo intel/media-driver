@@ -67,7 +67,7 @@ typedef struct _KERNEL_SURFACE_STATE_PARAM
         RENDERHAL_SURFACE_STATE_PARAMS renderSurfaceParams;  // default can be skip. for future usages, if surface configed by kernel, use it directlly
     } surfaceOverwriteParams;
 
-    bool                                renderTarget;        // true for render target
+    bool                                isOutput;        // true for render target
     PRENDERHAL_SURFACE_STATE_ENTRY      *surfaceEntries;
     uint32_t                            *sizeOfSurfaceEntries;
 } KERNEL_SURFACE_STATE_PARAM;

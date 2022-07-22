@@ -338,7 +338,7 @@ MOS_STATUS VpRenderHVSKernel::SetupSurfaceState()
 
             //kernelSurfaceParam.surfaceOverwriteParams.updatedRenderSurfaces                 = true;
             //kernelSurfaceParam.surfaceOverwriteParams.renderSurfaceParams.Type              = renderHal->SurfaceTypeDefault;
-            //kernelSurfaceParam.surfaceOverwriteParams.renderSurfaceParams.bRenderTarget     = true; // true if no need sync for read.
+            //kernelSurfaceParam.surfaceOverwriteParams.renderSurfaceParams.isOutput     = true; // true if no need sync for read.
             //kernelSurfaceParam.surfaceOverwriteParams.renderSurfaceParams.bWidthInDword_Y   = true;
             //kernelSurfaceParam.surfaceOverwriteParams.renderSurfaceParams.bWidthInDword_UV  = true;
             //kernelSurfaceParam.surfaceOverwriteParams.renderSurfaceParams.Boundary          = RENDERHAL_SS_BOUNDARY_ORIGINAL;
