@@ -614,7 +614,7 @@ namespace encode
             return eStatus;
         }
 
-        uint8_t index;
+        uint8_t index = 0;
         ENCODE_CHK_STATUS_RETURN(GetLaStatsStoreIdx(index));
         uint32_t offset = sizeof(VdencHevcLaStats) * index;        
         if (m_useDSData)
