@@ -1220,7 +1220,7 @@ MOS_STATUS MhwVdboxMfxInterfaceG12::AddMfxIndObjBaseAddrCmd(
             m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_MFC_INDIRECT_PAKBASE_OBJECT_CODEC].Value;
 
         resourceParams.presResource = params->presPakBaseObjectBuffer;
-        resourceParams.dwOffset = 0;
+        resourceParams.dwOffset     = params->presPakBaseObjectBuffer->dwResourceOffset;
         resourceParams.pdwCmd = &(cmd.DW21.Value);
         resourceParams.dwLocationInCmd = 21;
         resourceParams.dwSize = MOS_ALIGN_CEIL(params->dwPakBaseObjectSize, 0x1000);
