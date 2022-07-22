@@ -385,7 +385,7 @@ MOS_STATUS VphalRendererG12Tgllp::RenderScaling(
         dwAllocatedWidth                = pTarget->dwWidth;
         dwAllocatedHeight               = pTarget->dwHeight;
         VPHAL_RENDER_CHK_STATUS(AllocateSurface(pRenderParams, pSource, m_pDSSurface[1], dwAllocatedWidth, dwAllocatedHeight, pSource->Format));
-        rectScalingRegion               = pTarget->rcDst;
+        rectScalingRegion               = pSource->rcDst;
         m_pDSSurface[0]->rcDst          = rectScalingRegion;
         m_pDSSurface[1]->rcDst          = rectScalingRegion;
 
@@ -396,7 +396,7 @@ MOS_STATUS VphalRendererG12Tgllp::RenderScaling(
         VPHAL_RENDER_CHK_STATUS(RenderPass(&renderParams));
         m_pDSSurface[1]->rcSrc           = m_pDSSurface[1]->rcDst;
         m_pDSSurface[1]->rcMaxSrc        = m_pDSSurface[1]->rcDst;
-        m_pDSSurface[1]->rcDst           = pTarget->rcDst;
+        m_pDSSurface[1]->rcDst           = pSource->rcDst;
         pDSSurface                       = m_pDSSurface[1];
     }
 
