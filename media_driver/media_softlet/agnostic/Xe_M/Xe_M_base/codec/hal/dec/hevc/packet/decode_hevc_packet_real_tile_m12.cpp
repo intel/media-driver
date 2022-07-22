@@ -261,29 +261,6 @@ MOS_STATUS HevcDecodeRealTilePktM12::PackSliceLevelCmds(MOS_COMMAND_BUFFER &cmdB
             if (sliceTileInfo->firstSliceOfTile)
             {
                 DECODE_CHK_STATUS(m_tilePkt->Execute(sliceCmdBuffer, tileX, tileY));
-                // Check the startCtbX and startCtbY for firstsliceoftile and firsttileofslice
-                if (j == 0)
-                {
-                    uint32_t ctbSize    = 1 << (m_hevcPicParams->log2_diff_max_min_luma_coding_block_size +
-                                             m_hevcPicParams->log2_min_luma_coding_block_size_minus3 + 3);
-                    uint32_t widthInPix = (1 << (m_hevcPicParams->log2_min_luma_coding_block_size_minus3 + 3)) *
-                                          (m_hevcPicParams->PicWidthInMinCbsY);
-                    uint32_t widthInCtb      = MOS_ROUNDUP_DIVIDE(widthInPix, ctbSize);
-                    auto     hevcSliceParams = m_hevcBasicFeature->m_hevcSliceParams + i;
-                    uint32_t slicestartCtbX  = hevcSliceParams->slice_segment_address % widthInCtb;
-                    uint32_t slicestartCtbY  = hevcSliceParams->slice_segment_address / widthInCtb;
-                    uint16_t tilestartCtbX   = m_hevcBasicFeature->m_tileCoding.GetTileCtbX(tileX);
-                    uint16_t tilestartCtbY   = m_hevcBasicFeature->m_tileCoding.GetTileCtbY(tileY);
-                    if (slicestartCtbY != tilestartCtbY || slicestartCtbX != tilestartCtbX)
-                    {
-                        DECODE_ASSERTMESSAGE("slicestartCtbX(%d) does not equal to tilestartCtbX(%d) slicestartCtbY(%d) does not equal to tilestartCtbY(%d)\n",
-                            slicestartCtbX,
-                            tilestartCtbX,
-                            slicestartCtbY,
-                            tilestartCtbY);
-                        return MOS_STATUS_INVALID_PARAMETER;
-                    }
-                }
             }
             DECODE_CHK_STATUS(m_slicePkt->Execute(sliceCmdBuffer, i, j));
             if (MEDIA_IS_WA(m_hevcPipeline->GetWaTable(), Wa_2209620131))
