@@ -67,6 +67,7 @@ target_include_directories(devult BEFORE PRIVATE
     ${MOS_PUBLIC_INCLUDE_DIRS_}     ${SOFTLET_MOS_PUBLIC_INCLUDE_DIRS_}
     ${COMMON_PRIVATE_INCLUDE_DIRS_} ${SOFTLET_COMMON_PRIVATE_INCLUDE_DIRS_}
     ${VP_PRIVATE_INCLUDE_DIRS_}     ${SOFTLET_VP_PRIVATE_INCLUDE_DIRS_}
+    ${COMMON_CP_DIRECTORIES_}
 )
 if (DEFINED BYPASS_MEDIA_ULT AND "${BYPASS_MEDIA_ULT}" STREQUAL "yes")
     # must explictly pass along BYPASS_MEDIA_ULT as yes then could bypass the running of media ult

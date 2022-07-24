@@ -23,14 +23,6 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mhw_cp_interface.h
 )
 
-set(HEADERS_
-    ${HEADERS_}
-    ${TMP_HEADERS_}
-)
-
-set(TMP_DIRECTORIES_
-    ${CMAKE_CURRENT_LIST_DIR}
-)
 
 set(CP_COMMON_SHARED_HEADERS_
     ${CP_COMMON_SHARED_HEADERS_}
@@ -39,7 +31,5 @@ set(CP_COMMON_SHARED_HEADERS_
 
 set(COMMON_CP_DIRECTORIES_
     ${COMMON_CP_DIRECTORIES_}
-    ${TMP_DIRECTORIES_}
+    ${CMAKE_CURRENT_LIST_DIR}
 )
-
-media_add_curr_to_include_path()
