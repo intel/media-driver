@@ -282,13 +282,13 @@ protected:
     MediaFeatureManager* m_featureManager = nullptr;
 
     // Perf
-    VPHAL_PERFTAG               PerfTag; // need to check the perf setting in codec
+    VPHAL_PERFTAG               PerfTag = VPHAL_NONE; // need to check the perf setting in codec
 
     // Kernel Render Data
     uint32_t                     m_kernelCount = 0;
 
     // Kernel Render Data
-    KERNEL_PACKET_RENDER_DATA   m_renderData;
+    KERNEL_PACKET_RENDER_DATA   m_renderData = {};
 
     // object walker: media walker/compute walker
     WALKER_TYPE                 m_walkerType = WALKER_TYPE_DISABLED;
@@ -302,12 +302,12 @@ protected:
     MHW_PIPE_CONTROL_PARAMS m_pipeCtlParams = {};
 
     MHW_MEDIA_STATE_FLUSH_PARAM m_flushParam = {};
-    uint32_t                m_flushMode;
-    PMOS_RESOURCE           m_presDest;
-    uint32_t                m_postSyncOp;
-    uint32_t                m_resourceOffset;
-    uint32_t                m_dataDW1;
-    uint32_t                m_dataDW2;
+    uint32_t                m_flushMode = 0;
+    PMOS_RESOURCE           m_presDest = nullptr;
+    uint32_t                m_postSyncOp = 0;
+    uint32_t                m_resourceOffset = 0;
+    uint32_t                m_dataDW1 = 0;
+    uint32_t                m_dataDW2 = 0;
     uint32_t                m_genericMediaStateClear : 1;
     uint32_t                m_IndirectStatePointersDisable : 1;
     uint32_t                m_disableCSStall : 1;
@@ -320,8 +320,8 @@ protected:
     uint32_t                m_bTlbInvalidate : 1;
     uint32_t                m_bHdcPipelineFlush : 1;
     uint32_t                m_bKernelFenceEnabled : 1;
-    bool                    m_bFlushToGo;
-    uint8_t                 m_ui8InterfaceDescriptorOffset;
+    bool                    m_bFlushToGo = true;
+    uint8_t                 m_ui8InterfaceDescriptorOffset = 0;
 MEDIA_CLASS_DEFINE_END(RenderCmdPacketNext)
 };
 #endif // __MEDIA_RENDER_CMD_PACKET_NEXT_H__
