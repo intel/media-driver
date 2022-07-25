@@ -39,11 +39,6 @@ namespace encode
 
         virtual ~Av1VdencPktXe_Hpm();
 
-    protected:
-
-#if USE_CODECHAL_DEBUG_TOOL
-        MOS_STATUS DumpSeqParFile();
-#endif  // USE_CODECHAL_DEBUG_TOOL
     MEDIA_CLASS_DEFINE_END(encode__Av1VdencPktXe_Hpm)
     };
 }

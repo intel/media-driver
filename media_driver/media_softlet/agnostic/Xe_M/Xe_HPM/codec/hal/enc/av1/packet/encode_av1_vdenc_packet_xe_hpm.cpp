@@ -30,36 +30,7 @@ namespace encode
 {
     Av1VdencPktXe_Hpm::~Av1VdencPktXe_Hpm()
     {
-#if USE_CODECHAL_DEBUG_TOOL
-    CodechalDebugInterface* debugInterface = m_pipeline->GetDebugInterface();
-    if (debugInterface && debugInterface->DumpIsEnabled(CodechalDbgAttr::attrDumpEncodePar)) {
-        DumpSeqParFile();
-        MOS_Delete(m_av1Par);
-    }
-#endif
+
     }
 
-#if USE_CODECHAL_DEBUG_TOOL
-    static inline uint32_t *FindCmd(uint32_t *cmdBuf, uint32_t size, uint32_t dw0)
-    {
-        uint32_t offset = 0;
-
-        while (offset < size)
-        {
-            if (cmdBuf[offset] == dw0)
-            {
-                return &cmdBuf[offset];
-            }
-            offset++;
-        }
-
-        return nullptr;
-    }
-
-    MOS_STATUS Av1VdencPktXe_Hpm::DumpSeqParFile()
-    {
-        ENCODE_CHK_STATUS_RETURN(Av1VdencPkt::DumpSeqParFile());
-        return MOS_STATUS_SUCCESS;
-    }
-#endif  // USE_CODECHAL_DEBUG_TOOL
 }

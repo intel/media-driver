@@ -241,18 +241,6 @@ protected:
         EncodeStatusMfx        *encodeStatusMfx,
         EncodeStatusReportData *statusReportData);
 
-    virtual MOS_STATUS PopulateParFileParams(
-        const CODEC_AV1_ENCODE_SEQUENCE_PARAMS *  seqParams,
-        const CODEC_AV1_ENCODE_PICTURE_PARAMS *   picParams,
-        const uint32_t                            numTileGroups,
-        const CODEC_AV1_ENCODE_TILE_GROUP_PARAMS *tileGroupParams,
-        const MHW_BATCH_BUFFER *                  batchBuffer);
-
-    virtual MOS_STATUS InitParParams();
-
-    MOS_STATUS PopulateParFileParams();
-
-    virtual MOS_STATUS DumpSeqParFile();
 #endif  // USE_CODECHAL_DEBUG_TOOL
 
     Av1VdencPipeline *m_pipeline = nullptr;
@@ -278,10 +266,6 @@ protected:
     mutable uint8_t m_curAvpSurfStateId = 0;
 
     AtomicScratchBufferAv1 m_atomicScratchBuf = {};  //!< Stores atomic operands and result
-
-#if USE_CODECHAL_DEBUG_TOOL
-    EncodeAv1Par *m_av1Par = nullptr;
-#endif  // USE_CODECHAL_DEBUG_TOOL
 
     bool m_vdencPakObjCmdStreamOutEnabled               = false;    //!< Pakobj stream out enable flag
     PMOS_RESOURCE m_resCumulativeCuCountStreamoutBuffer = nullptr;  //!< Cumulative CU count stream out buffer

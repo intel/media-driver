@@ -587,10 +587,6 @@ namespace encode
 
         ENCODE_CHK_STATUS_RETURN(EnsureAllCommandsExecuted(cmdBuffer));
 
-#if USE_CODECHAL_DEBUG_TOOL
-        ENCODE_CHK_STATUS_RETURN(Av1VdencPkt::PopulateParFileParams());
-#endif  // USE_CODECHAL_DEBUG_TOOL
-
         // Wait all pipe cmds done for the packet
         auto scalability = m_pipeline->GetMediaScalability();
         ENCODE_CHK_STATUS_RETURN(scalability->SyncPipe(syncOnePipeWaitOthers, 0, &cmdBuffer));
