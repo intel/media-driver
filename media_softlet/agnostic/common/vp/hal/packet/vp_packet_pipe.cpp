@@ -268,6 +268,8 @@ MOS_STATUS PacketPipe::Execute(MediaStatusReport *statusReport, MediaScalability
 {
     VP_FUNC_CALL();
 
+    VP_PUBLIC_NORMALMESSAGE("PacketPipe %p in execute.", this);
+
     // PrePare Packet in case any packet resources shared
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
     for (std::vector<VpCmdPacket*>::reverse_iterator it = m_Pipe.rbegin(); it != m_Pipe.rend(); ++it)
@@ -304,6 +306,7 @@ MOS_STATUS PacketPipe::Execute(MediaStatusReport *statusReport, MediaScalability
         VP_PUBLIC_CHK_STATUS_RETURN(pTask->AddPacket(&prop));
         if (prop.immediateSubmit)
         {
+            VP_PUBLIC_NORMALMESSAGE("Execute Packet %p.", pPacket);
             VP_PUBLIC_CHK_STATUS_RETURN(pTask->Submit(true, scalability, nullptr));
         }
 

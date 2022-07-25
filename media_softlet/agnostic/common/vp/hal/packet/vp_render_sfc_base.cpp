@@ -409,6 +409,10 @@ MOS_STATUS SfcRenderBase::SetAvsStateParams()
     MOS_ZeroMemory(pMhwAvsState, sizeof(MHW_SFC_AVS_STATE));
     pMhwAvsState->sfcPipeMode = m_pipeMode;
 
+    VP_RENDER_NORMALMESSAGE("bScaling %d, bForcePolyPhaseCoefs %d",
+        (m_renderData.bScaling ? 1 :0),
+        (m_renderData.bForcePolyPhaseCoefs ? 1 : 0));
+
     if (m_renderData.bScaling ||
         m_renderData.bForcePolyPhaseCoefs)
     {
@@ -670,6 +674,13 @@ MOS_STATUS SfcRenderBase::SetScalingParams(PSFC_SCALING_PARAMS scalingParams)
         VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
     }
 
+    VP_RENDER_NORMALMESSAGE("fScaleX %f, fScaleY %f, bScaling %d, SfcScalingMode %d, SfcInputFormat %d, bRectangleEnabled",
+        m_renderData.fScaleX, m_renderData.fScaleY,
+        (m_renderData.bScaling ? 1 : 0),
+        m_renderData.SfcScalingMode,
+        m_renderData.SfcInputFormat,
+        (scalingParams->bRectangleEnabled ? 1: 0));
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -842,9 +853,6 @@ MOS_STATUS SfcRenderBase::SetCSCParams(PSFC_CSC_PARAMS cscParams)
     {
         m_renderData.sfcStateParams->ditheringEn = false;
     }
-    VP_PUBLIC_NORMALMESSAGE("cscParams.isDitheringNeeded = %d, m_disableSfcDithering = %d, ditheringEn = %d", 
-        cscParams->isDitheringNeeded, m_disableSfcDithering, m_renderData.sfcStateParams->ditheringEn);
-
 
     // Chromasitting config
     // VEBOX use polyphase coefficients for 1x scaling for better quality,
@@ -865,6 +873,10 @@ MOS_STATUS SfcRenderBase::SetCSCParams(PSFC_CSC_PARAMS cscParams)
     // config SFC chroma down sampling
     m_renderData.sfcStateParams->dwChromaDownSamplingHorizontalCoef = cscParams->chromaDownSamplingHorizontalCoef;
     m_renderData.sfcStateParams->dwChromaDownSamplingVerticalCoef   = cscParams->chromaDownSamplingVerticalCoef;
+
+    VP_RENDER_NORMALMESSAGE("cscParams.isDitheringNeeded %d, m_disableSfcDithering %d, ditheringEn %d, bForcePolyPhaseCoefs %d", 
+        cscParams->isDitheringNeeded, m_disableSfcDithering, m_renderData.sfcStateParams->ditheringEn,
+        (m_renderData.bForcePolyPhaseCoefs ? 1 : 0));
 
     return MOS_STATUS_SUCCESS;
 }

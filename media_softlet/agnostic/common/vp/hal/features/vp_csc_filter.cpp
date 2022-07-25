@@ -691,6 +691,9 @@ bool VpCscFilter::IsChromaUpSamplingNeeded()
         bChromaUpSampling = true;
     }
 
+    VP_PUBLIC_NORMALMESSAGE("formatInput %d, formatOutput %d, srcColorPack %d, dstColorPack %d, bChromaUpSampling %d",
+        m_cscParams.formatInput, m_cscParams.formatOutput, srcColorPack, dstColorPack, bChromaUpSampling ? 1 : 0);
+
     return bChromaUpSampling;
 }
 

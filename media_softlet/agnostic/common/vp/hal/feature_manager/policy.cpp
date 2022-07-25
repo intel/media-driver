@@ -957,7 +957,7 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter *feature, bool isHdrEnabled,
     if (!m_hwCaps.m_rules.isAvsSamplerSupported &&
         scalingParams->scalingPreference != VPHAL_SCALING_PREFER_SFC)
     {
-        VP_PUBLIC_NORMALMESSAGE("Force scalingPreference from %d to SFC");
+        VP_PUBLIC_NORMALMESSAGE("Force scalingPreference from %d to SFC", scalingParams->scalingPreference);
         scalingParams->scalingPreference = VPHAL_SCALING_PREFER_SFC;
     }
 

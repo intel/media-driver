@@ -303,6 +303,8 @@ public:
         float                     fHPStrength,
         float                     fLanczosT)
     {
+        MHW_FUNCTION_ENTER;
+
         int32_t * piYCoefsX, *piYCoefsY;
         int32_t * piUVCoefsX, *piUVCoefsY;
         MHW_PLANE Plane;
@@ -322,6 +324,8 @@ public:
             fScaleX == pAvsParams->fScaleX &&
             fScaleY == pAvsParams->fScaleY)
         {
+            MHW_NORMALMESSAGE("Skip calculation since no changes to AVS parameters. srcFormat %d, fScaleX %f, fScaleY %f",
+                srcFormat, fScaleX, fScaleY);
             return MOS_STATUS_SUCCESS;
         }
 
@@ -338,6 +342,9 @@ public:
         {
             pAvsParams->fScaleY = fScaleY;
         }
+
+        MHW_NORMALMESSAGE("srcFormat %d, pAvsParams->Format %d, fScaleX %f, fScaleY %f, pAvsParams->fScaleX %f, pAvsParams->fScaleY %f, pAvsParams->bUse8x8Filter %d, bUse8x8Filter %d, m_scalingMode %d, bForcePolyPhaseCoefs %d",
+            srcFormat, pAvsParams->Format, fScaleX, fScaleY, pAvsParams->fScaleX, pAvsParams->fScaleY, pAvsParams->bUse8x8Filter, bUse8x8Filter, m_scalingMode, (pAvsParams->bForcePolyPhaseCoefs ? 1 : 0));
 
         // Recalculate Horizontal scaling table
         if (srcFormat != pAvsParams->Format || fScaleX != pAvsParams->fScaleX || pAvsParams->bUse8x8Filter != bUse8x8Filter)

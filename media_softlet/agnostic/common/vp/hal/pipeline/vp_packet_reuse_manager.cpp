@@ -454,6 +454,12 @@ MOS_STATUS VpPacketReuseManager::PreparePacketPipeReuse(std::vector<SwFilterPipe
     {
         m_reusable = false;
         VP_PUBLIC_NORMALMESSAGE("Not reusable for multi-layer cases.");
+
+        if (m_pipeReused)
+        {
+            m_packetPipeFactory.ReturnPacketPipe(m_pipeReused);
+        }
+
         return MOS_STATUS_SUCCESS;
     }
 
@@ -488,6 +494,12 @@ MOS_STATUS VpPacketReuseManager::PreparePacketPipeReuse(std::vector<SwFilterPipe
     {
         // m_pipeReused will be udpated in UpdatePacketPipeConfig.
         VP_PUBLIC_NORMALMESSAGE("Packet cannot be reused.");
+
+        if (m_pipeReused)
+        {
+            m_packetPipeFactory.ReturnPacketPipe(m_pipeReused);
+        }
+
         return MOS_STATUS_SUCCESS;
     }
 
