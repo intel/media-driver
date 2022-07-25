@@ -2129,7 +2129,7 @@ MOS_STATUS CodechalVdencHevcStateG12::ValidateRefFrameData(PCODEC_HEVC_ENCODE_SL
         CODECHAL_ENCODE_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
     }
 
-    uint8_t maxNumRef0 = isRandomAccess ? 2 : m_numMaxVdencL0Ref;
+    uint8_t maxNumRef0 = isRandomAccess ? 3 : m_numMaxVdencL0Ref;
     uint8_t maxNumRef1 = isRandomAccess ? 1 : m_numMaxVdencL1Ref;
 
     if (slcParams->num_ref_idx_l0_active_minus1 > maxNumRef0 - 1)
