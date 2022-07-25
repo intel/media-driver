@@ -278,6 +278,8 @@ namespace encode
         hucVdencBrcUpdateDmem->SceneChgPrevIntraPctThreshold_U8 = brcSettings.sceneChgPrevIntraPctThreshold_U8;
         hucVdencBrcUpdateDmem->SceneChgCurIntraPctThreshold_U8 = brcSettings.sceneChgCurIntraPctThreshold_U8;
 
+        hucVdencBrcUpdateDmem->UPD_Randomaccess = m_basicFeature->m_hevcSeqParams->LowDelayMode == 1 ? 0 : 1;
+
         return MOS_STATUS_SUCCESS;
     }
 

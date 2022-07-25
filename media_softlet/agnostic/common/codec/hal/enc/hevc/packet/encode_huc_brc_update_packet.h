@@ -123,8 +123,9 @@ namespace encode
         uint8_t     UPD_TempScalable             = 0;
         uint32_t    UPD_UserMaxFrame             = 0;
         uint32_t    UPD_UserMaxFramePB           = 0;
+        uint8_t     UPD_Randomaccess             = 0;
 
-        uint8_t     RSVD[44] = {};  // 64 bytes aligned
+        uint8_t     RSVD[43] = {};  // 64 bytes aligned
     };
     C_ASSERT(256 == sizeof(VdencHevcHucBrcUpdateDmem));
 
