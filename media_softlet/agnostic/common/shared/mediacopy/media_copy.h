@@ -36,9 +36,8 @@
 #include "mos_util_debug.h"
 #include "mos_os.h"
 #include "mos_interface.h"
-class MhwInterfaces;
-class VpSurfaceDumper;
-typedef struct VPHAL_SURFACE* PVPHAL_SURFACE;
+
+class CommonSurfaceDumper;
 
 typedef struct _MCPY_ENGINE_CAPS
 {
@@ -264,20 +263,16 @@ protected:
     //!
     virtual MOS_STATUS MediaVeboxCopy(PMOS_RESOURCE src, PMOS_RESOURCE dst)
     {return MOS_STATUS_SUCCESS;}
-    
-   #if (_DEBUG || _RELEASE_INTERNAL)
-    //debug only
-    MOS_STATUS CloneResourceInfo(PVPHAL_SURFACE pVphalSurface, PMOS_SURFACE pMosSurface);
-   #endif
 
 public:
-    PMOS_INTERFACE      m_osInterface    = nullptr;
-    MCPY_ENGINE_CAPS    m_mcpyEngineCaps = {1,1,1,1};
-    MCPY_ENGINE         m_mcpyEngine     = MCPY_ENGINE_RENDER;
-    MCPY_STATE_PARAMS   m_mcpySrc        = {nullptr, MOS_MMC_DISABLED,MOS_TILE_LINEAR, MCPY_CPMODE_CLEAR, false}; // source surface.
-    MCPY_STATE_PARAMS   m_mcpyDst        = {nullptr, MOS_MMC_DISABLED,MOS_TILE_LINEAR, MCPY_CPMODE_CLEAR, false}; // destination surface.
-    bool                m_allowCPBltCopy  = false;  // allow cp call media copy only for output clear cases.
-    VpSurfaceDumper     *m_surfaceDumper  = nullptr;
+    PMOS_INTERFACE        m_osInterface    = nullptr;
+    MCPY_ENGINE_CAPS      m_mcpyEngineCaps = {1,1,1,1};
+    MCPY_ENGINE           m_mcpyEngine     = MCPY_ENGINE_RENDER;
+    MCPY_STATE_PARAMS     m_mcpySrc        = {nullptr, MOS_MMC_DISABLED,MOS_TILE_LINEAR, MCPY_CPMODE_CLEAR, false}; // source surface.
+    MCPY_STATE_PARAMS     m_mcpyDst        = {nullptr, MOS_MMC_DISABLED,MOS_TILE_LINEAR, MCPY_CPMODE_CLEAR, false}; // destination surface.
+    bool                  m_allowCPBltCopy = false;  // allow cp call media copy only for output clear cases.
+    CommonSurfaceDumper  *m_surfaceDumper  = nullptr;
+    static int32_t        m_frameNum;
 
 protected:
     PMOS_MUTEX           m_inUseGPUMutex = nullptr; // Mutex for in-use GPU context

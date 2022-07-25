@@ -27,9 +27,11 @@
 
 #include "media_copy.h"
 #include "media_copy_common.h"
-#include "vp_dumper.h"
+#include "media_debug_dumper.h"
 #include "mhw_cp_interface.h"
 #include "mos_utilities.h"
+
+int32_t MediaCopyBaseState::m_frameNum = 1;
 
 MediaCopyBaseState::MediaCopyBaseState():
     m_osInterface(nullptr)
@@ -81,7 +83,7 @@ MOS_STATUS MediaCopyBaseState::Initialize(PMOS_INTERFACE osInterface)
    #if (_DEBUG || _RELEASE_INTERNAL)
     if (m_surfaceDumper == nullptr)
     {
-       m_surfaceDumper = MOS_New(VpSurfaceDumper, osInterface);
+       m_surfaceDumper = MOS_New(CommonSurfaceDumper, osInterface);
        MOS_OS_CHK_NULL_RETURN(m_surfaceDumper);
     }
    #endif
@@ -225,56 +227,36 @@ MOS_STATUS MediaCopyBaseState::SurfaceCopy(PMOS_RESOURCE src, PMOS_RESOURCE dst,
     return eStatus;
 }
 
-#if (_DEBUG || _RELEASE_INTERNAL)
-MOS_STATUS MediaCopyBaseState::CloneResourceInfo(PVPHAL_SURFACE pVphalSurface, PMOS_SURFACE pMosSurface)
-{
-    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-
-    if(pVphalSurface == nullptr || pMosSurface == nullptr)
-    {
-        return MOS_STATUS_INVALID_PARAMETER;
-    }
-
-    pVphalSurface->SurfType          = SURF_NONE;
-    pVphalSurface->OsResource        = pMosSurface->OsResource;
-    pVphalSurface->dwWidth           = pMosSurface->dwWidth;
-    pVphalSurface->dwHeight          = pMosSurface->dwHeight;
-    pVphalSurface->dwPitch           = pMosSurface->dwPitch;
-    pVphalSurface->Format            = pMosSurface->Format;
-    pVphalSurface->TileType          = pMosSurface->TileType;
-    pVphalSurface->TileModeGMM       = pMosSurface->TileModeGMM;
-    pVphalSurface->bGMMTileEnabled   = pMosSurface->bGMMTileEnabled;
-    pVphalSurface->dwDepth           = pMosSurface->dwDepth;
-    pVphalSurface->dwSlicePitch      = pMosSurface->dwSlicePitch;
-    pVphalSurface->dwOffset          = pMosSurface->dwOffset;
-    pVphalSurface->bCompressible     = pMosSurface->bCompressible;
-    pVphalSurface->bIsCompressed     = pMosSurface->bIsCompressed;
-    pVphalSurface->CompressionMode   = pMosSurface->CompressionMode;
-    pVphalSurface->CompressionFormat = pMosSurface->CompressionFormat;
-
-    pVphalSurface->YPlaneOffset.iLockSurfaceOffset = pMosSurface->YPlaneOffset.iLockSurfaceOffset;
-    pVphalSurface->YPlaneOffset.iSurfaceOffset     = pMosSurface->YPlaneOffset.iSurfaceOffset;
-    pVphalSurface->YPlaneOffset.iXOffset           = pMosSurface->YPlaneOffset.iXOffset;
-    pVphalSurface->YPlaneOffset.iYOffset           = pMosSurface->YPlaneOffset.iYOffset;
-
-    pVphalSurface->UPlaneOffset.iLockSurfaceOffset = pMosSurface->UPlaneOffset.iLockSurfaceOffset;
-    pVphalSurface->UPlaneOffset.iSurfaceOffset     = pMosSurface->UPlaneOffset.iSurfaceOffset;
-    pVphalSurface->UPlaneOffset.iXOffset           = pMosSurface->UPlaneOffset.iXOffset;
-    pVphalSurface->UPlaneOffset.iYOffset           = pMosSurface->UPlaneOffset.iYOffset;
-
-    pVphalSurface->VPlaneOffset.iLockSurfaceOffset = pMosSurface->VPlaneOffset.iLockSurfaceOffset;
-    pVphalSurface->VPlaneOffset.iSurfaceOffset     = pMosSurface->VPlaneOffset.iSurfaceOffset;
-    pVphalSurface->VPlaneOffset.iXOffset           = pMosSurface->VPlaneOffset.iXOffset;
-    pVphalSurface->VPlaneOffset.iYOffset           = pMosSurface->VPlaneOffset.iYOffset;
-
-    return eStatus;
-}
-#endif
-
 MOS_STATUS MediaCopyBaseState::TaskDispatch()
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
     MosUtilities::MosLockMutex(m_inUseGPUMutex);
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    MOS_SURFACE sourceSurface = {};
+    MOS_SURFACE targetSurface = {};
+    char        dumpLocation[MAX_PATH];
+
+    MOS_ZeroMemory(dumpLocation, MAX_PATH);
+
+    targetSurface.Format = Format_Invalid;
+    targetSurface.OsResource = *m_mcpyDst.OsRes;
+#if !defined(LINUX) && !defined(ANDROID) && !EMUL
+    MOS_ZeroMemory(&targetSurface.OsResource.AllocationInfo, sizeof(SResidencyInfo));
+#endif
+
+    sourceSurface.Format = Format_Invalid;
+    sourceSurface.OsResource = *m_mcpySrc.OsRes;
+
+    m_osInterface->pfnGetResourceInfo(m_osInterface, &sourceSurface.OsResource, &sourceSurface);
+    m_osInterface->pfnGetResourceInfo(m_osInterface, &targetSurface.OsResource, &targetSurface);
+
+    // Set the dump location like "dumpLocation before MCPY=path_to_dump_folder" in user feature configure file
+    // Otherwise, the surface may not be dumped
+    m_surfaceDumper->GetSurfaceDumpLocation(dumpLocation, mcpy_in);
+    
+    m_surfaceDumper->DumpSurfaceToFile(m_osInterface, &sourceSurface, dumpLocation, m_frameNum, true, false, nullptr);
+#endif
 
     switch(m_mcpyEngine)
     {
@@ -305,6 +287,15 @@ MOS_STATUS MediaCopyBaseState::TaskDispatch()
 #if (_DEBUG || _RELEASE_INTERNAL)
     char *CopyEngine = (char *)(m_mcpyEngine?(m_mcpyEngine == MCPY_ENGINE_BLT?"BLT":"Render"):"VeBox");
     WriteUserFeatureString(__MEDIA_USER_FEATURE_MCPY_MODE_ID, CopyEngine, strlen(CopyEngine), m_osInterface->pOsContext);
+
+    MOS_ZeroMemory(dumpLocation, MAX_PATH);
+    // Set the dump location like "dumpLocation after MCPY=path_to_dump_folder" in user feature configure file
+    // Otherwise, the surface may not be dumped
+    m_surfaceDumper->GetSurfaceDumpLocation(dumpLocation, mcpy_out);
+
+    m_surfaceDumper->DumpSurfaceToFile(m_osInterface, &targetSurface, dumpLocation, m_frameNum, true, false, nullptr);
+
+    m_frameNum++;
 #endif
     MCPY_NORMALMESSAGE("Media Copy works on %s Engine", m_mcpyEngine?(m_mcpyEngine == MCPY_ENGINE_BLT?"BLT":"Render"):"VeBox");
 
