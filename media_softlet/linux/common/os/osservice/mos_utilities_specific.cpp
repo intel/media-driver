@@ -1510,8 +1510,12 @@ MOS_STATUS MosUtilities::MosInitializeReg(RegBufferMap &regBufferMap)
             while(!regStream.eof())
             {
                 std::string line = "";
-
                 std::getline(regStream, line);
+                auto endIndex = line.find("\r");
+                if(endIndex != std::string::npos)
+                {
+                    line = line.substr(0, endIndex);
+                }
                 if (std::string::npos != line.find(USER_SETTING_CONFIG_PATH))
                 {
                     id = USER_SETTING_CONFIG_PATH;
