@@ -727,69 +727,6 @@ MOS_STATUS VpUtils::DeclareUserSettings(MediaUserSettingSharedPtr userSettingPtr
         0,
         true);
 
-    DeclareUserSettingKeyForDebug(  // Surface Dump Outfile
-        userSettingPtr,
-        __VPHAL_DBG_SURF_DUMP_OUTFILE_KEY_NAME,
-        MediaUserSetting::Group::Sequence,
-        "",
-        true);
-
-    DeclareUserSettingKeyForDebug(  // VP Surface Dump Location
-        userSettingPtr,
-        __VPHAL_DBG_SURF_DUMP_LOCATION_KEY_NAME,
-        MediaUserSetting::Group::Sequence,
-        "",
-        true);
-
-    DeclareUserSettingKeyForDebug(  // Manual trigger to start VP Surface Dump
-        userSettingPtr,
-        __VPHAL_DBG_SURF_DUMP_MANUAL_TRIGGER_KEY_NAME,
-        MediaUserSetting::Group::Sequence,
-        -1,
-        true);
-
-    DeclareUserSettingKeyForDebug(  // VP Surface Dump Start Frame
-        userSettingPtr,
-        __VPHAL_DBG_SURF_DUMP_START_FRAME_KEY_NAME,
-        MediaUserSetting::Group::Sequence,
-        0,
-        true);
-
-    DeclareUserSettingKeyForDebug(  // VP Surface Dump End Frame
-        userSettingPtr,
-        __VPHAL_DBG_SURF_DUMP_END_FRAME_KEY_NAME,
-        MediaUserSetting::Group::Sequence,
-        MOS_USER_FEATURE_MAX_UINT32_STR_VALUE,
-        true);
-
-    DeclareUserSettingKeyForDebug(  // VP Surface dump each plance seprately
-        userSettingPtr,
-        __VPHAL_DBG_SURF_DUMPER_ENABLE_PLANE_DUMP,
-        MediaUserSetting::Group::Sequence,
-        0,
-        true);
-
-    DeclareUserSettingKeyForDebug(  // VP Surface dump aux data enable
-        userSettingPtr,
-        __VPHAL_DBG_SURF_DUMP_ENABLE_AUX_DUMP,
-        MediaUserSetting::Group::Sequence,
-        0,
-        true);
-
-    DeclareUserSettingKeyForDebug(  // VP Surface Dump: Locking Resource
-        userSettingPtr,
-        __VPHAL_DBG_SURF_DUMPER_RESOURCE_LOCK,
-        MediaUserSetting::Group::Sequence,
-        0,
-        true);
-
-    DeclareUserSettingKeyForDebug(  // VP State Dump Enable
-        userSettingPtr,
-        __VPHAL_DBG_STATE_DUMP_ENABLE,
-        MediaUserSetting::Group::Sequence,
-        0,
-        true);
-
     DeclareUserSettingKeyForDebug(  // VP Parameters Dump Outfile
         userSettingPtr,
         __VPHAL_DBG_PARAM_DUMP_OUTFILE_KEY_NAME,

@@ -995,7 +995,7 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
             m_userSettingPtr,
             __VPHAL_DBG_SURF_DUMPER_RESOURCE_LOCK,
             1,
-            MediaUserSetting::Group::Sequence);
+            MediaUserSetting::Group::Device);
 
         VP_DEBUG_ASSERT(eStatus == MOS_STATUS_SUCCESS);
         isSurfaceLocked = true;
@@ -1321,7 +1321,7 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
             m_userSettingPtr,
             __VPHAL_DBG_SURF_DUMPER_RESOURCE_LOCK,
             1,
-            MediaUserSetting::Group::Sequence);
+            MediaUserSetting::Group::Device);
 
         VP_DEBUG_ASSERT(eStatus == MOS_STATUS_SUCCESS);
         isSurfaceLocked = true;
@@ -1746,7 +1746,7 @@ void VpSurfaceDumper::GetSurfaceDumpSpec()
         m_userSettingPtr,
         pDumpSpec->uiStartFrame,
         __VPHAL_DBG_SURF_DUMP_START_FRAME_KEY_NAME,
-        MediaUserSetting::Group::Sequence);
+        MediaUserSetting::Group::Device);
 
     // Get end frame
     // if end frame is not got assign a default value of max
@@ -1754,14 +1754,14 @@ void VpSurfaceDumper::GetSurfaceDumpSpec()
         m_userSettingPtr,
         pDumpSpec->uiEndFrame,
         __VPHAL_DBG_SURF_DUMP_END_FRAME_KEY_NAME,
-        MediaUserSetting::Group::Sequence);
+        MediaUserSetting::Group::Device);
 
     // Get out file path
     ReadUserSettingForDebug(
         m_userSettingPtr,
         outValue,
         __VPHAL_DBG_SURF_DUMP_OUTFILE_KEY_NAME,
-        MediaUserSetting::Group::Sequence);
+        MediaUserSetting::Group::Device);
 
     if (outValue.ConstString().size() > 0 && outValue.ConstString().size() < MOS_USER_CONTROL_MAX_DATA_SIZE)
     {
@@ -1803,7 +1803,7 @@ void VpSurfaceDumper::GetSurfaceDumpSpec()
         m_userSettingPtr,
         outValue,
         __VPHAL_DBG_SURF_DUMP_LOCATION_KEY_NAME,
-        MediaUserSetting::Group::Sequence);
+        MediaUserSetting::Group::Device);
     if (outValue.ConstString().size() > 0 && outValue.ConstString().size() < MOS_USER_CONTROL_MAX_DATA_SIZE
         && pDumpSpec->pcOutputPath[0] != '\0')
     {
@@ -1815,14 +1815,14 @@ void VpSurfaceDumper::GetSurfaceDumpSpec()
         m_userSettingPtr,
         pDumpSpec->enableAuxDump,
         __VPHAL_DBG_SURF_DUMP_ENABLE_AUX_DUMP,
-        MediaUserSetting::Group::Sequence);
+        MediaUserSetting::Group::Device);
 
     // Get plane dump enabled flag
     ReadUserSettingForDebug(
         m_userSettingPtr,
         pDumpSpec->enablePlaneDump,
         __VPHAL_DBG_SURF_DUMPER_ENABLE_PLANE_DUMP,
-        MediaUserSetting::Group::Sequence);
+        MediaUserSetting::Group::Device);
 
 finish:
     if ((eStatus != MOS_STATUS_SUCCESS) || (pDumpSpec->pcOutputPath[0] == '\0'))
@@ -1906,7 +1906,7 @@ MOS_STATUS VpSurfaceDumper::DumpSurface(
         m_userSettingPtr,
         VphalSurfDumpManualTrigger,
         __VPHAL_DBG_SURF_DUMP_MANUAL_TRIGGER_KEY_NAME,
-        MediaUserSetting::Group::Sequence);
+        MediaUserSetting::Group::Device);
 
     if (VphalSurfDumpManualTrigger != VPHAL_SURF_DUMP_MANUAL_TRIGGER_DEFAULT_NOT_SET)
     {
@@ -2083,7 +2083,7 @@ MOS_STATUS VpSurfaceDumper::DumpSurface(
         m_userSettingPtr,
         VphalSurfDumpManualTrigger,
         __VPHAL_DBG_SURF_DUMP_MANUAL_TRIGGER_KEY_NAME,
-        MediaUserSetting::Group::Sequence);
+        MediaUserSetting::Group::Device);
 
     if (VphalSurfDumpManualTrigger != VPHAL_SURF_DUMP_MANUAL_TRIGGER_DEFAULT_NOT_SET)
     {

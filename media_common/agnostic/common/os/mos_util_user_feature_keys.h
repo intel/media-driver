@@ -338,6 +338,16 @@
 #define __MEDIA_USER_FEATURE_VALUE_MEDIA_TILE_ENCODING_1_DEFAULT      "Media tile encoding as 1 by default"
 #define __MEDIA_USER_FEATURE_VALUE_TILE_ENCODING_1_INTERNAL_USED      "Media Internal tile encoding as 1 used"
 #define __MEDIA_USER_FEATURE_VALUE_TILE_ENCODING_3_INTERNAL_USED      "Media Internal tile encoding as 3 used"
+//User feature key for vp surface dump
+#define __VPHAL_DBG_SURF_DUMP_OUTFILE_KEY_NAME                        "outfileLocation"
+#define __VPHAL_DBG_SURF_DUMP_LOCATION_KEY_NAME                       "dumpLocations"
+#define __VPHAL_DBG_SURF_DUMP_MANUAL_TRIGGER_KEY_NAME                 "VphalSurfaceDumpManualTrigger"
+#define __VPHAL_DBG_SURF_DUMP_START_FRAME_KEY_NAME                    "startFrame"
+#define __VPHAL_DBG_SURF_DUMP_END_FRAME_KEY_NAME                      "endFrame"
+#define __VPHAL_DBG_SURF_DUMPER_ENABLE_PLANE_DUMP                     "enablePlaneDump"
+#define __VPHAL_DBG_SURF_DUMP_ENABLE_AUX_DUMP                         "enableAuxDump"
+#define __VPHAL_DBG_SURF_DUMPER_RESOURCE_LOCK                         "SurfaceDumperResourceLockError"
+#define __VPHAL_DBG_STATE_DUMP_ENABLE                                 "enableStateDump"
 #endif //(_DEBUG || _RELEASE_INTERNAL)
 
 //User feature key for UMD_OCA
