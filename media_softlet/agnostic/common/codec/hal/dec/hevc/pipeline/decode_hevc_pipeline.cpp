@@ -314,7 +314,6 @@ MOS_STATUS HevcPipeline::HwStatusCheck(const DecodeStatusMfx &status)
             }
             DECODE_ASSERTMESSAGE("Huc IMEM Loaded fails");
             MT_ERR1(MT_DEC_HEVC, MT_DEC_HUC_ERROR_STATUS2, (status.m_hucErrorStatus2 >> 32));
-            return MOS_STATUS_UNKNOWN;
         }
 
         // Check Huc_status None Critical Error bit, bit 15. If 0, return error.
@@ -327,7 +326,6 @@ MOS_STATUS HevcPipeline::HwStatusCheck(const DecodeStatusMfx &status)
             }
             DECODE_ASSERTMESSAGE("Huc Report Critical Error!");
             MT_ERR1(MT_DEC_HEVC, MT_DEC_HUC_STATUS_CRITICAL_ERROR, (status.m_hucErrorStatus >> 32));
-            return MOS_STATUS_UNKNOWN;
         }
     }
 
