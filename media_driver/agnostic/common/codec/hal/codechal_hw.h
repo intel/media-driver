@@ -1675,6 +1675,20 @@ public:
     bool m_getVdboxNodeByUMD = false;
 
 #ifdef IGFX_MHW_INTERFACES_NEXT_SUPPORT
+    operator CodechalHwInterfaceNext &()
+    {
+        if (m_hwInterfaceNext == nullptr)
+        {
+            CODECHAL_HW_ASSERTMESSAGE("Conversion cannot succeed due to null pointer of m_hwInterfaceNext.");
+        }
+        return *m_hwInterfaceNext;
+    }
+
+    operator CodechalHwInterfaceNext *()
+    {
+        return m_hwInterfaceNext;
+    }
+
     CodechalHwInterfaceNext *m_hwInterfaceNext = nullptr;
 #endif
 };
