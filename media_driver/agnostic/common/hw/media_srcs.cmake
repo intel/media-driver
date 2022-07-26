@@ -53,7 +53,6 @@ set(TMP_4_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mhw_render_legacy.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_render_generic.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_state_heap_legacy.h
-    ${CMAKE_CURRENT_LIST_DIR}/mhw_state_heap_generic.h
 )
 
 source_group("MHW" FILES ${TMP_4_SOURCES_} ${TMP_4_HEADERS_})

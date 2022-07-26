@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Intel Corporation
+# Copyright (c) 2021-2022, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -23,13 +23,29 @@ set(TMP_RENDER_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mhw_render_xe_hpg_impl.h
 )
 
+set(TMP_STATE_HEAP_SOURCES_
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_state_heap_xe_hpg.c
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_state_heap_hwcmd_xe_hpg.cpp
+)
+
+set(TMP_STATE_HEAP_HEADERS_
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_state_heap_xe_hpg.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_state_heap_hwcmd_xe_hpg.h
+)
+
+set(SOFTLET_COMMON_SOURCES_
+    ${SOFTLET_COMMON_SOURCES_}
+    ${TMP_STATE_HEAP_SOURCES_}
+)
 
 set(SOFTLET_COMMON_HEADERS_
     ${SOFTLET_COMMON_HEADERS_}
     ${TMP_RENDER_HEADERS_}
+    ${TMP_STATE_HEAP_HEADERS_}
 )
 
 source_group("MHW\\Render Engine" FILES ${TMP_RENDER_HEADERS_})
+source_group("MHW\\State Heap" FILES ${TMP_STATE_HEAP_SOURCES_} ${TMP_STATE_HEAP_HEADERS_})
 
 set(SOFTLET_COMMON_PRIVATE_INCLUDE_DIRS_
     ${SOFTLET_COMMON_PRIVATE_INCLUDE_DIRS_}

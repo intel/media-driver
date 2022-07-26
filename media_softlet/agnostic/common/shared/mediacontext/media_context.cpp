@@ -28,7 +28,6 @@
 //!
 
 #include "media_context.h"
-#include "mos_gpucontextmgr.h"
 #include "mos_interface.h"
 #include "mos_os_virtualengine_next.h"
 #if !EMUL
@@ -119,26 +118,12 @@ MediaContext::~MediaContext()
 #elif !_VULKAN
             else
             {
-                auto gpuContextMgr = m_osInterface->pfnGetGpuContextMgr(m_osInterface);
-                
-                if (gpuContextMgr == nullptr)
+                // Be compatible to legacy MOS
+                auto status = m_osInterface->pfnDestroyGpuContextByHandle(m_osInterface, curAttribute.gpuContext);
+                if (status != MOS_STATUS_SUCCESS)
                 {
-                    //No need to destory GPU context when adv_gpucontext not enabled in Os context
-                    MOS_OS_NORMALMESSAGE("There is no Gpu context manager, adv gpu context not enabled, no need to destory GPU contexts.");
+                    MOS_OS_NORMALMESSAGE("Could not destroy gpu context");
                     return;
-                }
-                else
-                {
-                    auto gpuContext = gpuContextMgr->GetGpuContext(curAttribute.gpuContext);
-                    if (gpuContext)
-                    {
-                        gpuContextMgr->DestroyGpuContext(gpuContext);
-                    }
-                    else
-                    {
-                        MOS_OS_ASSERTMESSAGE("Not found gpu Context to destory, something must be wrong");
-                        return;
-                    }
                 }
             }
 #endif //!_VULKAN

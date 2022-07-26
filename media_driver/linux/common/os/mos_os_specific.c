@@ -4724,6 +4724,44 @@ MOS_STATUS Mos_Specific_DestroyGpuContext(
 }
 
 //!
+//! \brief    Destroy GPU context by handle
+//! \details  Destroy GPU context by handle for legacy
+//! \param    PMOS_INTERFACE pOsInterface
+//!           [in] Pointer to OS interface structure
+//! \param    GPU_CONTEXT_HANDLE gpuContextHandle
+//!           [in] GPU Context handle
+//! \return   MOS_STATUS
+//!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+//!
+MOS_STATUS Mos_Specific_DestroyGpuContextByHandle(
+    PMOS_INTERFACE        pOsInterface,
+    GPU_CONTEXT_HANDLE    gpuContextHandle)
+{
+    auto gpuContextMgr = pOsInterface->pfnGetGpuContextMgr(pOsInterface);
+                
+    if (gpuContextMgr == nullptr)
+    {
+        //No need to destory GPU context when adv_gpucontext not enabled in Os context
+        MOS_OS_NORMALMESSAGE("There is no Gpu context manager, adv gpu context not enabled, no need to destory GPU contexts.");
+        return MOS_STATUS_NULL_POINTER;
+    }
+    else
+    {
+        auto gpuContext = gpuContextMgr->GetGpuContext(gpuContextHandle);
+        if (gpuContext != nullptr)
+        {
+            gpuContextMgr->DestroyGpuContext(gpuContext);
+        }
+        else
+        {
+            MOS_OS_ASSERTMESSAGE("Not found gpu Context to destory, something must be wrong");
+            return MOS_STATUS_NULL_POINTER;
+        }
+    }
+    return MOS_STATUS_SUCCESS;
+}
+
+//!
 //! \brief    Destroy Compute GPU context
 //! \details  Destroy Compute GPU context
 //!           [in] Pointer to OS interface structure
@@ -7059,6 +7097,7 @@ MOS_STATUS Mos_Specific_InitInterface(
     pOsInterface->pfnCreateGpuContext                       = Mos_Specific_CreateGpuContext;
     pOsInterface->pfnCreateGpuComputeContext                = Mos_Specific_CreateGpuComputeContext;
     pOsInterface->pfnDestroyGpuContext                      = Mos_Specific_DestroyGpuContext;
+    pOsInterface->pfnDestroyGpuContextByHandle              = Mos_Specific_DestroyGpuContextByHandle;
     pOsInterface->pfnDestroyGpuComputeContext               = Mos_Specific_DestroyGpuComputeContext;
     pOsInterface->pfnIsGpuContextValid                      = Mos_Specific_IsGpuContextValid;
     pOsInterface->pfnSyncOnResource                         = Mos_Specific_SyncOnResource;

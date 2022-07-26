@@ -30,14 +30,22 @@
 #define __RENDERHAL_XE_HPG_BASE_H__
 
 #include "renderhal_platform_interface_next.h"
-#include "mhw_render_g12_X.h"
-#include "mhw_render_hwcmd_g12_X.h"
-#include "mhw_state_heap_hwcmd_g12_X.h"
-#include "mhw_render_xe_hp_base.h"
 #include "mhw_render_itf.h"
 #include "mhw_render_cmdpar.h"
+#include "mhw_render_hwcmd_xe_hpg.h"
+#include "mhw_state_heap_xe_hpg.h"
 
 extern const uint32_t g_cLookup_RotationMode_hpg_base[8];
+
+struct MHW_VFE_PARAMS_XE_HPG : MHW_VFE_PARAMS
+{
+    bool  bFusedEuDispatch = 0;
+    uint32_t numOfWalkers = 0;
+    bool  enableSingleSliceDispatchCcsMode = 0;
+
+    // Surface state offset of scratch space buffer.
+    uint32_t scratchStateOffset = 0;
+};
 
 typedef struct _RENDERHAL_GENERIC_PROLOG_PARAMS_HPG_BASE : _RENDERHAL_GENERIC_PROLOG_PARAMS
 {
@@ -350,7 +358,7 @@ public:
     //! \brief      Get the size of Binding Table State Command
     //! \return     size_t
     //!             the size of binding table state command
-    virtual size_t GetBTStateCmdSize() { return mhw_state_heap_g12_X::BINDING_TABLE_STATE_CMD::byteSize; }
+    virtual size_t GetBTStateCmdSize() { return mhw_state_heap_xe_hpg::BINDING_TABLE_STATE_CMD::byteSize; }
 
     //! \brief      Get Surface Compression support caps
     //! \param      [in] format
@@ -403,9 +411,9 @@ protected:
     XRenderHal_Interface_Xe_Hpg_Base();
     virtual ~XRenderHal_Interface_Xe_Hpg_Base() {}
 
-    MHW_VFE_PARAMS_G12 m_vfeStateParams;
+    MHW_VFE_PARAMS_XE_HPG m_vfeStateParams;
 
-    mhw_render_g12_X::PALETTE_ENTRY_CMD
+    mhw::render::xe_hpg::Cmd::PALETTE_ENTRY_CMD
         m_paletteData[RENDERHAL_PALETTE_MAX][RENDERHAL_PALETTE_ENTRIES_MAX];
 
     bool m_renderHalMMCEnabled = false;
