@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2021, Intel Corporation
+* Copyright (c) 2017-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -425,8 +425,11 @@ MOS_STATUS CodechalHwInterfaceG12::Initialize(
     CODECHAL_HW_FUNCTION_ENTER;
 
     CODECHAL_HW_CHK_STATUS_RETURN(CodechalHwInterface::Initialize(settings));
-
-    if (settings-> codecFunction == CODECHAL_FUNCTION_DECODE && settings-> standard == CODECHAL_AV1)
+    // Added isRenderHalNeeded flag into settings 
+    // Indicate whether RenderHal is needed or not 
+    if (settings->isRenderHalNeeded || 
+        (settings->codecFunction == CODECHAL_FUNCTION_DECODE && 
+        settings->standard == CODECHAL_AV1))
     {
         //Initialize renderHal
         m_renderHal = (PRENDERHAL_INTERFACE_LEGACY)MOS_AllocAndZeroMemory(sizeof(RENDERHAL_INTERFACE_LEGACY));
@@ -528,7 +531,7 @@ CodechalHwInterfaceG12::~CodechalHwInterfaceG12()
 
         if (m_renderHalCpInterface)
         {
-            MOS_Delete(m_renderHalCpInterface);
+            Delete_MhwCpInterface(m_renderHalCpInterface);
             m_renderHalCpInterface = nullptr;
         }
     }
