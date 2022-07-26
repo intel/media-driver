@@ -57,7 +57,7 @@
 #include "media_interfaces_mmd.h"
 #include "media_interfaces_mcpy.h"
 #include "media_user_settings_mgr.h"
-#include "media_interfaces.h"
+#include "media_factory.h"
 #include "mos_interface.h"
 #include "drm_fourcc.h"
 #include "media_libva_apo_decision.h"
@@ -80,7 +80,7 @@ extern VAStatus DdiDestroyContextCM (VADriverContextP   vaDrvCtx, VAContextID   
 }
 #endif
 
-extern template class MediaInterfacesFactory<MhwInterfaces>;
+extern template class MediaFactory<uint32_t, MhwInterfaces>;
 
 VAProcFilterType vp_supported_filters[DDI_VP_MAX_NUM_FILTERS] = {
     VAProcFilterNoiseReduction,

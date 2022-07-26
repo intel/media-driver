@@ -29,19 +29,19 @@
 #include "igcodeckrn_g9.h"
 #endif
 
-extern template class MediaInterfacesFactory<MhwInterfaces>;
-extern template class MediaInterfacesFactory<MmdDevice>;
-extern template class MediaInterfacesFactory<CodechalDevice>;
-extern template class MediaInterfacesFactory<CMHalDevice>;
-extern template class MediaInterfacesFactory<MosUtilDevice>;
-extern template class MediaInterfacesFactory<VphalDevice>;
-extern template class MediaInterfacesFactory<RenderHalDevice>;
-extern template class MediaInterfacesFactory<Nv12ToP010Device>;
-extern template class MediaInterfacesFactory<DecodeHistogramDevice>;
+extern template class MediaFactory<uint32_t, MhwInterfaces>;
+extern template class MediaFactory<uint32_t, MmdDevice>;
+extern template class MediaFactory<uint32_t, CodechalDevice>;
+extern template class MediaFactory<uint32_t, CMHalDevice>;
+extern template class MediaFactory<uint32_t, MosUtilDevice>;
+extern template class MediaFactory<uint32_t, VphalDevice>;
+extern template class MediaFactory<uint32_t, RenderHalDevice>;
+extern template class MediaFactory<uint32_t, Nv12ToP010Device>;
+extern template class MediaFactory<uint32_t, DecodeHistogramDevice>;
 
 static bool kblRegisteredVphal =
-    MediaInterfacesFactory<VphalDevice>::
-    RegisterHal<VphalInterfacesG9Kbl>((uint32_t)IGFX_KABYLAKE);
+    MediaFactory<uint32_t, VphalDevice>::
+    Register<VphalInterfacesG9Kbl>((uint32_t)IGFX_KABYLAKE);
 
 MOS_STATUS VphalInterfacesG9Kbl::Initialize(
     PMOS_INTERFACE  osInterface,
@@ -59,8 +59,8 @@ MOS_STATUS VphalInterfacesG9Kbl::Initialize(
 }
 
 static bool kblRegisteredMhw =
-    MediaInterfacesFactory<MhwInterfaces>::
-    RegisterHal<MhwInterfacesG9Kbl>((uint32_t)IGFX_KABYLAKE);
+    MediaFactory<uint32_t, MhwInterfaces>::
+    Register<MhwInterfacesG9Kbl>((uint32_t)IGFX_KABYLAKE);
 
 #define PLATFORM_INTEL_KBL 11
 #define GENX_SKL           5
@@ -135,8 +135,8 @@ MOS_STATUS MhwInterfacesG9Kbl::Initialize(
 }
 #ifdef _MMC_SUPPORTED
 static bool kblRegisteredMmd =
-    MediaInterfacesFactory<MmdDevice>::
-    RegisterHal<MmdDeviceG9Kbl>((uint32_t)IGFX_KABYLAKE);
+    MediaFactory<uint32_t, MmdDevice>::
+    Register<MmdDeviceG9Kbl>((uint32_t)IGFX_KABYLAKE);
 
 MOS_STATUS MmdDeviceG9Kbl::Initialize(
     PMOS_INTERFACE osInterface,
@@ -190,8 +190,8 @@ MOS_STATUS MmdDeviceG9Kbl::Initialize(
 }
 #endif
 static bool kblRegisteredNv12ToP010 =
-    MediaInterfacesFactory<Nv12ToP010Device>::
-    RegisterHal<Nv12ToP010DeviceG9Kbl>((uint32_t)IGFX_KABYLAKE);
+    MediaFactory<uint32_t, Nv12ToP010Device>::
+    Register<Nv12ToP010DeviceG9Kbl>((uint32_t)IGFX_KABYLAKE);
 
 MOS_STATUS Nv12ToP010DeviceG9Kbl::Initialize(
     PMOS_INTERFACE            osInterface)
@@ -208,8 +208,8 @@ MOS_STATUS Nv12ToP010DeviceG9Kbl::Initialize(
 }
 
 static bool kblRegisteredCodecHal =
-    MediaInterfacesFactory<CodechalDevice>::
-    RegisterHal<CodechalInterfacesG9Kbl>((uint32_t)IGFX_KABYLAKE);
+    MediaFactory<uint32_t, CodechalDevice>::
+    Register<CodechalInterfacesG9Kbl>((uint32_t)IGFX_KABYLAKE);
 
 MOS_STATUS CodechalInterfacesG9Kbl::Initialize(
     void *standardInfo,
@@ -475,8 +475,8 @@ MOS_STATUS CodechalInterfacesG9Kbl::Initialize(
 }
 
 static bool kblRegisteredCMHal =
-    MediaInterfacesFactory<CMHalDevice>::
-    RegisterHal<CMHalInterfacesG9Kbl>((uint32_t)IGFX_KABYLAKE);
+    MediaFactory<uint32_t, CMHalDevice>::
+    Register<CMHalInterfacesG9Kbl>((uint32_t)IGFX_KABYLAKE);
 
 MOS_STATUS CMHalInterfacesG9Kbl::Initialize(CM_HAL_STATE *pCmState)
 {
@@ -526,8 +526,8 @@ MOS_STATUS CMHalInterfacesG9Kbl::Initialize(CM_HAL_STATE *pCmState)
 }
 
 static bool kblRegisteredMosUtil =
-    MediaInterfacesFactory<MosUtilDevice>::
-    RegisterHal<MosUtilDeviceG9Kbl>((uint32_t)IGFX_KABYLAKE);
+    MediaFactory<uint32_t, MosUtilDevice>::
+    Register<MosUtilDeviceG9Kbl>((uint32_t)IGFX_KABYLAKE);
 
 MOS_STATUS MosUtilDeviceG9Kbl::Initialize()
 {
@@ -560,8 +560,8 @@ MOS_STATUS MosUtilDeviceG9Kbl::Initialize()
 }
 
 static bool kblRegisteredRenderHal =
-    MediaInterfacesFactory<RenderHalDevice>::
-    RegisterHal<RenderHalInterfacesG9Kbl>((uint32_t)IGFX_KABYLAKE);
+    MediaFactory<uint32_t, RenderHalDevice>::
+    Register<RenderHalInterfacesG9Kbl>((uint32_t)IGFX_KABYLAKE);
 
 MOS_STATUS RenderHalInterfacesG9Kbl::Initialize()
 {
@@ -575,8 +575,8 @@ MOS_STATUS RenderHalInterfacesG9Kbl::Initialize()
 }
 
 static bool kblRegisteredDecodeHistogram =
-MediaInterfacesFactory<DecodeHistogramDevice>::
-RegisterHal<DecodeHistogramDeviceG9Kbl>((uint32_t)IGFX_KABYLAKE);
+MediaFactory<uint32_t, DecodeHistogramDevice>::
+Register<DecodeHistogramDeviceG9Kbl>((uint32_t)IGFX_KABYLAKE);
 
 MOS_STATUS DecodeHistogramDeviceG9Kbl::Initialize(
     CodechalHwInterface       *hwInterface,
@@ -595,7 +595,7 @@ MOS_STATUS DecodeHistogramDeviceG9Kbl::Initialize(
 
 #define IP_VERSION_M9_0 0x0900
 static bool kblRegisteredHwInfo =
-    MediaInterfacesFactory<MediaInterfacesHwInfoDevice>::RegisterHal<MediaInterfacesHwInfoDeviceG9Kbl>((uint32_t)IGFX_KABYLAKE);
+    MediaFactory<uint32_t, MediaInterfacesHwInfoDevice>::Register<MediaInterfacesHwInfoDeviceG9Kbl>((uint32_t)IGFX_KABYLAKE);
 
 MOS_STATUS MediaInterfacesHwInfoDeviceG9Kbl::Initialize(PLATFORM platform)
 {

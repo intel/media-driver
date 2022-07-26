@@ -27,7 +27,7 @@
 #ifndef __MEDIA_INTERFACES_HWINFO_DEVICE_H__
 #define __MEDIA_INTERFACES_HWINFO_DEVICE_H__
 
-#include "media_interfaces.h"
+#include "media_factory.h"
 #include "media_interfaces_hwinfo.h"
 #include "igfxfmid.h"
 
@@ -77,6 +77,6 @@ public:
 
 };
 
-extern template class MediaInterfacesFactory<MediaInterfacesHwInfoDevice>;
+extern template class MediaFactory<uint32_t, MediaInterfacesHwInfoDevice>;
 
 #endif // __MEDIA_INTERFACES_HWINFO_DEVICE_H__

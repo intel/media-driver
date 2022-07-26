@@ -27,7 +27,7 @@
 #ifndef __MEDIA_INTERFACES_RENDERHAL_H__
 #define __MEDIA_INTERFACES_RENDERHAL_H__
 
-#include "media_interfaces.h"
+#include "media_factory.h"
 #include "renderhal_platform_interface.h"
 
 //!
@@ -59,6 +59,6 @@ protected:
     XRenderHal_Platform_Interface *m_renderhalDevice = nullptr;
 };
 
-extern template class MediaInterfacesFactory<RenderHalDevice>;
+extern template class MediaFactory<uint32_t, RenderHalDevice>;
 
 #endif // __MEDIA_INTERFACES_RENDERHAL_H__

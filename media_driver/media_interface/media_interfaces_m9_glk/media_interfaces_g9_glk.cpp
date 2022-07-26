@@ -30,23 +30,23 @@
 #include "igcodeckrn_g9.h"
 #endif
 
-extern template class MediaInterfacesFactory<MhwInterfaces>;
-extern template class MediaInterfacesFactory<MmdDevice>;
-extern template class MediaInterfacesFactory<CodechalDevice>;
-extern template class MediaInterfacesFactory<CMHalDevice>;
-extern template class MediaInterfacesFactory<MosUtilDevice>;
-extern template class MediaInterfacesFactory<VphalDevice>;
-extern template class MediaInterfacesFactory<RenderHalDevice>;
-extern template class MediaInterfacesFactory<Nv12ToP010Device>;
-extern template class MediaInterfacesFactory<DecodeHistogramDevice>;
+extern template class MediaFactory<uint32_t, MhwInterfaces>;
+extern template class MediaFactory<uint32_t, MmdDevice>;
+extern template class MediaFactory<uint32_t, CodechalDevice>;
+extern template class MediaFactory<uint32_t, CMHalDevice>;
+extern template class MediaFactory<uint32_t, MosUtilDevice>;
+extern template class MediaFactory<uint32_t, VphalDevice>;
+extern template class MediaFactory<uint32_t, RenderHalDevice>;
+extern template class MediaFactory<uint32_t, Nv12ToP010Device>;
+extern template class MediaFactory<uint32_t, DecodeHistogramDevice>;
 
 #define PLATFORM_INTEL_GLK 16
 #define GENX_SKL           5
 #define GENX_BXT           6
 
 static bool glkRegisteredVphal =
-    MediaInterfacesFactory<VphalDevice>::
-    RegisterHal<VphalInterfacesG9Glk>((uint32_t)IGFX_GEMINILAKE);
+    MediaFactory<uint32_t, VphalDevice>::
+    Register<VphalInterfacesG9Glk>((uint32_t)IGFX_GEMINILAKE);
 
 MOS_STATUS VphalInterfacesG9Glk::Initialize(
     PMOS_INTERFACE  osInterface,
@@ -64,18 +64,18 @@ MOS_STATUS VphalInterfacesG9Glk::Initialize(
 }
 
 static bool glkRegisteredMhw =
-    MediaInterfacesFactory<MhwInterfaces>::
-    RegisterHal<MhwInterfacesG9Kbl>((uint32_t)IGFX_GEMINILAKE);
+    MediaFactory<uint32_t, MhwInterfaces>::
+    Register<MhwInterfacesG9Kbl>((uint32_t)IGFX_GEMINILAKE);
 
 #ifdef _MMC_SUPPORTED
 static bool glkRegisteredMmd =
-    MediaInterfacesFactory<MmdDevice>::
-    RegisterHal<MmdDeviceG9Kbl>((uint32_t)IGFX_GEMINILAKE);
+    MediaFactory<uint32_t, MmdDevice>::
+    Register<MmdDeviceG9Kbl>((uint32_t)IGFX_GEMINILAKE);
 #endif
 
 static bool glkRegisteredNv12ToP010 =
-    MediaInterfacesFactory<Nv12ToP010Device>::
-    RegisterHal<Nv12ToP010DeviceG9Glk>((uint32_t)IGFX_GEMINILAKE);
+    MediaFactory<uint32_t, Nv12ToP010Device>::
+    Register<Nv12ToP010DeviceG9Glk>((uint32_t)IGFX_GEMINILAKE);
 
 MOS_STATUS Nv12ToP010DeviceG9Glk::Initialize(
     PMOS_INTERFACE            osInterface)
@@ -92,8 +92,8 @@ MOS_STATUS Nv12ToP010DeviceG9Glk::Initialize(
 }
 
 static bool glkRegisteredCodecHal =
-    MediaInterfacesFactory<CodechalDevice>::
-    RegisterHal<CodechalInterfacesG9Glk>((uint32_t)IGFX_GEMINILAKE);
+    MediaFactory<uint32_t, CodechalDevice>::
+    Register<CodechalInterfacesG9Glk>((uint32_t)IGFX_GEMINILAKE);
 
 MOS_STATUS CodechalInterfacesG9Glk::Initialize(
     void *standardInfo,
@@ -360,8 +360,8 @@ MOS_STATUS CodechalInterfacesG9Glk::Initialize(
 }
 
 static bool glkRegisteredCMHal =
-    MediaInterfacesFactory<CMHalDevice>::
-    RegisterHal<CMHalInterfacesG9Glk>((uint32_t)IGFX_GEMINILAKE);
+    MediaFactory<uint32_t, CMHalDevice>::
+    Register<CMHalInterfacesG9Glk>((uint32_t)IGFX_GEMINILAKE);
 
 MOS_STATUS CMHalInterfacesG9Glk::Initialize(CM_HAL_STATE *pCmState)
 {
@@ -409,17 +409,17 @@ MOS_STATUS CMHalInterfacesG9Glk::Initialize(CM_HAL_STATE *pCmState)
     return MOS_STATUS_SUCCESS;
 }
 static bool glkRegisteredMosUtil =
-    MediaInterfacesFactory<MosUtilDevice>::
-    RegisterHal<MosUtilDeviceG9Kbl>((uint32_t)IGFX_GEMINILAKE);
+    MediaFactory<uint32_t, MosUtilDevice>::
+    Register<MosUtilDeviceG9Kbl>((uint32_t)IGFX_GEMINILAKE);
 
 static bool glkRegisteredRenderHal =
-    MediaInterfacesFactory<RenderHalDevice>::
-    RegisterHal<RenderHalInterfacesG9Kbl>((uint32_t)IGFX_GEMINILAKE);
+    MediaFactory<uint32_t, RenderHalDevice>::
+    Register<RenderHalInterfacesG9Kbl>((uint32_t)IGFX_GEMINILAKE);
     
 
 static bool glkRegisteredDecodeHistogram =
-MediaInterfacesFactory<DecodeHistogramDevice>::
-RegisterHal<DecodeHistogramDeviceG9Glk>((uint32_t)IGFX_GEMINILAKE);
+MediaFactory<uint32_t, DecodeHistogramDevice>::
+Register<DecodeHistogramDeviceG9Glk>((uint32_t)IGFX_GEMINILAKE);
 
 MOS_STATUS DecodeHistogramDeviceG9Glk::Initialize(
     CodechalHwInterface       *hwInterface,

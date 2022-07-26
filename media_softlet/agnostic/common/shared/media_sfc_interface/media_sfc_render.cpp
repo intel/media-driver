@@ -40,7 +40,7 @@
 
 using namespace vp;
 
-typedef MediaInterfacesFactory<VphalDevice> VphalFactory;
+typedef MediaFactory<uint32_t, VphalDevice> VphalFactory;
 
 MediaSfcRender::MediaSfcRender(PMOS_INTERFACE osInterface, MEDIA_SFC_INTERFACE_MODE mode, MediaMemComp *mmc) :
     m_osInterface(osInterface), m_mode(mode), m_mmc(mmc)
@@ -164,7 +164,7 @@ MOS_STATUS MediaSfcRender::Initialize()
 
     // Create platform interface and vp pipeline by vphalDevice.
     m_osInterface->pfnGetPlatform(m_osInterface, &platform);
-    vphalDevice = VphalFactory::CreateHal(platform.eProductFamily);
+    vphalDevice = VphalFactory::Create(platform.eProductFamily);
     VP_PUBLIC_CHK_NULL_RETURN(vphalDevice);
 
     if (m_mode.veboxSfcEnabled)

@@ -27,7 +27,7 @@
 #ifndef __MEDIA_INTERFACES_CMHAL_H__
 #define __MEDIA_INTERFACES_CMHAL_H__
 
-#include "media_interfaces.h"
+#include "media_factory.h"
 #include "cm_hal.h"
 
 //!
@@ -63,7 +63,7 @@ protected:
     CM_HAL_GENERIC* m_cmhalDevice = nullptr;
 };
 
-extern template class MediaInterfacesFactory<CMHalDevice>;
+extern template class MediaFactory<uint32_t, CMHalDevice>;
 
 
 #endif // __MEDIA_INTERFACES_CMHAL_H__

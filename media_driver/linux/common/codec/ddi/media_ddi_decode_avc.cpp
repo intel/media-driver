@@ -31,7 +31,7 @@
 #include "codechal_memdecomp.h"
 #include "media_ddi_decode_const.h"
 #include "media_ddi_factory.h"
-#include "media_interfaces.h"
+#include "media_factory.h"
 
 VAStatus DdiDecodeAVC::ParseSliceParams(
     DDI_MEDIA_CONTEXT           *mediaCtx,

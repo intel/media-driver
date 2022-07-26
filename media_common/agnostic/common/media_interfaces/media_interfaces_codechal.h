@@ -82,6 +82,6 @@ public:
         PMOS_INTERFACE osInterface) = 0;
  };
 
-extern template class MediaInterfacesFactory<CodechalDevice>;
+extern template class MediaFactory<uint32_t, CodechalDevice>;
 
 #endif // __MEDIA_INTERFACES_CODECHAL_H__

@@ -29,7 +29,7 @@
 
 #include <map>
 #include "media_user_settings_mgr.h"
-#include "media_interfaces.h"
+#include "media_factory.h"
 
 //!
 //! \class    MosUtilDevice
@@ -61,6 +61,6 @@ public:
 
 };
 
-extern template class MediaInterfacesFactory<MosUtilDevice>;
+extern template class MediaFactory<uint32_t, MosUtilDevice>;
 
 #endif // __MEDIA_INTERFACES_MOSUTIL_H__

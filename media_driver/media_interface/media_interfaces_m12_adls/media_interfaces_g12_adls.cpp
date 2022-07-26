@@ -26,53 +26,53 @@
 
 #include "media_interfaces_g12_adls.h"
 
-extern template class MediaInterfacesFactory<MhwInterfaces>;
-extern template class MediaInterfacesFactory<MmdDevice>;
-extern template class MediaInterfacesFactory<MosUtilDevice>;
-extern template class MediaInterfacesFactory<CodechalDevice>;
-extern template class MediaInterfacesFactory<CMHalDevice>;
-extern template class MediaInterfacesFactory<VphalDevice>;
-extern template class MediaInterfacesFactory<RenderHalDevice>;
-extern template class MediaInterfacesFactory<Nv12ToP010Device>;
-extern template class MediaInterfacesFactory<DecodeHistogramDevice>;
+extern template class MediaFactory<uint32_t, MhwInterfaces>;
+extern template class MediaFactory<uint32_t, MmdDevice>;
+extern template class MediaFactory<uint32_t, MosUtilDevice>;
+extern template class MediaFactory<uint32_t, CodechalDevice>;
+extern template class MediaFactory<uint32_t, CMHalDevice>;
+extern template class MediaFactory<uint32_t, VphalDevice>;
+extern template class MediaFactory<uint32_t, RenderHalDevice>;
+extern template class MediaFactory<uint32_t, Nv12ToP010Device>;
+extern template class MediaFactory<uint32_t, DecodeHistogramDevice>;
 
 static bool adlsRegisteredVphal =
-    MediaInterfacesFactory<VphalDevice>::
-    RegisterHal<VphalInterfacesG12Tgllp>((uint32_t)IGFX_ALDERLAKE_S);
+    MediaFactory<uint32_t, VphalDevice>::
+    Register<VphalInterfacesG12Tgllp>((uint32_t)IGFX_ALDERLAKE_S);
 
 static bool adlsRegisteredMhw =
-    MediaInterfacesFactory<MhwInterfaces>::
-    RegisterHal<MhwInterfacesG12Tgllp>((uint32_t)IGFX_ALDERLAKE_S);
+    MediaFactory<uint32_t, MhwInterfaces>::
+    Register<MhwInterfacesG12Tgllp>((uint32_t)IGFX_ALDERLAKE_S);
 
 #ifdef _MMC_SUPPORTED
 static bool adlsRegisteredMmd =
-    MediaInterfacesFactory<MmdDevice>::
-        RegisterHal<MmdDeviceG12Tgllp>((uint32_t)IGFX_ALDERLAKE_S);
+    MediaFactory<uint32_t, MmdDevice>::
+        Register<MmdDeviceG12Tgllp>((uint32_t)IGFX_ALDERLAKE_S);
 #endif
 
 static bool adlsRegisteredNv12ToP010 =
-    MediaInterfacesFactory<Nv12ToP010Device>::
-    RegisterHal<Nv12ToP010DeviceG12Tgllp>((uint32_t)IGFX_ALDERLAKE_S);
+    MediaFactory<uint32_t, Nv12ToP010Device>::
+    Register<Nv12ToP010DeviceG12Tgllp>((uint32_t)IGFX_ALDERLAKE_S);
 
 static bool adlsRegisteredCodecHal =
-    MediaInterfacesFactory<CodechalDevice>::
-    RegisterHal<CodechalInterfacesG12Tgllp>((uint32_t)IGFX_ALDERLAKE_S);
+    MediaFactory<uint32_t, CodechalDevice>::
+    Register<CodechalInterfacesG12Tgllp>((uint32_t)IGFX_ALDERLAKE_S);
 
 static bool adlsRegisteredCMHal =
-    MediaInterfacesFactory<CMHalDevice>::
-    RegisterHal<CMHalInterfacesG12Adls>((uint32_t)IGFX_ALDERLAKE_S);
+    MediaFactory<uint32_t, CMHalDevice>::
+    Register<CMHalInterfacesG12Adls>((uint32_t)IGFX_ALDERLAKE_S);
 
 static bool adlsRegisteredMosUtil =
-    MediaInterfacesFactory<MosUtilDevice>::
-    RegisterHal<MosUtilDeviceG12Tgllp>((uint32_t)IGFX_ALDERLAKE_S);
+    MediaFactory<uint32_t, MosUtilDevice>::
+    Register<MosUtilDeviceG12Tgllp>((uint32_t)IGFX_ALDERLAKE_S);
 
 static bool adlsRegisteredRenderHal =
-    MediaInterfacesFactory<RenderHalDevice>::
-    RegisterHal<RenderHalInterfacesG12Tgllp>((uint32_t)IGFX_ALDERLAKE_S);
+    MediaFactory<uint32_t, RenderHalDevice>::
+    Register<RenderHalInterfacesG12Tgllp>((uint32_t)IGFX_ALDERLAKE_S);
 
 static bool adlsRegisteredDecodeHistogram =
-    MediaInterfacesFactory<DecodeHistogramDevice>::
-    RegisterHal<DecodeHistogramDeviceG12Tgllp>((uint32_t)IGFX_ALDERLAKE_S);
+    MediaFactory<uint32_t, DecodeHistogramDevice>::
+    Register<DecodeHistogramDeviceG12Tgllp>((uint32_t)IGFX_ALDERLAKE_S);
 
 #define PLATFORM_INTEL_ADLS 21
 #define GENX_TGLLP 12
@@ -101,4 +101,4 @@ MOS_STATUS CMHalInterfacesG12Adls::Initialize(CM_HAL_STATE *pCmState)
 }
 
 static bool adlsRegisteredHwInfo =
-    MediaInterfacesFactory<MediaInterfacesHwInfoDevice>::RegisterHal<MediaInterfacesHwInfoDeviceG12Tgllp>((uint32_t)IGFX_ALDERLAKE_S);
+    MediaFactory<uint32_t, MediaInterfacesHwInfoDevice>::Register<MediaInterfacesHwInfoDeviceG12Tgllp>((uint32_t)IGFX_ALDERLAKE_S);

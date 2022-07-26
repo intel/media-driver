@@ -77,7 +77,7 @@ public:
         PMOS_INTERFACE osInterface);
 };
 
-extern template class MediaInterfacesFactory<McpyDevice>;
+extern template class MediaFactory<uint32_t, McpyDevice>;
 
 #endif // __MEDIA_INTERFACES_MCPY_H__
 

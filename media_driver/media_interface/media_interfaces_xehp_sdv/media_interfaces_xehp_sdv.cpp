@@ -44,23 +44,23 @@ unsigned char *pGPUInit_kernel_isa_xe_xpm = nullptr;
 #include "vp_pipeline_adapter_xe_xpm.h"
 #include "vp_platform_interface_xe_xpm.h"
 
-extern template class MediaInterfacesFactory<MhwInterfaces>;
-extern template class MediaInterfacesFactory<MmdDevice>;
-extern template class MediaInterfacesFactory<McpyDevice>;
-extern template class MediaInterfacesFactory<MosUtilDevice>;
-extern template class MediaInterfacesFactory<CodechalDevice>;
-extern template class MediaInterfacesFactory<CMHalDevice>;
-extern template class MediaInterfacesFactory<VphalDevice>;
-extern template class MediaInterfacesFactory<RenderHalDevice>;
-extern template class MediaInterfacesFactory<Nv12ToP010Device>;
-extern template class MediaInterfacesFactory<DecodeHistogramDevice>;
-extern template class MediaInterfacesFactory<MediaInterfacesHwInfoDevice>;
+extern template class MediaFactory<uint32_t, MhwInterfaces>;
+extern template class MediaFactory<uint32_t, MmdDevice>;
+extern template class MediaFactory<uint32_t, McpyDevice>;
+extern template class MediaFactory<uint32_t, MosUtilDevice>;
+extern template class MediaFactory<uint32_t, CodechalDevice>;
+extern template class MediaFactory<uint32_t, CMHalDevice>;
+extern template class MediaFactory<uint32_t, VphalDevice>;
+extern template class MediaFactory<uint32_t, RenderHalDevice>;
+extern template class MediaFactory<uint32_t, Nv12ToP010Device>;
+extern template class MediaFactory<uint32_t, DecodeHistogramDevice>;
+extern template class MediaFactory<uint32_t, MediaInterfacesHwInfoDevice>;
 
 #define IP_VERSION_XE_XPM 0x1205
 
 static bool xehpRegisteredVphal =
-MediaInterfacesFactory<VphalDevice>::
-RegisterHal<VphalInterfacesXe_Xpm>((uint32_t)IGFX_XE_HP_SDV);
+MediaFactory<uint32_t, VphalDevice>::
+Register<VphalInterfacesXe_Xpm>((uint32_t)IGFX_XE_HP_SDV);
 
 MOS_STATUS VphalInterfacesXe_Xpm::Initialize(
     PMOS_INTERFACE  osInterface,
@@ -146,8 +146,8 @@ MOS_STATUS VphalInterfacesXe_Xpm::CreateVpPlatformInterface(
 }
 
 static bool xehpRegisteredMhw =
-    MediaInterfacesFactory<MhwInterfaces>::
-    RegisterHal<MhwInterfacesXehp_Sdv>((uint32_t)IGFX_XE_HP_SDV);
+    MediaFactory<uint32_t, MhwInterfaces>::
+    Register<MhwInterfacesXehp_Sdv>((uint32_t)IGFX_XE_HP_SDV);
 
 #define PLATFORM_INTEL_TGL 14
 #define GENX_XEHP           11
@@ -232,8 +232,8 @@ MOS_STATUS MhwInterfacesXehp_Sdv::Initialize(
 
 #ifdef _MMC_SUPPORTED
 static bool xehpRegisteredMmd =
-    MediaInterfacesFactory<MmdDevice>::
-    RegisterHal<MmdDeviceXe_Xpm>((uint32_t)IGFX_XE_HP_SDV);
+    MediaFactory<uint32_t, MmdDevice>::
+    Register<MmdDeviceXe_Xpm>((uint32_t)IGFX_XE_HP_SDV);
 
 MOS_STATUS MmdDeviceXe_Xpm::Initialize(
     PMOS_INTERFACE osInterface,
@@ -301,8 +301,8 @@ MhwInterfaces* MmdDeviceXe_Xpm::CreateMhwInterface(
 #endif
 
 static bool xehpRegisteredMcpy =
-    MediaInterfacesFactory<McpyDevice>::
-    RegisterHal<McpyDeviceXe_Xpm>((uint32_t)IGFX_XE_HP_SDV);
+    MediaFactory<uint32_t, McpyDevice>::
+    Register<McpyDeviceXe_Xpm>((uint32_t)IGFX_XE_HP_SDV);
 
 MOS_STATUS McpyDeviceXe_Xpm::Initialize(
     PMOS_INTERFACE osInterface,
@@ -368,8 +368,8 @@ MhwInterfaces* McpyDeviceXe_Xpm::CreateMhwInterface(
 }
 
 static bool xehpRegisteredNv12ToP010 =
-    MediaInterfacesFactory<Nv12ToP010Device>::
-    RegisterHal<Nv12ToP010DeviceXe_Xpm>((uint32_t)IGFX_XE_HP_SDV);
+    MediaFactory<uint32_t, Nv12ToP010Device>::
+    Register<Nv12ToP010DeviceXe_Xpm>((uint32_t)IGFX_XE_HP_SDV);
 
 MOS_STATUS Nv12ToP010DeviceXe_Xpm::Initialize(
     PMOS_INTERFACE            osInterface)
@@ -380,8 +380,8 @@ MOS_STATUS Nv12ToP010DeviceXe_Xpm::Initialize(
 }
 
 static bool xehpRegisteredCodecHal =
-    MediaInterfacesFactory<CodechalDevice>::
-    RegisterHal<CodechalInterfacesXe_Xpm>((uint32_t)IGFX_XE_HP_SDV);
+    MediaFactory<uint32_t, CodechalDevice>::
+    Register<CodechalInterfacesXe_Xpm>((uint32_t)IGFX_XE_HP_SDV);
 
 MOS_STATUS CodechalInterfacesXe_Xpm::Initialize(
     void *standardInfo,
@@ -724,8 +724,8 @@ MOS_STATUS CodechalInterfacesXe_Xpm::Initialize(
 
 #ifdef IGFX_XEHP_SDV_ENABLE_NON_UPSTREAM
 static bool xehpRegisteredCMHal =
-    MediaInterfacesFactory<CMHalDevice>::
-    RegisterHal<CMHalInterfacesXe_Xpm>((uint32_t)IGFX_XE_HP_SDV);
+    MediaFactory<uint32_t, CMHalDevice>::
+    Register<CMHalInterfacesXe_Xpm>((uint32_t)IGFX_XE_HP_SDV);
 
 MOS_STATUS CMHalInterfacesXe_Xpm::Initialize(CM_HAL_STATE *pCmState)
 {
@@ -756,8 +756,8 @@ MOS_STATUS CMHalInterfacesXe_Xpm::Initialize(CM_HAL_STATE *pCmState)
 #endif
 
 static bool xehpRegisteredMosUtil =
-    MediaInterfacesFactory<MosUtilDevice>::
-    RegisterHal<MosUtilDeviceXe_Xpm>((uint32_t)IGFX_XE_HP_SDV);
+    MediaFactory<uint32_t, MosUtilDevice>::
+    Register<MosUtilDeviceXe_Xpm>((uint32_t)IGFX_XE_HP_SDV);
 
 MOS_STATUS MosUtilDeviceXe_Xpm::Initialize()
 {
@@ -790,8 +790,8 @@ MOS_STATUS MosUtilDeviceXe_Xpm::Initialize()
 }
 
 static bool xehpRegisteredRenderHal =
-    MediaInterfacesFactory<RenderHalDevice>::
-    RegisterHal<RenderHalInterfacesXe_Xpm>((uint32_t)IGFX_XE_HP_SDV);
+    MediaFactory<uint32_t, RenderHalDevice>::
+    Register<RenderHalInterfacesXe_Xpm>((uint32_t)IGFX_XE_HP_SDV);
 
 MOS_STATUS RenderHalInterfacesXe_Xpm::Initialize()
 {
@@ -805,8 +805,8 @@ MOS_STATUS RenderHalInterfacesXe_Xpm::Initialize()
 }
 
 static bool xehpRegisteredDecodeHistogram =
-MediaInterfacesFactory<DecodeHistogramDevice>::
-RegisterHal<DecodeHistogramDeviceXe_Xpm>((uint32_t)IGFX_XE_HP_SDV);
+MediaFactory<uint32_t, DecodeHistogramDevice>::
+Register<DecodeHistogramDeviceXe_Xpm>((uint32_t)IGFX_XE_HP_SDV);
 
 MOS_STATUS DecodeHistogramDeviceXe_Xpm::Initialize(
     CodechalHwInterface       *hwInterface,
@@ -827,7 +827,7 @@ MOS_STATUS DecodeHistogramDeviceXe_Xpm::Initialize(
 
 #define IP_VERSION_XE_XPM      0x1205
 static bool xehpRegisteredHwInfo =
-    MediaInterfacesFactory<MediaInterfacesHwInfoDevice>::RegisterHal<MediaInterfacesHwInfoDeviceXe_Xpm>((uint32_t)IGFX_XE_HP_SDV);
+    MediaFactory<uint32_t, MediaInterfacesHwInfoDevice>::Register<MediaInterfacesHwInfoDeviceXe_Xpm>((uint32_t)IGFX_XE_HP_SDV);
 
 MOS_STATUS MediaInterfacesHwInfoDeviceXe_Xpm::Initialize(PLATFORM platform)
 {

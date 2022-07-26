@@ -38,7 +38,7 @@
 #include "mos_solo_generic.h"
 #include "media_ddi_factory.h"
 #include "media_ddi_decode_base.h"
-#include "media_interfaces.h"
+#include "media_factory.h"
 #include "media_ddi_decode_const.h"
 #include "decode_status_report.h"
 #include "vphal_render_vebox_memdecomp.h"

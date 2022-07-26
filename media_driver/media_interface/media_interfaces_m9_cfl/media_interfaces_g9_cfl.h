@@ -27,7 +27,7 @@
 #ifndef __MEDIA_INTERFACES_G9_CFL_H__
 #define __MEDIA_INTERFACES_G9_CFL_H__
 
-#include "media_interfaces.h"
+#include "media_factory.h"
 #include "media_interfaces_cmhal.h"
 #include "media_interfaces_decode_histogram.h"
 #include "media_interfaces_hwinfo_device.h"

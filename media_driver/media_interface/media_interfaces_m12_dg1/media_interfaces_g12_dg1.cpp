@@ -26,58 +26,58 @@
 
 #include "media_interfaces_g12_dg1.h"
 
-extern template class MediaInterfacesFactory<MhwInterfaces>;
-extern template class MediaInterfacesFactory<MmdDevice>;
-extern template class MediaInterfacesFactory<McpyDevice>;
-extern template class MediaInterfacesFactory<MosUtilDevice>;
-extern template class MediaInterfacesFactory<CodechalDevice>;
-extern template class MediaInterfacesFactory<CMHalDevice>;
-extern template class MediaInterfacesFactory<VphalDevice>;
-extern template class MediaInterfacesFactory<RenderHalDevice>;
-extern template class MediaInterfacesFactory<Nv12ToP010Device>;
-extern template class MediaInterfacesFactory<DecodeHistogramDevice>;
+extern template class MediaFactory<uint32_t, MhwInterfaces>;
+extern template class MediaFactory<uint32_t, MmdDevice>;
+extern template class MediaFactory<uint32_t, McpyDevice>;
+extern template class MediaFactory<uint32_t, MosUtilDevice>;
+extern template class MediaFactory<uint32_t, CodechalDevice>;
+extern template class MediaFactory<uint32_t, CMHalDevice>;
+extern template class MediaFactory<uint32_t, VphalDevice>;
+extern template class MediaFactory<uint32_t, RenderHalDevice>;
+extern template class MediaFactory<uint32_t, Nv12ToP010Device>;
+extern template class MediaFactory<uint32_t, DecodeHistogramDevice>;
 
 static bool dg1RegisteredVphal =
-MediaInterfacesFactory<VphalDevice>::
-RegisterHal<VphalInterfacesG12Tgllp>((uint32_t)IGFX_DG1);
+MediaFactory<uint32_t, VphalDevice>::
+Register<VphalInterfacesG12Tgllp>((uint32_t)IGFX_DG1);
 
 static bool dg1RegisteredMhw =
-    MediaInterfacesFactory<MhwInterfaces>::
-    RegisterHal<MhwInterfacesG12Tgllp>((uint32_t)IGFX_DG1);
+    MediaFactory<uint32_t, MhwInterfaces>::
+    Register<MhwInterfacesG12Tgllp>((uint32_t)IGFX_DG1);
 
 #ifdef _MMC_SUPPORTED
 static bool dg1RegisteredMmd =
-    MediaInterfacesFactory<MmdDevice>::
-    RegisterHal<MmdDeviceG12Tgllp>((uint32_t)IGFX_DG1);
+    MediaFactory<uint32_t, MmdDevice>::
+    Register<MmdDeviceG12Tgllp>((uint32_t)IGFX_DG1);
 #endif
 
 static bool dg1RegisteredMcpy =
-    MediaInterfacesFactory<McpyDevice>::
-    RegisterHal<McpyDeviceG12Tgllp>((uint32_t)IGFX_DG1);
+    MediaFactory<uint32_t, McpyDevice>::
+    Register<McpyDeviceG12Tgllp>((uint32_t)IGFX_DG1);
 
 static bool dg1RegisteredNv12ToP010 =
-    MediaInterfacesFactory<Nv12ToP010Device>::
-    RegisterHal<Nv12ToP010DeviceG12Tgllp>((uint32_t)IGFX_DG1);
+    MediaFactory<uint32_t, Nv12ToP010Device>::
+    Register<Nv12ToP010DeviceG12Tgllp>((uint32_t)IGFX_DG1);
 
 static bool dg1RegisteredCodecHal =
-    MediaInterfacesFactory<CodechalDevice>::
-    RegisterHal<CodechalInterfacesG12Tgllp>((uint32_t)IGFX_DG1);
+    MediaFactory<uint32_t, CodechalDevice>::
+    Register<CodechalInterfacesG12Tgllp>((uint32_t)IGFX_DG1);
 
 static bool dg1RegisteredCMHal =
-    MediaInterfacesFactory<CMHalDevice>::
-    RegisterHal<CMHalInterfacesG12Dg1>((uint32_t)IGFX_DG1);
+    MediaFactory<uint32_t, CMHalDevice>::
+    Register<CMHalInterfacesG12Dg1>((uint32_t)IGFX_DG1);
 
 static bool dg1RegisteredMosUtil =
-    MediaInterfacesFactory<MosUtilDevice>::
-    RegisterHal<MosUtilDeviceG12Tgllp>((uint32_t)IGFX_DG1);
+    MediaFactory<uint32_t, MosUtilDevice>::
+    Register<MosUtilDeviceG12Tgllp>((uint32_t)IGFX_DG1);
 
 static bool dg1RegisteredDecodeHistogram =
-MediaInterfacesFactory<DecodeHistogramDevice>::
-RegisterHal<DecodeHistogramDeviceG12Tgllp>((uint32_t)IGFX_DG1);
+MediaFactory<uint32_t, DecodeHistogramDevice>::
+Register<DecodeHistogramDeviceG12Tgllp>((uint32_t)IGFX_DG1);
 
 static bool dg1RegisteredRenderHal =
-    MediaInterfacesFactory<RenderHalDevice>::
-    RegisterHal<RenderHalInterfacesG12Dg1>((uint32_t)IGFX_DG1);
+    MediaFactory<uint32_t, RenderHalDevice>::
+    Register<RenderHalInterfacesG12Dg1>((uint32_t)IGFX_DG1);
 
 MOS_STATUS RenderHalInterfacesG12Dg1::Initialize()
 {

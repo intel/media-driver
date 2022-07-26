@@ -32,19 +32,19 @@
 #include "igcodeckrn_g11.h"
 #endif
 
-extern template class MediaInterfacesFactory<MhwInterfaces>;
-extern template class MediaInterfacesFactory<MmdDevice>;
-extern template class MediaInterfacesFactory<MosUtilDevice>;
-extern template class MediaInterfacesFactory<CodechalDevice>;
-extern template class MediaInterfacesFactory<CMHalDevice>;
-extern template class MediaInterfacesFactory<VphalDevice>;
-extern template class MediaInterfacesFactory<RenderHalDevice>;
-extern template class MediaInterfacesFactory<Nv12ToP010Device>;
-extern template class MediaInterfacesFactory<DecodeHistogramDevice>;
+extern template class MediaFactory<uint32_t, MhwInterfaces>;
+extern template class MediaFactory<uint32_t, MmdDevice>;
+extern template class MediaFactory<uint32_t, MosUtilDevice>;
+extern template class MediaFactory<uint32_t, CodechalDevice>;
+extern template class MediaFactory<uint32_t, CMHalDevice>;
+extern template class MediaFactory<uint32_t, VphalDevice>;
+extern template class MediaFactory<uint32_t, RenderHalDevice>;
+extern template class MediaFactory<uint32_t, Nv12ToP010Device>;
+extern template class MediaFactory<uint32_t, DecodeHistogramDevice>;
 
 static bool jslEhlRegisteredVphal =
-MediaInterfacesFactory<VphalDevice>::
-RegisterHal<VphalInterfacesG11JslEhl>((uint32_t)IGFX_JASPERLAKE);
+MediaFactory<uint32_t, VphalDevice>::
+Register<VphalInterfacesG11JslEhl>((uint32_t)IGFX_JASPERLAKE);
 
 MOS_STATUS VphalInterfacesG11JslEhl::Initialize(
     PMOS_INTERFACE  osInterface,
@@ -62,8 +62,8 @@ MOS_STATUS VphalInterfacesG11JslEhl::Initialize(
 }
 
 static bool jslEhlRegisteredMhw =
-    MediaInterfacesFactory<MhwInterfaces>::
-    RegisterHal<MhwInterfacesG11JslEhl>((uint32_t)IGFX_JASPERLAKE);
+    MediaFactory<uint32_t, MhwInterfaces>::
+    Register<MhwInterfacesG11JslEhl>((uint32_t)IGFX_JASPERLAKE);
 
 #define PLATFORM_INTEL_EHL 18
 #define GENX_ICLLP         10
@@ -138,8 +138,8 @@ MOS_STATUS MhwInterfacesG11JslEhl::Initialize(
 }
 
 static bool jslEhlRegisteredNv12ToP010 =
-    MediaInterfacesFactory<Nv12ToP010Device>::
-    RegisterHal<Nv12ToP010DeviceG11JslEhl>((uint32_t)IGFX_JASPERLAKE);
+    MediaFactory<uint32_t, Nv12ToP010Device>::
+    Register<Nv12ToP010DeviceG11JslEhl>((uint32_t)IGFX_JASPERLAKE);
 
 MOS_STATUS Nv12ToP010DeviceG11JslEhl::Initialize(
     PMOS_INTERFACE            osInterface)
@@ -150,8 +150,8 @@ MOS_STATUS Nv12ToP010DeviceG11JslEhl::Initialize(
 }
 
 static bool jslEhlhpRegisteredCodecHal =
-    MediaInterfacesFactory<CodechalDevice>::
-    RegisterHal<CodechalInterfacesG11JslEhl>((uint32_t)IGFX_JASPERLAKE);
+    MediaFactory<uint32_t, CodechalDevice>::
+    Register<CodechalInterfacesG11JslEhl>((uint32_t)IGFX_JASPERLAKE);
 
 MOS_STATUS CodechalInterfacesG11JslEhl::Initialize(
     void *standardInfo,
@@ -401,8 +401,8 @@ MOS_STATUS CodechalInterfacesG11JslEhl::Initialize(
 }
 
 static bool jslEhlRegisteredCMHal =
-    MediaInterfacesFactory<CMHalDevice>::
-    RegisterHal<CMHalInterfacesG11JslEhl>((uint32_t)IGFX_JASPERLAKE);
+    MediaFactory<uint32_t, CMHalDevice>::
+    Register<CMHalInterfacesG11JslEhl>((uint32_t)IGFX_JASPERLAKE);
 
 MOS_STATUS CMHalInterfacesG11JslEhl::Initialize(CM_HAL_STATE *pCmState)
 {
@@ -428,8 +428,8 @@ MOS_STATUS CMHalInterfacesG11JslEhl::Initialize(CM_HAL_STATE *pCmState)
 }
 
 static bool jslEhlRegisteredMosUtil =
-    MediaInterfacesFactory<MosUtilDevice>::
-    RegisterHal<MosUtilDeviceG11JslEhl>((uint32_t)IGFX_JASPERLAKE);
+    MediaFactory<uint32_t, MosUtilDevice>::
+    Register<MosUtilDeviceG11JslEhl>((uint32_t)IGFX_JASPERLAKE);
 
 MOS_STATUS MosUtilDeviceG11JslEhl::Initialize()
 {
@@ -462,8 +462,8 @@ MOS_STATUS MosUtilDeviceG11JslEhl::Initialize()
 }
 
 static bool jslEhlRegisteredRenderHal =
-    MediaInterfacesFactory<RenderHalDevice>::
-    RegisterHal<RenderHalInterfacesG11JslEhl>((uint32_t)IGFX_JASPERLAKE);
+    MediaFactory<uint32_t, RenderHalDevice>::
+    Register<RenderHalInterfacesG11JslEhl>((uint32_t)IGFX_JASPERLAKE);
 
 MOS_STATUS RenderHalInterfacesG11JslEhl::Initialize()
 {
@@ -477,8 +477,8 @@ MOS_STATUS RenderHalInterfacesG11JslEhl::Initialize()
 }
 
 static bool jslEhlRegisteredDecodeHistogram =
-MediaInterfacesFactory<DecodeHistogramDevice>::
-RegisterHal<DecodeHistogramDeviceG11JslEhl>((uint32_t)IGFX_JASPERLAKE);
+MediaFactory<uint32_t, DecodeHistogramDevice>::
+Register<DecodeHistogramDeviceG11JslEhl>((uint32_t)IGFX_JASPERLAKE);
 
 MOS_STATUS DecodeHistogramDeviceG11JslEhl::Initialize(
     CodechalHwInterface       *hwInterface,

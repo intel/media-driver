@@ -31,19 +31,19 @@
 #include "igcodeckrn_g10.h"
 #endif
 
-extern template class MediaInterfacesFactory<MhwInterfaces>;
-extern template class MediaInterfacesFactory<MmdDevice>;
-extern template class MediaInterfacesFactory<MosUtilDevice>;
-extern template class MediaInterfacesFactory<CodechalDevice>;
-extern template class MediaInterfacesFactory<CMHalDevice>;
-extern template class MediaInterfacesFactory<VphalDevice>;
-extern template class MediaInterfacesFactory<RenderHalDevice>;
-extern template class MediaInterfacesFactory<Nv12ToP010Device>;
-extern template class MediaInterfacesFactory<DecodeHistogramDevice>;
+extern template class MediaFactory<uint32_t, MhwInterfaces>;
+extern template class MediaFactory<uint32_t, MmdDevice>;
+extern template class MediaFactory<uint32_t, MosUtilDevice>;
+extern template class MediaFactory<uint32_t, CodechalDevice>;
+extern template class MediaFactory<uint32_t, CMHalDevice>;
+extern template class MediaFactory<uint32_t, VphalDevice>;
+extern template class MediaFactory<uint32_t, RenderHalDevice>;
+extern template class MediaFactory<uint32_t, Nv12ToP010Device>;
+extern template class MediaFactory<uint32_t, DecodeHistogramDevice>;
 
 static bool cnlRegisteredVphal =
-    MediaInterfacesFactory<VphalDevice>::
-    RegisterHal<VphalInterfacesG10Cnl>((uint32_t)IGFX_CANNONLAKE);
+    MediaFactory<uint32_t, VphalDevice>::
+    Register<VphalInterfacesG10Cnl>((uint32_t)IGFX_CANNONLAKE);
 
 MOS_STATUS VphalInterfacesG10Cnl::Initialize(
     PMOS_INTERFACE  osInterface,
@@ -61,8 +61,8 @@ MOS_STATUS VphalInterfacesG10Cnl::Initialize(
 }
 
 static bool cnlRegisteredMhw =
-    MediaInterfacesFactory<MhwInterfaces>::
-    RegisterHal<MhwInterfacesG10Cnl>((uint32_t)IGFX_CANNONLAKE);
+    MediaFactory<uint32_t, MhwInterfaces>::
+    Register<MhwInterfacesG10Cnl>((uint32_t)IGFX_CANNONLAKE);
 
 #define PLATFORM_INTEL_CNL 9
 #define GENX_CNL           7
@@ -137,8 +137,8 @@ MOS_STATUS MhwInterfacesG10Cnl::Initialize(
 }
 #ifdef _MMC_SUPPORTED
 static bool cnlRegisteredMmd =
-    MediaInterfacesFactory<MmdDevice>::
-    RegisterHal<MmdDeviceG10Cnl>((uint32_t)IGFX_CANNONLAKE);
+    MediaFactory<uint32_t, MmdDevice>::
+    Register<MmdDeviceG10Cnl>((uint32_t)IGFX_CANNONLAKE);
 
 MOS_STATUS MmdDeviceG10Cnl::Initialize(
     PMOS_INTERFACE osInterface,
@@ -192,8 +192,8 @@ MOS_STATUS MmdDeviceG10Cnl::Initialize(
 }
 #endif
 static bool cnlRegisteredNv12ToP010 =
-    MediaInterfacesFactory<Nv12ToP010Device>::
-    RegisterHal<Nv12ToP010DeviceG10Cnl>((uint32_t)IGFX_CANNONLAKE);
+    MediaFactory<uint32_t, Nv12ToP010Device>::
+    Register<Nv12ToP010DeviceG10Cnl>((uint32_t)IGFX_CANNONLAKE);
 
 MOS_STATUS Nv12ToP010DeviceG10Cnl::Initialize(
     PMOS_INTERFACE            osInterface)
@@ -210,8 +210,8 @@ MOS_STATUS Nv12ToP010DeviceG10Cnl::Initialize(
 }
 
 static bool cnlRegisteredCodecHal =
-    MediaInterfacesFactory<CodechalDevice>::
-    RegisterHal<CodechalInterfacesG10Cnl>((uint32_t)IGFX_CANNONLAKE);
+    MediaFactory<uint32_t, CodechalDevice>::
+    Register<CodechalInterfacesG10Cnl>((uint32_t)IGFX_CANNONLAKE);
 
 MOS_STATUS CodechalInterfacesG10Cnl::Initialize(
     void *standardInfo,
@@ -506,8 +506,8 @@ MOS_STATUS CodechalInterfacesG10Cnl::Initialize(
 }
 
 static bool cnlRegisteredCMHal =
-    MediaInterfacesFactory<CMHalDevice>::
-    RegisterHal<CMHalInterfacesG10Cnl>((uint32_t)IGFX_CANNONLAKE);
+    MediaFactory<uint32_t, CMHalDevice>::
+    Register<CMHalInterfacesG10Cnl>((uint32_t)IGFX_CANNONLAKE);
 
 MOS_STATUS CMHalInterfacesG10Cnl::Initialize(CM_HAL_STATE *pCmState)
 {
@@ -553,8 +553,8 @@ MOS_STATUS CMHalInterfacesG10Cnl::Initialize(CM_HAL_STATE *pCmState)
 }
 
 static bool cnlRegisteredMosUtil =
-    MediaInterfacesFactory<MosUtilDevice>::
-    RegisterHal<MosUtilDeviceG10Cnl>((uint32_t)IGFX_CANNONLAKE);
+    MediaFactory<uint32_t, MosUtilDevice>::
+    Register<MosUtilDeviceG10Cnl>((uint32_t)IGFX_CANNONLAKE);
 
 MOS_STATUS MosUtilDeviceG10Cnl::Initialize()
 {
@@ -587,8 +587,8 @@ MOS_STATUS MosUtilDeviceG10Cnl::Initialize()
 }
 
 static bool cnlRegisteredRenderHal =
-    MediaInterfacesFactory<RenderHalDevice>::
-    RegisterHal<RenderHalInterfacesG10Cnl>((uint32_t)IGFX_CANNONLAKE);
+    MediaFactory<uint32_t, RenderHalDevice>::
+    Register<RenderHalInterfacesG10Cnl>((uint32_t)IGFX_CANNONLAKE);
 
 MOS_STATUS RenderHalInterfacesG10Cnl::Initialize()
 {
@@ -602,8 +602,8 @@ MOS_STATUS RenderHalInterfacesG10Cnl::Initialize()
 }
 
 static bool cnlRegisteredDecodeHistogram =
-MediaInterfacesFactory<DecodeHistogramDevice>::
-RegisterHal<DecodeHistogramDeviceG10Cnl>((uint32_t)IGFX_CANNONLAKE);
+MediaFactory<uint32_t, DecodeHistogramDevice>::
+Register<DecodeHistogramDeviceG10Cnl>((uint32_t)IGFX_CANNONLAKE);
 
 MOS_STATUS DecodeHistogramDeviceG10Cnl::Initialize(
     CodechalHwInterface       *hwInterface,

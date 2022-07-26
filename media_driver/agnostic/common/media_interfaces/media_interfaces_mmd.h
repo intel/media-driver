@@ -77,6 +77,6 @@ public:
         PMOS_INTERFACE osInterface);
 };
 
-extern template class MediaInterfacesFactory<MmdDevice>;
+extern template class MediaFactory<uint32_t, MmdDevice>;
 
 #endif // __MEDIA_INTERFACES_MMD_H__

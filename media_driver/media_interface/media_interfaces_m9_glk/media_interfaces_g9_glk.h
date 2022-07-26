@@ -26,7 +26,7 @@
 
 #ifndef __MEDIA_INTERFACES_G9_GLK_H__
 #define __MEDIA_INTERFACES_G9_GLK_H__
-#include "media_interfaces.h"
+#include "media_factory.h"
 #include "media_interfaces_cmhal.h"
 #include "media_interfaces_vphal.h"
 #include "media_interfaces_decode_histogram.h"

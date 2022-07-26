@@ -25,55 +25,55 @@
 
 #include "media_interfaces_g12_rkl.h"
 
-extern template class MediaInterfacesFactory<MhwInterfaces>;
-extern template class MediaInterfacesFactory<MmdDevice>;
-extern template class MediaInterfacesFactory<MosUtilDevice>;
-extern template class MediaInterfacesFactory<CodechalDevice>;
-extern template class MediaInterfacesFactory<CMHalDevice>;
-extern template class MediaInterfacesFactory<VphalDevice>;
-extern template class MediaInterfacesFactory<RenderHalDevice>;
-extern template class MediaInterfacesFactory<Nv12ToP010Device>;
-extern template class MediaInterfacesFactory<DecodeHistogramDevice>;
+extern template class MediaFactory<uint32_t, MhwInterfaces>;
+extern template class MediaFactory<uint32_t, MmdDevice>;
+extern template class MediaFactory<uint32_t, MosUtilDevice>;
+extern template class MediaFactory<uint32_t, CodechalDevice>;
+extern template class MediaFactory<uint32_t, CMHalDevice>;
+extern template class MediaFactory<uint32_t, VphalDevice>;
+extern template class MediaFactory<uint32_t, RenderHalDevice>;
+extern template class MediaFactory<uint32_t, Nv12ToP010Device>;
+extern template class MediaFactory<uint32_t, DecodeHistogramDevice>;
 
 static bool rklRegisteredVphal =
-MediaInterfacesFactory<VphalDevice>::
-RegisterHal<VphalInterfacesG12Tgllp>((uint32_t)IGFX_ROCKETLAKE);
+MediaFactory<uint32_t, VphalDevice>::
+Register<VphalInterfacesG12Tgllp>((uint32_t)IGFX_ROCKETLAKE);
 
 static bool rklRegisteredMhw =
-    MediaInterfacesFactory<MhwInterfaces>::
-    RegisterHal<MhwInterfacesG12Tgllp>((uint32_t)IGFX_ROCKETLAKE);
+    MediaFactory<uint32_t, MhwInterfaces>::
+    Register<MhwInterfacesG12Tgllp>((uint32_t)IGFX_ROCKETLAKE);
 
 #define PLATFORM_INTEL_RKL   19
 #define GENX_TGLLP           12
 
 #ifdef _MMC_SUPPORTED
 static bool rklRegisteredMmd =
-    MediaInterfacesFactory<MmdDevice>::
-    RegisterHal<MmdDeviceG12Tgllp>((uint32_t)IGFX_ROCKETLAKE);
+    MediaFactory<uint32_t, MmdDevice>::
+    Register<MmdDeviceG12Tgllp>((uint32_t)IGFX_ROCKETLAKE);
 #endif
 static bool RegisteredNv12ToP010 =
-    MediaInterfacesFactory<Nv12ToP010Device>::
-    RegisterHal<Nv12ToP010DeviceG12Tgllp>((uint32_t)IGFX_ROCKETLAKE);
+    MediaFactory<uint32_t, Nv12ToP010Device>::
+    Register<Nv12ToP010DeviceG12Tgllp>((uint32_t)IGFX_ROCKETLAKE);
 
 static bool rklRegisteredCodecHal =
-    MediaInterfacesFactory<CodechalDevice>::
-    RegisterHal<CodechalInterfacesG12Tgllp>((uint32_t)IGFX_ROCKETLAKE);
+    MediaFactory<uint32_t, CodechalDevice>::
+    Register<CodechalInterfacesG12Tgllp>((uint32_t)IGFX_ROCKETLAKE);
 
 static bool rklRegisteredCMHal =
-    MediaInterfacesFactory<CMHalDevice>::
-    RegisterHal<CMHalInterfacesG12Rkl>((uint32_t)IGFX_ROCKETLAKE);
+    MediaFactory<uint32_t, CMHalDevice>::
+    Register<CMHalInterfacesG12Rkl>((uint32_t)IGFX_ROCKETLAKE);
 
 static bool rklRegisteredMosUtil =
-    MediaInterfacesFactory<MosUtilDevice>::
-    RegisterHal<MosUtilDeviceG12Tgllp>((uint32_t)IGFX_ROCKETLAKE);
+    MediaFactory<uint32_t, MosUtilDevice>::
+    Register<MosUtilDeviceG12Tgllp>((uint32_t)IGFX_ROCKETLAKE);
 
 static bool rklRegisteredRenderHal =
-    MediaInterfacesFactory<RenderHalDevice>::
-    RegisterHal<RenderHalInterfacesG12Tgllp>((uint32_t)IGFX_ROCKETLAKE);
+    MediaFactory<uint32_t, RenderHalDevice>::
+    Register<RenderHalInterfacesG12Tgllp>((uint32_t)IGFX_ROCKETLAKE);
 
 static bool rklRegisteredDecodeHistogram =
-    MediaInterfacesFactory<DecodeHistogramDevice>::
-    RegisterHal<DecodeHistogramDeviceG12Tgllp>((uint32_t)IGFX_ROCKETLAKE);
+    MediaFactory<uint32_t, DecodeHistogramDevice>::
+    Register<DecodeHistogramDeviceG12Tgllp>((uint32_t)IGFX_ROCKETLAKE);
 
 MOS_STATUS CMHalInterfacesG12Rkl::Initialize(CM_HAL_STATE *pCmState)
 {

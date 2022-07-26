@@ -27,7 +27,7 @@
 #ifndef __MEDIA_INTERFACES_VPHAL_H__
 #define __MEDIA_INTERFACES_VPHAL_H__
 
-#include "media_interfaces.h"
+#include "media_factory.h"
 #include "vp_base.h"
 #include "vp_utils.h"
 
@@ -116,6 +116,6 @@ public:
     void Destroy();
 };
 
-extern template class MediaInterfacesFactory<VphalDevice>;
+extern template class MediaFactory<uint32_t, VphalDevice>;
 
 #endif // __MEDIA_INTERFACES_VPHAL_H__

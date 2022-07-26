@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2021, Intel Corporation
+* Copyright (c) 2020-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -207,4 +207,7 @@ private:
 
 MEDIA_CLASS_DEFINE_END(MediaFactory)
 };
+
+#define MEDIA_EXT_FLAG  0x10000000
+
 #endif

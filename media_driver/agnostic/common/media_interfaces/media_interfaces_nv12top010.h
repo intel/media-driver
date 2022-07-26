@@ -63,6 +63,6 @@ public:
 
 };
 
-extern template class MediaInterfacesFactory<Nv12ToP010Device>;
+extern template class MediaFactory<uint32_t, Nv12ToP010Device>;
 
 #endif // __MEDIA_INTERFACES_NV12TOP010_H__

@@ -55,24 +55,24 @@ using namespace mhw::vdbox::avp::xe_hpm;
 using namespace mhw::vdbox::vdenc::xe_hpm;
 using namespace mhw::vdbox::huc::xe_hpm;
 
-extern template class MediaInterfacesFactory<MhwInterfaces>;
-extern template class MediaInterfacesFactory<MmdDevice>;
-extern template class MediaInterfacesFactory<McpyDevice>;
-extern template class MediaInterfacesFactory<MosUtilDevice>;
-extern template class MediaInterfacesFactory<CodechalDevice>;
-extern template class MediaInterfacesFactory<CMHalDevice>;
-extern template class MediaInterfacesFactory<VphalDevice>;
-extern template class MediaInterfacesFactory<RenderHalDevice>;
-extern template class MediaInterfacesFactory<Nv12ToP010Device>;
-extern template class MediaInterfacesFactory<DecodeHistogramDevice>;
-extern template class MediaInterfacesFactory<MediaInterfacesHwInfoDevice>;
+extern template class MediaFactory<uint32_t, MhwInterfaces>;
+extern template class MediaFactory<uint32_t, MmdDevice>;
+extern template class MediaFactory<uint32_t, McpyDevice>;
+extern template class MediaFactory<uint32_t, MosUtilDevice>;
+extern template class MediaFactory<uint32_t, CodechalDevice>;
+extern template class MediaFactory<uint32_t, CMHalDevice>;
+extern template class MediaFactory<uint32_t, VphalDevice>;
+extern template class MediaFactory<uint32_t, RenderHalDevice>;
+extern template class MediaFactory<uint32_t, Nv12ToP010Device>;
+extern template class MediaFactory<uint32_t, DecodeHistogramDevice>;
+extern template class MediaFactory<uint32_t, MediaInterfacesHwInfoDevice>;
 
 // Swith to use new media factory template
 extern template class MediaFactory<uint32_t, MhwInterfacesNext>;
 
 static bool dg2RegisteredVphal =
-MediaInterfacesFactory<VphalDevice>::
-RegisterHal<VphalInterfacesXe_Hpm>((uint32_t)IGFX_DG2);
+MediaFactory<uint32_t, VphalDevice>::
+Register<VphalInterfacesXe_Hpm>((uint32_t)IGFX_DG2);
 
 MOS_STATUS VphalInterfacesXe_Hpm::Initialize(
     PMOS_INTERFACE  osInterface,
@@ -182,8 +182,8 @@ void VphalInterfacesXe_Hpm::InitPlatformKernelBinary(
 }
 
 static bool dg2RegisteredMhw =
-    MediaInterfacesFactory<MhwInterfaces>::
-    RegisterHal<MhwInterfacesDg2>((uint32_t)IGFX_DG2);
+    MediaFactory<uint32_t, MhwInterfaces>::
+    Register<MhwInterfacesDg2>((uint32_t)IGFX_DG2);
 
 #define PLATFORM_INTEL_DG2    22
 #define GENX_XEHP              11
@@ -270,8 +270,8 @@ MOS_STATUS MhwInterfacesDg2::Initialize(
 
 #ifdef _MMC_SUPPORTED
 static bool dg2RegisteredMmd =
-    MediaInterfacesFactory<MmdDevice>::
-    RegisterHal<MmdDeviceXe_Hpm>((uint32_t)IGFX_DG2);
+    MediaFactory<uint32_t, MmdDevice>::
+    Register<MmdDeviceXe_Hpm>((uint32_t)IGFX_DG2);
 
 MOS_STATUS MmdDeviceXe_Hpm::Initialize(
     PMOS_INTERFACE osInterface,
@@ -339,8 +339,8 @@ MhwInterfaces* MmdDeviceXe_Hpm::CreateMhwInterface(
 #endif
 
 static bool dg2RegisteredMcpy =
-    MediaInterfacesFactory<McpyDevice>::
-    RegisterHal<McpyDeviceXe_Hpm>((uint32_t)IGFX_DG2);
+    MediaFactory<uint32_t, McpyDevice>::
+    Register<McpyDeviceXe_Hpm>((uint32_t)IGFX_DG2);
 
 MOS_STATUS McpyDeviceXe_Hpm::Initialize(
     PMOS_INTERFACE osInterface,
@@ -406,8 +406,8 @@ MhwInterfaces* McpyDeviceXe_Hpm::CreateMhwInterface(
 }
 
 static bool dg2RegisteredNv12ToP010 =
-    MediaInterfacesFactory<Nv12ToP010Device>::
-    RegisterHal<Nv12ToP010DeviceXe_Hpm>((uint32_t)IGFX_DG2);
+    MediaFactory<uint32_t, Nv12ToP010Device>::
+    Register<Nv12ToP010DeviceXe_Hpm>((uint32_t)IGFX_DG2);
 
 MOS_STATUS Nv12ToP010DeviceXe_Hpm::Initialize(
     PMOS_INTERFACE            osInterface)
@@ -418,8 +418,8 @@ MOS_STATUS Nv12ToP010DeviceXe_Hpm::Initialize(
 }
 
 static bool dg2RegisteredCodecHal =
-    MediaInterfacesFactory<CodechalDevice>::
-    RegisterHal<CodechalInterfacesXe_Hpm>((uint32_t)IGFX_DG2);
+    MediaFactory<uint32_t, CodechalDevice>::
+    Register<CodechalInterfacesXe_Hpm>((uint32_t)IGFX_DG2);
 
 static bool dg2RegisteredMhwNext =
     MediaFactory<uint32_t, MhwInterfacesNext>::
@@ -787,8 +787,8 @@ MOS_STATUS CodechalInterfacesXe_Hpm::Initialize(
 
 #ifdef _MEDIA_RESERVED
 static bool dg2RegisteredCMHal =
-    MediaInterfacesFactory<CMHalDevice>::
-    RegisterHal<CMHalInterfacesXe_Hpm>((uint32_t)IGFX_DG2);
+    MediaFactory<uint32_t, CMHalDevice>::
+    Register<CMHalInterfacesXe_Hpm>((uint32_t)IGFX_DG2);
 MOS_STATUS CMHalInterfacesXe_Hpm::Initialize(CM_HAL_STATE *pCmState)
 {
     if (pCmState == nullptr)
@@ -823,8 +823,8 @@ MOS_STATUS CMHalInterfacesXe_Hpm::Initialize(CM_HAL_STATE *pCmState)
 #endif
 
 static bool dg2RegisteredMosUtil =
-    MediaInterfacesFactory<MosUtilDevice>::
-    RegisterHal<MosUtilDeviceXe_Hpm>((uint32_t)IGFX_DG2);
+    MediaFactory<uint32_t, MosUtilDevice>::
+    Register<MosUtilDeviceXe_Hpm>((uint32_t)IGFX_DG2);
 
 MOS_STATUS MosUtilDeviceXe_Hpm::Initialize()
 {
@@ -855,8 +855,8 @@ MOS_STATUS MosUtilDeviceXe_Hpm::Initialize()
     return MOS_STATUS_SUCCESS;
 }
 static bool dg2RegisteredRenderHal =
-    MediaInterfacesFactory<RenderHalDevice>::
-    RegisterHal<RenderHalInterfacesXe_Hpg>((uint32_t)IGFX_DG2);
+    MediaFactory<uint32_t, RenderHalDevice>::
+    Register<RenderHalInterfacesXe_Hpg>((uint32_t)IGFX_DG2);
 MOS_STATUS RenderHalInterfacesXe_Hpg::Initialize()
 {
     m_renderhalDevice = MOS_New(XRenderHal);
@@ -868,8 +868,8 @@ MOS_STATUS RenderHalInterfacesXe_Hpg::Initialize()
     return MOS_STATUS_SUCCESS;
 }
 static bool dg2RegisteredDecodeHistogram =
-MediaInterfacesFactory<DecodeHistogramDevice>::
-RegisterHal<DecodeHistogramDeviceXe_Hpm>((uint32_t)IGFX_DG2);
+MediaFactory<uint32_t, DecodeHistogramDevice>::
+Register<DecodeHistogramDeviceXe_Hpm>((uint32_t)IGFX_DG2);
 MOS_STATUS DecodeHistogramDeviceXe_Hpm::Initialize(
     CodechalHwInterface       *hwInterface,
     PMOS_INTERFACE            osInterface)
@@ -885,7 +885,7 @@ MOS_STATUS DecodeHistogramDeviceXe_Hpm::Initialize(
 }
 
 static bool dg2RegisteredHwInfo =
-    MediaInterfacesFactory<MediaInterfacesHwInfoDevice>::RegisterHal<MediaInterfacesHwInfoDeviceDg2>((uint32_t)IGFX_DG2);
+    MediaFactory<uint32_t, MediaInterfacesHwInfoDevice>::Register<MediaInterfacesHwInfoDeviceDg2>((uint32_t)IGFX_DG2);
 
 #define IP_VERSION_XE_HPM      0x1207
 

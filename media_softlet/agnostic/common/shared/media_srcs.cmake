@@ -47,7 +47,6 @@ set(TMP_HEADERS_
     ${TMP_HEADERS_}
     ${CMAKE_CURRENT_LIST_DIR}/media_utils.h
     ${CMAKE_CURRENT_LIST_DIR}/media_common_defs.h
-    ${CMAKE_CURRENT_LIST_DIR}/media_factory.h
     ${CMAKE_CURRENT_LIST_DIR}/media_capstable.h
     ${CMAKE_CURRENT_LIST_DIR}/media_debug_config_manager.h
     ${CMAKE_CURRENT_LIST_DIR}/media_debug_interface.h

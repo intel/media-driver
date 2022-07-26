@@ -27,7 +27,6 @@
 #include <stdint.h>
 #include "igfxfmid.h"
 #include "media_factory.h"
-#include "media_interfaces.h"
 #include "mhw_utilities_next.h"
 #include "mos_defs.h"
 #include "mos_os.h"

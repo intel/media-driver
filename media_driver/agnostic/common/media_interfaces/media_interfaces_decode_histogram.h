@@ -61,5 +61,5 @@ public:
 
 };
 
-extern template class MediaInterfacesFactory<DecodeHistogramDevice>;
+extern template class MediaFactory<uint32_t, DecodeHistogramDevice>;
 #endif // __MEDIA_INTERFACES_DECODE_HISTOGRAM_H__

@@ -37,17 +37,17 @@
 #include "codechal_decode_hybrid_vp9.h"
 #endif
 
-extern template class MediaInterfacesFactory<MhwInterfaces>;
-extern template class MediaInterfacesFactory<MmdDevice>;
-extern template class MediaInterfacesFactory<MosUtilDevice>;
-extern template class MediaInterfacesFactory<CodechalDevice>;
-extern template class MediaInterfacesFactory<CMHalDevice>;
-extern template class MediaInterfacesFactory<VphalDevice>;
-extern template class MediaInterfacesFactory<RenderHalDevice>;
+extern template class MediaFactory<uint32_t, MhwInterfaces>;
+extern template class MediaFactory<uint32_t, MmdDevice>;
+extern template class MediaFactory<uint32_t, MosUtilDevice>;
+extern template class MediaFactory<uint32_t, CodechalDevice>;
+extern template class MediaFactory<uint32_t, CMHalDevice>;
+extern template class MediaFactory<uint32_t, VphalDevice>;
+extern template class MediaFactory<uint32_t, RenderHalDevice>;
 
 static bool bdwRegisteredVphal =
-    MediaInterfacesFactory<VphalDevice>::
-    RegisterHal<VphalInterfacesG8Bdw>((uint32_t)IGFX_BROADWELL);
+    MediaFactory<uint32_t, VphalDevice>::
+    Register<VphalInterfacesG8Bdw>((uint32_t)IGFX_BROADWELL);
 
 MOS_STATUS VphalInterfacesG8Bdw::Initialize(
     PMOS_INTERFACE  osInterface,
@@ -65,8 +65,8 @@ MOS_STATUS VphalInterfacesG8Bdw::Initialize(
 }
 
 static bool bdwRegisteredMhw =
-    MediaInterfacesFactory<MhwInterfaces>::
-    RegisterHal<MhwInterfacesG8Bdw>((uint32_t)IGFX_BROADWELL);
+    MediaFactory<uint32_t, MhwInterfaces>::
+    Register<MhwInterfacesG8Bdw>((uint32_t)IGFX_BROADWELL);
 
 #define PLATFORM_INTEL_BDW 4
 #define GENX_BDW           3
@@ -124,8 +124,8 @@ MOS_STATUS MhwInterfacesG8Bdw::Initialize(
 }
 
 static bool bdwRegisteredCodecHal =
-    MediaInterfacesFactory<CodechalDevice>::
-    RegisterHal<CodechalInterfacesG8Bdw>((uint32_t)IGFX_BROADWELL);
+    MediaFactory<uint32_t, CodechalDevice>::
+    Register<CodechalInterfacesG8Bdw>((uint32_t)IGFX_BROADWELL);
 
 MOS_STATUS CodechalInterfacesG8Bdw::Initialize(
     void *standardInfo,
@@ -346,8 +346,8 @@ MOS_STATUS CodechalInterfacesG8Bdw::Initialize(
 }
 
 static bool bdwRegisteredCMHal =
-    MediaInterfacesFactory<CMHalDevice>::
-    RegisterHal<CMHalInterfacesG8Bdw>((uint32_t)IGFX_BROADWELL);
+    MediaFactory<uint32_t, CMHalDevice>::
+    Register<CMHalInterfacesG8Bdw>((uint32_t)IGFX_BROADWELL);
 
 MOS_STATUS CMHalInterfacesG8Bdw::Initialize(CM_HAL_STATE *pCmState)
 {
@@ -392,8 +392,8 @@ MOS_STATUS CMHalInterfacesG8Bdw::Initialize(CM_HAL_STATE *pCmState)
 }
 
 static bool bdwRegisteredMosUtil =
-    MediaInterfacesFactory<MosUtilDevice>::
-    RegisterHal<MosUtilDeviceG8Bdw>((uint32_t)IGFX_BROADWELL);
+    MediaFactory<uint32_t, MosUtilDevice>::
+    Register<MosUtilDeviceG8Bdw>((uint32_t)IGFX_BROADWELL);
 
 MOS_STATUS MosUtilDeviceG8Bdw::Initialize()
 {
@@ -426,8 +426,8 @@ MOS_STATUS MosUtilDeviceG8Bdw::Initialize()
 }
 
 static bool bdwRegisteredRenderHal =
-    MediaInterfacesFactory<RenderHalDevice>::
-    RegisterHal<RenderHalInterfacesG8Bdw>((uint32_t)IGFX_BROADWELL);
+    MediaFactory<uint32_t, RenderHalDevice>::
+    Register<RenderHalInterfacesG8Bdw>((uint32_t)IGFX_BROADWELL);
 
 MOS_STATUS RenderHalInterfacesG8Bdw::Initialize()
 {
