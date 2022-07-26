@@ -64,15 +64,6 @@
 
 #if (_DEBUG || _RELEASE_INTERNAL)
 
-//!
-//! \brief Dump surface for MediaCopy in/out
-//!
-#define __COMMON_DBG_SURF_DUMPER_RESOURCE_LOCK                          "McpySurfaceDumperResourceLockError"
-#define __COMMON_DBG_SURF_DUMP_OUTFILE_KEY_NAME                         "McpyOutfileLocation"
-#define __COMMON_DBG_DUMP_OUTPUT_DIRECTORY                              "Common Debug Dump Output Directory"
-#define __COMMON_DBG_SURF_DUMP_LOCATION_KEY_NAME_IN                     "dumpLocation before MCPY"
-#define __COMMON_DBG_SURF_DUMP_LOCATION_KEY_NAME_OUT                    "dumpLocation after MCPY"
-
 #define __MEDIA_USER_FEATURE_VALUE_MEDIA_RESET_ENABLE                   "Media Reset"
 
 //!
