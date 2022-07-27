@@ -2352,23 +2352,34 @@ void VPHAL_VEBOX_STATE::VeboxSetCommonRenderingFlags(
 
     pRenderData->bProgressive   = (pSrc->SampleType == SAMPLE_PROGRESSIVE);
 
-    pRenderData->bDenoise       = (pSrc->pDenoiseParams                         &&
-                                  (pSrc->pDenoiseParams->bEnableLuma            ||
-                                   pSrc->pDenoiseParams->bEnableSlimIPUDenoise  ||
-                                   pSrc->pDenoiseParams->bEnableHVSDenoise)     &&
-                                   pVeboxState->IsDnFormatSupported(pSrc));
+    if (IsDnDisabled())
+    {
+        pRenderData->bDenoise = false;
+        pRenderData->bChromaDenoise = false;
+#if VEBOX_AUTO_DENOISE_SUPPORTED
+        pRenderData->bAutoDenoise   = false;
+#endif
+    }
+    else
+    {
+        pRenderData->bDenoise = (pSrc->pDenoiseParams &&
+                                 (pSrc->pDenoiseParams->bEnableLuma ||
+                                     pSrc->pDenoiseParams->bEnableSlimIPUDenoise ||
+                                     pSrc->pDenoiseParams->bEnableHVSDenoise) &&
+                                 pVeboxState->IsDnFormatSupported(pSrc));
 
-    pRenderData->bChromaDenoise = (pSrc->pDenoiseParams                 &&
-                                   pSrc->pDenoiseParams->bEnableChroma  &&
-                                   pSrc->pDenoiseParams->bEnableLuma    &&
-                                   pVeboxState->IsDnFormatSupported(pSrc));
+        pRenderData->bChromaDenoise = (pSrc->pDenoiseParams &&
+                                       pSrc->pDenoiseParams->bEnableChroma &&
+                                       pSrc->pDenoiseParams->bEnableLuma &&
+                                       pVeboxState->IsDnFormatSupported(pSrc));
 
 #if VEBOX_AUTO_DENOISE_SUPPORTED
-    pRenderData->bAutoDenoise   = (pRenderData->bDenoise                &&
-                                   pSrc->pDenoiseParams                 &&
-                                   pSrc->pDenoiseParams->bAutoDetect    &&
-                                   pVeboxState->IsDnFormatSupported(pSrc));
+        pRenderData->bAutoDenoise = (pRenderData->bDenoise &&
+                                     pSrc->pDenoiseParams &&
+                                     pSrc->pDenoiseParams->bAutoDetect &&
+                                     pVeboxState->IsDnFormatSupported(pSrc));
 #endif
+    }
 
     // Free dDenoiseParams when DN don`t support source format
     // to avoid the possible using by mistake, 8 alignement for DN in renderhal

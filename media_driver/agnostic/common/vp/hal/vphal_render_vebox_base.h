@@ -1281,6 +1281,11 @@ protected:
     virtual MOS_STATUS VeboxSetDNDIParams(
         PVPHAL_SURFACE              pSrcSurface);
 
+    virtual bool IsDnDisabled()
+    {
+        return false;
+    }
+
     //!
     //! \brief    Vebox Set FMD parameter
     //! \details  Set up the FMD parameters for DNDI State

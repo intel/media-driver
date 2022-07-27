@@ -47,7 +47,7 @@ public:
         bool disableSfc                     = false;
         bool computeContextEnabled          = true;
         bool eufusionBypassWaEnabled        = false;
-        bool bypassVeboxDnStateUpdate       = false;
+        bool disableDn                      = false;
         bool cscCosffPatchModeDisabled      = false;
 
 #if (_DEBUG || _RELEASE_INTERNAL)
@@ -99,9 +99,9 @@ public:
         return m_ctrlVal.eufusionBypassWaEnabled;
     }
 
-    bool IsBypassVeboxDnStateUpdate()
+    bool IsDisableDn()
     {
-        return m_ctrlVal.bypassVeboxDnStateUpdate;
+        return m_ctrlVal.disableDn;
     }
 
     bool IsCscCosffPatchModeDisabled()

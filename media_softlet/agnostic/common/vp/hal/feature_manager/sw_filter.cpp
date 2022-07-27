@@ -794,21 +794,11 @@ MOS_STATUS SwFilterDenoise::Configure(VP_PIPELINE_PARAMS& params, bool isInputSu
     bool inputProtected = pSrcGmmResInfo->GetSetCpSurfTag(0, 0);
     bool outputProtected = pTargetGmmResInfo->GetSetCpSurfTag(0, 0);
 
-    auto userFeatureControl = m_vpInterface.GetHwInterface()->m_userFeatureControl;
-    VP_PUBLIC_CHK_NULL_RETURN(userFeatureControl);
-    bool bypassVeboxDnStateUpdate = userFeatureControl->IsBypassVeboxDnStateUpdate();
-
     if (inputProtected || outputProtected ||
        (m_vpInterface.GetHwInterface()->m_osInterface->osCpInterface &&
         m_vpInterface.GetHwInterface()->m_osInterface->osCpInterface->IsHMEnabled()))
     {
         m_Params.secureDnNeeded = true;
-    }
-    else if (bypassVeboxDnStateUpdate && m_Params.denoiseParams.bAutoDetect)
-    {
-        // disable AutoDN in clear mode
-        m_Params.denoiseParams.bAutoDetect = false;
-        VP_PUBLIC_NORMALMESSAGE("AutoDN is disabled in clear mode.");
     }
 #endif
 
