@@ -5920,7 +5920,7 @@ MOS_STATUS CodechalVdencVp9StateG12::HuCBrcUpdate()
         {
             //VDEnc Stats Buffer - IN
             virtualAddrParams.regionParams[1].presRegion = &m_frameStatsPakIntegrationBuffer.sResource;
-            virtualAddrParams.regionParams[1].dwOffset = m_tileStatsOffset.vdencStats;
+            virtualAddrParams.regionParams[1].dwOffset = m_frameStatsOffset.vdencStats;
             // Frame (not PAK) Stats Buffer - IN
             virtualAddrParams.regionParams[2].presRegion = &m_frameStatsPakIntegrationBuffer.sResource;
             virtualAddrParams.regionParams[2].dwOffset = m_frameStatsOffset.pakStats;
@@ -5942,7 +5942,7 @@ MOS_STATUS CodechalVdencVp9StateG12::HuCBrcUpdate()
         {
             // VDEnc Stats Buffer - IN
             virtualAddrParams.regionParams[1].presRegion = &m_frameStatsPakIntegrationBuffer.sResource;
-            virtualAddrParams.regionParams[1].dwOffset = m_tileStatsOffset.vdencStats;
+            virtualAddrParams.regionParams[1].dwOffset = m_frameStatsOffset.vdencStats;
             // Frame (not PAK) Stats Buffer - IN
             virtualAddrParams.regionParams[2].presRegion = &m_frameStatsPakIntegrationBuffer.sResource;
             virtualAddrParams.regionParams[2].dwOffset = m_frameStatsOffset.pakStats;
