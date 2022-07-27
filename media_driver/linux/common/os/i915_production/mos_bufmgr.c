@@ -1588,6 +1588,11 @@ mos_gem_bo_free(struct mos_linux_bo *bo)
         drm_munmap(bo_gem->mem_wc_virtual, bo_gem->bo.size);
     }
 
+    if(bufmgr_gem && bufmgr_gem->bufmgr.bo_wait_rendering)
+    {
+        bufmgr_gem->bufmgr.bo_wait_rendering(bo);
+    }
+
     /* Close this object */
     memclear(close);
     close.handle = bo_gem->gem_handle;
