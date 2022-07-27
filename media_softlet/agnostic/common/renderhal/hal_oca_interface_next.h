@@ -249,6 +249,14 @@ public:
     //!         Return true when support large reource dump
     //!
     static bool IsLargeResouceDumpSupported();
+
+    static void AddRTLogReource(MOS_COMMAND_BUFFER &cmdBuffer,
+                               MOS_CONTEXT &mosContext,
+                               MOS_INTERFACE &osInterface,
+                               MHW_RESOURCE_PARAMS ResourceParams,
+                               bool bUseSizeOfResource,
+                               uint32_t sizeOfIndirectState);
+
 protected:
     static MOS_STATUS MhwMiLoadRegisterImmCmd(
         std::shared_ptr<mhw::mi::Itf>    miItf,

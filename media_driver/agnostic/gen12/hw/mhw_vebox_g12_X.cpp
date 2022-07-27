@@ -821,7 +821,7 @@ MOS_STATUS MhwVeboxInterfaceG12::AddVeboxState(
             &ResourceParams));
 
         HalOcaInterface::OnIndirectState(*pCmdBuffer, *pOsContext, ResourceParams.presResource, ResourceParams.dwOffset, false, m_veboxSettings.uiDndiStateSize);
-
+        HalOcaInterface::AddRTLogReource(*pCmdBuffer, *pOsContext, *pOsInterface, ResourceParams, false, 0);
         MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
         if (bCmBuffer)
         {
