@@ -1571,10 +1571,24 @@ mos_bo_gem_create_from_name(struct mos_bufmgr *bufmgr,
 drm_export void
 mos_gem_bo_free(struct mos_linux_bo *bo)
 {
-    struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *) bo->bufmgr;
+    struct mos_bufmgr_gem *bufmgr_gem = nullptr;
     struct mos_bo_gem *bo_gem = (struct mos_bo_gem *) bo;
     struct drm_gem_close close;
     int ret;
+
+    if(bo_gem == nullptr)
+    {
+        MOS_DBG("bo == nullptr\n");
+        return;
+    }
+
+    bufmgr_gem = (struct mos_bufmgr_gem *) bo->bufmgr;
+
+    if(bufmgr_gem == nullptr)
+    {
+        MOS_DBG("bufmgr_gem == nullptr\n");
+        return;
+    }
 
     if (bo_gem->mem_virtual) {
         VG(VALGRIND_FREELIKE_BLOCK(bo_gem->mem_virtual, 0));
@@ -1588,7 +1602,7 @@ mos_gem_bo_free(struct mos_linux_bo *bo)
         drm_munmap(bo_gem->mem_wc_virtual, bo_gem->bo.size);
     }
 
-    if(bufmgr_gem && bufmgr_gem->bufmgr.bo_wait_rendering)
+    if(bufmgr_gem->bufmgr.bo_wait_rendering)
     {
         bufmgr_gem->bufmgr.bo_wait_rendering(bo);
     }
