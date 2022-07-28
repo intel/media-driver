@@ -25,6 +25,9 @@
 //! \details  Common interface used in Blitter Engine which are platform independent
 //!
 
+#define NOMINMAX
+#include <algorithm>
+
 #include "media_blt_copy_next.h"
 #define BIT( n )                            ( 1 << (n) )
 
@@ -179,6 +182,7 @@ MOS_STATUS BltStateNext::SetupBltCopyParam(
     BLT_CHK_NULL_RETURN(pMhwBltParams);
     BLT_CHK_NULL_RETURN(inputSurface);
     BLT_CHK_NULL_RETURN(outputSurface);
+    BLT_CHK_NULL_RETURN(outputSurface->pGmmResInfo);
 
     uint32_t          BytesPerTexel = 1;
     MOS_SURFACE       ResDetails;
@@ -186,6 +190,10 @@ MOS_STATUS BltStateNext::SetupBltCopyParam(
     MOS_ZeroMemory(pMhwBltParams, sizeof(MHW_FAST_COPY_BLT_PARAM));
     ResDetails.Format = Format_Invalid;
     BLT_CHK_STATUS_RETURN(m_osInterface->pfnGetResourceInfo(m_osInterface, inputSurface, &ResDetails));
+
+    uint32_t inputHeight = ResDetails.dwHeight;
+    uint32_t inputWidth  = ResDetails.dwWidth;
+    uint32_t inputPitch  = ResDetails.dwPitch;
 
     if (inputSurface->TileType != MOS_TILE_LINEAR)
     { 
@@ -203,6 +211,10 @@ MOS_STATUS BltStateNext::SetupBltCopyParam(
     ResDetails.Format = Format_Invalid;
     BLT_CHK_STATUS_RETURN(m_osInterface->pfnGetResourceInfo(m_osInterface, outputSurface, &ResDetails));
 
+    uint32_t outputHeight = ResDetails.dwHeight;
+    uint32_t outputWidth  = ResDetails.dwWidth;
+    uint32_t outputPitch  = ResDetails.dwPitch;
+
     if (outputSurface->TileType != MOS_TILE_LINEAR)
     {
         pMhwBltParams->dwDstPitch = ResDetails.dwPitch/4;
@@ -215,12 +227,15 @@ MOS_STATUS BltStateNext::SetupBltCopyParam(
     pMhwBltParams->dwDstLeft   = ResDetails.RenderOffset.YUV.Y.XOffset;
 
     int planeNum = GetPlaneNum(ResDetails.Format);
-    pMhwBltParams->dwDstRight = ResDetails.dwWidth;
+    pMhwBltParams->dwDstRight = std::min(inputWidth, outputWidth);
 
-    BLT_CHK_NULL_RETURN(outputSurface->pGmmResInfo);
     if (outputSurface->pGmmResInfo->GetResourceType() != RESOURCE_BUFFER)
     {
         BytesPerTexel = outputSurface->pGmmResInfo->GetBitsPerPixel() / 8;  // using Bytes.
+        if (ResDetails.Format == Format_P010 || ResDetails.Format == Format_P016)
+        {
+            BytesPerTexel = 2;
+        }
     }
 
     if (true == m_blokCopyon)
@@ -234,18 +249,17 @@ MOS_STATUS BltStateNext::SetupBltCopyParam(
 
     if( 1 == planeNum )
     {// handle as whole memory
-       pMhwBltParams->dwDstBottom = (uint32_t)outputSurface->pGmmResInfo->GetSizeMainSurface() / ResDetails.dwPitch;
+       pMhwBltParams->dwDstBottom = std::min(inputHeight, outputHeight);
        if (false == m_blokCopyon)
        {// fastcopy
-           pMhwBltParams->dwDstRight   = ResDetails.dwPitch / 4;  // Regard as 32 bit per pixel format, i.e. 4 byte per pixel.
+           pMhwBltParams->dwDstRight   = std::min(inputPitch, outputPitch) / 4;  // Regard as 32 bit per pixel format, i.e. 4 byte per pixel.
            pMhwBltParams->dwColorDepth = 3;  //0:8bit 1:16bit 3:32bit 4:64bit
        }
     }
     else
     {
-        BLT_CHK_NULL_RETURN(outputSurface->pGmmResInfo);
-        int bytePerTexelScaling = GetBytesPerTexelScaling(ResDetails.Format);
-        pMhwBltParams->dwDstBottom = ResDetails.dwHeight;
+        int bytePerTexelScaling    = GetBytesPerTexelScaling(ResDetails.Format);
+        pMhwBltParams->dwDstBottom = std::min(inputHeight, outputHeight);
 
         if (1 == planeIndex || 2 == planeIndex)
         {
@@ -257,13 +271,12 @@ MOS_STATUS BltStateNext::SetupBltCopyParam(
                pMhwBltParams->dwDstRight  = pMhwBltParams->dwDstRight / 2;
                pMhwBltParams->dwDstBottom = pMhwBltParams->dwDstBottom / 2;
            }
-
         }
     }
     pMhwBltParams->pSrcOsResource = inputSurface;
     pMhwBltParams->pDstOsResource = outputSurface;
-    MCPY_NORMALMESSAGE("BLT params: format %d, planeNum %d, planeIndex %d, dwColorDepth %d, dwSrcTop %d,dwSrcLeft %d dwSrcPitch %d"
-                       "dwDstTop %d, dwDstLeft %d, dwDstRight %d , dwDstBottom %d, dwDstPitch %d",
+    MCPY_NORMALMESSAGE("BLT params: format %d, planeNum %d, planeIndex %d, dwColorDepth %d, dwSrcTop %d, dwSrcLeft %d, dwSrcPitch %d,"
+                       "dwDstTop %d, dwDstLeft %d, dwDstRight %d, dwDstBottom %d, dwDstPitch %d",
                        ResDetails.Format, planeNum, planeIndex, pMhwBltParams->dwColorDepth, pMhwBltParams->dwSrcTop, pMhwBltParams->dwSrcLeft,
                        pMhwBltParams->dwSrcPitch, pMhwBltParams->dwDstTop, pMhwBltParams->dwDstLeft, pMhwBltParams->dwDstRight, 
                        pMhwBltParams->dwDstBottom, pMhwBltParams->dwDstPitch);
@@ -459,7 +472,9 @@ uint32_t BltStateNext::GetFastCopyColorDepth(
 
    switch (format)
    {
-       case Format_NV12:
+        case Format_NV12:
+        case Format_P010:
+        case Format_P016:
             dstBytesPerTexel = 2;
            break;
 
