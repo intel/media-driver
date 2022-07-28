@@ -157,6 +157,22 @@ protected:
 MEDIA_CLASS_DEFINE_END(vp__VpTccReuse)
 };
 
+class VpSteReuse : public VpFeatureReuseBase
+{
+public:
+    VpSteReuse();
+    virtual ~VpSteReuse();
+    MOS_STATUS UpdateFeatureParams(bool reusable, bool &reused, SwFilter *filter);
+    MOS_STATUS UpdatePacket(SwFilter *filter, VpCmdPacket *packet);
+
+protected:
+    MOS_STATUS UpdateFeatureParams(FeatureParamSte &params);
+
+    FeatureParamSte m_params = {};
+
+MEDIA_CLASS_DEFINE_END(vp__VpSteReuse)
+};
+
 class VpPacketReuseManager
 {
 public:

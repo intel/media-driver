@@ -461,6 +461,43 @@ MOS_STATUS VpVeboxCmdPacketLegacy::UpdateTccParams(FeatureParamTcc &params)
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS VpVeboxCmdPacketLegacy::UpdateSteParams(FeatureParamSte &params)
+{
+    VP_FUNC_CALL();
+    VpVeboxRenderData     *pRenderData        = GetLastExecRenderData();
+    MHW_VEBOX_IECP_PARAMS &mhwVeboxIecpParams = pRenderData->GetIECPParams();
+
+    VP_RENDER_ASSERT(pRenderData);
+
+    if (params.bEnableSTE)
+    {
+        pRenderData->IECP.STE.bSteEnabled                    = true;
+        mhwVeboxIecpParams.ColorPipeParams.bActive           = true;
+        mhwVeboxIecpParams.ColorPipeParams.bEnableSTE        = true;
+        if (params.dwSTEFactor > MHW_STE_FACTOR_MAX)
+        {
+            mhwVeboxIecpParams.ColorPipeParams.SteParams.dwSTEFactor = MHW_STE_FACTOR_MAX;
+            mhwVeboxIecpParams.ColorPipeParams.SteParams.satP1       = m_satP1Table[MHW_STE_FACTOR_MAX];
+            mhwVeboxIecpParams.ColorPipeParams.SteParams.satS0       = m_satS0Table[MHW_STE_FACTOR_MAX];
+            mhwVeboxIecpParams.ColorPipeParams.SteParams.satS1       = m_satS1Table[MHW_STE_FACTOR_MAX];
+        }
+        else
+        {
+            mhwVeboxIecpParams.ColorPipeParams.SteParams.dwSTEFactor = params.dwSTEFactor;
+            mhwVeboxIecpParams.ColorPipeParams.SteParams.satP1       = m_satP1Table[params.dwSTEFactor];
+            mhwVeboxIecpParams.ColorPipeParams.SteParams.satS0       = m_satS0Table[params.dwSTEFactor];
+            mhwVeboxIecpParams.ColorPipeParams.SteParams.satS1       = m_satS1Table[params.dwSTEFactor];
+        }
+    }
+    else
+    {
+        pRenderData->IECP.STE.bSteEnabled             = false;
+        mhwVeboxIecpParams.ColorPipeParams.bEnableSTE = false;
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS VpVeboxCmdPacketLegacy::SetScalingParams(PSFC_SCALING_PARAMS scalingParams)
 {
     VP_FUNC_CALL();

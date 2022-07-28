@@ -545,6 +545,7 @@ public:
 
     virtual MOS_STATUS UpdateCscParams(FeatureParamCsc &params) override;
     virtual MOS_STATUS UpdateTccParams(FeatureParamTcc &params) override;
+    virtual MOS_STATUS UpdateSteParams(FeatureParamSte &params) override;
 
     //!
     //! \brief    Get DN luma parameters

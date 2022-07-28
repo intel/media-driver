@@ -382,6 +382,55 @@ MOS_STATUS VpTccReuse::UpdateFeatureParams(FeatureParamTcc &params)
 }
 
 /*******************************************************************/
+/***********************VpSteReuse**********************************/
+/*******************************************************************/
+
+VpSteReuse::VpSteReuse()
+{
+}
+
+VpSteReuse::~VpSteReuse()
+{
+}
+
+MOS_STATUS VpSteReuse::UpdateFeatureParams(bool reusable, bool &reused, SwFilter *filter)
+{
+    SwFilterSte     *ste    = dynamic_cast<SwFilterSte *>(filter);
+    FeatureParamSte &params = ste->GetSwFilterParams();
+    if (reusable && params.bEnableSTE == m_params.bEnableSTE)
+    {
+        // No need call UpdateFeatureParams. Just keep compared items updated in m_params
+        // is enough. UpdatePacket should use params in swfilter instead of m_params.
+        reused = true;
+    }
+    else
+    {
+        reused = false;
+        VP_PUBLIC_CHK_STATUS_RETURN(UpdateFeatureParams(params));
+    }
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpSteReuse::UpdatePacket(SwFilter *filter, VpCmdPacket *packet)
+{
+    VpVeboxCmdPacketBase *veboxPacket = dynamic_cast<VpVeboxCmdPacketBase *>(packet);
+    VP_PUBLIC_CHK_NULL_RETURN(veboxPacket);
+
+    SwFilterSte *ste = dynamic_cast<SwFilterSte *>(filter);
+    VP_PUBLIC_CHK_NULL_RETURN(ste);
+    FeatureParamSte &params = ste->GetSwFilterParams();
+
+    VP_PUBLIC_CHK_STATUS_RETURN(veboxPacket->UpdateSteParams(params));
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpSteReuse::UpdateFeatureParams(FeatureParamSte &params)
+{
+    m_params = params;
+    return MOS_STATUS_SUCCESS;
+}
+
+/*******************************************************************/
 /***********************VpPacketReuseManager************************/
 /*******************************************************************/
 
@@ -432,6 +481,15 @@ MOS_STATUS VpPacketReuseManager::RegisterFeatures()
     p = MOS_New(VpAlphaReuse);
     VP_PUBLIC_CHK_NULL_RETURN(p);
     m_features.insert(std::make_pair(FeatureTypeAlpha, p));
+
+    p = MOS_New(VpTccReuse);
+    VP_PUBLIC_CHK_NULL_RETURN(p);
+    m_features.insert(std::make_pair(FeatureTypeTcc, p));
+
+    p = MOS_New(VpSteReuse);
+    VP_PUBLIC_CHK_NULL_RETURN(p);
+    m_features.insert(std::make_pair(FeatureTypeSte, p));
+
 
     return MOS_STATUS_SUCCESS;
 }
