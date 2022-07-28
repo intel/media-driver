@@ -307,6 +307,11 @@ typedef struct _CODEC_HEVC_SLICE_PARAMS
     *   Note: The bitstream data buffer shall contain the full NAL unit byte stream, either encrpted or clear. This means that the buffer will contain emulation_prevention_three_byte syntax elements where those elements are required to be present in a NAL unit, as defined in the HEVC specification. The bitstream data buffer may or may not contrain leading_zero_8bits, zero_byte, and trailing_zero_8bits syntax elements. If present, the accelerator shall ignore these elements.
     */
     uint32_t                slice_data_offset;
+    /*! \brief This member indicated if current slice is complete.
+    *
+    *   0 - Complete; 1 - Partial slice data with the start of slice; 2 - Partial slice data with the end of slice; 3 - Partial slice data with the middle of slice;
+    */
+    uint16_t                slice_chopping;
 
     // Long format specific
     uint16_t                NumEmuPrevnBytesInSliceHdr;           //!< Number of emulation prevention bytes in slice head; ByteOffsetToSliceData doesn't include these bytes.
