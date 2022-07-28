@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2022, Intel Corporation
+# Copyright (c) 2022, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -17,26 +17,16 @@
 # OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
-
-# shared
-set(TMP_2_HEADERS_
-    ${CMAKE_CURRENT_LIST_DIR}/codec_def_vp8_probs.h
-    ${CMAKE_CURRENT_LIST_DIR}/codec_def_vp9_probs.h
-    ${CMAKE_CURRENT_LIST_DIR}/codec_def_decode_vp8.h
-    ${CMAKE_CURRENT_LIST_DIR}/codec_def_encode_vp8.h
-    ${CMAKE_CURRENT_LIST_DIR}/codec_def_cenc_decode.h
+set(TMP_SOURCES_
+    ${TMP_SOURCES_}
+    ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_basic_feature_m12.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_feature_manager_m12.cpp
 )
 
-set(HEADERS_
-    ${HEADERS_}
-    ${TMP_2_HEADERS_}
+set(TMP_HEADERS_
+    ${TMP_HEADERS_}
+    ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_basic_feature_m12.h
+    ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_feature_manager_m12.h
 )
 
-set(CODEC_HEADERS_
-    ${CODEC_HEADERS_}
-    ${TMP_2_HEADERS_}
-)
-
-source_group( "Codec\\Shared" FILES ${TMP_2_HEADERS_} )
-set(TMP_2_HEADERS_"")
 media_add_curr_to_include_path()

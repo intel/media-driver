@@ -230,6 +230,103 @@ public:
         hevcSliceI = 2
     };
 
+    MOS_STATUS GetVp9BufferSize(
+        HCP_INTERNAL_BUFFER_TYPE bufferType,
+        HcpBufferSizePar        *hcpBufSizeParam)
+    {
+        MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+        MHW_FUNCTION_ENTER;
+
+        MHW_MI_CHK_NULL(hcpBufSizeParam);
+
+        uint32_t bufferSize            = 0;
+        uint32_t dblkRsbSizeMultiplier = 0;
+        uint32_t dblkCsbSizeMultiplier = 0;
+        uint32_t intraPredMultiplier   = 0;
+
+        uint8_t               maxBitDepth   = hcpBufSizeParam->ucMaxBitDepth;
+        uint32_t              widthInSb     = hcpBufSizeParam->dwPicWidth;
+        uint32_t              heightInSb    = hcpBufSizeParam->dwPicHeight;
+        uint32_t              widthInMinCb  = widthInSb * 64 / 8;  //using smallest cb to get max width
+        uint32_t              heightInMinCb = heightInSb * 64 / 8;
+        HCP_CHROMA_FORMAT_IDC chromaFormat  = (HCP_CHROMA_FORMAT_IDC)hcpBufSizeParam->ucChromaFormat;
+        uint32_t              maxFrameSize  = hcpBufSizeParam->dwMaxFrameSize;
+
+        if (chromaFormat == HCP_CHROMA_FORMAT_YUV420)
+        {
+            dblkRsbSizeMultiplier = (maxBitDepth > 8) ? 36 : 18;
+            dblkCsbSizeMultiplier = (maxBitDepth > 8) ? 34 : 17;
+            intraPredMultiplier   = (maxBitDepth > 8) ? 4 : 2;
+        }
+        else if (chromaFormat == HCP_CHROMA_FORMAT_YUV444)
+        {
+            dblkRsbSizeMultiplier = (maxBitDepth > 8) ? 54 : 27;
+            dblkCsbSizeMultiplier = (maxBitDepth > 8) ? 50 : 25;
+            intraPredMultiplier   = (maxBitDepth > 8) ? 6 : 3;
+        }
+        else
+        {
+            eStatus = MOS_STATUS_INVALID_PARAMETER;
+            MHW_ASSERTMESSAGE("Format not supported.");
+            return eStatus;
+        }
+
+        switch (bufferType)
+        {
+        case HCP_INTERNAL_BUFFER_TYPE::DBLK_LINE:
+        case HCP_INTERNAL_BUFFER_TYPE::DBLK_TILE_LINE:
+            bufferSize = widthInSb * dblkRsbSizeMultiplier * MHW_CACHELINE_SIZE;
+            break;
+        case HCP_INTERNAL_BUFFER_TYPE::DBLK_TILE_COL:
+            bufferSize = heightInSb * dblkCsbSizeMultiplier * MHW_CACHELINE_SIZE;
+            break;
+        case HCP_INTERNAL_BUFFER_TYPE::META_LINE:
+        case HCP_INTERNAL_BUFFER_TYPE::META_TILE_LINE:
+            bufferSize = widthInSb * 5 * MHW_CACHELINE_SIZE;
+            break;
+        case HCP_INTERNAL_BUFFER_TYPE::META_TILE_COL:
+            bufferSize = heightInSb * 5 * MHW_CACHELINE_SIZE;
+            break;
+        case HCP_INTERNAL_BUFFER_TYPE::CURR_MV_TEMPORAL:
+        case HCP_INTERNAL_BUFFER_TYPE::COLL_MV_TEMPORAL:
+            bufferSize = widthInSb * heightInSb * 9 * MHW_CACHELINE_SIZE;
+            break;
+        case HCP_INTERNAL_BUFFER_TYPE::SEGMENT_ID:
+            bufferSize = widthInSb * heightInSb * MHW_CACHELINE_SIZE;
+            break;
+        case HCP_INTERNAL_BUFFER_TYPE::HVD_LINE:
+        case HCP_INTERNAL_BUFFER_TYPE::HVD_TILE:
+            bufferSize = widthInSb * MHW_CACHELINE_SIZE;
+            break;
+            //scalable mode specific buffers
+        case HCP_INTERNAL_BUFFER_TYPE::INTRA_PRED_UP_RIGHT_COL:
+        case HCP_INTERNAL_BUFFER_TYPE::INTRA_PRED_LFT_RECON_COL:
+            bufferSize = intraPredMultiplier * heightInSb * MHW_CACHELINE_SIZE;
+            break;
+        case HCP_INTERNAL_BUFFER_TYPE::CABAC_STREAMOUT:
+            //From sas, cabac stream out buffer size =
+            //(#LCU) in picture * (Worst case LCU_CU_TU_info) + 1 byte aligned per LCU + Bitstream Size * 3
+            if ((chromaFormat == HCP_CHROMA_FORMAT_YUV420) && (maxBitDepth == 8))
+            {
+                bufferSize = widthInMinCb * heightInMinCb * m_hcpWorstCaseCuTuInfo + widthInMinCb * heightInMinCb + maxFrameSize * 3;
+            }
+            else
+            {
+                bufferSize = widthInMinCb * heightInMinCb * m_hcpWorstCaseCuTuInfoRext + widthInMinCb * heightInMinCb + maxFrameSize * 3;
+            }
+            bufferSize = MOS_ALIGN_CEIL(bufferSize, MHW_CACHELINE_SIZE);
+            break;
+        default:
+            eStatus = MOS_STATUS_INVALID_PARAMETER;
+            break;
+        }
+
+        hcpBufSizeParam->dwBufferSize = bufferSize;
+
+        return eStatus;
+    }
+
     protected:
         RowStoreCache m_hevcDatRowStoreCache  = {};
         RowStoreCache m_hevcDfRowStoreCache   = {};
@@ -242,6 +339,10 @@ public:
         static const uint32_t m_hcpCabacErrorFlagsMask = 0x0879;  //<! Hcp CABAC error flags mask
 
         static const HevcSliceType m_hevcBsdSliceType[3];  //!< HEVC Slice Types for Long Format
+
+        static const uint32_t m_hcpWorstCaseCuTuInfo = 4 * MHW_CACHELINE_SIZE;
+
+        static const uint32_t m_hcpWorstCaseCuTuInfoRext = 6 * MHW_CACHELINE_SIZE;
 
     _HCP_CMD_DEF(_MHW_CMD_ALL_DEF_FOR_ITF);
 MEDIA_CLASS_DEFINE_END(mhw__vdbox__hcp__Itf)

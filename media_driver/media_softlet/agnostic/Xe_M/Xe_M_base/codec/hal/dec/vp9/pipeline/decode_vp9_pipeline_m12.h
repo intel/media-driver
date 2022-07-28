@@ -102,6 +102,8 @@ protected:
     //!
     virtual MOS_STATUS InitMmcState();
 
+    virtual MOS_STATUS CreateFeatureManager() override;
+
 #if USE_CODECHAL_DEBUG_TOOL
     //! \brief    Dump the parameters
     //!

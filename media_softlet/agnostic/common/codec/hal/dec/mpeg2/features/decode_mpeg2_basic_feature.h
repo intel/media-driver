@@ -46,7 +46,6 @@ public:
     {
         if (hwInterface != nullptr)
         {
-            m_mfxInterface = static_cast<CodechalHwInterfaceG12*>(hwInterface)->GetMfxInterface();
             m_osInterface  = hwInterface->GetOsInterface();
         }
 
@@ -209,7 +208,6 @@ protected:
     MOS_STATUS CheckCompletePicture(uint16_t startSliceIdx);
     bool DetectSliceError(CodecDecodeMpeg2SliceParams &slc, uint32_t slcIdx, bool firstValidSlice);
 
-    MhwVdboxMfxInterface *m_mfxInterface = nullptr;
     PMOS_INTERFACE        m_osInterface  = nullptr;
 
 MEDIA_CLASS_DEFINE_END(decode__Mpeg2BasicFeature)

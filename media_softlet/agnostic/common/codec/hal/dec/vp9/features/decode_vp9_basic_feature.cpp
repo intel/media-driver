@@ -37,7 +37,7 @@ Vp9BasicFeature::Vp9BasicFeature(DecodeAllocator *allocator, CodechalHwInterface
     if (hwInterface != nullptr)
     {
         m_osInterface  = hwInterface->GetOsInterface();
-        m_hcpInterface = hwInterface->GetHcpInterface();
+        m_hcpItf       = hwInterface->GetHcpInterfaceNext();
     }
 
     for (uint8_t i = 0; i < CODEC_VP9_NUM_CONTEXTS; i++)
@@ -269,7 +269,7 @@ MOS_STATUS Vp9BasicFeature ::AllocateSegmentBuffer()
     uint32_t heightInSb  = MOS_ROUNDUP_DIVIDE(m_height, CODEC_VP9_SUPER_BLOCK_HEIGHT);
     uint8_t  maxBitDepth = 8 + m_vp9DepthIndicator * 2;
 
-    MHW_VDBOX_HCP_BUFFER_SIZE_PARAMS hcpBufSizeParam;
+    mhw::vdbox::hcp::HcpBufferSizePar hcpBufSizeParam;
     MOS_ZeroMemory(&hcpBufSizeParam, sizeof(hcpBufSizeParam));
     hcpBufSizeParam.ucMaxBitDepth = maxBitDepth;
     hcpBufSizeParam.dwPicWidth    = widthInSb;
@@ -278,8 +278,7 @@ MOS_STATUS Vp9BasicFeature ::AllocateSegmentBuffer()
     // m_chromaFormat was initialized in decode_basic_feature.cpp and got from codechal settings
     hcpBufSizeParam.ucChromaFormat = m_chromaFormat;
 
-    if (m_hcpInterface->GetVp9BufferSize(MHW_VDBOX_VP9_INTERNAL_BUFFER_SEGMENT_ID,
-            &hcpBufSizeParam) != MOS_STATUS_SUCCESS)
+    if (m_hcpItf->GetVp9BufferSize(mhw::vdbox::hcp::HCP_INTERNAL_BUFFER_TYPE::SEGMENT_ID, &hcpBufSizeParam) != MOS_STATUS_SUCCESS)
     {
         DECODE_ASSERTMESSAGE("Failed to get SegmentIdBuffer size.");
     }
@@ -423,7 +422,7 @@ MOS_STATUS Vp9BasicFeature::AllocateVP9MVBuffer()
     uint32_t heightInSb  = MOS_ROUNDUP_DIVIDE(m_height, CODEC_VP9_SUPER_BLOCK_HEIGHT);
     uint8_t  maxBitDepth = 8 + m_vp9DepthIndicator * 2;
 
-    MHW_VDBOX_HCP_BUFFER_SIZE_PARAMS hcpBufSizeParam;
+    mhw::vdbox::hcp::HcpBufferSizePar hcpBufSizeParam;
     MOS_ZeroMemory(&hcpBufSizeParam, sizeof(hcpBufSizeParam));
     hcpBufSizeParam.ucMaxBitDepth = maxBitDepth;
     hcpBufSizeParam.dwPicWidth    = widthInSb;
@@ -432,7 +431,7 @@ MOS_STATUS Vp9BasicFeature::AllocateVP9MVBuffer()
     // m_chromaFormat was initialized in decode_basic_feature.cpp and got from codechal settings
     hcpBufSizeParam.ucChromaFormat = m_chromaFormat;
 
-    if (m_hcpInterface->GetVp9BufferSize(MHW_VDBOX_HCP_INTERNAL_BUFFER_CURR_MV_TEMPORAL,
+    if (m_hcpItf->GetVp9BufferSize(mhw::vdbox::hcp::HCP_INTERNAL_BUFFER_TYPE::CURR_MV_TEMPORAL,
             &hcpBufSizeParam) != MOS_STATUS_SUCCESS)
     {
         DECODE_ASSERTMESSAGE("Failed to MvBuffer size.");

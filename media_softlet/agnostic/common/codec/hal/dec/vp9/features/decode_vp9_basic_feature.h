@@ -150,7 +150,7 @@ protected:
     MOS_STATUS         SetSegmentData();
 
     //! \brief Hcp Interface
-    MhwVdboxHcpInterface *m_hcpInterface = nullptr;
+    std::shared_ptr<mhw::vdbox::hcp::Itf> m_hcpItf = nullptr;
 
 MEDIA_CLASS_DEFINE_END(decode__Vp9BasicFeature)
 };

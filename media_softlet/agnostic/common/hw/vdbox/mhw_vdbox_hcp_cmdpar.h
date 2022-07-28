@@ -133,6 +133,7 @@ struct HcpBufferSizePar
     uint32_t                 dwPicWidth;
     uint32_t                 dwPicHeight;
     uint32_t                 dwMaxFrameSize;
+    uint32_t                 dwBufferSize;
 };
 
 struct HcpVdboxRowStorePar

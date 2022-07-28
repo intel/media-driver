@@ -36,6 +36,7 @@
 #include "decode_vp9_downsampling_packet.h"
 #include "decode_common_feature_defs.h"
 #include "decode_resource_auto_lock.h"
+#include "decode_vp9_feature_manager_m12.h"
 
 namespace decode
 {
@@ -205,6 +206,14 @@ MOS_STATUS Vp9PipelineG12::Destroy()
 
     Uninitialize();
 
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS Vp9PipelineG12::CreateFeatureManager()
+{
+    DECODE_FUNC_CALL();
+    m_featureManager = MOS_New(DecodeVp9FeatureManagerM12, m_allocator, m_hwInterface);
+    DECODE_CHK_NULL(m_featureManager);
     return MOS_STATUS_SUCCESS;
 }
 

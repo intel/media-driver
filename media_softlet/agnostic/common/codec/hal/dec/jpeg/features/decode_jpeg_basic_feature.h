@@ -68,7 +68,6 @@ public:
         MOS_ZeroMemory(&m_jpegHuffmanTable, sizeof(m_jpegHuffmanTable));
         if (hwInterface != nullptr)
         {
-            m_mfxInterface = static_cast<CodechalHwInterfaceG12*>(hwInterface)->GetMfxInterface();
             m_osInterface  = hwInterface->GetOsInterface();
         }
     };
@@ -112,7 +111,6 @@ protected:
     MOS_STATUS         CheckSupportedFormat(PMOS_FORMAT format);
     virtual MOS_STATUS SetRequiredBitstreamSize(uint32_t requiredSize) override;
    
-    MhwVdboxMfxInterface *m_mfxInterface = nullptr;
     PMOS_INTERFACE        m_osInterface  = nullptr;
 
 MEDIA_CLASS_DEFINE_END(decode__JpegBasicFeature)

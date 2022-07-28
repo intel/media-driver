@@ -43,7 +43,6 @@ public:
     {
         if (hwInterface != nullptr)
         {
-            m_hcpInterface = hwInterface->GetHcpInterface();
             m_osInterface  = hwInterface->GetOsInterface();
         }
     };
@@ -100,7 +99,6 @@ protected:
     MOS_STATUS SetSliceStructs();
     MOS_STATUS ErrorDetectAndConceal();
 
-    MhwVdboxHcpInterface * m_hcpInterface = nullptr;
     PMOS_INTERFACE        m_osInterface  = nullptr;
 
 MEDIA_CLASS_DEFINE_END(decode__HevcBasicFeature)
