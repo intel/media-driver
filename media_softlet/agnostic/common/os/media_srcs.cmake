@@ -31,6 +31,7 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/mos_cmdbufmgr_next.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_commandbuffer_next.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_user_setting.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/mos_os.cpp
 )
 
 set(TMP_HEADERS_

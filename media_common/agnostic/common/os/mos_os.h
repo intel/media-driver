@@ -696,7 +696,8 @@ typedef struct _MOS_INTERFACE
 
     //!< Only used in async mode for backward compatiable
     GPU_CONTEXT_HANDLE              m_GpuContextHandleMap[MOS_GPU_CONTEXT_MAX] = {0};
-
+    GPU_CONTEXT_HANDLE              m_encContext;
+    GPU_CONTEXT_HANDLE              m_pakContext;
     // OS dependent settings, flags, limits
     int32_t                         b64bit;
     int32_t                         bDeallocateOnExit;
@@ -920,10 +921,6 @@ typedef struct _MOS_INTERFACE
         MOS_GPU_CONTEXT             busyGPUCtx,
         MOS_GPU_CONTEXT             requestorGPUCtx);
 
-    void(* pfnSyncWith3DContext)(
-        PMOS_INTERFACE              pOsInterface,
-        PMOS_SYNC_PARAMS            pParams);
-
     MOS_STATUS (* pfnRegisterBBCompleteNotifyEvent) (
         PMOS_INTERFACE              pOsInterface,
         MOS_GPU_CONTEXT             GpuContext);
@@ -1126,10 +1123,6 @@ typedef struct _MOS_INTERFACE
         PMOS_INTERFACE              pOsInterface);
 #endif // MOS_MEDIASOLO_SUPPORTED
 
-    MOS_STATUS (* pfnWaitOnResource) (
-        PMOS_INTERFACE              pOsInterface,
-        PMOS_RESOURCE               pResource);
-
     uint32_t (* pfnGetGpuStatusTag) (
         PMOS_INTERFACE              pOsInterface,
         MOS_GPU_CONTEXT             GpuContext);
@@ -1225,9 +1218,6 @@ typedef struct _MOS_INTERFACE
     MOS_STATUS (*pfnFreeLibrary) (
         HINSTANCE                   hInstance);
 
-    void (*pfnLogData)(
-        char                        *pData);
-
     MOS_NULL_RENDERING_FLAGS  (* pfnGetNullHWRenderFlags) (
         PMOS_INTERFACE              pOsInterface);
 
@@ -1289,20 +1279,10 @@ typedef struct _MOS_INTERFACE
         PMOS_INTERFACE              pOsInterface,
         MOS_GPU_NODE                VideoNodeOrdinal);
 
-    int32_t (*pfnSetCpuCacheability)(
-        PMOS_INTERFACE              pOsInterface,
-        PMOS_ALLOC_GFXRES_PARAMS    pParams);
-
     MOS_STATUS(*pfnSkipResourceSync)(
         PMOS_RESOURCE               pOsResource);
 
     MOS_STATUS(*pfnSetObjectCapture)(
-        PMOS_RESOURCE               pOsResource);
-
-    MOS_STATUS(*pfnSkipResourceSyncDynamic)(
-        PMOS_RESOURCE               pOsResource);
-
-    MOS_STATUS(*pfnEnableResourceSyncDynamic)(
         PMOS_RESOURCE               pOsResource);
 
     bool(*pfnIsValidStreamID)(

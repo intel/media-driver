@@ -2543,7 +2543,17 @@ uint64_t MosInterface::GetAuxTableBaseAddr(
 {
     MOS_OS_FUNCTION_ENTER;
 
-    return 0;
+    if (!streamState || !streamState->osDeviceContext)
+    {
+        return 0;
+    }
+    auto osDeviceContextSpecific    = static_cast<OsContextSpecificNext *>(streamState->osDeviceContext);
+    auto auxTableMgr                = osDeviceContextSpecific->GetAuxTableMgr();
+    if(!auxTableMgr)
+    {
+        return 0;
+    }
+    return auxTableMgr->GetAuxTableBase();
 }
 
 MosCpInterface *MosInterface::GetCpInterface(MOS_STREAM_HANDLE streamState)
@@ -3524,4 +3534,19 @@ bool MosInterface::IsCompressibelSurfaceSupported(MEDIA_FEATURE_TABLE *skuTable)
 bool MosInterface::IsMismatchOrderProgrammingSupported()
 {
     return false;
+}
+
+MOS_STATUS MosInterface::WaitForBBCompleteNotifyEvent(
+    MOS_STREAM_HANDLE       streamState,
+    GPU_CONTEXT_HANDLE      gpuContextHandle,
+    uint32_t                uiTimeOut)
+{
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MosInterface::RegisterBBCompleteNotifyEvent(
+    MOS_STREAM_HANDLE   streamState,
+    GPU_CONTEXT_HANDLE  gpuContextHandle)
+{
+    return MOS_STATUS_SUCCESS;
 }

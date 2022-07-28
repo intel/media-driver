@@ -21,7 +21,6 @@
 set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/mos_context.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_graphicsresource.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/mos_os.c
     ${CMAKE_CURRENT_LIST_DIR}/mos_util_user_interface.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_utilities.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_gpucontext.cpp

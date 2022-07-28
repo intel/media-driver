@@ -104,7 +104,7 @@ MOS_STATUS Mos_OsFillResource(
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     uint8_t *       pByte = nullptr;
-    MOS_LOCK_PARAMS LockFlags;
+    MOS_LOCK_PARAMS lockFlags   = {};
     uint32_t        size = 0;
 #ifndef VPSOLO_EMUL
     if (pOsResource->pGmmResInfo)
@@ -117,62 +117,19 @@ MOS_STATUS Mos_OsFillResource(
     }
 #endif
     // Lock the surface for writing
-    MOS_ZeroMemory(&LockFlags, sizeof(MOS_LOCK_PARAMS));
-
-    LockFlags.WriteOnly = 1;
+    lockFlags.WriteOnly = 1;
     pByte = (uint8_t*)pOsInterface->pfnLockResource(
                         pOsInterface,
                         pOsResource,
-                        &LockFlags);
+                        &lockFlags);
 
-    MOS_OS_CHK_NULL(pByte);
+    MOS_OS_CHK_NULL_RETURN(pByte);
 
     MOS_FillMemory(pByte, dwSize, iValue);
 
     // Unlock the surface
-    MOS_OS_CHK_STATUS(pOsInterface->pfnUnlockResource(pOsInterface, pOsResource));
+    MOS_OS_CHK_STATUS_RETURN(pOsInterface->pfnUnlockResource(pOsInterface, pOsResource));
 
-finish:
-    return eStatus;
-}
-
-//!
-//! \brief    Unified OS Resources sync
-//! \details  Syncs Resource
-//! \param    PMOS_INTERFACE pOsInterface
-//!           [in] Pointer to OS Interface
-//! \param    PMOS_RESOURCE pOsResource
-//!           [in] Pointer to OS Resource
-//! \return   MOS_STATUS
-//!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
-//!
-MOS_STATUS Mos_OsWaitOnResource(
-    PMOS_INTERFACE        pOsInterface,
-    PMOS_RESOURCE         pOsResource)
-{
-    MOS_STATUS      eStatus;
-    MOS_LOCK_PARAMS LockFlags;
-
-    //--------------------------
-    MOS_OS_CHK_NULL_RETURN(pOsInterface);
-    MOS_OS_CHK_NULL_RETURN(pOsResource);
-    MOS_OS_CHK_NULL_RETURN(pOsInterface->pOsContext);
-    //--------------------------
-
-    eStatus = MOS_STATUS_SUCCESS;
-
-    MOS_ZeroMemory(&LockFlags, sizeof(MOS_LOCK_PARAMS));
-
-    LockFlags.WriteOnly = 1;
-
-    MOS_OS_CHK_NULL(pOsInterface->pfnLockResource(
-                pOsInterface,
-                pOsResource,
-                &LockFlags));
-
-    MOS_OS_CHK_STATUS(pOsInterface->pfnUnlockResource(pOsInterface, pOsResource));
-
-finish:
     return eStatus;
 }
 
@@ -288,10 +245,9 @@ MOS_STATUS Mos_OsGetBitsPerPixel(
         MOS_OS_ASSERTMESSAGE("Format '%d' not supported.", Format);
         *piBpp = 0;
         eStatus = MOS_STATUS_UNKNOWN;
-        goto finish;
+        break;
     }
 
-finish:
     return eStatus;
 }
 
@@ -310,38 +266,9 @@ MOS_STATUS Mos_GetPlatformName(
     PMOS_INTERFACE pOsInterface,
     char           *buffer)
 {
-    PLATFORM    platform;
-    MOS_STATUS  eStatus = MOS_STATUS_UNKNOWN;
+    MOS_SecureStrcpy(buffer, MOS_COMMAND_BUFFER_PLATFORM_LEN, "N/A");
 
-    MOS_OS_ASSERT(pOsInterface);
-    MOS_OS_CHK_NULL(buffer);
-
-    MOS_ZeroMemory(&platform, sizeof(platform));
-
-    pOsInterface->pfnGetPlatform(pOsInterface, &platform);
-
-    switch (platform.eProductFamily)
-    {
-        case IGFX_BROADWELL:
-            MOS_SecureStrcpy(buffer, MOS_COMMAND_BUFFER_PLATFORM_LEN, "BDW");
-            break;
-        case IGFX_SKYLAKE:
-            MOS_SecureStrcpy(buffer, MOS_COMMAND_BUFFER_PLATFORM_LEN, "SKL");
-            break;
-        case IGFX_BROXTON:
-            MOS_SecureStrcpy(buffer, MOS_COMMAND_BUFFER_PLATFORM_LEN, "BXT");
-            break;
-        case IGFX_CANNONLAKE:
-            MOS_SecureStrcpy(buffer, MOS_COMMAND_BUFFER_PLATFORM_LEN, "CNL");
-            break;
-        default:
-            MOS_SecureStrcpy(buffer, MOS_COMMAND_BUFFER_PLATFORM_LEN, "N/A");
-    }
-
-    eStatus = MOS_STATUS_SUCCESS;
-
-finish:
-    return eStatus;
+    return MOS_STATUS_SUCCESS;
 }
 
 //!
@@ -416,7 +343,7 @@ MOS_STATUS Mos_DumpCommandBuffer(
             break;
         default:
             MOS_OS_ASSERTMESSAGE("Unsupported GPU context.");
-            goto finish;
+            return MOS_STATUS_UNKNOWN;
     }
 
     dwNumberOfDwords = pCmdBuffer->iOffset / sizeof(uint32_t);
@@ -427,7 +354,7 @@ MOS_STATUS Mos_DumpCommandBuffer(
 
     // Alloc output buffer.
     pOutputBuffer = (char *)MOS_AllocAndZeroMemory(dwSizeToAllocate);
-    MOS_OS_CHK_NULL(pOutputBuffer);
+    MOS_OS_CHK_NULL_RETURN(pOutputBuffer);
 
     dwBytesWritten = MOS_SecureStringPrint(
                          pOutputBuffer,
@@ -450,7 +377,7 @@ MOS_STATUS Mos_DumpCommandBuffer(
             MOS_DIR_SEPERATOR, MOS_COMMAND_BUFFER_OUT_FILE, dwCommandBufferNumber);
 
         // Write the output buffer to file.
-        MOS_OS_CHK_STATUS(MosUtilities::MosWriteFileFromPtr((const char *)sFileName, pOutputBuffer, dwBytesWritten));
+        MOS_OS_CHK_STATUS_RETURN(MosUtilities::MosWriteFileFromPtr((const char *)sFileName, pOutputBuffer, dwBytesWritten));
     }
 
     if (pOsInterface->bDumpCommandBufferAsMessages)
@@ -475,7 +402,7 @@ MOS_STATUS Mos_DumpCommandBuffer(
         {
             if (pOsInterface->bDumpCommandBufferToFile)
             {
-                MOS_OS_CHK_STATUS(MosUtilities::MosAppendFileFromPtr((const char *)sFileName, pOutputBuffer, dwBytesWritten));
+                MOS_OS_CHK_STATUS_RETURN(MosUtilities::MosAppendFileFromPtr((const char *)sFileName, pOutputBuffer, dwBytesWritten));
             }
             if (pOsInterface->bDumpCommandBufferAsMessages)
             {
@@ -489,7 +416,7 @@ MOS_STATUS Mos_DumpCommandBuffer(
 
     if (pOsInterface->bDumpCommandBufferToFile)
     {
-        MOS_OS_CHK_STATUS(MosUtilities::MosAppendFileFromPtr((const char *)sFileName, pOutputBuffer, dwBytesWritten));
+        MOS_OS_CHK_STATUS_RETURN(MosUtilities::MosAppendFileFromPtr((const char *)sFileName, pOutputBuffer, dwBytesWritten));
     }
 
     if (pOsInterface->bDumpCommandBufferAsMessages)
@@ -501,7 +428,6 @@ MOS_STATUS Mos_DumpCommandBuffer(
 
     eStatus = MOS_STATUS_SUCCESS;
 
-finish:
     // Free the memory.
     if (pOutputBuffer)
     {
@@ -716,7 +642,6 @@ MOS_STATUS Mos_InitInterface(
 
     // Setup Member functions
     pOsInterface->pfnFillResource       = Mos_OsFillResource;
-    pOsInterface->pfnWaitOnResource     = Mos_OsWaitOnResource;
     pOsInterface->pfnGetBitsPerPixel    = Mos_OsGetBitsPerPixel;
     pOsInterface->Component             = component;
     pOsInterface->modulizedMosEnabled   = true;
@@ -747,34 +672,6 @@ MOS_STATUS Mos_InitInterface(
         pOsInterface->bSimIsActive,
         MediaUserSetting::Group::Device);
 #endif
-
-    // Apo wrapper
-    if (pOsInterface->apoMosEnabled && !pOsInterface->streamStateIniter)
-    {
-        pOsInterface->osStreamState->component                = pOsInterface->Component;
-        pOsInterface->osStreamState->currentGpuContextHandle  = pOsInterface->CurrentGpuContextHandle;
-        pOsInterface->osStreamState->mediaReset               = pOsInterface->bMediaReset;
-        pOsInterface->osStreamState->nullHwAccelerationEnable = pOsInterface->NullHWAccelerationEnable;
-        pOsInterface->osStreamState->osDeviceContext          = (OsDeviceContext *)pOsInterface->pOsContext->m_osDeviceContext;
-        pOsInterface->osStreamState->simIsActive              = pOsInterface->bSimIsActive;
-        pOsInterface->osStreamState->virtualEngineInterface   = nullptr; // Will be updated by HAL on demand
-#if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
-        pOsInterface->osStreamState->dumpCommandBuffer        = pOsInterface->bDumpCommandBuffer;
-        pOsInterface->osStreamState->dumpCommandBufferAsMessages = pOsInterface->bDumpCommandBufferAsMessages;
-        pOsInterface->osStreamState->dumpCommandBufferToFile  = pOsInterface->bDumpCommandBufferToFile;
-#endif  // MOS_COMMAND_BUFFER_DUMP_SUPPORTED
-
-#if _DEBUG || _RELEASE_INTERNAL
-        pOsInterface->osStreamState->enableDbgOvrdInVirtualEngine = pOsInterface->bEnableDbgOvrdInVE;
-        pOsInterface->osStreamState->eForceVdbox = pOsInterface->eForceVdbox;
-        pOsInterface->osStreamState->eForceVebox = pOsInterface->eForceVebox;
-#endif  // _DEBUG || _RELEASE_INTERNAL
-
-        pOsInterface->osStreamState->ctxBasedScheduling       = pOsInterface->ctxBasedScheduling;
-        pOsInterface->osStreamState->multiNodeScaling         = pOsInterface->multiNodeScaling;
-        pOsInterface->osStreamState->bGucSubmission           = pOsInterface->bGucSubmission;
-        pOsInterface->osStreamState->perStreamParameters      = pOsInterface->pOsContext;
-    }
 
     if (pOsInterface->apoMosEnabled)
     {
@@ -965,13 +862,11 @@ MOS_STATUS Mos_CheckVirtualEngineSupported(
     bool                isNotEncode,
     bool                veDefaultEnable)
 {
-    MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
-    PLATFORM                    platform = {};
-    MediaUserSettingSharedPtr   userSettingPtr = nullptr;
-    uint32_t                    value = 0;
+    MOS_STATUS                eStatus        = MOS_STATUS_SUCCESS;
+    MediaUserSettingSharedPtr userSettingPtr = nullptr;
+    uint32_t                  value          = 0;
 
     MOS_OS_CHK_NULL_RETURN(osInterface);
-    osInterface->pfnGetPlatform(osInterface, &platform);
 
     userSettingPtr = osInterface->pfnGetUserSettingInstance(osInterface);
     if (isNotEncode)
@@ -989,7 +884,7 @@ MOS_STATUS Mos_CheckVirtualEngineSupported(
         osInterface->bSupportVirtualEngine = value ? true : false;
 #endif
         // force bSupportVirtualEngine to false when virtual engine not enabled by default
-        if ((!veDefaultEnable || !osInterface->veDefaultEnable) && 
+        if ((!veDefaultEnable || !osInterface->veDefaultEnable) &&
             (eStatus == MOS_STATUS_USER_FEATURE_KEY_OPEN_FAILED))
         {
             osInterface->bSupportVirtualEngine = false;
@@ -1006,7 +901,7 @@ MOS_STATUS Mos_CheckVirtualEngineSupported(
             osInterface->ctxBasedScheduling = false;
         }
 
-        if(osInterface->pfnCheckVirtualEngineSupported)
+        if (osInterface->pfnCheckVirtualEngineSupported)
         {
             osInterface->pfnCheckVirtualEngineSupported(osInterface);
         }

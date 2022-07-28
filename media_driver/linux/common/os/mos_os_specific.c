@@ -4389,58 +4389,6 @@ finish:
 }
 
 //!
-//! \brief    Resizes the buffer to be used for rendering GPU commands
-//! \details  return true if succeeded - command buffer will be large enough to hold dwMaxSize
-//!           return false if failed or invalid parameters
-//! \param    PMOS_INTERFACE pOsInterface
-//!           [in] Pointer to OS interface structure
-//! \param    uint32_t dwRequestedSize
-//!           [in] requested size
-//! \return   MOS_STATUS
-//!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
-//!
-MOS_STATUS Mos_Specific_ResizeCommandBuffer(
-    PMOS_INTERFACE          pOsInterface,
-    uint32_t                dwRequestedSize)
-{
-    MOS_OS_FUNCTION_ENTER;
-
-    MOS_OS_CHK_NULL_RETURN(pOsInterface);
-
-    if (pOsInterface->modularizedGpuCtxEnabled && !Mos_Solo_IsEnabled(nullptr))
-    {
-        auto gpuContext = Linux_GetGpuContext(pOsInterface, pOsInterface->CurrentGpuContextHandle);
-        MOS_OS_CHK_NULL_RETURN(gpuContext);
-
-        return (gpuContext->ResizeCommandBuffer(dwRequestedSize));
-    }
-
-    PMOS_CONTEXT          pOsContext;
-    PMOS_OS_GPU_CONTEXT   pOsGpuContext;
-    MOS_GPU_CONTEXT       GpuContext;
-    MOS_STATUS            eStatus;
-
-    eStatus = MOS_STATUS_SUCCESS;
-
-    MOS_OS_CHK_NULL(pOsInterface);
-    MOS_OS_CHK_NULL(pOsInterface->pOsContext);
-
-    pOsContext = &pOsInterface->pOsContext[pOsInterface->CurrentGpuContextOrdinal];
-    MOS_OS_CHK_NULL(pOsContext);
-
-    GpuContext = pOsInterface->CurrentGpuContextOrdinal;
-
-    MOS_OS_CHK_NULL(pOsContext->OsGpuContext);
-    pOsGpuContext = &pOsContext->OsGpuContext[GpuContext];
-    MOS_OS_CHK_NULL(pOsGpuContext);
-
-    pOsGpuContext->uiCommandBufferSize = dwRequestedSize;
-
-finish:
-    return eStatus;
-}
-
-//!
 //! \brief    Create GPU context
 //! \details  Create GPU context
 //! \param    PMOS_INTERFACE pOsInterface
@@ -5151,23 +5099,6 @@ void Mos_Specific_SyncGpuContext(
 }
 
 //!
-//! \brief    Synchronize 3d GPU context
-//! \details  Synchronize 3d GPU context
-//! \param    PMOS_INTERFACE pOsInterface
-//!           [in] OS Interface
-//! \param    PMOS_SYNC_PARAMS pSyncParams
-//!           [in] Sync parameters
-//! \return   void
-//!
-void Mos_Specific_SyncWith3DContext(
-    PMOS_INTERFACE        pOsInterface,
-    PMOS_SYNC_PARAMS      pSyncParams)
-{
-    MOS_UNUSED(pOsInterface);
-    MOS_UNUSED(pSyncParams);
-}
-
-//!
 //! \brief    Checks for HW enabled
 //! \details  Checks for HW enabled
 //! \param    PMOS_INTERFACE pOsInterface
@@ -5800,24 +5731,6 @@ uint32_t Mos_Specific_GetInterfaceVersion(
 {
     MOS_UNUSED(pOsInterface);
     return 0;
-}
-
-//!
-//! \brief    Determines if the resource should be CPU cacheable during allocation
-//! \param    PMOS_INTERFACE pOsInterface
-//!           [in] Pointer to OS Interface
-//! \param    PMOS_ALLOC_GFXRES_PARAMS pAllocParams
-//!           [in] allocation parameters
-//! \return   int32_t
-//!           Return if resource should be CPU cacheable
-//!
-int32_t Mos_Specific_SetCpuCacheability(
-    PMOS_INTERFACE              pOsInterface,
-    PMOS_ALLOC_GFXRES_PARAMS    pAllocParams)
-{
-    MOS_UNUSED(pOsInterface);
-    MOS_UNUSED(pAllocParams);
-    return false;
 }
 
 //!
@@ -6704,7 +6617,17 @@ finish:
 uint64_t Mos_Specific_GetAuxTableBaseAddr(
     PMOS_INTERFACE              osInterface)
 {
-    if (osInterface == nullptr || osInterface->osContextPtr == nullptr)
+    if (osInterface == nullptr)
+    {
+        MOS_OS_NORMALMESSAGE("Invalid osInterface");
+        return 0;
+    }
+    if(osInterface->apoMosEnabled)
+    {
+        return MosInterface::GetAuxTableBaseAddr(osInterface->osStreamState);
+    }
+
+    if (osInterface->osContextPtr == nullptr)
     {
         MOS_OS_NORMALMESSAGE("Invalid osInterface");
         return 0;
@@ -6796,19 +6719,6 @@ void Mos_Specific_SetSliceCount(
     {
         MOS_OS_ASSERTMESSAGE("OS context is nullptr.");
     }
-}
-
-//!
-//! \brief
-//! \details
-//! \param    const char  *pFileName
-//! \return   HINSTANCE
-//!
-void Mos_Specific_LogData(
-    char       *pData)
-{
-    MOS_UNUSED(pData);
-    return;
 }
 
 void Mos_Specific_NotifyStreamIndexSharing(
@@ -7090,7 +7000,6 @@ MOS_STATUS Mos_Specific_InitInterface(
 
     pOsInterface->pfnLoadLibrary                            = Mos_Specific_LoadLibrary;
     pOsInterface->pfnFreeLibrary                            = Mos_Specific_FreeLibrary;
-    pOsInterface->pfnLogData                                = Mos_Specific_LogData;
     pOsInterface->pfnCheckVirtualEngineSupported            = Mos_Specific_CheckVirtualEngineSupported;
 
     //GPU context and synchronization functions
@@ -7102,7 +7011,6 @@ MOS_STATUS Mos_Specific_InitInterface(
     pOsInterface->pfnIsGpuContextValid                      = Mos_Specific_IsGpuContextValid;
     pOsInterface->pfnSyncOnResource                         = Mos_Specific_SyncOnResource;
     pOsInterface->pfnSyncGpuContext                         = Mos_Specific_SyncGpuContext;
-    pOsInterface->pfnSyncWith3DContext                      = Mos_Specific_SyncWith3DContext;
     pOsInterface->pfnGetGpuStatusBufferResource             = Mos_Specific_GetGpuStatusBufferResource;
     pOsInterface->pfnGetGpuStatusTagOffset                  = Mos_Specific_GetGpuStatusTagOffset;
     pOsInterface->pfnGetGpuStatusTag                        = Mos_Specific_GetGpuStatusTag;
@@ -7142,7 +7050,6 @@ MOS_STATUS Mos_Specific_InitInterface(
     pOsInterface->pfnWaitForBBCompleteNotifyEvent           = Mos_Specific_WaitForBBCompleteNotifyEvent;
     pOsInterface->pfnCachePolicyGetMemoryObject             = Mos_Specific_CachePolicyGetMemoryObject;
     pOsInterface->pfnCachePolicyGetL1Config                 = Mos_Specific_CachePolicyGetL1Config;
-    pOsInterface->pfnSetCpuCacheability                     = Mos_Specific_SetCpuCacheability;
     pOsInterface->pfnSkipResourceSync                       = Mos_Specific_SkipResourceSync;
     pOsInterface->pfnIsGPUHung                              = Mos_Specific_IsGPUHung;
     pOsInterface->pfnGetAuxTableBaseAddr                    = Mos_Specific_GetAuxTableBaseAddr;

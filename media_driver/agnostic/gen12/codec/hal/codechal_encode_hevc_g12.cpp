@@ -2469,14 +2469,6 @@ MOS_STATUS CodechalEncHevcStateG12::ExecuteSliceLevel()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(EncTileLevel());
     }
 
-    /*
-    if ((m_useMdf) && (m_rawSurfaceToEnc))
-    {
-        m_osInterface->pfnWaitOnResource(m_osInterface,
-                                         &m_rawSurfaceToEnc->OsResource);
-    }
-    */
-
     return eStatus;
 }
 
