@@ -47,7 +47,6 @@
 #include "mos_gpucontextmgr_next.h"
 #include "mos_cmdbufmgr_next.h"
 #include "media_user_settings_mgr.h"
-#include "mos_oca_rtlog_mgr.h"
 #define BATCH_BUFFER_SIZE 0x80000
 
 OsContextSpecificNext::OsContextSpecificNext()
@@ -260,10 +259,6 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
                 MOS_OS_NORMALMESSAGE("Media Copy state creation failed");
             }
         }
-    }
-    if (!MosOcaRTLogMgr::m_IsMgrInitialized)
-    {
-        MosOcaRTLogMgr::InitMgr((void*)osDriverContext, (void *)&m_usesGfxAddress);
     }
     return eStatus;
 }

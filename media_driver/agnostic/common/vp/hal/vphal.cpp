@@ -35,7 +35,6 @@
 #include "media_interfaces_vphal.h"
 #include "media_interfaces_mhw.h"
 #include "mhw_vebox_itf.h"
-#include "mos_oca_rtlog_mgr.h"
 
 //!
 //! \brief    Allocate VPHAL Resources
@@ -90,7 +89,6 @@ MOS_STATUS VphalState::Allocate(
             VPHAL_DEBUG_ASSERTMESSAGE("Allocate MhwInterfaces failed");
             eStatus = MOS_STATUS_NO_SPACE;
             MT_ERR1(MT_VP_HAL_INIT, MT_CODE_LINE, __LINE__);
-            OCA_MT_ERR1(MT_VP_HAL_INIT, MT_CODE_LINE, __LINE__, MOS_OCA_RTLOG_COMPONENT_VP);
         }
     }
 

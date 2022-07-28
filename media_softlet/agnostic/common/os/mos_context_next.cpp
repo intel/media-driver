@@ -25,7 +25,6 @@
 //!
 
 #include "mos_context_specific_next.h"
-#include "mos_oca_rtlog_mgr.h"
 
 class OsContextNext* OsContextNext::GetOsContextObject()
 {
@@ -43,11 +42,6 @@ void OsContextNext::CleanUp()
     MOS_Delete(m_mosDecompression);
 #endif
     MOS_Delete(m_mosMediaCopy);
-
-    if (MosOcaRTLogMgr::m_IsMgrInitialized)
-    {
-        MosOcaRTLogMgr::UninitMgr();
-    }
 
     if (m_gpuContextMgr != nullptr)
     {

@@ -91,10 +91,4 @@ struct MOS_OCA_BUF_CONTEXT
            
 };
 
-struct OCA_LOG_SECTION_HEADER
-{
-    uint64_t magicNum;
-    uint64_t rtlogPatchAddr;
-};
-
 #endif // #ifndef __MOS_OCA_DEFS_SPECIFIC_H__
