@@ -45,6 +45,12 @@ static struct LinuxCodecInfo sklCodecInfo =
     .hevcEncoding       = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
     .jpegEncoding       = 1,
     .avcVdenc           = 1,
+    .vp9Decoding        = 0,
+    .hevc10Decoding     = 0,
+    .vp9b10Decoding     = 0,
+    .hevc10Encoding     = 0,
+    .hevc12Encoding     = 0,
+    .vp8Encoding        = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
 };
 
 static struct LinuxCodecInfo bxtCodecInfo =
@@ -137,6 +143,9 @@ static bool InitSklMediaSku(struct GfxDeviceInfo *devInfo,
         MEDIA_WR_SKU(skuTable, FtrEncodeHEVC, codecInfo->hevcEncoding);
         MEDIA_WR_SKU(skuTable, FtrEncodeJPEG, codecInfo->jpegEncoding);
         MEDIA_WR_SKU(skuTable, FtrEncodeAVCVdenc, codecInfo->avcVdenc);
+
+        /* VP8 enc */
+        MEDIA_WR_SKU(skuTable, FtrEncodeVP8, codecInfo->vp8Encoding);
     }
 
     MEDIA_WR_SKU(skuTable, FtrEnableMediaKernels, drvInfo->hasHuc);

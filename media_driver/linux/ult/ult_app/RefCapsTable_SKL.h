@@ -47,6 +47,7 @@ std::vector<FeatureID> refFeatureIDTable_SKL = {
     { VAProfileJPEGBaseline           , VAEntrypointVLD                 },
     { VAProfileJPEGBaseline           , VAEntrypointEncPicture          },
     { VAProfileVP8Version0_3          , VAEntrypointVLD                 },
+    { VAProfileVP8Version0_3          , VAEntrypointEncSlice            },
     { VAProfileHEVCMain               , VAEntrypointVLD                 },
     { VAProfileHEVCMain               , VAEntrypointEncSlice            },
     { VAProfileHEVCMain               , VAEntrypointFEI                 },

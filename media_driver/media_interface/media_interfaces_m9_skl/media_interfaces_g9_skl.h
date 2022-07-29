@@ -101,6 +101,9 @@
 #ifdef _AVC_ENCODE_VDENC_SUPPORTED
 #include "codechal_vdenc_avc_g9_skl.h"
 #endif
+#ifdef _VP8_ENCODE_SUPPORTED
+#include "codechal_encode_vp8_g9.h"
+#endif
 #include "codechal_encode_csc_ds_g9.h"
 
 #include "codechal_memdecomp_g9.h"
@@ -202,6 +205,9 @@ public:
 #endif
 #ifdef _AVC_ENCODE_VDENC_SUPPORTED
     using AvcVdenc = CodechalVdencAvcStateG9Skl;
+#endif
+#ifdef _VP8_ENCODE_SUPPORTED
+    using Vp8 = CodechalEncodeVp8G9;
 #endif
 };
 
