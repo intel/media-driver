@@ -34,7 +34,9 @@
 #include <signal.h>
 #include <unistd.h>  // fork
 #include <algorithm>
+#ifdef HAVE_EXECINFO
 #include <execinfo.h> // backtrace
+#endif
 #include <sys/types.h>
 #include <sys/stat.h>  // fstat
 #include <sys/ipc.h>  // System V IPC
@@ -2473,6 +2475,7 @@ void MosUtilities::MosTraceEvent(
                 MOS_FreeMemory(pTraceBuf);
             }
         }
+#ifdef HAVE_EXECINFO
         if (m_mosTraceFilter & (1ULL << TR_KEY_CALL_STACK))
         {
             // reserve space for header and stack size field.
@@ -2492,6 +2495,7 @@ void MosUtilities::MosTraceEvent(
                 size_t ret = write(MosUtilitiesSpecificNext::m_mosTraceFd, traceBuf, nLen);
             }
         }
+#endif
     }
     return;
 }

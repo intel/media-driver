@@ -53,6 +53,12 @@ option (BUILD_CMRTLIB "Build and Install cmrtlib together with media driver" ON)
 
 option (ENABLE_PRODUCTION_KMD "Enable Production KMD header files" OFF)
 
+include(CheckIncludeFileCXX)
+check_include_file_cxx("execinfo.h" HAVE_EXECINFO)
+if (HAVE_EXECINFO)
+    add_definitions(-DHAVE_EXECINFO)
+endif()
+
 include(GNUInstallDirs)
 
 if (BUILD_CMRTLIB AND NOT CMAKE_WDDM_LINUX)
