@@ -20,22 +20,16 @@
 
 set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/hal_kerneldll_next.c
+    ${CMAKE_CURRENT_LIST_DIR}/hal_kernelrules_next.c
 )
-
-
-
-
 
 set(SOFTLET_VP_SOURCES_
     ${SOFTLET_VP_SOURCES_}
     ${TMP_SOURCES_}
 )
 
-
-
 source_group( "VpHalNext\\Kernel DLL" FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
 set(TMP_SOURCES_ "")
-
 
 set(SOFTLET_VP_PRIVATE_INCLUDE_DIRS_
     ${SOFTLET_VP_PRIVATE_INCLUDE_DIRS_}
