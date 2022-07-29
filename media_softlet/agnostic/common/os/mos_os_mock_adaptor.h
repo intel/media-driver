@@ -144,6 +144,7 @@ protected:
     static uint16_t m_deviceId;
     static MosMockAdaptor *m_mocAdaptor;
 
+MEDIA_CLASS_DEFINE_END(MosMockAdaptor)
 };
 
 #endif // __MOS_OS_MOCK_ADAPTOR_H__

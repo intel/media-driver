@@ -35,6 +35,7 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/mos_decompression_base.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_mediacopy_base.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_user_setting_specific.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/mos_os_mock_adaptor_specific.cpp
 )
 
 set(TMP_HEADERS_
@@ -46,6 +47,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mos_decompression_base.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_decompression.h
     ${CMAKE_CURRENT_LIST_DIR}/media_skuwa_specific.h
+    ${CMAKE_CURRENT_LIST_DIR}/mos_os_mock_adaptor_specific.h
 )
 
 if(${Media_Scalability_Supported} STREQUAL "yes")

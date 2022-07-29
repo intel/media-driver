@@ -31,6 +31,8 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/mos_cmdbufmgr_next.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_commandbuffer_next.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_user_setting.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/mos_os_mock_adaptor.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/mos_os_mock_adaptor_ext.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_os.cpp
 )
 
@@ -49,6 +51,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mos_solo_generic.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_mediacopy.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_mediacopy_base.h
+    ${CMAKE_CURRENT_LIST_DIR}/mos_os_mock_adaptor.h
 )
 
 if(${Media_Scalability_Supported} STREQUAL "yes")

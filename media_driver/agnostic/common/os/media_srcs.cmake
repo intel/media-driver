@@ -27,8 +27,6 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/mos_gpucontextmgr.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_cmdbufmgr.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_commandbuffer.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/mos_os_mock_adaptor.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/mos_os_mock_adaptor_ext.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_utilities_usersetting.cpp
 )
 
@@ -39,7 +37,6 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mos_gpucontextmgr.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_cmdbufmgr.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_commandbuffer.h
-    ${CMAKE_CURRENT_LIST_DIR}/mos_os_mock_adaptor.h
 )
 
 if(${Media_Scalability_Supported} STREQUAL "yes")

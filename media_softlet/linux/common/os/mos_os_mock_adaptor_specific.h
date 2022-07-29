@@ -70,5 +70,7 @@ private:
     //!
     virtual MOS_STATUS UpdateUserFeatureKey(
         PMOS_CONTEXT osContext) override;
+
+MEDIA_CLASS_DEFINE_END(MosMockAdaptorSpecific)
 };
 #endif
