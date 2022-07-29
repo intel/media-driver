@@ -2475,6 +2475,28 @@ VPHAL_OUTPUT_PIPE_MODE VPHAL_VEBOX_STATE_G12_BASE::GetOutputPipe(
         {
             OutputPipe              = VPHAL_OUTPUT_PIPE_MODE_VEBOX;
             pTarget->bFastColorFill = true;
+            
+            if (pTarget->bIsCompressed &&
+                pTarget->CompressionMode == MOS_MMC_MC &&
+                (pSrcSurface->rcDst.bottom - pSrcSurface->rcDst.top) % 8 != 0)
+            {
+                //If FastColorFill is enabled, pTarget will be shared by VE and Render
+                //Upper rectangle in pTarget will be used by VE
+                //Bottom rectangle in pTarget will be used by Render
+                //If upper rectangle height is not a multiple of 8 unit When MMC is enabled,    
+                //we need to decompress the target surface to avoid output corruption
+                MOS_STATUS eStatus = m_pOsInterface->pfnDecompResource(m_pOsInterface, &pTarget->OsResource);
+                if(eStatus == MOS_STATUS_SUCCESS)
+                {
+                    pTarget->bIsCompressed     = false;
+                    pTarget->CompressionMode   = MOS_MMC_DISABLED;
+                    pTarget->CompressionFormat = 0;
+                }
+                else
+                {
+                    VPHAL_RENDER_ASSERTMESSAGE("FastColorFill is enabled and decompress target surface failed");
+                }
+            }
         }
         pTarget->rcDst.bottom = lTargetBottom;
     }
