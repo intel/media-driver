@@ -75,9 +75,9 @@
 
 #define memclear(s) memset(&s, 0, sizeof(s))
 
-#define MOS_DBG(...) do {                    \
-    if (bufmgr_gem->bufmgr.debug)            \
-        fprintf(stderr, __VA_ARGS__);        \
+#define MOS_DBG(...) do {                                             \
+    if (bufmgr_gem != nullptr && bufmgr_gem->bufmgr.debug)            \
+        fprintf(stderr, __VA_ARGS__);                                 \
 } while (0)
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
@@ -1504,19 +1504,11 @@ mos_gem_bo_free(struct mos_linux_bo *bo)
     struct drm_gem_close close;
     int ret;
 
-    if(bo_gem == nullptr)
-    {
-        MOS_DBG("bo == nullptr\n");
-        return;
-    }
+    CHK_CONDITION(bo_gem == nullptr, "bo_gem == nullptr\n", );
 
     bufmgr_gem = (struct mos_bufmgr_gem *) bo->bufmgr;
 
-    if(bufmgr_gem == nullptr)
-    {
-        MOS_DBG("bufmgr_gem == nullptr\n");
-        return;
-    }
+    CHK_CONDITION(bufmgr_gem == nullptr, "bufmgr_gem == nullptr\n", );
 
     if (bo_gem->mem_virtual) {
         VG(VALGRIND_FREELIKE_BLOCK(bo_gem->mem_virtual, 0));
