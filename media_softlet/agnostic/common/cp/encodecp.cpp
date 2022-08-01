@@ -27,6 +27,7 @@
 #include "encode_utils.h"
 #include "encode_status_report.h"
 #include "codechal_setting.h"
+#include "mos_os_cp_interface_specific.h"  
 
 namespace encode {
 
