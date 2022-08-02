@@ -23,7 +23,7 @@
 ======================= end_copyright_notice ==================================*/
 //!
 //! \file       media_render_copy_xe_xpm_plus.cpp
-//! \brief      implementation of Gen11 hardware functions
+//! \brief      implementation of Gen12 hardware functions
 //! \details    Render functions
 //!
 

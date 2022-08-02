@@ -27,6 +27,7 @@
 
 #include "media_render_copy_next.h"
 #include "media_interfaces_mhw_next.h"
+#include "media_render_common.h"
 
 RenderCopyStateNext::RenderCopyStateNext(PMOS_INTERFACE osInterface, MhwInterfacesNext *mhwInterfaces) :
     m_osInterface(osInterface),
@@ -107,7 +108,7 @@ MOS_STATUS RenderCopyStateNext::Initialize()
     RenderHalSettings.iMediaStates = 32;
     MCPY_CHK_STATUS_RETURN(m_renderHal->pfnInitialize(m_renderHal, &RenderHalSettings));
 
-    m_renderHal->sseuTable = VpDefaultSSEUTable;
+    m_renderHal->sseuTable = defaultSSEUTable;
     return MOS_STATUS_SUCCESS;
 }
 
@@ -276,8 +277,9 @@ MOS_STATUS RenderCopyStateNext::SetupSurfaceStates()
 
     if (Format_NV12 == m_Target.Format)
     {
-        m_Target.SurfType = SURF_OUT_RENDERTARGET;
-        m_Source.SurfType = SURF_OUT_RENDERTARGET;
+         // set NV12 as 2 plane
+        RenderHalSource.SurfType = RENDERHAL_SURF_OUT_RENDERTARGET;
+        RenderHalTarget.SurfType = RENDERHAL_SURF_OUT_RENDERTARGET;
     }
 
     if (m_currKernelId == KERNEL_CopyKernel_1D_to_2D_NV12
@@ -305,7 +307,7 @@ MOS_STATUS RenderCopyStateNext::SetupSurfaceStates()
 
         m_Source.dwWidth = MOS_ALIGN_CEIL(m_Source.dwWidth, 128);
         //1D surfaces
-        VPHAL_RENDER_CHK_STATUS(VpHal_CommonSetBufferSurfaceForHwAccess(
+        MCPY_CHK_STATUS(MediaRenderCommon::Set1DSurfaceForHwAccess(
              pRenderHal,
              &m_Source,
              &RenderHalSource,
@@ -318,7 +320,7 @@ MOS_STATUS RenderCopyStateNext::SetupSurfaceStates()
     }
     else {
         //2D surfaces
-        VPHAL_RENDER_CHK_STATUS(VpHal_CommonSetSurfaceForHwAccess(
+        MCPY_CHK_STATUS(MediaRenderCommon::Set2DSurfaceForHwAccess(
             pRenderHal,
             &m_Source,
             &RenderHalSource,
@@ -361,7 +363,7 @@ MOS_STATUS RenderCopyStateNext::SetupSurfaceStates()
         m_Target.dwWidth = MOS_ALIGN_CEIL(m_Target.dwWidth, 128);
 
         //1D surface.
-        VPHAL_RENDER_CHK_STATUS(VpHal_CommonSetBufferSurfaceForHwAccess(
+        MCPY_CHK_STATUS(MediaRenderCommon::Set1DSurfaceForHwAccess(
             pRenderHal,
             &m_Target,
             &RenderHalTarget,
@@ -375,7 +377,7 @@ MOS_STATUS RenderCopyStateNext::SetupSurfaceStates()
     else
     {
         //2D surface.
-        VPHAL_RENDER_CHK_STATUS(VpHal_CommonSetSurfaceForHwAccess(
+        MCPY_CHK_STATUS(MediaRenderCommon::Set2DSurfaceForHwAccess(
             pRenderHal,
             &m_Target,
             &RenderHalTarget,

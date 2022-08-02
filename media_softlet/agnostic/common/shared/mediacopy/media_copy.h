@@ -36,7 +36,7 @@
 #include "mos_util_debug.h"
 #include "mos_os.h"
 #include "mos_interface.h"
-class MhwInterfaces;
+
 class VpSurfaceDumper;
 typedef struct VPHAL_SURFACE* PVPHAL_SURFACE;
 

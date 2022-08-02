@@ -29,7 +29,8 @@
 
 #include "media_copy.h"
 #include "media_copy_common.h"
-#include "vphal_render_common.h"
+#include "renderhal.h"
+#include "hal_kerneldll_next.h"
 
 // Kernel Params ---------------------------------------------------------------
 const RENDERHAL_KERNEL_PARAM g_rendercopy_KernelParam[RENDER_COPY_NUM] =
@@ -56,16 +57,11 @@ const RENDERHAL_KERNEL_PARAM g_rendercopy_KernelParam[RENDER_COPY_NUM] =
     {4, 34, 0, RENDER_COPY_THREADS_MAX, 0, 0, 64, 8, 1, 1},    // CopyKernel_2D_to_2D_Packed
 };
 
-const VphalSseuSetting VpDefaultSSEUTable[baseKernelMaxNumID] =
-{// Slice    Sub-Slice       EU      Rsvd(freq)
- {2, 3, 8, 0},
-};
-
 typedef struct _RENDER_COPY_CACHE_CNTL
 {
     bool                           bL3CachingEnabled;
-    VPHAL_MEMORY_OBJECT_CONTROL    SourceSurfMemObjCtl;
-    VPHAL_MEMORY_OBJECT_CONTROL    TargetSurfMemObjCtl;
+    uint32_t                       SourceSurfMemObjCtl;
+    uint32_t                       TargetSurfMemObjCtl;
 
 }RENDER_COPY_CACHE_CNTL, *PRENDER_COPY_CACHE_CNTL;
 
@@ -167,10 +163,9 @@ public:
     Kdll_State                  *m_pKernelDllState = nullptr;//!< Kernel DLL state 
 
     RENDERCOPY_KERNELID          m_currKernelId = KERNEL_CopyKernel_1D_to_2D_NV12;
-    MOS_RESOURCE                 m_KernelResource = {};                           //!<Graphics memory for Kernel acces    s
     MEDIACOPY_RENDER_DATA        m_RenderData = {};
-    VPHAL_SURFACE                m_Source = {};
-    VPHAL_SURFACE                m_Target = {};
+    MOS_SURFACE                  m_Source = {};
+    MOS_SURFACE                  m_Target = {};
     bool                         m_bNullHwRenderCopy = false;
     RENDERHAL_SURFACE            RenderHalSource = {}; // source for mhw
     RENDERHAL_SURFACE            RenderHalTarget = {}; // target for mhw
