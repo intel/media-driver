@@ -63,39 +63,52 @@ public:
     template <class T>
     T Get() const
     {
-        T ret=T();
-
-        if(m_value.size() > 2 && (m_value.at(0) == '0' && (m_value.at(1) == 'x' || m_value.at(1) == 'X'))) // 0x or 0X
-        {
-            std::string subStr = m_value.substr(2);  //hex
-            if (subStr.find_first_not_of("ABCDEFabcdef0123456789") == std::string::npos)
-            {
-                std::stringstream ssHEX;
-                ssHEX << std::hex << m_value;
-                ssHEX >> ret;
-                return ret;
-            }
-        }
-        std::stringstream convert(m_value);
-
-        convert >> ret;
-
-        return ret;
+        return m_sValue;
     }
 
-    const std::string &ConstString() const { return m_value; }
+    const std::string &ConstString() const { return m_sValue; }
 
     const std::size_t &Size() const { return m_size; }
     const MOS_USER_FEATURE_VALUE_TYPE &ValueType() const { return m_type; }
 
 private:
-    template <class T>
-    std::string ToString(const T &data);
-private:
     std::size_t m_size = 0;
-    std::string m_value{};
-    MOS_USER_FEATURE_VALUE_TYPE m_type = MOS_USER_FEATURE_VALUE_TYPE_INVALID;
+    std::string m_sValue{};
+    union NUMERIC_VALUE
+    {
+        NUMERIC_VALUE();
+        NUMERIC_VALUE(const bool value);
+        NUMERIC_VALUE(const uint32_t value);
+        NUMERIC_VALUE(const uint64_t value);
+        NUMERIC_VALUE(const int32_t value);
+        NUMERIC_VALUE(const int64_t value);
+        NUMERIC_VALUE(const float value);
+        NUMERIC_VALUE &operator=(const int32_t &value);
+        NUMERIC_VALUE &operator=(const int64_t &value);
+        NUMERIC_VALUE &operator=(const uint32_t &value);
+        NUMERIC_VALUE &operator=(const uint64_t &value);
+        NUMERIC_VALUE &operator=(const bool &value);
+        NUMERIC_VALUE &operator=(const float &value);
+
+        bool        m_bData;
+        uint32_t    m_u32Data;
+        uint64_t    m_u64Data;
+        int32_t     m_i32Data;
+        int64_t     m_i64Data;
+        float       m_fData;
+    };
+    NUMERIC_VALUE               m_numericValue = {};
+    MOS_USER_FEATURE_VALUE_TYPE m_type         = MOS_USER_FEATURE_VALUE_TYPE_INVALID;
 };
+
+template <> bool            Value::Get() const;
+template <> uint8_t         Value::Get() const;
+template <> uint32_t        Value::Get() const;
+template <> int32_t         Value::Get() const;
+template <> unsigned long   Value::Get() const;
+template <> int64_t         Value::Get() const;
+template <> float           Value::Get() const;
+template <> unsigned long long  Value::Get() const;
 }
 
 #endif

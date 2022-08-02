@@ -1659,26 +1659,16 @@ MOS_STATUS MosUtilities::MosCloseRegKey(
 }
 
 MOS_STATUS MosUtilities::MosReadEnvVariable(
-    UFKEY_NEXT keyHandle,
-    const std::string &valueName,
-    uint32_t *type,
-    std::string &data,
-    uint32_t *size)
+    const std::string           &envName,
+    MOS_USER_FEATURE_VALUE_TYPE defaultType,
+    MediaUserSetting::Value     &data)
 {
-    MOS_OS_CHK_NULL_RETURN(size);
-    MOS_UNUSED(type);
-
-    MOS_STATUS status = MOS_STATUS_SUCCESS;
-
-    std::string name = valueName;
-    std::replace(name.begin(), name.end(), ' ', '_');
-    char *retVal = getenv(name.c_str());
+    char *retVal = getenv(envName.c_str());
     if (retVal != nullptr)
     {
         std::string strData = retVal;
-        *size               = strData.length();
-        data                = strData;
-        return MOS_STATUS_SUCCESS;
+        auto status = StrToMediaUserSettingValue(strData, defaultType, data);
+        return status;
     }
 
     return MOS_STATUS_INVALID_PARAMETER;
@@ -1687,14 +1677,10 @@ MOS_STATUS MosUtilities::MosReadEnvVariable(
 MOS_STATUS MosUtilities::MosGetRegValue(
     UFKEY_NEXT keyHandle,
     const std::string &valueName,
-    uint32_t *type,
-    std::string &data,
-    uint32_t *size,
+    MOS_USER_FEATURE_VALUE_TYPE defaultType,
+    MediaUserSetting::Value &data,
     RegBufferMap &regBufferMap)
 {
-    MOS_OS_CHK_NULL_RETURN(size);
-    MOS_UNUSED(type);
-
     MOS_STATUS status = MOS_STATUS_SUCCESS;
 
     if (regBufferMap.end() == regBufferMap.find(keyHandle))
@@ -1710,8 +1696,7 @@ MOS_STATUS MosUtilities::MosGetRegValue(
         {
             return MOS_STATUS_USER_FEATURE_KEY_OPEN_FAILED;
         }
-
-        data = it->second;
+        status = MosUtilities::StrToMediaUserSettingValue(it->second, defaultType, data);
     }
     catch(const std::exception &e)
     {
@@ -1724,12 +1709,9 @@ MOS_STATUS MosUtilities::MosGetRegValue(
 MOS_STATUS MosUtilities::MosSetRegValue(
     UFKEY_NEXT keyHandle,
     const std::string &valueName,
-    uint32_t type,
-    const std::string &data,
+    const MediaUserSetting::Value &data,
     RegBufferMap &regBufferMap)
 {
-    MOS_UNUSED(type);
-
     if (regBufferMap.end() == regBufferMap.find(keyHandle))
     {
         return MOS_STATUS_INVALID_PARAMETER;
@@ -1740,7 +1722,7 @@ MOS_STATUS MosUtilities::MosSetRegValue(
     {
         auto &keys = regBufferMap[keyHandle];
 
-        keys[valueName] = data;
+        keys[valueName] = data.ConstString();
     }
     catch(const std::exception &e)
     {

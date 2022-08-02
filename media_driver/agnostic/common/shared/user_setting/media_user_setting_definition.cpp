@@ -38,6 +38,7 @@ Definition::Definition(const std::string &itemName,
     UFKEY_NEXT rootKey,
     bool statePath):
 m_itemName(itemName),
+m_itemEnvName(itemName),
 m_defaultValue(defaultValue),
 m_isReportKey(isReportKey),
 m_debugOnly(debugOnly),
@@ -46,6 +47,7 @@ m_subPath(subPath),
 m_rootKey(rootKey),
 m_statePath(statePath)
 {
+    std::replace(m_itemEnvName.begin(), m_itemEnvName.end(), ' ', '_');
 }
 
 Definition::Definition(const Definition& def)

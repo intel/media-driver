@@ -130,58 +130,49 @@ MOS_STATUS Configure::Read(Value &value,
     bool useCustomValue,
     uint32_t option)
 {
-    int32_t ret = 0;
-
-    auto &defs = GetDefinitions(group);
-
-    auto def = defs[MakeHash(valueName)];
+    int32_t     ret     = 0;
+    MOS_STATUS  status  = MOS_STATUS_SUCCESS;
+    auto        &defs   = GetDefinitions(group);
+    auto        def     = defs[MakeHash(valueName)];
     if (def == nullptr)
     {
         return MOS_STATUS_INVALID_HANDLE;
     }
+    auto        defaultType = def->DefaultValue().ValueType();
 
     if (def->IsDebugOnly() && !m_isDebugMode)
     {
         value = useCustomValue ? customValue : def->DefaultValue();
         return MOS_STATUS_SUCCESS;
     }
-
-    std::string path = GetReadPath(def, option);
-
-    UFKEY_NEXT  key      = {};
-    std::string strValue = "";
-    uint32_t    size     = MOS_USER_CONTROL_MAX_DATA_SIZE;
-    uint32_t    type     = 0;
-
-    // read env variable first, if env value is set, return
-    // else read the reg keys
-    MOS_STATUS status = MosUtilities::MosReadEnvVariable(key, valueName, &type, strValue, &size);
- 
-    if (status == MOS_STATUS_SUCCESS)
+    //First, Read user setting. If succeed, return;
     {
-        value = strValue;
-        return MOS_STATUS_SUCCESS;
-    }
+        std::string path = GetReadPath(def, option);
 
-    status = MosUtilities::MosOpenRegKey(m_rootKey, path, KEY_READ, &key, m_regBufferMap);
-    
-    if (status == MOS_STATUS_SUCCESS)
-    {
-        strValue = "";
-        size     = MOS_USER_CONTROL_MAX_DATA_SIZE;
-        type     = 0;
+        UFKEY_NEXT  key         = {};
+        std::string strValue    = "";
+        uint32_t    size        = MOS_USER_CONTROL_MAX_DATA_SIZE;
+        uint32_t    type        = 0;
 
-        m_mutexLock.Lock();
-        status = MosUtilities::MosGetRegValue(key, valueName, &type, strValue, &size, m_regBufferMap);
+        status = MosUtilities::MosOpenRegKey(m_rootKey, path, KEY_READ, &key, m_regBufferMap);
+
         if (status == MOS_STATUS_SUCCESS)
         {
-            value = strValue;
+            m_mutexLock.Lock();
+            status = MosUtilities::MosGetRegValue(key, valueName, defaultType, value, m_regBufferMap);
+            m_mutexLock.Unlock();
+            MosUtilities::MosCloseRegKey(key);
         }
-        m_mutexLock.Unlock();
-
-        MosUtilities::MosCloseRegKey(key);
     }
 
+    //Second, if 1st failed, read envionment variable. External user setting does not set env varaible now.
+    if (status != MOS_STATUS_SUCCESS && option == MEDIA_USER_SETTING_INTERNAL)
+    {
+        // read env variable if no user setting set
+        status = MosUtilities::MosReadEnvVariable(def->ItemEnvName(), defaultType, value);
+    }
+
+    //If no 
     if (status != MOS_STATUS_SUCCESS && option == MEDIA_USER_SETTING_INTERNAL)
     {
         value = useCustomValue ? customValue : def->DefaultValue();
@@ -225,32 +216,7 @@ MOS_STATUS Configure::Write(
 
     if (status == MOS_STATUS_SUCCESS)
     {
-        uint32_t size = def->DefaultValue().Size();
-        uint32_t value_type;
-        switch (def->DefaultValue().ValueType())
-        {
-        case MOS_USER_FEATURE_VALUE_TYPE_BOOL:
-            value_type = UF_BINARY;
-            break;
-        case MOS_USER_FEATURE_VALUE_TYPE_FLOAT:
-        case MOS_USER_FEATURE_VALUE_TYPE_UINT32:
-        case MOS_USER_FEATURE_VALUE_TYPE_INT32:
-            value_type = UF_DWORD;
-            break;
-        case MOS_USER_FEATURE_VALUE_TYPE_UINT64:
-        case MOS_USER_FEATURE_VALUE_TYPE_INT64:
-            value_type = UF_QWORD;
-            break;
-        case MOS_USER_FEATURE_VALUE_TYPE_MULTI_STRING:
-        case MOS_USER_FEATURE_VALUE_TYPE_STRING:
-            value_type = UF_SZ;
-            break;
-        default:
-            value_type = UF_NONE;
-            break;
-        }
-
-        status = MosUtilities::MosSetRegValue(key, valueName, value_type, value.ConstString(), m_regBufferMap);
+        status = MosUtilities::MosSetRegValue(key, valueName, value, m_regBufferMap);
 
         MosUtilities::MosCloseRegKey(key);
     }

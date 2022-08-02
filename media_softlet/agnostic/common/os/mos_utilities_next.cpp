@@ -1020,6 +1020,161 @@ void MosUtilities::MosSwizzleData(
     }
 }
 
+const uint32_t MosUtilities::GetRegAccessDataType(MOS_USER_FEATURE_VALUE_TYPE type)
+{
+    switch (type)
+    {
+    case MOS_USER_FEATURE_VALUE_TYPE_BOOL:
+    case MOS_USER_FEATURE_VALUE_TYPE_FLOAT:
+    case MOS_USER_FEATURE_VALUE_TYPE_UINT32:
+    case MOS_USER_FEATURE_VALUE_TYPE_INT32:
+        return UF_DWORD;
+    case MOS_USER_FEATURE_VALUE_TYPE_UINT64:
+    case MOS_USER_FEATURE_VALUE_TYPE_INT64:
+        return UF_QWORD;
+    case MOS_USER_FEATURE_VALUE_TYPE_MULTI_STRING:
+    case MOS_USER_FEATURE_VALUE_TYPE_STRING:
+        return UF_SZ;
+    default:
+        return UF_NONE;
+    }
+}
+
+MOS_STATUS MosUtilities::StrToMediaUserSettingValue(
+    std::string                 &strValue,
+    MOS_USER_FEATURE_VALUE_TYPE type,
+    MediaUserSetting::Value     &dstValue)
+{
+    uint32_t                base = 10;
+    if (strValue.size() > 2 && strValue.at(0) == '0' && (strValue.at(0) == 'x' || strValue.at(0) == 'X')) // 0x or 0X
+    {
+        base = 16;
+    }
+    switch (type)
+    {
+    case MOS_USER_FEATURE_VALUE_TYPE_BOOL:
+    {
+        bool value  = (std::stoul(strValue, nullptr, base) != 0) ? true : false;
+        dstValue    = value;
+        break;
+    }
+    case MOS_USER_FEATURE_VALUE_TYPE_FLOAT:
+    {
+        float value = std::stof(strValue, nullptr);
+        dstValue    = value;
+        break;
+    }
+    case MOS_USER_FEATURE_VALUE_TYPE_UINT32:
+    {
+        uint32_t value  = std::stoul(strValue, nullptr, base);
+        dstValue        = value;
+        break;
+    }
+    case MOS_USER_FEATURE_VALUE_TYPE_INT32:
+    {
+        int32_t value   = std::stoi(strValue, nullptr, base);
+        dstValue        = value;
+        break;
+    }
+    case MOS_USER_FEATURE_VALUE_TYPE_UINT64:
+    {
+        uint64_t value  = std::stoull(strValue, nullptr, base);
+        dstValue        = value;
+        break;
+    }
+    case MOS_USER_FEATURE_VALUE_TYPE_INT64:
+    {
+        int64_t value   = std::stoll(strValue, nullptr, base);
+        dstValue        = value;
+        break;
+    }
+    case MOS_USER_FEATURE_VALUE_TYPE_MULTI_STRING:
+    case MOS_USER_FEATURE_VALUE_TYPE_STRING:
+    {
+        dstValue = strValue;
+        break;
+    }
+    default:
+        MOS_OS_NORMALMESSAGE("Invalid data type");
+        return MOS_STATUS_UNKNOWN;
+    }
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MosUtilities::DataToMediaUserSettingValue(
+    uint8_t                     *data,
+    size_t                      dataSize,
+    MediaUserSetting::Value     &dstValue,
+    MOS_USER_FEATURE_VALUE_TYPE type)
+{
+    MOS_STATUS status = MOS_STATUS_SUCCESS;
+    MOS_OS_CHK_NULL_RETURN(data);
+
+    auto sizeIsValid = [&](size_t requiredSize) -> bool {
+        if( requiredSize > dataSize)
+        {
+            status = MOS_STATUS_INVALID_PARAMETER;
+            return false;
+        }
+        return true;
+    };
+
+    switch (type)
+    {
+    case MOS_USER_FEATURE_VALUE_TYPE_BOOL:
+    {
+        if (sizeIsValid(sizeof(uint8_t)))
+        {
+            dstValue = (*data > 0) ? true : false;
+        }
+        break;
+    }
+    case MOS_USER_FEATURE_VALUE_TYPE_FLOAT:
+    {
+        if (sizeIsValid(sizeof(float)))
+        {
+            dstValue = *((float *)data);
+        }
+        break;
+    }
+    case MOS_USER_FEATURE_VALUE_TYPE_UINT32:
+    {
+        if (sizeIsValid(sizeof(uint32_t)))
+        {
+            dstValue = *((uint32_t *)data);
+        }
+        break;
+    }
+    case MOS_USER_FEATURE_VALUE_TYPE_INT32:
+    {
+        if (sizeIsValid(sizeof(int32_t)))
+        {
+            dstValue = *((int32_t *)data);
+        }
+        break;
+    }
+    case MOS_USER_FEATURE_VALUE_TYPE_UINT64:
+    {
+        if (sizeIsValid(sizeof(uint64_t)))
+        {
+            dstValue = *((uint64_t *)data);
+        }
+        break;
+    }
+    case MOS_USER_FEATURE_VALUE_TYPE_INT64:
+    {
+        if (sizeIsValid(sizeof(int64_t)))
+        {
+            dstValue = *((int64_t *)data);
+        }
+        break;
+    }
+    default:
+        MOS_OS_NORMALMESSAGE("Invalid data type");
+        return MOS_STATUS_UNKNOWN;
+    }
+    return status;
+}
 
 std::shared_ptr<PerfUtility> PerfUtility::instance = nullptr;
 std::mutex PerfUtility::perfMutex;

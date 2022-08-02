@@ -102,6 +102,13 @@ public:
     std::string ItemName() const { return m_itemName; }
 
     //!
+    //! \brief    Get the sub path of the definition
+    //! \return   std::string
+    //!           the custom path
+    //!
+    std::string &ItemEnvName() { return m_itemEnvName; }
+
+    //!
     //! \brief    Get the debug flag
     //! \return   bool
     //!           debug flag
@@ -158,6 +165,7 @@ private:
 
 private:
     std::string m_itemName{};   //!< Item name
+    std::string m_itemEnvName{};             //!< Item name
     Value m_defaultValue {};    //!< Default value
     bool m_isReportKey = false; //!< This item value can be reported
     bool m_debugOnly = false;   //!< Whether the item is only enabled in debug/release-internal mode

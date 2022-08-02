@@ -1308,19 +1308,14 @@ public:
     //!           type of data stored in the specified value.
     //! \param    [out] data
     //!           Buffer that receives the value's data.
-    //! \param    [out] size
-    //!           A pointer to a variable that specifies the size of the buffer
-    //!           pointed to by the data parameter, in bytes.
     //! \return   MOS_STATUS
     //!           If the function succeeds, the return value is MOS_STATUS_SUCCESS.
     //!           If the function fails, the return value is a error code.
     //!
     static MOS_STATUS MosReadEnvVariable(
-        UFKEY_NEXT keyHandle,
         const std::string &valueName,
-        uint32_t *type,
-        std::string &data,
-        uint32_t *size);
+        MOS_USER_FEATURE_VALUE_TYPE type,
+        MediaUserSetting::Value &data);
 
     //!
     //! \brief    Retrieves the type and data for the specified reg value.
@@ -1346,9 +1341,8 @@ public:
     static MOS_STATUS MosGetRegValue(
         UFKEY_NEXT keyHandle,
         const std::string &valueName,
-        uint32_t *type,
-        std::string &data,
-        uint32_t *size,
+        MOS_USER_FEATURE_VALUE_TYPE defaultType,
+        MediaUserSetting::Value &data,
         RegBufferMap &regBufferMap);
 
     //!
@@ -1369,8 +1363,7 @@ public:
     static MOS_STATUS MosSetRegValue(
         UFKEY_NEXT keyHandle,
         const std::string &valueName,
-        uint32_t type,
-        const std::string &data,
+        const MediaUserSetting::Value  &data,
         RegBufferMap &regBufferMap);
 
     //------------------------------------------------------------------------------
@@ -2180,6 +2173,19 @@ public:
     //! \return   bool
     //!
     static bool MosIsProfilerDumpEnabled();
+
+    static const uint32_t GetRegAccessDataType(MOS_USER_FEATURE_VALUE_TYPE type);
+
+    static MOS_STATUS StrToMediaUserSettingValue(
+        std::string &strValue,
+        MOS_USER_FEATURE_VALUE_TYPE type,
+        MediaUserSetting::Value &dstValue);
+
+    static MOS_STATUS DataToMediaUserSettingValue(
+        uint8_t                     *data,
+        size_t                      dataSize,
+        MediaUserSetting::Value     &dstValue,
+        MOS_USER_FEATURE_VALUE_TYPE type);
 
 private:
 

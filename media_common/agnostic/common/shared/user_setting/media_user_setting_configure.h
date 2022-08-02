@@ -212,6 +212,8 @@ protected:
         return HashFunc(str);
     }
 
+    const uint32_t GetRegAccessDataType(MOS_USER_FEATURE_VALUE_TYPE type);
+
 protected:
     MosMutex m_mutexLock; //!< mutex for protecting definitions
     Definitions m_definitions[Group::MaxCount]{}; //!< definitions of media user setting

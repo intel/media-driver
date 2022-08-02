@@ -501,6 +501,7 @@ typedef uint32_t               GPU_CONTEXT_HANDLE;
 
 namespace MediaUserSetting {
     class MediaUserSetting;
+    class Value;
 };
 
 using MediaUserSettingSharedPtr = std::shared_ptr<MediaUserSetting::MediaUserSetting>;

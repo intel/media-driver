@@ -26,6 +26,64 @@
 #include "media_user_setting_value.h"
 
 namespace MediaUserSetting {
+Value::NUMERIC_VALUE::NUMERIC_VALUE() : m_u64Data(0)
+{
+}
+Value::NUMERIC_VALUE::NUMERIC_VALUE(const bool value) : m_u64Data(0)
+{
+    m_bData = value;
+}
+Value::NUMERIC_VALUE::NUMERIC_VALUE(const uint32_t value) : m_u64Data(0)
+{
+    m_u32Data = value;
+}
+Value::NUMERIC_VALUE::NUMERIC_VALUE(const uint64_t value) : m_u64Data(0)
+{
+    m_u64Data = value;
+}
+Value::NUMERIC_VALUE::NUMERIC_VALUE(const int32_t value) : m_u64Data(0)
+{
+    m_i32Data = value;
+}
+Value::NUMERIC_VALUE::NUMERIC_VALUE(const int64_t value) : m_u64Data(0)
+{
+    m_i64Data = value;
+}
+Value::NUMERIC_VALUE::NUMERIC_VALUE(const float value) : m_u64Data(0)
+{
+    m_fData = value;
+}
+
+Value::NUMERIC_VALUE &Value::NUMERIC_VALUE::operator=(const int32_t &value)
+{
+    m_i32Data = value;
+    return *this;
+}
+Value::NUMERIC_VALUE &Value::NUMERIC_VALUE::operator = (const int64_t &value)
+{
+    m_i64Data = value;
+    return *this;
+}
+Value::NUMERIC_VALUE &Value::NUMERIC_VALUE::operator = (const uint32_t &value)
+{
+    m_u32Data = value;
+    return *this;
+}
+Value::NUMERIC_VALUE &Value::NUMERIC_VALUE::operator = (const uint64_t &value)
+{
+    m_u64Data = value;
+    return *this;
+}
+Value::NUMERIC_VALUE &Value::NUMERIC_VALUE::operator=(const bool &value)
+{
+    m_bData = value;
+    return *this;
+}
+Value::NUMERIC_VALUE &Value::NUMERIC_VALUE::operator=(const float &value)
+{
+    m_fData = value;
+    return *this;
+}
 
 Value::Value()
 {
@@ -35,160 +93,210 @@ Value::~Value()
 {
 }
 
-template <class T>
-inline std::string Value::ToString(const T &data)
-{
-    std::stringstream convert;
-    convert << data;
-
-    return convert.str();
-}
-
 Value::Value(const Value &value)
 {
-    m_value = value.m_value;
-    m_size = value.m_size;
-    m_type  = value.m_type;
+    m_sValue        = value.m_sValue;
+    m_size          = value.m_size;
+    m_type          = value.m_type;
+    m_numericValue  = value.m_numericValue;
 }
 
-Value::Value(const int32_t &value)
+Value::Value(const int32_t &value) : m_numericValue(value)
 {
-    m_value = ToString<int32_t>(value);
-    m_size = sizeof(int32_t);
-    m_type  = MOS_USER_FEATURE_VALUE_TYPE_INT32;
+    m_sValue        = std::to_string(value);
+    m_size          = sizeof(int32_t);
+    m_type          = MOS_USER_FEATURE_VALUE_TYPE_INT32;
 }
 
-Value::Value(const int64_t &value)
+Value::Value(const int64_t &value): m_numericValue(value)
 {
-    m_value = ToString<int64_t>(value);
-    m_size = sizeof(int64_t);
-    m_type  = MOS_USER_FEATURE_VALUE_TYPE_INT64;
+    m_sValue        = std::to_string(value);
+    m_size          = sizeof(int64_t);
+    m_type          = MOS_USER_FEATURE_VALUE_TYPE_INT64;
 }
-Value::Value(const uint32_t &value)
+Value::Value(const uint32_t &value) : m_numericValue(value)
 {
-    m_value = ToString<uint32_t>(value);
-    m_size = sizeof(uint32_t);
-    m_type  = MOS_USER_FEATURE_VALUE_TYPE_UINT32;
-}
-
-Value::Value(const uint64_t &value)
-{
-    m_value = ToString<uint64_t>(value);
-    m_size = sizeof(uint64_t);
-    m_type  = MOS_USER_FEATURE_VALUE_TYPE_UINT64;
+    m_sValue        = std::to_string(value);
+    m_size          = sizeof(uint32_t);
+    m_type          = MOS_USER_FEATURE_VALUE_TYPE_UINT32;
 }
 
-Value::Value(const bool &value)
+Value::Value(const uint64_t &value) : m_numericValue(value)
 {
-    m_value = value ? "1" : "0";
-    m_size = sizeof(uint32_t);
-    m_type  = MOS_USER_FEATURE_VALUE_TYPE_BOOL;
+    m_sValue        = std::to_string(value);
+    m_size          = sizeof(uint64_t);
+    m_type          = MOS_USER_FEATURE_VALUE_TYPE_UINT64;
 }
 
-Value::Value(const float &value)
+Value::Value(const bool &value) : m_numericValue(value)
 {
-    m_value = ToString<float>(value);
-    m_size = sizeof(float);
-    m_type  = MOS_USER_FEATURE_VALUE_TYPE_FLOAT;
+    m_sValue        = value ? "1" : "0";
+    m_size          = sizeof(uint32_t);
+    m_type          = MOS_USER_FEATURE_VALUE_TYPE_BOOL;
 }
 
-Value::Value(const std::string &value)
+Value::Value(const float &value) : m_numericValue(value)
 {
-    m_value = value;
-    m_size = m_value.length();
-    m_type  = MOS_USER_FEATURE_VALUE_TYPE_STRING;
+    m_sValue        = std::to_string(value);
+    m_size          = sizeof(float);
+    m_type          = MOS_USER_FEATURE_VALUE_TYPE_FLOAT;
 }
 
-Value::Value(const char* value)
+Value::Value(const std::string &value) : m_numericValue(0)
 {
-    m_value = value;
-    m_size = m_value.length();
-    m_type  = MOS_USER_FEATURE_VALUE_TYPE_STRING;
+    m_sValue        = value;
+    m_size          = m_sValue.length();
+    m_type          = MOS_USER_FEATURE_VALUE_TYPE_STRING;
 }
 
-Value::Value(char* value)
+Value::Value(const char *value) : m_numericValue(0)
 {
-    m_value = value;
-    m_size = m_value.length();
-    m_type  = MOS_USER_FEATURE_VALUE_TYPE_STRING;
+    m_sValue        = value;
+    m_size          = m_sValue.length();
+    m_type          = MOS_USER_FEATURE_VALUE_TYPE_STRING;
+}
+
+Value::Value(char *value) : m_numericValue(0)
+{
+    m_sValue        = value;
+    m_size          = m_sValue.length();
+    m_type          = MOS_USER_FEATURE_VALUE_TYPE_STRING;
 }
 
 Value& Value::operator=(const Value &value)
 {
     if (this != &value)
     {
-        m_value = value.m_value;
-        m_size = value.m_size;
-        m_type  = value.m_type;
+        m_sValue                = value.m_sValue;
+        m_size                  = value.m_size;
+        m_type                  = value.m_type;
+        m_numericValue          = value.m_numericValue;
     }
     return *this;
 }
 
 Value& Value::operator=(const int32_t &value)
 {
-    m_value = ToString<int32_t>(value);
-    m_size = sizeof(int32_t);
-    m_type  = MOS_USER_FEATURE_VALUE_TYPE_INT32;
+    m_sValue                    = std::to_string(value);
+    m_size                      = sizeof(int32_t);
+    m_type                      = MOS_USER_FEATURE_VALUE_TYPE_INT32;
+    m_numericValue.m_i32Data    = value;
     return *this;
 }
 
 Value& Value::operator=(const int64_t &value)
 {
-    m_value = ToString<int64_t>(value);
-    m_size = sizeof(int64_t);
-    m_type  = MOS_USER_FEATURE_VALUE_TYPE_INT64;
+    m_sValue                    = std::to_string(value);
+    m_size                      = sizeof(int64_t);
+    m_type                      = MOS_USER_FEATURE_VALUE_TYPE_INT64;
+    m_numericValue.m_i64Data    = value;
     return *this;
 }
 Value& Value::operator=(const uint32_t &value)
 {
-    m_value = ToString<uint32_t>(value);
-    m_size = sizeof(uint32_t);
-    m_type  = MOS_USER_FEATURE_VALUE_TYPE_UINT32;
+    m_sValue                    = std::to_string(value);
+    m_size                      = sizeof(uint32_t);
+    m_type                      = MOS_USER_FEATURE_VALUE_TYPE_UINT32;
+    m_numericValue.m_u32Data    = value;
     return *this;
 }
 Value& Value::operator=(const uint64_t &value)
 {
-    m_value = ToString<uint64_t>(value);
-    m_size = sizeof(uint64_t);
-    m_type  = MOS_USER_FEATURE_VALUE_TYPE_UINT64;
+    m_sValue                    = std::to_string(value);
+    m_size                      = sizeof(uint64_t);
+    m_type                      = MOS_USER_FEATURE_VALUE_TYPE_UINT64;
+    m_numericValue.m_u64Data    = value;
     return *this;
 }
 Value& Value::operator=(const bool &value)
 {
-    m_value = value ? "1" : "0";
-    m_size = sizeof(uint32_t);
-    m_type  = MOS_USER_FEATURE_VALUE_TYPE_BOOL;
+    m_sValue                    = value ? "1" : "0";
+    m_size                      = sizeof(uint32_t);
+    m_type                      = MOS_USER_FEATURE_VALUE_TYPE_BOOL;
+    m_numericValue.m_bData      = value;
     return *this;
 }
 Value& Value::operator=(const float &value)
 {
-    m_value = ToString<float>(value);
-    m_size = sizeof(float);
-    m_type  = MOS_USER_FEATURE_VALUE_TYPE_FLOAT;
+    m_sValue                    = std::to_string(value);
+    m_size                      = sizeof(float);
+    m_type                      = MOS_USER_FEATURE_VALUE_TYPE_FLOAT;
+    m_numericValue.m_fData      = value;
     return *this;
 }
 
 Value& Value::operator=(const std::string &value)
 {
-    m_value = value;
-    m_size = m_value.length();
-    m_type  = MOS_USER_FEATURE_VALUE_TYPE_STRING;
+    m_sValue                    = value;
+    m_size                      = m_sValue.length();
+    m_type                      = MOS_USER_FEATURE_VALUE_TYPE_STRING;
+    m_numericValue.m_u64Data    = 0;
     return *this;
 }
 
 Value& Value::operator=(const char* value)
 {
-    m_value = value;
-    m_size = m_value.length();
-    m_type  = MOS_USER_FEATURE_VALUE_TYPE_STRING;
+    m_sValue                    = value;
+    m_size                      = m_sValue.length();
+    m_type                      = MOS_USER_FEATURE_VALUE_TYPE_STRING;
+    m_numericValue.m_u64Data    = 0;
     return *this;
 }
 
 Value& Value::operator=(char* value)
 {
-    m_value = value;
-    m_size = m_value.length();
-    m_type  = MOS_USER_FEATURE_VALUE_TYPE_STRING;
+    m_sValue                    = value;
+    m_size                      = m_sValue.length();
+    m_type                      = MOS_USER_FEATURE_VALUE_TYPE_STRING;
+    m_numericValue.m_u64Data    = 0;
     return *this;
+}
+
+template <>
+bool Value::Get() const
+{
+    return m_numericValue.m_bData;
+}
+
+template <>
+uint8_t Value::Get()const
+{
+    return (uint8_t)m_numericValue.m_u32Data;
+}
+
+template <>
+uint32_t Value::Get()const
+{
+    return m_numericValue.m_u32Data;
+}
+
+template <>
+int32_t Value::Get()const
+{
+    return m_numericValue.m_i32Data;
+}
+
+template <>
+int64_t Value::Get()const
+{
+    return m_numericValue.m_i64Data;
+}
+
+template <>
+unsigned long Value::Get() const
+{
+    return (unsigned long) m_numericValue.m_u64Data;
+}
+
+template <>
+unsigned long long Value::Get()const
+{
+    return m_numericValue.m_u64Data;
+}
+
+template <>
+float Value::Get() const
+{
+    return m_numericValue.m_fData;
 }
 }
