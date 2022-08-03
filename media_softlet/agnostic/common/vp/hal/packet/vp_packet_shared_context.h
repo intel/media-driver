@@ -26,7 +26,7 @@ namespace vp
 {
 struct VP_PACKET_SHARED_CONTEXT
 {
-    bool bFirstFrame = true;
+    bool isVeboxFirstFrame = true;
 
     struct
     {

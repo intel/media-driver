@@ -535,7 +535,7 @@ MOS_STATUS VpCscFilter::SetVeboxCDSChromaParams(VP_EXECUTE_CAPS vpExecuteCaps)
     }
     else
     {
-        bNeedDownSampling = vpExecuteCaps.bVebox && !vpExecuteCaps.bSFC;
+        bNeedDownSampling = vpExecuteCaps.bVebox && !vpExecuteCaps.bSFC && !vpExecuteCaps.bForceCscToRender;
     }
 
     // Init as CDS disabled

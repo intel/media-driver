@@ -909,6 +909,19 @@ MOS_STATUS VpPipeline::PrepareVpPipelineParams(PVP_PIPELINE_PARAMS params)
 
     PrepareVpPipelineScalabilityParams(params);
 
+    for (uint32_t uiIndex = 0; uiIndex < params->uSrcCount; uiIndex++)
+    {
+        // Add Procamp limitation before Render pass selected
+        // Brightness[-100.0,100.0], Contrast & Saturation[0.0,10.0]
+        PVPHAL_PROCAMP_PARAMS pProcampParams = params->pSrc[uiIndex]->pProcampParams;
+        if (pProcampParams && pProcampParams->bEnabled)
+        {
+            pProcampParams->fBrightness = MOS_MIN(MOS_MAX(-100.0f, pProcampParams->fBrightness), 100.0f);
+            pProcampParams->fContrast   = MOS_MIN(MOS_MAX(0.0f, pProcampParams->fContrast), 10.0f);
+            pProcampParams->fSaturation = MOS_MIN(MOS_MAX(0.0f, pProcampParams->fSaturation), 10.0f);
+        }
+    }
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -1012,9 +1025,9 @@ MOS_STATUS VpPipeline::Execute()
     VP_PUBLIC_CHK_STATUS_RETURN(ExecuteVpPipeline())
     VP_PUBLIC_CHK_STATUS_RETURN(UserFeatureReport());
 
-    if (m_packetSharedContext && m_packetSharedContext->bFirstFrame)
+    if (m_packetSharedContext && m_packetSharedContext->isVeboxFirstFrame && m_veboxFeatureInuse)
     {
-        m_packetSharedContext->bFirstFrame = false;
+        m_packetSharedContext->isVeboxFirstFrame = false;
     }
 
     return MOS_STATUS_SUCCESS;

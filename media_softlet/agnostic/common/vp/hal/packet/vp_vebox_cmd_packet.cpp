@@ -3190,10 +3190,10 @@ MOS_STATUS VpVeboxCmdPacket::UpdateDnHVSParameters(
     // Set HVS kernel params
     hvsParams.Format            = 0;
     hvsParams.Mode              = renderData->GetHVSParams().Mode;
-    hvsParams.Fallback          = !m_bTgneValid && !sharedContext->bFirstFrame && !tgneParams.bTgneFirstFrame;
+    hvsParams.Fallback          = !m_bTgneValid && !sharedContext->isVeboxFirstFrame && !tgneParams.bTgneFirstFrame;
     hvsParams.EnableChroma      = renderData->DN.bChromaDnEnabled;
-    hvsParams.FirstFrame        = sharedContext->bFirstFrame;
-    hvsParams.TgneFirstFrame    = !sharedContext->bFirstFrame && tgneParams.bTgneFirstFrame;
+    hvsParams.FirstFrame        = sharedContext->isVeboxFirstFrame;
+    hvsParams.TgneFirstFrame    = !sharedContext->isVeboxFirstFrame && tgneParams.bTgneFirstFrame;
     hvsParams.EnableTemporalGNE = m_bTgneEnable;
     hvsParams.Width             = (uint16_t)m_currentSurface->rcSrc.right;
     hvsParams.Height            = (uint16_t)m_currentSurface->rcSrc.bottom;
@@ -3261,7 +3261,7 @@ MOS_STATUS VpVeboxCmdPacket::UpdateDnHVSParameters(
     }
     m_veboxItf->SetgnHVSMode(hvsParams.hVSAutoBdrateEnable, hvsParams.hVSAutoSubjectiveEnable, tgneParams.dwBSDThreshold);
 
-    if (m_bTgneEnable && !sharedContext->bFirstFrame && tgneParams.bTgneFirstFrame)  //Second frame
+    if (m_bTgneEnable && !sharedContext->isVeboxFirstFrame && tgneParams.bTgneFirstFrame)  //Second frame
     {
         tgneParams.bTgneFirstFrame = false;  // next frame bTgneFirstFrame should be false
 
@@ -3316,7 +3316,7 @@ MOS_STATUS VpVeboxCmdPacket::UpdateDnHVSParameters(
         hvsParams.dwGlobalNoiseLevelU = dwGlobalNoiseLevelU_Temporal;
         hvsParams.dwGlobalNoiseLevelV = dwGlobalNoiseLevelV_Temporal;
     }
-    else if (m_bTgneEnable && m_bTgneValid && !sharedContext->bFirstFrame)  //Middle frame
+    else if (m_bTgneEnable && m_bTgneValid && !sharedContext->isVeboxFirstFrame)  //Middle frame
     {
         dwGNECountLuma    = (pStatSlice0GNEPtr[3] & 0x7FFFFFFF) + (pStatSlice1GNEPtr[3] & 0x7FFFFFFF);
         dwGNECountChromaU = (pStatSlice0GNEPtr[4] & 0x7FFFFFFF) + (pStatSlice1GNEPtr[4] & 0x7FFFFFFF);
