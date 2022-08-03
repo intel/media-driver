@@ -24,7 +24,6 @@
 
 #include "mhw_vebox.h"
 #include "vp_common.h"
-#include "renderhal_g12_base.h"
 #include "vp_filter.h"
 
 typedef class MhwVeboxInterface              *PMHW_VEBOX_INTERFACE;

@@ -29,10 +29,11 @@
 #ifndef __MEDIA_ENCODE_MEM_COMPRESSION_H__
 #define __MEDIA_ENCODE_MEM_COMPRESSION_H__
 
-#include "media_mem_compression_next.h"
+#include "media_mem_compression.h"
 #include "codechal_hw.h"
+#include "mhw_mi_itf.h"
 
-class EncodeMemComp : public MediaMemCompNext
+class EncodeMemComp : public MediaMemComp
 {
 public:
     //!
@@ -67,6 +68,8 @@ protected:
     void InitEncodeMmc(CodechalHwInterface *hwInterface);
 
     bool m_mmcEnabledForEncode = false;                  //!< Indicate if mmc is enabled for encode
+    
+    std::shared_ptr<mhw::mi::Itf> m_miItf;               //!< Point to MI interface
 
 MEDIA_CLASS_DEFINE_END(EncodeMemComp)
 };

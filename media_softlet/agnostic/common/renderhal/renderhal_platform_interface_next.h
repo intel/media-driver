@@ -46,6 +46,11 @@
 class MediaFeatureManager;
 namespace mhw { namespace mi { class Itf; } }
 
+typedef struct _RENDERHAL_GENERIC_PROLOG_PARAMS_NEXT : _RENDERHAL_GENERIC_PROLOG_PARAMS
+{
+    MOS_VIRTUALENGINE_HINT_PARAMS VEngineHintParams = {{0}, 0, {{0}, {0}, {0}, {0}}, {0, 0, 0, 0}};
+} RENDERHAL_GENERIC_PROLOG_PARAMS_NEXT, *PRENDERHAL_GENERIC_PROLOG_PARAMS_NEXT;
+
 class XRenderHal_Platform_Interface_Next : public XRenderHal_Platform_Interface, public mhw::render::Itf::ParSetting
 {
 public:

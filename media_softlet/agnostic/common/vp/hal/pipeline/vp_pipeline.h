@@ -35,7 +35,6 @@
 #include "vp_utils.h"
 #include "vp_allocator.h"
 #include "vp_status_report.h"
-#include "vphal.h"
 #include "vp_dumper.h"
 #include "vp_debug_interface.h"
 #include "vp_feature_manager.h"
@@ -307,7 +306,7 @@ protected:
     {
         if (!settings)
         {
-            VPHAL_PUBLIC_NORMALMESSAGE("No VPP Settings needed, driver to handle features behavious by self");
+            VP_PUBLIC_NORMALMESSAGE("No VPP Settings needed, driver to handle features behavious by self");
             return MOS_STATUS_SUCCESS;
         }
 

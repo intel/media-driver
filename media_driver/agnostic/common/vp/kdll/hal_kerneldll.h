@@ -56,49 +56,12 @@ typedef struct tagKdll_Linking
     uint32_t         dwOffset        : 16;  // Instruction offset
 } Kdll_Linking, *pKdll_Linking;
 
-// Simple Hash function
-uint32_t KernelDll_SimpleHash(
-    void            *pData,
-    int             iSize);
-
-// Setup Kernel Dll Procamp Parameters
-void KernelDll_SetupProcampParameters(Kdll_State    *pState,
-                                      Kdll_Procamp  *pProcamp,
-                                      int            iProcampSize);
-
-// Find Kernel in hash table
-Kdll_CacheEntry *
-KernelDll_GetCombinedKernel(Kdll_State       *pState,
-                            Kdll_FilterEntry *iFilter,
-                            int               iFilterSize,
-                            uint32_t          dwHash);
-
 // Get component/static kernel
 Kdll_CacheEntry *
 KernelDll_GetComponentKernel(Kdll_State *pState,
                              int         iKUID);
 
-// Allocate cache entry for a given size
-Kdll_CacheEntry *
-KernelDll_AllocateCacheEntry(Kdll_KernelCache *pCache,
-                             int32_t           iSize);
-
-// Allocate more kernel cache entries
-Kdll_CacheEntry *
-KernelDll_AllocateAdditionalCacheEntries(Kdll_KernelCache *pCache);
-
-// Add kernel to cache and hash table
-Kdll_CacheEntry *
-KernelDll_AddKernel(Kdll_State       *pState,
-                    Kdll_SearchState *pSearchState,
-                    Kdll_FilterEntry *pFilter,
-                    int               iFilterSize,
-                    uint32_t          dwHash);
-
-
 bool KernelDll_IsSameFormatType(MOS_FORMAT   format1, MOS_FORMAT   format2);
-void KernelDll_ReleaseHashEntry(Kdll_KernelHashTable *pHashTable, uint16_t entry);
-void KernelDll_ReleaseCacheEntry(Kdll_KernelCache *pCache, Kdll_CacheEntry  *pEntry);
 
 #if _DEBUG || EMUL
 

@@ -24,6 +24,7 @@
 
 #include "vp_pipeline.h"
 #include "vp_pipeline_common.h"
+#include "vphal.h"
 
 class VpPipelineAdapterLegacy
 {

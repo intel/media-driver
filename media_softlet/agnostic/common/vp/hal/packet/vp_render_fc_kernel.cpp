@@ -26,8 +26,8 @@
 //!
 #include "vp_render_fc_kernel.h"
 #include "vp_render_kernel_obj.h"
-#include "hal_kerneldll.h"
-#include "hal_oca_interface.h"
+#include "hal_kerneldll_next.h"
+#include "hal_oca_interface_next.h"
 #include "vp_user_feature_control.h"
 
 using namespace vp;
@@ -633,7 +633,7 @@ MOS_STATUS VpRenderFcKernel::InitRenderHalSurface(
 
 void VpRenderFcKernel::OcaDumpKernelInfo(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext)
 {
-    HalOcaInterface::DumpVpKernelInfo(cmdBuffer, mosContext, m_kernelId, m_kernelSearch.KernelCount, m_kernelSearch.KernelID);
+    HalOcaInterfaceNext::DumpVpKernelInfo(cmdBuffer, mosContext, m_kernelId, m_kernelSearch.KernelCount, m_kernelSearch.KernelID);
 }
 
 bool IsRenderAlignmentWANeeded(VP_SURFACE *surface)
@@ -1574,7 +1574,7 @@ MOS_STATUS VpRenderFcKernel::InitLayerInCurbeData(VP_FC_LAYER *layer)
             m_curbeData.DW11.ChromasitingUOffset, m_curbeData.DW12.ChromasitingVOffset);
 
         // Set output depth.
-        bitDepth = VpHal_GetSurfaceBitDepth(layer->surf->osSurface->Format);
+        bitDepth                        = VpUtils::GetSurfaceBitDepth(layer->surf->osSurface->Format);
         m_curbeData.DW07.OutputDepth    = VP_COMP_P010_DEPTH;
         if (bitDepth && !(layer->surf->osSurface->Format == Format_P010 || layer->surf->osSurface->Format == Format_Y210))
         {
@@ -1846,7 +1846,7 @@ MOS_STATUS VpRenderFcKernel::InitColorFillInCurbeData()
             (m_srcCspace     != srcCspace)  ||
             (m_dstCspace     != dstCspace))
         {
-            VpHal_CSC_8(&m_dstColor, &srcColor, srcCspace, dstCspace);
+            VpUtils::GetCscMatrixForRender8Bit(&m_dstColor, &srcColor, srcCspace, dstCspace);
 
             // store the values for next iteration
             m_srcColor     = srcColor;

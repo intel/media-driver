@@ -29,7 +29,6 @@
 #include "vp_utils.h"
 #include "mos_resource_defs.h"
 #include "hal_oca_interface_next.h"
-#include "vp_render_sfc_m12.h"
 #include "vp_render_ief.h"
 #include "vp_feature_caps.h"
 #include "vp_platform_interface.h"
@@ -37,8 +36,8 @@
 #include "mhw_mi_itf.h"
 #include "mhw_mi_cmdpar.h"
 #include "mhw_utilities.h"
-#include "hal_oca_interface.h"
 #include "media_scalability_defs.h"
+#include "renderhal_platform_interface_next.h"
 
 namespace vp {
 
@@ -208,23 +207,23 @@ MOS_STATUS VpVeboxCmdPacket::InitCmdBufferWithVeParams(
     VP_FUNC_CALL();
 
     MOS_STATUS                              eStatus = MOS_STATUS_SUCCESS;
-    RENDERHAL_GENERIC_PROLOG_PARAMS_G12     genericPrologParamsG12 = {};
+    RENDERHAL_GENERIC_PROLOG_PARAMS_NEXT    genericPrologParams = {};
 
-    genericPrologParamsG12.bEnableMediaFrameTracking      = pGenericPrologParams->bEnableMediaFrameTracking;
-    genericPrologParamsG12.bMmcEnabled                    = pGenericPrologParams->bMmcEnabled;
-    genericPrologParamsG12.dwMediaFrameTrackingAddrOffset = pGenericPrologParams->dwMediaFrameTrackingAddrOffset;
-    genericPrologParamsG12.dwMediaFrameTrackingTag        = pGenericPrologParams->dwMediaFrameTrackingTag;
-    genericPrologParamsG12.presMediaFrameTrackingSurface  = pGenericPrologParams->presMediaFrameTrackingSurface;
+    genericPrologParams.bEnableMediaFrameTracking      = pGenericPrologParams->bEnableMediaFrameTracking;
+    genericPrologParams.bMmcEnabled                    = pGenericPrologParams->bMmcEnabled;
+    genericPrologParams.dwMediaFrameTrackingAddrOffset = pGenericPrologParams->dwMediaFrameTrackingAddrOffset;
+    genericPrologParams.dwMediaFrameTrackingTag        = pGenericPrologParams->dwMediaFrameTrackingTag;
+    genericPrologParams.presMediaFrameTrackingSurface  = pGenericPrologParams->presMediaFrameTrackingSurface;
 
-    genericPrologParamsG12.VEngineHintParams.BatchBufferCount = 2;
-    //genericPrologParamsG12.VEngineHintParams.resScalableBatchBufs[0] = CmdBuffer[0].OsResource;
-    //genericPrologParamsG12.VEngineHintParams.resScalableBatchBufs[1] = CmdBuffer[1].OsResource;
-    genericPrologParamsG12.VEngineHintParams.UsingFrameSplit = true;
-    genericPrologParamsG12.VEngineHintParams.UsingSFC = false;
-    genericPrologParamsG12.VEngineHintParams.EngineInstance[0] = 0;
-    genericPrologParamsG12.VEngineHintParams.EngineInstance[1] = 1;
-    genericPrologParamsG12.VEngineHintParams.NeedSyncWithPrevious = true;
-    genericPrologParamsG12.VEngineHintParams.SameEngineAsLastSubmission = true;
+    genericPrologParams.VEngineHintParams.BatchBufferCount = 2;
+    //genericPrologParams.VEngineHintParams.resScalableBatchBufs[0] = CmdBuffer[0].OsResource;
+    //genericPrologParams.VEngineHintParams.resScalableBatchBufs[1] = CmdBuffer[1].OsResource;
+    genericPrologParams.VEngineHintParams.UsingFrameSplit = true;
+    genericPrologParams.VEngineHintParams.UsingSFC = false;
+    genericPrologParams.VEngineHintParams.EngineInstance[0] = 0;
+    genericPrologParams.VEngineHintParams.EngineInstance[1] = 1;
+    genericPrologParams.VEngineHintParams.NeedSyncWithPrevious = true;
+    genericPrologParams.VEngineHintParams.SameEngineAsLastSubmission = true;
 
     pRenderHal->pOsInterface->VEEnable = false;
 
@@ -232,7 +231,7 @@ MOS_STATUS VpVeboxCmdPacket::InitCmdBufferWithVeParams(
     VP_RENDER_CHK_STATUS_RETURN(pRenderHal->pfnInitCommandBuffer(
         pRenderHal,
         &CmdBuffer,
-        (PRENDERHAL_GENERIC_PROLOG_PARAMS)&genericPrologParamsG12));
+        (PRENDERHAL_GENERIC_PROLOG_PARAMS)&genericPrologParams));
 
     return eStatus;
 }
@@ -1512,7 +1511,6 @@ MOS_STATUS VpVeboxCmdPacket::RenderVeboxCmd(
     MOS_STATUS            eStatus = MOS_STATUS_SUCCESS;
     PRENDERHAL_INTERFACE  pRenderHal;
     PMOS_INTERFACE        pOsInterface;
-    PMHW_MI_INTERFACE     pMhwMiInterface;
     bool                  bDiVarianceEnable;
     const MHW_VEBOX_HEAP *pVeboxHeap     = nullptr;
     VpVeboxRenderData *   pRenderData    = GetLastExecRenderData();
@@ -1526,7 +1524,6 @@ MOS_STATUS VpVeboxCmdPacket::RenderVeboxCmd(
     bool                  bMultipipe      = false;
 
     VP_RENDER_CHK_NULL_RETURN(m_hwInterface->m_renderHal);
-    VP_RENDER_CHK_NULL_RETURN(m_hwInterface->m_mhwMiInterface);
     VP_RENDER_CHK_NULL_RETURN(m_miItf);
     VP_RENDER_CHK_NULL_RETURN(m_hwInterface->m_osInterface);
     VP_RENDER_CHK_NULL_RETURN(m_hwInterface->m_osInterface->pOsContext);
@@ -1536,7 +1533,6 @@ MOS_STATUS VpVeboxCmdPacket::RenderVeboxCmd(
     VP_RENDER_CHK_NULL_RETURN(m_veboxItf);
 
     pRenderHal      = m_hwInterface->m_renderHal;
-    pMhwMiInterface = m_hwInterface->m_mhwMiInterface;
     pOsInterface    = m_hwInterface->m_osInterface;
     pOsContext      = m_hwInterface->m_osInterface->pOsContext;
     pMmioRegisters  = m_miItf->GetMmioRegisters();
@@ -1641,7 +1637,6 @@ MOS_STATUS VpVeboxCmdPacket::RenderVeboxCmd(
             MHW_GENERIC_PROLOG_PARAMS genericPrologParams;
             MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
             genericPrologParams.pOsInterface  = pRenderHal->pOsInterface;
-            genericPrologParams.pvMiInterface = pRenderHal->pMhwMiInterface;
             genericPrologParams.bMmcEnabled   = pGenericPrologParams ? pGenericPrologParams->bMmcEnabled : false;
             VP_RENDER_CHK_STATUS_RETURN(Mhw_SendGenericPrologCmdNext(pCmdBufferInUse, &genericPrologParams, m_miItf));
 

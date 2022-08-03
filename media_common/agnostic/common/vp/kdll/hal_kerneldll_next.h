@@ -841,6 +841,23 @@ void KernelDll_GetCSCMatrix(
     Kdll_CSpace dst,
     float *     pCSC_Matrix);
 
+// Simple Hash function
+uint32_t KernelDll_SimpleHash(
+    void            *pData,
+    int             iSize);
+
+// Setup Kernel Dll Procamp Parameters
+void KernelDll_SetupProcampParameters(Kdll_State    *pState,
+                                      Kdll_Procamp  *pProcamp,
+                                      int            iProcampSize);
+
+// Find Kernel in hash table
+Kdll_CacheEntry *
+KernelDll_GetCombinedKernel(Kdll_State       *pState,
+                            Kdll_FilterEntry *iFilter,
+                            int               iFilterSize,
+                            uint32_t          dwHash);
+                    
 //---------------------------------------------------------------------------------------
 // KernelDll_SetupFunctionPointers - Setup Function pointers based on platform
 //
@@ -885,6 +902,26 @@ bool KernelDll_BuildKernel(Kdll_State *pState, Kdll_SearchState *pSearchState);
 bool KernelDll_SetupCSC(
     Kdll_State *      pState,
     Kdll_SearchState *pSearchState);
+
+// Add kernel to cache and hash table
+Kdll_CacheEntry *
+KernelDll_AddKernel(Kdll_State       *pState,
+                    Kdll_SearchState *pSearchState,
+                    Kdll_FilterEntry *pFilter,
+                    int               iFilterSize,
+                    uint32_t          dwHash);
+
+// Allocate cache entry for a given size
+Kdll_CacheEntry *
+KernelDll_AllocateCacheEntry(Kdll_KernelCache *pCache,
+                             int32_t           iSize);
+
+// Allocate more kernel cache entries
+Kdll_CacheEntry *
+KernelDll_AllocateAdditionalCacheEntries(Kdll_KernelCache *pCache);
+
+void KernelDll_ReleaseHashEntry(Kdll_KernelHashTable *pHashTable, uint16_t entry);
+void KernelDll_ReleaseCacheEntry(Kdll_KernelCache *pCache, Kdll_CacheEntry  *pEntry);
 
 //---------------------------------------------------------------------------------------
 // KernelDll_SetupFunctionPointers_Ext - Setup Extension Function pointers

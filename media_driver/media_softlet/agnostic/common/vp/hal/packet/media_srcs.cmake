@@ -20,10 +20,12 @@
 
 set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/vp_vebox_cmd_packet_legacy.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/vp_render_sfc_base_legacy.cpp
 )
 
 set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/vp_vebox_cmd_packet_legacy.h
+    ${CMAKE_CURRENT_LIST_DIR}/vp_render_sfc_base_legacy.h
 )
 
 set(VP_SOURCES_

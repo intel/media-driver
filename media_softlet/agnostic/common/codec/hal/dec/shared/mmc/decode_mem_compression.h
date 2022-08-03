@@ -32,6 +32,7 @@
 #include "media_mem_compression.h"
 #include "codechal_utilities.h"
 
+class MhwMiInterface;
 class DecodeMemComp : public MediaMemComp
 {
 public:
@@ -75,6 +76,8 @@ protected:
     void InitDecodeMmc(CodechalHwInterface *hwInterface);
 
     bool m_mmcEnabledForDecode = false;  //!< Indicate if mmc is enabled for decode
+
+    MhwMiInterface *m_mhwMiInterface = nullptr;  //!< Point to MI interface
 
 MEDIA_CLASS_DEFINE_END(DecodeMemComp)
 };

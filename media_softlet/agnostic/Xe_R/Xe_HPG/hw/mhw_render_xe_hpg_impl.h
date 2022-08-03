@@ -32,7 +32,6 @@
 #include "mhw_render_hwcmd_xe_hpg.h"
 #include "mhw_render_itf.h"
 #include "mhw_impl.h"
-#include "mhw_mmio_common.h"
 
 namespace mhw
 {
@@ -241,7 +240,6 @@ public:
 
 protected:
     using base_t = render::Impl<mhw::render::xe_hpg::Cmd>;
-    MHW_RENDER_ENGINE_L3_CACHE_CONFIG   m_l3CacheConfig = {};
     uint32_t    m_l3CacheTcCntlRegisterValueDefault = 0x80000080;
     uint32_t    m_l3CacheAllocRegisterValueDefault  = 0xD0000020;
 

@@ -31,7 +31,8 @@
 #include "decode_mem_compression.h"
 
 DecodeMemComp::DecodeMemComp(CodechalHwInterface *hwInterface) :
-    MediaMemComp(hwInterface->GetOsInterface(), hwInterface->GetMiInterface())
+    MediaMemComp(hwInterface->GetOsInterface()),
+    m_mhwMiInterface(hwInterface->GetMiInterface())
 {
     m_mmcFeatureId      = __MEDIA_USER_FEATURE_VALUE_CODEC_MMC_ENABLE_ID;
     m_mmcInuseFeatureId = __MEDIA_USER_FEATURE_VALUE_CODEC_MMC_IN_USE_ID;

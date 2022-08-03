@@ -30,9 +30,9 @@
 
 #include "vp_vebox_cmd_packet_base.h"
 #include "vp_vebox_common.h"
-#include "vp_render_sfc_base_legacy.h"
 #include "vp_filter.h"
 #include "mhw_mi_itf.h"
+#include "vp_render_sfc_base.h"
 
 #define VP_MAX_NUM_FFDI_SURFACES     4                                       //!< 2 for ADI plus additional 2 for parallel execution on HSW+
 #define VP_NUM_FFDN_SURFACES         2                                       //!< Number of FFDN surfaces

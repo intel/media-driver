@@ -30,7 +30,6 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/vp_kernel_config.cpp
     ${CMAKE_CURRENT_LIST_DIR}/vp_render_fc_kernel.cpp
     ${CMAKE_CURRENT_LIST_DIR}/vp_render_vebox_hdr_3dlut_kernel.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/vp_render_sfc_base_legacy.cpp
     ${CMAKE_CURRENT_LIST_DIR}/vp_render_vebox_hvs_kernel.cpp
 )
 
@@ -51,7 +50,6 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/vp_render_fc_kernel.h
     ${CMAKE_CURRENT_LIST_DIR}/vp_render_fc_types.h
     ${CMAKE_CURRENT_LIST_DIR}/vp_render_vebox_hdr_3dlut_kernel.h
-    ${CMAKE_CURRENT_LIST_DIR}/vp_render_sfc_base_legacy.h
     ${CMAKE_CURRENT_LIST_DIR}/vp_render_vebox_hvs_kernel.h
 )
 

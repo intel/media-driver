@@ -67,11 +67,18 @@ public:
         return &m_mmioRegisters;
     }
 
+    MHW_RENDER_ENGINE_L3_CACHE_CONFIG* GetL3CacheConfig() override
+    { 
+        return &m_l3CacheConfig;
+    }
+
 protected:
     using base_t = Itf;
 
-    MHW_MEMORY_OBJECT_CONTROL_PARAMS m_cacheabilitySettings[MOS_MP_RESOURCE_USAGE_END] = {};
-    MHW_MI_MMIOREGISTERS    m_mmioRegisters = {};
+    MHW_MEMORY_OBJECT_CONTROL_PARAMS    m_cacheabilitySettings[MOS_MP_RESOURCE_USAGE_END] = {};
+    MHW_MI_MMIOREGISTERS                m_mmioRegisters = {};
+    MHW_RENDER_ENGINE_L3_CACHE_CONFIG   m_l3CacheConfig = {};
+    
     bool        m_preemptionEnabled = false;
     uint32_t    m_preemptionCntlRegisterOffset = 0;
     uint32_t    m_preemptionCntlRegisterValue = 0;

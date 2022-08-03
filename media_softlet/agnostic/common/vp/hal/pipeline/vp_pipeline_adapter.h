@@ -24,8 +24,9 @@
 
 #include "vp_pipeline.h"
 #include "vp_pipeline_common.h"
+#include "vp_pipeline_adapter_base.h"
 
-const VphalSseuSetting VpHalDefaultSSEUTable[baseKernelMaxNumID] =
+const SseuSetting VpHalDefaultSSEUTable[baseKernelMaxNumID] =
     {
         // Slice    Sub-Slice       EU      Rsvd(freq)
         {2, 3, 8, 0},  // COMBINED_FC_KERNEL Default
@@ -72,7 +73,7 @@ public:
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     virtual MOS_STATUS Allocate(
-      const VphalSettings     *pVpHalSettings) = 0;
+        const VpSettings *pVpHalSettings) = 0;
 
     //!
     //! \brief    Get Status Report
@@ -119,7 +120,7 @@ protected:
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     virtual MOS_STATUS Init(
-      const VphalSettings *pVpHalSettings, VP_MHWINTERFACE vpMhwinterface);
+        const VpSettings *pVpHalSettings, VP_MHWINTERFACE vpMhwinterface);
 
     //!
     //! \brief  Finish the execution for each frame

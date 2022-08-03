@@ -149,44 +149,6 @@ public:
         return m_vprenderHal;
     }
 
-    void SetMhwVeboxInterface(MhwVeboxInterface *veboxInterface)
-    {
-        MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
-        if (veboxInterface == nullptr)
-        {
-            return;
-        }
-
-        if (m_veboxInterface != nullptr)
-        {
-            eStatus = m_veboxInterface->DestroyHeap();
-            MOS_Delete(m_veboxInterface);
-            m_veboxInterface = nullptr;
-            if (MOS_FAILED(eStatus))
-            {
-                VP_PUBLIC_ASSERTMESSAGE("Failed to destroy Vebox Interface, eStatus:%d.\n", eStatus);
-            }
-        }
-
-        m_veboxInterface = veboxInterface;
-    }
-
-    void SetMhwSfcInterface(MhwSfcInterface *sfcInterface)
-    {
-        if (sfcInterface == nullptr)
-        {
-            return;
-        }
-
-        if (m_sfcInterface != nullptr)
-        {
-            MOS_Delete(m_sfcInterface);
-            m_sfcInterface = nullptr;
-        }
-
-        m_sfcInterface = sfcInterface;
-    }
-
     void SetMhwVeboxItf(std::shared_ptr<mhw::vebox::Itf> veboxItf)
     {
         MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
@@ -262,9 +224,7 @@ protected:
     // States
     PMOS_INTERFACE       m_osInterface   = nullptr;
     PRENDERHAL_INTERFACE m_vprenderHal   = nullptr;
-    PMHW_VEBOX_INTERFACE m_veboxInterface = nullptr;
     MhwCpInterface *     m_cpInterface    = nullptr;
-    PMHW_SFC_INTERFACE   m_sfcInterface   = nullptr;
     std::shared_ptr<mhw::vebox::Itf>  m_veboxItf  = nullptr;
     std::shared_ptr<mhw::sfc::Itf>    m_sfcItf    = nullptr;
     std::shared_ptr<mhw::mi::Itf>     m_miItf     = nullptr;

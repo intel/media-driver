@@ -741,7 +741,7 @@ MOS_STATUS XRenderHal_Interface_Xe_Hpg_Base::IsOvrdNeeded(
     PMOS_INTERFACE                        pOsInterface;
     MOS_STATUS                            eStatus;
     PMOS_CMD_BUF_ATTRI_VE                 pAttriVe;
-    PRENDERHAL_GENERIC_PROLOG_PARAMS_HPG_BASE pGenericPrologParamsHPG_BASE;
+    PRENDERHAL_GENERIC_PROLOG_PARAMS_NEXT pGenericPrologParamsNext;
     uint8_t                               i;
 
     MHW_RENDERHAL_CHK_NULL(pRenderHal);
@@ -752,22 +752,22 @@ MOS_STATUS XRenderHal_Interface_Xe_Hpg_Base::IsOvrdNeeded(
     eStatus                 = MOS_STATUS_SUCCESS;
     pOsInterface            = pRenderHal->pOsInterface;
     pAttriVe               = (PMOS_CMD_BUF_ATTRI_VE)(pCmdBuffer->Attributes.pAttriVe);
-    pGenericPrologParamsHPG_BASE = dynamic_cast<PRENDERHAL_GENERIC_PROLOG_PARAMS_HPG_BASE>(pGenericPrologParams);
+    pGenericPrologParamsNext = dynamic_cast<PRENDERHAL_GENERIC_PROLOG_PARAMS_NEXT>(pGenericPrologParams);
 
     // Split Frame
     if (pOsInterface->VEEnable)
     {
 #if !EMUL
-        if (pGenericPrologParamsHPG_BASE)
+        if (pGenericPrologParamsNext)
 #else
-        if (pGenericPrologParamsHPG_BASE && pAttriVe != nullptr)
+        if (pGenericPrologParamsNext && pAttriVe != nullptr)
 #endif
         {
             // Split Frame
-            if (pGenericPrologParamsHPG_BASE->VEngineHintParams.BatchBufferCount > 1)
+            if (pGenericPrologParamsNext->VEngineHintParams.BatchBufferCount > 1)
             {
                 pAttriVe->bUseVirtualEngineHint = true;
-                pAttriVe->VEngineHintParams = pGenericPrologParamsHPG_BASE->VEngineHintParams;
+                pAttriVe->VEngineHintParams = pGenericPrologParamsNext->VEngineHintParams;
             }
         }
 
@@ -782,13 +782,13 @@ MOS_STATUS XRenderHal_Interface_Xe_Hpg_Base::IsOvrdNeeded(
             {
                 pAttriVe->VEngineHintParams.DebugOverride = true;
 #if !EMUL
-                if (pGenericPrologParamsHPG_BASE)
+                if (pGenericPrologParamsNext)
 #else
-                if (pGenericPrologParamsHPG_BASE && pAttriVe != nullptr)
+                if (pGenericPrologParamsNext && pAttriVe != nullptr)
 #endif
                 {
-                    pAttriVe->VEngineHintParams.BatchBufferCount = pGenericPrologParamsHPG_BASE->VEngineHintParams.BatchBufferCount;
-                    for (i = 0; i < pGenericPrologParamsHPG_BASE->VEngineHintParams.BatchBufferCount; i++)
+                    pAttriVe->VEngineHintParams.BatchBufferCount = pGenericPrologParamsNext->VEngineHintParams.BatchBufferCount;
+                    for (i = 0; i < pGenericPrologParamsNext->VEngineHintParams.BatchBufferCount; i++)
                     {
                         pAttriVe->VEngineHintParams.EngineInstance[i] = i;
                     }

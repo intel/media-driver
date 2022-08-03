@@ -29,22 +29,122 @@
 #ifndef __MEDIA_MEM_COMPRESSION_H__
 #define __MEDIA_MEM_COMPRESSION_H__
 
-#include <stdint.h>
-#include "mos_defs.h"
-#include "mos_utilities_common.h"
-#include "media_mem_compression_next.h"
-class MhwMiInterface;
+#include "mos_os.h"
+#include "mos_os_specific.h"
 
-class MediaMemComp : public MediaMemCompNext
+class MediaMemComp
 {
 public:
     //!
     //! \brief    Construct
     //!
-    MediaMemComp(PMOS_INTERFACE osInterface, MhwMiInterface *miInterface);
+    MediaMemComp(PMOS_INTERFACE osInterface);
+
+    //!
+    //! \brief    Deconstructor
+    //!
+    virtual ~MediaMemComp()
+    {
+    }
+
+    //!
+    //! \brief    SendPrologCmd
+    //!
+    virtual MOS_STATUS SendPrologCmd(
+        PMOS_COMMAND_BUFFER cmdBuffer,
+        bool bRcsIsUsed)
+    {
+        return MOS_STATUS_SUCCESS;
+    };
+
+    //!
+    //! \brief    SetSurfaceMmcState
+    //!
+    virtual MOS_STATUS SetSurfaceMmcState(
+        PMOS_SURFACE surface);
+
+    //!
+    //! \brief    SetSurfaceMmcMode
+    //!
+    virtual MOS_STATUS SetSurfaceMmcMode(
+        PMOS_SURFACE surface);
+
+    //!
+    //! \brief    SetSurfaceMmcFormat
+    //!
+    virtual MOS_STATUS SetSurfaceMmcFormat(
+        PMOS_SURFACE surface);
+
+    //!
+    //! \brief    GetSurfaceMmcState
+    //!
+    virtual MOS_STATUS GetSurfaceMmcState(
+        PMOS_SURFACE surface,
+        MOS_MEMCOMP_STATE *mmcMode);
+
+    virtual MOS_STATUS GetSurfaceMmcFormat(
+        PMOS_SURFACE surface,
+        uint32_t *   mmcFormat);
+
+    //!
+    //! \brief    GetResourceMmcState
+    //!
+    virtual MOS_STATUS GetResourceMmcState(
+        PMOS_RESOURCE resource,
+        MOS_MEMCOMP_STATE &mmcMode);
+
+    //!
+    //! \brief    GetResourceMmcFormat
+    //!
+    virtual MOS_STATUS GetResourceMmcFormat(
+        PMOS_RESOURCE resource,
+        uint32_t    &mmcFormat);
+
+    //!
+    //! \brief    IsMmcEnabled
+    //!
+    virtual bool IsMmcEnabled();
+
+    //!
+    //! \brief    DisableMmc
+    //!
+    void DisableMmc();
+
+    //!
+    //! \brief    InitMmcEnabled
+    //!
+    MOS_STATUS InitMmcEnabled();
+
+    //!
+    //! \brief    Decompress Resources
+    //!
+    MOS_STATUS DecompressResource(PMOS_RESOURCE resource);
+
+    //!
+    //! \brief    IsCompressibleSurfaceAllocable
+    //!
+    bool IsCompressibelSurfaceSupported();
 
 protected:
-    MhwMiInterface *m_mhwMiInterface = nullptr;
+    //!
+    //! \brief    UpdateMmcInUseFeature
+    //!
+    virtual MOS_STATUS UpdateMmcInUseFeature();
+
+private:
+    //!
+    //! \brief    IsMmcFeatureEnabled
+    //!
+    bool IsMmcFeatureEnabled();
+
+protected:
+    PMOS_INTERFACE                m_osInterface = nullptr;
+    bool                          m_mmcEnabled = false;
+    bool                          m_isCompSurfAllocable = false;
+    bool                          m_bComponentMmcEnabled = false;
+    uint32_t                      m_mmcFeatureId = __MOS_USER_FEATURE_KEY_MAX_ID;
+    uint32_t                      m_mmcInuseFeatureId = __MOS_USER_FEATURE_KEY_MAX_ID;
+    MediaUserSettingSharedPtr     m_userSettingPtr = nullptr;
 MEDIA_CLASS_DEFINE_END(MediaMemComp)
 };
 

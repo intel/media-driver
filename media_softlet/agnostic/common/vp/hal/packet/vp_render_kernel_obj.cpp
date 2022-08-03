@@ -26,7 +26,7 @@
 //!
 #include "vp_render_kernel_obj.h"
 #include "vp_dumper.h"
-#include "hal_oca_interface.h"
+#include "hal_oca_interface_next.h"
 
 using namespace vp;
 
@@ -103,7 +103,7 @@ MOS_STATUS VpRenderKernelObj::SetSamplerStates(KERNEL_SAMPLER_STATE_GROUP& sampl
 
 void VpRenderKernelObj::OcaDumpKernelInfo(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext)
 {
-    HalOcaInterface::DumpVpKernelInfo(cmdBuffer, mosContext, m_kernelId, 0, nullptr);
+    HalOcaInterfaceNext::DumpVpKernelInfo(cmdBuffer, mosContext, m_kernelId, 0, nullptr);
 }
 
 // Only for Adv kernels.

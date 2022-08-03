@@ -28,13 +28,14 @@
 #include "vp_platform_interface.h"
 #include "vp_pipeline_common.h"
 #include "vp_render_kernel_obj.h"
-#include "hal_oca_interface.h"
 #include "vp_pipeline.h"
 #include "vp_packet_pipe.h"
 #include "vp_user_feature_control.h"
 #include "mhw_mi_itf.h"
 #include "mhw_mi_cmdpar.h"
 #include "vp_platform_interface.h"
+#include "hal_oca_interface_next.h"
+#include "renderhal_platform_interface.h"
 
 namespace vp
 {
@@ -828,7 +829,7 @@ void VpRenderCmdPacket::OcaDumpDbgInfo(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEX
         }
     }
     // Add vphal param to log.
-    HalOcaInterface::DumpVphalParam(cmdBuffer, mosContext, m_renderHal->pVphalOcaDumper);
+    HalOcaInterfaceNext::DumpVphalParam(cmdBuffer, mosContext, m_renderHal->pVphalOcaDumper);
 }
 
 MOS_STATUS VpRenderCmdPacket::SetMediaFrameTracking(RENDERHAL_GENERIC_PROLOG_PARAMS &genericPrologParams)
@@ -980,7 +981,7 @@ MOS_STATUS VpRenderCmdPacket::SamplerAvsCalcScalingTable(
         // we don't do this when bForcePolyPhaseCoefs flag is set
         if (fLumaScale == 1.0F && !avsParameters.bForcePolyPhaseCoefs)
         {
-            VPHAL_RENDER_CHK_STATUS_RETURN(SetNearestModeTable(
+            VP_RENDER_CHK_STATUS_RETURN(SetNearestModeTable(
                 piYCoefsParam,
                 Plane,
                 true));
@@ -990,7 +991,7 @@ MOS_STATUS VpRenderCmdPacket::SamplerAvsCalcScalingTable(
             {
                 if (fChromaScale == 1.0F)
                 {
-                    VPHAL_RENDER_CHK_STATUS_RETURN(SetNearestModeTable(
+                    VP_RENDER_CHK_STATUS_RETURN(SetNearestModeTable(
                         piUVCoefsParam,
                         MHW_U_PLANE,
                         true));
@@ -1000,7 +1001,7 @@ MOS_STATUS VpRenderCmdPacket::SamplerAvsCalcScalingTable(
                     if (dwChromaSiting & (bVertical ? MHW_CHROMA_SITING_VERT_TOP : MHW_CHROMA_SITING_HORZ_LEFT))
                     {
                         // No Chroma Siting
-                        VPHAL_RENDER_CHK_STATUS_RETURN(CalcPolyphaseTablesUV(
+                        VP_RENDER_CHK_STATUS_RETURN(CalcPolyphaseTablesUV(
                             piUVCoefsParam,
                             2.0F,
                             fChromaScale));
@@ -1017,7 +1018,7 @@ MOS_STATUS VpRenderCmdPacket::SamplerAvsCalcScalingTable(
                             iUvPhaseOffset = MOS_UF_ROUND(1.0F * 16.0F);  // U0.4
                         }
 
-                        VPHAL_RENDER_CHK_STATUS_RETURN(CalcPolyphaseTablesUVOffset(
+                        VP_RENDER_CHK_STATUS_RETURN(CalcPolyphaseTablesUVOffset(
                             piUVCoefsParam,
                             3.0F,
                             fChromaScale,
@@ -1031,7 +1032,7 @@ MOS_STATUS VpRenderCmdPacket::SamplerAvsCalcScalingTable(
             // Clamp the Scaling Factor if > 1.0x
             fLumaScale = MOS_MIN(1.0F, fLumaScale);
 
-            VPHAL_RENDER_CHK_STATUS_RETURN(CalcPolyphaseTablesY(
+            VP_RENDER_CHK_STATUS_RETURN(CalcPolyphaseTablesY(
                 piYCoefsParam,
                 fLumaScale,
                 Plane,
@@ -1047,7 +1048,7 @@ MOS_STATUS VpRenderCmdPacket::SamplerAvsCalcScalingTable(
                 {
                     if (fChromaScale == 1.0F)
                     {
-                        VPHAL_RENDER_CHK_STATUS_RETURN(SetNearestModeTable(
+                        VP_RENDER_CHK_STATUS_RETURN(SetNearestModeTable(
                             piUVCoefsParam,
                             MHW_U_PLANE,
                             true));
@@ -1058,7 +1059,7 @@ MOS_STATUS VpRenderCmdPacket::SamplerAvsCalcScalingTable(
                         if (dwChromaSiting & (bVertical ? MHW_CHROMA_SITING_VERT_TOP : MHW_CHROMA_SITING_HORZ_LEFT))
                         {
                             // No Chroma Siting
-                            VPHAL_RENDER_CHK_STATUS_RETURN(CalcPolyphaseTablesUV(
+                            VP_RENDER_CHK_STATUS_RETURN(CalcPolyphaseTablesUV(
                                 piUVCoefsParam,
                                 2.0F,
                                 fChromaScale));
@@ -1075,7 +1076,7 @@ MOS_STATUS VpRenderCmdPacket::SamplerAvsCalcScalingTable(
                                 iUvPhaseOffset = MOS_UF_ROUND(1.0F * 16.0F);  // U0.4
                             }
 
-                            VPHAL_RENDER_CHK_STATUS_RETURN(CalcPolyphaseTablesUVOffset(
+                            VP_RENDER_CHK_STATUS_RETURN(CalcPolyphaseTablesUVOffset(
                                 piUVCoefsParam,
                                 3.0F,
                                 fChromaScale,
@@ -1660,7 +1661,7 @@ MOS_STATUS VpRenderCmdPacket::SendMediaStates(
     MHW_RENDERHAL_CHK_STATUS(pRenderHal->pRenderHalPltInterface->AddPipelineSelectCmd(pRenderHal, pCmdBuffer, (m_walkerType == WALKER_TYPE_COMPUTE) ? true : false));
 
     // The binding table for surface states is at end of command buffer. No need to add it to indirect state heap.
-    HalOcaInterface::OnIndirectState(*pCmdBuffer, *pOsContext, pRenderHal->StateBaseAddressParams.presInstructionBuffer, pStateHeap->CurIDEntryParams.dwKernelOffset, false, pStateHeap->iKernelUsedForDump);
+    HalOcaInterfaceNext::OnIndirectState(*pCmdBuffer, *pOsContext, pRenderHal->StateBaseAddressParams.presInstructionBuffer, pStateHeap->CurIDEntryParams.dwKernelOffset, false, pStateHeap->iKernelUsedForDump);
 
     // Send State Base Address command
     MHW_RENDERHAL_CHK_STATUS(pRenderHal->pfnSendStateBaseAddress(pRenderHal, pCmdBuffer));

@@ -28,7 +28,6 @@
 #include "vp_debug_interface.h"
 #if USE_VP_DEBUG_TOOL
 #include "vp_debug_config_manager.h"
-#include "vphal.h"
 
 VpDebugInterface::VpDebugInterface()
 {

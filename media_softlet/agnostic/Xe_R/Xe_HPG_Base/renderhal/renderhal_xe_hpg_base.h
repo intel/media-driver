@@ -47,11 +47,6 @@ struct MHW_VFE_PARAMS_XE_HPG : MHW_VFE_PARAMS
     uint32_t scratchStateOffset = 0;
 };
 
-typedef struct _RENDERHAL_GENERIC_PROLOG_PARAMS_HPG_BASE : _RENDERHAL_GENERIC_PROLOG_PARAMS
-{
-    MOS_VIRTUALENGINE_HINT_PARAMS VEngineHintParams = {{0}, 0, {{0}, {0}, {0}, {0}}, {0, 0, 0, 0}};
-} RENDERHAL_GENERIC_PROLOG_PARAMS_HPG_BASE, *PRENDERHAL_GENERIC_PROLOG_PARAMS_HPG_BASE;
-
 //! \brief      for Xe_HPM VP and MDF
 //!              SLM     URB     DC      RO      Rest/L3 Client Pool
 //!               0    96(fixed) 0       0       320 (KB chunks based on GT2)

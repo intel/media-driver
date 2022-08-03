@@ -522,6 +522,10 @@ MOS_STATUS MhwInterfacesDg2_Next::Initialize(
 void MhwInterfacesDg2_Next::Destroy()
 {
     MhwInterfacesNext::Destroy();
+    MOS_Delete(m_miInterface);
+    MOS_Delete(m_renderInterface);
+    MOS_Delete(m_sfcInterface);
+    MOS_Delete(m_veboxInterface);
     MOS_Delete(m_bltInterface);
 }
 

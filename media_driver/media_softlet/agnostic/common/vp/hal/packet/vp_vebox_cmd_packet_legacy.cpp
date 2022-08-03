@@ -36,6 +36,7 @@
 #include "mhw_vebox_itf.h"
 #include "mhw_mi_itf.h"
 #include "media_scalability_defs.h"
+#include "renderhal_g12_base.h"
 
 namespace vp {
 

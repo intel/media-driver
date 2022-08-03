@@ -47,7 +47,7 @@ VpPipelineAdapter::~VpPipelineAdapter()
 };
 
 MOS_STATUS VpPipelineAdapter::Init(
-    const VphalSettings *pVpHalSettings, VP_MHWINTERFACE vpMhwinterface)
+    const VpSettings *pVpHalSettings, VP_MHWINTERFACE vpMhwinterface)
 {
     VP_FUNC_CALL();
 

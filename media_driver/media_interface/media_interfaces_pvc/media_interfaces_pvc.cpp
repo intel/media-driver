@@ -244,6 +244,10 @@ MOS_STATUS MhwInterfacesPvc_Next::Initialize(
 void MhwInterfacesPvc_Next::Destroy()
 {
     MhwInterfacesNext::Destroy();
+    MOS_Delete(m_miInterface);
+    MOS_Delete(m_renderInterface);
+    MOS_Delete(m_sfcInterface);
+    MOS_Delete(m_veboxInterface);
     MOS_Delete(m_bltInterface);
 }
 

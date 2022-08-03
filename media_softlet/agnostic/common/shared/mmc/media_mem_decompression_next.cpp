@@ -64,10 +64,6 @@ MediaMemDeCompNext::~MediaMemDeCompNext()
         MOS_Delete(m_miInterface);
     }
 
-    if (m_veboxInterface)
-    {
-        MOS_Delete(m_veboxInterface);
-    }
 }
 
 MOS_STATUS MediaMemDeCompNext::MemoryDecompress(PMOS_RESOURCE targetResource)
@@ -459,7 +455,6 @@ MOS_STATUS MediaMemDeCompNext::Initialize(PMOS_INTERFACE osInterface, MhwInterfa
     m_veboxItf    = mhwInterfaces->m_veboxItf;
 
     // track legacy vebox/mi interface after mhw created
-    m_veboxInterface =  mhwInterfaces->m_veboxInterface;
     m_miInterface    = mhwInterfaces->m_miInterface;
 
     m_userSettingPtr = m_osInterface->pfnGetUserSettingInstance(m_osInterface);

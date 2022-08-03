@@ -1,4 +1,4 @@
-# Copyright (c) 2019-2022, Intel Corporation
+# Copyright (c) 2022, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -19,38 +19,27 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 set(TMP_SOURCES_
-    ${CMAKE_CURRENT_LIST_DIR}/vp_pipeline.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/vp_pipeline_adapter.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/vp_pipeline_adapter_base.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/vp_feature_report.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/vp_base.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/vp_packet_reuse_manager.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/vp_pipeline_adapter_legacy.cpp
 )
 
 set(TMP_HEADERS_
-    ${CMAKE_CURRENT_LIST_DIR}/vp_pipeline.h
-    ${CMAKE_CURRENT_LIST_DIR}/vp_pipeline_common.h
-    ${CMAKE_CURRENT_LIST_DIR}/vp_pipeline_adapter.h
-    ${CMAKE_CURRENT_LIST_DIR}/vp_pipeline_adapter_base.h
-    ${CMAKE_CURRENT_LIST_DIR}/vp_feature_report.h
-    ${CMAKE_CURRENT_LIST_DIR}/vp_base.h
-    ${CMAKE_CURRENT_LIST_DIR}/vp_packet_reuse_manager.h
+    ${CMAKE_CURRENT_LIST_DIR}/vp_pipeline_adapter_legacy.h
 )
 
-set(SOFTLET_VP_SOURCES_
-    ${SOFTLET_VP_SOURCES_}
+set(VP_SOURCES_
+    ${VP_SOURCES_}
     ${TMP_SOURCES_}
 )
 
-set(SOFTLET_VP_HEADERS_
-    ${SOFTLET_VP_HEADERS_}
+set(VP_HEADERS_
+    ${VP_HEADERS_}
     ${TMP_HEADERS_}
 )
 
 source_group( VpHalNext\\Shared FILES ${TMP_SOURCES_} ${TMP_HEADERS_})
 set(TMP_SOURCES_ "")
 set(TMP_HEADERS_ "")
-set(SOFTLET_VP_PRIVATE_INCLUDE_DIRS_
-    ${SOFTLET_VP_PRIVATE_INCLUDE_DIRS_}
+set(VP_PRIVATE_INCLUDE_DIRS_
+    ${VP_PRIVATE_INCLUDE_DIRS_}
     ${CMAKE_CURRENT_LIST_DIR}
 )

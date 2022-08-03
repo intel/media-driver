@@ -33,8 +33,6 @@
 #include "media_packet.h"
 #include "mhw_utilities_next.h"
 #include "hal_oca_interface_next.h"
-// After removing MhwRenderInterface from Mhw Next, need to remove this mhw_render_legacy header file
-#include "mhw_render_legacy.h"
 #include "media_feature.h"
 #include "media_interfaces_mhw_next.h"
 #include "media_skuwa_specific.h"
@@ -46,6 +44,8 @@
 #include "mos_utilities.h"
 #include "renderhal.h"
 #include "vp_utils.h"
+// Need to remove below header files, after legacy contents clean up
+#include "mhw_render_legacy.h"
 #include "media_perf_profiler.h"
 
 MOS_STATUS XRenderHal_Platform_Interface_Next::AddPipelineSelectCmd(

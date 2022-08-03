@@ -30,6 +30,7 @@
 #include "vp_platform_interface.h"
 #include "vphal_debug.h"
 #include "media_interfaces_mhw_next.h"
+#include "renderhal_platform_interface.h"
 
 VpPipelineAdapterBase::VpPipelineAdapterBase(
     vp::VpPlatformInterface &vpPlatformInterface,
@@ -123,7 +124,6 @@ MOS_STATUS VpPipelineAdapterBase::GetVpMhwInterface(
     vpMhwinterface.m_osInterface    = m_osInterface;
     vpMhwinterface.m_renderHal      = m_vprenderHal;
     vpMhwinterface.m_cpInterface    = m_cpInterface;
-    vpMhwinterface.m_mhwMiInterface = m_vprenderHal->pMhwMiInterface;
     vpMhwinterface.m_statusTable    = &m_statusTable;
     m_vpPlatformInterface.SetMhwSfcItf(m_sfcItf);
     m_vpPlatformInterface.SetMhwVeboxItf(m_veboxItf);
@@ -161,29 +161,10 @@ VpPipelineAdapterBase::~VpPipelineAdapterBase()
         m_sfcItf = nullptr;
     }
 
-
-    if (m_sfcInterface)
-    {
-        MOS_Delete(m_sfcInterface);
-        m_sfcInterface = nullptr;
-    }
-
     if (m_veboxItf)
     {
         eStatus    = m_veboxItf->DestroyHeap();
         m_veboxItf = nullptr;
-    }
-
-    if (m_veboxInterface)
-    {
-        eStatus = m_veboxInterface->DestroyHeap();
-
-        MOS_Delete(m_veboxInterface);
-        m_veboxInterface = nullptr;
-        if (eStatus != MOS_STATUS_SUCCESS)
-        {
-            VP_PUBLIC_ASSERTMESSAGE("Failed to destroy Vebox Interface, eStatus:%d.\n", eStatus);
-        }
     }
 
     // Destroy OS interface objects (CBs, etc)

@@ -37,6 +37,7 @@
 #include "renderhal.h"
 #include "media_mem_compression.h"
 #include "media_interfaces_mhw_next.h"
+#include "renderhal_platform_interface.h"
 
 using namespace vp;
 
@@ -252,7 +253,6 @@ MOS_STATUS MediaSfcRender::Initialize()
     m_vpMhwinterface->m_osInterface            = m_osInterface;
     m_vpMhwinterface->m_renderHal              = m_renderHal;
     m_vpMhwinterface->m_cpInterface            = m_cpInterface;
-    m_vpMhwinterface->m_mhwMiInterface         = m_renderHal->pMhwMiInterface;
     m_vpMhwinterface->m_statusTable            = m_statusTable;
     m_vpMhwinterface->m_vpPlatformInterface    = m_vpPlatformInterface;
     m_vpMhwinterface->m_settings               = nullptr;

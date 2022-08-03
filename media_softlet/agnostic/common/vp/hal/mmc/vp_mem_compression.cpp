@@ -33,7 +33,7 @@
 VPMediaMemComp::VPMediaMemComp(
     PMOS_INTERFACE    osInterface,
     VP_MHWINTERFACE  &vpInterface)
-    :MediaMemComp(osInterface, vpInterface.m_mhwMiInterface)
+    :MediaMemComp(osInterface)
 {
     m_mmcFeatureId      = __VPHAL_ENABLE_MMC_ID;
     m_mmcInuseFeatureId = __VPHAL_ENABLE_MMC_IN_USE_ID;

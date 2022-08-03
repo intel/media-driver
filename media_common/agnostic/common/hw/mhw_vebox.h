@@ -86,6 +86,10 @@
 #define MHW_VEBOX_WATCHDOG_DISABLE_COUNTER                0xFFFFFFFF
 #define MHW_VEBOX_TIMEOUT_MS                              60
 
+#define HDR_OETF_1DLUT_POINT_NUMBER                  256
+#define MHW_FORWARD_GAMMA_SEGMENT_CONTROL_POINT      1024
+#define MHW_VEBOX_STARTING_INDEX                     0
+
 typedef MhwMiInterface *PMHW_MI_INTERFACE;
 
 //!

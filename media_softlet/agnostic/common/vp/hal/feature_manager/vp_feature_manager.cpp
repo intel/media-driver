@@ -490,7 +490,7 @@ bool VPFeatureManager::IsVeboxRTFormatSupport(
 
     if ((nullptr == pSrcSurface) || (nullptr == pRTSurface))
     {
-        VPHAL_RENDER_ASSERTMESSAGE(" invalid surface");
+        VP_RENDER_ASSERTMESSAGE(" invalid surface");
         return false;
     }
 
@@ -526,8 +526,8 @@ bool VPFeatureManager::IsVeboxSupported(PVP_PIPELINE_PARAMS params)
 {
     VP_FUNC_CALL();
 
-    VPHAL_RENDER_CHK_NULL_NO_STATUS(params);
-    VPHAL_RENDER_CHK_NULL_NO_STATUS(params->pSrc[0]);
+    VP_RENDER_CHK_NULL_NO_STATUS(params);
+    VP_RENDER_CHK_NULL_NO_STATUS(params->pSrc[0]);
 
     if ((nullptr != params->pSrc[0]->pDenoiseParams && true == params->pSrc[0]->pDenoiseParams->bEnableLuma) ||
         (nullptr != params->pSrc[0]->pProcampParams && true == params->pSrc[0]->pProcampParams->bEnabled) ||
@@ -568,8 +568,8 @@ bool VPFeatureManager::IsSfcOutputFeasible(PVP_PIPELINE_PARAMS params)
     bool                        disableSFC = false;
     VP_POLICY_RULES             rules = {};
 
-    VPHAL_RENDER_CHK_NULL_NO_STATUS(params);
-    VPHAL_RENDER_CHK_NULL_NO_STATUS(params->pTarget[0]);
+    VP_RENDER_CHK_NULL_NO_STATUS(params);
+    VP_RENDER_CHK_NULL_NO_STATUS(params->pTarget[0]);
 
     if (MEDIA_IS_SKU(m_hwInterface->m_skuTable, FtrSFCPipe))
     {
@@ -578,7 +578,7 @@ bool VPFeatureManager::IsSfcOutputFeasible(PVP_PIPELINE_PARAMS params)
         disableSFC = m_vpUserFeatureControl->IsSfcDisabled();
         if (disableSFC)
         {
-            VPHAL_RENDER_NORMALMESSAGE("SFC is disabled.");
+            VP_RENDER_NORMALMESSAGE("SFC is disabled.");
             bRet = false;
             return bRet;
         }
@@ -587,14 +587,14 @@ bool VPFeatureManager::IsSfcOutputFeasible(PVP_PIPELINE_PARAMS params)
     // params->pSrc[0] == nullptr is valid for color fill case on SFC.
     if (params->pSrc[0] && !IsVeboxInputFormatSupport(params->pSrc[0]))
     {
-        VPHAL_RENDER_NORMALMESSAGE("The input format %d is not supported by vebox.", params->pSrc[0]->Format);
+        VP_RENDER_NORMALMESSAGE("The input format %d is not supported by vebox.", params->pSrc[0]->Format);
         bRet = false;
         return bRet;
     }
 
     if (params->pTarget[0] && !IsOutputFormatSupported(params->pTarget[0]))
     {
-        VPHAL_RENDER_NORMALMESSAGE("The output format %d is not supported by vebox.", params->pSrc[0]->Format);
+        VP_RENDER_NORMALMESSAGE("The output format %d is not supported by vebox.", params->pSrc[0]->Format);
         bRet = false;
         return bRet;
     }
@@ -672,7 +672,7 @@ bool VPFeatureManager::IsSfcOutputFeasible(PVP_PIPELINE_PARAMS params)
         OUT_OF_BOUNDS(params->pTarget[0]->dwWidth, dwTargetMinWidth, dwSfcMaxWidth) ||
         OUT_OF_BOUNDS(params->pTarget[0]->dwHeight, dwTargetMinHeight, dwSfcMaxHeight))
     {
-        VPHAL_RENDER_NORMALMESSAGE("Surface dimensions not supported by SFC Pipe");
+        VP_RENDER_NORMALMESSAGE("Surface dimensions not supported by SFC Pipe");
         bRet = false;
         return bRet;
     }
@@ -680,7 +680,7 @@ bool VPFeatureManager::IsSfcOutputFeasible(PVP_PIPELINE_PARAMS params)
     {
         if (params->pSrc[0]->Rotation != VPHAL_ROTATION_IDENTITY)
         {
-            VPHAL_RENDER_NORMALMESSAGE("Interlaced scaling cannot support rotate or mirror by SFC pipe.");
+            VP_RENDER_NORMALMESSAGE("Interlaced scaling cannot support rotate or mirror by SFC pipe.");
             bRet = false;
             return bRet;
         }
@@ -690,7 +690,7 @@ bool VPFeatureManager::IsSfcOutputFeasible(PVP_PIPELINE_PARAMS params)
             params->pSrc[0]->rcDst.left != 0 ||
             params->pSrc[0]->rcDst.top  != 0)
         {
-            VPHAL_RENDER_NORMALMESSAGE("Interlaced scaling cannot support offset by SFC pipe.");
+            VP_RENDER_NORMALMESSAGE("Interlaced scaling cannot support offset by SFC pipe.");
             bRet = false;
             return bRet;
         }
@@ -703,7 +703,7 @@ bool VPFeatureManager::IsSfcOutputFeasible(PVP_PIPELINE_PARAMS params)
     if ((params->pSrc[0]->Rotation > VPHAL_ROTATION_IDENTITY && params->pSrc[0]->Rotation != VPHAL_MIRROR_HORIZONTAL) &&
         params->pTarget[0]->TileType != MOS_TILE_Y)
     {
-        VPHAL_RENDER_NORMALMESSAGE("non TileY output mirror and rotation not supported by SFC Pipe.");
+        VP_RENDER_NORMALMESSAGE("non TileY output mirror and rotation not supported by SFC Pipe.");
         bRet = false;
         return bRet;
     }
@@ -745,7 +745,7 @@ bool VPFeatureManager::IsSfcOutputFeasible(PVP_PIPELINE_PARAMS params)
     if ((fScaleX < minRatio) || (fScaleX > maxRatio) ||
         (fScaleY < minRatio) || (fScaleY > maxRatio))
     {
-        VPHAL_RENDER_NORMALMESSAGE("Scaling factor not supported by SFC Pipe.");
+        VP_RENDER_NORMALMESSAGE("Scaling factor not supported by SFC Pipe.");
         bRet = false;
         return bRet;
     }
@@ -793,7 +793,7 @@ bool VPFeatureManager::IsRGBOutputFormatSupported(PVPHAL_SURFACE outSurface)
 {
     if (nullptr == outSurface)
     {
-        VPHAL_RENDER_ASSERTMESSAGE(" invalid outputsurface");
+        VP_RENDER_ASSERTMESSAGE(" invalid outputsurface");
         return false;
     }
 
@@ -811,7 +811,7 @@ bool VPFeatureManager::IsNV12P010OutputFormatSupported(PVPHAL_SURFACE outSurface
 {
     if (nullptr == outSurface)
     {
-        VPHAL_RENDER_ASSERTMESSAGE(" invalid outputsurface");
+        VP_RENDER_ASSERTMESSAGE(" invalid outputsurface");
         return false;
     }
 
@@ -833,7 +833,7 @@ bool VPFeatureManager::IsOutputFormatSupported(PVPHAL_SURFACE outSurface)
     VP_FUNC_CALL();
     if (nullptr == outSurface)
     {
-        VPHAL_RENDER_ASSERTMESSAGE(" invalid outputsurface");
+        VP_RENDER_ASSERTMESSAGE(" invalid outputsurface");
         return false;
     }
 
@@ -856,7 +856,7 @@ bool VPFeatureManager::IsOutputFormatSupported(PVPHAL_SURFACE outSurface)
     }
     else
     {
-        VPHAL_RENDER_NORMALMESSAGE("Unsupported Render Target Format '0x%08x' for SFC Pipe.", outSurface->Format);
+        VP_RENDER_NORMALMESSAGE("Unsupported Render Target Format '0x%08x' for SFC Pipe.", outSurface->Format);
         ret = false;
     }
 
@@ -989,7 +989,7 @@ MOS_STATUS VPFeatureManager::RectSurfaceAlignment(
         (pSurface->dwWidth    == 0)                      ||
         (pSurface->dwHeight   == 0))
     {
-        VPHAL_RENDER_ASSERTMESSAGE("Surface Parameter is invalid.");
+        VP_RENDER_ASSERTMESSAGE("Surface Parameter is invalid.");
         eStatus = MOS_STATUS_INVALID_PARAMETER;
     }
 
