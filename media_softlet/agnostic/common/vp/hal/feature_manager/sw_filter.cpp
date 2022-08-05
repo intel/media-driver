@@ -47,6 +47,12 @@ inline void swap(T &a, T &b)
 
 SwFilter::SwFilter(VpInterface &vpInterface, FeatureType type) : m_vpInterface(vpInterface), m_type(type)
 {
+    if (m_EngineCaps.value != 0)
+    {
+        // Some complier may not work well for m_EngineCaps initialization by m_EngineCaps = {}. Force set to 0 here.
+        VP_PUBLIC_NORMALMESSAGE("m_EngineCaps is not initialized correctly since complier issue, m_EngineCaps.value: %x. Force reset to 0.", m_EngineCaps.value);
+        m_EngineCaps.value = 0;
+    }
 }
 
 SwFilter::~SwFilter()
