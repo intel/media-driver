@@ -222,7 +222,7 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::GetAvpStateCommandSize(
         mhw_vdbox_vdenc_g12_X::VD_PIPELINE_FLUSH_CMD::byteSize          +
         mhw_mi_g12_X::MI_FLUSH_DW_CMD::byteSize                         +
         mhw_vdbox_avp_g12_X::AVP_PIPE_MODE_SELECT_CMD::byteSize         +
-        mhw_vdbox_avp_g12_X::AVP_SURFACE_STATE_CMD::byteSize * 7        +
+        mhw_vdbox_avp_g12_X::AVP_SURFACE_STATE_CMD::byteSize * 11       +
         mhw_vdbox_avp_g12_X::AVP_PIPE_BUF_ADDR_STATE_CMD::byteSize      +
         mhw_vdbox_avp_g12_X::AVP_IND_OBJ_BASE_ADDR_STATE_CMD::byteSize  +
         mhw_vdbox_avp_g12_X::AVP_SEGMENT_STATE_CMD::byteSize * 8        +
@@ -233,7 +233,7 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::GetAvpStateCommandSize(
         PATCH_LIST_COMMAND(VD_PIPELINE_FLUSH_CMD)           +
         PATCH_LIST_COMMAND(MI_FLUSH_DW_CMD)                 +
         PATCH_LIST_COMMAND(AVP_PIPE_MODE_SELECT_CMD)        +
-        PATCH_LIST_COMMAND(AVP_SURFACE_STATE_CMD) * 7       +
+        PATCH_LIST_COMMAND(AVP_SURFACE_STATE_CMD) * 11      +
         PATCH_LIST_COMMAND(AVP_PIPE_BUF_ADDR_STATE_CMD)     +
         PATCH_LIST_COMMAND(AVP_IND_OBJ_BASE_ADDR_STATE_CMD) +
         PATCH_LIST_COMMAND(AVP_SEGMENT_STATE_CMD) * 8       +

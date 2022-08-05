@@ -60,7 +60,7 @@ namespace xe_hpm
                 8 +
                 mhw_mi_g12_X::MI_FLUSH_DW_CMD::byteSize +
                 mhw::vdbox::avp::xe_hpm::Cmd::AVP_PIPE_MODE_SELECT_CMD::byteSize +
-                mhw::vdbox::avp::xe_hpm::Cmd::AVP_SURFACE_STATE_CMD::byteSize * 7 +
+                mhw::vdbox::avp::xe_hpm::Cmd::AVP_SURFACE_STATE_CMD::byteSize * 11 +
                 mhw::vdbox::avp::xe_hpm::Cmd::AVP_PIPE_BUF_ADDR_STATE_CMD::byteSize +
                 mhw::vdbox::avp::xe_hpm::Cmd::AVP_IND_OBJ_BASE_ADDR_STATE_CMD::byteSize +
                 mhw::vdbox::avp::xe_hpm::Cmd::AVP_SEGMENT_STATE_CMD::byteSize * 8 +
@@ -71,7 +71,7 @@ namespace xe_hpm
                 PATCH_LIST_COMMAND(avp::Itf::VD_PIPELINE_FLUSH_CMD) +
                 PATCH_LIST_COMMAND(mi::Itf::MI_FLUSH_DW_CMD) +
                 PATCH_LIST_COMMAND(avp::Itf::AVP_PIPE_MODE_SELECT_CMD) +
-                PATCH_LIST_COMMAND(avp::Itf::AVP_SURFACE_STATE_CMD) * 7 +
+                PATCH_LIST_COMMAND(avp::Itf::AVP_SURFACE_STATE_CMD) * 11 +
                 PATCH_LIST_COMMAND(avp::Itf::AVP_PIPE_BUF_ADDR_STATE_CMD) +
                 PATCH_LIST_COMMAND(avp::Itf::AVP_IND_OBJ_BASE_ADDR_STATE_CMD) +
                 PATCH_LIST_COMMAND(avp::Itf::AVP_SEGMENT_STATE_CMD) * 8 +
@@ -142,7 +142,7 @@ namespace xe_hpm
                 patchListMaxSize =
                     PATCH_LIST_COMMAND(avp::Itf::VD_PIPELINE_FLUSH_CMD) +
                     PATCH_LIST_COMMAND(avp::Itf::AVP_PIPE_MODE_SELECT_CMD) +
-                    PATCH_LIST_COMMAND(avp::Itf::AVP_SURFACE_STATE_CMD) * 7 +
+                    PATCH_LIST_COMMAND(avp::Itf::AVP_SURFACE_STATE_CMD) * 11 +
                     PATCH_LIST_COMMAND(avp::Itf::AVP_PIPE_BUF_ADDR_STATE_CMD) +
                     PATCH_LIST_COMMAND(avp::Itf::AVP_IND_OBJ_BASE_ADDR_STATE_CMD) +
                     PATCH_LIST_COMMAND(avp::Itf::AVP_PIC_STATE_CMD) +
