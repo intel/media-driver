@@ -65,6 +65,7 @@
 #if (_DEBUG || _RELEASE_INTERNAL)
 
 #define __MEDIA_USER_FEATURE_VALUE_MEDIA_RESET_ENABLE                   "Media Reset"
+#define __MEDIA_USER_FEATURE_VALUE_FORCE_RESET_THRESHOLD                "Force media reset threshold"
 
 //!
 //! \brief ISA ASM Debug Enable and Debug Surface BTI

@@ -490,6 +490,13 @@ MOS_STATUS MosUserSetting::InitUserSettingForDebug(MediaUserSettingSharedPtr use
 
     DeclareUserSettingKeyForDebug(
         userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_FORCE_RESET_THRESHOLD,
+        MediaUserSetting::Group::Device,
+        0,
+        true);  //"Force set media reset threshold. 1: enabled, 0: not used (default)."
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
         "Resource Addr Dump Enable",
         MediaUserSetting::Group::Device,
         0,
