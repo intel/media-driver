@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Intel Corporation
+# Copyright (c) 2021-2022, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -26,4 +26,4 @@ media_include_subdirectory(hw)
 media_include_subdirectory(shared)
 media_include_subdirectory(media_interfaces)
 media_include_subdirectory(renderhal)
-
+media_include_subdirectory(cp)

@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2020, Intel Corporation
+# Copyright (c) 2017-2022, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -31,5 +31,10 @@ set(CP_COMMON_SHARED_HEADERS_
 
 set(COMMON_CP_DIRECTORIES_
     ${COMMON_CP_DIRECTORIES_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)
+
+set(CP_INTERFACE_DIRECTORIES_
+    ${CP_INTERFACE_DIRECTORIES_}
     ${CMAKE_CURRENT_LIST_DIR}
 )

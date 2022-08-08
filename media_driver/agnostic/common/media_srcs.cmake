@@ -1,4 +1,4 @@
-# Copyright (c) 2017, Intel Corporation
+# Copyright (c) 2017-2022, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -20,7 +20,6 @@
 
 media_include_subdirectory(cm)
 media_include_subdirectory(codec)
-media_include_subdirectory(cp)
 media_include_subdirectory(hw)
 media_include_subdirectory(media_interfaces)
 media_include_subdirectory(os)
