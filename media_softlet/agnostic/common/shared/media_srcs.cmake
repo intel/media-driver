@@ -40,6 +40,7 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/media_debug_interface.cpp
     ${CMAKE_CURRENT_LIST_DIR}/media_render_common.cpp
     ${CMAKE_CURRENT_LIST_DIR}/memory_policy_manager.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/null_hardware_next.cpp
 )
 
 set(TMP_HEADERS_

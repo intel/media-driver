@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2018-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -21,7 +21,7 @@
 */
 
 //!
-//! \file     media_packet.cpp
+//! \file     media_packet_next.cpp
 //! \brief    Defines the common interface for media media_packet
 //! \details  The media media_packet interface is further sub-divided by component,
 //!           this file is for the base interface which is shared by all components.
@@ -35,29 +35,6 @@
 #include "mhw_mi_cmdpar.h"
 #include "mhw_mi_itf.h"
 #include "null_hardware.h"
-
-MOS_STATUS MediaPacket::StartStatusReport(
-    uint32_t srType,
-    MOS_COMMAND_BUFFER *cmdBuffer)
-{
-    MOS_STATUS result = MOS_STATUS_SUCCESS;
-
-    if (m_statusReport == nullptr)
-    {
-        return MOS_STATUS_NULL_POINTER;
-    }
-
-    PMOS_RESOURCE osResource = nullptr;
-    uint32_t      offset     = 0;
-
-    result = m_statusReport->GetAddress(srType, osResource, offset);
-
-    result = SetStartTag(osResource, offset, srType, cmdBuffer);
-
-    MEDIA_CHK_STATUS_RETURN(NullHW::StartPredicate(m_miInterface, cmdBuffer));
-
-    return result;
-}
 
 MOS_STATUS MediaPacket::StartStatusReportNext(
     uint32_t srType,
@@ -78,36 +55,6 @@ MOS_STATUS MediaPacket::StartStatusReportNext(
     result = SetStartTagNext(osResource, offset, srType, cmdBuffer);
 
     MEDIA_CHK_STATUS_RETURN(NullHW::StartPredicateNext(m_miItf, cmdBuffer));
-
-    return result;
-}
-
-MOS_STATUS MediaPacket::UpdateStatusReport(
-    uint32_t srType,
-    MOS_COMMAND_BUFFER *cmdBuffer)
-{
-    MOS_STATUS result = MOS_STATUS_SUCCESS;
-
-    if (m_statusReport == nullptr)
-    {
-        return MOS_STATUS_NULL_POINTER;
-    }
-
-    PMOS_RESOURCE osResource = nullptr;
-    uint32_t      offset     = 0;
-
-    result = m_statusReport->GetAddress(srType, osResource, offset);
-
-    auto count = m_statusReport->GetSubmittedCount();
-
-    MHW_MI_STORE_DATA_PARAMS storeDataParams;
-    storeDataParams.pOsResource      = osResource;
-    storeDataParams.dwResourceOffset = offset; 
-    storeDataParams.dwValue          = count + 1;
-
-    MEDIA_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(
-        cmdBuffer,
-        &storeDataParams));
 
     return result;
 }
@@ -141,29 +88,6 @@ MOS_STATUS MediaPacket::UpdateStatusReportNext(
     return result;
 }
 
-MOS_STATUS MediaPacket::EndStatusReport(
-    uint32_t srType,
-    MOS_COMMAND_BUFFER *cmdBuffer)
-{
-    MOS_STATUS result = MOS_STATUS_SUCCESS;
-
-    if (m_statusReport == nullptr)
-    {
-        return MOS_STATUS_NULL_POINTER;
-    }
-
-    PMOS_RESOURCE osResource = nullptr;
-    uint32_t      offset     = 0;
-
-    MEDIA_CHK_STATUS_RETURN(NullHW::StopPredicate(m_miInterface, cmdBuffer));
-
-    result = m_statusReport->GetAddress(srType, osResource, offset);
-
-    result = SetEndTag(osResource, offset, srType, cmdBuffer);
-
-    return result;
-}
-
 MOS_STATUS MediaPacket::EndStatusReportNext(
     uint32_t srType,
     MOS_COMMAND_BUFFER *cmdBuffer)
@@ -187,24 +111,6 @@ MOS_STATUS MediaPacket::EndStatusReportNext(
     return result;
 }
 
-MOS_STATUS MediaPacket::SetStartTag(
-    MOS_RESOURCE *osResource,
-    uint32_t offset,
-    uint32_t srType,
-    MOS_COMMAND_BUFFER *cmdBuffer)
-{
-    MHW_MI_STORE_DATA_PARAMS storeDataParams;
-    storeDataParams.pOsResource      = osResource;
-    storeDataParams.dwResourceOffset = offset;
-    storeDataParams.dwValue          = CODECHAL_STATUS_QUERY_START_FLAG;
-
-    MEDIA_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(
-        cmdBuffer,
-        &storeDataParams));
-
-    return MOS_STATUS_SUCCESS;
-}
-
 MOS_STATUS MediaPacket::SetStartTagNext(
     MOS_RESOURCE *osResource,
     uint32_t offset,
@@ -218,24 +124,6 @@ MOS_STATUS MediaPacket::SetStartTagNext(
     par.dwValue          = CODECHAL_STATUS_QUERY_START_FLAG;
 
     MEDIA_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(cmdBuffer));
-
-    return MOS_STATUS_SUCCESS;
-}
-
-MOS_STATUS MediaPacket::SetEndTag(
-    MOS_RESOURCE *osResource,
-    uint32_t offset,
-    uint32_t srType,
-    MOS_COMMAND_BUFFER *cmdBuffer)
-{
-    MHW_MI_STORE_DATA_PARAMS storeDataParams;
-    storeDataParams.pOsResource      = osResource;
-    storeDataParams.dwResourceOffset = offset;
-    storeDataParams.dwValue          = CODECHAL_STATUS_QUERY_END_FLAG;
-
-    MEDIA_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(
-        cmdBuffer,
-        &storeDataParams));
 
     return MOS_STATUS_SUCCESS;
 }

@@ -18,6 +18,12 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-media_include_subdirectory(media_sfc_interface)
-media_include_subdirectory(packet)
-media_include_subdirectory(scalability)
+set(TMP_SOURCES_
+    ${CMAKE_CURRENT_LIST_DIR}/media_packet.cpp
+)
+
+set(COMMON_SOURCES_
+    ${COMMON_SOURCES_}
+    ${TMP_SOURCES_})
+
+source_group( "Common Files" FILES ${TMP_SOURCES_})

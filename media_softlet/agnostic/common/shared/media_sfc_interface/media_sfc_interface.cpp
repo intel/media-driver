@@ -26,7 +26,6 @@
 //!
 #include "media_sfc_interface.h"
 #include "media_sfc_render.h"
-#include "media_sfc_render_legacy.h"
 #include "mos_utilities.h"
 #include "vp_utils.h"
 

@@ -31,6 +31,7 @@
 #include "vp_feature_manager.h"
 #include "vp_render_common.h"
 #include "vp_kernel_config.h"
+#include "media_copy.h"
 
 namespace vp
 {
@@ -183,6 +184,11 @@ public:
         return nullptr;
     }
     virtual VpCmdPacket *CreateRenderPacket(MediaTask * task, _VP_MHWINTERFACE *hwInterface, VpAllocator *&allocator, VPMediaMemComp *mmc, VpKernelSet* kernel)
+    {
+        return nullptr;
+    }
+
+    virtual MediaCopyBaseState* CreateMediaCopy()
     {
         return nullptr;
     }

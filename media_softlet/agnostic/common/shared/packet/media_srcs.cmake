@@ -22,7 +22,7 @@ set(TMP_SOURCES_
     ${TMP_SOURCES_}
     ${CMAKE_CURRENT_LIST_DIR}/media_cmd_packet.cpp
     ${CMAKE_CURRENT_LIST_DIR}/media_render_cmd_packet.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/media_packet.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/media_packet_next.cpp
 )
 
 set(TMP_HEADERS_

@@ -227,7 +227,8 @@ MOS_STATUS VpPipeline::Init(void *mhwInterface)
     VP_PUBLIC_CHK_STATUS_RETURN(m_vpMhwInterface.m_vpPlatformInterface->ConfigureVpScalability(m_vpMhwInterface));
 
     VP_PUBLIC_CHK_STATUS_RETURN(MediaPipeline::InitPlatform());
-    VP_PUBLIC_CHK_STATUS_RETURN(MediaPipeline::CreateMediaCopy());
+
+    m_mediaCopy = m_vpMhwInterface.m_vpPlatformInterface->CreateMediaCopy();
 
     VP_PUBLIC_CHK_STATUS_RETURN(CreateFeatureReport());
 
