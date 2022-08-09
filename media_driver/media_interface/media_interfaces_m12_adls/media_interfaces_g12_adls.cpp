@@ -74,6 +74,10 @@ static bool adlsRegisteredDecodeHistogram =
     MediaFactory<uint32_t, DecodeHistogramDevice>::
     Register<DecodeHistogramDeviceG12Tgllp>((uint32_t)IGFX_ALDERLAKE_S);
 
+static bool adlsRegisteredMcpy =
+    MediaFactory<uint32_t, McpyDevice>::
+    Register<McpyDeviceG12Tgllp>((uint32_t)IGFX_ALDERLAKE_S);
+
 #define PLATFORM_INTEL_ADLS 21
 #define GENX_TGLLP 12
 

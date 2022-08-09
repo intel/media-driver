@@ -50,6 +50,10 @@ static bool adlsRegisteredMmd =
     Register<MmdDeviceG12Tgllp>((uint32_t)IGFX_ALDERLAKE_P);
 #endif
 
+static bool adlpRegisteredMcpy =
+    MediaFactory<uint32_t, McpyDevice>::
+    Register<McpyDeviceG12Tgllp>((uint32_t)IGFX_ALDERLAKE_P);
+
 #define PLATFORM_INTEL_ADLP   23
 #define GENX_TGLLP            12
 
