@@ -118,7 +118,7 @@ protected:
 
     VpCmdPacket         * m_packet = nullptr;
 
-MEDIA_CLASS_DEFINE_END(VpFilter)
+MEDIA_CLASS_DEFINE_END(vp__VpFilter)
 };
 
 struct _SFC_SCALING_PARAMS
@@ -470,7 +470,7 @@ public:
 private:
     FeatureType m_FeatureType = FeatureTypeInvalid;
 
-MEDIA_CLASS_DEFINE_END(HwFilterParameter)
+MEDIA_CLASS_DEFINE_END(vp__HwFilterParameter)
 };
 
 /////////////////////////////Packet Parameters///////////////////////////////////
@@ -488,7 +488,7 @@ public:
 private:
     PacketParamFactoryBase *m_packetParamFactory = nullptr;
 
-MEDIA_CLASS_DEFINE_END(VpPacketParameter)
+MEDIA_CLASS_DEFINE_END(vp__VpPacketParameter)
 };
 
 /////////////////////////////Policy Feature Handler//////////////////////////////
@@ -511,7 +511,7 @@ protected:
     std::vector<HwFilterParameter *> m_Pool;
     VP_HW_CAPS  &m_hwCaps;
 
-MEDIA_CLASS_DEFINE_END(PolicyFeatureHandler)
+MEDIA_CLASS_DEFINE_END(vp__PolicyFeatureHandler)
 };
 
 class PacketParamFactoryBase
@@ -524,7 +524,7 @@ public:
 protected:
     std::vector<VpPacketParameter *> m_Pool;
 
-MEDIA_CLASS_DEFINE_END(PacketParamFactoryBase)
+MEDIA_CLASS_DEFINE_END(vp__PacketParamFactoryBase)
 };
 
 template<class T>
@@ -567,7 +567,7 @@ public:
         }
     }
 
-MEDIA_CLASS_DEFINE_END(PacketParamFactory)
+MEDIA_CLASS_DEFINE_END(vp__PacketParamFactory)
 };
 
 struct HW_FILTER_PARAM

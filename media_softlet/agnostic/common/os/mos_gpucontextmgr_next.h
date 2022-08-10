@@ -184,6 +184,7 @@ protected:
 
     //! \brief   Flag to indicate gpu context mgr initialized or not
     bool m_initialized = false;
+MEDIA_CLASS_DEFINE_END(GpuContextMgrNext)
 };
 
 #endif  // #ifndef __MOS_GPU_CONTEXT_MGR_NEXT_H__

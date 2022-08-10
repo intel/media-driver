@@ -271,5 +271,6 @@ protected:
 
     //! \brief    VE attribute buffer
     MOS_CMD_BUF_ATTRI_VE m_bufAttriVe = {};
+MEDIA_CLASS_DEFINE_END(GpuContextNext)
 };
 #endif  // #ifndef __MOS_GPU_CONTEXT_NEXT_H__

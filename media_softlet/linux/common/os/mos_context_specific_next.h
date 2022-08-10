@@ -138,5 +138,6 @@ private:
 
     AuxTableMgr         *m_auxTableMgr = nullptr;
     PERF_DATA           *m_perfData =   nullptr;
+MEDIA_CLASS_DEFINE_END(OsContextSpecificNext)
 };
 #endif // #ifndef __MOS_CONTEXT_SPECIFIC_NEXT_H__

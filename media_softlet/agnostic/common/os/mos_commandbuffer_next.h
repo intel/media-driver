@@ -254,5 +254,6 @@ protected:
 
     //! \brief    Command buffer size
     uint32_t          m_size             = 0;
+MEDIA_CLASS_DEFINE_END(CommandBufferNext)
 };
 #endif // __MOS_COMMANDBUFFERNext_NEXT_H__

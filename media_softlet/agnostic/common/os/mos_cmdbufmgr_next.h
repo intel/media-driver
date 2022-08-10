@@ -213,5 +213,6 @@ public:
 
     //! \brief   cmd buffer handle
     uint64_t       m_handle     = 0;
+MEDIA_CLASS_DEFINE_END(CmdBufMgrNext)
 };
 #endif // __COMMAND_BUFFER_MANAGER_NEXT_H__
