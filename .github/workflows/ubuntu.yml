@@ -1,4 +1,4 @@
-name: ubuntu-20.04
+name: ci
 
 on: [ push, pull_request ]
 
@@ -80,9 +80,7 @@ jobs:
         sudo make install
 
   gcc-11:
-    runs-on: ubuntu-20.04
-    container:
-      image: ubuntu:21.10
+    runs-on: ubuntu-22.04
     env:
       CC: /usr/bin/gcc-11
       CXX: /usr/bin/g++-11
@@ -104,8 +102,8 @@ jobs:
         path: gmmlib
     - name: install prerequisites
       run: |
-        apt-get update
-        apt-get install -y --no-install-recommends \
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends \
           automake \
           cmake \
           gcc \
@@ -131,14 +129,14 @@ jobs:
         cd libva
         ./autogen.sh --prefix=/usr --libdir=/usr/lib/x86_64-linux-gnu
         make -j$(nproc)
-        make install
+        sudo make install
     - name: build gmmlib
       run: |
         cd gmmlib
         mkdir build && cd build
         cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_INSTALL_LIBDIR=/usr/lib/x86_64-linux-gnu ..
         make VERBOSE=1 -j$(nproc)
-        make install
+        sudo make install
     - name: build media-driver
       run: |
         cd media
@@ -148,7 +146,7 @@ jobs:
           -DCMAKE_CXX_FLAGS_RELEASE="$_CFLAGS" \
           ..
         make VERBOSE=1 -j$(nproc)
-        make install
+        sudo make install
 
   gcc-10:
     runs-on: ubuntu-20.04
