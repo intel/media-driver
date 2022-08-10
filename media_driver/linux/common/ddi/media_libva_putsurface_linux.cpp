@@ -32,7 +32,6 @@
 #include <fcntl.h>     //open
 #include <sys/stat.h>  //fstat
 #include <unistd.h>    //read, lseek
-#include <dlfcn.h>     //dlopen,dlsym,dlclose
 #include <time.h>      //get_clocktime
 #include <errno.h>     //errno
 #include <assert.h>    //assert
@@ -43,6 +42,7 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 
+#include "dso_utils.h"
 #include "media_libva_putsurface_linux.h"
 #include "media_libva_util.h"
 #include "media_libva_common.h"
@@ -51,106 +51,6 @@
 extern MOS_FORMAT     VpGetFormatFromMediaFormat(DDI_MEDIA_FORMAT mf);
 extern VPHAL_CSPACE   DdiVp_GetColorSpaceFromMediaFormat(DDI_MEDIA_FORMAT mf);
 extern MOS_TILE_TYPE  VpGetTileTypeFromMediaTileType(uint32_t mediaTileType);
-
-/* Closes and disposed any allocated data */
-void dso_close(struct dso_handle *h)
-{
-    if (!h){
-        return;
-    }
-
-    if (h->handle) {
-        if (h->handle != RTLD_DEFAULT)
-            dlclose(h->handle);
-        h->handle = nullptr;
-    }
-    free(h);
-}
-
-/* Opens the named shared library */
-struct dso_handle * dso_open(const char *path)
-{
-    struct dso_handle *h = nullptr;
-
-    h = (dso_handle *)calloc(1, sizeof(*h));
-    if (!h){
-        return nullptr;
-    }
-
-    if (path) {
-        h->handle = dlopen(path, RTLD_LAZY|RTLD_LOCAL);
-        if (!h->handle)
-            goto error;
-    }
-    else{
-        h->handle = RTLD_DEFAULT;
-    }
-    return h;
-
-error:
-    dso_close(h);
-    return nullptr;
-}
-
-/* Load function name from one dynamic lib */
-static bool get_symbol(struct dso_handle *h, void *func_vptr, const char *name)
-{
-    DDI_CHK_NULL(h, "nullptr h", false);
-    DDI_CHK_NULL(func_vptr, "nullptr func_vptr", false);
-
-    dso_generic_func func;
-    dso_generic_func * const func_ptr = (dso_generic_func*) func_vptr;
-    const char *error = nullptr;
-
-    dlerror();
-    func = (dso_generic_func)dlsym(h->handle, name);
-    error = dlerror();
-    if (error) {
-        fprintf(stderr, "error: failed to resolve %s(): %s\n", name, error);
-        return false;
-    }
-    *func_ptr = func;
-    return true;
-}
-
-//!
-//! \brief  Loads function name from vtable
-//!
-//! \param  [in] h
-//!     Dso handle
-//! \param  [in] vtable
-//!     VA api table
-//! \param  [in] vtable_length
-//!     Length of VA api table
-//! \param  [in] symbols
-//!     Dso symbol
-//!
-//! \return     bool 
-//!     true if call success, else false
-//!
-bool
-dso_get_symbols(
-    struct dso_handle          *h,
-    void                       *vtable,
-    uint32_t                    vtable_length,
-    const struct dso_symbol    *symbols
-)
-{
-    DDI_CHK_NULL(h, "nullptr h", false);
-
-    const struct dso_symbol *s = nullptr;
-    if (nullptr == symbols)
-    {
-        return VA_STATUS_ERROR_INVALID_PARAMETER;
-    }
-    for (s = symbols; s->name != nullptr; s++) {
-        if (s->offset + sizeof(dso_generic_func) > vtable_length)
-            return false;
-        if (!get_symbol(h, ((char *)vtable) + s->offset, s->name))
-            return false;
-    }
-    return true;
-}
 
 bool output_dri_init(VADriverContextP ctx)
 {

@@ -46,6 +46,7 @@
 #if !defined(ANDROID) && defined(X11_FOUND)
 #include "media_libva_putsurface_linux.h"
 #endif
+#include "media_libva_wayland.h"
 #include "media_libva_vp.h"
 #include "media_ddi_prot.h"
 #include "mos_os.h"
@@ -1714,6 +1715,7 @@ VAStatus DdiMedia__Initialize (
         }
     }
 #endif
+    DdiMedia_wayland_init(ctx);
 
     return status;
 }
@@ -2069,6 +2071,8 @@ VAStatus DdiMedia_InitMediaContext (
     DdiMediaUtil_SetMediaResetEnableFlag(mediaCtx);
 
     DdiMediaUtil_UnLockMutex(&GlobalMutex);
+
+    DdiMedia_wayland_terminate(ctx);
 
     return VA_STATUS_SUCCESS;
 }

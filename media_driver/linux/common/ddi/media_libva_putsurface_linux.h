@@ -30,6 +30,7 @@
 #include <va/va_backend.h>
 #include <va/va_dricommon.h>
 #include "mos_defs.h"
+#include "dso_utils.h"
 
 #define LIBVA_X11_NAME "libva-x11.so.2"
 typedef struct dri_drawable *(*dri_get_drawable_func)(
@@ -58,29 +59,6 @@ struct va_dri_output {
     struct dri_vtable   vtable;
 };
 
-//!
-//! \struct dso_symbol
-//! \brief  Symbol lookup table
-//!
-struct dso_symbol {
-    /** Symbol name */
-    const char  *name;
-    /** Offset into the supplied vtable where symbol is to be loaded. */
-    uint32_t offset;
-};
-
-#include <dlfcn.h>
-//#include "dso_utils.h"
-/** Generic pointer to function. */
-typedef void (*dso_generic_func)(void);
-
-//!
-//! \struct dso_handle
-//! \brief  Dso handle
-//!
-struct dso_handle {
-    void       *handle;
-};
 
 //!
 //! \brief  Output driver initialization
@@ -92,13 +70,6 @@ struct dso_handle {
 //!     true if call success, else false
 //!
 bool output_dri_init(VADriverContextP ctx);
-//!
-//! \brief  Closes and disposed any allocated data
-//!
-//! \param  [in] h
-//!     Dso handle
-//!
-void dso_close(struct dso_handle *h);
 
 //!
 //! \brief  Rectangle initialization
