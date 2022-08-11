@@ -707,17 +707,20 @@ MOS_STATUS VpRenderFcKernel::BuildFilter(
     PKdll_FilterEntry               pFilter,
     int32_t*                        piFilterSize)
 {
-    VP_FC_LAYER                 *src = nullptr;
-    VPHAL_CSPACE                cspace_main = CSpace_sRGB;
-    int32_t                     iMaxFilterSize = 0;
-    bool                        bColorFill = false, bLumaKey = false;
-    int32_t                     i = 0;
-    PRECT                       pTargetRect = nullptr;
-    RENDERHAL_SURFACE           RenderHalSurface = {};
-    bool                        bNeed = false;
-    int32_t                     procampCount = 0;
-    float scaleX = 1.0;
-    float scaleY = 1.0;
+    VP_FC_LAYER      *src              = nullptr;
+    VPHAL_CSPACE      cspace_main      = CSpace_sRGB;
+    int32_t           iMaxFilterSize   = 0;
+    bool              bColorFill       = false, bLumaKey = false;
+    int32_t           i                = 0;
+    PRECT             pTargetRect      = nullptr;
+    RENDERHAL_SURFACE RenderHalSurface = {};
+    bool              bNeed            = false;
+    int32_t           procampCount     = 0;
+    float             scaleX           = 1.0;
+    float             scaleY           = 1.0;
+    bool              bPrimary         = false;
+    bool              bRotation        = false;
+    VPHAL_PERFTAG     perfTag          = VPHAL_NONE;
 
     VP_RENDER_CHK_NULL_RETURN(m_hwInterface);
     VP_RENDER_CHK_NULL_RETURN(m_hwInterface->m_waTable);
@@ -846,6 +849,10 @@ MOS_STATUS VpRenderFcKernel::BuildFilter(
         // Set layer rotation
         //--------------------------------
         pFilter->rotation = src->rotation;
+        if (src->rotation != VPHAL_ROTATION_IDENTITY)
+        {
+            bRotation = true;
+        }
 
         //--------------------------------
         // Set layer color space
@@ -865,6 +872,7 @@ MOS_STATUS VpRenderFcKernel::BuildFilter(
         if (src->surf->SurfType == SURF_IN_PRIMARY)
         {
             cspace_main = pFilter->cspace;
+            bPrimary = true;
         }
 
         //--------------------------------
@@ -1153,6 +1161,28 @@ MOS_STATUS VpRenderFcKernel::BuildFilter(
 
     // Get App supplied RT format
     pFilter->cspace = target.surf->ColorSpace;
+
+    // Set performance tag for current phase
+    // Set rotation perftag if there is a layer that needs to be rotated in
+    // the current phase, regardless of primary or non-primary.
+    if (bRotation)
+    {
+        perfTag = (VPHAL_PERFTAG)((int)VPHAL_ROT + i - 1);
+    }
+    else if (bPrimary)
+    {
+        perfTag = (VPHAL_PERFTAG)((int)VPHAL_PRI + i - 1);
+    }
+    else
+    {
+        perfTag = (VPHAL_PERFTAG)((int)VPHAL_NONE + i);
+    }
+
+    auto osInterface = m_hwInterface->m_osInterface;
+    VP_RENDER_CHK_NULL_RETURN(osInterface);
+    VP_RENDER_CHK_NULL_RETURN(osInterface->pfnSetPerfTag);
+
+    osInterface->pfnSetPerfTag(osInterface, perfTag);
 
     // Update filter
     (*piFilterSize)++;
