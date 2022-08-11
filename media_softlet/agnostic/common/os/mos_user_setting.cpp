@@ -462,6 +462,41 @@ MOS_STATUS MosUserSetting::InitUserSettingForDebug(MediaUserSettingSharedPtr use
 {
     DeclareUserSettingKeyForDebug(
         userSettingPtr,
+        __COMMON_DBG_SURF_DUMPER_RESOURCE_LOCK,
+        MediaUserSetting::Group::Device,
+        1,
+        true);
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __COMMON_DBG_SURF_DUMP_OUTFILE_KEY_NAME,
+        MediaUserSetting::Group::Device,
+        "",
+        true);
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __COMMON_DBG_DUMP_OUTPUT_DIRECTORY,
+        MediaUserSetting::Group::Device,
+        "",
+        true);
+
+    DeclareUserSettingKeyForDebug( // MCPY Surface_in Dump Location
+        userSettingPtr,
+        __COMMON_DBG_SURF_DUMP_LOCATION_KEY_NAME_IN,
+        MediaUserSetting::Group::Device,
+        "",
+        true);
+
+    DeclareUserSettingKeyForDebug( // MCPY Surface_out Dump Location
+        userSettingPtr,
+        __COMMON_DBG_SURF_DUMP_LOCATION_KEY_NAME_OUT,
+        MediaUserSetting::Group::Device,
+        "",
+        true);
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
         __MEDIA_USER_FEATURE_VALUE_MEMORY_NINJA_BEGIN_COUNTER,
         MediaUserSetting::Group::Device,
         0,
