@@ -59,10 +59,42 @@
             sfcHwEntry[SurfaceFormat].iefSupported                              = _IefSupported;                            \
         }                                                                                                                   \
 
+enum VP_TILE_MODE_MASK
+{
+    VP_TILE_MODE_MASK_UNUSED = 0,  // 000
+    VP_TILE_MODE_MASK_TILE4  = 1,  // 001 1st bit: tile4
+    VP_TILE_MODE_MASK_TILE64 = 2,  // 010 2nd bit: tile64
+    VP_TILE_MODE_MASK_LINEAR = 4   // 100 3rd bit linear
+};
+
+//!
+//! \ brief VP SFC Tile Mode Format support
+//!
+enum VP_SFC_OUTUT_SUPPORT
+{
+    VP_SFC_OUTPUT_SUPPORT_NONE      = 0,
+    VP_SFC_OUTPUT_SUPPORT_TILE_ONLY = (VP_TILE_MODE_MASK_TILE4 | VP_TILE_MODE_MASK_TILE64),
+    VP_SFC_OUTPUT_SUPPORT_ALL       = (VP_TILE_MODE_MASK_TILE4 | VP_TILE_MODE_MASK_TILE64 | VP_TILE_MODE_MASK_LINEAR)
+};
+
+inline uint32_t VpGetFormatTileSupport(MOS_TILE_MODE_GMM tileMode)
+{
+    switch (tileMode)
+    {
+    case MOS_TILE_64_GMM:      //tile64
+        return VP_TILE_MODE_MASK_TILE64;
+    case MOS_TILE_LINEAR_GMM:  //tilelinear
+        return VP_TILE_MODE_MASK_LINEAR;
+    case MOS_TILE_4_GMM:       // tile4
+    default:
+        return VP_TILE_MODE_MASK_TILE4;
+    }
+}
+
 typedef struct VP_SFC_ENTRY_REC
 {
     bool                          inputSupported;
-    bool                          outputSupported;
+    VP_SFC_OUTUT_SUPPORT          outputSupported;  // 1st bit: tile4, 2nd bit: tile64, 3rd bit linear
     uint32_t                      maxResolution;
     uint32_t                      minResolution;
     float                         maxScalingRatio;

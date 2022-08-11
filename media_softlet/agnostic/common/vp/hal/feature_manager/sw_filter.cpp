@@ -419,6 +419,12 @@ MOS_STATUS SwFilterScaling::Configure(VP_PIPELINE_PARAMS &params, bool isInputSu
 
     VP_PUBLIC_NORMALMESSAGE("interlacedScalingType %d", m_Params.interlacedScalingType);
 
+    m_Params.input.tileMode         = surfInput->TileModeGMM;
+    m_Params.output.tileMode        = surfOutput->TileModeGMM;
+
+    VP_PUBLIC_NORMALMESSAGE("Input  Surface:  TileType %d, TileModeGMM %d", surfInput->TileType,  surfInput->TileModeGMM);
+    VP_PUBLIC_NORMALMESSAGE("Output Surface:  TileType %d, TileModeGMM %d", surfOutput->TileType, surfOutput->TileModeGMM);
+
     // For field-to-interleaved scaling, the height of rcSrcInput is input field height,
     // the height of rcDstInput is output frame height, for scaling ratio calculation, the
     // bottom of rcDstInput need to divide 2.
@@ -460,6 +466,12 @@ MOS_STATUS SwFilterScaling::Configure(VEBOX_SFC_PARAMS &params)
     m_Params.csc.colorSpaceOutput   = params.output.colorSpace;
     m_Params.pColorFillParams       = nullptr;
     m_Params.pCompAlpha             = nullptr;
+
+    m_Params.input.tileMode         = params.input.surface->TileModeGMM;
+    m_Params.output.tileMode        = params.output.surface->TileModeGMM;
+
+    VP_PUBLIC_NORMALMESSAGE("Input  Surface:  TileType %d, TileModeGMM %d", params.input.surface->TileType, params.input.surface->TileModeGMM);
+    VP_PUBLIC_NORMALMESSAGE("Output Surface:  TileType %d, TileModeGMM %d", params.output.surface->TileType, params.output.surface->TileModeGMM);
 
     RECT recOutput = {0, 0, (int32_t)params.output.surface->dwWidth, (int32_t)params.output.surface->dwHeight};
 
@@ -535,6 +547,12 @@ MOS_STATUS SwFilterScaling::Configure(PVP_SURFACE surfInput, PVP_SURFACE surfOut
 
     m_Params.csc.colorSpaceOutput       = surfOutput->ColorSpace;
     m_Params.rotation.rotationNeeded    = false;
+
+    m_Params.input.tileMode             = surfInput->osSurface->TileModeGMM;
+    m_Params.output.tileMode            = surfOutput->osSurface->TileModeGMM;
+
+    VP_PUBLIC_NORMALMESSAGE("Input  Surface:  TileType %d, TileModeGMM %d", surfInput->osSurface->TileType, surfInput->osSurface->TileModeGMM);
+    VP_PUBLIC_NORMALMESSAGE("Output Surface:  TileType %d, TileModeGMM %d", surfOutput->osSurface->TileType, surfOutput->osSurface->TileModeGMM);
 
     VP_PUBLIC_NORMALMESSAGE("Configure scaling parameters by Surfaces: intput %d x %d, output %d x %d, (%d, %d, %d, %d) -> (%d, %d, %d, %d)",
         m_Params.input.dwWidth, m_Params.input.dwHeight, m_Params.output.dwWidth, m_Params.output.dwHeight,

@@ -54,63 +54,63 @@
 
 #define VP_FF_SFC_FORMAT(SurfaceFormat, bInput, bOutput, _MaxResolution, _MinResolution, _HorizUnit, _VertUnit, _RotationSupported, _MirrorSupported, _CscSupported, _ScalingSupported, 
                       _SrcAlphaSupported, _ConstAlphaSupported, _IScalingSupported, _DetheringSupported, _IefSupported)
-  SFC IEF Supported -----------------------------------------------------------------------------------------------------------------------------o
-      Dethering Supported -------------------------------------------------------------------------------------------------------------------o   |
-      InterlaceScaling Supported --------------------------------------------------------------------------------------------------------o   |   |
-      Const Alpha Supported ---------------------------------------------------------------------------------------------------------o   |   |   |
-      Src Alpha Supported -------------------------------------------------------------------------------------------------------o   |   |   |   |
-      Scaling Supported -----------------------------------------------------------------------------------------------------o   |   |   |   |   |
-      CSC Supported -----------------------------------------------------------------------------------------------------o   |   |   |   |   |   |
-      Mirror Supported ----------------------------------------------------------------------------------------------o   |   |   |   |   |   |   |
-      Roattion Supported ----------------------------------------------------------------------------------------o   |   |   |   |   |   |   |   |
-      Processing Unit in Vertical --------------------------------------------------------------------------o   |   |   |   |   |   |   |   |   |
-      Processing Unit in Horizontal --------------------------------------------------------------------o   |   |   |   |   |   |   |   |   |   |
-      MIN Process Resolution(Width/Height) -------------------------------------------o                 |   |   |   |   |   |   |   |   |   |   |
-      MAX Process Resolution(Width/Height) ----------------o                          |                 |   |   |   |   |   |   |   |   |   |   |
-  Output Format Supported ------------------o              |                          |                 |   |   |   |   |   |   |   |   |   |   |
-  Input Format Supported ---------------o   |              |                          |                 |   |   |   |   |   |   |   |   |   |   |
-                Format                  |   |              |                          |                 |   |   |   |   |   |   |   |   |   |   |
+  SFC IEF Supported ----------------------------------------------------------------------------------------------------------------------------------------------------------o
+      Dethering Supported ------------------------------------------------------------------------------------------------------------------------------------------------o   |
+      InterlaceScaling Supported -------------------------------------------------------------------------------------------------------------------------------------o   |   |
+      Const Alpha Supported --------------------------------------------------------------------------------------------------------------------------------------o   |   |   |
+      Src Alpha Supported ------------------------------------------------------------------------------------------------------------------------------------o   |   |   |   |
+      Scaling Supported ----------------------------------------------------------------------------------------------------------------------------------o   |   |   |   |   |
+      CSC Supported ----------------------------------------------------------------------------------------------------------------------------------o   |   |   |   |   |   |
+      Mirror Supported ---------------------------------------------------------------------------------------------------------------------------o   |   |   |   |   |   |   |
+      Roattion Supported ---------------------------------------------------------------------------------------------------------------------o   |   |   |   |   |   |   |   |
+      Processing Unit in Vertical --------------------------------------------------------------------------------------------------------o   |   |   |   |   |   |   |   |   |
+      Processing Unit in Horizontal --------------------------------------------------------------------------------------------------o   |   |   |   |   |   |   |   |   |   |
+      MIN Process Resolution(Width/Height) -------------------------------------------------------------------------o                 |   |   |   |   |   |   |   |   |   |   |
+      MAX Process Resolution(Width/Height) --------------------------------------------o                            |                 |   |   |   |   |   |   |   |   |   |   |
+  Output Format Supported -----------------------------o                               |                            |                 |   |   |   |   |   |   |   |   |   |   |
+  Input Format Supported ---------------o              |                               |                            |                 |   |   |   |   |   |   |   |   |   |   |
+                Format                  |              |                               |                            |                 |   |   |   |   |   |   |   |   |   |   |
 -----------------------------------------------------------------------------------------------------------------------------------------------*/
-VP_FF_SFC_FORMAT(Format_NV12,           1,  1, MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  2,  2,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
-VP_FF_SFC_FORMAT(Format_P010,           1,  1, MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  2,  2,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
-VP_FF_SFC_FORMAT(Format_P016,           1,  1, MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  2,  2,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
-VP_FF_SFC_FORMAT(Format_YUY2,           1,  1, MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  2,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
-VP_FF_SFC_FORMAT(Format_YUYV,           1,  0, MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  2,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
-VP_FF_SFC_FORMAT(Format_UYVY,           1,  1, MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  2,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
-VP_FF_SFC_FORMAT(Format_Y216,           1,  1, MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  2,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
-VP_FF_SFC_FORMAT(Format_Y210,           1,  1, MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  2,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
-VP_FF_SFC_FORMAT(Format_P216,           1,  0, MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  2,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
-VP_FF_SFC_FORMAT(Format_P210,           1,  0, MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  2,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
-VP_FF_SFC_FORMAT(Format_AYUV,           1,  1, MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
-VP_FF_SFC_FORMAT(Format_Y416,           1,  1, MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
-VP_FF_SFC_FORMAT(Format_Y410,           1,  1, MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
-VP_FF_SFC_FORMAT(Format_YVYU,           1,  1, MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  2,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
-VP_FF_SFC_FORMAT(Format_VYUY,           1,  1, MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  2,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
-VP_FF_SFC_FORMAT(Format_A8B8G8R8,       1,  1, MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
-VP_FF_SFC_FORMAT(Format_X8B8G8R8,       1,  1, MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
-VP_FF_SFC_FORMAT(Format_A8R8G8B8,       1,  1, MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
-VP_FF_SFC_FORMAT(Format_X8R8G8B8,       1,  1, MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
-VP_FF_SFC_FORMAT(Format_A16B16G16R16,   1,  1, MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
-VP_FF_SFC_FORMAT(Format_A16R16G16B16,   1,  1, MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
-VP_FF_SFC_FORMAT(Format_A16B16G16R16F,  1,  0, MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
-VP_FF_SFC_FORMAT(Format_A16R16G16B16F,  1,  0, MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
-VP_FF_SFC_FORMAT(Format_L8,             1,  0, MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
-VP_FF_SFC_FORMAT(Format_P8,             1,  0, MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
-VP_FF_SFC_FORMAT(Format_Y8,             1,  0, MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
-VP_FF_SFC_FORMAT(Format_Y16S,           1,  0, MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
-VP_FF_SFC_FORMAT(Format_Y16U,           1,  0, MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
-VP_FF_SFC_FORMAT(Format_R10G10B10A2,    1,  1, MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
-VP_FF_SFC_FORMAT(Format_B10G10R10A2,    1,  1, MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
-VP_FF_SFC_FORMAT(Format_R5G6B5,         0,  0, MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
+VP_FF_SFC_FORMAT(Format_NV12,           1,  VP_SFC_OUTPUT_SUPPORT_TILE_ONLY, MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  2,  2,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
+VP_FF_SFC_FORMAT(Format_P010,           1,  VP_SFC_OUTPUT_SUPPORT_TILE_ONLY, MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  2,  2,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
+VP_FF_SFC_FORMAT(Format_P016,           1,  VP_SFC_OUTPUT_SUPPORT_TILE_ONLY, MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  2,  2,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
+VP_FF_SFC_FORMAT(Format_YUY2,           1,  VP_SFC_OUTPUT_SUPPORT_ALL,       MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  2,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
+VP_FF_SFC_FORMAT(Format_YUYV,           1,  VP_SFC_OUTPUT_SUPPORT_NONE,      MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  2,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
+VP_FF_SFC_FORMAT(Format_UYVY,           1,  VP_SFC_OUTPUT_SUPPORT_ALL,       MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  2,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
+VP_FF_SFC_FORMAT(Format_Y216,           1,  VP_SFC_OUTPUT_SUPPORT_ALL,       MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  2,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
+VP_FF_SFC_FORMAT(Format_Y210,           1,  VP_SFC_OUTPUT_SUPPORT_ALL,       MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  2,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
+VP_FF_SFC_FORMAT(Format_P216,           1,  VP_SFC_OUTPUT_SUPPORT_NONE,      MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  2,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
+VP_FF_SFC_FORMAT(Format_P210,           1,  VP_SFC_OUTPUT_SUPPORT_NONE,      MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  2,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
+VP_FF_SFC_FORMAT(Format_AYUV,           1,  VP_SFC_OUTPUT_SUPPORT_ALL,       MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
+VP_FF_SFC_FORMAT(Format_Y416,           1,  VP_SFC_OUTPUT_SUPPORT_ALL,       MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
+VP_FF_SFC_FORMAT(Format_Y410,           1,  VP_SFC_OUTPUT_SUPPORT_ALL,       MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
+VP_FF_SFC_FORMAT(Format_YVYU,           1,  VP_SFC_OUTPUT_SUPPORT_ALL,       MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  2,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
+VP_FF_SFC_FORMAT(Format_VYUY,           1,  VP_SFC_OUTPUT_SUPPORT_ALL,       MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  2,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
+VP_FF_SFC_FORMAT(Format_A8B8G8R8,       1,  VP_SFC_OUTPUT_SUPPORT_ALL,       MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
+VP_FF_SFC_FORMAT(Format_X8B8G8R8,       1,  VP_SFC_OUTPUT_SUPPORT_ALL,       MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
+VP_FF_SFC_FORMAT(Format_A8R8G8B8,       1,  VP_SFC_OUTPUT_SUPPORT_ALL,       MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
+VP_FF_SFC_FORMAT(Format_X8R8G8B8,       1,  VP_SFC_OUTPUT_SUPPORT_ALL,       MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
+VP_FF_SFC_FORMAT(Format_A16B16G16R16,   1,  VP_SFC_OUTPUT_SUPPORT_ALL,       MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
+VP_FF_SFC_FORMAT(Format_A16R16G16B16,   1,  VP_SFC_OUTPUT_SUPPORT_ALL,       MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
+VP_FF_SFC_FORMAT(Format_A16B16G16R16F,  1,  VP_SFC_OUTPUT_SUPPORT_NONE,      MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
+VP_FF_SFC_FORMAT(Format_A16R16G16B16F,  1,  VP_SFC_OUTPUT_SUPPORT_NONE,      MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
+VP_FF_SFC_FORMAT(Format_L8,             1,  VP_SFC_OUTPUT_SUPPORT_NONE,      MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
+VP_FF_SFC_FORMAT(Format_P8,             1,  VP_SFC_OUTPUT_SUPPORT_NONE,      MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
+VP_FF_SFC_FORMAT(Format_Y8,             1,  VP_SFC_OUTPUT_SUPPORT_NONE,      MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
+VP_FF_SFC_FORMAT(Format_Y16S,           1,  VP_SFC_OUTPUT_SUPPORT_NONE,      MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
+VP_FF_SFC_FORMAT(Format_Y16U,           1,  VP_SFC_OUTPUT_SUPPORT_NONE,      MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
+VP_FF_SFC_FORMAT(Format_R10G10B10A2,    1,  VP_SFC_OUTPUT_SUPPORT_ALL,       MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
+VP_FF_SFC_FORMAT(Format_B10G10R10A2,    1,  VP_SFC_OUTPUT_SUPPORT_ALL,       MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
+VP_FF_SFC_FORMAT(Format_R5G6B5,         0,  VP_SFC_OUTPUT_SUPPORT_NONE,      MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
 
-VP_FF_SFC_FORMAT(Format_IRW0,           1,  0, MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
-VP_FF_SFC_FORMAT(Format_IRW1,           1,  0, MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
-VP_FF_SFC_FORMAT(Format_IRW2,           1,  0, MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
-VP_FF_SFC_FORMAT(Format_IRW3,           1,  0, MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
-VP_FF_SFC_FORMAT(Format_IRW4,           1,  0, MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
-VP_FF_SFC_FORMAT(Format_IRW5,           1,  0, MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
-VP_FF_SFC_FORMAT(Format_IRW6,           1,  0, MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
-VP_FF_SFC_FORMAT(Format_IRW7,           1,  0, MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
+VP_FF_SFC_FORMAT(Format_IRW0,           1,  VP_SFC_OUTPUT_SUPPORT_NONE,      MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
+VP_FF_SFC_FORMAT(Format_IRW1,           1,  VP_SFC_OUTPUT_SUPPORT_NONE,      MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
+VP_FF_SFC_FORMAT(Format_IRW2,           1,  VP_SFC_OUTPUT_SUPPORT_NONE,      MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
+VP_FF_SFC_FORMAT(Format_IRW3,           1,  VP_SFC_OUTPUT_SUPPORT_NONE,      MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
+VP_FF_SFC_FORMAT(Format_IRW4,           1,  VP_SFC_OUTPUT_SUPPORT_NONE,      MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
+VP_FF_SFC_FORMAT(Format_IRW5,           1,  VP_SFC_OUTPUT_SUPPORT_NONE,      MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
+VP_FF_SFC_FORMAT(Format_IRW6,           1,  VP_SFC_OUTPUT_SUPPORT_NONE,      MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
+VP_FF_SFC_FORMAT(Format_IRW7,           1,  VP_SFC_OUTPUT_SUPPORT_NONE,      MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
 
 //#define VP_FF_VEBOX_FORMAT(SurfaceFormat, bInput, bOutput, _MaxWidth, _MaxHeight, _MinWidth, _MinHeight, _HorizUnit, _VertUnit, _HdrSupported, _CapturePipeSupported,
 //                           _DNSupported, _DISupported, _LACESupported, _FrontCscSupported, _BackEndCscSupported, _3DLutSupported, _IecpSupported)

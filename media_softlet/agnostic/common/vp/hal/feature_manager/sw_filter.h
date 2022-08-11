@@ -955,6 +955,7 @@ struct FeatureParamScaling : public FeatureParam
         RECT                    rcDst    = {0, 0, 0, 0};  //!< Input dst rect without rotate being applied.
         RECT                    rcMaxSrc = {0, 0, 0, 0};
         VPHAL_SAMPLE_TYPE       sampleType = SAMPLE_PROGRESSIVE;
+        MOS_TILE_MODE_GMM       tileMode   = MOS_TILE_4_GMM;
         bool operator == (struct SCALING_PARAMS &b)
         {
             return 0 == memcmp(this, &b, sizeof(SCALING_PARAMS));

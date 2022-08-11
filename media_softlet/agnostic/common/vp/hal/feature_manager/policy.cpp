@@ -1120,7 +1120,7 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter *feature, bool isHdrEnabled,
 
     // SFC Scaling enabling check
     if (m_hwCaps.m_sfcHwEntry[scalingParams->formatInput].inputSupported   &&
-        m_hwCaps.m_sfcHwEntry[scalingParams->formatOutput].outputSupported &&
+        (m_hwCaps.m_sfcHwEntry[scalingParams->formatOutput].outputSupported & VpGetFormatTileSupport(scalingParams->output.tileMode) ) &&
         m_hwCaps.m_sfcHwEntry[scalingParams->formatInput].scalingSupported)
     {
         if (!(OUT_OF_BOUNDS(dwSurfaceWidth, dwSfcMinWidth, dwSfcMaxWidth)         ||
@@ -2017,12 +2017,8 @@ bool Policy::IsIsolateFeatureOutputPipeNeeded(SwFilterSubPipe *featureSubPipe, S
         for (auto featureType : m_featurePool)
         {
             SwFilter      *curSwFilter = featureSubPipe->GetSwFilter(featureType);
-            if (nullptr == curSwFilter)
-            {
-                continue;
-            }
             VP_EngineEntry caps        = curSwFilter->GetFilterEngineCaps();
-            if (caps.bEnabled == false || featureType == swFilter->GetFeatureType())
+            if (nullptr == curSwFilter || caps.bEnabled == false || featureType == swFilter->GetFeatureType())
             {
                 continue;
             }
@@ -2150,7 +2146,7 @@ MOS_STATUS Policy::GetInputPipeEngineCaps(SwFilterPipe& featurePipe, VP_EngineEn
                 singlePipeSelected = featureSubPipe;
                 engineCapsForVeboxSfc.value |= engineCaps.value;
                 engineCapsForVeboxSfc.nonFcFeatureExists = true;
-                engineCapsForVeboxSfc.nonVeboxFeatureExists |= ~engineCaps.VeboxNeeded;
+                engineCapsForVeboxSfc.nonVeboxFeatureExists |= !engineCaps.VeboxNeeded;
             }
             else
             {
@@ -2158,7 +2154,7 @@ MOS_STATUS Policy::GetInputPipeEngineCaps(SwFilterPipe& featurePipe, VP_EngineEn
                 if (engineCaps.SfcNeeded || engineCaps.VeboxNeeded)
                 {
                     engineCapsForVeboxSfc.value |= engineCaps.value;
-                    engineCapsForVeboxSfc.nonVeboxFeatureExists |= ~engineCaps.VeboxNeeded;
+                    engineCapsForVeboxSfc.nonVeboxFeatureExists |= !engineCaps.VeboxNeeded;
                 }
                 else
                 {
