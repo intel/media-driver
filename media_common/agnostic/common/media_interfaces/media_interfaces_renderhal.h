@@ -57,6 +57,7 @@ protected:
     virtual MOS_STATUS Initialize() = 0;
 
     XRenderHal_Platform_Interface *m_renderhalDevice = nullptr;
+    PMOS_INTERFACE                m_osInterface      = nullptr;
 };
 
 extern template class MediaFactory<uint32_t, RenderHalDevice>;

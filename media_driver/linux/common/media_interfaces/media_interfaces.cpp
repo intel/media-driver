@@ -664,6 +664,7 @@ XRenderHal_Platform_Interface* RenderHalDevice::CreateFactory(
     {
         return nullptr;
     }
+    device->m_osInterface = osInterface;
     device->Initialize();
     if (device->m_renderhalDevice == nullptr)
     {
