@@ -57,6 +57,7 @@ enum class BufferType
     postCdefReconSurface,
     preMbCodedBuffer,
     preRefSurface,
+    preRawSurface,
     preDs4xSurface,
     preDs8xSurface,
     superResRefScaled,
@@ -221,6 +222,7 @@ protected:
         {BufferType::postCdefReconSurface,      ResourceType::surfaceResource},
         {BufferType::preMbCodedBuffer,          ResourceType::bufferResource},
         {BufferType::preRefSurface,             ResourceType::surfaceResource},
+        {BufferType::preRawSurface,             ResourceType::surfaceResource},
         {BufferType::preDs4xSurface,            ResourceType::surfaceResource},
         {BufferType::preDs8xSurface,            ResourceType::surfaceResource},
 #if _MEDIA_RESERVED
