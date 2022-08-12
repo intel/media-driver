@@ -177,7 +177,7 @@ protected:
     //!           Corresponding output surface pointer
     //!
     virtual PVPHAL_SURFACE GetSurfOutput(
-        bool    bDiVarianceEnable);
+        bool    bDiVarianceEnable) override;
 
     // TGNE
 

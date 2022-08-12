@@ -102,7 +102,7 @@ protected:
         PVPHAL_SURFACE                      pSurface,
         PRENDERHAL_SURFACE_STATE_ENTRY      pEntry,
         int32_t*                            pSamplerIndex,
-        PMHW_SAMPLER_TYPE                   pSamplerType);
+        PMHW_SAMPLER_TYPE                   pSamplerType) override;
 
     //!
     //! \brief    Check whether the 3Dsampler use for Y plane
@@ -112,7 +112,7 @@ protected:
     //!           Return true if the 3Dsampler use for Y plane, otherwise fase
     //!
     virtual bool IsSamplerIDForY(
-        int32_t                            SamplerID);
+        int32_t                            SamplerID) override;
 
     //!
     //! \brief    set Sampler status
@@ -128,7 +128,7 @@ protected:
     virtual MOS_STATUS Set3DSamplerStatus(
         PVPHAL_SURFACE                 pSurface,
         uint8_t                        Layer,
-        MEDIA_OBJECT_KA2_STATIC_DATA   *pStatic);
+        MEDIA_OBJECT_KA2_STATIC_DATA   *pStatic) override;
 
     //!
     //! \brief    update Inline Data status
@@ -141,7 +141,7 @@ protected:
     //!
     virtual MOS_STATUS UpdateInlineDataStatus(
        PVPHAL_SURFACE                 pSurface,
-       MEDIA_OBJECT_KA2_STATIC_DATA   *pStatic);
+       MEDIA_OBJECT_KA2_STATIC_DATA   *pStatic) override;
 
     //!
     //! \brief    Get intermediate surface output

@@ -292,12 +292,12 @@ public:
         return MOS_SecureMemcpy(m_cacheabilitySettings, size, settings, size);
     }
 
-    bool IsPerfModeSupported()
+    bool IsPerfModeSupported() override
     {
         return m_perfModeSupported;
     }
 
-    bool IsRhoDomainStatsEnabled()
+    bool IsRhoDomainStatsEnabled() override
     {
         return m_rhoDomainStatsEnabled;
     }

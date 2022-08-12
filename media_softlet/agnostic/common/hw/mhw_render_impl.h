@@ -148,7 +148,7 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS AllocateHeaps(
-        MHW_STATE_HEAP_SETTINGS         stateHeapSettings)
+        MHW_STATE_HEAP_SETTINGS         stateHeapSettings) override
     {
         MOS_STATUS                      eStatus = MOS_STATUS_SUCCESS;
         MHW_STATE_HEAP_INTERFACE        *stateHeapInterface = nullptr;
@@ -167,7 +167,7 @@ public:
         return eStatus;
     }
 
-    PMHW_STATE_HEAP_INTERFACE GetStateHeapInterface()
+    PMHW_STATE_HEAP_INTERFACE GetStateHeapInterface() override
     {
         MHW_FUNCTION_ENTER;
 
@@ -281,12 +281,12 @@ public:
         return eStatus;
     }
 
-    bool IsPreemptionEnabled()
+    bool IsPreemptionEnabled() override
     {
         return m_preemptionEnabled;
     }
 
-    void GetSamplerResolutionAlignUnit(bool isAVSSampler, uint32_t &widthAlignUnit, uint32_t &heightAlignUnit)
+    void GetSamplerResolutionAlignUnit(bool isAVSSampler, uint32_t &widthAlignUnit, uint32_t &heightAlignUnit) override
     {
         // enable 2 plane NV12 when width is not multiple of 2 or height is
         // not multiple of 4. For AVS sampler, no limitation for 4 alignment.
@@ -294,7 +294,7 @@ public:
         heightAlignUnit = isAVSSampler ? MHW_AVS_SAMPLER_HEIGHT_ALIGN_UNIT : MHW_SAMPLER_HEIGHT_ALIGN_UNIT_G12;
     }
 
-    MHW_RENDER_ENGINE_CAPS* GetHwCaps()
+    MHW_RENDER_ENGINE_CAPS* GetHwCaps() override
     {
         return &m_hwCaps;
     }

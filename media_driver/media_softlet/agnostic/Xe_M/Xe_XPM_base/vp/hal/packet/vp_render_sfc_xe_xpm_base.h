@@ -39,15 +39,15 @@ class SfcRenderXe_Xpm_Base : public SfcRenderM12
 
 public:
     SfcRenderXe_Xpm_Base(VP_MHWINTERFACE &vpMhwinterface, PVpAllocator &allocator, bool disbaleSfcDithering);
-    virtual ~SfcRenderXe_Xpm_Base();
+    virtual ~SfcRenderXe_Xpm_Base() override;
     virtual bool IsVdboxSfcInputFormatSupported(
         CODECHAL_STANDARD           codecStandard,
-        MOS_FORMAT                  inputFormat);
+        MOS_FORMAT                  inputFormat) override;
     virtual bool IsVdboxSfcOutputFormatSupported(
         CODECHAL_STANDARD           codecStandard,
         MOS_FORMAT                  outputFormat,
-        MOS_TILE_TYPE               tileType);
-    virtual MOS_STATUS SetScalingParams(PSFC_SCALING_PARAMS scalingParams);
+        MOS_TILE_TYPE               tileType) override;
+    virtual MOS_STATUS SetScalingParams(PSFC_SCALING_PARAMS scalingParams) override;
 
     //!
     //! \brief    Set csc parameters
@@ -60,13 +60,13 @@ public:
 
 protected:
     virtual MOS_STATUS SetInterlacedScalingParams(PSFC_SCALING_PARAMS scalingParams);
-    virtual MOS_STATUS InitSfcStateParams();
+    virtual MOS_STATUS InitSfcStateParams() override;
 
-    virtual MOS_STATUS AllocateResources();
-    virtual MOS_STATUS FreeResources();
+    virtual MOS_STATUS AllocateResources() override;
+    virtual MOS_STATUS FreeResources() override;
 
-    virtual bool IsOutputChannelSwapNeeded(MOS_FORMAT outputFormat);
-    virtual bool IsCscNeeded(SFC_CSC_PARAMS &cscParams);
+    virtual bool IsOutputChannelSwapNeeded(MOS_FORMAT outputFormat) override;
+    virtual bool IsCscNeeded(SFC_CSC_PARAMS &cscParams) override;
 
     VP_SURFACE *m_tempFieldSurface = nullptr;
 

@@ -584,13 +584,13 @@ public:
         return m_pakHWTileSizeRecordSize;
     }
 
-    uint32_t GetHcpVp9PicStateCommandSize()
+    uint32_t GetHcpVp9PicStateCommandSize() override
     {
         // Just return success here, please implement logic in platform sepecific impl class.
         return MOS_STATUS_SUCCESS;
     }
 
-    uint32_t GetHcpVp9SegmentStateCommandSize()
+    uint32_t GetHcpVp9SegmentStateCommandSize() override
     {
         // Just return success here, please implement logic in platform sepecific impl class.
         return MOS_STATUS_SUCCESS;
@@ -600,7 +600,7 @@ public:
         uint32_t                        mode,
         uint32_t                       *commandsSize,
         uint32_t                       *patchListSize,
-        PMHW_VDBOX_STATE_CMDSIZE_PARAMS params)
+        PMHW_VDBOX_STATE_CMDSIZE_PARAMS params) override
     {
         // Just return success here, please implement logic in platform sepecific impl class.
         return MOS_STATUS_SUCCESS;

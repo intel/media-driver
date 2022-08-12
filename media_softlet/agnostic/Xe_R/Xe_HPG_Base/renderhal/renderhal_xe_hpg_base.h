@@ -79,13 +79,13 @@ public:
         PRENDERHAL_SURFACE_STATE_PARAMS pParams,
         int32_t *                       piNumEntries,
         PRENDERHAL_SURFACE_STATE_ENTRY *ppSurfaceEntries,
-        PRENDERHAL_OFFSET_OVERRIDE      pOffsetOverride);
+        PRENDERHAL_OFFSET_OVERRIDE      pOffsetOverride) override;
 
     //!
     //! \brief    Check if Sampler128Elements is supported
     //! \return   true of false
     //!
-    virtual inline bool IsSampler128ElementsSupported() { return true; }
+    virtual inline bool IsSampler128ElementsSupported() override { return true; }
 
     //!
     //! \brief      Checks how per thread scratch space size bits in VFE state are interpreted by HW
@@ -96,7 +96,7 @@ public:
     //!             [in]    Pointer to RenderHal interface
     //! \return     true if BDW A0 stepping, false otherwise
     //!
-    bool PerThreadScratchSpaceStart2K(PRENDERHAL_INTERFACE pRenderHal)
+    bool PerThreadScratchSpaceStart2K(PRENDERHAL_INTERFACE pRenderHal) override
     {
         MOS_UNUSED(pRenderHal);
         return false;
@@ -110,7 +110,7 @@ public:
     //! \return     bool.
     //!
     virtual bool PerThreadScratchSpaceStart64Byte(
-        RENDERHAL_INTERFACE *renderHal)
+        RENDERHAL_INTERFACE *renderHal) override
     {
         return true;
     }
@@ -122,7 +122,7 @@ public:
     //!           [in] SLM size in 1K
     //! \return   encoded output
     //!
-    uint32_t EncodeSLMSize(uint32_t SLMSize);
+    uint32_t EncodeSLMSize(uint32_t SLMSize) override;
 
     //!
     //! \brief    Set Chroma Direction
@@ -135,7 +135,7 @@ public:
     //!
     uint8_t SetChromaDirection(
         PRENDERHAL_INTERFACE pRenderHal,
-        PRENDERHAL_SURFACE   pRenderHalSurface);
+        PRENDERHAL_SURFACE   pRenderHalSurface) override;
 
     //!
     //! \brief    Convert To Nano Seconds
@@ -151,7 +151,7 @@ public:
     void ConvertToNanoSeconds(
         PRENDERHAL_INTERFACE pRenderHal,
         uint64_t             iTicks,
-        uint64_t *           piNs);
+        uint64_t *           piNs) override;
 
     //!
     //! \brief    Initialize the State Heap Settings per platform
@@ -160,7 +160,7 @@ public:
     //! \return   void
     //!
     void InitStateHeapSettings(
-        PRENDERHAL_INTERFACE pRenderHal);
+        PRENDERHAL_INTERFACE pRenderHal) override;
 
     //!
     //! \brief    Initialize the default surface type and advanced surface type  per platform
@@ -169,7 +169,7 @@ public:
     //! \return   void
     //!
     void InitSurfaceTypes(
-        PRENDERHAL_INTERFACE pRenderHal);
+        PRENDERHAL_INTERFACE pRenderHal) override;
 
     //!
     //! \brief    Check if YV12 Single Pass is supported
@@ -178,7 +178,7 @@ public:
     //! \return   true of false
     //!
     inline bool IsEnableYV12SinglePass(
-        PRENDERHAL_INTERFACE pRenderHal)
+        PRENDERHAL_INTERFACE pRenderHal) override
     {
         MOS_UNUSED(pRenderHal);
         return true;
@@ -191,7 +191,7 @@ public:
     //! \return   size
     //!
     inline uint32_t GetSizeSamplerStateAvs(
-        PRENDERHAL_INTERFACE pRenderHal)
+        PRENDERHAL_INTERFACE pRenderHal) override
     {
         if (pRenderHal && pRenderHal->pHwSizes)
         {
@@ -215,20 +215,20 @@ public:
     //!
     virtual MOS_STATUS EnableL3Caching(
         PRENDERHAL_INTERFACE         pRenderHal,
-        PRENDERHAL_L3_CACHE_SETTINGS pCacheSettings);
+        PRENDERHAL_L3_CACHE_SETTINGS pCacheSettings) override;
 
     //!
     //! \brief      Get the pointer to the MHW_VFE_PARAMS
     //! \return     MHW_VFE_PARAMS*
     //!             pointer to the MHW_VFE_PARAMS
     //!
-    virtual MHW_VFE_PARAMS *GetVfeStateParameters() { return &m_vfeStateParams; }
+    virtual MHW_VFE_PARAMS *GetVfeStateParameters() override { return &m_vfeStateParams; }
 
     //!
     //! \brief      enable/disable the fusedEUDispatch flag in the VFE_PARAMS
     //! \return     no return value
     //!
-    virtual void SetFusedEUDispatch(bool enable);
+    virtual void SetFusedEUDispatch(bool enable) override;
 
     //!
     //! \brief      set the number of walkers in the VFE_PARAMS
@@ -256,7 +256,7 @@ public:
     //!
     virtual MOS_STATUS SetPowerOptionStatus(
         PRENDERHAL_INTERFACE pRenderHal,
-        PMOS_COMMAND_BUFFER  pCmdBuffer);
+        PMOS_COMMAND_BUFFER  pCmdBuffer) override;
 
     //!
     //! \brief    Set Composite Prolog CMD
@@ -269,7 +269,7 @@ public:
     //!
     virtual MOS_STATUS SetCompositePrologCmd(
         PRENDERHAL_INTERFACE pRenderHal,
-        PMOS_COMMAND_BUFFER  pCmdBuffer);
+        PMOS_COMMAND_BUFFER  pCmdBuffer) override;
 
     //! \brief    Send Compute Walker
     //! \details  Send Compute Walker
@@ -283,7 +283,7 @@ public:
     virtual MOS_STATUS SendComputeWalker(
         PRENDERHAL_INTERFACE     pRenderHal,
         PMOS_COMMAND_BUFFER      pCmdBuffer,
-        PMHW_GPGPU_WALKER_PARAMS pGpGpuWalkerParams);
+        PMHW_GPGPU_WALKER_PARAMS pGpGpuWalkerParams) override;
 
     //! \brief    Send To 3DState Binding Table Pool Alloc
     //! \details  Send To 3DState Binding Table Pool Alloc
@@ -294,7 +294,7 @@ public:
     //! \return   MOS_STATUS
     virtual MOS_STATUS SendTo3DStateBindingTablePoolAlloc(
         PRENDERHAL_INTERFACE pRenderHal,
-        PMOS_COMMAND_BUFFER  pCmdBuffer);
+        PMOS_COMMAND_BUFFER  pCmdBuffer) override;
 
 
     //!
@@ -305,7 +305,7 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS IsRenderHalMMCEnabled(
-        PRENDERHAL_INTERFACE pRenderHal);
+        PRENDERHAL_INTERFACE pRenderHal) override;
 
     //!
     //! \brief    Check if Over ride is needed or not
@@ -321,7 +321,7 @@ public:
     virtual MOS_STATUS IsOvrdNeeded(
         PRENDERHAL_INTERFACE             pRenderHal,
         PMOS_COMMAND_BUFFER              pCmdBuffer,
-        PRENDERHAL_GENERIC_PROLOG_PARAMS pGenericPrologParams);
+        PRENDERHAL_GENERIC_PROLOG_PARAMS pGenericPrologParams) override;
 
     //! \brief      Set L3 cache override config parameters
     //! \param      [in] pRenderHal
@@ -336,24 +336,24 @@ public:
     virtual MOS_STATUS SetCacheOverrideParams(
         PRENDERHAL_INTERFACE         pRenderHal,
         PRENDERHAL_L3_CACHE_SETTINGS pCacheSettings,
-        bool                         bEnableSLM);
+        bool                         bEnableSLM) override;
 
     //! \brief      Get the size of Render Surface State Command
     //! \return     size_t
     //!             the size of render surface state command
-    virtual size_t GetSurfaceStateCmdSize();
+    virtual size_t GetSurfaceStateCmdSize() override;
 
     //! \brief      Get the address of the ith Palette Data
     //! \param      [in] i
     //!             Index of the palette data
     //! \return     void *
     //!             address of the ith palette data table
-    virtual void *GetPaletteDataAddress(int i) { return &m_paletteData[i]; }
+    virtual void *GetPaletteDataAddress(int i) override { return &m_paletteData[i]; }
 
     //! \brief      Get the size of Binding Table State Command
     //! \return     size_t
     //!             the size of binding table state command
-    virtual size_t GetBTStateCmdSize() { return mhw_state_heap_xe_hpg::BINDING_TABLE_STATE_CMD::byteSize; }
+    virtual size_t GetBTStateCmdSize() override { return mhw_state_heap_xe_hpg::BINDING_TABLE_STATE_CMD::byteSize; }
 
     //! \brief      Get Surface Compression support caps
     //! \param      [in] format
@@ -366,7 +366,7 @@ public:
     //! \param    PRENDERHAL_INTERFACE    pRenderHal
     //!           [in]  Pointer to Hardware Interface
     //! \return   true of false
-    virtual bool IsComputeContextInUse(PRENDERHAL_INTERFACE pRenderHal)
+    virtual bool IsComputeContextInUse(PRENDERHAL_INTERFACE pRenderHal) override
     {
         return true;
     }
@@ -375,7 +375,7 @@ public:
     //! \details  A single scratch space buffer is allocated and used for all threads.
     virtual MOS_STATUS AllocateScratchSpaceBuffer(
         uint32_t             perThreadScratchSpace,
-        RENDERHAL_INTERFACE *renderHal);
+        RENDERHAL_INTERFACE *renderHal) override;
 
     //! \brief    Sets states of scratch space buffer.
     //! \param    Pointer to RENDERHAL_INTERFACE renderHal
@@ -390,7 +390,7 @@ public:
     //! \brief    Frees scratch space buffer.
     //! \details  A single scratch space buffer is allocated and used for all threads.
     virtual MOS_STATUS FreeScratchSpaceBuffer(
-        RENDERHAL_INTERFACE *renderHal);
+        RENDERHAL_INTERFACE *renderHal) override;
 
      MHW_SETPAR_DECL_HDR(STATE_BASE_ADDRESS);
 

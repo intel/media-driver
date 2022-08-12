@@ -190,7 +190,7 @@ public:
     //!
     //! \brief    Initialize AVC Low-power encode profiles, entrypoints and attributes
     //!
-    virtual VAStatus LoadAvcEncLpProfileEntrypoints();
+    virtual VAStatus LoadAvcEncLpProfileEntrypoints() override;
 
     //!
     //! \brief    Add surface attributes for Encoding

@@ -96,13 +96,11 @@ cmake_dependent_option(GEN12_ADLN
     "Enabled ADLN support (Gen12)" ON
     "GEN12_TGLLP" OFF)
 
-cmake_dependent_option(Xe_M
-    "Enabled support for Xehp_sdv+ platforms" ON
-    "ENABLE_PRODUCTION_KMD" OFF)
+option(Xe_M "Enabled support for Xehp_sdv+ platforms" ON)
 
 cmake_dependent_option(DG2
     "Enabled DG2 support" ON
-    "Xe_M;ENABLE_PRODUCTION_KMD" OFF)
+    "Xe_M" OFF)
 
 # Using render IP name for kernel binary
 cmake_dependent_option(XE_HPG
@@ -111,7 +109,7 @@ cmake_dependent_option(XE_HPG
 
 cmake_dependent_option(XEHP_SDV
     "Enabled Xehp_sdv support" ON
-    "Xe_M;ENABLE_PRODUCTION_KMD" OFF)
+    "Xe_M" OFF)
 
 cmake_dependent_option(PVC
     "Enabled PVC support" ON

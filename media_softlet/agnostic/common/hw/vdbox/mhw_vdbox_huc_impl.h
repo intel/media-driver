@@ -69,7 +69,7 @@ public:
     //! \return   [out] MmioRegistersHuc*
     //!           mmio registers got.
     //!
-    HucMmioRegisters* GetMmioRegisters(MHW_VDBOX_NODE_IND index)
+    HucMmioRegisters* GetMmioRegisters(MHW_VDBOX_NODE_IND index) override
     {
         if (index < MHW_VDBOX_NODE_MAX)
         {
@@ -94,22 +94,22 @@ private:
         m_mmioRegisters[MHW_VDBOX_NODE_2] = m_mmioRegisters[MHW_VDBOX_NODE_1];
     }
 
-    uint32_t GetHucStatusHevcS2lFailureMask()
+    uint32_t GetHucStatusHevcS2lFailureMask() override
     {
         return m_hucStatusHevcS2lFailureMask;
     }
 
-    uint32_t GetHucStatus2ImemLoadedMask()
+    uint32_t GetHucStatus2ImemLoadedMask() override
     {
         return m_hucStatus2ImemLoadedMask;
     }
 
-    uint32_t GetHucErrorFlagsMask()
+    uint32_t GetHucErrorFlagsMask() override
     {
         return m_hucErrorFlagsMask;
     }
 
-    uint32_t GetHucProductFamily()
+    uint32_t GetHucProductFamily() override
     {
         return m_hucFamily;
     }

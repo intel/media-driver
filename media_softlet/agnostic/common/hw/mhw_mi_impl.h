@@ -164,7 +164,7 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS AddBatchBufferEndInsertionFlag(MOS_COMMAND_BUFFER &constructedCmdBuf)
+    MOS_STATUS AddBatchBufferEndInsertionFlag(MOS_COMMAND_BUFFER &constructedCmdBuf) override
     {
         MHW_FUNCTION_ENTER;
 
@@ -181,15 +181,15 @@ public:
         return &m_mmioRegisters;
     }
 
-    virtual MOS_STATUS SetCpInterface(MhwCpInterface* cpInterface)
+    virtual MOS_STATUS SetCpInterface(MhwCpInterface* cpInterface) override
     {
         m_cpInterface = cpInterface;
         return MOS_STATUS_SUCCESS;
     }
 
-    virtual uint32_t GetMmioInterfaces(MHW_MMIO_REGISTER_OPCODE opCode) = 0;
+    virtual uint32_t GetMmioInterfaces(MHW_MMIO_REGISTER_OPCODE opCode) override = 0;
 
-    MOS_STATUS AddProtectedProlog(MOS_COMMAND_BUFFER *cmdBuffer)
+    MOS_STATUS AddProtectedProlog(MOS_COMMAND_BUFFER *cmdBuffer) override
     {
         MHW_MI_CHK_NULL(cmdBuffer);
 
@@ -200,7 +200,7 @@ public:
     }
 
     MOS_STATUS SetPrologCmd(
-        PMOS_COMMAND_BUFFER cmdBuffer)
+        PMOS_COMMAND_BUFFER cmdBuffer) override
     {
         MOS_STATUS eStatus          = MOS_STATUS_SUCCESS;
         uint64_t   auxTableBaseAddr = 0;

@@ -92,7 +92,7 @@ public:
 
 protected:
     virtual MOS_STATUS VeboxUpdateVeboxStates(
-        PVPHAL_SURFACE pSrcSurface);
+        PVPHAL_SURFACE pSrcSurface) override;
 
     virtual MOS_STATUS VeboxUpdateDnStatesForHVS(
         PVPHAL_DENOISE_PARAMS pDNParams,

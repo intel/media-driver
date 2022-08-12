@@ -45,7 +45,7 @@ public:
         VEBOX_STAT_QUERY_TYPE QueryType,
         uint32_t             *pQuery,
         uint8_t              *pStatSlice0Base,
-        uint8_t              *pStatSlice1Base);
+        uint8_t              *pStatSlice1Base) override;
 
     virtual MOS_STATUS CheckTGNEValid(
         uint32_t *pStatSlice0GNEPtr,
@@ -54,10 +54,10 @@ public:
 
     virtual MOS_STATUS UpdateDnHVSParameters(
         uint32_t *pStatSlice0GNEPtr,
-        uint32_t *pStatSlice1GNEPtr);
+        uint32_t *pStatSlice1GNEPtr) override;
 
     virtual MOS_STATUS SetupDNTableForHVS(
-        PMHW_VEBOX_STATE_CMD_PARAMS pVeboxStateCmdParams);
+        PMHW_VEBOX_STATE_CMD_PARAMS pVeboxStateCmdParams) override;
 
     MOS_STATUS GNELumaConsistentCheck(
         uint32_t &dwGNELuma,

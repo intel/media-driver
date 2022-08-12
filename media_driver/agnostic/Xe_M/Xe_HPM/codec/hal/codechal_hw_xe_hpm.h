@@ -87,7 +87,7 @@ public:
     //! \return   [out] BltState*
     //!           Interface got.
     //!
-    inline BltStateXe_Xpm *GetBltState()
+    inline BltStateXe_Xpm *GetBltState() override
     {
         return m_bltState;
     }

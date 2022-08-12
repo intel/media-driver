@@ -55,17 +55,17 @@ public:
 
     virtual MOS_STATUS AddCfeStateCmd(
         PMOS_COMMAND_BUFFER cmdBuffer,
-        PMHW_VFE_PARAMS params);
+        PMHW_VFE_PARAMS params) override;
 
     virtual MOS_STATUS AddComputeWalkerCmd(MOS_COMMAND_BUFFER *cmdBuffer,
                                            MHW_GPGPU_WALKER_PARAMS *gpgpuWalkerParams,
                                            MHW_ID_ENTRY_PARAMS *interfaceDescriptorParams,
                                            MOS_RESOURCE *postsyncResource,
-                                           uint32_t resourceOffset);
+                                           uint32_t resourceOffset) override;
 
     virtual MOS_STATUS AddChromaKeyCmd(
             PMOS_COMMAND_BUFFER     cmdBuffer,
-            PMHW_CHROMAKEY_PARAMS   params);
+            PMHW_CHROMAKEY_PARAMS   params) override;
 
     std::shared_ptr<mhw::render::Itf> GetNewRenderInterface() override
     {
