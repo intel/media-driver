@@ -271,10 +271,16 @@ set_target_properties(${LIB_NAME} PROPERTIES LINK_FLAGS ${MEDIA_LINK_FLAGS})
 set_target_properties(${LIB_NAME}        PROPERTIES PREFIX "")
 set_target_properties(${LIB_NAME_STATIC} PROPERTIES PREFIX "")
 
+set(MEDIA_LINK_EXTERNAL_LIBS "${PKG_PCIACCESS_LIBRARIES} m pthread dl")
+find_package(Backtrace)
+if(Backtrace_FOUND)
+    set(MEDIA_LINK_EXTERNAL_LIBS "${MEDIA_LINK_EXTERNAL_LIBS} ${Backtrace_LIBRARY}")
+endif()
+
 bs_ufo_link_libraries_noBsymbolic(
     ${LIB_NAME}
     "${INCLUDED_LIBS}"
-    "${PKG_PCIACCESS_LIBRARIES} m pthread dl"
+    "${MEDIA_LINK_EXTERNAL_LIBS}"
 )
 
 if (NOT DEFINED INCLUDED_LIBS OR "${INCLUDED_LIBS}" STREQUAL "")
