@@ -590,6 +590,19 @@ do                                                                              
     ((hcpDecPhase == CodechalDecode::CodechalHcpDecodePhaseLegacyS2L && shortFormat)  || \
      (hcpDecPhase == CodechalDecode::CodechalHcpDecodePhaseLegacyLong && !shortFormat))
 
+//| HW parameter initializers
+const MOS_SYNC_PARAMS     g_cInitSyncParams =
+{
+    MOS_GPU_CONTEXT_RENDER,         // GpuContext
+    nullptr,                        // presSyncResource
+    1,                              // uiSemaphoreCount
+    0,                              // uiSemaphoreValue
+    0,                              // uiSemaphoreOffset
+    false,                          // bReadOnly
+    true,                           // bDisableDecodeSyncLock
+    false,                          // bDisableLockForTranscode
+};
+
 // ---------------------------
 // Functions
 // ---------------------------

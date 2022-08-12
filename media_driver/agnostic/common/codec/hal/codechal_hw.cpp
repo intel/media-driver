@@ -26,19 +26,6 @@
 #include "codechal_hw.h"
 #include "codechal_setting.h"
 
-//| HW parameter initializers
-const MOS_SYNC_PARAMS     g_cInitSyncParams =
-{
-    MOS_GPU_CONTEXT_RENDER,         // GpuContext
-    nullptr,                        // presSyncResource
-    1,                              // uiSemaphoreCount
-    0,                              // uiSemaphoreValue
-    0,                              // uiSemaphoreOffset
-    false,                          // bReadOnly
-    true,                           // bDisableDecodeSyncLock
-    false,                          // bDisableLockForTranscode
-};
-
 CodechalHwInterface::CodechalHwInterface(
     PMOS_INTERFACE    osInterface,
     CODECHAL_FUNCTION codecFunction,
