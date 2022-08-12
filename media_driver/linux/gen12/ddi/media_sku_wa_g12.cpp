@@ -519,6 +519,7 @@ static bool InitAdlsMediaSku(struct GfxDeviceInfo *devInfo,
 
     // Disable HEVC 422 Virtual Tile Scalability
     MEDIA_WR_SKU(skuTable, FtrDecodeHEVC422VTScalaDisable, 1);
+    MEDIA_WR_SKU(skuTable, FtrE2ECompression, 1);
 
     return true;
 }
@@ -534,6 +535,10 @@ static bool InitAdlsMediaWa(struct GfxDeviceInfo* devInfo,
 
     //ADL-S not need this
     MEDIA_WR_WA(waTable, Wa_1409820462, 0);
+
+    //ADL-S need enable MMC for all stepping
+    MEDIA_WR_WA(waTable, WaDisableCodecMmc, 0);
+    MEDIA_WR_WA(waTable, WaDisableVPMmc, 0);
 
     return true;
 }
@@ -616,6 +621,7 @@ static bool InitAdlnMediaSku(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_SKU(skuTable, FtrAV1VLDLSTDecoding, 1);
     MEDIA_WR_SKU(skuTable, FtrGucSubmission, 1);
     MEDIA_WR_SKU(skuTable, FtrDecodeHEVC422VTScalaDisable, 1);
+    MEDIA_WR_SKU(skuTable, FtrE2ECompression, 1);
 
     return true;
 }
@@ -631,6 +637,10 @@ static bool InitAdlnMediaWa(struct GfxDeviceInfo *devInfo,
 
     //ADL-N keeps below setting same as ADL-S/ADL-P
     MEDIA_WR_WA(waTable, Wa_1409820462, 0);
+
+    //ADL-N need enable MMC for all stepping
+    MEDIA_WR_WA(waTable, WaDisableCodecMmc, 0);
+    MEDIA_WR_WA(waTable, WaDisableVPMmc, 0);
 
     return true;
 }
