@@ -61,7 +61,6 @@ MOS_STATUS Mhw_SetMocsTableIndex(
     // Index is defined in bit 1:6
     const uint8_t indexBitFieldLow      = 1;
     const uint8_t indexMask             = 0x3F;
-    auto          memObjCtrlState       = resource->memObjCtrlState;
     uint32_t      memObjCtrlStateValue  = 0;
 
     uint32_t    *data                   = mocsParams.mocsTableIndex;
@@ -84,15 +83,7 @@ MOS_STATUS Mhw_SetMocsTableIndex(
 
     value = *data;
 
-    if (resource->mocsMosResUsageType == MOS_CODEC_RESOURCE_USAGE_BEGIN_CODEC       ||
-        resource->mocsMosResUsageType >= MOS_HW_RESOURCE_USAGE_MEDIA_BATCH_BUFFERS  ||
-        resource->memObjCtrlState.DwordValue == 0)
-    {
-        MHW_NORMALMESSAGE("Invalid resource->mocsMosResUsageType = %d, use default cache MOS_MP_RESOURCE_USAGE_DEFAULT", resource->mocsMosResUsageType);
-        auto gmmClientContext   = osInterface->pfnGetGmmClientContext(osInterface);
-        memObjCtrlState    = MosInterface::GetCachePolicyMemoryObject(gmmClientContext, MOS_MP_RESOURCE_USAGE_DEFAULT);
-    }
-
+    auto memObjCtrlState = Mos_GetResourceCachePolicyMemoryObject(osInterface, resource);
     memObjCtrlStateValue = (memObjCtrlState.DwordValue >> indexBitFieldLow) & indexMask;
 
     if (bitFieldHigh == 31)

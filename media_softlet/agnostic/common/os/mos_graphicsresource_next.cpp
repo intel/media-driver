@@ -55,15 +55,17 @@ GraphicsResourceNext::CreateParams::CreateParams(PMOS_ALLOC_GFXRES_PARAMS pParam
     m_width           = pParams->dwWidth;
     m_memType         = pParams->dwMemType;
 
-    if (pParams->ResUsageType >= MOS_HW_RESOURCE_USAGE_MEDIA_BATCH_BUFFERS || pParams->ResUsageType == MOS_CODEC_RESOURCE_USAGE_BEGIN_CODEC)
+    if (pParams->ResUsageType == MOS_CODEC_RESOURCE_USAGE_BEGIN_CODEC ||
+        pParams->ResUsageType == MOS_HW_RESOURCE_DEF_MAX) // the usage type is invalid, set to default usage.
     {
         m_mocsMosResUsageType = MOS_MP_RESOURCE_USAGE_DEFAULT;
     }
-    else
+    else // the usage is a valid mocs usage or pat index usage
     {
         m_mocsMosResUsageType = pParams->ResUsageType;
     }
-    m_gmmResUsageType = MosInterface::GetGmmResourceUsageType(pParams->ResUsageType);
+
+    m_gmmResUsageType   = MosInterface::GetGmmResourceUsageType(m_mocsMosResUsageType);
     m_hardwareProtected = pParams->hardwareProtected;
 };
 

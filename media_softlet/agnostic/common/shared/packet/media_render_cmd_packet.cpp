@@ -592,19 +592,9 @@ uint32_t RenderCmdPacket::SetBufferForHwAccess(PMOS_SURFACE buffer, PRENDERHAL_S
     if (pSurfaceParams == nullptr)
     {
         MOS_ZeroMemory(&SurfaceParam, sizeof(SurfaceParam));
-        if (buffer->OsResource.mocsMosResUsageType == MOS_CODEC_RESOURCE_USAGE_BEGIN_CODEC ||
-            buffer->OsResource.mocsMosResUsageType >= MOS_HW_RESOURCE_USAGE_MEDIA_BATCH_BUFFERS ||
-            buffer->OsResource.memObjCtrlState.DwordValue == 0)
-        {
-            //set mem object control for cache
-            SurfaceParam.MemObjCtl = (MosInterface::GetCachePolicyMemoryObject(
-                                          m_renderHal->pOsInterface->pfnGetGmmClientContext(m_renderHal->pOsInterface),
-                                          MOS_MP_RESOURCE_USAGE_DEFAULT)).DwordValue;
-        }
-        else
-        {
-            SurfaceParam.MemObjCtl = buffer->OsResource.memObjCtrlState.DwordValue;
-        }
+
+        auto memObjCtrlState = Mos_GetResourceCachePolicyMemoryObject(m_renderHal->pOsInterface, &buffer->OsResource);
+        SurfaceParam.MemObjCtl = memObjCtrlState.DwordValue;
 
         pSurfaceParams = &SurfaceParam;
     }

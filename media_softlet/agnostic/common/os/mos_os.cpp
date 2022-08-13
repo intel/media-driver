@@ -962,5 +962,40 @@ MOS_STATUS Mos_CheckVirtualEngineSupported(
 }
 #endif // !SKIP_VE_DEFINE
 
+MEMORY_OBJECT_CONTROL_STATE Mos_GetResourceCachePolicyMemoryObject(
+    PMOS_INTERFACE      osInterface,
+    PMOS_RESOURCE       resource)
+{
+    MEMORY_OBJECT_CONTROL_STATE memObjCtrlState = {};
+
+    if(resource == nullptr)
+    {
+        MOS_OS_ASSERTMESSAGE("resource == nullptr");
+        return memObjCtrlState;
+    }
+
+    memObjCtrlState = resource->memObjCtrlState;
+    if(osInterface == nullptr)
+    {
+        MOS_OS_ASSERTMESSAGE("osInterface == nullptr");
+        return memObjCtrlState;
+    }
+
+    auto gmmClientContext = osInterface->pfnGetGmmClientContext(osInterface);
+
+    if(resource->bConvertedFromDDIResource &&
+       resource->mocsMosResUsageType >= MOS_HW_RESOURCE_USAGE_MEDIA_BATCH_BUFFERS)
+    {
+        memObjCtrlState = MosInterface::GetCachePolicyMemoryObject(gmmClientContext, resource->mocsMosResUsageType);
+    }
+
+    if (memObjCtrlState.DwordValue == 0)
+    {
+        MOS_OS_NORMALMESSAGE("Invalid resource->mocsMosResUsageType = %d, use default cache MOS_MP_RESOURCE_USAGE_DEFAULT", resource->mocsMosResUsageType);
+        memObjCtrlState = MosInterface::GetCachePolicyMemoryObject(gmmClientContext, MOS_MP_RESOURCE_USAGE_DEFAULT);
+    }
+    return memObjCtrlState;
+}
+
 void *MosStreamState::pvSoloContext = nullptr; 
 
