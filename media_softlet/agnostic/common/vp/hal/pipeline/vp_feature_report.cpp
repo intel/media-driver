@@ -96,7 +96,10 @@ void VpFeatureReport::SetConfigValues(
     configValues->dwCurrentVEFeatureInUse = m_features.veFeatureInUse;
 
     // Report vp packet reused flag.
-    configValues->isPacketReused        = m_features.packetReused;
+    configValues->isPacketReused = m_features.packetReused;
+
+    // Report vp Dn enabled flag.
+    configValues->isDnEnabled = m_features.denoise;
 
     // Report MMC status
     configValues->dwVPMMCInUse          = m_features.vpMMCInUse;

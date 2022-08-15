@@ -695,8 +695,9 @@ MOS_STATUS VpVeboxCmdPacket::SetDnParams(
     VP_SAMPLER_STATE_DN_PARAM       lumaParams = {};
     VPHAL_DNUV_PARAMS               chromaParams = {};
 
-    VP_RENDER_ASSERT(pDnParams);
-    VP_RENDER_ASSERT(pRenderData);
+    VP_PUBLIC_CHK_NULL_RETURN(pDnParams);
+    VP_PUBLIC_CHK_NULL_RETURN(pRenderData);
+    VP_PUBLIC_CHK_NULL_RETURN(m_report);
 
     pRenderData->DN.bDnEnabled = pDnParams->bDnEnabled;
     pRenderData->DN.bAutoDetect = pDnParams->bAutoDetect;
@@ -718,6 +719,8 @@ MOS_STATUS VpVeboxCmdPacket::SetDnParams(
     ConfigDnLumaChromaParams(pDnParams->bDnEnabled, pDnParams->bChromaDenoise, &lumaParams, &chromaParams);
 
     // bDNDITopFirst in DNDI parameters need be configured during SetDIParams.
+
+    m_report->GetFeatures().denoise = pRenderData->DN.bDnEnabled;
 
     return eStatus;
 }
@@ -2316,8 +2319,11 @@ VpVeboxCmdPacket::VpVeboxCmdPacket(
     VpCmdPacket(task, hwInterface, allocator, mmc, VP_PIPELINE_PACKET_VEBOX),
     VpVeboxCmdPacketBase(task, hwInterface, allocator, mmc)
 {
+    VP_PUBLIC_CHK_NULL_NO_STATUS_RETURN(hwInterface);
+    VP_PUBLIC_CHK_NULL_NO_STATUS_RETURN(hwInterface->m_vpPlatformInterface);
     m_veboxItf = hwInterface->m_vpPlatformInterface->GetMhwVeboxItf();
     m_miItf = hwInterface->m_vpPlatformInterface->GetMhwMiItf();
+    m_report = hwInterface->m_reporting;
 }
 
 VpVeboxCmdPacket:: ~VpVeboxCmdPacket()

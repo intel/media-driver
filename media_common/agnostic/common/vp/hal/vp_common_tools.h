@@ -100,6 +100,7 @@ typedef enum _VPREP_STATUS
 //!
 typedef struct _VP_CONFIG
 {
+    bool       featureReportInitialized;   // feature report has been initialized
     bool       bVpComponentReported;       // Vp Component has been reported
     uint32_t   dwVpPath;                   // Video Processing path
     uint32_t   dwVpComponent;              // Video Processing Component
@@ -160,6 +161,8 @@ typedef struct _VP_CONFIG
     bool       bAdvancedScalingInUseReported;      // Reported Advanced Scaling Enabled
     bool       isPacketReused;              // true if vp packet reused.
     bool       isPacketReusedReported;      // Reported vp packet reused.
+    bool       isDnEnabled;                 // true if vp Dn enabled.
+    bool       isDnEnabledReported;         // Reported vp Dn reported
 
     // Configurations for cache control
     uint32_t   dwDndiReferenceBuffer;
