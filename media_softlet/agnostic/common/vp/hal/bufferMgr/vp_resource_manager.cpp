@@ -1134,7 +1134,7 @@ MOS_STATUS VpResourceManager::AssignExecuteResource(VP_EXECUTE_CAPS& caps, std::
     if (caps.bVebox || caps.bDnKernelUpdate)
     {
         // Create Vebox Resources
-        VP_PUBLIC_CHK_STATUS_RETURN(AssignVeboxResource(caps, inputSurfaces[0], outputSurface, pastSurfaces[0], futureSurfaces[0], resHint, surfSetting));
+        VP_PUBLIC_CHK_STATUS_RETURN(AssignVeboxResource(caps, inputSurfaces[0], outputSurface, pastSurfaces[0], futureSurfaces[0], resHint, surfSetting, executedFilters));
     }
 
     if (caps.bRender)
@@ -2045,7 +2045,7 @@ MOS_STATUS VpResourceManager::AssignSurface(VP_EXECUTE_CAPS caps, VEBOX_SURFACE_
 }
 
 MOS_STATUS VpResourceManager::AssignVeboxResource(VP_EXECUTE_CAPS& caps, VP_SURFACE *inputSurface, VP_SURFACE *outputSurface,
-    VP_SURFACE *pastSurface, VP_SURFACE *futureSurface, RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting)
+    VP_SURFACE *pastSurface, VP_SURFACE *futureSurface, RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting, SwFilterPipe& executedFilters)
 {
     VP_FUNC_CALL();
     VP_PUBLIC_CHK_NULL_RETURN(inputSurface);

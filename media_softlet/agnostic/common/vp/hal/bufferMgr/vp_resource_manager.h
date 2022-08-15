@@ -438,7 +438,7 @@ protected:
         RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting);
     virtual MOS_STATUS AssignVeboxResourceForRender(VP_EXECUTE_CAPS &caps, VP_SURFACE *inputSurface, RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting);
     virtual MOS_STATUS AssignVeboxResource(VP_EXECUTE_CAPS& caps, VP_SURFACE* inputSurface, VP_SURFACE* outputSurface, VP_SURFACE* pastSurface, VP_SURFACE* futureSurface,
-        RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING& surfSetting);
+        RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING& surfSetting, SwFilterPipe& executedFilters);
     MOS_STATUS ReAllocateVeboxStatisticsSurface(VP_SURFACE *&statisticsSurface, VP_EXECUTE_CAPS &caps, VP_SURFACE *inputSurface, uint32_t dwWidth, uint32_t dwHeight);
 
     //!
