@@ -4518,7 +4518,7 @@ MOS_STATUS CodechalVdencAvcState::SFDKernel()
             kernelState));)
 
     HalOcaInterface::TraceMessage(cmdBuffer, *m_osInterface->pOsContext, __FUNCTION__, sizeof(__FUNCTION__));
-    HalOcaInterface::OnDispatch(cmdBuffer, *m_osInterface->pOsContext, *m_miInterface, *m_renderEngineInterface->GetMmioRegisters());
+    HalOcaInterface::OnDispatch(cmdBuffer, *m_osInterface, *m_miInterface, *m_renderEngineInterface->GetMmioRegisters());
 
     MHW_MEDIA_OBJECT_PARAMS mediaObjectParams;
     MediaObjectInlineData   mediaObjectInlineData;

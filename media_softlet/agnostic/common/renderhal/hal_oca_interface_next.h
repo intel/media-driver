@@ -153,7 +153,7 @@ public:
     //! \return void
     //!         No return value. Handle all exception inside the function.
     //!
-    static void OnDispatch(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext, std::shared_ptr<mhw::mi::Itf> miItf, MHW_MI_MMIOREGISTERS &mmioRegisters);
+    static void OnDispatch(MOS_COMMAND_BUFFER &cmdBuffer, MOS_INTERFACE &osInterface, std::shared_ptr<mhw::mi::Itf> miItf, MHW_MI_MMIOREGISTERS &mmioRegisters);
 
     //!
     //! \brief  Add string to oca log section

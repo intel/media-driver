@@ -222,7 +222,7 @@ void HalOcaInterfaceNext::OnIndirectState(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CON
 //! \return void
 //!         No return value. Handle all exception inside the function.
 //!
-void HalOcaInterfaceNext::OnDispatch(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext, std::shared_ptr<mhw::mi::Itf> miItf, MHW_MI_MMIOREGISTERS &mmioRegisters)
+void HalOcaInterfaceNext::OnDispatch(MOS_COMMAND_BUFFER &cmdBuffer, MOS_INTERFACE &osInterface, std::shared_ptr<mhw::mi::Itf> miItf, MHW_MI_MMIOREGISTERS &mmioRegisters)
 {
 }
 

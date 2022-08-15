@@ -175,7 +175,7 @@ void HalOcaInterface::On1stLevelBBStart(MOS_COMMAND_BUFFER& cmdBuffer, MOS_CONTE
 //! \return void
 //!         No return value. Handle all exception inside the function.
 //!
-void HalOcaInterface::OnDispatch(MOS_COMMAND_BUFFER &_cmdBuffer, MOS_CONTEXT &mosContext, MhwMiInterface &mhwMiInterface, MHW_MI_MMIOREGISTERS &mmioRegisters)
+void HalOcaInterface::OnDispatch(MOS_COMMAND_BUFFER &_cmdBuffer, MOS_INTERFACE &osInterface, MhwMiInterface &mhwMiInterface, MHW_MI_MMIOREGISTERS &mmioRegisters)
 {
 }
 

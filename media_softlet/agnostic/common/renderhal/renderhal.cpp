@@ -5284,7 +5284,7 @@ MOS_STATUS RenderHal_SendMediaStates(
     // Send Palettes in use
     MHW_RENDERHAL_CHK_STATUS(pRenderHal->pfnSendPalette(pRenderHal, pCmdBuffer));
 
-    pRenderHal->pRenderHalPltInterface->OnDispatch(pRenderHal, pCmdBuffer, pOsContext, pMmioRegisters);
+    pRenderHal->pRenderHalPltInterface->OnDispatch(pRenderHal, pCmdBuffer, pOsInterface, pMmioRegisters);
 
     // Send Media object walker
     if(pWalkerParams)

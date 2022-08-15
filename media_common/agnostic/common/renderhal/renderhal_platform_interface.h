@@ -607,7 +607,7 @@ public:
     virtual MOS_STATUS OnDispatch(
         PRENDERHAL_INTERFACE pRenderHal,
         PMOS_COMMAND_BUFFER  pCmdBuffer,
-        PMOS_CONTEXT         pOsContext,
+        PMOS_INTERFACE       pOsInterface,
         MHW_MI_MMIOREGISTERS *pMmioReg) = 0;
 
     virtual MOS_STATUS CreatePerfProfiler(

@@ -605,7 +605,7 @@ MOS_STATUS CM_HAL_G11_X::SubmitCommands(
     idLoadParams.pKernelState = nullptr;
     CM_CHK_MOSSTATUS_GOTOFINISH( mhwRender->AddMediaIDLoadCmd(&mosCmdBuffer, &idLoadParams ) );
 
-    HalOcaInterface::OnDispatch(mosCmdBuffer, *pOsContext, *renderHal->pMhwMiInterface, *pMmioRegisters);
+    HalOcaInterface::OnDispatch(mosCmdBuffer, *osInterface, *renderHal->pMhwMiInterface, *pMmioRegisters);
 
     if ( enableWalker )
     {

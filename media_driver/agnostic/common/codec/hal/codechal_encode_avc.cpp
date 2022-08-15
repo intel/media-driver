@@ -3107,7 +3107,7 @@ MOS_STATUS CodechalEncodeAvcEnc::BrcInitResetKernel()
     )
 
     HalOcaInterface::TraceMessage(cmdBuffer, *m_osInterface->pOsContext, __FUNCTION__, sizeof(__FUNCTION__));
-    HalOcaInterface::OnDispatch(cmdBuffer, *m_osInterface->pOsContext, *m_miInterface, *m_renderEngineInterface->GetMmioRegisters());
+    HalOcaInterface::OnDispatch(cmdBuffer, *m_osInterface, *m_miInterface, *m_renderEngineInterface->GetMmioRegisters());
 
     MHW_MEDIA_OBJECT_PARAMS mediaObjectParams;
     MediaObjectInlineData mediaObjectInlineData;
@@ -3942,7 +3942,7 @@ MOS_STATUS CodechalEncodeAvcEnc::MbEncKernel(bool mbEncIFrameDistInUse)
             &walkerCodecParams));
 
         HalOcaInterface::TraceMessage(cmdBuffer, *m_osInterface->pOsContext, __FUNCTION__, sizeof(__FUNCTION__));
-        HalOcaInterface::OnDispatch(cmdBuffer, *m_osInterface->pOsContext, *m_miInterface, *m_renderEngineInterface->GetMmioRegisters());
+        HalOcaInterface::OnDispatch(cmdBuffer, *m_osInterface, *m_miInterface, *m_renderEngineInterface->GetMmioRegisters());
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_renderEngineInterface->AddMediaObjectWalkerCmd(
             &cmdBuffer,
@@ -4452,7 +4452,7 @@ MOS_STATUS CodechalEncodeAvcEnc::BrcFrameUpdateKernel()
     }
 
     HalOcaInterface::TraceMessage(cmdBuffer, *m_osInterface->pOsContext, __FUNCTION__, sizeof(__FUNCTION__));
-    HalOcaInterface::OnDispatch(cmdBuffer, *m_osInterface->pOsContext, *m_miInterface, *m_renderEngineInterface->GetMmioRegisters());
+    HalOcaInterface::OnDispatch(cmdBuffer, *m_osInterface, *m_miInterface, *m_renderEngineInterface->GetMmioRegisters());
 
     MHW_MEDIA_OBJECT_PARAMS mediaObjectParams;
     MediaObjectInlineData mediaObjectInlineData;
@@ -4685,7 +4685,7 @@ MOS_STATUS CodechalEncodeAvcEnc::BrcCopyKernel()
         mediaObjectInlineData.DW0.bufferOffset = i;
 
         HalOcaInterface::TraceMessage(cmdBuffer, *m_osInterface->pOsContext, __FUNCTION__, sizeof(__FUNCTION__));
-        HalOcaInterface::OnDispatch(cmdBuffer, *m_osInterface->pOsContext, *m_miInterface, *m_renderEngineInterface->GetMmioRegisters());
+        HalOcaInterface::OnDispatch(cmdBuffer, *m_osInterface, *m_miInterface, *m_renderEngineInterface->GetMmioRegisters());
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_renderEngineInterface->AddMediaObject(
             &cmdBuffer,
@@ -4860,7 +4860,7 @@ MOS_STATUS CodechalEncodeAvcEnc::BrcMbUpdateKernel()
         &walkerCodecParams));
 
     HalOcaInterface::TraceMessage(cmdBuffer, *m_osInterface->pOsContext, __FUNCTION__, sizeof(__FUNCTION__));
-    HalOcaInterface::OnDispatch(cmdBuffer, *m_osInterface->pOsContext, *m_miInterface, *m_renderEngineInterface->GetMmioRegisters());
+    HalOcaInterface::OnDispatch(cmdBuffer, *m_osInterface, *m_miInterface, *m_renderEngineInterface->GetMmioRegisters());
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_renderEngineInterface->AddMediaObjectWalkerCmd(
         &cmdBuffer,
@@ -5112,7 +5112,7 @@ MOS_STATUS CodechalEncodeAvcEnc::WPKernel(bool useRefPicList1, uint32_t index)
             &walkerCodecParams));
 
         HalOcaInterface::TraceMessage(cmdBuffer, *m_osInterface->pOsContext, __FUNCTION__, sizeof(__FUNCTION__));
-        HalOcaInterface::OnDispatch(cmdBuffer, *m_osInterface->pOsContext, *m_miInterface, *m_renderEngineInterface->GetMmioRegisters());
+        HalOcaInterface::OnDispatch(cmdBuffer, *m_osInterface, *m_miInterface, *m_renderEngineInterface->GetMmioRegisters());
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_renderEngineInterface->AddMediaObjectWalkerCmd(
             &cmdBuffer,
@@ -5268,7 +5268,7 @@ MOS_STATUS CodechalEncodeAvcEnc::SFDKernel()
     )
 
     HalOcaInterface::TraceMessage(cmdBuffer, *m_osInterface->pOsContext, __FUNCTION__, sizeof(__FUNCTION__));
-    HalOcaInterface::OnDispatch(cmdBuffer, *m_osInterface->pOsContext, *m_miInterface, *m_renderEngineInterface->GetMmioRegisters());
+    HalOcaInterface::OnDispatch(cmdBuffer, *m_osInterface, *m_miInterface, *m_renderEngineInterface->GetMmioRegisters());
 
     MHW_MEDIA_OBJECT_PARAMS mediaObjectParams;
     MediaObjectInlineData mediaObjectInlineData;
@@ -8173,7 +8173,7 @@ MOS_STATUS CodechalEncodeAvcEnc::GenericEncodeMeKernel(EncodeBrcBuffers* brcBuff
         &walkerCodecParams));
 
     HalOcaInterface::TraceMessage(cmdBuffer, *m_osInterface->pOsContext, __FUNCTION__, sizeof(__FUNCTION__));
-    HalOcaInterface::OnDispatch(cmdBuffer, *m_osInterface->pOsContext, *m_miInterface, *m_renderEngineInterface->GetMmioRegisters());
+    HalOcaInterface::OnDispatch(cmdBuffer, *m_osInterface, *m_miInterface, *m_renderEngineInterface->GetMmioRegisters());
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_renderEngineInterface->AddMediaObjectWalkerCmd(
         &cmdBuffer,

@@ -1696,7 +1696,7 @@ MOS_STATUS VpVeboxCmdPacket::RenderVeboxCmd(
                 pCmdBufferInUse));
         }
 
-        pRenderHal->pRenderHalPltInterface->OnDispatch(pRenderHal, pCmdBufferInUse, pOsContext, pMmioRegisters);
+        pRenderHal->pRenderHalPltInterface->OnDispatch(pRenderHal, pCmdBufferInUse, pOsInterface, pMmioRegisters);
         //HalOcaInterfaceNext::OnDispatch(*pCmdBufferInUse, *pOsContext, m_miItf, *pMmioRegisters);
 
         //---------------------------------

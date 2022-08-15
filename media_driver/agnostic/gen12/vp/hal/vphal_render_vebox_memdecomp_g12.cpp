@@ -122,7 +122,7 @@ MOS_STATUS MediaVeboxDecompStateG12::RenderDecompCMD(PMOS_SURFACE surface)
         &cmdBuffer,
         &mhwVeboxSurfaceStateCmdParams));
 
-    HalOcaInterface::OnDispatch(cmdBuffer, *pOsContext, *m_mhwMiInterface, *pMmioRegisters);
+    HalOcaInterface::OnDispatch(cmdBuffer, *m_osInterface, *m_mhwMiInterface, *pMmioRegisters);
 
     //---------------------------------
     // Send CMD: Vebox_Tiling_Convert

@@ -191,7 +191,7 @@ public:
     MOS_STATUS OnDispatch(
         PRENDERHAL_INTERFACE pRenderHal,
         PMOS_COMMAND_BUFFER  pCmdBuffer,
-        PMOS_CONTEXT         pOsContext,
+        PMOS_INTERFACE     pOsInterface,
         MHW_MI_MMIOREGISTERS *pMmioReg);
 
     MOS_STATUS CreatePerfProfiler(

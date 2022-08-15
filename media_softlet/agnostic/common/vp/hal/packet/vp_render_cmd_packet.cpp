@@ -1710,7 +1710,7 @@ MOS_STATUS VpRenderCmdPacket::SendMediaStates(
     // Send Palettes in use
     MHW_RENDERHAL_CHK_STATUS(pRenderHal->pfnSendPalette(pRenderHal, pCmdBuffer));
 
-    pRenderHal->pRenderHalPltInterface->OnDispatch(pRenderHal, pCmdBuffer, pOsContext, pMmioRegisters);
+    pRenderHal->pRenderHalPltInterface->OnDispatch(pRenderHal, pCmdBuffer, pOsInterface, pMmioRegisters);
 
     for (uint32_t kernelIndex = 0; kernelIndex < m_kernelRenderData.size(); kernelIndex++)
     {

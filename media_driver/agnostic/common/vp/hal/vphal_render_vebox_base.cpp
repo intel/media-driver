@@ -1314,7 +1314,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxFlushUpdateStateCmdBuffer()
     MediaObjectParams.dwInlineDataSize              = iInlineSize;
     MediaObjectParams.pInlineData                   = &InlineData;
 
-    HalOcaInterface::OnDispatch(CmdBuffer, *pOsContext, *pMhwMiInterface, *pMmioRegisters);
+    HalOcaInterface::OnDispatch(CmdBuffer, *pOsInterface, *pMhwMiInterface, *pMmioRegisters);
 
 #if VEBOX_AUTO_DENOISE_SUPPORTED
     // Launch Interface Descriptor for DN Update kernel
@@ -2119,7 +2119,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxRenderVeboxCmd(
             &CmdBuffer));
     }
 
-    HalOcaInterface::OnDispatch(CmdBuffer, *pOsContext, *pRenderHal->pMhwMiInterface, *pMmioRegisters);
+    HalOcaInterface::OnDispatch(CmdBuffer, *pOsInterface, *pRenderHal->pMhwMiInterface, *pMmioRegisters);
 
     //---------------------------------
     // Send CMD: Vebox_DI_IECP

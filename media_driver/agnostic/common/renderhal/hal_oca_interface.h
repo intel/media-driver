@@ -102,7 +102,7 @@ public:
     //! \return void
     //!         No return value. Handle all exception inside the function.
     //!
-    static void OnDispatch(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext, MhwMiInterface &mhwMiInterface, MHW_MI_MMIOREGISTERS &mmioRegisters);
+    static void OnDispatch(MOS_COMMAND_BUFFER &cmdBuffer, MOS_INTERFACE &osInterface, MhwMiInterface &mhwMiInterface, MHW_MI_MMIOREGISTERS &mmioRegisters);
 
 protected:
     static MOS_STATUS MhwMiLoadRegisterImmCmd(
