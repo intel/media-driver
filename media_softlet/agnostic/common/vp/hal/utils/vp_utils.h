@@ -290,6 +290,13 @@ protected:
 #define __VPHAL_ENABLE_1K_1DLUT                                         "Enable 1K 1DLUT"
 #define __VPHAL_VEBOX_HDR_MODE                                          "VeboxHDRMode"
 
+// Compression
+#define __VPHAL_MMC_ENABLE                                              "VP MMC In Use"
+#define __VPHAL_RT_MMC_COMPRESSIBLE                                     "VP RT Compressible"
+#define __VPHAL_RT_MMC_COMPRESSMODE                                     "VP RT Compress Mode"
+#define __VPHAL_PRIMARY_MMC_COMPRESSIBLE                                "VP Primary Surface Compressible"
+#define __VPHAL_PRIMARY_MMC_COMPRESSMODE                                "VP Primary Surface Compress Mode"
+
 #define __VPHAL_RNDR_FORCE_VP_DECOMPRESSED_OUTPUT                       "FORCE VP DECOMPRESSED OUTPUT"
 #define __VPHAL_COMP_8TAP_ADAPTIVE_ENABLE                               "8-TAP Enable"
 #define __VPHAL_VEBOX_FORCE_VP_MEMCOPY_OUTPUTCOMPRESSED                 "Force VP Memorycopy Outputcompressed"

@@ -692,6 +692,41 @@ MOS_STATUS VpUtils::DeclareUserSettings(MediaUserSettingSharedPtr userSettingPtr
         0,
         true); //"HDR Mode. 0x1: H2S kernel, 0x3: H2H kernel, 0x21 65size H2S, 0x23 65size H2H, 0x31 33size H2S, 0x33 33size H2H."
 
+    DeclareUserSettingKeyForDebug(  // VP Compression Enable
+        userSettingPtr,
+        __VPHAL_MMC_ENABLE,
+        MediaUserSetting::Group::Sequence,
+        0,
+        true);
+
+    DeclareUserSettingKeyForDebug(  // VP Render Target Compressible
+        userSettingPtr,
+        __VPHAL_RT_MMC_COMPRESSIBLE,
+        MediaUserSetting::Group::Sequence,
+        0,
+        true);
+
+    DeclareUserSettingKeyForDebug(  // VP Render Target Compression Mode
+        userSettingPtr,
+        __VPHAL_RT_MMC_COMPRESSMODE,
+        MediaUserSetting::Group::Sequence,
+        0,
+        true);
+
+    DeclareUserSettingKeyForDebug(  // VP Primary Input Compressible
+        userSettingPtr,
+        __VPHAL_PRIMARY_MMC_COMPRESSIBLE,
+        MediaUserSetting::Group::Sequence,
+        0,
+        true);
+
+    DeclareUserSettingKeyForDebug(  // VP Primary Input Compression Mode
+        userSettingPtr,
+        __VPHAL_PRIMARY_MMC_COMPRESSMODE,
+        MediaUserSetting::Group::Sequence,
+        0,
+        true);
+
     DeclareUserSettingKeyForDebug(  // VP Enable Compute Context
         userSettingPtr,
         __VPHAL_ENABLE_COMPUTE_CONTEXT,
