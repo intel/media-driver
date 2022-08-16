@@ -134,6 +134,7 @@ public:
     virtual MOS_STATUS SetScalingParams(PSFC_SCALING_PARAMS scalingParams) override;
 
     virtual MOS_STATUS UpdateCscParams(FeatureParamCsc &params) override;
+    virtual MOS_STATUS UpdateDenoiseParams(FeatureParamDenoise &params) override;
     virtual MOS_STATUS UpdateTccParams(FeatureParamTcc &params) override;
     virtual MOS_STATUS UpdateSteParams(FeatureParamSte &params) override;
 
@@ -860,7 +861,6 @@ protected:
     uint32_t                    m_dwGlobalNoiseLevelV = 0;                        //!< Global Noise Level for V
     uint32_t                    m_dwGlobalNoiseLevel = 0;                         //!< Global Noise Level
     PVP_VEBOX_CACHE_CNTL        m_surfMemCacheCtl = nullptr;                      //!< Surface memory cache control
-    uint32_t                    m_DNDIFirstFrame = 0;
     uint32_t                    m_DIOutputFrames = MEDIA_VEBOX_DI_OUTPUT_CURRENT; //!< default value is 2 for non-DI case.
 
     // Statistics

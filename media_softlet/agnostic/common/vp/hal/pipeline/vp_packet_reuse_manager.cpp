@@ -333,6 +333,55 @@ MOS_STATUS VpAlphaReuse::UpdateFeatureParams(FeatureParamAlpha &params)
 }
 
 /*******************************************************************/
+/***********************VpDenoiseReuse********************************/
+/*******************************************************************/
+
+VpDenoiseReuse::VpDenoiseReuse()
+{
+}
+
+VpDenoiseReuse::~VpDenoiseReuse()
+{
+}
+
+MOS_STATUS VpDenoiseReuse::UpdateFeatureParams(bool reusable, bool &reused, SwFilter *filter)
+{
+    SwFilterDenoise     *dn    = dynamic_cast<SwFilterDenoise *>(filter);
+    FeatureParamDenoise &params = dn->GetSwFilterParams();
+    if (reusable && params == m_params)
+    {
+        // No need call UpdateFeatureParams. Just keep compared items updated in m_params
+        // is enough. UpdatePacket should use params in swfilter instead of m_params.
+        reused = true;
+    }
+    else
+    {
+        reused = false;
+        VP_PUBLIC_CHK_STATUS_RETURN(UpdateFeatureParams(params));
+    }
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpDenoiseReuse::UpdatePacket(SwFilter *filter, VpCmdPacket *packet)
+{
+    VpVeboxCmdPacketBase *veboxPacket = dynamic_cast<VpVeboxCmdPacketBase *>(packet);
+    VP_PUBLIC_CHK_NULL_RETURN(veboxPacket);
+
+    SwFilterDenoise *scaling = dynamic_cast<SwFilterDenoise *>(filter);
+    VP_PUBLIC_CHK_NULL_RETURN(scaling);
+    FeatureParamDenoise &params = scaling->GetSwFilterParams();
+
+    VP_PUBLIC_CHK_STATUS_RETURN(veboxPacket->UpdateDenoiseParams(params));
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpDenoiseReuse::UpdateFeatureParams(FeatureParamDenoise &params)
+{
+    m_params = params;
+    return MOS_STATUS_SUCCESS;
+}
+
+/*******************************************************************/
 /***********************VpTccReuse**********************************/
 /*******************************************************************/
 
@@ -478,6 +527,10 @@ MOS_STATUS VpPacketReuseManager::RegisterFeatures()
     VP_PUBLIC_CHK_NULL_RETURN(p);
     m_features.insert(std::make_pair(FeatureTypeColorFill, p));
 
+    p = MOS_New(VpDenoiseReuse);
+    VP_PUBLIC_CHK_NULL_RETURN(p);
+    m_features.insert(std::make_pair(FeatureTypeDn, p));
+
     p = MOS_New(VpAlphaReuse);
     VP_PUBLIC_CHK_NULL_RETURN(p);
     m_features.insert(std::make_pair(FeatureTypeAlpha, p));
@@ -545,6 +598,10 @@ MOS_STATUS VpPacketReuseManager::PreparePacketPipeReuse(std::vector<SwFilterPipe
         {
             VP_PUBLIC_NORMALMESSAGE("Packet not reused for feature %d", feature);
         }
+        else
+        {
+            VP_PUBLIC_NORMALMESSAGE("Packet  reused for feature %d", feature);
+        }
         isPacketPipeReused &= reused;
     }
 
@@ -572,7 +629,11 @@ MOS_STATUS VpPacketReuseManager::PreparePacketPipeReuse(std::vector<SwFilterPipe
     VpCmdPacket *packet = m_pipeReused->GetPacket(0);
     VP_PUBLIC_CHK_NULL_RETURN(packet);
 
-    VP_PUBLIC_CHK_STATUS_RETURN(packet->PacketInitForReuse());
+    VP_SURFACE_SETTING surfSetting = {};
+    VP_EXECUTE_CAPS caps = packet->GetExecuteCaps();
+    resMgr.GetUpdatedExecuteResource(featureRegistered, caps, pipe, surfSetting);
+
+    VP_PUBLIC_CHK_STATUS_RETURN(packet->PacketInitForReuse(pipe.GetSurface(true, 0), pipe.GetSurface(false, 0), pipe.GetPastSurface(0), surfSetting, caps));
 
     // Update Packet
     for (auto it : m_features)
@@ -586,10 +647,6 @@ MOS_STATUS VpPacketReuseManager::PreparePacketPipeReuse(std::vector<SwFilterPipe
         VP_PUBLIC_NORMALMESSAGE("Update Packet for feature %d", it.first);
         VP_PUBLIC_CHK_STATUS_RETURN(it.second->UpdatePacket(swfilter, packet));
     }
-
-    VP_SURFACE_SETTING surfSetting = {};
-    resMgr.GetUpdatedExecuteResource(featureRegistered, packet->GetExecuteCaps(), pipe, surfSetting);
-    packet->SetUpdatedExecuteResource(pipe.GetSurface(true, 0), pipe.GetSurface(false, 0), pipe.GetPastSurface(0), surfSetting);
 
     return MOS_STATUS_SUCCESS;
 }

@@ -911,7 +911,7 @@ struct FeatureParamCsc : public FeatureParam
     {
         VPHAL_CSPACE    colorSpace      = CSpace_None;
         uint32_t        chromaSiting    = 0;
-        bool operator == (struct CSC_PARAMS &b)
+        bool operator == (const struct CSC_PARAMS &b)
         {
             return colorSpace == b.colorSpace && chromaSiting == b.chromaSiting;
         }
@@ -1044,7 +1044,7 @@ struct FeatureParamRotMir : public FeatureParam
         MOS_TILE_TYPE tileOutput = MOS_TILE_X;
     } surfInfo;
 
-    bool operator == (struct FeatureParamRotMir &b)
+    bool operator == (const struct FeatureParamRotMir &b)
     {
         return rotation == b.rotation &&
             surfInfo.tileOutput == b.surfInfo.tileOutput;
@@ -1087,6 +1087,16 @@ struct FeatureParamDenoise : public FeatureParam
     uint32_t             heightInput          = 0;
     bool                 secureDnNeeded       = false;
     DN_STAGE             stage                = DN_STAGE_DEFAULT;
+    bool                 operator==(const struct FeatureParamDenoise &b)
+    {
+        return sampleTypeInput     == b.sampleTypeInput &&
+               denoiseParams       == b.denoiseParams   &&
+               widthAlignUnitInput == b.widthAlignUnitInput &&
+               heightAlignUnitInput == b.heightAlignUnitInput &&
+               heightInput         == b.heightInput &&
+               secureDnNeeded      == b.secureDnNeeded &&
+               stage               == b.stage;
+    }
 };
 
 class SwFilterDenoise : public SwFilter
@@ -1316,7 +1326,7 @@ MEDIA_CLASS_DEFINE_END(vp__SwFilterBlending)
 struct FeatureParamColorFill : public FeatureParam
 {
     PVPHAL_COLORFILL_PARAMS colorFillParams = nullptr;     //!< ColorFill - BG only
-    bool operator == (struct FeatureParamColorFill &b)
+    bool operator == (const struct FeatureParamColorFill &b)
     {
         return (nullptr == colorFillParams && nullptr == b.colorFillParams ||
             nullptr != colorFillParams && nullptr != b.colorFillParams &&
@@ -1347,7 +1357,7 @@ struct FeatureParamAlpha : public FeatureParam
 {
     PVPHAL_ALPHA_PARAMS     compAlpha         = nullptr;      //!< Alpha for composited surface
     bool                    calculatingAlpha  = false;        //!< Alpha calculation parameters
-    bool operator == (struct FeatureParamAlpha &b)
+    bool operator == (const struct FeatureParamAlpha &b)
     {
         return calculatingAlpha == b.calculatingAlpha &&
             (nullptr == compAlpha   && nullptr == b.compAlpha ||

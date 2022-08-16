@@ -820,7 +820,7 @@ typedef struct _VPHAL_HVSDENOISE_PARAMS
 typedef struct _VPHAL_SLIMIPU_DENOISE_PARAM
 {
     uint32_t MemSizeInBytes;
-    void *   pSystemMem;
+    void     *pSystemMem;
 } VPHAL_SLIMIPU_DENOISE_PARAM, *PVPHAL_SLIMIPU_DENOISE_PARAM;
 
 //!
@@ -838,6 +838,16 @@ typedef struct _VPHAL_DENOISE_PARAMS
     VPHAL_HVSDENOISE_PARAMS     HVSDenoise            = {};
     bool                        bEnableSlimIPUDenoise = false;
     VPHAL_SLIMIPU_DENOISE_PARAM SlimIPUDenoise        = {};
+    bool                        operator==(const struct _VPHAL_DENOISE_PARAMS &b)
+    {
+        return bEnableChroma            == b.bEnableChroma  &&
+               bEnableLuma              == b.bEnableLuma    &&
+               bAutoDetect              == b.bAutoDetect    &&
+               bEnableHVSDenoise        == false            &&
+               b.bEnableHVSDenoise      == false            &&
+               bEnableSlimIPUDenoise    == false            &&
+               b.bEnableSlimIPUDenoise  == false;
+    }
 } VPHAL_DENOISE_PARAMS, *PVPHAL_DENOISE_PARAMS;
 
 //!

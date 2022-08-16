@@ -778,6 +778,30 @@ MOS_STATUS VpVeboxCmdPacket::UpdateCscParams(FeatureParamCsc &params)
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS VpVeboxCmdPacket::UpdateDenoiseParams(FeatureParamDenoise &params)
+{
+    VP_FUNC_CALL();
+
+    MOS_STATUS                eStatus      = MOS_STATUS_SUCCESS;
+    VpVeboxRenderData        *pRenderData  = GetLastExecRenderData();
+    VP_SAMPLER_STATE_DN_PARAM lumaParams   = {};
+    VPHAL_DNUV_PARAMS         chromaParams = {};
+
+    VP_RENDER_CHK_NULL_RETURN(pRenderData);
+
+    GetDnLumaParams(pRenderData->DN.bDnEnabled, pRenderData->DN.bAutoDetect, params.denoiseParams.fDenoiseFactor, m_PacketCaps.bRefValid, &lumaParams);
+    GetDnChromaParams(pRenderData->DN.bChromaDnEnabled, pRenderData->DN.bAutoDetect, params.denoiseParams.fDenoiseFactor, &chromaParams);
+
+    // Setup Denoise Params
+    ConfigLumaPixRange(pRenderData->DN.bDnEnabled, pRenderData->DN.bAutoDetect, params.denoiseParams.fDenoiseFactor);
+    ConfigChromaPixRange(pRenderData->DN.bChromaDnEnabled, pRenderData->DN.bAutoDetect, params.denoiseParams.fDenoiseFactor);
+    ConfigDnLumaChromaParams(pRenderData->DN.bDnEnabled, pRenderData->DN.bChromaDnEnabled, &lumaParams, &chromaParams);
+
+    // bDNDITopFirst in DNDI parameters need be configured during UpdateDIParams after DI parameter packet reusing being enabled.
+
+    return eStatus;
+}
+
 MOS_STATUS VpVeboxCmdPacket::UpdateTccParams(FeatureParamTcc &params)
 {
     VP_FUNC_CALL();

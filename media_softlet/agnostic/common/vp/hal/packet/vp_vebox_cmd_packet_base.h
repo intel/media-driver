@@ -52,6 +52,7 @@ public:
 
 
     virtual MOS_STATUS UpdateCscParams(FeatureParamCsc &params) = 0;
+    virtual MOS_STATUS UpdateDenoiseParams(FeatureParamDenoise &params) = 0;
     virtual MOS_STATUS UpdateTccParams(FeatureParamTcc &params) = 0;
     virtual MOS_STATUS UpdateSteParams(FeatureParamSte &params) = 0;
 

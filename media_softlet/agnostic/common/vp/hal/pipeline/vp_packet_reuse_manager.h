@@ -141,6 +141,22 @@ protected:
 MEDIA_CLASS_DEFINE_END(vp__VpAlphaReuse)
 };
 
+class VpDenoiseReuse : public VpFeatureReuseBase
+{
+public:
+    VpDenoiseReuse();
+    virtual ~VpDenoiseReuse();
+    MOS_STATUS UpdateFeatureParams(bool reusable, bool &reused, SwFilter *filter);
+    MOS_STATUS UpdatePacket(SwFilter *filter, VpCmdPacket *packet);
+
+protected:
+    MOS_STATUS UpdateFeatureParams(FeatureParamDenoise &params);
+
+    FeatureParamDenoise m_params = {};
+
+    MEDIA_CLASS_DEFINE_END(vp__VpDenoiseReuse)
+};
+
 class VpTccReuse : public VpFeatureReuseBase
 {
 public:
