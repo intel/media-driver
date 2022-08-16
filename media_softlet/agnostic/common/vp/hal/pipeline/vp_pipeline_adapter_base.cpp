@@ -28,7 +28,7 @@
 #include "vp_pipeline_adapter_base.h"
 #include "media_interfaces_vphal.h"
 #include "vp_platform_interface.h"
-#include "vphal_debug.h"
+#include "vp_debug.h"
 #include "media_interfaces_mhw_next.h"
 #include "renderhal_platform_interface.h"
 

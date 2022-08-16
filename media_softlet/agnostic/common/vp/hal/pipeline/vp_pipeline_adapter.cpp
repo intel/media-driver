@@ -21,7 +21,7 @@
 */
 #include "vp_pipeline_adapter.h"
 #include "vp_platform_interface.h"
-#include "vphal_debug.h"
+#include "vp_debug.h"
 #include "vp_user_feature_control.h"
 
 VpPipelineAdapter::VpPipelineAdapter(

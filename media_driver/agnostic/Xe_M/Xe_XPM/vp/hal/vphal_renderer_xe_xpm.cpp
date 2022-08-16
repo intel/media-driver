@@ -33,6 +33,7 @@
 #endif
 #include "vphal_render_vebox_xe_xpm.h"
 #include "vphal_render_composite_xe_xpm.h"
+#include "vp_debug.h"
 
 extern const Kdll_RuleEntry         g_KdllRuleTable_Xe_Hpm[];
 

@@ -25,7 +25,7 @@
 //! \details  The top renderer is responsible for coordinating the sequence of calls to low level renderers, e.g. DNDI or Comp
 //!
 #include "vphal_renderer.h"
-#include "vphal_debug.h"
+#include "vp_debug.h"
 #include "vpkrnheader.h"
 #include "vphal_render_composite.h"
 

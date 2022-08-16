@@ -25,7 +25,7 @@
 //! \details  The top renderer is responsible for coordinating the sequence of calls to low level renderers, e.g. DNDI or Comp
 //!
 #include "vphal_renderer_g12_tgllp.h"
-#include "vphal_debug.h"
+#include "vp_debug.h"
 #if defined(ENABLE_KERNELS)
 #include "igvpkrn_g12_tgllp_cmfc.h"
 #include "igvpkrn_g12_tgllp_cmfcpatch.h"

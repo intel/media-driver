@@ -33,8 +33,6 @@
 #ifndef __VPHAL_DEBUG_DEFS_H__
 #define __VPHAL_DEBUG_DEFS_H__
 
-#include "vphal_common.h"       // Common interfaces and structures
-
 struct VPHAL_OCA_LOG_HEADER
 {
     uint32_t size;                          //!< Size of valid data occupied, which is used when filling OCA buffer.

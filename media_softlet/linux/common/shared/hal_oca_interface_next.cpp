@@ -42,7 +42,7 @@
 #include "mos_interface.h"
 #include "mos_oca_interface_specific.h"
 #include "vphal.h"
-#include "vphal_debug.h"
+#include "vp_debug.h"
 #include "codechal_oca_debug.h"
 namespace mhw { namespace mi { class Itf; } }
 

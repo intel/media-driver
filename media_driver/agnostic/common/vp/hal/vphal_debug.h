@@ -33,13 +33,11 @@
 #ifndef __VPHAL_DEBUG_H__
 #define __VPHAL_DEBUG_H__
 
-#include "vp_oca_defs.h"       // Common interfaces and structures
-
 #if (_DEBUG || _RELEASE_INTERNAL)
 
 #include "renderhal_legacy.h"
 #include "mhw_vebox.h"
-
+#include "vphal_common.h"
 #if !defined(LINUX) && !defined(ANDROID)
 #include "UmdStateSeparation.h"
 #endif
@@ -1433,37 +1431,4 @@ public:
 
 #endif // (!(_DEBUG || _RELEASE_INTERNAL) || EMUL)
 
-#define VPHAL_DBG_OCA_DUMPER_CREATE(pRenderHal)                                       \
-    if (pRenderHal)                                                                   \
-        pRenderHal->pVphalOcaDumper = MOS_New(VphalOcaDumper);
-
-#define VPHAL_DBG_OCA_DUMPER_DESTORY(pRenderHal)                                      \
-    if (pRenderHal && pRenderHal->pVphalOcaDumper)                                    \
-        VphalOcaDumper::Delete(pRenderHal->pVphalOcaDumper);
-
-#define VPHAL_DBG_OCA_DUMPER_SET_RENDER_PARAM(pRenderHal, pRenderParams)              \
-    if (pRenderHal && pRenderHal->pVphalOcaDumper)                                    \
-        ((VphalOcaDumper*)pRenderHal->pVphalOcaDumper)->SetRenderParam(pRenderParams);
-
-class VphalOcaDumper
-{
-public:
-    VphalOcaDumper();
-    virtual ~VphalOcaDumper();
-    void SetRenderParam(VPHAL_RENDER_PARAMS *pRenderParams);
-
-    VPHAL_OCA_RENDER_PARAM *GetRenderParam()
-    {
-        return m_pOcaRenderParam;
-    }
-
-    static void Delete(void *&p);
-
-public:
-    void InitSurfInfo(VPHAL_OCA_SURFACE_INFO &surfInfo, VPHAL_SURFACE &surf);
-    void InitSourceInfo(VPHAL_OCA_SOURCE_INFO &sourceInfo, VPHAL_SURFACE &source);
-    void InitTargetInfo(VPHAL_OCA_TARGET_INFO &targetInfo, VPHAL_SURFACE &target);
-
-    VPHAL_OCA_RENDER_PARAM *m_pOcaRenderParam = nullptr;
-};
 #endif  // __VPHAL_DEBUG_H__

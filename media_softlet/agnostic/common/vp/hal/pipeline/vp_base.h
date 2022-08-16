@@ -62,14 +62,14 @@ class VpExtIntfBase;
 //      DDI layers must set this interface before calling pfnRender
 //-----------------------------------------------------------------------------
 //!
-//! Structure VphalSettings
+//! Structure VpSettings
 //! \brief VPHAL Settings - controls allocation of internal resources in VPHAL
 //!
 struct VpSettings
 {
     //!
-    //! \brief    VphalSettings Constructor
-    //! \details  Creates instance of VphalSettings
+    //! \brief    VpSettings Constructor
+    //! \details  Creates instance of VpSettings
     //!
     VpSettings() : maxPhases(0),
                    mediaStates(0),
