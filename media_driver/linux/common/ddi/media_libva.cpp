@@ -2063,6 +2063,7 @@ VAStatus DdiMedia_InitMediaContext (
         // return VA_STATUS_ERROR_UNIMPLEMENTED directly.
         ctx->vtable->vaPutSurface = NULL;
     }
+    mediaCtx->PutSurfaceContext = VA_INVALID_ID;
     output_dri_init(ctx);
 #endif
 
@@ -4508,21 +4509,9 @@ VAStatus DdiMedia_PutSurface(
 
     DDI_CHK_LESS((uint32_t)surface, mediaDrvCtx->pSurfaceHeap->uiAllocatedHeapElements, "Invalid surface", VA_STATUS_ERROR_INVALID_SURFACE);
 
-    if (nullptr != mediaDrvCtx->pVpCtxHeap->pHeapBase)
-    {
-        uint32_t ctxType = DDI_MEDIA_CONTEXT_TYPE_NONE;
-        vpCtx = DdiMedia_GetContextFromContextID(ctx, (VAContextID)(0 + DDI_MEDIA_VACONTEXTID_OFFSET_VP), &ctxType);
-    }
-
 #if defined(ANDROID) || !defined(X11_FOUND)
        return VA_STATUS_ERROR_UNIMPLEMENTED;
 #else
-    if(nullptr == vpCtx)
-    {
-        VAContextID context = VA_INVALID_ID;
-        VAStatus vaStatus = DdiVp_CreateContext(ctx, 0, 0, 0, 0, 0, 0, &context);
-        DDI_CHK_RET(vaStatus, "Create VP Context failed");
-    }
     return DdiCodec_PutSurfaceLinuxHW(ctx, surface, draw, srcx, srcy, srcw, srch, destx, desty, destw, desth, cliprects, number_cliprects, flags);
 #endif
 
