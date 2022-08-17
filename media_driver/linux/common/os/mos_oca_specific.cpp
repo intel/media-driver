@@ -121,10 +121,34 @@ MOS_STATUS MosOcaInterfaceSpecific::UnlockOcaBuf(MOS_OCA_BUFFER_HANDLE ocaBufHan
     {
         return MOS_STATUS_INVALID_PARAMETER;
     }
-    m_ocaBufContextList[ocaBufHandle].inUse               = false;
     m_ocaBufContextList[ocaBufHandle].logSection.offset   = 0;
     m_ocaBufContextList[ocaBufHandle].logSection.base     = nullptr;
+    m_ocaBufContextList[ocaBufHandle].inUse               = false;
     return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MosOcaInterfaceSpecific::UnlockOcaBufferWithDelay(MOS_OCA_BUFFER_HANDLE ocaBufHandle)
+{
+    if (ocaBufHandle >= MAX_NUM_OF_OCA_BUF_CONTEXT || ocaBufHandle < 0)
+    {
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    MosOcaAutoLock lock(m_mutexForOcaBufPool);
+    m_PendingOcaBuffersToUnlock.push_back(ocaBufHandle);
+    return MOS_STATUS_SUCCESS;
+}
+
+void MosOcaInterfaceSpecific::UnlockPendingOcaBuffers(/*Other information*/)
+{
+    MosOcaAutoLock lock(m_mutexForOcaBufPool);
+    for (auto it = m_PendingOcaBuffersToUnlock.begin();
+        it != m_PendingOcaBuffersToUnlock.end(); ++it)
+    {
+        // Other information to log section, which is only captured after BB end, can be added here.
+        UnlockOcaBuf(*it);
+    }
+    m_PendingOcaBuffersToUnlock.clear();
 }
 
 //!
@@ -659,7 +683,6 @@ void MosOcaInterfaceSpecific::Initialize(PMOS_CONTEXT mosContext)
         m_resInfoPool = MOS_NewArray(MOS_OCA_RESOURCE_INFO, m_config.maxResInfoCount * MAX_NUM_OF_OCA_BUF_CONTEXT);
         if (nullptr == m_resInfoPool)
         {
-            MOS_DeleteArray(m_resInfoPool);
             return;
         }
         MosUtilities::MosZeroMemory(m_resInfoPool, sizeof(MOS_OCA_RESOURCE_INFO)*m_config.maxResInfoCount * MAX_NUM_OF_OCA_BUF_CONTEXT);
@@ -675,6 +698,16 @@ void MosOcaInterfaceSpecific::Initialize(PMOS_CONTEXT mosContext)
         m_ocaMutex = MosUtilities::MosCreateMutex();
         if (nullptr == m_ocaMutex)
         {
+            MOS_DeleteArray(m_resInfoPool);
+            return;
+        }
+
+        m_mutexForOcaBufPool = MosUtilities::MosCreateMutex();
+        if (nullptr == m_mutexForOcaBufPool)
+        {
+            MOS_DeleteArray(m_resInfoPool);
+            MosUtilities::MosDestroyMutex(m_ocaMutex);
+            m_ocaMutex = nullptr;
             return;
         }
 
@@ -713,6 +746,16 @@ void MosOcaInterfaceSpecific::Uninitialize()
 {
     if (m_isInitialized == true)
     {
+        if (m_PendingOcaBuffersToUnlock.size() > 0)
+        {
+            MOS_OS_ASSERTMESSAGE("%d Oca Buffers in pending list!", m_PendingOcaBuffersToUnlock.size());
+            UnlockPendingOcaBuffers();
+        }
+        if (nullptr != m_mutexForOcaBufPool)
+        {
+            MosUtilities::MosDestroyMutex(m_mutexForOcaBufPool);
+            m_mutexForOcaBufPool = nullptr;
+        }
         if (nullptr != m_ocaMutex)
         {
             MosUtilities::MosDestroyMutex(m_ocaMutex);

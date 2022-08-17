@@ -89,6 +89,22 @@ public:
     virtual MOS_STATUS UnlockOcaBuf(MOS_OCA_BUFFER_HANDLE ocaBufHandle);
 
     //!
+    //! \brief  Delayed to Unlock the oca buffer when edit complete.
+    //! \param  [in] ocaBufHandle
+    //!         Oca buffer handle.
+    //! \return MOS_STATUS
+    //!         Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS UnlockOcaBufferWithDelay(MOS_OCA_BUFFER_HANDLE ocaBufHandle);
+
+    //!
+    //! \brief  Unlock pending oca buffers.
+    //! \return MOS_STATUS
+    //!         Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual void UnlockPendingOcaBuffers(/*Other information*/);
+
+    //!
     //! \brief  Oca operation which should be called at the beginning of 1st level batch buffer start.
     //! \param  [out] gpuVaOcaBuffer
     //!         The gfx virtual address of oca buffer, which should be set to GPR11 by LRI at the
@@ -302,6 +318,7 @@ private:
     MosOcaInterfaceSpecific& operator= (MosOcaInterfaceSpecific &);
 
     PMOS_MUTEX                      m_ocaMutex                                      = nullptr;
+    PMOS_MUTEX                      m_mutexForOcaBufPool                            = nullptr;
 
     bool                            m_isOcaEnabled                                  = false;
     bool                            m_isInitialized                                 = false;
@@ -310,6 +327,8 @@ private:
     MOS_OCA_BUFFER_CONFIG           m_config;
     uint32_t                        m_indexOfNextOcaBufContext                      = 0;
     uint32_t                        m_ocaLogSectionSizeLimit                        = OCA_LOG_SECTION_SIZE_MAX;
+
+    std::vector<MOS_OCA_BUFFER_HANDLE> m_PendingOcaBuffersToUnlock;
 
     static MOS_STATUS               s_ocaStatus;                    //!< The status for first oca error encounterred.
     static uint32_t                 s_lineNumForOcaErr;             //!< The line number for first oca error encounterred.

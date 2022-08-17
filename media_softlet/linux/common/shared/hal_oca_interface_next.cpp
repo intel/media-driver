@@ -56,7 +56,6 @@ MOS_STATUS HalOcaInterfaceNext::MhwMiLoadRegisterImmCmd(
     PMOS_COMMAND_BUFFER              pCmdBuffer,
     MHW_MI_LOAD_REGISTER_IMM_PARAMS *params)
 {
-
     return MOS_STATUS_SUCCESS;
 }
 
@@ -85,6 +84,7 @@ void HalOcaInterfaceNext::On1stLevelBBStart(MOS_COMMAND_BUFFER &cmdBuffer, MOS_C
         uint32_t gpuContextHandle, std::shared_ptr<mhw::mi::Itf> miItf, MHW_MI_MMIOREGISTERS &mmioRegisters,
         uint32_t offsetOf1stLevelBB, bool bUseSizeOfCmdBuf, uint32_t sizeOf1stLevelBB)
 {
+    HalOcaInterfaceNext::On1stLevelBBStart(cmdBuffer, mosContext, gpuContextHandle);
 }
 
 //!
@@ -112,6 +112,7 @@ void HalOcaInterfaceNext::On1stLevelBBStart(MOS_COMMAND_BUFFER &cmdBuffer, MOS_C
         uint32_t gpuContextHandle, std::shared_ptr<mhw::mi::Itf> miItf, MmioRegistersMfx &mmioRegisters,
         uint32_t offsetOf1stLevelBB, bool bUseSizeOfCmdBuf, uint32_t sizeOf1stLevelBB)
 {
+    HalOcaInterfaceNext::On1stLevelBBStart(cmdBuffer, mosContext, gpuContextHandle);
 }
 
 //!
@@ -154,6 +155,9 @@ void HalOcaInterfaceNext::On1stLevelBBEnd(MOS_COMMAND_BUFFER &cmdBuffer, MOS_INT
         // for failure case to avoid oca buffer leak.
         OnOcaError(osInterface.pOsContext, status, __FUNCTION__, __LINE__);
     }
+
+    // Need to switch to UnlockOcaBufferWithDelay when UnlockPendingOcaBuffers being used to
+    // dump more information after BB end.
     status = pOcaInterface->UnlockOcaBuf(ocaBufHandle);
     if (MOS_FAILED(status))
     {
@@ -544,6 +548,70 @@ void HalOcaInterfaceNext::RemoveOcaBufferHandle(MOS_COMMAND_BUFFER &cmdBuffer, M
         return;
     }
     s_hOcaMap.erase(it);
+}
+
+//!
+//! \brief  Oca operation which should be called at the beginning of 1st level batch buffer start.
+//! \param  [in/out] cmdBuffer
+//!         Command buffer for current BB. ocaBufHandle in cmdBuffer will be updated.
+//! \param  [in] mosContext
+//!         Reference to MOS_CONTEXT.
+//! \param  [in] gpuContextHandle
+//!         Gpu context handle 
+//! \return void
+//!         No return value. Handle all exception inside the function.
+//!
+void HalOcaInterfaceNext::On1stLevelBBStart(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext,
+        uint32_t gpuContextHandle)
+{
+    MosInterface::SetObjectCapture(&cmdBuffer.OsResource);
+    MOS_STATUS status                   = MOS_STATUS_SUCCESS;
+    MosOcaInterface *pOcaInterface      = &MosOcaInterfaceSpecific::GetInstance();
+    MOS_OCA_BUFFER_HANDLE ocaBufHandle  = 0;
+    uint64_t  ocaBase                   = 0;
+
+    if (nullptr == pOcaInterface || !((MosOcaInterfaceSpecific*)pOcaInterface)->IsOcaEnabled())
+    {
+        return;
+    }
+    PMOS_MUTEX mutex = pOcaInterface->GetMutex();
+    if (mutex == nullptr)
+    {
+        OnOcaError(&mosContext, MOS_STATUS_NULL_POINTER, __FUNCTION__, __LINE__);
+        return;
+    }
+    ocaBufHandle = GetOcaBufferHandle(cmdBuffer, mosContext);
+    if (ocaBufHandle != MOS_OCA_INVALID_BUFFER_HANDLE)
+    {
+        // will come here when On1stLevelBBStart being called twice without On1stLevelBBEnd being called.
+        OnOcaError(&mosContext, MOS_STATUS_INVALID_PARAMETER, __FUNCTION__, __LINE__);
+        return;
+    }
+    else
+    {
+        MosOcaAutoLock autoLock(mutex);
+        ocaBufHandle = pOcaInterface->LockOcaBufAvailable(&mosContext, gpuContextHandle);
+        if (MOS_OCA_INVALID_BUFFER_HANDLE == ocaBufHandle)
+        {
+            OnOcaError(&mosContext, MOS_STATUS_INVALID_HANDLE, __FUNCTION__, __LINE__);
+            return;
+        }
+        auto success = s_hOcaMap.insert(std::make_pair(cmdBuffer.pCmdBase, ocaBufHandle));
+        if (!success.second)
+        {
+            // Should never come to here.
+            MOS_OS_ASSERTMESSAGE("ocaBufHandle has already been assigned to current cmdBuffer!");
+            OnOcaError(&mosContext, MOS_STATUS_INVALID_HANDLE, __FUNCTION__, __LINE__);
+            return;
+        }
+    }
+    
+    status = pOcaInterface->On1stLevelBBStart(ocaBase, ocaBufHandle, &mosContext, &cmdBuffer.OsResource, 0, true, 0);
+    if (MOS_FAILED(status))
+    {
+        RemoveOcaBufferHandle(cmdBuffer, mosContext);
+        OnOcaError(&mosContext, status, __FUNCTION__, __LINE__);
+    }
 }
 
 /****************************************************************************************************/

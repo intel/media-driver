@@ -71,54 +71,7 @@ void HalOcaInterface::On1stLevelBBStart(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTE
         uint32_t gpuContextHandle, MhwMiInterface &mhwMiInterface, MHW_MI_MMIOREGISTERS &mmioRegisters,
         uint32_t offsetOf1stLevelBB, bool bUseSizeOfCmdBuf, uint32_t sizeOf1stLevelBB)
 {
-    MosInterface::SetObjectCapture(&cmdBuffer.OsResource);
-    MOS_STATUS status                   = MOS_STATUS_SUCCESS;
-    MosOcaInterface *pOcaInterface      = &MosOcaInterfaceSpecific::GetInstance();
-    MOS_OCA_BUFFER_HANDLE ocaBufHandle  = 0;
-    uint64_t  ocaBase                   = 0;
-
-    if (nullptr == pOcaInterface || !((MosOcaInterfaceSpecific*)pOcaInterface)->IsOcaEnabled())
-    {
-        return;
-    }
-    PMOS_MUTEX mutex = pOcaInterface->GetMutex();
-    if (mutex == nullptr)
-    {
-        OnOcaError(&mosContext, MOS_STATUS_NULL_POINTER, __FUNCTION__, __LINE__);
-        return;
-    }
-    ocaBufHandle = GetOcaBufferHandle(cmdBuffer, mosContext);
-    if (ocaBufHandle != MOS_OCA_INVALID_BUFFER_HANDLE)
-    {
-        // will come here when On1stLevelBBStart being called twice without On1stLevelBBEnd being called.
-        OnOcaError(&mosContext, MOS_STATUS_INVALID_PARAMETER, __FUNCTION__, __LINE__);
-        return;
-    }
-    else
-    {
-        MosOcaAutoLock autoLock(mutex);
-        ocaBufHandle = pOcaInterface->LockOcaBufAvailable(&mosContext, gpuContextHandle);
-        if (MOS_OCA_INVALID_BUFFER_HANDLE == ocaBufHandle)
-        {
-            OnOcaError(&mosContext, MOS_STATUS_INVALID_HANDLE, __FUNCTION__, __LINE__);
-            return;
-        }
-        auto success = s_hOcaMap.insert(std::make_pair(cmdBuffer.pCmdBase, ocaBufHandle));
-        if (!success.second)
-        {
-            // Should never come to here.
-            MOS_OS_ASSERTMESSAGE("ocaBufHandle has already been assigned to current cmdBuffer!");
-            OnOcaError(&mosContext, MOS_STATUS_INVALID_HANDLE, __FUNCTION__, __LINE__);
-            return;
-        }
-    }
-    
-    status = pOcaInterface->On1stLevelBBStart(ocaBase, ocaBufHandle, &mosContext, &cmdBuffer.OsResource, 0, true, 0);
-    if (MOS_FAILED(status))
-    {
-        RemoveOcaBufferHandle(cmdBuffer, mosContext);
-        OnOcaError(&mosContext, status, __FUNCTION__, __LINE__);
-    }
+    HalOcaInterfaceNext::On1stLevelBBStart(cmdBuffer, mosContext, gpuContextHandle);
 }
 
 //!
@@ -146,19 +99,7 @@ void HalOcaInterface::On1stLevelBBStart(MOS_COMMAND_BUFFER& cmdBuffer, MOS_CONTE
     uint32_t gpuContextHandle, MhwMiInterface& mhwMiInterface, MmioRegistersMfx& mmioRegisters,
     uint32_t offsetOf1stLevelBB, bool bUseSizeOfCmdBuf, uint32_t sizeOf1stLevelBB)
 {
-    MosInterface::SetObjectCapture(&cmdBuffer.OsResource);
-    MHW_MI_MMIOREGISTERS regs = {};
-    regs.generalPurposeRegister0LoOffset = mmioRegisters.generalPurposeRegister0LoOffset;
-    regs.generalPurposeRegister0HiOffset = mmioRegisters.generalPurposeRegister0HiOffset;
-    regs.generalPurposeRegister4LoOffset = mmioRegisters.generalPurposeRegister4LoOffset;
-    regs.generalPurposeRegister4HiOffset = mmioRegisters.generalPurposeRegister4HiOffset;
-    regs.generalPurposeRegister11LoOffset = mmioRegisters.generalPurposeRegister11LoOffset;
-    regs.generalPurposeRegister11HiOffset = mmioRegisters.generalPurposeRegister11HiOffset;
-    regs.generalPurposeRegister12LoOffset = mmioRegisters.generalPurposeRegister12LoOffset;
-    regs.generalPurposeRegister12HiOffset = mmioRegisters.generalPurposeRegister12HiOffset;
-
-    On1stLevelBBStart(cmdBuffer, mosContext, gpuContextHandle, mhwMiInterface, regs,
-        offsetOf1stLevelBB, bUseSizeOfCmdBuf, sizeOf1stLevelBB);
+    HalOcaInterfaceNext::On1stLevelBBStart(cmdBuffer, mosContext, gpuContextHandle);
 }
 
 //!
