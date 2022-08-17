@@ -35,7 +35,7 @@
 #include "mhw_state_heap.h"
 #include "mhw_render.h"
 #include "mhw_memory_pool.h"
-#include "media_perf_profiler_next.h"
+#include "media_perf_profiler.h"
 #include "frame_tracker.h"
 #include "media_common_defs.h"
 
@@ -1254,8 +1254,8 @@ typedef struct _RENDERHAL_INTERFACE
 
     bool                        isMMCEnabled;
 
-    MediaPerfProfilerNext           *pPerfProfilerNext  = nullptr;  //!< Performance data profiler
-    bool                            eufusionBypass = false;
+    MediaPerfProfiler           *pPerfProfiler = nullptr; //!< Performance data profiler
+    bool                        eufusionBypass = false;
 
     //---------------------------
     // HW interface functions

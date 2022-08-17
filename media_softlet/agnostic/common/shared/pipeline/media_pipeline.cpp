@@ -52,17 +52,6 @@ MediaPipeline::MediaPipeline(PMOS_INTERFACE osInterface) : m_osInterface(osInter
     {
         perfProfiler->Initialize((void *)this, m_osInterface);
     }
-    //Create both Legacy/APO perf profiler to keep compatability of components/codecs not switching to APO path
-    MediaPerfProfilerNext *perfProfilerNext = MediaPerfProfilerNext::Instance();
-    if (!perfProfilerNext)
-    {
-        MOS_OS_ASSERTMESSAGE("Initialize MediaPerfProfilerNext failed!");
-    }
-    else
-    {
-        perfProfilerNext->Initialize((void *)this, m_osInterface);
-    }
-
 }
 
 MediaPipeline::~MediaPipeline()
@@ -82,7 +71,6 @@ MediaPipeline::~MediaPipeline()
     }
     else
     {
-        //Destruction of APO perfProfile will be done inside legacy one.
         MediaPerfProfiler::Destroy(perfProfiler, (void *)this, m_osInterface);
     }
 

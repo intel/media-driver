@@ -244,7 +244,7 @@ namespace encode {
         }
         ENCODE_CHK_STATUS_RETURN(MediaPacket::EndStatusReportNext(srType, cmdBuffer));
 
-        MediaPerfProfilerNext *perfProfiler = MediaPerfProfilerNext::Instance();
+        MediaPerfProfiler *perfProfiler = MediaPerfProfiler::Instance();
         ENCODE_CHK_NULL_RETURN(perfProfiler);
         ENCODE_CHK_STATUS_RETURN(perfProfiler->AddPerfCollectEndCmd(
             (void *)m_pipeline, m_osInterface, m_miItf, cmdBuffer));

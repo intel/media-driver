@@ -27,7 +27,7 @@
 #include "encode_av1_vdenc_packet.h"
 #include "encode_status_report_defs.h"
 #include "codec_def_common_av1.h"
-#include "media_perf_profiler_next.h"
+#include "media_perf_profiler.h"
 
 namespace encode{
     Av1VdencPkt::Av1VdencPkt(MediaPipeline* pipeline, MediaTask* task, CodechalHwInterface* hwInterface) :
@@ -74,7 +74,7 @@ namespace encode{
 
         ENCODE_CHK_STATUS_RETURN(MediaPacket::StartStatusReportNext(srType, cmdBuffer));
 
-        MediaPerfProfilerNext *perfProfiler = MediaPerfProfilerNext::Instance();
+        MediaPerfProfiler *perfProfiler = MediaPerfProfiler::Instance();
         ENCODE_CHK_NULL_RETURN(perfProfiler);
         ENCODE_CHK_STATUS_RETURN(perfProfiler->AddPerfCollectStartCmd(
             (void *)m_pipeline, m_osInterface, m_miItf, cmdBuffer));
@@ -90,7 +90,7 @@ namespace encode{
         ENCODE_CHK_STATUS_RETURN(ReadAvpStatus(m_vdboxIndex, m_statusReport, *cmdBuffer));
         ENCODE_CHK_STATUS_RETURN(MediaPacket::EndStatusReportNext(srType, cmdBuffer));
 
-        MediaPerfProfilerNext *perfProfiler = MediaPerfProfilerNext::Instance();
+        MediaPerfProfiler *perfProfiler = MediaPerfProfiler::Instance();
         ENCODE_CHK_NULL_RETURN(perfProfiler);
         ENCODE_CHK_STATUS_RETURN(perfProfiler->AddPerfCollectEndCmd(
             (void *)m_pipeline, m_osInterface, m_miItf, cmdBuffer));

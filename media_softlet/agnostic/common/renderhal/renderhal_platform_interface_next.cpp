@@ -597,7 +597,9 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::CreateMhwInterfaces(
     MhwInterfacesNext *mhwInterfaces =  MhwInterfacesNext::CreateFactory(params, pOsInterface);
     MHW_RENDERHAL_CHK_NULL_RETURN(mhwInterfaces);
     MHW_RENDERHAL_CHK_NULL_RETURN(mhwInterfaces->m_cpInterface);
+#if !EMUL
     MHW_RENDERHAL_CHK_NULL_RETURN(mhwInterfaces->m_miInterface);
+#endif
     pRenderHal->pCpInterface = mhwInterfaces->m_cpInterface;
     pRenderHal->pMhwMiInterface = mhwInterfaces->m_miInterface;
     m_renderItf = mhwInterfaces->m_renderItf;
@@ -657,21 +659,12 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::CreatePerfProfiler(
     MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
     MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pOsInterface);
 
-    if (!pRenderHal->pPerfProfilerNext)
-    {
-        // MediaPipeline still use legacy MediaPerfProfile. 
-        // After MediaPipeline switches to APO, we can use MediaPerfProfilerNext::Instance directly.
-        // Add WA legacy code here to fix mem leak.
-        MediaPerfProfiler *perfProfiler = MediaPerfProfiler::Instance();
-        if (perfProfiler != nullptr)
-        {
-            MHW_RENDERHAL_CHK_STATUS_RETURN(perfProfiler->Initialize((void*)pRenderHal, pRenderHal->pOsInterface));
-        }
-        
-        pRenderHal->pPerfProfilerNext = MediaPerfProfilerNext::Instance();
-        MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pPerfProfilerNext);
+    if (!pRenderHal->pPerfProfiler)
+    {        
+        pRenderHal->pPerfProfiler = MediaPerfProfiler::Instance();
+        MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pPerfProfiler);
 
-        MHW_RENDERHAL_CHK_STATUS_RETURN(pRenderHal->pPerfProfilerNext->Initialize((void*)pRenderHal, pRenderHal->pOsInterface));
+        MHW_RENDERHAL_CHK_STATUS_RETURN(pRenderHal->pPerfProfiler->Initialize((void*)pRenderHal, pRenderHal->pOsInterface));
     }
 
     return MOS_STATUS_SUCCESS;
@@ -683,22 +676,10 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::DestroyPerfProfiler(
     MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
     MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pOsInterface);
 
-    if (pRenderHal->pPerfProfilerNext)
+    if (pRenderHal->pPerfProfiler)
     {
-       // MediaPipeline still use legacy MediaPerfProfile. 
-       // After MediaPipeline switches to APO, we can use MediaPerfProfilerNext::Destroy directly.
-       // Add WA legacy code here to fix mem leak.
-       MediaPerfProfiler *perfProfiler = MediaPerfProfiler::Instance(); 
-       if(perfProfiler != nullptr)
-       {
-          // Destruction of APO perfProfile will be done inside legacy one.
-          MediaPerfProfiler::Destroy(perfProfiler, (void*)pRenderHal, pRenderHal->pOsInterface); 
-       }
-       else
-       {
-          MediaPerfProfilerNext::Destroy(pRenderHal->pPerfProfilerNext, (void*)pRenderHal, pRenderHal->pOsInterface);
-       }
-       pRenderHal->pPerfProfilerNext = nullptr;
+        MediaPerfProfiler::Destroy(pRenderHal->pPerfProfiler, (void*)pRenderHal, pRenderHal->pOsInterface);
+        pRenderHal->pPerfProfiler = nullptr;
     }
 
     return MOS_STATUS_SUCCESS;
@@ -711,12 +692,12 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::AddPerfCollectStartCmd(
 {
     MOS_STATUS  eStatus = MOS_STATUS_SUCCESS;
     MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
-    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pPerfProfilerNext);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pPerfProfiler);
     MHW_RENDERHAL_CHK_NULL_RETURN(osInterface);
     MHW_RENDERHAL_CHK_NULL_RETURN(m_miItf);
     MHW_RENDERHAL_CHK_NULL_RETURN(cmdBuffer);
     
-    MHW_CHK_STATUS_RETURN(pRenderHal->pPerfProfilerNext->AddPerfCollectStartCmd((void *)pRenderHal, osInterface, m_miItf, cmdBuffer));
+    MHW_CHK_STATUS_RETURN(pRenderHal->pPerfProfiler->AddPerfCollectStartCmd((void *)pRenderHal, osInterface, m_miItf, cmdBuffer));
 
     return eStatus;
 }
@@ -756,12 +737,12 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::AddPerfCollectEndCmd(
 {
     MOS_STATUS  eStatus = MOS_STATUS_SUCCESS;
     MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
-    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pPerfProfilerNext);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pPerfProfiler);
     MHW_RENDERHAL_CHK_NULL_RETURN(pOsInterface);
     MHW_RENDERHAL_CHK_NULL_RETURN(m_miItf);
     MHW_RENDERHAL_CHK_NULL_RETURN(cmdBuffer);
 
-    MHW_CHK_STATUS_RETURN(pRenderHal->pPerfProfilerNext->AddPerfCollectEndCmd((void *)pRenderHal, pOsInterface, m_miItf, cmdBuffer));
+    MHW_CHK_STATUS_RETURN(pRenderHal->pPerfProfiler->AddPerfCollectEndCmd((void *)pRenderHal, pOsInterface, m_miItf, cmdBuffer));
 
     return eStatus;
 }

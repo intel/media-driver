@@ -28,7 +28,7 @@
 #include "encode_vdenc_lpla_analysis.h"
 #include "encode_hevc_vdenc_weighted_prediction.h"
 #include "mhw_mi_itf.h"
-#include "media_perf_profiler_next.h"
+#include "media_perf_profiler.h"
 #include "codec_hw_next.h"
 
 using namespace mhw::vdbox;
@@ -1734,7 +1734,7 @@ namespace encode
         ENCODE_CHK_STATUS_RETURN(MediaPacket::StartStatusReportNext(srType, cmdBuffer));
         m_encodecp->StartCpStatusReport(cmdBuffer);
 
-        MediaPerfProfilerNext *perfProfiler = MediaPerfProfilerNext::Instance();
+        MediaPerfProfiler *perfProfiler = MediaPerfProfiler::Instance();
         ENCODE_CHK_NULL_RETURN(perfProfiler);
         ENCODE_CHK_STATUS_RETURN(perfProfiler->AddPerfCollectStartCmd(
             (void *)m_pipeline, m_osInterface, m_miItf, cmdBuffer));
@@ -1751,7 +1751,7 @@ namespace encode
 
         ENCODE_CHK_STATUS_RETURN(MediaPacket::EndStatusReportNext(srType, cmdBuffer));
 
-        MediaPerfProfilerNext *perfProfiler = MediaPerfProfilerNext::Instance();
+        MediaPerfProfiler *perfProfiler = MediaPerfProfiler::Instance();
         ENCODE_CHK_NULL_RETURN(perfProfiler);
         ENCODE_CHK_STATUS_RETURN(perfProfiler->AddPerfCollectEndCmd(
             (void *)m_pipeline, m_osInterface, m_miItf, cmdBuffer));

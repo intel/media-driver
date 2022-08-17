@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2021, Intel Corporation
+* Copyright (c) 2021-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -22,10 +22,20 @@
 //!
 //! \file     media_perf_profiler.cpp
 //! \brief    Defines data structures and interfaces for media performance profiler.
-//! \details  
+//! \details
 //!
 
+#include <stddef.h>
 #include "media_perf_profiler.h"
+#include "media_skuwa_specific.h"
+#include "mhw_itf.h"
+#include "mhw_mi.h"
+#include "mhw_mi_cmdpar.h"
+#include "mhw_mi_itf.h"
+#include "mos_resource_defs.h"
+#include "mos_util_debug.h"
+#include "mos_utilities.h"
+#include "mos_utilities_common.h"
 
 #define UMD_PERF_LOG            8
 #define NAME_LEN                60
@@ -40,7 +50,7 @@ typedef enum _UMD_PERF_MODE
 
 #pragma pack(push)
 #pragma pack(8)
-struct PerfEntry 
+struct PerfEntry
 {
     uint32_t    nodeIndex;                  //!< Perf node index
     uint32_t    processId;                  //!< Process Id
@@ -57,10 +67,10 @@ struct PerfEntry
 };
 #pragma pack(pop)
 
-struct NodeHeader 
+struct NodeHeader
 {
     uint32_t osPlatform  : 3;
-    uint32_t genPlatform : 3; 
+    uint32_t genPlatform : 3;
     uint32_t eventType   : 4;
     uint32_t perfMode    : 3;
     uint32_t genAndroid  : 4;
@@ -114,6 +124,39 @@ struct NodeHeader
     }                                              \
 }
 
+MediaPerfProfiler::MediaPerfProfiler()
+{
+    m_perfStoreBufferMap.clear();
+    m_perfDataIndexMap.clear();
+    m_refMap.clear();
+    m_initializedMap.clear();
+
+    m_profilerEnabled = 0;
+
+    m_mutex = MosUtilities::MosCreateMutex();
+
+    if (m_mutex)
+    {
+        // m_mutex is destroyed after MemNinja report, this will cause fake memory leak,
+        // the following 2 lines is to circumvent Memninja counter validation and log parser
+        MosUtilities::MosAtomicDecrement(&MosUtilities::m_mosMemAllocCounter);
+        MOS_MEMNINJA_FREE_MESSAGE(m_mutex, __FUNCTION__, __FILE__, __LINE__);
+    }
+    else
+    {
+        MOS_OS_ASSERTMESSAGE("Create Mutex failed!");
+    }
+}
+
+MediaPerfProfiler::~MediaPerfProfiler()
+{
+    if (m_mutex != nullptr)
+    {
+        MosUtilities::MosDestroyMutex(m_mutex);
+        m_mutex = nullptr;
+    }
+}
+
 MediaPerfProfiler* MediaPerfProfiler::Instance()
 {
     static MediaPerfProfiler instance;
@@ -126,7 +169,6 @@ MediaPerfProfiler* MediaPerfProfiler::Instance()
     {
         return &instance;
     }
-
 }
 
 void MediaPerfProfiler::Destroy(MediaPerfProfiler* profiler, void* context, MOS_INTERFACE *osInterface)
@@ -141,39 +183,19 @@ void MediaPerfProfiler::Destroy(MediaPerfProfiler* profiler, void* context, MOS_
         return;
     }
 
-    MediaPerfProfilerNext *profilerNext = MediaPerfProfilerNext::Instance();
-    CHK_NULL_NO_STATUS_RETURN(profilerNext);
-
     PMOS_CONTEXT pOsContext = osInterface->pOsContext;
     CHK_NULL_NO_STATUS_RETURN(pOsContext);
-
-    if(profilerNext->m_profilerEnabled && profilerNext->m_mutex)
-    {
-        MosUtilities::MosLockMutex(profilerNext->m_mutex);
-
-        if(profilerNext->m_refMap[pOsContext] > 0)
-        {
-            profilerNext->m_refMap[pOsContext]--;
-        }
-
-        MosUtilities::MosUnlockMutex(profilerNext->m_mutex);
-    }
-
     MosUtilities::MosLockMutex(profiler->m_mutex);
-
-    if(profiler->m_refMap[pOsContext] > 0)
+    if (profiler->m_refMap[pOsContext] > 0)
     {
         profiler->m_refMap[pOsContext]--;
     }
-
     osInterface->pfnWaitAllCmdCompletion(osInterface);
 
     profiler->m_contextIndexMap.erase(context);
 
-    MosUtilities::MosLockMutex(profilerNext->m_mutex);
-    if (profiler->m_refMap[pOsContext] == 0 && profilerNext->m_refMap[pOsContext] == 0)
+    if (profiler->m_refMap[pOsContext] == 0)
     {
-        MosUtilities::MosUnlockMutex(profilerNext->m_mutex);
         if (profiler->m_initializedMap[pOsContext] == true)
         {
             if(profiler->m_enableProfilerDump)
@@ -186,6 +208,7 @@ void MediaPerfProfiler::Destroy(MediaPerfProfiler* profiler, void* context, MOS_
                 profiler->m_perfStoreBufferMap[pOsContext]);
 
             MOS_FreeMemAndSetNull(profiler->m_perfStoreBufferMap[pOsContext]);
+
             profiler->m_perfStoreBufferMap.erase(pOsContext);
             profiler->m_initializedMap.erase(pOsContext);
             profiler->m_refMap.erase(pOsContext);
@@ -196,233 +219,209 @@ void MediaPerfProfiler::Destroy(MediaPerfProfiler* profiler, void* context, MOS_
     }
     else
     {
-        MosUtilities::MosUnlockMutex(profilerNext->m_mutex);
         MosUtilities::MosUnlockMutex(profiler->m_mutex);
     }
-
-    PERF_UTILITY_PRINT;
-
-    //Destroy APO perf profiler here without writting bin file again. Destroy() in APO class is not called before media softlet build done.
-    if (profilerNext->m_profilerEnabled == 0 || profilerNext->m_mutex == nullptr)
-    {
-        return;
-    }
-
-    MosUtilities::MosLockMutex(profiler->m_mutex);
-    MosUtilities::MosLockMutex(profilerNext->m_mutex);
-
-    osInterface->pfnWaitAllCmdCompletion(osInterface);
-
-    profilerNext->m_contextIndexMap.erase(context);
-
-    if (profiler->m_refMap[pOsContext] == 0 &&  profilerNext->m_refMap[pOsContext] == 0)
-    {
-        if (profilerNext->m_initializedMap[pOsContext] == true)
-        {
-            osInterface->pfnFreeResource(
-                osInterface,
-                profilerNext->m_perfStoreBufferMap[pOsContext]);
-
-            MOS_FreeMemAndSetNull(profilerNext->m_perfStoreBufferMap[pOsContext]);
-
-            profilerNext->m_perfStoreBufferMap.erase(pOsContext);
-            profilerNext->m_initializedMap.erase(pOsContext);
-            profilerNext->m_refMap.erase(pOsContext);
-            profilerNext->m_perfDataIndexMap.erase(pOsContext);
-        }
-
-        MosUtilities::MosUnlockMutex(profiler->m_mutex);
-        MosUtilities::MosUnlockMutex(profilerNext->m_mutex);
-    }
-    else
-    {
-        MosUtilities::MosUnlockMutex(profiler->m_mutex);
-        MosUtilities::MosUnlockMutex(profilerNext->m_mutex);
-    }
-
 }
 
-MOS_STATUS MediaPerfProfiler::StoreData(
-    MhwMiInterface *miInterface, 
-    PMOS_COMMAND_BUFFER cmdBuffer,
-    PMOS_CONTEXT pOsContext,
-    uint32_t offset,
-    uint32_t value)
+MOS_STATUS MediaPerfProfiler::Initialize(void* context, MOS_INTERFACE *osInterface)
 {
-    CHK_NULL_RETURN(miInterface);
+    MOS_STATUS status = MOS_STATUS_SUCCESS;
+    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
 
-    if (m_miItf)
-    {
-        CHK_STATUS_RETURN(MediaPerfProfilerNext::StoreData(m_miItf, cmdBuffer, pOsContext, offset, value));
-    }
-    else
-    {
-        MHW_MI_STORE_DATA_PARAMS storeDataParams;
-        MOS_ZeroMemory(&storeDataParams, sizeof(storeDataParams));
-
-        storeDataParams.pOsResource         = m_perfStoreBufferMap[pOsContext];
-        storeDataParams.dwResourceOffset    = offset;
-        storeDataParams.dwValue             = value;
-
-        CHK_STATUS_RETURN(miInterface->AddMiStoreDataImmCmd(cmdBuffer, &storeDataParams));
-    }
-
-    return MOS_STATUS_SUCCESS;
-}
-
-MOS_STATUS MediaPerfProfiler::StoreRegister(
-    MOS_INTERFACE *osInterface,
-    MhwMiInterface *miInterface, 
-    PMOS_COMMAND_BUFFER cmdBuffer,
-    uint32_t offset,
-    uint32_t reg)
-{
     CHK_NULL_RETURN(osInterface);
-    CHK_NULL_RETURN(miInterface);
+    CHK_NULL_RETURN(m_mutex);
 
     PMOS_CONTEXT pOsContext = osInterface->pOsContext;
     CHK_NULL_RETURN(pOsContext);
 
-    if (m_miItf)
+    // Check whether profiler is enabled
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_ENABLE_ID,
+        &userFeatureData,
+        pOsContext);
+
+    m_profilerEnabled = userFeatureData.bData;
+
+    if (m_profilerEnabled == 0 || m_mutex == nullptr)
     {
-        CHK_STATUS_RETURN(MediaPerfProfilerNext::StoreRegister(osInterface, m_miItf, cmdBuffer, offset, reg));
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MosUtilities::MosLockMutex(m_mutex);
+
+    m_contextIndexMap[context] = 0;
+
+    if (m_initializedMap[pOsContext] == true)
+    {
+        MosUtilities::MosUnlockMutex(m_mutex);
+        return status;
+    }
+    
+    m_refMap[pOsContext]++;
+
+    m_enableProfilerDump = MosUtilities::MosIsProfilerDumpEnabled();
+
+    // Read output file name
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    userFeatureData.StringData.pStringData = m_outputFileName;
+    status = MOS_UserFeature_ReadValue_ID(
+        NULL,
+        __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_OUTPUT_FILE,
+        &userFeatureData,
+        osInterface->pOsContext);
+
+    if (status != MOS_STATUS_SUCCESS)
+    {
+        MosUtilities::MosUnlockMutex(m_mutex);
+        return status;
+    }
+
+    if (userFeatureData.StringData.uSize == MOS_MAX_PATH_LENGTH + 1)
+    {
+        userFeatureData.StringData.uSize = 0;
+    }
+
+    if (userFeatureData.StringData.uSize > 0)
+    {
+        userFeatureData.StringData.pStringData[userFeatureData.StringData.uSize] = '\0';
+        userFeatureData.StringData.uSize++;
+    }
+
+    // Read buffer size
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_BUFFER_SIZE,
+        &userFeatureData,
+        osInterface->pOsContext);
+    m_bufferSize = userFeatureData.u32Data;
+
+    m_timerBase = Mos_Specific_GetTsFrequency(osInterface);
+
+    // Read multi processes support
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_ENABLE_MULTI_PROCESS,
+        &userFeatureData,
+        osInterface->pOsContext);
+    m_multiprocess = userFeatureData.u32Data;
+
+    // Read memory information register address
+    int8_t regIndex = 0;
+    for (regIndex = 0; regIndex < 8; regIndex++)
+    {
+        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+        MOS_UserFeature_ReadValue_ID(
+            nullptr,
+            __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_REGISTER_1 + regIndex,
+            &userFeatureData,
+            osInterface->pOsContext);
+        m_registers[regIndex] = userFeatureData.u32Data;
+    }
+
+    PMOS_RESOURCE  pPerfStoreBuffer = (PMOS_RESOURCE)MOS_AllocAndZeroMemory(sizeof(MOS_RESOURCE));
+    m_perfStoreBufferMap[pOsContext] = pPerfStoreBuffer;
+    // Allocate the buffer which store the performance data
+    MOS_ALLOC_GFXRES_PARAMS allocParams;
+    MOS_ZeroMemory(&allocParams, sizeof(MOS_ALLOC_GFXRES_PARAMS));
+    allocParams.Type        = MOS_GFXRES_BUFFER;
+    allocParams.TileType    = MOS_TILE_LINEAR;
+    allocParams.Format      = Format_Buffer;
+    allocParams.dwBytes     = m_bufferSize;
+    allocParams.pBufName    = "PerfStoreBuffer";
+
+    status = osInterface->pfnAllocateResource(
+                                        osInterface,
+                                        &allocParams,
+                                        pPerfStoreBuffer);
+
+    CHK_STATUS_UNLOCK_MUTEX_RETURN(status);
+
+    CHK_STATUS_UNLOCK_MUTEX_RETURN(
+        osInterface->pfnSkipResourceSync(pPerfStoreBuffer));
+
+    PLATFORM platform = { IGFX_UNKNOWN };
+    osInterface->pfnGetPlatform(osInterface, &platform);
+
+    MOS_LOCK_PARAMS lockFlags;
+    MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
+    lockFlags.WriteOnly   = 1;
+
+    NodeHeader* header = (NodeHeader*)osInterface->pfnLockResource(
+            osInterface,
+            pPerfStoreBuffer,
+            &lockFlags);
+
+    CHK_NULL_UNLOCK_MUTEX_RETURN(header);
+
+    // Append the header info
+    MOS_ZeroMemory(header, m_bufferSize);
+    header->eventType   = UMD_PERF_LOG;
+
+    uint32_t mappedPlatFormId = PlatFormIdMap(platform);
+    header->genPlatform = (mappedPlatFormId - 8) & 0x7;
+    header->genPlatform_ext = ((mappedPlatFormId - 8) >> 3) & 0x3;
+
+    if (IsPerfModeWidthMemInfo(m_registers))
+    {
+        header->perfMode    = UMD_PERF_MODE_WITH_MEMORY_INFO;
     }
     else
     {
-        MHW_MI_STORE_REGISTER_MEM_PARAMS storeRegMemParams;
-        MOS_ZeroMemory(&storeRegMemParams, sizeof(storeRegMemParams));
+        header->perfMode    = UMD_PERF_MODE_TIMING_ONLY;
+    }
 
-        storeRegMemParams.presStoreBuffer = m_perfStoreBufferMap[pOsContext];
-        storeRegMemParams.dwOffset        = offset;
-        storeRegMemParams.dwRegister      = reg;
+    osInterface->pfnUnlockResource(
+            osInterface,
+            pPerfStoreBuffer);
 
-        MEDIA_FEATURE_TABLE* skuTable = osInterface->pfnGetSkuTable(osInterface);
-        if(skuTable && MEDIA_IS_SKU(skuTable, FtrMemoryRemapSupport))
-        {
-            storeRegMemParams.dwOption = CCS_HW_FRONT_END_MMIO_REMAP;
-        }
+    m_initializedMap[pOsContext] = true;
 
-        CHK_STATUS_RETURN(miInterface->AddMiStoreRegisterMemCmd(cmdBuffer, &storeRegMemParams));
-    };
+    MosUtilities::MosUnlockMutex(m_mutex);
 
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS MediaPerfProfiler::StoreTSByPipeCtrl(
-    MhwMiInterface *miInterface,
-    PMOS_COMMAND_BUFFER cmdBuffer,
-    PMOS_CONTEXT pOsContext,
-    uint32_t offset)
+MOS_STATUS MediaPerfProfiler::StoreData(
+    std::shared_ptr<mhw::mi::Itf> miItf,
+    PMOS_COMMAND_BUFFER           cmdBuffer,
+    PMOS_CONTEXT                  pOsContext,
+    uint32_t                      offset,
+    uint32_t                      value)
 {
-    CHK_NULL_RETURN(miInterface);
+    CHK_NULL_RETURN(miItf);
 
-    if (m_miItf)
-    {
-        CHK_STATUS_RETURN(MediaPerfProfilerNext::StoreTSByPipeCtrl(m_miItf, cmdBuffer, pOsContext, offset));
-    }
-    else
-    {
-        MHW_PIPE_CONTROL_PARAMS PipeControlParams;
-
-        MOS_ZeroMemory(&PipeControlParams, sizeof(PipeControlParams));
-        PipeControlParams.dwResourceOffset = offset;
-        PipeControlParams.dwPostSyncOp     = MHW_FLUSH_WRITE_TIMESTAMP_REG;
-        PipeControlParams.dwFlushMode      = MHW_FLUSH_READ_CACHE;
-        PipeControlParams.presDest         = m_perfStoreBufferMap[pOsContext];
-
-        CHK_STATUS_RETURN(miInterface->AddPipeControl(
-            cmdBuffer,
-            NULL,
-            &PipeControlParams));
-    }
-
-    return MOS_STATUS_SUCCESS;
-}
-
-MOS_STATUS MediaPerfProfiler::StoreTSByMiFlush(
-    MhwMiInterface *miInterface,
-    PMOS_COMMAND_BUFFER cmdBuffer,
-    PMOS_CONTEXT pOsContext,
-    uint32_t offset)
-{
-    CHK_NULL_RETURN(miInterface);
-
-    if (m_miItf)
-    {
-        CHK_STATUS_RETURN(MediaPerfProfilerNext::StoreTSByMiFlush(m_miItf, cmdBuffer, pOsContext, offset));
-    }
-    else
-    {
-        MHW_MI_FLUSH_DW_PARAMS FlushDwParams;
-
-        MOS_ZeroMemory(&FlushDwParams, sizeof(FlushDwParams));
-        FlushDwParams.postSyncOperation             = MHW_FLUSH_WRITE_TIMESTAMP_REG;
-        FlushDwParams.dwResourceOffset              = offset;
-        FlushDwParams.pOsResource                   = m_perfStoreBufferMap[pOsContext];
-
-        CHK_STATUS_RETURN(miInterface->AddMiFlushDwCmd(
-            cmdBuffer,
-            &FlushDwParams));
-    }
-
-    return MOS_STATUS_SUCCESS;
-}
-
-MOS_STATUS MediaPerfProfiler::StoreDataNext(
-    MhwMiInterface* miInterface,
-    PMOS_COMMAND_BUFFER cmdBuffer,
-    PMOS_CONTEXT pOsContext,
-    uint32_t offset,
-    uint32_t value)
-{
-    CHK_NULL_RETURN(miInterface);
-
-    std::shared_ptr<mhw::mi::Itf> miItf = std::static_pointer_cast<mhw::mi::Itf>(miInterface->GetNewMiInterface());
-
-    if (miItf == nullptr)
-    {
-        return (StoreData(miInterface, cmdBuffer, pOsContext, offset, value));
-    }
-
-    auto &storeDataParams            = miItf->MHW_GETPAR_F(MI_STORE_DATA_IMM)();
+    auto& storeDataParams            = miItf->MHW_GETPAR_F(MI_STORE_DATA_IMM)();
     storeDataParams                  = {};
     storeDataParams.pOsResource      = m_perfStoreBufferMap[pOsContext];
     storeDataParams.dwResourceOffset = offset;
     storeDataParams.dwValue          = value;
-
     CHK_STATUS_RETURN(miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(cmdBuffer));
 
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS MediaPerfProfiler::StoreRegisterNext(
-    MOS_INTERFACE* osInterface,
-    MhwMiInterface* miInterface,
-    PMOS_COMMAND_BUFFER cmdBuffer,
-    uint32_t offset,
-    uint32_t reg)
+MOS_STATUS MediaPerfProfiler::StoreRegister(
+    MOS_INTERFACE                 *osInterface,
+    std::shared_ptr<mhw::mi::Itf> miItf,
+    PMOS_COMMAND_BUFFER           cmdBuffer,
+    uint32_t                      offset,
+    uint32_t                      reg)
 {
     CHK_NULL_RETURN(osInterface);
-    CHK_NULL_RETURN(miInterface);
-
-    std::shared_ptr<mhw::mi::Itf> miItf = std::static_pointer_cast<mhw::mi::Itf>(miInterface->GetNewMiInterface());
-
-    if (miItf == nullptr)
-    {
-        return (StoreRegister(osInterface, miInterface, cmdBuffer, offset, reg));
-    }
-
-    PMOS_CONTEXT pOsContext = osInterface->pOsContext;
-    CHK_NULL_RETURN(pOsContext);
+    CHK_NULL_RETURN(miItf);
 
     auto& storeRegMemParams           = miItf->MHW_GETPAR_F(MI_STORE_REGISTER_MEM)();
     storeRegMemParams                 = {};
-    storeRegMemParams.presStoreBuffer = m_perfStoreBufferMap[pOsContext];
+    storeRegMemParams.presStoreBuffer = m_perfStoreBufferMap[osInterface->pOsContext];
     storeRegMemParams.dwOffset        = offset;
     storeRegMemParams.dwRegister      = reg;
 
     MEDIA_FEATURE_TABLE* skuTable = osInterface->pfnGetSkuTable(osInterface);
-    if (skuTable && MEDIA_IS_SKU(skuTable, FtrMemoryRemapSupport))
+    if(skuTable && MEDIA_IS_SKU(skuTable, FtrMemoryRemapSupport))
     {
         storeRegMemParams.dwOption = CCS_HW_FRONT_END_MMIO_REMAP;
     }
@@ -432,20 +431,13 @@ MOS_STATUS MediaPerfProfiler::StoreRegisterNext(
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS MediaPerfProfiler::StoreTSByPipeCtrlNext(
-    MhwMiInterface* miInterface,
-    PMOS_COMMAND_BUFFER cmdBuffer,
-    PMOS_CONTEXT pOsContext,
-    uint32_t offset)
+MOS_STATUS MediaPerfProfiler::StoreTSByPipeCtrl(
+    std::shared_ptr<mhw::mi::Itf> miItf,
+    PMOS_COMMAND_BUFFER           cmdBuffer,
+    PMOS_CONTEXT                  pOsContext,
+    uint32_t                      offset)
 {
-    CHK_NULL_RETURN(miInterface);
-
-    std::shared_ptr<mhw::mi::Itf> miItf = std::static_pointer_cast<mhw::mi::Itf>(miInterface->GetNewMiInterface());
-
-    if (miItf == nullptr)
-    {
-        return (StoreTSByPipeCtrl(miInterface, cmdBuffer, pOsContext, offset));
-    }
+    CHK_NULL_RETURN(miItf);
 
     auto& PipeControlParams            = miItf->MHW_GETPAR_F(PIPE_CONTROL)();
     PipeControlParams                  = {};
@@ -459,20 +451,13 @@ MOS_STATUS MediaPerfProfiler::StoreTSByPipeCtrlNext(
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS MediaPerfProfiler::StoreTSByMiFlushNext(
-    MhwMiInterface* miInterface,
-    PMOS_COMMAND_BUFFER cmdBuffer,
-    PMOS_CONTEXT pOsContext,
-    uint32_t offset)
+MOS_STATUS MediaPerfProfiler::StoreTSByMiFlush(
+    std::shared_ptr<mhw::mi::Itf> miItf,
+    PMOS_COMMAND_BUFFER           cmdBuffer,
+    PMOS_CONTEXT                  pOsContext,
+    uint32_t                      offset)
 {
-    CHK_NULL_RETURN(miInterface);
-
-    std::shared_ptr<mhw::mi::Itf> miItf = std::static_pointer_cast<mhw::mi::Itf>(miInterface->GetNewMiInterface());
-
-    if (miItf == nullptr)
-    {
-        return (StoreTSByMiFlush(miInterface, cmdBuffer, pOsContext, offset));
-    }
+    CHK_NULL_RETURN(miItf);
 
     auto& FlushDwParams             = miItf->MHW_GETPAR_F(MI_FLUSH_DW)();
     FlushDwParams                   = {};
@@ -485,15 +470,16 @@ MOS_STATUS MediaPerfProfiler::StoreTSByMiFlushNext(
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS MediaPerfProfiler::AddPerfCollectStartCmd(void* context,
-    MOS_INTERFACE *osInterface,
-    MhwMiInterface *miInterface,
-    MOS_COMMAND_BUFFER *cmdBuffer)
+MOS_STATUS MediaPerfProfiler::AddPerfCollectStartCmd(
+    void                          *context,
+    MOS_INTERFACE                 *osInterface,
+    std::shared_ptr<mhw::mi::Itf> miItf,
+    MOS_COMMAND_BUFFER            *cmdBuffer)
 {
     MOS_STATUS status = MOS_STATUS_SUCCESS;
 
     CHK_NULL_RETURN(osInterface);
-    CHK_NULL_RETURN(miInterface);
+    CHK_NULL_RETURN(miItf);
     CHK_NULL_RETURN(cmdBuffer);
     CHK_NULL_RETURN(m_mutex);
 
@@ -511,16 +497,9 @@ MOS_STATUS MediaPerfProfiler::AddPerfCollectStartCmd(void* context,
 
     perfDataIndex = m_perfDataIndexMap[pOsContext];
     m_perfDataIndexMap[pOsContext]++;
-
-    if (BASE_OF_NODE(perfDataIndex) + sizeof(PerfEntry) > m_bufferSize)
-    {
-        MosUtilities::MosUnlockMutex(m_mutex);
-        MOS_OS_ASSERTMESSAGE("Reached maximum perf data buffer size, please increase it in Performance\\Perf Profiler Buffer Size");
-        return MOS_STATUS_NOT_ENOUGH_BUFFER;
-    }
-
     m_contextIndexMap[context] = perfDataIndex;
-    m_miItf = std::static_pointer_cast<mhw::mi::Itf>(miInterface->GetNewMiInterface());
+
+    MosUtilities::MosUnlockMutex(m_mutex);
 
     bool             rcsEngineUsed = false;
     MOS_GPU_CONTEXT  gpuContext;
@@ -530,23 +509,23 @@ MOS_STATUS MediaPerfProfiler::AddPerfCollectStartCmd(void* context,
 
     if (m_multiprocess)
     {
-        CHK_STATUS_UNLOCK_MUTEX_RETURN(StoreDataNext(
-            miInterface,
+        CHK_STATUS_RETURN(StoreData(
+            miItf,
             cmdBuffer,
             pOsContext,
             BASE_OF_NODE(perfDataIndex) + OFFSET_OF(PerfEntry, processId),
             MosUtilities::MosGetPid()));
     }
 
-    CHK_STATUS_UNLOCK_MUTEX_RETURN(StoreDataNext(
-        miInterface,
+    CHK_STATUS_RETURN(StoreData(
+        miItf,
         cmdBuffer,
         pOsContext,
         BASE_OF_NODE(perfDataIndex) + OFFSET_OF(PerfEntry, perfTag),
         osInterface->pfnGetPerfTag(osInterface)));
 
-    CHK_STATUS_UNLOCK_MUTEX_RETURN(StoreDataNext(
-        miInterface,
+    CHK_STATUS_RETURN(StoreData(
+        miItf,
         cmdBuffer,
         pOsContext,
         BASE_OF_NODE(perfDataIndex) + OFFSET_OF(PerfEntry, engineTag),
@@ -554,8 +533,8 @@ MOS_STATUS MediaPerfProfiler::AddPerfCollectStartCmd(void* context,
 
     if (m_timerBase != 0)
     {
-        CHK_STATUS_UNLOCK_MUTEX_RETURN(StoreDataNext(
-            miInterface,
+        CHK_STATUS_RETURN(StoreData(
+            miItf,
             cmdBuffer,
             pOsContext,
             BASE_OF_NODE(perfDataIndex) + OFFSET_OF(PerfEntry, timeStampBase),
@@ -567,9 +546,9 @@ MOS_STATUS MediaPerfProfiler::AddPerfCollectStartCmd(void* context,
     {
         if (m_registers[regIndex] != 0)
         {
-            CHK_STATUS_UNLOCK_MUTEX_RETURN(StoreRegisterNext(
+            CHK_STATUS_RETURN(StoreRegister(
                 osInterface,
-                miInterface,
+                miItf,
                 cmdBuffer,
                 BASE_OF_NODE(perfDataIndex) + OFFSET_OF(PerfEntry, beginRegisterValue[regIndex]),
                 m_registers[regIndex]));
@@ -582,8 +561,8 @@ MOS_STATUS MediaPerfProfiler::AddPerfCollectStartCmd(void* context,
 
     for (int i = 0; i < 2; i++)
     {
-        CHK_STATUS_UNLOCK_MUTEX_RETURN(StoreDataNext(
-            miInterface,
+        CHK_STATUS_RETURN(StoreData(
+            miItf,
             cmdBuffer,
             pOsContext,
             BASE_OF_NODE(perfDataIndex) + OFFSET_OF(PerfEntry, beginCpuTime[i]),
@@ -596,35 +575,34 @@ MOS_STATUS MediaPerfProfiler::AddPerfCollectStartCmd(void* context,
 
     if (rcsEngineUsed)
     {
-        CHK_STATUS_UNLOCK_MUTEX_RETURN(StoreTSByPipeCtrlNext(
-            miInterface,
+        CHK_STATUS_RETURN(StoreTSByPipeCtrl(
+            miItf,
             cmdBuffer,
             pOsContext,
             offset));
     }
     else
     {
-        CHK_STATUS_UNLOCK_MUTEX_RETURN(StoreTSByMiFlushNext(
-            miInterface,
+        CHK_STATUS_RETURN(StoreTSByMiFlush(
+            miItf,
             cmdBuffer,
             pOsContext,
             offset));
     }
 
-    MosUtilities::MosUnlockMutex(m_mutex);
-
     return status;
 }
 
-MOS_STATUS MediaPerfProfiler::AddPerfCollectEndCmd(void* context,
-    MOS_INTERFACE *osInterface,
-    MhwMiInterface *miInterface,
-    MOS_COMMAND_BUFFER *cmdBuffer)
+MOS_STATUS MediaPerfProfiler::AddPerfCollectEndCmd(
+    void                          *context,
+    MOS_INTERFACE                 *osInterface,
+    std::shared_ptr<mhw::mi::Itf> miItf,
+    MOS_COMMAND_BUFFER            *cmdBuffer)
 {
     MOS_STATUS       status        = MOS_STATUS_SUCCESS;
 
     CHK_NULL_RETURN(osInterface);
-    CHK_NULL_RETURN(miInterface);
+    CHK_NULL_RETURN(miItf);
     CHK_NULL_RETURN(cmdBuffer);
 
     PMOS_CONTEXT pOsContext = osInterface->pOsContext;
@@ -639,9 +617,6 @@ MOS_STATUS MediaPerfProfiler::AddPerfCollectEndCmd(void* context,
     bool             rcsEngineUsed = false;
     uint32_t         perfDataIndex = 0;
 
-    MosUtilities::MosLockMutex(m_mutex);
-    m_miItf = std::static_pointer_cast<mhw::mi::Itf>(miInterface->GetNewMiInterface());
-
     gpuContext     = osInterface->pfnGetGpuContext(osInterface);
     rcsEngineUsed = MOS_RCS_ENGINE_USED(gpuContext);
 
@@ -652,9 +627,9 @@ MOS_STATUS MediaPerfProfiler::AddPerfCollectEndCmd(void* context,
     {
         if (m_registers[regIndex] != 0)
         {
-            CHK_STATUS_UNLOCK_MUTEX_RETURN(StoreRegisterNext(
+            CHK_STATUS_RETURN(StoreRegister(
                 osInterface,
-                miInterface,
+                miItf,
                 cmdBuffer,
                 BASE_OF_NODE(perfDataIndex) + OFFSET_OF(PerfEntry, endRegisterValue[regIndex]),
                 m_registers[regIndex]));
@@ -667,22 +642,21 @@ MOS_STATUS MediaPerfProfiler::AddPerfCollectEndCmd(void* context,
 
     if (rcsEngineUsed)
     {
-        CHK_STATUS_UNLOCK_MUTEX_RETURN(StoreTSByPipeCtrlNext(
-            miInterface,
+        CHK_STATUS_RETURN(StoreTSByPipeCtrl(
+            miItf,
             cmdBuffer,
             pOsContext,
             offset));
     }
     else
     {
-        CHK_STATUS_UNLOCK_MUTEX_RETURN(StoreTSByMiFlushNext(
-            miInterface,
+        CHK_STATUS_RETURN(StoreTSByMiFlush(
+            miItf,
             cmdBuffer,
             pOsContext,
             offset));
     }
 
-    MosUtilities::MosUnlockMutex(m_mutex);
     return status;
 }
 
@@ -692,13 +666,10 @@ MOS_STATUS MediaPerfProfiler::SavePerfData(MOS_INTERFACE *osInterface)
 
     CHK_NULL_RETURN(osInterface);
 
-    MediaPerfProfilerNext *profilerNext = MediaPerfProfilerNext::Instance();
-    CHK_NULL_RETURN(profilerNext);
-
     PMOS_CONTEXT pOsContext = osInterface->pOsContext;
     CHK_NULL_RETURN(pOsContext);
 
-    if (m_perfDataIndexMap[pOsContext] > 0 || profilerNext->m_perfDataIndexMap[pOsContext] > 0)
+    if (m_perfDataIndexMap[pOsContext] > 0)
     {
         MOS_LOCK_PARAMS     LockFlagsNoOverWrite;
         MOS_ZeroMemory(&LockFlagsNoOverWrite, sizeof(MOS_LOCK_PARAMS));
@@ -713,21 +684,6 @@ MOS_STATUS MediaPerfProfiler::SavePerfData(MOS_INTERFACE *osInterface)
 
         CHK_NULL_RETURN(pData);
 
-        uint8_t* pDataNext = (uint8_t*)osInterface->pfnLockResource(
-            osInterface,
-            profilerNext->m_perfStoreBufferMap[pOsContext],
-            &LockFlagsNoOverWrite);
-
-        if (pDataNext)
-        {
-            //Append perf data written by APO perf Profiler into legacy one to avoid file overritting.
-            MosUtilities::MosSecureMemcpy(
-                pData+BASE_OF_NODE(m_perfDataIndexMap[pOsContext]),
-                BASE_OF_NODE(profilerNext->m_perfDataIndexMap[pOsContext])-sizeof(NodeHeader),
-                pDataNext+sizeof(NodeHeader),
-                BASE_OF_NODE(profilerNext->m_perfDataIndexMap[pOsContext])-sizeof(NodeHeader));
-        }
-
         if (m_multiprocess)
         {
             int32_t pid = MosUtilities::MosGetPid();
@@ -738,23 +694,95 @@ MOS_STATUS MediaPerfProfiler::SavePerfData(MOS_INTERFACE *osInterface)
             MOS_SecureStringPrint(outputFileName, MOS_MAX_PATH_LENGTH + 1, MOS_MAX_PATH_LENGTH + 1, "%s-pid%d-context%p-%04d%02d%02d%02d%02d%02d.bin",
                 m_outputFileName, pid, pOsContext, localtime.tm_year + 1900, localtime.tm_mon + 1, localtime.tm_mday, localtime.tm_hour, localtime.tm_min, localtime.tm_sec);
 
-            MosUtilities::MosWriteFileFromPtr(outputFileName, pData, BASE_OF_NODE(m_perfDataIndexMap[pOsContext]) +
-                BASE_OF_NODE(profilerNext->m_perfDataIndexMap[pOsContext]) - sizeof(NodeHeader));
+            MosUtilities::MosWriteFileFromPtr(outputFileName, pData, BASE_OF_NODE(m_perfDataIndexMap[pOsContext]));
         }
         else
         {
-            MosUtilities::MosWriteFileFromPtr(m_outputFileName, pData, BASE_OF_NODE(m_perfDataIndexMap[pOsContext]) +
-                BASE_OF_NODE(profilerNext->m_perfDataIndexMap[pOsContext])-sizeof(NodeHeader));
+            MosUtilities::MosWriteFileFromPtr(m_outputFileName, pData, BASE_OF_NODE(m_perfDataIndexMap[pOsContext]));
         }
 
         osInterface->pfnUnlockResource(
             osInterface,
             m_perfStoreBufferMap[pOsContext]);
-
-        osInterface->pfnUnlockResource(
-            osInterface,
-            profilerNext->m_perfStoreBufferMap[pOsContext]);
     }
 
     return status;
+}
+
+PerfGPUNode MediaPerfProfiler::GpuContextToGpuNode(MOS_GPU_CONTEXT context)
+{
+    PerfGPUNode node = PERF_GPU_NODE_UNKNOW;
+
+    switch (context)
+    {
+        case MOS_GPU_CONTEXT_RENDER:
+        case MOS_GPU_CONTEXT_RENDER2:
+        case MOS_GPU_CONTEXT_RENDER3:
+        case MOS_GPU_CONTEXT_RENDER4:
+        case MOS_GPU_OVERLAY_CONTEXT:
+        case MOS_GPU_CONTEXT_RENDER_RA:
+            node = PERF_GPU_NODE_3D;
+            break;
+        case MOS_GPU_CONTEXT_COMPUTE:
+        case MOS_GPU_CONTEXT_CM_COMPUTE:
+        case MOS_GPU_CONTEXT_COMPUTE_RA:
+            node = PERF_GPU_NODE_3D;
+            break;
+        case MOS_GPU_CONTEXT_VIDEO:
+        case MOS_GPU_CONTEXT_VIDEO2:
+        case MOS_GPU_CONTEXT_VIDEO3:
+        case MOS_GPU_CONTEXT_VIDEO4:
+        case MOS_GPU_CONTEXT_VIDEO5:
+        case MOS_GPU_CONTEXT_VIDEO6:
+        case MOS_GPU_CONTEXT_VIDEO7:
+            node = PERF_GPU_NODE_VIDEO;
+            break;
+        case MOS_GPU_CONTEXT_VDBOX2_VIDEO:
+        case MOS_GPU_CONTEXT_VDBOX2_VIDEO2:
+        case MOS_GPU_CONTEXT_VDBOX2_VIDEO3:
+            node = PERF_GPU_NODE_VIDEO2;
+            break;
+        case MOS_GPU_CONTEXT_VEBOX:
+        case MOS_GPU_CONTEXT_VEBOX2:
+            node = PERF_GPU_NODE_VE;
+            break;
+        default:
+            node = PERF_GPU_NODE_UNKNOW;
+            break;
+    }
+
+    return node;
+}
+
+uint32_t MediaPerfProfiler::PlatFormIdMap(PLATFORM platform)
+{
+    uint32_t perfPlatFormId = 0;
+
+    if (GFX_GET_CURRENT_RENDERCORE(platform) > IGFX_GEN12LP_CORE)
+    {
+        perfPlatFormId = ((((uint32_t)(GFX_GET_CURRENT_RENDERCORE(platform)) >> 8) - 0xc) << 2) + (GFX_GET_CURRENT_RENDERCORE(platform) & 0x3) + (uint32_t)(IGFX_GEN12LP_CORE);
+    }
+    else
+    {
+        perfPlatFormId = (uint32_t)(GFX_GET_CURRENT_RENDERCORE(platform));
+    }
+
+    return perfPlatFormId;
+}
+
+bool MediaPerfProfiler::IsPerfModeWidthMemInfo(uint32_t *regs)
+{
+    int8_t index = 0;
+    bool   ret   = false;
+
+    for (index = 0; index < 8; index++)
+    {
+        if (regs[index] != 0)
+        {
+            ret = true;
+            break;
+        }
+    }
+
+    return ret;
 }

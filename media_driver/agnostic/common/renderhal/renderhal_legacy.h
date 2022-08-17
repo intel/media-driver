@@ -71,7 +71,6 @@ typedef struct _RENDERHAL_INTERFACE_LEGACY : _RENDERHAL_INTERFACE
     // MOS/MHW Interfaces
     MhwRenderInterface            *pMhwRenderInterface = nullptr;
     RENDERHAL_DYN_HEAP_SETTINGS   DynamicHeapSettings;                       //!< Dynamic State Heap Settings
-    MediaPerfProfiler             *pPerfProfiler       = nullptr;            //!< Performance data profiler
 
     //---------------------------
     // ISA ASM Debug support functions
