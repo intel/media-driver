@@ -810,10 +810,15 @@ MOS_STATUS CodechalVdencHevcState::SetupMbQpStreamIn(PMOS_RESOURCE streamIn)
     CODECHAL_ENCODE_CHK_NULL_RETURN(dataGfx);
     MOS_SURFACE surfInfo;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnGetResourceInfo(m_osInterface, streamIn, &surfInfo));
+
     uint32_t uiSize = surfInfo.dwSize;
-    auto data = (uint8_t*)MOS_AllocMemory(uiSize);
+    uint32_t uiAlign = 64;
+    auto data = (uint8_t*)MOS_AllocMemory(uiSize + uiAlign);
     CODECHAL_ENCODE_CHK_NULL_RETURN(data);
-    MOS_SecureMemcpy(data, uiSize, dataGfx, uiSize);
+
+    auto dataBase = (uint8_t*)((((uint64_t)(data) + uiAlign - 1) / uiAlign) * uiAlign);
+
+    MOS_SecureMemcpy(dataBase, uiSize, dataGfx, uiSize);
 
     uint32_t streamInWidth = (MOS_ALIGN_CEIL(m_frameWidth, 64) / 32);
     uint32_t streamInHeight = (MOS_ALIGN_CEIL(m_frameHeight, 64) / 32);
@@ -877,7 +882,7 @@ MOS_STATUS CodechalVdencHevcState::SetupMbQpStreamIn(PMOS_RESOURCE streamIn)
             streaminDataParams.forceQp[2] = (int8_t) ( pInputData[(h * 2 + 1) * m_encodeParams.psMbQpDataSurface->dwPitch + (w * 2)]);
             streaminDataParams.forceQp[3] = (int8_t) ( pInputData[(h * 2 + 1) * m_encodeParams.psMbQpDataSurface->dwPitch + (w * 2 + 1)]);
 
-            SetStreaminDataPerRegion(streamInWidth, h, h+1, w, w+1, &streaminDataParams, data);
+            SetStreaminDataPerRegion(streamInWidth, h, h+1, w, w+1, &streaminDataParams, dataBase);
 
         }
     }
@@ -906,10 +911,10 @@ MOS_STATUS CodechalVdencHevcState::SetupMbQpStreamIn(PMOS_RESOURCE streamIn)
 
     for (auto i = 0; i < streamInNumCUs; i++)
     {
-        SetStreaminDataPerLcu(&streaminDataParams, data + (i * 64));
+        SetStreaminDataPerLcu(&streaminDataParams, dataBase + (i * 64));
     }
 
-    MOS_SecureMemcpy(dataGfx, uiSize, data, uiSize);
+    MOS_SecureMemcpy(dataGfx, uiSize, dataBase, uiSize);
     MOS_SafeFreeMemory(data);
     MOS_SafeFreeMemory(pInputData);
 

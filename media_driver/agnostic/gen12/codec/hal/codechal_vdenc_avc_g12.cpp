@@ -852,15 +852,18 @@ MOS_STATUS CodechalVdencAvcStateG12::SetupMBQPStreamIn(
     CODECHAL_ENCODE_CHK_NULL_RETURN(pMBQPBuffer);
 
     uint32_t uiSize = (uint32_t)m_encodeParams.psMbQpDataSurface->OsResource.pGmmResInfo->GetSizeSurface();
-    if (uiSize > m_uiMBQPShadowBufferSize)
+    uint32_t uiAlign = 64;
+    if (uiSize + uiAlign > m_uiMBQPShadowBufferSize)
     {
-        m_uiMBQPShadowBufferSize = uiSize;
-        m_pMBQPShadowBuffer = (uint8_t*)MOS_ReallocMemory(m_pMBQPShadowBuffer, uiSize);
+        m_uiMBQPShadowBufferSize = uiSize + uiAlign;
+        m_pMBQPShadowBuffer = (uint8_t*)MOS_ReallocMemory(m_pMBQPShadowBuffer, m_uiMBQPShadowBufferSize);
     }
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_pMBQPShadowBuffer);
-    MOS_SecureMemcpy(m_pMBQPShadowBuffer, uiSize, pMBQPBuffer, uiSize);
 
-    CopyMBQPDataToStreamIn(pData, m_pMBQPShadowBuffer);
+    auto pMBQPShadowBufferBase = (uint8_t*)((((uint64_t)(m_pMBQPShadowBuffer) + uiAlign - 1) / uiAlign) * uiAlign);
+    MOS_SecureMemcpy(pMBQPShadowBufferBase, uiSize, pMBQPBuffer, uiSize);
+
+    CopyMBQPDataToStreamIn(pData, pMBQPShadowBufferBase);
 
     m_osInterface->pfnUnlockResource(
         m_osInterface,
