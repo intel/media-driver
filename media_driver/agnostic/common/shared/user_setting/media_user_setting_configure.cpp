@@ -172,10 +172,21 @@ MOS_STATUS Configure::Read(Value &value,
         status = MosUtilities::MosReadEnvVariable(def->ItemEnvName(), defaultType, value);
     }
 
-    //If no 
-    if (status != MOS_STATUS_SUCCESS && option == MEDIA_USER_SETTING_INTERNAL)
+    if (status != MOS_STATUS_SUCCESS)
     {
-        value = useCustomValue ? customValue : def->DefaultValue();
+        // customValue is only for internal user setting Read
+        if (option == MEDIA_USER_SETTING_INTERNAL)
+        {
+            value = useCustomValue ? customValue : def->DefaultValue();
+        }
+        else
+        {
+            // For external user setting, no customValue
+            if (useCustomValue == true)
+            {
+                MOS_OS_ASSERTMESSAGE("External user setting %s customValue will not be used.", valueName.c_str());
+            }
+        }
     }
 
     return status;

@@ -226,8 +226,12 @@ inline MOS_STATUS ReadUserSetting(
 {
     MediaUserSetting::Value outValue;
     MOS_STATUS  status = ReadUserSetting(userSetting, outValue, valueName, group, customValue, useCustomValue, option);
-    //If user setting is not set, outValue is the default value or customValue value if useCustomValue == true.
-    //If the user setting is not registered, it is not allowed to read a value for it. Set it with the inital outValue.
+    //If the user setting is not registered, it is not allowed to read a value for it.for internal user setting, Set it with the inital outValue; for external user setting, keep input value
+    //If user setting is not set, internal user setting outValue is the default value or customValue value if useCustomValue == true; for external user setting, keep input value
+    if (option != MEDIA_USER_SETTING_INTERNAL && status != MOS_STATUS_SUCCESS)
+    {
+        return status;
+    }
     value = outValue.Get<T>();
     return status;
 }
@@ -323,8 +327,12 @@ inline MOS_STATUS ReadUserSettingForDebug(
     MediaUserSetting::Value outValue;
     MOS_STATUS  status = ReadUserSettingForDebug(userSetting, outValue, valueName, group, customValue, useCustomValue, option);
 
-    //If user setting is not set, outValue is the default value or customValue value if useCustomValue == true.
-    //If the user setting is not registered, it is not allowed to read a value for it. Set it with the inital outValue.
+    //If the user setting is not registered, it is not allowed to read a value for it.for internal user setting, Set it with the inital outValue; for external user setting, keep input value
+    //If user setting is not set, internal user setting outValue is the default value or customValue value if useCustomValue == true; for external user setting, keep input value
+    if (option != MEDIA_USER_SETTING_INTERNAL && status != MOS_STATUS_SUCCESS)
+    {
+        return status;
+    }
     value = outValue.Get<T>();
     return status;
 }
