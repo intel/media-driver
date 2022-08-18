@@ -2347,7 +2347,6 @@ VpVeboxCmdPacket::VpVeboxCmdPacket(
     VP_PUBLIC_CHK_NULL_NO_STATUS_RETURN(hwInterface->m_vpPlatformInterface);
     m_veboxItf = hwInterface->m_vpPlatformInterface->GetMhwVeboxItf();
     m_miItf = hwInterface->m_vpPlatformInterface->GetMhwMiItf();
-    m_report = hwInterface->m_reporting;
 }
 
 VpVeboxCmdPacket:: ~VpVeboxCmdPacket()

@@ -2575,8 +2575,6 @@ VpVeboxCmdPacketLegacy::VpVeboxCmdPacketLegacy(
     VpCmdPacket(task, hwInterface, allocator, mmc, VP_PIPELINE_PACKET_VEBOX),
     VpVeboxCmdPacketBase(task, hwInterface, allocator, mmc)
 {
-    VP_PUBLIC_CHK_NULL_NO_STATUS_RETURN(hwInterface);
-    m_report = hwInterface->m_reporting;
 }
 
 VpVeboxCmdPacketLegacy:: ~VpVeboxCmdPacketLegacy()

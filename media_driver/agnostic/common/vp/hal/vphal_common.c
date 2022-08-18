@@ -346,7 +346,9 @@ MOS_STATUS VpHal_ReAllocateSurface(
         (pSurface->Format          == Format)             &&
         (pSurface->bCompressible   == bCompressible)      &&
         (pSurface->CompressionMode == CompressionMode)    &&
-        (pSurface->TileType        == DefaultTileType))
+        (pSurface->TileType        == DefaultTileType     ||
+        MOS_TILE_Y                 == DefaultTileType     &&
+        IS_Y_MAJOR_TILE_FORMAT(pSurface->TileType)))
     {
         goto finish;
     }

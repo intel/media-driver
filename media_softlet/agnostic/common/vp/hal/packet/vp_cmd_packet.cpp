@@ -41,7 +41,7 @@ VpCmdPacket::VpCmdPacket(
     VP_PUBLIC_CHK_NULL_NO_STATUS_RETURN(m_hwInterface->m_osInterface);
 
     m_userSettingPtr = m_hwInterface->m_osInterface->pfnGetUserSettingInstance(m_hwInterface->m_osInterface);
-
+    m_report         = hwInterface->m_reporting;
 }
 
 MOS_STATUS VpCmdPacket::VpCmdPacketInit()

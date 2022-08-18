@@ -759,7 +759,9 @@ MOS_STATUS VpAllocator::ReAllocateSurface(
                                 return  (surface->osSurface->Format               == format)          &&
                                         ((surface->osSurface->bCompressible != 0) == compressible)    &&
                                         (surface->osSurface->CompressionMode      == compressionMode) &&
-                                        (surface->osSurface->TileType             == defaultTileType) &&
+                                        (surface->osSurface->TileType             == defaultTileType  ||
+                                        MOS_TILE_Y                                == defaultTileType  &&
+                                        IS_Y_MAJOR_TILE_FORMAT(surface->osSurface->TileType))         &&
                                         ((Format_Buffer                           == format           &&
                                         surface->bufferWidth                      == width            &&
                                         surface->bufferHeight                     == height)          ||
