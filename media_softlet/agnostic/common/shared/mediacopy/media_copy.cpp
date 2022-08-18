@@ -259,15 +259,18 @@ MOS_STATUS MediaCopyBaseState::TaskDispatch()
 
     // Set the dump location like "dumpLocation before MCPY=path_to_dump_folder" in user feature configure file
     // Otherwise, the surface may not be dumped
-    m_surfaceDumper->GetSurfaceDumpLocation(dumpLocation_in, mcpy_in);
+    if (m_surfaceDumper)
+    {
+        m_surfaceDumper->GetSurfaceDumpLocation(dumpLocation_in, mcpy_in);
 
-    if ((*dumpLocation_in == '\0') || (*dumpLocation_in == ' '))
-    {
-        MCPY_NORMALMESSAGE("Invalid dump location set, the surface will not be dumped");
-    }
-    else
-    {
-        m_surfaceDumper->DumpSurfaceToFile(m_osInterface, &sourceSurface, dumpLocation_in, m_frameNum, true, false, nullptr);
+        if ((*dumpLocation_in == '\0') || (*dumpLocation_in == ' '))
+        {
+            MCPY_NORMALMESSAGE("Invalid dump location set, the surface will not be dumped");
+        }
+        else
+        {
+            m_surfaceDumper->DumpSurfaceToFile(m_osInterface, &sourceSurface, dumpLocation_in, m_frameNum, true, false, nullptr);
+        }
     }
 #endif
 
@@ -303,15 +306,18 @@ MOS_STATUS MediaCopyBaseState::TaskDispatch()
 
     // Set the dump location like "dumpLocation after MCPY=path_to_dump_folder" in user feature configure file
     // Otherwise, the surface may not be dumped
-    m_surfaceDumper->GetSurfaceDumpLocation(dumpLocation_out, mcpy_out);
+    if (m_surfaceDumper)
+    {
+        m_surfaceDumper->GetSurfaceDumpLocation(dumpLocation_out, mcpy_out);
 
-    if ((*dumpLocation_out == '\0') || (*dumpLocation_out == ' '))
-    {
-        MCPY_NORMALMESSAGE("Invalid dump location set, the surface will not be dumped");
-    }
-    else
-    {
-        m_surfaceDumper->DumpSurfaceToFile(m_osInterface, &targetSurface, dumpLocation_out, m_frameNum, true, false, nullptr);
+        if ((*dumpLocation_out == '\0') || (*dumpLocation_out == ' '))
+        {
+            MCPY_NORMALMESSAGE("Invalid dump location set, the surface will not be dumped");
+        }
+        else
+        {
+            m_surfaceDumper->DumpSurfaceToFile(m_osInterface, &targetSurface, dumpLocation_out, m_frameNum, true, false, nullptr);
+        }
     }
 
     m_frameNum++;

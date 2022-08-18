@@ -678,50 +678,8 @@ MOS_STATUS CommonSurfaceDumper::GetSurfaceDumpLocation(
     MCPY_DIRECTION mcpyDirection)
 {
     MediaUserSetting::Value        outValue;
-    char                           pcOutputPath[MAX_PATH];
 
     MEDIA_DEBUG_FUNCTION_ENTER;
-
-    // Get out file path
-    ReadUserSettingForDebug(
-        m_userSettingPtr,
-        outValue,
-        __COMMON_DBG_SURF_DUMP_OUTFILE_KEY_NAME,
-        MediaUserSetting::Group::Device);
-
-    if (outValue.ConstString().size() > 0 && outValue.ConstString().size() < MOS_USER_CONTROL_MAX_DATA_SIZE)
-    {
-        // Copy the Output path
-        MOS_SecureMemcpy(
-            pcOutputPath,
-            MAX_PATH,
-            outValue.ConstString().c_str(),
-            outValue.ConstString().size());
-    }
-#if !defined(LINUX) && !defined(ANDROID)
-    else
-    {
-        std::string commonDumpFilePath;
-
-        // Use state separation APIs to obtain appropriate storage location
-        if (SUCCEEDED(GetDriverPersistentStorageLocation(commonDumpFilePath)))
-        {
-            std::string m_outputFilePath;
-
-            m_outputFilePath = commonDumpFilePath.c_str();
-            m_outputFilePath.append(COMMON_DUMP_OUTPUT_FOLDER);
-
-            // Copy the Output path
-            MOS_SecureMemcpy(
-                pcOutputPath,
-                MAX_PATH,
-                m_outputFilePath.c_str(),
-                m_outputFilePath.size());
-
-            ReportUserSettingForDebug(m_userSettingPtr, __COMMON_DBG_DUMP_OUTPUT_DIRECTORY, m_outputFilePath, MediaUserSetting::Group::Device);
-        }
-    }
-#endif
 
     // Get dump location
     outValue = "";

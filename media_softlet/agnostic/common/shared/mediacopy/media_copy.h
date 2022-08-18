@@ -271,7 +271,9 @@ public:
     MCPY_STATE_PARAMS     m_mcpySrc        = {nullptr, MOS_MMC_DISABLED,MOS_TILE_LINEAR, MCPY_CPMODE_CLEAR, false}; // source surface.
     MCPY_STATE_PARAMS     m_mcpyDst        = {nullptr, MOS_MMC_DISABLED,MOS_TILE_LINEAR, MCPY_CPMODE_CLEAR, false}; // destination surface.
     bool                  m_allowCPBltCopy = false;  // allow cp call media copy only for output clear cases.
+#if (_DEBUG || _RELEASE_INTERNAL)
     CommonSurfaceDumper  *m_surfaceDumper  = nullptr;
+#endif
     static int32_t        m_frameNum;
 
 protected:
