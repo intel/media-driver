@@ -60,11 +60,11 @@ namespace encode
         uint8_t      tileNumberPerGroup[ENCODE_VDENC_AV1_MAX_TILE_GROUP_NUM];
     };
 
-    class Av1BackAnnotationPkt : public EncodeHucPkt
+    class Av1BackAnnotationPkt : public EncodeHucBasic
     {
     public:
         Av1BackAnnotationPkt(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterface *hwInterface) :
-            EncodeHucPkt(pipeline, task, hwInterface)
+            EncodeHucBasic(pipeline, task, hwInterface)
         {
         }
 
@@ -123,6 +123,8 @@ namespace encode
 
     protected:
         virtual MOS_STATUS SetImemParameters() override;
+        virtual MOS_STATUS SetDmemParameters() override;
+        virtual MOS_STATUS SetRegions() override;
         virtual MOS_STATUS AllocateResources() override;
 
         virtual MOS_STATUS SetDmemBuffer();

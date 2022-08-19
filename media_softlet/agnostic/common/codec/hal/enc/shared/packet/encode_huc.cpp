@@ -53,6 +53,19 @@ namespace encode
         return MOS_STATUS_SUCCESS;
     }
 
+#if _SW_BRC
+    MOS_STATUS EncodeHucBasic::InitSwBrc(HuCFunction function)
+    {
+        if (m_swBrc == nullptr)
+        {
+            EncodeBasicFeature* basicFeature = dynamic_cast<EncodeBasicFeature*>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
+            HUC_CHK_NULL_RETURN(basicFeature);
+            m_swBrc = EncodeSwBrc::CreateFactory(basicFeature->m_mode, m_allocator, m_hwInterface->GetOsInterface(), function);
+        }
+        return MOS_STATUS_SUCCESS;
+    }
+ #endif  // !_SW_BRC
+
     bool EncodeHucBasic::IsHuCStsUpdNeeded()
     {
         bool enabled = false;
@@ -222,6 +235,38 @@ namespace encode
         return MOS_STATUS_SUCCESS;
     }
 
+#if USE_CODECHAL_DEBUG_TOOL
+    MOS_STATUS EncodeHucBasic::DumpRegion(
+        uint32_t regionNum,
+        const char *regionName,
+        bool inputBuffer,
+        CodechalHucRegionDumpType dumpType,
+        uint32_t size)
+    {
+        auto bufferToDump = m_virtualAddrParams.regionParams[regionNum].presRegion;
+        auto offset       = m_virtualAddrParams.regionParams[regionNum].dwOffset;
+
+        CodechalDebugInterface *debugInterface = m_pipeline->GetDebugInterface();
+        ENCODE_CHK_NULL_RETURN(debugInterface);
+
+        if (bufferToDump)
+        {
+            // Dump the full region when size = 0 or exceed the region size, else dump the size indicated
+            ENCODE_CHK_STATUS_RETURN(debugInterface->DumpHucRegion(
+                bufferToDump,
+                offset,
+                size ? size : bufferToDump->iSize,
+                regionNum,
+                regionName,
+                inputBuffer,
+                m_pipeline->GetCurrentPass(),
+                dumpType));
+        }
+
+        return MOS_STATUS_SUCCESS;
+    }
+#endif
+
      MOS_STATUS EncodeHucPkt::AddAllCmds_HUC_PIPE_MODE_SELECT(PMOS_COMMAND_BUFFER cmdBuffer) const
     {
         MHW_MI_CHK_NULL(cmdBuffer);
@@ -269,8 +314,8 @@ namespace encode
             SETPAR(HUC_DMEM_STATE, m_hucItf);
             SETPAR(HUC_VIRTUAL_ADDR_STATE, m_hucItf);
 
-            auto &virtualAddrParams = m_hucItf->MHW_GETPAR_F(HUC_VIRTUAL_ADDR_STATE)();
-            auto &dmemParams = m_hucItf->MHW_GETPAR_F(HUC_DMEM_STATE)();
+            LoadLegacyHucRegions();
+            LoadLegacyHucDmemParams();
 
             CODECHAL_DEBUG_TOOL(
                 ENCODE_CHK_STATUS_RETURN(DumpInput());)
@@ -279,8 +324,8 @@ namespace encode
             HUC_CHK_NULL_RETURN(basicFeature);
             return m_swBrc->SwBrcImpl(
                 function,
-                virtualAddrParams,
-                dmemParams,
+                m_virtualAddrParams,
+                m_dmemParams,
                 basicFeature->m_recycleBuf->GetBuffer(VdencBrcPakMmioBuffer, 0));
         }
 #endif  // !_SW_BRC
@@ -304,6 +349,8 @@ namespace encode
 
         SETPAR_AND_ADDCMD(HUC_START, m_hucItf, cmdBuffer);
 
+        LoadLegacyHucRegions();
+
         CODECHAL_DEBUG_TOOL(
             ENCODE_CHK_STATUS_RETURN(DumpInput());)
 
@@ -319,6 +366,24 @@ namespace encode
         HUC_CHK_STATUS_RETURN(StoreHuCStatusRegister(cmdBuffer));
 
         return MOS_STATUS_SUCCESS;
+    }
+
+    void EncodeHucPkt::LoadLegacyHucRegions()
+    {
+        auto &params = m_hucItf->MHW_GETPAR_F(HUC_VIRTUAL_ADDR_STATE)();
+
+        m_virtualAddrParams = {};
+        std::copy_n(params.regionParams, 16, m_virtualAddrParams.regionParams);
+    }
+
+    void EncodeHucPkt::LoadLegacyHucDmemParams()
+    {
+        auto &params = m_hucItf->MHW_GETPAR_F(HUC_DMEM_STATE)();
+
+        m_dmemParams                   = {};
+        m_dmemParams.dwDataLength      = params.dataLength;
+        m_dmemParams.dwDmemOffset      = params.dmemOffset;
+        m_dmemParams.presHucDataSource = params.hucDataSource;
     }
 
     MHW_SETPAR_DECL_SRC(VD_PIPELINE_FLUSH, EncodeHucPkt)
@@ -416,50 +481,4 @@ namespace encode
 
         return MOS_STATUS_SUCCESS;
     }
-
-#if _SW_BRC
-    MOS_STATUS EncodeHucPkt::InitSwBrc(HuCFunction function)
-    {
-        if (m_swBrc == nullptr)
-        {
-            EncodeBasicFeature* basicFeature = dynamic_cast<EncodeBasicFeature*>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
-            HUC_CHK_NULL_RETURN(basicFeature);
-            m_swBrc = EncodeSwBrc::CreateFactory(basicFeature->m_mode, m_allocator, m_hwInterface->GetOsInterface(), function);
-        }
-        return MOS_STATUS_SUCCESS;
-    }
- #endif  // !_SW_BRC
-
-#if USE_CODECHAL_DEBUG_TOOL
-    MOS_STATUS EncodeHucPkt::DumpRegion(
-        uint32_t regionNum,
-        const char *regionName,
-        bool inputBuffer,
-        CodechalHucRegionDumpType dumpType,
-        uint32_t size)
-    {
-        auto virtualAddrParams = m_hucItf->MHW_GETPAR_F(HUC_VIRTUAL_ADDR_STATE)();
-        auto bufferToDump = virtualAddrParams.regionParams[regionNum].presRegion;
-        auto offset       = virtualAddrParams.regionParams[regionNum].dwOffset;
-
-        CodechalDebugInterface *debugInterface = m_pipeline->GetDebugInterface();
-        ENCODE_CHK_NULL_RETURN(debugInterface);
-
-        if (bufferToDump)
-        {
-            // Dump the full region when size = 0 or exceed the region size, else dump the size indicated
-            ENCODE_CHK_STATUS_RETURN(debugInterface->DumpHucRegion(
-                bufferToDump,
-                offset,
-                size ? size : bufferToDump->iSize,
-                regionNum,
-                regionName,
-                inputBuffer,
-                m_pipeline->GetCurrentPass(),
-                dumpType));
-        }
-
-        return MOS_STATUS_SUCCESS;
-    }
-#endif
 }

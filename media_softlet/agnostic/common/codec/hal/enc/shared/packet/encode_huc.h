@@ -109,6 +109,20 @@ namespace encode
         virtual MOS_STATUS SetImemParameters() = 0;
 
         //!
+        //! \brief  Set huc dmem parameter
+        //! \return MOS_STATUS
+        //!         MOS_STATUS_SUCCESS if success, else fail reason
+        //!
+        virtual MOS_STATUS SetDmemParameters() = 0;
+
+        //!
+        //! \brief  Set huc regions
+        //! \return MOS_STATUS
+        //!         MOS_STATUS_SUCCESS if success, else fail reason
+        //!
+        virtual MOS_STATUS SetRegions() = 0;
+
+        //!
         //! \brief  Set  vdbox pipe flush parameter
         //! \return MOS_STATUS
         //!         MOS_STATUS_SUCCESS if success, else fail reason
@@ -166,6 +180,21 @@ namespace encode
 
         MOS_STATUS EndPerfCollect(MOS_COMMAND_BUFFER &cmdBuffer);
 
+#if USE_CODECHAL_DEBUG_TOOL
+
+        virtual MOS_STATUS DumpInput() { return MOS_STATUS_SUCCESS; };
+
+        virtual MOS_STATUS DumpRegion(
+            uint32_t    regionNum,
+            const char *regionName,
+            bool        inputBuffer,
+            CodechalHucRegionDumpType dumpType,
+            uint32_t    size = 0);
+#endif
+#if _SW_BRC
+        virtual MOS_STATUS InitSwBrc(HuCFunction function);
+#endif  // !_SW_BRC
+
         virtual bool IsHuCStsUpdNeeded();
 
         EncodePipeline         *m_pipeline       = nullptr;
@@ -178,7 +207,9 @@ namespace encode
         MOS_INTERFACE          *m_osInterface    = nullptr;
 
         MHW_VDBOX_HUC_IMEM_STATE_PARAMS        m_imemParams = {};
+        MHW_VDBOX_HUC_DMEM_STATE_PARAMS        m_dmemParams = {};
         MHW_VDBOX_PIPE_MODE_SELECT_PARAMS      m_pipeModeSelectParams = {};
+        MHW_VDBOX_HUC_VIRTUAL_ADDR_PARAMS      m_virtualAddrParams = {};
         MHW_VDBOX_VD_PIPE_FLUSH_PARAMS         m_vdPipeFlushParams = {};
 
         //// VDEnc HuC FW status
@@ -224,6 +255,8 @@ namespace encode
 
     protected:
         MOS_STATUS SetImemParameters() override { return MOS_STATUS_SUCCESS; };
+        MOS_STATUS SetDmemParameters() override { return MOS_STATUS_SUCCESS; };
+        MOS_STATUS SetRegions() override { return MOS_STATUS_SUCCESS; };
 
         std::shared_ptr<mhw::vdbox::vdenc::Itf> m_vdencItf = nullptr;
         std::shared_ptr<mhw::vdbox::huc::Itf>   m_hucItf   = nullptr;
@@ -235,19 +268,8 @@ namespace encode
 
         MHW_SETPAR_DECL_HDR(VD_PIPELINE_FLUSH);
 
-#if USE_CODECHAL_DEBUG_TOOL
-        virtual MOS_STATUS DumpInput() { return MOS_STATUS_SUCCESS; };
-
-        virtual MOS_STATUS DumpRegion(
-            uint32_t    regionNum,
-            const char *regionName,
-            bool        inputBuffer,
-            CodechalHucRegionDumpType dumpType,
-            uint32_t    size = 0);
-#endif
-#if _SW_BRC
-        virtual MOS_STATUS InitSwBrc(HuCFunction function);
-#endif  // !_SW_BRC
+        void LoadLegacyHucRegions();
+        void LoadLegacyHucDmemParams();
 
     MEDIA_CLASS_DEFINE_END(encode__EncodeHucPkt)
     };

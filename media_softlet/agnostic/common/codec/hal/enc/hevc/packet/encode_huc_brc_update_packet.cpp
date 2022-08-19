@@ -920,8 +920,6 @@ namespace encode
         CodechalDebugInterface *debugInterface = m_pipeline->GetDebugInterface();
         ENCODE_CHK_NULL_RETURN(debugInterface);
 
-        auto virtualAddrParams = m_hucItf->MHW_GETPAR_F(HUC_VIRTUAL_ADDR_STATE)();
-
         int32_t currentPass = m_pipeline->GetCurrentPass();
         if (isInput)
         {
@@ -933,7 +931,7 @@ namespace encode
                 hucRegionDumpUpdate));
 
             // Region 1 - VDENC Statistics Buffer dump
-            auto vdencStatusBuffer = virtualAddrParams.regionParams[1].presRegion;
+            auto vdencStatusBuffer = m_virtualAddrParams.regionParams[1].presRegion;
             HevcBasicFeature *hevcBasicFeature  = dynamic_cast<HevcBasicFeature *>(m_basicFeature);
             ENCODE_CHK_NULL_RETURN(hevcBasicFeature);
             uint32_t vdencBRCStatsBufferSize = 1216;
@@ -952,7 +950,7 @@ namespace encode
             }
 
             // Region 2 - PAK Statistics Buffer dump
-            auto frameStatStreamOutBuffer = virtualAddrParams.regionParams[2].presRegion;
+            auto frameStatStreamOutBuffer = m_virtualAddrParams.regionParams[2].presRegion;
             size = MOS_ALIGN_CEIL(HevcBasicFeature::m_sizeOfHcpPakFrameStats * hevcBasicFeature->m_maxTileNumber, CODECHAL_PAGE_SIZE);
             if (frameStatStreamOutBuffer)
             {
@@ -968,7 +966,7 @@ namespace encode
             }
 
             // Region 3 - Input SLB Buffer
-            auto vdencReadBatchBuffer = virtualAddrParams.regionParams[3].presRegion;
+            auto vdencReadBatchBuffer = m_virtualAddrParams.regionParams[3].presRegion;
             ENCODE_CHK_STATUS_RETURN(debugInterface->DumpHucRegion(
                 vdencReadBatchBuffer,
                 0,
@@ -980,7 +978,7 @@ namespace encode
                 hucRegionDumpUpdate));
 
             // Region 4 - Constant Data Buffer dump
-            auto vdencBrcConstDataBuffer = virtualAddrParams.regionParams[4].presRegion;
+            auto vdencBrcConstDataBuffer = m_virtualAddrParams.regionParams[4].presRegion;
             ENCODE_CHK_STATUS_RETURN(debugInterface->DumpHucRegion(
                 vdencBrcConstDataBuffer,
                 0,
@@ -992,7 +990,7 @@ namespace encode
                 hucRegionDumpUpdate));
 
             // Region 7 - Slice Stat Streamout (Input)
-            auto lucBasedAddressBuffer = virtualAddrParams.regionParams[7].presRegion;
+            auto lucBasedAddressBuffer = m_virtualAddrParams.regionParams[7].presRegion;
             if (lucBasedAddressBuffer)
             {
                 ENCODE_CHK_STATUS_RETURN(debugInterface->DumpHucRegion(
@@ -1007,7 +1005,7 @@ namespace encode
             }
 
             // Region 8 - PAK MMIO Buffer dump
-            auto pakInfoBufffer = virtualAddrParams.regionParams[8].presRegion;  
+            auto pakInfoBufffer = m_virtualAddrParams.regionParams[8].presRegion;  
             if (pakInfoBufffer)
             {
                 ENCODE_CHK_STATUS_RETURN(debugInterface->DumpHucRegion(
@@ -1023,7 +1021,7 @@ namespace encode
 
             // Region 9 - Streamin Buffer for ROI (Input)
             auto streamInBufferSize = (MOS_ALIGN_CEIL(m_basicFeature->m_frameWidth, 64) / 32) * (MOS_ALIGN_CEIL(m_basicFeature->m_frameHeight, 64) / 32) * CODECHAL_CACHELINE_SIZE;
-            auto stramInBuffer = virtualAddrParams.regionParams[9].presRegion;
+            auto stramInBuffer = m_virtualAddrParams.regionParams[9].presRegion;
             if (stramInBuffer)
             {
                 ENCODE_CHK_STATUS_RETURN(debugInterface->DumpHucRegion(
@@ -1038,7 +1036,7 @@ namespace encode
             }
 
             // Region 10 - Delta QP for ROI Buffer
-            auto vdencDeltaQpBuffer = virtualAddrParams.regionParams[10].presRegion;
+            auto vdencDeltaQpBuffer = m_virtualAddrParams.regionParams[10].presRegion;
             if (vdencDeltaQpBuffer)
             {
                 ENCODE_CHK_STATUS_RETURN(debugInterface->DumpHucRegion(
@@ -1055,7 +1053,7 @@ namespace encode
         else
         {
             // Region 5 - Output SLB Buffer
-            auto vdenc2ndLevelBatchBuffer = virtualAddrParams.regionParams[5].presRegion;
+            auto vdenc2ndLevelBatchBuffer = m_virtualAddrParams.regionParams[5].presRegion;
             if (vdenc2ndLevelBatchBuffer)
             {
                 ENCODE_CHK_STATUS_RETURN(debugInterface->DumpHucRegion(
@@ -1070,7 +1068,7 @@ namespace encode
             }
 
             // Region 11 - Output ROI Streamin Buffer
-            auto vdencOutputROIStreaminBuffer = virtualAddrParams.regionParams[11].presRegion;
+            auto vdencOutputROIStreaminBuffer = m_virtualAddrParams.regionParams[11].presRegion;
             if (vdencOutputROIStreaminBuffer)
             {
                 ENCODE_CHK_STATUS_RETURN(debugInterface->DumpHucRegion(
@@ -1086,7 +1084,7 @@ namespace encode
         }
 
         // Region 0 - History Buffer dump (Input/Output)
-            auto vdencBrcHistoryBuffer = virtualAddrParams.regionParams[0].presRegion;
+            auto vdencBrcHistoryBuffer = m_virtualAddrParams.regionParams[0].presRegion;
         ENCODE_CHK_STATUS_RETURN(debugInterface->DumpHucRegion(
             vdencBrcHistoryBuffer,
             0,
@@ -1109,7 +1107,7 @@ namespace encode
             hucRegionDumpUpdate));
 
         // Region 15 - Debug Output
-        auto debugBuffer = virtualAddrParams.regionParams[15].presRegion;
+        auto debugBuffer = m_virtualAddrParams.regionParams[15].presRegion;
         if (debugBuffer)
         {
             ENCODE_CHK_STATUS_RETURN(debugInterface->DumpHucRegion(
