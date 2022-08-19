@@ -28,7 +28,7 @@
 
 #include "codec_def_decode_hevc.h"
 #include "decode_allocator.h"
-#include "mhw_vdbox_hcp_interface.h"
+#include "mhw_vdbox_hcp_itf.h"
 #include "decode_reference_associated_buffer.h"
 
 namespace decode
@@ -43,8 +43,6 @@ public:
     virtual MOS_BUFFER *Allocate();
     virtual MOS_STATUS Resize(MOS_BUFFER* &buffer);
     virtual void Destroy(MOS_BUFFER* &buffer);
-protected:
-    MhwVdboxHcpInterface* m_hcpInterface;
 
 MEDIA_CLASS_DEFINE_END(decode__HevcMvBufferOpInf)
 };

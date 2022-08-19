@@ -214,8 +214,6 @@ MOS_STATUS MhwInterfacesPvc_Next::Initialize(
     }
     if (params.Flags.m_vdboxAll || params.Flags.m_hcp)
     {
-        m_hcpInterface =
-            MOS_New(Hcp, osInterface, m_miInterface, m_cpInterface, params.m_isDecode);
         m_hcpItf = std::make_shared<mhw::vdbox::hcp::xe_xpm_base::xe_xpm_plus::Impl>(osInterface);
     }
     if (params.Flags.m_vdboxAll || params.Flags.m_huc)

@@ -254,30 +254,30 @@ struct VdencBrcPakMmio
 //!
 struct EncodeStatusReadParams
 {
-    bool          vdencBrcEnabled;
-    bool          waReadVDEncOverflowStatus;
-    uint32_t      mode ;
+    bool          vdencBrcEnabled                          = false;
+    bool          waReadVDEncOverflowStatus                = false;
+    uint32_t      mode                                     = 0;
 
-    uint32_t      vdencBrcNumOfSliceOffset;
-    PMOS_RESOURCE *resVdencBrcUpdateDmemBufferPtr;
+    uint32_t      vdencBrcNumOfSliceOffset                 = 0;
+    PMOS_RESOURCE *resVdencBrcUpdateDmemBufferPtr          = nullptr;
 
-    PMOS_RESOURCE resBitstreamByteCountPerFrame;
-    uint32_t      bitstreamByteCountPerFrameOffset;
+    PMOS_RESOURCE resBitstreamByteCountPerFrame            = nullptr;
+    uint32_t      bitstreamByteCountPerFrameOffset         = 0;
 
-    PMOS_RESOURCE resBitstreamSyntaxElementOnlyBitCount;
-    uint32_t      bitstreamSyntaxElementOnlyBitCountOffset;
+    PMOS_RESOURCE resBitstreamSyntaxElementOnlyBitCount    = nullptr;
+    uint32_t      bitstreamSyntaxElementOnlyBitCountOffset = 0;
 
-    PMOS_RESOURCE resQpStatusCount;
-    uint32_t      qpStatusCountOffset;
+    PMOS_RESOURCE resQpStatusCount                         = nullptr;
+    uint32_t      qpStatusCountOffset                      = 0;
 
-    PMOS_RESOURCE resNumSlices;
-    uint32_t      numSlicesOffset;
+    PMOS_RESOURCE resNumSlices                             = nullptr;
+    uint32_t      numSlicesOffset                          = 0;
 
-    PMOS_RESOURCE resImageStatusMask;
-    uint32_t      imageStatusMaskOffset;
+    PMOS_RESOURCE resImageStatusMask                       = nullptr;
+    uint32_t      imageStatusMaskOffset                    = 0;
 
-    PMOS_RESOURCE resImageStatusCtrl;
-    uint32_t      imageStatusCtrlOffset;
+    PMOS_RESOURCE resImageStatusCtrl                       = nullptr;
+    uint32_t      imageStatusCtrlOffset                    = 0;
 };
 
 #endif // !__CODEC_DEF_ENCODE_H__

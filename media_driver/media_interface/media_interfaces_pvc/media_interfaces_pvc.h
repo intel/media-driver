@@ -48,8 +48,8 @@
 #include "mhw_state_heap_xe_xpm.h"
 #include "mhw_vebox_xe_xpm.h"
 #include "mhw_vdbox_mfx_xe_xpm.h"
-#include "mhw_vdbox_hcp_impl_legacy_xe_xpm_plus.h"
 #include "mhw_vdbox_avp_xe_xpm.h"
+#include "mhw_vdbox_hcp_xe_xpm_plus.h"
 #include "mhw_vdbox_huc_xe_xpm_plus.h"
 #include "mhw_vdbox_avp_g12_X.h"
 #ifdef IGFX_PVC_ENABLE_NON_UPSTREAM

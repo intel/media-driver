@@ -37,8 +37,7 @@ MOS_STATUS HevcMvBufferOpInf::Init(CodechalHwInterface& hwInterface, DecodeAlloc
                                    HevcBasicFeature& basicFeature)
 {
     DECODE_CHK_STATUS(BufferOpInf::Init(hwInterface, allocator, basicFeature));
-    m_hcpInterface = m_hwInterface->GetHcpInterface();
-    DECODE_CHK_NULL(m_hcpInterface);
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -46,18 +45,14 @@ MOS_BUFFER* HevcMvBufferOpInf::Allocate()
 {
     DECODE_FUNC_CALL();
 
-    MHW_VDBOX_HCP_BUFFER_SIZE_PARAMS hcpBufSizeParam;
-    MOS_ZeroMemory(&hcpBufSizeParam, sizeof(hcpBufSizeParam));
-    hcpBufSizeParam.dwPicWidth  = m_basicFeature->m_width;
-    hcpBufSizeParam.dwPicHeight = m_basicFeature->m_height;
-    if (m_hcpInterface->GetHevcBufferSize(MHW_VDBOX_HCP_INTERNAL_BUFFER_CURR_MV_TEMPORAL, 
-                                        &hcpBufSizeParam) != MOS_STATUS_SUCCESS)
-    {
-        return nullptr;
-    }
+    uint32_t mvtSize    = ((((m_basicFeature->m_width + 63) >> 6) * (((m_basicFeature->m_height + 15) >> 4)) + 1)&(-2));
+    uint32_t mvtbSize   = ((((m_basicFeature->m_width + 31) >> 5) * (((m_basicFeature->m_height + 31) >> 5)) + 1)&(-2));
+    uint32_t bufferSize = MOS_MAX(mvtSize, mvtbSize) * MHW_CACHELINE_SIZE;
 
-    return m_allocator->AllocateBuffer(hcpBufSizeParam.dwBufferSize, "MvTemporalBuffer",
+    auto buffer = m_allocator->AllocateBuffer(bufferSize, "MvTemporalBuffer",
         resourceInternalReadWriteCache, notLockableVideoMem);
+
+    return buffer;
 }
 
 MOS_STATUS HevcMvBufferOpInf::Resize(MOS_BUFFER* &buffer)
@@ -70,15 +65,12 @@ MOS_STATUS HevcMvBufferOpInf::Resize(MOS_BUFFER* &buffer)
         return MOS_STATUS_SUCCESS;
     }
 
-    MHW_VDBOX_HCP_BUFFER_SIZE_PARAMS hcpBufSizeParam;
-    MOS_ZeroMemory(&hcpBufSizeParam, sizeof(hcpBufSizeParam));
-    hcpBufSizeParam.dwPicWidth  = m_basicFeature->m_width;
-    hcpBufSizeParam.dwPicHeight = m_basicFeature->m_height;
-    DECODE_CHK_STATUS(m_hcpInterface->GetHevcBufferSize(
-        MHW_VDBOX_HCP_INTERNAL_BUFFER_CURR_MV_TEMPORAL,
-        &hcpBufSizeParam));
+    uint32_t mvtSize    = ((((m_basicFeature->m_width + 63) >> 6) * (((m_basicFeature->m_height + 15) >> 4)) + 1)&(-2));
+    uint32_t mvtbSize   = ((((m_basicFeature->m_width + 31) >> 5) * (((m_basicFeature->m_height + 31) >> 5)) + 1)&(-2));
+    uint32_t bufferSize = MOS_MAX(mvtSize, mvtbSize) * MHW_CACHELINE_SIZE;
 
-    return m_allocator->Resize(buffer, hcpBufSizeParam.dwBufferSize, notLockableVideoMem, false);
+    auto status = m_allocator->Resize(buffer, bufferSize, notLockableVideoMem, false);
+    return status;
 }
 
 void HevcMvBufferOpInf::Destroy(MOS_BUFFER* &buffer)

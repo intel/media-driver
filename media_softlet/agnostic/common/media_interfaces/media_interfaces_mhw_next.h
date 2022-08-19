@@ -109,7 +109,6 @@ public:
     XMHW_STATE_HEAP_INTERFACE *m_stateHeapInterface = nullptr;
     MhwVeboxInterface         *m_veboxInterface     = nullptr;
     MhwVdboxMfxInterface      *m_mfxInterface       = nullptr;
-    MhwVdboxHcpInterface      *m_hcpInterface       = nullptr;
     MhwVdboxVdencInterface    *m_vdencInterface     = nullptr;
     MhwBltInterface           *m_bltInterface       = nullptr;
 

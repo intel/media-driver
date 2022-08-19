@@ -57,7 +57,6 @@ CodechalHwInterfaceNext::CodechalHwInterfaceNext(
     m_cpInterface = mhwInterfacesNext->m_cpInterface;
     m_mfxInterface = mhwInterfacesNext->m_mfxInterface;
     m_vdencInterface = mhwInterfacesNext->m_vdencInterface;
-    m_hcpInterface = mhwInterfacesNext->m_hcpInterface;
 }
 
 MOS_STATUS CodechalHwInterfaceNext::GetAvpStateCommandSize(
@@ -146,10 +145,6 @@ MOS_STATUS CodechalHwInterfaceNext::SetCacheabilitySettings(
     if (m_mfxInterface)
     {
         CODEC_HW_CHK_STATUS_RETURN(m_mfxInterface->SetCacheabilitySettings(cacheabilitySettings));
-    }
-    if (m_hcpInterface)
-    {
-        CODEC_HW_CHK_STATUS_RETURN(m_hcpInterface->SetCacheabilitySettings(cacheabilitySettings));
     }
     if (m_vdencInterface)
     {
@@ -592,6 +587,85 @@ MOS_STATUS CodechalHwInterfaceNext::PerformHucStreamOut(
     {
         CODEC_HW_CHK_STATUS_RETURN(AddHucDummyStreamOut(cmdBuffer));
     }
+
+    return eStatus;
+}
+
+MOS_STATUS CodechalHwInterfaceNext::ReadHcpStatus(
+    MHW_VDBOX_NODE_IND vdboxIndex,
+    const EncodeStatusReadParams &params,
+    PMOS_COMMAND_BUFFER cmdBuffer)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODEC_HW_FUNCTION_ENTER;;
+
+    CODEC_HW_CHK_NULL_RETURN(cmdBuffer);
+
+    CODEC_HW_CHK_COND_RETURN((vdboxIndex > GetMaxVdboxIndex()),"ERROR - vdbox index exceed the maximum");
+
+    auto &par1           = m_miItf->MHW_GETPAR_F(MI_FLUSH_DW)();
+    par1                 = {};
+    CODEC_HW_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(cmdBuffer));
+
+    auto mmioRegisters = m_hcpItf->GetMmioRegisters(vdboxIndex);
+
+    auto &par2           = m_miItf->MHW_GETPAR_F(MI_STORE_REGISTER_MEM)();
+    par2                 = {};
+    par2.presStoreBuffer = params.resBitstreamByteCountPerFrame;
+    par2.dwOffset        = params.bitstreamByteCountPerFrameOffset;
+    par2.dwRegister      = mmioRegisters->hcpEncBitstreamBytecountFrameRegOffset;
+    CODEC_HW_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_REGISTER_MEM)(cmdBuffer));
+
+    auto &par3           = m_miItf->MHW_GETPAR_F(MI_STORE_REGISTER_MEM)();
+    par3                 = {};
+    par3.presStoreBuffer = params.resBitstreamSyntaxElementOnlyBitCount;
+    par3.dwOffset        = params.bitstreamSyntaxElementOnlyBitCountOffset;
+    par3.dwRegister      = mmioRegisters->hcpEncBitstreamSeBitcountFrameRegOffset;
+    CODEC_HW_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_REGISTER_MEM)(cmdBuffer));
+
+    auto &par4           = m_miItf->MHW_GETPAR_F(MI_STORE_REGISTER_MEM)();
+    par4                 = {};
+    par4.presStoreBuffer = params.resQpStatusCount;
+    par4.dwOffset        = params.qpStatusCountOffset;
+    par4.dwRegister      = mmioRegisters->hcpEncQpStatusCountRegOffset;
+    CODEC_HW_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_REGISTER_MEM)(cmdBuffer));
+
+    return eStatus;
+}
+
+MOS_STATUS CodechalHwInterfaceNext::ReadImageStatusForHcp(
+    MHW_VDBOX_NODE_IND vdboxIndex,
+    const EncodeStatusReadParams &params,
+    PMOS_COMMAND_BUFFER cmdBuffer)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODEC_HW_FUNCTION_ENTER;
+
+    CODEC_HW_CHK_NULL_RETURN(cmdBuffer);
+
+    CODEC_HW_CHK_COND_RETURN((vdboxIndex > GetMaxVdboxIndex()),"ERROR - vdbox index exceed the maximum");
+
+    auto mmioRegisters = m_hcpItf->GetMmioRegisters(vdboxIndex);
+
+    auto &par1           = m_miItf->MHW_GETPAR_F(MI_STORE_REGISTER_MEM)();
+    par1                 = {};
+    par1.presStoreBuffer = params.resImageStatusMask;
+    par1.dwOffset        = params.imageStatusMaskOffset;
+    par1.dwRegister      = mmioRegisters->hcpEncImageStatusMaskRegOffset;
+    CODEC_HW_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_REGISTER_MEM)(cmdBuffer));
+
+    auto &par2           = m_miItf->MHW_GETPAR_F(MI_STORE_REGISTER_MEM)();
+    par2                 = {};
+    par2.presStoreBuffer = params.resImageStatusCtrl;
+    par2.dwOffset        = params.imageStatusCtrlOffset;
+    par2.dwRegister      = mmioRegisters->hcpEncImageStatusCtrlRegOffset;
+    CODEC_HW_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_REGISTER_MEM)(cmdBuffer));
+
+    auto &par3           = m_miItf->MHW_GETPAR_F(MI_FLUSH_DW)();
+    par3                 = {};
+    CODEC_HW_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(cmdBuffer));
 
     return eStatus;
 }

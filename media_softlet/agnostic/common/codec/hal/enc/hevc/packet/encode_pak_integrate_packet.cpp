@@ -292,7 +292,8 @@ namespace encode {
         params.resImageStatusCtrl    = osResource;
         params.imageStatusCtrlOffset = offset;
 
-        ENCODE_CHK_STATUS_RETURN(m_hwInterface->ReadHcpStatus(vdboxIndex, params, &cmdBuffer));
+        ENCODE_CHK_NULL_RETURN(m_hwInterface->m_hwInterfaceNext);
+        ENCODE_CHK_STATUS_RETURN(m_hwInterface->m_hwInterfaceNext->ReadHcpStatus(vdboxIndex, params, &cmdBuffer));
 
         // Slice Size Conformance
         if (m_basicFeature->m_hevcSeqParams->SliceSizeControl)
@@ -315,7 +316,8 @@ namespace encode {
 
             ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_REGISTER_MEM)(&cmdBuffer));
         }
-        ENCODE_CHK_STATUS_RETURN(m_hwInterface->ReadImageStatusForHcp(vdboxIndex, params, &cmdBuffer));
+        ENCODE_CHK_NULL_RETURN(m_hwInterface->m_hwInterfaceNext);
+        ENCODE_CHK_STATUS_RETURN(m_hwInterface->m_hwInterfaceNext->ReadImageStatusForHcp(vdboxIndex, params, &cmdBuffer));
         return eStatus;
     }
 

@@ -1803,7 +1803,8 @@ namespace encode
         params.resNumSlices    = osResource;
         params.numSlicesOffset = offset;
 
-        ENCODE_CHK_STATUS_RETURN(m_hwInterface->ReadHcpStatus(vdboxIndex, params, &cmdBuffer));
+        ENCODE_CHK_NULL_RETURN(m_hwInterface->m_hwInterfaceNext);
+        ENCODE_CHK_STATUS_RETURN(m_hwInterface->m_hwInterfaceNext->ReadHcpStatus(vdboxIndex, params, &cmdBuffer));
 
         // Slice Size Conformance
         if (m_hevcSeqParams->SliceSizeControl)
@@ -1825,7 +1826,8 @@ namespace encode
             miStoreRegMemParams.dwRegister      = mmioRegisters->hcpEncBitstreamBytecountFrameRegOffset;
             ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_REGISTER_MEM)(&cmdBuffer));
         }
-        ENCODE_CHK_STATUS_RETURN(m_hwInterface->ReadImageStatusForHcp(vdboxIndex, params, &cmdBuffer));
+        ENCODE_CHK_NULL_RETURN(m_hwInterface->m_hwInterfaceNext);
+        ENCODE_CHK_STATUS_RETURN(m_hwInterface->m_hwInterfaceNext->ReadImageStatusForHcp(vdboxIndex, params, &cmdBuffer));
         return eStatus;
     }
 
@@ -2056,11 +2058,33 @@ namespace encode
 
     MOS_STATUS HevcVdencPkt::GetHxxPrimitiveCommandSize()
     {
-        ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetHxxPrimitiveCommandSize(
-            CODECHAL_ENCODE_MODE_HEVC,
-            &m_defaultSliceStatesSize,
-            &m_defaultSlicePatchListSize,
-            m_pipeline->IsSingleTaskPhaseSupported()));
+        uint32_t hcpCommandsSize  = 0;
+        uint32_t hcpPatchListSize = 0;
+        hcpCommandsSize =
+            m_hcpItf->MHW_GETSIZE_F(HCP_REF_IDX_STATE)() * 2 +
+            m_hcpItf->MHW_GETSIZE_F(HCP_WEIGHTOFFSET_STATE)() * 2 +
+            m_hcpItf->MHW_GETSIZE_F(HCP_SLICE_STATE)() +
+            m_hcpItf->MHW_GETSIZE_F(HCP_PAK_INSERT_OBJECT)() +
+            m_miItf->MHW_GETSIZE_F(MI_BATCH_BUFFER_START)() * 2 +
+            m_hcpItf->MHW_GETSIZE_F(HCP_TILE_CODING)();  // one slice cannot be with more than one tile
+
+        hcpPatchListSize =
+            mhw::vdbox::hcp::Itf::HCP_REF_IDX_STATE_CMD_NUMBER_OF_ADDRESSES * 2 +
+            mhw::vdbox::hcp::Itf::HCP_WEIGHTOFFSET_STATE_CMD_NUMBER_OF_ADDRESSES * 2 +
+            mhw::vdbox::hcp::Itf::HCP_SLICE_STATE_CMD_NUMBER_OF_ADDRESSES +
+            mhw::vdbox::hcp::Itf::HCP_PAK_INSERT_OBJECT_CMD_NUMBER_OF_ADDRESSES +
+            mhw::vdbox::hcp::Itf::MI_BATCH_BUFFER_START_CMD_NUMBER_OF_ADDRESSES * 2 +  // One is for the PAK command and another one is for the BB when BRC and single task mode are on
+            mhw::vdbox::hcp::Itf::HCP_TILE_CODING_COMMAND_NUMBER_OF_ADDRESSES;         // HCP_TILE_CODING_STATE command
+
+        uint32_t cpCmdsize = 0;
+        uint32_t cpPatchListSize = 0;
+        if (m_hwInterface->GetCpInterface())
+        {
+            m_hwInterface->GetCpInterface()->GetCpSliceLevelCmdSize(cpCmdsize, cpPatchListSize);
+        }
+
+        m_defaultSliceStatesSize = hcpCommandsSize + (uint32_t)cpCmdsize;
+        m_defaultSlicePatchListSize = hcpPatchListSize + (uint32_t)cpPatchListSize;
 
         return MOS_STATUS_SUCCESS;
     }

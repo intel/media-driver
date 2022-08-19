@@ -70,7 +70,6 @@ namespace encode
             ENCODE_CHK_NULL_NO_STATUS_RETURN(m_pipeline);
 
             m_hwInterface = hwInterface;
-            m_hcpInterface = hwInterface->GetHcpInterface();
             m_mfxInterface = hwInterface->GetMfxInterface();
             m_vdencInterface = hwInterface->GetVdencInterface();
             m_miInterface = hwInterface->GetMiInterface();
@@ -202,7 +201,6 @@ namespace encode
         MediaFeatureManager    *m_featureManager = nullptr;
         CodechalHwInterface    *m_hwInterface    = nullptr;
         MhwVdboxMfxInterface   *m_mfxInterface   = nullptr;
-        MhwVdboxHcpInterface   *m_hcpInterface   = nullptr;
         MhwVdboxVdencInterface *m_vdencInterface = nullptr;
         MOS_INTERFACE          *m_osInterface    = nullptr;
 

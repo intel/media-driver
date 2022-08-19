@@ -51,7 +51,7 @@
 #include "mhw_state_heap_xe_xpm.h"
 #include "mhw_vebox_xe_hpm.h"
 #include "mhw_vdbox_mfx_xe_xpm.h"
-#include "mhw_vdbox_hcp_impl_legacy_xe_hpm.h"
+#include "mhw_vdbox_hcp_xe_hpm.h"
 #include "mhw_vdbox_avp_xe_hpm.h"
 #include "mhw_vdbox_huc_xe_hpm.h"
 #include "mhw_vdbox_avp_g12_X.h"

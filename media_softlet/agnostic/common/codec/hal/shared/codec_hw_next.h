@@ -346,6 +346,42 @@ public:
     MOS_STATUS PerformHucStreamOut(
         CodechalHucStreamoutParams  *hucStreamOutParams,
         PMOS_COMMAND_BUFFER         cmdBuffer);
+    
+    //! \brief    Read HCP status for status report
+    //! \param    vdboxIndex
+    //!           [in] the vdbox index
+    //! \param    params
+    //!           [in] the parameters for HCP status read
+    //! \param    cmdBuffer
+    //!           [in, out] the command buffer
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS ReadHcpStatus(
+        MHW_VDBOX_NODE_IND vdboxIndex,
+        const EncodeStatusReadParams &params,
+        PMOS_COMMAND_BUFFER cmdBuffer);
+
+    //!
+    //! \brief    Read HCP specific image status for status report
+    //! \param    vdboxIndex
+    //!           [in] the vdbox index
+   //! \param    params
+    //!           [in] the parameters for HCP IMG status read
+    //! \param    cmdBuffer
+    //!           [in, out] the command buffer
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS ReadImageStatusForHcp(
+        MHW_VDBOX_NODE_IND vdboxIndex,
+        const EncodeStatusReadParams &params,
+        PMOS_COMMAND_BUFFER cmdBuffer);
+
+    MHW_VDBOX_NODE_IND GetMaxVdboxIndex()
+    {
+        return MHW_VDBOX_NODE_1;
+    }
 
 protected:
     std::shared_ptr<mhw::vdbox::avp::Itf>    m_avpItf   = nullptr;      //!< Pointer to Mhw avp interface
@@ -372,7 +408,6 @@ protected:
     // Next: remove legacy Interfaces
     MhwCpInterface                  *m_cpInterface = nullptr;         //!< Pointer to Mhw cp interface
     MhwVdboxMfxInterface            *m_mfxInterface = nullptr;        //!< Pointer to Mhw mfx interface
-    MhwVdboxHcpInterface            *m_hcpInterface = nullptr;        //!< Pointer to Mhw hcp interface
     MhwVdboxVdencInterface          *m_vdencInterface = nullptr;      //!< Pointer to Mhw vdenc interface
 
 MEDIA_CLASS_DEFINE_END(CodechalHwInterfaceNext)
