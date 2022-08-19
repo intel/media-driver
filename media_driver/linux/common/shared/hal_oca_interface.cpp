@@ -118,6 +118,8 @@ void HalOcaInterface::On1stLevelBBStart(MOS_COMMAND_BUFFER& cmdBuffer, MOS_CONTE
 //!
 void HalOcaInterface::OnDispatch(MOS_COMMAND_BUFFER &_cmdBuffer, MOS_INTERFACE &osInterface, MhwMiInterface &mhwMiInterface, MHW_MI_MMIOREGISTERS &mmioRegisters)
 {
+    MOS_CONTEXT &mosContext = *osInterface.pOsContext;
+    AddRTLogReource(_cmdBuffer, mosContext, osInterface);
 }
 
 

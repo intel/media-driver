@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2020, Intel Corporation
+* Copyright (c) 2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -20,45 +20,17 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     mos_context_next.cpp
-//! \brief    Container for parameters shared across different GPU contexts of the same device instance
+//! \file     mos_oca_rtlog_mgr.cpp
+//! \brief    Linux specific OCA buffer manager class
 //!
 
-#include "mos_context_specific_next.h"
 #include "mos_oca_rtlog_mgr.h"
 
-class OsContextNext* OsContextNext::GetOsContextObject()
+/****************************************************************************************************/
+/*                                      MosOcaRTLogMgr                                              */
+/****************************************************************************************************/
+
+MOS_STATUS MosOcaRTLogMgr::MapGfxVa()
 {
-    MOS_OS_FUNCTION_ENTER;
-    class OsContextNext* osContextPtr = MOS_New(OsContextSpecificNext);
-
-    return osContextPtr;
-}
-
-void OsContextNext::CleanUp()
-{
-    MOS_OS_FUNCTION_ENTER;
-
-#ifdef _MMC_SUPPORTED
-    MOS_Delete(m_mosDecompression);
-#endif
-    MOS_Delete(m_mosMediaCopy);
-
-    MosOcaRTLogMgr::UninitMgr(m_ocaRTLogMgr);
-
-    if (m_gpuContextMgr != nullptr)
-    {
-        m_gpuContextMgr->CleanUp();
-        MOS_Delete(m_gpuContextMgr);
-        m_gpuContextMgr = nullptr;
-    }
-
-    if (m_cmdBufMgr != nullptr)
-    {
-        m_cmdBufMgr->CleanUp();
-        MOS_Delete(m_cmdBufMgr);
-        m_cmdBufMgr = nullptr;
-    }
-
-    Destroy();
+    return MOS_STATUS_SUCCESS;
 }

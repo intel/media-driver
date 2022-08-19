@@ -249,6 +249,7 @@ public:
     //!         Return true when support large reource dump
     //!
     static bool IsLargeResouceDumpSupported();
+
 protected:
     static MOS_STATUS MhwMiLoadRegisterImmCmd(
         std::shared_ptr<mhw::mi::Itf>    miItf,
@@ -318,6 +319,10 @@ protected:
     //!         No return value. Handle all exception inside the function.
     //!
     static void On1stLevelBBStart(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext, uint32_t gpuContextHandle);
+
+    static void AddRTLogReource(MOS_COMMAND_BUFFER &cmdBuffer,
+                               MOS_CONTEXT &mosContext,
+                               MOS_INTERFACE &osInterface);
 
     // Private functions to ensure class singleton.
     HalOcaInterfaceNext();

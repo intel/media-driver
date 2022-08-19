@@ -35,6 +35,7 @@
 #include "mos_bufmgr_priv.h"
 #include "drm_device.h"
 #include "media_fourcc.h"
+#include "mos_oca_rtlog_mgr.h"
 
 #if (_DEBUG || _RELEASE_INTERNAL)
 #include <stdlib.h>   //for simulate random OS API failure
@@ -3549,4 +3550,32 @@ MOS_STATUS MosInterface::RegisterBBCompleteNotifyEvent(
     GPU_CONTEXT_HANDLE  gpuContextHandle)
 {
     return MOS_STATUS_SUCCESS;
+}
+
+void MosInterface::InsertRTLog(
+    MOS_STREAM_HANDLE streamState,
+    MOS_OCA_RTLOG_COMPONENT_TPYE componentType,
+    bool isErr,
+    int32_t id,
+    uint8_t paramCount,
+    const void *param)
+{
+    if (streamState && streamState->osDeviceContext && streamState->osDeviceContext->GetOCARTLogMgr())
+    {
+        streamState->osDeviceContext->GetOCARTLogMgr()->InsertRTLog(componentType, isErr, id, paramCount, param);
+    }
+}
+
+void MosInterface::GetRtLogResourceInfo(
+    MOS_STREAM_HANDLE streamState,
+    PMOS_RESOURCE &osResource,
+    uint32_t &size)
+{
+    osResource = nullptr;
+    size = 0;
+    if (streamState && streamState->osDeviceContext && streamState->osDeviceContext->GetOCARTLogMgr())
+    {
+        osResource = streamState->osDeviceContext->GetOCARTLogMgr()->GetOcaRTlogResource();
+        size = streamState->osDeviceContext->GetOCARTLogMgr()->GetRtlogHeapInfo().size;
+    }
 }

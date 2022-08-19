@@ -34,6 +34,7 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/mos_os_mock_adaptor.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_os_mock_adaptor_ext.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_os.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/mos_oca_rtlog_mgr.cpp
 )
 
 set(TMP_HEADERS_
@@ -52,6 +53,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mos_mediacopy.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_mediacopy_base.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_os_mock_adaptor.h
+    ${CMAKE_CURRENT_LIST_DIR}/mos_oca_rtlog_mgr.h
 )
 
 if(${Media_Scalability_Supported} STREQUAL "yes")

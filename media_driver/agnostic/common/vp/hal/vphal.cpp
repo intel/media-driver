@@ -35,6 +35,7 @@
 #include "media_interfaces_vphal.h"
 #include "media_interfaces_mhw.h"
 #include "mhw_vebox_itf.h"
+#include "mos_oca_rtlog_mgr.h"
 
 //!
 //! \brief    Allocate VPHAL Resources

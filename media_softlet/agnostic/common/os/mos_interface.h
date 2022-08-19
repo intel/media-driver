@@ -48,6 +48,7 @@
 #define __MOS_INTERFACE_H__
 
 #include "mos_defs.h"
+#include "mos_oca_rtlog_mgr_defs.h"
 #include "mos_os.h"
 #include "media_class_trace.h"
 
@@ -2114,6 +2115,18 @@ public:
         MOS_STREAM_HANDLE   streamState,
         GPU_CONTEXT_HANDLE  gpuContextHandle);
 
+    static void InsertRTLog(
+        MOS_STREAM_HANDLE streamState,
+        MOS_OCA_RTLOG_COMPONENT_TPYE componentType,
+        bool isErr,
+        int32_t id,
+        uint8_t paramCount,
+        const void *param);
+
+    static void GetRtLogResourceInfo(
+        MOS_STREAM_HANDLE streamState,
+        PMOS_RESOURCE &osResource,
+        uint32_t &size);
 private:
     //!
     //! \brief    Init per stream parameters

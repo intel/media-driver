@@ -41,9 +41,12 @@
 #include "mhw_mmio.h"
 #include "mos_interface.h"
 #include "mos_oca_interface_specific.h"
+#include "mos_oca_rtlog_mgr.h"
 #include "vphal.h"
 #include "vp_debug.h"
 #include "codechal_oca_debug.h"
+#include "mhw_utilities_next.h"
+
 namespace mhw { namespace mi { class Itf; } }
 
 std::map<uint32_t*, MOS_OCA_BUFFER_HANDLE> HalOcaInterfaceNext::s_hOcaMap;
@@ -228,6 +231,8 @@ void HalOcaInterfaceNext::OnIndirectState(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CON
 //!
 void HalOcaInterfaceNext::OnDispatch(MOS_COMMAND_BUFFER &cmdBuffer, MOS_INTERFACE &osInterface, std::shared_ptr<mhw::mi::Itf> miItf, MHW_MI_MMIOREGISTERS &mmioRegisters)
 {
+    MOS_CONTEXT &mosContext = *osInterface.pOsContext;
+    AddRTLogReource(cmdBuffer, mosContext, osInterface);
 }
 
 //!
@@ -488,6 +493,52 @@ void HalOcaInterfaceNext::DumpCodechalParam(MOS_COMMAND_BUFFER &cmdBuffer, MOS_C
 bool HalOcaInterfaceNext::IsLargeResouceDumpSupported()
 {
     return true;
+}
+
+void HalOcaInterfaceNext::AddRTLogReource(MOS_COMMAND_BUFFER &cmdBuffer,
+                               MOS_CONTEXT &mosContext,
+                               MOS_INTERFACE &osInterface)
+{
+    if (!MosOcaRTLogMgr::IsOcaRTLogEnabled())
+    {
+        return;
+    }
+    MOS_STATUS status = MOS_STATUS_SUCCESS;
+    PMOS_RESOURCE osResource = nullptr;
+    uint32_t size = 0;
+    MosInterface::GetRtLogResourceInfo(osInterface.osStreamState, osResource, size);
+    
+    MOS_LINUX_BO *bo = cmdBuffer.OsResource.bo;
+    OCA_LOG_SECTION_HEADER *header = (OCA_LOG_SECTION_HEADER *)((uint64_t)bo->virt + bo->size - OCA_LOG_SECTION_SIZE_MAX);
+    if (header->magicNum != OCA_LOG_SECTION_MAGIC_NUMBER)
+    {
+        return;
+    }
+    MHW_RESOURCE_PARAMS ResourceParams = {};
+
+    ResourceParams.dwOffset = 0;
+    uint32_t cmd = 0;
+    ResourceParams.presResource = osResource;
+    ResourceParams.pdwCmd = &cmd;
+    // Align logic in Mhw_AddResourceToCmd
+    ResourceParams.dwLocationInCmd = ((int32_t)((uint8_t*)&header->rtlogPatchAddr - (uint8_t*)cmdBuffer.pCmdBase) - cmdBuffer.iOffset) / sizeof(uint32_t);
+    ResourceParams.HwCommandType = MOS_OCA_RESERVED;
+    ResourceParams.dwSharedMocsOffset = 1 - ResourceParams.dwLocationInCmd;
+
+    if (osInterface.bUsesGfxAddress)
+    {
+        status = Mhw_AddResourceToCmd_GfxAddress(&osInterface, &cmdBuffer, &ResourceParams);
+    }
+    else
+    {
+        status = Mhw_AddResourceToCmd_PatchList(&osInterface, &cmdBuffer, &ResourceParams);
+    }
+
+    if (MOS_FAILED(status))
+    {
+        OnOcaError(&mosContext, status, __FUNCTION__, __LINE__);
+    }
+    HalOcaInterfaceNext::OnIndirectState(cmdBuffer, mosContext, osResource, 0, false, size);
 }
 
 void HalOcaInterfaceNext::DumpCpParam(MosOcaInterface &ocaInterface, MOS_OCA_BUFFER_HANDLE &ocaBufHandle, PMOS_CONTEXT mosCtx, void *pCpDumper)

@@ -552,8 +552,8 @@ void MosOcaInterfaceSpecific::InitOcaLogSection(MOS_LINUX_BO *bo)
     {
         return;
     }
-    uint64_t *ocaLogSectionBaseAddr = (uint64_t *)((uint64_t)bo->virt + bo->size - OCA_LOG_SECTION_SIZE_MAX);
-    *ocaLogSectionBaseAddr = OCA_LOG_SECTION_MAGIC_NUMBER;
+    OCA_LOG_SECTION_HEADER *header = (OCA_LOG_SECTION_HEADER *)((uint64_t)bo->virt + bo->size - OCA_LOG_SECTION_SIZE_MAX);
+    header->magicNum = OCA_LOG_SECTION_MAGIC_NUMBER;
 }
 
 void MosOcaInterfaceSpecific::InitLogSection(MOS_OCA_BUFFER_HANDLE ocaBufHandle, PMOS_RESOURCE resCmdBuf)
@@ -566,8 +566,9 @@ void MosOcaInterfaceSpecific::InitLogSection(MOS_OCA_BUFFER_HANDLE ocaBufHandle,
     }
 
     uint64_t *logSectionBase = (uint64_t*)((char *)boCmdBuf->virt + boCmdBuf->size - OCA_LOG_SECTION_SIZE_MAX);
-    uint64_t magicNum = *logSectionBase;
-    if (OCA_LOG_SECTION_MAGIC_NUMBER != magicNum)
+    OCA_LOG_SECTION_HEADER *header = (OCA_LOG_SECTION_HEADER *)logSectionBase;
+
+    if (OCA_LOG_SECTION_MAGIC_NUMBER != header->magicNum)
     {
         MOS_OS_NORMALMESSAGE("Log section not exists in current 1st level BB.");
         return;
@@ -575,7 +576,7 @@ void MosOcaInterfaceSpecific::InitLogSection(MOS_OCA_BUFFER_HANDLE ocaBufHandle,
 
     m_ocaBufContextList[ocaBufHandle].logSection.base                    = logSectionBase;
     // Reserve an uint64 for magic number;
-    m_ocaBufContextList[ocaBufHandle].logSection.offset                  = sizeof(uint64_t);
+    m_ocaBufContextList[ocaBufHandle].logSection.offset                  = sizeof(OCA_LOG_SECTION_HEADER);
     m_ocaBufContextList[ocaBufHandle].logSection.resInfo.resCount        = 0;
     m_ocaBufContextList[ocaBufHandle].logSection.resInfo.resCountSkipped = 0;
 }

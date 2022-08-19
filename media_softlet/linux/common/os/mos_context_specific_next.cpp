@@ -47,6 +47,7 @@
 #include "mos_gpucontextmgr_next.h"
 #include "mos_cmdbufmgr_next.h"
 #include "media_user_settings_mgr.h"
+#include "mos_oca_rtlog_mgr.h"
 #define BATCH_BUFFER_SIZE 0x80000
 
 OsContextSpecificNext::OsContextSpecificNext()
@@ -260,6 +261,7 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
             }
         }
     }
+    MOS_OS_CHK_STATUS_RETURN(MosOcaRTLogMgr::InitMgr(m_ocaRTLogMgr, this));
     return eStatus;
 }
 
