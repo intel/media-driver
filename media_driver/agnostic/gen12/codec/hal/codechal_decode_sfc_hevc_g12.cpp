@@ -224,8 +224,16 @@ MOS_STATUS CodechalHevcSfcStateG12::CheckAndInitialize(
             m_inputFrameHeight                               = m_hevcPicParams->PicHeightInMinCbsY << (m_hevcPicParams->log2_min_luma_coding_block_size_minus3 + 3);
             decProcessingParams->m_inputSurfaceRegion.m_x = 0;
             decProcessingParams->m_inputSurfaceRegion.m_y = 0;
-            decProcessingParams->m_inputSurfaceRegion.m_width  = m_inputFrameWidth;
-            decProcessingParams->m_inputSurfaceRegion.m_height = m_inputFrameHeight;
+            // Honor the region width from the setting of API instead of overriding.
+            if (decProcessingParams->m_inputSurfaceRegion.m_width == 0)
+            {
+                decProcessingParams->m_inputSurfaceRegion.m_width = m_inputFrameWidth;
+            }
+            // Honor the region height from the setting of API instead of overriding.
+            if (decProcessingParams->m_inputSurfaceRegion.m_height == 0)
+            {
+                decProcessingParams->m_inputSurfaceRegion.m_height = m_inputFrameHeight;
+            }
 
             CODECHAL_HW_CHK_STATUS_RETURN(Initialize(decProcessingParams, MhwSfcInterfaceG12::SFC_PIPE_MODE_HCP));
 
