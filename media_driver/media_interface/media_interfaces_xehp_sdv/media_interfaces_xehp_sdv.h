@@ -128,7 +128,6 @@
 #include "codechal_vdenc_avc_xe_xpm.h"
 #endif
 
-#include "codechal_memdecomp_g11_icl.h"
 
 #ifdef _VP9_ENCODE_VDENC_SUPPORTED
 #include "codechal_vdenc_vp9_g12.h"

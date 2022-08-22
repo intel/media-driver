@@ -30,7 +30,6 @@
 #include "mhw_render_g12_X.h"
 #include "mhw_mi_hwcmd_g12_X.h"
 #include "mhw_vdbox_hcp_hwcmd_g12_X.h"  // temporary include for calculating size of various hardware commands
-#include "mhw_vdbox_mfx_hwcmd_g11_X.h"
 #include "mhw_vdbox_vdenc_g12_X.h"
 #include "mhw_vdbox_hcp_g12_X.h"
 #include "media_interfaces_g12_tgllp.h"

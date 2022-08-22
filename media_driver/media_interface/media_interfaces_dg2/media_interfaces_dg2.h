@@ -131,7 +131,6 @@
 #endif
 #endif
 
-#include "codechal_memdecomp_g11_icl.h"
 
 #include "cm_hal_xe_xpm.h"
 
