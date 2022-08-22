@@ -28,7 +28,6 @@
 #include "media_sfc_interface.h"
 #include "media_vdbox_sfc_render.h"
 #include "mos_os.h"
-#include "vp_render_sfc_base_legacy.h"
 #include "vp_render_ief.h"
 #include "vp_mem_compression.h"
 

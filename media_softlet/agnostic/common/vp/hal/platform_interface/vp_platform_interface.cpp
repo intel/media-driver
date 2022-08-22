@@ -25,7 +25,7 @@
 //! \details  render packet provide the structures and generate the cmd buffer which mediapipline will used.
 //!
 #include "vp_platform_interface.h"
-#include "cm_visa.h"
+#include "vp_visa.h"
 
 using namespace vp;
 
