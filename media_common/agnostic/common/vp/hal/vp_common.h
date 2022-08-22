@@ -42,6 +42,9 @@
 extern "C" {
 #endif
 
+#define ADDRESS_PAGE_ALIGNMENT_MASK_X64 0xFFFFFFFFFFFFF000ULL
+#define ADDRESS_PAGE_ALIGNMENT_MASK_X86 0xFFFFF000
+
 //!
 //! \def OUT_OF_BOUNDS(a, min, max)
 //! Calcualte if \a a out the range of  [\a min, \a max].
@@ -65,6 +68,10 @@ extern "C" {
         (((rect1).right + 1) >= (rect2).right) && (((rect1).bottom + 1) >= (rect2).bottom))
 
 #define VPHAL_MEMORY_OBJECT_CONTROL uint32_t
+
+// YUV input ranges
+#define YUV_RANGE_16_235           1
+#define YUV_RANGE_0_255            2
 
 // ProcAmp Default Values
 #define PROCAMP_BRIGHTNESS_MIN -100.0F

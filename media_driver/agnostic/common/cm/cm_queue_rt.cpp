@@ -41,7 +41,7 @@
 #include "cm_surface_2d_rt.h"
 #include "cm_vebox_rt.h"
 #include "cm_execution_adv.h"
-
+#include "vp_common.h"
 
 // Used by GPUCopy
 #define BLOCK_PIXEL_WIDTH            (32)

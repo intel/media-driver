@@ -1305,6 +1305,10 @@ typedef struct _MOS_INTERFACE
     bool (*pfnIsMultipleCodecDevicesInUse)(
         PMOS_INTERFACE              pOsInterface);
 
+    HANDLE (*pfnGetUmdDmaCompleteEventHandle)(
+        PMOS_INTERFACE  osInterface,
+        MOS_GPU_CONTEXT gpuContext);
+
     //!
     //! \brief    Get Aux Table base address
     //!

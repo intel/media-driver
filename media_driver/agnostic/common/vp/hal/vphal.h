@@ -39,8 +39,6 @@
 #include "renderhal_legacy.h"
 
 // YUV input ranges
-#define YUV_RANGE_16_235                1
-#define YUV_RANGE_0_255                 2
 #define YUV_RANGE_FROM_DDI              3
 
 // RGB input ranges

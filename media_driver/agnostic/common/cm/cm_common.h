@@ -255,9 +255,6 @@ typedef enum _CM_RETURN_CODE
 #define CM_KERNEL_FLAGS_CURBE                       0x00000001
 #define CM_KERNEL_FLAGS_NONSTALLING_SCOREBOARD      0x00000002  //bit 1
 
-#define ADDRESS_PAGE_ALIGNMENT_MASK_X64             0xFFFFFFFFFFFFF000ULL
-#define ADDRESS_PAGE_ALIGNMENT_MASK_X86             0xFFFFF000
-
 //CM MemObjCtl associated
 #define CM_INVALID_MEMOBJCTL            0xFF
 #define CM_MEMOBJCTL_CACHE_MASK         0xFF00
