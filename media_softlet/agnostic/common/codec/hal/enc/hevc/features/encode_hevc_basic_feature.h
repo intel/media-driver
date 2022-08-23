@@ -161,7 +161,7 @@ protected:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS CalcLCUMaxCodingSize();
-    MOS_STATUS GetRecycleBuffers();
+    virtual MOS_STATUS GetRecycleBuffers();
 
 MEDIA_CLASS_DEFINE_END(encode__HevcBasicFeature)
 };
