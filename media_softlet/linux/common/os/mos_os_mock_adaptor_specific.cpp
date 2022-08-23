@@ -61,6 +61,7 @@ MOS_STATUS MosMockAdaptorSpecific::InitializeSkuWaTable(PMOS_CONTEXT context)
 {
     MOS_OS_CHK_NULL_RETURN(context);
     MOS_OS_CHK_NULL_RETURN(m_pPlatform);
+    auto            userSettingPtr = MosInterface::MosGetUserSettingInstance(context);
 
     LinuxDriverInfo drvInfo = {18, 3, 0, 23172, 3, 1, 0, 1, 0, 0, 1, 0};
     if (HWInfoGetLinuxDrvInfo(context->fd, &drvInfo) != MOS_STATUS_SUCCESS)
@@ -152,7 +153,7 @@ MOS_STATUS MosMockAdaptorSpecific::InitializeSkuWaTable(PMOS_CONTEXT context)
 
     if (devInit && devInit->InitMediaFeature &&
         devInit->InitMediaWa &&
-        devInit->InitMediaFeature(devInfo, m_pSkuTable, &drvInfo) &&
+        devInit->InitMediaFeature(devInfo, m_pSkuTable, &drvInfo, userSettingPtr) &&
         devInit->InitMediaWa(devInfo, m_pWaTable, &drvInfo))
     {
         MOS_OS_NORMALMESSAGE("Init Media SKU/WA info successfully\n");
@@ -169,7 +170,7 @@ MOS_STATUS MosMockAdaptorSpecific::InitializeSkuWaTable(PMOS_CONTEXT context)
     /* The initializationof Ext SKU/WA is optional. So skip the check of return value */
     if (devExtInit && devExtInit->InitMediaFeature &&
         devExtInit->InitMediaWa &&
-        devExtInit->InitMediaFeature(devInfo, m_pSkuTable, &drvInfo) &&
+        devExtInit->InitMediaFeature(devInfo, m_pSkuTable, &drvInfo, userSettingPtr) &&
         devExtInit->InitMediaWa(devInfo, m_pWaTable, &drvInfo))
     {
         MOS_OS_NORMALMESSAGE("Init Media SystemInfo successfully\n");

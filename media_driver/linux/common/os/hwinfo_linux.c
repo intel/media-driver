@@ -151,13 +151,15 @@ Output:
     skuTable     - describing SKU
     waTable      - the constraints list
     gtSystemInfo - describing current system information
+    userSettingPtr - shared pointer to user setting instance
 \*****************************************************************************/
 MOS_STATUS HWInfo_GetGfxInfo(int32_t           fd,
                           MOS_BUFMGR           *pDrmBufMgr,
                           PLATFORM             *gfxPlatform,
                           MEDIA_FEATURE_TABLE  *skuTable,
                           MEDIA_WA_TABLE       *waTable,
-                          MEDIA_SYSTEM_INFO    *gtSystemInfo)
+                          MEDIA_SYSTEM_INFO    *gtSystemInfo,
+                          MediaUserSettingSharedPtr userSettingPtr)
 {
     if ((fd < 0) ||
         (pDrmBufMgr == nullptr) ||
@@ -282,7 +284,7 @@ MOS_STATUS HWInfo_GetGfxInfo(int32_t           fd,
 
     if (devInit && devInit->InitMediaFeature &&
         devInit->InitMediaWa &&
-        devInit->InitMediaFeature(devInfo, skuTable, &drvInfo) &&
+        devInit->InitMediaFeature(devInfo, skuTable, &drvInfo, userSettingPtr) &&
         devInit->InitMediaWa(devInfo, waTable, &drvInfo))
     {
 #ifdef _MEDIA_RESERVED
@@ -334,7 +336,7 @@ MOS_STATUS HWInfo_GetGfxInfo(int32_t           fd,
     /* The initializationof Ext SKU/WA is optional. So skip the check of return value */
     if (devExtInit && devExtInit->InitMediaFeature &&
         devExtInit->InitMediaWa &&
-        devExtInit->InitMediaFeature(devInfo, skuTable, &drvInfo) &&
+        devExtInit->InitMediaFeature(devInfo, skuTable, &drvInfo, userSettingPtr) &&
         devExtInit->InitMediaWa(devInfo, waTable, &drvInfo))
     {
         MOS_OS_NORMALMESSAGE("Init Media SystemInfo successfully\n");

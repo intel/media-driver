@@ -57,7 +57,7 @@
 #define Mos_Solo_CalTileNum(a)
 #define Mos_Solo_DdiInitializeSkuWaTable(a, b, c, d)
 
-#define Mos_Solo_DdiInitializeDeviceId(a, b, c, d, e, f, g, h, i)  MOS_STATUS_SUCCESS
+#define Mos_Solo_DdiInitializeDeviceId(a, b, c, d, e, f, g, h, i,l)  MOS_STATUS_SUCCESS
 #define Mos_Solo_OverrideBufferSize(a, b)
 #define Mos_Solo_SetOsResource(a, b)
 #define Mos_Solo_SetGpuAppTaskEvent(a, b)  MOS_STATUS_SUCCESS

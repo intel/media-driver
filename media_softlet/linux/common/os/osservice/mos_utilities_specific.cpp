@@ -1342,17 +1342,14 @@ MOS_STATUS MosUtilities::MosOsUtilitiesInit(MediaUserSettingSharedPtr userSettin
     }
 #endif
 
+    //The user setting is device based, no need to guard with the reference count.
+    //It will be destroyed in media context termiation.
+    eStatus = MosUserSetting::InitMosUserSetting(userSettingPtr);
+
     if (m_mosUtilInitCount == 0)
     {
         //Init MOS User Feature Key from mos desc table
-        //
-        //Destroy the user setting instance which created for mavd user setting reset.
-        //Will remove this destroy once it moves the usersetting instacne to mediacontext.
-        MosUserSetting::DestroyMediaUserSetting();
-
-        eStatus = MosUserSetting::InitMosUserSetting(userSettingPtr);
         MosUtilitiesSpecificNext::UserFeatureDumpFile(MosUtilitiesSpecificNext::m_szUserFeatureFile, &MosUtilitiesSpecificNext::m_ufKeyList);
-
         MosDeclareUserFeature();
 
 #if MOS_MESSAGES_ENABLED
@@ -1394,7 +1391,6 @@ MOS_STATUS MosUtilities::MosOsUtilitiesClose(MediaUserSettingSharedPtr userSetti
             MediaUserSetting::Group::Device);
 
         MosDestroyUserFeature();
-        MosUserSetting::DestroyMediaUserSetting();
 
 #if (_DEBUG || _RELEASE_INTERNAL)
         // MOS maintains a reference counter,
@@ -1895,14 +1891,14 @@ MOS_STATUS MosUtilities::MosReadMediaSoloEnabledUserFeature(bool &mediasoloEnabl
     return eStatus;
 }
 
-MOS_STATUS MosUtilities::MosReadApoDdiEnabledUserFeature(uint32_t &userfeatureValue, char *path)
+MOS_STATUS MosUtilities::MosReadApoDdiEnabledUserFeature(uint32_t &userfeatureValue, char *path, MediaUserSettingSharedPtr userSettingPtr)
 {
     MOS_STATUS eStatus  = MOS_STATUS_SUCCESS;
     MOS_UNUSED(path);
 
     uint32_t enableApoDdi = 0;
     eStatus = ReadUserSetting(
-        nullptr,
+        userSettingPtr,
         enableApoDdi,
         "ApoDdiEnable",
         MediaUserSetting::Group::Device);
@@ -1916,7 +1912,7 @@ MOS_STATUS MosUtilities::MosReadApoDdiEnabledUserFeature(uint32_t &userfeatureVa
     return eStatus;
 }
 
-MOS_STATUS MosUtilities::MosReadApoMosEnabledUserFeature(uint32_t &userfeatureValue, char *path)
+MOS_STATUS MosUtilities::MosReadApoMosEnabledUserFeature(uint32_t &userfeatureValue, char *path, MediaUserSettingSharedPtr userSettingPtr)
 {
     MOS_STATUS eStatus  = MOS_STATUS_SUCCESS;
     MOS_USER_FEATURE_VALUE_DATA userFeatureData     = {};
@@ -1942,7 +1938,7 @@ MOS_STATUS MosUtilities::MosReadApoMosEnabledUserFeature(uint32_t &userfeatureVa
 
     uint32_t enableApoMos = 0;
     eStatus = ReadUserSetting(
-        nullptr,
+        userSettingPtr,
         enableApoMos,
         "ApoMosEnable",
         MediaUserSetting::Group::Device);

@@ -1650,6 +1650,7 @@ VAStatus DdiVp_InitCtx(VADriverContextP pVaDrvCtx, PDDI_VP_CONTEXT pVpCtx)
 
     pVpCtx->MosDrvCtx.m_osDeviceContext     = pMediaCtx->m_osDeviceContext;
     pVpCtx->MosDrvCtx.m_apoMosEnabled       = pMediaCtx->m_apoMosEnabled;
+    pVpCtx->MosDrvCtx.m_userSettingPtr      = pMediaCtx->m_userSettingPtr;
 
     pVpCtx->MosDrvCtx.pPerfData = (PERF_DATA *)MOS_AllocAndZeroMemory(sizeof(PERF_DATA));
     if (nullptr == pVpCtx->MosDrvCtx.pPerfData)
@@ -1794,7 +1795,7 @@ DdiVp_InitVpHal(
     if (!pVpHal)
     {
         VP_DDI_ASSERTMESSAGE("Failed to create vphal.");
-        MOS_FreeMemAndSetNull(pVpCtx);
+        MOS_Delete(pVpCtx);
         return VA_STATUS_ERROR_ALLOCATION_FAILED;
     }
 
@@ -3097,141 +3098,6 @@ VAStatus DdiVp_CreateBuffer(
 }
 
 /////////////////////////////////////////////////////////////////////////////
-//! \purpose Convert source Surface to dest Surface
-//! \params
-//! [in]  pVaDrvCtx : VA Driver context
-//! [in]  srcSurface : source surface
-//! [in]  srcx : x corinates of source surface
-//! [in]  srcy : y corinates of source surface
-//! [in]  srcw : width of source surface
-//! [in]  srch : height of source surface
-//! [in]  destSurface : destination surface
-//! [in]  destx : x corinates of destination surface
-//! [in]  desty : y corinates of destination surface
-//! [in]  destw : width of destination surface
-//! [in]  desth : height of destination surface
-//! [out] None
-//! \returns VA_STATUS_SUCCESS if call succeeds
-/////////////////////////////////////////////////////////////////////////////
-VAStatus DdiVp_ConvertSurface(
-    VADriverContextP     pVaDrvCtx,
-    DDI_MEDIA_SURFACE    *srcSurface,
-    int16_t              srcx,
-    int16_t              srcy,
-    uint16_t             srcw,
-    uint16_t             srch,
-    DDI_MEDIA_SURFACE    *dstSurface,
-    int16_t              destx,
-    int16_t              desty,
-    uint16_t             destw,
-    uint16_t             desth
-)
-{
-    PERF_UTILITY_AUTO(__FUNCTION__, PERF_VP, PERF_LEVEL_DDI);
-
-    VAStatus                    vaStatus;
-    PVPHAL_SURFACE              pSurface;
-    PVPHAL_SURFACE              pTarget;
-    PVPHAL_RENDER_PARAMS        pRenderParams;
-    VPHAL_DENOISE_PARAMS        DenoiseParams;
-    PDDI_VP_CONTEXT             pVpCtx;
-    MOS_STATUS                  eStatus;
-    RECT                        Rect;
-    RECT                        DstRect;
-
-    VP_DDI_FUNCTION_ENTER;
-    DDI_CHK_NULL(pVaDrvCtx, "Null pVaDrvCtx.", VA_STATUS_ERROR_INVALID_CONTEXT);
-    DDI_CHK_NULL(srcSurface, "Null srcSurface.", VA_STATUS_ERROR_INVALID_SURFACE);
-
-    vaStatus = VA_STATUS_SUCCESS;
-    eStatus  = MOS_STATUS_INVALID_PARAMETER;
-
-    // init vpContext
-    pVpCtx = nullptr;
-    pVpCtx = (PDDI_VP_CONTEXT)MOS_AllocAndZeroMemory(sizeof(DDI_VP_CONTEXT));
-    DDI_CHK_NULL(pVpCtx, "Null pVpCtx.", VA_STATUS_ERROR_ALLOCATION_FAILED);
-
-    vaStatus = DdiVp_InitCtx(pVaDrvCtx, pVpCtx);
-    DDI_CHK_RET(vaStatus, "Failed to initialize vp Context.");
-
-    pRenderParams = pVpCtx->pVpHalRenderParams;
-    DDI_CHK_NULL(pRenderParams, "Null pRenderParams.", VA_STATUS_ERROR_INVALID_PARAMETER);
-    pSurface      =  pRenderParams->pSrc[0];
-    DDI_CHK_NULL(pSurface, "Null pSurface.", VA_STATUS_ERROR_INVALID_SURFACE);
-    pTarget       =  pRenderParams->pTarget[0];
-    DDI_CHK_NULL(pTarget, "Null pTarget.", VA_STATUS_ERROR_INVALID_SURFACE);
-
-    // Source Surface Information
-    pSurface->Format               = VpGetFormatFromMediaFormat (srcSurface->format);
-    pSurface->SurfType             = SURF_IN_PRIMARY;       // Surface type (context)
-    pSurface->SampleType           = SAMPLE_PROGRESSIVE;
-    pSurface->ScalingMode          = VPHAL_SCALING_AVS;
-
-    vaStatus = DdiMediaUtil_FillPositionToRect(&Rect,    srcx,  srcy,  srcw,  srch);
-    if(vaStatus != VA_STATUS_SUCCESS) goto FINISH;
-    vaStatus = DdiMediaUtil_FillPositionToRect(&DstRect, destx, desty, destw, desth);
-    if(vaStatus != VA_STATUS_SUCCESS) goto FINISH;
-
-    pSurface->OsResource.Format      = VpGetFormatFromMediaFormat(srcSurface->format);
-    pSurface->OsResource.iWidth      = srcSurface->iWidth;
-    pSurface->OsResource.iHeight     = srcSurface->iHeight;
-    pSurface->OsResource.iPitch      = srcSurface->iPitch;
-    pSurface->OsResource.iCount      = 0;
-    pSurface->OsResource.TileType    = VpGetTileTypeFromMediaTileType(srcSurface->TileType);
-    pSurface->OsResource.bMapped     = srcSurface->bMapped;
-    pSurface->OsResource.bo          = srcSurface->bo;
-    pSurface->OsResource.pGmmResInfo = srcSurface->pGmmResourceInfo;
-
-    Mos_Solo_SetOsResource(srcSurface->pGmmResourceInfo, &pSurface->OsResource);
-
-    pSurface->ColorSpace            = DdiVp_GetColorSpaceFromMediaFormat(srcSurface->format);
-    pSurface->ExtendedGamut         = false;
-    pSurface->rcSrc                 = Rect;
-    pSurface->rcDst                 = DstRect;
-
-    // Setup render target surface
-    pTarget->Format                 = VpGetFormatFromMediaFormat(dstSurface->format);
-    pTarget->SurfType               = SURF_IN_PRIMARY; //?
-
-    vaStatus = DdiMediaUtil_FillPositionToRect(&Rect,    destx, desty, destw, desth);
-    if(vaStatus != VA_STATUS_SUCCESS) goto FINISH;
-    vaStatus = DdiMediaUtil_FillPositionToRect(&DstRect, destx, desty, destw, desth);
-    if(vaStatus != VA_STATUS_SUCCESS) goto FINISH;
-
-    pTarget->OsResource.Format      = VpGetFormatFromMediaFormat(dstSurface->format);
-    pTarget->OsResource.iWidth      = dstSurface->iWidth;
-    pTarget->OsResource.iHeight     = dstSurface->iHeight;
-    pTarget->OsResource.iPitch      = dstSurface->iPitch;
-    pTarget->OsResource.iCount      = 0;
-    pTarget->OsResource.TileType    = VpGetTileTypeFromMediaTileType(dstSurface->TileType);
-    pTarget->OsResource.bMapped     = dstSurface->bMapped;
-    pTarget->OsResource.bo          = dstSurface->bo;
-    pTarget->OsResource.pGmmResInfo = dstSurface->pGmmResourceInfo;
-
-    Mos_Solo_SetOsResource(dstSurface->pGmmResourceInfo, &pTarget->OsResource);
-
-    pTarget->ColorSpace             = DdiVp_GetColorSpaceFromMediaFormat(dstSurface->format);
-    pTarget->ExtendedGamut          = false;
-    pTarget->rcSrc                  = Rect;
-    pTarget->rcDst                  = DstRect;
-
-    pRenderParams->uSrcCount        = 1;
-
-    eStatus   = pVpCtx->pVpHal->Render(pVpCtx->pVpHalRenderParams);
-    if (MOS_FAILED(eStatus))
-    {
-        VP_DDI_ASSERTMESSAGE("Failed to call render function.");
-        vaStatus = VA_STATUS_ERROR_OPERATION_FAILED;
-    }
-
-    memset(&(pTarget->OsResource), 0, sizeof(pTarget->OsResource));
-
-FINISH:
-    vaStatus |= DdiVp_DestroyVpHal(pVpCtx);
-    return vaStatus;
-}
-
-/////////////////////////////////////////////////////////////////////////////
 //! \purpose Create a new VP context, and put in pVpCtx array
 //! \params
 //! [in]  pVaDrvCtx : VA Driver context
@@ -3282,7 +3148,7 @@ VAStatus DdiVp_CreateContext (
                     VA_STATUS_ERROR_INVALID_CONTEXT);
 
     // allocate pVpCtx
-    pVpCtx = (PDDI_VP_CONTEXT)MOS_AllocAndZeroMemory(sizeof(DDI_VP_CONTEXT));
+    pVpCtx = MOS_New(DDI_VP_CONTEXT);
     DDI_CHK_NULL(pVpCtx, "Null pVpCtx.", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
     // init pVpCtx
@@ -3295,7 +3161,7 @@ VAStatus DdiVp_CreateContext (
     pVaCtxHeapElmt = DdiMediaUtil_AllocPVAContextFromHeap(pMediaCtx->pVpCtxHeap);
     if (nullptr == pVaCtxHeapElmt)
     {
-        MOS_FreeMemAndSetNull(pVpCtx);
+        MOS_Delete(pVpCtx);
         DdiMediaUtil_UnLockMutex(&pMediaCtx->VpMutex);
         VP_DDI_ASSERTMESSAGE("VP Context number exceeds maximum.");
         return VA_STATUS_ERROR_INVALID_CONTEXT;
@@ -3365,7 +3231,7 @@ VAStatus DdiVp_DestroyContext (
     // remove from context array
     DdiMediaUtil_LockMutex(&pMediaCtx->VpMutex);
     // destroy vp context
-    MOS_FreeMemAndSetNull(pVpCtx);
+    MOS_Delete(pVpCtx);
     DdiMediaUtil_ReleasePVAContextFromHeap(pMediaCtx->pVpCtxHeap, uiVpIndex);
 
     pMediaCtx->uiNumVPs--;

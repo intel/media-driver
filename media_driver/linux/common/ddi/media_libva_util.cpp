@@ -1124,6 +1124,7 @@ static VAStatus SwizzleSurfaceByHW(DDI_MEDIA_SURFACE *surface, bool isDeSwizzle 
     mosCtx.gtSystemInfo          = *mediaDrvCtx->pGtSystemInfo;
     mosCtx.m_auxTableMgr         = mediaDrvCtx->m_auxTableMgr;
     mosCtx.pGmmClientContext     = mediaDrvCtx->pGmmClientContext;
+    mosCtx.m_userSettingPtr      = mediaDrvCtx->m_userSettingPtr;
 
     mosCtx.m_osDeviceContext     = mediaDrvCtx->m_osDeviceContext;
 
@@ -1924,7 +1925,7 @@ VAStatus DdiMediaUtil_SetMediaResetEnableFlag(PDDI_MEDIA_CONTEXT mediaCtx)
     mediaCtx->bMediaResetEnable = true;
 #if (_DEBUG || _RELEASE_INTERNAL)
     ReadUserSettingForDebug(
-        nullptr,
+        mediaCtx->m_userSettingPtr,
         enableReset,
         __MEDIA_USER_FEATURE_VALUE_MEDIA_RESET_ENABLE,
         MediaUserSetting::Group::Device);

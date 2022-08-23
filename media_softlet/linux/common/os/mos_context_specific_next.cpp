@@ -107,7 +107,7 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
         eStatus = NullHW::Init(osDriverContext);
         if (!NullHW::IsEnabled())
         {
-            eStatus = HWInfo_GetGfxInfo(m_fd, m_bufmgr, &m_platformInfo, &m_skuTable, &m_waTable, &m_gtSystemInfo);
+            eStatus = HWInfo_GetGfxInfo(m_fd, m_bufmgr, &m_platformInfo, &m_skuTable, &m_waTable, &m_gtSystemInfo, userSettingPtr);
         }
         else
         {
@@ -192,7 +192,7 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
 
 #if (_DEBUG || _RELEASE_INTERNAL)
         ReadUserSettingForDebug(
-            nullptr,
+            userSettingPtr,
             osDriverContext->bSimIsActive,
             __MEDIA_USER_FEATURE_VALUE_SIM_ENABLE,
             MediaUserSetting::Group::Device);

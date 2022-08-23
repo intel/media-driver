@@ -264,6 +264,7 @@ protected:
 
     //!< Indicate if this device is working in aync mode or normal mode
     bool                            m_aynchronousDevice = false;
-MEDIA_CLASS_DEFINE_END(OsContextNext)
+
+    MEDIA_CLASS_DEFINE_END(OsContextNext)
 };
 #endif // #ifndef __MOS_CONTEXTNext_NEXT_H__

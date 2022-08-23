@@ -24,7 +24,15 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <memory>
 #include "linux_shadow_skuwa.h"
+
+namespace MediaUserSetting {
+    class MediaUserSetting;
+    class Value;
+};
+
+using MediaUserSettingSharedPtr = std::shared_ptr<MediaUserSetting::MediaUserSetting>;
 
 #ifndef ENABLE_KERNELS
 #define SET_STATUS_BY_FULL_OPEN_SOURCE(sts_not_full_open_source, sts_if_full_open_source)   0
@@ -103,7 +111,7 @@ class MediaWaTable;
 struct LinuxDeviceInit
 {
     uint32_t productFamily;
-    bool (*InitMediaFeature)(struct GfxDeviceInfo *, MediaFeatureTable *, struct LinuxDriverInfo *);
+    bool (*InitMediaFeature)(struct GfxDeviceInfo *, MediaFeatureTable *, struct LinuxDriverInfo *, MediaUserSettingSharedPtr userSettingPtr);
     bool (*InitMediaWa)(struct GfxDeviceInfo *, MediaWaTable *, struct LinuxDriverInfo *);
 };
 

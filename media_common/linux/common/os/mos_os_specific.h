@@ -504,8 +504,8 @@ struct MOS_CONTEXT_OFFSET
 
 // APO related
 #define FUTURE_PLATFORM_MOS_APO   1234
-bool SetupApoMosSwitch(int32_t fd);
-bool SetupApoDdiSwitch(int32_t fd);
+bool SetupApoMosSwitch(int32_t fd, MediaUserSettingSharedPtr userSettingPtr);
+bool SetupApoDdiSwitch(int32_t fd, MediaUserSettingSharedPtr userSettingPtr);
 bool SetupMediaSoloSwitch();
 
 enum OS_SPECIFIC_RESOURCE_TYPE
@@ -527,80 +527,82 @@ typedef struct _MOS_OS_CONTEXT MOS_CONTEXT, *PMOS_CONTEXT, MOS_OS_CONTEXT, *PMOS
 struct _MOS_OS_CONTEXT
 {
     // Context must be freed by os emul layer
-    int32_t             bFreeContext;
+    int32_t             bFreeContext        = 0;
 
-    uint32_t            uIndirectStateSize;
+    uint32_t            uIndirectStateSize  = 0;
 
-    MOS_OS_GPU_CONTEXT  OsGpuContext[MOS_GPU_CONTEXT_MAX];
+    MOS_OS_GPU_CONTEXT OsGpuContext[MOS_GPU_CONTEXT_MAX] = {};
 
     // Buffer rendering
-    LARGE_INTEGER       Frequency;                //!< Frequency
-    LARGE_INTEGER       LastCB;                   //!< End time for last CB
+    LARGE_INTEGER       Frequency   = {};                //!< Frequency
+    LARGE_INTEGER       LastCB      = {};                   //!< End time for last CB
 
-    CMD_BUFFER_BO_POOL  CmdBufferPool;
+    CMD_BUFFER_BO_POOL CmdBufferPool = {};
 
     // Emulated platform, sku, wa tables
-    PLATFORM            platform;
-    MEDIA_FEATURE_TABLE   SkuTable;
-    MEDIA_WA_TABLE            WaTable;
-    MEDIA_SYSTEM_INFO      gtSystemInfo;
+    PLATFORM                  platform = {};
+    MEDIA_FEATURE_TABLE       SkuTable = {};
+    MEDIA_WA_TABLE            WaTable  = {};
+    MEDIA_SYSTEM_INFO         gtSystemInfo = {};
 
     // Controlled OS resources (for analysis)
-    MOS_BUFMGR       *bufmgr;
-    MOS_LINUX_CONTEXT   *intel_context;
-    int32_t             submit_fence;
-    uint32_t            uEnablePerfTag;           //!< 0: Do not pass PerfTag to KMD, perf data collection disabled;
-                                                  //!< 1: Pass PerfTag to MVP driver, perf data collection enabled;
-                                                  //!< 2: Pass PerfTag to DAPC driver, perf data collection enabled;
-    int32_t             bDisableKmdWatchdog;      //!< 0: Do not disable kmd watchdog, that is to say, pass I915_EXEC_ENABLE_WATCHDOG flag to KMD;
-                                                  //!< 1: Disable kmd watchdog, that is to say, DO NOT pass I915_EXEC_ENABLE_WATCHDOG flag to KMD;
-    PERF_DATA           *pPerfData;               //!< Add Perf Data for KMD to capture perf tag
+    MOS_BUFMGR          *bufmgr             = nullptr;
+    MOS_LINUX_CONTEXT   *intel_context      = nullptr;
+    int32_t             submit_fence        = 0;
+    uint32_t            uEnablePerfTag      = 0;        //!< 0: Do not pass PerfTag to KMD, perf data collection disabled;
+                                                        //!< 1: Pass PerfTag to MVP driver, perf data collection enabled;
+                                                        //!< 2: Pass PerfTag to DAPC driver, perf data collection enabled;
+    int32_t             bDisableKmdWatchdog = 0;        //!< 0: Do not disable kmd watchdog, that is to say, pass I915_EXEC_ENABLE_WATCHDOG flag to KMD;
+                                                        //!< 1: Disable kmd watchdog, that is to say, DO NOT pass I915_EXEC_ENABLE_WATCHDOG flag to KMD;
+    PERF_DATA           *pPerfData          = nullptr;  //!< Add Perf Data for KMD to capture perf tag
 
-    int32_t             bHybridDecoderRunningFlag;      //!< Flag to indicate if hybrid decoder is running
+    int32_t             bHybridDecoderRunningFlag = 0;  //!< Flag to indicate if hybrid decoder is running
 
-    int                 iDeviceId;
-    int                 wRevision;
-    int32_t             bIsAtomSOC;
-    int                 fd;                     //!< handle for /dev/dri/card0
+    int                 iDeviceId   = 0;
+    int                 wRevision   = 0;
+    int32_t             bIsAtomSOC  = 0;
+    int                 fd          = 0;                //!< handle for /dev/dri/card0
 
-    int32_t             bUse64BitRelocs;
-    bool                bUseSwSwizzling;
-    bool                bTileYFlag;
+    int32_t             bUse64BitRelocs = 0;
+    bool                bUseSwSwizzling = false;
+    bool                bTileYFlag      = false;
 
-    void                **ppMediaMemDecompState; //!<Media memory decompression data structure
-    void                **ppMediaCopyState;      //!<Media memory copy data structure
+    void                **ppMediaMemDecompState = nullptr;      //!<Media memory decompression data structure
+    void                **ppMediaCopyState      = nullptr;      //!<Media memory copy data structure
 
     // For modulized GPU context
-    void*               m_gpuContextMgr;
-    void*               m_cmdBufMgr;
-    MOS_DEVICE_HANDLE   m_osDeviceContext = nullptr;
+    void*               m_gpuContextMgr         = nullptr;
+    void*               m_cmdBufMgr             = nullptr;
+    MOS_DEVICE_HANDLE   m_osDeviceContext       = nullptr;
 
     //For 2VD box
-    int32_t             bKMDHasVCS2;
-    bool                bPerCmdBufferBalancing;
-    int32_t             semid;
-    int32_t             shmid;
-    void                *pShm;
+    int32_t             bKMDHasVCS2             = 0;
+    bool                bPerCmdBufferBalancing  = false;
+    int32_t             semid                   = 0;
+    int32_t             shmid                   = 0;
+    void                *pShm                   = nullptr;
 
-    uint32_t            *pTranscryptedKernels;     //!< The cached version for current set of transcrypted and authenticated kernels
-    uint32_t            uiTranscryptedKernelsSize; //!< Size in bytes of the cached version of transcrypted and authenticated kernels
-    void                *pLibdrmHandle;
+    uint32_t            *pTranscryptedKernels   = nullptr;     //!< The cached version for current set of transcrypted and authenticated kernels
+    uint32_t            uiTranscryptedKernelsSize   = 0;       //!< Size in bytes of the cached version of transcrypted and authenticated kernels
+    void                *pLibdrmHandle          = nullptr;
 
-    GMM_CLIENT_CONTEXT  *pGmmClientContext;   //UMD specific ClientContext object in GMM
-    AuxTableMgr         *m_auxTableMgr;
+    GMM_CLIENT_CONTEXT  *pGmmClientContext      = nullptr;   //UMD specific ClientContext object in GMM
+    AuxTableMgr         *m_auxTableMgr          = nullptr;
    
     // GPU Status Buffer
-    PMOS_RESOURCE   pGPUStatusBuffer;
+    PMOS_RESOURCE       pGPUStatusBuffer        = nullptr;
 
-    std::vector< struct MOS_CONTEXT_OFFSET> contextOffsetList;
+    std::vector<struct MOS_CONTEXT_OFFSET> contextOffsetList = {};
 
-    bool                bSimIsActive = false;   //!< To indicate if simulation environment
-    bool                m_apoMosEnabled;  //!< apo mos or not
+    bool                bSimIsActive        = false;   //!< To indicate if simulation environment
+    bool                m_apoMosEnabled     = false;  //!< apo mos or not
+
+    MediaUserSettingSharedPtr m_userSettingPtr  = nullptr;  // used to save user setting instance
 
     // Media memory decompression function
     void (* pfnMemoryDecompress)(
         PMOS_CONTEXT                pOsContext,
-        PMOS_RESOURCE               pOsResource);
+        PMOS_RESOURCE               pOsResource) = nullptr;
 
     //!
     //! \brief  the function ptr for surface copy function
@@ -609,7 +611,7 @@ struct _MOS_OS_CONTEXT
         PMOS_CONTEXT       pOsContext,
         PMOS_RESOURCE      pInputResource,
         PMOS_RESOURCE      pOutputResource,
-        bool               bOutputCompressed);
+        bool               bOutputCompressed) = nullptr;
 
     //!
     //! \brief  the function ptr for Media Memory 2D copy function
@@ -623,7 +625,7 @@ struct _MOS_OS_CONTEXT
         uint32_t           copyInputOffset,
         uint32_t           copyOutputOffset,
         uint32_t           bpp,
-        bool               bOutputCompressed);
+        bool               bOutputCompressed) = nullptr;
 
     //!
     //! \brief  the function ptr for Media copy function
@@ -633,60 +635,60 @@ struct _MOS_OS_CONTEXT
     void (* pfnDestroy)(
         struct _MOS_OS_CONTEXT      *pOsContext,
         int32_t                     MODSEnabled,
-        int32_t                     MODSForGpuContext);
+        int32_t                     MODSForGpuContext) = nullptr;
 
     int32_t (* pfnRefresh)(
-        struct _MOS_OS_CONTEXT      *pOsContext);
+        struct _MOS_OS_CONTEXT      *pOsContext) = nullptr;
 
     int32_t (* pfnGetCommandBuffer)(
         struct _MOS_OS_CONTEXT      *pOsContext,
         PMOS_COMMAND_BUFFER         pCmdBuffer,
-        int32_t                     iSize);
+        int32_t                     iSize) = nullptr;
 
     void (* pfnReturnCommandBuffer)(
         struct _MOS_OS_CONTEXT      *pOsContext,
         MOS_GPU_CONTEXT             GpuContext,
-        PMOS_COMMAND_BUFFER         pCmdBuffer);
+        PMOS_COMMAND_BUFFER         pCmdBuffer) = nullptr;
 
     int32_t (* pfnFlushCommandBuffer)(
         struct _MOS_OS_CONTEXT      *pOsContext,
-        MOS_GPU_CONTEXT             GpuContext);
+        MOS_GPU_CONTEXT             GpuContext) = nullptr;
 
     MOS_STATUS (* pfnInsertCmdBufferToPool)(
         struct _MOS_OS_CONTEXT      *pOsContext,
-        PMOS_COMMAND_BUFFER         pCmdBuffer);
+        PMOS_COMMAND_BUFFER         pCmdBuffer) = nullptr;
 
     MOS_STATUS (* pfnWaitAndReleaseCmdBuffer)(
         struct _MOS_OS_CONTEXT      *pOsContext,
-        int32_t                     index);
+        int32_t                     index) = nullptr;
 
     uint32_t (* GetDmaBufID ) (
-        struct _MOS_OS_CONTEXT      *pOsContext);
+        struct _MOS_OS_CONTEXT      *pOsContext) = nullptr;
 
     void (* SetDmaBufID ) (
         struct _MOS_OS_CONTEXT      *pOsContext,
-        uint32_t                    dwDmaBufID);
+        uint32_t                    dwDmaBufID) = nullptr;
 
     void (* SetPerfHybridKernelID ) (
         struct _MOS_OS_CONTEXT      *pOsContext,
-        uint32_t                    KernelID);
+        uint32_t                    KernelID) = nullptr;
 
     uint32_t (* pfnGetGpuCtxBufferTag)(
         PMOS_CONTEXT               pOsContext,
-        MOS_GPU_CONTEXT            GpuContext);
+        MOS_GPU_CONTEXT            GpuContext) = nullptr;
 
     void (* pfnIncGpuCtxBufferTag)(
         PMOS_CONTEXT               pOsContext,
-        MOS_GPU_CONTEXT            GpuContext);
+        MOS_GPU_CONTEXT            GpuContext) = nullptr;
 
     uint32_t (* GetGPUTag)(
         PMOS_INTERFACE             pOsInterface,
-        MOS_GPU_CONTEXT            GpuContext);
+        MOS_GPU_CONTEXT            GpuContext) = nullptr;
 
     GMM_CLIENT_CONTEXT* (* GetGmmClientContext)(
-        PMOS_CONTEXT               pOsContext);
+        PMOS_CONTEXT               pOsContext) = nullptr;
 
-    MosOcaInterface* (*GetOcaInterface)();
+    MosOcaInterface* (*GetOcaInterface)()      = nullptr;
 };
 
 //!

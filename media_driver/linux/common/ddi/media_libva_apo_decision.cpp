@@ -27,10 +27,10 @@
 #include "media_libva_apo_decision.h"
 #include "mos_os_specific.h"
 
-bool MediaLibvaApoDecision::InitDdiApoState(int32_t devicefd)
+bool MediaLibvaApoDecision::InitDdiApoState(int32_t devicefd, MediaUserSettingSharedPtr userSettingPtr)
 {
-    bool apoMosEnabled = SetupApoMosSwitch(devicefd);
-    bool apoDdiEnabled = SetupApoDdiSwitch(devicefd);
+    bool apoMosEnabled = SetupApoMosSwitch(devicefd, userSettingPtr);
+    bool apoDdiEnabled = SetupApoDdiSwitch(devicefd, userSettingPtr);
 
     // mediaSoloEnabled is not used due to mos context is not ready for solo
     bool mediaSoloEnabled = SetupMediaSoloSwitch();

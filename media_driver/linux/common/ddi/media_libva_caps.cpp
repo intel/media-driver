@@ -2553,7 +2553,7 @@ VAStatus MediaLibvaCaps::QueryProcessingRate(
     MEDIA_WA_TABLE waTable;
     memset(&platform, 0, sizeof(platform));
 
-    if (MOS_STATUS_SUCCESS != HWInfo_GetGfxInfo(m_mediaCtx->fd, m_mediaCtx->pDrmBufMgr, &platform, &skuTable, &waTable, m_mediaCtx->pGtSystemInfo))
+    if (MOS_STATUS_SUCCESS != HWInfo_GetGfxInfo(m_mediaCtx->fd, m_mediaCtx->pDrmBufMgr, &platform, &skuTable, &waTable, m_mediaCtx->pGtSystemInfo, m_mediaCtx->m_userSettingPtr))
     {
         DDI_ASSERTMESSAGE("Fatal error - Cannot get Sku/Wa Tables/GtSystemInfo and Platform information");
         return VA_STATUS_ERROR_OPERATION_FAILED;

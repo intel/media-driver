@@ -644,54 +644,56 @@ void VpConfigValuesInit(
 }
 
 void VpFeatureReport(
-    PVP_CONFIG         pConfig)
+    PVP_CONFIG         pConfig,
+    PDDI_VP_CONTEXT    pVpCtx)
 {
+    MediaUserSettingSharedPtr userSettingPtr = pVpCtx ? pVpCtx->MosDrvCtx.m_userSettingPtr : nullptr;
     ReportUserSetting(
-        nullptr,
+        userSettingPtr,
         __VPHAL_VEBOX_OUTPUTPIPE_MODE,
         pConfig->dwCurrentOutputPipeMode,
         MediaUserSetting::Group::Sequence);
 
     ReportUserSetting(
-        nullptr,
+        userSettingPtr,
         __VPHAL_VEBOX_FEATURE_INUSE,
         pConfig->dwCurrentVEFeatureInUse,
         MediaUserSetting::Group::Sequence);
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     ReportUserSettingForDebug(
-        nullptr,
+        userSettingPtr,
         __VPHAL_VEBOX_HDR_MODE,
         pConfig->dwCurrentHdrMode,
         MediaUserSetting::Group::Sequence);
 
 #ifdef _MMC_SUPPORTED
     ReportUserSettingForDebug(
-        nullptr,
+        userSettingPtr,
         __VPHAL_MMC_ENABLE,
         pConfig->dwVPMMCInUse,
         MediaUserSetting::Group::Sequence);
     //VP Primary Surface Compress Mode Report
     ReportUserSettingForDebug(
-        nullptr,
+        userSettingPtr,
         __VPHAL_PRIMARY_MMC_COMPRESSMODE,
         pConfig->dwPrimaryCompressMode,
         MediaUserSetting::Group::Sequence);
     //VP Primary Surface Compressible
     ReportUserSettingForDebug(
-        nullptr,
+        userSettingPtr,
         __VPHAL_PRIMARY_MMC_COMPRESSIBLE,
         pConfig->dwPrimaryCompressible,
         MediaUserSetting::Group::Sequence);
     //VP RT Compress Mode
     ReportUserSettingForDebug(
-        nullptr,
+        userSettingPtr,
         __VPHAL_RT_MMC_COMPRESSMODE,
         pConfig->dwRTCompressMode,
         MediaUserSetting::Group::Sequence);
     //VP RT Compressible
     ReportUserSettingForDebug(
-        nullptr,
+        userSettingPtr,
         __VPHAL_RT_MMC_COMPRESSIBLE,
         pConfig->dwRTCompressible,
         MediaUserSetting::Group::Sequence);
@@ -710,7 +712,7 @@ VAStatus    VpReportFeatureMode(PDDI_VP_CONTEXT pVpCtx)
 
     VpHal_DdiReportFeatureMode(pVpCtx->pVpHal, &ConfigValues);
 
-    VpFeatureReport(&ConfigValues);
+    VpFeatureReport(&ConfigValues, pVpCtx);
 
     return VA_STATUS_SUCCESS;
 }

@@ -65,7 +65,8 @@ static struct LinuxCodecInfo tglCodecInfo =
 
 static bool InitTglMediaSku(struct GfxDeviceInfo *devInfo,
                              MediaFeatureTable *skuTable,
-                             struct LinuxDriverInfo *drvInfo)
+                             struct LinuxDriverInfo *drvInfo,
+                             MediaUserSettingSharedPtr userSettingPtr)
 {
     if ((devInfo == nullptr) || (skuTable == nullptr) || (drvInfo == nullptr))
     {
@@ -280,7 +281,7 @@ static bool InitTglMediaSku(struct GfxDeviceInfo *devInfo,
 
     bool compressibleSurfaceEnable = false;
 
-    ReadUserSetting(nullptr,
+    ReadUserSetting(userSettingPtr,
         compressibleSurfaceEnable,
         "Enable Compressible Surface Creation",
         MediaUserSetting::Group::Device);
@@ -367,10 +368,11 @@ static bool InitTglMediaWa(struct GfxDeviceInfo *devInfo,
 
 #ifdef IGFX_GEN12_DG1_SUPPORTED
 static bool InitDG1MediaSku(struct GfxDeviceInfo *devInfo,
-                              MediaFeatureTable *skuTable,
-                           struct LinuxDriverInfo *drvInfo)
+                            MediaFeatureTable *skuTable,
+                            struct LinuxDriverInfo *drvInfo,
+                            MediaUserSettingSharedPtr userSettingPtr)
 {
-    if (!InitTglMediaSku(devInfo, skuTable, drvInfo))
+    if (!InitTglMediaSku(devInfo, skuTable, drvInfo, userSettingPtr))
     {
         return false;
     }
@@ -453,9 +455,10 @@ static bool dg1DeviceRegister = DeviceInfoFactory<LinuxDeviceInit>::
 #ifdef IGFX_GEN12_RKL_SUPPORTED
 static bool InitRKLMediaSku(struct GfxDeviceInfo *devInfo,
     MediaFeatureTable *                           skuTable,
-    struct LinuxDriverInfo *                      drvInfo)
+    struct LinuxDriverInfo                       *drvInfo,
+    MediaUserSettingSharedPtr                     userSettingPtr)
 {
-    if (!InitTglMediaSku(devInfo, skuTable, drvInfo))
+    if (!InitTglMediaSku(devInfo, skuTable, drvInfo, userSettingPtr))
     {
         return false;
     }
@@ -500,9 +503,10 @@ static bool rklDeviceRegister = DeviceInfoFactory<LinuxDeviceInit>::
 #ifdef IGFX_GEN12_ADLS_SUPPORTED
 static bool InitAdlsMediaSku(struct GfxDeviceInfo *devInfo,
                              MediaFeatureTable *skuTable,
-                             struct LinuxDriverInfo *drvInfo)
+                             struct LinuxDriverInfo *drvInfo,
+                             MediaUserSettingSharedPtr userSettingPtr)
 {
-    if (!InitTglMediaSku(devInfo, skuTable, drvInfo))
+    if (!InitTglMediaSku(devInfo, skuTable, drvInfo, userSettingPtr))
     {
         return false;
     }
@@ -558,9 +562,10 @@ static bool adlsDeviceRegister = DeviceInfoFactory<LinuxDeviceInit>::
 #ifdef IGFX_GEN12_ADLP_SUPPORTED
 static bool InitAdlpMediaSku(struct GfxDeviceInfo *devInfo,
     MediaFeatureTable *                            skuTable,
-    struct LinuxDriverInfo *                       drvInfo)
+    struct LinuxDriverInfo                        *drvInfo,
+    MediaUserSettingSharedPtr                      userSettingPtr)
 {
-    if (!InitTglMediaSku(devInfo, skuTable, drvInfo))
+    if (!InitTglMediaSku(devInfo, skuTable, drvInfo, userSettingPtr))
     {
         return false;
     }
@@ -606,9 +611,10 @@ static bool adlpDeviceRegister = DeviceInfoFactory<LinuxDeviceInit>::
 #ifdef IGFX_GEN12_ADLN_SUPPORTED
 static bool InitAdlnMediaSku(struct GfxDeviceInfo *devInfo,
     MediaFeatureTable *                            skuTable,
-    struct LinuxDriverInfo *                       drvInfo)
+    struct LinuxDriverInfo                        *drvInfo,
+    MediaUserSettingSharedPtr                      userSettingPtr)
 {
-    if (!InitTglMediaSku(devInfo, skuTable, drvInfo))
+    if (!InitTglMediaSku(devInfo, skuTable, drvInfo, userSettingPtr))
     {
         return false;
     }

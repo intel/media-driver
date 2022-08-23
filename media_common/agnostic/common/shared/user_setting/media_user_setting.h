@@ -298,7 +298,7 @@ inline MOS_STATUS DeclareUserSettingKeyForDebug(
 }
 
 inline MOS_STATUS ReadUserSettingForDebug(
-    MediaUserSettingSharedPtr userSetting,
+    MediaUserSettingSharedPtr       userSetting,
     MediaUserSetting::Value         &value,
     const std::string               &valueName,
     const MediaUserSetting::Group   &group,
@@ -316,7 +316,7 @@ inline MOS_STATUS ReadUserSettingForDebug(
 
 template <typename T>
 inline MOS_STATUS ReadUserSettingForDebug(
-    MediaUserSettingSharedPtr userSetting,
+    MediaUserSettingSharedPtr       userSetting,
     T                               &value,
     const std::string               &valueName,
     const MediaUserSetting::Group   &group,

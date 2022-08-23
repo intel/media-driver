@@ -59,7 +59,8 @@ static struct LinuxCodecInfo iclCodecInfo =
 
 static bool InitIclMediaSku(struct GfxDeviceInfo *devInfo,
                              MediaFeatureTable *skuTable,
-                             struct LinuxDriverInfo *drvInfo)
+                             struct LinuxDriverInfo *drvInfo,
+                             MediaUserSettingSharedPtr userSettingPtr)
 {
     if ((devInfo == nullptr) || (skuTable == nullptr) || (drvInfo == nullptr))
     {
@@ -266,7 +267,8 @@ static struct LinuxCodecInfo ehlCodecInfo =
 
 static bool InitEhlMediaSku(struct GfxDeviceInfo *devInfo,
                              MediaFeatureTable *skuTable,
-                             struct LinuxDriverInfo *drvInfo)
+                             struct LinuxDriverInfo *drvInfo,
+                             MediaUserSettingSharedPtr userSettingPtr)
 {
     if ((devInfo == nullptr) || (skuTable == nullptr) || (drvInfo == nullptr))
     {

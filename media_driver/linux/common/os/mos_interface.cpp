@@ -171,7 +171,7 @@ MOS_STATUS MosInterface::CreateOsStreamState(
     (*streamState)->usesPatchList           = true;
     (*streamState)->usesGfxAddress          = !(*streamState)->usesPatchList;
 
-    userSettingPtr = MosInterface::MosGetUserSettingInstance(*streamState);
+    userSettingPtr = MosInterface::MosGetUserSettingInstance((PMOS_CONTEXT)extraParams);
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     ReadUserSettingForDebug(
@@ -307,11 +307,12 @@ MOS_STATUS MosInterface::CreateOsStreamState(
         (*streamState)->simIsActive,
         MediaUserSetting::Group::Device);
 #endif
+
+    MOS_OS_CHK_STATUS_RETURN(MosInterface::InitStreamParameters(*streamState, extraParams));
+
 #if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
     DumpCommandBufferInit(*streamState);
 #endif  // MOS_COMMAND_BUFFER_DUMP_SUPPORTED
-
-    MOS_OS_CHK_STATUS_RETURN(MosInterface::InitStreamParameters(*streamState, extraParams));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -359,7 +360,7 @@ MOS_STATUS MosInterface::InitStreamParameters(
     bufMgr = osDeviceContext->GetBufMgr();
     MOS_OS_CHK_NULL_RETURN(bufMgr);
 
-    context = (PMOS_OS_CONTEXT)MOS_AllocAndZeroMemory(sizeof(MOS_OS_CONTEXT));
+    context = MOS_New(MOS_OS_CONTEXT);
     MOS_OS_CHK_NULL_RETURN(context);
 
     context->m_apoMosEnabled    = true;
@@ -376,6 +377,7 @@ MOS_STATUS MosInterface::InitStreamParameters(
     context->fd                 = fd;
     context->pPerfData          = ((PMOS_CONTEXT)extraParams)->pPerfData;
 
+    context->m_userSettingPtr   = ((PMOS_CONTEXT)extraParams)->m_userSettingPtr;
     context->m_auxTableMgr      = osDeviceContext->GetAuxTableMgr();
 
     mos_bufmgr_gem_enable_reuse(bufMgr);
@@ -405,7 +407,7 @@ MOS_STATUS MosInterface::InitStreamParameters(
     {
         MOS_OS_ASSERTMESSAGE("Do not support the legacy context creation.\n");
         MOS_FreeMemAndSetNull(context->pPerfData);
-        MOS_FreeMemAndSetNull(context);
+        MOS_Delete(context);
         streamState->perStreamParameters = nullptr;
         return MOS_STATUS_UNIMPLEMENTED;
     }
@@ -3020,13 +3022,26 @@ uint32_t MosInterface::GetResourceArrayIndex(
 MediaUserSettingSharedPtr MosInterface::MosGetUserSettingInstance(
     PMOS_CONTEXT osContext)
 {
-    return nullptr;
+    if (osContext == nullptr)
+    {
+        MOS_OS_NORMALMESSAGE("Null usersetting PTR");
+        return nullptr;
+    }
+
+    return osContext->m_userSettingPtr;
 }
 
 MediaUserSettingSharedPtr MosInterface::MosGetUserSettingInstance(
     MOS_STREAM_HANDLE streamState)
 {
-    return nullptr;
+    PMOS_CONTEXT mosContext = nullptr;
+    if (streamState == nullptr)
+    {
+        MOS_OS_NORMALMESSAGE("Null usersetting PTR");
+        return nullptr;
+    }
+    mosContext = (PMOS_CONTEXT)streamState->perStreamParameters;
+    return MosGetUserSettingInstance(mosContext);
 }
 
 #if MOS_COMMAND_BUFFER_DUMP_SUPPORTED

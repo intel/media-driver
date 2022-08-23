@@ -27,12 +27,13 @@
 #ifndef __MEDIA_LIBVA_APO_DESICION_H__
 #define __MEDIA_LIBVA_APO_DESICION_H__
 
-#include "stdint.h"
+#include <cstdint>
+#include "mos_defs.h"
 
 class MediaLibvaApoDecision
 {
 public:
-    static bool InitDdiApoState(int32_t devicefd);
+    static bool InitDdiApoState(int32_t devicefd, MediaUserSettingSharedPtr userSettingPtr);
 };
 
 #endif //__MEDIA_LIBVA_APO_DESICION_H__

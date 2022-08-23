@@ -294,6 +294,8 @@ VAStatus DdiEncode_CreateContext(
     mosCtx.m_osDeviceContext     = mediaDrvCtx->m_osDeviceContext;
     mosCtx.m_apoMosEnabled       = mediaDrvCtx->m_apoMosEnabled;
 
+    mosCtx.m_userSettingPtr      = mediaDrvCtx->m_userSettingPtr;
+
     mosCtx.pPerfData             = (PERF_DATA *)MOS_AllocAndZeroMemory(sizeof(PERF_DATA));
     if (nullptr == mosCtx.pPerfData)
     {

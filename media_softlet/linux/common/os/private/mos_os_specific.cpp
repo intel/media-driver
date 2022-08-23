@@ -87,7 +87,7 @@ bool SetupMediaSoloSwitch()
     return mediaSoloEnabled;
 }
 
-bool SetupApoDdiSwitch(int32_t fd)
+bool SetupApoMosSwitch(int32_t fd, MediaUserSettingSharedPtr userSettingPtr)
 {
     if (fd < 0)
     {
@@ -96,26 +96,7 @@ bool SetupApoDdiSwitch(int32_t fd)
 
     //Read user feature to determine if apg mos is enabled.
     uint32_t    userfeatureValue = 0;
-    MOS_STATUS  estatus          = MosUtilities::MosReadApoDdiEnabledUserFeature(userfeatureValue);
-
-    if(estatus == MOS_STATUS_SUCCESS)
-    {
-        return (userfeatureValue != 0);
-    }
-
-    return false;
-}
-
-bool SetupApoMosSwitch(int32_t fd)
-{
-    if (fd < 0)
-    {
-        return false;
-    }
-
-    //Read user feature to determine if apg mos is enabled.
-    uint32_t    userfeatureValue = 0;
-    MOS_STATUS  estatus          = MosUtilities::MosReadApoMosEnabledUserFeature(userfeatureValue);
+    MOS_STATUS  estatus          = MosUtilities::MosReadApoMosEnabledUserFeature(userfeatureValue, nullptr, userSettingPtr);
 
     if(estatus == MOS_STATUS_SUCCESS)
     {
@@ -655,7 +636,7 @@ MOS_STATUS Mos_DestroyInterface(PMOS_INTERFACE pOsInterface)
             mos_gem_context_destroy(perStreamParameters->intel_context);
             perStreamParameters->intel_context = nullptr;
         }
-        MOS_FreeMemAndSetNull(perStreamParameters);
+        MOS_Delete(perStreamParameters);
         streamState->perStreamParameters = nullptr;
     }
 
@@ -3048,6 +3029,7 @@ MOS_STATUS Mos_Specific_InitInterface(
 
     MOS_OS_CHK_NULL(pOsInterface);
     MOS_OS_CHK_NULL(pOsDriverContext);
+    userSettingPtr = pOsDriverContext->m_userSettingPtr;
 
     // Initialize OS interface functions
     pOsInterface->pfnSetGpuContext                          = Mos_Specific_SetGpuContext;
@@ -3209,8 +3191,6 @@ MOS_STATUS Mos_Specific_InitInterface(
         pOsContext->pGmmClientContext = pOsDriverContext->pGmmClientContext;
     }
 
-    userSettingPtr = Mos_Specific_GetUserSettingInstance(pOsInterface);
-
 #if MOS_MEDIASOLO_SUPPORTED
     if (pOsInterface->bSoloInUse)
     {
@@ -3348,7 +3328,7 @@ MOS_STATUS Mos_Specific_InitInterface(
 finish:
     if( MOS_STATUS_SUCCESS != eStatus && nullptr != pOsContext )
     {
-        MOS_FreeMemAndSetNull(pOsContext);
+        MOS_Delete(pOsContext);
     }
     return eStatus;
 }

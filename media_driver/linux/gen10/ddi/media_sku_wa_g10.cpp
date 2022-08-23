@@ -59,7 +59,8 @@ static struct LinuxCodecInfo cnlCodecInfo =
 
 static bool InitCnlMediaSku(struct GfxDeviceInfo *devInfo,
                              MediaFeatureTable *skuTable,
-                             struct LinuxDriverInfo *drvInfo)
+                             struct LinuxDriverInfo *drvInfo,
+                             MediaUserSettingSharedPtr userSettingPtr)
 {
     if ((devInfo == nullptr) || (skuTable == nullptr) || (drvInfo == nullptr))
     {

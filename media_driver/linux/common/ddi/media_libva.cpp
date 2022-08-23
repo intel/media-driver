@@ -135,7 +135,7 @@ static PDDI_MEDIA_CONTEXT DdiMedia_CreateMediaDriverContext()
 {
     PDDI_MEDIA_CONTEXT   mediaCtx;
 
-    mediaCtx = (PDDI_MEDIA_CONTEXT)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_CONTEXT));
+    mediaCtx = MOS_New(DDI_MEDIA_CONTEXT);
 
     return mediaCtx;
 }
@@ -1289,11 +1289,10 @@ VAStatus DdiMedia_MediaMemoryDecompress(PDDI_MEDIA_CONTEXT mediaCtx, DDI_MEDIA_S
           mediaSurface->pGmmResourceInfo->IsMediaMemoryCompressed(0))
     {
 #ifdef _MMC_SUPPORTED
-        MOS_CONTEXT  mosCtx;
+        MOS_CONTEXT  mosCtx = {};
         MOS_RESOURCE surface;
         DdiCpInterface *pCpDdiInterface;
         
-        MOS_ZeroMemory(&mosCtx, sizeof(mosCtx));
         MOS_ZeroMemory(&surface, sizeof(surface));
 
         mosCtx.bufmgr          = mediaCtx->pDrmBufMgr;
@@ -1316,6 +1315,7 @@ VAStatus DdiMedia_MediaMemoryDecompress(PDDI_MEDIA_CONTEXT mediaCtx, DDI_MEDIA_S
 
         mosCtx.m_osDeviceContext     = mediaCtx->m_osDeviceContext;
         mosCtx.m_apoMosEnabled       = mediaCtx->m_apoMosEnabled;
+        mosCtx.m_userSettingPtr      = mediaCtx->m_userSettingPtr;
 
         pCpDdiInterface = Create_DdiCpInterface(mosCtx);
 
@@ -1530,7 +1530,8 @@ void FreeForMediaContext(PDDI_MEDIA_CONTEXT mediaCtx)
         MOS_FreeMemory(mediaCtx->pVpCtxHeap);
         MOS_FreeMemory(mediaCtx->pProtCtxHeap);
         MOS_FreeMemory(mediaCtx->pMfeCtxHeap);
-        MOS_FreeMemory(mediaCtx);
+        mediaCtx->m_userSettingPtr.reset();
+        MOS_Delete(mediaCtx);
     }
 
     return;
@@ -1754,10 +1755,14 @@ VAStatus DdiMedia_InitMediaContext (
     ctx->pDriverData = (void *)mediaCtx;
     mediaCtx->fd     = devicefd;
 
+    mediaCtx->m_userSettingPtr = std::make_shared<MediaUserSetting::MediaUserSetting>();
+
     MOS_CONTEXT mosCtx     = {};
     mosCtx.fd              = mediaCtx->fd;
+    mosCtx.m_userSettingPtr = mediaCtx->m_userSettingPtr;
+
     MosInterface::InitOsUtilities(&mosCtx);
-    mediaCtx->m_apoMosEnabled = SetupApoMosSwitch(devicefd);
+    mediaCtx->m_apoMosEnabled = SetupApoMosSwitch(devicefd, mediaCtx->m_userSettingPtr);
 
 #ifdef _MMC_SUPPORTED
     mediaCtx->pfnMemoryDecompress  = DdiMedia_MediaMemoryDecompressInternal;
@@ -1843,7 +1848,7 @@ VAStatus DdiMedia_InitMediaContext (
             FreeForMediaContext(mediaCtx);
             return VA_STATUS_ERROR_ALLOCATION_FAILED;
         }
-        MOS_STATUS eStatus = HWInfo_GetGfxInfo(mediaCtx->fd, mediaCtx->pDrmBufMgr, &platform, skuTable, waTable, mediaCtx->pGtSystemInfo);
+        MOS_STATUS eStatus = HWInfo_GetGfxInfo(mediaCtx->fd, mediaCtx->pDrmBufMgr, &platform, skuTable, waTable, mediaCtx->pGtSystemInfo, mediaCtx->m_userSettingPtr);
         if (MOS_STATUS_SUCCESS != eStatus)
         {
             DDI_ASSERTMESSAGE("Fatal error - unsuccesfull Sku/Wa/GtSystemInfo initialization");
@@ -1894,7 +1899,8 @@ VAStatus DdiMedia_InitMediaContext (
             &gmmGtInfo,
             &mediaCtx->iDeviceId,
             &mediaCtx->fd,
-            &mediaCtx->platform);
+            &mediaCtx->platform,
+            mediaCtx->m_userSettingPtr);
         if (eStatus != MOS_STATUS_SUCCESS)
         {
             FreeForMediaContext(mediaCtx);
@@ -1902,7 +1908,6 @@ VAStatus DdiMedia_InitMediaContext (
         }
 
         // fill in the mos context struct as input to initialize m_osContext
-        MOS_CONTEXT mosCtx           = {};
         mosCtx.bufmgr                = mediaCtx->pDrmBufMgr;
         mosCtx.fd                    = mediaCtx->fd;
         mosCtx.iDeviceId             = mediaCtx->iDeviceId;
@@ -1949,7 +1954,7 @@ VAStatus DdiMedia_InitMediaContext (
         bool bSimulationEnable = false;
 #if (_DEBUG || _RELEASE_INTERNAL)
         ReadUserSettingForDebug(
-            nullptr,
+            mediaCtx->m_userSettingPtr,
             bSimulationEnable,
             __MEDIA_USER_FEATURE_VALUE_SIM_ENABLE,
             MediaUserSetting::Group::Device);
@@ -2038,7 +2043,7 @@ VAStatus DdiMedia_InitMediaContext (
     ctx->max_image_formats = mediaCtx->m_caps->GetImageFormatsMaxNum();
 
 #ifdef _MANUAL_SOFTLET_
-    apoDdiEnabled = MediaLibvaApoDecision::InitDdiApoState(devicefd);
+    apoDdiEnabled = MediaLibvaApoDecision::InitDdiApoState(devicefd, mediaCtx->m_userSettingPtr);
     if(apoDdiEnabled)
     {
         if (DdiMedia__InitializeSoftlet(mediaCtx, apoDdiEnabled) != VA_STATUS_SUCCESS)
@@ -2206,6 +2211,7 @@ VAStatus DdiMedia_Terminate (
 )
 {
     DDI_FUNCTION_ENTER();
+    MOS_CONTEXT mosCtx = {};
 
 #if CLASS_TRACE
     ClassTrace::Dump("#In DdiMedia_Terminate", "temp/class_trace.log");
@@ -2250,6 +2256,9 @@ VAStatus DdiMedia_Terminate (
     DdiMedia_HeapDestroy(mediaCtx);
     DdiMediaProtected::FreeInstances();
 
+    mosCtx.fd               = mediaCtx->fd;
+    mosCtx.m_userSettingPtr = mediaCtx->m_userSettingPtr;
+
     if (mediaCtx->m_apoMosEnabled)
     {
         MosInterface::DestroyOsDeviceContext(mediaCtx->m_osDeviceContext);
@@ -2257,7 +2266,7 @@ VAStatus DdiMedia_Terminate (
         MOS_FreeMemory(mediaCtx->pGtSystemInfo);
         MosOcaInterfaceSpecific::UninitInterface();
         MediaUserSettingsMgr::MediaUserSettingClose();
-        MosInterface::CloseOsUtilities(nullptr);
+        MosInterface::CloseOsUtilities(&mosCtx);
     }
     else if (mediaCtx->modularizedGpuCtxEnabled)
     {
@@ -2296,8 +2305,10 @@ VAStatus DdiMedia_Terminate (
         GmmAdapterDestroy(&gmmOutArgs);
         mediaCtx->pGmmClientContext = nullptr;
         MediaUserSettingsMgr::MediaUserSettingClose();
-        MosUtilities::MosUtilitiesClose(nullptr);
+        MosUtilities::MosUtilitiesClose(mediaCtx->m_userSettingPtr);
     }
+
+    mediaCtx->m_userSettingPtr.reset();
 
     if (mediaCtx->uiRef > 1)
     {
@@ -2311,7 +2322,7 @@ VAStatus DdiMedia_Terminate (
 
     // release media driver context, ctx creation is behind the mos_utilities_init
     // If free earilier than MOS_utilities_close, memnja count error.
-    MOS_FreeMemory(mediaCtx);
+    MOS_Delete(mediaCtx);
     mediaCtx         = nullptr;
     ctx->pDriverData = nullptr;
 
@@ -6197,7 +6208,7 @@ DdiMedia_Copy(
 )
 {
     VAStatus vaStatus = VA_STATUS_SUCCESS;
-    MOS_CONTEXT  mosCtx;
+    MOS_CONTEXT        mosCtx   = {};
     MOS_RESOURCE src, dst;
     DdiCpInterface *pCpDdiInterface = nullptr;
     PDDI_MEDIA_SURFACE src_surface = nullptr;
@@ -6266,8 +6277,6 @@ DdiMedia_Copy(
         DDI_ASSERTMESSAGE("DDI: unsupported dst copy object in DdiMedia_copy.");
     }
 
-    MOS_ZeroMemory(&mosCtx, sizeof(mosCtx));
-
     mosCtx.bufmgr          = mediaCtx->pDrmBufMgr;
     mosCtx.m_gpuContextMgr = mediaCtx->m_gpuContextMgr;
     mosCtx.m_cmdBufMgr     = mediaCtx->m_cmdBufMgr;
@@ -6286,6 +6295,7 @@ DdiMedia_Copy(
     mosCtx.m_osDeviceContext     = mediaCtx->m_osDeviceContext;
     mosCtx.m_apoMosEnabled       = mediaCtx->m_apoMosEnabled;
     mosCtx.pPerfData             = mediaCtx->perfData;
+    mosCtx.m_userSettingPtr      = mediaCtx->m_userSettingPtr;
 
     pCpDdiInterface = Create_DdiCpInterface(mosCtx);
 

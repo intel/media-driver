@@ -138,7 +138,8 @@ static struct LinuxCodecInfo PvcCodecInfo =
 static bool InitTglMediaSkuExt(struct GfxDeviceInfo *devInfo,
                              MediaFeatureTable *skuTable,
                              struct LinuxDriverInfo *drvInfo,
-                             struct LinuxCodecInfo *codecInfo)
+                             struct LinuxCodecInfo *codecInfo,
+                             MediaUserSettingSharedPtr userSettingPtr)
 {
     if ((devInfo == nullptr) || (skuTable == nullptr) || (drvInfo == nullptr))
     {
@@ -317,7 +318,7 @@ static bool InitTglMediaSkuExt(struct GfxDeviceInfo *devInfo,
 
      bool compressibleSurfaceEnable = false;
 
-    ReadUserSetting(nullptr,
+    ReadUserSetting(userSettingPtr,
         compressibleSurfaceEnable,
         "Enable Compressible Surface Creation",
         MediaUserSetting::Group::Device);
@@ -443,9 +444,10 @@ static bool InitTglMediaWaExt(struct GfxDeviceInfo *devInfo,
 
 static bool InitXehpSDVMediaSku(struct GfxDeviceInfo *devInfo,
                              MediaFeatureTable *skuTable,
-                             struct LinuxDriverInfo *drvInfo)
+                             struct LinuxDriverInfo *drvInfo,
+                             MediaUserSettingSharedPtr userSettingPtr)
 {
-    if (!InitTglMediaSkuExt(devInfo, skuTable, drvInfo, &XehpSdvCodecInfo))
+    if (!InitTglMediaSkuExt(devInfo, skuTable, drvInfo, &XehpSdvCodecInfo, userSettingPtr))
     {
         return false;
     }
@@ -567,9 +569,10 @@ static bool InitXehpSDVMediaWa(struct GfxDeviceInfo *devInfo,
 
 static bool InitPvcMediaSku(struct GfxDeviceInfo *devInfo,
                              MediaFeatureTable *skuTable,
-                             struct LinuxDriverInfo *drvInfo)
+                             struct LinuxDriverInfo *drvInfo,
+                             MediaUserSettingSharedPtr userSettingPtr)
 {
-    if (!InitTglMediaSkuExt(devInfo, skuTable, drvInfo, &PvcCodecInfo))
+    if (!InitTglMediaSkuExt(devInfo, skuTable, drvInfo, &PvcCodecInfo, userSettingPtr))
     {
         return false;
     }
@@ -739,9 +742,10 @@ static bool InitPvcMediaWa(struct GfxDeviceInfo *devInfo,
 
 static bool InitDg2MediaSku(struct GfxDeviceInfo *devInfo,
                              MediaFeatureTable *skuTable,
-                             struct LinuxDriverInfo *drvInfo)
+                             struct LinuxDriverInfo *drvInfo,
+                             MediaUserSettingSharedPtr userSettingPtr)
 {
-    if (!InitTglMediaSkuExt(devInfo, skuTable, drvInfo, &Dg2CodecInfo))
+    if (!InitTglMediaSkuExt(devInfo, skuTable, drvInfo, &Dg2CodecInfo, userSettingPtr))
     {
         return false;
     }

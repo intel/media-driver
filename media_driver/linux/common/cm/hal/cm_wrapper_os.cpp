@@ -61,9 +61,9 @@ int32_t CreateCmDeviceFromVA(VADriverContextP vaDriverCtx,
     mediaCtx = DdiMedia_GetMediaContext(vaDriverCtx);
 
     // allocate cmCtx
-    cmCtx = (PCM_CONTEXT)MOS_AllocAndZeroMemory(sizeof(CM_CONTEXT));
+    cmCtx = MOS_New(CM_CONTEXT);
     CM_CHK_NULL_RETURN_WITH_MSG(cmCtx, CM_INVALID_UMD_CONTEXT, "Null cmCtx!");
-
+    cmCtx->cmHal                  = nullptr;
     // init cmCtx
     cmCtx->mosCtx.bufmgr          = mediaCtx->pDrmBufMgr;
     cmCtx->mosCtx.m_gpuContextMgr = mediaCtx->m_gpuContextMgr;
@@ -80,10 +80,11 @@ int32_t CreateCmDeviceFromVA(VADriverContextP vaDriverCtx,
     cmCtx->mosCtx.m_apoMosEnabled   = mediaCtx->m_apoMosEnabled;
     cmCtx->mosCtx.m_auxTableMgr     = mediaCtx->m_auxTableMgr;
     cmCtx->mosCtx.pPerfData         = (PERF_DATA *)MOS_AllocAndZeroMemory(sizeof(PERF_DATA));
+    cmCtx->mosCtx.m_userSettingPtr  = mediaCtx->m_userSettingPtr;
 
     if (cmCtx->mosCtx.pPerfData == nullptr)
     {
-        MOS_FreeMemAndSetNull(cmCtx);  // free cm ctx
+        MOS_Delete(cmCtx);  // free cm ctx
         CM_ASSERTMESSAGE("Failed to allocate perfData in mos context \n");
         return CM_OUT_OF_HOST_MEMORY;
     }
@@ -92,7 +93,7 @@ int32_t CreateCmDeviceFromVA(VADriverContextP vaDriverCtx,
     hRes = CreateCmDevice(&(cmCtx->mosCtx), device, devOption);
     if(hRes != CM_SUCCESS)
     {
-        MOS_FreeMemAndSetNull(cmCtx); // free cm ctx
+        MOS_Delete(cmCtx);  // free cm ctx
         CM_ASSERTMESSAGE("Failed to call CmDevice::Create Error %d \n",hRes);
         return hRes;
     }
@@ -105,7 +106,7 @@ int32_t CreateCmDeviceFromVA(VADriverContextP vaDriverCtx,
     {
         CmDeviceRT::Destroy(deviceRT); // destroy cm device
         device = nullptr;
-        MOS_FreeMemAndSetNull(cmCtx); // free cm ctx
+        MOS_Delete(cmCtx);  // free cm ctx
         DdiMediaUtil_UnLockMutex(&mediaCtx->CmMutex);
         CM_ASSERTMESSAGE("CM Context number exceeds maximum.");
         return VA_STATUS_ERROR_INVALID_CONTEXT;
@@ -174,7 +175,7 @@ int32_t DestroyCmDeviceFromVA(VADriverContextP vaDriverCtx, CmDevice *device)
     MOS_FreeMemAndSetNull(cmCtx->mosCtx.pPerfData);
 
     // destroy Cm context
-    MOS_FreeMemAndSetNull(cmCtx);
+    MOS_Delete(cmCtx);
 
     DdiMediaUtil_ReleasePVAContextFromHeap(mediaCtx->pCmCtxHeap, index);
 

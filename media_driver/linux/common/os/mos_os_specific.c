@@ -90,7 +90,7 @@ bool SetupMediaSoloSwitch()
     return mediaSoloEnabled;
 }
 
-bool SetupApoDdiSwitch(int32_t fd)
+bool SetupApoDdiSwitch(int32_t fd, MediaUserSettingSharedPtr userSettingPtr)
 {
     if (fd < 0)
     {
@@ -99,7 +99,7 @@ bool SetupApoDdiSwitch(int32_t fd)
 
     //Read user feature to determine if apg mos is enabled.
     uint32_t    userfeatureValue = 0;
-    MOS_STATUS  estatus          = MosUtilities::MosReadApoDdiEnabledUserFeature(userfeatureValue);
+    MOS_STATUS estatus          = MosUtilities::MosReadApoDdiEnabledUserFeature(userfeatureValue, nullptr, userSettingPtr);
 
     if(estatus == MOS_STATUS_SUCCESS)
     {
@@ -109,7 +109,7 @@ bool SetupApoDdiSwitch(int32_t fd)
     return false;
 }
 
-bool SetupApoMosSwitch(int32_t fd)
+bool SetupApoMosSwitch(int32_t fd, MediaUserSettingSharedPtr userSettingPtr)
 {
     if (fd < 0)
     {
@@ -118,7 +118,7 @@ bool SetupApoMosSwitch(int32_t fd)
 
     //Read user feature to determine if apg mos is enabled.
     uint32_t    userfeatureValue = 0;
-    MOS_STATUS  estatus          = MosUtilities::MosReadApoMosEnabledUserFeature(userfeatureValue);
+    MOS_STATUS  estatus          = MosUtilities::MosReadApoMosEnabledUserFeature(userfeatureValue, nullptr, userSettingPtr);
 
     if(estatus == MOS_STATUS_SUCCESS)
     {
@@ -1190,7 +1190,7 @@ void Linux_Destroy(
         mos_gem_context_destroy(pOsContext->intel_context);
     }
 
-    MOS_FreeMemAndSetNull(pOsContext);
+    MOS_Delete(pOsContext);
 }
 
 //!
@@ -1341,6 +1341,7 @@ MOS_STATUS Linux_InitContext(
     pContext->fd              = pOsDriverContext->fd;
     pContext->pPerfData       = pOsDriverContext->pPerfData;
     pContext->m_auxTableMgr   = pOsDriverContext->m_auxTableMgr;
+    pContext->m_userSettingPtr = pOsDriverContext->m_userSettingPtr;
 
     mos_bufmgr_gem_enable_reuse(pOsDriverContext->bufmgr);
 
@@ -1353,7 +1354,7 @@ MOS_STATUS Linux_InitContext(
         pOsDriverContext->iDeviceId = iDeviceId;
 
         MOS_OS_CHK_STATUS_MESSAGE(
-            HWInfo_GetGfxInfo(pOsDriverContext->fd, pOsDriverContext->bufmgr, &pContext->platform, &pContext->SkuTable, &pContext->WaTable, &pContext->gtSystemInfo),
+            HWInfo_GetGfxInfo(pOsDriverContext->fd, pOsDriverContext->bufmgr, &pContext->platform, &pContext->SkuTable, &pContext->WaTable, &pContext->gtSystemInfo, pOsDriverContext->m_userSettingPtr),
             "Fatal error - unsuccesfull Sku/Wa/GtSystemInfo initialization");
 
         pOsDriverContext->SkuTable     = pContext->SkuTable;
@@ -1929,7 +1930,7 @@ MOS_STATUS Mos_DestroyInterface(PMOS_INTERFACE pOsInterface)
             mos_gem_context_destroy(perStreamParameters->intel_context);
             perStreamParameters->intel_context = nullptr;
         }
-        MOS_FreeMemAndSetNull(perStreamParameters);
+        MOS_Delete(perStreamParameters);
         streamState->perStreamParameters = nullptr;
     }
 
@@ -6748,10 +6749,9 @@ MediaUserSettingSharedPtr Mos_Specific_GetUserSettingInstance(
     PMOS_INTERFACE osInterface)
 {
     MOS_OS_FUNCTION_ENTER;
-    PMOS_CONTEXT mosContext = nullptr;
     if (!osInterface)
     {
-        MOS_OS_ASSERTMESSAGE("Invalid mosContext ptr");
+        MOS_OS_ASSERTMESSAGE("Invalid osInterface ptr");
         return nullptr;
     }
 
@@ -6759,8 +6759,7 @@ MediaUserSettingSharedPtr Mos_Specific_GetUserSettingInstance(
     {
         return MosInterface::MosGetUserSettingInstance(osInterface->osStreamState);
     }
-
-    return nullptr;
+    return MosInterface::MosGetUserSettingInstance(osInterface->pOsContext);
 }
 
 static MOS_STATUS Mos_Specific_InitInterface_Ve(
@@ -6954,7 +6953,7 @@ MOS_STATUS Mos_Specific_InitInterface(
     uint32_t                        dwResetCount = 0;
     int32_t                         ret = 0;
     bool                            modularizedGpuCtxEnabled = false;
-    MediaUserSettingSharedPtr       userSettingPtr = nullptr;
+    MediaUserSettingSharedPtr       userSettingPtr           = nullptr;
     bool                            bSimIsActive = false;
     bool                            useCustomerValue = false;
     uint32_t                        regValue = 0;
@@ -6967,6 +6966,8 @@ MOS_STATUS Mos_Specific_InitInterface(
 
     MOS_OS_CHK_NULL(pOsInterface);
     MOS_OS_CHK_NULL(pOsDriverContext);
+
+    userSettingPtr = pOsDriverContext->m_userSettingPtr;
 
     // Initialize OS interface functions
     pOsInterface->pfnSetGpuContext                          = Mos_Specific_SetGpuContext;
@@ -7125,7 +7126,7 @@ MOS_STATUS Mos_Specific_InitInterface(
     else
     {
         // Create Linux OS Context
-        pOsContext = (PMOS_OS_CONTEXT)MOS_AllocAndZeroMemory(sizeof(MOS_OS_CONTEXT));
+        pOsContext = MOS_New(MOS_OS_CONTEXT);
         MOS_OS_CHK_NULL_RETURN(pOsContext);
     }
 
@@ -7164,8 +7165,6 @@ MOS_STATUS Mos_Specific_InitInterface(
     {
         pOsContext->pGmmClientContext = pOsDriverContext->pGmmClientContext;
     }
-
-    userSettingPtr = Mos_Specific_GetUserSettingInstance(pOsInterface);
 
 #if MOS_MEDIASOLO_SUPPORTED
     if (pOsInterface->bSoloInUse)
@@ -7327,7 +7326,7 @@ MOS_STATUS Mos_Specific_InitInterface(
 finish:
     if( MOS_STATUS_SUCCESS != eStatus && nullptr != pOsContext )
     {
-        MOS_FreeMemAndSetNull(pOsContext);
+        MOS_Delete(pOsContext);
     }
     return eStatus;
 }

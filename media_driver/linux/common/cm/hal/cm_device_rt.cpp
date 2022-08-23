@@ -166,7 +166,7 @@ int32_t CmDeviceRT::CreateAuxDevice(MOS_CONTEXT *mosContext)  //VADriverContextP
     CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmHalState->pfnCmAllocate(cmHalState));
 
     // allocate cmContext
-    cmContext = (PCM_CONTEXT)MOS_AllocAndZeroMemory(sizeof(CM_CONTEXT));
+    cmContext = (PCM_CONTEXT)MOS_New(CM_CONTEXT);
     CM_CHK_NULL_GOTOFINISH_CMERROR(cmContext);
     cmContext->mosCtx     = *mosContext; // mos context
     cmContext->cmHalState = cmHalState;
@@ -198,7 +198,7 @@ int32_t CmDeviceRT::DestroyAuxDevice()
         cmData->mosCtx.WaTable.reset();
         HalCm_Destroy(cmData->cmHalState);
         // Delete CM Data itself
-        MOS_FreeMemory(cmData);
+        MOS_Delete(cmData);
 
     }
 

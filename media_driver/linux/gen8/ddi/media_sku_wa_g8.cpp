@@ -45,7 +45,8 @@ static struct LinuxCodecInfo bdwCodecInfo =
 
 static bool InitBdwMediaSku(struct GfxDeviceInfo *devInfo,
                              MediaFeatureTable *skuTable,
-                             struct LinuxDriverInfo *drvInfo)
+                             struct LinuxDriverInfo *drvInfo,
+                             MediaUserSettingSharedPtr userSettingPtr)
 {
     if ((devInfo == nullptr) || (skuTable == nullptr) || (drvInfo == nullptr))
     {

@@ -925,11 +925,13 @@ public:
     //!           [in] reference to a userfeatureValue
     //! \param    char *path
     //!           [in] stated uf key path
+    //! \param    MediaUserSettingSharedPtr
+    //!           [in] shared ptr to usersetting instance of a device
     //! \return   MOS_STATUS
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MosReadApoMosEnabledUserFeature(uint32_t &userfeatureValue, char *path = nullptr);
+    static MOS_STATUS MosReadApoMosEnabledUserFeature(uint32_t &userfeatureValue, char *path, MediaUserSettingSharedPtr userSettingPtr);
 
     //!
     //! \brief    Read the User Feature Value of ApoDdiEnabled
@@ -938,11 +940,13 @@ public:
     //!           [in] reference to a userfeatureValue
     //! \param    char *path
     //!           [in] stated uf key path
+    //! \param    MediaUserSettingSharedPtr
+    //!           [in] shared ptr to usersetting instance of a device
     //! \return   MOS_STATUS
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MosReadApoDdiEnabledUserFeature(uint32_t& userfeatureValue, char* path = nullptr);
+    static MOS_STATUS MosReadApoDdiEnabledUserFeature(uint32_t &userfeatureValue, char *path, MediaUserSettingSharedPtr userSettingPtr);
     
     //! \brief    Read the User Feature Value of Media Solo
     //! \details  Read the User Feature Value of Media Solo
