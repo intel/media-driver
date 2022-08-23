@@ -1051,10 +1051,6 @@ struct EncodeStatus
     MHW_VDBOX_IMAGE_STATUS_CONTROL  ImageStatusCtrlOfLastBRCPass;   //!< The level of loop filter
     uint32_t                        dwSceneChangedFlag;     //!< The flag indicate if the scene is changed
     uint64_t                        sumSquareError[3];      //!< The list of sum square error
-    uint32_t                        dwSADLuma;              //!< SAD for Y channel
-    uint32_t                        dwIntraBlockCount;      //!< Intra block count
-    uint32_t                        dwInterBlockCount;      //!< Inter block count
-    uint32_t                        dwSkipBlockCount;       //!< Skip block count
     EncodeStatusSliceReport         sliceReport;
     uint32_t                        HuCStatus2Reg;          //!< Register value saving HuC Status2
 };
@@ -1087,10 +1083,6 @@ struct EncodeStatusBuffer
     uint32_t                                dwSumSquareErrorOffset;         //!> The offset of list of sum square error
     uint32_t                                dwSliceReportOffset;            //!> The offset of slice size report structure
     uint32_t                                dwLookaheadStatusOffset;        //!> The offset of lookahead status
-    uint32_t                                dwSADLumaOffset;                //!> The offset of SAD Luma
-    uint32_t                                dwIntraBlockCountOffset;        //!> The offset of intra block count
-    uint32_t                                dwInterBlockCountOffset;        //!> The offset of inter block count
-    uint32_t                                dwSkipBlockCountOffset;         //!> The offset of skip block count
     uint32_t                                dwSize;                         //!> Size of status buffer
     uint32_t                                dwReportSize;                   //!> Size of report
     uint32_t                                dwHuCStatus2RegOffset;          //!> The offset of HuC status2 register
@@ -1837,25 +1829,6 @@ public:
     MOS_STATUS GetStatusReportCommon(
         EncodeStatus* encodeStatus,
         EncodeStatusReport* encodeStatusReport);
-
-    //!
-    //! \brief  Get Status Report extension
-    //! \param  [out] encodeStatus
-    //!         Encoder status
-    //! \param  [out] encodeStatusReport
-    //!         Encoder status report
-    //! \param  [in] last
-    //!         Indicate whether it's the last call of a GetStatusReport loop
-    //! \return MOS_STATUS
-    //!         MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    virtual MOS_STATUS GetStatusReportExt(
-        EncodeStatus* encodeStatus,
-        EncodeStatusReport* encodeStatusReport,
-        bool last)
-    {
-        return MOS_STATUS_SUCCESS;
-    };
 
     //!
     //! \brief  Read counter value for encode.
