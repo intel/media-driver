@@ -189,6 +189,22 @@ protected:
 MEDIA_CLASS_DEFINE_END(vp__VpSteReuse)
 };
 
+class VpProcampReuse : public VpFeatureReuseBase
+{
+public:
+    VpProcampReuse();
+    virtual ~VpProcampReuse();
+    MOS_STATUS UpdateFeatureParams(bool reusable, bool &reused, SwFilter *filter);
+    MOS_STATUS UpdatePacket(SwFilter *filter, VpCmdPacket *packet);
+
+protected:
+    MOS_STATUS UpdateFeatureParams(FeatureParamProcamp &params);
+
+    FeatureParamProcamp m_params = {};
+
+    MEDIA_CLASS_DEFINE_END(vp__VpProcampReuse)
+};
+
 class VpPacketReuseManager
 {
 public:

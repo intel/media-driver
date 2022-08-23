@@ -868,6 +868,41 @@ MOS_STATUS VpVeboxCmdPacket::UpdateSteParams(FeatureParamSte &params)
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS VpVeboxCmdPacket::UpdateProcampParams(FeatureParamProcamp &params)
+{
+    VP_FUNC_CALL();
+
+    VpVeboxRenderData     *pRenderData        = GetLastExecRenderData();
+    VP_RENDER_CHK_NULL_RETURN(pRenderData);
+    MHW_VEBOX_IECP_PARAMS &mhwVeboxIecpParams = pRenderData->GetIECPParams();
+    PVPHAL_PROCAMP_PARAMS  pProcampParams     = params.procampParams;
+    VP_RENDER_CHK_NULL_RETURN(pProcampParams);
+
+    if (pProcampParams->bEnabled)
+    {
+        pRenderData->IECP.PROCAMP.bProcampEnabled   = true;
+        mhwVeboxIecpParams.ProcAmpParams.bActive    = true;
+        mhwVeboxIecpParams.ProcAmpParams.bEnabled   = true;
+        mhwVeboxIecpParams.ProcAmpParams.brightness = (uint32_t)MOS_F_ROUND(pProcampParams->fBrightness * 16.0F);  // S7.4
+        mhwVeboxIecpParams.ProcAmpParams.contrast   = (uint32_t)MOS_UF_ROUND(pProcampParams->fContrast * 128.0F);  // U4.7
+        mhwVeboxIecpParams.ProcAmpParams.sinCS      = (uint32_t)MOS_F_ROUND(sin(MHW_DEGREE_TO_RADIAN(pProcampParams->fHue)) *
+                                                                       pProcampParams->fContrast *
+                                                                       pProcampParams->fSaturation * 256.0F);  // S7.8
+        mhwVeboxIecpParams.ProcAmpParams.cosCS      = (uint32_t)MOS_F_ROUND(cos(MHW_DEGREE_TO_RADIAN(pProcampParams->fHue)) *
+                                                                       pProcampParams->fContrast *
+                                                                       pProcampParams->fSaturation * 256.0F);  // S7.8
+    }
+    else
+    {
+        pRenderData->IECP.PROCAMP.bProcampEnabled = false;
+        mhwVeboxIecpParams.ProcAmpParams.bActive  = false;
+        mhwVeboxIecpParams.ProcAmpParams.bEnabled = false;
+    }
+
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS VpVeboxCmdPacket::SetTccParams(
     PVEBOX_TCC_PARAMS                    pTccParams)
 {

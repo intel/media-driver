@@ -66,6 +66,7 @@ VpScalingReuse::~VpScalingReuse()
 
 MOS_STATUS VpScalingReuse::UpdateFeatureParams(bool reusable, bool &reused, SwFilter *filter)
 {
+    VP_FUNC_CALL();
     SwFilterScaling *scaling = dynamic_cast<SwFilterScaling *>(filter);
     FeatureParamScaling &params = scaling->GetSwFilterParams();
     if (reusable && params == m_params)
@@ -118,6 +119,7 @@ VpCscReuse::~VpCscReuse()
 
 MOS_STATUS VpCscReuse::UpdateFeatureParams(bool reusable, bool &reused, SwFilter *filter)
 {
+    VP_FUNC_CALL();
     auto IsIefEnabled = [&](PVPHAL_IEF_PARAMS iefParams)
     {
         return (iefParams && iefParams->bEnabled && iefParams->fIEFFactor > 0.0F);
@@ -150,6 +152,7 @@ MOS_STATUS VpCscReuse::UpdateFeatureParams(bool reusable, bool &reused, SwFilter
 
 MOS_STATUS VpCscReuse::UpdatePacket(SwFilter *filter, VpCmdPacket *packet)
 {
+    VP_FUNC_CALL();
     VpVeboxCmdPacketBase *veboxPacket = dynamic_cast<VpVeboxCmdPacketBase *>(packet);
     VP_PUBLIC_CHK_NULL_RETURN(veboxPacket);
 
@@ -163,6 +166,7 @@ MOS_STATUS VpCscReuse::UpdatePacket(SwFilter *filter, VpCmdPacket *packet)
 
 MOS_STATUS VpCscReuse::UpdateFeatureParams(FeatureParamCsc &params)
 {
+    VP_FUNC_CALL();
     m_params = params;
 
     if (params.pAlphaParams)
@@ -202,7 +206,9 @@ VpRotMirReuse::~VpRotMirReuse()
 
 MOS_STATUS VpRotMirReuse::UpdateFeatureParams(bool reusable, bool &reused, SwFilter *filter)
 {
+    VP_FUNC_CALL();
     SwFilterRotMir *rot = dynamic_cast<SwFilterRotMir *>(filter);
+    VP_PUBLIC_CHK_NULL_RETURN(rot);
     FeatureParamRotMir &params = rot->GetSwFilterParams();
     if (reusable && params == m_params)
     {
@@ -246,8 +252,10 @@ VpColorFillReuse::~VpColorFillReuse()
 
 MOS_STATUS VpColorFillReuse::UpdateFeatureParams(bool reusable, bool &reused, SwFilter *filter)
 {
-    SwFilterColorFill *rot = dynamic_cast<SwFilterColorFill *>(filter);
-    FeatureParamColorFill &params = rot->GetSwFilterParams();
+    VP_FUNC_CALL();
+    SwFilterColorFill *colorfill = dynamic_cast<SwFilterColorFill *>(filter);
+    VP_PUBLIC_CHK_NULL_RETURN(colorfill);
+    FeatureParamColorFill &params = colorfill->GetSwFilterParams();
     if (reusable && params == m_params)
     {
         // No need call UpdateFeatureParams. Just keep compared items updated in m_params
@@ -296,8 +304,10 @@ VpAlphaReuse::~VpAlphaReuse()
 
 MOS_STATUS VpAlphaReuse::UpdateFeatureParams(bool reusable, bool &reused, SwFilter *filter)
 {
-    SwFilterAlpha *rot = dynamic_cast<SwFilterAlpha *>(filter);
-    FeatureParamAlpha &params = rot->GetSwFilterParams();
+    VP_FUNC_CALL();
+    SwFilterAlpha *alpha = dynamic_cast<SwFilterAlpha *>(filter);
+    VP_PUBLIC_CHK_NULL_RETURN(alpha);
+    FeatureParamAlpha &params = alpha->GetSwFilterParams();
     if (reusable && params == m_params)
     {
         // No need call UpdateFeatureParams. Just keep compared items updated in m_params
@@ -346,7 +356,9 @@ VpDenoiseReuse::~VpDenoiseReuse()
 
 MOS_STATUS VpDenoiseReuse::UpdateFeatureParams(bool reusable, bool &reused, SwFilter *filter)
 {
+    VP_FUNC_CALL();
     SwFilterDenoise     *dn    = dynamic_cast<SwFilterDenoise *>(filter);
+    VP_PUBLIC_CHK_NULL_RETURN(dn);
     FeatureParamDenoise &params = dn->GetSwFilterParams();
     if (reusable && params == m_params)
     {
@@ -364,12 +376,13 @@ MOS_STATUS VpDenoiseReuse::UpdateFeatureParams(bool reusable, bool &reused, SwFi
 
 MOS_STATUS VpDenoiseReuse::UpdatePacket(SwFilter *filter, VpCmdPacket *packet)
 {
+    VP_FUNC_CALL();
     VpVeboxCmdPacketBase *veboxPacket = dynamic_cast<VpVeboxCmdPacketBase *>(packet);
     VP_PUBLIC_CHK_NULL_RETURN(veboxPacket);
 
-    SwFilterDenoise *scaling = dynamic_cast<SwFilterDenoise *>(filter);
-    VP_PUBLIC_CHK_NULL_RETURN(scaling);
-    FeatureParamDenoise &params = scaling->GetSwFilterParams();
+    SwFilterDenoise *denoise = dynamic_cast<SwFilterDenoise *>(filter);
+    VP_PUBLIC_CHK_NULL_RETURN(denoise);
+    FeatureParamDenoise &params = denoise->GetSwFilterParams();
 
     VP_PUBLIC_CHK_STATUS_RETURN(veboxPacket->UpdateDenoiseParams(params));
     return MOS_STATUS_SUCCESS;
@@ -395,7 +408,9 @@ VpTccReuse::~VpTccReuse()
 
 MOS_STATUS VpTccReuse::UpdateFeatureParams(bool reusable, bool &reused, SwFilter *filter)
 {
+    VP_FUNC_CALL();
     SwFilterTcc *tcc = dynamic_cast<SwFilterTcc *>(filter);
+    VP_PUBLIC_CHK_NULL_RETURN(tcc);
     FeatureParamTcc &params = tcc->GetSwFilterParams();
     if (reusable && params.bEnableTCC == m_params.bEnableTCC)
     {
@@ -413,6 +428,7 @@ MOS_STATUS VpTccReuse::UpdateFeatureParams(bool reusable, bool &reused, SwFilter
 
 MOS_STATUS VpTccReuse::UpdatePacket(SwFilter *filter, VpCmdPacket *packet)
 {
+    VP_FUNC_CALL();
     VpVeboxCmdPacketBase *veboxPacket = dynamic_cast<VpVeboxCmdPacketBase *>(packet);
     VP_PUBLIC_CHK_NULL_RETURN(veboxPacket);
 
@@ -444,7 +460,9 @@ VpSteReuse::~VpSteReuse()
 
 MOS_STATUS VpSteReuse::UpdateFeatureParams(bool reusable, bool &reused, SwFilter *filter)
 {
+    VP_FUNC_CALL();
     SwFilterSte     *ste    = dynamic_cast<SwFilterSte *>(filter);
+    VP_PUBLIC_CHK_NULL_RETURN(ste);
     FeatureParamSte &params = ste->GetSwFilterParams();
     if (reusable && params.bEnableSTE == m_params.bEnableSTE)
     {
@@ -462,6 +480,7 @@ MOS_STATUS VpSteReuse::UpdateFeatureParams(bool reusable, bool &reused, SwFilter
 
 MOS_STATUS VpSteReuse::UpdatePacket(SwFilter *filter, VpCmdPacket *packet)
 {
+    VP_FUNC_CALL();
     VpVeboxCmdPacketBase *veboxPacket = dynamic_cast<VpVeboxCmdPacketBase *>(packet);
     VP_PUBLIC_CHK_NULL_RETURN(veboxPacket);
 
@@ -474,6 +493,58 @@ MOS_STATUS VpSteReuse::UpdatePacket(SwFilter *filter, VpCmdPacket *packet)
 }
 
 MOS_STATUS VpSteReuse::UpdateFeatureParams(FeatureParamSte &params)
+{
+    m_params = params;
+    return MOS_STATUS_SUCCESS;
+}
+
+/*******************************************************************/
+/***********************VpProcampReuse**********************************/
+/*******************************************************************/
+
+VpProcampReuse::VpProcampReuse()
+{
+}
+
+VpProcampReuse::~VpProcampReuse()
+{
+}
+
+MOS_STATUS VpProcampReuse::UpdateFeatureParams(bool reusable, bool &reused, SwFilter *filter)
+{
+    VP_FUNC_CALL();
+    SwFilterProcamp *procamp    = dynamic_cast<SwFilterProcamp *>(filter);
+    VP_PUBLIC_CHK_NULL_RETURN(procamp);
+    FeatureParamProcamp &params  = procamp->GetSwFilterParams();
+    if (reusable && params.procampParams->bEnabled == m_params.procampParams->bEnabled)
+    {
+        // No need call UpdateFeatureParams. Just keep compared items updated in m_params
+        // is enough. UpdatePacket should use params in swfilter instead of m_params.
+        reused = true;
+    }
+    else
+    {
+        reused = false;
+        VP_PUBLIC_CHK_STATUS_RETURN(UpdateFeatureParams(params));
+    }
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpProcampReuse::UpdatePacket(SwFilter *filter, VpCmdPacket *packet)
+{
+    VP_FUNC_CALL();
+    VpVeboxCmdPacketBase *veboxPacket = dynamic_cast<VpVeboxCmdPacketBase *>(packet);
+    VP_PUBLIC_CHK_NULL_RETURN(veboxPacket);
+
+    SwFilterProcamp *procamp = dynamic_cast<SwFilterProcamp *>(filter);
+    VP_PUBLIC_CHK_NULL_RETURN(procamp);
+    FeatureParamProcamp &params = procamp->GetSwFilterParams();
+
+    VP_PUBLIC_CHK_STATUS_RETURN(veboxPacket->UpdateProcampParams(params));
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpProcampReuse::UpdateFeatureParams(FeatureParamProcamp &params)
 {
     m_params = params;
     return MOS_STATUS_SUCCESS;
@@ -542,6 +613,10 @@ MOS_STATUS VpPacketReuseManager::RegisterFeatures()
     p = MOS_New(VpSteReuse);
     VP_PUBLIC_CHK_NULL_RETURN(p);
     m_features.insert(std::make_pair(FeatureTypeSte, p));
+
+    p = MOS_New(VpProcampReuse);
+    VP_PUBLIC_CHK_NULL_RETURN(p);
+    m_features.insert(std::make_pair(FeatureTypeProcamp, p));
 
 
     return MOS_STATUS_SUCCESS;

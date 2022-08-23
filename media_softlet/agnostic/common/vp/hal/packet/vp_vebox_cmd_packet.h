@@ -547,6 +547,7 @@ public:
     virtual MOS_STATUS UpdateDenoiseParams(FeatureParamDenoise &params) override;
     virtual MOS_STATUS UpdateTccParams(FeatureParamTcc &params) override;
     virtual MOS_STATUS UpdateSteParams(FeatureParamSte &params) override;
+    virtual MOS_STATUS UpdateProcampParams(FeatureParamProcamp &params) override;
 
     //!
     //! \brief    Get DN luma parameters
