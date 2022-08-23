@@ -260,7 +260,7 @@ MOS_STATUS RenderCopyStateNext::SetupSurfaceStates()
 
     pRenderData->SurfMemObjCtl.SourceSurfMemObjCtl =
          pRenderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
-         MOS_MP_RESOURCE_USAGE_SurfaceState_FF,
+         MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_RENDER,
          pRenderHal->pOsInterface->pfnGetGmmClientContext(pRenderHal->pOsInterface)).DwordValue;
 
     pRenderData->SurfMemObjCtl.TargetSurfMemObjCtl = pRenderData->SurfMemObjCtl.SourceSurfMemObjCtl;

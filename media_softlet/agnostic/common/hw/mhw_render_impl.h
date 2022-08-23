@@ -75,7 +75,7 @@ public:
 protected:
     using base_t = Itf;
 
-    MHW_MEMORY_OBJECT_CONTROL_PARAMS    m_cacheabilitySettings[MOS_MP_RESOURCE_USAGE_END] = {};
+    MHW_MEMORY_OBJECT_CONTROL_PARAMS    m_cacheabilitySettings[MOS_HW_RESOURCE_DEF_MAX] = {};
     MHW_MI_MMIOREGISTERS                m_mmioRegisters = {};
     MHW_RENDER_ENGINE_L3_CACHE_CONFIG   m_l3CacheConfig = {};
     

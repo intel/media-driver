@@ -260,7 +260,7 @@ MOS_STATUS MediaRenderCommon::Set1DSurfaceForHwAccess(
 
         //set mem object control for cache
         SurfaceParam.MemObjCtl = (pRenderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
-            MOS_MP_RESOURCE_USAGE_DEFAULT,
+            MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_RENDER,
             pRenderHal->pOsInterface->pfnGetGmmClientContext(pRenderHal->pOsInterface))).DwordValue;
 
         pSurfaceParams = &SurfaceParam;

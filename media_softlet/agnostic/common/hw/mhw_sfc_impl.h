@@ -78,14 +78,14 @@ public:
         // If any override is needed, something like pfnOverrideMemoryObjectCtrl() / pfnComposeSurfaceCacheabilityControl()
         // will need to be implemented.
         m_outputSurfCtrl.Value = osItf->pfnCachePolicyGetMemoryObject(
-            MOS_MHW_RESOURCE_USAGE_Sfc_CurrentOutputSurface,
+            MOS_HW_RESOURCE_USAGE_VP_OUTPUT_PICTURE_FF,
             osItf->pfnGetGmmClientContext(osItf)).DwordValue;
 
         m_avsLineBufferCtrl.Value = osItf->pfnCachePolicyGetMemoryObject(
-            MOS_MHW_RESOURCE_USAGE_Sfc_AvsLineBufferSurface,
+            MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_FF,
             osItf->pfnGetGmmClientContext(osItf)).DwordValue;
         m_iefLineBufferCtrl.Value = osItf->pfnCachePolicyGetMemoryObject(
-            MOS_MHW_RESOURCE_USAGE_Sfc_IefLineBufferSurface,
+            MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_FF,
             osItf->pfnGetGmmClientContext(osItf)).DwordValue;
 
         m_sfdLineBufferCtrl.Value = osItf->pfnCachePolicyGetMemoryObject(
