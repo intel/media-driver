@@ -231,6 +231,12 @@ MOS_STATUS Vp9Pipeline::InitContexOption(Vp9BasicFeature &basicFeature)
     }
 #endif
 
+    if (MEDIA_IS_SKU(m_skuTable, FtrVirtualTileScalabilityDisable))
+    {
+        scalPars.disableScalability = true;
+        scalPars.disableVirtualTile = true; 
+    }    
+
     DECODE_CHK_STATUS(m_scalabOption.SetScalabilityOption(&scalPars));
     return MOS_STATUS_SUCCESS;
 }

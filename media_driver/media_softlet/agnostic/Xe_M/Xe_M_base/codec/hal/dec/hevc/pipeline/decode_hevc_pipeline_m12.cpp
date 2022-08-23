@@ -129,6 +129,11 @@ MOS_STATUS HevcPipelineM12::InitScalabOption(HevcBasicFeature &basicFeature)
         scalPars.disableRealTile = true;
     }
 
+    if (MEDIA_IS_SKU(m_skuTable, FtrVirtualTileScalabilityDisable))
+    {
+        scalPars.disableVirtualTile = true;
+    }
+
     scalPars.surfaceFormat  = basicFeature.m_destSurface.Format;
     scalPars.frameWidth     = basicFeature.m_width;
     scalPars.frameHeight    = basicFeature.m_height;
