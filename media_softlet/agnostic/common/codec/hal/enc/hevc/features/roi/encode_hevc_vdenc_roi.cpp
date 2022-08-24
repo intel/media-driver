@@ -484,6 +484,7 @@ MHW_SETPAR_DECL_SRC(VDENC_CMD2, HevcVdencRoi)
 #else
     params.vdencCmd2Par60 = flag0;
     params.vdencCmd2Par61 = flag1;
+    params.vdencCmd2Par113 = true;
 #endif  // !(_MEDIA_RESERVED)
 
     return MOS_STATUS_SUCCESS;
