@@ -168,7 +168,7 @@ namespace encode {
         ENCODE_CHK_NULL_RETURN(m_hwInterface);
         ENCODE_CHK_NULL_RETURN(m_hwInterface->GetMfxInterface());
 
-        if (m_vdboxIndex > m_hwInterface->GetMfxInterface()->GetMaxVdboxIndex())
+        if (m_vdboxIndex > m_hwInterface->m_hwInterfaceNext->GetMaxVdboxIndex())
         {
             ENCODE_ASSERTMESSAGE("ERROR - vdbox index exceed the maximum");
             eStatus = MOS_STATUS_INVALID_PARAMETER;

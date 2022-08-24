@@ -87,9 +87,8 @@ CodechalHwInterface::CodechalHwInterface(
 
     // Init sub-interfaces
     m_cpInterface = mhwInterfacesNext->m_cpInterface;
-    m_mfxInterface = mhwInterfacesNext->m_mfxInterface;
-    m_vdencInterface = mhwInterfacesNext->m_vdencInterface;
     m_veboxInterface = mhwInterfacesNext->m_veboxInterface;
+    m_mfxInterface   = mhwInterfacesNext->m_mfxInterface;
     m_sfcInterface = mhwInterfacesNext->m_sfcInterface;
     m_miInterface = mhwInterfacesNext->m_miInterface;
     m_renderInterface = mhwInterfacesNext->m_renderInterface;
@@ -1548,7 +1547,7 @@ MOS_STATUS CodechalHwInterface::ReadMfcStatus(
 
     CODECHAL_HW_CHK_NULL_RETURN(cmdBuffer);
 
-    CODECHAL_HW_CHK_COND_RETURN((vdboxIndex > m_mfxInterface->GetMaxVdboxIndex()),"ERROR - vdbox index exceed the maximum");
+    CODECHAL_HW_CHK_COND_RETURN((vdboxIndex > GetMaxVdboxIndex()),"ERROR - vdbox index exceed the maximum");
     MmioRegistersMfx* mmioRegisters = SelectVdboxAndGetMmioRegister(vdboxIndex, cmdBuffer);
 
     MHW_MI_FLUSH_DW_PARAMS flushDwParams;
@@ -1621,7 +1620,7 @@ MOS_STATUS CodechalHwInterface::ReadImageStatus(
 
     CODECHAL_HW_CHK_NULL_RETURN(cmdBuffer);
 
-    CODECHAL_HW_CHK_COND_RETURN((vdboxIndex > m_mfxInterface->GetMaxVdboxIndex()),"ERROR - vdbox index exceed the maximum");
+    CODECHAL_HW_CHK_COND_RETURN((vdboxIndex > GetMaxVdboxIndex()),"ERROR - vdbox index exceed the maximum");
     MmioRegistersMfx* mmioRegisters = SelectVdboxAndGetMmioRegister(vdboxIndex, cmdBuffer);
 
     MOS_RESOURCE *osResource;
@@ -1698,7 +1697,7 @@ MOS_STATUS CodechalHwInterface::ReadBrcPakStatistics(
     CODECHAL_HW_CHK_NULL_RETURN(cmdBuffer);
     CODECHAL_HW_CHK_NULL_RETURN(params.presBrcPakStatisticBuffer);
 
-    CODECHAL_HW_CHK_COND_RETURN((vdboxIndex > m_mfxInterface->GetMaxVdboxIndex()),"ERROR - vdbox index exceed the maximum");
+    CODECHAL_HW_CHK_COND_RETURN((vdboxIndex > GetMaxVdboxIndex()),"ERROR - vdbox index exceed the maximum");
     MmioRegistersMfx* mmioRegisters = SelectVdboxAndGetMmioRegister(vdboxIndex, cmdBuffer);
 
     MHW_MI_STORE_REGISTER_MEM_PARAMS miStoreRegMemParams;
@@ -1744,7 +1743,7 @@ MOS_STATUS CodechalHwInterface::ReadHcpStatus(
 
     CODECHAL_HW_CHK_NULL_RETURN(cmdBuffer);
 
-    CODECHAL_HW_CHK_COND_RETURN((vdboxIndex > m_mfxInterface->GetMaxVdboxIndex()),"ERROR - vdbox index exceed the maximum");
+    CODECHAL_HW_CHK_COND_RETURN((vdboxIndex > GetMaxVdboxIndex()), "ERROR - vdbox index exceed the maximum");
 
     MHW_MI_FLUSH_DW_PARAMS flushDwParams;
     MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
@@ -1785,7 +1784,7 @@ MOS_STATUS CodechalHwInterface::ReadImageStatusForHcp(
 
     CODECHAL_HW_CHK_NULL_RETURN(cmdBuffer);
 
-    CODECHAL_HW_CHK_COND_RETURN((vdboxIndex > m_mfxInterface->GetMaxVdboxIndex()),"ERROR - vdbox index exceed the maximum");
+    CODECHAL_HW_CHK_COND_RETURN((vdboxIndex > GetMaxVdboxIndex()),"ERROR - vdbox index exceed the maximum");
 
     auto mmioRegisters = m_hcpInterface->GetMmioRegisters(vdboxIndex);
 
@@ -1821,7 +1820,7 @@ MOS_STATUS CodechalHwInterface::ReadBrcPakStatisticsForHcp(
     CODECHAL_HW_CHK_NULL_RETURN(cmdBuffer);
     CODECHAL_HW_CHK_NULL_RETURN(params.presBrcPakStatisticBuffer);
 
-    CODECHAL_HW_CHK_COND_RETURN((vdboxIndex > m_mfxInterface->GetMaxVdboxIndex()),"ERROR - vdbox index exceed the maximum");
+    CODECHAL_HW_CHK_COND_RETURN((vdboxIndex > GetMaxVdboxIndex()),"ERROR - vdbox index exceed the maximum");
 
     auto mmioRegisters = m_hcpInterface->GetMmioRegisters(vdboxIndex);
 

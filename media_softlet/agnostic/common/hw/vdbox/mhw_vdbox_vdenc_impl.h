@@ -141,6 +141,7 @@ class Impl : public Itf, public mhw::Impl
     _VDENC_CMD_DEF(_MHW_CMD_ALL_DEF_FOR_IMPL);
 
 public:
+
     MOS_STATUS SetRowstoreCachingOffsets(const RowStorePar &par) override
     {
         MHW_FUNCTION_ENTER;

@@ -399,6 +399,17 @@ public:
     }
 
     //!
+    //! \brief    Get max vdbox index
+    //!
+    //! \return   MHW_VDBOX_NODE_IND
+    //!           max vdbox index got
+    //!
+    inline MHW_VDBOX_NODE_IND GetMaxVdboxIndex()
+    {
+        return m_maxVdboxIndex;
+    }
+
+    //!
     //! \brief    Programs base address of rowstore scratch buffers 
     //! \details  Internal function to get base address of rowstore scratch buffers 
     //!
@@ -652,6 +663,7 @@ public:
 
     virtual PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS CreateMhwVdboxPipeModeSelectParams() = 0;
     virtual void ReleaseMhwVdboxPipeModeSelectParams(PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams) = 0;
+    MHW_VDBOX_NODE_IND  m_maxVdboxIndex = MHW_VDBOX_NODE_1;
 };
 
 #endif

@@ -55,8 +55,6 @@ CodechalHwInterfaceNext::CodechalHwInterfaceNext(
 
     // Remove legacy mhw sub interfaces.
     m_cpInterface = mhwInterfacesNext->m_cpInterface;
-    m_mfxInterface = mhwInterfacesNext->m_mfxInterface;
-    m_vdencInterface = mhwInterfacesNext->m_vdencInterface;
 }
 
 MOS_STATUS CodechalHwInterfaceNext::GetAvpStateCommandSize(
