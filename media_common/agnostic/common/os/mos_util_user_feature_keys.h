@@ -372,4 +372,16 @@
 #define __MEDIA_USER_FEATURE_VALUE_PERF_UTILITY_TOOL_ENABLE          "Perf Utility Tool Enable"
 #define __MEDIA_USER_FEATURE_VALUE_PERF_OUTPUT_DIRECTORY             "Perf Output Directory"
 
-#endif // __MOS_UTIL_USER_FEATURE_KEYS_H__
+//Perf
+#define __MEDIA_USER_FEATURE_VALUE_LINUX_PERFORMANCETAG_ENABLE       "Linux PerformanceTag Enable"
+
+// Tile resource info report
+#define __MEDIA_USER_FEATURE_VALUE_TILE_INFO                         "Tile Info"
+#define __MEDIA_USER_FEATURE_VALUE_ENGINE_INSTANCE_RCS               "RCS Instance"
+#define __MEDIA_USER_FEATURE_VALUE_ENGINE_INSTANCE_VCS               "VCS Instance"
+#define __MEDIA_USER_FEATURE_VALUE_ENGINE_INSTANCE_VECS              "VECS Instance"
+#define __MEDIA_USER_FEATURE_VALUE_ENGINE_INSTANCE_CCS               "CCS Instance"
+
+
+
+#endif  // __MOS_UTIL_USER_FEATURE_KEYS_H__

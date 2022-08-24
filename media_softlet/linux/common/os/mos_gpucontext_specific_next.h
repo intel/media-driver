@@ -302,7 +302,10 @@ private:
     uint32_t m_GPUStatusTag = 0;
 
     //! \brief    Os context
-    OsContextNext *m_osContext = nullptr;
+    OsContextNext *m_osContext      = nullptr;
+
+    //! \brief    mos context
+    PMOS_CONTEXT  m_osParameters    = nullptr;
 
     MOS_GPUCTX_CREATOPTIONS_ENHANCED *m_createOptionEnhanced = nullptr;
     MOS_LINUX_CONTEXT*  m_i915Context[MAX_ENGINE_INSTANCE_NUM+1];

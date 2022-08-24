@@ -6957,10 +6957,8 @@ MOS_STATUS Mos_Specific_InitInterface(
     bool                            bSimIsActive = false;
     bool                            useCustomerValue = false;
     uint32_t                        regValue = 0;
-    MOS_USER_FEATURE_VALUE_DATA     UserFeatureData;
-
-    char *pMediaWatchdog = nullptr;
-    long int watchdog = 0;
+    char                            *pMediaWatchdog = nullptr;
+    long int                        watchdog = 0;
 
     MOS_OS_FUNCTION_ENTER;
 
@@ -7304,16 +7302,17 @@ MOS_STATUS Mos_Specific_InitInterface(
             MediaUserSetting::Group::Device);
 
         pOsContext->bDisableKmdWatchdog = regValue ? true : false;
-#endif
 
         // read "Linux PerformanceTag Enable" user feature key
-        MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-        MOS_UserFeature_ReadValue_ID(
-            nullptr,
-            __MEDIA_USER_FEATURE_VALUE_LINUX_PERFORMANCETAG_ENABLE_ID,
-            &UserFeatureData,
-            (MOS_CONTEXT_HANDLE)pOsContext);
-        pOsContext->uEnablePerfTag = UserFeatureData.i32Data;
+        regValue = 0;
+        ReadUserSettingForDebug(
+            userSettingPtr,
+            regValue,
+            __MEDIA_USER_FEATURE_VALUE_LINUX_PERFORMANCETAG_ENABLE,
+            MediaUserSetting::Group::Device);
+
+        pOsContext->uEnablePerfTag = regValue;
+#endif
     }
     eStatus = Mos_Specific_InitInterface_Ve(pOsInterface);
     if(eStatus != MOS_STATUS_SUCCESS)

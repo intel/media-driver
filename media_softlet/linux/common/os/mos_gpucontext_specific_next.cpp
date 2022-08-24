@@ -94,6 +94,8 @@ MOS_STATUS GpuContextSpecificNext::Init(OsContextNext *osContext,
     auto osParameters = (PMOS_CONTEXT)streamState->perStreamParameters;
     MOS_OS_CHK_NULL_RETURN(osParameters);
 
+    m_osParameters       = osParameters;
+
     MOS_GPU_NODE gpuNode = MOS_GPU_NODE_3D;
     gpuNode = static_cast<MOS_GPU_NODE>(createOption->gpuNode);
 

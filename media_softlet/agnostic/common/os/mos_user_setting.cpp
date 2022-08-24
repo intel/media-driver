@@ -791,6 +791,49 @@ MOS_STATUS MosUserSetting::InitUserSettingForDebug(MediaUserSettingSharedPtr use
         39497,
         true); //"Device ID of mock device, default is 0x9A49"
 
+    //Tile resource info report
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_TILE_INFO,
+        MediaUserSetting::Group::Device,
+        "",
+        true);  //""Report tile infomation including tileID and memory region size"
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_ENGINE_INSTANCE_RCS,
+        MediaUserSetting::Group::Device,
+        "",
+        true);  //"Report RCS instance infomation"
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_ENGINE_INSTANCE_VCS,
+        MediaUserSetting::Group::Device,
+        "",
+        true);  //"Report VCS instance infomation."
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_ENGINE_INSTANCE_VECS,
+        MediaUserSetting::Group::Device,
+        "",
+        true);  //"Report VECS instance infomation."
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_ENGINE_INSTANCE_CCS,
+        MediaUserSetting::Group::Device,
+        "",
+        true);  //"Report CCS instance infomation."
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_LINUX_PERFORMANCETAG_ENABLE,
+        MediaUserSetting::Group::Device,
+        0,
+        true);  //"Linux Performance Tag."
+
     return MOS_STATUS_SUCCESS;
 }
 

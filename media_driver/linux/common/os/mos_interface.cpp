@@ -341,7 +341,6 @@ MOS_STATUS MosInterface::InitStreamParameters(
     MOS_BUFMGR                  *bufMgr             = nullptr;
     int32_t                     fd                  = -1;
     OsContextSpecificNext       *osDeviceContext    = nullptr;
-    MOS_USER_FEATURE_VALUE_DATA userFeatureData     = {};
 
     MOS_OS_FUNCTION_ENTER;
 
@@ -446,14 +445,17 @@ MOS_STATUS MosInterface::InitStreamParameters(
         }
     }
 #endif
-
+#if (_DEBUG || _RELEASE_INTERNAL)
     // read "Linux PerformanceTag Enable" user feature key
-    MosUtilities::MosUserFeatureReadValueID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_LINUX_PERFORMANCETAG_ENABLE_ID,
-        &userFeatureData,
-        (MOS_CONTEXT_HANDLE)nullptr);
-    context->uEnablePerfTag = userFeatureData.u32Data;
+    uint32_t regValue = 0;
+    ReadUserSettingForDebug(
+        context->m_userSettingPtr,
+        regValue,
+        __MEDIA_USER_FEATURE_VALUE_LINUX_PERFORMANCETAG_ENABLE,
+        MediaUserSetting::Group::Device);
+
+    context->uEnablePerfTag = regValue;
+#endif
 
     return MOS_STATUS_SUCCESS;
 }
