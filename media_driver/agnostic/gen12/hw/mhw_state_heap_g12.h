@@ -29,7 +29,6 @@
 #define __MHW_STATE_HEAP_G12_H__
 
 #include "mhw_state_heap_generic.h"
-#include "mhw_state_heap_hwcmd_g11_X.h"  // Still use Gen11 state heap cmd before fixing Gen12 state heap
 #include "mhw_state_heap_hwcmd_g12_X.h"
 
 // Each increment in sampler index represents this increment in offset
@@ -38,7 +37,7 @@
 #define MHW_SAMPLER_WIDTH_ALIGN_UNIT_G12    2
 #define MHW_SAMPLER_HEIGHT_ALIGN_UNIT_G12   4
 
-struct MHW_STATE_HEAP_INTERFACE_G12_X : public MHW_STATE_HEAP_INTERFACE_GENERIC<mhw_state_heap_g11_X>
+struct MHW_STATE_HEAP_INTERFACE_G12_X : public MHW_STATE_HEAP_INTERFACE_GENERIC<mhw_state_heap_g12_X>
 {
 
 private:

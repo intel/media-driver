@@ -121,4 +121,4 @@ public:
     };
 };
 #endif
-#endif // __VPHAL_RENDER_HDR_G11_H__
+#endif // __VPHAL_RENDER_HDR_G12_H__

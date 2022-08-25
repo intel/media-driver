@@ -31,15 +31,22 @@ set(TMP_1_HEADERS_
 
 set(TMP_2_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vebox.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_vebox_hwcmd_g9_X.cpp
 )
 
 set(TMP_2_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vebox_generic.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_vebox_hwcmd_g9_X.h
 )
 
 source_group("MHW\\SFC" FILES ${TMP_1_SOURCES_} ${TMP_1_HEADERS_})
 source_group("MHW\\VEBOX" FILES ${TMP_2_SOURCES_} ${TMP_2_HEADERS_})
 
+set(TMP_3_HEADERS_
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_mmio_g9.h
+)
+
+source_group("MHW\\Common MI" FILES  ${TMP_3_HEADERS_})
 
 set(TMP_4_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/mhw_mi.cpp
@@ -69,6 +76,7 @@ set(COMMON_HEADERS_
     ${COMMON_HEADERS_}
     ${TMP_1_HEADERS_}
     ${TMP_2_HEADERS_}
+    ${TMP_3_HEADERS_}
     ${TMP_4_HEADERS_}
     ${TMP_5_HEADERS_}
 )

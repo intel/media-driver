@@ -41,9 +41,12 @@
 #include "cm_surface_manager.h"
 #include "cm_queue_rt.h"
 #include "cm_scratch_space.h"
-
+#if IGFX_GEN9_SUPPORTED
 #include "cm_hal_g9.h"
+#endif
+#if IGFX_GEN11_SUPPORTED
 #include "cm_hal_g11.h"
+#endif
 #include "cm_hal_g12.h"
 
 static bool gGTPinInitialized = false;
@@ -576,18 +579,27 @@ int CmExecutionAdv::SetSuggestedL3Config(L3_SUGGEST_CONFIG l3SuggestConfig)
 
     switch(m_cmhal->platform.eRenderCoreFamily)
     {
+#if IGFX_GEN11_SUPPORTED
         case IGFX_GEN11_CORE:
             count = sizeof(ICL_L3_PLANE)/sizeof(L3ConfigRegisterValues);
             table = (L3ConfigRegisterValues *)ICL_L3_PLANE;
             break;
+#endif
         case IGFX_GEN12_CORE:
             table = m_cmhal->cmHalInterface->m_l3Plane;
             count = m_cmhal->cmHalInterface->m_l3ConfigCount;
             break;
-        default: // gen9
+#if IGFX_GEN9_SUPPORTED || IGFX_GEN10_SUPPORTED
+        default:  // gen9
             count = sizeof(SKL_L3_PLANE) / sizeof(L3ConfigRegisterValues);
-            table = (L3ConfigRegisterValues*)SKL_L3_PLANE;
+            table = (L3ConfigRegisterValues *)SKL_L3_PLANE;
             break;
+#else
+        default:
+            table = m_cmhal->cmHalInterface->m_l3Plane;
+            count = m_cmhal->cmHalInterface->m_l3ConfigCount;
+            break;
+#endif
     }
     if (static_cast<size_t>(l3SuggestConfig) >= count)
     {

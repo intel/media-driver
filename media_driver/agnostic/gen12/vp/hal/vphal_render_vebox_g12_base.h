@@ -30,7 +30,7 @@
 #include "vphal_render_vebox_base.h"
 #include "vphal_render_hdr_3dlut_g12.h"
 #include "vp_common_hdr.h"
-
+#define VPHAL_VEBOX_MAX_SLICES_G12 4
 #define VPHAL_VEBOX_RGB_HISTOGRAM_SIZE_G12                      (VPHAL_VEBOX_RGB_HISTOGRAM_SIZE_PER_SLICE * \
                                                                  VPHAL_NUM_RGB_CHANNEL                    * \
                                                                  VPHAL_VEBOX_HISTOGRAM_SLICES_COUNT)

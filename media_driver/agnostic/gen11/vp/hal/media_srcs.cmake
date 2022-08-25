@@ -23,7 +23,6 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/vphal_render_sfc_g11_base.cpp
     ${CMAKE_CURRENT_LIST_DIR}/vphal_render_vebox_g11_base.cpp
     ${CMAKE_CURRENT_LIST_DIR}/vphal_renderer_g11.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/vphal_render_hdr_g11.cpp
 )
 
 set(TMP_HEADERS_
@@ -31,7 +30,6 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/vphal_render_sfc_g11_base.h
     ${CMAKE_CURRENT_LIST_DIR}/vphal_render_vebox_g11_base.h
     ${CMAKE_CURRENT_LIST_DIR}/vphal_renderer_g11.h
-    ${CMAKE_CURRENT_LIST_DIR}/vphal_render_hdr_g11.h
 )
 
 
