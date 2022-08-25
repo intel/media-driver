@@ -89,11 +89,13 @@ MOS_STATUS VpVeboxCmdPacketLegacy::SetupVebox3DLutForHDR(
     PMHW_VEBOX_MODE   pVeboxMode = nullptr;
     PMHW_VEBOX_3D_LUT pLUT3D     = nullptr;
     PVP_SURFACE       surf3DLut  = GetSurface(SurfaceType3DLut);
+    VpVeboxRenderData* pRenderData = GetLastExecRenderData();
 
     VP_RENDER_CHK_NULL_RETURN(m_surfMemCacheCtl);
     VP_RENDER_CHK_NULL_RETURN(pVeboxStateCmdParams);
     VP_RENDER_CHK_NULL_RETURN(surf3DLut);
     VP_RENDER_CHK_NULL_RETURN(surf3DLut->osSurface);
+    VP_RENDER_CHK_NULL_RETURN(pRenderData);
 
     VP_RENDER_CHK_STATUS_RETURN(Init3DLutTable(surf3DLut));
 
@@ -102,8 +104,12 @@ MOS_STATUS VpVeboxCmdPacketLegacy::SetupVebox3DLutForHDR(
 
     pLUT3D->ArbitrationPriorityControl      = 0;
     pLUT3D->Lut3dEnable                     = true;
-    // Config 3DLut size to 65 for HDR usage.
+    // Config 3DLut size to 65 for HDR10 usage.
     pLUT3D->Lut3dSize                       = 2;
+    if (pRenderData->HDR3DLUT.uiLutSize == 33)
+    {
+        pLUT3D->Lut3dSize = 0;  // 33x33x33
+    }
 
     pVeboxStateCmdParams->Vebox3DLookUpTablesSurfCtrl.Value =
         m_surfMemCacheCtl->DnDi.Vebox3DLookUpTablesSurfMemObjCtl;

@@ -163,6 +163,7 @@ public:
             uint32_t       uiMaxDisplayLum;       //!< Maximum Display Luminance
             uint32_t       uiMaxContentLevelLum;  //!< Maximum Content Level Luminance
             VPHAL_HDR_MODE hdrMode;
+            uint32_t       uiLutSize;
         };
     } HDR3DLUT;
     struct
