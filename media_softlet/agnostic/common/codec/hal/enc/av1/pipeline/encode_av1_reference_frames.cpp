@@ -534,6 +534,67 @@ std::vector<PMOS_SURFACE> Av1ReferenceFrames::GetPakRefSurface() const
     return refs;
 }
 
+void Av1ReferenceFrames::GetFwdBwdRefPicList(CODEC_PICTURE refsPicList[2][15])
+{
+    ENCODE_FUNC_CALL();
+    auto picParams       = m_basicFeature->m_av1PicParams;
+    auto ref_frame_ctrl0 = picParams->ref_frame_ctrl_l0;
+    auto ref_frame_ctrl1 = picParams->ref_frame_ctrl_l1;
+
+    uint8_t ref_frame_ctrl_l0 = RefFrameL0L1(ref_frame_ctrl0);
+    uint8_t ref_frame_ctrl_l1 = RefFrameL0L1(ref_frame_ctrl1);
+    uint8_t RefFrameBiasFlags = m_refFrameBiasFlagsForRefManagement.value;
+
+    uint8_t fwdRefNum = 0;
+    uint8_t bwdRefNum = 0;
+
+    for (auto i = 0; i < av1NumInterRefFrames; i++)
+    {
+        uint8_t mask = AV1_ENCODE_GET_REF_FALG(i);
+        if ((ref_frame_ctrl_l0 & mask) && !(RefFrameBiasFlags & mask))
+        {
+            auto index  = picParams->ref_frame_idx[i];
+            CODEC_PICTURE refPic;
+            refPic.FrameIdx = index;
+            refPic.PicEntry = picParams->RefFrameList[index].PicEntry;
+            refPic.PicFlags = picParams->RefFrameList[index].PicFlags;
+            refsPicList[0][fwdRefNum] = refPic;
+            fwdRefNum++;
+        }
+        if ((ref_frame_ctrl_l1 & mask) && (RefFrameBiasFlags & mask))
+        {
+            auto index  = picParams->ref_frame_idx[i];
+            CODEC_PICTURE refPic;
+            refPic.FrameIdx = index;
+            refPic.PicEntry = picParams->RefFrameList[index].PicEntry;
+            refPic.PicFlags = picParams->RefFrameList[index].PicFlags;
+            refsPicList[1][bwdRefNum] = refPic;
+            bwdRefNum++;
+        }
+    }
+    uint8_t CodingType = (m_basicFeature->m_pictureCodingType == I_TYPE) ? I_TYPE : (m_basicFeature->m_ref.IsLowDelay() ? (m_basicFeature->m_ref.IsPFrame() ? P_TYPE : B_TYPE) : B_TYPE);
+    if (CodingType == B_TYPE && m_lowDelay && bwdRefNum == 0)
+    {
+        for (int j = 0; j < fwdRefNum; j++)
+        {
+            refsPicList[1][j] = refsPicList[0][j];
+        }
+    }
+}
+
+void Av1ReferenceFrames::GetRefFramePOC(int32_t refsPOCList[15])
+{
+    auto picParams = m_basicFeature->m_av1PicParams;
+    for (auto i = 0; i < av1NumInterRefFrames; i++)
+    {
+        if (picParams->RefFrameList[i].PicFlags != PICTURE_INVALID)
+        {
+            auto frameIdx = picParams->RefFrameList[i].FrameIdx;
+            refsPOCList[i] = m_refList[frameIdx]->m_orderHint;
+        }
+    }
+}
+
 bool Av1ReferenceFrames::CheckSegmentForPrimeFrame()
 {
     ENCODE_FUNC_CALL();

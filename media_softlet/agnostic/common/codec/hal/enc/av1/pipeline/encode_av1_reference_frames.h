@@ -91,6 +91,22 @@ public:
     CODEC_REF_LIST_AV1 *GetCurrRefList() const { return m_currRefList; };
 
     //!
+    //! \brief  Get reference list
+    //! \return  PCODEC_REF_LIST *
+    //!         Pointer of current reference list
+    //!
+    PCODEC_REF_LIST_AV1 *GetRefList() { return m_refList; };
+
+    //!
+    //! \brief  Get picture idx
+    //! \param  [in] idx
+    //!         id of RefFrameList 
+    //! \return  CODEC_PIC_ID
+    //!         CODEC_PIC_ID refer to the FrameIdx
+    //!
+    CODEC_PIC_ID GetPicId(uint8_t idx) { return m_picIdx[idx]; };
+
+    //!
     //! \brief  Get Prime frame's reference list
     //! \return  PCODEC_REF_LIST
     //!         Pointer of Prime frame's reference list
@@ -138,6 +154,23 @@ public:
     //!         A vector of PAK reference surface
     //!
     std::vector<PMOS_SURFACE> GetPakRefSurface() const;
+
+    //!
+    //! \brief  Get  get the forward and backward reference surface
+    //! \param  [in] params
+    //!         std::array<std::vector<CODEC_PICTURE>, 2>
+    //!         A vector contain forward and backward reference surface
+    //!
+    void GetFwdBwdRefPicList(CODEC_PICTURE refsPicList[2][15]);
+
+    //!
+    //! \brief  Get  get the Picture Order Count values of reference pictures 
+    //!          corresponding to the entries of RefFrameList[]. 
+    //! \param  [in] params
+    //!         std::array<int32_t, av1NumInterRefFrames>
+    //!         A vector contain reference frame POC
+    //!
+    void GetRefFramePOC(int32_t refsPOCList[15]);
 
     bool CheckSegmentForPrimeFrame();
     uint8_t RefFrameL0L1(CODEC_Ref_Frame_Ctrl_AV1 const &ref_frame_ctrl) const;
