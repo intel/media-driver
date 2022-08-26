@@ -83,7 +83,7 @@ MOS_STATUS VpVeboxCmdPacketXe_Hpm::AddVeboxDndiState()
     PMHW_VEBOX_INTERFACE  pVeboxInterface = m_hwInterface->m_veboxInterface;
     VpVeboxRenderData    *renderData     = GetLastExecRenderData();
 
-    if (renderData->DN.bDnEnabled)
+    if (renderData->DN.bDnEnabled || renderData->DI.bDeinterlace || renderData->DI.bQueryVariance)
     {
         auto pVeboxInterfaceHPM = static_cast<MhwVeboxInterfaceG12 *>(pVeboxInterface);
         VP_RENDER_CHK_STATUS_RETURN(pVeboxInterfaceHPM->SetVeboxChromaParams(&veboxChromaParams));
