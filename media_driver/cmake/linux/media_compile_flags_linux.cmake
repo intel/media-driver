@@ -217,3 +217,7 @@ endif()
 
 add_definitions(-DMEDIA_VERSION="${MEDIA_VERSION}")
 add_definitions(-DMEDIA_VERSION_DETAILS="${GIT_COMMIT}")
+
+if (ENABLE_NONFREE_KERNELS)
+    add_definitions(-DMEDIA_VERSION_NONFREE_KERNELS="Full-Feature")
+endif()
