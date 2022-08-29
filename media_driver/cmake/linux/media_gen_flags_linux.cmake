@@ -96,7 +96,9 @@ cmake_dependent_option(GEN12_ADLN
     "Enabled ADLN support (Gen12)" ON
     "GEN12_TGLLP" OFF)
 
-option(Xe_M "Enabled support for Xehp_sdv+ platforms" ON)
+cmake_dependent_option(Xe_M
+    "Enabled support for Xehp_sdv+ platforms" ON
+    "GEN12" OFF)
 
 cmake_dependent_option(DG2
     "Enabled DG2 support" ON
