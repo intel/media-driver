@@ -108,6 +108,36 @@ typedef enum _MEDIA_EVENT_FILTER_KEYID
     TR_KEY_DECODE_INFO
 } MEDIA_EVENT_FILTER_KEYID;
 
+enum class MT_EVENT_LEVEL
+{
+    ALWAYS,
+    CRITICAL,
+    ERR,
+    WARNING,
+    INFO,
+    VERBOSE,
+};
+
+enum class MT_DATA_LEVEL
+{
+    FIRST_64B,  // dump first min(DataSize, 64) bytes
+    QUARTER,    // dump first min(DataSize, max(DataSize/4, 64)) bytes
+    HALF,       // dump first min(DataSize, max(DataSize/2, 64)) bytes
+    FULL,       // dump all data
+};
+
+enum class MT_LOG_LEVEL
+{
+    ALWAYS,
+    CRITICAL,
+    NORMAL,
+    VERBOSE,
+    FUNCTION_ENTRY,
+    FUNCTION_EXIT,
+    FUNCTION_ENTRY_VERBOSE,
+    MEMNINJA,
+};
+
 typedef enum _MEDIA_EVENT
 {
     UNDEFINED_EVENT = 0,            //! reserved id, should not used in driver
@@ -303,6 +333,17 @@ typedef enum _MT_LEVEL
     MT_NORMAL   = 1,  //! normal runtime log
     MT_CRITICAL = 2,  //! critical runtime log
 } MT_LEVEL;
+
+union MtLevel
+{
+    struct
+    {
+        uint8_t Event : 3;  // MT_EVENT_LEVEL
+        uint8_t Data  : 2;  // MT_DATA_LEVEL
+        uint8_t Log   : 3;  // MT_LOG_LEVEL
+    };
+    uint8_t Value;
+};
 
 #pragma pack(1)
 typedef struct _MT_PARAM

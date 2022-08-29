@@ -2365,8 +2365,14 @@ void MosUtilities::MosTraceEventInit()
     {
         return;
     }
-    char *tmp;
-    m_mosTraceFilter = strtoll(val, &tmp, 0);
+    m_mosTraceFilter = strtoll(val, nullptr, 0);
+
+    val = getenv("GFX_MEDIA_TRACE_LEVEL");
+    if (val)
+    {
+        m_mosTraceLevel.Value = static_cast<uint8_t>(strtoll(val, nullptr, 0));
+    }
+
     // close first, if already opened.
     if (MosUtilitiesSpecificNext::m_mosTraceFd >= 0)
     {
@@ -2472,6 +2478,13 @@ void MosUtilities::MosTraceEvent(
         }
     }
     return;
+}
+
+bool MosUtilities::MosShouldTraceEventMsg(
+    uint8_t level,
+    uint8_t compID)
+{
+    return false;
 }
 
 void MosUtilities::MosTraceEventMsg(

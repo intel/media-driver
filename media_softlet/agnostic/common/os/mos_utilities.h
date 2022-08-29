@@ -40,6 +40,7 @@
 #include "media_class_trace.h"
 #include "mos_utilities_specific.h"
 #include "mos_resource_defs.h"
+#include "mos_os_trace_event.h"
 
 #define MOS_MAX_PERF_FILENAME_LEN 260
 
@@ -1989,12 +1990,48 @@ public:
     static void MosTraceSetupInfo(uint32_t DrvVer, uint32_t PlatFamily, uint32_t RenderFamily, uint32_t DeviceID);
 
     //!
-    //! \brief    Get Event Trace Keyword.
-    //! \details  Determines by the print level, component and sub-component IDs
-    //!           whether the debug message should be printed.
-    //! \return   uint64_t
+    //! \brief    check if trace key is enabled
+    //! \details  if a trace key is enabled, returns true, otherwise false
+    //! \param    [in] trace event key
+    //! \return   bool
     //!
-    static uint64_t GetTraceEventKeyword() { return m_mosTraceFilter; }
+    static bool TraceKeyEnabled(MEDIA_EVENT_FILTER_KEYID key)
+    {
+        return m_mosTraceFilter & (static_cast<uint64_t>(1) << key);
+    }
+
+    //!
+    //! \brief    check if trace level is enabled
+    //! \details  if a trace level is enabled, returns true, otherwise false
+    //! \param    [in] trace event level
+    //! \return   bool
+    //!
+    static bool TracelevelEnabled(MT_EVENT_LEVEL level)
+    {
+        return level <= static_cast<MT_EVENT_LEVEL>(m_mosTraceLevel.Event);
+    }
+
+    //!
+    //! \brief    check if trace level is enabled
+    //! \details  if a trace level is enabled, returns true, otherwise false
+    //! \param    [in] trace event level
+    //! \return   bool
+    //!
+    static bool TracelevelEnabled(MT_DATA_LEVEL level)
+    {
+        return level <= static_cast<MT_DATA_LEVEL>(m_mosTraceLevel.Data);
+    }
+
+    //!
+    //! \brief    check if trace level is enabled
+    //! \details  if a trace level is enabled, returns true, otherwise false
+    //! \param    [in] trace event level
+    //! \return   bool
+    //!
+    static bool TracelevelEnabled(MT_LOG_LEVEL level)
+    {
+        return level <= static_cast<MT_LOG_LEVEL>(m_mosTraceLevel.Log);
+    }
 
     //!
     //! \brief    MOS log trace event
@@ -2021,6 +2058,19 @@ public:
         uint32_t         dwSize1,
         const void       *pArg2,
         uint32_t         dwSize2);
+
+    //!
+    //! \brief    if MOS event msg should be traced
+    //! \details  return a bool to indicate if MOS event msg should be traced
+    //! \param    [in] level
+    //!           msg level
+    //! \param    [in] compID
+    //!           msg compID
+    //! \return   bool
+    //!
+    static bool MosShouldTraceEventMsg(
+        uint8_t  level,
+        uint8_t  compID);
 
     //!
     //! \brief    MOS log trace event Msg
@@ -2669,6 +2719,7 @@ public:
     static int32_t                      m_mosMemAllocCounterNoUserFeature;
     static int32_t                      m_mosMemAllocCounterNoUserFeatureGfx;
     static uint64_t                     m_mosTraceFilter;
+    static MtLevel                      m_mosTraceLevel;
 
     //Temporarily defined as the reference to compatible with the cases using uf key to enable/disable APG.
     static int32_t                      m_mosMemAllocCounter;
@@ -3035,9 +3086,83 @@ do{                                                     \
 //  trace
 //------------------------------------------------------------------------------
 
-#define MOS_TraceKeyEnabled(key)                                        (MosUtilities::GetTraceEventKeyword() & (1<<key))
-#define MOS_TraceEvent(usId, ucType, pArg1, dwSize1, pArg2, dwSize2)    MosUtilities::MosTraceEvent(usId, ucType, pArg1, dwSize1, pArg2, dwSize2)
-#define MOS_TraceDataDump(pcName, flags, pBuf, dwSize)                  MosUtilities::MosTraceDataDump(pcName, flags, pBuf, dwSize)
+#define MOS_TraceKeyEnabled(key) MosUtilities::TraceKeyEnabled(key)
+
+inline void MOS_TraceEvent(
+    uint16_t    usId,
+    uint8_t     ucType,
+    const void *pArg1,
+    uint32_t    dwSize1,
+    const void *pArg2   = nullptr,
+    uint32_t    dwSize2 = 0)
+{
+    MosUtilities::MosTraceEvent(usId, ucType, pArg1, dwSize1, pArg2, dwSize2);
+}
+
+inline void MOS_TraceEvent(
+    MEDIA_EVENT_FILTER_KEYID key,
+    MT_EVENT_LEVEL           level,
+    uint16_t                 usId,
+    uint8_t                  ucType,
+    const void              *pArg1,
+    uint32_t                 dwSize1,
+    const void              *pArg2   = nullptr,
+    uint32_t                 dwSize2 = 0)
+{
+    if (MosUtilities::TraceKeyEnabled(key) && MosUtilities::TracelevelEnabled(level))
+    {
+        MosUtilities::MosTraceEvent(usId, ucType, pArg1, dwSize1, pArg2, dwSize2);
+    }
+}
+
+inline void MOS_TraceDataDump(
+    const char *pcName,
+    uint32_t    flags,
+    const void *pBuf,
+    uint32_t    dwSize)
+{
+    MosUtilities::MosTraceDataDump(pcName, flags, pBuf, dwSize);
+}
+
+inline void MOS_TraceDataDump(
+    MEDIA_EVENT_FILTER_KEYID key,
+    MT_DATA_LEVEL            level,
+    const char              *pcName,
+    uint32_t                 flags,
+    const void              *pBuf,
+    uint32_t                 dwSize)
+{
+    constexpr uint32_t LEVEL0_SIZE = 64; 
+
+    if (!(MosUtilities::TraceKeyEnabled(TR_KEY_DATA_DUMP) && MosUtilities::TraceKeyEnabled(key)))
+    {
+        return;
+    }
+
+    uint32_t size = dwSize;
+    if (size > LEVEL0_SIZE)
+    {
+        switch (level)
+        {
+        case MT_DATA_LEVEL::FIRST_64B:
+            size = LEVEL0_SIZE;
+            break;
+        case MT_DATA_LEVEL::QUARTER:
+            size >>= 2;
+            break;
+        case MT_DATA_LEVEL::HALF:
+            size >>= 1;
+            break;
+        case MT_DATA_LEVEL::FULL:
+        default:
+            break;
+        }
+
+        size = size < LEVEL0_SIZE ? LEVEL0_SIZE : size;
+    }
+
+    MosUtilities::MosTraceDataDump(pcName, flags, pBuf, size);
+}
 
 //!
 //! \def MOS_TraceData new trace interface, special interface for zero trace data
