@@ -53,12 +53,17 @@ public:
     //!
     //! \brief    surface copy pre process.
     //! \details  pre process before doing surface copy.
+    //! \param    src
+    //!          [in]Media copy state's input parmaters
+    //! \param    dest
+    //!          [in]Media copy state's output parmaters
     //! \param    preferMethod
-    //!           [in] Preferred media copy method
+    //!          [in]Media copy Method
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if support, otherwise return unspoort.
     //!
-    MOS_STATUS PreProcess(MCPY_METHOD preferMethod);
+    virtual MOS_STATUS PreCheckCpCopy(
+        MCPY_STATE_PARAMS src, MCPY_STATE_PARAMS dest, MCPY_METHOD preferMethod);
 
     //!
     //! \brief    render format support.

@@ -178,7 +178,7 @@ public:
     void                        *m_pKernelBin      = nullptr;
     Kdll_State                  *m_pKernelDllState = nullptr;//!< Kernel DLL state 
 
-    RENDERCOPY_KERNELID          m_currKernelId = KERNEL_CopyKernel_1D_to_2D_NV12;
+    volatile RENDERCOPY_KERNELID m_currKernelId = KERNEL_CopyKernel_1D_to_2D_NV12;
     MOS_RESOURCE                 m_KernelResource = {};                           //!<Graphics memory for Kernel acces    s
     MEDIACOPY_RENDER_DATA        m_RenderData = {};
     VPHAL_SURFACE                m_Source = {};
@@ -186,9 +186,6 @@ public:
     bool                         m_bNullHwRenderCopy = false;
     RENDERHAL_SURFACE            RenderHalSource = {}; // source for mhw
     RENDERHAL_SURFACE            RenderHalTarget = {}; // target for mhw
-
-    uint32_t                     m_WalkerWidthBlockSize = 128;
-    uint32_t                     m_WalkerHeightBlockSize = 8;
 };
 
 #endif // __MEDIA_RENDER_COPY_H__

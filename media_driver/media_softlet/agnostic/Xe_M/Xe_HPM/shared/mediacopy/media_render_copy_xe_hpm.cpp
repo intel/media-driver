@@ -392,6 +392,10 @@ MOS_STATUS RenderCopy_Xe_Hpm::SetupKernel(
 
     MCPY_CHK_NULL_RETURN(pRenderData);
 
+
+    uint32_t   WalkerWidthBlockSize = 128;
+    uint32_t   WalkerHeightBlockSize = 8;
+
     if ((iBytePerPixelPerPlane < 1) || (iBytePerPixelPerPlane > 8))
     {
         MCPY_ASSERTMESSAGE("RenderCopyComputerWalker wrong pixel size.");
@@ -404,11 +408,11 @@ MOS_STATUS RenderCopy_Xe_Hpm::SetupKernel(
     {
         if ((m_currKernelId == KERNEL_CopyKernel_1D_to_2D_Packed) || (m_currKernelId == KERNEL_CopyKernel_2D_to_1D_Packed))
         {
-            m_WalkerHeightBlockSize = 32;
+            WalkerHeightBlockSize = 32;
         }
         else if (m_currKernelId == KERNEL_CopyKernel_2D_to_2D_Packed)
         {
-            m_WalkerHeightBlockSize = 8;
+            WalkerHeightBlockSize = 8;
         }
         else
         {
@@ -418,18 +422,18 @@ MOS_STATUS RenderCopy_Xe_Hpm::SetupKernel(
     }
     else
     {
-        m_WalkerHeightBlockSize = 8;
+        WalkerHeightBlockSize = 8;
     }
 
     if ((m_currKernelId == KERNEL_CopyKernel_2D_to_1D_Packed) ||
         (m_currKernelId == KERNEL_CopyKernel_2D_to_1D_NV12) ||
         (m_currKernelId == KERNEL_CopyKernel_2D_to_1D_Planar))
     {
-        m_WalkerWidthBlockSize = 16;
+        WalkerWidthBlockSize = 16;
     }
     else
     {
-        m_WalkerWidthBlockSize = 128;
+        WalkerWidthBlockSize = 128;
     }
     // Set walker cmd params - Rasterscan
     MOS_ZeroMemory(pWalkerParams, sizeof(*pWalkerParams));
@@ -441,27 +445,27 @@ MOS_STATUS RenderCopy_Xe_Hpm::SetupKernel(
     AlignedRect.bottom = (m_Source.dwHeight < m_Target.dwHeight) ? m_Source.dwHeight : m_Target.dwHeight;
     // Calculate aligned output area in order to determine the total # blocks
    // to process in case of non-16x16 aligned target.
-    AlignedRect.right += m_WalkerWidthBlockSize - 1;
-    AlignedRect.bottom += m_WalkerHeightBlockSize - 1;
-    AlignedRect.left -= AlignedRect.left % m_WalkerWidthBlockSize;
-    AlignedRect.top -= AlignedRect.top % m_WalkerHeightBlockSize;
-    AlignedRect.right -= AlignedRect.right % m_WalkerWidthBlockSize;
-    AlignedRect.bottom -= AlignedRect.bottom % m_WalkerHeightBlockSize;
+    AlignedRect.right += WalkerWidthBlockSize - 1;
+    AlignedRect.bottom += WalkerHeightBlockSize - 1;
+    AlignedRect.left -= AlignedRect.left % WalkerWidthBlockSize;
+    AlignedRect.top -= AlignedRect.top % WalkerHeightBlockSize;
+    AlignedRect.right -= AlignedRect.right % WalkerWidthBlockSize;
+    AlignedRect.bottom -= AlignedRect.bottom % WalkerHeightBlockSize;
 
     pWalkerParams->InterfaceDescriptorOffset = pRenderData->iMediaID;
 
-    pWalkerParams->GroupStartingX = (AlignedRect.left / m_WalkerWidthBlockSize);
-    pWalkerParams->GroupStartingY = (AlignedRect.top / m_WalkerHeightBlockSize);
+    pWalkerParams->GroupStartingX = (AlignedRect.left / WalkerWidthBlockSize);
+    pWalkerParams->GroupStartingY = (AlignedRect.top / WalkerHeightBlockSize);
 
     // Set number of blocks
     pRenderData->iBlocksX =
-        ((AlignedRect.right - AlignedRect.left) + m_WalkerWidthBlockSize - 1) / m_WalkerWidthBlockSize;
+        ((AlignedRect.right - AlignedRect.left) + WalkerWidthBlockSize - 1) / WalkerWidthBlockSize;
     pRenderData->iBlocksY =
-        ((AlignedRect.bottom - AlignedRect.top) + m_WalkerHeightBlockSize -1)/ m_WalkerHeightBlockSize;
+        ((AlignedRect.bottom - AlignedRect.top) + WalkerHeightBlockSize -1)/ WalkerHeightBlockSize;
 
-    // Set number of blocks, block size is m_WalkerWidthBlockSize x m_WalkerHeightBlockSize.
+    // Set number of blocks, block size is WalkerWidthBlockSize x WalkerHeightBlockSize.
     pWalkerParams->GroupWidth = pRenderData->iBlocksX;
-    pWalkerParams->GroupHeight = pRenderData->iBlocksY; // hight/m_WalkerWidthBlockSize
+    pWalkerParams->GroupHeight = pRenderData->iBlocksY; // hight/WalkerWidthBlockSize
 
     pWalkerParams->ThreadWidth = 1;
     pWalkerParams->ThreadHeight = 1;
@@ -470,8 +474,8 @@ MOS_STATUS RenderCopy_Xe_Hpm::SetupKernel(
     // Indirect Data Length is a multiple of 64 bytes (size of L3 cacheline). Bits [5:0] are zero.
     pWalkerParams->IndirectDataLength = MOS_ALIGN_CEIL(pRenderData->iCurbeLength, 1 << MHW_COMPUTE_INDIRECT_SHIFT);
     pWalkerParams->BindingTableID = pRenderData->iBindingTable;
-    MCPY_NORMALMESSAGE("WidthBlockSize %d, HeightBlockSize %d, Widththreads %d, Heightthreads%d",
-        m_WalkerWidthBlockSize, m_WalkerHeightBlockSize, pWalkerParams->GroupWidth, pWalkerParams->GroupHeight);
+    MCPY_NORMALMESSAGE("this = % p, WidthBlockSize %d, HeightBlockSize %d, Widththreads %d, Heightthreads %d",
+        this, WalkerWidthBlockSize, WalkerHeightBlockSize, pWalkerParams->GroupWidth, pWalkerParams->GroupHeight);
 
     return eStatus;
 }

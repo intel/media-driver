@@ -68,20 +68,12 @@ MOS_STATUS MediaCopyStateXe_Xpm_Base::Initialize(  PMOS_INTERFACE  osInterface, 
     return eStatus;
 }
 
-//!
-//! \brief    surface copy pre process.
-//! \details  pre process before doing surface copy.
-//! \param    preferMethod
-//!           [in] Preferred media copy method
-//! \return   MOS_STATUS
-//!           Return MOS_STATUS_SUCCESS if support, otherwise return unspoort.
-//!
-MOS_STATUS MediaCopyStateXe_Xpm_Base::PreProcess(MCPY_METHOD preferMethod)
+MOS_STATUS MediaCopyStateXe_Xpm_Base::PreCheckCpCopy(
+    MCPY_STATE_PARAMS src, MCPY_STATE_PARAMS dest, MCPY_METHOD preferMethod)
 {
     if ((preferMethod == MCPY_METHOD_POWERSAVING)
-        && m_mcpyEngineCaps.engineBlt
-        && (m_mcpySrc.CpMode == MCPY_CPMODE_CP)
-        && (m_mcpyDst.CpMode == MCPY_CPMODE_CLEAR))
+        && (src.CpMode == MCPY_CPMODE_CP)
+        && (dest.CpMode == MCPY_CPMODE_CLEAR))
     {
         //Allow blt engine to do copy when dst buffer is staging buffer and allocate in system mem, since protection off with blt engine.
         m_allowCPBltCopy = true;

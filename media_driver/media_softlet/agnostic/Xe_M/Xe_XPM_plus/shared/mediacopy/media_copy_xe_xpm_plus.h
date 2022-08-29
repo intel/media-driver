@@ -92,23 +92,30 @@ public:
     //!
     //! \brief    check copy capability.
     //! \details  to determine surface copy is supported or not.
-    //! \param    none
+    //! \param    mcpySrc
+    //!           [in] Pointer to source paramters
+    //! \param    mcpyDst
+    //!           [in] Pointer to destination paramters
+    //! \param    caps
+    //!           [in] reference of featue supported engine's caps
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if support, otherwise return unspoort.
     //!
-    virtual MOS_STATUS CapabilityCheck();
+    virtual MOS_STATUS CapabilityCheck(MCPY_STATE_PARAMS& mcpySrc, MCPY_STATE_PARAMS& mcpyDst, MCPY_ENGINE_CAPS& caps);
 
     //!
-    //! \brief    dispatch copy task if support.
-    //! \details  dispatch copy task to HW engine (vebox, EU, Blt) based on customer and default.
-    //! \param    src
-    //!           [in] Pointer to source surface
-    //! \param    dst
-    //!           [in] Pointer to destination surface
+    //! \brief    select copy enigne
+    //! \details  media copy select copy enigne.
+    //! \param    preferMethod
+    //!           [in] copy method
+    //! \param    mcpyEngine
+    //!           [in] copy engine
+    //! \param    caps
+    //!           [in] reference of featue supported engine
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if support, otherwise return unspoort.
     //!
-    MOS_STATUS CopyEnigneSelect(MCPY_METHOD preferMethod);
+    MOS_STATUS CopyEnigneSelect(MCPY_METHOD preferMethod, MCPY_ENGINE& mcpyEngine, MCPY_ENGINE_CAPS& caps);
 
 protected:
 

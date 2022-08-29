@@ -170,6 +170,7 @@ public:
     PMOS_INTERFACE                  m_osInterface;
     COMMON_SURF_DUMP_SPEC           m_dumpSpec;
     MediaUserSettingSharedPtr       m_userSettingPtr = nullptr;       // userSettingInstance
+    int32_t                         m_frameNum = 0;
 
 MEDIA_CLASS_DEFINE_END(CommonSurfaceDumper)
 };

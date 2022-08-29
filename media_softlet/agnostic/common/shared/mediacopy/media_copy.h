@@ -101,20 +101,31 @@ public:
     //!
     //! \brief    check copy capability.
     //! \details  to determine surface copy is supported or not.
-    //! \param    none
+    //! \param    mcpySrc
+    //!           [in] Pointer to source paramters
+    //! \param    mcpyDst
+    //!           [in] Pointer to destination paramters
+    //! \param    caps
+    //!           [in] reference of featue supported engine's caps
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if support, otherwise return unspoort.
     //!
-    virtual MOS_STATUS CapabilityCheck();
+    virtual MOS_STATUS CapabilityCheck(MCPY_STATE_PARAMS& mcpySrc, MCPY_STATE_PARAMS& mcpyDst, MCPY_ENGINE_CAPS& caps);
 
     //!
     //! \brief    surface copy pre process.
     //! \details  pre process before doing surface copy.
-    //! \param    none
+    //! \param    src
+    //!          [in]Media copy state's input parmaters
+    //! \param    dest
+    //!          [in]Media copy state's output parmaters
+    //! \param    preferMethod
+    //!          [in]Media copy Method
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if support, otherwise return unspoort.
     //!
-    virtual MOS_STATUS PreProcess(MCPY_METHOD preferMethod = MCPY_METHOD_BALANCE);
+    virtual MOS_STATUS PreCheckCpCopy(
+        MCPY_STATE_PARAMS src, MCPY_STATE_PARAMS dest, MCPY_METHOD preferMethod);
 
     //!
     //! \brief    surface copy func.
@@ -140,34 +151,22 @@ public:
     //!
     virtual MOS_STATUS AuxCopy(PMOS_RESOURCE src, PMOS_RESOURCE dst);
 
-    //!
-    //! \brief    query which copy caps engine.
-    //! \details  to indicate which Engine support this surface copy, for internal debug purpose.
-    //! \param    src
-    //!           [in] Pointer to source surface
-    //! \param    dst
-    //!           [in] Pointer to destination surface
-    //! \param    HW_engine
-    //!           [out] Pointer to destination surface
-    //! \return   MOS_STATUS
-    //!           Return MOS_STATUS_SUCCESS if support, otherwise return unspoort.
-    //!
-    MCPY_ENGINE_CAPS* QueryCapsEngine(PMOS_RESOURCE src, PMOS_RESOURCE dst)
-    {
-        CapabilityCheck();
-        return &m_mcpyEngineCaps;
-    }
 
 protected:
 
     //!
     //! \brief    dispatch copy task if support.
     //! \details  dispatch copy task to HW engine (vebox, EU, Blt) based on customer and default.
-    //! \param    none
+    //! \param    mcpySrc
+    //!           [in] Pointer to source surface
+    //! \param    mcpyDst
+    //!           [in] Pointer to destination surface
+    //! \param    mcpyEngine
+    //!           [in] reference of featue supported engine
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if support, otherwise return unspoort.
     //!
-    virtual MOS_STATUS TaskDispatch();
+    virtual MOS_STATUS TaskDispatch(MCPY_STATE_PARAMS mcpySrc, MCPY_STATE_PARAMS mcpyDst, MCPY_ENGINE mcpyEngine);
 
     //!
     //! \brief    vebox format support.
@@ -214,16 +213,18 @@ protected:
     {return MOS_STATUS_SUCCESS;}
 
     //!
-    //! \brief    dispatch copy task if support.
-    //! \details  dispatch copy task to HW engine (vebox, EU, Blt) based on customer and default.
-    //! \param    src
-    //!           [in] Pointer to source surface
-    //! \param    dst
-    //!           [in] Pointer to destination surface
+    //! \brief    select copy enigne
+    //! \details  media copy select copy enigne.
+    //! \param    preferMethod
+    //!           [in] copy method
+    //! \param    mcpyEngine
+    //!           [in] copy engine
+    //! \param    caps
+    //!           [in] reference of featue supported engine
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if support, otherwise return unspoort.
     //!
-    MOS_STATUS CopyEnigneSelect(MCPY_METHOD preferMethod);
+    MOS_STATUS CopyEnigneSelect(MCPY_METHOD preferMethod, MCPY_ENGINE& mcpyEngine, MCPY_ENGINE_CAPS& caps);
 
     //!
     //! \brief    use blt engie to do surface copy.
@@ -266,15 +267,11 @@ protected:
 
 public:
     PMOS_INTERFACE        m_osInterface    = nullptr;
-    MCPY_ENGINE_CAPS      m_mcpyEngineCaps = {1,1,1,1};
-    MCPY_ENGINE           m_mcpyEngine     = MCPY_ENGINE_RENDER;
-    MCPY_STATE_PARAMS     m_mcpySrc        = {nullptr, MOS_MMC_DISABLED,MOS_TILE_LINEAR, MCPY_CPMODE_CLEAR, false}; // source surface.
-    MCPY_STATE_PARAMS     m_mcpyDst        = {nullptr, MOS_MMC_DISABLED,MOS_TILE_LINEAR, MCPY_CPMODE_CLEAR, false}; // destination surface.
     bool                  m_allowCPBltCopy = false;  // allow cp call media copy only for output clear cases.
 #if (_DEBUG || _RELEASE_INTERNAL)
     CommonSurfaceDumper  *m_surfaceDumper  = nullptr;
 #endif
-    static int32_t        m_frameNum;
+
 
 protected:
     PMOS_MUTEX           m_inUseGPUMutex = nullptr; // Mutex for in-use GPU context

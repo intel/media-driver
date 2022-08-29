@@ -185,33 +185,33 @@ MOS_STATUS MediaCopyStateXe_Xpm_Plus::MediaRenderCopy(PMOS_RESOURCE src, PMOS_RE
     }
 }
 
-MOS_STATUS MediaCopyStateXe_Xpm_Plus::CapabilityCheck()
+MOS_STATUS MediaCopyStateXe_Xpm_Plus::CapabilityCheck(MCPY_STATE_PARAMS& mcpySrc, MCPY_STATE_PARAMS& mcpyDst, MCPY_ENGINE_CAPS& caps)
 {
-    // init hw enigne caps.
-    m_mcpyEngineCaps.engineBlt    = 1;
-    m_mcpyEngineCaps.engineRender = 1;
-    m_mcpyEngineCaps.engineVebox = 0;
+    // init hw enigne caps.pvc doesn't have vebox
+    caps.engineBlt    = 1;
+    caps.engineRender = 1;
+    caps.engineVebox = 0;
 
     // derivate class specific check. include HW engine avaliable check.
-    MCPY_CHK_STATUS_RETURN(FeatureSupport(m_mcpySrc.OsRes, m_mcpyDst.OsRes, m_mcpyEngineCaps));
+    MCPY_CHK_STATUS_RETURN(FeatureSupport(mcpySrc.OsRes, mcpyDst.OsRes, caps));
 
     // common policy check
     // legal check
     // Blt engine does not support protection, allow the copy if dst is staging buffer in system mem
-    if (m_mcpySrc.CpMode == MCPY_CPMODE_CP && m_mcpyDst.CpMode == MCPY_CPMODE_CLEAR && !m_allowCPBltCopy)
+    if (mcpySrc.CpMode == MCPY_CPMODE_CP && mcpyDst.CpMode == MCPY_CPMODE_CLEAR && !m_allowCPBltCopy)
     {
         MCPY_ASSERTMESSAGE("illegal usage");
         return MOS_STATUS_INVALID_PARAMETER;
     }
 
     // Eu cap check.
-    if (!RenderFormatSupportCheck(m_mcpySrc.OsRes, m_mcpyDst.OsRes) || // format check, implemented on Gen derivate class.
-        m_mcpySrc.bAuxSuface)
+    if (!RenderFormatSupportCheck(mcpySrc.OsRes, mcpyDst.OsRes) || // format check, implemented on Gen derivate class.
+        mcpySrc.bAuxSuface)
     {
-        m_mcpyEngineCaps.engineRender = false;
+        caps.engineRender = false;
     }
 
-    if (!m_mcpyEngineCaps.engineVebox && !m_mcpyEngineCaps.engineBlt && !m_mcpyEngineCaps.engineRender)
+    if (!caps.engineVebox && !caps.engineBlt && !caps.engineRender)
     {
         return MOS_STATUS_INVALID_PARAMETER; // unsupport copy on each hw engine.
     }
@@ -219,7 +219,7 @@ MOS_STATUS MediaCopyStateXe_Xpm_Plus::CapabilityCheck()
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS MediaCopyStateXe_Xpm_Plus::CopyEnigneSelect(MCPY_METHOD preferMethod)
+MOS_STATUS MediaCopyStateXe_Xpm_Plus::CopyEnigneSelect(MCPY_METHOD preferMethod, MCPY_ENGINE& mcpyEngine, MCPY_ENGINE_CAPS& caps)
 {
     // assume perf render > vebox > blt. blt data should be measured.
     // driver should make sure there is at least one he can process copy even customer choice doesn't match caps.
@@ -227,10 +227,10 @@ MOS_STATUS MediaCopyStateXe_Xpm_Plus::CopyEnigneSelect(MCPY_METHOD preferMethod)
     {
         case MCPY_METHOD_PERFORMANCE:
         case MCPY_METHOD_DEFAULT:
-            m_mcpyEngine = m_mcpyEngineCaps.engineRender ? MCPY_ENGINE_RENDER:MCPY_ENGINE_BLT;
+            mcpyEngine = caps.engineRender ? MCPY_ENGINE_RENDER:MCPY_ENGINE_BLT;
             break;
         default:
-            m_mcpyEngine = MCPY_ENGINE_BLT;
+            mcpyEngine = MCPY_ENGINE_BLT;
             break;
     }
 
