@@ -95,6 +95,7 @@ void MhwInterfacesNext::Destroy()
     m_cpInterface = nullptr;
     MOS_Delete(m_stateHeapInterface);
     MOS_Delete(m_mfxInterface);
+    MOS_Delete(m_vdencInterface);
 }
 
 void* McpyDeviceNext::CreateFactory(

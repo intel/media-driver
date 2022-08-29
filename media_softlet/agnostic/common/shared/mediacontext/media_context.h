@@ -117,8 +117,6 @@ public:
         return MOS_RCS_ENGINE_USED(gpuContext);
     }
 
-    uint8_t GetNumVdbox() { return m_numVdbox; }
-
 protected:
     PMOS_INTERFACE                    m_osInterface             = nullptr;           //!< OS interface
     void                             *m_hwInterface             = nullptr;           //!< HW interface
@@ -130,8 +128,7 @@ protected:
     static const uint32_t             m_invalidContextAttribute = 0xffffffdf;        //!< Index value to indicate invalid Context Attribute
     static const uint32_t             m_invalidStreamId         = 0xffffffcb;        //!< Id to indicate invalid Stream
     static const uint32_t             m_maxContextAttribute     = 4096;              //!< Max number of entries supported in gpuContextAttributeTable in one media context
-    uint8_t                           m_numVdbox                = 1;                 //!< vdbox num
-    bool                              m_scalabilitySupported    = false;             //!< Indicate if scalability supported
+
     //!
     //! \brief  Search the ContextAttributeTable to reuse or create gpu Context and scalabilty state meeting the requirements
     //! \param  [in] func
@@ -174,15 +171,11 @@ protected:
     //!
     MOS_STATUS FunctionToNode(MediaFunction func, const MOS_GPUCTX_CREATOPTIONS_ENHANCED &option, MOS_GPU_NODE& node);
     MOS_STATUS FunctionToNodeCodec(MOS_GPU_NODE& node);
-    MOS_STATUS FindGpuNodeToUse(PMHW_VDBOX_GPUNODE_LIMIT gpuNodeLimit);
+
     // Be compatible to Legacy MOS
     MOS_STATUS FunctionToGpuContext(MediaFunction func, const MOS_GPUCTX_CREATOPTIONS_ENHANCED &option, const MOS_GPU_NODE &node, MOS_GPU_CONTEXT &ctx);
     MOS_STATUS FunctionToGpuContextDecode(const MOS_GPUCTX_CREATOPTIONS_ENHANCED &option, const MOS_GPU_NODE &node, MOS_GPU_CONTEXT &ctx);
     MOS_STATUS FunctionToGpuContextEncode(const MOS_GPUCTX_CREATOPTIONS_ENHANCED &option, MOS_GPU_CONTEXT &ctx);
-
-    #if (_DEBUG || _RELEASE_INTERNAL)
-    MOS_STATUS CheckScalabilityOverrideValidity();
-    #endif
 
 MEDIA_CLASS_DEFINE_END(MediaContext)
 };

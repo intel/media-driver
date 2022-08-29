@@ -40,7 +40,6 @@
 #include "mos_os.h"
 #include "mhw_cmdpar.h"
 #include "mhw_mi_itf.h"
-#include "mhw_vdbox_vdenc_itf.h"
 class MediaStatusReport;
 class MhwMiInterface;
 namespace mhw{namespace mi{class Itf;}}  // namespace mhw
@@ -346,9 +345,8 @@ protected:
     MhwMiInterface                *m_miInterface  = nullptr;
     MediaStatusReport             *m_statusReport = nullptr;
     std::shared_ptr<mhw::mi::Itf> m_miItf         = nullptr;
-    std::shared_ptr<mhw::vdbox::vdenc::Itf> m_vdencItf = nullptr;
     MediaUserSettingSharedPtr     m_userSettingPtr = nullptr;  //!< usersettingInstance
 MEDIA_CLASS_DEFINE_END(MediaPacket)
 };
- 
+
 #endif // !__MEDIA_PACKET_H__

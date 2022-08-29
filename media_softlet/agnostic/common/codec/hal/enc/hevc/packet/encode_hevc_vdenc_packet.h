@@ -108,8 +108,6 @@ namespace encode
             ENCODE_CHK_NULL_NO_STATUS_RETURN(m_hcpItf);
             m_miItf          = m_hwInterface->GetMiInterfaceNext();
             ENCODE_CHK_NULL_NO_STATUS_RETURN(m_miItf);
-            m_mfxItf = std::static_pointer_cast<mhw::vdbox::mfx::Itf>(m_hwInterface->GetMfxInterfaceNext());
-            ENCODE_CHK_NULL_NO_STATUS_RETURN(m_mfxItf);
         }
 
         virtual ~HevcVdencPkt() 
@@ -574,7 +572,6 @@ namespace encode
 
         std::shared_ptr<mhw::vdbox::vdenc::Itf>           m_vdencItf       = nullptr;
         std::shared_ptr<mhw::vdbox::hcp::Itf>             m_hcpItf         = nullptr;
-        std::shared_ptr<mhw::vdbox::mfx::Itf>             m_mfxItf         = nullptr;
         std::shared_ptr<MediaFeatureManager::ManagerLite> m_featureManager = nullptr;
 
         mutable uint8_t m_curHcpSurfStateId = 0;
