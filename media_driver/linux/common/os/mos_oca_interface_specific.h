@@ -334,5 +334,6 @@ private:
     static uint32_t                 s_lineNumForOcaErr;             //!< The line number for first oca error encounterred.
     static bool                     s_bOcaStatusExistInReg;         //!< ture if "Oca Status" already being added to reg.
     static int32_t                  s_refCount;
+    static bool                     s_isDestroyed;
 };
 #endif  // __MOS_OCA_INTERFACE_SPECIFIC_H__

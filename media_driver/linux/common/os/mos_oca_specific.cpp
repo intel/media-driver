@@ -69,6 +69,7 @@ MOS_STATUS  MosOcaInterfaceSpecific::s_ocaStatus          = MOS_STATUS_SUCCESS;
 uint32_t MosOcaInterfaceSpecific::s_lineNumForOcaErr      = 0;
 bool MosOcaInterfaceSpecific::s_bOcaStatusExistInReg      = false;
 int32_t MosOcaInterfaceSpecific::s_refCount               = 0;
+bool MosOcaInterfaceSpecific::s_isDestroyed               = false;
 
 //!
 //! \brief  Get the idle oca buffer, which is neither used by hw nor locked, and lock it for edit.
@@ -738,6 +739,7 @@ MosOcaInterfaceSpecific& MosOcaInterfaceSpecific::operator= (MosOcaInterfaceSpec
 MosOcaInterfaceSpecific::~MosOcaInterfaceSpecific()
 {
     Uninitialize();
+    s_isDestroyed = true;
 }
 
 //!
@@ -773,6 +775,7 @@ void MosOcaInterfaceSpecific::Uninitialize()
         }
         m_isInitialized = false;
         s_bOcaStatusExistInReg = false;
+        s_isDestroyed = false;
     }
 }
 
@@ -796,8 +799,11 @@ void MosOcaInterfaceSpecific::UninitInterface()
 {
     if (MosUtilities::MosAtomicDecrement(&s_refCount) == 0)
     {
-        MosOcaInterfaceSpecific &ins = (MosOcaInterfaceSpecific &)MosOcaInterfaceSpecific::GetInstance();
-        ins.Uninitialize();
+        if(!s_isDestroyed)
+        {
+            MosOcaInterfaceSpecific &ins = (MosOcaInterfaceSpecific &)MosOcaInterfaceSpecific::GetInstance();
+            ins.Uninitialize();
+        }
     }
     return;
 }
