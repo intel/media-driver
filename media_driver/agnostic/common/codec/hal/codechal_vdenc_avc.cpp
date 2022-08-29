@@ -5678,6 +5678,13 @@ MOS_STATUS CodechalVdencAvcState::InitializePicture(const EncoderParams &params)
     m_resVdencStatsBuffer     = &(m_vdencStatsBuffer);
     m_resPakStatsBuffer       = &(m_pakStatsBuffer);
 
+    // HW limitation, skip block count for B frame must be acquired in GetAvcVdencMBLevelStatusExt
+    if (m_avcPicParam->StatusReportEnable.fields.BlockStats ||
+       (m_avcPicParam->StatusReportEnable.fields.FrameStats && m_avcPicParam->CodingType == B_TYPE))
+    {
+        m_perMBStreamOutEnable = true;
+    }
+
     return eStatus;
 }
 
@@ -6470,6 +6477,11 @@ MOS_STATUS CodechalVdencAvcState::ExecuteSliceLevel()
     }
 #endif
 
+    if (m_avcPicParam->StatusReportEnable.fields.FrameStats)
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(GetAvcVdencFrameLevelStatusExt(m_avcPicParam->StatusReportFeedbackNumber, &cmdBuffer));
+    }
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(EndStatusReport(&cmdBuffer, CODECHAL_NUM_MEDIA_STATES));
 
     if (!m_singleTaskPhaseSupported || m_lastTaskInPhase)
@@ -6587,6 +6599,13 @@ MOS_STATUS CodechalVdencAvcState::ExecuteSliceLevel()
             0, //offset
             CODECHAL_MEDIA_STATE_16X_ME));
     )
+
+    // HW limitation, skip block count for B frame must be acquired in GetAvcVdencMBLevelStatusExt
+    if (m_avcPicParam->StatusReportEnable.fields.BlockStats ||
+       (m_avcPicParam->StatusReportEnable.fields.FrameStats && m_avcPicParam->CodingType == B_TYPE))
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(GetAvcVdencMBLevelStatusExt(m_avcPicParam->StatusReportFeedbackNumber, m_avcSliceParams->slice_type));
+    }
 
     if (m_vdencBrcEnabled)
     {
@@ -7013,6 +7032,12 @@ MOS_STATUS CodechalVdencAvcState::AllocateResources()
     // Here allocate the buffer for MB+FrameLevel PAK statistics.
     uint32_t size = m_vdencBrcPakStatsBufferSize + m_picWidthInMb*m_picHeightInMb*64;
     allocParamsForBufferLinear.dwBytes  = MOS_ALIGN_CEIL(size, CODECHAL_PAGE_SIZE);
+
+    if (m_osInterface->osCpInterface == nullptr || !m_osInterface->osCpInterface->IsCpEnabled())
+    {
+        allocParamsForBufferLinear.dwMemType        = MOS_MEMPOOL_SYSTEMMEMORY;
+        allocParamsForBufferLinear.Flags.bCacheable = true;
+    }
 
     eStatus = (MOS_STATUS)m_osInterface->pfnAllocateResource(
         m_osInterface,

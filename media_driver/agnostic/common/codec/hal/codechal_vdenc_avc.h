@@ -784,6 +784,36 @@ public:
         MHW_VDBOX_AVC_SLICE_STATE &                 sliceState,
         uint16_t                                    slcIdx);
 
+    //!
+    //! \brief    Get AVC VDenc frame level status extention
+    //!
+    //! \param    [in] cmdBuffer
+    //!           Point to MOS_COMMAND_BUFFER
+    //!           [in] StatusReportFeedbackNumber
+    //!           Status report number
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS GetAvcVdencFrameLevelStatusExt(uint32_t StatusReportFeedbackNumber, MOS_COMMAND_BUFFER *cmdBuffer)
+    {
+        return MOS_STATUS_SUCCESS;
+    };
+
+    //!
+    //! \brief    Get AVC VDenc MB level status extention
+    //!
+    //! \param    [in] encodeStatusReport
+    //!           Point to EncodeStatusReport
+    //!           [in] StatusReportFeedbackNumber
+    //!           Status report number
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS GetAvcVdencMBLevelStatusExt(uint32_t StatusReportFeedbackNumber, uint8_t SliceType)
+    {
+        return MOS_STATUS_SUCCESS;
+    };
+
 protected:
     // AvcGeneraicState functions
     //!
