@@ -162,10 +162,7 @@ MOS_STATUS MediaRenderCommon::Set2DSurfaceForHwAccess(
         &info,
         pSurface);
 
-    if (Mos_ResourceIsNull(&pRenderSurface->OsSurface.OsResource))
-    {
-        pRenderSurface->OsSurface = *pSurface;
-    }
+    pRenderSurface->OsSurface = *pSurface;
     pRenderSurface->rcSrc.bottom       = pSurface->dwHeight;
     pRenderSurface->rcSrc.right        = pSurface->dwWidth;
     pRenderSurface->rcDst.bottom       = pSurface->dwHeight;
