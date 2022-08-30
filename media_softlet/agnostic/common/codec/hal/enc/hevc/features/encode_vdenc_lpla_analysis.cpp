@@ -558,37 +558,41 @@ namespace encode
         ENCODE_CHK_NULL_RETURN(debugInterface);
         int32_t currentPass = pipeline->GetCurrentPass();
 
-        ENCODE_CHK_STATUS_RETURN(debugInterface->DumpBuffer(
+        ENCODE_CHK_STATUS_RETURN(debugInterface->DumpHucDmem(
             m_vdencLaUpdateDmemBuffer[pipeline->m_currRecycledBufIdx][currentPass],
-            CodechalDbgAttr::attrVdencOutput,
-            "_LookaheadDmem",
             sizeof(VdencHevcHucLaDmem),
-            0,
-            CODECHAL_NUM_MEDIA_STATES));
+            currentPass,
+            hucRegionDumpLAUpdate));
 
-        ENCODE_CHK_STATUS_RETURN(debugInterface->DumpBuffer(
-            m_vdencLaDataBuffer,
-            CodechalDbgAttr::attrVdencOutput,
-            "_LookaheadData",
-            m_brcLooaheadDataBufferSize,
-            0,
-            CODECHAL_NUM_MEDIA_STATES));
-
-        ENCODE_CHK_STATUS_RETURN(debugInterface->DumpBuffer(
+        ENCODE_CHK_STATUS_RETURN(debugInterface->DumpHucRegion(
             m_vdencLaHistoryBuffer,
-            CodechalDbgAttr::attrVdencOutput,
-            "_LookaheadHistory",
+            0,
             m_LaHistoryBufSize,
             0,
-            CODECHAL_NUM_MEDIA_STATES));
+            "_History",
+            isInput,
+            currentPass,
+            hucRegionDumpLAUpdate));
 
-        ENCODE_CHK_STATUS_RETURN(debugInterface->DumpBuffer(
+        ENCODE_CHK_STATUS_RETURN(debugInterface->DumpHucRegion(
             m_vdencLaStatsBuffer,
-            CodechalDbgAttr::attrVdencOutput,
-            "_LookaheadStats",
-            m_brcLooaheadStatsBufferSize,
             0,
-            CODECHAL_NUM_MEDIA_STATES));
+            m_brcLooaheadStatsBufferSize,
+            1,
+            "_Stats",
+            isInput,
+            currentPass,
+            hucRegionDumpLAUpdate));
+
+        ENCODE_CHK_STATUS_RETURN(debugInterface->DumpHucRegion(
+            m_vdencLaDataBuffer,
+            0,
+            m_brcLooaheadDataBufferSize,
+            2,
+            "_Data",
+            isInput,
+            currentPass,
+            hucRegionDumpLAUpdate));
 
         return eStatus;
     }

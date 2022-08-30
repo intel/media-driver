@@ -962,6 +962,9 @@ MOS_STATUS CodechalDebugInterface::DumpHucDmem(
     case hucRegionDumpUpdate:
         funcName = funcName + dmemName + "_UpdatePass" + passName;
         break;
+    case hucRegionDumpLAUpdate:
+        funcName = funcName + dmemName + "_LookaheadUpdatePass" + passName;
+        break;
     case hucRegionDumpRegionLocked:
         funcName = funcName + dmemName + "_RegionLocked" + passName;
         break;
@@ -1048,6 +1051,9 @@ MOS_STATUS CodechalDebugInterface::DumpHucRegion(
         break;
     case hucRegionDumpUpdate:
         funcName = funcName + inputName + bufName + regionNumName + regionName + "_UpdatePass" + passName;
+        break;
+    case hucRegionDumpLAUpdate:
+        funcName = funcName + inputName + bufName + regionNumName + regionName + "_LookaheadUpdatePass" + passName;
         break;
     case hucRegionDumpRegionLocked:
         funcName = funcName + inputName + bufName + regionNumName + regionName + "_RegionLockedPass" + passName;

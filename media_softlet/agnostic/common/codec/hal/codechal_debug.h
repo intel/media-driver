@@ -79,12 +79,13 @@ enum CodechalHucRegionDumpType
     hucRegionDumpDefault        = 0,
     hucRegionDumpInit           = 1,
     hucRegionDumpUpdate         = 2,
-    hucRegionDumpRegionLocked   = 3,
-    hucRegionDumpCmdInitializer = 4,
-    hucRegionDumpPakIntegrate   = 5,
-    hucRegionDumpHpu            = 6,
-    hucRegionDumpBackAnnotation = 7,
-    hucRegionDumpHpuSuperFrame  = 8
+    hucRegionDumpLAUpdate       = 3,
+    hucRegionDumpRegionLocked   = 4,
+    hucRegionDumpCmdInitializer = 5,
+    hucRegionDumpPakIntegrate   = 6,
+    hucRegionDumpHpu            = 7,
+    hucRegionDumpBackAnnotation = 8,
+    hucRegionDumpHpuSuperFrame  = 9
 };
 
 typedef struct _CODECHAL_ME_OUTPUT_PARAMS
