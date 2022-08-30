@@ -43,7 +43,7 @@ VpUserFeatureControl::VpUserFeatureControl(MOS_INTERFACE &osInterface, VpPlatfor
         m_ctrlValDefault.disableVeboxOutput = true;
         m_ctrlValDefault.disableSfc         = true;
 
-        VP_PUBLIC_NORMALMESSAGE("No VeRing, disableVeboxOutput %d, disableSfc %d", (m_ctrlValDefault.disableVeboxOutput, m_ctrlValDefault.disableSfc));
+        VP_PUBLIC_NORMALMESSAGE("No VeRing, disableVeboxOutput %d, disableSfc %d", m_ctrlValDefault.disableVeboxOutput, m_ctrlValDefault.disableSfc);
     }
     else
     {
@@ -89,8 +89,8 @@ VpUserFeatureControl::VpUserFeatureControl(MOS_INTERFACE &osInterface, VpPlatfor
         }
         else
         {
-            VP_PUBLIC_NORMALMESSAGE("No FtrSFCPipe, disableSfc %d", m_ctrlValDefault.disableSfc);
             m_ctrlValDefault.disableSfc = true;
+            VP_PUBLIC_NORMALMESSAGE("No FtrSFCPipe, disableSfc %d", m_ctrlValDefault.disableSfc);
         }
         VP_PUBLIC_NORMALMESSAGE("disableSfc %d", m_ctrlValDefault.disableSfc);
     }
