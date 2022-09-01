@@ -98,7 +98,7 @@ MOS_STATUS MhwVdboxMfxInterfaceXe_Xpm::AddMfxPipeBufAddrCmd(
     uint32_t       step       = 1;
     for (uint32_t i = 0; i < numRefIdx; i++)
     {
-        if (references[i] != nullptr)
+        if (references[i] != nullptr && references[i]->pGmmResInfo != nullptr)
         {
             MOS_SURFACE details;
             MOS_ZeroMemory(&details, sizeof(details));

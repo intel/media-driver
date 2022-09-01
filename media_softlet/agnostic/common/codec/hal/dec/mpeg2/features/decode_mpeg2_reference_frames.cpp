@@ -46,6 +46,12 @@ MOS_STATUS Mpeg2ReferenceFrames::Init(Mpeg2BasicFeature *basicFeature, DecodeAll
     m_allocator = &allocator;
     DECODE_CHK_STATUS(CodecHalAllocateDataList(m_refList, CODECHAL_NUM_UNCOMPRESSED_SURFACE_MPEG2));
 
+    //mark all reference res as invalid when they are no initialized
+    for (uint32_t i = 0; i < CODECHAL_NUM_UNCOMPRESSED_SURFACE_MPEG2; i++)
+    {
+        m_refList[i]->RefPic.PicFlags = PICTURE_INVALID;
+    }
+
     return MOS_STATUS_SUCCESS;
 }
 
