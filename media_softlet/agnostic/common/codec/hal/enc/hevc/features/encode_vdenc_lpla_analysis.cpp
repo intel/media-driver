@@ -644,11 +644,10 @@ namespace encode
             storeIntraCuCount.dwValue          = m_statsBuffer[index][2];
             ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(&cmdBuffer));
 
-            auto &flushDwParams = m_miItf->MHW_GETPAR_F(MI_STORE_DATA_IMM)();
+            auto &flushDwParams = m_miItf->MHW_GETPAR_F(MI_FLUSH_DW)();
             flushDwParams       = {};
-            MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
             // Make Flush DW call to make sure all previous work is done
-            ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(&cmdBuffer));
+            ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(&cmdBuffer));
         }
         else
         {
