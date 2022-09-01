@@ -60,16 +60,20 @@ VAStatus DdiMediaBase::RegisterRTSurfaces(DDI_CODEC_RENDER_TARGET_TABLE *rtTbl, 
         if (rtTbl->pRT[i] == surface)
         {
             //pCurrRT has already been registered
+            emptyEntry = DDI_MEDIA_MAX_SURFACE_NUMBER_CONTEXT + 1;
             break;
         }
         else if ((rtTbl->pRT[i] == nullptr) && (emptyEntry == (DDI_MEDIA_MAX_SURFACE_NUMBER_CONTEXT + 1)))
         {
             //find the first empty entry
             emptyEntry = i;
-            break;
         }
     }
 
+    if (emptyEntry < DDI_MEDIA_MAX_SURFACE_NUMBER_CONTEXT)
+    {
+        i = emptyEntry;
+    }
     //if pCurrRT has not registered in pRT, add it into the array
     if (i < DDI_MEDIA_MAX_SURFACE_NUMBER_CONTEXT)
     {
