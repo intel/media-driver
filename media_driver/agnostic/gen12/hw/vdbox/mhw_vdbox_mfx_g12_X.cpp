@@ -976,7 +976,7 @@ MOS_STATUS MhwVdboxMfxInterfaceG12::AddMfxPipeBufAddrCmd(
     bool firstRefPic = true;
     for (uint32_t i = 0; i < numRefIdx; i++)
     {
-        if (references[i] != nullptr)
+        if (references[i] != nullptr && references[i]->pGmmResInfo != nullptr)
         {
             MOS_SURFACE details;
             MOS_ZeroMemory(&details, sizeof(details));
