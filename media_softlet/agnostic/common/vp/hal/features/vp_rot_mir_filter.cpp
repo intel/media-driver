@@ -356,6 +356,7 @@ MOS_STATUS PolicySfcRotMirHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFil
     {
         SwFilterRotMir *filter2ndPass = featureRotMir;
         SwFilterRotMir *filter1ndPass = (SwFilterRotMir *)feature.Clone();
+        VP_PUBLIC_CHK_NULL_RETURN(filter1ndPass);
         FeatureParamRotMir &params1stPass = filter1ndPass->GetSwFilterParams();
 
         // No rotation in 1st pass.
