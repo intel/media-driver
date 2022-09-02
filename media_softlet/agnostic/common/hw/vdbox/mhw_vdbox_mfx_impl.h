@@ -619,7 +619,6 @@ protected:
             MHW_MI_CHK_NULL(params.presDataBuffer);
 
             InitMocsParams(resourceParams, &cmd.MfxIndirectBitstreamObjectAttributes.DW0.Value, 1, 6);
-            cmd.MfxIndirectBitstreamObjectAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_mfxIndirectBitstreamCtrl.Gen12_7.Index;
 
             resourceParams.presResource                      = params.presDataBuffer;
             resourceParams.dwOffset                          = params.dwDataOffset;
@@ -640,7 +639,6 @@ protected:
         {
             MHW_MI_CHK_NULL(params.presDataBuffer);
             InitMocsParams(resourceParams, &cmd.MfdIndirectItCoeffObjectAttributes.DW0.Value, 1, 6);
-            cmd.MfdIndirectItCoeffObjectAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_mfdIndirectItCoeffCtrl.Gen12_7.Index;
 
             resourceParams.presResource                      = params.presDataBuffer;
             resourceParams.dwOffset                          = params.dwDataOffset;
@@ -743,7 +741,6 @@ protected:
         else if (params.presMprRowStoreScratchBuffer)
         {
             InitMocsParams(resourceParams, &cmd.DW6.Value, 1, 6);
-            cmd.DW6.MprRowStoreScratchBufferIndexToMemoryObjectControlStateMocsTables = m_mprRowStoreScratchBufferCtrl.Gen12_7.Index;
             cmd.DW4.MprRowStoreScratchBufferBaseAddressReadWriteDecoderOnly = 0;
 
             resourceParams.presResource    = params.presMprRowStoreScratchBuffer;
@@ -751,23 +748,6 @@ protected:
             resourceParams.pdwCmd          = &(cmd.DW4.Value);
             resourceParams.dwLocationInCmd = 4;
             resourceParams.bIsWritable     = true;
-
-            MHW_MI_CHK_STATUS(AddResourceToCmd(
-                this->m_osItf,
-                this->m_currentCmdBuf,
-                &resourceParams));
-        }
-
-        if (params.presBitplaneBuffer)
-        {
-            InitMocsParams(resourceParams, &cmd.DW9.Value, 1, 6);
-            cmd.DW9.BitplaneReadBufferIndexToMemoryObjectControlStateMocsTables = m_bitplaneReadBufferIndexToMemoryCtrl.Gen12_7.Index;
-
-            resourceParams.presResource    = params.presBitplaneBuffer;
-            resourceParams.dwOffset        = 0;
-            resourceParams.pdwCmd          = &(cmd.DW7.Value);
-            resourceParams.dwLocationInCmd = 7;
-            resourceParams.bIsWritable     = false;
 
             MHW_MI_CHK_STATUS(AddResourceToCmd(
                 this->m_osItf,
@@ -968,8 +948,6 @@ protected:
         {
             MHW_MI_CHK_NULL(params.presAvcDmvBuffers);
             InitMocsParams(resourceParams, &cmd.DirectMvBufferForWriteAttributes.DW0.Value, 1, 6);
-            cmd.DirectMvBufferForWriteAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables =
-                m_directMvBufferForWriteCtrl.Gen12_7.Index;
 
             // current picture
             resourceParams.presResource    = &params.presAvcDmvBuffers[params.ucAvcDmvIdx];
@@ -1005,9 +983,6 @@ protected:
         if (!params.bDisableDmvBuffers)
         {
             InitMocsParams(resourceParams, &cmd.DirectMvBufferAttributes.DW0.Value, 1, 6);
-            // there is only one control for all references
-            cmd.DirectMvBufferAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables =
-                m_directMvBufferForWriteCtrl.Gen12_7.Index;
         }
 
         bool dmvPresent[CODEC_MAX_NUM_REF_FRAME] = { false };

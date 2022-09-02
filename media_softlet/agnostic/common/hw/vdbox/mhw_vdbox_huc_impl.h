@@ -178,9 +178,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.HucIndirectStreamInObjectbaseAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables =
-                GetMocsValue(MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED);
         }
 
         if (!Mos_ResourceIsNull(params.StreamOutObjectBuffer))
@@ -198,10 +195,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            // base address of the stream out buffer
-            cmd.HucIndirectStreamOutObjectbaseAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables =
-                GetMocsValue(MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED);
         }
 
         return MOS_STATUS_SUCCESS;

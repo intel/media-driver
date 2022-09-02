@@ -1982,10 +1982,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.Vp9HvdLineRowstoreBufferReadWriteMemoryAddressAttributes.DW0.Value &= MEMORY_ADDRESS_ATTRIBUTES_MOCS_CLEAN_MASK;
-            cmd.Vp9HvdLineRowstoreBufferReadWriteMemoryAddressAttributes.DW0.Value |=
-                m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_VP9_HVD_ROWSTORE_BUFFER_CODEC].Value;
         }
 
         // HVC Tile Row Store Buffer
@@ -2092,10 +2088,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.HcpScalabilitySliceStateBufferAttributesReadWrite.DW0.Value &= MEMORY_ADDRESS_ATTRIBUTES_MOCS_CLEAN_MASK;
-            cmd.HcpScalabilitySliceStateBufferAttributesReadWrite.DW0.Value |=
-                m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_SLICE_STATE_STREAM_OUT_BUFFER_CODEC].Value;
         }
 
         // CABAC Syntax stream out buffer
@@ -2113,10 +2105,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.HcpScalabilityCabacDecodedSyntaxElementsBufferAttributesReadWrite.DW0.Value &= MEMORY_ADDRESS_ATTRIBUTES_MOCS_CLEAN_MASK;
-            cmd.HcpScalabilityCabacDecodedSyntaxElementsBufferAttributesReadWrite.DW0.Value |=
-                m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_CABAC_SYNTAX_STREAM_OUT_BUFFER_CODEC].Value;
         }
 
         // MV Upper Right Col Store
@@ -2134,10 +2122,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.MotionVectorUpperRightColumnStoreBufferAttributesReadWrite.DW0.Value &= MEMORY_ADDRESS_ATTRIBUTES_MOCS_CLEAN_MASK;
-            cmd.MotionVectorUpperRightColumnStoreBufferAttributesReadWrite.DW0.Value |=
-                m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_PRED_COL_STORE_BUFFER_CODEC].Value;
         }
 
         // IntraPred Upper Right Col Store
@@ -2155,10 +2139,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.IntraPredictionUpperRightColumnStoreBufferAttributesReadWrite.DW0.Value &= MEMORY_ADDRESS_ATTRIBUTES_MOCS_CLEAN_MASK;
-            cmd.IntraPredictionUpperRightColumnStoreBufferAttributesReadWrite.DW0.Value |=
-                m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_PRED_COL_STORE_BUFFER_CODEC].Value;
         }
 
         // IntraPred Left Recon Col Store
@@ -2176,10 +2156,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.IntraPredictionLeftReconColumnStoreBufferAttributesReadWrite.DW0.Value &= MEMORY_ADDRESS_ATTRIBUTES_MOCS_CLEAN_MASK;
-            cmd.IntraPredictionLeftReconColumnStoreBufferAttributesReadWrite.DW0.Value |=
-                m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_PRED_COL_STORE_BUFFER_CODEC].Value;
         }
 
         // CABAC Syntax Stream Out Buffer Max Address

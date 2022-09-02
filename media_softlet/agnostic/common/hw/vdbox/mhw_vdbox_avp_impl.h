@@ -951,9 +951,6 @@ protected:
             this->m_currentCmdBuf,
             &resourceParams));
 
-        cmd.DecodedOutputFrameBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables =
-            GetMocsValue(MOS_CODEC_RESOURCE_USAGE_PRE_DEBLOCKING_CODEC);
-
         //IntraBC Decoded Output Frame buffer
         if (!Mos_ResourceIsNull(params.intrabcDecodedOutputFrameBuffer))
         {
@@ -1741,8 +1738,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.DecodedFrameStatusErrorBufferBaseAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = GetMocsValue(MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED);
         }
 
         // Decoded Block Data Streamout Buffer
