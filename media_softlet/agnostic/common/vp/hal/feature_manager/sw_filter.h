@@ -60,6 +60,10 @@ class SwFilterSubPipe;
 #define SURFACETYPE_SIZE5                   4
 #define SURFACETYPE_SIZE10                  9
 
+#define GFSURFACE_COUNT 8
+#define MOTION_CHANNEL 3
+#define MAX_MODELSURFACE_COUNT 85
+
 enum FeatureType
 {
     FeatureTypeInvalid          = 0,
@@ -632,8 +636,8 @@ enum SurfaceType
     // HVS Kernel
     SurfaceTypeHVSTable,
     //Segmentation
-    SurfaceTypeRenderPreviousInput,
-    SurfaceTypeRenderTempOutput,  //Used for seg out only
+    SurfaceTypeSegRenderPreviousInput,
+    SurfaceTypeSegRenderTempOutput, //Used for seg out only
     SurfaceTypeSegBackground,
     SurfaceTypeSegGaussianCoeffBuffer,
     SurfaceTypeSegTFMask,
@@ -647,30 +651,31 @@ enum SurfaceType
     SurfaceTypeSegBlur2,
     SurfaceTypeSegBlur3,
     SurfaceTypeSegGFLayer,
-    SurfaceTypeSegGFLayerEnd = SurfaceTypeSegGFLayer + 8,
+    SurfaceTypeSegGFLayerEnd = SurfaceTypeSegGFLayer + GFSURFACE_COUNT,
     SurfaceTypeSegGFOut,
     SurfaceTypeSegGFOut2,
     SurfaceTypeSegGFOut3,
     SurfaceTypeSegGFOut4,
     SurfaceTypeSegInputMotion,
-    SurfaceTypeSegInputMotionEnd = SurfaceTypeSegInputMotion + 2,
+    SurfaceTypeSegInputMotionEnd = SurfaceTypeSegInputMotion + MOTION_CHANNEL - 1,
     SurfaceTypeSegPreInputMotion,
-    SurfaceTypeSegPreInputMotionEnd = SurfaceTypeSegPreInputMotion +2,
+    SurfaceTypeSegPreInputMotionEnd = SurfaceTypeSegPreInputMotion + MOTION_CHANNEL - 1,
     SurfaceTypeSegDiffMotion,
-    SurfaceTypeSegDiffMotionEnd = SurfaceTypeSegDiffMotion + 2,
+    SurfaceTypeSegDiffMotionEnd = SurfaceTypeSegDiffMotion + MOTION_CHANNEL - 1,
     SurfaceTypeSegErode1x2Motion,
-    SurfaceTypeSegErode1x2MotionEnd = SurfaceTypeSegErode1x2Motion + 2,
+    SurfaceTypeSegErode1x2MotionEnd = SurfaceTypeSegErode1x2Motion + MOTION_CHANNEL - 1,
     SurfaceTypeSegErode2x1Motion,
     SurfaceTypeSegErode2x1Motion2,
     SurfaceTypeSegErode2x1Motion3,
     SurfaceTypeSegSumMotion,
+    SurfaceTypeSegRemoveBlob,
     // Segmentation layers
     SurfaceTypeSegModelLayer,
-    SurfaceTypeSegModelLayerEnd = SurfaceTypeSegModelLayer + 85,
+    SurfaceTypeSegModelLayerEnd = SurfaceTypeSegModelLayer + MAX_MODELSURFACE_COUNT,
     SurfaceTypeSegWeights,
-    SurfaceTypeSegWeightsEnd = SurfaceTypeSegWeights + 85,
+    SurfaceTypeSegWeightsEnd = SurfaceTypeSegWeights + MAX_MODELSURFACE_COUNT,
     SurfaceTypeSegBias,
-    SurfaceTypeSegBiasEnd = SurfaceTypeSegBias + 85,
+    SurfaceTypeSegBiasEnd = SurfaceTypeSegBias + MAX_MODELSURFACE_COUNT,
 
     // SR
     SurfaceTypeSRLumaInputSurf,
@@ -704,7 +709,13 @@ struct REMOVE_BB_SETTING
 {
     bool     isRemoveBB    = false;
     bool     isKeepMaxBlob = false;
-    uint32_t index         = 0;
+    uint32_t index                          = 0;
+    uint32_t height                         = 0;
+    uint32_t width                          = 0;
+    uint32_t size                           = 0;
+    uint16_t inputActiveRegionWidth         = 0;
+    uint16_t inputActiveRegionHeight        = 0;
+    uint8_t *removeBlobLinearAddressAligned = 0;
 };
 
 struct MOTIONLESS_SETTING
@@ -719,11 +730,15 @@ struct MOTIONLESS_SETTING
     uint32_t height          = 0;
 };
 
+struct VP_POSTPROCESS_SURFACE
+{
+    REMOVE_BB_SETTING  removeBBSetting;
+    MOTIONLESS_SETTING motionlessSetting;
+};
+
 struct VP_SURFACE_SETTING
 {
     VP_SURFACE_GROUP    surfGroup;
-    REMOVE_BB_SETTING   removeBBSetting;
-    MOTIONLESS_SETTING  motionlessSetting;
     bool                isPastHistogramValid       = false;
     uint32_t            imageWidthOfPastHistogram  = 0;
     uint32_t            imageHeightOfPastHistogram = 0;
@@ -736,12 +751,11 @@ struct VP_SURFACE_SETTING
     bool                dumpLaceSurface                        = false;
     bool                dumpPreSurface                         = false;
     bool                dumpPostSurface                        = false;
+    VP_POSTPROCESS_SURFACE postProcessSurface                  = {};
 
     void Clean()
     {
         surfGroup.clear();
-        removeBBSetting             = {};
-        motionlessSetting           = {};
         isPastHistogramValid        = false;
         imageWidthOfPastHistogram   = 0;
         imageHeightOfPastHistogram  = 0;
@@ -754,6 +768,8 @@ struct VP_SURFACE_SETTING
         dumpLaceSurface                        = false;
         dumpPreSurface                         = false;
         dumpPostSurface                        = false;
+        postProcessSurface.removeBBSetting     = {};
+        postProcessSurface.motionlessSetting   = {};
     }
 };
 
