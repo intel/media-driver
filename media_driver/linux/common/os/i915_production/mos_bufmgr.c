@@ -5304,11 +5304,11 @@ int mos_set_context_param_parallel(struct mos_linux_context *ctx,
     int      ret  = 0;
     uint32_t size = 0;
     int      n;
-    struct prelim_drm_i915_context_engines_parallel2_submit* parallel_submit = nullptr;
+    struct i915_context_engines_parallel_submit* parallel_submit = nullptr;
     struct i915_context_param_engines* set_engines = nullptr;
 
-    size = sizeof(struct prelim_drm_i915_context_engines_parallel2_submit) + count * sizeof(*ci);
-    parallel_submit = (struct prelim_drm_i915_context_engines_parallel2_submit*)malloc(size);
+    size = sizeof(struct i915_context_engines_parallel_submit) + count * sizeof(*ci);
+    parallel_submit = (struct i915_context_engines_parallel_submit*)malloc(size);
     if(parallel_submit == nullptr)
     {
         ret = -ENOMEM;

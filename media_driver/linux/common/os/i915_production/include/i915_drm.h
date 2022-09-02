@@ -227,7 +227,9 @@ enum drm_i915_gem_engine_class {
 	I915_ENGINE_CLASS_INVALID	= -1
 };
 
-/*
+/**
+ * struct i915_engine_class_instance - Engine class/instance identifier
+ *
  * There may be more than one engine fulfilling any role within the system.
  * Each engine of a class is given a unique instance number and therefore
  * any engine can be specified by its class:instance tuplet. APIs that allow
@@ -235,10 +237,21 @@ enum drm_i915_gem_engine_class {
  * for this identification.
  */
 struct i915_engine_class_instance {
-	__u16 engine_class; /* see enum drm_i915_gem_engine_class */
-	__u16 engine_instance;
+	/**
+	 * @engine_class:
+	 *
+	 * Engine class from enum drm_i915_gem_engine_class
+	 */
+	__u16 engine_class;
 #define I915_ENGINE_CLASS_INVALID_NONE -1
 #define I915_ENGINE_CLASS_INVALID_VIRTUAL -2
+
+	/**
+	 * @engine_instance:
+	 *
+	 * Engine instance.
+	 */
+	__u16 engine_instance;
 };
 
 /**
@@ -459,6 +472,7 @@ typedef struct _drm_i915_sarea {
 #define DRM_I915_QUERY			0x39
 #define DRM_I915_GEM_VM_CREATE		0x3a
 #define DRM_I915_GEM_VM_DESTROY		0x3b
+#define DRM_I915_GEM_CREATE_EXT		0x3c
 /* Must be kept compact -- no holes */
 
 #define DRM_IOCTL_I915_INIT		DRM_IOW( DRM_COMMAND_BASE + DRM_I915_INIT, drm_i915_init_t)
@@ -491,6 +505,7 @@ typedef struct _drm_i915_sarea {
 #define DRM_IOCTL_I915_GEM_ENTERVT	DRM_IO(DRM_COMMAND_BASE + DRM_I915_GEM_ENTERVT)
 #define DRM_IOCTL_I915_GEM_LEAVEVT	DRM_IO(DRM_COMMAND_BASE + DRM_I915_GEM_LEAVEVT)
 #define DRM_IOCTL_I915_GEM_CREATE	DRM_IOWR(DRM_COMMAND_BASE + DRM_I915_GEM_CREATE, struct drm_i915_gem_create)
+#define DRM_IOCTL_I915_GEM_CREATE_EXT	DRM_IOWR(DRM_COMMAND_BASE + DRM_I915_GEM_CREATE_EXT, struct drm_i915_gem_create_ext)
 #define DRM_IOCTL_I915_GEM_PREAD	DRM_IOW (DRM_COMMAND_BASE + DRM_I915_GEM_PREAD, struct drm_i915_gem_pread)
 #define DRM_IOCTL_I915_GEM_PWRITE	DRM_IOW (DRM_COMMAND_BASE + DRM_I915_GEM_PWRITE, struct drm_i915_gem_pwrite)
 #define DRM_IOCTL_I915_GEM_MMAP		DRM_IOWR(DRM_COMMAND_BASE + DRM_I915_GEM_MMAP, struct drm_i915_gem_mmap)
@@ -623,6 +638,15 @@ typedef struct drm_i915_irq_wait {
 #define   I915_SCHEDULER_CAP_PREEMPTION	(1ul << 2)
 #define   I915_SCHEDULER_CAP_SEMAPHORES	(1ul << 3)
 #define   I915_SCHEDULER_CAP_ENGINE_BUSY_STATS	(1ul << 4)
+/*
+ * Indicates the 2k user priority levels are statically mapped into 3 buckets as
+ * follows:
+ *
+ * -1k to -1	Low priority
+ * 0		Normal priority
+ * 1 to 1k	Highest priority
+ */
+#define   I915_SCHEDULER_CAP_STATIC_PRIORITY_MAP	(1ul << 5)
 
 #define I915_PARAM_HUC_STATUS		 42
 
@@ -931,14 +955,38 @@ struct drm_i915_gem_mmap_offset {
 	__u64 extensions;
 };
 
+/**
+ * struct drm_i915_gem_set_domain - Adjust the objects write or read domain, in
+ * preparation for accessing the pages via some CPU domain.
+ *
+ * Specifying a new write or read domain will flush the object out of the
+ * previous domain(if required), before then updating the objects domain
+ * tracking with the new domain.
+ *
+ * Note this might involve waiting for the object first if it is still active on
+ * the GPU.
+ *
+ * Supported values for @read_domains and @write_domain:
+ *
+ *	- I915_GEM_DOMAIN_WC: Uncached write-combined domain
+ *	- I915_GEM_DOMAIN_CPU: CPU cache domain
+ *	- I915_GEM_DOMAIN_GTT: Mappable aperture domain
+ *
+ * All other domains are rejected.
+ */
 struct drm_i915_gem_set_domain {
-	/** Handle for the object */
+	/** @handle: Handle for the object. */
 	__u32 handle;
 
-	/** New read domains */
+	/** @read_domains: New read domains. */
 	__u32 read_domains;
 
-	/** New write domain */
+	/**
+	 * @write_domain: New write domain.
+	 *
+	 * Note that having something in the write domain implies it's in the
+	 * read domain, and only that read domain.
+	 */
 	__u32 write_domain;
 };
 
@@ -1400,12 +1448,11 @@ struct drm_i915_gem_busy {
 	 * reading from the object simultaneously.
 	 *
 	 * The value of each engine class is the same as specified in the
-	 * I915_CONTEXT_SET_ENGINES parameter and via perf, i.e.
+	 * I915_CONTEXT_PARAM_ENGINES context parameter and via perf, i.e.
 	 * I915_ENGINE_CLASS_RENDER, I915_ENGINE_CLASS_COPY, etc.
-	 * reported as active itself. Some hardware may have parallel
-	 * execution engines, e.g. multiple media engines, which are
-	 * mapped to the same class identifier and so are not separately
-	 * reported for busyness.
+	 * Some hardware may have parallel execution engines, e.g. multiple
+	 * media engines, which are mapped to the same class identifier and so
+	 * are not separately reported for busyness.
 	 *
 	 * Caveat emptor:
 	 * Only the boolean result of this query is reliable; that is whether
@@ -1416,43 +1463,50 @@ struct drm_i915_gem_busy {
 };
 
 /**
- * I915_CACHING_NONE
+ * struct drm_i915_gem_caching - Set or get the caching for given object
+ * handle.
  *
- * GPU access is not coherent with cpu caches. Default for machines without an
- * LLC.
+ * Allow userspace to control the GTT caching bits for a given object when the
+ * object is later mapped through the ppGTT(or GGTT on older platforms lacking
+ * ppGTT support, or if the object is used for scanout). Note that this might
+ * require unbinding the object from the GTT first, if its current caching value
+ * doesn't match.
  */
-#define I915_CACHING_NONE		0
-/**
- * I915_CACHING_CACHED
- *
- * GPU access is coherent with cpu caches and furthermore the data is cached in
- * last-level caches shared between cpu cores and the gpu GT. Default on
- * machines with HAS_LLC.
- */
-#define I915_CACHING_CACHED		1
-/**
- * I915_CACHING_DISPLAY
- *
- * Special GPU caching mode which is coherent with the scanout engines.
- * Transparently falls back to I915_CACHING_NONE on platforms where no special
- * cache mode (like write-through or gfdt flushing) is available. The kernel
- * automatically sets this mode when using a buffer as a scanout target.
- * Userspace can manually set this mode to avoid a costly stall and clflush in
- * the hotpath of drawing the first frame.
- */
-#define I915_CACHING_DISPLAY		2
-
 struct drm_i915_gem_caching {
 	/**
-	 * Handle of the buffer to set/get the caching level of. */
+	 * @handle: Handle of the buffer to set/get the caching level.
+	 */
 	__u32 handle;
 
 	/**
-	 * Cacheing level to apply or return value
+	 * @caching: The GTT caching level to apply or possible return value.
 	 *
-	 * bits0-15 are for generic caching control (i.e. the above defined
-	 * values). bits16-31 are reserved for platform-specific variations
-	 * (e.g. l3$ caching on gen7). */
+	 * The supported @caching values:
+	 *
+	 * I915_CACHING_NONE:
+	 *
+	 * GPU access is not coherent with CPU caches.  Default for machines
+	 * without an LLC. This means manual flushing might be needed, if we
+	 * want GPU access to be coherent.
+	 *
+	 * I915_CACHING_CACHED:
+	 *
+	 * GPU access is coherent with CPU caches and furthermore the data is
+	 * cached in last-level caches shared between CPU cores and the GPU GT.
+	 *
+	 * I915_CACHING_DISPLAY:
+	 *
+	 * Special GPU caching mode which is coherent with the scanout engines.
+	 * Transparently falls back to I915_CACHING_NONE on platforms where no
+	 * special cache mode (like write-through or gfdt flushing) is
+	 * available. The kernel automatically sets this mode when using a
+	 * buffer as a scanout target.  Userspace can manually set this mode to
+	 * avoid a costly stall and clflush in the hotpath of drawing the first
+	 * frame.
+	 */
+#define I915_CACHING_NONE		0
+#define I915_CACHING_CACHED		1
+#define I915_CACHING_DISPLAY		2
 	__u32 caching;
 };
 
@@ -1697,6 +1751,10 @@ struct drm_i915_gem_context_param {
 	__u32 size;
 	__u64 param;
 #define I915_CONTEXT_PARAM_BAN_PERIOD	0x1
+/* I915_CONTEXT_PARAM_NO_ZEROMAP has been removed.  On the off chance
+ * someone somewhere has attempted to use it, never re-use this context
+ * param number.
+ */
 #define I915_CONTEXT_PARAM_NO_ZEROMAP	0x2
 #define I915_CONTEXT_PARAM_GTT_SIZE	0x3
 #define I915_CONTEXT_PARAM_NO_ERROR_CAPTURE	0x4
@@ -1763,7 +1821,7 @@ struct drm_i915_gem_context_param {
  * Extensions:
  *   i915_context_engines_load_balance (I915_CONTEXT_ENGINES_EXT_LOAD_BALANCE)
  *   i915_context_engines_bond (I915_CONTEXT_ENGINES_EXT_BOND)
- *   prelim_i915_context_engines_parallel_submit (PRELIM_I915_CONTEXT_ENGINES_EXT_PARALLEL_SUBMIT)
+ *   i915_context_engines_parallel_submit (I915_CONTEXT_ENGINES_EXT_PARALLEL_SUBMIT)
  */
 #define I915_CONTEXT_PARAM_ENGINES	0xa
 
@@ -1782,24 +1840,8 @@ struct drm_i915_gem_context_param {
  */
 #define I915_CONTEXT_PARAM_PERSISTENCE	0xb
 
-/*
- * I915_CONTEXT_PARAM_RINGSIZE:
- *
- * Sets the size of the CS ringbuffer to use for logical ring contexts. This
- * applies a limit of how many batches can be queued to HW before the caller
- * is blocked due to lack of space for more commands.
- *
- * Only reliably possible to be set prior to first use, i.e. during
- * construction. At any later point, the current execution must be flushed as
- * the ring can only be changed while the context is idle. Note, the ringsize
- * can be specified as a constructor property, see
- * I915_CONTEXT_CREATE_EXT_SETPARAM, but can also be set later if required.
- *
- * Only applies to the current set of engine and lost when those engines
- * are replaced by a new mapping (see I915_CONTEXT_PARAM_ENGINES).
- *
- * Must be between 4 - 512 KiB, in intervals of page size [4 KiB].
- * Default is 16 KiB.
+/* This API has been removed.  On the off chance someone somewhere has
+ * attempted to use it, never re-use this context param number.
  */
 #define I915_CONTEXT_PARAM_RINGSIZE	0xc
 /* Must be kept compact -- no holes and well documented */
@@ -1865,6 +1907,69 @@ struct drm_i915_gem_context_param_sseu {
 	 */
 	__u32 rsvd;
 };
+
+/**
+ * DOC: Virtual Engine uAPI
+ *
+ * Virtual engine is a concept where userspace is able to configure a set of
+ * physical engines, submit a batch buffer, and let the driver execute it on any
+ * engine from the set as it sees fit.
+ *
+ * This is primarily useful on parts which have multiple instances of a same
+ * class engine, like for example GT3+ Skylake parts with their two VCS engines.
+ *
+ * For instance userspace can enumerate all engines of a certain class using the
+ * previously described `Engine Discovery uAPI`_. After that userspace can
+ * create a GEM context with a placeholder slot for the virtual engine (using
+ * `I915_ENGINE_CLASS_INVALID` and `I915_ENGINE_CLASS_INVALID_NONE` for class
+ * and instance respectively) and finally using the
+ * `I915_CONTEXT_ENGINES_EXT_LOAD_BALANCE` extension place a virtual engine in
+ * the same reserved slot.
+ *
+ * Example of creating a virtual engine and submitting a batch buffer to it:
+ *
+ * .. code-block:: C
+ *
+ * 	I915_DEFINE_CONTEXT_ENGINES_LOAD_BALANCE(virtual, 2) = {
+ * 		.base.name = I915_CONTEXT_ENGINES_EXT_LOAD_BALANCE,
+ * 		.engine_index = 0, // Place this virtual engine into engine map slot 0
+ * 		.num_siblings = 2,
+ * 		.engines = { { I915_ENGINE_CLASS_VIDEO, 0 },
+ * 			     { I915_ENGINE_CLASS_VIDEO, 1 }, },
+ * 	};
+ * 	I915_DEFINE_CONTEXT_PARAM_ENGINES(engines, 1) = {
+ * 		.engines = { { I915_ENGINE_CLASS_INVALID,
+ * 			       I915_ENGINE_CLASS_INVALID_NONE } },
+ * 		.extensions = to_user_pointer(&virtual), // Chains after load_balance extension
+ * 	};
+ * 	struct drm_i915_gem_context_create_ext_setparam p_engines = {
+ * 		.base = {
+ * 			.name = I915_CONTEXT_CREATE_EXT_SETPARAM,
+ * 		},
+ * 		.param = {
+ * 			.param = I915_CONTEXT_PARAM_ENGINES,
+ * 			.value = to_user_pointer(&engines),
+ * 			.size = sizeof(engines),
+ * 		},
+ * 	};
+ * 	struct drm_i915_gem_context_create_ext create = {
+ * 		.flags = I915_CONTEXT_CREATE_FLAGS_USE_EXTENSIONS,
+ * 		.extensions = to_user_pointer(&p_engines);
+ * 	};
+ *
+ * 	ctx_id = gem_context_create_ext(drm_fd, &create);
+ *
+ * 	// Now we have created a GEM context with its engine map containing a
+ * 	// single virtual engine. Submissions to this slot can go either to
+ * 	// vcs0 or vcs1, depending on the load balancing algorithm used inside
+ * 	// the driver. The load balancing is dynamic from one batch buffer to
+ * 	// another and transparent to userspace.
+ *
+ * 	...
+ * 	execbuf.rsvd1 = ctx_id;
+ * 	execbuf.flags = 0; // Submits to index 0 which is the virtual engine
+ * 	gem_execbuf(drm_fd, &execbuf);
+ */
 
 /*
  * i915_context_engines_load_balance:
@@ -1942,10 +2047,195 @@ struct i915_context_engines_bond {
 	struct i915_engine_class_instance engines[N__]; \
 } __attribute__((packed)) name__
 
+/**
+ * struct i915_context_engines_parallel_submit - Configure engine for
+ * parallel submission.
+ *
+ * Setup a slot in the context engine map to allow multiple BBs to be submitted
+ * in a single execbuf IOCTL. Those BBs will then be scheduled to run on the GPU
+ * in parallel. Multiple hardware contexts are created internally in the i915 to
+ * run these BBs. Once a slot is configured for N BBs only N BBs can be
+ * submitted in each execbuf IOCTL and this is implicit behavior e.g. The user
+ * doesn't tell the execbuf IOCTL there are N BBs, the execbuf IOCTL knows how
+ * many BBs there are based on the slot's configuration. The N BBs are the last
+ * N buffer objects or first N if I915_EXEC_BATCH_FIRST is set.
+ *
+ * The default placement behavior is to create implicit bonds between each
+ * context if each context maps to more than 1 physical engine (e.g. context is
+ * a virtual engine). Also we only allow contexts of same engine class and these
+ * contexts must be in logically contiguous order. Examples of the placement
+ * behavior are described below. Lastly, the default is to not allow BBs to be
+ * preempted mid-batch. Rather insert coordinated preemption points on all
+ * hardware contexts between each set of BBs. Flags could be added in the future
+ * to change both of these default behaviors.
+ *
+ * Returns -EINVAL if hardware context placement configuration is invalid or if
+ * the placement configuration isn't supported on the platform / submission
+ * interface.
+ * Returns -ENODEV if extension isn't supported on the platform / submission
+ * interface.
+ *
+ * .. code-block:: none
+ *
+ *	Examples syntax:
+ *	CS[X] = generic engine of same class, logical instance X
+ *	INVALID = I915_ENGINE_CLASS_INVALID, I915_ENGINE_CLASS_INVALID_NONE
+ *
+ *	Example 1 pseudo code:
+ *	set_engines(INVALID)
+ *	set_parallel(engine_index=0, width=2, num_siblings=1,
+ *		     engines=CS[0],CS[1])
+ *
+ *	Results in the following valid placement:
+ *	CS[0], CS[1]
+ *
+ *	Example 2 pseudo code:
+ *	set_engines(INVALID)
+ *	set_parallel(engine_index=0, width=2, num_siblings=2,
+ *		     engines=CS[0],CS[2],CS[1],CS[3])
+ *
+ *	Results in the following valid placements:
+ *	CS[0], CS[1]
+ *	CS[2], CS[3]
+ *
+ *	This can be thought of as two virtual engines, each containing two
+ *	engines thereby making a 2D array. However, there are bonds tying the
+ *	entries together and placing restrictions on how they can be scheduled.
+ *	Specifically, the scheduler can choose only vertical columns from the 2D
+ *	array. That is, CS[0] is bonded to CS[1] and CS[2] to CS[3]. So if the
+ *	scheduler wants to submit to CS[0], it must also choose CS[1] and vice
+ *	versa. Same for CS[2] requires also using CS[3].
+ *	VE[0] = CS[0], CS[2]
+ *	VE[1] = CS[1], CS[3]
+ *
+ *	Example 3 pseudo code:
+ *	set_engines(INVALID)
+ *	set_parallel(engine_index=0, width=2, num_siblings=2,
+ *		     engines=CS[0],CS[1],CS[1],CS[3])
+ *
+ *	Results in the following valid and invalid placements:
+ *	CS[0], CS[1]
+ *	CS[1], CS[3] - Not logically contiguous, return -EINVAL
+ */
+struct i915_context_engines_parallel_submit {
+	/**
+	 * @base: base user extension.
+	 */
+	struct i915_user_extension base;
+
+	/**
+	 * @engine_index: slot for parallel engine
+	 */
+	__u16 engine_index;
+
+	/**
+	 * @width: number of contexts per parallel engine or in other words the
+	 * number of batches in each submission
+	 */
+	__u16 width;
+
+	/**
+	 * @num_siblings: number of siblings per context or in other words the
+	 * number of possible placements for each submission
+	 */
+	__u16 num_siblings;
+
+	/**
+	 * @mbz16: reserved for future use; must be zero
+	 */
+	__u16 mbz16;
+
+	/**
+	 * @flags: all undefined flags must be zero, currently not defined flags
+	 */
+	__u64 flags;
+
+	/**
+	 * @mbz64: reserved for future use; must be zero
+	 */
+	__u64 mbz64[3];
+
+	/**
+	 * @engines: 2-d array of engine instances to configure parallel engine
+	 *
+	 * length = width (i) * num_siblings (j)
+	 * index = j + i * num_siblings
+	 */
+	struct i915_engine_class_instance engines[0];
+
+} __attribute__((packed));
+
+#define I915_DEFINE_CONTEXT_ENGINES_PARALLEL_SUBMIT(name__, N__) struct { \
+	struct i915_user_extension base; \
+	__u16 engine_index; \
+	__u16 width; \
+	__u16 num_siblings; \
+	__u16 mbz16; \
+	__u64 flags; \
+	__u64 mbz64[3]; \
+	struct i915_engine_class_instance engines[N__]; \
+} __attribute__((packed)) name__
+
+/**
+ * DOC: Context Engine Map uAPI
+ *
+ * Context engine map is a new way of addressing engines when submitting batch-
+ * buffers, replacing the existing way of using identifiers like `I915_EXEC_BLT`
+ * inside the flags field of `struct drm_i915_gem_execbuffer2`.
+ *
+ * To use it created GEM contexts need to be configured with a list of engines
+ * the user is intending to submit to. This is accomplished using the
+ * `I915_CONTEXT_PARAM_ENGINES` parameter and `struct
+ * i915_context_param_engines`.
+ *
+ * For such contexts the `I915_EXEC_RING_MASK` field becomes an index into the
+ * configured map.
+ *
+ * Example of creating such context and submitting against it:
+ *
+ * .. code-block:: C
+ *
+ * 	I915_DEFINE_CONTEXT_PARAM_ENGINES(engines, 2) = {
+ * 		.engines = { { I915_ENGINE_CLASS_RENDER, 0 },
+ * 			     { I915_ENGINE_CLASS_COPY, 0 } }
+ * 	};
+ * 	struct drm_i915_gem_context_create_ext_setparam p_engines = {
+ * 		.base = {
+ * 			.name = I915_CONTEXT_CREATE_EXT_SETPARAM,
+ * 		},
+ * 		.param = {
+ * 			.param = I915_CONTEXT_PARAM_ENGINES,
+ * 			.value = to_user_pointer(&engines),
+ * 			.size = sizeof(engines),
+ * 		},
+ * 	};
+ * 	struct drm_i915_gem_context_create_ext create = {
+ * 		.flags = I915_CONTEXT_CREATE_FLAGS_USE_EXTENSIONS,
+ * 		.extensions = to_user_pointer(&p_engines);
+ * 	};
+ *
+ * 	ctx_id = gem_context_create_ext(drm_fd, &create);
+ *
+ * 	// We have now created a GEM context with two engines in the map:
+ * 	// Index 0 points to rcs0 while index 1 points to bcs0. Other engines
+ * 	// will not be accessible from this context.
+ *
+ * 	...
+ * 	execbuf.rsvd1 = ctx_id;
+ * 	execbuf.flags = 0; // Submits to index 0, which is rcs0 for this context
+ * 	gem_execbuf(drm_fd, &execbuf);
+ *
+ * 	...
+ * 	execbuf.rsvd1 = ctx_id;
+ * 	execbuf.flags = 1; // Submits to index 0, which is bcs0 for this context
+ * 	gem_execbuf(drm_fd, &execbuf);
+ */
+
 struct i915_context_param_engines {
 	__u64 extensions; /* linked chain of extension blocks, 0 terminates */
 #define I915_CONTEXT_ENGINES_EXT_LOAD_BALANCE 0 /* see i915_context_engines_load_balance */
 #define I915_CONTEXT_ENGINES_EXT_BOND 1 /* see i915_context_engines_bond */
+#define I915_CONTEXT_ENGINES_EXT_PARALLEL_SUBMIT 2 /* see i915_context_engines_parallel_submit */
 	struct i915_engine_class_instance engines[0];
 } __attribute__((packed));
 
@@ -1974,8 +2264,6 @@ struct drm_i915_gem_context_destroy {
  *
  * The id of new VM (bound to the fd) for use with I915_CONTEXT_PARAM_VM is
  * returned in the outparam @id.
- *
- * No flags are defined, with all bits reserved and must be zero.
  *
  * An extension chain maybe provided, starting with @extensions, and terminated
  * by the @next_extension being 0. Currently, mem region extension is defined.
@@ -2017,12 +2305,6 @@ struct drm_i915_reg_read {
 struct drm_i915_reset_stats {
 	__u32 ctx_id;
 	__u32 flags;
-	/*
-	 * contexts marked as using protected content are invalidated when the
-	 * protected content session dies. Submission of invalidated contexts
-	 * is rejected with -EACCES.
-	 */
-#define I915_CONTEXT_INVALIDATED 0x1
 
 	/* All resets since boot/module reload, for all contexts */
 	__u32 reset_count;
@@ -2036,14 +2318,52 @@ struct drm_i915_reset_stats {
 	__u32 pad;
 };
 
+/**
+ * struct drm_i915_gem_userptr - Create GEM object from user allocated memory.
+ *
+ * Userptr objects have several restrictions on what ioctls can be used with the
+ * object handle.
+ */
 struct drm_i915_gem_userptr {
+	/**
+	 * @user_ptr: The pointer to the allocated memory.
+	 *
+	 * Needs to be aligned to PAGE_SIZE.
+	 */
 	__u64 user_ptr;
+
+	/**
+	 * @user_size:
+	 *
+	 * The size in bytes for the allocated memory. This will also become the
+	 * object size.
+	 *
+	 * Needs to be aligned to PAGE_SIZE, and should be at least PAGE_SIZE,
+	 * or larger.
+	 */
 	__u64 user_size;
+
+	/**
+	 * @flags:
+	 *
+	 * Supported flags:
+	 *
+	 * I915_USERPTR_READ_ONLY:
+	 *
+	 * Mark the object as readonly, this also means GPU access can only be
+	 * readonly. This is only supported on HW which supports readonly access
+	 * through the GTT. If the HW can't support readonly access, an error is
+	 * returned.
+	 *
+	 * I915_USERPTR_UNSYNCHRONIZED:
+	 *
+	 * NOT USED. Setting this flag will result in an error.
+	 */
 	__u32 flags;
 #define I915_USERPTR_READ_ONLY 0x1
 #define I915_USERPTR_UNSYNCHRONIZED 0x80000000
 	/**
-	 * Returned handle for the object.
+	 * @handle: Returned handle for the object.
 	 *
 	 * Object handles are nonzero.
 	 */
@@ -2249,24 +2569,65 @@ enum drm_i915_perf_record_type {
 	DRM_I915_PERF_RECORD_MAX /* non-ABI */
 };
 
-/*
+/**
+ * struct drm_i915_perf_oa_config
+ *
  * Structure to upload perf dynamic configuration into the kernel.
  */
 struct drm_i915_perf_oa_config {
-	/** String formatted like "%08x-%04x-%04x-%04x-%012x" */
+	/**
+	 * @uuid:
+	 *
+	 * String formatted like "%\08x-%\04x-%\04x-%\04x-%\012x"
+	 */
 	char uuid[36];
 
+	/**
+	 * @n_mux_regs:
+	 *
+	 * Number of mux regs in &mux_regs_ptr.
+	 */
 	__u32 n_mux_regs;
+
+	/**
+	 * @n_boolean_regs:
+	 *
+	 * Number of boolean regs in &boolean_regs_ptr.
+	 */
 	__u32 n_boolean_regs;
+
+	/**
+	 * @n_flex_regs:
+	 *
+	 * Number of flex regs in &flex_regs_ptr.
+	 */
 	__u32 n_flex_regs;
 
-	/*
-	 * These fields are pointers to tuples of u32 values (register address,
-	 * value). For example the expected length of the buffer pointed by
-	 * mux_regs_ptr is (2 * sizeof(u32) * n_mux_regs).
+	/**
+	 * @mux_regs_ptr:
+	 *
+	 * Pointer to tuples of u32 values (register address, value) for mux
+	 * registers.  Expected length of buffer is (2 * sizeof(u32) *
+	 * &n_mux_regs).
 	 */
 	__u64 mux_regs_ptr;
+
+	/**
+	 * @boolean_regs_ptr:
+	 *
+	 * Pointer to tuples of u32 values (register address, value) for mux
+	 * registers.  Expected length of buffer is (2 * sizeof(u32) *
+	 * &n_boolean_regs).
+	 */
 	__u64 boolean_regs_ptr;
+
+	/**
+	 * @flex_regs_ptr:
+	 *
+	 * Pointer to tuples of u32 values (register address, value) for mux
+	 * registers.  Expected length of buffer is (2 * sizeof(u32) *
+	 * &n_flex_regs).
+	 */
 	__u64 flex_regs_ptr;
 };
 
@@ -2277,12 +2638,24 @@ struct drm_i915_perf_oa_config {
  * @data_ptr is also depends on the specific @query_id.
  */
 struct drm_i915_query_item {
-	/** @query_id: The id for this query */
+	/**
+	 * @query_id:
+	 *
+	 * The id for this query.  Currently accepted query IDs are:
+	 *  - %DRM_I915_QUERY_TOPOLOGY_INFO (see struct drm_i915_query_topology_info)
+	 *  - %DRM_I915_QUERY_ENGINE_INFO (see struct drm_i915_engine_info)
+	 *  - %DRM_I915_QUERY_PERF_CONFIG (see struct drm_i915_query_perf_config)
+	 *  - %DRM_I915_QUERY_MEMORY_REGIONS (see struct drm_i915_query_memory_regions)
+	 *  - %DRM_I915_QUERY_HWCONFIG_BLOB (see `GuC HWCONFIG blob uAPI`)
+	 *  - %DRM_I915_QUERY_GEOMETRY_SUBSLICES (see struct drm_i915_query_topology_info)
+	 */
 	__u64 query_id;
-#define DRM_I915_QUERY_TOPOLOGY_INFO    1
-#define DRM_I915_QUERY_ENGINE_INFO      2
-#define DRM_I915_QUERY_PERF_CONFIG      3
-#define DRM_I915_QUERY_HWCONFIG_TABLE   5
+#define DRM_I915_QUERY_TOPOLOGY_INFO		1
+#define DRM_I915_QUERY_ENGINE_INFO		2
+#define DRM_I915_QUERY_PERF_CONFIG		3
+#define DRM_I915_QUERY_MEMORY_REGIONS		4
+#define DRM_I915_QUERY_HWCONFIG_BLOB		5
+#define DRM_I915_QUERY_GEOMETRY_SUBSLICES	6
 /* Must be kept compact -- no holes and well documented */
 
 	/**
@@ -2298,13 +2671,17 @@ struct drm_i915_query_item {
 	/**
 	 * @flags:
 	 *
-	 * When query_id == DRM_I915_QUERY_PERF_CONFIG, must be one of the
-	 * following :
-	 *         - DRM_I915_QUERY_PERF_CONFIG_LIST
-	 *         - DRM_I915_QUERY_PERF_CONFIG_DATA_FOR_UUID
-	 *         - DRM_I915_QUERY_PERF_CONFIG_FOR_UUID
+	 * When &query_id == %DRM_I915_QUERY_TOPOLOGY_INFO, must be 0.
 	 *
-	 * For all other query_id values, flags must be 0.
+	 * When &query_id == %DRM_I915_QUERY_PERF_CONFIG, must be one of the
+	 * following:
+	 *
+	 *	- %DRM_I915_QUERY_PERF_CONFIG_LIST
+	 *      - %DRM_I915_QUERY_PERF_CONFIG_DATA_FOR_UUID
+	 *      - %DRM_I915_QUERY_PERF_CONFIG_FOR_UUID
+	 *
+	 * When &query_id == %DRM_I915_QUERY_GEOMETRY_SUBSLICES must contain
+	 * a struct i915_engine_class_instance that references a render engine.
 	 */
 	__u32 flags;
 #define DRM_I915_QUERY_PERF_CONFIG_LIST          1
@@ -2362,75 +2739,189 @@ struct drm_i915_query {
 	__u64 items_ptr;
 };
 
-/*
- * Data written by the kernel with query DRM_I915_QUERY_TOPOLOGY_INFO :
+/**
+ * struct drm_i915_query_topology_info
  *
- * data: contains the 3 pieces of information :
- *
- * - the slice mask with one bit per slice telling whether a slice is
- *   available. The availability of slice X can be queried with the following
- *   formula :
- *
- *           (data[X / 8] >> (X % 8)) & 1
- *
- * - the subslice mask for each slice with one bit per subslice telling
- *   whether a subslice is available. Gen12 has dual-subslices, which are
- *   similar to two gen11 subslices. For gen12, this array represents dual-
- *   subslices. The availability of subslice Y in slice X can be queried
- *   with the following formula :
- *
- *           (data[subslice_offset +
- *                 X * subslice_stride +
- *                 Y / 8] >> (Y % 8)) & 1
- *
- * - the EU mask for each subslice in each slice with one bit per EU telling
- *   whether an EU is available. The availability of EU Z in subslice Y in
- *   slice X can be queried with the following formula :
- *
- *           (data[eu_offset +
- *                 (X * max_subslices + Y) * eu_stride +
- *                 Z / 8] >> (Z % 8)) & 1
+ * Describes slice/subslice/EU information queried by
+ * %DRM_I915_QUERY_TOPOLOGY_INFO
  */
 struct drm_i915_query_topology_info {
-	/*
+	/**
+	 * @flags:
+	 *
 	 * Unused for now. Must be cleared to zero.
 	 */
 	__u16 flags;
 
+	/**
+	 * @max_slices:
+	 *
+	 * The number of bits used to express the slice mask.
+	 */
 	__u16 max_slices;
+
+	/**
+	 * @max_subslices:
+	 *
+	 * The number of bits used to express the subslice mask.
+	 */
 	__u16 max_subslices;
+
+	/**
+	 * @max_eus_per_subslice:
+	 *
+	 * The number of bits in the EU mask that correspond to a single
+	 * subslice's EUs.
+	 */
 	__u16 max_eus_per_subslice;
 
-	/*
+	/**
+	 * @subslice_offset:
+	 *
 	 * Offset in data[] at which the subslice masks are stored.
 	 */
 	__u16 subslice_offset;
 
-	/*
+	/**
+	 * @subslice_stride:
+	 *
 	 * Stride at which each of the subslice masks for each slice are
 	 * stored.
 	 */
 	__u16 subslice_stride;
 
-	/*
+	/**
+	 * @eu_offset:
+	 *
 	 * Offset in data[] at which the EU masks are stored.
 	 */
 	__u16 eu_offset;
 
-	/*
+	/**
+	 * @eu_stride:
+	 *
 	 * Stride at which each of the EU masks for each subslice are stored.
 	 */
 	__u16 eu_stride;
 
+	/**
+	 * @data:
+	 *
+	 * Contains 3 pieces of information :
+	 *
+	 * - The slice mask with one bit per slice telling whether a slice is
+	 *   available. The availability of slice X can be queried with the
+	 *   following formula :
+	 *
+	 *   .. code:: c
+	 *
+	 *      (data[X / 8] >> (X % 8)) & 1
+	 *
+	 *   Starting with Xe_HP platforms, Intel hardware no longer has
+	 *   traditional slices so i915 will always report a single slice
+	 *   (hardcoded slicemask = 0x1) which contains all of the platform's
+	 *   subslices.  I.e., the mask here does not reflect any of the newer
+	 *   hardware concepts such as "gslices" or "cslices" since userspace
+	 *   is capable of inferring those from the subslice mask.
+	 *
+	 * - The subslice mask for each slice with one bit per subslice telling
+	 *   whether a subslice is available.  Starting with Gen12 we use the
+	 *   term "subslice" to refer to what the hardware documentation
+	 *   describes as a "dual-subslices."  The availability of subslice Y
+	 *   in slice X can be queried with the following formula :
+	 *
+	 *   .. code:: c
+	 *
+	 *      (data[subslice_offset + X * subslice_stride + Y / 8] >> (Y % 8)) & 1
+	 *
+	 * - The EU mask for each subslice in each slice, with one bit per EU
+	 *   telling whether an EU is available. The availability of EU Z in
+	 *   subslice Y in slice X can be queried with the following formula :
+	 *
+	 *   .. code:: c
+	 *
+	 *      (data[eu_offset +
+	 *            (X * max_subslices + Y) * eu_stride +
+	 *            Z / 8
+	 *       ] >> (Z % 8)) & 1
+	 */
 	__u8 data[];
 };
+
+/**
+ * DOC: Engine Discovery uAPI
+ *
+ * Engine discovery uAPI is a way of enumerating physical engines present in a
+ * GPU associated with an open i915 DRM file descriptor. This supersedes the old
+ * way of using `DRM_IOCTL_I915_GETPARAM` and engine identifiers like
+ * `I915_PARAM_HAS_BLT`.
+ *
+ * The need for this interface came starting with Icelake and newer GPUs, which
+ * started to establish a pattern of having multiple engines of a same class,
+ * where not all instances were always completely functionally equivalent.
+ *
+ * Entry point for this uapi is `DRM_IOCTL_I915_QUERY` with the
+ * `DRM_I915_QUERY_ENGINE_INFO` as the queried item id.
+ *
+ * Example for getting the list of engines:
+ *
+ * .. code-block:: C
+ *
+ * 	struct drm_i915_query_engine_info *info;
+ * 	struct drm_i915_query_item item = {
+ * 		.query_id = DRM_I915_QUERY_ENGINE_INFO;
+ * 	};
+ * 	struct drm_i915_query query = {
+ * 		.num_items = 1,
+ * 		.items_ptr = (uintptr_t)&item,
+ * 	};
+ * 	int err, i;
+ *
+ * 	// First query the size of the blob we need, this needs to be large
+ * 	// enough to hold our array of engines. The kernel will fill out the
+ * 	// item.length for us, which is the number of bytes we need.
+ * 	//
+ * 	// Alternatively a large buffer can be allocated straight away enabling
+ * 	// querying in one pass, in which case item.length should contain the
+ * 	// length of the provided buffer.
+ * 	err = ioctl(fd, DRM_IOCTL_I915_QUERY, &query);
+ * 	if (err) ...
+ *
+ * 	info = calloc(1, item.length);
+ * 	// Now that we allocated the required number of bytes, we call the ioctl
+ * 	// again, this time with the data_ptr pointing to our newly allocated
+ * 	// blob, which the kernel can then populate with info on all engines.
+ * 	item.data_ptr = (uintptr_t)&info,
+ *
+ * 	err = ioctl(fd, DRM_IOCTL_I915_QUERY, &query);
+ * 	if (err) ...
+ *
+ * 	// We can now access each engine in the array
+ * 	for (i = 0; i < info->num_engines; i++) {
+ * 		struct drm_i915_engine_info einfo = info->engines[i];
+ * 		u16 class = einfo.engine.class;
+ * 		u16 instance = einfo.engine.instance;
+ * 		....
+ * 	}
+ *
+ * 	free(info);
+ *
+ * Each of the enumerated engines, apart from being defined by its class and
+ * instance (see `struct i915_engine_class_instance`), also can have flags and
+ * capabilities defined as documented in i915_drm.h.
+ *
+ * For instance video engines which support HEVC encoding will have the
+ * `I915_VIDEO_CLASS_CAPABILITY_HEVC` capability bit set.
+ *
+ * Engine discovery only fully comes to its own when combined with the new way
+ * of addressing engines when submitting batch buffers using contexts with
+ * engine maps configured.
+ */
 
 /**
  * struct drm_i915_engine_info
  *
  * Describes one engine and it's capabilities as known to the driver.
- *
- * FIXME: revert to upstream version after UMD switch to PRELIM version
  */
 struct drm_i915_engine_info {
 	/** @engine: Engine class and instance. */
@@ -2441,14 +2932,20 @@ struct drm_i915_engine_info {
 
 	/** @flags: Engine flags. */
 	__u64 flags;
+#define I915_ENGINE_INFO_HAS_LOGICAL_INSTANCE		(1 << 0)
 
 	/** @capabilities: Capabilities of this engine. */
 	__u64 capabilities;
 #define I915_VIDEO_CLASS_CAPABILITY_HEVC		(1 << 0)
 #define I915_VIDEO_AND_ENHANCE_CLASS_CAPABILITY_SFC	(1 << 1)
 
+	/** @logical_instance: Logical instance of engine */
+	__u16 logical_instance;
+
 	/** @rsvd1: Reserved fields. */
-	__u64 rsvd1[4];
+	__u16 rsvd1[3];
+	/** @rsvd2: Reserved fields. */
+	__u64 rsvd2[3];
 };
 
 /**
@@ -2468,60 +2965,320 @@ struct drm_i915_query_engine_info {
 	struct drm_i915_engine_info engines[];
 };
 
-/*
- * Data written by the kernel with query DRM_I915_QUERY_PERF_CONFIG.
+/**
+ * struct drm_i915_query_perf_config
+ *
+ * Data written by the kernel with query %DRM_I915_QUERY_PERF_CONFIG and
+ * %DRM_I915_QUERY_GEOMETRY_SUBSLICES.
  */
 struct drm_i915_query_perf_config {
 	union {
-		/*
-		 * When query_item.flags == DRM_I915_QUERY_PERF_CONFIG_LIST, i915 sets
-		 * this fields to the number of configurations available.
+		/**
+		 * @n_configs:
+		 *
+		 * When &drm_i915_query_item.flags ==
+		 * %DRM_I915_QUERY_PERF_CONFIG_LIST, i915 sets this fields to
+		 * the number of configurations available.
 		 */
 		__u64 n_configs;
 
-		/*
-		 * When query_id == DRM_I915_QUERY_PERF_CONFIG_DATA_FOR_ID,
-		 * i915 will use the value in this field as configuration
-		 * identifier to decide what data to write into config_ptr.
+		/**
+		 * @config:
+		 *
+		 * When &drm_i915_query_item.flags ==
+		 * %DRM_I915_QUERY_PERF_CONFIG_DATA_FOR_ID, i915 will use the
+		 * value in this field as configuration identifier to decide
+		 * what data to write into config_ptr.
 		 */
 		__u64 config;
 
-		/*
-		 * When query_id == DRM_I915_QUERY_PERF_CONFIG_DATA_FOR_UUID,
-		 * i915 will use the value in this field as configuration
-		 * identifier to decide what data to write into config_ptr.
+		/**
+		 * @uuid:
+		 *
+		 * When &drm_i915_query_item.flags ==
+		 * %DRM_I915_QUERY_PERF_CONFIG_DATA_FOR_UUID, i915 will use the
+		 * value in this field as configuration identifier to decide
+		 * what data to write into config_ptr.
 		 *
 		 * String formatted like "%08x-%04x-%04x-%04x-%012x"
 		 */
 		char uuid[36];
 	};
 
-	/*
+	/**
+	 * @flags:
+	 *
 	 * Unused for now. Must be cleared to zero.
 	 */
 	__u32 flags;
 
-	/*
-	 * When query_item.flags == DRM_I915_QUERY_PERF_CONFIG_LIST, i915 will
-	 * write an array of __u64 of configuration identifiers.
+	/**
+	 * @data:
 	 *
-	 * When query_item.flags == DRM_I915_QUERY_PERF_CONFIG_DATA, i915 will
-	 * write a struct drm_i915_perf_oa_config. If the following fields of
-	 * drm_i915_perf_oa_config are set not set to 0, i915 will write into
-	 * the associated pointers the values of submitted when the
+	 * When &drm_i915_query_item.flags == %DRM_I915_QUERY_PERF_CONFIG_LIST,
+	 * i915 will write an array of __u64 of configuration identifiers.
+	 *
+	 * When &drm_i915_query_item.flags == %DRM_I915_QUERY_PERF_CONFIG_DATA,
+	 * i915 will write a struct drm_i915_perf_oa_config. If the following
+	 * fields of struct drm_i915_perf_oa_config are not set to 0, i915 will
+	 * write into the associated pointers the values of submitted when the
 	 * configuration was created :
 	 *
-	 *         - n_mux_regs
-	 *         - n_boolean_regs
-	 *         - n_flex_regs
+	 *  - &drm_i915_perf_oa_config.n_mux_regs
+	 *  - &drm_i915_perf_oa_config.n_boolean_regs
+	 *  - &drm_i915_perf_oa_config.n_flex_regs
 	 */
 	__u8 data[];
 };
 
+/**
+ * enum drm_i915_gem_memory_class - Supported memory classes
+ */
+enum drm_i915_gem_memory_class {
+	/** @I915_MEMORY_CLASS_SYSTEM: System memory */
+	I915_MEMORY_CLASS_SYSTEM = 0,
+	/** @I915_MEMORY_CLASS_DEVICE: Device local-memory */
+	I915_MEMORY_CLASS_DEVICE,
+};
+
+/**
+ * struct drm_i915_gem_memory_class_instance - Identify particular memory region
+ */
+struct drm_i915_gem_memory_class_instance {
+	/** @memory_class: See enum drm_i915_gem_memory_class */
+	__u16 memory_class;
+
+	/** @memory_instance: Which instance */
+	__u16 memory_instance;
+};
+
+/**
+ * struct drm_i915_memory_region_info - Describes one region as known to the
+ * driver.
+ *
+ * Note that we reserve some stuff here for potential future work. As an example
+ * we might want expose the capabilities for a given region, which could include
+ * things like if the region is CPU mappable/accessible, what are the supported
+ * mapping types etc.
+ *
+ * Note that to extend struct drm_i915_memory_region_info and struct
+ * drm_i915_query_memory_regions in the future the plan is to do the following:
+ *
+ * .. code-block:: C
+ *
+ *	struct drm_i915_memory_region_info {
+ *		struct drm_i915_gem_memory_class_instance region;
+ *		union {
+ *			__u32 rsvd0;
+ *			__u32 new_thing1;
+ *		};
+ *		...
+ *		union {
+ *			__u64 rsvd1[8];
+ *			struct {
+ *				__u64 new_thing2;
+ *				__u64 new_thing3;
+ *				...
+ *			};
+ *		};
+ *	};
+ *
+ * With this things should remain source compatible between versions for
+ * userspace, even as we add new fields.
+ *
+ * Note this is using both struct drm_i915_query_item and struct drm_i915_query.
+ * For this new query we are adding the new query id DRM_I915_QUERY_MEMORY_REGIONS
+ * at &drm_i915_query_item.query_id.
+ */
+struct drm_i915_memory_region_info {
+	/** @region: The class:instance pair encoding */
+	struct drm_i915_gem_memory_class_instance region;
+
+	/** @rsvd0: MBZ */
+	__u32 rsvd0;
+
+	/** @probed_size: Memory probed by the driver (-1 = unknown) */
+	__u64 probed_size;
+
+	/** @unallocated_size: Estimate of memory remaining (-1 = unknown) */
+	__u64 unallocated_size;
+
+	/** @rsvd1: MBZ */
+	__u64 rsvd1[8];
+};
+
+/**
+ * struct drm_i915_query_memory_regions
+ *
+ * The region info query enumerates all regions known to the driver by filling
+ * in an array of struct drm_i915_memory_region_info structures.
+ *
+ * Example for getting the list of supported regions:
+ *
+ * .. code-block:: C
+ *
+ *	struct drm_i915_query_memory_regions *info;
+ *	struct drm_i915_query_item item = {
+ *		.query_id = DRM_I915_QUERY_MEMORY_REGIONS;
+ *	};
+ *	struct drm_i915_query query = {
+ *		.num_items = 1,
+ *		.items_ptr = (uintptr_t)&item,
+ *	};
+ *	int err, i;
+ *
+ *	// First query the size of the blob we need, this needs to be large
+ *	// enough to hold our array of regions. The kernel will fill out the
+ *	// item.length for us, which is the number of bytes we need.
+ *	err = ioctl(fd, DRM_IOCTL_I915_QUERY, &query);
+ *	if (err) ...
+ *
+ *	info = calloc(1, item.length);
+ *	// Now that we allocated the required number of bytes, we call the ioctl
+ *	// again, this time with the data_ptr pointing to our newly allocated
+ *	// blob, which the kernel can then populate with the all the region info.
+ *	item.data_ptr = (uintptr_t)&info,
+ *
+ *	err = ioctl(fd, DRM_IOCTL_I915_QUERY, &query);
+ *	if (err) ...
+ *
+ *	// We can now access each region in the array
+ *	for (i = 0; i < info->num_regions; i++) {
+ *		struct drm_i915_memory_region_info mr = info->regions[i];
+ *		u16 class = mr.region.class;
+ *		u16 instance = mr.region.instance;
+ *
+ *		....
+ *	}
+ *
+ *	free(info);
+ */
+struct drm_i915_query_memory_regions {
+	/** @num_regions: Number of supported regions */
+	__u32 num_regions;
+
+	/** @rsvd: MBZ */
+	__u32 rsvd[3];
+
+	/** @regions: Info about each supported region */
+	struct drm_i915_memory_region_info regions[];
+};
 #include "i915_drm_prelim.h"
 
 /* ID of the protected content session managed by i915 when PXP is active */
 #define I915_PROTECTED_CONTENT_DEFAULT_SESSION 0xf
+
+/**
+ * DOC: GuC HWCONFIG blob uAPI
+ *
+ * The GuC produces a blob with information about the current device.
+ * i915 reads this blob from GuC and makes it available via this uAPI.
+ *
+ * The format and meaning of the blob content are documented in the
+ * Programmer's Reference Manual.
+ */
+
+/**
+ * struct drm_i915_gem_create_ext - Existing gem_create behaviour, with added
+ * extension support using struct i915_user_extension.
+ *
+ * Note that in the future we want to have our buffer flags here, at least for
+ * the stuff that is immutable. Previously we would have two ioctls, one to
+ * create the object with gem_create, and another to apply various parameters,
+ * however this creates some ambiguity for the params which are considered
+ * immutable. Also in general we're phasing out the various SET/GET ioctls.
+ */
+struct drm_i915_gem_create_ext {
+	/**
+	 * @size: Requested size for the object.
+	 *
+	 * The (page-aligned) allocated size for the object will be returned.
+	 *
+	 * Note that for some devices we have might have further minimum
+	 * page-size restrictions(larger than 4K), like for device local-memory.
+	 * However in general the final size here should always reflect any
+	 * rounding up, if for example using the I915_GEM_CREATE_EXT_MEMORY_REGIONS
+	 * extension to place the object in device local-memory.
+	 */
+	__u64 size;
+	/**
+	 * @handle: Returned handle for the object.
+	 *
+	 * Object handles are nonzero.
+	 */
+	__u32 handle;
+	/** @flags: MBZ */
+	__u32 flags;
+	/**
+	 * @extensions: The chain of extensions to apply to this object.
+	 *
+	 * This will be useful in the future when we need to support several
+	 * different extensions, and we need to apply more than one when
+	 * creating the object. See struct i915_user_extension.
+	 *
+	 * If we don't supply any extensions then we get the same old gem_create
+	 * behaviour.
+	 *
+	 * For I915_GEM_CREATE_EXT_MEMORY_REGIONS usage see
+	 * struct drm_i915_gem_create_ext_memory_regions.
+	 */
+#define I915_GEM_CREATE_EXT_MEMORY_REGIONS 0
+	__u64 extensions;
+};
+
+/**
+ * struct drm_i915_gem_create_ext_memory_regions - The
+ * I915_GEM_CREATE_EXT_MEMORY_REGIONS extension.
+ *
+ * Set the object with the desired set of placements/regions in priority
+ * order. Each entry must be unique and supported by the device.
+ *
+ * This is provided as an array of struct drm_i915_gem_memory_class_instance, or
+ * an equivalent layout of class:instance pair encodings. See struct
+ * drm_i915_query_memory_regions and DRM_I915_QUERY_MEMORY_REGIONS for how to
+ * query the supported regions for a device.
+ *
+ * As an example, on discrete devices, if we wish to set the placement as
+ * device local-memory we can do something like:
+ *
+ * .. code-block:: C
+ *
+ *	struct drm_i915_gem_memory_class_instance region_lmem = {
+ *              .memory_class = I915_MEMORY_CLASS_DEVICE,
+ *              .memory_instance = 0,
+ *      };
+ *      struct drm_i915_gem_create_ext_memory_regions regions = {
+ *              .base = { .name = I915_GEM_CREATE_EXT_MEMORY_REGIONS },
+ *              .regions = (uintptr_t)&region_lmem,
+ *              .num_regions = 1,
+ *      };
+ *      struct drm_i915_gem_create_ext create_ext = {
+ *              .size = 16 * PAGE_SIZE,
+ *              .extensions = (uintptr_t)&regions,
+ *      };
+ *
+ *      int err = ioctl(fd, DRM_IOCTL_I915_GEM_CREATE_EXT, &create_ext);
+ *      if (err) ...
+ *
+ * At which point we get the object handle in &drm_i915_gem_create_ext.handle,
+ * along with the final object size in &drm_i915_gem_create_ext.size, which
+ * should account for any rounding up, if required.
+ */
+struct drm_i915_gem_create_ext_memory_regions {
+	/** @base: Extension link. See struct i915_user_extension. */
+	struct i915_user_extension base;
+
+	/** @pad: MBZ */
+	__u32 pad;
+	/** @num_regions: Number of elements in the @regions array. */
+	__u32 num_regions;
+	/**
+	 * @regions: The regions/placements array.
+	 *
+	 * An array of struct drm_i915_gem_memory_class_instance.
+	 */
+	__u64 regions;
+};
 
 #if defined(__cplusplus)
 }

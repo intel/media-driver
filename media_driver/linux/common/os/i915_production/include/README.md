@@ -15,8 +15,10 @@ APIs, these files should be updated.
 
 The last update was done at the following kernel commit:
 
+```
 Repo:      https://github.com/intel-gpu/drm-uapi-helper/tree/master/drm-uapi
-Author:    Rodrigo Vivi <rodrigo.vivi@intel.com>
-Date:      Fri Dec 3 17:09:18 2021 -0500
-Commit ID: 4d83557910eafa7c6b1910c3429117387dab79f7
-Tag:       RC4
+Author:    Ashutosh Dixit <ashutosh.dixit@intel.com>
+Date:      Thu Jul 21 13:02:21 2022 -0700
+Commit ID: 014dbfd6f934a16b6665957692ccfc5d862aa6fe
+Tag:       v2.0-rc14
+```

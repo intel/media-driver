@@ -13,18 +13,52 @@ $ make headers_install INSTALL_HDR_PATH=/path/to/install
 
 The last update was done at the following kernel commit:
 
-commit 8d62a974ac5fa1609e57a54622eef71e87bace78 
-Merge: 7761a3ea172e 88de9f0d4728
-Author: Christian König <christian.koenig@amd.com>
-Date:   Tue May 3 08:36:13 2022 +0200
+commit 2c2d7a67defa198a8b8148dbaddc9e5554efebc8
+Merge: 1c23f9e627a7 5ece208ab05e
+Author: Dave Airlie <airlied@redhat.com>
+Date:   Fri Aug 26 10:01:44 2022 +1000
 
-    drm/amdgpu: fix drm-next merge fallout
+    Merge tag 'drm-intel-gt-next-2022-08-24' of git://anongit.freedesktop.org/drm/drm-intel into drm-next
 
-    That hunk somehow got missing while solving the conflict between the TTM
-    and AMDGPU changes for drm-next.
+    UAPI Changes:
 
-    Signed-off-by: Christian König <christian.koenig@amd.com>
-    Acked-by: Alex Deucher <alexander.deucher@amd.com>
+    - Create gt/gtN/.defaults/ for per gt sysfs defaults
+
+      Create a gt/gtN/.defaults/ directory (similar to
+      engine/<engine-name>/.defaults/) to expose default parameter values for
+      each gt in sysfs. This allows userspace to restore default parameter values
+      after they have changed.
+
+    Driver Changes:
+
+    - Support GuC v69 in parallel to v70 (Daniele)
+    - Improve TLB invalidation to limit performance regression (Chris, Mauro)
+    - Expose per-gt RPS defaults in sysfs (Ashutosh)
+    - Suppress OOM warning for shmemfs object allocation failure (Chris, Nirmoy)
+    - Disable PCI resize on 32-bit machines (Nirmoy)
+    - Update DG2 to GuC v70.4.1 (John)
+    - Fix CCS data copying on DG2 during swapping (Matt A)
+    - Add DG2 performance tuning setting recommended by spec (Matt R)
+    - Add GuC <-> kernel time stamp translation information to error logs (John)
+    - Record GuC CTB info in error logs (John)
+
+    - Route semaphores to GuC for Gen12+ when enabled (Michal Wi, John)
+    - Improve resilency to bug #3575: Handle reset timeouts under unrelated kernel hangs (Chris, Ashutosh)
+    - Avoid system freeze by removing shared locking on freeing objects (Chris, Nirmoy)
+    - Demote GuC error "No response for request" into debug when expected (Zhanjun)
+    - Fix GuC capture size warning and bump the size (John)
+    - Use streaming loads to speed up dumping the GuC log (Chris, John)
+    - Don't abort on CTB_UNUSED status from GuC (John)
+    - Don't send spurious policy update for GuC child contexts (Daniele)
+    - Don't leak the CCS state (Matt A)
+
+    - Prefer drm_err over pr_err (John)
+    - Eliminate unused calc_ctrl_surf_instr_size (Matt A)
+    - Add dedicated function for non-ctx register tuning settings (Matt R)
+    - Style and typo fixes, documentation improvements (Jason Wang, Mauro)
+    - Selftest improvements (Matt B, Rahul, John)
+
     Signed-off-by: Dave Airlie <airlied@redhat.com>
-    Link: https://patchwork.freedesktop.org/patch/msgid/20220503063613.46925-1-christian.koenig@amd.com
 
+	From: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
+    Link: https://patchwork.freedesktop.org/patch/msgid/YwYTCjA/Rhpd1n4A@jlahtine-mobl.ger.corp.intel.com

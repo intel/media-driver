@@ -6,7 +6,7 @@
 #ifndef __I915_DRM_PRELIM_H__
 #define __I915_DRM_PRELIM_H__
 
-#include "drm.h"
+#include "i915_drm.h"
 
 /*
  * Modifications to structs/values defined here are subject to
@@ -42,22 +42,14 @@ struct prelim_i915_uevent {
 struct prelim_i915_user_extension {
 #define PRELIM_I915_USER_EXT		(1 << 16)
 #define PRELIM_I915_USER_EXT_MASK(x)	(x & 0xffff)
+#define PRELIM_I915_CONTEXT_ENGINES_EXT_PARALLEL2_SUBMIT (PRELIM_I915_USER_EXT | 3)
 };
 
-struct prelim_drm_i915_gem_context_create_ext_clone {
+/* This API has been removed.  On the off chance someone somewhere has
+ * attempted to use it, never re-use this extension number.
+ */
+
 #define PRELIM_I915_CONTEXT_CREATE_EXT_CLONE	(PRELIM_I915_USER_EXT | 1)
-	struct i915_user_extension base;
-	__u32 clone_id;
-	__u32 flags;
-#define PRELIM_I915_CONTEXT_CLONE_ENGINES	(1u << 0)
-#define PRELIM_I915_CONTEXT_CLONE_FLAGS		(1u << 1)
-#define PRELIM_I915_CONTEXT_CLONE_SCHEDATTR	(1u << 2)
-#define PRELIM_I915_CONTEXT_CLONE_SSEU		(1u << 3)
-#define PRELIM_I915_CONTEXT_CLONE_TIMELINE	(1u << 4)
-#define PRELIM_I915_CONTEXT_CLONE_VM		(1u << 5)
-#define PRELIM_I915_CONTEXT_CLONE_UNKNOWN	-(PRELIM_I915_CONTEXT_CLONE_VM << 1)
-	__u64 rsvd;
-};
 
 /*
  * PRELIM UAPI VERSION - /sys/<...>/drm/card<n>/prelim_uapi_version
@@ -71,7 +63,7 @@ struct prelim_drm_i915_gem_context_create_ext_clone {
  *         the pile that is changing this number.
  */
 #define PRELIM_UAPI_MAJOR	2
-#define PRELIM_UAPI_MINOR	0
+#define PRELIM_UAPI_MINOR	1
 
 /*
  * Top 8 bits of every non-engine counter are GT id.
@@ -129,50 +121,35 @@ struct prelim_drm_i915_gem_context_create_ext_clone {
 #define PRELIM_I915_PMU_SGUNIT_ERROR_CORRECTABLE		(16)
 #define PRELIM_I915_PMU_SGUNIT_ERROR_NONFATAL			(17)
 #define PRELIM_I915_PMU_SGUNIT_ERROR_FATAL			(18)
-#define PRELIM_I915_PMU_SOC_ERROR_CORRECTABLE_PSF_CSC_0		(19)
-#define PRELIM_I915_PMU_SOC_ERROR_CORRECTABLE_PSF_CSC_1		(20)
-#define PRELIM_I915_PMU_SOC_ERROR_NONFATAL_PSF_CSC_0		(21)
-#define PRELIM_I915_PMU_SOC_ERROR_NONFATAL_PSF_CSC_1		(22)
-#define PRELIM_I915_PMU_SOC_ERROR_NONFATAL_PSF_CSC_2		(23)
-#define PRELIM_I915_PMU_SOC_ERROR_FATAL_PSF_CSC_0		(24)
-#define PRELIM_I915_PMU_SOC_ERROR_FATAL_PSF_CSC_1		(25)
-#define PRELIM_I915_PMU_SOC_ERROR_FATAL_PSF_CSC_2		(26)
-#define PRELIM_I915_PMU_SOC_ERROR_CORRECTABLE_PUNIT		(27)
-#define PRELIM_I915_PMU_SOC_ERROR_CORRECTABLE_MDFI_EAST		(28)
-#define PRELIM_I915_PMU_SOC_ERROR_CORRECTABLE_MDFI_WEST		(29)
-#define PRELIM_I915_PMU_SOC_ERROR_CORRECTABLE_MDFI_SOUTH	(30)
-#define PRELIM_I915_PMU_SOC_ERROR_NONFATAL_PUNIT		(31)
-#define PRELIM_I915_PMU_SOC_ERROR_NONFATAL_MDFI_EAST		(32)
-#define PRELIM_I915_PMU_SOC_ERROR_NONFATAL_MDFI_WEST		(33)
-#define PRELIM_I915_PMU_SOC_ERROR_NONFATAL_MDFI_SOUTH		(34)
-#define PRELIM_I915_PMU_SOC_ERROR_FATAL_PUNIT			(35)
-#define PRELIM_I915_PMU_SOC_ERROR_FATAL_MDFI_EAST		(36)
-#define PRELIM_I915_PMU_SOC_ERROR_FATAL_MDFI_WEST		(37)
-#define PRELIM_I915_PMU_SOC_ERROR_FATAL_MDFI_SOUTH		(38)
-
-#define PRELIM_I915_PMU_SOC_ERROR_CORRECTABLE_FBR(ss, n) \
-	(PRELIM_I915_PMU_SOC_ERROR_FATAL_MDFI_SOUTH + 0x1 + (ss) * 0x4 + (n))
-
-#define PRELIM_I915_PMU_SOC_ERROR_NONFATAL_FBR(ss, n) \
-	(PRELIM_I915_PMU_SOC_ERROR_CORRECTABLE_FBR(1, 5) + (ss) * 0x4 + (n))
+#define PRELIM_I915_PMU_SOC_ERROR_FATAL_PSF_CSC_0		(19)
+#define PRELIM_I915_PMU_SOC_ERROR_FATAL_PSF_CSC_1		(20)
+#define PRELIM_I915_PMU_SOC_ERROR_FATAL_PSF_CSC_2		(21)
+#define PRELIM_I915_PMU_SOC_ERROR_FATAL_PUNIT			(22)
+#define PRELIM_I915_PMU_SOC_ERROR_FATAL_MDFI_EAST		(23)
+#define PRELIM_I915_PMU_SOC_ERROR_FATAL_MDFI_WEST		(24)
+#define PRELIM_I915_PMU_SOC_ERROR_FATAL_MDFI_SOUTH		(25)
 
 #define PRELIM_I915_PMU_SOC_ERROR_FATAL_FBR(ss, n) \
-	(PRELIM_I915_PMU_SOC_ERROR_NONFATAL_FBR(1, 5) + (ss) * 0x4 + (n))
-
-#define PRELIM_I915_PMU_SOC_ERROR_CORRECTABLE_HBM(ss, n)\
-	(PRELIM_I915_PMU_SOC_ERROR_FATAL_FBR(1, 5) + (ss) * 0x10 + (n))
-
-#define PRELIM_I915_PMU_SOC_ERROR_NONFATAL_HBM(ss, n)\
-	(PRELIM_I915_PMU_SOC_ERROR_CORRECTABLE_HBM(1, 16) + (ss) * 0x10 + (n))
+	(PRELIM_I915_PMU_SOC_ERROR_FATAL_MDFI_SOUTH + 0x1 + (ss) * 0x4 + (n))
 
 #define PRELIM_I915_PMU_SOC_ERROR_FATAL_HBM(ss, n)\
-	(PRELIM_I915_PMU_SOC_ERROR_NONFATAL_HBM(1, 16) + (ss) * 0x10 + (n))
+	(PRELIM_I915_PMU_SOC_ERROR_FATAL_FBR(1, 5) + (ss) * 0x10 + (n))
 
-/* 161 is the last ID used by SOC errors */
-#define PRELIM_I915_PMU_GT_ERROR_FATAL_FPU		(162)
-#define PRELIM_I915_PMU_GT_ERROR_FATAL_TLB		(163)
-#define PRELIM_I915_PMU_GT_ERROR_FATAL_L3_FABRIC	(164)
+#define PRELIM_I915_PMU_GT_ERROR_FATAL_FPU			(67)
+#define PRELIM_I915_PMU_GT_ERROR_FATAL_TLB			(68)
+#define PRELIM_I915_PMU_GT_ERROR_FATAL_L3_FABRIC		(69)
+#define PRELIM_I915_PVC_PMU_SOC_ERROR_FATAL_PSF_0		(70)
+#define PRELIM_I915_PVC_PMU_SOC_ERROR_FATAL_PSF_1		(71)
+#define PRELIM_I915_PVC_PMU_SOC_ERROR_FATAL_PSF_2		(72)
+#define PRELIM_I915_PVC_PMU_SOC_ERROR_FATAL_CD0			(73)
+#define PRELIM_I915_PVC_PMU_SOC_ERROR_FATAL_CD0_MDFI		(74)
+#define PRELIM_I915_PVC_PMU_SOC_ERROR_FATAL_MDFI_EAST		(75)
+#define PRELIM_I915_PVC_PMU_SOC_ERROR_FATAL_MDFI_SOUTH		(76)
 
+#define PRELIM_I915_PVC_PMU_SOC_ERROR_FATAL_HBM(ss, n)\
+	(PRELIM_I915_PVC_PMU_SOC_ERROR_FATAL_MDFI_SOUTH + 0x1 + (ss) * 0x10 + (n))
+
+/* 108 is the last ID used by SOC errors */
 #define PRELIM_I915_PMU_HW_ERROR(gt, id) \
 	((__PRELIM_I915_PMU_HW_ERROR_EVENT_ID_OFFSET + (id)) | \
 	((__u64)(gt) << __PRELIM_I915_PMU_GT_SHIFT))
@@ -214,8 +191,6 @@ struct prelim_drm_i915_gem_context_create_ext_clone {
 #define PRELIM_DRM_I915_GEM_CACHE_RESERVE	0x53
 #define PRELIM_DRM_I915_GEM_VM_GETPARAM		DRM_I915_GEM_CONTEXT_GETPARAM
 #define PRELIM_DRM_I915_GEM_VM_SETPARAM		DRM_I915_GEM_CONTEXT_SETPARAM
-#define PRELIM_DRM_I915_GEM_OBJECT_SETPARAM	DRM_I915_GEM_CONTEXT_SETPARAM
-#define PRELIM_DRM_I915_PXP_OPS			0x52
 
 
 #define PRELIM_DRM_IOCTL_I915_GEM_CREATE_EXT		DRM_IOWR(DRM_COMMAND_BASE + DRM_I915_GEM_CREATE, struct prelim_drm_i915_gem_create_ext)
@@ -232,9 +207,6 @@ struct prelim_drm_i915_gem_context_create_ext_clone {
 #define PRELIM_DRM_IOCTL_I915_GEM_CACHE_RESERVE		DRM_IOWR(DRM_COMMAND_BASE + PRELIM_DRM_I915_GEM_CACHE_RESERVE, struct prelim_drm_i915_gem_cache_reserve)
 #define PRELIM_DRM_IOCTL_I915_GEM_VM_GETPARAM		DRM_IOWR(DRM_COMMAND_BASE + PRELIM_DRM_I915_GEM_VM_GETPARAM, struct prelim_drm_i915_gem_vm_param)
 #define PRELIM_DRM_IOCTL_I915_GEM_VM_SETPARAM		DRM_IOWR(DRM_COMMAND_BASE + PRELIM_DRM_I915_GEM_VM_SETPARAM, struct prelim_drm_i915_gem_vm_param)
-#define PRELIM_DRM_IOCTL_I915_GEM_OBJECT_SETPARAM	DRM_IOWR(DRM_COMMAND_BASE + PRELIM_DRM_I915_GEM_OBJECT_SETPARAM, struct prelim_drm_i915_gem_object_param)
-#define PRELIM_DRM_IOCTL_I915_PXP_OPS			DRM_IOWR(DRM_COMMAND_BASE + PRELIM_DRM_I915_PXP_OPS, struct prelim_drm_i915_pxp_ops)
-
 /* End PRELIM ioctl's */
 
 /* getparam */
@@ -284,10 +256,12 @@ struct prelim_drm_i915_gem_create_ext {
 	 */
 	__u32 handle;
 	__u32 pad;
-#define PRELIM_I915_GEM_CREATE_EXT_SETPARAM		(PRELIM_I915_USER_EXT | 1)
-#define PRELIM_I915_GEM_CREATE_EXT_PROTECTED_CONTENT	(PRELIM_I915_USER_EXT | 2)
-#define PRELIM_I915_GEM_CREATE_EXT_FLAGS_UNKNOWN \
-	(~(PRELIM_I915_GEM_CREATE_EXT_SETPARAM | PRELIM_I915_GEM_CREATE_EXT_PROTECTED_CONTENT))
+
+#define PRELIM_I915_GEM_CREATE_EXT_SETPARAM	(PRELIM_I915_USER_EXT | 1)
+#define PRELIM_I915_GEM_CREATE_EXT_VM_PRIVATE	(PRELIM_I915_USER_EXT | 3)
+#define PRELIM_I915_GEM_CREATE_EXT_FLAGS_UNKNOWN			\
+	(~(PRELIM_I915_GEM_CREATE_EXT_SETPARAM |			\
+	   PRELIM_I915_GEM_CREATE_EXT_VM_PRIVATE))
 	__u64 extensions;
 };
 
@@ -329,118 +303,12 @@ struct prelim_drm_i915_gem_create_ext_setparam {
 	struct prelim_drm_i915_gem_object_param param;
 };
 
-/**
- * struct drm_i915_gem_create_ext_protected_content - The
- * I915_OBJECT_PARAM_PROTECTED_CONTENT extension.
- *
- * If this extension is provided, buffer contents are expected to be
- * protected by PXP encryption and requires decryption for scan out
- * and processing. This is only possible on platforms that have PXP enabled,
- * on all other scenarios ysing this extension will cause the ioctl to fail
- * and return -ENODEV. The flags parameter is reserved for future expansion and
- * must currently be set to zero.
- *
- * The buffer contents are considered invalid after a PXP session teardown.
- *
- * The encryption is guaranteed to be processed correctly only if the object
- * is submitted with a context created using the
- * I915_CONTEXT_PARAM_PROTECTED_CONTENT flag. This will also enable extra checks
- * at submission time on the validity of the objects involved, which can lead to
- * the following errors being returned from the execbuf ioctl:
- *
- * -ENODEV: PXP session not currently active
- * -ENOEXEC: buffer has become invalid after a teardown event
- */
-struct prelim_drm_i915_gem_create_ext_protected_content {
+struct prelim_drm_i915_gem_create_ext_vm_private {
+	/** @base: Extension link. See struct i915_user_extension. */
 	struct i915_user_extension base;
-	__u32 flags;
+	/** @vm_id: Id of the VM to which Object is private */
+	__u32 vm_id;
 };
-
-/*
- * struct pxp_set_session_status_params - Params to reserved, set or destroy
- * the session from the PXP state machine.
- */
-struct prelim_drm_i915_pxp_set_session_status_params {
-	__u32 pxp_tag; /* in/out, session identifier tag */
-	__u32 session_type; /* in, session type */
-	__u32 session_mode; /* in, session mode */
-#define PRELIM_DRM_I915_PXP_MODE_LM 0
-#define PRELIM_DRM_I915_PXP_MODE_HM 1
-#define PRELIM_DRM_I915_PXP_MODE_SM 2
-
-	__u32 req_session_state; /* in, new session state */
-	/* Request KMD to allocate session id and move it to INIT */
-#define PRELIM_DRM_I915_PXP_REQ_SESSION_ID_INIT 0
-	/* Inform KMD that UMD has completed the initialization */
-#define PRELIM_DRM_I915_PXP_REQ_SESSION_IN_PLAY 1
-	/* Request KMD to terminate the session */
-#define PRELIM_DRM_I915_PXP_REQ_SESSION_TERMINATE 2
-} __attribute__((packed));
-
-/*
- * struct pxp_tee_io_message_params - Params to send/receive message to/from TEE.
- */
-struct prelim_drm_i915_pxp_tee_io_message_params {
-	__u64 msg_in; /* in - pointer to buffer containing input message */
-	__u32 msg_in_size; /* in - input message size */
-	__u64 msg_out; /* in - pointer to buffer to store the output message */
-	__u32 msg_out_buf_size; /* in -  provided output message buffer size */
-	__u32 msg_out_ret_size; /* out- output message actual size returned from TEE */
-} __attribute__((packed));
-
-/*
- * struct drm_i915_pxp_query_tag - Params to query the PXP tag of specified
- * session id and whether the session is alive from PXP state machine.
- */
-struct prelim_drm_i915_pxp_query_tag {
-	__u32 session_is_alive;
-
-	/*
-	 * in  - Session ID, out pxp tag.
-	 * Tag format:
-	 * bits   0-6: session id
-	 * bit      7: rsvd
-	 * bits  8-15: instance id
-	 * bit     16: session enabled
-	 * bit     17: mode hm
-	 * bit     18: rsvd
-	 * bit     19: mode sm
-	 * bits 20-31: rsvd
-	 */
-	__u32 pxp_tag;
-#define PRELIM_DRM_I915_PXP_TAG_SESSION_ID_MASK		(0x7f)
-#define PRELIM_DRM_I915_PXP_TAG_INSTANCE_ID_MASK	(0xff << 8)
-#define PRELIM_DRM_I915_PXP_TAG_SESSION_ENABLED		(0x1 << 16)
-#define PRELIM_DRM_I915_PXP_TAG_SESSION_HM		(0x1 << 17)
-#define PRELIM_DRM_I915_PXP_TAG_SESSION_SM		(0x1 << 19)
-} __attribute__((packed));
-
-/*
- * DRM_I915_PXP_OPS -
- *
- * PXP is an i915 componment, that helps user space to establish the hardware
- * protected session and manage the status of each alive software session,
- * as well as the life cycle of each session.
- *
- * This ioctl is to allow user space driver to create, set, and destroy each
- * session. It also provides the communication chanel to TEE (Trusted
- * Execution Environment) for the protected hardware session creation.
- */
-
-struct prelim_drm_i915_pxp_ops {
-	__u32 action; /* in - specified action of this operation */
-#define PRELIM_DRM_I915_PXP_ACTION_SET_SESSION_STATUS 0
-#define PRELIM_DRM_I915_PXP_ACTION_TEE_IO_MESSAGE 1
-#define PRELIM_DRM_I915_PXP_ACTION_QUERY_PXP_TAG 2
-
-	__u32 status; /* out - status output for this operation */
-#define PRELIM_DRM_I915_PXP_OP_STATUS_SUCCESS 0
-#define PRELIM_DRM_I915_PXP_OP_STATUS_RETRY_REQUIRED 1
-#define PRELIM_DRM_I915_PXP_OP_STATUS_SESSION_NOT_AVAILABLE 2
-#define PRELIM_DRM_I915_PXP_OP_STATUS_ERROR_UNKNOWN 3
-
-	__u64 params; /* in/out - pointer to data matching the action */
-} __attribute__((packed));
 
 #define PRELIM_PERF_VERSION	(1000)
 
@@ -504,6 +372,15 @@ enum prelim_drm_i915_eu_stall_property_id {
 
 	PRELIM_DRM_I915_EU_STALL_PROP_ENGINE_INSTANCE,
 
+	/**
+	 * This field specifies the minimum number of
+	 * EU stall data rows to be present in the kernel
+	 * buffer for poll() to set POLLIN (data present).
+	 * A default value of 1 is used by the driver if this
+	 * field is not specified.
+	 */
+	PRELIM_DRM_I915_EU_STALL_PROP_EVENT_REPORT_COUNT,
+
 	PRELIM_DRM_I915_EU_STALL_PROP_MAX
 };
 
@@ -530,44 +407,37 @@ struct prelim_drm_i915_gem_memory_class_instance {
 struct prelim_drm_i915_query_item {
 #define PRELIM_DRM_I915_QUERY			(1 << 16)
 #define PRELIM_DRM_I915_QUERY_MASK(x)		(x & 0xffff)
-/* Keep lower 16 bits same as previous values */
 #define PRELIM_DRM_I915_QUERY_MEMORY_REGIONS	(PRELIM_DRM_I915_QUERY | 4)
 #define PRELIM_DRM_I915_QUERY_DISTANCE_INFO	(PRELIM_DRM_I915_QUERY | 5)
-	/**
-	 * Query HWConfig Table: Copies a device information table to the
-	 * query's item.data_ptr directly if the allocated length is big enough
-	 * For details about table format and content see intel_hwconfig_types.h
-	 */
+/* Deprecated: HWConfig is now upstream, do not use the prelim version anymore */
 #define PRELIM_DRM_I915_QUERY_HWCONFIG_TABLE	(PRELIM_DRM_I915_QUERY | 6)
-#define PRELIM_DRM_I915_QUERY_GEOMETRY_SLICES	(PRELIM_DRM_I915_QUERY | 7)
-#define PRELIM_DRM_I915_QUERY_COMPUTE_SLICES	(PRELIM_DRM_I915_QUERY | 8)
+	/**
+	 * Query Geometry Subslices: returns the items found in query_topology info
+	 * with a mask for geometry_subslice_mask applied
+	 *
+	 * @flags:
+	 *
+	 * bits 0:7 must be a valid engine class and bits 8:15 must be a valid engine
+	 * instance.
+	 */
+#define PRELIM_DRM_I915_QUERY_GEOMETRY_SUBSLICES	(PRELIM_DRM_I915_QUERY | 7)
+	/**
+	 * Query Compute Subslices: returns the items found in query_topology info
+	 * with a mask for compute_subslice_mask applied
+	 *
+	 * @flags:
+	 *
+	 * bits 0:7 must be a valid engine class and bits 8:15 must be a valid engine
+	 * instance.
+	 */
+#define PRELIM_DRM_I915_QUERY_COMPUTE_SUBSLICES		(PRELIM_DRM_I915_QUERY | 8)
 	/**
 	 * Query Command Streamer timestamp register.
 	 */
-#define PRELIM_DRM_I915_QUERY_CS_CYCLES		(PRELIM_DRM_I915_QUERY | 9)
-
-#define PRELIM_DRM_I915_QUERY_FABRIC_INFO	(PRELIM_DRM_I915_QUERY | 11)
-
-#define PRELIM_DRM_I915_QUERY_HW_IP_VERSION	(PRELIM_DRM_I915_QUERY | 12)
-
-#define PRELIM_DRM_I915_QUERY_ENGINE_INFO	(PRELIM_DRM_I915_QUERY | 13)
-#define PRELIM_DRM_I915_QUERY_L3_BANK_COUNT	(PRELIM_DRM_I915_QUERY | 14)
+#define PRELIM_DRM_I915_QUERY_CS_CYCLES			(PRELIM_DRM_I915_QUERY | 9)
+#define PRELIM_DRM_I915_QUERY_FABRIC_INFO		(PRELIM_DRM_I915_QUERY | 11)
+#define PRELIM_DRM_I915_QUERY_ENGINE_INFO		(PRELIM_DRM_I915_QUERY | 13)
 };
-
-/*
- * Number of BB in execbuf2 IOCTL - 1, used to submit more than BB in a single
- * execbuf2 IOCTL.
- *
- * Return -EINVAL if more than 1 BB (value 0) is specified if
- * PRELIM_I915_CONTEXT_ENGINES_EXT_PARALLEL_SUBMIT hasn't been called on the gem
- * context first. Also returns -EINVAL if gem context has been setup with
- * I915_PARALLEL_BB_PREEMPT_BOUNDARY and the number BBs not equal to the total
- * number hardware contexts in the gem context.
- */
-#define PRELIM_I915_EXEC_NUMBER_BB_LSB		(48)
-#define PRELIM_I915_EXEC_NUMBER_BB_MASK		(0x3full << PRELIM_I915_EXEC_NUMBER_BB_LSB)
-#define PRELIM_I915_EXEC_NUMBER_BB_MSB		(54)
-#define PRELIM_I915_EXEC_NUMBER_BB_MASK_MSB	(1ull << PRELIM_I915_EXEC_NUMBER_BB_MSB)
 
 /*
  * In XEHPSDV total number of engines can be more than the maximum supported
@@ -605,274 +475,8 @@ enum prelim_drm_i915_gem_engine_class {
 	PRELIM_I915_ENGINE_CLASS_COMPUTE = 4,
 };
 
-/*
- * prelim_i915_context_engines_parallel_submit:
- *
- * Setup a gem context to allow multiple BBs to be submitted in a single execbuf
- * IOCTL. Those BBs will then be scheduled to run on the GPU in parallel.
- *
- * All hardware contexts in the engine set are configured for parallel
- * submission (i.e. once this gem context is configured for parallel submission,
- * all the hardware contexts, regardless if a BB is available on each individual
- * context, will be submitted to the GPU in parallel). A user can submit BBs to
- * subset (or superset) of the hardware contexts, in a single execbuf IOCTL, but
- * it is not recommended as it may reserve physical engines with nothing to run
- * on them. Highly recommended to configure the gem context with N hardware
- * contexts then always submit N BBs in a single IOCTL.
- *
- * Their are two currently defined ways to control the placement of the
- * hardware contexts on physical engines: default behavior (no flags) and
- * PRELIM_I915_PARALLEL_IMPLICT_BONDS (a flag). More flags may be added the in the
- * future as new hardware / use cases arise. Details of how to use this
- * interface below above the flags.
- *
- * Returns -EINVAL if hardware context placement configuration invalid or if the
- * placement configuration isn't supported on the platform / submission
- * interface.
- */
-struct prelim_i915_context_engines_parallel_submit {
-	struct i915_user_extension base;
-
-/*
- * Default placement behvavior (currently unsupported):
- *
- * Rather than restricting parallel submission to a single class with a
- * logically contiguous placement (PRELIM_I915_PARALLEL_IMPLICT_BONDS), add a mode that
- * enables parallel submission across multiple engine classes. In this case each
- * context's logical engine mask indicates where that context can placed
- * compared to the flag, PRELIM_I915_PARALLEL_IMPLICT_BONDS, where only the first
- * context's logical mask controls the placement. It is implied in this mode
- * that all contexts have mutual exclusive placement (e.g. if one context is
- * running VCS0 no other contexts can run on VCS0).
- *
- * Example 1 pseudo code:
- * INVALID = I915_ENGINE_CLASS_INVALID, I915_ENGINE_CLASS_INVALID_NONE
- * set_engines(INVALID, INVALID)
- * set_load_balance(engine_index=0, num_siblings=4, engines=VCS0,VCS1,VCS2,VCS3)
- * set_load_balance(engine_index=1, num_siblings=4, engines=RCS0,RCS1,RCS2,RCS3)
- * set_parallel()
- *
- * Results in the following valid placements:
- * VCS0, RCS0
- * VCS0, RCS1
- * VCS0, RCS2
- * VCS0, RCS3
- * VCS1, RCS0
- * VCS1, RCS1
- * VCS1, RCS2
- * VCS1, RCS3
- * VCS2, RCS0
- * VCS2, RCS1
- * VCS2, RCS2
- * VCS2, RCS3
- * VCS3, RCS0
- * VCS3, RCS1
- * VCS3, RCS2
- * VCS3, RCS3
- *
- * Example 2 pseudo code:
- * INVALID = I915_ENGINE_CLASS_INVALID, I915_ENGINE_CLASS_INVALID_NONE
- * set_engines(INVALID, INVALID)
- * set_load_balance(engine_index=0, num_siblings=3, engines=VCS0,VCS1,VCS2)
- * set_load_balance(engine_index=1, num_siblings=3, engines=VCS0,VCS1,VCS2)
- * set_parallel()
- *
- * Results in the following valid placements:
- * VCS0, VCS1
- * VCS0, VCS2
- * VCS1, VCS0
- * VCS1, VCS2
- * VCS2, VCS0
- * VCS2, VCS1
- *
- * This enables a use case where all engines are created equally, we don't care
- * where they are scheduled, we just want a certain number of resources, for
- * those resources to be scheduled in parallel, and possibly across multiple
- * engine classes.
- *
- * This mode is not supported with GuC submission gen12 or any prior platforms,
- * but could be supported in execlists mode. Future GuC platforms may support
- * this.
- */
-
-/*
- * PRELIM_I915_PARALLEL_IMPLICT_BONDS - Create implict bonds between each context.
- * Each context must have the same number sibling and bonds are implictly create
- * of the siblings.
- *
- * All of the below examples are in logical space.
- *
- * Example 1 pseudo code:
- * set_engines(VCS0, VCS1)
- * set_parallel(flags=PRELIM_I915_PARALLEL_IMPLICT_BONDS)
- *
- * Results in the following valid placements:
- * VCS0, VCS1
- *
- * Example 2 pseudo code:
- * INVALID = I915_ENGINE_CLASS_INVALID, I915_ENGINE_CLASS_INVALID_NONE
- * set_engines(INVALID, INVALID)
- * set_load_balance(engine_index=0, num_siblings=4, engines=VCS0,VCS2,VCS4,VCS6)
- * set_load_balance(engine_index=1, num_siblings=4, engines=VCS1,VCS3,VCS5,VCS7)
- * set_parallel(flags=PRELIM_I915_PARALLEL_IMPLICT_BONDS)
- *
- * Results in the following valid placements:
- * VCS0, VCS1
- * VCS2, VCS3
- * VCS4, VCS5
- * VCS6, VCS7
- *
- * Example 3 pseudo code:
- * INVALID = I915_ENGINE_CLASS_INVALID, I915_ENGINE_CLASS_INVALID_NONE
- * set_engines(INVALID, INVALID, INVALID, INVALID)
- * set_load_balance(engine_index=0, num_siblings=2, engines=VCS0,VCS4)
- * set_load_balance(engine_index=1, num_siblings=2, engines=VCS1,VCS5)
- * set_load_balance(engine_index=2, num_siblings=2, engines=VCS2,VCS6)
- * set_load_balance(engine_index=3, num_siblings=2, engines=VCS3,VCS7)
- * set_parallel(flags=PRELIM_I915_PARALLEL_IMPLICT_BONDS)
- *
- * Results in the following valid placements:
- * VCS0, VCS1, VCS2, VCS3
- * VCS4, VCS5, VCS6, VCS7
- *
- * This enables a use case where all engines are not equal and certain placement
- * rules are required (i.e. split-frame requires all contexts to be placed in a
- * logically contiguous order on the VCS engines on gen11/gen12 platforms). This
- * use case (logically contiguous placement, within a single engine class) is
- * supported when using GuC submission. Execlist mode could support all possible
- * bonding configurations.
- */
-#define PRELIM_I915_PARALLEL_IMPLICT_BONDS	(1ull << 63)
-/*
- * Do not allow BBs to be preempted mid BB rather insert coordinated preemption
- * points on all hardware contexts between each BB. An example use case of this
- * feature is split-frame on gen11 or gen12 hardware. When using this feature a
- * BB must be submitted on each hardware context in the parallel gem context.
- * The execbuf2 IOCTL enforces the user adheres to policy.
- */
-#define PRELIM_I915_PARALLEL_BATCH_PREEMPT_BOUNDARY	(1ull << 62)
-#define __PRELIM_I915_PARALLEL_UNKNOWN_FLAGS		(~GENMASK_ULL(63, 62))
-	__u64 flags; /* all undefined flags must be zero */
-	__u64 mbz64[4]; /* reserved for future use; must be zero */
-} __attribute__ ((packed));
-
-/**
- * struct prelim_drm_i915_context_engines_parallel2_submit - Configure engine
- * for parallel submission.
- *
- * Setup a slot in the context engine map to allow multiple BBs to be submitted
- * in a single execbuf IOCTL. Those BBs will then be scheduled to run on the GPU
- * in parallel. Multiple hardware contexts are created internally in the i915
- * run these BBs. Once a slot is configured for N BBs only N BBs can be
- * submitted in each execbuf IOCTL and this is implicit behavior e.g. The user
- * doesn't tell the execbuf IOCTL there are N BBs, the execbuf IOCTL knows how
- * many BBs there are based on the slot's configuration. The N BBs are the last
- * N buffer objects or first N if I915_EXEC_BATCH_FIRST is set.
- *
- * The default placement behavior is to create implicit bonds between each
- * context if each context maps to more than 1 physical engine (e.g. context is
- * a virtual engine). Also we only allow contexts of same engine class and these
- * contexts must be in logically contiguous order. Examples of the placement
- * behavior described below. Lastly, the default is to not allow BBs to
- * preempted mid BB rather insert coordinated preemption on all hardware
- * contexts between each set of BBs. Flags may be added in the future to change
- * both of these default behaviors.
- *
- * Returns -EINVAL if hardware context placement configuration is invalid or if
- * the placement configuration isn't supported on the platform / submission
- * interface.
- * Returns -ENODEV if extension isn't supported on the platform / submission
- * inteface.
- *
- * .. code-block::
- *
- *	Example 1 pseudo code:
- *	CS[X] = generic engine of same class, logical instance X
- *	INVALID = I915_ENGINE_CLASS_INVALID, I915_ENGINE_CLASS_INVALID_NONE
- *	set_engines(INVALID)
- *	set_parallel(engine_index=0, width=2, num_siblings=1,
- *		     engines=CS[0],CS[1])
- *
- *	Results in the following valid placement:
- *	CS[0], CS[1]
- *
- *	Example 2 pseudo code:
- *	CS[X] = generic engine of same class, logical instance X
- *	INVALID = I915_ENGINE_CLASS_INVALID, I915_ENGINE_CLASS_INVALID_NONE
- *	set_engines(INVALID)
- *	set_parallel(engine_index=0, width=2, num_siblings=2,
- *		     engines=CS[0],CS[2],CS[1],CS[3])
- *
- *	Results in the following valid placements:
- *	CS[0], CS[1]
- *	CS[2], CS[3]
- *
- *	This can also be thought of as 2 virtual engines described by 2-D array
- *	in the engines the field with bonds placed between each index of the
- *	virtual engines. e.g. CS[0] is bonded to CS[1], CS[2] is bonded to
- *	CS[3].
- *	VE[0] = CS[0], CS[2]
- *	VE[1] = CS[1], CS[3]
- *
- *	Example 3 pseudo code:
- *	CS[X] = generic engine of same class, logical instance X
- *	INVALID = I915_ENGINE_CLASS_INVALID, I915_ENGINE_CLASS_INVALID_NONE
- *	set_engines(INVALID)
- *	set_parallel(engine_index=0, width=2, num_siblings=2,
- *		     engines=CS[0],CS[1],CS[1],CS[3])
- *
- *	Results in the following valid and invalid placements:
- *	CS[0], CS[1]
- *	CS[1], CS[3] - Not logical contiguous, return -EINVAL
- */
-struct prelim_drm_i915_context_engines_parallel2_submit {
-	/**
-	 * @base: base user extension.
-	 */
-	struct i915_user_extension base;
-
-	/**
-	 * @engine_index: slot for parallel engine
-	 */
-	__u16 engine_index;
-
-	/**
-	 * @width: number of contexts per parallel engine
-	 */
-	__u16 width;
-
-	/**
-	 * @num_siblings: number of siblings per context
-	 */
-	__u16 num_siblings;
-
-	/**
-	 * @mbz16: reserved for future use; must be zero
-	 */
-	__u16 mbz16;
-
-	/**
-	 * @flags: all undefined flags must be zero, currently not defined flags
-	 */
-	__u64 flags;
-
-	/**
-	 * @mbz64: reserved for future use; must be zero
-	 */
-	__u64 mbz64[3];
-
-	/**
-	 * @engines: 2-d array of engine instances to configure parallel engine
-	 *
-	 * length = width (i) * num_siblings (j)
-	 * index = j + i * num_siblings
-	 */
-	struct i915_engine_class_instance engines[0];
-} __attribute__ ((packed));
-
 struct prelim_i915_context_param_engines {
 #define PRELIM_I915_CONTEXT_ENGINES_EXT_PARALLEL_SUBMIT (PRELIM_I915_USER_EXT | 2) /* see prelim_i915_context_engines_parallel_submit */
-#define PRELIM_I915_CONTEXT_ENGINES_EXT_PARALLEL2_SUBMIT (PRELIM_I915_USER_EXT | 3) /* see prelim_i915_context_engines_parallel2_submit */
 };
 
 /* PRELIM OA formats */
@@ -889,6 +493,7 @@ enum prelim_drm_i915_oa_format {
 	PRELIM_I915_OAC_FORMAT_A24u64_B8_C8,
 	PRELIM_I915_OA_FORMAT_A38u64_R2u64_B8_C8,
 	PRELIM_I915_OAM_FORMAT_A2u64_R2u64_B8_C8,
+	PRELIM_I915_OAC_FORMAT_A22u32_R2u32_B8_C8,
 
 	PRELIM_I915_OA_FORMAT_MAX	/* non-ABI */
 };
@@ -972,30 +577,12 @@ struct prelim_drm_i915_gem_context_param {
 #define PRELIM_I915_CONTEXT_PARAM_ACC		(PRELIM_I915_CONTEXT_PARAM | 0xd)
 };
 
-/*
- * I915_CONTEXT_PARAM_PROTECTED_CONTENT:
- *
- * Mark that the context makes use of protected content, which will result
- * in the context being invalidated when the protected content session is.
- * This flag can only be set at context creation time and, when set to true,
- * must be preceded by an explicit setting of I915_CONTEXT_PARAM_RECOVERABLE
- * to false. This flag can't be set to true in conjunction with setting the
- * I915_CONTEXT_PARAM_BANNABLE flag to false.
- *
- * Given the numerous restriction on this flag, there are several unique
- * failure cases:
- *
- * -ENODEV: feature not available
- * -EEXIST: trying to modify an existing context
- * -EPERM: trying to mark a recoverable or not bannable context as protected
- * -EACCES: submitting an invalidated context for execution
- */
-#define PRELIM_I915_CONTEXT_PARAM_PROTECTED_CONTENT (PRELIM_I915_CONTEXT_PARAM | 0xe)
-
 struct prelim_drm_i915_gem_context_create_ext {
+/* Depricated in favor of PRELIM_I915_CONTEXT_CREATE_FLAGS_LONG_RUNNING */
 #define PRELIM_I915_CONTEXT_CREATE_FLAGS_ULLS		(1u << 31)
-#define PRELIM_I915_CONTEXT_CREATE_FLAGS_UNKNOWN \
-	(~(PRELIM_I915_CONTEXT_CREATE_FLAGS_ULLS | ~I915_CONTEXT_CREATE_FLAGS_UNKNOWN))
+#define PRELIM_I915_CONTEXT_CREATE_FLAGS_LONG_RUNNING	(1u << 31)
+#define PRELIM_I915_CONTEXT_CREATE_FLAGS_UNKNOWN			\
+	(~(PRELIM_I915_CONTEXT_CREATE_FLAGS_LONG_RUNNING | ~I915_CONTEXT_CREATE_FLAGS_UNKNOWN))
 };
 
 /*
@@ -1383,28 +970,6 @@ struct prelim_drm_i915_query_cs_cycles {
 };
 
 /**
- * prelim_struct drm_i915_query_hw_ip_version
- *
- * Hardware IP version (i.e., architecture generation) associated with a
- * specific engine.
- */
-struct prelim_drm_i915_query_hw_ip_version {
-	/** Engine to query HW IP version for */
-	struct i915_engine_class_instance engine;
-
-	__u8 flags;	/* MBZ */
-
-	/** Architecture  version */
-	__u8 arch;
-
-	/** Architecture release id */
-	__u8 release;
-
-	/** Stepping (e.g., A0, A1, B0, etc.) */
-	__u8 stepping;
-};
-
-/**
  * struct prelim_drm_i915_query_fabric_info
  *
  * With the given fabric id, query fabric info wrt the device.
@@ -1451,11 +1016,9 @@ struct prelim_drm_i915_engine_info {
 
 	/** Capabilities of this engine. */
 	__u64 capabilities;
-#define PRELIM_I915_RENDER_CLASS_CAPABILITY_3D		(1ull << 63)
 #define I915_VIDEO_CLASS_CAPABILITY_HEVC		(1 << 0)
 #define I915_VIDEO_AND_ENHANCE_CLASS_CAPABILITY_SFC	(1 << 1)
 #define PRELIM_I915_VIDEO_CLASS_CAPABILITY_VDENC	(1ull << 63)
-#define I915_VIDEO_CLASS_CAPABILITY_VDENC		(1 << 2)
 #define PRELIM_I915_COPY_CLASS_CAP_BLOCK_COPY		(1ull << 63)
 	/*
 	 * The following are capabilties of the copy engines, while all engines
@@ -1512,7 +1075,7 @@ struct prelim_drm_i915_gem_vm_bind {
 
 	/** BO handle or file descriptor. Set 'fd' to -1 for system pages **/
 	union {
-		__u32 handle;
+		__u32 handle; /* For unbind, it is reserved and must be 0 */
 		__s32 fd;
 	};
 
@@ -1632,11 +1195,59 @@ struct prelim_drm_i915_gem_wait_user_fence {
 	__s64 timeout;
 };
 
+/*
+ * This extension allows user to attach a pair of <addr, value> to an execbuf.
+ * When that execbuf is finished by GPU HW, the value is written to addr.
+ * So after execbuf is submitted, user can poll addr to know whether execbuf
+ * has been finished or not. User space can also call i915_gem_wait_user_fence_ioctl
+ * (with PRELIM_I915_UFENCE_WAIT_EQ operation) to wait for finishing of execbuf.
+ * This ioctl can sleep so it is more efficient than a busy polling.
+ * So this serves as synchronization purpose. It is similar to DRM_IOCTL_I915_GEM_WAIT,
+ * which is prohibited by compute context. The method introduced here can be use for
+ * both compute and non-compute context.
+ */
+struct prelim_drm_i915_gem_execbuffer_ext_user_fence {
+#define PRELIM_DRM_I915_GEM_EXECBUFFER_EXT_USER_FENCE (PRELIM_I915_USER_EXT | 1)
+	struct i915_user_extension base;
+
+	/**
+	 * A virtual address mapped to current process's GPU address space.
+	 * addr has to be qword aligned. address has to be a a valid gpu
+	 * virtual address at the time of batch buffer completion.
+	 */
+	__u64 addr;
+
+	/**
+	 * value to be written to above address after execbuf finishes.
+	 */
+	__u64 value;
+	/**
+	 * for future extensions. Currently not used.
+	 */
+	__u64 rsvd;
+};
+
+/* Deprecated in favor of prelim_drm_i915_vm_bind_ext_user_fence */
 struct prelim_drm_i915_vm_bind_ext_sync_fence {
 #define PRELIM_I915_VM_BIND_EXT_SYNC_FENCE     (PRELIM_I915_USER_EXT | 0)
 	struct i915_user_extension base;
 	__u64 addr;
 	__u64 val;
+};
+
+struct prelim_drm_i915_vm_bind_ext_user_fence {
+#define PRELIM_I915_VM_BIND_EXT_USER_FENCE     (PRELIM_I915_USER_EXT | 3)
+	struct i915_user_extension base;
+	__u64 addr;
+	__u64 val;
+	__u64 rsvd;
+};
+
+struct prelim_drm_i915_gem_vm_control {
+#define PRELIM_I915_VM_CREATE_FLAGS_DISABLE_SCRATCH	(1 << 16)
+#define PRELIM_I915_VM_CREATE_FLAGS_ENABLE_PAGE_FAULT	(1 << 17)
+#define PRELIM_I915_VM_CREATE_FLAGS_USE_VM_BIND		(1 << 18)
+#define PRELIM_I915_VM_CREATE_FLAGS_UNKNOWN		(~(GENMASK(18, 16)))
 };
 
 struct prelim_drm_i915_gem_vm_region_ext {
@@ -1645,12 +1256,6 @@ struct prelim_drm_i915_gem_vm_region_ext {
 	/* memory region: to find gt to create vm on */
 	struct prelim_drm_i915_gem_memory_class_instance region;
 	__u32 pad;
-};
-
-struct prelim_drm_i915_gem_vm_control {
-#define PRELIM_I915_VM_CREATE_FLAGS_DISABLE_SCRATCH	(1 << 16)
-#define PRELIM_I915_VM_CREATE_FLAGS_ENABLE_PAGE_FAULT	(1 << 17)
-#define PRELIM_I915_VM_CREATE_FLAGS_UNKNOWN		(~(GENMASK(17, 16)))
 };
 
 struct prelim_drm_i915_vm_bind_ext_set_pat {
@@ -1704,7 +1309,7 @@ struct prelim_drm_i915_gem_clos_free {
  */
 struct prelim_drm_i915_gem_cache_reserve {
 	__u16 clos_index;
-	__u16 cache_level; // e.g. 3 for L3
+	__u16 cache_level; /* e.g. 3 for L3 */
 	__u16 num_ways;
 	__u16 pad16;
 };
