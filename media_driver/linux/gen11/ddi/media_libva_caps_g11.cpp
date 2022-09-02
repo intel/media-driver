@@ -976,7 +976,7 @@ VAStatus MediaLibvaCapsG11::QuerySurfaceAttributes(
         attribs[i].value.value.i = VP_MIN_PIC_HEIGHT;
         i++;
 
-        for (int32_t j = 0; j < m_numVpSurfaceAttr; j++)
+        for (int32_t j = 0; j < m_numVpSurfaceAttr && m_vpSurfaceAttr[j]; j++)
         {
             attribs[i].type = VASurfaceAttribPixelFormat;
             attribs[i].value.type = VAGenericValueTypeInteger;

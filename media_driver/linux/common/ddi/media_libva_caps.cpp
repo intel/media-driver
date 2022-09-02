@@ -93,7 +93,12 @@ const uint32_t MediaLibvaCaps::m_vpSurfaceAttr[m_numVpSurfaceAttr] =
     VA_FOURCC_X2B10G10R10,
     VA_FOURCC_AYUV,
     VA_FOURCC_Y210,
-    VA_FOURCC_Y410
+    VA_FOURCC_Y410,
+#if VA_CHECK_VERSION(1, 13, 0)
+    VA_FOURCC_XYUV,
+#else
+    0,
+#endif
 };
 
 const uint32_t MediaLibvaCaps::m_jpegSurfaceAttr[m_numJpegSurfaceAttr] =
@@ -2691,7 +2696,7 @@ VAStatus MediaLibvaCaps::QuerySurfaceAttributes(
         attribs[i].value.value.i = VP_MIN_PIC_HEIGHT;
         i++;
 
-        for (uint32_t j = 0; j < m_numVpSurfaceAttr; j++)
+        for (uint32_t j = 0; j < m_numVpSurfaceAttr && m_vpSurfaceAttr[j]; j++)
         {
             attribs[i].type = VASurfaceAttribPixelFormat;
             attribs[i].value.type = VAGenericValueTypeInteger;
