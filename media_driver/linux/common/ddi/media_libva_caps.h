@@ -844,7 +844,7 @@ protected:
 #endif
     static const uint16_t m_maxProfiles = 17; //!< Maximum number of supported profiles
     static const uint16_t m_maxProfileEntries = 64; //!< Maximum number of supported profile & entrypoint combinations
-    static const uint32_t m_numVpSurfaceAttr = 20; //!< Number of VP surface attributes
+    static const uint32_t m_numVpSurfaceAttr = 21; //!< Number of VP surface attributes
     static const uint32_t m_numJpegSurfaceAttr = 8; //!< Number of JPEG surface attributes
     static const uint32_t m_numJpegEncSurfaceAttr = 5; //!< Number of JPEG encode surface attributes
     static const uint16_t m_maxEntrypoints = 7; //!<  Maximum number of supported entrypoints
