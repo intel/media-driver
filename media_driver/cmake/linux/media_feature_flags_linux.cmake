@@ -184,9 +184,3 @@ if(NOT ENABLE_NONFREE_KERNELS)
 endif()
 
 include(${MEDIA_EXT_CMAKE}/ext/linux/media_feature_flags_linux_ext.cmake OPTIONAL)
-
-option(MHW_INTERFACES_NEXT_SUPPORT "Enable MHW Interfaces NEXT Support" ON)
-
-if(MHW_INTERFACES_NEXT_SUPPORT)
-    add_definitions(-DIGFX_MHW_INTERFACES_NEXT_SUPPORT)
-endif()

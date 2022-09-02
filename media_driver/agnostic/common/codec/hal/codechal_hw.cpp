@@ -65,7 +65,6 @@ CodechalHwInterface::CodechalHwInterface(
     MOS_ZeroMemory(&m_conditionalBbEndDummy, sizeof(m_conditionalBbEndDummy));
 }
 
-#ifdef IGFX_MHW_INTERFACES_NEXT_SUPPORT
 CodechalHwInterface::CodechalHwInterface(
     PMOS_INTERFACE    osInterface,
     CODECHAL_FUNCTION codecFunction,
@@ -102,7 +101,6 @@ CodechalHwInterface::CodechalHwInterface(
     MOS_ZeroMemory(&m_dummyStreamOut, sizeof(m_dummyStreamOut));
     MOS_ZeroMemory(&m_conditionalBbEndDummy, sizeof(m_conditionalBbEndDummy));
 }
-#endif
 
 MOS_STATUS CodechalHwInterface::SetCacheabilitySettings(
     MHW_MEMORY_OBJECT_CONTROL_PARAMS cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_END_CODEC])

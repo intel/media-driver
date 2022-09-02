@@ -34,7 +34,6 @@
 #include "mos_utilities.h"
 #include "mhw_cp_interface.h"
 
-#ifdef IGFX_MHW_INTERFACES_NEXT_SUPPORT
 #include "media_interfaces_mcpy_next.h"
 #include "media_interfaces_mmd_next.h"
 #include "media_interfaces_mhw_next.h"
@@ -46,9 +45,7 @@ template class MediaFactory<uint32_t, MmdDeviceNext>;
 typedef MediaFactory<uint32_t, MhwInterfacesNext> MhwFactoryNext;
 typedef MediaFactory<uint32_t, McpyDeviceNext> McpyFactoryNext;
 typedef MediaFactory<uint32_t, MmdDeviceNext> MmdFactoryNext;
-#endif
 
-#ifdef IGFX_MHW_INTERFACES_NEXT_SUPPORT
 MhwInterfacesNext* MhwInterfacesNext::CreateFactory(
     CreateParams params,
     PMOS_INTERFACE osInterface)
@@ -282,5 +279,4 @@ MhwInterfacesNext* MmdDeviceNext::CreateMhwInterface(PMOS_INTERFACE osInterface)
 
     return mhw;
 }
-#endif
 #endif

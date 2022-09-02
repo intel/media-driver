@@ -31,9 +31,8 @@
 #include "mhw_render_hwcmd_g12_X.h"
 #include "mhw_vdbox_avp_interface.h"
 #include "media_sfc_interface_legacy.h"
-#ifdef IGFX_MHW_INTERFACES_NEXT_SUPPORT
+
 #include "media_interfaces_mhw_next.h"
-#endif
 
 //!
 //! \enum MediaStatesAv1FilmGrain
@@ -67,7 +66,6 @@ public:
         MhwInterfaces     *mhwInterfaces,
         bool              disableScalability = false);
 
-#ifdef IGFX_MHW_INTERFACES_NEXT_SUPPORT
     //!
     //! \brief    Constructor
     //!
@@ -76,7 +74,6 @@ public:
         CODECHAL_FUNCTION codecFunction,
         MhwInterfacesNext *mhwInterfacesNext,
         bool              disableScalability = false);
-#endif
 
     //!
     //! \brief    Copy constructor
@@ -205,7 +202,6 @@ public:
     MOS_STATUS Initialize(
         CodechalSetting *settings) override;
 
-#ifdef IGFX_MHW_INTERFACES_NEXT_SUPPORT
     //!
     //! \brief    Read AVP status for status report
     //! \param    vdboxIndex
@@ -237,7 +233,7 @@ public:
         MHW_VDBOX_NODE_IND           vdboxIndex,
         const EncodeStatusReadParams &params,
         PMOS_COMMAND_BUFFER          cmdBuffer);
-#endif
+
 
     //!
     //! \brief    Get film grain kernel info

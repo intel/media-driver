@@ -50,9 +50,7 @@
 
 #include "gfxmacro.h"
 
-#ifdef IGFX_MHW_INTERFACES_NEXT_SUPPORT
 #include "codec_hw_next.h"
-#endif
 
 //------------------------------------------------------------------------------
 // Macros specific to MOS_CODEC_SUBCOMP_HW sub-comp
@@ -334,7 +332,6 @@ public:
         MhwInterfaces     *mhwInterfaces,
         bool              disableScalability = false);
 
-#ifdef IGFX_MHW_INTERFACES_NEXT_SUPPORT
     CodechalHwInterface(
         PMOS_INTERFACE    osInterface,
         CODECHAL_FUNCTION codecFunction,
@@ -447,7 +444,6 @@ public:
             return nullptr;
         }
     }
-#endif
 
     //!
     //! \brief    Copy constructor
@@ -529,13 +525,12 @@ public:
             MOS_Delete(m_sfcInterface);
             m_sfcInterface = nullptr;
         }
-#ifdef IGFX_MHW_INTERFACES_NEXT_SUPPORT
+
         if (m_hwInterfaceNext)
         {
             MOS_Delete(m_hwInterfaceNext);
             m_hwInterfaceNext = nullptr;
         }
-#endif
 
     #if MHW_HWCMDPARSER_ENABLED
         mhw::HwcmdParser::DestroyInstance();
@@ -1674,7 +1669,6 @@ public:
     //! \brief    default disable the get vdbox node by UMD, decided by MHW and MOS
     bool m_getVdboxNodeByUMD = false;
 
-#ifdef IGFX_MHW_INTERFACES_NEXT_SUPPORT
     operator CodechalHwInterfaceNext &()
     {
         if (m_hwInterfaceNext == nullptr)
@@ -1690,7 +1684,7 @@ public:
     }
 
     CodechalHwInterfaceNext *m_hwInterfaceNext = nullptr;
-#endif
+
 };
 
 extern const MOS_SYNC_PARAMS                        g_cInitSyncParams;
