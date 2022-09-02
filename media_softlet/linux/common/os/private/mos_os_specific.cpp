@@ -2171,7 +2171,7 @@ MOS_STATUS Mos_Specific_RegisterBBCompleteNotifyEvent(
 //! \param    PMOS_INTERFACE pOsInterface
 //!           [in] Pointer to OS Interface
 //! \param    uint32_t uiTimeOut
-//!           [in] Time to wait
+//!           [in] Time to wait (ms)
 //! \return   MOS_STATUS
 //!           Return MOS_STATUS_SUCCESS
 //!
@@ -2182,7 +2182,7 @@ MOS_STATUS Mos_Specific_WaitForBBCompleteNotifyEvent(
 {
     MOS_UNUSED(pOsInterface);
     MOS_UNUSED(GpuContext);
-    usleep(uiTimeOut);
+    usleep(1000 * uiTimeOut);
 
     return MOS_STATUS_SUCCESS;
 }
