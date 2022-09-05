@@ -391,18 +391,6 @@ MOS_STATUS MediaDebugInterface::LockSemaResource(std::vector<uint32_t *> &vSemaD
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS MediaDebugInterface::StopExecutionAtFrame(CodechalHwInterface *hwInterface, PMOS_RESOURCE statusBuffer, PMOS_COMMAND_BUFFER pCmdBuffer, uint32_t numFrame)
-{
-    MEDIA_DEBUG_ASSERTMESSAGE("Will stop to frame: %d!!!", numFrame);
-
-    MEDIA_DEBUG_CHK_STATUS(hwInterface->SendHwSemaphoreWaitCmd(
-        statusBuffer,
-        0x7f7f7f7f,
-        MHW_MI_SAD_EQUAL_SDD,
-        pCmdBuffer));
-    return MOS_STATUS_SUCCESS;
-}
-
 MOS_STATUS MediaDebugInterface::DumpToFile(const GoldenReferences &goldenReferences)
 {
     std::ofstream ofs(m_crcGoldenRefFileName, std::ios_base::out);

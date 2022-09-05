@@ -40,7 +40,7 @@ MOS_STATUS MediaDebugInterface::SubmitDummyWorkload(MOS_COMMAND_BUFFER *pCmdBuff
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS MediaDebugInterface::DetectCorruptionHw(CodechalHwInterface *hwInterface, PMOS_RESOURCE frameCntRes, uint32_t curIdx, uint32_t frameCrcOffset, std::vector<MOS_RESOURCE> &vStatusBuffer, PMOS_COMMAND_BUFFER pCmdBuffer, uint32_t frameNum)
+MOS_STATUS MediaDebugInterface::DetectCorruptionHw(void *hwInterface, PMOS_RESOURCE frameCntRes, uint32_t curIdx, uint32_t frameCrcOffset, std::vector<MOS_RESOURCE> &vStatusBuffer, PMOS_COMMAND_BUFFER pCmdBuffer, uint32_t frameNum)
 {
     if (m_enableHwDebugHooks &&
         m_goldenReferenceExist &&
@@ -49,7 +49,7 @@ MOS_STATUS MediaDebugInterface::DetectCorruptionHw(CodechalHwInterface *hwInterf
     {
         for (uint32_t i = 0; i < vStatusBuffer.size(); i++)
         {
-            MEDIA_DEBUG_CHK_STATUS(hwInterface->SendHwSemaphoreWaitCmd(
+            MEDIA_DEBUG_CHK_STATUS(((CodechalHwInterface*)hwInterface)->SendHwSemaphoreWaitCmd(
                 &vStatusBuffer[i],
                 m_goldenReferences[curIdx][i],
                 MHW_MI_SAD_EQUAL_SDD,

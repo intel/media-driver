@@ -1517,6 +1517,18 @@ MOS_STATUS CodechalDecode::StartStatusReport(
     return eStatus;
 }
 
+MOS_STATUS StopExecutionAtFrame(CodechalHwInterface *hwInterface, PMOS_RESOURCE statusBuffer, PMOS_COMMAND_BUFFER pCmdBuffer, uint32_t numFrame)
+{
+    CODECHAL_DECODE_ASSERTMESSAGE("Will stop to frame: %d!!!", numFrame);
+
+    CODECHAL_DECODE_CHK_STATUS_RETURN(hwInterface->SendHwSemaphoreWaitCmd(
+        statusBuffer,
+        0x7f7f7f7f,
+        MHW_MI_SAD_EQUAL_SDD,
+        pCmdBuffer));
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS CodechalDecode::EndStatusReport(
     CodechalDecodeStatusReport      &decodeStatusReport,
     PMOS_COMMAND_BUFFER             cmdBuffer)
@@ -1627,7 +1639,7 @@ MOS_STATUS CodechalDecode::EndStatusReport(
 #if (_DEBUG || _RELEASE_INTERNAL)
     if (m_debugInterface->GetStopFrameNumber() == m_frameNum)
     {
-        m_debugInterface->StopExecutionAtFrame(m_hwInterface, &GetDecodeStatusBuf()->m_statusBuffer, cmdBuffer, m_frameNum); //Hang at specific frame.
+        StopExecutionAtFrame(m_hwInterface, &GetDecodeStatusBuf()->m_statusBuffer, cmdBuffer, m_frameNum); //Hang at specific frame.
     }
 #endif
 

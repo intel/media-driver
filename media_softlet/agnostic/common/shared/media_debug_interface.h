@@ -158,9 +158,7 @@ public:
 
     virtual MOS_STATUS DetectCorruptionSw(CodechalDecode *pCodechalDecode, std::vector<MOS_RESOURCE> &vResource, PMOS_RESOURCE frameCntRes, uint8_t *buf, uint32_t &size, uint32_t frameNum) { return MOS_STATUS_SUCCESS; };
 
-    virtual MOS_STATUS DetectCorruptionHw(CodechalHwInterface *hwInterface, PMOS_RESOURCE frameCntRes, uint32_t curIdx, uint32_t frameCrcOffset, std::vector<MOS_RESOURCE> &vStatusBuffer, PMOS_COMMAND_BUFFER pCmdBuffer, uint32_t frameNum);
-
-    virtual MOS_STATUS StopExecutionAtFrame(CodechalHwInterface *hwInterface, PMOS_RESOURCE statusBuffer, PMOS_COMMAND_BUFFER pCmdBuffer, uint32_t numFrame);
+    virtual MOS_STATUS DetectCorruptionHw(void *hwInterface, PMOS_RESOURCE frameCntRes, uint32_t curIdx, uint32_t frameCrcOffset, std::vector<MOS_RESOURCE> &vStatusBuffer, PMOS_COMMAND_BUFFER pCmdBuffer, uint32_t frameNum);
 
     MOS_STATUS SetSWCrcMode(bool swCrc);
 
