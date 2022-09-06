@@ -32,7 +32,7 @@ namespace encode {
     MOS_STATUS HucBrcInitPkt::Init()
     {
         ENCODE_FUNC_CALL();
-        ENCODE_CHK_STATUS_RETURN(EncodeHucBasic::Init());
+        ENCODE_CHK_STATUS_RETURN(EncodeHucPkt::Init());
         ENCODE_CHK_NULL_RETURN(m_featureManager);
 
         m_basicFeature = dynamic_cast<HevcBasicFeature *>(m_featureManager->GetFeature(HevcFeatureIDs::basicFeature));
@@ -43,7 +43,7 @@ namespace encode {
 
     MOS_STATUS HucBrcInitPkt::AllocateResources()
     {
-        ENCODE_CHK_STATUS_RETURN(EncodeHucBasic::AllocateResources());
+        ENCODE_CHK_STATUS_RETURN(EncodeHucPkt::AllocateResources());
 
         // initiate allocation paramters and lock flags
         MOS_ALLOC_GFXRES_PARAMS allocParamsForBufferLinear;

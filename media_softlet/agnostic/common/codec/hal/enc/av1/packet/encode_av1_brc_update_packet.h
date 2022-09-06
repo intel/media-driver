@@ -201,7 +201,7 @@ namespace encode
         //!
         virtual std::string GetPacketName() override
         {
-            return "BRCUPDATE_PASS" + std::to_string((uint32_t)EncodeHucBasic::m_pipeline->GetCurrentPass());
+            return "BRCUPDATE_PASS" + std::to_string((uint32_t)EncodeHucPkt::m_pipeline->GetCurrentPass());
         }
 
     protected:

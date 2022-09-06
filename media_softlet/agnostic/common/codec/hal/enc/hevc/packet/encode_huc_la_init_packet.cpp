@@ -34,7 +34,7 @@ namespace encode
         ENCODE_FUNC_CALL();
         MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
-        HUC_CHK_STATUS_RETURN(EncodeHucBasic::Init());
+        HUC_CHK_STATUS_RETURN(EncodeHucPkt::Init());
         ENCODE_CHK_NULL_RETURN(m_featureManager);
         m_basicFeature = dynamic_cast<HevcBasicFeature *>(m_featureManager->GetFeature(HevcFeatureIDs::basicFeature));
         ENCODE_CHK_NULL_RETURN(m_basicFeature);
@@ -47,7 +47,7 @@ namespace encode
         ENCODE_FUNC_CALL();
         MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
-        ENCODE_CHK_STATUS_RETURN(EncodeHucBasic::AllocateResources());
+        ENCODE_CHK_STATUS_RETURN(EncodeHucPkt::AllocateResources());
 
         return eStatus;
     }

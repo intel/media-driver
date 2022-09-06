@@ -55,25 +55,25 @@
 
 namespace encode
 {
-    //EncodeHucPkt
-    class EncodeHucBasic : public CmdPacket, public MediaStatusReportObserver
+    class EncodeHucPkt : public CmdPacket,
+        public MediaStatusReportObserver,
+        public mhw::vdbox::vdenc::Itf::ParSetting,
+        public mhw::vdbox::huc::Itf::ParSetting,
+        public mhw::vdbox::avp::Itf::ParSetting,
+        public mhw::vdbox::mfx::Itf::ParSetting,
+        public mhw::mi::Itf::ParSetting
     {
     public:
-        //!
-        //! \brief  Encode HuC basic constructor
-        //!
-        EncodeHucBasic(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterface *hwInterface) :
+        EncodeHucPkt(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterface *hwInterface) : 
             CmdPacket(task),
             m_pipeline(dynamic_cast<EncodePipeline *>(pipeline))
         {
             ENCODE_CHK_NULL_NO_STATUS_RETURN(hwInterface);
             ENCODE_CHK_NULL_NO_STATUS_RETURN(m_pipeline);
 
-            m_hwInterface = hwInterface;
-            m_mfxInterface = hwInterface->GetMfxInterface();
-            m_vdencInterface = hwInterface->GetVdencInterface();
-            m_miInterface = hwInterface->GetMiInterface();
-            m_osInterface = hwInterface->GetOsInterface();
+            m_hwInterface    = hwInterface;
+            m_miInterface    = hwInterface->GetMiInterface();
+            m_osInterface    = hwInterface->GetOsInterface();
             m_featureManager = m_pipeline->GetFeatureManager();
             m_statusReport   = m_pipeline->GetStatusReportInstance();
 
@@ -86,12 +86,14 @@ namespace encode
             {
                 ENCODE_NORMALMESSAGE("Initialize m_userSettingPtr instance failed!");
             }
+
+            m_hucItf   = std::static_pointer_cast<mhw::vdbox::huc::Itf>(hwInterface->GetHucInterfaceNext());
+            m_vdencItf = std::static_pointer_cast<mhw::vdbox::vdenc::Itf>(m_hwInterface->GetVdencInterfaceNext());
+            m_avpItf   = std::static_pointer_cast<mhw::vdbox::avp::Itf>((hwInterface->GetAvpInterfaceNext()));
+            m_mfxItf   = std::static_pointer_cast<mhw::vdbox::mfx::Itf>(hwInterface->GetMfxInterfaceNext());
         }
 
-        //!
-        //! \brief  Media scalability destructor
-        //!
-        virtual ~EncodeHucBasic() {}
+        virtual ~EncodeHucPkt() {}
 
         virtual MOS_STATUS Init() override;
 
@@ -100,40 +102,26 @@ namespace encode
         virtual MOS_STATUS Execute(PMOS_COMMAND_BUFFER cmdBuffer, bool storeHucStatus2Needed, bool prologNeeded, HuCFunction function = NONE_BRC);
 
     protected:
-        //!
-        //! \brief  Set huc imem parameter
-        //! \return MOS_STATUS
-        //!         MOS_STATUS_SUCCESS if success, else fail reason
-        //!
-        virtual MOS_STATUS SetImemParameters() = 0;
 
         //!
-        //! \brief  Set huc dmem parameter
+        //! \brief  Add HUC_PIPE_MODE_SELECT command
+        //! \param  [in] cmdBuffer
+        //!         Pointer to command buffer
         //! \return MOS_STATUS
         //!         MOS_STATUS_SUCCESS if success, else fail reason
         //!
-        virtual MOS_STATUS SetDmemParameters() = 0;
+        MOS_STATUS AddAllCmds_HUC_PIPE_MODE_SELECT(PMOS_COMMAND_BUFFER cmdBuffer) const;
 
         //!
-        //! \brief  Set huc regions
+        //! \brief  Add HUC_IMEM_STATE command
+        //! \param  [in] cmdBuffer
+        //!         Pointer to command buffer
         //! \return MOS_STATUS
         //!         MOS_STATUS_SUCCESS if success, else fail reason
         //!
-        virtual MOS_STATUS SetRegions() = 0;
+        MOS_STATUS AddAllCmds_HUC_IMEM_STATE(PMOS_COMMAND_BUFFER cmdBuffer) const;
 
-        //!
-        //! \brief  Set  vdbox pipe flush parameter
-        //! \return MOS_STATUS
-        //!         MOS_STATUS_SUCCESS if success, else fail reason
-        //!
-        virtual MOS_STATUS SetVdPipeFlushParameters();
-
-        //!
-        //! \brief  Set huc pipe mode select parameter
-        //! \return MOS_STATUS
-        //!         MOS_STATUS_SUCCESS if success, else fail reason
-        //!
-        virtual MOS_STATUS SetHucPipeModeSelectParameters();
+        MHW_SETPAR_DECL_HDR(VD_PIPELINE_FLUSH);
 
         //!
         //! \brief  Store HuCStatus2
@@ -168,6 +156,8 @@ namespace encode
         //!
         virtual MOS_STATUS Completed(void *mfxStatus, void *rcsStatus, void *statusReport) override;
 
+        bool IsHuCStsUpdNeeded();
+
         MOS_STATUS SendPrologCmds(
             MOS_COMMAND_BUFFER &cmdBuffer);
 
@@ -192,82 +182,25 @@ namespace encode
 #endif
 #if _SW_BRC
         virtual MOS_STATUS InitSwBrc(HuCFunction function);
+        std::shared_ptr<EncodeSwBrc> m_swBrc = nullptr;
 #endif  // !_SW_BRC
-
-        virtual bool IsHuCStsUpdNeeded();
 
         EncodePipeline         *m_pipeline       = nullptr;
         EncodeAllocator        *m_allocator      = nullptr;
         MediaFeatureManager    *m_featureManager = nullptr;
         CodechalHwInterface    *m_hwInterface    = nullptr;
-        MhwVdboxMfxInterface   *m_mfxInterface   = nullptr;
-        MhwVdboxVdencInterface *m_vdencInterface = nullptr;
         MOS_INTERFACE          *m_osInterface    = nullptr;
-
-        MHW_VDBOX_HUC_IMEM_STATE_PARAMS        m_imemParams = {};
-        MHW_VDBOX_HUC_DMEM_STATE_PARAMS        m_dmemParams = {};
-        MHW_VDBOX_PIPE_MODE_SELECT_PARAMS      m_pipeModeSelectParams = {};
-        MHW_VDBOX_HUC_VIRTUAL_ADDR_PARAMS      m_virtualAddrParams = {};
-        MHW_VDBOX_VD_PIPE_FLUSH_PARAMS         m_vdPipeFlushParams = {};
-
-        //// VDEnc HuC FW status
-        MOS_RESOURCE  m_resHucStatus2Buffer = {};              //!< Resource of HuC status 2 buffer
-
-        MHW_VDBOX_NODE_IND m_vdboxIndex = MHW_VDBOX_NODE_1;
-
-#if (_SW_BRC)
-        std::shared_ptr<EncodeSwBrc> m_swBrc = nullptr;
-#endif  // !_SW_BRC
-
-        bool m_skuFtrEnableMediaKernels     = true;
-        uint32_t m_hucStatus2ImemLoadedMask = 0x40;
-        bool m_enableHucStatusReport        = false;
-
-        std::shared_ptr<mhw::vdbox::huc::Itf> m_hucItf = nullptr;
-    MEDIA_CLASS_DEFINE_END(encode__EncodeHucBasic)
-    };
-
-
-    class EncodeHucPkt : public EncodeHucBasic,
-        public mhw::vdbox::vdenc::Itf::ParSetting,
-        public mhw::vdbox::huc::Itf::ParSetting,
-        public mhw::vdbox::avp::Itf::ParSetting,
-        public mhw::vdbox::mfx::Itf::ParSetting,
-        public mhw::mi::Itf::ParSetting
-    {
-    public:
-        EncodeHucPkt(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterface *hwInterface) : EncodeHucBasic(pipeline, task, hwInterface)
-        {
-            ENCODE_CHK_NULL_NO_STATUS_RETURN(hwInterface);
-            ENCODE_CHK_NULL_NO_STATUS_RETURN(m_pipeline);
-
-            m_hucItf   = std::static_pointer_cast<mhw::vdbox::huc::Itf>(hwInterface->GetHucInterfaceNext());
-            m_vdencItf = std::static_pointer_cast<mhw::vdbox::vdenc::Itf>(m_hwInterface->GetVdencInterfaceNext());
-            m_avpItf   = std::static_pointer_cast<mhw::vdbox::avp::Itf>((hwInterface->GetAvpInterfaceNext()));
-            m_mfxItf   = std::static_pointer_cast<mhw::vdbox::mfx::Itf>(hwInterface->GetMfxInterfaceNext());
-        }
-
-        virtual ~EncodeHucPkt() {}
-
-        MOS_STATUS Execute(PMOS_COMMAND_BUFFER cmdBuffer, bool storeHucStatus2Needed, bool prologNeeded, HuCFunction function = NONE_BRC) override;
-
-    protected:
-        MOS_STATUS SetImemParameters() override { return MOS_STATUS_SUCCESS; };
-        MOS_STATUS SetDmemParameters() override { return MOS_STATUS_SUCCESS; };
-        MOS_STATUS SetRegions() override { return MOS_STATUS_SUCCESS; };
 
         std::shared_ptr<mhw::vdbox::vdenc::Itf> m_vdencItf = nullptr;
         std::shared_ptr<mhw::vdbox::huc::Itf>   m_hucItf   = nullptr;
         std::shared_ptr<mhw::vdbox::avp::Itf>   m_avpItf   = nullptr;
         std::shared_ptr<mhw::vdbox::mfx::Itf>   m_mfxItf   = nullptr;
 
-        MOS_STATUS AddAllCmds_HUC_PIPE_MODE_SELECT(PMOS_COMMAND_BUFFER cmdBuffer) const;
-        MOS_STATUS AddAllCmds_HUC_IMEM_STATE(PMOS_COMMAND_BUFFER cmdBuffer) const;
-
-        MHW_SETPAR_DECL_HDR(VD_PIPELINE_FLUSH);
-
-        void LoadLegacyHucRegions();
-        void LoadLegacyHucDmemParams();
+        MOS_RESOURCE       m_resHucStatus2Buffer      = {};
+        MHW_VDBOX_NODE_IND m_vdboxIndex               = MHW_VDBOX_NODE_1;
+        bool               m_skuFtrEnableMediaKernels = true;
+        uint32_t           m_hucStatus2ImemLoadedMask = 0x40;
+        bool               m_enableHucStatusReport    = false;
 
     MEDIA_CLASS_DEFINE_END(encode__EncodeHucPkt)
     };

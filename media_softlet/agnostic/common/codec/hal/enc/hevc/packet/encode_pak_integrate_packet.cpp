@@ -37,7 +37,7 @@ namespace encode {
         m_basicFeature = dynamic_cast<HevcBasicFeature *>(m_featureManager->GetFeature(HevcFeatureIDs::basicFeature));
         ENCODE_CHK_NULL_RETURN(m_basicFeature);
 
-        ENCODE_CHK_STATUS_RETURN(EncodeHucBasic::Init());
+        ENCODE_CHK_STATUS_RETURN(EncodeHucPkt::Init());
 
         ENCODE_CHK_NULL_RETURN(m_hwInterface);
         m_osInterface  = m_hwInterface->GetOsInterface();
@@ -57,7 +57,7 @@ namespace encode {
 
     MOS_STATUS HevcPakIntegratePkt::AllocateResources()
     {
-        ENCODE_CHK_STATUS_RETURN(EncodeHucBasic::AllocateResources());
+        ENCODE_CHK_STATUS_RETURN(EncodeHucPkt::AllocateResources());
 
         // Only needed when tile & BRC is enabled, but the size is not changing at frame level
         if (m_resHucPakStitchDmemBuffer[0][0] == nullptr)

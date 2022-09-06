@@ -60,11 +60,11 @@ namespace encode
         uint8_t      tileNumberPerGroup[ENCODE_VDENC_AV1_MAX_TILE_GROUP_NUM];
     };
 
-    class Av1BackAnnotationPkt : public EncodeHucBasic
+    class Av1BackAnnotationPkt : public EncodeHucPkt
     {
     public:
         Av1BackAnnotationPkt(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterface *hwInterface) :
-            EncodeHucBasic(pipeline, task, hwInterface)
+            EncodeHucPkt(pipeline, task, hwInterface)
         {
         }
 
@@ -82,8 +82,6 @@ namespace encode
         virtual MOS_STATUS Prepare() override;
 
         MOS_STATUS Submit(MOS_COMMAND_BUFFER *commandBuffer, uint8_t packetPhase = otherPacket) override;
-
-        MOS_STATUS SetHucPipeModeSelectParameters()   override;
 
         //!
         //! \brief  Calculate Command Size
@@ -122,9 +120,6 @@ namespace encode
         virtual MOS_STATUS Completed(void *mfxStatus, void *rcsStatus, void *statusReport) override;
 
     protected:
-        virtual MOS_STATUS SetImemParameters() override;
-        virtual MOS_STATUS SetDmemParameters() override;
-        virtual MOS_STATUS SetRegions() override;
         virtual MOS_STATUS AllocateResources() override;
 
         virtual MOS_STATUS SetDmemBuffer();

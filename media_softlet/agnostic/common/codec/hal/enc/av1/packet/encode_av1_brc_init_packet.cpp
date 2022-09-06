@@ -30,7 +30,7 @@ namespace encode {
     MOS_STATUS Av1BrcInitPkt::Init()
     {
         ENCODE_FUNC_CALL();
-        ENCODE_CHK_STATUS_RETURN(EncodeHucBasic::Init());
+        ENCODE_CHK_STATUS_RETURN(EncodeHucPkt::Init());
         ENCODE_CHK_NULL_RETURN(m_featureManager);
 
         m_basicFeature = dynamic_cast<Av1BasicFeature *>(m_featureManager->GetFeature(Av1FeatureIDs::basicFeature));
@@ -41,7 +41,7 @@ namespace encode {
 
     MOS_STATUS Av1BrcInitPkt::AllocateResources()
     {
-        ENCODE_CHK_STATUS_RETURN(EncodeHucBasic::AllocateResources());
+        ENCODE_CHK_STATUS_RETURN(EncodeHucPkt::AllocateResources());
 
         // initiate allocation paramters
         MOS_ALLOC_GFXRES_PARAMS allocParamsForBufferLinear;

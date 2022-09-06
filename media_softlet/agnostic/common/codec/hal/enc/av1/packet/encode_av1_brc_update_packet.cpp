@@ -36,7 +36,7 @@ namespace encode
     MOS_STATUS Av1BrcUpdatePkt::Init()
     {
         ENCODE_FUNC_CALL();
-        HUC_CHK_STATUS_RETURN(EncodeHucBasic::Init());
+        HUC_CHK_STATUS_RETURN(EncodeHucPkt::Init());
 
         ENCODE_CHK_NULL_RETURN(m_pipeline);
         m_allocator = m_pipeline->GetEncodeAllocator();
@@ -83,7 +83,7 @@ namespace encode
     MOS_STATUS Av1BrcUpdatePkt::AllocateResources()
     {
         ENCODE_FUNC_CALL();
-        ENCODE_CHK_STATUS_RETURN(EncodeHucBasic::AllocateResources());
+        ENCODE_CHK_STATUS_RETURN(EncodeHucPkt::AllocateResources());
 
         MOS_ALLOC_GFXRES_PARAMS allocParamsForBufferLinear;
         MOS_ZeroMemory(&allocParamsForBufferLinear, sizeof(MOS_ALLOC_GFXRES_PARAMS));
