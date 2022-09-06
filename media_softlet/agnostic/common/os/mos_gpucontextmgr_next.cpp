@@ -256,7 +256,6 @@ void GpuContextMgrNext::DestroyGpuContext(GpuContextNext *gpuContext)
 
     MosStreamState streamState = {};
     streamState.osDeviceContext = m_osContext;
-    OCA_MT_ERR(MT_MOS_GPUCXT_DESTROY, MT_MOS_GPUCXT_MGR_PTR, (int64_t)this, MOS_OCA_RTLOG_COMPONENT_COMMON, &streamState);
     MosUtilities::MosUnlockMutex(m_gpuContextArrayMutex);
 
     if (found)

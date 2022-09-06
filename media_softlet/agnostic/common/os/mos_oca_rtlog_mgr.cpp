@@ -27,7 +27,7 @@
 #include "mos_oca_rtlog_mgr.h"
 #include "mos_context_specific_next.h"
 
-bool MosOcaRTLogMgr::m_enableOcaRTLog = false;
+bool MosOcaRTLogMgr::m_enableOcaRTLog = true;
 
 /****************************************************************************************************/
 /*                                      MosOcaRtLogSectionMgr                                       */

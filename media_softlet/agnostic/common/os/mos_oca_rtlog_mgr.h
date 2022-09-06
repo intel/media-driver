@@ -100,7 +100,6 @@ protected:
 
     PMOS_RESOURCE                        m_ocaRTLogResource = nullptr;
     OsContextNext                       *m_osContext = nullptr;
-    PMOS_MUTEX                           m_ocaMutex    = nullptr;
     MOS_OCA_RTLOG_HEAP                   m_ocaRtHeap   = {};
     std::vector<MosOcaRtLogSectionMgr *> m_RTLogSectionMgr;
 
