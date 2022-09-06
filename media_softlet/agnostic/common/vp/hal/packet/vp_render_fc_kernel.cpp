@@ -1223,15 +1223,17 @@ MOS_STATUS VpRenderFcKernel::GetKernelEntry(Kdll_CacheEntry &entry)
 
     if (kernelEntry)
     {
+        // Update ColorFill color space.
+        kernelDllState->colorfill_cspace = kernelEntry->colorfill_cspace;
+
+        // Check whether kenrel entry update needed by procamp version.
         auto pCscParams = kernelEntry->pCscParams;
         // CoeffID_0 may not be used if no csc needed for both main video and RT.
         auto matrixId = (uint8_t)DL_CSC_DISABLED == pCscParams->MatrixID[CoeffID_0] ?
             pCscParams->MatrixID[CoeffID_1] : pCscParams->MatrixID[CoeffID_0];
-
         if ((uint8_t)DL_CSC_DISABLED != matrixId && matrixId >= 0 && matrixId < DL_CSC_MAX)
         {
             auto pMatrix    = &pCscParams->Matrix[matrixId];
-            kernelDllState->colorfill_cspace = kernelEntry->colorfill_cspace;
 
             if ((pMatrix->iProcampID != DL_PROCAMP_DISABLED) &&
                 (pMatrix->iProcampID < VP_MAX_PROCAMP))
