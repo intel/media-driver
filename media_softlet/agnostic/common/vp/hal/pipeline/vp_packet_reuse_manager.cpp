@@ -516,7 +516,8 @@ MOS_STATUS VpProcampReuse::UpdateFeatureParams(bool reusable, bool &reused, SwFi
     SwFilterProcamp *procamp    = dynamic_cast<SwFilterProcamp *>(filter);
     VP_PUBLIC_CHK_NULL_RETURN(procamp);
     FeatureParamProcamp &params  = procamp->GetSwFilterParams();
-    if (reusable && params.procampParams->bEnabled == m_params.procampParams->bEnabled)
+    if (reusable && ((params.procampParams && m_params.procampParams && params.procampParams->bEnabled == m_params.procampParams->bEnabled) || 
+        (!params.procampParams && !m_params.procampParams)))
     {
         // No need call UpdateFeatureParams. Just keep compared items updated in m_params
         // is enough. UpdatePacket should use params in swfilter instead of m_params.
