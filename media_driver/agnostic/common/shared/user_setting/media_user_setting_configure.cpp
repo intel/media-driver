@@ -148,11 +148,7 @@ MOS_STATUS Configure::Read(Value &value,
     //First, Read user setting. If succeed, return;
     {
         std::string path = GetReadPath(def, option);
-
-        UFKEY_NEXT  key         = {};
-        std::string strValue    = "";
-        uint32_t    size        = MOS_USER_CONTROL_MAX_DATA_SIZE;
-        uint32_t    type        = 0;
+        UFKEY_NEXT  key  = {};
 
         status = MosUtilities::MosOpenRegKey(m_rootKey, path, KEY_READ, &key, m_regBufferMap);
 

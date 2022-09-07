@@ -27,8 +27,6 @@
 #ifndef __MEDIA_INTERFACES_CODECHAL_H__
 #define __MEDIA_INTERFACES_CODECHAL_H__
 
-#include "media_interfaces_mhw.h"
-
 #include "codechal.h"
 #include "codechal_hw.h"
 

@@ -871,7 +871,6 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
     VPHAL_SURF_DUMP_SURFACE_DEF         planes[3];
     uint32_t                            dstPlaneOffset[3] = {0};
     MOS_LOCK_PARAMS                     LockFlags;
-    MOS_USER_FEATURE_VALUE_WRITE_DATA   UserFeatureWriteData;
     bool                                hasAuxSurf;
     bool                                enableAuxDump;
     bool                                enablePlaneDump = false;
@@ -1248,7 +1247,6 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
     VPHAL_SURF_DUMP_SURFACE_DEF         planes[3];
     uint32_t                            dstPlaneOffset[3] = {0};
     MOS_LOCK_PARAMS                     LockFlags;
-    MOS_USER_FEATURE_VALUE_WRITE_DATA   UserFeatureWriteData;
     bool                                hasAuxSurf;
     bool                                enableAuxDump;
     bool                                enablePlaneDump = false;
