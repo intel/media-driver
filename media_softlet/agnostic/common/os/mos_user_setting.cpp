@@ -209,6 +209,14 @@ MOS_STATUS MosUserSetting::InitMosCommonUserSetting(MediaUserSettingSharedPtr us
         MediaUserSetting::Group::Device,
         0,
         true); //Reports out whether indirect state heap invalid
+
+    DeclareUserSettingKey(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_MEDIA_TEXTURE_POOLING_ENABLE,
+        MediaUserSetting::Group::Device,
+        1,
+        true); //"Enable texture pooling in media driver."
+
     return MOS_STATUS_SUCCESS;
 }
 

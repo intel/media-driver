@@ -372,6 +372,9 @@
 #define __MEDIA_USER_FEATURE_VALUE_PERF_UTILITY_TOOL_ENABLE          "Perf Utility Tool Enable"
 #define __MEDIA_USER_FEATURE_VALUE_PERF_OUTPUT_DIRECTORY             "Perf Output Directory"
 
+//User feature key for Gmm pooled resource enabling
+#define __MEDIA_USER_FEATURE_VALUE_MEDIA_TEXTURE_POOLING_ENABLE      "Enable Media Texture Pooling"
+
 //Perf
 #define __MEDIA_USER_FEATURE_VALUE_LINUX_PERFORMANCETAG_ENABLE       "Linux PerformanceTag Enable"
 
