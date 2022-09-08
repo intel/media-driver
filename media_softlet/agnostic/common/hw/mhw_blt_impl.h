@@ -164,7 +164,7 @@ public:
 
         // add source address
         MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
-        ResourceParams.dwLsbNum        = 12;
+        ResourceParams.dwLsbNum        = 0;
         ResourceParams.dwOffset        = params.dwSrcOffset;   //srcOffset;
         ResourceParams.presResource    = params.pSrcOsResource;
         ResourceParams.pdwCmd          = &(cmd.DW8_9.Value[0]);
@@ -178,7 +178,7 @@ public:
 
         // add destination address
         MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
-        ResourceParams.dwLsbNum        = 12;
+        ResourceParams.dwLsbNum        = 0;
         ResourceParams.dwOffset        = params.dwDstOffset;  //dstOffset;
         ResourceParams.presResource    = params.pDstOsResource;
         ResourceParams.pdwCmd          = &(cmd.DW4_5.Value[0]);
