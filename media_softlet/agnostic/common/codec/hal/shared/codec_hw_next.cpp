@@ -40,6 +40,7 @@ CodechalHwInterfaceNext::CodechalHwInterfaceNext(
     m_miItf    = mhwInterfacesNext->m_miItf;
     m_hcpItf   = mhwInterfacesNext->m_hcpItf;
     m_mfxItf   = mhwInterfacesNext->m_mfxItf;
+    m_renderItf = mhwInterfacesNext->m_renderItf;
 
     CODEC_HW_ASSERT(osInterface);
     m_osInterface = osInterface;
@@ -669,3 +670,106 @@ MOS_STATUS CodechalHwInterfaceNext::ReadImageStatusForHcp(
 
     return eStatus;
 }
+MOS_STATUS CodechalHwInterfaceNext::InitL3CacheSettings()
+{
+    CODEC_HW_FUNCTION_ENTER;
+
+    // Get default L3 cache settings
+    CODEC_HW_CHK_STATUS_RETURN(m_renderItf->EnableL3Caching(nullptr));
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    // Override default L3 cache settings
+    auto l3CacheConfig =
+        m_renderItf->GetL3CacheConfig();
+    mhw::render::MHW_RENDER_ENGINE_L3_CACHE_SETTINGS l3Overrides = {};
+    l3Overrides.dwTcCntlReg =
+        static_cast<mhw::render::MHW_RENDER_ENGINE_L3_CACHE_CONFIG *>(l3CacheConfig)->dwL3CacheTcCntlReg_Setting;
+    l3Overrides.dwAllocReg =
+        static_cast<mhw::render::MHW_RENDER_ENGINE_L3_CACHE_CONFIG *>(l3CacheConfig)->dwL3CacheAllocReg_Setting;
+    CODEC_HW_CHK_STATUS_RETURN(InitL3ControlUserFeatureSettings(
+        l3CacheConfig,
+        &l3Overrides));
+    CODEC_HW_CHK_STATUS_RETURN(m_renderItf->EnableL3Caching(
+        &l3Overrides));
+#endif  // (_DEBUG || _RELEASE_INTERNAL)
+
+    return MOS_STATUS_SUCCESS;
+}
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+MOS_STATUS CodechalHwInterfaceNext::InitL3ControlUserFeatureSettings(
+    mhw::render::MHW_RENDER_ENGINE_L3_CACHE_CONFIG   *l3CacheConfig,
+    mhw::render::MHW_RENDER_ENGINE_L3_CACHE_SETTINGS *l3Overrides)
+{
+    CODEC_HW_FUNCTION_ENTER;
+
+    CODEC_HW_CHK_NULL_RETURN(l3CacheConfig);
+    CODEC_HW_CHK_NULL_RETURN(l3Overrides);
+
+    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    userFeatureData.u32Data     = l3CacheConfig->dwL3CacheCntlReg_Setting;
+    userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_ENCODE_L3_CACHE_CNTLREG_OVERRIDE_ID,
+        &userFeatureData,
+        m_osInterface->pOsContext);
+    l3Overrides->dwCntlReg = (uint32_t)userFeatureData.i32Data;
+
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    userFeatureData.u32Data     = l3CacheConfig->dwL3CacheCntlReg2_Setting;
+    userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_ENCODE_L3_CACHE_CNTLREG2_OVERRIDE_ID,
+        &userFeatureData,
+        m_osInterface->pOsContext);
+    l3Overrides->dwCntlReg2 = (uint32_t)userFeatureData.i32Data;
+
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    userFeatureData.u32Data     = l3CacheConfig->dwL3CacheCntlReg3_Setting;
+    userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_ENCODE_L3_CACHE_CNTLREG3_OVERRIDE_ID,
+        &userFeatureData,
+        m_osInterface->pOsContext);
+    l3Overrides->dwCntlReg3 = (uint32_t)userFeatureData.i32Data;
+
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    userFeatureData.u32Data     = l3CacheConfig->dwL3CacheSqcReg1_Setting;
+    userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_ENCODE_L3_CACHE_SQCREG1_OVERRIDE_ID,
+        &userFeatureData,
+        m_osInterface->pOsContext);
+    l3Overrides->dwSqcReg1 = (uint32_t)userFeatureData.i32Data;
+
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    userFeatureData.u32Data     = l3CacheConfig->dwL3CacheSqcReg4_Setting;
+    userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_ENCODE_L3_CACHE_SQCREG4_OVERRIDE_ID,
+        &userFeatureData,
+        m_osInterface->pOsContext);
+    l3Overrides->dwSqcReg4 = (uint32_t)userFeatureData.i32Data;
+
+    if (l3CacheConfig->bL3LRA1Reset)
+    {
+        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+        userFeatureData.u32Data     = l3CacheConfig->dwL3LRA1Reg_Setting;
+        userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
+        MOS_UserFeature_ReadValue_ID(
+            nullptr,
+            __MEDIA_USER_FEATURE_VALUE_ENCODE_L3_LRA_1_REG1_OVERRIDE_ID,
+            &userFeatureData,
+            m_osInterface->pOsContext);
+        l3Overrides->dwLra1Reg = (uint32_t)userFeatureData.i32Data;
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+#endif  // _DEBUG || _RELEASE_INTERNAL

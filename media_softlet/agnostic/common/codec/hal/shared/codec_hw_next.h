@@ -166,6 +166,17 @@ public:
     {
         return m_hcpItf;
     }
+    
+    //!
+    //! \brief    Get render interface
+    //! \details  Get render interface in codechal hw interface next
+    //!
+    //! \return    pointer to new HCP interface
+    //!
+    inline std::shared_ptr<mhw::render::Itf> GetRenderInterfaceNext()
+    {
+        return m_renderItf;
+    }
 
     //!
     //! \brief    Get Os interface
@@ -383,6 +394,22 @@ public:
         return MHW_VDBOX_NODE_1;
     }
 
+    //!
+    //! \brief    Init L3 Cache Settings
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS InitL3CacheSettings();
+
+protected:
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    MOS_STATUS InitL3ControlUserFeatureSettings(
+        mhw::render::MHW_RENDER_ENGINE_L3_CACHE_CONFIG   *l3CacheConfig,
+        mhw::render::MHW_RENDER_ENGINE_L3_CACHE_SETTINGS *l3Overrides);
+#endif
+
 protected:
     std::shared_ptr<mhw::vdbox::avp::Itf>    m_avpItf   = nullptr;      //!< Pointer to Mhw avp interface
     std::shared_ptr<mhw::vdbox::vdenc::Itf>  m_vdencItf = nullptr;      //!< Pointer to Mhw vdenc interface
@@ -390,7 +417,8 @@ protected:
     std::shared_ptr<mhw::mi::Itf>            m_miItf    = nullptr;      //!< Pointer to Mhw mi interface
     std::shared_ptr<mhw::vdbox::hcp::Itf>    m_hcpItf   = nullptr;      //!< Pointer to Mhw hcp interface
     std::shared_ptr<mhw::vdbox::mfx::Itf>    m_mfxItf   = nullptr;      //!< Pointer to Mhw mfx interface
-    std::shared_ptr<MediaSfcInterface>       m_mediaSfcItf = nullptr;   //!< Pointer to Media sfc interface
+    std::shared_ptr<mhw::render::Itf>        m_renderItf   = nullptr;      //!< Pointer to render interface
+    std::shared_ptr<MediaSfcInterface>       m_mediaSfcItf = nullptr;      //!< Pointer to Media sfc interface
 
     // States
     PMOS_INTERFACE       m_osInterface;  //!< Pointer to OS interface
