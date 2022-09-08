@@ -57,6 +57,7 @@ struct mos_linux_context;
 typedef struct mos_linux_bo MOS_LINUX_BO;
 typedef struct mos_linux_context MOS_LINUX_CONTEXT;
 typedef struct mos_bufmgr MOS_BUFMGR;
+typedef struct MOS_OCA_EXEC_LIST_INFO mos_oca_exec_list_info;
 
 #include "mos_os_specific.h"
 
@@ -217,6 +218,7 @@ void mos_bo_set_exec_object_async(struct mos_linux_bo *bo, struct mos_linux_bo *
 void mos_bo_set_object_capture(struct mos_linux_bo *bo);
 int mos_bo_set_softpin(struct mos_linux_bo *bo);
 int mos_bo_add_softpin_target(struct mos_linux_bo *bo, struct mos_linux_bo *target_bo, bool write_flag);
+int mos_bo_get_softpin_targets_info(struct mos_linux_bo *bo, mos_oca_exec_list_info *info, int *count);
 
 int mos_bo_disable_reuse(struct mos_linux_bo *bo);
 int mos_bo_is_reusable(struct mos_linux_bo *bo);

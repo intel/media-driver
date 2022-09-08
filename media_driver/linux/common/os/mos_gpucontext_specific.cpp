@@ -1222,6 +1222,7 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
     }
     else if (nullRendering == false)
     {
+        UnlockPendingOcaBuffers(cmdBuffer, osContext);
         if (osInterface->ctxBasedScheduling && m_i915Context[0] != nullptr)
         {
             if (cmdBuffer->iSubmissionType & SUBMISSION_TYPE_MULTI_PIPE_MASK)
@@ -1364,6 +1365,40 @@ if (osInterface->bDumpCommandBuffer)
 finish:
     MOS_TraceEventExt(EVENT_MOS_BATCH_SUBMIT, EVENT_TYPE_END, &eStatus, sizeof(eStatus), nullptr, 0);
     return eStatus;
+}
+
+void GpuContextSpecific::UnlockPendingOcaBuffers(PMOS_COMMAND_BUFFER cmdBuffer, PMOS_CONTEXT mosContext)
+{
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(cmdBuffer);
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(mosContext);
+    int ret = 0;
+    int count = 0;
+    struct MOS_OCA_EXEC_LIST_INFO *info = nullptr;
+    if (cmdBuffer->iSubmissionType & SUBMISSION_TYPE_SINGLE_PIPE_MASK)
+    {
+        count = 16;
+        info = (struct MOS_OCA_EXEC_LIST_INFO *)MOS_AllocAndZeroMemory(count * sizeof(struct MOS_OCA_EXEC_LIST_INFO));
+        if(info == nullptr)
+        {
+            MOS_OS_ASSERTMESSAGE("Failed to allocate MOS_OCA_EXEC_LIST_INFO buffer, Unknown reason\n");
+        }
+        else
+        {
+            ret = mos_bo_get_softpin_targets_info(cmdBuffer->OsResource.bo, info, &count);
+        }
+    }
+
+    MosOcaInterface *pOcaInterface         = &MosOcaInterfaceSpecific::GetInstance();
+    if (nullptr == pOcaInterface || !((MosOcaInterfaceSpecific*)pOcaInterface)->IsOcaEnabled())
+    {
+        // Will come here for UMD_OCA not being enabled case.
+        MOS_OS_ASSERTMESSAGE("UMD_OCA not enabled, pOcaInterface==nullptr\n");
+        MOS_SafeFreeMemory(info);
+        return;
+    }
+    pOcaInterface->UnlockPendingOcaBuffers(mosContext, info, count);
+
+    MOS_SafeFreeMemory(info);
 }
 
 int32_t GpuContextSpecific::SubmitPipeCommands(

@@ -29,6 +29,7 @@
 
 #include "mos_gpucontext.h"
 #include "mos_graphicsresource_specific.h"
+#include "mos_oca_interface_specific.h"
 
 #define ENGINE_INSTANCE_SELECT_ENABLE_MASK                   0xFF
 #define ENGINE_INSTANCE_SELECT_COMPUTE_INSTANCE_SHIFT        16
@@ -235,6 +236,7 @@ protected:
     bool SelectEngineInstanceByUser(struct i915_engine_class_instance *engineMap,
         uint32_t *engineNum, uint32_t userEngineInstance, MOS_GPU_NODE gpuNode);
 #endif
+    void UnlockPendingOcaBuffers(PMOS_COMMAND_BUFFER cmdBuffer, PMOS_CONTEXT mosContext);
 
 private:
     //! \brief    internal command buffer pool per gpu context

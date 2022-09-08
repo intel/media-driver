@@ -260,6 +260,8 @@ protected:
         uint32_t *engineNum, uint32_t userEngineInstance, MOS_GPU_NODE gpuNode);
 #endif // _DEBUG || _RELEASE_INTERNAL
 
+    void UnlockPendingOcaBuffers(PMOS_COMMAND_BUFFER cmdBuffer, PMOS_CONTEXT mosContext);
+
 private:
     //! \brief    internal command buffer pool per gpu context
     std::vector<CommandBufferNext *> m_cmdBufPool;
