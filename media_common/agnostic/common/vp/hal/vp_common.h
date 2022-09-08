@@ -867,6 +867,17 @@ typedef struct _VPHAL_STE_PARAMS
 } VPHAL_STE_PARAMS, *PVPHAL_STE_PARAMS;
 
 //!
+//! Structure VPHAL_STE_PARAMS
+//! \brief STE parameters - Skin Tone Enhancement
+//!
+typedef struct _VPHAL_STD_PARAMS
+{
+    uint32_t           paraSizeInBytes = 0;
+    void               *param          = nullptr;           
+    unsigned long long sysMem          = 0;
+} VPHAL_STD_PARAMS, *PVPHAL_STD_PARAMS;
+
+//!
 //! Structure VPHAL_TCC_PARAMS
 //! \brief TCC parameters - Total Color Control
 //!
@@ -888,11 +899,13 @@ typedef struct _VPHAL_COLORPIPE_PARAMS
 {
     bool             bEnableACE       = false;
     bool             bEnableSTE       = false;
+    bool             bEnableSTD       = false;   // Is STD enabled via VPE
     bool             bEnableTCC       = false;
     bool             bAceLevelChanged = false;
     uint32_t         dwAceLevel       = 0;
     uint32_t         dwAceStrength    = 0;
     VPHAL_STE_PARAMS SteParams        = {};
+    VPHAL_STD_PARAMS StdParams        = {};
     VPHAL_TCC_PARAMS TccParams        = {};
 } VPHAL_COLORPIPE_PARAMS, *PVPHAL_COLORPIPE_PARAMS;
 

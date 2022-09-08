@@ -334,6 +334,18 @@ typedef struct _MHW_STE_PARAMS
     uint32_t            satS1;
 } MHW_STE_PARAMS, *PMHW_STE_PARAMS;
 
+
+//!
+//! Structure MHW_STD_PARAMS
+//! \brief STD parameters - Skin Tone Detection
+//!
+typedef struct _MHW_STD_PARAMS
+{
+    uint32_t  paraSizeInBytes;  
+    void      *param;            
+} MHW_STD_PARAMS, *PMHW_STD_PARAMS;
+
+
 //!
 //! Structure MHW_TCC_PARAMS
 //! \brief TCC parameters - Total Color Control
@@ -369,12 +381,14 @@ typedef struct _MHW_COLORPIPE_PARAMS
     uint32_t            bActive;                    //!< Active or not
     bool                bEnableACE;
     bool                bEnableSTE;
+    bool                bEnableSTD;                 // VPE STD enabled or not
     bool                bEnableTCC;
     bool                bAceLevelChanged;
     uint32_t            dwAceLevel;
     uint32_t            dwAceStrength;
     bool                bEnableLACE;
     MHW_STE_PARAMS      SteParams;
+    MHW_STD_PARAMS      StdParams;
     MHW_TCC_PARAMS      TccParams;
     MHW_LACE_PARAMS     LaceParams;
 } MHW_COLORPIPE_PARAMS, *PMHW_COLORPIPE_PARAMS;

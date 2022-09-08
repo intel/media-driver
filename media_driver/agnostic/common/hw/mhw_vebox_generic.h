@@ -283,6 +283,16 @@ protected:
             }
         }
 
+        if (pColorPipeParams->bEnableSTD)
+        {
+            if (nullptr == pColorPipeParams->StdParams.param || pColorPipeParams->StdParams.paraSizeInBytes > pVeboxStdSteState->byteSize)
+            {
+                MHW_ASSERTMESSAGE("StdParams is invaild");
+                return MOS_STATUS_INVALID_PARAMETER;
+            }
+
+            MOS_SecureMemcpy(pVeboxStdSteState, pColorPipeParams->StdParams.paraSizeInBytes, pColorPipeParams->StdParams.param, pColorPipeParams->StdParams.paraSizeInBytes);  // only copy dw0 - dw14 for DN
+        }
     finish:
         return eStatus;
     }

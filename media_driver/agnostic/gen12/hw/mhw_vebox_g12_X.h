@@ -149,7 +149,7 @@ public:
 
         MhwVeboxInterfaceGeneric<mhw_vebox_g12_X>::SetVeboxIecpStateSTE(pVeboxStdSteState, pColorPipeParams);
         // Enable Skin Score Output surface to be written by Vebox
-        pVeboxStdSteState->DW1.StdScoreOutput = pColorPipeParams->bEnableLACE && pColorPipeParams->LaceParams.bSTD;
+        pVeboxStdSteState->DW1.StdScoreOutput = (pColorPipeParams->bEnableLACE && pColorPipeParams->LaceParams.bSTD) || pColorPipeParams->bEnableSTD;
 
     finish:
         return eStatus;
