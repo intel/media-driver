@@ -3451,6 +3451,53 @@ MOS_STATUS CodechalVdencVp9StateG12::SetPictureStructs()
     return eStatus;
 }
 
+void CodechalVdencVp9StateG12::fill_pad_with_value(PMOS_SURFACE psSurface)
+{
+    uint32_t aligned_height = MOS_ALIGN_CEIL(psSurface->dwHeight, CODEC_VP9_MIN_BLOCK_WIDTH);
+
+    // unaligned surfaces only
+    if (aligned_height == psSurface->dwHeight)
+    {
+        return;
+    }
+
+    // 4:2:0 only
+    if (psSurface->Format == Format_NV12 || psSurface->Format == Format_P010)
+    {
+        MOS_LOCK_PARAMS lockFlags;
+        MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
+        lockFlags.WriteOnly = 1;
+
+        uint8_t *src_data   = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, &(psSurface->OsResource), &lockFlags);
+
+        uint8_t *src_data_y = src_data + psSurface->dwOffset;
+
+        uint32_t y_plane_size      = psSurface->dwPitch * psSurface->dwHeight;
+        uint32_t y_plane_size_full = psSurface->dwPitch * aligned_height;
+
+        uint8_t *src_data_y_end = src_data_y + y_plane_size;
+
+        uint32_t y_pad_rows = aligned_height - psSurface->dwHeight;
+        uint32_t y_pad_length = y_pad_rows * psSurface->dwPitch;
+
+        if (src_data_y_end > src_data_y_end - y_pad_length)
+        {
+            memcpy(src_data_y_end, src_data_y_end - y_pad_length, y_pad_length);
+        }
+
+        uint32_t uv_plane_size      = (psSurface->dwPitch * psSurface->dwHeight)/2;
+        uint32_t uv_plane_size_full = y_plane_size_full / 2;
+        uint8_t *src_data_uv_end = src_data_y + y_plane_size_full + uv_plane_size;
+
+        if (src_data_uv_end - y_pad_length > src_data_y_end)
+        {
+            memcpy(src_data_uv_end, src_data_uv_end - y_pad_length, y_pad_length);
+        }    
+
+        m_osInterface->pfnUnlockResource(m_osInterface, &(psSurface->OsResource));
+    }
+}
+
 MOS_STATUS CodechalVdencVp9StateG12::ExecutePictureLevel()
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
@@ -3888,6 +3935,12 @@ MOS_STATUS CodechalVdencVp9StateG12::ExecutePictureLevel()
 #endif
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpSurfaceCmd(&cmdBuffer, &surfaceParams[CODECHAL_HCP_SRC_SURFACE_ID]));
 
+    if (MEDIA_IS_WA(m_waTable, Wa_Vp9UnalignedHeight))
+    {
+        fill_pad_with_value(surfaceParams[CODECHAL_HCP_SRC_SURFACE_ID].psSurface);
+        fill_pad_with_value(surfaceParams[CODECHAL_HCP_DECODED_SURFACE_ID].psSurface);
+    }
+        
     if (m_pictureCodingType != I_TYPE)
     {
 #ifdef _MMC_SUPPORTED
