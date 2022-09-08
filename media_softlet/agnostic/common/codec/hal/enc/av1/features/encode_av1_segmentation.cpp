@@ -293,10 +293,9 @@ namespace encode
         ENCODE_CHK_STATUS_RETURN(CheckSegmentationMap());
 
         auto streamInData = m_streamIn->GetStreamInBuffer();
+        ENCODE_CHK_STATUS_RETURN(FillSegmentationMap((VdencStreamInState *)streamInData));
 
-        FillSegmentationMap(streamInData);
-
-        m_streamIn->ReturnStreamInBuffer();
+        ENCODE_CHK_STATUS_RETURN(m_streamIn->ReturnStreamInBuffer());
 
         return MOS_STATUS_SUCCESS;
     }

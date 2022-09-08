@@ -316,6 +316,9 @@ protected:
 
     CommonStreamInParams m_commonPar = {};
 
+    uint8_t *m_streamInTemp = nullptr;
+    uint32_t m_streamInSize = 0;
+
 MEDIA_CLASS_DEFINE_END(encode__Av1StreamIn)
 };
 

@@ -38,6 +38,8 @@ namespace encode
         {
             MOS_FreeMemory(m_LcuMap);
         }
+
+        MOS_SafeFreeMemory(m_streamInTemp);
     }
 
     static void SetCommonParams(uint8_t tu, CommonStreamInParams& params)
@@ -100,6 +102,10 @@ namespace encode
             allocParams.dwBytes = (MOS_ALIGN_CEIL(CurFrameWidth, 64) / m_streamInBlockSize) *
                                   (MOS_ALIGN_CEIL(CurFrameHeight, 64) / m_streamInBlockSize) * CODECHAL_CACHELINE_SIZE;
 
+            m_streamInSize = allocParams.dwBytes;
+            m_streamInTemp = (uint8_t *)MOS_AllocAndZeroMemory(m_streamInSize);
+            ENCODE_CHK_NULL_RETURN(m_streamInTemp);
+
             allocParams.pBufName = "Av1 StreamIn Data Buffer";
             allocParams.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
             m_basicFeature->m_recycleBuf->RegisterResource(RecycleResId::StreamInBuffer, allocParams);
@@ -129,16 +135,10 @@ namespace encode
         ENCODE_FUNC_CALL();
         if (!m_enabled)
         {
-            m_streamInBuffer = m_basicFeature->m_recycleBuf->GetBuffer(RecycleResId::StreamInBuffer, m_basicFeature->m_frameNum);
+            ENCODE_CHK_NULL_RETURN(m_streamInTemp);
+            MOS_ZeroMemory(m_streamInTemp, m_streamInSize);
 
-            ENCODE_CHK_NULL_RETURN(m_streamInBuffer);
-
-            uint8_t* streaminBuffer = (uint8_t*)m_allocator->LockResourceForWrite(m_streamInBuffer);
-            ENCODE_CHK_NULL_RETURN(streaminBuffer);
-
-            ENCODE_CHK_STATUS_RETURN(StreamInInit(streaminBuffer));
-
-            m_allocator->UnLock(m_streamInBuffer);
+            ENCODE_CHK_STATUS_RETURN(StreamInInit(m_streamInTemp));
 
             m_enabled = true;
         }
@@ -244,21 +244,20 @@ namespace encode
     {
         ENCODE_FUNC_CALL();
 
-        m_streamInBuffer = m_basicFeature->m_recycleBuf->GetBuffer(RecycleResId::StreamInBuffer, m_basicFeature->m_frameNum);
-
-        if (m_streamInBuffer == nullptr)
-        {
-            return nullptr;
-        }
-
-        VdencStreamInState *streaminBuffer = (VdencStreamInState*)m_allocator->LockResourceForWrite(m_streamInBuffer);
-
-        return streaminBuffer;
+        return (VdencStreamInState *)m_streamInTemp;
     }
 
     MOS_STATUS Av1StreamIn::ReturnStreamInBuffer()
     {
         ENCODE_FUNC_CALL();
+
+        m_streamInBuffer = m_basicFeature->m_recycleBuf->GetBuffer(RecycleResId::StreamInBuffer, m_basicFeature->m_frameNum);
+        ENCODE_CHK_NULL_RETURN(m_streamInBuffer);
+
+        uint8_t *streaminBuffer = (uint8_t *)m_allocator->LockResourceForWrite(m_streamInBuffer);
+        ENCODE_CHK_NULL_RETURN(streaminBuffer);
+
+        MOS_SecureMemcpy(streaminBuffer, m_streamInSize, m_streamInTemp, m_streamInSize);
 
         m_allocator->UnLock(m_streamInBuffer);
 
