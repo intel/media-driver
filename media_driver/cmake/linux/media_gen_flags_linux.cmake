@@ -115,7 +115,7 @@ cmake_dependent_option(XEHP_SDV
 
 cmake_dependent_option(PVC
     "Enabled PVC support" ON
-    "Xe_M;ENABLE_PRODUCTION_KMD" OFF)
+    "Xe_M" OFF)
 
 if(GEN8)
     add_definitions(-DIGFX_GEN8_SUPPORTED)

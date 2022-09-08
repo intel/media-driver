@@ -27,12 +27,11 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/xf86drmRandom.c
 )
 
-if(NOT ENABLE_PRODUCTION_KMD)
-    set(TMP_SOURCES_
-        ${TMP_SOURCES_}
-        ${CMAKE_CURRENT_LIST_DIR}/mos_bufmgr.c
-    )
-endif()
+set(TMP_SOURCES_
+    ${TMP_SOURCES_}
+    ${CMAKE_CURRENT_LIST_DIR}/mos_bufmgr.c
+    ${CMAKE_CURRENT_LIST_DIR}/mos_bufmgr_prelim.cpp
+)
 
 set(MOS_COMMON_SOURCES_
     ${MOS_COMMON_SOURCES_}

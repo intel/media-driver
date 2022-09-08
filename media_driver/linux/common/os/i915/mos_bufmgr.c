@@ -61,9 +61,10 @@
 #include "mos_bufmgr.h"
 #include "mos_bufmgr_priv.h"
 #include "string.h"
-
 #include "i915_drm.h"
 #include "mos_vma.h"
+
+#include "mos_bufmgr_prelim.h"
 
 #ifdef HAVE_VALGRIND
 #include <valgrind.h>
@@ -114,7 +115,7 @@ struct mos_gem_bo_bucket {
     unsigned long size;
 };
 
-struct mos_bufmgr_gem {
+typedef struct mos_bufmgr_gem {
     struct mos_bufmgr bufmgr;
 
     atomic_t refcount;
@@ -166,6 +167,8 @@ struct mos_bufmgr_gem {
     mos_vma_heap vma_heap[MEMZONE_COUNT];
     bool use_softpin;
     bool softpin_va1Malign;
+
+    BufmgrPrelim *prelim;
 } mos_bufmgr_gem;
 
 #define DRM_INTEL_RELOC_FENCE (1<<0)
@@ -326,7 +329,7 @@ struct mos_bo_gem {
     uint64_t pad_to_size;
 
     /**
-     * Memory Type on created the surfaces for local/system memory
+     * Memory region on created the surfaces for local/system memory
      */
     int mem_region;
 };
@@ -884,7 +887,7 @@ static struct drm_i915_query_memory_regions *mos_gem_get_query_memory_regions(in
     item.query_id = DRM_I915_QUERY_MEMORY_REGIONS;
     ret = mos_gem_query_items(fd, &item, 1);
     if (ret != 0 || item.length <= 0)
-        return NULL;
+        return nullptr;
 
     query_info = (drm_i915_query_memory_regions*)calloc(1, item.length);
 
@@ -892,7 +895,7 @@ static struct drm_i915_query_memory_regions *mos_gem_get_query_memory_regions(in
     ret = mos_gem_query_items(fd, &item, 1);
     if (ret != 0) {
         free(query_info);
-        return NULL;
+        return nullptr;
     }
 
     return query_info;
@@ -901,15 +904,21 @@ static struct drm_i915_query_memory_regions *mos_gem_get_query_memory_regions(in
 /**
  * check how many lmem regions are available on device.
  */
-static uint8_t mos_gem_get_lmem_region_count(int fd)
+static uint8_t mos_gem_get_lmem_region_count(struct mos_bufmgr_gem *bufmgr_gem)
 {
+    assert(nullptr != bufmgr_gem);
+
+    if (BufmgrPrelim::IsPrelimSupported()) {
+        return bufmgr_gem->prelim->GetLmemRegionCount();
+    }
+
     struct drm_i915_query_memory_regions *query_info;
     uint8_t num_regions = 0;
     uint8_t lmem_regions = 0;
 
-    query_info = mos_gem_get_query_memory_regions(fd);
+    query_info = mos_gem_get_query_memory_regions(bufmgr_gem->fd);
 
-    if(query_info)
+    if(nullptr != query_info)
     {
         num_regions = query_info->num_regions;
 
@@ -928,14 +937,20 @@ static uint8_t mos_gem_get_lmem_region_count(int fd)
 /**
  * check if lmem is available on device.
  */
-static bool mos_gem_has_lmem(int fd)
+static bool mos_gem_has_lmem(struct mos_bufmgr_gem *bufmgr_gem)
 {
-    return mos_gem_get_lmem_region_count(fd) > 0;
+    return mos_gem_get_lmem_region_count(bufmgr_gem) > 0;
 }
 
 static enum mos_memory_zone
-mos_gem_bo_memzone_for_address(uint64_t address)
+mos_gem_bo_memzone_for_address(struct mos_bufmgr *bufmgr, uint64_t address)
 {
+    assert(nullptr != bufmgr);
+    struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *)bufmgr;
+
+    if (BufmgrPrelim::IsPrelimSupported()) {
+        return bufmgr_gem->prelim->GetMemzoneForAddress(address);
+    }
     if (address >= MEMZONE_DEVICE_START)
         return MEMZONE_DEVICE;
     else 
@@ -960,7 +975,7 @@ mos_gem_bo_vma_alloc(struct mos_bufmgr *bufmgr,
 
     // currently only support 48bit range address
     CHK_CONDITION((addr >> 48ull) != 0, "invalid address, over 48bit range.\n", 0);
-    CHK_CONDITION((addr >> (memzone == MEMZONE_SYS ? 40ull : 41ull)) != 0, "invalid address, over memory zone range.\n", 0);
+    CHK_CONDITION((addr >> (memzone == MEMZONE_SYS ? 40ull : (memzone == MEMZONE_DEVICE ? 41ull:42ull))) != 0, "invalid address, over memory zone range.\n", 0);
     CHK_CONDITION((addr % alignment) != 0, "invalid address, not meet aligment requirement.\n", 0);
 
     return addr;
@@ -975,8 +990,41 @@ mos_gem_bo_vma_free(struct mos_bufmgr *bufmgr,
     struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *) bufmgr;
 
     CHK_CONDITION(address == 0ull, "invalid address.\n", );
-    enum mos_memory_zone memzone = mos_gem_bo_memzone_for_address(address);
+    enum mos_memory_zone memzone = mos_gem_bo_memzone_for_address(bufmgr, address);
     mos_vma_heap_free(&bufmgr_gem->vma_heap[memzone], address, size);
+}
+
+static int __mos_gem_create_gem(struct mos_bufmgr_gem *bufmgr_gem,
+    struct mos_bo_gem *bo_gem,
+    uint64_t bo_size)
+{
+    int ret = 0;
+
+    struct drm_i915_gem_memory_class_instance mem_region;
+    memclear(mem_region);
+    mem_region.memory_class = I915_MEMORY_CLASS_DEVICE;
+    mem_region.memory_instance = 0;
+
+    struct drm_i915_gem_create_ext_memory_regions regions;
+    memclear(regions);
+    regions.base.name = I915_GEM_CREATE_EXT_MEMORY_REGIONS;
+    regions.num_regions = 1;
+    regions.regions = (uintptr_t)(&mem_region);
+
+    struct drm_i915_gem_create_ext create;
+    memclear(create);
+    create.size = bo_size;
+    create.extensions = (uintptr_t)(&regions);
+
+    ret = drmIoctl(bufmgr_gem->fd,
+            DRM_IOCTL_I915_GEM_CREATE_EXT,
+            &create);
+    bo_gem->gem_handle = create.handle;
+    bo_gem->bo.handle = bo_gem->gem_handle;
+    bo_gem->bo.size = create.size;
+    bo_gem->mem_region = I915_MEMORY_CLASS_DEVICE;
+
+    return ret;
 }
 
 drm_export struct mos_linux_bo *
@@ -1077,32 +1125,26 @@ retry:
             return nullptr;
 
         bo_gem->bo.size = bo_size;
-        bo_gem->mem_region = I915_MEMORY_CLASS_SYSTEM;
+        bo_gem->mem_region = BufmgrPrelim::IsPrelimSupported() ?
+                                bufmgr_gem->prelim->GetSystemMemRegionId() :
+                                I915_MEMORY_CLASS_SYSTEM;
 
         if(bufmgr_gem->has_lmem &&
             (mem_type == MOS_MEMPOOL_VIDEOMEMORY || mem_type == MOS_MEMPOOL_DEVICEMEMORY)) {
-            struct drm_i915_gem_memory_class_instance mem_region;
-            memclear(mem_region);
-            mem_region.memory_class = I915_MEMORY_CLASS_DEVICE;
-            mem_region.memory_instance = 0;
-
-            struct drm_i915_gem_create_ext_memory_regions regions;
-            memclear(regions);
-            regions.base.name = I915_GEM_CREATE_EXT_MEMORY_REGIONS;
-            regions.num_regions = 1;
-            regions.regions = (uintptr_t)(&mem_region);
-
-            struct drm_i915_gem_create_ext create;
-            memclear(create);
-            create.size = bo_size;
-            create.extensions = (uintptr_t)(&regions);
-
-            ret = drmIoctl(bufmgr_gem->fd,
-                    DRM_IOCTL_I915_GEM_CREATE_EXT,
-                    &create);
-            bo_gem->gem_handle = create.handle;
-            bo_gem->bo.handle = bo_gem->gem_handle;
-            bo_gem->mem_region = I915_MEMORY_CLASS_DEVICE;
+            if (BufmgrPrelim::IsPrelimSupported()) {
+                uint32_t handle;
+                uint64_t size;
+                uint32_t region;
+                ret = bufmgr_gem->prelim->CreateGem(bo_size, handle, size, region);
+                if (ret == 0) {
+                    bo_gem->gem_handle = handle;
+                    bo_gem->bo.handle = bo_gem->gem_handle;
+                    bo_gem->bo.size = size;
+                    bo_gem->mem_region = region;
+                }
+            } else {
+                ret = __mos_gem_create_gem(bufmgr_gem, bo_gem, bo_size);
+            }
         }
         else {
             struct drm_i915_gem_create create;
@@ -1717,8 +1759,9 @@ map_wc(struct mos_linux_bo *bo)
         memclear(mmap_arg);
         mmap_arg.handle = bo_gem->gem_handle;
         /* To indicate the uncached virtual mapping to KMD */
-        if (bufmgr_gem->has_lmem)
-        {
+        if (BufmgrPrelim::IsPrelimSupported()) {
+            bufmgr_gem->prelim->SetMmapOffset(bo_gem->mem_region, mmap_arg);
+        } else if (bufmgr_gem->has_lmem) {
             mmap_arg.flags = I915_MMAP_OFFSET_FIXED;
         }
         else
@@ -1892,12 +1935,11 @@ drm_export int mos_gem_bo_map(struct mos_linux_bo *bo, int write_enable)
 
             memclear(mmap_arg);
             mmap_arg.handle = bo_gem->gem_handle;
-            if (bufmgr_gem->has_lmem)
-            {
+            if (BufmgrPrelim::IsPrelimSupported()) {
+                bufmgr_gem->prelim->SetMmapOffset(bo_gem->mem_region, mmap_arg);
+            } else if (bufmgr_gem->has_lmem) {
                 mmap_arg.flags = I915_MMAP_OFFSET_FIXED;
-            }
-            else
-            {
+            } else {
                mmap_arg.flags = I915_MMAP_OFFSET_WB;
             }
             ret = drmIoctl(bufmgr_gem->fd,
@@ -2017,7 +2059,11 @@ map_gtt(struct mos_linux_bo *bo)
 
             memclear(mmap_arg);
             mmap_arg.handle = bo_gem->gem_handle;
-            mmap_arg.flags = I915_MMAP_OFFSET_FIXED;
+            if (BufmgrPrelim::IsPrelimSupported()) {
+                bufmgr_gem->prelim->SetMmapOffset(bo_gem->mem_region, mmap_arg);
+            } else {
+                mmap_arg.flags = I915_MMAP_OFFSET_FIXED;
+            }
 
             /* Get the fake offset back... */
             ret = drmIoctl(bufmgr_gem->fd,
@@ -2263,7 +2309,12 @@ int mos_gem_bo_get_fake_offset(struct mos_linux_bo *bo)
 
         memclear(mmap_arg);
         mmap_arg.handle = bo_gem->gem_handle;
-        mmap_arg.flags = I915_MMAP_OFFSET_FIXED;
+
+        if (BufmgrPrelim::IsPrelimSupported()) {
+            bufmgr_gem->prelim->SetMmapOffset(bo_gem->mem_region, mmap_arg);
+        } else {
+            mmap_arg.flags = I915_MMAP_OFFSET_FIXED;
+        }
 
         ret = drmIoctl(bufmgr_gem->fd,
                    DRM_IOCTL_I915_GEM_MMAP_OFFSET,
@@ -2466,6 +2517,12 @@ mos_bufmgr_gem_destroy(struct mos_bufmgr *bufmgr)
 
     mos_vma_heap_finish(&bufmgr_gem->vma_heap[MEMZONE_SYS]);
     mos_vma_heap_finish(&bufmgr_gem->vma_heap[MEMZONE_DEVICE]);
+    if (BufmgrPrelim::IsPrelimSupported()) {
+        bufmgr_gem->prelim->UninitVmaHeap(&bufmgr_gem->vma_heap[MEMZONE_PRIME]);
+
+        BufmgrPrelim::DestroyPrelim(bufmgr_gem->prelim);
+        bufmgr_gem->prelim = nullptr;
+    }
 
     free(bufmgr);
 }
@@ -2548,7 +2605,12 @@ do_bo_emit_reloc(struct mos_linux_bo *bo, uint32_t offset,
     bo_gem->relocs[bo_gem->reloc_count].target_handle =
         target_bo_gem->gem_handle;
     bo_gem->relocs[bo_gem->reloc_count].read_domains = read_domains;
-    bo_gem->relocs[bo_gem->reloc_count].write_domain = write_domain;
+    if (BufmgrPrelim::IsPrelimSupported()) {
+        // if reloc handle is batch buffer itself, cannot set write domain
+        bo_gem->relocs[bo_gem->reloc_count].write_domain = (bo_gem->bo.handle == target_bo_gem->gem_handle ? 0 : write_domain);
+    } else {
+        bo_gem->relocs[bo_gem->reloc_count].write_domain = write_domain;
+    }
     bo_gem->relocs[bo_gem->reloc_count].presumed_offset = target_bo->offset64;
     bo_gem->reloc_count++;
 
@@ -2622,7 +2684,12 @@ do_bo_emit_reloc2(struct mos_linux_bo *bo, uint32_t offset,
     bo_gem->relocs[bo_gem->reloc_count].target_handle =
         target_bo_gem->gem_handle;
     bo_gem->relocs[bo_gem->reloc_count].read_domains = read_domains;
-    bo_gem->relocs[bo_gem->reloc_count].write_domain = write_domain;
+    if (BufmgrPrelim::IsPrelimSupported()) {
+        // if reloc handle is batch buffer itself, cannot set write domain
+        bo_gem->relocs[bo_gem->reloc_count].write_domain = (bo_gem->bo.handle == target_bo_gem->gem_handle ? 0 : write_domain);
+    } else {
+        bo_gem->relocs[bo_gem->reloc_count].write_domain = write_domain;
+    }
     bo_gem->relocs[bo_gem->reloc_count].presumed_offset = presumed_offset;
     bo_gem->reloc_count++;
 
@@ -3102,11 +3169,11 @@ do_exec2(struct mos_linux_bo *bo, int used, struct mos_linux_context *ctx,
     else
         i915_execbuffer2_set_context_id(execbuf, ctx->ctx_id);
     execbuf.rsvd2 = 0;
-    if(flags & I915_EXEC_FENCE_SUBMIT)
+    if((flags & I915_EXEC_FENCE_SUBMIT)  || (flags & I915_EXEC_FENCE_IN))
     {
         execbuf.rsvd2 = *fence;
     }
-    if(flags & I915_EXEC_FENCE_OUT)
+    else if(flags & I915_EXEC_FENCE_OUT)
     {
         execbuf.rsvd2 = -1;
     }
@@ -3461,6 +3528,11 @@ mos_gem_bo_check_mem_region_internal(struct mos_linux_bo *bo,
                      int mem_type)
 {
     struct mos_bo_gem *bo_gem = (struct mos_bo_gem *) bo;
+    struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *) bo->bufmgr;
+
+    if (BufmgrPrelim::IsPrelimSupported()) {
+        return bufmgr_gem->prelim->CheckMemRegion(bo_gem->mem_region, mem_type);
+    }
 
     // when re-cycle the gem_bo, need to keep the VA space is keeping consistent on memory type
     if (bo_gem->mem_region ==  I915_MEMORY_CLASS_SYSTEM                            &&
@@ -3572,8 +3644,13 @@ mos_gem_bo_set_softpin(MOS_LINUX_BO *bo)
     pthread_mutex_lock(&bufmgr_gem->lock);
     if (!mos_gem_bo_is_softpin(bo))
     {
-        uint64_t alignment = (bufmgr_gem->softpin_va1Malign) ? PAGE_SIZE_1M : PAGE_SIZE_64K;
-        uint64_t offset = mos_gem_bo_vma_alloc(bo->bufmgr, (enum mos_memory_zone)bo_gem->mem_region, bo->size, alignment);
+        uint64_t offset = 0;
+        if (BufmgrPrelim::IsPrelimSupported() && bo_gem->mem_region == MEMZONE_PRIME) {
+            offset = mos_gem_bo_vma_alloc(bo->bufmgr, (enum mos_memory_zone)bo_gem->mem_region, bo->size, PAGE_SIZE_2M);
+        } else {
+            uint64_t alignment = (bufmgr_gem->softpin_va1Malign) ? PAGE_SIZE_1M : PAGE_SIZE_64K;
+            offset = mos_gem_bo_vma_alloc(bo->bufmgr, (enum mos_memory_zone)bo_gem->mem_region, bo->size, alignment);
+        }
         ret = mos_gem_bo_set_softpin_offset(bo, offset);
     }
     pthread_mutex_unlock(&bufmgr_gem->lock);
@@ -3650,6 +3727,9 @@ mos_bo_gem_create_from_prime(struct mos_bufmgr *bufmgr, int prime_fd, int size)
     bo_gem->has_error = false;
     bo_gem->reusable = false;
     bo_gem->use_48b_address_range = bufmgr_gem->bufmgr.bo_use_48b_address_range ? true : false;
+    if (BufmgrPrelim::IsPrelimSupported()) {
+        bo_gem->mem_region = MEMZONE_PRIME;
+    }
 
     DRMLISTADDTAIL(&bo_gem->name_list, &bufmgr_gem->named);
     pthread_mutex_unlock(&bufmgr_gem->lock);
@@ -4661,9 +4741,17 @@ mos_bufmgr_gem_init(int fd, int batch_size)
         }
     }
 
-    bufmgr_gem->has_lmem = mos_gem_has_lmem(bufmgr_gem->fd);
+    bufmgr_gem->prelim = BufmgrPrelim::CreatePrelim(bufmgr_gem->fd);
 
-    bufmgr_gem->bufmgr.has_full_vd = true;
+    bufmgr_gem->has_lmem = mos_gem_has_lmem(bufmgr_gem);
+
+    if (nullptr != bufmgr_gem->prelim) {
+        bufmgr_gem->prelim->Init(bufmgr_gem->bufmgr, bufmgr_gem->has_lmem);
+    }
+
+    if (!BufmgrPrelim::IsPrelimSupported()) {
+        bufmgr_gem->bufmgr.has_full_vd = true;
+    }
 
     /* Let's go with one relocation per every 2 dwords (but round down a bit
      * since a power of two will mean an extra page allocation for the reloc
@@ -4718,6 +4806,9 @@ mos_bufmgr_gem_init(int fd, int batch_size)
     bufmgr_gem->use_softpin = false;
     mos_vma_heap_init(&bufmgr_gem->vma_heap[MEMZONE_SYS], MEMZONE_SYS_START, MEMZONE_SYS_SIZE);
     mos_vma_heap_init(&bufmgr_gem->vma_heap[MEMZONE_DEVICE], MEMZONE_DEVICE_START, MEMZONE_DEVICE_SIZE);
+    if (BufmgrPrelim::IsPrelimSupported()) {
+        bufmgr_gem->prelim->InitVmaHeap(&bufmgr_gem->vma_heap[MEMZONE_PRIME]);
+    }
 
 exit:
     pthread_mutex_unlock(&bufmgr_list_mutex);
@@ -4805,6 +4896,10 @@ mos_gem_context_create_shared(struct mos_bufmgr *bufmgr, mos_linux_context* ctx,
     if (ctx == nullptr || ctx->vm == nullptr)
         return nullptr;
 
+    if (BufmgrPrelim::IsPrelimSupported()) {
+        bufmgr_gem->prelim->WaDisableSingleTimeline(bufmgr_gem->has_lmem, flags);
+    }
+
     context = (struct mos_linux_context *)calloc(1, sizeof(*context));
     if (!context)
         return nullptr;
@@ -4844,6 +4939,10 @@ int mos_query_engines_count(struct mos_bufmgr *bufmgr,
 {
     assert(bufmgr);
     assert(nengine);
+    struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *)bufmgr;
+    if (BufmgrPrelim::IsPrelimSupported()) {
+        return bufmgr_gem->prelim->QueryEnginesCount(nengine);
+    }
     int fd = ((struct mos_bufmgr_gem*)bufmgr)->fd;
     struct drm_i915_query query;
     struct drm_i915_query_item query_item;
@@ -4905,7 +5004,16 @@ int mos_query_engines(struct mos_bufmgr *bufmgr,
     struct drm_i915_query_engine_info *engines = nullptr;
     int ret, len;
     assert(bufmgr);
-    int fd = ((struct mos_bufmgr_gem*)bufmgr)->fd;
+    struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *)bufmgr;
+    if (BufmgrPrelim::IsPrelimSupported()) {
+        return bufmgr_gem->prelim->QueryEngines(bufmgr_gem->has_lmem,
+                                        engine_class,
+                                        caps,
+                                        nengine,
+                                        ci);
+    }
+
+    int fd = bufmgr_gem->fd;
 
     memclear(query_item);
     query_item.query_id = DRM_I915_QUERY_ENGINE_INFO;
@@ -4984,6 +5092,14 @@ int mos_set_context_param_parallel(struct mos_linux_context *ctx,
         return -EINVAL;
     }
 
+    struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *)ctx->bufmgr;
+    if (BufmgrPrelim::IsPrelimSupported()) {
+        return BufmgrPrelim::SetContextParamParallel(
+                                        ctx,
+                                        ci,
+                                        count);
+    }
+
     int      ret  = 0;
     uint32_t size = 0;
     int      n;
@@ -5046,7 +5162,7 @@ int mos_set_context_param_load_balance(struct mos_linux_context *ctx,
     /* I915_DEFINE_CONTEXT_ENGINES_LOAD_BALANCE */
     size = sizeof(struct i915_context_engines_load_balance) + count * sizeof(*ci);
     balancer = (struct i915_context_engines_load_balance*)malloc(size);
-    if (NULL == balancer)
+    if (nullptr == balancer)
     {
         ret = -ENOMEM;
         goto fini;
@@ -5059,7 +5175,7 @@ int mos_set_context_param_load_balance(struct mos_linux_context *ctx,
     /* I915_DEFINE_CONTEXT_PARAM_ENGINES */
     size = sizeof(uint64_t) + sizeof(*ci);
     set_engines = (struct i915_context_param_engines*) malloc(size);
-    if (NULL == set_engines)
+    if (nullptr == set_engines)
     {
         ret = -ENOMEM;
         goto fini;
@@ -5073,9 +5189,9 @@ int mos_set_context_param_load_balance(struct mos_linux_context *ctx,
                           I915_CONTEXT_PARAM_ENGINES,
                           (uintptr_t)set_engines);
 fini:
-    if (set_engines)
+    if (nullptr != set_engines)
         free(set_engines);
-    if (balancer)
+    if (nullptr != balancer)
         free(balancer);
     return ret;
 }
@@ -5096,7 +5212,7 @@ int mos_set_context_param_bond(struct mos_linux_context *ctx,
     /* I915_DEFINE_CONTEXT_ENGINES_LOAD_BALANCE */
     size = sizeof(struct i915_context_engines_load_balance) + bond_count * sizeof(bond_ci);
     balancer = (struct i915_context_engines_load_balance*)malloc(size);
-    if (NULL == balancer)
+    if (nullptr == balancer)
     {
         ret = -ENOMEM;
         goto fini;
@@ -5109,7 +5225,7 @@ int mos_set_context_param_bond(struct mos_linux_context *ctx,
     /* I915_DEFINE_CONTEXT_ENGINES_BOND */
     size = sizeof(struct i915_context_engines_bond) + bond_count * sizeof(*bond_ci);
     bond = (struct i915_context_engines_bond*)malloc(size);
-    if (NULL == bond)
+    if (nullptr == bond)
     {
         ret = -ENOMEM;
         goto fini;
@@ -5123,7 +5239,7 @@ int mos_set_context_param_bond(struct mos_linux_context *ctx,
     /* I915_DEFINE_CONTEXT_PARAM_ENGINES */
     size = sizeof(uint64_t) + sizeof(struct i915_engine_class_instance);
     set_engines = (struct i915_context_param_engines*) malloc(size);
-    if (NULL == set_engines)
+    if (nullptr == set_engines)
     {
         ret = -ENOMEM;
         goto fini;
@@ -5138,11 +5254,11 @@ int mos_set_context_param_bond(struct mos_linux_context *ctx,
                           I915_CONTEXT_PARAM_ENGINES,
                           (uintptr_t)set_engines);
 fini:
-    if (set_engines)
+    if (nullptr != set_engines)
         free(set_engines);
-    if (bond)
+    if (nullptr != bond)
         free(bond);
-    if (balancer)
+    if (nullptr != balancer)
         free(balancer);
     return ret;
 }
@@ -5169,6 +5285,9 @@ mos_gem_bo_is_exec_object_async(struct mos_linux_bo *bo)
 
 int mos_query_device_blob(int fd, MEDIA_SYSTEM_INFO* gfx_info)
 {
+    if (BufmgrPrelim::IsPrelimSupported()) {
+        return BufmgrPrelim::QueryDeviceBlob(fd, gfx_info);
+    }
     return -1;
 }
 
