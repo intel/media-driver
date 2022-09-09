@@ -3461,7 +3461,6 @@ void CodechalVdencVp9StateG12::fill_pad_with_value(PMOS_SURFACE psSurface)
         return;
     }
 
-    // 4:2:0 only
     if (psSurface->Format == Format_NV12 || psSurface->Format == Format_P010)
     {
         MOS_LOCK_PARAMS lockFlags;
