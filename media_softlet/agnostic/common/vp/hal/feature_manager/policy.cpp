@@ -33,6 +33,7 @@
 #include "sw_filter_handle.h"
 #include "vp_user_feature_control.h"
 
+
 namespace vp
 {
 /****************************************************************************************************/
@@ -1398,8 +1399,8 @@ MOS_STATUS Policy::GetDeinterlaceExecutionCaps(SwFilter* feature)
     VP_PUBLIC_CHK_NULL_RETURN(swFilterDi);
     VP_PUBLIC_CHK_NULL_RETURN(m_vpInterface.GetHwInterface());
     VP_PUBLIC_CHK_NULL_RETURN(m_vpInterface.GetHwInterface()->m_userFeatureControl);
-
     auto userFeatureControl = m_vpInterface.GetHwInterface()->m_userFeatureControl;
+
     FeatureParamDeinterlace &diParams = swFilterDi->GetSwFilterParams();
     VP_EngineEntry &diEngine = swFilterDi->GetFilterEngineCaps();
     MOS_FORMAT      inputformat = diParams.formatInput;
@@ -2017,16 +2018,18 @@ bool Policy::IsIsolateFeatureOutputPipeNeeded(SwFilterSubPipe *featureSubPipe, S
         for (auto featureType : m_featurePool)
         {
             SwFilter      *curSwFilter = featureSubPipe->GetSwFilter(featureType);
-            VP_EngineEntry caps        = curSwFilter->GetFilterEngineCaps();
-            if (nullptr == curSwFilter || caps.bEnabled == false || featureType == swFilter->GetFeatureType())
+            if (nullptr != curSwFilter)
             {
-                continue;
-            }
-            auto renderTargetType = curSwFilter->GetRenderTargetType();
-            if (renderTargetType == RenderTargetTypeSurface)
-            {
-                isIsolateFeatureOutputPipeNeeded = false;
-                break;
+                VP_EngineEntry caps = curSwFilter->GetFilterEngineCaps();
+                if (caps.bEnabled == true && featureType != swFilter->GetFeatureType())
+                {
+                    auto renderTargetType = curSwFilter->GetRenderTargetType();
+                    if (renderTargetType == RenderTargetTypeSurface)
+                    {
+                        isIsolateFeatureOutputPipeNeeded = false;
+                        break;
+                    }
+                }
             }
         }
         return isIsolateFeatureOutputPipeNeeded;

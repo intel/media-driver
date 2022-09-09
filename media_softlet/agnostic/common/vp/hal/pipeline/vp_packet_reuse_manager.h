@@ -211,7 +211,7 @@ public:
     VpPacketReuseManager(PacketPipeFactory &packetPipeFactory, VpUserFeatureControl &userFeatureControl);
     virtual ~VpPacketReuseManager();
     virtual MOS_STATUS RegisterFeatures();
-    MOS_STATUS PreparePacketPipeReuse(std::vector<SwFilterPipe*> &swFilterPipes, Policy &policy, VpResourceManager &resMgr, bool &isPacketPipeReused);
+    MOS_STATUS         PreparePacketPipeReuse(SwFilterPipe *&swFilterPipes, Policy &policy, VpResourceManager &resMgr, bool &isPacketPipeReused);
     // Be called for not reused case before packet pipe execution.
     MOS_STATUS UpdatePacketPipeConfig(PacketPipe *&pipe);
     PacketPipe *GetPacketPipeReused()

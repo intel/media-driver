@@ -623,7 +623,7 @@ MOS_STATUS VpPacketReuseManager::RegisterFeatures()
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpPacketReuseManager::PreparePacketPipeReuse(std::vector<SwFilterPipe*> &swFilterPipes, Policy &policy, VpResourceManager &resMgr, bool &isPacketPipeReused)
+MOS_STATUS VpPacketReuseManager::PreparePacketPipeReuse(SwFilterPipe *&swFilterPipe, Policy &policy, VpResourceManager &resMgr, bool &isPacketPipeReused)
 {
     VP_FUNC_CALL();
     bool reusableOfLastPipe = m_reusable;
@@ -636,8 +636,7 @@ MOS_STATUS VpPacketReuseManager::PreparePacketPipeReuse(std::vector<SwFilterPipe
         return MOS_STATUS_SUCCESS;
     }
 
-    if (swFilterPipes.size() != 1 || nullptr == swFilterPipes[0] ||
-        swFilterPipes[0]->GetSurfaceCount(true) != 1)
+    if (nullptr == swFilterPipe || swFilterPipe->GetSurfaceCount(true) != 1)
     {
         m_reusable = false;
         VP_PUBLIC_NORMALMESSAGE("Not reusable for multi-layer cases.");
@@ -650,7 +649,7 @@ MOS_STATUS VpPacketReuseManager::PreparePacketPipeReuse(std::vector<SwFilterPipe
         return MOS_STATUS_SUCCESS;
     }
 
-    auto &pipe = *swFilterPipes[0];
+    auto &pipe = *swFilterPipe;
     auto featureRegistered = policy.GetFeatureRegistered();
 
     isPacketPipeReused = true;

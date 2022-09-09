@@ -44,18 +44,22 @@ VpPipeline::VpPipeline(PMOS_INTERFACE osInterface) :
 
 VpPipeline::~VpPipeline()
 {
-    MOS_Delete(m_packetReuseMgr);
+    // Delete m_featureManager before m_resourceManager, since
+    // m_resourceManager is referenced by m_featureManager.
+    MOS_Delete(m_featureManager);
+    for (auto ctx : m_vpPipeContexts)
+    {
+        MOS_Delete(ctx);
+    }
+    m_vpPipeContexts.clear();
     // Delete m_pPacketPipeFactory before m_pPacketFactory, since
     // m_pPacketFactory is referenced by m_pPacketPipeFactory.
     MOS_Delete(m_pPacketPipeFactory);
     MOS_Delete(m_pPacketFactory);
     DeletePackets();
     DeleteTasks();
-    // Delete m_featureManager before m_resourceManager, since
-    // m_resourceManager is referenced by m_featureManager.
-    MOS_Delete(m_featureManager);
+
     MOS_Delete(m_vpInterface);
-    MOS_Delete(m_resourceManager);
     MOS_Delete(m_kernelSet);
     MOS_Delete(m_paramChecker);
     MOS_Delete(m_mmc);
@@ -132,9 +136,13 @@ MOS_STATUS VpPipeline::UserFeatureReport()
 
     if (m_reporting)
     {
-        m_reporting->GetFeatures().outputPipeMode = m_vpOutputPipe;
-        m_reporting->GetFeatures().veFeatureInUse = m_veboxFeatureInuse;
-        m_reporting->GetFeatures().packetReused   = m_packetReused;
+        if (m_vpPipeContexts.size() > 0)
+        {
+            VP_PUBLIC_CHK_NULL_RETURN(m_vpPipeContexts[0]);
+            m_reporting->GetFeatures().outputPipeMode = m_vpPipeContexts[0]->GetOutputPipe();
+            m_reporting->GetFeatures().veFeatureInUse = m_vpPipeContexts[0]->IsVeboxInUse();
+            m_reporting->GetFeatures().packetReused   = m_vpPipeContexts[0]->IsPacketReUsed();
+        }
 
         if (m_mmc)
         {
@@ -244,8 +252,6 @@ MOS_STATUS VpPipeline::Init(void *mhwInterface)
     m_statusReport = MOS_New(VPStatusReport, m_osInterface);
     VP_PUBLIC_CHK_NULL_RETURN(m_statusReport);
 
-    VP_PUBLIC_CHK_STATUS_RETURN(CreateFeatureManager());
-    VP_PUBLIC_CHK_NULL_RETURN(m_featureManager);
     VP_PUBLIC_CHK_STATUS_RETURN(CreateVPDebugInterface());
 
     m_vpMhwInterface.m_debugInterface = (void*)m_debugInterface;
@@ -262,6 +268,14 @@ MOS_STATUS VpPipeline::Init(void *mhwInterface)
 
     m_pPacketPipeFactory = MOS_New(PacketPipeFactory, *m_pPacketFactory);
     VP_PUBLIC_CHK_NULL_RETURN(m_pPacketPipeFactory);
+
+    if (m_vpPipeContexts.size() == 0)
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(CreateSinglePipeContext());
+    }
+    VpResourceManager *resourceManager = m_vpPipeContexts[0]->GetVpResourceManager();
+    VP_PUBLIC_CHK_STATUS_RETURN(CreateFeatureManager(resourceManager));
+    VP_PUBLIC_CHK_NULL_RETURN(m_featureManager);
 
     VP_PUBLIC_CHK_STATUS_RETURN(GetSystemVeboxNumber());
 
@@ -284,8 +298,6 @@ MOS_STATUS VpPipeline::Init(void *mhwInterface)
         VP_PUBLIC_CHK_STATUS_RETURN(PacketPipe::SwitchContext(packetId, m_scalability,
             m_mediaContext, MOS_VE_SUPPORTED(m_osInterface), m_numVebox));
     }
-
-    VP_PUBLIC_CHK_STATUS_RETURN(CreatePacketReuseManager());
 
     return MOS_STATUS_SUCCESS;
 }
@@ -318,6 +330,11 @@ MOS_STATUS VpPipeline::ExecuteVpPipeline()
     VP_PUBLIC_CHK_NULL_RETURN(featureManagerNext);
     VP_PUBLIC_CHK_NULL_RETURN(m_pPacketPipeFactory);
 
+    if (m_vpPipeContexts.size() < 1 || m_vpPipeContexts[0] == nullptr)
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+    }
+
     if (PIPELINE_PARAM_TYPE_LEGACY == m_pvpParams.type)
     {
         params = m_pvpParams.renderParams;
@@ -328,13 +345,13 @@ MOS_STATUS VpPipeline::ExecuteVpPipeline()
 #if ((_DEBUG || _RELEASE_INTERNAL) && !EMUL)
         VP_PARAMETERS_DUMPPER_DUMP_XML(m_debugInterface,
             params,
-            m_frameCounter);
+            m_vpPipeContexts[0]->GetFrameCounter());
 
         for (uint32_t uiLayer = 0; uiLayer < params->uSrcCount && uiLayer < VPHAL_MAX_SOURCES; uiLayer++)
         {
             VP_SURFACE_DUMP(m_debugInterface,
                 params->pSrc[uiLayer],
-                m_frameCounter,
+                m_vpPipeContexts[0]->GetFrameCounter(),
                 uiLayer,
                 VPHAL_DUMP_TYPE_PRE_ALL);
         }
@@ -353,22 +370,43 @@ MOS_STATUS VpPipeline::ExecuteVpPipeline()
 
     VP_PUBLIC_CHK_STATUS_RETURN(CreateSwFilterPipe(m_pvpParams, swFilterPipes));
 
-    auto retHandler = [&]()
+    for (uint32_t pipeIdx = 0; pipeIdx < swFilterPipes.size(); pipeIdx++)
     {
-        m_pPacketPipeFactory->ReturnPacketPipe(pPacketPipe);
-        for (auto &pipe : swFilterPipes)
+        auto &pipe = swFilterPipes[pipeIdx];
+        if (pipeIdx >= m_vpPipeContexts.size())
         {
-            m_vpInterface->GetSwFilterPipeFactory().Destory(pipe);
+            VP_PUBLIC_CHK_STATUS_RETURN(CreateSinglePipeContext());
         }
+
+        auto &singlePipeCtx = m_vpPipeContexts[pipeIdx];
+        VP_PUBLIC_CHK_NULL_RETURN(singlePipeCtx->GetVpResourceManager());
+        VP_PUBLIC_CHK_STATUS_RETURN(m_vpInterface->SwitchResourceManager(singlePipeCtx->GetVpResourceManager()));
+
+        VP_PUBLIC_CHK_STATUS_RETURN(ExecuteSingleswFilterPipe(singlePipeCtx, pipe, pPacketPipe, featureManagerNext));
+    }
+
+    return eStatus;
+}
+
+MOS_STATUS VpPipeline::ExecuteSingleswFilterPipe(VpSinglePipeContext *singlePipeCtx, SwFilterPipe *&pipe, PacketPipe *pPacketPipe, VpFeatureManagerNext *featureManagerNext)
+{
+    VP_FUNC_CALL();
+    VpResourceManager    *resourceManager = singlePipeCtx->GetVpResourceManager();
+    VpPacketReuseManager *packetReuseMgr  = singlePipeCtx->GetPacketReUseManager();
+    uint32_t              frameCounter    = singlePipeCtx->GetFrameCounter();
+    MOS_STATUS            eStatus         = MOS_STATUS_SUCCESS;
+
+    auto retHandler = [&]() {
+        m_pPacketPipeFactory->ReturnPacketPipe(pPacketPipe);
+        m_vpInterface->GetSwFilterPipeFactory().Destory(pipe);
         m_statusReport->UpdateStatusTableAfterSubmit(eStatus);
         // Notify resourceManager for end of new frame processing.
-        m_resourceManager->OnNewFrameProcessEnd();
-        MT_LOG1(MT_VP_HAL_ONNEWFRAME_PROC_END, MT_NORMAL, MT_VP_HAL_ONNEWFRAME_COUNTER, m_frameCounter);
-        m_frameCounter++;
+        resourceManager->OnNewFrameProcessEnd();
+        MT_LOG1(MT_VP_HAL_ONNEWFRAME_PROC_END, MT_NORMAL, MT_VP_HAL_ONNEWFRAME_COUNTER, frameCounter);
+        singlePipeCtx->AddFrameCount();
     };
 
-    auto chkStatusHandler = [&](MOS_STATUS status)
-    {
+    auto chkStatusHandler = [&](MOS_STATUS status) {
         if (MOS_FAILED(status))
         {
             retHandler();
@@ -376,8 +414,7 @@ MOS_STATUS VpPipeline::ExecuteVpPipeline()
         return status;
     };
 
-    auto chkNullHandler = [&](void *p)
-    {
+    auto chkNullHandler = [&](void *p) {
         if (nullptr == p)
         {
             retHandler();
@@ -386,82 +423,77 @@ MOS_STATUS VpPipeline::ExecuteVpPipeline()
     };
 
     // Notify resourceManager for start of new frame processing.
-    MT_LOG1(MT_VP_HAL_ONNEWFRAME_PROC_START, MT_NORMAL, MT_VP_HAL_ONNEWFRAME_COUNTER, m_frameCounter);
-    VP_PUBLIC_CHK_STATUS_RETURN(chkStatusHandler(m_resourceManager->OnNewFrameProcessStart(*swFilterPipes[0])));
+    MT_LOG1(MT_VP_HAL_ONNEWFRAME_PROC_START, MT_NORMAL, MT_VP_HAL_ONNEWFRAME_COUNTER, frameCounter);
+    VP_PUBLIC_CHK_STATUS_RETURN(chkStatusHandler(resourceManager->OnNewFrameProcessStart(*pipe)));
 
-    policy = featureManagerNext->GetPolicy();
+    Policy *policy = featureManagerNext->GetPolicy();
     VP_PUBLIC_CHK_NULL_RETURN(chkNullHandler(policy));
 
     bool isPacketPipeReused = false;
-    VP_PUBLIC_CHK_STATUS_RETURN(chkStatusHandler(m_packetReuseMgr->PreparePacketPipeReuse(swFilterPipes, *policy, *m_resourceManager, isPacketPipeReused)));
+    VP_PUBLIC_CHK_STATUS_RETURN(chkStatusHandler(packetReuseMgr->PreparePacketPipeReuse(pipe, *policy, *resourceManager, isPacketPipeReused)));
 
     if (isPacketPipeReused)
     {
         VP_PUBLIC_NORMALMESSAGE("Packet reused.");
-        m_packetReused = true;
 
-        PacketPipe *pipeReused = m_packetReuseMgr->GetPacketPipeReused();
+        singlePipeCtx->SetPacketReused(true);
+
+        PacketPipe *pipeReused = packetReuseMgr->GetPacketPipeReused();
         VP_PUBLIC_CHK_NULL_RETURN(chkNullHandler(pipeReused));
 
         // Update output pipe mode.
-        m_vpOutputPipe = pipeReused->GetOutputPipeMode();
-        m_veboxFeatureInuse = pipeReused->IsVeboxFeatureInuse();
+        singlePipeCtx->SetOutputPipeMode(pipeReused->GetOutputPipeMode());
+        singlePipeCtx->SetIsVeboxFeatureInuse(pipeReused->IsVeboxFeatureInuse());
 
         // MediaPipeline::m_statusReport is always nullptr in VP APO path right now.
         eStatus = pipeReused->Execute(MediaPipeline::m_statusReport, m_scalability, m_mediaContext, MOS_VE_SUPPORTED(m_osInterface), m_numVebox);
 
         if (MOS_SUCCEEDED(eStatus))
         {
-            VP_PUBLIC_CHK_STATUS_RETURN(chkStatusHandler(UpdateExecuteStatus()));
+            VP_PUBLIC_CHK_STATUS_RETURN(chkStatusHandler(UpdateExecuteStatus(frameCounter)));
         }
 
-        for (auto &pipe : swFilterPipes)
-        {
-            m_vpInterface->GetSwFilterPipeFactory().Destory(pipe);
-        }
+        m_vpInterface->GetSwFilterPipeFactory().Destory(pipe);
+
         m_statusReport->UpdateStatusTableAfterSubmit(eStatus);
         // Notify resourceManager for end of new frame processing.
-        m_resourceManager->OnNewFrameProcessEnd();
-        MT_LOG1(MT_VP_HAL_ONNEWFRAME_PROC_END, MT_NORMAL, MT_VP_HAL_ONNEWFRAME_COUNTER, m_frameCounter);
-        m_frameCounter++;
+        resourceManager->OnNewFrameProcessEnd();
+        MT_LOG1(MT_VP_HAL_ONNEWFRAME_PROC_END, MT_NORMAL, MT_VP_HAL_ONNEWFRAME_COUNTER, frameCounter);
+        singlePipeCtx->AddFrameCount();
         return eStatus;
     }
     else
     {
-        m_packetReused = false;
+        singlePipeCtx->SetPacketReused(false);
     }
 
-    for (auto &pipe : swFilterPipes)
+    pPacketPipe = m_pPacketPipeFactory->CreatePacketPipe();
+    VP_PUBLIC_CHK_NULL_RETURN(chkNullHandler(pPacketPipe));
+
+    eStatus = featureManagerNext->InitPacketPipe(*pipe, *pPacketPipe);
+    m_vpInterface->GetSwFilterPipeFactory().Destory(pipe);
+    VP_PUBLIC_CHK_STATUS_RETURN(chkStatusHandler(eStatus));
+
+    // Update output pipe mode.
+    singlePipeCtx->SetOutputPipeMode(pPacketPipe->GetOutputPipeMode());
+    singlePipeCtx->SetIsVeboxFeatureInuse(pPacketPipe->IsVeboxFeatureInuse());
+
+    // MediaPipeline::m_statusReport is always nullptr in VP APO path right now.
+    eStatus = pPacketPipe->Execute(MediaPipeline::m_statusReport, m_scalability, m_mediaContext, MOS_VE_SUPPORTED(m_osInterface), m_numVebox);
+
+    if (MOS_SUCCEEDED(eStatus))
     {
-        pPacketPipe = m_pPacketPipeFactory->CreatePacketPipe();
-        VP_PUBLIC_CHK_NULL_RETURN(chkNullHandler(pPacketPipe));
-
-        eStatus = featureManagerNext->InitPacketPipe(*pipe, *pPacketPipe);
-        m_vpInterface->GetSwFilterPipeFactory().Destory(pipe);
-        VP_PUBLIC_CHK_STATUS_RETURN(chkStatusHandler(eStatus));
-
-        // Update output pipe mode.
-        m_vpOutputPipe = pPacketPipe->GetOutputPipeMode();
-        m_veboxFeatureInuse = pPacketPipe->IsVeboxFeatureInuse();
-
-        // MediaPipeline::m_statusReport is always nullptr in VP APO path right now.
-        eStatus = pPacketPipe->Execute(MediaPipeline::m_statusReport, m_scalability, m_mediaContext, MOS_VE_SUPPORTED(m_osInterface), m_numVebox);
-
-        if (MOS_SUCCEEDED(eStatus))
-        {
-            VP_PUBLIC_CHK_STATUS_RETURN(chkStatusHandler(m_packetReuseMgr->UpdatePacketPipeConfig(pPacketPipe)));
-            VP_PUBLIC_CHK_STATUS_RETURN(chkStatusHandler(UpdateExecuteStatus()));
-        }
-
-        m_pPacketPipeFactory->ReturnPacketPipe(pPacketPipe);
+        VP_PUBLIC_CHK_STATUS_RETURN(chkStatusHandler(packetReuseMgr->UpdatePacketPipeConfig(pPacketPipe)));
+        VP_PUBLIC_CHK_STATUS_RETURN(chkStatusHandler(UpdateExecuteStatus(frameCounter)));
     }
 
+    m_pPacketPipeFactory->ReturnPacketPipe(pPacketPipe);
     retHandler();
 
     return eStatus;
 }
 
-MOS_STATUS VpPipeline::UpdateExecuteStatus()
+MOS_STATUS VpPipeline::UpdateExecuteStatus(uint32_t frameCnt)
 {
     VP_FUNC_CALL();
 
@@ -475,7 +507,7 @@ MOS_STATUS VpPipeline::UpdateExecuteStatus()
             params->pTarget,
             VPHAL_MAX_TARGETS,
             params->uDstCount,
-            m_frameCounter,
+            frameCnt,
             VPHAL_DUMP_TYPE_POST_ALL);
 
         // Decompre output surface for debug
@@ -610,7 +642,17 @@ MOS_STATUS VpPipeline::GetSystemVeboxNumber()
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpPipeline::CreateFeatureManager()
+MOS_STATUS VpPipeline::CreateSinglePipeContext()
+{
+    VP_FUNC_CALL();
+    VpSinglePipeContext *singlePipeCtx = MOS_New(VpSinglePipeContext);
+    VP_PUBLIC_CHK_NULL_RETURN(singlePipeCtx);
+    VP_PUBLIC_CHK_STATUS_RETURN(singlePipeCtx->Init(m_osInterface, m_allocator, m_reporting, m_vpMhwInterface.m_vpPlatformInterface, m_pPacketPipeFactory, m_userFeatureControl));
+    m_vpPipeContexts.push_back(singlePipeCtx);
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpPipeline::CreateFeatureManager(VpResourceManager *vpResourceManager)
 {
     VP_FUNC_CALL();
 
@@ -618,14 +660,14 @@ MOS_STATUS VpPipeline::CreateFeatureManager()
     VP_PUBLIC_CHK_NULL_RETURN(m_allocator);
     VP_PUBLIC_CHK_NULL_RETURN(m_reporting);
     VP_PUBLIC_CHK_NULL_RETURN(m_vpMhwInterface.m_vpPlatformInterface);
+    VP_PUBLIC_CHK_NULL_RETURN(vpResourceManager);
 
     // Add CheckFeatures api later in FeatureManagerNext.
     m_paramChecker = m_vpMhwInterface.m_vpPlatformInterface->CreateFeatureChecker(&m_vpMhwInterface);
     VP_PUBLIC_CHK_NULL_RETURN(m_paramChecker);
 
-    VP_PUBLIC_CHK_STATUS_RETURN(CreateResourceManager());
+    m_vpInterface = MOS_New(VpInterface, &m_vpMhwInterface, *m_allocator, vpResourceManager);
 
-    m_vpInterface = MOS_New(VpInterface, &m_vpMhwInterface, *m_allocator, m_resourceManager);
     VP_PUBLIC_CHK_NULL_RETURN(m_vpInterface);
 
     m_featureManager = MOS_New(VpFeatureManagerNext, *m_vpInterface);
@@ -643,23 +685,6 @@ MOS_STATUS VpPipeline::CreateVpKernelSets()
     {
         m_kernelSet = MOS_New(VpKernelSet, &m_vpMhwInterface, m_allocator);
         VP_PUBLIC_CHK_NULL_RETURN(m_kernelSet);
-    }
-    return MOS_STATUS_SUCCESS;
-}
-
-//!
-//! \brief  create reource manager
-//! \return MOS_STATUS
-//!         MOS_STATUS_SUCCESS if success, else fail reason
-//!
-MOS_STATUS VpPipeline::CreateResourceManager()
-{
-    VP_FUNC_CALL();
-
-    if (nullptr == m_resourceManager)
-    {
-        m_resourceManager = MOS_New(VpResourceManager, *m_osInterface, *m_allocator, *m_reporting, *m_vpMhwInterface.m_vpPlatformInterface);
-        VP_PUBLIC_CHK_NULL_RETURN(m_resourceManager);
     }
     return MOS_STATUS_SUCCESS;
 }
@@ -868,6 +893,7 @@ MOS_STATUS VpPipeline::PrepareVpPipelineParams(PVP_PIPELINE_PARAMS params)
 
     bool bApgFuncSupported = false;
     VP_PUBLIC_CHK_STATUS_RETURN(CheckFeatures(params, bApgFuncSupported));
+
     if (!bApgFuncSupported)
     {
         VP_PUBLIC_NORMALMESSAGE("Features are not supported on APG now \n");
@@ -994,8 +1020,12 @@ MOS_STATUS VpPipeline::Prepare(void * params)
 
     m_pvpParams = *(VP_PARAMS *)params;
     // Get Output Pipe for Features. It should be configured in ExecuteVpPipeline.
-    m_vpOutputPipe = VPHAL_OUTPUT_PIPE_MODE_INVALID;
-    m_veboxFeatureInuse = false;
+    if (m_vpPipeContexts.size() <= 0 || m_vpPipeContexts[0] == nullptr)
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+    }
+
+    m_vpPipeContexts[0]->InitializeOutputPipe();
 
     if (PIPELINE_PARAM_TYPE_LEGACY == m_pvpParams.type)
     {
@@ -1026,10 +1056,64 @@ MOS_STATUS VpPipeline::Execute()
     VP_PUBLIC_CHK_STATUS_RETURN(ExecuteVpPipeline())
     VP_PUBLIC_CHK_STATUS_RETURN(UserFeatureReport());
 
-    if (m_packetSharedContext && m_packetSharedContext->isVeboxFirstFrame && m_veboxFeatureInuse)
+    bool veboxFeatureInuse = (m_vpPipeContexts.size() >= 1) && (m_vpPipeContexts[0]) && (m_vpPipeContexts[0]->IsVeboxInUse());
+    if (m_packetSharedContext && m_packetSharedContext->isVeboxFirstFrame && veboxFeatureInuse)
     {
         m_packetSharedContext->isVeboxFirstFrame = false;
     }
 
+    return MOS_STATUS_SUCCESS;
+}
+
+/****************************************************************************************************/
+/*                                      VpSinglePipeContext                                         */
+/****************************************************************************************************/
+
+VpSinglePipeContext::VpSinglePipeContext()
+{
+}
+
+VpSinglePipeContext::~VpSinglePipeContext()
+{
+    MOS_Delete(m_packetReuseMgr);
+    MOS_Delete(m_resourceManager);
+}
+
+MOS_STATUS VpSinglePipeContext::Init(PMOS_INTERFACE osInterface, VpAllocator *allocator, VphalFeatureReport *reporting, vp::VpPlatformInterface *vpPlatformInterface, PacketPipeFactory *packetPipeFactory, VpUserFeatureControl *userFeatureControl)
+{
+    VP_FUNC_CALL();
+    VP_PUBLIC_CHK_STATUS_RETURN(CreateResourceManager(osInterface, allocator, reporting, vpPlatformInterface, userFeatureControl));
+    VP_PUBLIC_CHK_NULL_RETURN(m_resourceManager);
+    VP_PUBLIC_CHK_STATUS_RETURN(CreatePacketReuseManager(packetPipeFactory, userFeatureControl));
+    VP_PUBLIC_CHK_NULL_RETURN(m_packetReuseMgr);
+
+    return MOS_STATUS_SUCCESS;
+}
+
+//!
+//! \brief  create reource manager
+//! \return MOS_STATUS
+//!         MOS_STATUS_SUCCESS if success, else fail reason
+//!
+MOS_STATUS VpSinglePipeContext::CreateResourceManager(PMOS_INTERFACE osInterface, VpAllocator *allocator, VphalFeatureReport *reporting, vp::VpPlatformInterface *vpPlatformInterface, vp::VpUserFeatureControl *userFeatureControl)
+{
+    VP_FUNC_CALL();
+    if (nullptr == m_resourceManager)
+    {
+        m_resourceManager = MOS_New(VpResourceManager, *osInterface, *allocator, *reporting, *vpPlatformInterface);
+        VP_PUBLIC_CHK_NULL_RETURN(m_resourceManager);
+    }
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpSinglePipeContext::CreatePacketReuseManager(PacketPipeFactory *pPacketPipeFactory, VpUserFeatureControl *userFeatureControl)
+{
+    VP_FUNC_CALL();
+    if (nullptr == m_packetReuseMgr)
+    {
+        m_packetReuseMgr = NewVpPacketReuseManagerObj(pPacketPipeFactory, userFeatureControl);
+        VP_PUBLIC_CHK_NULL_RETURN(m_packetReuseMgr);
+        VP_PUBLIC_CHK_STATUS_RETURN(m_packetReuseMgr->RegisterFeatures());
+    }
     return MOS_STATUS_SUCCESS;
 }

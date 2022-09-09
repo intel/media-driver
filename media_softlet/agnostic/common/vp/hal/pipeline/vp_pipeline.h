@@ -219,7 +219,7 @@ protected:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS UpdateExecuteStatus();
+    virtual MOS_STATUS UpdateExecuteStatus(uint32_t frameCn);
 
     //!
     //! \brief  Create SwFilterPipe
@@ -244,7 +244,9 @@ protected:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS CreateFeatureManager() override;
+    virtual MOS_STATUS CreateFeatureManager(VpResourceManager * vpResourceManager);
+
+    virtual MOS_STATUS CreateSinglePipeContext();
 
 //!
 //! \brief  create media kernel sets
@@ -253,12 +255,6 @@ protected:
 //!
     virtual MOS_STATUS CreateVpKernelSets();
 
-    //!
-    //! \brief  create reource manager
-    //! \return MOS_STATUS
-    //!         MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    virtual MOS_STATUS CreateResourceManager();
     virtual MOS_STATUS CheckFeatures(void *params, bool &bapgFuncSupported);
 
     //!
@@ -348,23 +344,9 @@ protected:
         return (m_numVebox > 1) ? true : false;
     }
 
-    virtual VpPacketReuseManager *NewVpPacketReuseManagerObj(PacketPipeFactory *packetPipeFactory, VpUserFeatureControl *userFeatureControl)
-    {
-        return packetPipeFactory && userFeatureControl ? MOS_New(VpPacketReuseManager, *packetPipeFactory, *userFeatureControl) : nullptr;
-    }
-
-    MOS_STATUS CreatePacketReuseManager()
-    {
-        if (nullptr == m_packetReuseMgr)
-        {
-            m_packetReuseMgr = NewVpPacketReuseManagerObj(m_pPacketPipeFactory, m_userFeatureControl);
-            VP_PUBLIC_CHK_NULL_RETURN(m_packetReuseMgr);
-            VP_PUBLIC_CHK_STATUS_RETURN(m_packetReuseMgr->RegisterFeatures());
-        }
-        return MOS_STATUS_SUCCESS;
-    }
-
     MOS_STATUS UpdateVeboxNumberforScalability();
+
+    MOS_STATUS ExecuteSingleswFilterPipe(VpSinglePipeContext *singlePipeCtx, SwFilterPipe *&pipe, PacketPipe *pPacketPipe, VpFeatureManagerNext *featureManagerNext);
 
 protected:
     VP_PARAMS              m_pvpParams              = {};   //!< vp Pipeline params
@@ -377,20 +359,15 @@ protected:
 
     // For user feature report
     VphalFeatureReport    *m_reporting              = nullptr;  //!< vp Pipeline user feature report
-    VPHAL_OUTPUT_PIPE_MODE m_vpOutputPipe           = VPHAL_OUTPUT_PIPE_MODE_INVALID;
-    bool                   m_veboxFeatureInuse      = false;
-    bool                   m_packetReused           = false;    //!< true is packet reused.
 
     VPStatusReport        *m_statusReport           = nullptr;  //!< vp Pipeline status report
-    // Surface dumper fields (counter and specification)
-    uint32_t               m_frameCounter           = 0;
+
 #if (_DEBUG || _RELEASE_INTERNAL)
     VpDebugInterface      *m_debugInterface         = nullptr;
 #endif
     bool                   m_currentFrameAPGEnabled = false;
     PacketFactory         *m_pPacketFactory         = nullptr;
     PacketPipeFactory     *m_pPacketPipeFactory     = nullptr;
-    VpResourceManager     *m_resourceManager        = nullptr;
     VpKernelSet           *m_kernelSet              = nullptr;
     VPFeatureManager      *m_paramChecker           = nullptr;
     VP_PACKET_SHARED_CONTEXT *m_packetSharedContext = nullptr;
@@ -400,8 +377,7 @@ protected:
 #endif
     VP_SETTINGS           *m_vpSettings = nullptr;
     VpUserFeatureControl  *m_userFeatureControl = nullptr;
-
-    VpPacketReuseManager  *m_packetReuseMgr = nullptr;
+    std::vector<VpSinglePipeContext *> m_vpPipeContexts     = {};
 
     MEDIA_CLASS_DEFINE_END(vp__VpPipeline)
 };
@@ -412,6 +388,95 @@ struct _VP_SFC_PACKET_PARAMS
 };
 
 using VP_SFC_PACKET_PARAMS = _VP_SFC_PACKET_PARAMS;
+
+class VpSinglePipeContext
+{
+public:
+    VpSinglePipeContext();
+    virtual ~VpSinglePipeContext();
+
+    virtual MOS_STATUS Init(PMOS_INTERFACE osInterface, VpAllocator *allocator, VphalFeatureReport *reporting, vp::VpPlatformInterface *vpPlatformInterface, PacketPipeFactory *packetPipeFactory, VpUserFeatureControl *userFeatureControl);
+
+    //!
+    //! \brief  create reource manager
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS CreateResourceManager(PMOS_INTERFACE osInterface, VpAllocator *allocator, VphalFeatureReport *reporting, vp::VpPlatformInterface *vpPlatformInterface, vp::VpUserFeatureControl *userFeatureControl);
+
+    virtual MOS_STATUS CreatePacketReuseManager(PacketPipeFactory *pPacketPipeFactory, VpUserFeatureControl *userFeatureControl);
+
+    virtual VpPacketReuseManager *NewVpPacketReuseManagerObj(PacketPipeFactory *packetPipeFactory, VpUserFeatureControl *userFeatureControl)
+    {
+        return packetPipeFactory && userFeatureControl ? MOS_New(VpPacketReuseManager, *packetPipeFactory, *userFeatureControl) : nullptr;
+    }
+
+    VpPacketReuseManager *GetPacketReUseManager()
+    {
+        return m_packetReuseMgr;
+    }
+
+    VpResourceManager *GetVpResourceManager()
+    {
+        return m_resourceManager;
+    }
+
+    bool IsPacketReUsed()
+    {
+        return m_packetReused;
+    }
+
+    bool IsVeboxInUse()
+    {
+        return m_veboxFeatureInuse;
+    }
+
+    uint32_t GetFrameCounter()
+    {
+        return m_frameCounter;
+    }
+
+    void AddFrameCount()
+    {
+        m_frameCounter++;
+    }
+
+    void InitializeOutputPipe()
+    {
+        m_vpOutputPipe      = VPHAL_OUTPUT_PIPE_MODE_INVALID;
+        m_veboxFeatureInuse = false;
+    }
+
+    VPHAL_OUTPUT_PIPE_MODE GetOutputPipe()
+    {
+        return m_vpOutputPipe;
+    }
+
+    void SetOutputPipeMode(VPHAL_OUTPUT_PIPE_MODE mode)
+    {
+        m_vpOutputPipe = mode;
+    }
+
+    void SetPacketReused(bool isReused)
+    {
+        m_packetReused = isReused;
+    }
+
+    void SetIsVeboxFeatureInuse(bool isInuse)
+    {
+        m_veboxFeatureInuse = isInuse;
+    }
+
+protected:
+    VpPacketReuseManager *m_packetReuseMgr  = nullptr;
+    VpResourceManager    *m_resourceManager = nullptr;
+    // Surface dumper fields (counter and specification)
+    uint32_t               m_frameCounter      = 0;
+    bool                   m_packetReused      = false;  //!< true is packet reused.
+    VPHAL_OUTPUT_PIPE_MODE m_vpOutputPipe      = VPHAL_OUTPUT_PIPE_MODE_INVALID;
+    bool                   m_veboxFeatureInuse = false;
+    MEDIA_CLASS_DEFINE_END(vp__VpSinglePipeContext)
+};
 
 class VpInterface
 {
@@ -490,6 +555,12 @@ public:
     PVP_MHWINTERFACE GetHwInterface()
     {
         return m_hwInterface;
+    }
+
+    MOS_STATUS SwitchResourceManager(VpResourceManager *resManager)
+    {
+        m_resourceManager = resManager;
+        return MOS_STATUS_SUCCESS;
     }
 
 private:

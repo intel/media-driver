@@ -134,6 +134,7 @@ enum FeatureType
     FeatureTypeFDFBOnRender     = FeatureTypeFDFB | FEATURE_TYPE_ENGINE_BITS_RENDER,
     FeatureTypeSegmentation     = 0x2200,
     FeatureTypeSegmentationOnRender = FeatureTypeSegmentation | FEATURE_TYPE_ENGINE_BITS_RENDER,
+    FeatureTypeS3D                  = 0x2300,
     // ...
     NumOfFeatureType
 };

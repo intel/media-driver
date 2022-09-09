@@ -296,15 +296,15 @@ MOS_STATUS SwFilterScalingHandler::UpdateParamsForProcessing(VP_PIPELINE_PARAMS&
 {
     VP_FUNC_CALL();
 
-    if (index >= GetPipeCountForProcessing(params))
-    {
-        return MOS_STATUS_INVALID_PARAMETER;
-    }
-
     // For second submission of field-to-interleaved mode, we will take second field as input surface,
     // second field is stored in pBwdRef.
     if (params.pSrc[0] && params.pSrc[0]->InterlacedScalingType == ISCALING_FIELD_TO_INTERLEAVED && index == 1)
     {
+        if (index >= GetPipeCountForProcessing(params))
+        {
+            VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+        }
+
         if (params.pSrc[0] && params.pSrc[0]->pBwdRef)
         {
             params.pSrc[0]->pBwdRef->ScalingMode = params.pSrc[0]->ScalingMode;

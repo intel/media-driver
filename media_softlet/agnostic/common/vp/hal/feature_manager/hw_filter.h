@@ -52,6 +52,7 @@
 namespace vp
 {
 class VpInterface;
+class VpSinglePipeContext;
 
 enum EngineType
 {
