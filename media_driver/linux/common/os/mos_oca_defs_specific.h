@@ -97,24 +97,4 @@ struct OCA_LOG_SECTION_HEADER
     uint64_t rtlogPatchAddr = 0;
 };
 
-#pragma pack(push)
-#pragma pack(8)
-struct MOS_OCA_EXEC_LIST_INFO
-{
-    int             handle;
-    uint64_t        size;
-    uint64_t        offset64;
-    int             flags;
-    int             mem_region;
-    bool            is_batch;
-};
-#pragma pack(pop)
-
-typedef struct _MOS_OCA_LOG_HEADER_EXEC_LIST_INFO
-{
-    MOS_OCA_LOG_HEADER header;
-    uint32_t           count;            // exec bo count dumped.
-    uint32_t           reserved;         // reserved
-} MOS_OCA_LOG_HEADER_EXEC_LIST_INFO, *PMOS_OCA_LOG_HEADER_EXEC_LIST_INFO;
-
 #endif // #ifndef __MOS_OCA_DEFS_SPECIFIC_H__

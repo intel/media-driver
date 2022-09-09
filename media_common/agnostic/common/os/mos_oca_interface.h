@@ -63,16 +63,6 @@ public:
         return MOS_STATUS_UNIMPLEMENTED;
     }
 
-    virtual void UnlockPendingOcaBuffers(PMOS_CONTEXT mosCtx, struct MOS_OCA_EXEC_LIST_INFO *info, int count)
-    {
-        MOS_OS_ASSERTMESSAGE("MosOcaInterface::UnlockPendingOcaBuffers should not be called!");
-    }
-
-    virtual MOS_STATUS UnlockOcaBufferWithDelay(MOS_OCA_BUFFER_HANDLE ocaBufHandle)
-    {
-        return MOS_STATUS_UNIMPLEMENTED;
-    }
-
     //!
     //! \brief  Oca operation which should be called at the beginning of 1st level batch buffer start.
     //! \param  [out] gpuVaOcaBuffer

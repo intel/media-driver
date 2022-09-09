@@ -158,7 +158,10 @@ void HalOcaInterfaceNext::On1stLevelBBEnd(MOS_COMMAND_BUFFER &cmdBuffer, MOS_INT
         // for failure case to avoid oca buffer leak.
         OnOcaError(osInterface.pOsContext, status, __FUNCTION__, __LINE__);
     }
-    status = pOcaInterface->UnlockOcaBufferWithDelay(ocaBufHandle);
+
+    // Need to switch to UnlockOcaBufferWithDelay when UnlockPendingOcaBuffers being used to
+    // dump more information after BB end.
+    status = pOcaInterface->UnlockOcaBuf(ocaBufHandle);
     if (MOS_FAILED(status))
     {
         OnOcaError(osInterface.pOsContext, status, __FUNCTION__, __LINE__);
