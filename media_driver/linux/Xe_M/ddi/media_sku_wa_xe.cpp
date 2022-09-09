@@ -859,32 +859,10 @@ static bool InitDg2MediaWa(struct GfxDeviceInfo *devInfo,
         MEDIA_WR_WA(waTable, Wa_22011700429, 1);
     }
 
+    // For DG2 128/512 need to distinguish A stepping and B stepping
     // Disable B+ stepping features on DG2A
-    if (drvInfo->devId == 0x4F80 ||
-        drvInfo->devId == 0x4F81 ||
-        drvInfo->devId == 0x4F82 ||
-        drvInfo->devId == 0x4F83 ||
-        drvInfo->devId == 0x4F84 ||
-        drvInfo->devId == 0x4F85 ||
-        drvInfo->devId == 0x4F86 ||
-        drvInfo->devId == 0x5690 ||
-        drvInfo->devId == 0x5691 ||
-        drvInfo->devId == 0x5692 ||
-        drvInfo->devId == 0x5695 ||
-        drvInfo->devId == 0x5696 ||
-        drvInfo->devId == 0x5697 ||
-        drvInfo->devId == 0x5698 ||
-        drvInfo->devId == 0x56A0 ||
-        drvInfo->devId == 0x56A1 ||
-        drvInfo->devId == 0x56A2 ||
-        drvInfo->devId == 0x56A3 ||
-        drvInfo->devId == 0x56A4 ||
-        drvInfo->devId == 0x56A5 ||
-        drvInfo->devId == 0x56A6 ||
-        drvInfo->devId == 0x56A7 ||
-        drvInfo->devId == 0x56A8 ||
-        drvInfo->devId == 0x56A9 ||
-        drvInfo->devId == 0x56C0)
+    if (GFX_IS_DG2_G10_CONFIG(drvInfo->devId) ||
+        GFX_IS_DG2_G11_CONFIG(drvInfo->devId))
     {
         if (drvInfo->devRev < 4)
         {
@@ -894,6 +872,12 @@ static bool InitDg2MediaWa(struct GfxDeviceInfo *devInfo,
             MEDIA_WR_WA(waTable, Wa_2209975292, 1);
             MEDIA_WR_WA(waTable, WaHEVCVDEncForceDeltaQpRoiNotSupported, 1);
         }
+        MEDIA_WR_WA(waTable, Wa_22011549751, 1);
+    }
+
+    // for DG2 256EU, support B+ features, don't need wa for A stepping
+    if (GFX_IS_DG2_G12_CONFIG(drvInfo->devId))
+    {
         MEDIA_WR_WA(waTable, Wa_22011549751, 1);
     }
 
