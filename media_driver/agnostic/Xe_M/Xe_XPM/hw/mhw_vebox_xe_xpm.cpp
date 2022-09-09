@@ -513,6 +513,8 @@ MOS_STATUS MhwVeboxInterfaceXe_Xpm::CreateGpuContext(
 {
     MEDIA_FEATURE_TABLE *skuTable;
     MOS_STATUS          eStatus = MOS_STATUS_SUCCESS;
+    MOS_GPUCTX_CREATOPTIONS_ENHANCED createOptionenhanced;
+    MEDIA_SYSTEM_INFO* pGtSystemInfo = nullptr;
 
     MHW_CHK_NULL(pOsInterface);
 
@@ -525,43 +527,20 @@ MOS_STATUS MhwVeboxInterfaceXe_Xpm::CreateGpuContext(
         pOsInterface->ctxBasedScheduling = true;
     }
 #endif
+    Mos_SetVirtualEngineSupported(pOsInterface, true);
+    Mos_CheckVirtualEngineSupported(pOsInterface, true, true);
 
-    if (!MOS_VE_CTXBASEDSCHEDULING_SUPPORTED(pOsInterface))
-    {
-        MOS_GPUCTX_CREATOPTIONS createOption;
+    pGtSystemInfo = pOsInterface->pfnGetGtSystemInfo(pOsInterface);
+    MHW_CHK_NULL(pGtSystemInfo);
 
-        // Create VEBOX/VEBOX2 Context
-        MHW_CHK_STATUS(pOsInterface->pfnCreateGpuContext(
-            pOsInterface,
-            VeboxGpuContext,
-            VeboxGpuNode,
-            &createOption));
-    }
-    else
-    {
-        MOS_GPUCTX_CREATOPTIONS_ENHANCED createOptionenhanced;
-        MEDIA_SYSTEM_INFO*               pGtSystemInfo;
+    createOptionenhanced.LRCACount = pGtSystemInfo->VEBoxInfo.NumberOfVEBoxEnabled;
 
-        pGtSystemInfo = pOsInterface->pfnGetGtSystemInfo(pOsInterface);
-        MHW_CHK_NULL(pGtSystemInfo);
-
-        if (pOsInterface->ctxBasedScheduling)
-        {
-            createOptionenhanced.LRCACount = pGtSystemInfo->VEBoxInfo.NumberOfVEBoxEnabled;
-        }
-        else
-        {
-            createOptionenhanced.LRCACount = 1;
-            createOptionenhanced.UsingSFC  = true;
-        }
-
-        // Create VEBOX/VEBOX2 Context
-        MHW_CHK_STATUS(pOsInterface->pfnCreateGpuContext(
-            pOsInterface,
-            VeboxGpuContext,
-            VeboxGpuNode,
-            &createOptionenhanced));
-    }
+    // Create VEBOX/VEBOX2 Context
+    MHW_CHK_STATUS(pOsInterface->pfnCreateGpuContext(
+        pOsInterface,
+        VeboxGpuContext,
+        VeboxGpuNode,
+        &createOptionenhanced));
 
 finish:
     return eStatus;
