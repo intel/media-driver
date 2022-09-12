@@ -5746,7 +5746,7 @@ MOS_STATUS CodechalVdencAvcState::ExecuteKernelFunctions()
         m_pollingSyncEnabled = false;
     }
 
-    if (m_cscDsState->RequireCopyOnly())
+    if (m_cscDsState->IsMediaCopyEnabled() && m_cscDsState->RequireCopyOnly())
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cscDsState->RawSurfaceMediaCopy(m_rawSurfaceToEnc->Format));
         return eStatus;

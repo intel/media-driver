@@ -310,6 +310,7 @@ MOS_STATUS CodechalVdencAvcStateXe_Hpm::InitializeState()
     {
         m_cscDsState->DisableCsc();
         m_cscDsState->EnableCopy();
+        m_cscDsState->EnableMediaCopy();
     }
 
     return eStatus;

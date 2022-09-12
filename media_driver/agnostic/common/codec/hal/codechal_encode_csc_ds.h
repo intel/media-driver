@@ -359,6 +359,7 @@ public:
     bool RequireCopyOnly() const { return m_cscFlag == 1; } // m_cscRequireCopy bit only
     bool UseSfc() const { return m_cscUsingSfc != 0; }
     bool IsSfcEnabled() const { return m_cscEnableSfc != 0; }
+    bool IsMediaCopyEnabled() const { return m_cscEnableMediaCopy != 0; }
     bool RenderConsumesCscSurface() const { return m_cscRequireCopy || m_cscRequireColor || m_cscRequireConvTo8bPlanar; }
     bool VdboxConsumesCscSurface() const { return m_cscRequireCopy || m_cscRequireColor || m_cscRequireMmc; }
     // 0 for native HW support; 1 for CSC kernel; 2 for VEBOX
@@ -367,6 +368,7 @@ public:
     void DisableCsc() { m_cscDsConvEnable = 0; }
     void EnableCopy() { m_cscEnableCopy = 1; }
     void DisableCopy() { m_cscEnableCopy = 0; }
+    void EnableMediaCopy() { m_cscEnableMediaCopy = 1; }
     void EnableColor() { m_cscEnableColor = 1; }
     void EnableMmc() { m_cscEnableMmc = 1; }
     void EnableSfc() { m_cscEnableSfc = 1; }
@@ -1153,7 +1155,8 @@ protected:
             uint8_t             m_cscEnableColor : 1;                                       //!< bit 1 = 1: Ds+Copy kernel is enabled to perform CSC
             uint8_t             m_cscEnableMmc : 1;                                         //!< bit 2 = 1: Ds+Copy kernel is enabled to decompress MMC raw surface
             uint8_t             m_cscEnableSfc : 1;                                         //!< bit 3 = 1: VEBOX is enabled to perform ARGB CSC
-            uint8_t             reserved : 4;
+            uint8_t             m_cscEnableMediaCopy : 1;                                   //!< bit 4 = 1: Media Copy is enabled to copy non-aligned raw surface
+            uint8_t             reserved : 3;
         };
         uint8_t                 m_cscDsConvEnable;
     };
