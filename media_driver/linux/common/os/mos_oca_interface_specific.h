@@ -99,10 +99,16 @@ public:
 
     //!
     //! \brief  Unlock pending oca buffers.
+    //! \param  [in] mosCtx
+    //!         mosCtx.
+    //! \param  [in] str
+    //!         Info to add into the log setion; if str==nullptr, unlock oca buffer only, without log dump
+    //! \param  [in] maxCount
+    //!         Length of str; if str==nullptr, maxCount=0.
     //! \return MOS_STATUS
     //!         Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    virtual void UnlockPendingOcaBuffers(/*Other information*/);
+    virtual void UnlockPendingOcaBuffers(PMOS_CONTEXT mosCtx, struct MOS_OCA_EXEC_LIST_INFO *info, int count);
 
     //!
     //! \brief  Oca operation which should be called at the beginning of 1st level batch buffer start.
@@ -303,6 +309,7 @@ private:
     MOS_STATUS DumpDataBlock(MOS_OCA_BUFFER_HANDLE ocaBufHandle, PMOS_OCA_LOG_HEADER pHeader, void *pData);
 
     void AddResourceInfoToLogSection(MOS_OCA_BUFFER_HANDLE ocaBufHandle, PMOS_CONTEXT mosCtx);
+    void AddExecListInfoToLogSection(MOS_OCA_BUFFER_HANDLE ocaBufHandle, PMOS_CONTEXT mosCtx, struct MOS_OCA_EXEC_LIST_INFO *info, int count);
 
     void InitLogSection(MOS_OCA_BUFFER_HANDLE ocaBufHandle, PMOS_RESOURCE resCmdBuf);
 

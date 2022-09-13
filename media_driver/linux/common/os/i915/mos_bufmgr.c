@@ -65,6 +65,7 @@
 #include "mos_vma.h"
 
 #include "mos_bufmgr_prelim.h"
+#include "mos_oca_defs_specific.h"
 
 #ifdef HAVE_VALGRIND
 #include <valgrind.h>
@@ -2799,6 +2800,74 @@ mos_gem_bo_add_softpin_target(struct mos_linux_bo *bo, struct mos_linux_bo *targ
     bo_gem->softpin_target_count++;
 
     return 0;
+}
+
+mos_oca_exec_list_info*
+mos_bo_get_softpin_targets_info(struct mos_linux_bo *bo, int *count)
+{
+    if(bo == nullptr || count == nullptr)
+    {
+        return nullptr;
+    }
+    mos_oca_exec_list_info *info = nullptr;
+    std::vector<int> bo_added;
+    int counter = 0;
+    int MAX_COUNT = 50;
+    struct mos_bo_gem *bo_gem = (struct mos_bo_gem *)bo;
+    int softpin_target_count = bo_gem->softpin_target_count;
+    if(softpin_target_count == 0 || softpin_target_count > MAX_COUNT)
+    {
+        return info;
+    }
+    info = (mos_oca_exec_list_info *)malloc((softpin_target_count + 1) * sizeof(mos_oca_exec_list_info));
+    if(info == nullptr)
+    {
+        return info;
+    }
+
+    for(int i = 0; i < softpin_target_count; i++)
+    {
+        /*note: set capture for each bo*/
+        struct mos_softpin_target *target = (struct mos_softpin_target *)&bo_gem->softpin_target[i];
+        struct mos_bo_gem *target_gem = (struct mos_bo_gem *)target->bo;
+        if(std::find(bo_added.begin(), bo_added.end(), target->bo->handle) == bo_added.end())
+        {
+            info[counter].handle   = target->bo->handle;
+            info[counter].size     = target->bo->size;
+            info[counter].offset64 = target->bo->offset64;
+            target->flags   |= EXEC_OBJECT_CAPTURE;
+            info[counter].flags    = target->flags;
+            info[counter].mem_region = target_gem->mem_region;
+            info[counter].is_batch = false;
+            bo_added.push_back(target->bo->handle);
+            counter++;
+        }
+    }
+
+    /*note: bo is cmd bo, also need to be added*/
+    int bb_flags = 0;
+    if (bo_gem->pad_to_size)
+        bb_flags |= EXEC_OBJECT_PAD_TO_SIZE;
+    if (bo_gem->use_48b_address_range)
+        bb_flags |= EXEC_OBJECT_SUPPORTS_48B_ADDRESS;
+    if (bo_gem->is_softpin)
+        bb_flags |= EXEC_OBJECT_PINNED;
+    if (bo_gem->exec_async)
+        bb_flags |= EXEC_OBJECT_ASYNC;
+    if (bo_gem->exec_capture)
+        bb_flags |= EXEC_OBJECT_CAPTURE;
+
+    info[counter].handle   = bo->handle;
+    info[counter].size     = bo->size;
+    info[counter].offset64 = bo->offset64;
+    info[counter].flags    = bb_flags;
+    info[counter].mem_region = bo_gem->mem_region;
+    info[counter].is_batch = true;
+    counter++;
+
+    *count = counter;
+
+    return info;
 }
 
 static int
