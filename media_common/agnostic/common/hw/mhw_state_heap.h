@@ -56,6 +56,8 @@ typedef struct MHW_BLOCK_MANAGER *PMHW_BLOCK_MANAGER;
 #define MHW_SAMPLER_STATE_AVS_ALIGN_MEDIA  1024 // per old HWCMD files AVS samplers were aligned to 256. Not sure if this is needed
 #define MHW_SURFACE_STATE_ALIGN 64 // (1 << MHW_BINDING_TABLE_OFFSET_SHIFT)
 
+#define MHW_MEDIA_OBJECT_BYTE_SIZE 24
+
 // Each increment in sampler index represents this increment in offset
 #define MHW_SAMPLER_STATE_VA_INC            32
 #define MHW_SAMPLER_STATE_CONV_1D_INC       128
@@ -63,6 +65,9 @@ typedef struct MHW_BLOCK_MANAGER *PMHW_BLOCK_MANAGER;
 #define MHW_SAMPLER_STATE_AVS_INC_LEGACY    512
 #define MHW_AVS_SAMPLER_HEIGHT_ALIGN_UNIT   2
 #define MHW_SAMPLER_STATE_CONV_INC_LEGACY   512
+
+#define MHW_SAMPLER_WIDTH_ALIGN_UNIT        2
+#define MHW_SAMPLER_HEIGHT_ALIGN_UNIT       4
 
 #define MHW_INVALID_BINDING_TABLE_IDX 0xFFFFFFFF
 

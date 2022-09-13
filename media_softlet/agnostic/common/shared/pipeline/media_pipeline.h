@@ -40,9 +40,6 @@
 #include "media_perf_profiler.h"
 #include "media_copy.h"
 #include "media_user_setting.h"
-#if !EMUL
-#include "codechal_debug.h"
-#endif
 class MediaPacket;
 class CodechalDebugInterface;
 class MediaPipeline

@@ -32,7 +32,7 @@
 #include <map>
 #include <vector>
 #include "mos_defs.h"
-#include "codechal_hw.h"
+#include "codec_def_common.h"
 #include "media_class_trace.h"
 
 typedef CODECHAL_MEDIA_STATE_TYPE MEDIA_DEBUG_STATE_TYPE;

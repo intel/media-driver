@@ -31,20 +31,10 @@ MOS_STATUS MediaDebugInterface::SubmitDummyWorkload(MOS_COMMAND_BUFFER *pCmdBuff
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS MediaDebugInterface::DetectCorruptionHw(CodechalHwInterface *hwInterface, PMOS_RESOURCE frameCntRes, uint32_t curIdx, uint32_t frameCrcOffset, std::vector<MOS_RESOURCE> &vStatusBuffer, PMOS_COMMAND_BUFFER pCmdBuffer, uint32_t frameNum)
-{
-    return MOS_STATUS_SUCCESS;
-}
-
 MOS_STATUS MediaDebugInterface::CopySurfaceData_Vdbox(
     uint32_t      dwDataSize,
     PMOS_RESOURCE presSourceSurface,
     PMOS_RESOURCE presCopiedSurface)
-{
-    return MOS_STATUS_SUCCESS;
-}
-
-MOS_STATUS MediaDebugInterface::StoreNumFrame(PMHW_MI_INTERFACE pMiInterface, PMOS_RESOURCE pResource, int32_t frameNum, PMOS_COMMAND_BUFFER pCmdBuffer)
 {
     return MOS_STATUS_SUCCESS;
 }

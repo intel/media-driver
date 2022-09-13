@@ -33,6 +33,7 @@
 
 #include "mhw_utilities.h"
 #include "mhw_state_heap.h"
+#include "mhw_cp_interface.h"
 #include "media_debug_config_manager.h"
 #include "media_debug_utils.h"
 #include "media_copy.h"
@@ -157,10 +158,6 @@ public:
 
     virtual MOS_STATUS LoadGoldenReference();
 
-    virtual MOS_STATUS DetectCorruptionSw(CodechalDecode *pCodechalDecode, std::vector<MOS_RESOURCE> &vResource, PMOS_RESOURCE frameCntRes, uint8_t *buf, uint32_t &size, uint32_t frameNum) { return MOS_STATUS_SUCCESS; };
-
-    virtual MOS_STATUS DetectCorruptionHw(void *hwInterface, PMOS_RESOURCE frameCntRes, uint32_t curIdx, uint32_t frameCrcOffset, std::vector<MOS_RESOURCE> &vStatusBuffer, PMOS_COMMAND_BUFFER pCmdBuffer, uint32_t frameNum);
-
     MOS_STATUS SetSWCrcMode(bool swCrc);
 
     MOS_STATUS SubmitDummyWorkload(MOS_COMMAND_BUFFER *pcmdBuffer, int32_t bNullRendering);
@@ -168,8 +165,6 @@ public:
     MOS_STATUS LockResource(uint32_t *semaData, PMOS_RESOURCE reSemaphore);
 
     MOS_STATUS DumpToFile(const GoldenReferences &goldenReferences);
-
-    MOS_STATUS StoreNumFrame(PMHW_MI_INTERFACE pMiInterface, PMOS_RESOURCE pResource, int32_t frameNum, PMOS_COMMAND_BUFFER pCmdBuffer);
 
     bool       IsHwDebugHooksEnable() { return m_enableHwDebugHooks; }
 

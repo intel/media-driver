@@ -26,8 +26,6 @@
 //!
 #include "mhw_state_heap_xe_hpg.h"
 
-#define Media_Object_ByteSize 24
-
 MHW_STATE_HEAP_INTERFACE_XE_HPG::MHW_STATE_HEAP_INTERFACE_XE_HPG(
     PMOS_INTERFACE pInputOSInterface, int8_t bDynamicMode) : MHW_STATE_HEAP_INTERFACE_GENERIC(pInputOSInterface, bDynamicMode)
 {
@@ -52,7 +50,7 @@ MHW_STATE_HEAP_INTERFACE_XE_HPG::~MHW_STATE_HEAP_INTERFACE_XE_HPG()
 
 MOS_STATUS MHW_STATE_HEAP_INTERFACE_XE_HPG::InitHwSizes()
 {
-    m_HwSizes.dwSizeMediaObjectHeaderCmd   = Media_Object_ByteSize;
+    m_HwSizes.dwSizeMediaObjectHeaderCmd   = MHW_MEDIA_OBJECT_BYTE_SIZE;
     m_HwSizes.dwSizeSurfaceState           = MOS_ALIGN_CEIL(mhw_state_heap_xe_hpg::RENDER_SURFACE_STATE_CMD::byteSize, MHW_SURFACE_STATE_ALIGN);
     m_HwSizes.dwSizeSurfaceStateAvs        = MOS_ALIGN_CEIL(mhw_state_heap_xe_hpg::MEDIA_SURFACE_STATE_CMD::byteSize, MHW_SURFACE_STATE_ALIGN);
     m_HwSizes.dwMaxSizeSurfaceState        = MOS_MAX(m_HwSizes.dwSizeSurfaceState, m_HwSizes.dwSizeSurfaceStateAvs);

@@ -19,9 +19,6 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 media_include_subdirectory(common)
-
-if(GEN12)
 media_include_subdirectory(Xe_R)
-endif()
 
 include(${MEDIA_SOFTLET_EXT}/agnostic/media_srcs_ext.cmake OPTIONAL)

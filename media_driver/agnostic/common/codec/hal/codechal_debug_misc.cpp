@@ -67,4 +67,35 @@ MOS_STATUS CodechalDebugInterface::DetectCorruptionSw(std::vector<MOS_RESOURCE> 
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS CodechalDebugInterface::DetectCorruptionHw(void *hwInterface, PMOS_RESOURCE frameCntRes, uint32_t curIdx, uint32_t frameCrcOffset, std::vector<MOS_RESOURCE> &vStatusBuffer, PMOS_COMMAND_BUFFER pCmdBuffer, uint32_t frameNum)
+{
+    if (m_enableHwDebugHooks &&
+        m_goldenReferenceExist &&
+        m_goldenReferences.size() > 0 &&
+        vStatusBuffer.size() > 0)
+    {
+        for (uint32_t i = 0; i < vStatusBuffer.size(); i++)
+        {
+            MEDIA_DEBUG_CHK_STATUS(((CodechalHwInterface*)hwInterface)->SendHwSemaphoreWaitCmd(
+                &vStatusBuffer[i],
+                m_goldenReferences[curIdx][i],
+                MHW_MI_SAD_EQUAL_SDD,
+                pCmdBuffer,
+                frameCrcOffset));
+        }
+        StoreNumFrame((MhwMiInterface*)m_miInterface, frameCntRes, frameNum, pCmdBuffer);
+    }
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS CodechalDebugInterface::StoreNumFrame(PMHW_MI_INTERFACE pMiInterface, PMOS_RESOURCE pResource, int32_t frameNum, PMOS_COMMAND_BUFFER pCmdBuffer)
+{
+    MHW_MI_STORE_DATA_PARAMS storeDataParams{};
+    storeDataParams.pOsResource      = pResource;
+    storeDataParams.dwResourceOffset = 0;
+    storeDataParams.dwValue          = frameNum;
+    MEDIA_DEBUG_CHK_STATUS(pMiInterface->AddMiStoreDataImmCmd(pCmdBuffer, &storeDataParams));
+    return MOS_STATUS_SUCCESS;
+}
+
 #endif // USE_CODECHAL_DEBUG_TOOL

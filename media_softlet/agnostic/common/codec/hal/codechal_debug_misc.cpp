@@ -35,4 +35,14 @@ MOS_STATUS CodechalDebugInterface::DetectCorruptionSw(std::vector<MOS_RESOURCE> 
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS CodechalDebugInterface::DetectCorruptionHw(CodechalHwInterface *hwInterface, PMOS_RESOURCE frameCntRes, uint32_t curIdx, uint32_t frameCrcOffset, std::vector<MOS_RESOURCE> &vStatusBuffer, PMOS_COMMAND_BUFFER pCmdBuffer, uint32_t frameNum)
+{
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS CodechalDebugInterface::StoreNumFrame(PMHW_MI_INTERFACE pMiInterface, PMOS_RESOURCE pResource, int32_t frameNum, PMOS_COMMAND_BUFFER pCmdBuffer)
+{
+    return MOS_STATUS_SUCCESS;
+}
+
 #endif // USE_CODECHAL_DEBUG_TOOL
