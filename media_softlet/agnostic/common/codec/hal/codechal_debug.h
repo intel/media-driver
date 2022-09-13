@@ -108,11 +108,13 @@ public:
 
     virtual MOS_STATUS Initialize(
         CodechalHwInterface *hwInterface,
-        CODECHAL_FUNCTION    codecFunction);
+        CODECHAL_FUNCTION    codecFunction,
+        MediaCopyBaseState  *mediaCopy = nullptr);
 
     virtual MOS_STATUS Initialize(
         CodechalHwInterfaceNext *hwInterface,
-        CODECHAL_FUNCTION        codecFunction);
+        CODECHAL_FUNCTION        codecFunction,
+        MediaCopyBaseState      *mediaCopy = nullptr);
 
     MOS_STATUS DumpHucDmem(
         PMOS_RESOURCE             dmemResource,

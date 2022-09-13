@@ -28,6 +28,7 @@
 #if USE_CODECHAL_DEBUG_TOOL
 #include "codechal_debug_config_manager.h"
 #include "codechal_encoder_base.h"
+#include "media_debug_fast_dump.h"
 #include <iomanip>
 
 CodechalDebugInterface::CodechalDebugInterface()
@@ -43,6 +44,8 @@ CodechalDebugInterface::~CodechalDebugInterface()
     {
         MOS_Delete(m_configMgr);
     }
+
+    MediaDebugFastDump::DestroyInstance();
 }
 
 void CodechalDebugInterface::CheckGoldenReferenceExist()
@@ -66,6 +69,17 @@ MOS_STATUS CodechalDebugInterface::DumpYUVSurface(
     uint8_t *lockedAddr   = nullptr;
     if (!DumpIsEnabled(attrName, mediaState))
     {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    const char *funcName = (m_codecFunction == CODECHAL_FUNCTION_DECODE) ? "_DEC" : (m_codecFunction == CODECHAL_FUNCTION_CENC_DECODE ? "_DEC" : "_ENC");
+    std::string bufName  = std::string(surfName) + "_w[" + std::to_string(surface->dwWidth) + "]_h[" + std::to_string(surface->dwHeight) + "]_p[" + std::to_string(surface->dwPitch) + "]";
+
+    const char *filePath = CreateFileName(funcName, bufName.c_str(), hasAuxSurf ? ".Y" : ".yuv");
+
+    if (DumpIsEnabled(MediaDbgAttr::attrEnableFastDump))
+    {
+        MediaDebugFastDump::Dump(surface->OsResource, filePath);
         return MOS_STATUS_SUCCESS;
     }
 
@@ -218,11 +232,6 @@ MOS_STATUS CodechalDebugInterface::DumpYUVSurface(
     }
 
     lumaheight = hasAuxSurf ? GFX_ALIGN(height, 32) : height;
-
-    const char *funcName = (m_codecFunction == CODECHAL_FUNCTION_DECODE) ? "_DEC" : (m_codecFunction == CODECHAL_FUNCTION_CENC_DECODE ? "_DEC" : "_ENC");
-    std::string bufName  = std::string(surfName) + "_w[" + std::to_string(surface->dwWidth) + "]_h[" + std::to_string(surface->dwHeight) + "]_p[" + std::to_string(pitch) + "]";
-
-    const char *filePath = CreateFileName(funcName, bufName.c_str(), hasAuxSurf ? ".Y" : ".yuv");
 
     std::ofstream ofs(filePath, std::ios_base::out | std::ios_base::binary);
     if (ofs.fail())
@@ -791,7 +800,8 @@ MOS_STATUS CodechalDebugInterface::DumpBltOutput(
 
 MOS_STATUS CodechalDebugInterface::Initialize(
     CodechalHwInterface *hwInterface,
-    CODECHAL_FUNCTION    codecFunction)
+    CODECHAL_FUNCTION    codecFunction,
+    MediaCopyBaseState  *mediaCopy)
 {
     CODECHAL_DEBUG_FUNCTION_ENTER;
 
@@ -850,13 +860,19 @@ MOS_STATUS CodechalDebugInterface::Initialize(
         m_osInterface->pOsContext);
     m_swCRC = userFeatureData.i32Data == 0 ? false : true;
 #endif
-    
+
+    if (mediaCopy && DumpIsEnabled(MediaDbgAttr::attrEnableFastDump))
+    {
+        MediaDebugFastDump::CreateInstance(*m_osInterface, *mediaCopy);
+    }
+
     return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS CodechalDebugInterface::Initialize(
     CodechalHwInterfaceNext *hwInterface,
-    CODECHAL_FUNCTION        codecFunction)
+    CODECHAL_FUNCTION        codecFunction,
+    MediaCopyBaseState      *mediaCopy)
 {
     CODECHAL_DEBUG_FUNCTION_ENTER;
 
@@ -915,6 +931,11 @@ MOS_STATUS CodechalDebugInterface::Initialize(
         m_osInterface->pOsContext);
     m_swCRC = userFeatureData.i32Data == 0 ? false : true;
 #endif
+
+    if (mediaCopy && DumpIsEnabled(MediaDbgAttr::attrEnableFastDump))
+    {
+        MediaDebugFastDump::CreateInstance(*m_osInterface, *mediaCopy);
+    }
 
     return MOS_STATUS_SUCCESS;
 }

@@ -35,6 +35,7 @@
 #include "mhw_state_heap.h"
 #include "media_debug_config_manager.h"
 #include "media_debug_utils.h"
+#include "media_copy.h"
 #include <sstream>
 #include <fstream>
 using GoldenReferences = std::vector<std::vector<uint32_t>>;

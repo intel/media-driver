@@ -43,6 +43,7 @@ namespace MediaDbgAttr
 static const char *attrDumpBufferInBinary = "DumpBufferInBinary";
 static const char *attrDumpToThreadFolder = "DumpToThreadFolder";
 static const char *attrDumpCmdBufInBinary = "DumpCmdBufInBinary";
+static const char *attrEnableFastDump     = "EnableFastDump";
 
 //Codec Attr 
 static const char *attrPicParams              = "PicParams";

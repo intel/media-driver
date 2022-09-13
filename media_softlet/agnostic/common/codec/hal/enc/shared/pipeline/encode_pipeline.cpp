@@ -82,13 +82,13 @@ MOS_STATUS EncodePipeline::Initialize(void *settings)
         m_debugInterface = MOS_New(CodechalDebugInterface);
         ENCODE_CHK_NULL_RETURN(m_debugInterface);
         ENCODE_CHK_STATUS_RETURN(
-            m_debugInterface->Initialize(m_hwInterface, m_codecFunction)
+            m_debugInterface->Initialize(m_hwInterface, m_codecFunction, m_mediaCopy)
         );
 
         m_statusReportDebugInterface = MOS_New(CodechalDebugInterface);
         ENCODE_CHK_NULL_RETURN(m_statusReportDebugInterface);
         ENCODE_CHK_STATUS_RETURN(
-        m_statusReportDebugInterface->Initialize(m_hwInterface, m_codecFunction));
+        m_statusReportDebugInterface->Initialize(m_hwInterface, m_codecFunction, m_mediaCopy));
     );
 
     MOS_USER_FEATURE_VALUE_DATA userFeatureData;

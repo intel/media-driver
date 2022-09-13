@@ -116,7 +116,7 @@ MOS_STATUS HevcVdencPipelineXe_Hpm::Initialize(void *settings)
         m_debugInterface = MOS_New(CodechalDebugInterface);
         ENCODE_CHK_NULL_RETURN(m_debugInterface);
         ENCODE_CHK_STATUS_RETURN(
-            m_debugInterface->Initialize(m_hwInterface, m_codecFunction));
+            m_debugInterface->Initialize(m_hwInterface, m_codecFunction, m_mediaCopy));
 
         if (m_statusReportDebugInterface != nullptr) {
             MOS_Delete(m_statusReportDebugInterface);
@@ -124,7 +124,7 @@ MOS_STATUS HevcVdencPipelineXe_Hpm::Initialize(void *settings)
         m_statusReportDebugInterface = MOS_New(CodechalDebugInterface);
         ENCODE_CHK_NULL_RETURN(m_statusReportDebugInterface);
         ENCODE_CHK_STATUS_RETURN(
-            m_statusReportDebugInterface->Initialize(m_hwInterface, m_codecFunction)););
+            m_statusReportDebugInterface->Initialize(m_hwInterface, m_codecFunction, m_mediaCopy)););
 
     return MOS_STATUS_SUCCESS;
 }

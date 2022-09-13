@@ -42,6 +42,7 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/memory_policy_manager.cpp
     ${CMAKE_CURRENT_LIST_DIR}/null_hardware_next.cpp
     ${CMAKE_CURRENT_LIST_DIR}/media_debug_dumper.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/media_debug_fast_dump.cpp
 )
 
 set(TMP_HEADERS_
@@ -56,6 +57,8 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/memory_policy_manager.h
     ${CMAKE_CURRENT_LIST_DIR}/mediamemdecomp.h
     ${CMAKE_CURRENT_LIST_DIR}/media_debug_dumper.h
+    ${CMAKE_CURRENT_LIST_DIR}/media_debug_fast_dump.h
+    ${CMAKE_CURRENT_LIST_DIR}/media_debug_fast_dump_imp.hpp
 )
 
 

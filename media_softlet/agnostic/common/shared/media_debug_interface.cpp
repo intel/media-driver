@@ -27,6 +27,7 @@
 #include "media_debug_interface.h"
 #if USE_MEDIA_DEBUG_TOOL
 #include "media_debug_config_manager.h"
+#include "media_debug_fast_dump.h"
 #include "codechal_hw.h"
 #include <fstream>
 #include <sstream>
@@ -862,6 +863,16 @@ MOS_STATUS MediaDebugInterface::DumpYUVSurface(
         return MOS_STATUS_SUCCESS;
     }
 
+    const char *funcName = (m_mediafunction == MEDIA_FUNCTION_VP) ? "_VP" : ((m_mediafunction == MEDIA_FUNCTION_ENCODE) ? "_ENC" : "_DEC");
+    std::string bufName  = std::string(surfName) + "_w[" + std::to_string(surface->dwWidth) + "]_h[" + std::to_string(surface->dwHeight) + "]_p[" + std::to_string(surface->dwPitch) + "]";
+    const char *filePath = CreateFileName(funcName, bufName.c_str(), MediaDbgExtType::yuv);
+
+    if (DumpIsEnabled(MediaDbgAttr::attrEnableFastDump))
+    {
+        MediaDebugFastDump::Dump(surface->OsResource, filePath);
+        return MOS_STATUS_SUCCESS;
+    }
+
     MOS_LOCK_PARAMS lockFlags;
     MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
     lockFlags.ReadOnly     = 1;
@@ -1005,10 +1016,6 @@ MOS_STATUS MediaDebugInterface::DumpYUVSurface(
         pitch *= 2;
         height /= 2;
     }
-
-    const char *funcName = (m_mediafunction == MEDIA_FUNCTION_VP) ? "_VP" : ((m_mediafunction == MEDIA_FUNCTION_ENCODE) ? "_ENC" : "_DEC");
-    std::string bufName  = std::string(surfName) + "_w[" + std::to_string(surface->dwWidth) + "]_h[" + std::to_string(surface->dwHeight) + "]_p[" + std::to_string(pitch) + "]";
-    const char *filePath = CreateFileName(funcName, bufName.c_str(), MediaDbgExtType::yuv);
 
     std::ofstream ofs(filePath, std::ios_base::out | std::ios_base::binary);
     if (ofs.fail())
@@ -1177,13 +1184,6 @@ MOS_STATUS MediaDebugInterface::DumpBuffer(
         }
     }
 
-    MOS_LOCK_PARAMS lockFlags;
-    MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
-    lockFlags.ReadOnly = 1;
-    uint8_t *data      = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, resource, &lockFlags);
-    MEDIA_DEBUG_CHK_NULL(data);
-    data += offset;
-
     const char *fileName;
     bool        binaryDump = m_configMgr->AttrIsEnabled(MediaDbgAttr::attrDumpBufferInBinary);
     const char *extType    = binaryDump ? MediaDbgExtType::dat : MediaDbgExtType::txt;
@@ -1197,6 +1197,19 @@ MOS_STATUS MediaDebugInterface::DumpBuffer(
         std::string kernelName = m_configMgr->GetMediaStateStr(mediaState);
         fileName               = CreateFileName(kernelName.c_str(), bufferName, extType);
     }
+
+    if (DumpIsEnabled(MediaDbgAttr::attrEnableFastDump))
+    {
+        MediaDebugFastDump::Dump(*resource, fileName, size, offset);
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MOS_LOCK_PARAMS lockFlags;
+    MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
+    lockFlags.ReadOnly = 1;
+    uint8_t *data      = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, resource, &lockFlags);
+    MEDIA_DEBUG_CHK_NULL(data);
+    data += offset;
 
     MOS_STATUS status;
     if (binaryDump)
