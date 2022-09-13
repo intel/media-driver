@@ -2443,12 +2443,12 @@ void MosUtilities::MosTraceEvent(
 
             if (pArg1 && dwSize1 > 0)
             {
-                memcpy(pTraceBuf+nLen, pArg1, dwSize1);
+                MOS_SecureMemcpy(pTraceBuf+nLen, dwSize1, pArg1, dwSize1);
                 nLen += dwSize1;
             }
             if (pArg2 && dwSize2 > 0)
             {
-                memcpy(pTraceBuf+nLen, pArg2, dwSize2);
+                MOS_SecureMemcpy(pTraceBuf+nLen, dwSize2, pArg2, dwSize2);
                 nLen += dwSize2;
             }
             size_t writeSize = write(MosUtilitiesSpecificNext::m_mosTraceFd, pTraceBuf, nLen);
