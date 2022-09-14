@@ -587,6 +587,14 @@ MEDIA_CLASS_DEFINE_END(MosUtilDebug)
         MT_ERR1(id, p1, v1);                                                                       \
     }
 
+#define OCA_MT_LOG(id, p1, v1, cTpye, osStreamState)                                               \
+    {                                                                                              \
+        bool isErr = false;                                                                        \
+        MT_PARAM param[] = {{p1, v1}};                                                             \
+        MosInterface::InsertRTLog(osStreamState, cTpye, isErr, id, 1, param);                      \
+        MT_LOG1(id, v1);                                                                            \
+    }
+
 #if MOS_MESSAGES_ENABLED
 
 
