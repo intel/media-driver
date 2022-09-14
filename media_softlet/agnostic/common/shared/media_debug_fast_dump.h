@@ -38,7 +38,45 @@
 class MediaDebugFastDump
 {
 public:
-    static void CreateInstance(MOS_INTERFACE &osItf, MediaCopyBaseState &mediaCopyItf);
+    struct Config
+    {
+    private:
+        template <size_t MIN, size_t MAX = 100>
+        class RangedValue final
+        {
+        public:
+            RangedValue(size_t v)
+            {
+                value = v < MIN ? MIN : v > MAX ? MAX
+                                                : v;
+            }
+
+            operator size_t() const
+            {
+                return value;
+            }
+
+        private:
+            size_t value;
+        };
+
+    public:
+        bool            write2File          = true;   // write dumped data to file
+        bool            write2Trace         = false;  // write dumped data to trace
+        bool            informOnError       = true;   // dump 1 byte filename.error_info file instead of nothing when error occurs
+        bool            allowDataLoss       = true;   // allow dumped data loss to reduce perf impact
+        RangedValue<10> maxPercentSharedMem = 75;     // max percentage of shared graphic memory used for fast dump, 10% - 100%
+        RangedValue<0>  maxPercentLocalMem  = 0;      // max percentage of local graphic memory used for fast dump, 0% - 100%,
+                                                      // very slow to lock, little perf impact on main workload but significantly
+                                                      // slows down dump, use with caution (suggest using local memory only when
+                                                      // allowDataLoss must be true and shared memory is not enough)
+        size_t samplingTime     = 0;                  // sampling time in ms
+        size_t samplingInterval = 0;                  // sampling interval in ms
+                                                      // when both sampling time and interval are positive, sampling mode is enabled
+    };
+
+public:
+    static void CreateInstance(MOS_INTERFACE &osItf, MediaCopyBaseState &mediaCopyItf, const Config *cfg = nullptr);
 
     static void DestroyInstance();
 
@@ -53,7 +91,7 @@ public:
 protected:
     MediaDebugFastDump() = default;
 
-MEDIA_CLASS_DEFINE_END(MediaDebugFastDump)
+    MEDIA_CLASS_DEFINE_END(MediaDebugFastDump)
 };
 
 #endif  // USE_MEDIA_DEBUG_TOOL

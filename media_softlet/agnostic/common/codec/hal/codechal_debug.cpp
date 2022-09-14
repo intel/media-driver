@@ -863,7 +863,10 @@ MOS_STATUS CodechalDebugInterface::Initialize(
 
     if (mediaCopy && DumpIsEnabled(MediaDbgAttr::attrEnableFastDump))
     {
-        MediaDebugFastDump::CreateInstance(*m_osInterface, *mediaCopy);
+        MediaDebugFastDump::Config cfg{};
+        cfg.allowDataLoss = DumpIsEnabled(MediaDbgAttr::attrFastDumpAllowDataLoss);
+        cfg.informOnError = DumpIsEnabled(MediaDbgAttr::attrFastDumpInformOnError);
+        MediaDebugFastDump::CreateInstance(*m_osInterface, *mediaCopy, &cfg);
     }
 
     return MOS_STATUS_SUCCESS;
@@ -934,7 +937,10 @@ MOS_STATUS CodechalDebugInterface::Initialize(
 
     if (mediaCopy && DumpIsEnabled(MediaDbgAttr::attrEnableFastDump))
     {
-        MediaDebugFastDump::CreateInstance(*m_osInterface, *mediaCopy);
+        MediaDebugFastDump::Config cfg{};
+        cfg.allowDataLoss = DumpIsEnabled(MediaDbgAttr::attrFastDumpAllowDataLoss);
+        cfg.informOnError = DumpIsEnabled(MediaDbgAttr::attrFastDumpInformOnError);
+        MediaDebugFastDump::CreateInstance(*m_osInterface, *mediaCopy, &cfg);
     }
 
     return MOS_STATUS_SUCCESS;

@@ -30,6 +30,7 @@
 #if USE_MEDIA_DEBUG_TOOL
 
 #include <algorithm>
+#include <chrono>
 #include <condition_variable>
 #include <fstream>
 #include <functional>
@@ -40,30 +41,115 @@
 #include <thread>
 #include <vector>
 
-#define _CHK_STATUS_RETURN(exp)      \
-    if ((exp) != MOS_STATUS_SUCCESS) \
-    {                                \
-        return;                      \
-    }
-
 class MediaDebugFastDumpImp : public MediaDebugFastDump
 {
+protected:
+    static void Write2File(const std::string &name, const void *data, size_t size)
+    {
+        std::ofstream ofs(name);
+        ofs.write(static_cast<const char *>(data), size);
+    }
+
 public:
     MediaDebugFastDumpImp(
         MOS_INTERFACE      &osItf,
-        MediaCopyBaseState &mediaCopyItf) : m_osItf(osItf),
-                                            m_mediaCopyItf(mediaCopyItf)
+        MediaCopyBaseState &mediaCopyItf,
+        const Config       *cfg) : m_osItf(osItf),
+                             m_mediaCopyItf(mediaCopyItf)
     {
+        bool   write2File          = true;
+        bool   write2Trace         = false;
+        bool   informOnError       = true;
+        size_t maxPercentSharedMem = 75;
+        size_t maxPercentLocalMem  = 0;
+        if (cfg)
+        {
+            write2File          = cfg->write2File;
+            write2Trace         = cfg->write2Trace;
+            informOnError       = cfg->informOnError;
+            m_allowDataLoss     = cfg->allowDataLoss;
+            maxPercentSharedMem = cfg->maxPercentSharedMem;
+            maxPercentLocalMem  = cfg->maxPercentLocalMem;
+            m_samplingTime      = MS(cfg->samplingTime);
+            m_samplingInterval  = MS(cfg->samplingInterval);
+        }
+
+        // configure sampling mode
+        {
+            if (m_samplingTime + m_samplingInterval == MS(0))
+            {
+                m_2CacheTask = [] { return true; };
+            }
+            else
+            {
+                m_2CacheTask = [this] {
+                    auto elapsed = std::chrono::duration_cast<MS>(Clock::now() - m_startTP);
+                    return (elapsed % (m_samplingTime + m_samplingInterval)) <= m_samplingTime;
+                };
+            }
+        }
+
+        // configure allocator
+        {
+            m_memMng1st.policy = MOS_MEMPOOL_SYSTEMMEMORY;
+            m_memMng2nd.policy = MOS_MEMPOOL_VIDEOMEMORY;
+
+            auto adapter = MosInterface::GetAdapterInfo(m_osItf.osStreamState);
+            if (adapter)
+            {
+                m_memMng1st.cap = static_cast<size_t>(adapter->SystemSharedMemory) / 100 * maxPercentSharedMem;
+                m_memMng2nd.cap = static_cast<size_t>(adapter->DedicatedVideoMemory) / 100 * maxPercentLocalMem;
+            }
+            m_memMng1st.cap = m_memMng1st.cap ? m_memMng1st.cap : -1;
+
+            if (m_memMng2nd.cap > 0)
+            {
+                m_allocate = [this](ResInfo &resInfo, MOS_RESOURCE &res, size_t resSize) {
+                    if (m_memMng1st.usage + resSize > m_memMng1st.cap)
+                    {
+                        if (m_memMng2nd.usage + resSize > m_memMng2nd.cap)
+                        {
+                            return false;
+                        }
+                        resInfo.dwMemType = m_memMng2nd.policy;
+                    }
+                    else
+                    {
+                        resInfo.dwMemType = m_memMng1st.policy;
+                    }
+                    if (m_osItf.pfnAllocateResource(&m_osItf, &resInfo, &res) == MOS_STATUS_SUCCESS)
+                    {
+                        m_memMng1st.usage += (resInfo.dwMemType == m_memMng1st.policy ? resSize : 0);
+                        m_memMng2nd.usage += (resInfo.dwMemType == m_memMng2nd.policy ? resSize : 0);
+                        return true;
+                    }
+                    return false;
+                };
+            }
+            else
+            {
+                m_allocate = [this](ResInfo &resInfo, MOS_RESOURCE &res, size_t resSize) {
+                    if (m_memMng1st.usage + resSize > m_memMng1st.cap)
+                    {
+                        return false;
+                    }
+                    resInfo.dwMemType = m_memMng1st.policy;
+                    if (m_osItf.pfnAllocateResource(&m_osItf, &resInfo, &res) == MOS_STATUS_SUCCESS)
+                    {
+                        m_memMng1st.usage += resSize;
+                        return true;
+                    }
+                    return false;
+                };
+            }
+        }
+
         // configure data write mode
         {
-            // todo: decide write2File and write2Trace
-            bool write2File  = true;
-            bool write2Trace = false;
             if (write2File && !write2Trace)
             {
                 m_write = [](const std::string &name, const void *data, size_t size) {
-                    std::ofstream ofs(name);
-                    ofs.write(static_cast<const char *>(data), size);
+                    Write2File(name, data, size);
                 };
             }
             else if (!write2File && write2Trace)
@@ -77,10 +163,10 @@ public:
                 m_write = [](const std::string &name, const void *data, size_t size) {
                     auto future = std::async(
                         std::launch::async,
-                        [&] {
-                            std::ofstream ofs(name);
-                            ofs.write(static_cast<const char *>(data), size);
-                        });
+                        Write2File,
+                        name,
+                        data,
+                        size);
                     MOS_TraceDataDump(name.c_str(), 0, data, size);
                     future.wait();
                 };
@@ -89,6 +175,26 @@ public:
             {
                 // should not happen
                 m_write = [](const std::string &, const void *, size_t) {};
+            }
+
+            if (informOnError)
+            {
+                m_writeError = [this](const std::string &name, const std::string &error) {
+                    static const uint8_t dummy = 0;
+                    std::thread          w(
+                        m_write,
+                        name + "." + error,
+                        &dummy,
+                        sizeof(dummy));
+                    if (w.joinable())
+                    {
+                        w.detach();
+                    }
+                };
+            }
+            else
+            {
+                m_writeError = [](const std::string &, const std::string &) {};
             }
         }
 
@@ -99,10 +205,10 @@ public:
 #else
             std::make_unique<std::thread>(
 #endif
-            std::thread(
-                [this] {
-                    ScheduleTasks();
-                }));
+                std::thread(
+                    [this] {
+                        ScheduleTasks();
+                    }));
 
         Res::SetOsInterface(&osItf);
     }
@@ -126,12 +232,20 @@ public:
 
     void AddTask(MOS_RESOURCE &res, std::string &&name, size_t dumpSize, size_t offset)
     {
+        if (m_2CacheTask() == false)
+        {
+            return;
+        }
+
         size_t resSize = 0;
 
         if (res.pGmmResInfo == nullptr ||
             (resSize = static_cast<size_t>(res.pGmmResInfo->GetSizeMainSurface())) <
                 offset + dumpSize)
         {
+            m_writeError(
+                name,
+                res.pGmmResInfo == nullptr ? "get_surface_size_failed" : "incorrect_size_offset");
             return;
         }
 
@@ -147,7 +261,11 @@ public:
                 details.Format = Format_Invalid;
             }
 
-            _CHK_STATUS_RETURN(m_osItf.pfnGetResourceInfo(&m_osItf, &res, &details));
+            if (m_osItf.pfnGetResourceInfo(&m_osItf, &res, &details) != MOS_STATUS_SUCCESS)
+            {
+                m_writeError(name, "get_resource_info_failed");
+                return;
+            }
 
             resInfo.Type             = resType;
             resInfo.dwWidth          = details.dwWidth;
@@ -155,41 +273,54 @@ public:
             resInfo.TileType         = MOS_TILE_LINEAR;
             resInfo.Format           = details.Format;
             resInfo.Flags.bCacheable = 1;
-            resInfo.dwMemType        = MOS_MEMPOOL_SYSTEMMEMORY;
         }
 
         // prepare resource pool and resource queue
         {
-            decltype(m_resPool)::mapped_type::iterator resIt;
-            std::lock_guard<std::mutex>                lk(m_mutex);
-            auto                                      &resArray = m_resPool[resInfo];
-            for (resIt = resArray.begin(); resIt != resArray.end(); resIt++)
-            {
-                if ((*resIt)->occupied == false)
-                {
-                    break;
-                }
-            }
+            std::unique_lock<std::mutex> lk(m_mutex);
+            auto                        &resArray = m_resPool[resInfo];
+
+            auto resIt = std::find_if(
+                resArray.begin(),
+                resArray.end(),
+                [](std::remove_reference<decltype(resArray)>::type::const_reference r) {
+                    return r->occupied == false;
+                });
+
             if (resIt == resArray.end())
             {
-                if (m_currentMemUsage + resSize > m_memCap)
+                auto tmpRes = std::make_shared<Res>();
+                if (m_allocate(resInfo, tmpRes->res, resSize))
                 {
+                    resArray.emplace_back(std::move(tmpRes));
+                    --(resIt = resArray.end());
+                }
+                else if (!m_allowDataLoss && !resArray.empty())
+                {
+                    m_cond.wait(
+                        lk,
+                        [&] {
+                            resIt = std::find_if(
+                                resArray.begin(),
+                                resArray.end(),
+                                [](std::remove_reference<decltype(resArray)>::type::const_reference r) {
+                                    return r->occupied == false;
+                                });
+                            return resIt != resArray.end();
+                        });
+                }
+                else
+                {
+                    m_writeError(name, "discarded");
                     return;
                 }
-
-                auto tmpRes = std::make_shared<Res>();
-                if (m_osItf.pfnAllocateResource(&m_osItf, &resInfo, &tmpRes->res) != MOS_STATUS_SUCCESS)
-                {
-                    resInfo.dwMemType = MOS_MEMPOOL_VIDEOMEMORY;
-                    _CHK_STATUS_RETURN(m_osItf.pfnAllocateResource(&m_osItf, &resInfo, &tmpRes->res));
-                }
-                resArray.emplace_back(tmpRes);
-                resIt = resArray.end();
-                --resIt;
-                m_currentMemUsage += resSize;
             }
 
-            _CHK_STATUS_RETURN(m_mediaCopyItf.SurfaceCopy(&res, &(*resIt)->res, MCPY_METHOD_PERFORMANCE));
+            if (m_mediaCopyItf.SurfaceCopy(&res, &(*resIt)->res, MCPY_METHOD_PERFORMANCE) != MOS_STATUS_SUCCESS)
+            {
+                m_writeError(name, "surface_copy_failed");
+                return;
+            }
 
             (*resIt)->size     = (dumpSize == 0) ? resSize - offset : dumpSize;
             (*resIt)->offset   = offset;
@@ -202,6 +333,8 @@ public:
     }
 
 protected:
+    using Clock   = std::chrono::system_clock;
+    using MS      = std::chrono::duration<size_t, std::milli>;
     using ResInfo = MOS_ALLOC_GFXRES_PARAMS;
 
     struct ResInfoCmp
@@ -211,7 +344,7 @@ protected:
             return a.Type < b.Type ? true : a.dwWidth < b.dwWidth ? true
                                         : a.dwHeight < b.dwHeight ? true
                                         : a.Format < b.Format     ? true
-                                        : false;
+                                                                  : false;
         }
     };
 
@@ -241,6 +374,13 @@ protected:
         size_t       size     = 0;
         size_t       offset   = 0;
         std::string  name;
+    };
+
+    struct MemMng
+    {
+        Mos_MemPool policy = MOS_MEMPOOL_VIDEOMEMORY;
+        size_t      cap    = 0;
+        size_t      usage  = 0;
     };
 
 protected:
@@ -278,7 +418,7 @@ protected:
                             m_resQueue.pop();
                             m_ready4Dump = true;
                         }
-                        m_cond.notify_one();
+                        m_cond.notify_all();
                     });
             }
         }
@@ -312,16 +452,22 @@ protected:
             m_write(res->name, data + res->offset, res->size);
             m_osItf.pfnUnlockResource(&m_osItf, &res->res);
         }
-        else if (m_informWhenLockFails)
+        else
         {
-            const uint32_t dummy = 0xdeadbeef;
-            m_write(res->name + ".lock_failed", &dummy, sizeof(dummy));
+            m_writeError(res->name, "lock_failed");
         }
     }
 
 protected:
     // global configurations
-    bool m_informWhenLockFails = true;
+    bool   m_allowDataLoss = true;
+    MemMng m_memMng1st;
+    MemMng m_memMng2nd;
+    MS     m_samplingTime{0};
+    MS     m_samplingInterval{0};
+
+    const std::chrono::time_point<Clock>
+        m_startTP = Clock::now();
 
     std::unique_ptr<
         std::thread>
@@ -338,8 +484,20 @@ protected:
         m_resQueue;  // synchronization needed
 
     std::function<
+        bool()>
+        m_2CacheTask;
+
+    std::function<
+        bool(ResInfo &, MOS_RESOURCE &, size_t)>
+        m_allocate;
+
+    std::function<
         void(const std::string &, const void *, size_t)>
         m_write;
+
+    std::function<
+        void(const std::string &, const std::string &)>
+        m_writeError;
 
     // threads intercommunication flags, synchronization needed
     bool m_ready4Dump    = true;
@@ -348,17 +506,12 @@ protected:
     std::mutex              m_mutex;
     std::condition_variable m_cond;
 
-    size_t m_currentMemUsage = 0;
-    size_t m_memCap          = 2 << 30;  // 2GB
-
     MOS_INTERFACE      &m_osItf;
     MediaCopyBaseState &m_mediaCopyItf;
 
-MEDIA_CLASS_DEFINE_END(MediaDebugFastDumpImp)
+    MEDIA_CLASS_DEFINE_END(MediaDebugFastDumpImp)
 };
 
 PMOS_INTERFACE MediaDebugFastDumpImp::Res::osItf = nullptr;
-
-#undef _CHK_STATUS_RETURN
 
 #endif  // USE_MEDIA_DEBUG_TOOL
