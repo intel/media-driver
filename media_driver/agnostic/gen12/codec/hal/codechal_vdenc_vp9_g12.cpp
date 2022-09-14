@@ -3469,6 +3469,11 @@ void CodechalVdencVp9StateG12::fill_pad_with_value(PMOS_SURFACE psSurface)
 
         uint8_t *src_data   = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, &(psSurface->OsResource), &lockFlags);
 
+        if (!src_data)
+        {
+            return;
+        }
+
         uint8_t *src_data_y = src_data + psSurface->dwOffset;
 
         uint32_t y_plane_size      = psSurface->dwPitch * psSurface->dwHeight;
@@ -3481,7 +3486,7 @@ void CodechalVdencVp9StateG12::fill_pad_with_value(PMOS_SURFACE psSurface)
 
         if (src_data_y_end > src_data_y_end - y_pad_length)
         {
-            memcpy(src_data_y_end, src_data_y_end - y_pad_length, y_pad_length);
+            memcpy_s(src_data_y_end, y_pad_length, src_data_y_end - y_pad_length, y_pad_length);
         }
 
         uint32_t uv_plane_size      = (psSurface->dwPitch * psSurface->dwHeight)/2;
@@ -3490,7 +3495,7 @@ void CodechalVdencVp9StateG12::fill_pad_with_value(PMOS_SURFACE psSurface)
 
         if (src_data_uv_end - y_pad_length > src_data_y_end)
         {
-            memcpy(src_data_uv_end, src_data_uv_end - y_pad_length, y_pad_length);
+            memcpy_s(src_data_uv_end, y_pad_length, src_data_uv_end - y_pad_length, y_pad_length);
         }    
 
         m_osInterface->pfnUnlockResource(m_osInterface, &(psSurface->OsResource));
