@@ -60,6 +60,21 @@ CodechalHwInterfaceNext::CodechalHwInterfaceNext(
     m_vdencInterface = mhwInterfacesNext->m_vdencInterface;
 }
 
+CodechalHwInterfaceNext::CodechalHwInterfaceNext(
+    PMOS_INTERFACE osInterface)
+{
+    CODEC_HW_ASSERT(osInterface);
+    m_osInterface = osInterface;
+
+    m_skuTable = m_osInterface->pfnGetSkuTable(m_osInterface);
+    m_waTable  = m_osInterface->pfnGetWaTable(m_osInterface);
+    CODEC_HW_ASSERT(m_skuTable);
+    CODEC_HW_ASSERT(m_waTable);
+
+    MOS_ZeroMemory(&m_hucDmemDummy, sizeof(m_hucDmemDummy));
+    MOS_ZeroMemory(&m_dummyStreamIn, sizeof(m_dummyStreamIn));
+    MOS_ZeroMemory(&m_dummyStreamOut, sizeof(m_dummyStreamOut));
+}
 MOS_STATUS CodechalHwInterfaceNext::GetAvpStateCommandSize(
     uint32_t                        mode,
     uint32_t                        *commandsSize,

@@ -145,6 +145,8 @@
 #include "media_user_settings_mgr_g12.h"
 
 #include "codechal_decode_histogram_g12.h"
+#include "decode_scalability_singlepipe.h"
+#include "decode_scalability_multipipe.h"
 
 #if LINUX
 #include "vp_pipeline_adapter_g12.h"

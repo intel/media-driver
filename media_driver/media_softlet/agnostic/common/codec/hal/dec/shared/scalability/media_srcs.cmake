@@ -1,4 +1,4 @@
-# Copyright (c) 2020, Intel Corporation
+# Copyright (c) 2022, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,22 +18,34 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
+set(TMP_SOURCES_ "")
+set(TMP_HEADERS_ "")
+
 if(${Media_Scalability_Supported} STREQUAL "yes")
 set(TMP_SOURCES_
     ${TMP_SOURCES_}
-    ${CMAKE_CURRENT_LIST_DIR}/decode_scalability_option.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/decode_scalability_singlepipe_next.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/decode_scalability_multipipe_next.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/decode_scalability_singlepipe.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/decode_scalability_multipipe.cpp
 )
 
 set(TMP_HEADERS_
     ${TMP_HEADERS_}
-    ${CMAKE_CURRENT_LIST_DIR}/decode_scalability_defs.h
-    ${CMAKE_CURRENT_LIST_DIR}/decode_scalability_option.h
-    ${CMAKE_CURRENT_LIST_DIR}/decode_scalability_singlepipe_next.h
-    ${CMAKE_CURRENT_LIST_DIR}/decode_scalability_multipipe_next.h
-    ${CMAKE_CURRENT_LIST_DIR}/decode_phase.h
+    ${CMAKE_CURRENT_LIST_DIR}/decode_scalability_singlepipe.h
+    ${CMAKE_CURRENT_LIST_DIR}/decode_scalability_multipipe.h
+)
+
+set(CODEC_SOURCES_
+    ${CODEC_SOURCES_}
+    ${TMP_SOURCES_}
+)
+
+set(CODEC_HEADERS_
+    ${CODEC_HEADERS_}
+    ${TMP_HEADERS_}
 )
 endif()
 
+source_group( CodecHalNext\\Shared\\Decode FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
 media_add_curr_to_include_path()
+set(TMP_SOURCES_ "")
+set(TMP_HEADERS_ "")

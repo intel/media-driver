@@ -76,6 +76,9 @@
 #define CODEC_HW_CHK_COND_RETURN(_expr, _message, ...)                                  \
     MOS_CHK_COND_RETURN(MOS_COMPONENT_CODEC, MOS_CODEC_SUBCOMP_HW,_expr,_message, ##__VA_ARGS__)
 
+class MediaScalability;
+class MediaContext;
+
 //!  Codec hw next interface
 /*!
 This class defines the interfaces for hardware dependent settings and functions used in Codechal
@@ -91,15 +94,22 @@ public:
         CODECHAL_FUNCTION  codecFunction,
         MhwInterfacesNext  *mhwInterfacesNext,
         bool               disableScalability = false);
+    //!
+    //! \brief    Constructor
+    //!
+    CodechalHwInterfaceNext(PMOS_INTERFACE osInterface);
 
     //!
     //! \brief    Destructor
     //!
     virtual ~CodechalHwInterfaceNext() {
         CODEC_HW_FUNCTION_ENTER;
-        m_osInterface->pfnFreeResource(m_osInterface, &m_hucDmemDummy);
-        m_osInterface->pfnFreeResource(m_osInterface, &m_dummyStreamIn);
-        m_osInterface->pfnFreeResource(m_osInterface, &m_dummyStreamOut);
+        if (m_osInterface != nullptr)
+        {
+            m_osInterface->pfnFreeResource(m_osInterface, &m_hucDmemDummy);
+            m_osInterface->pfnFreeResource(m_osInterface, &m_dummyStreamIn);
+            m_osInterface->pfnFreeResource(m_osInterface, &m_dummyStreamOut);
+        }
     }
 
     //!
@@ -392,7 +402,14 @@ public:
     MHW_VDBOX_NODE_IND GetMaxVdboxIndex()
     {
         return MHW_VDBOX_NODE_1;
-    }
+    };
+
+    MediaScalability *m_singlePipeScalability = nullptr;
+    MediaScalability *m_multiPipeScalability  = nullptr;
+    MOS_STATUS(*pfnCreateDecodeSinglePipe)
+    (void *hwInterface, MediaContext *mediaContext, uint8_t componentType);
+    MOS_STATUS(*pfnCreateDecodeMultiPipe)
+    (void *hwInterface, MediaContext *mediaContext, uint8_t componentType);
 
     //!
     //! \brief    Init L3 Cache Settings
