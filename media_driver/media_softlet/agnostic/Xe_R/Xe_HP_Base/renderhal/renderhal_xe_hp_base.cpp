@@ -105,7 +105,7 @@ MOS_STATUS XRenderHal_Interface_Xe_Hp_Base::SetupSurfaceState(
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pStateHeap);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pHwSizes);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwStateHeap);
-    MHW_RENDERHAL_ASSERT(pRenderHalSurface->Rotation >= 0 && pRenderHalSurface->Rotation < 8);
+    MHW_RENDERHAL_ASSERT(pRenderHalSurface->Rotation >= MHW_ROTATION_IDENTITY && pRenderHalSurface->Rotation <= MHW_ROTATE_90_MIRROR_HORIZONTAL);
     //-----------------------------------------
 
     dwSurfaceSize = pRenderHal->pHwSizes->dwSizeSurfaceState;

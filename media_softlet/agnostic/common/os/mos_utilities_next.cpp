@@ -400,7 +400,7 @@ void *MosUtilities::MosReallocMemory(
     size_t     newSize)
 #endif // MOS_MESSAGES_ENABLED
 {
-    void *oldPtr = nullptr;
+    uintptr_t oldPtr = reinterpret_cast<uintptr_t>(nullptr);
     void *newPtr = nullptr;
 
 #if (_DEBUG || _RELEASE_INTERNAL)
@@ -410,14 +410,14 @@ void *MosUtilities::MosReallocMemory(
     }
 #endif
 
-    oldPtr = ptr;
+    oldPtr = reinterpret_cast<uintptr_t>(ptr);
     newPtr = realloc(ptr, newSize);
 
     MOS_OS_ASSERT(newPtr != nullptr);
 
-    if (newPtr != oldPtr)
+    if (newPtr != reinterpret_cast<void*>(oldPtr))
     {
-        if (oldPtr != nullptr)
+        if (oldPtr != reinterpret_cast<uintptr_t>(nullptr))
         {
             MosAtomicDecrement(&m_mosMemAllocCounter);
             MOS_MEMNINJA_FREE_MESSAGE(oldPtr, functionName, filename, line);

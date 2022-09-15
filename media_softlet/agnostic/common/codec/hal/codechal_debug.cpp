@@ -794,14 +794,9 @@ MOS_STATUS CodechalDebugInterface::DumpRgbDataOnYUVSurface(
         m_osInterface->pfnUnlockResource(m_osInterface, &surface->OsResource);
     }
 
-    if (&(tmpRgbSurface->OsResource))
-    {
-        m_osInterface->pfnFreeResource(m_osInterface, &(tmpRgbSurface->OsResource));
-    }
-    if (tmpRgbSurface)
-    {
-        MOS_Delete(tmpRgbSurface);
-    }
+    m_osInterface->pfnFreeResource(m_osInterface, &(tmpRgbSurface->OsResource));
+    MOS_Delete(tmpRgbSurface);
+
     return MOS_STATUS_SUCCESS;
 }
 
