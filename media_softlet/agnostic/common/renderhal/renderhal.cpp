@@ -1167,6 +1167,7 @@ MOS_STATUS RenderHal_AllocateStateHeaps(
     MHW_RENDERHAL_CHK_NULL(pRenderHal);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pRenderHalPltInterface);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pOsInterface);
+    MHW_RENDERHAL_CHK_NULL(pRenderHal->pHwSizes);
     MHW_RENDERHAL_CHK_NULL(pSettings);
     // verify GSH parameters and alignments
     MHW_RENDERHAL_ASSERT((pSettings->iSyncSize        % RENDERHAL_SYNC_BLOCK_ALIGN)   == 0);
@@ -6778,7 +6779,8 @@ MOS_STATUS RenderHal_InitInterface(
     }
 
     pRenderHal->pHwCaps = pRenderHal->pRenderHalPltInterface->GetHwCaps(pRenderHal);
-
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pHwCaps);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pMhwStateHeap);
     pRenderHal->pHwSizes = pRenderHal->pMhwStateHeap->GetHwSizesPointer();
 
     pRenderHal->dwTimeoutMs            = RENDERHAL_TIMEOUT_MS_DEFAULT;
