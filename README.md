@@ -186,6 +186,11 @@ new platforms since upstream version of i915 KMD does not fully support them
 - DG1/SG1
 - Alchemist(DG2)/ATSM
 
+By default, media-driver builds against upstream i915 KMD and will miss
+support for the platforms listed above. To enable new platforms which
+require special i915 KMD and specify `ENABLE_PRODUCTION_KMD=ON` (default: `OFF`)
+build configuration option.
+
 ## Known Issues and Limitations
 
 1. Intel(R) Media Driver for VAAPI is recommended to be built against gcc compiler v6.1

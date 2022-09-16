@@ -1,4 +1,4 @@
-# Copyright (c) 2017, Intel Corporation
+# Copyright (c) 2020-2022, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,19 +18,14 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-media_include_subdirectory(uapi)
+media_include_subdirectory(include)
 
 set(TMP_HEADERS_
-    ${CMAKE_CURRENT_LIST_DIR}/intel_aub.h
-    ${CMAKE_CURRENT_LIST_DIR}/libdrm_lists.h
-    ${CMAKE_CURRENT_LIST_DIR}/libdrm_macros.h
-    ${CMAKE_CURRENT_LIST_DIR}/mos_bufmgr.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_bufmgr_priv.h
-    ${CMAKE_CURRENT_LIST_DIR}/xf86atomic.h
-    ${CMAKE_CURRENT_LIST_DIR}/xf86drm.h
-    ${CMAKE_CURRENT_LIST_DIR}/xf86drmHash.h
-    ${CMAKE_CURRENT_LIST_DIR}/xf86drmMode.h
-    ${CMAKE_CURRENT_LIST_DIR}/xf86drmRandom.h
+)
+
+set(TMP_SOURCES_
+    ${CMAKE_CURRENT_LIST_DIR}/mos_bufmgr.c
 )
 
 set(MOS_COMMON_HEADERS_
@@ -38,8 +33,9 @@ set(MOS_COMMON_HEADERS_
     ${TMP_HEADERS_}
 )
 
-#use 'BEFORE' as below to make this folder higher priority in include path. This could avoid libdrm headers in system path are used unproperly.
-set (MOS_PREPEND_INCLUDE_DIRS_
-    ${CMAKE_CURRENT_LIST_DIR}
-    ${MOS_PREPEND_INCLUDE_DIRS_}
-)
+set(MOS_COMMON_SOURCES_
+    ${MOS_COMMON_SOURCES_}
+    ${TMP_SOURCES_}
+ )
+
+#Do not add this dir to include dir

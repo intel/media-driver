@@ -27,11 +27,12 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/drm_sarea.h
 )
 
+if(NOT ENABLE_PRODUCTION_KMD)
 set(TMP_HEADERS_
     ${TMP_HEADERS_}
     ${CMAKE_CURRENT_LIST_DIR}/i915_drm.h
-    ${CMAKE_CURRENT_LIST_DIR}/i915_drm_prelim.h
 )
+endif()
 
 
 set(MOS_COMMON_HEADERS_
