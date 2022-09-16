@@ -169,41 +169,13 @@ MediaScalability *MediaScalabilityFactory<T>::CreateDecodeScalability(T params, 
 
     //Create scalability handle refer to scalability option.
     MediaScalability *scalabilityHandle = nullptr;
-    CodechalHwInterfaceNext *codecHwInterface  = ((CodechalHwInterface *)hwInterface)->m_hwInterfaceNext;
-    if (codecHwInterface->pfnCreateDecodeSinglePipe == nullptr || codecHwInterface->pfnCreateDecodeMultiPipe == nullptr)
-    {
-        SCALABILITY_ASSERTMESSAGE("Scalability pointer is null!");
-        if (std::is_same<decltype(params), ScalabilityPars *>::value)
-        {
-            MOS_Delete(option);
-        }
-        return nullptr;
-    }
     if (option->GetNumPipe() == 1)
     {
-        if ((codecHwInterface->pfnCreateDecodeSinglePipe(hwInterface, mediaContext, scalabilityDecoder)) != MOS_STATUS_SUCCESS)
-        {
-            SCALABILITY_ASSERTMESSAGE("Scalability Creation failed!");
-            if (std::is_same<decltype(params), ScalabilityPars *>::value)
-            {
-                MOS_Delete(option);
-            }
-            return nullptr;
-        }
-        scalabilityHandle = codecHwInterface->m_singlePipeScalability;
+        scalabilityHandle = MOS_New(decode::DecodeScalabilitySinglePipe, hwInterface, mediaContext, scalabilityDecoder);
     }
     else
     {
-        if ((codecHwInterface->pfnCreateDecodeMultiPipe(hwInterface, mediaContext, scalabilityDecoder)) != MOS_STATUS_SUCCESS)
-        {
-            SCALABILITY_ASSERTMESSAGE("Scalability Creation failed!");
-            if (std::is_same<decltype(params), ScalabilityPars *>::value)
-            {
-                MOS_Delete(option);
-            }
-            return nullptr;
-        }
-        scalabilityHandle = codecHwInterface->m_multiPipeScalability;
+        scalabilityHandle = MOS_New(decode::DecodeScalabilityMultiPipe, hwInterface, mediaContext, scalabilityDecoder);
     }
 
     if (scalabilityHandle == nullptr)

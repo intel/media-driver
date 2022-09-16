@@ -101,18 +101,6 @@ public:
     virtual MOS_STATUS VerifyCmdBuffer(uint32_t requestedSize, 
                 uint32_t requestedPatchListSize, 
                 bool &singleTaskPhaseSupportedInPak)  override;
-    //!
-    //! \brief  Create decode single pipe
-    //! \param  [in] hwInterface
-    //!         void type hw interface
-    //! \param  [in] mediaContext
-    //!         required media context to create single pipe
-    //! \param  [in] componentType
-    //!         Inidcate component.
-    //! \return MOS_STATUS
-    //!         MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    static MOS_STATUS  CreateDecodeSinglePipe(void *hwInterface, MediaContext *mediaContext, uint8_t componentType);
 
 protected:
     //!

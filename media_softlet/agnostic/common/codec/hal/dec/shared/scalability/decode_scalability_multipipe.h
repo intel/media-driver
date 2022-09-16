@@ -168,18 +168,6 @@ public:
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS ResetSemaphore(uint32_t syncType, uint32_t semaphoreId, PMOS_COMMAND_BUFFER cmdBuffer) override;
-    //!
-    //! \brief  Create decode multi pipe
-    //! \param  [in] hwInterface
-    //!         void type hw interface
-    //! \param  [in] mediaContext
-    //!         required media context to create multi pipe
-    //! \param  [in] componentType
-    //!         Inidcate component.
-    //! \return MOS_STATUS
-    //!         MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    static MOS_STATUS CreateDecodeMultiPipe(void *hwInterface, MediaContext *mediaContext, uint8_t componentType);
 
 protected:
 

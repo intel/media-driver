@@ -181,21 +181,6 @@ MOS_STATUS DecodeScalabilitySinglePipeNext::SendAttrWithFrameTracking(
     return eStatus;
 }
 
-MOS_STATUS DecodeScalabilitySinglePipeNext::CreateDecodeSinglePipe(void *hwInterface, MediaContext *mediaContext, uint8_t componentType)
-{
-    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-
-    SCALABILITY_FUNCTION_ENTER;
-
-    SCALABILITY_CHK_NULL_RETURN(hwInterface);
-    SCALABILITY_CHK_NULL_RETURN(mediaContext);
-
-    ((CodechalHwInterface *)hwInterface)->m_hwInterfaceNext->m_singlePipeScalability = MOS_New(DecodeScalabilitySinglePipeNext, hwInterface, mediaContext, scalabilityDecoder);
-    SCALABILITY_CHK_NULL_RETURN(((CodechalHwInterface *)hwInterface)->m_hwInterfaceNext->m_singlePipeScalability);
-    
-    return eStatus;
-}
-
 }
 
 
