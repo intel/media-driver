@@ -2618,6 +2618,9 @@ MOS_STATUS VphalSurfaceDumper::DumpSurface(
     VPHAL_DBG_SURF_DUMP_SPEC*  pDumpSpec = &m_dumpSpec;
     bool                       isDumpFromDecomp;
     bool                       orgDumpAuxEnable;
+    uint32_t                   pid = MosUtilities::MosGetPid();
+    uint64_t                   timestamp  = 0;
+    MosUtilities::MosQueryPerformanceCounter(&timestamp);
 
     eStatus             = MOS_STATUS_SUCCESS;
     i                   = 0;
@@ -2676,11 +2679,11 @@ MOS_STATUS VphalSurfaceDumper::DumpSurface(
 
                     if (!isDumpFromDecomp || m_dumpLocInVp[0] == 0)
                     {
-                        MOS_SecureStringPrint(m_dumpPrefix, MAX_PATH, MAX_PATH, "%s/surfdump_loc[%s]_lyr[%d]", pDumpSpec->pcOutputPath, m_dumpLoc, uiCounter);
+                        MOS_SecureStringPrint(m_dumpPrefix, MAX_PATH, MAX_PATH, "%s/surfdump_pid[%d]_loc[%s]_lyr[%d]_ts[%lld]", pDumpSpec->pcOutputPath, pid, m_dumpLoc, uiCounter, timestamp);
                     }
                     else
                     {
-                        MOS_SecureStringPrint(m_dumpPrefix, MAX_PATH, MAX_PATH, "%s/surfdump_loc[%s_%s]_lyr[%d]", pDumpSpec->pcOutputPath, m_dumpLocInVp, m_dumpLoc, uiCounter);
+                        MOS_SecureStringPrint(m_dumpPrefix, MAX_PATH, MAX_PATH, "%s/surfdump_pid[%d]_loc[%s_%s]_lyr[%d]_ts[%lld]", pDumpSpec->pcOutputPath, pid, m_dumpLocInVp, m_dumpLoc, uiCounter, timestamp);
                     }
 
                     DumpSurfaceToFile(
@@ -2721,13 +2724,13 @@ MOS_STATUS VphalSurfaceDumper::DumpSurface(
 
                 if (!isDumpFromDecomp || m_dumpLocInVp[0] == 0)
                 {
-                    MOS_SecureStringPrint(m_dumpPrefix, MAX_PATH, MAX_PATH, "%s/surfdump_loc[%s]_lyr[%d]",
-                        pDumpSpec->pcOutputPath, m_dumpLoc, uiCounter);
+                    MOS_SecureStringPrint(m_dumpPrefix, MAX_PATH, MAX_PATH, "%s/surfdump_pid[%d]_loc[%s]_lyr[%d]_ts[%lld]",
+                        pDumpSpec->pcOutputPath, pid, m_dumpLoc, uiCounter, timestamp);
                 }
                 else
                 {
-                    MOS_SecureStringPrint(m_dumpPrefix, MAX_PATH, MAX_PATH, "%s/surfdump_loc[%s_%s]_lyr[%d]",
-                        pDumpSpec->pcOutputPath, m_dumpLocInVp, m_dumpLoc, uiCounter);
+                    MOS_SecureStringPrint(m_dumpPrefix, MAX_PATH, MAX_PATH, "%s/surfdump_pid[%d]_loc[%s_%s]_lyr[%d]_ts[%lld]",
+                        pDumpSpec->pcOutputPath, pid, m_dumpLocInVp, m_dumpLoc, uiCounter, timestamp);
                 }
 
                 DumpSurfaceToFile(
