@@ -270,6 +270,11 @@ public:
     //!
     uint8_t GetNumVdbox()
     {
+        MEDIA_ENGINE_INFO mediaEngineInfo = {};
+        m_osItf->pfnGetMediaEngineInfo(m_osItf, mediaEngineInfo);
+
+        m_numVdbox = (uint8_t)(mediaEngineInfo.VDBoxInfo.NumberOfVDBoxEnabled);
+
         return m_numVdbox;
     }
 
