@@ -2573,6 +2573,14 @@ bool VPHAL_VEBOX_STATE_G12_BASE::IsNeeded(
         }
     }
 
+    // Force NV12 16K to render
+    if (pRenderTarget->Format == Format_NV12 && pRenderTarget->dwHeight > VPHAL_RNDR_16K_HEIGHT_LIMIT)
+    {
+        VPHAL_RENDER_NORMALMESSAGE("Disable VEBOX/SFC for NV12 16k resolution");
+        pRenderPassData->bCompNeeded = true;
+        goto finish;
+    }
+
     pRenderData->Init();
     if (MEDIA_IS_SKU(m_pSkuTable, FtrSFCPipe) && m_sfcPipeState)
     {
