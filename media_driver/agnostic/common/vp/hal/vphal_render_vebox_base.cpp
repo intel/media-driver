@@ -4636,6 +4636,7 @@ MOS_STATUS VpHal_RndrRenderVebox(
             pRenderData->bDenoise = false;
             pRenderData->bDeinterlace = false;
             pRenderData->bQueryVariance = false;
+            pRenderData->bRefValid = false;
 
             VPHAL_RENDER_NORMALMESSAGE("2nd pass sfc scaling ratio x = %f, y = %f",
               (long)((pInSurface->rcDst.right - pInSurface->rcDst.left) / (pInSurface->rcSrc.right - pInSurface->rcSrc.left)),
