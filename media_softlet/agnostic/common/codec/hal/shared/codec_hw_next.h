@@ -310,6 +310,28 @@ public:
         uint32_t *patchListSize,
         bool      modeSpecific);
     //!
+    //! \brief    Calculates maximum size for all picture level commands
+    //! \details  Client facing function to calculate maximum size for all slice/MB level commands in mfx pipeline
+    //!
+    //! \param    [in] mode
+    //!           Codec mode
+    //! \param    [out] commandsSize
+    //!           The maximum command buffer size
+    //! \param    [out] patchListSize
+    //!           The maximum command patch list size
+    //! \param    [in] modeSpecific
+    //!           Indicate the long or short format for decoder or single take phase for encoder
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS GetMfxStateCommandsDataSize(
+        uint32_t  mode,
+        uint32_t *commandsSize,
+        uint32_t *patchListSize,
+        bool      modeSpecific);
+
+    //!
     //! \brief    Calculates maximum size for HCP slice/MB level commands
     //! \details  Client facing function to calculate maximum size for HCP slice/MB level commands
     //! \param    [in] mode
@@ -436,7 +458,6 @@ protected:
     // Next: remove legacy Interfaces
     MhwCpInterface                  *m_cpInterface = nullptr;         //!< Pointer to Mhw cp interface
     MhwVdboxMfxInterface            *m_mfxInterface = nullptr;        //!< Pointer to Mhw mfx interface
-    MhwVdboxVdencInterface          *m_vdencInterface = nullptr;      //!< Pointer to Mhw vdenc interface
 
 MEDIA_CLASS_DEFINE_END(CodechalHwInterfaceNext)
 };

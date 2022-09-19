@@ -349,6 +349,16 @@ public:
         hevcSliceP  = 1,
         hevcSliceI  = 2
     };
+    //!
+    //! \brief    Get max vdbox index
+    //!
+    //! \return   MHW_VDBOX_NODE_IND
+    //!           max vdbox index got
+    //!
+    inline MHW_VDBOX_NODE_IND GetMaxVdboxIndex()
+    {
+        return m_maxVdboxIndex;
+    }
 
 protected:
     PMOS_INTERFACE              m_osInterface = nullptr; //!< Pointer to OS interface
@@ -1262,6 +1272,8 @@ public:
         uint32_t                         width,
         uint32_t                         height,
         uint32_t                        *size) = 0;
+
+    MHW_VDBOX_NODE_IND m_maxVdboxIndex = MHW_VDBOX_NODE_1;
 };
 
 #endif

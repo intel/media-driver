@@ -448,6 +448,7 @@ MOS_STATUS MediaContext::FunctionToNode(MediaFunction func, const MOS_GPUCTX_CRE
 MOS_STATUS MediaContext::FunctionToNodeCodec(MOS_GPU_NODE& node)
 {
     MHW_VDBOX_GPUNODE_LIMIT gpuNodeLimit = {0};
+
     MOS_OS_CHK_STATUS_RETURN(FindGpuNodeToUse(&gpuNodeLimit));
 
     node = (MOS_GPU_NODE)(gpuNodeLimit.dwGpuNodeToUse);
@@ -463,7 +464,7 @@ MOS_STATUS MediaContext::CheckScalabilityOverrideValidity()
     MEDIA_SYSTEM_INFO *gtSystemInfo;
     uint32_t           forceVdbox;
     bool               scalableDecMode;
-    bool               useVD1, useVD2;
+    bool               useVD1, useVD2, useVD3, useVD4;
 
     MHW_MI_CHK_NULL(m_osInterface);
     scalableDecMode = m_osInterface->bHcpDecScalabilityMode ? true : false;
@@ -567,6 +568,7 @@ MOS_STATUS MediaContext::FindGpuNodeToUse(PMHW_VDBOX_GPUNODE_LIMIT gpuNodeLimit)
     return eStatus;
 }
 #endif
+
 MOS_STATUS MediaContext::FunctionToGpuContext(MediaFunction func, const MOS_GPUCTX_CREATOPTIONS_ENHANCED &option, const MOS_GPU_NODE &node, MOS_GPU_CONTEXT &ctx)
 {
     MOS_OS_FUNCTION_ENTER;

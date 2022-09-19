@@ -85,36 +85,35 @@ public:
     enum CommandsNumberOfAddresses
     {
         // MFX Engine Commands
-        MI_BATCH_BUFFER_START_CMD_NUMBER_OF_ADDRESSES       = 1,   //  2 DW for  1 address field
-        MFX_PIPE_MODE_SELECT_CMD_NUMBER_OF_ADDRESSES        = 0,   //  0 DW for    address fields
-        MFX_SURFACE_STATE_CMD_NUMBER_OF_ADDRESSES           = 0,   //  0 DW for    address fields
-        MFX_PIPE_BUF_ADDR_STATE_CMD_NUMBER_OF_ADDRESSES     = 27,  // 50 DW for 25 address fields, added 2 for DownScaledReconPicAddr
-        MFX_IND_OBJ_BASE_ADDR_STATE_CMD_NUMBER_OF_ADDRESSES = 5,   // 10 DW for  5 address fields
-        MFX_WAIT_CMD_NUMBER_OF_ADDRESSES                    = 0,   //  0 DW for    address fields
-        MFX_BSP_BUF_BASE_ADDR_STATE_CMD_NUMBER_OF_ADDRESSES = 3,   //  2 DW for  3 address fields
-        MFD_AVC_PICID_STATE_CMD_NUMBER_OF_ADDRESSES         = 0,   //  0 DW for    address fields
-        MFX_AVC_DIRECTMODE_STATE_CMD_NUMBER_OF_ADDRESSES    = 17,  // 50 DW for 17 address fields
-        MFX_AVC_IMG_STATE_CMD_NUMBER_OF_ADDRESSES           = 0,   //  0 DW for    address fields
-        MFX_QM_STATE_CMD_NUMBER_OF_ADDRESSES                = 0,   //  0 DW for    address fields
-        MFX_FQM_STATE_CMD_NUMBER_OF_ADDRESSES               = 0,   //  0 DW for    address fields
-        MFD_VC1_LONG_PIC_STATE_CMD_NUMBER_OF_ADDRESSES      = 0,   //  0 DW for    address fields
-        MFX_VC1_PRED_PIPE_STATE_CMD_NUMBER_OF_ADDRESSES     = 0,   //  0 DW for    address fields
-        MFX_VC1_DIRECTMODE_STATE_CMD_NUMBER_OF_ADDRESSES    = 2,   //  2 DW for  2 address fields
-        MFX_MPEG2_PIC_STATE_CMD_NUMBER_OF_ADDRESSES         = 0,   //  0 DW for    address fields
-        MFX_DBK_OBJECT_CMD_NUMBER_OF_ADDRESSES              = 4,   //  2 DW for  4 address fields
-        MFX_VP8_PIC_STATE_CMD_NUMBER_OF_ADDRESSES           = 2,   //  2 DW for  2 address fields
-        MFX_AVC_SLICE_STATE_CMD_NUMBER_OF_ADDRESSES         = 0,   //  0 DW for    address fields
-        MFD_AVC_BSD_OBJECT_CMD_NUMBER_OF_ADDRESSES          = 0,   //  0 DW for    address fields
-        MFD_AVC_DPB_STATE_CMD_NUMBER_OF_ADDRESSES           = 0,   //  0 DW for    address fields
-        MFD_AVC_SLICEADDR_CMD_NUMBER_OF_ADDRESSES           = 0,   //  0 DW for    address fields
-        MFX_AVC_REF_IDX_STATE_CMD_NUMBER_OF_ADDRESSES       = 0,   //  0 DW for    address fields
-        MFX_AVC_WEIGHTOFFSET_STATE_CMD_NUMBER_OF_ADDRESSES  = 0,   //  0 DW for    address fields
-        MFC_AVC_PAK_INSERT_OBJECT_CMD_NUMBER_OF_ADDRESSES   = 0,   //  0 DW for    address fields
-        MFD_VC1_BSD_OBJECT_CMD_NUMBER_OF_ADDRESSES          = 0,   //  0 DW for    address fields
-        MFD_VC1_IT_OBJECT_CMD_NUMBER_OF_ADDRESSES           = 0,   //  0 DW for    address fields
-        MFD_MPEG2_BSD_OBJECT_CMD_NUMBER_OF_ADDRESSES        = 0,   //  0 DW for    address fields
-        MFD_MPEG2_IT_OBJECT_CMD_NUMBER_OF_ADDRESSES         = 0,   //  0 DW for    address fields
-        MFD_VP8_BSD_OBJECT_CMD_NUMBER_OF_ADDRESSES          = 0,   //  0 DW for    address fields
+        MI_BATCH_BUFFER_START_CMD_NUMBER_OF_ADDRESSES           = 1,   //  2 DW for  1 address field
+        MI_STORE_DATA_IMM_CMD_NUMBER_OF_ADDRESSES               = 1,   //  2 DW for  1 address field
+        MI_FLUSH_DW_CMD_NUMBER_OF_ADDRESSES                     = 1,   //  2 DW for  1 address field
+        MI_CONDITIONAL_BATCH_BUFFER_END_CMD_NUMBER_OF_ADDRESSES = 1,   //  2 DW for  1 address field
+        MI_STORE_REGISTER_MEM_CMD_NUMBER_OF_ADDRESSES           = 1,   //  2 DW for  1 address field
+        MFX_PIPE_MODE_SELECT_CMD_NUMBER_OF_ADDRESSES            = 0,   //  0 DW for    address fields
+        MFX_SURFACE_STATE_CMD_NUMBER_OF_ADDRESSES               = 0,   //  0 DW for    address fields
+        MFX_PIPE_BUF_ADDR_STATE_CMD_NUMBER_OF_ADDRESSES         = 27,  // 50 DW for 25 address fields, added 2 for DownScaledReconPicAddr
+        MFX_IND_OBJ_BASE_ADDR_STATE_CMD_NUMBER_OF_ADDRESSES     = 5,   // 10 DW for  5 address fields
+        MFX_WAIT_CMD_NUMBER_OF_ADDRESSES                        = 0,   //  0 DW for    address fields
+        MFX_BSP_BUF_BASE_ADDR_STATE_CMD_NUMBER_OF_ADDRESSES     = 3,   //  2 DW for  3 address fields
+        MFD_AVC_PICID_STATE_CMD_NUMBER_OF_ADDRESSES             = 0,   //  0 DW for    address fields
+        MFX_AVC_DIRECTMODE_STATE_CMD_NUMBER_OF_ADDRESSES        = 17,  // 50 DW for 17 address fields
+        MFX_AVC_IMG_STATE_CMD_NUMBER_OF_ADDRESSES               = 0,   //  0 DW for    address fields
+        MFX_QM_STATE_CMD_NUMBER_OF_ADDRESSES                    = 0,   //  0 DW for    address fields
+        MFX_FQM_STATE_CMD_NUMBER_OF_ADDRESSES                   = 0,   //  0 DW for    address fields
+        MFX_MPEG2_PIC_STATE_CMD_NUMBER_OF_ADDRESSES             = 0,   //  0 DW for    address fields
+        MFX_DBK_OBJECT_CMD_NUMBER_OF_ADDRESSES                  = 4,   //  2 DW for  4 address fields
+        MFX_VP8_PIC_STATE_CMD_NUMBER_OF_ADDRESSES               = 2,   //  2 DW for  2 address fields
+        MFX_AVC_SLICE_STATE_CMD_NUMBER_OF_ADDRESSES             = 0,   //  0 DW for    address fields
+        MFD_AVC_BSD_OBJECT_CMD_NUMBER_OF_ADDRESSES              = 0,   //  0 DW for    address fields
+        MFD_AVC_DPB_STATE_CMD_NUMBER_OF_ADDRESSES               = 0,   //  0 DW for    address fields
+        MFD_AVC_SLICEADDR_CMD_NUMBER_OF_ADDRESSES               = 0,   //  0 DW for    address fields
+        MFX_AVC_REF_IDX_STATE_CMD_NUMBER_OF_ADDRESSES           = 0,   //  0 DW for    address fields
+        MFX_AVC_WEIGHTOFFSET_STATE_CMD_NUMBER_OF_ADDRESSES      = 0,   //  0 DW for    address fields
+        MFC_AVC_PAK_INSERT_OBJECT_CMD_NUMBER_OF_ADDRESSES       = 0,   //  0 DW for    address fields
+        MFD_MPEG2_BSD_OBJECT_CMD_NUMBER_OF_ADDRESSES            = 0,   //  0 DW for    address fields
+        MFD_MPEG2_IT_OBJECT_CMD_NUMBER_OF_ADDRESSES             = 0,   //  0 DW for    address fields
+        MFD_VP8_BSD_OBJECT_CMD_NUMBER_OF_ADDRESSES              = 0,   //  0 DW for    address fields
     };
     bool IsVPlanePresent(MOS_FORMAT format)
     {
@@ -268,6 +267,48 @@ public:
 
     virtual MmioRegistersMfx *GetMmioRegisters(MHW_VDBOX_NODE_IND index) = 0;
 
+    virtual MOS_STATUS GetMfxStateCommandsDataSize(
+        uint32_t  mode,
+        uint32_t *commandsSize,
+        uint32_t *patchListSize,
+        bool      isShortFormat) = 0;
+
+    virtual MOS_STATUS GetMfxPrimitiveCommandsDataSize(
+        uint32_t  mode,
+        uint32_t *commandsSize,
+        uint32_t *patchListSize,
+        bool      isModeSpecific) = 0;
+
+    //!
+    //! \brief    Convert from Mfx mmio registers to MI mmio register
+    //!
+    //! \param    [in] index
+    //!           mmio registers index.
+    //! \param    [in] mmioRegister
+    //!           reference to MHW_MI_MMIOREGISTERS.
+    //!
+    //! \return   [out] bool
+    //!           return true if mmio register if found, otherwise return false
+    //!
+    virtual inline bool ConvertToMiRegister(MHW_VDBOX_NODE_IND index, MHW_MI_MMIOREGISTERS &mmioRegister)
+    {
+        MmioRegistersMfx *mfxMmioReg = GetMmioRegisters(index);
+        if (mfxMmioReg)
+        {
+            mmioRegister.generalPurposeRegister0LoOffset  = mfxMmioReg->generalPurposeRegister0LoOffset;
+            mmioRegister.generalPurposeRegister0HiOffset  = mfxMmioReg->generalPurposeRegister0HiOffset;
+            mmioRegister.generalPurposeRegister4LoOffset  = mfxMmioReg->generalPurposeRegister4LoOffset;
+            mmioRegister.generalPurposeRegister4HiOffset  = mfxMmioReg->generalPurposeRegister4HiOffset;
+            mmioRegister.generalPurposeRegister11LoOffset = mfxMmioReg->generalPurposeRegister11LoOffset;
+            mmioRegister.generalPurposeRegister11HiOffset = mfxMmioReg->generalPurposeRegister11HiOffset;
+            mmioRegister.generalPurposeRegister12LoOffset = mfxMmioReg->generalPurposeRegister12LoOffset;
+            mmioRegister.generalPurposeRegister12HiOffset = mfxMmioReg->generalPurposeRegister12HiOffset;
+            return true;
+        }
+        else
+            return false;
+    }
+
     inline uint32_t GetMfxErrorFlagsMask() { return m_mfxErrorFlagsMask; }
 
     vdbox::RowStoreCache m_intraRowstoreCache            = {};  //!< Intra rowstore cache
@@ -279,6 +320,7 @@ public:
     uint8_t              m_numVdbox                      = 1;                 //!< vdbox num
     bool                 m_scalabilitySupported          = false;             //!< Indicate if scalability supported
     static const uint32_t m_mfxErrorFlagsMask            = 0xFBFF;            //!< Mfx error flags mask
+    static const uint32_t m_mpeg2WeightScaleSize          = 16;                //!< Size of MPEG2 weight scale
                                                                                //!< Bit 10 of MFD_ERROR_STATUS register is set to a random value during RC6, so it is not used
     _MFX_CMD_DEF(_MHW_CMD_ALL_DEF_FOR_ITF);
 

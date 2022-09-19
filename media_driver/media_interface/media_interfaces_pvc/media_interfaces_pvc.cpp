@@ -222,7 +222,6 @@ MOS_STATUS MhwInterfacesPvc_Next::Initialize(
     }
     if (params.Flags.m_vdboxAll || params.Flags.m_vdenc)
     {
-        m_vdencInterface = MOS_New(Vdenc, osInterface);
 #ifdef IGFX_PVC_ENABLE_NON_UPSTREAM
         m_vdencItf = std::make_shared<mhw::vdbox::vdenc::xe_xpm_plus::Impl>(osInterface);
 #endif
