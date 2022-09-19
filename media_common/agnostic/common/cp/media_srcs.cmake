@@ -21,6 +21,7 @@
 set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/cp_factory.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_cp_interface.h
+    ${CMAKE_CURRENT_LIST_DIR}/codec_def_cenc_decode.h
 )
 
 
