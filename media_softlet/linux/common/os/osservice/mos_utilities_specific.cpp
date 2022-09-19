@@ -44,7 +44,7 @@
 #include "mos_utilities_specific.h"
 #include "mos_utilities.h"
 #include "mos_util_debug.h"
-
+#include "inttypes.h"
 
 const char           *MosUtilitiesSpecificNext::m_szUserFeatureFile     = USER_FEATURE_FILE;
 MOS_PUF_KEYLIST      MosUtilitiesSpecificNext::m_ufKeyList              = nullptr;
@@ -1020,8 +1020,7 @@ MOS_STATUS MosUtilitiesSpecificNext::UserFeatureDumpDataToFile(const char *szFil
                         *(uint32_t*)(pKeyTmp->pElem->pValueArray[j].ulValueBuf));
                     break;
                 case UF_QWORD:
-                    fprintf(File, "\t\t\t%lu\n",
-                        *(uint64_t*)(pKeyTmp->pElem->pValueArray[j].ulValueBuf));
+                    fprintf(File, "\t\t\t%" PRIu64"\n", *(uint64_t*)(pKeyTmp->pElem->pValueArray[j].ulValueBuf));
                     break;
                 default:
                     fprintf(File, "\t\t\t%s\n",

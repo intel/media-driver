@@ -2841,6 +2841,11 @@ template<class _Ty, class... _Types> inline
 _Ty* MosUtilities::MosNewArrayUtil(size_t numElements)
 #endif
 {
+    if (numElements > PTRDIFF_MAX)
+    {
+        return nullptr;
+    }
+
 #if (_DEBUG || _RELEASE_INTERNAL)
     //Simulate allocate memory fail if flag turned on
     if (MosSimulateAllocMemoryFail(sizeof(_Ty) * numElements, NO_ALLOC_ALIGNMENT, functionName, filename, line))
