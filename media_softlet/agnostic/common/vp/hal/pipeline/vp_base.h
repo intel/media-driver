@@ -40,8 +40,8 @@
 #include "mos_os.h"
 #include "mos_os_specific.h"
 #include "vp_feature_report.h"
+#include "mos_os_cp_interface_specific.h"
 
-class MhwCpInterface;
 class MediaScalability;
 class MediaContext;
 

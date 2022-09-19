@@ -6911,28 +6911,6 @@ bool Mos_Specific_pfnIsMultipleCodecDevicesInUse(
     return false;
 }
 
-bool Mos_Specific_IsCpEnabled(
-    PMOS_INTERFACE osInterface)
-{
-    if (osInterface == nullptr || osInterface->osCpInterface == nullptr)
-    {
-        return false;
-    }
-
-    return osInterface->osCpInterface->IsCpEnabled();
-}
-
-MOS_STATUS Mos_Specific_PrepareResources(
-    PMOS_INTERFACE osInterface,
-    void *source[], uint32_t sourceCount,
-    void *target[], uint32_t targetCount)
-{
-    MOS_OS_CHK_NULL_RETURN(osInterface);
-    MOS_OS_CHK_NULL_RETURN(osInterface->osCpInterface);
-
-    return osInterface->osCpInterface->PrepareResources(source, sourceCount, target, targetCount);
-}
-
 //! \brief    Unified OS Initializes OS Linux Interface
 //! \details  Linux OS Interface initilization
 //! \param    PMOS_INTERFACE pOsInterface
@@ -7091,9 +7069,6 @@ MOS_STATUS Mos_Specific_InitInterface(
 
     pOsInterface->pfnIsMismatchOrderProgrammingSupported    = Mos_Specific_IsMismatchOrderProgrammingSupported;
     pOsInterface->pfnIsMultipleCodecDevicesInUse            = Mos_Specific_pfnIsMultipleCodecDevicesInUse;
-
-    pOsInterface->pfnIsCpEnabled                            = Mos_Specific_IsCpEnabled;
-    pOsInterface->pfnPrepareResources                       = Mos_Specific_PrepareResources;
 
     pOsContext              = nullptr;
     pOsUserFeatureInterface = (PMOS_USER_FEATURE_INTERFACE)&pOsInterface->UserFeatureInterface;

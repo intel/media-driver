@@ -925,39 +925,6 @@ MOS_LINUX_BO * Mos_GetBadCommandBuffer_Linux(
     PMOS_INTERFACE        pOsInterface);
 #endif
 
-//!
-//! \brief    Check is cp enabled
-//! \details  Check is cp enabled
-//! \param    PMOS_INTERFACE pOsInterface
-//!           [in] Pointer to OS interface structure
-//! \return   bool
-//!           return true if cp enabled
-//!
-bool Mos_Specific_IsCpEnabled(
-    PMOS_INTERFACE        pOsInterface);
-
-//!
-//! \brief    Prepare source and target surface in cp
-//! \details  The function checks hardware protection states in input, and determine the protected surface
-//!           state for the output.
-//! \param    [in] PMOS_INTERFACE pOsInterface
-//!           Pointer to OS interface structure
-//! \param    [in] source
-//!           Refernce to list of OsResources
-//! \param    [in] sourceCount
-//!           Refernce to the number of OsResources
-//! \param    [in] target
-//!           Refernce to list of OsResources
-//! \param    [in] targetCount
-//!           Refernce to the number of OsResources
-//! \return   MOS_STATUS
-//!           MOS_STATUS_SUCCESS if success, else fail reason
-//!
-MOS_STATUS Mos_Specific_PrepareResources(
-    PMOS_INTERFACE osInterface,
-    void *source[], uint32_t sourceCount,
-    void *target[], uint32_t targetCount);
-
 #ifdef __cplusplus
 }
 #endif

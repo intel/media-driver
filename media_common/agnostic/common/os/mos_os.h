@@ -32,11 +32,7 @@
 #include "media_skuwa_specific.h"
 #include "mos_util_debug.h"
 #include "mos_os_hw.h"         //!< HW specific details that flow through OS pathes
-#ifndef MEDIA_SOFTLET
 #include "mos_os_cp_interface_specific.h"         //!< CP specific OS functionality
-#else
-class MosCpInterface;
-#endif
 #if (_RELEASE_INTERNAL || _DEBUG)
 #if defined(CM_DIRECT_GUC_SUPPORT)
 #include "work_queue_mngr.h"
@@ -1426,14 +1422,6 @@ typedef struct _MOS_INTERFACE
 
     MOS_STATUS (*pfnCheckVirtualEngineSupported)(
         PMOS_INTERFACE              pOsInterface);
-
-    bool (*pfnIsCpEnabled)(
-        PMOS_INTERFACE              pOsInterface);
-
-    MOS_STATUS (*pfnPrepareResources)(
-        PMOS_INTERFACE pOsInterface,
-        void *source[], uint32_t sourceCount,
-        void *target[], uint32_t targetCount);
 
 #if MOS_MEDIASOLO_SUPPORTED
     int32_t                         bSupportMediaSoloVirtualEngine;               //!< Flag to indicate if MediaSolo uses VE solution in cmdbuffer submission.

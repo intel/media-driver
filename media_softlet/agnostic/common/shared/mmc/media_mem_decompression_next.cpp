@@ -464,7 +464,7 @@ MOS_STATUS MediaMemDeCompNext::Initialize(PMOS_INTERFACE osInterface, MhwInterfa
 
     if (m_veboxItf)
     {
-        gpuNodeLimit.bCpEnabled = (m_osInterface->pfnIsCpEnabled(m_osInterface)) ? true : false;
+        gpuNodeLimit.bCpEnabled = (m_osInterface->osCpInterface->IsCpEnabled()) ? true : false;
 
         // Check GPU Node decide logic together in this function
         VPHAL_MEMORY_DECOMP_CHK_STATUS_RETURN(m_veboxItf->FindVeboxGpuNodeToUse(&gpuNodeLimit));

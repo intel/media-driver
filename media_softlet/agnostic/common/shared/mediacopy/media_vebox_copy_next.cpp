@@ -80,7 +80,7 @@ MOS_STATUS VeboxCopyStateNext::Initialize()
 
     VEBOX_COPY_CHK_NULL_RETURN(m_veboxItf);
     
-    GpuNodeLimit.bCpEnabled = (m_osInterface->pfnIsCpEnabled(m_osInterface))? true : false;
+    GpuNodeLimit.bCpEnabled = (m_osInterface->osCpInterface->IsCpEnabled())? true : false;
     VEBOX_COPY_CHK_STATUS_RETURN(m_veboxItf->FindVeboxGpuNodeToUse(&GpuNodeLimit));
     VeboxGpuNode = (MOS_GPU_NODE)(GpuNodeLimit.dwGpuNodeToUse);
     VeboxGpuContext = (VeboxGpuNode == MOS_GPU_NODE_VE) ? MOS_GPU_CONTEXT_VEBOX : MOS_GPU_CONTEXT_VEBOX2;
@@ -178,8 +178,8 @@ MOS_STATUS VeboxCopyStateNext::CopyMainSurface(PMOS_RESOURCE src, PMOS_RESOURCE 
      surfaceArray[1] = dst;
 
     // preprocess in cp first
-     VEBOX_COPY_CHK_STATUS_RETURN(m_osInterface->pfnPrepareResources(
-         m_osInterface, (void **)&surfaceArray, sizeof(surfaceArray) / sizeof(PMOS_RESOURCE), nullptr, 0));
+     VEBOX_COPY_CHK_STATUS_RETURN(
+         m_osInterface->osCpInterface->PrepareResources((void **)&surfaceArray, sizeof(surfaceArray) / sizeof(PMOS_RESOURCE), nullptr, 0));
 
     // initialize the command buffer struct
     MOS_ZeroMemory(&cmdBuffer, sizeof(MOS_COMMAND_BUFFER));
