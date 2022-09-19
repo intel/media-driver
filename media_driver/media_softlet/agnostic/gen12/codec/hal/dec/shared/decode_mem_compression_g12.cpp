@@ -33,9 +33,9 @@
 
 DecodeMemCompG12::DecodeMemCompG12(
     CodechalHwInterface *hwInterface):
-    DecodeMemComp(hwInterface), CodecMmcAuxTableG12()
+    DecodeMemComp(hwInterface, hwInterface->GetOsInterface()), CodecMmcAuxTableG12()
 {
-
+    m_mhwMiInterface = hwInterface->GetMiInterface();
 }
 
 MOS_STATUS DecodeMemCompG12::SendPrologCmd(

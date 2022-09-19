@@ -30,12 +30,15 @@
 #include "mos_defs.h"
 #include "decode_mem_compression.h"
 
-DecodeMemComp::DecodeMemComp(CodechalHwInterface *hwInterface) :
-    MediaMemComp(hwInterface->GetOsInterface()),
-    m_mhwMiInterface(hwInterface->GetMiInterface())
+// After HwNext rebase, need update to:
+//DecodeMemComp::DecodeMemComp(CodechalHwInterfaceNext *hwInterface, PMOS_INTERFACE osInterface) :
+//    MediaMemComp(osInterface ? osInterface : hwInterface->GetOsInterface())
+DecodeMemComp::DecodeMemComp(CodechalHwInterface *hwInterface, PMOS_INTERFACE osInterface) :
+    MediaMemComp(osInterface ? osInterface : hwInterface->GetOsInterface())
 {
     m_mmcFeatureId      = __MEDIA_USER_FEATURE_VALUE_CODEC_MMC_ENABLE_ID;
     m_mmcInuseFeatureId = __MEDIA_USER_FEATURE_VALUE_CODEC_MMC_IN_USE_ID;
+    m_miItf             = hwInterface ? hwInterface->GetMiInterfaceNext() : nullptr;
 
     if (hwInterface->m_enableCodecMmc)
     {

@@ -52,6 +52,8 @@ class DecodeMemCompG12 : public DecodeMemComp, public CodecMmcAuxTableG12
         PMOS_COMMAND_BUFFER cmdBuffer,
         bool bRcsIsUsed);
 
+    MhwMiInterface *m_mhwMiInterface = nullptr;  //!< Point to MI interface
+
 MEDIA_CLASS_DEFINE_END(DecodeMemCompG12)
 };
 

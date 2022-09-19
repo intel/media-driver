@@ -39,7 +39,9 @@ public:
     //!
     //! \brief    Construct
     //!
-    DecodeMemComp(CodechalHwInterface *hwInterface);
+    // After HwNext rebase, need update to:
+    // DecodeMemComp(CodechalHwInterfaceNext *hwInterface, PMOS_INTERFACE osInterface) :
+    DecodeMemComp(CodechalHwInterface *hwInterface, PMOS_INTERFACE osInterface = nullptr);
 
     //!
     //! \brief    Copy constructor
@@ -78,6 +80,8 @@ protected:
     bool m_mmcEnabledForDecode = false;  //!< Indicate if mmc is enabled for decode
 
     MhwMiInterface *m_mhwMiInterface = nullptr;  //!< Point to MI interface
+
+    std::shared_ptr<mhw::mi::Itf> m_miItf;  //!< Point to MI interface
 
 MEDIA_CLASS_DEFINE_END(DecodeMemComp)
 };
