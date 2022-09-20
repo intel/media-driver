@@ -5695,3 +5695,15 @@ int mos_query_hw_ip_version(int fd, struct i915_engine_class_instance engine, vo
 {
      return -1;
 }
+
+uint64_t mos_get_platform_information(struct mos_bufmgr *bufmgr)
+{
+    assert(bufmgr);
+    return bufmgr->platform_information;
+}
+
+void mos_set_platform_information(struct mos_bufmgr *bufmgr, uint64_t p)
+{
+    assert(bufmgr);
+    bufmgr->platform_information |= p;
+}

@@ -54,5 +54,15 @@ int MemoryPolicyManager::UpdateMemoryPolicyWithWA(
         }
     }
 
+    if(memPolicyPar->isServer)
+    {
+        if (strcmp(memPolicyPar->resName, "MOS CmdBuf") == 0 ||
+            strcmp(memPolicyPar->resName, "BatchBuffer") == 0
+            )
+        {
+            mem_type = MOS_MEMPOOL_SYSTEMMEMORY;
+        }
+    }
+
     return 0;
 }

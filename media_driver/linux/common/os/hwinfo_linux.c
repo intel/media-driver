@@ -176,7 +176,7 @@ MOS_STATUS HWInfo_GetGfxInfo(int32_t           fd,
     MOS_USER_FEATURE_VALUE_DATA         UserFeatureData;
 #endif
 
-    LinuxDriverInfo drvInfo = {18, 3, 0, 23172, 3, 1, 0, 1, 0, 0, 1, 0};
+    LinuxDriverInfo drvInfo = {18, 3, 0, 23172, 3, 1, 0, 1, 0, 0, 1, 0, 0};
     if (!Mos_Solo_IsEnabled(nullptr) && HWInfoGetLinuxDrvInfo(fd, &drvInfo) != MOS_STATUS_SUCCESS)
     {
         MOS_OS_ASSERTMESSAGE("Failed to get the chipset id\n");
@@ -340,6 +340,10 @@ MOS_STATUS HWInfo_GetGfxInfo(int32_t           fd,
         devExtInit->InitMediaWa(devInfo, waTable, &drvInfo))
     {
         MOS_OS_NORMALMESSAGE("Init Media SystemInfo successfully\n");
+    }
+    if (drvInfo.isServer)
+    {
+        mos_set_platform_information(pDrmBufMgr, PLATFORM_INFORMATION_IS_SERVER);
     }
 
     /* disable it on Linux */

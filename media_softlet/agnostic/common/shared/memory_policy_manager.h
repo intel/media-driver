@@ -49,6 +49,7 @@ struct MemoryPolicyParameter
     const char* resName;
     uint32_t uiType;
     int preferredMemType;
+    bool isServer;
 };
 
 class MemoryPolicyManager

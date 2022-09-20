@@ -825,6 +825,16 @@ static bool InitDg2MediaSku(struct GfxDeviceInfo *devInfo,
     // Enable HVS Denoise
     MEDIA_WR_SKU(skuTable, FtrHVSDenoise, 1);
 
+    #define IS_SERVER_SKU(d) (((d) >= 0x56C0) && ((d) <= 0x56C1))
+    if (IS_SERVER_SKU(drvInfo->devId))
+    {
+        drvInfo->isServer = 1;
+    }
+    else
+    {
+        drvInfo->isServer = 0;
+    }
+
     return true;
 }
 

@@ -236,6 +236,7 @@ MOS_STATUS GraphicsResourceSpecificNext::Allocate(OsContextNext* osContextPtr, C
         memPolicyPar.resInfo          = gmmResourceInfoPtr;
         memPolicyPar.resName          = params.m_name.c_str();
         memPolicyPar.preferredMemType = params.m_memType;
+        memPolicyPar.isServer         = PLATFORM_INFORMATION_IS_SERVER & mos_get_platform_information(pOsContextSpecific->GetBufMgr());
 
         mem_type = MemoryPolicyManager::UpdateMemoryPolicy(&memPolicyPar);
     }

@@ -56,6 +56,7 @@ struct LinuxDriverInfo
     uint32_t hasHuc   : 1;
     uint32_t hasPpgtt : 1;
     uint32_t hasPreemption : 1;
+    uint32_t isServer : 1;
 };
 
 struct LinuxCodecInfo

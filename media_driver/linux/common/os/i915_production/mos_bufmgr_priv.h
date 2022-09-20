@@ -348,6 +348,7 @@ struct mos_bufmgr {
     uint32_t *get_reserved = nullptr;
     uint32_t tile_id = 0;
     bool     has_full_vd = true;
+    uint64_t platform_information = 0;
 };
 
 #define ALIGN(value, alignment)    ((value + alignment - 1) & ~(alignment - 1))

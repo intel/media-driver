@@ -4357,3 +4357,15 @@ bool mos_gem_bo_is_softpin(struct mos_linux_bo *bo)
 
     return bo_gem->is_softpin;
 }
+
+uint64_t mos_get_platform_information(struct mos_bufmgr *bufmgr)
+{
+    assert(bufmgr);
+    return bufmgr->platform_information;
+}
+
+void mos_set_platform_information(struct mos_bufmgr *bufmgr, uint64_t p)
+{
+    assert(bufmgr);
+    bufmgr->platform_information |= p;
+}

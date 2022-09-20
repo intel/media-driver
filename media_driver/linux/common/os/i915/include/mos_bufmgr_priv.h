@@ -346,6 +346,7 @@ struct mos_bufmgr {
     int debug;
     uint32_t *get_reserved = nullptr;
     bool     has_full_vd   = true;
+    uint64_t platform_information = 0;
 };
 
 #define ALIGN(value, alignment)    ((value + alignment - 1) & ~(alignment - 1))

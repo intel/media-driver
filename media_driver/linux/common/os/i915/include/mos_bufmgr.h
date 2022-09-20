@@ -431,4 +431,7 @@ drm_export bool mos_gem_bo_is_exec_object_async(struct mos_linux_bo *bo);
 }
 #endif
 
+#define PLATFORM_INFORMATION_IS_SERVER     0x1
+uint64_t mos_get_platform_information(struct mos_bufmgr *bufmgr);
+void mos_set_platform_information(struct mos_bufmgr *bufmgr, uint64_t p);
 #endif /* INTEL_BUFMGR_H */
