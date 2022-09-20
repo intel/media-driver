@@ -423,6 +423,19 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS InitL3CacheSettings();
+    
+    //!
+    //! \brief    Set Rowstore Cache offsets
+    //! \details  Set Rowstore Cache offsets in sub interfaces in codechal hw interface 
+    //!
+    //! \param    [in] rowstoreParams
+    //!           parameters to set rowstore cache offsets
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS SetRowstoreCachingOffsets(
+        PMHW_VDBOX_ROWSTORE_PARAMS rowstoreParams);
 
 protected:
 

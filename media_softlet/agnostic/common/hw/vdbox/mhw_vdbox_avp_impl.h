@@ -381,7 +381,7 @@ private:
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS GetRowstoreCachingAddrs()
+    MOS_STATUS GetRowstoreCachingAddrs() override
     {
         //BTDL
         if (m_btdlRowstoreCache.supported)

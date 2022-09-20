@@ -1450,7 +1450,7 @@ namespace encode
         rowStoreParams.ucLCUSize        = 1 << (m_hevcSeqParams->log2_max_coding_block_size_minus3 + 3);
         // VDEnc only support LCU64 for now
         ENCODE_ASSERT(rowStoreParams.ucLCUSize == m_basicFeature->m_maxLCUSize);
-        ENCODE_CHK_STATUS_RETURN(m_hwInterface->SetRowstoreCachingOffsets(&rowStoreParams));
+        ENCODE_CHK_STATUS_RETURN(m_hwInterface->m_hwInterfaceNext->SetRowstoreCachingOffsets(&rowStoreParams));
 
         if (m_vdencItf)
         {

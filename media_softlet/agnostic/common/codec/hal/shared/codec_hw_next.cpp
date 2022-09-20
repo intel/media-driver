@@ -694,6 +694,117 @@ MOS_STATUS CodechalHwInterfaceNext::ReadImageStatusForHcp(
 
     return eStatus;
 }
+
+MOS_STATUS CodechalHwInterfaceNext::SetRowstoreCachingOffsets(
+    PMHW_VDBOX_ROWSTORE_PARAMS rowstoreParams)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODEC_HW_FUNCTION_ENTER;
+
+    if (m_vdencItf)
+    {
+        mhw::vdbox::vdenc::RowStorePar par = {};
+        if (rowstoreParams->Mode == CODECHAL_ENCODE_MODE_AVC)
+        {
+            par.mode    = mhw::vdbox::vdenc::RowStorePar::AVC;
+            par.isField = !rowstoreParams->bIsFrame;
+        }
+        else if (rowstoreParams->Mode == CODECHAL_ENCODE_MODE_VP9)
+        {
+            par.mode = mhw::vdbox::vdenc::RowStorePar::VP9;
+            par.bitDepth = mhw::vdbox::vdenc::RowStorePar::DEPTH_8;
+            if (rowstoreParams->ucBitDepthMinus8 == 1 || rowstoreParams->ucBitDepthMinus8 == 2)
+            {
+                par.bitDepth = mhw::vdbox::vdenc::RowStorePar::DEPTH_10;
+            }
+            else if (rowstoreParams->ucBitDepthMinus8 > 2)
+            {
+                par.bitDepth = mhw::vdbox::vdenc::RowStorePar::DEPTH_12;
+            }
+            par.frameWidth = rowstoreParams->dwPicWidth;
+            switch (rowstoreParams->ucChromaFormat)
+            {
+            case HCP_CHROMA_FORMAT_MONOCHROME:
+                par.format = mhw ::vdbox::vdenc::RowStorePar::MONOCHROME;
+                break;
+            case HCP_CHROMA_FORMAT_YUV420:
+                par.format = mhw ::vdbox::vdenc::RowStorePar::YUV420;
+                break;
+            case HCP_CHROMA_FORMAT_YUV422:
+                par.format = mhw ::vdbox::vdenc::RowStorePar::YUV422;
+                break;
+            case HCP_CHROMA_FORMAT_YUV444:
+                par.format = mhw ::vdbox::vdenc::RowStorePar::YUV444;
+                break;
+            }
+        }
+        else if (rowstoreParams->Mode == CODECHAL_ENCODE_MODE_HEVC)
+        {
+            par.mode = mhw::vdbox::vdenc::RowStorePar::HEVC;
+            par.bitDepth = mhw::vdbox::vdenc::RowStorePar::DEPTH_8;
+            if (rowstoreParams->ucBitDepthMinus8 == 1 || rowstoreParams->ucBitDepthMinus8 == 2)
+            {
+                par.bitDepth = mhw::vdbox::vdenc::RowStorePar::DEPTH_10;
+            }
+            else if (rowstoreParams->ucBitDepthMinus8 > 2)
+            {
+                par.bitDepth = mhw::vdbox::vdenc::RowStorePar::DEPTH_12;
+            }
+            par.lcuSize = mhw ::vdbox::vdenc::RowStorePar::SIZE_OTHER;
+            if (rowstoreParams->ucLCUSize == 32)
+            {
+                par.lcuSize = mhw ::vdbox::vdenc::RowStorePar::SIZE_32;
+            }
+            else if (rowstoreParams->ucLCUSize == 64)
+            {
+                par.lcuSize = mhw ::vdbox::vdenc::RowStorePar::SIZE_64;
+            }
+            par.frameWidth = rowstoreParams->dwPicWidth;
+            switch (rowstoreParams->ucChromaFormat)
+            {
+            case HCP_CHROMA_FORMAT_MONOCHROME:
+                par.format = mhw ::vdbox::vdenc::RowStorePar::MONOCHROME;
+                break;
+            case HCP_CHROMA_FORMAT_YUV420:
+                par.format = mhw ::vdbox::vdenc::RowStorePar::YUV420;
+                break;
+            case HCP_CHROMA_FORMAT_YUV422:
+                par.format = mhw ::vdbox::vdenc::RowStorePar::YUV422;
+                break;
+            case HCP_CHROMA_FORMAT_YUV444:
+                par.format = mhw ::vdbox::vdenc::RowStorePar::YUV444;
+                break;
+            }
+        }
+        else if (rowstoreParams->Mode == CODECHAL_ENCODE_MODE_AV1)
+        {
+            par.mode = mhw::vdbox::vdenc::RowStorePar::AV1;
+        }
+        CODEC_HW_CHK_STATUS_RETURN(m_vdencItf->SetRowstoreCachingOffsets(par));
+    }
+    if (m_mfxItf)
+    {
+        CODEC_HW_CHK_STATUS_RETURN(m_mfxItf->GetRowstoreCachingAddrs(rowstoreParams));
+    }
+    if (m_hcpItf)
+    {
+        mhw::vdbox::hcp::HcpVdboxRowStorePar rowstoreParamsHCP = {};
+        rowstoreParamsHCP.Mode             = rowstoreParams->Mode;
+        rowstoreParamsHCP.dwPicWidth       = rowstoreParams->dwPicWidth;
+        rowstoreParamsHCP.ucChromaFormat   = rowstoreParams->ucChromaFormat;
+        rowstoreParamsHCP.ucBitDepthMinus8 = rowstoreParams->ucBitDepthMinus8;
+        rowstoreParamsHCP.ucLCUSize        = rowstoreParams->ucLCUSize;
+        CODEC_HW_CHK_STATUS_RETURN(m_hcpItf->SetRowstoreCachingOffsets(rowstoreParamsHCP));
+    }
+    if (m_avpItf)
+    {
+        CODEC_HW_CHK_STATUS_RETURN(m_avpItf->GetRowstoreCachingAddrs());
+    }
+
+    return eStatus;
+}
+
 MOS_STATUS CodechalHwInterfaceNext::InitL3CacheSettings()
 {
     CODEC_HW_FUNCTION_ENTER;
