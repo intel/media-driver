@@ -330,8 +330,8 @@ MOS_STATUS MediaSfcRenderLegacy::IsParameterSupported(
     }
 
     // Check output region rectangles
-    if ((scalingParams.input.rcDst.bottom - scalingParams.input.rcDst.top > (int32_t)scalingParams.output.dwHeight) ||
-        (scalingParams.input.rcDst.right - scalingParams.input.rcDst.left > (int32_t)scalingParams.output.dwWidth))
+    if ((scalingParams.input.rcDst.bottom - scalingParams.input.rcDst.top > sfcParam.output.rcDst.bottom - sfcParam.output.rcDst.top) ||
+        (scalingParams.input.rcDst.right - scalingParams.input.rcDst.left > sfcParam.output.rcDst.right - sfcParam.output.rcDst.left))
     {
         return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
     }
