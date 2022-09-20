@@ -157,20 +157,20 @@ public:
 
     //!
     //! \brief  Get  get the forward and backward reference surface
-    //! \param  [in] params
-    //!         std::array<std::vector<CODEC_PICTURE>, 2>
+    //! \param  [in] refsPicList
     //!         A vector contain forward and backward reference surface
     //!
-    void GetFwdBwdRefPicList(CODEC_PICTURE refsPicList[2][15]);
+    void GetFwdBwdRefPicList(CODEC_PICTURE (&refsPicList)[2][15]);
 
     //!
     //! \brief  Get  get the Picture Order Count values of reference pictures 
     //!          corresponding to the entries of RefFrameList[]. 
-    //! \param  [in] params
-    //!         std::array<int32_t, av1NumInterRefFrames>
+    //! \param  [in] refsPOCList
     //!         A vector contain reference frame POC
+    //!         [in] orderHint
+    //!         frame display order
     //!
-    void GetRefFramePOC(int32_t refsPOCList[15]);
+    void GetRefFramePOC(int32_t(&refsPOCList)[15], int32_t const orderHint);
 
     bool CheckSegmentForPrimeFrame();
     uint8_t RefFrameL0L1(CODEC_Ref_Frame_Ctrl_AV1 const &ref_frame_ctrl) const;
