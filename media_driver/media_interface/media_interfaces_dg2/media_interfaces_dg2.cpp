@@ -501,6 +501,7 @@ MOS_STATUS MhwInterfacesDg2_Next::Initialize(
     }
     if (params.Flags.m_vdboxAll || params.Flags.m_vdenc)
     {
+        m_vdencInterface = MOS_New(Vdenc, osInterface);
         auto ptr = std::make_shared<mhw::vdbox::vdenc::xe_hpm::Impl>(osInterface);
         m_vdencItf = std::static_pointer_cast<mhw::vdbox::vdenc::Itf>(ptr);
     }

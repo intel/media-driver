@@ -1041,17 +1041,6 @@ public:
         uint32_t                       *patchListSize);
 
     //!
-    //! \brief    Get max vdbox index
-    //!
-    //! \return   MHW_VDBOX_NODE_IND
-    //!           max vdbox index got
-    //!
-    inline MHW_VDBOX_NODE_IND GetMaxVdboxIndex()
-    {
-        return m_maxVdboxIndex;
-    }
-
-    //!
     //! \brief    Initialize the codechal hw interface
     //! \details  Initialize the interface before using
     //! 
@@ -1679,8 +1668,6 @@ public:
     
     //! \brief    default disable the get vdbox node by UMD, decided by MHW and MOS
     bool m_getVdboxNodeByUMD = false;
-
-    MHW_VDBOX_NODE_IND m_maxVdboxIndex = MHW_VDBOX_NODE_1;
 
     operator CodechalHwInterfaceNext &()
     {

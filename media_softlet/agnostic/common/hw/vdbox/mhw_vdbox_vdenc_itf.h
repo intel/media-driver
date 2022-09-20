@@ -31,7 +31,6 @@
 #include "mhw_itf.h"
 #include "mhw_vdbox_vdenc_cmdpar.h"
 #include "mhw_utilities.h"
-#include "mhw_vdbox.h"
 
 #define _VDENC_CMD_DEF(DEF)               \
     DEF(VDENC_CONTROL_STATE);             \
@@ -86,9 +85,7 @@ public:
 
     bool m_perfModeSupported     = false;
     bool m_rhoDomainStatsEnabled = false;
-    MHW_VDBOX_NODE_IND m_maxVdboxIndex = MHW_VDBOX_NODE_1;  //!< max vdbox index
-
-    MEDIA_CLASS_DEFINE_END(mhw__vdbox__vdenc__Itf)
+MEDIA_CLASS_DEFINE_END(mhw__vdbox__vdenc__Itf)
 };
 }  // namespace vdenc
 }  // namespace vdbox

@@ -166,16 +166,16 @@ namespace encode {
         ENCODE_FUNC_CALL();
 
         ENCODE_CHK_NULL_RETURN(m_hwInterface);
-        ENCODE_CHK_NULL_RETURN(m_hwInterface->m_hwInterfaceNext->GetMfxInterfaceNext());
+        ENCODE_CHK_NULL_RETURN(m_hwInterface->GetMfxInterface());
 
-        if (m_vdboxIndex > m_hwInterface->m_hwInterfaceNext->GetMaxVdboxIndex())
+        if (m_vdboxIndex > m_hwInterface->GetMfxInterface()->GetMaxVdboxIndex())
         {
             ENCODE_ASSERTMESSAGE("ERROR - vdbox index exceed the maximum");
             eStatus = MOS_STATUS_INVALID_PARAMETER;
             return eStatus;
         }
 
-        auto pMmioRegistersMfx = m_hwInterface->m_hwInterfaceNext->GetMfxInterfaceNext()->GetMmioRegisters(m_vdboxIndex);
+        auto pMmioRegistersMfx = m_hwInterface->GetMfxInterface()->GetMmioRegisters(m_vdboxIndex);
 
         MOS_ZeroMemory(&FlushDwParams, sizeof(FlushDwParams));
         ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(cmdBuffer, &FlushDwParams));
