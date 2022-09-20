@@ -1747,16 +1747,6 @@ MOS_STATUS MediaDebugInterface::ReAllocateSurface(
         &allocParams,
         &pSurface->OsResource));
 
-    pSurface->dwWidth         = pSrcSurf->dwWidth;
-    pSurface->dwHeight        = pSrcSurf->dwHeight;
-    pSurface->dwPitch         = pSrcSurf->dwPitch;
-    pSurface->dwDepth         = pSrcSurf->dwDepth;
-    pSurface->dwQPitch        = pSrcSurf->dwQPitch;
-    pSurface->bArraySpacing   = pSrcSurf->bArraySpacing;
-    pSurface->bCompressible   = pSrcSurf->bCompressible;
-    pSurface->CompressionMode = pSrcSurf->CompressionMode;
-    pSurface->bIsCompressed   = pSrcSurf->bIsCompressed;
-
     if (!m_osInterface->apoMosEnabled)
     {
         MOS_SURFACE details;
@@ -1765,6 +1755,15 @@ MOS_STATUS MediaDebugInterface::ReAllocateSurface(
 
         MEDIA_DEBUG_CHK_STATUS(m_osInterface->pfnGetResourceInfo(m_osInterface, &pSurface->OsResource, &details));
 
+        pSurface->dwWidth                     = details.dwWidth;
+        pSurface->dwHeight                    = details.dwHeight;
+        pSurface->dwPitch                     = details.dwPitch;
+        pSurface->dwDepth                     = details.dwDepth;
+        pSurface->dwQPitch                    = details.dwQPitch;
+        pSurface->bArraySpacing               = details.bArraySpacing;
+        pSurface->bCompressible               = details.bCompressible;
+        pSurface->CompressionMode             = details.CompressionMode;
+        pSurface->bIsCompressed               = details.bIsCompressed;
         pSurface->Format                      = details.Format;
         pSurface->TileType                    = details.TileType;
         pSurface->dwOffset                    = details.RenderOffset.YUV.Y.BaseOffset;
