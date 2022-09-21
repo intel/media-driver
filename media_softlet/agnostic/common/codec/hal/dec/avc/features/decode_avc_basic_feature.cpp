@@ -153,7 +153,7 @@ namespace decode {
             DECODE_ASSERTMESSAGE("Conflict with H264 Spec! log2_max_frame_num_minus4 is out of range");
         }
 
-        if(m_avcPicParams->seq_fields.pic_order_cnt_type > 1)
+        if(m_avcPicParams->seq_fields.pic_order_cnt_type > 2)
         {
             DECODE_ASSERTMESSAGE("Conflict with H264 Spec! pic_order_cnt_type is out of range");
         }
