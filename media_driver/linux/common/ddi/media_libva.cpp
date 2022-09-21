@@ -1727,6 +1727,8 @@ VAStatus DdiMedia_InitMediaContext (
     bool             &apoDdiEnabled
 )
 {
+    DDI_FUNCTION_ENTER();
+
     if(major_version)
     {
         *major_version = VA_MAJOR_VERSION;

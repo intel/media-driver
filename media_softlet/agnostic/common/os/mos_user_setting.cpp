@@ -56,7 +56,7 @@ MOS_STATUS MosUserSetting::InitMosCommonUserSetting(MediaUserSettingSharedPtr us
         userSettingPtr,
         "ApoDdiEnable",
         MediaUserSetting::Group::Device,
-        0,
+        1,
         true);
 
     DeclareUserSettingKey(

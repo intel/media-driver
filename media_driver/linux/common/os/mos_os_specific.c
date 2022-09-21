@@ -101,12 +101,7 @@ bool SetupApoDdiSwitch(int32_t fd, MediaUserSettingSharedPtr userSettingPtr)
     uint32_t    userfeatureValue = 0;
     MOS_STATUS estatus          = MosUtilities::MosReadApoDdiEnabledUserFeature(userfeatureValue, nullptr, userSettingPtr);
 
-    if(estatus == MOS_STATUS_SUCCESS)
-    {
-        return (userfeatureValue != 0);
-    }
-
-    return false;
+    return (userfeatureValue != 0);
 }
 
 bool SetupApoMosSwitch(int32_t fd, MediaUserSettingSharedPtr userSettingPtr)
