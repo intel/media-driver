@@ -317,6 +317,7 @@ struct _MHW_PAR_T(VDENC_HEVC_VP9_TILE_SLICE_STATE)
     uint32_t VdencHEVCVP9TileSlicePar19    = 0;
     uint32_t VdencHEVCVP9TileSlicePar22    = 0;
     uint32_t VdencHEVCVP9TileSlicePar23    = 0;
+    uint32_t VdencHEVCVP9TileSlicePar24    = 0;
 };
 
 struct _MHW_PAR_T(VDENC_WALKER_STATE)
