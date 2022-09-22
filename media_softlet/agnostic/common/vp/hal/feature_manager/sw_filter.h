@@ -644,6 +644,7 @@ enum SurfaceType
     SurfaceTypeSegTFMask,
     SurfaceTypeSegTFOutMask,
     SurfaceTypeSegWindowSize,
+    SurfaceTypeSegMaskThreshold,
     SurfaceTypeSegMaskScaling,
     SurfaceTypeSegMaskBlur,
     SurfaceTypeSegBlurScaling,
