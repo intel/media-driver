@@ -62,25 +62,6 @@ public:
         PMOS_RESOURCE outputResource,
         MCPY_METHOD   preferMethod);
 
-    //!
-    //! \brief    Media copy
-    //! \details  Entry point to copy media memory, input can support both compressed/uncompressed
-    //! \param    [in] inputResource
-    //!            The surface resource will be decompressed
-    //! \param    [out] outputResource
-    //!            The target uncompressed surface resource will be copied to
-    //! \param    [in] outputCompressed
-    //!            The surface resource will compressed if true for compressilbe surface
-    //!
-    //! \return   MOS_STATUS_SUCCESS if succeeded, else error code.
-    //!
-    MOS_STATUS MediaCopy(
-        MEDIAUMD_RESOURCE   inputResource,
-        uint32_t            inputResourceIndex,
-        MEDIAUMD_RESOURCE   outputResource,
-        uint32_t            outputResourceIndex,
-        MCPY_METHOD         preferMethod);
-
 protected:
     MediaCopyBaseState *m_mediaCopyState = nullptr;
     PMOS_CONTEXT        m_mosContext     = nullptr;
