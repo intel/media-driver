@@ -22,10 +22,12 @@ media_include_subdirectory(include)
 
 set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mos_bufmgr_priv.h
+    ${CMAKE_CURRENT_LIST_DIR}/mos_bufmgr_prelim.h
 )
 
 set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/mos_bufmgr.c
+    ${CMAKE_CURRENT_LIST_DIR}/mos_bufmgr_prelim.cpp
 )
 
 set(MOS_COMMON_HEADERS_

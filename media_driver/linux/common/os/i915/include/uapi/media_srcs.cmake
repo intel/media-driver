@@ -25,15 +25,8 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/drm_fourcc.h
     ${CMAKE_CURRENT_LIST_DIR}/drm_mode.h
     ${CMAKE_CURRENT_LIST_DIR}/drm_sarea.h
-)
-
-if(NOT ENABLE_PRODUCTION_KMD)
-set(TMP_HEADERS_
-    ${TMP_HEADERS_}
     ${CMAKE_CURRENT_LIST_DIR}/i915_drm.h
 )
-endif()
-
 
 set(MOS_COMMON_HEADERS_
     ${MOS_COMMON_HEADERS_}
