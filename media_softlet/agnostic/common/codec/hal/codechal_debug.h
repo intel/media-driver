@@ -138,6 +138,8 @@ public:
     
     MOS_STATUS StoreNumFrame(PMHW_MI_INTERFACE pMiInterface, PMOS_RESOURCE pResource, int32_t frameNum, PMOS_COMMAND_BUFFER pCmdBuffer);
     
+    MOS_STATUS SetFastDumpConfig(MediaCopyBaseState *mediaCopy);
+
     MOS_STATUS DumpEncodeStatusReport(
         void* report);
 

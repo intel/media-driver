@@ -798,6 +798,19 @@ MOS_STATUS CodechalDebugInterface::DumpBltOutput(
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS CodechalDebugInterface::SetFastDumpConfig(MediaCopyBaseState *mediaCopy)
+{
+    if (mediaCopy && DumpIsEnabled(MediaDbgAttr::attrEnableFastDump))
+    {
+        MediaDebugFastDump::Config cfg{};
+        cfg.allowDataLoss = DumpIsEnabled(MediaDbgAttr::attrFastDumpAllowDataLoss);
+        cfg.informOnError = DumpIsEnabled(MediaDbgAttr::attrFastDumpInformOnError);
+        MediaDebugFastDump::CreateInstance(*m_osInterface, *mediaCopy, &cfg);
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS CodechalDebugInterface::Initialize(
     CodechalHwInterface *hwInterface,
     CODECHAL_FUNCTION    codecFunction,
@@ -861,13 +874,7 @@ MOS_STATUS CodechalDebugInterface::Initialize(
     m_swCRC = userFeatureData.i32Data == 0 ? false : true;
 #endif
 
-    if (mediaCopy && DumpIsEnabled(MediaDbgAttr::attrEnableFastDump))
-    {
-        MediaDebugFastDump::Config cfg{};
-        cfg.allowDataLoss = DumpIsEnabled(MediaDbgAttr::attrFastDumpAllowDataLoss);
-        cfg.informOnError = DumpIsEnabled(MediaDbgAttr::attrFastDumpInformOnError);
-        MediaDebugFastDump::CreateInstance(*m_osInterface, *mediaCopy, &cfg);
-    }
+    SetFastDumpConfig(mediaCopy);
 
     return MOS_STATUS_SUCCESS;
 }
@@ -935,13 +942,7 @@ MOS_STATUS CodechalDebugInterface::Initialize(
     m_swCRC = userFeatureData.i32Data == 0 ? false : true;
 #endif
 
-    if (mediaCopy && DumpIsEnabled(MediaDbgAttr::attrEnableFastDump))
-    {
-        MediaDebugFastDump::Config cfg{};
-        cfg.allowDataLoss = DumpIsEnabled(MediaDbgAttr::attrFastDumpAllowDataLoss);
-        cfg.informOnError = DumpIsEnabled(MediaDbgAttr::attrFastDumpInformOnError);
-        MediaDebugFastDump::CreateInstance(*m_osInterface, *mediaCopy, &cfg);
-    }
+    SetFastDumpConfig(mediaCopy);
 
     return MOS_STATUS_SUCCESS;
 }
