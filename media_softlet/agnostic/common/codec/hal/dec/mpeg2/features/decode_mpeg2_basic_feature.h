@@ -41,12 +41,12 @@ public:
     //!
     //! \brief  Mpeg2BasicFeature constructor
     //!
-    Mpeg2BasicFeature(DecodeAllocator *allocator, CodechalHwInterface *hwInterface) :
-                        DecodeBasicFeature(allocator, hwInterface)
+    Mpeg2BasicFeature(DecodeAllocator *allocator, void *hwInterface, PMOS_INTERFACE osInterface) :
+        DecodeBasicFeature(allocator, hwInterface, osInterface)
     {
-        if (hwInterface != nullptr)
+        if (osInterface != nullptr)
         {
-            m_osInterface  = hwInterface->GetOsInterface();
+            m_osInterface = osInterface;
         }
 
         MOS_ZeroMemory(&m_savedMpeg2MbParam, sizeof(m_savedMpeg2MbParam));

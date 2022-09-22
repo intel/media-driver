@@ -33,17 +33,14 @@ namespace decode {
 
 DecodeBasicFeature::DecodeBasicFeature(
     DecodeAllocator *allocator,
-    CodechalHwInterface *hwInterface):
-    m_hwInterface(hwInterface), m_allocator(allocator)
+    void *hwInterface,
+    PMOS_INTERFACE osInterface) :
+    m_hwInterface(hwInterface), m_allocator(allocator), m_osInterface(osInterface)
 {
-    if(hwInterface != nullptr)
+    if (osInterface != nullptr)
     {
-        PMOS_INTERFACE osInterface  = hwInterface->GetOsInterface();
-        if (osInterface != nullptr)
-        {
-            MEDIA_WA_TABLE* waTable = osInterface->pfnGetWaTable(osInterface);
-            m_useDummyReference = (waTable != nullptr) ? MEDIA_IS_WA(waTable, WaDummyReference) : false;
-        }
+        MEDIA_WA_TABLE* waTable = osInterface->pfnGetWaTable(osInterface);
+        m_useDummyReference = (waTable != nullptr) ? MEDIA_IS_WA(waTable, WaDummyReference) : false;
     }
 
     MOS_ZeroMemory(&m_destSurface, sizeof(m_destSurface));

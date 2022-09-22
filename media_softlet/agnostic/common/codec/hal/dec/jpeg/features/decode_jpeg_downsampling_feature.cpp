@@ -34,7 +34,7 @@
 namespace decode
 {
 JpegDownSamplingFeature::JpegDownSamplingFeature(MediaFeatureManager *featureManager, DecodeAllocator *allocator,
-    CodechalHwInterface *hwInterface) : DecodeDownSamplingFeature(featureManager, allocator, hwInterface)
+    PMOS_INTERFACE osInterface) : DecodeDownSamplingFeature(featureManager, allocator, osInterface)
 {
     MOS_ZeroMemory(&m_sfcInSurface, sizeof(m_sfcInSurface));
 }
@@ -72,8 +72,8 @@ MOS_STATUS JpegDownSamplingFeature::Update(void* params)
     JpegBasicFeature *jpegBasicFeature = dynamic_cast<JpegBasicFeature *>(m_basicFeature);
     DECODE_CHK_NULL(jpegBasicFeature);
 
-    if (MEDIA_IS_SKU(m_hwInterface->GetSkuTable(), FtrSFCPipe) &&
-        !MEDIA_IS_SKU(m_hwInterface->GetSkuTable(), FtrDisableVDBox2SFC) &&
+    if (MEDIA_IS_SKU(m_osInterface->pfnGetSkuTable(m_osInterface), FtrSFCPipe) &&
+        !MEDIA_IS_SKU(m_osInterface->pfnGetSkuTable(m_osInterface), FtrDisableVDBox2SFC) &&
         m_basicFeature->m_destSurface.Format == Format_A8R8G8B8 &&  // Currently only support this SFC usage in JPEG
         (jpegBasicFeature->m_jpegPicParams->m_interleavedData ||    // SFC only support interleaved single scan (YUV400 is excluded for "interleaved" limitation)
         jpegBasicFeature->m_jpegPicParams->m_chromaType == jpegYUV400) &&

@@ -36,7 +36,7 @@ namespace decode
     class JpegDownSamplingFeature: public DecodeDownSamplingFeature
     {
         public:
-            JpegDownSamplingFeature(MediaFeatureManager *featureManager, DecodeAllocator *allocator, CodechalHwInterface *hwInterface);
+            JpegDownSamplingFeature(MediaFeatureManager *featureManager, DecodeAllocator *allocator, PMOS_INTERFACE osInterface);
             virtual ~JpegDownSamplingFeature();
 
         protected:

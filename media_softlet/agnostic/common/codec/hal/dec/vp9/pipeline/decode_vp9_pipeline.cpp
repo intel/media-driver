@@ -156,10 +156,10 @@ MOS_STATUS Vp9Pipeline::Execute()
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS Vp9Pipeline::CreateFeatureManager()
+MOS_STATUS Vp9Pipeline::CreateFeatureManager()  // After HwNext rebase, Need override
 {
     DECODE_FUNC_CALL();
-    m_featureManager = MOS_New(DecodeVp9FeatureManager, m_allocator, m_hwInterface);
+    m_featureManager = MOS_New(DecodeVp9FeatureManager, m_allocator, m_hwInterface, m_osInterface);
     DECODE_CHK_NULL(m_featureManager);
     return MOS_STATUS_SUCCESS;
 }

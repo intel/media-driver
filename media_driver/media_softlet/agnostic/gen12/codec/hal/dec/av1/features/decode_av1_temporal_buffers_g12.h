@@ -39,7 +39,7 @@ namespace decode
     {
     public:
         ~Av1TempBufferOpInfG12() {};
-        virtual MOS_STATUS Init(CodechalHwInterface& hwInterface, DecodeAllocator& allocator,
+        virtual MOS_STATUS Init(void* hwInterface, DecodeAllocator& allocator,
                         Av1BasicFeatureG12& basicFeature);
         virtual Av1RefAssociatedBufs *Allocate();
         virtual MOS_STATUS Resize(Av1RefAssociatedBufs* &buffer);

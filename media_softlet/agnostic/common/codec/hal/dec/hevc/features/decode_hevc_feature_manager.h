@@ -51,8 +51,8 @@ public:
     //! \param  [in] recycleBuf
     //!         Pointer to RecycleResource
     //!
-    DecodeHevcFeatureManager(DecodeAllocator *allocator, CodechalHwInterface *hwInterface)
-        : DecodeFeatureManager(allocator, hwInterface)
+    DecodeHevcFeatureManager(DecodeAllocator *allocator, void *hwInterface, PMOS_INTERFACE osInterface)
+        : DecodeFeatureManager(allocator, hwInterface, osInterface)
     {}
 
     //!

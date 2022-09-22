@@ -34,8 +34,8 @@
 namespace decode
 {
 Vp9DownSamplingFeature::Vp9DownSamplingFeature(
-    MediaFeatureManager *featureManager, DecodeAllocator *allocator, CodechalHwInterface *hwInterface) : 
-    DecodeDownSamplingFeature(featureManager,allocator, hwInterface)
+    MediaFeatureManager *featureManager, DecodeAllocator *allocator, PMOS_INTERFACE osInterface) : 
+    DecodeDownSamplingFeature(featureManager, allocator, osInterface)
 {
 }
 

@@ -51,8 +51,8 @@ class DecodeAv1FeatureManagerG12_Base : public DecodeFeatureManager
         //! \param  [in] recycleBuf
         //!         Pointer to RecycleResource
         //!
-        DecodeAv1FeatureManagerG12_Base(DecodeAllocator *allocator, CodechalHwInterface *hwInterface)
-            : DecodeFeatureManager(allocator, hwInterface)
+        DecodeAv1FeatureManagerG12_Base(DecodeAllocator *allocator, void *hwInterface, PMOS_INTERFACE osInterface)
+            : DecodeFeatureManager(allocator, hwInterface, osInterface)
         {}
 
         //!

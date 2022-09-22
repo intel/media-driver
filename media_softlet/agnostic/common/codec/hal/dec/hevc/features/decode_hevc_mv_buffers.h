@@ -38,7 +38,7 @@ class HevcBasicFeature;
 class HevcMvBufferOpInf : public BufferOpInf<MOS_BUFFER, HevcBasicFeature>
 {
 public:
-    virtual MOS_STATUS Init(CodechalHwInterface& hwInterface, DecodeAllocator& allocator,
+    virtual MOS_STATUS Init(void* hwInterface, DecodeAllocator& allocator,
                     HevcBasicFeature& basicFeature);
     virtual MOS_BUFFER *Allocate();
     virtual MOS_STATUS Resize(MOS_BUFFER* &buffer);

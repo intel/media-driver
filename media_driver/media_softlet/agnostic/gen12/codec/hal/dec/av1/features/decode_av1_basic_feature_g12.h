@@ -42,12 +42,12 @@ namespace decode
         //!
         //! \brief  Av1BasicFeatureG12 constructor
         //!
-        Av1BasicFeatureG12(DecodeAllocator *allocator, CodechalHwInterface *hwInterface) :
-                         DecodeBasicFeature(allocator, hwInterface)
+        Av1BasicFeatureG12(DecodeAllocator *allocator, void *hwInterface, PMOS_INTERFACE osInterface) :
+            DecodeBasicFeature(allocator, hwInterface, osInterface) // After HwNext rebase, need update to DecodeBasicFeature(allocator, *hwInterface, osInterface)
         {
-            if (hwInterface != nullptr)
+            if (osInterface != nullptr)
             {
-                m_osInterface  = hwInterface->GetOsInterface();
+                m_osInterface = osInterface;
             }
         };
 

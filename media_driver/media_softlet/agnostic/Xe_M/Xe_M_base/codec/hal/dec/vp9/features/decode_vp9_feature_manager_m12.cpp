@@ -40,11 +40,11 @@ namespace decode
 
         DECODE_CHK_STATUS(DecodeFeatureManager::CreateFeatures(constSettings));
 
-        Vp9BasicFeature *decBasic = MOS_New(Vp9BasicFeatureM12, m_allocator, m_hwInterface);
+        Vp9BasicFeature *decBasic = MOS_New(Vp9BasicFeatureM12, m_allocator, m_hwInterface, m_osInterface);
         DECODE_CHK_STATUS(RegisterFeatures(FeatureIDs::basicFeature, decBasic));
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
-        auto decDownSampling = MOS_New(Vp9DownSamplingFeature, this, m_allocator, m_hwInterface);
+        auto decDownSampling = MOS_New(Vp9DownSamplingFeature, this, m_allocator, m_osInterface);
         DECODE_CHK_STATUS(RegisterFeatures(DecodeFeatureIDs::decodeDownSampling, decDownSampling));
 #endif
 

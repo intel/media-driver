@@ -36,7 +36,7 @@ namespace decode
 class AvcDownSamplingFeature: public DecodeDownSamplingFeature
 {
 public:
-    AvcDownSamplingFeature(MediaFeatureManager *featureManager, DecodeAllocator *allocator, CodechalHwInterface *hwInterface);
+    AvcDownSamplingFeature(MediaFeatureManager *featureManager, DecodeAllocator *allocator, PMOS_INTERFACE osInterface);
     virtual ~AvcDownSamplingFeature();
 
 protected:

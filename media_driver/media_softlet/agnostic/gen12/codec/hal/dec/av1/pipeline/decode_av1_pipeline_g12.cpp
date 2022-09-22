@@ -368,10 +368,10 @@ namespace decode
     }
 #endif
 
-    MOS_STATUS Av1PipelineG12::CreateFeatureManager()
+    MOS_STATUS Av1PipelineG12::CreateFeatureManager()  
     {
         DECODE_FUNC_CALL();
-        m_featureManager = MOS_New(DecodeAv1FeatureManagerG12, m_allocator, m_hwInterface);
+        m_featureManager = MOS_New(DecodeAv1FeatureManagerG12, m_allocator, m_hwInterface, m_osInterface);
         DECODE_CHK_NULL(m_featureManager);
         return MOS_STATUS_SUCCESS;
     }

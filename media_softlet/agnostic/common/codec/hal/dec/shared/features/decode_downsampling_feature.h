@@ -45,7 +45,7 @@ public:
     using SurfaceWidthT  = decltype(MOS_SURFACE::dwWidth);
     using SurfaceHeightT = decltype(MOS_SURFACE::dwHeight);
 
-    DecodeDownSamplingFeature(MediaFeatureManager *featureManager, DecodeAllocator *allocator, CodechalHwInterface *hwInterface);
+    DecodeDownSamplingFeature(MediaFeatureManager *featureManager, DecodeAllocator *allocator, PMOS_INTERFACE osInterface);
     virtual ~DecodeDownSamplingFeature();
 
     //!
@@ -105,7 +105,7 @@ protected:
     virtual MOS_STATUS UpdateDecodeTarget(MOS_SURFACE &surface) = 0;
     PMOS_BUFFER        AllocateHistogramBuffer(uint8_t frameIndex);
 
-    CodechalHwInterface *m_hwInterface  = nullptr;
+    PMOS_INTERFACE       m_osInterface  = nullptr;
     DecodeAllocator     *m_allocator    = nullptr;
     DecodeBasicFeature  *m_basicFeature = nullptr;
 

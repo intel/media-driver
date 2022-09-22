@@ -33,7 +33,7 @@
 namespace decode
 {
 
-MOS_STATUS HevcMvBufferOpInf::Init(CodechalHwInterface& hwInterface, DecodeAllocator& allocator,
+MOS_STATUS HevcMvBufferOpInf::Init(void* hwInterface, DecodeAllocator& allocator,
                                    HevcBasicFeature& basicFeature)
 {
     DECODE_CHK_STATUS(BufferOpInf::Init(hwInterface, allocator, basicFeature));

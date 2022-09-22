@@ -50,8 +50,8 @@ public:
     //! \param  [in] recycleBuf
     //!         Pointer to RecycleResource
     //!
-    DecodeAvcFeatureManager(DecodeAllocator *allocator, CodechalHwInterface *hwInterface)
-        : DecodeFeatureManager(allocator, hwInterface)
+    DecodeAvcFeatureManager(DecodeAllocator *allocator, void *hwInterface, PMOS_INTERFACE osInterface)
+        : DecodeFeatureManager(allocator, hwInterface, osInterface)
     {}
 
     //!

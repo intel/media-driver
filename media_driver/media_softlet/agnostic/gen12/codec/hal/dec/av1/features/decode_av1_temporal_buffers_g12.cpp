@@ -32,11 +32,11 @@
 
 namespace decode
 {
-    MOS_STATUS Av1TempBufferOpInfG12::Init(CodechalHwInterface& hwInterface, DecodeAllocator& allocator,
+    MOS_STATUS Av1TempBufferOpInfG12::Init(void* hwInterface, DecodeAllocator& allocator,
                                        Av1BasicFeatureG12& basicFeature)
     {
         DECODE_CHK_STATUS(BufferOpInf::Init(hwInterface, allocator, basicFeature));
-        m_avpInterface = m_hwInterface->GetAvpInterface();
+        m_avpInterface = ((CodechalHwInterface*)m_hwInterface)->GetAvpInterface();
         m_basicFeature = &basicFeature;
         DECODE_CHK_NULL(m_avpInterface);
         return MOS_STATUS_SUCCESS;

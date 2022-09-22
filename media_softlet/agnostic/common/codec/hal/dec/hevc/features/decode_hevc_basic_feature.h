@@ -38,12 +38,12 @@ namespace decode
 class HevcBasicFeature :public DecodeBasicFeature
 {
 public:
-    HevcBasicFeature(DecodeAllocator * allocator, CodechalHwInterface *hwInterface) :
-                     DecodeBasicFeature(allocator, hwInterface)
+    HevcBasicFeature(DecodeAllocator *allocator, void *hwInterface, PMOS_INTERFACE osInterface) :
+        DecodeBasicFeature(allocator, hwInterface, osInterface)
     {
-        if (hwInterface != nullptr)
+        if (osInterface != nullptr)
         {
-            m_osInterface  = hwInterface->GetOsInterface();
+            m_osInterface = osInterface;
         }
     };
 

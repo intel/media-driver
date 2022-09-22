@@ -36,7 +36,7 @@ namespace decode
 class HevcDownSamplingFeature: public DecodeDownSamplingFeature
 {
 public:
-    HevcDownSamplingFeature(MediaFeatureManager *featureManager, DecodeAllocator *allocator, CodechalHwInterface *hwInterface);
+    HevcDownSamplingFeature(MediaFeatureManager *featureManager, DecodeAllocator *allocator, PMOS_INTERFACE osInterface);
     virtual ~HevcDownSamplingFeature();
 
 protected:

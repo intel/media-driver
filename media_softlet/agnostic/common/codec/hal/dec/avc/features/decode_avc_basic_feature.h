@@ -49,12 +49,12 @@ public:
     //!
     //! \brief  AvcBasicFeature constructor
     //!
-    AvcBasicFeature(DecodeAllocator *allocator, CodechalHwInterface *hwInterface) :
-                        DecodeBasicFeature(allocator, hwInterface)
+    AvcBasicFeature(DecodeAllocator *allocator, void *hwInterface, PMOS_INTERFACE osInterface) :
+        DecodeBasicFeature(allocator, hwInterface, osInterface)
     {
-        if (hwInterface != nullptr)
+        if (osInterface != nullptr)
         {
-            m_osInterface  = hwInterface->GetOsInterface();
+            m_osInterface = osInterface;
         }
     };
 

@@ -51,8 +51,8 @@ namespace decode
         //! \param  [in] recycleBuf
         //!         Pointer to RecycleResource
         //!
-        DecodeVp9FeatureManager(DecodeAllocator *allocator, CodechalHwInterface *hwInterface)
-            : DecodeFeatureManager(allocator, hwInterface)
+        DecodeVp9FeatureManager(DecodeAllocator *allocator, void *hwInterface, PMOS_INTERFACE osInterface)
+            : DecodeFeatureManager(allocator, hwInterface, osInterface)
         {}
 
         //!

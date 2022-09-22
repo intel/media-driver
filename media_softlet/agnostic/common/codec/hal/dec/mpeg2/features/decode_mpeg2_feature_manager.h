@@ -50,8 +50,8 @@ public:
     //! \param  [in] recycleBuf
     //!         Pointer to RecycleResource
     //!
-    DecodeMpeg2FeatureManager(DecodeAllocator *allocator, CodechalHwInterface *hwInterface)
-        : DecodeFeatureManager(allocator, hwInterface)
+    DecodeMpeg2FeatureManager(DecodeAllocator *allocator, void *hwInterface, PMOS_INTERFACE osInterface)
+        : DecodeFeatureManager(allocator, hwInterface, osInterface)
     {}
 
     //!

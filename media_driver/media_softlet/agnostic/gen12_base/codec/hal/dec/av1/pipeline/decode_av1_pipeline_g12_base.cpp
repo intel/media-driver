@@ -159,7 +159,7 @@ bool Av1PipelineG12_Base::FrameBasedDecodingInUse()
 MOS_STATUS Av1PipelineG12_Base::CreateFeatureManager()
 {
     DECODE_FUNC_CALL();
-    m_featureManager = MOS_New(DecodeAv1FeatureManagerG12_Base, m_allocator, m_hwInterface);
+    m_featureManager = MOS_New(DecodeAv1FeatureManagerG12_Base, m_allocator, m_hwInterface, m_osInterface);
     DECODE_CHK_NULL(m_featureManager);
     return MOS_STATUS_SUCCESS;
 }

@@ -43,7 +43,7 @@ MOS_STATUS HevcBasicFeature::Init(void *setting)
     DECODE_CHK_STATUS(DecodeBasicFeature::Init(setting));
 
     DECODE_CHK_STATUS(m_refFrames.Init(this, *m_allocator));
-    DECODE_CHK_STATUS(m_mvBuffers.Init(*m_hwInterface, *m_allocator, *this,
+    DECODE_CHK_STATUS(m_mvBuffers.Init(m_hwInterface, *m_allocator, *this,
                                        CODEC_NUM_HEVC_INITIAL_MV_BUFFERS));
     DECODE_CHK_STATUS(m_tileCoding.Init(this, (CodechalSetting*)setting));
 

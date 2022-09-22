@@ -102,10 +102,10 @@ MOS_STATUS JpegPipeline::ActivateDecodePackets()
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS JpegPipeline::CreateFeatureManager()
+MOS_STATUS JpegPipeline::CreateFeatureManager()  // After HwNext rebase, Need override
 {
     DECODE_FUNC_CALL();
-    m_featureManager = MOS_New(DecodeJpegFeatureManager, m_allocator, m_hwInterface);
+    m_featureManager = MOS_New(DecodeJpegFeatureManager, m_allocator, m_hwInterface, m_osInterface);
     DECODE_CHK_NULL(m_featureManager);
     return MOS_STATUS_SUCCESS;
 }

@@ -35,8 +35,8 @@
 namespace decode
 {
 DecodeDownSamplingFeature::DecodeDownSamplingFeature(
-    MediaFeatureManager *featureManager, DecodeAllocator *allocator, CodechalHwInterface *hwInterface):
-    m_hwInterface(hwInterface), m_allocator(allocator)
+    MediaFeatureManager *featureManager, DecodeAllocator *allocator, PMOS_INTERFACE osInterface) :
+    m_osInterface(osInterface), m_allocator(allocator)
 {
     m_featureManager = featureManager;
 }
@@ -74,13 +74,12 @@ MOS_STATUS DecodeDownSamplingFeature::Init(void *setting)
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     MOS_USER_FEATURE_VALUE_DATA userFeatureData;
-    PMOS_INTERFACE pOsInterface = m_hwInterface->GetOsInterface();
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_DECODE_HISTOGRAM_DEBUG_ID,
         &userFeatureData,
-        pOsInterface ? pOsInterface->pOsContext : nullptr);
+        m_osInterface ? m_osInterface->pOsContext : nullptr);
     m_histogramDebug = userFeatureData.u32Data ? true : false;
 #endif
 

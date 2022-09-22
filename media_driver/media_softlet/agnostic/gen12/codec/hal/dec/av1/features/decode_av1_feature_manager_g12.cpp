@@ -41,7 +41,7 @@ namespace decode
         DECODE_CHK_STATUS(DecodeAv1FeatureManagerG12_Base::CreateFeatures(codecSettings));
 
         // SW Film Grain Feature
-        Av1DecodeFilmGrainG12 *swFilmGrain = MOS_New(Av1DecodeFilmGrainG12, this, m_allocator, m_hwInterface);
+        Av1DecodeFilmGrainG12 *swFilmGrain = MOS_New(Av1DecodeFilmGrainG12, this, m_allocator, (CodechalHwInterface*)m_hwInterface);
         DECODE_CHK_STATUS(RegisterFeatures(Av1FeatureIDs::av1SwFilmGrain, swFilmGrain));
 
         return MOS_STATUS_SUCCESS;

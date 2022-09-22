@@ -36,7 +36,7 @@ namespace decode
 class Vp9DownSamplingFeature: public DecodeDownSamplingFeature
 {
 public:
-    Vp9DownSamplingFeature(MediaFeatureManager *featureManager, DecodeAllocator *allocator, CodechalHwInterface *hwInterface);
+    Vp9DownSamplingFeature(MediaFeatureManager *featureManager, DecodeAllocator *allocator, PMOS_INTERFACE osInterface);
     virtual ~Vp9DownSamplingFeature();
 
 protected:

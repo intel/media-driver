@@ -49,8 +49,8 @@ namespace decode
         //! \param  [in] recycleBuf
         //!         Pointer to RecycleResource
         //!
-        DecodeAv1FeatureManagerG12(DecodeAllocator *allocator, CodechalHwInterface *hwInterface)
-            : DecodeAv1FeatureManagerG12_Base(allocator, hwInterface)
+        DecodeAv1FeatureManagerG12(DecodeAllocator *allocator, void *hwInterface, PMOS_INTERFACE osInterface)
+            : DecodeAv1FeatureManagerG12_Base(allocator, hwInterface, osInterface)
         {}
 
         //!

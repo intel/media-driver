@@ -32,12 +32,13 @@
 
 namespace decode
 {
-Vp9BasicFeature::Vp9BasicFeature(DecodeAllocator *allocator, CodechalHwInterface *hwInterface) : DecodeBasicFeature(allocator, hwInterface)
+Vp9BasicFeature::Vp9BasicFeature(DecodeAllocator *allocator, void *hwInterface, PMOS_INTERFACE osInterface) : DecodeBasicFeature(allocator, hwInterface, osInterface)
 {
     if (hwInterface != nullptr)
     {
-        m_osInterface  = hwInterface->GetOsInterface();
-        m_hcpItf       = hwInterface->GetHcpInterfaceNext();
+        m_osInterface  = osInterface;
+        // After HwNext rebase, should be (CodechalHwInterfaceNext*)
+        m_hcpItf       = ((CodechalHwInterface*)hwInterface)->GetHcpInterfaceNext();
     }
 
     for (uint8_t i = 0; i < CODEC_VP9_NUM_CONTEXTS; i++)

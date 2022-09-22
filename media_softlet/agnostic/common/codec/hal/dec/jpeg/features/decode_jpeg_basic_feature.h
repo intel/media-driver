@@ -62,13 +62,13 @@ public:
     //!
     //! \brief  JpegBasicFeature constructor
     //!
-    JpegBasicFeature(DecodeAllocator *allocator, CodechalHwInterface *hwInterface) :
-                        DecodeBasicFeature(allocator, hwInterface)
+    JpegBasicFeature(DecodeAllocator *allocator, void *hwInterface, PMOS_INTERFACE osInterface) : 
+        DecodeBasicFeature(allocator, hwInterface, osInterface)
     {
         MOS_ZeroMemory(&m_jpegHuffmanTable, sizeof(m_jpegHuffmanTable));
-        if (hwInterface != nullptr)
+        if (osInterface != nullptr)
         {
-            m_osInterface  = hwInterface->GetOsInterface();
+            m_osInterface = osInterface;
         }
     };
 

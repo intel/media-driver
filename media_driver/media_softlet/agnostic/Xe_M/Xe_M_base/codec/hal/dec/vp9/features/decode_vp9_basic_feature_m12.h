@@ -34,7 +34,7 @@ class Vp9BasicFeatureM12 : public Vp9BasicFeature
 {
 public:    
 
-    Vp9BasicFeatureM12(DecodeAllocator *allocator, CodechalHwInterface *hwInterface);
+    Vp9BasicFeatureM12(DecodeAllocator *allocator, void *hwInterface, PMOS_INTERFACE osInterface);
 
     virtual ~Vp9BasicFeatureM12() {}
 

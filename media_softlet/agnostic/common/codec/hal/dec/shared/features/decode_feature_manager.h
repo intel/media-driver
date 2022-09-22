@@ -51,8 +51,8 @@ public:
     //! \param  [in] recycleBuf
     //!         Pointer to RecycleResource
     //!
-    DecodeFeatureManager(DecodeAllocator *allocator, CodechalHwInterface *hwInterface)
-        : m_allocator(allocator), m_hwInterface(hwInterface)
+    DecodeFeatureManager(DecodeAllocator *allocator, void *hwInterface, PMOS_INTERFACE osInterface)
+        : m_allocator(allocator), m_hwInterface(hwInterface), m_osInterface(osInterface)
     {}
 
     //!
@@ -81,7 +81,8 @@ protected:
     virtual MOS_STATUS CreateFeatures(void *codecSettings) override;
 
     DecodeAllocator *       m_allocator   = nullptr;
-    CodechalHwInterface *   m_hwInterface = nullptr;
+    void *                  m_hwInterface = nullptr;
+    PMOS_INTERFACE          m_osInterface = nullptr;
 
 MEDIA_CLASS_DEFINE_END(decode__DecodeFeatureManager)
 };

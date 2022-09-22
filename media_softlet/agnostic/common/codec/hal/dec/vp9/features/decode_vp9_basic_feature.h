@@ -58,7 +58,7 @@ public:
     //!
     //! \brief  Vp9BasicFeature constructor
     //!
-    Vp9BasicFeature(DecodeAllocator *allocator, CodechalHwInterface *hwInterface);
+    Vp9BasicFeature(DecodeAllocator *allocator, void *hwInterface, PMOS_INTERFACE osInterface);
 
     //!
     //! \brief  Vp9BasicFeature deconstructor

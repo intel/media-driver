@@ -140,10 +140,10 @@ MOS_STATUS HevcPipeline::Execute()
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS HevcPipeline::CreateFeatureManager()
+MOS_STATUS HevcPipeline::CreateFeatureManager()  // After HwNext rebase, Need override
 {
     DECODE_FUNC_CALL();
-    m_featureManager = MOS_New(DecodeHevcFeatureManager, m_allocator, m_hwInterface);
+    m_featureManager = MOS_New(DecodeHevcFeatureManager, m_allocator, m_hwInterface, m_osInterface);
     DECODE_CHK_NULL(m_featureManager);
     return MOS_STATUS_SUCCESS;
 }

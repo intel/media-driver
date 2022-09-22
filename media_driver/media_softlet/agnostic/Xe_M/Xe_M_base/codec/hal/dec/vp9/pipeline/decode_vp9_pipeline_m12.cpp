@@ -212,7 +212,7 @@ MOS_STATUS Vp9PipelineG12::Destroy()
 MOS_STATUS Vp9PipelineG12::CreateFeatureManager()
 {
     DECODE_FUNC_CALL();
-    m_featureManager = MOS_New(DecodeVp9FeatureManagerM12, m_allocator, m_hwInterface);
+    m_featureManager = MOS_New(DecodeVp9FeatureManagerM12, m_allocator, m_hwInterface, m_osInterface);
     DECODE_CHK_NULL(m_featureManager);
     return MOS_STATUS_SUCCESS;
 }

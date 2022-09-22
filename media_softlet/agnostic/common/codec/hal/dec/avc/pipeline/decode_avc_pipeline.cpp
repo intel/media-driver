@@ -221,10 +221,10 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS AvcPipeline::CreateFeatureManager()
+    MOS_STATUS AvcPipeline::CreateFeatureManager()  // After HwNext rebase, Need override
     {
         DECODE_FUNC_CALL();
-        m_featureManager = MOS_New(DecodeAvcFeatureManager, m_allocator, m_hwInterface);
+        m_featureManager = MOS_New(DecodeAvcFeatureManager, m_allocator, m_hwInterface, m_osInterface);
         DECODE_CHK_NULL(m_featureManager);
         return MOS_STATUS_SUCCESS;
     }

@@ -41,11 +41,11 @@ MOS_STATUS DecodeJpegFeatureManager::CreateFeatures(void *codecSettings)
 
     DECODE_CHK_STATUS(DecodeFeatureManager::CreateFeatures(codecSettings));
     JpegBasicFeature *decBasic = nullptr;
-    decBasic = MOS_New(JpegBasicFeature, m_allocator, m_hwInterface);
+    decBasic = MOS_New(JpegBasicFeature, m_allocator, m_hwInterface, m_osInterface);
     DECODE_CHK_STATUS(RegisterFeatures(FeatureIDs::basicFeature, decBasic));
     
     #ifdef _DECODE_PROCESSING_SUPPORTED
-        auto decDownSampling = MOS_New(JpegDownSamplingFeature, this, m_allocator, m_hwInterface);
+        auto decDownSampling = MOS_New(JpegDownSamplingFeature, this, m_allocator, m_osInterface);
         DECODE_CHK_STATUS(RegisterFeatures(DecodeFeatureIDs::decodeDownSampling, decDownSampling));
     #endif
 

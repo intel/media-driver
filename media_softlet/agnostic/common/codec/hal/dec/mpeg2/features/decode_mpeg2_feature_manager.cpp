@@ -40,7 +40,7 @@ MOS_STATUS DecodeMpeg2FeatureManager::CreateFeatures(void *codecSettings)
 
     DECODE_CHK_STATUS(DecodeFeatureManager::CreateFeatures(codecSettings));
 
-    auto decBasic = MOS_New(Mpeg2BasicFeature, m_allocator, m_hwInterface);
+    auto decBasic = MOS_New(Mpeg2BasicFeature, m_allocator, m_hwInterface, m_osInterface);
     DECODE_CHK_NULL(decBasic);
     DECODE_CHK_STATUS(RegisterFeatures(FeatureIDs::basicFeature, decBasic));
 

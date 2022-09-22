@@ -89,7 +89,7 @@ namespace decode
         }
 
         DECODE_CHK_STATUS(m_refFrames.Init(this, *m_allocator));
-        DECODE_CHK_STATUS(m_tempBuffers.Init(*m_hwInterface, *m_allocator, *this, CODEC_NUM_REF_AV1_TEMP_BUFFERS));
+        DECODE_CHK_STATUS(m_tempBuffers.Init(m_hwInterface, *m_allocator, *this, CODEC_NUM_REF_AV1_TEMP_BUFFERS));
         DECODE_CHK_STATUS(m_tileCoding.Init(this, codecSettings));
         DECODE_CHK_STATUS(m_internalTarget.Init(*m_allocator));
 
