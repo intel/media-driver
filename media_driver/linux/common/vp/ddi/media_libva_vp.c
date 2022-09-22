@@ -1159,7 +1159,7 @@ DdiVp_SetProcPipelineParams(
         // set background colorfill option
         pVpHalRenderParams->pColorFillParams->Color     = pPipelineParam->output_background_color;
         pVpHalRenderParams->pColorFillParams->bYCbCr    = false;
-        pVpHalRenderParams->pColorFillParams->CSpace    = CSpace_sRGB;
+        pVpHalRenderParams->pColorFillParams->CSpace    = pVpHalSrcSurf->ColorSpace ? pVpHalSrcSurf->ColorSpace : CSpace_sRGB;
     }else
     {
         MOS_FreeMemAndSetNull(pVpHalRenderParams->pColorFillParams);
