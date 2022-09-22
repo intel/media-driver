@@ -1916,7 +1916,8 @@ VAStatus MediaLibvaCapsG12::CreateEncAttributes(
     {
         if (IsHevcProfile(profile))
         {
-            attrib.value = VA_ENC_SLICE_STRUCTURE_ARBITRARY_MACROBLOCKS | VA_ENC_SLICE_STRUCTURE_MAX_SLICE_SIZE;
+            attrib.value = VA_ENC_SLICE_STRUCTURE_POWER_OF_TWO_ROWS | VA_ENC_SLICE_STRUCTURE_EQUAL_ROWS |
+                        VA_ENC_SLICE_STRUCTURE_MAX_SLICE_SIZE | VA_ENC_SLICE_STRUCTURE_ARBITRARY_ROWS | VA_ENC_SLICE_STRUCTURE_EQUAL_MULTI_ROWS;
         }
         else
         {
