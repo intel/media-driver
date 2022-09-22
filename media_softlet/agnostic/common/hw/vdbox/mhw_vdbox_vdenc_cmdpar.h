@@ -33,14 +33,14 @@
 #include "codec_def_common.h"
 #include "codec_def_common_encode.h"
 
-#ifdef IGFX_VDENC_INTERFACE_EXT_SUPPORT
+#if _MEDIA_RESERVED
 #include "mhw_vdbox_vdenc_cmdpar_ext.h"
 #define __MHW_VDBOX_VDENC_WRAPPER(STUFF)
 #define __MHW_VDBOX_VDENC_WRAPPER_EXT(STUFF) STUFF
 #else
 #define __MHW_VDBOX_VDENC_WRAPPER(STUFF) STUFF
 #define __MHW_VDBOX_VDENC_WRAPPER_EXT(STUFF)
-#endif
+#endif  // _MEDIA_RESERVED
 
 namespace mhw
 {
@@ -393,9 +393,10 @@ struct _MHW_PAR_T(VDENC_AVC_IMG_STATE)
     uint8_t  pocNumberForFwdRef2                         = 0;
     uint8_t  pocNumberForBwdRef0                         = 0;
 
-    std::vector<std::function<MOS_STATUS(uint32_t*)>> extSettings;
-
-    __MHW_VDBOX_VDENC_WRAPPER_EXT(VDENC_AVC_IMG_STATE_CMDPAR_EXT);
+    __MHW_VDBOX_VDENC_WRAPPER(
+        std::vector<std::function<MOS_STATUS(uint32_t *)>> extSettings);
+    __MHW_VDBOX_VDENC_WRAPPER_EXT(
+        VDENC_AVC_IMG_STATE_CMDPAR_EXT);
 };
 
 struct _MHW_PAR_T(VDENC_CMD1)
@@ -545,8 +546,8 @@ struct _MHW_PAR_T(VDENC_CMD2)
     uint32_t intraRefreshBoundary[3]          = {};
     uint8_t  av1RefId[2][4]                   = {{1, 1, 1, 1}, {1, 1, 1, 1}};
 
-    std::vector<std::function<MOS_STATUS(uint32_t*)>> extSettings;
-
+    __MHW_VDBOX_VDENC_WRAPPER(
+        std::vector<std::function<MOS_STATUS(uint32_t *)>> extSettings);
     __MHW_VDBOX_VDENC_WRAPPER_EXT(VDENC_CMD2_CMDPAR_EXT);
 };
 

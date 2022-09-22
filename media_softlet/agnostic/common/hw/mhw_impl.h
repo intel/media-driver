@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021, Intel Corporation
+* Copyright (c) 2021-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -111,6 +111,41 @@ namespace mhw
 class Impl
 {
 protected:
+#if !_MEDIA_RESERVED
+    template <typename T, typename = void>
+    struct HasExtSettings : std::false_type
+    {
+    };
+
+    template <typename T>
+    struct HasExtSettings<
+        T,
+        decltype(static_cast<T *>(nullptr)->extSettings, void())>
+        : std::true_type
+    {
+    };
+
+    template <
+        typename P,
+        typename std::enable_if<HasExtSettings<P>::value, bool>::type = true>
+    MOS_STATUS ApplyExtSettings(const P &params, uint32_t *cmd)
+    {
+        for (const auto &func : params.extSettings)
+        {
+            MHW_CHK_STATUS_RETURN(func(cmd));
+        }
+        return MOS_STATUS_SUCCESS;
+    }
+
+    template <
+        typename P,
+        typename std::enable_if<!HasExtSettings<P>::value, bool>::type = true>
+    MOS_STATUS ApplyExtSettings(const P &, uint32_t *)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+#endif  // !_MEDIA_RESERVED
+
     static int32_t Clip3(int32_t x, int32_t y, int32_t z)
     {
         int32_t ret = 0;

@@ -1212,7 +1212,9 @@ protected:
     DO_FIELD(DW1, HevcPipelineCommandFlush, params.flushHEVC);                \
     DO_FIELD(DW1, VdencPipelineCommandFlush, params.flushVDENC);              \
     DO_FIELD(DW1, MflPipelineCommandFlush, params.flushMFL);                  \
-    DO_FIELD(DW1, MfxPipelineCommandFlush, params.flushMFX);                  \
+    DO_FIELD(DW1, MfxPipelineCommandFlush, params.flushMFX)
+
+#define DO_FIELDS_EXT() \
     __MHW_VDBOX_VDENC_WRAPPER_EXT(VD_PIPELINE_FLUSH_IMPL_EXT)
 
 #include "mhw_hwcmd_process_cmdfields.h"
@@ -1474,33 +1476,17 @@ protected:
     DO_FIELD(DW61, Av1L0RefID3, params.av1RefId[0][3]);                                                  \
     DO_FIELD(DW61, Av1L1RefID3, params.av1RefId[1][3])
 
-#define NO_RETURN
-#include "mhw_hwcmd_process_cmdfields.h"
-
-        if (params.extSettings.empty())
-        {
-#define DO_FIELDS() \
+#define DO_FIELDS_EXT() \
     __MHW_VDBOX_VDENC_WRAPPER_EXT(VDENC_CMD2_IMPL_EXT)
 
 #include "mhw_hwcmd_process_cmdfields.h"
-        }
-        else
-        {
-            for (const auto &func : params.extSettings)
-            {
-                MHW_CHK_STATUS_RETURN(func(reinterpret_cast<uint32_t *>(&cmd)));
-            }
-        }
-
-        return MOS_STATUS_SUCCESS;
-#undef NO_RETURN
     }
 
     _MHW_SETCMD_OVERRIDE_DECL(VDENC_CMD3)
     {
         _MHW_SETCMD_CALLBASE(VDENC_CMD3);
 
-#define DO_FIELDS() __MHW_VDBOX_VDENC_WRAPPER_EXT(VDENC_CMD3_IMPL_EXT)
+#define DO_FIELDS_EXT() __MHW_VDBOX_VDENC_WRAPPER_EXT(VDENC_CMD3_IMPL_EXT)
 
 #include "mhw_hwcmd_process_cmdfields.h"
     }
@@ -1554,29 +1540,12 @@ protected:
     DO_FIELD(DW16, PocNumberForFwdRef0, params.pocNumberForFwdRef0);                                                \
     DO_FIELD(DW17, PocNumberForFwdRef1, params.pocNumberForFwdRef1);                                                \
     DO_FIELD(DW18, PocNumberForFwdRef2, params.pocNumberForFwdRef2);                                                \
-    DO_FIELD(DW19, PocNumberForBwdRef0, params.pocNumberForBwdRef0);                                                \
-    
-#define NO_RETURN
-#include "mhw_hwcmd_process_cmdfields.h"
+    DO_FIELD(DW19, PocNumberForBwdRef0, params.pocNumberForBwdRef0)
 
-        if (params.extSettings.empty())
-        {
-#define DO_FIELDS() \
+#define DO_FIELDS_EXT() \
     __MHW_VDBOX_VDENC_WRAPPER_EXT(VDENC_AVC_IMG_STATE_IMPL_EXT)
-
+    
 #include "mhw_hwcmd_process_cmdfields.h"
-        }
-        else
-        {
-            for (const auto &func : params.extSettings)
-            {
-                MHW_CHK_STATUS_RETURN(func(reinterpret_cast<uint32_t *>(&cmd)));
-            }
-        }
-
-        return MOS_STATUS_SUCCESS;
-#undef NO_RETURN
-
     }
 MEDIA_CLASS_DEFINE_END(mhw__vdbox__vdenc__Impl)
 };

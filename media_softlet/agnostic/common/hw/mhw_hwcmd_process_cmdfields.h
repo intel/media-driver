@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021, Intel Corporation
+* Copyright (c) 2021-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -25,9 +25,14 @@
 //! \details
 //!
 
-#ifdef DO_FIELDS
+#if defined(DO_FIELDS) || defined(DO_FIELDS_EXT)
 #define DO_FIELD(dw, field, value) _MHW_CMD_ASSIGN_FIELD(dw, field, value)
+#if defined(DO_FIELDS) && !defined(DISABLE_DO_FIELDS)
     DO_FIELDS();
+#endif  // defined(DO_FIELDS) && !defined(DISABLE_DO_FIELDS)
+#if defined(DO_FIELDS_EXT) && !defined(DISABLE_DO_FIELDS_EXT)
+    DO_FIELDS_EXT();
+#endif  // defined(DO_FIELDS_EXT) && !defined(DISABLE_DO_FIELDS_EXT)
 #undef DO_FIELD
 #if MHW_HWCMDPARSER_ENABLED
     {
@@ -35,13 +40,24 @@
         if (instance && instance->ParseFieldsLayoutEn())
         {
 #define DO_FIELD(dw, field, value) MHW_HWCMDPARSER_PARSEFIELDLAYOUT(dw, field)
+#if defined(DO_FIELDS) && !defined(DISABLE_DO_FIELDS)
             DO_FIELDS();
+#endif  // defined(DO_FIELDS) && !defined(DISABLE_DO_FIELDS)
+#if defined(DO_FIELDS_EXT) && !defined(DISABLE_DO_FIELDS_EXT)
+            DO_FIELDS_EXT();
+#endif  // defined(DO_FIELDS_EXT) && !defined(DISABLE_DO_FIELDS_EXT)
 #undef DO_FIELD
         }
     }
 #endif  // MHW_HWCMDPARSER_ENABLED
+#ifdef DO_FIELDS
 #undef DO_FIELDS
 #endif  // DO_FIELDS
-#ifndef NO_RETURN
+#ifdef DO_FIELDS_EXT
+#undef DO_FIELDS_EXT
+#endif  // DO_FIELDS_EXT
+#endif  // defined(DO_FIELDS) || defined(DO_FIELDS_EXT)
+#if !_MEDIA_RESERVED
+    MHW_CHK_STATUS_RETURN(ApplyExtSettings(params, reinterpret_cast<uint32_t *>(&cmd)));
+#endif  // !_MEDIA_RESERVED
     return MOS_STATUS_SUCCESS;
-#endif  // NO_RETURN
