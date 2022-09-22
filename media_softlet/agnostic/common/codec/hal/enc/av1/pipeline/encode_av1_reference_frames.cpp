@@ -534,7 +534,7 @@ std::vector<PMOS_SURFACE> Av1ReferenceFrames::GetPakRefSurface() const
     return refs;
 }
 
-void Av1ReferenceFrames::GetFwdBwdRefPicList(CODEC_PICTURE refsPicList[2][15])
+void Av1ReferenceFrames::GetFwdBwdRefPicList(CODEC_PICTURE (&refsPicList)[2][15])
 {
     ENCODE_FUNC_CALL();
     auto picParams       = m_basicFeature->m_av1PicParams;
@@ -554,21 +554,17 @@ void Av1ReferenceFrames::GetFwdBwdRefPicList(CODEC_PICTURE refsPicList[2][15])
         if ((ref_frame_ctrl_l0 & mask) && !(RefFrameBiasFlags & mask))
         {
             auto index  = picParams->ref_frame_idx[i];
-            CODEC_PICTURE refPic;
-            refPic.FrameIdx = index;
-            refPic.PicEntry = picParams->RefFrameList[index].PicEntry;
-            refPic.PicFlags = picParams->RefFrameList[index].PicFlags;
-            refsPicList[0][fwdRefNum] = refPic;
+            refsPicList[0][fwdRefNum].FrameIdx = index;
+            refsPicList[0][fwdRefNum].PicEntry = picParams->RefFrameList[index].PicEntry;
+            refsPicList[0][fwdRefNum].PicFlags = picParams->RefFrameList[index].PicFlags;
             fwdRefNum++;
         }
         if ((ref_frame_ctrl_l1 & mask) && (RefFrameBiasFlags & mask))
         {
             auto index  = picParams->ref_frame_idx[i];
-            CODEC_PICTURE refPic;
-            refPic.FrameIdx = index;
-            refPic.PicEntry = picParams->RefFrameList[index].PicEntry;
-            refPic.PicFlags = picParams->RefFrameList[index].PicFlags;
-            refsPicList[1][bwdRefNum] = refPic;
+            refsPicList[1][bwdRefNum].FrameIdx = index;
+            refsPicList[1][bwdRefNum].PicEntry = picParams->RefFrameList[index].PicEntry;
+            refsPicList[1][bwdRefNum].PicFlags = picParams->RefFrameList[index].PicFlags;
             bwdRefNum++;
         }
     }
@@ -582,7 +578,7 @@ void Av1ReferenceFrames::GetFwdBwdRefPicList(CODEC_PICTURE refsPicList[2][15])
     }
 }
 
-void Av1ReferenceFrames::GetRefFramePOC(int32_t refsPOCList[15])
+void Av1ReferenceFrames::GetRefFramePOC(int32_t (&refsPOCList)[15], int32_t const orderHint)
 {
     auto picParams = m_basicFeature->m_av1PicParams;
     for (auto i = 0; i < av1NumInterRefFrames; i++)
@@ -590,7 +586,8 @@ void Av1ReferenceFrames::GetRefFramePOC(int32_t refsPOCList[15])
         if (picParams->RefFrameList[i].PicFlags != PICTURE_INVALID)
         {
             auto frameIdx = picParams->RefFrameList[i].FrameIdx;
-            refsPOCList[i] = m_refList[frameIdx]->m_orderHint;
+            auto dist = GetRelativeDist(m_refList[frameIdx]->m_orderHint, m_currRefList->m_orderHint);
+            refsPOCList[i] = orderHint + dist;
         }
     }
 }
