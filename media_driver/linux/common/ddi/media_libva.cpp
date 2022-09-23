@@ -63,14 +63,14 @@
 #include "media_libva_apo_decision.h"
 #include "mos_oca_interface_specific.h"
 
-#define BO_BUSY_TIMEOUT_LIMIT 100
-
 #ifdef _MANUAL_SOFTLET_
 #include "media_libva_interface.h"
 #include "media_libva_interface_next.h"
 #include "media_interfaces_hwinfo_device.h"
 #include "media_libva_caps_next.h"
 #endif
+
+#define BO_BUSY_TIMEOUT_LIMIT 100
 
 #ifdef __cplusplus
 extern "C" {
@@ -2561,22 +2561,25 @@ VAStatus DdiMedia_DestroySurfaces (
 
         DdiMediaUtil_UnRegisterRTSurfaces(ctx, surface);
 
-        uint64_t freq = 1, countStart = 0, countCur = 0;
-        MosUtilities::MosQueryPerformanceFrequency(&freq);
-        uint64_t countTimeout = freq * BO_BUSY_TIMEOUT_LIMIT / 1000;
-        MOS_TraceEventExt(EVENT_VA_SYNC, EVENT_TYPE_START, nullptr, 0, nullptr, 0);
-        MosUtilities::MosQueryPerformanceCounter(&countStart);
-        while (1)
+        if (surface->pMediaCtx && surface->pMediaCtx->m_auxTableMgr)
         {
-            MosUtilities::MosQueryPerformanceCounter(&countCur);
-
-            if(mos_bo_busy(surface->bo) == 0 || countCur - countStart > countTimeout)
+            uint64_t freq = 1, countStart = 0, countCur = 0;
+            MosUtilities::MosQueryPerformanceFrequency(&freq);
+            uint64_t countTimeout = freq * BO_BUSY_TIMEOUT_LIMIT / 1000;
+            MOS_TraceEventExt(EVENT_VA_SYNC, EVENT_TYPE_START, nullptr, 0, nullptr, 0);
+            MosUtilities::MosQueryPerformanceCounter(&countStart);
+            while (1)
             {
-                break;
+                uint32_t timeout_NS = 10;
+                int ret = mos_gem_bo_wait(surface->bo, timeout_NS);
+                MosUtilities::MosQueryPerformanceCounter(&countCur);
+                if(ret == 0 || countCur - countStart > countTimeout)
+                {
+                    break;
+                }
             }
-            MosUtilities::MosSleep(10);
+            MOS_TraceEventExt(EVENT_VA_SYNC, EVENT_TYPE_END, nullptr, 0, nullptr, 0);
         }
-        MOS_TraceEventExt(EVENT_VA_SYNC, EVENT_TYPE_END, nullptr, 0, nullptr, 0);
 
         DdiMediaUtil_LockMutex(&mediaCtx->SurfaceMutex);
         DdiMediaUtil_FreeSurface(surface);
