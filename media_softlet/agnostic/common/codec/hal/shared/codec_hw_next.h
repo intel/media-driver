@@ -103,6 +103,31 @@ public:
     }
 
     //!
+    //! \brief    Initialize the codechal hw interface
+    //! \details  Initialize the interface before using
+    //! 
+    //! \param    [in] settings
+    //!           Settings for initialization
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS Initialize(
+        CodechalSetting *settings);
+
+    //!
+    //! \brief    Get Wa table
+    //! \details  Get Wa table in codechal hw interface 
+    //!
+    //! \return   [out] MEDIA_WA_TABLE
+    //!           Wa table got.
+    //!
+    inline MEDIA_WA_TABLE *GetWaTable()
+    {
+        return m_waTable;
+    }
+
+    //!
     //! \brief    Get mfx interface
     //! \details  Get mfx interface in codechal hw interface next
     //!
@@ -218,6 +243,32 @@ public:
     {
         return m_mediaSfcItf;
     }
+
+    //!
+    //! \brief    Init Cacheability Control Settings
+    //! \details  Init Cacheability Control Settings in codechal hw interface 
+    //!
+    //! \param    [in] codecFunction
+    //!           codec function used to judge how to setup cacheability control settings
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS InitCacheabilityControlSettings(
+        CODECHAL_FUNCTION codecFunction);
+
+    //!
+    //! \brief    Get memory object of GMM Cacheability control settings
+    //! \details  Internal function to get memory object of GMM Cacheability control settings
+    //! 
+    //! \param    [in] mosUsage
+    //!           Codec usages in mos type
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS CachePolicyGetMemoryObject(
+        MOS_HW_RESOURCE_DEF mosUsage);
 
     //!
     //! \brief    Calculates the maximum size for AVP picture level commands
@@ -415,6 +466,150 @@ public:
     virtual MOS_STATUS SetRowstoreCachingOffsets(
         PMHW_VDBOX_ROWSTORE_PARAMS rowstoreParams);
 
+    //!
+    //! \brief    Send mi atomic dword cmd
+    //! \details  Send mi atomic dword cmd for sync perpose
+    //!
+    //! \param    [in] resource
+    //!           Reource used in mi atomic dword cmd
+    //! \param    [in] immData
+    //!           Immediate data
+    //! \param    [in] opCode
+    //!           Operation code
+    //! \param    [in,out] cmdBuffer
+    //!           command buffer
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS SendMiAtomicDwordCmd(
+        PMOS_RESOURCE               resource,
+        uint32_t                    immData,
+        MHW_COMMON_MI_ATOMIC_OPCODE opCode,
+        PMOS_COMMAND_BUFFER         cmdBuffer)
+    {
+        MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+        CODEC_HW_FUNCTION_ENTER;
+        CODEC_HW_CHK_NULL_RETURN(m_miItf);
+
+        auto &params             = m_miItf->MHW_GETPAR_F(MI_ATOMIC)();
+        params                   = {};
+        params.pOsResource       = resource;
+        params.dwDataSize        = sizeof(uint32_t);
+        params.Operation         = (mhw::mi::MHW_COMMON_MI_ATOMIC_OPCODE) opCode;
+        params.bInlineData       = true;
+        params.dwOperand1Data[0] = immData;
+        eStatus                  = m_miItf->MHW_ADDCMD_F(MI_ATOMIC)(cmdBuffer);
+
+        return eStatus;
+    }
+
+    //!
+    //! \brief    Send hw semphore wait cmd
+    //! \details  Send hw semphore wait cmd for sync perpose
+    //!
+    //! \param    [in] semaMem
+    //!           Reource of Hw semphore
+    //! \param    [in] semaData
+    //!           Data of Hw semphore
+    //! \param    [in] opCode
+    //!           Operation code
+    //! \param    [in,out] cmdBuffer
+    //!           command buffer
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS SendHwSemaphoreWaitCmd(
+        PMOS_RESOURCE                             semaMem,
+        uint32_t                                  semaData,
+        MHW_COMMON_MI_SEMAPHORE_COMPARE_OPERATION opCode,
+        PMOS_COMMAND_BUFFER                       cmdBuffer,
+        uint32_t                                  semaMemOffset = 0)
+    {
+        CODEC_HW_FUNCTION_ENTER;
+        MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+        CODEC_HW_CHK_NULL_RETURN(m_miItf);
+        auto &params            = m_miItf->MHW_GETPAR_F(MI_SEMAPHORE_WAIT)();
+        params                  = {};
+        params.presSemaphoreMem = semaMem;
+        params.bPollingWaitMode = true;
+        params.dwSemaphoreData  = semaData;
+        params.CompareOperation = (mhw::mi::MHW_COMMON_MI_SEMAPHORE_COMPARE_OPERATION) opCode;
+        params.dwResourceOffset = semaMemOffset;
+        eStatus                 = m_miItf->MHW_ADDCMD_F(MI_SEMAPHORE_WAIT)(cmdBuffer);
+
+        return eStatus;
+    }
+
+    //!
+    //! \brief    Check if simulation/emulation is active
+    //! \return   bool
+    //!           True if simulation/emulation is active, else false.
+    //!
+    bool IsSimActive()
+    {
+        return m_osInterface ? m_osInterface->bSimIsActive : false;
+    }
+
+    //!
+    //! \brief    Send mi store data imm cmd
+    //! \param    [in] resource
+    //!           Reource used in mi store data imm cmd
+    //! \param    [in] immData
+    //!           Immediate data
+    //! \param    [in,out] cmdBuffer
+    //!           command buffer
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS SendMiStoreDataImm(
+        PMOS_RESOURCE       resource,
+        uint32_t            immData,
+        PMOS_COMMAND_BUFFER cmdBuffer)
+    {
+        MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+        CODEC_HW_FUNCTION_ENTER;
+
+        CODEC_HW_CHK_NULL_RETURN(resource);
+        CODEC_HW_CHK_NULL_RETURN(cmdBuffer);
+
+        CODEC_HW_CHK_NULL_RETURN(m_miItf);
+        auto &params            = m_miItf->MHW_GETPAR_F(MI_STORE_DATA_IMM)();
+        params                  = {};
+        params.pOsResource      = resource;
+        params.dwResourceOffset = 0;
+        params.dwValue          = immData;
+        eStatus                 = m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(cmdBuffer);
+
+        return eStatus;
+    }
+
+    // Hardware dependent parameters
+    bool     m_isVdencSuperSliceEnabled          = false;  //!> Flag indicating Vdenc super slice is enabled
+    uint16_t m_sizeOfCmdBatchBufferEnd           = 0;      //!> Size of batch buffer end cmd
+    uint16_t m_sizeOfCmdMediaReset               = 0;      //!> Size of media reset cmd
+    uint32_t m_vdencBrcImgStateBufferSize        = 0;      //!> vdenc brc img state buffer size
+    uint32_t m_vdencBatchBuffer1stGroupSize      = 0;      //!> vdenc batch buffer 1st group size
+    uint32_t m_vdencBatchBuffer2ndGroupSize      = 0;      //!> vdenc batch buffer 2nd group size
+    uint32_t m_vdencReadBatchBufferSize          = 0;      //!> vdenc read batch buffer size for group1 and group2
+    uint32_t m_vdenc2ndLevelBatchBufferSize      = 0;      //!> vdenc 2nd level batch buffer size
+    uint32_t m_vdencBatchBufferPerSliceConstSize = 0;      //!> vdenc batch buffer per slice const size
+    uint32_t m_HucStitchCmdBatchBufferSize       = 0;      //!> huc stitch cmd 2nd level batch buffer size
+    uint32_t m_pakIntTileStatsSize               = 0;      //!> Size of combined statistics across all tiles
+    uint32_t m_pakIntAggregatedFrameStatsSize    = 0;      //!> Size of HEVC/ VP9 PAK Stats, HEVC Slice Streamout, VDEnc Stats
+    uint32_t m_tileRecordSize                    = 0;      //!> Tile record size
+    uint32_t m_hucCommandBufferSize              = 0;      //!> Size of a single HuC command buffer
+
+    bool     m_enableCodecMmc        = false;  //!> Flag to indicate if enable codec MMC by default or not
+
+    //! \brief    default disable the get vdbox node by UMD, decided by MHW and MOS
+    bool m_getVdboxNodeByUMD = false;
+
 protected:
 
 #if (_DEBUG || _RELEASE_INTERNAL)
@@ -450,6 +645,10 @@ protected:
     MhwCpInterface                  *m_cpInterface = nullptr;         //!< Pointer to Mhw cp interface
     MhwVdboxMfxInterface            *m_mfxInterface = nullptr;        //!< Pointer to Mhw mfx interface
     MhwVdboxVdencInterface          *m_vdencInterface = nullptr;      //!< Pointer to Mhw vdenc interface
+
+    MHW_MEMORY_OBJECT_CONTROL_PARAMS m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_END_CODEC] = {};  //!< Cacheability Settings list
+    
+    bool m_checkBankCount   = false;  //!> Used to check L3 cache enable
 
 MEDIA_CLASS_DEFINE_END(CodechalHwInterfaceNext)
 };

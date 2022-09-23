@@ -60,6 +60,66 @@ CodechalHwInterfaceNext::CodechalHwInterfaceNext(
     m_vdencInterface = mhwInterfacesNext->m_vdencInterface;
 }
 
+MOS_STATUS CodechalHwInterfaceNext::Initialize(
+    CodechalSetting *settings)
+{
+    CODEC_HW_FUNCTION_ENTER;
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    m_enableCodecMmc = !MEDIA_IS_WA(GetWaTable(), WaDisableCodecMmc);
+
+    return eStatus;
+}
+
+MOS_STATUS CodechalHwInterfaceNext::InitCacheabilityControlSettings(
+    CODECHAL_FUNCTION codecFunction)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODEC_HW_FUNCTION_ENTER;
+
+    CODEC_HW_CHK_NULL_RETURN(m_osInterface);
+
+    for (uint32_t i = MOS_CODEC_RESOURCE_USAGE_BEGIN_CODEC + 1; i < MOS_CODEC_RESOURCE_USAGE_END_CODEC; i++)
+    {
+        CODEC_HW_CHK_STATUS_RETURN(CachePolicyGetMemoryObject(
+            (MOS_HW_RESOURCE_DEF)i));
+    }
+
+    SetCacheabilitySettings(m_cacheabilitySettings);
+
+    bool l3CachingEnabled = !m_osInterface->bSimIsActive;
+
+    if (m_checkBankCount)
+    {
+        CODEC_HW_CHK_NULL_RETURN(m_osInterface);
+        auto gtSysInfo = m_osInterface->pfnGetGtSystemInfo(m_osInterface);
+        CODEC_HW_CHK_NULL_RETURN(gtSysInfo);
+
+        l3CachingEnabled = (gtSysInfo->L3BankCount != 0 || gtSysInfo->L3CacheSizeInKb != 0);
+    }
+
+    if (l3CachingEnabled)
+    {
+        InitL3CacheSettings();
+    }
+
+    return eStatus;
+}
+
+MOS_STATUS CodechalHwInterfaceNext::CachePolicyGetMemoryObject(
+    MOS_HW_RESOURCE_DEF mosUsage)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    m_cacheabilitySettings[mosUsage].Value =
+        (m_osInterface->pfnCachePolicyGetMemoryObject(
+            mosUsage, 
+            m_osInterface->pfnGetGmmClientContext(m_osInterface))).DwordValue;
+
+    return eStatus;
+}
+
 MOS_STATUS CodechalHwInterfaceNext::GetAvpStateCommandSize(
     uint32_t                        mode,
     uint32_t                        *commandsSize,
