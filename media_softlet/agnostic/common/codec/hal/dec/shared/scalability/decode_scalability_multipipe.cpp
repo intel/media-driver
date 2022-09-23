@@ -231,6 +231,18 @@ MOS_STATUS DecodeScalabilityMultiPipe::Destroy()
 
     SCALABILITY_CHK_STATUS_RETURN(MediaScalability::Destroy());
 
+    if (!m_osInterface->apoMosEnabled)
+    {
+        if (m_veInterface)
+        {
+            if (m_veInterface->pfnVEDestroy)
+            {
+                m_veInterface->pfnVEDestroy(m_veInterface);
+            }
+            MOS_FreeMemAndSetNull(m_veInterface);
+        }
+    }
+
     if (m_gpuCtxCreateOption)
     {
         MOS_Delete(m_gpuCtxCreateOption);

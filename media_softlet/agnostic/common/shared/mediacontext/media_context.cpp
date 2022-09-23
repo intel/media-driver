@@ -103,7 +103,18 @@ MediaContext::~MediaContext()
                     return;
                 }
             }
-#if EMUL
+#if !_VULKAN
+            else if (m_osInterface->modularizedGpuCtxEnabled)
+            {
+                // Be compatible to legacy MOS
+                auto status = m_osInterface->pfnDestroyGpuContextByHandle(m_osInterface, curAttribute.gpuContext);
+                if (status != MOS_STATUS_SUCCESS)
+                {
+                    MOS_OS_NORMALMESSAGE("Could not destroy gpu context");
+                    return;
+                }
+            }
+#endif //!_VULKAN
             else
             {
                 auto status = m_osInterface->pfnDestroyGpuContext(
@@ -115,18 +126,6 @@ MediaContext::~MediaContext()
                     return;
                 }
             }
-#elif !_VULKAN
-            else
-            {
-                // Be compatible to legacy MOS
-                auto status = m_osInterface->pfnDestroyGpuContextByHandle(m_osInterface, curAttribute.gpuContext);
-                if (status != MOS_STATUS_SUCCESS)
-                {
-                    MOS_OS_NORMALMESSAGE("Could not destroy gpu context");
-                    return;
-                }
-            }
-#endif //!_VULKAN
         }
         else
         {
