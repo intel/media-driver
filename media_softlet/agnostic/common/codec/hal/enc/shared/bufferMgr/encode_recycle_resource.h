@@ -56,6 +56,9 @@ namespace encode
         RhoDomainStreamoutBuffer,
         CuRecordStreamOutBuffer,
         CuCountBuffer,
+        PreEncRawSurface,
+        PreEncRef0,
+        PreEncRef1,
 #if _MEDIA_RESERVED
 #define RECYCLE_IDS_EXT
 #include "encode_recycle_resource_ext.h"
