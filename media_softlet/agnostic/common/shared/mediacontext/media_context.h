@@ -33,6 +33,9 @@
 #include "mos_os.h"
 #include "media_scalability_factory.h"
 
+struct _MHW_VDBOX_GPUNODE_LIMIT;
+typedef struct _MHW_VDBOX_GPUNODE_LIMIT MHW_VDBOX_GPUNODE_LIMIT, *PMHW_VDBOX_GPUNODE_LIMIT;
+
 enum MediaFunction
 {
     RenderGenericFunc,
@@ -116,6 +119,18 @@ public:
         // Be compatiable to legacy MOS
         return MOS_RCS_ENGINE_USED(gpuContext);
     }
+    uint8_t GetNumVdbox() 
+    { 
+        m_numVdbox                      = 1;
+        MEDIA_SYSTEM_INFO *gtSystemInfo = m_osInterface->pfnGetGtSystemInfo(m_osInterface);
+        if (gtSystemInfo != nullptr)
+        {
+            // Both VE mode and media solo mode should be able to get the VDBOX number via the same interface
+            m_numVdbox = (uint8_t)(gtSystemInfo->VDBoxInfo.NumberOfVDBoxEnabled);
+        }
+
+        return m_numVdbox;
+    }
 
 protected:
     PMOS_INTERFACE                    m_osInterface             = nullptr;           //!< OS interface
@@ -128,6 +143,8 @@ protected:
     static const uint32_t             m_invalidContextAttribute = 0xffffffdf;        //!< Index value to indicate invalid Context Attribute
     static const uint32_t             m_invalidStreamId         = 0xffffffcb;        //!< Id to indicate invalid Stream
     static const uint32_t             m_maxContextAttribute     = 4096;              //!< Max number of entries supported in gpuContextAttributeTable in one media context
+    uint8_t                           m_numVdbox                = 1;
+    bool                              m_scalabilitySupported    = false;
 
     //!
     //! \brief  Search the ContextAttributeTable to reuse or create gpu Context and scalabilty state meeting the requirements
@@ -171,11 +188,16 @@ protected:
     //!
     MOS_STATUS FunctionToNode(MediaFunction func, const MOS_GPUCTX_CREATOPTIONS_ENHANCED &option, MOS_GPU_NODE& node);
     MOS_STATUS FunctionToNodeCodec(MOS_GPU_NODE& node);
+    MOS_STATUS FindGpuNodeToUse(PMHW_VDBOX_GPUNODE_LIMIT gpuNodeLimit);
 
     // Be compatible to Legacy MOS
     MOS_STATUS FunctionToGpuContext(MediaFunction func, const MOS_GPUCTX_CREATOPTIONS_ENHANCED &option, const MOS_GPU_NODE &node, MOS_GPU_CONTEXT &ctx);
     MOS_STATUS FunctionToGpuContextDecode(const MOS_GPUCTX_CREATOPTIONS_ENHANCED &option, const MOS_GPU_NODE &node, MOS_GPU_CONTEXT &ctx);
     MOS_STATUS FunctionToGpuContextEncode(const MOS_GPUCTX_CREATOPTIONS_ENHANCED &option, MOS_GPU_CONTEXT &ctx);
+
+    #if (_DEBUG || _RELEASE_INTERNAL)
+    MOS_STATUS CheckScalabilityOverrideValidity();
+    #endif
 
 MEDIA_CLASS_DEFINE_END(MediaContext)
 };

@@ -428,25 +428,121 @@ MOS_STATUS MediaContext::FunctionToNode(MediaFunction func, const MOS_GPUCTX_CRE
 #if !EMUL
 MOS_STATUS MediaContext::FunctionToNodeCodec(MOS_GPU_NODE& node)
 {
-    CodechalHwInterface *hwInterface = static_cast<CodechalHwInterface *>(m_hwInterface);
-    std::shared_ptr<mhw::vdbox::mfx::Itf> mfxItf       = hwInterface->GetMfxInterfaceNext();
-    MhwVdboxMfxInterface *mfxInterface = hwInterface->GetMfxInterface();
-    MOS_OS_CHK_NULL_RETURN(mfxInterface);
-
     MHW_VDBOX_GPUNODE_LIMIT gpuNodeLimit = {0};
-    if (mfxItf)
-    {
-        MOS_OS_CHK_STATUS_RETURN(hwInterface->GetMfxInterfaceNext()->FindGpuNodeToUse(&gpuNodeLimit));
-    }
-    else
-    {
-        MOS_OS_CHK_STATUS_RETURN(mfxInterface->FindGpuNodeToUse(&gpuNodeLimit));
-    }
+
+    MOS_OS_CHK_STATUS_RETURN(FindGpuNodeToUse(&gpuNodeLimit));
+
     node = (MOS_GPU_NODE)(gpuNodeLimit.dwGpuNodeToUse);
 
     return MOS_STATUS_SUCCESS;
 }
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+MOS_STATUS MediaContext::CheckScalabilityOverrideValidity()
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    MEDIA_SYSTEM_INFO *gtSystemInfo = nullptr;
+    uint32_t           forceVdbox   = 0;
+    bool               scalableDecMode = false;
+    bool               useVD1          = false;
+    bool               useVD2          = false;
+
+    MHW_MI_CHK_NULL(m_osInterface);
+    scalableDecMode = m_osInterface->bHcpDecScalabilityMode ? true : false;
+    forceVdbox      = m_osInterface->eForceVdbox;
+    gtSystemInfo    = m_osInterface->pfnGetGtSystemInfo(m_osInterface);
+    MHW_MI_CHK_NULL(gtSystemInfo);
+
+    if (forceVdbox != MOS_FORCE_VDBOX_NONE &&
+        forceVdbox != MOS_FORCE_VDBOX_1 &&
+        forceVdbox != MOS_FORCE_VDBOX_2 &&
+        // 2 pipes, VDBOX1-BE1, VDBOX2-BE2
+        forceVdbox != MOS_FORCE_VDBOX_1_1_2 &&
+        forceVdbox != MOS_FORCE_VDBOX_2_1_2)
+    {
+        eStatus = MOS_STATUS_INVALID_PARAMETER;
+        MHW_ASSERTMESSAGE("user feature forceVdbox value is invalid.");
+        return eStatus;
+    }
+    if (!scalableDecMode &&
+        (forceVdbox == MOS_FORCE_VDBOX_1_1_2 ||
+            forceVdbox == MOS_FORCE_VDBOX_2_1_2))
+    {
+        eStatus = MOS_STATUS_INVALID_PARAMETER;
+        MHW_ASSERTMESSAGE("user feature forceVdbox valude does not consistent with regkey scalability mode.");
+        return eStatus;
+    }
+
+    if (scalableDecMode && !m_scalabilitySupported)
+    {
+        eStatus = MOS_STATUS_INVALID_PARAMETER;
+        MHW_ASSERTMESSAGE("user feature scalability mode is not allowed on current platform!");
+        return eStatus;
+    }
+
+    if (forceVdbox == 0)
+    {
+        useVD1 = true;
+    }
+    else
+    {
+        MHW_VDBOX_IS_VDBOX_SPECIFIED(forceVdbox, MOS_FORCE_VDBOX_1, MOS_FORCEVDBOX_VDBOXID_BITSNUM, MOS_FORCEVDBOX_MASK, useVD1);
+        MHW_VDBOX_IS_VDBOX_SPECIFIED(forceVdbox, MOS_FORCE_VDBOX_2, MOS_FORCEVDBOX_VDBOXID_BITSNUM, MOS_FORCEVDBOX_MASK, useVD2);
+    }
+    if (!gtSystemInfo->VDBoxInfo.IsValid ||
+        (useVD1 && !gtSystemInfo->VDBoxInfo.Instances.Bits.VDBox0Enabled) ||
+        (useVD2 && !gtSystemInfo->VDBoxInfo.Instances.Bits.VDBox1Enabled))
+    {
+        eStatus = MOS_STATUS_INVALID_PARAMETER;
+        MHW_ASSERTMESSAGE("the forced VDBOX is not enabled in current platform.");
+        return eStatus;
+    }
+
+    return eStatus;
+}
 #endif
+MOS_STATUS MediaContext::FindGpuNodeToUse(PMHW_VDBOX_GPUNODE_LIMIT gpuNodeLimit)
+{
+    bool       setVideoNode = false;
+    MOS_STATUS eStatus      = MOS_STATUS_SUCCESS;
+
+    MOS_GPU_NODE videoGpuNode = MOS_GPU_NODE_VIDEO;
+
+    if (MOS_VE_MULTINODESCALING_SUPPORTED(m_osInterface))
+    {
+        if (GetNumVdbox() == 1)
+        {
+            videoGpuNode = MOS_GPU_NODE_VIDEO;
+        }
+        else
+        {
+            MHW_MI_CHK_STATUS(m_osInterface->pfnCreateVideoNodeAssociation(
+                m_osInterface,
+                setVideoNode,
+                &videoGpuNode));
+        }
+    }
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (m_osInterface != nullptr && m_osInterface->bEnableDbgOvrdInVE &&
+        (!m_osInterface->bSupportVirtualEngine || !m_scalabilitySupported))
+    {
+        eStatus = MOS_STATUS_INVALID_PARAMETER;
+        MHW_ASSERTMESSAGE("not support DebugOverrid on current OS or Platform.");
+        return eStatus;
+    }
+
+    if (m_osInterface != nullptr && m_osInterface->bEnableDbgOvrdInVE)
+    {
+        MHW_MI_CHK_STATUS(CheckScalabilityOverrideValidity());
+    }
+#endif
+    gpuNodeLimit->dwGpuNodeToUse = videoGpuNode;
+
+    return eStatus;
+}
+#endif
+
 MOS_STATUS MediaContext::FunctionToGpuContext(MediaFunction func, const MOS_GPUCTX_CREATOPTIONS_ENHANCED &option, const MOS_GPU_NODE &node, MOS_GPU_CONTEXT &ctx)
 {
     MOS_OS_FUNCTION_ENTER;
