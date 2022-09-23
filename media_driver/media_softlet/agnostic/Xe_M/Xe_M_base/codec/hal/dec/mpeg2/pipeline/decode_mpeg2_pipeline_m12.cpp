@@ -31,6 +31,7 @@
 #include "decode_mpeg2_mb_packet_m12.h"
 #include "decode_mpeg2_picture_packet_m12.h"
 #include "decode_common_feature_defs.h"
+#include "decode_sfc_histogram_postsubpipeline_m12.h"
 
 namespace decode {
 
@@ -96,7 +97,58 @@ MOS_STATUS Mpeg2PipelineM12::Initialize(void *settings)
 {
     DECODE_FUNC_CALL();
 
-    DECODE_CHK_STATUS(Mpeg2Pipeline::Initialize(settings));
+    DECODE_CHK_STATUS(MediaPipeline::InitPlatform());
+    DECODE_CHK_STATUS(MediaPipeline::CreateMediaCopy());
+
+    DECODE_CHK_NULL(m_waTable);
+
+    auto *codecSettings = (CodechalSetting *)settings;
+    DECODE_CHK_NULL(m_hwInterface);
+    DECODE_CHK_STATUS(m_hwInterface->Initialize(codecSettings));
+
+    m_mediaContext = MOS_New(MediaContext, scalabilityDecoder, m_hwInterface, m_osInterface);
+    DECODE_CHK_NULL(m_mediaContext);
+
+    m_task = CreateTask(MediaTask::TaskType::cmdTask);
+    DECODE_CHK_NULL(m_task);
+
+    m_numVdbox = GetSystemVdboxNumber();
+
+    bool limitedLMemBar = MEDIA_IS_SKU(m_skuTable, FtrLimitedLMemBar) ? true : false;
+    m_allocator         = MOS_New(DecodeAllocator, m_osInterface, limitedLMemBar);
+    DECODE_CHK_NULL(m_allocator);
+
+    DECODE_CHK_STATUS(CreateStatusReport());
+
+    m_decodecp = Create_DecodeCpInterface(codecSettings, m_hwInterface->GetCpInterface(), m_hwInterface->GetOsInterface());
+    if (m_decodecp)
+    {
+        m_decodecp->RegisterParams(codecSettings);
+    }
+    DECODE_CHK_STATUS(CreateFeatureManager());
+    DECODE_CHK_STATUS(m_featureManager->Init(codecSettings));
+
+    DECODE_CHK_STATUS(CreateSubPipeLineManager(codecSettings));
+    DECODE_CHK_STATUS(CreateSubPacketManager(codecSettings));
+
+    m_basicFeature = dynamic_cast<Mpeg2BasicFeature *>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
+    DECODE_CHK_NULL(m_basicFeature);
+
+    // Create basic GPU context
+    DecodeScalabilityPars scalPars;
+    MOS_ZeroMemory(&scalPars, sizeof(scalPars));
+    DECODE_CHK_STATUS(m_mediaContext->SwitchContext(VdboxDecodeFunc, &scalPars, &m_scalability));
+    m_decodeContext = m_osInterface->pfnGetGpuContext(m_osInterface);
+
+    HucPacketCreatorG12 *hucPktCreator = dynamic_cast<HucPacketCreatorG12 *>(this);
+    DECODE_CHK_NULL(hucPktCreator);
+    m_mpeg2BsCopyPkt = hucPktCreator->CreateHucCopyPkt(this, m_task, m_hwInterface);
+    DECODE_CHK_NULL(m_mpeg2BsCopyPkt);
+    MediaPacket *packet = dynamic_cast<MediaPacket *>(m_mpeg2BsCopyPkt);
+    DECODE_CHK_NULL(packet);
+    DECODE_CHK_STATUS(RegisterPacket(DecodePacketId(this, mpeg2BsCopyPktId), packet));
+    DECODE_CHK_STATUS(packet->Init());
+
 #ifdef _MMC_SUPPORTED
     DECODE_CHK_STATUS(InitMmcState());
 #endif
@@ -276,6 +328,19 @@ MOS_STATUS Mpeg2PipelineM12::UserFeatureReport()
 {
     DECODE_FUNC_CALL();
     return Mpeg2Pipeline::UserFeatureReport();
+}
+
+MOS_STATUS Mpeg2PipelineM12::CreatePostSubPipeLines(DecodeSubPipelineManager &subPipelineManager)
+{
+    DECODE_FUNC_CALL();
+
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    auto sfcHistogramPostSubPipeline = MOS_New(DecodeSfcHistogramSubPipelineM12, this, m_task, m_numVdbox, m_hwInterface);
+    DECODE_CHK_NULL(sfcHistogramPostSubPipeline);
+    DECODE_CHK_STATUS(m_postSubPipeline->Register(*sfcHistogramPostSubPipeline));
+#endif
+
+    return MOS_STATUS_SUCCESS;
 }
 
 #if USE_CODECHAL_DEBUG_TOOL

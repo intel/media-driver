@@ -74,6 +74,15 @@ public:
 
     virtual MOS_STATUS Destroy() override;
 
+    //!
+    //! \brief  Create post sub packets
+    //! \param  [in] subPipelineManager
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS CreatePostSubPipeLines(DecodeSubPipelineManager &subPipelineManager) override;
+
+
 protected:
     virtual MOS_STATUS Initialize(void *settings) override;
     virtual MOS_STATUS Uninitialize() override;
@@ -103,6 +112,8 @@ protected:
     virtual MOS_STATUS InitMmcState();
 
     virtual MOS_STATUS CreateFeatureManager() override;
+
+    virtual MOS_STATUS InitContexOption(Vp9BasicFeature &basicFeature) override;
 
 #if USE_CODECHAL_DEBUG_TOOL
     //! \brief    Dump the parameters

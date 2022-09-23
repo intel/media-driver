@@ -107,7 +107,7 @@ protected:
     MOS_STATUS ContextBufferInit(uint8_t *ctxBuffer, bool setToKey);
     MOS_STATUS CtxBufDiffInit(uint8_t *ctxBuffer, bool setToKey);
 
-private:
+protected:
     Vp9BasicFeature  *m_basicFeature   = nullptr; //!< Vp9 basic feature
     DecodeAllocator  *m_allocator      = nullptr; //!< Resource allocator
 

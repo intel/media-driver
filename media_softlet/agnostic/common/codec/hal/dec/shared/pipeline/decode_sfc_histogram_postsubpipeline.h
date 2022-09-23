@@ -100,7 +100,7 @@ protected:
 
     MOS_STATUS CopyHistogramToDestBuf(MOS_RESOURCE* src, MOS_RESOURCE* dest, uint32_t destOffset);
 
-private:
+protected:
     DecodeBasicFeature*             m_basicFeature      = nullptr; //!< Decode basic feature
     DecodeAllocator*                m_allocator         = nullptr; //!< Resource allocator
     HucCopyPktItf *                 m_copyPkt           = nullptr;  //!< Bitstream concat packet

@@ -23,12 +23,14 @@ set(TMP_SOURCES_
     ${TMP_SOURCES_}
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_pipeline_m12.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_pipeline_adapter_m12.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_buffer_update_m12.cpp
 )
 
 set(TMP_HEADERS_
     ${TMP_HEADERS_}
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_pipeline_m12.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_pipeline_adapter_m12.h
+    ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_buffer_update_m12.h
 )
 endif()
 

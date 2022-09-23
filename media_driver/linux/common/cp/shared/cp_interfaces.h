@@ -190,7 +190,8 @@ public:
     //!
     virtual DecodeCpInterface *Create_DecodeCpInterface(
         CodechalSetting *    codechalSettings,
-        CodechalHwInterface *hwInterfaceInput) = 0;
+        MhwCpInterface  *cpInterface,
+        PMOS_INTERFACE   osInterface) = 0;
 
     //!
     //! \brief   Delete the DecodeCpInterface Object

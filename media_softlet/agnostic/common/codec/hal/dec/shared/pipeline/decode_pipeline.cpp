@@ -180,7 +180,7 @@ MOS_STATUS DecodePipeline::Initialize(void *settings)
 
     DECODE_CHK_STATUS(CreateStatusReport());
 
-    m_decodecp = Create_DecodeCpInterface(codecSettings, m_hwInterface);
+    m_decodecp = Create_DecodeCpInterface(codecSettings, m_hwInterface->GetCpInterface(), m_hwInterface->GetOsInterface());
     if (m_decodecp)
     {
         m_decodecp->RegisterParams(codecSettings);

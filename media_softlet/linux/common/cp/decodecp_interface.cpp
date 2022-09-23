@@ -34,9 +34,10 @@ static void DecodeCpStubMessage()
 
 DecodeCpInterface *Create_DecodeCpInterface(
     CodechalSetting *    codechalSettings,
-    CodechalHwInterface *hwInterfaceInput)
+    MhwCpInterface  *    cpInterface,
+    PMOS_INTERFACE       osInterface)
 {
-    if (nullptr == codechalSettings || nullptr == hwInterfaceInput)
+    if (nullptr == codechalSettings || nullptr == cpInterface || nullptr == osInterface)
     {
         MOS_NORMALMESSAGE(MOS_COMPONENT_CP, MOS_CP_SUBCOMP_CODEC, "NULL pointer parameters");
         return nullptr;
@@ -46,7 +47,7 @@ DecodeCpInterface *Create_DecodeCpInterface(
     CpInterfaces *cp_interface = CpInterfacesFactory::Create(CP_INTERFACE);
     if (cp_interface)
     {
-        pInterface = cp_interface->Create_DecodeCpInterface(codechalSettings, hwInterfaceInput);
+        pInterface = cp_interface->Create_DecodeCpInterface(codechalSettings, cpInterface, osInterface);
         MOS_Delete(cp_interface);
     }
 

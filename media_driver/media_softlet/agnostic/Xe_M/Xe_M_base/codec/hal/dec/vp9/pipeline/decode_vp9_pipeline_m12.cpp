@@ -37,6 +37,8 @@
 #include "decode_common_feature_defs.h"
 #include "decode_resource_auto_lock.h"
 #include "decode_vp9_feature_manager_m12.h"
+#include "decode_vp9_buffer_update_m12.h"
+#include "decode_sfc_histogram_postsubpipeline_m12.h"
 
 namespace decode
 {
@@ -134,6 +136,69 @@ MOS_STATUS Vp9PipelineG12::Prepare(void *params)
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS Vp9PipelineG12::InitContexOption(Vp9BasicFeature &basicFeature)
+{
+    DecodeScalabilityPars scalPars;
+    MOS_ZeroMemory(&scalPars, sizeof(scalPars));
+
+    scalPars.usingHcp           = true;
+    scalPars.enableVE           = MOS_VE_SUPPORTED(m_osInterface);
+    scalPars.disableScalability = m_hwInterface->IsDisableScalability();
+    scalPars.surfaceFormat      = basicFeature.m_destSurface.Format;
+    scalPars.frameWidth         = basicFeature.m_frameWidthAlignedMinBlk;
+    scalPars.frameHeight        = basicFeature.m_frameHeightAlignedMinBlk;
+    scalPars.numVdbox           = m_numVdbox;
+    if (m_osInterface->pfnIsMultipleCodecDevicesInUse(m_osInterface))
+    {
+        scalPars.disableScalability = true;
+    }
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (m_osInterface->bHcpDecScalabilityMode == MOS_SCALABILITY_ENABLE_MODE_FALSE)
+    {
+        scalPars.disableScalability = true;
+    }
+    else if (m_osInterface->bHcpDecScalabilityMode == MOS_SCALABILITY_ENABLE_MODE_USER_FORCE)
+    {
+        scalPars.disableScalability = false;
+    }
+    scalPars.modeSwithThreshold1 =
+        ReadUserFeature(m_userSettingPtr, "HCP Decode Mode Switch TH1", MediaUserSetting::Group::Sequence).Get<uint32_t>();
+    scalPars.modeSwithThreshold2 =
+        ReadUserFeature(m_userSettingPtr, "HCP Decode Mode Switch TH2", MediaUserSetting::Group::Sequence).Get<uint32_t>();
+    scalPars.forceMultiPipe =
+        ReadUserFeature(m_userSettingPtr, "HCP Decode Always Frame Split", MediaUserSetting::Group::Sequence).Get<bool>();
+    scalPars.userPipeNum =
+        ReadUserFeature(m_userSettingPtr, "HCP Decode User Pipe Num", MediaUserSetting::Group::Sequence).Get<uint8_t>();
+#endif
+
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    DecodeDownSamplingFeature *downSamplingFeature = dynamic_cast<DecodeDownSamplingFeature *>(
+        m_featureManager->GetFeature(DecodeFeatureIDs::decodeDownSampling));
+    if (downSamplingFeature != nullptr && downSamplingFeature->IsEnabled())
+    {
+        scalPars.usingSfc = true;
+        if (!MEDIA_IS_SKU(m_skuTable, FtrSfcScalability))
+        {
+            scalPars.disableScalability = true;
+        }
+    }
+    //Disable Scalability when histogram is enabled
+    if (downSamplingFeature != nullptr && (downSamplingFeature->m_histogramDestSurf || downSamplingFeature->m_histogramDebug))
+    {
+        scalPars.disableScalability = true;
+    }
+#endif
+
+    if (MEDIA_IS_SKU(m_skuTable, FtrVirtualTileScalabilityDisable))
+    {
+        scalPars.disableScalability = true;
+        scalPars.disableVirtualTile = true;
+    }
+
+    DECODE_CHK_STATUS(m_scalabOption.SetScalabilityOption(&scalPars));
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS Vp9PipelineG12::Execute()
 {
     DECODE_FUNC_CALL();
@@ -221,7 +286,53 @@ MOS_STATUS Vp9PipelineG12::Initialize(void *settings)
 {
     DECODE_FUNC_CALL();
 
-    DECODE_CHK_STATUS(Vp9Pipeline::Initialize(settings));
+    DECODE_CHK_STATUS(MediaPipeline::InitPlatform());
+    DECODE_CHK_STATUS(MediaPipeline::CreateMediaCopy());
+
+    DECODE_CHK_NULL(m_waTable);
+
+    auto *codecSettings = (CodechalSetting *)settings;
+    DECODE_CHK_NULL(m_hwInterface);
+    DECODE_CHK_STATUS(m_hwInterface->Initialize(codecSettings));
+
+    m_mediaContext = MOS_New(MediaContext, scalabilityDecoder, m_hwInterface, m_osInterface);
+    DECODE_CHK_NULL(m_mediaContext);
+
+    m_task = CreateTask(MediaTask::TaskType::cmdTask);
+    DECODE_CHK_NULL(m_task);
+
+    m_numVdbox = GetSystemVdboxNumber();
+
+    bool limitedLMemBar = MEDIA_IS_SKU(m_skuTable, FtrLimitedLMemBar) ? true : false;
+    m_allocator         = MOS_New(DecodeAllocator, m_osInterface, limitedLMemBar);
+    DECODE_CHK_NULL(m_allocator);
+
+    DECODE_CHK_STATUS(CreateStatusReport());
+
+    m_decodecp = Create_DecodeCpInterface(codecSettings, m_hwInterface->GetCpInterface(), m_hwInterface->GetOsInterface());
+    if (m_decodecp)
+    {
+        m_decodecp->RegisterParams(codecSettings);
+    }
+    DECODE_CHK_STATUS(CreateFeatureManager());
+    DECODE_CHK_STATUS(m_featureManager->Init(codecSettings));
+
+    DECODE_CHK_STATUS(CreateSubPipeLineManager(codecSettings));
+    DECODE_CHK_STATUS(CreateSubPacketManager(codecSettings));
+
+    // Create basic GPU context
+    DecodeScalabilityPars scalPars;
+    MOS_ZeroMemory(&scalPars, sizeof(scalPars));
+    DECODE_CHK_STATUS(m_mediaContext->SwitchContext(VdboxDecodeFunc, &scalPars, &m_scalability));
+    m_decodeContext = m_osInterface->pfnGetGpuContext(m_osInterface);
+
+    m_basicFeature = dynamic_cast<Vp9BasicFeature *>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
+    DECODE_CHK_NULL(m_basicFeature);
+
+    auto *bufferUpdatePipeline = MOS_New(DecodeVp9BufferUpdateM12, this, m_task, m_numVdbox, m_hwInterface);
+    DECODE_CHK_NULL(bufferUpdatePipeline);
+    DECODE_CHK_STATUS(m_preSubPipeline->Register(*bufferUpdatePipeline));
+    DECODE_CHK_STATUS(bufferUpdatePipeline->Init(*codecSettings));
 #ifdef _MMC_SUPPORTED
     DECODE_CHK_STATUS(InitMmcState());
 #endif
@@ -279,6 +390,19 @@ MOS_STATUS Vp9PipelineG12::CreateSubPackets(DecodeSubPacketManager &subPacketMan
     DECODE_CHK_NULL(tileDecodePkt);
     DECODE_CHK_STATUS(subPacketManager.Register(
         DecodePacketId(this, vp9TileSubPacketId), *tileDecodePkt));
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS Vp9PipelineG12::CreatePostSubPipeLines(DecodeSubPipelineManager &subPipelineManager)
+{
+    DECODE_FUNC_CALL();
+
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    auto sfcHistogramPostSubPipeline = MOS_New(DecodeSfcHistogramSubPipelineM12, this, m_task, m_numVdbox, m_hwInterface);
+    DECODE_CHK_NULL(sfcHistogramPostSubPipeline);
+    DECODE_CHK_STATUS(m_postSubPipeline->Register(*sfcHistogramPostSubPipeline));
+#endif
 
     return MOS_STATUS_SUCCESS;
 }

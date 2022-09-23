@@ -34,6 +34,7 @@
 #include "decode_utils.h"
 #include "decode_common_feature_defs.h"
 #include "decode_hevc_mem_compression_m12.h"
+#include "decode_sfc_histogram_postsubpipeline_m12.h"
 
 namespace decode {
 
@@ -79,6 +80,71 @@ MOS_STATUS HevcPipelineM12::Init(void *settings)
 
     return MOS_STATUS_SUCCESS;
 }
+
+MOS_STATUS HevcPipelineM12::InitContexOption(HevcScalabilityPars &scalPars)
+{
+    scalPars.usingHcp           = true;
+    scalPars.enableVE           = MOS_VE_SUPPORTED(m_osInterface);
+    scalPars.disableScalability = m_hwInterface->IsDisableScalability();
+    if (m_osInterface->pfnIsMultipleCodecDevicesInUse(m_osInterface))
+    {
+        scalPars.disableScalability = true;
+    }
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (m_osInterface->bHcpDecScalabilityMode == MOS_SCALABILITY_ENABLE_MODE_FALSE)
+    {
+        scalPars.disableScalability = true;
+    }
+    else if (m_osInterface->bHcpDecScalabilityMode == MOS_SCALABILITY_ENABLE_MODE_USER_FORCE)
+    {
+        scalPars.disableScalability = false;
+    }
+    scalPars.modeSwithThreshold1 =
+        ReadUserFeature(m_userSettingPtr, "HCP Decode Mode Switch TH1", MediaUserSetting::Group::Sequence).Get<uint32_t>();
+    scalPars.modeSwithThreshold2 =
+        ReadUserFeature(m_userSettingPtr, "HCP Decode Mode Switch TH2", MediaUserSetting::Group::Sequence).Get<uint32_t>();
+    scalPars.forceMultiPipe =
+        ReadUserFeature(m_userSettingPtr, "HCP Decode Always Frame Split", MediaUserSetting::Group::Sequence).Get<bool>();
+#endif
+    return MOS_STATUS_SUCCESS;
+}
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+MOS_STATUS HevcPipelineM12::HwStatusCheck(const DecodeStatusMfx &status)
+{
+    DECODE_FUNC_CALL();
+
+    if (m_basicFeature->m_shortFormatInUse)
+    {
+        // Check HuC_status2 Imem loaded bit, if 0, return error
+        if (((status.m_hucErrorStatus2 >> 32) && (m_hwInterface->GetHucInterface()->GetHucStatus2ImemLoadedMask())) == 0)
+        {
+            if (!m_reportHucStatus)
+            {
+                WriteUserFeature(__MEDIA_USER_FEATURE_VALUE_HUC_LOAD_STATUS_ID, 1, m_osInterface->pOsContext);
+                m_reportHucStatus = true;
+            }
+            DECODE_ASSERTMESSAGE("Huc IMEM Loaded fails");
+            MT_ERR1(MT_DEC_HEVC, MT_DEC_HUC_ERROR_STATUS2, (status.m_hucErrorStatus2 >> 32));
+        }
+
+        // Check Huc_status None Critical Error bit, bit 15. If 0, return error.
+        if (((status.m_hucErrorStatus >> 32) & m_hwInterface->GetHucInterface()->GetHucStatusHevcS2lFailureMask()) == 0)
+        {
+            if (!m_reportHucCriticalError)
+            {
+                WriteUserFeature(__MEDIA_USER_FEATURE_VALUE_HUC_REPORT_CRITICAL_ERROR_ID, 1, m_osInterface->pOsContext);
+                m_reportHucCriticalError = true;
+            }
+            DECODE_ASSERTMESSAGE("Huc Report Critical Error!");
+            MT_ERR1(MT_DEC_HEVC, MT_DEC_HUC_STATUS_CRITICAL_ERROR, (status.m_hucErrorStatus >> 32));
+        }
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+#endif
+
 
 MOS_STATUS HevcPipelineM12::InitScalabOption(HevcBasicFeature &basicFeature)
 {
@@ -361,7 +427,52 @@ MOS_STATUS HevcPipelineM12::Destroy()
 MOS_STATUS HevcPipelineM12::Initialize(void *settings)
 {
     DECODE_FUNC_CALL();
-    DECODE_CHK_STATUS(HevcPipeline::Initialize(settings));
+    
+    DECODE_CHK_NULL(settings);
+
+    DECODE_CHK_STATUS(MediaPipeline::InitPlatform());
+    DECODE_CHK_STATUS(MediaPipeline::CreateMediaCopy());
+
+    DECODE_CHK_NULL(m_waTable);
+
+    auto *codecSettings = (CodechalSetting *)settings;
+    DECODE_CHK_NULL(m_hwInterface);
+    DECODE_CHK_STATUS(m_hwInterface->Initialize(codecSettings));
+
+    m_mediaContext = MOS_New(MediaContext, scalabilityDecoder, m_hwInterface, m_osInterface);
+    DECODE_CHK_NULL(m_mediaContext);
+
+    m_task = CreateTask(MediaTask::TaskType::cmdTask);
+    DECODE_CHK_NULL(m_task);
+
+    m_numVdbox = GetSystemVdboxNumber();
+
+    bool limitedLMemBar = MEDIA_IS_SKU(m_skuTable, FtrLimitedLMemBar) ? true : false;
+    m_allocator         = MOS_New(DecodeAllocator, m_osInterface, limitedLMemBar);
+    DECODE_CHK_NULL(m_allocator);
+
+    DECODE_CHK_STATUS(CreateStatusReport());
+
+    m_decodecp = Create_DecodeCpInterface(codecSettings, m_hwInterface->GetCpInterface(), m_hwInterface->GetOsInterface());
+    if (m_decodecp)
+    {
+        m_decodecp->RegisterParams(codecSettings);
+    }
+    DECODE_CHK_STATUS(CreateFeatureManager());
+    DECODE_CHK_STATUS(m_featureManager->Init(codecSettings));
+
+    DECODE_CHK_STATUS(CreateSubPipeLineManager(codecSettings));
+    DECODE_CHK_STATUS(CreateSubPacketManager(codecSettings));
+
+    // Create basic GPU context
+    DecodeScalabilityPars scalPars;
+    MOS_ZeroMemory(&scalPars, sizeof(scalPars));
+    DECODE_CHK_STATUS(m_mediaContext->SwitchContext(VdboxDecodeFunc, &scalPars, &m_scalability));
+    m_decodeContext = m_osInterface->pfnGetGpuContext(m_osInterface);
+
+    m_basicFeature = dynamic_cast<HevcBasicFeature *>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
+    DECODE_CHK_NULL(m_basicFeature);
+
 #ifdef _MMC_SUPPORTED
     DECODE_CHK_STATUS(InitMmcState());
 #endif
@@ -448,6 +559,19 @@ MOS_STATUS HevcPipelineM12::CreateSubPackets(DecodeSubPacketManager& subPacketMa
     DECODE_CHK_NULL(tileDecodePkt);
     DECODE_CHK_STATUS(subPacketManager.Register(
                         DecodePacketId(this, hevcTileSubPacketId), *tileDecodePkt));
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS HevcPipelineM12::CreatePostSubPipeLines(DecodeSubPipelineManager &subPipelineManager)
+{
+    DECODE_FUNC_CALL();
+
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    auto sfcHistogramPostSubPipeline = MOS_New(DecodeSfcHistogramSubPipelineM12, this, m_task, m_numVdbox, m_hwInterface);
+    DECODE_CHK_NULL(sfcHistogramPostSubPipeline);
+    DECODE_CHK_STATUS(m_postSubPipeline->Register(*sfcHistogramPostSubPipeline));
+#endif
 
     return MOS_STATUS_SUCCESS;
 }

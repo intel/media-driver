@@ -28,7 +28,8 @@
 #include "media_user_settings_mgr_g12.h"
 #include "codechal_setting.h"
 #include "decode_av1_feature_manager_g12_base.h"
-#include "decode_huc_packet_creator_base.h"
+#include "decode_huc_packet_creator_g12.h"
+#include "decode_sfc_histogram_postsubpipeline_m12.h"
 
 namespace decode {
 
@@ -43,9 +44,41 @@ Av1PipelineG12_Base::Av1PipelineG12_Base(
 MOS_STATUS Av1PipelineG12_Base::Initialize(void *settings)
 {
     DECODE_FUNC_CALL();
-    DECODE_CHK_STATUS(DecodePipeline::Initialize(settings));
+    DECODE_CHK_STATUS(MediaPipeline::InitPlatform());
+    DECODE_CHK_STATUS(MediaPipeline::CreateMediaCopy());
 
-    HucPacketCreatorBase *hucPktCreator = dynamic_cast<HucPacketCreatorBase *>(this);
+    DECODE_CHK_NULL(m_waTable);
+
+    auto *codecSettings = (CodechalSetting *)settings;
+    DECODE_CHK_NULL(m_hwInterface);
+    DECODE_CHK_STATUS(m_hwInterface->Initialize(codecSettings));
+
+    m_mediaContext = MOS_New(MediaContext, scalabilityDecoder, m_hwInterface, m_osInterface);
+    DECODE_CHK_NULL(m_mediaContext);
+
+    m_task = CreateTask(MediaTask::TaskType::cmdTask);
+    DECODE_CHK_NULL(m_task);
+
+    m_numVdbox = GetSystemVdboxNumber();
+
+    bool limitedLMemBar = MEDIA_IS_SKU(m_skuTable, FtrLimitedLMemBar) ? true : false;
+    m_allocator         = MOS_New(DecodeAllocator, m_osInterface, limitedLMemBar);
+    DECODE_CHK_NULL(m_allocator);
+
+    DECODE_CHK_STATUS(CreateStatusReport());
+
+    m_decodecp = Create_DecodeCpInterface(codecSettings, m_hwInterface->GetCpInterface(), m_hwInterface->GetOsInterface());
+    if (m_decodecp)
+    {
+        m_decodecp->RegisterParams(codecSettings);
+    }
+    DECODE_CHK_STATUS(CreateFeatureManager());
+    DECODE_CHK_STATUS(m_featureManager->Init(codecSettings));
+
+    DECODE_CHK_STATUS(CreateSubPipeLineManager(codecSettings));
+    DECODE_CHK_STATUS(CreateSubPacketManager(codecSettings));
+
+    HucPacketCreatorG12 *hucPktCreator = dynamic_cast<HucPacketCreatorG12 *>(this);
     DECODE_CHK_NULL(hucPktCreator);
     m_cdfCopyPkt = hucPktCreator->CreateHucCopyPkt(this, m_task, m_hwInterface); 
     DECODE_CHK_NULL(m_cdfCopyPkt);
@@ -53,9 +86,6 @@ MOS_STATUS Av1PipelineG12_Base::Initialize(void *settings)
     DECODE_CHK_NULL(packet);
     DECODE_CHK_STATUS(RegisterPacket(DecodePacketId(this, defaultCdfBufCopyPacketId), packet));
     DECODE_CHK_STATUS(packet->Init());
-
-    auto *codecSettings = (CodechalSetting*)settings;
-    DECODE_CHK_NULL(codecSettings);
 
   bool forceTileBasedDecodingRead = 0;
 #if (_DEBUG || _RELEASE_INTERNAL)
@@ -176,6 +206,19 @@ MOS_STATUS Av1PipelineG12_Base::CreateSubPackets(DecodeSubPacketManager &subPack
 Av1PipelineG12_Base::Av1DecodeMode Av1PipelineG12_Base::GetDecodeMode()
 {
     return m_decodeMode;
+}
+
+MOS_STATUS Av1PipelineG12_Base::CreatePostSubPipeLines(DecodeSubPipelineManager &subPipelineManager)
+{
+    DECODE_FUNC_CALL();
+
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    auto sfcHistogramPostSubPipeline = MOS_New(DecodeSfcHistogramSubPipelineM12, this, m_task, m_numVdbox, m_hwInterface);
+    DECODE_CHK_NULL(sfcHistogramPostSubPipeline);
+    DECODE_CHK_STATUS(m_postSubPipeline->Register(*sfcHistogramPostSubPipeline));
+#endif
+
+    return MOS_STATUS_SUCCESS;
 }
 
 #if USE_CODECHAL_DEBUG_TOOL

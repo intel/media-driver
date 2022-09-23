@@ -1,4 +1,4 @@
-# Copyright (c) 2018-2021, Intel Corporation
+# Copyright (c) 2021, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,37 +18,6 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-set(TMP_SOURCES_ "")
-set(TMP_HEADERS_ "")
+media_include_subdirectory(pipeline)
 
-media_include_subdirectory(hevc)
-media_include_subdirectory(avc)
-media_include_subdirectory(vp9)
-media_include_subdirectory(mpeg2)
-media_include_subdirectory(jpeg)
-media_include_subdirectory(shared)
-
-set(SOURCES_NEW
-    ${SOURCES_NEW}
-    ${TMP_SOURCES_}
-)
-
-set(HEADERS_NEW
-    ${HEADERS_NEW}
-    ${TMP_HEADERS_}
-)
-
-set(CODEC_SOURCES_
-    ${CODEC_SOURCES_}
-    ${TMP_SOURCES_}
-)
-
-set(CODEC_HEADERS_
-    ${CODEC_HEADERS_}
-    ${TMP_HEADERS_}
-)
-
-source_group(CodecHalNext\\Gen12\\Decode FILES ${TMP_HEADERS_} ${TMP_SOURCES_})
-set(TMP_SOURCES_ "")
-set(TMP_HEADERS_ "")
 media_add_curr_to_include_path()

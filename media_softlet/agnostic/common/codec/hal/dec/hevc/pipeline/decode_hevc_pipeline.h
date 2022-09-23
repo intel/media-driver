@@ -151,7 +151,7 @@ protected:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS InitContexOption(HevcScalabilityPars& scalPars);
+    virtual MOS_STATUS InitContexOption(HevcScalabilityPars& scalPars);
 
     //!
     //! \brief  Initialize Hevc decode mode

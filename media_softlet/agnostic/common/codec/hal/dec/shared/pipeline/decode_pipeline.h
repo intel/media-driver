@@ -385,7 +385,7 @@ protected:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS CreatePostSubPipeLines(DecodeSubPipelineManager &subPipelineManager);
+    virtual MOS_STATUS CreatePostSubPipeLines(DecodeSubPipelineManager &subPipelineManager);
 
     //!
     //! \brief  Create sub packets
@@ -464,7 +464,7 @@ protected:
     MOS_STATUS StatusCheck();
 #endif
 
-private:
+protected:
     //!
     //! \brief  Create sub pipeline manager
     //! \param  [in] codecSettings
@@ -483,7 +483,6 @@ private:
     //!
     MOS_STATUS CreateSubPacketManager(CodechalSetting* codecSettings);
 
-protected:
     friend class DecodeSubPipelineManager;
 
     CodechalHwInterface*    m_hwInterface    = nullptr; //!< Codechal HwInterface

@@ -106,6 +106,14 @@ protected:
     //!
     MOS_STATUS InitContext();
 
+    //!
+    //! \brief  Create post sub packets
+    //! \param  [in] subPipelineManager
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS CreatePostSubPipeLines(DecodeSubPipelineManager &subPipelineManager) override;
+
 #if USE_CODECHAL_DEBUG_TOOL
     //!
     //! \brief    Dump the parameters

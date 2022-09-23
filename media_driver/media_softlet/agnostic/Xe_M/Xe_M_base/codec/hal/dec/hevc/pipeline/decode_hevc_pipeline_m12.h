@@ -71,6 +71,14 @@ public:
 
     uint32_t GetCompletedReport();
 
+    //!
+    //! \brief  Create post sub packets
+    //! \param  [in] subPipelineManager
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS CreatePostSubPipeLines(DecodeSubPipelineManager &subPipelineManager) override;
+
 protected:
     virtual MOS_STATUS Initialize(void *settings) override;
     virtual MOS_STATUS Uninitialize() override;
@@ -106,6 +114,19 @@ protected:
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS AllocateResources(HevcBasicFeature &basicFeature);
+
+    virtual MOS_STATUS InitContexOption(HevcScalabilityPars &scalPars) override;
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    //!
+    //! \brief  Earlier stop for hw error status
+    //! \param  [in] status
+    //!         Status report from HW
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS HwStatusCheck(const DecodeStatusMfx &status) override;
+#endif
 
 #ifdef _MMC_SUPPORTED
     //!

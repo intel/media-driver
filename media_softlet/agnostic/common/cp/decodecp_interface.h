@@ -170,7 +170,8 @@ MEDIA_CLASS_DEFINE_END(DecodeCpInterface)
 //
 DecodeCpInterface *Create_DecodeCpInterface(
     CodechalSetting *    codechalSettings,
-    CodechalHwInterface *hwInterfaceInput);
+    MhwCpInterface  *    cpInterface,
+    PMOS_INTERFACE       osInterface);
 
 //!
 //! \brief    Delete the DecodeCpInterface Object
