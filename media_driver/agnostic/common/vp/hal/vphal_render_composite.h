@@ -779,7 +779,8 @@ protected:
     //!
     bool AddCompLayer(
         PVPHAL_COMPOSITE_PARAMS     pComposite,
-        PVPHAL_SURFACE              pSource);
+        PVPHAL_SURFACE              pSource,
+        bool                        bDisableAvsSampler);
 
     //!
     //! \brief    Adds render target layer for composite
@@ -834,6 +835,10 @@ protected:
     //!
     virtual bool SubmitStates(
         PVPHAL_RENDERING_DATA_COMPOSITE     pRenderingData);
+
+    virtual bool IsDisableAVSSampler(
+        int32_t         iSources,
+        bool            isTargetY);
 
 private:
     //!

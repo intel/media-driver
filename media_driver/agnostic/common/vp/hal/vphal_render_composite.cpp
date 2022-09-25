@@ -1437,6 +1437,7 @@ bool CompositeState::PreparePhases(
     {
         // Reset multiple phase support
         bMultiplePhases = false;
+        bool disableAvsSampler = false;
 
         // Temporary surface has the same size as render target
         dwTempWidth  = pTarget->dwWidth;
@@ -1444,9 +1445,23 @@ bool CompositeState::PreparePhases(
 
         // Check if multiple phases by building filter for first phase
         ResetCompParams(&Composite);
+
+        if (IsDisableAVSSampler(iSources, 0 < pTarget->rcDst.top))
+        {
+            VPHAL_RENDER_ASSERTMESSAGE("Disable AVS sampler for TargetTopY!");
+            Composite.nAVS    = 0;
+            disableAvsSampler = true;
+        }
+
         for (i = 0; i < iSources; i++)
         {
-            if (!AddCompLayer(&Composite, ppSources[i]))
+            if (disableAvsSampler && VPHAL_SCALING_AVS == ppSources[i]->ScalingMode)
+            {
+                VPHAL_RENDER_ASSERTMESSAGE("Force to 3D sampler for layer %d.", i);
+                ppSources[i]->ScalingMode = VPHAL_SCALING_BILINEAR;
+            }
+
+            if (!AddCompLayer(&Composite, ppSources[i], disableAvsSampler))
             {
                 bMultiplePhases = true;
                 break;
@@ -1625,7 +1640,8 @@ void CompositeState::ResetCompParams(
 //!
 bool CompositeState::AddCompLayer(
     PVPHAL_COMPOSITE_PARAMS     pComposite,
-    PVPHAL_SURFACE              pSource)
+    PVPHAL_SURFACE              pSource,
+    bool                        bDisableAvsSampler = false)
 {
     bool                bResult;
     PVPHAL_SURFACE      pPrevSource;
@@ -1734,9 +1750,16 @@ bool CompositeState::AddCompLayer(
         }
         else
         {
-            // switch to AVS if AVS sampler is not used, decrease the count of comp phase
-            scalingMode = VPHAL_SCALING_AVS;
-            pComposite->nAVS--;
+            if (bDisableAvsSampler && (pComposite->nSampler & VPHAL_COMP_SAMPLER_BILINEAR))
+            {
+                scalingMode = VPHAL_SCALING_BILINEAR;
+            }
+            else
+            {
+                // switch to AVS if AVS sampler is not used, decrease the count of comp phase
+                scalingMode = VPHAL_SCALING_AVS;
+                pComposite->nAVS--;
+            }
         }
     }
     else if (!IS_PL3_FORMAT(pSource->Format))
@@ -1754,9 +1777,16 @@ bool CompositeState::AddCompLayer(
         }
         else
         {
-            // switch to AVS if AVS sampler is not used, decrease the count of comp phase
-            scalingMode = VPHAL_SCALING_AVS;
-            pComposite->nAVS--;
+            if (bDisableAvsSampler && (pComposite->nSampler & VPHAL_COMP_SAMPLER_NEAREST))
+            {
+                scalingMode = VPHAL_SCALING_NEAREST;
+            }
+            else
+            {
+                // switch to AVS if AVS sampler is not used, decrease the count of comp phase
+                scalingMode = VPHAL_SCALING_AVS;
+                pComposite->nAVS--;
+            }
         }
     }
 
@@ -1865,9 +1895,16 @@ MOS_STATUS CompositeState::RenderMultiPhase(
 
     for (index = 0, phase = 0; (!bLastPhase); phase++)
     {
+        bool disableAvsSampler = false;
         VPHAL_COMPOSITE_PARAMS  CompositeParams;
         // Prepare compositing structure
         ResetCompParams(&CompositeParams);
+
+        if (IsDisableAVSSampler(iSources, 0 < pOutput->rcDst.top))
+        {
+            VPHAL_RENDER_ASSERTMESSAGE("Disable AVS sampler for TargetTopY!");
+            disableAvsSampler = true;
+        }
 
 //        VPHAL_DBG_STATE_DUMPPER_SET_CURRENT_PHASE(phase);
 
@@ -1934,7 +1971,13 @@ MOS_STATUS CompositeState::RenderMultiPhase(
             // Add layer to the compositing - breaks at end of phase
             pSrc->iLayerID = i;
 
-            if (!AddCompLayer(&CompositeParams, pSrc))
+            if (disableAvsSampler && VPHAL_SCALING_AVS == pSrc->ScalingMode)
+            {
+                VPHAL_RENDER_ASSERTMESSAGE("Force to 3D sampler for layer %d.", pSrc->iLayerID);
+                pSrc->ScalingMode = VPHAL_SCALING_BILINEAR;
+            }
+
+            if (!AddCompLayer(&CompositeParams, pSrc, disableAvsSampler))
             {
                 bLastPhase = false;
                 index--;
@@ -2055,7 +2098,7 @@ MOS_STATUS CompositeState::RenderMultiPhase(
                 pSrc = ppSources[index];
                 index++;
                 pSrc->iLayerID = 0;
-                AddCompLayer(&CompositeParams, pSrc);
+                AddCompLayer(&CompositeParams, pSrc, disableAvsSampler);
 
                 // using pTarget as a temp resource
                 if (pSrc->pBlendingParams)
@@ -7350,3 +7393,25 @@ bool CompositeState::IsSamplerIDForY(
 {
     return (SamplerID == VPHAL_SAMPLER_Y) ? true : false;
 }
+
+bool CompositeState::IsDisableAVSSampler(
+    int32_t         iSources,
+    bool            isTargetY)
+{
+     if (m_pOsInterface == nullptr)
+     {
+         return false;
+     }
+
+     MEDIA_WA_TABLE *waTable = m_pOsInterface->pfnGetWaTable(m_pOsInterface);
+     if (waTable == nullptr)
+     {
+         return false;
+     }
+
+     if (MEDIA_IS_WA(waTable, WaTargetTopYOffset) && iSources > 1 && isTargetY)
+     {
+         return true;
+     }
+     return false;
+ }
