@@ -2835,6 +2835,7 @@ protected:
 
         uint8_t numPartitions = (1 << vp8PicParams->CodedCoeffTokenPartition);
 
+	cmd.DW1.Partition0FirstmbbitoffsetFromFrameHeader = vp8PicParams->uiP0FirstmbbitoffsetFromFrameHeader;
         cmd.DW1.CodedNumOfCoeffTokenPartitions = vp8PicParams->CodedCoeffTokenPartition;
         cmd.DW1.Partition0CpbacEntropyRange = vp8PicParams->uiP0EntropyRange;
         cmd.DW1.Partition0CpbacEntropyCount = vp8PicParams->ucP0EntropyCount;

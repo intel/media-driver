@@ -92,6 +92,7 @@ typedef struct _CODEC_VP8_PIC_PARAMS
     uint8_t             ucP0EntropyValue;
     uint32_t            uiP0EntropyRange;
     uint32_t            uiFirstMbByteOffset;
+    uint32_t            uiP0FirstmbbitoffsetFromFrameHeader;
     uint32_t            uiPartitionSize[CODEC_VP8_MAX_PARTITION_NUMBER];
 
     uint32_t            uiStatusReportFeedbackNumber;
