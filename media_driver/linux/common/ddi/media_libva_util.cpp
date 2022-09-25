@@ -1646,6 +1646,7 @@ PDDI_MEDIA_SURFACE_HEAP_ELEMENT DdiMediaUtil_AllocPMediaSurfaceFromHeap(PDDI_MED
             mediaSurfaceHeapElmt                  = &surfaceHeapBase[surfaceHeap->uiAllocatedHeapElements + i];
             mediaSurfaceHeapElmt->pNextFree       = (i == (DDI_MEDIA_HEAP_INCREMENTAL_SIZE - 1))? nullptr : &surfaceHeapBase[surfaceHeap->uiAllocatedHeapElements + i + 1];
             mediaSurfaceHeapElmt->uiVaSurfaceID   = surfaceHeap->uiAllocatedHeapElements + i;
+            mediaSurfaceHeapElmt->pSurface        = nullptr;
         }
         surfaceHeap->uiAllocatedHeapElements     += DDI_MEDIA_HEAP_INCREMENTAL_SIZE;
     }
@@ -1695,6 +1696,7 @@ PDDI_MEDIA_BUFFER_HEAP_ELEMENT DdiMediaUtil_AllocPMediaBufferFromHeap(PDDI_MEDIA
             mediaBufferHeapElmt               = &mediaBufferHeapBase[bufferHeap->uiAllocatedHeapElements + i];
             mediaBufferHeapElmt->pNextFree    = (i == (DDI_MEDIA_HEAP_INCREMENTAL_SIZE - 1))? nullptr : &mediaBufferHeapBase[bufferHeap->uiAllocatedHeapElements + i + 1];
             mediaBufferHeapElmt->uiVaBufferID = bufferHeap->uiAllocatedHeapElements + i;
+            mediaBufferHeapElmt->pBuffer      = nullptr;
         }
         bufferHeap->uiAllocatedHeapElements  += DDI_MEDIA_HEAP_INCREMENTAL_SIZE;
     }
@@ -1742,6 +1744,7 @@ PDDI_MEDIA_IMAGE_HEAP_ELEMENT DdiMediaUtil_AllocPVAImageFromHeap(PDDI_MEDIA_HEAP
             vaimageHeapElmt                   = &vaimageHeapBase[imageHeap->uiAllocatedHeapElements + i];
             vaimageHeapElmt->pNextFree        = (i == (DDI_MEDIA_HEAP_INCREMENTAL_SIZE - 1))? nullptr : &vaimageHeapBase[imageHeap->uiAllocatedHeapElements + i + 1];
             vaimageHeapElmt->uiVaImageID      = imageHeap->uiAllocatedHeapElements + i;
+            vaimageHeapElmt->pImage           = nullptr;
         }
         imageHeap->uiAllocatedHeapElements   += DDI_MEDIA_HEAP_INCREMENTAL_SIZE;
 
