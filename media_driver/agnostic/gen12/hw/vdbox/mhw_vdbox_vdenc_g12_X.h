@@ -29,6 +29,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 #ifndef __MHW_VDBOX_VDENC_G12_X_H__
 #define __MHW_VDBOX_VDENC_G12_X_H__
 
+#include <iostream>
 #include "mhw_vdbox_vdenc_generic.h"
 #include "mhw_vdbox_vdenc_hwcmd_g12_X.h"
 #include "mhw_vdbox_g12_X.h"
@@ -2481,6 +2482,8 @@ public:
 
             cmd.DW5.NumRefIdxL0Minus1 = hevcSlcParams->num_ref_idx_l0_active_minus1;
             cmd.DW5.NumRefIdxL1Minus1 = hevcSlcParams->num_ref_idx_l1_active_minus1;
+            std::cout<<"AddVdencCmd2Cmd AddVdencCmd2Cmd cmd.DW5.NumRefIdxL0Minus1 " << +cmd.DW5.NumRefIdxL0Minus1 <<std::endl;
+            std::cout<<"AddVdencCmd2Cmd AddVdencCmd2Cmd cmd.DW5.NumRefIdxL1Minus1 " << +cmd.DW5.NumRefIdxL1Minus1 <<std::endl;
 
             cmd.DW5.Value = (cmd.DW5.Value & 0xff83ffff) | 0x400000;
             cmd.DW14.Value = (cmd.DW14.Value & 0xffff) | 0x7d00000;
@@ -2526,7 +2529,8 @@ public:
 
             switch (hevcSeqParams->TargetUsage)
             {
-            case 1:                                 // Quality mode
+            case 1:
+            #if 1                                // Quality mode
                 cmd.DW2.Value &= 0xdfffffff;
                 cmd.DW2.Value = (cmd.DW2.Value & 0xfffffffc) | (hevcPicParams->CodingType == I_TYPE ? 2 : 3);
                 cmd.DW7.Value &= 0xfffffeff;
@@ -2535,6 +2539,7 @@ public:
                 cmd.DW12.Value = 0xffffffff;
                 cmd.DW34.Value = (cmd.DW34.Value & 0xffffff) | 0x21000000;
                 break;
+                #endif
             case 4:                                 // Normal mode
                 cmd.DW2.Value &= 0xdfffffff;
                 cmd.DW7.Value &= 0xfffffeff;

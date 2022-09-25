@@ -31,6 +31,7 @@
 #include "media_ddi_encode_const.h"
 #include "media_ddi_factory.h"
 #include "codechal_encoder_base.h"
+#include <iostream>
 
 extern template class MediaDdiFactoryNoArg<DdiEncodeBase>;
 
@@ -564,7 +565,8 @@ VAStatus DdiEncodeHevc::ParsePicParams(
         DDI_ASSERTMESSAGE("invalid surface for reconstructed frame");
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
-
+    std::cout<<" DdiEncodeHevc::ParsePicParams picParams->decoded_curr_pic POC " <<  picParams->decoded_curr_pic.pic_order_cnt <<
+    " picture ID "<< picParams->decoded_curr_pic.picture_id <<std::endl;
     // curr orig pic
     hevcPicParams->CurrOriginalPic.FrameIdx = (uint8_t)GetRenderTargetID(rtTbl, rtTbl->pCurrentReconTarget);
     hevcPicParams->CurrOriginalPic.PicFlags = hevcPicParams->CurrReconstructedPic.PicFlags;
@@ -829,6 +831,8 @@ VAStatus DdiEncodeHevc::ParseSlcParams(
                     true);
                 GetSlcRefIdx(&(hevcPicParams->RefFrameList[0]), &(hevcSlcParams->RefPicList[0][i]));
             }
+            std::cout<<" DdiEncodeHevc::ParseSlcParams " << i <<" FrameIdx " <<+hevcSlcParams->RefPicList[0][i].FrameIdx
+            <<" PicEntry " << +hevcSlcParams->RefPicList[0][i].PicEntry <<" PicFlags " <<(int)hevcSlcParams->RefPicList[0][i].PicFlags <<std::endl;
         }
 
         for (uint32_t i = 0; i < numMaxRefFrame; i++)
@@ -849,15 +853,16 @@ VAStatus DdiEncodeHevc::ParseSlcParams(
                     false,
                     true);
                 GetSlcRefIdx(&(hevcPicParams->RefFrameList[0]), &(hevcSlcParams->RefPicList[1][i]));
+                std::cout<<" DdiEncodeHevc::ParseSlcParams " << i <<" FrameIdx " <<+hevcSlcParams->RefPicList[1][i].FrameIdx
+            <<" PicEntry " << +hevcSlcParams->RefPicList[1][i].PicEntry <<" PicFlags " <<(int)hevcSlcParams->RefPicList[1][i].PicFlags <<std::endl;
             }
         }
-
+    ValidateRefFrameData(hevcPicParams, hevcSlcParams);
         vaEncSlcParamsHEVC++;
     }
 
     hevcPicParams->NumSlices += numSlices;
     m_encodeCtx->dwNumSlices = hevcPicParams->NumSlices;
-
     return VA_STATUS_SUCCESS;
 }
 
@@ -1555,4 +1560,76 @@ bool DdiEncodeHevc::IsSccProfile()
            || m_encodeCtx->vaProfile==VAProfileHEVCSccMain10
            || m_encodeCtx->vaProfile==VAProfileHEVCSccMain444
            || m_encodeCtx->vaProfile==VAProfileHEVCSccMain444_10);
+}
+
+VAStatus DdiEncodeHevc::ValidateRefFrameData(PCODEC_HEVC_ENCODE_PICTURE_PARAMS hevcPicParams, PCODEC_HEVC_ENCODE_SLICE_PARAMS slcParams)
+{
+    VAStatus vaSts = VA_STATUS_SUCCESS;
+    bool isRandomAccess = false;
+
+    CODECHAL_ENCODE_CHK_NULL_RETURN(slcParams);
+
+    if (slcParams->slice_type == sliceTypeB)
+    {
+        if (slcParams->num_ref_idx_l0_active_minus1 != slcParams->num_ref_idx_l1_active_minus1)
+        {
+            isRandomAccess = true;
+        }
+
+        for (auto j = 0; j < CODEC_MAX_NUM_REF_FRAME_HEVC; j++)
+        {
+            if (slcParams->RefPicList[0][j].PicEntry != slcParams->RefPicList[1][j].PicEntry)
+            {
+                isRandomAccess = true;
+            }
+        }
+    }
+
+    uint8_t maxNumRef0 = 3;
+    uint8_t maxNumRef1 = 3;
+    if (isRandomAccess)
+    {
+        maxNumRef0 = 2;
+        maxNumRef1 = 1;
+    }
+
+    if (slcParams->num_ref_idx_l0_active_minus1 > maxNumRef0 - 1)
+    {
+        slcParams->num_ref_idx_l0_active_minus1 = maxNumRef0 - 1;
+        #if 1
+        uint8_t removedFrameIdx = CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC;
+        bool isRemoved = false;
+        for(int i = maxNumRef0; i < CODEC_MAX_NUM_REF_FRAME_HEVC - 1; ++i)
+        {
+            isRemoved = false;
+            removedFrameIdx = slcParams->RefPicList[0][i].FrameIdx;
+            slcParams->RefPicList[0][i].FrameIdx = CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC;
+            slcParams->RefPicList[0][i].PicFlags = PICTURE_INVALID;
+            slcParams->RefPicList[0][i].PicEntry = 0xFF;
+            #if 0
+            for (int j = 0; j < CODEC_MAX_NUM_REF_FRAME_HEVC - 1; ++j)
+            {
+                if ( removedFrameIdx == hevcPicParams->RefFrameList[j].FrameIdx && removedFrameIdx != CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC)
+                {
+                    isRemoved = true;
+                }
+                if(isRemoved)
+                {
+                    hevcPicParams->RefFrameList[j].FrameIdx = hevcPicParams->RefFrameList[j+1].FrameIdx;
+                    hevcPicParams->RefFrameList[j].PicFlags = hevcPicParams->RefFrameList[j+1].PicFlags;
+                    hevcPicParams->RefFrameList[j].PicEntry = hevcPicParams->RefFrameList[j+1].PicEntry;
+                    hevcPicParams->RefFramePOCList[j] = hevcPicParams->RefFramePOCList[j+1];
+                }
+            }
+            #endif
+        }
+        #endif
+    }
+
+    if (slcParams->num_ref_idx_l1_active_minus1 > maxNumRef1 - 1)
+    {
+        slcParams->num_ref_idx_l1_active_minus1 = maxNumRef1 - 1;
+    }
+
+    return vaSts;
 }

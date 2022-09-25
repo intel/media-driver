@@ -23,7 +23,7 @@
 //! \file     codechal_vdenc_hevc_g12.cpp
 //! \brief    HEVC VDEnc encoder for GEN12.
 //!
-
+#include <iostream>
 #include "codechal_vdenc_hevc_g12.h"
 #include "codechal_kernel_header_g12.h"
 #include "codeckrnheader.h"
@@ -2136,6 +2136,34 @@ MOS_STATUS CodechalVdencHevcStateG12::ValidateRefFrameData(PCODEC_HEVC_ENCODE_SL
     {
         CODECHAL_ENCODE_ASSERT(false);
         slcParams->num_ref_idx_l0_active_minus1 = maxNumRef0 - 1;
+        #if 1
+        uint8_t removedFrameIdx = CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC;
+        bool isRemoved = false;
+        for(int i = maxNumRef0; i < CODEC_MAX_NUM_REF_FRAME_HEVC - 1; ++i)
+        {
+            isRemoved = false;
+            removedFrameIdx = slcParams->RefPicList[0][i].FrameIdx;
+            slcParams->RefPicList[0][i].FrameIdx = CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC;
+            slcParams->RefPicList[0][i].PicFlags = PICTURE_INVALID;
+            slcParams->RefPicList[0][i].PicEntry = 0xFF;
+            #if 0
+            for (int j = 0; j < CODEC_MAX_NUM_REF_FRAME_HEVC - 1; ++j)
+            {
+                if ( removedFrameIdx == m_hevcPicParams->RefFrameList[j].FrameIdx && removedFrameIdx != CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC)
+                {
+                    isRemoved = true;
+                }
+                if(isRemoved)
+                {
+                    m_hevcPicParams->RefFrameList[j].FrameIdx = m_hevcPicParams->RefFrameList[j+1].FrameIdx;
+                    m_hevcPicParams->RefFrameList[j].PicFlags = m_hevcPicParams->RefFrameList[j+1].PicFlags;
+                    m_hevcPicParams->RefFrameList[j].PicEntry = m_hevcPicParams->RefFrameList[j+1].PicEntry;
+                    m_hevcPicParams->RefFramePOCList[j] = m_hevcPicParams->RefFramePOCList[j+1];
+                }
+            }
+            #endif
+        }
+        #endif
     }
 
     if (slcParams->num_ref_idx_l1_active_minus1 > maxNumRef1 - 1)
@@ -2168,7 +2196,7 @@ MOS_STATUS CodechalVdencHevcStateG12::EncodeKernelFunctions()
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-
+  #if 1
 #if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     CODECHAL_DEBUG_TOOL(CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpYUVSurface(
         m_rawSurfaceToEnc,
@@ -2367,7 +2395,7 @@ MOS_STATUS CodechalVdencHevcStateG12::EncodeKernelFunctions()
             }
         })
 #endif
-
+#endif
     return eStatus;
 }
 
@@ -5781,12 +5809,13 @@ MOS_STATUS CodechalVdencHevcStateG12::SetMeCurbe(HmeLevel hmeLevel)
         curbe.DW1.BiWeight = m_bframeMeBidirectionalWeight;
         curbe.DW13.NumRefIdxL1MinusOne = m_hevcSliceParams->num_ref_idx_l1_active_minus1;
     }
+    std::cout<<" CodechalVdencHevcStateG12::SetMeCurbe m_hevcSliceParams->num_ref_idx_l1_active_minus1 "<<+m_hevcSliceParams->num_ref_idx_l1_active_minus1 <<std::endl;
 
     if (m_pictureCodingType == P_TYPE || m_pictureCodingType == B_TYPE)
     {
-        curbe.DW13.NumRefIdxL0MinusOne = m_hevcSliceParams->num_ref_idx_l0_active_minus1;
+        curbe.DW13.NumRefIdxL0MinusOne = m_hevcSliceParams->num_ref_idx_l0_active_minus1 >1 ? 1 : m_hevcSliceParams->num_ref_idx_l0_active_minus1;
     }
-
+    std::cout<<" CodechalVdencHevcStateG12::SetMeCurbe m_hevcSliceParams->num_ref_idx_l0_active_minus1 "<<+m_hevcSliceParams->num_ref_idx_l0_active_minus1 <<std::endl;
     if (hmeLevel == HME_LEVEL_4x)
     {
         curbe.DW30.ActualMBHeight = m_frameHeight;
@@ -5979,6 +6008,7 @@ MOS_STATUS CodechalVdencHevcStateG12::SendMeSurfaces(HmeLevel hmeLevel, PMOS_COM
 
     // Setup references 1...n
     // LIST 0 references
+    std::cout<<" CodechalVdencHevcStateG12::SendMeSurfaces num_ref_idx_l0_active_minus1 "<< +m_hevcSliceParams->num_ref_idx_l0_active_minus1 <<std::endl;
     for (uint8_t refIdx = 0; refIdx <= m_hevcSliceParams->num_ref_idx_l0_active_minus1; refIdx++)
     {
         CODEC_PICTURE refPic = m_hevcSliceParams->RefPicList[LIST_0][refIdx];
@@ -6043,10 +6073,14 @@ MOS_STATUS CodechalVdencHevcStateG12::SendMeSurfaces(HmeLevel hmeLevel, PMOS_COM
                 cmdBuffer,
                 &surfaceCodecParams,
                 kernelState));
+        std::cout<<" CodechalVdencHevcStateG12::SendMeSurfaces scaledIdx "<< +scaledIdx << " bo  " << (void *)(refScaledSurface.OsResource.bo) <<std::endl;
+        std::cout<<" CodechalVdencHevcStateG12::SendMeSurfaces refIdx "<< +refIdx << " FrameIdx " << +refPic.FrameIdx<<" PicEntry " <<+refPic.PicEntry <<std::endl;
         }
     }
+    
 
     //List1
+    std::cout<<" CodechalVdencHevcStateG12::SendMeSurfaces num_ref_idx_l1_active_minus1 "<< +m_hevcSliceParams->num_ref_idx_l1_active_minus1 <<std::endl;
     for (uint8_t refIdx = 0; refIdx <= m_hevcSliceParams->num_ref_idx_l1_active_minus1; refIdx++)
     {
         CODEC_PICTURE refPic = m_hevcSliceParams->RefPicList[LIST_1][refIdx];
@@ -6111,6 +6145,7 @@ MOS_STATUS CodechalVdencHevcStateG12::SendMeSurfaces(HmeLevel hmeLevel, PMOS_COM
                 &surfaceCodecParams,
                 kernelState));
         }
+        std::cout<<" CodechalVdencHevcStateG12::SendMeSurfaces refIdx "<< +refIdx << " FrameIdx " << +refPic.FrameIdx<<" PicEntry " <<+refPic.PicEntry <<std::endl;
     }
 
     if (hmeLevel == HME_LEVEL_4x)
@@ -9539,6 +9574,7 @@ MOS_STATUS CodechalVdencHevcStateG12::SetAddCommands(uint32_t commandType, PMOS_
         cmd2Params->recNotFilteredID              = recNotFilteredID;
         cmd2Params->pInputParams                  = pCmdParams;
         cmd2Params->ucNumRefIdxL0ActiveMinus1     = cmd2Params->pHevcEncSlcParams->num_ref_idx_l0_active_minus1;
+        std::cout<<" CodechalVdencHevcStateG12::SetAddCommands CodechalVdencHevcStateG12::SetAddCommands cmd2Params->ucNumRefIdxL0ActiveMinus1 " << +cmd2Params->ucNumRefIdxL0ActiveMinus1<<std::endl;
         cmd2Params->bHevcVisualQualityImprovement = m_hevcVisualQualityImprovement;
         cmd2Params->roundInterValue               = roundInterValue;
         cmd2Params->roundIntraValue               = roundIntraValue;

@@ -1186,7 +1186,7 @@ MOS_STATUS CodechalEncodeHevcBase::SetPictureStructs()
     }
     refListFull[currRefIdx]->ucNumRef = ii;
     m_currRefList = refListFull[currRefIdx];
-
+    std::cout<<" refListFull[currRefIdx ="<< +currRefIdx <<"]->ucNumRef "<< +refListFull[currRefIdx]->ucNumRef<<std::endl;
     CodecEncodeHevcFeiPicParams *feiPicParams = (CodecEncodeHevcFeiPicParams *)m_encodeParams.pFeiPicParams;
     if ((m_codecFunction == CODECHAL_FUNCTION_ENC_PAK) ||
        ((m_codecFunction == CODECHAL_FUNCTION_FEI_ENC_PAK) && (feiPicParams->bCTBCmdCuRecordEnable == false)) ||
@@ -1218,6 +1218,9 @@ MOS_STATUS CodechalEncodeHevcBase::SetPictureStructs()
     m_hmeEnabled    = m_hmeSupported && m_pictureCodingType != I_TYPE;
     m_b16XMeEnabled = m_16xMeSupported && m_pictureCodingType != I_TYPE;
     m_b32XMeEnabled = m_32xMeSupported && m_pictureCodingType != I_TYPE;
+    m_hmeEnabled =m_hmeSupported = true;
+    m_b16XMeEnabled = m_16xMeSupported= true;
+    m_b32XMeEnabled = m_32xMeSupported= false;
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CalcLCUMaxCodingSize());
 
@@ -1294,7 +1297,7 @@ MOS_STATUS CodechalEncodeHevcBase::SetSliceStructs()
     auto     slcParams = m_hevcSliceParams;
     for (uint32_t startLCU = 0, slcCount = 0; slcCount < m_numSlices; slcCount++, slcParams++)
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(ValidateRefFrameData(slcParams));
+        //CODECHAL_ENCODE_CHK_STATUS_RETURN(ValidateRefFrameData(slcParams));
 
         if ((m_hevcPicParams->QpY + slcParams->slice_qp_delta) > CODECHAL_ENCODE_HEVC_MAX_SLICE_QP)
         {
@@ -2273,7 +2276,7 @@ MOS_STATUS CodechalEncodeHevcBase::InitializePicture(const EncoderParams& params
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_nalUnitParams);
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(PlatformCapabilityCheck());
-
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(ValidateRefFrameData(m_hevcSliceParams));
     if (CodecHalIsFeiEncode(m_codecFunction))
     {
         CODECHAL_ENCODE_CHK_NULL_RETURN(m_hevcFeiPicParams);

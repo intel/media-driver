@@ -30,6 +30,7 @@
 #include "mos_solo_generic.h"
 #include "hal_oca_interface.h"
 #include "codechal_encode_csc_ds.h"
+#include <iostream>
 
 void CodechalEncoderState::PrepareNodes(
     MOS_GPU_NODE& videoGpuNode,
@@ -4941,6 +4942,8 @@ MOS_STATUS CodechalEncoderState::ExecuteEnc(
                     m_currReconstructedPic.FrameIdx == m_currRefList->RefList[i].FrameIdx,
                     "the same frame (FrameIdx = %d) cannot be used as both Recon surface and ref frame",
                     m_currReconstructedPic.FrameIdx);
+                    std::cout<<"CodechalEncoderState::ExecuteEnc i " << i << " m_currRefList->ucNumRef " << + m_currRefList->ucNumRef << " m_currRefList->RefList[i].FrameIdx "
+                    << +m_currRefList->RefList[i].FrameIdx <<std::endl;
             }
 
             // clear flags
