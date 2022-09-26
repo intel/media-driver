@@ -4689,6 +4689,10 @@ void mos_bufmgr_gem_enable_softpin(struct mos_bufmgr *bufmgr, bool va1m_align)
     bufmgr_gem->softpin_va1Malign     = va1m_align;
 }
 
+void mos_bufmgr_gem_enable_vmbind(struct mos_bufmgr *bufmgr)
+{
+}
+
 /**
  * Initializes the GEM buffer manager, which uses the kernel to allocate, map,
  * and manage map buffer objections.

@@ -139,6 +139,18 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
             }
 
             mos_bufmgr_gem_enable_softpin(m_bufmgr, softpin_va1Malign);
+
+            ReadUserSetting(
+                userSettingPtr,
+                value,
+                __MEDIA_USER_FEATURE_VALUE_ENABLE_VM_BIND,
+                MediaUserSetting::Group::Device);
+
+            if (value)
+            {
+                 mos_bufmgr_gem_enable_vmbind(m_bufmgr);
+                 MOS_OS_NORMALMESSAGE("mos_bufmgr_gem_enable_vmbind");
+            }
         }
 
         if (MEDIA_IS_SKU(&m_skuTable, FtrEnableMediaKernels) == 0)

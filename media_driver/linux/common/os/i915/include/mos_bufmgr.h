@@ -139,6 +139,8 @@ struct mos_linux_bo {
      * indicate if the bo mapped into aux table
      */
     bool aux_mapped;
+
+    struct drm_i915_gem_vm_control* vm;
 };
 
 enum mos_aub_dump_bmp_format {
@@ -233,6 +235,8 @@ struct mos_linux_bo *mos_bo_gem_create_from_name(struct mos_bufmgr *bufmgr,
 void mos_bufmgr_gem_enable_reuse(struct mos_bufmgr *bufmgr);
 void mos_bufmgr_gem_enable_fenced_relocs(struct mos_bufmgr *bufmgr);
 void mos_bufmgr_gem_enable_softpin(struct mos_bufmgr *bufmgr, bool va1m_align);
+void mos_bufmgr_gem_enable_vmbind(struct mos_bufmgr *bufmgr);
+
 void mos_bufmgr_gem_set_vma_cache_size(struct mos_bufmgr *bufmgr,
                          int limit);
 int mos_bufmgr_gem_get_memory_info(struct mos_bufmgr *bufmgr, char *info, uint32_t length);
