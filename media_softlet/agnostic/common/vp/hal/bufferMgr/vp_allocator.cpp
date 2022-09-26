@@ -1293,7 +1293,12 @@ uint64_t VP_SURFACE::GetAllocationHandle(MOS_INTERFACE* osIntf)
         return 0;
     }
 #else
-    return osSurface ? osSurface->OsResource.AllocationInfo.m_AllocationHandle : 0;
+    if (osSurface == nullptr)
+    {
+        return 0;
+    }
+
+    return MosInterface::GetResourceHandle(osIntf->osStreamState, &osSurface->OsResource);
 #endif
 }
 
