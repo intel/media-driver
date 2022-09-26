@@ -106,6 +106,15 @@ public:
     virtual MOS_STATUS SetupSfcState(PVP_SURFACE targetSurface) override;
 
     //!
+    //! \brief    check whether SFC Write have offset which may hit compresed write limitation
+    //! \details  check whether SFC Write have offset which may hit compresed write limitation
+    //! \param    [in] targetSurface
+    //!           Pointer to targetSurface
+    //! \return   the output pipe compression state
+    //!
+    virtual bool IsSFCUncompressedWriteNeeded(PVP_SURFACE targetSurface) override;
+
+    //!
     //! \brief    Set scaling parameters
     //! \details  Set scaling parameters
     //! \param    [in] scalingParams
