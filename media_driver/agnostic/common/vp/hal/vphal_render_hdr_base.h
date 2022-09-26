@@ -82,21 +82,6 @@ typedef union _HDRCaseID
     };
 } HDRCaseID;
 
-typedef union _HDRStageConfigEntry
-{
-    uint16_t    value;
-    struct {
-        uint16_t    CCM : 3;
-        uint16_t    PWLF : 3;
-        uint16_t    CCMExt1 : 3;
-        uint16_t    GamutClamp1 : 1;
-        uint16_t    CCMExt2 : 3;
-        uint16_t    GamutClamp2 : 1;
-        uint16_t    Reserved : 1;
-        uint16_t    Invalid : 1;
-    };
-} HDRStageConfigEntry;
-
 //!
 //! \brief Hdr stages enable flag
 //!

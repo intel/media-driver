@@ -273,3 +273,60 @@ VPHAL_COLORPACK VpHal_GetSurfaceColorPack(
 
     return ColorPack;
 }
+
+//! \brief    Transfer float type to half precision float type
+//! \details  Transfer float type to half precision float (16bit) type
+//! \param    [in] fInput
+//!           input FP32 number
+//! \return   uint16_t
+//!           half precision float value in bit
+//!
+uint16_t VpHal_FloatToHalfFloat(
+    float fInput)
+{
+    bool                       Sign;
+    int32_t                    Exp;
+    bool                       ExpSign;
+    uint32_t                   Mantissa;
+    uint32_t                   dwInput;
+    VPHAL_HALF_PRECISION_FLOAT outFloat;
+
+    dwInput  = *((uint32_t *)(&fInput));
+    Sign     = (dwInput >> 31) & 0x01;
+    Exp      = (dwInput >> 23) & 0x0FF;
+    Mantissa = dwInput & 0x07FFFFF;
+
+    outFloat.Sign     = Sign;
+    outFloat.Mantissa = (Mantissa >> 13) & 0x03ff;  // truncate to zero
+
+    if (Exp == 0)
+    {
+        outFloat.Exponent = 0;
+    }
+    else if (Exp == 0xff)
+    {
+        // There is one accuracy issue in this fuction.
+        // If FP32 is 0x7C800001(NaN), FP16 should be 0x7C01(NaN), but this function returns 0x7C00 instead of 0x7C01.
+        // VpHal_FloatToHalfFloatA fixes this accuracy issue.
+        outFloat.Exponent = 31;
+    }
+    else
+    {
+        // Transfer 15-bit exponent to 4-bit exponent
+        Exp -= 0x7f;
+        Exp += 0xf;
+
+        if (Exp < 1)
+        {
+            Exp = 1;
+        }
+        else if (Exp > 30)
+        {
+            Exp = 30;
+        }
+
+        outFloat.Exponent = Exp;
+    }
+
+    return outFloat.value;
+}

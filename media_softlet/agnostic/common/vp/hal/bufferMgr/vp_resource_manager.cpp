@@ -225,6 +225,12 @@ VpResourceManager::~VpResourceManager()
     {
         m_allocator.DestroyVpSurface(m_temperalInput);
     }
+
+    if (m_hdrResourceManager)
+    {
+        MOS_Delete(m_hdrResourceManager);
+    }
+
     while (!m_intermediaSurfaces.empty())
     {
         VP_SURFACE * surf = m_intermediaSurfaces.back();
@@ -1033,6 +1039,10 @@ MOS_STATUS VpResourceManager::AssignRenderResource(VP_EXECUTE_CAPS &caps, std::v
     else if (caps.bHVSCalc)
     {
         VP_PUBLIC_CHK_STATUS_RETURN(AssignHVSKernelResource(caps, resHint, surfSetting));
+    }
+    else if (caps.bRenderHdr)
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(AssignHdrResource(caps, inputSurfaces, outputSurface, resHint, surfSetting, executedFilters));
     }
     else
     {
@@ -2358,6 +2368,20 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxStatisticsSurface(VP_SURFACE *&stat
 
     m_dwVeboxPerBlockStatisticsWidth  = dwWidth;
     m_dwVeboxPerBlockStatisticsHeight = MOS_ROUNDUP_DIVIDE(inputSurface->osSurface->dwHeight, 4);
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpResourceManager::AssignHdrResource(VP_EXECUTE_CAPS &caps, std::vector<VP_SURFACE *> &inputSurfaces, VP_SURFACE *outputSurface, RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting, SwFilterPipe &executedFilters)
+{
+    VP_FUNC_CALL();
+
+    if (m_hdrResourceManager == nullptr)
+    {
+        m_hdrResourceManager = MOS_New(VphdrResourceManager, m_allocator);
+    }
+
+    VP_PUBLIC_CHK_STATUS_RETURN(m_hdrResourceManager->AssignRenderResource(caps, inputSurfaces, outputSurface, resHint, surfSetting, executedFilters, m_osInterface, m_reporting, IsDeferredResourceDestroyNeeded()));
 
     return MOS_STATUS_SUCCESS;
 }

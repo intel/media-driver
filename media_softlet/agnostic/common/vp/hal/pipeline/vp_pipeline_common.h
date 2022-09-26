@@ -138,6 +138,7 @@ struct _VP_EXECUTE_CAPS
             uint64_t bSFC           : 1;   // SFC needed
             uint64_t bRender        : 1;   // Render Only needed
             uint64_t bSecureVebox   : 1;   // Vebox in Secure Mode
+            uint64_t bRenderHdr     : 1;   // Render HDR in use
 
             uint64_t bOutputPipeFeatureInuse : 1; // Output surface of pipeline is in use.
             uint64_t bForceCscToRender : 1; // If true, force to use render for csc.
@@ -184,6 +185,7 @@ struct _VP_EXECUTE_CAPS
             uint64_t b3DLutCalc     : 1;
             uint64_t bHVSCalc       : 1;
             uint64_t bSegmentation  : 1;
+            uint64_t bHdr           : 1;
         };
         uint64_t value;
     };
@@ -201,12 +203,15 @@ typedef struct _VP_EngineEntry
             uint32_t SfcNeeded : 1;
             uint32_t VeboxNeeded : 1;
             uint32_t RenderNeeded : 1;
+            uint32_t hdrKernelNeeded : 1;
             uint32_t fcSupported : 1;           // Supported by fast composition
+            uint32_t hdrKernelSupported : 1;    // Supported by Hdr Kenrel
             uint32_t isolated : 1;              // Only support single feature.
             uint32_t bypassIfVeboxSfcInUse : 1; // Bypass the feature if vebox or sfc in use. In such case, VeboxNeeded and
                                                 // SfcNeeded are 0 but it should not block vebox or sfc being selected. 
             uint32_t forceEnableForSfc : 1;     // Force enabled when sfc being selected.
             uint32_t forceEnableForFc  : 1;     // Force enabled when fc being selected.
+            uint32_t forceEnableForHdrKernel : 1;
             uint32_t nonFcFeatureExists : 1;    // The feature exists, which do not support fc
             uint32_t nonVeboxFeatureExists : 1; // The feature exists, which do not support vebox
             uint32_t fcOnlyFeatureExists : 1;   // The feature exists, which only support render fc, and not support vebox/sfc.

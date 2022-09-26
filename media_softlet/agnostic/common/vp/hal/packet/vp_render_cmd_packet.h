@@ -71,6 +71,8 @@ public:
 
     void PrintWalkerParas(MHW_WALKER_PARAMS &WalkerParams);
 
+    virtual MOS_STATUS SetHdrParams(PRENDER_HDR_PARAMS params);
+
 protected:
 
     virtual MOS_STATUS LoadKernel() override;

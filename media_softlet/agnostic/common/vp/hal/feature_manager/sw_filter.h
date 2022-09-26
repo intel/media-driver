@@ -64,6 +64,15 @@ class SwFilterSubPipe;
 #define MOTION_CHANNEL 3
 #define MAX_MODELSURFACE_COUNT 85
 
+#define VPHAL_MAX_HDR_INPUT_LAYER           8
+#define VPHAL_MAX_HDR_OUTPUT_LAYER          1
+#define VPHAL_HDR_BTINDEX_LAYER0            16
+#define VPHAL_HDR_BTINDEX_PER_LAYER0        5
+#define VPHAL_HDR_BTINDEX_RENDERTARGET      56
+#define VPHAL_HDR_BTINDEX_PER_TARGET        3
+#define VPHAL_HDR_SAMPLER8X8_TABLE_NUM      2
+#define ARRAY_SIZE(a)  (sizeof(a) / sizeof(a[0]))
+
 enum FeatureType
 {
     FeatureTypeInvalid          = 0,
@@ -100,6 +109,7 @@ enum FeatureType
     FeatureTypeHdr              = 0xC00,
     FeatureTypeHdrOnVebox       = FeatureTypeHdr | FEATURE_TYPE_ENGINE_BITS_VEBOX,
     FeatureTypeHdr3DLutCalOnRender = FeatureTypeHdr | FEATURE_TYPE_ENGINE_BITS_RENDER | FEATURE_TYPE_ENGINE_BITS_SUB_STEP,
+    FeatureTypeHdrOnRender      = FeatureTypeHdr | FEATURE_TYPE_ENGINE_BITS_RENDER,
     FeatureTypeFD               = 0xD00,
     FeatureTypeFLD              = 0xE00,
     FeatureTypeFB               = 0xF00,
@@ -702,6 +712,36 @@ enum SurfaceType
     SurfaceTypeSROutput,
     SurfaceTypeSRChromaInput,
 
+    // HDR Kernel
+    SurfaceTypeHdrInputLayer0,
+    SurfaceTypeHdrInputLayer1,
+    SurfaceTypeHdrInputLayer2,
+    SurfaceTypeHdrInputLayer3,
+    SurfaceTypeHdrInputLayer4,
+    SurfaceTypeHdrInputLayer5,
+    SurfaceTypeHdrInputLayer6,
+    SurfaceTypeHdrInputLayer7,
+    SurfaceTypeHdrInputLayerMax = SurfaceTypeHdrInputLayer7,
+    SurfaceTypeHdrOETF1DLUTSurface0,
+    SurfaceTypeHdrOETF1DLUTSurface1,
+    SurfaceTypeHdrOETF1DLUTSurface2,
+    SurfaceTypeHdrOETF1DLUTSurface3,
+    SurfaceTypeHdrOETF1DLUTSurface4,
+    SurfaceTypeHdrOETF1DLUTSurface5,
+    SurfaceTypeHdrOETF1DLUTSurface6,
+    SurfaceTypeHdrOETF1DLUTSurface7,
+    SurfaceTypeHdrCRI3DLUTSurface0,
+    SurfaceTypeHdrCRI3DLUTSurface1,
+    SurfaceTypeHdrCRI3DLUTSurface2,
+    SurfaceTypeHdrCRI3DLUTSurface3,
+    SurfaceTypeHdrCRI3DLUTSurface4,
+    SurfaceTypeHdrCRI3DLUTSurface5,
+    SurfaceTypeHdrCRI3DLUTSurface6,
+    SurfaceTypeHdrCRI3DLUTSurface7,
+    SurfaceTypeHdrTarget0,
+    SurfaceTypeHdrCoeff,
+    SurfaceTypeHdrAutoModeCoeff,
+    SurfaceTypeHdrAutoModeIirTempSurface,
     NumberOfSurfaceType
 };
 
@@ -754,6 +794,9 @@ struct VP_SURFACE_SETTING
     bool                dumpPreSurface                         = false;
     bool                dumpPostSurface                        = false;
     VP_POSTPROCESS_SURFACE postProcessSurface                  = {};
+    const uint16_t     *pHDRStageConfigTable                   = nullptr;
+    bool                coeffAllocated                         = false;
+    bool                OETF1DLUTAllocated                     = false;
 
     void Clean()
     {
@@ -772,6 +815,9 @@ struct VP_SURFACE_SETTING
         dumpPostSurface                        = false;
         postProcessSurface.removeBBSetting     = {};
         postProcessSurface.motionlessSetting   = {};
+        pHDRStageConfigTable                   = nullptr;
+        coeffAllocated                         = false;
+        OETF1DLUTAllocated                     = false;
     }
 };
 
@@ -1261,14 +1307,74 @@ enum HDR_STAGE
     HDR_STAGE_VEBOX_3DLUT_NO_UPDATE,
 };
 
+//!
+//! \brief Hdr stages enable flag
+//!
+typedef union _HDRStageEnables
+{
+    uint16_t value;
+    struct
+    {
+        uint16_t PriorCSCEnable : 1;
+        uint16_t EOTFEnable : 1;
+        uint16_t CCMEnable : 1;
+        uint16_t PWLFEnable : 1;
+        uint16_t CCMExt1Enable : 1;
+        uint16_t GamutClamp1Enable : 1;
+        uint16_t CCMExt2Enable : 1;
+        uint16_t GamutClamp2Enable : 1;
+        uint16_t OETFEnable : 1;
+        uint16_t PostCSCEnable : 1;
+        uint16_t Reserved : 6;
+    };
+} HDRStageEnables, *PHDRStageEnables;
+
+//!
+//! Structure VPHAL_HDR_PARAMS
+//! \brief High Dynamic Range parameters
+//!
+typedef struct _HDR_PARAMS
+{
+    VPHAL_HDR_EOTF_TYPE EOTF                 = VPHAL_HDR_EOTF_INVALID;    //!< Electronic-Optimal Transfer Function
+    uint16_t display_primaries_x[3]          = {0};                       //!< Display Primaries X chromaticity coordinates
+    uint16_t display_primaries_y[3]          = {0};                       //!< Display Primaries Y chromaticity coordinates
+    uint16_t white_point_x                   = 0;                         //!< X Chromaticity coordinate of White Point
+    uint16_t white_point_y                   = 0;                         //!< Y Chromaticity coordinate of White Point
+    uint16_t max_display_mastering_luminance = 0;                         //!< The nominal maximum display luminance of the mastering display
+    uint16_t min_display_mastering_luminance = 0;                         //!< The nominal minimum display luminance of the mastering display
+    uint16_t MaxCLL                          = 0;                         //!< Max Content Light Level
+    uint16_t MaxFALL                         = 0;                         //!< Max Frame Average Light Level
+    bool     bAutoMode                       = false;                     //!< Hdr auto mode.
+    bool     bPathKernel                     = false;                     //!< Hdr path config to use kernel
+} HDR_PARAMS, *PHDR_PARAMS;
+
 struct FeatureParamHdr : public FeatureParam
 {
-    uint32_t        uiMaxDisplayLum      = 0;  //!< Maximum Display Luminance
-    uint32_t        uiMaxContentLevelLum = 0;  //!< Maximum Content Level Luminance
-    VPHAL_HDR_MODE  hdrMode              = VPHAL_HDR_MODE_NONE;
-    VPHAL_CSPACE    srcColorSpace        = CSpace_None;
-    VPHAL_CSPACE    dstColorSpace        = CSpace_None;
-    HDR_STAGE       stage                = HDR_STAGE_DEFAULT;
+    uint32_t           uiMaxDisplayLum                                      = 0;                   //!< Maximum Display Luminance
+    uint32_t           uiMaxContentLevelLum                                 = 0;                   //!< Maximum Content Level Luminance
+    VPHAL_HDR_MODE     hdrMode                                              = VPHAL_HDR_MODE_NONE;
+    VPHAL_CSPACE       srcColorSpace                                        = CSpace_None;
+    VPHAL_CSPACE       dstColorSpace                                        = CSpace_None;
+    HDR_STAGE          stage                                                = HDR_STAGE_DEFAULT;
+    uint32_t           widthInput                                           = 0;
+    uint32_t           heightInput                                          = 0;
+    VPHAL_HDR_LUT_MODE LUTMode[VPHAL_MAX_HDR_INPUT_LAYER]                   = {};                  //!< LUT Mode
+    VPHAL_HDR_LUT_MODE GlobalLutMode                                        = {};                  //!< Global LUT mode control for debugging purpose
+    bool               bGpuGenerate3DLUT                                    = false;               //!< Flag for per frame GPU generation of 3DLUT
+    uint32_t           uSourceCount                                         = 0;                   //!< Number of sources
+    uint32_t           uTargetCount                                         = 0;                   //!< Number of targets
+
+    PVPHAL_COLORFILL_PARAMS pColorFillParams                     = nullptr;               //!< ColorFill - BG only
+    bool                    bDisableAutoMode                     = false;                 //!< Force to disable Hdr auto mode tone mapping for debugging purpose
+    uint32_t                uiSplitFramePortions                 = 1;                     //!< Split Frame flag
+    bool                    bForceSplitFrame                     = false;
+    bool                    bNeed3DSampler                       = false;                 //!< indicate whether 3D should neede by force considering AVS removal etc.
+    VPHAL_SCALING_MODE      ScalingMode                          = VPHAL_SCALING_NEAREST; //!<  Scaling Mode
+
+    uint16_t         InputSrc[VPHAL_MAX_HDR_INPUT_LAYER]                 = {}; // Input Surface
+    uint16_t         Target[VPHAL_MAX_HDR_OUTPUT_LAYER]                  = {}; // Target Surface
+    HDR_PARAMS       srcHDRParams[VPHAL_MAX_HDR_INPUT_LAYER]             = {};
+    HDR_PARAMS       targetHDRParams[VPHAL_MAX_HDR_OUTPUT_LAYER]         = {};
 };
 
 class SwFilterHdr : public SwFilter
@@ -1288,6 +1394,14 @@ public:
                                HDR_STAGE_VEBOX_3DLUT_UPDATE == m_Params.stage;
         return MOS_STATUS_SUCCESS;
     }
+
+    MOS_STATUS HdrIsInputFormatSupported(
+        PVPHAL_SURFACE pSrcSurface,
+        bool          *pbSupported);
+
+    MOS_STATUS HdrIsOutputFormatSupported(
+            PVPHAL_SURFACE pTargetSurface,
+            bool          *pbSupported);
 
 private:
     FeatureParamHdr m_Params = {};

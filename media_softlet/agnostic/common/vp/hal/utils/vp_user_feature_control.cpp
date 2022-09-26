@@ -212,6 +212,58 @@ VpUserFeatureControl::VpUserFeatureControl(MOS_INTERFACE &osInterface, VpPlatfor
     MT_LOG3(MT_VP_USERFEATURE_CTRL, MT_NORMAL, MT_VP_UF_CTRL_DISABLE_VEOUT, m_ctrlValDefault.disableVeboxOutput,
         MT_VP_UF_CTRL_DISABLE_SFC, m_ctrlValDefault.disableSfc, MT_VP_UF_CTRL_CCS, m_ctrlValDefault.computeContextEnabled);
 
+    uint32_t globalLutMode = VPHAL_HDR_LUT_MODE_NONE;
+    status                 = ReadUserSetting(
+        m_userSettingPtr,
+        globalLutMode,
+        __VPHAL_HDR_LUT_MODE,
+        MediaUserSetting::Group::Sequence,
+        VPHAL_HDR_LUT_MODE_NONE,
+        true);
+    if (MOS_SUCCEEDED(status))
+    {
+        m_ctrlValDefault.globalLutMode = (VPHAL_HDR_LUT_MODE)globalLutMode;
+    }
+
+    bool gpuGenerate3DLUT = false;
+    status                = ReadUserSetting(
+        m_userSettingPtr,
+        gpuGenerate3DLUT,
+        __VPHAL_HDR_GPU_GENERTATE_3DLUT,
+        MediaUserSetting::Group::Sequence,
+        false,
+        true);
+    if (MOS_SUCCEEDED(status))
+    {
+        m_ctrlValDefault.gpuGenerate3DLUT = gpuGenerate3DLUT;
+    }
+
+    bool disableAutoMode = false;
+    status               = ReadUserSetting(
+        m_userSettingPtr,
+        disableAutoMode,
+        __VPHAL_HDR_DISABLE_AUTO_MODE,
+        MediaUserSetting::Group::Sequence,
+        false,
+        true);
+    if (MOS_SUCCEEDED(status))
+    {
+        m_ctrlValDefault.disableAutoMode = disableAutoMode;
+    }
+
+    uint32_t splitFramePortions = 1;
+    status                      = ReadUserSetting(
+        m_userSettingPtr,
+        splitFramePortions,
+        __VPHAL_HDR_SPLIT_FRAME_PORTIONS,
+        MediaUserSetting::Group::Sequence,
+        splitFramePortions,
+        true);
+    if (MOS_SUCCEEDED(status))
+    {
+        m_ctrlValDefault.splitFramePortions = splitFramePortions;
+    }
+
     m_ctrlVal = m_ctrlValDefault;
 }
 

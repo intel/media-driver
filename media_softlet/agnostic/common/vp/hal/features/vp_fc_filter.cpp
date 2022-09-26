@@ -681,27 +681,37 @@ MOS_STATUS PolicyFcFeatureHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFil
 
     FeatureType type = feature.GetFeatureType();
 
-    if (FeatureTypeLumakeyOnRender      == type ||
-        FeatureTypeBlendingOnRender     == type ||
-        FeatureTypeAlphaOnRender        == type ||
-        FeatureTypeCscOnRender          == type ||
-        FeatureTypeScalingOnRender      == type ||
-        FeatureTypeRotMirOnRender       == type ||
-        FeatureTypeDiOnRender           == type ||
-        FeatureTypeProcampOnRender      == type)
+    if (caps.bRenderHdr)
     {
+        // HDR Kernel
         return PolicyFeatureHandler::UpdateFeaturePipe(caps, feature, featurePipe, executePipe, isInputPipe, index);
-    }
-    else if(FeatureTypeColorFillOnRender == type)
-    {
-        // Only apply color fill on 1st pass.
-        featurePipe.RemoveSwFilter(&feature);
-        executePipe.AddSwFilterUnordered(&feature, isInputPipe, index);
     }
     else
     {
-        VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+        // FC
+        if (FeatureTypeLumakeyOnRender      == type ||
+            FeatureTypeBlendingOnRender     == type ||
+            FeatureTypeAlphaOnRender        == type ||
+            FeatureTypeCscOnRender          == type ||
+            FeatureTypeScalingOnRender      == type ||
+            FeatureTypeRotMirOnRender       == type ||
+            FeatureTypeDiOnRender           == type ||
+            FeatureTypeProcampOnRender      == type)
+        {
+            return PolicyFeatureHandler::UpdateFeaturePipe(caps, feature, featurePipe, executePipe, isInputPipe, index);
+        }
+        else if(FeatureTypeColorFillOnRender == type)
+        {
+            // Only apply color fill on 1st pass.
+            featurePipe.RemoveSwFilter(&feature);
+            executePipe.AddSwFilterUnordered(&feature, isInputPipe, index);
+        }
+        else
+        {
+            VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+        }
     }
+
     return MOS_STATUS_SUCCESS;
 }
 

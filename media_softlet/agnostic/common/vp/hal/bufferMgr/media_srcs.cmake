@@ -21,11 +21,13 @@
 set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/vp_allocator.cpp
     ${CMAKE_CURRENT_LIST_DIR}/vp_resource_manager.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/vp_hdr_resource_manager.cpp
 )
 
 set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/vp_allocator.h
     ${CMAKE_CURRENT_LIST_DIR}/vp_resource_manager.h
+    ${CMAKE_CURRENT_LIST_DIR}/vp_hdr_resource_manager.h
 )
 
 set(SOFTLET_VP_SOURCES_

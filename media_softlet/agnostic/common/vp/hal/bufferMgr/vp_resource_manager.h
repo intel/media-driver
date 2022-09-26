@@ -32,6 +32,7 @@
 #include "vp_allocator.h"
 #include "vp_pipeline_common.h"
 #include "vp_utils.h"
+#include "vp_hdr_resource_manager.h"
 
 #define VP_MAX_NUM_VEBOX_SURFACES     4                                       //!< Vebox output surface creation, also can be reuse for DI usage:
                                                                               //!< for DI: 2 for ADI plus additional 2 for parallel execution
@@ -54,6 +55,8 @@
 //! \brief Number of LACE's PWLF surfaces
 //!
 #define VP_NUM_LACE_PWLF_SURFACES                    2
+
+#define VP_MAX_HDR_INPUT_LAYER                       8
 
 #define IS_VP_VEBOX_DN_ONLY(_a) (_a.bDN &&          \
                                !(_a.bDI) &&   \
@@ -509,6 +512,7 @@ protected:
     MOS_STATUS Allocate3DLut(VP_EXECUTE_CAPS& caps);
     MOS_STATUS AllocateResourceFor3DLutKernel(VP_EXECUTE_CAPS& caps);
     MOS_STATUS AllocateResourceForHVSKernel(VP_EXECUTE_CAPS &caps);
+    MOS_STATUS AssignHdrResource(VP_EXECUTE_CAPS &caps, std::vector<VP_SURFACE *> &inputSurfaces, VP_SURFACE *outputSurface, RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting, SwFilterPipe &executedFilters);
 
 protected:
     MOS_INTERFACE                &m_osInterface;
@@ -568,7 +572,8 @@ protected:
 
     // Fc Resource
     VP_SURFACE *m_cmfcCoeff                                   = nullptr;
-
+    // Hdr Resource
+    VphdrResourceManager *m_hdrResourceManager                = nullptr;
     MediaUserSettingSharedPtr m_userSettingPtr = nullptr;   //!< usersettingInstance
 
 MEDIA_CLASS_DEFINE_END(vp__VpResourceManager)

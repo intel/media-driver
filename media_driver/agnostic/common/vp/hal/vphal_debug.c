@@ -3710,6 +3710,7 @@ MOS_STATUS VphalDumperTool::GetSurfaceSize(
         case Format_Y216:
         case Format_Y410:
         case Format_Y416:
+        case Format_R16F:
             iWidthInBytes = pSurface->dwWidth * iBpp / 8;
             iHeightInRows = pSurface->dwHeight;
             break;

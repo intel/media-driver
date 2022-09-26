@@ -57,6 +57,18 @@ MOS_STATUS VpHdrFilter::Destroy()
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS VpHdrFilter::SetExecuteEngineCaps(
+        SwFilterPipe    *executedPipe,
+        VP_EXECUTE_CAPS vpExecuteCaps)
+{
+    VP_FUNC_CALL();
+
+    m_executedPipe  = executedPipe;
+    m_executeCaps   = vpExecuteCaps;
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS VpHdrFilter::CalculateEngineParams(
     FeatureParamHdr &hdrParams,
     VP_EXECUTE_CAPS  vpExecuteCaps)
@@ -471,6 +483,4 @@ MOS_STATUS PolicyRenderHdr3DLutCalHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS cap
 
     return MOS_STATUS_SUCCESS;
 }
-
-
 }  // namespace vp

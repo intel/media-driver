@@ -31,6 +31,8 @@
 #include "sw_filter_handle.h"
 #include "vp_utils.h"
 #include "vp_user_feature_control.h"
+#include "vp_utils.h"
+
 using namespace vp;
 
 template <typename T>
@@ -1257,21 +1259,31 @@ MOS_STATUS SwFilterHdr::Clean()
 MOS_STATUS SwFilterHdr::Configure(VP_PIPELINE_PARAMS &params, bool isInputSurf, int surfIndex)
 {
     VP_FUNC_CALL();
-
     PVPHAL_SURFACE surfInput  = isInputSurf ? params.pSrc[surfIndex] : params.pSrc[0];
     PVPHAL_SURFACE surfOutput = isInputSurf ? params.pTarget[0] : params.pTarget[surfIndex];
+    MOS_STATUS     eStatus    = MOS_STATUS_SUCCESS;
+    uint32_t       i          = 0;
+    uint32_t     dwUpdateMask = 0;
+    bool                        bSupported       = false;
+    VPHAL_HDR_LUT_MODE          CurrentLUTMode      = VPHAL_HDR_LUT_MODE_NONE;
 
     VP_PUBLIC_CHK_NULL_RETURN(surfInput);
     VP_PUBLIC_CHK_NULL_RETURN(surfOutput);
     VP_PUBLIC_CHK_NULL_RETURN(surfInput->pHDRParams);
+    VP_PUBLIC_CHK_NULL_RETURN(m_vpInterface.GetHwInterface());
+    VP_PUBLIC_CHK_NULL_RETURN(m_vpInterface.GetHwInterface()->m_osInterface);
 
     m_Params.formatInput  = surfInput->Format;
     m_Params.formatOutput = surfOutput->Format;
+    m_Params.widthInput   = surfInput->dwWidth;
+    m_Params.heightInput  = surfInput->dwHeight;
 
     // For H2S, it is possible that there is no HDR params for render target.
     m_Params.uiMaxContentLevelLum = surfInput->pHDRParams->MaxCLL;
     m_Params.srcColorSpace        = surfInput->ColorSpace;
     m_Params.dstColorSpace        = surfOutput->ColorSpace;
+    m_Params.ScalingMode          = surfInput->ScalingMode;
+
     if (surfInput->pHDRParams->EOTF == VPHAL_HDR_EOTF_SMPTE_ST2084)
     {
         m_Params.hdrMode = VPHAL_HDR_MODE_TONE_MAPPING;
@@ -1284,13 +1296,105 @@ MOS_STATUS SwFilterHdr::Configure(VP_PIPELINE_PARAMS &params, bool isInputSurf, 
             }
         }
     }
+
     if (m_Params.hdrMode == VPHAL_HDR_MODE_NONE)
     {
         VP_PUBLIC_ASSERTMESSAGE("HDR Mode is NONE");
         VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
     }
-    return MOS_STATUS_SUCCESS;
+
+    m_Params.pColorFillParams = params.pColorFillParams;
+
+    for (i = 0; i < VPHAL_MAX_HDR_INPUT_LAYER; i++)
+    {
+        if (params.pSrc[i] == nullptr)
+        {
+            m_Params.LUTMode[i] = VPHAL_HDR_LUT_MODE_NONE;
+            continue;
+        }
+
+        if (params.pSrc[i]->SurfType == SURF_IN_PRIMARY && m_Params.GlobalLutMode != VPHAL_HDR_LUT_MODE_3D)
+        {
+            CurrentLUTMode = VPHAL_HDR_LUT_MODE_2D;
+        }
+        else
+        {
+            CurrentLUTMode = VPHAL_HDR_LUT_MODE_3D;
+        }
+
+        // Neither 1D nor 3D LUT is needed in linear output case.
+        if (IS_RGB64_FLOAT_FORMAT(params.pTarget[0]->Format))
+        {
+            CurrentLUTMode = VPHAL_HDR_LUT_MODE_NONE;
+        }
+
+        m_Params.LUTMode[i] = CurrentLUTMode;
+    }
+
+    m_Params.uSourceCount = 0;
+
+    for (i = 0; i < params.uSrcCount && i < VPHAL_MAX_SOURCES; i++)
+    {
+        if (params.pSrc[i] == nullptr)
+        {
+            continue;
+        }
+
+        VP_PUBLIC_CHK_STATUS_RETURN(HdrIsInputFormatSupported(params.pSrc[i], &bSupported));
+
+        if (!bSupported)
+        {
+            VP_RENDER_ASSERTMESSAGE("HDR Unsupported Source Format\n");
+            return MOS_STATUS_SUCCESS;
+        }
+
+        m_Params.InputSrc[i] = true;
+        m_Params.uSourceCount++;
+
+        if (params.pSrc[i] && params.pSrc[i]->pHDRParams)
+        {
+            MOS_SecureMemcpy(&m_Params.srcHDRParams[i], sizeof(HDR_PARAMS), (HDR_PARAMS *)params.pSrc[i]->pHDRParams, sizeof(HDR_PARAMS));
+        }
+        else
+        {
+            MOS_ZeroMemory(&m_Params.srcHDRParams[i], sizeof(HDR_PARAMS));
+        }
+    }
+
+    // reset render target count to 1
+    m_Params.uTargetCount = 0;
+
+    for (i = 0; i < params.uDstCount; i++)
+    {
+        if (params.pTarget[i] == nullptr)
+        {
+            continue;
+        }
+
+        VP_PUBLIC_CHK_STATUS_RETURN(HdrIsOutputFormatSupported(params.pTarget[i], &bSupported));
+
+        if (!bSupported)
+        {
+            VP_RENDER_ASSERTMESSAGE("HDR Unsupported Target Format\n");
+            return MOS_STATUS_SUCCESS;
+        }
+
+        m_Params.Target[i] = true;
+        m_Params.uTargetCount++;
+
+        if (params.pTarget[i] && params.pTarget[i]->pHDRParams)
+        {
+            MOS_SecureMemcpy(&m_Params.targetHDRParams[i], sizeof(HDR_PARAMS), (HDR_PARAMS *)params.pTarget[i]->pHDRParams, sizeof(HDR_PARAMS));
+        }
+        else
+        {
+            MOS_ZeroMemory(&m_Params.targetHDRParams[i], sizeof(HDR_PARAMS));
+        }
+    }
+
+     return MOS_STATUS_SUCCESS;
 }
+
 FeatureParamHdr &SwFilterHdr::GetSwFilterParams()
 {
     VP_FUNC_CALL();
@@ -1313,6 +1417,112 @@ SwFilter *SwFilterHdr::Clone()
 
     swFilter->m_Params = m_Params;
     return p;
+}
+
+//!
+//! \brief    Checks to see if HDR can be enabled for the formats
+//! \details  Checks to see if HDR can be enabled for the formats
+//! \param    PVPHAL_SURFACE pSrcSurface
+//!           [in] Pointer to source surface
+//! \param    bool* pbSupported
+//!           [out] true supported false not supported
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if successful, otherwise failed
+//!
+MOS_STATUS SwFilterHdr::HdrIsInputFormatSupported(
+    PVPHAL_SURFACE pSrcSurface,
+    bool          *pbSupported)
+{
+    VP_FUNC_CALL();
+
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    VP_PUBLIC_CHK_NULL(pSrcSurface);
+    VP_PUBLIC_CHK_NULL(pbSupported);
+
+    // HDR supported formats
+    if (pSrcSurface->Format == Format_A8R8G8B8 ||
+        pSrcSurface->Format == Format_X8R8G8B8 ||
+        pSrcSurface->Format == Format_A8B8G8R8 ||
+        pSrcSurface->Format == Format_X8B8G8R8 ||
+        pSrcSurface->Format == Format_R10G10B10A2 ||
+        pSrcSurface->Format == Format_B10G10R10A2 ||
+        pSrcSurface->Format == Format_A16B16G16R16 ||
+        pSrcSurface->Format == Format_A16R16G16B16 ||
+        pSrcSurface->Format == Format_A16B16G16R16F ||
+        pSrcSurface->Format == Format_A16R16G16B16F ||
+        pSrcSurface->Format == Format_P016 ||
+        pSrcSurface->Format == Format_NV12 ||
+        pSrcSurface->Format == Format_P010 ||
+        pSrcSurface->Format == Format_YUY2 ||
+        pSrcSurface->Format == Format_AYUV)
+    {
+        *pbSupported = true;
+        goto finish;
+    }
+    else
+    {
+        VP_RENDER_ASSERTMESSAGE(
+            "HDR Unsupported Source Format: '0x%08x'\n",
+            pSrcSurface->Format);
+        *pbSupported = false;
+    }
+
+finish:
+    return eStatus;
+}
+
+//!
+//! \brief    Checks to see if HDR can be enabled for the formats
+//! \details  Checks to see if HDR can be enabled for the formats
+//! \param    PVPHAL_SURFACE pTargetSurface
+//!           [in] Pointer to target surface
+//! \param    bool* pbSupported
+//!           [out] true supported false not supported
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if successful, otherwise failed
+//!
+MOS_STATUS SwFilterHdr::HdrIsOutputFormatSupported(
+    PVPHAL_SURFACE pTargetSurface,
+    bool          *pbSupported)
+{
+    VP_FUNC_CALL();
+
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    VP_PUBLIC_CHK_NULL(pTargetSurface);
+    VP_PUBLIC_CHK_NULL(pbSupported);
+
+    // HDR supported formats
+    if (pTargetSurface->Format == Format_A8R8G8B8 ||
+        pTargetSurface->Format == Format_X8R8G8B8 ||
+        pTargetSurface->Format == Format_A8B8G8R8 ||
+        pTargetSurface->Format == Format_X8B8G8R8 ||
+        pTargetSurface->Format == Format_R10G10B10A2 ||
+        pTargetSurface->Format == Format_B10G10R10A2 ||
+        pTargetSurface->Format == Format_A16B16G16R16 ||
+        pTargetSurface->Format == Format_A16R16G16B16 ||
+        pTargetSurface->Format == Format_YUY2 ||
+        pTargetSurface->Format == Format_P016 ||
+        pTargetSurface->Format == Format_NV12 ||
+        pTargetSurface->Format == Format_P010 ||
+        pTargetSurface->Format == Format_P016 ||
+        pTargetSurface->Format == Format_A16R16G16B16F ||
+        pTargetSurface->Format == Format_A16B16G16R16F)
+    {
+        *pbSupported = true;
+        goto finish;
+    }
+    else
+    {
+        VP_RENDER_ASSERTMESSAGE(
+            "HDR Unsupported Target Format: '0x%08x'\n",
+            pTargetSurface->Format);
+        *pbSupported = false;
+    }
+
+finish:
+    return eStatus;
 }
 
 bool vp::SwFilterHdr::operator==(SwFilter &swFilter)

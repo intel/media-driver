@@ -173,6 +173,355 @@ MOS_STATUS VpRenderKernelObj::InitKernel(void* binary, uint32_t size, KERNEL_CON
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS GetSurfaceSize(
+    VP_SURFACE    *pSurface,
+    uint32_t       iBpp,
+    uint32_t      *piWidthInBytes,
+    uint32_t      *piHeightInRows)
+{
+    VP_FUNC_CALL();
+
+    MOS_STATUS eStatus;
+    uint32_t   iWidthInBytes;
+    uint32_t   iHeightInRows;
+
+    //-------------------------------------------
+    VP_DEBUG_ASSERT(pSurface->osSurface->dwWidth >= 1);
+    VP_DEBUG_ASSERT(pSurface->osSurface->dwHeight >= 1);
+    VP_DEBUG_ASSERT(pSurface->osSurface->dwPitch >= 1);
+    //-------------------------------------------
+
+    eStatus = MOS_STATUS_SUCCESS;
+
+    switch (pSurface->osSurface->Format)
+    {
+    // Packed Formats
+    case Format_A8R8G8B8:
+    case Format_X8R8G8B8:
+    case Format_A8B8G8R8:
+    case Format_X8B8G8R8:
+    case Format_R5G6B5:
+    case Format_R8G8B8:
+    case Format_R32U:
+    case Format_R32F:
+    case Format_AYUV:
+    case Format_YUY2:
+    case Format_YUYV:
+    case Format_YVYU:
+    case Format_UYVY:
+    case Format_VYUY:
+    case Format_AI44:
+    case Format_IA44:
+    case Format_P8:
+    case Format_A8P8:
+    case Format_A8:
+    case Format_L8:
+    case Format_A4L4:
+    case Format_A8L8:
+    case Format_V8U8:
+    case Format_R10G10B10A2:
+    case Format_B10G10R10A2:
+    case Format_Y410:
+    case Format_Y416:
+    case Format_Y210:
+    case Format_Y216:
+    case Format_R16F:
+        iWidthInBytes = pSurface->osSurface->dwWidth * iBpp / 8;
+        iHeightInRows = pSurface->osSurface->dwHeight;
+        break;
+
+    // 4:2:0 (12-bits per pixel)
+    // IMC1                           // IMC3
+    // ----------------->             // ----------------->
+    // ________________________       // ________________________
+    //|Y0|Y1|                  |      //|Y0|Y1|                  |
+    //|__|__|                  |      //|__|__|                  |
+    //|                        |      //|                        |
+    //|                        |      //|                        |
+    //|                        |      //|                        |
+    //|                        |      //|                        |
+    //|                        |      //|                        |
+    //|________________________|      //|________________________|
+    //|V0|V1|      |           |      //|U0|U1|      |           |
+    //|__|__|      |           |      //|__|__|      |           |
+    //|            |           |      //|            |           |
+    //|____________|  PAD      |      //|____________|  PAD      |
+    //|U0|U1|      |           |      //|V0|V1|      |           |
+    //|__|__|      |           |      //|__|__|      |           |
+    //|            |           |      //|            |           |
+    //|____________|___________|      //|____________|___________|
+    case Format_IMC1:
+    case Format_IMC3:
+        iWidthInBytes = pSurface->osSurface->dwWidth;
+        iHeightInRows = pSurface->osSurface->dwHeight * 2;
+        break;
+
+    // 4:0:0 (8-bits per pixel)
+    // 400P
+    // ----------------->
+    // ________________________
+    //|Y0|Y1|                  |
+    //|__|__|                  |
+    //|                        |
+    //|                        |
+    //|                        |
+    //|                        |
+    //|                        |
+    //|________________________|
+    case Format_400P:
+    case Format_Buffer:
+    case Format_RAW:
+        iWidthInBytes = pSurface->osSurface->dwWidth;
+        iHeightInRows = pSurface->osSurface->dwHeight;
+        break;
+
+    // 4:1:1 (12-bits per pixel)      // 4:2:2 (16-bits per pixel)
+    // 411P                           // 422H
+    // ----------------->             // ----------------->
+    // ________________________       // ________________________
+    //|Y0|Y1|                  |      //|Y0|Y1|                  |
+    //|__|__|                  |      //|__|__|                  |
+    //|                        |      //|                        |
+    //|                        |      //|                        |
+    //|                        |      //|                        |
+    //|                        |      //|                        |
+    //|                        |      //|                        |
+    //|________________________|      //|________________________|
+    //|U0|U1||                 |      //|U0|U1|      |           |
+    //|__|__||                 |      //|__|__|      |           |
+    //|      |                 |      //|            |           |
+    //|      |      PAD        |      //|            |    PAD    |
+    //|      |                 |      //|            |           |
+    //|      |                 |      //|            |           |
+    //|      |                 |      //|            |           |
+    //|______|_________________|      //|____________|___________|
+    //|V0|V1||                 |      //|V0|V1|      |           |
+    //|__|__||                 |      //|__|__|      |           |
+    //|      |                 |      //|            |           |
+    //|      |      PAD        |      //|            |    PAD    |
+    //|      |                 |      //|            |           |
+    //|      |                 |      //|            |           |
+    //|      |                 |      //|            |           |
+    //|______|_________________|      //|____________|___________|
+
+    // 4:4:4 (24-bits per pixel)
+    // 444P
+    // ----------------->
+    // ________________________
+    //|Y0|Y1|                  |
+    //|__|__|                  |
+    //|                        |
+    //|                        |
+    //|                        |
+    //|                        |
+    //|                        |
+    //|________________________|
+    //|U0|U1|                  |
+    //|__|__|                  |
+    //|                        |
+    //|                        |
+    //|                        |
+    //|                        |
+    //|                        |
+    //|________________________|
+    //|V0|V1|                  |
+    //|__|__|                  |
+    //|                        |
+    //|                        |
+    //|                        |
+    //|                        |
+    //|                        |
+    //|________________________|
+
+    // 4:4:4 (24-bits per pixel)
+    // RGBP
+    // ----------------->
+    // ________________________
+    //|R0|R1|                  |
+    //|__|__|                  |
+    //|                        |
+    //|                        |
+    //|                        |
+    //|                        |
+    //|                        |
+    //|________________________|
+    //|G0|G1|                  |
+    //|__|__|                  |
+    //|                        |
+    //|                        |
+    //|                        |
+    //|                        |
+    //|                        |
+    //|________________________|
+    //|B0|B1|                  |
+    //|__|__|                  |
+    //|                        |
+    //|                        |
+    //|                        |
+    //|                        |
+    //|                        |
+    //|________________________|
+    case Format_RGBP:
+
+    // 4:4:4 (24-bits per pixel)
+    // BGRP
+    // ----------------->
+    // ________________________
+    //|B0|B1|                  |
+    //|__|__|                  |
+    //|                        |
+    //|                        |
+    //|                        |
+    //|                        |
+    //|                        |
+    //|________________________|
+    //|G0|G1|                  |
+    //|__|__|                  |
+    //|                        |
+    //|                        |
+    //|                        |
+    //|                        |
+    //|                        |
+    //|________________________|
+    //|R0|R1|                  |
+    //|__|__|                  |
+    //|                        |
+    //|                        |
+    //|                        |
+    //|                        |
+    //|                        |
+    //|________________________|
+    case Format_BGRP:
+    case Format_411P:
+    case Format_422H:
+    case Format_444P:
+        iWidthInBytes = pSurface->osSurface->dwWidth;
+        iHeightInRows = pSurface->osSurface->dwHeight * 3;
+        break;
+
+    // 4:1:1 (12-bits per pixel)
+    // 411R
+    // ----------------->
+    // ________________________
+    //|Y0|Y1|                  |
+    //|__|__|                  |
+    //|                        |
+    //|                        |
+    //|                        |
+    //|                        |
+    //|                        |
+    //|________________________|
+    //|U0|U1|                  |
+    //|__|__|                  |
+    //|________________________|
+    //|V0|V1|                  |
+    //|__|__|                  |
+    //|________________________|
+    case Format_411R:
+        iWidthInBytes = pSurface->osSurface->dwWidth;
+        iHeightInRows = (pSurface->osSurface->dwHeight * 3) / 2;
+        break;
+
+    // 4:2:2V (16-bits per pixel)
+    // 422V
+    // ----------------->
+    // ________________________
+    //|Y0|Y1|                  |
+    //|__|__|                  |
+    //|                        |
+    //|                        |
+    //|                        |
+    //|                        |
+    //|                        |
+    //|________________________|
+    //|U0|U1|                  |
+    //|__|__|                  |
+    //|                        |
+    //|________________________|
+    //|V0|V1|                  |
+    //|__|__|                  |
+    //|                        |
+    //|________________________|
+    case Format_422V:
+        iWidthInBytes = pSurface->osSurface->dwWidth;
+        iHeightInRows = pSurface->osSurface->dwHeight * 2;
+        break;
+
+        // 4:2:0 (12-bits per pixel)
+        // IMC2                          // IMC4
+        // ----------------->            // ----------------->
+        // ________________________      // ________________________
+        //|Y0|Y1|                  |     //|Y0|Y1|                  |
+        //|__|__|                  |     //|__|__|                  |
+        //|                        |     //|                        |
+        //|                        |     //|                        |
+        //|                        |     //|                        |
+        //|                        |     //|                        |
+        //|                        |     //|                        |
+        //|________________________|     //|________________________|
+        //|V0|V1|      |U0|U1|     |     //|U0|U1|      |V0|V1|     |
+        //|__|__|      |__|__|     |     //|__|__|      |__|__|     |
+        //|            |           |     //|            |           |
+        //|____________|___________|     //|____________|___________|
+
+        // NV12                          // YV12
+        // ----------------->            // ----------------->
+        // ________________________      // ________________________
+        //|Y0|Y1|                  |     //|Y0|Y1|                  |
+        //|__|__|                  |     //|__|__|                  |
+        //|                        |     //|                        |
+        //|                        |     //|                        |
+        //|                        |     //|                        |
+        //|                        |     //|                        |
+        //|                        |     //|                        |
+        //|________________________|     //|________________________|
+        //|U0|V0|U1|V1|            |     //|V0|V1|                  |
+        //|__|__|__|__|            |     //|__|__|__________________|
+        //|                        |     //|U0|U1|                  |
+        //|________________________|     //|__|__|__________________|
+
+    case Format_IMC2:
+    case Format_IMC4:
+    case Format_NV12:
+    case Format_YV12:
+    case Format_I420:
+    case Format_IYUV:
+    case Format_YVU9:
+        iWidthInBytes = pSurface->osSurface->dwWidth;
+        iHeightInRows = pSurface->osSurface->dwHeight * iBpp / 8;
+        break;
+
+    case Format_P010:
+    case Format_P016:
+        iWidthInBytes = pSurface->osSurface->dwWidth * 2;
+        iHeightInRows = pSurface->osSurface->dwHeight * 3 / 2;
+        break;
+
+    case Format_A16R16G16B16:
+    case Format_A16B16G16R16:
+        iWidthInBytes = pSurface->osSurface->dwWidth * 8;
+        iHeightInRows = pSurface->osSurface->dwHeight;
+        break;
+
+    case Format_P210:
+    case Format_P216:
+        iWidthInBytes = pSurface->osSurface->dwWidth * 2;
+        iHeightInRows = pSurface->osSurface->dwHeight * 2;
+
+    default:
+        VP_RENDER_ASSERTMESSAGE("Format %d not supported.", pSurface->osSurface->Format);
+        eStatus = MOS_STATUS_UNKNOWN;
+        goto finish;
+    }
+
+    *piWidthInBytes = iWidthInBytes;
+    *piHeightInRows = iHeightInRows;
+
+finish:
+    return eStatus;
+}
+
+
 void VpRenderKernelObj::DumpSurface(VP_SURFACE* pSurface, PCCHAR fileName)
 {
     uint8_t* pData;
@@ -197,10 +546,13 @@ void VpRenderKernelObj::DumpSurface(VP_SURFACE* pSurface, PCCHAR fileName)
     // get bits per pixel for the format
     pOsInterface->pfnGetBitsPerPixel(pOsInterface, pSurface->osSurface->Format, &iBpp);
 
-    iWidthInBytes = pSurface->osSurface->dwWidth;
-    iHeightInRows = pSurface->osSurface->dwHeight;
+    GetSurfaceSize(
+        pSurface,
+        iBpp,
+        &iWidthInBytes,
+        &iHeightInRows);
 
-    iSize = iWidthInBytes * iHeightInRows * iBpp / 8;
+    iSize = iWidthInBytes * iHeightInRows;
 
     // Write original image to file
     MOS_ZeroMemory(&LockFlags, sizeof(MOS_LOCK_PARAMS));
@@ -242,9 +594,9 @@ void VpRenderKernelObj::DumpSurface(VP_SURFACE* pSurface, PCCHAR fileName)
 
         for (iY = 0; iY < iHeightInRows; iY++)
         {
-            MOS_SecureMemcpy(pTmpDst, iWidthInBytes * iBpp / 8, pTmpSrc, iWidthInBytes * iBpp / 8);
+            MOS_SecureMemcpy(pTmpDst, iSize, pTmpSrc, iWidthInBytes);
             pTmpSrc += pSurface->osSurface->dwPitch;
-            pTmpDst += iWidthInBytes * iBpp / 8;
+            pTmpDst += iWidthInBytes;
         }
 
         MosUtilities::MosWriteFileFromPtr((const char*)sPath, pDst, iSize);

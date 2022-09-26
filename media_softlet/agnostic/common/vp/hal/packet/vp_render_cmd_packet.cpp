@@ -394,6 +394,7 @@ MOS_STATUS VpRenderCmdPacket::Submit(MOS_COMMAND_BUFFER *commandBuffer, uint8_t 
         return MOS_STATUS_INVALID_PARAMETER;
     }
 
+
     if (!m_surfSetting.dumpLaceSurface &&
         !m_surfSetting.dumpPostSurface)
     {
@@ -466,6 +467,7 @@ MOS_STATUS VpRenderCmdPacket::InitSurfMemCacheControl(VP_EXECUTE_CAPS packetCaps
     pSettings->bCompositing = packetCaps.bComposite;
     pSettings->bDnDi = true;
     pSettings->bLace = MEDIA_IS_SKU(m_hwInterface->m_skuTable, FtrLace);
+    pSettings->bHdr  = MEDIA_IS_SKU(m_hwInterface->m_skuTable, FtrHDR);
 
     VP_RENDER_CHK_STATUS_RETURN(InitFcMemCacheControl(pSettings));
 
@@ -534,6 +536,23 @@ MOS_STATUS VpRenderCmdPacket::InitSurfMemCacheControl(VP_EXECUTE_CAPS packetCaps
         VPHAL_SET_SURF_MEMOBJCTL(pSettings->Lace.GlobalToneMappingCurveLUTSurfaceMemObjCtl, MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_RENDER);
     }
 
+    if (pSettings->bHdr)
+    {
+        VPHAL_SET_SURF_MEMOBJCTL(pSettings->Hdr.SourceSurfMemObjCtl, MOS_MP_RESOURCE_USAGE_SurfaceState_FF);
+        VPHAL_SET_SURF_MEMOBJCTL(pSettings->Hdr.TargetSurfMemObjCtl, MOS_MP_RESOURCE_USAGE_DEFAULT_FF);
+        VPHAL_SET_SURF_MEMOBJCTL(pSettings->Hdr.Lut2DSurfMemObjCtl, MOS_MP_RESOURCE_USAGE_SurfaceState_FF);
+        VPHAL_SET_SURF_MEMOBJCTL(pSettings->Hdr.Lut3DSurfMemObjCtl, MOS_MP_RESOURCE_USAGE_SurfaceState_FF);
+        VPHAL_SET_SURF_MEMOBJCTL(pSettings->Hdr.CoeffSurfMemObjCtl, MOS_MP_RESOURCE_USAGE_SurfaceState_FF);
+    }
+    else
+    {
+        pSettings->Hdr.bL3CachingEnabled = false;
+        VPHAL_SET_SURF_MEMOBJCTL(pSettings->Hdr.SourceSurfMemObjCtl, MOS_MP_RESOURCE_USAGE_DEFAULT);
+        VPHAL_SET_SURF_MEMOBJCTL(pSettings->Hdr.TargetSurfMemObjCtl, MOS_MP_RESOURCE_USAGE_DEFAULT);
+        VPHAL_SET_SURF_MEMOBJCTL(pSettings->Hdr.Lut2DSurfMemObjCtl, MOS_MP_RESOURCE_USAGE_DEFAULT);
+        VPHAL_SET_SURF_MEMOBJCTL(pSettings->Hdr.Lut3DSurfMemObjCtl, MOS_MP_RESOURCE_USAGE_DEFAULT);
+        VPHAL_SET_SURF_MEMOBJCTL(pSettings->Hdr.CoeffSurfMemObjCtl, MOS_MP_RESOURCE_USAGE_DEFAULT);
+    }
 
     return MOS_STATUS_SUCCESS;
 }
@@ -1866,5 +1885,67 @@ MOS_STATUS VpRenderCmdPacket::SetDnHVSParams(
 
     return MOS_STATUS_SUCCESS;
 }
+
+MOS_STATUS VpRenderCmdPacket::SetHdrParams(PRENDER_HDR_PARAMS params)
+{
+    VP_FUNC_CALL();
+    VP_RENDER_CHK_NULL_RETURN(params);
+
+    KERNEL_PARAMS kernelParams = {};
+    VP_SURFACE                 *surf                = GetSurface(SurfaceTypeHdrInputLayer0);
+    PMHW_SAMPLER_STATE_PARAM    pSamplerStateParams = nullptr;
+    uint32_t                    i                   = 0;
+
+    params->coeffAllocated       = m_surfSetting.coeffAllocated;
+    params->OETF1DLUTAllocated   = m_surfSetting.OETF1DLUTAllocated;
+    params->pHDRStageConfigTable = m_surfSetting.pHDRStageConfigTable;
+
+    //MOS_SURFACE *surface = surf->osSurface;
+    params->dwSurfaceHeight = surf->rcSrc.bottom - surf->rcSrc.top;
+    params->dwSurfaceWidth  = surf->rcSrc.right - surf->rcSrc.left;
+
+    for (i = 0; i < 16; i++)
+    {
+        MHW_SAMPLER_STATE_PARAM samplerStateParam = {};
+        MOS_ZeroMemory(&samplerStateParam, sizeof(samplerStateParam));
+
+        pSamplerStateParams = &samplerStateParam;
+
+        switch (i)
+        {
+        case 13:
+            pSamplerStateParams->bInUse                  = true;
+            pSamplerStateParams->SamplerType             = MHW_SAMPLER_TYPE_3D;
+            pSamplerStateParams->Unorm.SamplerFilterMode = MHW_SAMPLER_FILTER_NEAREST;
+            pSamplerStateParams->Unorm.AddressU          = MHW_GFX3DSTATE_TEXCOORDMODE_CLAMP;
+            pSamplerStateParams->Unorm.AddressV          = MHW_GFX3DSTATE_TEXCOORDMODE_CLAMP;
+            pSamplerStateParams->Unorm.AddressW          = MHW_GFX3DSTATE_TEXCOORDMODE_CLAMP;
+            break;
+        case 14:
+            pSamplerStateParams->bInUse                  = true;
+            pSamplerStateParams->SamplerType             = MHW_SAMPLER_TYPE_3D;
+            pSamplerStateParams->Unorm.SamplerFilterMode = MHW_SAMPLER_FILTER_BILINEAR;
+            pSamplerStateParams->Unorm.AddressU          = MHW_GFX3DSTATE_TEXCOORDMODE_CLAMP;
+            pSamplerStateParams->Unorm.AddressV          = MHW_GFX3DSTATE_TEXCOORDMODE_CLAMP;
+            pSamplerStateParams->Unorm.AddressW          = MHW_GFX3DSTATE_TEXCOORDMODE_CLAMP;
+            break;
+        default:
+            break;
+        }
+        m_kernelSamplerStateGroup.insert(std::make_pair(i, samplerStateParam));
+    }
+
+    m_kernelConfigs.insert(std::make_pair(params->kernelId, (void *)params));
+
+    kernelParams.kernelId                  = params->kernelId;
+    kernelParams.kernelThreadSpace.uWidth  = params->threadWidth;
+    kernelParams.kernelThreadSpace.uHeight = params->threadHeight;
+    kernelParams.syncFlag                  = true;
+    m_renderKernelParams.push_back(kernelParams);
+
+    return MOS_STATUS_SUCCESS;
+
+}
+
 
 }  // namespace vp

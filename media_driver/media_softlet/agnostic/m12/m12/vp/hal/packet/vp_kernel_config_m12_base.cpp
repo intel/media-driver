@@ -55,4 +55,5 @@ void VpKernelConfigM12_Base::InitKernelParams()
     //                                               |  |    |  |                          |   |    |                       |                       |   |*/
     ADD_VP_KERNEL_PARAMS(kernelCombinedFc,           7, 40,  3, VP_USE_MEDIA_THREADS_MAX,  0,  6,   VP_COMP_BLOCK_WIDTH,    VP_COMP_BLOCK_HEIGHT,   1,  1);
     ADD_VP_KERNEL_PARAMS(kernelVeboxUpdateDnState,   4, 34,  0, VP_USE_MEDIA_THREADS_MAX,  0,  2,   64,                     8,                      1,  1);
+    ADD_VP_KERNEL_PARAMS(kernelHdrMandatory,         8, 40,  4, VP_USE_MEDIA_THREADS_MAX,  0,  8,   16,                     8,                      1,  1);
 }

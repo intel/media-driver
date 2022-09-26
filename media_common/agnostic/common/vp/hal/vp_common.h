@@ -342,6 +342,7 @@ typedef struct _VPHAL_RENDER_CACHE_CNTL
     VPHAL_DNDI_CACHE_CNTL      DnDi;
     VPHAL_COMPOSITE_CACHE_CNTL Composite;
     VPHAL_LACE_CACHE_CNTL      Lace;
+    VPHAL_HDR_CACHE_CNTL       Hdr;
 } VPHAL_RENDER_CACHE_CNTL, *PVPHAL_RENDER_CACHE_CNTL;
 
 
@@ -678,6 +679,22 @@ typedef union _VPHAL_COLOR_SAMPLE_16
 
     uint32_t Value;
 } VPHAL_COLOR_SAMPLE_16, *PVPHAL_COLOR_SAMPLE_16;
+
+//!
+//! Union   VPHAL_HALF_PRECISION_FLOAT
+//! \brief  Vphal half precision float type
+//!
+typedef union _VPHAL_HALF_PRECISION_FLOAT
+{
+    struct
+    {
+        uint16_t Mantissa : 10;
+        uint16_t Exponent : 5;
+        uint16_t Sign : 1;
+    };
+
+    uint16_t value;
+} VPHAL_HALF_PRECISION_FLOAT, PVPHAL_HALF_PRECISION_FLOAT;
 
 //!
 //! Structure VPHAL_PLANE_OFFSET
@@ -1171,6 +1188,7 @@ struct VPHAL_RENDER_PARAMS
     bool bUseVEHdrSfc       = false;  // use SFC for to perform CSC/Scaling/RGBSwap of HDR streaming; if false, use composite render.
     bool bNonFirstFrame     = false;  // first frame or not: first frame false, otherwise true considering zeromemory parameters.
     bool bOptimizeCpuTiming = false;  //!< Optimize Cpu Timing
+    bool bHdrKernelPath     = false; //!< For bypassing Hdr kernel path
 
     VPHAL_RENDER_PARAMS() : uSrcCount(0),
                             pSrc(),
@@ -1350,6 +1368,16 @@ void VpHal_GetCscMatrix(
 //!
 VPHAL_COLORPACK VpHal_GetSurfaceColorPack(
     MOS_FORMAT Format);
+
+//! \brief    Transfer float type to half precision float type
+//! \details  Transfer float type to half precision float (16bit) type
+//! \param    [in] fInput
+//!           input FP32 number
+//! \return   uint16_t
+//!           half precision float value in bit
+//!
+uint16_t VpHal_FloatToHalfFloat(
+    float fInput);
 
 #ifdef __cplusplus
 }

@@ -180,6 +180,7 @@ MOS_STATUS Mos_OsGetBitsPerPixel(
     case Format_A8L8:
     case Format_R16U:
     case Format_V8U8:
+    case Format_R16F:
         *piBpp = 16;
         break;
 

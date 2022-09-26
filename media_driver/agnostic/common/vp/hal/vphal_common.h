@@ -191,24 +191,6 @@ typedef enum _VPHAL_DP_ROTATION_MODE
 //!
 #define SET_VPHAL_MMC_STATE(_a, _bEnableMMC)          (_a->bEnableMMC =  _bEnableMMC)                    // Set the Component
 
-
-//!
-//! Union   VPHAL_HALF_PRECISION_FLOAT
-//! \brief  Vphal half precision float type
-//!
-typedef union _VPHAL_HALF_PRECISION_FLOAT
-{
-    struct
-    {
-        uint16_t      Mantissa : 10;
-        uint16_t      Exponent : 5;
-        uint16_t      Sign     : 1;
-    };
-
-    uint16_t value;
-} VPHAL_HALF_PRECISION_FLOAT, PVPHAL_HALF_PRECISION_FLOAT;
-
-
 //!
 //! \brief Vphal 3DLUT Channel Mapping enum
 //!
@@ -430,16 +412,6 @@ void VpHal_GetScalingRatio(
     PVPHAL_SURFACE              pTarget,
     float*                      pfScaleX,
     float*                      pfScaleY);
-
-//! \brief    Transfer float type to half precision float type
-//! \details  Transfer float type to half precision float (16bit) type
-//! \param    [in] fInput
-//!           input FP32 number
-//! \return   uint16_t
-//!           half precision float value in bit
-//!
-uint16_t VpHal_FloatToHalfFloat(
-    float     fInput);
 
 //! \brief    Transfer float type to half precision float type
 //! \details  Transfer float type to half precision float (16bit) type

@@ -39,6 +39,13 @@
 
 namespace vp {
 
+#define ESR_LAYER_NUM       10
+#define VPHAL_MAX_HDR_INPUT_LAYER 8
+#define VPHAL_HDR_EOTF_1DLUT_POINT_NUMBER 256
+#define VPHAL_HDR_OETF_1DLUT_POINT_NUMBER 256
+#define VPHAL_HDR_OETF_1DLUT_WIDTH 16
+#define VPHAL_HDR_OETF_1DLUT_HEIGHT 16
+
 class VpCmdPacket;
 
 class VpFilter
@@ -449,6 +456,84 @@ struct _RENDER_FC_PARAMS
 };
 using RENDER_FC_PARAMS  = _RENDER_FC_PARAMS;
 using PRENDER_FC_PARAMS = RENDER_FC_PARAMS *;
+
+struct _RENDER_HDR_PARAMS
+{
+    VpKernelID              kernelId;
+    VP_COMPOSITE_PARAMS     compParams;
+    uint32_t                uiMaxDisplayLum;       //!< Maximum Display Luminance
+    uint32_t                uiMaxContentLevelLum;  //!< Maximum Content Level Luminance
+    VPHAL_HDR_MODE          hdrMode;
+    VPHAL_CSPACE            srcColorSpace;
+    VPHAL_CSPACE            dstColorSpace;
+    uint32_t                threadWidth;
+    uint32_t                threadHeight;
+
+
+    VPHAL_HDR_CACHE_CNTL            SurfMemObjCtl;                  //!< Cache attributes
+    uint32_t                        uiSplitFramePortions = 1;       //!< Split Frame flag
+    bool                            bForceSplitFrame     = false;
+
+    uint32_t                        uSourceCount;                                               //!< Number of sources
+    uint32_t                        uTargetCount;                                               //!< Number of targets
+    uint32_t                        uSourceBindingTableIndex[8];        //!< Binding Table Index
+    uint32_t                        uTargetBindingTableIndex[8];       //!< Binding Table Index
+    uint32_t                        dwSurfaceWidth;                                             //!< Record the input surface width of last HDR render
+    uint32_t                        dwSurfaceHeight;                                            //!< Record the input surface height of last HDR render
+    PVPHAL_COLORFILL_PARAMS         pColorFillParams;                                           //!< ColorFill - BG only
+
+    VPHAL_HDR_LUT_MODE              LUTMode[8];         //!< LUT Mode
+    VPHAL_HDR_LUT_MODE              GlobalLutMode;                              //!< Global LUT mode control for debugging purpose
+
+    uint32_t                        dwOetfSurfaceWidth;             //!< Gamma 1D LUT surface
+    uint32_t                        dwOetfSurfaceHeight;            //!< Gamma 1D LUT surface
+    uint32_t                        dwUpdateMask;                   //!< Coefficients Update Mask
+    uint32_t                        Cri3DLUTSize;                   //!< CRI 3D LUT surface
+
+    VPHAL_SURFACE                   OETF1DLUTSurface[VPHAL_MAX_HDR_INPUT_LAYER];        //!< OETF 1D LUT surface
+    VPHAL_SURFACE                   CoeffSurface;                                       //!< CSC CCM Coeff surface
+
+    uint16_t                        OetfSmpteSt2084[VPHAL_HDR_OETF_1DLUT_POINT_NUMBER];      //!< EOTF 1D LUT SMPTE ST2084
+
+    uint8_t*                        pInput3DLUT;                                             //!< Input 3DLUT address for GPU generate 3DLUT
+
+    const uint16_t                  *pHDRStageConfigTable = nullptr;
+
+    HDRStageEnables                 StageEnableFlags[VPHAL_MAX_HDR_INPUT_LAYER];
+
+    VPHAL_GAMMA_TYPE                EOTFGamma[VPHAL_MAX_HDR_INPUT_LAYER]; //!< EOTF
+    VPHAL_GAMMA_TYPE                OETFGamma[VPHAL_MAX_HDR_INPUT_LAYER]; //!< OETF
+    VPHAL_HDR_MODE                  HdrMode[VPHAL_MAX_HDR_INPUT_LAYER];   //!< Hdr Mode
+    VPHAL_HDR_CCM_TYPE              CCM[VPHAL_MAX_HDR_INPUT_LAYER];       //!< CCM Mode
+    VPHAL_HDR_CCM_TYPE              CCMExt1[VPHAL_MAX_HDR_INPUT_LAYER];   //!< CCM Ext1 Mode
+    VPHAL_HDR_CCM_TYPE              CCMExt2[VPHAL_MAX_HDR_INPUT_LAYER];   //!< CCM Ext2 Mode
+    VPHAL_HDR_CSC_TYPE              PriorCSC[VPHAL_MAX_HDR_INPUT_LAYER];  //!< Prior CSC Mode
+    VPHAL_HDR_CSC_TYPE              PostCSC[VPHAL_MAX_HDR_INPUT_LAYER];   //!< Post CSC Mode
+
+    HDR_PARAMS                      HDRFrameTargetParams;
+    HDR_PARAMS                      HDRLastFrameSourceParams[VPHAL_MAX_HDR_INPUT_LAYER];
+    HDR_PARAMS                      HDRLastFrameTargetParams;
+
+    STATUS_TABLE_UPDATE_PARAMS      StatusTableUpdateParams;                   //!< Status table, Video Pre-Processing Only
+
+    bool                            bNeed3DSampler;                       //!< indicate whether 3D should neede by force considering AVS removal etc.
+
+   VPHAL_ROTATION                   Rotation   = VPHAL_ROTATION_IDENTITY;  //!<  0: 0 degree, 1: 90 degree, 2: 180 degree, 3: 270 degreee
+   VPHAL_SCALING_MODE               ScalingMode = VPHAL_SCALING_NEAREST;    //!<  Scaling Mode
+   PVPHAL_IEF_PARAMS                pIEFParams;
+   HDR_PARAMS                       srcHDRParams[VPHAL_MAX_HDR_INPUT_LAYER];
+   HDR_PARAMS                       targetHDRParams[VPHAL_MAX_HDR_OUTPUT_LAYER];
+   bool                             bUsingAutoModePipe;  //!< Hdr Auto Mode pipe flag
+   uint16_t                         InputSrc[VPHAL_MAX_HDR_INPUT_LAYER] = {};  // Input Surface
+   uint16_t                         Target[VPHAL_MAX_HDR_OUTPUT_LAYER]  = {};  // Target Surface
+   bool                             bGpuGenerate3DLUT;                         //!< Flag for per frame GPU generation of 3DLUT
+   float                            f3DLUTNormalizationFactor;                 //!< Normalization factor for 3DLUT
+   bool                             bDisableAutoMode;                          //!< Force to disable Hdr auto mode tone mapping for debugging purpose
+   bool                             coeffAllocated     = false;
+   bool                             OETF1DLUTAllocated = false;
+};
+using RENDER_HDR_PARAMS  = _RENDER_HDR_PARAMS;
+using PRENDER_HDR_PARAMS = RENDER_HDR_PARAMS *;
 
 class SwFilterPipe;
 class HwFilter;

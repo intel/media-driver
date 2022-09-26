@@ -663,6 +663,34 @@ MOS_STATUS VpUtils::DeclareUserSettings(MediaUserSettingSharedPtr userSettingPtr
         0,
         true);
 
+    DeclareUserSettingKey(
+        userSettingPtr,
+        __VPHAL_HDR_LUT_MODE,
+        MediaUserSetting::Group::Sequence,
+        0,
+        true);
+
+    DeclareUserSettingKey(
+        userSettingPtr,
+        __VPHAL_HDR_GPU_GENERTATE_3DLUT,
+        MediaUserSetting::Group::Sequence,
+        0,
+        true);
+
+    DeclareUserSettingKey(
+        userSettingPtr,
+        __VPHAL_HDR_DISABLE_AUTO_MODE,
+        MediaUserSetting::Group::Sequence,
+        0,
+        true);
+
+    DeclareUserSettingKey(
+        userSettingPtr,
+        __VPHAL_HDR_SPLIT_FRAME_PORTIONS,
+        MediaUserSetting::Group::Sequence,
+        1,
+        true);
+
 #if (_DEBUG || _RELEASE_INTERNAL)
     DeclareUserSettingKeyForDebug(  // FORCE VP DECOMPRESSED OUTPUT
         userSettingPtr,
@@ -698,6 +726,27 @@ MOS_STATUS VpUtils::DeclareUserSettings(MediaUserSettingSharedPtr userSettingPtr
         MediaUserSetting::Group::Sequence,
         0,
         true); //"HDR Mode. 0x1: H2S kernel, 0x3: H2H kernel, 0x21 65size H2S, 0x23 65size H2H, 0x31 33size H2S, 0x33 33size H2H."
+
+    DeclareUserSettingKeyForDebug(  // For quality tuning purpose
+        userSettingPtr,
+        __VPHAL_HDR_ENABLE_QUALITY_TUNING,
+        MediaUserSetting::Group::Sequence,
+        0,
+        true);
+
+    DeclareUserSettingKeyForDebug(  //For bit match purpose
+        userSettingPtr,
+        __VPHAL_HDR_ENABLE_KERNEL_DUMP,
+        MediaUserSetting::Group::Sequence,
+        0,
+        true);
+
+    DeclareUserSettingKeyForDebug(  // For HDR H2S RGB-based tone mapping
+        userSettingPtr,
+        __VPHAL_HDR_H2S_RGB_TM,
+        MediaUserSetting::Group::Sequence,
+        0,
+        true);
 
     DeclareUserSettingKeyForDebug(  // VP Compression Enable
         userSettingPtr,

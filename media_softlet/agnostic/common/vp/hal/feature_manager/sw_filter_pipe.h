@@ -178,6 +178,11 @@ public:
         return m_surfacesSetting;
     }
 
+    VpInterface &GetVpInterface()
+    {
+        return m_vpInterface;
+    }
+
     MOS_STATUS SetSecureProcessFlag(bool secureProcessed)
     {
         m_processedSecurePrepared = secureProcessed;

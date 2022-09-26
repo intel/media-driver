@@ -57,6 +57,11 @@ public:
 #endif
         bool disablePacketReuse             = false;
         bool enablePacketReuseTeamsAlways   = false;
+
+        VPHAL_HDR_LUT_MODE globalLutMode      = VPHAL_HDR_LUT_MODE_NONE;  //!< Global LUT mode control for debugging purpose
+        bool               gpuGenerate3DLUT   = false;                        //!< Flag for per frame GPU generation of 3DLUT
+        bool               disableAutoMode    = false;
+        uint32_t           splitFramePortions = 1;
     };
 
 #if (_DEBUG || _RELEASE_INTERNAL)
@@ -118,6 +123,26 @@ public:
     bool IsPacketReuseEnabledTeamsAlways()
     {
         return m_ctrlVal.enablePacketReuseTeamsAlways;
+    }
+
+    uint32_t GetGlobalLutMode()
+    {
+        return m_ctrlVal.globalLutMode;
+    }
+
+    bool IsGpuGenerate3DLUT()
+    {
+        return m_ctrlVal.gpuGenerate3DLUT;
+    }
+
+    bool IsDisableAutoMode()
+    {
+        return m_ctrlVal.disableAutoMode;
+    }
+
+    uint32_t GetSplitFramePortions()
+    {
+        return m_ctrlVal.splitFramePortions;
     }
 
     const void *m_owner = nullptr; // The object who create current instance.

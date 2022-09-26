@@ -97,11 +97,13 @@ typedef struct _VP_RENDER_CACHE_CNTL
     bool                        bDnDi;
     bool                        bLace;
     bool                        bCompositing;
+    bool                        bHdr;
 
     // Output
     VPHAL_DNDI_CACHE_CNTL        DnDi;
     VPHAL_LACE_CACHE_CNTL        Lace;
     VPHAL_COMPOSITE_CACHE_CNTL   Composite;
+    VPHAL_HDR_CACHE_CNTL         Hdr;
 } VP_RENDER_CACHE_CNTL, *PVP_RENDER_CACHE_CNTL;
 
 }
