@@ -56,6 +56,7 @@ public:
         uint32_t enabledSFCRGBPRGB24Output  = 0;
 #endif
         bool disablePacketReuse             = false;
+        bool enablePacketReuseTeamsAlways   = false;
     };
 
 #if (_DEBUG || _RELEASE_INTERNAL)
@@ -112,6 +113,11 @@ public:
     bool IsPacketReuseDisabled()
     {
         return m_ctrlVal.disablePacketReuse;
+    }
+
+    bool IsPacketReuseEnabledTeamsAlways()
+    {
+        return m_ctrlVal.enablePacketReuseTeamsAlways;
     }
 
     const void *m_owner = nullptr; // The object who create current instance.

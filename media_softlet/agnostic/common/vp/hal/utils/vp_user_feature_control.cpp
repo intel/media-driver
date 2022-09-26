@@ -148,6 +148,23 @@ VpUserFeatureControl::VpUserFeatureControl(MOS_INTERFACE &osInterface, VpPlatfor
     }
     VP_PUBLIC_NORMALMESSAGE("disablePacketReuse %d", m_ctrlValDefault.disablePacketReuse);
 
+    bool enablePacketReuseTeamsAlways = false;
+    status = ReadUserSetting(
+        m_userSettingPtr,
+        enablePacketReuseTeamsAlways,
+        __MEDIA_USER_FEATURE_VALUE_ENABLE_PACKET_REUSE_TEAMS_ALWAYS,
+        MediaUserSetting::Group::Sequence);
+    if (MOS_SUCCEEDED(status))
+    {
+        m_ctrlValDefault.enablePacketReuseTeamsAlways = enablePacketReuseTeamsAlways;
+    }
+    else
+    {
+        // Default value
+        m_ctrlValDefault.enablePacketReuseTeamsAlways = false;
+    }
+    VP_PUBLIC_NORMALMESSAGE("enablePacketReuseTeamsAlways %d", m_ctrlValDefault.enablePacketReuseTeamsAlways);
+
     // bComputeContextEnabled is true only if Gen12+. 
     // Gen12+, compute context(MOS_GPU_NODE_COMPUTE, MOS_GPU_CONTEXT_COMPUTE) can be used for render engine.
     // Before Gen12, we only use MOS_GPU_NODE_3D and MOS_GPU_CONTEXT_RENDER.

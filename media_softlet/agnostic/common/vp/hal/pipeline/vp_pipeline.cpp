@@ -430,7 +430,8 @@ MOS_STATUS VpPipeline::ExecuteSingleswFilterPipe(VpSinglePipeContext *singlePipe
     VP_PUBLIC_CHK_NULL_RETURN(chkNullHandler(policy));
 
     bool isPacketPipeReused = false;
-    VP_PUBLIC_CHK_STATUS_RETURN(chkStatusHandler(packetReuseMgr->PreparePacketPipeReuse(pipe, *policy, *resourceManager, isPacketPipeReused)));
+    VP_PUBLIC_CHK_NULL_RETURN(m_pvpParams.renderParams);
+    VP_PUBLIC_CHK_STATUS_RETURN(chkStatusHandler(packetReuseMgr->PreparePacketPipeReuse(pipe, *policy, *resourceManager, isPacketPipeReused, m_pvpParams.renderParams->bOptimizeCpuTiming)));
 
     if (isPacketPipeReused)
     {
