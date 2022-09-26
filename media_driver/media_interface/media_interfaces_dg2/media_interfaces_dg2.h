@@ -143,6 +143,8 @@
 
 #include "codechal_decode_histogram.h"
 #include "codechal_decode_histogram_g12.h"
+#include "decode_scalability_singlepipe.h"
+#include "decode_scalability_multipipe.h"
 
 class MhwInterfacesDg2_Next : public MhwInterfacesNext
 {

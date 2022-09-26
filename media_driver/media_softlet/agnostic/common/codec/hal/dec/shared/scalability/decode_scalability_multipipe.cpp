@@ -242,7 +242,6 @@ MOS_STATUS DecodeScalabilityMultiPipe::Destroy()
             MOS_FreeMemAndSetNull(m_veInterface);
         }
     }
-
     if (m_gpuCtxCreateOption)
     {
         MOS_Delete(m_gpuCtxCreateOption);
@@ -675,6 +674,19 @@ MOS_STATUS DecodeScalabilityMultiPipe::SendAttrWithFrameTracking(
         cmdBuffer.Attributes.dwMediaFrameTrackingAddrOffset = offset;
     }
 
+    return eStatus;
+}
+
+MOS_STATUS DecodeScalabilityMultiPipe::CreateDecodeMultiPipe(void *hwInterface, MediaContext *mediaContext, uint8_t componentType)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    SCALABILITY_FUNCTION_ENTER;
+    SCALABILITY_CHK_NULL_RETURN(hwInterface);
+    SCALABILITY_CHK_NULL_RETURN(mediaContext);
+
+    ((CodechalHwInterface *)hwInterface)->m_hwInterfaceNext->m_multiPipeScalability = MOS_New(DecodeScalabilityMultiPipe, hwInterface, mediaContext, scalabilityDecoder);
+    SCALABILITY_CHK_NULL_RETURN(((CodechalHwInterface *)hwInterface)->m_hwInterfaceNext->m_multiPipeScalability);
     return eStatus;
 }
 

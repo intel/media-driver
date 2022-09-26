@@ -136,6 +136,8 @@
 #include "media_user_settings_mgr_g12_plus.h"
 
 #include "codechal_decode_histogram.h"
+#include "decode_scalability_singlepipe.h"
+#include "decode_scalability_multipipe.h"
 
 class MhwInterfacesPvc : public MhwInterfaces
 {
