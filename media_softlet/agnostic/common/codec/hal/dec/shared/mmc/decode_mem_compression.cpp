@@ -40,13 +40,13 @@ DecodeMemComp::DecodeMemComp(CodechalHwInterface *hwInterface, PMOS_INTERFACE os
     m_mmcInuseFeatureId = __MEDIA_USER_FEATURE_VALUE_CODEC_MMC_IN_USE_ID;
     m_miItf             = hwInterface ? hwInterface->GetMiInterfaceNext() : nullptr;
 
-    if (hwInterface->m_enableCodecMmc)
+    if (hwInterface == nullptr)
     {
-        m_bComponentMmcEnabled = true;
+        CODECHAL_HW_ASSERT(hwInterface);
     }
     else
     {
-        m_bComponentMmcEnabled = false;
+        m_bComponentMmcEnabled = hwInterface->m_enableCodecMmc ? true : false;
     }
 
     InitMmcEnabled();
