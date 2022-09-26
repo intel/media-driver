@@ -51,11 +51,6 @@ struct VP_KERNEL_BINARY
     uint32_t              kernelBinSize        = 0;
     const uint32_t        *fcPatchKernelBin    = nullptr;
     uint32_t              fcPatchKernelBinSize = 0;
-
-    const uint32_t        *isa3DLUTKernelBin      = nullptr;
-    uint32_t              isa3DLUTKernelSize      = 0;
-    const uint32_t        *isaHVSDenoiseKernelBin = nullptr;
-    uint32_t              isaHVSDenoiseKernelSize = 0;
 };
 
 class VpRenderKernel
@@ -150,6 +145,10 @@ public:
         const uint32_t*       cisaCode,
         uint32_t              cisaCodeSize);
 
+    virtual MOS_STATUS InitVpL0Kernels(
+        std::string kernelName,
+        VP_KERNEL_BINARY_ENTRY kernelBinaryEntry);
+
     virtual MOS_STATUS InitVpHwCaps(VP_HW_CAPS &vpHwCaps)
     {
         VP_PUBLIC_CHK_STATUS_RETURN(InitVpVeboxSfcHwCaps(vpHwCaps.m_veboxHwEntry, Format_Count, vpHwCaps.m_sfcHwEntry, Format_Count));
@@ -171,10 +170,7 @@ public:
     {
         return MOS_STATUS_UNIMPLEMENTED;
     }
-    virtual MOS_STATUS InitVpRenderHwCaps()
-    {
-        return MOS_STATUS_UNIMPLEMENTED;
-    }
+    virtual MOS_STATUS        InitVpRenderHwCaps();
     virtual VPFeatureManager *CreateFeatureChecker(_VP_MHWINTERFACE *hwInterface)
     {
         return nullptr;
@@ -286,21 +282,20 @@ public:
 
     MOS_STATUS GetKernelParam(VpKernelID kernlId, RENDERHAL_KERNEL_PARAM &param);
 
-    void SetVpKernelBinary(
+    void SetVpFCKernelBinary(
                 const uint32_t   *kernelBin,
                 uint32_t         kernelBinSize,
                 const uint32_t   *fcPatchKernelBin,
                 uint32_t         fcPatchKernelBinSize);
-    
-    void SetVpISAKernelBinary(
-                const uint32_t   *isa3DLUTKernelBin,
-                uint32_t         isa3DLUTKernelSize,
-                const uint32_t   *isaHVSDenoiseKernelBin,
-                uint32_t         isaHVSDenoiseKernelSize);
 
-    virtual void AddVpKernelEntryToList(
-                const uint32_t   *kernelBin,
-                uint32_t         kernelBinSize){}
+    virtual void AddVpIsaKernelEntryToList(
+                const uint32_t *kernelBin,
+                uint32_t        kernelBinSize);
+
+    virtual void AddVpL0KernelEntryToList(
+                const uint32_t *kernelBin,
+                uint32_t        kernelBinSize,
+                std::string     kernelName);
 
     //only for get kernel binary in legacy path not being used in APO path.
     virtual MOS_STATUS GetKernelBinary(const void *&kernelBin, uint32_t &kernelSize, const void *&patchKernelBin, uint32_t &patchKernelSize);
@@ -327,6 +322,9 @@ protected:
     std::shared_ptr<mhw::sfc::Itf>          m_sfcItf    = nullptr;
     std::shared_ptr<mhw::render::Itf>       m_renderItf = nullptr;
     std::shared_ptr<mhw::mi::Itf>           m_miItf     = nullptr;
+
+    std::vector<VP_KERNEL_BINARY_ENTRY>    m_vpIsaKernelBinaryList;
+    std::map<std::string, VP_KERNEL_BINARY_ENTRY> m_vpL0KernelBinaryList;
 
     MEDIA_CLASS_DEFINE_END(vp__VpPlatformInterface)
 };

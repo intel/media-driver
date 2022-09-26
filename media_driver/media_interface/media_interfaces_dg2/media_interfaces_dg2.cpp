@@ -166,17 +166,14 @@ void VphalInterfacesXe_Hpm::InitPlatformKernelBinary(
     vp::VpPlatformInterface  *&vpPlatformInterface)
 {
 #if defined(ENABLE_KERNELS)
-    vpPlatformInterface->SetVpKernelBinary(
+    vpPlatformInterface->SetVpFCKernelBinary(
                         IGVPKRN_XE_HPG,
                         IGVPKRN_XE_HPG_SIZE,
                         IGVPKRN_XE_HPG_CMFCPATCH,
                         IGVPKRN_XE_HPG_CMFCPATCH_SIZE);
 #if !defined(_FULL_OPEN_SOURCE)
-    vpPlatformInterface->SetVpISAKernelBinary(
-                        IGVP3DLUT_GENERATION_XE_HPG,
-                        IGVP3DLUT_GENERATION_XE_HPG_SIZE,
-                        IGVPHVS_DENOISE_XE_HPG,
-                        IGVPHVS_DENOISE_XE_HPG_SIZE);  
+    vpPlatformInterface->AddVpIsaKernelEntryToList(IGVP3DLUT_GENERATION_XE_HPG, IGVP3DLUT_GENERATION_XE_HPG_SIZE);
+    vpPlatformInterface->AddVpIsaKernelEntryToList(IGVPHVS_DENOISE_XE_HPG, IGVPHVS_DENOISE_XE_HPG_SIZE);
 #endif
 #endif
 }

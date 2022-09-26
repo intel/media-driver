@@ -94,8 +94,11 @@ MOS_STATUS VpPlatformInterfaceXe_Hpm::InitVpRenderHwCaps()
        m_vpKernelBinary.fcPatchKernelBinSize,
        m_modifyKdllFunctionPointers);
 #if !defined(_FULL_OPEN_SOURCE)
-    VP_PUBLIC_CHK_STATUS_RETURN(InitVpCmKernels(m_vpKernelBinary.isa3DLUTKernelBin, m_vpKernelBinary.isa3DLUTKernelSize));
-    VP_PUBLIC_CHK_STATUS_RETURN(InitVpCmKernels(m_vpKernelBinary.isaHVSDenoiseKernelBin, m_vpKernelBinary.isaHVSDenoiseKernelSize));
+    // Init CM kernel form VP ISA Kernel Binary List
+    for (auto &curKernelEntry : m_vpIsaKernelBinaryList)
+    {
+       VP_PUBLIC_CHK_STATUS_RETURN(InitVpCmKernels(curKernelEntry.kernelBin, curKernelEntry.kernelBinSize));
+    }
 #endif
 #endif
 

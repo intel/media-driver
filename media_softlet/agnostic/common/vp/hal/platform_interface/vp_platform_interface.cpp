@@ -28,7 +28,7 @@
 #include "vp_visa.h"
 
 using namespace vp;
-
+extern const Kdll_RuleEntry g_KdllRuleTable_Next[];
 const std::string VpRenderKernel::s_kernelNameNonAdvKernels = "vpFcKernels";
 
 VpPlatformInterface::VpPlatformInterface(PMOS_INTERFACE pOsInterface)
@@ -234,6 +234,89 @@ MOS_STATUS VpRenderKernel::AddKernelArg(KRN_ARG &kernelArg)
     return MOS_STATUS_SUCCESS;
 }
 
+void VpPlatformInterface::AddVpIsaKernelEntryToList(
+    const uint32_t *kernelBin,
+    uint32_t        kernelBinSize)
+{
+    VP_FUNC_CALL();
+
+    VP_KERNEL_BINARY_ENTRY tmpEntry = {};
+    tmpEntry.kernelBin     = kernelBin;
+    tmpEntry.kernelBinSize = kernelBinSize;
+
+    m_vpIsaKernelBinaryList.push_back(tmpEntry);
+}
+
+void VpPlatformInterface::AddVpL0KernelEntryToList(
+    const uint32_t *kernelBin,
+    uint32_t        kernelBinSize,
+    std::string     kernelName)
+{
+    VP_FUNC_CALL();
+
+    VP_KERNEL_BINARY_ENTRY tmpEntry = {};
+    tmpEntry.kernelBin     = kernelBin;
+    tmpEntry.kernelBinSize = kernelBinSize;
+
+    m_vpL0KernelBinaryList.insert(std::make_pair(kernelName, tmpEntry));
+}
+
+void       KernelDll_ModifyFunctionPointers_Next(Kdll_State *pState);
+
+MOS_STATUS VpPlatformInterface::InitVpRenderHwCaps()
+{
+    VP_FUNC_CALL();
+    VP_RENDER_CHK_NULL_RETURN(m_vpKernelBinary.kernelBin);
+    VP_RENDER_CHK_NULL_RETURN(m_vpKernelBinary.fcPatchKernelBin);
+    // Only Lpm Plus will use this base function
+    m_modifyKdllFunctionPointers = KernelDll_ModifyFunctionPointers_Next;
+#if defined(ENABLE_KERNELS)
+    InitVPFCKernels(
+        g_KdllRuleTable_Next,
+        m_vpKernelBinary.kernelBin,
+        m_vpKernelBinary.kernelBinSize,
+        m_vpKernelBinary.fcPatchKernelBin,
+        m_vpKernelBinary.fcPatchKernelBinSize,
+        m_modifyKdllFunctionPointers);
+#endif
+
+    if (!m_vpIsaKernelBinaryList.empty())
+    {
+        // Init CM kernel form VP ISA Kernel Binary List
+        for (auto &curKernelEntry : m_vpIsaKernelBinaryList)
+        {
+            VP_PUBLIC_CHK_STATUS_RETURN(InitVpCmKernels(curKernelEntry.kernelBin, curKernelEntry.kernelBinSize));
+        }
+    }
+
+    if (!m_vpL0KernelBinaryList.empty())
+    {
+        // Init L0 kernel form VP L0 Kernel Binary List
+        for (auto &curKernelEntry : m_vpL0KernelBinaryList)
+        {
+            VP_PUBLIC_CHK_STATUS_RETURN(InitVpL0Kernels(curKernelEntry.first, curKernelEntry.second));
+        }
+    }
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpPlatformInterface::InitVpL0Kernels(
+    std::string            kernelName,
+    VP_KERNEL_BINARY_ENTRY kernelBinaryEntry)
+{
+    VP_FUNC_CALL();
+
+    VpRenderKernel vpKernel;
+
+    vpKernel.SetKernelBinPointer((void *)kernelBinaryEntry.kernelBin);
+    vpKernel.SetKernelName(kernelName);
+    vpKernel.SetKernelBinOffset(0x0);
+    vpKernel.SetKernelBinSize(kernelBinaryEntry.kernelBinSize);
+    m_kernelPool.insert(std::make_pair(vpKernel.GetKernelName(), vpKernel));
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS VpPlatformInterface::InitVpCmKernels(
     const uint32_t *cisaCode,
     uint32_t        cisaCodeSize)
@@ -390,7 +473,7 @@ MOS_STATUS VpPlatformInterface::GetKernelParam(VpKernelID kernlId, RENDERHAL_KER
     return MOS_STATUS_SUCCESS;
 }
 
-void VpPlatformInterface::SetVpKernelBinary(
+void VpPlatformInterface::SetVpFCKernelBinary(
                 const uint32_t   *kernelBin,
                 uint32_t         kernelBinSize,
                 const uint32_t   *fcPatchKernelBin,
@@ -402,20 +485,6 @@ void VpPlatformInterface::SetVpKernelBinary(
     m_vpKernelBinary.kernelBinSize        = kernelBinSize;
     m_vpKernelBinary.fcPatchKernelBin     = fcPatchKernelBin;
     m_vpKernelBinary.fcPatchKernelBinSize = fcPatchKernelBinSize;
-}
-
-void VpPlatformInterface::SetVpISAKernelBinary(
-                const uint32_t   *isa3DLUTKernelBin,
-                uint32_t         isa3DLUTKernelSize,
-                const uint32_t   *isaHVSDenoiseKernelBin,
-                uint32_t         isaHVSDenoiseKernelSize)
-{
-    VP_FUNC_CALL();
-    
-    m_vpKernelBinary.isa3DLUTKernelBin       = isa3DLUTKernelBin;
-    m_vpKernelBinary.isa3DLUTKernelSize      = isa3DLUTKernelSize;
-    m_vpKernelBinary.isaHVSDenoiseKernelBin  = isaHVSDenoiseKernelBin;
-    m_vpKernelBinary.isaHVSDenoiseKernelSize = isaHVSDenoiseKernelSize;
 }
 
 //only for get kernel binary in legacy path not being used in APO path.
