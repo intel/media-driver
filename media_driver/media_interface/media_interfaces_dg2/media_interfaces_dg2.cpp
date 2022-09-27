@@ -572,7 +572,7 @@ MOS_STATUS CodechalInterfacesXe_Hpm::Initialize(
 
     if (CodecHalIsDecode(CodecFunction))
     {
-        if(osInterface->bHcpDecScalabilityMode = MOS_SCALABILITY_ENABLE_MODE_USER_FORCE)
+        if(osInterface->bHcpDecScalabilityMode == MOS_SCALABILITY_ENABLE_MODE_USER_FORCE)
         {
             disableScalability = false;
         }
