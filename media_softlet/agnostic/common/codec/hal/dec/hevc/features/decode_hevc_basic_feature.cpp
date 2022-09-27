@@ -435,13 +435,13 @@ MOS_STATUS HevcBasicFeature::CreateReferenceBeforeLoopFilter()
     if (m_referenceBeforeLoopFilter == nullptr)
     {
         m_referenceBeforeLoopFilter = m_allocator->AllocateSurface(
-            m_destSurface.dwWidth, m_destSurface.dwHeight, "Reference before loop filter",
+            m_destSurface.dwPitch, m_destSurface.dwHeight, "Reference before loop filter",
             m_destSurface.Format, m_destSurface.bCompressible, resourceOutputPicture, notLockableVideoMem);
         DECODE_CHK_NULL(m_referenceBeforeLoopFilter);
     }
     else
     {
-        m_allocator->Resize(m_referenceBeforeLoopFilter, m_destSurface.dwWidth, m_destSurface.dwHeight,
+        m_allocator->Resize(m_referenceBeforeLoopFilter, m_destSurface.dwPitch, m_destSurface.dwHeight,
             notLockableVideoMem, false, "Reference before loop filter");
     }
     return MOS_STATUS_SUCCESS;
