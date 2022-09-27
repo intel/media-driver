@@ -198,12 +198,6 @@ public:
     //!
     bool IsAynchronous() { return m_aynchronousDevice; }
 
-    //!
-    //! \brief  Determine whether pooling resource is enabled
-    //! \return true if pooling resource is enabled, false otherwise
-    //!
-    bool IsPoolingResourceEnabled() { return m_resourcePooling; }
-
 protected:
     //!
     //! \brief  Destory the OS ContextNext Object, internal function, called by cleanup

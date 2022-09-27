@@ -2127,11 +2127,6 @@ public:
         MOS_STREAM_HANDLE streamState,
         PMOS_RESOURCE &osResource,
         uint32_t &size);
-
-    static bool IsPooledResource(MOS_STREAM_HANDLE streamState, PMOS_RESOURCE osResource);
-
-    static uint64_t GetResourceHandle(MOS_STREAM_HANDLE streamState, PMOS_RESOURCE osResource);
-
 private:
     //!
     //! \brief    Init per stream parameters
