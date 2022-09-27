@@ -234,7 +234,7 @@ namespace encode
                 if ((dmem->UPD_CurrFrameType == AV1_BRC_FRAME_TYPE_INVALID) ||
                     (m_basicFeature->m_ref.IsLowDelay() && dmem->UPD_CurrFrameType == AV1_BRC_FRAME_TYPE_B2))
                 {
-                    CODECHAL_ENCODE_ASSERTMESSAGE("AV1_BRC_FRAME_TYPE_INVALID or LBD picture doesn't support Level 4\n");
+                    ENCODE_ASSERTMESSAGE("AV1_BRC_FRAME_TYPE_INVALID or LBD picture doesn't support Level 4\n");
                     return MOS_STATUS_INVALID_PARAMETER;
                 }
             }

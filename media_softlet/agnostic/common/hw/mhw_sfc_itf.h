@@ -47,6 +47,18 @@ namespace sfc
 class Itf
 {
 public:
+
+    enum CommandsNumberOfAddresses
+    {
+        SFC_STATE_CMD_NUMBER_OF_ADDRESSES                  = 8,
+        SFC_AVS_LUMA_Coeff_Table_CMD_NUMBER_OF_ADDRESSES   = 0,
+        SFC_AVS_CHROMA_Coeff_Table_CMD_NUMBER_OF_ADDRESSES = 0,
+        SFC_AVS_STATE_CMD_NUMBER_OF_ADDRESSES              = 0,
+        SFC_FRAME_START_CMD_NUMBER_OF_ADDRESSES            = 0,
+        SFC_IEF_STATE_CMD_NUMBER_OF_ADDRESSES              = 0,
+        SFC_LOCK_CMD_NUMBER_OF_ADDRESSES                   = 0,
+    };
+
     class ParSetting
     {
     public:

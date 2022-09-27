@@ -144,11 +144,9 @@
 #define CODECHAL_ENCODE_ME_DATA_SIZE_MULTIPLIER         (CODECHAL_ENCODE_NUM_MAX_VME_L0_REF + CODECHAL_ENCODE_NUM_MAX_VME_L1_REF)
 #define CODECHAL_ENCODE_FIELD_NUM_MAX_VME_L0_REF        4 // multiref - G7.5+
 #define CODECHAL_ENCODE_FIELD_NUM_MAX_VME_L1_REF        1 // multiref - G7.5+
-#define CODECHAL_LPLA_NUM_OF_PASSES                     2
 #define CODECHAL_VP9_MB_CODE_SIZE                       204
 
 // BRC
-#define CODECHAL_ENCODE_BRC_KBPS                        1000  // 1000bps for disk storage, aligned with industry usage
 #define CODECHAL_ENCODE_MIN_BITS_PER_PIXEL              12  // 8b 420
 #define CODECHAL_ENCODE_MAX_BITSTREAM_COMPRESSION       700
 
@@ -1094,25 +1092,6 @@ struct EncodeStatusBuffer
     uint32_t                                dwSize;                         //!> Size of status buffer
     uint32_t                                dwReportSize;                   //!> Size of report
     uint32_t                                dwHuCStatus2RegOffset;          //!> The offset of HuC status2 register
-};
-
-//!
-//! \struct AtomicScratchBuffer
-//! \brief  The sturct of Atomic Scratch Buffer
-//!
-struct AtomicScratchBuffer
-{
-    MOS_RESOURCE                            resAtomicScratchBuffer;     //!> Handle of eStatus buffer
-    uint32_t                                *pData;                     //!> Pointer of the buffer of actual data
-    uint16_t                                wEncodeUpdateIndex;         //!> used for VDBOX update encode status
-    uint16_t                                wTearDownIndex;             //!> Reserved for future extension
-    uint32_t                                dwZeroValueOffset;          //!> Store the result of the ATOMIC_CMP
-    uint32_t                                dwOperand1Offset;           //!> Operand 1 of the ATOMIC_CMP
-    uint32_t                                dwOperand2Offset;           //!> Operand 2 of the ATOMIC_CMP
-    uint32_t                                dwOperand3Offset;           //!> Copy of the operand 1
-
-    uint32_t                                dwSize;                     //!> Size of the buffer
-    uint32_t                                dwOperandSetSize;           //!> Size of Operand set
 };
 
 //!

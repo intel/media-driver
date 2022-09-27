@@ -31,6 +31,10 @@
 #include "codec_def_common.h"
 
 #define CODECHAL_VDENC_BRC_NUM_OF_PASSES        2
+#define CODECHAL_PAK_OBJ_EACH_CU                66
+#define CODECHAL_LPLA_NUM_OF_PASSES             2
+#define CODECHAL_ENCODE_BRC_KBPS                1000  // 1000bps for disk storage, aligned with industry usage
+
 
 //!
 //! \struct CodechalEncodeSeiData
@@ -279,5 +283,25 @@ struct EncodeStatusReadParams
     PMOS_RESOURCE resImageStatusCtrl                       = nullptr;
     uint32_t      imageStatusCtrlOffset                    = 0;
 };
+
+//!
+//! \struct AtomicScratchBuffer
+//! \brief  The sturct of Atomic Scratch Buffer
+//!
+struct AtomicScratchBuffer
+{
+    MOS_RESOURCE                            resAtomicScratchBuffer;     //!> Handle of eStatus buffer
+    uint32_t                                *pData;                     //!> Pointer of the buffer of actual data
+    uint16_t                                wEncodeUpdateIndex;         //!> used for VDBOX update encode status
+    uint16_t                                wTearDownIndex;             //!> Reserved for future extension
+    uint32_t                                dwZeroValueOffset;          //!> Store the result of the ATOMIC_CMP
+    uint32_t                                dwOperand1Offset;           //!> Operand 1 of the ATOMIC_CMP
+    uint32_t                                dwOperand2Offset;           //!> Operand 2 of the ATOMIC_CMP
+    uint32_t                                dwOperand3Offset;           //!> Copy of the operand 1
+
+    uint32_t                                dwSize;                     //!> Size of the buffer
+    uint32_t                                dwOperandSetSize;           //!> Size of Operand set
+};
+
 
 #endif // !__CODEC_DEF_ENCODE_H__

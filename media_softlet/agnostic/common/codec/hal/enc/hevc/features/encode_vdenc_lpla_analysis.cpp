@@ -141,7 +141,7 @@ namespace encode
             }
             else
             {
-                CODECHAL_ENCODE_ASSERTMESSAGE("Invalid GopPicSize in LPLA!");
+                ENCODE_ASSERTMESSAGE("Invalid GopPicSize in LPLA!");
                 return MOS_STATUS_INVALID_PARAMETER;
             }
         }
@@ -232,7 +232,7 @@ namespace encode
         uint8_t *data = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, m_forceIntraStreamInBuf, &lockFlags);
         ENCODE_CHK_NULL_RETURN(data);
 
-        MHW_VDBOX_VDENC_STREAMIN_STATE_PARAMS streaminDataParams;
+        mhw::vdbox::vdenc::VDENC_STREAMIN_STATE_PAR streaminDataParams;
         uint32_t streamInWidth  = (MOS_ALIGN_CEIL(m_basicFeature->m_frameWidth, 64) / 32);
         uint32_t streamInHeight = (MOS_ALIGN_CEIL(m_basicFeature->m_frameHeight, 64) / 32);
 
@@ -270,7 +270,7 @@ namespace encode
 
     MOS_STATUS VdencLplaAnalysis::SetStreaminDataPerRegion(
         uint32_t streamInWidth, uint32_t top, uint32_t bottom, uint32_t left, uint32_t right,
-        PMHW_VDBOX_VDENC_STREAMIN_STATE_PARAMS streaminParams, void *streaminData)
+        mhw::vdbox::vdenc::VDENC_STREAMIN_STATE_PAR *streaminParams, void *streaminData)
     {
         ENCODE_FUNC_CALL();
 
@@ -320,7 +320,7 @@ namespace encode
     }
 
     MOS_STATUS VdencLplaAnalysis::SetStreaminDataPerLcu(
-        PMHW_VDBOX_VDENC_STREAMIN_STATE_PARAMS streaminParams,
+        mhw::vdbox::vdenc::VDENC_STREAMIN_STATE_PAR *streaminParams,
         void * streaminData)
     {
         ENCODE_FUNC_CALL();
@@ -798,42 +798,6 @@ namespace encode
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS VdencLplaAnalysis::SetLaInitDmemParameters(MHW_VDBOX_HUC_DMEM_STATE_PARAMS &dmemParams)
-    {
-        ENCODE_FUNC_CALL();
-
-        if (!m_enabled)
-        {
-            return MOS_STATUS_SUCCESS;
-        }
-        ENCODE_CHK_STATUS_RETURN(SetLaInitDmemBuffer());
-
-        dmemParams.presHucDataSource = m_vdencLaInitDmemBuffer;
-        dmemParams.dwDataLength      = MOS_ALIGN_CEIL(m_vdencLaInitDmemBufferSize, CODECHAL_CACHELINE_SIZE);
-        dmemParams.dwDmemOffset      = HUC_DMEM_OFFSET_RTOS_GEMS;
-
-        return MOS_STATUS_SUCCESS;
-    }
-
-    MOS_STATUS VdencLplaAnalysis::SetLaUpdateDmemParameters(MHW_VDBOX_HUC_DMEM_STATE_PARAMS &dmemParams, uint8_t currRecycledBufIdx, uint16_t curPass, uint16_t numPasses)
-    {
-        ENCODE_FUNC_CALL();
-        MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-
-        if (!m_enabled)
-        {
-            return eStatus;
-        }
-
-        ENCODE_CHK_STATUS_RETURN(SetLaUpdateDmemBuffer(currRecycledBufIdx, m_currLaDataIdx, m_numValidLaRecords, curPass, numPasses));
-
-        dmemParams.presHucDataSource = m_vdencLaUpdateDmemBuffer[currRecycledBufIdx][curPass];
-        dmemParams.dwDataLength = MOS_ALIGN_CEIL(m_vdencLaUpdateDmemBufferSize, CODECHAL_CACHELINE_SIZE);
-        dmemParams.dwDmemOffset = HUC_DMEM_OFFSET_RTOS_GEMS;
-
-        return eStatus;
-    }
-
     MOS_STATUS VdencLplaAnalysis::SetLaUpdateDmemParameters(HUC_DMEM_STATE_PAR_ALIAS &params, uint8_t currRecycledBufIdx, uint16_t curPass, uint16_t numPasses)
     {
         ENCODE_FUNC_CALL();
@@ -937,20 +901,6 @@ namespace encode
         hucVdencLaUpdateDmem->currentPass = (uint8_t)curPass;
 
         m_allocator->UnLock(m_vdencLaUpdateDmemBuffer[currRecycledBufIdx][curPass]);
-
-        return eStatus;
-    }
-
-    MOS_STATUS VdencLplaAnalysis::SetVdencPipeModeSelectParams(MHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G12 &pipeModeSelectParams)
-    {
-        ENCODE_FUNC_CALL();
-        MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-        
-        if (!m_enabled)
-        {
-            return eStatus;
-        }
-        pipeModeSelectParams.bLookaheadPass = true;
 
         return eStatus;
     }

@@ -26,7 +26,6 @@
 
 #include "encode_hevc_basic_feature.h"
 #include "encode_utils.h"
-#include "codechal_utilities.h"
 #include "encode_hevc_reference_frames.h"
 #include "codec_def_encode_hevc.h"
 #include "encode_hevc_dfs.h"

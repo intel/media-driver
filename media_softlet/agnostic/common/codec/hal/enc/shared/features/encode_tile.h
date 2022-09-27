@@ -27,7 +27,6 @@
 #define __ENCODE_TILE_H__
 #include "encode_basic_feature.h"
 #include "encode_pipeline.h"
-#include "codechal_encoder_base.h"
 
 namespace encode
 {

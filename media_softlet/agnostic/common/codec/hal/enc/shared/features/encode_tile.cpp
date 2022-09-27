@@ -26,7 +26,6 @@
 
 #include "encode_tile.h"
 #include "codec_def_common.h"
-#include "mhw_vdbox_hcp_g12_X.h"
 #include "encode_pipeline.h"
 
 namespace encode
@@ -242,7 +241,7 @@ namespace encode
         m_tileData[m_tileIdx].isLastPass       = pipeline->IsLastPass();
         m_tileData[m_tileIdx].tileReplayEnable = m_enableTileReplay;
 
-        MOS_ZeroMemory(&m_curTileCodingParams, sizeof(MHW_VDBOX_HCP_TILE_CODING_PARAMS_G12));
+        MOS_ZeroMemory(&m_curTileCodingParams, sizeof(EncodeTileCodingParams));
 
         m_curTileCodingParams.NumOfTilesInFrame       = m_tileData[m_tileIdx].numOfTilesInFrame;
         m_curTileCodingParams.NumOfTileColumnsInFrame = m_tileData[m_tileIdx].numOfTileColumnsInFrame;

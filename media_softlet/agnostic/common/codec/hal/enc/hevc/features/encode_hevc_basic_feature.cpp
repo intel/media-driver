@@ -26,7 +26,6 @@
 
 #include "encode_hevc_basic_feature.h"
 #include "encode_utils.h"
-#include "codechal_utilities.h"
 #include "encode_allocator.h"
 #include "encode_hevc_header_packer.h"
 #include "encode_hevc_vdenc_const_settings.h"

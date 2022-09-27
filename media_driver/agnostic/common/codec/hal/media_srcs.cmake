@@ -29,7 +29,6 @@ set(TMP_1_SOURCES_
 
 set(TMP_1_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/BRCIF.h 
-    ${CMAKE_CURRENT_LIST_DIR}/codechal.h
     ${CMAKE_CURRENT_LIST_DIR}/codechal_hw.h
     ${CMAKE_CURRENT_LIST_DIR}/codechal_utilities.h
     ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc.h

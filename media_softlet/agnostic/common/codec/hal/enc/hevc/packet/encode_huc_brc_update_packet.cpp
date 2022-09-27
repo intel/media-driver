@@ -288,7 +288,7 @@ namespace encode
 
             if (selectedSlot == -1)
             {
-                CODECHAL_ENCODE_ASSERTMESSAGE("No valid ref slot index");
+                ENCODE_ASSERTMESSAGE("No valid ref slot index");
                 return MOS_STATUS_INVALID_PARAMETER;
             }
 
@@ -370,7 +370,7 @@ namespace encode
                 if ((hucVdencBrcUpdateDmem->CurrentFrameType_U8 == HEVC_BRC_FRAME_TYPE_INVALID) ||
                     (m_basicFeature->m_hevcSeqParams->LowDelayMode && hucVdencBrcUpdateDmem->CurrentFrameType_U8 == HEVC_BRC_FRAME_TYPE_B2))
                 {
-                    CODECHAL_ENCODE_ASSERTMESSAGE("HEVC_BRC_FRAME_TYPE_INVALID or LBD picture doesn't support Level 4\n");
+                    ENCODE_ASSERTMESSAGE("HEVC_BRC_FRAME_TYPE_INVALID or LBD picture doesn't support Level 4\n");
                     return MOS_STATUS_INVALID_PARAMETER;
                 }
             }
@@ -387,7 +387,7 @@ namespace encode
                 //Invalid CodingType.
                 if (hucVdencBrcUpdateDmem->CurrentFrameType_U8 == HEVC_BRC_FRAME_TYPE_INVALID)
                 {
-                    CODECHAL_ENCODE_ASSERTMESSAGE("Invalid CodingType\n");
+                    ENCODE_ASSERTMESSAGE("Invalid CodingType\n");
                     return MOS_STATUS_INVALID_PARAMETER;
                 }
             }

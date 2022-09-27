@@ -228,7 +228,7 @@ namespace encode {
         {
             if (m_basicFeature->m_hevcSeqParams->TargetBitRate == 0)
             {
-                CODECHAL_ENCODE_ASSERTMESSAGE("TargetBitRate is zero!");
+                ENCODE_ASSERTMESSAGE("TargetBitRate is zero!");
                 return MOS_STATUS_INVALID_PARAMETER;
             }
             hucVdencBrcInitDmem->SlidingWindow_Size_U32     = m_basicFeature->m_hevcSeqParams->SlidingWindowSize;
@@ -238,7 +238,7 @@ namespace encode {
         {
             if (m_basicFeature->m_hevcSeqParams->FrameRate.Denominator == 0)
             {
-                CODECHAL_ENCODE_ASSERTMESSAGE("FrameRate.Deminator is zero!");
+                ENCODE_ASSERTMESSAGE("FrameRate.Deminator is zero!");
                 return MOS_STATUS_INVALID_PARAMETER;
             }
             uint32_t framerate = m_basicFeature->m_hevcSeqParams->FrameRate.Numerator / m_basicFeature->m_hevcSeqParams->FrameRate.Denominator;

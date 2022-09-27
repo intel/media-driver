@@ -291,7 +291,6 @@ namespace encode
         auto batchbufferAddr = (uint8_t *)m_allocator->LockResourceForWrite(batchBuffer);
         ENCODE_CHK_NULL_RETURN(batchbufferAddr);
 
-        MhwVdboxAvpPakInsertObjParams pakInsertObjectParams;
         MOS_COMMAND_BUFFER            constructedCmdBuf;
         MOS_ZeroMemory(&constructedCmdBuf, sizeof(constructedCmdBuf));
         constructedCmdBuf.pCmdBase = constructedCmdBuf.pCmdPtr = (uint32_t *)batchbufferAddr;
@@ -407,7 +406,7 @@ namespace encode
                 uint32_t nalUnitSize   = m_basicFeature->m_nalUnitParams[i]->uiSize;
                 uint32_t nalUnitOffset = m_basicFeature->m_nalUnitParams[i]->uiOffset;
 
-                CODECHAL_ENCODE_ASSERT(nalUnitSize < CODECHAL_ENCODE_AV1_PAK_INSERT_UNCOMPRESSED_HEADER);
+                ENCODE_ASSERT(nalUnitSize < CODECHAL_ENCODE_AV1_PAK_INSERT_UNCOMPRESSED_HEADER);
 
                 if (IsFrameHeader(*(m_basicFeature->m_bsBuffer.pBase + nalUnitOffset)))
                 {

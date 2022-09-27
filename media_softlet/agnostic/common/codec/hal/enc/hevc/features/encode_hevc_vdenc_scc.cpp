@@ -180,7 +180,7 @@ namespace encode
             allocParamsForBuffer2D.CompressionMode = MOS_MMC_MC;
         }
         allocParamsForBuffer2D.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
-        CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
+        ENCODE_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
                     m_osInterface,
                     &allocParamsForBuffer2D,
                     &m_vdencRecNotFilteredBuffer),
@@ -404,7 +404,7 @@ namespace encode
             params.numRefIdxLRefpiclistnumActiveMinus1++;
             ucNumRefForList = params.numRefIdxLRefpiclistnumActiveMinus1;
 
-            if ((hevcFeature->m_hevcPicParams->CodingType == I_TYPE) && (hevcFeature->m_hevcSliceParams->slice_type == MhwVdboxHcpInterface::hevcSliceP))
+            if ((hevcFeature->m_hevcPicParams->CodingType == I_TYPE) && (hevcFeature->m_hevcSliceParams->slice_type == mhw::vdbox::hcp::hevcSliceP))
             {
                 ucNumRefForList = 0;
                 params.numRefIdxLRefpiclistnumActiveMinus1 = 0;

@@ -743,14 +743,14 @@ namespace encode
 
             if (hdrDataOffset >= hdrBufSize)
             {
-                CODECHAL_ENCODE_ASSERTMESSAGE("Encode: Data offset in packed slice header data is out of bounds.");
+                ENCODE_ASSERTMESSAGE("Encode: Data offset in packed slice header data is out of bounds.");
                 delete []temp;
                 return MOS_STATUS_INVALID_FILE_SIZE;
             }
 
             if (hdrDataByteSize > hdrBufSize)
             {
-                CODECHAL_ENCODE_ASSERTMESSAGE("Encode: Data length in packed slice header data is greater than buffer size.");
+                ENCODE_ASSERTMESSAGE("Encode: Data length in packed slice header data is greater than buffer size.");
                 delete []temp;
                 return MOS_STATUS_INVALID_FILE_SIZE;
             }
@@ -763,7 +763,7 @@ namespace encode
 
             if (slcCount > encodeParams->dwNumSlices)
             {
-                CODECHAL_ENCODE_ASSERTMESSAGE("Encode: Number of slice headers exceeds number of slices.");
+                ENCODE_ASSERTMESSAGE("Encode: Number of slice headers exceeds number of slices.");
                 delete []temp;
                 return MOS_STATUS_INVALID_FILE_SIZE;
             }

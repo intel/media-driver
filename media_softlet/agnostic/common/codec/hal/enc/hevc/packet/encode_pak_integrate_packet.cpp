@@ -522,7 +522,7 @@ namespace encode {
                     if (0 == sliceNumInTile)
                     {
                         // One tile must have at least one slice
-                        CODECHAL_ENCODE_ASSERT(false);
+                        ENCODE_ASSERT(false);
                         eStatus = MOS_STATUS_INVALID_PARAMETER;
                         break;
                     }

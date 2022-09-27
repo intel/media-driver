@@ -30,7 +30,6 @@
 #include "encode_basic_feature.h"
 #include "codec_def_encode_hevc.h"
 #include "encode_hevc_reference_frames.h"
-#include "mhw_vdbox_g12_X.h"
 #include "media_hevc_feature_defs.h"
 #include "mhw_vdbox_vdenc_itf.h"
 #include "mhw_vdbox_hcp_itf.h"

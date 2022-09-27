@@ -57,6 +57,13 @@ namespace vdbox
 {
 namespace hcp
 {
+enum HevcSliceType
+{
+    hevcSliceB  = 0,
+    hevcSliceP  = 1,
+    hevcSliceI  = 2
+};
+
 class Itf
 {
 public:

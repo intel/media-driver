@@ -34,7 +34,6 @@
 #include "codechal_hw.h"
 #include "media_scalability_multipipe.h"
 #include "encode_scalability_option.h"
-#include "mos_os_virtualengine_scalability.h"
 
 namespace encode
 {
