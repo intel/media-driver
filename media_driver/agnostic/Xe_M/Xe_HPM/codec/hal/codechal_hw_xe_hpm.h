@@ -180,6 +180,15 @@ public:
             uint32_t                        *commandsSize,
             uint32_t                        *patchListSize) override;
 
+    //! \brief    Create media copy
+    //! \details  Create media copy instance.
+    //! \param    osInterface
+    //!           [in] Pointer to MOS_INTERFACE.
+    //! \return   MediaCopyBaseState*
+    //!           Pointer to MediaCopyBaseState
+    //!
+    virtual MediaCopyBaseState* CreateMediaCopy(PMOS_INTERFACE mosInterface) override;
+
 private:
     //!
     //! \brief    Called by constructor

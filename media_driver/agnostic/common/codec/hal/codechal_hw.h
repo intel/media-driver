@@ -36,6 +36,7 @@
 #include "mhw_vebox.h"
 #include "mhw_sfc.h"
 #include "mhw_cp_interface.h"
+#include "media_copy.h"
 #include "media_blt_copy.h"
 
 #include "mhw_vdbox_mfx_interface.h"
@@ -742,6 +743,18 @@ public:
     inline MHW_MEMORY_OBJECT_CONTROL_PARAMS *GetCacheabilitySettings()
     {
         return m_cacheabilitySettings;
+    }
+
+    //! \brief    Create media copy
+    //! \details  Create media copy instance.
+    //! \param    osInterface
+    //!           [in] Pointer to MOS_INTERFACE.
+    //! \return   MediaCopyBaseState*
+    //!           Pointer to MediaCopyBaseState
+    //!
+    virtual MediaCopyBaseState* CreateMediaCopy(PMOS_INTERFACE mosInterface)
+    {
+        return nullptr;
     }
 
     //! \brief    Get blt state

@@ -58,6 +58,11 @@ MOS_STATUS EncodePipeline::Initialize(void *settings)
     m_osInterface = m_hwInterface->GetOsInterface();
     ENCODE_CHK_NULL_RETURN(m_osInterface);
 
+    if (m_mediaCopy == nullptr)
+    {
+        m_mediaCopy = m_hwInterface->CreateMediaCopy(m_osInterface);
+    }
+
     m_miInterface = m_hwInterface->GetMiInterface();
     ENCODE_CHK_NULL_RETURN(m_miInterface);
 

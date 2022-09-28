@@ -339,3 +339,19 @@ MOS_STATUS CodechalHwInterfaceXe_Hpm::GetAvpPrimitiveCommandSize(
 
     return MOS_STATUS_SUCCESS;
 }
+
+MediaCopyBaseState* CodechalHwInterfaceXe_Hpm::CreateMediaCopy(PMOS_INTERFACE mosInterface)
+{
+    VP_FUNC_CALL();
+
+    MediaCopyBaseState* mediaCopy = nullptr;
+    PMOS_CONTEXT       mos_context = nullptr;
+
+    if (mosInterface && mosInterface->pfnGetMosContext)
+    {
+        mosInterface->pfnGetMosContext(mosInterface, &mos_context);
+    }
+    mediaCopy = static_cast<MediaCopyBaseState*>(McpyDevice::CreateFactory(mos_context));
+
+    return mediaCopy;
+}

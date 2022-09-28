@@ -30,7 +30,7 @@
 #include "media_pipeline.h"
 #include "media_cmd_task.h"
 #include "media_packet.h"
-#include "media_interfaces_mcpy.h"
+#include "media_interfaces_mcpy_next.h"
 #include "media_debug_interface.h"
 
 MediaPipeline::MediaPipeline(PMOS_INTERFACE osInterface) : m_osInterface(osInterface)
@@ -281,7 +281,7 @@ MOS_STATUS MediaPipeline::CreateMediaCopy()
     {
         m_osInterface->pfnGetMosContext(m_osInterface, &mos_context);
     }
-    m_mediaCopy = static_cast<MediaCopyBaseState*>(McpyDevice::CreateFactory(mos_context));
+    m_mediaCopy = static_cast<MediaCopyBaseState*>(McpyDeviceNext::CreateFactory(mos_context));
     return MOS_STATUS_SUCCESS;
 }
 
