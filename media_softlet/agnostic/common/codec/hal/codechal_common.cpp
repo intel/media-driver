@@ -47,6 +47,10 @@ Codechal::Codechal(
     if (m_hwInterface->bEnableVdboxBalancingbyUMD && m_osInterface->bEnableVdboxBalancing)
     {
         m_hwInterface->m_getVdboxNodeByUMD = true;
+        if(m_hwInterface->m_hwInterfaceNext)
+        {
+            m_hwInterface->m_hwInterfaceNext->m_getVdboxNodeByUMD = true;
+        }
     }
     m_userSettingPtr = m_osInterface->pfnGetUserSettingInstance(m_osInterface);;
 

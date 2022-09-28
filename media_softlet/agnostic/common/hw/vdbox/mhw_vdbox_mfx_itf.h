@@ -266,8 +266,6 @@ public:
 
     virtual MOS_STATUS FindGpuNodeToUse(PMHW_VDBOX_GPUNODE_LIMIT gpuNodeLimit) = 0;
 
-    virtual MmioRegistersMfx *GetMmioRegisters(MHW_VDBOX_NODE_IND index) = 0;
-
     inline uint32_t GetMfxErrorFlagsMask() { return m_mfxErrorFlagsMask; }
 
     vdbox::RowStoreCache m_intraRowstoreCache            = {};  //!< Intra rowstore cache

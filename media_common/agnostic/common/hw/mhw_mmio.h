@@ -140,6 +140,8 @@ struct MmioRegistersMfx
     uint32_t            mfxLra2RegOffset = 0;
 };
 
+typedef MmioRegistersMfx MmioRegistersVdbox;
+
 //!
 //! \brief  MHW VEBOX MMIO Structure
 //!

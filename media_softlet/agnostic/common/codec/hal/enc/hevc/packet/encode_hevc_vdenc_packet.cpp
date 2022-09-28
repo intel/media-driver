@@ -891,7 +891,7 @@ namespace encode
         uint32_t operand1Offset  = offsetInline + m_atomicScratchBuf.operand1Offset;
         uint32_t operand2Offset  = offsetInline + m_atomicScratchBuf.operand2Offset;
         uint32_t operand3Offset  = offsetInline + m_atomicScratchBuf.operand3Offset;
-        auto     mmioRegisters   = m_hwInterface->SelectVdboxAndGetMmioRegister(m_vdboxIndex, cmdBuffer);
+        auto     mmioRegisters   = m_hwInterface->GetVdencInterfaceNext()->GetMmioRegisters(m_vdboxIndex);
 
         // Make Flush DW call to make sure all previous work is done
         auto &flushDwParams = m_miItf->MHW_GETPAR_F(MI_FLUSH_DW)();
@@ -2410,7 +2410,7 @@ namespace encode
 
         // Intra/Inter/Skip CU Cnt
         auto xCalAtomic = [&](PMOS_RESOURCE presDst, uint32_t dstOffset, PMOS_RESOURCE presSrc, uint32_t srcOffset, mhw::mi::MHW_COMMON_MI_ATOMIC_OPCODE opCode) {
-            auto                            mmioRegistersMfx = m_hwInterface->GetMfxInterface()->GetMmioRegisters(m_vdboxIndex);
+            auto mmioRegisters = m_hwInterface->m_hwInterfaceNext->GetVdencInterfaceNext()->GetMmioRegisters(m_vdboxIndex);
 
             auto &miLoadRegMemParams = m_miItf->MHW_GETPAR_F(MI_LOAD_REGISTER_MEM)();
             auto &flushDwParams      = m_miItf->MHW_GETPAR_F(MI_FLUSH_DW)();
@@ -2422,7 +2422,7 @@ namespace encode
 
             miLoadRegMemParams.presStoreBuffer = presSrc;
             miLoadRegMemParams.dwOffset        = srcOffset;
-            miLoadRegMemParams.dwRegister      = mmioRegistersMfx->generalPurposeRegister0LoOffset;
+            miLoadRegMemParams.dwRegister      = mmioRegisters->generalPurposeRegister0LoOffset;
             ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_MEM)(cmdBuffer));
 
             ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(cmdBuffer));
