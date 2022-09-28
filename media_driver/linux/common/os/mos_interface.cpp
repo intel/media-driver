@@ -854,7 +854,11 @@ MOS_STATUS MosInterface::DumpCommandBuffer(
             dwCommandBufferNumber);
 
         // Write the output buffer to file.
-        MOS_OS_CHK_STATUS_RETURN(MosUtilities::MosWriteFileFromPtr((const char *)sFileName, pOutputBuffer, dwBytesWritten));
+        if((eStatus = MosUtilities::MosWriteFileFromPtr((const char *)sFileName, pOutputBuffer, dwBytesWritten)) != MOS_STATUS_SUCCESS)
+        {
+            MOS_FreeMemory(pOutputBuffer);
+            MOS_OS_CHK_STATUS_RETURN(eStatus);
+        }
     }
 
     if (streamState->dumpCommandBufferAsMessages)
@@ -879,7 +883,11 @@ MOS_STATUS MosInterface::DumpCommandBuffer(
         {
             if (streamState->dumpCommandBufferToFile)
             {
-                MOS_OS_CHK_STATUS_RETURN(MosUtilities::MosAppendFileFromPtr((const char *)sFileName, pOutputBuffer, dwBytesWritten));
+                if((eStatus = MosUtilities::MosAppendFileFromPtr((const char *)sFileName, pOutputBuffer, dwBytesWritten)) != MOS_STATUS_SUCCESS)
+                {
+                    MOS_FreeMemory(pOutputBuffer);
+                    MOS_OS_CHK_STATUS_RETURN(eStatus);
+                }
             }
             if (streamState->dumpCommandBufferAsMessages)
             {
@@ -893,8 +901,16 @@ MOS_STATUS MosInterface::DumpCommandBuffer(
 
     if (streamState->dumpCommandBufferToFile)
     {
-        MOS_OS_CHK_STATUS_RETURN(MosUtilities::MosAppendFileFromPtr((const char *)sFileName, pOutputBuffer, dwBytesWritten));
-        MOS_OS_CHK_STATUS_RETURN(DumpIndirectState(streamState, cmdBuffer, gpuNode, sFileName));
+        if((eStatus = MosUtilities::MosAppendFileFromPtr((const char *)sFileName, pOutputBuffer, dwBytesWritten)) != MOS_STATUS_SUCCESS)
+        {
+            MOS_FreeMemory(pOutputBuffer);
+            MOS_OS_CHK_STATUS_RETURN(eStatus);
+        }
+        if((eStatus = DumpIndirectState(streamState, cmdBuffer, gpuNode, sFileName)) != MOS_STATUS_SUCCESS)
+        {
+            MOS_FreeMemory(pOutputBuffer);
+            MOS_OS_CHK_STATUS_RETURN(eStatus);
+        }
     }
 
     if (streamState->dumpCommandBufferAsMessages)
@@ -903,7 +919,7 @@ MOS_STATUS MosInterface::DumpCommandBuffer(
     }
 
     dwCommandBufferNumber++;
-
+    MOS_FreeMemory(pOutputBuffer);
     eStatus = MOS_STATUS_SUCCESS;
 
     return eStatus;
