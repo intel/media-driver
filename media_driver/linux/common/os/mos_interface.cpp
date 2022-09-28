@@ -3612,3 +3612,8 @@ void MosInterface::GetRtLogResourceInfo(
         size = streamState->osDeviceContext->GetOCARTLogMgr()->GetRtlogHeapInfo().size;
     }
 }
+
+bool MosInterface::IsPooledResource(MOS_STREAM_HANDLE streamState, PMOS_RESOURCE osResource)
+{
+    return false;
+}
