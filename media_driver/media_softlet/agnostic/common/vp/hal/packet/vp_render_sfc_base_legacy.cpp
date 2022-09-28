@@ -509,7 +509,96 @@ MOS_STATUS SfcRenderBaseLegacy::SetupSfcState(PVP_SURFACE targetSurface)
 
     VP_RENDER_CHK_STATUS_RETURN(SetupScalabilityParams());
 
+    // Decompress resource if surfaces need write from a un-align offset
+    if ((!targetSurface->osSurface->OsResource.bUncompressedWriteNeeded) &&
+        (targetSurface->osSurface->CompressionMode == MOS_MMC_MC)        &&
+        IsSFCUncompressedWriteNeeded(targetSurface))
+    {
+        MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+        eStatus = m_osInterface->pfnDecompResource(m_osInterface, &targetSurface->osSurface->OsResource);
+
+        if (eStatus != MOS_STATUS_SUCCESS)
+        {
+            VP_RENDER_NORMALMESSAGE("inplace decompression failed for sfc target.");
+        }
+        else
+        {
+            VP_RENDER_NORMALMESSAGE("inplace decompression enabled for sfc target RECT is not compression block align.");
+            targetSurface->osSurface->OsResource.bUncompressedWriteNeeded = 1;
+        }
+    }
+
+    if (targetSurface->osSurface->OsResource.bUncompressedWriteNeeded)
+    {
+        // Update SFC as uncompressed write
+        m_renderDataLegacy.sfcStateParams->MMCMode = MOS_MMC_RC;
+    }
+
     return eStatus;
+}
+
+bool SfcRenderBaseLegacy::IsSFCUncompressedWriteNeeded(PVP_SURFACE targetSurface)
+{
+    VP_FUNC_CALL();
+
+    if ((!targetSurface)          ||
+        (!targetSurface->osSurface))
+    {
+        return false;
+    }
+
+    if (!MEDIA_IS_SKU(m_skuTable, FtrE2ECompression))
+    {
+        return false;
+    }
+
+    if (m_osInterface && m_osInterface->bSimIsActive)
+    {
+        return false;
+    }
+
+    uint32_t byteInpixel = 1;
+#if !EMUL
+    if (!targetSurface->osSurface->OsResource.pGmmResInfo)
+    {
+        VP_RENDER_NORMALMESSAGE("IsSFCUncompressedWriteNeeded cannot support non GMM info cases");
+        return false;
+    }
+
+    byteInpixel = targetSurface->osSurface->OsResource.pGmmResInfo->GetBitsPerPixel() >> 3;
+#endif // !EMUL
+
+    if (byteInpixel == 0)
+    {
+        VP_RENDER_NORMALMESSAGE("surface format is not a valid format for sfc");
+        return false;
+    }
+    uint32_t writeAlignInWidth  = 32 / byteInpixel;
+    uint32_t writeAlignInHeight = 8;
+    
+
+    if ((targetSurface->rcSrc.top % writeAlignInHeight) ||
+        ((targetSurface->rcSrc.bottom - targetSurface->rcSrc.top) % writeAlignInHeight) ||
+        (targetSurface->rcSrc.left % writeAlignInWidth) ||
+        ((targetSurface->rcSrc.right - targetSurface->rcSrc.left) % writeAlignInWidth))
+    {
+        VP_RENDER_NORMALMESSAGE(
+            "SFC Render Target Uncompressed write needed, \
+            targetSurface->rcSrc.top % d, \
+            targetSurface->rcSrc.bottom % d, \
+            targetSurface->rcSrc.left % d, \
+            targetSurface->rcSrc.right % d \
+            targetSurface->Format % d",
+            targetSurface->rcSrc.top,
+            targetSurface->rcSrc.bottom,
+            targetSurface->rcSrc.left,
+            targetSurface->rcSrc.right,
+            targetSurface->osSurface->Format);
+
+        return true;
+    }
+
+    return false;
 }
 
 MOS_STATUS SfcRenderBaseLegacy::SetScalingParams(PSFC_SCALING_PARAMS scalingParams)
@@ -709,6 +798,11 @@ MOS_STATUS SfcRenderBaseLegacy::SetMmcParams(PMOS_SURFACE renderTarget, bool isF
     {
         m_renderDataLegacy.sfcStateParams->bMMCEnable = true;
         m_renderDataLegacy.sfcStateParams->MMCMode    = renderTarget->CompressionMode;
+
+        if (renderTarget->OsResource.bUncompressedWriteNeeded)
+        {
+            m_renderDataLegacy.sfcStateParams->MMCMode = MOS_MMC_RC;
+        }
     }
     else
     {
