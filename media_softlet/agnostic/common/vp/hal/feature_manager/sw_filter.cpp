@@ -1333,7 +1333,7 @@ MOS_STATUS SwFilterHdr::Configure(VP_PIPELINE_PARAMS &params, bool isInputSurf, 
 
     m_Params.uSourceCount = 0;
 
-    for (i = 0; i < params.uSrcCount && i < VPHAL_MAX_SOURCES; i++)
+    for (i = 0; i < params.uSrcCount && i < VPHAL_MAX_HDR_INPUT_LAYER; i++)
     {
         if (params.pSrc[i] == nullptr)
         {

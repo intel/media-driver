@@ -2275,7 +2275,7 @@ MOS_STATUS VpRenderHdrKernel::UpdatePerLayerPipelineStates(
         CurrentPriorCSC = VPHAL_HDR_CSC_NONE;
         CurrentPostCSC  = VPHAL_HDR_CSC_NONE;
 
-        if (!ToneMappingStagesAssemble(&m_hdrParams->srcHDRParams[i], &m_hdrParams->targetHDRParams[i], &ConfigEntry))
+        if (!ToneMappingStagesAssemble(&m_hdrParams->srcHDRParams[i], &m_hdrParams->targetHDRParams[0], &ConfigEntry))
         {
             eStatus = MOS_STATUS_INVALID_PARAMETER;
             return eStatus;
@@ -2677,7 +2677,7 @@ MOS_STATUS VpRenderHdrKernel::SetupSurfaceState()
 
     UpdatePerLayerPipelineStates(&dwUpdateMask);
 
-    for (i = 0; i < m_hdrParams->uSourceCount; i++)
+    for (i = 0; i < m_hdrParams->uSourceCount && i < VPHAL_MAX_HDR_INPUT_LAYER; i++)
     {
         KERNEL_SURFACE_STATE_PARAM surfParam = {};
         auto inputSrc = m_surfaceGroup->find(SurfaceTypeHdrInputLayer0);

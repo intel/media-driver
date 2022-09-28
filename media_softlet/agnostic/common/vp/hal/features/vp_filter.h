@@ -482,7 +482,7 @@ struct _RENDER_HDR_PARAMS
     uint32_t                        dwSurfaceHeight;                                            //!< Record the input surface height of last HDR render
     PVPHAL_COLORFILL_PARAMS         pColorFillParams;                                           //!< ColorFill - BG only
 
-    VPHAL_HDR_LUT_MODE              LUTMode[8];         //!< LUT Mode
+    VPHAL_HDR_LUT_MODE              LUTMode[VPHAL_MAX_HDR_INPUT_LAYER];         //!< LUT Mode
     VPHAL_HDR_LUT_MODE              GlobalLutMode;                              //!< Global LUT mode control for debugging purpose
 
     uint32_t                        dwOetfSurfaceWidth;             //!< Gamma 1D LUT surface
