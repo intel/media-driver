@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Intel Corporation
+# Copyright (c) 2020, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,5 +18,25 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-media_include_subdirectory(enc)
-media_include_subdirectory(shared)
+set (TMP_SOURCES_
+    ${CMAKE_CURRENT_LIST_DIR}/codechal_hw_next_xe_xpm_plus.cpp
+)
+set (TMP_HEADERS_
+    ${CMAKE_CURRENT_LIST_DIR}/codechal_hw_next_xe_xpm_plus.h
+)
+
+set(CODEC_SOURCES_
+    ${CODEC_SOURCES_}
+    ${TMP_SOURCES_}
+)
+
+set(CODEC_HEADERS_
+    ${CODEC_HEADERS_}
+    ${TMP_HEADERS_}
+)
+
+source_group(CodecHalNext\\Xe_XPM_plus\\shared\\hw FILES ${TMP_SOURCES_} ${TMP_HEADERS_})
+set(TMP_SOURCES_ "")
+set(TMP_HEADERS_ "")
+
+media_add_curr_to_include_path()
