@@ -1063,6 +1063,16 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter *feature, bool isHdrEnabled,
     fScaleX = (float)dwOutputRegionWidth / (float)dwSourceRegionWidth;
     fScaleY = (float)dwOutputRegionHeight / (float)dwSourceRegionHeight;
 
+    auto isSfcIscalingNotSupported = [&]()
+    {
+        return ISCALING_INTERLEAVED_TO_INTERLEAVED == scalingParams->interlacedScalingType &&
+               (scalingParams->input.rcSrc.left    != 0 ||
+                   scalingParams->input.rcSrc.top  != 0 ||
+                   scalingParams->input.rcDst.left != 0 ||
+                   scalingParams->input.rcDst.top  != 0 ||
+                   scalingParams->rotation.rotationNeeded);
+    };
+
     if (fScaleX == 1.0f && fScaleY == 1.0f &&
         // Only support vebox crop from left-top, which is to align with legacy path.
         0 == scalingParams->input.rcSrc.left && 0 == scalingParams->input.rcSrc.top &&
@@ -1089,6 +1099,16 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter *feature, bool isHdrEnabled,
             scalingEngine->sfcNotSupported      = 1;
             VP_PUBLIC_NORMALMESSAGE("The surface resolution (%d x %d) is not supported by sfc (%d x %d) ~ (%d x %d).",
                 dwSurfaceWidth, dwSurfaceHeight, dwSfcMinWidth, dwSfcMinHeight, dwSfcMaxWidth, dwSfcMaxHeight);
+        }
+        else if (isSfcIscalingNotSupported())
+        {
+            scalingEngine->bEnabled        = 1;
+            scalingEngine->SfcNeeded       = 0;
+            scalingEngine->VeboxNeeded     = 0;
+            scalingEngine->RenderNeeded    = 1;
+            scalingEngine->fcSupported     = 1;
+            scalingEngine->sfcNotSupported = 1;
+            VP_PUBLIC_NORMALMESSAGE("Interlaced scaling cannot support offset, rotate or mirror by SFC pipe, fallback to FC.");
         }
         else if (scalingParams->input.rcDst.left > 0    ||
                  scalingParams->input.rcDst.top  > 0)
@@ -1168,6 +1188,15 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter *feature, bool isHdrEnabled,
                 scalingEngine->sfcNotSupported = 1;
                 VP_PUBLIC_NORMALMESSAGE("Fc selected. fScaleX %f, fScaleY %f, scalingPreference %d",
                     fScaleX, fScaleY, scalingParams->scalingPreference);
+            }
+            else if (isSfcIscalingNotSupported())
+            {
+                scalingEngine->bEnabled        = 1;
+                scalingEngine->RenderNeeded    = 1;
+                scalingEngine->fcSupported     = 1;
+                scalingEngine->SfcNeeded       = 0;
+                scalingEngine->sfcNotSupported = 1;
+                VP_PUBLIC_NORMALMESSAGE("Interlaced scaling cannot support offset, rotate or mirror by SFC pipe, fallback to FC.");
             }
             // SFC feasible
             else
