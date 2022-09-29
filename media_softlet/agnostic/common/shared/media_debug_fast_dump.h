@@ -30,8 +30,6 @@
 #endif  // ((_DEBUG || _RELEASE_INTERNAL) && !EMUL) && !defined(USE_MEDIA_DEBUG_TOOL)
 
 #if USE_MEDIA_DEBUG_TOOL
-
-#include <memory>
 #include <string>
 #include "media_copy.h"
 
@@ -41,7 +39,7 @@ public:
     struct Config
     {
     private:
-        template <size_t MIN, size_t MAX = 100>
+        template <size_t MIN = 0, size_t MAX = 100>
         class RangedValue final
         {
         public:
@@ -61,18 +59,36 @@ public:
         };
 
     public:
-        bool            write2File          = true;   // write dumped data to file
-        bool            write2Trace         = false;  // write dumped data to trace
-        bool            informOnError       = true;   // dump 1 byte filename.error_info file instead of nothing when error occurs
-        bool            allowDataLoss       = true;   // allow dumped data loss to reduce perf impact
-        RangedValue<10> maxPercentSharedMem = 75;     // max percentage of shared graphic memory used for fast dump, 10% - 100%
-        RangedValue<0>  maxPercentLocalMem  = 0;      // max percentage of local graphic memory used for fast dump, 0% - 100%,
-                                                      // very slow to lock, little perf impact on main workload but significantly
-                                                      // slows down dump, use with caution (suggest using local memory only when
-                                                      // allowDataLoss must be true and shared memory is not enough)
-        size_t samplingTime     = 0;                  // sampling time in ms
-        size_t samplingInterval = 0;                  // sampling interval in ms
-                                                      // when both sampling time and interval are positive, sampling mode is enabled
+        bool allowDataLoss = true;  // allow dumped data loss to reduce perf impact
+
+        // sampling mode configurations
+        const size_t *frameIdx         = nullptr;  // pointer to the frame index managed by user
+        size_t        samplingTime     = 0;        // sampling time in ms or frame index
+        size_t        samplingInterval = 0;        // sampling interval in ms or frame index
+                                                   // when sampling time and sampling interval are not both 0, sampling mode is enabled,
+                                                   // if frameIdx is null, sampling is based on ms, otherwise on frame index, e.g.,
+                                                   // if ElapsedTime%(samplingTime+samplingInterval) <= samplingTime, current dump
+                                                   // task will be queued, otherwise discarded, ElapsedTime is equal to CurrentFrameIndex
+                                                   // for frame index based sampling and CurrentTime-StartTime otherwise
+
+        // graphic memory usage configurations
+        bool            balanceMemUsage     = true;  // balance the usage of shared/local graphic memory, use shared memory first if disabled
+        RangedValue<10> maxPercentSharedMem = 75;    // max percentage of shared graphic memory can be used for fast dump, 10% - 100%
+        RangedValue<>   maxPercentLocalMem  = 75;    // max percentage of local graphic memory can be used for fast dump, 0% - 100%
+
+        // media copy configurations
+        RangedValue<> weightRenderCopy = 100;  // weight for render copy, 0 - 100
+        RangedValue<> weightVECopy     = 80;   // weight for VE copy, 0 - 100
+        RangedValue<> weightBLTCopy    = 20;   // weight for BLT copy, 0 - 100
+                                               // when weightRenderCopy, weightVECopy and weightBLTCopy are all 0, use default copy method,
+                                               // otherwise randomly select 1 of the 3 methods based on their weights, e.g., the chance of
+                                               // selecting render copy is weightRenderCopy/(weightRenderCopy+weightVECopy+weightBLTCopy)
+
+        // file writing configurations
+        size_t bufferSize4Write = 0;      // buffer size in MB for buffered file writer, write is not buffered when size is 0
+        bool   write2File       = true;   // write dumped data to file
+        bool   write2Trace      = false;  // write dumped data to trace
+        bool   informOnError    = true;   // dump 1 byte filename.error_info file instead of nothing when error occurs
     };
 
 public:
@@ -81,9 +97,6 @@ public:
     static void DestroyInstance();
 
     static void Dump(MOS_RESOURCE &res, std::string &&name, size_t dumpSize = 0, size_t offset = 0);
-
-protected:
-    static std::unique_ptr<MediaDebugFastDump> m_instance;
 
 public:
     virtual ~MediaDebugFastDump() = default;

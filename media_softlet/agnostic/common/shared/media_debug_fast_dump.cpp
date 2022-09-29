@@ -27,15 +27,18 @@
 
 #if USE_MEDIA_DEBUG_TOOL
 
-std::unique_ptr<MediaDebugFastDump> MediaDebugFastDump::m_instance = nullptr;
+namespace
+{
+std::unique_ptr<MediaDebugFastDumpImp> imp = nullptr;
+}  // namespace
 
 void MediaDebugFastDump::CreateInstance(MOS_INTERFACE &osItf, MediaCopyBaseState &mediaCopyItf, const Config *cfg)
 {
-    if (m_instance == nullptr)
+    if (imp == nullptr)
     {
-        m_instance =
+        imp =
 #if __cplusplus < 201402L
-            std::unique_ptr<MediaDebugFastDumpImp>(
+            decltype(imp)(
                 new MediaDebugFastDumpImp(osItf, mediaCopyItf, cfg));
 #else
             std::make_unique<MediaDebugFastDumpImp>(osItf, mediaCopyItf, cfg);
@@ -45,19 +48,17 @@ void MediaDebugFastDump::CreateInstance(MOS_INTERFACE &osItf, MediaCopyBaseState
 
 void MediaDebugFastDump::DestroyInstance()
 {
-    if (m_instance)
+    if (imp)
     {
-        m_instance.reset();
+        imp.reset();
     }
 }
 
 void MediaDebugFastDump::Dump(MOS_RESOURCE &res, std::string &&name, size_t dumpSize, size_t offset)
 {
-    if (m_instance)
+    if (imp)
     {
-        dynamic_cast<MediaDebugFastDumpImp *>(
-            m_instance.get())
-            ->AddTask(res, std::move(name), dumpSize, offset);
+        (*imp)(res, std::move(name), dumpSize, offset);
     }
 }
 
