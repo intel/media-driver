@@ -170,6 +170,11 @@ typedef struct mos_bufmgr_gem {
     bool softpin_va1Malign;
 
     BufmgrPrelim *prelim;
+
+    #define MEM_PROFILER_BUFFER_SIZE 256
+    char mem_profiler_buffer[MEM_PROFILER_BUFFER_SIZE];
+    char* mem_profiler_path;
+    int mem_profiler_fd;
 } mos_bufmgr_gem;
 
 #define DRM_INTEL_RELOC_FENCE (1<<0)
@@ -1171,6 +1176,15 @@ retry:
         bo_gem->tiling_mode = I915_TILING_NONE;
         bo_gem->swizzle_mode = I915_BIT_6_SWIZZLE_NONE;
         bo_gem->stride = 0;
+        if (bufmgr_gem->mem_profiler_fd != -1)
+        {
+            snprintf(bufmgr_gem->mem_profiler_buffer, MEM_PROFILER_BUFFER_SIZE, "GEM_CREATE, %d, %d, %lu, %d, %s\n", getpid(), bo_gem->bo.handle, bo_gem->bo.size,bo_gem->mem_region, name);
+            ret = write(bufmgr_gem->mem_profiler_fd, bufmgr_gem->mem_profiler_buffer, strnlen(bufmgr_gem->mem_profiler_buffer, MEM_PROFILER_BUFFER_SIZE));
+            if (ret == -1)
+            {
+                MOS_DBG("Failed to write to %s: %s\n", bufmgr_gem->mem_profiler_path, strerror(errno));
+            }
+        }
 
         /* drm_intel_gem_bo_free calls DRMLISTDEL() for an uninitialized
            list (vma_list), so better set the list head here */
@@ -1581,6 +1595,15 @@ mos_gem_bo_free(struct mos_linux_bo *bo)
     if (ret != 0) {
         MOS_DBG("DRM_IOCTL_GEM_CLOSE %d failed (%s): %s\n",
             bo_gem->gem_handle, bo_gem->name, strerror(errno));
+    }
+    if (bufmgr_gem->mem_profiler_fd != -1)
+    {
+        snprintf(bufmgr_gem->mem_profiler_buffer, MEM_PROFILER_BUFFER_SIZE, "GEM_CLOSE, %d, %d, %lu, %d\n", getpid(), bo->handle,bo->size,bo_gem->mem_region);
+        ret = write(bufmgr_gem->mem_profiler_fd, bufmgr_gem->mem_profiler_buffer, strnlen(bufmgr_gem->mem_profiler_buffer, MEM_PROFILER_BUFFER_SIZE));
+        if (ret == -1)
+        {
+            MOS_DBG("Failed to write to %s: %s\n", bufmgr_gem->mem_profiler_path, strerror(errno));
+        }
     }
 
     if (bufmgr_gem->use_softpin)
@@ -2527,6 +2550,11 @@ mos_bufmgr_gem_destroy(struct mos_bufmgr *bufmgr)
 
         BufmgrPrelim::DestroyPrelim(bufmgr_gem->prelim);
         bufmgr_gem->prelim = nullptr;
+    }
+
+    if (bufmgr_gem->mem_profiler_fd != -1)
+    {
+        close(bufmgr_gem->mem_profiler_fd);
     }
 
     free(bufmgr);
@@ -4725,6 +4753,28 @@ mos_bufmgr_gem_init(int fd, int batch_size)
         free(bufmgr_gem);
         bufmgr_gem = nullptr;
         goto exit;
+    }
+
+    bufmgr_gem->mem_profiler_path = getenv("MEDIA_MEMORY_PROFILER_LOG");
+    if (bufmgr_gem->mem_profiler_path != nullptr)
+    {
+        if (strcmp(bufmgr_gem->mem_profiler_path, "/sys/kernel/debug/tracing/trace_marker") == 0)
+        {
+            ret = bufmgr_gem->mem_profiler_fd = open(bufmgr_gem->mem_profiler_path, O_WRONLY );
+        }
+        else
+        {
+            ret = bufmgr_gem->mem_profiler_fd = open(bufmgr_gem->mem_profiler_path, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+        }
+
+        if (ret == -1)
+        {
+            MOS_DBG("Failed to open %s: %s\n", bufmgr_gem->mem_profiler_path, strerror(errno));
+        }
+    }
+    else
+    {
+        bufmgr_gem->mem_profiler_fd = -1;
     }
 
     memclear(aperture);
