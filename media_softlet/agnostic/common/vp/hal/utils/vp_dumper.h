@@ -607,6 +607,15 @@ private:
     const char * GetTileTypeStr(MOS_TILE_TYPE tile_type);
 
     //!
+    //! \brief    Gets Debug Tile Mode String
+    //! \param    [in] tilemode
+    //!           Mos tile mode
+    //! \return   const char *
+    //!           String of the tile type
+    //!
+    const char *GetTileModeGMMStr(MOS_TILE_MODE_GMM tile_mode);
+
+    //!
     //! \brief    Gets Debug Surface Type String
     //! \param    [in] component
     //!           Mos component

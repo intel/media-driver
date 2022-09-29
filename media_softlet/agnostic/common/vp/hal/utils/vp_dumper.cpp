@@ -2518,6 +2518,7 @@ MOS_STATUS VpParameterDumper::DumpSourceSurface(
         //Basic information
         VP_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t\t<!-- Basic information -->\n"));
         VP_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t\t<VPHAL_TILE_TYPE>%s</VPHAL_TILE_TYPE>\n", GetTileTypeStr(pSrc->TileType)));
+        VP_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t\t<VPHAL_TILE_MODE>%s</VPHAL_TILE_MODE>\n", GetTileModeGMMStr(pSrc->TileModeGMM)));
         VP_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t\t<WIDTH>%d</WIDTH>\n",                     pSrc->dwWidth));
         VP_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t\t<HEIGHT>%d</HEIGHT>\n",                   pSrc->dwHeight));
         VP_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t\t<PITCH>%d</PITCH>\n",                     pSrc->dwPitch));
@@ -2579,6 +2580,7 @@ MOS_STATUS VpParameterDumper::DumpTargetSurface(
     VP_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t\t\t<VPHAL_CSPACE>%s</VPHAL_CSPACE>\n",             GetColorSpaceStr(pTarget->ColorSpace)));
     VP_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t\t\t<VPHAL_SCALING_MODE>%s</VPHAL_SCALING_MODE>\n", GetScalingModeStr(pTarget->ScalingMode)));
     VP_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t\t\t<VPHAL_TILE_TYPE>%s</VPHAL_TILE_TYPE>\n",       GetTileTypeStr(pTarget->TileType)));
+    VP_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t\t\t<VPHAL_TILE_MODE>%s</VPHAL_TILE_MODE>\n",       GetTileModeGMMStr(pTarget->TileModeGMM)));
     VP_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t\t\t<WIDTH>%d</WIDTH>\n",                           pTarget->dwWidth));
     VP_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t\t\t<HEIGHT>%d</HEIGHT>\n",                         pTarget->dwHeight));
     VP_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t\t\t<PITCH>%d</PITCH>\n",                           pTarget->dwPitch));
@@ -3497,6 +3499,25 @@ const char * VpParameterDumper::GetTileTypeStr(MOS_TILE_TYPE tile_type)
     }
 
     return nullptr;
+}
+
+const char *VpParameterDumper::GetTileModeGMMStr(MOS_TILE_MODE_GMM tile_mode)
+{
+    VP_FUNC_CALL();
+
+    switch (tile_mode)
+    {
+    case MOS_TILE_64_GMM:
+        return _T("MOS_TILE_64_GMM");
+    case MOS_TILE_4_GMM:
+        return _T("MOS_TILE_4_GMM");
+    case MOS_TILE_LINEAR_GMM:
+        return _T("MOS_TILE_LINEAR_GMM");
+    case MOS_TILE_UNSET_GMM:
+        return _T("MOS_TILE_UNSET_GMM");
+    default:
+        return _T("Err");
+    }
 }
 
 const char * VpParameterDumper::GetSurfaceTypeStr(VPHAL_SURFACE_TYPE surface_type)
