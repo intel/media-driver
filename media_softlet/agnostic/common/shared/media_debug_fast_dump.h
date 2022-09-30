@@ -30,6 +30,7 @@
 #endif  // ((_DEBUG || _RELEASE_INTERNAL) && !EMUL) && !defined(USE_MEDIA_DEBUG_TOOL)
 
 #if USE_MEDIA_DEBUG_TOOL
+
 #include <string>
 #include "media_copy.h"
 
@@ -92,11 +93,19 @@ public:
     };
 
 public:
-    static void CreateInstance(MOS_INTERFACE &osItf, MediaCopyBaseState &mediaCopyItf, const Config *cfg = nullptr);
+    static void CreateInstance(
+        MOS_INTERFACE      &osItf,
+        MediaCopyBaseState &mediaCopyItf,
+        const Config       *cfg = nullptr);
 
     static void DestroyInstance();
 
-    static void Dump(MOS_RESOURCE &res, std::string &&name, size_t dumpSize = 0, size_t offset = 0);
+    // if file name contains "w[0]_h[0]_p[0]", it will be replaced to "w[RealWidth]_h[RealHeight]_p[RealPitch]" by fast dump
+    static void Dump(
+        MOS_RESOURCE &res,
+        std::string &&name,
+        size_t        dumpSize = 0,
+        size_t        offset   = 0);
 
 public:
     virtual ~MediaDebugFastDump() = default;

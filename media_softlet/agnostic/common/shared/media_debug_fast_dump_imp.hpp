@@ -41,6 +41,7 @@
 #include <mutex>
 #include <queue>
 #include <random>
+#include <regex>
 #include <thread>
 #include <vector>
 
@@ -181,12 +182,13 @@ protected:
     };
 
 protected:
-    static size_t GetResSize(PGMM_RESOURCE_INFO pGmmResInfo)
+    static size_t GetResSizeAndFixName(PGMM_RESOURCE_INFO pGmmResInfo, std::string &name)
     {
         auto resSize = static_cast<size_t>(pGmmResInfo->GetSizeMainSurface());
-        auto sizeY   = static_cast<size_t>(
-            pGmmResInfo->GetBaseWidth() * pGmmResInfo->GetBaseHeight() *
-            ((pGmmResInfo->GetBitsPerPixel() + 7) >> 3));
+        auto w       = static_cast<size_t>(pGmmResInfo->GetBaseWidth());
+        auto h       = static_cast<size_t>(pGmmResInfo->GetBaseHeight());
+        auto p       = static_cast<size_t>(pGmmResInfo->GetRenderPitch());
+        auto sizeY   = static_cast<size_t>(p * h * ((pGmmResInfo->GetBitsPerPixel() + 7) >> 3));
 
         // a lazy method to get real resource size without checking resource format
         if (sizeY * 3 <= resSize)
@@ -205,6 +207,14 @@ protected:
         {
             resSize = sizeY;  // 400 or buffer
         }
+
+        name = std::regex_replace(
+            name,
+            std::regex("w\\[[0-9]+\\]_h\\[[0-9]+\\]_p\\[[0-9]+\\]"),
+            "w[" + std::to_string(w) +
+                "]_h[" + std::to_string(h) +
+                "]_p[" + std::to_string(p) +
+                "]");
 
         return resSize;
     }
@@ -227,35 +237,22 @@ public:
         ConfigureCopyMethod(c);
         ConfigureWriter(c);
 
-        // launch scheduler thread
-        m_scheduler =
-#if __cplusplus < 201402L
-            decltype(m_scheduler)(new
-#else
-            std::make_unique<std::thread>(
-#endif
-                std::thread(
-                    [this] {
-                        ScheduleTasks();
-                    }));
+        LaunchScheduler();
 
         Res::SetOsInterface(&osItf);
     }
 
     ~MediaDebugFastDumpImp()
     {
-        if (m_scheduler)
         {
-            {
-                std::lock_guard<std::mutex> lk(m_mutex);
-                m_stopScheduler = true;
-            }
+            std::lock_guard<std::mutex> lk(m_mutex);
+            m_stopScheduler = true;
+        }
 
-            if (m_scheduler->joinable())
-            {
-                m_cond.notify_one();
-                m_scheduler->join();
-            }
+        if (m_scheduler.joinable())
+        {
+            m_cond.notify_one();
+            m_scheduler.join();
         }
     }
 
@@ -279,10 +276,13 @@ public:
             std::unique_lock<std::mutex> lk(m_mutex);
 
             auto &resArray = m_resPool[resInfo];
-            auto  resIt    = std::find_if(
+
+            using CR = std::remove_reference<decltype(resArray)>::type::const_reference;
+
+            auto resIt = std::find_if(
                 resArray.begin(),
                 resArray.end(),
-                [](std::remove_reference<decltype(resArray)>::type::const_reference r) {
+                [](CR r) {
                     return r->occupied == false;
                 });
 
@@ -302,7 +302,7 @@ public:
                             resIt = std::find_if(
                                 resArray.begin(),
                                 resArray.end(),
-                                [](std::remove_reference<decltype(resArray)>::type::const_reference r) {
+                                [](CR r) {
                                     return r->occupied == false;
                                 });
                             return resIt != resArray.end();
@@ -316,24 +316,17 @@ public:
                 }
             }
 
-            if (m_mediaCopyItf.SurfaceCopy(&res, &(*resIt)->res, m_copyMethod()) != MOS_STATUS_SUCCESS)
+            if (m_mediaCopyItf.SurfaceCopy(&res, &(*resIt)->res, m_copyMethod()) !=
+                MOS_STATUS_SUCCESS)
             {
                 return m_writeError(
                     name,
                     "input_surface_copy_failed");
             }
 
-            size_t resSize = GetResSize((*resIt)->res.pGmmResInfo);
-            if (resSize < offset + dumpSize)
-            {
-                return m_writeError(
-                    name,
-                    "incorrect_size_offset");
-            }
-
             (*resIt)->occupied = true;
             (*resIt)->localMem = resInfo.dwMemType != MOS_MEMPOOL_SYSTEMMEMORY;
-            (*resIt)->size     = (dumpSize == 0) ? resSize - offset : dumpSize;
+            (*resIt)->size     = dumpSize;
             (*resIt)->offset   = offset;
             (*resIt)->name     = std::move(name);
             m_resQueue.emplace(*resIt);
@@ -383,8 +376,11 @@ protected:
         auto adapter = MosInterface::GetAdapterInfo(m_osItf.osStreamState);
         if (adapter)
         {
-            m_memMng1st.cap = static_cast<size_t>(adapter->SystemSharedMemory) / 100 * cfg.maxPercentSharedMem;
-            m_memMng2nd.cap = static_cast<size_t>(adapter->DedicatedVideoMemory) / 100 * cfg.maxPercentLocalMem;
+            m_memMng1st.cap = static_cast<size_t>(adapter->SystemSharedMemory) /
+                              100 * cfg.maxPercentSharedMem;
+
+            m_memMng2nd.cap = static_cast<size_t>(adapter->DedicatedVideoMemory) /
+                              100 * cfg.maxPercentLocalMem;
         }
         m_memMng1st.cap = m_memMng1st.cap ? m_memMng1st.cap : -1;
 
@@ -557,58 +553,54 @@ protected:
         }
     }
 
-    void ScheduleTasks()
+    void LaunchScheduler()
     {
-        std::future<void> future;
-
-        while (true)
-        {
-            std::unique_lock<std::mutex> lk(m_mutex);
-            m_cond.wait(
-                lk,
-                [this] {
-                    return (m_ready4Dump && !m_resQueue.empty()) || m_stopScheduler;
-                });
-
-            if (m_stopScheduler)
-            {
-                break;
-            }
-
-            if (m_ready4Dump && !m_resQueue.empty())
-            {
-                auto qf      = m_resQueue.front();
-                m_ready4Dump = false;
-                lk.unlock();
-
-                future = std::async(
-                    std::launch::async,
-                    [this, qf] {
-                        DoDump(qf);
-                        {
-                            std::lock_guard<std::mutex> lk(m_mutex);
-                            m_resQueue.front()->occupied = false;
-                            m_resQueue.pop();
-                            m_ready4Dump = true;
-                        }
-                        m_cond.notify_all();
-                    });
-            }
-        }
-
-        if (future.valid())
-        {
-            future.wait();
-        }
-
-        std::lock_guard<std::mutex> lk(m_mutex);
-
-        while (!m_resQueue.empty())
-        {
-            DoDump(m_resQueue.front());
-            m_resQueue.front()->occupied = false;
-            m_resQueue.pop();
-        }
+        m_scheduler = std::thread(
+            [this] {
+                std::future<void> future;
+                while (true)
+                {
+                    std::unique_lock<std::mutex> lk(m_mutex);
+                    m_cond.wait(
+                        lk,
+                        [this] {
+                            return (m_ready4Dump && !m_resQueue.empty()) || m_stopScheduler;
+                        });
+                    if (m_stopScheduler)
+                    {
+                        break;
+                    }
+                    if (m_ready4Dump && !m_resQueue.empty())
+                    {
+                        auto qf      = m_resQueue.front();
+                        m_ready4Dump = false;
+                        lk.unlock();
+                        future = std::async(
+                            std::launch::async,
+                            [this, qf] {
+                                DoDump(qf);
+                                {
+                                    std::lock_guard<std::mutex> lk(m_mutex);
+                                    m_resQueue.front()->occupied = false;
+                                    m_resQueue.pop();
+                                    m_ready4Dump = true;
+                                }
+                                m_cond.notify_all();
+                            });
+                    }
+                }
+                if (future.valid())
+                {
+                    future.wait();
+                }
+                std::lock_guard<std::mutex> lk(m_mutex);
+                while (!m_resQueue.empty())
+                {
+                    DoDump(m_resQueue.front());
+                    m_resQueue.front()->occupied = false;
+                    m_resQueue.pop();
+                }
+            });
     }
 
     MOS_STATUS GetResInfo(MOS_RESOURCE &res, ResInfo &resInfo) const
@@ -663,7 +655,8 @@ protected:
                     "allocate_tmp_resource_failed");
             }
 
-            if (m_mediaCopyItf.SurfaceCopy(&res->res, &tmpRes, m_copyMethod()) != MOS_STATUS_SUCCESS)
+            if (m_mediaCopyItf.SurfaceCopy(&res->res, &tmpRes, m_copyMethod()) !=
+                MOS_STATUS_SUCCESS)
             {
                 return m_writeError(
                     res->name,
@@ -673,12 +666,23 @@ protected:
             pRes = &tmpRes;
         }
 
+        auto resSize = GetResSizeAndFixName(pRes->pGmmResInfo, res->name);
+        if (resSize < res->offset + res->size)
+        {
+            return m_writeError(
+                res->name,
+                "incorrect_size_offset");
+        }
+
         auto data = static_cast<const uint8_t *>(
             m_osItf.pfnLockResource(&m_osItf, pRes, &lockFlags));
 
         if (data)
         {
-            m_write(std::move(res->name), data + res->offset, res->size);
+            m_write(
+                std::move(res->name),
+                data + res->offset,
+                res->size == 0 ? resSize - res->offset : res->size);
             m_osItf.pfnUnlockResource(&m_osItf, pRes);
         }
         else
@@ -700,9 +704,7 @@ protected:
     MemMng m_memMng1st;
     MemMng m_memMng2nd;
 
-    std::unique_ptr<
-        std::thread>
-        m_scheduler;
+    std::thread m_scheduler;
 
     std::map<
         ResInfo,

@@ -32,7 +32,10 @@ namespace
 std::unique_ptr<MediaDebugFastDumpImp> imp = nullptr;
 }  // namespace
 
-void MediaDebugFastDump::CreateInstance(MOS_INTERFACE &osItf, MediaCopyBaseState &mediaCopyItf, const Config *cfg)
+void MediaDebugFastDump::CreateInstance(
+    MOS_INTERFACE      &osItf,
+    MediaCopyBaseState &mediaCopyItf,
+    const Config       *cfg)
 {
     if (imp == nullptr)
     {
@@ -54,7 +57,11 @@ void MediaDebugFastDump::DestroyInstance()
     }
 }
 
-void MediaDebugFastDump::Dump(MOS_RESOURCE &res, std::string &&name, size_t dumpSize, size_t offset)
+void MediaDebugFastDump::Dump(
+    MOS_RESOURCE &res,
+    std::string &&name,
+    size_t        dumpSize,
+    size_t        offset)
 {
     if (imp)
     {
