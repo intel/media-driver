@@ -207,9 +207,18 @@ MOS_STATUS XRenderHal_Interface_G12_Base::SetupSurfaceState (
                     pRenderHal->pOsInterface->pfnGetGmmClientContext(pRenderHal->pOsInterface)).DwordValue;
                 MHW_RENDERHAL_NORMALMESSAGE(" disable  CameraCapture  caches on render path ");
             }
+
+            // use RESOURCE_USAGE_CCS_MEDIA_WRITABLE to ensure displayable output LLC write-uncached
+            if (pParams->isOutput && gmmFlags.Gpu.FlipChain && pSurface->MmcState == MOS_MEMCOMP_MC)
+            {
+                SurfStateParams.dwCacheabilityControl = pRenderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
+                                                                                    MOS_HW_RESOURCE_USAGE_CCS_MEDIA_WRITABLE,
+                                                                                    pRenderHal->pOsInterface->pfnGetGmmClientContext(pRenderHal->pOsInterface))
+                                                            .DwordValue;
+                MHW_RENDERHAL_NORMALMESSAGE(" MOS_HW_RESOURCE_USAGE_CCS_MEDIA_WRITABLE is queried, and target SurfStateParams.dwCacheabilityControl = %d \n", SurfStateParams.dwCacheabilityControl);
+            }
         }
     #endif
-
         if (IsFormatMMCSupported(pSurface->Format) &&
             m_renderHalMMCEnabled)
         {
