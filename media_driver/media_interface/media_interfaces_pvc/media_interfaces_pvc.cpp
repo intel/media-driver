@@ -788,15 +788,22 @@ MOS_STATUS CodechalInterfacesXe_Xpm_Plus::CreateCodecHalInterface(MhwInterfaces 
                                                                   bool                   disableScalability)
 {
     pHwInterface = MOS_New(Hw, osInterface, CodecFunction, mhwInterfaces, disableScalability);
-    pHwInterface->m_hwInterfaceNext                            = MOS_New(CodechalHwInterfaceNext, osInterface);
-    pHwInterface->m_hwInterfaceNext->pfnCreateDecodeSinglePipe = decode::DecodeScalabilitySinglePipe::CreateDecodeSinglePipe;
-    pHwInterface->m_hwInterfaceNext->pfnCreateDecodeMultiPipe  = decode::DecodeScalabilityMultiPipe::CreateDecodeMultiPipe;
-
     if (pHwInterface == nullptr)
     {
         CODECHAL_PUBLIC_ASSERTMESSAGE("hwInterface is not valid!");
         return MOS_STATUS_NO_SPACE;
     }
+    pHwInterface->m_hwInterfaceNext                            = MOS_New(CodechalHwInterfaceNext, osInterface);
+    if (pHwInterface->m_hwInterfaceNext == nullptr)
+    {
+        MOS_Delete(pHwInterface);
+        mhwInterfaces->SetDestroyState(true);
+        CODECHAL_PUBLIC_ASSERTMESSAGE("hwInterfaceNext is not valid!");
+        return MOS_STATUS_NO_SPACE;
+    }
+    pHwInterface->m_hwInterfaceNext->pfnCreateDecodeSinglePipe = decode::DecodeScalabilitySinglePipe::CreateDecodeSinglePipe;
+    pHwInterface->m_hwInterfaceNext->pfnCreateDecodeMultiPipe  = decode::DecodeScalabilityMultiPipe::CreateDecodeMultiPipe;
+
 #if USE_CODECHAL_DEBUG_TOOL
     pDebugInterface = MOS_New(CodechalDebugInterface);
     if (pDebugInterface == nullptr)
