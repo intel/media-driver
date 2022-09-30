@@ -236,6 +236,7 @@ void mos_bufmgr_gem_enable_reuse(struct mos_bufmgr *bufmgr);
 void mos_bufmgr_gem_enable_fenced_relocs(struct mos_bufmgr *bufmgr);
 void mos_bufmgr_gem_enable_softpin(struct mos_bufmgr *bufmgr, bool va1m_align);
 void mos_bufmgr_gem_enable_vmbind(struct mos_bufmgr *bufmgr);
+void mos_bufmgr_gem_disable_object_capture(struct mos_bufmgr *bufmgr);
 
 void mos_bufmgr_gem_set_vma_cache_size(struct mos_bufmgr *bufmgr,
                          int limit);

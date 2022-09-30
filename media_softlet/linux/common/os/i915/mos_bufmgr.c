@@ -168,6 +168,8 @@ struct mos_bufmgr_gem {
     bool use_softpin;
     bool softpin_va1Malign;
 
+    bool object_capture_disabled;
+
     #define MEM_PROFILER_BUFFER_SIZE 256
     char mem_profiler_buffer[MEM_PROFILER_BUFFER_SIZE];
     char* mem_profiler_path;
@@ -2701,8 +2703,11 @@ mos_gem_bo_set_exec_object_async(struct mos_linux_bo *bo, struct mos_linux_bo *t
 static void
 mos_gem_bo_set_object_capture(struct mos_linux_bo *bo)
 {
+    struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *) bo->bufmgr;
     struct mos_bo_gem *bo_gem = (struct mos_bo_gem *)bo;
-    if (bo_gem != nullptr)
+    if (bufmgr_gem != nullptr &&
+        bo_gem != nullptr &&
+        !bufmgr_gem->object_capture_disabled)
     {
         bo_gem->exec_capture = true;
     }
@@ -2774,6 +2779,7 @@ mos_bo_get_softpin_targets_info(struct mos_linux_bo *bo, int *count)
     std::vector<int> bo_added;
     int counter = 0;
     int MAX_COUNT = 50;
+    struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *) bo->bufmgr;
     struct mos_bo_gem *bo_gem = (struct mos_bo_gem *)bo;
     int softpin_target_count = bo_gem->softpin_target_count;
     if(softpin_target_count == 0 || softpin_target_count > MAX_COUNT)
@@ -2796,7 +2802,10 @@ mos_bo_get_softpin_targets_info(struct mos_linux_bo *bo, int *count)
             info[counter].handle   = target->bo->handle;
             info[counter].size     = target->bo->size;
             info[counter].offset64 = target->bo->offset64;
-            target->flags   |= EXEC_OBJECT_CAPTURE;
+
+            if (!bufmgr_gem->object_capture_disabled)
+                target->flags   |= EXEC_OBJECT_CAPTURE;
+
             info[counter].flags    = target->flags;
             info[counter].mem_region = target_gem->mem_region;
             info[counter].is_batch = false;
@@ -4623,6 +4632,15 @@ void mos_bufmgr_gem_enable_vmbind(struct mos_bufmgr *bufmgr)
 {
 }
 
+void mos_bufmgr_gem_disable_object_capture(struct mos_bufmgr *bufmgr)
+{
+    struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *)bufmgr;
+    if (bufmgr_gem != nullptr)
+    {
+        bufmgr_gem->object_capture_disabled = true;
+    }
+}
+
 /**
  * Initializes the GEM buffer manager, which uses the kernel to allocate, map,
  * and manage map buffer objections.
@@ -4771,6 +4789,10 @@ mos_bufmgr_gem_init(int fd, int batch_size)
     if (ret == 0 && *gp.value > 0)
     {
         bufmgr_gem->bufmgr.set_object_capture      = mos_gem_bo_set_object_capture;
+    }
+    else
+    {
+        bufmgr_gem->object_capture_disabled = true;
     }
 
     gp.param = I915_PARAM_MMAP_GTT_VERSION;
