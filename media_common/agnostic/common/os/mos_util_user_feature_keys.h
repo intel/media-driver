@@ -349,6 +349,12 @@
 #define __VPHAL_DBG_SURF_DUMP_ENABLE_AUX_DUMP                         "enableAuxDump"
 #define __VPHAL_DBG_SURF_DUMPER_RESOURCE_LOCK                         "SurfaceDumperResourceLockError"
 #define __VPHAL_DBG_STATE_DUMP_ENABLE                                 "enableStateDump"
+
+// !
+// ! \brief User feature key for Split-Screen Demo Mode
+// !
+#define __MEDIA_USER_FEATURE_VALUE_SPLIT_SCREEN_DEMO_POSITION        "Split-Screen Demo Position"
+#define __MEDIA_USER_FEATURE_VALUE_SPLIT_SCREEN_DEMO_PARAMETERS      "Split-Screen Demo Parameters"
 #endif //(_DEBUG || _RELEASE_INTERNAL)
 
 //User feature key for UMD_OCA
