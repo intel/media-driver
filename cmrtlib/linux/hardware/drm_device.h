@@ -584,6 +584,7 @@ static int parse_separate_sysfs_files(int maj, int min,
 
     snprintf(resourcename, sizeof(resourcename), "%s/resource", pci_path);
 
+    memset(drivername, 0, sizeof(drivername));
     if (readlink(driverpath, drivername, PATH_MAX) < 0)
     {
         /* Some devices might not be bound to a driver */
@@ -950,6 +951,7 @@ static int drmParseSubsystemType(int maj, int min)
     snprintf(path, PATH_MAX, "/sys/dev/char/%d:%d/device/subsystem",
         maj, min);
 
+    memset(link, 0, sizeof(path));
     if (readlink(path, link, PATH_MAX) < 0)
         return -errno;
 
