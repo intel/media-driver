@@ -951,7 +951,7 @@ static int drmParseSubsystemType(int maj, int min)
     snprintf(path, PATH_MAX, "/sys/dev/char/%d:%d/device/subsystem",
         maj, min);
 
-    memset(link, 0, sizeof(path));
+    memset(link, 0, sizeof(link));
     if (readlink(path, link, PATH_MAX) < 0)
         return -errno;
 
