@@ -492,6 +492,25 @@ enum MOS_MEMCOMP_STATE
 typedef enum MOS_MEMCOMP_STATE *PMOS_MEMCOMP_STATE;
 typedef uint32_t               GPU_CONTEXT_HANDLE;
 
+//!
+//! \brief Enum for OS component
+//!
+enum MOS_COMPONENT
+{
+    COMPONENT_UNKNOWN = 0,
+    COMPONENT_LibVA,
+    COMPONENT_EMULATION,
+    COMPONENT_CM,
+    COMPONENT_Encode,
+    COMPONENT_Decode,
+    COMPONENT_VPCommon,
+    COMPONENT_VPreP,
+    COMPONENT_CP,
+    COMPONENT_MEMDECOMP,
+    COMPONENT_MCPY,
+};
+C_ASSERT(COMPONENT_MCPY == 10); // When adding, update assert
+
 #define MOS_MAX_ENGINE_INSTANCE_PER_CLASS   8
 #define MOS_BUF_NAME_LENGTH 64
 

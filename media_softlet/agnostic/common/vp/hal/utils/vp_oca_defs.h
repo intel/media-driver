@@ -20,11 +20,7 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      vphal_debug_defs.h 
-//! \brief 
-//!
-//!
-//! \file     vphal_debug_defs.h
+//! \file     vp_oca_defs.h
 //! \brief    Definition of structures and functions for debugging VPHAL
 //! \details  This file contains the definition of structures and functions for
 //!           surface dumper, hw state dumper, perf counter dumper, and render
