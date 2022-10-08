@@ -277,17 +277,17 @@ VAStatus DdiEncode_CreateContext(
     mosCtx.m_cmdBufMgr     = mediaDrvCtx->m_cmdBufMgr;
     mosCtx.fd              = mediaDrvCtx->fd;
     mosCtx.iDeviceId       = mediaDrvCtx->iDeviceId;
-    mosCtx.SkuTable        = mediaDrvCtx->SkuTable;
-    mosCtx.WaTable         = mediaDrvCtx->WaTable;
-    mosCtx.gtSystemInfo    = *mediaDrvCtx->pGtSystemInfo;
-    mosCtx.platform        = mediaDrvCtx->platform;
+    mosCtx.m_skuTable      = mediaDrvCtx->SkuTable;
+    mosCtx.m_waTable       = mediaDrvCtx->WaTable;
+    mosCtx.m_gtSystemInfo  = *mediaDrvCtx->pGtSystemInfo;
+    mosCtx.m_platform      = mediaDrvCtx->platform;
 
     mosCtx.ppMediaMemDecompState = &mediaDrvCtx->pMediaMemDecompState;
     mosCtx.pfnMemoryDecompress   = mediaDrvCtx->pfnMemoryDecompress;
     mosCtx.pfnMediaMemoryCopy    = mediaDrvCtx->pfnMediaMemoryCopy;
     mosCtx.pfnMediaMemoryCopy2D  = mediaDrvCtx->pfnMediaMemoryCopy2D;
     mosCtx.ppMediaCopyState      = &mediaDrvCtx->pMediaCopyState;
-    mosCtx.gtSystemInfo          = *mediaDrvCtx->pGtSystemInfo;
+    mosCtx.m_gtSystemInfo          = *mediaDrvCtx->pGtSystemInfo;
     mosCtx.m_auxTableMgr         = mediaDrvCtx->m_auxTableMgr;
     mosCtx.pGmmClientContext     = mediaDrvCtx->pGmmClientContext;
 

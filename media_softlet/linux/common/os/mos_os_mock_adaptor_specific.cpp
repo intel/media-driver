@@ -192,7 +192,7 @@ MOS_STATUS MosMockAdaptorSpecific::UpdateUserFeatureKey(PMOS_CONTEXT osContext)
 {
     MOS_OS_CHK_NULL_RETURN(osContext);
     MediaUserSettingSharedPtr   userSettingPtr  = MosInterface::MosGetUserSettingInstance(osContext);
-    PLATFORM                    platForm        = osContext->platform;
+    PLATFORM                    platForm        = osContext->m_platform;
     int32_t                     iDeviceId       = osContext->iDeviceId;
     int32_t                     eProductFaimily = (int32_t)platForm.eProductFamily;
 

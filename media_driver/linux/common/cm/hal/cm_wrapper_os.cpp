@@ -71,10 +71,10 @@ int32_t CreateCmDeviceFromVA(VADriverContextP vaDriverCtx,
     cmCtx->mosCtx.fd              = mediaCtx->fd;
     cmCtx->mosCtx.wRevision       = 0;
     cmCtx->mosCtx.iDeviceId       = mediaCtx->iDeviceId;
-    cmCtx->mosCtx.SkuTable        = mediaCtx->SkuTable;
-    cmCtx->mosCtx.WaTable         = mediaCtx->WaTable;
-    cmCtx->mosCtx.gtSystemInfo    = *(mediaCtx->pGtSystemInfo);
-    cmCtx->mosCtx.platform        = mediaCtx->platform;
+    cmCtx->mosCtx.m_skuTable        = mediaCtx->SkuTable;
+    cmCtx->mosCtx.m_waTable         = mediaCtx->WaTable;
+    cmCtx->mosCtx.m_gtSystemInfo    = *(mediaCtx->pGtSystemInfo);
+    cmCtx->mosCtx.m_platform        = mediaCtx->platform;
     cmCtx->mosCtx.pGmmClientContext = mediaCtx->pGmmClientContext;
     cmCtx->mosCtx.m_osDeviceContext = mediaCtx->m_osDeviceContext;
     cmCtx->mosCtx.m_apoMosEnabled   = mediaCtx->m_apoMosEnabled;

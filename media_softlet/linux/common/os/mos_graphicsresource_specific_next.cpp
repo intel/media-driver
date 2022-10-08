@@ -723,7 +723,7 @@ MOS_STATUS GraphicsResourceSpecificNext::AllocateExternalResource(
         gmmParams.Flags.Info.Linear = true;
         tileformat_linux            = I915_TILING_NONE;
     }
-    gmmParams.Flags.Info.LocalOnly = MEDIA_IS_SKU(&perStreamParameters->SkuTable, FtrLocalMemory);
+    gmmParams.Flags.Info.LocalOnly = MEDIA_IS_SKU(&perStreamParameters->m_skuTable, FtrLocalMemory);
 
     resource->pGmmResInfo = gmmResourceInfo = perStreamParameters->pGmmClientContext->CreateResInfoObject(&gmmParams);
 

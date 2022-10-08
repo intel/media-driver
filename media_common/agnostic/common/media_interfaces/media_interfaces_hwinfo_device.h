@@ -30,6 +30,7 @@
 #include "media_factory.h"
 #include "media_interfaces_hwinfo.h"
 #include "igfxfmid.h"
+#include "media_skuwa_specific.h"
 
 #define IP_VERSION_UNKNOW 0
 
