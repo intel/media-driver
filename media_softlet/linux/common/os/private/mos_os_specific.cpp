@@ -579,8 +579,8 @@ MOS_STATUS Mos_DestroyInterface(PMOS_INTERFACE pOsInterface)
 
     if (perStreamParameters && perStreamParameters->bFreeContext)
     {
-        perStreamParameters->SkuTable.reset();
-        perStreamParameters->WaTable.reset();
+        perStreamParameters->m_skuTable.reset();
+        perStreamParameters->m_waTable.reset();
         Mos_Specific_ClearGpuContext(perStreamParameters);
 
         if (perStreamParameters->contextOffsetList.size())

@@ -540,10 +540,10 @@ struct _MOS_OS_CONTEXT
     CMD_BUFFER_BO_POOL CmdBufferPool = {};
 
     // Emulated platform, sku, wa tables
-    PLATFORM                  platform = {};
-    MEDIA_FEATURE_TABLE       SkuTable = {};
-    MEDIA_WA_TABLE            WaTable  = {};
-    MEDIA_SYSTEM_INFO         gtSystemInfo = {};
+    PLATFORM                  m_platform    = {};
+    MEDIA_FEATURE_TABLE       m_skuTable    = {};
+    MEDIA_WA_TABLE            m_waTable     = {};
+    MEDIA_SYSTEM_INFO         m_gtSystemInfo = {};
 
     // Controlled OS resources (for analysis)
     MOS_BUFMGR          *bufmgr             = nullptr;

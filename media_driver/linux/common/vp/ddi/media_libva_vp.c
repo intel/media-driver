@@ -536,8 +536,8 @@ DdiVp_DestroyVpHal(PDDI_VP_CONTEXT pVpCtx)
     // Destroy VPHAL context
     if (nullptr != pVpCtx)
     {
-        pVpCtx->MosDrvCtx.SkuTable.reset();
-        pVpCtx->MosDrvCtx.WaTable.reset();
+        pVpCtx->MosDrvCtx.m_skuTable.reset();
+        pVpCtx->MosDrvCtx.m_waTable.reset();
         if (nullptr != pVpCtx->pVpHal)
         {
             MOS_Delete(pVpCtx->pVpHal);
@@ -1636,10 +1636,10 @@ VAStatus DdiVp_InitCtx(VADriverContextP pVaDrvCtx, PDDI_VP_CONTEXT pVpCtx)
     pVpCtx->MosDrvCtx.m_cmdBufMgr     = pMediaCtx->m_cmdBufMgr;
     pVpCtx->MosDrvCtx.fd              = pMediaCtx->fd;
     pVpCtx->MosDrvCtx.iDeviceId       = pMediaCtx->iDeviceId;
-    pVpCtx->MosDrvCtx.SkuTable        = pMediaCtx->SkuTable;
-    pVpCtx->MosDrvCtx.WaTable         = pMediaCtx->WaTable;
-    pVpCtx->MosDrvCtx.gtSystemInfo    = *pMediaCtx->pGtSystemInfo;
-    pVpCtx->MosDrvCtx.platform        = pMediaCtx->platform;
+    pVpCtx->MosDrvCtx.m_skuTable      = pMediaCtx->SkuTable;
+    pVpCtx->MosDrvCtx.m_waTable       = pMediaCtx->WaTable;
+    pVpCtx->MosDrvCtx.m_gtSystemInfo  = *pMediaCtx->pGtSystemInfo;
+    pVpCtx->MosDrvCtx.m_platform      = pMediaCtx->platform;
     pVpCtx->MosDrvCtx.m_auxTableMgr   = pMediaCtx->m_auxTableMgr;
     pVpCtx->MosDrvCtx.pGmmClientContext = pMediaCtx->pGmmClientContext;
     pVpCtx->MosDrvCtx.ppMediaMemDecompState = &pMediaCtx->pMediaMemDecompState;

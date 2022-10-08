@@ -50,8 +50,8 @@ CmDeviceRT::CmDeviceRT(uint32_t options) : CmDeviceRTBase(options)
 //*-----------------------------------------------------------------------------
 CmDeviceRT::~CmDeviceRT()
 {
-    m_mosContext->SkuTable.reset();
-    m_mosContext->WaTable.reset();
+    m_mosContext->m_skuTable.reset();
+    m_mosContext->m_waTable.reset();
 
     DestroyAuxDevice();
 };
@@ -194,8 +194,8 @@ int32_t CmDeviceRT::DestroyAuxDevice()
     // Delete VPHAL State
     if (cmData && cmData->cmHalState)
     {
-        cmData->mosCtx.SkuTable.reset();
-        cmData->mosCtx.WaTable.reset();
+        cmData->mosCtx.m_skuTable.reset();
+        cmData->mosCtx.m_waTable.reset();
         HalCm_Destroy(cmData->cmHalState);
         // Delete CM Data itself
         MOS_Delete(cmData);

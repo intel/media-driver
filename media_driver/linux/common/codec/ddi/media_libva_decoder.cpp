@@ -1275,10 +1275,10 @@ VAStatus DdiDecode_CreateContext (
     mosCtx.m_cmdBufMgr           = mediaCtx->m_cmdBufMgr;
     mosCtx.fd                    = mediaCtx->fd;
     mosCtx.iDeviceId             = mediaCtx->iDeviceId;
-    mosCtx.SkuTable              = mediaCtx->SkuTable;
-    mosCtx.WaTable               = mediaCtx->WaTable;
-    mosCtx.gtSystemInfo          = *mediaCtx->pGtSystemInfo;
-    mosCtx.platform              = mediaCtx->platform;
+    mosCtx.m_skuTable            = mediaCtx->SkuTable;
+    mosCtx.m_waTable             = mediaCtx->WaTable;
+    mosCtx.m_gtSystemInfo        = *mediaCtx->pGtSystemInfo;
+    mosCtx.m_platform            = mediaCtx->platform;
     mosCtx.ppMediaMemDecompState = &mediaCtx->pMediaMemDecompState;
     mosCtx.pfnMemoryDecompress   = mediaCtx->pfnMemoryDecompress;
     mosCtx.pfnMediaMemoryCopy    = mediaCtx->pfnMediaMemoryCopy;

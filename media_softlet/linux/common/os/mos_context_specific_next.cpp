@@ -111,11 +111,11 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
         }
         else
         {
-            m_platformInfo = osDriverContext->platform;
-            m_skuTable = osDriverContext->SkuTable;
-            m_waTable = osDriverContext->WaTable;
-            m_gtSystemInfo = osDriverContext->gtSystemInfo;
-            iDeviceId = osDriverContext->iDeviceId;
+            m_platformInfo  = osDriverContext->m_platform;
+            m_skuTable      = osDriverContext->m_skuTable;
+            m_waTable       = osDriverContext->m_waTable;
+            m_gtSystemInfo  = osDriverContext->m_gtSystemInfo;
+            iDeviceId       = osDriverContext->iDeviceId;
         }
 
         if (eStatus != MOS_STATUS_SUCCESS)
@@ -219,10 +219,10 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
         if (!NullHW::IsEnabled())
         {
             osDriverContext->iDeviceId              = iDeviceId;
-            osDriverContext->SkuTable               = m_skuTable;
-            osDriverContext->WaTable                = m_waTable;
-            osDriverContext->gtSystemInfo           = m_gtSystemInfo;
-            osDriverContext->platform               = m_platformInfo;
+            osDriverContext->m_skuTable             = m_skuTable;
+            osDriverContext->m_waTable              = m_waTable;
+            osDriverContext->m_gtSystemInfo         = m_gtSystemInfo;
+            osDriverContext->m_platform             = m_platformInfo;
         }
         osDriverContext->pGmmClientContext      = m_gmmClientContext;
         osDriverContext->m_auxTableMgr          = m_auxTableMgr;

@@ -462,10 +462,10 @@ MOS_STATUS OsContextSpecific::Init(PMOS_CONTEXT pOsDriverContext)
             m_skuTable = skuTable;
             m_waTable  = waTable;
     
-            pOsDriverContext->SkuTable       = skuTable;
-            pOsDriverContext->WaTable        = waTable;
-            pOsDriverContext->gtSystemInfo   = gtSystemInfo;
-            pOsDriverContext->platform       = platformInfo;
+            pOsDriverContext->m_skuTable       = skuTable;
+            pOsDriverContext->m_waTable        = waTable;
+            pOsDriverContext->m_gtSystemInfo   = gtSystemInfo;
+            pOsDriverContext->m_platform       = platformInfo;
     
             MOS_OS_NORMALMESSAGE("DeviceID was created DeviceID = %d, platform product %d", iDeviceId, platformInfo.eProductFamily);
         }
@@ -473,11 +473,11 @@ MOS_STATUS OsContextSpecific::Init(PMOS_CONTEXT pOsDriverContext)
         {
             // pOsDriverContext's parameters were passed by CmCreateDevice.
             // Get SkuTable/WaTable/systemInfo/platform from OSDriver directly.
-            MOS_SecureMemcpy(&m_platformInfo, sizeof(PLATFORM), &(pOsDriverContext->platform), sizeof(PLATFORM));
-            MOS_SecureMemcpy(&m_gtSystemInfo, sizeof(MEDIA_SYSTEM_INFO), &(pOsDriverContext->gtSystemInfo), sizeof(MEDIA_SYSTEM_INFO));
+            MOS_SecureMemcpy(&m_platformInfo, sizeof(PLATFORM), &(pOsDriverContext->m_platform), sizeof(PLATFORM));
+            MOS_SecureMemcpy(&m_gtSystemInfo, sizeof(MEDIA_SYSTEM_INFO), &(pOsDriverContext->m_gtSystemInfo), sizeof(MEDIA_SYSTEM_INFO));
     
-            m_skuTable = pOsDriverContext->SkuTable;
-            m_waTable  = pOsDriverContext->WaTable;
+            m_skuTable = pOsDriverContext->m_skuTable;
+            m_waTable  = pOsDriverContext->m_waTable;
         }
 
         m_use64BitRelocs = true;

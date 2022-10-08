@@ -27,7 +27,6 @@
 #ifndef __COMMAND_BUFFER_MANAGER_H__
 #define __COMMAND_BUFFER_MANAGER_H__
 
-#include "mos_os.h"
 #include "mos_commandbuffer.h"
 #include "mos_gpucontextmgr.h"
 

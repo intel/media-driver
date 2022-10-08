@@ -131,10 +131,10 @@ MOS_STATUS MosMockAdaptor::InitContext(
 
     MOS_OS_CHK_NULL_RETURN(osContext);
 
-    m_pPlatform     = &osContext->platform;
-    m_pSkuTable     = &osContext->SkuTable;
-    m_pWaTable      = &osContext->WaTable;
-    m_pGtSystemInfo = &osContext->gtSystemInfo;
+    m_pPlatform     = &osContext->m_platform;
+    m_pSkuTable     = &osContext->m_skuTable;
+    m_pWaTable      = &osContext->m_waTable;
+    m_pGtSystemInfo = &osContext->m_gtSystemInfo;
 
     MOS_OS_CHK_STATUS_RETURN(InitializePlatForm());
 

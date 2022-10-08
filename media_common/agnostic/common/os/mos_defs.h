@@ -525,5 +525,10 @@ namespace MediaUserSetting {
 
 using MediaUserSettingSharedPtr = std::shared_ptr<MediaUserSetting::MediaUserSetting>;
 
+const unsigned int BITS_PER_BYTE = 8;
+
+class OsContextNext;
+typedef OsContextNext    OsDeviceContext;
+typedef OsDeviceContext *MOS_DEVICE_HANDLE;
 
 #endif // __MOS_DEFS_H__

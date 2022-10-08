@@ -1300,16 +1300,16 @@ VAStatus DdiMedia_MediaMemoryDecompress(PDDI_MEDIA_CONTEXT mediaCtx, DDI_MEDIA_S
         mosCtx.m_cmdBufMgr     = mediaCtx->m_cmdBufMgr;
         mosCtx.fd              = mediaCtx->fd;
         mosCtx.iDeviceId       = mediaCtx->iDeviceId;
-        mosCtx.SkuTable        = mediaCtx->SkuTable;
-        mosCtx.WaTable         = mediaCtx->WaTable;
-        mosCtx.gtSystemInfo    = *mediaCtx->pGtSystemInfo;
-        mosCtx.platform        = mediaCtx->platform;
+        mosCtx.m_skuTable      = mediaCtx->SkuTable;
+        mosCtx.m_waTable       = mediaCtx->WaTable;
+        mosCtx.m_gtSystemInfo  = *mediaCtx->pGtSystemInfo;
+        mosCtx.m_platform      = mediaCtx->platform;
 
         mosCtx.ppMediaMemDecompState = &mediaCtx->pMediaMemDecompState;
         mosCtx.pfnMemoryDecompress   = mediaCtx->pfnMemoryDecompress;
         mosCtx.pfnMediaMemoryCopy    = mediaCtx->pfnMediaMemoryCopy;
         mosCtx.pfnMediaMemoryCopy2D  = mediaCtx->pfnMediaMemoryCopy2D;
-        mosCtx.gtSystemInfo          = *mediaCtx->pGtSystemInfo;
+        mosCtx.m_gtSystemInfo        = *mediaCtx->pGtSystemInfo;
         mosCtx.m_auxTableMgr         = mediaCtx->m_auxTableMgr;
         mosCtx.pGmmClientContext     = mediaCtx->pGmmClientContext;
 
@@ -1796,10 +1796,10 @@ VAStatus DdiMedia_InitMediaContext (
         }
         mediaCtx->pDrmBufMgr                = mosCtx.bufmgr;
         mediaCtx->iDeviceId                 = mosCtx.iDeviceId;
-        mediaCtx->SkuTable                  = mosCtx.SkuTable;
-        mediaCtx->WaTable                   = mosCtx.WaTable;
-        *mediaCtx->pGtSystemInfo            = mosCtx.gtSystemInfo;
-        mediaCtx->platform                  = mosCtx.platform;
+        mediaCtx->SkuTable                  = mosCtx.m_skuTable;
+        mediaCtx->WaTable                   = mosCtx.m_waTable;
+        *mediaCtx->pGtSystemInfo            = mosCtx.m_gtSystemInfo;
+        mediaCtx->platform                  = mosCtx.m_platform;
         mediaCtx->m_auxTableMgr             = mosCtx.m_auxTableMgr;
         mediaCtx->pGmmClientContext         = mosCtx.pGmmClientContext;
         mediaCtx->m_useSwSwizzling          = mosCtx.bUseSwSwizzling;
@@ -1913,10 +1913,10 @@ VAStatus DdiMedia_InitMediaContext (
         mosCtx.bufmgr                = mediaCtx->pDrmBufMgr;
         mosCtx.fd                    = mediaCtx->fd;
         mosCtx.iDeviceId             = mediaCtx->iDeviceId;
-        mosCtx.SkuTable              = mediaCtx->SkuTable;
-        mosCtx.WaTable               = mediaCtx->WaTable;
-        mosCtx.gtSystemInfo          = *mediaCtx->pGtSystemInfo;
-        mosCtx.platform              = mediaCtx->platform;
+        mosCtx.m_skuTable            = mediaCtx->SkuTable;
+        mosCtx.m_waTable             = mediaCtx->WaTable;
+        mosCtx.m_gtSystemInfo        = *mediaCtx->pGtSystemInfo;
+        mosCtx.m_platform            = mediaCtx->platform;
         mosCtx.ppMediaMemDecompState = &mediaCtx->pMediaMemDecompState;
         mosCtx.pfnMemoryDecompress   = mediaCtx->pfnMemoryDecompress;
         mosCtx.pfnMediaMemoryCopy    = mediaCtx->pfnMediaMemoryCopy;
@@ -6288,13 +6288,13 @@ DdiMedia_Copy(
     mosCtx.m_cmdBufMgr     = mediaCtx->m_cmdBufMgr;
     mosCtx.fd              = mediaCtx->fd;
     mosCtx.iDeviceId       = mediaCtx->iDeviceId;
-    mosCtx.SkuTable        = mediaCtx->SkuTable;
-    mosCtx.WaTable         = mediaCtx->WaTable;
-    mosCtx.gtSystemInfo    = *mediaCtx->pGtSystemInfo;
-    mosCtx.platform        = mediaCtx->platform;
+    mosCtx.m_skuTable      = mediaCtx->SkuTable;
+    mosCtx.m_waTable       = mediaCtx->WaTable;
+    mosCtx.m_gtSystemInfo  = *mediaCtx->pGtSystemInfo;
+    mosCtx.m_platform      = mediaCtx->platform;
 
     mosCtx.ppMediaCopyState      = &mediaCtx->pMediaCopyState;
-    mosCtx.gtSystemInfo          = *mediaCtx->pGtSystemInfo;
+    mosCtx.m_gtSystemInfo        = *mediaCtx->pGtSystemInfo;
     mosCtx.m_auxTableMgr         = mediaCtx->m_auxTableMgr;
     mosCtx.pGmmClientContext     = mediaCtx->pGmmClientContext;
 

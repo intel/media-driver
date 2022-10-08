@@ -1349,28 +1349,28 @@ MOS_STATUS Linux_InitContext(
         pOsDriverContext->iDeviceId = iDeviceId;
 
         MOS_OS_CHK_STATUS_MESSAGE(
-            HWInfo_GetGfxInfo(pOsDriverContext->fd, pOsDriverContext->bufmgr, &pContext->platform, &pContext->SkuTable, &pContext->WaTable, &pContext->gtSystemInfo, pOsDriverContext->m_userSettingPtr),
+            HWInfo_GetGfxInfo(pOsDriverContext->fd, pOsDriverContext->bufmgr, &pContext->m_platform, &pContext->m_skuTable, &pContext->m_waTable, &pContext->m_gtSystemInfo, pOsDriverContext->m_userSettingPtr),
             "Fatal error - unsuccesfull Sku/Wa/GtSystemInfo initialization");
 
-        pOsDriverContext->SkuTable     = pContext->SkuTable;
-        pOsDriverContext->WaTable      = pContext->WaTable;
-        pOsDriverContext->gtSystemInfo = pContext->gtSystemInfo;
-        pOsDriverContext->platform     = pContext->platform;
-        MOS_OS_NORMALMESSAGE("DeviceID was created DeviceID = %d, platform product %d", iDeviceId, pContext->platform.eProductFamily);
+        pOsDriverContext->m_skuTable     = pContext->m_skuTable;
+        pOsDriverContext->m_waTable      = pContext->m_waTable;
+        pOsDriverContext->m_gtSystemInfo = pContext->m_gtSystemInfo;
+        pOsDriverContext->m_platform     = pContext->m_platform;
+        MOS_OS_NORMALMESSAGE("DeviceID was created DeviceID = %d, platform product %d", iDeviceId, pContext->m_platform.eProductFamily);
     }
     else
     {
         // pOsDriverContext's parameters were passed by CmCreateDevice.
         // Get SkuTable/WaTable/systemInfo/platform from OSDriver directly.
-        pContext->SkuTable     = pOsDriverContext->SkuTable;
-        pContext->WaTable      = pOsDriverContext->WaTable;
-        pContext->gtSystemInfo = pOsDriverContext->gtSystemInfo;
-        pContext->platform     = pOsDriverContext->platform;
+        pContext->m_skuTable     = pOsDriverContext->m_skuTable;
+        pContext->m_waTable      = pOsDriverContext->m_waTable;
+        pContext->m_gtSystemInfo = pOsDriverContext->m_gtSystemInfo;
+        pContext->m_platform     = pOsDriverContext->m_platform;
     }
 
     pContext->bUse64BitRelocs = true;
-    pContext->bUseSwSwizzling = pContext->bSimIsActive || MEDIA_IS_SKU(&pContext->SkuTable, FtrUseSwSwizzling);
-    pContext->bTileYFlag      = MEDIA_IS_SKU(&pContext->SkuTable, FtrTileY);
+    pContext->bUseSwSwizzling = pContext->bSimIsActive || MEDIA_IS_SKU(&pContext->m_skuTable, FtrUseSwSwizzling);
+    pContext->bTileYFlag      = MEDIA_IS_SKU(&pContext->m_skuTable, FtrTileY);
     // when MODS enabled, intel_context will be created by pOsContextSpecific, should not recreate it here, or will cause memory leak.
     if (!MODSEnabled)
     {
@@ -1827,7 +1827,7 @@ void Mos_Specific_GetPlatform(
         return;
     }
 
-    *pPlatform = pOsInterface->pOsContext->platform;
+    *pPlatform = pOsInterface->pOsContext->m_platform;
 
 finish:
     return;
@@ -1887,8 +1887,8 @@ MOS_STATUS Mos_DestroyInterface(PMOS_INTERFACE pOsInterface)
 
     if (perStreamParameters && perStreamParameters->bFreeContext)
     {
-        perStreamParameters->SkuTable.reset();
-        perStreamParameters->WaTable.reset();
+        perStreamParameters->m_skuTable.reset();
+        perStreamParameters->m_waTable.reset();
         Mos_Specific_ClearGpuContext(perStreamParameters);
 
         if (perStreamParameters->contextOffsetList.size())
@@ -2027,8 +2027,8 @@ void Mos_Specific_Destroy(
         pOsInterface->pOsContext &&
         pOsInterface->pOsContext->bFreeContext)
     {
-        pOsInterface->pOsContext->SkuTable.reset();
-        pOsInterface->pOsContext->WaTable.reset();
+        pOsInterface->pOsContext->m_skuTable.reset();
+        pOsInterface->pOsContext->m_waTable.reset();
         Mos_Specific_ClearGpuContext(pOsInterface->pOsContext);
         bool modularizedGpuCtxEnabled = pOsInterface->modularizedGpuCtxEnabled && !Mos_Solo_IsEnabled(nullptr);
         pOsInterface->pOsContext->pfnDestroy(pOsInterface->pOsContext, pOsInterface->modulizedMosEnabled, modularizedGpuCtxEnabled);
@@ -2074,7 +2074,7 @@ MEDIA_FEATURE_TABLE *Mos_Specific_GetSkuTable(
 
     if (pOsInterface && pOsInterface->pOsContext)
     {
-        return &pOsInterface->pOsContext->SkuTable;
+        return &pOsInterface->pOsContext->m_skuTable;
     }
     return nullptr;
 }
@@ -2098,7 +2098,7 @@ MEDIA_WA_TABLE *Mos_Specific_GetWaTable(
 
     if (pOsInterface && pOsInterface->pOsContext)
     {
-        return &pOsInterface->pOsContext->WaTable;
+        return &pOsInterface->pOsContext->m_waTable;
     }
     return nullptr;
 }
@@ -2132,7 +2132,7 @@ MEDIA_SYSTEM_INFO *Mos_Specific_GetGtSystemInfo(
         return  nullptr;
     }
 
-    return &pOsInterface->pOsContext->gtSystemInfo;
+    return &pOsInterface->pOsContext->m_gtSystemInfo;
 }
 
 MOS_STATUS Mos_Specific_GetMediaEngineInfo(
@@ -2445,8 +2445,8 @@ MOS_STATUS Mos_Specific_AllocateResource(
         case MOS_TILE_Y:
             tileformat_linux               = I915_TILING_Y;
             if (pParams->bIsCompressible                                             && 
-                MEDIA_IS_SKU(&pOsInterface->pOsContext->SkuTable, FtrE2ECompression) &&
-                MEDIA_IS_SKU(&pOsInterface->pOsContext->SkuTable, FtrCompressibleSurfaceDefault))
+                MEDIA_IS_SKU(&pOsInterface->pOsContext->m_skuTable, FtrE2ECompression) &&
+                MEDIA_IS_SKU(&pOsInterface->pOsContext->m_skuTable, FtrCompressibleSurfaceDefault))
             {
                 GmmParams.Flags.Gpu.MMC = true;
                 GmmParams.Flags.Info.MediaCompressed = 1;
@@ -2465,7 +2465,7 @@ MOS_STATUS Mos_Specific_AllocateResource(
                     GmmParams.Flags.Info.RenderCompressed = 0;
                 }
 
-                if(MEDIA_IS_SKU(&pOsInterface->pOsContext->SkuTable, FtrFlatPhysCCS))
+                if(MEDIA_IS_SKU(&pOsInterface->pOsContext->m_skuTable, FtrFlatPhysCCS))
                 {
                     GmmParams.Flags.Gpu.UnifiedAuxSurface = 0;
                 }
@@ -2479,7 +2479,7 @@ MOS_STATUS Mos_Specific_AllocateResource(
             GmmParams.Flags.Info.Linear    = true;
             tileformat_linux               = I915_TILING_NONE;
     }
-    GmmParams.Flags.Info.LocalOnly = MEDIA_IS_SKU(&pOsInterface->pOsContext->SkuTable, FtrLocalMemory);
+    GmmParams.Flags.Info.LocalOnly = MEDIA_IS_SKU(&pOsInterface->pOsContext->m_skuTable, FtrLocalMemory);
 
     pOsResource->pGmmResInfo = pGmmResourceInfo = pOsInterface->pOsContext->pGmmClientContext->CreateResInfoObject(&GmmParams);
 
@@ -2517,8 +2517,8 @@ MOS_STATUS Mos_Specific_AllocateResource(
     MemoryPolicyParameter memPolicyPar;
     MOS_ZeroMemory(&memPolicyPar, sizeof(MemoryPolicyParameter));
 
-    memPolicyPar.skuTable         = &pOsInterface->pOsContext->SkuTable;
-    memPolicyPar.waTable          = &pOsInterface->pOsContext->WaTable;
+    memPolicyPar.skuTable         = &pOsInterface->pOsContext->m_skuTable;
+    memPolicyPar.waTable          = &pOsInterface->pOsContext->m_waTable;
     memPolicyPar.resInfo          = pGmmResourceInfo;
     memPolicyPar.resName          = pParams->pBufName;
     memPolicyPar.preferredMemType = pParams->dwMemType;
