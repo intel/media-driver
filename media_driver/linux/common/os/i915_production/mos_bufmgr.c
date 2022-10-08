@@ -4798,6 +4798,11 @@ mos_bufmgr_gem_init(int fd, int batch_size)
     bufmgr_gem->pci_device = get_pci_device_id(bufmgr_gem);
 
     if (bufmgr_gem->pci_device == 0) {
+        pthread_mutex_destroy(&bufmgr_gem->lock);
+        if (bufmgr_gem->mem_profiler_fd != -1)
+        {
+            close(bufmgr_gem->mem_profiler_fd);
+        }
         free(bufmgr_gem);
         bufmgr_gem = nullptr;
         goto exit;
