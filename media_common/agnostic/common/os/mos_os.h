@@ -219,25 +219,6 @@ private:
 #endif // E_UNEXPECTED
 
 //!
-//! \brief Enum for OS component
-//!
-enum MOS_COMPONENT
-{
-    COMPONENT_UNKNOWN = 0,
-    COMPONENT_LibVA,
-    COMPONENT_EMULATION,
-    COMPONENT_CM,
-    COMPONENT_Encode,
-    COMPONENT_Decode,
-    COMPONENT_VPCommon,
-    COMPONENT_VPreP,
-    COMPONENT_CP,
-    COMPONENT_MEMDECOMP,
-    COMPONENT_MCPY,
-};
-C_ASSERT(COMPONENT_MCPY == 10); // When adding, update assert
-
-//!
 //! \brief Structure to OS sync parameters
 //!
 typedef struct _MOS_SYNC_PARAMS
