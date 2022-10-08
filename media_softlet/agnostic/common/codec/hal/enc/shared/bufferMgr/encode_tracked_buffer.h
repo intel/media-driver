@@ -41,6 +41,10 @@
 #include <memory>
 #include <vector>
 
+#if _MEDIA_RESERVED
+#include "encode_tracked_buffer_ext.h"
+#endif
+
 namespace encode
 {
 // define the buffer types in the tracked list
@@ -63,11 +67,8 @@ enum class BufferType
     superResRefScaled,
     superResRef4xDsScaled,
     superResRef8xDsScaled,
-#if _MEDIA_RESERVED
-#define BUFFER_TYPE_EXT
-#include "encode_tracked_buffer_ext.h"
-#undef BUFFER_TYPE_EXT
-#endif
+    preencRef0,
+    preencRef1,
 };
 
 struct MapBufferResourceType
@@ -225,11 +226,8 @@ protected:
         {BufferType::preRawSurface,             ResourceType::surfaceResource},
         {BufferType::preDs4xSurface,            ResourceType::surfaceResource},
         {BufferType::preDs8xSurface,            ResourceType::surfaceResource},
-#if _MEDIA_RESERVED
-#define BUFFER_MAP_EXT
-#include "encode_tracked_buffer_ext.h"
-#undef BUFFER_MAP_EXT
-#endif
+        {BufferType::preencRef0,                ResourceType::bufferResource},
+        {BufferType::preencRef1,                ResourceType::bufferResource},
         {BufferType::superResRefScaled,         ResourceType::surfaceResource},
         {BufferType::superResRef4xDsScaled,     ResourceType::surfaceResource},
         {BufferType::superResRef8xDsScaled,     ResourceType::surfaceResource},
