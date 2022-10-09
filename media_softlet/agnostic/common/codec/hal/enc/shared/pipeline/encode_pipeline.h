@@ -127,6 +127,7 @@ public:
     enum CommonPacketIds
     {
         basicPacket  = CONSTRUCTPACKETID(PACKET_COMPONENT_ENCODE, PACKET_SUBCOMPONENT_COMMON, 0),
+        encodePreEncPacket,
 #if _MEDIA_RESERVED
 #define ENCODE_PACKET_IDS_EXT
 #include "encode_pipeline_ext.h"
