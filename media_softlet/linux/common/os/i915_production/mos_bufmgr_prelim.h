@@ -40,7 +40,7 @@
 
 #include "i915_drm.h"
 #include "i915_drm_prelim.h"
-
+#include "media_class_trace.h"
 class BufmgrPrelim
 {
 public:
@@ -107,6 +107,8 @@ private:
     static bool m_prelimEnabled;
 
     static constexpr uint32_t TYPE_DECIMAL = 10;
+
+MEDIA_CLASS_DEFINE_END(BufmgrPrelim)
 };
 
 #endif //! MOS_BUFMGR_PRELIM_H
