@@ -1,4 +1,4 @@
-# Copyright (c) 2017, Intel Corporation
+# Copyright (c) 2017-2021, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,24 +18,17 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-set(TMP_SOURCES_ "")
-
 set(TMP_HEADERS_
-    ${CMAKE_CURRENT_LIST_DIR}/drm.h
-    ${CMAKE_CURRENT_LIST_DIR}/drm_fourcc.h
-    ${CMAKE_CURRENT_LIST_DIR}/drm_mode.h
-    ${CMAKE_CURRENT_LIST_DIR}/drm_sarea.h
-    ${CMAKE_CURRENT_LIST_DIR}/i915_drm.h
+    ${CMAKE_CURRENT_LIST_DIR}/i915_drm_prelim.h
 )
 
-set(MOS_COMMON_HEADERS_
-    ${MOS_COMMON_HEADERS_}
+set(SOFTLET_MOS_COMMON_HEADERS_
+    ${SOFTLET_MOS_COMMON_HEADERS_}
     ${TMP_HEADERS_}
 )
 
-#use 'BEFORE' as below to make this folder higher priority in include path. This could avoid libdrm headers in system path are used unproperly.
-set (MOS_PREPEND_INCLUDE_DIRS_
+# use 'BEFORE' as below to make this folder higher priority in include path. This could avoid libdrm headers in system path are used unproperly.
+set (SOFTLET_MOS_PREPEND_INCLUDE_DIRS_
     ${CMAKE_CURRENT_LIST_DIR}
-    ${MOS_PREPEND_INCLUDE_DIRS_}
+    ${SOFTLET_MOS_PREPEND_INCLUDE_DIRS_}
 )
-

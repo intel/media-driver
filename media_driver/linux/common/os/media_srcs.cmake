@@ -22,12 +22,6 @@ set(TMP_HEADERS_ "")
 set(TMP_SOURCES_ "")
 
 if(NOT CMAKE_WDDM_LINUX)
-media_include_subdirectory(i915)
-
-if(ENABLE_PRODUCTION_KMD)
-    media_include_subdirectory(i915_production)
-endif()
-
 set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/hwinfo_linux.c
     ${CMAKE_CURRENT_LIST_DIR}/mos_context_specific.cpp
@@ -40,7 +34,6 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/mos_interface.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_gpucontext_specific_ext.cpp
     ${CMAKE_CURRENT_LIST_DIR}/memory_policy_manager_specific.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/mos_vma.c
     ${CMAKE_CURRENT_LIST_DIR}/mos_oca_specific.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_decompression.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_mediacopy.cpp
@@ -55,7 +48,6 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mos_commandbuffer_specific.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_gpucontext_specific.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_auxtable_mgr.h
-    ${CMAKE_CURRENT_LIST_DIR}/mos_vma.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_oca_interface_specific.h
 )
 

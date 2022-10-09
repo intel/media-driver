@@ -23,7 +23,11 @@ media_include_subdirectory(private)
 
 if(NOT CMAKE_WDDM_LINUX)
 
-media_include_subdirectory(private)
+media_include_subdirectory(i915)
+
+if(ENABLE_PRODUCTION_KMD)
+    media_include_subdirectory(i915_production)
+endif()
 
 set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/mos_context_specific_next.cpp
@@ -37,6 +41,7 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/mos_user_setting_specific.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_os_mock_adaptor_specific.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_oca_rtlog_mgr_specific.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/mos_vma.c
 )
 
 set(TMP_HEADERS_
@@ -49,6 +54,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mos_decompression.h
     ${CMAKE_CURRENT_LIST_DIR}/media_skuwa_specific.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_os_mock_adaptor_specific.h
+    ${CMAKE_CURRENT_LIST_DIR}/mos_vma.h
 )
 
 if(${Media_Scalability_Supported} STREQUAL "yes")
