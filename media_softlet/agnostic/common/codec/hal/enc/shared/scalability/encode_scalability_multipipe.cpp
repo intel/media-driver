@@ -824,9 +824,11 @@ MOS_STATUS EncodeScalabilityMultiPipe::Oca1stLevelBBStart(MOS_COMMAND_BUFFER &cm
 {
     MHW_MI_MMIOREGISTERS mmioRegister;
     SCALABILITY_CHK_NULL_RETURN(m_hwInterface);
+
     auto vdencItf = m_hwInterface->m_hwInterfaceNext->GetVdencInterfaceNext();
     SCALABILITY_CHK_NULL_RETURN(vdencItf);
     bool validMmio = vdencItf->ConvertToMiRegister(MHW_VDBOX_NODE_1, mmioRegister);
+
     if (validMmio)
     {
         SCALABILITY_CHK_NULL_RETURN(m_osInterface);

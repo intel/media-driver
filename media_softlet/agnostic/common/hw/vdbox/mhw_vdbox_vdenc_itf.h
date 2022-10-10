@@ -118,7 +118,9 @@ public:
 
     bool m_perfModeSupported     = false;
     bool m_rhoDomainStatsEnabled = false;
-MEDIA_CLASS_DEFINE_END(mhw__vdbox__vdenc__Itf)
+    MHW_VDBOX_NODE_IND m_maxVdboxIndex = MHW_VDBOX_NODE_1;  //!< max vdbox index
+
+    MEDIA_CLASS_DEFINE_END(mhw__vdbox__vdenc__Itf)
 };
 }  // namespace vdenc
 }  // namespace vdbox

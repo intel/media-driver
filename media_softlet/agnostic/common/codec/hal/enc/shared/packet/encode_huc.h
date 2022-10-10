@@ -71,9 +71,10 @@ namespace encode
             ENCODE_CHK_NULL_NO_STATUS_RETURN(hwInterface);
             ENCODE_CHK_NULL_NO_STATUS_RETURN(m_pipeline);
 
-            m_hwInterface    = hwInterface;
-            m_miInterface    = hwInterface->GetMiInterface();
-            m_osInterface    = hwInterface->GetOsInterface();
+            m_hwInterface = hwInterface;
+            m_miInterface = hwInterface->GetMiInterface();
+            m_osInterface = hwInterface->GetOsInterface();
+
             m_featureManager = m_pipeline->GetFeatureManager();
             m_statusReport   = m_pipeline->GetStatusReportInstance();
 

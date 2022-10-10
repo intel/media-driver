@@ -242,7 +242,7 @@ public:
 
     MHW_VDBOX_NODE_IND GetMaxVdboxIndex()
     {
-        return m_maxVdboxIndex;
+        return MEDIA_IS_SKU(m_osItf->pfnGetSkuTable(m_osItf), FtrVcs2) ? MHW_VDBOX_NODE_2 : MHW_VDBOX_NODE_1;
     }
 
     //!

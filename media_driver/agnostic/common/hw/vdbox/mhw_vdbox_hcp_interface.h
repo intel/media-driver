@@ -349,6 +349,16 @@ public:
         hevcSliceP  = 1,
         hevcSliceI  = 2
     };
+    //!
+    //! \brief    Get max vdbox index
+    //!
+    //! \return   MHW_VDBOX_NODE_IND
+    //!           max vdbox index got
+    //!
+    inline MHW_VDBOX_NODE_IND GetMaxVdboxIndex()
+    {
+        return MEDIA_IS_SKU(m_skuTable, FtrVcs2) ? MHW_VDBOX_NODE_2 : MHW_VDBOX_NODE_1;
+    }
 
 protected:
     PMOS_INTERFACE              m_osInterface = nullptr; //!< Pointer to OS interface
