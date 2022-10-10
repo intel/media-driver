@@ -1123,7 +1123,7 @@ VAStatus DdiDecode_StatusReport(PDDI_MEDIA_CONTEXT mediaCtx, DecodePipelineAdapt
                 PDDI_MEDIA_SURFACE_HEAP_ELEMENT mediaSurfaceHeapElmt = (PDDI_MEDIA_SURFACE_HEAP_ELEMENT)mediaCtx->pSurfaceHeap->pHeapBase;
 
                 uint32_t j = 0;
-                for (j = 0; j < mediaCtx->pSurfaceHeap->uiAllocatedHeapElements; j++, mediaSurfaceHeapElmt++)
+                for (j = 0; j < mediaCtx->uiNumSurfaces; j++, mediaSurfaceHeapElmt++)
                 {
                     if (mediaSurfaceHeapElmt != nullptr &&
                             mediaSurfaceHeapElmt->pSurface != nullptr &&
