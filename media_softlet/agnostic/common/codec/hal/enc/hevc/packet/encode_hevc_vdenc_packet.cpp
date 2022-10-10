@@ -1530,9 +1530,9 @@ namespace encode
         ENCODE_FUNC_CALL();
 
         MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-        if (vdboxIndex > m_hwInterface->GetMfxInterface()->GetMaxVdboxIndex())
+        if (vdboxIndex > m_hwInterface->m_hwInterfaceNext->GetMaxVdboxIndex())
         {
-            //ENCODE_ASSERTMESSAGE("ERROR - vdbox index exceed the maximum");
+            ENCODE_ASSERTMESSAGE("ERROR - vdbox index exceed the maximum");
             eStatus = MOS_STATUS_INVALID_PARAMETER;
         }
 
@@ -2410,6 +2410,7 @@ namespace encode
 
         // Intra/Inter/Skip CU Cnt
         auto xCalAtomic = [&](PMOS_RESOURCE presDst, uint32_t dstOffset, PMOS_RESOURCE presSrc, uint32_t srcOffset, mhw::mi::MHW_COMMON_MI_ATOMIC_OPCODE opCode) {
+
             auto mmioRegisters = m_hwInterface->m_hwInterfaceNext->GetVdencInterfaceNext()->GetMmioRegisters(m_vdboxIndex);
 
             auto &miLoadRegMemParams = m_miItf->MHW_GETPAR_F(MI_LOAD_REGISTER_MEM)();

@@ -143,6 +143,7 @@ class Impl : public Itf, public mhw::Impl
     MmioRegistersVdbox m_mmioRegisters[MHW_VDBOX_NODE_MAX] = {};  //!< Mfx mmio registers
 
 public:
+
     MOS_STATUS SetRowstoreCachingOffsets(const RowStorePar &par) override
     {
         MHW_FUNCTION_ENTER;
@@ -573,7 +574,8 @@ protected:
             resourceParams.presResource    = &params.surfaceRaw->OsResource;
             resourceParams.dwOffset        = params.surfaceRaw->dwOffset;
             resourceParams.pdwCmd          = (uint32_t *)&(cmd.OriginalUncompressedPicture.LowerAddress);
-            resourceParams.dwLocationInCmd = _MHW_CMD_DW_LOCATION(OriginalUncompressedPicture.LowerAddress);
+            //resourceParams.dwLocationInCmd = _MHW_CMD_DW_LOCATION(OriginalUncompressedPicture.LowerAddress);
+            resourceParams.dwLocationInCmd = 10;
             resourceParams.bIsWritable     = false;
             resourceParams.HwCommandType   = MOS_VDENC_PIPE_BUF_ADDR;
 

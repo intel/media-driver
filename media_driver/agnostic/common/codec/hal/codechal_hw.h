@@ -1052,6 +1052,17 @@ public:
         uint32_t                       *patchListSize);
 
     //!
+    //! \brief    Get max vdbox index
+    //!
+    //! \return   MHW_VDBOX_NODE_IND
+    //!           max vdbox index got
+    //!
+    inline MHW_VDBOX_NODE_IND GetMaxVdboxIndex()
+    {
+        return MEDIA_IS_SKU(m_skuTable, FtrVcs2) ? MHW_VDBOX_NODE_2 : MHW_VDBOX_NODE_1;
+    }
+
+    //!
     //! \brief    Initialize the codechal hw interface
     //! \details  Initialize the interface before using
     //! 

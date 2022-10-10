@@ -121,8 +121,9 @@ public:
         // Be compatiable to legacy MOS
         return MOS_RCS_ENGINE_USED(gpuContext);
     }
-    uint8_t GetNumVdbox() 
-    { 
+
+    uint8_t GetNumVdbox()
+    {
         m_numVdbox                      = 1;
         MEDIA_SYSTEM_INFO *gtSystemInfo = m_osInterface->pfnGetGtSystemInfo(m_osInterface);
         if (gtSystemInfo != nullptr)
@@ -130,7 +131,6 @@ public:
             // Both VE mode and media solo mode should be able to get the VDBOX number via the same interface
             m_numVdbox = (uint8_t)(gtSystemInfo->VDBoxInfo.NumberOfVDBoxEnabled);
         }
-
         return m_numVdbox;
     }
 

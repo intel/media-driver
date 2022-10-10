@@ -369,7 +369,7 @@ namespace encode {
         ENCODE_FUNC_CALL();
 
         MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-        if (vdboxIndex > m_hwInterface->GetMfxInterface()->GetMaxVdboxIndex())
+        if (vdboxIndex > m_hwInterface->m_hwInterfaceNext->GetMaxVdboxIndex())
         {
             //ENCODE_ASSERTMESSAGE("ERROR - vdbox index exceed the maximum");
             eStatus = MOS_STATUS_INVALID_PARAMETER;

@@ -56,8 +56,6 @@ CodechalHwInterfaceNext::CodechalHwInterfaceNext(
 
     // Remove legacy mhw sub interfaces.
     m_cpInterface = mhwInterfacesNext->m_cpInterface;
-    m_mfxInterface = mhwInterfacesNext->m_mfxInterface;
-    m_vdencInterface = mhwInterfacesNext->m_vdencInterface;
 }
 
 MOS_STATUS CodechalHwInterfaceNext::Initialize(
@@ -222,9 +220,9 @@ MOS_STATUS CodechalHwInterfaceNext::SetCacheabilitySettings(
     {
         CODEC_HW_CHK_STATUS_RETURN(m_mfxInterface->SetCacheabilitySettings(cacheabilitySettings));
     }
-    if (m_vdencInterface)
+    if (m_vdencItf)
     {
-        CODEC_HW_CHK_STATUS_RETURN(m_vdencInterface->SetCacheabilitySettings(cacheabilitySettings));
+        CODEC_HW_CHK_STATUS_RETURN(m_vdencItf->SetCacheabilitySettings(cacheabilitySettings));
     }
     /*                                                                    */
 
@@ -440,14 +438,40 @@ MOS_STATUS CodechalHwInterfaceNext::GetMfxPrimitiveCommandsDataSize(
     uint32_t cpCmdsize = 0;
     uint32_t cpPatchListSize = 0;
 
-    if (m_mfxInterface)
+    if (m_mfxItf)
     {
-        CODEC_HW_CHK_STATUS_RETURN(m_mfxInterface->GetMfxPrimitiveCommandsDataSize(
+        CODEC_HW_CHK_STATUS_RETURN(m_mfxItf->GetMfxPrimitiveCommandsDataSize(
             mode, (uint32_t*)commandsSize, (uint32_t*)patchListSize, modeSpecific ? true : false));
 
         m_cpInterface->GetCpSliceLevelCmdSize(cpCmdsize, cpPatchListSize);
     }
 
+    *commandsSize += (uint32_t)cpCmdsize;
+    *patchListSize += (uint32_t)cpPatchListSize;
+
+    return eStatus;
+}
+
+MOS_STATUS CodechalHwInterfaceNext::GetMfxStateCommandsDataSize(
+    uint32_t  mode,
+    uint32_t *commandsSize,
+    uint32_t *patchListSize,
+    bool      shortFormat)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODEC_HW_FUNCTION_ENTER;
+
+    uint32_t cpCmdsize       = 0;
+    uint32_t cpPatchListSize = 0;
+
+    if (m_mfxItf)
+    {
+        CODEC_HW_CHK_STATUS_RETURN(m_mfxItf->GetMfxStateCommandsDataSize(
+            mode, (uint32_t *)commandsSize, (uint32_t *)patchListSize, shortFormat ? true : false));
+
+        m_cpInterface->GetCpStateLevelCmdSize(cpCmdsize, cpPatchListSize);
+    }
     *commandsSize += (uint32_t)cpCmdsize;
     *patchListSize += (uint32_t)cpPatchListSize;
 
