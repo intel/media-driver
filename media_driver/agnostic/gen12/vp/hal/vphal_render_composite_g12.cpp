@@ -88,3 +88,15 @@ bool CompositeStateG12::IsBobDiEnabled(PVPHAL_SURFACE pSrc)
 finish:
     return bRet;
 }
+
+bool CompositeStateG12::IsDisableAVSSampler(
+    int32_t         iSources,
+    bool            isTargetY)
+{
+    if (isTargetY)
+    {
+        return true;
+    }
+
+    return false;
+}

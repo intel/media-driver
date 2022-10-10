@@ -848,6 +848,10 @@ protected:
     virtual bool SubmitStates(
         PVPHAL_RENDERING_DATA_COMPOSITE     pRenderingData);
 
+    virtual bool IsDisableAVSSampler(
+        int32_t         iSources,
+        bool            isTargetY);
+
 private:
     //!
     //! \brief    Prepare phases for composite and determine intermediate colorspace
