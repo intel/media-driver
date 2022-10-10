@@ -1282,6 +1282,21 @@ typedef struct _MOS_INTERFACE
     bool (*pfnIsMultipleCodecDevicesInUse)(
         PMOS_INTERFACE              pOsInterface);
 
+    MOS_GPU_NODE(*pfnGetLatestVirtualNode)(
+        PMOS_INTERFACE              pOsInterface,
+        MOS_COMPONENT               component);
+
+    void (*pfnSetLatestVirtualNode)(
+        PMOS_INTERFACE              pOsInterface,
+        MOS_GPU_NODE                node);
+
+    MOS_GPU_NODE (*pfnGetDecoderVirtualNodePerStream)(
+        PMOS_INTERFACE pOsInterface);
+
+    void (*pfnSetDecoderVirtualNodePerStream)(
+        PMOS_INTERFACE pOsInterface,
+        MOS_GPU_NODE   node);
+
     HANDLE (*pfnGetUmdDmaCompleteEventHandle)(
         PMOS_INTERFACE  osInterface,
         MOS_GPU_CONTEXT gpuContext);

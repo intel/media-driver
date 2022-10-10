@@ -36,7 +36,15 @@ void CodechalEncoderState::PrepareNodes(
     bool&         setVideoNode)
 {
     if (MOS_VE_MULTINODESCALING_SUPPORTED(m_osInterface))
+    {
+        MOS_GPU_NODE node = m_osInterface->pfnGetLatestVirtualNode(m_osInterface, COMPONENT_Decode);
+        if (node != MOS_GPU_NODE_MAX)
+        {
+            setVideoNode = true;
+            videoGpuNode = (node == MOS_GPU_NODE_VIDEO) ? MOS_GPU_NODE_VIDEO2 : MOS_GPU_NODE_VIDEO;
+        }
         return;
+    }
 
     if (m_vdboxOneDefaultUsed)
     {
@@ -86,6 +94,7 @@ MOS_STATUS CodechalEncoderState::CreateGpuContexts()
                 setVideoNode,
                 &videoGpuNode));
             m_videoNodeAssociationCreated = true;
+            m_osInterface->pfnSetLatestVirtualNode(m_osInterface, videoGpuNode);
         }
         m_videoGpuNode = videoGpuNode;
 
@@ -2315,6 +2324,7 @@ void CodechalEncoderState::Destroy()
     {
         // Destroy encode video node associations
         m_osInterface->pfnDestroyVideoNodeAssociation(m_osInterface, m_videoGpuNode);
+        m_osInterface->pfnSetLatestVirtualNode(m_osInterface, MOS_GPU_NODE_MAX);
     }
 
     if (m_mmcState != nullptr)

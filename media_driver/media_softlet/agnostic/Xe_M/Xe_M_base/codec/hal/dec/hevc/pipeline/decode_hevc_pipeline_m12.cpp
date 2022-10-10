@@ -78,6 +78,11 @@ MOS_STATUS HevcPipelineM12::Init(void *settings)
     DECODE_CHK_STATUS(RegisterPacket(DecodePacketId(this, hevcRealTilePacketId), hevcDecodePktRealTile));
     DECODE_CHK_STATUS(hevcDecodePktRealTile->Init());
 
+    if (m_numVdbox == 2)
+    {
+        m_allowVirtualNodeReassign = true;
+    }
+
     return MOS_STATUS_SUCCESS;
 }
 
