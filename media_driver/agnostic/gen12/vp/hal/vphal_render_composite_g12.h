@@ -134,6 +134,10 @@ protected:
 
         return CompositeState::Initialize(pSettings, pKernelDllState);
     }
+
+    virtual bool IsDisableAVSSampler(
+        int32_t         iSources,
+        bool            isTargetY);
 };
 
 #endif // __VPHAL_RENDER_COMPOSITE_G12_H__
