@@ -47,6 +47,8 @@ jobs:
           libgl1-mesa-dev \
           libx11-dev \
           libxext-dev \
+          libx11-xcb-dev \
+          libxcb-dri3-dev \
           libxfixes-dev \
           libwayland-dev \
           make
@@ -113,6 +115,8 @@ jobs:
           libegl1-mesa-dev \
           libgl1-mesa-dev \
           libx11-dev \
+          libx11-xcb-dev \
+          libxcb-dri3-dev \
           libxext-dev \
           libxfixes-dev \
           libwayland-dev \
@@ -178,6 +182,8 @@ jobs:
           libegl1-mesa-dev \
           libgl1-mesa-dev \
           libx11-dev \
+          libx11-xcb-dev \
+          libxcb-dri3-dev \
           libxext-dev \
           libxfixes-dev \
           libwayland-dev \
@@ -241,6 +247,8 @@ jobs:
           libegl1-mesa-dev \
           libgl1-mesa-dev \
           libx11-dev \
+          libx11-xcb-dev \
+          libxcb-dri3-dev \
           libxext-dev \
           libxfixes-dev \
           libwayland-dev \
@@ -306,6 +314,8 @@ jobs:
           libegl1-mesa-dev \
           libgl1-mesa-dev \
           libx11-dev \
+          libx11-xcb-dev \
+          libxcb-dri3-dev \
           libxext-dev \
           libxfixes-dev \
           libwayland-dev \
@@ -371,6 +381,8 @@ jobs:
           libegl1-mesa-dev \
           libgl1-mesa-dev \
           libx11-dev \
+          libx11-xcb-dev \
+          libxcb-dri3-dev \
           libxext-dev \
           libxfixes-dev \
           libwayland-dev \
@@ -436,6 +448,8 @@ jobs:
           libegl1-mesa-dev \
           libgl1-mesa-dev \
           libx11-dev \
+          libx11-xcb-dev \
+          libxcb-dri3-dev \
           libxext-dev \
           libxfixes-dev \
           libwayland-dev \
@@ -501,6 +515,8 @@ jobs:
           libegl1-mesa-dev \
           libgl1-mesa-dev \
           libx11-dev \
+          libx11-xcb-dev \
+          libxcb-dri3-dev \
           libxext-dev \
           libxfixes-dev \
           libwayland-dev \
@@ -566,6 +582,8 @@ jobs:
           libegl1-mesa-dev \
           libgl1-mesa-dev \
           libx11-dev \
+          libx11-xcb-dev \
+          libxcb-dri3-dev \
           libxext-dev \
           libxfixes-dev \
           libwayland-dev \
@@ -631,6 +649,8 @@ jobs:
           libegl1-mesa-dev \
           libgl1-mesa-dev \
           libx11-dev \
+          libx11-xcb-dev \
+          libxcb-dri3-dev \
           libxext-dev \
           libxfixes-dev \
           libwayland-dev \
@@ -696,6 +716,8 @@ jobs:
           libegl1-mesa-dev \
           libgl1-mesa-dev \
           libx11-dev \
+          libx11-xcb-dev \
+          libxcb-dri3-dev \
           libxext-dev \
           libxfixes-dev \
           libwayland-dev \
