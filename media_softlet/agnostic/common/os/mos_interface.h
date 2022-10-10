@@ -2084,6 +2084,26 @@ public:
     //!
     static bool IsMultipleCodecDevicesInUse(PMOS_INTERFACE osInterface);
 
+    //!
+    //! \brief  get latest virtual node for encoder and decoder
+    //!
+    static MOS_GPU_NODE GetLatestVirtualNode(MOS_STREAM_HANDLE streamState, MOS_COMPONENT component);
+
+    //!
+    //! \brief  set latest virtual node for encoder and decoder
+    //!
+    static void SetLatestVirtualNode(MOS_STREAM_HANDLE streamState, MOS_GPU_NODE node);
+
+    //!
+    //! \brief  get virtual node for each decoder stream
+    //!
+    static MOS_GPU_NODE GetDecoderVirtualNodePerStream(MOS_STREAM_HANDLE streamState);
+
+    //!
+    //! \brief  set virtual node for each decoder stream
+    //!
+    static void SetDecoderVirtualNodePerStream(MOS_STREAM_HANDLE streamState, MOS_GPU_NODE node);
+
     //! \brief    Wait for the created Batch Buffer completion event
     //! \details  Wait for the created Batch Buffer completion event, we will be 
     //!           woken up for every Batch Buffer completion or when TimeOut expires
