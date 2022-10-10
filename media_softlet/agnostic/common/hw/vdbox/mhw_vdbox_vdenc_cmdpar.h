@@ -264,7 +264,8 @@ struct _MHW_PAR_T(VDENC_PIPE_BUF_ADDR_STATE)
     PMOS_RESOURCE     mfdIntraRowStoreScratchBuffer     = nullptr;
     PMOS_RESOURCE     cumulativeCuCountStreamOutBuffer  = nullptr;
     PMOS_RESOURCE     colocatedMvWriteBuffer            = nullptr;
-    __MHW_VDBOX_VDENC_WRAPPER_EXT(VDENC_PIPE_BUF_ADDR_STATE_CMDPAR_EXT);
+    PMOS_RESOURCE     vdencPipeBufAddrStatePar0         = nullptr;
+    PMOS_RESOURCE     vdencPipeBufAddrStatePar1         = nullptr;
 };
 
 struct _MHW_PAR_T(VDENC_WEIGHTSOFFSETS_STATE)
