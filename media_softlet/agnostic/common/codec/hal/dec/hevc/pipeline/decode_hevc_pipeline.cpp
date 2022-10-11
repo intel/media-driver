@@ -116,16 +116,7 @@ MOS_STATUS HevcPipeline::Execute()
             // switch context
             DecodeScalabilityOption *scalabOption = phase->GetDecodeScalabilityOption();
             DECODE_CHK_NULL(scalabOption);
-            if (m_allowVirtualNodeReassign)
-            {
-                // reassign decoder virtual node at the first frame for each stream
-                DECODE_CHK_STATUS(m_mediaContext->ReassignContextForDecoder(m_basicFeature->m_frameNum, *scalabOption, &m_scalability));
-                m_mediaContext->SetLatestDecoderVirtualNode();
-            }
-            else
-            {
-                DECODE_CHK_STATUS(m_mediaContext->SwitchContext(VdboxDecodeFunc, *scalabOption, &m_scalability));
-            }
+            DECODE_CHK_STATUS(m_mediaContext->SwitchContext(VdboxDecodeFunc, *scalabOption, &m_scalability));
             if (scalabOption->IsScalabilityOptionMatched(m_scalabOption))
             {
                 m_decodeContext = m_osInterface->pfnGetGpuContext(m_osInterface);

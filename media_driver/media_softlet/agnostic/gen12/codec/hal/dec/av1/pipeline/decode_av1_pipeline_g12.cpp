@@ -60,11 +60,6 @@ namespace decode
         DECODE_CHK_STATUS(RegisterPacket(DecodePacketId(this, av1DecodePacketId), m_av1DecodePkt));
         DECODE_CHK_STATUS(m_av1DecodePkt->Init());
 
-        if (m_numVdbox == 2)
-        {
-            m_allowVirtualNodeReassign = true;
-        }
-
         return MOS_STATUS_SUCCESS;
     }
 
@@ -89,16 +84,7 @@ namespace decode
         }
         scalPars.numVdbox = m_numVdbox;
 
-        if (m_allowVirtualNodeReassign)
-        {
-            // reassign decoder virtual node at the first frame for each stream
-            DECODE_CHK_STATUS(m_mediaContext->ReassignContextForDecoder(basicFeature->m_frameNum, &scalPars, &m_scalability));
-            m_mediaContext->SetLatestDecoderVirtualNode();
-        }
-        else
-        {
-            DECODE_CHK_STATUS(m_mediaContext->SwitchContext(VdboxDecodeFunc, &scalPars, &m_scalability));
-        }
+        m_mediaContext->SwitchContext(VdboxDecodeFunc, &scalPars, &m_scalability);
         DECODE_CHK_NULL(m_scalability);
 
         m_decodeContext = m_osInterface->pfnGetGpuContext(m_osInterface);

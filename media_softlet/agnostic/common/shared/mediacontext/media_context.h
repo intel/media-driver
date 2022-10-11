@@ -47,8 +47,6 @@ enum MediaFunction
     ComputeVppFunc,
     VdboxDecodeWaFunc,
     VdboxDecrpytFunc,
-    VdboxDecodeVirtualNode0Func,
-    VdboxDecodeVirtualNode1Func,
     MediaFuncMax
 };
 // Be compatible to legacy MOS and re-define the name
@@ -134,39 +132,6 @@ public:
         return m_numVdbox;
     }
 
-    //!
-    //! \brief  Set latest decoder virtual node
-    //!
-    void SetLatestDecoderVirtualNode();
-
-    //!
-    //! \brief  Reassgine virtual node for decoder
-    //! \param  [in] frameNum
-    //!         The current decoding frame number
-    //! \param  [in] scalabilityOption
-    //!         The intialzed scalability option
-    //! \param  [out] scalabilityState
-    //!         Pointer to the pointer of output scalability state.
-    //!         Pipeline can only use this scalabilityState until next time calling SwitchContext
-    //! \return MOS_STATUS
-    //!         MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    MOS_STATUS ReassignContextForDecoder(uint32_t frameNum, MediaScalabilityOption &scalabilityOption, MediaScalability **scalabilityState);
-
-    //!
-    //! \brief  Reassgine virtual node for decoder
-    //! \param  [in] frameNum
-    //!         The current decoding frame number
-    //! \param  [in] scalabilityOption
-    //!         The intialzed scalability option
-    //! \param  [out] scalabilityState
-    //!         Pointer to the pointer of output scalability state.
-    //!         Pipeline can only use this scalabilityState until next time calling SwitchContext
-    //! \return MOS_STATUS
-    //!         MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    MOS_STATUS ReassignContextForDecoder(uint32_t frameNum, ContextRequirement *requirement, MediaScalability **scalabilityState);
-
 protected:
     PMOS_INTERFACE                    m_osInterface             = nullptr;           //!< OS interface
     void                             *m_hwInterface             = nullptr;           //!< HW interface
@@ -180,7 +145,6 @@ protected:
     static const uint32_t             m_maxContextAttribute     = 4096;              //!< Max number of entries supported in gpuContextAttributeTable in one media context
     uint8_t                           m_numVdbox                = 1;
     bool                              m_scalabilitySupported    = false;
-    MOS_GPU_NODE                      m_curNodeOrdinal          = MOS_GPU_NODE_MAX;  //!< Current virtual node for codec gpu context
 
     //!
     //! \brief  Search the ContextAttributeTable to reuse or create gpu Context and scalabilty state meeting the requirements
@@ -223,8 +187,8 @@ protected:
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS FunctionToNode(MediaFunction func, const MOS_GPUCTX_CREATOPTIONS_ENHANCED &option, MOS_GPU_NODE& node);
-    MOS_STATUS FunctionToNodeCodec(MediaFunction func, MOS_GPU_NODE &node);
-    MOS_STATUS FindGpuNodeToUse(MediaFunction func, PMHW_VDBOX_GPUNODE_LIMIT gpuNodeLimit);
+    MOS_STATUS FunctionToNodeCodec(MOS_GPU_NODE& node);
+    MOS_STATUS FindGpuNodeToUse(PMHW_VDBOX_GPUNODE_LIMIT gpuNodeLimit);
 
     // Be compatible to Legacy MOS
     MOS_STATUS FunctionToGpuContext(MediaFunction func, const MOS_GPUCTX_CREATOPTIONS_ENHANCED &option, const MOS_GPU_NODE &node, MOS_GPU_CONTEXT &ctx);
