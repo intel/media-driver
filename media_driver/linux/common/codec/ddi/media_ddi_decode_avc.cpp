@@ -327,6 +327,17 @@ VAStatus DdiDecodeAVC::ParsePicParams(
     avcPicParams->frame_num = picParam->frame_num;
 
 #if MOS_EVENT_TRACE_DUMP_SUPPORTED
+    // Picture Info
+    DECODE_EVENTDATA_INFO_PICTUREVA eventData = {0};
+    eventData.CodecFormat                   = m_ddiDecodeCtx->wMode;
+    eventData.FrameType                     = avcPicParams->pic_fields.IntraPicFlag == 1 ? I_TYPE : MIXED_TYPE;
+    eventData.PicStruct                     = avcPicParams->CurrPic.PicFlags;  // 1-Top; 2-Bottom; 3-Frame
+    eventData.Width                         = (avcPicParams->pic_width_in_mbs_minus1 + 1) * MACROBLOCK_WIDTH;
+    eventData.Height                        = (avcPicParams->pic_height_in_mbs_minus1 + 1) * MACROBLOCK_HEIGHT;
+    eventData.Bitdepth                      = avcPicParams->bit_depth_luma_minus8 + 8;
+    eventData.ChromaFormat                  = avcPicParams->seq_fields.chroma_format_idc;  // 0-4:0:0; 1-4:2:0; 2-4:2:2; 3-4:4:4
+    MOS_TraceEvent(EVENT_DECODE_INFO_PICTUREVA, EVENT_TYPE_INFO, &eventData, sizeof(eventData), NULL, 0);
+
     if (MOS_TraceKeyEnabled(TR_KEY_DECODE_PICPARAM))
     {
         DECODE_EVENTDATA_PICPARAM_AVC eventData;

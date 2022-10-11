@@ -1366,4 +1366,12 @@ void DdiMediaDecode::ReportDecodeMode(
         default:
             break;
     }
+#if MOS_EVENT_TRACE_DUMP_SUPPORTED
+    {
+        DECODE_EVENTDATA_VA_FEATURE_REPORTMODE eventData;
+        eventData.wMode = (uint32_t)wMode;
+        eventData.ValueID = userFeatureWriteData.ValueID;
+        MOS_TraceEvent(EVENT_DECODE_FEATURE_DECODEMODE_REPORTVA, EVENT_TYPE_INFO, &eventData, sizeof(eventData), NULL, 0);
+    }
+#endif
  }

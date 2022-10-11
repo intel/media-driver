@@ -105,6 +105,12 @@ void DecodeMemComp::InitDecodeMmc(CodechalHwInterface *hwInterface)
 
         m_mmcEnabledForDecode = m_mmcEnabled && decodeMmcEnabled;
 
+#if MOS_EVENT_TRACE_DUMP_SUPPORTED
+    if (m_mmcEnabledForDecode)
+    {
+        MOS_TraceEvent(EVENT_DECODE_FEATURE_MMC, EVENT_TYPE_INFO, NULL, 0, NULL, 0);
+    }
+#endif
         MOS_USER_FEATURE_VALUE_WRITE_DATA userFeatureWriteData;
         MOS_ZeroMemory(&userFeatureWriteData, sizeof(userFeatureWriteData));
         userFeatureWriteData.Value.i32Data = m_mmcEnabledForDecode;
