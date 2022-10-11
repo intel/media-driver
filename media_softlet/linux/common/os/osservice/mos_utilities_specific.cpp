@@ -83,7 +83,7 @@ MosMutex          MosUtilitiesSpecificNext::m_userSettingMutex;
 //!
 //! \brief trace event size definition
 //!
-#define TRACE_EVENT_MAX_SIZE           (1024)
+#define TRACE_EVENT_MAX_SIZE           (3072)
 #define TRACE_EVENT_HEADER_SIZE        (sizeof(uint32_t)*3)
 #define TRACE_EVENT_MAX_DATA_SIZE      (TRACE_EVENT_MAX_SIZE - TRACE_EVENT_HEADER_SIZE - sizeof(uint16_t)) // Trace info data size section is in uint16_t
 

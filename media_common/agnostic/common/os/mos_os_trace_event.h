@@ -329,6 +329,20 @@ typedef enum _MEDIA_EVENT
     EVENT_ENCODE_DDI_SLC_PARAM_HEVC,               //! event for HEVC encode slice param
     EVENT_ENCODE_DDI_VERSION_HEVC,                 //! event for HEVC encode DDI version
     EVENT_ENCODE_API_STICKER_HEVC,                 //! event for HEVC encode API sticker
+    EVENT_DECODE_DDI_DISPLAYINFOVA,                //! event for Decode DDI DisplayInfo
+    EVENT_DECODE_DDI_CREATEBUFFERVA,               //! event for Decode DDI CreateBuffer
+    EVENT_DECODE_DDI_BEGINPICTUREVA,               //! event for Decode DDI BeginPicture
+    EVENT_DECODE_DDI_ENDPICTUREVA,                 //! event for Decode DDI EndPicture
+    EVENT_DECODE_DDI_RENDERPICTUREVA,              //! event for Decode DDI RenderPicture
+    EVENT_DECODE_DDI_CLEARUPVA,                    //! event for Decode DDI ClearUp
+    EVENT_DECODE_DDI_STATUSREPORTVA,               //! event for Decode DDI StatusReport
+    EVENT_DECODE_DDI_CREATECONTEXTVA,              //! event for Decode DDI CreateContext
+    EVENT_DECODE_DDI_DESTROYCONTEXTVA,             //! event for Decode DDI DestroyContext
+    EVENT_DECODE_DDI_GETDECCTXFROMBUFFERIDVA,      //! event for Decode DDI GetDecCtxFromBufferID
+    EVENT_DECODE_DDI_FREEBUFFERHEAPELEMENTSVA,     //! event for Decode DDI FreeBufferHeapElements
+    EVENT_DECODE_DDI_SETGPUPRIORITYVA,             //! event for Decode DDI SetGpuPriority
+    EVENT_DECODE_FEATURE_DECODEMODE_REPORTVA,      //! event for Decode Feature Decode Mode Report
+    EVENT_DECODE_INFO_PICTUREVA,                   //! event for Decode Picture Info VA
 } MEDIA_EVENT;
 
 typedef enum _MEDIA_EVENT_TYPE

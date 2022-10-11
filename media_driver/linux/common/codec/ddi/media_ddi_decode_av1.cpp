@@ -470,6 +470,21 @@ VAStatus DdiDecodeAV1::ParsePicParams(
                      picParam->height_in_sbs_minus_1,   63 * sizeof(uint16_t));
 
 #if MOS_EVENT_TRACE_DUMP_SUPPORTED
+    // Picture Info
+    uint32_t subSamplingSum = picAV1Params->m_seqInfoFlags.m_fields.m_subsamplingX + picAV1Params->m_seqInfoFlags.m_fields.m_subsamplingY;
+    DECODE_EVENTDATA_INFO_PICTUREVA eventData = {0};
+    eventData.CodecFormat                   = m_ddiDecodeCtx->wMode;
+    eventData.FrameType                     = picAV1Params->m_picInfoFlags.m_fields.m_frameType == 0 ? I_TYPE : MIXED_TYPE;
+    eventData.PicStruct                     = FRAME_PICTURE;
+    eventData.Width                         = picAV1Params->m_frameWidthMinus1 + 1;
+    eventData.Height                        = picAV1Params->m_frameHeightMinus1 + 1;
+    eventData.Bitdepth                      = picAV1Params->m_bitDepthIdx;
+    eventData.ChromaFormat                  = (subSamplingSum == 2) ? 1 : (subSamplingSum == 1 ? 2 : 3);  // 1-4:2:0; 2-4:2:2; 3-4:4:4
+    eventData.EnabledSCC                    = picAV1Params->m_picInfoFlags.m_fields.m_allowScreenContentTools;
+    eventData.EnabledSegment                = picAV1Params->m_av1SegData.m_enabled;
+    eventData.EnabledFilmGrain              = picAV1Params->m_seqInfoFlags.m_fields.m_filmGrainParamsPresent;
+    MOS_TraceEvent(EVENT_DECODE_INFO_PICTUREVA, EVENT_TYPE_INFO, &eventData, sizeof(eventData), NULL, 0);
+
     if (MOS_TraceKeyEnabled(TR_KEY_DECODE_PICPARAM))
     {
         DECODE_EVENTDATA_PICPARAM_AV1 eventData;
