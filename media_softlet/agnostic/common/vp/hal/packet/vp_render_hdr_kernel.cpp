@@ -2392,12 +2392,12 @@ MOS_STATUS VpRenderHdrKernel::UpdatePerLayerPipelineStates(
 
         if (StageEnables.OETFEnable)
         {
-            if (m_hdrParams->targetHDRParams[i].EOTF == VPHAL_HDR_EOTF_TRADITIONAL_GAMMA_SDR ||
-                m_hdrParams->targetHDRParams[i].EOTF == VPHAL_HDR_EOTF_TRADITIONAL_GAMMA_HDR)
+            if (m_hdrParams->targetHDRParams[0].EOTF == VPHAL_HDR_EOTF_TRADITIONAL_GAMMA_SDR ||
+                m_hdrParams->targetHDRParams[0].EOTF == VPHAL_HDR_EOTF_TRADITIONAL_GAMMA_HDR)
             {
                 CurrentOETF = VPHAL_GAMMA_SRGB;
             }
-            else if (m_hdrParams->targetHDRParams[i].EOTF == VPHAL_HDR_EOTF_SMPTE_ST2084)
+            else if (m_hdrParams->targetHDRParams[0].EOTF == VPHAL_HDR_EOTF_SMPTE_ST2084)
             {
                 CurrentOETF = VPHAL_GAMMA_SMPTE_ST2084;
             }
