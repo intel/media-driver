@@ -592,7 +592,7 @@ MEDIA_CLASS_DEFINE_END(MosUtilDebug)
         bool isErr = false;                                                                        \
         MT_PARAM param[] = {{p1, v1}};                                                             \
         MosInterface::InsertRTLog(osStreamState, cTpye, isErr, id, 1, param);                      \
-        MT_LOG1(id, v1);                                                                            \
+        MT_LOG1(id, MT_NORMAL, p1,v1);                                                                           \
     }
 
 #if MOS_MESSAGES_ENABLED
