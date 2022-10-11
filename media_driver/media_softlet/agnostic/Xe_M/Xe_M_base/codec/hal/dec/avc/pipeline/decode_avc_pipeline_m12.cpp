@@ -54,11 +54,6 @@ MOS_STATUS AvcPipelineM12::Init(void *settings)
     DECODE_CHK_STATUS(RegisterPacket(DecodePacketId(this, avcDecodePacketId), m_avcDecodePkt));
     DECODE_CHK_STATUS(m_avcDecodePkt->Init());
 
-    if (m_numVdbox == 2)
-    {
-        m_allowVirtualNodeReassign = true;
-    }
-
     return MOS_STATUS_SUCCESS;
 }
 
@@ -208,16 +203,7 @@ MOS_STATUS AvcPipelineM12::InitContext()
     }
 #endif
 
-    if (m_allowVirtualNodeReassign)
-    {
-        // reassign decoder virtual node at the first frame for each stream
-        DECODE_CHK_STATUS(m_mediaContext->ReassignContextForDecoder(m_basicFeature->m_frameNum, &scalPars, &m_scalability));
-        m_mediaContext->SetLatestDecoderVirtualNode();
-    }
-    else
-    {
-        DECODE_CHK_STATUS(m_mediaContext->SwitchContext(VdboxDecodeFunc, &scalPars, &m_scalability));
-    }
+    m_mediaContext->SwitchContext(VdboxDecodeFunc, &scalPars, &m_scalability);
     DECODE_CHK_NULL(m_scalability);
 
     return MOS_STATUS_SUCCESS;

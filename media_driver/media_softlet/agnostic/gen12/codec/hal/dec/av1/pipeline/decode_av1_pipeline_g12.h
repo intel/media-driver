@@ -140,7 +140,6 @@ namespace decode
         FilmGrainSurfaceInit        *m_fgCoordValSurfInitPipeline = nullptr;
         FilmGrainPreSubPipeline     *m_fgGenNoiseSubPipeline = nullptr;    //!< Film Grain Generate Noise sub pipeline, used as pre-subpipeline before HW decoding
         FilmGrainPostSubPipeline    *m_fgAppNoiseSubPipeline = nullptr;    //!< Film Grain Apply Noise sub pipeline, used as post-subpipeline after HW decoding
-        bool                         m_allowVirtualNodeReassign = false;   //!< Whether allow virtual node reassign
 
     private:
         Av1DecodePktG12 *m_av1DecodePkt = nullptr;
