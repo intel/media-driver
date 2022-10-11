@@ -2723,7 +2723,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpDecodePicStateCmd(
         cmd->DW35.PaletteModeEnabledFlag                     = hevcSccPicParams->PicSCCExtensionFlags.fields.palette_mode_enabled_flag;
     }
 
-    if (hevcPicParams->RequestCRC)
+    if (hevcPicParams && hevcPicParams->RequestCRC)
     {
         cmd->DW36.FrameCrcEnable                             = 1;
         cmd->DW36.FrameCrcType                               = 0;
