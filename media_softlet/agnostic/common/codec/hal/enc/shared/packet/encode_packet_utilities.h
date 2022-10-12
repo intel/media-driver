@@ -77,6 +77,33 @@ public:
         uint32_t                slcHrdSizePos);
 
     //!
+    //! \brief  Modify the frame size with fake header size for AVC
+    //!
+    //! \param  [in] cmdBuffer
+    //!         command buffer
+    //! \param  [in] fakeHeaderSizeInByte
+    //!         fake header size in bytes
+    //! \param  [in] resBrcUpdateCurbe
+    //!         Curebe/Dmem for brcupdate kernel
+    //! \param  [in] targetSizePos
+    //!         offset of targetSize in resBrcUpdateCurbe
+    //! \param  [in] resPakStat
+    //!         Pak stastics
+    //! \param  [in] slcHrdSizePos
+    //!         offset of slcHrdSizePos in resPakStat
+    //!
+    //! \return MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS ModifyEncodedFrameSizeWithFakeHeaderSizeAVC(
+        PMOS_COMMAND_BUFFER cmdBuffer,
+        uint32_t            fakeHeaderSizeInByte,
+        PMOS_RESOURCE       *resBrcUpdateCurbe,
+        uint32_t            targetSizePos,
+        PMOS_RESOURCE       resPakStat,
+        uint32_t            slcHrdSizePos);
+
+    //!
     //! \brief  Add/Subtract a value to specified gfx memory
     //!
     //! \param  [in] cmdBuffer
@@ -99,6 +126,30 @@ public:
         uint32_t                offset,
         uint32_t                value,
         bool                    bAdd);
+
+    //!
+    //! \brief  Set a 16 bit value to specified gfx memory dword
+    //!
+    //! \param  [in] cmdBuffer
+    //!         command buffer
+    //! \param  [in] presStoreBuffer
+    //!         buffer to modify
+    //! \param  [in] offset
+    //!         member offset in the buffer
+    //! \param  [in] value
+    //!         value to set
+    //! \param  [in] bSecond
+    //!         second or first word in dword
+    //!
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS SetBufferWithIMMValueU16(
+        PMOS_COMMAND_BUFFER cmdBuffer,
+        PMOS_RESOURCE       presStoreBuffer,
+        uint32_t            offset,
+        uint32_t            value,
+        bool                bSecond);
 
     bool GetFakeHeaderSettings(uint32_t &fakeHeaderSizeInByte, bool isIframe);
 #endif
