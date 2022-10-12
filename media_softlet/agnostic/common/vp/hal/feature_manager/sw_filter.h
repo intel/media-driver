@@ -116,6 +116,7 @@ enum FeatureType
     FeatureTypeSecureCopy       = 0x1000,
     FeatureTypeSecureCopyOnRender = FeatureTypeSecureCopy | FEATURE_TYPE_ENGINE_BITS_RENDER,
     FeatureTypeSR               = 0x1100,
+    FeatureTypeSROnVebox        = FeatureTypeSR | FEATURE_TYPE_ENGINE_BITS_VEBOX,
     FeatureTypeSROnRender       = FeatureTypeSR | FEATURE_TYPE_ENGINE_BITS_RENDER,
     FeatureTypeLace             = 0x1200,
     FeatureTypeLaceOnVebox      = FeatureTypeLace | FEATURE_TYPE_ENGINE_BITS_VEBOX,
@@ -1170,6 +1171,7 @@ public:
     virtual ~SwFilterDenoise();
     virtual MOS_STATUS Clean();
     virtual MOS_STATUS Configure(VP_PIPELINE_PARAMS& params, bool isInputSurf, int surfIndex);
+    virtual MOS_STATUS Configure(FeatureParamDenoise &params);
     virtual FeatureParamDenoise& GetSwFilterParams();
     virtual SwFilter* Clone();
     virtual bool operator == (SwFilter& swFilter);

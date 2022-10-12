@@ -3235,6 +3235,10 @@ MOS_STATUS Policy::UpdateExeCaps(SwFilter* feature, VP_EXECUTE_CAPS& caps, Engin
             caps.bLACE = 1;
             feature->SetFeatureType(FeatureType(FEATURE_TYPE_EXECUTE(Lace, Vebox)));
             break;
+        case FeatureTypeSR:
+            caps.bSR = 1;
+            feature->SetFeatureType(FeatureType(FEATURE_TYPE_EXECUTE(SR, Vebox)));
+            break;
         default:
             break;
         }
@@ -3263,6 +3267,7 @@ MOS_STATUS Policy::UpdateExeCaps(SwFilter* feature, VP_EXECUTE_CAPS& caps, Engin
         case FeatureTypeSR:
             caps.bSR = 1;
             feature->SetFeatureType(FeatureType(FEATURE_TYPE_EXECUTE(SR, Render)));
+            break;
         case FeatureTypeLace:
             caps.bLACE = 1;
             feature->SetFeatureType(FeatureType(FEATURE_TYPE_EXECUTE(Lace, Render)));
@@ -3456,6 +3461,14 @@ MOS_STATUS Policy::AddNewFilterOnVebox(
 
         status = csc->Configure(cscParams);
     }
+    else if (featureType == FeatureTypeDn)
+    {
+        SwFilterDenoise *dn        = (SwFilterDenoise *)swfilter;
+        FeatureParamDenoise dnParams = dn->GetSwFilterParams();
+        VP_PUBLIC_CHK_STATUS_RETURN(GetDnParamsOnCaps(pSurfInput, pSurfOutput, caps, dnParams));
+
+        status = dn->Configure(dnParams);
+    }
     else
     {
         status = swfilter->Configure(pSurfInput, pSurfOutput, caps);
@@ -3538,6 +3551,39 @@ MOS_STATUS Policy::GetCscParamsOnCaps(PVP_SURFACE surfInput, PVP_SURFACE surfOut
     }
 
     return MOS_STATUS_UNIMPLEMENTED;
+}
+
+MOS_STATUS Policy::GetDnParamsOnCaps(PVP_SURFACE surfInput, PVP_SURFACE surfOutput, VP_EXECUTE_CAPS &caps, FeatureParamDenoise &dnParams)
+{
+    dnParams.formatInput     = surfInput->osSurface->Format;
+    dnParams.heightInput     = surfInput->osSurface->dwHeight;
+    dnParams.formatOutput    = Format_NV12;
+    dnParams.sampleTypeInput = SAMPLE_PROGRESSIVE;
+
+    dnParams.denoiseParams.bEnableLuma       = true;
+    dnParams.denoiseParams.bEnableChroma     = true;
+    dnParams.denoiseParams.bEnableHVSDenoise = false;
+    dnParams.denoiseParams.bAutoDetect       = false;
+    dnParams.denoiseParams.fDenoiseFactor    = 64.0f;
+
+#if !EMUL
+    GMM_RESOURCE_INFO *pSrcGmmResInfo    = surfInput->osSurface->OsResource.pGmmResInfo;
+    GMM_RESOURCE_INFO *pTargetGmmResInfo = surfOutput->osSurface->OsResource.pGmmResInfo;
+    VP_PUBLIC_CHK_NULL_RETURN(pSrcGmmResInfo);
+    VP_PUBLIC_CHK_NULL_RETURN(pTargetGmmResInfo);
+
+    bool inputProtected  = pSrcGmmResInfo->GetSetCpSurfTag(0, 0);
+    bool outputProtected = pTargetGmmResInfo->GetSetCpSurfTag(0, 0);
+
+    if (inputProtected || outputProtected ||
+        (m_vpInterface.GetHwInterface()->m_osInterface->osCpInterface &&
+            m_vpInterface.GetHwInterface()->m_osInterface->osCpInterface->IsHMEnabled()))
+    {
+        dnParams.secureDnNeeded = true;
+    }
+#endif
+
+    return MOS_STATUS_SUCCESS;
 }
 
 void Policy::PrintFeatureExecutionCaps(const char *name, VP_EngineEntry &engineCaps)

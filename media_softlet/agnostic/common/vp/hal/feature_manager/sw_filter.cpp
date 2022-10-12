@@ -832,6 +832,21 @@ MOS_STATUS SwFilterDenoise::Configure(VP_PIPELINE_PARAMS& params, bool isInputSu
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS SwFilterDenoise::Configure(FeatureParamDenoise &params)
+{
+    VP_FUNC_CALL();
+
+    m_Params.sampleTypeInput = params.sampleTypeInput;
+    m_Params.denoiseParams   = params.denoiseParams;
+    m_Params.formatInput     = params.formatInput;
+    m_Params.formatOutput    = params.formatOutput;
+    m_Params.heightInput     = params.heightInput;
+    m_Params.secureDnNeeded  = params.secureDnNeeded;
+
+    VP_PUBLIC_NORMALMESSAGE("denoiseLevel = %d,secureDn = %d, AutoDn = %d", m_Params.denoiseParams.NoiseLevel, m_Params.secureDnNeeded, m_Params.denoiseParams.bAutoDetect);
+    return MOS_STATUS_SUCCESS;
+}
+
 FeatureParamDenoise& SwFilterDenoise::GetSwFilterParams()
 {
     VP_FUNC_CALL();
