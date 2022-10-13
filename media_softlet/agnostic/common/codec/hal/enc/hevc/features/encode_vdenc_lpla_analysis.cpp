@@ -471,17 +471,20 @@ namespace encode
         }
 
 #if (_SW_BRC)
-        CodechalVdencHevcLaData *data = (CodechalVdencHevcLaData *)m_allocator->LockResourceForRead(m_vdencLaDataBuffer);
-        ENCODE_CHK_NULL_RETURN(data);
+        if (m_isLookAheadDllCall)
+        {
+            CodechalVdencHevcLaData *data = (CodechalVdencHevcLaData *)m_allocator->LockResourceForRead(m_vdencLaDataBuffer);
+            ENCODE_CHK_NULL_RETURN(data);
 
-        LookaheadReport *lookaheadStatus     = &encodeStatusMfx->lookaheadStatus;
-        lookaheadStatus->targetFrameSize     = data[m_offset].targetFrameSize;
-        lookaheadStatus->targetBufferFulness = data[m_offset].targetBufferFulness;
-        lookaheadStatus->encodeHints         = data[m_offset].encodeHints;
-        lookaheadStatus->pyramidDeltaQP      = data[m_offset].pyramidDeltaQP;
-        lookaheadStatus->miniGopSize         = data[m_offset].miniGopSize;
-
-        m_allocator->UnLock(m_vdencLaDataBuffer);
+            LookaheadReport *lookaheadStatus     = &encodeStatusMfx->lookaheadStatus;
+            lookaheadStatus->targetFrameSize     = data[m_offset].targetFrameSize;
+            lookaheadStatus->targetBufferFulness = data[m_offset].targetBufferFulness;
+            lookaheadStatus->encodeHints         = data[m_offset].encodeHints;
+            lookaheadStatus->pyramidDeltaQP      = data[m_offset].pyramidDeltaQP;
+            lookaheadStatus->miniGopSize         = data[m_offset].miniGopSize;
+            
+            m_allocator->UnLock(m_vdencLaDataBuffer);
+        }
 #endif
 
         if (m_lookaheadReport && (encodeStatusMfx->lookaheadStatus.targetFrameSize > 0))
@@ -766,6 +769,11 @@ namespace encode
     MOS_STATUS VdencLplaAnalysis::ReadLPLAData(PMOS_COMMAND_BUFFER cmdBuffer, PMOS_RESOURCE resource, uint32_t baseOffset, bool hucStsUpdNeeded)
     {
         ENCODE_FUNC_CALL();
+
+#if _SW_BRC
+        m_isLookAheadDllCall = hucStsUpdNeeded;
+#endif
+
         if (!hucStsUpdNeeded)
         {
             // Write lookahead status to encode status buffer

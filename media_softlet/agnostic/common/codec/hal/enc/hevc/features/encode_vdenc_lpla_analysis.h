@@ -529,6 +529,9 @@ namespace encode
         PMOS_RESOURCE              m_vdencLaUpdateDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][CODECHAL_LPLA_NUM_OF_PASSES] = {};  //!< VDEnc Lookahead Update DMEM buffer
         uint32_t                   m_statsBuffer[600][4]                                                                       = {};
         bool                       m_useDSData = false;
+#if _SW_BRC
+        bool                       m_isLookAheadDllCall           = false;
+#endif
 
     MEDIA_CLASS_DEFINE_END(encode__VdencLplaAnalysis)
     };
