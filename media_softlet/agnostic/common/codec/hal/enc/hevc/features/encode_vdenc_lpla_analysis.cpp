@@ -787,8 +787,9 @@ namespace encode
             miCpyMemMemParams.dwSrcOffset = m_offset * sizeof(CodechalVdencHevcLaData) + CODECHAL_OFFSETOF(CodechalVdencHevcLaData, pyramidDeltaQP);
             miCpyMemMemParams.dwDstOffset = baseOffset + CODECHAL_OFFSETOF(LookaheadReport, pyramidDeltaQP);
             ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_COPY_MEM_MEM)(cmdBuffer));
-            miCpyMemMemParams.dwSrcOffset = m_offset * sizeof(CodechalVdencHevcLaData) + CODECHAL_OFFSETOF(CodechalVdencHevcLaData, miniGopSize);
-            miCpyMemMemParams.dwDstOffset = baseOffset + CODECHAL_OFFSETOF(LookaheadReport, miniGopSize);
+            //MI_COPY_MEM_MEM reads a DWord from memory and stores it to memory. This copy will include adaptive_rounding and minigop
+            miCpyMemMemParams.dwSrcOffset = m_offset * sizeof(CodechalVdencHevcLaData) + CODECHAL_OFFSETOF(CodechalVdencHevcLaData, adaptive_rounding);
+            miCpyMemMemParams.dwDstOffset = baseOffset + CODECHAL_OFFSETOF(LookaheadReport, adaptive_rounding);
             ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_COPY_MEM_MEM)(cmdBuffer));
 
             flushDwParams = {};
