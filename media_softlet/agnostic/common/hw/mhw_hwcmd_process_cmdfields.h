@@ -58,6 +58,6 @@
 #endif  // DO_FIELDS_EXT
 #endif  // defined(DO_FIELDS) || defined(DO_FIELDS_EXT)
 #if !_MEDIA_RESERVED
-    MHW_CHK_STATUS_RETURN(ApplyExtSettings(params, reinterpret_cast<uint32_t *>(&cmd)));
+    MHW_CHK_STATUS_RETURN(this->ApplyExtSettings(params, reinterpret_cast<uint32_t *>(&cmd)));
 #endif  // !_MEDIA_RESERVED
     return MOS_STATUS_SUCCESS;
