@@ -182,6 +182,17 @@ public:
     uint8_t m_par65Inter = 0;
     uint8_t m_par65Intra = 0;
 
+    /*! \brief Specifies motion search modes that will be used.
+    *
+    *    SubPelMode is only valid when bEnableSubPelMode is true. Following are valid values of SubPelMode:
+    *    0:Integer mode searching
+    *    1:Half-pel mode searching
+    *    2:Reserved
+    *    3:Quarter-pel mode searching
+    */
+    bool    m_bEnableSubPelMode = false;
+    uint8_t m_SubPelMode        = 3;
+
 protected:
     //!
     //! \brief  Update the parameters of tracked buffers

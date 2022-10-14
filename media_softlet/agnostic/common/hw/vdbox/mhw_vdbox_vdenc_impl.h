@@ -1487,6 +1487,7 @@ protected:
     DO_FIELD(DW5, StreaminRoiEnable, params.roiStreamIn);                                                \
     DO_FIELD(DW5, NumRefIdxL0Minus1, params.numRefL0 > 0 ? params.numRefL0 - 1 : 0);                     \
     DO_FIELD(DW5, NumRefIdxL1Minus1, params.numRefL1 > 0 ? params.numRefL1 - 1 : 0);                     \
+    DO_FIELD(DW5, SubPelMode, params.subPelMode);                                                        \
                                                                                                          \
     DO_FIELD(DW7, SegmentationEnable, params.segmentation);                                              \
     DO_FIELD(DW7, SegmentationMapTemporalPredictionEnable, params.segmentationTemporal);                 \

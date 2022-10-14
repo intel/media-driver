@@ -133,7 +133,8 @@ MOS_STATUS HevcBasicFeature::Update(void *params)
     m_nalUnitParams = encodeParams->ppNALUnitParams;
     ENCODE_CHK_NULL_RETURN(m_nalUnitParams);
     m_NumNalUnits   = encodeParams->uiNumNalUnits;
-
+    m_bEnableSubPelMode = encodeParams->bEnableSubPelMode;
+    m_SubPelMode        = encodeParams->SubPelMode;
 #ifdef _ENCODE_RESERVED
     if (m_rsvdState && m_rsvdState->GetFeatureRsvdFlag())
     {
@@ -1025,6 +1026,8 @@ MHW_SETPAR_DECL_SRC(VDENC_CMD2, HevcBasicFeature)
         params.frameIdxL1Ref0 = 0;
     }
 
+    ENCODE_CHK_COND_RETURN(m_SubPelMode < 0 || m_SubPelMode > 3, "Invalid subPelMode");
+    params.subPelMode = m_bEnableSubPelMode ? m_SubPelMode : 3;
     auto settings = static_cast<HevcVdencFeatureSettings *>(m_constSettings);
     ENCODE_CHK_NULL_RETURN(settings);
 
