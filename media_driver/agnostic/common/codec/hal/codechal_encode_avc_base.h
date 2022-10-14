@@ -1319,11 +1319,8 @@ public:
     virtual MOS_STATUS Initialize(CodechalSetting * settings);
 
     virtual MOS_STATUS GetStatusReport(
-        EncodeStatus* encodeStatus,
-        EncodeStatusReport* encodeStatusReport)
-    {
-        return MOS_STATUS_SUCCESS;
-    }
+        EncodeStatus       *encodeStatus,
+        EncodeStatusReport *encodeStatusReport);
 
     //!
     //! \brief    Encode User Feature Key Report.

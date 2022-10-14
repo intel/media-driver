@@ -3037,6 +3037,7 @@ CodechalVdencAvcState::CodechalVdencAvcState(
     m_cmKernelEnable           = true;
     m_brcRoiSupported          = true;
     m_nonNativeBrcRoiSupported = false;
+    m_codecGetStatusReportDefined = true;  // Codec specific GetStatusReport is implemented.
 
     if (m_cmKernelEnable)
     {
