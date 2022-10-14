@@ -404,6 +404,9 @@ public:
     static const char*          m_szUserFeatureFile;
     static MOS_PUF_KEYLIST      m_ufKeyList;
     static int32_t              m_mosTraceFd;
+    static void*                m_mosTraceAddr;
+    static uint64_t             m_filterEnv;
+    static uint32_t             m_levelEnv;
     static const char* const    m_mosTracePath;
     static std::map<std::string, std::map<std::string, std::string>> m_regBuffer;
 

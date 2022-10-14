@@ -111,6 +111,13 @@ typedef enum _MEDIA_EVENT_FILTER_KEYID
     TR_KEY_ENCODE_TRACE_EVENT_INTERNAL,
 } MEDIA_EVENT_FILTER_KEYID;
 
+typedef struct _MT_SETTING
+{
+    uint32_t enable;
+    uint32_t level;
+    uint64_t filter;
+} MT_SETTING;
+
 enum class MT_EVENT_LEVEL
 {
     ALWAYS,

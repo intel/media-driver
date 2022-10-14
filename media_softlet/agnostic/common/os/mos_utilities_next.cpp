@@ -37,8 +37,8 @@
 int32_t MosUtilities::m_mosMemAllocCounterNoUserFeature            = 0;
 int32_t MosUtilities::m_mosMemAllocCounterNoUserFeatureGfx         = 0;
 uint8_t MosUtilities::m_mosUltFlag                                 = 0;
-uint64_t MosUtilities::m_mosTraceFilter                            = 0;
-MtLevel MosUtilities::m_mosTraceLevel                              = {};
+uint64_t *MosUtilities::m_mosTraceFilter                           = nullptr;
+MtLevel *MosUtilities::m_mosTraceLevel                             = nullptr;
 
 int32_t MosUtilities::m_mosMemAllocCounter                         = 0;
 int32_t MosUtilities::m_mosMemAllocFakeCounter                     = 0;
