@@ -728,6 +728,13 @@ VphalState::~VphalState()
 {
     MOS_STATUS              eStatus;
 
+    // Wait for all cmd before destroy gpu resource
+    if (m_osInterface && m_osInterface->pfnWaitAllCmdCompletion && m_osInterface->bDeallocateOnExit)
+    {
+        VP_PUBLIC_NORMALMESSAGE("WaitAllCmdCompletion in VphalState::~VphalState");
+        m_osInterface->pfnWaitAllCmdCompletion(m_osInterface);
+    }
+
     // Destroy rendering objects (intermediate surfaces, BBs, etc)
     if (m_renderer)
     {
