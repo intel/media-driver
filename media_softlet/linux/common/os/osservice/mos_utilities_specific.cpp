@@ -2650,7 +2650,16 @@ void MosUtilities::MosGfxInfo(
 {
     // not implemented
 }
-
+#if (_DEBUG || _RELEASE_INTERNAL)
+void MosUtilities::MosMMPWriteFile(
+    const std::string &name,
+    const void        *data,
+    size_t             size)
+{
+    std::ofstream ofs(name);
+    ofs.write(static_cast<const char *>(data), size);
+}
+#endif  //(_DEBUG || _RELEASE_INTERNAL)
 void PerfUtility::startTick(std::string tag)
 {
     std::lock_guard<std::mutex> lock(perfMutex);

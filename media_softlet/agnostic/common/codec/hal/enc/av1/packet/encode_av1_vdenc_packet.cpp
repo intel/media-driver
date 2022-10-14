@@ -1174,7 +1174,7 @@ namespace encode{
         currRefList.RefPic         = statusReportData->currOriginalPic;
 
         debugInterface->m_currPic            = statusReportData->currOriginalPic;
-        debugInterface->m_bufferDumpFrameNum = m_statusReport->GetReportedCount();
+        debugInterface->m_bufferDumpFrameNum = m_basicFeature->m_frameNum - 1;
         debugInterface->m_frameType          = encodeStatusMfx->pictureCodingType;
 
         if (m_resVDEncPakObjCmdStreamOutBuffer != nullptr)

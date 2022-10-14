@@ -498,8 +498,7 @@ protected:
             else
             {
                 fileWriter = [](std::string &&name, const void *data, size_t size) {
-                    std::ofstream ofs(name);
-                    ofs.write(static_cast<const char *>(data), size);
+                    MosUtilities::MosMMPWriteFile(name, data, size);
                 };
             }
         }

@@ -32,8 +32,6 @@
 #include <vector>
 #include <stdint.h>
 #include <fstream>
-#include <string>
-#include <vector>
 #include <map>
 #include <mutex>
 #include "mos_utilities_common.h"
@@ -2240,6 +2238,21 @@ public:
         size_t                      dataSize,
         MediaUserSetting::Value     &dstValue,
         MOS_USER_FEATURE_VALUE_TYPE type);
+#if (_DEBUG || _RELEASE_INTERNAL)
+
+    //!
+    //! \brief    MosMMPWriteFile
+    //! \details  Accelerate Writing file's IO speed using Memory Map
+    //! \param    [in] name
+    //!           [in] data
+    //!           [in] size
+    //! \return   void
+    //!
+    static void MosMMPWriteFile(
+        const std::string &name,
+        const void        *data,
+        size_t             size);
+#endif
 
 private:
 
