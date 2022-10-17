@@ -267,22 +267,22 @@ bool CmTaskRT::IntegrityCheckKernelThreadspace( void )
     CmThreadSpaceRT*        kernelThreadSpace           = nullptr;
     uint32_t              width               = 0;
     uint32_t              height              = 0;
-    byte**                threadSpaceMapping          = nullptr;
-    byte*                 kernelInScoreboard = nullptr;
-    CM_THREAD_SPACE_UNIT* threadSpaceUnit    = nullptr;
+    uint8_t**             threadSpaceMapping  = nullptr;
+    uint8_t*              kernelInScoreboard  = nullptr;
+    CM_THREAD_SPACE_UNIT* threadSpaceUnit     = nullptr;
     uint32_t              kernelIndex         = 0;
     uint32_t              unassociated        = 0;
 
     kernelCount = this->GetKernelCount();
 
-    threadSpaceMapping = MOS_NewArray(byte*, kernelCount);
-    kernelInScoreboard = MOS_NewArray(byte, kernelCount);
+    threadSpaceMapping = MOS_NewArray(uint8_t*, kernelCount);
+    kernelInScoreboard = MOS_NewArray(uint8_t, kernelCount);
 
     CM_CHK_NULL_GOTOFINISH(threadSpaceMapping, CM_OUT_OF_HOST_MEMORY);
     CM_CHK_NULL_GOTOFINISH(kernelInScoreboard, CM_OUT_OF_HOST_MEMORY);
 
-    CmSafeMemSet(threadSpaceMapping, 0, kernelCount*sizeof(byte *));
-    CmSafeMemSet(kernelInScoreboard, 0, kernelCount*sizeof(byte));
+    CmSafeMemSet(threadSpaceMapping, 0, kernelCount*sizeof(uint8_t *));
+    CmSafeMemSet(kernelInScoreboard, 0, kernelCount*sizeof(uint8_t));
 
     for( i = 0; i < kernelCount; ++i )
     {
@@ -301,9 +301,9 @@ bool CmTaskRT::IntegrityCheckKernelThreadspace( void )
 
         if( kernelThreadSpace->IsThreadAssociated() )
         {
-            threadSpaceMapping[i] = MOS_NewArray(byte, threadCount);
+            threadSpaceMapping[i] = MOS_NewArray(uint8_t, threadCount);
             CM_CHK_NULL_GOTOFINISH(threadSpaceMapping[i], CM_OUT_OF_HOST_MEMORY);
-            CmSafeMemSet(threadSpaceMapping[i], 0, threadCount * sizeof(byte));
+            CmSafeMemSet(threadSpaceMapping[i], 0, threadCount * sizeof(uint8_t));
             kernelInScoreboard[i] = false;
 
             hr = kernelThreadSpace->GetThreadSpaceUnit(threadSpaceUnit);

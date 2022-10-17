@@ -102,8 +102,6 @@
 #define CM_SURFACE_FORMAT_R8_UNORM              Format_R8UN
 #define CM_SURFACE_FORMAT_R32G32B32A32F         Format_R32G32B32A32F
 
-typedef unsigned char byte;
-
 #define CM_RT_API
 #define CMRT_UMD_API
 
@@ -566,9 +564,9 @@ typedef struct _CM_CONVOLVE_COEFF_TABLE{
 #define CM_NUM_CONVOLVE_ROWS_SKL 31
 typedef struct _CM_CONVOLVE_STATE_MSG{
   bool CoeffSize; //true 16-bit, false 8-bit
-  byte SclDwnValue; //Scale down value
-  byte Width; //Kernel Width
-  byte Height; //Kernel Height
+  int8_t SclDwnValue; //Scale down value
+  int8_t Width; //Kernel Width
+  int8_t Height; //Kernel Height
   //SKL mode
   bool isVertical32Mode;
   bool isHorizontal32Mode;

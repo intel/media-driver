@@ -880,8 +880,8 @@ bool CmThreadSpaceRT::IntegrityCheck(CmTaskRT* task)
     uint32_t unassociated = 0;
     int32_t hr = CM_SUCCESS;
 
-    byte **threadSpaceMapping = nullptr;
-    byte *kernelInScoreboard = nullptr;
+    uint8_t **threadSpaceMapping = nullptr;
+    uint8_t *kernelInScoreboard = nullptr;
 
     kernelCount = task->GetKernelCount();
     //Check if it is mult-kernel task, since no threadspace is allowed for multi-kernel tasks
@@ -902,14 +902,14 @@ bool CmThreadSpaceRT::IntegrityCheck(CmTaskRT* task)
     {
         //For future extending to multiple kernels cases, we're using a general mechanism to check the integrity
 
-        threadSpaceMapping = MOS_NewArray(byte*, kernelCount);
-        kernelInScoreboard = MOS_NewArray(byte, kernelCount);
+        threadSpaceMapping = MOS_NewArray(uint8_t*, kernelCount);
+        kernelInScoreboard = MOS_NewArray(uint8_t, kernelCount);
 
         CM_CHK_NULL_GOTOFINISH_CMERROR(threadSpaceMapping);
         CM_CHK_NULL_GOTOFINISH_CMERROR(kernelInScoreboard);
 
-        CmSafeMemSet(threadSpaceMapping, 0, kernelCount*sizeof(byte *));
-        CmSafeMemSet(kernelInScoreboard, 0, kernelCount*sizeof(byte));
+        CmSafeMemSet(threadSpaceMapping, 0, kernelCount*sizeof(uint8_t *));
+        CmSafeMemSet(kernelInScoreboard, 0, kernelCount*sizeof(uint8_t));
 
         for (i = 0; i < kernelCount; i++)
         {
@@ -920,9 +920,9 @@ bool CmThreadSpaceRT::IntegrityCheck(CmTaskRT* task)
             {
                 threadNumber = m_width * m_height;
             }
-            threadSpaceMapping[i] = MOS_NewArray(byte, threadNumber);
+            threadSpaceMapping[i] = MOS_NewArray(uint8_t, threadNumber);
             CM_CHK_NULL_GOTOFINISH_CMERROR(threadSpaceMapping[i]);
-            CmSafeMemSet(threadSpaceMapping[i], 0, threadNumber * sizeof(byte));
+            CmSafeMemSet(threadSpaceMapping[i], 0, threadNumber * sizeof(uint8_t));
             kernelInScoreboard[i] = 0;
         }
 
