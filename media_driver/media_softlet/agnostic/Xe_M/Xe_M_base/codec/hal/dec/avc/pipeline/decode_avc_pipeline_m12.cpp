@@ -103,6 +103,12 @@ MOS_STATUS AvcPipelineM12::Initialize(void *settings)
     auto *codecSettings = (CodechalSetting *)settings;
     DECODE_CHK_NULL(m_hwInterface);
     DECODE_CHK_STATUS(m_hwInterface->Initialize(codecSettings));
+
+    if (m_mediaCopy == nullptr)
+    {
+        m_mediaCopy = m_hwInterface->CreateMediaCopy(m_osInterface);
+    }
+
 #if USE_CODECHAL_DEBUG_TOOL
     DECODE_CHK_NULL(m_debugInterface);
     DECODE_CHK_STATUS(m_debugInterface->SetFastDumpConfig(m_mediaCopy));
