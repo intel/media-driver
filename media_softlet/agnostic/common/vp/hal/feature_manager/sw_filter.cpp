@@ -1297,7 +1297,6 @@ MOS_STATUS SwFilterHdr::Configure(VP_PIPELINE_PARAMS &params, bool isInputSurf, 
     m_Params.uiMaxContentLevelLum = surfInput->pHDRParams->MaxCLL;
     m_Params.srcColorSpace        = surfInput->ColorSpace;
     m_Params.dstColorSpace        = surfOutput->ColorSpace;
-    m_Params.ScalingMode          = surfInput->ScalingMode;
 
     if (surfInput->pHDRParams->EOTF == VPHAL_HDR_EOTF_SMPTE_ST2084)
     {

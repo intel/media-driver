@@ -2778,9 +2778,22 @@ MOS_STATUS Policy::UpdateFeatureTypeWithEngineSingleLayer(SwFilterSubPipe *featu
 MOS_STATUS Policy::LayerSelectForProcess(std::vector<int> &layerIndexes, SwFilterPipe& featurePipe, bool isSingleSubPipe, uint32_t pipeIndex, VP_EXECUTE_CAPS& caps)
 {
     layerIndexes.clear();
-    if (isSingleSubPipe && !caps.bComposite)
+    if (isSingleSubPipe && !caps.bComposite && !caps.bRenderHdr)
     {
         layerIndexes.push_back(pipeIndex);
+        return MOS_STATUS_SUCCESS;
+    }
+
+    if (caps.bRenderHdr)
+    {
+        auto it = m_RenderFeatureHandlers.find(FeatureTypeHdrOnRender);
+        if (m_RenderFeatureHandlers.end() == it)
+        {
+            VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+        }
+        PolicyRenderHdrHandler *hdrHandler = dynamic_cast<PolicyRenderHdrHandler *>(it->second);
+        VP_PUBLIC_CHK_NULL_RETURN(hdrHandler);
+        VP_PUBLIC_CHK_STATUS_RETURN(hdrHandler->LayerSelectForProcess(layerIndexes, featurePipe, isSingleSubPipe, pipeIndex, caps));
         return MOS_STATUS_SUCCESS;
     }
 

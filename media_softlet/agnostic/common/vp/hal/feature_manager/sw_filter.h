@@ -1371,7 +1371,6 @@ struct FeatureParamHdr : public FeatureParam
     uint32_t                uiSplitFramePortions                 = 1;                     //!< Split Frame flag
     bool                    bForceSplitFrame                     = false;
     bool                    bNeed3DSampler                       = false;                 //!< indicate whether 3D should neede by force considering AVS removal etc.
-    VPHAL_SCALING_MODE      ScalingMode                          = VPHAL_SCALING_NEAREST; //!<  Scaling Mode
 
     uint16_t         InputSrc[VPHAL_MAX_HDR_INPUT_LAYER]                 = {}; // Input Surface
     uint16_t         Target[VPHAL_MAX_HDR_OUTPUT_LAYER]                  = {}; // Target Surface

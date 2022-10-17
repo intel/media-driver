@@ -87,9 +87,15 @@ MOS_STATUS VpHdrRenderFilter::CalculateEngineParams(
     m_renderHdrParams.kernelId                         = (VpKernelID)kernelHdrMandatory;
     m_renderHdrParams.uSourceCount                     = hdrParams.uSourceCount;
     m_renderHdrParams.uTargetCount                     = hdrParams.uTargetCount;
-    m_renderHdrParams.ScalingMode                      = hdrParams.ScalingMode;
     m_renderHdrParams.pColorFillParams                 = hdrParams.pColorFillParams;
     m_renderHdrParams.uiMaxDisplayLum                  = hdrParams.uiMaxDisplayLum;
+
+    VP_PUBLIC_CHK_NULL_RETURN(m_executedPipe);
+    SwFilterScaling *scaling      = dynamic_cast<SwFilterScaling *>(m_executedPipe->GetSwFilter(true, 0, FeatureTypeScaling));
+    m_renderHdrParams.ScalingMode = scaling ? scaling->GetSwFilterParams().scalingMode : VPHAL_SCALING_BILINEAR;
+
+    SwFilterRotMir *rotation      = dynamic_cast<SwFilterRotMir *>(m_executedPipe->GetSwFilter(true, 0, FeatureTypeRotMir));
+    m_renderHdrParams.Rotation    = rotation ? rotation->GetSwFilterParams().rotation : VPHAL_ROTATION_IDENTITY;
 
     for (i = 0; i < VPHAL_MAX_HDR_INPUT_LAYER; i++)
     {
@@ -288,5 +294,30 @@ HwFilterParameter *PolicyRenderHdrHandler::CreateHwFilterParam(VP_EXECUTE_CAPS v
         return nullptr;
     }
 }
+
+MOS_STATUS PolicyRenderHdrHandler::LayerSelectForProcess(std::vector<int> &layerIndexes, SwFilterPipe &featurePipe, bool isSingleSubPipe, uint32_t pipeIndex, VP_EXECUTE_CAPS &caps)
+{
+
+    SwFilterSubPipe *subpipe = featurePipe.GetSwFilterSubPipe(true, 0);
+    VP_PUBLIC_CHK_NULL_RETURN(subpipe);
+    SwFilterScaling *scaling = dynamic_cast<SwFilterScaling *>(subpipe->GetSwFilter(FeatureType::FeatureTypeScaling));
+    VP_PUBLIC_CHK_NULL_RETURN(scaling);
+
+    // Disable AVS scaling mode
+    if (!m_hwCaps.m_rules.isAvsSamplerSupported)
+    {
+        if (VPHAL_SCALING_AVS == scaling->GetSwFilterParams().scalingMode)
+        {
+            scaling->GetSwFilterParams().scalingMode = VPHAL_SCALING_BILINEAR;
+        }
+    }
+
+    layerIndexes.clear();
+    layerIndexes.push_back(pipeIndex);
+
+    // No procamp in target being used.
+    return MOS_STATUS_SUCCESS;
+}
+
 
 }  // namespace vp

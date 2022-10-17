@@ -36,6 +36,7 @@ namespace vp
 
 class VpUserFeatureControl
 {
+
 public:
     VpUserFeatureControl(MOS_INTERFACE &osInterface, VpPlatformInterface *vpPlatformInterface, void *owner = nullptr);
     virtual ~VpUserFeatureControl();
@@ -143,6 +144,16 @@ public:
     uint32_t GetSplitFramePortions()
     {
         return m_ctrlVal.splitFramePortions;
+    }
+
+    MOS_STATUS ForceRenderPath(bool status)
+    {
+        m_ctrlVal.disableSfc                = status;
+        m_ctrlVal.disableVeboxOutput        = status;
+        m_ctrlValDefault.disableSfc         = status;
+        m_ctrlValDefault.disableVeboxOutput = status;
+
+        return MOS_STATUS_SUCCESS;
     }
 
     const void *m_owner = nullptr; // The object who create current instance.
