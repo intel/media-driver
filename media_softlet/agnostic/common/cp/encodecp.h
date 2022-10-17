@@ -27,7 +27,7 @@
 #ifndef __ENCODECP_H__
 #define __ENCODECP_H__
 
-#include "codechal_hw.h"
+#include "codec_hw_next.h"
 #include "media_status_report.h"
 
 namespace encode{
@@ -35,7 +35,7 @@ namespace encode{
 {
 public:
     EncodeCp() {}
-    EncodeCp(CodechalHwInterface *hwInterface){
+    EncodeCp(CodechalHwInterfaceNext *hwInterface){
         m_cpInterface = hwInterface->GetCpInterface();
         m_osInterface = hwInterface->GetOsInterface();
     }

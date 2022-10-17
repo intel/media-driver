@@ -60,11 +60,8 @@ namespace encode
         uint32_t hucPatchListSize = 0;
         MHW_VDBOX_STATE_CMDSIZE_PARAMS stateCmdSizeParams;
 
-        if (m_hwInterface->m_hwInterfaceNext)
-        {
-            ENCODE_CHK_STATUS_RETURN(m_hwInterface->m_hwInterfaceNext->GetHucStateCommandSize(
-                m_basicFeature->m_mode, (uint32_t*)&hucCommandsSize, (uint32_t*)&hucPatchListSize, &stateCmdSizeParams));
-        }
+        ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetHucStateCommandSize(
+            m_basicFeature->m_mode, (uint32_t*)&hucCommandsSize, (uint32_t*)&hucPatchListSize, &stateCmdSizeParams));
 
         commandBufferSize = hucCommandsSize;
         requestedPatchListSize = osInterface->bUsesPatchList ? hucPatchListSize : 0;
@@ -406,7 +403,7 @@ namespace encode
                 uint32_t nalUnitSize   = m_basicFeature->m_nalUnitParams[i]->uiSize;
                 uint32_t nalUnitOffset = m_basicFeature->m_nalUnitParams[i]->uiOffset;
 
-                ENCODE_ASSERT(nalUnitSize < CODECHAL_ENCODE_AV1_PAK_INSERT_UNCOMPRESSED_HEADER);
+                CODECHAL_ENCODE_ASSERT(nalUnitSize < CODECHAL_ENCODE_AV1_PAK_INSERT_UNCOMPRESSED_HEADER);
 
                 if (IsFrameHeader(*(m_basicFeature->m_bsBuffer.pBase + nalUnitOffset)))
                 {

@@ -96,6 +96,7 @@ public:
     virtual uint32_t          GetHucStatus2ImemLoadedMask()                                                                   = 0;
     virtual uint32_t          GetHucErrorFlagsMask()                                                                          = 0;
     virtual uint32_t          GetHucProductFamily()                                                                           = 0;
+    virtual uint32_t          GetHucStatusReEncodeMask()                                                                      = 0;
 
     _HUC_CMD_DEF(_MHW_CMD_ALL_DEF_FOR_ITF);
 MEDIA_CLASS_DEFINE_END(mhw__vdbox__huc__Itf)

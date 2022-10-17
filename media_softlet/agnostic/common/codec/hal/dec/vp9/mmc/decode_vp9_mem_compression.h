@@ -40,7 +40,7 @@ public:
     //!
     //! \brief    Construct
     //!
-    Vp9DecodeMemComp(CodechalHwInterface *hwInterface);
+    Vp9DecodeMemComp(CodechalHwInterfaceNext *hwInterface);
 
     //!
     //! \brief    Copy constructor

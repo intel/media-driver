@@ -36,7 +36,7 @@
 
 namespace decode {
 
-HevcPipeline::HevcPipeline(CodechalHwInterface *hwInterface, CodechalDebugInterface *debugInterface)
+HevcPipeline::HevcPipeline(CodechalHwInterfaceNext *hwInterface, CodechalDebugInterface *debugInterface)
     : DecodePipeline(hwInterface, debugInterface)
 {
     MOS_STATUS m_status = InitUserSetting(m_userSettingPtr);
@@ -140,7 +140,7 @@ MOS_STATUS HevcPipeline::Execute()
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS HevcPipeline::CreateFeatureManager()  // After HwNext rebase, Need override
+MOS_STATUS HevcPipeline::CreateFeatureManager()
 {
     DECODE_FUNC_CALL();
     m_featureManager = MOS_New(DecodeHevcFeatureManager, m_allocator, m_hwInterface, m_osInterface);
@@ -305,7 +305,7 @@ MOS_STATUS HevcPipeline::HwStatusCheck(const DecodeStatusMfx &status)
     if (m_basicFeature->m_shortFormatInUse)
     {
         // Check HuC_status2 Imem loaded bit, if 0, return error
-        if (((status.m_hucErrorStatus2 >> 32) && (m_hwInterface->GetHucInterface()->GetHucStatus2ImemLoadedMask())) == 0)
+        if (((status.m_hucErrorStatus2 >> 32) && (m_hwInterface->GetHucInterfaceNext()->GetHucStatus2ImemLoadedMask())) == 0)
         {
             if (!m_reportHucStatus)
             {
@@ -317,7 +317,7 @@ MOS_STATUS HevcPipeline::HwStatusCheck(const DecodeStatusMfx &status)
         }
 
         // Check Huc_status None Critical Error bit, bit 15. If 0, return error.
-        if (((status.m_hucErrorStatus >> 32) & m_hwInterface->GetHucInterface()->GetHucStatusHevcS2lFailureMask()) == 0)
+        if (((status.m_hucErrorStatus >> 32) & m_hwInterface->GetHucInterfaceNext()->GetHucStatusHevcS2lFailureMask()) == 0)
         {
             if (!m_reportHucCriticalError)
             {

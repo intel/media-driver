@@ -555,7 +555,7 @@ class Av1EncodeTile : public EncodeTile, public mhw::vdbox::vdenc::Itf::ParSetti
 public:
     Av1EncodeTile(MediaFeatureManager *featureManager,
         EncodeAllocator *allocator,
-        CodechalHwInterface *hwInterface,
+        CodechalHwInterfaceNext *hwInterface,
         void *constSettings);
 
     virtual ~Av1EncodeTile();

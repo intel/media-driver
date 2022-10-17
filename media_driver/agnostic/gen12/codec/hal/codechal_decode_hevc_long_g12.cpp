@@ -38,7 +38,7 @@ HevcDecodeSliceLongG12::HevcDecodeSliceLongG12(
     m_hcpInterface = static_cast<MhwVdboxHcpInterfaceG12*>(hcpInterface);
     m_miInterface = miInterface;
     m_osInterface  = m_decoder->GetOsInterface();
-    m_hwInterface    = m_decoder->GetHwInterface();
+    m_hwInterface    = decoder->GetHwInterface();
     m_vdencInterface = m_hwInterface->GetVdencInterface();
 
     //copy other params from decoder

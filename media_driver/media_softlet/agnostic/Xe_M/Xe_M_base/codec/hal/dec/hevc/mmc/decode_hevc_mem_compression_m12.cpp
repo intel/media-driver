@@ -33,7 +33,7 @@ namespace decode
 {
 
 HevcDecodeMemCompM12::HevcDecodeMemCompM12(CodechalHwInterface *hwInterface)
-    : DecodeMemCompG12(hwInterface), HevcDecodeMemComp(hwInterface)
+    : DecodeMemCompG12(hwInterface), HevcDecodeMemComp(*hwInterface)
 {
 }
 

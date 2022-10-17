@@ -306,13 +306,13 @@ private:
                                        CODECHAL_FUNCTION      CodecFunction,
                                        bool                   disableScalability);
 
-    MOS_STATUS CreateCodecHalInterface(MhwInterfaces          *mhwInterfaces,
-                                       MhwInterfacesNext      *&pMhwInterfacesNext,
-                                       CodechalHwInterface    *&pHwInterface,
-                                       CodechalDebugInterface *&pDebugInterface,
-                                       PMOS_INTERFACE         osInterface,
-                                       CODECHAL_FUNCTION      CodecFunction,
-                                       bool                   disableScalability);
+    MOS_STATUS CreateCodecHalInterface(MhwInterfaces *mhwInterfaces,
+        MhwInterfacesNext                           *&pMhwInterfacesNext,
+        CodechalHwInterfaceNext                     *&pHwInterface,
+        CodechalDebugInterface                      *&pDebugInterface,
+        PMOS_INTERFACE                              osInterface,
+        CODECHAL_FUNCTION                           CodecFunction,
+        bool                                        disableScalability);
 };
 
 #define PVC_L3_CONFIG_COUNT     6

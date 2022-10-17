@@ -166,7 +166,7 @@ namespace encode {
             storeDataParams                  = {};
             storeDataParams.pOsResource      = osResource;
             storeDataParams.dwResourceOffset = offset;
-            storeDataParams.dwValue          = m_hwInterface->GetHucInterface()->GetHucStatusReEncodeMask();
+            storeDataParams.dwValue          = m_hwInterface->GetHucInterfaceNext()->GetHucStatusReEncodeMask();
             ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(commandBuffer));
 
             // store HUC_STATUS register
@@ -292,8 +292,7 @@ namespace encode {
         params.resImageStatusCtrl    = osResource;
         params.imageStatusCtrlOffset = offset;
 
-        ENCODE_CHK_NULL_RETURN(m_hwInterface->m_hwInterfaceNext);
-        ENCODE_CHK_STATUS_RETURN(m_hwInterface->m_hwInterfaceNext->ReadHcpStatus(vdboxIndex, params, &cmdBuffer));
+        ENCODE_CHK_STATUS_RETURN(m_hwInterface->ReadHcpStatus(vdboxIndex, params, &cmdBuffer));
 
         // Slice Size Conformance
         if (m_basicFeature->m_hevcSeqParams->SliceSizeControl)
@@ -316,8 +315,7 @@ namespace encode {
 
             ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_REGISTER_MEM)(&cmdBuffer));
         }
-        ENCODE_CHK_NULL_RETURN(m_hwInterface->m_hwInterfaceNext);
-        ENCODE_CHK_STATUS_RETURN(m_hwInterface->m_hwInterfaceNext->ReadImageStatusForHcp(vdboxIndex, params, &cmdBuffer));
+        ENCODE_CHK_STATUS_RETURN(m_hwInterface->ReadImageStatusForHcp(vdboxIndex, params, &cmdBuffer));
         return eStatus;
     }
 
@@ -369,7 +367,7 @@ namespace encode {
         ENCODE_FUNC_CALL();
 
         MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-        if (vdboxIndex > m_hwInterface->m_hwInterfaceNext->GetMaxVdboxIndex())
+        if (vdboxIndex > m_hwInterface->GetMaxVdboxIndex())
         {
             //ENCODE_ASSERTMESSAGE("ERROR - vdbox index exceed the maximum");
             eStatus = MOS_STATUS_INVALID_PARAMETER;
@@ -386,31 +384,28 @@ namespace encode {
         uint32_t hucPatchListSize = 0;
         MHW_VDBOX_STATE_CMDSIZE_PARAMS stateCmdSizeParams;
 
-        if (m_hwInterface->m_hwInterfaceNext)
-        {
-            stateCmdSizeParams.uNumStoreDataImm = 2;
-            stateCmdSizeParams.uNumStoreReg     = 4;
-            stateCmdSizeParams.uNumMfxWait      = 11;
-            stateCmdSizeParams.uNumMiCopy       = 5;
-            stateCmdSizeParams.uNumMiFlush      = 2;
-            stateCmdSizeParams.uNumVdPipelineFlush  = 1;
-            stateCmdSizeParams.bPerformHucStreamOut = true;
-            ENCODE_CHK_STATUS_RETURN(m_hwInterface->m_hwInterfaceNext->GetHucStateCommandSize(
-                m_basicFeature->m_mode, (uint32_t*)&hucCommandsSize, (uint32_t*)&hucPatchListSize, &stateCmdSizeParams));
+        stateCmdSizeParams.uNumStoreDataImm = 2;
+        stateCmdSizeParams.uNumStoreReg     = 4;
+        stateCmdSizeParams.uNumMfxWait      = 11;
+        stateCmdSizeParams.uNumMiCopy       = 5;
+        stateCmdSizeParams.uNumMiFlush      = 2;
+        stateCmdSizeParams.uNumVdPipelineFlush  = 1;
+        stateCmdSizeParams.bPerformHucStreamOut = true;
+        ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetHucStateCommandSize(
+            m_basicFeature->m_mode, (uint32_t*)&hucCommandsSize, (uint32_t*)&hucPatchListSize, &stateCmdSizeParams));
 
-            bool isTileReplayEnabled = false;
-            RUN_FEATURE_INTERFACE_RETURN(HevcEncodeTile, FeatureIDs::encodeTile, IsTileReplayEnabled, isTileReplayEnabled);
-            if (m_basicFeature->m_enableTileStitchByHW && (isTileReplayEnabled || m_pipeline->GetPipeNum() > 1))
-            {
-                uint32_t maxSize = 0;
-                uint32_t patchListMaxSize = 0;
-                ENCODE_CHK_NULL_RETURN(m_hwInterface);
-                ENCODE_CHK_NULL_RETURN(m_hwInterface->GetCpInterface());
-                MhwCpInterface *cpInterface = m_hwInterface->GetCpInterface();
-                cpInterface->GetCpStateLevelCmdSize(maxSize, patchListMaxSize);
-                hucCommandsSize     += maxSize;
-                hucPatchListSize    += patchListMaxSize;
-            }
+        bool isTileReplayEnabled = false;
+        RUN_FEATURE_INTERFACE_RETURN(HevcEncodeTile, FeatureIDs::encodeTile, IsTileReplayEnabled, isTileReplayEnabled);
+        if (m_basicFeature->m_enableTileStitchByHW && (isTileReplayEnabled || m_pipeline->GetPipeNum() > 1))
+        {
+            uint32_t maxSize = 0;
+            uint32_t patchListMaxSize = 0;
+            ENCODE_CHK_NULL_RETURN(m_hwInterface);
+            ENCODE_CHK_NULL_RETURN(m_hwInterface->GetCpInterface());
+            MhwCpInterface *cpInterface = m_hwInterface->GetCpInterface();
+            cpInterface->GetCpStateLevelCmdSize(maxSize, patchListMaxSize);
+            hucCommandsSize     += maxSize;
+            hucPatchListSize    += patchListMaxSize;
         }
 
         commandBufferSize = hucCommandsSize;
@@ -522,7 +517,7 @@ namespace encode {
                     if (0 == sliceNumInTile)
                     {
                         // One tile must have at least one slice
-                        ENCODE_ASSERT(false);
+                        CODECHAL_ENCODE_ASSERT(false);
                         eStatus = MOS_STATUS_INVALID_PARAMETER;
                         break;
                     }

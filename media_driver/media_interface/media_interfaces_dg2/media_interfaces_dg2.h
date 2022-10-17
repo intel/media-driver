@@ -312,20 +312,20 @@ public:
         PMOS_INTERFACE osInterface) override;
 
 protected:
-    virtual MOS_STATUS CreateCodecHalInterface(MhwInterfaces          *mhwInterfaces,
+    virtual MOS_STATUS CreateCodecHalInterface(MhwInterfaces  *mhwInterfaces,
                                        CodechalHwInterface    *&pHwInterface,
                                        CodechalDebugInterface *&pDebugInterface,
                                        PMOS_INTERFACE         osInterface,
                                        CODECHAL_FUNCTION      CodecFunction,
                                        bool                   disableScalability);
 
-    virtual MOS_STATUS CreateCodecHalInterface(MhwInterfaces          *mhwInterfaces,
-                                       MhwInterfacesNext      *&pMhwInterfacesNext,
-                                       CodechalHwInterface    *&pHwInterface,
-                                       CodechalDebugInterface *&pDebugInterface,
-                                       PMOS_INTERFACE         osInterface,
-                                       CODECHAL_FUNCTION      CodecFunction,
-                                       bool                   disableScalability);
+    virtual MOS_STATUS CreateCodecHalInterface(MhwInterfaces *mhwInterfaces,
+        MhwInterfacesNext                                   *&pMhwInterfacesNext,
+        CodechalHwInterfaceNext                                 *&pHwInterface,
+        CodechalDebugInterface                              *&pDebugInterface,
+        PMOS_INTERFACE                                        osInterface,
+        CODECHAL_FUNCTION                                     CodecFunction,
+        bool                                                  disableScalability);
 };
 
 #define DG2_L3_CONFIG_COUNT     6

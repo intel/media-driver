@@ -41,7 +41,7 @@ MediaWalkerFieldScalingStaticData::MediaWalkerFieldScalingStaticData()
 const float FieldScalingInterface::m_maxScaleRatio = 1.0f;
 const float FieldScalingInterface::m_minScaleRatio = 0.125f;
 
-FieldScalingInterface::FieldScalingInterface(CodechalHwInterface *hwInterface)
+FieldScalingInterface::FieldScalingInterface()
 {
     CODECHAL_DECODE_FUNCTION_ENTER;
 

@@ -35,7 +35,7 @@ namespace encode
     HevcEncodeTile::HevcEncodeTile(
         MediaFeatureManager *featureManager,
         EncodeAllocator *allocator,
-        CodechalHwInterface *hwInterface,
+        CodechalHwInterfaceNext *hwInterface,
         void *constSettings) :
         EncodeTile(featureManager, allocator, hwInterface, constSettings)
     {
@@ -204,6 +204,28 @@ namespace encode
 
         m_curTileCodingParams.NumberOfActiveBePipes = numPipes;
 
+        return MOS_STATUS_SUCCESS;
+    }
+    
+
+    MOS_STATUS HevcEncodeTile::SetHcpPipeModeSelectParams(
+        MHW_VDBOX_PIPE_MODE_SELECT_PARAMS &vdboxPipeModeSelectParams)
+    {
+        ENCODE_FUNC_CALL();
+
+        auto pipeModeSelectParams = dynamic_cast<MHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G12 *>(&vdboxPipeModeSelectParams);
+        ENCODE_CHK_NULL_RETURN(pipeModeSelectParams);
+
+        // In single pipe mode, if TileBasedReplayMode is enabled,
+        // the bit stream for each tile will not be continuous
+        if (m_enabled)
+        {
+            pipeModeSelectParams->bTileBasedReplayMode = m_enableTileReplay;
+        }
+        else
+        {
+            pipeModeSelectParams->bTileBasedReplayMode = 0;
+        }
         return MOS_STATUS_SUCCESS;
     }
 
@@ -434,7 +456,7 @@ namespace encode
 
             if (reservedPart > activeBitstreamSize)
             {
-                ENCODE_ASSERTMESSAGE("Frame size cal from target Bit rate is larger than BS buf! Issues in CBR paras!");
+                CODECHAL_ENCODE_ASSERTMESSAGE("Frame size cal from target Bit rate is larger than BS buf! Issues in CBR paras!");
                 return MOS_STATUS_INVALID_PARAMETER;
             }
 

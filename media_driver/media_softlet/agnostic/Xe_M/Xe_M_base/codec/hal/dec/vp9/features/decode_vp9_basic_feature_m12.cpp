@@ -30,10 +30,10 @@ namespace decode
 {
 
     Vp9BasicFeatureM12::Vp9BasicFeatureM12(DecodeAllocator *allocator, void *hwInterface, PMOS_INTERFACE osInterface) : 
-        Vp9BasicFeature(allocator, hwInterface, osInterface)  // After HwNext rebase, need update to Vp9BasicFeature(allocator, *hwInterface, osInterface)
+        Vp9BasicFeature(allocator, *((CodechalHwInterface *)hwInterface), osInterface)
     {
         m_osInterface  = osInterface;
-        m_hcpInterface = ((CodechalHwInterface*)hwInterface)->GetHcpInterface();
+        m_hcpInterface = ((CodechalHwInterface *)hwInterface)->GetHcpInterface();
     }
 
 }  // namespace decode

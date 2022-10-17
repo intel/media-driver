@@ -26,9 +26,9 @@
 
 #include "decode_jpeg_xe_m_base_packet.h"
 #include "decode_utils.h"
-#include "decode_marker_packet.h"
+#include "decode_marker_packet_g12.h"
 #include "decode_status_report_defs.h"
-#include "decode_predication_packet.h"
+#include "decode_predication_packet_g12.h"
 #include "codechal_debug.h"
 
 namespace decode {
@@ -111,7 +111,7 @@ MOS_STATUS JpegDecodePktXe_M_Base::SendPrologWithFrameTracking(MOS_COMMAND_BUFFE
     DECODE_FUNC_CALL();
 
     DecodeSubPacket* subPacket = m_jpegPipeline->GetSubPacket(DecodePacketId(m_jpegPipeline, markerSubPacketId));
-    DecodeMarkerPkt *makerPacket = dynamic_cast<DecodeMarkerPkt*>(subPacket);
+    DecodeMarkerPktG12 *makerPacket = dynamic_cast<DecodeMarkerPktG12*>(subPacket);
     DECODE_CHK_NULL(makerPacket);
     DECODE_CHK_STATUS(makerPacket->Execute(cmdBuffer));
 
@@ -136,7 +136,7 @@ MOS_STATUS JpegDecodePktXe_M_Base::SendPrologWithFrameTracking(MOS_COMMAND_BUFFE
     DECODE_CHK_STATUS(Mhw_SendGenericPrologCmd(&cmdBuffer, &genericPrologParams));
 
     subPacket = m_jpegPipeline->GetSubPacket(DecodePacketId(m_jpegPipeline, predicationSubPacketId));
-    DecodePredicationPkt *predicationPacket = dynamic_cast<DecodePredicationPkt*>(subPacket);
+    DecodePredicationPktG12 *predicationPacket = dynamic_cast<DecodePredicationPktG12*>(subPacket);
     DECODE_CHK_NULL(predicationPacket);
     DECODE_CHK_STATUS(predicationPacket->Execute(cmdBuffer));
 

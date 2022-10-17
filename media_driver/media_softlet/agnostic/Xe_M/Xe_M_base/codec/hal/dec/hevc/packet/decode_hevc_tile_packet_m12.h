@@ -41,10 +41,13 @@ class HevcDecodeTilePktM12 : public DecodeSubPacket
 {
 public:
     HevcDecodeTilePktM12(HevcPipeline *pipeline, CodechalHwInterface *hwInterface)
-        : DecodeSubPacket(pipeline, hwInterface), m_hevcPipeline(pipeline)
+        : DecodeSubPacket(pipeline, *hwInterface), m_hevcPipeline(pipeline)
     {
+        m_hwInterface = hwInterface;
         if (m_hwInterface != nullptr)
         {
+            m_miInterface  = m_hwInterface->GetMiInterface();
+            m_osInterface  = m_hwInterface->GetOsInterface();
             m_hcpInterface = dynamic_cast<MhwVdboxHcpInterfaceG12 *>(hwInterface->GetHcpInterface());
         }
     }
@@ -119,6 +122,8 @@ protected:
     MhwVdboxHcpInterfaceG12 * m_hcpInterface     = nullptr; //!< Pointer to hcp hw interface
     HevcBasicFeature *        m_hevcBasicFeature = nullptr; //!< Pointer to hevc basic feature
     PCODEC_HEVC_PIC_PARAMS    m_hevcPicParams    = nullptr; //!< Pointer to picture parameter
+    CodechalHwInterface      *m_hwInterface      = nullptr;
+    MhwMiInterface           *m_miInterface      = nullptr;
 #if (_DEBUG || _RELEASE_INTERNAL)
     uint32_t                  m_dbgOvrdWidthInMinCb = 0; //!< debug override for picture width in min ctb
 #endif

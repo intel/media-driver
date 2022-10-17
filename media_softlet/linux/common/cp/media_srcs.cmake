@@ -24,6 +24,9 @@ set(TMP_SOURCES_
 set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/decode_cp_bitstream.h
 )
+set(TMP_HEADERS_
+    ${CMAKE_CURRENT_LIST_DIR}/decode_cp_bitstream_m12.h
+)
 set(SOURCES_
     ${SOURCES_}
     ${TMP_SOURCES_}

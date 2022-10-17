@@ -30,10 +30,7 @@
 #include "mos_defs.h"
 #include "decode_mem_compression.h"
 
-// After HwNext rebase, need update to:
-//DecodeMemComp::DecodeMemComp(CodechalHwInterfaceNext *hwInterface, PMOS_INTERFACE osInterface) :
-//    MediaMemComp(osInterface ? osInterface : hwInterface->GetOsInterface())
-DecodeMemComp::DecodeMemComp(CodechalHwInterface *hwInterface, PMOS_INTERFACE osInterface) :
+DecodeMemComp::DecodeMemComp(CodechalHwInterfaceNext *hwInterface, PMOS_INTERFACE osInterface) :
     MediaMemComp(osInterface ? osInterface : hwInterface->GetOsInterface())
 {
     m_mmcFeatureId      = __MEDIA_USER_FEATURE_VALUE_CODEC_MMC_ENABLE_ID;
@@ -85,7 +82,7 @@ MOS_STATUS DecodeMemComp::UpdateUserFeatureKey(PMOS_SURFACE surface)
 }
 #endif
 
-void DecodeMemComp::InitDecodeMmc(CodechalHwInterface *hwInterface)
+void DecodeMemComp::InitDecodeMmc(CodechalHwInterfaceNext *hwInterface)
 {
     CODECHAL_HW_ASSERT(hwInterface);
     CODECHAL_HW_ASSERT(hwInterface->GetSkuTable());

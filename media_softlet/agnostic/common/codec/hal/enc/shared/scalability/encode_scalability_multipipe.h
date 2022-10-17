@@ -31,9 +31,10 @@
 #define __ENCODE_SCALABILITY_MULTIPIPE_H__
 #include "mos_defs.h"
 #include "mos_os.h"
-#include "codechal_hw.h"
+#include "codec_hw_next.h"
 #include "media_scalability_multipipe.h"
 #include "encode_scalability_option.h"
+#include "mos_os_virtualengine_scalability_next.h"
 
 namespace encode
 {
@@ -278,7 +279,7 @@ protected:
     static const uint8_t m_maxPipeNum      = 4;
     static const uint8_t m_maxSemaphoreNum = 16;
 
-    CodechalHwInterface *          m_hwInterface = nullptr;
+    CodechalHwInterfaceNext *      m_hwInterface = nullptr;
     MOS_COMMAND_BUFFER             m_primaryCmdBuffer = {};
     MOS_COMMAND_BUFFER             m_secondaryCmdBuffer[m_maxPipeNum * m_maxPassNum] = {};
     MOS_RESOURCE                   m_resSemaphoreAllPipes[m_maxSemaphoreNum] = {};

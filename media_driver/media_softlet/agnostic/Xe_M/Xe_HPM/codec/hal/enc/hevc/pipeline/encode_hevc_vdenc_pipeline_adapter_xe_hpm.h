@@ -41,7 +41,7 @@ public:
     //!         Pointer to CodechalDebugInterface
     //!
     EncodeHevcVdencPipelineAdapterXe_Hpm(
-        CodechalHwInterface     *hwInterface,
+        CodechalHwInterfaceNext     *hwInterface,
         CodechalDebugInterface  *debugInterface);
 
     //!

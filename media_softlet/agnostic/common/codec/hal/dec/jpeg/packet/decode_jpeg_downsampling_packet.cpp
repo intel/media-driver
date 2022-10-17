@@ -29,7 +29,7 @@
 #ifdef _DECODE_PROCESSING_SUPPORTED
 namespace decode
 {
-JpegDownSamplingPkt::JpegDownSamplingPkt(DecodePipeline *pipeline, CodechalHwInterface *hwInterface)
+JpegDownSamplingPkt::JpegDownSamplingPkt(DecodePipeline *pipeline, CodechalHwInterfaceNext *hwInterface)
     : DecodeDownSamplingPkt(pipeline, hwInterface)
 {
     m_jpegPipeline = dynamic_cast<JpegPipeline *>(pipeline);

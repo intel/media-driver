@@ -42,7 +42,7 @@ public:
     //!         Pointer to CodechalDebugInterface
     //!
     HevcVdencPipelineXe_Hpm(
-        CodechalHwInterface     *hwInterface,
+        CodechalHwInterfaceNext     *hwInterface,
         CodechalDebugInterface  *debugInterface);
 
     //!

@@ -50,7 +50,7 @@ public:
     //!         Pointer to CodechalDebugInterface
     //!
     Vp9Pipeline(
-        CodechalHwInterface *   hwInterface,
+        CodechalHwInterfaceNext *hwInterface,
         CodechalDebugInterface *debugInterface);
 
     virtual ~Vp9Pipeline() {};

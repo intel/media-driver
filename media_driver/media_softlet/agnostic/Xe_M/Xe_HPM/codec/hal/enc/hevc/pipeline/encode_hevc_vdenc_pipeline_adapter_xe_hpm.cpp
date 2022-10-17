@@ -28,7 +28,7 @@
 #include "encode_utils.h"
 
 EncodeHevcVdencPipelineAdapterXe_Hpm::EncodeHevcVdencPipelineAdapterXe_Hpm(
-    CodechalHwInterface     *hwInterface,
+    CodechalHwInterfaceNext     *hwInterface,
     CodechalDebugInterface  *debugInterface)
     : EncodeHevcVdencPipelineAdapterXe_Xpm_Base(hwInterface, debugInterface)
 {

@@ -28,11 +28,11 @@
 #include "encode_utils.h"
 
 EncodeHevcVdencPipelineAdapterXe_Xpm_Base::EncodeHevcVdencPipelineAdapterXe_Xpm_Base(
-    CodechalHwInterface     *hwInterface,
+    CodechalHwInterfaceNext     *hwInterface,
     CodechalDebugInterface  *debugInterface)
     : EncoderPipelineAdapter(hwInterface, debugInterface)
 {
-    ENCODE_CHK_NULL_NO_STATUS_RETURN(m_osInterface);
+    CODECHAL_ENCODE_CHK_NULL_NO_STATUS_RETURN(m_osInterface);
     Mos_CheckVirtualEngineSupported(m_osInterface, false, true);
     Mos_SetVirtualEngineSupported(m_osInterface, true);
     m_vdencEnabled = true;

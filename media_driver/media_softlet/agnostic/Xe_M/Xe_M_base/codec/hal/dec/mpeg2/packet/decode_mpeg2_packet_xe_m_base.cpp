@@ -26,9 +26,9 @@
 
 #include "decode_mpeg2_packet_xe_m_base.h"
 #include "decode_utils.h"
-#include "decode_marker_packet.h"
+#include "decode_marker_packet_g12.h"
 #include "decode_status_report_defs.h"
-#include "decode_predication_packet.h"
+#include "decode_predication_packet_g12.h"
 #include "codechal_debug.h"
 
 namespace decode {
@@ -135,7 +135,7 @@ namespace decode {
         DECODE_FUNC_CALL();
 
         DecodeSubPacket* subPacket = m_mpeg2Pipeline->GetSubPacket(DecodePacketId(m_mpeg2Pipeline, markerSubPacketId));
-        DecodeMarkerPkt* makerPacket = dynamic_cast<DecodeMarkerPkt*>(subPacket);
+        DecodeMarkerPktG12* makerPacket = dynamic_cast<DecodeMarkerPktG12*>(subPacket);
         DECODE_CHK_NULL(makerPacket);
         DECODE_CHK_STATUS(makerPacket->Execute(cmdBuffer));
 
@@ -160,7 +160,7 @@ namespace decode {
         DECODE_CHK_STATUS(Mhw_SendGenericPrologCmd(&cmdBuffer, &genericPrologParams));
 
         subPacket = m_mpeg2Pipeline->GetSubPacket(DecodePacketId(m_mpeg2Pipeline, predicationSubPacketId));
-        DecodePredicationPkt* predicationPacket = dynamic_cast<DecodePredicationPkt*>(subPacket);
+        DecodePredicationPktG12* predicationPacket = dynamic_cast<DecodePredicationPktG12*>(subPacket);
         DECODE_CHK_NULL(predicationPacket);
         DECODE_CHK_STATUS(predicationPacket->Execute(cmdBuffer));
 

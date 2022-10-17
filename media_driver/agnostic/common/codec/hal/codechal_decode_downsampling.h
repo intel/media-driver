@@ -480,7 +480,7 @@ protected:
     //!
     //! \brief    Constructor
     //!
-    FieldScalingInterface(CodechalHwInterface *hwInterface);
+    FieldScalingInterface();
 
     //!
     //! \enum     FieldScalingKernelStateIdx

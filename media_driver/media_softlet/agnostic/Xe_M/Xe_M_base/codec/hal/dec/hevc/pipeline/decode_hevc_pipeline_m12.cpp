@@ -35,12 +35,19 @@
 #include "decode_common_feature_defs.h"
 #include "decode_hevc_mem_compression_m12.h"
 #include "decode_sfc_histogram_postsubpipeline_m12.h"
+#include "decode_hevc_feature_manager.h"
+#include "decode_input_bitstream_m12.h"
+#include "decode_cp_bitstream_m12.h"
+#include "decode_hevc_downsampling_packet.h"
+#include "decode_marker_packet_g12.h"
+#include "decode_predication_packet_g12.h"
 
 namespace decode {
 
 HevcPipelineM12::HevcPipelineM12(CodechalHwInterface *hwInterface, CodechalDebugInterface *debugInterface)
-    : HevcPipeline(hwInterface, debugInterface)
+    : HevcPipeline(*hwInterface, debugInterface)
 {
+    m_hwInterface = hwInterface;
 }
 
 MOS_STATUS HevcPipelineM12::Init(void *settings)
@@ -144,7 +151,6 @@ MOS_STATUS HevcPipelineM12::HwStatusCheck(const DecodeStatusMfx &status)
     return MOS_STATUS_SUCCESS;
 }
 #endif
-
 
 MOS_STATUS HevcPipelineM12::InitScalabOption(HevcBasicFeature &basicFeature)
 {
@@ -424,10 +430,18 @@ MOS_STATUS HevcPipelineM12::Destroy()
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS HevcPipelineM12::CreateFeatureManager()
+{
+    DECODE_FUNC_CALL();
+    m_featureManager = MOS_New(DecodeHevcFeatureManager, m_allocator, m_hwInterface, m_osInterface);
+    DECODE_CHK_NULL(m_featureManager);
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS HevcPipelineM12::Initialize(void *settings)
 {
     DECODE_FUNC_CALL();
-    
+
     DECODE_CHK_NULL(settings);
 
     DECODE_CHK_STATUS(MediaPipeline::InitPlatform());
@@ -448,8 +462,11 @@ MOS_STATUS HevcPipelineM12::Initialize(void *settings)
     DECODE_CHK_NULL(m_debugInterface);
     DECODE_CHK_STATUS(m_debugInterface->SetFastDumpConfig(m_mediaCopy));
 #endif
-
-    m_mediaContext = MOS_New(MediaContext, scalabilityDecoder, m_hwInterface, m_osInterface);
+    if (m_hwInterface->m_hwInterfaceNext)
+    {
+        m_hwInterface->m_hwInterfaceNext->legacyHwInterface = m_hwInterface;
+    }
+    m_mediaContext = MOS_New(MediaContext, scalabilityDecoder, m_hwInterface->m_hwInterfaceNext, m_osInterface);
     DECODE_CHK_NULL(m_mediaContext);
 
     m_task = CreateTask(MediaTask::TaskType::cmdTask);
@@ -553,7 +570,22 @@ uint32_t HevcPipelineM12::GetCompletedReport()
 
 MOS_STATUS HevcPipelineM12::CreateSubPackets(DecodeSubPacketManager& subPacketManager, CodechalSetting &codecSettings)
 {
-    DECODE_CHK_STATUS(HevcPipeline::CreateSubPackets(subPacketManager, codecSettings));
+    DecodePredicationPktG12 *predicationPkt = MOS_New(DecodePredicationPktG12, this, m_hwInterface);
+    DECODE_CHK_NULL(predicationPkt);
+    DECODE_CHK_STATUS(subPacketManager.Register(
+        DecodePacketId(this, predicationSubPacketId), *predicationPkt));
+
+    DecodeMarkerPktG12 *markerPkt = MOS_New(DecodeMarkerPktG12, this, m_hwInterface);
+    DECODE_CHK_NULL(markerPkt);
+    DECODE_CHK_STATUS(subPacketManager.Register(
+        DecodePacketId(this, markerSubPacketId), *markerPkt));
+    
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    HevcDownSamplingPkt *downSamplingPkt = MOS_New(HevcDownSamplingPkt, this, *m_hwInterface);
+    DECODE_CHK_NULL(downSamplingPkt);
+    DECODE_CHK_STATUS(subPacketManager.Register(
+        DecodePacketId(this, downSamplingSubPacketId), *downSamplingPkt));
+#endif
 
     HevcDecodePicPktM12 *pictureDecodePkt = MOS_New(HevcDecodePicPktM12, this, m_hwInterface);
     DECODE_CHK_NULL(pictureDecodePkt);
@@ -583,6 +615,18 @@ MOS_STATUS HevcPipelineM12::CreatePostSubPipeLines(DecodeSubPipelineManager &sub
     DECODE_CHK_STATUS(m_postSubPipeline->Register(*sfcHistogramPostSubPipeline));
 #endif
 
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS HevcPipelineM12::CreatePreSubPipeLines(DecodeSubPipelineManager &subPipelineManager)
+{
+    m_bitstream = MOS_New(DecodeInputBitstreamM12, this, m_task, m_numVdbox, m_hwInterface);
+    DECODE_CHK_NULL(m_bitstream);
+    DECODE_CHK_STATUS(subPipelineManager.Register(*m_bitstream));
+
+    m_streamout = MOS_New(DecodeStreamOutM12, this, m_task, m_numVdbox, m_hwInterface);
+    DECODE_CHK_NULL(m_streamout);
+    DECODE_CHK_STATUS(subPipelineManager.Register(*m_streamout));
     return MOS_STATUS_SUCCESS;
 }
 

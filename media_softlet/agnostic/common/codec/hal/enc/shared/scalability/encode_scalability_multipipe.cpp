@@ -39,7 +39,7 @@ namespace encode
 EncodeScalabilityMultiPipe::EncodeScalabilityMultiPipe(void *hwInterface, MediaContext *mediaContext, uint8_t componentType) :
     MediaScalabilityMultiPipe(mediaContext)
 {
-    m_hwInterface   = (CodechalHwInterface *)hwInterface;
+    m_hwInterface   = (CodechalHwInterfaceNext *)hwInterface;
     m_componentType = componentType;
 }
 
@@ -750,7 +750,7 @@ MOS_STATUS EncodeScalabilityMultiPipe::SendAttrWithFrameTracking(
 
     // initialize command buffer attributes
     cmdBuffer.Attributes.bTurboMode               = m_hwInterface->m_turboMode;
-    cmdBuffer.Attributes.bMediaPreemptionEnabled  = renderEngineUsed ? m_hwInterface->GetRenderInterface()->IsPreemptionEnabled() : 0;
+    cmdBuffer.Attributes.bMediaPreemptionEnabled  = renderEngineUsed ? m_hwInterface->GetRenderInterfaceNext()->IsPreemptionEnabled() : 0;
     cmdBuffer.Attributes.dwNumRequestedEUSlices   = m_hwInterface->m_numRequestedEuSlices;
     cmdBuffer.Attributes.dwNumRequestedSubSlices  = m_hwInterface->m_numRequestedSubSlices;
     cmdBuffer.Attributes.dwNumRequestedEUs        = m_hwInterface->m_numRequestedEus;
@@ -825,7 +825,7 @@ MOS_STATUS EncodeScalabilityMultiPipe::Oca1stLevelBBStart(MOS_COMMAND_BUFFER &cm
     MHW_MI_MMIOREGISTERS mmioRegister;
     SCALABILITY_CHK_NULL_RETURN(m_hwInterface);
 
-    auto vdencItf = m_hwInterface->m_hwInterfaceNext->GetVdencInterfaceNext();
+    auto vdencItf = m_hwInterface->GetVdencInterfaceNext();
     SCALABILITY_CHK_NULL_RETURN(vdencItf);
     bool validMmio = vdencItf->ConvertToMiRegister(MHW_VDBOX_NODE_1, mmioRegister);
 

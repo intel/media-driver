@@ -36,7 +36,7 @@ namespace encode
 {
 EncodeBasicFeature::EncodeBasicFeature(
     EncodeAllocator *allocator,
-    CodechalHwInterface *hwInterface,
+    CodechalHwInterfaceNext *hwInterface,
     TrackedBuffer *trackedBuf,
     RecycleResource *recycleBuf):
     MediaFeature(hwInterface ? hwInterface->GetOsInterface() : nullptr),

@@ -27,7 +27,7 @@
 #include "encode_av1_vdenc_pipeline_adapter_xe_hpm.h"
 
 EncodeAv1VdencPipelineAdapterXe_Hpm::EncodeAv1VdencPipelineAdapterXe_Hpm(
-    CodechalHwInterface     *hwInterface,
+    CodechalHwInterfaceNext     *hwInterface,
     CodechalDebugInterface  *debugInterface)
     : EncodeAv1VdencPipelineAdapterXe_M_Base(hwInterface, debugInterface)
 {

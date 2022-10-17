@@ -32,7 +32,7 @@
 #include "codechal_decode_downsampling_g10.h"
 
 FieldScalingInterfaceG10::FieldScalingInterfaceG10(CodechalHwInterface *hwInterface):
-    FieldScalingInterface(hwInterface)
+    FieldScalingInterface()
 {
     CODECHAL_DECODE_FUNCTION_ENTER;
 #if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)

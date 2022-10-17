@@ -41,10 +41,13 @@ namespace decode {
         //! \brief  Mpeg2DecodePicPktXe_M_Base constructor
         //!
         Mpeg2DecodePicPktXe_M_Base(Mpeg2Pipeline *pipeline, CodechalHwInterface *hwInterface)
-            : DecodeSubPacket(pipeline, hwInterface), m_mpeg2Pipeline(pipeline)
+            : DecodeSubPacket(pipeline, *hwInterface), m_mpeg2Pipeline(pipeline)
         {
+            m_hwInterface = hwInterface;
             if (m_hwInterface != nullptr)
             {
+                m_miInterface  = m_hwInterface->GetMiInterface();
+                m_osInterface  = m_hwInterface->GetOsInterface();
                 m_mfxInterface = static_cast<CodechalHwInterfaceG12*>(hwInterface)->GetMfxInterface();
             }
         }
@@ -140,6 +143,9 @@ namespace decode {
 
         uint32_t m_pictureStatesSize = 0;    //!< Picture states size
         uint32_t m_picturePatchListSize = 0;    //!< Picture patch list size
+
+        CodechalHwInterface *m_hwInterface = nullptr;
+        MhwMiInterface      *m_miInterface = nullptr;
 
     private:
         //!

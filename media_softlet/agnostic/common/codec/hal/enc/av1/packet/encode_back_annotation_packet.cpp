@@ -111,11 +111,8 @@ namespace encode {
         uint32_t hucPatchListSize = 0;
         MHW_VDBOX_STATE_CMDSIZE_PARAMS stateCmdSizeParams;
 
-        if (m_hwInterface->m_hwInterfaceNext)
-        {
-            ENCODE_CHK_STATUS_RETURN(m_hwInterface->m_hwInterfaceNext->GetHucStateCommandSize(
-                m_basicFeature->m_mode, (uint32_t*)&hucCommandsSize, (uint32_t*)&hucPatchListSize, &stateCmdSizeParams));
-        }
+        ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetHucStateCommandSize(
+            m_basicFeature->m_mode, (uint32_t*)&hucCommandsSize, (uint32_t*)&hucPatchListSize, &stateCmdSizeParams));
 
         commandBufferSize = hucCommandsSize;
         requestedPatchListSize = osInterface->bUsesPatchList ? hucPatchListSize : 0;

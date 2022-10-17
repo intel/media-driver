@@ -41,7 +41,7 @@
 namespace encode {
 
 HevcVdencPipelineXe_Hpm::HevcVdencPipelineXe_Hpm(
-    CodechalHwInterface     *hwInterface,
+    CodechalHwInterfaceNext     *hwInterface,
     CodechalDebugInterface  *debugInterface)
     : HevcVdencPipelineXe_Xpm_Base(hwInterface, debugInterface)
 {

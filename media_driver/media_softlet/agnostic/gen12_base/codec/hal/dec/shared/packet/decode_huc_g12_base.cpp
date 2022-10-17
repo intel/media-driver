@@ -30,8 +30,8 @@
 #include "decode_huc_g12_base.h"
 #include "codechal_debug.h"
 #include "decode_pipeline.h"
-#include "decode_predication_packet.h"
-#include "decode_marker_packet.h"
+#include "decode_predication_packet_g12.h"
+#include "decode_marker_packet_g12.h"
 
 namespace decode
 {
@@ -222,7 +222,7 @@ MOS_STATUS DecodeHucBasic_G12_Base::AddForceWakeup(MOS_COMMAND_BUFFER& cmdBuffer
 MOS_STATUS DecodeHucBasic_G12_Base::SendPrologCmds(MOS_COMMAND_BUFFER& cmdBuffer)
 {
     DecodeSubPacket* subPacket = m_pipeline->GetSubPacket(DecodePacketId(m_pipeline, markerSubPacketId));
-    DecodeMarkerPkt *makerPacket = dynamic_cast<DecodeMarkerPkt*>(subPacket);
+    DecodeMarkerPktG12 *makerPacket = dynamic_cast<DecodeMarkerPktG12*>(subPacket);
     DECODE_CHK_NULL(makerPacket);
     DECODE_CHK_STATUS(makerPacket->Execute(cmdBuffer));
 
@@ -245,7 +245,7 @@ MOS_STATUS DecodeHucBasic_G12_Base::SendPrologCmds(MOS_COMMAND_BUFFER& cmdBuffer
     DECODE_CHK_STATUS(Mhw_SendGenericPrologCmd(&cmdBuffer, &genericPrologParams));
 
     subPacket = m_pipeline->GetSubPacket(DecodePacketId(m_pipeline, predicationSubPacketId));
-    DecodePredicationPkt *predicationPacket = dynamic_cast<DecodePredicationPkt*>(subPacket);
+    DecodePredicationPktG12 *predicationPacket = dynamic_cast<DecodePredicationPktG12*>(subPacket);
     DECODE_CHK_NULL(predicationPacket);
     DECODE_CHK_STATUS(predicationPacket->Execute(cmdBuffer));
 

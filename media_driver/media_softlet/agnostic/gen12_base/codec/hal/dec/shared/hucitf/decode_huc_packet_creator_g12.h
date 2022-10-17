@@ -27,7 +27,7 @@
 #define __CODECHAL_HUC_PACKET_CREATOR_G12_H__
 
 #include "decode_huc_packet_creator_base.h"
-
+#include "codechal_hw.h"
 
 namespace decode
 {
@@ -41,14 +41,14 @@ public:
 
     virtual ~HucPacketCreatorG12() {}
 
-    virtual  HucCopyPktItf *CreateHucCopyPkt(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterface *hwInterface) override;
-    virtual CmdPacket *    CreateProbUpdatePkt(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterface *hwInterface) override;
+    virtual HucCopyPktItf *CreateHucCopyPkt(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterface *hwInterface);
+    virtual CmdPacket     *CreateProbUpdatePkt(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterface *hwInterface);
 
     virtual HucCopyPktItf *CreateStreamOutInterface(
         MediaPipeline       *pipeline,
         MediaTask           *task,
-        CodechalHwInterface *hwInterface) override;
-MEDIA_CLASS_DEFINE_END(decode__HucPacketCreatorG12)
+        CodechalHwInterface *hwInterface);
+    MEDIA_CLASS_DEFINE_END(decode__HucPacketCreatorG12)
 };
 
 }  // namespace decode

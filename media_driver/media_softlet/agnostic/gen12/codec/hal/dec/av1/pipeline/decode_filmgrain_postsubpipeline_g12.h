@@ -40,7 +40,7 @@ public:
     //!
     //! \brief  AV1 Decode Film Grain constructor
     //!
-    FilmGrainPostSubPipeline(DecodePipeline *pipeline, MediaTask *task, uint8_t numVdbox);
+    FilmGrainPostSubPipeline(DecodePipeline *pipeline, MediaTask *task, uint8_t numVdbox, CodechalHwInterface *hwInterface);
 
     //!
     //! \brief  AV1 Decode Film Grain destructor
@@ -110,6 +110,8 @@ private:
 
     FilmGrainAppNoisePkt*   m_filmGrainAppPkt   = nullptr; //!< film grain apply noise kernel packet
     Av1DecodeFilmGrainG12*  m_filmGrainFeature  = nullptr; //!< film grain feature
+    CodechalHwInterface    *m_hwInterface       = nullptr;
+
 MEDIA_CLASS_DEFINE_END(decode__FilmGrainPostSubPipeline)
 };
 

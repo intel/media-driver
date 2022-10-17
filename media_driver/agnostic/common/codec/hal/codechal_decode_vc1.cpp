@@ -4843,6 +4843,7 @@ CodechalDecodeVc1::CodechalDecodeVc1(
 #if (_DEBUG || _RELEASE_INTERNAL)
     m_reportFrameCrc = true;
 #endif
+    m_hwInterface = hwInterface;
 
 }
 

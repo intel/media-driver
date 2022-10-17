@@ -37,6 +37,7 @@ namespace decode
         AvcDecodePicPktM12(AvcPipeline *pipeline, CodechalHwInterface *hwInterface)
             : AvcDecodePicPktXe_M_Base(pipeline, hwInterface)
         {
+            m_hwInterface = hwInterface;
         }
         virtual ~AvcDecodePicPktM12(){};
 
@@ -53,6 +54,8 @@ namespace decode
         //!         MOS_STATUS_SUCCESS if success, else fail reason
         //!
         virtual MOS_STATUS Execute(MOS_COMMAND_BUFFER& cmdBuffer) override;
+
+        CodechalHwInterface *m_hwInterface = nullptr;
 
     protected:
         virtual MOS_STATUS AddMfxPipeModeSelectCmd(MOS_COMMAND_BUFFER &cmdBuffer) override;

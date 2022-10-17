@@ -43,7 +43,7 @@ public:
     //!         Pointer to CodechalDebugInterface
     //!
     Mpeg2Pipeline(
-        CodechalHwInterface*    hwInterface,
+        CodechalHwInterfaceNext *hwInterface,
         CodechalDebugInterface* debugInterface);
 
     virtual ~Mpeg2Pipeline() {};

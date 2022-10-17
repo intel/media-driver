@@ -2112,7 +2112,7 @@ CodechalDecodeAvc::CodechalDecodeAvc(
     CodechalDecode(hwInterface, debugInterface, standardInfo)
 {
     m_mmc = nullptr;
-
+    m_hwInterface = hwInterface;
     // Parameters passed by application
     m_picWidthInMb                = 0;
     m_picHeightInMb               = 0;

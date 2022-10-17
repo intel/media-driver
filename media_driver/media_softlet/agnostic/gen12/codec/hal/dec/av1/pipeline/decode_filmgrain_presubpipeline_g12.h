@@ -44,7 +44,7 @@ public:
     //!
     //! \brief  AV1 Decode Film Grain constructor
     //!
-    FilmGrainPreSubPipeline(DecodePipeline *pipeline, MediaTask *task, uint8_t numVdbox);
+    FilmGrainPreSubPipeline(DecodePipeline *pipeline, MediaTask *task, uint8_t numVdbox, CodechalHwInterface *hwInterface);
 
     //!
     //! \brief  AV1 Decode Film Grain destructor
@@ -134,6 +134,7 @@ private:
     FilmGrainRp1Packet *    m_filmGrainRp1Pkt   = nullptr;        //!< RegressPhase1 kernel packet
     FilmGrainRp2Packet *    m_filmGrainRp2Pkt   = nullptr;        //!< RegressPhase2 kernel packet
     Av1DecodeFilmGrainG12 * m_filmGrainFeature  = nullptr;        //!< Film Grain feature
+    CodechalHwInterface    *m_hwInterface       = nullptr;
 MEDIA_CLASS_DEFINE_END(decode__FilmGrainPreSubPipeline)
 };
 

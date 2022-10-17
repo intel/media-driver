@@ -29,6 +29,7 @@
 
 #include "media_debug_interface.h"
 #include "codec_hw_next.h"
+#include "codechal_hw.h"
 
 #if USE_MEDIA_DEBUG_TOOL
 

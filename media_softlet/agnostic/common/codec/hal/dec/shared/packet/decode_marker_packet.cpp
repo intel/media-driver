@@ -29,7 +29,7 @@
 namespace decode
 {
 
-DecodeMarkerPkt::DecodeMarkerPkt(DecodePipeline *pipeline, CodechalHwInterface *hwInterface)
+DecodeMarkerPkt::DecodeMarkerPkt(DecodePipeline *pipeline, CodechalHwInterfaceNext *hwInterface)
     : DecodeSubPacket(pipeline, hwInterface)
 {}
 

@@ -30,7 +30,7 @@
 
 #include "media_pipeline.h"
 
-#include "codechal_hw.h"
+#include "codec_hw_next.h"
 #include "codechal_debug.h"
 #include "codec_def_decode.h"
 #include "decode_allocator.h"
@@ -90,7 +90,7 @@ public:
     //!         Pointer to CodechalDebugInterface
     //!
     DecodePipeline(
-        CodechalHwInterface *   hwInterface,
+        CodechalHwInterfaceNext *hwInterface,
         CodechalDebugInterface *debugInterface);
 
     virtual ~DecodePipeline()
@@ -154,7 +154,7 @@ public:
     //! \return CodechalHwInterface *
     //!         pointer of m_hwInterface
     //!
-    CodechalHwInterface *GetHwInterface() const { return m_hwInterface; }
+    CodechalHwInterfaceNext *GetHwInterface() const { return m_hwInterface; }
 
     //!
     //! \brief    Help function to get pipe number
@@ -485,7 +485,7 @@ protected:
 
     friend class DecodeSubPipelineManager;
 
-    CodechalHwInterface*    m_hwInterface    = nullptr; //!< Codechal HwInterface
+    CodechalHwInterfaceNext *m_hwInterface        = nullptr;  //!< Codechal HwInterface
     CodechalOcaDumper      *m_pCodechalOcaDumper = nullptr;
     CodechalDebugInterface* m_debugInterface = nullptr; //!< Debug Interface
     MediaTask *             m_task           = nullptr; //!< Command task

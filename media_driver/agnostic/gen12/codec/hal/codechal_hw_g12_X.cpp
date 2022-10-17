@@ -204,18 +204,6 @@ CodechalHwInterfaceG12::CodechalHwInterfaceG12(
     InternalInit(codecFunction);
 }
 
-CodechalHwInterfaceG12::CodechalHwInterfaceG12(
-    PMOS_INTERFACE    osInterface,
-    CODECHAL_FUNCTION codecFunction,
-    MhwInterfacesNext *mhwInterfacesNext,
-    bool              disableScalability)
-    : CodechalHwInterface(osInterface, codecFunction, mhwInterfacesNext, disableScalability)
-{
-    CODECHAL_HW_FUNCTION_ENTER;
-
-    InternalInit(codecFunction);
-}
-
 MOS_STATUS CodechalHwInterfaceG12::InitL3CacheSettings()
 {
     // Get default L3 cache settings

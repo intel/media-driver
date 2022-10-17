@@ -41,7 +41,7 @@ public:
     //!
     //! \brief    Construct
     //!
-    Mpeg2DecodeMemComp(CodechalHwInterface *hwInterface);
+    Mpeg2DecodeMemComp(CodechalHwInterfaceNext *hwInterface);
 
     //!
     //! \brief    Copy constructor

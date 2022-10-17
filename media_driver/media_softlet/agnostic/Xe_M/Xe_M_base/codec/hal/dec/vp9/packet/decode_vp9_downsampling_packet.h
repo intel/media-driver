@@ -44,7 +44,7 @@ public:
     //!
     //! \brief  Decode down sampling sub packet constructor
     //!
-    Vp9DownSamplingPkt(DecodePipeline *pipeline, CodechalHwInterface *hwInterface);
+    Vp9DownSamplingPkt(DecodePipeline *pipeline, CodechalHwInterfaceNext *hwInterface);
 
     virtual ~Vp9DownSamplingPkt() {}
 

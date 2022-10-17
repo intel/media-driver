@@ -26,9 +26,9 @@
 #include "codechal_utilities.h"
 #include "decode_av1_packet_g12_base.h"
 #include "decode_status_report_defs.h"
-#include "decode_predication_packet.h"
+#include "decode_predication_packet_g12.h"
 #include "mhw_vdbox_vdenc_g12_X.h"
-#include "decode_marker_packet.h"
+#include "decode_marker_packet_g12.h"
 
 namespace decode {
 
@@ -147,7 +147,7 @@ MOS_STATUS Av1DecodePkt_G12_Base::AddForceWakeup(MOS_COMMAND_BUFFER& cmdBuffer)
 MOS_STATUS Av1DecodePkt_G12_Base::SendPrologWithFrameTracking(MOS_COMMAND_BUFFER& cmdBuffer, bool frameTrackingRequested)
 {
     DecodeSubPacket* subPacket = m_av1Pipeline->GetSubPacket(DecodePacketId(m_av1Pipeline, markerSubPacketId));
-    DecodeMarkerPkt *makerPacket = dynamic_cast<DecodeMarkerPkt*>(subPacket);
+    DecodeMarkerPktG12 *makerPacket = dynamic_cast<DecodeMarkerPktG12*>(subPacket);
     DECODE_CHK_NULL(makerPacket);
     DECODE_CHK_STATUS(makerPacket->Execute(cmdBuffer));
 
@@ -172,7 +172,7 @@ MOS_STATUS Av1DecodePkt_G12_Base::SendPrologWithFrameTracking(MOS_COMMAND_BUFFER
     DECODE_CHK_STATUS(Mhw_SendGenericPrologCmd(&cmdBuffer, &genericPrologParams));
 
     subPacket = m_av1Pipeline->GetSubPacket(DecodePacketId(m_av1Pipeline, predicationSubPacketId));
-    DecodePredicationPkt *predicationPacket = dynamic_cast<DecodePredicationPkt*>(subPacket);
+    DecodePredicationPktG12 *predicationPacket = dynamic_cast<DecodePredicationPktG12 *>(subPacket);
     DECODE_CHK_NULL(predicationPacket);
     DECODE_CHK_STATUS(predicationPacket->Execute(cmdBuffer));
 

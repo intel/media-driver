@@ -34,7 +34,7 @@ class EncodeAv1VdencPipelineAdapterXe_M_Base : public EncoderPipelineAdapter
 {
 public:
     EncodeAv1VdencPipelineAdapterXe_M_Base(
-        CodechalHwInterface *   hwInterface,
+        CodechalHwInterfaceNext *   hwInterface,
         CodechalDebugInterface *debugInterface);
 
     virtual ~EncodeAv1VdencPipelineAdapterXe_M_Base() {}

@@ -34,7 +34,7 @@ class Av1BasicFeatureXe_Hpm : public Av1BasicFeature
 {
 public:
     Av1BasicFeatureXe_Hpm(EncodeAllocator* allocator,
-        CodechalHwInterface* hwInterface,
+        CodechalHwInterfaceNext* hwInterface,
         TrackedBuffer* trackedBuf,
         RecycleResource* recycleBuf,
         void* constSettings) :

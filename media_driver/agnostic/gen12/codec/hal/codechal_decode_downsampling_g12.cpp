@@ -34,7 +34,7 @@
 #include "codechal_mmc_g12.h"
 
 FieldScalingInterfaceG12::FieldScalingInterfaceG12(CodechalHwInterface *hwInterface) :
-    FieldScalingInterface(hwInterface)
+    FieldScalingInterface()
 {
     CODECHAL_DECODE_FUNCTION_ENTER;
 

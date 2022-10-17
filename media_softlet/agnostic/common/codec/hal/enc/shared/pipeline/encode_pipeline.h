@@ -30,7 +30,7 @@
 
 #include "media_pipeline.h"
 
-#include "codechal_hw.h"
+#include "codec_hw_next.h"
 #include "codec_def_encode.h"
 #include "media_scalability.h"
 #include "encode_allocator.h"
@@ -58,7 +58,7 @@ public:
     //!         Pointer to CodechalDebugInterface
     //!
     EncodePipeline(
-        CodechalHwInterface *   hwInterface,
+        CodechalHwInterfaceNext *hwInterface,
         CodechalDebugInterface *debugInterface);
 
     virtual ~EncodePipeline() {}
@@ -68,7 +68,7 @@ public:
     MOS_STATUS ContextSwitchBack();
 
     EncodeAllocator *    GetEncodeAllocator() { return m_allocator; };
-    CodechalHwInterface *GetHWInterface() { return m_hwInterface; };
+    CodechalHwInterfaceNext *GetHWInterface() { return m_hwInterface; };
     PacketUtilities *    GetPacketUtilities() { return m_packetUtilities; };
 
     //!
@@ -317,7 +317,7 @@ protected:
     uint32_t          m_mode     = 0;   //!< The encode mode
     CODECHAL_FUNCTION m_codecFunction = CODECHAL_FUNCTION_INVALID;  //!< The encode state's codec function used
 
-    CodechalHwInterface *m_hwInterface = nullptr;  //!< CodechalHwInterface
+    CodechalHwInterfaceNext *m_hwInterface = nullptr;  //!< CodechalHwInterface
     MOS_INTERFACE *      m_osInterface = nullptr;
     MhwMiInterface *     m_miInterface = nullptr;
     EncodeAllocator *    m_allocator   = nullptr;

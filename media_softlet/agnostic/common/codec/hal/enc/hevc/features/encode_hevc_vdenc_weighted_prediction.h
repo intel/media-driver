@@ -28,7 +28,7 @@
 
 #include "media_feature.h"
 #include "encode_allocator.h"
-#include "codechal_hw.h"
+#include "codec_hw_next.h"
 #include "encode_huc_brc_update_packet.h"
 #include "mhw_vdbox_vdenc_itf.h"
 #include "mhw_vdbox_hcp_itf.h"
@@ -41,7 +41,7 @@ namespace encode
         HevcVdencWeightedPred(
             MediaFeatureManager *featureManager,
             EncodeAllocator *allocator,
-            CodechalHwInterface *hwInterface,
+            CodechalHwInterfaceNext *hwInterface,
             void *constSettings);
 
         //!

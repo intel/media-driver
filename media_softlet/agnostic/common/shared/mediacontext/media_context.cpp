@@ -31,7 +31,7 @@
 #include "mos_interface.h"
 #include "mos_os_virtualengine_next.h"
 #if !EMUL
-#include "codechal_hw.h"
+#include "codec_hw_next.h"
 #include "decode_scalability_defs.h"
 #endif
 

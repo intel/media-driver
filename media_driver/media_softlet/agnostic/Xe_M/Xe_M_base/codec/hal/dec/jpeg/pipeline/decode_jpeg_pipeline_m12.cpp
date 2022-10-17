@@ -30,14 +30,20 @@
 #include "decode_common_feature_defs.h"
 #include "decode_mem_compression_g12.h"
 #include "decode_sfc_histogram_postsubpipeline_m12.h"
+#include "decode_jpeg_feature_manager.h"
+#include "decode_input_bitstream_m12.h"
+#include "decode_cp_bitstream_m12.h"
+#include "decode_marker_packet_g12.h"
+#include "decode_predication_packet_g12.h"
 
 namespace decode
 {
 JpegPipelineM12::JpegPipelineM12(
     CodechalHwInterface *   hwInterface,
     CodechalDebugInterface *debugInterface)
-    : JpegPipeline(hwInterface, debugInterface)
+    : JpegPipeline(*hwInterface, debugInterface)
 {
+    m_hwInterface = hwInterface;
 }
 
 MOS_STATUS JpegPipelineM12::Init(void *settings)
@@ -91,6 +97,14 @@ MOS_STATUS JpegPipelineM12::Destroy()
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS JpegPipelineM12::CreateFeatureManager()
+{
+    DECODE_FUNC_CALL();
+    m_featureManager = MOS_New(DecodeJpegFeatureManager, m_allocator, m_hwInterface, m_osInterface);
+    DECODE_CHK_NULL(m_featureManager);
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS JpegPipelineM12::Initialize(void *settings)
 {
     DECODE_FUNC_CALL();
@@ -113,8 +127,11 @@ MOS_STATUS JpegPipelineM12::Initialize(void *settings)
     DECODE_CHK_NULL(m_debugInterface);
     DECODE_CHK_STATUS(m_debugInterface->SetFastDumpConfig(m_mediaCopy));
 #endif
-
-    m_mediaContext = MOS_New(MediaContext, scalabilityDecoder, m_hwInterface, m_osInterface);
+    if (m_hwInterface->m_hwInterfaceNext)
+    {
+        m_hwInterface->m_hwInterfaceNext->legacyHwInterface = m_hwInterface;
+    }
+    m_mediaContext = MOS_New(MediaContext, scalabilityDecoder, m_hwInterface->m_hwInterfaceNext, m_osInterface);
     DECODE_CHK_NULL(m_mediaContext);
 
     m_task = CreateTask(MediaTask::TaskType::cmdTask);
@@ -157,10 +174,18 @@ MOS_STATUS JpegPipelineM12::Initialize(void *settings)
 
 MOS_STATUS JpegPipelineM12::CreateSubPackets(DecodeSubPacketManager &subPacketManager, CodechalSetting &codecSettings)
 {
-    DECODE_CHK_STATUS(JpegPipeline::CreateSubPackets(subPacketManager, codecSettings));
+    DecodePredicationPktG12 *predicationPkt = MOS_New(DecodePredicationPktG12, this, m_hwInterface);
+    DECODE_CHK_NULL(predicationPkt);
+    DECODE_CHK_STATUS(subPacketManager.Register(
+        DecodePacketId(this, predicationSubPacketId), *predicationPkt));
+
+    DecodeMarkerPktG12 *markerPkt = MOS_New(DecodeMarkerPktG12, this, m_hwInterface);
+    DECODE_CHK_NULL(markerPkt);
+    DECODE_CHK_STATUS(subPacketManager.Register(
+        DecodePacketId(this, markerSubPacketId), *markerPkt));
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
-    JpegDownSamplingPkt *downSamplingPkt = MOS_New(JpegDownSamplingPkt, this, m_hwInterface);
+    JpegDownSamplingPkt *downSamplingPkt = MOS_New(JpegDownSamplingPkt, this, *m_hwInterface);
     DECODE_CHK_NULL(downSamplingPkt);
     DECODE_CHK_STATUS(subPacketManager.Register(
         DecodePacketId(this, downSamplingSubPacketId), *downSamplingPkt));
@@ -332,6 +357,15 @@ MOS_STATUS JpegPipelineM12::CreatePostSubPipeLines(DecodeSubPipelineManager &sub
     DECODE_CHK_STATUS(m_postSubPipeline->Register(*sfcHistogramPostSubPipeline));
 #endif
 
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS JpegPipelineM12::CreatePreSubPipeLines(DecodeSubPipelineManager &subPipelineManager)
+{
+    m_bitstream = MOS_New(DecodeJpegInputBitstreamM12, this, m_task, m_numVdbox, m_hwInterface);
+    DECODE_CHK_NULL(m_bitstream);
+    DECODE_CHK_STATUS(subPipelineManager.Register(*m_bitstream));
+    
     return MOS_STATUS_SUCCESS;
 }
 

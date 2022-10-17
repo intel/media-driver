@@ -58,7 +58,7 @@ public:
     //!         Pointer to RecycleResource
     //!
      EncodeHevcVdencFeatureManager(EncodeAllocator *allocator,
-                             CodechalHwInterface *hwInterface,
+                             CodechalHwInterfaceNext *hwInterface,
                              TrackedBuffer       *trackedBuf,
                              RecycleResource     *recycleBuf):
                              m_allocator(allocator),
@@ -162,7 +162,7 @@ protected:
 
     EncodeAllocator *m_allocator = nullptr;
 
-    CodechalHwInterface *m_hwInterface = nullptr;
+    CodechalHwInterfaceNext *m_hwInterface = nullptr;
     RecycleResource     *m_recycleResource = nullptr;
     TrackedBuffer       *m_trackedBuf = nullptr;
 

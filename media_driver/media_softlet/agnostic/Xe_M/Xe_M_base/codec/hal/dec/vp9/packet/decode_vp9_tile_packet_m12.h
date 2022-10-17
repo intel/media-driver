@@ -41,10 +41,13 @@ class Vp9DecodeTilePktM12 : public DecodeSubPacket
 {
 public:
     Vp9DecodeTilePktM12(Vp9Pipeline *pipeline, CodechalHwInterface *hwInterface)
-        : DecodeSubPacket(pipeline, hwInterface), m_vp9Pipeline(pipeline)
+        : DecodeSubPacket(pipeline, *hwInterface), m_vp9Pipeline(pipeline)
     {
+        m_hwInterface = hwInterface;
         if (m_hwInterface != nullptr)
         {
+            m_miInterface  = m_hwInterface->GetMiInterface();
+            m_osInterface  = m_hwInterface->GetOsInterface();
             m_hcpInterface = dynamic_cast<MhwVdboxHcpInterfaceG12 *>(hwInterface->GetHcpInterface());
         }
     }
@@ -101,6 +104,9 @@ protected:
     MhwVdboxHcpInterfaceG12 *m_hcpInterface     = nullptr; //!< Pointer to hcp hw interface
     Vp9BasicFeature         *m_vp9BasicFeature = nullptr; //!< Pointer to vp9 basic feature
     PCODEC_VP9_PIC_PARAMS    m_vp9PicParams    = nullptr; //!< Pointer to picture parameter
+    CodechalHwInterface      *m_hwInterface    = nullptr;
+    MhwMiInterface          *m_miInterface      = nullptr;
+
 #if (_DEBUG || _RELEASE_INTERNAL)
     uint32_t                 m_dbgOvrdWidthInMinCb = 0; //!< debug override for picture width in min ctb
 #endif

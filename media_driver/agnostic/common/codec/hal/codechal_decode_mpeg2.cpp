@@ -1718,6 +1718,7 @@ CodechalDecodeMpeg2::CodechalDecodeMpeg2 (
 #if (_DEBUG || _RELEASE_INTERNAL)
     m_reportFrameCrc = true;
 #endif
+    m_hwInterface = hwInterface;
 }
 
 #if USE_CODECHAL_DEBUG_TOOL

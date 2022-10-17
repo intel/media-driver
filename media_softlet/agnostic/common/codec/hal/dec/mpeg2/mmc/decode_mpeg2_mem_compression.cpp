@@ -34,7 +34,7 @@
 namespace decode
 {
 
-Mpeg2DecodeMemComp::Mpeg2DecodeMemComp(CodechalHwInterface *hwInterface)
+Mpeg2DecodeMemComp::Mpeg2DecodeMemComp(CodechalHwInterfaceNext *hwInterface)
 {
     m_osInterface = hwInterface->GetOsInterface();
 }

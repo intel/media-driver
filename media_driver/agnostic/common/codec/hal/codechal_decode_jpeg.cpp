@@ -89,6 +89,7 @@ CodechalDecodeJpeg::CodechalDecodeJpeg(
 #if (_DEBUG || _RELEASE_INTERNAL)
     m_reportFrameCrc = true;
 #endif
+    m_hwInterface = hwInterface;
 }
 
 MOS_STATUS CodechalDecodeJpeg::InitializeBeginFrame()

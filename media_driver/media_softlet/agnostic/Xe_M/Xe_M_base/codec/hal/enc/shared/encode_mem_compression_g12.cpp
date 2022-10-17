@@ -31,7 +31,7 @@
 #include "encode_utils.h"
 
 EncodeMemCompG12::EncodeMemCompG12(
-    CodechalHwInterface *hwInterface):
+    CodechalHwInterfaceNext *hwInterface):
     EncodeMemComp(hwInterface), CodecMmcAuxTableG12Next()
 {
 

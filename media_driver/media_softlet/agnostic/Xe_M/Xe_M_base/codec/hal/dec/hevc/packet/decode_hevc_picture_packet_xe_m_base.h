@@ -40,10 +40,13 @@ class HevcDecodePicPktXe_M_Base : public DecodeSubPacket
 {
 public:
     HevcDecodePicPktXe_M_Base(HevcPipeline *pipeline, CodechalHwInterface *hwInterface)
-        : DecodeSubPacket(pipeline, hwInterface), m_hevcPipeline(pipeline)
+        : DecodeSubPacket(pipeline, *hwInterface), m_hevcPipeline(pipeline)
     {
+        m_hwInterface = hwInterface;
         if (m_hwInterface != nullptr)
         {
+            m_miInterface  = m_hwInterface->GetMiInterface();
+            m_osInterface  = m_hwInterface->GetOsInterface();
             m_hcpInterface  = hwInterface->GetHcpInterface();
         }
     }
@@ -168,6 +171,9 @@ protected:
     PCODECHAL_HEVC_IQ_MATRIX_PARAMS m_hevcIqMatrixParams = nullptr; //!< Pointer to IQ matrix parameter
     PCODEC_HEVC_EXT_PIC_PARAMS      m_hevcRextPicParams  = nullptr; //!< Extended pic params for Rext
     PCODEC_HEVC_SCC_PIC_PARAMS      m_hevcSccPicParams   = nullptr; //!< Pic params for SCC
+
+    CodechalHwInterface *m_hwInterface = nullptr;
+    MhwMiInterface      *m_miInterface = nullptr;
 
     PMOS_BUFFER m_resMfdDeblockingFilterRowStoreScratchBuffer    = nullptr; //!< Handle of MFD Deblocking Filter Row Store Scratch data surface
     PMOS_BUFFER m_resDeblockingFilterTileRowStoreScratchBuffer   = nullptr; //!< Handle of Deblocking Filter Tile Row Store Scratch data surface

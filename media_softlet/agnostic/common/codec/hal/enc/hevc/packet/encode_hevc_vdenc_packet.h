@@ -91,9 +91,9 @@ namespace encode
             waitVdenc,
             waitHevcVdenc
         };
-        HevcVdencPkt(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterface *hwInterface) : CmdPacket(task),
+        HevcVdencPkt(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterfaceNext *hwInterface) : CmdPacket(task),
                                                                                                             m_pipeline(dynamic_cast<HevcVdencPipeline *>(pipeline)),
-                                                                                                            m_hwInterface(dynamic_cast<CodechalHwInterface *>(hwInterface))
+                                                                                                            m_hwInterface(dynamic_cast<CodechalHwInterfaceNext *>(hwInterface))
         {
             ENCODE_CHK_NULL_NO_STATUS_RETURN(hwInterface);
             ENCODE_CHK_NULL_NO_STATUS_RETURN(m_pipeline);
@@ -562,7 +562,7 @@ namespace encode
         // Interfaces
         EncodeAllocator *         m_allocator         = nullptr;
         PMOS_INTERFACE            m_osInterface       = nullptr;
-        CodechalHwInterface *     m_hwInterface       = nullptr;
+        CodechalHwInterfaceNext *     m_hwInterface       = nullptr;
         HevcBasicFeature *        m_basicFeature      = nullptr;  //!< Encode parameters used in each frame
         EncodeMemComp *           m_mmcState          = nullptr;
         EncodeCp *                m_encodecp          = nullptr;

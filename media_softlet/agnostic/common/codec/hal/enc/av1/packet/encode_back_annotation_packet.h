@@ -30,7 +30,7 @@
 #include "media_cmd_packet.h"
 #include "encode_huc.h"
 #include "media_pipeline.h"
-#include "codechal_hw.h"
+#include "codec_hw_next.h"
 #include "encode_utils.h"
 #include "encode_av1_basic_feature.h"
 
@@ -63,7 +63,7 @@ namespace encode
     class Av1BackAnnotationPkt : public EncodeHucPkt
     {
     public:
-        Av1BackAnnotationPkt(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterface *hwInterface) :
+        Av1BackAnnotationPkt(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterfaceNext *hwInterface) :
             EncodeHucPkt(pipeline, task, hwInterface)
         {
         }

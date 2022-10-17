@@ -31,13 +31,14 @@
 #include "media_status_report.h"
 #include "mhw_utilities.h"
 #include "decode_status_report_defs.h"
+#include "codechal_hw.h"
 
 namespace decode
 {
 DecodeScalabilityMultiPipe::DecodeScalabilityMultiPipe(void *hwInterface, MediaContext *mediaContext, uint8_t componentType)
     : DecodeScalabilityMultiPipeNext(mediaContext, mediaContext, componentType)
 {
-    m_hwInterface   = (CodechalHwInterface *)hwInterface;
+    m_hwInterface   = (CodechalHwInterface *)(((CodechalHwInterfaceNext *)hwInterface)->legacyHwInterface);
     m_componentType = componentType;
     m_secondaryCmdBuffers.clear();
     m_resSemaphoreAllPipes.clear();
@@ -127,6 +128,7 @@ MOS_STATUS DecodeScalabilityMultiPipe::Initialize(const MediaScalabilityOption &
     SCALABILITY_CHK_NULL_RETURN(m_hwInterface);
     m_osInterface = m_hwInterface->GetOsInterface();
     SCALABILITY_CHK_NULL_RETURN(m_osInterface);
+
     m_miInterface = m_hwInterface->GetMiInterface();
     SCALABILITY_CHK_NULL_RETURN(m_miInterface);
     m_miItf = m_hwInterface->GetMiInterfaceNext();
@@ -685,8 +687,8 @@ MOS_STATUS DecodeScalabilityMultiPipe::CreateDecodeMultiPipe(void *hwInterface, 
     SCALABILITY_CHK_NULL_RETURN(hwInterface);
     SCALABILITY_CHK_NULL_RETURN(mediaContext);
 
-    ((CodechalHwInterface *)hwInterface)->m_hwInterfaceNext->m_multiPipeScalability = MOS_New(DecodeScalabilityMultiPipe, hwInterface, mediaContext, scalabilityDecoder);
-    SCALABILITY_CHK_NULL_RETURN(((CodechalHwInterface *)hwInterface)->m_hwInterfaceNext->m_multiPipeScalability);
+    ((CodechalHwInterfaceNext *)hwInterface)->m_multiPipeScalability = MOS_New(DecodeScalabilityMultiPipe, hwInterface, mediaContext, scalabilityDecoder);
+    SCALABILITY_CHK_NULL_RETURN(((CodechalHwInterfaceNext *)hwInterface)->m_multiPipeScalability);
     return eStatus;
 }
 

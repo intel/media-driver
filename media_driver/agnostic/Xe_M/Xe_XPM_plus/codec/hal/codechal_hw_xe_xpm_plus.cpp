@@ -139,18 +139,6 @@ CodechalHwInterfaceXe_Xpm_Plus::CodechalHwInterfaceXe_Xpm_Plus(
     PrepareCmdSize(codecFunction);
 }
 
-CodechalHwInterfaceXe_Xpm_Plus::CodechalHwInterfaceXe_Xpm_Plus(
-    PMOS_INTERFACE    osInterface,
-    CODECHAL_FUNCTION codecFunction,
-    MhwInterfacesNext *mhwInterfacesNext,
-    bool              disableScalability)
-    : CodechalHwInterfaceG12(osInterface, codecFunction, mhwInterfacesNext, disableScalability)
-{
-    CODECHAL_HW_FUNCTION_ENTER;
-    m_hwInterfaceNext = MOS_New(CodechalHwInterfaceNext, osInterface, codecFunction, mhwInterfacesNext);
-    PrepareCmdSize(codecFunction);
-}
-
 MOS_STATUS CodechalHwInterfaceXe_Xpm_Plus::GetVdencPictureSecondLevelCommandsSize(
     uint32_t  mode,
     uint32_t *commandsSize)

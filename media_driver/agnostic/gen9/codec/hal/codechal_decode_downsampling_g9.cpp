@@ -29,7 +29,7 @@
 #include "codechal_decode_downsampling_g9.h"
 
 FieldScalingInterfaceG9::FieldScalingInterfaceG9(CodechalHwInterface *hwInterface):
-    FieldScalingInterface(hwInterface)
+    FieldScalingInterface()
 {
     CODECHAL_DECODE_FUNCTION_ENTER;
     m_kernelBase = (uint8_t*)IGCODECKRN_G9;

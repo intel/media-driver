@@ -526,6 +526,7 @@ MOS_STATUS CodechalInterfacesG12Tgllp::Initialize(
     hwInterface->m_hwInterfaceNext                            = MOS_New(CodechalHwInterfaceNext, osInterface);
     hwInterface->m_hwInterfaceNext->pfnCreateDecodeSinglePipe = decode::DecodeScalabilitySinglePipe::CreateDecodeSinglePipe;
     hwInterface->m_hwInterfaceNext->pfnCreateDecodeMultiPipe  = decode::DecodeScalabilityMultiPipe::CreateDecodeMultiPipe;
+    hwInterface->m_hwInterfaceNext->SetMediaSfcInterface(hwInterface->GetMediaSfcInterface());
 
 #if USE_CODECHAL_DEBUG_TOOL
     CodechalDebugInterface *debugInterface = MOS_New(CodechalDebugInterface);
@@ -809,31 +810,7 @@ MOS_STATUS CodechalInterfacesG12Tgllp::Initialize(
 #ifdef _VP9_ENCODE_VDENC_SUPPORTED
         if (info->Mode == CODECHAL_ENCODE_MODE_VP9)
         {
-#ifdef _APOGEIOS_SUPPORTED
-            bool                        apogeiosEnable = false;
-            MOS_USER_FEATURE_VALUE_DATA userFeatureData;
-            MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-
-            MOS_UserFeature_ReadValue_ID(
-                nullptr,
-                __MEDIA_USER_FEATURE_VALUE_APOGEIOS_ENABLE_ID,
-                &userFeatureData,
-                hwInterface->GetOsInterface()->pOsContext);
-            apogeiosEnable = userFeatureData.bData ? true : false;
-
-            if (apogeiosEnable)
-            {
-                m_codechalDevice = MOS_New(EncodeVp9VdencPipelineAdapterM12, hwInterface, debugInterface);
-                if (m_codechalDevice == nullptr)
-                {
-                    CODECHAL_PUBLIC_ASSERTMESSAGE("Encode state creation failed!");
-                    return MOS_STATUS_INVALID_PARAMETER;
-                }
-                return MOS_STATUS_SUCCESS;
-            }
-            else
-#endif
-                encoder = MOS_New(Encode::Vp9, hwInterface, debugInterface, info);
+            encoder = MOS_New(Encode::Vp9, hwInterface, debugInterface, info);
             if (encoder == nullptr)
             {
                 CODECHAL_PUBLIC_ASSERTMESSAGE("Encode state creation failed!");

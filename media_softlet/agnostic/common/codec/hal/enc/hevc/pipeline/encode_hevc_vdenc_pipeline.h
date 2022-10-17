@@ -57,7 +57,7 @@ public:
     //!         Pointer to PCODECHAL_STANDARD_INFO
     //!
     HevcVdencPipeline(
-        CodechalHwInterface *   hwInterface,
+        CodechalHwInterfaceNext *   hwInterface,
         CodechalDebugInterface *debugInterface);
 
     virtual ~HevcVdencPipeline() {}

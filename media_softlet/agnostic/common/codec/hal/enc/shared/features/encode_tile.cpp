@@ -33,7 +33,7 @@ namespace encode
     EncodeTile::EncodeTile(
         MediaFeatureManager *featureManager,
         EncodeAllocator *allocator,
-        CodechalHwInterface *hwInterface,
+        CodechalHwInterfaceNext *hwInterface,
         void *constSettings) :
         MediaFeature(constSettings, hwInterface ? hwInterface->GetOsInterface() : nullptr),
         m_allocator(allocator)

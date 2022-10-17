@@ -30,7 +30,7 @@
 namespace encode
 {
 Av1Pipeline::Av1Pipeline(
-    CodechalHwInterface *   hwInterface,
+    CodechalHwInterfaceNext *   hwInterface,
     CodechalDebugInterface *debugInterface)
     : EncodePipeline(hwInterface, debugInterface)
 {

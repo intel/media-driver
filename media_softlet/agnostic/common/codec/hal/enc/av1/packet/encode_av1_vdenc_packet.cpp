@@ -30,7 +30,7 @@
 #include "media_perf_profiler.h"
 
 namespace encode{
-    Av1VdencPkt::Av1VdencPkt(MediaPipeline* pipeline, MediaTask* task, CodechalHwInterface* hwInterface) :
+    Av1VdencPkt::Av1VdencPkt(MediaPipeline* pipeline, MediaTask* task, CodechalHwInterfaceNext* hwInterface) :
         CmdPacket(task),
         m_pipeline(dynamic_cast<Av1VdencPipeline*>(pipeline)),
         m_hwInterface(hwInterface)
@@ -299,7 +299,7 @@ namespace encode{
             rowStoreParams.ucChromaFormat   = m_basicFeature->m_outputChromaFormat;
             rowStoreParams.ucBitDepthMinus8 = m_basicFeature->m_is10Bit ? 2 : 0;
 
-            ENCODE_CHK_STATUS_RETURN(m_hwInterface->m_hwInterfaceNext->SetRowstoreCachingOffsets(&rowStoreParams));
+            ENCODE_CHK_STATUS_RETURN(m_hwInterface->SetRowstoreCachingOffsets(&rowStoreParams));
         }
         return MOS_STATUS_SUCCESS;
     }

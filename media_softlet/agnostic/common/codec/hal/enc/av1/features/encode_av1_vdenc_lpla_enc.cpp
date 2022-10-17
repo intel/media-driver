@@ -32,7 +32,7 @@ namespace encode
     AV1VdencLplaEnc::AV1VdencLplaEnc(
         MediaFeatureManager *featureManager,
         EncodeAllocator     *allocator,
-        CodechalHwInterface *hwInterface,
+        CodechalHwInterfaceNext *hwInterface,
         void                *constSettings) :
         MediaFeature(constSettings),
         m_allocator(allocator)

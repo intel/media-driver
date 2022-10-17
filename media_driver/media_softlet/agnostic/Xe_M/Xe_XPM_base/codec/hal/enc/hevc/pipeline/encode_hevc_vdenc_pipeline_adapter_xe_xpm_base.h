@@ -35,7 +35,7 @@ class EncodeHevcVdencPipelineAdapterXe_Xpm_Base : public EncoderPipelineAdapter
 {
 public:
     EncodeHevcVdencPipelineAdapterXe_Xpm_Base(
-        CodechalHwInterface *   hwInterface,
+        CodechalHwInterfaceNext *   hwInterface,
         CodechalDebugInterface *debugInterface);
 
     virtual ~EncodeHevcVdencPipelineAdapterXe_Xpm_Base() {}

@@ -1565,6 +1565,7 @@ CodechalDecodeVp8::CodechalDecodeVp8(
     MOS_ZeroMemory(&m_resSyncObjectWaContextInUse, sizeof(m_resSyncObjectWaContextInUse));
     MOS_ZeroMemory(&m_resSyncObjectVideoContextInUse, sizeof(m_resSyncObjectVideoContextInUse));
     MOS_ZeroMemory(&m_vp8FrameHead, sizeof(m_vp8FrameHead));
+    m_hwInterface = hwInterface;
 }
 
 #if USE_CODECHAL_DEBUG_TOOL

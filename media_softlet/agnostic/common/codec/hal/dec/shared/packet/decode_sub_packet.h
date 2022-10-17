@@ -32,7 +32,7 @@
 
 #include "mos_defs.h"
 #include "codechal_setting.h"
-#include "codechal_hw.h"
+#include "codec_hw_next.h"
 #include "codec_def_decode.h"
 #include "media_feature_manager.h"
 #include "decodecp_interface.h"
@@ -48,7 +48,7 @@ public:
     //!
     //! \brief  Decode sub packet constructor
     //!
-    DecodeSubPacket(DecodePipeline *pipeline, CodechalHwInterface *hwInterface);
+    DecodeSubPacket(DecodePipeline *pipeline, CodechalHwInterfaceNext *hwInterface);
 
     //!
     //! \brief  Decode sub packet destructor
@@ -85,9 +85,8 @@ public:
 protected:
     DecodePipeline *        m_pipeline = nullptr;
     MediaFeatureManager *   m_featureManager = nullptr;
-    CodechalHwInterface *   m_hwInterface = nullptr;
+    CodechalHwInterfaceNext      *m_hwInterface    = nullptr;
     PMOS_INTERFACE          m_osInterface = nullptr;
-    MhwMiInterface *        m_miInterface = nullptr;
     DecodeCpInterface *     m_decodecp = nullptr;
     std::shared_ptr<mhw::mi::Itf> m_miItf = nullptr;
 

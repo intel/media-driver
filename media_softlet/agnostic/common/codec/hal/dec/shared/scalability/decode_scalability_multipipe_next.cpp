@@ -37,7 +37,7 @@ namespace decode
 DecodeScalabilityMultiPipeNext::DecodeScalabilityMultiPipeNext(void *hwInterface, MediaContext *mediaContext, uint8_t componentType)
     : MediaScalabilityMultiPipe(mediaContext)
 {
-    m_hwInterface   = (CodechalHwInterface *)hwInterface;
+    m_hwInterface   = (CodechalHwInterfaceNext *)hwInterface;
     m_componentType = componentType;
     m_secondaryCmdBuffers.clear();
     m_resSemaphoreAllPipes.clear();
@@ -625,8 +625,8 @@ MOS_STATUS DecodeScalabilityMultiPipeNext::CreateDecodeMultiPipe(void *hwInterfa
     SCALABILITY_CHK_NULL_RETURN(hwInterface);
     SCALABILITY_CHK_NULL_RETURN(mediaContext);
 
-    ((CodechalHwInterface *)hwInterface)->m_hwInterfaceNext->m_multiPipeScalability = MOS_New(DecodeScalabilityMultiPipeNext, hwInterface, mediaContext, scalabilityDecoder);
-    SCALABILITY_CHK_NULL_RETURN(((CodechalHwInterface *)hwInterface)->m_hwInterfaceNext->m_multiPipeScalability);
+    ((CodechalHwInterfaceNext *)hwInterface)->m_multiPipeScalability = MOS_New(DecodeScalabilityMultiPipeNext, hwInterface, mediaContext, scalabilityDecoder);
+    SCALABILITY_CHK_NULL_RETURN(((CodechalHwInterfaceNext *)hwInterface)->m_multiPipeScalability);
     return eStatus;
 }
 

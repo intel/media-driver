@@ -85,7 +85,7 @@ namespace encode
     class Av1BrcInitPkt : public EncodeHucPkt
     {
     public:
-        Av1BrcInitPkt(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterface *hwInterface) :
+        Av1BrcInitPkt(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterfaceNext *hwInterface) :
             EncodeHucPkt(pipeline, task, hwInterface)
         {
         }

@@ -38,7 +38,14 @@ public:
         CodechalHwInterface *   hwInterface,
         CodechalDebugInterface *debugInterface);
 
-    virtual ~DecodeMpeg2PipelineAdapterM12() {}
+    virtual ~DecodeMpeg2PipelineAdapterM12()
+    {
+        if (m_hwInterface)
+        {
+            MOS_Delete(m_hwInterface);
+            Codechal::m_hwInterface = nullptr;
+        }
+    }
 
     virtual MOS_STATUS BeginFrame() override;
 
@@ -75,6 +82,7 @@ public:
 
 protected:
     std::shared_ptr<decode::Mpeg2PipelineM12> m_decoder;
-MEDIA_CLASS_DEFINE_END(DecodeMpeg2PipelineAdapterM12)
+    CodechalHwInterface                      *m_hwInterface = nullptr;
+    MEDIA_CLASS_DEFINE_END(DecodeMpeg2PipelineAdapterM12)
 };
 #endif // !__DECODE_MPEG2_PIPELINE_ADAPTER_M12_H__

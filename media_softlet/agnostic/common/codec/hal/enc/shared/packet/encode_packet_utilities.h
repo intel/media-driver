@@ -30,7 +30,7 @@
 #include "mhw_mi.h"
 #include "mos_util_debug.h"
 #include "encode_utils.h"
-#include "codechal_hw.h"
+#include "codec_hw_next.h"
 #include "codechal_debug.h"
 #include "encode_basic_feature.h"
 #include "mhw_vdbox.h"
@@ -40,7 +40,7 @@ namespace encode
 class PacketUtilities
 {
 public:
-    PacketUtilities(CodechalHwInterface *hwInterface, MediaFeatureManager *featureManager);
+    PacketUtilities(CodechalHwInterfaceNext *hwInterface, MediaFeatureManager *featureManager);
 
     ~PacketUtilities();
 
@@ -156,7 +156,7 @@ public:
 
 protected:
     MediaFeatureManager     *m_featureManager = nullptr;
-    CodechalHwInterface     *m_hwInterface = nullptr;
+    CodechalHwInterfaceNext     *m_hwInterface = nullptr;
     MhwMiInterface          *m_miInterface  = nullptr;
 
     MHW_VDBOX_NODE_IND m_vdboxIndex = MHW_VDBOX_NODE_1;

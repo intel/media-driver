@@ -29,7 +29,7 @@
 
 #include "media_feature.h"
 #include "encode_allocator.h"
-#include "codechal_hw.h"
+#include "codec_hw_next.h"
 #include "encode_basic_feature.h"
 #include "encode_pipeline.h"
 #include "encode_status_report.h"
@@ -42,7 +42,7 @@ namespace encode
     class HevcEncodeDss : public MediaFeature
     {
     public:
-        HevcEncodeDss(MediaFeatureManager *featureManager, EncodeAllocator *allocator, CodechalHwInterface *hwInterface, void *constSettings);
+        HevcEncodeDss(MediaFeatureManager *featureManager, EncodeAllocator *allocator, CodechalHwInterfaceNext *hwInterface, void *constSettings);
 
         ~HevcEncodeDss() {}
 
@@ -107,7 +107,7 @@ namespace encode
         const CODEC_HEVC_ENCODE_SEQUENCE_PARAMS *m_hevcSeqParams   = nullptr;  //!< Pointer to sequence parameter
         const CODEC_HEVC_ENCODE_SLICE_PARAMS *   m_hevcSliceParams = nullptr;  //!< Pointer to slice parameter
         EncodeAllocator *                        m_allocator       = nullptr;
-        CodechalHwInterface *                    m_hwInterface     = nullptr;
+        CodechalHwInterfaceNext *                m_hwInterface     = nullptr;
         EncodeBasicFeature *                     m_basicFeature    = nullptr;  //!< EncodeBasicFeature
         MOS_RESOURCE                             m_resSliceReport[CODECHAL_ENCODE_STATUS_NUM] = {};
         PMOS_RESOURCE                            m_resSliceCountBuffer     = nullptr;  //!< Resource of slice count buffer

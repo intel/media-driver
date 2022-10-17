@@ -20,4 +20,15 @@
 
 media_include_subdirectory(pipeline)
 
+set(TMP_SOURCES_
+    ${TMP_SOURCES_}
+    ${CMAKE_CURRENT_LIST_DIR}/decode_input_bitstream_m12.cpp
+)
+
+set(TMP_HEADERS_
+    ${TMP_HEADERS_}
+    ${CMAKE_CURRENT_LIST_DIR}/decode_input_bitstream_m12.h
+)
+
 media_add_curr_to_include_path()
+

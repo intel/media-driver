@@ -33,6 +33,7 @@
 #include "decode_av1_tile_coding_g12.h"
 #include "mhw_vdbox_avp_interface.h"
 #include "decode_internal_target.h"
+#include "codechal_hw.h"
 
 namespace decode
 {
@@ -43,12 +44,13 @@ namespace decode
         //! \brief  Av1BasicFeatureG12 constructor
         //!
         Av1BasicFeatureG12(DecodeAllocator *allocator, void *hwInterface, PMOS_INTERFACE osInterface) :
-            DecodeBasicFeature(allocator, hwInterface, osInterface) // After HwNext rebase, need update to DecodeBasicFeature(allocator, *hwInterface, osInterface)
+            DecodeBasicFeature(allocator, hwInterface ? ((CodechalHwInterface*)hwInterface)->m_hwInterfaceNext : nullptr, osInterface)
         {
             if (osInterface != nullptr)
             {
                 m_osInterface = osInterface;
             }
+            m_hwInterface = (CodechalHwInterface*)hwInterface;
         };
 
         //!
@@ -162,6 +164,8 @@ namespace decode
 
         MhwVdboxAvpInterface *m_avpInterface = nullptr;
         PMOS_INTERFACE        m_osInterface  = nullptr;
+        CodechalHwInterface  *m_hwInterface  = nullptr;
+
     MEDIA_CLASS_DEFINE_END(decode__Av1BasicFeatureG12)
     };
 

@@ -40,7 +40,7 @@ public:
     //!           Debug interface
     //!
     DecodePipelineAdapter(
-        CodechalHwInterface    *hwInterface,
+        CodechalHwInterfaceNext *hwInterface,
         CodechalDebugInterface *debugInterface) : Codechal(hwInterface, debugInterface)
     {
         m_apogeiosEnable = true;

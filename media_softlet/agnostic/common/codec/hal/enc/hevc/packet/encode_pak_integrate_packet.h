@@ -30,7 +30,7 @@
 #include "media_cmd_packet.h"
 #include "encode_huc.h"
 #include "media_pipeline.h"
-#include "codechal_hw.h"
+#include "codec_hw_next.h"
 #include "encode_utils.h"
 #include "encode_hevc_vdenc_pipeline.h"
 #include "encode_hevc_basic_feature.h"
@@ -124,7 +124,7 @@ public:
         } InputCOM[10];
     };
 
-    HevcPakIntegratePkt(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterface *hwInterface) : EncodeHucPkt(pipeline, task, hwInterface)
+    HevcPakIntegratePkt(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterfaceNext *hwInterface) : EncodeHucPkt(pipeline, task, hwInterface)
     {
         m_hcpItf = std::static_pointer_cast<mhw::vdbox::hcp::Itf>(hwInterface->GetHcpInterfaceNext());
         ENCODE_CHK_NULL_NO_STATUS_RETURN(m_hcpItf);

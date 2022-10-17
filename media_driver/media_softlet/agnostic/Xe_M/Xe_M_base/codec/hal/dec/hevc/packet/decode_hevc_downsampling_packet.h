@@ -44,7 +44,7 @@ public:
     //!
     //! \brief  Decode down sampling sub packet constructor
     //!
-    HevcDownSamplingPkt(DecodePipeline *pipeline, CodechalHwInterface *hwInterface);
+    HevcDownSamplingPkt(DecodePipeline *pipeline, CodechalHwInterfaceNext *hwInterface);
 
     virtual ~HevcDownSamplingPkt() {}
 

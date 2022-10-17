@@ -46,7 +46,7 @@ public:
     //!
     //! \brief  Decode down sampling sub packet constructor
     //!
-    DecodeDownSamplingPkt(DecodePipeline *pipeline, CodechalHwInterface *hwInterface);
+    DecodeDownSamplingPkt(DecodePipeline *pipeline, CodechalHwInterfaceNext *hwInterface);
 
     //!
     //! \brief  Decode down sampling sub packet destructor

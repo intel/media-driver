@@ -27,6 +27,7 @@
 #define __ENCODE_TILE_H__
 #include "encode_basic_feature.h"
 #include "encode_pipeline.h"
+#include "codechal_encoder_base.h"
 
 namespace encode
 {
@@ -155,7 +156,7 @@ class EncodeTile : public MediaFeature
 public:
     EncodeTile(MediaFeatureManager *featureManager,
         EncodeAllocator *allocator,
-        CodechalHwInterface *hwInterface,
+        CodechalHwInterfaceNext *hwInterface,
         void *constSettings);
 
     virtual ~EncodeTile();
@@ -474,10 +475,10 @@ protected:
     //!
     virtual MOS_STATUS AllocateTileStatistics(void *params) = 0;
 
-    EncodeAllocator      *m_allocator         = nullptr;  //!< Allocator used in tile feature
-    EncodeBasicFeature   *m_basicFeature      = nullptr;  //!< EncodeBasicFeature
-    CodechalHwInterface  *m_hwInterface       = nullptr;  //!< Hw interface as utilities
-    MediaFeatureManager  *m_featureManager    = nullptr;  //!< Pointer to feature manager
+    EncodeAllocator          *m_allocator         = nullptr;  //!< Allocator used in tile feature
+    EncodeBasicFeature       *m_basicFeature      = nullptr;  //!< EncodeBasicFeature
+    CodechalHwInterfaceNext  *m_hwInterface       = nullptr;  //!< Hw interface as utilities
+    MediaFeatureManager      *m_featureManager    = nullptr;  //!< Pointer to feature manager
 
     EncodeTileData       *m_tileData          = nullptr;  //!< Pointer to the Tile data array
     uint32_t              m_numTiles          = 1;        //!< Total tile numbers

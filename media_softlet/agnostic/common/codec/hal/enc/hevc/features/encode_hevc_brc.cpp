@@ -35,7 +35,7 @@ namespace encode
     HEVCEncodeBRC::HEVCEncodeBRC(
         MediaFeatureManager *featureManager,
         EncodeAllocator *allocator,
-        CodechalHwInterface *hwInterface,
+        CodechalHwInterfaceNext *hwInterface,
         void *constSettings) :
         MediaFeature(constSettings, hwInterface ? hwInterface->GetOsInterface() : nullptr),
         m_hwInterface(hwInterface),

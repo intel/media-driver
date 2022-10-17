@@ -33,7 +33,7 @@
 namespace decode
 {
 
-DecodeSubPacket::DecodeSubPacket(DecodePipeline *pipeline, CodechalHwInterface *hwInterface)
+DecodeSubPacket::DecodeSubPacket(DecodePipeline *pipeline, CodechalHwInterfaceNext *hwInterface)
     : m_pipeline(pipeline), m_hwInterface(hwInterface)
 {
     if (m_pipeline != nullptr)
@@ -44,7 +44,6 @@ DecodeSubPacket::DecodeSubPacket(DecodePipeline *pipeline, CodechalHwInterface *
     if (m_hwInterface != nullptr)
     {
         m_osInterface   = hwInterface->GetOsInterface();
-        m_miInterface   = hwInterface->GetMiInterface();
     }
 }
 

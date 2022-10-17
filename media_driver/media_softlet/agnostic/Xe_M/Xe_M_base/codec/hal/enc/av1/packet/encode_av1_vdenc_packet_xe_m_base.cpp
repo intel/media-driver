@@ -68,7 +68,7 @@ namespace encode
         m_resCumulativeCuCountStreamoutBuffer = m_allocator->AllocateResource(allocParams, false);
         if (m_resCumulativeCuCountStreamoutBuffer == nullptr)
         {
-            ENCODE_ASSERTMESSAGE("Failed to allocate VDEnc Cumulative CU Count Streamout Surface.");
+            CODECHAL_ENCODE_ASSERTMESSAGE("Failed to allocate VDEnc Cumulative CU Count Streamout Surface.");
             return MOS_STATUS_UNKNOWN;
         }
 
@@ -83,7 +83,7 @@ namespace encode
 
         if (m_basicFeature->m_resMfdIntraRowStoreScratchBuffer == nullptr)
         {
-            ENCODE_ASSERTMESSAGE("Failed to allocate VDEnc Tile Row Store Buffer.");
+            CODECHAL_ENCODE_ASSERTMESSAGE("Failed to allocate VDEnc Tile Row Store Buffer.");
             return MOS_STATUS_UNKNOWN;
         }
 
@@ -94,7 +94,7 @@ namespace encode
 
         if (m_vdencTileRowStoreBuffer == nullptr)
         {
-            ENCODE_ASSERTMESSAGE("Failed to allocate VDEnc Tile Row Store Buffer.");
+            CODECHAL_ENCODE_ASSERTMESSAGE("Failed to allocate VDEnc Tile Row Store Buffer.");
             return MOS_STATUS_UNKNOWN;
         }
 
@@ -315,7 +315,7 @@ namespace encode
         syncParams.GpuContext = m_osInterface->pfnGetGpuContext(m_osInterface);
         syncParams.presSyncResource = &m_basicFeature->m_rawSurface.OsResource;
         syncParams.bReadOnly = true;
-        ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnResourceWait(m_osInterface, &syncParams));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnResourceWait(m_osInterface, &syncParams));
         m_osInterface->pfnSetResourceSyncTag(m_osInterface, &syncParams);
 
         // Set flag to boost GPU frequency for low latency in remote gaming scenario
@@ -501,7 +501,7 @@ namespace encode
             ENCODE_CHK_NULL_RETURN(tileLevelBatchBuffer);
             tileLevelBatchBuffer->iCurrent = constructTileBatchBuf.iOffset;
             tileLevelBatchBuffer->iRemaining = constructTileBatchBuf.iRemaining;
-            ENCODE_CHK_STATUS_RETURN(m_miItf->AddMiBatchBufferEnd(nullptr, tileLevelBatchBuffer));
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miItf->AddMiBatchBufferEnd(nullptr, tileLevelBatchBuffer));
         }
 
     #if MHW_HWCMDPARSER_ENABLED
@@ -648,9 +648,6 @@ namespace encode
         ENCODE_CHK_NULL_RETURN(statusReport);
         ENCODE_CHK_NULL_RETURN(m_hwInterface);
 
-        auto hwInterfaceG12 = dynamic_cast<CodechalHwInterfaceG12 *>(m_hwInterface);
-        ENCODE_CHK_NULL_RETURN(hwInterfaceG12);
-
         MOS_RESOURCE *osResource    = nullptr;
         uint32_t     offset         = 0;
 
@@ -673,9 +670,51 @@ namespace encode
         params.resImageStatusCtrl    = osResource;
         params.imageStatusCtrlOffset = offset;
 
-        ENCODE_CHK_STATUS_RETURN(hwInterfaceG12->ReadAvpStatus(vdboxIndex, params, &cmdBuffer));
+        //hwInterfaceG12->ReadAvpStatus
+        //auto hwInterfaceG12 = dynamic_cast<CodechalHwInterfaceG12 *>(m_hwInterface);
+        //ENCODE_CHK_NULL_RETURN(hwInterfaceG12);
+        //ENCODE_CHK_STATUS_RETURN(hwInterfaceG12->ReadAvpStatus(vdboxIndex, params, &cmdBuffer));
+        CODECHAL_HW_CHK_COND_RETURN((vdboxIndex > m_hwInterface->GetMaxVdboxIndex()), "ERROR - vdbox index exceed the maximum");
 
-        ENCODE_CHK_STATUS_RETURN(hwInterfaceG12->ReadImageStatusForAvp(vdboxIndex, params, &cmdBuffer));
+        auto &flushDwParams = m_miItf->MHW_GETPAR_F(MI_FLUSH_DW)();
+        flushDwParams       = {};
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(&cmdBuffer));
+
+        CODECHAL_HW_CHK_NULL_RETURN(m_avpItf);
+        auto mmioRegisters = m_avpItf->GetMmioRegisters(vdboxIndex);
+
+        auto &miStoreRegMemParams           = m_miItf->MHW_GETPAR_F(MI_STORE_REGISTER_MEM)();
+        miStoreRegMemParams                 = {};
+        miStoreRegMemParams.presStoreBuffer = params.resBitstreamByteCountPerFrame;
+        miStoreRegMemParams.dwOffset        = params.bitstreamByteCountPerFrameOffset;
+        miStoreRegMemParams.dwRegister      = mmioRegisters->avpAv1BitstreamByteCountTileRegOffset;
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_REGISTER_MEM)(&cmdBuffer));
+
+        miStoreRegMemParams                 = {};
+        miStoreRegMemParams.presStoreBuffer = params.resQpStatusCount;
+        miStoreRegMemParams.dwOffset        = params.qpStatusCountOffset;
+        miStoreRegMemParams.dwRegister      = mmioRegisters->avpAv1QpStatusCountRegOffset;
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_REGISTER_MEM)(&cmdBuffer));
+
+        //ENCODE_CHK_STATUS_RETURN(hwInterfaceG12->ReadImageStatusForAvp(vdboxIndex, params, &cmdBuffer));
+        //std::shared_ptr<mhw::vdbox::avp::Itf> m_avpItf = GetAvpInterfaceNext();
+        //CODECHAL_HW_CHK_NULL_RETURN(m_avpItf);
+        //auto mmioRegisters = m_avpItf->GetMmioRegisters(vdboxIndex);
+
+        miStoreRegMemParams                 = {};
+        miStoreRegMemParams.presStoreBuffer = params.resImageStatusMask;
+        miStoreRegMemParams.dwOffset        = params.imageStatusMaskOffset;
+        miStoreRegMemParams.dwRegister      = mmioRegisters->avpAv1ImageStatusMaskRegOffset;
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_REGISTER_MEM)(&cmdBuffer));
+
+        miStoreRegMemParams                 = {};
+        miStoreRegMemParams.presStoreBuffer = params.resImageStatusCtrl;
+        miStoreRegMemParams.dwOffset        = params.imageStatusCtrlOffset;
+        miStoreRegMemParams.dwRegister      = mmioRegisters->avpAv1ImageStatusControlRegOffset;
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_REGISTER_MEM)(&cmdBuffer));
+
+        flushDwParams       = {};
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(&cmdBuffer));
 
         return eStatus;
     }
@@ -806,7 +845,7 @@ namespace encode
                 uint32_t nalUnitSize   = m_nalUnitParams[i]->uiSize;
                 uint32_t nalUnitOffset = m_nalUnitParams[i]->uiOffset;
 
-                ENCODE_ASSERT(nalUnitSize < CODECHAL_ENCODE_AV1_PAK_INSERT_UNCOMPRESSED_HEADER);
+                CODECHAL_ENCODE_ASSERT(nalUnitSize < CODECHAL_ENCODE_AV1_PAK_INSERT_UNCOMPRESSED_HEADER);
 
                 params.bitSize    = nalUnitSize * 8;
                 params.offset     = nalUnitOffset;
@@ -860,7 +899,7 @@ namespace encode
 
         MHW_VDBOX_STATE_CMDSIZE_PARAMS_G12 stateCmdSizeParams;
         MOS_ZeroMemory(&stateCmdSizeParams, sizeof(MHW_VDBOX_STATE_CMDSIZE_PARAMS_G12));
-        ENCODE_CHK_STATUS_RETURN(
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(
             m_hwInterface->GetAvpStateCommandSize(
                 CODECHAL_ENCODE_MODE_AV1,
                 commandsSize,
@@ -878,13 +917,13 @@ namespace encode
         uint32_t avpTilePatchListSize    = 0;
 
         // Picture Level Commands
-        ENCODE_CHK_STATUS_RETURN(CalculateAvpPictureStateCommandSize(&avpPictureStatesSize, &avpPicturePatchListSize));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(CalculateAvpPictureStateCommandSize(&avpPictureStatesSize, &avpPicturePatchListSize));
 
         m_pictureStatesSize += avpPictureStatesSize;
         m_picturePatchListSize += avpPicturePatchListSize;
 
         // Tile Level Commands
-        ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetAvpPrimitiveCommandSize(
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetAvpPrimitiveCommandSize(
             CODECHAL_ENCODE_MODE_AV1,
             &avpTileStatesSize,
             &avpTilePatchListSize));

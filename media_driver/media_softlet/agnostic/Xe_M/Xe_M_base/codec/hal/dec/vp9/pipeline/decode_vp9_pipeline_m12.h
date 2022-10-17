@@ -82,6 +82,14 @@ public:
     //!
     virtual MOS_STATUS CreatePostSubPipeLines(DecodeSubPipelineManager &subPipelineManager) override;
 
+    //!
+    //! \brief  Create pre sub packets
+    //! \param  [in] subPipelineManager
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS CreatePreSubPipeLines(DecodeSubPipelineManager &subPipelineManager) override;
+
 
 protected:
     virtual MOS_STATUS Initialize(void *settings) override;
@@ -123,7 +131,7 @@ protected:
     //!
     MOS_STATUS DumpParams(Vp9BasicFeature &basicFeature);
 #endif
-
+    CodechalHwInterface *m_hwInterface = nullptr;
 #if MOS_EVENT_TRACE_DUMP_SUPPORTED
     MOS_STATUS TraceDataDumpInternalBuffers(Vp9BasicFeature &basicFeature);
 #endif

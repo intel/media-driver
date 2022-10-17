@@ -29,7 +29,7 @@
 namespace decode
 {
 
-DecodePredicationPkt::DecodePredicationPkt(DecodePipeline *pipeline, CodechalHwInterface *hwInterface)
+DecodePredicationPkt::DecodePredicationPkt(DecodePipeline *pipeline, CodechalHwInterfaceNext *hwInterface)
     : DecodeSubPacket(pipeline, hwInterface)
 {}
 
@@ -69,7 +69,7 @@ MOS_STATUS DecodePredicationPkt::Execute(MOS_COMMAND_BUFFER& cmdBuffer)
     // Skip current frame if presPredication is not equal to zero
     if (m_predication->m_predicationNotEqualZero)
     {
-        auto mmioRegistersMfx = m_hwInterface->SelectVdboxAndGetMmioRegister(MHW_VDBOX_NODE_1, &cmdBuffer);
+        auto mmioRegistersMfx = m_hwInterface->SelectVdAndGetMmioReg(MHW_VDBOX_NODE_1, &cmdBuffer);
         MHW_MI_FLUSH_DW_PARAMS  flushDwParams;
         MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
         DECODE_CHK_STATUS(m_miInterface->AddMiFlushDwCmd(&cmdBuffer, &flushDwParams));

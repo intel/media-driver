@@ -57,7 +57,7 @@ public:
     HevcVdencRoi(
         MediaFeatureManager *featureManager,
         EncodeAllocator *allocator,
-        CodechalHwInterface *hwInterface,
+        CodechalHwInterfaceNext *hwInterface,
         void *constSettings);
 
     virtual ~HevcVdencRoi() {}
@@ -251,7 +251,7 @@ protected:
 
     EncodeAllocator *m_allocator = nullptr;
     EncodeBasicFeature *m_basicFeature = nullptr;
-    CodechalHwInterface *m_hwInterface = nullptr;
+    CodechalHwInterfaceNext *m_hwInterface = nullptr;
     PMOS_INTERFACE m_osInterface = nullptr;
 
     bool IFrameIsSet = false;

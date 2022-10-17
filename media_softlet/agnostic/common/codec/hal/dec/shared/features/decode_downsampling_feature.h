@@ -31,7 +31,7 @@
 #include "codec_def_decode.h"
 #include "decode_allocator.h"
 #include "media_feature.h"
-#include "codechal_hw.h"
+#include "codec_hw_next.h"
 #include "codechal_setting.h"
 #include "decode_internal_target.h"
 

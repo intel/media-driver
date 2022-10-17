@@ -32,7 +32,7 @@ namespace encode
     HEVCVdencLplaEnc::HEVCVdencLplaEnc(
         MediaFeatureManager *featureManager,
         EncodeAllocator     *allocator,
-        CodechalHwInterface *hwInterface,
+        CodechalHwInterfaceNext *hwInterface,
         void                *constSettings) :
         MediaFeature(constSettings)
     {

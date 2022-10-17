@@ -1206,7 +1206,7 @@ namespace encode
         uint32_t hucCommandsSize = 0;
         uint32_t hucPatchListSize = 0;
 
-        MHW_VDBOX_STATE_CMDSIZE_PARAMS stateCmdSizeParams;
+        MHW_VDBOX_STATE_CMDSIZE_PARAMS_G12 stateCmdSizeParams;
         
         hcpCommandsSize =
             m_vdencItf->MHW_GETSIZE_F(VD_PIPELINE_FLUSH)() +
@@ -1266,7 +1266,7 @@ namespace encode
         auto cpInterface = m_hwInterface->GetCpInterface();
         cpInterface->GetCpStateLevelCmdSize(cpCmdsize, cpPatchListSize);
 
-        m_hwInterface->m_hwInterfaceNext->GetHucStateCommandSize(
+        m_hwInterface->GetHucStateCommandSize(
             m_basicFeature->m_mode, (uint32_t *)&hucCommandsSize, (uint32_t *)&hucPatchListSize, &stateCmdSizeParams);
 
         m_defaultPictureStatesSize    = hcpCommandsSize + hucCommandsSize + (uint32_t)cpCmdsize;
@@ -1450,7 +1450,7 @@ namespace encode
         rowStoreParams.ucLCUSize        = 1 << (m_hevcSeqParams->log2_max_coding_block_size_minus3 + 3);
         // VDEnc only support LCU64 for now
         ENCODE_ASSERT(rowStoreParams.ucLCUSize == m_basicFeature->m_maxLCUSize);
-        ENCODE_CHK_STATUS_RETURN(m_hwInterface->m_hwInterfaceNext->SetRowstoreCachingOffsets(&rowStoreParams));
+        ENCODE_CHK_STATUS_RETURN(m_hwInterface->SetRowstoreCachingOffsets(&rowStoreParams));
 
         if (m_vdencItf)
         {
@@ -1530,7 +1530,7 @@ namespace encode
         ENCODE_FUNC_CALL();
 
         MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-        if (vdboxIndex > m_hwInterface->m_hwInterfaceNext->GetMaxVdboxIndex())
+        if (vdboxIndex > m_hwInterface->GetMaxVdboxIndex())
         {
             ENCODE_ASSERTMESSAGE("ERROR - vdbox index exceed the maximum");
             eStatus = MOS_STATUS_INVALID_PARAMETER;
@@ -1803,8 +1803,7 @@ namespace encode
         params.resNumSlices    = osResource;
         params.numSlicesOffset = offset;
 
-        ENCODE_CHK_NULL_RETURN(m_hwInterface->m_hwInterfaceNext);
-        ENCODE_CHK_STATUS_RETURN(m_hwInterface->m_hwInterfaceNext->ReadHcpStatus(vdboxIndex, params, &cmdBuffer));
+        ENCODE_CHK_STATUS_RETURN(m_hwInterface->ReadHcpStatus(vdboxIndex, params, &cmdBuffer));
 
         // Slice Size Conformance
         if (m_hevcSeqParams->SliceSizeControl)
@@ -1826,8 +1825,7 @@ namespace encode
             miStoreRegMemParams.dwRegister      = mmioRegisters->hcpEncBitstreamBytecountFrameRegOffset;
             ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_REGISTER_MEM)(&cmdBuffer));
         }
-        ENCODE_CHK_NULL_RETURN(m_hwInterface->m_hwInterfaceNext);
-        ENCODE_CHK_STATUS_RETURN(m_hwInterface->m_hwInterfaceNext->ReadImageStatusForHcp(vdboxIndex, params, &cmdBuffer));
+        ENCODE_CHK_STATUS_RETURN(m_hwInterface->ReadImageStatusForHcp(vdboxIndex, params, &cmdBuffer));
         return eStatus;
     }
 
@@ -2411,8 +2409,7 @@ namespace encode
         // Intra/Inter/Skip CU Cnt
         auto xCalAtomic = [&](PMOS_RESOURCE presDst, uint32_t dstOffset, PMOS_RESOURCE presSrc, uint32_t srcOffset, mhw::mi::MHW_COMMON_MI_ATOMIC_OPCODE opCode) {
 
-            auto mmioRegisters = m_hwInterface->m_hwInterfaceNext->GetVdencInterfaceNext()->GetMmioRegisters(m_vdboxIndex);
-
+            auto mmioRegisters = m_hwInterface->GetVdencInterfaceNext()->GetMmioRegisters(m_vdboxIndex);
             auto &miLoadRegMemParams = m_miItf->MHW_GETPAR_F(MI_LOAD_REGISTER_MEM)();
             auto &flushDwParams      = m_miItf->MHW_GETPAR_F(MI_FLUSH_DW)();
             auto &atomicParams       = m_miItf->MHW_GETPAR_F(MI_ATOMIC)();

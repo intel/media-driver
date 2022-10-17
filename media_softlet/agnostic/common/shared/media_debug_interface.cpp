@@ -28,7 +28,7 @@
 #if USE_MEDIA_DEBUG_TOOL
 #include "media_debug_config_manager.h"
 #include "media_debug_fast_dump.h"
-#include "codechal_hw.h"
+#include "codec_hw_next.h"
 #include <fstream>
 #include <sstream>
 #include <iomanip>

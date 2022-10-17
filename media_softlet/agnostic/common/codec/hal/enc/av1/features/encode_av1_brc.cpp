@@ -34,7 +34,7 @@ namespace encode
     Av1Brc::Av1Brc(
         MediaFeatureManager *featureManager,
         EncodeAllocator *allocator,
-        CodechalHwInterface *hwInterface,
+        CodechalHwInterfaceNext *hwInterface,
         void *constSettings) :
         MediaFeature(constSettings, hwInterface ? hwInterface->GetOsInterface() : nullptr),
         m_hwInterface(hwInterface),
@@ -234,7 +234,7 @@ namespace encode
                 if ((dmem->UPD_CurrFrameType == AV1_BRC_FRAME_TYPE_INVALID) ||
                     (m_basicFeature->m_ref.IsLowDelay() && dmem->UPD_CurrFrameType == AV1_BRC_FRAME_TYPE_B2))
                 {
-                    ENCODE_ASSERTMESSAGE("AV1_BRC_FRAME_TYPE_INVALID or LBD picture doesn't support Level 4\n");
+                    CODECHAL_ENCODE_ASSERTMESSAGE("AV1_BRC_FRAME_TYPE_INVALID or LBD picture doesn't support Level 4\n");
                     return MOS_STATUS_INVALID_PARAMETER;
                 }
             }

@@ -91,7 +91,7 @@ inline uint32_t GetUseInterVsSkipSADWinner(uint32_t MrgCand8x8DepEn, uint32_t Mr
 class Av1VdencPkt : public CmdPacket, public MediaStatusReportObserver, public mhw::vdbox::vdenc::Itf::ParSetting, public mhw::vdbox::avp::Itf::ParSetting
 {
 public:
-    Av1VdencPkt(MediaPipeline* pipeline, MediaTask* task, CodechalHwInterface* hwInterface);
+    Av1VdencPkt(MediaPipeline* pipeline, MediaTask* task, CodechalHwInterfaceNext* hwInterface);
     virtual ~Av1VdencPkt() {}
 
     //!
@@ -248,7 +248,7 @@ protected:
     // Interfaces
     EncodeAllocator                 *m_allocator        = nullptr;
     PMOS_INTERFACE                   m_osInterface      = nullptr;
-    CodechalHwInterface             *m_hwInterface      = nullptr;
+    CodechalHwInterfaceNext         *m_hwInterface      = nullptr;
     CodechalHwInterfaceNext         *m_hwInterfaceNext  = nullptr;
     EncodeMemComp                   *m_mmcState         = nullptr;
     Av1BasicFeature                 *m_basicFeature     = nullptr;              //!< Encode parameters used in each frame

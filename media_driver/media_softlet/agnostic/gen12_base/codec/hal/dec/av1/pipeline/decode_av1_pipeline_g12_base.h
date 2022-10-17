@@ -128,6 +128,14 @@ protected:
     //!
     virtual MOS_STATUS CreatePostSubPipeLines(DecodeSubPipelineManager &subPipelineManager) override;
 
+    //!
+    //! \brief  Create pre sub packets
+    //! \param  [in] subPipelineManager
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS CreatePreSubPipeLines(DecodeSubPipelineManager &subPipelineManager) override;
+
 #if USE_CODECHAL_DEBUG_TOOL
         //! \brief    Dump the parameters
         //!
@@ -166,6 +174,7 @@ protected:
     uint16_t       m_passNum          = 1;                //!< Decode pass number
     bool           m_isFirstTileInFrm = true;             //!< First tile in the first frame
     bool           m_forceTileBasedDecoding = false;      //!< Force tile based decoding
+    CodechalHwInterface *m_hwInterface            = nullptr;
 MEDIA_CLASS_DEFINE_END(decode__Av1PipelineG12_Base)
 };
 

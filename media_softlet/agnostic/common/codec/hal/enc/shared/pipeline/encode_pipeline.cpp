@@ -37,7 +37,7 @@
 
 namespace encode {
 EncodePipeline::EncodePipeline(
-    CodechalHwInterface *hwInterface,
+    CodechalHwInterfaceNext *hwInterface,
     CodechalDebugInterface *debugInterface):
       MediaPipeline(hwInterface ? hwInterface->GetOsInterface() : nullptr),
       m_hwInterface(hwInterface)

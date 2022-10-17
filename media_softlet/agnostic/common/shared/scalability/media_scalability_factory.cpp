@@ -169,7 +169,7 @@ MediaScalability *MediaScalabilityFactory<T>::CreateDecodeScalability(T params, 
 
     //Create scalability handle refer to scalability option.
     MediaScalability *scalabilityHandle = nullptr;
-    CodechalHwInterfaceNext *codecHwInterface  = ((CodechalHwInterface *)hwInterface)->m_hwInterfaceNext;
+    CodechalHwInterfaceNext *codecHwInterface  = ((CodechalHwInterfaceNext *)hwInterface);
     if (codecHwInterface->pfnCreateDecodeSinglePipe == nullptr || codecHwInterface->pfnCreateDecodeMultiPipe == nullptr)
     {
         SCALABILITY_ASSERTMESSAGE("Scalability pointer is null!");

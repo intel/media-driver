@@ -34,7 +34,7 @@ namespace encode
     HevcVdencScc::HevcVdencScc(
         MediaFeatureManager *featureManager,
         EncodeAllocator *allocator,
-        CodechalHwInterface *hwInterface,
+        CodechalHwInterfaceNext *hwInterface,
         void *constSettings) :
         MediaFeature(constSettings, hwInterface ? hwInterface->GetOsInterface() : nullptr)
     {
@@ -180,7 +180,7 @@ namespace encode
             allocParamsForBuffer2D.CompressionMode = MOS_MMC_MC;
         }
         allocParamsForBuffer2D.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
-        ENCODE_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
+        CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
                     m_osInterface,
                     &allocParamsForBuffer2D,
                     &m_vdencRecNotFilteredBuffer),

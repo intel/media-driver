@@ -39,10 +39,13 @@ class HevcDecodeSlcPktXe_M_Base : public DecodeSubPacket
 {
 public:
     HevcDecodeSlcPktXe_M_Base(HevcPipeline *pipeline, CodechalHwInterface *hwInterface)
-        : DecodeSubPacket(pipeline, hwInterface), m_hevcPipeline(pipeline)
+        : DecodeSubPacket(pipeline, *hwInterface), m_hevcPipeline(pipeline)
     {
+        m_hwInterface = hwInterface;
         if (m_hwInterface != nullptr)
         {
+            m_miInterface  = m_hwInterface->GetMiInterface();
+            m_osInterface  = m_hwInterface->GetOsInterface();
             m_hcpInterface  = hwInterface->GetHcpInterface();
         }
     }
@@ -115,6 +118,8 @@ protected:
     MhwVdboxHcpInterface * m_hcpInterface     = nullptr;
     HevcBasicFeature *     m_hevcBasicFeature = nullptr;
     DecodeAllocator *      m_allocator        = nullptr;
+    CodechalHwInterface   *m_hwInterface      = nullptr;
+    MhwMiInterface        *m_miInterface      = nullptr;
 
     // Parameters passed from application
     PCODEC_HEVC_PIC_PARAMS       m_hevcPicParams = nullptr;      //!< Pointer to picture parameter

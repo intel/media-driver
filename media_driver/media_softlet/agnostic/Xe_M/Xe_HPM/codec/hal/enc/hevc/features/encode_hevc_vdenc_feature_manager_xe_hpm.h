@@ -49,7 +49,7 @@ public:
     //!         Pointer to RecycleResource
     //!
     EncodeHevcVdencFeatureManagerXe_Hpm(EncodeAllocator *allocator,
-                             CodechalHwInterface *hwInterface,
+                             CodechalHwInterfaceNext *hwInterface,
                              TrackedBuffer       *trackedBuf,
                              RecycleResource     *recycleBuf):
                              EncodeHevcVdencFeatureManagerXe_Xpm_Base(allocator, hwInterface, trackedBuf, recycleBuf){};

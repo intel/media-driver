@@ -53,11 +53,11 @@ namespace encode
     class Av1VdencPktXe_M_Base : public Av1VdencPkt
     {
     public:
-        Av1VdencPktXe_M_Base(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterface *hwInterface) :
+        Av1VdencPktXe_M_Base(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterfaceNext *hwInterface) :
             Av1VdencPkt(pipeline, task, hwInterface)
         {
-            auto hwInterfaceG12 = dynamic_cast<CodechalHwInterfaceG12 *>(m_hwInterface);
-            ENCODE_CHK_NULL_NO_STATUS_RETURN(hwInterfaceG12);
+            //auto hwInterfaceG12 = dynamic_cast<CodechalHwInterfaceG12 *>(m_hwInterface);
+            //ENCODE_CHK_NULL_NO_STATUS_RETURN(hwInterfaceG12);
         }
 
         virtual ~Av1VdencPktXe_M_Base() {}

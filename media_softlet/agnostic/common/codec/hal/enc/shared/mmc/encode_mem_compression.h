@@ -30,7 +30,7 @@
 #define __MEDIA_ENCODE_MEM_COMPRESSION_H__
 
 #include "media_mem_compression.h"
-#include "codechal_hw.h"
+#include "codec_hw_next.h"
 #include "mhw_mi_itf.h"
 
 class EncodeMemComp : public MediaMemComp
@@ -39,7 +39,7 @@ public:
     //!
     //! \brief    Construct
     //!
-    EncodeMemComp(CodechalHwInterface *hwInterface);
+    EncodeMemComp(CodechalHwInterfaceNext *hwInterface);
 
     //!
     //! \brief    Copy constructor
@@ -65,7 +65,7 @@ protected:
     bool                    m_userFeatureUpdated = false; //!< Inidate if mmc user feature key for recon is updated
 #endif
 
-    void InitEncodeMmc(CodechalHwInterface *hwInterface);
+    void InitEncodeMmc(CodechalHwInterfaceNext *hwInterface);
 
     bool m_mmcEnabledForEncode = false;                  //!< Indicate if mmc is enabled for encode
     

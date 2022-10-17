@@ -39,14 +39,19 @@
 #include "decode_vp9_feature_manager_m12.h"
 #include "decode_vp9_buffer_update_m12.h"
 #include "decode_sfc_histogram_postsubpipeline_m12.h"
+#include "decode_input_bitstream_m12.h"
+#include "decode_cp_bitstream_m12.h"
+#include "decode_marker_packet_g12.h"
+#include "decode_predication_packet_g12.h"
 
 namespace decode
 {
 Vp9PipelineG12::Vp9PipelineG12(
     CodechalHwInterface *   hwInterface,
     CodechalDebugInterface *debugInterface)
-    : Vp9Pipeline(hwInterface, debugInterface)
+    : Vp9Pipeline(*hwInterface, debugInterface)
 {
+    m_hwInterface = hwInterface;
 }
 
 MOS_STATUS Vp9PipelineG12::Init(void *settings)
@@ -304,8 +309,11 @@ MOS_STATUS Vp9PipelineG12::Initialize(void *settings)
     DECODE_CHK_NULL(m_debugInterface);
     DECODE_CHK_STATUS(m_debugInterface->SetFastDumpConfig(m_mediaCopy));
 #endif
-
-    m_mediaContext = MOS_New(MediaContext, scalabilityDecoder, m_hwInterface, m_osInterface);
+    if (m_hwInterface->m_hwInterfaceNext)
+    {
+        m_hwInterface->m_hwInterfaceNext->legacyHwInterface = m_hwInterface;
+    }
+    m_mediaContext = MOS_New(MediaContext, scalabilityDecoder, m_hwInterface->m_hwInterfaceNext, m_osInterface);
     DECODE_CHK_NULL(m_mediaContext);
 
     m_task = CreateTask(MediaTask::TaskType::cmdTask);
@@ -376,10 +384,18 @@ MOS_STATUS Vp9PipelineG12::UserFeatureReport()
 
 MOS_STATUS Vp9PipelineG12::CreateSubPackets(DecodeSubPacketManager &subPacketManager, CodechalSetting &codecSettings)
 {
-    DECODE_CHK_STATUS(Vp9Pipeline::CreateSubPackets(subPacketManager, codecSettings));
+    DecodePredicationPktG12 *predicationPkt = MOS_New(DecodePredicationPktG12, this, m_hwInterface);
+    DECODE_CHK_NULL(predicationPkt);
+    DECODE_CHK_STATUS(subPacketManager.Register(
+        DecodePacketId(this, predicationSubPacketId), *predicationPkt));
+
+    DecodeMarkerPktG12 *markerPkt = MOS_New(DecodeMarkerPktG12, this, m_hwInterface);
+    DECODE_CHK_NULL(markerPkt);
+    DECODE_CHK_STATUS(subPacketManager.Register(
+        DecodePacketId(this, markerSubPacketId), *markerPkt));
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
-    Vp9DownSamplingPkt *downSamplingPkt = MOS_New(Vp9DownSamplingPkt, this, m_hwInterface);
+    Vp9DownSamplingPkt *downSamplingPkt = MOS_New(Vp9DownSamplingPkt, this, *m_hwInterface);
     DECODE_CHK_NULL(downSamplingPkt);
     DECODE_CHK_STATUS(subPacketManager.Register(
         DecodePacketId(this, downSamplingSubPacketId), *downSamplingPkt));
@@ -414,6 +430,18 @@ MOS_STATUS Vp9PipelineG12::CreatePostSubPipeLines(DecodeSubPipelineManager &subP
     DECODE_CHK_STATUS(m_postSubPipeline->Register(*sfcHistogramPostSubPipeline));
 #endif
 
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS Vp9PipelineG12::CreatePreSubPipeLines(DecodeSubPipelineManager &subPipelineManager)
+{
+    m_bitstream = MOS_New(DecodeInputBitstreamM12, this, m_task, m_numVdbox, m_hwInterface);
+    DECODE_CHK_NULL(m_bitstream);
+    DECODE_CHK_STATUS(subPipelineManager.Register(*m_bitstream));
+
+    m_streamout = MOS_New(DecodeStreamOutM12, this, m_task, m_numVdbox, m_hwInterface);
+    DECODE_CHK_NULL(m_streamout);
+    DECODE_CHK_STATUS(subPipelineManager.Register(*m_streamout));
     return MOS_STATUS_SUCCESS;
 }
 

@@ -26,7 +26,7 @@
 #ifndef __ENCODE_BASIC_FEATURE_H__
 #define __ENCODE_BASIC_FEATURE_H__
 
-#include "codechal_hw.h"
+#include "codec_hw_next.h"
 #include "codec_def_encode.h"
 #include "codechal_setting.h"
 #include "encode_tracked_buffer.h"
@@ -40,7 +40,7 @@ class EncodeBasicFeature:public MediaFeature
 {
 public:
     EncodeBasicFeature(EncodeAllocator *allocator,
-                        CodechalHwInterface *hwInterface,
+                        CodechalHwInterfaceNext *hwInterface,
                         TrackedBuffer *trackedBuf,
                         RecycleResource *recycleBuf);
     virtual ~EncodeBasicFeature() { }

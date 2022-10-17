@@ -27,7 +27,7 @@
 //!           this file is for the base interface which is shared by all components.
 //!
 
-#include "codechal_hw.h"
+#include "codec_hw_next.h"
 #include "decode_scalability_defs.h"
 #include "decode_scalability_singlepipe.h"
 
@@ -35,6 +35,7 @@
 #include "media_status_report.h"
 #include "mhw_utilities.h"
 #include "decode_status_report_defs.h"
+#include "codechal_hw.h"
 
 namespace decode
 {
@@ -46,7 +47,7 @@ DecodeScalabilitySinglePipe::DecodeScalabilitySinglePipe(void *hwInterface, Medi
     {
         return;
     }
-    m_hwInterface = (CodechalHwInterface *)hwInterface;
+    m_hwInterface = (CodechalHwInterface*)(((CodechalHwInterfaceNext *)hwInterface)->legacyHwInterface);
     m_osInterface = m_hwInterface->GetOsInterface();
 }
 
@@ -63,6 +64,7 @@ MOS_STATUS DecodeScalabilitySinglePipe::Initialize(const MediaScalabilityOption 
     // !Don't check the return status here, because this function will return fail if there's no regist key in register.
     // But it's normal that regist key not in register.
     Mos_CheckVirtualEngineSupported(m_osInterface, false, true);
+
     m_miInterface = m_hwInterface->GetMiInterface();
     SCALABILITY_CHK_NULL_RETURN(m_miInterface);
 
@@ -190,8 +192,8 @@ MOS_STATUS DecodeScalabilitySinglePipe::CreateDecodeSinglePipe(void *hwInterface
     SCALABILITY_CHK_NULL_RETURN(hwInterface);
     SCALABILITY_CHK_NULL_RETURN(mediaContext);
 
-    ((CodechalHwInterface *)hwInterface)->m_hwInterfaceNext->m_singlePipeScalability = MOS_New(DecodeScalabilitySinglePipe, hwInterface, mediaContext, scalabilityDecoder);
-    SCALABILITY_CHK_NULL_RETURN(((CodechalHwInterface *)hwInterface)->m_hwInterfaceNext->m_singlePipeScalability);
+    ((CodechalHwInterfaceNext *)hwInterface)->m_singlePipeScalability = MOS_New(DecodeScalabilitySinglePipe, hwInterface, mediaContext, scalabilityDecoder);
+    SCALABILITY_CHK_NULL_RETURN(((CodechalHwInterfaceNext *)hwInterface)->m_singlePipeScalability);
     
     return eStatus;
 }

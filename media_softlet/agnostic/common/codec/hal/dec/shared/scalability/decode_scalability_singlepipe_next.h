@@ -31,7 +31,7 @@
 #define __DECODE_SCALABILITY_SINGLEPIPE_NEXT_H__
 #include "mos_defs.h"
 #include "mos_os.h"
-#include "codechal_hw.h"
+#include "codec_hw_next.h"
 #include "media_scalability_singlepipe.h"
 #include "decode_scalability_option.h"
 
@@ -142,7 +142,7 @@ protected:
     virtual MOS_STATUS SendAttrWithFrameTracking(MOS_COMMAND_BUFFER &cmdBuffer, bool frameTrackingRequested) override;
 
 private:
-    CodechalHwInterface *m_hwInterface   = nullptr;
+    CodechalHwInterfaceNext *m_hwInterface = nullptr;
 
 MEDIA_CLASS_DEFINE_END(decode__DecodeScalabilitySinglePipeNext)
 };

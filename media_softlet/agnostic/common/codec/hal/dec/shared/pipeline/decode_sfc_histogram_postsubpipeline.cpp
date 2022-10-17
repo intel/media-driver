@@ -46,7 +46,7 @@ MOS_STATUS DecodeSfcHistogramSubPipeline::Init(CodechalSetting &settings)
     DECODE_FUNC_CALL();
     DECODE_CHK_NULL(m_pipeline);
 
-    CodechalHwInterface* hwInterface = m_pipeline->GetHwInterface();
+    CodechalHwInterfaceNext *hwInterface = m_pipeline->GetHwInterface();
     DECODE_CHK_NULL(hwInterface);
     m_osInterface = hwInterface->GetOsInterface();
     DECODE_CHK_NULL(m_osInterface);

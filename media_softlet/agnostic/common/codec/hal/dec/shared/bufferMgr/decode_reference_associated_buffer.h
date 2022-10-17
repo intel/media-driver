@@ -31,7 +31,7 @@
 
 #include "decode_allocator.h"
 #include "decode_utils.h"
-#include "codechal_hw.h"
+#include "codec_hw_next.h"
 
 namespace decode {
 
@@ -54,7 +54,6 @@ public:
     virtual bool IsAvailable(BufferType* &buffer) { return true; }
     virtual void Destroy(BufferType* &buffer) = 0;
 
-protected:
     void*                m_hwInterface  = nullptr;
     DecodeAllocator*     m_allocator    = nullptr;
     BasicFeature*        m_basicFeature = nullptr;

@@ -43,7 +43,7 @@
 namespace decode {
 
 DecodePipeline::DecodePipeline(
-    CodechalHwInterface *hwInterface,
+    CodechalHwInterfaceNext *hwInterface,
     CodechalDebugInterface *debugInterface):
     MediaPipeline(hwInterface ? hwInterface->GetOsInterface() : nullptr)
 {

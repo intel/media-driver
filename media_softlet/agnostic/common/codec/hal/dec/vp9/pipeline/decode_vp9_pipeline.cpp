@@ -36,7 +36,7 @@
 namespace decode
 {
 Vp9Pipeline::Vp9Pipeline(
-    CodechalHwInterface    *hwInterface,
+    CodechalHwInterfaceNext *hwInterface,
     CodechalDebugInterface *debugInterface)
     : DecodePipeline(hwInterface, debugInterface)
 {
@@ -156,7 +156,7 @@ MOS_STATUS Vp9Pipeline::Execute()
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS Vp9Pipeline::CreateFeatureManager()  // After HwNext rebase, Need override
+MOS_STATUS Vp9Pipeline::CreateFeatureManager()
 {
     DECODE_FUNC_CALL();
     m_featureManager = MOS_New(DecodeVp9FeatureManager, m_allocator, m_hwInterface, m_osInterface);

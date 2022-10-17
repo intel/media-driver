@@ -1186,6 +1186,7 @@ public:
 class CodechalEncoderState : public Codechal
 {
 public:
+    CodechalHwInterface *m_hwInterface = nullptr;
     //!
     //! \enum     RefId
     //! \brief    Reference id
@@ -2508,7 +2509,12 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS StoreHuCStatus2Report(PMOS_COMMAND_BUFFER cmdBuffer);
-
+    //!
+    //! \brief    Gets hardware interface.
+    //! \return   CodechalHwInterface
+    //!           return hardware interface
+    //!
+    CodechalHwInterface *GetHwInterface() { return m_hwInterface; }
 #if USE_CODECHAL_DEBUG_TOOL
     virtual MOS_STATUS DumpMbEncPakOutput(PCODEC_REF_LIST currRefList, CodechalDebugInterface* debugInterface);
     virtual MOS_STATUS DumpFrameStatsBuffer(CodechalDebugInterface* debugInterface) { return MOS_STATUS_SUCCESS; }

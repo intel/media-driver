@@ -33,6 +33,8 @@
 #if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "igcodeckrn_g12.h"
 #endif
+#include "codechal_hw_next_xe_xpm_plus.h"
+#include "mhw_render_xe_hpg_impl.h"
 
 extern template class MediaFactory<uint32_t, MhwInterfaces>;
 extern template class MediaFactory<uint32_t, MmdDevice>;
@@ -192,6 +194,8 @@ MOS_STATUS MhwInterfacesPvc_Next::Initialize(
     {
         m_renderInterface =
             MOS_New(Render, m_miInterface, osInterface, gtSystemInfo, params.m_heapMode);
+        auto ptr    = std::make_shared<mhw::render::xe_hpg::Impl>(osInterface);
+        m_renderItf = std::static_pointer_cast<mhw::render::Itf>(ptr);
     }
     if (params.Flags.m_stateHeap)
     {
@@ -209,8 +213,7 @@ MOS_STATUS MhwInterfacesPvc_Next::Initialize(
 
     if (params.Flags.m_vdboxAll || params.Flags.m_mfx)
     {
-        m_mfxInterface =
-            MOS_New(Mfx, osInterface, m_miInterface, m_cpInterface, params.m_isDecode);
+        m_mfxItf = nullptr;
     }
     if (params.Flags.m_vdboxAll || params.Flags.m_hcp)
     {
@@ -428,6 +431,7 @@ MOS_STATUS CodechalInterfacesXe_Xpm_Plus::Initialize(
     bool disableScalability = true;
     CodechalHwInterface *hwInterface = nullptr;
     CodechalDebugInterface *debugInterface = nullptr;
+    CodechalHwInterfaceNext *hwInterface_next = nullptr;
 
     if (CodecHalIsDecode(CodecFunction))
     {
@@ -607,8 +611,8 @@ MOS_STATUS CodechalInterfacesXe_Xpm_Plus::Initialize(
 
                 if (apogeiosEnable)
                 {
-                    CreateCodecHalInterface(mhwInterfaces, mhwInterfacesNext, hwInterface, debugInterface, osInterface, CodecFunction, disableScalability);
-                    m_codechalDevice = MOS_New(EncodeHevcVdencPipelineAdapterXe_Xpm_Plus, hwInterface, debugInterface);
+                    CreateCodecHalInterface(mhwInterfaces, mhwInterfacesNext, hwInterface_next, debugInterface, osInterface, CodecFunction, disableScalability);
+                    m_codechalDevice = MOS_New(EncodeHevcVdencPipelineAdapterXe_Xpm_Plus, hwInterface_next, debugInterface);
                     if (m_codechalDevice == nullptr)
                     {
                         CODECHAL_PUBLIC_ASSERTMESSAGE("Encode state creation failed!");
@@ -802,6 +806,7 @@ MOS_STATUS CodechalInterfacesXe_Xpm_Plus::CreateCodecHalInterface(MhwInterfaces 
     }
     pHwInterface->m_hwInterfaceNext->pfnCreateDecodeSinglePipe = decode::DecodeScalabilitySinglePipe::CreateDecodeSinglePipe;
     pHwInterface->m_hwInterfaceNext->pfnCreateDecodeMultiPipe  = decode::DecodeScalabilityMultiPipe::CreateDecodeMultiPipe;
+    pHwInterface->m_hwInterfaceNext->SetMediaSfcInterface(pHwInterface->GetMediaSfcInterface());
 
 #if USE_CODECHAL_DEBUG_TOOL
     pDebugInterface = MOS_New(CodechalDebugInterface);
@@ -824,19 +829,19 @@ MOS_STATUS CodechalInterfacesXe_Xpm_Plus::CreateCodecHalInterface(MhwInterfaces 
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS CodechalInterfacesXe_Xpm_Plus::CreateCodecHalInterface(MhwInterfaces          *mhwInterfaces,
-                                                                  MhwInterfacesNext      *&pMhwInterfacesNext,
-                                                                  CodechalHwInterface    *&pHwInterface,
-                                                                  CodechalDebugInterface *&pDebugInterface,
-                                                                  PMOS_INTERFACE         osInterface,
-                                                                  CODECHAL_FUNCTION      CodecFunction,
-                                                                  bool                   disableScalability)
+MOS_STATUS CodechalInterfacesXe_Xpm_Plus::CreateCodecHalInterface(MhwInterfaces *mhwInterfaces,
+    MhwInterfacesNext                                                          *&pMhwInterfacesNext,
+    CodechalHwInterfaceNext                                                    *&pHwInterface,
+    CodechalDebugInterface                                                     *&pDebugInterface,
+    PMOS_INTERFACE                                                               osInterface,
+    CODECHAL_FUNCTION                                                            CodecFunction,
+    bool                                                                         disableScalability)
 {
     if (mhwInterfaces != nullptr)
     {
-        if (((MhwInterfacesPvc*)mhwInterfaces)->m_avpInterface != nullptr)
+        if (((MhwInterfacesPvc *)mhwInterfaces)->m_avpInterface != nullptr)
         {
-            MOS_Delete(((MhwInterfacesPvc*)mhwInterfaces)->m_avpInterface);
+            MOS_Delete(((MhwInterfacesPvc *)mhwInterfaces)->m_avpInterface);
         }
         mhwInterfaces->Destroy();
     }
@@ -844,13 +849,13 @@ MOS_STATUS CodechalInterfacesXe_Xpm_Plus::CreateCodecHalInterface(MhwInterfaces 
     pMhwInterfacesNext = nullptr;
     MhwInterfacesNext::CreateParams params;
     MOS_ZeroMemory(&params, sizeof(params));
-    params.Flags.m_render = true;
-    params.Flags.m_sfc = true;
+    params.Flags.m_render   = true;
+    params.Flags.m_sfc      = true;
     params.Flags.m_vdboxAll = true;
-    params.Flags.m_vebox = true;
-    params.m_heapMode = (uint8_t)2;
-    params.m_isDecode = CodecHalIsDecode(CodecFunction);
-    pMhwInterfacesNext = MhwInterfacesNext::CreateFactory(params, osInterface);
+    params.Flags.m_vebox    = true;
+    params.m_heapMode       = (uint8_t)2;
+    params.m_isDecode       = CodecHalIsDecode(CodecFunction);
+    pMhwInterfacesNext      = MhwInterfacesNext::CreateFactory(params, osInterface);
 
     if (pMhwInterfacesNext == nullptr)
     {
@@ -858,7 +863,7 @@ MOS_STATUS CodechalInterfacesXe_Xpm_Plus::CreateCodecHalInterface(MhwInterfaces 
         return MOS_STATUS_NO_SPACE;
     }
 
-    pHwInterface = MOS_New(Hw, osInterface, CodecFunction, pMhwInterfacesNext, disableScalability);
+    pHwInterface = MOS_New(CodechalHwInterfaceNextXe_Xpm_Plus, osInterface, CodecFunction, pMhwInterfacesNext, disableScalability);
 
     if (pHwInterface == nullptr)
     {
@@ -882,6 +887,6 @@ MOS_STATUS CodechalInterfacesXe_Xpm_Plus::CreateCodecHalInterface(MhwInterfaces 
         CODECHAL_PUBLIC_ASSERTMESSAGE("Debug interface creation failed!");
         return MOS_STATUS_INVALID_PARAMETER;
     }
-#endif // USE_CODECHAL_DEBUG_TOOL
+#endif  // USE_CODECHAL_DEBUG_TOOL
     return MOS_STATUS_SUCCESS;
 }

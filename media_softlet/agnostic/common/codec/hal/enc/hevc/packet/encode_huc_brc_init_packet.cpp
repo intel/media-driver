@@ -136,13 +136,9 @@ namespace encode {
         uint32_t hucCommandsSize = 0;
         uint32_t hucPatchListSize = 0;
         MHW_VDBOX_STATE_CMDSIZE_PARAMS stateCmdSizeParams;
-
-        if (m_hwInterface->m_hwInterfaceNext)
-        {
-            stateCmdSizeParams.uNumMfxWait      = 3;
-            ENCODE_CHK_STATUS_RETURN(m_hwInterface->m_hwInterfaceNext->GetHucStateCommandSize(
-                m_basicFeature->m_mode, (uint32_t*)&hucCommandsSize, (uint32_t*)&hucPatchListSize, &stateCmdSizeParams));
-        }
+        stateCmdSizeParams.uNumMfxWait      = 3;
+        ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetHucStateCommandSize(
+            m_basicFeature->m_mode, (uint32_t*)&hucCommandsSize, (uint32_t*)&hucPatchListSize, &stateCmdSizeParams));
 
         commandBufferSize = hucCommandsSize;
         requestedPatchListSize = osInterface->bUsesPatchList ? hucPatchListSize : 0;
@@ -228,7 +224,7 @@ namespace encode {
         {
             if (m_basicFeature->m_hevcSeqParams->TargetBitRate == 0)
             {
-                ENCODE_ASSERTMESSAGE("TargetBitRate is zero!");
+                CODECHAL_ENCODE_ASSERTMESSAGE("TargetBitRate is zero!");
                 return MOS_STATUS_INVALID_PARAMETER;
             }
             hucVdencBrcInitDmem->SlidingWindow_Size_U32     = m_basicFeature->m_hevcSeqParams->SlidingWindowSize;
@@ -238,7 +234,7 @@ namespace encode {
         {
             if (m_basicFeature->m_hevcSeqParams->FrameRate.Denominator == 0)
             {
-                ENCODE_ASSERTMESSAGE("FrameRate.Deminator is zero!");
+                CODECHAL_ENCODE_ASSERTMESSAGE("FrameRate.Deminator is zero!");
                 return MOS_STATUS_INVALID_PARAMETER;
             }
             uint32_t framerate = m_basicFeature->m_hevcSeqParams->FrameRate.Numerator / m_basicFeature->m_hevcSeqParams->FrameRate.Denominator;

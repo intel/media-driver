@@ -34,7 +34,7 @@ namespace encode
     HevcEncodeDss::HevcEncodeDss(
         MediaFeatureManager *featureManager,
         EncodeAllocator *allocator,
-        CodechalHwInterface *hwInterface,
+        CodechalHwInterfaceNext *hwInterface,
         void *constSettings) :
         MediaFeature(constSettings),
         m_allocator(allocator),
@@ -116,7 +116,7 @@ namespace encode
         if (m_hevcSeqParams->SliceSizeControl && frameWidth * frameHeight < ENCODE_HEVC_MIN_DSS_PIC_WIDTH * ENCODE_HEVC_MIN_DSS_PIC_HEIGHT)
         {
             MOS_STATUS eStatus = MOS_STATUS_INVALID_PARAMETER;
-            ENCODE_CHK_STATUS_MESSAGE_RETURN(eStatus, "DSS is not supported when frame resolution less than 320p");
+            CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(eStatus, "DSS is not supported when frame resolution less than 320p");
         }
 
         return MOS_STATUS_SUCCESS;
@@ -342,7 +342,7 @@ namespace encode
         hucStreamOutParams.inputRelativeOffset  = sourceOffset - hucStreamOutParams.dataOffset;
         hucStreamOutParams.outputRelativeOffset = destOffset - hucStreamOutParams.streamOutObjectOffset;
 
-        ENCODE_CHK_STATUS_RETURN(m_hwInterface->m_hwInterfaceNext->PerformHucStreamOut(
+        ENCODE_CHK_STATUS_RETURN(m_hwInterface->PerformHucStreamOut(
             &hucStreamOutParams,
             &cmdBuffer));
 

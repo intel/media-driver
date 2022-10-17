@@ -28,7 +28,7 @@
 #define __CP_STREAMOUT_INTERFACE_H__
 
 #include "media_pipeline.h"
-#include "codechal_hw.h"
+#include "codec_hw_next.h"
 
 class CpStreamOutInterface
 {

@@ -42,10 +42,13 @@ namespace decode
         //! \brief  Vp9DecodePicPktXe_M_Base constructor
         //!
         Vp9DecodePicPktXe_M_Base(Vp9Pipeline *pipeline, CodechalHwInterface *hwInterface)
-            : DecodeSubPacket(pipeline, hwInterface), m_vp9Pipeline(pipeline)
+            : DecodeSubPacket(pipeline, *hwInterface), m_vp9Pipeline(pipeline)
         {
+            m_hwInterface = hwInterface;
             if (m_hwInterface != nullptr)
             {
+                m_miInterface  = m_hwInterface->GetMiInterface();
+                m_osInterface  = m_hwInterface->GetOsInterface();
                 m_hcpInterface = static_cast<CodechalHwInterfaceG12 *>(hwInterface)->GetHcpInterface();
             }
         }
@@ -116,7 +119,8 @@ namespace decode
             CodechalDecodeGoldenRef    = 1,  //!< golden reference
             CodechalDecodeAlternateRef = 2   //!< alternate reference
         };
-
+        CodechalHwInterface *m_hwInterface = nullptr;
+        MhwMiInterface      *m_miInterface = nullptr;
     protected:
 
         virtual MOS_STATUS AllocateFixedResources();

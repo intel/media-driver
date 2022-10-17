@@ -31,7 +31,7 @@
 #define __ENCODE_SCALABILITY_SINGLEPIPE_H__
 #include "mos_defs.h"
 #include "mos_os.h"
-#include "codechal_hw.h"
+#include "codec_hw_next.h"
 #include "media_scalability_singlepipe.h"
 #include "encode_scalability_option.h"
 
@@ -146,8 +146,15 @@ protected:
 
     virtual MOS_STATUS SendAttrWithFrameTracking(MOS_COMMAND_BUFFER &cmdBuffer, bool frameTrackingRequested) override;
 
+    //void              InitMmioRegisters();
+    //MmioRegistersMfx *GetMmioRegisters(MHW_VDBOX_NODE_IND index);
+    //bool              ConvertToMiRegister(MHW_VDBOX_NODE_IND index, MHW_MI_MMIOREGISTERS &mmioRegister);
+
 private:
-    CodechalHwInterface *m_hwInterface             = nullptr;
+    CodechalHwInterfaceNext *m_hwInterface             = nullptr;
+
+    ////! \brief Mmio registers address
+    //MHW_MI_MMIOREGISTERS m_mmioRegisters = {};  //!< mfx mmio registers
 
 MEDIA_CLASS_DEFINE_END(encode__EncodeScalabilitySinglePipe)
 };

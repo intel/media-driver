@@ -32,7 +32,7 @@
 #include <vector>
 #include "decode_allocator.h"
 #include "decode_common_feature_defs.h"
-#include "codechal_hw.h"
+#include "codec_hw_next.h"
 
 namespace decode
 {

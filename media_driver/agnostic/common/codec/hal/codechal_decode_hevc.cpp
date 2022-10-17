@@ -2822,6 +2822,8 @@ CodechalDecodeHevc::CodechalDecodeHevc(
     MOS_ZeroMemory(&m_currPic,sizeof(m_currPic));
 
     m_hcpInUse = true;
+
+    m_hwInterface = hwInterface;
 }
 
 #if USE_CODECHAL_DEBUG_TOOL

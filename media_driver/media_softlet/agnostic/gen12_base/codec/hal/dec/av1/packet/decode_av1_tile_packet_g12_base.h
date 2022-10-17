@@ -40,10 +40,13 @@ class Av1DecodeTilePkt_G12_Base : public DecodeSubPacket
 {
 public:
     Av1DecodeTilePkt_G12_Base(Av1PipelineG12_Base *pipeline, CodechalHwInterface *hwInterface)
-        : DecodeSubPacket(pipeline, hwInterface), m_av1Pipeline(pipeline)
+        : DecodeSubPacket(pipeline, *hwInterface), m_av1Pipeline(pipeline)
     {
+        m_hwInterface = hwInterface;
         if (m_hwInterface != nullptr)
         {
+            m_miInterface  = m_hwInterface->GetMiInterface();
+            m_osInterface  = m_hwInterface->GetOsInterface();
             m_avpInterface = hwInterface->GetAvpInterface();
         }
     }
@@ -111,6 +114,8 @@ protected:
     MhwVdboxAvpInterface * m_avpInterface       = nullptr;
     Av1BasicFeatureG12 *   m_av1BasicFeature    = nullptr;
     DecodeAllocator *      m_allocator          = nullptr;
+    CodechalHwInterface   *m_hwInterface        = nullptr;
+    MhwMiInterface        *m_miInterface        = nullptr;
 
     // Parameters passed from application
     CodecAv1PicParams               *m_av1PicParams      = nullptr;      //!< Pointer to AV1 picture parameter

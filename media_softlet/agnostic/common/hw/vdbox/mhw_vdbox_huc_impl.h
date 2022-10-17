@@ -94,6 +94,11 @@ private:
         m_mmioRegisters[MHW_VDBOX_NODE_2] = m_mmioRegisters[MHW_VDBOX_NODE_1];
     }
 
+    uint32_t GetHucStatusReEncodeMask() override
+    {
+        return m_hucStatusReEncodeMask;
+    }
+
     uint32_t GetHucStatusHevcS2lFailureMask() override
     {
         return m_hucStatusHevcS2lFailureMask;
@@ -118,6 +123,7 @@ protected:
     using base_t = Itf;
     HucMmioRegisters      m_mmioRegisters[MHW_VDBOX_NODE_MAX] = {};  //!< HuC mmio registers
     MhwCpInterface        *m_cpItf = nullptr;
+    static const uint32_t m_hucStatusReEncodeMask             = 0x80000000;
     static const uint32_t m_hucStatusHevcS2lFailureMask       = 0x8000;
     static const uint32_t m_hucStatus2ImemLoadedMask          = 0x40;
     static const uint32_t m_hucErrorFlagsMask                 = 0xFFFE;          //!< HuC error 2 flags mask

@@ -231,6 +231,7 @@ CodechalDecodeVp9 ::CodechalDecodeVp9(
     }
 
     m_hcpInUse = true;
+    m_hwInterface = hwInterface;
 }
 
 MOS_STATUS CodechalDecodeVp9 :: ProbBufferPartialUpdatewithDrv()

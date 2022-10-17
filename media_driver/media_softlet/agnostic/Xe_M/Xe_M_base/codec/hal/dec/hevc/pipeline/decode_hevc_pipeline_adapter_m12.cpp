@@ -30,13 +30,14 @@
 DecodeHevcPipelineAdapterM12::DecodeHevcPipelineAdapterM12(
     CodechalHwInterface *   hwInterface,
     CodechalDebugInterface *debugInterface)
-    : DecodePipelineAdapter(hwInterface, debugInterface)
+    : DecodePipelineAdapter(*hwInterface, debugInterface)
 {
     DECODE_ASSERT(m_osInterface != nullptr);
     if (m_osInterface != nullptr)
     {
         Mos_CheckVirtualEngineSupported(m_osInterface, true, true);
         Mos_SetVirtualEngineSupported(m_osInterface, true);
+        m_hwInterface = hwInterface;
     }
 }
 

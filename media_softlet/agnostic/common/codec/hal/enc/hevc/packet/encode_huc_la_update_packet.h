@@ -35,7 +35,7 @@ namespace encode
 class HucLaUpdatePkt : public EncodeHucPkt
 {
 public:
-    HucLaUpdatePkt(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterface *hwInterface) : EncodeHucPkt(pipeline, task, hwInterface)
+    HucLaUpdatePkt(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterfaceNext *hwInterface) : EncodeHucPkt(pipeline, task, hwInterface)
     {
         m_miItf = m_hwInterface->GetMiInterfaceNext();
     }

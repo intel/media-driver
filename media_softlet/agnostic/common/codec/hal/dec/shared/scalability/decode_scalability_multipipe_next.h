@@ -31,7 +31,7 @@
 #define __DECODE_SCALABILITY_MULTIPIPE_NEXT_H__
 #include "mos_defs.h"
 #include "mos_os.h"
-#include "codechal_hw.h"
+#include "codec_hw_next.h"
 #include "media_scalability_multipipe.h"
 #include "decode_scalability_option.h"
 #include "mos_os_virtualengine_scalability.h"
@@ -269,7 +269,7 @@ protected:
     static const uint8_t m_initSecondaryCmdBufNum = 8; //!< The initial secondary command buffer size
     static const uint8_t m_maxCmdBufferSetsNum = 16; //!< The max number of command buffer sets
 
-    CodechalHwInterface *           m_hwInterface = nullptr;
+    CodechalHwInterfaceNext        *m_hwInterface      = nullptr;
     MOS_COMMAND_BUFFER              m_primaryCmdBuffer = {};
     std::vector<MOS_COMMAND_BUFFER> m_secondaryCmdBuffers;
 

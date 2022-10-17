@@ -169,7 +169,7 @@ namespace encode
     class Av1BrcUpdatePkt : public EncodeHucPkt
     {
     public:
-        Av1BrcUpdatePkt(MediaPipeline* pipeline, MediaTask* task, CodechalHwInterface* hwInterface) :
+        Av1BrcUpdatePkt(MediaPipeline* pipeline, MediaTask* task, CodechalHwInterfaceNext* hwInterface) :
             EncodeHucPkt(pipeline, task, hwInterface)
         {
             m_featureManager = m_pipeline->GetPacketLevelFeatureManager(Av1Pipeline::Av1VdencPacket);

@@ -39,10 +39,13 @@ class Vp9DecodeSlcPktXe_M_Base : public DecodeSubPacket
 {
 public:
     Vp9DecodeSlcPktXe_M_Base(Vp9Pipeline *pipeline, CodechalHwInterface *hwInterface)
-        : DecodeSubPacket(pipeline, hwInterface), m_vp9Pipeline(pipeline)
+        : DecodeSubPacket(pipeline, *hwInterface), m_vp9Pipeline(pipeline)
     {
+        m_hwInterface = hwInterface;
         if (m_hwInterface != nullptr)
         {
+            m_miInterface  = m_hwInterface->GetMiInterface();
+            m_osInterface  = m_hwInterface->GetOsInterface();
             m_hcpInterface = hwInterface->GetHcpInterface();
         }
     }
@@ -104,6 +107,8 @@ protected:
     Vp9BasicFeature          *m_vp9BasicFeature = nullptr;
     DecodeAllocator          *m_allocator       = nullptr;
     MhwVdboxHcpInterface     *m_hcpInterface    = nullptr;
+    CodechalHwInterface      *m_hwInterface     = nullptr;
+    MhwMiInterface           *m_miInterface     = nullptr;
 
     // Parameters passed from application
     CODEC_VP9_PIC_PARAMS      *m_vp9PicParams    = nullptr;      //!< Pointer to Vp9 picture parameter

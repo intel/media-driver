@@ -28,7 +28,7 @@
 #include "codechal_decode_downsampling_g11_icllp.h"
 
 FieldScalingInterfaceG11IclLp::FieldScalingInterfaceG11IclLp(CodechalHwInterface *hwInterface):
-    FieldScalingInterface(hwInterface)
+    FieldScalingInterface()
 {
     CODECHAL_DECODE_FUNCTION_ENTER;
 

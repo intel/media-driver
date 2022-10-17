@@ -57,7 +57,7 @@ public:
     //!         Pointer to RecycleResource
     //!
      EncodeAv1VdencFeatureManager(EncodeAllocator *allocator,
-                             CodechalHwInterface *hwInterface,
+                             CodechalHwInterfaceNext *hwInterface,
                              TrackedBuffer       *trackedBuf,
                              RecycleResource     *recycleBuf):
                              m_allocator(allocator),
@@ -107,9 +107,9 @@ protected:
     virtual MOS_STATUS SetPassNum(PCODEC_AV1_ENCODE_SEQUENCE_PARAMS av1SeqParams);
     EncodeAllocator *m_allocator = nullptr;
 
-    CodechalHwInterface *m_hwInterface = nullptr;
-    RecycleResource     *m_recycleResource = nullptr;
-    TrackedBuffer       *m_trackedBuf = nullptr;
+    CodechalHwInterfaceNext *m_hwInterface = nullptr;
+    RecycleResource         *m_recycleResource = nullptr;
+    TrackedBuffer           *m_trackedBuf = nullptr;
 
 MEDIA_CLASS_DEFINE_END(encode__EncodeAv1VdencFeatureManager)
 };

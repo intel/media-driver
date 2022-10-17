@@ -33,7 +33,7 @@
 namespace encode {
 
 Av1VdencPipelineXe_Hpm::Av1VdencPipelineXe_Hpm(
-    CodechalHwInterface     *hwInterface,
+    CodechalHwInterfaceNext     *hwInterface,
     CodechalDebugInterface  *debugInterface)
     : Av1VdencPipelineXe_M_Base(hwInterface, debugInterface)
 {

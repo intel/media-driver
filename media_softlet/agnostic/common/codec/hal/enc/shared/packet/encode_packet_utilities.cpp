@@ -60,7 +60,7 @@ namespace encode {
         return MOS_STATUS_SUCCESS;
     }
 
-    PacketUtilities::PacketUtilities(CodechalHwInterface *hwInterface, MediaFeatureManager *featureManager)
+    PacketUtilities::PacketUtilities(CodechalHwInterfaceNext *hwInterface, MediaFeatureManager *featureManager)
     {
         m_hwInterface       = hwInterface;
         m_featureManager    = featureManager;
@@ -208,7 +208,7 @@ namespace encode {
 
         ENCODE_CHK_NULL_RETURN(m_hwInterface);
 
-        if (m_vdboxIndex > m_hwInterface->m_hwInterfaceNext->GetMaxVdboxIndex())
+        if (m_vdboxIndex > m_hwInterface->GetMaxVdboxIndex())
         {
             ENCODE_ASSERTMESSAGE("ERROR - vdbox index exceed the maximum");
             eStatus = MOS_STATUS_INVALID_PARAMETER;
@@ -310,9 +310,8 @@ namespace encode {
         ENCODE_FUNC_CALL();
 
         ENCODE_CHK_NULL_RETURN(m_hwInterface);
-        ENCODE_CHK_NULL_RETURN(m_hwInterface->GetMfxInterface());
 
-        if (m_vdboxIndex > m_hwInterface->GetMfxInterface()->GetMaxVdboxIndex())
+        if (m_vdboxIndex > m_hwInterface->GetMaxVdboxIndex())
         {
             ENCODE_ASSERTMESSAGE("ERROR - vdbox index exceed the maximum");
             eStatus = MOS_STATUS_INVALID_PARAMETER;

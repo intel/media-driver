@@ -29,7 +29,7 @@
 #include "decode_huc_copy_packet_itf.h"
 #include "media_cmd_packet.h"
 #include "media_pipeline.h"
-#include "codechal_hw.h"
+#include "codec_hw_next.h"
 
 namespace decode
 {
@@ -43,13 +43,22 @@ public:
 
     virtual ~HucPacketCreatorBase() {}
 
-    virtual HucCopyPktItf *CreateHucCopyPkt(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterface *hwInterface) = 0;
-    virtual CmdPacket *    CreateProbUpdatePkt(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterface *hwInterface) = 0;
+    virtual HucCopyPktItf *CreateHucCopyPkt(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterfaceNext *hwInterface)
+    {
+        return nullptr;
+    }
+    virtual CmdPacket *CreateProbUpdatePkt(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterfaceNext *hwInterface)
+    {
+        return nullptr;
+    }
 
     virtual HucCopyPktItf *CreateStreamOutInterface(
         MediaPipeline       *pipeline,
         MediaTask           *task,
-        CodechalHwInterface *hwInterface) = 0;
+        CodechalHwInterfaceNext *hwInterface)
+    {
+        return nullptr;
+    }
 
 MEDIA_CLASS_DEFINE_END(decode__HucPacketCreatorBase)
 };

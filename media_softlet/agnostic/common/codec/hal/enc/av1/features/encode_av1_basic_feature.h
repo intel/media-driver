@@ -65,7 +65,7 @@ class Av1BasicFeature : public EncodeBasicFeature, public mhw::vdbox::vdenc::Itf
 {
 public:
     Av1BasicFeature(EncodeAllocator * allocator,
-                     CodechalHwInterface *hwInterface,
+                     CodechalHwInterfaceNext *hwInterface,
                      TrackedBuffer *trackedBuf,
                      RecycleResource *recycleBuf,
                      void *constSettings) :

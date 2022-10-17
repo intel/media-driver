@@ -67,15 +67,6 @@ public:
         bool              disableScalability = false);
 
     //!
-    //! \brief    Constructor
-    //!
-    CodechalHwInterfaceG12(
-        PMOS_INTERFACE    osInterface,
-        CODECHAL_FUNCTION codecFunction,
-        MhwInterfacesNext *mhwInterfacesNext,
-        bool              disableScalability = false);
-
-    //!
     //! \brief    Copy constructor
     //!
     CodechalHwInterfaceG12(const CodechalHwInterfaceG12&) = delete;

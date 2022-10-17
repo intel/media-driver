@@ -41,7 +41,7 @@ namespace decode
 class JpegDownSamplingPkt : public DecodeDownSamplingPkt
 {
 public:
-    JpegDownSamplingPkt(DecodePipeline *pipeline, CodechalHwInterface *hwInterface);
+    JpegDownSamplingPkt(DecodePipeline *pipeline, CodechalHwInterfaceNext *hwInterface);
 
     virtual ~JpegDownSamplingPkt(){};
 

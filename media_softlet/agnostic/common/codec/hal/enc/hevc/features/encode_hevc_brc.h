@@ -28,8 +28,9 @@
 
 #include "media_feature.h"
 #include "encode_allocator.h"
-#include "codechal_hw.h"
+#include "codec_hw_next.h"
 #include "encode_recycle_resource.h"
+#include "mhw_vdbox_g12_X.h"
 #include "encode_basic_feature.h"
 #include "mhw_vdbox_vdenc_itf.h"
 #include "mhw_vdbox_hcp_itf.h"
@@ -150,7 +151,7 @@ namespace encode
     //!
     struct EncodeReadBrcPakStatsParams
     {
-        CodechalHwInterface    *pHwInterface;
+        CodechalHwInterfaceNext    *pHwInterface;
         PMOS_RESOURCE           presBrcPakStatisticBuffer;
         PMOS_RESOURCE           presStatusBuffer;
         uint32_t                dwStatusBufNumPassesOffset;
@@ -161,7 +162,7 @@ namespace encode
     class HEVCEncodeBRC : public MediaFeature, public mhw::vdbox::vdenc::Itf::ParSetting, public mhw::vdbox::hcp::Itf::ParSetting, public mhw::vdbox::huc::Itf::ParSetting
     {
     public:
-        HEVCEncodeBRC(MediaFeatureManager *featureManager, EncodeAllocator *allocator, CodechalHwInterface *hwInterface, void *constSettings);
+        HEVCEncodeBRC(MediaFeatureManager *featureManager, EncodeAllocator *allocator, CodechalHwInterfaceNext *hwInterface, void *constSettings);
 
         virtual ~HEVCEncodeBRC();
 
@@ -402,7 +403,7 @@ namespace encode
 
         const uint32_t m_brc_kbps = 1000;     // 1000bps for disk storage, aligned with industry usage
 
-        CodechalHwInterface  *m_hwInterface  = nullptr;
+        CodechalHwInterfaceNext  *m_hwInterface  = nullptr;
         EncodeAllocator      *m_allocator    = nullptr;
         HevcBasicFeature     *m_basicFeature = nullptr;  //!< EncodeBasicFeature
 

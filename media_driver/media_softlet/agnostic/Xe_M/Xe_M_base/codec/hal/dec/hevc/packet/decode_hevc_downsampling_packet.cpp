@@ -31,7 +31,7 @@
 namespace decode
 {
 
-HevcDownSamplingPkt::HevcDownSamplingPkt(DecodePipeline *pipeline, CodechalHwInterface *hwInterface)
+HevcDownSamplingPkt::HevcDownSamplingPkt(DecodePipeline *pipeline, CodechalHwInterfaceNext *hwInterface)
     : DecodeDownSamplingPkt(pipeline, hwInterface)
 {}
 

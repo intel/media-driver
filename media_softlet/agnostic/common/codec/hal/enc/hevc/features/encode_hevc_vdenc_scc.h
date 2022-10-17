@@ -40,7 +40,7 @@ namespace encode
         HevcVdencScc(
             MediaFeatureManager *featureManager,
             EncodeAllocator *allocator,
-            CodechalHwInterface *hwInterface,
+            CodechalHwInterfaceNext *hwInterface,
             void *constSettings);
 
         virtual ~HevcVdencScc();

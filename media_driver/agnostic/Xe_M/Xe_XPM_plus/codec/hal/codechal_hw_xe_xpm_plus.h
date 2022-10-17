@@ -52,15 +52,6 @@ public:
         bool              disableScalability = false);
 
     //!
-    //! \brief    Constructor
-    //!
-    CodechalHwInterfaceXe_Xpm_Plus(
-        PMOS_INTERFACE    osInterface,
-        CODECHAL_FUNCTION codecFunction,
-        MhwInterfacesNext *mhwInterfacesNext,
-        bool              disableScalability);
-
-    //!
     //! \brief    Copy constructor
     //!
     CodechalHwInterfaceXe_Xpm_Plus(const CodechalHwInterfaceXe_Xpm_Plus&) = delete;

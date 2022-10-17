@@ -31,7 +31,7 @@
 namespace decode
 {
 
-AvcDownSamplingPkt::AvcDownSamplingPkt(DecodePipeline *pipeline, CodechalHwInterface *hwInterface)
+AvcDownSamplingPkt::AvcDownSamplingPkt(DecodePipeline *pipeline, CodechalHwInterfaceNext *hwInterface)
     : DecodeDownSamplingPkt(pipeline, hwInterface)
 {
     m_avcPipeline = dynamic_cast<AvcPipeline*>(pipeline);

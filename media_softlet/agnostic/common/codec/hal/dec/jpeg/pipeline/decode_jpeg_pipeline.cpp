@@ -33,7 +33,7 @@
 namespace decode{
 
 JpegPipeline::JpegPipeline(
-    CodechalHwInterface *   hwInterface,
+    CodechalHwInterfaceNext *hwInterface,
     CodechalDebugInterface *debugInterface)
     : DecodePipeline(hwInterface, debugInterface)
 {
@@ -102,7 +102,7 @@ MOS_STATUS JpegPipeline::ActivateDecodePackets()
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS JpegPipeline::CreateFeatureManager()  // After HwNext rebase, Need override
+MOS_STATUS JpegPipeline::CreateFeatureManager() 
 {
     DECODE_FUNC_CALL();
     m_featureManager = MOS_New(DecodeJpegFeatureManager, m_allocator, m_hwInterface, m_osInterface);

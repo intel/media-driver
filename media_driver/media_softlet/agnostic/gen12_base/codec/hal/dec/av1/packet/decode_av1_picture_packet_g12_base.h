@@ -41,10 +41,13 @@ namespace decode
         //! \brief  Av1DecodePicPkt_G12_Base constructor
         //!
         Av1DecodePicPkt_G12_Base(Av1PipelineG12_Base *pipeline, CodechalHwInterface *hwInterface)
-            : DecodeSubPacket(pipeline, hwInterface), m_av1Pipeline(pipeline)
+            : DecodeSubPacket(pipeline, *hwInterface), m_av1Pipeline(pipeline)
         {
+            m_hwInterface = hwInterface;
             if (m_hwInterface != nullptr)
             {
+                m_miInterface  = m_hwInterface->GetMiInterface();
+                m_osInterface  = m_hwInterface->GetOsInterface();
                 m_avpInterface = hwInterface->GetAvpInterface();
             }
         }
@@ -159,6 +162,8 @@ namespace decode
         Av1BasicFeatureG12         *m_av1BasicFeature = nullptr;
         DecodeAllocator            *m_allocator       = nullptr;
         DecodeMemComp              *m_mmcState        = nullptr;
+        CodechalHwInterface        *m_hwInterface     = nullptr;
+        MhwMiInterface             *m_miInterface     = nullptr;
 
         CodecAv1PicParams          *m_av1PicParams    = nullptr; //!< Pointer to picture parameter
         MOS_SURFACE                 refSurface[av1TotalRefsPerFrame];

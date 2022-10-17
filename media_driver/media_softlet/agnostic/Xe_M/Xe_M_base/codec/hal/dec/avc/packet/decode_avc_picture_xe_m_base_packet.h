@@ -42,10 +42,13 @@ namespace decode
         //! \brief  AvcDecodePicPkt constructor
         //!
         AvcDecodePicPktXe_M_Base(AvcPipeline *pipeline, CodechalHwInterface *hwInterface)
-            : DecodeSubPacket(pipeline, hwInterface), m_avcPipeline(pipeline)
+            : DecodeSubPacket(pipeline, *hwInterface), m_avcPipeline(pipeline)
         {
+            m_hwInterface = hwInterface;
             if (m_hwInterface != nullptr)
             {
+                m_miInterface  = m_hwInterface->GetMiInterface();
+                m_osInterface  = m_hwInterface->GetOsInterface();
                 m_mfxInterface  =  static_cast<CodechalHwInterfaceG12*>(hwInterface)->GetMfxInterface();
             }
         }
@@ -175,6 +178,10 @@ namespace decode
         uint32_t m_picturePatchListSize        = 0;    //!< Picture patch list size
         uint16_t m_picWidthInMbLastMaxAlloced  = 0;    //!< Max Picture Width in MB  used for buffer allocation in past frames
         uint16_t m_picHeightInMbLastMaxAlloced = 0;    //!< Max Picture Height in MB used for buffer allocation in past frames
+
+        CodechalHwInterface *m_hwInterface = nullptr;
+        MhwMiInterface      *m_miInterface = nullptr;
+
         
 #if MOS_EVENT_TRACE_DUMP_SUPPORTED
         PMOS_SURFACE m_tempRefSurf = nullptr;

@@ -31,7 +31,7 @@ namespace encode
     HevcVdencWeightedPred::HevcVdencWeightedPred(
         MediaFeatureManager *featureManager,
         EncodeAllocator *allocator,
-        CodechalHwInterface *hwInterface,
+        CodechalHwInterfaceNext *hwInterface,
         void *constSettings) :
         MediaFeature(constSettings)
     {

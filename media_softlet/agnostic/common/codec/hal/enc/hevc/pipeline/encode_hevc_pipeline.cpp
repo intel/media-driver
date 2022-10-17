@@ -30,7 +30,7 @@
 namespace encode {
 
 HevcPipeline::HevcPipeline(
-    CodechalHwInterface *   hwInterface,
+    CodechalHwInterfaceNext *   hwInterface,
     CodechalDebugInterface *debugInterface)
     : EncodePipeline(hwInterface, debugInterface)
 {

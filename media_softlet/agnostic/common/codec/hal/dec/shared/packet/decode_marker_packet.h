@@ -44,7 +44,7 @@ public:
     //!
     //! \brief  Decode predication sub packet constructor
     //!
-    DecodeMarkerPkt(DecodePipeline *pipeline, CodechalHwInterface *hwInterface);
+    DecodeMarkerPkt(DecodePipeline *pipeline, CodechalHwInterfaceNext *hwInterface);
 
     //!
     //! \brief  Decode predication sub packet destructor

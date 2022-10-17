@@ -40,7 +40,7 @@ public:
     //!         Pointer to CodechalDebugInterface
     //!
     Av1Pipeline(
-        CodechalHwInterface *   hwInterface,
+        CodechalHwInterfaceNext *   hwInterface,
         CodechalDebugInterface *debugInterface);
 
     virtual ~Av1Pipeline() {}

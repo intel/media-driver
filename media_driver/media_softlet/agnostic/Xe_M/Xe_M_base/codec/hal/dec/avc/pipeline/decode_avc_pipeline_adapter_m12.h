@@ -38,7 +38,14 @@ public:
         CodechalHwInterface *   hwInterface,
         CodechalDebugInterface *debugInterface);
 
-    virtual ~DecodeAvcPipelineAdapterM12() {}
+    virtual ~DecodeAvcPipelineAdapterM12()
+    {
+        if (m_hwInterface)
+        {
+            MOS_Delete(m_hwInterface);
+            Codechal::m_hwInterface = nullptr;
+        }
+    }
 
     virtual MOS_STATUS BeginFrame() override;
 
@@ -75,6 +82,7 @@ public:
 
 protected:
     std::shared_ptr<decode::AvcPipelineM12> m_decoder;
+    CodechalHwInterface                    *m_hwInterface = nullptr;
 MEDIA_CLASS_DEFINE_END(DecodeAvcPipelineAdapterM12)
 };
 #endif // !__DECODE_AVC_PIPELINE_ADAPTER_M12_H__

@@ -142,7 +142,7 @@ protected:
     virtual MOS_STATUS SendAttrWithFrameTracking(MOS_COMMAND_BUFFER &cmdBuffer, bool frameTrackingRequested) override;
 
 private:
-    CodechalHwInterface *m_hwInterface   = nullptr;
+    CodechalHwInterface *m_hwInterface = nullptr;
 
 MEDIA_CLASS_DEFINE_END(decode__DecodeScalabilitySinglePipe)
 };

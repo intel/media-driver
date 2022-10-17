@@ -304,7 +304,7 @@ namespace encode
         VdencLplaAnalysis(
             MediaFeatureManager *featureManager,
             EncodeAllocator *allocator,
-            CodechalHwInterface *hwInterface,
+            CodechalHwInterfaceNext *hwInterface,
             void *constSettings);
 
         virtual ~VdencLplaAnalysis();
@@ -397,6 +397,15 @@ namespace encode
         MOS_STATUS GetLplaStatusReport(EncodeStatusMfx *encodeStatusMfx, EncodeStatusReportData *statusReportData);
 
         //!
+        //! \brief  Set vdenc pipe mode select parameters
+        //! \param  [in] pipeModeSelectParams
+        //!         pipe mode select params
+        //! \return MOS_STATUS
+        //!         MOS_STATUS_SUCCESS if success, else fail reason
+        //!
+        MOS_STATUS SetVdencPipeModeSelectParams(MHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G12 &pipeModeSelectParams);
+
+        //!
         //! \brief  Calculate Look ahead records
         //! \return MOS_STATUS
         //!         MOS_STATUS_SUCCESS if success, else fail reason
@@ -485,7 +494,7 @@ namespace encode
         HevcBasicFeature                  *m_hevcBasicFeature = nullptr;  //!< Hevc Basic Feature used in each frame
 
         EncodeBasicFeature       *m_basicFeature    = nullptr;  //!< EncodeBasicFeature
-        CodechalHwInterface      *m_hwInterface     = nullptr;  //!< Codechal HW Interface
+        CodechalHwInterfaceNext      *m_hwInterface     = nullptr;  //!< Codechal HW Interface
         EncodeAllocator          *m_allocator       = nullptr;  //!< Encode Allocator
         PMOS_INTERFACE            m_osInterface     = nullptr;
 

@@ -38,7 +38,7 @@ class EncodeMemCompG12 : public EncodeMemComp, public CodecMmcAuxTableG12Next
     //!
     //! \brief    Construct
     //!
-    EncodeMemCompG12(CodechalHwInterface *hwInterface);
+    EncodeMemCompG12(CodechalHwInterfaceNext *hwInterface);
 
     //!
     //! \brief    Destructor

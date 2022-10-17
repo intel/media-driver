@@ -32,14 +32,20 @@
 #include "decode_mpeg2_picture_packet_m12.h"
 #include "decode_common_feature_defs.h"
 #include "decode_sfc_histogram_postsubpipeline_m12.h"
+#include "decode_mpeg2_feature_manager.h"
+#include "decode_input_bitstream_m12.h"
+#include "decode_cp_bitstream_m12.h"
+#include "decode_marker_packet_g12.h"
+#include "decode_predication_packet_g12.h"
 
 namespace decode {
 
 Mpeg2PipelineM12::Mpeg2PipelineM12(
-    CodechalHwInterface *   hwInterface,
+    CodechalHwInterface    *hwInterface,
     CodechalDebugInterface *debugInterface)
-    : Mpeg2Pipeline(hwInterface, debugInterface)
+    : Mpeg2Pipeline(*hwInterface, debugInterface)
 {
+    m_hwInterface = hwInterface;
 }
 
 MOS_STATUS Mpeg2PipelineM12::Init(void *settings)
@@ -93,6 +99,14 @@ MOS_STATUS Mpeg2PipelineM12::Destroy()
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS Mpeg2PipelineM12::CreateFeatureManager()
+{
+    DECODE_FUNC_CALL();
+    m_featureManager = MOS_New(DecodeMpeg2FeatureManager, m_allocator, m_hwInterface, m_osInterface);
+    DECODE_CHK_NULL(m_featureManager);
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS Mpeg2PipelineM12::Initialize(void *settings)
 {
     DECODE_FUNC_CALL();
@@ -115,8 +129,11 @@ MOS_STATUS Mpeg2PipelineM12::Initialize(void *settings)
     DECODE_CHK_NULL(m_debugInterface);
     DECODE_CHK_STATUS(m_debugInterface->SetFastDumpConfig(m_mediaCopy));
 #endif
-
-    m_mediaContext = MOS_New(MediaContext, scalabilityDecoder, m_hwInterface, m_osInterface);
+    if (m_hwInterface->m_hwInterfaceNext)
+    {
+        m_hwInterface->m_hwInterfaceNext->legacyHwInterface = m_hwInterface;
+    }
+    m_mediaContext = MOS_New(MediaContext, scalabilityDecoder, m_hwInterface->m_hwInterfaceNext, m_osInterface);
     DECODE_CHK_NULL(m_mediaContext);
 
     m_task = CreateTask(MediaTask::TaskType::cmdTask);
@@ -168,7 +185,15 @@ MOS_STATUS Mpeg2PipelineM12::Initialize(void *settings)
 
 MOS_STATUS Mpeg2PipelineM12::CreateSubPackets(DecodeSubPacketManager &subPacketManager, CodechalSetting &codecSettings)
 {
-    DECODE_CHK_STATUS(Mpeg2Pipeline::CreateSubPackets(subPacketManager, codecSettings));
+    DecodePredicationPktG12 *predicationPkt = MOS_New(DecodePredicationPktG12, this, m_hwInterface);
+    DECODE_CHK_NULL(predicationPkt);
+    DECODE_CHK_STATUS(subPacketManager.Register(
+        DecodePacketId(this, predicationSubPacketId), *predicationPkt));
+
+    DecodeMarkerPktG12 *markerPkt = MOS_New(DecodeMarkerPktG12, this, m_hwInterface);
+    DECODE_CHK_NULL(markerPkt);
+    DECODE_CHK_STATUS(subPacketManager.Register(
+        DecodePacketId(this, markerSubPacketId), *markerPkt));
 
     Mpeg2DecodePicPktM12 *pictureDecodePkt = MOS_New(Mpeg2DecodePicPktM12, this, m_hwInterface);
     DECODE_CHK_NULL(pictureDecodePkt);
@@ -350,6 +375,18 @@ MOS_STATUS Mpeg2PipelineM12::CreatePostSubPipeLines(DecodeSubPipelineManager &su
     DECODE_CHK_STATUS(m_postSubPipeline->Register(*sfcHistogramPostSubPipeline));
 #endif
 
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS Mpeg2PipelineM12::CreatePreSubPipeLines(DecodeSubPipelineManager &subPipelineManager)
+{
+    m_bitstream = MOS_New(DecodeInputBitstreamM12, this, m_task, m_numVdbox, m_hwInterface);
+    DECODE_CHK_NULL(m_bitstream);
+    DECODE_CHK_STATUS(subPipelineManager.Register(*m_bitstream));
+
+    m_streamout = MOS_New(DecodeStreamOutM12, this, m_task, m_numVdbox, m_hwInterface);
+    DECODE_CHK_NULL(m_streamout);
+    DECODE_CHK_STATUS(subPipelineManager.Register(*m_streamout));
     return MOS_STATUS_SUCCESS;
 }
 

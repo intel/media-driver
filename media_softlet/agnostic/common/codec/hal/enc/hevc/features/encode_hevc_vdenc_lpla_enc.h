@@ -43,7 +43,7 @@ namespace encode
         HEVCVdencLplaEnc(
             MediaFeatureManager *featureManager,
             EncodeAllocator     *allocator,
-            CodechalHwInterface *hwInterface,
+            CodechalHwInterfaceNext *hwInterface,
             void                *constSettings);
 
         virtual ~HEVCVdencLplaEnc();

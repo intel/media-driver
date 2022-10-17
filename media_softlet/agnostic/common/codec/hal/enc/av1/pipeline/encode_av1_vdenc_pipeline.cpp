@@ -32,7 +32,7 @@
 namespace encode {
 
 Av1VdencPipeline::Av1VdencPipeline(
-    CodechalHwInterface *   hwInterface,
+    CodechalHwInterfaceNext *   hwInterface,
     CodechalDebugInterface *debugInterface)
     : Av1Pipeline(hwInterface, debugInterface)
 {

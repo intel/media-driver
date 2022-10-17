@@ -225,9 +225,27 @@ CodechalDecode::CodechalDecode (
     CodechalHwInterface        *hwInterface,
     CodechalDebugInterface      *debugInterface,
     PCODECHAL_STANDARD_INFO     standardInfo):
-    Codechal(hwInterface, debugInterface)
+    Codechal(*hwInterface, debugInterface)
 {
     CODECHAL_DECODE_FUNCTION_ENTER;
+
+    CODECHAL_PUBLIC_CHK_NULL_NO_STATUS_RETURN(hwInterface);
+    CODECHAL_PUBLIC_CHK_NULL_NO_STATUS_RETURN(hwInterface->GetOsInterface());
+    MOS_UNUSED(debugInterface);
+
+    m_hwInterface = hwInterface;
+    m_osInterface = hwInterface->GetOsInterface();
+
+    if (m_hwInterface->bEnableVdboxBalancingbyUMD && m_osInterface->bEnableVdboxBalancing)
+    {
+        m_hwInterface->m_getVdboxNodeByUMD = true;
+    }
+    m_userSettingPtr = m_osInterface->pfnGetUserSettingInstance(m_osInterface);
+
+#if USE_CODECHAL_DEBUG_TOOL
+    CODECHAL_PUBLIC_CHK_NULL_NO_STATUS_RETURN(debugInterface);
+    m_debugInterface = debugInterface;
+#endif  // USE_CODECHAL_DEBUG_TOOL
 
     MOS_ZeroMemory(&m_dummyReference, sizeof(MOS_SURFACE));
 
@@ -243,6 +261,7 @@ CodechalDecode::CodechalDecode (
     m_vdencInterface    = hwInterface->GetVdencInterface();
     m_miInterface       = hwInterface->GetMiInterface();
     m_cpInterface       = hwInterface->GetCpInterface();
+    m_hwInterface       = hwInterface;
 
     PLATFORM platform;
     m_osInterface->pfnGetPlatform(m_osInterface, &platform);
@@ -351,7 +370,54 @@ MOS_STATUS CodechalDecode::Allocate (CodechalSetting * codecHalSettings)
 
     CODECHAL_DECODE_FUNCTION_ENTER;
 
-    CODECHAL_DECODE_CHK_STATUS_RETURN(Codechal::Allocate(codecHalSettings));
+    CODECHAL_PUBLIC_CHK_NULL_RETURN(codecHalSettings);
+    CODECHAL_PUBLIC_CHK_NULL_RETURN(m_hwInterface);
+    CODECHAL_PUBLIC_CHK_NULL_RETURN(m_osInterface);
+
+    MOS_TraceEvent(EVENT_CODECHAL_CREATE,
+        EVENT_TYPE_INFO,
+        &codecHalSettings->codecFunction,
+        sizeof(uint32_t),
+        nullptr,
+        0);
+
+    CODECHAL_PUBLIC_CHK_STATUS_RETURN(m_hwInterface->Initialize(codecHalSettings));
+
+    MOS_NULL_RENDERING_FLAGS nullHWAccelerationEnable;
+    nullHWAccelerationEnable.Value = 0;
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (!m_statusReportDebugInterface)
+    {
+        m_statusReportDebugInterface = MOS_New(CodechalDebugInterface);
+        CODECHAL_PUBLIC_CHK_NULL_RETURN(m_statusReportDebugInterface);
+        CODECHAL_PUBLIC_CHK_STATUS_RETURN(
+            m_statusReportDebugInterface->Initialize(m_hwInterface, codecHalSettings->codecFunction));
+    }
+
+    ReadUserSettingForDebug(
+        m_userSettingPtr,
+        nullHWAccelerationEnable.Value,
+        __MEDIA_USER_FEATURE_VALUE_NULL_HW_ACCELERATION_ENABLE,
+        MediaUserSetting::Group::Device);
+
+    m_useNullHw[MOS_GPU_CONTEXT_VIDEO] =
+        (nullHWAccelerationEnable.CodecGlobal || nullHWAccelerationEnable.CtxVideo);
+    m_useNullHw[MOS_GPU_CONTEXT_VIDEO2] =
+        (nullHWAccelerationEnable.CodecGlobal || nullHWAccelerationEnable.CtxVideo2);
+    m_useNullHw[MOS_GPU_CONTEXT_VIDEO3] =
+        (nullHWAccelerationEnable.CodecGlobal || nullHWAccelerationEnable.CtxVideo3);
+    m_useNullHw[MOS_GPU_CONTEXT_VDBOX2_VIDEO] =
+        (nullHWAccelerationEnable.CodecGlobal || nullHWAccelerationEnable.CtxVDBox2Video);
+    m_useNullHw[MOS_GPU_CONTEXT_VDBOX2_VIDEO2] =
+        (nullHWAccelerationEnable.CodecGlobal || nullHWAccelerationEnable.CtxVDBox2Video2);
+    m_useNullHw[MOS_GPU_CONTEXT_VDBOX2_VIDEO3] =
+        (nullHWAccelerationEnable.CodecGlobal || nullHWAccelerationEnable.CtxVDBox2Video3);
+    m_useNullHw[MOS_GPU_CONTEXT_RENDER] =
+        (nullHWAccelerationEnable.CodecGlobal || nullHWAccelerationEnable.CtxRender);
+    m_useNullHw[MOS_GPU_CONTEXT_RENDER2] =
+        (nullHWAccelerationEnable.CodecGlobal || nullHWAccelerationEnable.CtxRender2);
+#endif  // _DEBUG || _RELEASE_INTERNAL
 
     m_standard                  = codecHalSettings->standard;
     m_mode                      = codecHalSettings->mode;
@@ -905,6 +971,12 @@ CodechalDecode::~CodechalDecode()
         !Mos_ResourceIsNull(&m_dummyReference.OsResource))
     {
         m_osInterface->pfnFreeResource(m_osInterface, &m_dummyReference.OsResource);
+    }
+
+    if (m_hwInterface)
+    {
+        MOS_Delete(m_hwInterface);
+        Codechal::m_hwInterface = nullptr;
     }
 }
 

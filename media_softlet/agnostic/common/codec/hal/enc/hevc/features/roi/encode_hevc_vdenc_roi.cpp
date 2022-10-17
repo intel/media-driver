@@ -33,7 +33,7 @@ namespace encode
 HevcVdencRoi::HevcVdencRoi(
     MediaFeatureManager *featureManager,
     EncodeAllocator *allocator,
-    CodechalHwInterface *hwInterface,
+    CodechalHwInterfaceNext *hwInterface,
     void *constSettings) :
     MediaFeature(constSettings, hwInterface ? hwInterface->GetOsInterface() : nullptr),
     m_allocator(allocator),

@@ -33,7 +33,7 @@
 
 DecodeMemCompG12::DecodeMemCompG12(
     CodechalHwInterface *hwInterface):
-    DecodeMemComp(hwInterface, hwInterface->GetOsInterface()), CodecMmcAuxTableG12()
+    DecodeMemComp(*hwInterface, hwInterface->GetOsInterface()), CodecMmcAuxTableG12()
 {
     m_mhwMiInterface = hwInterface->GetMiInterface();
 }

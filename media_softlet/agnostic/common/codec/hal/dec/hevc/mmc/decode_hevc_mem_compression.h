@@ -41,7 +41,7 @@ public:
     //!
     //! \brief    Construct
     //!
-    HevcDecodeMemComp(CodechalHwInterface *hwInterface);
+    HevcDecodeMemComp(CodechalHwInterfaceNext *hwInterface);
 
     //!
     //! \brief    Copy constructor

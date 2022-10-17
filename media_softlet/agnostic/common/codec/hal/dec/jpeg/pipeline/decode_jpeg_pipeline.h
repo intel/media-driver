@@ -43,7 +43,7 @@ public:
     //!         Pointer to CodechalDebugInterface
     //!
     JpegPipeline(
-        CodechalHwInterface*    hwInterface,
+        CodechalHwInterfaceNext *hwInterface,
         CodechalDebugInterface* debugInterface);
 
     virtual ~JpegPipeline() {};

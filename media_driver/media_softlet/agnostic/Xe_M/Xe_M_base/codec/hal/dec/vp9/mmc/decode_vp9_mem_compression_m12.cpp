@@ -32,7 +32,7 @@
 namespace decode
 {
 Vp9DecodeMemCompM12::Vp9DecodeMemCompM12(CodechalHwInterface *hwInterface)
-    : DecodeMemCompG12(hwInterface), Vp9DecodeMemComp(hwInterface)
+    : DecodeMemCompG12(hwInterface), Vp9DecodeMemComp(*hwInterface)
 {
 }
 

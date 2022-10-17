@@ -37,8 +37,7 @@ Vp9BasicFeature::Vp9BasicFeature(DecodeAllocator *allocator, void *hwInterface, 
     if (hwInterface != nullptr)
     {
         m_osInterface  = osInterface;
-        // After HwNext rebase, should be (CodechalHwInterfaceNext*)
-        m_hcpItf       = ((CodechalHwInterface*)hwInterface)->GetHcpInterfaceNext();
+        m_hcpItf       = ((CodechalHwInterfaceNext*)hwInterface)->GetHcpInterfaceNext();
     }
 
     for (uint8_t i = 0; i < CODEC_VP9_NUM_CONTEXTS; i++)

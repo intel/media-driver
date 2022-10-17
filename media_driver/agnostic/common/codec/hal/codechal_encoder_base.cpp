@@ -530,7 +530,59 @@ MOS_STATUS CodechalEncoderState::Allocate(CodechalSetting * codecHalSettings)
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cscDsState->Initialize());
     }
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(Codechal::Allocate(codecHalSettings));
+    {
+        CODECHAL_PUBLIC_FUNCTION_ENTER;
+
+        CODECHAL_PUBLIC_CHK_NULL_RETURN(codecHalSettings);
+        CODECHAL_PUBLIC_CHK_NULL_RETURN(m_hwInterface);
+        //CODECHAL_PUBLIC_CHK_NULL_RETURN(m_osInterface);
+
+        MOS_TraceEvent(EVENT_CODECHAL_CREATE,
+            EVENT_TYPE_INFO,
+            &codecHalSettings->codecFunction,
+            sizeof(uint32_t),
+            nullptr,
+            0);
+
+        CODECHAL_PUBLIC_CHK_STATUS_RETURN(m_hwInterface->Initialize(codecHalSettings));
+
+        MOS_NULL_RENDERING_FLAGS nullHWAccelerationEnable;
+        nullHWAccelerationEnable.Value = 0;
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+        if (!m_statusReportDebugInterface)
+        {
+            m_statusReportDebugInterface = MOS_New(CodechalDebugInterface);
+            CODECHAL_PUBLIC_CHK_NULL_RETURN(m_statusReportDebugInterface);
+            CODECHAL_PUBLIC_CHK_STATUS_RETURN(
+                m_statusReportDebugInterface->Initialize(m_hwInterface, codecHalSettings->codecFunction));
+        }
+
+        ReadUserSettingForDebug(
+            m_userSettingPtr,
+            nullHWAccelerationEnable.Value,
+            __MEDIA_USER_FEATURE_VALUE_NULL_HW_ACCELERATION_ENABLE,
+            MediaUserSetting::Group::Device);
+
+        m_useNullHw[MOS_GPU_CONTEXT_VIDEO] =
+            (nullHWAccelerationEnable.CodecGlobal || nullHWAccelerationEnable.CtxVideo);
+        m_useNullHw[MOS_GPU_CONTEXT_VIDEO2] =
+            (nullHWAccelerationEnable.CodecGlobal || nullHWAccelerationEnable.CtxVideo2);
+        m_useNullHw[MOS_GPU_CONTEXT_VIDEO3] =
+            (nullHWAccelerationEnable.CodecGlobal || nullHWAccelerationEnable.CtxVideo3);
+        m_useNullHw[MOS_GPU_CONTEXT_VDBOX2_VIDEO] =
+            (nullHWAccelerationEnable.CodecGlobal || nullHWAccelerationEnable.CtxVDBox2Video);
+        m_useNullHw[MOS_GPU_CONTEXT_VDBOX2_VIDEO2] =
+            (nullHWAccelerationEnable.CodecGlobal || nullHWAccelerationEnable.CtxVDBox2Video2);
+        m_useNullHw[MOS_GPU_CONTEXT_VDBOX2_VIDEO3] =
+            (nullHWAccelerationEnable.CodecGlobal || nullHWAccelerationEnable.CtxVDBox2Video3);
+        m_useNullHw[MOS_GPU_CONTEXT_RENDER] =
+            (nullHWAccelerationEnable.CodecGlobal || nullHWAccelerationEnable.CtxRender);
+        m_useNullHw[MOS_GPU_CONTEXT_RENDER2] =
+            (nullHWAccelerationEnable.CodecGlobal || nullHWAccelerationEnable.CtxRender2);
+#endif  // _DEBUG || _RELEASE_INTERNAL
+
+    }
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(Initialize(codecHalSettings));
 
@@ -5113,10 +5165,10 @@ CodechalEncoderState::CodechalEncoderState(
     CodechalHwInterface* hwInterface,
     CodechalDebugInterface* debugInterface,
     PCODECHAL_STANDARD_INFO standardInfo):
-    Codechal(hwInterface, debugInterface)
+    Codechal((hwInterface==nullptr) ?nullptr:hwInterface->m_hwInterfaceNext, debugInterface)
 {
+    m_hwInterface             = hwInterface;
     pfnGetKernelHeaderAndSize = nullptr;
-
     // Add Null checks here for all interfaces.
     CODECHAL_ENCODE_CHK_NULL_NO_STATUS_RETURN(m_hwInterface);
     m_mfxInterface = m_hwInterface->GetMfxInterface();
@@ -5129,7 +5181,9 @@ CodechalEncoderState::CodechalEncoderState(
     m_stateHeapInterface = m_renderEngineInterface->m_stateHeapInterface;
     CODECHAL_ENCODE_ASSERT(m_renderEngineInterface->GetHwCaps());
 
+    m_osInterface = hwInterface->GetOsInterface();
     CODECHAL_ENCODE_CHK_NULL_NO_STATUS_RETURN(m_osInterface);
+    m_userSettingPtr = m_osInterface->pfnGetUserSettingInstance(m_osInterface);
     m_osInterface->pfnGetPlatform(m_osInterface, &m_platform);
     m_skuTable     = m_osInterface->pfnGetSkuTable(m_osInterface);
     m_waTable      = m_osInterface->pfnGetWaTable(m_osInterface);
@@ -5232,6 +5286,14 @@ CodechalEncoderState::~CodechalEncoderState()
     {
         MediaPerfProfiler::Destroy(m_perfProfiler, (void*)this, m_osInterface);
         m_perfProfiler = nullptr;
+    }
+
+    // Destroy HW interface objects (GSH, SSH, etc)
+    if (m_hwInterface != nullptr)
+    {
+        MOS_Delete(m_hwInterface);
+        m_hwInterface = nullptr;
+        Codechal::m_hwInterface = nullptr;
     }
 }
 

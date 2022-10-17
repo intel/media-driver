@@ -30,7 +30,7 @@
 #ifndef __ENCODE_HUC_H__
 #define __ENCODE_HUC_H__
 
-#include "codechal_hw.h"
+#include "codec_hw_next.h"
 #include "mos_defs.h"
 #include "media_cmd_packet.h"
 #include "encode_pipeline.h"
@@ -64,7 +64,7 @@ namespace encode
         public mhw::mi::Itf::ParSetting
     {
     public:
-        EncodeHucPkt(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterface *hwInterface) : 
+        EncodeHucPkt(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterfaceNext  *hwInterface) : 
             CmdPacket(task),
             m_pipeline(dynamic_cast<EncodePipeline *>(pipeline))
         {
@@ -189,7 +189,7 @@ namespace encode
         EncodePipeline         *m_pipeline       = nullptr;
         EncodeAllocator        *m_allocator      = nullptr;
         MediaFeatureManager    *m_featureManager = nullptr;
-        CodechalHwInterface    *m_hwInterface    = nullptr;
+        CodechalHwInterfaceNext *m_hwInterface   = nullptr;
         MOS_INTERFACE          *m_osInterface    = nullptr;
 
         std::shared_ptr<mhw::vdbox::vdenc::Itf> m_vdencItf = nullptr;

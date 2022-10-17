@@ -32,15 +32,19 @@
 #include "decode_common_feature_defs.h"
 #include "decode_avc_downsampling_packet.h"
 #include "decode_sfc_histogram_postsubpipeline_m12.h"
+#include "decode_avc_feature_manager.h"
+#include "decode_input_bitstream_m12.h"
+#include "decode_cp_bitstream_m12.h"
+#include "decode_marker_packet_g12.h"
+#include "decode_predication_packet_g12.h"
 
 namespace decode {
-
 AvcPipelineM12::AvcPipelineM12(
-    CodechalHwInterface *   hwInterface,
+    CodechalHwInterface    *hwInterface,
     CodechalDebugInterface *debugInterface)
-    : AvcPipeline(hwInterface, debugInterface)
+    : AvcPipeline(hwInterface ? hwInterface->m_hwInterfaceNext : nullptr, debugInterface)
 {
-
+    m_hwInterface = hwInterface;
 }
 
 MOS_STATUS AvcPipelineM12::Init(void *settings)
@@ -94,12 +98,22 @@ MOS_STATUS AvcPipelineM12::Destroy()
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS AvcPipelineM12::CreateFeatureManager()
+{
+    DECODE_FUNC_CALL();
+    m_featureManager = MOS_New(DecodeAvcFeatureManager, m_allocator, m_hwInterface, m_osInterface);
+    DECODE_CHK_NULL(m_featureManager);
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS AvcPipelineM12::Initialize(void *settings)
 {
     DECODE_FUNC_CALL();
     DECODE_CHK_STATUS(MediaPipeline::InitPlatform());
     DECODE_CHK_STATUS(MediaPipeline::CreateMediaCopy());
+
     DECODE_CHK_NULL(m_waTable);
+
     auto *codecSettings = (CodechalSetting *)settings;
     DECODE_CHK_NULL(m_hwInterface);
     DECODE_CHK_STATUS(m_hwInterface->Initialize(codecSettings));
@@ -113,15 +127,24 @@ MOS_STATUS AvcPipelineM12::Initialize(void *settings)
     DECODE_CHK_NULL(m_debugInterface);
     DECODE_CHK_STATUS(m_debugInterface->SetFastDumpConfig(m_mediaCopy));
 #endif
-    m_mediaContext = MOS_New(MediaContext, scalabilityDecoder, m_hwInterface, m_osInterface);
+    if (m_hwInterface->m_hwInterfaceNext)
+    {
+        m_hwInterface->m_hwInterfaceNext->legacyHwInterface = m_hwInterface;
+    }
+    m_mediaContext = MOS_New(MediaContext, scalabilityDecoder, m_hwInterface->m_hwInterfaceNext, m_osInterface);
     DECODE_CHK_NULL(m_mediaContext);
+
     m_task = CreateTask(MediaTask::TaskType::cmdTask);
     DECODE_CHK_NULL(m_task);
-    m_numVdbox          = GetSystemVdboxNumber();
+
+    m_numVdbox = GetSystemVdboxNumber();
+
     bool limitedLMemBar = MEDIA_IS_SKU(m_skuTable, FtrLimitedLMemBar) ? true : false;
-    m_allocator           = MOS_New(DecodeAllocator, m_osInterface, limitedLMemBar);
+    m_allocator         = MOS_New(DecodeAllocator, m_osInterface, limitedLMemBar);
     DECODE_CHK_NULL(m_allocator);
+
     DECODE_CHK_STATUS(CreateStatusReport());
+
     m_decodecp = Create_DecodeCpInterface(codecSettings, m_hwInterface->GetCpInterface(), m_hwInterface->GetOsInterface());
     if (m_decodecp)
     {
@@ -129,17 +152,23 @@ MOS_STATUS AvcPipelineM12::Initialize(void *settings)
     }
     DECODE_CHK_STATUS(CreateFeatureManager());
     DECODE_CHK_STATUS(m_featureManager->Init(codecSettings));
+
     DECODE_CHK_STATUS(CreateSubPipeLineManager(codecSettings));
     DECODE_CHK_STATUS(CreateSubPacketManager(codecSettings));
+
     m_basicFeature = dynamic_cast<AvcBasicFeature *>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
     DECODE_CHK_NULL(m_basicFeature);
+
     // Create basic GPU context
     DecodeScalabilityPars scalPars;
     MOS_ZeroMemory(&scalPars, sizeof(scalPars));
     DECODE_CHK_STATUS(m_mediaContext->SwitchContext(VdboxDecodeFunc, &scalPars, &m_scalability));
-    m_decodeContext                      = m_osInterface->pfnGetGpuContext(m_osInterface);
-    m_intelEntrypointInUse               = (codecSettings->intelEntrypointInUse) ? true : false;
-    m_shortFormatInUse                   = (codecSettings->shortFormatInUse) ? true : false;
+    
+    m_decodeContext = m_osInterface->pfnGetGpuContext(m_osInterface);
+
+    m_intelEntrypointInUse = (codecSettings->intelEntrypointInUse) ? true : false;
+    m_shortFormatInUse     = (codecSettings->shortFormatInUse) ? true : false;
+
     HucPacketCreatorG12 *hucPktCreator = dynamic_cast<HucPacketCreatorG12 *>(this);
     DECODE_CHK_NULL(hucPktCreator);
     m_formatMonoPicPkt = hucPktCreator->CreateHucCopyPkt(this, m_task, m_hwInterface);
@@ -155,10 +184,18 @@ MOS_STATUS AvcPipelineM12::Initialize(void *settings)
 
 MOS_STATUS AvcPipelineM12::CreateSubPackets(DecodeSubPacketManager &subPacketManager, CodechalSetting &codecSettings)
 {
-    DECODE_CHK_STATUS(AvcPipeline::CreateSubPackets(subPacketManager, codecSettings));
+    DecodePredicationPktG12 *predicationPkt = MOS_New(DecodePredicationPktG12, this, m_hwInterface);
+    DECODE_CHK_NULL(predicationPkt);
+    DECODE_CHK_STATUS(subPacketManager.Register(
+        DecodePacketId(this, predicationSubPacketId), *predicationPkt));
+
+    DecodeMarkerPktG12 *markerPkt = MOS_New(DecodeMarkerPktG12, this, m_hwInterface);
+    DECODE_CHK_NULL(markerPkt);
+    DECODE_CHK_STATUS(subPacketManager.Register(
+        DecodePacketId(this, markerSubPacketId), *markerPkt));
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
-    AvcDownSamplingPkt *downSamplingPkt = MOS_New(AvcDownSamplingPkt, this, m_hwInterface);
+    AvcDownSamplingPkt *downSamplingPkt = MOS_New(AvcDownSamplingPkt, this, *m_hwInterface);
     DECODE_CHK_NULL(downSamplingPkt);
     DECODE_CHK_STATUS(subPacketManager.Register(
         DecodePacketId(this, downSamplingSubPacketId), *downSamplingPkt));
@@ -344,6 +381,18 @@ MOS_STATUS AvcPipelineM12::CreatePostSubPipeLines(DecodeSubPipelineManager &subP
     DECODE_CHK_STATUS(m_postSubPipeline->Register(*sfcHistogramPostSubPipeline));
 #endif
 
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS AvcPipelineM12::CreatePreSubPipeLines(DecodeSubPipelineManager &subPipelineManager)
+{
+    m_bitstream = MOS_New(DecodeInputBitstreamM12, this, m_task, m_numVdbox, m_hwInterface);
+    DECODE_CHK_NULL(m_bitstream);
+    DECODE_CHK_STATUS(subPipelineManager.Register(*m_bitstream));
+
+    m_streamout = MOS_New(DecodeStreamOutM12, this, m_task, m_numVdbox, m_hwInterface);
+    DECODE_CHK_NULL(m_streamout);
+    DECODE_CHK_STATUS(subPipelineManager.Register(*m_streamout));
     return MOS_STATUS_SUCCESS;
 }
 

@@ -32,7 +32,7 @@ namespace encode
     VdencLplaAnalysis::VdencLplaAnalysis(
         MediaFeatureManager *featureManager,
         EncodeAllocator     *allocator,
-        CodechalHwInterface *hwInterface,
+        CodechalHwInterfaceNext *hwInterface,
         void                *constSettings) :
         MediaFeature(constSettings, hwInterface ? hwInterface->GetOsInterface() : nullptr),
         m_hwInterface(hwInterface),
@@ -141,7 +141,7 @@ namespace encode
             }
             else
             {
-                ENCODE_ASSERTMESSAGE("Invalid GopPicSize in LPLA!");
+                CODECHAL_ENCODE_ASSERTMESSAGE("Invalid GopPicSize in LPLA!");
                 return MOS_STATUS_INVALID_PARAMETER;
             }
         }
@@ -910,6 +910,20 @@ namespace encode
         hucVdencLaUpdateDmem->currentPass = (uint8_t)curPass;
 
         m_allocator->UnLock(m_vdencLaUpdateDmemBuffer[currRecycledBufIdx][curPass]);
+
+        return eStatus;
+    }
+
+    MOS_STATUS VdencLplaAnalysis::SetVdencPipeModeSelectParams(MHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G12 &pipeModeSelectParams)
+    {
+        ENCODE_FUNC_CALL();
+        MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+        
+        if (!m_enabled)
+        {
+            return eStatus;
+        }
+        pipeModeSelectParams.bLookaheadPass = true;
 
         return eStatus;
     }

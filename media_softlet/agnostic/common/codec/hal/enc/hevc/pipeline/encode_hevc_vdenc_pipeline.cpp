@@ -33,7 +33,7 @@
 namespace encode {
 
 HevcVdencPipeline::HevcVdencPipeline(
-    CodechalHwInterface *   hwInterface,
+    CodechalHwInterfaceNext *   hwInterface,
     CodechalDebugInterface *debugInterface)
     : HevcPipeline(hwInterface, debugInterface)
 {

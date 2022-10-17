@@ -28,12 +28,12 @@
 #include "media_user_settings_mgr_g12.h"
 #include "codechal_setting.h"
 #include "decode_mpeg2_feature_manager.h"
-#include "decode_huc_packet_creator_base.h" 
+#include "decode_huc_packet_creator_base.h"
 
 namespace decode{
 
 Mpeg2Pipeline::Mpeg2Pipeline(
-    CodechalHwInterface *   hwInterface,
+    CodechalHwInterfaceNext *hwInterface,
     CodechalDebugInterface *debugInterface)
     : DecodePipeline(hwInterface, debugInterface)
 {
@@ -181,7 +181,7 @@ MOS_STATUS Mpeg2Pipeline::ActivateDecodePackets()
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS Mpeg2Pipeline::CreateFeatureManager()  // After HwNext rebase, Need override
+MOS_STATUS Mpeg2Pipeline::CreateFeatureManager()
 {
     DECODE_FUNC_CALL();
     m_featureManager = MOS_New(DecodeMpeg2FeatureManager, m_allocator, m_hwInterface, m_osInterface);

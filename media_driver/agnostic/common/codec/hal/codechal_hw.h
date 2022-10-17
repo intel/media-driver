@@ -331,12 +331,6 @@ public:
         MhwInterfaces     *mhwInterfaces,
         bool              disableScalability = false);
 
-    CodechalHwInterface(
-        PMOS_INTERFACE    osInterface,
-        CODECHAL_FUNCTION codecFunction,
-        MhwInterfacesNext *mhwInterfacesNext,
-        bool              disableScalability = false);
-
     //!
     //! \brief    Get avp interface
     //! \details  Get avp interface in codechal hw interface next

@@ -43,7 +43,7 @@ namespace encode
         AV1VdencLplaEnc(
             MediaFeatureManager *featureManager,
             EncodeAllocator     *allocator,
-            CodechalHwInterface *hwInterface,
+            CodechalHwInterfaceNext *hwInterface,
             void                *constSettings);
 
         virtual ~AV1VdencLplaEnc();

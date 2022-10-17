@@ -36,7 +36,7 @@ namespace encode
 class HucLaInitPkt : public EncodeHucPkt
 {
 public:
-    HucLaInitPkt(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterface *hwInterface) : EncodeHucPkt(pipeline, task, hwInterface)
+    HucLaInitPkt(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterfaceNext *hwInterface) : EncodeHucPkt(pipeline, task, hwInterface)
     {
     }
 

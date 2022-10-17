@@ -28,7 +28,7 @@
 
 #include "media_feature.h"
 #include "encode_allocator.h"
-#include "codechal_hw.h"
+#include "codec_hw_next.h"
 #include "encode_basic_feature.h"
 
 namespace encode
@@ -36,7 +36,7 @@ namespace encode
 class HevcEncodeCqp : public MediaFeature, public mhw::vdbox::hcp::Itf::ParSetting
 {
 public:
-    HevcEncodeCqp(MediaFeatureManager *featureManager, EncodeAllocator *allocator, CodechalHwInterface *hwInterface, void *constSettings);
+    HevcEncodeCqp(MediaFeatureManager *featureManager, EncodeAllocator *allocator, CodechalHwInterfaceNext *hwInterface, void *constSettings);
 
     ~HevcEncodeCqp() {}
 

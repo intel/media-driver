@@ -26,6 +26,7 @@
 
 #include "encode_av1_basic_feature.h"
 #include "encode_utils.h"
+#include "codechal_utilities.h"
 #include "encode_allocator.h"
 #include "encode_av1_vdenc_const_settings.h"
 #include "mos_solo_generic.h"

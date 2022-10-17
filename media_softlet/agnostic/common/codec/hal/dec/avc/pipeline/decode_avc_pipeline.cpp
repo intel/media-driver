@@ -33,7 +33,7 @@
 namespace decode
 {
     AvcPipeline::AvcPipeline(
-        CodechalHwInterface *   hwInterface,
+    CodechalHwInterfaceNext *hwInterface,
         CodechalDebugInterface *debugInterface)
         : DecodePipeline(hwInterface, debugInterface)
     {
@@ -221,7 +221,7 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS AvcPipeline::CreateFeatureManager()  // After HwNext rebase, Need override
+    MOS_STATUS AvcPipeline::CreateFeatureManager()
     {
         DECODE_FUNC_CALL();
         m_featureManager = MOS_New(DecodeAvcFeatureManager, m_allocator, m_hwInterface, m_osInterface);

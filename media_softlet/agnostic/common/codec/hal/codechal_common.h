@@ -30,7 +30,7 @@
 #include "mos_util_debug.h"
 
 class CodechalDebugInterface;
-class CodechalHwInterface;
+class CodechalHwInterfaceNext;
 class CodechalSetting;
 
 //------------------------------------------------------------------------------
@@ -82,7 +82,7 @@ public:
     //!           Debug interface
     //!
     Codechal(
-        CodechalHwInterface    *hwInterface,
+        CodechalHwInterfaceNext *hwInterface,
         CodechalDebugInterface *debugInterface);
 
     //!
@@ -198,7 +198,7 @@ public:
     //! \return   CodechalHwInterface
     //!           return hardware interface
     //!
-    CodechalHwInterface *GetHwInterface() { return m_hwInterface; }
+    CodechalHwInterfaceNext *GetHwInterface() { return m_hwInterface; }
 
     //!
     //! \brief    Gets OS interface.
@@ -224,7 +224,7 @@ protected:
     //! \brief    HW Inteface
     //! \details  Responsible for constructing all defined states and commands. 
     //!           Each HAL has a separate OS interface.
-    CodechalHwInterface     *m_hwInterface      = nullptr;
+    CodechalHwInterfaceNext *m_hwInterface = nullptr;
 
     //! \brief    Os Inteface
     //! \details  Used to abstract all OS and KMD interactions such that CodecHal may be 

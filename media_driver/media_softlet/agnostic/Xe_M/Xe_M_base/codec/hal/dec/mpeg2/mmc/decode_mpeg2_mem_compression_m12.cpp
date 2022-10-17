@@ -33,7 +33,7 @@ namespace decode
 {
 
 Mpeg2DecodeMemCompM12::Mpeg2DecodeMemCompM12(CodechalHwInterface *hwInterface)
-    : DecodeMemCompG12(hwInterface), Mpeg2DecodeMemComp(hwInterface)
+    : DecodeMemCompG12(hwInterface), Mpeg2DecodeMemComp(*hwInterface)
 {
 }
 

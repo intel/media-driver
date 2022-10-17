@@ -39,7 +39,7 @@ namespace encode
     Av1EncodeTile::Av1EncodeTile(
         MediaFeatureManager *featureManager,
         EncodeAllocator *allocator,
-        CodechalHwInterface *hwInterface,
+        CodechalHwInterfaceNext *hwInterface,
         void *constSettings) :
         EncodeTile(featureManager, allocator, hwInterface, constSettings)
     {
@@ -743,14 +743,14 @@ namespace encode
 
             if (hdrDataOffset >= hdrBufSize)
             {
-                ENCODE_ASSERTMESSAGE("Encode: Data offset in packed slice header data is out of bounds.");
+                CODECHAL_ENCODE_ASSERTMESSAGE("Encode: Data offset in packed slice header data is out of bounds.");
                 delete []temp;
                 return MOS_STATUS_INVALID_FILE_SIZE;
             }
 
             if (hdrDataByteSize > hdrBufSize)
             {
-                ENCODE_ASSERTMESSAGE("Encode: Data length in packed slice header data is greater than buffer size.");
+                CODECHAL_ENCODE_ASSERTMESSAGE("Encode: Data length in packed slice header data is greater than buffer size.");
                 delete []temp;
                 return MOS_STATUS_INVALID_FILE_SIZE;
             }
@@ -763,7 +763,7 @@ namespace encode
 
             if (slcCount > encodeParams->dwNumSlices)
             {
-                ENCODE_ASSERTMESSAGE("Encode: Number of slice headers exceeds number of slices.");
+                CODECHAL_ENCODE_ASSERTMESSAGE("Encode: Number of slice headers exceeds number of slices.");
                 delete []temp;
                 return MOS_STATUS_INVALID_FILE_SIZE;
             }

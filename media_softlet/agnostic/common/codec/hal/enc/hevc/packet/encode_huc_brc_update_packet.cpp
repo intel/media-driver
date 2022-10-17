@@ -62,15 +62,12 @@ namespace encode
         uint32_t hucPatchListSize = 0;
         MHW_VDBOX_STATE_CMDSIZE_PARAMS stateCmdSizeParams;
 
-        if (m_hwInterface->m_hwInterfaceNext)
-        {
-            stateCmdSizeParams.uNumStoreDataImm = 2;
-            stateCmdSizeParams.uNumStoreReg     = 4;
-            stateCmdSizeParams.uNumMfxWait      = 3;
-            stateCmdSizeParams.uNumAddConBBEnd  = 1;
-            ENCODE_CHK_STATUS_RETURN(m_hwInterface->m_hwInterfaceNext->GetHucStateCommandSize(
-                m_basicFeature->m_mode, (uint32_t*)&hucCommandsSize, (uint32_t*)&hucPatchListSize, &stateCmdSizeParams));
-        }
+        stateCmdSizeParams.uNumStoreDataImm = 2;
+        stateCmdSizeParams.uNumStoreReg     = 4;
+        stateCmdSizeParams.uNumMfxWait      = 3;
+        stateCmdSizeParams.uNumAddConBBEnd  = 1;
+        ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetHucStateCommandSize(
+            m_basicFeature->m_mode, (uint32_t*)&hucCommandsSize, (uint32_t*)&hucPatchListSize, &stateCmdSizeParams));
 
         commandBufferSize = hucCommandsSize;
         requestedPatchListSize = osInterface->bUsesPatchList ? hucPatchListSize : 0;
@@ -288,7 +285,7 @@ namespace encode
 
             if (selectedSlot == -1)
             {
-                ENCODE_ASSERTMESSAGE("No valid ref slot index");
+                CODECHAL_ENCODE_ASSERTMESSAGE("No valid ref slot index");
                 return MOS_STATUS_INVALID_PARAMETER;
             }
 
@@ -370,7 +367,7 @@ namespace encode
                 if ((hucVdencBrcUpdateDmem->CurrentFrameType_U8 == HEVC_BRC_FRAME_TYPE_INVALID) ||
                     (m_basicFeature->m_hevcSeqParams->LowDelayMode && hucVdencBrcUpdateDmem->CurrentFrameType_U8 == HEVC_BRC_FRAME_TYPE_B2))
                 {
-                    ENCODE_ASSERTMESSAGE("HEVC_BRC_FRAME_TYPE_INVALID or LBD picture doesn't support Level 4\n");
+                    CODECHAL_ENCODE_ASSERTMESSAGE("HEVC_BRC_FRAME_TYPE_INVALID or LBD picture doesn't support Level 4\n");
                     return MOS_STATUS_INVALID_PARAMETER;
                 }
             }
@@ -387,7 +384,7 @@ namespace encode
                 //Invalid CodingType.
                 if (hucVdencBrcUpdateDmem->CurrentFrameType_U8 == HEVC_BRC_FRAME_TYPE_INVALID)
                 {
-                    ENCODE_ASSERTMESSAGE("Invalid CodingType\n");
+                    CODECHAL_ENCODE_ASSERTMESSAGE("Invalid CodingType\n");
                     return MOS_STATUS_INVALID_PARAMETER;
                 }
             }

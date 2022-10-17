@@ -33,7 +33,7 @@
 
 namespace decode
 {
-Vp9DecodeMemComp::Vp9DecodeMemComp(CodechalHwInterface *hwInterface)
+Vp9DecodeMemComp::Vp9DecodeMemComp(CodechalHwInterfaceNext *hwInterface)
 {
     m_osInterface = hwInterface->GetOsInterface();
 }

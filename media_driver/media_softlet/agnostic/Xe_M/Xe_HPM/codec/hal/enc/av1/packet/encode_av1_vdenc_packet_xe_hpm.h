@@ -34,7 +34,7 @@ namespace encode
     class Av1VdencPktXe_Hpm : public Av1VdencPktXe_M_Base
     {
     public:
-        Av1VdencPktXe_Hpm(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterface *hwInterface) :
+        Av1VdencPktXe_Hpm(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterfaceNext *hwInterface) :
             Av1VdencPktXe_M_Base(pipeline, task, hwInterface) { }
 
         virtual ~Av1VdencPktXe_Hpm();

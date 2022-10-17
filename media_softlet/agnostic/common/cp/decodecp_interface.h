@@ -29,7 +29,7 @@
 #include "mos_util_debug.h"
 #include "codechal_setting.h"
 #include "mos_os_specific.h"
-#include "codechal_hw.h"
+#include "codec_hw_next.h"
 #include "mos_utilities.h"
 
 #define DECODE_CP_ASSERT(_ptr) \
@@ -131,7 +131,7 @@ public:
     virtual decode::DecodeSubPacket*  CreateDecodeCpIndSubPkt(
         decode::DecodePipeline *pipeline, 
         CODECHAL_MODE           mode,
-        CodechalHwInterface    *hwInterface)
+        CodechalHwInterfaceNext    *hwInterface)
     {
         MOS_UNUSED(pipeline);
         MOS_UNUSED(mode);

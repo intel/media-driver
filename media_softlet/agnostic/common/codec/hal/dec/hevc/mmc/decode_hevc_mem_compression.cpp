@@ -33,9 +33,12 @@
 namespace decode
 {
 
-HevcDecodeMemComp::HevcDecodeMemComp(CodechalHwInterface *hwInterface)
+HevcDecodeMemComp::HevcDecodeMemComp(CodechalHwInterfaceNext *hwInterface)
 {
-    m_osInterface = hwInterface->GetOsInterface();
+    if (hwInterface)
+    {
+        m_osInterface = hwInterface->GetOsInterface();
+    }
 }
 
 MOS_STATUS HevcDecodeMemComp::SetRefSurfaceMask(
