@@ -161,6 +161,19 @@ public:
         return eStatus;
     }
 
+    MOS_STATUS SetVeboxHeapStateIndex(
+        uint32_t index)
+    {
+        MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+        MHW_FUNCTION_ENTER;
+        MHW_CHK_NULL_RETURN(m_veboxHeap);
+
+        m_veboxHeap->uiCurState = index;
+
+        return eStatus;
+    }
+
     uint32_t GetVeboxNumInstances()
     {
         MHW_FUNCTION_ENTER;

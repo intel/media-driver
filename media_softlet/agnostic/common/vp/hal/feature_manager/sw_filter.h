@@ -985,6 +985,7 @@ struct FeatureParamCsc : public FeatureParam
     CSC_PARAMS          output          = {};
     PVPHAL_IEF_PARAMS   pIEFParams      = nullptr;
     PVPHAL_ALPHA_PARAMS pAlphaParams    = nullptr;
+    MOS_FORMAT          formatforCUS    = Format_None;            //!< Only valid when formatforCUS != Format_None for Chromaupsampling. To be cleared in SwFilterCsc::Configure
     FeatureParamCsc     *next           = nullptr;                //!< pointe to new/next generated CSC params
 };
 
@@ -1167,13 +1168,14 @@ struct FeatureParamDenoise : public FeatureParam
     uint32_t             heightInput          = 0;
     bool                 secureDnNeeded       = false;
     DN_STAGE             stage                = DN_STAGE_DEFAULT;
+    uint32_t             srcBottom            = 0;
     bool                 operator==(const struct FeatureParamDenoise &b)
     {
         return sampleTypeInput     == b.sampleTypeInput &&
                denoiseParams       == b.denoiseParams   &&
                widthAlignUnitInput == b.widthAlignUnitInput &&
                heightAlignUnitInput == b.heightAlignUnitInput &&
-               heightInput         == b.heightInput &&
+               MOS_MIN(heightInput, srcBottom) == MOS_MIN(b.heightInput, srcBottom) &&
                secureDnNeeded      == b.secureDnNeeded &&
                stage               == b.stage;
     }

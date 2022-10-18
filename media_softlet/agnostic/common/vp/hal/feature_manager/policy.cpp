@@ -1429,14 +1429,14 @@ MOS_STATUS Policy::GetDenoiseExecutionCaps(SwFilter* feature)
                 heightAlignUnit = MOS_ALIGN_CEIL(m_hwCaps.m_veboxHwEntry[inputformat].verticalAlignUnit, 2);
             }
 
-            if (MOS_IS_ALIGNED(denoiseParams.heightInput, heightAlignUnit))
+            if (MOS_IS_ALIGNED(MOS_MIN(denoiseParams.heightInput, denoiseParams.srcBottom), heightAlignUnit))
             {
                 denoiseEngine.bEnabled    = 1;
                 denoiseEngine.VeboxNeeded = 1;
             }
             else
             {
-                VP_PUBLIC_NORMALMESSAGE("Denoise Feature is disabled since heightInput (%d) not being %d aligned.", denoiseParams.heightInput, heightAlignUnit);
+                VP_PUBLIC_NORMALMESSAGE("Denoise Feature is disabled since min of heightInput (%d) and srcBottom (%d) not being %d aligned.", denoiseParams.heightInput, denoiseParams.srcBottom, heightAlignUnit);
             }
         }
     }
@@ -1476,16 +1476,24 @@ MOS_STATUS Policy::GetDeinterlaceExecutionCaps(SwFilter* feature)
         return MOS_STATUS_SUCCESS;
     }
 
-    if (!m_hwCaps.m_veboxHwEntry[inputformat].deinterlaceSupported              ||
-        diParams.diParams && diParams.diParams->DIMode == DI_MODE_BOB           &&
+    if (!m_hwCaps.m_veboxHwEntry[inputformat].deinterlaceSupported)
+    {
+        diEngine.bEnabled     = 1;
+        diEngine.RenderNeeded = 1;
+        diEngine.fcSupported  = 1;
+        PrintFeatureExecutionCaps(__FUNCTION__, diEngine);
+        return MOS_STATUS_SUCCESS;
+    }
+
+    if (diParams.diParams                                                       &&
         !MOS_IS_ALIGNED(MOS_MIN((uint32_t)diParams.heightInput, (uint32_t)diParams.rcSrc.bottom), 4) &&
         (diParams.formatInput == Format_P010                                    ||
          diParams.formatInput == Format_P016                                    ||
          diParams.formatInput == Format_NV12))
     {
-        diEngine.bEnabled     = 1;
-        diEngine.RenderNeeded = 1;
-        diEngine.fcSupported  = 1;
+        diEngine.bEnabled     = 0;
+        diEngine.RenderNeeded = 0;
+        diEngine.fcSupported  = 0;
         PrintFeatureExecutionCaps(__FUNCTION__, diEngine);
         return MOS_STATUS_SUCCESS;
     }

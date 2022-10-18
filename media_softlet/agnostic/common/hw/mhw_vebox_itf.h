@@ -70,6 +70,8 @@ public:
 
     virtual MOS_STATUS GetVeboxHeapInfo(const MHW_VEBOX_HEAP** ppVeboxHeap) = 0;
 
+    virtual MOS_STATUS SetVeboxHeapStateIndex(uint32_t index) = 0;
+
     virtual MOS_STATUS AddVeboxSurfaces(PMOS_COMMAND_BUFFER pCmdBufferInUse, PMHW_VEBOX_SURFACE_STATE_CMD_PARAMS pVeboxSurfaceStateCmdParams) = 0;
 
     virtual MOS_STATUS SetVeboxDndiState(PMHW_VEBOX_DNDI_PARAMS pVeboxDndiParams) = 0;

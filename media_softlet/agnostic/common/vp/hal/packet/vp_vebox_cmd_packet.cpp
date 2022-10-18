@@ -2097,6 +2097,16 @@ MOS_STATUS VpVeboxCmdPacket::PrepareState()
 
     VP_RENDER_CHK_STATUS_RETURN(UpdateVeboxStates());
 
+    if (m_veboxItf)
+    {
+        const MHW_VEBOX_HEAP *veboxHeap = nullptr;
+
+        m_veboxItf->GetVeboxHeapInfo(&veboxHeap);
+        VP_RENDER_CHK_NULL_RETURN(veboxHeap);
+
+        m_veboxHeapCurState = veboxHeap->uiCurState;
+    }
+
     m_packetResourcesPrepared = true;
 
     return eStatus;
@@ -2301,6 +2311,12 @@ MOS_STATUS VpVeboxCmdPacket::Submit(MOS_COMMAND_BUFFER* commandBuffer, uint8_t p
 
     MOS_STATUS    eStatus = MOS_STATUS_SUCCESS;
     VpVeboxRenderData   *pRenderData = GetLastExecRenderData();
+
+    // use the StateIndex which was saved in PrepareState() to resolve the 2pass sfc mismatch issue
+    if (m_veboxItf)
+    {
+        m_veboxItf->SetVeboxHeapStateIndex(m_veboxHeapCurState);
+    }
 
     if (m_currentSurface && m_currentSurface->osSurface)
     {

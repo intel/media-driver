@@ -377,7 +377,14 @@ MOS_STATUS VpCscFilter::SetVeboxCUSChromaParams(VP_EXECUTE_CAPS vpExecuteCaps)
         (vpExecuteCaps.b3DlutOutput && !vpExecuteCaps.bHDR3DLUT);
     bool bDIEnabled      = vpExecuteCaps.bDI;
 
-    srcColorPack = VpUtils::GetSurfaceColorPack(m_cscParams.formatInput);
+    if (Format_None != m_cscParams.formatforCUS)
+    {
+        srcColorPack = VpUtils::GetSurfaceColorPack(m_cscParams.formatforCUS);
+    }
+    else
+    {
+        srcColorPack = VpUtils::GetSurfaceColorPack(m_cscParams.formatInput);
+    }
 
     // Init CUS as disabled
     m_veboxCSCParams->bypassCUS = true;

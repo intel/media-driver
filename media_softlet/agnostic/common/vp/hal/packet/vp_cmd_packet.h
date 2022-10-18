@@ -153,6 +153,7 @@ public:
     PVpAllocator        &m_allocator;
     VPMediaMemComp      *m_mmc = nullptr;
     uint32_t            m_DNDIFirstFrame = 0;
+    uint32_t            m_veboxHeapCurState = 0;
 
 protected:
     PacketType                  m_PacketId = VP_PIPELINE_PACKET_UNINITIALIZED;
