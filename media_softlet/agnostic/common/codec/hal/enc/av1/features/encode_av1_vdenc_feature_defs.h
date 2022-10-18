@@ -39,6 +39,7 @@ struct Av1FeatureIDs : public FeatureIDs
         av1Segmentation,
         av1BrcFeature,
         av1LplaEncFeature,
+        av1FullEncFeature,
 #if _MEDIA_RESERVED
 #define AV1_FEATURE_IDS_EXT
 #include "encode_av1_vdenc_feature_defs_ext.h"
