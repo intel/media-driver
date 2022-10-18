@@ -496,7 +496,7 @@ struct _MHW_PAR_T(MFX_MPEG2_PIC_STATE)
     uint16_t Framewidthinmbsminus170PictureWidthInMacroblocks   = 0;
     uint16_t Frameheightinmbsminus170PictureHeightInMacroblocks = 0;
 
-    __MHW_VDBOX_MFX_WRAPPER_EXT(MFX_MPEG2_PIC_STATE_CMDPAR_EXT)
+    uint16_t mfxMpeg2PicStatePar0 = 0;
 
     uint32_t Roundintradc = 0;
     uint32_t Roundinterdc = 0;

@@ -32,7 +32,7 @@
 #include "mhw_mi_impl.h"
 
 #ifdef IGFX_MFX_INTERFACE_EXT_SUPPORT
-#include "mhw_vdbox_mfx_impl_ext.h"
+#include "mhw_vdbox_mfx_hwcmd_ext.h"
 #endif
 
 #define AVC_MPR_ROWSTORE_BASEADDRESS          256
@@ -1265,7 +1265,7 @@ protected:
             DO_FIELD(DW4, Roundinterdc, 1);                                                                                                                           \
             DO_FIELD(DW4, Roundintraac, 5);                                                                                                                           \
             DO_FIELD(DW4, Roundinterac, 1);                                                                                                                           \
-            __MHW_VDBOX_MFX_WRAPPER_EXT(MFX_MPEG2_PIC_STATE_IMPL_EXT)
+            DO_FIELD(DW3, MFX_MPEG2_PIC_STATE_CMD_DW3_BIT24_28, params.mfxMpeg2PicStatePar0);                                                                         \
 
 #include "mhw_hwcmd_process_cmdfields.h"
     }
