@@ -46,6 +46,10 @@ namespace sfc
 {
 static constexpr uint32_t MHW_SFC_MAX_WIDTH    = 16 * 1024;
 static constexpr uint32_t MHW_SFC_MAX_HEIGHT   = 16 * 1024;
+
+static constexpr uint32_t MHW_SFC_OUTPUT_MIN_WIDTH  = 32;
+static constexpr uint32_t MHW_SFC_OUTPUT_MIN_HEIGHT = 32;
+
 static constexpr uint32_t MHW_SFC_MAX_PIPE_NUM = 4;
 
 enum MHW_SFC_INDEX

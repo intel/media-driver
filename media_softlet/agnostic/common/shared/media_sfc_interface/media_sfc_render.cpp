@@ -478,20 +478,21 @@ MOS_STATUS MediaSfcRender::IsParameterSupported(
     VP_PUBLIC_CHK_NULL_RETURN(params);
 
     // Check original input size
-    uint32_t minWidth, minHeight, maxWidth, maxHeight;
-    VP_PUBLIC_CHK_STATUS_RETURN(m_sfcItf->GetMinWidthHeightInfo(minWidth, minHeight));
+    uint32_t minInputWidth, minInputHeight, minOutputWidth, minOutputHeight, maxWidth, maxHeight;
+    VP_PUBLIC_CHK_STATUS_RETURN(m_sfcItf->GetInputMinWidthHeightInfo(minInputWidth, minInputHeight));
+    VP_PUBLIC_CHK_STATUS_RETURN(m_sfcItf->GetOutputMinWidthHeightInfo(minOutputWidth, minOutputHeight));
     VP_PUBLIC_CHK_STATUS_RETURN(m_sfcItf->GetMaxWidthHeightInfo(maxWidth, maxHeight));
 
     // Check input size
-    if (!MOS_WITHIN_RANGE(params->dwInputFrameWidth, minWidth, maxWidth) ||
-        !MOS_WITHIN_RANGE(params->dwInputFrameHeight, minHeight, maxHeight))
+    if (!MOS_WITHIN_RANGE(params->dwInputFrameWidth, minInputWidth, maxWidth) ||
+        !MOS_WITHIN_RANGE(params->dwInputFrameHeight, minInputHeight, maxHeight))
     {
         return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
     }
 
     // Check output size
-    if (!MOS_WITHIN_RANGE(params->dwOutputFrameWidth, minWidth, maxWidth) ||
-        !MOS_WITHIN_RANGE(params->dwOutputFrameHeight, minHeight, maxHeight))
+    if (!MOS_WITHIN_RANGE(params->dwOutputFrameWidth, minOutputWidth, maxWidth) ||
+        !MOS_WITHIN_RANGE(params->dwOutputFrameHeight, minOutputHeight, maxHeight))
     {
         return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
     }

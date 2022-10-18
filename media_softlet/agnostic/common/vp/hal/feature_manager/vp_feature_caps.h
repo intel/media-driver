@@ -37,13 +37,14 @@
 #define VP_SFC_RESOLUTION_FEASIBLE(_InputWidth, _InputHeight, _OutputWidth, _OutputHeight, _90D_Rotation)    \
 
 
-#define VP_FF_SFC_FORMAT(SurfaceFormat, bInput, bOutput, _MaxResolution, _MinResolution, _HorizUnit, _VertUnit, _RotationSupported, _MirrorSupported, _CscSupported, _ScalingSupported, \
+#define VP_FF_SFC_FORMAT(SurfaceFormat, bInput, bOutput, _MaxResolution, _InputMinResolution, _OutputMinResolution, _HorizUnit, _VertUnit, _RotationSupported, _MirrorSupported, _CscSupported, _ScalingSupported, \
                       _SrcAlphaSupported, _ConstAlphaSupported, _IScalingSupported, _DetheringSupported, _IefSupported, _Max_ScalingRatio, _Min_ScalingRatio)     \
         {                                                                                                                   \
             sfcHwEntry[SurfaceFormat].inputSupported                            = bInput;                                   \
             sfcHwEntry[SurfaceFormat].outputSupported                           = bOutput;                                  \
             sfcHwEntry[SurfaceFormat].maxResolution                             = _MaxResolution;                           \
-            sfcHwEntry[SurfaceFormat].minResolution                             = _MinResolution;                           \
+            sfcHwEntry[SurfaceFormat].inputMinResolution                        = _InputMinResolution;                      \
+            sfcHwEntry[SurfaceFormat].outputMinResolution                       = _OutputMinResolution;                     \
             sfcHwEntry[SurfaceFormat].horizontalAlignUnit                       = _HorizUnit;                               \
             sfcHwEntry[SurfaceFormat].verticalAlignUnit                         = _VertUnit;                                \
             sfcHwEntry[SurfaceFormat].rotationSupported                         = _RotationSupported;                       \
@@ -96,7 +97,8 @@ typedef struct VP_SFC_ENTRY_REC
     bool                          inputSupported;
     VP_SFC_OUTUT_SUPPORT          outputSupported;  // 1st bit: tile4, 2nd bit: tile64, 3rd bit linear
     uint32_t                      maxResolution;
-    uint32_t                      minResolution;
+    uint32_t                      inputMinResolution;
+    uint32_t                      outputMinResolution;
     float                         maxScalingRatio;
     float                         minScalingRatio;
     uint32_t                      horizontalAlignUnit;

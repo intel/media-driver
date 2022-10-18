@@ -109,6 +109,9 @@ public:
         CODECHAL_STANDARD         codecStandard,
         CodecDecodeJpegChromaType jpegChromaType) = 0;
 
+    virtual MOS_STATUS GetInputMinWidthHeightInfo(uint32_t &width, uint32_t &height) = 0;
+    virtual MOS_STATUS GetOutputMinWidthHeightInfo(uint32_t &width, uint32_t &height) = 0;
+
     virtual MOS_STATUS GetMinWidthHeightInfo(uint32_t &width, uint32_t &height) = 0;
 
     virtual MOS_STATUS GetMaxWidthHeightInfo(uint32_t &width, uint32_t &height) = 0;

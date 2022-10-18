@@ -918,8 +918,9 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter *feature, bool isHdrEnabled,
     uint32_t dwOutputSurfaceWidth = 0, dwOutputSurfaceHeight = 0;
     uint32_t veboxMinWidth = 0, veboxMaxWidth = 0;
     uint32_t veboxMinHeight = 0, veboxMaxHeight = 0;
-    uint32_t dwSfcMinWidth = 0, dwSfcMaxWidth = 0;
-    uint32_t dwSfcMinHeight = 0, dwSfcMaxHeight = 0;
+    uint32_t dwSfcInputMinWidth = 0, dwSfcMaxWidth = 0;
+    uint32_t dwSfcInputMinHeight = 0, dwSfcMaxHeight = 0;
+    uint32_t dwSfcOutputMinWidth = 0, dwSfcOutputMinHeight = 0;
     uint32_t dwDstMinHeight = 0;
     float    fScaleMin = 0, fScaleMax = 0;
     float    fScaleMin2Pass = 0, fScaleMax2Pass = 0;
@@ -1010,16 +1011,18 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter *feature, bool isHdrEnabled,
         return MOS_STATUS_SUCCESS;
     }
 
-    veboxMinWidth  = m_hwCaps.m_veboxHwEntry[scalingParams->formatInput].minWidth;
-    veboxMaxWidth  = m_hwCaps.m_veboxHwEntry[scalingParams->formatInput].maxWidth;
-    veboxMinHeight = m_hwCaps.m_veboxHwEntry[scalingParams->formatInput].minHeight;
-    veboxMaxHeight = m_hwCaps.m_veboxHwEntry[scalingParams->formatInput].maxHeight;
-    dwSfcMinWidth  = m_hwCaps.m_sfcHwEntry[scalingParams->formatInput].minResolution;
-    dwSfcMaxWidth  = m_hwCaps.m_sfcHwEntry[scalingParams->formatInput].maxResolution;
-    dwSfcMinHeight = m_hwCaps.m_sfcHwEntry[scalingParams->formatInput].minResolution;
-    dwSfcMaxHeight = m_hwCaps.m_sfcHwEntry[scalingParams->formatInput].maxResolution;
-    fScaleMin      = m_hwCaps.m_sfcHwEntry[scalingParams->formatInput].minScalingRatio;
-    fScaleMax      = m_hwCaps.m_sfcHwEntry[scalingParams->formatInput].maxScalingRatio;
+    veboxMinWidth        = m_hwCaps.m_veboxHwEntry[scalingParams->formatInput].minWidth;
+    veboxMaxWidth        = m_hwCaps.m_veboxHwEntry[scalingParams->formatInput].maxWidth;
+    veboxMinHeight       = m_hwCaps.m_veboxHwEntry[scalingParams->formatInput].minHeight;
+    veboxMaxHeight       = m_hwCaps.m_veboxHwEntry[scalingParams->formatInput].maxHeight;
+    dwSfcInputMinWidth   = m_hwCaps.m_sfcHwEntry[scalingParams->formatInput].inputMinResolution;
+    dwSfcMaxWidth        = m_hwCaps.m_sfcHwEntry[scalingParams->formatInput].maxResolution;
+    dwSfcInputMinHeight  = m_hwCaps.m_sfcHwEntry[scalingParams->formatInput].inputMinResolution;
+    dwSfcMaxHeight       = m_hwCaps.m_sfcHwEntry[scalingParams->formatInput].maxResolution;
+    dwSfcOutputMinWidth  = m_hwCaps.m_sfcHwEntry[scalingParams->formatOutput].outputMinResolution;
+    dwSfcOutputMinHeight = m_hwCaps.m_sfcHwEntry[scalingParams->formatOutput].outputMinResolution;
+    fScaleMin            = m_hwCaps.m_sfcHwEntry[scalingParams->formatInput].minScalingRatio;
+    fScaleMax            = m_hwCaps.m_sfcHwEntry[scalingParams->formatInput].maxScalingRatio;
     if (m_hwCaps.m_rules.sfcMultiPassSupport.scaling.enable)
     {
         fScaleMin2Pass = fScaleMin * m_hwCaps.m_rules.sfcMultiPassSupport.scaling.downScaling.minRatioEnlarged;
@@ -1028,11 +1031,11 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter *feature, bool isHdrEnabled,
 
     if (scalingParams->interlacedScalingType == ISCALING_FIELD_TO_INTERLEAVED)
     {
-        dwDstMinHeight = dwSfcMinHeight * 2;
+        dwDstMinHeight = dwSfcOutputMinHeight * 2;
     }
     else
     {
-        dwDstMinHeight = dwSfcMinHeight;
+        dwDstMinHeight = dwSfcOutputMinHeight;
     }
 
     if (OUT_OF_BOUNDS(dwSurfaceWidth, veboxMinWidth, veboxMaxWidth) ||
@@ -1084,8 +1087,8 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter *feature, bool isHdrEnabled,
         scalingParams->interlacedScalingType != ISCALING_INTERLEAVED_TO_FIELD &&
         scalingParams->interlacedScalingType != ISCALING_FIELD_TO_INTERLEAVED)
     {
-        if (OUT_OF_BOUNDS(dwSurfaceWidth, dwSfcMinWidth, dwSfcMaxWidth)    ||
-                OUT_OF_BOUNDS(dwSurfaceHeight, dwSfcMinHeight, dwSfcMaxHeight))
+        if (OUT_OF_BOUNDS(dwSurfaceWidth, dwSfcInputMinWidth, dwSfcMaxWidth)    ||
+                OUT_OF_BOUNDS(dwSurfaceHeight, dwSfcInputMinHeight, dwSfcMaxHeight))
         {
             // for non-Scaling cases, all engine supported
             scalingEngine->bEnabled             = 0;
@@ -1098,7 +1101,7 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter *feature, bool isHdrEnabled,
             scalingEngine->hdrKernelSupported   = 1;
             scalingEngine->sfcNotSupported      = 1;
             VP_PUBLIC_NORMALMESSAGE("The surface resolution (%d x %d) is not supported by sfc (%d x %d) ~ (%d x %d).",
-                dwSurfaceWidth, dwSurfaceHeight, dwSfcMinWidth, dwSfcMinHeight, dwSfcMaxWidth, dwSfcMaxHeight);
+                dwSurfaceWidth, dwSurfaceHeight, dwSfcInputMinWidth, dwSfcInputMinHeight, dwSfcMaxWidth, dwSfcMaxHeight);
         }
         else if (isSfcIscalingNotSupported())
         {
@@ -1159,13 +1162,13 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter *feature, bool isHdrEnabled,
         (m_hwCaps.m_sfcHwEntry[scalingParams->formatOutput].outputSupported & VpGetFormatTileSupport(scalingParams->output.tileMode) ) &&
         m_hwCaps.m_sfcHwEntry[scalingParams->formatInput].scalingSupported)
     {
-        if (!(OUT_OF_BOUNDS(dwSurfaceWidth, dwSfcMinWidth, dwSfcMaxWidth)         ||
-              OUT_OF_BOUNDS(dwSurfaceHeight, dwSfcMinHeight, dwSfcMaxHeight)      ||
-              OUT_OF_BOUNDS(dwSourceRegionWidth, dwSfcMinWidth, dwSfcMaxWidth)    ||
-              OUT_OF_BOUNDS(dwSourceRegionHeight, dwSfcMinHeight, dwSfcMaxHeight) ||
-              OUT_OF_BOUNDS(dwOutputRegionWidth, dwSfcMinWidth, dwSfcMaxWidth)    ||
-              OUT_OF_BOUNDS(dwOutputRegionHeight, dwSfcMinHeight, dwSfcMaxHeight) ||
-              OUT_OF_BOUNDS(dwOutputSurfaceWidth, dwSfcMinWidth, dwSfcMaxWidth)   ||
+        if (!(OUT_OF_BOUNDS(dwSurfaceWidth, dwSfcInputMinWidth, dwSfcMaxWidth)         ||
+              OUT_OF_BOUNDS(dwSurfaceHeight, dwSfcInputMinHeight, dwSfcMaxHeight)      ||
+              OUT_OF_BOUNDS(dwSourceRegionWidth, dwSfcInputMinWidth, dwSfcMaxWidth)    ||
+              OUT_OF_BOUNDS(dwSourceRegionHeight, dwSfcInputMinHeight, dwSfcMaxHeight) ||
+              OUT_OF_BOUNDS(dwOutputRegionWidth, dwSfcOutputMinWidth, dwSfcMaxWidth)    ||
+              OUT_OF_BOUNDS(dwOutputRegionHeight, dwSfcOutputMinHeight, dwSfcMaxHeight) ||
+              OUT_OF_BOUNDS(dwOutputSurfaceWidth, dwSfcOutputMinWidth, dwSfcMaxWidth)   ||
               OUT_OF_BOUNDS(dwOutputSurfaceHeight, dwDstMinHeight, dwSfcMaxHeight)))
         {
             if ((m_hwCaps.m_rules.sfcMultiPassSupport.scaling.enable             &&

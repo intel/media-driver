@@ -270,6 +270,20 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
+    MOS_STATUS GetInputMinWidthHeightInfo(uint32_t &width, uint32_t &height)
+    {
+        width  = m_inputMinWidth;
+        height = m_inputMinHeight;
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MOS_STATUS GetOutputMinWidthHeightInfo(uint32_t &width, uint32_t &height)
+    {
+        width  = m_outputMinWidth;
+        height = m_outputMinHeight;
+        return MOS_STATUS_SUCCESS;
+    }
+
     MOS_STATUS GetMinWidthHeightInfo(uint32_t &width, uint32_t &height)
     {
         width = m_minWidth;
@@ -725,6 +739,10 @@ protected:
     uint32_t                           m_maxHeight             = MHW_SFC_MAX_HEIGHT;
     uint32_t                           m_minWidth              = MHW_SFC_MIN_WIDTH;
     uint32_t                           m_minHeight             = MHW_SFC_MIN_HEIGHT;
+    uint32_t                           m_inputMinWidth         = MHW_SFC_MIN_WIDTH;             // SFC input min width size for ve+sfc
+    uint32_t                           m_inputMinHeight        = MHW_SFC_MIN_HEIGHT;            // SFC input min height size for ve+sfc
+    uint32_t                           m_outputMinWidth        = MHW_SFC_OUTPUT_MIN_WIDTH;      // SFC output min width size for ve+sfc
+    uint32_t                           m_outputMinHeight       = MHW_SFC_OUTPUT_MIN_HEIGHT;     // SFC output min height size for ve+sfc
 
     float                              m_maxScalingRatio       = MHW_SFC_MAX_SCALINGFACTOR;
     float                              m_minScalingRatio       = MHW_SFC_MIN_SCALINGFACTOR;
