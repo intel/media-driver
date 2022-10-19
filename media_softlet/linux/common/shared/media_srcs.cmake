@@ -29,13 +29,9 @@ set(TMP_1_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/skuwa_dumper_specific.c
 )
 
-set(SOURCES_
-    ${SOURCES_}
-    ${TMP_SOURCES_}
- )
-
  set(SOFTLET_COMMON_SOURCES_
     ${SOFTLET_COMMON_SOURCES_}
+    ${TMP_SOURCES_}
     ${TMP_1_SOURCES_}
  )
 

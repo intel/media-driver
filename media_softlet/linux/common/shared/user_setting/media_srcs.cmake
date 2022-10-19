@@ -22,9 +22,12 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/media_user_setting_configure_specific.cpp
 )
 
-set(SOURCES_
-    ${SOURCES_}
+set(SOFTLET_COMMON_SOURCES_
+    ${SOFTLET_COMMON_SOURCES_}
     ${TMP_SOURCES_}
  )
 
- media_add_curr_to_include_path()
+set(SOFTLET_COMMON_PRIVATE_INCLUDE_DIRS_
+    ${SOFTLET_COMMON_PRIVATE_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)
