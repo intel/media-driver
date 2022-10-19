@@ -155,7 +155,7 @@ protected:
 
                 Flush(ofs);
 
-                ofs.open(name);
+                ofs.open(name, std::ios_base::out | std::ios_base::binary);
                 ofs.write(static_cast<const char *>(data), size);
             }
         }
@@ -167,7 +167,7 @@ protected:
                 m_files.begin(),
                 m_files.end(),
                 [this, &ofs](decltype(m_files)::const_reference file) {
-                    ofs.open(file.name);
+                    ofs.open(file.name, std::ios_base::out | std::ios_base::binary);
                     ofs.write(m_buf.data() + file.pos, file.size);
                     ofs.close();
                 });
@@ -184,11 +184,12 @@ protected:
 protected:
     static size_t GetResSizeAndFixName(PGMM_RESOURCE_INFO pGmmResInfo, std::string &name)
     {
-        auto resSize = static_cast<size_t>(pGmmResInfo->GetSizeMainSurface());
-        auto w       = static_cast<size_t>(pGmmResInfo->GetBaseWidth());
-        auto h       = static_cast<size_t>(pGmmResInfo->GetBaseHeight());
-        auto p       = static_cast<size_t>(pGmmResInfo->GetRenderPitch());
-        auto sizeY   = static_cast<size_t>(p * h * ((pGmmResInfo->GetBitsPerPixel() + 7) >> 3));
+        auto resSize       = static_cast<size_t>(pGmmResInfo->GetSizeMainSurface());
+        auto w             = static_cast<size_t>(pGmmResInfo->GetBaseWidth());
+        auto h             = static_cast<size_t>(pGmmResInfo->GetBaseHeight());
+        auto bytesPerPixel = static_cast<size_t>((pGmmResInfo->GetBitsPerPixel() + 7) >> 3);
+        auto p             = static_cast<size_t>(pGmmResInfo->GetRenderPitch()) / bytesPerPixel;
+        auto sizeY         = p * h * bytesPerPixel;
 
         // a lazy method to get real resource size without checking resource format
         if (sizeY * 3 <= resSize)
@@ -498,7 +499,8 @@ protected:
             else
             {
                 fileWriter = [](std::string &&name, const void *data, size_t size) {
-                    MosUtilities::MosMMPWriteFile(name, data, size);
+                    std::ofstream ofs(name, std::ios_base::out | std::ios_base::binary);
+                    ofs.write(static_cast<const char *>(data), size);
                 };
             }
         }
@@ -540,7 +542,9 @@ protected:
                 static const char dummy = 0;
                 std::thread       w(
                     [&] {
-                        std::ofstream ofs(name + "." + error);
+                        std::ofstream ofs(
+                            name + "." + error,
+                            std::ios_base::out | std::ios_base::binary);
                         ofs.write(&dummy, sizeof(dummy));
                     });
                 w.detach();
@@ -569,24 +573,21 @@ protected:
                     {
                         break;
                     }
-                    if (m_ready4Dump && !m_resQueue.empty())
-                    {
-                        auto qf      = m_resQueue.front();
-                        m_ready4Dump = false;
-                        lk.unlock();
-                        future = std::async(
-                            std::launch::async,
-                            [this, qf] {
-                                DoDump(qf);
-                                {
-                                    std::lock_guard<std::mutex> lk(m_mutex);
-                                    m_resQueue.front()->occupied = false;
-                                    m_resQueue.pop();
-                                    m_ready4Dump = true;
-                                }
-                                m_cond.notify_all();
-                            });
-                    }
+                    auto qf      = m_resQueue.front();
+                    m_ready4Dump = false;
+                    lk.unlock();
+                    future = std::async(
+                        std::launch::async,
+                        [this, qf] {
+                            DoDump(qf);
+                            {
+                                std::lock_guard<std::mutex> lk(m_mutex);
+                                m_resQueue.front()->occupied = false;
+                                m_resQueue.pop();
+                                m_ready4Dump = true;
+                            }
+                            m_cond.notify_all();
+                        });
                 }
                 if (future.valid())
                 {
