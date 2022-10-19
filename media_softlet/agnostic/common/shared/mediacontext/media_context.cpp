@@ -70,6 +70,16 @@ MediaContext::~MediaContext()
         m_osInterface->pfnWaitAllCmdCompletion(m_osInterface);
     }
 
+    if ((MOS_VE_MULTINODESCALING_SUPPORTED(m_osInterface)) &&
+       (m_curNodeOrdinal == MOS_GPU_NODE_VIDEO || m_curNodeOrdinal == MOS_GPU_NODE_VIDEO2))
+    {
+        m_osInterface->pfnDestroyVideoNodeAssociation(m_osInterface, m_curNodeOrdinal);
+        if (m_osInterface->osStreamState->component == COMPONENT_Encode)
+        {
+            m_osInterface->pfnSetLatestVirtualNode(m_osInterface, MOS_GPU_NODE_MAX);
+        }
+    }
+
     for (auto& curAttribute : m_gpuContextAttributeTable)
     {
         if (curAttribute.scalabilityState)
@@ -393,14 +403,40 @@ MOS_STATUS MediaContext::FunctionToNode(MediaFunction func, const MOS_GPUCTX_CRE
         break;
     case VdboxEncodeFunc:
     case VdboxDecodeFunc:
+    case VdboxDecodeVirtualNode0Func:
+    case VdboxDecodeVirtualNode1Func:
         if (option.LRCACount >= 2)
         {
             node = MOS_GPU_NODE_VIDEO; // multiple pipe decode or encode always using VIDEO node
+            if (MOS_VE_MULTINODESCALING_SUPPORTED(m_osInterface))
+            {
+                if (m_curNodeOrdinal == MOS_GPU_NODE_VIDEO || m_curNodeOrdinal == MOS_GPU_NODE_VIDEO2)
+                {
+                    m_osInterface->pfnDestroyVideoNodeAssociation(m_osInterface, m_curNodeOrdinal);
+                    if (func == VdboxEncodeFunc)
+                    {
+                        m_osInterface->pfnSetLatestVirtualNode(m_osInterface, MOS_GPU_NODE_MAX);
+                    }
+                }
+                MOS_OS_CHK_STATUS_RETURN(m_osInterface->pfnCreateVideoNodeAssociation(
+                    m_osInterface,
+                    true,
+                    &node));
+                if (func == VdboxDecodeFunc || func == VdboxDecodeVirtualNode0Func || func == VdboxDecodeVirtualNode1Func)
+                {
+                    m_osInterface->pfnSetDecoderVirtualNodePerStream(m_osInterface, node);
+                }
+                else if (func == VdboxEncodeFunc)
+                {
+                    m_osInterface->pfnSetLatestVirtualNode(m_osInterface, node);
+                }
+            }
+            m_curNodeOrdinal = node;
         }
 #if !EMUL
         else
         {
-            MOS_OS_CHK_STATUS_RETURN(FunctionToNodeCodec(node));
+            MOS_OS_CHK_STATUS_RETURN(FunctionToNodeCodec(func, node));
         }
 #endif
         break;
@@ -426,11 +462,11 @@ MOS_STATUS MediaContext::FunctionToNode(MediaFunction func, const MOS_GPUCTX_CRE
     return status;
 }
 #if !EMUL
-MOS_STATUS MediaContext::FunctionToNodeCodec(MOS_GPU_NODE& node)
+MOS_STATUS MediaContext::FunctionToNodeCodec(MediaFunction func, MOS_GPU_NODE& node)
 {
     MHW_VDBOX_GPUNODE_LIMIT gpuNodeLimit = {0};
 
-    MOS_OS_CHK_STATUS_RETURN(FindGpuNodeToUse(&gpuNodeLimit));
+    MOS_OS_CHK_STATUS_RETURN(FindGpuNodeToUse(func , &gpuNodeLimit));
 
     node = (MOS_GPU_NODE)(gpuNodeLimit.dwGpuNodeToUse);
 
@@ -502,7 +538,8 @@ MOS_STATUS MediaContext::CheckScalabilityOverrideValidity()
     return eStatus;
 }
 #endif
-MOS_STATUS MediaContext::FindGpuNodeToUse(PMHW_VDBOX_GPUNODE_LIMIT gpuNodeLimit)
+
+MOS_STATUS MediaContext::FindGpuNodeToUse(MediaFunction func, PMHW_VDBOX_GPUNODE_LIMIT gpuNodeLimit)
 {
     bool       setVideoNode = false;
     MOS_STATUS eStatus      = MOS_STATUS_SUCCESS;
@@ -517,10 +554,46 @@ MOS_STATUS MediaContext::FindGpuNodeToUse(PMHW_VDBOX_GPUNODE_LIMIT gpuNodeLimit)
         }
         else
         {
+            if (m_curNodeOrdinal == MOS_GPU_NODE_VIDEO || m_curNodeOrdinal == MOS_GPU_NODE_VIDEO2)
+            {
+                m_osInterface->pfnDestroyVideoNodeAssociation(m_osInterface, m_curNodeOrdinal);
+                if (func == VdboxEncodeFunc)
+                {
+                    m_osInterface->pfnSetLatestVirtualNode(m_osInterface, MOS_GPU_NODE_MAX);
+                }
+            }
+            if (func == VdboxDecodeVirtualNode0Func)
+            {
+                setVideoNode = true;
+                videoGpuNode = MOS_GPU_NODE_VIDEO;
+            }
+            else if (func == VdboxDecodeVirtualNode1Func)
+            {
+                setVideoNode = true;
+                videoGpuNode = MOS_GPU_NODE_VIDEO2;
+            }
+            else if (func == VdboxEncodeFunc)
+            {
+                MOS_GPU_NODE node = m_osInterface->pfnGetLatestVirtualNode(m_osInterface, COMPONENT_Decode);
+                if (node != MOS_GPU_NODE_MAX)
+                {
+                    setVideoNode = true;
+                    videoGpuNode = (node == MOS_GPU_NODE_VIDEO) ? MOS_GPU_NODE_VIDEO2 : MOS_GPU_NODE_VIDEO;
+                }
+            }
             MHW_MI_CHK_STATUS(m_osInterface->pfnCreateVideoNodeAssociation(
                 m_osInterface,
                 setVideoNode,
                 &videoGpuNode));
+            m_curNodeOrdinal = videoGpuNode;
+            if (func == VdboxDecodeFunc || func == VdboxDecodeVirtualNode0Func || func == VdboxDecodeVirtualNode1Func)
+            {
+                m_osInterface->pfnSetDecoderVirtualNodePerStream(m_osInterface, m_curNodeOrdinal);
+            }
+            else if (func == VdboxEncodeFunc)
+            {
+                m_osInterface->pfnSetLatestVirtualNode(m_osInterface, m_curNodeOrdinal);
+            }
         }
     }
 #if (_DEBUG || _RELEASE_INTERNAL)
@@ -559,6 +632,8 @@ MOS_STATUS MediaContext::FunctionToGpuContext(MediaFunction func, const MOS_GPUC
         MOS_OS_CHK_STATUS_RETURN(FunctionToGpuContextEncode(option, ctx));
         break;
     case VdboxDecodeFunc:
+    case VdboxDecodeVirtualNode0Func:
+    case VdboxDecodeVirtualNode1Func:
         MOS_OS_CHK_STATUS_RETURN(FunctionToGpuContextDecode(option, node, ctx));
         break;
     case VdboxDecodeWaFunc:
@@ -637,6 +712,120 @@ MOS_STATUS MediaContext::FunctionToGpuContextEncode(const MOS_GPUCTX_CREATOPTION
     default:
         ctx = MOS_GPU_CONTEXT_VIDEO3;
         break;
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+void MediaContext::SetLatestDecoderVirtualNode()
+{
+    if (m_curNodeOrdinal == MOS_GPU_NODE_VIDEO || m_curNodeOrdinal == MOS_GPU_NODE_VIDEO2)
+    {
+        m_osInterface->pfnSetLatestVirtualNode(m_osInterface, m_curNodeOrdinal);
+    }
+}
+
+MOS_STATUS MediaContext::ReassignContextForDecoder(uint32_t frameNum, ContextRequirement *requirement, MediaScalability **scalabilityState)
+{
+    if (frameNum == 0)
+    {
+        // if encoder is working, always reassign decoder to different virtual node
+        MOS_GPU_NODE encoderNode = m_osInterface->pfnGetLatestVirtualNode(m_osInterface, COMPONENT_Encode);
+        if (encoderNode == MOS_GPU_NODE_VIDEO)
+        {
+            MOS_OS_CHK_STATUS_RETURN(SwitchContext(VdboxDecodeVirtualNode1Func, requirement, scalabilityState));
+        }
+        else if (encoderNode == MOS_GPU_NODE_VIDEO2)
+        {
+            MOS_OS_CHK_STATUS_RETURN(SwitchContext(VdboxDecodeVirtualNode0Func, requirement, scalabilityState));
+        }
+        else
+        {
+            // if only decoders are working, reassign decoder to different virtual node compared to latest used virtual node
+            MOS_GPU_NODE decoderNode = m_osInterface->pfnGetLatestVirtualNode(m_osInterface, COMPONENT_Decode);
+            if (decoderNode == MOS_GPU_NODE_VIDEO)
+            {
+                MOS_OS_CHK_STATUS_RETURN(SwitchContext(VdboxDecodeVirtualNode1Func, requirement, scalabilityState));
+            }
+            else if (decoderNode == MOS_GPU_NODE_VIDEO2)
+            {
+                MOS_OS_CHK_STATUS_RETURN(SwitchContext(VdboxDecodeVirtualNode0Func, requirement, scalabilityState));
+            }
+            else
+            {
+                MOS_OS_CHK_STATUS_RETURN(SwitchContext(VdboxDecodeFunc, requirement, scalabilityState));
+            }
+        }
+    }
+    else
+    {
+        // for remaining frames, don't change virtual node assignment
+        MOS_GPU_NODE decoderNode = m_osInterface->pfnGetDecoderVirtualNodePerStream(m_osInterface);
+        if (decoderNode == MOS_GPU_NODE_VIDEO)
+        {
+            MOS_OS_CHK_STATUS_RETURN(SwitchContext(VdboxDecodeVirtualNode0Func, requirement, scalabilityState));
+        }
+        else if (decoderNode == MOS_GPU_NODE_VIDEO2)
+        {
+            MOS_OS_CHK_STATUS_RETURN(SwitchContext(VdboxDecodeVirtualNode1Func, requirement, scalabilityState));
+        }
+        else
+        {
+            MOS_OS_CHK_STATUS_RETURN(SwitchContext(VdboxDecodeFunc, requirement, scalabilityState));
+        }
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MediaContext::ReassignContextForDecoder(uint32_t frameNum, MediaScalabilityOption &scalabilityOption, MediaScalability **scalabilityState)
+{
+    if (frameNum == 0)
+    {
+        // if encoder is working, always reassign decoder to different virtual node
+        MOS_GPU_NODE encoderNode = m_osInterface->pfnGetLatestVirtualNode(m_osInterface, COMPONENT_Encode);
+        if (encoderNode == MOS_GPU_NODE_VIDEO)
+        {
+            MOS_OS_CHK_STATUS_RETURN(SwitchContext(VdboxDecodeVirtualNode1Func, scalabilityOption, scalabilityState));
+        }
+        else if (encoderNode == MOS_GPU_NODE_VIDEO2)
+        {
+            MOS_OS_CHK_STATUS_RETURN(SwitchContext(VdboxDecodeVirtualNode0Func, scalabilityOption, scalabilityState));
+        }
+        else
+        {
+            // if only decoders are working, reassign decoder to different virtual node compared to latest used virtual node
+            MOS_GPU_NODE decoderNode = m_osInterface->pfnGetLatestVirtualNode(m_osInterface, COMPONENT_Decode);
+            if (decoderNode == MOS_GPU_NODE_VIDEO)
+            {
+                MOS_OS_CHK_STATUS_RETURN(SwitchContext(VdboxDecodeVirtualNode1Func, scalabilityOption, scalabilityState));
+            }
+            else if (decoderNode == MOS_GPU_NODE_VIDEO2)
+            {
+                MOS_OS_CHK_STATUS_RETURN(SwitchContext(VdboxDecodeVirtualNode0Func, scalabilityOption, scalabilityState));
+            }
+            else
+            {
+                MOS_OS_CHK_STATUS_RETURN(SwitchContext(VdboxDecodeFunc, scalabilityOption, scalabilityState));
+            }
+        }
+    }
+    else
+    {
+        // for remaining frames, don't change virtual node assignment
+        MOS_GPU_NODE decoderNode = m_osInterface->pfnGetDecoderVirtualNodePerStream(m_osInterface);
+        if (decoderNode == MOS_GPU_NODE_VIDEO)
+        {
+            MOS_OS_CHK_STATUS_RETURN(SwitchContext(VdboxDecodeVirtualNode0Func, scalabilityOption, scalabilityState));
+        }
+        else if (decoderNode == MOS_GPU_NODE_VIDEO2)
+        {
+            MOS_OS_CHK_STATUS_RETURN(SwitchContext(VdboxDecodeVirtualNode1Func, scalabilityOption, scalabilityState));
+        }
+        else
+        {
+            MOS_OS_CHK_STATUS_RETURN(SwitchContext(VdboxDecodeFunc, scalabilityOption, scalabilityState));
+        }
     }
 
     return MOS_STATUS_SUCCESS;

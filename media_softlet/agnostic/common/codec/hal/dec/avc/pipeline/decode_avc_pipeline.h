@@ -147,8 +147,8 @@ protected:
     AvcDecodeMode   m_decodeMode        = baseDecodeMode;    //!< Decode mode
     HucCopyPktItf   *m_formatMonoPicPkt  = nullptr;          //!< Format Avc Mono Chroma with HuC Copy
     AvcBasicFeature *m_basicFeature     = nullptr;           //!< Avc Basic Feature
-
-MEDIA_CLASS_DEFINE_END(decode__AvcPipeline)
+    bool            m_allowVirtualNodeReassign = false;      //!< Whether allow virtual node reassign
+    MEDIA_CLASS_DEFINE_END(decode__AvcPipeline)
 };
 
 }

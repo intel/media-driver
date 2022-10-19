@@ -298,6 +298,8 @@ protected:
 
     std::vector<DecodePhase *>  m_phaseList;    //!< Phase list
 
+    bool m_allowVirtualNodeReassign = false;    //!< Whether allow virtual node reassign
+
 #if (_DEBUG || _RELEASE_INTERNAL)
     uint32_t m_rtFrameCount = 0; //!< frame count for real tile decoding
     uint32_t m_vtFrameCount = 0; //!< frame count for virtual tile decoding

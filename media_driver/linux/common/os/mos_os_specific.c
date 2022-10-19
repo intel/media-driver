@@ -6906,6 +6906,37 @@ bool Mos_Specific_pfnIsMultipleCodecDevicesInUse(
     return false;
 }
 
+MOS_GPU_NODE Mos_Specific_pfnGetLatestVirtualNode(
+    PMOS_INTERFACE pOsInterface,
+    MOS_COMPONENT  component)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    return MOS_GPU_NODE_MAX;
+}
+
+void Mos_Specific_pfnSetLatestVirtualNode(
+    PMOS_INTERFACE pOsInterface,
+    MOS_GPU_NODE   node)
+{
+    MOS_OS_FUNCTION_ENTER;
+}
+
+MOS_GPU_NODE Mos_Specific_pfnGetDecoderVirtualNodePerStream(
+    PMOS_INTERFACE pOsInterface)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    return MOS_GPU_NODE_MAX;
+}
+
+void Mos_Specific_pfnSetDecoderVirtualNodePerStream(
+    PMOS_INTERFACE pOsInterface,
+    MOS_GPU_NODE   node)
+{
+    MOS_OS_FUNCTION_ENTER;
+}
+
 //! \brief    Unified OS Initializes OS Linux Interface
 //! \details  Linux OS Interface initilization
 //! \param    PMOS_INTERFACE pOsInterface
@@ -7064,6 +7095,10 @@ MOS_STATUS Mos_Specific_InitInterface(
 
     pOsInterface->pfnIsMismatchOrderProgrammingSupported    = Mos_Specific_IsMismatchOrderProgrammingSupported;
     pOsInterface->pfnIsMultipleCodecDevicesInUse            = Mos_Specific_pfnIsMultipleCodecDevicesInUse;
+    pOsInterface->pfnGetLatestVirtualNode                   = Mos_Specific_pfnGetLatestVirtualNode;
+    pOsInterface->pfnSetLatestVirtualNode                   = Mos_Specific_pfnSetLatestVirtualNode;
+    pOsInterface->pfnGetDecoderVirtualNodePerStream         = Mos_Specific_pfnGetDecoderVirtualNodePerStream;
+    pOsInterface->pfnSetDecoderVirtualNodePerStream         = Mos_Specific_pfnSetDecoderVirtualNodePerStream;
 
     pOsContext              = nullptr;
     pOsUserFeatureInterface = (PMOS_USER_FEATURE_INTERFACE)&pOsInterface->UserFeatureInterface;
