@@ -33,7 +33,6 @@
 #include <vector>
 #include "mos_defs.h"
 #include "codec_def_common.h"
-#include "codec_hw_next.h"
 #include "media_class_trace.h"
 
 typedef CODECHAL_MEDIA_STATE_TYPE MEDIA_DEBUG_STATE_TYPE;
