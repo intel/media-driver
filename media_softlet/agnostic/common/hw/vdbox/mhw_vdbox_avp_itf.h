@@ -43,7 +43,7 @@
     DEF(AVP_SURFACE_STATE);           \
     DEF(AVP_BSD_OBJECT);              \
     DEF(AVP_PAK_INSERT_OBJECT);       \
-    DEF(AVP_CMD1)
+    DEF(AVP_FILM_GRAIN_STATE)
 
 namespace mhw
 {

@@ -3137,7 +3137,7 @@ public:
         static const size_t byteSize = 8;
     };
 
-    struct AVP_CMD1_CMD
+    struct AVP_FILM_GRAIN_STATE_CMD
     {
     };
 };

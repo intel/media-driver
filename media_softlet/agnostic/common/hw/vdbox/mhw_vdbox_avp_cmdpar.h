@@ -439,9 +439,38 @@ struct _MHW_PAR_T(AVP_PAK_INSERT_OBJECT)
     PMHW_BATCH_BUFFER batchBufferForPakSlices    = nullptr;
 };
 
-struct _MHW_PAR_T(AVP_CMD1)
+struct _MHW_PAR_T(AVP_FILM_GRAIN_STATE)
 {
-    __MHW_VDBOX_AVP_WRAPPER_EXT(AVP_CMD1_CMDPAR_EXT);
+    uint16_t    grainRandomSeed            = 0;
+    uint8_t     clipToRestrictedRange      = 0;
+    uint8_t     numOfYPoints               = 0;
+    uint8_t     numOfCbPoints              = 0;
+    uint8_t     numOfCrPoints              = 0;
+    uint8_t     matrixCoefficients         = 0;
+    uint8_t     grainScalingMinus8         = 0;
+    uint8_t     arCoeffLag                 = 0;
+    uint32_t    arCoeffShiftMinus6         = 0;
+    uint32_t    grainScaleShift            = 0;
+    uint32_t    chromaScalingFromLuma      = 0;
+    uint32_t    grainNoiseOverlap          = 0;
+                                               
+    uint8_t     pointYValue[14]            = {};
+    uint8_t     pointYScaling[14]          = {};
+    uint8_t     pointCbValue[10]           = {};
+    uint8_t     pointCbScaling[10]         = {};
+    uint8_t     pointCrValue[10]           = {};
+    uint8_t     pointCrScaling[10]         = {};
+                                               
+    int8_t      arCoeffsY[24]              = {};
+    int8_t      arCoeffsCb[25]             = {};
+    int8_t      arCoeffsCr[25]             = {};
+                                               
+    uint8_t     cbMult                     = 0;
+    uint8_t     cbLumaMult                 = 0;
+    uint16_t    cbOffset                   = 0;
+    uint8_t     crMult                     = 0;
+    uint8_t     crLumaMult                 = 0;
+    uint16_t    crOffset                   = 0;
 };
 
 }  // namespace avp
