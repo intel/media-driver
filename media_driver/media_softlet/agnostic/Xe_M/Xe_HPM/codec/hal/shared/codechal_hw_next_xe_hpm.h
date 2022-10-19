@@ -55,7 +55,7 @@ public:
     //!
     //! \brief    Destructor
     //!
-    virtual ~CodechalHwInterfaceNextXe_Hpm() { }
+    virtual ~CodechalHwInterfaceNextXe_Hpm();
 
     bool UsesRenderEngine(CODECHAL_FUNCTION codecFunction, uint32_t standard);
 
@@ -101,6 +101,8 @@ public:
             uint32_t                        *commandsSize,
             uint32_t                        *patchListSize) override;
 
+    virtual MOS_STATUS Initialize(
+        CodechalSetting *settings) override;
 private:
     //!
     //! \brief    Called by constructor

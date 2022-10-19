@@ -31,6 +31,30 @@
 #include "mhw_vdbox_hcp_g12_X.h"
 #include "media_interfaces_xehp_sdv.h"// temporary include for getting avp interface
 
+CodechalHwInterfaceNextXe_Hpm::~CodechalHwInterfaceNextXe_Hpm()
+{
+    if (m_renderHal != nullptr && m_renderHal->pfnDestroy != nullptr)
+    {
+        MOS_STATUS eStatus = m_renderHal->pfnDestroy(m_renderHal);
+        if (eStatus != MOS_STATUS_SUCCESS)
+        {
+            MHW_ASSERTMESSAGE("Failed to destroy RenderHal, eStatus:%d.\n", eStatus);
+        }
+
+        if (m_renderHalCpInterface)
+        {
+            Delete_MhwCpInterface(m_renderHalCpInterface);
+            m_renderHalCpInterface = nullptr;
+        }
+    }
+
+    if (m_renderHal != nullptr)
+    {
+        MOS_FreeMemory(m_renderHal);
+        m_renderHal = nullptr;
+    }
+}
+
 void CodechalHwInterfaceNextXe_Hpm::PrepareCmdSize(CODECHAL_FUNCTION codecFunction)
 {
     InitCacheabilityControlSettings(codecFunction);
@@ -143,4 +167,34 @@ MOS_STATUS CodechalHwInterfaceNextXe_Hpm::GetAvpPrimitiveCommandSize(
     *patchListSize = avpPatchListSize + cpPatchListSize;
 
     return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS CodechalHwInterfaceNextXe_Hpm::Initialize(
+    CodechalSetting *settings)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODECHAL_HW_FUNCTION_ENTER;
+
+    CODECHAL_HW_CHK_STATUS_RETURN(CodechalHwInterfaceNext::Initialize(settings));
+    // Added isRenderHalNeeded flag into settings 
+    // Indicate whether RenderHal is needed or not 
+    if (settings->isRenderHalNeeded)
+    {
+        //Initialize renderHal
+        m_renderHal = (PRENDERHAL_INTERFACE_LEGACY)MOS_AllocAndZeroMemory(sizeof(RENDERHAL_INTERFACE_LEGACY));
+        CODECHAL_HW_CHK_NULL_RETURN(m_renderHal);
+        CODECHAL_HW_CHK_STATUS_RETURN(RenderHal_InitInterface_Legacy(
+            (PRENDERHAL_INTERFACE_LEGACY)m_renderHal,
+            &m_renderHalCpInterface,
+            m_osInterface));
+
+        RENDERHAL_SETTINGS_LEGACY RenderHalSettings;
+        RenderHalSettings.iMediaStates = 32;
+        CODECHAL_HW_CHK_STATUS_RETURN(m_renderHal->pfnInitialize(m_renderHal, &RenderHalSettings));
+
+        //set SSEU table
+        m_renderHal->sseuTable = m_ssEuTable;
+    }
+    return eStatus;
 }
