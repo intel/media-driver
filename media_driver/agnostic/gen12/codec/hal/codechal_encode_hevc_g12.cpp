@@ -8940,7 +8940,7 @@ void CodechalEncHevcStateG12::SetDependency(
 void CodechalEncHevcStateG12::InitSWScoreboard(uint8_t *scoreboard, uint32_t scoreboardWidth, uint32_t scoreboardHeight, uint32_t dependencyPattern, char childThreadNumber)
 {
     // 1. Select Dependency Pattern
-    uint8_t numDependencies;
+    uint8_t numDependencies = 0;
     char    scoreboardDeltaX[m_maxNumDependency];
     char    scoreboardDeltaY[m_maxNumDependency];
     memset(scoreboardDeltaX, 0, sizeof(scoreboardDeltaX));
