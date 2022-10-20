@@ -55,6 +55,9 @@ MOS_STATUS JpegDownSamplingPkt::InitSfcParams(VDBOX_SFC_PARAMS &sfcParams)
     JpegBasicFeature *jpegBasicFeature = dynamic_cast<JpegBasicFeature *>(m_basicFeature);
     DECODE_CHK_NULL(jpegBasicFeature);
     DECODE_CHK_STATUS(DecodeDownSamplingPkt::InitSfcParams(sfcParams));
+    //Align Jpeg sfc output surface size
+    sfcParams.output.surface->dwWidth  = jpegBasicFeature->m_destSurface.dwWidth;
+    sfcParams.output.surface->dwHeight = jpegBasicFeature->m_destSurface.dwHeight;
     sfcParams.videoParams.jpeg.jpegChromaType = (CodecDecodeJpegChromaType)jpegBasicFeature->m_jpegPicParams->m_chromaType;
     return MOS_STATUS_SUCCESS;
 }
