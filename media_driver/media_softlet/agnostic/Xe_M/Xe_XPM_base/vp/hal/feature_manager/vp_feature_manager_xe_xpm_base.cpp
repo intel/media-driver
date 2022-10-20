@@ -198,6 +198,10 @@ MOS_STATUS VPFeatureManagerXe_Xpm_Base::CheckFeatures(void * params, bool &bApgF
         {
             VP_PUBLIC_NORMALMESSAGE("If HVS case, still go to APG path, not need change to Composition");
         }
+        else if (IsHdrNeeded(pvpParams->pSrc[0], pvpParams->pTarget[0]))
+        {
+            VP_PUBLIC_NORMALMESSAGE("If HDR case, still go to APG path, not need change to Composition");
+        }
         else
         {
             VP_PUBLIC_NORMALMESSAGE("DDI choose to use Composition, change to Composition.");
