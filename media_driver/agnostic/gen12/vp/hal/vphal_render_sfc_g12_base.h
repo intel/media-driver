@@ -132,7 +132,7 @@ protected:
     virtual bool IsFormatMMCSupported(
         MOS_FORMAT                  Format);
 
-    bool m_disableOutputCentering;                      //!< flag for whether to disable Output centering, for validation purpose
+    bool m_disableOutputCentering = false;                      //!< flag for whether to disable Output centering, for validation purpose
 };
 
 #endif // __VPHAL_SFC_SUPPORTED
