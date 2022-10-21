@@ -65,12 +65,9 @@ set(COMMON_PRIVATE_INCLUDE_DIRS_ "")
 set(SOFTLET_COMMON_PRIVATE_INCLUDE_DIRS_ "")
 set(VP_SOURCES_ "")
 set(SOFTLET_VP_SOURCES_ "")       # softlet source group
+
 set(VP_PRIVATE_INCLUDE_DIRS_ "")
 set(SOFTLET_VP_PRIVATE_INCLUDE_DIRS_ "")
-set(CP_COMMON_SOURCES_ "")        # legacy source group
-set(CP_COMMON_SHARED_SOURCES_ "") # legacy and softlet shared source group
-set(CP_COMMON_NEXT_SOURCES_ "")   # softlet source group
-set(CP_SOURCES_ "")               # common + os part
 set(SHARED_SOURCES_ "")
 set(UPDATED_SOURCES_ "")
 set(SOFTLET_DDI_SOURCES_ "")
@@ -109,6 +106,17 @@ set (SOFTLET_MOS_PUBLIC_INCLUDE_DIRS_ "")
 set (SOFTLET_MOS_PRIVATE_INCLUDE_DIRS_ "")
 set (SOFTLET_MOS_PREPEND_INCLUDE_DIRS_ "")
 set (SOFTLET_MOS_EXT_INCLUDE_DIRS_ "")
+######################################################
+
+######################################################
+#CP LIB
+set(CP_COMMON_HEADERS_ "")        # legacy source group
+set(CP_COMMON_SOURCES_ "")
+set(CP_COMMON_SHARED_HEADERS_ "") # legacy and softlet shared source group
+set(CP_COMMON_SHARED_SOURCES_ "")
+set(CP_COMMON_NEXT_HEADERS_ "")   # softlet source group
+set(CP_COMMON_NEXT_SOURCES_ "")   
+set(CP_SOURCES_ "")               # common + os part
 ######################################################
 
 # add source
