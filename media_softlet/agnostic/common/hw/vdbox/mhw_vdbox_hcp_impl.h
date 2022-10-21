@@ -30,6 +30,7 @@
 
 #include "mhw_vdbox_hcp_itf.h"
 #include "mhw_impl.h"
+#include "mhw_vdbox_hcp_def.h"
 
 namespace mhw
 {

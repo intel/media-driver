@@ -84,8 +84,7 @@ typedef struct _HUC_AUX_BUFFER
     uint8_t  rsvd3;
     uint32_t RSVD[13];
 } HUC_AUX_BUFFER, *PHUC_AUX_BUFFER;
-#define CODECHAL_ENCODE_VP9_FRAME_HEADER_SIZE                   4096
-#define CODECHAL_ENCODE_VP9_MAX_NAL_UNIT_TYPE                   1   // only support one NAL unit for uncompressed header
+
 #define ENCODE_VP9_8K_PIC_WIDTH     8192
 #define ENCODE_VP9_8K_PIC_HEIGHT    8192
 #define ENCODE_VP9_16K_PIC_WIDTH     16384
