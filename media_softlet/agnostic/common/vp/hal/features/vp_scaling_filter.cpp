@@ -123,7 +123,8 @@ void VpScalingFilter::GetFormatWidthHeightAlignUnit(
     bool bOutput,
     bool bRotateNeeded,
     uint16_t & widthAlignUnit,
-    uint16_t & heightAlignUnit)
+    uint16_t & heightAlignUnit,
+    bool isInterlacedScaling)
 {
     VP_FUNC_CALL();
 
@@ -135,6 +136,10 @@ void VpScalingFilter::GetFormatWidthHeightAlignUnit(
     case VPHAL_COLORPACK_420:
         widthAlignUnit = 2;
         heightAlignUnit = 2;
+        if (isInterlacedScaling && bOutput)
+        {
+            heightAlignUnit = 4;
+        }
         break;
     case VPHAL_COLORPACK_422:
         widthAlignUnit = 2;
@@ -314,8 +319,8 @@ MOS_STATUS VpScalingFilter::SetRectSurfaceAlignment(bool isOutputSurf, uint32_t 
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     GetFormatWidthHeightAlignUnit(isOutputSurf ? m_scalingParams.formatOutput : m_scalingParams.formatInput,
-        isOutputSurf, m_scalingParams.rotation.rotationNeeded, wWidthAlignUnit, wHeightAlignUnit);
-    GetFormatWidthHeightAlignUnit(m_scalingParams.formatOutput, true, m_scalingParams.rotation.rotationNeeded, wWidthAlignUnitForDstRect, wHeightAlignUnitForDstRect);
+        isOutputSurf, m_scalingParams.rotation.rotationNeeded, wWidthAlignUnit, wHeightAlignUnit, false);
+    GetFormatWidthHeightAlignUnit(m_scalingParams.formatOutput, true, m_scalingParams.rotation.rotationNeeded, wWidthAlignUnitForDstRect, wHeightAlignUnitForDstRect, false);
 
     // The source rectangle is floored to the aligned unit to
     // get rid of invalid data(ex: an odd numbered src rectangle with NV12 format
@@ -515,7 +520,8 @@ MOS_STATUS VpScalingFilter::CalculateEngineParams()
             true,
             m_scalingParams.rotation.rotationNeeded,
             wOutputWidthAlignUnit,
-            wOutputHeightAlignUnit);
+            wOutputHeightAlignUnit,
+            m_scalingParams.interlacedScalingType == ISCALING_INTERLEAVED_TO_INTERLEAVED);
 
         // Apply alignment restriction to Region of the input frame.
         GetFormatWidthHeightAlignUnit(
@@ -523,7 +529,8 @@ MOS_STATUS VpScalingFilter::CalculateEngineParams()
             false,
             m_scalingParams.rotation.rotationNeeded,
             wInputWidthAlignUnit,
-            wInputHeightAlignUnit);
+            wInputHeightAlignUnit,
+            m_scalingParams.interlacedScalingType == ISCALING_INTERLEAVED_TO_INTERLEAVED);
 
         m_sfcScalingParams->dwOutputFrameHeight = MOS_ALIGN_CEIL(m_scalingParams.output.dwHeight, wOutputHeightAlignUnit);
         m_sfcScalingParams->dwOutputFrameWidth  = MOS_ALIGN_CEIL(m_scalingParams.output.dwWidth, wOutputWidthAlignUnit);

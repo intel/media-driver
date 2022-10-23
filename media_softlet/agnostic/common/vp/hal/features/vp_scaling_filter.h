@@ -105,7 +105,8 @@ protected:
         bool                    bOutput,
         bool                    bRotateNeeded,
         uint16_t                &widthAlignUnit,
-        uint16_t                &heightAlignUnit);
+        uint16_t                &heightAlignUnit,
+        bool                    isInterlacedScaling);
 
     //!
     //! \brief    check whether colorfill enable or not
