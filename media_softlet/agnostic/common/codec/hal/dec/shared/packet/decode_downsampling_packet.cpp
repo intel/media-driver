@@ -36,6 +36,7 @@ DecodeDownSamplingPkt::DecodeDownSamplingPkt(DecodePipeline *pipeline, CodechalH
     : DecodeSubPacket(pipeline, hwInterface)
 {
     MOS_ZeroMemory(&m_sfcParams, sizeof(m_sfcParams));
+    m_hwInterface = hwInterface;
 }
 
 DecodeDownSamplingPkt::~DecodeDownSamplingPkt()

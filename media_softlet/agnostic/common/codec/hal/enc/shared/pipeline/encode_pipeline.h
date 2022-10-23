@@ -319,7 +319,6 @@ protected:
 
     CodechalHwInterfaceNext *m_hwInterface = nullptr;  //!< CodechalHwInterface
     MOS_INTERFACE *      m_osInterface = nullptr;
-    MhwMiInterface *     m_miInterface = nullptr;
     EncodeAllocator *    m_allocator   = nullptr;
     TrackedBuffer *      m_trackedBuf  = nullptr;
     RecycleResource *    m_recycleBuf  = nullptr;

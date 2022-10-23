@@ -59,8 +59,6 @@ protected:
 
     inline bool IsPipeReadyToSubmit() { return (m_currentPipe == (m_pipeIndexForSubmit - 1)) ? true : false; }
 
-    MhwMiInterface *         m_miInterface          = nullptr;  //!< Mi interface used to add BB end
-
 MEDIA_CLASS_DEFINE_END(MediaScalabilityMultiPipe)
 };
 #endif // !__MEDIA_SCALABILITY_MULTIPIPE_H__

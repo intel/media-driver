@@ -157,8 +157,7 @@ public:
 protected:
     MediaFeatureManager     *m_featureManager = nullptr;
     CodechalHwInterfaceNext     *m_hwInterface = nullptr;
-    MhwMiInterface          *m_miInterface  = nullptr;
-
+    std::shared_ptr<mhw::mi::Itf> m_miItf;
     MHW_VDBOX_NODE_IND m_vdboxIndex = MHW_VDBOX_NODE_1;
 
 #if USE_CODECHAL_DEBUG_TOOL

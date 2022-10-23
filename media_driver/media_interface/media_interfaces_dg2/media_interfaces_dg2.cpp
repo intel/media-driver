@@ -449,22 +449,20 @@ MOS_STATUS MhwInterfacesDg2_Next::Initialize(
     // MHW_CP and MHW_MI must always be created
     MOS_STATUS status;
     m_cpInterface = Create_MhwCpInterface(osInterface);
+    MHW_MI_CHK_NULL(m_cpInterface);
     m_miInterface = MOS_New(Mi, m_cpInterface, osInterface);
-    {
-        MHW_MI_CHK_NULL(m_miInterface);
-        m_miItf = std::static_pointer_cast<mhw::mi::Itf>(m_miInterface->GetNewMiInterface());
-        //After dependency of legacy m_miInterface is cleanup, code above will be replaced with following codes.
-        //auto ptr = std::make_shared<mhw::mi::xe_xpm_base::Impl>(osInterface);
-        //ptr->SetCpInterface(m_cpInterface);
-        //m_miItf  = std::static_pointer_cast<mhw::mi::Itf>(ptr);
-    }
+
+    auto ptr = std::make_shared<mhw::mi::xe_xpm_base::Impl>(osInterface);
+    m_miItf       = std::static_pointer_cast<mhw::mi::Itf>(ptr);
+    ptr->SetCpInterface(m_cpInterface, m_miItf);
+
 
     if (params.Flags.m_render)
     {
         m_renderInterface =
             MOS_New(Render, m_miInterface, osInterface, gtSystemInfo, params.m_heapMode);
-        auto ptr    = std::make_shared<mhw::render::xe_hpg::Impl>(osInterface);
-        m_renderItf = std::static_pointer_cast<mhw::render::Itf>(ptr);
+        auto renderPtr = std::make_shared<mhw::render::xe_hpg::Impl>(osInterface);
+        m_renderItf    = std::static_pointer_cast<mhw::render::Itf>(renderPtr);
     }
     if (params.Flags.m_stateHeap)
     {
@@ -518,14 +516,30 @@ MOS_STATUS MhwInterfacesDg2_Next::Initialize(
 void MhwInterfacesDg2_Next::Destroy()
 {
     MhwInterfacesNext::Destroy();
-    MOS_Delete(m_miInterface);
-    MOS_Delete(m_renderInterface);
-    m_renderInterface = nullptr;
     MOS_Delete(m_sfcInterface);
     MOS_Delete(m_veboxInterface);
     MOS_Delete(m_bltInterface);
+    if (m_miInterface != nullptr)
+    {
+        MOS_Delete(m_miInterface);
+    }
+    if (m_renderInterface != nullptr)
+    {
+        MOS_Delete(m_renderInterface);
+    }
 }
 
+MhwInterfacesDg2_Next::~MhwInterfacesDg2_Next()
+{
+    if (m_miInterface != nullptr)
+    {
+        MOS_Delete(m_miInterface);
+    }
+    if (m_renderInterface != nullptr)
+    {
+        MOS_Delete(m_renderInterface);
+    }
+}
 MOS_STATUS CodechalInterfacesXe_Hpm::Initialize(
     void *standardInfo,
     void *settings,

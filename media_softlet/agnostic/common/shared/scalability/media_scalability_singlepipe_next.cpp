@@ -31,6 +31,7 @@
 #include <memory>
 #include "media_scalability_option.h"
 #include "mos_os_virtualengine_next.h"
+#include "mos_os_virtualengine.h"
 #include "mos_interface.h"
 #include "mos_os_virtualengine_specific.h"
 #include "mos_utilities.h"
@@ -56,14 +57,28 @@ MOS_STATUS MediaScalabilitySinglePipeNext::Initialize(const MediaScalabilityOpti
         MOS_VIRTUALENGINE_INIT_PARAMS VEInitParams;
         MOS_ZeroMemory(&VEInitParams, sizeof(VEInitParams));
         VEInitParams.bScalabilitySupported = false;
+        if (m_osInterface->apoMosEnabled)
+        {
+            SCALABILITY_CHK_NULL_RETURN(m_osInterface->osStreamState);
+            SCALABILITY_CHK_STATUS_RETURN(MosInterface::CreateVirtualEngineState(
+                m_osInterface->osStreamState, &VEInitParams, m_veState));
+            SCALABILITY_CHK_NULL_RETURN(m_veState);
 
-        SCALABILITY_CHK_NULL_RETURN(m_osInterface->osStreamState);
-        SCALABILITY_CHK_STATUS_RETURN(MosInterface::CreateVirtualEngineState(
-            m_osInterface->osStreamState, &VEInitParams, m_veState));
-        SCALABILITY_CHK_NULL_RETURN(m_veState);
+            SCALABILITY_CHK_STATUS_RETURN(MosInterface::GetVeHintParams(m_osInterface->osStreamState, false, &m_veHitParams));
+            SCALABILITY_CHK_NULL_RETURN(m_veHitParams);
+        }
+        else
+        {
+            SCALABILITY_CHK_STATUS_RETURN(Mos_VirtualEngineInterface_Initialize(m_osInterface, &VEInitParams));
+            m_veInterface = m_osInterface->pVEInterf;
+            SCALABILITY_CHK_NULL_RETURN(m_veInterface);
+            if (m_veInterface->pfnVEGetHintParams)
+            {
+                SCALABILITY_CHK_STATUS_RETURN(m_veInterface->pfnVEGetHintParams(m_veInterface, false, &m_veHitParams));
+                SCALABILITY_CHK_NULL_RETURN(m_veHitParams);
+            }
 
-        SCALABILITY_CHK_STATUS_RETURN(MosInterface::GetVeHintParams(m_osInterface->osStreamState, false, &m_veHitParams));
-        SCALABILITY_CHK_NULL_RETURN(m_veHitParams);
+        }
     }
 #endif
     PMOS_GPUCTX_CREATOPTIONS_ENHANCED gpuCtxCreateOption = MOS_New(MOS_GPUCTX_CREATOPTIONS_ENHANCED);
@@ -78,8 +93,16 @@ MOS_STATUS MediaScalabilitySinglePipeNext::Initialize(const MediaScalabilityOpti
     if (m_osInterface->bEnableDbgOvrdInVE)
     {
         gpuCtxCreateOption->DebugOverride = true;
-        SCALABILITY_ASSERT(MosInterface::GetVeEngineCount(m_osInterface->osStreamState) == 1);
-        gpuCtxCreateOption->EngineInstance[0] = MosInterface::GetEngineLogicId(m_osInterface->osStreamState, 0);
+        if (m_osInterface->apoMosEnabled)
+        {
+            SCALABILITY_ASSERT(MosInterface::GetVeEngineCount(m_osInterface->osStreamState) == 1);
+            gpuCtxCreateOption->EngineInstance[0] = MosInterface::GetEngineLogicId(m_osInterface->osStreamState, 0);
+        }
+        else
+        {
+            SCALABILITY_ASSERT(m_veInterface->ucEngineCount == 1);
+            gpuCtxCreateOption->EngineInstance[0] = m_veInterface->EngineLogicId[0];
+        }
     }
 #endif
     m_gpuCtxCreateOption = (PMOS_GPUCTX_CREATOPTIONS)gpuCtxCreateOption;
@@ -165,7 +188,14 @@ MOS_STATUS MediaScalabilitySinglePipeNext::SetHintParams()
     SCALABILITY_FUNCTION_ENTER;
 
     SCALABILITY_CHK_NULL_RETURN(m_osInterface);
-    SCALABILITY_CHK_NULL_RETURN(m_osInterface->osStreamState);
+    if (m_osInterface->apoMosEnabled)
+    {
+        SCALABILITY_CHK_NULL_RETURN(m_osInterface->osStreamState);
+    }
+    else
+    {
+        SCALABILITY_CHK_NULL_RETURN(m_veInterface);
+    }
 
     MOS_STATUS                   eStatus = MOS_STATUS_SUCCESS;
     MOS_VIRTUALENGINE_SET_PARAMS veParams;
@@ -181,8 +211,17 @@ MOS_STATUS MediaScalabilitySinglePipeNext::SetHintParams()
         veParams.bSameEngineAsLastSubmission = false;
         veParams.bSFCInUse                   = false;
     }
-
-    SCALABILITY_CHK_STATUS_RETURN(MosInterface::SetVeHintParams(m_osInterface->osStreamState, &veParams));
+    if (m_osInterface->apoMosEnabled)
+    {
+        SCALABILITY_CHK_STATUS_RETURN(MosInterface::SetVeHintParams(m_osInterface->osStreamState, &veParams));
+    }
+    else
+    {
+        if (m_veInterface && m_veInterface->pfnVESetHintParams)
+        {
+            SCALABILITY_CHK_STATUS_RETURN(m_veInterface->pfnVESetHintParams(m_veInterface, &veParams));
+        }
+    }
     return eStatus;
 }
 

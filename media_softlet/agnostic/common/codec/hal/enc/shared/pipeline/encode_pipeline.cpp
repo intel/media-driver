@@ -63,9 +63,6 @@ MOS_STATUS EncodePipeline::Initialize(void *settings)
         m_mediaCopy = m_hwInterface->CreateMediaCopy(m_osInterface);
     }
 
-    m_miInterface = m_hwInterface->GetMiInterface();
-    ENCODE_CHK_NULL_RETURN(m_miInterface);
-
     m_mediaContext = MOS_New(MediaContext, scalabilityEncoder, m_hwInterface, m_osInterface);
     ENCODE_CHK_NULL_RETURN(m_mediaContext);
 

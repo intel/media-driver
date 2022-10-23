@@ -175,6 +175,9 @@ public:
     //! \details  If the HAL creation fails, this is used for cleanup
     //!
     virtual void Destroy();
+    ~MhwInterfacesDg2_Next();
+    MhwMiInterface     *m_miInterface     = nullptr;
+    MhwRenderInterface *m_renderInterface = nullptr;
 };
 
 class MhwInterfacesDg2 : public MhwInterfaces

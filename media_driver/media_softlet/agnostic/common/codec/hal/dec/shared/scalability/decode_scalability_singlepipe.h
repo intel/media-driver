@@ -102,6 +102,14 @@ public:
                 uint32_t requestedPatchListSize, 
                 bool &singleTaskPhaseSupportedInPak)  override;
     //!
+    //! \brief  Submit command buffer
+    //! \param  [in, out] cmdBuffer
+    //!         Pointer to command buffer
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS SubmitCmdBuffer(PMOS_COMMAND_BUFFER cmdBuffer) override;
+    //!
     //! \brief  Create decode single pipe
     //! \param  [in] hwInterface
     //!         void type hw interface

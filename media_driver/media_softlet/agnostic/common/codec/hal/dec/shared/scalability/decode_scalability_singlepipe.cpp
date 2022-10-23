@@ -65,10 +65,7 @@ MOS_STATUS DecodeScalabilitySinglePipe::Initialize(const MediaScalabilityOption 
     // But it's normal that regist key not in register.
     Mos_CheckVirtualEngineSupported(m_osInterface, false, true);
 
-    m_miInterface = m_hwInterface->GetMiInterface();
-    SCALABILITY_CHK_NULL_RETURN(m_miInterface);
-
-    SCALABILITY_CHK_STATUS_RETURN(MediaScalabilitySinglePipe::Initialize(option));
+    SCALABILITY_CHK_STATUS_RETURN(MediaScalabilitySinglePipeNext::Initialize(option));
     PMOS_GPUCTX_CREATOPTIONS_ENHANCED gpuCtxCreateOption = dynamic_cast<PMOS_GPUCTX_CREATOPTIONS_ENHANCED>(m_gpuCtxCreateOption);
     SCALABILITY_CHK_NULL_RETURN(gpuCtxCreateOption);
     gpuCtxCreateOption->UsingSFC = decodeScalabilityOption->IsUsingSFC();
@@ -84,9 +81,38 @@ MOS_STATUS DecodeScalabilitySinglePipe::VerifyCmdBuffer(uint32_t requestedSize, 
 {
     SCALABILITY_FUNCTION_ENTER;
 
-    return MediaScalabilitySinglePipe::VerifyCmdBuffer(requestedSize, requestedPatchListSize, singleTaskPhaseSupportedInPak);
+    return MediaScalabilitySinglePipeNext::VerifyCmdBuffer(requestedSize, requestedPatchListSize, singleTaskPhaseSupportedInPak);
 }
 
+MOS_STATUS DecodeScalabilitySinglePipe::SubmitCmdBuffer(PMOS_COMMAND_BUFFER cmdBuffer)
+{
+    SCALABILITY_FUNCTION_ENTER;
+    SCALABILITY_CHK_NULL_RETURN(m_osInterface);
+    SCALABILITY_CHK_NULL_RETURN(cmdBuffer);
+
+    SCALABILITY_CHK_STATUS_RETURN(GetCmdBuffer(cmdBuffer));
+
+    if (!m_osInterface->pfnIsMismatchOrderProgrammingSupported())
+    {
+        SCALABILITY_CHK_STATUS_RETURN(m_hwInterface->GetMiInterface()->AddMiBatchBufferEnd(cmdBuffer, nullptr));
+    }
+
+    SCALABILITY_CHK_STATUS_RETURN(Oca1stLevelBBEnd(*cmdBuffer));
+
+    SCALABILITY_CHK_STATUS_RETURN(ReturnCmdBuffer(cmdBuffer));
+
+    if (MOS_VE_SUPPORTED(m_osInterface))
+    {
+        SCALABILITY_CHK_STATUS_RETURN(SetHintParams());
+        if (cmdBuffer && m_veHitParams)
+        {
+            SCALABILITY_CHK_STATUS_RETURN(PopulateHintParams(cmdBuffer));
+        }
+    }
+
+    m_attrReady = false;
+    return m_osInterface->pfnSubmitCommandBuffer(m_osInterface, cmdBuffer, false);
+}
 MOS_STATUS DecodeScalabilitySinglePipe::VerifySpaceAvailable(uint32_t requestedSize, uint32_t requestedPatchListSize, bool &singleTaskPhaseSupportedInPak)
 {
     SCALABILITY_FUNCTION_ENTER;
@@ -131,7 +157,7 @@ MOS_STATUS DecodeScalabilitySinglePipe::UpdateState(void *statePars)
     SCALABILITY_FUNCTION_ENTER;
     SCALABILITY_CHK_NULL_RETURN(statePars);
 
-    SCALABILITY_CHK_STATUS_RETURN(MediaScalabilitySinglePipe::UpdateState(statePars));
+    SCALABILITY_CHK_STATUS_RETURN(MediaScalabilitySinglePipeNext::UpdateState(statePars));
 
     StateParams *stateParams     = (StateParams *)statePars;
     m_singleTaskPhaseSupported   = stateParams->singleTaskPhaseSupported;
