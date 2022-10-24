@@ -184,8 +184,8 @@ public:
     virtual VPHAL_SURFACE *AllocateTempTargetSurface(VPHAL_SURFACE *m_tempTargetSurface);
 #endif
 
-    static const uint32_t m_4k_content_width  = 3840;
-    static const uint32_t m_4k_content_height = 2160;
+    static const uint32_t m_scalability_threshWidth  = 4096;
+    static const uint32_t m_scalability_threshHeight = 2880;
 
 protected:
 
