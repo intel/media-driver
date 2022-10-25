@@ -2814,7 +2814,6 @@ MOS_STATUS VpRenderHdrKernel::GetCurbeState(void *&curbe, uint32_t &curbeLength)
     VP_FUNC_CALL();
 
     MOS_STATUS                      eStatus             = MOS_STATUS_SUCCESS;
-    MEDIA_WALKER_HDR_STATIC_DATA HDRStatic           = g_cInit_MEDIA_STATIC_HDR;
     PRENDERHAL_INTERFACE            pRenderHal          = nullptr;
     PVP_SURFACE                     pSource             = nullptr;
     VPHAL_HDR_FORMAT_DESCRIPTOR  FormatDescriptor    = VPHAL_HDR_FORMAT_DESCRIPTOR_UNKNOW;
@@ -2836,6 +2835,7 @@ MOS_STATUS VpRenderHdrKernel::GetCurbeState(void *&curbe, uint32_t &curbeLength)
     float                           fOriginX = 0.0f, fOriginY = 0.0f;       // x,y layer origin
     float                           fShiftX = 0.0f, fShiftY = 0.0f;         // x,y shift
 
+    m_hdrCurbe    = g_cInit_MEDIA_STATIC_HDR;
     HdrTwoLayerOp = VPHAL_HDR_TWO_LAYER_OPTION_SBLEND;
     HdrRotation   = VPHAL_HDR_LAYER_ROTATION_0;
     wAlpha        = 0x0ff;
@@ -3058,41 +3058,41 @@ MOS_STATUS VpRenderHdrKernel::GetCurbeState(void *&curbe, uint32_t &curbeLength)
         switch (i)
         {
         case 0:
-            HDRStatic.DW0.HorizontalFrameOriginLayer0       = fOriginX;
-            HDRStatic.DW8.VerticalFrameOriginLayer0         = fOriginY;
-            HDRStatic.DW16.HorizontalScalingStepRatioLayer0 = fStepX;
-            HDRStatic.DW24.VerticalScalingStepRatioLayer0   = fStepY;
-            HDRStatic.DW32.LeftCoordinateRectangleLayer0    = pSource->rcDst.left;
-            HDRStatic.DW32.TopCoordinateRectangleLayer0     = pSource->rcDst.top;
-            HDRStatic.DW40.RightCoordinateRectangleLayer0   = pSource->rcDst.right - 1;
-            HDRStatic.DW40.BottomCoordinateRectangleLayer0  = pSource->rcDst.bottom - 1;
-            HDRStatic.DW48.FormatDescriptorLayer0           = FormatDescriptor;
-            HDRStatic.DW48.ChromaSittingLocationLayer0      = ChromaSiting;
-            HDRStatic.DW48.ChannelSwapEnablingFlagLayer0    = bChannelSwap;
-            HDRStatic.DW48.IEFBypassEnablingFlagLayer0      = bBypassIEF;
-            HDRStatic.DW48.RotationAngleMirrorDirectionLayer0 = HdrRotation;
-            HDRStatic.DW48.SamplerIndexFirstPlaneLayer0       = uiSamplerStateIndex;
+            m_hdrCurbe.DW0.HorizontalFrameOriginLayer0       = fOriginX;
+            m_hdrCurbe.DW8.VerticalFrameOriginLayer0         = fOriginY;
+            m_hdrCurbe.DW16.HorizontalScalingStepRatioLayer0 = fStepX;
+            m_hdrCurbe.DW24.VerticalScalingStepRatioLayer0   = fStepY;
+            m_hdrCurbe.DW32.LeftCoordinateRectangleLayer0    = pSource->rcDst.left;
+            m_hdrCurbe.DW32.TopCoordinateRectangleLayer0     = pSource->rcDst.top;
+            m_hdrCurbe.DW40.RightCoordinateRectangleLayer0   = pSource->rcDst.right - 1;
+            m_hdrCurbe.DW40.BottomCoordinateRectangleLayer0  = pSource->rcDst.bottom - 1;
+            m_hdrCurbe.DW48.FormatDescriptorLayer0           = FormatDescriptor;
+            m_hdrCurbe.DW48.ChromaSittingLocationLayer0      = ChromaSiting;
+            m_hdrCurbe.DW48.ChannelSwapEnablingFlagLayer0    = bChannelSwap;
+            m_hdrCurbe.DW48.IEFBypassEnablingFlagLayer0      = bBypassIEF;
+            m_hdrCurbe.DW48.RotationAngleMirrorDirectionLayer0 = HdrRotation;
+            m_hdrCurbe.DW48.SamplerIndexFirstPlaneLayer0       = uiSamplerStateIndex;
             if (pSource->osSurface->Format == Format_P010 ||
                 pSource->osSurface->Format == Format_P016)
             {
-                HDRStatic.DW48.SamplerIndexSecondThirdPlaneLayer0 = uiSamplerStateIndex2;
+                m_hdrCurbe.DW48.SamplerIndexSecondThirdPlaneLayer0 = uiSamplerStateIndex2;
             }
-            HDRStatic.DW48.CCMExtensionEnablingFlagLayer0     = m_hdrParams->StageEnableFlags[i].CCMExt1Enable ||
+            m_hdrCurbe.DW48.CCMExtensionEnablingFlagLayer0     = m_hdrParams->StageEnableFlags[i].CCMExt1Enable ||
                                                                 m_hdrParams->StageEnableFlags[i].CCMExt2Enable;
-            HDRStatic.DW48.ToneMappingEnablingFlagLayer0      = m_hdrParams->StageEnableFlags[i].PWLFEnable;
-            HDRStatic.DW48.PriorCSCEnablingFlagLayer0         = m_hdrParams->StageEnableFlags[i].PriorCSCEnable;
-            HDRStatic.DW48.EOTF1DLUTEnablingFlagLayer0        = m_hdrParams->StageEnableFlags[i].EOTFEnable;
-            HDRStatic.DW48.CCMEnablingFlagLayer0              = m_hdrParams->StageEnableFlags[i].CCMEnable;
-            HDRStatic.DW48.OETF1DLUTEnablingFlagLayer0        = m_hdrParams->StageEnableFlags[i].OETFEnable;
-            HDRStatic.DW48.PostCSCEnablingFlagLayer0          = m_hdrParams->StageEnableFlags[i].PostCSCEnable;
-            HDRStatic.DW48.Enabling3DLUTFlagLayer0            = b3dLut;
+            m_hdrCurbe.DW48.ToneMappingEnablingFlagLayer0      = m_hdrParams->StageEnableFlags[i].PWLFEnable;
+            m_hdrCurbe.DW48.PriorCSCEnablingFlagLayer0         = m_hdrParams->StageEnableFlags[i].PriorCSCEnable;
+            m_hdrCurbe.DW48.EOTF1DLUTEnablingFlagLayer0        = m_hdrParams->StageEnableFlags[i].EOTFEnable;
+            m_hdrCurbe.DW48.CCMEnablingFlagLayer0              = m_hdrParams->StageEnableFlags[i].CCMEnable;
+            m_hdrCurbe.DW48.OETF1DLUTEnablingFlagLayer0        = m_hdrParams->StageEnableFlags[i].OETFEnable;
+            m_hdrCurbe.DW48.PostCSCEnablingFlagLayer0          = m_hdrParams->StageEnableFlags[i].PostCSCEnable;
+            m_hdrCurbe.DW48.Enabling3DLUTFlagLayer0            = b3dLut;
             if (HdrTwoLayerOp == VPHAL_HDR_TWO_LAYER_OPTION_CBLEND ||
                 HdrTwoLayerOp == VPHAL_HDR_TWO_LAYER_OPTION_CSBLEND ||
                 HdrTwoLayerOp == VPHAL_HDR_TWO_LAYER_OPTION_CPBLEND)
             {
-                HDRStatic.DW56.ConstantBlendingAlphaFillColorLayer0 = wAlpha;
+                m_hdrCurbe.DW56.ConstantBlendingAlphaFillColorLayer0 = wAlpha;
             }
-            HDRStatic.DW58.TwoLayerOperationLayer0              = VPHAL_HDR_TWO_LAYER_OPTION_COMP;
+            m_hdrCurbe.DW58.TwoLayerOperationLayer0              = VPHAL_HDR_TWO_LAYER_OPTION_COMP;
             if (pSource->SurfType == SURF_IN_PRIMARY                &&
                 (IS_RGB_CSPACE(pSource->ColorSpace) || IS_COLOR_SPACE_BT2020_RGB(pSource->ColorSpace)))
             {
@@ -3101,267 +3101,267 @@ MOS_STATUS VpRenderHdrKernel::GetCurbeState(void *&curbe, uint32_t &curbeLength)
                 // (which means main video content is in the first layer)
                 // and blend-type set as source blending,
                 // do source blending w/ bg, instead of setting as composite.
-                HDRStatic.DW58.TwoLayerOperationLayer0 = VPHAL_HDR_TWO_LAYER_OPTION_SBLEND;
+                m_hdrCurbe.DW58.TwoLayerOperationLayer0 = VPHAL_HDR_TWO_LAYER_OPTION_SBLEND;
             }
             break;
         case 1:
-            HDRStatic.DW1.HorizontalFrameOriginLayer1       = fOriginX;
-            HDRStatic.DW9.VerticalFrameOriginLayer1         = fOriginY;
-            HDRStatic.DW17.HorizontalScalingStepRatioLayer1 = fStepX;
-            HDRStatic.DW25.VerticalScalingStepRatioLayer1   = fStepY;
-            HDRStatic.DW33.LeftCoordinateRectangleLayer1    = pSource->rcDst.left;
-            HDRStatic.DW33.TopCoordinateRectangleLayer1     = pSource->rcDst.top;
-            HDRStatic.DW41.RightCoordinateRectangleLayer1   = pSource->rcDst.right - 1;
-            HDRStatic.DW41.BottomCoordinateRectangleLayer1  = pSource->rcDst.bottom - 1;
-            HDRStatic.DW49.FormatDescriptorLayer1           = FormatDescriptor;
-            HDRStatic.DW49.ChromaSittingLocationLayer1      = ChromaSiting;
-            HDRStatic.DW49.ChannelSwapEnablingFlagLayer1    = bChannelSwap;
-            HDRStatic.DW49.IEFBypassEnablingFlagLayer1      = bBypassIEF;
-            HDRStatic.DW49.RotationAngleMirrorDirectionLayer1 = HdrRotation;
-            HDRStatic.DW49.SamplerIndexFirstPlaneLayer1       = uiSamplerStateIndex;
+            m_hdrCurbe.DW1.HorizontalFrameOriginLayer1       = fOriginX;
+            m_hdrCurbe.DW9.VerticalFrameOriginLayer1         = fOriginY;
+            m_hdrCurbe.DW17.HorizontalScalingStepRatioLayer1 = fStepX;
+            m_hdrCurbe.DW25.VerticalScalingStepRatioLayer1   = fStepY;
+            m_hdrCurbe.DW33.LeftCoordinateRectangleLayer1    = pSource->rcDst.left;
+            m_hdrCurbe.DW33.TopCoordinateRectangleLayer1     = pSource->rcDst.top;
+            m_hdrCurbe.DW41.RightCoordinateRectangleLayer1   = pSource->rcDst.right - 1;
+            m_hdrCurbe.DW41.BottomCoordinateRectangleLayer1  = pSource->rcDst.bottom - 1;
+            m_hdrCurbe.DW49.FormatDescriptorLayer1           = FormatDescriptor;
+            m_hdrCurbe.DW49.ChromaSittingLocationLayer1      = ChromaSiting;
+            m_hdrCurbe.DW49.ChannelSwapEnablingFlagLayer1    = bChannelSwap;
+            m_hdrCurbe.DW49.IEFBypassEnablingFlagLayer1      = bBypassIEF;
+            m_hdrCurbe.DW49.RotationAngleMirrorDirectionLayer1 = HdrRotation;
+            m_hdrCurbe.DW49.SamplerIndexFirstPlaneLayer1       = uiSamplerStateIndex;
             if (pSource->osSurface->Format == Format_P010 ||
                 pSource->osSurface->Format == Format_P016)
             {
-                HDRStatic.DW49.SamplerIndexSecondThirdPlaneLayer1 = uiSamplerStateIndex2;
+                m_hdrCurbe.DW49.SamplerIndexSecondThirdPlaneLayer1 = uiSamplerStateIndex2;
             }
-            HDRStatic.DW49.CCMExtensionEnablingFlagLayer1     = m_hdrParams->StageEnableFlags[i].CCMExt1Enable ||
+            m_hdrCurbe.DW49.CCMExtensionEnablingFlagLayer1     = m_hdrParams->StageEnableFlags[i].CCMExt1Enable ||
                                                                 m_hdrParams->StageEnableFlags[i].CCMExt2Enable;
-            HDRStatic.DW49.ToneMappingEnablingFlagLayer1      = m_hdrParams->StageEnableFlags[i].PWLFEnable;
-            HDRStatic.DW49.PriorCSCEnablingFlagLayer1         = m_hdrParams->StageEnableFlags[i].PriorCSCEnable;
-            HDRStatic.DW49.EOTF1DLUTEnablingFlagLayer1        = m_hdrParams->StageEnableFlags[i].EOTFEnable;
-            HDRStatic.DW49.CCMEnablingFlagLayer1              = m_hdrParams->StageEnableFlags[i].CCMEnable;
-            HDRStatic.DW49.OETF1DLUTEnablingFlagLayer1        = m_hdrParams->StageEnableFlags[i].OETFEnable;
-            HDRStatic.DW49.PostCSCEnablingFlagLayer1          = m_hdrParams->StageEnableFlags[i].PostCSCEnable;
-            HDRStatic.DW49.Enabling3DLUTFlagLayer1            = b3dLut;
+            m_hdrCurbe.DW49.ToneMappingEnablingFlagLayer1      = m_hdrParams->StageEnableFlags[i].PWLFEnable;
+            m_hdrCurbe.DW49.PriorCSCEnablingFlagLayer1         = m_hdrParams->StageEnableFlags[i].PriorCSCEnable;
+            m_hdrCurbe.DW49.EOTF1DLUTEnablingFlagLayer1        = m_hdrParams->StageEnableFlags[i].EOTFEnable;
+            m_hdrCurbe.DW49.CCMEnablingFlagLayer1              = m_hdrParams->StageEnableFlags[i].CCMEnable;
+            m_hdrCurbe.DW49.OETF1DLUTEnablingFlagLayer1        = m_hdrParams->StageEnableFlags[i].OETFEnable;
+            m_hdrCurbe.DW49.PostCSCEnablingFlagLayer1          = m_hdrParams->StageEnableFlags[i].PostCSCEnable;
+            m_hdrCurbe.DW49.Enabling3DLUTFlagLayer1            = b3dLut;
             if (HdrTwoLayerOp == VPHAL_HDR_TWO_LAYER_OPTION_CBLEND ||
                 HdrTwoLayerOp == VPHAL_HDR_TWO_LAYER_OPTION_CSBLEND ||
                 HdrTwoLayerOp == VPHAL_HDR_TWO_LAYER_OPTION_CPBLEND)
             {
-                HDRStatic.DW56.ConstantBlendingAlphaFillColorLayer1 = wAlpha;
+                m_hdrCurbe.DW56.ConstantBlendingAlphaFillColorLayer1 = wAlpha;
             }
-            HDRStatic.DW58.TwoLayerOperationLayer1              = HdrTwoLayerOp;
+            m_hdrCurbe.DW58.TwoLayerOperationLayer1              = HdrTwoLayerOp;
             break;
         case 2:
-            HDRStatic.DW2.HorizontalFrameOriginLayer2       = fOriginX;
-            HDRStatic.DW10.VerticalFrameOriginLayer2        = fOriginY;
-            HDRStatic.DW18.HorizontalScalingStepRatioLayer2 = fStepX;
-            HDRStatic.DW26.VerticalScalingStepRatioLayer2   = fStepY;
-            HDRStatic.DW34.LeftCoordinateRectangleLayer2    = pSource->rcDst.left;
-            HDRStatic.DW34.TopCoordinateRectangleLayer2     = pSource->rcDst.top;
-            HDRStatic.DW42.RightCoordinateRectangleLayer2   = pSource->rcDst.right - 1;
-            HDRStatic.DW42.BottomCoordinateRectangleLayer2  = pSource->rcDst.bottom - 1;
-            HDRStatic.DW50.FormatDescriptorLayer2           = FormatDescriptor;
-            HDRStatic.DW50.ChromaSittingLocationLayer2      = ChromaSiting;
-            HDRStatic.DW50.ChannelSwapEnablingFlagLayer2    = bChannelSwap;
-            HDRStatic.DW50.IEFBypassEnablingFlagLayer2      = bBypassIEF;
-            HDRStatic.DW50.RotationAngleMirrorDirectionLayer2 = HdrRotation;
-            HDRStatic.DW50.SamplerIndexFirstPlaneLayer2       = uiSamplerStateIndex;
+            m_hdrCurbe.DW2.HorizontalFrameOriginLayer2       = fOriginX;
+            m_hdrCurbe.DW10.VerticalFrameOriginLayer2        = fOriginY;
+            m_hdrCurbe.DW18.HorizontalScalingStepRatioLayer2 = fStepX;
+            m_hdrCurbe.DW26.VerticalScalingStepRatioLayer2   = fStepY;
+            m_hdrCurbe.DW34.LeftCoordinateRectangleLayer2    = pSource->rcDst.left;
+            m_hdrCurbe.DW34.TopCoordinateRectangleLayer2     = pSource->rcDst.top;
+            m_hdrCurbe.DW42.RightCoordinateRectangleLayer2   = pSource->rcDst.right - 1;
+            m_hdrCurbe.DW42.BottomCoordinateRectangleLayer2  = pSource->rcDst.bottom - 1;
+            m_hdrCurbe.DW50.FormatDescriptorLayer2           = FormatDescriptor;
+            m_hdrCurbe.DW50.ChromaSittingLocationLayer2      = ChromaSiting;
+            m_hdrCurbe.DW50.ChannelSwapEnablingFlagLayer2    = bChannelSwap;
+            m_hdrCurbe.DW50.IEFBypassEnablingFlagLayer2      = bBypassIEF;
+            m_hdrCurbe.DW50.RotationAngleMirrorDirectionLayer2 = HdrRotation;
+            m_hdrCurbe.DW50.SamplerIndexFirstPlaneLayer2       = uiSamplerStateIndex;
             if (pSource->osSurface->Format == Format_P010 ||
                 pSource->osSurface->Format == Format_P016)
             {
-                HDRStatic.DW50.SamplerIndexSecondThirdPlaneLayer2 = uiSamplerStateIndex2;
+                m_hdrCurbe.DW50.SamplerIndexSecondThirdPlaneLayer2 = uiSamplerStateIndex2;
             }
-            HDRStatic.DW50.CCMExtensionEnablingFlagLayer2     = m_hdrParams->StageEnableFlags[i].CCMExt1Enable ||
+            m_hdrCurbe.DW50.CCMExtensionEnablingFlagLayer2     = m_hdrParams->StageEnableFlags[i].CCMExt1Enable ||
                                                                 m_hdrParams->StageEnableFlags[i].CCMExt2Enable;
-            HDRStatic.DW50.ToneMappingEnablingFlagLayer2      = m_hdrParams->StageEnableFlags[i].PWLFEnable;
-            HDRStatic.DW50.PriorCSCEnablingFlagLayer2         = m_hdrParams->StageEnableFlags[i].PriorCSCEnable;
-            HDRStatic.DW50.EOTF1DLUTEnablingFlagLayer2        = m_hdrParams->StageEnableFlags[i].EOTFEnable;
-            HDRStatic.DW50.CCMEnablingFlagLayer2              = m_hdrParams->StageEnableFlags[i].CCMEnable;
-            HDRStatic.DW50.OETF1DLUTEnablingFlagLayer2        = m_hdrParams->StageEnableFlags[i].OETFEnable;
-            HDRStatic.DW50.PostCSCEnablingFlagLayer2          = m_hdrParams->StageEnableFlags[i].PostCSCEnable;
-            HDRStatic.DW50.Enabling3DLUTFlagLayer2            = b3dLut;
+            m_hdrCurbe.DW50.ToneMappingEnablingFlagLayer2      = m_hdrParams->StageEnableFlags[i].PWLFEnable;
+            m_hdrCurbe.DW50.PriorCSCEnablingFlagLayer2         = m_hdrParams->StageEnableFlags[i].PriorCSCEnable;
+            m_hdrCurbe.DW50.EOTF1DLUTEnablingFlagLayer2        = m_hdrParams->StageEnableFlags[i].EOTFEnable;
+            m_hdrCurbe.DW50.CCMEnablingFlagLayer2              = m_hdrParams->StageEnableFlags[i].CCMEnable;
+            m_hdrCurbe.DW50.OETF1DLUTEnablingFlagLayer2        = m_hdrParams->StageEnableFlags[i].OETFEnable;
+            m_hdrCurbe.DW50.PostCSCEnablingFlagLayer2          = m_hdrParams->StageEnableFlags[i].PostCSCEnable;
+            m_hdrCurbe.DW50.Enabling3DLUTFlagLayer2            = b3dLut;
             if (HdrTwoLayerOp == VPHAL_HDR_TWO_LAYER_OPTION_CBLEND ||
                 HdrTwoLayerOp == VPHAL_HDR_TWO_LAYER_OPTION_CSBLEND ||
                 HdrTwoLayerOp == VPHAL_HDR_TWO_LAYER_OPTION_CPBLEND)
             {
-                HDRStatic.DW56.ConstantBlendingAlphaFillColorLayer2 = wAlpha;
+                m_hdrCurbe.DW56.ConstantBlendingAlphaFillColorLayer2 = wAlpha;
             }
-            HDRStatic.DW58.TwoLayerOperationLayer2              = HdrTwoLayerOp;
+            m_hdrCurbe.DW58.TwoLayerOperationLayer2              = HdrTwoLayerOp;
             break;
         case 3:
-            HDRStatic.DW3.HorizontalFrameOriginLayer3       = fOriginX;
-            HDRStatic.DW11.VerticalFrameOriginLayer3        = fOriginY;
-            HDRStatic.DW19.HorizontalScalingStepRatioLayer3 = fStepX;
-            HDRStatic.DW27.VerticalScalingStepRatioLayer3   = fStepY;
-            HDRStatic.DW35.LeftCoordinateRectangleLayer3    = pSource->rcDst.left;
-            HDRStatic.DW35.TopCoordinateRectangleLayer3     = pSource->rcDst.top;
-            HDRStatic.DW43.RightCoordinateRectangleLayer3   = pSource->rcDst.right - 1;
-            HDRStatic.DW43.BottomCoordinateRectangleLayer3  = pSource->rcDst.bottom - 1;
-            HDRStatic.DW51.FormatDescriptorLayer3           = FormatDescriptor;
-            HDRStatic.DW51.ChromaSittingLocationLayer3      = ChromaSiting;
-            HDRStatic.DW51.ChannelSwapEnablingFlagLayer3    = bChannelSwap;
-            HDRStatic.DW51.IEFBypassEnablingFlagLayer3      = bBypassIEF;
-            HDRStatic.DW51.RotationAngleMirrorDirectionLayer3 = HdrRotation;
-            HDRStatic.DW51.SamplerIndexFirstPlaneLayer3       = uiSamplerStateIndex;
+            m_hdrCurbe.DW3.HorizontalFrameOriginLayer3       = fOriginX;
+            m_hdrCurbe.DW11.VerticalFrameOriginLayer3        = fOriginY;
+            m_hdrCurbe.DW19.HorizontalScalingStepRatioLayer3 = fStepX;
+            m_hdrCurbe.DW27.VerticalScalingStepRatioLayer3   = fStepY;
+            m_hdrCurbe.DW35.LeftCoordinateRectangleLayer3    = pSource->rcDst.left;
+            m_hdrCurbe.DW35.TopCoordinateRectangleLayer3     = pSource->rcDst.top;
+            m_hdrCurbe.DW43.RightCoordinateRectangleLayer3   = pSource->rcDst.right - 1;
+            m_hdrCurbe.DW43.BottomCoordinateRectangleLayer3  = pSource->rcDst.bottom - 1;
+            m_hdrCurbe.DW51.FormatDescriptorLayer3           = FormatDescriptor;
+            m_hdrCurbe.DW51.ChromaSittingLocationLayer3      = ChromaSiting;
+            m_hdrCurbe.DW51.ChannelSwapEnablingFlagLayer3    = bChannelSwap;
+            m_hdrCurbe.DW51.IEFBypassEnablingFlagLayer3      = bBypassIEF;
+            m_hdrCurbe.DW51.RotationAngleMirrorDirectionLayer3 = HdrRotation;
+            m_hdrCurbe.DW51.SamplerIndexFirstPlaneLayer3       = uiSamplerStateIndex;
             if (pSource->osSurface->Format == Format_P010 ||
                 pSource->osSurface->Format == Format_P016)
             {
-                HDRStatic.DW51.SamplerIndexSecondThirdPlaneLayer3 = uiSamplerStateIndex2;
+                m_hdrCurbe.DW51.SamplerIndexSecondThirdPlaneLayer3 = uiSamplerStateIndex2;
             }
-            HDRStatic.DW51.CCMExtensionEnablingFlagLayer3     = m_hdrParams->StageEnableFlags[i].CCMExt1Enable ||
+            m_hdrCurbe.DW51.CCMExtensionEnablingFlagLayer3     = m_hdrParams->StageEnableFlags[i].CCMExt1Enable ||
                                                                 m_hdrParams->StageEnableFlags[i].CCMExt2Enable;
-            HDRStatic.DW51.ToneMappingEnablingFlagLayer3      = m_hdrParams->StageEnableFlags[i].PWLFEnable;
-            HDRStatic.DW51.PriorCSCEnablingFlagLayer3         = m_hdrParams->StageEnableFlags[i].PriorCSCEnable;
-            HDRStatic.DW51.EOTF1DLUTEnablingFlagLayer3        = m_hdrParams->StageEnableFlags[i].EOTFEnable;
-            HDRStatic.DW51.CCMEnablingFlagLayer3              = m_hdrParams->StageEnableFlags[i].CCMEnable;
-            HDRStatic.DW51.OETF1DLUTEnablingFlagLayer3        = m_hdrParams->StageEnableFlags[i].OETFEnable;
-            HDRStatic.DW51.PostCSCEnablingFlagLayer3          = m_hdrParams->StageEnableFlags[i].PostCSCEnable;
-            HDRStatic.DW51.Enabling3DLUTFlagLayer3            = b3dLut;
+            m_hdrCurbe.DW51.ToneMappingEnablingFlagLayer3      = m_hdrParams->StageEnableFlags[i].PWLFEnable;
+            m_hdrCurbe.DW51.PriorCSCEnablingFlagLayer3         = m_hdrParams->StageEnableFlags[i].PriorCSCEnable;
+            m_hdrCurbe.DW51.EOTF1DLUTEnablingFlagLayer3        = m_hdrParams->StageEnableFlags[i].EOTFEnable;
+            m_hdrCurbe.DW51.CCMEnablingFlagLayer3              = m_hdrParams->StageEnableFlags[i].CCMEnable;
+            m_hdrCurbe.DW51.OETF1DLUTEnablingFlagLayer3        = m_hdrParams->StageEnableFlags[i].OETFEnable;
+            m_hdrCurbe.DW51.PostCSCEnablingFlagLayer3          = m_hdrParams->StageEnableFlags[i].PostCSCEnable;
+            m_hdrCurbe.DW51.Enabling3DLUTFlagLayer3            = b3dLut;
             if (HdrTwoLayerOp == VPHAL_HDR_TWO_LAYER_OPTION_CBLEND ||
                 HdrTwoLayerOp == VPHAL_HDR_TWO_LAYER_OPTION_CSBLEND ||
                 HdrTwoLayerOp == VPHAL_HDR_TWO_LAYER_OPTION_CPBLEND)
             {
-                HDRStatic.DW56.ConstantBlendingAlphaFillColorLayer3 = wAlpha;
+                m_hdrCurbe.DW56.ConstantBlendingAlphaFillColorLayer3 = wAlpha;
             }
-            HDRStatic.DW58.TwoLayerOperationLayer3              = HdrTwoLayerOp;
+            m_hdrCurbe.DW58.TwoLayerOperationLayer3              = HdrTwoLayerOp;
             break;
         case 4:
-            HDRStatic.DW4.HorizontalFrameOriginLayer4       = fOriginX;
-            HDRStatic.DW12.VerticalFrameOriginLayer4        = fOriginY;
-            HDRStatic.DW20.HorizontalScalingStepRatioLayer4 = fStepX;
-            HDRStatic.DW28.VerticalScalingStepRatioLayer4   = fStepY;
-            HDRStatic.DW36.LeftCoordinateRectangleLayer4    = pSource->rcDst.left;
-            HDRStatic.DW36.TopCoordinateRectangleLayer4     = pSource->rcDst.top;
-            HDRStatic.DW44.RightCoordinateRectangleLayer4   = pSource->rcDst.right - 1;
-            HDRStatic.DW44.BottomCoordinateRectangleLayer4  = pSource->rcDst.bottom - 1;
-            HDRStatic.DW52.FormatDescriptorLayer4           = FormatDescriptor;
-            HDRStatic.DW52.ChromaSittingLocationLayer4      = ChromaSiting;
-            HDRStatic.DW52.ChannelSwapEnablingFlagLayer4    = bChannelSwap;
-            HDRStatic.DW52.IEFBypassEnablingFlagLayer4      = bBypassIEF;
-            HDRStatic.DW52.RotationAngleMirrorDirectionLayer4 = HdrRotation;
-            HDRStatic.DW52.SamplerIndexFirstPlaneLayer4       = uiSamplerStateIndex;
+            m_hdrCurbe.DW4.HorizontalFrameOriginLayer4       = fOriginX;
+            m_hdrCurbe.DW12.VerticalFrameOriginLayer4        = fOriginY;
+            m_hdrCurbe.DW20.HorizontalScalingStepRatioLayer4 = fStepX;
+            m_hdrCurbe.DW28.VerticalScalingStepRatioLayer4   = fStepY;
+            m_hdrCurbe.DW36.LeftCoordinateRectangleLayer4    = pSource->rcDst.left;
+            m_hdrCurbe.DW36.TopCoordinateRectangleLayer4     = pSource->rcDst.top;
+            m_hdrCurbe.DW44.RightCoordinateRectangleLayer4   = pSource->rcDst.right - 1;
+            m_hdrCurbe.DW44.BottomCoordinateRectangleLayer4  = pSource->rcDst.bottom - 1;
+            m_hdrCurbe.DW52.FormatDescriptorLayer4           = FormatDescriptor;
+            m_hdrCurbe.DW52.ChromaSittingLocationLayer4      = ChromaSiting;
+            m_hdrCurbe.DW52.ChannelSwapEnablingFlagLayer4    = bChannelSwap;
+            m_hdrCurbe.DW52.IEFBypassEnablingFlagLayer4      = bBypassIEF;
+            m_hdrCurbe.DW52.RotationAngleMirrorDirectionLayer4 = HdrRotation;
+            m_hdrCurbe.DW52.SamplerIndexFirstPlaneLayer4       = uiSamplerStateIndex;
             if (pSource->osSurface->Format == Format_P010 ||
                 pSource->osSurface->Format == Format_P016)
             {
-                HDRStatic.DW52.SamplerIndexSecondThirdPlaneLayer4 = uiSamplerStateIndex2;
+                m_hdrCurbe.DW52.SamplerIndexSecondThirdPlaneLayer4 = uiSamplerStateIndex2;
             }
-            HDRStatic.DW52.CCMExtensionEnablingFlagLayer4     = m_hdrParams->StageEnableFlags[i].CCMExt1Enable ||
+            m_hdrCurbe.DW52.CCMExtensionEnablingFlagLayer4     = m_hdrParams->StageEnableFlags[i].CCMExt1Enable ||
                                                                 m_hdrParams->StageEnableFlags[i].CCMExt2Enable;
-            HDRStatic.DW52.ToneMappingEnablingFlagLayer4      = m_hdrParams->StageEnableFlags[i].PWLFEnable;
-            HDRStatic.DW52.PriorCSCEnablingFlagLayer4         = m_hdrParams->StageEnableFlags[i].PriorCSCEnable;
-            HDRStatic.DW52.EOTF1DLUTEnablingFlagLayer4        = m_hdrParams->StageEnableFlags[i].EOTFEnable;
-            HDRStatic.DW52.CCMEnablingFlagLayer4              = m_hdrParams->StageEnableFlags[i].CCMEnable;
-            HDRStatic.DW52.OETF1DLUTEnablingFlagLayer4        = m_hdrParams->StageEnableFlags[i].OETFEnable;
-            HDRStatic.DW52.PostCSCEnablingFlagLayer4          = m_hdrParams->StageEnableFlags[i].PostCSCEnable;
-            HDRStatic.DW52.Enabling3DLUTFlagLayer4            = b3dLut;
+            m_hdrCurbe.DW52.ToneMappingEnablingFlagLayer4      = m_hdrParams->StageEnableFlags[i].PWLFEnable;
+            m_hdrCurbe.DW52.PriorCSCEnablingFlagLayer4         = m_hdrParams->StageEnableFlags[i].PriorCSCEnable;
+            m_hdrCurbe.DW52.EOTF1DLUTEnablingFlagLayer4        = m_hdrParams->StageEnableFlags[i].EOTFEnable;
+            m_hdrCurbe.DW52.CCMEnablingFlagLayer4              = m_hdrParams->StageEnableFlags[i].CCMEnable;
+            m_hdrCurbe.DW52.OETF1DLUTEnablingFlagLayer4        = m_hdrParams->StageEnableFlags[i].OETFEnable;
+            m_hdrCurbe.DW52.PostCSCEnablingFlagLayer4          = m_hdrParams->StageEnableFlags[i].PostCSCEnable;
+            m_hdrCurbe.DW52.Enabling3DLUTFlagLayer4            = b3dLut;
             if (HdrTwoLayerOp == VPHAL_HDR_TWO_LAYER_OPTION_CBLEND ||
                 HdrTwoLayerOp == VPHAL_HDR_TWO_LAYER_OPTION_CSBLEND ||
                 HdrTwoLayerOp == VPHAL_HDR_TWO_LAYER_OPTION_CPBLEND)
             {
-                HDRStatic.DW57.ConstantBlendingAlphaFillColorLayer4 = wAlpha;
+                m_hdrCurbe.DW57.ConstantBlendingAlphaFillColorLayer4 = wAlpha;
             }
-            HDRStatic.DW59.TwoLayerOperationLayer4              = HdrTwoLayerOp;
+            m_hdrCurbe.DW59.TwoLayerOperationLayer4              = HdrTwoLayerOp;
             break;
         case 5:
-            HDRStatic.DW5.HorizontalFrameOriginLayer5       = fOriginX;
-            HDRStatic.DW13.VerticalFrameOriginLayer5        = fOriginY;
-            HDRStatic.DW21.HorizontalScalingStepRatioLayer5 = fStepX;
-            HDRStatic.DW29.VerticalScalingStepRatioLayer5   = fStepY;
-            HDRStatic.DW37.LeftCoordinateRectangleLayer5    = pSource->rcDst.left;
-            HDRStatic.DW37.TopCoordinateRectangleLayer5     = pSource->rcDst.top;
-            HDRStatic.DW45.RightCoordinateRectangleLayer5   = pSource->rcDst.right - 1;
-            HDRStatic.DW45.BottomCoordinateRectangleLayer5  = pSource->rcDst.bottom - 1;
-            HDRStatic.DW53.FormatDescriptorLayer5           = FormatDescriptor;
-            HDRStatic.DW53.ChromaSittingLocationLayer5      = ChromaSiting;
-            HDRStatic.DW53.ChannelSwapEnablingFlagLayer5    = bChannelSwap;
-            HDRStatic.DW53.IEFBypassEnablingFlagLayer5      = bBypassIEF;
-            HDRStatic.DW53.RotationAngleMirrorDirectionLayer5 = HdrRotation;
-            HDRStatic.DW53.SamplerIndexFirstPlaneLayer5       = uiSamplerStateIndex;
+            m_hdrCurbe.DW5.HorizontalFrameOriginLayer5       = fOriginX;
+            m_hdrCurbe.DW13.VerticalFrameOriginLayer5        = fOriginY;
+            m_hdrCurbe.DW21.HorizontalScalingStepRatioLayer5 = fStepX;
+            m_hdrCurbe.DW29.VerticalScalingStepRatioLayer5   = fStepY;
+            m_hdrCurbe.DW37.LeftCoordinateRectangleLayer5    = pSource->rcDst.left;
+            m_hdrCurbe.DW37.TopCoordinateRectangleLayer5     = pSource->rcDst.top;
+            m_hdrCurbe.DW45.RightCoordinateRectangleLayer5   = pSource->rcDst.right - 1;
+            m_hdrCurbe.DW45.BottomCoordinateRectangleLayer5  = pSource->rcDst.bottom - 1;
+            m_hdrCurbe.DW53.FormatDescriptorLayer5           = FormatDescriptor;
+            m_hdrCurbe.DW53.ChromaSittingLocationLayer5      = ChromaSiting;
+            m_hdrCurbe.DW53.ChannelSwapEnablingFlagLayer5    = bChannelSwap;
+            m_hdrCurbe.DW53.IEFBypassEnablingFlagLayer5      = bBypassIEF;
+            m_hdrCurbe.DW53.RotationAngleMirrorDirectionLayer5 = HdrRotation;
+            m_hdrCurbe.DW53.SamplerIndexFirstPlaneLayer5       = uiSamplerStateIndex;
             if (pSource->osSurface->Format == Format_P010 ||
                 pSource->osSurface->Format == Format_P016)
             {
-                HDRStatic.DW53.SamplerIndexSecondThirdPlaneLayer5 = uiSamplerStateIndex2;
+                m_hdrCurbe.DW53.SamplerIndexSecondThirdPlaneLayer5 = uiSamplerStateIndex2;
             }
-            HDRStatic.DW53.CCMExtensionEnablingFlagLayer5     = m_hdrParams->StageEnableFlags[i].CCMExt1Enable ||
+            m_hdrCurbe.DW53.CCMExtensionEnablingFlagLayer5     = m_hdrParams->StageEnableFlags[i].CCMExt1Enable ||
                                                                 m_hdrParams->StageEnableFlags[i].CCMExt2Enable;
-            HDRStatic.DW53.ToneMappingEnablingFlagLayer5      = m_hdrParams->StageEnableFlags[i].PWLFEnable;
-            HDRStatic.DW53.PriorCSCEnablingFlagLayer5         = m_hdrParams->StageEnableFlags[i].PriorCSCEnable;
-            HDRStatic.DW53.EOTF1DLUTEnablingFlagLayer5        = m_hdrParams->StageEnableFlags[i].EOTFEnable;
-            HDRStatic.DW53.CCMEnablingFlagLayer5              = m_hdrParams->StageEnableFlags[i].CCMEnable;
-            HDRStatic.DW53.OETF1DLUTEnablingFlagLayer5        = m_hdrParams->StageEnableFlags[i].OETFEnable;
-            HDRStatic.DW53.PostCSCEnablingFlagLayer5          = m_hdrParams->StageEnableFlags[i].PostCSCEnable;
-            HDRStatic.DW53.Enabling3DLUTFlagLayer5            = b3dLut;
+            m_hdrCurbe.DW53.ToneMappingEnablingFlagLayer5      = m_hdrParams->StageEnableFlags[i].PWLFEnable;
+            m_hdrCurbe.DW53.PriorCSCEnablingFlagLayer5         = m_hdrParams->StageEnableFlags[i].PriorCSCEnable;
+            m_hdrCurbe.DW53.EOTF1DLUTEnablingFlagLayer5        = m_hdrParams->StageEnableFlags[i].EOTFEnable;
+            m_hdrCurbe.DW53.CCMEnablingFlagLayer5              = m_hdrParams->StageEnableFlags[i].CCMEnable;
+            m_hdrCurbe.DW53.OETF1DLUTEnablingFlagLayer5        = m_hdrParams->StageEnableFlags[i].OETFEnable;
+            m_hdrCurbe.DW53.PostCSCEnablingFlagLayer5          = m_hdrParams->StageEnableFlags[i].PostCSCEnable;
+            m_hdrCurbe.DW53.Enabling3DLUTFlagLayer5            = b3dLut;
             if (HdrTwoLayerOp == VPHAL_HDR_TWO_LAYER_OPTION_CBLEND ||
                 HdrTwoLayerOp == VPHAL_HDR_TWO_LAYER_OPTION_CSBLEND ||
                 HdrTwoLayerOp == VPHAL_HDR_TWO_LAYER_OPTION_CPBLEND)
             {
-                HDRStatic.DW57.ConstantBlendingAlphaFillColorLayer5 = wAlpha;
+                m_hdrCurbe.DW57.ConstantBlendingAlphaFillColorLayer5 = wAlpha;
             }
-            HDRStatic.DW59.TwoLayerOperationLayer5              = HdrTwoLayerOp;
+            m_hdrCurbe.DW59.TwoLayerOperationLayer5              = HdrTwoLayerOp;
             break;
         case 6:
-            HDRStatic.DW6.HorizontalFrameOriginLayer6       = fOriginX;
-            HDRStatic.DW14.VerticalFrameOriginLayer6        = fOriginY;
-            HDRStatic.DW22.HorizontalScalingStepRatioLayer6 = fStepX;
-            HDRStatic.DW30.VerticalScalingStepRatioLayer6   = fStepY;
-            HDRStatic.DW38.LeftCoordinateRectangleLayer6    = pSource->rcDst.left;
-            HDRStatic.DW38.TopCoordinateRectangleLayer6     = pSource->rcDst.top;
-            HDRStatic.DW46.RightCoordinateRectangleLayer6   = pSource->rcDst.right - 1;
-            HDRStatic.DW46.BottomCoordinateRectangleLayer6  = pSource->rcDst.bottom - 1;
-            HDRStatic.DW54.FormatDescriptorLayer6           = FormatDescriptor;
-            HDRStatic.DW54.ChromaSittingLocationLayer6      = ChromaSiting;
-            HDRStatic.DW54.ChannelSwapEnablingFlagLayer6    = bChannelSwap;
-            HDRStatic.DW54.IEFBypassEnablingFlagLayer6      = bBypassIEF;
-            HDRStatic.DW54.RotationAngleMirrorDirectionLayer6 = HdrRotation;
-            HDRStatic.DW54.SamplerIndexFirstPlaneLayer6       = uiSamplerStateIndex;
+            m_hdrCurbe.DW6.HorizontalFrameOriginLayer6       = fOriginX;
+            m_hdrCurbe.DW14.VerticalFrameOriginLayer6        = fOriginY;
+            m_hdrCurbe.DW22.HorizontalScalingStepRatioLayer6 = fStepX;
+            m_hdrCurbe.DW30.VerticalScalingStepRatioLayer6   = fStepY;
+            m_hdrCurbe.DW38.LeftCoordinateRectangleLayer6    = pSource->rcDst.left;
+            m_hdrCurbe.DW38.TopCoordinateRectangleLayer6     = pSource->rcDst.top;
+            m_hdrCurbe.DW46.RightCoordinateRectangleLayer6   = pSource->rcDst.right - 1;
+            m_hdrCurbe.DW46.BottomCoordinateRectangleLayer6  = pSource->rcDst.bottom - 1;
+            m_hdrCurbe.DW54.FormatDescriptorLayer6           = FormatDescriptor;
+            m_hdrCurbe.DW54.ChromaSittingLocationLayer6      = ChromaSiting;
+            m_hdrCurbe.DW54.ChannelSwapEnablingFlagLayer6    = bChannelSwap;
+            m_hdrCurbe.DW54.IEFBypassEnablingFlagLayer6      = bBypassIEF;
+            m_hdrCurbe.DW54.RotationAngleMirrorDirectionLayer6 = HdrRotation;
+            m_hdrCurbe.DW54.SamplerIndexFirstPlaneLayer6       = uiSamplerStateIndex;
             if (pSource->osSurface->Format == Format_P010 ||
                 pSource->osSurface->Format == Format_P016)
             {
-                HDRStatic.DW54.SamplerIndexSecondThirdPlaneLayer6 = uiSamplerStateIndex2;
+                m_hdrCurbe.DW54.SamplerIndexSecondThirdPlaneLayer6 = uiSamplerStateIndex2;
             }
-            HDRStatic.DW54.CCMExtensionEnablingFlagLayer6     = m_hdrParams->StageEnableFlags[i].CCMExt1Enable ||
+            m_hdrCurbe.DW54.CCMExtensionEnablingFlagLayer6     = m_hdrParams->StageEnableFlags[i].CCMExt1Enable ||
                                                                 m_hdrParams->StageEnableFlags[i].CCMExt2Enable;
-            HDRStatic.DW54.ToneMappingEnablingFlagLayer6      = m_hdrParams->StageEnableFlags[i].PWLFEnable;
-            HDRStatic.DW54.PriorCSCEnablingFlagLayer6         = m_hdrParams->StageEnableFlags[i].PriorCSCEnable;
-            HDRStatic.DW54.EOTF1DLUTEnablingFlagLayer6        = m_hdrParams->StageEnableFlags[i].EOTFEnable;
-            HDRStatic.DW54.CCMEnablingFlagLayer6              = m_hdrParams->StageEnableFlags[i].CCMEnable;
-            HDRStatic.DW54.OETF1DLUTEnablingFlagLayer6        = m_hdrParams->StageEnableFlags[i].OETFEnable;
-            HDRStatic.DW54.PostCSCEnablingFlagLayer6          = m_hdrParams->StageEnableFlags[i].PostCSCEnable;
-            HDRStatic.DW54.Enabling3DLUTFlagLayer6            = b3dLut;
+            m_hdrCurbe.DW54.ToneMappingEnablingFlagLayer6      = m_hdrParams->StageEnableFlags[i].PWLFEnable;
+            m_hdrCurbe.DW54.PriorCSCEnablingFlagLayer6         = m_hdrParams->StageEnableFlags[i].PriorCSCEnable;
+            m_hdrCurbe.DW54.EOTF1DLUTEnablingFlagLayer6        = m_hdrParams->StageEnableFlags[i].EOTFEnable;
+            m_hdrCurbe.DW54.CCMEnablingFlagLayer6              = m_hdrParams->StageEnableFlags[i].CCMEnable;
+            m_hdrCurbe.DW54.OETF1DLUTEnablingFlagLayer6        = m_hdrParams->StageEnableFlags[i].OETFEnable;
+            m_hdrCurbe.DW54.PostCSCEnablingFlagLayer6          = m_hdrParams->StageEnableFlags[i].PostCSCEnable;
+            m_hdrCurbe.DW54.Enabling3DLUTFlagLayer6            = b3dLut;
             if (HdrTwoLayerOp == VPHAL_HDR_TWO_LAYER_OPTION_CBLEND ||
                 HdrTwoLayerOp == VPHAL_HDR_TWO_LAYER_OPTION_CSBLEND ||
                 HdrTwoLayerOp == VPHAL_HDR_TWO_LAYER_OPTION_CPBLEND)
             {
-                HDRStatic.DW57.ConstantBlendingAlphaFillColorLayer6 = wAlpha;
+                m_hdrCurbe.DW57.ConstantBlendingAlphaFillColorLayer6 = wAlpha;
             }
-            HDRStatic.DW59.TwoLayerOperationLayer6              = HdrTwoLayerOp;
+            m_hdrCurbe.DW59.TwoLayerOperationLayer6              = HdrTwoLayerOp;
             break;
         case 7:
-            HDRStatic.DW7.HorizontalFrameOriginLayer7       = fOriginX;
-            HDRStatic.DW15.VerticalFrameOriginLayer7        = fOriginY;
-            HDRStatic.DW23.HorizontalScalingStepRatioLayer7 = fStepX;
-            HDRStatic.DW31.VerticalScalingStepRatioLayer7   = fStepY;
-            HDRStatic.DW39.LeftCoordinateRectangleLayer7    = pSource->rcDst.left;
-            HDRStatic.DW39.TopCoordinateRectangleLayer7     = pSource->rcDst.top;
-            HDRStatic.DW47.RightCoordinateRectangleLayer7   = pSource->rcDst.right - 1;
-            HDRStatic.DW47.BottomCoordinateRectangleLayer7  = pSource->rcDst.bottom - 1;
-            HDRStatic.DW55.FormatDescriptorLayer7           = FormatDescriptor;
-            HDRStatic.DW55.ChromaSittingLocationLayer7      = ChromaSiting;
-            HDRStatic.DW55.ChannelSwapEnablingFlagLayer7    = bChannelSwap;
-            HDRStatic.DW55.IEFBypassEnablingFlagLayer7      = bBypassIEF;
-            HDRStatic.DW55.RotationAngleMirrorDirectionLayer7 = HdrRotation;
-            HDRStatic.DW55.SamplerIndexFirstPlaneLayer7       = uiSamplerStateIndex;
+            m_hdrCurbe.DW7.HorizontalFrameOriginLayer7       = fOriginX;
+            m_hdrCurbe.DW15.VerticalFrameOriginLayer7        = fOriginY;
+            m_hdrCurbe.DW23.HorizontalScalingStepRatioLayer7 = fStepX;
+            m_hdrCurbe.DW31.VerticalScalingStepRatioLayer7   = fStepY;
+            m_hdrCurbe.DW39.LeftCoordinateRectangleLayer7    = pSource->rcDst.left;
+            m_hdrCurbe.DW39.TopCoordinateRectangleLayer7     = pSource->rcDst.top;
+            m_hdrCurbe.DW47.RightCoordinateRectangleLayer7   = pSource->rcDst.right - 1;
+            m_hdrCurbe.DW47.BottomCoordinateRectangleLayer7  = pSource->rcDst.bottom - 1;
+            m_hdrCurbe.DW55.FormatDescriptorLayer7           = FormatDescriptor;
+            m_hdrCurbe.DW55.ChromaSittingLocationLayer7      = ChromaSiting;
+            m_hdrCurbe.DW55.ChannelSwapEnablingFlagLayer7    = bChannelSwap;
+            m_hdrCurbe.DW55.IEFBypassEnablingFlagLayer7      = bBypassIEF;
+            m_hdrCurbe.DW55.RotationAngleMirrorDirectionLayer7 = HdrRotation;
+            m_hdrCurbe.DW55.SamplerIndexFirstPlaneLayer7       = uiSamplerStateIndex;
             if (pSource->osSurface->Format == Format_P010 ||
                 pSource->osSurface->Format == Format_P016)
             {
-                HDRStatic.DW55.SamplerIndexSecondThirdPlaneLayer7 = uiSamplerStateIndex2;
+                m_hdrCurbe.DW55.SamplerIndexSecondThirdPlaneLayer7 = uiSamplerStateIndex2;
             }
-            HDRStatic.DW55.CCMExtensionEnablingFlagLayer7     = m_hdrParams->StageEnableFlags[i].CCMExt1Enable ||
+            m_hdrCurbe.DW55.CCMExtensionEnablingFlagLayer7     = m_hdrParams->StageEnableFlags[i].CCMExt1Enable ||
                                                                 m_hdrParams->StageEnableFlags[i].CCMExt2Enable;
-            HDRStatic.DW55.ToneMappingEnablingFlagLayer7      = m_hdrParams->StageEnableFlags[i].PWLFEnable;
-            HDRStatic.DW55.PriorCSCEnablingFlagLayer7         = m_hdrParams->StageEnableFlags[i].PriorCSCEnable;
-            HDRStatic.DW55.EOTF1DLUTEnablingFlagLayer7        = m_hdrParams->StageEnableFlags[i].EOTFEnable;
-            HDRStatic.DW55.CCMEnablingFlagLayer7              = m_hdrParams->StageEnableFlags[i].CCMEnable;
-            HDRStatic.DW55.OETF1DLUTEnablingFlagLayer7        = m_hdrParams->StageEnableFlags[i].OETFEnable;
-            HDRStatic.DW55.PostCSCEnablingFlagLayer7          = m_hdrParams->StageEnableFlags[i].PostCSCEnable;
-            HDRStatic.DW55.Enabling3DLUTFlagLayer7            = b3dLut;
+            m_hdrCurbe.DW55.ToneMappingEnablingFlagLayer7      = m_hdrParams->StageEnableFlags[i].PWLFEnable;
+            m_hdrCurbe.DW55.PriorCSCEnablingFlagLayer7         = m_hdrParams->StageEnableFlags[i].PriorCSCEnable;
+            m_hdrCurbe.DW55.EOTF1DLUTEnablingFlagLayer7        = m_hdrParams->StageEnableFlags[i].EOTFEnable;
+            m_hdrCurbe.DW55.CCMEnablingFlagLayer7              = m_hdrParams->StageEnableFlags[i].CCMEnable;
+            m_hdrCurbe.DW55.OETF1DLUTEnablingFlagLayer7        = m_hdrParams->StageEnableFlags[i].OETFEnable;
+            m_hdrCurbe.DW55.PostCSCEnablingFlagLayer7          = m_hdrParams->StageEnableFlags[i].PostCSCEnable;
+            m_hdrCurbe.DW55.Enabling3DLUTFlagLayer7            = b3dLut;
             if (HdrTwoLayerOp == VPHAL_HDR_TWO_LAYER_OPTION_CBLEND  ||
                 HdrTwoLayerOp == VPHAL_HDR_TWO_LAYER_OPTION_CSBLEND ||
                 HdrTwoLayerOp == VPHAL_HDR_TWO_LAYER_OPTION_CPBLEND)
             {
-                HDRStatic.DW57.ConstantBlendingAlphaFillColorLayer7 = wAlpha;
+                m_hdrCurbe.DW57.ConstantBlendingAlphaFillColorLayer7 = wAlpha;
             }
-            HDRStatic.DW59.TwoLayerOperationLayer7              = HdrTwoLayerOp;
+            m_hdrCurbe.DW59.TwoLayerOperationLayer7              = HdrTwoLayerOp;
             break;
         default:
             VP_RENDER_VERBOSEMESSAGE("Invalid input layer number.");
@@ -3384,22 +3384,22 @@ MOS_STATUS VpRenderHdrKernel::GetCurbeState(void *&curbe, uint32_t &curbeLength)
         bChannelSwap = false;
     }
 
-    HDRStatic.DW62.DestinationWidth                 = targetSurf->osSurface->dwWidth;
-    HDRStatic.DW62.DestinationHeight      = targetSurf->osSurface->dwHeight;
-    HDRStatic.DW63.TotalNumberInputLayers           = m_hdrParams->uSourceCount;
+    m_hdrCurbe.DW62.DestinationWidth                 = targetSurf->osSurface->dwWidth;
+    m_hdrCurbe.DW62.DestinationHeight      = targetSurf->osSurface->dwHeight;
+    m_hdrCurbe.DW63.TotalNumberInputLayers           = m_hdrParams->uSourceCount;
 
     if (0 == m_hdrParams->uSourceCount)
     {
-        HDRStatic.DW32.LeftCoordinateRectangleLayer0    = targetSurf->osSurface->dwWidth + 16;
-        HDRStatic.DW32.TopCoordinateRectangleLayer0     = targetSurf->osSurface->dwHeight + 16;
-        HDRStatic.DW40.RightCoordinateRectangleLayer0   = targetSurf->osSurface->dwWidth + 16;
-        HDRStatic.DW40.BottomCoordinateRectangleLayer0  = targetSurf->osSurface->dwHeight + 16;
-        HDRStatic.DW58.TwoLayerOperationLayer0          = VPHAL_HDR_TWO_LAYER_OPTION_COMP;
+        m_hdrCurbe.DW32.LeftCoordinateRectangleLayer0    = targetSurf->osSurface->dwWidth + 16;
+        m_hdrCurbe.DW32.TopCoordinateRectangleLayer0     = targetSurf->osSurface->dwHeight + 16;
+        m_hdrCurbe.DW40.RightCoordinateRectangleLayer0   = targetSurf->osSurface->dwWidth + 16;
+        m_hdrCurbe.DW40.BottomCoordinateRectangleLayer0  = targetSurf->osSurface->dwHeight + 16;
+        m_hdrCurbe.DW58.TwoLayerOperationLayer0          = VPHAL_HDR_TWO_LAYER_OPTION_COMP;
     }
 
-    HDRStatic.DW63.FormatDescriptorDestination        = FormatDescriptor;
-    HDRStatic.DW63.ChromaSittingLocationDestination   = ChromaSiting;
-    HDRStatic.DW63.ChannelSwapEnablingFlagDestination = bChannelSwap;
+    m_hdrCurbe.DW63.FormatDescriptorDestination        = FormatDescriptor;
+    m_hdrCurbe.DW63.ChromaSittingLocationDestination   = ChromaSiting;
+    m_hdrCurbe.DW63.ChannelSwapEnablingFlagDestination = bChannelSwap;
 
     // Set Background color (use cspace of first layer)
     if (m_hdrParams->pColorFillParams)
@@ -3416,24 +3416,24 @@ MOS_STATUS VpRenderHdrKernel::GetCurbeState(void *&curbe, uint32_t &curbeLength)
         // Convert BG color only if not done so before. CSC is expensive!
         if (VpUtils::GetCscMatrixForRender8Bit(&Dst, &Src, src_cspace, dst_cspace))
         {
-            HDRStatic.DW60.FixedPointFillColorRVChannel     = Dst.R << 8;
-            HDRStatic.DW60.FixedPointFillColorGYChannel     = Dst.G << 8;
-            HDRStatic.DW61.FixedPointFillColorBUChannel     = Dst.B << 8;
-            HDRStatic.DW61.FixedPointFillColorAlphaChannel  = Dst.A << 8;
+            m_hdrCurbe.DW60.FixedPointFillColorRVChannel     = Dst.R << 8;
+            m_hdrCurbe.DW60.FixedPointFillColorGYChannel     = Dst.G << 8;
+            m_hdrCurbe.DW61.FixedPointFillColorBUChannel     = Dst.B << 8;
+            m_hdrCurbe.DW61.FixedPointFillColorAlphaChannel  = Dst.A << 8;
         }
         else
         {
-            HDRStatic.DW60.FixedPointFillColorRVChannel     = Src.R << 8;
-            HDRStatic.DW60.FixedPointFillColorGYChannel     = Src.G << 8;
-            HDRStatic.DW61.FixedPointFillColorBUChannel     = Src.B << 8;
-            HDRStatic.DW61.FixedPointFillColorAlphaChannel  = Src.A << 8;
+            m_hdrCurbe.DW60.FixedPointFillColorRVChannel     = Src.R << 8;
+            m_hdrCurbe.DW60.FixedPointFillColorGYChannel     = Src.G << 8;
+            m_hdrCurbe.DW61.FixedPointFillColorBUChannel     = Src.B << 8;
+            m_hdrCurbe.DW61.FixedPointFillColorAlphaChannel  = Src.A << 8;
         }
     }
 
-    curbe = (void*)(&HDRStatic);
+    curbe = (void*)(&m_hdrCurbe);
     curbeLength = (uint32_t)sizeof(MEDIA_WALKER_HDR_STATIC_DATA);
 
-    //DumpCurbe(&HDRStatic, sizeof(MEDIA_WALKER_HDR_STATIC_DATA));
+    //DumpCurbe(&m_hdrCurbe, sizeof(MEDIA_WALKER_HDR_STATIC_DATA));
 
     return eStatus;
 }

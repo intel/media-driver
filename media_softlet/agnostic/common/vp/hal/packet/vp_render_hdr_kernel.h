@@ -1008,7 +1008,7 @@ protected:
     MEDIA_CSPACE        m_dstCspace  = CSpace_None;
 
     PRENDER_HDR_PARAMS   m_hdrParams = nullptr;
-    MEDIA_WALKER_HDR_STATIC_DATA HDRStatic = {};
+    MEDIA_WALKER_HDR_STATIC_DATA m_hdrCurbe = {};
     MHW_VFE_SCOREBOARD      m_scoreboardParams;
 
     bool                m_cscCoeffPatchModeEnabled = false;      //!< Set CSC Coeff using patch mode
