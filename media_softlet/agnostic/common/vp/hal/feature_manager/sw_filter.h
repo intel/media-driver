@@ -144,7 +144,6 @@ enum FeatureType
     FeatureTypeFDFBOnVebox      = FeatureTypeFDFB | FEATURE_TYPE_ENGINE_BITS_VEBOX,
     FeatureTypeFDFBOnRender     = FeatureTypeFDFB | FEATURE_TYPE_ENGINE_BITS_RENDER,
     FeatureTypeSegmentation     = 0x2200,
-    FeatureTypeSegmentationOnVebox  = FeatureTypeSegmentation | FEATURE_TYPE_ENGINE_BITS_VEBOX,
     FeatureTypeSegmentationOnRender = FeatureTypeSegmentation | FEATURE_TYPE_ENGINE_BITS_RENDER,
     FeatureTypeS3D                  = 0x2300,
     // ...
@@ -651,7 +650,6 @@ enum SurfaceType
     //Segmentation
     SurfaceTypeSegRenderPreviousInput,
     SurfaceTypeSegRenderTempOutput, //Used for seg out only
-    SurfaceTypeSegColorBalanceInput,
     SurfaceTypeSegBackground,
     SurfaceTypeSegGaussianCoeffBuffer,
     SurfaceTypeSegTFMask,
@@ -684,7 +682,6 @@ enum SurfaceType
     SurfaceTypeSegErode2x1Motion3,
     SurfaceTypeSegSumMotion,
     SurfaceTypeSegRemoveBlob,
-    SurfaceTypeSegColorBalance,
     // Segmentation layers
     SurfaceTypeSegModelLayer,
     SurfaceTypeSegModelLayerEnd = SurfaceTypeSegModelLayer + MAX_MODELSURFACE_COUNT,
@@ -776,26 +773,10 @@ struct MOTIONLESS_SETTING
     uint32_t height          = 0;
 };
 
-struct COLOR_BALANCE_SETTING
-{
-    bool     isEnable                 = false;
-    uint32_t index                    = 0;
-    uint32_t skipThreshold            = 0;
-    uint16_t inputActiveRegionWidth   = 0;
-    uint16_t inputActiveRegionHeight  = 0;
-    uint32_t pitch                    = 0;
-    uint32_t mPitch                   = 0;
-    uint8_t  downScaleFactor          = 1;
-    uint8_t  colorTemperature         = 0;
-    uint8_t *cbLinearAddressAligned   = 0;
-    double   backgroundWhiteMatrix[3] = {1, 1, 1};
-};
-
 struct VP_POSTPROCESS_SURFACE
 {
     REMOVE_BB_SETTING  removeBBSetting;
     MOTIONLESS_SETTING motionlessSetting;
-    COLOR_BALANCE_SETTING colorBalanceSetting;
 };
 
 struct VP_SURFACE_SETTING
@@ -835,7 +816,6 @@ struct VP_SURFACE_SETTING
         dumpPostSurface                        = false;
         postProcessSurface.removeBBSetting     = {};
         postProcessSurface.motionlessSetting   = {};
-        postProcessSurface.colorBalanceSetting = {};
         pHDRStageConfigTable                   = nullptr;
         coeffAllocated                         = false;
         OETF1DLUTAllocated                     = false;
