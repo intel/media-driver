@@ -199,6 +199,7 @@ typedef struct _VP_EngineEntry
     {
         struct
         {
+            // set by GetXxxExecuteCaps
             uint32_t bEnabled : 1;
             uint32_t SfcNeeded : 1;
             uint32_t VeboxNeeded : 1;
@@ -207,6 +208,9 @@ typedef struct _VP_EngineEntry
             uint32_t fcSupported : 1;           // Supported by fast composition
             uint32_t hdrKernelSupported : 1;    // Supported by Hdr Kenrel
             uint32_t isolated : 1;              // Only support single feature.
+            uint32_t bt2020ToRGB : 1;           // true if bt2020 to rgb
+
+            // set by GetXxxPipeEnginCaps
             uint32_t bypassIfVeboxSfcInUse : 1; // Bypass the feature if vebox or sfc in use. In such case, VeboxNeeded and
                                                 // SfcNeeded are 0 but it should not block vebox or sfc being selected. 
             uint32_t forceEnableForSfc : 1;     // Force enabled when sfc being selected.
@@ -229,6 +233,7 @@ typedef struct _VP_EngineEntry
             uint32_t isOutputPipeNeeded : 1;    // true if the feature is used for parameter calculation.
             uint32_t sfcOnlyFeatureExists : 1;  // The feature exists, which only support sfc.
             uint32_t bTemperalInputInuse : 1;   // true if replace input
+            uint32_t veboxRGBOutputWithoutLumaKey : 1;
         };
         uint32_t value;
     };
