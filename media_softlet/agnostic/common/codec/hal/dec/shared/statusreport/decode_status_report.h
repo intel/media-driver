@@ -36,6 +36,8 @@
 #include "decode_utils.h"
 #include <stdint.h>
 
+#define CODECHAL_DECODE_STATUS_NUM 512
+
 namespace decode {
     class DecodeAllocator;
 

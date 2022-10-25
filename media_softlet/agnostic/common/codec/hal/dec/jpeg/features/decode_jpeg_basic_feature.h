@@ -40,6 +40,8 @@ namespace decode {
 #define CODECHAL_DECODE_JPEG_ERR_FRAME_WIDTH 32
 #define CODECHAL_DECODE_JPEG_ERR_FRAME_HEIGHT 32
 
+#define MAX_NUM_HUFF_TABLE_INDEX 2
+
 //!
 //! \struct _CODECHAL_DECODE_JPEG_HUFFMAN_TABLE
 //! \brief typedef of struct Huffman Table used by JPEG
@@ -55,6 +57,14 @@ typedef struct _CODECHAL_DECODE_JPEG_HUFFMAN_TABLE
         uint8_t AC_HUFFVAL[JPEG_NUM_HUFF_TABLE_AC_HUFFVAL];  //!<  AC value of Huffman codes
     } HuffTable[JPEG_MAX_NUM_HUFF_TABLE_INDEX];
 } CODECHAL_DECODE_JPEG_HUFFMAN_TABLE, *PCODECHAL_DECODE_JPEG_HUFFMAN_TABLE;
+
+typedef struct tagJPEG_DECODE_QUERY_STATUS
+{
+    uint32_t StatusReportFeedbackNumber;
+    uint8_t  bStatus;
+    uint8_t  reserved8bits;
+    uint16_t reserved16bits;
+} JPEG_DECODE_QUERY_STATUS, *PJPEG_DECODE_QUERY_STATUS;
 
 class JpegBasicFeature : public DecodeBasicFeature
 {

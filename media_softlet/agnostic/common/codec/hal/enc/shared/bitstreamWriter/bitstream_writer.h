@@ -48,7 +48,6 @@ typedef void * mfxThreadTask;
 typedef char   mfxChar;
 
 constexpr mfxU8  MAX_DPB_SIZE               = 15;
-constexpr mfxU8  IDX_INVALID                = 0xff;
 constexpr mfxU8  HW_SURF_ALIGN_W            = 16;
 constexpr mfxU8  HW_SURF_ALIGN_H            = 16;
 constexpr mfxU16 MAX_SLICES                 = 600;  // conforms to level 6 limits
