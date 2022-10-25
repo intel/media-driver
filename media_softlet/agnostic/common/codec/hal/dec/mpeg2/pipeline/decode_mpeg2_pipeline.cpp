@@ -25,7 +25,6 @@
 //!
 #include "decode_mpeg2_pipeline.h"
 #include "decode_utils.h"
-#include "media_user_settings_mgr_g12.h"
 #include "codechal_setting.h"
 #include "decode_mpeg2_feature_manager.h"
 #include "decode_huc_packet_creator_base.h"

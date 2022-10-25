@@ -30,7 +30,7 @@
 #define __MEDIA_DECODE_MEM_COMPRESSION_H__
 
 #include "media_mem_compression.h"
-#include "codechal_utilities.h"
+#include "codec_hw_next.h"
 
 class MhwMiInterface;
 class DecodeMemComp : public MediaMemComp

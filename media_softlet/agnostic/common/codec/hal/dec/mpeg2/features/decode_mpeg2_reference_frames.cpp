@@ -26,7 +26,7 @@
 
 #include "decode_mpeg2_basic_feature.h"
 #include "decode_utils.h"
-#include "codechal_utilities.h"
+#include "codec_utilities_next.h"
 #include "decode_mpeg2_reference_frames.h"
 #include "codec_def_decode_mpeg2.h"
 
@@ -44,7 +44,7 @@ MOS_STATUS Mpeg2ReferenceFrames::Init(Mpeg2BasicFeature *basicFeature, DecodeAll
 
     m_basicFeature = basicFeature;
     m_allocator = &allocator;
-    DECODE_CHK_STATUS(CodecHalAllocateDataList(m_refList, CODECHAL_NUM_UNCOMPRESSED_SURFACE_MPEG2));
+    DECODE_CHK_STATUS(CodecUtilities::CodecHalAllocateDataList(m_refList, CODECHAL_NUM_UNCOMPRESSED_SURFACE_MPEG2));
 
     //mark all reference res as invalid when they are no initialized
     for (uint32_t i = 0; i < CODECHAL_NUM_UNCOMPRESSED_SURFACE_MPEG2; i++)
@@ -58,7 +58,7 @@ MOS_STATUS Mpeg2ReferenceFrames::Init(Mpeg2BasicFeature *basicFeature, DecodeAll
 Mpeg2ReferenceFrames::~Mpeg2ReferenceFrames()
 {
     DECODE_FUNC_CALL();
-    CodecHalFreeDataList(m_refList, CODECHAL_NUM_UNCOMPRESSED_SURFACE_MPEG2);
+    CodecUtilities::CodecHalFreeDataList(m_refList, CODECHAL_NUM_UNCOMPRESSED_SURFACE_MPEG2);
     m_activeReferenceList.clear();
 }
 

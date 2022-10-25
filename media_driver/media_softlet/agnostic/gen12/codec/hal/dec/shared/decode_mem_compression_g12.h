@@ -31,6 +31,7 @@
 
 #include "decode_mem_compression.h"
 #include "codec_mem_compression_g12.h"
+#include "codechal_hw.h"
 
 class DecodeMemCompG12 : public DecodeMemComp, public CodecMmcAuxTableG12
 {

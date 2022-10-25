@@ -28,6 +28,7 @@
 //!
 
 #include "decode_mem_compression_g12.h"
+#include "codechal_hw.h"
 #include "mhw_mi_g12_X.h"
 #include "decode_utils.h"
 

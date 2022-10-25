@@ -28,7 +28,6 @@
 
 #include "codec_def_decode_avc.h"
 #include "decode_allocator.h"
-#include "mhw_vdbox_mfx_interface.h"
 #include "decode_reference_associated_buffer.h"
 
 namespace decode

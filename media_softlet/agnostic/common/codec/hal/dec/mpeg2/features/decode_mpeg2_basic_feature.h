@@ -29,9 +29,6 @@
 #include "decode_basic_feature.h"
 #include "codec_def_decode_mpeg2.h"
 #include "decode_mpeg2_reference_frames.h"
-#include "mhw_vdbox_g12_X.h"
-#include "mhw_vdbox_mfx_interface.h"
-#include "codechal_hw_g12_X.h"
 
 namespace decode {
 

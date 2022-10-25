@@ -27,6 +27,8 @@
 #ifndef __CODEC_DEF_DECODE_VP8_H__
 #define __CODEC_DEF_DECODE_VP8_H__
 
+#include "codec_def_common.h"
+
 #define CODEC_VP8_MVP_COUNT                     19
 #define CODEC_VP8_MAX_PARTITION_NUMBER          9
 

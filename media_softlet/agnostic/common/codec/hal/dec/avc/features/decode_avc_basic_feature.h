@@ -31,9 +31,6 @@
 #include "codec_def_cenc_decode.h"
 #include "decode_avc_reference_frames.h"
 #include "decode_avc_mv_buffers.h"
-#include "mhw_vdbox_g12_X.h"
-#include "mhw_vdbox_mfx_interface.h"
-#include "codechal_hw_g12_X.h"
 
 namespace decode {
 

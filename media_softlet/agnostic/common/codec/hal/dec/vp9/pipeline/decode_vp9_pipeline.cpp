@@ -25,7 +25,6 @@
 //!
 #include "decode_vp9_pipeline.h"
 #include "decode_utils.h"
-#include "media_user_settings_mgr_g12_plus.h"
 #include "codechal_setting.h"
 #include "decode_vp9_phase_single.h"
 #include "decode_vp9_phase_front_end.h"

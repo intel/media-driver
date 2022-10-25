@@ -26,7 +26,6 @@
 //!
 #include "decode_mpeg2_basic_feature.h"
 #include "decode_utils.h"
-#include "codechal_utilities.h"
 #include "decode_allocator.h"
 #include "decode_resource_array.h"
 

@@ -32,6 +32,8 @@
 #include "decode_utils.h"
 #include "decode_avc_basic_feature.h"
 #include "decode_downsampling_packet.h"
+#include "mhw_vdbox_g12_X.h"
+#include "codechal_hw_g12_X.h"
 
 namespace decode
 {

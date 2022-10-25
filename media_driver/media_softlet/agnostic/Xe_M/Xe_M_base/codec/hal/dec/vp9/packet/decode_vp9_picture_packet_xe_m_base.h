@@ -32,6 +32,7 @@
 #include "decode_utils.h"
 #include "decode_vp9_basic_feature.h"
 #include "decode_downsampling_packet.h"
+#include "codechal_hw_g12_X.h"
 
 namespace decode
 {

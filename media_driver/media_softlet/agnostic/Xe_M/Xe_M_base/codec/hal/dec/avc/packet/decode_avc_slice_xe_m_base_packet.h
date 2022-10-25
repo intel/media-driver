@@ -31,6 +31,7 @@
 #include "decode_avc_pipeline.h"
 #include "decode_utils.h"
 #include "decode_avc_basic_feature.h"
+#include "codechal_hw_g12_X.h"
 
 namespace decode
 {

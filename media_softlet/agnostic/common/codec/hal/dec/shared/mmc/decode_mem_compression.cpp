@@ -39,7 +39,7 @@ DecodeMemComp::DecodeMemComp(CodechalHwInterfaceNext *hwInterface, PMOS_INTERFAC
 
     if (hwInterface == nullptr)
     {
-        CODECHAL_HW_ASSERT(hwInterface);
+        CODEC_HW_ASSERT(hwInterface);
     }
     else
     {
@@ -84,8 +84,8 @@ MOS_STATUS DecodeMemComp::UpdateUserFeatureKey(PMOS_SURFACE surface)
 
 void DecodeMemComp::InitDecodeMmc(CodechalHwInterfaceNext *hwInterface)
 {
-    CODECHAL_HW_ASSERT(hwInterface);
-    CODECHAL_HW_ASSERT(hwInterface->GetSkuTable());
+    CODEC_HW_ASSERT(hwInterface);
+    CODEC_HW_ASSERT(hwInterface->GetSkuTable());
     if (MEDIA_IS_SKU(hwInterface->GetSkuTable(), FtrE2ECompression))
     {
         bool                        decodeMmcEnabled = true;

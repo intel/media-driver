@@ -80,6 +80,8 @@
 #define CODEC_HW_CHK_COND_RETURN(_expr, _message, ...)                                  \
     MOS_CHK_COND_RETURN(MOS_COMPONENT_CODEC, MOS_CODEC_SUBCOMP_HW,_expr,_message, ##__VA_ARGS__)
 
+#define CODECHAL_SURFACE_PITCH_ALIGNMENT 128
+
 class MediaScalability;
 class MediaContext;
 class MediaCopyBaseState;

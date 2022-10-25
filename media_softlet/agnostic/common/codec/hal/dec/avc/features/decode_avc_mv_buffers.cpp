@@ -26,7 +26,6 @@
 
 #include "decode_avc_basic_feature.h"
 #include "decode_utils.h"
-#include "codechal_utilities.h"
 #include "decode_avc_mv_buffers.h"
 #include "codec_def_decode_avc.h"
 

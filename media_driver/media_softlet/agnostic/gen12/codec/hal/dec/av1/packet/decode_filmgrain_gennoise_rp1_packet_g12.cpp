@@ -30,6 +30,7 @@
 #include "decode_av1_feature_defs_g12.h"
 #include "mos_defs.h"
 #include "hal_oca_interface.h"
+#include "codechal_utilities.h"
 
 namespace decode
 {

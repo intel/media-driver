@@ -27,7 +27,7 @@
 #define __DECODE_JPEG_INPUT_BITSTREAM_H__
 
 #include "decode_input_bitstream.h"
-#include "decode_jpeg_pipeline_m12.h"
+#include "decode_jpeg_basic_feature.h"
 
 namespace decode 
 {

@@ -31,6 +31,8 @@
 #include "decode_mpeg2_pipeline.h"
 #include "decode_utils.h"
 #include "decode_mpeg2_basic_feature.h"
+#include "mhw_vdbox_g12_X.h"
+#include "codechal_hw_g12_X.h"
 
 namespace decode {
 

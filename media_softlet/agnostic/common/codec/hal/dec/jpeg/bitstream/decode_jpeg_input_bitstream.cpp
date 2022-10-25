@@ -25,6 +25,7 @@
 //! \brief    Defines the common interface for decode jpeg input bitstream
 //!
 #include "decode_jpeg_input_bitstream.h"
+#include "decode_pipeline.h"
 
 namespace decode
 {

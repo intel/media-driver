@@ -26,7 +26,7 @@
 
 #include "decode_vp9_basic_feature.h"
 #include "decode_utils.h"
-#include "codechal_utilities.h"
+#include "codec_utilities_next.h"
 #include "decode_vp9_reference_frames.h"
 #include "codec_def_decode_vp9.h"
 
@@ -45,7 +45,7 @@ namespace decode
         m_basicFeature = basicFeature;
         m_allocator = &allocator;
         DECODE_CHK_NULL(m_allocator);
-        DECODE_CHK_STATUS(CodecHalAllocateDataList(m_vp9RefList,CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP9));
+        DECODE_CHK_STATUS(CodecUtilities::CodecHalAllocateDataList(m_vp9RefList, CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP9));
 
         return MOS_STATUS_SUCCESS;
     }
@@ -54,7 +54,7 @@ namespace decode
     {
         DECODE_FUNC_CALL();
 
-        CodecHalFreeDataList(m_vp9RefList, CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP9);  // CODECHAL_MAX_DPB_NUM_AV1 VP9 WHAT?
+        CodecUtilities::CodecHalFreeDataList(m_vp9RefList, CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP9);  // CODECHAL_MAX_DPB_NUM_AV1 VP9 WHAT?
         m_activeReferenceList.clear();
     }
 
@@ -154,7 +154,7 @@ namespace decode
                 sizeof(MOS_RESOURCE),
                 m_basicFeature->m_presLastRefSurface,
                 sizeof(MOS_RESOURCE)));
-            DECODE_CHK_STATUS(CodecHalGetResourceInfo(
+            DECODE_CHK_STATUS(CodecUtilities::CodecHalGetResourceInfo(
                 m_basicFeature->m_osInterface,
                 &m_basicFeature->m_lastRefSurface));
 
@@ -164,7 +164,7 @@ namespace decode
                 sizeof(MOS_RESOURCE),
                 m_basicFeature->m_presGoldenRefSurface,
                 sizeof(MOS_RESOURCE)));
-            DECODE_CHK_STATUS(CodecHalGetResourceInfo(
+            DECODE_CHK_STATUS(CodecUtilities::CodecHalGetResourceInfo(
                 m_basicFeature->m_osInterface,
                 &m_basicFeature->m_goldenRefSurface));
 
@@ -174,7 +174,7 @@ namespace decode
                 sizeof(MOS_RESOURCE),
                 m_basicFeature->m_presAltRefSurface,
                 sizeof(MOS_RESOURCE)));
-            DECODE_CHK_STATUS(CodecHalGetResourceInfo(
+            DECODE_CHK_STATUS(CodecUtilities::CodecHalGetResourceInfo(
                 m_basicFeature->m_osInterface,
                 &m_basicFeature->m_altRefSurface));
 

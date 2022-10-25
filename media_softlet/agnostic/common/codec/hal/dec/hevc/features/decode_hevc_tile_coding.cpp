@@ -27,7 +27,6 @@
 #include "decode_hevc_tile_coding.h"
 #include "decode_hevc_basic_feature.h"
 #include "codec_def_common.h"
-#include "mhw_vdbox_hcp_g12_X.h"
 #include "decode_pipeline.h"
 
 namespace decode

@@ -26,7 +26,7 @@
 
 #include "decode_avc_basic_feature.h"
 #include "decode_utils.h"
-#include "codechal_utilities.h"
+#include "codec_utilities_next.h"
 #include "decode_avc_reference_frames.h"
 #include "codec_def_decode_avc.h"
 
@@ -48,7 +48,7 @@ namespace decode
 
         m_basicFeature = basicFeature;
         m_allocator = &allocator;
-        DECODE_CHK_STATUS(CodecHalAllocateDataList(m_refList, CODEC_AVC_NUM_UNCOMPRESSED_SURFACE));
+        DECODE_CHK_STATUS(CodecUtilities::CodecHalAllocateDataList(m_refList, CODEC_AVC_NUM_UNCOMPRESSED_SURFACE));
         m_prevPic.PicFlags = PICTURE_INVALID;
         m_prevPic.FrameIdx = CODEC_AVC_NUM_UNCOMPRESSED_SURFACE;
         m_osInterface = basicFeature->GetOsInterface();
@@ -59,7 +59,7 @@ namespace decode
     AvcReferenceFrames::~AvcReferenceFrames()
     {
         DECODE_FUNC_CALL();
-        CodecHalFreeDataList(m_refList, CODEC_AVC_NUM_UNCOMPRESSED_SURFACE);
+        CodecUtilities::CodecHalFreeDataList(m_refList, CODEC_AVC_NUM_UNCOMPRESSED_SURFACE);
         m_activeReferenceList.clear();
     }
 

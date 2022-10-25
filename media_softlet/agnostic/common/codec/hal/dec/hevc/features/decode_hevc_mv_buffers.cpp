@@ -26,7 +26,6 @@
 
 #include "decode_hevc_basic_feature.h"
 #include "decode_utils.h"
-#include "codechal_utilities.h"
 #include "decode_hevc_mv_buffers.h"
 #include "codec_def_decode_hevc.h"
 

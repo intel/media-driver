@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022, Intel Corporation
+* Copyright (c) 2017, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -20,21 +20,21 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     decode_vp9_basic_feature_m12.h
-//! \brief    Defines the implementation of huc copy creator
+//! \file     codec_def_cenc_decode.h
+//! \brief    Defines common types and macros shared by CENC decode
 //!
+#ifndef __CODEC_DEF_CENC_DECODE_H__
+#define __CODEC_DEF_CENC_DECODE_H__
 
-#include "decode_vp9_basic_feature_m12.h"
-#include "codechal_hw.h"
-
-namespace decode
+//! \brief  CencDecode share buffer
+struct CencDecodeShareBuf
 {
+    uint32_t                       bufIdx = 0;
+    uint32_t                       trackerId = 0;
+    bool                           checkStatusRequired = 0;
+    MOS_RESOURCE                   *resTracker = nullptr;
+    MemoryBlock                    *secondLvlBbBlock = nullptr;
+    MOS_RESOURCE                   *resStatus = nullptr;
+};
 
-    Vp9BasicFeatureM12::Vp9BasicFeatureM12(DecodeAllocator *allocator, void *hwInterface, PMOS_INTERFACE osInterface) : 
-        Vp9BasicFeature(allocator, *((CodechalHwInterface *)hwInterface), osInterface)
-    {
-        m_osInterface  = osInterface;
-        m_hcpInterface = ((CodechalHwInterface *)hwInterface)->GetHcpInterface();
-    }
-
-}  // namespace decode
+#endif  // __CODEC_DEF_CENC_DECODE_H__

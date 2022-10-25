@@ -30,6 +30,7 @@ set(TMP_SOURCES_
 set(TMP_HEADERS_
     ${TMP_HEADERS_}
     ${CMAKE_CURRENT_LIST_DIR}/codec_hw_next.h
+    ${CMAKE_CURRENT_LIST_DIR}/codec_utilities_next.h
 )
 
 set(SOURCES_

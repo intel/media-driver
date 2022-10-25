@@ -26,7 +26,7 @@
 
 #include "decode_hevc_basic_feature.h"
 #include "decode_utils.h"
-#include "codechal_utilities.h"
+#include "codec_utilities_next.h"
 #include "decode_hevc_reference_frames.h"
 #include "codec_def_decode_hevc.h"
 
@@ -45,7 +45,7 @@ MOS_STATUS HevcReferenceFrames::Init(HevcBasicFeature *basicFeature, DecodeAlloc
 
     m_basicFeature = basicFeature;
     m_allocator = &allocator;
-    DECODE_CHK_STATUS(CodecHalAllocateDataList(m_refList, CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC));
+    DECODE_CHK_STATUS(CodecUtilities::CodecHalAllocateDataList(m_refList, CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC));
 
     m_osInterface = basicFeature->GetOsInterface();
 
@@ -55,7 +55,7 @@ MOS_STATUS HevcReferenceFrames::Init(HevcBasicFeature *basicFeature, DecodeAlloc
 HevcReferenceFrames::~HevcReferenceFrames()
 {
     DECODE_FUNC_CALL();
-    CodecHalFreeDataList(m_refList, CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC);
+    CodecUtilities::CodecHalFreeDataList(m_refList, CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC);
     m_activeReferenceList.clear();
 }
 
