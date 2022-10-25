@@ -55,6 +55,7 @@ MOS_STATUS HevcPipeline::Initialize(void *settings)
     MOS_ZeroMemory(&scalPars, sizeof(scalPars));
     DECODE_CHK_STATUS(m_mediaContext->SwitchContext(VdboxDecodeFunc, &scalPars, &m_scalability));
     m_decodeContext = m_osInterface->pfnGetGpuContext(m_osInterface);
+    m_decodeContextHandle = m_osInterface->CurrentGpuContextHandle;
 
     m_basicFeature = dynamic_cast<HevcBasicFeature*>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
     DECODE_CHK_NULL(m_basicFeature);
@@ -129,6 +130,7 @@ MOS_STATUS HevcPipeline::Execute()
             if (scalabOption->IsScalabilityOptionMatched(m_scalabOption))
             {
                 m_decodeContext = m_osInterface->pfnGetGpuContext(m_osInterface);
+                m_decodeContextHandle = m_osInterface->CurrentGpuContextHandle;
             }
         }
 

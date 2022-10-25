@@ -52,6 +52,7 @@ namespace decode
         MOS_ZeroMemory(&scalPars, sizeof(scalPars));
         DECODE_CHK_STATUS(m_mediaContext->SwitchContext(VdboxDecodeFunc, &scalPars, &m_scalability));
         m_decodeContext = m_osInterface->pfnGetGpuContext(m_osInterface);
+        m_decodeContextHandle = m_osInterface->CurrentGpuContextHandle;
 
         auto *codecSettings = (CodechalSetting*)settings;
         DECODE_CHK_NULL(codecSettings);

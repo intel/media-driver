@@ -75,6 +75,7 @@ public:
     virtual void Destroy() override;
 
     virtual MOS_GPU_CONTEXT GetDecodeContext() override;
+    virtual GPU_CONTEXT_HANDLE GetDecodeContextHandle() override;
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
     virtual bool IsDownSamplingSupported() override;

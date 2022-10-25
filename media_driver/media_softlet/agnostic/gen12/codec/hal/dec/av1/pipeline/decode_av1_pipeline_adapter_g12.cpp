@@ -125,6 +125,13 @@ MOS_GPU_CONTEXT DecodeAv1PipelineAdapterG12::GetDecodeContext()
     return m_decoder->GetDecodeContext();
 }
 
+GPU_CONTEXT_HANDLE DecodeAv1PipelineAdapterG12::GetDecodeContextHandle()
+{
+    DECODE_FUNC_CALL();
+
+    return m_decoder->GetDecodeContextHandle();
+}
+
 #ifdef _DECODE_PROCESSING_SUPPORTED
 bool DecodeAv1PipelineAdapterG12::IsDownSamplingSupported()
 {

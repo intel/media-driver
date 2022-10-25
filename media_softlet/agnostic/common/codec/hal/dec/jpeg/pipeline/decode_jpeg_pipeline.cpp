@@ -52,6 +52,7 @@ MOS_STATUS JpegPipeline::Initialize(void *settings)
     MOS_ZeroMemory(&scalPars, sizeof(scalPars));
     DECODE_CHK_STATUS(m_mediaContext->SwitchContext(VdboxDecodeFunc, &scalPars, &m_scalability));
     m_decodeContext = m_osInterface->pfnGetGpuContext(m_osInterface);
+    m_decodeContextHandle = m_osInterface->CurrentGpuContextHandle;
 
     return MOS_STATUS_SUCCESS;
 }

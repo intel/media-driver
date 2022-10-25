@@ -75,6 +75,7 @@ public:
     virtual void Destroy() override;
 
     virtual MOS_GPU_CONTEXT GetDecodeContext() override;
+    virtual GPU_CONTEXT_HANDLE GetDecodeContextHandle() override;
 
 protected:
     std::shared_ptr<decode::HevcPipelineM12> m_decoder;

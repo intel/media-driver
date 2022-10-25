@@ -130,6 +130,13 @@ MOS_GPU_CONTEXT DecodeMpeg2PipelineAdapterM12::GetDecodeContext()
     return m_decoder->GetDecodeContext();
 }
 
+GPU_CONTEXT_HANDLE DecodeMpeg2PipelineAdapterM12::GetDecodeContextHandle()
+{
+    DECODE_FUNC_CALL();
+
+    return m_decoder->GetDecodeContextHandle();
+}
+
 #ifdef _DECODE_PROCESSING_SUPPORTED
 bool DecodeMpeg2PipelineAdapterM12::IsDownSamplingSupported()
 {

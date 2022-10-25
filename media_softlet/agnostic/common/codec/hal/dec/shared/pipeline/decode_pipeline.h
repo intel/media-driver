@@ -309,6 +309,12 @@ public:
     //! \return decode context
     //!
     MOS_GPU_CONTEXT GetDecodeContext() { return m_decodeContext; }
+
+    //!
+    //! \brief  Get decode context handle
+    //! \return decode context handle
+    //!
+    GPU_CONTEXT_HANDLE GetDecodeContextHandle() { return m_decodeContextHandle; }
     
     //!
     //! \brief  Indicates whether current process pipe is first process pipe of current frame
@@ -507,6 +513,7 @@ protected:
     bool                    m_singleTaskPhaseSupported = true; //!< Indicates whether sumbit packets in single phase
 
     MOS_GPU_CONTEXT         m_decodeContext = MOS_GPU_CONTEXT_INVALID_HANDLE;    //!< decode context inuse
+    GPU_CONTEXT_HANDLE      m_decodeContextHandle = MOS_GPU_CONTEXT_INVALID_HANDLE;    //!< handle of decode context inuse
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     uint32_t                m_statusCheckCount = 0;     //!< count for status check

@@ -117,6 +117,13 @@ MOS_GPU_CONTEXT DecodeJpegPipelineAdapterM12::GetDecodeContext()
     return m_decoder->GetDecodeContext();
 }
 
+GPU_CONTEXT_HANDLE DecodeJpegPipelineAdapterM12::GetDecodeContextHandle()
+{
+    DECODE_FUNC_CALL();
+
+    return m_decoder->GetDecodeContextHandle();
+}
+
 MOS_SURFACE* DecodeJpegPipelineAdapterM12::GetDummyReference()
 {
     DECODE_FUNC_CALL();

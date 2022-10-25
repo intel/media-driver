@@ -67,6 +67,7 @@ public:
     virtual void Destroy() override;
 
     virtual MOS_GPU_CONTEXT GetDecodeContext() override;
+    virtual GPU_CONTEXT_HANDLE GetDecodeContextHandle() override;
 
     virtual MOS_SURFACE *GetDummyReference() override;
 

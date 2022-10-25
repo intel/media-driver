@@ -137,3 +137,9 @@ MOS_GPU_CONTEXT DecodeAvcPipelineAdapterM12::GetDecodeContext()
     return m_decoder->GetDecodeContext();
 }
 
+GPU_CONTEXT_HANDLE DecodeAvcPipelineAdapterM12::GetDecodeContextHandle()
+{
+    DECODE_FUNC_CALL();
+
+    return m_decoder->GetDecodeContextHandle();
+}
