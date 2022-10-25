@@ -597,10 +597,20 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::CreateMhwInterfaces(
     MhwInterfacesNext *mhwInterfaces =  MhwInterfacesNext::CreateFactory(params, pOsInterface);
     MHW_RENDERHAL_CHK_NULL_RETURN(mhwInterfaces);
     MHW_RENDERHAL_CHK_NULL_RETURN(mhwInterfaces->m_cpInterface);
-
+#if !EMUL
+    MHW_RENDERHAL_CHK_NULL_RETURN(mhwInterfaces->m_miInterface);
+#endif
     pRenderHal->pCpInterface = mhwInterfaces->m_cpInterface;
+    pRenderHal->pMhwMiInterface = mhwInterfaces->m_miInterface;
     m_renderItf = mhwInterfaces->m_renderItf;
     m_miItf     = mhwInterfaces->m_miItf;
+
+    // After removing MhwRenderInterface from Mhw Next, need to clean this WA delete m_renderInterface code
+    if (mhwInterfaces->m_renderInterface)
+    {
+        MOS_Delete(mhwInterfaces->m_renderInterface);
+    }
+
     MOS_Delete(mhwInterfaces);
 
     return eStatus;

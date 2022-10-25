@@ -184,19 +184,18 @@ MOS_STATUS MhwInterfacesPvc_Next::Initialize(
     // MHW_CP and MHW_MI must always be created
     MOS_STATUS status;
     m_cpInterface = Create_MhwCpInterface(osInterface);
-    MHW_MI_CHK_NULL(m_cpInterface);
     m_miInterface = MOS_New(Mi, m_cpInterface, osInterface);
-
-    auto ptr      = std::make_shared<mhw::mi::xe_xpm_base::Impl>(osInterface);
-    m_miItf       = std::static_pointer_cast<mhw::mi::Itf>(ptr);
-    ptr->SetCpInterface(m_cpInterface, m_miItf);
+    {
+        m_miItf = std::make_shared<mhw::mi::xe_xpm_base::Impl>(osInterface);
+        m_miItf->SetCpInterface(m_cpInterface);
+    }
 
     if (params.Flags.m_render)
     {
         m_renderInterface =
             MOS_New(Render, m_miInterface, osInterface, gtSystemInfo, params.m_heapMode);
-        auto renderPtr = std::make_shared<mhw::render::xe_hpg::Impl>(osInterface);
-        m_renderItf    = std::static_pointer_cast<mhw::render::Itf>(renderPtr);
+        auto ptr    = std::make_shared<mhw::render::xe_hpg::Impl>(osInterface);
+        m_renderItf = std::static_pointer_cast<mhw::render::Itf>(ptr);
     }
     if (params.Flags.m_stateHeap)
     {
@@ -245,29 +244,11 @@ MOS_STATUS MhwInterfacesPvc_Next::Initialize(
 void MhwInterfacesPvc_Next::Destroy()
 {
     MhwInterfacesNext::Destroy();
+    MOS_Delete(m_miInterface);
+    MOS_Delete(m_renderInterface);
     MOS_Delete(m_sfcInterface);
     MOS_Delete(m_veboxInterface);
     MOS_Delete(m_bltInterface);
-    if (m_miInterface != nullptr)
-    {
-        MOS_Delete(m_miInterface);
-    }
-    if (m_renderInterface != nullptr)
-    {
-        MOS_Delete(m_renderInterface);
-    }
-}
-
-MhwInterfacesPvc_Next::~MhwInterfacesPvc_Next()
-{
-    if (m_miInterface != nullptr)
-    {
-        MOS_Delete(m_miInterface);
-    }
-    if (m_renderInterface != nullptr)
-    {
-        MOS_Delete(m_renderInterface);
-    }
 }
 
 #ifdef _MMC_SUPPORTED
@@ -700,11 +681,6 @@ MOS_STATUS CodechalInterfacesXe_Xpm_Plus::Initialize(
                     return MOS_STATUS_INVALID_PARAMETER;
                 }
             }
-        }
-
-        if (mhwInterfacesNext != nullptr)
-        {
-            MOS_Delete(mhwInterfacesNext);
         }
     }
 #endif

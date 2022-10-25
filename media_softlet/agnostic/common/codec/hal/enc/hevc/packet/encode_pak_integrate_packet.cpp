@@ -197,7 +197,7 @@ namespace encode {
         ENCODE_CHK_STATUS_RETURN(EndStatusReport(statusReportMfx, commandBuffer));
         if (false == m_pipeline->IsFrameTrackingEnabled())
         {
-            ENCODE_CHK_STATUS_RETURN(UpdateStatusReportNext(statusReportGlobalCount, commandBuffer));
+            ENCODE_CHK_STATUS_RETURN(UpdateStatusReport(statusReportGlobalCount, commandBuffer));
         }
         CODECHAL_DEBUG_TOOL(
             if (m_mmcState) {

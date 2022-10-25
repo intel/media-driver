@@ -38,7 +38,7 @@
 namespace encode
 {
 
-class EncodeScalabilitySinglePipe: public MediaScalabilitySinglePipeNext
+class EncodeScalabilitySinglePipe: public MediaScalabilitySinglePipe
 {
 
 public:

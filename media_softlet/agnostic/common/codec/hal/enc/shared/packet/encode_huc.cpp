@@ -140,7 +140,8 @@ namespace encode
         MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
         ENCODE_CHK_NULL_RETURN(m_hwInterface);
         genericPrologParams.pOsInterface = m_hwInterface->GetOsInterface();
-        std::shared_ptr<void> m_miItf     = m_hwInterface->GetMiInterfaceNext();
+        ENCODE_CHK_NULL_RETURN(m_hwInterface->GetMiInterface());
+        std::shared_ptr<void> m_miItf = m_hwInterface->GetMiInterface()->GetNewMiInterface();
         genericPrologParams.pvMiInterface = nullptr;
         genericPrologParams.bMmcEnabled   = mmcEnabled;
         ENCODE_CHK_STATUS_RETURN(Mhw_SendGenericPrologCmdNext(&cmdBuffer, &genericPrologParams, m_miItf));
@@ -182,7 +183,7 @@ namespace encode
         MediaPerfProfiler *perfProfiler = MediaPerfProfiler::Instance();
         ENCODE_CHK_NULL_RETURN(perfProfiler);
         ENCODE_CHK_STATUS_RETURN(perfProfiler->AddPerfCollectStartCmd(
-            (void *)m_pipeline, m_osInterface, m_miItf, &cmdBuffer));
+            (void *)m_pipeline, m_osInterface, m_miInterface, &cmdBuffer));
 
         return MOS_STATUS_SUCCESS;
     }
@@ -192,7 +193,7 @@ namespace encode
         MediaPerfProfiler *perfProfiler = MediaPerfProfiler::Instance();
         ENCODE_CHK_NULL_RETURN(perfProfiler);
         ENCODE_CHK_STATUS_RETURN(perfProfiler->AddPerfCollectEndCmd(
-            (void *)m_pipeline, m_osInterface, m_miItf, &cmdBuffer));
+            (void *)m_pipeline, m_osInterface, m_miInterface, &cmdBuffer));
 
         return MOS_STATUS_SUCCESS;
     }
@@ -369,6 +370,7 @@ namespace encode
     {
         HUC_CHK_NULL_RETURN(cmdBuffer);
         HUC_CHK_NULL_RETURN(m_statusReport);
+        HUC_CHK_NULL_RETURN(m_miInterface);
 
         auto mmioRegisters = m_hucItf->GetMmioRegisters(m_vdboxIndex);
         HUC_CHK_NULL_RETURN(mmioRegisters);

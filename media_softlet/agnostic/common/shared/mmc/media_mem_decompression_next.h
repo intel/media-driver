@@ -335,6 +335,9 @@ protected:
     MhwCpInterface                        * m_cpInterface;
     bool                                    m_veboxMMCResolveEnabled;
 
+    // legacy interface design
+    MhwMiInterface                        * m_miInterface    = nullptr;
+
     MediaUserSettingSharedPtr m_userSettingPtr = nullptr;  //!< UserSettingInstance
 MEDIA_CLASS_DEFINE_END(MediaMemDeCompNext)
 };

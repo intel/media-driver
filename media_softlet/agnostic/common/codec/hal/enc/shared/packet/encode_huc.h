@@ -71,12 +71,14 @@ namespace encode
             ENCODE_CHK_NULL_NO_STATUS_RETURN(hwInterface);
             ENCODE_CHK_NULL_NO_STATUS_RETURN(m_pipeline);
 
-            m_hwInterface    = hwInterface;
-            m_osInterface    = hwInterface->GetOsInterface();
+            m_hwInterface = hwInterface;
+            m_miInterface = hwInterface->GetMiInterface();
+            m_osInterface = hwInterface->GetOsInterface();
+
             m_featureManager = m_pipeline->GetFeatureManager();
             m_statusReport   = m_pipeline->GetStatusReportInstance();
 
-            m_miItf = std::static_pointer_cast<mhw::mi::Itf>(hwInterface->GetMiInterfaceNext());
+            m_miItf = std::static_pointer_cast<mhw::mi::Itf>(m_miInterface->GetNewMiInterface());
             if(m_osInterface)
             {
                 m_userSettingPtr = m_osInterface->pfnGetUserSettingInstance(m_osInterface);

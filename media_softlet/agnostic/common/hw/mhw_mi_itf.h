@@ -53,6 +53,7 @@
     DEF(MI_MATH);                         \
     DEF(MI_COPY_MEM_MEM);                 \
     DEF(MFX_WAIT)
+
 namespace mhw
 {
 namespace mi
@@ -98,7 +99,7 @@ public:
 
     virtual MHW_MI_MMIOREGISTERS* GetMmioRegisters() = 0;
 
-    virtual MOS_STATUS SetCpInterface(MhwCpInterface *cpInterface, std::shared_ptr<mhw::mi::Itf> m_miItf) = 0;
+    virtual MOS_STATUS SetCpInterface(MhwCpInterface *cpInterface) = 0;
 
     virtual uint32_t GetMmioInterfaces(MHW_MMIO_REGISTER_OPCODE opCode) = 0;
 

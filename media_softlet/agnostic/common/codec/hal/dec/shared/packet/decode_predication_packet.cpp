@@ -31,17 +31,15 @@ namespace decode
 
 DecodePredicationPkt::DecodePredicationPkt(DecodePipeline *pipeline, CodechalHwInterfaceNext *hwInterface)
     : DecodeSubPacket(pipeline, hwInterface)
-{
-    m_hwInterface = hwInterface;
-}
+{}
 
 MOS_STATUS DecodePredicationPkt::Init()
 {
     DECODE_CHK_NULL(m_pipeline);
     DECODE_CHK_NULL(m_hwInterface);
 
-    m_miItf = m_hwInterface->GetMiInterfaceNext();
-    DECODE_CHK_NULL(m_miItf);
+    m_miInterface = m_hwInterface->GetMiInterface();
+    DECODE_CHK_NULL(m_miInterface);
 
     MediaFeatureManager *featureManager = m_pipeline->GetFeatureManager();
     DECODE_CHK_NULL(featureManager);
@@ -72,37 +70,46 @@ MOS_STATUS DecodePredicationPkt::Execute(MOS_COMMAND_BUFFER& cmdBuffer)
     if (m_predication->m_predicationNotEqualZero)
     {
         auto mmioRegistersMfx = m_hwInterface->SelectVdAndGetMmioReg(MHW_VDBOX_NODE_1, &cmdBuffer);
-        auto &flushDwParams    = m_miItf->MHW_GETPAR_F(MI_FLUSH_DW)();
-        flushDwParams          = {};
-        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(&cmdBuffer));
+        MHW_MI_FLUSH_DW_PARAMS  flushDwParams;
+        MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
+        DECODE_CHK_STATUS(m_miInterface->AddMiFlushDwCmd(&cmdBuffer, &flushDwParams));
 
         // load presPredication to general purpose register0
-        auto &miLoadRegMemParams           = m_miItf->MHW_GETPAR_F(MI_LOAD_REGISTER_MEM)();
-        miLoadRegMemParams                 = {};
-        miLoadRegMemParams.presStoreBuffer = &m_predication->m_resPredication->OsResource;
-        miLoadRegMemParams.dwOffset        = (uint32_t)m_predication->m_predicationResOffset;
-        miLoadRegMemParams.dwRegister      = mmioRegistersMfx->generalPurposeRegister0LoOffset;
-        DECODE_CHK_STATUS(m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_MEM)(&cmdBuffer));
-
-        auto &miLoadRegImmParams      = m_miItf->MHW_GETPAR_F(MI_LOAD_REGISTER_IMM)();
-        miLoadRegImmParams            = {};
-        miLoadRegImmParams.dwData     = 0;
-        miLoadRegImmParams.dwRegister = mmioRegistersMfx->generalPurposeRegister0HiOffset;
-        DECODE_CHK_STATUS(m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(&cmdBuffer));
+        MHW_MI_STORE_REGISTER_MEM_PARAMS    loadRegisterMemParams;
+        MOS_ZeroMemory(&loadRegisterMemParams, sizeof(loadRegisterMemParams));
+        loadRegisterMemParams.presStoreBuffer = &m_predication->m_resPredication->OsResource;
+        loadRegisterMemParams.dwOffset = (uint32_t)m_predication->m_predicationResOffset;
+        loadRegisterMemParams.dwRegister = mmioRegistersMfx->generalPurposeRegister0LoOffset;
+        DECODE_CHK_STATUS(m_miInterface->AddMiLoadRegisterMemCmd(
+            &cmdBuffer,
+            &loadRegisterMemParams));
+        MHW_MI_LOAD_REGISTER_IMM_PARAMS     loadRegisterImmParams;
+        MOS_ZeroMemory(&loadRegisterImmParams, sizeof(loadRegisterImmParams));
+        loadRegisterImmParams.dwData = 0;
+        loadRegisterImmParams.dwRegister = mmioRegistersMfx->generalPurposeRegister0HiOffset;
+        DECODE_CHK_STATUS(m_miInterface->AddMiLoadRegisterImmCmd(
+            &cmdBuffer,
+            &loadRegisterImmParams));
 
         // load 0 to general purpose register4
-        miLoadRegImmParams            = {};
-        miLoadRegImmParams.dwData     = 0;
-        miLoadRegImmParams.dwRegister = mmioRegistersMfx->generalPurposeRegister4LoOffset;
-        DECODE_CHK_STATUS(m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(&cmdBuffer));
-
-        miLoadRegImmParams            = {};
-        miLoadRegImmParams.dwData     = 0;
-        miLoadRegImmParams.dwRegister = mmioRegistersMfx->generalPurposeRegister4HiOffset;
-        DECODE_CHK_STATUS(m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(&cmdBuffer));
+        MOS_ZeroMemory(&loadRegisterImmParams, sizeof(loadRegisterImmParams));
+        loadRegisterImmParams.dwData = 0;
+        loadRegisterImmParams.dwRegister = mmioRegistersMfx->generalPurposeRegister4LoOffset;
+        DECODE_CHK_STATUS(m_miInterface->AddMiLoadRegisterImmCmd(
+            &cmdBuffer,
+            &loadRegisterImmParams));
+        MOS_ZeroMemory(&loadRegisterImmParams, sizeof(loadRegisterImmParams));
+        loadRegisterImmParams.dwData = 0;
+        loadRegisterImmParams.dwRegister = mmioRegistersMfx->generalPurposeRegister4HiOffset;
+        DECODE_CHK_STATUS(m_miInterface->AddMiLoadRegisterImmCmd(
+            &cmdBuffer,
+            &loadRegisterImmParams));
 
         //perform the add operation
-        mhw::mi::MHW_MI_ALU_PARAMS miAluParams[4] = {};
+        MHW_MI_MATH_PARAMS  miMathParams;
+        MHW_MI_ALU_PARAMS   miAluParams[4];
+        MOS_ZeroMemory(&miMathParams, sizeof(miMathParams));
+        MOS_ZeroMemory(&miAluParams, sizeof(miAluParams));
         // load     srcA, reg0
         miAluParams[0].AluOpcode = MHW_MI_ALU_LOAD;
         miAluParams[0].Operand1 = MHW_MI_ALU_SRCA;
@@ -119,40 +126,40 @@ MOS_STATUS DecodePredicationPkt::Execute(MOS_COMMAND_BUFFER& cmdBuffer)
         miAluParams[3].AluOpcode = MHW_MI_ALU_STORE;
         miAluParams[3].Operand1 = MHW_MI_ALU_GPREG0;
         miAluParams[3].Operand2 = MHW_MI_ALU_ZF;
-
-        auto &miMathParams = m_miItf->MHW_GETPAR_F(MI_MATH)();
-        miMathParams       = {};
         miMathParams.pAluPayload = miAluParams;
-        miMathParams.dwNumAluParams = 4;  // four ALU commands needed for this substract opertaion. see following ALU commands.
-        DECODE_CHK_STATUS(m_miItf->MHW_ADDCMD_F(MI_MATH)(&cmdBuffer));
-
+        miMathParams.dwNumAluParams = 4; // four ALU commands needed for this substract opertaion. see following ALU commands.
+        DECODE_CHK_STATUS(m_miInterface->AddMiMathCmd(
+            &cmdBuffer,
+            &miMathParams));
 
         // if zero, the zero flag will be 0xFFFFFFFF, else zero flag will be 0x0.
-        auto &miStoreRegMemParams           = m_miItf->MHW_GETPAR_F(MI_STORE_REGISTER_MEM)();
-        miStoreRegMemParams                 = {};
-        miStoreRegMemParams.presStoreBuffer = &m_predication->m_predicationBuffer->OsResource;
-        miStoreRegMemParams.dwOffset        = 0;
-        miStoreRegMemParams.dwRegister      = mmioRegistersMfx->generalPurposeRegister0LoOffset;
-        DECODE_CHK_STATUS(m_miItf->MHW_ADDCMD_F(MI_STORE_REGISTER_MEM)(&cmdBuffer));
+        MHW_MI_STORE_REGISTER_MEM_PARAMS    storeRegParams;
+        MOS_ZeroMemory(&storeRegParams, sizeof(storeRegParams));
+        storeRegParams.presStoreBuffer = &m_predication->m_predicationBuffer->OsResource;
+        storeRegParams.dwOffset = 0;
+        storeRegParams.dwRegister = mmioRegistersMfx->generalPurposeRegister0LoOffset;
+        DECODE_CHK_STATUS(m_miInterface->AddMiStoreRegisterMemCmd(
+            &cmdBuffer,
+            &storeRegParams));
 
-        auto &miConditionalBatchBufferEndParams               = m_miItf->MHW_GETPAR_F(MI_CONDITIONAL_BATCH_BUFFER_END)();
-        miConditionalBatchBufferEndParams                     = {};
-        miConditionalBatchBufferEndParams.dwOffset            = 0;
-        miConditionalBatchBufferEndParams.dwValue             = 0;
-        miConditionalBatchBufferEndParams.bDisableCompareMask = true;
-        miConditionalBatchBufferEndParams.presSemaphoreBuffer = &m_predication->m_predicationBuffer->OsResource;
-        DECODE_CHK_STATUS(m_miItf->MHW_ADDCMD_F(MI_CONDITIONAL_BATCH_BUFFER_END)(&cmdBuffer));
+        condBBEndParams.presSemaphoreBuffer = &m_predication->m_predicationBuffer->OsResource;
+        condBBEndParams.dwOffset = 0;
+        condBBEndParams.dwValue = 0;
+        condBBEndParams.bDisableCompareMask = true;
+        DECODE_CHK_STATUS(m_miInterface->AddMiConditionalBatchBufferEndCmd(
+            &cmdBuffer,
+            &condBBEndParams));
     }
     else
     {
         // Skip current frame if presPredication is equal to zero
-        auto &miConditionalBatchBufferEndParams               = m_miItf->MHW_GETPAR_F(MI_CONDITIONAL_BATCH_BUFFER_END)();
-        miConditionalBatchBufferEndParams                     = {};
-        miConditionalBatchBufferEndParams.dwOffset            = (uint32_t)m_predication->m_predicationResOffset;
-        miConditionalBatchBufferEndParams.dwValue             = 0;
-        miConditionalBatchBufferEndParams.bDisableCompareMask = true;
-        miConditionalBatchBufferEndParams.presSemaphoreBuffer = &m_predication->m_resPredication->OsResource;
-        DECODE_CHK_STATUS(m_miItf->MHW_ADDCMD_F(MI_CONDITIONAL_BATCH_BUFFER_END)(&cmdBuffer));
+        condBBEndParams.presSemaphoreBuffer = &m_predication->m_resPredication->OsResource;
+        condBBEndParams.dwOffset = (uint32_t)m_predication->m_predicationResOffset;
+        condBBEndParams.bDisableCompareMask = true;
+        condBBEndParams.dwValue = 0;
+        DECODE_CHK_STATUS(m_miInterface->AddMiConditionalBatchBufferEndCmd(
+            &cmdBuffer,
+            &condBBEndParams));
     }
 
     return MOS_STATUS_SUCCESS;

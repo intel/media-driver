@@ -129,6 +129,8 @@ MOS_STATUS DecodeScalabilityMultiPipe::Initialize(const MediaScalabilityOption &
     m_osInterface = m_hwInterface->GetOsInterface();
     SCALABILITY_CHK_NULL_RETURN(m_osInterface);
 
+    m_miInterface = m_hwInterface->GetMiInterface();
+    SCALABILITY_CHK_NULL_RETURN(m_miInterface);
     m_miItf = m_hwInterface->GetMiInterfaceNext();
 
     DecodeScalabilityOption *decodeScalabilityOption = MOS_New(DecodeScalabilityOption, (const DecodeScalabilityOption &)option);
@@ -388,7 +390,7 @@ MOS_STATUS DecodeScalabilityMultiPipe::GetCmdBuffer(PMOS_COMMAND_BUFFER cmdBuffe
     {
         SCALABILITY_CHK_STATUS_RETURN(SendAttrWithFrameTracking(m_primaryCmdBuffer, frameTrackingRequested));
         // Insert noop to primary command buffer, avoid zero length command buffer
-        SCALABILITY_CHK_STATUS_RETURN(m_hwInterface->GetMiInterface()->AddMiNoop(&m_primaryCmdBuffer, nullptr));
+        SCALABILITY_CHK_STATUS_RETURN(m_miInterface->AddMiNoop(&m_primaryCmdBuffer, nullptr));
         m_attrReady = true;
     }
     return MOS_STATUS_SUCCESS;
@@ -480,7 +482,7 @@ MOS_STATUS DecodeScalabilityMultiPipe::SubmitCmdBuffer(PMOS_COMMAND_BUFFER cmdBu
         MOS_COMMAND_BUFFER& scdryCmdBuffer = m_secondaryCmdBuffers[secondaryIdx];
         uint32_t bufIdx = secondaryIdx + DecodePhase::m_secondaryCmdBufIdxBase;
         SCALABILITY_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &scdryCmdBuffer, bufIdx));
-        SCALABILITY_CHK_STATUS_RETURN(m_hwInterface->GetMiInterface()->AddMiBatchBufferEnd(&scdryCmdBuffer, nullptr));
+        SCALABILITY_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(&scdryCmdBuffer, nullptr));
         m_osInterface->pfnReturnCommandBuffer(m_osInterface, &scdryCmdBuffer, bufIdx);
     }
 

@@ -37,13 +37,13 @@
 #include "media_status_report.h"
 #include "mhw_utilities.h"
 #include "encode_status_report_defs.h"
-#include "hal_oca_interface_next.h"
+#include "hal_oca_interface.h"
 
 namespace encode
 {
 
 EncodeScalabilitySinglePipe::EncodeScalabilitySinglePipe(void *hwInterface, MediaContext *mediaContext, uint8_t componentType) :
-    MediaScalabilitySinglePipeNext(hwInterface, mediaContext, componentType)
+    MediaScalabilitySinglePipe(hwInterface, mediaContext, componentType)
 {
     if (hwInterface == nullptr)
     {
@@ -79,10 +79,10 @@ MOS_STATUS EncodeScalabilitySinglePipe::Initialize(const MediaScalabilityOption 
     // !Don't check the return status here, because this function will return fail if there's no regist key in register.
     // But it's normal that regist key not in register.
     Mos_CheckVirtualEngineSupported(m_osInterface, false, true);
-    m_miItf = m_hwInterface->GetMiInterfaceNext();
-    SCALABILITY_CHK_NULL_RETURN(m_miItf);
+    m_miInterface = m_hwInterface->GetMiInterface();
+    SCALABILITY_CHK_NULL_RETURN(m_miInterface);
 
-    SCALABILITY_CHK_STATUS_RETURN(MediaScalabilitySinglePipeNext::Initialize(option));
+    SCALABILITY_CHK_STATUS_RETURN(MediaScalabilitySinglePipe::Initialize(option));
 
     PMOS_GPUCTX_CREATOPTIONS_ENHANCED gpuCtxCreateOption = 
                     dynamic_cast<PMOS_GPUCTX_CREATOPTIONS_ENHANCED>(m_gpuCtxCreateOption);
@@ -104,7 +104,7 @@ MOS_STATUS EncodeScalabilitySinglePipe::VerifyCmdBuffer(uint32_t requestedSize, 
 {
     SCALABILITY_FUNCTION_ENTER;
 
-    return MediaScalabilitySinglePipeNext::VerifyCmdBuffer(requestedSize, requestedPatchListSize, singleTaskPhaseSupportedInPak);
+    return MediaScalabilitySinglePipe::VerifyCmdBuffer(requestedSize, requestedPatchListSize, singleTaskPhaseSupportedInPak);
 }
 
 MOS_STATUS EncodeScalabilitySinglePipe::VerifySpaceAvailable(uint32_t requestedSize, uint32_t requestedPatchListSize, bool &singleTaskPhaseSupportedInPak)
@@ -158,7 +158,7 @@ MOS_STATUS EncodeScalabilitySinglePipe::VerifySpaceAvailable(uint32_t requestedS
 MOS_STATUS EncodeScalabilitySinglePipe::UpdateState(void *statePars)
 {
     SCALABILITY_FUNCTION_ENTER;
-    SCALABILITY_CHK_STATUS_RETURN(MediaScalabilitySinglePipeNext::UpdateState(statePars));
+    SCALABILITY_CHK_STATUS_RETURN(MediaScalabilitySinglePipe::UpdateState(statePars));
 
     MOS_STATUS   eStatus         = MOS_STATUS_SUCCESS;
 
@@ -303,12 +303,14 @@ MOS_STATUS EncodeScalabilitySinglePipe::Oca1stLevelBBStart(MOS_COMMAND_BUFFER &c
     {
         SCALABILITY_CHK_NULL_RETURN(m_osInterface);
         SCALABILITY_CHK_NULL_RETURN(m_osInterface->pOsContext);
+        MhwMiInterface *miInterface = m_hwInterface->GetMiInterface();
+        SCALABILITY_CHK_NULL_RETURN(miInterface);
 
-        HalOcaInterfaceNext::On1stLevelBBStart(
+        HalOcaInterface::On1stLevelBBStart(
             cmdBuffer,
             *m_osInterface->pOsContext,
             m_osInterface->CurrentGpuContextHandle,
-            m_miItf,
+            *miInterface,
             mmioRegister);
     }
 
@@ -318,7 +320,7 @@ MOS_STATUS EncodeScalabilitySinglePipe::Oca1stLevelBBStart(MOS_COMMAND_BUFFER &c
 MOS_STATUS EncodeScalabilitySinglePipe::Oca1stLevelBBEnd(MOS_COMMAND_BUFFER &cmdBuffer)
 {
     SCALABILITY_CHK_NULL_RETURN(m_osInterface);
-    HalOcaInterfaceNext::On1stLevelBBEnd(cmdBuffer, *m_osInterface);
+    HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface);
 
     return MOS_STATUS_SUCCESS;
 }

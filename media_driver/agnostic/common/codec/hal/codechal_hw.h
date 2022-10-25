@@ -253,7 +253,6 @@ protected:
     std::shared_ptr<mhw::vdbox::hcp::Itf>   m_hcpItf   = nullptr;
     std::shared_ptr<mhw::vdbox::vdenc::Itf> m_vdencItf = nullptr;
     std::shared_ptr<MediaSfcInterface> m_mediaSfcItf = nullptr;
-    std::shared_ptr<mhw::render::Itf>       m_renderItf             = nullptr;
 
     CODECHAL_SSEU_SETTING const         *m_ssEuTable = nullptr;       //!< Pointer to the default SSEU settings table
     uint16_t                            m_numMediaStates = CODECHAL_NUM_MEDIA_STATES;  //!< number of media states
@@ -438,23 +437,7 @@ public:
             return nullptr;
         }
     }
-    //!
-    //! \brief    Get render interface
-    //! \details  Get render interface in codechal hw interface next
-    //!
-    //! \return    pointer to new HCP interface
-    //!
-    inline std::shared_ptr<mhw::render::Itf> GetRenderInterfaceNext()
-    {
-        if (m_hwInterfaceNext)
-        {
-            return m_hwInterfaceNext->GetRenderInterfaceNext();
-        }
-        else
-        {
-            return nullptr;
-        }
-    }
+
     //!
     //! \brief    Copy constructor
     //!

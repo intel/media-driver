@@ -272,6 +272,7 @@ MhwInterfacesNext* MmdDeviceNext::CreateMhwInterface(PMOS_INTERFACE osInterface)
     if (mhw)
     {
         MOS_Delete(mhw->m_veboxInterface);
+        MOS_Delete(mhw->m_miInterface);
     }
 
 

@@ -40,7 +40,7 @@ namespace decode
 {
 
 DecodeScalabilitySinglePipeNext::DecodeScalabilitySinglePipeNext(void *hwInterface, MediaContext *mediaContext, uint8_t componentType) :
-    MediaScalabilitySinglePipeNext(hwInterface, mediaContext, componentType)
+    MediaScalabilitySinglePipe(hwInterface, mediaContext, componentType)
 {
     if (hwInterface == nullptr)
     {

@@ -44,7 +44,6 @@
 #include "mhw_cp_interface.h"
 #include "mhw_mi_xe_xpm_base.h"
 #include "mhw_render_xe_hpc.h"
-#include "mhw_render_xe_hpg.h"
 #include "mhw_sfc_xe_xpm.h"
 #include "mhw_state_heap_xe_xpm.h"
 #include "mhw_vebox_xe_xpm.h"
@@ -196,9 +195,6 @@ public:
     //! \details  If the HAL creation fails, this is used for cleanup
     //!
     virtual void Destroy();
-    ~MhwInterfacesPvc_Next();
-    MhwMiInterface     *m_miInterface     = nullptr;
-    MhwRenderInterface *m_renderInterface = nullptr;
 };
 
 class MmdDeviceXe_Xpm_Plus : public MmdDevice

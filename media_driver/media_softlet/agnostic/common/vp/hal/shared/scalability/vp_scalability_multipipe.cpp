@@ -80,6 +80,7 @@ MOS_STATUS VpScalabilityMultiPipe::Initialize(const MediaScalabilityOption &opti
     SCALABILITY_FUNCTION_ENTER;
 
     SCALABILITY_CHK_NULL_RETURN(m_hwInterface);
+    m_miInterface = m_hwInterface->m_mhwMiInterface;
 
     m_osInterface = m_hwInterface->m_osInterface;
     SCALABILITY_CHK_NULL_RETURN(m_osInterface);

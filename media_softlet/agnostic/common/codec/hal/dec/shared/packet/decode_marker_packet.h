@@ -87,7 +87,7 @@ public:
         uint32_t &requestedPatchListSize) override;
 
 protected:
-    std::shared_ptr<mhw::mi::Itf> m_miItf  = nullptr;
+    MhwMiInterface* m_miInterface = nullptr;
     DecodeMarker* m_marker = nullptr;
 
 MEDIA_CLASS_DEFINE_END(decode__DecodeMarkerPkt)

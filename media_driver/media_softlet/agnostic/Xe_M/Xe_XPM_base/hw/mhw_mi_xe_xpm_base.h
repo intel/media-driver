@@ -54,8 +54,8 @@ struct MhwMiInterfaceXe_Xpm_Base : public MhwMiInterfaceG12
         if (!m_miItfNew && m_osInterface)
         {
             auto ptr = std::make_shared<mhw::mi::xe_xpm_base::Impl>(m_osInterface);
+            ptr->SetCpInterface(m_cpInterface);
             m_miItfNew = ptr;
-            ptr->SetCpInterface(m_cpInterface, std::static_pointer_cast<mhw::mi::Itf>(ptr));
         }
 
         return m_miItfNew;

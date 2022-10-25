@@ -60,6 +60,8 @@ CodechalHwInterfaceNext::CodechalHwInterfaceNext(
 
     // Remove legacy mhw sub interfaces.
     m_cpInterface     = mhwInterfacesNext->m_cpInterface;
+    m_miInterface     = mhwInterfacesNext->m_miInterface;
+    m_renderInterface = mhwInterfacesNext->m_renderInterface;
     m_veboxInterface  = mhwInterfacesNext->m_veboxInterface;
     m_sfcInterface    = mhwInterfacesNext->m_sfcInterface;
 }
@@ -79,6 +81,18 @@ CodechalHwInterfaceNext::~CodechalHwInterfaceNext()
 
     Delete_MhwCpInterface(m_cpInterface);
     m_cpInterface = nullptr;
+
+    if (m_miInterface)
+    {
+        MOS_Delete(m_miInterface);
+        m_miInterface = nullptr;
+    }
+
+    if (m_renderInterface)
+    {
+        MOS_Delete(m_renderInterface);
+        m_renderInterface = nullptr;
+    }
 
     if (m_veboxInterface)
     {
