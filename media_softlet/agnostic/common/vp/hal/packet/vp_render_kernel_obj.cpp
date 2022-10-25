@@ -507,7 +507,7 @@ MOS_STATUS GetSurfaceSize(
     case Format_P216:
         iWidthInBytes = pSurface->osSurface->dwWidth * 2;
         iHeightInRows = pSurface->osSurface->dwHeight * 2;
-
+        break;
     default:
         VP_RENDER_ASSERTMESSAGE("Format %d not supported.", pSurface->osSurface->Format);
         eStatus = MOS_STATUS_UNKNOWN;
@@ -529,11 +529,11 @@ void VpRenderKernelObj::DumpSurface(VP_SURFACE* pSurface, PCCHAR fileName)
     uint8_t* pDst;
     uint8_t* pTmpDst;
     uint8_t* pTmpSrc;
-    uint32_t                iWidthInBytes;
-    uint32_t                iHeightInRows;
-    uint32_t                iBpp;
-    uint32_t                iSize;
-    uint32_t                iY;
+    uint32_t                iWidthInBytes = 0;
+    uint32_t                iHeightInRows = 0;
+    uint32_t                iBpp = 0;
+    uint32_t                iSize = 0;
+    uint32_t                iY = 0;
     MOS_LOCK_PARAMS         LockFlags;
 
     VP_FUNC_CALL();
