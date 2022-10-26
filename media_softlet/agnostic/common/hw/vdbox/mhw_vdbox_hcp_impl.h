@@ -32,6 +32,12 @@
 #include "mhw_impl.h"
 #include "mhw_vdbox_hcp_def.h"
 
+#define MHW_HCP_WORST_CASE_LCU_CU_TU_INFO (26 * MHW_CACHELINE_SIZE)       // 18+4+4
+#define MHW_HCP_WORST_CASE_LCU_CU_TU_INFO_REXT (35 * MHW_CACHELINE_SIZE)  // 27+4+4
+
+#define MHW_HCP_WORST_CASE_CU_TU_INFO (4 * MHW_CACHELINE_SIZE)       // 2+1+1
+#define MHW_HCP_WORST_CASE_CU_TU_INFO_REXT (6 * MHW_CACHELINE_SIZE)  // 4+1+1
+
 namespace mhw
 {
 namespace vdbox

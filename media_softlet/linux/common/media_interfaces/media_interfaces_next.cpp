@@ -37,14 +37,118 @@
 #include "media_interfaces_mcpy_next.h"
 #include "media_interfaces_mmd_next.h"
 #include "media_interfaces_mhw_next.h"
+#include "media_interfaces_codechal_next.h"
 
+template class MediaFactory<uint32_t, CodechalDeviceNext>;
 template class MediaFactory<uint32_t, MhwInterfacesNext>;
 template class MediaFactory<uint32_t, McpyDeviceNext>;
 template class MediaFactory<uint32_t, MmdDeviceNext>;
 
+typedef MediaFactory<uint32_t, CodechalDeviceNext> CodechalFactoryNext;
 typedef MediaFactory<uint32_t, MhwInterfacesNext> MhwFactoryNext;
 typedef MediaFactory<uint32_t, McpyDeviceNext> McpyFactoryNext;
 typedef MediaFactory<uint32_t, MmdDeviceNext> MmdFactoryNext;
+
+Codechal* CodechalDeviceNext::CreateFactory(
+    PMOS_INTERFACE  osInterface,
+    PMOS_CONTEXT    osDriverContext,
+    void            *standardInfo,
+    void            *settings)
+{
+#define FAIL_DESTROY(msg)                   \
+{                                           \
+    CODECHAL_PUBLIC_ASSERTMESSAGE((msg));   \
+    if (mhwInterfaces != nullptr)           \
+    {                                       \
+        mhwInterfaces->Destroy();           \
+    }                                       \
+    if (osInterface != nullptr && osInterface->bDeallocateOnExit) \
+    {                                       \
+        if (osInterface->pfnDestroy != nullptr) \
+        {                                   \
+             osInterface->pfnDestroy(osInterface, false); \
+        }                                   \
+        MOS_FreeMemory(osInterface);        \
+    }                                       \
+    MOS_Delete(mhwInterfaces);              \
+    MOS_Delete(device);                     \
+    return nullptr;                         \
+}
+
+#define FAIL_CHK_STATUS(stmt)               \
+{                                           \
+    if ((stmt) != MOS_STATUS_SUCCESS)       \
+    {                                       \
+        FAIL_DESTROY("Status check failed, CodecHal creation failed!"); \
+    }                                       \
+}
+
+#define FAIL_CHK_NULL(ptr)                  \
+{                                           \
+    if ((ptr) == nullptr)                   \
+    {                                       \
+        FAIL_DESTROY("nullptr check failed, CodecHal creation failed!"); \
+    }                                       \
+}
+
+    if (osDriverContext == nullptr ||
+        standardInfo == nullptr)
+    {
+        return nullptr;
+    }
+
+    MhwInterfacesNext *mhwInterfaces = nullptr;
+    CodechalDeviceNext *device = nullptr;
+
+    CODECHAL_FUNCTION CodecFunction = ((PCODECHAL_STANDARD_INFO)standardInfo)->CodecFunction;
+
+    // pOsInterface not provided - use default for the current OS
+    if (osInterface == nullptr)
+    {
+        osInterface =
+            (PMOS_INTERFACE)MOS_AllocAndZeroMemory(sizeof(MOS_INTERFACE));
+        FAIL_CHK_NULL(osInterface);
+
+        MOS_COMPONENT component = CodecHalIsDecode(CodecFunction) ? COMPONENT_Decode : COMPONENT_Encode;
+
+        osInterface->bDeallocateOnExit = true;
+        FAIL_CHK_STATUS(Mos_InitInterface(osInterface, osDriverContext, component));
+    }
+    // pOsInterface provided - use OS interface functions provided by DDI (OS emulation)
+    else
+    {
+        osInterface->bDeallocateOnExit = false;
+    }
+
+    MhwInterfacesNext::CreateParams params;
+    MOS_ZeroMemory(&params, sizeof(params));
+    params.Flags.m_render = true;
+    params.Flags.m_sfc = true;
+    params.Flags.m_vdboxAll = true;
+    params.Flags.m_vebox = true;
+    params.m_heapMode = (uint8_t)2;
+    params.m_isDecode = CodecHalIsDecode(CodecFunction);
+    mhwInterfaces = MhwInterfacesNext::CreateFactory(params, osInterface);
+    FAIL_CHK_NULL(mhwInterfaces);
+
+    PLATFORM platform = {};
+    osInterface->pfnGetPlatform(osInterface, &platform);
+    device = CodechalFactoryNext::Create(platform.eProductFamily + MEDIA_EXT_FLAG);
+    if(device == nullptr)
+    {
+        device = CodechalFactoryNext::Create(platform.eProductFamily);
+    }
+    FAIL_CHK_NULL(device);
+    FAIL_CHK_STATUS(device->Initialize(standardInfo, settings, mhwInterfaces, osInterface));
+    FAIL_CHK_NULL(device->m_codechalDevice);
+
+    Codechal *codechalDevice = device->m_codechalDevice;
+
+    MOS_Delete(mhwInterfaces);
+    MOS_Delete(device);
+
+    return codechalDevice;
+}
 
 MhwInterfacesNext* MhwInterfacesNext::CreateFactory(
     CreateParams params,

@@ -50,6 +50,12 @@ namespace vdbox
 namespace mfx
 {
 
+typedef enum _MHW_VDBOX_AVC_DMV_OFFSET
+{
+    MHW_VDBOX_AVC_DMV_DEST_TOP = 32,
+    MHW_VDBOX_AVC_DMV_DEST_BOTTOM = 33
+} MHW_VDBOX_AVC_DMV_OFFSET;
+
 template<typename cmd_t>
 class Impl : public Itf, public mhw::Impl
 {

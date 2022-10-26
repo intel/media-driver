@@ -33,6 +33,7 @@
 #include "hwinfo_linux.h"
 #include "codechal_memdecomp.h"
 #include "media_interfaces_codechal.h"
+#include "media_interfaces_codechal_next.h"
 #include "media_interfaces_mmd.h"
 #include "cm_device_rt.h"
 
@@ -342,10 +343,19 @@ VAStatus DdiEncode_CreateContext(
         nullptr);
     if (pCodecHal == nullptr)
     {
-        // add anything necessary here to free the resource
-        vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
-        DdiEncodeCleanUp(encCtx);
-        return vaStatus;
+        pCodecHal = CodechalDeviceNext::CreateFactory(
+            nullptr,
+            &mosCtx,
+            &standardInfo,
+            nullptr);
+
+        if (nullptr == pCodecHal)
+        {
+            // add anything necessary here to free the resource
+            vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
+            DdiEncodeCleanUp(encCtx);
+            return vaStatus;
+        }
     }
 
     encCtx->pCodecHal = pCodecHal;

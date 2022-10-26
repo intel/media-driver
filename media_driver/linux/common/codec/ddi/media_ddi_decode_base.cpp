@@ -33,6 +33,7 @@
 #include "media_interfaces_codechal.h"
 #include "media_interfaces_mmd.h"
 #include "mos_solo_generic.h"
+#include "media_interfaces_codechal_next.h"
 
 DdiMediaDecode::DdiMediaDecode(DDI_DECODE_CONFIG_ATTR *ddiDecodeAttr)
     : DdiMediaBase()
@@ -1181,9 +1182,18 @@ VAStatus DdiMediaDecode::CreateCodecHal(
 
     if (nullptr == codecHal)
     {
-        DDI_ASSERTMESSAGE("Failure in CodecHal create.\n");
-        vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
-        return vaStatus;
+        codecHal = CodechalDeviceNext::CreateFactory(
+            nullptr,
+            mosCtx,
+            standardInfo,
+            m_codechalSettings);
+
+        if (nullptr == codecHal)
+        {
+            DDI_ASSERTMESSAGE("Failure in CodecHal create.\n");
+            vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
+            return vaStatus;
+        }
     }
 
     if (codecHal->IsApogeiosEnabled())

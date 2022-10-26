@@ -34,6 +34,7 @@
 #include "media_interfaces_mhw.h"
 #include "media_interfaces_mhw_next.h"
 #include "media_interfaces_codechal.h"
+#include "media_interfaces_codechal_next.h"
 #include "media_interfaces_mmd.h"
 #include "media_interfaces_mcpy.h"
 #include "media_interfaces_cmhal.h"
@@ -65,7 +66,7 @@
 #include "mhw_blt_xe_hp_base.h"
 
 #include "codechal_hw_xe_hpm.h"
-
+#include "codechal_hw_next_xe_hpm.h"
 
 #ifdef _AVC_DECODE_SUPPORTED
 #include "decode_avc_pipeline_adapter_m12.h"
@@ -326,6 +327,19 @@ protected:
         PMOS_INTERFACE                                        osInterface,
         CODECHAL_FUNCTION                                     CodecFunction,
         bool                                                  disableScalability);
+};
+class CodechalInterfacesNextXe_Hpm : public CodechalDeviceNext
+{
+public:
+    using Decode = CodechalDecodeInterfacesXe_Hpm;
+    using Encode = CodechalEncodeInterfacesXe_Hpm;
+    using Hw     = CodechalHwInterfaceNextXe_Hpm;
+
+    virtual MOS_STATUS Initialize(
+        void          *standardInfo,
+        void          *settings,
+        MhwInterfacesNext *mhwInterfaces,
+        PMOS_INTERFACE osInterface) override;
 };
 
 #define DG2_L3_CONFIG_COUNT     6
