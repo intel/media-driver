@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022, Intel Corporation
+# Copyright (c) 2020-2022, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,10 +18,32 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-media_include_subdirectory(common)
-media_include_subdirectory(Xe_R)
-if(Xe_M_plus)
-    media_include_subdirectory(Xe_M_plus)
-endif()
+set(TMP_SOURCES_
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_avp_impl_xe_lpm_plus_base.cpp
+)
 
-include(${MEDIA_SOFTLET_EXT}/agnostic/media_srcs_ext.cmake OPTIONAL)
+set(TMP_HEADERS_
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_vdenc_impl_xe_lpm_plus_base.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_avp_impl_xe_lpm_plus_base.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_hcp_impl_xe_lpm_plus_base.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_mfx_impl_xe_lpm_plus_base.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_xe_lpm_plus_base.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_huc_impl_xe_lpm_plus_base.h
+)
+
+set(SOFTLET_COMMON_SOURCES_
+    ${SOFTLET_COMMON_SOURCES_}
+    ${TMP_SOURCES_}
+)
+
+set(SOFTLET_COMMON_HEADERS_
+    ${SOFTLET_COMMON_HEADERS_}
+    ${TMP_HEADERS_}
+)
+
+source_group( "MHW\\Vdbox" FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
+
+set(SOFTLET_COMMON_PRIVATE_INCLUDE_DIRS_
+    ${SOFTLET_COMMON_PRIVATE_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)

@@ -117,6 +117,16 @@ cmake_dependent_option(PVC
     "Enabled PVC support" ON
     "Xe_M;ENABLE_PRODUCTION_KMD" OFF)
 
+option(MTL "Enable MTL support" ON)
+
+if(MTL)
+    option(XE_LPM_PLUS_SUPPORT "Enable XE_LPM_PLUS support" ON)
+endif()
+
+if(MTL)
+    option(Xe_M_plus "Enable Xe_M_plus support" ON)
+endif()
+
 if(GEN8)
     add_definitions(-DIGFX_GEN8_SUPPORTED)
 endif()
@@ -225,6 +235,10 @@ endif()
 if(XE_HPG)
     add_definitions(-DIGFX_XE_HPG_SUPPORTED)
     add_definitions(-DIGFX_XE_HPG_CMFCPATCH_SUPPORTED)
+endif()
+
+if(MTL)
+    add_definitions(-DIGFX_MTL_SUPPORTED)
 endif()
 
 include(${MEDIA_EXT_CMAKE}/ext/linux/media_gen_flags_linux_ext.cmake OPTIONAL)

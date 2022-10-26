@@ -64,6 +64,7 @@ bs_set_if_undefined(VP9_Decode_Supported "yes")
 bs_set_if_undefined(VP_SFC_Supported "yes")
 bs_set_if_undefined(Common_Encode_Supported "yes")
 bs_set_if_undefined(Media_Scalability_Supported "yes")
+bs_set_if_undefined(VphalNext_Enabled "yes")
 
 # features controlled by global flag Encode_VDEnc_Supported
 bs_set_if_undefined(AVC_Encode_VDEnc_Supported "${Encode_VDEnc_Supported}")
@@ -181,6 +182,10 @@ endif()
 
 if(NOT ENABLE_NONFREE_KERNELS)
     add_definitions(-D_FULL_OPEN_SOURCE)
+endif()
+
+if (${VphalNext_Enabled} STREQUAL "yes")
+    add_definitions(-D_VPHALNEXT_ENABLED)
 endif()
 
 include(${MEDIA_EXT_CMAKE}/ext/linux/media_feature_flags_linux_ext.cmake OPTIONAL)
