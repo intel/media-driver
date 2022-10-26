@@ -1380,7 +1380,7 @@ void GpuContextSpecific::UnlockPendingOcaBuffers(PMOS_COMMAND_BUFFER cmdBuffer, 
 
     int count = 0;
     struct MOS_OCA_EXEC_LIST_INFO *info = nullptr;
-    if (cmdBuffer->iSubmissionType & SUBMISSION_TYPE_SINGLE_PIPE_MASK)
+    if ((cmdBuffer->iSubmissionType & SUBMISSION_TYPE_SINGLE_PIPE_MASK) && ((MosOcaInterfaceSpecific*)pOcaInterface)->IsOcaDumpExecListInfoEnabled())
     {
         info = mos_bo_get_softpin_targets_info(cmdBuffer->OsResource.bo, &count);
     }

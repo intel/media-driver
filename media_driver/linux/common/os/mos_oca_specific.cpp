@@ -718,6 +718,16 @@ void MosOcaInterfaceSpecific::Initialize(PMOS_CONTEXT mosContext)
         {
             return;
         }
+        char *user_ctx_env = getenv("INTEL_DISABLE_DUMP_EXEC_LIST_INFO");
+        if (nullptr != user_ctx_env)
+        {
+            uint8_t user_ctx_env_value = (bool)atoi(user_ctx_env);
+            if (user_ctx_env_value == 1)
+            {
+                m_ocaDumpExecListInfoEnabled = false;
+            }
+        }
+
         m_config.maxResInfoCount = OCA_MAX_RESOURCE_INFO_COUNT_MAX;
         m_resInfoPool = MOS_NewArray(MOS_OCA_RESOURCE_INFO, m_config.maxResInfoCount * MAX_NUM_OF_OCA_BUF_CONTEXT);
         if (nullptr == m_resInfoPool)
@@ -813,6 +823,7 @@ void MosOcaInterfaceSpecific::Uninitialize()
         m_isInitialized = false;
         s_bOcaStatusExistInReg = false;
         s_isDestroyed = false;
+        m_ocaDumpExecListInfoEnabled = true;
     }
 }
 

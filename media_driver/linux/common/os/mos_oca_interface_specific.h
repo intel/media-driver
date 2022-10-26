@@ -292,6 +292,14 @@ public:
          return m_isOcaEnabled;
     }
 
+    //!
+    //! \brief  return oca dump exec list info is enabled or not.
+    //!
+    bool IsOcaDumpExecListInfoEnabled()
+    {
+        return m_ocaDumpExecListInfoEnabled;
+    }
+
     static MosOcaInterface& GetInstance();
     
     static uint32_t IncreaseSize(uint32_t cmdBufSize);
@@ -334,6 +342,7 @@ private:
     MOS_OCA_BUFFER_CONFIG           m_config;
     uint32_t                        m_indexOfNextOcaBufContext                      = 0;
     uint32_t                        m_ocaLogSectionSizeLimit                        = OCA_LOG_SECTION_SIZE_MAX;
+    bool                            m_ocaDumpExecListInfoEnabled                    = true;
 
     std::vector<MOS_OCA_BUFFER_HANDLE> m_PendingOcaBuffersToUnlock;
 
