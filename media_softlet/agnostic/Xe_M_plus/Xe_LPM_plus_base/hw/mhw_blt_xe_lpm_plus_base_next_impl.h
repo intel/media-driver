@@ -51,7 +51,6 @@ public:
     uint32_t GetFastTilingMode(BLT_TILE_TYPE TileType) override
     {
         MHW_FUNCTION_ENTER;
-
         switch (TileType)
         {
         case BLT_NOT_TILED:
@@ -65,66 +64,6 @@ public:
             MHW_ASSERTMESSAGE("BLT: Can't support GMM TileType %d.", TileType);
         }
         return Cmd::XY_FAST_COPY_BLT_CMD::DESTINATION_TILING_METHOD_LINEAR_TILINGDISABLED;
-    }
-
-    _MHW_SETCMD_OVERRIDE_DECL(XY_BLOCK_COPY_BLT)
-    {
-        MHW_FUNCTION_ENTER;
-
-        _MHW_SETCMD_CALLBASE(XY_BLOCK_COPY_BLT);
-
-        MHW_RESOURCE_PARAMS                    ResourceParams;
-
-        MHW_CHK_NULL_RETURN(this->m_currentCmdBuf);
-        MHW_CHK_NULL_RETURN(this->m_osItf);
-
-        cmd.DW0.ColorDepth       = params.dwColorDepth;
-        cmd.DW1.DestinationPitch = params.dwDstPitch - 1;
-        cmd.DW1.DestinationMocsValue =
-            this->m_osItf->pfnGetGmmClientContext(this->m_osItf)->CachePolicyGetMemoryObject(nullptr, GMM_RESOURCE_USAGE_BLT_DESTINATION).DwordValue;
-
-        cmd.DW1.DestinationTiling = (params.pDstOsResource->TileType == MOS_TILE_LINEAR) ? 0 : 1;
-        cmd.DW8.SourceTiling      = (params.pSrcOsResource->TileType == MOS_TILE_LINEAR) ? 0 : 1;
-        cmd.DW8.SourceMocs =
-            this->m_osItf->pfnGetGmmClientContext(this->m_osItf)->CachePolicyGetMemoryObject(nullptr, GMM_RESOURCE_USAGE_BLT_SOURCE).DwordValue;
-
-        cmd.DW2.DestinationX1CoordinateLeft   = 0;
-        cmd.DW2.DestinationY1CoordinateTop    = 0;
-        cmd.DW3.DestinationX2CoordinateRight  = params.dwDstRight;
-        cmd.DW3.DestinationY2CoordinateBottom = params.dwDstBottom;
-        cmd.DW7.SourceX1CoordinateLeft        = params.dwSrcLeft;
-        cmd.DW7.SourceY1CoordinateTop         = params.dwSrcTop;
-        cmd.DW8.SourcePitch                   = params.dwSrcPitch - 1;
-
-        // add source address
-        MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
-        ResourceParams.dwLsbNum        = 12;
-        ResourceParams.dwOffset        = params.dwSrcOffset;
-        ResourceParams.presResource    = params.pSrcOsResource;
-        ResourceParams.pdwCmd          = &(cmd.DW9_10.Value[0]);
-        ResourceParams.dwLocationInCmd = 9;
-        ResourceParams.bIsWritable     = true;
-
-        MHW_CHK_STATUS_RETURN(AddResourceToCmd(
-            this->m_osItf,
-            this->m_currentCmdBuf,
-            &ResourceParams));
-
-        // add destination address
-        MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
-        ResourceParams.dwLsbNum        = 12;
-        ResourceParams.dwOffset        = params.dwDstOffset;
-        ResourceParams.presResource    = params.pDstOsResource;
-        ResourceParams.pdwCmd          = &(cmd.DW4_5.Value[0]);
-        ResourceParams.dwLocationInCmd = 4;
-        ResourceParams.bIsWritable     = true;
-
-        MHW_CHK_STATUS_RETURN(AddResourceToCmd(
-            this->m_osItf,
-            this->m_currentCmdBuf,
-            &ResourceParams));
-
-        return MOS_STATUS_SUCCESS;
     }
 
 protected:

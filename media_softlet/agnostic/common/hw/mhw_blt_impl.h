@@ -198,6 +198,115 @@ public:
         MHW_FUNCTION_ENTER;
 
         _MHW_SETCMD_CALLBASE(XY_BLOCK_COPY_BLT);
+        MHW_CHK_NULL_RETURN(params.pSrcOsResource);
+        MHW_CHK_NULL_RETURN(params.pDstOsResource);
+
+        MHW_RESOURCE_PARAMS            ResourceParams;
+        PGMM_RESOURCE_INFO             pSrcGmmResInfo = params.pSrcOsResource->pGmmResInfo;
+        PGMM_RESOURCE_INFO             pDstGmmResInfo = params.pDstOsResource->pGmmResInfo;
+        MHW_CHK_NULL_RETURN(pSrcGmmResInfo);
+        MHW_CHK_NULL_RETURN(pDstGmmResInfo);
+
+        BLT_TILE_TYPE dstTiledMode = static_cast<BLT_TILE_TYPE>(pDstGmmResInfo->GetTileType());
+        BLT_TILE_TYPE srcTiledMode = static_cast<BLT_TILE_TYPE>(pSrcGmmResInfo->GetTileType());
+
+        uint32_t sourceResourceWidth  = (uint32_t)pSrcGmmResInfo->GetBaseWidth();
+        uint32_t sourceResourceHeight = (uint32_t)pSrcGmmResInfo->GetBaseHeight();
+        uint32_t dstResourceWidth     = (uint32_t)pDstGmmResInfo->GetBaseWidth();
+        uint32_t dstResourceHeight    = (uint32_t)pDstGmmResInfo->GetBaseHeight();
+
+        MHW_CHK_NULL_RETURN(this->m_currentCmdBuf);
+        MHW_CHK_NULL_RETURN(this->m_osItf);
+
+        uint32_t dstSampleNum = pDstGmmResInfo->GetNumSamples();
+
+        cmd.DW0.InstructionTargetOpcode = 0x41;
+        cmd.DW0.ColorDepth              = params.dwColorDepth;
+        cmd.DW1.DestinationPitch        = params.dwDstPitch - 1;
+        cmd.DW1.DestinationMocsValue    = this->m_osItf->pfnGetGmmClientContext(this->m_osItf)->CachePolicyGetMemoryObject(nullptr, GMM_RESOURCE_USAGE_BLT_DESTINATION).DwordValue;
+
+        cmd.DW1.DestinationControlSurfaceType = 1;// 1 is media; 0 is 3D;
+        cmd.DW1.DestinationTiling             = GetFastTilingMode(dstTiledMode);
+        cmd.DW8.SourceControlSurfaceType      = 1; // 1 is media; 0 is 3D;
+        cmd.DW8.SourceTiling                  = GetFastTilingMode(srcTiledMode);
+        cmd.DW8.SourceMocs                    = this->m_osItf->pfnGetGmmClientContext(this->m_osItf)->CachePolicyGetMemoryObject(nullptr, GMM_RESOURCE_USAGE_BLT_SOURCE).DwordValue;
+
+        cmd.DW2.DestinationX1CoordinateLeft   = 0;
+        cmd.DW2.DestinationY1CoordinateTop    = 0;
+        cmd.DW3.DestinationX2CoordinateRight  = params.dwDstRight;
+        cmd.DW3.DestinationY2CoordinateBottom = params.dwDstBottom;
+        cmd.DW7.SourceX1CoordinateLeft        = params.dwSrcLeft;
+        cmd.DW7.SourceY1CoordinateTop         = params.dwSrcTop;
+        cmd.DW8.SourcePitch                   = params.dwSrcPitch - 1;
+
+        if (pDstGmmResInfo->GetResFlags().Info.NonLocalOnly)
+        {
+            cmd.DW6.DestinationTargetMemory = 1;//DESTINATION_TARGET_MEMORY::DESTINATION_TARGET_MEMORY_SYSTEM_MEM;
+        }
+        if (pSrcGmmResInfo->GetResFlags().Info.NonLocalOnly)
+        {
+            cmd.DW11.SourceTargetMemory = 1;// SOURCE_TARGET_MEMORY::SOURCE_TARGET_MEMORY_SYSTEM_MEM;
+        }
+
+        cmd.DW16.DestinationSurfaceHeight                       = dstResourceHeight -1;
+        cmd.DW16.DestinationSurfaceWidth                        = dstResourceWidth -1;
+        cmd.DW16.DestinationSurfaceType                         = 1; // 0 is 1D, 1 is 2D
+        cmd.DW19.SourceSurfaceHeight                            = sourceResourceHeight - 1;
+        cmd.DW19.SourceSurfaceWidth                             = sourceResourceWidth - 1;
+        cmd.DW19.SourceSurfaceType                              = 1;
+
+
+        uint32_t srcQPitch = pSrcGmmResInfo->GetQPitch();
+        uint32_t dstQPitch = pDstGmmResInfo->GetQPitch();
+        GMM_RESOURCE_TYPE   dstResType = pDstGmmResInfo->GetResourceType();
+        GMM_RESOURCE_TYPE   srcResType = pSrcGmmResInfo->GetResourceType();
+
+        MCPY_NORMALMESSAGE("Src type %d, dst type %d, srcTiledMode %d,  dstTiledMode %d", 
+            srcResType, dstResType, srcTiledMode, dstTiledMode);
+
+        cmd.DW17.DestinationSurfaceQpitch                       = dstQPitch >> 2;
+        cmd.DW20.SourceSurfaceQpitch                            = srcQPitch >> 2;
+
+        cmd.DW18.DestinationHorizontalAlign                     = pDstGmmResInfo->GetVAlign();;
+        cmd.DW18.DestinationVerticalAlign                       = pDstGmmResInfo->GetHAlign();
+        cmd.DW18.DestinationMipTailStartLOD                     = 0xf;
+
+        cmd.DW21.SourceHorizontalAlign                          = pSrcGmmResInfo->GetVAlign();
+        cmd.DW21.SourceVerticalAlign                            = pSrcGmmResInfo->GetHAlign();
+        cmd.DW21.SourceMipTailStartLOD                          = 0xf;
+
+        // add source address
+        MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
+        ResourceParams.dwLsbNum        = 0;
+        ResourceParams.dwOffset        = params.dwSrcOffset;
+        ResourceParams.presResource    = params.pSrcOsResource;
+        ResourceParams.pdwCmd          = &(cmd.DW9_10.Value[0]);
+        ResourceParams.dwLocationInCmd = 9;
+        ResourceParams.bIsWritable     = true;
+
+        MHW_CHK_STATUS_RETURN(AddResourceToCmd(
+            this->m_osItf,
+            this->m_currentCmdBuf,
+            &ResourceParams));
+
+        // add destination address
+        MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
+        ResourceParams.dwLsbNum        = 0;
+        ResourceParams.dwOffset        = params.dwDstOffset;
+        ResourceParams.presResource    = params.pDstOsResource;
+        ResourceParams.pdwCmd          = &(cmd.DW4_5.Value[0]);
+        ResourceParams.dwLocationInCmd = 4;
+        ResourceParams.bIsWritable     = true;
+
+        MHW_CHK_STATUS_RETURN(AddResourceToCmd(
+            this->m_osItf,
+            this->m_currentCmdBuf,
+            &ResourceParams));
+
+        MCPY_NORMALMESSAGE("Block BLT cmd:dstSampleNum = %d;  width = %d, hieght = %d, ColorDepth = %d, Source Pitch %d, mocs = %d,tiled %d,  dst Pitch %d, mocs = %d,tiled %d",
+            dstSampleNum, params.dwDstRight, params.dwDstBottom,
+            cmd.DW0.ColorDepth, cmd.DW8.SourcePitch, cmd.DW8.SourceMocs, cmd.DW8.SourceTiling,
+            cmd.DW1.DestinationPitch, cmd.DW1.DestinationMocsValue, cmd.DW1.DestinationTiling);
 
         return MOS_STATUS_SUCCESS;
     }

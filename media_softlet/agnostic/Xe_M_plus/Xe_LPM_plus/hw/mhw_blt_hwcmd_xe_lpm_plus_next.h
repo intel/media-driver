@@ -191,8 +191,8 @@ public:
         {
             struct
             {
-                uint32_t         SourceClearAddressHigh                           : __CODEGEN_BITFIELD( 0, 24)    ; ///< U25
-                uint32_t         Reserved441                                     : __CODEGEN_BITFIELD(25, 31)    ; ///< U7
+                uint32_t         SourceClearAddressHigh                           : __CODEGEN_BITFIELD( 0, 15)    ; ///< U16
+                uint32_t         Reserved441                                      : __CODEGEN_BITFIELD(16, 31)    ; ///< U16
             };
             uint32_t                     Value;
         } DW13;
