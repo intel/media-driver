@@ -317,6 +317,9 @@ protected:
 #define __VPHAL_DBG_PARAM_DUMP_END_FRAME_KEY_NAME                       "endxmlFrame"
 #define __VPHAL_DBG_DUMP_OUTPUT_DIRECTORY                               "Vphal Debug Dump Output Directory"
 #define __VPHAL_DBG_PARA_DUMP_ENABLE_SKUWA_DUMP                         "enableSkuWaDump"
+
+#define __MEDIA_USER_FEATURE_VALUE_INTER_FRAME_MEMORY_NINJA_START_COUNTER "InterFrameNinjaStartCounter"
+#define __MEDIA_USER_FEATURE_VALUE_INTER_FRAME_MEMORY_NINJA_END_COUNTER "InterFrameNinjaEndCounter"
 #endif  //(_DEBUG || _RELEASE_INTERNAL)
 
 class VpUtils

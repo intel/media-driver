@@ -291,6 +291,18 @@ protected:
         return MOS_STATUS_SUCCESS;
     }
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    //!
+    //! \brief  Report INTER_FRAME_MEMORY_NINJA_START_COUNTER and INTER_FRAME_MEMORY_NINJA_END_COUNTER
+    //!         INTER_FRAME_MEMORY_NINJA_START_COUNTER will be reported in Prepare() function
+    //!         INTER_FRAME_MEMORY_NINJA_END_COUNTER will be reported in UserFeatureReport() function which runs in EXecute()
+    //! \param  
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS ReportIFNCC(bool bStart);
+#endif
+
     //!
     //! \brief  set Video Processing Settings
     //! \param  [in] params
