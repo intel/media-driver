@@ -22,8 +22,11 @@ set(TMP_SOURCES_ "")
 set(TMP_HEADERS_ "")
 
 media_include_subdirectory(av1)
+media_include_subdirectory(avc)
 media_include_subdirectory(hevc)
 media_include_subdirectory(shared)
+media_include_subdirectory(jpeg)
+media_include_subdirectory(vp9)
 
 set(SOURCES_
     ${SOURCES_}

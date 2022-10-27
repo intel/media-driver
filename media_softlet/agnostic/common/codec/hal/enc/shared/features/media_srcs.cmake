@@ -25,6 +25,8 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/encode_basic_feature.cpp
     ${CMAKE_CURRENT_LIST_DIR}/encode_feature_manager.cpp
     ${CMAKE_CURRENT_LIST_DIR}/encode_lpla.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/encode_preenc_basic_feature.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/encode_preenc_const_settings.cpp
 )
 
 set(TMP_HEADERS_
@@ -34,6 +36,9 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/encode_basic_feature.h
     ${CMAKE_CURRENT_LIST_DIR}/encode_feature_manager.h
     ${CMAKE_CURRENT_LIST_DIR}/encode_lpla.h
+    ${CMAKE_CURRENT_LIST_DIR}/encode_preenc_basic_feature.h
+    ${CMAKE_CURRENT_LIST_DIR}/encode_preenc_const_settings.h
+    ${CMAKE_CURRENT_LIST_DIR}/encode_preenc_defs.h
 )
 endif()
 

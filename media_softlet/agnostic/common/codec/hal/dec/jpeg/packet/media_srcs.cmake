@@ -22,11 +22,15 @@ if(${JPEG_Decode_Supported} STREQUAL "yes")
 set(TMP_SOURCES_
     ${TMP_SOURCES_}
     ${CMAKE_CURRENT_LIST_DIR}/decode_jpeg_downsampling_packet.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/decode_jpeg_picture_packet.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/decode_jpeg_packet.cpp
 )
 
 set(TMP_HEADERS_
     ${TMP_HEADERS_}
     ${CMAKE_CURRENT_LIST_DIR}/decode_jpeg_downsampling_packet.h
+    ${CMAKE_CURRENT_LIST_DIR}/decode_jpeg_picture_packet.h
+    ${CMAKE_CURRENT_LIST_DIR}/decode_jpeg_packet.h
 )
 endif()
 

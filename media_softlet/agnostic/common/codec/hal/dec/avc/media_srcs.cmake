@@ -20,3 +20,4 @@
 
 media_include_subdirectory(pipeline)
 media_include_subdirectory(features)
+media_include_subdirectory(packet)

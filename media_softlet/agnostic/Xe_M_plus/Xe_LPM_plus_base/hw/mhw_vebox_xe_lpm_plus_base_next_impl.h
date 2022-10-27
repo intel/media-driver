@@ -691,7 +691,7 @@ public:
     }
 
     MOS_STATUS AddVeboxHdrState(
-        PMHW_VEBOX_IECP_PARAMS pVeboxIecpParams)
+        PMHW_VEBOX_IECP_PARAMS pVeboxIecpParams) override
     {
         MHW_FUNCTION_ENTER;
 
@@ -786,7 +786,7 @@ public:
 
     MOS_STATUS SetVeboxGamutState(
         PMHW_VEBOX_IECP_PARAMS  pVeboxIecpParams,
-        PMHW_VEBOX_GAMUT_PARAMS pVeboxGamutParams)
+        PMHW_VEBOX_GAMUT_PARAMS pVeboxGamutParams) override
     {
         MHW_FUNCTION_ENTER;
 
@@ -1453,7 +1453,7 @@ MOS_STATUS DumpDNDIStates(uint8_t *pDndiSate)
     }
 
     MOS_STATUS SetVeboxDndiState(
-            PMHW_VEBOX_DNDI_PARAMS pVeboxDndiParams)
+            PMHW_VEBOX_DNDI_PARAMS pVeboxDndiParams) override
     {
         MHW_FUNCTION_ENTER;
 
@@ -1872,7 +1872,7 @@ MOS_STATUS DumpDNDIStates(uint8_t *pDndiSate)
     }
 
     MOS_STATUS SetVeboxIecpState(
-        PMHW_VEBOX_IECP_PARAMS pVeboxIecpParams)
+        PMHW_VEBOX_IECP_PARAMS pVeboxIecpParams) override
     {
         MHW_FUNCTION_ENTER;
 
@@ -2014,7 +2014,7 @@ MOS_STATUS DumpDNDIStates(uint8_t *pDndiSate)
     }
 
     MOS_STATUS SetVeboxIecpAceState(
-        PMHW_VEBOX_IECP_PARAMS pVeboxIecpParams)
+        PMHW_VEBOX_IECP_PARAMS pVeboxIecpParams) override
     {
         MHW_FUNCTION_ENTER;
 
@@ -2365,7 +2365,7 @@ MOS_STATUS DumpDNDIStates(uint8_t *pDndiSate)
 
     MOS_STATUS SetVeboxSurfaceControlBits(
         PMHW_VEBOX_SURFACE_CNTL_PARAMS pVeboxSurfCntlParams,
-        uint32_t *                     pSurfCtrlBits)
+        uint32_t *                     pSurfCtrlBits) override
     {
         MHW_FUNCTION_ENTER;
 
@@ -2534,7 +2534,7 @@ MOS_STATUS DumpDNDIStates(uint8_t *pDndiSate)
     MOS_STATUS AddVeboxTilingConvert(
             PMOS_COMMAND_BUFFER       cmdBuffer,
             PMHW_VEBOX_SURFACE_PARAMS inSurParams,
-            PMHW_VEBOX_SURFACE_PARAMS outSurParams)
+            PMHW_VEBOX_SURFACE_PARAMS outSurParams) override
     {
         MHW_FUNCTION_ENTER;
 
@@ -2934,7 +2934,7 @@ MOS_STATUS DumpDNDIStates(uint8_t *pDndiSate)
 
     MOS_STATUS AddVeboxSurfaces(
         PMOS_COMMAND_BUFFER                 pCmdBufferInUse,
-        PMHW_VEBOX_SURFACE_STATE_CMD_PARAMS pVeboxSurfaceStateCmdParams)
+        PMHW_VEBOX_SURFACE_STATE_CMD_PARAMS pVeboxSurfaceStateCmdParams) override
     {
         MHW_FUNCTION_ENTER;
 
@@ -2998,7 +2998,7 @@ MOS_STATUS DumpDNDIStates(uint8_t *pDndiSate)
     MOS_STATUS CreateGpuContext(
         PMOS_INTERFACE  pOsInterface,
         MOS_GPU_CONTEXT VeboxGpuContext,
-        MOS_GPU_NODE    VeboxGpuNode)
+        MOS_GPU_NODE    VeboxGpuNode) override
     {
         MOS_STATUS           eStatus = MOS_STATUS_SUCCESS;
 

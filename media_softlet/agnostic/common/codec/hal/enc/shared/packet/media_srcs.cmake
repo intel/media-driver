@@ -23,12 +23,14 @@ set(TMP_SOURCES_
     ${TMP_SOURCES_}
     ${CMAKE_CURRENT_LIST_DIR}/encode_huc.cpp
     ${CMAKE_CURRENT_LIST_DIR}/encode_packet_utilities.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/encode_preenc_packet.cpp
 )
 
 set(TMP_HEADERS_
     ${TMP_HEADERS_}
     ${CMAKE_CURRENT_LIST_DIR}/encode_huc.h
     ${CMAKE_CURRENT_LIST_DIR}/encode_packet_utilities.h
+    ${CMAKE_CURRENT_LIST_DIR}/encode_preenc_packet.h
 )
 endif()
 

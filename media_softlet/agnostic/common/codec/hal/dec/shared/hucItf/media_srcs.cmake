@@ -22,6 +22,19 @@ set(TMP_HEADERS_
     ${TMP_HEADERS_}
     ${CMAKE_CURRENT_LIST_DIR}/decode_huc_packet_creator_base.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_huc_copy_packet_itf.h
+    ${CMAKE_CURRENT_LIST_DIR}/decode_huc_packet_creator.h
 )
+
+set(TMP_SOURCES_
+    ${TMP_SOURCES_}
+    ${CMAKE_CURRENT_LIST_DIR}/decode_huc_packet_creator.cpp
+)
+
+if((${PLATFORM} STREQUAL "linux"))
+set(TMP_SOURCES_
+    ${TMP_SOURCES_}
+    ${CMAKE_CURRENT_LIST_DIR}/huc_streamout_interface.cpp
+)
+endif()
 
 media_add_curr_to_include_path()

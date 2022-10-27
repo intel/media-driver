@@ -20,11 +20,13 @@
 
 if(${AVC_Decode_Supported} STREQUAL "yes")
 set(TMP_SOURCES_
+    ${TMP_SOURCES_}
     ${CMAKE_CURRENT_LIST_DIR}/decode_avc_pipeline.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_avc_user_setting.cpp
 )
 
 set(TMP_HEADERS_
+    ${TMP_HEADERS_}
     ${CMAKE_CURRENT_LIST_DIR}/decode_avc_pipeline.h
 )
 set(SOURCES_
@@ -48,8 +50,6 @@ set(CODEC_HEADERS_
 )
 
 source_group( CodecHalNext\\Xe_M_plus\\Decode FILES ${TMP_SOURCES_} ${TMP_HEADERS_})
-set(TMP_SOURCES_ "")
-set(TMP_HEADERS_ "")
 endif()
 
 media_add_curr_to_include_path()

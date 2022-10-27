@@ -94,3 +94,12 @@ mhw_blt_state::BCS_SWCTRL_CMD::BCS_SWCTRL_CMD()
     DW0.TileYDestinationMask                         = 0x1;
     DW0.Mask                                         = 0x0;
 }
+
+mhw_blt_state::BCS_SWCTRL_XE::BCS_SWCTRL_XE()
+{
+    DW0.Value                                        = 0;
+    DW0.Tile4Source                                  = TILE_4_SOURCE_XMAJOR;
+    DW0.Tile4Destination                             = TILE_4_DESTINATION_XMAJOR;
+    DW0.SystemMemoryThrottleThreshold                = 0x40;
+    DW0.Mask = 0x0;
+}

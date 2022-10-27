@@ -27,11 +27,9 @@
 #ifndef __MHW_MI_XE_LPM_PLUS_BASE_NEXT_H__
 #define __MHW_MI_XE_LPM_PLUS_BASE_NEXT_H__
 
-#include "mhw_mi_xe_lpm_plus_base.h"
 #include "mhw_mi_hwcmd_xe_lpm_plus_base_next.h"
 #include "mhw_mi_itf.h"
 #include "mhw_mi_xe_lpm_plus_base_next_impl.h"
-#include "mhw_mi_xe_lpm_plus_base.h"
 
 //!
 //! \brief    Mtl MHW MI command interface
