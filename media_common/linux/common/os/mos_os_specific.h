@@ -917,12 +917,64 @@ MOS_STATUS Mos_Specific_IsResourceReleasable(
     PMOS_INTERFACE         pOsInterface,
     PMOS_RESOURCE          pOsResource);
 
+struct _MOS_SPECIFIC_VE_HINT_PARAMS;
+typedef struct _MOS_SPECIFIC_VE_HINT_PARAMS *PMOS_VIRTUALENGINE_HINT_PARAMS;
+
+//!
+//! \brief    Virtual Engine Init for media Scalability
+//! \details  
+//! \param    PMOS_INTERFACE pOsInterface
+//!           [in] Pointer to OS interface structure
+//! \param    MOS_VE_HANDLE pVeState
+//!           [out] Virtual Engine State
+//! \param    PMOS_VIRTUALENGINE_HINT_PARAMS veHitParams
+//!           [out] Pointer to Virtual Engine hint parameters
+//! \param    PMOS_VIRTUALENGINE_INTERFACE veInterface
+//!           [out] Pointer to Virtual Engine Interface
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if succeeded, otherwise error code
+//!
+MOS_STATUS Mos_Specific_Virtual_Engine_Init(
+    PMOS_INTERFACE                 pOsInterface,
+    PMOS_VIRTUALENGINE_HINT_PARAMS veHitParams);
+
+struct _MOS_VIRTUALENGINE_SET_PARAMS;
+typedef struct _MOS_VIRTUALENGINE_SET_PARAMS  MOS_VIRTUALENGINE_SET_PARAMS, *PMOS_VIRTUALENGINE_SET_PARAMS;
+
+//!
+//! \brief    Set hint parameters
+//! \details  
+//! \param    PMOS_INTERFACE pOsInterface
+//!           [in] Pointer to OS interface structure
+//! \param    MOS_VIRTUALENGINE_SET_PARAMS veParams
+//!           [out] VIRTUALENGINE SET PARAMS
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if succeeded, otherwise error code
+//!
+MOS_STATUS Mos_Specific_SetHintParams(
+    PMOS_INTERFACE               pOsInterface,
+    PMOS_VIRTUALENGINE_SET_PARAMS veParams);
+
 #if (_DEBUG || _RELEASE_INTERNAL)
 MOS_LINUX_BO * Mos_GetNopCommandBuffer_Linux(
     PMOS_INTERFACE        pOsInterface);
 
 MOS_LINUX_BO * Mos_GetBadCommandBuffer_Linux(
     PMOS_INTERFACE        pOsInterface);
+
+//!
+//! \brief    gpuCtxCreateOption Init for media Scalability
+//! \details  
+//! \param    PMOS_INTERFACE pOsInterface
+//!           [in] Pointer to OS interface structure
+//! \param    uint8_t id
+//!           [out] EngineLogicId
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if succeeded, otherwise error code
+//!
+MOS_STATUS Mos_Specific_GetEngineLogicId(
+    PMOS_INTERFACE                 pOsInterface,
+    uint8_t&                       id);
 #endif
 
 #ifdef __cplusplus

@@ -7597,3 +7597,85 @@ const std::vector<const void *> &GpuCmdResInfoDump::GetCmdResPtrs(PMOS_INTERFACE
     return gpuContext->GetCmdResPtrs();
 }
 #endif // MOS_COMMAND_RESINFO_DUMP_SUPPORTED
+
+MOS_STATUS Mos_Specific_Virtual_Engine_Init(
+    PMOS_INTERFACE pOsInterface,
+    PMOS_VIRTUALENGINE_HINT_PARAMS veHitParams)
+{
+    MOS_VIRTUALENGINE_INIT_PARAMS veInitParams = {};
+    veInitParams.bScalabilitySupported = false;
+
+    MOS_OS_CHK_NULL_RETURN(pOsInterface);
+    if (pOsInterface->apoMosEnabled)
+    {
+        MOS_OS_CHK_NULL_RETURN(pOsInterface->osStreamState);
+        MOS_VE_HANDLE veState = nullptr;
+        MOS_OS_CHK_STATUS_RETURN(MosInterface::CreateVirtualEngineState(
+            pOsInterface->osStreamState, &veInitParams, veState));
+
+        MOS_OS_CHK_STATUS_RETURN(MosInterface::GetVeHintParams(pOsInterface->osStreamState, false, &veHitParams));
+    }
+    else
+    {
+        MOS_OS_CHK_STATUS_RETURN(Mos_VirtualEngineInterface_Initialize(pOsInterface, &veInitParams));
+        PMOS_VIRTUALENGINE_INTERFACE veInterface = pOsInterface->pVEInterf;
+        MOS_OS_CHK_NULL_RETURN(veInterface);
+        if (veInterface->pfnVEGetHintParams)
+        {
+            MOS_OS_CHK_STATUS_RETURN(veInterface->pfnVEGetHintParams(veInterface, false, &veHitParams));
+        }
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS Mos_Specific_SetHintParams(
+    PMOS_INTERFACE                pOsInterface,
+    PMOS_VIRTUALENGINE_SET_PARAMS veParams)
+{
+    MOS_OS_FUNCTION_ENTER;
+    MOS_OS_CHK_NULL_RETURN(pOsInterface);
+    if (pOsInterface->apoMosEnabled)
+    {
+        MOS_OS_CHK_NULL_RETURN(pOsInterface->osStreamState);
+        MOS_OS_CHK_STATUS_RETURN(MosInterface::SetVeHintParams(pOsInterface->osStreamState, veParams));
+    }
+    else
+    {
+        PMOS_VIRTUALENGINE_INTERFACE veInterface = pOsInterface->pVEInterf;
+        MOS_OS_CHK_NULL_RETURN(veInterface);
+        if (veInterface->pfnVESetHintParams)
+        {
+            MOS_OS_CHK_STATUS_RETURN(veInterface->pfnVESetHintParams(veInterface, veParams));
+        }
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+MOS_STATUS Mos_Specific_GetEngineLogicId(
+    PMOS_INTERFACE pOsInterface,
+    uint8_t& id)
+{
+    if (pOsInterface->apoMosEnabled)
+    {
+        if (MosInterface::GetVeEngineCount(pOsInterface->osStreamState) != 1)
+        {
+            MOS_OS_ASSERTMESSAGE("VeEngineCount is not equal to 1.");
+        }
+        id = MosInterface::GetEngineLogicId(pOsInterface->osStreamState, 0);
+    }
+    else
+    {
+        PMOS_VIRTUALENGINE_INTERFACE veInterface = pOsInterface->pVEInterf;
+        if (veInterface->ucEngineCount != 1)
+        {
+            MOS_OS_ASSERTMESSAGE("ucEngineCount is not equal to 1.");
+        }
+        id = veInterface->EngineLogicId[0];
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+#endif

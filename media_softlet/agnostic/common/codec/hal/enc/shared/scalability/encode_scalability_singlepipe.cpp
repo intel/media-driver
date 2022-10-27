@@ -100,13 +100,6 @@ MOS_STATUS EncodeScalabilitySinglePipe::Initialize(const MediaScalabilityOption 
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS EncodeScalabilitySinglePipe::VerifyCmdBuffer(uint32_t requestedSize, uint32_t requestedPatchListSize, bool &singleTaskPhaseSupportedInPak)
-{
-    SCALABILITY_FUNCTION_ENTER;
-
-    return MediaScalabilitySinglePipeNext::VerifyCmdBuffer(requestedSize, requestedPatchListSize, singleTaskPhaseSupportedInPak);
-}
-
 MOS_STATUS EncodeScalabilitySinglePipe::VerifySpaceAvailable(uint32_t requestedSize, uint32_t requestedPatchListSize, bool &singleTaskPhaseSupportedInPak)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;

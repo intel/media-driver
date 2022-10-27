@@ -3445,3 +3445,47 @@ MOS_USER_FEATURE_KEY_PATH_INFO *Mos_GetDeviceUfPathInfo(
     //NOT IMPLEMENTED 
     return nullptr;
 }
+
+MOS_STATUS Mos_Specific_Virtual_Engine_Init(
+    PMOS_INTERFACE pOsInterface,
+    PMOS_VIRTUALENGINE_HINT_PARAMS veHitParams)
+{
+    MOS_VIRTUALENGINE_INIT_PARAMS veInitParams = {};
+    VEInitParams.bScalabilitySupported = false;
+
+    MOS_OS_CHK_NULL_RETURN(pOsInterface);
+    MOS_OS_CHK_NULL_RETURN(pOsInterface->osStreamState);
+    MOS_VE_HANDLE veState = nullptr;
+    MOS_OS_CHK_STATUS_RETURN(MosInterface::CreateVirtualEngineState(
+        pOsInterface->osStreamState, &veInitParams, veState));
+
+    MOS_OS_CHK_STATUS_RETURN(MosInterface::GetVeHintParams(pOsInterface->osStreamState, false, &veHitParams));
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS Mos_Specific_SetHintParams(
+    PMOS_INTERFACE                pOsInterface,
+    PMOS_VIRTUALENGINE_SET_PARAMS veParams)
+{
+    MOS_OS_FUNCTION_ENTER;
+    MOS_OS_CHK_NULL_RETURN(pOsInterface);
+    MOS_OS_CHK_NULL_RETURN(pOsInterface->osStreamState);
+    MOS_OS_CHK_STATUS_RETURN(MosInterface::SetVeHintParams(pOsInterface->osStreamState, veParams));
+
+    return MOS_STATUS_SUCCESS;
+}
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+MOS_STATUS Mos_Specific_GetEngineLogicId(
+    PMOS_INTERFACE pOsInterface,
+    uint8_t& id)
+{
+    if (MosInterface::GetVeEngineCount(pOsInterface->osStreamState) != 1)
+    {
+        MOS_OS_ASSERTMESSAGE("VeEngineCount is not equal to 1.");
+    }
+    id = MosInterface::GetEngineLogicId(pOsInterface->osStreamState, 0);
+    return MOS_STATUS_SUCCESS;
+}
+#endif

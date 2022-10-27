@@ -87,21 +87,6 @@ public:
     virtual MOS_STATUS UpdateState(void *statePars) override;
 
     //!
-    //! \brief  Verify command buffer
-    //! \param  [in] requestedSize
-    //!         requested size for command buffer
-    //! \param  [in] requestedPatchListSize
-    //!         requested size for patched list
-    //! \param  [out] singleTaskPhaseSupportedInPak
-    //!         Inidcate if to use single task phase in pak.
-    //! \return MOS_STATUS
-    //!         MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    virtual MOS_STATUS VerifyCmdBuffer(uint32_t requestedSize, 
-                uint32_t requestedPatchListSize, 
-                bool &singleTaskPhaseSupportedInPak)  override;
-
-    //!
     //! \brief  Oca 1st Level BB Start
     //! \param  [in, out] cmdBuffer
     //!         Reference to command buffer

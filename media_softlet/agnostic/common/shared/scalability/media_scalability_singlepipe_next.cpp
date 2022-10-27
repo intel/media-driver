@@ -54,33 +54,16 @@ MOS_STATUS MediaScalabilitySinglePipeNext::Initialize(const MediaScalabilityOpti
 #if !EMUL
     if (MOS_VE_SUPPORTED(m_osInterface))
     {
-        MOS_VIRTUALENGINE_INIT_PARAMS VEInitParams;
-        MOS_ZeroMemory(&VEInitParams, sizeof(VEInitParams));
-        VEInitParams.bScalabilitySupported = false;
-        if (m_osInterface->apoMosEnabled)
+        MOS_STATUS status = Mos_Specific_Virtual_Engine_Init(m_osInterface, m_veHitParams);
+        SCALABILITY_CHK_STATUS_MESSAGE_RETURN(status, "Virtual Engine Init failed");
+        if (m_osInterface->osStreamState && m_osInterface->osStreamState->virtualEngineInterface)
         {
-            SCALABILITY_CHK_NULL_RETURN(m_osInterface->osStreamState);
-            SCALABILITY_CHK_STATUS_RETURN(MosInterface::CreateVirtualEngineState(
-                m_osInterface->osStreamState, &VEInitParams, m_veState));
-            SCALABILITY_CHK_NULL_RETURN(m_veState);
-
-            SCALABILITY_CHK_STATUS_RETURN(MosInterface::GetVeHintParams(m_osInterface->osStreamState, false, &m_veHitParams));
-            SCALABILITY_CHK_NULL_RETURN(m_veHitParams);
-        }
-        else
-        {
-            SCALABILITY_CHK_STATUS_RETURN(Mos_VirtualEngineInterface_Initialize(m_osInterface, &VEInitParams));
-            m_veInterface = m_osInterface->pVEInterf;
-            SCALABILITY_CHK_NULL_RETURN(m_veInterface);
-            if (m_veInterface->pfnVEGetHintParams)
-            {
-                SCALABILITY_CHK_STATUS_RETURN(m_veInterface->pfnVEGetHintParams(m_veInterface, false, &m_veHitParams));
-                SCALABILITY_CHK_NULL_RETURN(m_veHitParams);
-            }
-
+            // we set m_veState here when pOsInterface->apoMosEnabled is true
+            m_veState = m_osInterface->osStreamState->virtualEngineInterface;
         }
     }
 #endif
+
     PMOS_GPUCTX_CREATOPTIONS_ENHANCED gpuCtxCreateOption = MOS_New(MOS_GPUCTX_CREATOPTIONS_ENHANCED);
     SCALABILITY_CHK_NULL_RETURN(gpuCtxCreateOption);
 
@@ -93,15 +76,10 @@ MOS_STATUS MediaScalabilitySinglePipeNext::Initialize(const MediaScalabilityOpti
     if (m_osInterface->bEnableDbgOvrdInVE)
     {
         gpuCtxCreateOption->DebugOverride = true;
-        if (m_osInterface->apoMosEnabled)
+        uint8_t engineLogicId             = 0;
+        if (Mos_Specific_GetEngineLogicId(m_osInterface, engineLogicId) == MOS_STATUS_SUCCESS)
         {
-            SCALABILITY_ASSERT(MosInterface::GetVeEngineCount(m_osInterface->osStreamState) == 1);
-            gpuCtxCreateOption->EngineInstance[0] = MosInterface::GetEngineLogicId(m_osInterface->osStreamState, 0);
-        }
-        else
-        {
-            SCALABILITY_ASSERT(m_veInterface->ucEngineCount == 1);
-            gpuCtxCreateOption->EngineInstance[0] = m_veInterface->EngineLogicId[0];
+            gpuCtxCreateOption->EngineInstance[0] = engineLogicId;
         }
     }
 #endif
@@ -188,14 +166,6 @@ MOS_STATUS MediaScalabilitySinglePipeNext::SetHintParams()
     SCALABILITY_FUNCTION_ENTER;
 
     SCALABILITY_CHK_NULL_RETURN(m_osInterface);
-    if (m_osInterface->apoMosEnabled)
-    {
-        SCALABILITY_CHK_NULL_RETURN(m_osInterface->osStreamState);
-    }
-    else
-    {
-        SCALABILITY_CHK_NULL_RETURN(m_veInterface);
-    }
 
     MOS_STATUS                   eStatus = MOS_STATUS_SUCCESS;
     MOS_VIRTUALENGINE_SET_PARAMS veParams;
@@ -211,17 +181,11 @@ MOS_STATUS MediaScalabilitySinglePipeNext::SetHintParams()
         veParams.bSameEngineAsLastSubmission = false;
         veParams.bSFCInUse                   = false;
     }
-    if (m_osInterface->apoMosEnabled)
-    {
-        SCALABILITY_CHK_STATUS_RETURN(MosInterface::SetVeHintParams(m_osInterface->osStreamState, &veParams));
-    }
-    else
-    {
-        if (m_veInterface && m_veInterface->pfnVESetHintParams)
-        {
-            SCALABILITY_CHK_STATUS_RETURN(m_veInterface->pfnVESetHintParams(m_veInterface, &veParams));
-        }
-    }
+#if !EMUL
+    eStatus = Mos_Specific_SetHintParams(m_osInterface, &veParams);
+#endif
+    SCALABILITY_CHK_STATUS_MESSAGE_RETURN(eStatus, "SetHintParams failed");
+
     return eStatus;
 }
 
