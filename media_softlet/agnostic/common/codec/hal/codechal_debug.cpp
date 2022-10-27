@@ -31,11 +31,17 @@
 #include "media_debug_fast_dump.h"
 #include <iomanip>
 
+#define __MEDIA_USER_FEATURE_VALUE_DECODE_SFC_RGBFORMAT_OUTPUT_DEBUG "Decode SFC RGB Format Output"
+#define __MEDIA_USER_FEATURE_VALUE_DECODE_SFC_LINEAR_OUTPUT_DEBUG "Decode SFC Linear Output Debug"
+#define __MEDIA_USER_FEATURE_ENABLE_HW_DEBUG_HOOKS_DEBUG "Enable Media Debug Hooks"
+#define __MEDIA_USER_FEATURE_VALUE_CODECHAL_FRAME_NUMBER_TO_STOP_DEBUG "Decode Stop To Frame"
+#define __MEDIA_USER_FEATURE_VALUE_CODECHAL_ENABLE_SW_CRC_DEBUG "Enable SW CRC"
+
 CodechalDebugInterface::CodechalDebugInterface()
 {
-    memset(&m_currPic, 0, sizeof(CODEC_PICTURE));
-    memset(m_fileName, 0, sizeof(m_fileName));
-    memset(m_path, 0, sizeof(m_path));
+    MOS_ZeroMemory(&m_currPic, sizeof(CODEC_PICTURE));
+    MOS_ZeroMemory(m_fileName, sizeof(m_fileName));
+    MOS_ZeroMemory(m_path, sizeof(m_path));
 }
 
 CodechalDebugInterface::~CodechalDebugInterface()
@@ -420,24 +426,29 @@ MOS_STATUS CodechalDebugInterface::DumpRgbDataOnYUVSurface(
     }
 
     //To write RGB data on AYUV surface for validation purpose due to similiar layout
+    uint32_t sfcOutputRgbFormatFlag = 0;
+    uint32_t bIsSfcOutputLinearFlag = 0;
     //tile type read from reg key
-    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
-    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_DECODE_SFC_RGBFORMAT_OUTPUT_DEBUG_ID,
-        &userFeatureData,
-        m_osInterface ? m_osInterface->pOsContext : nullptr);
-    uint32_t sfcOutputRgbFormatFlag = userFeatureData.u32Data;
+    {
+        MediaUserSetting::Value outValue;
+        ReadUserSettingForDebug(
+            m_userSettingPtr,
+            outValue,
+            __MEDIA_USER_FEATURE_VALUE_DECODE_SFC_RGBFORMAT_OUTPUT_DEBUG,
+            MediaUserSetting::Group::Device);
+        sfcOutputRgbFormatFlag = outValue.Get<uint32_t>();
+    }
 
     //rgb format output read from reg key
-    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_DECODE_SFC_LINEAR_OUTPUT_DEBUG_ID,
-        &userFeatureData,
-        m_osInterface ? m_osInterface->pOsContext : nullptr);
-    bool bIsSfcOutputLinearFlag = userFeatureData.u32Data ? true : false;
+    {
+        MediaUserSetting::Value outValue;
+        ReadUserSettingForDebug(
+            m_userSettingPtr,
+            outValue,
+            __MEDIA_USER_FEATURE_VALUE_DECODE_SFC_LINEAR_OUTPUT_DEBUG,
+            MediaUserSetting::Group::Device);
+        bIsSfcOutputLinearFlag = outValue.Get<uint32_t>();
+    }
 
     if (!sfcOutputRgbFormatFlag)
     {
@@ -827,6 +838,11 @@ MOS_STATUS CodechalDebugInterface::Initialize(
     m_miInterface   = m_hwInterface->GetMiInterface();
     //#endif
 
+    CODECHAL_DEBUG_CHK_NULL(m_osInterface);
+    m_userSettingPtr = m_osInterface->pfnGetUserSettingInstance(m_osInterface);
+    CODECHAL_DEBUG_CHK_NULL(m_userSettingPtr);
+    CODECHAL_DEBUG_CHK_STATUS(InitializeUserSetting());
+
     //dump loctaion is codechaldump
     MediaDebugInterface::SetOutputFilePath();
 
@@ -837,44 +853,90 @@ MOS_STATUS CodechalDebugInterface::Initialize(
     MediaDebugInterface::InitDumpLocation();
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
-    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    userFeatureData.i32Data     = 0;
-    userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
-    MOS_UserFeature_ReadValue_ID(
-        NULL,
-        __MEDIA_USER_FEATURE_ENABLE_HW_DEBUG_HOOKS_ID,
-        &userFeatureData,
-        m_osInterface->pOsContext);
-    m_enableHwDebugHooks = userFeatureData.u32Data ? true : false;
+    {
+        MediaUserSetting::Value outValue;
+        ReadUserSettingForDebug(
+            m_userSettingPtr,
+            outValue,
+            __MEDIA_USER_FEATURE_ENABLE_HW_DEBUG_HOOKS_DEBUG,
+            MediaUserSetting::Group::Device, 0, true);
+        m_enableHwDebugHooks = outValue.Get<bool>();
+    }
     CheckGoldenReferenceExist();
     if (m_enableHwDebugHooks && m_goldenReferenceExist)
     {
         LoadGoldenReference();
     }
 
-    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    userFeatureData.i32Data     = -1;
-    userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_CODECHAL_FRAME_NUMBER_TO_STOP_ID,
-        &userFeatureData,
-        m_osInterface->pOsContext);
-    m_stopFrameNumber = userFeatureData.i32Data;
+    {
+        MediaUserSetting::Value outValue;
+        ReadUserSettingForDebug(
+            m_userSettingPtr,
+            outValue,
+            __MEDIA_USER_FEATURE_VALUE_CODECHAL_FRAME_NUMBER_TO_STOP_DEBUG,
+            MediaUserSetting::Group::Device,
+            -1,
+            true);
+        m_stopFrameNumber = outValue.Get<int32_t>();
+    }
 
-    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    userFeatureData.i32Data     = 0;
-    userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_CODECHAL_ENABLE_SW_CRC_ID,
-        &userFeatureData,
-        m_osInterface->pOsContext);
-    m_swCRC = userFeatureData.i32Data == 0 ? false : true;
+    {
+        MediaUserSetting::Value outValue;
+        ReadUserSettingForDebug(
+            m_userSettingPtr,
+            outValue,
+            __MEDIA_USER_FEATURE_VALUE_CODECHAL_ENABLE_SW_CRC_DEBUG,
+            MediaUserSetting::Group::Device,
+            0,
+            true);
+        m_swCRC = outValue.Get<bool>();
+    }
 #endif
 
     SetFastDumpConfig(mediaCopy);
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS CodechalDebugInterface::InitializeUserSetting()
+{
+    CODECHAL_DEBUG_FUNCTION_ENTER;
+    CODECHAL_DEBUG_CHK_STATUS(MediaDebugInterface::InitializeUserSetting());
+
+    DeclareUserSettingKeyForDebug(
+        m_userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_DECODE_SFC_RGBFORMAT_OUTPUT_DEBUG,
+        MediaUserSetting::Group::Device,
+        int32_t(0),
+        false);
+
+    DeclareUserSettingKeyForDebug(
+        m_userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_DECODE_SFC_LINEAR_OUTPUT_DEBUG,
+        MediaUserSetting::Group::Device,
+        int32_t(0),
+        false);
+
+    DeclareUserSettingKeyForDebug(
+        m_userSettingPtr,
+        __MEDIA_USER_FEATURE_ENABLE_HW_DEBUG_HOOKS_DEBUG,
+        MediaUserSetting::Group::Device,
+        int32_t(0),
+        false);
+
+    DeclareUserSettingKeyForDebug(
+        m_userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_CODECHAL_FRAME_NUMBER_TO_STOP_DEBUG,
+        MediaUserSetting::Group::Device,
+        int32_t(-1),
+        false);
+
+    DeclareUserSettingKeyForDebug(
+        m_userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_CODECHAL_ENABLE_SW_CRC_DEBUG,
+        MediaUserSetting::Group::Device,
+        uint32_t(0),
+        false);
 
     return MOS_STATUS_SUCCESS;
 }
@@ -891,9 +953,11 @@ MOS_STATUS CodechalDebugInterface::Initialize(
     m_codecFunction    = codecFunction;
     m_osInterface      = m_hwInterfaceNext->GetOsInterface();
     m_cpInterface      = m_hwInterfaceNext->GetCpInterface();
-    //#ifndef softlet_build
-    //m_miInterface = m_hwInterfaceNext->GetMiInterfaceNext();
-    //#endif
+
+    CODECHAL_DEBUG_CHK_NULL(m_osInterface);
+    m_userSettingPtr = m_osInterface->pfnGetUserSettingInstance(m_osInterface);
+    CODECHAL_DEBUG_CHK_NULL(m_userSettingPtr);
+    CODECHAL_DEBUG_CHK_STATUS(InitializeUserSetting());
 
     //dump loctaion is codechaldump
     MediaDebugInterface::SetOutputFilePath();
@@ -905,41 +969,46 @@ MOS_STATUS CodechalDebugInterface::Initialize(
     MediaDebugInterface::InitDumpLocation();
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
-    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    userFeatureData.i32Data     = 0;
-    userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
-    MOS_UserFeature_ReadValue_ID(
-        NULL,
-        __MEDIA_USER_FEATURE_ENABLE_HW_DEBUG_HOOKS_ID,
-        &userFeatureData,
-        m_osInterface->pOsContext);
-    m_enableHwDebugHooks = userFeatureData.u32Data ? true : false;
+    {
+        MediaUserSetting::Value outValue;
+        ReadUserSettingForDebug(
+            m_userSettingPtr,
+            outValue,
+            __MEDIA_USER_FEATURE_ENABLE_HW_DEBUG_HOOKS_DEBUG,
+            MediaUserSetting::Group::Device,
+            0,
+            true);
+        m_enableHwDebugHooks = outValue.Get<bool>();
+    }
     CheckGoldenReferenceExist();
     if (m_enableHwDebugHooks && m_goldenReferenceExist)
     {
         LoadGoldenReference();
     }
 
-    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    userFeatureData.i32Data     = -1;
-    userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_CODECHAL_FRAME_NUMBER_TO_STOP_ID,
-        &userFeatureData,
-        m_osInterface->pOsContext);
-    m_stopFrameNumber = userFeatureData.i32Data;
+    {
+        MediaUserSetting::Value outValue;
+        ReadUserSettingForDebug(
+            m_userSettingPtr,
+            outValue,
+            __MEDIA_USER_FEATURE_VALUE_CODECHAL_FRAME_NUMBER_TO_STOP_DEBUG,
+            MediaUserSetting::Group::Device,
+            -1,
+            true);
+        m_stopFrameNumber = outValue.Get<int32_t>();
+    }
 
-    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    userFeatureData.i32Data     = 0;
-    userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_CODECHAL_ENABLE_SW_CRC_ID,
-        &userFeatureData,
-        m_osInterface->pOsContext);
-    m_swCRC = userFeatureData.i32Data == 0 ? false : true;
+    {
+        MediaUserSetting::Value outValue;
+        ReadUserSettingForDebug(
+            m_userSettingPtr,
+            outValue,
+            __MEDIA_USER_FEATURE_VALUE_CODECHAL_ENABLE_SW_CRC_DEBUG,
+            MediaUserSetting::Group::Device,
+            0,
+            true);
+        m_swCRC = outValue.Get<bool>();
+    }
 #endif
 
     SetFastDumpConfig(mediaCopy);

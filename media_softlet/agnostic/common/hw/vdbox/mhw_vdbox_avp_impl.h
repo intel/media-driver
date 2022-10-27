@@ -282,100 +282,116 @@ private:
     {
         MHW_FUNCTION_ENTER;
 
-        MOS_USER_FEATURE_VALUE_DATA userFeatureData;
-
-        memset(&userFeatureData, 0, sizeof(userFeatureData));
-
+        bool rowstoreCachingDisableDefaultValue = false;
         if (m_osItf->bSimIsActive)
         {
-            userFeatureData.u32Data = 1;
+            // Disable RowStore Cache on simulation by default
+            rowstoreCachingDisableDefaultValue = true;
         }
         else
         {
-            userFeatureData.u32Data = 0;
+            rowstoreCachingDisableDefaultValue = false;
         }
-
-        userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
+        m_rowstoreCachingSupported = !rowstoreCachingDisableDefaultValue;
 #if (_DEBUG || _RELEASE_INTERNAL)
-        MOS_UserFeature_ReadValue_ID(
-            nullptr,
-            __MEDIA_USER_FEATURE_VALUE_ROWSTORE_CACHE_DISABLE_ID,
-            &userFeatureData,
-            m_osItf->pOsContext);
-#endif // _DEBUG || _RELEASE_INTERNAL
-        this->m_rowstoreCachingSupported = userFeatureData.i32Data ? false : true;
+        auto userSettingPtr = m_osItf->pfnGetUserSettingInstance(m_osItf);
+        {
+            MediaUserSetting::Value outValue;
+            ReadUserSettingForDebug(userSettingPtr,
+                outValue,
+                "Disable RowStore Cache",
+                MediaUserSetting::Group::Device,
+                rowstoreCachingDisableDefaultValue,
+                true);
+            m_rowstoreCachingSupported = !(outValue.Get<bool>());
+        }
+#endif  // _DEBUG || _RELEASE_INTERNAL
 
         if (m_rowstoreCachingSupported)
         {
-            MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+            m_btdlRowstoreCache.supported = true;
 #if (_DEBUG || _RELEASE_INTERNAL)
-            MOS_UserFeature_ReadValue_ID(
-                nullptr,
-                __MEDIA_USER_FEATURE_VALUE_AV1BTDLROWSTORECACHE_DISABLE_ID,
-                &userFeatureData,
-                m_osItf->pOsContext);
+            {
+                MediaUserSetting::Value outValue;
+                ReadUserSettingForDebug(userSettingPtr,
+                    outValue,
+                    "DisableAv1BtdlRowstoreCache",
+                    MediaUserSetting::Group::Device);
+                m_btdlRowstoreCache.supported = !(outValue.Get<bool>());
+            }
 #endif // _DEBUG || _RELEASE_INTERNAL
-            this->m_btdlRowstoreCache.supported = userFeatureData.i32Data ? false : true;
 
-            MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+            m_smvlRowstoreCache.supported = true;
 #if (_DEBUG || _RELEASE_INTERNAL)
-            MOS_UserFeature_ReadValue_ID(
-                nullptr,
-                __MEDIA_USER_FEATURE_VALUE_AV1SMVLROWSTORECACHE_DISABLE_ID,
-                &userFeatureData,
-                m_osItf->pOsContext);
+            {
+                MediaUserSetting::Value outValue;
+                ReadUserSettingForDebug(userSettingPtr,
+                    outValue,
+                    "DisableAv1SmvlRowstoreCache",
+                    MediaUserSetting::Group::Device);
+                m_smvlRowstoreCache.supported = !(outValue.Get<bool>());
+            }
 #endif // _DEBUG || _RELEASE_INTERNAL
-            this->m_smvlRowstoreCache.supported = userFeatureData.i32Data ? false : true;
 
-            MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+            m_ipdlRowstoreCache.supported = true;
 #if (_DEBUG || _RELEASE_INTERNAL)
-            MOS_UserFeature_ReadValue_ID(
-                nullptr,
-                __MEDIA_USER_FEATURE_VALUE_AV1IPDLROWSTORECACHE_DISABLE_ID,
-                &userFeatureData,
-                m_osItf->pOsContext);
+            {
+                MediaUserSetting::Value outValue;
+                ReadUserSettingForDebug(userSettingPtr,
+                    outValue,
+                    "DisableAv1IpdlRowstoreCache",
+                    MediaUserSetting::Group::Device);
+                m_ipdlRowstoreCache.supported = !(outValue.Get<bool>());
+            }
 #endif // _DEBUG || _RELEASE_INTERNAL
-            this->m_ipdlRowstoreCache.supported = userFeatureData.i32Data ? false : true;
 
-            MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+            m_dflyRowstoreCache.supported = true;
 #if (_DEBUG || _RELEASE_INTERNAL)
-            MOS_UserFeature_ReadValue_ID(
-                nullptr,
-                __MEDIA_USER_FEATURE_VALUE_AV1DFLYROWSTORECACHE_DISABLE_ID,
-                &userFeatureData,
-                m_osItf->pOsContext);
+            {
+                MediaUserSetting::Value outValue;
+                ReadUserSettingForDebug(userSettingPtr,
+                    outValue,
+                    "DisableAv1DflyRowstoreCache",
+                    MediaUserSetting::Group::Device);
+                m_dflyRowstoreCache.supported = !(outValue.Get<bool>());
+            }
 #endif // _DEBUG || _RELEASE_INTERNAL
-            this->m_dflyRowstoreCache.supported = userFeatureData.i32Data ? false : true;
 
-            MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+            m_dfluRowstoreCache.supported = true;
 #if (_DEBUG || _RELEASE_INTERNAL)
-            MOS_UserFeature_ReadValue_ID(
-                nullptr,
-                __MEDIA_USER_FEATURE_VALUE_AV1DFLUROWSTORECACHE_DISABLE_ID,
-                &userFeatureData,
-                m_osItf->pOsContext);
+            {
+                MediaUserSetting::Value outValue;
+                ReadUserSettingForDebug(userSettingPtr,
+                    outValue,
+                    "DisableAv1DfluRowstoreCache",
+                    MediaUserSetting::Group::Device);
+                m_dfluRowstoreCache.supported = !(outValue.Get<bool>());
+            }
 #endif // _DEBUG || _RELEASE_INTERNAL
-            this->m_dfluRowstoreCache.supported = userFeatureData.i32Data ? false : true;
 
-            MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+            m_dflvRowstoreCache.supported = true;
 #if (_DEBUG || _RELEASE_INTERNAL)
-            MOS_UserFeature_ReadValue_ID(
-                nullptr,
-                __MEDIA_USER_FEATURE_VALUE_AV1DFLVROWSTORECACHE_DISABLE_ID,
-                &userFeatureData,
-                m_osItf->pOsContext);
+            {
+                MediaUserSetting::Value outValue;
+                ReadUserSettingForDebug(userSettingPtr,
+                    outValue,
+                    "DisableAv1DflvRowstoreCache",
+                    MediaUserSetting::Group::Device);
+                m_dflvRowstoreCache.supported = !(outValue.Get<bool>());
+            }
 #endif // _DEBUG || _RELEASE_INTERNAL
-            this->m_dflvRowstoreCache.supported = userFeatureData.i32Data ? false : true;
 
-            MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+            m_cdefRowstoreCache.supported = true;
 #if (_DEBUG || _RELEASE_INTERNAL)
-            MOS_UserFeature_ReadValue_ID(
-                nullptr,
-                __MEDIA_USER_FEATURE_VALUE_AV1CDEFROWSTORECACHE_DISABLE_ID,
-                &userFeatureData,
-                m_osItf->pOsContext);
+            {
+                MediaUserSetting::Value outValue;
+                ReadUserSettingForDebug(userSettingPtr,
+                    outValue,
+                    "DisableAv1CdefRowstoreCache",
+                    MediaUserSetting::Group::Device);
+                m_cdefRowstoreCache.supported = !(outValue.Get<bool>());
+            }
 #endif // _DEBUG || _RELEASE_INTERNAL
-            this->m_cdefRowstoreCache.supported = userFeatureData.i32Data ? false : true;
         }
 
         return MOS_STATUS_SUCCESS;

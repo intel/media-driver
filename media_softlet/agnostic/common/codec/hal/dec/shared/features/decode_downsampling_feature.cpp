@@ -72,15 +72,12 @@ MOS_STATUS DecodeDownSamplingFeature::Init(void *setting)
 
     MOS_ZeroMemory(&m_outputSurface, sizeof(m_outputSurface));
 
+    DECODE_CHK_NULL(m_osInterface);
+    m_userSettingPtr = m_osInterface->pfnGetUserSettingInstance(m_osInterface);
+    DECODE_CHK_NULL(m_userSettingPtr);
+
 #if (_DEBUG || _RELEASE_INTERNAL)
-    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
-    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_DECODE_HISTOGRAM_DEBUG_ID,
-        &userFeatureData,
-        m_osInterface ? m_osInterface->pOsContext : nullptr);
-    m_histogramDebug = userFeatureData.u32Data ? true : false;
+    m_histogramDebug = ReadUserFeature(m_userSettingPtr, "Decode Histogram Debug", MediaUserSetting::Group::Sequence).Get<bool>();
 #endif
 
     return MOS_STATUS_SUCCESS;

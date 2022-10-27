@@ -86,10 +86,11 @@ MOS_STATUS Vp9Pipeline::Uninitialize()
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     // Report real tile frame count and virtual tile frame count
-    MOS_USER_FEATURE_VALUE_WRITE_DATA userFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
-    userFeatureWriteData.Value.i32Data                     = m_vtFrameCount;
-    userFeatureWriteData.ValueID                           = __MEDIA_USER_FEATURE_VALUE_ENABLE_HEVC_DECODE_VT_FRAME_COUNT_ID;
-    MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, m_osInterface->pOsContext);
+    ReportUserSettingForDebug(
+        m_userSettingPtr,
+        "VT Decoded Count",
+        m_vtFrameCount,
+        MediaUserSetting::Group::Sequence);
 #endif
 
     DECODE_CHK_STATUS(DestoryPhaseList());

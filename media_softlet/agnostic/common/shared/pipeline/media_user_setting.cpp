@@ -32,5 +32,11 @@ MOS_STATUS MediaPipeline::InitUserSetting(MediaUserSettingSharedPtr userSettingP
         MediaUserSetting::Group::Sequence,
         (int32_t)0,
         false);
+    DeclareUserSettingKey(
+        userSettingPtr,
+        "DisableTlbPrefetch",
+        MediaUserSetting::Group::Sequence,
+        int32_t(1),
+        false);
     return MOS_STATUS_SUCCESS;
 }

@@ -146,6 +146,30 @@ MOS_STATUS DecodePipeline::InitUserSetting(MediaUserSettingSharedPtr userSetting
         MediaUserSetting::Group::Sequence,
         int32_t(1),
         false);
+    DeclareUserSettingKey(
+        userSettingPtr,
+        "Decode RT Compressible",
+        MediaUserSetting::Group::Sequence,
+        int32_t(0),
+        false);
+    DeclareUserSettingKey(
+        userSettingPtr,
+        "Decode RT Compress Mode",
+        MediaUserSetting::Group::Sequence,
+        int32_t(0),
+        false);
+    DeclareUserSettingKey(
+        userSettingPtr,
+        "VT Decoded Count",
+        MediaUserSetting::Group::Sequence,
+        int32_t(0),
+        true);
+    DeclareUserSettingKey(
+        userSettingPtr,
+        "Av1 Error Status Addr Value",
+        MediaUserSetting::Group::Sequence,
+        uint32_t(0),
+        true);
 #if (_DEBUG || _RELEASE_INTERNAL)
     DeclareUserSettingKeyForDebug(
         userSettingPtr,

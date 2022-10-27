@@ -212,7 +212,7 @@ public:
     std::vector<uint32_t> m_crcGoldenReference   = {};
     GoldenReferences      m_goldenReferences     = {};
     uint32_t*         m_semaData                 = nullptr;
-
+    MediaUserSettingSharedPtr m_userSettingPtr   = nullptr;
 
 protected:
     MOS_STATUS ReAllocateSurface(
@@ -242,6 +242,8 @@ protected:
         uint32_t width,
         uint32_t height,
         uint32_t pitch);
+
+    virtual MOS_STATUS InitializeUserSetting() { return MOS_STATUS_SUCCESS; };
 
     virtual MOS_USER_FEATURE_VALUE_ID SetOutputPathKey()  = 0;
     virtual MOS_USER_FEATURE_VALUE_ID InitDefaultOutput() = 0;

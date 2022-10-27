@@ -51,12 +51,6 @@ MOS_STATUS HevcPipeline::InitUserSetting(MediaUserSettingSharedPtr userSettingPt
         true);
     DeclareUserSettingKey(
         userSettingPtr,
-        "VT Decoded Count",
-        MediaUserSetting::Group::Sequence,
-        int32_t(0),
-        true);
-    DeclareUserSettingKey(
-        userSettingPtr,
         "SP Decoded Count",
         MediaUserSetting::Group::Sequence,
         int32_t(0),

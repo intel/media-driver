@@ -169,6 +169,8 @@ public:
         PMOS_SURFACE surface,
         const char  *attrName) override;
 
+    virtual MOS_STATUS InitializeUserSetting() override;
+
     CodechalHwInterface     *m_hwInterface      = nullptr;
     CodechalHwInterfaceNext *m_hwInterfaceNext  = nullptr;
     CODECHAL_FUNCTION        m_codecFunction    = CODECHAL_FUNCTION_INVALID;
