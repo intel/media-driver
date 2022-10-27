@@ -299,9 +299,9 @@ namespace encode
         dmem->UPD_ErrorResilientMode             = 0;
         dmem->UPD_IntraOnly                      = 0;
         dmem->UPD_PrimaryRefFrame                = 0;
-        dmem->UPD_SegOn                          = m_basicFeature->m_av1PicParams->stAV1Segments.SegmentFlags.fields.segmentation_enabled;
-        dmem->UPD_SegMapUpdate                   = m_basicFeature->m_av1PicParams->stAV1Segments.SegmentFlags.fields.update_map;
-        dmem->UPD_SegTemporalUpdate              = m_basicFeature->m_av1PicParams->stAV1Segments.SegmentFlags.fields.temporal_update;
+        dmem->UPD_SegOn                          = 0;
+        dmem->UPD_SegMapUpdate                   = 0;
+        dmem->UPD_SegTemporalUpdate              = 0;
         dmem->UPD_SegUpdateData                  = 0;
         dmem->UPD_IsFrameOBU                     = m_basicFeature->m_av1PicParams->PicFlags.fields.EnableFrameOBU;
         dmem->UPD_EnableCDEFUpdate               = m_basicFeature->m_av1SeqParams->CodingToolFlags.fields.enable_cdef;
