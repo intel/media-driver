@@ -74,4 +74,14 @@ CodechalHwInterfaceNextXe_Xpm_Plus::CodechalHwInterfaceNextXe_Xpm_Plus(
     CODECHAL_HW_FUNCTION_ENTER;
 
     PrepareCmdSize(codecFunction);
+    m_miInterface     = static_cast<MhwInterfacesPvc_Next*>(mhwInterfacesNext)->m_miInterface;
+    m_renderInterface = static_cast<MhwInterfacesPvc_Next*>(mhwInterfacesNext)->m_renderInterface;
+}
+
+CodechalHwInterfaceNextXe_Xpm_Plus::~CodechalHwInterfaceNextXe_Xpm_Plus()
+{
+    if (m_renderInterface != nullptr)
+    {
+        MOS_Delete(m_renderInterface);
+    }
 }

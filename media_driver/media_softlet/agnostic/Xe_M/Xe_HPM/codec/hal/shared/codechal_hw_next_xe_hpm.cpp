@@ -30,6 +30,7 @@
 #include "mhw_vdbox_vdenc_g12_X.h"
 #include "mhw_vdbox_hcp_g12_X.h"
 #include "media_interfaces_xehp_sdv.h"// temporary include for getting avp interface
+#include "media_interfaces_dg2.h"
 
 CodechalHwInterfaceNextXe_Hpm::~CodechalHwInterfaceNextXe_Hpm()
 {
@@ -52,6 +53,10 @@ CodechalHwInterfaceNextXe_Hpm::~CodechalHwInterfaceNextXe_Hpm()
     {
         MOS_FreeMemory(m_renderHal);
         m_renderHal = nullptr;
+    }
+    if (m_renderInterface != nullptr)
+    {
+        MOS_Delete(m_renderInterface);
     }
 }
 
@@ -87,7 +92,8 @@ CodechalHwInterfaceNextXe_Hpm::CodechalHwInterfaceNextXe_Hpm(
 {
     CODECHAL_HW_FUNCTION_ENTER;
     PrepareCmdSize(codecFunction);
-
+    m_miInterface     = static_cast<MhwInterfacesDg2_Next*>(mhwInterfacesNext)->m_miInterface;
+    m_renderInterface = static_cast<MhwInterfacesDg2_Next*>(mhwInterfacesNext)->m_renderInterface;
 }
 
 bool CodechalHwInterfaceNextXe_Hpm::UsesRenderEngine(CODECHAL_FUNCTION codecFunction, uint32_t standard)

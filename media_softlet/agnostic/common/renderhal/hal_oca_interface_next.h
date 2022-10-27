@@ -30,7 +30,6 @@
 #include "mhw_mi.h"
 #include "mos_os_hw.h"
 #include "mhw_mi_itf.h"
-#include "mhw_mi_cmdpar.h"
 
 /****************************************************************************************************/
 /*                                      HalOcaInterface                                             */

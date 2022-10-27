@@ -24,6 +24,7 @@
 #define __CODECHAL_HW_NEXT_XE_XPM_PLUS_H__
 
 #include "codec_hw_next.h"
+#include "mhw_render_legacy.h"
 
 //!  Codechal hw interface xe xpm plus
 /*!
@@ -54,7 +55,7 @@ public:
     //!
     //! \brief    Destructor
     //!
-    virtual ~CodechalHwInterfaceNextXe_Xpm_Plus() { }
+    virtual ~CodechalHwInterfaceNextXe_Xpm_Plus();
 
     virtual bool UsesRenderEngine(CODECHAL_FUNCTION codecFunction, uint32_t standard)
     {
@@ -67,6 +68,9 @@ private:
     //! \brief    Called by constructor
     //!
     void PrepareCmdSize(CODECHAL_FUNCTION codecFunction);
+
+    std::shared_ptr<MhwMiInterface> m_miInterface     = nullptr;
+    MhwRenderInterface             *m_renderInterface = nullptr;
 
 MEDIA_CLASS_DEFINE_END(CodechalHwInterfaceNextXe_Xpm_Plus)
 };

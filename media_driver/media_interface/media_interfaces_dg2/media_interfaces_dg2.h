@@ -176,6 +176,10 @@ public:
     //! \details  If the HAL creation fails, this is used for cleanup
     //!
     virtual void Destroy();
+
+    std::shared_ptr<MhwMiInterface> m_miInterface = nullptr;
+
+    MhwRenderInterface *m_renderInterface = nullptr;
 };
 
 class MhwInterfacesDg2 : public MhwInterfaces

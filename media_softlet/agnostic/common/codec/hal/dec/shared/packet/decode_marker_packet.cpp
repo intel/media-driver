@@ -31,21 +31,23 @@ namespace decode
 
 DecodeMarkerPkt::DecodeMarkerPkt(DecodePipeline *pipeline, CodechalHwInterfaceNext *hwInterface)
     : DecodeSubPacket(pipeline, hwInterface)
-{}
+{
+    m_hwInterface = hwInterface;
+}
 
 MOS_STATUS DecodeMarkerPkt::Init()
 {
     DECODE_CHK_NULL(m_pipeline);
     DECODE_CHK_NULL(m_hwInterface);
 
-    m_miInterface = m_hwInterface->GetMiInterface();
-    DECODE_CHK_NULL(m_miInterface);
+    m_miItf = m_hwInterface->GetMiInterfaceNext();
+    DECODE_CHK_NULL(m_miItf);
 
     MediaFeatureManager *featureManager = m_pipeline->GetFeatureManager();
     DECODE_CHK_NULL(featureManager);
 
-    m_marker = dynamic_cast<DecodeMarker*>(
-                    featureManager->GetFeature(DecodeFeatureIDs::decodeMarker));
+    m_marker = dynamic_cast<DecodeMarker *>(
+        featureManager->GetFeature(DecodeFeatureIDs::decodeMarker));
     DECODE_CHK_NULL(m_marker);
 
     return MOS_STATUS_SUCCESS;
@@ -66,26 +68,24 @@ MOS_STATUS DecodeMarkerPkt::Execute(MOS_COMMAND_BUFFER& cmdBuffer)
     if (m_pipeline->GetMediaContext()->IsRenderEngineUsed())
     {
         // Send pipe_control to get the timestamp
-        MHW_PIPE_CONTROL_PARAMS             pipeControlParams;
-        MOS_ZeroMemory(&pipeControlParams, sizeof(pipeControlParams));
-        pipeControlParams.presDest          = &m_marker->m_markerBuffer->OsResource;
-        pipeControlParams.dwResourceOffset  = 0;
-        pipeControlParams.dwPostSyncOp      = MHW_FLUSH_WRITE_TIMESTAMP_REG;
-        pipeControlParams.dwFlushMode       = MHW_FLUSH_WRITE_CACHE;
-
-        DECODE_CHK_STATUS(m_miInterface->AddPipeControl(&cmdBuffer, NULL, &pipeControlParams));
+        auto &miPipeControlParams            = m_miItf->MHW_GETPAR_F(PIPE_CONTROL)();
+        miPipeControlParams                  = {};
+        miPipeControlParams.presDest         = &m_marker->m_markerBuffer->OsResource;
+        miPipeControlParams.dwResourceOffset = 0;
+        miPipeControlParams.dwPostSyncOp     = MHW_FLUSH_WRITE_TIMESTAMP_REG;
+        miPipeControlParams.dwFlushMode      = MHW_FLUSH_WRITE_CACHE;
+        DECODE_CHK_STATUS(m_miItf->MHW_ADDCMD_F(PIPE_CONTROL)(&cmdBuffer, NULL));
     }
     else
     {
-        // Send flush_dw to get the timestamp 
-        MHW_MI_FLUSH_DW_PARAMS  flushDwParams;
-        MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
-        flushDwParams.pOsResource           = &m_marker->m_markerBuffer->OsResource;
-        flushDwParams.dwResourceOffset      = 0;
-        flushDwParams.postSyncOperation     = MHW_FLUSH_WRITE_TIMESTAMP_REG;
-        flushDwParams.bQWordEnable          = 1;
-
-        DECODE_CHK_STATUS(m_miInterface->AddMiFlushDwCmd(&cmdBuffer, &flushDwParams));
+        // Send flush_dw to get the timestamp
+        auto &miFlushDwParams             = m_miItf->MHW_GETPAR_F(MI_FLUSH_DW)();
+        miFlushDwParams                   = {};
+        miFlushDwParams.pOsResource       = &m_marker->m_markerBuffer->OsResource;
+        miFlushDwParams.dwResourceOffset  = 0;
+        miFlushDwParams.postSyncOperation = MHW_FLUSH_WRITE_TIMESTAMP_REG;
+        miFlushDwParams.bQWordEnable      = 1;
+        DECODE_CHK_STATUS(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(&cmdBuffer, NULL));
     }
 
     return MOS_STATUS_SUCCESS;
@@ -98,4 +98,4 @@ MOS_STATUS DecodeMarkerPkt::CalculateCommandSize(uint32_t &commandBufferSize, ui
     return MOS_STATUS_SUCCESS;
 }
 
-}
+}  // namespace decode

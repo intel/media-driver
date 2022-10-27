@@ -38,7 +38,7 @@
 namespace decode
 {
 
-class DecodeScalabilitySinglePipeNext: public MediaScalabilitySinglePipe
+class DecodeScalabilitySinglePipeNext: public MediaScalabilitySinglePipeNext
 {
 public:
     //!

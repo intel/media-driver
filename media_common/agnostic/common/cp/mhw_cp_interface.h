@@ -34,6 +34,13 @@
 #include "codec_def_common.h"
 
 class MhwMiInterface;
+namespace mhw
+{
+    namespace mi
+    {
+        class Itf;
+    }
+}  // namespace mhw
 
 typedef int32_t CP_MODE;
 #define CP_TYPE_NONE 0
@@ -276,6 +283,15 @@ public:
         MhwMiInterface *miInterface)
     {
         MOS_UNUSED(miInterface);
+
+        MhwStubMessage();
+        return MOS_STATUS_SUCCESS;
+    }
+
+    virtual MOS_STATUS RegisterMiInterfaceNext(
+        std::shared_ptr<mhw::mi::Itf> m_miItf)
+    {
+        MOS_UNUSED(m_miItf);
 
         MhwStubMessage();
         return MOS_STATUS_SUCCESS;

@@ -177,18 +177,6 @@ public:
     }
 
     //!
-    //! \brief    Get mi interface
-    //! \details  Get mi interface in codechal hw interface
-    //!
-    //! \return   [out] MhwMiInterface*
-    //!           Interface got.
-    //!
-    inline MhwMiInterface *GetMiInterface()
-    {
-        return m_miInterface;
-    }
-
-    //!
     //! \brief    Get SFC interface
     //! \details  Get SFC interface in codechal hw interface
     //!
@@ -286,18 +274,6 @@ public:
     inline std::shared_ptr<mhw::render::Itf> GetRenderInterfaceNext()
     {
         return m_renderItf;
-    }
-    
-    //!
-    //! \brief    Get render interface
-    //! \details  Get render interface in codechal hw interface
-    //!
-    //! \return   [out] MhwRenderInterface*
-    //!           Interface got.
-    //!
-    inline MhwRenderInterface *GetRenderInterface()
-    {
-        return m_renderInterface;
     }
 
     //!
@@ -937,9 +913,7 @@ protected:
     PLATFORM             m_platform;  //!< Platform information
 
     MHW_STATE_HEAP_SETTINGS                 m_stateHeapSettings;               //!< State heap Mhw settings
-    MhwMiInterface                         *m_miInterface          = nullptr;  //!< Pointer to Mhw mi interface
     MhwCpInterface                         *m_cpInterface          = nullptr;  //!< Pointer to Mhw cp interface
-    MhwRenderInterface                     *m_renderInterface      = nullptr;  //!< Pointer to Mhw render interface
     RENDERHAL_INTERFACE                    *m_renderHal            = nullptr;  //!< RenderHal interface
     MhwCpInterface                         *m_renderHalCpInterface = nullptr;  //!< Pointer to RenderHal cp interface
     MhwVeboxInterface                      *m_veboxInterface       = nullptr;  //!< Pointer to Mhw vebox interface

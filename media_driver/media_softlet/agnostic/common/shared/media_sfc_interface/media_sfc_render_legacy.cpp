@@ -175,7 +175,6 @@ MOS_STATUS MediaSfcRenderLegacy::Initialize()
 
         // mi interface and cp interface will always be created during MhwInterfaces::CreateFactory.
         // Delete them here since they will also be created by RenderHal_InitInterface.
-        MOS_Delete(mhwInterfaces->m_miInterface);
         Delete_MhwCpInterface(mhwInterfaces->m_cpInterface);
         MOS_Delete(mhwInterfaces);
     }
@@ -190,7 +189,6 @@ MOS_STATUS MediaSfcRenderLegacy::Initialize()
 
         // mi interface and cp interface will always be created during MhwInterfaces::CreateFactory.
         // Delete them here since they will also be created by RenderHal_InitInterface.
-        MOS_Delete(mhwInterfacesNext->m_miInterface);
         Delete_MhwCpInterface(mhwInterfacesNext->m_cpInterface);
         MOS_Delete(mhwInterfacesNext);
 

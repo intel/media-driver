@@ -118,6 +118,9 @@ private:
     //!
     void PrepareCmdSize(CODECHAL_FUNCTION codecFunction);
 
+    std::shared_ptr<MhwMiInterface> m_miInterface     = nullptr;
+    MhwRenderInterface             *m_renderInterface = nullptr;
+
 MEDIA_CLASS_DEFINE_END(CodechalHwInterfaceNextXe_Hpm)
 };
 
