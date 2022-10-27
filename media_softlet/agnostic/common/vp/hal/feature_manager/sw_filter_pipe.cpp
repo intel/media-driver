@@ -641,7 +641,8 @@ SwFilter *SwFilterPipe::GetSwFilter(bool isInputPipe, int index, FeatureType typ
     SwFilterSubPipe * pipe = GetSwFilterSubPipe(isInputPipe, index);
     if (nullptr == pipe)
     {
-        VP_PUBLIC_ASSERTMESSAGE("Invalid parameter! No sub pipe exists!");
+        // May come here for ClearView case.
+        VP_PUBLIC_NORMALMESSAGE("Invalid parameter! No sub pipe exists!");
         return nullptr;
     }
 
