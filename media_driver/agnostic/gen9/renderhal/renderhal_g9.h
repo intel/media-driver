@@ -135,8 +135,8 @@ public:
     //!
     //! \brief      Checks how per thread scratch space size bits in VFE state are interpreted by HW
     //! \details    For BDW GT1/2/3 A0 steppings, per thread scratch space size in VFE state
-    //!             is 11 bits indicating [2k bytes, 2 Mbytes]: 0=2k, 1=4k, 2=8k � 10=2M
-    //!             BDW+ excluding A0 step is 12 bits indicating [1k bytes, 2 Mbytes]: 0=1k, 1=2k, 2=4k, 3=8k � 11=2M
+    //!             is 11 bits indicating [2k bytes, 2 Mbytes]: 0=2k, 1=4k, 2=8k ... 10=2M
+    //!             BDW+ excluding A0 step is 12 bits indicating [1k bytes, 2 Mbytes]: 0=1k, 1=2k, 2=4k, 3=8k ... 11=2M
     //! \param      PRENDERHAL_INTERFACE pRenderHal
     //!             [in]    Pointer to RenderHal interface
     //! \return     true if BDW A0 stepping, false otherwise

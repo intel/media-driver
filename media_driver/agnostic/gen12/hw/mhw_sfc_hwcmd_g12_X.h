@@ -2245,12 +2245,12 @@ public:
         //! \details
         //!     <span style="color: rgb(35, 35, 35); font-family: Arial, sans-serif;
         //!     font-size: 13.3333330154419px; line-height: normal;">Distinguishes
-        //!     vertical from horizontal compression. Please refer to vol1a </span><b
+        //!     vertical from horizontal compression. Please refer to vol1a </span><b
         //!     style="color: rgb(35, 35, 35); font-family: Arial, sans-serif;
         //!     font-size: 13.3333330154419px; line-height: normal;">Memory Data Formats
         //!     chapter - section</b><span style="color: rgb(35, 35, 35); font-family:
         //!     Arial, sans-serif; font-size: 13.3333330154419px; line-height:
-        //!     normal;"> media Memory Compression for more details.</span>
+        //!     normal;"> media Memory Compression for more details.</span>
         enum AVS_LINE_BUFFER_BASE_ADDRESS__MEMORY_COMPRESSION_MODE
         {
             AVS_LINE_BUFFER_BASE_ADDRESS_MEMORY_COMPRESSION_MODE_HORIZONTALCOMPRESSIONMODE = 0, //!< No additional details
@@ -2296,12 +2296,12 @@ public:
         //! \details
         //!     <span style="color: rgb(35, 35, 35); font-family: Arial, sans-serif;
         //!     font-size: 13.3333330154419px; line-height: normal;">Distinguishes
-        //!     vertical from horizontal compression. Please refer to vol1a </span><b
+        //!     vertical from horizontal compression. Please refer to vol1a </span><b
         //!     style="color: rgb(35, 35, 35); font-family: Arial, sans-serif;
         //!     font-size: 13.3333330154419px; line-height: normal;">Memory Data Formats
         //!     chapter - section</b><span style="color: rgb(35, 35, 35); font-family:
         //!     Arial, sans-serif; font-size: 13.3333330154419px; line-height:
-        //!     normal;"> media Memory Compression for more details.</span>
+        //!     normal;"> media Memory Compression for more details.</span>
         enum IEF_LINE_BUFFER_BASE_ADDRESS__MEMORY_COMPRESSION_MODE
         {
             IEF_LINE_BUFFER_BASE_ADDRESS_MEMORY_COMPRESSION_MODE_UNNAMED0    = 0, //!< No additional details

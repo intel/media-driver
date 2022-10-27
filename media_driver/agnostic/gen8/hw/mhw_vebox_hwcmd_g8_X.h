@@ -1045,11 +1045,11 @@ public:
         //! 
         //!                         <table style="border: black solid 1px;">
         //!                             <tr>
-        //!                                 <td> </td>
+        //!                                 <td> </td>
         //!                                 <td colspan="2">YUV_Channel_Swap</td>
         //!                             </tr>
         //!                             <tr>
-        //!                                 <td> </td>
+        //!                                 <td> </td>
         //!                                 <td style="border: black solid 1px;">0</td>
         //!                                 <td style="border: black solid 1px;">1</td>
         //!                             </tr>
@@ -3071,7 +3071,7 @@ public:
 
         //! \brief DIAMOND_ALPHA
         //! \details
-        //!     1/tan(ß)
+        //!     1/tan(Î²)
         //!     The default is 100/64
         enum DIAMOND_ALPHA
         {
@@ -5446,7 +5446,7 @@ public:
         //!     victimizes the line to eDRAM. Setting of "10" allows the line to be
         //!     allocated in either LLC or eDRAM. Setting of "11" is the only option for
         //!     a memory access to be allocated in L3$ as well as LLC/eLLC</p>
-        //!     <p style="margin-left:3.0pt;">00b: eLLC Only <i>("00" setting points TC
+        //!     <p style="margin-left:3.0pt;">00b: eLLC Only <i>("00" setting points TC
         //!     selection to PTE which defaults to eLLC)</i></p>
         //!     <p style="margin-left:3.0pt;">01b: LLC Only (W<i>orks at the allocation
         //!     time, later victimization from LLC downgrades the line to eLLC if

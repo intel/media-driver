@@ -1550,20 +1550,20 @@ public:
         //!                                 <td>YUV_Channel_Swap</td>
         //!                             </tr>
         //!                             <tr>
-        //!                                 <td> </td>
-        //!                                 <td> 0 --&gt; 1</td>
+        //!                                 <td> </td>
+        //!                                 <td> 0 --&gt; 1</td>
         //!                             </tr>
         //!                             <tr>
         //!                                 <td>Y</td>
-        //!                                 <td> R --&gt; B</td>
+        //!                                 <td> R --&gt; B</td>
         //!                             </tr>
         //!                             <tr>
         //!                                 <td>U</td>
-        //!                                 <td> G --&gt; G</td>
+        //!                                 <td> G --&gt; G</td>
         //!                             </tr>
         //!                             <tr>
         //!                                 <td>V</td>
-        //!                                 <td> B --&gt; R</td>
+        //!                                 <td> B --&gt; R</td>
         //!                             </tr>
         //!                         </table>
         enum YUV_CHANNEL_SWAP
@@ -4432,7 +4432,7 @@ public:
 
         //! \brief DIAMOND_ALPHA
         //! \details
-        //!     1/tan(ß)
+        //!     1/tan(Î²)
         //!                         The default is 100/64
         enum DIAMOND_ALPHA
         {
