@@ -77,10 +77,9 @@ const int32_t VpRenderFcKernel::s_bindingTableIndexField[] =
 };
 
 VpRenderFcKernel::VpRenderFcKernel(PVP_MHWINTERFACE hwInterface, PVpAllocator allocator) :
-    VpRenderKernelObj(hwInterface, allocator)
+    VpRenderKernelObj(hwInterface, (VpKernelID)kernelCombinedFc, 0, VpRenderKernel::s_kernelNameNonAdvKernels, allocator)
 {
     m_kernelBinaryID = IDR_VP_EOT;
-    m_kernelId       = kernelCombinedFc;
 
     if (m_hwInterface && m_hwInterface->m_vpPlatformInterface &&
         m_hwInterface->m_vpPlatformInterface->GetKernelPool().end() != m_hwInterface->m_vpPlatformInterface->GetKernelPool().find(VpRenderKernel::s_kernelNameNonAdvKernels))

@@ -93,7 +93,7 @@ public:
     }
 protected:
 
-    MOS_STATUS GetKernelInfo(uint32_t kuid, uint32_t& size, void*& kernel);
+    MOS_STATUS GetKernelInfo(std::string kernalName, uint32_t kuid, uint32_t &size, void *&kernel);
 
     MOS_STATUS FindAndInitKernelObj(VpRenderKernelObj* kernelObj);
 

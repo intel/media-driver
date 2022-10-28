@@ -555,14 +555,13 @@ const int32_t VpRenderHdrKernel::s_bindingTableIndexField[] =
 };
 
 VpRenderHdrKernel::VpRenderHdrKernel(PVP_MHWINTERFACE hwInterface, PVpAllocator allocator) :
-    VpRenderKernelObj(hwInterface, allocator)
+    VpRenderKernelObj(hwInterface, (VpKernelID)kernelHdrMandatory, 0, VpRenderKernel::s_kernelNameNonAdvKernels, allocator)
 {
     VP_FUNC_CALL();
 
     renderHal = hwInterface ? hwInterface->m_renderHal : nullptr;
 
     m_kernelBinaryID = IDR_VP_HDR_mandatory;
-    m_kernelId       = (VpKernelID)kernelHdrMandatory;
 
     m_renderHal = m_hwInterface ? m_hwInterface->m_renderHal : nullptr;
     if (m_renderHal)

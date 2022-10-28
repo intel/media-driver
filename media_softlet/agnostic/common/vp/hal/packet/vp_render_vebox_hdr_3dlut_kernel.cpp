@@ -31,15 +31,13 @@
 using namespace vp;
 
 //!
-//! \brief Kernel Name for HDR 3DLut kernel
-//!
-#define VP_HDR_KERNEL_NAME "hdr_3dlut"
-
-//!
 //! \brief Binding Table Index for HDR 3DLut kernel
 //!
-#define BI_VEBOX_HDR_3DLUT_3DLUT 0
-#define BI_VEBOX_HDR_3DLUT_COEF 1
+#define BI_VEBOX_HDR_3DLUT_3DLUT 1
+#define BI_VEBOX_HDR_3DLUT_COEF  2
+
+#define BI_VEBOX_HDR_3DLUT_3DLUT_CM 0
+#define BI_VEBOX_HDR_3DLUT_COEF_CM  1
 
 static const float ccm_identity[12]               = {1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f};
 static float       color_matrix_calculation[3][4] = {0.0f};
@@ -214,6 +212,125 @@ static void CalcCCMMatrix()
     color_matrix_calculation[2][3] = 0.0f;
 }
 
+// Used by ISA kernel
+VpRenderHdr3DLutKernel::VpRenderHdr3DLutKernel(PVP_MHWINTERFACE hwInterface, VpKernelID kernelId, uint32_t kernelIndex, std::string kernelName, PVpAllocator allocator) :
+    VpRenderKernelObj(hwInterface, kernelId, kernelIndex, VP_HDR_KERNEL_NAME, allocator)
+{
+    VP_FUNC_CALL();
+}
+
+// Used by L0 kernel
+VpRenderHdr3DLutKernel::VpRenderHdr3DLutKernel(PVP_MHWINTERFACE hwInterface, PVpAllocator allocator) :
+    VpRenderKernelObj(hwInterface, (VpKernelID)kernelHdr3DLutCalc, 0, VP_HDR_KERNEL_NAME_L0, allocator)
+{
+    VP_FUNC_CALL();
+    m_kernelBinaryID = VP_ADV_KERNEL_BINARY_ID(kernelHdr3DLutCalc);
+}
+
+VpRenderHdr3DLutKernel::~VpRenderHdr3DLutKernel()
+{
+}
+
+MOS_STATUS VpRenderHdr3DLutKernel::SetupSurfaceState()
+{
+    VP_FUNC_CALL();
+    VP_RENDER_CHK_NULL_RETURN(m_surfaceGroup);
+    VP_RENDER_CHK_NULL_RETURN(m_hwInterface);
+
+    PRENDERHAL_INTERFACE renderHal   = m_hwInterface->m_renderHal;
+    PMOS_INTERFACE       osInterface = m_hwInterface->m_osInterface;
+
+    KERNEL_SURFACE_STATE_PARAM kernelSurfaceParam            = {};
+    // Only need to specify binding index in surface parameters.
+    kernelSurfaceParam.surfaceOverwriteParams.updatedSurfaceParams = true; 
+    kernelSurfaceParam.surfaceOverwriteParams.bindedKernel   = true;
+    kernelSurfaceParam.surfaceOverwriteParams.bufferResource = true;
+
+    kernelSurfaceParam.surfaceOverwriteParams.bindIndex = BI_VEBOX_HDR_3DLUT_3DLUT;
+    kernelSurfaceParam.isOutput                         = true;
+    m_surfaceState.insert(std::make_pair(SurfaceType3DLut, kernelSurfaceParam));
+    kernelSurfaceParam.surfaceOverwriteParams.bindIndex = BI_VEBOX_HDR_3DLUT_COEF;
+    kernelSurfaceParam.isOutput                         = false;
+    m_surfaceState.insert(std::make_pair(SurfaceType3DLutCoef, kernelSurfaceParam));
+
+    VP_RENDER_CHK_STATUS_RETURN(InitCoefSurface(m_maxDisplayLum, m_maxContentLevelLum, m_hdrMode));
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpRenderHdr3DLutKernel::GetCurbeState(void *&curbe, uint32_t &curbeLength)
+{
+    VP_FUNC_CALL();
+    // init the hdr 3dlut static data
+    MOS_ZeroMemory(&m_curbe, sizeof(m_curbe));
+    m_curbe.DW00.Thread_Group_X        = LUT65_SEG_SIZE;
+    m_curbe.DW01.Thread_Group_Y        = LUT65_SEG_SIZE;
+    m_curbe.DW02.Thread_Group_Z        = 1;
+    m_curbe.DW06.hdr3DLutSurface = GetSurfaceBindingIndex(SurfaceType3DLut);
+    m_curbe.DW07.hdrCoefSurface  = GetSurfaceBindingIndex(SurfaceType3DLutCoef);
+    m_curbe.DW08.hdr3DLutSurfaceHeight = LUT65_SEG_SIZE * LUT65_MUL_SIZE;
+    m_curbe.DW08.hdr3DLutSurfaceWidth  = LUT65_SEG_SIZE * 2;
+
+    curbeLength = sizeof(VEBOX_HDR_3DLUT_STATIC_DATA);
+    curbe = (uint8_t *) & m_curbe;
+    VP_RENDER_NORMALMESSAGE("HDR 3DLut Kernel curbelength %d", curbeLength);
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpRenderHdr3DLutKernel::SetKernelConfigs(KERNEL_CONFIGS &kernelConfigs)
+{
+    VP_FUNC_CALL();
+    auto it = kernelConfigs.find((VpKernelID)kernelHdr3DLutCalc);
+
+    if (kernelConfigs.end() == it || nullptr == it->second)
+    {
+        VP_RENDER_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+    }
+
+    PRENDER_HDR_3DLUT_CAL_PARAMS params = (PRENDER_HDR_3DLUT_CAL_PARAMS)it->second;
+
+    if (m_maxDisplayLum == params->maxDisplayLum && m_maxContentLevelLum == params->maxContentLevelLum &&
+        m_hdrMode == params->hdrMode)
+    {
+        // For such case, 3DLut calculation should be skipped in Policy::GetHdrExecutionCaps.
+        VP_RENDER_ASSERTMESSAGE("No change in 3D Lut parameters!");
+    }
+    else
+    {
+        m_maxDisplayLum      = params->maxDisplayLum;
+        m_maxContentLevelLum = params->maxContentLevelLum;
+        m_hdrMode            = params->hdrMode;
+        VP_RENDER_NORMALMESSAGE("Maximum Display Luminance %d, Maximum Content Level Luminance %d, HDR mode %d",
+            m_maxDisplayLum,
+            m_maxContentLevelLum,
+            m_hdrMode);
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+
+MOS_STATUS VpRenderHdr3DLutKernel::GetWalkerSetting(KERNEL_WALKER_PARAMS &walkerParam, KERNEL_PACKET_RENDER_DATA &renderData)
+{
+
+    VP_FUNC_CALL();
+    RENDERHAL_KERNEL_PARAM kernelSettings;
+    uint32_t               blockWidth  = 16;
+    uint32_t               blockHeight = 8;
+
+    VP_RENDER_CHK_STATUS_RETURN(GetKernelSettings(kernelSettings));
+    MOS_ZeroMemory(&walkerParam, sizeof(KERNEL_WALKER_PARAMS));
+
+    VP_RENDER_CHK_STATUS_RETURN(VpRenderKernelObj::GetWalkerSetting(m_walkerParam, renderData));
+
+    m_walkerParam.iBlocksX          = LUT65_SEG_SIZE;
+    m_walkerParam.iBlocksY          = LUT65_SEG_SIZE;
+    m_walkerParam.isVerticalPattern = false;
+    m_walkerParam.bSyncFlag         = true;
+    walkerParam                     = m_walkerParam;
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS VpRenderHdr3DLutKernel::InitCoefSurface(const uint32_t maxDLL, const uint32_t maxCLL, const VPHAL_HDR_MODE hdrMode)
 {
     VP_FUNC_CALL();
@@ -281,20 +398,20 @@ MOS_STATUS VpRenderHdr3DLutKernel::InitCoefSurface(const uint32_t maxDLL, const 
     return MOS_STATUS_SUCCESS;
 }
 
-VpRenderHdr3DLutKernel::VpRenderHdr3DLutKernel(PVP_MHWINTERFACE hwInterface, VpKernelID kernelID, uint32_t kernelIndex, PVpAllocator allocator) :
-    VpRenderKernelObj(hwInterface, kernelID, kernelIndex, VP_HDR_KERNEL_NAME, allocator)
+VpRenderHdr3DLutKernelCM::VpRenderHdr3DLutKernelCM(PVP_MHWINTERFACE hwInterface, VpKernelID kernelID, uint32_t kernelIndex, PVpAllocator allocator) : 
+    VpRenderHdr3DLutKernel(hwInterface, kernelID, kernelIndex, VP_HDR_KERNEL_NAME, allocator)
 {
     m_kernelBinaryID = VP_ADV_KERNEL_BINARY_ID(kernelID);
     m_isAdvKernel    = true;
 }
 
-VpRenderHdr3DLutKernel::~VpRenderHdr3DLutKernel()
+VpRenderHdr3DLutKernelCM::~VpRenderHdr3DLutKernelCM()
 {
     // No need to destroy dstArg.pData, which points to the local variable
     // in VpHdrFilter.
 }
 
-MOS_STATUS VpRenderHdr3DLutKernel::Init(VpRenderKernel &kernel)
+MOS_STATUS VpRenderHdr3DLutKernelCM::Init(VpRenderKernel &kernel)
 {
     VP_FUNC_CALL();
     m_kernelSize = kernel.GetKernelSize() + KERNEL_BINARY_PADDING_SIZE;
@@ -303,13 +420,12 @@ MOS_STATUS VpRenderHdr3DLutKernel::Init(VpRenderKernel &kernel)
     VP_RENDER_CHK_NULL_RETURN(pKernelBin);
 
     m_kernelBinary = pKernelBin + kernel.GetKernelBinOffset();
-
     m_kernelArgs = kernel.GetKernelArgs();
 
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpRenderHdr3DLutKernel::GetWalkerSetting(KERNEL_WALKER_PARAMS &walkerParam, KERNEL_PACKET_RENDER_DATA &renderData)
+MOS_STATUS VpRenderHdr3DLutKernelCM::GetWalkerSetting(KERNEL_WALKER_PARAMS &walkerParam, KERNEL_PACKET_RENDER_DATA &renderData)
 {
     VP_FUNC_CALL();
 
@@ -320,7 +436,7 @@ MOS_STATUS VpRenderHdr3DLutKernel::GetWalkerSetting(KERNEL_WALKER_PARAMS &walker
 }
 
 // Only for Adv kernels.
-MOS_STATUS VpRenderHdr3DLutKernel::SetWalkerSetting(KERNEL_THREAD_SPACE &threadSpace, bool bSyncFlag)
+MOS_STATUS VpRenderHdr3DLutKernelCM::SetWalkerSetting(KERNEL_THREAD_SPACE &threadSpace, bool bSyncFlag)
 {
     VP_FUNC_CALL();
     MOS_ZeroMemory(&m_walkerParam, sizeof(KERNEL_WALKER_PARAMS));
@@ -333,7 +449,7 @@ MOS_STATUS VpRenderHdr3DLutKernel::SetWalkerSetting(KERNEL_THREAD_SPACE &threadS
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpRenderHdr3DLutKernel::SetKernelArgs(KERNEL_ARGS &kernelArgs, VP_PACKET_SHARED_CONTEXT *sharedContext)
+MOS_STATUS VpRenderHdr3DLutKernelCM::SetKernelArgs(KERNEL_ARGS &kernelArgs, VP_PACKET_SHARED_CONTEXT *sharedContext)
 {
     VP_FUNC_CALL();
     if (kernelArgs.size() != m_kernelArgs.size())
@@ -367,7 +483,7 @@ MOS_STATUS VpRenderHdr3DLutKernel::SetKernelArgs(KERNEL_ARGS &kernelArgs, VP_PAC
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpRenderHdr3DLutKernel::GetCurbeState(void *&curbe, uint32_t &curbeLength)
+MOS_STATUS VpRenderHdr3DLutKernelCM::GetCurbeState(void *&curbe, uint32_t &curbeLength)
 {
     VP_FUNC_CALL();
     curbeLength = 0;
@@ -411,7 +527,7 @@ MOS_STATUS VpRenderHdr3DLutKernel::GetCurbeState(void *&curbe, uint32_t &curbeLe
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpRenderHdr3DLutKernel::SetupSurfaceState()
+MOS_STATUS VpRenderHdr3DLutKernelCM::SetupSurfaceState()
 {
     VP_FUNC_CALL();
     VP_RENDER_CHK_NULL_RETURN(m_surfaceGroup);
@@ -424,10 +540,10 @@ MOS_STATUS VpRenderHdr3DLutKernel::SetupSurfaceState()
     kernelSurfaceParam.surfaceOverwriteParams.bindedKernel   = true;
     kernelSurfaceParam.surfaceOverwriteParams.bufferResource = true;
 
-    kernelSurfaceParam.surfaceOverwriteParams.bindIndex = BI_VEBOX_HDR_3DLUT_3DLUT;
+    kernelSurfaceParam.surfaceOverwriteParams.bindIndex = BI_VEBOX_HDR_3DLUT_3DLUT_CM;
     kernelSurfaceParam.isOutput                         = true;
     m_surfaceState.insert(std::make_pair(SurfaceType3DLut, kernelSurfaceParam));
-    kernelSurfaceParam.surfaceOverwriteParams.bindIndex = BI_VEBOX_HDR_3DLUT_COEF;
+    kernelSurfaceParam.surfaceOverwriteParams.bindIndex = BI_VEBOX_HDR_3DLUT_COEF_CM;
     kernelSurfaceParam.isOutput                         = false;
     m_surfaceState.insert(std::make_pair(SurfaceType3DLutCoef, kernelSurfaceParam));
     
@@ -436,7 +552,7 @@ MOS_STATUS VpRenderHdr3DLutKernel::SetupSurfaceState()
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpRenderHdr3DLutKernel::SetKernelConfigs(KERNEL_CONFIGS& kernelConfigs)
+MOS_STATUS VpRenderHdr3DLutKernelCM::SetKernelConfigs(KERNEL_CONFIGS& kernelConfigs)
 {
     VP_FUNC_CALL();
     auto it = kernelConfigs.find((VpKernelID)kernelHdr3DLutCalc);
