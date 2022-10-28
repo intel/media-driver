@@ -62,6 +62,8 @@ CodechalHwInterfaceNext::CodechalHwInterfaceNext(
     m_cpInterface     = mhwInterfacesNext->m_cpInterface;
     m_veboxInterface  = mhwInterfacesNext->m_veboxInterface;
     m_sfcInterface    = mhwInterfacesNext->m_sfcInterface;
+
+    m_disableScalability = disableScalability;
 }
 
 CodechalHwInterfaceNext::~CodechalHwInterfaceNext()
