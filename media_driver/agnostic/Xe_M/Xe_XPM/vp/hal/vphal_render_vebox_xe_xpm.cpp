@@ -1287,11 +1287,13 @@ MOS_STATUS VPHAL_VEBOX_STATE_XE_XPM::VeboxRenderVeboxCmd(
 
         VPHAL_RENDER_CHK_STATUS(UnLockVESecondaryCmdBuffers());
 
+#if (_DEBUG || _RELEASE_INTERNAL)
         ReportUserSetting(
             m_userSettingPtr,
             __MEDIA_USER_FEATURE_VALUE_ENABLE_VEBOX_SCALABILITY_MODE,
             veboxEnableScalability,
             MediaUserSetting::Group::Device);
+#endif
     }
     else
     {
@@ -1320,11 +1322,13 @@ MOS_STATUS VPHAL_VEBOX_STATE_XE_XPM::VeboxRenderVeboxCmd(
             pGenericPrologParams));
 
         veboxEnableScalability = false;
+#if (_DEBUG || _RELEASE_INTERNAL)
         ReportUserSetting(
             m_userSettingPtr,
             __MEDIA_USER_FEATURE_VALUE_ENABLE_VEBOX_SCALABILITY_MODE,
             veboxEnableScalability,
             MediaUserSetting::Group::Device);
+#endif
     }
 
 finish:
