@@ -224,7 +224,7 @@ public:
         uint32_t &heightAlignUnit,
         bool bVdbox,
         CODECHAL_STANDARD codecStandard,
-        CodecDecodeJpegChromaType jpegChromaType)
+        CodecDecodeJpegChromaType jpegChromaType) override
     {
         if (bVdbox)
         {
@@ -264,41 +264,41 @@ public:
     }
 
     MOS_STATUS SetSfcAVSScalingMode(
-        MHW_SCALING_MODE ScalingMode)
+        MHW_SCALING_MODE ScalingMode) override
     {
         m_scalingMode = ScalingMode;
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS GetInputMinWidthHeightInfo(uint32_t &width, uint32_t &height)
+    MOS_STATUS GetInputMinWidthHeightInfo(uint32_t &width, uint32_t &height) override
     {
         width  = m_inputMinWidth;
         height = m_inputMinHeight;
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS GetOutputMinWidthHeightInfo(uint32_t &width, uint32_t &height)
+    MOS_STATUS GetOutputMinWidthHeightInfo(uint32_t &width, uint32_t &height) override
     {
         width  = m_outputMinWidth;
         height = m_outputMinHeight;
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS GetMinWidthHeightInfo(uint32_t &width, uint32_t &height)
+    MOS_STATUS GetMinWidthHeightInfo(uint32_t &width, uint32_t &height) override
     {
         width = m_minWidth;
         height = m_minHeight;
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS GetMaxWidthHeightInfo(uint32_t &width, uint32_t &height)
+    MOS_STATUS GetMaxWidthHeightInfo(uint32_t &width, uint32_t &height) override
     {
         width  = m_maxWidth;
         height = m_maxHeight;
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS GetScalingRatioLimit(float &minScalingRatio, float &maxScalingRatio)
+    MOS_STATUS GetScalingRatioLimit(float &minScalingRatio, float &maxScalingRatio) override
     {
         minScalingRatio = m_minScalingRatio;
         maxScalingRatio = m_maxScalingRatio;
@@ -315,7 +315,7 @@ public:
         uint32_t                  dwChromaSiting,
         bool                      bUse8x8Filter,
         float                     fHPStrength,
-        float                     fLanczosT)
+        float                     fLanczosT) override
     {
         MHW_FUNCTION_ENTER;
 
@@ -560,7 +560,7 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     MOS_STATUS SetSfcIndex(
         uint32_t dwSfcIndex,
-        uint32_t dwSfcCount)
+        uint32_t dwSfcCount) override
     {
         MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -573,7 +573,7 @@ public:
         return eStatus;
     }
 
-    void IsOutPutCenterEnable(bool inputEnable)
+    void IsOutPutCenterEnable(bool inputEnable) override
     {
         m_outputCenteringEnable = inputEnable;
     }

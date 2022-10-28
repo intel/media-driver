@@ -73,7 +73,7 @@ public:
         return MOS_SecureMemcpy(m_cacheabilitySettings, size, settings, size);
     }
 
-    MOS_STATUS GetRowstoreCachingAddrs(PMHW_VDBOX_ROWSTORE_PARAMS rowstoreParams)
+    MOS_STATUS GetRowstoreCachingAddrs(PMHW_VDBOX_ROWSTORE_PARAMS rowstoreParams) override
     {
         MHW_FUNCTION_ENTER;
 
@@ -189,12 +189,12 @@ public:
 
     }
 
-    bool IsRowStoreCachingSupported()
+    bool IsRowStoreCachingSupported() override
     {
         return m_rowstoreCachingSupported;
     }
 
-    bool IsMprRowstoreCacheEnabled()
+    bool IsMprRowstoreCacheEnabled() override
     {
         return m_mprRowstoreCache.enabled;
     }
@@ -231,22 +231,22 @@ public:
         return viewOrder;
     }
 
-    bool IsDeblockingFilterRowstoreCacheEnabled()
+    bool IsDeblockingFilterRowstoreCacheEnabled() override
     {
         return m_deblockingFilterRowstoreCache.enabled;
     }
 
-    bool IsIntraRowstoreCacheEnabled()
+    bool IsIntraRowstoreCacheEnabled() override
     {
         return m_intraRowstoreCache.enabled;
     }
 
-    bool IsBsdMpcRowstoreCacheEnabled()
+    bool IsBsdMpcRowstoreCacheEnabled() override
     {
         return m_bsdMpcRowstoreCache.enabled;
     }
 
-    MHW_VDBOX_NODE_IND GetMaxVdboxIndex()
+    MHW_VDBOX_NODE_IND GetMaxVdboxIndex() override
     {
         return MEDIA_IS_SKU(m_osItf->pfnGetSkuTable(m_osItf), FtrVcs2) ? MHW_VDBOX_NODE_2 : MHW_VDBOX_NODE_1;
     }
@@ -257,7 +257,7 @@ public:
     //! \return   bool
     //!           vdbox num got
     //!
-    uint8_t GetNumVdbox()
+    uint8_t GetNumVdbox() override
     {
         MEDIA_ENGINE_INFO mediaEngineInfo = {};
         m_osItf->pfnGetMediaEngineInfo(m_osItf, mediaEngineInfo);
@@ -335,7 +335,7 @@ public:
     }
 #endif
 
-    MOS_STATUS FindGpuNodeToUse(PMHW_VDBOX_GPUNODE_LIMIT gpuNodeLimit)
+    MOS_STATUS FindGpuNodeToUse(PMHW_VDBOX_GPUNODE_LIMIT gpuNodeLimit) override
     {
         bool       setVideoNode = false;
         MOS_STATUS eStatus      = MOS_STATUS_SUCCESS;

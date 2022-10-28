@@ -31,15 +31,6 @@
 #include "mhw_sfc.h"
 #include "mhw_cmdpar.h"
 
-#ifdef IGFX_SFC_INTERFACE_EXT_SUPPORT
-#include "mhw_sfc_cmdpar_ext.h"
-#define __MHW_SFC_WRAPPER(STUFF)
-#define __MHW_SFC_WRAPPER_EXT(STUFF) STUFF
-#else
-#define __MHW_SFC_WRAPPER(STUFF) STUFF
-#define __MHW_SFC_WRAPPER_EXT(STUFF)
-#endif
-
 namespace mhw
 {
 namespace sfc
@@ -200,7 +191,8 @@ struct _MHW_PAR_T(SFC_STATE)
     PMOS_RESOURCE pOsResAVSLineBufferSplit[MHW_SFC_MAX_PIPE_NUM] = {};  //!< AVS Line buffer used by SFC
     PMOS_RESOURCE pOsResIEFLineBufferSplit[MHW_SFC_MAX_PIPE_NUM] = {};  //!< IEF Line buffer used by SFC
     PMHW_SFC_OUT_SURFACE_PARAMS             pOutSurface = nullptr;
-    __MHW_SFC_WRAPPER_EXT(SFC_STATE_CMDPAR_EXT);
+    uint32_t      av1TileRowNumber                               = 0;
+    uint32_t      av1TileColumnNumber                            = 0;
 };
 
 struct _MHW_PAR_T(SFC_AVS_STATE)

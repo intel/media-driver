@@ -64,6 +64,7 @@ media_include_subdirectory(agnostic)
 media_include_subdirectory(linux)
 media_include_subdirectory(../media_common/agnostic)
 media_include_subdirectory(../media_common/linux)
+media_include_subdirectory(media_interface)
 
 include(${MEDIA_SOFTLET_EXT}/media_srcs_ext.cmake OPTIONAL)
 include(${MEDIA_COMMON_EXT}/media_srcs_ext.cmake OPTIONAL)

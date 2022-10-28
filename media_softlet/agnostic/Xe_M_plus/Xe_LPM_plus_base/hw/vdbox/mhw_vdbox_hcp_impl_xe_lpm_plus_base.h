@@ -35,7 +35,6 @@
 #include "mhw_vdbox_vdenc_impl_xe_lpm_plus.h"
 #include "mhw_mi_hwcmd_xe_lpm_plus_base_next.h"
 #include "mhw_sfc_hwcmd_xe_lpm_plus_next.h"
-#include "mhw_sfc_xe_lpm_plus_base.h"
 
 namespace mhw
 {
@@ -160,13 +159,13 @@ public:
                         mhw::sfc::xe_lpm_plus_next::Cmd::SFC_IEF_STATE_CMD::byteSize +
                         mhw::sfc::xe_lpm_plus_next::Cmd::SFC_FRAME_START_CMD::byteSize;
                     patchListMaxSize +=
-                        MhwSfcInterfaceXe_Lpm_Plus_base::CommandsNumberOfAddresses::SFC_STATE_CMD_NUMBER_OF_ADDRESSES +
-                        MhwSfcInterfaceXe_Lpm_Plus_base::CommandsNumberOfAddresses::SFC_AVS_CHROMA_Coeff_Table_CMD_NUMBER_OF_ADDRESSES +
-                        MhwSfcInterfaceXe_Lpm_Plus_base::CommandsNumberOfAddresses::SFC_AVS_LUMA_Coeff_Table_CMD_NUMBER_OF_ADDRESSES +
-                        MhwSfcInterfaceXe_Lpm_Plus_base::CommandsNumberOfAddresses::SFC_AVS_STATE_CMD_NUMBER_OF_ADDRESSES +
-                        MhwSfcInterfaceXe_Lpm_Plus_base::CommandsNumberOfAddresses::SFC_FRAME_START_CMD_NUMBER_OF_ADDRESSES +
-                        MhwSfcInterfaceXe_Lpm_Plus_base::CommandsNumberOfAddresses::SFC_IEF_STATE_CMD_NUMBER_OF_ADDRESSES +
-                        MhwSfcInterfaceXe_Lpm_Plus_base::CommandsNumberOfAddresses::SFC_LOCK_CMD_NUMBER_OF_ADDRESSES;
+                        mhw::sfc::Itf::CommandsNumberOfAddresses::SFC_STATE_CMD_NUMBER_OF_ADDRESSES +
+                        mhw::sfc::Itf::CommandsNumberOfAddresses::SFC_AVS_CHROMA_Coeff_Table_CMD_NUMBER_OF_ADDRESSES +
+                        mhw::sfc::Itf::CommandsNumberOfAddresses::SFC_AVS_LUMA_Coeff_Table_CMD_NUMBER_OF_ADDRESSES +
+                        mhw::sfc::Itf::CommandsNumberOfAddresses::SFC_AVS_STATE_CMD_NUMBER_OF_ADDRESSES +
+                        mhw::sfc::Itf::CommandsNumberOfAddresses::SFC_FRAME_START_CMD_NUMBER_OF_ADDRESSES +
+                        mhw::sfc::Itf::CommandsNumberOfAddresses::SFC_IEF_STATE_CMD_NUMBER_OF_ADDRESSES +
+                        mhw::sfc::Itf::CommandsNumberOfAddresses::SFC_LOCK_CMD_NUMBER_OF_ADDRESSES;
                 }
 
                 if (par->bScalableMode)
@@ -210,13 +209,13 @@ public:
                             mhw::sfc::xe_lpm_plus_next::Cmd::SFC_IEF_STATE_CMD::byteSize +
                             mhw::sfc::xe_lpm_plus_next::Cmd::SFC_FRAME_START_CMD::byteSize;
                         patchListMaxSize +=
-                            MhwSfcInterfaceXe_Lpm_Plus_base::CommandsNumberOfAddresses::SFC_STATE_CMD_NUMBER_OF_ADDRESSES +
-                            MhwSfcInterfaceXe_Lpm_Plus_base::CommandsNumberOfAddresses::SFC_AVS_CHROMA_Coeff_Table_CMD_NUMBER_OF_ADDRESSES +
-                            MhwSfcInterfaceXe_Lpm_Plus_base::CommandsNumberOfAddresses::SFC_AVS_LUMA_Coeff_Table_CMD_NUMBER_OF_ADDRESSES +
-                            MhwSfcInterfaceXe_Lpm_Plus_base::CommandsNumberOfAddresses::SFC_AVS_STATE_CMD_NUMBER_OF_ADDRESSES +
-                            MhwSfcInterfaceXe_Lpm_Plus_base::CommandsNumberOfAddresses::SFC_FRAME_START_CMD_NUMBER_OF_ADDRESSES +
-                            MhwSfcInterfaceXe_Lpm_Plus_base::CommandsNumberOfAddresses::SFC_IEF_STATE_CMD_NUMBER_OF_ADDRESSES +
-                            MhwSfcInterfaceXe_Lpm_Plus_base::CommandsNumberOfAddresses::SFC_LOCK_CMD_NUMBER_OF_ADDRESSES;
+                            mhw::sfc::Itf::CommandsNumberOfAddresses::SFC_STATE_CMD_NUMBER_OF_ADDRESSES +
+                            mhw::sfc::Itf::CommandsNumberOfAddresses::SFC_AVS_CHROMA_Coeff_Table_CMD_NUMBER_OF_ADDRESSES +
+                            mhw::sfc::Itf::CommandsNumberOfAddresses::SFC_AVS_LUMA_Coeff_Table_CMD_NUMBER_OF_ADDRESSES +
+                            mhw::sfc::Itf::CommandsNumberOfAddresses::SFC_AVS_STATE_CMD_NUMBER_OF_ADDRESSES +
+                            mhw::sfc::Itf::CommandsNumberOfAddresses::SFC_FRAME_START_CMD_NUMBER_OF_ADDRESSES +
+                            mhw::sfc::Itf::CommandsNumberOfAddresses::SFC_IEF_STATE_CMD_NUMBER_OF_ADDRESSES +
+                            mhw::sfc::Itf::CommandsNumberOfAddresses::SFC_LOCK_CMD_NUMBER_OF_ADDRESSES;
                     }
                 }
             }

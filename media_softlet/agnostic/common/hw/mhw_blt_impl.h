@@ -65,7 +65,7 @@ public:
             PMOS_COMMAND_BUFFER      pCmdBuffer,
             PMHW_FAST_COPY_BLT_PARAM pBlockCopyBltParam, 
             uint32_t                 srcOffset,
-            uint32_t                 dstOffset)
+            uint32_t                 dstOffset) override
     {
         MHW_CHK_NULL_RETURN(pCmdBuffer);
         MHW_CHK_NULL_RETURN(pBlockCopyBltParam);
@@ -109,7 +109,7 @@ public:
             PMOS_COMMAND_BUFFER      pCmdBuffer,
             PMHW_FAST_COPY_BLT_PARAM pFastCopyBltParam, 
             uint32_t                 srcOffset,
-            uint32_t                 dstOffset)
+            uint32_t                 dstOffset) override
     {
         MHW_CHK_NULL_RETURN(pCmdBuffer);
         MHW_CHK_NULL_RETURN(pFastCopyBltParam);

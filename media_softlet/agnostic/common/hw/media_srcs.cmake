@@ -19,7 +19,6 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 media_include_subdirectory(vdbox)
-media_include_subdirectory(sfc)
 
 set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mhw_hwcmd.h
