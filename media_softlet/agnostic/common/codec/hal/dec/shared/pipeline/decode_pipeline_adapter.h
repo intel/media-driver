@@ -27,7 +27,7 @@
 #ifndef __DECODE_PIPELINE_ADAPTER_H__
 #define __DECODE_PIPELINE_ADAPTER_H__
 
-#include "codechal.h"
+#include "codechal_common.h"
 
 class DecodePipelineAdapter: public Codechal
 {

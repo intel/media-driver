@@ -24,7 +24,6 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/decode_avc_packet_m12.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_avc_picture_packet_m12.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_avc_slice_packet_m12.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/decode_avc_downsampling_packet.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_avc_picture_xe_m_base_packet.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_avc_slice_xe_m_base_packet.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_avc_xe_m_base_packet.cpp
@@ -35,7 +34,6 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/decode_avc_packet_m12.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_avc_picture_packet_m12.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_avc_slice_packet_m12.h
-    ${CMAKE_CURRENT_LIST_DIR}/decode_avc_downsampling_packet.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_avc_picture_xe_m_base_packet.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_avc_slice_xe_m_base_packet.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_avc_xe_m_base_packet.h

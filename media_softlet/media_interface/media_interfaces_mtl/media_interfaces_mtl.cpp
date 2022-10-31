@@ -29,7 +29,7 @@
 
 #include "media_interfaces_mtl.h"
 
-#include "codechal.h"
+#include "codechal_common.h"
 #include "codechal_debug.h"
 
 #include "vp_pipeline_adapter_xe_lpm_plus.h"

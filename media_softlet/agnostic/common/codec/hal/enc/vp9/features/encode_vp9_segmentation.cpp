@@ -28,7 +28,6 @@
 #include "encode_vp9_vdenc_const_settings.h"
 #include "media_vp9_packet_defs.h"
 #include "mhw_utilities.h"
-#include "mhw_vdbox_vdenc_g12_X.h"
 #include "encode_vp9_tile.h"
 #include "media_vp9_feature_defs.h"
 

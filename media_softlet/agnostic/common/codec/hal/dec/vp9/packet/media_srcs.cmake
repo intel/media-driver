@@ -28,6 +28,7 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_packet_single.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_picture_packet.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_slice_packet.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_downsampling_packet.cpp
 )
 
 set(TMP_HEADERS_
@@ -39,6 +40,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_packet_single.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_picture_packet.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_slice_packet.h
+    ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_downsampling_packet.h
 )
 endif()
 

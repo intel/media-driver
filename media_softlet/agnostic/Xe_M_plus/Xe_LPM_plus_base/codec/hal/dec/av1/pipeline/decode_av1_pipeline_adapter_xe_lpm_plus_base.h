@@ -27,7 +27,7 @@
 #ifndef __DECODE_AV1_PIPELINE_ADAPTER_XE_LPM_PLUS_BASE_H__
 #define __DECODE_AV1_PIPELINE_ADAPTER_XE_LPM_PLUS_BASE_H__
 
-#include "codechal.h"
+#include "codechal_common.h"
 #include "decode_av1_pipeline_xe_lpm_plus_base.h"
 #include "decode_pipeline_adapter.h"
 

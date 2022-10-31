@@ -27,14 +27,9 @@
 #ifndef __CODEC_HW_NEXT_H__
 #define __CODEC_HW_NEXT_H__
 
-#include "codechal.h"
+#include "codechal_common.h"
 #include "media_interfaces_mhw_next.h"
 
-// Remove legacy header files
-#include "mhw_vdbox_mfx_interface.h"
-#include "mhw_vdbox_hcp_interface.h"
-#include "mhw_vdbox_vdenc_interface.h"
-#include "mhw_vdbox_huc_interface.h"
 #include "mhw_mi_itf.h"
 #include "media_sfc_interface.h"
 #include "renderhal.h"
