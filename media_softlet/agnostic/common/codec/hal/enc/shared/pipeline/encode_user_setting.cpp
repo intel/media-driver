@@ -79,6 +79,41 @@ MOS_STATUS EncodePipeline::InitUserSetting(MediaUserSettingSharedPtr userSetting
         int32_t(0),
         true);
 
+    DeclareUserSettingKey(
+        userSettingPtr,
+        "RC Panic Mode",
+        MediaUserSetting::Group::Sequence,
+        int32_t(1),
+        false);
+
+    DeclareUserSettingKey(
+        userSettingPtr,
+        "HEVC Encode Enable HW Stitch",
+        MediaUserSetting::Group::Sequence,
+        int32_t(1),
+        false);
+
+    DeclareUserSettingKey(
+        userSettingPtr,
+        "Single Task Phase Enable",
+        MediaUserSetting::Group::Sequence,
+        int32_t(1),
+        false);
+
+    DeclareUserSettingKey(
+        userSettingPtr,
+        "Enable Frame Tracking",
+        MediaUserSetting::Group::Sequence,
+        int32_t(1),
+        false);
+
+    DeclareUserSettingKey(
+        userSettingPtr,
+        "Disable Media Encode Scalability",
+        MediaUserSetting::Group::Sequence,
+        int32_t(0),
+        false);
+
 #if (_DEBUG || _RELEASE_INTERNAL)
     DeclareUserSettingKeyForDebug(
         userSettingPtr,
@@ -152,6 +187,36 @@ MOS_STATUS EncodePipeline::InitUserSetting(MediaUserSettingSharedPtr userSetting
         MediaUserSetting::Group::Sequence,
         int32_t(1),
         false);
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        "Fake Header Size Enable",
+        MediaUserSetting::Group::Sequence,
+        int32_t(0),
+        false);
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        "Fake IFrame Header Size",
+        MediaUserSetting::Group::Sequence,
+        int32_t(128),
+        false);
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        "Fake PBFrame Header Size",
+        MediaUserSetting::Group::Sequence,
+        int32_t(16),
+        false);
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        "Encode Raw Surface Tile",
+        MediaUserSetting::Group::Sequence,
+        int32_t(0),
+        true);
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        "Media Encode Used VDBOX Number",
+        MediaUserSetting::Group::Sequence,
+        int32_t(1),
+        true);
 #endif
 
 #if _MEDIA_RESERVED

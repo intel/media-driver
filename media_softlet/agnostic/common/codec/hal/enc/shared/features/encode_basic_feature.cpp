@@ -78,24 +78,21 @@ MOS_STATUS EncodeBasicFeature::Init(void *setting)
     m_currOriginalPic.FrameIdx = 0;
     m_currOriginalPic.PicEntry = 0;
 
-    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
-
     //RCPanic settings
-    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_RC_PANIC_ENABLE_ID,
-        &userFeatureData,
-        m_osInterface->pOsContext);
-    m_panicEnable = (userFeatureData.i32Data) ? true : false;
+    MediaUserSetting::Value outValue;
+    ReadUserSetting(
+        m_userSettingPtr,
+        outValue,
+        "RC Panic Mode",
+        MediaUserSetting::Group::Sequence);
+    m_panicEnable = outValue.Get<bool>();
 
-    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_ENABLE_HW_STITCH,
-        &userFeatureData,
-        m_osInterface->pOsContext);
-    m_enableTileStitchByHW = userFeatureData.i32Data ? true : false;
+    ReadUserSetting(
+        m_userSettingPtr,
+        outValue,
+        "HEVC Encode Enable HW Stitch",
+        MediaUserSetting::Group::Sequence);
+    m_enableTileStitchByHW = outValue.Get<bool>();
 
     return MOS_STATUS_SUCCESS;
 }
@@ -143,7 +140,11 @@ MOS_STATUS EncodeBasicFeature::Update(void *params)
     }
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-    WriteUserFeature(__MEDIA_USER_FEATURE_VALUE_ENCODE_RAW_TILE_ID, m_rawSurface.TileType, m_osInterface->pOsContext);
+    ReportUserSettingForDebug(
+        m_userSettingPtr,
+        "Encode Raw Surface Tile",
+        m_rawSurface.TileType,
+        MediaUserSetting::Group::Sequence);
 #endif
 
     m_rawSurfaceToEnc     =

@@ -288,6 +288,7 @@ protected:
     MOS_RESOURCE                   m_resSemaphoreOtherPipesForOne = {};
     uint32_t                       m_numDelay = 15;
     MOS_RESOURCE                   m_resDelayMinus = {0};
+    MediaUserSettingSharedPtr      m_userSettingPtr = nullptr;
 
 MEDIA_CLASS_DEFINE_END(encode__EncodeScalabilityMultiPipe)
 };

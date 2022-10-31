@@ -73,7 +73,11 @@ MOS_STATUS JpegPipeline::UserFeatureReport()
         MediaUserSetting::Group::Sequence);
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-    WriteUserFeature(__MEDIA_USER_FEATURE_VALUE_ENABLE_ENCODE_VE_CTXSCHEDULING_ID, MOS_VE_CTXBASEDSCHEDULING_SUPPORTED(m_osInterface), m_osInterface->pOsContext);
+    ReportUserSettingForDebug(
+        m_userSettingPtr,
+        "Enable Encode VE CtxBasedScheduling",
+        MOS_VE_CTXBASEDSCHEDULING_SUPPORTED(m_osInterface),
+        MediaUserSetting::Group::Sequence);
 #endif
 
     return MOS_STATUS_SUCCESS;

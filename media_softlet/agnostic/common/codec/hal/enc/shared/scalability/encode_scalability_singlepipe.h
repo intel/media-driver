@@ -136,7 +136,8 @@ protected:
     //bool              ConvertToMiRegister(MHW_VDBOX_NODE_IND index, MHW_MI_MMIOREGISTERS &mmioRegister);
 
 private:
-    CodechalHwInterfaceNext *m_hwInterface             = nullptr;
+    CodechalHwInterfaceNext   *m_hwInterface    = nullptr;
+    MediaUserSettingSharedPtr  m_userSettingPtr = nullptr;
 
     ////! \brief Mmio registers address
     //MHW_MI_MMIOREGISTERS m_mmioRegisters = {};  //!< mfx mmio registers

@@ -56,20 +56,25 @@ EncodeScalabilitySinglePipe::EncodeScalabilitySinglePipe(void *hwInterface, Medi
 MOS_STATUS EncodeScalabilitySinglePipe::Initialize(const MediaScalabilityOption &option)
 {
     SCALABILITY_CHK_NULL_RETURN(m_osInterface);
+    m_userSettingPtr = m_osInterface->pfnGetUserSettingInstance(m_osInterface);
+    if (!m_userSettingPtr)
+    {
+        ENCODE_NORMALMESSAGE("Initialize m_userSettingPtr instance failed!");
+    }
 
     m_scalabilityOption = MOS_New(EncodeScalabilityOption, (const EncodeScalabilityOption &)option);
     SCALABILITY_CHK_NULL_RETURN(m_scalabilityOption);
 
-    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
-    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    auto statusKey = MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_ENCODE_ENABLE_FRAME_TRACKING_ID,
-        &userFeatureData,
-        m_osInterface->pOsContext);
+    MediaUserSetting::Value outValue;
+    auto statusKey = ReadUserSetting(
+                        m_userSettingPtr,
+                        outValue,
+                        "Enable Frame Tracking",
+                        MediaUserSetting::Group::Sequence);
+
     if (statusKey == MOS_STATUS_SUCCESS)
     {
-        m_frameTrackingEnabled = userFeatureData.i32Data ? true : false;
+        m_frameTrackingEnabled = outValue.Get<bool>();
     }
     else
     {

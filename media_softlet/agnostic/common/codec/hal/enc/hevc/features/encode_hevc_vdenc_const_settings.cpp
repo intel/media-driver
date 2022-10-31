@@ -442,17 +442,20 @@ MOS_STATUS EncodeHevcVdencConstSettings::PrepareConstSettings()
     if (m_osItf != nullptr)
     {
         // To enable rounding precision here
-        MOS_USER_FEATURE_VALUE_DATA userFeatureData;
-        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-        MOS_UserFeature_ReadValue_ID(
-            nullptr,
-            __MEDIA_USER_FEATURE_VALUE_HEVC_VDENC_ROUNDING_ENABLE_ID,
-            &userFeatureData,
-            m_osItf->pOsContext);
-        m_hevcVdencRoundingPrecisionEnabled = userFeatureData.i32Data ? true : false;
+        MediaUserSetting::Value outValue;
+        ReadUserSetting(
+            m_userSettingPtr,
+            outValue,
+            "HEVC VDEnc Rounding Enable",
+            MediaUserSetting::Group::Sequence);
+        m_hevcVdencRoundingPrecisionEnabled = outValue.Get<bool>();
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-        WriteUserFeature(__MEDIA_USER_FEATURE_VALUE_HEVC_VDENC_ROUNDING_ENABLE_ID, m_hevcVdencRoundingPrecisionEnabled, m_osItf->pOsContext);
+        ReportUserSettingForDebug(
+            m_userSettingPtr,
+            "HEVC VDEnc Rounding Enable",
+            m_hevcVdencRoundingPrecisionEnabled,
+            MediaUserSetting::Group::Sequence);
 #endif
 /*
         MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));

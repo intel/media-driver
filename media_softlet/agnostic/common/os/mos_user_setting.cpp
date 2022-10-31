@@ -971,6 +971,13 @@ MOS_STATUS MosUserSetting::InitUserSettingForDebug(MediaUserSettingSharedPtr use
         0,
         true);  //"Linux Performance Tag."
 
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        "Command Parser Input File Path",
+        MediaUserSetting::Group::Device,
+        std::string(),
+        false);
+
     return MOS_STATUS_SUCCESS;
 }
 

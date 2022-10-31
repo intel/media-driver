@@ -31,30 +31,27 @@ namespace encode {
     MOS_STATUS PacketUtilities::Init()
     {
 #if USE_CODECHAL_DEBUG_TOOL
-        MOS_USER_FEATURE_VALUE_DATA userFeatureData;
-        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-        MOS_UserFeature_ReadValue_ID(
-            nullptr,
-            __MEDIA_USER_FEATURE_VALUE_CODECHAL_ENABLE_FAKE_HEADER_SIZE_ID,
-            &userFeatureData,
-            m_hwInterface->GetOsInterface()->pOsContext);
-        m_enableFakeHrdSize = (uint32_t)userFeatureData.u32Data;
+        MediaUserSetting::Value outValue;
+        ReadUserSettingForDebug(
+            m_userSettingPtr,
+            outValue,
+            "Fake Header Size Enable",
+            MediaUserSetting::Group::Sequence);
+        m_enableFakeHrdSize = outValue.Get<uint32_t>();
 
-        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-        MOS_UserFeature_ReadValue_ID(
-            nullptr,
-            __MEDIA_USER_FEATURE_VALUE_CODECHAL_FAKE_IFRAME_HEADER_SIZE_ID,
-            &userFeatureData,
-            m_hwInterface->GetOsInterface()->pOsContext);
-        m_fakeIFrameHrdSize = (uint32_t)userFeatureData.u32Data;
+        ReadUserSettingForDebug(
+            m_userSettingPtr,
+            outValue,
+            "Fake IFrame Header Size",
+            MediaUserSetting::Group::Sequence);
+        m_fakeIFrameHrdSize = outValue.Get<uint32_t>();
 
-        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-        MOS_UserFeature_ReadValue_ID(
-            nullptr,
-            __MEDIA_USER_FEATURE_VALUE_CODECHAL_FAKE_PBFRAME_HEADER_SIZE_ID,
-            &userFeatureData,
-            m_hwInterface->GetOsInterface()->pOsContext);
-        m_fakePBFrameHrdSize = (uint32_t)userFeatureData.u32Data;
+        ReadUserSettingForDebug(
+            m_userSettingPtr,
+            outValue,
+            "Fake PBFrame Header Size",
+            MediaUserSetting::Group::Sequence);
+        m_fakePBFrameHrdSize = outValue.Get<uint32_t>();
 #endif
 
         return MOS_STATUS_SUCCESS;
@@ -66,7 +63,14 @@ namespace encode {
         m_featureManager    = featureManager;
 
         ENCODE_CHK_NULL_NO_STATUS_RETURN(hwInterface);
-        m_miItf       = hwInterface->GetMiInterfaceNext();
+        m_miItf          = hwInterface->GetMiInterfaceNext();
+        auto osInterface = hwInterface->GetOsInterface();
+        ENCODE_CHK_NULL_NO_STATUS_RETURN(osInterface);
+        m_userSettingPtr = osInterface->pfnGetUserSettingInstance(osInterface);
+        if (!m_userSettingPtr)
+        {
+            ENCODE_NORMALMESSAGE("Initialize m_userSettingPtr instance failed!");
+        }
     }
 
     PacketUtilities::~PacketUtilities()

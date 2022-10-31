@@ -93,14 +93,13 @@ MOS_STATUS EncodePipeline::Initialize(void *settings)
         m_statusReportDebugInterface->Initialize(m_hwInterface, m_codecFunction, m_mediaCopy));
     );
 
-    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
-    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_SINGLE_TASK_PHASE_ENABLE_ID,
-        &userFeatureData,
-        m_osInterface->pOsContext);
-    m_singleTaskPhaseSupported = (userFeatureData.i32Data) ? true : false;
+    MediaUserSetting::Value outValue;
+    ReadUserSetting(
+        m_userSettingPtr,
+        outValue,
+        "Single Task Phase Enable",
+        MediaUserSetting::Group::Sequence);
+    m_singleTaskPhaseSupported = outValue.Get<bool>();
 
     ENCODE_CHK_STATUS_RETURN(CreateFeatureManager());
     ENCODE_CHK_NULL_RETURN(m_featureManager);
@@ -203,7 +202,11 @@ MOS_STATUS EncodePipeline::UserFeatureReport()
 //        WriteUserFeature(__MEDIA_USER_FEATURE_VALUE_SLICE_SHUTDOWN_ENABLE_ID, m_sliceShutdownEnable);
 //    }
 #if (_DEBUG || _RELEASE_INTERNAL)
-    WriteUserFeature(__MEDIA_USER_FEATURE_VALUE_ENCODE_USED_VDBOX_NUM_ID, GetPipeNum(), m_osInterface->pOsContext);
+    ReportUserSettingForDebug(
+        m_userSettingPtr,
+        "Media Encode Used VDBOX Number",
+        GetPipeNum(),
+        MediaUserSetting::Group::Sequence);
 #endif // _DEBUG || _RELEASE_INTERNAL
 
     return MOS_STATUS_SUCCESS;

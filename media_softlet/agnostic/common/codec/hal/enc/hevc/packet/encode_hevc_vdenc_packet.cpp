@@ -2685,14 +2685,13 @@ namespace encode
 
         if(MEDIA_IS_WA(waTable, Wa_14012254246))
         {
-            MOS_USER_FEATURE_VALUE_DATA userFeatureData;
-            MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-            MOS_UserFeature_ReadValue_ID(
-                nullptr,
-                __MEDIA_USER_FEATURE_VALUE_DISABLE_TLB_PREFETCH_ID,
-                &userFeatureData,
-                this->m_osInterface->pOsContext);
-            params.prefetchDisable = userFeatureData.u32Data ? true : false;
+            MediaUserSetting::Value outValue;
+            ReadUserSetting(
+                m_userSettingPtr,
+                outValue,
+                "DisableTlbPrefetch",
+                MediaUserSetting::Group::Sequence);
+            params.prefetchDisable = outValue.Get<bool>();
         }
 
         return MOS_STATUS_SUCCESS;

@@ -405,17 +405,6 @@ MOS_STATUS CodechalInterfacesXe_Lpm_Plus::Initialize(
     MhwInterfacesNext *mhwInterfaces,
     PMOS_INTERFACE osInterface)
 {
-    bool mdfSupported = true;
-#if (_DEBUG || _RELEASE_INTERNAL)
-    MOS_USER_FEATURE_VALUE_DATA UserFeatureData;
-    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_MDF_DISABLE_ID,
-        &UserFeatureData,
-        osInterface->pOsContext);
-    mdfSupported = (UserFeatureData.i32Data == 1) ? false : true;
-#endif  // (_DEBUG || _RELEASE_INTERNAL)
     if (standardInfo == nullptr ||
         mhwInterfaces == nullptr ||
         osInterface == nullptr)
