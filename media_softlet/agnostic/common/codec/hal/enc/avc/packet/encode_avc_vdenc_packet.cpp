@@ -408,7 +408,7 @@ namespace encode {
         auto slcData = m_basicFeature->m_slcData;
 
         // For use with the single task phase implementation
-        if (m_basicFeature->m_sliceStructCaps != CODECHAL_SLICE_STRUCT_ARBITRARYMBSLICE)
+        if (m_basicFeature->m_sliceStructCaps < CODECHAL_SLICE_STRUCT_ARBITRARYROWSLICE)
         {
             uint32_t numSlc = (m_basicFeature->m_frameFieldHeightInMb + m_basicFeature->m_sliceHeight - 1) / m_basicFeature->m_sliceHeight;
             if (numSlc != m_basicFeature->m_numSlices)

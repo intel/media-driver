@@ -464,14 +464,12 @@ MOS_STATUS AvcBasicFeature::SetSliceStructs()
             if (sliceCount == 0)
             {
                 numMbsForFirstSlice = slcParams->NumMbsForSlice;
-                // In current kernel, the same MB number in the slice must be number of MB rows.
                 if (numMbsForFirstSlice % m_picWidthInMb)
                 {
                     eStatus = MOS_STATUS_INVALID_PARAMETER;
                     return eStatus;
                 }
                 m_sliceHeight = numMbsForFirstSlice / m_picWidthInMb;
-                // Slice height should be in power of 2
                 if (m_sliceStructCaps == CODECHAL_SLICE_STRUCT_POW2ROWS && (m_sliceHeight & (m_sliceHeight - 1)))
                 {
                     // app can only pass orig numMBs in picture for single slice, set slice height to the nearest pow2
@@ -491,7 +489,6 @@ MOS_STATUS AvcBasicFeature::SetSliceStructs()
                     }
                 }
             }
-            // VME: In current kernel, all slices should have the same MBs except the last one, the last one should have no more MBs than the previous
             else if (m_sliceStructCaps == CODECHAL_SLICE_STRUCT_ROWSLICE)
             {
                 if ((sliceCount < m_numSlices - 1 && numMbsForFirstSlice != slcParams->NumMbsForSlice) ||
