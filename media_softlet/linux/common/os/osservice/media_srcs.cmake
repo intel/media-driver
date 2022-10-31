@@ -18,12 +18,15 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
+configure_file(${CMAKE_CURRENT_LIST_DIR}/mos_compat.h.in ${CMAKE_BINARY_DIR}/mos_compat.h)
+
 set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/mos_util_debug_specific.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_utilities_specific.cpp
 )
 
 set(TMP_HEADERS_
+    ${CMAKE_BINARY_DIR}/mos_compat.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_utilities_specific.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_util_debug_specific.h
 )

@@ -22,6 +22,10 @@ project( media )
 
 find_package(PkgConfig)
 find_package(X11)
+find_package(Backtrace)
+
+# to get access to generated header files
+include_directories(${CMAKE_BINARY_DIR})
 
 bs_set_if_undefined(LIB_NAME iHD_drv_video)
 
@@ -381,10 +385,15 @@ set_target_properties(${LIB_NAME} PROPERTIES LINK_FLAGS ${MEDIA_LINK_FLAGS})
 set_target_properties(${LIB_NAME}        PROPERTIES PREFIX "")
 set_target_properties(${LIB_NAME_STATIC} PROPERTIES PREFIX "")
 
+set(MEDIA_LINK_EXTERNAL_LIBS "${PKG_PCIACCESS_LIBRARIES} m pthread dl")
+if(Backtrace_FOUND)
+    set(MEDIA_LINK_EXTERNAL_LIBS "${MEDIA_LINK_EXTERNAL_LIBS} ${Backtrace_LIBRARY}")
+endif()
+
 bs_ufo_link_libraries_noBsymbolic(
     ${LIB_NAME}
     "${INCLUDED_LIBS}"
-    "${PKG_PCIACCESS_LIBRARIES} m pthread dl"
+    "${MEDIA_LINK_EXTERNAL_LIBS}"
 )
 
 if (NOT DEFINED INCLUDED_LIBS OR "${INCLUDED_LIBS}" STREQUAL "")
