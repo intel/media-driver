@@ -34,13 +34,13 @@
 #include <signal.h>
 #include <unistd.h>  // fork
 #include <algorithm>
-#include <execinfo.h> // backtrace
 #include <sys/types.h>
 #include <sys/stat.h>  // fstat
 #include <sys/ipc.h>  // System V IPC
 #include <sys/types.h>
 #include <sys/sem.h>
 #include <sys/mman.h>
+#include "mos_compat.h" // libc variative definitions: backtrace
 #include "mos_user_setting.h"
 #include "mos_utilities_specific.h"
 #include "mos_utilities.h"
@@ -2505,6 +2505,7 @@ void MosUtilities::MosTraceEvent(
                 MOS_FreeMemory(pTraceBuf);
             }
         }
+#if Backtrace_FOUND
         if (m_mosTraceFilter(TR_KEY_CALL_STACK))
         {
             // reserve space for header and stack size field.
@@ -2524,6 +2525,7 @@ void MosUtilities::MosTraceEvent(
                 size_t ret = write(MosUtilitiesSpecificNext::m_mosTraceFd, traceBuf, nLen);
             }
         }
+#endif
     }
     return;
 }
