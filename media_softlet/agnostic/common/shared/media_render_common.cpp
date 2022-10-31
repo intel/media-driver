@@ -174,7 +174,15 @@ MOS_STATUS MediaRenderCommon::Set2DSurfaceForHwAccess(
     if (bWrite)
     {
         pRenderSurface->SurfType = RENDERHAL_SURF_OUT_RENDERTARGET;
+
+        // Widthscalar is 2 for RENDERHAL_PLANES_Y210_RT (Plane definition) layout
+        if (pRenderSurface->OsSurface.Format == Format_Y210 || pRenderSurface->OsSurface.Format == Format_Y216)
+        {
+            pRenderSurface->rcDst.right       = pSurface->dwWidth * 2;
+            pRenderSurface->OsSurface.dwWidth = pSurface->dwWidth * 2;
+        }
     }
+
     // Setup surface states-----------------------------------------------------
     MHW_CHK_STATUS(pRenderHal->pfnSetupSurfaceState(
         pRenderHal,
