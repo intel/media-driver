@@ -189,6 +189,9 @@ namespace encode {
         hucVdencBrcInitDmem->BRCPyramidEnable_U8 = 0;
 
         //QP modulation settings
+        m_basicFeature->m_hevcSeqParams->GopRefDist = 
+                        m_basicFeature->m_hevcSeqParams->GopRefDist == 0 ? 1 : 
+                        m_basicFeature->m_hevcSeqParams->GopRefDist;
         bool bAllowedPyramid = m_basicFeature->m_hevcSeqParams->GopRefDist != 3;
         uint16_t intraPeriod = m_basicFeature->m_hevcSeqParams->GopPicSize > 4001 ? 4000 : m_basicFeature->m_hevcSeqParams->GopPicSize - 1;
         intraPeriod = ((intraPeriod + m_basicFeature->m_hevcSeqParams->GopRefDist - 1) / m_basicFeature->m_hevcSeqParams->GopRefDist) * m_basicFeature->m_hevcSeqParams->GopRefDist;

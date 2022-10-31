@@ -2330,9 +2330,36 @@ namespace encode
             return MOS_STATUS_SUCCESS;
         }
 
+        // Intra/Inter/Skip CU Cnt
+        auto xCalAtomic = [&](PMOS_RESOURCE presDst, uint32_t dstOffset, PMOS_RESOURCE presSrc, uint32_t srcOffset, mhw::mi::MHW_COMMON_MI_ATOMIC_OPCODE opCode) {
+            auto  mmioRegisters      = m_hwInterface->GetVdencInterfaceNext()->GetMmioRegisters(m_vdboxIndex);
+            auto &miLoadRegMemParams = m_miItf->MHW_GETPAR_F(MI_LOAD_REGISTER_MEM)();
+            auto &flushDwParams      = m_miItf->MHW_GETPAR_F(MI_FLUSH_DW)();
+            auto &atomicParams       = m_miItf->MHW_GETPAR_F(MI_ATOMIC)();
+
+            miLoadRegMemParams = {};
+            flushDwParams      = {};
+            atomicParams       = {};
+
+            miLoadRegMemParams.presStoreBuffer = presSrc;
+            miLoadRegMemParams.dwOffset        = srcOffset;
+            miLoadRegMemParams.dwRegister      = mmioRegisters->generalPurposeRegister0LoOffset;
+            ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_MEM)(cmdBuffer));
+
+            ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(cmdBuffer));
+
+            atomicParams.pOsResource      = presDst;
+            atomicParams.dwResourceOffset = dstOffset;
+            atomicParams.dwDataSize       = sizeof(uint32_t);
+            atomicParams.Operation        = opCode;
+            ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_ATOMIC)(cmdBuffer));
+
+            return MOS_STATUS_SUCCESS;
+        };
+
         MetaDataOffset resourceOffset = m_basicFeature->m_metaDataOffset;
-        PMOS_RESOURCE  slice0_size    = m_basicFeature->m_recycleBuf->GetBuffer(LcuBaseAddressBuffer, 0);
-        ENCODE_CHK_NULL_RETURN(slice0_size);
+        PMOS_RESOURCE  resLcuBaseAddressBuffer = m_basicFeature->m_recycleBuf->GetBuffer(LcuBaseAddressBuffer, 0);
+        ENCODE_CHK_NULL_RETURN(resLcuBaseAddressBuffer);
 
         auto &storeDataParams            = m_miItf->MHW_GETPAR_F(MI_STORE_DATA_IMM)();
         storeDataParams                  = {};
@@ -2347,34 +2374,44 @@ namespace encode
 
         auto &miCpyMemMemParams   = m_miItf->MHW_GETPAR_F(MI_COPY_MEM_MEM)();
         miCpyMemMemParams         = {};
-        miCpyMemMemParams.presSrc = slice0_size;
+        miCpyMemMemParams.presSrc = resLcuBaseAddressBuffer;
         miCpyMemMemParams.presDst = m_basicFeature->m_resMetadataBuffer;
-
-        miCpyMemMemParams.dwSrcOffset = 0;
-        miCpyMemMemParams.dwDstOffset = resourceOffset.dwEncodedBitstreamWrittenBytesCount;
-        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_COPY_MEM_MEM)(cmdBuffer));
-        miCpyMemMemParams.dwSrcOffset += 2;
-        miCpyMemMemParams.dwDstOffset += 2;
-        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_COPY_MEM_MEM)(cmdBuffer));
 
         for (uint16_t slcCount = 0; slcCount < m_basicFeature->m_numSlices; slcCount++)
         {
-            uint32_t subRegionSartOffset = resourceOffset.dwMetaDataSize + slcCount * resourceOffset.dwMetaDataSubRegionSize;
+            uint32_t subRegionStartOffset = resourceOffset.dwMetaDataSize + slcCount * resourceOffset.dwMetaDataSubRegionSize;
 
-            storeDataParams.dwResourceOffset = subRegionSartOffset + resourceOffset.dwbStartOffset;
-            storeDataParams.dwValue          = m_basicFeature->m_slcData[slcCount].SliceOffset;
+            storeDataParams.dwResourceOffset = subRegionStartOffset + resourceOffset.dwbStartOffset;
+            storeDataParams.dwValue          = 0;
             ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(cmdBuffer));
 
-            storeDataParams.dwResourceOffset = subRegionSartOffset + resourceOffset.dwbHeaderSize;
+            storeDataParams.dwResourceOffset = subRegionStartOffset + resourceOffset.dwbHeaderSize;
             storeDataParams.dwValue          = m_basicFeature->m_slcData[slcCount].BitSize;
             ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(cmdBuffer));
 
-            miCpyMemMemParams.presSrc     = slice0_size;
+            miCpyMemMemParams.presSrc     = resLcuBaseAddressBuffer;
             miCpyMemMemParams.presDst     = m_basicFeature->m_resMetadataBuffer;
-            miCpyMemMemParams.dwSrcOffset = slcCount * 2;
-            miCpyMemMemParams.dwDstOffset = subRegionSartOffset + resourceOffset.dwbSize;
+            miCpyMemMemParams.dwSrcOffset = slcCount * 16 * sizeof(uint32_t);  //slice size offset in resLcuBaseAddressBuffer is 16DW
+            miCpyMemMemParams.dwDstOffset = subRegionStartOffset + resourceOffset.dwbSize;
             ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_COPY_MEM_MEM)(cmdBuffer));
+            if (slcCount)
+            {
+                ENCODE_CHK_STATUS_RETURN(xCalAtomic(
+                    m_basicFeature->m_resMetadataBuffer, 
+                    subRegionStartOffset + resourceOffset.dwbSize, 
+                    resLcuBaseAddressBuffer, 
+                    (slcCount - 1) * 16 * sizeof(uint32_t), 
+                    mhw::mi::MHW_MI_ATOMIC_SUB));
+            }
         }
+
+        auto mmioRegisters                = m_hcpItf->GetMmioRegisters(m_vdboxIndex);
+        auto &storeRegMemParams           = m_miItf->MHW_GETPAR_F(MI_STORE_REGISTER_MEM)();
+        storeRegMemParams                 = {};
+        storeRegMemParams.presStoreBuffer = m_basicFeature->m_resMetadataBuffer;
+        storeRegMemParams.dwOffset        = resourceOffset.dwEncodedBitstreamWrittenBytesCount;
+        storeRegMemParams.dwRegister      = mmioRegisters->hcpEncBitstreamBytecountFrameRegOffset;
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_REGISTER_MEM)(cmdBuffer));
 
         // Statistics
         // Average QP
@@ -2405,34 +2442,6 @@ namespace encode
             atomicParams.dwOperand1Data[0] = 0xFF;
             ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_ATOMIC)(cmdBuffer));
         }
-
-        // Intra/Inter/Skip CU Cnt
-        auto xCalAtomic = [&](PMOS_RESOURCE presDst, uint32_t dstOffset, PMOS_RESOURCE presSrc, uint32_t srcOffset, mhw::mi::MHW_COMMON_MI_ATOMIC_OPCODE opCode) {
-
-            auto mmioRegisters = m_hwInterface->GetVdencInterfaceNext()->GetMmioRegisters(m_vdboxIndex);
-            auto &miLoadRegMemParams = m_miItf->MHW_GETPAR_F(MI_LOAD_REGISTER_MEM)();
-            auto &flushDwParams      = m_miItf->MHW_GETPAR_F(MI_FLUSH_DW)();
-            auto &atomicParams       = m_miItf->MHW_GETPAR_F(MI_ATOMIC)();
-
-            miLoadRegMemParams       = {};
-            flushDwParams            = {};
-            atomicParams             = {};
-
-            miLoadRegMemParams.presStoreBuffer = presSrc;
-            miLoadRegMemParams.dwOffset        = srcOffset;
-            miLoadRegMemParams.dwRegister      = mmioRegisters->generalPurposeRegister0LoOffset;
-            ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_MEM)(cmdBuffer));
-
-            ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(cmdBuffer));
-
-            atomicParams.pOsResource      = presDst;
-            atomicParams.dwResourceOffset = dstOffset;
-            atomicParams.dwDataSize       = sizeof(uint32_t);
-            atomicParams.Operation        = opCode;
-            ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_ATOMIC)(cmdBuffer));
-
-            return MOS_STATUS_SUCCESS;
-        };
 
         PMOS_RESOURCE resFrameStatStreamOutBuffer = m_basicFeature->m_recycleBuf->GetBuffer(FrameStatStreamOutBuffer, 0);
         ENCODE_CHK_NULL_RETURN(resFrameStatStreamOutBuffer);
