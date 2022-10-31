@@ -248,6 +248,15 @@ namespace decode
         return m_shortFormatInUse;
     }
 
+    MOS_STATUS AvcPipeline::SetDecodeFormat(bool isShortFormat)
+    {
+        DECODE_FUNC_CALL();
+        DECODE_CHK_NULL(m_basicFeature);
+        m_basicFeature->m_shortFormatInUse = isShortFormat;
+        m_shortFormatInUse = isShortFormat;
+        return MOS_STATUS_SUCCESS;
+    }
+
 #if USE_CODECHAL_DEBUG_TOOL
     MOS_STATUS AvcPipeline::DumpPicParams(
         PCODEC_AVC_PIC_PARAMS picParams)

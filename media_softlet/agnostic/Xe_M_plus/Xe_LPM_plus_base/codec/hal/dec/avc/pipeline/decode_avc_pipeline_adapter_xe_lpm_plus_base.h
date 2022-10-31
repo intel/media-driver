@@ -74,6 +74,8 @@ public:
     virtual MOS_GPU_CONTEXT GetDecodeContext() override;
     virtual GPU_CONTEXT_HANDLE GetDecodeContextHandle() override;
 
+    virtual MOS_STATUS SetDecodeFormat(bool isShortFormat) override;
+
 protected:
     std::shared_ptr<decode::AvcPipelineXe_Lpm_Plus_Base> m_decoder;
 

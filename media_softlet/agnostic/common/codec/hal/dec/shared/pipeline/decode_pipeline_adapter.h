@@ -65,6 +65,7 @@ public:
     virtual uint32_t GetCompletedReport() = 0;
     virtual MOS_GPU_CONTEXT GetDecodeContext() = 0;
     virtual GPU_CONTEXT_HANDLE GetDecodeContextHandle() = 0;
+    virtual MOS_STATUS SetDecodeFormat(bool isShortFormat ){ return MOS_STATUS_UNIMPLEMENTED; };
 
 MEDIA_CLASS_DEFINE_END(DecodePipelineAdapter)
 };

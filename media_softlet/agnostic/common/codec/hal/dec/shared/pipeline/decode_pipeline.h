@@ -330,6 +330,13 @@ public:
     //!
     CodechalOcaDumper *GetCodechalOcaDumper() { return m_pCodechalOcaDumper; }
 
+    //!
+    //! \brief    Set decode short/long format during runtime.
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS SetDecodeFormat(bool isShortFormat ){ return MOS_STATUS_UNIMPLEMENTED; };
+
 protected:
     //!
     //! \brief  Initialize the decode pipeline

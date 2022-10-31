@@ -67,6 +67,13 @@ public:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     virtual MOS_STATUS InitUserSetting(MediaUserSettingSharedPtr userSettingPtr) override;
+    
+    //!
+    //! \brief    Set decode short/long format during runtime.
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS SetDecodeFormat(bool isShortFormat) override;
 
     DeclareDecodePacketId(avcDecodePacketId);
     DeclareDecodePacketId(avcPictureSubPacketId);
@@ -143,7 +150,7 @@ protected:
 
 protected:
 
-    bool            m_shortFormatInUse  = false;            //!< Indicate it is Short Format
+    bool            m_shortFormatInUse  = false;             //!< Indicate it is Short Format
     AvcDecodeMode   m_decodeMode        = baseDecodeMode;    //!< Decode mode
     HucCopyPktItf   *m_formatMonoPicPkt  = nullptr;          //!< Format Avc Mono Chroma with HuC Copy
     AvcBasicFeature *m_basicFeature     = nullptr;           //!< Avc Basic Feature
