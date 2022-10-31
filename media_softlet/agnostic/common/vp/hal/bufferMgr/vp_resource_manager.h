@@ -561,7 +561,7 @@ protected:
     // Pipe index for one DDI call.
     uint32_t    m_currentPipeIndex                           = 0;
 
-    VP_SURFACE *m_veboxInputForLace                           = nullptr;       //!< Vebox input surface for Lace kernel to use
+    VP_SURFACE *m_veboxLaceInputSurface                       = nullptr;
     VP_SURFACE *m_veboxAggregatedHistogramSurface             = nullptr;       //!< VEBOX 1D LUT surface for Vebox Gen12
     VP_SURFACE *m_veboxFrameHistogramSurface                  = nullptr;       //!< VEBOX 1D LUT surface for Vebox Gen12
     VP_SURFACE *m_veboxStdStatisticsSurface                   = nullptr;       //!< VEBOX 1D LUT surface for Vebox Gen12
