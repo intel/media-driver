@@ -853,20 +853,6 @@ MOS_STATUS VpUtils::DeclareUserSettings(MediaUserSettingSharedPtr userSettingPtr
         0,
         true);
 
-    DeclareUserSettingKeyForDebug(
-        userSettingPtr,
-        __MEDIA_USER_FEATURE_VALUE_INTER_FRAME_MEMORY_NINJA_START_COUNTER,
-        MediaUserSetting::Group::Sequence,
-        0,
-        true);
-
-    DeclareUserSettingKeyForDebug(
-        userSettingPtr,
-        __MEDIA_USER_FEATURE_VALUE_INTER_FRAME_MEMORY_NINJA_END_COUNTER,
-        MediaUserSetting::Group::Sequence,
-        0,
-        true);
-
 #endif
 
     return MOS_STATUS_SUCCESS;
