@@ -1563,7 +1563,7 @@ static void DdiMedia_FreeBufferHeapElements(VADriverContextP    ctx, PDDI_DECODE
         MOS_TraceEvent(EVENT_DECODE_DDI_FREEBUFFERHEAPELEMENTSVA, EVENT_TYPE_START, &eventData, sizeof(eventData), NULL, 0);
     }
 #endif
-    for (int32_t elementId = 0; bufNums > 0; ++elementId)
+    for (int32_t elementId = 0; bufNums > 0 && elementId < bufferHeap->uiAllocatedHeapElements; ++elementId)
     {
         PDDI_MEDIA_BUFFER_HEAP_ELEMENT mediaBufferHeapElmt = &mediaBufferHeapBase[elementId];
         if (nullptr == mediaBufferHeapElmt->pBuffer)
