@@ -426,8 +426,8 @@ MOS_STATUS CodechalDebugInterface::DumpRgbDataOnYUVSurface(
     }
 
     //To write RGB data on AYUV surface for validation purpose due to similiar layout
-    uint32_t sfcOutputRgbFormatFlag = 0;
-    uint32_t bIsSfcOutputLinearFlag = 0;
+    int32_t sfcOutputRgbFormatFlag = 0;
+    int32_t bIsSfcOutputLinearFlag = 0;
     //tile type read from reg key
     {
         MediaUserSetting::Value outValue;
@@ -435,8 +435,8 @@ MOS_STATUS CodechalDebugInterface::DumpRgbDataOnYUVSurface(
             m_userSettingPtr,
             outValue,
             __MEDIA_USER_FEATURE_VALUE_DECODE_SFC_RGBFORMAT_OUTPUT_DEBUG,
-            MediaUserSetting::Group::Device);
-        sfcOutputRgbFormatFlag = outValue.Get<uint32_t>();
+            MediaUserSetting::Group::Sequence);
+        sfcOutputRgbFormatFlag = outValue.Get<int32_t>();
     }
 
     //rgb format output read from reg key
@@ -446,8 +446,8 @@ MOS_STATUS CodechalDebugInterface::DumpRgbDataOnYUVSurface(
             m_userSettingPtr,
             outValue,
             __MEDIA_USER_FEATURE_VALUE_DECODE_SFC_LINEAR_OUTPUT_DEBUG,
-            MediaUserSetting::Group::Device);
-        bIsSfcOutputLinearFlag = outValue.Get<uint32_t>();
+            MediaUserSetting::Group::Sequence);
+        bIsSfcOutputLinearFlag = outValue.Get<int32_t>();
     }
 
     if (!sfcOutputRgbFormatFlag)
@@ -840,7 +840,6 @@ MOS_STATUS CodechalDebugInterface::Initialize(
 
     CODECHAL_DEBUG_CHK_NULL(m_osInterface);
     m_userSettingPtr = m_osInterface->pfnGetUserSettingInstance(m_osInterface);
-    CODECHAL_DEBUG_CHK_NULL(m_userSettingPtr);
     CODECHAL_DEBUG_CHK_STATUS(InitializeUserSetting());
 
     //dump loctaion is codechaldump
@@ -905,20 +904,6 @@ MOS_STATUS CodechalDebugInterface::InitializeUserSetting()
 
     DeclareUserSettingKeyForDebug(
         m_userSettingPtr,
-        __MEDIA_USER_FEATURE_VALUE_DECODE_SFC_RGBFORMAT_OUTPUT_DEBUG,
-        MediaUserSetting::Group::Device,
-        int32_t(0),
-        false);
-
-    DeclareUserSettingKeyForDebug(
-        m_userSettingPtr,
-        __MEDIA_USER_FEATURE_VALUE_DECODE_SFC_LINEAR_OUTPUT_DEBUG,
-        MediaUserSetting::Group::Device,
-        int32_t(0),
-        false);
-
-    DeclareUserSettingKeyForDebug(
-        m_userSettingPtr,
         __MEDIA_USER_FEATURE_ENABLE_HW_DEBUG_HOOKS_DEBUG,
         MediaUserSetting::Group::Device,
         int32_t(0),
@@ -956,7 +941,6 @@ MOS_STATUS CodechalDebugInterface::Initialize(
 
     CODECHAL_DEBUG_CHK_NULL(m_osInterface);
     m_userSettingPtr = m_osInterface->pfnGetUserSettingInstance(m_osInterface);
-    CODECHAL_DEBUG_CHK_NULL(m_userSettingPtr);
     CODECHAL_DEBUG_CHK_STATUS(InitializeUserSetting());
 
     //dump loctaion is codechaldump

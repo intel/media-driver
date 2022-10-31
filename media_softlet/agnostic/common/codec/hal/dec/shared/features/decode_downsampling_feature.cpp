@@ -74,7 +74,6 @@ MOS_STATUS DecodeDownSamplingFeature::Init(void *setting)
 
     DECODE_CHK_NULL(m_osInterface);
     m_userSettingPtr = m_osInterface->pfnGetUserSettingInstance(m_osInterface);
-    DECODE_CHK_NULL(m_userSettingPtr);
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     m_histogramDebug = ReadUserFeature(m_userSettingPtr, "Decode Histogram Debug", MediaUserSetting::Group::Sequence).Get<bool>();
