@@ -29,6 +29,7 @@
 #include "decode_marker_packet.h"
 #include "decode_status_report_defs.h"
 #include "decode_predication_packet.h"
+#include "mhw_vdbox_vdenc_g12_X.h"
 #include "codechal_debug.h"
 
 namespace decode

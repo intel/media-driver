@@ -30,6 +30,7 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/decode_hevc_packet_long_m12.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_hevc_packet_real_tile_m12.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_huc_s2l_xe_m_base_packet.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/decode_hevc_downsampling_packet.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_hevc_packet_back_end_xe_m_base.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_hevc_packet_front_end_xe_m_base.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_hevc_packet_long_xe_m_base.cpp
@@ -50,6 +51,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/decode_hevc_packet_long_m12.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_hevc_packet_real_tile_m12.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_huc_s2l_xe_m_base_packet.h
+    ${CMAKE_CURRENT_LIST_DIR}/decode_hevc_downsampling_packet.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_hevc_packet_back_end_xe_m_base.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_hevc_packet_front_end_xe_m_base.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_hevc_packet_long_xe_m_base.h

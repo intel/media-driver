@@ -27,6 +27,10 @@
 #ifndef __DECODE_MPEG2_PACKET_XE_LPM_PLUS_BASE_H__
 #define __DECODE_MPEG2_PACKET_XE_LPM_PLUS_BASE_H__
 
+//#include "mhw_vdbox_g12_X.h"
+//#include "mhw_vdbox_mfx_g12_X.h"
+//#include "mhw_vdbox_vdenc_g12_X.h"
+//#include "mhw_mi_g12_X.h"
 #include "codec_hw_xe_lpm_plus_base.h"
 #include "decode_mpeg2_packet.h"
 

@@ -24,7 +24,6 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/decode_avc_slice_packet.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_avc_picture_packet.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_avc_packet.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/decode_avc_downsampling_packet.cpp
 )
 
 set(TMP_HEADERS_
@@ -32,7 +31,6 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/decode_avc_packet.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_avc_slice_packet.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_avc_picture_packet.h
-    ${CMAKE_CURRENT_LIST_DIR}/decode_avc_downsampling_packet.h
 )
 
 set(SOURCES_

@@ -31,6 +31,8 @@
 #define __DECODE_HUC_H__
 
 #include "codec_hw_next.h"
+#include "mhw_vdbox_huc_interface.h"
+#include "mhw_vdbox_hcp_interface.h"
 #include "mos_defs.h"
 #include "media_cmd_packet.h"
 #include "media_pipeline.h"

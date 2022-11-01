@@ -28,6 +28,7 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_packet_back_end_m12.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_tile_packet_m12.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_huc_prob_update_packet_m12.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_downsampling_packet.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_packet_back_end_xe_m_base.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_packet_front_end_xe_m_base.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_packet_single_xe_m_base.cpp
@@ -45,6 +46,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_packet_back_end_m12.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_tile_packet_m12.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_huc_prob_update_packet_m12.h
+    ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_downsampling_packet.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_packet_back_end_xe_m_base.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_packet_front_end_xe_m_base.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_packet_single_xe_m_base.h

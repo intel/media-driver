@@ -29,7 +29,6 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/decode_hevc_packet_front_end.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_hevc_packet_long.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_hevc_packet_real_tile.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/decode_hevc_downsampling_packet.cpp
 )
 
 set(TMP_HEADERS_
@@ -42,7 +41,6 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/decode_hevc_packet_front_end.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_hevc_packet_long.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_hevc_packet_real_tile.h
-    ${CMAKE_CURRENT_LIST_DIR}/decode_hevc_downsampling_packet.h
 )
 endif()
 
