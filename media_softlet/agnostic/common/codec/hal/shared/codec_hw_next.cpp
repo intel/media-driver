@@ -198,7 +198,8 @@ MOS_STATUS CodechalHwInterfaceNext::CachePolicyGetMemoryObject(
 }
 
 CodechalHwInterfaceNext::CodechalHwInterfaceNext(
-    PMOS_INTERFACE osInterface)
+    PMOS_INTERFACE osInterface,
+    bool           disableScalability)
 {
     CODEC_HW_ASSERT(osInterface);
     m_osInterface = osInterface;
@@ -215,6 +216,7 @@ CodechalHwInterfaceNext::CodechalHwInterfaceNext(
     MOS_ZeroMemory(&m_conditionalBbEndDummy, sizeof(m_conditionalBbEndDummy));
 
     m_enableCodecMmc = !MEDIA_IS_WA(GetWaTable(), WaDisableCodecMmc);
+    m_disableScalability = disableScalability;
 }
 MOS_STATUS CodechalHwInterfaceNext::GetAvpStateCommandSize(
     uint32_t                        mode,

@@ -99,7 +99,9 @@ public:
     //!
     //! \brief    Constructor
     //!
-    CodechalHwInterfaceNext(PMOS_INTERFACE osInterface);
+    CodechalHwInterfaceNext(
+        PMOS_INTERFACE osInterface,
+        bool           disableScalability = false);
 
     //!
     //! \brief    Destructor
