@@ -130,6 +130,24 @@ MOS_STATUS VpPipeline::DestroySurface()
 }
 #endif
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+MOS_STATUS VpPipeline::ReportIFNCC(bool bStart)
+{
+    //INTER_FRAME_MEMORY_NINJA_START_COUNTER will be reported in Prepare function
+    //INTER_FRAME_MEMORY_NINJA_END_COUNTER will be reported in UserFeatureReport() function which runs in Execute()
+    VP_FUNC_CALL();
+
+    int32_t memninjaCounter = 0;
+    memninjaCounter         = MosUtilities::m_mosMemAllocCounter + MosUtilities::m_mosMemAllocCounterGfx - MosUtilities::m_mosMemAllocFakeCounter;
+    ReportUserSettingForDebug(
+        m_userSettingPtr,
+        bStart ? __MEDIA_USER_FEATURE_VALUE_INTER_FRAME_MEMORY_NINJA_START_COUNTER : __MEDIA_USER_FEATURE_VALUE_INTER_FRAME_MEMORY_NINJA_END_COUNTER,
+        memninjaCounter,
+        MediaUserSetting::Group::Sequence);
+    return MOS_STATUS_SUCCESS;
+}
+#endif
+
 MOS_STATUS VpPipeline::UserFeatureReport()
 {
     VP_FUNC_CALL();
@@ -178,6 +196,9 @@ MOS_STATUS VpPipeline::UserFeatureReport()
     {
         WriteUserFeature(__MEDIA_USER_FEATURE_VALUE_VPP_APOGEIOS_ENABLE_ID, 0, m_osInterface->pOsContext);
     }
+
+    //INTER_FRAME_MEMORY_NINJA_START_COUNTER will be reported in ReportIFNCC(true) function which runs in VpPipeline::Prepare()
+    ReportIFNCC(false);
 #endif
     return MOS_STATUS_SUCCESS;
 }
@@ -1020,6 +1041,11 @@ MOS_STATUS VpPipeline::Prepare(void * params)
     VP_PUBLIC_CHK_NULL_RETURN(m_userFeatureControl);
 
     m_pvpParams = *(VP_PARAMS *)params;
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    // INTER_FRAME_MEMORY_NINJA_END_COUNTER will be reported in UserFeatureReport() function which runs in Execute()
+    ReportIFNCC(true);
+#endif
     // Get Output Pipe for Features. It should be configured in ExecuteVpPipeline.
     if (m_vpPipeContexts.size() <= 0 || m_vpPipeContexts[0] == nullptr)
     {
