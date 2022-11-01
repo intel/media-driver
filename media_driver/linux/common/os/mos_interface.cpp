@@ -3391,7 +3391,7 @@ GMM_RESOURCE_FORMAT MosInterface::MosFmtToGmmFmt(MOS_FORMAT format)
         {Format_UYVY,           GMM_FORMAT_UYVY},
         {Format_P8,             GMM_FORMAT_RENDER_8BIT_TYPE},  // matching size as format
         {Format_A8,             GMM_FORMAT_A8_UNORM_TYPE},
-        {Format_AYUV,           GMM_FORMAT_R8G8B8A8_UINT_TYPE},
+        {Format_AYUV,           GMM_FORMAT_AYUV_TYPE},
         {Format_NV12,           GMM_FORMAT_NV12_TYPE},
         {Format_NV21,           GMM_FORMAT_NV21_TYPE},
         {Format_YV12,           GMM_FORMAT_YV12_TYPE},
