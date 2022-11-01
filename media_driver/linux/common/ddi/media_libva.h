@@ -69,7 +69,6 @@
 #endif
 #define DDI_CODEC_GEN_MAX_ATTRIBS_TYPE             4    //VAConfigAttribRTFormat,    VAConfigAttribRateControl,    VAConfigAttribDecSliceMode,    VAConfigAttribEncPackedHeaders
 
-#define DDI_CODEC_GEN_MAX_SURFACE_ATTRIBUTES       40
 #define DDI_CODEC_GEN_STR_VENDOR                   "Intel iHD driver for Intel(R) Gen Graphics - " MEDIA_VERSION " (" MEDIA_VERSION_DETAILS ")"
 
 #define DDI_CODEC_GET_VTABLE(ctx)                  (ctx->vtable)
@@ -80,7 +79,6 @@
 #define DDI_CODEC_GET_VTABLE_TPI(ctx)              (ctx->vtable_tpi)
 
 #define DDI_CODEC_BATCH_BUFFER_SIZE                0x80000
-#define DDI_CODEC_LEFT_SHIFT_FOR_REFLIST1          16
 
 /* Number of supported input color formats */
 #define DDI_VP_NUM_INPUT_COLOR_STD    6
@@ -100,13 +98,7 @@
 #define DDI_CODEC_INVALID_BUFFER_INDEX        -1
 #define DDI_CODEC_VP8_MAX_REF_FRAMES          5
 #define DDI_CODEC_MIN_VALUE_OF_MAX_BS_SIZE    10240
-#define DDI_CODEC_VDENC_MAX_L0_REF_FRAMES     3
-#define DDI_CODEC_VDENC_MAX_L1_REF_FRAMES     0
 
-#define DDI_CODEC_VDENC_MAX_L0_REF_FRAMES_LDB 3
-#define DDI_CODEC_VDENC_MAX_L1_REF_FRAMES_LDB 3
-
-#define DDI_CODEC_FEI_MAX_NUM_MVPREDICTOR     4
 #define DDI_CODEC_FEI_MAX_INTERFACE_REVISION  1000
 #define DDI_CODEC_FEI_CTB_CMD_SIZE_SKL        16
 #define DDI_CODEC_FEI_CU_RECORD_SIZE_SKL_KBL  64
@@ -114,18 +106,6 @@
 #define DDI_CODEC_STATS_MAX_NUM_FUTURE_REFS   1
 #define DDI_CODEC_STATS_MAX_NUM_OUTPUTS       3
 #define DDI_CODEC_STATS_INTERLACED_SUPPORT    1
-
-#define DDI_CODEC_GEN_CONFIG_ATTRIBUTES_DEC_BASE   0    // Dec config_id starts at this value
-#define DDI_CODEC_GEN_CONFIG_ATTRIBUTES_DEC_MAX    1023
-
-#define DDI_CODEC_GEN_CONFIG_ATTRIBUTES_ENC_BASE   1024 // Enc config_id starts at this value
-#define DDI_CODEC_GEN_CONFIG_ATTRIBUTES_ENC_MAX    2047
-/* Some filters in va_private.h */
-#define DDI_VP_MAX_NUM_FILTERS  VAProcFilterCount
-
-#define DDI_VP_GEN_CONFIG_ATTRIBUTES_BASE    2048 // VP config_id starts at this value
-#define DDI_VP_GEN_CONFIG_ATTRIBUTES_MAX     4091
-#define DDI_CP_GEN_CONFIG_ATTRIBUTES_BASE    4092 // CP config_id starts at this value
 
 #define DDI_CP_ENCRYPT_TYPES_NUM             5    // CP encryption types number
 

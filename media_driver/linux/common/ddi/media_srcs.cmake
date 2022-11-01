@@ -28,6 +28,7 @@ set(TMP_SOURCES_
 )
 
 set(TMP_HEADERS_
+    ${CMAKE_CURRENT_LIST_DIR}/ddi_media_context.h
     ${CMAKE_CURRENT_LIST_DIR}/va_preopen.h
     ${CMAKE_CURRENT_LIST_DIR}/media_ddi_base.h
     ${CMAKE_CURRENT_LIST_DIR}/media_ddi_factory.h
