@@ -896,18 +896,6 @@ MOS_STATUS VpRenderCmdPacket::InitStateHeapSurface(SurfaceType type, RENDERHAL_S
         mosSurface.OsResource = pVeboxHeap->DriverResource;
         break;
     case SurfaceTypeVeboxStateHeap_Knr:
-    case SurfaceTypeVeboxInput:
-    case SurfaceTypeLaceAceRGBHistogram:
-    case SurfaceTypeLaceLut:
-    case SurfaceTypeStatistics:
-    case SurfaceTypeSkinScore:
-    case SurfaceTypeAggregatedHistogram:
-    case SurfaceTypeFrameHistogram:
-    case SurfaceTypeStdStatistics:
-    case SurfaceTypePwlfIn:
-    case SurfaceTypePwlfOut:
-    case SurfaceTypeWeitCoef:
-    case SurfaceTypGlobalToneMappingCurveLUT:
         mosSurface.OsResource = pVeboxHeap->KernelResource;
         break;
     default:
