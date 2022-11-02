@@ -515,8 +515,16 @@ public:
     uint32_t                      m_timerBase  = 0;        //!< time frequency
     int32_t                       m_multiprocess = 0;      //!< multi process support
     uint32_t                      m_registers[8] = { 0 };  //!< registers of Memory information
+    const std::string             m_registersKey[8] = {__MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_REGISTER_KEY_1,
+                                                       __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_REGISTER_KEY_2,
+                                                       __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_REGISTER_KEY_3,
+                                                       __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_REGISTER_KEY_4,
+                                                       __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_REGISTER_KEY_5,
+                                                       __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_REGISTER_KEY_6,
+                                                       __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_REGISTER_KEY_7,
+                                                       __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_REGISTER_KEY_8};  //!< registers key
     int32_t                       m_profilerEnabled;       //!< UMD Perf Profiler enable or not
-    char                          m_outputFileName[MOS_MAX_PATH_LENGTH + 1];  //!< Name of output file
+    std::string                   m_outputFileName;        //!< Name of output file
     bool                          m_enableProfilerDump = true;   //!< Indicate whether enable UMD Profiler dump
     std::shared_ptr<mhw::mi::Itf> m_miItf = nullptr;
 MEDIA_CLASS_DEFINE_END(MediaPerfProfiler)

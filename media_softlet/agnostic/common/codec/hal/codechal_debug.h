@@ -177,8 +177,8 @@ public:
     PCODECHAL_DBG_CFG        m_dbgCfgHead       = nullptr;
 
 protected:
-    MOS_USER_FEATURE_VALUE_ID SetOutputPathKey() override;
-    MOS_USER_FEATURE_VALUE_ID InitDefaultOutput() override;
+    std::string SetOutputPathKey() override;
+    std::string InitDefaultOutput() override;
     uint8_t *m_decodeOutputBuf = nullptr;
 
 MEDIA_CLASS_DEFINE_END(CodechalDebugInterface)

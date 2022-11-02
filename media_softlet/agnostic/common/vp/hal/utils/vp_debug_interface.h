@@ -73,8 +73,8 @@ public:
         uint32_t    Location);
 
 protected:
-    MOS_USER_FEATURE_VALUE_ID SetOutputPathKey() override;
-    MOS_USER_FEATURE_VALUE_ID InitDefaultOutput() override;
+    std::string SetOutputPathKey() override;
+    std::string InitDefaultOutput() override;
 
     VpSurfaceDumper   *m_surfaceDumper   = nullptr;
     VpParameterDumper *m_parameterDumper = nullptr;

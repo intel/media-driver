@@ -3154,14 +3154,16 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::Initialize(
 #else
     enableMMC         = true;
 #endif
-    ReadUserSetting(
-        m_userSettingPtr,
-        enableMMC,
-        __VPHAL_ENABLE_MMC,
-        MediaUserSetting::Group::Sequence,
-        enableMMC,
-        true);
-
+    if (m_userSettingPtr != nullptr)
+    {
+        ReadUserSetting(
+            m_userSettingPtr,
+            enableMMC,
+            __VPHAL_ENABLE_MMC,
+            MediaUserSetting::Group::Device,
+            enableMMC,
+            true);
+    }
     // Set Vebox MMC enable
     pVeboxState->bEnableMMC = enableMMC && MEDIA_IS_SKU(pVeboxState->m_pSkuTable, FtrE2ECompression);
 

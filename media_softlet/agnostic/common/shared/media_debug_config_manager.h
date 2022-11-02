@@ -85,6 +85,7 @@ public:
 
     virtual uint32_t GetDumpFrameNum() = 0;
     virtual std::string InitFileName(MediaDbgFunction mediaFunction) = 0;
+    virtual MediaUserSettingSharedPtr GetUserSettingInstance() = 0;
 
 protected:
     MediaDbgFunction         m_mediaFunction;

@@ -49,24 +49,20 @@ MediaDebugConfigMgr::~MediaDebugConfigMgr()
 MOS_STATUS MediaDebugConfigMgr::ParseConfig(MOS_CONTEXT_HANDLE mosCtx)
 {
     std::string               configFileName;
-    MOS_USER_FEATURE_VALUE_ID configGenerateKey = __MOS_USER_FEATURE_KEY_INVALID_ID;
+    bool                      isGenCfgEnabled   = false;
 
-    configFileName = InitFileName(m_mediaFunction);
-
-    configGenerateKey = __MEDIA_USER_FEATURE_VALUE_MEDIA_DEBUG_CFG_GENERATION_ID;
+    configFileName    = InitFileName(m_mediaFunction);
     configFileName    = m_outputFolderPath + configFileName;
     std::ifstream configStream(configFileName);
 
     if (!configStream.good())
     {
-        MOS_USER_FEATURE_VALUE_DATA userFeatureData;
-        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-        MOS_UserFeature_ReadValue_ID(
-            nullptr,
-            configGenerateKey,
-            &userFeatureData,
-            mosCtx);
-        if (userFeatureData.i32Data)
+        ReadUserSettingForDebug(
+            GetUserSettingInstance(),
+            isGenCfgEnabled,
+            __MEDIA_USER_FEATURE_VALUE_MEDIA_DEBUG_CFG_GENERATION,
+            MediaUserSetting::Group::Device);
+        if (isGenCfgEnabled)
         {
             GenerateDefaultConfig(configFileName);
         }

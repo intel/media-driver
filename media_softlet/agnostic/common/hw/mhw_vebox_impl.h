@@ -82,15 +82,14 @@ public:
         }
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-        MOS_USER_FEATURE_VALUE_DATA UserFeatureData;
-        // read the "Vebox Split Ratio" user feature
-        MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-        MOS_UserFeature_ReadValue_ID(
-            nullptr,
-            __MEDIA_USER_FEATURE_VALUE_VEBOX_SPLIT_RATIO_ID,
-            &UserFeatureData,
-            osItf->pOsContext);
-        m_veboxSplitRatio = UserFeatureData.u32Data;
+        if (m_userSettingPtr != nullptr)
+        {
+            ReadUserSettingForDebug(
+                m_userSettingPtr,
+                m_veboxSplitRatio,
+                __MEDIA_USER_FEATURE_VALUE_VEBOX_SPLIT_RATIO,
+                MediaUserSetting::Group::Device);
+        }
 #endif
     };
 

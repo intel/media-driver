@@ -190,11 +190,19 @@ MOS_STATUS VpPipeline::UserFeatureReport()
 #if (_DEBUG || _RELEASE_INTERNAL)
     if (m_currentFrameAPGEnabled)
     {
-        WriteUserFeature(__MEDIA_USER_FEATURE_VALUE_VPP_APOGEIOS_ENABLE_ID, 1, m_osInterface->pOsContext);
+        ReportUserSettingForDebug(
+            m_userSettingPtr,
+            __MEDIA_USER_FEATURE_VALUE_VPP_APOGEIOS_ENABLE,
+            uint32_t(1),
+            MediaUserSetting::Group::Sequence);
     }
     else
     {
-        WriteUserFeature(__MEDIA_USER_FEATURE_VALUE_VPP_APOGEIOS_ENABLE_ID, 0, m_osInterface->pOsContext);
+        ReportUserSettingForDebug(
+            m_userSettingPtr,
+            __MEDIA_USER_FEATURE_VALUE_VPP_APOGEIOS_ENABLE,
+            uint32_t(0),
+            MediaUserSetting::Group::Sequence);
     }
 
     //INTER_FRAME_MEMORY_NINJA_START_COUNTER will be reported in ReportIFNCC(true) function which runs in VpPipeline::Prepare()

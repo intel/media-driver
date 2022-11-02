@@ -79,18 +79,25 @@ MOS_STATUS VphalInterfacesXe_Lpm_Plus::Initialize(
 //Remove vphalstate after legacy code clean up.
 #ifndef _VPHALNEXT_ENABLED
     bool                        bApogeiosEnable = true;
-    MOS_USER_FEATURE_VALUE_DATA UserFeatureData;
-    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-
-    UserFeatureData.i32Data     = bApogeiosEnable;
-    UserFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
-
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_APOGEIOS_ENABLE_ID,
-        &UserFeatureData,
-        osDriverContext);
-    bApogeiosEnable = UserFeatureData.bData ? true : false;
+    uint32_t                    userSettingVal  = 1;
+    MediaUserSettingSharedPtr   userSettingPtr = nullptr;
+    if (nullptr == osInterface)
+    {
+        *eStatus = MOS_STATUS_NULL_POINTER;
+        return *eStatus;
+    }
+    userSettingPtr = osInterface->pfnGetUserSettingInstance(osInterface);
+    if (userSettingPtr != nullptr)
+    {
+        ReadUserSetting(
+            userSettingPtr,
+            userSettingVal,
+            __MEDIA_USER_FEATURE_VALUE_APOGEIOS_ENABLE,
+            MediaUserSetting::Group::Device,
+            uint32_t(1),
+            true);
+    }
+    bApogeiosEnable = userSettingVal ? true : false;
     if (bApogeiosEnable)
     {
 #endif
@@ -412,7 +419,8 @@ MOS_STATUS CodechalInterfacesXe_Lpm_Plus::Initialize(
         CODECHAL_PUBLIC_ASSERTMESSAGE("CodecHal device is not valid!");
         return MOS_STATUS_INVALID_PARAMETER;
     }
-
+    // Shared pointer to user setting instance
+    MediaUserSettingSharedPtr   userSettingPtr = osInterface->pfnGetUserSettingInstance(osInterface);
     // This part should be moved back to media_intefaces.cpp for softlet build
     PCODECHAL_STANDARD_INFO info          = ((PCODECHAL_STANDARD_INFO)standardInfo);
     CODECHAL_FUNCTION       CodecFunction = info->CodecFunction;
@@ -565,17 +573,18 @@ MOS_STATUS CodechalInterfacesXe_Lpm_Plus::Initialize(
         {
 #ifdef _APOGEIOS_SUPPORTED
             bool                        apogeiosEnable = true;
-            MOS_USER_FEATURE_VALUE_DATA userFeatureData;
-            MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-
-            userFeatureData.i32Data     = apogeiosEnable;
-            userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
-            MOS_UserFeature_ReadValue_ID(
-                nullptr,
-                __MEDIA_USER_FEATURE_VALUE_APOGEIOS_ENABLE_ID,
-                &userFeatureData,
-                osInterface->pOsContext);
-            apogeiosEnable = (userFeatureData.i32Data) ? true : false;
+            uint32_t                    userSettingVal = 1;
+            if (userSettingPtr != nullptr)
+            {
+                ReadUserSetting(
+                    userSettingPtr,
+                    userSettingVal,
+                    __MEDIA_USER_FEATURE_VALUE_APOGEIOS_ENABLE,
+                    MediaUserSetting::Group::Device,
+                    uint32_t(1),
+                    true);
+            }
+            apogeiosEnable = userSettingVal ? true : false;
 
             if (apogeiosEnable)
             {
@@ -682,21 +691,23 @@ MOS_STATUS RenderHalInterfacesXe_Lpg::Initialize()
 //Remove below legacy renderhal platform interface contents after all vp features switch to APO.
 #ifndef _VPHALNEXT_ENABLED
     bool                        bApogeiosEnable = true;
-    MOS_USER_FEATURE_VALUE_DATA UserFeatureData;
-    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-
-    UserFeatureData.i32Data     = bApogeiosEnable;
-    UserFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
-
-    if (m_osInterface != nullptr && m_osInterface->pOsContext != nullptr)
+    uint32_t                    userSettingVal  = 1;
+    MediaUserSettingSharedPtr   userSettingPtr = nullptr;
+    if (m_osInterface != nullptr)
     {
-        MOS_UserFeature_ReadValue_ID(
-            nullptr,
-            __MEDIA_USER_FEATURE_VALUE_APOGEIOS_ENABLE_ID,
-            &UserFeatureData,
-            m_osInterface->pOsContext);
+        userSettingPtr = m_osInterface->pfnGetUserSettingInstance(m_osInterface);
+        if (userSettingPtr != nullptr)
+        {
+            ReadUserSetting(
+                userSettingPtr,
+                userSettingVal,
+                __MEDIA_USER_FEATURE_VALUE_APOGEIOS_ENABLE,
+                MediaUserSetting::Group::Device,
+                uint32_t(1),
+                true);
+        }
     }
-    bApogeiosEnable = UserFeatureData.bData ? true : false;
+    bApogeiosEnable = userSettingVal ? true : false;
     if (bApogeiosEnable)
     {
 #endif
