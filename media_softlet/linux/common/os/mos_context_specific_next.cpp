@@ -153,6 +153,11 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
             }
         }
 
+        if (MEDIA_IS_SKU(&m_skuTable, FtrLocalMemory))
+        {
+            mos_bufmgr_gem_disable_object_capture(m_bufmgr);
+        }
+
         if (MEDIA_IS_SKU(&m_skuTable, FtrEnableMediaKernels) == 0)
         {
             MEDIA_WR_WA(&m_waTable, WaHucStreamoutOnlyDisable, 0);
