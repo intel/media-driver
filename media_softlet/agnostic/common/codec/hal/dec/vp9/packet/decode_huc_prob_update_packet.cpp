@@ -25,7 +25,6 @@
 //!
 #include "decode_huc_prob_update_packet.h"
 #include "mhw_vdbox.h"
-#include "mhw_vdbox_vdenc_g12_X.h"
 #include "decode_resource_auto_lock.h"
 
 namespace decode

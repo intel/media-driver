@@ -104,7 +104,6 @@ public:
     MhwSfcInterface           *m_sfcInterface       = nullptr;
     XMHW_STATE_HEAP_INTERFACE *m_stateHeapInterface = nullptr;
     MhwVeboxInterface         *m_veboxInterface     = nullptr;
-    MhwVdboxMfxInterface      *m_mfxInterface       = nullptr;
     MhwBltInterface           *m_bltInterface       = nullptr;
 
     /* New mhw sub interfaces*/

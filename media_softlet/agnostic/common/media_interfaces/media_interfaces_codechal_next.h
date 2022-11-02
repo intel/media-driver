@@ -29,7 +29,7 @@
 
 #include "media_interfaces_mhw_next.h"
 
-#include "codechal.h"
+#include "codechal_common.h"
 
 //!
 //! \class    CodechalDeviceNext
