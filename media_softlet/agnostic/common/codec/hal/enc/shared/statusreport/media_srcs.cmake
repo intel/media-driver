@@ -19,18 +19,29 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 if(${Common_Encode_Supported} STREQUAL "yes")
-set(SOFTLET_ENCODE_COMMON_SOURCES_
-    ${SOFTLET_ENCODE_COMMON_SOURCES_}
+set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/encode_status_report.cpp
 )
 
-set(SOFTLET_ENCODE_COMMON_HEADERS_
-    ${SOFTLET_ENCODE_COMMON_HEADERS_}
+set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/encode_status_report.h
     ${CMAKE_CURRENT_LIST_DIR}/encode_status_report_defs.h
 )
 
+set(SOFTLET_ENCODE_COMMON_HEADERS_
+    ${SOFTLET_ENCODE_COMMON_HEADERS_}
+    ${TMP_HEADERS_}
+)
+
+set(SOFTLET_ENCODE_COMMON_SOURCES_
+    ${SOFTLET_ENCODE_COMMON_SOURCES_}
+    ${TMP_SOURCES_}
+)
+
 source_group( CodecHalNext\\Shared\\Encode FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
+
+set(TMP_SOURCES_ "")
+set(TMP_HEADERS_ "")
 
 endif()
 

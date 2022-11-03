@@ -19,15 +19,29 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 set(TMP_SOURCES_
-    ${TMP_SOURCES_}
     ${CMAKE_CURRENT_LIST_DIR}/encode_mem_compression_xe_lpm_plus_base.cpp
 )
 
 set(TMP_HEADERS_
-    ${TMP_HEADERS_}
     ${CMAKE_CURRENT_LIST_DIR}/encode_mem_compression_xe_lpm_plus_base.h
 )
 
-source_group( CodecHalNext\\Xe_M_plus\\Encode FILES ${TMP_SOURCES_} ${TMP_HEADERS_})
+set(SOFTLET_ENCODE_COMMON_HEADERS_
+    ${SOFTLET_ENCODE_COMMON_HEADERS_}
+    ${TMP_HEADERS_}
+)
 
-media_add_curr_to_include_path()
+set(SOFTLET_ENCODE_COMMON_SOURCES_
+    ${SOFTLET_ENCODE_COMMON_SOURCES_}
+    ${TMP_SOURCES_}
+)
+
+source_group( CodecHalNext\\Xe_LPM_plus_base\\Encode FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
+
+set(TMP_SOURCES_ "")
+set(TMP_HEADERS_ "")
+
+set(SOFTLET_ENCODE_COMMON_PRIVATE_INCLUDE_DIRS_
+    ${SOFTLET_ENCODE_COMMON_PRIVATE_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)

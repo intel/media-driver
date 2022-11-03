@@ -24,18 +24,33 @@ media_include_subdirectory(preenc)
 
 if("${HEVC_Encode_VDEnc_Supported}" STREQUAL "yes")
 set(TMP_SOURCES_
-    ${TMP_SOURCES_}
     ${CMAKE_CURRENT_LIST_DIR}/encode_hevc_vdenc_feature_manager_xe_lpm_plus_base.cpp
     ${CMAKE_CURRENT_LIST_DIR}/encode_hevc_vdenc_const_settings_xe_lpm_plus_base.cpp
 )
 
 set(TMP_HEADERS_
-    ${TMP_HEADERS_}
     ${CMAKE_CURRENT_LIST_DIR}/encode_hevc_vdenc_feature_manager_xe_lpm_plus_base.h
     ${CMAKE_CURRENT_LIST_DIR}/encode_hevc_vdenc_const_settings_xe_lpm_plus_base.h
 )
+
+set(SOFTLET_ENCODE_HEVC_HEADERS_
+    ${SOFTLET_ENCODE_HEVC_HEADERS_}
+    ${TMP_HEADERS_}
+)
+
+set(SOFTLET_ENCODE_HEVC_SOURCES_
+    ${SOFTLET_ENCODE_HEVC_SOURCES_}
+    ${TMP_SOURCES_}
+)
+
+source_group( CodecHalNext\\Xe_LPM_plus_base\\Encode FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
+
+set(TMP_SOURCES_ "")
+set(TMP_HEADERS_ "")
+
 endif()
 
-source_group( CodecHalNext\\Xe_M_plus\\Encode FILES ${TMP_SOURCES_} ${TMP_HEADERS_})
-
-media_add_curr_to_include_path()
+set(SOFTLET_ENCODE_HEVC_PRIVATE_INCLUDE_DIRS_
+    ${SOFTLET_ENCODE_HEVC_PRIVATE_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)

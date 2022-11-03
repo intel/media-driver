@@ -20,19 +20,36 @@
 
 if("${JPEG_Encode_Supported}" STREQUAL "yes")
 set(TMP_SOURCES_
-    ${TMP_SOURCES_}
     ${CMAKE_CURRENT_LIST_DIR}/encode_jpeg_feature_manager.cpp
     ${CMAKE_CURRENT_LIST_DIR}/encode_jpeg_basic_feature.cpp
     ${CMAKE_CURRENT_LIST_DIR}/encode_jpeg_packer_feature.cpp
 )
 
 set(TMP_HEADERS_
-    ${TMP_HEADERS_}
     ${CMAKE_CURRENT_LIST_DIR}/encode_jpeg_feature_manager.h
     ${CMAKE_CURRENT_LIST_DIR}/encode_jpeg_basic_feature.h
     ${CMAKE_CURRENT_LIST_DIR}/encode_jpeg_packer_feature.h
     ${CMAKE_CURRENT_LIST_DIR}/media_jpeg_feature_defs.h
 )
+
+set(SOFTLET_ENCODE_JPEG_HEADERS_
+    ${SOFTLET_ENCODE_JPEG_HEADERS_}
+    ${TMP_HEADERS_}
+)
+
+set(SOFTLET_ENCODE_JPEG_SOURCES_
+    ${SOFTLET_ENCODE_JPEG_SOURCES_}
+    ${TMP_SOURCES_}
+)
+
+source_group( CodecHalNext\\Shared\\Encode FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
+
+set(TMP_SOURCES_ "")
+set(TMP_HEADERS_ "")
+
 endif()
 
-media_add_curr_to_include_path()
+set(SOFTLET_ENCODE_JPEG_PRIVATE_INCLUDE_DIRS_
+    ${SOFTLET_ENCODE_JPEG_PRIVATE_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)

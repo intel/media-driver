@@ -20,18 +20,35 @@
 
 if ("${AVC_Encode_VDEnc_Supported}" STREQUAL "yes")
     set (TMP_SOURCES_
-        ${TMP_SOURCES_}
         ${CMAKE_CURRENT_LIST_DIR}/encode_avc_vdenc_pipeline.cpp
         ${CMAKE_CURRENT_LIST_DIR}/encode_avc_vdenc_pipeline_adapter.cpp
         ${CMAKE_CURRENT_LIST_DIR}/encode_avc_reference_frames.cpp
         ${CMAKE_CURRENT_LIST_DIR}/encode_avc_user_setting.cpp
     )
     set (TMP_HEADERS_
-        ${TMP_HEADERS_}
         ${CMAKE_CURRENT_LIST_DIR}/encode_avc_vdenc_pipeline.h
         ${CMAKE_CURRENT_LIST_DIR}/encode_avc_vdenc_pipeline_adapter.h
         ${CMAKE_CURRENT_LIST_DIR}/encode_avc_reference_frames.h
     )
-endif ()
 
-media_add_curr_to_include_path()
+set(SOFTLET_ENCODE_AVC_HEADERS_
+    ${SOFTLET_ENCODE_AVC_HEADERS_}
+    ${TMP_HEADERS_}
+)
+
+set(SOFTLET_ENCODE_AVC_SOURCES_
+    ${SOFTLET_ENCODE_AVC_SOURCES_}
+    ${TMP_SOURCES_}
+)
+
+source_group( CodecHalNext\\Shared\\Encode FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
+
+set(TMP_SOURCES_ "")
+set(TMP_HEADERS_ "")
+
+endif()
+
+set(SOFTLET_ENCODE_AVC_PRIVATE_INCLUDE_DIRS_
+    ${SOFTLET_ENCODE_AVC_PRIVATE_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)

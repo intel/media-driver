@@ -22,7 +22,6 @@
 
 if("${HEVC_Encode_VDEnc_Supported}" STREQUAL "yes")
 set(TMP_SOURCES_
-    ${TMP_SOURCES_}
     ${CMAKE_CURRENT_LIST_DIR}/encode_hevc_vdenc_roi_arb.cpp
     ${CMAKE_CURRENT_LIST_DIR}/encode_hevc_vdenc_roi_overlap.cpp
     ${CMAKE_CURRENT_LIST_DIR}/encode_hevc_vdenc_roi.cpp
@@ -36,7 +35,6 @@ set(TMP_SOURCES_
 )
 
 set(TMP_HEADERS_
-    ${TMP_HEADERS_}
     ${CMAKE_CURRENT_LIST_DIR}/encode_hevc_vdenc_roi_arb.h
     ${CMAKE_CURRENT_LIST_DIR}/encode_hevc_vdenc_roi_overlap.h
     ${CMAKE_CURRENT_LIST_DIR}/encode_hevc_vdenc_roi.h
@@ -48,6 +46,25 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/encode_hevc_vdenc_roi_qpmap.h
     ${CMAKE_CURRENT_LIST_DIR}/encode_hevc_vdenc_roi_forcedeltaqp.h
 )
+
+set(SOFTLET_ENCODE_HEVC_HEADERS_
+    ${SOFTLET_ENCODE_HEVC_HEADERS_}
+    ${TMP_HEADERS_}
+)
+
+set(SOFTLET_ENCODE_HEVC_SOURCES_
+    ${SOFTLET_ENCODE_HEVC_SOURCES_}
+    ${TMP_SOURCES_}
+)
+
+source_group( CodecHalNext\\Shared\\Encode FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
+
+set(TMP_SOURCES_ "")
+set(TMP_HEADERS_ "")
+
 endif()
 
-media_add_curr_to_include_path()
+set(SOFTLET_ENCODE_HEVC_PRIVATE_INCLUDE_DIRS_
+    ${SOFTLET_ENCODE_HEVC_PRIVATE_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)

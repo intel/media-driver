@@ -30,27 +30,22 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/encode_vp9_vdenc_const_settings_xe_lpm_plus.h
 )
 
-set(SOURCES_
-    ${SOURCES_}
-    ${TMP_SOURCES_}
- )
-
-set(HEADERS_
-    ${HEADERS_}
+set(SOFTLET_ENCODE_VP9_HEADERS_
+    ${SOFTLET_ENCODE_VP9_HEADERS_}
     ${TMP_HEADERS_}
 )
 
-set(CODEC_SOURCES_
-    ${CODEC_SOURCES_}
+set(SOFTLET_ENCODE_VP9_SOURCES_
+    ${SOFTLET_ENCODE_VP9_SOURCES_}
     ${TMP_SOURCES_}
 )
 
-set(CODEC_HEADERS_
-    ${CODEC_HEADERS_}
-    ${TMP_HEADERS_}
-)
+source_group( CodecHalNext\\Xe_LPM_plus\\Encode FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
 
-source_group( CodecHalNext\\Xe_LPM_plus\\Encode\\VP9 FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
 set(TMP_SOURCES_ "")
 set(TMP_HEADERS_ "")
-media_add_curr_to_include_path()
+
+set(SOFTLET_ENCODE_VP9_PRIVATE_INCLUDE_DIRS_
+    ${SOFTLET_ENCODE_VP9_PRIVATE_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)

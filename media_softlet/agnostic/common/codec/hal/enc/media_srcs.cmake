@@ -18,36 +18,9 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-set(TMP_SOURCES_ "")
-set(TMP_HEADERS_ "")
-
 media_include_subdirectory(av1)
 media_include_subdirectory(avc)
 media_include_subdirectory(hevc)
 media_include_subdirectory(shared)
 media_include_subdirectory(jpeg)
 media_include_subdirectory(vp9)
-
-set(SOURCES_
-    ${SOURCES_}
-    ${TMP_SOURCES_}
-)
-
-set(HEADERS_
-    ${HEADERS_}
-    ${TMP_HEADERS_}
-)
-
-set(CODEC_SOURCES_
-    ${CODEC_SOURCES_}
-    ${TMP_SOURCES_}
-)
-
-set(CODEC_HEADERS_
-    ${CODEC_HEADERS_}
-    ${TMP_HEADERS_}
-)
-
-source_group( CodecHalNext\\Shared\\Encode FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
-set(TMP_SOURCES_ "")
-set(TMP_HEADERS_ "")

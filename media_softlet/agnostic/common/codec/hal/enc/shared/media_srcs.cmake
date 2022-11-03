@@ -33,5 +33,19 @@ set(TMP_HEADERS_
     ${TMP_HEADERS_}
     ${CMAKE_CURRENT_LIST_DIR}/encode_utils.h
 )
+
+set(SOFTLET_ENCODE_COMMON_HEADERS_
+    ${SOFTLET_ENCODE_COMMON_HEADERS_}
+    ${TMP_HEADERS_}
+)
+
+source_group( CodecHalNext\\Shared\\Encode FILES ${TMP_HEADERS_} )
+
+set(TMP_HEADERS_ "")
+
 endif()
-media_add_curr_to_include_path()
+
+set(SOFTLET_ENCODE_COMMON_PRIVATE_INCLUDE_DIRS_
+    ${SOFTLET_ENCODE_COMMON_PRIVATE_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)

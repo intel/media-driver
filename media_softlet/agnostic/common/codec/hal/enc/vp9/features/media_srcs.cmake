@@ -20,7 +20,6 @@
 
 if("${VP9_Encode_VDEnc_Supported}" STREQUAL "yes")
 set(TMP_SOURCES_
-    ${TMP_SOURCES_}
     ${CMAKE_CURRENT_LIST_DIR}/encode_vp9_vdenc_feature_manager.cpp
     ${CMAKE_CURRENT_LIST_DIR}/encode_vp9_vdenc_const_settings.cpp
     ${CMAKE_CURRENT_LIST_DIR}/encode_vp9_basic_feature.cpp
@@ -33,7 +32,6 @@ set(TMP_SOURCES_
 )
 
 set(TMP_HEADERS_
-    ${TMP_HEADERS_}
     ${CMAKE_CURRENT_LIST_DIR}/encode_vp9_vdenc_feature_manager.h
     ${CMAKE_CURRENT_LIST_DIR}/encode_vp9_vdenc_const_settings.h
     ${CMAKE_CURRENT_LIST_DIR}/encode_vp9_basic_feature.h
@@ -45,6 +43,25 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/encode_vp9_pak.h
     ${CMAKE_CURRENT_LIST_DIR}/media_vp9_feature_defs.h
 )
+
+set(SOFTLET_ENCODE_VP9_HEADERS_
+    ${SOFTLET_ENCODE_VP9_HEADERS_}
+    ${TMP_HEADERS_}
+)
+
+set(SOFTLET_ENCODE_VP9_SOURCES_
+    ${SOFTLET_ENCODE_VP9_SOURCES_}
+    ${TMP_SOURCES_}
+)
+
+source_group( CodecHalNext\\Shared\\Encode FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
+
+set(TMP_SOURCES_ "")
+set(TMP_HEADERS_ "")
+
 endif()
 
-media_add_curr_to_include_path()
+set(SOFTLET_ENCODE_VP9_PRIVATE_INCLUDE_DIRS_
+    ${SOFTLET_ENCODE_VP9_PRIVATE_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)
