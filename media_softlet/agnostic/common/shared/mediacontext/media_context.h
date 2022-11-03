@@ -181,7 +181,6 @@ protected:
     uint8_t                           m_numVdbox                = 1;
     bool                              m_scalabilitySupported    = false;
     MOS_GPU_NODE                      m_curNodeOrdinal          = MOS_GPU_NODE_MAX;  //!< Current virtual node for codec gpu context
-    MediaUserSettingSharedPtr         m_userSettingPtr          = nullptr;           //!< Shared pointer to user setting instance
 
     //!
     //! \brief  Search the ContextAttributeTable to reuse or create gpu Context and scalabilty state meeting the requirements

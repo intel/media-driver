@@ -301,13 +301,8 @@ MOS_STATUS MediaCopyBaseState::TaskDispatch(MCPY_STATE_PARAMS mcpySrc, MCPY_STAT
     MosUtilities::MosUnlockMutex(m_inUseGPUMutex);
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-    std::string copyEngine = mcpyEngine ?(mcpyEngine == MCPY_ENGINE_BLT?"BLT":"Render"):"VeBox";
-    MediaUserSettingSharedPtr userSettingPtr = m_osInterface->pfnGetUserSettingInstance(m_osInterface);
-    ReportUserSettingForDebug(
-        userSettingPtr,
-        __MEDIA_USER_FEATURE_MCPY_MODE,
-        copyEngine,
-        MediaUserSetting::Group::Device);
+    char *CopyEngine = (char *)(mcpyEngine ?(mcpyEngine == MCPY_ENGINE_BLT?"BLT":"Render"):"VeBox");
+    WriteUserFeatureString(__MEDIA_USER_FEATURE_MCPY_MODE_ID, CopyEngine, strlen(CopyEngine), m_osInterface->pOsContext);
 
     // Set the dump location like "dumpLocation after MCPY=path_to_dump_folder" in user feature configure file
     // Otherwise, the surface may not be dumped

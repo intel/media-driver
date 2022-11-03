@@ -31,7 +31,9 @@
 
 MediaMemComp::MediaMemComp(PMOS_INTERFACE osInterface) :
     m_osInterface(osInterface),
-    m_mmcEnabled(false)
+    m_mmcEnabled(false),
+    m_mmcFeatureId(__MOS_USER_FEATURE_KEY_MAX_ID),
+    m_mmcInuseFeatureId(__MOS_USER_FEATURE_KEY_MAX_ID)
 {
     MEDIA_FEATURE_TABLE *skuTable = m_osInterface->pfnGetSkuTable(m_osInterface);
     m_isCompSurfAllocable = MosInterface::IsCompressibelSurfaceSupported(skuTable);
@@ -65,20 +67,18 @@ MOS_STATUS MediaMemComp::DecompressResource(PMOS_RESOURCE resource)
 
 bool MediaMemComp::IsMmcFeatureEnabled()
 {
-    if (m_userSettingPtr != nullptr)
-    {
-        ReadUserSetting(
-            m_userSettingPtr,
-            m_mmcEnabled,
-            m_mmcEnabledKey,
-            MediaUserSetting::Group::Device,
-            m_bComponentMmcEnabled,
-            true);
-    }
-    else
-    {
-        m_mmcEnabled = m_bComponentMmcEnabled;
-    }
+    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+
+    userFeatureData.i32Data = m_bComponentMmcEnabled;
+
+    userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        m_mmcFeatureId,
+        &userFeatureData,
+        m_osInterface->pOsContext);
+    m_mmcEnabled = (userFeatureData.i32Data) ? true : false;
 
     if (NullHW::IsEnabled())
     {
@@ -91,11 +91,12 @@ bool MediaMemComp::IsMmcFeatureEnabled()
 // For VP, there is no such feature id, if need to add 1?
 MOS_STATUS MediaMemComp::UpdateMmcInUseFeature()
 {
-    return ReportUserSetting(
-                m_userSettingPtr,
-                m_mmcInUseKey,
-                m_mmcEnabled,
-                MediaUserSetting::Group::Device);
+    MOS_USER_FEATURE_VALUE_WRITE_DATA userFeatureWriteData;
+    MOS_ZeroMemory(&userFeatureWriteData, sizeof(userFeatureWriteData));
+    userFeatureWriteData.Value.i32Data = m_mmcEnabled;
+    userFeatureWriteData.ValueID = m_mmcInuseFeatureId;
+
+    return MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, m_osInterface->pOsContext);
 }
 
 bool MediaMemComp::IsMmcEnabled()

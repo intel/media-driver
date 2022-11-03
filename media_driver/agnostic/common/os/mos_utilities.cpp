@@ -1738,7 +1738,7 @@ MOS_USER_FEATURE_VALUE MosUtilities::m_mosUserFeatureDescFields[__MOS_USER_FEATU
         "Mhw Base Vdenc Interface Active Flag"),
 
     MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_MEDIA_PREEMPTION_ENABLE_ID,
-        __MEDIA_USER_FEATURE_VALUE_MEDIA_PREEMPTION_ENABLE,
+        "Media Preemption Enable",
         __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
         __MEDIA_USER_FEATURE_SUBKEY_REPORT,
         "Media",

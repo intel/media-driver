@@ -43,7 +43,6 @@ protected:
     void     GetFunctionType();
     uint32_t GetDumpFrameNum() override;
     std::string InitFileName(MediaDbgFunction mediaFunction) override;
-    MediaUserSettingSharedPtr GetUserSettingInstance() override;
 
 protected:
     CodechalDebugInterface *m_debugInterface = nullptr;

@@ -210,8 +210,7 @@ protected:
 
         MHW_CHK_NULL_NO_STATUS_RETURN(osItf);
 
-        m_osItf          = osItf;
-        m_userSettingPtr = osItf->pfnGetUserSettingInstance(osItf);
+        m_osItf = osItf;
         if (m_osItf->bUsesGfxAddress)
         {
             AddResourceToCmd = Mhw_AddResourceToCmd_GfxAddress;
@@ -259,10 +258,9 @@ protected:
     MOS_STATUS(*AddResourceToCmd)
     (PMOS_INTERFACE osItf, PMOS_COMMAND_BUFFER cmdBuf, PMHW_RESOURCE_PARAMS params) = nullptr;
 
-    PMOS_INTERFACE              m_osItf           = nullptr;
-    MediaUserSettingSharedPtr   m_userSettingPtr  = nullptr;
-    PMOS_COMMAND_BUFFER         m_currentCmdBuf   = nullptr;
-    PMHW_BATCH_BUFFER           m_currentBatchBuf = nullptr;
+    PMOS_INTERFACE      m_osItf           = nullptr;
+    PMOS_COMMAND_BUFFER m_currentCmdBuf   = nullptr;
+    PMHW_BATCH_BUFFER   m_currentBatchBuf = nullptr;
 
 #if MHW_HWCMDPARSER_ENABLED
     std::string m_currentCmdName;

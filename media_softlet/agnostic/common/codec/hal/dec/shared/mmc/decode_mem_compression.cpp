@@ -34,8 +34,8 @@
 DecodeMemComp::DecodeMemComp(CodechalHwInterfaceNext *hwInterface, PMOS_INTERFACE osInterface) :
     MediaMemComp(osInterface ? osInterface : hwInterface->GetOsInterface())
 {
-    m_mmcEnabledKey     = __MEDIA_USER_FEATURE_VALUE_CODEC_MMC_ENABLE;
-    m_mmcInUseKey       = __MEDIA_USER_FEATURE_VALUE_CODEC_MMC_IN_USE;
+    m_mmcFeatureId      = __MEDIA_USER_FEATURE_VALUE_CODEC_MMC_ENABLE_ID;
+    m_mmcInuseFeatureId = __MEDIA_USER_FEATURE_VALUE_CODEC_MMC_IN_USE_ID;
     m_miItf             = hwInterface ? hwInterface->GetMiInterfaceNext() : nullptr;
 
     if (hwInterface == nullptr)

@@ -206,8 +206,6 @@ public:
 
     void InitPreemption()
     {
-        MHW_CHK_NULL_NO_STATUS_RETURN(this->m_osItf);
-
         auto skuTable = this->m_osItf->pfnGetSkuTable(this->m_osItf);
         auto waTable = this->m_osItf->pfnGetWaTable(this->m_osItf);
 
@@ -223,14 +221,14 @@ public:
             m_preemptionEnabled = true;
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-        if (this->m_userSettingPtr != nullptr)
-        {
-            ReadUserSettingForDebug(
-                this->m_userSettingPtr,
-                m_preemptionEnabled,
-                __MEDIA_USER_FEATURE_VALUE_MEDIA_PREEMPTION_ENABLE,
-                MediaUserSetting::Group::Device);
-        }
+            MOS_USER_FEATURE_VALUE_DATA UserFeatureData;
+            MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+            MOS_UserFeature_ReadValue_ID(
+                nullptr,
+                __MEDIA_USER_FEATURE_VALUE_MEDIA_PREEMPTION_ENABLE_ID,
+                &UserFeatureData,
+                this->m_osItf->pOsContext);
+            m_preemptionEnabled = (UserFeatureData.i32Data) ? true : false;
 #endif
         }
 

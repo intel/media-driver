@@ -57,7 +57,6 @@ MediaContext::MediaContext(uint8_t componentType, void *hwInterface, PMOS_INTERF
 
     m_hwInterface = hwInterface;
     m_osInterface = osInterface;
-    m_userSettingPtr = osInterface->pfnGetUserSettingInstance(osInterface);
     m_componentType = componentType;
 
     m_streamId = m_osInterface->streamIndex;
@@ -180,18 +179,12 @@ MOS_STATUS MediaContext::SwitchContext(MediaFunction func, ContextRequirement *r
         if (scalPars->raMode)
         {
             MOS_OS_NORMALMESSAGE("request RA mode context for protected render workload");
-            ReportUserSetting(m_userSettingPtr,
-                              __MEDIA_USER_FEATURE_VALUE_RA_MODE_ENABLE,
-                              uint32_t(1),
-                              MediaUserSetting::Group::Device);
+            WriteUserFeature(__MEDIA_USER_FEATURE_VALUE_RA_MODE_ENABLE_ID, 1, m_osInterface->pOsContext);
         }
         if (scalPars->protectMode)
         {
             MOS_OS_NORMALMESSAGE("request protect mode context for protected render workload");
-            ReportUserSetting(m_userSettingPtr,
-                              __MEDIA_USER_FEATURE_VALUE_PROTECT_MODE_ENABLE,
-                              uint32_t(1),
-                              MediaUserSetting::Group::Device);
+            WriteUserFeature(__MEDIA_USER_FEATURE_VALUE_PROTECT_MODE_ENABLE_ID, 1, m_osInterface->pOsContext);
         }
     }
 

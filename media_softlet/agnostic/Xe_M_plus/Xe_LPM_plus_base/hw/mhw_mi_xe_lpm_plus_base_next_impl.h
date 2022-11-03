@@ -148,17 +148,19 @@ public:
 
     void GetWatchdogThreshold(PMOS_INTERFACE osInterface)
     {
-        uint32_t countThreshold = 0;
+        MOS_USER_FEATURE_VALUE_DATA userFeatureData = {};
+
 #if (_DEBUG || _RELEASE_INTERNAL)
         // User feature config of watchdog timer threshold
-        ReadUserSettingForDebug(
-            m_userSettingPtr,
-            countThreshold,
-            __MEDIA_USER_FEATURE_VALUE_MEDIA_RESET_TH,
-            MediaUserSetting::Group::Device);
-        if (countThreshold != 0)
+        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+        MOS_UserFeature_ReadValue_ID(
+            nullptr,
+            __MEDIA_USER_FEATURE_VALUE_MEDIA_RESET_TH_ID,
+            &userFeatureData,
+            osInterface->pOsContext);
+        if (userFeatureData.u32Data != 0)
         {
-            MediaResetParam.watchdogCountThreshold = countThreshold;
+            MediaResetParam.watchdogCountThreshold = userFeatureData.u32Data;
         }
 #endif
     }

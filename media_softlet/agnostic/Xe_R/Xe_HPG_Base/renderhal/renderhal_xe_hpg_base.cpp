@@ -645,32 +645,29 @@ MOS_STATUS XRenderHal_Interface_Xe_Hpg_Base::IsRenderHalMMCEnabled(
 {
     VP_FUNC_CALL();
 
-    MOS_STATUS    eStatus     = MOS_STATUS_SUCCESS;
-    bool          isMMCEnabled = false;
+    MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
+    MOS_USER_FEATURE_VALUE_DATA UserFeatureData;
 
     MHW_RENDERHAL_CHK_NULL_NO_STATUS(pRenderHal);
 
-
+    // Read user feature key to set MMC for Fast Composition surfaces
+    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+    UserFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
 #if defined(LINUX) && (!defined(WDDM_LINUX))
-    isMMCEnabled = !MEDIA_IS_WA(pRenderHal->pWaTable, WaDisableVPMmc) || !MEDIA_IS_WA(pRenderHal->pWaTable, WaDisableCodecMmc);
+    UserFeatureData.bData = !MEDIA_IS_WA(pRenderHal->pWaTable, WaDisableVPMmc) || !MEDIA_IS_WA(pRenderHal->pWaTable, WaDisableCodecMmc);
 #else
-    isMMCEnabled = true;  // turn on MMC for xe_hpg
+    UserFeatureData.bData = true;  // turn on MMC for xe_hpg
 #endif
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-    // Read reg key to set MMC for Fast Composition surfaces
-    if (pRenderHal->userSettingPtr != nullptr)
-    {
-        ReadUserSettingForDebug(
-            pRenderHal->userSettingPtr,
-            isMMCEnabled,
-            __MEDIA_USER_FEATURE_ENABLE_RENDER_ENGINE_MMC,
-            MediaUserSetting::Group::Device,
-            isMMCEnabled,
-            true);
-    }
+    MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_ENABLE_RENDER_ENGINE_MMC_ID,
+        &UserFeatureData,
+        pRenderHal->pOsInterface ? pRenderHal->pOsInterface->pOsContext : nullptr));
 #endif
-    m_renderHalMMCEnabled    = isMMCEnabled && MEDIA_IS_SKU(pRenderHal->pSkuTable, FtrE2ECompression);
+
+    m_renderHalMMCEnabled    = UserFeatureData.bData && MEDIA_IS_SKU(pRenderHal->pSkuTable, FtrE2ECompression);
     pRenderHal->isMMCEnabled = m_renderHalMMCEnabled;
 
 finish:

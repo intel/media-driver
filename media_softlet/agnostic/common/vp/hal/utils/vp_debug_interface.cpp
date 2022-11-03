@@ -59,7 +59,6 @@ MOS_STATUS VpDebugInterface::Initialize(PMOS_INTERFACE pOsInterface)
     VP_DEBUG_CHK_NULL_RETURN(pOsInterface);
     m_osInterface = pOsInterface;
 
-    m_userSettingPtr = m_osInterface->pfnGetUserSettingInstance(m_osInterface);
     //dump loctaion is vpdump
     MediaDebugInterface::SetOutputFilePath();
 
@@ -154,14 +153,14 @@ MOS_STATUS VpDebugInterface::DumpVpSurfaceArray(
                Location);
 }
 
-std::string VpDebugInterface::SetOutputPathKey()
+MOS_USER_FEATURE_VALUE_ID VpDebugInterface::SetOutputPathKey()
 {
     VP_FUNC_CALL();
 
-    return __VPHAL_DBG_SURF_DUMP_OUTFILE_KEY_NAME;
+    return __VPHAL_DBG_SURF_DUMP_OUTFILE_KEY_NAME_ID;
 }
 
-std::string VpDebugInterface::InitDefaultOutput()
+MOS_USER_FEATURE_VALUE_ID VpDebugInterface::InitDefaultOutput()
 {
     VP_FUNC_CALL();
 

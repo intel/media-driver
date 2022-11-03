@@ -142,8 +142,8 @@ protected:
     bool                          m_mmcEnabled = false;
     bool                          m_isCompSurfAllocable = false;
     bool                          m_bComponentMmcEnabled = false;
-    std::string                   m_mmcEnabledKey;
-    std::string                   m_mmcInUseKey;
+    uint32_t                      m_mmcFeatureId = __MOS_USER_FEATURE_KEY_MAX_ID;
+    uint32_t                      m_mmcInuseFeatureId = __MOS_USER_FEATURE_KEY_MAX_ID;
     MediaUserSettingSharedPtr     m_userSettingPtr = nullptr;
 MEDIA_CLASS_DEFINE_END(MediaMemComp)
 };

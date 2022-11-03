@@ -1256,7 +1256,7 @@ typedef struct _RENDERHAL_INTERFACE
 
     MediaPerfProfiler           *pPerfProfiler = nullptr; //!< Performance data profiler
     bool                        eufusionBypass = false;
-    MediaUserSettingSharedPtr   userSettingPtr = nullptr; //!< Shared pointer to User Setting instance
+
     //---------------------------
     // HW interface functions
     //---------------------------

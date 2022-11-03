@@ -226,18 +226,23 @@ void MediaPerfProfiler::Destroy(MediaPerfProfiler* profiler, void* context, MOS_
 MOS_STATUS MediaPerfProfiler::Initialize(void* context, MOS_INTERFACE *osInterface)
 {
     MOS_STATUS status = MOS_STATUS_SUCCESS;
+    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
+
     CHK_NULL_RETURN(osInterface);
     CHK_NULL_RETURN(m_mutex);
 
     PMOS_CONTEXT pOsContext = osInterface->pOsContext;
     CHK_NULL_RETURN(pOsContext);
-    MediaUserSettingSharedPtr userSettingPtr = osInterface->pfnGetUserSettingInstance(osInterface);
+
     // Check whether profiler is enabled
-    ReadUserSetting(
-        userSettingPtr,
-        m_profilerEnabled,
-        __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_ENABLE,
-        MediaUserSetting::Group::Device);
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_ENABLE_ID,
+        &userFeatureData,
+        pOsContext);
+
+    m_profilerEnabled = userFeatureData.bData;
 
     if (m_profilerEnabled == 0 || m_mutex == nullptr)
     {
@@ -259,41 +264,62 @@ MOS_STATUS MediaPerfProfiler::Initialize(void* context, MOS_INTERFACE *osInterfa
     m_enableProfilerDump = MosUtilities::MosIsProfilerDumpEnabled();
 
     // Read output file name
-    status = ReadUserSetting(
-                userSettingPtr,
-                m_outputFileName,
-                __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_OUTPUT_FILE_NAME,
-                MediaUserSetting::Group::Device);
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    userFeatureData.StringData.pStringData = m_outputFileName;
+    status = MOS_UserFeature_ReadValue_ID(
+        NULL,
+        __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_OUTPUT_FILE,
+        &userFeatureData,
+        osInterface->pOsContext);
+
     if (status != MOS_STATUS_SUCCESS)
     {
         MosUtilities::MosUnlockMutex(m_mutex);
         return status;
     }
 
+    if (userFeatureData.StringData.uSize == MOS_MAX_PATH_LENGTH + 1)
+    {
+        userFeatureData.StringData.uSize = 0;
+    }
+
+    if (userFeatureData.StringData.uSize > 0)
+    {
+        userFeatureData.StringData.pStringData[userFeatureData.StringData.uSize] = '\0';
+        userFeatureData.StringData.uSize++;
+    }
+
     // Read buffer size
-    ReadUserSetting(
-            userSettingPtr,
-            m_bufferSize,
-            __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_BUFFER_SIZE_KEY,
-            MediaUserSetting::Group::Device);
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_BUFFER_SIZE,
+        &userFeatureData,
+        osInterface->pOsContext);
+    m_bufferSize = userFeatureData.u32Data;
 
     m_timerBase = Mos_Specific_GetTsFrequency(osInterface);
 
     // Read multi processes support
-    ReadUserSetting(
-        userSettingPtr,
-        m_multiprocess,
-        __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_ENABLE_MUL_PROC,
-        MediaUserSetting::Group::Device);
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_ENABLE_MULTI_PROCESS,
+        &userFeatureData,
+        osInterface->pOsContext);
+    m_multiprocess = userFeatureData.u32Data;
+
     // Read memory information register address
     int8_t regIndex = 0;
     for (regIndex = 0; regIndex < 8; regIndex++)
     {
-        ReadUserSetting(
-            userSettingPtr,
-            m_registers[regIndex],
-            m_registersKey[regIndex],
-            MediaUserSetting::Group::Device);
+        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+        MOS_UserFeature_ReadValue_ID(
+            nullptr,
+            __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_REGISTER_1 + regIndex,
+            &userFeatureData,
+            osInterface->pOsContext);
+        m_registers[regIndex] = userFeatureData.u32Data;
     }
 
     PMOS_RESOURCE  pPerfStoreBuffer = (PMOS_RESOURCE)MOS_AllocAndZeroMemory(sizeof(MOS_RESOURCE));
@@ -666,13 +692,13 @@ MOS_STATUS MediaPerfProfiler::SavePerfData(MOS_INTERFACE *osInterface)
             char outputFileName[MOS_MAX_PATH_LENGTH + 1];
 
             MOS_SecureStringPrint(outputFileName, MOS_MAX_PATH_LENGTH + 1, MOS_MAX_PATH_LENGTH + 1, "%s-pid%d-context%p-%04d%02d%02d%02d%02d%02d.bin",
-                m_outputFileName.c_str(), pid, pOsContext, localtime.tm_year + 1900, localtime.tm_mon + 1, localtime.tm_mday, localtime.tm_hour, localtime.tm_min, localtime.tm_sec);
+                m_outputFileName, pid, pOsContext, localtime.tm_year + 1900, localtime.tm_mon + 1, localtime.tm_mday, localtime.tm_hour, localtime.tm_min, localtime.tm_sec);
 
             MosUtilities::MosWriteFileFromPtr(outputFileName, pData, BASE_OF_NODE(m_perfDataIndexMap[pOsContext]));
         }
         else
         {
-            MosUtilities::MosWriteFileFromPtr(m_outputFileName.c_str(), pData, BASE_OF_NODE(m_perfDataIndexMap[pOsContext]));
+            MosUtilities::MosWriteFileFromPtr(m_outputFileName, pData, BASE_OF_NODE(m_perfDataIndexMap[pOsContext]));
         }
 
         osInterface->pfnUnlockResource(
