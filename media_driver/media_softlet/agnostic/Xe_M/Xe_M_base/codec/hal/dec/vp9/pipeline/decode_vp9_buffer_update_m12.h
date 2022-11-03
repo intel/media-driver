@@ -30,6 +30,7 @@
 #define __DECODE_VP9_BUFFER_UPDATE_M12_H__
 
 #include "decode_vp9_buffer_update.h" 
+#include "codechal_hw.h"
 
 namespace decode {
 

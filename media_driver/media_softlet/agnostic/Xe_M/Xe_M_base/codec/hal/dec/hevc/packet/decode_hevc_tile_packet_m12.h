@@ -33,6 +33,7 @@
 #include "decode_hevc_basic_feature.h"
 #include "mhw_vdbox_hcp_g12_X.h"
 #include "mhw_mi_g12_X.h"
+#include "codechal_hw.h"
 
 namespace decode
 {

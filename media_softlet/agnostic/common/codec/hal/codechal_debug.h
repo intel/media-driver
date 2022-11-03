@@ -29,7 +29,7 @@
 
 #include "media_debug_interface.h"
 #include "codec_hw_next.h"
-#include "codechal_hw.h"
+#include "encode_status_report.h"
 
 #if USE_MEDIA_DEBUG_TOOL
 
@@ -45,6 +45,11 @@ namespace CodechalDbgBufferType  = MediaDbgBufferType;
 namespace CodechalDbgAttr        = MediaDbgAttr;
 namespace CodechalDbgKernel      = MediaDbgKernel;
 
+#define __MEDIA_USER_FEATURE_VALUE_DECODE_SFC_RGBFORMAT_OUTPUT_DEBUG "Decode SFC RGB Format Output"
+#define __MEDIA_USER_FEATURE_VALUE_DECODE_SFC_LINEAR_OUTPUT_DEBUG "Decode SFC Linear Output Debug"
+#define __MEDIA_USER_FEATURE_ENABLE_HW_DEBUG_HOOKS_DEBUG "Enable Media Debug Hooks"
+#define __MEDIA_USER_FEATURE_VALUE_CODECHAL_FRAME_NUMBER_TO_STOP_DEBUG "Decode Stop To Frame"
+#define __MEDIA_USER_FEATURE_VALUE_CODECHAL_ENABLE_SW_CRC_DEBUG "Enable SW CRC"
 //------------------------------------------------------------------------------
 // Macros specific to MOS_CODEC_SUBCOMP_DEBUG sub-comp
 //------------------------------------------------------------------------------
@@ -101,6 +106,7 @@ typedef struct _CODECHAL_ME_OUTPUT_PARAMS
 } CODECHAL_ME_OUTPUT_PARAMS, *PCODECHAL_ME_OUTPUT_PARAMS;
 
 class MediaDebugInterface;
+class CodechalHwInterface;
 class CodechalDebugInterface : public MediaDebugInterface
 {
 public:
@@ -142,10 +148,10 @@ public:
     MOS_STATUS SetFastDumpConfig(MediaCopyBaseState *mediaCopy);
 
     MOS_STATUS DumpEncodeStatusReport(
-        void* report);
+        const struct EncodeStatusReport *report);
 
     MOS_STATUS DumpEncodeStatusReport(
-        const struct EncodeStatusReport *report);
+        const struct encode::EncodeStatusReportData *report);
 
     void CheckGoldenReferenceExist();
 

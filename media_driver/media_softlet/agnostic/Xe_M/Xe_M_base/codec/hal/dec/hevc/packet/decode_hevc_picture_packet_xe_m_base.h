@@ -32,6 +32,7 @@
 #include "decode_utils.h"
 #include "decode_hevc_basic_feature.h"
 #include "decode_downsampling_packet.h"
+#include "codechal_hw.h"
 
 namespace decode
 {

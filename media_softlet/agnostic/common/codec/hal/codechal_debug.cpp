@@ -27,15 +27,8 @@
 #include "codechal_debug.h"
 #if USE_CODECHAL_DEBUG_TOOL
 #include "codechal_debug_config_manager.h"
-#include "codechal_encoder_base.h"
 #include "media_debug_fast_dump.h"
 #include <iomanip>
-
-#define __MEDIA_USER_FEATURE_VALUE_DECODE_SFC_RGBFORMAT_OUTPUT_DEBUG "Decode SFC RGB Format Output"
-#define __MEDIA_USER_FEATURE_VALUE_DECODE_SFC_LINEAR_OUTPUT_DEBUG "Decode SFC Linear Output Debug"
-#define __MEDIA_USER_FEATURE_ENABLE_HW_DEBUG_HOOKS_DEBUG "Enable Media Debug Hooks"
-#define __MEDIA_USER_FEATURE_VALUE_CODECHAL_FRAME_NUMBER_TO_STOP_DEBUG "Decode Stop To Frame"
-#define __MEDIA_USER_FEATURE_VALUE_CODECHAL_ENABLE_SW_CRC_DEBUG "Enable SW CRC"
 
 CodechalDebugInterface::CodechalDebugInterface()
 {
@@ -741,72 +734,12 @@ MOS_STATUS CodechalDebugInterface::DumpBltOutput(
     {
         return MOS_STATUS_SUCCESS;
     }
-
-    bool                       copyMain    = true;
-    bool                       copyCcs     = true;
-    BltState                  *bltState    = nullptr;
-    CODECHAL_DEBUG_CHK_NULL(m_hwInterface);
-    bltState = m_hwInterface->GetBltState();
-    CODECHAL_DEBUG_CHK_NULL(bltState);
-    const PMOS_SURFACE      inputSurface = surface;
-    MOS_ALLOC_GFXRES_PARAMS AllocParams  = {};
-
-    if (copyMain)
+    else
     {
-        CODECHAL_DEBUG_CHK_STATUS_MESSAGE(
-            DumpYUVSurface(
-                inputSurface,
-                attrName,
-                "BltOutMainSurf"),
-            "DumpYUVSurface BltOutMainSurf error");
+        CODECHAL_DEBUG_NORMALMESSAGE("Don't support BltOutput dump, pls not use BltState directly!");
+        return MOS_STATUS_SUCCESS;
     }
 
-    if (copyCcs)
-    {
-        // dump ccs surface
-        MOS_ZeroMemory(&AllocParams, sizeof(MOS_ALLOC_GFXRES_PARAMS));
-        AllocParams.TileType        = MOS_TILE_LINEAR;
-        AllocParams.Type            = MOS_GFXRES_BUFFER;
-        AllocParams.dwWidth         = (uint32_t)inputSurface->OsResource.pGmmResInfo->GetSizeMainSurface() / 256;
-        AllocParams.dwHeight        = 1;
-        AllocParams.Format          = Format_Buffer;
-        AllocParams.bIsCompressible = false;
-        AllocParams.CompressionMode = MOS_MMC_DISABLED;
-        AllocParams.pBufName        = "TempCCS";
-        AllocParams.dwArraySize     = 1;
-
-        PMOS_SURFACE ccsSurface = (PMOS_SURFACE)MOS_AllocAndZeroMemory(sizeof(MOS_SURFACE));
-        m_osInterface->pfnAllocateResource(
-            m_osInterface,
-            &AllocParams,
-            &ccsSurface->OsResource);
-        CODECHAL_DEBUG_CHK_STATUS(CodecHalGetResourceInfo(
-            m_osInterface,
-            ccsSurface));
-        CODECHAL_DEBUG_VERBOSEMESSAGE("BLT CCS surface width %d, height %d, pitch %d, TileType %d, bIsCompressed %d, CompressionMode %d",
-            ccsSurface->dwWidth,
-            ccsSurface->dwHeight,
-            ccsSurface->dwPitch,
-            ccsSurface->TileType,
-            ccsSurface->bIsCompressed,
-            ccsSurface->CompressionMode);
-
-        CODECHAL_DEBUG_CHK_STATUS_MESSAGE(
-            bltState->GetCCS(inputSurface, ccsSurface),
-            "BLT CopyMainSurface error");
-
-        CODECHAL_DEBUG_CHK_STATUS_MESSAGE(
-            DumpSurface(
-                ccsSurface,
-                attrName,
-                "BltOutCcsSurf"),
-            "DumpYUVSurface BltOutMainSurf error");
-
-        m_osInterface->pfnFreeResource(m_osInterface, &ccsSurface->OsResource);
-        MOS_FreeMemAndSetNull(ccsSurface);
-    }
-
-    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS CodechalDebugInterface::SetFastDumpConfig(MediaCopyBaseState *mediaCopy)
@@ -818,81 +751,6 @@ MOS_STATUS CodechalDebugInterface::SetFastDumpConfig(MediaCopyBaseState *mediaCo
         cfg.informOnError = DumpIsEnabled(MediaDbgAttr::attrFastDumpInformOnError);
         MediaDebugFastDump::CreateInstance(*m_osInterface, *mediaCopy, &cfg);
     }
-
-    return MOS_STATUS_SUCCESS;
-}
-
-MOS_STATUS CodechalDebugInterface::Initialize(
-    CodechalHwInterface *hwInterface,
-    CODECHAL_FUNCTION    codecFunction,
-    MediaCopyBaseState  *mediaCopy)
-{
-    CODECHAL_DEBUG_FUNCTION_ENTER;
-
-    CODECHAL_DEBUG_CHK_NULL(hwInterface);
-    m_hwInterface   = hwInterface;
-    m_codecFunction = codecFunction;
-    m_osInterface   = m_hwInterface->GetOsInterface();
-    m_cpInterface   = m_hwInterface->GetCpInterface();
-    //#ifndef softlet_build
-    m_miInterface   = m_hwInterface->GetMiInterface();
-    //#endif
-
-    CODECHAL_DEBUG_CHK_NULL(m_osInterface);
-    m_userSettingPtr = m_osInterface->pfnGetUserSettingInstance(m_osInterface);
-    CODECHAL_DEBUG_CHK_STATUS(InitializeUserSetting());
-
-    //dump loctaion is codechaldump
-    MediaDebugInterface::SetOutputFilePath();
-
-    m_configMgr = MOS_New(CodecDebugConfigMgr, this, m_codecFunction, m_outputFilePath);
-    CODECHAL_DEBUG_CHK_NULL(m_configMgr);
-    CODECHAL_DEBUG_CHK_STATUS(m_configMgr->ParseConfig(m_osInterface->pOsContext));
-
-    MediaDebugInterface::InitDumpLocation();
-
-#if (_DEBUG || _RELEASE_INTERNAL)
-    {
-        MediaUserSetting::Value outValue;
-        ReadUserSettingForDebug(
-            m_userSettingPtr,
-            outValue,
-            __MEDIA_USER_FEATURE_ENABLE_HW_DEBUG_HOOKS_DEBUG,
-            MediaUserSetting::Group::Device, 0, true);
-        m_enableHwDebugHooks = outValue.Get<bool>();
-    }
-    CheckGoldenReferenceExist();
-    if (m_enableHwDebugHooks && m_goldenReferenceExist)
-    {
-        LoadGoldenReference();
-    }
-
-    {
-        MediaUserSetting::Value outValue;
-        ReadUserSettingForDebug(
-            m_userSettingPtr,
-            outValue,
-            __MEDIA_USER_FEATURE_VALUE_CODECHAL_FRAME_NUMBER_TO_STOP_DEBUG,
-            MediaUserSetting::Group::Device,
-            -1,
-            true);
-        m_stopFrameNumber = outValue.Get<int32_t>();
-    }
-
-    {
-        MediaUserSetting::Value outValue;
-        ReadUserSettingForDebug(
-            m_userSettingPtr,
-            outValue,
-            __MEDIA_USER_FEATURE_VALUE_CODECHAL_ENABLE_SW_CRC_DEBUG,
-            MediaUserSetting::Group::Device,
-            0,
-            true);
-        m_swCRC = outValue.Get<bool>();
-    }
-#endif
-
-    SetFastDumpConfig(mediaCopy);
 
     return MOS_STATUS_SUCCESS;
 }
@@ -1159,15 +1017,9 @@ MOS_STATUS CodechalDebugInterface::DumpHucRegion(
     return DumpBuffer(region, nullptr, funcName.c_str(), regionSize, regionOffset);
 }
 
-MOS_STATUS CodechalDebugInterface::DumpEncodeStatusReport(void* report)
-{
-    CODECHAL_DEBUG_ASSERTMESSAGE("WARNING: DumpEncodeStatusReport(void* report) is used. Make sure that pointer contains ::EncodeStatusReport or similar struct");
-    return DumpEncodeStatusReport((EncodeStatusReport*)report);
-}
-
 #define FIELD_TO_OFS(field_name) ofs << print_shift << std::setfill(' ') << std::setw(25) << std::left << std::string(#field_name) + ": " << (int64_t)report->field_name << std::endl;
 #define PTR_TO_OFS(ptr_name) ofs << print_shift << std::setfill(' ') << std::setw(25) << std::left << std::string(#ptr_name) + ": " << report->ptr_name << std::endl;
-MOS_STATUS CodechalDebugInterface::DumpEncodeStatusReport(const EncodeStatusReport *report)
+MOS_STATUS CodechalDebugInterface::DumpEncodeStatusReport(const encode::EncodeStatusReportData *report)
 {
     CODECHAL_DEBUG_FUNCTION_ENTER;
 
@@ -1188,58 +1040,58 @@ MOS_STATUS CodechalDebugInterface::DumpEncodeStatusReport(const EncodeStatusRepo
         return MOS_STATUS_UNKNOWN;
     }
     std::string print_shift = "";
-    sizeof(report->CodecStatus);
-    FIELD_TO_OFS(CodecStatus);
-    FIELD_TO_OFS(StatusReportNumber);
-    FIELD_TO_OFS(CurrOriginalPic.FrameIdx);
-    FIELD_TO_OFS(CurrOriginalPic.PicFlags);
-    FIELD_TO_OFS(CurrOriginalPic.PicEntry);
-    FIELD_TO_OFS(Func);
-    PTR_TO_OFS(  pCurrRefList);
+    sizeof(report->codecStatus);
+    FIELD_TO_OFS(codecStatus);
+    FIELD_TO_OFS(statusReportNumber);
+    FIELD_TO_OFS(currOriginalPic.FrameIdx);
+    FIELD_TO_OFS(currOriginalPic.PicFlags);
+    FIELD_TO_OFS(currOriginalPic.PicEntry);
+    FIELD_TO_OFS(func);
+    PTR_TO_OFS(  currRefList);
     ofs << std::endl;
 
-    FIELD_TO_OFS(bSequential);
+    FIELD_TO_OFS(sequential);
     FIELD_TO_OFS(bitstreamSize);
-    FIELD_TO_OFS(QpY);
-    FIELD_TO_OFS(SuggestedQpYDelta);
-    FIELD_TO_OFS(NumberPasses);
-    FIELD_TO_OFS(AverageQp);
-    FIELD_TO_OFS(HWCounterValue.IV);
-    FIELD_TO_OFS(HWCounterValue.Count);
-    PTR_TO_OFS(  hwctr);
-    FIELD_TO_OFS(QueryStatusFlags);
+    FIELD_TO_OFS(qpY);
+    FIELD_TO_OFS(suggestedQPYDelta);
+    FIELD_TO_OFS(numberPasses);
+    FIELD_TO_OFS(averageQP);
+    FIELD_TO_OFS(hwCounterValue.IV);
+    FIELD_TO_OFS(hwCounterValue.Count);
+    PTR_TO_OFS(hwCtr);
+    FIELD_TO_OFS(queryStatusFlags);
 
     print_shift = "    ";
-    FIELD_TO_OFS(PanicMode);
-    FIELD_TO_OFS(SliceSizeOverflow);
-    FIELD_TO_OFS(NumSlicesNonCompliant);
-    FIELD_TO_OFS(LongTermReference);
-    FIELD_TO_OFS(FrameSkipped);
-    FIELD_TO_OFS(SceneChangeDetected);
+    FIELD_TO_OFS(panicMode);
+    FIELD_TO_OFS(sliceSizeOverflow);
+    FIELD_TO_OFS(numSlicesNonCompliant);
+    FIELD_TO_OFS(longTermReference);
+    FIELD_TO_OFS(frameSkipped);
+    FIELD_TO_OFS(sceneChangeDetected);
     print_shift = "";
     ofs << std::endl;
 
-    FIELD_TO_OFS(MAD);
+    FIELD_TO_OFS(mad);
     FIELD_TO_OFS(loopFilterLevel);
-    FIELD_TO_OFS(LongTermIndication);
-    FIELD_TO_OFS(NextFrameWidthMinus1);
-    FIELD_TO_OFS(NextFrameHeightMinus1);
-    FIELD_TO_OFS(NumberSlices);
+    FIELD_TO_OFS(longTermIndication);
+    FIELD_TO_OFS(nextFrameWidthMinus1);
+    FIELD_TO_OFS(nextFrameHeightMinus1);
+    FIELD_TO_OFS(numberSlices);
 
-    FIELD_TO_OFS(PSNRx100[0]);
-    FIELD_TO_OFS(PSNRx100[1]);
-    FIELD_TO_OFS(PSNRx100[2]);
+    FIELD_TO_OFS(psnrX100[0]);
+    FIELD_TO_OFS(psnrX100[1]);
+    FIELD_TO_OFS(psnrX100[2]);
 
-    FIELD_TO_OFS(NumberTilesInFrame);
-    FIELD_TO_OFS(UsedVdBoxNumber);
-    FIELD_TO_OFS(SizeOfSliceSizesBuffer);
-    PTR_TO_OFS(  pSliceSizes);
-    FIELD_TO_OFS(SizeOfTileInfoBuffer);
-    PTR_TO_OFS(  pHEVCTileinfo);
-    FIELD_TO_OFS(NumTileReported);
+    FIELD_TO_OFS(numberTilesInFrame);
+    FIELD_TO_OFS(usedVdBoxNumber);
+    FIELD_TO_OFS(sizeOfSliceSizesBuffer);
+    PTR_TO_OFS(  sliceSizes);
+    FIELD_TO_OFS(sizeOfTileInfoBuffer);
+    PTR_TO_OFS(  hevcTileinfo);
+    FIELD_TO_OFS(numTileReported);
     ofs << std::endl;
 
-    FIELD_TO_OFS(StreamId);
+    FIELD_TO_OFS(streamId);
     PTR_TO_OFS(  pLookaheadStatus);
     ofs.close();
 

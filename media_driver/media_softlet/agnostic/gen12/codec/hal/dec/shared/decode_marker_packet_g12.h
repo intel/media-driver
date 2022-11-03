@@ -34,6 +34,7 @@
 #include "codechal_setting.h"
 #include "decode_pipeline.h"
 #include "decode_marker.h"
+#include "codechal_hw.h"
 
 namespace decode
 {

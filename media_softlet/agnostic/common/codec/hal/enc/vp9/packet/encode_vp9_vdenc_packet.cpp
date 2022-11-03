@@ -1287,7 +1287,7 @@ MOS_STATUS Vp9VdencPkt::DumpResources(
         "EncodeStatusReport_Buffer"));
 
     ENCODE_CHK_STATUS_RETURN(debugInterface->DumpEncodeStatusReport(
-        (uint8_t *)statusReportData));
+        statusReportData));
 
     PMOS_RESOURCE frameStatStreamOutBuffer = m_basicFeature->m_recycleBuf->GetBuffer(FrameStatStreamOutBuffer, 0);
     ENCODE_CHK_NULL_RETURN(frameStatStreamOutBuffer);

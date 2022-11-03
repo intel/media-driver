@@ -31,6 +31,7 @@
 #include "decode_hevc_pipeline.h"
 #include "decode_utils.h"
 #include "decode_hevc_basic_feature.h"
+#include "codechal_hw.h"
 
 namespace decode
 {
