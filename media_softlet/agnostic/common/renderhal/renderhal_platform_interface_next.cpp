@@ -832,12 +832,7 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::DestoryMhwInterface(
 {
     MOS_STATUS  eStatus = MOS_STATUS_SUCCESS;
     MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
-    // Destroy MHW MI Interface
-    if (pRenderHal->pMhwMiInterface)
-    {
-        MOS_Delete(pRenderHal->pMhwMiInterface);
-        pRenderHal->pMhwMiInterface = nullptr;
-    }
+
     return MOS_STATUS_SUCCESS;
 }
 

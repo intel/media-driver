@@ -116,14 +116,12 @@
 #endif
 #include "decode_scalability_singlepipe_next.h"
 #include "decode_scalability_multipipe_next.h"
-#include "mhw_render_xe_hpg.h"
 
 class MhwInterfacesXe_Lpm_Plus_Next : public MhwInterfacesNext
 {
 public:
     //TODO, Remove legacy mhw sub interfaces
     using Cp        = MhwCpInterface;
-    using Render    = MhwRenderInterfaceXe_Hpg;
     using StateHeap = MHW_STATE_HEAP_INTERFACE_XE_HPG;
 
     virtual MOS_STATUS Initialize(

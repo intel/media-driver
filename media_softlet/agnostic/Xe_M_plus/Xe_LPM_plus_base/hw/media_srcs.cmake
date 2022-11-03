@@ -21,7 +21,6 @@
 media_include_subdirectory(vdbox)
 
 set(TMP_MI_HEADERS_
-    ${CMAKE_CURRENT_LIST_DIR}/mhw_mi_xe_lpm_plus_base_next.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_mi_hwcmd_xe_lpm_plus_base_next.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_mi_xe_lpm_plus_base_next_impl.h
 )

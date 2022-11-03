@@ -34,12 +34,11 @@
 
 #include "vp_pipeline_adapter_xe_lpm_plus.h"
 #include "vp_platform_interface_xe_lpm_plus.h"
+#include "mhw_mi_xe_lpm_plus_base_next_impl.h"
 #include "mhw_blt_xe_lpm_plus_base_next_impl.h"
 #include "mhw_sfc_xe_lpm_plus_base_next_impl.h"
 #include "mhw_vebox_xe_lpm_plus_base_next_impl.h"
 #include "mhw_render_xe_hpg_impl.h"
-#include "mhw_mi_hwcmd_xe_lpm_plus_base_next.h"
-#include "mhw_mi_xe_lpm_plus_base_next_impl.h"
 
 #if defined(ENABLE_KERNELS)
 #include "igvpkrn_xe_hpg.h"
