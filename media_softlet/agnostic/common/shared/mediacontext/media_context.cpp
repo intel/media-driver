@@ -75,7 +75,7 @@ MediaContext::~MediaContext()
        (m_curNodeOrdinal == MOS_GPU_NODE_VIDEO || m_curNodeOrdinal == MOS_GPU_NODE_VIDEO2))
     {
         m_osInterface->pfnDestroyVideoNodeAssociation(m_osInterface, m_curNodeOrdinal);
-        if (m_osInterface->osStreamState->component == COMPONENT_Encode)
+        if (m_osInterface->osStreamState && m_osInterface->osStreamState->component == COMPONENT_Encode)
         {
             m_osInterface->pfnSetLatestVirtualNode(m_osInterface, MOS_GPU_NODE_MAX);
         }
