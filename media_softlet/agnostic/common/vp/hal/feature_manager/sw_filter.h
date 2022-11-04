@@ -1024,22 +1024,8 @@ struct FeatureParamScaling : public FeatureParam
         MOS_TILE_MODE_GMM       tileMode   = MOS_TILE_4_GMM;
         bool operator == (struct SCALING_PARAMS &b)
         {
-            return (dwWidth         ==  b.dwWidth           &&
-                    dwHeight        ==  b.dwHeight          &&
-                    sampleType      ==  b.sampleType        &&
-                    tileMode        ==  b.tileMode          &&
-                    (rcSrc.left     ==  b.rcSrc.left        &&
-                    rcSrc.right     ==  b.rcSrc.right       &&
-                    rcSrc.top       ==  b.rcSrc.top         &&
-                    rcSrc.bottom    ==  b.rcSrc.bottom)     &&
-                    (rcDst.left     ==  b.rcDst.left        &&
-                    rcDst.right     ==  b.rcDst.right       &&
-                    rcDst.top       ==  b.rcDst.top         &&
-                    rcDst.bottom    ==  b.rcDst.bottom)     &&
-                    (rcMaxSrc.left  ==  b.rcMaxSrc.left     &&
-                    rcMaxSrc.right  ==  b.rcMaxSrc.right    &&
-                    rcMaxSrc.top    ==  b.rcMaxSrc.top      &&
-                    rcMaxSrc.bottom ==  b.rcMaxSrc.bottom));
+            // no use sizeof(SCALING_PARAMS) to avoid undefined padding data being used.
+            return 0 == memcmp(this, &b, (uint64_t)(&tileMode) - (uint64_t)(this) + sizeof(tileMode));
         }
     };
 
