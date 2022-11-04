@@ -106,17 +106,54 @@ typedef enum _MEDIA_EVENT_FILTER_KEYID
     TR_KEY_MOSMSG_MOS,
     TR_KEY_MOSMSG_MHW,
     TR_KEY_DECODE_INFO,
-    TR_KEY_ENCODE_TRACE_EVENT_DDI = 24,
-    TR_KEY_ENCODE_TRACE_EVENT_API_STICKER,
-    TR_KEY_ENCODE_TRACE_EVENT_INTERNAL,
+    TR_KEY_ENCODE_EVENT_DDI = 24,
+    TR_KEY_ENCODE_EVENT_API_STICKER,
+    TR_KEY_ENCODE_EVENT_INTERNAL,
+    TR_KEY_ENCODE_DATA_INPUT_SURFACE,
+    TR_KEY_ENCODE_DATA_REF_SURFACE,
+    TR_KEY_ENCODE_DATA_RECON_SURFACE,
+    TR_KEY_ENCODE_DATA_BITSTREAM,
 } MEDIA_EVENT_FILTER_KEYID;
 
-typedef struct _MT_SETTING
+#pragma pack(push, 8)
+struct MtSetting
+{
+    struct FastDump
+    {
+        uint8_t  allowDataLoss : 1;
+        uint8_t  frameIdxBasedSampling : 1;
+        uint8_t  memUsagePolicy : 2;
+        uint8_t  write2File : 1;
+        uint8_t  write2Trace : 1;
+        uint8_t  informOnError : 1;
+        uint8_t  rsv0 : 1;
+        uint8_t  rsv1;
+        uint8_t  maxPrioritizedMem;
+        uint8_t  maxDeprioritizedMem;
+        uint8_t  weightRenderCopy;
+        uint8_t  weightVECopy;
+        uint8_t  weightBLTCopy;
+        uint8_t  rsv2;
+        uint64_t samplingTime;
+        uint64_t samplingInterval;
+        uint64_t bufferSize4Write;
+        char     filePath[1024];
+    } fastDump;
+};
+
+// 4KB in total
+struct MtControlData
 {
     uint32_t enable;
-    uint32_t level;
-    uint64_t filter;
-} MT_SETTING;
+    uint8_t  level;
+    uint8_t  rsv0[3];
+    uint64_t filter[63];
+
+    MtSetting setting;
+
+    uint8_t rsv1[2528];
+};
+#pragma pack(pop)
 
 enum class MT_EVENT_LEVEL
 {
@@ -367,15 +404,101 @@ typedef enum _MT_LEVEL
     MT_CRITICAL = 2,  //! critical runtime log
 } MT_LEVEL;
 
-union MtLevel
+class MtEnable
 {
-    struct
+public:
+    MtEnable(bool flag = false) : m_flag(flag) {}
+
+    MtEnable(const uint32_t *pFlag) : m_pFlag(pFlag) {}
+
+    ~MtEnable()
     {
-        uint8_t Event : 3;  // MT_EVENT_LEVEL
-        uint8_t Data  : 2;  // MT_DATA_LEVEL
-        uint8_t Log   : 3;  // MT_LOG_LEVEL
+        Reset();
+    }
+
+    operator bool() const
+    {
+        return m_pFlag ? *(m_pFlag) : m_flag;
+    }
+
+    void Reset()
+    {
+        m_pFlag = nullptr;
+    }
+
+private:
+    bool            m_flag  = false;
+    const uint32_t *m_pFlag = nullptr;
+};
+
+class MtFilter
+{
+public:
+    MtFilter(const uint64_t *filter = nullptr, size_t filterNum = 0) : m_filter(filter), m_maxKeyNum(filterNum * N)
+    {
+        if (filter && filterNum == 0)
+        {
+            m_maxKeyNum = N;
+        }
+    }
+
+    ~MtFilter()
+    {
+        Reset();
+    }
+
+    bool operator()(MEDIA_EVENT_FILTER_KEYID key)
+    {
+        return m_filter && static_cast<size_t>(key) < m_maxKeyNum ? (m_filter[key / N] & (1ULL << (key % N))) : false;
+    }
+
+    void Reset()
+    {
+        m_filter    = nullptr;
+        m_maxKeyNum = 0;
+    }
+
+private:
+    static constexpr size_t N = sizeof(uint64_t) << 3;
+
+    const uint64_t *m_filter;
+    size_t          m_maxKeyNum;
+};
+
+class MtLevel
+{
+public:
+    MtLevel(const uint8_t *level = nullptr) : m_level(reinterpret_cast<const Level *>(level)) {}
+
+    ~MtLevel() { Reset(); }
+
+    bool operator()(MT_EVENT_LEVEL level)
+    {
+        return m_level ? (level <= static_cast<MT_EVENT_LEVEL>(m_level->event)) : false;
+    }
+
+    bool operator()(MT_DATA_LEVEL level)
+    {
+        return m_level ? (level <= static_cast<MT_DATA_LEVEL>(m_level->data)) : false;
+    }
+
+    bool operator()(MT_LOG_LEVEL level)
+    {
+        return m_level ? (level <= static_cast<MT_LOG_LEVEL>(m_level->log)) : false;
+    }
+
+    void Reset() { m_level = nullptr; }
+
+private:
+    struct Level
+    {
+        uint8_t event : 3;  // MT_EVENT_LEVEL
+        uint8_t data : 2;   // MT_DATA_LEVEL
+        uint8_t log : 3;    // MT_LOG_LEVEL
     };
-    uint8_t Value;
+
+private:
+    const Level *m_level;
 };
 
 #pragma pack(1)

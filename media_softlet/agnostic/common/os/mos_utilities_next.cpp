@@ -34,11 +34,13 @@
 #include "mos_os.h"
 #include "mos_utilities_specific.h"
 
-int32_t MosUtilities::m_mosMemAllocCounterNoUserFeature            = 0;
-int32_t MosUtilities::m_mosMemAllocCounterNoUserFeatureGfx         = 0;
-uint8_t MosUtilities::m_mosUltFlag                                 = 0;
-uint64_t *MosUtilities::m_mosTraceFilter                           = nullptr;
-MtLevel *MosUtilities::m_mosTraceLevel                             = nullptr;
+int32_t              MosUtilities::m_mosMemAllocCounterNoUserFeature    = 0;
+int32_t              MosUtilities::m_mosMemAllocCounterNoUserFeatureGfx = 0;
+uint8_t              MosUtilities::m_mosUltFlag                         = 0;
+const MtControlData *MosUtilities::m_mosTraceControlData                = nullptr;
+MtEnable             MosUtilities::m_mosTraceEnable                     = false;
+MtFilter             MosUtilities::m_mosTraceFilter                     = {};
+MtLevel              MosUtilities::m_mosTraceLevel                      = {};
 
 int32_t MosUtilities::m_mosMemAllocCounter                         = 0;
 int32_t MosUtilities::m_mosMemAllocFakeCounter                     = 0;

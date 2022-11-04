@@ -40,24 +40,27 @@ public:
     struct Config
     {
     private:
-        template <size_t MIN = 0, size_t MAX = 100>
+        template <typename T, T MIN, T MAX>
         class RangedValue final
         {
         public:
-            RangedValue(size_t v)
+            RangedValue(T v)
             {
                 value = v < MIN ? MIN : v > MAX ? MAX
                                                 : v;
             }
 
-            operator size_t() const
+            operator T() const
             {
                 return value;
             }
 
         private:
-            size_t value;
+            T value;
         };
+
+        template <uint8_t MIN = 0, uint8_t MAX = 100>
+        using RangedUint8 = RangedValue<uint8_t, MIN, MAX>;
 
     public:
         bool allowDataLoss = true;  // allow dumped data loss to reduce perf impact
@@ -73,14 +76,14 @@ public:
                                                    // for frame index based sampling and CurrentTime-StartTime otherwise
 
         // graphic memory usage configurations
-        bool            balanceMemUsage     = true;  // balance the usage of shared/local graphic memory, use shared memory first if disabled
-        RangedValue<10> maxPercentSharedMem = 75;    // max percentage of shared graphic memory can be used for fast dump, 10% - 100%
-        RangedValue<>   maxPercentLocalMem  = 75;    // max percentage of local graphic memory can be used for fast dump, 0% - 100%
+        RangedUint8<0, 2> memUsagePolicy      = 0;   // 0: balance shared/local memory usage; 1: prioritize shared; 2: prioritize local
+        RangedUint8<10>   maxPrioritizedMem   = 75;  // max percentage of prioritized memory can be used for fast dump, 10% - 100%
+        RangedUint8<>     maxDeprioritizedMem = 75;  // max percentage of deprioritized memory can be used for fast dump, 0% - 100%
 
         // media copy configurations
-        RangedValue<> weightRenderCopy = 100;  // weight for render copy, 0 - 100
-        RangedValue<> weightVECopy     = 80;   // weight for VE copy, 0 - 100
-        RangedValue<> weightBLTCopy    = 20;   // weight for BLT copy, 0 - 100
+        RangedUint8<> weightRenderCopy = 100;  // weight for render copy, 0 - 100
+        RangedUint8<> weightVECopy     = 80;   // weight for VE copy, 0 - 100
+        RangedUint8<> weightBLTCopy    = 20;   // weight for BLT copy, 0 - 100
                                                // when weightRenderCopy, weightVECopy and weightBLTCopy are all 0, use default copy method,
                                                // otherwise randomly select 1 of the 3 methods based on their weights, e.g., the chance of
                                                // selecting render copy is weightRenderCopy/(weightRenderCopy+weightVECopy+weightBLTCopy)

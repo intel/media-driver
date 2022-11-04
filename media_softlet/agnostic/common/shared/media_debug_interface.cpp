@@ -43,6 +43,349 @@ MediaDebugInterface::MediaDebugInterface()
     memset(m_fileName, 0, sizeof(m_fileName));
     memset(m_path, 0, sizeof(m_path));
     InitCRCTable(m_crcTable);
+
+    m_dumpYUVSurface = [this](
+                           PMOS_SURFACE           surface,
+                           const char            *attrName,
+                           const char            *surfName,
+                           MEDIA_DEBUG_STATE_TYPE mediaState,
+                           uint32_t               width_in,
+                           uint32_t               height_in) {
+        if (!DumpIsEnabled(attrName, mediaState))
+        {
+            return MOS_STATUS_SUCCESS;
+        }
+
+        const char *funcName = (m_mediafunction == MEDIA_FUNCTION_VP) ? "_VP" : ((m_mediafunction == MEDIA_FUNCTION_ENCODE) ? "_ENC" : "_DEC");
+        std::string bufName  = std::string(surfName) + "_w[" + std::to_string(surface->dwWidth) + "]_h[" + std::to_string(surface->dwHeight) + "]_p[" + std::to_string(surface->dwPitch) + "]";
+        const char *filePath = CreateFileName(funcName, bufName.c_str(), MediaDbgExtType::yuv);
+
+        if (DumpIsEnabled(MediaDbgAttr::attrEnableFastDump))
+        {
+            MediaDebugFastDump::Dump(surface->OsResource, filePath);
+            return MOS_STATUS_SUCCESS;
+        }
+
+        MOS_LOCK_PARAMS lockFlags;
+        MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
+        lockFlags.ReadOnly     = 1;
+        lockFlags.TiledAsTiled = 1;  // Bypass GMM CPU blit due to some issues in GMM CpuBlt function
+
+        uint8_t *lockedAddr = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, &surface->OsResource, &lockFlags);
+        if (lockedAddr == nullptr)  // Failed to lock. Try to submit copy task and dump another surface
+        {
+            uint32_t        sizeToBeCopied = 0;
+            MOS_GFXRES_TYPE ResType;
+
+#if LINUX
+            // Linux does not have OsResource->ResType
+            ResType = surface->Type;
+#else
+            ResType = surface->OsResource.ResType;
+#endif
+
+            GMM_RESOURCE_FLAG gmmFlags  = surface->OsResource.pGmmResInfo->GetResFlags();
+            bool              allocated = false;
+
+            MEDIA_DEBUG_CHK_STATUS(ReAllocateSurface(
+                &m_temp2DSurfForCopy,
+                surface,
+                "Temp2DSurfForSurfDumper",
+                ResType));
+
+            // Ensure allocated buffer size contains the source surface size
+            if (m_temp2DSurfForCopy.OsResource.pGmmResInfo->GetSizeMainSurface() >= surface->OsResource.pGmmResInfo->GetSizeMainSurface())
+            {
+                sizeToBeCopied = (uint32_t)surface->OsResource.pGmmResInfo->GetSizeMainSurface();
+            }
+
+            if (sizeToBeCopied == 0)
+            {
+                // Currently, MOS's pfnAllocateResource does not support allocate a surface reference to another surface.
+                // When the source surface is not created from Media, it is possible that we cannot allocate the same size as source.
+                // For example, on Gen9, Render target might have GMM set CCS=1 MMC=0, but MOS cannot allocate surface with such combination.
+                // When Gmm allocation parameter is different, the resulting surface size/padding/pitch will be differnt.
+                // Once if MOS can support allocate a surface by reference another surface, we can do a bit to bit copy without problem.
+                MEDIA_DEBUG_ASSERTMESSAGE("Cannot allocate correct size, failed to copy nonlockable resource");
+                return MOS_STATUS_NULL_POINTER;
+            }
+
+            MEDIA_DEBUG_VERBOSEMESSAGE("Temp2DSurfaceForCopy width %d, height %d, pitch %d, TileType %d, bIsCompressed %d, CompressionMode %d",
+                m_temp2DSurfForCopy.dwWidth,
+                m_temp2DSurfForCopy.dwHeight,
+                m_temp2DSurfForCopy.dwPitch,
+                m_temp2DSurfForCopy.TileType,
+                m_temp2DSurfForCopy.bIsCompressed,
+                m_temp2DSurfForCopy.CompressionMode);
+
+            if (CopySurfaceData_Vdbox(sizeToBeCopied, &surface->OsResource, &m_temp2DSurfForCopy.OsResource) != MOS_STATUS_SUCCESS)
+            {
+                MEDIA_DEBUG_ASSERTMESSAGE("CopyDataSurface_Vdbox failed");
+                m_osInterface->pfnFreeResource(m_osInterface, &m_temp2DSurfForCopy.OsResource);
+                return MOS_STATUS_NULL_POINTER;
+            }
+            lockedAddr = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, &m_temp2DSurfForCopy.OsResource, &lockFlags);
+            MEDIA_DEBUG_CHK_NULL(lockedAddr);
+
+            if (DumpIsEnabled(MediaDbgAttr::attrDisableSwizzleForDumps))
+            {
+                if (CodecHal_PictureIsField(m_currPic))
+                {
+                    return MOS_STATUS_INVALID_PARAMETER;
+                }
+                else
+                {
+                    return DumpNotSwizzled(surfName, m_temp2DSurfForCopy, lockedAddr, sizeToBeCopied);
+                }
+            }
+        }
+
+        uint32_t sizeMain = (uint32_t)(surface->OsResource.pGmmResInfo->GetSizeMainSurface());
+        if (DumpIsEnabled(MediaDbgAttr::attrDisableSwizzleForDumps))
+        {
+            if (CodecHal_PictureIsField(m_currPic))
+            {
+                return MOS_STATUS_INVALID_PARAMETER;
+            }
+            else
+            {
+                return DumpNotSwizzled(surfName, *surface, lockedAddr, sizeMain);
+            }
+        }
+
+        uint8_t *surfBaseAddr = (uint8_t *)MOS_AllocMemory(sizeMain);
+        MEDIA_DEBUG_CHK_NULL(surfBaseAddr);
+
+        if (DumpIsEnabled(MediaDbgAttr::attrForceYUVDumpWithMemcpy))
+        {
+            MOS_SecureMemcpy(surfBaseAddr, sizeMain, lockedAddr, sizeMain);  // Firstly, copy to surfBaseAddr to faster unlock resource
+            m_osInterface->pfnUnlockResource(m_osInterface, &surface->OsResource);
+            lockedAddr   = surfBaseAddr;
+            surfBaseAddr = (uint8_t *)MOS_AllocMemory(sizeMain);
+            MEDIA_DEBUG_CHK_NULL(surfBaseAddr);
+        }
+
+        // Always use MOS swizzle instead of GMM Cpu blit
+        MEDIA_DEBUG_CHK_NULL(surfBaseAddr);
+        Mos_SwizzleData(lockedAddr, surfBaseAddr, surface->TileType, MOS_TILE_LINEAR, sizeMain / surface->dwPitch, surface->dwPitch, 0);
+
+        uint8_t *data = surfBaseAddr;
+        data += surface->dwOffset + surface->YPlaneOffset.iYOffset * surface->dwPitch;
+
+        uint32_t width  = width_in ? width_in : surface->dwWidth;
+        uint32_t height = height_in ? height_in : surface->dwHeight;
+
+        switch (surface->Format)
+        {
+        case Format_YUY2:
+        case Format_Y216V:
+        case Format_P010:
+        case Format_P016:
+            width = width << 1;
+            break;
+        case Format_Y216:
+        case Format_Y210:  //422 10bit -- Y0[15:0]:U[15:0]:Y1[15:0]:V[15:0] = 32bits per pixel = 4Bytes per pixel
+        case Format_Y410:  //444 10bit -- A[31:30]:V[29:20]:Y[19:10]:U[9:0] = 32bits per pixel = 4Bytes per pixel
+        case Format_R10G10B10A2:
+        case Format_AYUV:  //444 8bit  -- A[31:24]:Y[23:16]:U[15:8]:V[7:0] = 32bits per pixel = 4Bytes per pixel
+        case Format_A8R8G8B8:
+            width = width << 2;
+            break;
+        default:
+            break;
+        }
+
+        uint32_t pitch = surface->dwPitch;
+        if (surface->Format == Format_UYVY)
+            pitch = width;
+
+        if (CodecHal_PictureIsBottomField(m_currPic))
+        {
+            data += pitch;
+        }
+
+        if (CodecHal_PictureIsField(m_currPic))
+        {
+            pitch *= 2;
+            height /= 2;
+        }
+
+        std::ofstream ofs(filePath, std::ios_base::out | std::ios_base::binary);
+        if (ofs.fail())
+        {
+            return MOS_STATUS_UNKNOWN;
+        }
+
+        // write luma data to file
+        for (uint32_t h = 0; h < height; h++)
+        {
+            ofs.write((char *)data, width);
+            data += pitch;
+        }
+
+        if (surface->Format != Format_A8B8G8R8)
+        {
+            switch (surface->Format)
+            {
+            case Format_NV12:
+            case Format_P010:
+            case Format_P016:
+                height >>= 1;
+                break;
+            case Format_Y416:
+            case Format_AUYV:
+            case Format_R10G10B10A2:
+                height *= 2;
+                break;
+            case Format_YUY2:
+            case Format_YUYV:
+            case Format_YUY2V:
+            case Format_Y216V:
+            case Format_YVYU:
+            case Format_UYVY:
+            case Format_VYUY:
+            case Format_Y216:  //422 16bit
+            case Format_Y210:  //422 10bit
+            case Format_P208:  //422 8bit
+                break;
+            case Format_422V:
+            case Format_IMC3:
+                height = height / 2;
+                break;
+            case Format_AYUV:
+            default:
+                height = 0;
+                break;
+            }
+
+            uint8_t *vPlaneData = surfBaseAddr;
+#ifdef LINUX
+            data = surfBaseAddr + surface->UPlaneOffset.iSurfaceOffset;
+            if (surface->Format == Format_422V || surface->Format == Format_IMC3)
+            {
+                vPlaneData = surfBaseAddr + surface->VPlaneOffset.iSurfaceOffset;
+            }
+#else
+            data    = surfBaseAddr + surface->UPlaneOffset.iLockSurfaceOffset;
+            if (surface->Format == Format_422V || surface->Format == Format_IMC3)
+            {
+                vPlaneData = surfBaseAddr + surface->VPlaneOffset.iLockSurfaceOffset;
+            }
+
+#endif
+
+            // write chroma data to file
+            for (uint32_t h = 0; h < height; h++)
+            {
+                ofs.write((char *)data, width);
+                data += pitch;
+            }
+
+            // write v planar data to file
+            if (surface->Format == Format_422V || surface->Format == Format_IMC3)
+            {
+                for (uint32_t h = 0; h < height; h++)
+                {
+                    ofs.write((char *)vPlaneData, width);
+                    vPlaneData += pitch;
+                }
+            }
+        }
+        ofs.close();
+
+        if (DumpIsEnabled(MediaDbgAttr::attrForceYUVDumpWithMemcpy))
+        {
+            MOS_FreeMemory(lockedAddr);
+        }
+        else
+        {
+            m_osInterface->pfnUnlockResource(m_osInterface, &surface->OsResource);
+        }
+        MOS_FreeMemory(surfBaseAddr);
+
+        return MOS_STATUS_SUCCESS;
+    };
+
+    m_dumpBuffer = [this](
+                       PMOS_RESOURCE          resource,
+                       const char            *attrName,
+                       const char            *bufferName,
+                       uint32_t               size,
+                       uint32_t               offset,
+                       MEDIA_DEBUG_STATE_TYPE mediaState) {
+        MEDIA_DEBUG_FUNCTION_ENTER;
+
+        MEDIA_DEBUG_CHK_NULL(resource);
+        MEDIA_DEBUG_CHK_NULL(bufferName);
+
+        if (size == 0)
+        {
+            return MOS_STATUS_SUCCESS;
+        }
+
+        if (attrName)
+        {
+            bool attrEnabled = false;
+
+            if (mediaState == CODECHAL_NUM_MEDIA_STATES)
+            {
+                attrEnabled = m_configMgr->AttrIsEnabled(attrName);
+            }
+            else
+            {
+                attrEnabled = m_configMgr->AttrIsEnabled(mediaState, attrName);
+            }
+
+            if (!attrEnabled)
+            {
+                return MOS_STATUS_SUCCESS;
+            }
+        }
+
+        const char *fileName;
+        bool        binaryDump = m_configMgr->AttrIsEnabled(MediaDbgAttr::attrDumpBufferInBinary);
+        const char *extType    = binaryDump ? MediaDbgExtType::dat : MediaDbgExtType::txt;
+
+        if (mediaState == CODECHAL_NUM_MEDIA_STATES)
+        {
+            fileName = CreateFileName(bufferName, attrName, extType);
+        }
+        else
+        {
+            std::string kernelName = m_configMgr->GetMediaStateStr(mediaState);
+            fileName               = CreateFileName(kernelName.c_str(), bufferName, extType);
+        }
+
+        if (DumpIsEnabled(MediaDbgAttr::attrEnableFastDump))
+        {
+            MediaDebugFastDump::Dump(*resource, fileName, size, offset);
+            return MOS_STATUS_SUCCESS;
+        }
+
+        MOS_LOCK_PARAMS lockFlags;
+        MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
+        lockFlags.ReadOnly = 1;
+        uint8_t *data      = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, resource, &lockFlags);
+        MEDIA_DEBUG_CHK_NULL(data);
+        data += offset;
+
+        MOS_STATUS status;
+        if (binaryDump)
+        {
+            status = DumpBufferInBinary(data, size);
+        }
+        else
+        {
+            status = DumpBufferInHexDwords(data, size);
+        }
+
+        if (data)
+        {
+            m_osInterface->pfnUnlockResource(m_osInterface, resource);
+        }
+
+        return status;
+    };
 }
 
 MediaDebugInterface::~MediaDebugInterface()
@@ -73,6 +416,112 @@ MOS_STATUS MediaDebugInterface::InitDumpLocation()
     ofs << "ParamFilePath"
         << " = \"" << m_fileName << "\"" << std::endl;
     ofs.close();
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MediaDebugInterface::SetFastDumpConfig(MediaCopyBaseState *mediaCopy)
+{
+    auto traceSetting = MosUtilities::GetTraceSetting();
+    if (!mediaCopy || !(DumpIsEnabled(MediaDbgAttr::attrEnableFastDump) || traceSetting))
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MediaDebugFastDump::Config cfg{};
+    if (traceSetting)
+    {
+        const auto &c           = traceSetting->fastDump;
+        cfg.allowDataLoss       = c.allowDataLoss;
+        cfg.samplingTime        = static_cast<size_t>(c.samplingTime);
+        cfg.samplingInterval    = static_cast<size_t>(c.samplingInterval);
+        cfg.memUsagePolicy      = c.memUsagePolicy;
+        cfg.maxPrioritizedMem   = c.maxPrioritizedMem;
+        cfg.maxDeprioritizedMem = c.maxDeprioritizedMem;
+        cfg.weightRenderCopy    = c.weightRenderCopy;
+        cfg.weightVECopy        = c.weightVECopy;
+        cfg.weightBLTCopy       = c.weightBLTCopy;
+        cfg.bufferSize4Write    = static_cast<size_t>(c.bufferSize4Write);
+        cfg.write2File          = c.write2File;
+        cfg.write2Trace         = c.write2Trace;
+        cfg.informOnError       = c.informOnError;
+
+        if (c.frameIdxBasedSampling)
+        {
+            cfg.frameIdx = &m_bufferDumpFrameNum;
+        }
+
+        class DumpEnabled
+        {
+        public:
+            bool operator()(const char *attrName)
+            {
+                decltype(m_filter)::const_iterator it;
+                return (it = m_filter.find(attrName)) != m_filter.end() &&
+                       MOS_TraceKeyEnabled(it->second);
+            }
+
+        private:
+            const std::map<const char *, MEDIA_EVENT_FILTER_KEYID> m_filter = {
+                {MediaDbgAttr::attrDecodeOutputSurface, TR_KEY_DECODE_DSTYUV},
+                {MediaDbgAttr::attrEncodeRawInputSurface, TR_KEY_ENCODE_DATA_INPUT_SURFACE},
+                {MediaDbgAttr::attrReferenceSurfaces, TR_KEY_ENCODE_DATA_REF_SURFACE},
+                {MediaDbgAttr::attrReconstructedSurface, TR_KEY_ENCODE_DATA_RECON_SURFACE},
+                {MediaDbgAttr::attrBitstream, TR_KEY_ENCODE_DATA_BITSTREAM},
+            };
+        };
+
+        auto dumpEnabled = std::make_shared<DumpEnabled>();
+
+        m_dumpYUVSurface = [this, dumpEnabled, traceSetting](
+                               PMOS_SURFACE           surface,
+                               const char            *attrName,
+                               const char            *surfName,
+                               MEDIA_DEBUG_STATE_TYPE mediaState,
+                               uint32_t,
+                               uint32_t) {
+            if ((*dumpEnabled)(attrName))
+            {
+                MediaDebugFastDump::Dump(
+                    surface->OsResource,
+                    std::string(traceSetting->fastDump.filePath) +
+                        std::to_string(m_bufferDumpFrameNum) +
+                        '-' +
+                        surfName +
+                        "w[0]_h[0]_p[0].bin");
+            }
+            return MOS_STATUS_SUCCESS;
+        };
+
+        m_dumpBuffer = [this, dumpEnabled, traceSetting](
+                           PMOS_RESOURCE          resource,
+                           const char            *attrName,
+                           const char            *bufferName,
+                           uint32_t               size,
+                           uint32_t               offset,
+                           MEDIA_DEBUG_STATE_TYPE mediaState) {
+            if ((*dumpEnabled)(attrName))
+            {
+                MediaDebugFastDump::Dump(
+                    *resource,
+                    std::string(traceSetting->fastDump.filePath) +
+                        std::to_string(m_bufferDumpFrameNum) +
+                        '-' +
+                        bufferName +
+                        ".bin",
+                    size,
+                    offset);
+            }
+            return MOS_STATUS_SUCCESS;
+        };
+    }
+    else
+    {
+        cfg.allowDataLoss = DumpIsEnabled(MediaDbgAttr::attrFastDumpAllowDataLoss);
+        cfg.informOnError = DumpIsEnabled(MediaDbgAttr::attrFastDumpInformOnError);
+    }
+
+    MediaDebugFastDump::CreateInstance(*m_osInterface, *mediaCopy, &cfg);
 
     return MOS_STATUS_SUCCESS;
 }
@@ -858,259 +1307,13 @@ MOS_STATUS MediaDebugInterface::DumpYUVSurface(
     uint32_t               width_in,
     uint32_t               height_in)
 {
-    if (!DumpIsEnabled(attrName, mediaState))
-    {
-        return MOS_STATUS_SUCCESS;
-    }
-
-    const char *funcName = (m_mediafunction == MEDIA_FUNCTION_VP) ? "_VP" : ((m_mediafunction == MEDIA_FUNCTION_ENCODE) ? "_ENC" : "_DEC");
-    std::string bufName  = std::string(surfName) + "_w[" + std::to_string(surface->dwWidth) + "]_h[" + std::to_string(surface->dwHeight) + "]_p[" + std::to_string(surface->dwPitch) + "]";
-    const char *filePath = CreateFileName(funcName, bufName.c_str(), MediaDbgExtType::yuv);
-
-    if (DumpIsEnabled(MediaDbgAttr::attrEnableFastDump))
-    {
-        MediaDebugFastDump::Dump(surface->OsResource, filePath);
-        return MOS_STATUS_SUCCESS;
-    }
-
-    MOS_LOCK_PARAMS lockFlags;
-    MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
-    lockFlags.ReadOnly     = 1;
-    lockFlags.TiledAsTiled = 1;  // Bypass GMM CPU blit due to some issues in GMM CpuBlt function
-
-    uint8_t *lockedAddr = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, &surface->OsResource, &lockFlags);
-    if (lockedAddr == nullptr)  // Failed to lock. Try to submit copy task and dump another surface
-    {
-        uint32_t        sizeToBeCopied = 0;
-        MOS_GFXRES_TYPE ResType;
-
-#if LINUX
-        // Linux does not have OsResource->ResType
-        ResType = surface->Type;
-#else
-        ResType = surface->OsResource.ResType;
-#endif
-
-        GMM_RESOURCE_FLAG gmmFlags  = surface->OsResource.pGmmResInfo->GetResFlags();
-        bool              allocated = false;
-
-        MEDIA_DEBUG_CHK_STATUS(ReAllocateSurface(
-            &m_temp2DSurfForCopy,
-            surface,
-            "Temp2DSurfForSurfDumper",
-            ResType));
-
-        // Ensure allocated buffer size contains the source surface size
-        if (m_temp2DSurfForCopy.OsResource.pGmmResInfo->GetSizeMainSurface() >= surface->OsResource.pGmmResInfo->GetSizeMainSurface())
-        {
-            sizeToBeCopied = (uint32_t)surface->OsResource.pGmmResInfo->GetSizeMainSurface();
-        }
-
-        if (sizeToBeCopied == 0)
-        {
-            // Currently, MOS's pfnAllocateResource does not support allocate a surface reference to another surface.
-            // When the source surface is not created from Media, it is possible that we cannot allocate the same size as source.
-            // For example, on Gen9, Render target might have GMM set CCS=1 MMC=0, but MOS cannot allocate surface with such combination.
-            // When Gmm allocation parameter is different, the resulting surface size/padding/pitch will be differnt.
-            // Once if MOS can support allocate a surface by reference another surface, we can do a bit to bit copy without problem.
-            MEDIA_DEBUG_ASSERTMESSAGE("Cannot allocate correct size, failed to copy nonlockable resource");
-            return MOS_STATUS_NULL_POINTER;
-        }
-
-        MEDIA_DEBUG_VERBOSEMESSAGE("Temp2DSurfaceForCopy width %d, height %d, pitch %d, TileType %d, bIsCompressed %d, CompressionMode %d",
-            m_temp2DSurfForCopy.dwWidth,
-            m_temp2DSurfForCopy.dwHeight,
-            m_temp2DSurfForCopy.dwPitch,
-            m_temp2DSurfForCopy.TileType,
-            m_temp2DSurfForCopy.bIsCompressed,
-            m_temp2DSurfForCopy.CompressionMode);
-
-        if (CopySurfaceData_Vdbox(sizeToBeCopied, &surface->OsResource, &m_temp2DSurfForCopy.OsResource) != MOS_STATUS_SUCCESS)
-        {
-            MEDIA_DEBUG_ASSERTMESSAGE("CopyDataSurface_Vdbox failed");
-            m_osInterface->pfnFreeResource(m_osInterface, &m_temp2DSurfForCopy.OsResource);
-            return MOS_STATUS_NULL_POINTER;
-        }
-        lockedAddr = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, &m_temp2DSurfForCopy.OsResource, &lockFlags);
-        MEDIA_DEBUG_CHK_NULL(lockedAddr);
-
-        if (DumpIsEnabled(MediaDbgAttr::attrDisableSwizzleForDumps))
-        {
-            if (CodecHal_PictureIsField(m_currPic))
-            {
-                return MOS_STATUS_INVALID_PARAMETER;
-            }
-            else
-            {
-                return DumpNotSwizzled(surfName, m_temp2DSurfForCopy, lockedAddr, sizeToBeCopied);
-            }
-        }
-    }
-
-    uint32_t sizeMain = (uint32_t)(surface->OsResource.pGmmResInfo->GetSizeMainSurface());
-    if (DumpIsEnabled(MediaDbgAttr::attrDisableSwizzleForDumps))
-    {
-        if (CodecHal_PictureIsField(m_currPic))
-        {
-            return MOS_STATUS_INVALID_PARAMETER;
-        }
-        else
-        {
-            return DumpNotSwizzled(surfName, *surface, lockedAddr, sizeMain);
-        }
-    }
-
-    uint8_t *surfBaseAddr = (uint8_t *)MOS_AllocMemory(sizeMain);
-    MEDIA_DEBUG_CHK_NULL(surfBaseAddr);
-
-    if (DumpIsEnabled(MediaDbgAttr::attrForceYUVDumpWithMemcpy))
-    {
-        MOS_SecureMemcpy(surfBaseAddr, sizeMain, lockedAddr, sizeMain);  // Firstly, copy to surfBaseAddr to faster unlock resource
-        m_osInterface->pfnUnlockResource(m_osInterface, &surface->OsResource);
-        lockedAddr   = surfBaseAddr;
-        surfBaseAddr = (uint8_t *)MOS_AllocMemory(sizeMain);
-        MEDIA_DEBUG_CHK_NULL(surfBaseAddr);
-    }
-
-    // Always use MOS swizzle instead of GMM Cpu blit
-    MEDIA_DEBUG_CHK_NULL(surfBaseAddr);
-    Mos_SwizzleData(lockedAddr, surfBaseAddr, surface->TileType, MOS_TILE_LINEAR, sizeMain / surface->dwPitch, surface->dwPitch, 0);
-
-    uint8_t *data = surfBaseAddr;
-    data += surface->dwOffset + surface->YPlaneOffset.iYOffset * surface->dwPitch;
-
-    uint32_t width  = width_in ? width_in : surface->dwWidth;
-    uint32_t height = height_in ? height_in : surface->dwHeight;
-
-    switch (surface->Format)
-    {
-    case Format_YUY2:
-    case Format_Y216V:
-    case Format_P010:
-    case Format_P016:
-        width = width << 1;
-        break;
-    case Format_Y216:
-    case Format_Y210:  //422 10bit -- Y0[15:0]:U[15:0]:Y1[15:0]:V[15:0] = 32bits per pixel = 4Bytes per pixel
-    case Format_Y410:  //444 10bit -- A[31:30]:V[29:20]:Y[19:10]:U[9:0] = 32bits per pixel = 4Bytes per pixel
-    case Format_R10G10B10A2:
-    case Format_AYUV:  //444 8bit  -- A[31:24]:Y[23:16]:U[15:8]:V[7:0] = 32bits per pixel = 4Bytes per pixel
-    case Format_A8R8G8B8:
-        width = width << 2;
-        break;
-    default:
-        break;
-    }
-
-    uint32_t pitch = surface->dwPitch;
-    if (surface->Format == Format_UYVY)
-        pitch = width;
-
-    if (CodecHal_PictureIsBottomField(m_currPic))
-    {
-        data += pitch;
-    }
-
-    if (CodecHal_PictureIsField(m_currPic))
-    {
-        pitch *= 2;
-        height /= 2;
-    }
-
-    std::ofstream ofs(filePath, std::ios_base::out | std::ios_base::binary);
-    if (ofs.fail())
-    {
-        return MOS_STATUS_UNKNOWN;
-    }
-
-    // write luma data to file
-    for (uint32_t h = 0; h < height; h++)
-    {
-        ofs.write((char *)data, width);
-        data += pitch;
-    }
-
-    if (surface->Format != Format_A8B8G8R8)
-    {
-        switch (surface->Format)
-        {
-        case Format_NV12:
-        case Format_P010:
-        case Format_P016:
-            height >>= 1;
-            break;
-        case Format_Y416:
-        case Format_AUYV:
-        case Format_R10G10B10A2:
-            height *= 2;
-            break;
-        case Format_YUY2:
-        case Format_YUYV:
-        case Format_YUY2V:
-        case Format_Y216V:
-        case Format_YVYU:
-        case Format_UYVY:
-        case Format_VYUY:
-        case Format_Y216:  //422 16bit
-        case Format_Y210:  //422 10bit
-        case Format_P208:  //422 8bit
-            break;
-        case Format_422V:
-        case Format_IMC3:
-            height = height / 2;
-            break;
-        case Format_AYUV:
-        default:
-            height = 0;
-            break;
-        }
-
-        uint8_t *vPlaneData = surfBaseAddr;
-#ifdef LINUX
-        data = surfBaseAddr + surface->UPlaneOffset.iSurfaceOffset;
-        if (surface->Format == Format_422V || surface->Format == Format_IMC3)
-        {
-            vPlaneData = surfBaseAddr + surface->VPlaneOffset.iSurfaceOffset;
-        }
-#else
-        data = surfBaseAddr + surface->UPlaneOffset.iLockSurfaceOffset;
-        if (surface->Format == Format_422V || surface->Format == Format_IMC3)
-        {
-            vPlaneData = surfBaseAddr + surface->VPlaneOffset.iLockSurfaceOffset;
-        }
-
-#endif
-
-        // write chroma data to file
-        for (uint32_t h = 0; h < height; h++)
-        {
-            ofs.write((char *)data, width);
-            data += pitch;
-        }
-
-        // write v planar data to file
-        if (surface->Format == Format_422V || surface->Format == Format_IMC3)
-        {
-            for (uint32_t h = 0; h < height; h++)
-            {
-                ofs.write((char *)vPlaneData, width);
-                vPlaneData += pitch;
-            }
-        }
-    }
-    ofs.close();
-
-    if (DumpIsEnabled(MediaDbgAttr::attrForceYUVDumpWithMemcpy))
-    {
-        MOS_FreeMemory(lockedAddr);
-    }
-    else
-    {
-        m_osInterface->pfnUnlockResource(m_osInterface, &surface->OsResource);
-    }
-    MOS_FreeMemory(surfBaseAddr);
-
-    return MOS_STATUS_SUCCESS;
+    return m_dumpYUVSurface(
+        surface,
+        attrName,
+        surfName,
+        mediaState,
+        width_in,
+        height_in);
 }
 
 MOS_STATUS MediaDebugInterface::DumpUncompressedYUVSurface(PMOS_SURFACE surface)
@@ -1155,78 +1358,13 @@ MOS_STATUS MediaDebugInterface::DumpBuffer(
     uint32_t               offset,
     MEDIA_DEBUG_STATE_TYPE mediaState)
 {
-    MEDIA_DEBUG_FUNCTION_ENTER;
-
-    MEDIA_DEBUG_CHK_NULL(resource);
-    MEDIA_DEBUG_CHK_NULL(bufferName);
-
-    if (size == 0)
-    {
-        return MOS_STATUS_SUCCESS;
-    }
-
-    if (attrName)
-    {
-        bool attrEnabled = false;
-
-        if (mediaState == CODECHAL_NUM_MEDIA_STATES)
-        {
-            attrEnabled = m_configMgr->AttrIsEnabled(attrName);
-        }
-        else
-        {
-            attrEnabled = m_configMgr->AttrIsEnabled(mediaState, attrName);
-        }
-
-        if (!attrEnabled)
-        {
-            return MOS_STATUS_SUCCESS;
-        }
-    }
-
-    const char *fileName;
-    bool        binaryDump = m_configMgr->AttrIsEnabled(MediaDbgAttr::attrDumpBufferInBinary);
-    const char *extType    = binaryDump ? MediaDbgExtType::dat : MediaDbgExtType::txt;
-
-    if (mediaState == CODECHAL_NUM_MEDIA_STATES)
-    {
-        fileName = CreateFileName(bufferName, attrName, extType);
-    }
-    else
-    {
-        std::string kernelName = m_configMgr->GetMediaStateStr(mediaState);
-        fileName               = CreateFileName(kernelName.c_str(), bufferName, extType);
-    }
-
-    if (DumpIsEnabled(MediaDbgAttr::attrEnableFastDump))
-    {
-        MediaDebugFastDump::Dump(*resource, fileName, size, offset);
-        return MOS_STATUS_SUCCESS;
-    }
-
-    MOS_LOCK_PARAMS lockFlags;
-    MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
-    lockFlags.ReadOnly = 1;
-    uint8_t *data      = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, resource, &lockFlags);
-    MEDIA_DEBUG_CHK_NULL(data);
-    data += offset;
-
-    MOS_STATUS status;
-    if (binaryDump)
-    {
-        status = DumpBufferInBinary(data, size);
-    }
-    else
-    {
-        status = DumpBufferInHexDwords(data, size);
-    }
-
-    if (data)
-    {
-        m_osInterface->pfnUnlockResource(m_osInterface, resource);
-    }
-
-    return status;
+    return m_dumpBuffer(
+        resource,
+        attrName,
+        bufferName,
+        size,
+        offset,
+        mediaState);
 }
 
 MOS_STATUS MediaDebugInterface::DumpSurface(

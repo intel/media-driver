@@ -144,8 +144,6 @@ public:
     MOS_STATUS DetectCorruptionHw(void *hwInterface, PMOS_RESOURCE frameCntRes, uint32_t curIdx, uint32_t frameCrcOffset, std::vector<MOS_RESOURCE> &vStatusBuffer, PMOS_COMMAND_BUFFER pCmdBuffer, uint32_t frameNum);
     
     MOS_STATUS StoreNumFrame(PMHW_MI_INTERFACE pMiInterface, PMOS_RESOURCE pResource, int32_t frameNum, PMOS_COMMAND_BUFFER pCmdBuffer);
-    
-    MOS_STATUS SetFastDumpConfig(MediaCopyBaseState *mediaCopy);
 
     MOS_STATUS DumpEncodeStatusReport(
         const struct EncodeStatusReport *report);
@@ -154,14 +152,6 @@ public:
         const struct encode::EncodeStatusReportData *report);
 
     void CheckGoldenReferenceExist();
-
-    MOS_STATUS DumpYUVSurface(
-        PMOS_SURFACE           surface,
-        const char            *attrName,
-        const char            *surfName,
-        MEDIA_DEBUG_STATE_TYPE mediaState = CODECHAL_NUM_MEDIA_STATES,
-        uint32_t               width_in   = 0,
-        uint32_t               height_in  = 0) override;
 
     MOS_STATUS DumpRgbDataOnYUVSurface(
         PMOS_SURFACE           surface,
