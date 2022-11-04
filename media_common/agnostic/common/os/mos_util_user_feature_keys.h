@@ -387,6 +387,7 @@
 // Tile resource info report
 #define __MEDIA_USER_FEATURE_VALUE_TILE_INFO                         "Tile Info"
 #define __MEDIA_USER_FEATURE_VALUE_ENGINE_INSTANCE_RCS               "RCS Instance"
+#define __MEDIA_USER_FEATURE_VALUE_ENGINE_INSTANCE_BLT               "BLT Instance"
 #define __MEDIA_USER_FEATURE_VALUE_ENGINE_INSTANCE_VCS               "VCS Instance"
 #define __MEDIA_USER_FEATURE_VALUE_ENGINE_INSTANCE_VECS              "VECS Instance"
 #define __MEDIA_USER_FEATURE_VALUE_ENGINE_INSTANCE_CCS               "CCS Instance"

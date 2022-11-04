@@ -942,6 +942,13 @@ MOS_STATUS MosUserSetting::InitUserSettingForDebug(MediaUserSettingSharedPtr use
         MediaUserSetting::Group::Device,
         "",
         true);  //"Report RCS instance infomation"
+    
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_ENGINE_INSTANCE_BLT,
+        MediaUserSetting::Group::Device,
+        "",
+        true);  //"Report BLT instance infomation"
 
     DeclareUserSettingKeyForDebug(
         userSettingPtr,
