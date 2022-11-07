@@ -666,33 +666,6 @@ struct _VDENC_CMD3_CMD
         uint32_t Value;
     } DW22;
 
-    //! \name Local enumerations
-
-    enum SUBOPB
-    {
-        SUBOPB_VDENCAVCCOSTSSTATE = 10,
-    };
-
-    enum SUBOPA
-    {
-        SUBOPA_UNNAMED0 = 0,
-    };
-
-    enum OPCODE
-    {
-        OPCODE_VDENCPIPE = 1,
-    };
-
-    enum PIPELINE
-    {
-        PIPELINE_MFXCOMMON = 2,
-    };
-
-    enum COMMAND_TYPE
-    {
-        COMMAND_TYPE_PARALLELVIDEOPIPE = 3,
-    };
-
     //! \name Initializations
 
     //! \brief Explicit member initialization function

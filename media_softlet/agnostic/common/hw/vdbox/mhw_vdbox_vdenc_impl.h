@@ -1553,9 +1553,64 @@ protected:
 
     _MHW_SETCMD_OVERRIDE_DECL(VDENC_CMD3)
     {
-        _MHW_SETCMD_CALLBASE(VDENC_CMD3);
+    _MHW_SETCMD_CALLBASE(VDENC_CMD3);
 
-#define DO_FIELDS_EXT() __MHW_VDBOX_VDENC_WRAPPER_EXT(VDENC_CMD3_IMPL_EXT)
+    for (auto i = 0; i < 12; i++)
+    {
+        cmd.VDENC_CMD3_DW3_5[i] = params.vdencCmd3Par1[i];
+        cmd.VDENC_CMD3_DW6_8[i] = params.vdencCmd3Par2[i];
+    }
+
+#define DO_FIELDS()                                                 \
+    DO_FIELD(DW1_2, VDENC_CMD3_DW1_BIT0,  params.vdencCmd3Par0[0]); \
+    DO_FIELD(DW1_2, VDENC_CMD3_DW1_BIT8,  params.vdencCmd3Par0[1]); \
+    DO_FIELD(DW1_2, VDENC_CMD3_DW1_BIT16, params.vdencCmd3Par0[2]); \
+    DO_FIELD(DW1_2, VDENC_CMD3_DW1_BIT24, params.vdencCmd3Par0[3]); \
+    DO_FIELD(DW1_2, VDENC_CMD3_DW2_BIT0,  params.vdencCmd3Par0[4]); \
+    DO_FIELD(DW1_2, VDENC_CMD3_DW2_BIT8,  params.vdencCmd3Par0[5]); \
+    DO_FIELD(DW1_2, VDENC_CMD3_DW2_BIT16, params.vdencCmd3Par0[6]); \
+    DO_FIELD(DW1_2, VDENC_CMD3_DW2_BIT24, params.vdencCmd3Par0[7]); \
+                                                                    \
+    DO_FIELD(DW10, VDENC_CMD3_DW10_BIT16, params.vdencCmd3Par3);    \
+    DO_FIELD(DW10, VDENC_CMD3_DW10_BIT24, params.vdencCmd3Par4);    \
+                                                                    \
+    DO_FIELD(DW12, VDENC_CMD3_DW12_BIT0,  params.vdencCmd3Par5);    \
+    DO_FIELD(DW12, VDENC_CMD3_DW12_BIT8,  params.vdencCmd3Par6);    \
+    DO_FIELD(DW12, VDENC_CMD3_DW12_BIT16, params.vdencCmd3Par7);    \
+    DO_FIELD(DW12, VDENC_CMD3_DW12_BIT24, params.vdencCmd3Par8);    \
+                                                                    \
+    DO_FIELD(DW13, VDENC_CMD3_DW13_BIT0,  params.vdencCmd3Par9);    \
+    DO_FIELD(DW13, VDENC_CMD3_DW13_BIT8,  params.vdencCmd3Par10);   \
+    DO_FIELD(DW13, VDENC_CMD3_DW13_BIT16, params.vdencCmd3Par11);   \
+    DO_FIELD(DW13, VDENC_CMD3_DW13_BIT24, params.vdencCmd3Par12);   \
+                                                                    \
+    DO_FIELD(DW14, VDENC_CMD3_DW14_BIT8,  params.vdencCmd3Par13);   \
+    DO_FIELD(DW14, VDENC_CMD3_DW14_BIT16, params.vdencCmd3Par14);   \
+    DO_FIELD(DW14, VDENC_CMD3_DW14_BIT24, params.vdencCmd3Par15);   \
+                                                                    \
+    DO_FIELD(DW15, VDENC_CMD3_DW15_BIT8,  params.vdencCmd3Par16);   \
+    DO_FIELD(DW15, VDENC_CMD3_DW15_BIT16, params.vdencCmd3Par17);   \
+    DO_FIELD(DW15, VDENC_CMD3_DW15_BIT24, params.vdencCmd3Par18);   \
+                                                                    \
+    DO_FIELD(DW16, VDENC_CMD3_DW16_BIT16, params.vdencCmd3Par19);   \
+                                                                    \
+    DO_FIELD(DW17, VDENC_CMD3_DW17_BIT0,  params.vdencCmd3Par20);   \
+    DO_FIELD(DW17, VDENC_CMD3_DW17_BIT8,  params.vdencCmd3Par23);   \
+    DO_FIELD(DW17, VDENC_CMD3_DW17_BIT16, params.vdencCmd3Par21);   \
+    DO_FIELD(DW17, VDENC_CMD3_DW17_BIT24, params.vdencCmd3Par22);   \
+                                                                    \
+    DO_FIELD(DW19, VDENC_CMD3_DW19_BIT8,  params.vdencCmd3Par24);   \
+    DO_FIELD(DW19, VDENC_CMD3_DW19_BIT16, params.vdencCmd3Par25);   \
+    DO_FIELD(DW19, VDENC_CMD3_DW19_BIT24, params.vdencCmd3Par26);   \
+                                                                    \
+    DO_FIELD(DW20, VDENC_CMD3_DW20_BIT0, params.vdencCmd3Par27);    \
+    DO_FIELD(DW20, VDENC_CMD3_DW20_BIT8, params.vdencCmd3Par28);    \
+                                                                    \
+    DO_FIELD(DW21, VDENC_CMD3_DW21_BIT0, params.vdencCmd3Par29);    \
+    DO_FIELD(DW21, VDENC_CMD3_DW21_BIT8, params.vdencCmd3Par30);    \
+                                                                    \
+    DO_FIELD(DW22, VDENC_CMD3_DW22_BIT0,  params.vdencCmd3Par31);   \
+    DO_FIELD(DW22, VDENC_CMD3_DW22_BIT16, params.vdencCmd3Par32)
 
 #include "mhw_hwcmd_process_cmdfields.h"
     }

@@ -1190,37 +1190,190 @@ struct _VDENC_CMD3_CMD
         };
         uint32_t Value;
     } DW0;
-
     union
     {
-        uint32_t Value[22];
-    } DW1_22;
+        struct
+        {
+            uint32_t VDENC_CMD3_DW1_BIT0 : __CODEGEN_BITFIELD(0, 7);
+            uint32_t VDENC_CMD3_DW1_BIT8 : __CODEGEN_BITFIELD(8, 15);
+            uint32_t VDENC_CMD3_DW1_BIT16 : __CODEGEN_BITFIELD(16, 23);
+            uint32_t VDENC_CMD3_DW1_BIT24 : __CODEGEN_BITFIELD(24, 31);
+
+            uint32_t VDENC_CMD3_DW2_BIT0 : __CODEGEN_BITFIELD(0, 7);
+            uint32_t VDENC_CMD3_DW2_BIT8 : __CODEGEN_BITFIELD(8, 15);
+            uint32_t VDENC_CMD3_DW2_BIT16 : __CODEGEN_BITFIELD(16, 23);
+            uint32_t VDENC_CMD3_DW2_BIT24 : __CODEGEN_BITFIELD(24, 31);
+        };
+        uint32_t Value[2];
+    } DW1_2;
+    uint8_t VDENC_CMD3_DW3_5[12];
+    uint8_t VDENC_CMD3_DW6_8[12];
+    union
+    {
+        struct
+        {
+            uint32_t VDENC_CMD3_DW9;
+        };
+        uint32_t Value;
+    } DW9;
+    union
+    {
+        struct
+        {
+            uint32_t VDENC_CMD3_DW10_BIT0 : __CODEGEN_BITFIELD(0, 15);
+            uint32_t VDENC_CMD3_DW10_BIT16 : __CODEGEN_BITFIELD(16, 23);
+            uint32_t VDENC_CMD3_DW10_BIT24 : __CODEGEN_BITFIELD(24, 31);
+        };
+        uint32_t Value;
+    } DW10;
+    union
+    {
+        struct
+        {
+            uint32_t VDENC_CMD3_DW11;
+        };
+        uint32_t Value;
+    } DW11;
+    union
+    {
+        struct
+        {
+            uint32_t VDENC_CMD3_DW12_BIT0 : __CODEGEN_BITFIELD(0, 7);
+            uint32_t VDENC_CMD3_DW12_BIT8 : __CODEGEN_BITFIELD(8, 15);
+            uint32_t VDENC_CMD3_DW12_BIT16 : __CODEGEN_BITFIELD(16, 23);
+            uint32_t VDENC_CMD3_DW12_BIT24 : __CODEGEN_BITFIELD(24, 31);
+        };
+        uint32_t Value;
+    } DW12;
+    union
+    {
+        struct
+        {
+            uint32_t VDENC_CMD3_DW13_BIT0 : __CODEGEN_BITFIELD(0, 7);
+            uint32_t VDENC_CMD3_DW13_BIT8 : __CODEGEN_BITFIELD(8, 15);
+            uint32_t VDENC_CMD3_DW13_BIT16 : __CODEGEN_BITFIELD(16, 23);
+            uint32_t VDENC_CMD3_DW13_BIT24 : __CODEGEN_BITFIELD(24, 31);
+        };
+        uint32_t Value;
+    } DW13;
+    union
+    {
+        struct
+        {
+            uint32_t VDENC_CMD3_DW14_BIT0 : __CODEGEN_BITFIELD(0, 7);
+            uint32_t VDENC_CMD3_DW14_BIT8 : __CODEGEN_BITFIELD(8, 15);
+            uint32_t VDENC_CMD3_DW14_BIT16 : __CODEGEN_BITFIELD(16, 23);
+            uint32_t VDENC_CMD3_DW14_BIT24 : __CODEGEN_BITFIELD(24, 31);
+        };
+        uint32_t Value;
+    } DW14;
+    union
+    {
+        struct
+        {
+            uint32_t VDENC_CMD3_DW15_BIT0 : __CODEGEN_BITFIELD(0, 7);
+            uint32_t VDENC_CMD3_DW15_BIT8 : __CODEGEN_BITFIELD(8, 15);
+            uint32_t VDENC_CMD3_DW15_BIT16 : __CODEGEN_BITFIELD(16, 23);
+            uint32_t VDENC_CMD3_DW15_BIT24 : __CODEGEN_BITFIELD(24, 31);
+        };
+        uint32_t Value;
+    } DW15;
+    union
+    {
+        struct
+        {
+            uint32_t VDENC_CMD3_DW16_BIT0 : __CODEGEN_BITFIELD(0, 15);
+            uint32_t VDENC_CMD3_DW16_BIT16 : __CODEGEN_BITFIELD(16, 23);
+            uint32_t VDENC_CMD3_DW16_BIT24 : __CODEGEN_BITFIELD(24, 31);
+        };
+        uint32_t Value;
+    } DW16;
+    union
+    {
+        struct
+        {
+            uint32_t VDENC_CMD3_DW17_BIT0 : __CODEGEN_BITFIELD(0, 7);
+            uint32_t VDENC_CMD3_DW17_BIT8 : __CODEGEN_BITFIELD(8, 15);
+            uint32_t VDENC_CMD3_DW17_BIT16 : __CODEGEN_BITFIELD(16, 23);
+            uint32_t VDENC_CMD3_DW17_BIT24 : __CODEGEN_BITFIELD(24, 31);
+        };
+        uint32_t Value;
+    } DW17;
+    union
+    {
+        struct
+        {
+            uint32_t VDENC_CMD3_DW18;
+        };
+        uint32_t Value;
+    } DW18;
+    union
+    {
+        struct
+        {
+            uint32_t VDENC_CMD3_DW19_BIT0 : __CODEGEN_BITFIELD(0, 7);
+            uint32_t VDENC_CMD3_DW19_BIT8 : __CODEGEN_BITFIELD(8, 15);
+            uint32_t VDENC_CMD3_DW19_BIT16 : __CODEGEN_BITFIELD(16, 23);
+            uint32_t VDENC_CMD3_DW19_BIT24 : __CODEGEN_BITFIELD(24, 31);
+        };
+        uint32_t Value;
+    } DW19;
+    union
+    {
+        struct
+        {
+            uint32_t VDENC_CMD3_DW20_BIT0 : __CODEGEN_BITFIELD(0, 7);
+            uint32_t VDENC_CMD3_DW20_BIT8 : __CODEGEN_BITFIELD(8, 15);
+            uint32_t VDENC_CMD3_DW20_BIT16 : __CODEGEN_BITFIELD(16, 31);
+        };
+        uint32_t Value;
+    } DW20;
+    union
+    {
+        struct
+        {
+            uint32_t VDENC_CMD3_DW21_BIT0 : __CODEGEN_BITFIELD(0, 7);
+            uint32_t VDENC_CMD3_DW21_BIT8 : __CODEGEN_BITFIELD(8, 15);
+            uint32_t VDENC_CMD3_DW21_BIT16 : __CODEGEN_BITFIELD(16, 31);
+        };
+        uint32_t Value;
+    } DW21;
+    union
+    {
+        struct
+        {
+            uint32_t VDENC_CMD3_DW22_BIT0 : __CODEGEN_BITFIELD(0, 15);
+            uint32_t VDENC_CMD3_DW22_BIT16 : __CODEGEN_BITFIELD(16, 24);
+            uint32_t VDENC_CMD3_DW22_BIT25 : __CODEGEN_BITFIELD(25, 31);
+        };
+        uint32_t Value;
+    } DW22;
 
     //! \name Local enumerations
 
     enum SUBOPB
     {
-        SUBOPB_VDENCCMD3CMD = 10,  //!< No additional details
+        SUBOPB_VDENCAVCCOSTSSTATE = 10,
     };
 
     enum SUBOPA
     {
-        SUBOPA_UNNAMED0 = 0,  //!< No additional details
+        SUBOPA_UNNAMED0 = 0,
     };
 
     enum OPCODE
     {
-        OPCODE_VDENCPIPE = 1,  //!< No additional details
+        OPCODE_VDENCPIPE = 1,
     };
 
     enum PIPELINE
     {
-        PIPELINE_MFXCOMMON = 2,  //!< No additional details
+        PIPELINE_MFXCOMMON = 2,
     };
 
     enum COMMAND_TYPE
     {
-        COMMAND_TYPE_PARALLELVIDEOPIPE = 3,  //!< No additional details
+        COMMAND_TYPE_PARALLELVIDEOPIPE = 3,
     };
 
     //! \name Initializations
@@ -1230,12 +1383,7 @@ struct _VDENC_CMD3_CMD
     {
         MOS_ZeroMemory(this, sizeof(*this));
 
-        DW0.DwordLength = __CODEGEN_OP_LENGTH(dwSize);
-        DW0.Subopb      = SUBOPB_VDENCCMD3CMD;
-        DW0.Subopa      = SUBOPA_UNNAMED0;
-        DW0.Opcode      = OPCODE_VDENCPIPE;
-        DW0.Pipeline    = PIPELINE_MFXCOMMON;
-        DW0.CommandType = COMMAND_TYPE_PARALLELVIDEOPIPE;
+        DW0.Value = 0x708a0015;
     }
 
     static const size_t dwSize   = 23;
