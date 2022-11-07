@@ -587,7 +587,7 @@ MOS_STATUS SfcRenderBase::SetupSfcState(PVP_SURFACE targetSurface)
 
     // Decompress resource if surfaces need write from a un-align offset
     if ((!targetSurface->osSurface->OsResource.bUncompressedWriteNeeded) &&
-        (targetSurface->osSurface->CompressionMode != MOS_MMC_DISABLED)        &&
+        (targetSurface->osSurface->CompressionMode == MOS_MMC_MC)        &&
         IsSFCUncompressedWriteNeeded(targetSurface))
     {
         MOS_STATUS eStatus = MOS_STATUS_SUCCESS;

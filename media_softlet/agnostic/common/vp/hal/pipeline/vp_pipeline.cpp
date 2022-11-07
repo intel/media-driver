@@ -356,8 +356,6 @@ MOS_STATUS VpPipeline::ExecuteVpPipeline()
         VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
     }
 
-    VP_PUBLIC_CHK_STATUS_RETURN(UpdateVpInputCompressionState());
-
     if (PIPELINE_PARAM_TYPE_LEGACY == m_pvpParams.type)
     {
         params = m_pvpParams.renderParams;
@@ -409,27 +407,6 @@ MOS_STATUS VpPipeline::ExecuteVpPipeline()
     }
 
     return eStatus;
-}
-
-MOS_STATUS VpPipeline::UpdateVpInputCompressionState()
-{
-    VP_FUNC_CALL();
-    PVP_PIPELINE_PARAMS        params = nullptr;
-
-    if (PIPELINE_PARAM_TYPE_LEGACY == m_pvpParams.type)
-    {
-        params = m_pvpParams.renderParams;
-        VP_PUBLIC_CHK_NULL_RETURN(params);
-
-        if (params->pSrc[0]                                 &&
-           (params->pSrc[0]->CompressionMode == MOS_MMC_RC) &&
-           (params->pSrc[0]->SampleType != SAMPLE_PROGRESSIVE))
-        {
-            VP_PUBLIC_CHK_NULL_RETURN(m_mmc);
-            VP_PUBLIC_CHK_STATUS_RETURN(m_mmc->DecompressResource(&params->pSrc[0]->OsResource));
-        }
-    }
-    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS VpPipeline::ExecuteSingleswFilterPipe(VpSinglePipeContext *singlePipeCtx, SwFilterPipe *&pipe, PacketPipe *pPacketPipe, VpFeatureManagerNext *featureManagerNext)

@@ -510,8 +510,8 @@ MOS_STATUS SfcRenderBaseLegacy::SetupSfcState(PVP_SURFACE targetSurface)
     VP_RENDER_CHK_STATUS_RETURN(SetupScalabilityParams());
 
     // Decompress resource if surfaces need write from a un-align offset
-    if ((!targetSurface->osSurface->OsResource.bUncompressedWriteNeeded)       &&
-        (targetSurface->osSurface->CompressionMode != MOS_MMC_DISABLED)        &&
+    if ((!targetSurface->osSurface->OsResource.bUncompressedWriteNeeded) &&
+        (targetSurface->osSurface->CompressionMode == MOS_MMC_MC)        &&
         IsSFCUncompressedWriteNeeded(targetSurface))
     {
         MOS_STATUS eStatus = MOS_STATUS_SUCCESS;

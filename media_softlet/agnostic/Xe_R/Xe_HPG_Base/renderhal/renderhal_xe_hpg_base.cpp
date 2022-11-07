@@ -874,7 +874,6 @@ bool XRenderHal_Interface_Xe_Hpg_Base::IsFormatMMCSupported(MOS_FORMAT format)
         (format != Format_B10G10R10A2)      &&
         (format != Format_R10G10B10A2)      &&
         (format != Format_A16R16G16B16F)    &&
-        (format != Format_A16B16G16R16F)    &&
         (format != Format_IMC3)             &&
         (format != Format_444P)             &&
         (format != Format_422H)             &&
