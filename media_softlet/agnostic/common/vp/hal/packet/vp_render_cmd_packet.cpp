@@ -1808,7 +1808,7 @@ MOS_STATUS VpRenderCmdPacket::SetFcParams(PRENDER_FC_PARAMS params)
     KERNEL_PARAMS kernelParams = {};
     kernelParams.kernelId      = params->kernelId;
     m_renderKernelParams.push_back(kernelParams);
-
+    m_bindingtableMode = MULTI_KERNELS_WITH_ONE_BINDINGTABLE;
     return MOS_STATUS_SUCCESS;
 }
 

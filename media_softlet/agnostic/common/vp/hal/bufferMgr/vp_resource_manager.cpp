@@ -974,27 +974,39 @@ MOS_STATUS VpResourceManager::AssignFcResources(VP_EXECUTE_CAPS &caps, std::vect
         memTypeSurfVideoMem = MOS_MEMPOOL_DEVICEMEMORY;
     }
 
-    for (size_t i = 0; i < inputSurfaces.size(); ++i)
+    if (caps.bTemperalInputInuse)
     {
-        surfSetting.surfGroup.insert(std::make_pair((SurfaceType)(SurfaceTypeFcInputLayer0 + i), inputSurfaces[i]));
-
-        if (!resHint.isIScalingTypeNone)
+        if (inputSurfaces.size() > 1)
         {
-            // For Interlaced scaling, 2nd field is part of the same frame.
-            // For Field weaving, 2nd field is passed in as a ref.
-            VP_SURFACE *surfField1Dual = nullptr;
-            if (resHint.isFieldWeaving)
+            VP_PUBLIC_ASSERTMESSAGE("Temperal input only has 1 layer, do not support multi-layer case!");
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+        surfSetting.surfGroup.insert(std::make_pair((SurfaceType)(SurfaceTypeFcInputLayer0), m_temperalInput));
+    }
+    else
+    {
+        for (size_t i = 0; i < inputSurfaces.size(); ++i)
+        {
+            surfSetting.surfGroup.insert(std::make_pair((SurfaceType)(SurfaceTypeFcInputLayer0 + i), inputSurfaces[i]));
+
+            if (!resHint.isIScalingTypeNone)
             {
-                surfField1Dual = pastSurfaces[i];
-                VP_PUBLIC_NORMALMESSAGE("Field weaving case. 2nd field is passed in as a ref.");
+                // For Interlaced scaling, 2nd field is part of the same frame.
+                // For Field weaving, 2nd field is passed in as a ref.
+                VP_SURFACE *surfField1Dual = nullptr;
+                if (resHint.isFieldWeaving)
+                {
+                    surfField1Dual = pastSurfaces[i];
+                    VP_PUBLIC_NORMALMESSAGE("Field weaving case. 2nd field is passed in as a ref.");
+                }
+                else
+                {
+                    surfField1Dual = GetCopyInstOfExtSurface(inputSurfaces[i]);
+                    VP_PUBLIC_NORMALMESSAGE("Interlaced scaling. 2nd field is part of the same frame.");
+                }
+                VP_PUBLIC_CHK_NULL_RETURN(surfField1Dual);
+                surfSetting.surfGroup.insert(std::make_pair((SurfaceType)(SurfaceTypeFcInputLayer0Field1Dual + i), surfField1Dual));
             }
-            else
-            {
-                surfField1Dual = GetCopyInstOfExtSurface(inputSurfaces[i]);
-                VP_PUBLIC_NORMALMESSAGE("Interlaced scaling. 2nd field is part of the same frame.");
-            }
-            VP_PUBLIC_CHK_NULL_RETURN(surfField1Dual);
-            surfSetting.surfGroup.insert(std::make_pair((SurfaceType)(SurfaceTypeFcInputLayer0Field1Dual + i), surfField1Dual));
         }
     }
     surfSetting.surfGroup.insert(std::make_pair(SurfaceTypeFcTarget0, outputSurface));
@@ -2104,15 +2116,7 @@ MOS_STATUS VpResourceManager::AssignVeboxResource(VP_EXECUTE_CAPS& caps, VP_SURF
     }
     else
     {
-        if (caps.bTemperalInputInuse)
-        {
-            VP_PUBLIC_CHK_NULL_RETURN(m_temperalInput);
-            surfGroup.insert(std::make_pair(SurfaceTypeVeboxInput, m_temperalInput));
-        }
-        else
-        {
-            surfGroup.insert(std::make_pair(SurfaceTypeVeboxInput, inputSurface));
-        }
+        surfGroup.insert(std::make_pair(SurfaceTypeVeboxInput, inputSurface));
         surfGroup.insert(std::make_pair(SurfaceTypeVeboxCurrentOutput, GetVeboxOutputSurface(caps, outputSurface)));
 
         if (caps.bDN)
