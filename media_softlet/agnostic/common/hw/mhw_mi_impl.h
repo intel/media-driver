@@ -164,6 +164,85 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
+    MOS_STATUS AddMiBatchBufferEndOnly(
+        PMOS_COMMAND_BUFFER cmdBuffer,
+        PMHW_BATCH_BUFFER   batchBuffer) override
+    {
+        MHW_FUNCTION_ENTER;
+
+        if (cmdBuffer == nullptr && batchBuffer == nullptr)
+        {
+            MHW_ASSERTMESSAGE("There was no valid buffer to add the HW command to.");
+            return MOS_STATUS_NULL_POINTER;
+        }
+
+        // This WA does not apply for video or other engines, render requirement only
+        bool isRender =
+            MOS_RCS_ENGINE_USED(this->m_osItf->pfnGetGpuContext(this->m_osItf));
+
+        // Mhw_CommonMi_AddMiBatchBufferEnd() is designed to handle both 1st level
+        // and 2nd level BB.  It inserts MI_BATCH_BUFFER_END in both cases.
+        // However, since the 2nd level BB always returens to the 1st level BB and
+        // no chained BB scenario in Media, Epilog is only needed in the 1st level BB.
+        // Therefre, here only the 1st level BB case needs an Epilog inserted.
+        if (cmdBuffer && cmdBuffer->is1stLvlBB)
+        {
+            MHW_MI_CHK_STATUS(m_cpInterface->AddEpilog(this->m_osItf, cmdBuffer));
+        }
+
+        auto &params = MHW_GETPAR_F(MI_BATCH_BUFFER_END)();
+        params       = {};
+        MHW_ADDCMD_F(MI_BATCH_BUFFER_END)
+        (cmdBuffer, batchBuffer);
+
+        if (!cmdBuffer)  // Don't need BB not nullptr chk b/c if both are nullptr it won't get this far
+        {
+#if (_DEBUG || _RELEASE_INTERNAL)
+            batchBuffer->iLastCurrent = batchBuffer->iCurrent;
+#endif
+        }
+
+        // Send End Marker command
+        if (this->m_osItf->pfnIsSetMarkerEnabled(this->m_osItf) && cmdBuffer && cmdBuffer->is1stLvlBB)
+        {
+            PMOS_RESOURCE resMarker = nullptr;
+            resMarker               = this->m_osItf->pfnGetMarkerResource(this->m_osItf);
+            MHW_MI_CHK_NULL(resMarker);
+
+            if (isRender)
+            {
+                // Send pipe_control to get the timestamp
+                auto &params            = MHW_GETPAR_F(PIPE_CONTROL)();
+                params                  = {};
+                params.presDest         = resMarker;
+                params.dwResourceOffset = sizeof(uint64_t);
+                params.dwPostSyncOp     = MHW_FLUSH_WRITE_TIMESTAMP_REG;
+                params.dwFlushMode      = MHW_FLUSH_WRITE_CACHE;
+                MHW_ADDCMD_F(PIPE_CONTROL)
+                (cmdBuffer, batchBuffer);
+            }
+            else
+            {
+                // Send flush_dw to get the timestamp
+                auto &params             = MHW_GETPAR_F(MI_FLUSH_DW)();
+                params                   = {};
+                params.pOsResource       = resMarker;
+                params.dwResourceOffset  = sizeof(uint64_t);
+                params.postSyncOperation = MHW_FLUSH_WRITE_TIMESTAMP_REG;
+                params.bQWordEnable      = 1;
+                MHW_ADDCMD_F(MI_FLUSH_DW)
+                (cmdBuffer, batchBuffer);
+            }
+
+            if (!this->m_osItf->apoMosEnabled)
+            {
+                MOS_SafeFreeMemory(resMarker);
+            }
+        }
+
+        return MOS_STATUS_SUCCESS;
+    }
+
     MOS_STATUS AddBatchBufferEndInsertionFlag(MOS_COMMAND_BUFFER &constructedCmdBuf) override
     {
         MHW_FUNCTION_ENTER;
