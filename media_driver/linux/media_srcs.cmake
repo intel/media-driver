@@ -68,4 +68,8 @@ if(XEHP_SDV OR DG2 OR PVC)
     media_include_subdirectory(Xe_M)
 endif()
 
+if(MTL)
+    media_include_subdirectory(Xe_M_plus)
+endif()
+
 include(${MEDIA_EXT}/linux/media_srcs_ext.cmake OPTIONAL)

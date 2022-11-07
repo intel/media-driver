@@ -28,6 +28,9 @@
 #ifndef __DDI_MEDIA_CONTEXT_H_
 #define __DDI_MEDIA_CONTEXT_H_
 
+#include "mos_cmdbufmgr.h"
+#include "media_libva_caps.h"
+
 //!
 //! \struct DDI_MEDIA_CONTEXT
 //! \brief  Media heap for shared internal structures

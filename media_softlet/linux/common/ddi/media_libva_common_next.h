@@ -20,6 +20,7 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
+
 //! \file     media_libva_common_next.h
 //! \brief    libva common next head file
 //!

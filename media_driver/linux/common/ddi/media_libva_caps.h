@@ -28,6 +28,9 @@
 #define __MEDIA_LIBVA_CAPS_H__
 
 #include "va/va.h"
+#include "codec_def_common.h"
+#include "codec_def_common_encode.h"
+#include "codec_def_encode_jpeg.h"
 
 #include <vector>
 #include <map>
