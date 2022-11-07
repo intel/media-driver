@@ -1594,7 +1594,7 @@ VAStatus DdiMedia_CleanUpSoftlet(PDDI_MEDIA_CONTEXT mediaCtx)
     MediaLibvaInterfaceNext::ReleaseCompList(mediaCtx);
     if(mediaCtx->m_hwInfo)
     {
-        MOS_FreeMemory(mediaCtx->m_hwInfo);
+        MOS_Delete(mediaCtx->m_hwInfo);
         mediaCtx->m_hwInfo = nullptr;
     }
 
