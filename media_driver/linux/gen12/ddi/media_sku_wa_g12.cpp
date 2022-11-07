@@ -362,6 +362,7 @@ static bool InitTglMediaWa(struct GfxDeviceInfo *devInfo,
     /*software wa to use huc copy for init aux table for MFX*/
     MEDIA_WR_WA(waTable, Wa_22010493002, 1);
 
+    MEDIA_WR_WA(waTable, Wa_Vp9UnalignedHeight, 1);
     return true;
 }
 
