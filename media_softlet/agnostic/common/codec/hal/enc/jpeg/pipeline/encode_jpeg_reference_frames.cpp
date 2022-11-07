@@ -26,7 +26,6 @@
 
 #include "encode_jpeg_reference_frames.h"
 #include "encode_jpeg_basic_feature.h"
-#include "codechal_utilities.h"
 
 namespace encode
 {

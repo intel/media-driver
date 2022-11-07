@@ -29,7 +29,6 @@
 #include "encode_vp9_vdenc_feature_manager.h"
 #include "encode_vp9_vdenc_const_settings.h"
 #include "encode_vp9_segmentation.h"
-#include "codechal_encoder_base.h"
 
 namespace encode
 {

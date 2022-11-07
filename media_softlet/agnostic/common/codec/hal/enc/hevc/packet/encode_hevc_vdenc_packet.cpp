@@ -1206,7 +1206,7 @@ namespace encode
         uint32_t hucCommandsSize = 0;
         uint32_t hucPatchListSize = 0;
 
-        MHW_VDBOX_STATE_CMDSIZE_PARAMS_G12 stateCmdSizeParams;
+        MHW_VDBOX_STATE_CMDSIZE_PARAMS stateCmdSizeParams;
         
         hcpCommandsSize =
             m_vdencItf->MHW_GETSIZE_F(VD_PIPELINE_FLUSH)() +

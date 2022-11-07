@@ -27,7 +27,6 @@
 #include <algorithm>
 #include "encode_av1_basic_feature.h"
 #include "encode_utils.h"
-#include "codechal_utilities.h"
 #include "encode_av1_reference_frames.h"
 #include "codec_def_encode_av1.h"
 

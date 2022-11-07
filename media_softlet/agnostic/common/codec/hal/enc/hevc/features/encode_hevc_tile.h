@@ -83,16 +83,6 @@ public:
     virtual MOS_STATUS Update(void *params) override;
 
     //!
-    //! \brief  Set Encode Tile features setting to pipe mode select parameters
-    //! \param  [in, out] vdboxPipeModeSelectParams
-    //!         Pointer to pipe mode select parameters
-    //! \return MOS_STATUS
-    //!         MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    MOS_STATUS SetHcpPipeModeSelectParams(
-        MHW_VDBOX_PIPE_MODE_SELECT_PARAMS &vdboxPipeModeSelectParams);
-
-    //!
     //! \brief  Set pipe number
     //! \param  [in] numPipes
     //!         Active pipe number

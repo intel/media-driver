@@ -67,7 +67,7 @@ MOS_STATUS Av1VdencPktXe_Lpm_Plus_Base::AllocateResources()
     m_resCumulativeCuCountStreamoutBuffer = m_allocator->AllocateResource(allocParams, false);
     if (m_resCumulativeCuCountStreamoutBuffer == nullptr)
     {
-        CODECHAL_ENCODE_ASSERTMESSAGE("Failed to allocate VDEnc Cumulative CU Count Streamout Surface.");
+        ENCODE_ASSERTMESSAGE("Failed to allocate VDEnc Cumulative CU Count Streamout Surface.");
         return MOS_STATUS_UNKNOWN;
     }
 
@@ -79,7 +79,7 @@ MOS_STATUS Av1VdencPktXe_Lpm_Plus_Base::AllocateResources()
 
     if (m_basicFeature->m_resMfdIntraRowStoreScratchBuffer == nullptr)
     {
-        CODECHAL_ENCODE_ASSERTMESSAGE("Failed to allocate VDEnc Tile Row Store Buffer.");
+        ENCODE_ASSERTMESSAGE("Failed to allocate VDEnc Tile Row Store Buffer.");
         return MOS_STATUS_UNKNOWN;
     }
 
@@ -91,7 +91,7 @@ MOS_STATUS Av1VdencPktXe_Lpm_Plus_Base::AllocateResources()
 
     if (m_vdencTileRowStoreBuffer == nullptr)
     {
-        CODECHAL_ENCODE_ASSERTMESSAGE("Failed to allocate VDEnc Tile Row Store Buffer.");
+        ENCODE_ASSERTMESSAGE("Failed to allocate VDEnc Tile Row Store Buffer.");
         return MOS_STATUS_UNKNOWN;
     }
 
@@ -841,7 +841,7 @@ MOS_STATUS Av1VdencPktXe_Lpm_Plus_Base::AddAllCmds_AVP_PAK_INSERT_OBJECT(PMOS_CO
             uint32_t nalUnitSize   = m_nalUnitParams[i]->uiSize;
             uint32_t nalUnitOffset = m_nalUnitParams[i]->uiOffset;
 
-            CODECHAL_ENCODE_ASSERT(nalUnitSize < CODECHAL_ENCODE_AV1_PAK_INSERT_UNCOMPRESSED_HEADER);
+            ENCODE_ASSERT(nalUnitSize < CODECHAL_ENCODE_AV1_PAK_INSERT_UNCOMPRESSED_HEADER);
 
             params.bitSize    = nalUnitSize * 8;
             params.offset     = nalUnitOffset;

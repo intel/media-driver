@@ -30,7 +30,6 @@
 #include "encode_allocator.h"
 #include "codec_hw_next.h"
 #include "encode_recycle_resource.h"
-#include "mhw_vdbox_g12_X.h"
 #include "encode_basic_feature.h"
 #include "mhw_vdbox_vdenc_itf.h"
 #include "mhw_vdbox_hcp_itf.h"

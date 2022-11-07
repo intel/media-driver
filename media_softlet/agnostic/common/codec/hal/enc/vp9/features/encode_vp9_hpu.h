@@ -26,7 +26,6 @@
 #ifndef __ENCODE_VP9_HPU_H__
 #define __ENCODE_VP9_HPU_H__
 
-#include "codechal_encoder_base.h"
 #include "encode_vp9_basic_feature.h"
 #include "media_vp9_packet_defs.h"
 

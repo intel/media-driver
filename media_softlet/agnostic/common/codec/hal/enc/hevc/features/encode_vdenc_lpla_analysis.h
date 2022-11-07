@@ -397,15 +397,6 @@ namespace encode
         MOS_STATUS GetLplaStatusReport(EncodeStatusMfx *encodeStatusMfx, EncodeStatusReportData *statusReportData);
 
         //!
-        //! \brief  Set vdenc pipe mode select parameters
-        //! \param  [in] pipeModeSelectParams
-        //!         pipe mode select params
-        //! \return MOS_STATUS
-        //!         MOS_STATUS_SUCCESS if success, else fail reason
-        //!
-        MOS_STATUS SetVdencPipeModeSelectParams(MHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G12 &pipeModeSelectParams);
-
-        //!
         //! \brief  Calculate Look ahead records
         //! \return MOS_STATUS
         //!         MOS_STATUS_SUCCESS if success, else fail reason

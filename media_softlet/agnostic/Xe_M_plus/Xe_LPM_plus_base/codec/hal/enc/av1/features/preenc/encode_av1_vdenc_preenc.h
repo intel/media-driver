@@ -26,7 +26,6 @@
 #ifndef __ENCODE_AV1_VDENC_PREENC_H__
 #define __ENCODE_AV1_VDENC_PREENC_H__
 
-#include "mhw_vdbox_g12_X.h"
 #include "mhw_vdbox_vdenc_itf.h"
 #include "encode_mem_compression.h"
 #include "encode_preenc_basic_feature.h"

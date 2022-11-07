@@ -31,7 +31,7 @@ EncodeAv1VdencPipelineAdapterXe_M_Base::EncodeAv1VdencPipelineAdapterXe_M_Base(
     CodechalDebugInterface  *debugInterface)
     : EncoderPipelineAdapter(hwInterface, debugInterface)
 {
-    CODECHAL_ENCODE_CHK_NULL_NO_STATUS_RETURN(m_osInterface);
+    ENCODE_CHK_NULL_NO_STATUS_RETURN(m_osInterface);
     Mos_CheckVirtualEngineSupported(m_osInterface, false, true);
     Mos_SetVirtualEngineSupported(m_osInterface, true);
     m_vdencEnabled = true;

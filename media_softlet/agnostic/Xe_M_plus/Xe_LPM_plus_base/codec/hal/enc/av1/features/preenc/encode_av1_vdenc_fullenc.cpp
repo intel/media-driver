@@ -40,7 +40,7 @@ namespace encode
         ENCODE_FUNC_CALL();
 
         ENCODE_CHK_NULL_NO_STATUS_RETURN(hwInterface);
-        CODECHAL_HW_ASSERT(hwInterface->GetOsInterface());
+        CODEC_HW_ASSERT(hwInterface->GetOsInterface());
         m_osInterface = hwInterface->GetOsInterface();
 
         m_allocator = allocator;

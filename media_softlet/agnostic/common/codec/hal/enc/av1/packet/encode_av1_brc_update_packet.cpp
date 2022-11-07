@@ -403,7 +403,7 @@ namespace encode
                 uint32_t nalUnitSize   = m_basicFeature->m_nalUnitParams[i]->uiSize;
                 uint32_t nalUnitOffset = m_basicFeature->m_nalUnitParams[i]->uiOffset;
 
-                CODECHAL_ENCODE_ASSERT(nalUnitSize < CODECHAL_ENCODE_AV1_PAK_INSERT_UNCOMPRESSED_HEADER);
+                ENCODE_ASSERT(nalUnitSize < CODECHAL_ENCODE_AV1_PAK_INSERT_UNCOMPRESSED_HEADER);
 
                 if (IsFrameHeader(*(m_basicFeature->m_bsBuffer.pBase + nalUnitOffset)))
                 {
