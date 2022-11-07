@@ -31,8 +31,6 @@
 #include "media_status_report.h"
 #include "mhw_utilities.h"
 #include "decode_status_report_defs.h"
-#include "mos_interface.h"
-#include "mos_os_virtualengine_next.h"
 
 namespace decode
 {
