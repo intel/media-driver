@@ -370,6 +370,12 @@ static bool pvcGt4Device0bd8 = DeviceInfoFactory<GfxDeviceInfo>::
 static bool pvcGt4Device0bd9 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x0bd9, &pvcGt4Info); 
 
+static bool pvcGt4Device0bda = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x0bda, &pvcGt4Info);
+
+static bool pvcGt4Device0bdb = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x0bdb, &pvcGt4Info);
+
 static bool pvcGt4Device0be0 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x0be0, &pvcGt4Info);
 
