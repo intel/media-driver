@@ -188,6 +188,4 @@ if (${VphalNext_Enabled} STREQUAL "yes")
     add_definitions(-D_VPHALNEXT_ENABLED)
 endif()
 
-add_definitions(-D_MANUAL_SOFTLET_)
-
 include(${MEDIA_EXT_CMAKE}/ext/linux/media_feature_flags_linux_ext.cmake OPTIONAL)
