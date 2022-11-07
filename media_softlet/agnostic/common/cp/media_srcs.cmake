@@ -28,16 +28,6 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/cp_copy_interface.h
 )
 
-set(HEADERS_
-    ${HEADERS_}
-    ${TMP_HEADERS_}
-)
-
-set(SOURCES_
-    ${SOURCES_}
-    ${TMP_SOURCES_}
-)
-
 set(CP_COMMON_NEXT_SOURCES_
     ${CP_COMMON_NEXT_SOURCES_}
     ${TMP_SOURCES_}
@@ -48,4 +38,7 @@ set(CP_COMMON_NEXT_HEADERS_
     ${TMP_HEADERS_}
 )
 
-media_add_curr_to_include_path()
+set(COMMON_CP_DIRECTORIES_
+    ${COMMON_CP_DIRECTORIES_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)
