@@ -529,6 +529,14 @@ MOS_STATUS CodechalEncodeCscDsG12::SendSurfaceCsc(PMOS_COMMAND_BUFFER cmdBuffer)
 #ifdef _MMC_SUPPORTED
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_encoder->m_mmcState);
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->m_mmcState->SetSurfaceParams(&surfaceParams));
+
+    // disable compression for render RC TA resources
+    if (surfaceParams.psSurface->MmcState == MOS_MEMCOMP_RC &&
+        surfaceParams.psSurface->OsResource.pGmmResInfo->GetArraySize() > 1)
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnDecompResource(m_osInterface, &surfaceParams.psSurface->OsResource));
+        surfaceParams.psSurface->MmcState = MOS_MEMCOMP_DISABLED;
+    }
 #endif
 
     surfaceParams.dwBindingTableOffset = cscSrcYPlane;
