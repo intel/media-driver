@@ -20,15 +20,15 @@
 
 # This folder is only for render engine related files!
 # Do not add other files here.
-if(GEN12)
+if(GEN12 OR XE_LPG)
     media_include_subdirectory(Xe_HP_Base)
 endif()
 
-if(XEHP_SDV)
+if(XEHP_SDV OR XE_LPG)
     media_include_subdirectory(Xe_HP)
 endif()
 
-if(XE_HPG)
+if(XE_HPG OR XE_LPG)
     media_include_subdirectory(Xe_HPG)
 endif()
 
