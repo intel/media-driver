@@ -27,6 +27,7 @@
 
 #include "codechal_vdenc_avc.h"
 #include "hal_oca_interface.h"
+#include "mos_os_cp_interface_specific.h"
 
 #define CODECHAL_ENCODE_AVC_SFD_OUTPUT_BUFFER_SIZE 128
 #define CODECHAL_ENCODE_AVC_SFD_COST_TABLE_BUFFER_SIZE 52

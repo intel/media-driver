@@ -28,6 +28,7 @@
 #include "decode_utils.h"
 #include "decode_allocator.h"
 #include "decode_resource_auto_lock.h"
+#include "mos_os_cp_interface_specific.h"
 
 namespace decode
 {

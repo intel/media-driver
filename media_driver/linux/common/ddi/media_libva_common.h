@@ -34,13 +34,12 @@
 #include "drm.h"
 #include "i915_drm.h"
 #include "mos_bufmgr.h"
-#include "mos_context.h"
-#include "mos_gpucontextmgr.h"
-#include "mos_cmdbufmgr.h"
 
 #include "mos_context_next.h"
 #include "mos_gpucontextmgr_next.h"
 #include "mos_cmdbufmgr_next.h"
+
+class CmdBufMgr;
 
 #include "mos_os.h"
 #include "mos_auxtable_mgr.h"

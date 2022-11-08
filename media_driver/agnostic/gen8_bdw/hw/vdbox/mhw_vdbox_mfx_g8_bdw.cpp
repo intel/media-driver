@@ -25,6 +25,7 @@
 //!
 
 #include "mhw_vdbox_mfx_g8_bdw.h"
+#include "mos_os_cp_interface_specific.h"
 
 MOS_STATUS MhwVdboxMfxInterfaceG8Bdw::AddMfxPipeBufAddrCmd(
     PMOS_COMMAND_BUFFER cmdBuffer,

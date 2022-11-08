@@ -24,6 +24,7 @@
 //! \brief    Defines functions for constructing Vdbox MFX commands on G9 BXT platform
 //!
 
+#include "mos_os_cp_interface_specific.h"
 #include "mhw_vdbox_mfx_g9_bxt.h"
 
 MOS_STATUS MhwVdboxMfxInterfaceG9Bxt::AddMfxPipeBufAddrCmd(

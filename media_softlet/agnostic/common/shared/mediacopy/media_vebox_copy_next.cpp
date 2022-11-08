@@ -26,6 +26,7 @@
 #include "media_vebox_copy_next.h"
 #include "renderhal.h"
 #include "mhw_vebox_itf.h"
+#include "mos_os_cp_interface_specific.h"
 
 #define SURFACE_DW_UY_OFFSET(pSurface) \
     ((pSurface) != nullptr ? ((pSurface)->UPlaneOffset.iSurfaceOffset - (pSurface)->dwOffset) / (pSurface)->dwPitch + (pSurface)->UPlaneOffset.iYOffset : 0)

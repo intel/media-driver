@@ -19,7 +19,6 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 media_include_subdirectory(osservice)
-media_include_subdirectory(private)
 
 if(NOT CMAKE_WDDM_LINUX)
 
@@ -28,8 +27,14 @@ media_include_subdirectory(i915)
 if(ENABLE_PRODUCTION_KMD)
     media_include_subdirectory(i915_production)
 endif()
+media_include_subdirectory(private)
+
+if(ENABLE_PRODUCTION_KMD)
+    media_include_subdirectory(i915_production)
+endif()
 
 set(TMP_SOURCES_
+    ${CMAKE_CURRENT_LIST_DIR}/hwinfo_linux.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_context_specific_next.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_graphicsresource_specific_next.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_commandbuffer_specific_next.cpp
@@ -42,9 +47,13 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/mos_os_mock_adaptor_specific.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_oca_rtlog_mgr_specific.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_vma.c
+    ${CMAKE_CURRENT_LIST_DIR}/mos_oca_specific.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/mos_auxtable_mgr.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/mos_interface.cpp
 )
 
 set(TMP_HEADERS_
+    ${CMAKE_CURRENT_LIST_DIR}/hwinfo_linux.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_context_specific_next.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_graphicsresource_specific_next.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_util_devult_specific_next.h
@@ -54,6 +63,9 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mos_decompression.h
     ${CMAKE_CURRENT_LIST_DIR}/media_skuwa_specific.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_os_mock_adaptor_specific.h
+    ${CMAKE_CURRENT_LIST_DIR}/mos_oca_defs_specific.h
+    ${CMAKE_CURRENT_LIST_DIR}/mos_oca_interface_specific.h
+    ${CMAKE_CURRENT_LIST_DIR}/mos_auxtable_mgr.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_vma.h
 )
 
@@ -85,6 +97,12 @@ set(SOFTLET_MOS_PUBLIC_INCLUDE_DIRS_
     ${SOFTLET_MOS_PUBLIC_INCLUDE_DIRS_}
     ${CMAKE_CURRENT_LIST_DIR}
 )
+if("${MEDIA_EXT}" STREQUAL "")
+set (SOFTLET_MOS_EXT_INCLUDE_DIRS_
+${SOFTLET_MOS_EXT_INCLUDE_DIRS_}
+${MEDIA_SOFTLET}/agnostic/common/shared/classtrace
+)
+endif()
 source_group( "mos_softlet" FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
 
 endif() # CMAKE_WDDM_LINUX

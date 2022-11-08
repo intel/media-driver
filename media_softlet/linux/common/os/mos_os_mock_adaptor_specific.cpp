@@ -25,7 +25,7 @@
 //!
 #include "mos_os.h"
 #include "mos_os_specific.h"
-#include "media_skuwa_specific.h"
+#include "mos_interface.h"
 #include "skuwa_factory.h"
 #include "hwinfo_linux.h"
 #include "mos_os_mock_adaptor_specific.h"

@@ -24,15 +24,15 @@
 //! \brief     Common interface used in MOS LINUX OS
 //! \details   Common interface used in MOS LINUX OS
 //!
-
-#include "mos_os.h"
-#include "mos_util_debug.h"
-#include "mos_resource_defs.h"
 #include <unistd.h>
 #include <dlfcn.h>
-#include "hwinfo_linux.h"
 #include <stdlib.h>
 
+#include "mos_os.h"
+#include "mos_os_cp_interface_specific.h"
+#include "mos_util_debug.h"
+#include "mos_resource_defs.h"
+#include "hwinfo_linux.h"
 #include "mos_graphicsresource.h"
 #include "mos_context_specific.h"
 #include "mos_gpucontext_specific.h"
@@ -1729,29 +1729,6 @@ void *Mos_Specific_GetGpuContextbyHandle(
     }
 
     return (void *)gpuContext;
-}
-
-//!
-//! \brief    Get GPU context Manager
-//! \param    PMOS_INTERFACE pOsInterface
-//!           [in] Pointer to OS Interface
-//! \return   GpuContextMgr
-//!           GPU context Manager got from Os interface
-//!
-GpuContextMgr* Mos_Specific_GetGpuContextMgr(
-    PMOS_INTERFACE     pOsInterface)
-{
-    MOS_OS_FUNCTION_ENTER;
-
-    if (pOsInterface && pOsInterface->osContextPtr)
-    {
-        auto pOsContextSpecific = static_cast<OsContextSpecific*>(pOsInterface->osContextPtr);
-        return pOsContextSpecific->GetGpuContextMgr();
-    }
-    else
-    {
-        return nullptr;
-    }
 }
 
 //!
@@ -4668,6 +4645,29 @@ MOS_STATUS Mos_Specific_DestroyGpuContext(
 }
 
 //!
+//! \brief    Get GPU context Manager
+//! \param    PMOS_INTERFACE pOsInterface
+//!           [in] Pointer to OS Interface
+//! \return   GpuContextMgr
+//!           GPU context Manager got from Os interface
+//!
+GpuContextMgr *Mos_Specific_GetGpuContextMgr(
+    PMOS_INTERFACE pOsInterface)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    if (pOsInterface && pOsInterface->osContextPtr)
+    {
+        auto pOsContextSpecific = static_cast<OsContextSpecific *>(pOsInterface->osContextPtr);
+        return pOsContextSpecific->GetGpuContextMgr();
+    }
+    else
+    {
+        return nullptr;
+    }
+}
+
+//!
 //! \brief    Destroy GPU context by handle
 //! \details  Destroy GPU context by handle for legacy
 //! \param    PMOS_INTERFACE pOsInterface
@@ -4681,7 +4681,7 @@ MOS_STATUS Mos_Specific_DestroyGpuContextByHandle(
     PMOS_INTERFACE        pOsInterface,
     GPU_CONTEXT_HANDLE    gpuContextHandle)
 {
-    auto gpuContextMgr = pOsInterface->pfnGetGpuContextMgr(pOsInterface);
+    auto gpuContextMgr = Mos_Specific_GetGpuContextMgr(pOsInterface);
                 
     if (gpuContextMgr == nullptr)
     {
@@ -6724,17 +6724,19 @@ void Mos_Specific_NotifyStreamIndexSharing(
 }
 
 MOS_STATUS Mos_Specific_CheckVirtualEngineSupported(
-    PMOS_INTERFACE      pOsResource)
+    PMOS_INTERFACE osInterface)
 {
-    auto skuTable = pOsResource->pfnGetSkuTable(pOsResource);
+    MOS_OS_CHK_NULL_RETURN(osInterface);
+
+    auto skuTable = osInterface->pfnGetSkuTable(osInterface);
     MOS_OS_CHK_NULL_RETURN(skuTable);
     if (MEDIA_IS_SKU(skuTable, FtrContextBasedScheduling))
     {
-        pOsResource->bSupportVirtualEngine = true;
+        osInterface->bSupportVirtualEngine = true;
     }
     else
     {
-        pOsResource->bSupportVirtualEngine = false;
+        osInterface->bSupportVirtualEngine = false;
     }
 
     return MOS_STATUS_SUCCESS;
@@ -7080,7 +7082,6 @@ MOS_STATUS Mos_Specific_InitInterface(
     pOsInterface->pfnGetAuxTableBaseAddr                    = Mos_Specific_GetAuxTableBaseAddr;
     pOsInterface->pfnSetSliceCount                          = Mos_Specific_SetSliceCount;
     pOsInterface->pfnGetResourceIndex                       = Mos_Specific_GetResourceIndex;
-    pOsInterface->pfnSetSliceCount                          = Mos_Specific_SetSliceCount;
     pOsInterface->pfnGetGpuPriority                         = Mos_Specific_GetGpuPriority;
     pOsInterface->pfnSetGpuPriority                         = Mos_Specific_SetGpuPriority;
     pOsInterface->pfnIsSetMarkerEnabled                     = Mos_Specific_IsSetMarkerEnabled;
@@ -7088,7 +7089,6 @@ MOS_STATUS Mos_Specific_InitInterface(
     pOsInterface->pfnNotifyStreamIndexSharing               = Mos_Specific_NotifyStreamIndexSharing;
 
     pOsInterface->pfnSetGpuContextHandle                    = Mos_Specific_SetGpuContextHandle;
-    pOsInterface->pfnGetGpuContextMgr                       = Mos_Specific_GetGpuContextMgr;
     pOsInterface->pfnGetGpuContextbyHandle                  = Mos_Specific_GetGpuContextbyHandle;
 
     pOsInterface->pfnGetUserSettingInstance                 = Mos_Specific_GetUserSettingInstance;

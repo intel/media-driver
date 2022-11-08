@@ -23,32 +23,25 @@ set(TMP_SOURCES_ "")
 
 if(NOT CMAKE_WDDM_LINUX)
 set(TMP_SOURCES_
-    ${CMAKE_CURRENT_LIST_DIR}/hwinfo_linux.c
     ${CMAKE_CURRENT_LIST_DIR}/mos_context_specific.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_graphicsresource_specific.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_os_specific.c
     ${CMAKE_CURRENT_LIST_DIR}/mos_util_devult_specific.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_commandbuffer_specific.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_gpucontext_specific.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/mos_auxtable_mgr.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/mos_interface.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_gpucontext_specific_ext.cpp
     ${CMAKE_CURRENT_LIST_DIR}/memory_policy_manager_specific.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/mos_oca_specific.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_decompression.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_mediacopy.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_utilities_specific_usersetting.cpp
 )
 
 set(TMP_HEADERS_
-    ${CMAKE_CURRENT_LIST_DIR}/hwinfo_linux.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_context_specific.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_graphicsresource_specific.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_util_devult_specific.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_commandbuffer_specific.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_gpucontext_specific.h
-    ${CMAKE_CURRENT_LIST_DIR}/mos_auxtable_mgr.h
-    ${CMAKE_CURRENT_LIST_DIR}/mos_oca_interface_specific.h
 )
 
 if(${Media_Scalability_Supported} STREQUAL "yes")

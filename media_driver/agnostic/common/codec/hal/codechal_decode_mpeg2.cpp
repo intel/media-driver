@@ -35,6 +35,7 @@
 #include <fstream>
 #include "codechal_debug.h"
 #endif
+#include "mos_os_cp_interface_specific.h"
 
 #define CODECHAL_DECODE_MPEG2_IDCTBLOCK_SIZE   64
 

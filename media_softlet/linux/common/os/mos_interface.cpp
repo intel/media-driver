@@ -25,6 +25,7 @@
 //!
 
 #include "mos_interface.h"
+#include "mos_os_cp_interface_specific.h"
 #include "mos_context_specific_next.h"
 #include "mos_gpucontext_specific_next.h"
 #include "media_libva_common.h"

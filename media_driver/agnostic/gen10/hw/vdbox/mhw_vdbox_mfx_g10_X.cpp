@@ -26,6 +26,7 @@
 #include "mhw_vdbox_mfx_g10_X.h"
 #include "mhw_mi_hwcmd_g10_X.h"
 #include "mhw_mmio_g10.h"
+#include "mos_os_cp_interface_specific.h"
 
 void MhwVdboxMfxInterfaceG10::InitMmioRegisters()
 {

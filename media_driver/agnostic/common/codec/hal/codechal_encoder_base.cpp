@@ -30,6 +30,7 @@
 #include "mos_solo_generic.h"
 #include "hal_oca_interface.h"
 #include "codechal_encode_csc_ds.h"
+#include "mos_os_cp_interface_specific.h"
 
 void CodechalEncoderState::PrepareNodes(
     MOS_GPU_NODE& videoGpuNode,

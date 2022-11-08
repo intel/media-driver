@@ -58,6 +58,7 @@ public:
     }
 private:
     PMOS_MUTEX m_pMutex = nullptr;
+MEDIA_CLASS_DEFINE_END(MosOcaAutoLock)
 };
 
 class MosOcaInterfaceSpecific : public MosOcaInterface
@@ -351,5 +352,6 @@ private:
     static bool                     s_bOcaStatusExistInReg;         //!< ture if "Oca Status" already being added to reg.
     static int32_t                  s_refCount;
     static bool                     s_isDestroyed;
+MEDIA_CLASS_DEFINE_END(MosOcaInterfaceSpecific)
 };
 #endif  // __MOS_OCA_INTERFACE_SPECIFIC_H__

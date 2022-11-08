@@ -48,7 +48,11 @@
 #endif
 #include "media_libva_vp.h"
 #include "media_ddi_prot.h"
+
 #include "mos_os.h"
+#include "mos_context.h"
+#include "mos_cmdbufmgr.h"
+#include "mos_gpucontextmgr.h"
 
 #include "hwinfo_linux.h"
 #include "mediamemdecomp.h"

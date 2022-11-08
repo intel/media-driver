@@ -26,6 +26,7 @@
 //!
 
 #include "codechal_decode_sfc_hevc_g12.h"
+#include "mos_os_cp_interface_specific.h"
 
 CodechalHevcSfcStateG12::CodechalHevcSfcStateG12()
 {

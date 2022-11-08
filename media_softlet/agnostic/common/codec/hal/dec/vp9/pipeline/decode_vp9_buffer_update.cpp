@@ -31,6 +31,7 @@
 #include "decode_vp9_pipeline.h"
 #include "decode_resource_auto_lock.h"
 #include "decode_huc_packet_creator_base.h"
+#include "mos_os_cp_interface_specific.h"
 
 namespace decode
 {

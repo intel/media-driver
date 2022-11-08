@@ -27,6 +27,7 @@
 #include "encode_avc_basic_feature.h"
 #include "encode_avc_header_packer.h"
 #include "encode_avc_vdenc_const_settings.h"
+#include "mos_os_cp_interface_specific.h"
 
 namespace encode
 {

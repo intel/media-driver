@@ -30,6 +30,7 @@
 #include "encode_hevc_header_packer.h"
 #include "encode_hevc_vdenc_const_settings.h"
 #include "mos_solo_generic.h"
+#include "mos_os_cp_interface_specific.h"
 
 using namespace mhw::vdbox;
 namespace encode

@@ -30,6 +30,7 @@
 #include "vp_common.h"
 #include "mhw_vebox_hwcmd_xe_lpm_plus_next.h"
 #include "mos_interface.h"
+#include "mos_os_cp_interface_specific.h"
 
 MediaMemDeCompNext_Xe_Lpm_Plus_Base::MediaMemDeCompNext_Xe_Lpm_Plus_Base() :
     MediaMemDeCompNext()

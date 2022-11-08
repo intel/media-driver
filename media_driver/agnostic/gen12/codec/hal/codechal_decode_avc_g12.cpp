@@ -31,6 +31,7 @@
 #include "mhw_vdbox_mfx_g12_X.h"
 #include "codechal_mmc_decode_avc_g12.h"
 #include "hal_oca_interface.h"
+#include "mos_os_cp_interface_specific.h"
 
 MOS_STATUS CodechalDecodeAvcG12::AllocateStandard(
     CodechalSetting *          settings)

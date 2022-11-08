@@ -25,6 +25,7 @@
 //!
 #include "codec_hw_next.h"
 #include "codechal_setting.h"
+#include "mos_os_cp_interface_specific.h"
 
 CodechalHwInterfaceNext::CodechalHwInterfaceNext(
     PMOS_INTERFACE     osInterface,

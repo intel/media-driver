@@ -61,7 +61,6 @@ if(X11_FOUND)
     endif()
 endif()
 
-set(LIB_NAME_OBJ    "${LIB_NAME}_OBJ")
 set(LIB_NAME_STATIC "${LIB_NAME}_STATIC")
 set(SOURCES_ "")
 set(COMMON_SOURCES_ "")
@@ -385,13 +384,14 @@ endif()
 
 ######################################################
 #MOS LIB
-
+############## MOS ########################################
 set_source_files_properties(${MOS_COMMON_SOURCES_} PROPERTIES LANGUAGE "CXX")
 set_source_files_properties(${SOFTLET_MOS_COMMON_SOURCES_} PROPERTIES LANGUAGE "CXX")
 
-# This is to include drm_device.h in cmrtlib, no cpp file needed.
+#1 non softlet mos lib
+
 set (MOS_EXT_INCLUDE_DIRS_
-${BS_DIR_MEDIA}/cmrtlib/linux/hardware
+${BS_DIR_MEDIA}/cmrtlib/linux/hardware  # This is to include drm_device.h in cmrtlib, no cpp file needed.
 )
 
 add_library(${LIB_NAME}_mos OBJECT ${MOS_COMMON_SOURCES_} ${SOFTLET_MOS_COMMON_SOURCES_})
@@ -407,8 +407,31 @@ target_include_directories(${LIB_NAME}_mos BEFORE PRIVATE
     ${SOFTLET_DDI_PUBLIC_INCLUDE_DIRS_}
 )
 
-######################################################
+#2 softlet mos lib
 
+set (SOFTLET_MOS_EXT_INCLUDE_DIRS_
+${SOFTLET_MOS_EXT_INCLUDE_DIRS_}
+${BS_DIR_MEDIA}/cmrtlib/linux/hardware # This is to include drm_device.h in cmrtlib, no cpp file needed.
+${MEDIA_COMMON}/agnostic/common/media_interfaces
+${MEDIA_COMMON}/agnostic/common/shared
+${MEDIA_COMMON}/agnostic/common/shared/user_setting
+${MEDIA_COMMON}/linux/common/cp/os
+${MEDIA_SOFTLET}/agnostic/common/media_interfaces
+${MEDIA_SOFTLET}/agnostic/common/shared
+${MEDIA_SOFTLET}/linux/common/ddi
+)
+
+add_library(${LIB_NAME}_mos_softlet OBJECT ${SOFTLET_MOS_COMMON_SOURCES_} ${SOFTLET_MOS_PRIVATE_SOURCES_})
+set_property(TARGET ${LIB_NAME}_mos_softlet PROPERTY POSITION_INDEPENDENT_CODE 1)
+MediaAddCommonTargetDefines(${LIB_NAME}_mos_softlet)
+target_include_directories(${LIB_NAME}_mos_softlet BEFORE PRIVATE
+    ${SOFTLET_MOS_PREPEND_INCLUDE_DIRS_}
+    ${SOFTLET_MOS_PUBLIC_INCLUDE_DIRS_}
+    ${SOFTLET_MOS_EXT_INCLUDE_DIRS_}
+)
+############## MOS LIB END ########################################
+
+############## Media Driver Static and Shared Lib #################
 add_library(${LIB_NAME} SHARED
     $<TARGET_OBJECTS:${LIB_NAME}_mos>
     $<TARGET_OBJECTS:${LIB_NAME}_COMMON>
@@ -476,6 +499,8 @@ if (NOT DEFINED INCLUDED_LIBS OR "${INCLUDED_LIBS}" STREQUAL "")
     include(${MEDIA_EXT_CMAKE}/ext/media_feature_include_ext.cmake OPTIONAL)
 
 endif(NOT DEFINED INCLUDED_LIBS OR "${INCLUDED_LIBS}" STREQUAL "")
+
+############## Media Driver Static and Shared Lib ##################
 
 # post target attributes
 bs_set_post_target()

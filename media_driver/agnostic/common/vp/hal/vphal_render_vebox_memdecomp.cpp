@@ -25,6 +25,7 @@
 //! \details
 //!
 #include "vphal_render_vebox_memdecomp.h"
+#include "mos_os_cp_interface_specific.h"
 #include "vphal_debug.h"
 #include "vp_utils.h"
 

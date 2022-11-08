@@ -26,9 +26,10 @@
 #ifndef __HWINFO_LINUX_H__
 #define __HWINFO_LINUX_H__
 
-#include "media_libva_common.h"
+#include "mos_defs.h"
+#include "mos_bufmgr.h"
 #include "linux_shadow_skuwa.h"
-
+#include "igfxfmid.h"
 //------------------------------------------------------------------------------
 //| Definitions specific to Linux
 //------------------------------------------------------------------------------

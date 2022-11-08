@@ -110,6 +110,7 @@ public:
 private:
     GMM_CLIENT_CONTEXT *m_gmmClientContext = nullptr;     //!<  GMM Client Context for GMM Page table manager
     void *m_gmmPageTableMgr = nullptr;                    //!<  The GMM Page Table Manager
+MEDIA_CLASS_DEFINE_END(AuxTableMgr)
 };
 
 #endif //MOS_AUXTABLE_MGR_H

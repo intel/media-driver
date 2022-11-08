@@ -27,6 +27,7 @@
 //!
 
 #include "codechal_decode_hevc_long_g12.h"
+#include "mos_os_cp_interface_specific.h"
 
 // HEVC Long format 
 HevcDecodeSliceLongG12::HevcDecodeSliceLongG12(

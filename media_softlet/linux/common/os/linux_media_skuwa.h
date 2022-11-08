@@ -32,6 +32,7 @@
 #include <stdbool.h>
 #include <string>
 #include <map>
+#include "media_class_trace.h"
 
 class MediaFeatureTable
 {
@@ -154,7 +155,9 @@ public:
     }
 
 protected:
-     MediaMap *mediaMap = nullptr;
+    MediaMap *mediaMap = nullptr;
+
+MEDIA_CLASS_DEFINE_END(MediaFeatureTable)
 };
 
 class MediaWaTable
@@ -276,7 +279,8 @@ public:
     }
 
 protected:
-     MediaMap *mediaMap = nullptr;
+    MediaMap *mediaMap = nullptr;
+    MEDIA_CLASS_DEFINE_END(MediaWaTable)
 };
 
 inline void MediaWriteSku(MediaFeatureTable *skuTable, const char *ftrKey, uint8_t value)

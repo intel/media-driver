@@ -64,7 +64,7 @@
 
 #include "i915_drm.h"
 #include "mos_vma.h"
-
+#include "mos_util_debug.h"
 #include "mos_oca_defs_specific.h"
 #ifdef HAVE_VALGRIND
 #include <valgrind.h>

@@ -24,6 +24,7 @@
 //! \brief    Defines functions for constructing Vdbox MFX commands on G9 SKL
 //!
 
+#include "mos_os_cp_interface_specific.h"
 #include "mhw_vdbox_mfx_g9_skl.h"
 
 MOS_STATUS MhwVdboxMfxInterfaceG9Skl::AddMfxPipeBufAddrCmd(

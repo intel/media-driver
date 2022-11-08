@@ -34,7 +34,7 @@
 #include "codec_hw_next.h"
 #include "decode_scalability_defs.h"
 #endif
-
+#include "mos_os_cp_interface_specific.h"
 MediaContext::MediaContext(uint8_t componentType, void *hwInterface, PMOS_INTERFACE osInterface)
 {
     if (!hwInterface)

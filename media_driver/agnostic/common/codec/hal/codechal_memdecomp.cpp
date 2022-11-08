@@ -25,6 +25,7 @@
 
 #include "codechal_memdecomp.h"
 #include "codeckrnheader.h"
+#include "mos_os_cp_interface_specific.h"
 
 //!
 //! \class MediaObjectCopyCurbe

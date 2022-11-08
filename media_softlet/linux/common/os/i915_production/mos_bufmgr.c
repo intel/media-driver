@@ -63,7 +63,7 @@
 #include "string.h"
 #include "i915_drm.h"
 #include "mos_vma.h"
-
+#include "mos_util_debug.h"
 #include "mos_bufmgr_prelim.h"
 #include "mos_oca_defs_specific.h"
 

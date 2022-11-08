@@ -29,6 +29,7 @@
 #include "codechal_encode_wp.h"
 #include "codeckrnheader.h"
 #include "hal_oca_interface.h"
+#include "mos_os_cp_interface_specific.h"
 
 #define CODECHAL_ENCODE_AVC_BRC_CONSTANTSURFACE_POCS_IN_DPB_LIST_SIZE       128
 #define CODECHAL_ENCODE_AVC_BRC_CONSTANTSURFACE_POCS_IN_FINAL_LIST_SIZE     128

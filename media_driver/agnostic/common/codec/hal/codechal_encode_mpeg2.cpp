@@ -27,6 +27,7 @@
 #include "codechal_mmc_encode_mpeg2.h"
 #include "codechal_kernel_hme.h"
 #include "codeckrnheader.h"
+#include "mos_os_cp_interface_specific.h"
 
 #define CODECHAL_ENCODE_MPEG2_FCODE_X(width) ((width < 200) ? 3 : (width < 500) ? 4 : (width < 1400) ? 5 : 6)
 #define CODECHAL_ENCODE_MPEG2_FCODE_Y(fcodeX) ((fcodeX > 5) ? 5 : fcodeX)

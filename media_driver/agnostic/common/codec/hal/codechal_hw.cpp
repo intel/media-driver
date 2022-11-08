@@ -25,6 +25,7 @@
 //!
 #include "codechal_hw.h"
 #include "codechal_setting.h"
+#include "mos_os_cp_interface_specific.h"
 
 CodechalHwInterface::CodechalHwInterface(
     PMOS_INTERFACE    osInterface,

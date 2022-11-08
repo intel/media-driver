@@ -32,7 +32,6 @@
 #include "media_skuwa_specific.h"
 #include "mos_util_debug.h"
 #include "mos_os_hw.h"         //!< HW specific details that flow through OS pathes
-#include "mos_os_cp_interface_specific.h"         //!< CP specific OS functionality
 #if (_RELEASE_INTERNAL || _DEBUG)
 #if defined(CM_DIRECT_GUC_SUPPORT)
 #include "work_queue_mngr.h"
@@ -565,6 +564,7 @@ struct _MOS_INTERFACE;
 class MosVeInterface;
 class CommandList;
 class CmdBufMgrNext;
+class MosCpInterface;
 
 struct MosStreamState
 {
@@ -654,6 +654,7 @@ typedef void *              DDI_DEVICE_CONTEXT;  //!< stand for different os spe
 typedef void *              MOS_INTERFACE_HANDLE;
 
 class GpuContextMgr;
+
 //!
 //! \brief Structure to Unified HAL OS resources
 //!
@@ -671,7 +672,7 @@ typedef struct _MOS_INTERFACE
     //!< into the kernel subsystem
     HANDLE                          CurrentGpuContextRuntimeHandle;
 
-    //!< Only used in async mode for backward compatiable
+    //!< Only used in async and softlet mos mode for backward compatiable
     GPU_CONTEXT_HANDLE              m_GpuContextHandleMap[MOS_GPU_CONTEXT_MAX] = {0};
     GPU_CONTEXT_HANDLE              m_encContext;
     GPU_CONTEXT_HANDLE              m_pakContext;
@@ -807,9 +808,6 @@ typedef struct _MOS_INTERFACE
         PMOS_INTERFACE     pOsInterface,
         GPU_CONTEXT_HANDLE gpuContextHandle,
         MOS_GPU_CONTEXT    GpuContext);
-
-    GpuContextMgr* (*pfnGetGpuContextMgr) (
-        PMOS_INTERFACE     pOsInterface);
 
 #if (_RELEASE_INTERNAL || _DEBUG)
 #if defined(CM_DIRECT_GUC_SUPPORT)

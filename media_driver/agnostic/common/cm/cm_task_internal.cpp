@@ -44,6 +44,7 @@
 #include "cm_surface_vme.h"
 #include "cm_surface_sampler.h"
 #include "cm_surface_sampler8x8.h"
+#include "mos_os_cp_interface_specific.h"
 
 namespace CMRT_UMD
 {

@@ -28,6 +28,7 @@
 #include "codechal_setting.h"
 #include "decode_avc_feature_manager.h"
 #include "decode_huc_packet_creator_base.h" 
+#include "mos_os_cp_interface_specific.h"
 
 namespace decode
 {

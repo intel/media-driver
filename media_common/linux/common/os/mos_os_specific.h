@@ -26,12 +26,11 @@
 
 #ifndef __MOS_OS_SPECIFIC_H__
 #define __MOS_OS_SPECIFIC_H__
-
+#include "mos_defs.h"
 #include "media_skuwa_specific.h"
 #include "GmmLib.h"
 #include "mos_resource_defs.h"
-#include "mos_defs.h"
-#include "mos_os_cp_interface_specific.h"
+#include "mos_os_hw.h"
 #ifdef ANDROID
 #include <utils/Log.h>
 #endif

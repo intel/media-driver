@@ -30,6 +30,7 @@
 #include "encode_avc_brc.h"
 #include "encode_avc_vdenc_const_settings.h"
 #include "media_avc_feature_defs.h"
+#include "mos_os_cp_interface_specific.h"
 
 namespace encode {
 

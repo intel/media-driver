@@ -29,6 +29,7 @@
 #include "cm_kernel_ex.h"
 #include "cm_scratch_space.h"
 #include "mos_solo_generic.h"
+#include "mos_os_cp_interface_specific.h"
 
 #include <string>
 #include <iostream>

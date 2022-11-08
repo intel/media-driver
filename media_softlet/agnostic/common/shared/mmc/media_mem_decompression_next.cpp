@@ -27,6 +27,7 @@
 #include "media_mem_decompression_next.h"
 #include "vp_utils.h"
 #include "renderhal.h"
+#include "mos_os_cp_interface_specific.h"
 
 MediaMemDeCompNext::MediaMemDeCompNext():
     m_osInterface(nullptr),

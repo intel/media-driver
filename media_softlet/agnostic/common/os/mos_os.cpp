@@ -31,7 +31,6 @@
 
 #include "mos_os.h"
 #include "mos_util_debug.h"
-#include "mos_util_user_interface.h"
 #include "mos_interface.h"
 #include "media_user_setting.h"
 

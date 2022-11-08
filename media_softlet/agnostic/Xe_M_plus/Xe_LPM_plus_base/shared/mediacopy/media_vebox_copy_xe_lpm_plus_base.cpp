@@ -25,6 +25,7 @@
 //! \details  Common Copy interface and structure used in Vebox Engine
 #include "media_vebox_copy_xe_lpm_plus_base.h"
 #include "mhw_utilities_next.h"
+#include "mos_os_cp_interface_specific.h"
 #include "renderhal.h"
 
 #define SURFACE_DW_UY_OFFSET(pSurface) \

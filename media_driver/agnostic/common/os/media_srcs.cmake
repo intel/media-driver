@@ -37,6 +37,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mos_gpucontextmgr.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_cmdbufmgr.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_commandbuffer.h
+    ${CMAKE_CURRENT_LIST_DIR}/mos_util_user_interface.h
 )
 
 if(${Media_Scalability_Supported} STREQUAL "yes")

@@ -32,7 +32,7 @@
 #include <utility>
 #include <cstdarg>
 #include <cstdint>
-
+#include "media_class_trace.h"
 //!
 //! \class    DeviceInfoFactory
 //! \brief    Device info factory
@@ -99,6 +99,7 @@ private:
 
         return creators;
     }
+MEDIA_CLASS_DEFINE_END(DeviceInfoFactory)
 };
 
 #endif /*  _SKUWA_FACTORY_H_ */

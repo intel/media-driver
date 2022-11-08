@@ -24,6 +24,7 @@
 //! \brief    Defines functions for constructing Vdbox HCP commands on G9 SKL
 //!
 
+#include "mos_os_cp_interface_specific.h"
 #include "mhw_vdbox_hcp_g9_skl.h"
 #include "mhw_mi_hwcmd_g9_X.h"
 #include "mhw_vdbox_vdenc_hwcmd_g9_skl.h"

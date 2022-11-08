@@ -24,6 +24,7 @@
 //! \brief   Container class for the Linux specific gpu context
 //!
 
+#include <unistd.h>
 #include "mos_context_specific.h"
 #include "mos_gpucontext_specific.h"
 #include "mos_graphicsresource_specific.h"
@@ -31,7 +32,7 @@
 #include "mos_util_devult_specific.h"
 #include "mos_cmdbufmgr.h"
 #include "mos_os_virtualengine.h"
-#include <unistd.h>
+#include "mos_os_cp_interface_specific.h"
 
 #define MI_BATCHBUFFER_END 0x05000000
 static pthread_mutex_t command_dump_mutex = PTHREAD_MUTEX_INITIALIZER;

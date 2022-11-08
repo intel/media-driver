@@ -24,6 +24,7 @@
 //! \brief    Defines the interface for vp9 pak integrate packet
 //!
 #include "encode_vp9_pak_integrate_packet.h"
+#include "mos_os_cp_interface_specific.h"
 
 namespace encode
 {

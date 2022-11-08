@@ -1,4 +1,4 @@
-# Copyright (c) 2017, Intel Corporation
+# Copyright (c) 2017-2022, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -32,7 +32,7 @@ include(${MEDIA_SOFTLET_CMAKE}/media_feature_flags.cmake)
 
 if(NOT DEFINED SKIP_GMM_CHECK)
     # checking dependencies
-    pkg_check_modules(LIBGMM igdgmm)
+    pkg_check_modules(LIBGMM REQUIRED igdgmm>=12.0.0)
 
     if(LIBGMM_FOUND)
         include_directories(BEFORE ${LIBGMM_INCLUDE_DIRS})
@@ -61,16 +61,32 @@ if(X11_FOUND)
     endif()
 endif()
 
-set(LIB_NAME_OBJ    "${LIB_NAME}_OBJ")
-set(LIB_NAME_STATIC "${LIB_NAME}_STATIC")
-set(SOURCES_ "")
+set(LIB_NAME_STATIC "${LIB_NAME}_softlet_STATIC")
+set(SOFTLET_COMMON_SOURCES_ "")
+set(SOFTLET_COMMON_PRIVATE_INCLUDE_DIRS_ "")
+set(SOFTLET_VP_SOURCES_ "")       # softlet source group
+set (SOFTLET_VP_PRIVATE_INCLUDE_DIRS_ "")
+set(CP_COMMON_SHARED_SOURCES_ "") # legacy and softlet shared source group
+set(CP_COMMON_NEXT_SOURCES_ "")   # softlet source group
+
+######################################################
+#MOS LIB
+set (SOFTLET_MOS_COMMON_SOURCES_ "")
+set (SOFTLET_MOS_COMMON_HEADERS_ "")
+set (SOFTLET_MOS_PRIVATE_SOURCES_ "")
+set (SOFTLET_MOS_PUBLIC_INCLUDE_DIRS_ "")
+set (SOFTLET_MOS_PRIVATE_INCLUDE_DIRS_ "")
+set (SOFTLET_MOS_PREPEND_INCLUDE_DIRS_ "")
+set (SOFTLET_MOS_EXT_INCLUDE_DIRS_ "")
+######################################################
 
 # add source
-media_include_subdirectory(agnostic)
-media_include_subdirectory(linux)
 media_include_subdirectory(../media_common/agnostic)
 media_include_subdirectory(../media_common/linux)
 media_include_subdirectory(media_interface)
+
+media_include_subdirectory(agnostic)
+media_include_subdirectory(linux)
 
 include(${MEDIA_SOFTLET_EXT}/media_srcs_ext.cmake OPTIONAL)
 include(${MEDIA_COMMON_EXT}/media_srcs_ext.cmake OPTIONAL)
@@ -86,31 +102,64 @@ bs_set_defines()
 
 
 set_source_files_properties(${SOURCES_} PROPERTIES LANGUAGE "CXX")
+set_source_files_properties(${SOFTLET_COMMON_SOURCES_} PROPERTIES LANGUAGE "CXX")
 
-add_library(${LIB_NAME_OBJ} OBJECT ${SOURCES_})
-set_property(TARGET ${LIB_NAME_OBJ} PROPERTY POSITION_INDEPENDENT_CODE 1)
+set_source_files_properties(${SOFTLET_VP_SOURCES_} PROPERTIES LANGUAGE "CXX")
+set_source_files_properties(${CP_COMMON_SHARED_SOURCES_} PROPERTIES LANGUAGE "CXX")
+set_source_files_properties(${CP_COMMON_NEXT_SOURCES_} PROPERTIES LANGUAGE "CXX")
+set_source_files_properties(${SOURCES_SSE2} PROPERTIES LANGUAGE "CXX")
+set_source_files_properties(${SOURCES_SSE4} PROPERTIES LANGUAGE "CXX")
 
-add_library(${LIB_NAME} SHARED
-    $<TARGET_OBJECTS:${LIB_NAME_OBJ}>)
+############## MOS LIB ########################################
+set_source_files_properties(${MOS_COMMON_SOURCES_} PROPERTIES LANGUAGE "CXX")
+set_source_files_properties(${SOFTLET_MOS_COMMON_SOURCES_} PROPERTIES LANGUAGE "CXX")
 
-add_library(${LIB_NAME_STATIC} STATIC 
-    $<TARGET_OBJECTS:${LIB_NAME_OBJ}>)
+# This is to include drm_device.h in cmrtlib, no cpp file needed.
+set (SOFTLET_MOS_EXT_INCLUDE_DIRS_
+${SOFTLET_MOS_EXT_INCLUDE_DIRS_}
+${BS_DIR_MEDIA}/cmrtlib/linux/hardware
+${MEDIA_COMMON}/agnostic/common/shared/user_setting
+)
 
-set_target_properties(${LIB_NAME_STATIC} PROPERTIES OUTPUT_NAME ${LIB_NAME})
+
+#1 softlet mos lib
+add_library(${LIB_NAME}_mos_softlet OBJECT ${SOFTLET_MOS_COMMON_SOURCES_} ${SOFTLET_MOS_PRIVATE_SOURCES_})
+set_property(TARGET ${LIB_NAME}_mos_softlet PROPERTY POSITION_INDEPENDENT_CODE 1)
+MediaAddCommonTargetDefines(${LIB_NAME}_mos_softlet)
+target_include_directories(${LIB_NAME}_mos_softlet BEFORE PRIVATE
+    ${SOFTLET_MOS_PREPEND_INCLUDE_DIRS_}
+    ${SOFTLET_MOS_EXT_INCLUDE_DIRS_}
+    ${SOFTLET_MOS_PUBLIC_INCLUDE_DIRS_}
+)
+############## MOS LIB END ########################################
+
+############## Media Driver Static and Shared Lib ##################
+# The shared library cannot succeed until all refactor done. Comment it out.
+#add_library(${LIB_NAME}_softlet SHARED
+#    $<TARGET_OBJECTS:${LIB_NAME}_mos_softlet>)
+
+add_library(${LIB_NAME_STATIC} STATIC
+    $<TARGET_OBJECTS:${LIB_NAME}_mos_softlet>)
+
+set_target_properties(${LIB_NAME_STATIC} PROPERTIES OUTPUT_NAME ${LIB_NAME_STATIC})
 
 option(MEDIA_BUILD_FATAL_WARNINGS "Turn compiler warnings into fatal errors" ON)
 if(MEDIA_BUILD_FATAL_WARNINGS)
-    set_target_properties(${LIB_NAME_OBJ} PROPERTIES COMPILE_FLAGS "-Werror")
+    set_target_properties(${LIB_NAME}_mos_softlet PROPERTIES COMPILE_FLAGS "-Werror")
 endif()
 
-set_target_properties(${LIB_NAME} PROPERTIES LINK_FLAGS "-Wl,--no-as-needed -Wl,--gc-sections -z relro -z now -fstack-protector -fPIC")
-set_target_properties(${LIB_NAME}        PROPERTIES PREFIX "")
+set(MEDIA_LINK_FLAGS "-Wl,--no-as-needed -Wl,--gc-sections -z relro -z now -fPIC")
+option(MEDIA_BUILD_HARDENING "Enable hardening (stack-protector, fortify source)" ON)
+if(MEDIA_BUILD_HARDENING)
+    set(MEDIA_LINK_FLAGS "${MEDIA_LINK_FLAGS} -fstack-protector")
+endif()
+set_target_properties(${LIB_NAME}_softlet PROPERTIES LINK_FLAGS ${MEDIA_LINK_FLAGS})
+
+set_target_properties(${LIB_NAME}_softlet        PROPERTIES PREFIX "")
 set_target_properties(${LIB_NAME_STATIC} PROPERTIES PREFIX "")
 
-MediaAddCommonTargetDefines(${LIB_NAME_OBJ})
-
 bs_ufo_link_libraries_noBsymbolic(
-    ${LIB_NAME}
+    ${LIB_NAME}_softlet
     "${INCLUDED_LIBS}"
     "${PKG_PCIACCESS_LIBRARIES} m pthread dl"
 )
@@ -131,13 +180,15 @@ if (NOT DEFINED INCLUDED_LIBS OR "${INCLUDED_LIBS}" STREQUAL "")
         set(LIBGMM_LIBRARIES igfx_gmmumd_dll)
     endif()
 
-    target_compile_options( ${LIB_NAME} PUBLIC ${LIBGMM_CFLAGS_OTHER})
-    target_link_libraries ( ${LIB_NAME} ${LIBGMM_LIBRARIES})
+    target_compile_options( ${LIB_NAME}_softlet PUBLIC ${LIBGMM_CFLAGS_OTHER})
+    target_link_libraries ( ${LIB_NAME}_softlet ${LIBGMM_LIBRARIES})
 
-    target_compile_definitions(${LIB_NAME} PUBLIC GMM_LIB_DLL)
+    target_compile_definitions(${LIB_NAME}_softlet PUBLIC GMM_LIB_DLL)
     include(${MEDIA_SOFTLET_EXT_CMAKE}/media_feature_include_ext.cmake OPTIONAL)
 
 endif(NOT DEFINED INCLUDED_LIBS OR "${INCLUDED_LIBS}" STREQUAL "")
+
+############## Media Driver Static and Shared Lib ##################
 
 # post target attributes
 bs_set_post_target()

@@ -39,6 +39,7 @@
 #include "mhw_mi_g12_X.h"
 #include "mos_solo_generic.h"
 #include "cm_hal_g12.h"
+#include "mos_os_cp_interface_specific.h"
 
 CmCommandBuffer::CmCommandBuffer(CM_HAL_STATE *cmhal):
     m_cmhal(cmhal),

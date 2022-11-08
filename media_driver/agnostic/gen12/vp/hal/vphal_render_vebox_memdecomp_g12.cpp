@@ -29,6 +29,7 @@
 #include "mhw_vebox_hwcmd_g12_X.h"
 #include "mhw_vebox_g12_X.h"
 #include "hal_oca_interface.h"
+#include "mos_os_cp_interface_specific.h"
 #include "vp_utils.h"
 
 MediaVeboxDecompStateG12::MediaVeboxDecompStateG12() :

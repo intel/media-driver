@@ -25,7 +25,7 @@
 //! \details  MOS media copy functions
 //!
 
-#include "mos_mediacopy_base.h"
+#include "mos_mediacopy.h"
 
 MosMediaCopy::MosMediaCopy(PMOS_CONTEXT mosCtx):
     MosMediaCopyBase(mosCtx)

@@ -30,6 +30,7 @@
 
 #include "mhw_mi.h"
 #include "mhw_cp_interface.h"
+#include "mos_os_cp_interface_specific.h"
 
 template <class TMiCmds>
 class MhwMiInterfaceGeneric : public MhwMiInterface

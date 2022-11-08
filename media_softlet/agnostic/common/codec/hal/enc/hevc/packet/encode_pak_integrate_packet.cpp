@@ -23,11 +23,12 @@
 //! \file     encode_pak_integrate_packet.cpp
 //! \brief    Defines the interface for pak integrate packet
 //!
+#include "mos_defs.h"
 #include "encode_pak_integrate_packet.h"
 #include "mhw_vdbox.h"
 #include "encode_hevc_brc.h"
 #include "encode_status_report_defs.h"
-#include "mos_defs.h"
+#include "mos_os_cp_interface_specific.h"
 
 namespace encode {
     MOS_STATUS HevcPakIntegratePkt::Init()

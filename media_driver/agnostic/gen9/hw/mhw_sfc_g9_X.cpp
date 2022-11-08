@@ -28,6 +28,7 @@
 
 #include "mhw_sfc.h"
 #include "mhw_sfc_g9_X.h"
+#include "mos_os_cp_interface_specific.h"
 
 MOS_STATUS MhwSfcInterfaceG9::AddSfcState(
     PMOS_COMMAND_BUFFER            pCmdBuffer,
