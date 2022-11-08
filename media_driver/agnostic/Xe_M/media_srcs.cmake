@@ -22,11 +22,11 @@ if(ENABLE_REQUIRED_GEN_CODE OR GEN12)
     media_include_subdirectory(Xe_M_base)
 endif()
 
-if(XEHP_SDV)
+if(XEHP_SDV OR XE_LPG)
     media_include_subdirectory(Xe_XPM)
 endif()
 
-if(DG2)
+if(DG2 OR XE_LPG)
     media_include_subdirectory(Xe_HPM)
 endif()
 

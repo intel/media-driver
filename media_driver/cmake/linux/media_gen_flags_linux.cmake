@@ -121,6 +121,7 @@ option(MTL "Enable MTL support" ON)
 
 if(MTL)
     option(XE_LPM_PLUS_SUPPORT "Enable XE_LPM_PLUS support" ON)
+    option(XE_LPG "Enable XE_LPG support" ON)
 endif()
 
 if(MTL)

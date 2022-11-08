@@ -18,12 +18,12 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-if(XEHP_SDV)
+if(XEHP_SDV OR XE_LPG)
     media_include_subdirectory(Xe_XPM_base)
     media_include_subdirectory(Xe_XPM)
 endif()
 
-if (DG2)
+if (DG2 OR XE_LPG)
     media_include_subdirectory(Xe_HPM)
 endif()
 

@@ -79,11 +79,11 @@ if(GEN12_ADLN)
     media_include_subdirectory(media_interfaces_m12_adln)
 endif()
 
-if(XEHP_SDV)
+if(XEHP_SDV OR XE_LPG)
     media_include_subdirectory(media_interfaces_xehp_sdv)
 endif()
 
-if(DG2)
+if(DG2 OR XE_LPG)
     media_include_subdirectory(media_interfaces_dg2)
 endif()
 

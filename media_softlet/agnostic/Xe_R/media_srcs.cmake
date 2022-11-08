@@ -21,7 +21,7 @@
 # This folder is only for render engine related files!
 # Do not add other files here.
 
-if(XE_HPG)
+if(XE_HPG OR XE_LPG)
     media_include_subdirectory(Xe_HPG_Base)
     media_include_subdirectory(Xe_HPG)
 endif()
