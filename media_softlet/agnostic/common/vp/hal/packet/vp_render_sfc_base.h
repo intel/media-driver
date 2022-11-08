@@ -32,7 +32,7 @@
 #include "vp_sfc_common.h"
 #include "vp_vebox_common.h"
 #include "vp_allocator.h"
-#include "codec_def_decode_jpeg.h"
+#include "media_defs.h"
 #include "mhw_sfc_itf.h"
 #include "media_feature.h"
 

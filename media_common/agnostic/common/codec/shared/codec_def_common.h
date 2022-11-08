@@ -29,6 +29,7 @@
 
 #include "mos_defs.h"
 #include "mos_os.h"
+#include "media_defs.h"
 #include <math.h>
 
 #define CODEC_MAX_NUM_REF_FRAME             16
@@ -131,37 +132,6 @@ enum REFLIST
 {
     LIST_0 = 0,
     LIST_1 = 1
-};
-
-//!
-//! \enum     CODECHAL_STANDARD 
-//! \brief    Codec standard
-//!
-enum CODECHAL_STANDARD
-{
-    // MFX/MFL pipeline
-    CODECHAL_MPEG2      = 0,
-    CODECHAL_VC1        = 1,
-    CODECHAL_AVC        = 2,
-    CODECHAL_JPEG       = 3,
-    CODECHAL_RESERVED   = 4,    //formerly SVC
-    CODECHAL_VP8        = 5,
-    CODECHAL_UNDEFINED  = 9,
-
-    // Cenc Decode
-    CODECHAL_CENC       = 63,
-
-    // HCP pipeline
-    CODECHAL_HCP_BASE   = 64,
-    CODECHAL_HEVC       = CODECHAL_HCP_BASE,
-    CODECHAL_VP9        = CODECHAL_HCP_BASE + 1,
-
-    //AVP pipeline
-    CODECHAL_AVP_BASE   = CODECHAL_HCP_BASE + 2,
-    CODECHAL_AV1        = CODECHAL_AVP_BASE,
-
-    CODECHAL_RESERVED1,
-    CODECHAL_STANDARD_MAX
 };
 
 //!
@@ -411,14 +381,6 @@ typedef enum _CODECHAL_STATUS
     CODECHAL_STATUS_ERROR       = 2,
     CODECHAL_STATUS_UNAVAILABLE = 3     //!< Indicates that the entry in the status reporting array was not used
 } CODECHAL_STATUS, *PCODECHAL_STATUS;
-
-typedef enum _CODECHAL_SCALING_MODE
-{
-    CODECHAL_SCALING_NEAREST = 0,
-    CODECHAL_SCALING_BILINEAR,
-    CODECHAL_SCALING_AVS,
-    CODECHAL_SCALING_ADV_QUALITY        // !< Advance Perf mode
-} CODECHAL_SCALING_MODE;
 
 typedef enum _CODECHAL_CHROMA_SITING_TYPE
 {

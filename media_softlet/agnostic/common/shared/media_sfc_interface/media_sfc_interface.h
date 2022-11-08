@@ -29,9 +29,8 @@
 
 #include <stdint.h>
 #include "mos_os_specific.h"
-#include "codec_def_decode_jpeg.h"
+#include "media_defs.h"
 #include "media_common_defs.h"
-#include "codec_def_common.h"
 #include "mos_defs.h"
 #include "mos_defs_specific.h"
 #include "mos_os.h"

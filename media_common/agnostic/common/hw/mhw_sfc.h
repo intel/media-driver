@@ -31,8 +31,7 @@
 #include "mhw_state_heap.h"
 #include "mhw_utilities.h"
 #include "mos_os.h"
-#include "codec_def_common.h"
-#include "codec_def_decode_jpeg.h"
+#include "media_defs.h"
 
 static const int   MHW_SFC_CACHELINE_SIZE    = 64;
 static const int   MHW_SFC_MIN_HEIGHT        = 128;
