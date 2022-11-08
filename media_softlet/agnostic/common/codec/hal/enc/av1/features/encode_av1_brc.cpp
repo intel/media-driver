@@ -299,7 +299,7 @@ namespace encode
         dmem->UPD_ErrorResilientMode             = 0;
         dmem->UPD_IntraOnly                      = 0;
         dmem->UPD_PrimaryRefFrame                = 0;
-        dmem->UPD_SegOn                          = 0;
+        dmem->UPD_SegOn                          = m_basicFeature->m_av1PicParams->stAV1Segments.SegmentFlags.fields.segmentation_enabled;
         dmem->UPD_SegMapUpdate                   = 0;
         dmem->UPD_SegTemporalUpdate              = 0;
         dmem->UPD_SegUpdateData                  = 0;
