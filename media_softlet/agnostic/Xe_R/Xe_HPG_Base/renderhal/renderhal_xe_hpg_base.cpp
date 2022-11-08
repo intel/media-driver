@@ -121,22 +121,26 @@ MOS_STATUS XRenderHal_Interface_Xe_Hpg_Base::SetupSurfaceState(
 
     //-----------------------------------------
     MHW_RENDERHAL_UNUSED(pOffsetOverride);
-    MHW_RENDERHAL_CHK_NULL(pRenderHal);
-    MHW_RENDERHAL_CHK_NULL(pRenderHalSurface);
-    MHW_RENDERHAL_CHK_NULL(pParams);
-    MHW_RENDERHAL_CHK_NULL(ppSurfaceEntries);
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pStateHeap);
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pHwSizes);
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwStateHeap);
-    MHW_RENDERHAL_ASSERT(pRenderHalSurface->Rotation >= 0 && pRenderHalSurface->Rotation < 8);
-    //-----------------------------------------
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHalSurface);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pParams);
+    MHW_RENDERHAL_CHK_NULL_RETURN(ppSurfaceEntries);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pStateHeap);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pHwSizes);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pMhwStateHeap);
+
+    int32_t index            = pRenderHalSurface->Rotation;
+    if (!(index >= 0 && index < 8))
+    {
+        MHW_RENDERHAL_ASSERTMESSAGE("Invalid Rotation");
+    }
 
     dwSurfaceSize = pRenderHal->pHwSizes->dwSizeSurfaceState;
 
     MOS_ZeroMemory(&SurfStateParams, sizeof(SurfStateParams));
 
     // Get the Surface State Entries
-    MHW_RENDERHAL_CHK_STATUS(pRenderHal->pfnGetSurfaceStateEntries(
+    MHW_RENDERHAL_CHK_STATUS_RETURN(pRenderHal->pfnGetSurfaceStateEntries(
         pRenderHal,
         pRenderHalSurface,
         pParams,
@@ -149,7 +153,7 @@ MOS_STATUS XRenderHal_Interface_Xe_Hpg_Base::SetupSurfaceState(
         pSurfaceEntry = ppSurfaceEntries[i];
 
         pSurface = pSurfaceEntry->pSurface;
-        MHW_RENDERHAL_CHK_NULL(pSurface);
+        MHW_RENDERHAL_CHK_NULL_RETURN(pSurface);
 
         // Set the Surface State Offset from base of SSH
         pSurfaceEntry->dwSurfStateOffset = pRenderHal->pStateHeap->iSurfaceStateOffset +  // Offset to Base Of Current Surface State Area
@@ -299,15 +303,14 @@ MOS_STATUS XRenderHal_Interface_Xe_Hpg_Base::SetupSurfaceState(
         }
 
         // Call MHW to setup the Surface State Heap entry
-        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwStateHeap->SetSurfaceStateEntry(&SurfStateParams));
+        MHW_RENDERHAL_CHK_STATUS_RETURN(pRenderHal->pMhwStateHeap->SetSurfaceStateEntry(&SurfStateParams));
 
         // Setup OS specific states
-        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pfnSetupSurfaceStatesOs(pRenderHal, pParams, pSurfaceEntry));
+        MHW_RENDERHAL_CHK_STATUS_RETURN(pRenderHal->pfnSetupSurfaceStatesOs(pRenderHal, pParams, pSurfaceEntry));
     }
 
     eStatus = MOS_STATUS_SUCCESS;
 
-finish:
     return eStatus;
 }
 
@@ -495,13 +498,13 @@ MOS_STATUS XRenderHal_Interface_Xe_Hpg_Base::EnableL3Caching(
     MOS_STATUS                              eStatus = MOS_STATUS_SUCCESS;
     mhw::render::MHW_RENDER_ENGINE_L3_CACHE_SETTINGS cacheConfig = {};
 
-    MHW_RENDERHAL_CHK_NULL(pRenderHal);
-    MHW_RENDERHAL_CHK_NULL(m_renderItf);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
+    MHW_RENDERHAL_CHK_NULL_RETURN(m_renderItf);
 
     if (nullptr == pCacheSettings)
     {
-        MHW_RENDERHAL_CHK_STATUS(m_renderItf->EnableL3Caching(nullptr));
-        goto finish;
+        MHW_RENDERHAL_CHK_STATUS_RETURN(m_renderItf->EnableL3Caching(nullptr));
+        return eStatus;
     }
     cacheConfig.dwCntlReg = RENDERHAL_L3_CACHE_CONFIG_CNTLREG_VALUE_XE_HPG_BASE_RENDERHAL;
     // Override L3 cache configuration
@@ -512,9 +515,8 @@ MOS_STATUS XRenderHal_Interface_Xe_Hpg_Base::EnableL3Caching(
             cacheConfig.dwCntlReg = pCacheSettings->dwCntlReg;
         }
     }
-    MHW_RENDERHAL_CHK_STATUS(m_renderItf->EnableL3Caching(&cacheConfig));
+    MHW_RENDERHAL_CHK_STATUS_RETURN(m_renderItf->EnableL3Caching(&cacheConfig));
     
-finish:
     return eStatus;
 }
 
@@ -555,14 +557,14 @@ MOS_STATUS XRenderHal_Interface_Xe_Hpg_Base::SetPowerOptionStatus(
     MOS_STATUS                  eStatus;
     MEDIA_SYSTEM_INFO           *pGtSystemInfo;
 
-    MHW_RENDERHAL_CHK_NULL(pRenderHal);
-    MHW_RENDERHAL_CHK_NULL(pCmdBuffer);
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pOsInterface);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pCmdBuffer);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pOsInterface);
 
     eStatus         = MOS_STATUS_SUCCESS;
     pOsInterface    = pRenderHal->pOsInterface;
     pGtSystemInfo   = pOsInterface->pfnGetGtSystemInfo(pOsInterface);
-    MHW_RENDERHAL_CHK_NULL(pGtSystemInfo);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pGtSystemInfo);
 
     // Check if Slice Shutdown can be enabled
     if (pRenderHal->bRequestSingleSlice)
@@ -588,7 +590,6 @@ MOS_STATUS XRenderHal_Interface_Xe_Hpg_Base::SetPowerOptionStatus(
         }
     }
 
-finish:
     return eStatus;
 }
 
@@ -608,10 +609,10 @@ MOS_STATUS XRenderHal_Interface_Xe_Hpg_Base::SetCompositePrologCmd(
     MOS_STATUS                            eStatus = MOS_STATUS_SUCCESS;
     uint64_t                              auxTableBaseAddr = 0;
 
-    MHW_RENDERHAL_CHK_NULL(pRenderHal);
-    MHW_RENDERHAL_CHK_NULL(pCmdBuffer);
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pOsInterface);
-    MHW_RENDERHAL_CHK_NULL(m_miItf);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pCmdBuffer);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pOsInterface);
+    MHW_RENDERHAL_CHK_NULL_RETURN(m_miItf);
 
     auxTableBaseAddr = pRenderHal->pOsInterface->pfnGetAuxTableBaseAddr(pRenderHal->pOsInterface);
 
@@ -636,7 +637,6 @@ MOS_STATUS XRenderHal_Interface_Xe_Hpg_Base::SetCompositePrologCmd(
         m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(pCmdBuffer);
     }
 
-finish:
     return eStatus;
 }
 
@@ -648,7 +648,7 @@ MOS_STATUS XRenderHal_Interface_Xe_Hpg_Base::IsRenderHalMMCEnabled(
     MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
     MOS_USER_FEATURE_VALUE_DATA UserFeatureData;
 
-    MHW_RENDERHAL_CHK_NULL_NO_STATUS(pRenderHal);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
 
     // Read user feature key to set MMC for Fast Composition surfaces
     MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
@@ -670,7 +670,6 @@ MOS_STATUS XRenderHal_Interface_Xe_Hpg_Base::IsRenderHalMMCEnabled(
     m_renderHalMMCEnabled    = UserFeatureData.bData && MEDIA_IS_SKU(pRenderHal->pSkuTable, FtrE2ECompression);
     pRenderHal->isMMCEnabled = m_renderHalMMCEnabled;
 
-finish:
     return eStatus;
 }
 
@@ -686,19 +685,19 @@ MOS_STATUS XRenderHal_Interface_Xe_Hpg_Base::SendComputeWalker(
     PRENDERHAL_KRN_ALLOCATION pKernelEntry;
     PRENDERHAL_MEDIA_STATE    pCurMediaState;
 
-    MHW_RENDERHAL_CHK_NULL(pRenderHal);
-    MHW_RENDERHAL_CHK_NULL(pCmdBuffer);
-    MHW_RENDERHAL_CHK_NULL(pGpGpuWalkerParams);
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pStateHeap);
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pStateHeap->pKernelAllocation);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pCmdBuffer);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pGpGpuWalkerParams);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pStateHeap);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pStateHeap->pKernelAllocation);
 
     MOS_ZeroMemory(&mhwIdEntryParams, sizeof(mhwIdEntryParams));
 
     pKernelEntry   = &pRenderHal->pStateHeap->pKernelAllocation[pRenderHal->iKernelAllocationID];
     pCurMediaState = pRenderHal->pStateHeap->pCurMediaState;
 
-    MHW_RENDERHAL_CHK_NULL(pKernelEntry);
-    MHW_RENDERHAL_CHK_NULL(pCurMediaState);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pKernelEntry);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pCurMediaState);
 
     mhwIdEntryParams.dwKernelOffset  = pKernelEntry->dwOffset;
     mhwIdEntryParams.dwSamplerCount  = pKernelEntry->Params.Sampler_Count;
@@ -713,12 +712,11 @@ MOS_STATUS XRenderHal_Interface_Xe_Hpg_Base::SendComputeWalker(
     mhwIdEntryParams.bBarrierEnable              = pRenderHal->eufusionBypass ? 1 : 0;
     pGpGpuWalkerParams->IndirectDataStartAddress = pGpGpuWalkerParams->IndirectDataStartAddress + pRenderHal->pStateHeap->pCurMediaState->dwOffset;
 
-    MHW_RENDERHAL_CHK_NULL(m_renderItf);
+    MHW_RENDERHAL_CHK_NULL_RETURN(m_renderItf);
     m_gpgpuWalkerParams         = pGpGpuWalkerParams;
     m_interfaceDescriptorParams = &mhwIdEntryParams;
     SETPAR_AND_ADDCMD(COMPUTE_WALKER, m_renderItf, pCmdBuffer);
 
-finish:
     return eStatus;
 }
 
@@ -744,10 +742,10 @@ MOS_STATUS XRenderHal_Interface_Xe_Hpg_Base::IsOvrdNeeded(
     PRENDERHAL_GENERIC_PROLOG_PARAMS_NEXT pGenericPrologParamsNext;
     uint8_t                               i;
 
-    MHW_RENDERHAL_CHK_NULL(pRenderHal);
-    MHW_RENDERHAL_CHK_NULL(pCmdBuffer);
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pOsInterface);
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pRenderHalPltInterface);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pCmdBuffer);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pOsInterface);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pRenderHalPltInterface);
 
     eStatus                 = MOS_STATUS_SUCCESS;
     pOsInterface            = pRenderHal->pOsInterface;
@@ -804,7 +802,6 @@ MOS_STATUS XRenderHal_Interface_Xe_Hpg_Base::IsOvrdNeeded(
 #endif
     }
 
-finish:
     return eStatus;
 };
 
@@ -827,14 +824,13 @@ MOS_STATUS XRenderHal_Interface_Xe_Hpg_Base::SetCacheOverrideParams(
 
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
-    MHW_RENDERHAL_CHK_NULL(pCacheSettings);
-    MHW_RENDERHAL_CHK_NULL(pRenderHal);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pCacheSettings);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
 
     pCacheSettings->dwCntlReg = RENDERHAL_L3_CACHE_CONFIG_CNTLREG_VALUE_XE_HPG_BASE_RENDERHAL;
 
     pCacheSettings->bCntlRegOverride = true;
 
-finish:
     return eStatus;
 }
 
@@ -1012,12 +1008,11 @@ MOS_STATUS XRenderHal_Interface_Xe_Hpg_Base::SendTo3DStateBindingTablePoolAlloc(
     VP_FUNC_CALL();
 
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-    MHW_RENDERHAL_CHK_NULL(pRenderHal);
-    MHW_RENDERHAL_CHK_NULL(pCmdBuffer);
-    MHW_RENDERHAL_CHK_NULL(m_renderItf);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pCmdBuffer);
+    MHW_RENDERHAL_CHK_NULL_RETURN(m_renderItf);
     SETPAR_AND_ADDCMD(_3DSTATE_BINDING_TABLE_POOL_ALLOC, m_renderItf, pCmdBuffer);
 
-finish:
     return eStatus;
 }
 

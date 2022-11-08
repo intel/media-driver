@@ -184,60 +184,86 @@ MOS_STATUS BltStateXe_Lpm_Plus_Base::LockSurface(
 {
     MOS_STATUS eStatus    = MOS_STATUS_SUCCESS;
     void*      pTemp      = nullptr;
-
-    BLT_CHK_NULL(pSurface);
-
-    // Initialize for the first time
-    if (!initialized)
+    do
     {
-        BLT_CHK_STATUS(Initialize());
-    }
+        if (pSurface==nullptr)
+        {
+            BLT_ASSERTMESSAGE("BLT: pSurface check nullptr fail in LockSurface.")
+            break;
+        }
 
-    // Allocate internel resource
-    BLT_CHK_STATUS(AllocateResource(pSurface));
+        // Initialize for the first time
+        if (!initialized)
+        {
+            if (Initialize() != MOS_STATUS_SUCCESS)
+            {
+                break;
+            }
+        }
 
-    // Get main surface and CCS
-    // Currentlt main surface copy will cause page fault, which cause crash.
-    // BLT_CHK_STATUS(CopyMainSurface(pSurface, tempSurface));
-    BLT_CHK_STATUS(GetCCS(pSurface, tempAuxSurface));
+        // Allocate internel resource
+        if (AllocateResource (pSurface) != MOS_STATUS_SUCCESS)
+        {
+            break;
+        }
 
-    MOS_LOCK_PARAMS LockFlags;
-    LockFlags.Value        = 0;
-    LockFlags.ReadOnly     = 1;
-    LockFlags.TiledAsTiled = 1;
-    LockFlags.NoDecompress = 1;
+        // Get main surface and CCS
+        // Currentlt main surface copy will cause page fault, which cause crash.
+        // BLT_CHK_STATUS(CopyMainSurface(pSurface, tempSurface));
+        if (GetCCS(pSurface, tempAuxSurface) != MOS_STATUS_SUCCESS)
+        {
+            break;
+        }
 
-    // Lock main surface data
-    pTemp = (uint8_t*)m_osInterface->pfnLockResource(
-        m_osInterface,
-        &pSurface->OsResource,
-        &LockFlags);
-    BLT_CHK_NULL(pTemp);
+        MOS_LOCK_PARAMS LockFlags;
+        LockFlags.Value        = 0;
+        LockFlags.ReadOnly     = 1;
+        LockFlags.TiledAsTiled = 1;
+        LockFlags.NoDecompress = 1;
 
-    MOS_SecureMemcpy(
-        pMainSurface,
-        surfaceSize,
-        pTemp,
-        surfaceSize);
-    BLT_CHK_STATUS(m_osInterface->pfnUnlockResource(m_osInterface, &pSurface->OsResource));
+        // Lock main surface data
+        pTemp = (uint8_t *)m_osInterface->pfnLockResource(
+            m_osInterface,
+            &pSurface->OsResource,
+            &LockFlags);
+        if (pTemp == nullptr)
+        {
+            break;
+        }
 
-    // Lock CCS data
-    pTemp = (uint8_t*)m_osInterface->pfnLockResource(
-        m_osInterface,
-        &tempAuxSurface->OsResource,
-        &LockFlags);
-    BLT_CHK_NULL(pTemp);
+        MOS_SecureMemcpy(
+            pMainSurface,
+            surfaceSize,
+            pTemp,
+            surfaceSize);
+        if (m_osInterface->pfnUnlockResource(m_osInterface, &pSurface->OsResource) != MOS_STATUS_SUCCESS)
+        {
+            break;
+        }
 
-    MOS_SecureMemcpy(
-        pAuxSurface,
-        auxSize,
-        pTemp,
-        auxSize);
-    BLT_CHK_STATUS(m_osInterface->pfnUnlockResource(m_osInterface, &tempAuxSurface->OsResource));
+        // Lock CCS data
+        pTemp = (uint8_t *)m_osInterface->pfnLockResource(
+            m_osInterface,
+            &tempAuxSurface->OsResource,
+            &LockFlags);
+        if (pTemp == nullptr)
+        {
+            break;
+        }
 
-    return eStatus;
+        MOS_SecureMemcpy(
+            pAuxSurface,
+            auxSize,
+            pTemp,
+            auxSize);
+        if (m_osInterface->pfnUnlockResource(m_osInterface, &tempAuxSurface->OsResource))
+        {
+            break;
+        }
 
-finish:
+        return eStatus;
+    } while (false);
+
     BLT_ASSERTMESSAGE("BLT: Lock surface failed.");
     FreeResource();
     return eStatus;
@@ -275,56 +301,74 @@ MOS_STATUS BltStateXe_Lpm_Plus_Base::WriteCompressedSurface(
     MOS_STATUS eStatus  = MOS_STATUS_SUCCESS;
     void*      pTemp    = nullptr;
     uint32_t   sizeAux  = 0;
-    BLT_CHK_NULL(pSurface);
-
-    // Initialize for the first time
-    if (!initialized)
+    do
     {
-        BLT_CHK_STATUS(Initialize());
-    }
+        if (pSurface == nullptr)
+        {
+            BLT_ASSERTMESSAGE("BLT: pSurface check nullptr fail in WriteCompressedSurface.")
+            break;
+        }
 
-    // Allocate internel resource
-    BLT_CHK_STATUS(AllocateResource(pSurface));
+        // Initialize for the first time
+        if (!initialized)
+        {
+            if (Initialize() != MOS_STATUS_SUCCESS)
+            {
+                break;
+            }
+        }
 
-    sizeAux = dataSize / 257;
+        // Allocate internel resource
+        if (AllocateResource(pSurface) != MOS_STATUS_SUCCESS)
+        {
+            break;
+        }
 
-    MOS_LOCK_PARAMS LockFlags;
-    LockFlags.Value     = 0;
-    LockFlags.WriteOnly = 1;
-    LockFlags.TiledAsTiled = 1;
-    LockFlags.NoDecompress = 1;
+        sizeAux = dataSize / 257;
 
-    // Lock temp main surface
-    pTemp = (uint32_t*)m_osInterface->pfnLockResource(
-        m_osInterface,
-        &pSurface->OsResource,
-        &LockFlags);
-    // copy surface data to temp surface
-    MOS_SecureMemcpy(
-        pTemp,
-        sizeAux*256,
-        pSysMemory,
-        sizeAux*256);
-    BLT_CHK_STATUS(m_osInterface->pfnUnlockResource(m_osInterface, &pSurface->OsResource));
+        MOS_LOCK_PARAMS LockFlags;
+        LockFlags.Value        = 0;
+        LockFlags.WriteOnly    = 1;
+        LockFlags.TiledAsTiled = 1;
+        LockFlags.NoDecompress = 1;
 
-    // Lock temp aux surface
-    pTemp = (uint8_t*)m_osInterface->pfnLockResource(
-        m_osInterface,
-        &tempAuxSurface->OsResource,
-        &LockFlags);
-    // copy aux data to temp aux surface
-    MOS_SecureMemcpy(
-        pTemp,
-        sizeAux,
-        (uint8_t*)pSysMemory+sizeAux*256,
-        sizeAux);
-    BLT_CHK_STATUS(m_osInterface->pfnUnlockResource(m_osInterface, &tempAuxSurface->OsResource));
-    BLT_CHK_STATUS_RETURN(PutCCS(tempAuxSurface, pSurface));
+        // Lock temp main surface
+        pTemp = (uint32_t *)m_osInterface->pfnLockResource(
+            m_osInterface,
+            &pSurface->OsResource,
+            &LockFlags);
+        // copy surface data to temp surface
+        MOS_SecureMemcpy(
+            pTemp,
+            sizeAux * 256,
+            pSysMemory,
+            sizeAux * 256);
+        if (m_osInterface->pfnUnlockResource(m_osInterface, &pSurface->OsResource) != MOS_STATUS_SUCCESS)
+        {
+            break;
+        }
 
-    FreeResource();
-    return eStatus;
+        // Lock temp aux surface
+        pTemp = (uint8_t *)m_osInterface->pfnLockResource(
+            m_osInterface,
+            &tempAuxSurface->OsResource,
+            &LockFlags);
+        // copy aux data to temp aux surface
+        MOS_SecureMemcpy(
+            pTemp,
+            sizeAux,
+            (uint8_t *)pSysMemory + sizeAux * 256,
+            sizeAux);
+        if (m_osInterface->pfnUnlockResource(m_osInterface, &tempAuxSurface->OsResource) != MOS_STATUS_SUCCESS)
+        {
+            break;
+        }
+        BLT_CHK_STATUS_RETURN(PutCCS(tempAuxSurface, pSurface));
 
-finish:
+        FreeResource();
+        return eStatus;
+    } while (false);
+
     BLT_ASSERTMESSAGE("BLT: Write compressed surface failed.");
     FreeResource();
     return eStatus;

@@ -739,8 +739,8 @@ static __inline MOS_STATUS Mhw_AddCommandBB(
     MOS_STATUS  eStatus = MOS_STATUS_SUCCESS;
 
     //---------------------------------------------
-    MHW_CHK_NULL(pBatchBuffer);
-    MHW_CHK_NULL(pBatchBuffer->pData);
+    MHW_CHK_NULL_RETURN(pBatchBuffer);
+    MHW_CHK_NULL_RETURN(pBatchBuffer->pData);
     //---------------------------------------------
 
     pbBatchPtr = pBatchBuffer->pData + pBatchBuffer->iCurrent;
@@ -766,7 +766,6 @@ static __inline MOS_STATUS Mhw_AddCommandBB(
         }
     }
 
-finish:
     return eStatus;
 }
 

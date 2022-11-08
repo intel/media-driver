@@ -184,7 +184,7 @@ MOS_STATUS MediaRenderCommon::Set2DSurfaceForHwAccess(
     }
 
     // Setup surface states-----------------------------------------------------
-    MHW_CHK_STATUS(pRenderHal->pfnSetupSurfaceState(
+    MHW_CHK_STATUS_RETURN(pRenderHal->pfnSetupSurfaceState(
         pRenderHal,
         pRenderSurface,
         pSurfaceParams,
@@ -195,14 +195,13 @@ MOS_STATUS MediaRenderCommon::Set2DSurfaceForHwAccess(
     // Bind surface states------------------------------------------------------
     for (i = 0; i < iSurfaceEntries; i++, iBTEntry++)
     {
-        MHW_CHK_STATUS(pRenderHal->pfnBindSurfaceState(
+        MHW_CHK_STATUS_RETURN(pRenderHal->pfnBindSurfaceState(
             pRenderHal,
             iBindingTable,
             iBTEntry,
             pSurfaceEntries[i]));
     }
 
-finish:
     return eStatus;
 }
 
@@ -252,7 +251,7 @@ MOS_STATUS MediaRenderCommon::Set1DSurfaceForHwAccess(
 
     // Register surfaces for rendering (GfxAddress/Allocation index)
     // Register resource
-    MHW_CHK_STATUS(pOsInterface->pfnRegisterResource(
+    MHW_CHK_STATUS_RETURN(pOsInterface->pfnRegisterResource(
         pOsInterface,
         &pSurface->OsResource,
         bWrite,
@@ -271,21 +270,20 @@ MOS_STATUS MediaRenderCommon::Set1DSurfaceForHwAccess(
         pSurfaceParams = &SurfaceParam;
     }
 
-    MHW_CHK_STATUS(InitRenderHalSurface(pOsInterface, pSurface, pRenderSurface));
-    MHW_CHK_STATUS(pRenderHal->pfnSetupBufferSurfaceState(
+    MHW_CHK_STATUS_RETURN(InitRenderHalSurface(pOsInterface, pSurface, pRenderSurface));
+    MHW_CHK_STATUS_RETURN(pRenderHal->pfnSetupBufferSurfaceState(
         pRenderHal,
         pRenderSurface,
         pSurfaceParams,
         &pSurfaceEntry));
 
     // Bind surface state-------------------------------------------------------
-    MHW_CHK_STATUS(pRenderHal->pfnBindSurfaceState(
+    MHW_CHK_STATUS_RETURN(pRenderHal->pfnBindSurfaceState(
         pRenderHal,
         iBindingTable,
         iBTEntry,
         pSurfaceEntry));
 
-finish:
     return eStatus;
 }
 
@@ -303,7 +301,7 @@ MOS_STATUS MediaRenderCommon::SetPowerMode(
     MediaUserSettingSharedPtr           userSettingPtr = nullptr;
     uint32_t                            value = 0;
 
-    MHW_CHK_NULL(pRenderHal);
+    MHW_CHK_NULL_RETURN(pRenderHal);
 
     if ((pRenderHal->bRequestSingleSlice) || (pRenderHal->bEUSaturationNoSSD))
     {
@@ -325,10 +323,10 @@ MOS_STATUS MediaRenderCommon::SetPowerMode(
     {
         MHW_ASSERTMESSAGE("SSEU Table not valid.");
         eStatus = MOS_STATUS_UNKNOWN;
-        goto finish;
+        return eStatus;
     }
 
-    MHW_CHK_NULL(pcSSEUTable);
+    MHW_CHK_NULL_RETURN(pcSSEUTable);
     pcSSEUTable += KernelID;
     if (!bSetRequestedSlices)                        // If num Slices is already programmed, then don't change it
     {
@@ -362,7 +360,6 @@ MOS_STATUS MediaRenderCommon::SetPowerMode(
     PowerOption.nEU = wNumRequestedEUs;
     pRenderHal->pfnSetPowerOptionMode(pRenderHal, &PowerOption);
 
-finish:
     return eStatus;
 }
 

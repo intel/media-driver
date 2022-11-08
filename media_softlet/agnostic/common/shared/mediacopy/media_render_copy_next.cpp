@@ -307,7 +307,7 @@ MOS_STATUS RenderCopyStateNext::SetupSurfaceStates()
 
         m_Source.dwWidth = MOS_ALIGN_CEIL(m_Source.dwWidth, 128);
         //1D surfaces
-        MCPY_CHK_STATUS(MediaRenderCommon::Set1DSurfaceForHwAccess(
+        MCPY_CHK_STATUS_RETURN(MediaRenderCommon::Set1DSurfaceForHwAccess(
              pRenderHal,
              &m_Source,
              &RenderHalSource,
@@ -320,7 +320,7 @@ MOS_STATUS RenderCopyStateNext::SetupSurfaceStates()
     }
     else {
         //2D surfaces
-        MCPY_CHK_STATUS(MediaRenderCommon::Set2DSurfaceForHwAccess(
+        MCPY_CHK_STATUS_RETURN(MediaRenderCommon::Set2DSurfaceForHwAccess(
             pRenderHal,
             &m_Source,
             &RenderHalSource,
@@ -363,7 +363,7 @@ MOS_STATUS RenderCopyStateNext::SetupSurfaceStates()
         m_Target.dwWidth = MOS_ALIGN_CEIL(m_Target.dwWidth, 128);
 
         //1D surface.
-        MCPY_CHK_STATUS(MediaRenderCommon::Set1DSurfaceForHwAccess(
+        MCPY_CHK_STATUS_RETURN(MediaRenderCommon::Set1DSurfaceForHwAccess(
             pRenderHal,
             &m_Target,
             &RenderHalTarget,
@@ -377,7 +377,7 @@ MOS_STATUS RenderCopyStateNext::SetupSurfaceStates()
     else
     {
         //2D surface.
-        MCPY_CHK_STATUS(MediaRenderCommon::Set2DSurfaceForHwAccess(
+        MCPY_CHK_STATUS_RETURN(MediaRenderCommon::Set2DSurfaceForHwAccess(
             pRenderHal,
             &m_Target,
             &RenderHalTarget,
@@ -387,7 +387,7 @@ MOS_STATUS RenderCopyStateNext::SetupSurfaceStates()
             true));
 
     }
-finish:
+
     return eStatus;
 }
 

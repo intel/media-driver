@@ -140,6 +140,9 @@ using MosFormatArray = std::vector<MOS_FORMAT>;
 #define VP_DEBUG_CHK_STATUS(_stmt)                                                \
     MOS_CHK_STATUS(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_DEBUG, _stmt)
 
+#define VP_DEBUG_CHK_STATUS_RETURN(_stmt)                                         \
+    MOS_CHK_STATUS_RETURN(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_DEBUG, _stmt)
+
 #define VP_DEBUG_CHK_NULL(_ptr)                                                   \
     MOS_CHK_NULL(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_DEBUG, _ptr)
 

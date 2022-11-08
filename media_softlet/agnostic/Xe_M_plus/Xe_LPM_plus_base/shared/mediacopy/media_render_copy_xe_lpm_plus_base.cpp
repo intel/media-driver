@@ -201,7 +201,7 @@ MOS_STATUS RenderCopyXe_LPM_Plus_Base::SubmitCMD( )
     if (iKrnAllocation < 0)
     {
         eStatus = MOS_STATUS_UNKNOWN;
-        goto finish;
+        return eStatus;
     }
 
     //----------------------------------
@@ -218,7 +218,7 @@ MOS_STATUS RenderCopyXe_LPM_Plus_Base::SubmitCMD( )
     if (pRenderData->iMediaID < 0)
     {
         eStatus = MOS_STATUS_UNKNOWN;
-        goto finish;
+        return eStatus;
     }
 
     // Set Perf Tag
@@ -245,7 +245,6 @@ MOS_STATUS RenderCopyXe_LPM_Plus_Base::SubmitCMD( )
         (VpKernelID)kernelRenderCopy,
         true);
 
-finish:
     return eStatus;
 }
 

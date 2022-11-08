@@ -130,7 +130,7 @@ public:
         MHW_FUNCTION_ENTER;
 
         MHW_CHK_NULL_RETURN(this->m_osItf);
-        MHW_CHK_NULL(m_veboxHeap);
+        MHW_CHK_NULL_RETURN(m_veboxHeap);
 
         pVeboxHeap      = m_veboxHeap;
         pOsInterface    = this->m_osItf;
@@ -144,7 +144,6 @@ public:
         }
         pVeboxHeap->pStates[pVeboxHeap->uiCurState].bBusy = true;
 
-    finish:
         return eStatus;
     }
 

@@ -544,14 +544,14 @@ MOS_STATUS MosUtilities::MosWriteFileFromPtr(
     uint32_t        bytesWritten;
     MOS_STATUS      eStatus;
 
-    MOS_OS_CHK_NULL(pFilename);
-    MOS_OS_CHK_NULL(lpBuffer);
+    MOS_OS_CHK_NULL_RETURN(pFilename);
+    MOS_OS_CHK_NULL_RETURN(lpBuffer);
 
     if (writeSize == 0)
     {
         MOS_OS_ASSERTMESSAGE("Attempting to write 0 bytes to a file");
         eStatus = MOS_STATUS_INVALID_PARAMETER;
-        goto finish;
+        return eStatus;
     }
 
     bytesWritten    = 0;
@@ -561,19 +561,18 @@ MOS_STATUS MosUtilities::MosWriteFileFromPtr(
     if (eStatus != MOS_STATUS_SUCCESS)
     {
         MOS_OS_ASSERTMESSAGE("Failed to open file '%s'.", pFilename);
-        goto finish;
+        return eStatus;
     }
 
     if((eStatus = MosWriteFile(hFile, lpBuffer, writeSize, &bytesWritten, nullptr)) != MOS_STATUS_SUCCESS)
     {
         MOS_OS_ASSERTMESSAGE("Failed to write to file '%s'.", pFilename);
         MosCloseHandle(hFile);
-        goto finish;
+        return eStatus;
     }
 
     MosCloseHandle(hFile);
 
-finish:
     return eStatus;
 }
 
