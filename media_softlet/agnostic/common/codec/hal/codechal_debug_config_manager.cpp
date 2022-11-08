@@ -72,6 +72,11 @@ std::string CodecDebugConfigMgr::InitFileName(MediaDbgFunction mediaFunction)
     return "CodecDbgSetting.cfg";
 }
 
+MediaUserSettingSharedPtr CodecDebugConfigMgr::GetUserSettingInstance()
+{
+    return m_debugInterface->m_userSettingPtr;
+}
+
 CodecDebugConfigMgr::~CodecDebugConfigMgr()
 {
 }

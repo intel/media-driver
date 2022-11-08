@@ -916,12 +916,12 @@ MOS_STATUS CodechalDebugInterface::DumpHucDmem(
     return DumpBuffer(dmemResource, nullptr, funcName.c_str(), dmemSize);
 }
 
-MOS_USER_FEATURE_VALUE_ID CodechalDebugInterface::SetOutputPathKey()
+std::string CodechalDebugInterface::SetOutputPathKey()
 {
-    return __MEDIA_USER_FEATURE_VALUE_CODECHAL_DEBUG_OUTPUT_DIRECTORY_ID;
+    return __MEDIA_USER_FEATURE_VALUE_CODECHAL_DEBUG_OUTPUT_DIRECTORY;
 }
 
-MOS_USER_FEATURE_VALUE_ID CodechalDebugInterface::InitDefaultOutput()
+std::string CodechalDebugInterface::InitDefaultOutput()
 {
     m_outputFilePath.append(MEDIA_DEBUG_CODECHAL_DUMP_OUTPUT_FOLDER);
     return SetOutputPathKey();

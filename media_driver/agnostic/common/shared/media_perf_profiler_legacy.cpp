@@ -483,7 +483,8 @@ MOS_STATUS MediaPerfProfiler::AddPerfCollectStartCmd(
             pOsContext,
             offset));
     }
-
+    //Decrease share pointer reference count
+    m_miItf = nullptr;
     MosUtilities::MosUnlockMutex(m_mutex);
 
     return status;
@@ -555,7 +556,8 @@ MOS_STATUS MediaPerfProfiler::AddPerfCollectEndCmd(
             pOsContext,
             offset));
     }
-
+    //Decrease share pointer reference count
+    m_miItf = nullptr;
     MosUtilities::MosUnlockMutex(m_mutex);
     return status;
 }

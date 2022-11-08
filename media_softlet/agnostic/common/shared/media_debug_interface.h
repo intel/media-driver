@@ -248,8 +248,8 @@ protected:
 
     virtual MOS_STATUS InitializeUserSetting() { return MOS_STATUS_SUCCESS; };
 
-    virtual MOS_USER_FEATURE_VALUE_ID SetOutputPathKey()  = 0;
-    virtual MOS_USER_FEATURE_VALUE_ID InitDefaultOutput() = 0;
+    virtual std::string SetOutputPathKey()  = 0;
+    virtual std::string InitDefaultOutput() = 0;
 
     std::string          m_outputFileName;
     MediaDebugConfigMgr *m_configMgr = nullptr;

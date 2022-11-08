@@ -276,7 +276,6 @@ protected:
 #define __VPHAL_VEBOX_FEATURE_INUSE                                     "VeBox Feature In use"
 #define __VPHAL_VEBOX_DISABLE_SFC                                       "Disable SFC"
 #define __MEDIA_USER_FEATURE_VALUE_SFC_OUTPUT_DTR_DISABLE               "Disable SFC DTR"
-#define __VPHAL_ENABLE_MMC                                              "Enable VP MMC"
 #define __MEDIA_USER_FEATURE_VALUE_SFC_OUTPUT_CENTERING_DISABLE         "SFC Output Centering Disable"
 #define __VPHAL_BYPASS_COMPOSITION                                      "Bypass Composition"
 #define __MEDIA_USER_FEATURE_VALUE_VEBOX_TGNE_ENABLE_VP                 "Enable Vebox GNE"
@@ -301,6 +300,7 @@ protected:
 #define __VPHAL_HDR_ENABLE_QUALITY_TUNING                               "VPHAL HDR Enable Quality Tuning"
 #define __VPHAL_HDR_ENABLE_KERNEL_DUMP                                  "VPHAL HDR Enable Kernel Dump"
 #define __VPHAL_HDR_H2S_RGB_TM                                          "VPHAL H2S TM RGB Based"
+#define __MEDIA_USER_FEATURE_VALUE_VPP_APOGEIOS_ENABLE                  "VP Apogeios Enabled"
 
 // Compression
 #define __VPHAL_MMC_ENABLE                                              "VP MMC In Use"

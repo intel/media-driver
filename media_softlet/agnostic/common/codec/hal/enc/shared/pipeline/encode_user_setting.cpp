@@ -177,12 +177,6 @@ MOS_STATUS EncodePipeline::InitUserSetting(MediaUserSettingSharedPtr userSetting
         true);
     DeclareUserSettingKeyForDebug(
         userSettingPtr,
-        "CodecHal Debug Output Directory",
-        MediaUserSetting::Group::Sequence,
-        "",
-        false);
-    DeclareUserSettingKeyForDebug(
-        userSettingPtr,
         "FAST PAK ENABLE",
         MediaUserSetting::Group::Sequence,
         int32_t(1),

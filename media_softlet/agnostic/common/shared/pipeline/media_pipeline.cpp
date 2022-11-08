@@ -114,7 +114,10 @@ MOS_STATUS MediaPipeline::InitPlatform()
 MOS_STATUS MediaPipeline::UserFeatureReport()
 {
 #if (_DEBUG || _RELEASE_INTERNAL)
-    WriteUserFeature(__MEDIA_USER_FEATURE_VALUE_APOGEIOS_ENABLE_ID, 1, m_osInterface->pOsContext);
+    ReportUserSetting(m_userSettingPtr,
+                      __MEDIA_USER_FEATURE_VALUE_APOGEIOS_ENABLE,
+                      uint32_t(1),
+                      MediaUserSetting::Group::Device);
 #endif
     return MOS_STATUS_SUCCESS;
 }

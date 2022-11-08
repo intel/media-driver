@@ -528,11 +528,8 @@ MOS_STATUS MediaDebugInterface::SetFastDumpConfig(MediaCopyBaseState *mediaCopy)
 
 MOS_STATUS MediaDebugInterface::SetOutputFilePath()
 {
-    MOS_USER_FEATURE_VALUE_DATA       userFeatureData;
-    MOS_USER_FEATURE_VALUE_WRITE_DATA userFeatureWriteData;
-    MOS_USER_FEATURE_VALUE_ID         OutputPathKey = __MOS_USER_FEATURE_KEY_INVALID_ID;
-    char                              stringData[MOS_MAX_PATH_LENGTH + 1];
-    std::string                       DumpFilePath;
+    std::string          outputPathKey;
+    std::string          dumpFilePath;
 
     MEDIA_DEBUG_FUNCTION_ENTER;
 
@@ -548,29 +545,19 @@ MOS_STATUS MediaDebugInterface::SetOutputFilePath()
     else
 #endif
     {
-        OutputPathKey = SetOutputPathKey();
-        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-        userFeatureData.StringData.pStringData = stringData;
-        MOS_UserFeature_ReadValue_ID(
-            NULL,
-            OutputPathKey,
-            &userFeatureData,
-            m_osInterface->pOsContext);
+        outputPathKey = SetOutputPathKey();
+        ReadUserSettingForDebug(
+            m_userSettingPtr,
+            m_outputFilePath,
+            outputPathKey,
+            MediaUserSetting::Group::Device);
 
-        if (userFeatureData.StringData.uSize == MOS_MAX_PATH_LENGTH + 1)
+        if (!m_outputFilePath.empty())
         {
-            userFeatureData.StringData.uSize = 0;
-        }
-
-        if (userFeatureData.StringData.uSize > 0)
-        {
-            if (userFeatureData.StringData.pStringData[userFeatureData.StringData.uSize - 2] != MOS_DIRECTORY_DELIMITER)
+            if (m_outputFilePath.back() != MOS_DIRECTORY_DELIMITER)
             {
-                userFeatureData.StringData.pStringData[userFeatureData.StringData.uSize - 1] = MOS_DIRECTORY_DELIMITER;
-                userFeatureData.StringData.pStringData[userFeatureData.StringData.uSize]     = '\0';
-                userFeatureData.StringData.uSize++;
+                m_outputFilePath += MOS_DIRECTORY_DELIMITER;
             }
-            m_outputFilePath = userFeatureData.StringData.pStringData;
         }
         else
         {
@@ -578,15 +565,15 @@ MOS_STATUS MediaDebugInterface::SetOutputFilePath()
             m_outputFilePath = MOS_DEBUG_DEFAULT_OUTPUT_LOCATION;
 #else
             // Use state separation APIs to obtain appropriate storage location
-            if (SUCCEEDED(GetDriverPersistentStorageLocation(DumpFilePath)))
+            if (SUCCEEDED(GetDriverPersistentStorageLocation(dumpFilePath)))
             {
-                m_outputFilePath = DumpFilePath.c_str();
-                OutputPathKey    = InitDefaultOutput();
-                MOS_ZeroMemory(&userFeatureWriteData, sizeof(userFeatureWriteData));
-                userFeatureWriteData.Value.StringData.pStringData = const_cast<char *>(m_outputFilePath.c_str());
-                userFeatureWriteData.Value.StringData.uSize       = m_outputFilePath.size();
-                userFeatureWriteData.ValueID                      = OutputPathKey;
-                MOS_UserFeature_WriteValues_ID(NULL, &userFeatureWriteData, 1, m_osInterface->pOsContext);
+                m_outputFilePath = dumpFilePath.c_str();
+                outputPathKey    = InitDefaultOutput();
+                ReportUserSettingForDebug(
+                    m_userSettingPtr,
+                    outputPathKey,
+                    m_outputFilePath,
+                    MediaUserSetting::Group::Device);
             }
             else
             {

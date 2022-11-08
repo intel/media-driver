@@ -31,7 +31,6 @@
 #include <memory>
 #include "media_scalability_option.h"
 #include "mos_os_virtualengine_next.h"
-#include "mos_os_virtualengine.h"
 #include "mos_interface.h"
 #include "mos_os_virtualengine_specific.h"
 #include "mos_utilities.h"

@@ -90,6 +90,7 @@ class MosMutex;
 
 #define UFKEY_INTERNAL_NEXT                   ""
 #define USER_SETTING_CONFIG_PATH             "[config]"
+#define USER_SETTING_CONFIG_PERF_PATH        "[config]"
 #define USER_SETTING_CONFIG_PERMANENT_PATH   "[config]"
 #define USER_SETTING_REPORT_PATH             "[report]"
 

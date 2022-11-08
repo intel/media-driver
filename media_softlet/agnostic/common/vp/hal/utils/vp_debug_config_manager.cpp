@@ -51,6 +51,12 @@ std::string VpDebugConfigMgr::InitFileName(MediaDbgFunction mediaFunction)
     return "VpDbgSetting.cfg";
 }
 
+MediaUserSettingSharedPtr VpDebugConfigMgr::GetUserSettingInstance()
+{
+    VP_FUNC_CALL();
+    return m_debugInterface->m_userSettingPtr;
+}
+
 VpDebugConfigMgr::~VpDebugConfigMgr()
 {
 }

@@ -44,8 +44,6 @@
 #include "mos_utilities.h"
 #include "renderhal.h"
 #include "vp_utils.h"
-// Need to remove below header files, after legacy contents clean up
-#include "mhw_render_legacy.h"
 #include "media_perf_profiler.h"
 
 MOS_STATUS XRenderHal_Platform_Interface_Next::AddPipelineSelectCmd(
