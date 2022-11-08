@@ -1,4 +1,4 @@
-# Copyright (c) 2020, Intel Corporation
+# Copyright (c) 2020-2022, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,8 +18,8 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-set(TMP_SOURCES_
-    ${TMP_SOURCES_}
+set(SOFTLET_DECODE_COMMON_SOURCES_
+    ${SOFTLET_DECODE_COMMON_SOURCES_}
     ${CMAKE_CURRENT_LIST_DIR}/decode_basic_feature.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_predication.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_feature_manager.cpp
@@ -27,8 +27,8 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/decode_downsampling_feature.cpp
 )
 
-set(TMP_HEADERS_
-    ${TMP_HEADERS_}
+set(SOFTLET_DECODE_COMMON_HEADERS_
+    ${SOFTLET_DECODE_COMMON_HEADERS_}
     ${CMAKE_CURRENT_LIST_DIR}/decode_basic_feature.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_predication.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_feature_manager.h
@@ -37,4 +37,10 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/decode_downsampling_feature.h
 )
 
-media_add_curr_to_include_path()
+
+source_group( CodecHalNext\\Shared\\Decode FILES ${SOFTLET_DECODE_COMMON_SOURCES_} ${SOFTLET_DECODE_COMMON_HEADERS_} )
+
+set(SOFTLET_DECODE_COMMON_PRIVATE_INCLUDE_DIRS_
+    ${SOFTLET_DECODE_COMMON_PRIVATE_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)

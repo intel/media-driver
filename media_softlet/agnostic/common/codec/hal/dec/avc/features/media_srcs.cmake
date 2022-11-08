@@ -1,4 +1,4 @@
-# Copyright (c) 2020, Intel Corporation
+# Copyright (c) 2020-2022, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -19,8 +19,8 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 if(${AVC_Decode_Supported} STREQUAL "yes")
-set(TMP_SOURCES_
-    ${TMP_SOURCES_}
+set(SOFTLET_DECODE_AVC_SOURCES_
+    ${SOFTLET_DECODE_AVC_SOURCES_}
     ${CMAKE_CURRENT_LIST_DIR}/decode_avc_basic_feature.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_avc_feature_manager.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_avc_mv_buffers.cpp
@@ -28,14 +28,20 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/decode_avc_downsampling_feature.cpp
 )
 
-set(TMP_HEADERS_
-    ${TMP_HEADERS_}
+set(SOFTLET_DECODE_AVC_HEADERS_
+    ${SOFTLET_DECODE_AVC_HEADERS_}
     ${CMAKE_CURRENT_LIST_DIR}/decode_avc_basic_feature.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_avc_feature_manager.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_avc_mv_buffers.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_avc_reference_frames.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_avc_downsampling_feature.h
 )
+
+source_group( CodecHalNext\\Shared\\Decode FILES ${SOFTLET_DECODE_AVC_SOURCES_} ${SOFTLET_DECODE_AVC_HEADERS_} )
+
 endif()
 
-media_add_curr_to_include_path()
+set(SOFTLET_DECODE_AVC_PRIVATE_INCLUDE_DIRS_
+    ${SOFTLET_DECODE_AVC_PRIVATE_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)

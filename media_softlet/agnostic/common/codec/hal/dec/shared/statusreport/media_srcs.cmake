@@ -1,4 +1,4 @@
-# Copyright (c) 2019, Intel Corporation
+# Copyright (c) 2019-2022, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,15 +18,21 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-set(TMP_SOURCES_
-    ${TMP_SOURCES_}
+set(SOFTLET_DECODE_COMMON_SOURCES_
+    ${SOFTLET_DECODE_COMMON_SOURCES_}
     ${CMAKE_CURRENT_LIST_DIR}/decode_status_report.cpp
 )
 
-set(TMP_HEADERS_
-    ${TMP_HEADERS_}
+set(SOFTLET_DECODE_COMMON_HEADERS_
+    ${SOFTLET_DECODE_COMMON_HEADERS_}
     ${CMAKE_CURRENT_LIST_DIR}/decode_status_report.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_status_report_defs.h
 )
 
-media_add_curr_to_include_path()
+
+source_group( CodecHalNext\\Shared\\Decode FILES ${SOFTLET_DECODE_COMMON_SOURCES_} ${SOFTLET_DECODE_COMMON_HEADERS_} )
+
+set(SOFTLET_DECODE_COMMON_PRIVATE_INCLUDE_DIRS_
+    ${SOFTLET_DECODE_COMMON_PRIVATE_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)

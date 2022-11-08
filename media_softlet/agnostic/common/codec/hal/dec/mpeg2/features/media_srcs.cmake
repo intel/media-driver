@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Intel Corporation
+# Copyright (c) 2021-2022, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -19,19 +19,25 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 if(${MPEG2_Decode_Supported} STREQUAL "yes")
-set(TMP_SOURCES_
-    ${TMP_SOURCES_}
+set(SOFTLET_DECODE_MPEG2_SOURCES_
+    ${SOFTLET_DECODE_MPEG2_SOURCES_}
     ${CMAKE_CURRENT_LIST_DIR}/decode_mpeg2_feature_manager.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_mpeg2_basic_feature.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_mpeg2_reference_frames.cpp
 )
 
-set(TMP_HEADERS_
-    ${TMP_HEADERS_}
+set(SOFTLET_DECODE_MPEG2_HEADERS_
+    ${SOFTLET_DECODE_MPEG2_HEADERS_}
     ${CMAKE_CURRENT_LIST_DIR}/decode_mpeg2_feature_manager.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_mpeg2_basic_feature.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_mpeg2_reference_frames.h
 )
+
+source_group( CodecHalNext\\Shared\\Decode FILES ${SOFTLET_DECODE_MPEG2_SOURCES_} ${SOFTLET_DECODE_MPEG2_HEADERS_} )
+
 endif()
 
-media_add_curr_to_include_path()
+set(SOFTLET_DECODE_MPEG2_PRIVATE_INCLUDE_DIRS_
+    ${SOFTLET_DECODE_MPEG2_PRIVATE_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)

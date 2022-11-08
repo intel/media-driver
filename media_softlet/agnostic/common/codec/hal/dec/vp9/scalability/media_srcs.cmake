@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Intel Corporation
+# Copyright (c) 2021-2022, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -19,20 +19,25 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 if(${VP9_Decode_Supported} STREQUAL "yes")
-set(TMP_SOURCES_
-    ${TMP_SOURCES_}
+set(SOFTLET_DECODE_VP9_SOURCES_
+    ${SOFTLET_DECODE_VP9_SOURCES_}
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_phase_single.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_phase_front_end.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_phase_back_end.cpp
 )
 
-set(TMP_HEADERS_
-    ${TMP_HEADERS_}
+set(SOFTLET_DECODE_VP9_HEADERS_
+    ${SOFTLET_DECODE_VP9_HEADERS_}
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_phase.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_phase_single.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_phase_front_end.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_phase_back_end.h
 )
+source_group( CodecHalNext\\Shared\\Decode FILES ${SOFTLET_DECODE_VP9_SOURCES_} ${SOFTLET_DECODE_VP9_HEADERS_} )
+
 endif()
 
-media_add_curr_to_include_path()
+set(SOFTLET_DECODE_VP9_PRIVATE_INCLUDE_DIRS_
+    ${SOFTLET_DECODE_VP9_PRIVATE_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)

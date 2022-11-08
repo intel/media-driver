@@ -19,21 +19,27 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 if(${VP8_Decode_Supported} STREQUAL "yes")
-set(TMP_SOURCES_
-    ${TMP_SOURCES_}
+set(SOFTLET_DECODE_VP8_SOURCES_
+    ${SOFTLET_DECODE_VP8_SOURCES_}
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp8_reference_frames.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp8_feature_manager.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp8_basic_feature.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp8_entropy_state.cpp
 )
 
-set(TMP_HEADERS_
-    ${TMP_HEADERS_}
+set(SOFTLET_DECODE_VP8_HEADERS_
+    ${SOFTLET_DECODE_VP8_HEADERS_}
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp8_reference_frames.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp8_feature_manager.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp8_basic_feature.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp8_entropy_state.h
 )
+
+source_group( CodecHalNext\\Shared\\Decode FILES ${SOFTLET_DECODE_VP8_SOURCES_} ${SOFTLET_DECODE_VP8_HEADERS_} )
+
 endif()
 
-media_add_curr_to_include_path()
+set(SOFTLET_DECODE_VP8_PRIVATE_INCLUDE_DIRS_
+    ${SOFTLET_DECODE_VP8_PRIVATE_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)

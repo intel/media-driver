@@ -19,8 +19,8 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 if(${VP9_Decode_Supported} STREQUAL "yes")
-set(TMP_SOURCES_
-    ${TMP_SOURCES_}
+set(SOFTLET_DECODE_VP9_SOURCES_
+    ${SOFTLET_DECODE_VP9_SOURCES_}
     ${CMAKE_CURRENT_LIST_DIR}/decode_huc_prob_update_packet.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_packet.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_packet_back_end.cpp
@@ -31,8 +31,8 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_downsampling_packet.cpp
 )
 
-set(TMP_HEADERS_
-    ${TMP_HEADERS_}
+set(SOFTLET_DECODE_VP9_HEADERS_
+    ${SOFTLET_DECODE_VP9_HEADERS_}
     ${CMAKE_CURRENT_LIST_DIR}/decode_huc_prob_update_packet.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_packet.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_packet_back_end.h
@@ -42,6 +42,11 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_slice_packet.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_downsampling_packet.h
 )
+source_group( CodecHalNext\\Shared\\Decode FILES ${SOFTLET_DECODE_VP9_SOURCES_} ${SOFTLET_DECODE_VP9_HEADERS_} )
+
 endif()
 
-media_add_curr_to_include_path()
+set(SOFTLET_DECODE_VP9_PRIVATE_INCLUDE_DIRS_
+    ${SOFTLET_DECODE_VP9_PRIVATE_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)

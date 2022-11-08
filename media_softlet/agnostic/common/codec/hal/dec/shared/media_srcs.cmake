@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Intel Corporation
+# Copyright (c) 2021-2022, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -27,18 +27,26 @@ media_include_subdirectory(statusreport)
 media_include_subdirectory(mmc)
 media_include_subdirectory(hucItf)
 
-set(TMP_SOURCES_
-    ${TMP_SOURCES_}
+set(SOFTLET_DECODE_COMMON_SOURCES_
+    ${SOFTLET_DECODE_COMMON_SOURCES_}
     ${CMAKE_CURRENT_LIST_DIR}/decode_input_bitstream.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_unique_id.cpp
 )
 
-set(TMP_HEADERS_
-    ${TMP_HEADERS_}
+set(SOFTLET_DECODE_COMMON_HEADERS_
+    ${SOFTLET_DECODE_COMMON_HEADERS_}
     ${CMAKE_CURRENT_LIST_DIR}/decode_utils.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_vdbox_mfx_common.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_input_bitstream.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_unique_id.h
 )
 
-media_add_curr_to_include_path()
+
+source_group( CodecHalNext\\Shared\\Decode FILES ${SOFTLET_DECODE_COMMON_SOURCES_} ${SOFTLET_DECODE_COMMON_HEADERS_} )
+
+set(SOFTLET_DECODE_COMMON_PRIVATE_INCLUDE_DIRS_
+    ${SOFTLET_DECODE_COMMON_PRIVATE_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)
+
+

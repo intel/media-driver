@@ -18,34 +18,6 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-set(TMP_SOURCES_ "")
-set(TMP_HEADERS_ "")
-
 media_include_subdirectory(pipeline)
 media_include_subdirectory(packet)
 media_include_subdirectory(mmc)
-
-set(SOURCES_
-    ${SOURCES_}
-    ${TMP_SOURCES_}
-)
-
-set(HEADERS_
-    ${HEADERS_}
-    ${TMP_HEADERS_}
-)
-
-set(CODEC_SOURCES_
-    ${CODEC_SOURCES_}
-    ${TMP_SOURCES_}
-)
-
-set(CODEC_HEADERS_
-    ${CODEC_HEADERS_}
-    ${TMP_HEADERS_}
-)
-
-source_group( CodecHalNext\\Xe_M_plus\\Decode FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
-set(TMP_SOURCES_ "")
-set(TMP_HEADERS_ "")
-media_add_curr_to_include_path()

@@ -19,37 +19,22 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 if(${JPEG_Decode_Supported} STREQUAL "yes")
-set(TMP_SOURCES_
+set(SOFTLET_DECODE_JPEG_SOURCES_
+    ${SOFTLET_DECODE_JPEG_SOURCES_}
     ${CMAKE_CURRENT_LIST_DIR}/decode_jpeg_pipeline_adapter_xe_lpm_plus.cpp
 )
 
-set(TMP_HEADERS_
+set(SOFTLET_DECODE_JPEG_HEADERS_
+    ${SOFTLET_DECODE_JPEG_HEADERS_}
     ${CMAKE_CURRENT_LIST_DIR}/decode_jpeg_pipeline_adapter_xe_lpm_plus.h
 )
 
-set(SOURCES_
-    ${SOURCES_}
-    ${TMP_SOURCES_}
-)
+source_group( CodecHalNext\\Xe_LPM_plus\\Decode FILES ${SOFTLET_DECODE_JPEG_SOURCES_} ${SOFTLET_DECODE_JPEG_HEADERS_})
 
-set(HEADERS_
-    ${HEADERS_}
-    ${TMP_HEADERS_}
-)
-
-set(CODEC_SOURCES_
-    ${CODEC_SOURCES_}
-    ${TMP_SOURCES_}
-)
-
-set(CODEC_HEADERS_
-    ${CODEC_HEADERS_}
-    ${TMP_HEADERS_}
-)
-
-source_group( CodecHalNext\\Xe_LPM_plus\\Decode FILES ${TMP_SOURCES_} ${TMP_HEADERS_})
-set(TMP_SOURCES_ "")
-set(TMP_HEADERS_ "")
 endif()
 
-media_add_curr_to_include_path()
+
+set(SOFTLET_DECODE_JPEG_PRIVATE_INCLUDE_DIRS_
+    ${SOFTLET_DECODE_JPEG_PRIVATE_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)

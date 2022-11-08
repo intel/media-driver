@@ -19,8 +19,8 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 if(${HEVC_Decode_Supported} STREQUAL "yes")
-set(TMP_SOURCES_
-    ${TMP_SOURCES_}
+set(SOFTLET_DECODE_HEVC_SOURCES_
+    ${SOFTLET_DECODE_HEVC_SOURCES_}
     ${CMAKE_CURRENT_LIST_DIR}/decode_huc_s2l_packet.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_hevc_picture_packet.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_hevc_packet.cpp
@@ -32,8 +32,8 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/decode_hevc_downsampling_packet.cpp
 )
 
-set(TMP_HEADERS_
-    ${TMP_HEADERS_}
+set(SOFTLET_DECODE_HEVC_HEADERS_
+    ${SOFTLET_DECODE_HEVC_HEADERS_}
     ${CMAKE_CURRENT_LIST_DIR}/decode_huc_s2l_packet.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_hevc_picture_packet.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_hevc_packet.h
@@ -44,6 +44,12 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/decode_hevc_packet_real_tile.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_hevc_downsampling_packet.h
 )
+
+source_group( CodecHalNext\\Shared\\Decode FILES ${SOFTLET_DECODE_HEVC_SOURCES_} ${SOFTLET_DECODE_HEVC_HEADERS_} )
+
 endif()
 
-media_add_curr_to_include_path()
+set(SOFTLET_DECODE_HEVC_PRIVATE_INCLUDE_DIRS_
+    ${SOFTLET_DECODE_HEVC_PRIVATE_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)
