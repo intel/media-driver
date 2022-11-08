@@ -92,6 +92,9 @@ MOS_STATUS HevcBasicFeature::ErrorDetectAndConceal()
     DECODE_CHK_COND(m_curRenderPic.FrameIdx >= CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC,
         "currPic.FrameIdx is out of range!");
 
+    DECODE_CHK_COND(m_hevcPicParams->PicHeightInMinCbsY == 0 || m_hevcPicParams->PicWidthInMinCbsY == 0,
+        "picture Weight/Height equals to 0!");
+
     // check LCU size
     // LCU is restricted based on the picture size.
     // LCU 16x16 can only be used with picture width and height both fewer than or equal to 4222 pixels
