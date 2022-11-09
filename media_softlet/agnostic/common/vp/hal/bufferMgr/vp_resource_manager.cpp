@@ -623,6 +623,7 @@ void VpResourceManager::InitSurfaceConfigMap()
     // outOfBound
     AddSurfaceConfig(true,  true,  false, true,  true,  false, true,  VEBOX_SURFACE_INPUT,  VEBOX_SURFACE_PAST_REF, VEBOX_SURFACE_FRAME1, VEBOX_SURFACE_FRAME0);
     AddSurfaceConfig(true,  true,  false, true,  true,  false, false, VEBOX_SURFACE_INPUT,  VEBOX_SURFACE_NULL,     VEBOX_SURFACE_FRAME1, VEBOX_SURFACE_NULL);
+
     // sfc disable
     AddSurfaceConfig(true,  false,  false, false, true,  false, true,  VEBOX_SURFACE_INPUT,  VEBOX_SURFACE_PAST_REF, VEBOX_SURFACE_FRAME1, VEBOX_SURFACE_OUTPUT);
     AddSurfaceConfig(true,  false,  true,  false, true,  false, false, VEBOX_SURFACE_FRAME1, VEBOX_SURFACE_NULL,     VEBOX_SURFACE_NULL,   VEBOX_SURFACE_NULL);
@@ -631,6 +632,18 @@ void VpResourceManager::InitSurfaceConfigMap()
     AddSurfaceConfig(true,  false,  false, false, true,  false, false, VEBOX_SURFACE_INPUT,  VEBOX_SURFACE_PAST_REF, VEBOX_SURFACE_FRAME1, VEBOX_SURFACE_FRAME0);
     AddSurfaceConfig(true,  false,  true,  false, false, false, true,  VEBOX_SURFACE_INPUT,  VEBOX_SURFACE_NULL,     VEBOX_SURFACE_FRAME1, VEBOX_SURFACE_NULL);
     AddSurfaceConfig(true,  false,  true,  false, false, false, false, VEBOX_SURFACE_INPUT,  VEBOX_SURFACE_NULL,     VEBOX_SURFACE_FRAME1, VEBOX_SURFACE_NULL);
+
+    //30i -> 30p sfc Enable
+    AddSurfaceConfig(false, true,   false, false, false, false, true,  VEBOX_SURFACE_INPUT,  VEBOX_SURFACE_NULL,     VEBOX_SURFACE_FRAME1, VEBOX_SURFACE_NULL);
+    AddSurfaceConfig(false, true,   false, false, true,  false, false, VEBOX_SURFACE_INPUT,  VEBOX_SURFACE_PAST_REF, VEBOX_SURFACE_FRAME1, VEBOX_SURFACE_FRAME0);
+    AddSurfaceConfig(false, true,   false, false, true,  false, true,  VEBOX_SURFACE_INPUT,  VEBOX_SURFACE_PAST_REF, VEBOX_SURFACE_FRAME1, VEBOX_SURFACE_FRAME0);
+    AddSurfaceConfig(false, true,   false, true,  true,  false, true,  VEBOX_SURFACE_INPUT,  VEBOX_SURFACE_PAST_REF, VEBOX_SURFACE_FRAME1, VEBOX_SURFACE_FRAME0);
+    AddSurfaceConfig(false, true,   false, true,  true,  false, false, VEBOX_SURFACE_INPUT,  VEBOX_SURFACE_PAST_REF, VEBOX_SURFACE_FRAME1, VEBOX_SURFACE_FRAME0);
+    
+    //30i -> 30p sfc disable
+    AddSurfaceConfig(false, false,  false, false, true,  false, true,  VEBOX_SURFACE_INPUT,  VEBOX_SURFACE_NULL,     VEBOX_SURFACE_OUTPUT, VEBOX_SURFACE_NULL);
+    AddSurfaceConfig(false, false,  false, true,  true,  false, true,  VEBOX_SURFACE_INPUT,  VEBOX_SURFACE_NULL,     VEBOX_SURFACE_OUTPUT, VEBOX_SURFACE_NULL);
+    AddSurfaceConfig(false, false,  false, false, false, false, true,  VEBOX_SURFACE_INPUT,  VEBOX_SURFACE_NULL,     VEBOX_SURFACE_OUTPUT, VEBOX_SURFACE_NULL);
 }
 
 uint32_t VpResourceManager::GetHistogramSurfaceSize(VP_EXECUTE_CAPS& caps, uint32_t inputWidth, uint32_t inputHeight)
@@ -2098,6 +2111,15 @@ MOS_STATUS VpResourceManager::AssignVeboxResource(VP_EXECUTE_CAPS& caps, VP_SURF
         auto it = m_veboxSurfaceConfigMap.find(cfg.value);
         if (m_veboxSurfaceConfigMap.end() == it)
         {
+            VP_PUBLIC_ASSERTMESSAGE("SurfaceConfig is invalid, cfg.value = %d", cfg.value);
+            VP_PUBLIC_ASSERTMESSAGE("b64Di = %d, sfcEnable = %d, sameSample = %d, outOfBound = %d, pastframeAvailable = %d, future frameAvaliable = %d, FirstDiFiels = %d",
+                cfg.b64DI,
+                cfg.sfcEnable,
+                cfg.sameSample,
+                cfg.outOfBound,
+                cfg.pastFrameAvailable,
+                cfg.futureFrameAvailable,
+                cfg.firstDiField);
             VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
         }
         auto surfaces = it->second;
