@@ -191,7 +191,16 @@ MOS_STATUS XRenderHal_Interface_Xe_Hp_Base::SetupSurfaceState(
                 SurfStateParams.dwCompressionFormat = 0;
             }
 
-            if (!pParams->isOutput                    &&
+            if (pParams->isOutput                    &&
+                pSurface->MmcState == MOS_MEMCOMP_RC &&
+                pSurface->OsResource.bUncompressedWriteNeeded)
+            {
+                MHW_RENDERHAL_NORMALMESSAGE("force uncompressed write if requested from resources");
+                SurfStateParams.MmcState            = MOS_MEMCOMP_MC;
+                SurfStateParams.dwCompressionFormat = 0;
+            }
+
+            if (!pParams->isOutput                         &&
                 pSurface->MmcState != MOS_MEMCOMP_DISABLED &&
                 pSurfaceEntry->bVertStride)
             {

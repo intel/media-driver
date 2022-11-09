@@ -215,6 +215,13 @@ protected:
     virtual MOS_STATUS ExecuteVpPipeline();
 
     //!
+    //! \brief  Execute Vp Pipeline, and generate VP Filters
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS UpdateVpInputCompressionState();
+
+    //!
     //! \brief  updated Execute Vp Pipeline status
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
