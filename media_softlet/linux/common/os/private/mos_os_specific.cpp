@@ -3799,19 +3799,17 @@ MOS_USER_FEATURE_KEY_PATH_INFO *Mos_GetDeviceUfPathInfo(
 }
 
 MOS_STATUS Mos_Specific_Virtual_Engine_Init(
-    PMOS_INTERFACE osInterface,
-    PMOS_VIRTUALENGINE_HINT_PARAMS veHitParams)
+    PMOS_INTERFACE pOsInterface,
+    PMOS_VIRTUALENGINE_HINT_PARAMS* veHitParams,
+    MOS_VIRTUALENGINE_INIT_PARAMS&  veInParams)
 {
-    MOS_VIRTUALENGINE_INIT_PARAMS veInitParams = {};
-    veInitParams.bScalabilitySupported = false;
-
-    MOS_OS_CHK_NULL_RETURN(osInterface);
-    MOS_OS_CHK_NULL_RETURN(osInterface->osStreamState);
+    MOS_OS_CHK_NULL_RETURN(pOsInterface);
+    MOS_OS_CHK_NULL_RETURN(pOsInterface->osStreamState);
     MOS_VE_HANDLE veState = nullptr;
     MOS_OS_CHK_STATUS_RETURN(MosInterface::CreateVirtualEngineState(
-        osInterface->osStreamState, &veInitParams, veState));
+        pOsInterface->osStreamState, &veInParams, veState));
 
-    MOS_OS_CHK_STATUS_RETURN(MosInterface::GetVeHintParams(osInterface->osStreamState, false, &veHitParams));
+    MOS_OS_CHK_STATUS_RETURN(MosInterface::GetVeHintParams(pOsInterface->osStreamState, veInParams.bScalabilitySupported, veHitParams));
 
     return MOS_STATUS_SUCCESS;
 }

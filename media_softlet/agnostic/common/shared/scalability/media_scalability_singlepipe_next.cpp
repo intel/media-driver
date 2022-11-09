@@ -53,7 +53,10 @@ MOS_STATUS MediaScalabilitySinglePipeNext::Initialize(const MediaScalabilityOpti
 #if !EMUL
     if (MOS_VE_SUPPORTED(m_osInterface))
     {
-        MOS_STATUS status = Mos_Specific_Virtual_Engine_Init(m_osInterface, m_veHitParams);
+        MOS_VIRTUALENGINE_INIT_PARAMS veInitParms;
+        MOS_ZeroMemory(&veInitParms, sizeof(veInitParms));
+        veInitParms.bScalabilitySupported = false;
+        MOS_STATUS status                 = Mos_Specific_Virtual_Engine_Init(m_osInterface, &m_veHitParams, veInitParms);
         SCALABILITY_CHK_STATUS_MESSAGE_RETURN(status, "Virtual Engine Init failed");
         if (m_osInterface->osStreamState && m_osInterface->osStreamState->virtualEngineInterface)
         {

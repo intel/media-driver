@@ -7600,29 +7600,27 @@ const std::vector<const void *> &GpuCmdResInfoDump::GetCmdResPtrs(PMOS_INTERFACE
 
 MOS_STATUS Mos_Specific_Virtual_Engine_Init(
     PMOS_INTERFACE pOsInterface,
-    PMOS_VIRTUALENGINE_HINT_PARAMS veHitParams)
+    PMOS_VIRTUALENGINE_HINT_PARAMS* veHitParams,
+    MOS_VIRTUALENGINE_INIT_PARAMS&  veInParams)
 {
-    MOS_VIRTUALENGINE_INIT_PARAMS veInitParams = {};
-    veInitParams.bScalabilitySupported = false;
-
     MOS_OS_CHK_NULL_RETURN(pOsInterface);
     if (pOsInterface->apoMosEnabled)
     {
         MOS_OS_CHK_NULL_RETURN(pOsInterface->osStreamState);
         MOS_VE_HANDLE veState = nullptr;
         MOS_OS_CHK_STATUS_RETURN(MosInterface::CreateVirtualEngineState(
-            pOsInterface->osStreamState, &veInitParams, veState));
+            pOsInterface->osStreamState, &veInParams, veState));
 
-        MOS_OS_CHK_STATUS_RETURN(MosInterface::GetVeHintParams(pOsInterface->osStreamState, false, &veHitParams));
+        MOS_OS_CHK_STATUS_RETURN(MosInterface::GetVeHintParams(pOsInterface->osStreamState, veInParams.bScalabilitySupported, veHitParams));
     }
     else
     {
-        MOS_OS_CHK_STATUS_RETURN(Mos_VirtualEngineInterface_Initialize(pOsInterface, &veInitParams));
+        MOS_OS_CHK_STATUS_RETURN(Mos_VirtualEngineInterface_Initialize(pOsInterface, &veInParams));
         PMOS_VIRTUALENGINE_INTERFACE veInterface = pOsInterface->pVEInterf;
         MOS_OS_CHK_NULL_RETURN(veInterface);
         if (veInterface->pfnVEGetHintParams)
         {
-            MOS_OS_CHK_STATUS_RETURN(veInterface->pfnVEGetHintParams(veInterface, false, &veHitParams));
+            MOS_OS_CHK_STATUS_RETURN(veInterface->pfnVEGetHintParams(veInterface, veInParams.bScalabilitySupported, veHitParams));
         }
     }
 
