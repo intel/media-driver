@@ -2774,6 +2774,11 @@ mos_gem_bo_set_exec_object_async(struct mos_linux_bo *bo, struct mos_linux_bo *t
 static void
 mos_gem_bo_set_object_capture(struct mos_linux_bo *bo)
 {
+    // Do nothing if bo is nullptr
+    if (bo == nullptr)
+    {
+        return;
+    }
     struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *) bo->bufmgr;
     struct mos_bo_gem *bo_gem = (struct mos_bo_gem *)bo;
     if (bufmgr_gem != nullptr &&
