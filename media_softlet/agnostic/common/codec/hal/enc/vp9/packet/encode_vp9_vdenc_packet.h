@@ -579,11 +579,11 @@ protected:
     PMOS_RESOURCE m_resVdencPakObjCmdStreamOutBuffer = nullptr;  //!< Resource of Vdenc Pak object command stream out buffer
     MOS_RESOURCE  m_resPakcuLevelStreamoutData       = {0};      //!< PAK CU level Ssreamout data buffer
 
-    MOS_SURFACE m_output16X16InterModes = {0};
+    MOS_SURFACE m_output16X16InterModes = { {0} };
     // ME
-    MOS_SURFACE m_4xMeMvDataBuffer     = {0};  //!< 4x ME MV data buffer
-    MOS_SURFACE m_4xMeDistortionBuffer = {0};  //!< 4x ME distortion buffer
-    MOS_SURFACE m_16xMeMvDataBuffer    = {0};  //!< 16x ME MV data buffer
+    MOS_SURFACE m_4xMeMvDataBuffer     = { {0} };  //!< 4x ME MV data buffer
+    MOS_SURFACE m_4xMeDistortionBuffer = { {0} };  //!< 4x ME distortion buffer
+    MOS_SURFACE m_16xMeMvDataBuffer    = { {0} };  //!< 16x ME MV data buffer
 
     MOS_RESOURCE m_resVdencIntraRowStoreScratchBuffer     = {0};  //!< VDENC Intra row store scratch buffer
     MOS_RESOURCE m_resHvcTileRowStoreBuffer               = {0};  //!< HVC tile row store buffer

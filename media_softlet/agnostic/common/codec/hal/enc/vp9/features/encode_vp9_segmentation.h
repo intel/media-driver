@@ -463,7 +463,7 @@ protected:
     // Segmentation resources
     bool        m_segmentMapProvided  = false;  //!< Flag to indicate APP's segmentation map provided or not
     bool        m_segmentMapAllocated = false;
-    MOS_SURFACE m_mbSegmentMapSurface = {0};
+    MOS_SURFACE m_mbSegmentMapSurface = { {0} };
 
     uint32_t *m_mapBuffer          = nullptr; //!< Use for re-map recreate map buffer
     uint32_t  m_segStreamInHeight  = 0;

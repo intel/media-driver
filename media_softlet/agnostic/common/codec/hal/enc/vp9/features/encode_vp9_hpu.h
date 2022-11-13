@@ -146,7 +146,7 @@ protected:
     MOS_RESOURCE m_resProbabilityCounterBuffer           = {0};                  //!< Probability counter buffer
     MOS_RESOURCE m_resHucProbDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][3]; //!< VDENC HuC Prob DMEM buffer
     MOS_RESOURCE m_resHucProbOutputBuffer                = {0};                  //!< HuC Prob output buffer
-    MOS_RESOURCE m_resProbBuffer[CODEC_VP9_NUM_CONTEXTS] = {0};                  //!< Probability buffer
+    MOS_RESOURCE m_resProbBuffer[CODEC_VP9_NUM_CONTEXTS] = { {0} };                  //!< Probability buffer
 
     mutable bool m_isLastPass = false;
 MEDIA_CLASS_DEFINE_END(encode__Vp9EncodeHpu)

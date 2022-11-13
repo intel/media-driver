@@ -351,7 +351,7 @@ protected:
     MOS_RESOURCE m_resVdencPictureState2ndLevelBatchBufferWrite[CODECHAL_VP9_ENCODE_RECYCLED_BUFFER_NUM];
 
     // Vdenc/Pak resources
-    MOS_RESOURCE m_resHucPakInsertUncompressedHeaderReadBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM]  = {0};  //!< Huc VP9 pak insert uncompressed header read buffer
+    MOS_RESOURCE m_resHucPakInsertUncompressedHeaderReadBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM]  = { {0} };  //!< Huc VP9 pak insert uncompressed header read buffer
     MOS_RESOURCE m_resHucPakInsertUncompressedHeaderWriteBuffer                                      = {0};  //!< Huc VP9 pak insert uncompressed header write buffer
 
     MOS_RESOURCE m_resCompressedHeaderBuffer   = {0};  //!< Compressed heander buffer
