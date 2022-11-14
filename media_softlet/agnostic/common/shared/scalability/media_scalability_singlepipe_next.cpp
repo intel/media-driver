@@ -58,6 +58,7 @@ MOS_STATUS MediaScalabilitySinglePipeNext::Initialize(const MediaScalabilityOpti
         veInitParms.bScalabilitySupported = false;
         MOS_STATUS status                 = Mos_Specific_Virtual_Engine_Init(m_osInterface, &m_veHitParams, veInitParms);
         SCALABILITY_CHK_STATUS_MESSAGE_RETURN(status, "Virtual Engine Init failed");
+        m_veInterface = m_osInterface->pVEInterf;
         if (m_osInterface->osStreamState && m_osInterface->osStreamState->virtualEngineInterface)
         {
             // we set m_veState here when pOsInterface->apoMosEnabled is true
@@ -105,7 +106,9 @@ MOS_STATUS MediaScalabilitySinglePipeNext::Destroy()
     {
         MOS_Delete(m_scalabilityOption);
     }
-
+#if !EMUL
+    Mos_Specific_DestroyVeInterface(&m_veInterface);
+#endif
     return MOS_STATUS_SUCCESS;
 }
 
@@ -183,6 +186,7 @@ MOS_STATUS MediaScalabilitySinglePipeNext::SetHintParams()
         veParams.bSameEngineAsLastSubmission = false;
         veParams.bSFCInUse                   = false;
     }
+    m_osInterface->pVEInterf = m_veInterface;
 #if !EMUL
     eStatus = Mos_Specific_SetHintParams(m_osInterface, &veParams);
 #endif

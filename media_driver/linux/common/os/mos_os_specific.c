@@ -7651,6 +7651,22 @@ MOS_STATUS Mos_Specific_SetHintParams(
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS Mos_Specific_DestroyVeInterface(
+    PMOS_VIRTUALENGINE_INTERFACE *veInterface)
+{
+    MOS_OS_FUNCTION_ENTER;
+    if (*veInterface)
+    {
+        if ((*veInterface)->pfnVEDestroy)
+        {
+            (*veInterface)->pfnVEDestroy(*veInterface);
+        }
+        MOS_FreeMemAndSetNull(*veInterface);
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
 #if (_DEBUG || _RELEASE_INTERNAL)
 MOS_STATUS Mos_Specific_GetEngineLogicId(
     PMOS_INTERFACE pOsInterface,

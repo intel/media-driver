@@ -957,6 +957,19 @@ MOS_STATUS Mos_Specific_SetHintParams(
     PMOS_INTERFACE               pOsInterface,
     PMOS_VIRTUALENGINE_SET_PARAMS veParams);
 
+typedef struct _MOS_VIRTUALENGINE_INTERFACE *PMOS_VIRTUALENGINE_INTERFACE;
+
+//!
+//! \brief    Destroy veInterface
+//! \details  
+//! \param    PMOS_VIRTUALENGINE_INTERFACE *veInterface
+//!           [in] Pointer to PMOS_VIRTUALENGINE_INTERFACE
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if succeeded, otherwise error code
+//!
+MOS_STATUS Mos_Specific_DestroyVeInterface(
+    PMOS_VIRTUALENGINE_INTERFACE *veInterface);
+
 #if (_DEBUG || _RELEASE_INTERNAL)
 MOS_LINUX_BO * Mos_GetNopCommandBuffer_Linux(
     PMOS_INTERFACE        pOsInterface);
