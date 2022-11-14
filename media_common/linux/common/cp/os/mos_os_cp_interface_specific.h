@@ -120,6 +120,12 @@ public:
         return false;
     }
 
+    virtual bool IsCencCtxBasedSubmissionEnabled()
+    {
+        OsStubMessage();
+        return false;
+    }
+
     virtual bool IsTearDownHappen()
     {
         OsStubMessage();
