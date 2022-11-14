@@ -30,6 +30,7 @@
 
 #include "mhw_blt_itf.h"
 #include "mhw_impl.h"
+#include "media_copy_common.h"
 
 namespace mhw
 {
