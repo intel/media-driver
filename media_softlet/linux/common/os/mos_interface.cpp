@@ -1103,7 +1103,7 @@ MOS_CMD_BUF_ATTRI_VE *MosInterface::GetAttributeVeBuffer(
     return nullptr;
 }
 
-static GMM_RESOURCE_USAGE_TYPE GmmResourceUsage[MOS_HW_RESOURCE_DEF_MAX] =
+static constexpr GMM_RESOURCE_USAGE_TYPE GmmResourceUsage[MOS_HW_RESOURCE_DEF_MAX] =
 {
     //
     // CODEC USAGES
@@ -1253,6 +1253,11 @@ static GMM_RESOURCE_USAGE_TYPE GmmResourceUsage[MOS_HW_RESOURCE_DEF_MAX] =
     MHW_RESOURCE_USAGE_Sfc_CurrentOutputSurface_PartialEncSurface,  //!< SFC output surface for partial secure surfaces
     MHW_RESOURCE_USAGE_Sfc_AvsLineBufferSurface,                    //!< SFC AVS Line buffer Surface
     MHW_RESOURCE_USAGE_Sfc_IefLineBufferSurface,                    //!< SFC IEF Line buffer Surface
+
+    // Camera  caputure.
+    GMM_RESOURCE_USAGE_CAMERA_CAPTURE,
+    // Media GMM Resource USAGES
+    GMM_RESOURCE_USAGE_CCS_MEDIA_WRITABLE,
 
     // PAT Media Usages
     GMM_RESOURCE_USAGE_MEDIA_BATCH_BUFFERS,
