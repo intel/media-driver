@@ -69,7 +69,7 @@ public:
         pVertexTable = (typename TVeboxCmds::VEBOX_VERTEX_TABLE_CMD *)(pVeboxHeap->pLockedDriverResourceMem +
                                                  pVeboxHeap->uiVertexTableOffset +
                                                  uiOffset);
-        memset(pVertexTable, 0, uSize);
+        MOS_ZeroMemory(pVertexTable, uSize);
         if (ColorSpace == MHW_CSpace_BT601 || ColorSpace == MHW_CSpace_xvYCC601)
         {
             MOS_SecureMemcpy(pVertexTable, uSize, g_VeboxVertexTableBT601, uSize);

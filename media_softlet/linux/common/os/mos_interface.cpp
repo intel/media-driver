@@ -3618,3 +3618,8 @@ bool MosInterface::IsPooledResource(MOS_STREAM_HANDLE streamState, PMOS_RESOURCE
 {
     return false;
 }
+
+MOS_TILE_TYPE MosInterface::MapTileType(GMM_RESOURCE_FLAG flags, GMM_TILE_TYPE type)
+{
+    return MOS_TILE_INVALID;
+}
