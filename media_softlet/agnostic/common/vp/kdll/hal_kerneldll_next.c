@@ -3865,7 +3865,7 @@ bool KernelDll_BuildKernel_CmFc(Kdll_State *pState, Kdll_SearchState *pSearchSta
 
     // Disable pop-up box window for STL assertion to avoid VM hang in auto test.
 #if (!LINUX)
-    ::SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX);
+    uint32_t prevErrorMode = ::SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX);
 #if defined(_MSC_VER)
     ::_set_error_mode(_OUT_TO_STDERR);
     _CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_FILE | _CRTDBG_MODE_DEBUG);
@@ -3994,6 +3994,9 @@ bool KernelDll_BuildKernel_CmFc(Kdll_State *pState, Kdll_SearchState *pSearchSta
     res = true;
 
 finish:
+#if (!LINUX)
+    ::SetErrorMode(prevErrorMode);
+#endif
     return res;
 }
 
