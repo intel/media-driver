@@ -29,8 +29,7 @@
 #if !EMUL
 #include "encode_scalability_singlepipe.h"
 #include "encode_scalability_multipipe.h"
-#include "decode_scalability_singlepipe.h"
-#include "decode_scalability_multipipe.h"
+#include "decode_scalability_option.h"
 #endif
 #include "vp_scalability_multipipe_next.h"
 #include "vp_scalability_singlepipe_next.h"
