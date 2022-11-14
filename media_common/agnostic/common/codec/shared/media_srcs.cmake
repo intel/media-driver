@@ -51,14 +51,8 @@ set(TMP_2_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/codec_def_cenc_decode.h
 )
 
-set(HEADERS_
-    ${HEADERS_}
-    ${TMP_HEADERS_}
-    ${TMP_2_HEADERS_}
-)
-
-set(CODEC_HEADERS_
-    ${CODEC_HEADERS_}
+set(SOFTLET_CODEC_COMMON_HEADERS_
+    ${SOFTLET_CODEC_COMMON_HEADERS_}
     ${TMP_HEADERS_}
     ${TMP_2_HEADERS_}
 )
@@ -68,4 +62,10 @@ source_group( "CodecHal\\Common" FILES ${TMP_HEADERS_} )
 source_group( "Codec\\Shared" FILES ${TMP_2_HEADERS_} )
 set(TMP_2_HEADERS_ "")
 set(TMP_HEADERS_ "")
+
+# remove this after softlet cmake update
 media_add_curr_to_include_path()
+set(SOFTLET_CODEC_COMMON_PRIVATE_INCLUDE_DIRS_
+    ${SOFTLET_CODEC_COMMON_PRIVATE_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)

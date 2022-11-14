@@ -40,30 +40,26 @@ if(NOT "${Media_Reserved}" STREQUAL "yes")
        )
 endif()
 
-set(SOURCES_
-    ${SOURCES_}
+set(SOFTLET_CODEC_COMMON_SOURCES_
+    ${SOFTLET_CODEC_COMMON_SOURCES_}
     ${TMP_1_SOURCES_}
 )
 
-set(HEADERS_
-    ${HEADERS_}
+set(SOFTLET_CODEC_COMMON_HEADERS_
+    ${SOFTLET_CODEC_COMMON_HEADERS_}
     ${TMP_HEADERS_}
-)
-
-set(CODEC_HEADERS_
-    ${CODEC_HEADERS_}
-    ${TMP_HEADERS_}
-)
-
-set(CODEC_SOURCES_
-    ${CODEC_SOURCES_}
-    ${TMP_1_SOURCES_}
 )
 
 source_group( "CodecHal\\Common" FILES ${TMP_1_SOURCES_} ${TMP_HEADERS_} )
 set(TMP_1_SOURCES_ "")
 set(TMP_HEADERS_ "")
+
+# remove this after softlet cmake update
 media_add_curr_to_include_path()
+set(SOFTLET_CODEC_COMMON_PRIVATE_INCLUDE_DIRS_
+    ${SOFTLET_CODEC_COMMON_PRIVATE_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)
 
 media_include_subdirectory(dec)
 media_include_subdirectory(enc)
