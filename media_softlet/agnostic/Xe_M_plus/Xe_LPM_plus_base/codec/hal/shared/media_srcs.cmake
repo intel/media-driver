@@ -46,17 +46,6 @@ set(SOFTLET_CODEC_COMMON_HEADERS_
     ${TMP_HW_HEADERS_}
 )
 
-set(CODEC_SOURCES_
-    ${CODEC_SOURCES_}
-    ${TMP_MMC_SOURCES_}
-    ${TMP_HW_SOURCES_}
-)
-
-set(CODEC_HEADERS_
-    ${CODEC_HEADERS_}
-    ${TMP_MMC_HEADERS_}
-    ${TMP_HW_HEADERS_}
-)
 
 source_group(CodecHalNext\\Xe_M_plus\\shared\\mmc FILES ${TMP_MMC_SOURCES_} ${TMP_MMC_HEADERS_})
 source_group(CodecHalNext\\Xe_M_plus\\shared\\hw FILES ${TMP_HW_SOURCES_} ${TMP_HW_HEADERS_})
