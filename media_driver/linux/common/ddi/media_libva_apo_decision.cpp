@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021, Intel Corporation
+* Copyright (c) 2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -26,14 +26,33 @@
 
 #include "media_libva_apo_decision.h"
 #include "mos_os_specific.h"
+#include "hwinfo_linux.h"
+#include "media_libva_util.h"
 
 bool MediaLibvaApoDecision::InitDdiApoState(int32_t devicefd, MediaUserSettingSharedPtr userSettingPtr)
 {
+    DDI_FUNCTION_ENTER();
+
     bool apoMosEnabled = SetupApoMosSwitch(devicefd, userSettingPtr);
     bool apoDdiEnabled = SetupApoDdiSwitch(devicefd, userSettingPtr);
+    if (!apoMosEnabled || !apoDdiEnabled)
+    {
+        return false;
+    }
+
+    PRODUCT_FAMILY eProductFamily = IGFX_UNKNOWN;
+    HWInfo_GetGfxProductFamily(devicefd, eProductFamily);
+
+    if (eProductFamily < IGFX_METEORLAKE)
+    {
+        apoDdiEnabled = false;
+    }
 
     // mediaSoloEnabled is not used due to mos context is not ready for solo
     bool mediaSoloEnabled = SetupMediaSoloSwitch();
-
+    if (mediaSoloEnabled)
+    {
+        return false;
+    }
     return apoDdiEnabled && apoMosEnabled;
 }

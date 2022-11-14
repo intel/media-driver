@@ -570,7 +570,6 @@ MOS_STATUS CodechalInterfacesXe_Lpm_Plus::Initialize(
 #ifdef _VP9_ENCODE_VDENC_SUPPORTED
         if (info->Mode == CODECHAL_ENCODE_MODE_VP9)
         {
-#ifdef _APOGEIOS_SUPPORTED
             bool                      apogeiosEnable = true;
             MediaUserSettingSharedPtr userSettingPtr = osInterface->pfnGetUserSettingInstance(osInterface);
             MediaUserSetting::Value   outValue;
@@ -593,13 +592,6 @@ MOS_STATUS CodechalInterfacesXe_Lpm_Plus::Initialize(
                 }
                 return MOS_STATUS_SUCCESS;
             }
-            else
-#endif
-#ifndef _APOGEIOS_SUPPORTED
-#ifdef _MEDIA_RESERVED
-                encoder = MOS_New(CodechalVdencVp9StateXe_Lpm_Plus, hwInterface, debugInterface, info);
-#endif
-#endif
             if (encoder == nullptr)
             {
                 CODECHAL_PUBLIC_ASSERTMESSAGE("Encode state creation failed!");

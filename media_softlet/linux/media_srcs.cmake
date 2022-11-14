@@ -19,3 +19,11 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 media_include_subdirectory(common)
+if(XE_LPM_PLUS_SUPPORT)
+    media_include_subdirectory(xe_lpm_plus_r0)
+    media_include_subdirectory(xe_lpm_plus)
+endif()
+
+if(MTL)
+    media_include_subdirectory(Xe_M_plus)
+endif()
