@@ -217,6 +217,7 @@ enum SurfaceType
     SurfaceTypeFcTarget0,
     SurfaceTypeFcTarget1,
     SurfaceTypeFcCscCoeff,
+    SurfaceTypeDecompressionSync,
     // LGCA related Surfaces
     SurfaceTypeSamplerSurfaceR,
     SurfaceTypeSamplerSurfaceG,

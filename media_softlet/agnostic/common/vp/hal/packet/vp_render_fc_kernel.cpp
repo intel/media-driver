@@ -270,6 +270,23 @@ MOS_STATUS VpRenderFcKernel::SetupSurfaceState()
             VP_RENDER_ASSERTMESSAGE("layer->layerID = d% is out of range!", layer->layerID);
             return MOS_STATUS_INVALID_PARAMETER;
         }
+
+        auto                          decompressionSycSurfaceID = m_surfaceGroup->find(SurfaceTypeDecompressionSync);
+        VP_SURFACE                   *pDecompressionSycSurface = (m_surfaceGroup->end() != decompressionSycSurfaceID) ? decompressionSycSurfaceID->second : nullptr;
+        auto        pSrcID       = m_surfaceGroup->find(SurfaceType(SurfaceTypeFcInputLayer0 + i));
+        VP_SURFACE                   *pSrc         = (m_surfaceGroup->end() != pSrcID) ? pSrcID->second : nullptr;
+        if (pDecompressionSycSurface && pSrc && pSrc->SampleType != SAMPLE_PROGRESSIVE && pSrc->osSurface->CompressionMode == MOS_MMC_RC)
+        {
+            VP_RENDER_CHK_STATUS_RETURN(m_hwInterface->m_osInterface->pfnSetDecompSyncRes(m_hwInterface->m_osInterface, &pDecompressionSycSurface->osSurface->OsResource))
+            VP_RENDER_CHK_STATUS_RETURN(m_hwInterface->m_osInterface->pfnDecompResource(m_hwInterface->m_osInterface, &pSrc->osSurface->OsResource));
+            VP_RENDER_CHK_STATUS_RETURN(m_hwInterface->m_osInterface->pfnSetDecompSyncRes(m_hwInterface->m_osInterface, nullptr));
+            VP_RENDER_CHK_STATUS_RETURN(m_hwInterface->m_osInterface->pfnRegisterResource(m_hwInterface->m_osInterface, &pDecompressionSycSurface->osSurface->OsResource, true, true));
+
+            pSrc->osSurface->bIsCompressed        = false;
+            pSrc->osSurface->CompressionMode      = MOS_MMC_DISABLED;
+            pSrc->osSurface->CompressionFormat    = 0;
+        }
+
         surfParam.surfaceOverwriteParams.bindIndex = s_bindingTableIndex[layer->layerID];
 
         SetSurfaceParams(surfParam, *layer, false);

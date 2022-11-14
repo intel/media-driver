@@ -572,6 +572,8 @@ protected:
 
     // Fc Resource
     VP_SURFACE *m_cmfcCoeff                                   = nullptr;
+    //for decompreesion sync on interlace input of FC
+    VP_SURFACE *m_decompressionSyncSurface                                  = nullptr;
     // Hdr Resource
     VphdrResourceManager *m_hdrResourceManager                = nullptr;
     MediaUserSettingSharedPtr m_userSettingPtr = nullptr;   //!< usersettingInstance

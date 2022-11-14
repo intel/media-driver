@@ -244,6 +244,7 @@ VpResourceManager::~VpResourceManager()
     }
 
     m_allocator.DestroyVpSurface(m_cmfcCoeff);
+    m_allocator.DestroyVpSurface(m_decompressionSyncSurface);
 
     m_allocator.CleanRecycler();
 }
@@ -1044,6 +1045,20 @@ MOS_STATUS VpResourceManager::AssignFcResources(VP_EXECUTE_CAPS &caps, std::vect
         VPP_INTER_RESOURCE_NOTLOCKABLE));
 
     surfSetting.surfGroup.insert(std::make_pair(SurfaceTypeFcCscCoeff, m_cmfcCoeff));
+
+    //for decompreesion sync on interlace input of FC
+    VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.ReAllocateSurface(
+        m_decompressionSyncSurface,
+        "AuxDecompressSyncSurface",
+        Format_Buffer,
+        MOS_GFXRES_BUFFER,
+        MOS_TILE_LINEAR,
+        32,
+        1,
+        false,
+        MOS_MMC_DISABLED,
+        allocated));
+    surfSetting.surfGroup.insert(std::make_pair(SurfaceTypeDecompressionSync, m_decompressionSyncSurface));
 
     return MOS_STATUS_SUCCESS;
 }
