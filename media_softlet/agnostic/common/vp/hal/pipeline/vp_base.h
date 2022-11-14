@@ -140,9 +140,9 @@ public:
 
     // factory function
     static VpBase* VphalStateFactory(
-        PMOS_INTERFACE osInterface,
-        PMOS_CONTEXT   osDriverContext,
-        MOS_STATUS     *eStatus);
+        PMOS_INTERFACE     osInterface,
+        MOS_CONTEXT_HANDLE osDriverContext,
+        MOS_STATUS         *eStatus);
 
     //!
     //! \brief    Allocate VpPipelineAdapterBase Resources

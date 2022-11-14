@@ -431,6 +431,7 @@ ${MEDIA_COMMON}/agnostic/common/shared/user_setting
 ${MEDIA_COMMON}/linux/common/cp/os
 ${MEDIA_SOFTLET}/agnostic/common/media_interfaces
 ${MEDIA_SOFTLET}/agnostic/common/shared
+${MEDIA_SOFTLET}/agnostic/common/shared/mediacopy
 ${MEDIA_SOFTLET}/linux/common/ddi
 )
 

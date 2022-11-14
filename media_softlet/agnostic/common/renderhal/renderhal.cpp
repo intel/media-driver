@@ -4613,7 +4613,7 @@ MOS_STATUS RenderHal_SendCurbeLoad(
 
         MHW_RENDERHAL_CHK_STATUS_RETURN(pRenderHal->pRenderHalPltInterface->AddMediaCurbeLoadCmd(pRenderHal, pCmdBuffer, &CurbeLoadParams));
 
-        HalOcaInterfaceNext::OnIndirectState(*pCmdBuffer, *pOsContext, pRenderHal->StateBaseAddressParams.presDynamicState,
+        HalOcaInterfaceNext::OnIndirectState(*pCmdBuffer, (MOS_CONTEXT_HANDLE)pOsContext, pRenderHal->StateBaseAddressParams.presDynamicState,
             CurbeLoadParams.dwCURBEDataStartAddress, false, CurbeLoadParams.dwCURBETotalDataLength);
     }
 
@@ -4651,7 +4651,7 @@ MOS_STATUS RenderHal_SendMediaIdLoad(
 
     MHW_RENDERHAL_CHK_STATUS_RETURN(pRenderHal->pRenderHalPltInterface->AddMediaIDLoadCmd(pRenderHal, pCmdBuffer, &IdLoadParams));
 
-    HalOcaInterfaceNext::OnIndirectState(*pCmdBuffer, *pOsContext, pRenderHal->StateBaseAddressParams.presDynamicState,
+    HalOcaInterfaceNext::OnIndirectState(*pCmdBuffer, (MOS_CONTEXT_HANDLE)pOsContext, pRenderHal->StateBaseAddressParams.presDynamicState,
         IdLoadParams.dwInterfaceDescriptorStartOffset, false, IdLoadParams.dwInterfaceDescriptorLength);
 
     return eStatus;
@@ -5299,7 +5299,7 @@ MOS_STATUS RenderHal_SendMediaStates(
     MHW_RENDERHAL_CHK_STATUS_RETURN(pRenderHal->pRenderHalPltInterface->AddPipelineSelectCmd(pRenderHal, pCmdBuffer, (pGpGpuWalkerParams) ? true : false));
 
     // The binding table for surface states is at end of command buffer. No need to add it to indirect state heap.
-    HalOcaInterfaceNext::OnIndirectState(*pCmdBuffer, *pOsContext, pRenderHal->StateBaseAddressParams.presInstructionBuffer,
+    HalOcaInterfaceNext::OnIndirectState(*pCmdBuffer, (MOS_CONTEXT_HANDLE)pOsContext, pRenderHal->StateBaseAddressParams.presInstructionBuffer,
         pStateHeap->CurIDEntryParams.dwKernelOffset, false, pStateHeap->iKernelUsedForDump);
 
     // Send State Base Address command

@@ -1652,6 +1652,7 @@ public:
     //!
     static MosOcaInterface *GetOcaInterface(MOS_STREAM_HANDLE streamState);
 
+    static MosOcaInterface *GetOcaInterface(MOS_CONTEXT_HANDLE mosContextHandle);
     //!
     //! \brief    Maps the specified executable module into the address space of
     //!           the calling process.

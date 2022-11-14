@@ -24,10 +24,9 @@
 
 VpPipelineG12Adapter::VpPipelineG12Adapter(
     PMOS_INTERFACE              pOsInterface,
-    PMOS_CONTEXT                pOsDriverContext,
     vp::VpPlatformInterface     &vpPlatformInterface,
     MOS_STATUS                  &eStatus) :
-    VphalStateG12Tgllp(pOsInterface, pOsDriverContext, &eStatus),
+    VphalStateG12Tgllp(pOsInterface, &eStatus),
     VpPipelineAdapterLegacy(vpPlatformInterface, eStatus)
 {
     if (MOS_FAILED(eStatus))

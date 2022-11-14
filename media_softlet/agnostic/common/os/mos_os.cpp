@@ -629,17 +629,17 @@ const char *GpuCmdResInfoDump::GetTileType(MOS_TILE_TYPE tileType) const
 //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
 //!
 MOS_STATUS Mos_InitInterface(
-    PMOS_INTERFACE pOsInterface,
-    PMOS_CONTEXT   pOsDriverContext,
-    MOS_COMPONENT  component)
+    PMOS_INTERFACE     pOsInterface,
+    MOS_CONTEXT_HANDLE osDriverContext,
+    MOS_COMPONENT      component)
 {
     MOS_OS_CHK_NULL_RETURN(pOsInterface);
 #if !EMUL
-    MOS_OS_CHK_NULL_RETURN(pOsDriverContext);
+    MOS_OS_CHK_NULL_RETURN(osDriverContext);
 #endif
     MOS_STATUS                  eStatus = MOS_STATUS_UNKNOWN;
     MediaUserSettingSharedPtr   userSettingPtr = nullptr;
-
+    PMOS_CONTEXT                pOsDriverContext = (PMOS_CONTEXT)osDriverContext;
     // Setup Member functions
     pOsInterface->pfnFillResource       = Mos_OsFillResource;
     pOsInterface->pfnGetBitsPerPixel    = Mos_OsGetBitsPerPixel;

@@ -520,7 +520,7 @@ namespace encode
 
         ENCODE_CHK_STATUS_RETURN(EndStatusReport(statusReportMfx, &cmdBuffer));
 
-        if (Mos_Solo_Extension(m_osInterface->pOsContext))
+        if (Mos_Solo_Extension((MOS_CONTEXT_HANDLE)m_osInterface->pOsContext))
         {
             if (m_pipeline->IsLastPass() && m_pipeline->IsFirstPipe())
             {

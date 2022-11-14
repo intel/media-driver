@@ -362,7 +362,7 @@ MOS_STATUS MediaPerfProfiler::Initialize(void* context, MOS_INTERFACE *osInterfa
 MOS_STATUS MediaPerfProfiler::StoreData(
     std::shared_ptr<mhw::mi::Itf> miItf,
     PMOS_COMMAND_BUFFER           cmdBuffer,
-    PMOS_CONTEXT                  pOsContext,
+    MOS_CONTEXT_HANDLE            pOsContext,
     uint32_t                      offset,
     uint32_t                      value)
 {
@@ -370,7 +370,7 @@ MOS_STATUS MediaPerfProfiler::StoreData(
 
     auto& storeDataParams            = miItf->MHW_GETPAR_F(MI_STORE_DATA_IMM)();
     storeDataParams                  = {};
-    storeDataParams.pOsResource      = m_perfStoreBufferMap[pOsContext];
+    storeDataParams.pOsResource      = m_perfStoreBufferMap[(PMOS_CONTEXT)pOsContext];
     storeDataParams.dwResourceOffset = offset;
     storeDataParams.dwValue          = value;
     CHK_STATUS_RETURN(miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(cmdBuffer));
@@ -408,7 +408,7 @@ MOS_STATUS MediaPerfProfiler::StoreRegister(
 MOS_STATUS MediaPerfProfiler::StoreTSByPipeCtrl(
     std::shared_ptr<mhw::mi::Itf> miItf,
     PMOS_COMMAND_BUFFER           cmdBuffer,
-    PMOS_CONTEXT                  pOsContext,
+    MOS_CONTEXT_HANDLE            pOsContext,
     uint32_t                      offset)
 {
     CHK_NULL_RETURN(miItf);
@@ -418,7 +418,7 @@ MOS_STATUS MediaPerfProfiler::StoreTSByPipeCtrl(
     PipeControlParams.dwResourceOffset = offset;
     PipeControlParams.dwPostSyncOp     = MHW_FLUSH_WRITE_TIMESTAMP_REG;
     PipeControlParams.dwFlushMode      = MHW_FLUSH_READ_CACHE;
-    PipeControlParams.presDest         = m_perfStoreBufferMap[pOsContext];
+    PipeControlParams.presDest         = m_perfStoreBufferMap[(PMOS_CONTEXT)pOsContext];
 
     CHK_STATUS_RETURN(miItf->MHW_ADDCMD_F(PIPE_CONTROL)(cmdBuffer));
 
@@ -428,7 +428,7 @@ MOS_STATUS MediaPerfProfiler::StoreTSByPipeCtrl(
 MOS_STATUS MediaPerfProfiler::StoreTSByMiFlush(
     std::shared_ptr<mhw::mi::Itf> miItf,
     PMOS_COMMAND_BUFFER           cmdBuffer,
-    PMOS_CONTEXT                  pOsContext,
+    MOS_CONTEXT_HANDLE            pOsContext,
     uint32_t                      offset)
 {
     CHK_NULL_RETURN(miItf);
@@ -437,7 +437,7 @@ MOS_STATUS MediaPerfProfiler::StoreTSByMiFlush(
     FlushDwParams                   = {};
     FlushDwParams.postSyncOperation = MHW_FLUSH_WRITE_TIMESTAMP_REG;
     FlushDwParams.dwResourceOffset  = offset;
-    FlushDwParams.pOsResource       = m_perfStoreBufferMap[pOsContext];
+    FlushDwParams.pOsResource       = m_perfStoreBufferMap[(PMOS_CONTEXT)pOsContext];
 
     CHK_STATUS_RETURN(miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(cmdBuffer));
 

@@ -24,10 +24,9 @@
 
 VpPipelineAdapterXe_Xpm::VpPipelineAdapterXe_Xpm(
     PMOS_INTERFACE              pOsInterface,
-    PMOS_CONTEXT                pOsDriverContext,
     vp::VpPlatformInterface     &vpPlatformInterface,
     MOS_STATUS                  &eStatus) :
-    VphalStateXe_Xpm( pOsInterface, pOsDriverContext, &eStatus),
+    VphalStateXe_Xpm(pOsInterface, &eStatus),
     VpPipelineAdapterLegacy(vpPlatformInterface, eStatus)
 {
     if (MOS_FAILED(eStatus))

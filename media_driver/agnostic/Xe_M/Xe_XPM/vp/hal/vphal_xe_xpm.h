@@ -53,9 +53,8 @@ public:
     //!
     VphalStateXe_Xpm(
         PMOS_INTERFACE          pOsInterface,
-        PMOS_CONTEXT            pOsDriverContext,
         MOS_STATUS              *peStatus) :
-        VphalState(pOsInterface, pOsDriverContext, peStatus)
+        VphalState(pOsInterface, peStatus)
     {
         // check the peStatus returned from VphalState
         MOS_STATUS eStatus = peStatus ? (*peStatus) : MOS_STATUS_SUCCESS;

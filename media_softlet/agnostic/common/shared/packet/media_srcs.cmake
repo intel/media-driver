@@ -31,4 +31,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/media_render_cmd_packet.h
     ${CMAKE_CURRENT_LIST_DIR}/media_packet.h
 )
-media_add_curr_to_include_path()
+set(SOFTLET_COMMON_PRIVATE_INCLUDE_DIRS_
+    ${SOFTLET_COMMON_PRIVATE_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)

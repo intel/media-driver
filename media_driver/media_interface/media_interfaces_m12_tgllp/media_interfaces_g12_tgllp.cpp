@@ -49,11 +49,11 @@ Register<VphalInterfacesG12Tgllp>((uint32_t)IGFX_TIGERLAKE_LP);
 
 MOS_STATUS VphalInterfacesG12Tgllp::Initialize(
     PMOS_INTERFACE  osInterface,
-    PMOS_CONTEXT    osDriverContext,
     bool            bInitVphalState,
     MOS_STATUS      *eStatus)
 {
     MOS_OS_CHK_NULL_RETURN(eStatus);
+    MOS_OS_CHK_NULL_RETURN(osInterface);
 #if LINUX
     bool bApogeiosEnable = true;
     MOS_USER_FEATURE_VALUE_DATA         UserFeatureData;
@@ -93,7 +93,6 @@ MOS_STATUS VphalInterfacesG12Tgllp::Initialize(
         m_vpBase = MOS_New(
             VpPipelineG12Adapter,
             osInterface,
-            osDriverContext,
             *vpPlatformInterface,
             *eStatus);
         if (nullptr == m_vpBase)
@@ -109,7 +108,6 @@ MOS_STATUS VphalInterfacesG12Tgllp::Initialize(
         m_vpBase = MOS_New(
         VphalState,
         osInterface,
-        osDriverContext,
         eStatus);
     }
 

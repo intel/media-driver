@@ -2557,7 +2557,7 @@ MOS_STATUS CodechalDecodeHevc::DecodePrimitiveLevel()
         }
     );
 
-    HalOcaInterface::DumpCodechalParam(cmdBuffer, *m_osInterface->pOsContext, m_pCodechalOcaDumper, CODECHAL_HEVC);
+    HalOcaInterface::DumpCodechalParam(cmdBuffer, (MOS_CONTEXT_HANDLE)m_osInterface->pOsContext, m_pCodechalOcaDumper, CODECHAL_HEVC);
     HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface);
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(

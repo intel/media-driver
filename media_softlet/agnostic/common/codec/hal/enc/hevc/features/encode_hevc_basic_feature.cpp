@@ -851,7 +851,7 @@ MHW_SETPAR_DECL_SRC(VDENC_PIPE_BUF_ADDR_STATE, HevcBasicFeature)
     if (MEDIA_IS_WA(waTable, Wa_22011549751) &&
         m_hevcPicParams->CodingType == I_TYPE &&
         !m_osInterface->bSimIsActive &&
-        !Mos_Solo_Extension(m_osInterface->pOsContext) &&
+        !Mos_Solo_Extension((MOS_CONTEXT_HANDLE)m_osInterface->pOsContext) &&
         !m_hevcPicParams->pps_curr_pic_ref_enabled_flag)
     {
         params.numActiveRefL0  = 1;
@@ -1019,7 +1019,7 @@ MHW_SETPAR_DECL_SRC(VDENC_CMD2, HevcBasicFeature)
     if (MEDIA_IS_WA(waTable, Wa_22011549751) &&
         m_hevcPicParams->CodingType == I_TYPE &&
         !m_osInterface->bSimIsActive &&
-        !Mos_Solo_Extension(m_osInterface->pOsContext) &&
+        !Mos_Solo_Extension((MOS_CONTEXT_HANDLE)m_osInterface->pOsContext) &&
         !m_hevcPicParams->pps_curr_pic_ref_enabled_flag)
     {
         params.pictureType = 3;

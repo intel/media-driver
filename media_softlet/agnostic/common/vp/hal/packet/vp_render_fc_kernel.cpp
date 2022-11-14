@@ -649,7 +649,7 @@ MOS_STATUS VpRenderFcKernel::InitRenderHalSurface(
 
 void VpRenderFcKernel::OcaDumpKernelInfo(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext)
 {
-    HalOcaInterfaceNext::DumpVpKernelInfo(cmdBuffer, mosContext, m_kernelId, m_kernelSearch.KernelCount, m_kernelSearch.KernelID);
+    HalOcaInterfaceNext::DumpVpKernelInfo(cmdBuffer, (MOS_CONTEXT_HANDLE)&mosContext, m_kernelId, m_kernelSearch.KernelCount, m_kernelSearch.KernelID);
 }
 
 bool IsRenderAlignmentWANeeded(VP_SURFACE *surface)

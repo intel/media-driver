@@ -848,7 +848,7 @@ void VpRenderCmdPacket::OcaDumpDbgInfo(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEX
         }
     }
     // Add vphal param to log.
-    HalOcaInterfaceNext::DumpVphalParam(cmdBuffer, mosContext, m_renderHal->pVphalOcaDumper);
+    HalOcaInterfaceNext::DumpVphalParam(cmdBuffer, (MOS_CONTEXT_HANDLE)&mosContext, m_renderHal->pVphalOcaDumper);
 }
 
 MOS_STATUS VpRenderCmdPacket::SetMediaFrameTracking(RENDERHAL_GENERIC_PROLOG_PARAMS &genericPrologParams)
@@ -1668,7 +1668,7 @@ MOS_STATUS VpRenderCmdPacket::SendMediaStates(
     MHW_RENDERHAL_CHK_STATUS(pRenderHal->pRenderHalPltInterface->AddPipelineSelectCmd(pRenderHal, pCmdBuffer, (m_walkerType == WALKER_TYPE_COMPUTE) ? true : false));
 
     // The binding table for surface states is at end of command buffer. No need to add it to indirect state heap.
-    HalOcaInterfaceNext::OnIndirectState(*pCmdBuffer, *pOsContext, pRenderHal->StateBaseAddressParams.presInstructionBuffer, pStateHeap->CurIDEntryParams.dwKernelOffset, false, pStateHeap->iKernelUsedForDump);
+    HalOcaInterfaceNext::OnIndirectState(*pCmdBuffer, (MOS_CONTEXT_HANDLE)pOsContext, pRenderHal->StateBaseAddressParams.presInstructionBuffer, pStateHeap->CurIDEntryParams.dwKernelOffset, false, pStateHeap->iKernelUsedForDump);
 
     // Send State Base Address command
     MHW_RENDERHAL_CHK_STATUS(pRenderHal->pfnSendStateBaseAddress(pRenderHal, pCmdBuffer));

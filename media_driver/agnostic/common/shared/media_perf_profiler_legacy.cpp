@@ -125,7 +125,7 @@ MOS_STATUS MediaPerfProfiler::StoreData(
 
     if (m_miItf)
     {
-        CHK_STATUS_RETURN(StoreData(m_miItf, cmdBuffer, pOsContext, offset, value));
+        CHK_STATUS_RETURN(StoreData(m_miItf, cmdBuffer, (MOS_CONTEXT_HANDLE)pOsContext, offset, value));
     }
     else
     {
@@ -190,7 +190,7 @@ MOS_STATUS MediaPerfProfiler::StoreTSByPipeCtrl(
 
     if (m_miItf)
     {
-        CHK_STATUS_RETURN(StoreTSByPipeCtrl(m_miItf, cmdBuffer, pOsContext, offset));
+        CHK_STATUS_RETURN(StoreTSByPipeCtrl(m_miItf, cmdBuffer, (MOS_CONTEXT_HANDLE)pOsContext, offset));
     }
     else
     {

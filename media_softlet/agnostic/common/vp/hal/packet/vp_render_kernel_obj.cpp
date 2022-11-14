@@ -103,7 +103,7 @@ MOS_STATUS VpRenderKernelObj::SetSamplerStates(KERNEL_SAMPLER_STATE_GROUP& sampl
 
 void VpRenderKernelObj::OcaDumpKernelInfo(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext)
 {
-    HalOcaInterfaceNext::DumpVpKernelInfo(cmdBuffer, mosContext, m_kernelId, 0, nullptr);
+    HalOcaInterfaceNext::DumpVpKernelInfo(cmdBuffer, (MOS_CONTEXT_HANDLE)&mosContext, m_kernelId, 0, nullptr);
 }
 
 // Only for Adv kernels.

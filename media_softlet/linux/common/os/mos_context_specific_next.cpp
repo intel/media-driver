@@ -103,7 +103,7 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
         iDeviceId   = mos_bufmgr_gem_get_devid(m_bufmgr);
         m_isAtomSOC = IS_ATOMSOC(iDeviceId);
 
-        eStatus = NullHW::Init(osDriverContext);
+        eStatus = NullHW::Init((MOS_CONTEXT_HANDLE)osDriverContext);
         if (!NullHW::IsEnabled())
         {
             eStatus = HWInfo_GetGfxInfo(m_fd, m_bufmgr, &m_platformInfo, &m_skuTable, &m_waTable, &m_gtSystemInfo, userSettingPtr);

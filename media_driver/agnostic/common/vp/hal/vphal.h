@@ -289,7 +289,6 @@ public:
     //!
     VphalState(
         PMOS_INTERFACE          pOsInterface,
-        PMOS_CONTEXT            pOsDriverContext,
         MOS_STATUS              *peStatus);
 
     //!

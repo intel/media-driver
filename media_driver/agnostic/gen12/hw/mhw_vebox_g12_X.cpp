@@ -820,7 +820,7 @@ MOS_STATUS MhwVeboxInterfaceG12::AddVeboxState(
             pCmdBuffer,
             &ResourceParams));
 
-        HalOcaInterface::OnIndirectState(*pCmdBuffer, *pOsContext, ResourceParams.presResource, ResourceParams.dwOffset, false, m_veboxSettings.uiDndiStateSize);
+        HalOcaInterface::OnIndirectState(*pCmdBuffer, (MOS_CONTEXT_HANDLE)pOsContext, ResourceParams.presResource, ResourceParams.dwOffset, false, m_veboxSettings.uiDndiStateSize);
 
         MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
         if (bCmBuffer)
@@ -843,7 +843,7 @@ MOS_STATUS MhwVeboxInterfaceG12::AddVeboxState(
             pCmdBuffer,
             &ResourceParams));
 
-        HalOcaInterface::OnIndirectState(*pCmdBuffer, *pOsContext, ResourceParams.presResource, ResourceParams.dwOffset, false, m_veboxSettings.uiIecpStateSize);
+        HalOcaInterface::OnIndirectState(*pCmdBuffer, (MOS_CONTEXT_HANDLE)pOsContext, ResourceParams.presResource, ResourceParams.dwOffset, false, m_veboxSettings.uiIecpStateSize);
 
         // Gamut Expansion, HDR and Forward Gamma Correction are mutually exclusive.
         if (pVeboxMode && pVeboxMode->Hdr1DLutEnable)
@@ -870,7 +870,7 @@ MOS_STATUS MhwVeboxInterfaceG12::AddVeboxState(
                 pCmdBuffer,
                 &ResourceParams));
 
-            HalOcaInterface::OnIndirectState(*pCmdBuffer, *pOsContext, ResourceParams.presResource, ResourceParams.dwOffset, false, m_veboxSettings.uiHdrStateSize);
+            HalOcaInterface::OnIndirectState(*pCmdBuffer, (MOS_CONTEXT_HANDLE)pOsContext, ResourceParams.presResource, ResourceParams.dwOffset, false, m_veboxSettings.uiHdrStateSize);
         }
         else
         {
@@ -896,7 +896,7 @@ MOS_STATUS MhwVeboxInterfaceG12::AddVeboxState(
                 pCmdBuffer,
                 &ResourceParams));
 
-            HalOcaInterface::OnIndirectState(*pCmdBuffer, *pOsContext, ResourceParams.presResource, ResourceParams.dwOffset, false, m_veboxSettings.uiGamutStateSize);
+            HalOcaInterface::OnIndirectState(*pCmdBuffer, (MOS_CONTEXT_HANDLE)pOsContext, ResourceParams.presResource, ResourceParams.dwOffset, false, m_veboxSettings.uiGamutStateSize);
         }
 
         MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
@@ -920,7 +920,7 @@ MOS_STATUS MhwVeboxInterfaceG12::AddVeboxState(
             pCmdBuffer,
             &ResourceParams));
 
-        HalOcaInterface::OnIndirectState(*pCmdBuffer, *pOsContext, ResourceParams.presResource, ResourceParams.dwOffset, false, m_veboxSettings.uiVertexTableSize);
+        HalOcaInterface::OnIndirectState(*pCmdBuffer, (MOS_CONTEXT_HANDLE)pOsContext, ResourceParams.presResource, ResourceParams.dwOffset, false, m_veboxSettings.uiVertexTableSize);
 
         MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
         if (bCmBuffer)
@@ -944,7 +944,7 @@ MOS_STATUS MhwVeboxInterfaceG12::AddVeboxState(
             pCmdBuffer,
             &ResourceParams));
 
-        HalOcaInterface::OnIndirectState(*pCmdBuffer, *pOsContext, ResourceParams.presResource, ResourceParams.dwOffset, false, m_veboxSettings.uiCapturePipeStateSize);
+        HalOcaInterface::OnIndirectState(*pCmdBuffer, (MOS_CONTEXT_HANDLE)pOsContext, ResourceParams.presResource, ResourceParams.dwOffset, false, m_veboxSettings.uiCapturePipeStateSize);
 
         if (pVeboxStateCmdParams->pLaceLookUpTables)
         {
@@ -983,7 +983,7 @@ MOS_STATUS MhwVeboxInterfaceG12::AddVeboxState(
             pCmdBuffer,
             &ResourceParams));
 
-        HalOcaInterface::OnIndirectState(*pCmdBuffer, *pOsContext, ResourceParams.presResource, ResourceParams.dwOffset, false, m_veboxSettings.uiGammaCorrectionStateSize);
+        HalOcaInterface::OnIndirectState(*pCmdBuffer, (MOS_CONTEXT_HANDLE)pOsContext, ResourceParams.presResource, ResourceParams.dwOffset, false, m_veboxSettings.uiGammaCorrectionStateSize);
 
         if (pVeboxStateCmdParams->pVebox3DLookUpTables)
         {
@@ -1033,7 +1033,7 @@ MOS_STATUS MhwVeboxInterfaceG12::AddVeboxState(
             pCmdBuffer,
             &ResourceParams));
 
-        HalOcaInterface::OnIndirectState(*pCmdBuffer, *pOsContext, ResourceParams.presResource, 0, true, 0);
+        HalOcaInterface::OnIndirectState(*pCmdBuffer, (MOS_CONTEXT_HANDLE)pOsContext, ResourceParams.presResource, 0, true, 0);
     }
 
     MHW_CHK_NULL(pVeboxMode);

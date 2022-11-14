@@ -103,7 +103,7 @@ MOS_STATUS HevcDecodeBackEndPktM12::Submit(
     DECODE_CHK_STATUS(m_miInterface->AddWatchdogTimerStartCmd(cmdBuffer));
     DECODE_CHK_STATUS(PackPictureLevelCmds(*cmdBuffer));
 
-    HalOcaInterface::DumpCodechalParam(*cmdBuffer, *m_osInterface->pOsContext, m_hevcPipeline->GetCodechalOcaDumper(), CODECHAL_HEVC);
+    HalOcaInterface::DumpCodechalParam(*cmdBuffer, (MOS_CONTEXT_HANDLE)m_osInterface->pOsContext, m_hevcPipeline->GetCodechalOcaDumper(), CODECHAL_HEVC);
     HalOcaInterface::On1stLevelBBEnd(*cmdBuffer, *m_osInterface);
 
     DECODE_CHK_STATUS(m_allocator->SyncOnResource(&m_hevcBasicFeature->m_resDataBuffer, false));

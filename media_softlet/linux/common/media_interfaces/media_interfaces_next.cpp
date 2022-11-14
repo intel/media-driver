@@ -198,7 +198,7 @@ void MhwInterfacesNext::Destroy()
 }
 
 void* McpyDeviceNext::CreateFactory(
-    PMOS_CONTEXT    osDriverContext)
+    MOS_CONTEXT_HANDLE    osDriverContext)
 {
 #define MCPY_FAILURE()                                       \
 {                                                           \

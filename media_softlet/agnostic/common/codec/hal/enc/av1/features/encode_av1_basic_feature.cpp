@@ -840,7 +840,7 @@ MHW_SETPAR_DECL_SRC(VDENC_CMD2, Av1BasicFeature)
     ENCODE_CHK_NULL_RETURN(waTable);
     if (MEDIA_IS_WA(waTable, Wa_22011549751) &&
         !m_osInterface->bSimIsActive &&
-        !Mos_Solo_Extension(m_osInterface->pOsContext) &&
+        !Mos_Solo_Extension((MOS_CONTEXT_HANDLE)m_osInterface->pOsContext) &&
         m_av1PicParams->PicFlags.fields.frame_type == keyFrame)
     {
         params.pictureType = 1;

@@ -617,7 +617,7 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::On1stLevelBBStart(
     MHW_RENDERHAL_CHK_NULL_RETURN(m_miItf);
     MHW_RENDERHAL_CHK_NULL_RETURN(pCmdBuffer);
 
-    HalOcaInterfaceNext::On1stLevelBBStart(*pCmdBuffer, *pOsContext, pRenderHal->pOsInterface->CurrentGpuContextHandle,
+    HalOcaInterfaceNext::On1stLevelBBStart(*pCmdBuffer, (MOS_CONTEXT_HANDLE)pOsContext, pRenderHal->pOsInterface->CurrentGpuContextHandle,
         m_miItf, *pMmioReg);
 
     return eStatus;

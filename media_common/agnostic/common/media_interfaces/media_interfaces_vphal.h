@@ -80,9 +80,9 @@ public:
     //!           returns a valid pointer if successful and nullptr if failed.
     //!
     static VpBase *CreateFactoryNext(
-        PMOS_INTERFACE osInterface,
-        PMOS_CONTEXT   osDriverContext,
-        MOS_STATUS *   eStatus);
+        PMOS_INTERFACE     osInterface,
+        MOS_CONTEXT_HANDLE osDriverContext,
+        MOS_STATUS         *eStatus);
 
     //!
     //! \brief    Initializes platform specific state
@@ -98,7 +98,6 @@ public:
     //!
     virtual MOS_STATUS Initialize(
         PMOS_INTERFACE  osInterface,
-        PMOS_CONTEXT    osDriverContext,
         bool            bInitVphalState,
         MOS_STATUS      *eStatus) = 0;
 

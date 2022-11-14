@@ -58,7 +58,7 @@ namespace decode
 
             DECODE_CHK_NULL(m_hwInterface->GetVdencInterfaceNext());
             auto mmioRegisters = m_hwInterface->GetVdencInterfaceNext()->GetMmioRegisters(MHW_VDBOX_NODE_1);
-            HalOcaInterfaceNext::On1stLevelBBStart(*cmdBuffer, *m_osInterface->pOsContext, m_osInterface->CurrentGpuContextHandle, m_miItf, *mmioRegisters);
+            HalOcaInterfaceNext::On1stLevelBBStart(*cmdBuffer, (MOS_CONTEXT_HANDLE)m_osInterface->pOsContext, m_osInterface->CurrentGpuContextHandle, m_miItf, *mmioRegisters);
         }
 
         DECODE_CHK_STATUS(PackPictureLevelCmds(*cmdBuffer));
@@ -132,7 +132,7 @@ namespace decode
                     ResourceAutoLock resLock(m_allocator, &m_batchBuf->OsResource);
                     uint8_t *batchBufBase = (uint8_t *)resLock.LockResourceForWrite();
                     DECODE_CHK_STATUS(InitPicLevelCmdBuffer(*m_batchBuf, batchBufBase));
-                    HalOcaInterfaceNext::OnSubLevelBBStart(cmdBuffer, *m_osInterface->pOsContext, &m_batchBuf->OsResource, 0, true, 0);
+                    HalOcaInterfaceNext::OnSubLevelBBStart(cmdBuffer, (MOS_CONTEXT_HANDLE)m_osInterface->pOsContext, &m_batchBuf->OsResource, 0, true, 0);
                     m_picCmdBuffer.cmdBuf1stLvl = &cmdBuffer;
                     DECODE_CHK_STATUS(m_picturePkt->Execute(m_picCmdBuffer));
                     DECODE_CHK_STATUS(m_miItf->AddMiBatchBufferEnd(&m_picCmdBuffer, nullptr));

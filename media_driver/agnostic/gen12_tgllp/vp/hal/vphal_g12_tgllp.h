@@ -43,17 +43,14 @@ public:
     //!           - Caller must call Allocate to allocate all VPHAL states and objects.
     //! \param    [in] pOsInterface
     //!           OS interface, if provided externally - may be NULL
-    //! \param    [in] pOsDriverContext
-    //!           OS driver context (UMD context, pShared, ...)
     //! \param    [in,out] pStatus
     //!           Pointer to the MOS_STATUS flag.
     //!           Will assign this flag to MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     VphalStateG12Tgllp(
         PMOS_INTERFACE          pOsInterface,
-        PMOS_CONTEXT            pOsDriverContext,
         MOS_STATUS              *peStatus) :
-        VphalState(pOsInterface, pOsDriverContext, peStatus)
+        VphalState(pOsInterface, peStatus)
     {
         // check the peStatus returned from VphalState
         MOS_STATUS eStatus = peStatus ? (*peStatus) : MOS_STATUS_SUCCESS;

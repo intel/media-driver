@@ -52,7 +52,7 @@ public:
     //!           successful, otherwise return nullptr
     //!
     static void* CreateFactory(
-        PMOS_CONTEXT osDriverContext);
+        MOS_CONTEXT_HANDLE osDriverContext);
 
     //!
     //! \brief    Initializes platform specific Media copy states

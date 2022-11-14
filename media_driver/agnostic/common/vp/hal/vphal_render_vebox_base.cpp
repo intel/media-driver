@@ -1256,9 +1256,9 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxFlushUpdateStateCmdBuffer()
         *pMhwMiInterface, *pMmioRegisters);
 
     // Add kernel info to log.
-    HalOcaInterface::DumpVpKernelInfo(CmdBuffer, *pOsContext, kernelVeboxUpdateDnState, 0, nullptr);
+    HalOcaInterface::DumpVpKernelInfo(CmdBuffer, (MOS_CONTEXT_HANDLE)pOsContext, kernelVeboxUpdateDnState, 0, nullptr);
     // Add vphal param to log.
-    HalOcaInterface::DumpVphalParam(CmdBuffer, *pOsContext, pRenderHal->pVphalOcaDumper);
+    HalOcaInterface::DumpVphalParam(CmdBuffer, (MOS_CONTEXT_HANDLE)pOsContext, pRenderHal->pVphalOcaDumper);
 
     // Initialize command buffer and insert prolog
     VPHAL_RENDER_CHK_STATUS(pRenderHal->pfnInitCommandBuffer(pRenderHal, &CmdBuffer, nullptr));
@@ -1985,7 +1985,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxRenderVeboxCmd(
     HalOcaInterface::TraceOcaSkuValue(CmdBuffer, *pOsInterface);
 
     // Add vphal param to log.
-    HalOcaInterface::DumpVphalParam(CmdBuffer, *pOsContext, pRenderHal->pVphalOcaDumper);
+    HalOcaInterface::DumpVphalParam(CmdBuffer, (MOS_CONTEXT_HANDLE)pOsContext, pRenderHal->pVphalOcaDumper);
 
     // Initialize command buffer and insert prolog
     VPHAL_RENDER_CHK_STATUS(pRenderHal->pfnInitCommandBuffer(pRenderHal, &CmdBuffer, pGenericPrologParams));
@@ -2005,7 +2005,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxRenderVeboxCmd(
     {
         std::string info = "in_comps = " + std::to_string(int(this->m_currentSurface->bCompressible)) + ", out_comps = " + std::to_string(int(VeboxSurfaceStateCmdParams.pSurfOutput->bCompressible));
         const char* ocaLog = info.c_str();
-        HalOcaInterface::TraceMessage(CmdBuffer, *pOsContext, ocaLog, info.size());
+        HalOcaInterface::TraceMessage(CmdBuffer, (MOS_CONTEXT_HANDLE)pOsContext, ocaLog, info.size());
     }
 
     VPHAL_RENDER_CHK_STATUS(pVeboxState->SetupVeboxState(

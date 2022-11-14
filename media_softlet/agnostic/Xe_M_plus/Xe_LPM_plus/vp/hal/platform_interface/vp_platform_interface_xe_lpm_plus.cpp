@@ -107,7 +107,7 @@ VpCmdPacket *VpPlatformInterfacesXe_Lpm_Plus::CreateRenderPacket(MediaTask * tas
 MediaCopyBaseState *VpPlatformInterfacesXe_Lpm_Plus::CreateMediaCopy()
 {
     VP_FUNC_CALL();
-    
+
     MediaCopyBaseState *mediaCopy   = nullptr;
     PMOS_CONTEXT       mos_context  = nullptr;
 
@@ -115,7 +115,7 @@ MediaCopyBaseState *VpPlatformInterfacesXe_Lpm_Plus::CreateMediaCopy()
     {
         m_pOsInterface->pfnGetMosContext(m_pOsInterface, &mos_context);
     }
-    mediaCopy = static_cast<MediaCopyBaseState *>(McpyDeviceNext::CreateFactory(mos_context));
+    mediaCopy = static_cast<MediaCopyBaseState *>(McpyDeviceNext::CreateFactory((MOS_CONTEXT_HANDLE)mos_context));
 
     return mediaCopy;
 }

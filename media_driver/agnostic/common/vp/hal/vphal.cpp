@@ -669,15 +669,12 @@ VphalFeatureReport* VphalState::GetRenderFeatureReport()
 //!           - Caller must call pfnAllocate to allocate all VPHAL states and objects.
 //! \param    [in] pOsInterface
 //!           OS interface, if provided externally - may be nullptr
-//! \param    [in] pOsDriverContext
-//!           OS driver context (UMD context, pShared, ...)
 //! \param    [in,out] peStatus
 //!           Pointer to the MOS_STATUS flag.
 //!           Will assign this flag to MOS_STATUS_SUCCESS if successful, otherwise failed
 //!
 VphalState::VphalState(
         PMOS_INTERFACE          pOsInterface,
-        PMOS_CONTEXT            pOsDriverContext,
         MOS_STATUS              *peStatus) :
         m_platform(),
         m_skuTable(nullptr),

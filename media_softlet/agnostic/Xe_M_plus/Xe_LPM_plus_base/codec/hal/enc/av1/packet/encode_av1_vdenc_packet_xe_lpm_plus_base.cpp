@@ -699,7 +699,7 @@ MOS_STATUS Av1VdencPktXe_Lpm_Plus_Base::PatchTileLevelCommands(MOS_COMMAND_BUFFE
     auto brcFeature = dynamic_cast<Av1Brc *>(m_featureManager->GetFeature(Av1FeatureIDs::av1BrcFeature));
     ENCODE_CHK_NULL_RETURN(brcFeature);
 
-    if (Mos_Solo_Extension(m_osInterface->pOsContext))
+    if (Mos_Solo_Extension((MOS_CONTEXT_HANDLE)m_osInterface->pOsContext))
     {
         ENCODE_CHK_STATUS_RETURN(MediaPacket::UpdateStatusReportNext(statusReportGlobalCount, &cmdBuffer));
     }

@@ -26,7 +26,7 @@
 
 #include "cp_copy_interface.h"
 
-CpCopyInterface *Create_CpCopyInterface(PMOS_CONTEXT pOsDriverContext, MOS_STATUS &status)
+CpCopyInterface *Create_CpCopyInterface(MOS_CONTEXT_HANDLE pOsDriverContext, MOS_STATUS &status)
 {
     status = MOS_STATUS_PLATFORM_NOT_SUPPORTED;
     return nullptr;

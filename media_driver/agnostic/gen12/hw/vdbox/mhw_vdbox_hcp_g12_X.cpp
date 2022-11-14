@@ -2477,7 +2477,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpIndObjBaseAddrCmd(
 
         if(HalOcaInterface::IsLargeResouceDumpSupported())
         {
-            HalOcaInterface::OnIndirectState(*cmdBuffer, *pOsContext, resourceParams.presResource, 0, true, 0);
+            HalOcaInterface::OnIndirectState(*cmdBuffer, (MOS_CONTEXT_HANDLE)pOsContext, resourceParams.presResource, 0, true, 0);
         }
 
         resourceParams.dwUpperBoundLocationOffsetFromCmd = 0;

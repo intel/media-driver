@@ -279,7 +279,7 @@ namespace encode
             {
                 VdencStreamInState* pStreamIn32x32 = (VdencStreamInState *)(streamInBuffer) + LcuAddr * m_num32x32BlocksInLCU + CuAddr;
 
-                if (MEDIA_IS_WA(pWaTable, Wa_22011549751) && frame_type == keyFrame && !m_osInterface->bSimIsActive && !Mos_Solo_Extension(m_osInterface->pOsContext))
+                if (MEDIA_IS_WA(pWaTable, Wa_22011549751) && frame_type == keyFrame && !m_osInterface->bSimIsActive && !Mos_Solo_Extension((MOS_CONTEXT_HANDLE)m_osInterface->pOsContext))
                 {
                     pStreamIn32x32->DW0.MaxCuSize                = 3;
                     pStreamIn32x32->DW0.MaxTuSize                = 3;

@@ -1454,7 +1454,7 @@ extern "C" {
 //!
 MOS_STATUS Mos_InitInterface(
     PMOS_INTERFACE      pOsInterface,
-    PMOS_CONTEXT        pOsDriverContext,
+    MOS_CONTEXT_HANDLE  pOsDriverContext,
     MOS_COMPONENT       component);
 
 //! \brief    Destroy the mos interface

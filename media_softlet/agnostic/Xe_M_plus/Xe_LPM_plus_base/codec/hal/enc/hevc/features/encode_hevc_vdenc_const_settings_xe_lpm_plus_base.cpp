@@ -106,7 +106,7 @@ MOS_STATUS EncodeHevcVdencConstSettingsXe_Lpm_Plus_Base::SetTUSettings()
                 }
 
                 ENCODE_CHK_NULL_RETURN(m_osItf);
-                if (MEDIA_IS_WA(waTable, Wa_22011549751) && m_hevcPicParams->CodingType == I_TYPE && !m_osItf->bSimIsActive && !Mos_Solo_Extension(m_osItf->pOsContext) && !m_hevcPicParams->pps_curr_pic_ref_enabled_flag)
+                if (MEDIA_IS_WA(waTable, Wa_22011549751) && m_hevcPicParams->CodingType == I_TYPE && !m_osItf->bSimIsActive && !Mos_Solo_Extension((MOS_CONTEXT_HANDLE)m_osItf->pOsContext) && !m_hevcPicParams->pps_curr_pic_ref_enabled_flag)
                 {
                     par.numMergeCandidateCu64x64 = 0;
                     par.numMergeCandidateCu32x32 = 0;

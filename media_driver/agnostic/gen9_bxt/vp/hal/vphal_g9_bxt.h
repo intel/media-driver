@@ -51,9 +51,8 @@ public:
     //!
     VphalStateG9Bxt(
         PMOS_INTERFACE          pOsInterface,
-        PMOS_CONTEXT            pOsDriverContext,
         MOS_STATUS              *peStatus) :
-        VphalStateG9(pOsInterface, pOsDriverContext, peStatus)
+        VphalStateG9(pOsInterface, peStatus)
     {
     }
 

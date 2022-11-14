@@ -2194,12 +2194,12 @@ MOS_STATUS CodechalDecodeHevcG12::DecodePrimitiveLevel()
     {
         submitCommand = CodecHalDecodeScalabilityIsToSubmitCmdBuffer_G12(m_scalabilityState);
 
-        HalOcaInterface::DumpCodechalParam(scdryCmdBuffer, *m_osInterface->pOsContext, m_pCodechalOcaDumper, CODECHAL_HEVC);
+        HalOcaInterface::DumpCodechalParam(scdryCmdBuffer, (MOS_CONTEXT_HANDLE)m_osInterface->pOsContext, m_pCodechalOcaDumper, CODECHAL_HEVC);
         HalOcaInterface::On1stLevelBBEnd(scdryCmdBuffer, *m_osInterface);
     }
     else
     {
-        HalOcaInterface::DumpCodechalParam(primCmdBuffer, *m_osInterface->pOsContext, m_pCodechalOcaDumper, CODECHAL_HEVC);
+        HalOcaInterface::DumpCodechalParam(primCmdBuffer, (MOS_CONTEXT_HANDLE)m_osInterface->pOsContext, m_pCodechalOcaDumper, CODECHAL_HEVC);
         HalOcaInterface::On1stLevelBBEnd(primCmdBuffer, *m_osInterface);
     }
 

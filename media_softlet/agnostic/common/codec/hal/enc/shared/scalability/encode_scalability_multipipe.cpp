@@ -841,7 +841,7 @@ MOS_STATUS EncodeScalabilityMultiPipe::Oca1stLevelBBStart(MOS_COMMAND_BUFFER &cm
 
         HalOcaInterfaceNext::On1stLevelBBStart(
             cmdBuffer,
-            *m_osInterface->pOsContext,
+            (MOS_CONTEXT_HANDLE)m_osInterface->pOsContext,
             m_osInterface->CurrentGpuContextHandle,
             m_miItf,
             mmioRegister);

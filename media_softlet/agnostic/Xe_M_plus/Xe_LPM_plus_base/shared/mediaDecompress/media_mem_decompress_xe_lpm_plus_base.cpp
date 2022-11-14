@@ -100,7 +100,7 @@ MOS_STATUS MediaMemDeCompNext_Xe_Lpm_Plus_Base::RenderDecompCMD(PMOS_SURFACE sur
 
     HalOcaInterfaceNext::On1stLevelBBStart(
         cmdBuffer, 
-        *pOsContext,
+        (MOS_CONTEXT_HANDLE)pOsContext,
         m_osInterface->CurrentGpuContextHandle,
         m_miItf, 
         *pMmioRegisters);

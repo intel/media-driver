@@ -555,7 +555,7 @@ MOS_STATUS Mhw_SendGenericPrologCmdNext(
     {
         HalOcaInterfaceNext::On1stLevelBBStart(
             *pCmdBuffer,
-            *pOsInterface->pOsContext,
+            (MOS_CONTEXT_HANDLE)pOsInterface->pOsContext,
             pOsInterface->CurrentGpuContextHandle,
             miItf,
             *pMmioReg);

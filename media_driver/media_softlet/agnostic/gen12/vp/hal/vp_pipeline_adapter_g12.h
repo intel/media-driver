@@ -32,7 +32,6 @@ class VpPipelineG12Adapter : public VphalStateG12Tgllp, public VpPipelineAdapter
 public:
     VpPipelineG12Adapter(
         PMOS_INTERFACE          pOsInterface,
-        PMOS_CONTEXT            pOsDriverContext,
         vp::VpPlatformInterface &vpPlatformInterface,
         MOS_STATUS              &eStatus);
 

@@ -284,7 +284,7 @@ MOS_STATUS MediaPipeline::CreateMediaCopy()
     {
         m_osInterface->pfnGetMosContext(m_osInterface, &mos_context);
     }
-    m_mediaCopy = static_cast<MediaCopyBaseState*>(McpyDeviceNext::CreateFactory(mos_context));
+    m_mediaCopy = static_cast<MediaCopyBaseState *>(McpyDeviceNext::CreateFactory((MOS_CONTEXT_HANDLE)mos_context));
     return MOS_STATUS_SUCCESS;
 }
 

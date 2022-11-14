@@ -31,7 +31,6 @@ class VpPipelineAdapterXe_Lpm_Plus : virtual public VpPipelineAdapter
 public:
     VpPipelineAdapterXe_Lpm_Plus(
         PMOS_INTERFACE          pOsInterface,
-        PMOS_CONTEXT            pOsDriverContext,
         vp::VpPlatformInterface &vpPlatformInterface,
         MOS_STATUS              &eStatus);
 

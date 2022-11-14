@@ -2949,7 +2949,7 @@ MOS_STATUS CodechalVdencHevcStateG12::ExecutePictureLevel()
     {
         // 2nd level batch buffer
         m_vdenc2ndLevelBatchBuffer[m_currRecycledBufIdx].dwOffset = m_hwInterface->m_vdencBatchBuffer1stGroupSize;
-        HalOcaInterface::OnSubLevelBBStart(cmdBuffer, *m_osInterface->pOsContext, &m_vdenc2ndLevelBatchBuffer[m_currRecycledBufIdx].OsResource, 0, true, 0);
+        HalOcaInterface::OnSubLevelBBStart(cmdBuffer, (MOS_CONTEXT_HANDLE)m_osInterface->pOsContext, &m_vdenc2ndLevelBatchBuffer[m_currRecycledBufIdx].OsResource, 0, true, 0);
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferStartCmd(&cmdBuffer, &m_vdenc2ndLevelBatchBuffer[m_currRecycledBufIdx]));
 
         // save offset for next 2nd level batch buffer usage
@@ -3091,7 +3091,7 @@ MOS_STATUS CodechalVdencHevcStateG12::EncTileLevel()
                 tileBatchBuf.pCmdBase = tileBatchBuf.pCmdPtr = (uint32_t *)data;
                 tileBatchBuf.iRemaining = m_tileLevelBatchSize;
 
-                HalOcaInterface::OnSubLevelBBStart(cmdBuffer, *m_osInterface->pOsContext, &m_tileLevelBatchBuffer[m_tileRowPass][idx].OsResource, 0, true, 0);
+                HalOcaInterface::OnSubLevelBBStart(cmdBuffer, (MOS_CONTEXT_HANDLE)m_osInterface->pOsContext, &m_tileLevelBatchBuffer[m_tileRowPass][idx].OsResource, 0, true, 0);
                 // Add batch buffer start for tile
                 CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferStartCmd(&cmdBuffer, &m_tileLevelBatchBuffer[currentPass][idx]));
 
@@ -3151,7 +3151,7 @@ MOS_STATUS CodechalVdencHevcStateG12::EncTileLevel()
             // 3rd level batch buffer
             if (m_hevcVdencAcqpEnabled || m_brcEnabled)
             {
-                HalOcaInterface::OnSubLevelBBStart(cmdBuffer, *m_osInterface->pOsContext, &m_vdenc2ndLevelBatchBuffer[m_currRecycledBufIdx].OsResource, 0, true, 0);
+                HalOcaInterface::OnSubLevelBBStart(cmdBuffer, (MOS_CONTEXT_HANDLE)m_osInterface->pOsContext, &m_vdenc2ndLevelBatchBuffer[m_currRecycledBufIdx].OsResource, 0, true, 0);
                 m_vdenc2ndLevelBatchBuffer[m_currRecycledBufIdx].dwOffset = m_hwInterface->m_vdencBatchBuffer1stGroupSize;
                 CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferStartCmd(tempCmdBuf, &m_vdenc2ndLevelBatchBuffer[m_currRecycledBufIdx]));
                 if (m_hevcRdoqEnabled)
@@ -3163,7 +3163,7 @@ MOS_STATUS CodechalVdencHevcStateG12::EncTileLevel()
             }
             else
             {
-                HalOcaInterface::OnSubLevelBBStart(cmdBuffer, *m_osInterface->pOsContext, &m_thirdLevelBatchBuffer.OsResource, 0, true, 0);
+                HalOcaInterface::OnSubLevelBBStart(cmdBuffer, (MOS_CONTEXT_HANDLE)m_osInterface->pOsContext, &m_thirdLevelBatchBuffer.OsResource, 0, true, 0);
                 CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferStartCmd(tempCmdBuf, &m_thirdLevelBatchBuffer));
             }
 
@@ -3370,7 +3370,7 @@ MOS_STATUS CodechalVdencHevcStateG12::EncTileLevel()
             m_HucStitchCmdBatchBuffer.iCurrent = 0;
             // reset starting location (offset) executing 2nd level batch buffer for each frame & each pass
             m_HucStitchCmdBatchBuffer.dwOffset = 0;
-            HalOcaInterface::OnSubLevelBBStart(cmdBuffer, *m_osInterface->pOsContext, &m_HucStitchCmdBatchBuffer.OsResource, 0, true, 0);
+            HalOcaInterface::OnSubLevelBBStart(cmdBuffer, (MOS_CONTEXT_HANDLE)m_osInterface->pOsContext, &m_HucStitchCmdBatchBuffer.OsResource, 0, true, 0);
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferStartCmd(&cmdBuffer, &m_HucStitchCmdBatchBuffer));
             // This wait cmd is needed to make sure copy command is done as suggested by HW folk in encode cases
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMfxWaitCmd(&cmdBuffer, nullptr, m_osInterface->osCpInterface->IsCpEnabled() ? true : false));
@@ -3546,7 +3546,7 @@ MOS_STATUS CodechalVdencHevcStateG12::EncWithTileRowLevelBRC()
                 tileBatchBuf.iRemaining = m_tileLevelBatchSize;
 
                 // Add batch buffer start for tile
-                HalOcaInterface::OnSubLevelBBStart(cmdBuffer, *m_osInterface->pOsContext, &m_tileLevelBatchBuffer[m_tileRowPass][idx].OsResource, 0, true, 0);
+                HalOcaInterface::OnSubLevelBBStart(cmdBuffer, (MOS_CONTEXT_HANDLE)m_osInterface->pOsContext, &m_tileLevelBatchBuffer[m_tileRowPass][idx].OsResource, 0, true, 0);
                 CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferStartCmd(&cmdBuffer, &m_tileLevelBatchBuffer[m_tileRowPass][idx]));
 
                 if (m_numPipe > 1)
@@ -3639,7 +3639,7 @@ MOS_STATUS CodechalVdencHevcStateG12::EncWithTileRowLevelBRC()
                 if (m_hevcVdencAcqpEnabled || m_brcEnabled)
                 {
                     m_vdenc2ndLevelBatchBuffer[m_currRecycledBufIdx].dwOffset = m_hwInterface->m_vdencBatchBuffer1stGroupSize;
-                    HalOcaInterface::OnSubLevelBBStart(cmdBuffer, *m_osInterface->pOsContext, &m_vdenc2ndLevelBatchBuffer[m_currRecycledBufIdx].OsResource, 0, true, 0);
+                    HalOcaInterface::OnSubLevelBBStart(cmdBuffer, (MOS_CONTEXT_HANDLE)m_osInterface->pOsContext, &m_vdenc2ndLevelBatchBuffer[m_currRecycledBufIdx].OsResource, 0, true, 0);
                     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferStartCmd(&tileBatchBuf, &m_vdenc2ndLevelBatchBuffer[m_currRecycledBufIdx]));
 
                     if (m_hevcRdoqEnabled)
@@ -3894,7 +3894,7 @@ MOS_STATUS CodechalVdencHevcStateG12::EncWithTileRowLevelBRC()
             m_HucStitchCmdBatchBuffer.iCurrent = 0;
             // reset starting location (offset) executing 2nd level batch buffer for each frame & each pass
             m_HucStitchCmdBatchBuffer.dwOffset = 0;
-            HalOcaInterface::OnSubLevelBBStart(cmdBuffer, *m_osInterface->pOsContext, &m_HucStitchCmdBatchBuffer.OsResource, 0, true, 0);
+            HalOcaInterface::OnSubLevelBBStart(cmdBuffer, (MOS_CONTEXT_HANDLE)m_osInterface->pOsContext, &m_HucStitchCmdBatchBuffer.OsResource, 0, true, 0);
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferStartCmd(&cmdBuffer, &m_HucStitchCmdBatchBuffer));
             // This wait cmd is needed to make sure copy command is done as suggested by HW folk in encode cases
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMfxWaitCmd(&cmdBuffer, nullptr, m_osInterface->osCpInterface->IsCpEnabled() ? true : false));
@@ -8845,7 +8845,7 @@ MOS_STATUS CodechalVdencHevcStateG12::HuCBrcTileRowUpdate(PMOS_COMMAND_BUFFER cm
     tileRowBRCBatchBuf.iRemaining = m_hwInterface->m_hucCommandBufferSize;
 
     // Add batch buffer start for tile row BRC batch
-    HalOcaInterface::OnSubLevelBBStart(*cmdBuffer, *m_osInterface->pOsContext, &m_TileRowBRCBatchBuffer[m_CurrentPassForTileReplay][m_CurrentTileRow].OsResource, 0, true, 0);
+    HalOcaInterface::OnSubLevelBBStart(*cmdBuffer, (MOS_CONTEXT_HANDLE)m_osInterface->pOsContext, &m_TileRowBRCBatchBuffer[m_CurrentPassForTileReplay][m_CurrentTileRow].OsResource, 0, true, 0);
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferStartCmd(cmdBuffer, &m_TileRowBRCBatchBuffer[m_CurrentPassForTileReplay][m_CurrentTileRow]));
 
     // load kernel from WOPCM into L2 storage RAM

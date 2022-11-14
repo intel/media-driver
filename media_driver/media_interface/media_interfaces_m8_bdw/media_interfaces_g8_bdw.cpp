@@ -51,14 +51,12 @@ static bool bdwRegisteredVphal =
 
 MOS_STATUS VphalInterfacesG8Bdw::Initialize(
     PMOS_INTERFACE  osInterface,
-    PMOS_CONTEXT    osDriverContext,
     bool            bInitVphalState,
     MOS_STATUS      *eStatus)
 {
     m_vpBase = MOS_New(
         VphalState,
         osInterface,
-        osDriverContext,
         eStatus);
 
     return *eStatus;

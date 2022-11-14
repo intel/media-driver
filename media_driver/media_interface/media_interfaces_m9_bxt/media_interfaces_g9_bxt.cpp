@@ -45,14 +45,12 @@ static bool bxtRegisteredVphal =
 
 MOS_STATUS VphalInterfacesG9Bxt::Initialize(
     PMOS_INTERFACE  osInterface,
-    PMOS_CONTEXT    osDriverContext,
     bool            bInitVphalState,
     MOS_STATUS      *eStatus)
 {
     m_vpBase = MOS_New(
         VphalState,
         osInterface,
-        osDriverContext,
         eStatus);
 
     return *eStatus;

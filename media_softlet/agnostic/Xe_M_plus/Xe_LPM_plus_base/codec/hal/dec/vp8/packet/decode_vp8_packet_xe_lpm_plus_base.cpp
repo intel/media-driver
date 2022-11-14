@@ -62,7 +62,7 @@ namespace decode
 
         DECODE_CHK_NULL(m_hwInterface->GetVdencInterfaceNext());
         auto mmioRegisters = m_hwInterface->GetVdencInterfaceNext()->GetMmioRegisters(MHW_VDBOX_NODE_1);
-        HalOcaInterfaceNext::On1stLevelBBStart(*cmdBuffer, *m_osInterface->pOsContext, m_osInterface->CurrentGpuContextHandle, m_miItf, *mmioRegisters);
+        HalOcaInterfaceNext::On1stLevelBBStart(*cmdBuffer, (MOS_CONTEXT_HANDLE)m_osInterface->pOsContext, m_osInterface->CurrentGpuContextHandle, m_miItf, *mmioRegisters);
 
         DECODE_CHK_STATUS(PackPictureLevelCmds(*cmdBuffer));
         DECODE_CHK_STATUS(PackSliceLevelCmds(*cmdBuffer));

@@ -2091,7 +2091,7 @@ MOS_STATUS CodechalEncoderState::ExecuteMeKernel(
         &walkerParams,
         &walkerCodecParams));
 
-    HalOcaInterface::TraceMessage(cmdBuffer, *m_osInterface->pOsContext, __FUNCTION__, sizeof(__FUNCTION__));
+    HalOcaInterface::TraceMessage(cmdBuffer, (MOS_CONTEXT_HANDLE)m_osInterface->pOsContext, __FUNCTION__, sizeof(__FUNCTION__));
     HalOcaInterface::OnDispatch(cmdBuffer, *m_osInterface, *m_miInterface, *m_renderEngineInterface->GetMmioRegisters());
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_renderEngineInterface->AddMediaObjectWalkerCmd(
@@ -5333,7 +5333,7 @@ MOS_STATUS CodechalEncoderState::SetupWalkerContext(
 
         HalOcaInterface::OnIndirectState(
             *cmdBuffer,
-            *m_osInterface->pOsContext,
+            (MOS_CONTEXT_HANDLE)m_osInterface->pOsContext,
             dsh,
             params->pKernelState->m_dshRegion.GetOffset() + params->pKernelState->dwCurbeOffset,
             false,
@@ -5353,7 +5353,7 @@ MOS_STATUS CodechalEncoderState::SetupWalkerContext(
 
     HalOcaInterface::OnIndirectState(
         *cmdBuffer,
-        *m_osInterface->pOsContext,
+        (MOS_CONTEXT_HANDLE)m_osInterface->pOsContext,
         dsh,
         InterfaceDescriptorDataStartOffset,
         false,

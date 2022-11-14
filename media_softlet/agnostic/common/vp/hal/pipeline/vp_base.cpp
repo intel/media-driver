@@ -44,15 +44,15 @@ VpBase::~VpBase()
 }
 
 VpBase* VpBase::VphalStateFactory(
-    PMOS_INTERFACE osInterface,
-    PMOS_CONTEXT   osDriverContext,
-    MOS_STATUS     *peStatus)
+    PMOS_INTERFACE     osInterface,
+    MOS_CONTEXT_HANDLE osDriverContext,
+    MOS_STATUS         *peStatus)
 {
     VP_FUNC_CALL();
 
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
-    VpBase *vpBase = VphalDevice::CreateFactoryNext(osInterface, osDriverContext, &eStatus);
+    VpBase *vpBase = VphalDevice::CreateFactoryNext(osInterface, (PMOS_CONTEXT)osDriverContext, &eStatus);
 
     if (peStatus)
     {

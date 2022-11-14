@@ -135,7 +135,7 @@ VpBase* VphalDevice::CreateFactory(
         return nullptr;
     }
 
-    if (vphalDevice->Initialize(osInterface, osDriverContext, true, eStatus) != MOS_STATUS_SUCCESS)
+    if (vphalDevice->Initialize(osInterface, true, eStatus) != MOS_STATUS_SUCCESS)
     {
         VP_DEBUG_ASSERTMESSAGE("VPHal interfaces were not successfully allocated!");
 
@@ -162,9 +162,9 @@ VpBase* VphalDevice::CreateFactory(
 }
 
 VpBase *VphalDevice::CreateFactoryNext(
-    PMOS_INTERFACE osInterface,
-    PMOS_CONTEXT   osDriverContext,
-    MOS_STATUS *   eStatus)
+    PMOS_INTERFACE     osInterface,
+    MOS_CONTEXT_HANDLE osDriverContext,
+    MOS_STATUS         *eStatus)
 {
     VpBase                *vpBase            = nullptr;
     VphalDevice           *vphalDevice       = nullptr;
@@ -222,7 +222,7 @@ VpBase *VphalDevice::CreateFactoryNext(
         return nullptr;
     }
 
-    if (vphalDevice->Initialize(osInterface, osDriverContext, true, eStatus) != MOS_STATUS_SUCCESS)
+    if (vphalDevice->Initialize(osInterface, true, eStatus) != MOS_STATUS_SUCCESS)
     {
         VP_DEBUG_ASSERTMESSAGE("VPHal interfaces were not successfully allocated!");
 

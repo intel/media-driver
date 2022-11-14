@@ -32,7 +32,6 @@ class VpPipelineAdapterXe_Xpm : virtual public VphalStateXe_Xpm, virtual public 
 public:
     VpPipelineAdapterXe_Xpm(
         PMOS_INTERFACE          pOsInterface,
-        PMOS_CONTEXT            pOsDriverContext,
         vp::VpPlatformInterface &vpPlatformInterface,
         MOS_STATUS              &eStatus);
 

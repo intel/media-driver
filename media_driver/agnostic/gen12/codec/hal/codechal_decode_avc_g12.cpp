@@ -20,7 +20,7 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      codechal_decode_avc_g11.cpp
+//! \file      codechal_decode_avc_g12.cpp
 //! \brief     This modules implements Render interface layer for AVC decoding to be used on all operating systems/DDIs, across CODECHAL components.
 //!
 
@@ -464,7 +464,7 @@ MOS_STATUS CodechalDecodeAvcG12::DecodePrimitiveLevel()
         CodecHalDecodeSinglePipeVE_PopulateHintParams(m_veState, &cmdBuffer, true);
     }
 
-    HalOcaInterface::DumpCodechalParam(cmdBuffer, *m_osInterface->pOsContext, m_pCodechalOcaDumper, CODECHAL_AVC);
+    HalOcaInterface::DumpCodechalParam(cmdBuffer, (MOS_CONTEXT_HANDLE)m_osInterface->pOsContext, m_pCodechalOcaDumper, CODECHAL_AVC);
     HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface);
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, m_videoContextUsesNullHw));

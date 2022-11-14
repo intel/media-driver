@@ -80,7 +80,7 @@ MOS_STATUS HevcDecodeRealTilePktXe_Lpm_Plus_Base::Submit(
 
     DECODE_CHK_NULL(m_hwInterface->GetVdencInterfaceNext());
     auto mmioRegisters = m_hwInterface->GetVdencInterfaceNext()->GetMmioRegisters(MHW_VDBOX_NODE_1);
-    HalOcaInterfaceNext::On1stLevelBBStart(*cmdBuffer, *m_osInterface->pOsContext, m_osInterface->CurrentGpuContextHandle, m_miItf, *mmioRegisters);
+    HalOcaInterfaceNext::On1stLevelBBStart(*cmdBuffer, (MOS_CONTEXT_HANDLE)m_osInterface->pOsContext, m_osInterface->CurrentGpuContextHandle, m_miItf, *mmioRegisters);
 
     auto scalability = m_hevcPipeline->GetMediaScalability();
     DECODE_ASSERT(scalability != nullptr);
@@ -119,7 +119,7 @@ MOS_STATUS HevcDecodeRealTilePktXe_Lpm_Plus_Base::Submit(
         DECODE_CHK_STATUS(PackSliceLevelCmds(*cmdBuffer));
     }
 
-    HalOcaInterfaceNext::DumpCodechalParam(*cmdBuffer, *m_osInterface->pOsContext, m_hevcPipeline->GetCodechalOcaDumper(), CODECHAL_HEVC);
+    HalOcaInterfaceNext::DumpCodechalParam(*cmdBuffer, (MOS_CONTEXT_HANDLE)m_osInterface->pOsContext, m_hevcPipeline->GetCodechalOcaDumper(), CODECHAL_HEVC);
     HalOcaInterfaceNext::On1stLevelBBEnd(*cmdBuffer, *m_osInterface);
 
     DECODE_CHK_STATUS(m_allocator->SyncOnResource(&m_hevcBasicFeature->m_resDataBuffer, false));

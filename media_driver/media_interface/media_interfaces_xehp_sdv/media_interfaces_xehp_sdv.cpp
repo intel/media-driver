@@ -64,10 +64,10 @@ Register<VphalInterfacesXe_Xpm>((uint32_t)IGFX_XE_HP_SDV);
 
 MOS_STATUS VphalInterfacesXe_Xpm::Initialize(
     PMOS_INTERFACE  osInterface,
-    PMOS_CONTEXT    osDriverContext,
     bool            bInitVphalState,
     MOS_STATUS      *eStatus)
 {
+    MOS_OS_CHK_NULL_RETURN(osInterface);
     bool bApogeiosEnable = true;
     MOS_USER_FEATURE_VALUE_DATA         UserFeatureData;
     MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
@@ -79,7 +79,7 @@ MOS_STATUS VphalInterfacesXe_Xpm::Initialize(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_APOGEIOS_ENABLE_ID,
         &UserFeatureData,
-        osDriverContext);
+        osInterface->pOsContext);
     bApogeiosEnable = UserFeatureData.bData ? true : false;
     if (bApogeiosEnable)
     {
@@ -106,7 +106,6 @@ MOS_STATUS VphalInterfacesXe_Xpm::Initialize(
         m_vpBase = MOS_New(
             VpPipelineAdapterXe_Xpm,
             osInterface,
-            osDriverContext,
             *vpPlatformInterface,
             *eStatus);
         if (nullptr == m_vpBase)
@@ -121,7 +120,6 @@ MOS_STATUS VphalInterfacesXe_Xpm::Initialize(
         m_vpBase = MOS_New(
             VphalState,
             osInterface,
-            osDriverContext,
             eStatus);
     }
 

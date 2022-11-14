@@ -31,34 +31,17 @@ bool  NullHW::m_initilized = false;
 bool  NullHW::m_enabled = false;
 
 MOS_STATUS NullHW::Init(
-    PMOS_CONTEXT osContext)
+    MOS_CONTEXT_HANDLE osContext)
 {
-    MOS_STATUS                  eStatus         = MOS_STATUS_SUCCESS;
-    MediaUserSettingSharedPtr   userSettingPtr  = nullptr;
-
-    MOS_OS_CHK_NULL_RETURN(osContext);
-    userSettingPtr = MosInterface::MosGetUserSettingInstance(osContext);
-
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
     if (!m_initilized) {
-        uint32_t value = 0;
         m_initilized = true;
 
-        ReadUserSettingForDebug(
-            userSettingPtr,
-            value,
-            __MEDIA_USER_FEATURE_VALUE_NULLHW_ENABLE,
-            MediaUserSetting::Group::Device);
-        m_enabled = (value) ? true : false;
-
-        if (m_enabled)
+        eStatus = MosMockAdaptor::Init(osContext, m_enabled);
+        if (eStatus != MOS_STATUS_SUCCESS)
         {
-            eStatus = MosMockAdaptor::Init(osContext);
+            return eStatus;
         }
-        else
-        {
-            eStatus = MOS_STATUS_INVALID_HANDLE;
-        }
-
     }
     return eStatus;
 }

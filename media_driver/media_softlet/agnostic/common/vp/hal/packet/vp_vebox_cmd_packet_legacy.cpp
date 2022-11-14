@@ -1848,12 +1848,12 @@ MOS_STATUS VpVeboxCmdPacketLegacy::RenderVeboxCmd(
         HalOcaInterface::On1stLevelBBStart(*pCmdBufferInUse, *pOsContext, pOsInterface->CurrentGpuContextHandle, *pMhwMiInterface, *pMmioRegisters);
 
         char ocaMsg[] = "VP APG Vebox Packet";
-        HalOcaInterface::TraceMessage(*pCmdBufferInUse, *pOsContext, ocaMsg, sizeof(ocaMsg));
+        HalOcaInterface::TraceMessage(*pCmdBufferInUse, (MOS_CONTEXT_HANDLE)pOsContext, ocaMsg, sizeof(ocaMsg));
 
         HalOcaInterface::TraceOcaSkuValue(*pCmdBufferInUse, *pOsInterface);
 
         // Add vphal param to log.
-        HalOcaInterface::DumpVphalParam(*pCmdBufferInUse, *pOsContext, pRenderHal->pVphalOcaDumper);
+        HalOcaInterface::DumpVphalParam(*pCmdBufferInUse, (MOS_CONTEXT_HANDLE)pOsContext, pRenderHal->pVphalOcaDumper);
 
         VP_RENDER_CHK_STATUS_RETURN(pRenderHal->pRenderHalPltInterface->AddPerfCollectStartCmd(pRenderHal, pOsInterface, pCmdBufferInUse));
        
@@ -1864,7 +1864,7 @@ MOS_STATUS VpVeboxCmdPacketLegacy::RenderVeboxCmd(
         {
             std::string info   = "in_comps = " + std::to_string(int(this->m_currentSurface->osSurface->bCompressible)) + ", out_comps = " + std::to_string(int(VeboxSurfaceStateCmdParams.pSurfOutput->osSurface->bCompressible));
             const char *ocaLog = info.c_str();
-            HalOcaInterface::TraceMessage(*pCmdBufferInUse, *pOsContext, ocaLog, info.size());
+            HalOcaInterface::TraceMessage(*pCmdBufferInUse, (MOS_CONTEXT_HANDLE)pOsContext, ocaLog, info.size());
         }
 
         if (bMultipipe)

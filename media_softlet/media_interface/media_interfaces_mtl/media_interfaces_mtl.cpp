@@ -71,7 +71,6 @@ static bool mtlRegisteredVphal =
 
 MOS_STATUS VphalInterfacesXe_Lpm_Plus::Initialize(
     PMOS_INTERFACE osInterface,
-    PMOS_CONTEXT   osDriverContext,
     bool           bInitVphalState,
     MOS_STATUS *   eStatus)
 {
@@ -125,7 +124,6 @@ MOS_STATUS VphalInterfacesXe_Lpm_Plus::Initialize(
         m_vpBase = MOS_New(
             VpPipelineAdapterXe_Lpm_Plus,
             osInterface,
-            osDriverContext,
             *vpPlatformInterface,
             *eStatus);
         if (nullptr == m_vpBase)
@@ -142,7 +140,6 @@ MOS_STATUS VphalInterfacesXe_Lpm_Plus::Initialize(
         m_vpBase = MOS_New(
             VphalState,
             osInterface,
-            osDriverContext,
             eStatus);
     }
 #endif

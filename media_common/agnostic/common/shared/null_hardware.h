@@ -44,7 +44,7 @@ public:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    static MOS_STATUS Init(PMOS_CONTEXT osContext);
+    static MOS_STATUS Init(MOS_CONTEXT_HANDLE osContext);
 
     //!
     //! \brief    Destroy NULL Hardware.

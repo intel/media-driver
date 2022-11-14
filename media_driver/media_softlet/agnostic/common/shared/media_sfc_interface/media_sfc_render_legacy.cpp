@@ -120,7 +120,7 @@ MOS_STATUS MediaSfcRenderLegacy::Initialize()
 
     if (m_mode.veboxSfcEnabled)
     {
-        if (vphalDevice->Initialize(m_osInterface, m_osInterface->pOsContext, false, &status) != MOS_STATUS_SUCCESS)
+        if (vphalDevice->Initialize(m_osInterface, false, &status) != MOS_STATUS_SUCCESS)
         {
             vphalDevice->Destroy();
             MOS_Delete(vphalDevice);

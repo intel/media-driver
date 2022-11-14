@@ -414,19 +414,19 @@ void MhwVeboxInterface::TraceIndirectStateInfo(MOS_COMMAND_BUFFER &cmdBuffer, MO
     if (isCmBuffer)
     {
         char ocaLog[] = "Vebox indirect state use CmBuffer";
-        HalOcaInterface::TraceMessage(cmdBuffer, mosContext, ocaLog, sizeof(ocaLog));
+        HalOcaInterface::TraceMessage(cmdBuffer, (MOS_CONTEXT_HANDLE)&mosContext, ocaLog, sizeof(ocaLog));
     }
     else
     {
         if (useVeboxHeapKernelResource)
         {
             char ocaLog[] = "Vebox indirect state use KernelResource";
-            HalOcaInterface::TraceMessage(cmdBuffer, mosContext, ocaLog, sizeof(ocaLog));
+            HalOcaInterface::TraceMessage(cmdBuffer, (MOS_CONTEXT_HANDLE)&mosContext, ocaLog, sizeof(ocaLog));
         }
         else
         {
             char ocaLog[] = "Vebox indirect state use DriverResource";
-            HalOcaInterface::TraceMessage(cmdBuffer, mosContext, ocaLog, sizeof(ocaLog));
+            HalOcaInterface::TraceMessage(cmdBuffer, (MOS_CONTEXT_HANDLE)&mosContext, ocaLog, sizeof(ocaLog));
         }
     }
 }

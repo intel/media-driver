@@ -486,9 +486,9 @@ MOS_STATUS VpHal_RndrCommonSubmitCommands(
         *pRenderHalLegacy->pMhwMiInterface, *pMmioRegisters);
 
     // Add kernel info to log.
-    HalOcaInterface::DumpVpKernelInfo(CmdBuffer, *pOsContext, KernelID, 0, nullptr);
+    HalOcaInterface::DumpVpKernelInfo(CmdBuffer, (MOS_CONTEXT_HANDLE)pOsContext, KernelID, 0, nullptr);
     // Add vphal param to log.
-    HalOcaInterface::DumpVphalParam(CmdBuffer, *pOsContext, pRenderHalLegacy->pVphalOcaDumper);
+    HalOcaInterface::DumpVphalParam(CmdBuffer, (MOS_CONTEXT_HANDLE)pOsContext, pRenderHalLegacy->pVphalOcaDumper);
 
     // Initialize command buffer and insert prolog
     VPHAL_RENDER_CHK_STATUS(pRenderHalLegacy->pfnInitCommandBuffer(pRenderHalLegacy, &CmdBuffer, &GenericPrologParams));
@@ -521,7 +521,7 @@ MOS_STATUS VpHal_RndrCommonSubmitCommands(
             false,
             true));
 
-        HalOcaInterface::OnSubLevelBBStart(CmdBuffer, *pOsContext, &pBatchBuffer->OsResource, 0, true, 0);
+        HalOcaInterface::OnSubLevelBBStart(CmdBuffer, (MOS_CONTEXT_HANDLE)pOsContext, &pBatchBuffer->OsResource, 0, true, 0);
 
         // Send Start 2nd level batch buffer command (HW/OS dependent)
         VPHAL_RENDER_CHK_STATUS(pMhwMiInterface->AddMiBatchBufferStartCmd(
@@ -758,9 +758,9 @@ MOS_STATUS VpHal_RndrSubmitCommands(
         *pRenderHalLegacy->pMhwMiInterface, *pMmioRegisters);
 
     // Add kernel info to log.
-    HalOcaInterface::DumpVpKernelInfo(CmdBuffer, *pOsContext, KernelID, FcKernelCount, FcKernelList);
+    HalOcaInterface::DumpVpKernelInfo(CmdBuffer, (MOS_CONTEXT_HANDLE)pOsContext, KernelID, FcKernelCount, FcKernelList);
     // Add vphal param to log.
-    HalOcaInterface::DumpVphalParam(CmdBuffer, *pOsContext, pRenderHalLegacy->pVphalOcaDumper);
+    HalOcaInterface::DumpVphalParam(CmdBuffer, (MOS_CONTEXT_HANDLE)pOsContext, pRenderHalLegacy->pVphalOcaDumper);
 
     // Initialize command buffer and insert prolog
     VPHAL_RENDER_CHK_STATUS(pRenderHalLegacy->pfnInitCommandBuffer(pRenderHalLegacy, &CmdBuffer, &GenericPrologParams));
@@ -802,7 +802,7 @@ MOS_STATUS VpHal_RndrSubmitCommands(
             false,
             true));
 
-        HalOcaInterface::OnSubLevelBBStart(CmdBuffer, *pOsContext, &pBatchBuffer->OsResource, 0, true, 0);
+        HalOcaInterface::OnSubLevelBBStart(CmdBuffer, (MOS_CONTEXT_HANDLE)pOsContext, &pBatchBuffer->OsResource, 0, true, 0);
 
         // Send Start 2nd level batch buffer command (HW/OS dependent)
         VPHAL_RENDER_CHK_STATUS(pMhwMiInterface->AddMiBatchBufferStartCmd(

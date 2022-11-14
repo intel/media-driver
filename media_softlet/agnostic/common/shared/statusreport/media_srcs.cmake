@@ -30,4 +30,6 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/media_status_report_observer.h
 )
 
-media_add_curr_to_include_path()
+set(SOFTLET_COMMON_PRIVATE_INCLUDE_DIRS_
+    ${SOFTLET_COMMON_PRIVATE_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR})

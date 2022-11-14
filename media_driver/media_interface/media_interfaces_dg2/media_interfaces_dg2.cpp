@@ -78,7 +78,6 @@ Register<VphalInterfacesXe_Hpm>((uint32_t)IGFX_DG2);
 
 MOS_STATUS VphalInterfacesXe_Hpm::Initialize(
     PMOS_INTERFACE  osInterface,
-    PMOS_CONTEXT    osDriverContext,
     bool            bInitVphalState,
     MOS_STATUS      *eStatus)
 {
@@ -122,7 +121,6 @@ MOS_STATUS VphalInterfacesXe_Hpm::Initialize(
         m_vpBase = MOS_New(
             VpPipelineAdapterXe_Hpm,
             osInterface,
-            osDriverContext,
             *vpPlatformInterface,
             *eStatus);
         if (nullptr == m_vpBase)
@@ -138,7 +136,6 @@ MOS_STATUS VphalInterfacesXe_Hpm::Initialize(
         m_vpBase = MOS_New(
             VphalState,
             osInterface,
-            osDriverContext,
             eStatus);
     }
 

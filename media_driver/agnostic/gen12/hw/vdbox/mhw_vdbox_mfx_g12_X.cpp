@@ -1166,7 +1166,7 @@ MOS_STATUS MhwVdboxMfxInterfaceG12::AddMfxIndObjBaseAddrCmd(
 
         if(HalOcaInterface::IsLargeResouceDumpSupported())
         {
-            HalOcaInterface::OnIndirectState(*cmdBuffer, *pOsContext, resourceParams.presResource, 0, true, 0);
+            HalOcaInterface::OnIndirectState(*cmdBuffer, (MOS_CONTEXT_HANDLE)pOsContext, resourceParams.presResource, 0, true, 0);
         }
 
     }

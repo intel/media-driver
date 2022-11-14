@@ -49,7 +49,8 @@ public:
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     static MOS_STATUS Init(
-        PMOS_CONTEXT osContext);
+        MOS_CONTEXT_HANDLE osDeviceContext,
+        bool               &enabled);
 
     //!
     //! \brief    Destroy MockAdaptor.

@@ -91,13 +91,23 @@ MOS_STATUS MosMockAdaptor::RegkeyRead(PMOS_CONTEXT osContext)
 }
 
 MOS_STATUS MosMockAdaptor::Init(
-    PMOS_CONTEXT osContext)
+    MOS_CONTEXT_HANDLE osDeviceContext,
+    bool               &enabled)
 {
-    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-
+    MOS_STATUS   eStatus   = MOS_STATUS_SUCCESS;
+    uint32_t     value     = 0;
+    PMOS_CONTEXT osContext = (PMOS_CONTEXT)osDeviceContext;
     MOS_OS_CHK_NULL_RETURN(osContext);
 
-    if (!m_enabled) {
+    MediaUserSettingSharedPtr userSettingPtr = MosInterface::MosGetUserSettingInstance(osContext);
+    ReadUserSettingForDebug(
+        userSettingPtr,
+        value,
+        __MEDIA_USER_FEATURE_VALUE_NULLHW_ENABLE,
+        MediaUserSetting::Group::Device);
+    enabled = (value) ? true : false;
+
+    if (enabled && !m_enabled) {
         m_enabled = true;
 
         MOS_OS_CHK_STATUS_RETURN(RegkeyRead(osContext));

@@ -170,9 +170,9 @@ private:
     MOS_STATUS StoreData(
         std::shared_ptr<mhw::mi::Itf> miItf,
         PMOS_COMMAND_BUFFER cmdBuffer,
-        PMOS_CONTEXT pOsContext,
-        uint32_t offset,
-        uint32_t value);
+        MOS_CONTEXT_HANDLE  pOsContext,
+        uint32_t            offset,
+        uint32_t            value);
 
     //!
     //! \brief    Save register value to the buffer which store the performance data
@@ -216,8 +216,8 @@ private:
     MOS_STATUS StoreTSByPipeCtrl(
         std::shared_ptr<mhw::mi::Itf> miItf,
         PMOS_COMMAND_BUFFER cmdBuffer,
-        PMOS_CONTEXT pOsContext,
-        uint32_t offset);
+        MOS_CONTEXT_HANDLE  pOsContext,
+        uint32_t            offset);
 
     //!
     //! \brief    Save timestamp to the buffer by MI command
@@ -237,7 +237,7 @@ private:
     MOS_STATUS StoreTSByMiFlush(
         std::shared_ptr<mhw::mi::Itf> miItf,
         PMOS_COMMAND_BUFFER cmdBuffer,
-        PMOS_CONTEXT pOsContext,
+        MOS_CONTEXT_HANDLE  pOsContext,
         uint32_t offset);
 
     //!

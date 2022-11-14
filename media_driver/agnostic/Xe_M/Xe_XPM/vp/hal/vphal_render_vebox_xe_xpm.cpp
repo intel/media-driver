@@ -1026,7 +1026,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_XE_XPM::VeboxRenderVeboxCmd(
                 *pRenderHal->pMhwMiInterface, *pMmioRegisters);
 
             // Add vphal param to log.
-            HalOcaInterface::DumpVphalParam(*pCmdBufferInUse, *pOsContext, pRenderHal->pVphalOcaDumper);
+            HalOcaInterface::DumpVphalParam(*pCmdBufferInUse, (MOS_CONTEXT_HANDLE)pOsContext, pRenderHal->pVphalOcaDumper);
 
             // Profiler start cmd
             if (pRenderHal->pPerfProfiler)
