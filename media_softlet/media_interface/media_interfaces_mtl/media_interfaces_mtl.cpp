@@ -571,19 +571,17 @@ MOS_STATUS CodechalInterfacesXe_Lpm_Plus::Initialize(
         if (info->Mode == CODECHAL_ENCODE_MODE_VP9)
         {
 #ifdef _APOGEIOS_SUPPORTED
-            bool                        apogeiosEnable = true;
-            uint32_t                    userSettingVal = 1;
-            if (userSettingPtr != nullptr)
-            {
-                ReadUserSetting(
-                    userSettingPtr,
-                    userSettingVal,
-                    __MEDIA_USER_FEATURE_VALUE_APOGEIOS_ENABLE,
-                    MediaUserSetting::Group::Device,
-                    uint32_t(1),
-                    true);
-            }
-            apogeiosEnable = userSettingVal ? true : false;
+            bool                      apogeiosEnable = true;
+            MediaUserSettingSharedPtr userSettingPtr = osInterface->pfnGetUserSettingInstance(osInterface);
+            MediaUserSetting::Value   outValue;
+            ReadUserSettingForDebug(
+                userSettingPtr,
+                outValue,
+                "ApogeiosEnable",
+                MediaUserSetting::Group::Device,
+                apogeiosEnable,
+                true);
+            apogeiosEnable = outValue.Get<bool>();
 
             if (apogeiosEnable)
             {
