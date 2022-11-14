@@ -138,13 +138,6 @@ MOS_STATUS MosUserSetting::InitMosCommonUserSetting(MediaUserSettingSharedPtr us
 
     DeclareUserSettingKey(
         userSettingPtr,
-        "JPEG Encode",
-        MediaUserSetting::Group::Device,
-        int32_t(1),
-        false);
-
-    DeclareUserSettingKey(
-        userSettingPtr,
         "Encode MMC In Use",
         MediaUserSetting::Group::Sequence,
         int32_t(0),
@@ -739,48 +732,6 @@ MOS_STATUS MosUserSetting::InitUserSettingForDebug(MediaUserSettingSharedPtr use
         MediaUserSetting::Group::Device,
         0,
         true);
-    DeclareUserSettingKeyForDebug(
-        userSettingPtr,
-        "Encode L3CNTLREG Override",
-        MediaUserSetting::Group::Device,
-        0,
-        false);
-    DeclareUserSettingKeyForDebug(
-        userSettingPtr,
-        "Encode L3CNTLREG2 Override",
-        MediaUserSetting::Group::Device,
-        0,
-        false);
-    DeclareUserSettingKeyForDebug(
-        userSettingPtr,
-        "Encode L3CNTLREG3 Override",
-        MediaUserSetting::Group::Device,
-        0,
-        false);
-    DeclareUserSettingKeyForDebug(
-        userSettingPtr,
-        "Encode L3SQCREG1 Override",
-        MediaUserSetting::Group::Device,
-        0,
-        false);
-    DeclareUserSettingKeyForDebug(
-        userSettingPtr,
-        "Encode L3SQCREG4 Override",
-        MediaUserSetting::Group::Device,
-        0,
-        false);
-    DeclareUserSettingKeyForDebug(
-        userSettingPtr,
-        "L3LRA1RegOverride",
-        MediaUserSetting::Group::Device,
-        0,
-        false);
-    DeclareUserSettingKeyForDebug(
-        userSettingPtr,
-        "ApogeiosEnable",
-        MediaUserSetting::Group::Device,
-        0,
-        false);
 
     DeclareUserSettingKeyForDebug(
         userSettingPtr,

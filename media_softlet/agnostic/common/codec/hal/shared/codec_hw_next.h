@@ -905,8 +905,6 @@ protected:
 
     // States
     PMOS_INTERFACE       m_osInterface;  //!< Pointer to OS interface
-
-    MediaUserSettingSharedPtr   m_userSettingPtr = nullptr;
     
     // Auxiliary
     PLATFORM             m_platform;  //!< Platform information
