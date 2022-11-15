@@ -1214,6 +1214,68 @@ void VpAllocator::CleanRecycler()
     }
 }
 
+MOS_STATUS VpAllocator::AllocateCPUResource(PMOS_RESOURCE osResource, size_t linearAddress, uint32_t dataSize, uint32_t height, uint64_t width, uint64_t planePitch, uint32_t CpTag, GMM_RESOURCE_FORMAT Format)
+{
+    VP_FUNC_CALL();
+    MOS_STATUS eStatusKey = MOS_STATUS_SUCCESS;
+    //Create MOS_GFXRES_BUFFER type resource
+    
+    size_t   linearAddressAligned = 0;
+    uint32_t addedShiftLeftOffset = 0;
+    MOS_ALLOC_GFXRES_PARAMS sParams;
+
+    if ((linearAddress & 0xf) || (linearAddress == 0))
+    {
+        VP_PUBLIC_NORMALMESSAGE("Error: Start address of system memory is not 16-byte aligned!");
+        return MOS_STATUS_UNKNOWN;
+    }
+    if (sizeof(void *) == 8)  //64-bit
+    {
+        linearAddressAligned = linearAddress & ADDRESS_PAGE_ALIGNMENT_MASK_X64;
+    }
+    else  //32-bit
+    {
+        linearAddressAligned = linearAddress & ADDRESS_PAGE_ALIGNMENT_MASK_X86;
+    }
+    //Calculate  Left Shift offset
+    addedShiftLeftOffset = (uint32_t)(linearAddress - linearAddressAligned);
+    VP_PUBLIC_NORMALMESSAGE("System memory address: 0x%x, Aligned address: 0x%x, offset: %u", linearAddress, linearAddressAligned, addedShiftLeftOffset);
+
+    MOS_ZeroMemory(&sParams, sizeof(MOS_ALLOC_GFXRES_PARAMS));
+    sParams.Type           = MOS_GFXRES_BUFFER;
+    sParams.dwBytes        = dataSize + addedShiftLeftOffset;
+    sParams.pSystemMemory  = (void *)linearAddressAligned;
+    sParams.TileType       = MOS_TILE_LINEAR;
+    sParams.Format         = Format_Buffer;
+    sParams.pBufName       = "cpuResourceBuffer_1D";
+    sParams.bBypassMODImpl = 1;
+    sParams.bIsPersistent  = 1;
+    
+    eStatusKey = m_osInterface->pfnAllocateResource(m_osInterface, &sParams, osResource);
+    if (eStatusKey != MOS_STATUS_SUCCESS)
+    {
+        VP_PUBLIC_NORMALMESSAGE("Error: m_osInterface.pfnAllocateResource failed!");
+        return eStatusKey;
+    }
+#if !EMUL
+    osResource->pGmmResInfo->GetSetCpSurfTag(true, CpTag);
+    osResource->pGmmResInfo->OverridePitch(planePitch);
+
+    osResource->pGmmResInfo->OverrideSurfaceFormat(Format);
+    osResource->pGmmResInfo->OverrideSurfaceType(RESOURCE_2D);
+    osResource->pGmmResInfo->OverrideBaseWidth(width);
+    osResource->pGmmResInfo->OverrideBaseHeight(height);
+
+    osResource->pGmmResInfo->OverridePlanarXOffset(GMM_NO_PLANE, (GMM_GFX_SIZE_T)addedShiftLeftOffset);
+    osResource->pGmmResInfo->OverridePlanarYOffset(GMM_NO_PLANE, 0);
+    osResource->pGmmResInfo->OverridePlanarXOffset(GMM_PLANE_Y, (GMM_GFX_SIZE_T)addedShiftLeftOffset);
+    osResource->pGmmResInfo->OverridePlanarYOffset(GMM_PLANE_Y, 0);
+#endif
+
+    return eStatusKey;
+
+}
+
 bool VP_SURFACE::IsEmpty()
 {
     VP_FUNC_CALL();

@@ -644,7 +644,7 @@ MOS_STATUS VpVeboxCmdPacket::ConfigureTccParams(VpVeboxRenderData *renderData, b
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpVeboxCmdPacket::ConfigureSteParams(VpVeboxRenderData *renderData, bool bEnableSte, uint32_t dwSTEFactor)
+MOS_STATUS VpVeboxCmdPacket::ConfigureSteParams(VpVeboxRenderData *renderData, bool bEnableSte, uint32_t dwSTEFactor, bool bEnableStd, uint32_t stdParaSizeInBytes, void *stdParam)
 {
     VP_FUNC_CALL();
     MHW_VEBOX_IECP_PARAMS &mhwVeboxIecpParams = renderData->GetIECPParams();
@@ -668,6 +668,14 @@ MOS_STATUS VpVeboxCmdPacket::ConfigureSteParams(VpVeboxRenderData *renderData, b
             mhwVeboxIecpParams.ColorPipeParams.SteParams.satS0       = m_satS0Table[dwSTEFactor];
             mhwVeboxIecpParams.ColorPipeParams.SteParams.satS1       = m_satS1Table[dwSTEFactor];
         }
+    }
+    else if (bEnableStd)
+    {
+        renderData->IECP.STE.bStdEnabled                             = true;
+        mhwVeboxIecpParams.ColorPipeParams.bActive                   = true;
+        mhwVeboxIecpParams.ColorPipeParams.bEnableSTD                = true;
+        mhwVeboxIecpParams.ColorPipeParams.StdParams.paraSizeInBytes = stdParaSizeInBytes;
+        mhwVeboxIecpParams.ColorPipeParams.StdParams.param           = stdParam;
     }
     else
     {
@@ -840,7 +848,7 @@ MOS_STATUS VpVeboxCmdPacket::SetSteParams(
 
     // ConfigureSteParams() just includes logic that both used in SetSteParams and UpdateSteParams.
     // If the logic won't be used in UpdateSteParams, please just add the logic into SetSteParams.
-    VP_PUBLIC_CHK_STATUS_RETURN(ConfigureSteParams(pRenderData, pSteParams->bEnableSTE, pSteParams->dwSTEFactor));
+    VP_PUBLIC_CHK_STATUS_RETURN(ConfigureSteParams(pRenderData, pSteParams->bEnableSTE, pSteParams->dwSTEFactor, pSteParams->bEnableSTD, pSteParams->STDParam.paraSizeInBytes, pSteParams->STDParam.param));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -890,7 +898,7 @@ MOS_STATUS VpVeboxCmdPacket::UpdateSteParams(FeatureParamSte &params)
     VP_RENDER_CHK_NULL_RETURN(pRenderData);
 
     // ConfigureSteParams() just includes logic that both used in SetSteParams and UpdateSteParams.
-    VP_PUBLIC_CHK_STATUS_RETURN(ConfigureSteParams(pRenderData, params.bEnableSTE, params.dwSTEFactor));
+    VP_PUBLIC_CHK_STATUS_RETURN(ConfigureSteParams(pRenderData, params.bEnableSTE, params.dwSTEFactor, params.bEnableSTD, params.STDParam.paraSizeInBytes, params.STDParam.param));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -1639,15 +1647,7 @@ MOS_STATUS VpVeboxCmdPacket::RenderVeboxCmd(
 
         VP_RENDER_CHK_STATUS_RETURN(SetVeboxIndex(curPipe, numPipe, m_IsSfcUsed));
 
-        HalOcaInterfaceNext::On1stLevelBBStart(*pCmdBufferInUse, (MOS_CONTEXT_HANDLE)pOsContext, pOsInterface->CurrentGpuContextHandle, m_miItf, *pMmioRegisters);
-
-        char ocaMsg[] = "VP APG Vebox Packet";
-        HalOcaInterfaceNext::TraceMessage(*pCmdBufferInUse, (MOS_CONTEXT_HANDLE)pOsContext, ocaMsg, sizeof(ocaMsg));
-
-        HalOcaInterfaceNext::TraceOcaSkuValue(*pCmdBufferInUse, *pOsInterface);
-
-        // Add vphal param to log.
-        HalOcaInterfaceNext::DumpVphalParam(*pCmdBufferInUse, (MOS_CONTEXT_HANDLE)pOsContext, pRenderHal->pVphalOcaDumper);
+        AddCommonOcaMessage(pCmdBufferInUse, (MOS_CONTEXT_HANDLE)pOsContext, pOsInterface, pRenderHal, pMmioRegisters);
 
         VP_RENDER_CHK_STATUS_RETURN(pRenderHal->pRenderHalPltInterface->AddPerfCollectStartCmd(pRenderHal, pOsInterface, pCmdBufferInUse));
 
@@ -1828,6 +1828,34 @@ MOS_STATUS VpVeboxCmdPacket::RenderVeboxCmd(
     MT_LOG2(MT_VP_HAL_RENDER_VE, MT_NORMAL, MT_VP_MHW_VE_SCALABILITY_EN, bMultipipe, MT_VP_MHW_VE_SCALABILITY_USE_SFC, m_IsSfcUsed);
 
     return eStatus;
+}
+
+
+void VpVeboxCmdPacket::AddCommonOcaMessage(PMOS_COMMAND_BUFFER pCmdBufferInUse, MOS_CONTEXT_HANDLE pOsContext, PMOS_INTERFACE pOsInterface, PRENDERHAL_INTERFACE pRenderHal, PMHW_MI_MMIOREGISTERS pMmioRegisters)
+{
+    VP_FUNC_CALL();
+
+    HalOcaInterfaceNext::On1stLevelBBStart(*pCmdBufferInUse, pOsContext, pOsInterface->CurrentGpuContextHandle, m_miItf, *pMmioRegisters);
+
+    char ocaMsg[] = "VP APG Vebox Packet";
+    HalOcaInterfaceNext::TraceMessage(*pCmdBufferInUse, pOsContext, ocaMsg, sizeof(ocaMsg));
+
+    VpVeboxRenderData *pRenderData = GetLastExecRenderData();
+    if (pRenderData)
+    {
+        MHW_VEBOX_IECP_PARAMS IecpParams = pRenderData->GetIECPParams();
+        if (pRenderData->IECP.STE.bStdEnabled && IecpParams.ColorPipeParams.StdParams.param)
+        {
+            char ocaMsg_std[] = "Customized STD state is used";
+            HalOcaInterfaceNext::TraceMessage(*pCmdBufferInUse, pOsContext, ocaMsg_std, sizeof(ocaMsg_std));
+        }
+    }
+
+    HalOcaInterfaceNext::TraceOcaSkuValue(*pCmdBufferInUse, *pOsInterface);
+
+    // Add vphal param to log.
+    HalOcaInterfaceNext::DumpVphalParam(*pCmdBufferInUse, pOsContext, pRenderHal->pVphalOcaDumper);
+
 }
 
 MOS_STATUS VpVeboxCmdPacket::InitVeboxSurfaceStateCmdParams(
@@ -2518,13 +2546,14 @@ MOS_STATUS VpVeboxCmdPacket::AddVeboxIECPState()
 
     if (pRenderData->IECP.IsIecpEnabled())
     {
-        VP_PUBLIC_NORMALMESSAGE("IecpState is added. ace %d, lace %d, becsc %d, tcc %d, ste %d, procamp %d",
+        VP_PUBLIC_NORMALMESSAGE("IecpState is added. ace %d, lace %d, becsc %d, tcc %d, ste %d, procamp %d, std %d",
             pRenderData->IECP.ACE.bAceEnabled,
             pRenderData->IECP.LACE.bLaceEnabled,
             pRenderData->IECP.BeCSC.bBeCSCEnabled,
             pRenderData->IECP.TCC.bTccEnabled,
             pRenderData->IECP.STE.bSteEnabled,
-            pRenderData->IECP.PROCAMP.bProcampEnabled);
+            pRenderData->IECP.PROCAMP.bProcampEnabled,
+            pRenderData->IECP.STE.bStdEnabled);
 
         return m_veboxItf->SetVeboxIecpState(&pRenderData->GetIECPParams());
     }

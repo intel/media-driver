@@ -182,6 +182,7 @@ public:
             struct
             {
                 uint32_t bSteEnabled : 1;              // STE enabled;
+                uint32_t bStdEnabled : 1;              // STD enabled; This flag is for vebox std alone case.
             };
             uint32_t value = 0;
         } STE;
@@ -227,7 +228,7 @@ public:
         {
             return ACE.bAceEnabled || LACE.bLaceEnabled ||
                     BeCSC.bBeCSCEnabled || TCC.bTccEnabled ||
-                    STE.bSteEnabled || PROCAMP.bProcampEnabled;
+                    STE.bSteEnabled || PROCAMP.bProcampEnabled || STE.bStdEnabled;
         }
     } IECP;
 

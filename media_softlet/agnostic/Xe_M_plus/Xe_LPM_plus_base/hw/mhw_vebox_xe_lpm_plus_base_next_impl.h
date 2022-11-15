@@ -1879,9 +1879,19 @@ MOS_STATUS DumpDNDIStates(uint8_t *pDndiSate)
                 pVeboxStdSteState->DW21.Hues2 = 256;
             }
         }
+        else if (pColorPipeParams->bEnableSTD)
+        {
+            if (nullptr == pColorPipeParams->StdParams.param || pColorPipeParams->StdParams.paraSizeInBytes > pVeboxStdSteState->byteSize)
+            {
+                MHW_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+            }
+
+            MOS_SecureMemcpy(pVeboxStdSteState, pColorPipeParams->StdParams.paraSizeInBytes, pColorPipeParams->StdParams.param, pColorPipeParams->StdParams.paraSizeInBytes);
+     
+        }
 
         // Enable Skin Score Output surface to be written by Vebox
-        pVeboxStdSteState->DW1.StdScoreOutput = pColorPipeParams->bEnableLACE && pColorPipeParams->LaceParams.bSTD;
+        pVeboxStdSteState->DW1.StdScoreOutput = (pColorPipeParams->bEnableLACE && pColorPipeParams->LaceParams.bSTD) || (pColorPipeParams->bEnableSTD);
 
         return eStatus;
     }

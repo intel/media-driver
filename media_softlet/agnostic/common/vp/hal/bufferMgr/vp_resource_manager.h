@@ -33,6 +33,7 @@
 #include "vp_pipeline_common.h"
 #include "vp_utils.h"
 #include "vp_hdr_resource_manager.h"
+#include "media_copy.h"
 
 #define VP_MAX_NUM_VEBOX_SURFACES     4                                       //!< Vebox output surface creation, also can be reuse for DI usage:
                                                                               //!< for DI: 2 for ADI plus additional 2 for parallel execution
@@ -337,7 +338,7 @@ struct VP_SURFACE_PARAMS;
 class VpResourceManager
 {
 public:
-    VpResourceManager(MOS_INTERFACE &osInterface, VpAllocator &allocator, VphalFeatureReport &reporting, vp::VpPlatformInterface &vpPlatformInterface);
+    VpResourceManager(MOS_INTERFACE &osInterface, VpAllocator &allocator, VphalFeatureReport &reporting, vp::VpPlatformInterface &vpPlatformInterface, MediaCopyBaseState *mediaCopy);
     virtual ~VpResourceManager();
     virtual MOS_STATUS OnNewFrameProcessStart(SwFilterPipe &pipe);
     virtual void OnNewFrameProcessEnd();
@@ -558,6 +559,7 @@ protected:
     VP_SURFACE *m_fcIntermediateSurface[VP_NUM_FC_INTERMEDIA_SURFACES] = {}; // Ping-pong surface for multi-layer composition.
     std::vector<VP_SURFACE *> m_intermediaSurfaces;
     std::map<uint64_t, VP_SURFACE *> m_tempSurface; // allocation handle and surface pointer pair.
+    std::map<VP_SURFACE *, void *>   m_internalResourceDumpList;  // surface pointer and system memory pointer.
     // Pipe index for one DDI call.
     uint32_t    m_currentPipeIndex                           = 0;
 
@@ -576,9 +578,11 @@ protected:
     VP_SURFACE *m_decompressionSyncSurface                                  = nullptr;
     // Hdr Resource
     VphdrResourceManager *m_hdrResourceManager                = nullptr;
-    MediaUserSettingSharedPtr m_userSettingPtr = nullptr;   //!< usersettingInstance
+    MediaUserSettingSharedPtr m_userSettingPtr                = nullptr;   //!< usersettingInstance
 
-MEDIA_CLASS_DEFINE_END(vp__VpResourceManager)
+    MediaCopyBaseState *m_mediaCopy                           = nullptr;
+
+    MEDIA_CLASS_DEFINE_END(vp__VpResourceManager)
 };
 }
 #endif // _VP_RESOURCE_MANAGER_H__

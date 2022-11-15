@@ -1252,8 +1252,12 @@ MEDIA_CLASS_DEFINE_END(vp__SwFilterDeinterlace)
 
 struct FeatureParamSte : public FeatureParam
 {
-    bool       bEnableSTE  = false;
-    uint32_t   dwSTEFactor = 0;
+    bool              bEnableSTE  = false;
+    uint32_t          dwSTEFactor = 0;
+    
+    // For STD alone case
+    bool              bEnableSTD  = false;
+    VPHAL_STD_PARAMS  STDParam    = {};
 };
 
 class SwFilterSte : public SwFilter
@@ -1267,6 +1271,11 @@ public:
     virtual SwFilter* Clone();
     virtual bool operator == (SwFilter& swFilter);
     virtual MOS_STATUS Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSurf, SwFilterSubPipe &pipe);
+    virtual MOS_STATUS SetResourceAssignmentHint(RESOURCE_ASSIGNMENT_HINT &hint)
+    {
+        hint.isSkinScoreDumpNeededForSTDonly = m_Params.bEnableSTD;
+        return MOS_STATUS_SUCCESS;
+    }
 
 private:
     FeatureParamSte m_Params = {};

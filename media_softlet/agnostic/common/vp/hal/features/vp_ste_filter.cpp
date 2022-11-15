@@ -95,8 +95,10 @@ MOS_STATUS VpSteFilter::CalculateEngineParams()
             MOS_ZeroMemory(m_pVeboxSteParams, sizeof(VEBOX_STE_PARAMS));
         }
 
-        m_pVeboxSteParams->bEnableSTE = m_steParams.bEnableSTE;
+        m_pVeboxSteParams->bEnableSTE  = m_steParams.bEnableSTE;
         m_pVeboxSteParams->dwSTEFactor = m_steParams.dwSTEFactor;
+        m_pVeboxSteParams->bEnableSTD  = m_steParams.bEnableSTD;
+        m_pVeboxSteParams->STDParam    = m_steParams.STDParam;
     }
     else
     {

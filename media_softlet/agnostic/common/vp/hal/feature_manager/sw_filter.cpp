@@ -1014,12 +1014,16 @@ MOS_STATUS SwFilterSte::Configure(VP_PIPELINE_PARAMS& params, bool isInputSurf, 
 
     if (surfInput->pColorPipeParams)
     {
-        m_Params.bEnableSTE =  surfInput->pColorPipeParams->bEnableSTE;
+        m_Params.bEnableSTE  =  surfInput->pColorPipeParams->bEnableSTE;
+        m_Params.bEnableSTD  = surfInput->pColorPipeParams->bEnableSTD;
+        m_Params.STDParam    = surfInput->pColorPipeParams->StdParams;
         m_Params.dwSTEFactor = surfInput->pColorPipeParams->SteParams.dwSTEFactor;
     }
     else
     {
-        m_Params.bEnableSTE = false;
+        m_Params.bEnableSTE  = false;
+        m_Params.bEnableSTD  = false;
+        m_Params.STDParam    = {};
         m_Params.dwSTEFactor = 0;
     }
 

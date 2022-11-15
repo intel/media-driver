@@ -513,7 +513,8 @@ bool SwFilterSteHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS& params, bool isInp
 
     PVPHAL_SURFACE vphalSurf = isInputSurf ? params.pSrc[surfIndex] : params.pTarget[surfIndex];
     if (vphalSurf && vphalSurf->pColorPipeParams &&
-        vphalSurf->pColorPipeParams->bEnableSTE)
+            (vphalSurf->pColorPipeParams->bEnableSTE ||
+        vphalSurf->pColorPipeParams->bEnableSTD))
     {
         return true;
     }

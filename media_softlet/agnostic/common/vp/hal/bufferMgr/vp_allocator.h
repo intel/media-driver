@@ -567,6 +567,39 @@ public:
     bool IsSyncFreeNeededForMMCSurface(PMOS_SURFACE pOsSurface);
     void CleanRecycler();
 
+    //!
+    //! \brief    Allocate resource from cpu buffer
+    //! \details  Allocate resource from cpu buffer
+    //! \param    PMOS_RESOURCE pOsResource
+    //!           [in/out] Pointer to OS resource
+    //! \param    size_t linearAddress
+    //!           [in]    CPU address
+    //! \param    uint32_t dataSize
+    //!           [in]    data size of CPU buffer
+    //! \param    uint32_t height
+    //!           [in]    height of resource
+    //! \param    uint64_t width
+    //!           [in]    width of resource
+    //! \param    uint64_t planePitch
+    //!           [in]    pitch of resource
+    //! \param    uint32_t CpTag
+    //!           [in]    Cp surface tag value
+    //! \param    GMM_RESOURCE_FORMAT Format
+    //!           [in]    resouce format
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    MOS_STATUS AllocateCPUResource(
+        PMOS_RESOURCE osResource,           // [in/out]Pointer to OS resource
+        size_t linearAddress,               // [in]    CPU address
+        uint32_t dataSize,                  // [in]    data size of CPU buffer
+        uint32_t height,                    // [in]    height of resource
+        uint64_t width,                     // [in]    width of resource
+        uint64_t planePitch,                // [in]    pitch of resource
+        uint32_t CpTag,                     // [in]    Cp surface tag value
+        GMM_RESOURCE_FORMAT Format          // [in]    resouce format
+    );
+
 protected:
     //!
     //! \brief    Set mmc flags to surface

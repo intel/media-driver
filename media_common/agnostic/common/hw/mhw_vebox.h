@@ -381,7 +381,7 @@ typedef struct _MHW_COLORPIPE_PARAMS
     uint32_t            bActive;                    //!< Active or not
     bool                bEnableACE;
     bool                bEnableSTE;
-    bool                bEnableSTD;                 // VPE STD enabled or not
+    bool                bEnableSTD;                 // vebox STD alone enabled or not
     bool                bEnableTCC;
     bool                bAceLevelChanged;
     uint32_t            dwAceLevel;

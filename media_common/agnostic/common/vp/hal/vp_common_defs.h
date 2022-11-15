@@ -868,7 +868,7 @@ typedef struct _VPHAL_COLORPIPE_PARAMS
 {
     bool             bEnableACE       = false;
     bool             bEnableSTE       = false;
-    bool             bEnableSTD       = false;  // Is STD enabled via VPE
+    bool             bEnableSTD       = false;  // Is vebox STD alone enabled
     bool             bEnableTCC       = false;
     bool             bAceLevelChanged = false;
     uint32_t         dwAceLevel       = 0;

@@ -203,6 +203,9 @@ struct _VEBOX_STE_PARAMS
 {
     bool                            bEnableSTE;                                 // STE Enabled
     uint32_t                        dwSTEFactor;
+
+    bool                            bEnableSTD;                                 // STD alone Enabled
+    VPHAL_STD_PARAMS                STDParam;
 };
 
 struct _VEBOX_DI_PARAMS

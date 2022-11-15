@@ -65,11 +65,15 @@ using PCVP_PIPELINE_PARAMS = const VPHAL_RENDER_PARAMS*;
 #define RESOURCE_ASSIGNMENT_HINT_BITS_DENOISE \
     uint32_t isHVSTableNeeded : 1;
 
+#define RESOURCE_ASSIGNMENT_HINT_BITS_STD_ALONE \
+    uint32_t isSkinScoreDumpNeededForSTDonly : 1;
+
 #define RESOURCE_ASSIGNMENT_HINT_BITS           \
         RESOURCE_ASSIGNMENT_HINT_BITS_DI        \
         RESOURCE_ASSIGNMENT_HINT_BITS_SCALING   \
         RESOURCE_ASSIGNMENT_HINT_BITS_HDR       \
-        RESOURCE_ASSIGNMENT_HINT_BITS_DENOISE
+        RESOURCE_ASSIGNMENT_HINT_BITS_DENOISE   \
+        RESOURCE_ASSIGNMENT_HINT_BITS_STD_ALONE
 
 #define RESOURCE_ASSIGNMENT_HINT_SIZE   4
 
@@ -152,7 +156,7 @@ struct _VP_EXECUTE_CAPS
             uint64_t bDiProcess2ndField : 1;   // Vebox DI enabled
             uint64_t bDIFmdKernel   : 1;   // Vebox FMD Kernel enabled
             uint64_t bIECP          : 1;   // Vebox IECP needed
-            uint64_t bSTE           : 1;   // Vebox STE needed
+            uint64_t bSTE           : 1;   // Vebox STE or Vebox STD_alone needed
             uint64_t bACE           : 1;   // Vebox ACE needed
             uint64_t bTCC           : 1;   // Vebox TCC needed
             uint64_t bCGC           : 1;   // Vebox CGC needed
