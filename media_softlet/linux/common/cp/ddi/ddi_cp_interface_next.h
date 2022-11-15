@@ -30,8 +30,9 @@
 
 #include <map>
 #include "media_libva.h"
-#include "media_factory.h"
+#include "cp_factory.h"
 #include "mos_os.h"
+#include "media_libva_util_next.h"
 
 struct CodechalDecodeParams;
 struct DDI_DECODE_CONTEXT;
@@ -40,7 +41,7 @@ class DdiCpInterfaceNext;
 
 namespace encode
 {
-typedef struct _DDI_ENCODE_STATUS_REPORT_INFO DDI_ENCODE_STATUS_REPORT_INFO;
+typedef struct _DDI_ENCODE_STATUS_REPORT_INFO *PDDI_ENCODE_STATUS_REPORT_INFO;
 }
 
 //core structure for CP DDI
@@ -57,6 +58,7 @@ static __inline PDDI_CP_CONTEXT_NEXT DdiCp_GetCpContextNextFromPVOID(void *cpCtx
     return (PDDI_CP_CONTEXT_NEXT)cpCtx;
 }
 
+#define DDI_CP_STUB_MESSAGE DDI_CP_NORMALMESSAGE("This function is stubbed as CP is not enabled.")
 class DdiCpInterfaceNext
 {
 public:
@@ -64,57 +66,118 @@ public:
 
     virtual ~DdiCpInterfaceNext() {}
 
-    virtual void SetCpParams(uint32_t encryptionType, CodechalSetting *setting);
+    virtual void SetCpParams(uint32_t encryptionType, CodechalSetting *setting) 
+    {
+        DDI_CP_STUB_MESSAGE;
+    }
 
     virtual VAStatus RenderCencPicture(
         VADriverContextP      vaDrvctx,
         VAContextID           contextId,
         DDI_MEDIA_BUFFER      *buf,
-        void                  *data);
+        void                  *data)
+    {
+        DDI_CP_STUB_MESSAGE;
+        return VA_STATUS_ERROR_UNSUPPORTED_BUFFERTYPE;
+    }
 
     virtual VAStatus CreateBuffer(
         VABufferType             type,
         DDI_MEDIA_BUFFER*        buffer,
         uint32_t                 size,
-        uint32_t                 num_elements);
+        uint32_t                 num_elements)
+    {
+        DDI_CP_STUB_MESSAGE;
+        return VA_STATUS_ERROR_UNSUPPORTED_BUFFERTYPE;
+    }
 
-    virtual VAStatus InitHdcp2Buffer(DDI_CODEC_COM_BUFFER_MGR* bufMgr);
+    virtual VAStatus InitHdcp2Buffer(DDI_CODEC_COM_BUFFER_MGR* bufMgr)
+    {
+        DDI_CP_STUB_MESSAGE;
+        return VA_STATUS_SUCCESS;
+    }
 
     virtual VAStatus StatusReportForHdcp2Buffer(
         DDI_CODEC_COM_BUFFER_MGR *bufMgr,
-        void                     *encodeStatusReport);
+        void                     *encodeStatusReport)
+    {
+        DDI_CP_STUB_MESSAGE;
+        return VA_STATUS_SUCCESS;
+    }
 
-    virtual void FreeHdcp2Buffer(DDI_CODEC_COM_BUFFER_MGR* bufMgr);
+    virtual void FreeHdcp2Buffer(DDI_CODEC_COM_BUFFER_MGR *bufMgr)
+    {
+        DDI_CP_STUB_MESSAGE;
+        return;
+    }
 
     virtual MOS_STATUS StoreCounterToStatusReport(
-        encode::DDI_ENCODE_STATUS_REPORT_INFO* info);
+        encode::PDDI_ENCODE_STATUS_REPORT_INFO info)
+    {
+        DDI_CP_STUB_MESSAGE;
+        return MOS_STATUS_SUCCESS;
+    }
 
-    virtual VAStatus ParseCpParamsForEncode();
+    virtual VAStatus ParseCpParamsForEncode()
+    {
+        DDI_CP_STUB_MESSAGE;
+        return VA_STATUS_SUCCESS;
+    }
 
-    virtual void SetCpFlags(int32_t flag);
+    virtual void SetCpFlags(int32_t flag)
+    {
+        DDI_CP_STUB_MESSAGE;
+    }
 
-    virtual bool IsHdcp2Enabled();
+    virtual bool IsHdcp2Enabled()
+    {
+        DDI_CP_STUB_MESSAGE;
+        return false;
+    }
 
     virtual void SetInputResourceEncryption(
         PMOS_INTERFACE osInterface,
-        PMOS_RESOURCE  resource);
+        PMOS_RESOURCE  resource)
+    {
+        DDI_CP_STUB_MESSAGE;
+    }
 
     virtual VAStatus CreateCencDecode(
         CodechalDebugInterface *debugInterface,
         PMOS_CONTEXT            osContext,
-        CodechalSetting        *settings);
+        CodechalSetting        *settings)
+    {
+        DDI_CP_STUB_MESSAGE;
+        return VA_STATUS_SUCCESS;
+    }
 
     virtual VAStatus SetDecodeParams(
         DDI_DECODE_CONTEXT *ddiDecodeContext,
-        CodechalSetting    *setting);
+        CodechalSetting    *setting)
+    {
+        DDI_CP_STUB_MESSAGE;
+        return VA_STATUS_SUCCESS;
+    }
 
-    virtual bool IsCencProcessing();
+    virtual bool IsCencProcessing()
+    {
+        DDI_CP_STUB_MESSAGE;
+        return false;
+    }
 
     virtual VAStatus EndPicture(
         VADriverContextP ctx,
-        VAContextID      context);
+        VAContextID      context)
+    {
+        DDI_CP_STUB_MESSAGE;
+        return VA_STATUS_SUCCESS;
+    }
 
-    virtual VAStatus IsAttachedSessionAlive();
+    virtual VAStatus IsAttachedSessionAlive()
+    {
+        DDI_CP_STUB_MESSAGE;
+        return VA_STATUS_SUCCESS;
+    }
 
 MEDIA_CLASS_DEFINE_END(DdiCpInterfaceNext)
 };
@@ -125,8 +188,8 @@ enum DdiCpCreateType
     CreateDdiCpImp       = 1
 };
 
-typedef MediaFactory<DdiCpCreateType, DdiCpInterfaceNext> DdiCpFactory;
+typedef CpFactory<DdiCpInterfaceNext, MOS_CONTEXT&> DdiCpFactory;
 
-DdiCpInterfaceNext *CreateDdiCp();
+DdiCpInterfaceNext* CreateDdiCpNext(MOS_CONTEXT* mosCtx);
 
 #endif
