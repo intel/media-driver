@@ -31,4 +31,7 @@ set(HEADERS_
 
 source_group("MHW\\Common MI" FILES ${TMP_MI_HEADERS_})
 
-media_add_curr_to_include_path()
+set(COMMON_PRIVATE_INCLUDE_DIRS_
+    ${COMMON_PRIVATE_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)
