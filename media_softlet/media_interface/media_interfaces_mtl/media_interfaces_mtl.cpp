@@ -567,31 +567,8 @@ MOS_STATUS CodechalInterfacesXe_Lpm_Plus::Initialize(
 #ifdef _VP9_ENCODE_VDENC_SUPPORTED
         if (info->Mode == CODECHAL_ENCODE_MODE_VP9)
         {
-            bool                        apogeiosEnable = true;
-            uint32_t                    userSettingVal = 1;
-            if (userSettingPtr != nullptr)
-            {
-                ReadUserSetting(
-                    userSettingPtr,
-                    userSettingVal,
-                    __MEDIA_USER_FEATURE_VALUE_APOGEIOS_ENABLE,
-                    MediaUserSetting::Group::Device,
-                    uint32_t(1),
-                    true);
-            }
-            apogeiosEnable = userSettingVal ? true : false;
-
-            if (apogeiosEnable)
-            {
-                m_codechalDevice = MOS_New(EncodeVp9VdencPipelineAdapterXe_Lpm_Plus, hwInterface, debugInterface);
-                if (m_codechalDevice == nullptr)
-                {
-                    CODECHAL_PUBLIC_ASSERTMESSAGE("Encode state creation failed!");
-                    return MOS_STATUS_INVALID_PARAMETER;
-                }
-                return MOS_STATUS_SUCCESS;
-            }
-            if (encoder == nullptr)
+            m_codechalDevice = MOS_New(EncodeVp9VdencPipelineAdapterXe_Lpm_Plus, hwInterface, debugInterface);
+            if (m_codechalDevice == nullptr)
             {
                 CODECHAL_PUBLIC_ASSERTMESSAGE("Encode state creation failed!");
                 return MOS_STATUS_INVALID_PARAMETER;
