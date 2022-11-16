@@ -1670,6 +1670,19 @@ MOS_STATUS MosUtilities::MosReadEnvVariable(
     return MOS_STATUS_INVALID_PARAMETER;
 }
 
+bool MosUtilities::MosEnvVariableEqual(
+    const std::string            envName,
+    const std::string            targetVal)
+{
+    char *retVal = getenv(envName.c_str());
+    bool res = false;
+    if (retVal != nullptr)
+    {
+        res = strcmp(retVal, targetVal.c_str()) ? false : true;
+    }
+    return res;
+}
+
 MOS_STATUS MosUtilities::MosGetRegValue(
     UFKEY_NEXT keyHandle,
     const std::string &valueName,

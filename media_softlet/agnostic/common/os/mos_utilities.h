@@ -1320,6 +1320,10 @@ public:
         MOS_USER_FEATURE_VALUE_TYPE type,
         MediaUserSetting::Value &data);
 
+    static bool MosEnvVariableEqual(
+        const std::string envName,
+        const std::string targetVal);
+
     //!
     //! \brief    Retrieves the type and data for the specified reg value.
     //! \details  Retrieves the type and data for the specified reg value.
