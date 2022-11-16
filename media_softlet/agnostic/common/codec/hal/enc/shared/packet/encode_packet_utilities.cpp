@@ -386,6 +386,7 @@ namespace encode {
         loadRegImmParams.dwRegister = pMmioRegisters->generalPurposeRegister4HiOffset;
         ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(cmdBuffer));
 
+        aluCount = 0;
         // load    srcA, reg0
         aluParams[aluCount].AluOpcode = MHW_MI_ALU_LOAD;
         aluParams[aluCount].Operand1  = MHW_MI_ALU_SRCA;
