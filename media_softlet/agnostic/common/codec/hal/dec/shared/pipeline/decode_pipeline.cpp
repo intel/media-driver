@@ -567,7 +567,7 @@ MOS_STATUS DecodePipeline::TraceDataDump2ndLevelBB(PMHW_BATCH_BUFFER batchBuffer
 
     MOS_TraceDataDump(
         "Decode_2ndLevelCmdBB",
-        0,
+        m_osInterface->pfnGetGpuContext(m_osInterface),
         pData,
         batchBuffer->iLastCurrent);
 
