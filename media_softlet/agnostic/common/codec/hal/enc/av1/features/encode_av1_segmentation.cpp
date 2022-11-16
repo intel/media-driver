@@ -116,7 +116,7 @@ namespace encode
             if (encodeParams->pSegmentMap)
             {
                 m_pSegmentMap = encodeParams->pSegmentMap;
-                m_segmentMapProvided = true;
+                m_segmentMapProvided = encodeParams->bSegmentMapProvided;
                 m_segmentMapDataSize = encodeParams->segmentMapDataSize;
             }
 
