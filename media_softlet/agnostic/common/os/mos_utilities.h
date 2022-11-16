@@ -1999,7 +1999,7 @@ public:
     //!
     static bool TraceKeyEnabled(MEDIA_EVENT_FILTER_KEYID key)
     {
-        return m_mosTraceFilter(key);
+        return m_mosTraceEnable && m_mosTraceFilter(key);
     }
 
     //!

@@ -31,7 +31,9 @@
 
 #if USE_MEDIA_DEBUG_TOOL
 
+#include <functional>
 #include <string>
+#include "media_debug_serializer.h"
 #include "media_copy.h"
 
 class MediaDebugFastDump
@@ -62,6 +64,9 @@ public:
         template <uint8_t MIN = 0, uint8_t MAX = 100>
         using RangedUint8 = RangedValue<uint8_t, MIN, MAX>;
 
+        template <size_t MIN = 0, size_t MAX = -1>
+        using RangedSize = RangedValue<size_t, MIN, MAX>;
+
     public:
         bool allowDataLoss = true;  // allow dumped data loss to reduce perf impact
 
@@ -88,11 +93,10 @@ public:
                                                // otherwise randomly select 1 of the 3 methods based on their weights, e.g., the chance of
                                                // selecting render copy is weightRenderCopy/(weightRenderCopy+weightVECopy+weightBLTCopy)
 
-        // file writing configurations
-        size_t bufferSize4Write = 0;      // buffer size in MB for buffered file writer, write is not buffered when size is 0
-        bool   write2File       = true;   // write dumped data to file
-        bool   write2Trace      = false;  // write dumped data to trace
-        bool   informOnError    = true;   // dump 1 byte filename.error_info file instead of nothing when error occurs
+        // file/trace writing configurations
+        RangedUint8<0, 3> writeMode     = 0;     // 0: binary file, direct writing; 1: binary file, buffered writing; 2: text file; 3: trace
+        RangedSize<64>    bufferSize    = 0;     // buffer size in MB for buffered writing, effective when writeMode is 1
+        bool              informOnError = true;  // dump 1 byte filename.error_info file instead of nothing when error occurs
     };
 
 public:
@@ -108,7 +112,10 @@ public:
         MOS_RESOURCE &res,
         std::string &&name,
         size_t        dumpSize = 0,
-        size_t        offset   = 0);
+        size_t        offset   = 0,
+        std::function<
+            void(std::ostream &, const void *, size_t)>
+            &&serializer = MediaDebugSerializer<uint32_t>());
 
 public:
     virtual ~MediaDebugFastDump() = default;

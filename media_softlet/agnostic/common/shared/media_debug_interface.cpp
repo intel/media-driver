@@ -433,6 +433,7 @@ MOS_STATUS MediaDebugInterface::SetFastDumpConfig(MediaCopyBaseState *mediaCopy)
     {
         const auto &c           = traceSetting->fastDump;
         cfg.allowDataLoss       = c.allowDataLoss;
+        cfg.frameIdx            = c.frameIdxBasedSampling ? &m_bufferDumpFrameNum : nullptr;
         cfg.samplingTime        = static_cast<size_t>(c.samplingTime);
         cfg.samplingInterval    = static_cast<size_t>(c.samplingInterval);
         cfg.memUsagePolicy      = c.memUsagePolicy;
@@ -441,15 +442,12 @@ MOS_STATUS MediaDebugInterface::SetFastDumpConfig(MediaCopyBaseState *mediaCopy)
         cfg.weightRenderCopy    = c.weightRenderCopy;
         cfg.weightVECopy        = c.weightVECopy;
         cfg.weightBLTCopy       = c.weightBLTCopy;
-        cfg.bufferSize4Write    = static_cast<size_t>(c.bufferSize4Write);
-        cfg.write2File          = c.write2File;
-        cfg.write2Trace         = c.write2Trace;
+        cfg.writeMode           = c.writeMode;
+        cfg.bufferSize          = static_cast<size_t>(c.bufferSize);
         cfg.informOnError       = c.informOnError;
 
-        if (c.frameIdxBasedSampling)
-        {
-            cfg.frameIdx = &m_bufferDumpFrameNum;
-        }
+        auto suffix = cfg.writeMode < 2 ? ".bin" : cfg.writeMode == 2 ? ".txt"
+                                                                      : "";
 
         class DumpEnabled
         {
@@ -473,7 +471,7 @@ MOS_STATUS MediaDebugInterface::SetFastDumpConfig(MediaCopyBaseState *mediaCopy)
 
         auto dumpEnabled = std::make_shared<DumpEnabled>();
 
-        m_dumpYUVSurface = [this, dumpEnabled, traceSetting](
+        m_dumpYUVSurface = [this, dumpEnabled, traceSetting, suffix](
                                PMOS_SURFACE           surface,
                                const char            *attrName,
                                const char            *surfName,
@@ -488,12 +486,13 @@ MOS_STATUS MediaDebugInterface::SetFastDumpConfig(MediaCopyBaseState *mediaCopy)
                         std::to_string(m_bufferDumpFrameNum) +
                         '-' +
                         surfName +
-                        "w[0]_h[0]_p[0].bin");
+                        "w[0]_h[0]_p[0]" +
+                        suffix);
             }
             return MOS_STATUS_SUCCESS;
         };
 
-        m_dumpBuffer = [this, dumpEnabled, traceSetting](
+        m_dumpBuffer = [this, dumpEnabled, traceSetting, suffix](
                            PMOS_RESOURCE          resource,
                            const char            *attrName,
                            const char            *bufferName,
@@ -508,7 +507,7 @@ MOS_STATUS MediaDebugInterface::SetFastDumpConfig(MediaCopyBaseState *mediaCopy)
                         std::to_string(m_bufferDumpFrameNum) +
                         '-' +
                         bufferName +
-                        ".bin",
+                        suffix,
                     size,
                     offset);
             }

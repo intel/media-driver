@@ -123,8 +123,7 @@ struct MtSetting
         uint8_t  allowDataLoss : 1;
         uint8_t  frameIdxBasedSampling : 1;
         uint8_t  memUsagePolicy : 2;
-        uint8_t  write2File : 1;
-        uint8_t  write2Trace : 1;
+        uint8_t  writeMode : 2;
         uint8_t  informOnError : 1;
         uint8_t  rsv0 : 1;
         uint8_t  rsv1;
@@ -136,9 +135,11 @@ struct MtSetting
         uint8_t  rsv2;
         uint64_t samplingTime;
         uint64_t samplingInterval;
-        uint64_t bufferSize4Write;
+        uint64_t bufferSize;
         char     filePath[1024];
     } fastDump;
+
+    uint8_t rsv[2528];
 };
 
 // 4KB in total
@@ -146,12 +147,10 @@ struct MtControlData
 {
     uint32_t enable;
     uint8_t  level;
-    uint8_t  rsv0[3];
+    uint8_t  rsv[3];
     uint64_t filter[63];
 
     MtSetting setting;
-
-    uint8_t rsv1[2528];
 };
 #pragma pack(pop)
 

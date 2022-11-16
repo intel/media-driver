@@ -61,11 +61,14 @@ void MediaDebugFastDump::Dump(
     MOS_RESOURCE &res,
     std::string &&name,
     size_t        dumpSize,
-    size_t        offset)
+    size_t        offset,
+    std::function<
+        void(std::ostream &, const void *, size_t)>
+        &&serializer)
 {
     if (imp)
     {
-        (*imp)(res, std::move(name), dumpSize, offset);
+        (*imp)(res, std::move(name), dumpSize, offset, std::move(serializer));
     }
 }
 
