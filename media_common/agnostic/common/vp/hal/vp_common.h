@@ -127,22 +127,23 @@ struct VPHAL_SURFACE
     //--------------------------------------
     // FIELDS TO BE SETUP BY VPHAL int32_tERNALLY
     //--------------------------------------
-    uint32_t                 dwWidth           = 0;                         //!<  Surface width
-    uint32_t                 dwHeight          = 0;                         //!<  Surface height
-    uint32_t                 dwPitch           = 0;                         //!<  Surface pitch
-    MOS_TILE_TYPE            TileType          = MOS_TILE_X;                //!<  Tile Type
-    MOS_TILE_MODE_GMM        TileModeGMM       = MOS_TILE_LINEAR_GMM;       //!<  Tile Mode from GMM Definition
-    bool                     bGMMTileEnabled   = false;                     //!<  GMM Tile Mode Flag
-    bool                     bOverlay          = false;                     //!<  Overlay Surface
-    bool                     bFlipChain        = false;                     //!<  FlipChain Surface
-    VPHAL_PLANE_OFFSET       YPlaneOffset      = {0, 0, 0, 0};              //!<  Y surface plane offset
-    VPHAL_PLANE_OFFSET       UPlaneOffset      = {0, 0, 0, 0};              //!<  U surface plane offset
-    VPHAL_PLANE_OFFSET       VPlaneOffset      = {0, 0, 0, 0};              //!<  V surface plane offset
-    int32_t                  iLayerID          = 0;                         //!<  Layer index (0-based index)
-    VPHAL_SCALING_MODE       ScalingMode       = VPHAL_SCALING_NEAREST;     //!<  Scaling Mode
-    VPHAL_SCALING_PREFERENCE ScalingPreference = VPHAL_SCALING_PREFER_SFC;  //!<  Scaling preference
-    bool                     bIEF              = false;                     //!<  IEF flag
-    uint32_t                 dwSlicePitch      = 0;                         //!<  SlicePitch of a 3D surface(GT-PIN support)
+    uint32_t                 dwWidth                   = 0;                         //!<  Surface width
+    uint32_t                 dwHeight                  = 0;                         //!<  Surface height
+    uint32_t                 dwPitch                   = 0;                         //!<  Surface pitch
+    MOS_TILE_TYPE            TileType                  = MOS_TILE_X;                //!<  Tile Type
+    MOS_TILE_MODE_GMM        TileModeGMM               = MOS_TILE_LINEAR_GMM;       //!<  Tile Mode from GMM Definition
+    bool                     bGMMTileEnabled           = false;                     //!<  GMM Tile Mode Flag
+    bool                     bOverlay                  = false;                     //!<  Overlay Surface
+    bool                     bFlipChain                = false;                     //!<  FlipChain Surface
+    VPHAL_PLANE_OFFSET       YPlaneOffset              = {0, 0, 0, 0};              //!<  Y surface plane offset
+    VPHAL_PLANE_OFFSET       UPlaneOffset              = {0, 0, 0, 0};              //!<  U surface plane offset
+    VPHAL_PLANE_OFFSET       VPlaneOffset              = {0, 0, 0, 0};              //!<  V surface plane offset
+    int32_t                  iLayerID                  = 0;                         //!<  Layer index (0-based index)
+    VPHAL_SCALING_MODE       ScalingMode               = VPHAL_SCALING_NEAREST;     //!<  Scaling Mode
+    VPHAL_SCALING_PREFERENCE ScalingPreference         = VPHAL_SCALING_PREFER_SFC;  //!<  Scaling preference
+    bool                     bForceToScalingPreference = false;                     //!<  Force to use engine specified by scaling preference
+    bool                     bIEF                      = false;                     //!<  IEF flag
+    uint32_t                 dwSlicePitch              = 0;                         //!<  SlicePitch of a 3D surface(GT-PIN support)
 
     //--------------------------------------
     // FIELDS TO BE PROVIDED BY DDI
