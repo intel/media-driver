@@ -45,6 +45,8 @@ public:
     MOS_STATUS Execute(MOS_COMMAND_BUFFER& cmdBuffer, int16_t tileIdx) override;
     MOS_STATUS CalculateTileStateCommandSize() override;
 
+    MOS_STATUS AddCmd_AVP_TILE_CODING(MOS_COMMAND_BUFFER &cmdBuffer, int16_t tileIdx) override;
+
 MEDIA_CLASS_DEFINE_END(decode__Av1DecodeTilePktXe_Lpm_Plus_Base)
 };
 

@@ -1449,7 +1449,8 @@ public:
             {
                 uint32_t                 FirstPhaseOnScalabilityMode : __CODEGEN_BITFIELD(0, 0); //!< First Phase on Scalability Mode
                 uint32_t                 LastPhaseOnScalabilityMode : __CODEGEN_BITFIELD(1, 1); //!< Last Phase on Scalability Mode
-                uint32_t                 Reserved130 : __CODEGEN_BITFIELD(2, 22); //!< Reserved
+                uint32_t                 AvpCrcEnable : __CODEGEN_BITFIELD(2, 2);
+                uint32_t                 Reserved131 : __CODEGEN_BITFIELD(3, 22);         //!< Reserved
                 uint32_t                 FirstTileInAFrame : __CODEGEN_BITFIELD(23, 23); //!< First Tile in a Frame
                 uint32_t                 Reserved152 : __CODEGEN_BITFIELD(24, 24); //!< Reserved
                 uint32_t                 IslasttileofcolumnFlag : __CODEGEN_BITFIELD(25, 25); //!< IsLastTileOfColumn Flag

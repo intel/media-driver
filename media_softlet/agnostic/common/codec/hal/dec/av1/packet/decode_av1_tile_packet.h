@@ -89,7 +89,7 @@ public:
 protected:
     MHW_SETPAR_DECL_HDR(AVP_INLOOP_FILTER_STATE);
     MHW_SETPAR_DECL_HDR(AVP_FILM_GRAIN_STATE);
-    MOS_STATUS AddCmd_AVP_TILE_CODING(MOS_COMMAND_BUFFER &cmdBuffer, int16_t tileIdx);
+    virtual MOS_STATUS AddCmd_AVP_TILE_CODING(MOS_COMMAND_BUFFER &cmdBuffer, int16_t tileIdx);
     virtual MOS_STATUS AddCmd_AVP_BSD_OBJECT(MOS_COMMAND_BUFFER &cmdBuffer, int16_t tileIdx);
     uint32_t GetFrameUncompressSize();
 

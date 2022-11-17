@@ -295,6 +295,9 @@ struct _MHW_PAR_T(AVP_TILE_CODING)
     bool     lastTileOfFrame                         = false;
     bool     disableCdfUpdateFlag                    = false;
     bool     disableFrameContextUpdateFlag           = false;
+#if (_DEBUG || _RELEASE_INTERNAL)
+    bool     enableAvpDebugMode                      = false;
+#endif
 
     uint8_t  numOfActiveBePipes                      = 0;
     uint16_t numOfTileColumnsInFrame                 = 0;

@@ -256,6 +256,68 @@ protected:
 #include "mhw_hwcmd_process_cmdfields.h"
     }
 
+    _MHW_SETCMD_OVERRIDE_DECL(AVP_TILE_CODING)
+    {
+        _MHW_SETCMD_CALLBASE(AVP_TILE_CODING);
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+#define DO_FIELDS()                                                                             \
+    DO_FIELD(DW1, FrameTileId, params.tileId);                                                  \
+    DO_FIELD(DW1, TgTileNum, params.tileNum);                                                   \
+    DO_FIELD(DW1, TileGroupId, params.tileGroupId);                                             \
+                                                                                                \
+    DO_FIELD(DW2, TileColumnPositionInSbUnit, params.tileColPositionInSb);                      \
+    DO_FIELD(DW2, TileRowPositionInSbUnit, params.tileRowPositionInSb);                         \
+                                                                                                \
+    DO_FIELD(DW3, TileWidthInSuperblockUnitMinus1, params.tileWidthInSbMinus1);                 \
+    DO_FIELD(DW3, TileHeightInSuperblockUnitMinus1, params.tileHeightInSbMinus1);               \
+    DO_FIELD(DW4, FirstTileInAFrame, params.firstTileInAFrame ? 1 : 0);                         \
+    DO_FIELD(DW4, AvpCrcEnable, params.enableAvpDebugMode ? 1 : 0);                             \
+    DO_FIELD(DW4, IslasttileofcolumnFlag, params.lastTileOfColumn ? 1 : 0);                     \
+    DO_FIELD(DW4, IslasttileofrowFlag, params.lastTileOfRow ? 1 : 0);                           \
+    DO_FIELD(DW4, IsstarttileoftilegroupFlag, params.firstTileOfTileGroup ? 1 : 0);             \
+    DO_FIELD(DW4, IsendtileoftilegroupFlag, params.lastTileOfTileGroup ? 1 : 0);                \
+    DO_FIELD(DW4, IslasttileofframeFlag, params.lastTileOfFrame ? 1 : 0);                       \
+    DO_FIELD(DW4, DisableCdfUpdateFlag, params.disableCdfUpdateFlag ? 1 : 0);                   \
+    DO_FIELD(DW4, DisableFrameContextUpdateFlag, params.disableFrameContextUpdateFlag ? 1 : 0); \
+                                                                                                \
+    DO_FIELD(DW5, NumberOfActiveBePipes, params.numOfActiveBePipes);                            \
+    DO_FIELD(DW5, NumOfTileColumnsMinus1InAFrame, params.numOfTileColumnsInFrame - 1);          \
+    DO_FIELD(DW5, NumOfTileRowsMinus1InAFrame, params.numOfTileRowsInFrame - 1);                \
+                                                                                                \
+    DO_FIELD(DW6, OutputDecodedTileColumnPositionInSbUnit, params.outputDecodedTileColPos);     \
+    DO_FIELD(DW6, OutputDecodedTileRowPositionInSbUnit, params.outputDecodedTileRowPos)
+#else
+#define DO_FIELDS()                                                                             \
+    DO_FIELD(DW1, FrameTileId, params.tileId);                                                  \
+    DO_FIELD(DW1, TgTileNum, params.tileNum);                                                   \
+    DO_FIELD(DW1, TileGroupId, params.tileGroupId);                                             \
+                                                                                                \
+    DO_FIELD(DW2, TileColumnPositionInSbUnit, params.tileColPositionInSb);                      \
+    DO_FIELD(DW2, TileRowPositionInSbUnit, params.tileRowPositionInSb);                         \
+                                                                                                \
+    DO_FIELD(DW3, TileWidthInSuperblockUnitMinus1, params.tileWidthInSbMinus1);                 \
+    DO_FIELD(DW3, TileHeightInSuperblockUnitMinus1, params.tileHeightInSbMinus1);               \
+    DO_FIELD(DW4, FirstTileInAFrame, params.firstTileInAFrame ? 1 : 0);                         \
+    DO_FIELD(DW4, IslasttileofcolumnFlag, params.lastTileOfColumn ? 1 : 0);                     \
+    DO_FIELD(DW4, IslasttileofrowFlag, params.lastTileOfRow ? 1 : 0);                           \
+    DO_FIELD(DW4, IsstarttileoftilegroupFlag, params.firstTileOfTileGroup ? 1 : 0);             \
+    DO_FIELD(DW4, IsendtileoftilegroupFlag, params.lastTileOfTileGroup ? 1 : 0);                \
+    DO_FIELD(DW4, IslasttileofframeFlag, params.lastTileOfFrame ? 1 : 0);                       \
+    DO_FIELD(DW4, DisableCdfUpdateFlag, params.disableCdfUpdateFlag ? 1 : 0);                   \
+    DO_FIELD(DW4, DisableFrameContextUpdateFlag, params.disableFrameContextUpdateFlag ? 1 : 0); \
+                                                                                                \
+    DO_FIELD(DW5, NumberOfActiveBePipes, params.numOfActiveBePipes);                            \
+    DO_FIELD(DW5, NumOfTileColumnsMinus1InAFrame, params.numOfTileColumnsInFrame - 1);          \
+    DO_FIELD(DW5, NumOfTileRowsMinus1InAFrame, params.numOfTileRowsInFrame - 1);                \
+                                                                                                \
+    DO_FIELD(DW6, OutputDecodedTileColumnPositionInSbUnit, params.outputDecodedTileColPos);     \
+    DO_FIELD(DW6, OutputDecodedTileRowPositionInSbUnit, params.outputDecodedTileRowPos)
+#endif
+
+#include "mhw_hwcmd_process_cmdfields.h"
+    }
+
     _MHW_SETCMD_OVERRIDE_DECL(AVP_PIPE_BUF_ADDR_STATE)
     {
         _MHW_SETCMD_CALLBASE(AVP_PIPE_BUF_ADDR_STATE);
