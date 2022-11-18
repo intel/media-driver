@@ -155,6 +155,9 @@ MOS_STATUS VeboxCopyStateXe_Lpm_Plus_Base::CopyMainSurface(PMOS_RESOURCE src, PM
     VEBOX_COPY_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
     VEBOX_COPY_CHK_STATUS_RETURN(InitCommandBuffer(&cmdBuffer));
 
+    // Set Vebox MMIO
+    VEBOX_COPY_CHK_STATUS_RETURN(m_miItf->AddVeboxMMIOPrologCmd(&cmdBuffer));
+
     // Prepare Vebox_Surface_State, surface input/and output are the same but the compressed status.
     VEBOX_COPY_CHK_STATUS_RETURN(SetupVeboxSurfaceState(&mhwVeboxSurfaceStateCmdParams, &inputSurface, &outputSurface));
 
@@ -169,7 +172,6 @@ MOS_STATUS VeboxCopyStateXe_Lpm_Plus_Base::CopyMainSurface(PMOS_RESOURCE src, PM
     // Send CMD: Vebox_Tiling_Convert
     //---------------------------------
     VEBOX_COPY_CHK_STATUS_RETURN(m_veboxItf->AddVeboxTilingConvert(&cmdBuffer, &mhwVeboxSurfaceStateCmdParams.SurfInput, &mhwVeboxSurfaceStateCmdParams.SurfOutput));
-    VEBOX_COPY_CHK_STATUS_RETURN(m_miItf->SetPrologCmd(&cmdBuffer));
 
     auto& flushDwParams = m_miItf->MHW_GETPAR_F(MI_FLUSH_DW)();
     flushDwParams = {};
