@@ -31,6 +31,4 @@
 #include "capstable_data_linux_definition.h"
 #include "capstable_data_xe_lpm_plus_r0_specific.h"
 
-
-
 #endif //__CAPS_REGISTER_SPECIFIC_XE_LPM_PLUS_H__
