@@ -29,12 +29,11 @@
 #include "media_interfaces_vphal.h"
 #include "vp_platform_interface.h"
 #include "vp_debug.h"
-#include "media_interfaces_mhw_next.h"
 #include "renderhal_platform_interface.h"
 
 VpPipelineAdapterBase::VpPipelineAdapterBase(
     vp::VpPlatformInterface &vpPlatformInterface,
-    MOS_STATUS &eStatus):
+    MOS_STATUS              &eStatus):
     m_vpPlatformInterface(vpPlatformInterface)
 {
     m_osInterface = m_vpPlatformInterface.GetOsInterface();
@@ -51,7 +50,11 @@ MOS_STATUS VpPipelineAdapterBase::GetVpMhwInterface(
 {
     VP_FUNC_CALL();
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-
+    bool       sfcNeeded                          = false;
+    bool       veboxNeeded                        = false;
+    std::shared_ptr<mhw::vebox::Itf> veboxItf     = nullptr;
+    std::shared_ptr<mhw::sfc::Itf>   sfcItf       = nullptr;
+    std::shared_ptr<mhw::mi::Itf>    miItf        = nullptr;
     m_osInterface = m_vpPlatformInterface.GetOsInterface();
     if (m_osInterface == nullptr)
     {
@@ -67,8 +70,7 @@ MOS_STATUS VpPipelineAdapterBase::GetVpMhwInterface(
     m_vprenderHal = (PRENDERHAL_INTERFACE)MOS_AllocAndZeroMemory(sizeof(*m_vprenderHal));
     if (m_vprenderHal == nullptr)
     {
-        eStatus = MOS_STATUS_NULL_POINTER;
-        return eStatus;
+        VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_NULL_POINTER);
     }
 
     eStatus = RenderHal_InitInterface(
@@ -84,36 +86,25 @@ MOS_STATUS VpPipelineAdapterBase::GetVpMhwInterface(
         return eStatus;
     }
 
-    if (MEDIA_IS_SKU(m_skuTable, FtrVERing) ||
-        MEDIA_IS_SKU(m_skuTable, FtrSFCPipe))
+    veboxNeeded = MEDIA_IS_SKU(m_skuTable, FtrVERing);
+    sfcNeeded   = MEDIA_IS_SKU(m_skuTable, FtrSFCPipe);
+    if (veboxNeeded || sfcNeeded)
     {
-        MhwInterfacesNext *mhwInterfaces = nullptr;
-        MhwInterfacesNext::CreateParams params;
-        MOS_ZeroMemory(&params, sizeof(params));
-        params.Flags.m_sfc   = MEDIA_IS_SKU(m_skuTable, FtrSFCPipe);
-        params.Flags.m_vebox = MEDIA_IS_SKU(m_skuTable, FtrVERing);
-
-        mhwInterfaces = MhwInterfacesNext::CreateFactory(params, m_osInterface);
-        if (mhwInterfaces)
+        eStatus = VphalDevice::CreateVPMhwInterfaces(sfcNeeded, veboxNeeded, veboxItf, sfcItf, miItf, m_osInterface);
+        if (eStatus == MOS_STATUS_SUCCESS)
         {
-            SetMhwVeboxItf(mhwInterfaces->m_veboxItf);
-            SetMhwSfcItf(mhwInterfaces->m_sfcItf);
+            SetMhwVeboxItf(veboxItf);
+            SetMhwSfcItf(sfcItf);
 #if EMUL
-            SetMhwMiItf(mhwInterfaces->m_miItf);
+            SetMhwMiItf(miItf);
 #else
             SetMhwMiItf(m_vprenderHal->pRenderHalPltInterface->GetMhwMiItf());
 #endif
-
-            // MhwInterfaces always create CP and MI interfaces, so we have to delete those we don't need.
-            Delete_MhwCpInterface(mhwInterfaces->m_cpInterface);
-            mhwInterfaces->m_cpInterface = nullptr;
-            MOS_Delete(mhwInterfaces);
         }
         else
         {
             VP_PUBLIC_ASSERTMESSAGE("Allocate MhwInterfaces failed");
-            eStatus = MOS_STATUS_NO_SPACE;
-            return eStatus;
+            VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_NO_SPACE);
         }
     }
 

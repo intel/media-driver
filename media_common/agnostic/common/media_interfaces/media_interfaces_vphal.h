@@ -30,7 +30,9 @@
 #include "media_factory.h"
 #include "vp_base.h"
 #include "vp_utils.h"
-
+#include "mhw_mi_itf.h"
+#include "mhw_vebox_itf.h"
+#include "mhw_sfc_itf.h"
 namespace vp
 {
 class VpPipeline;
@@ -84,6 +86,13 @@ public:
         MOS_CONTEXT_HANDLE osDriverContext,
         MOS_STATUS         *eStatus);
 
+    static MOS_STATUS CreateVPMhwInterfaces(
+        bool                             sfcNeeded,
+        bool                             veboxNeeded,
+        std::shared_ptr<mhw::vebox::Itf> &veboxItf,
+        std::shared_ptr<mhw::sfc::Itf>   &sfcItf,
+        std::shared_ptr<mhw::mi::Itf>    &miItf,
+        PMOS_INTERFACE                   osInterface);
     //!
     //! \brief    Initializes platform specific state
     //! \param    [in] osInterface
