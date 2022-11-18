@@ -23,7 +23,6 @@
 //! \file     ddi_vp_functions.cpp
 //! \brief    ddi vp functions implementaion.
 //!
-#include <va/va_dricommon.h>
 #include "ddi_vp_functions.h"
 #include "media_libva_util_next.h"
 #include "media_libva_common_next.h"
