@@ -70,6 +70,7 @@ MOS_STATUS Mhw_StateHeapInterface_InitInterface_Legacy(
         Delete_MhwCpInterface(mhwInterfaces->m_cpInterface);
         mhwInterfaces->m_cpInterface = NULL;
         MOS_Delete(mhwInterfaces);
+        mhwInterfaces = nullptr;
     }
     else
     {
@@ -81,10 +82,19 @@ MOS_STATUS Mhw_StateHeapInterface_InitInterface_Legacy(
     *ppCommonStateHeapInterface = pCommonStateHeapInterface;
 
 finish:
+
     if (eStatus != MOS_STATUS_SUCCESS && pCommonStateHeapInterface)
     {
         pCommonStateHeapInterface->pfnDestroy(pCommonStateHeapInterface);
         *ppCommonStateHeapInterface = nullptr;
+        if (mhwInterfaces)
+        {
+            MOS_Delete(mhwInterfaces->m_miInterface);
+            Delete_MhwCpInterface(mhwInterfaces->m_cpInterface);
+            mhwInterfaces->m_cpInterface = NULL;
+            MOS_Delete(mhwInterfaces);
+        }
     }
+
     return eStatus;
 }
