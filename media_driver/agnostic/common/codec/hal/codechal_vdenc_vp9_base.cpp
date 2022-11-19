@@ -4338,11 +4338,6 @@ MOS_STATUS CodechalVdencVp9State::SetHcpSrcSurfaceParams(MHW_VDBOX_SURFACE_PARAM
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    if (MEDIA_IS_WA(m_waTable, Wa_Vp9UnalignedHeight) && (m_rawSurfaceToPak->Format == Format_NV12 || m_rawSurfaceToPak->Format == Format_P010))
-    {
-        m_rawSurfaceToPak->dwHeight = m_oriFrameHeight;
-    }
-
     if (m_pictureCodingType != I_TYPE)
     {
         uint8_t refPicIndex = 0, scalingIdx = 0;
