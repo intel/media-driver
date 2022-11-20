@@ -115,10 +115,5 @@ static const EntrypointData entrypointMap_VAProfileAV1Profile0_Data_Xe_Lpm_plus_
     &surfaceAttribInfo_VAProfileAV1Profile0_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0
 };
 
-static const EntrypointMap entrypointMap_VAProfileAV1Profile0_Xe_Lpm_plus_r0
-{
-    {VAEntrypointEncSliceLP, &entrypointMap_VAProfileAV1Profile0_Data_Xe_Lpm_plus_r0},
-};
-
 
 #endif

@@ -20,10 +20,26 @@
 
 set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_functions.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_base_specific.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_av1_specific.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_avc_specific.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_hevc_specific.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_jpeg_specific.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_mpeg2_specific.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_vp8_specific.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_vp9_specific.cpp
 )
 
 set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_functions.h
+    ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_base_specific.h
+    ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_av1_specific.h
+    ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_avc_specific.h
+    ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_hevc_specific.h
+    ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_jpeg_specific.h
+    ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_mpeg2_specific.h
+    ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_vp8_specific.h
+    ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_vp9_specific.h
 )
 
 set(SOFTLET_DDI_SOURCES_

@@ -29,8 +29,9 @@
 #include "mos_os.h"
 #include "mos_defs.h"
 #include "hwinfo_linux.h"
-#include "media_ddi_decode_base.h"
+#include "ddi_decode_base_specific.h"
 #include "media_ddi_encode_base.h"
+//#include "ddi_libva_decoder_specific.h"
 #include "media_libva_decoder.h"
 #include "media_libva_encoder.h"
 #include "memory_policy_manager.h"
@@ -994,10 +995,10 @@ VAStatus MediaLibvaUtilNext::UnRegisterRTSurfaces(
             if (decVACtxHeapBase[j].pVaContext != nullptr)
             {
                 PDDI_DECODE_CONTEXT  decCtx = (PDDI_DECODE_CONTEXT)decVACtxHeapBase[j].pVaContext;
-                if (decCtx && decCtx->m_ddiDecode)
+                if (decCtx && decCtx->m_ddiDecodeNext)
                 {
                     //not check the return value since the surface may not be registered in the context. pay attention to LOGW.
-                    decCtx->m_ddiDecode->UnRegisterRTSurfaces(&decCtx->RTtbl, surface);
+                    decCtx->m_ddiDecodeNext->UnRegisterRTSurfaces(&decCtx->RTtbl, surface);
                 }
             }
         }

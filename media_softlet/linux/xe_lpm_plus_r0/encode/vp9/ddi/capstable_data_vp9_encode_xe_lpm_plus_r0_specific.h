@@ -254,21 +254,11 @@ static const EntrypointData entrypointMap_VAProfileVP9Profile0_Data_Xe_Lpm_plus_
     &surfaceAttribInfo_VAProfileVP9Profile0_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0
 };
 
-static const EntrypointMap entrypointMap_VAProfileVP9Profile0_Xe_Lpm_plus_r0
-{
-    {VAEntrypointEncSliceLP, &entrypointMap_VAProfileVP9Profile0_Data_Xe_Lpm_plus_r0},
-};
-
 static const EntrypointData entrypointMap_VAProfileVP9Profile1_Data_Xe_Lpm_plus_r0
 {
     &attribList_VAProfileVP9Profile1_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0,
     &configDataList_VAProfileVP9Profile1_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0,
     &surfaceAttribInfo_VAProfileVP9Profile1_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0
-};
-
-static const EntrypointMap entrypointMap_VAProfileVP9Profile1_Xe_Lpm_plus_r0
-{
-    {VAEntrypointEncSliceLP, &entrypointMap_VAProfileVP9Profile1_Data_Xe_Lpm_plus_r0},
 };
 
 static const EntrypointData entrypointMap_VAProfileVP9Profile2_Data_Xe_Lpm_plus_r0
@@ -278,22 +268,11 @@ static const EntrypointData entrypointMap_VAProfileVP9Profile2_Data_Xe_Lpm_plus_
     &surfaceAttribInfo_VAProfileVP9Profile2_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0
 };
 
-static const EntrypointMap entrypointMap_VAProfileVP9Profile2_Xe_Lpm_plus_r0
-{
-    {VAEntrypointEncSliceLP, &entrypointMap_VAProfileVP9Profile2_Data_Xe_Lpm_plus_r0},
-};
-
 static const EntrypointData entrypointMap_VAProfileVP9Profile3_Data_Xe_Lpm_plus_r0
 {
     &attribList_VAProfileVP9Profile3_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0,
     &configDataList_VAProfileVP9Profile3_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0,
     &surfaceAttribInfo_VAProfileVP9Profile3_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0
 };
-
-static const EntrypointMap entrypointMap_VAProfileVP9Profile3_Xe_Lpm_plus_r0
-{
-    {VAEntrypointEncSliceLP, &entrypointMap_VAProfileVP9Profile3_Data_Xe_Lpm_plus_r0},
-};
-
 
 #endif

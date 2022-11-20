@@ -72,9 +72,4 @@ static const EntrypointData entrypointMap_VAProfileJPEGBaseline_Data_Xe_Lpm_plus
     &surfaceAttribInfo_VAProfileJPEGBaseline_VAEntrypointEncPicture_Xe_Lpm_plus_r0
 };
 
-static const EntrypointMap entrypointMap_VAProfileJPEGBaseline_Xe_Lpm_plus_r0
-{
-    {VAEntrypointEncPicture, &entrypointMap_VAProfileJPEGBaseline_Data_Xe_Lpm_plus_r0},
-};
-
 #endif
