@@ -29,8 +29,7 @@
 /****************************************************************************************************/
 /*                                      MosOcaRTLogMgr                                              */
 /****************************************************************************************************/
-
-MOS_STATUS MosOcaRTLogMgr::MapGfxVa()
+MOS_STATUS MosOcaRTLogMgr::MapGfxVa(PMOS_RESOURCE ocaRTLogResource, OsContextNext *osDriverContext)
 {
     return MOS_STATUS_SUCCESS;
 }

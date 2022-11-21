@@ -3599,10 +3599,8 @@ void MosInterface::InsertRTLog(
     uint8_t paramCount,
     const void *param)
 {
-    if (streamState && streamState->osDeviceContext && streamState->osDeviceContext->GetOCARTLogMgr())
-    {
-        streamState->osDeviceContext->GetOCARTLogMgr()->InsertRTLog(componentType, isErr, id, paramCount, param);
-    }
+    MosOcaRTLogMgr &ocaRTLogMgr = MosOcaRTLogMgr::GetInstance();
+    ocaRTLogMgr.InsertRTLog(componentType, isErr, id, paramCount, param);
 }
 
 void MosInterface::GetRtLogResourceInfo(
@@ -3612,10 +3610,11 @@ void MosInterface::GetRtLogResourceInfo(
 {
     osResource = nullptr;
     size = 0;
-    if (streamState && streamState->osDeviceContext && streamState->osDeviceContext->GetOCARTLogMgr())
+    if (streamState && streamState->osDeviceContext)
     {
-        osResource = streamState->osDeviceContext->GetOCARTLogMgr()->GetOcaRTlogResource();
-        size = streamState->osDeviceContext->GetOCARTLogMgr()->GetRtlogHeapInfo().size;
+        MosOcaRTLogMgr &ocaRTLogMgr = MosOcaRTLogMgr::GetInstance();
+        osResource                 = streamState->osDeviceContext->GetOcaRTLogResource();
+        size                       = ocaRTLogMgr.GetRtlogHeapSize();
     }
 }
 
