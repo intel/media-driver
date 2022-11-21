@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021, Intel Corporation
+* Copyright (c) 2021-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -28,16 +28,48 @@
 #define __DDI_DECODE_FUNCTIONS_H__
 
 #include "ddi_media_functions.h"
-#include "media_class_trace.h"
-#include <stdint.h>
-#include <va/va.h>
-#include <va/va_backend.h>
+#include "media_libva_decoder.h"
+#include "media_libva_caps_next.h"
+#include "decode_pipeline_adapter.h"
+
+//using namespace decode;
 
 class DdiDecodeFunctions :public DdiMediaFunctions
 {
 public:
 
     virtual ~DdiDecodeFunctions() override{};
+
+    //!
+    //! \brief    Create a configuration
+    //! \details  It passes in the attribute list that specifies the attributes it
+    //!           cares about, with the rest taking default values.
+    //!
+    //! \param    [in] ctx
+    //!          Pointer to VA driver context
+    //! \param    [in] profile
+    //!           VA profile
+    //! \param    [in] entrypoint
+    //!           VA entrypoint
+    //! \param    [in] attribList
+    //!           Pointer to VAConfigAttrib array that specifies the attributes
+    //! \param    [in] numAttribs
+    //!           Number of VAConfigAttrib in the array attribList
+    //! \param    [out] configId
+    //!           Pointer to returned VAConfigID if success
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if success
+    //!
+    virtual VAStatus CreateConfig(
+        VADriverContextP ctx,
+        VAProfile        profile,
+        VAEntrypoint     entrypoint,
+        VAConfigAttrib   *attribList,
+        int32_t          numAttribs,
+        VAConfigID       *configId
+    ) override;
+
     //!
     //! \brief  Create context
     //!
@@ -61,15 +93,15 @@ public:
     //! \return VAStatus
     //!     VA_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual VAStatus CreateContext (
-        VADriverContextP  ctx,
-        VAConfigID        configId,
-        int32_t           pictureWidth,
-        int32_t           pictureHeight,
-        int32_t           flag,
-        VASurfaceID       *renderTargets,
-        int32_t           renderTargetsNum,
-        VAContextID       *context
+    virtual VAStatus CreateContext(
+        VADriverContextP ctx,
+        VAConfigID       configId,
+        int32_t          pictureWidth,
+        int32_t          pictureHeight,
+        int32_t          flag,
+        VASurfaceID      *renderTargets,
+        int32_t          renderTargetsNum,
+        VAContextID      *context
     ) override;
 
     //!
@@ -83,7 +115,7 @@ public:
     //! \return VAStatus
     //!     VA_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual VAStatus DestroyContext (
+    virtual VAStatus DestroyContext(
         VADriverContextP  ctx,
         VAContextID       context
     ) override;
@@ -109,7 +141,7 @@ public:
     //! \return VAStatus
     //!     VA_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual VAStatus CreateBuffer (
+    virtual VAStatus CreateBuffer(
         VADriverContextP  ctx,
         VAContextID       context,
         VABufferType      type,
@@ -132,10 +164,10 @@ public:
     //! \return VAStatus
     //!     VA_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual VAStatus BeginPicture (
-        VADriverContextP  ctx,
-        VAContextID       context,
-        VASurfaceID       renderTarget
+    virtual VAStatus BeginPicture(
+        VADriverContextP ctx,
+        VAContextID      context,
+        VASurfaceID      renderTarget
     ) override;
 
     //!
@@ -153,7 +185,7 @@ public:
     //! \return VAStatus
     //!     VA_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual VAStatus RenderPicture (
+    virtual VAStatus RenderPicture(
         VADriverContextP  ctx,
         VAContextID       context,
         VABufferID        *buffers,
@@ -173,10 +205,40 @@ public:
     //! \return VAStatus
     //!     VA_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual VAStatus EndPicture (
-        VADriverContextP  ctx,
-        VAContextID       context
+    virtual VAStatus EndPicture(
+        VADriverContextP ctx,
+        VAContextID      context
     ) override;
+
+    //!
+    //! \brief  Clean and free decode context structure
+    //!
+    //! \param  [in] ctx
+    //!         Pointer to VA driver context
+    //! \param  [in] decCtx
+    //!     Pointer to ddi decode context
+    //!
+    void CleanUp(
+        VADriverContextP    ctx,
+        PDDI_DECODE_CONTEXT decCtx
+    );
+
+    //!
+    //! \brief  Set Decode Gpu priority
+    //!
+    //! \param  [in] ctx
+    //!     Pointer to VA driver context
+    //! \param  [in] decode context
+    //!     Pointer to decode context
+    //! \param  [in] priority
+    //!     priority
+    //! \return VAStatus
+    //!
+    VAStatus SetGpuPriority(
+        VADriverContextP    ctx,
+        PDDI_DECODE_CONTEXT decCtx,
+        int32_t             priority
+    );
 
     //!
     //! \brief  Query video proc pipeline caps when decode + sfc
@@ -196,25 +258,134 @@ public:
     //!     VA_STATUS_SUCCESS if success, else fail reason
     //!
     VAStatus QueryVideoProcPipelineCaps(
-        VADriverContextP    ctx,
-        VAContextID         context,
-        VABufferID          *filters,
-        uint32_t            filtersNum,
-        VAProcPipelineCaps  *pipelineCaps
+        VADriverContextP   ctx,
+        VAContextID        context,
+        VABufferID         *filters,
+        uint32_t           filtersNum,
+        VAProcPipelineCaps *pipelineCaps
     ) override;
 
+    //!
+    //! \brief  Map data store of the buffer into the client's address space
+    //!         vaCreateBuffer() needs to be called with "data" set to nullptr before
+    //!         calling vaMapBuffer()
+    //!
+    //! \param  [in] mediaCtx
+    //!         Pointer to media context
+    //! \param  [in] buf_id
+    //!         VA buffer ID
+    //! \param  [out] pbuf
+    //!         Pointer to buffer
+    //! \param  [in] flag
+    //!         Flag
+    //!
+    //! \return VAStatus
+    //!     VA_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual VAStatus MapBufferInternal(
+        DDI_MEDIA_CONTEXT *mediaCtx,
+        VABufferID        buf_id,
+        void              **pbuf,
+        uint32_t          flag
+    ) override;
+
+    //!
+    //! \brief  Unmap buffer
+    //!
+    //! \param  [in] ctx
+    //!         Pointer to VA driver context
+    //! \param  [in] buf_id
+    //!         VA buffer ID
+    //!
+    //! \return VAStatus
+    //!     VA_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual VAStatus UnmapBuffer(
+        DDI_MEDIA_CONTEXT *mediaCtx,
+        VABufferID        buf_id
+    ) override;
+
+    //!
+    //! \brief  Destroy buffer
+    //!
+    //! \param  [in] mediaCtx
+    //!         Pointer to media context
+    //! \param  [in] buffer_id
+    //!         VA buffer ID
+    //!
+    //! \return     VAStatus
+    //!     VA_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual VAStatus DestroyBuffer(
+        DDI_MEDIA_CONTEXT *mediaCtx,
+        VABufferID        buffer_id
+    ) override;
+
+    //!
+    //! \brief  Check status
+    //!
+    //! \param  [in] mediaCtx
+    //!         Pointer to media context
+    //! \param  [in] surface
+    //!         Pointer to media surface
+    //! \param  [in] surfaceId
+    //!         Surface ID
+    //!
+    //! \return VAStatus
+    //!     VA_STATUS_SUCCESS if success, else fail reason
+    //!
     VAStatus StatusCheck(
         PDDI_MEDIA_CONTEXT mediaCtx,
         DDI_MEDIA_SURFACE  *surface,
         VASurfaceID        surfaceId
     ) override;
 
+    //!
+    //! \brief  Status report
+    //!
+    //! \param  [in] decoder
+    //!     DecodePipelineAdapter decoder
+    //!
+    //! \return VAStatus
+    //!     VA_STATUS_SUCCESS if success, else fail reason
+    //!
+    VAStatus StatusReport(
+        PDDI_MEDIA_CONTEXT    mediaCtx,
+        DecodePipelineAdapter *decoder,
+        DDI_MEDIA_SURFACE     *surface);
+
+    //!
+    //! \brief  Report MB error info
+    //!
+    //! \param  [in] ctx
+    //!         Pointer to VA driver context
+    //! \param  [in] render_target
+    //!         VA surface ID
+    //! \param  [in] error_status
+    //!         Error status
+    //! \param  [out] error_info
+    //!         Information on error
+    //!
+    //! \return VAStatus
+    //!     VA_STATUS_SUCCESS if success, else fail reason
+    //!
     VAStatus QuerySurfaceError(
         VADriverContextP ctx,
         VASurfaceID      renderTarget,
         VAStatus         errorStatus,
         void             **errorInfo
     ) override;
+
+private:
+    int32_t GetDisplayInfo(VADriverContextP ctx);
+
+    void FreeBufferHeapElements(VADriverContextP ctx, PDDI_DECODE_CONTEXT decCtx);
+
+    bool ReleaseBsBuffer(DDI_CODEC_COM_BUFFER_MGR *bufMgr, DDI_MEDIA_BUFFER *buf);
+
+    bool ReleaseBpBuffer(DDI_CODEC_COM_BUFFER_MGR *bufMgr, DDI_MEDIA_BUFFER *buf);
+
+    bool ReleaseSliceControlBuffer(uint32_t ctxType, void *ctx, DDI_MEDIA_BUFFER *buf);
 
 MEDIA_CLASS_DEFINE_END(DdiDecodeFunctions)
 };

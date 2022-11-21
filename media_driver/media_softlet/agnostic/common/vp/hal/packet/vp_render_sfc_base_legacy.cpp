@@ -510,21 +510,38 @@ MOS_STATUS SfcRenderBaseLegacy::SetupSfcState(PVP_SURFACE targetSurface)
     VP_RENDER_CHK_STATUS_RETURN(SetupScalabilityParams());
 
     // Decompress resource if surfaces need write from a un-align offset
-    if ((!targetSurface->osSurface->OsResource.bUncompressedWriteNeeded)       &&
-        (targetSurface->osSurface->CompressionMode != MOS_MMC_DISABLED)        &&
+    if ((targetSurface->osSurface->CompressionMode != MOS_MMC_DISABLED)        &&
         IsSFCUncompressedWriteNeeded(targetSurface))
     {
         MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-        eStatus = m_osInterface->pfnDecompResource(m_osInterface, &targetSurface->osSurface->OsResource);
+        MOS_SURFACE details = {};
+
+        m_osInterface->pfnSyncOnResource(
+            m_osInterface,
+            &targetSurface->osSurface->OsResource,
+            MOS_GPU_CONTEXT_VEBOX,
+            true);
+
+        eStatus = m_osInterface->pfnGetResourceInfo(m_osInterface, &targetSurface->osSurface->OsResource, &details);
 
         if (eStatus != MOS_STATUS_SUCCESS)
         {
-            VP_RENDER_NORMALMESSAGE("inplace decompression failed for sfc target.");
+            VP_RENDER_ASSERTMESSAGE("Get SFC target surface resource info failed.");
         }
-        else
+
+        if (!targetSurface->osSurface->OsResource.bUncompressedWriteNeeded)
         {
-            VP_RENDER_NORMALMESSAGE("inplace decompression enabled for sfc target RECT is not compression block align.");
-            targetSurface->osSurface->OsResource.bUncompressedWriteNeeded = 1;
+            eStatus = m_osInterface->pfnDecompResource(m_osInterface, &targetSurface->osSurface->OsResource);
+
+            if (eStatus != MOS_STATUS_SUCCESS)
+            {
+                VP_RENDER_ASSERTMESSAGE("inplace decompression failed for sfc target.");
+            }
+            else
+            {
+                VP_RENDER_NORMALMESSAGE("inplace decompression enabled for sfc target RECT is not compression block align.");
+                targetSurface->osSurface->OsResource.bUncompressedWriteNeeded = 1;
+            }
         }
     }
 

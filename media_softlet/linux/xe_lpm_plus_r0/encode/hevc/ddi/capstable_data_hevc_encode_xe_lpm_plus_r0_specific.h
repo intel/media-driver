@@ -562,21 +562,11 @@ static const EntrypointData entrypointMap_VAProfileHEVCMain_Data_Xe_Lpm_plus_r0
     &surfaceAttribInfo_VAProfileHEVCMain_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0,
 };
 
-static const EntrypointMap entrypointMap_VAProfileHEVCMain_Xe_Lpm_plus_r0
-{
-    {VAEntrypointEncSliceLP, &entrypointMap_VAProfileHEVCMain_Data_Xe_Lpm_plus_r0},
-};
-
 static const EntrypointData entrypointMap_VAProfileHEVCMain10_Data_Xe_Lpm_plus_r0
 {
     &attribList_VAProfileHEVCMain10_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0,
     &configDataList_VAProfileHEVCMain10_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0,
     &surfaceAttribInfo_VAProfileHEVCMain10_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0,
-};
-
-static const EntrypointMap entrypointMap_VAProfileHEVCMain10_Xe_Lpm_plus_r0
-{
-    {VAEntrypointEncSliceLP, &entrypointMap_VAProfileHEVCMain10_Data_Xe_Lpm_plus_r0},
 };
 
 static const EntrypointData entrypointMap_VAProfileHEVCMain444_Data_Xe_Lpm_plus_r0
@@ -586,21 +576,11 @@ static const EntrypointData entrypointMap_VAProfileHEVCMain444_Data_Xe_Lpm_plus_
     &surfaceAttribInfo_VAProfileHEVCMain444_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0,
 };
 
-static const EntrypointMap entrypointMap_VAProfileHEVCMain444_Xe_Lpm_plus_r0
-{
-    {VAEntrypointEncSliceLP, &entrypointMap_VAProfileHEVCMain444_Data_Xe_Lpm_plus_r0},
-};
-
 static const EntrypointData entrypointMap_VAProfileHEVCMain444_10_Data_Xe_Lpm_plus_r0
 {
     &attribList_VAProfileHEVCMain444_10_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0,
     &configDataList_VAProfileHEVCMain444_10_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0,
     &surfaceAttribInfo_VAProfileHEVCMain444_10_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0,
-};
-
-static const EntrypointMap entrypointMap_VAProfileHEVCMain444_10_Xe_Lpm_plus_r0
-{
-    {VAEntrypointEncSliceLP, &entrypointMap_VAProfileHEVCMain444_10_Data_Xe_Lpm_plus_r0},
 };
 
 static const EntrypointData entrypointMap_VAProfileHEVCSccMain_Data_Xe_Lpm_plus_r0
@@ -610,21 +590,11 @@ static const EntrypointData entrypointMap_VAProfileHEVCSccMain_Data_Xe_Lpm_plus_
     &surfaceAttribInfo_VAProfileHEVCSccMain_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0,
 };
 
-static const EntrypointMap entrypointMap_VAProfileHEVCSccMain_Xe_Lpm_plus_r0
-{
-    {VAEntrypointEncSliceLP, &entrypointMap_VAProfileHEVCSccMain_Data_Xe_Lpm_plus_r0},
-};
-
 static const EntrypointData entrypointMap_VAProfileHEVCSccMain10_Data_Xe_Lpm_plus_r0
 {
     &attribList_VAProfileHEVCSccMain10_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0,
     &configDataList_VAProfileHEVCSccMain10_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0,
     &surfaceAttribInfo_VAProfileHEVCSccMain10_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0,
-};
-
-static const EntrypointMap entrypointMap_VAProfileHEVCSccMain10_Xe_Lpm_plus_r0
-{
-    {VAEntrypointEncSliceLP, &entrypointMap_VAProfileHEVCSccMain10_Data_Xe_Lpm_plus_r0},
 };
 
 static const EntrypointData entrypointMap_VAProfileHEVCSccMain444_Data_Xe_Lpm_plus_r0
@@ -634,21 +604,11 @@ static const EntrypointData entrypointMap_VAProfileHEVCSccMain444_Data_Xe_Lpm_pl
     &surfaceAttribInfo_VAProfileHEVCSccMain444_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0,
 };
 
-static const EntrypointMap entrypointMap_VAProfileHEVCSccMain444_Xe_Lpm_plus_r0
-{
-    {VAEntrypointEncSliceLP, &entrypointMap_VAProfileHEVCSccMain444_Data_Xe_Lpm_plus_r0},
-};
-
 static const EntrypointData entrypointMap_VAProfileHEVCSccMain444_10_Data_Xe_Lpm_plus_r0
 {
     &attribList_VAProfileHEVCSccMain444_10_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0,
     &configDataList_VAProfileHEVCSccMain444_10_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0,
     &surfaceAttribInfo_VAProfileHEVCSccMain444_10_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0,
-};
-
-static const EntrypointMap entrypointMap_VAProfileHEVCSccMain444_10_Xe_Lpm_plus_r0
-{
-    {VAEntrypointEncSliceLP, &entrypointMap_VAProfileHEVCSccMain444_10_Data_Xe_Lpm_plus_r0},
 };
 
 #endif // __CAPSTABLE_DATA_HEVC_ENCODE_XE_LPM_PLUS_R0_SPECIFIC_H__

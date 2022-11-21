@@ -3451,18 +3451,36 @@ MOS_STATUS CodechalVdencVp9StateG12::SetPictureStructs()
     return eStatus;
 }
 
-void CodechalVdencVp9StateG12::fill_pad_with_value(PMOS_SURFACE psSurface)
+void CodechalVdencVp9StateG12::fill_pad_with_value(PMOS_SURFACE psSurface, uint32_t real_height, uint32_t aligned_height)
 {
-    uint32_t aligned_height = MOS_ALIGN_CEIL(psSurface->dwHeight, CODEC_VP9_MIN_BLOCK_WIDTH);
-
     // unaligned surfaces only
-    if (aligned_height == psSurface->dwHeight)
+    if (aligned_height <= real_height)
+    {
+        return;
+    }
+
+    if (!psSurface)
+    {
+        return;
+    }
+
+    if (aligned_height > psSurface->dwHeight)
+    {
+        return;
+    }
+
+    // avoid DYS frames cases
+    if (m_dysRefFrameFlags != DYS_REF_NONE && m_dysVdencMultiPassEnabled)
     {
         return;
     }
 
     if (psSurface->Format == Format_NV12 || psSurface->Format == Format_P010)
     {
+        uint32_t pitch         = psSurface->dwPitch;
+        uint32_t UVPlaneOffset = psSurface->UPlaneOffset.iSurfaceOffset;
+        uint32_t YPlaneOffset  = psSurface->dwOffset;     
+
         MOS_LOCK_PARAMS lockFlags;
         MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
         lockFlags.WriteOnly = 1;
@@ -3474,24 +3492,24 @@ void CodechalVdencVp9StateG12::fill_pad_with_value(PMOS_SURFACE psSurface)
             return;
         }
 
-        uint8_t *src_data_y = src_data + psSurface->dwOffset;
+        uint8_t *src_data_y = src_data + YPlaneOffset;
 
-        uint32_t y_plane_size      = psSurface->dwPitch * psSurface->dwHeight;
-        uint32_t y_plane_size_full = psSurface->dwPitch * aligned_height;
+        uint32_t plane_size      = pitch * real_height;
+        uint32_t plane_size_full = UVPlaneOffset;
 
-        uint8_t *src_data_y_end = src_data_y + y_plane_size;
+        uint8_t *src_data_y_end = src_data_y + plane_size;
 
-        uint32_t y_pad_rows = aligned_height - psSurface->dwHeight;
-        uint32_t y_pad_length = y_pad_rows * psSurface->dwPitch;
+        uint32_t y_pad_rows = aligned_height - real_height;
+        uint32_t y_pad_length = y_pad_rows * pitch;
 
         if (src_data_y_end > src_data_y_end - y_pad_length)
         {
             memcpy_s(src_data_y_end, y_pad_length, src_data_y_end - y_pad_length, y_pad_length);
         }
 
-        uint32_t uv_plane_size      = (psSurface->dwPitch * psSurface->dwHeight)/2;
-        uint32_t uv_plane_size_full = y_plane_size_full / 2;
-        uint8_t *src_data_uv_end = src_data_y + y_plane_size_full + uv_plane_size;
+        uint32_t uv_plane_size      = (pitch * real_height)/2;
+        uint32_t uv_plane_size_full = plane_size_full / 2;
+        uint8_t *src_data_uv_end = src_data_y + plane_size_full + uv_plane_size;
 
         if (src_data_uv_end - y_pad_length > src_data_y_end)
         {
@@ -3941,8 +3959,10 @@ MOS_STATUS CodechalVdencVp9StateG12::ExecutePictureLevel()
 
     if (MEDIA_IS_WA(m_waTable, Wa_Vp9UnalignedHeight))
     {
-        fill_pad_with_value(surfaceParams[CODECHAL_HCP_SRC_SURFACE_ID].psSurface);
-        fill_pad_with_value(surfaceParams[CODECHAL_HCP_DECODED_SURFACE_ID].psSurface);
+        uint32_t real_height = m_oriFrameHeight; 
+        uint32_t aligned_height = MOS_ALIGN_CEIL(real_height, CODEC_VP9_MIN_BLOCK_WIDTH);
+        fill_pad_with_value(m_rawSurfaceToPak, real_height, aligned_height);
+        fill_pad_with_value(&m_reconSurface, real_height, aligned_height);
     }
         
     if (m_pictureCodingType != I_TYPE)

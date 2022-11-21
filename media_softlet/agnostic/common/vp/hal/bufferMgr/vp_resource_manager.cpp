@@ -226,6 +226,11 @@ VpResourceManager::~VpResourceManager()
         m_allocator.DestroyVpSurface(m_temperalInput);
     }
 
+    if (m_internalInput)
+    {
+        m_allocator.DestroyVpSurface(m_internalInput);
+    }
+
     if (m_hdrResourceManager)
     {
         MOS_Delete(m_hdrResourceManager);
@@ -1001,7 +1006,14 @@ MOS_STATUS VpResourceManager::AssignFcResources(VP_EXECUTE_CAPS &caps, std::vect
     {
         for (size_t i = 0; i < inputSurfaces.size(); ++i)
         {
-            surfSetting.surfGroup.insert(std::make_pair((SurfaceType)(SurfaceTypeFcInputLayer0 + i), inputSurfaces[i]));
+            if (caps.bInternalInputInuse && i==0)
+            {
+                surfSetting.surfGroup.insert(std::make_pair((SurfaceType)(SurfaceTypeFcInputLayer0 + i), m_internalInput));
+            }
+            else
+            {
+                surfSetting.surfGroup.insert(std::make_pair((SurfaceType)(SurfaceTypeFcInputLayer0 + i), inputSurfaces[i]));
+            }
 
             if (!resHint.isIScalingTypeNone)
             {
@@ -1071,6 +1083,11 @@ MOS_STATUS VpResourceManager::AssignRenderResource(VP_EXECUTE_CAPS &caps, std::v
     if (caps.bComposite)
     {
         VP_PUBLIC_CHK_STATUS_RETURN(AssignFcResources(caps, inputSurfaces, outputSurface, pastSurfaces, futureSurfaces, resHint, surfSetting));
+        if (caps.bInternalInputInuse)
+        {
+            m_internalInput->ColorSpace = inputSurfaces[0]->ColorSpace;
+            executedFilters.AddSurface(m_internalInput, true, 0);
+        }
     }
     else if (caps.b3DLutCalc)
     {

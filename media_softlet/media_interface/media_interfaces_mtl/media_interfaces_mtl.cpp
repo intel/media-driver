@@ -56,7 +56,6 @@ using namespace mhw::vdbox::mfx::xe_lpm_plus_base;
 extern template class MediaFactory<uint32_t, CodechalDeviceNext>;
 extern template class MediaFactory<uint32_t, VphalDevice>;
 extern template class MediaFactory<uint32_t, RenderHalDevice>;
-extern template class MediaFactory<uint32_t, Nv12ToP010Device>;
 extern template class MediaFactory<uint32_t, MediaInterfacesHwInfoDevice>;
 
 // Swith to use new media factory template
@@ -542,7 +541,6 @@ MOS_STATUS CodechalInterfacesXe_Lpm_Plus::Initialize(
     }
     else if (CodecHalIsEncode(CodecFunction))
     {
-        CodechalEncoderState *encoder = nullptr;
 #if defined(_AVC_ENCODE_VDENC_SUPPORTED)
         if (info->Mode == CODECHAL_ENCODE_MODE_AVC)
         {

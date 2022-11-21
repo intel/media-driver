@@ -712,6 +712,8 @@ struct DDI_DECODE_CONFIG_ATTR
 typedef struct DDI_DECODE_CONFIG_ATTR *PDDI_DECODE_CONFIG_ATTR;
 
 class DdiMediaDecode;
+class DdiDecodeBase;
+class DdiVpFunctions;
 
 //!
 //! \struct DDI_DECODE_CONTEXT
@@ -722,8 +724,10 @@ struct DDI_DECODE_CONTEXT
     // Decoder data related with the specific codec
     // The instance of DdiDecodeXXX. For example: DdiDecodeAvc, DdiDecodeJPEG
     DdiMediaDecode                  *m_ddiDecode;
+    DdiDecodeBase                   *m_ddiDecodeNext;
     // Decoder private data
     DdiCpInterface                  *pCpDdiInterface;
+    DdiVpFunctions                  *pVpDdiInterface;
     // Parameters
     CodechalDecodeParams            DecodeParams;
     uint16_t                        wMode;                  // Get the info during hand shaking

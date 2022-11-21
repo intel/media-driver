@@ -230,21 +230,11 @@ static const EntrypointData entrypointMap_VAProfileH264Main_Data_Xe_Lpm_plus_r0
     &surfaceAttribInfo_VAProfileH264Main_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0
 };
 
-static const EntrypointMap entrypointMap_VAProfileH264Main_Xe_Lpm_plus_r0
-{
-    {VAEntrypointEncSliceLP, &entrypointMap_VAProfileH264Main_Data_Xe_Lpm_plus_r0},
-};
-
 static const EntrypointData entrypointMap_VAProfileH264High_Data_Xe_Lpm_plus_r0
 {
     &AttribList_VAProfileH264High_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0,
     &configDataList_VAProfileH264High_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0,
     &surfaceAttribInfo_VAProfileH264High_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0
-};
-
-static const EntrypointMap entrypointMap_VAProfileH264High_Xe_Lpm_plus_r0
-{
-    {VAEntrypointEncSliceLP, &entrypointMap_VAProfileH264High_Data_Xe_Lpm_plus_r0},
 };
 
 static const EntrypointData entrypointMap_VAProfileH264ConstrainedBaseline_Data_Xe_Lpm_plus_r0
@@ -254,8 +244,4 @@ static const EntrypointData entrypointMap_VAProfileH264ConstrainedBaseline_Data_
     &surfaceAttribInfo_VAProfileH264ConstrainedBaseline_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0
 };
 
-static const EntrypointMap entrypointMap_VAProfileH264ConstrainedBaseline_Xe_Lpm_plus_r0
-{
-    {VAEntrypointEncSliceLP, &entrypointMap_VAProfileH264ConstrainedBaseline_Data_Xe_Lpm_plus_r0},
-};
 #endif

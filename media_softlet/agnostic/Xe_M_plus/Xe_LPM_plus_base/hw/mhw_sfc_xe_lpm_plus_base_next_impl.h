@@ -352,11 +352,12 @@ public:
         // Set DW13
         cmd.DW13.AlphaDefaultValue = MOS_CLAMP_MIN_MAX(MOS_F_ROUND(params.fAlphaPixel * 1024.0F), 0, 1023);  // U10
 
+        // Use round to zero for the scaling factor calculation to resolve tdr issue in scalability case
         // Set DW14
-        cmd.DW14.ScalingFactorHeight = MOS_UF_ROUND((double)params.dwSourceRegionHeight / (double)params.dwScaledRegionHeight * 524288.0F);  // U4.19
+        cmd.DW14.ScalingFactorHeight = (uint32_t)((double)params.dwSourceRegionHeight / (double)params.dwScaledRegionHeight * 524288.0F);  // U4.19
 
         // Set DW15
-        cmd.DW15.ScaleFactorWidth = MOS_UF_ROUND((double)params.dwSourceRegionWidth / (double)params.dwScaledRegionWidth * 524288.0F);  // U4.19
+        cmd.DW15.ScaleFactorWidth = (uint32_t)((double)params.dwSourceRegionWidth / (double)params.dwScaledRegionWidth * 524288.0F);  // U4.19
 
         SetOutputFrameSurface(&cmd, params, pOutSurface);
 

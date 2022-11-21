@@ -423,6 +423,8 @@ VPHAL_OUTPUT_PIPE_MODE VphalSfcState::GetOutputPipe(
     uint32_t                    dwSfcMaxHeight;
     uint32_t                    dwSfcMinWidth;
     uint32_t                    dwSfcMinHeight;
+    MOS_SURFACE                 details = {};
+    MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
 
     OutputPipe = VPHAL_OUTPUT_PIPE_MODE_COMP;
 
@@ -565,24 +567,40 @@ VPHAL_OUTPUT_PIPE_MODE VphalSfcState::GetOutputPipe(
         OutputPipe = VPHAL_OUTPUT_PIPE_MODE_COMP;
     }
 
+
     if (OutputPipe == VPHAL_OUTPUT_PIPE_MODE_SFC)
     {
         // Decompress resource if surfaces need write from a un-align offset
-        if ((!pRenderTarget->OsResource.bUncompressedWriteNeeded) &&
-            (pRenderTarget->CompressionMode == MOS_MMC_MC)        &&
+        if ((pRenderTarget->CompressionMode != MOS_MMC_DISABLED)        &&
             IsSFCUncompressedWriteNeeded(pRenderTarget))
         {
-            MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-            eStatus = m_osInterface->pfnDecompResource(m_osInterface, &pRenderTarget->OsResource);
+
+            m_osInterface->pfnSyncOnResource(
+                m_osInterface,
+                &pRenderTarget->OsResource,
+                MOS_GPU_CONTEXT_VEBOX,
+                true);
+
+            eStatus = m_osInterface->pfnGetResourceInfo(m_osInterface, &pRenderTarget->OsResource, &details);
 
             if (eStatus != MOS_STATUS_SUCCESS)
             {
-                VPHAL_RENDER_NORMALMESSAGE("inplace decompression failed for sfc target.");
+                VP_RENDER_ASSERTMESSAGE("Get SFC target surface resource info failed.");
             }
-            else
+
+            if (!pRenderTarget->OsResource.bUncompressedWriteNeeded)
             {
-                VPHAL_RENDER_NORMALMESSAGE("inplace decompression enabled for sfc target RECT is not compression block align.");
-                pRenderTarget->OsResource.bUncompressedWriteNeeded = 1;
+                eStatus = m_osInterface->pfnDecompResource(m_osInterface, &pRenderTarget->OsResource);
+
+                if (eStatus != MOS_STATUS_SUCCESS)
+                {
+                    VPHAL_RENDER_NORMALMESSAGE("inplace decompression failed for sfc target.");
+                }
+                else
+                {
+                    VPHAL_RENDER_NORMALMESSAGE("inplace decompression enabled for sfc target RECT is not compression block align.");
+                    pRenderTarget->OsResource.bUncompressedWriteNeeded = 1;
+                }
             }
         }
     }

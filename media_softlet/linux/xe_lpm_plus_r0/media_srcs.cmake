@@ -21,3 +21,4 @@
 media_include_subdirectory(ddi)
 media_include_subdirectory(encode)
 media_include_subdirectory(vp)
+media_include_subdirectory(decode)

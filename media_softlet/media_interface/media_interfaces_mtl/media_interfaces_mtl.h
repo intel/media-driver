@@ -36,7 +36,6 @@
 
 #include "media_interfaces_vphal.h"
 #include "media_interfaces_renderhal.h"
-#include "media_interfaces_nv12top010.h"
 #include "media_interfaces_hwinfo_device.h"
 
 #include "mhw_cp_interface.h"
@@ -46,12 +45,10 @@
 #include "mhw_vdbox_avp_impl_xe_lpm_plus.h"
 #include "mhw_vdbox_huc_impl_xe_lpm_plus.h"
 #include "mhw_vdbox_hcp_impl_xe_lpm_plus.h"
-#include "mhw_vdbox_vdenc_xe_hpm.h"
 #include "mhw_vdbox_vdenc_impl_xe_lpm_plus.h"
 #include "media_mem_decompress_xe_lpm_plus_base.h"
 #include "media_copy_xe_lpm_plus_base.h"
 #include "mhw_state_heap_xe_hpg.h"
-#include "codechal_hw_xe_hpm.h"
 #include "codec_hw_xe_lpm_plus_base.h"
 
 #ifdef _AVC_DECODE_SUPPORTED
@@ -107,7 +104,6 @@
 #include "encode_vp9_vdenc_pipeline_adapter_xe_lpm_plus.h"
 #endif
 
-#include "codechal_encoder_unsupported.h"
 #include "renderhal_xe_hpg_next.h"
 
 #ifndef _VPHALNEXT_ENABLED

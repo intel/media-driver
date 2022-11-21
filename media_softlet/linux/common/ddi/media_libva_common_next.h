@@ -395,6 +395,19 @@ public:
     static VASurfaceID GetVASurfaceIDFromSurface(PDDI_MEDIA_SURFACE surface);
 
     //!
+    //! \brief  Replace the surface with given format
+    //!
+    //! \param  [in] surface
+    //!     Pointer to the old surface
+    //! \param  [in] expectedFormat
+    //!     VA surface ID
+    //!
+    //! \return DDI_MEDIA_SURFACE*
+    //!     Pointer to new ddi media surface
+    //!
+    static PDDI_MEDIA_SURFACE ReplaceSurfaceWithNewFormat(PDDI_MEDIA_SURFACE surface, DDI_MEDIA_FORMAT expectedFormat);
+
+    //!
     //! \brief  replace the surface with correlation variant format
     //!
     //! \param  [in] surface

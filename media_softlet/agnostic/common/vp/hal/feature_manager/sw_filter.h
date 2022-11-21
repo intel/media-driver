@@ -752,6 +752,13 @@ enum SurfaceType
 
 using  VP_SURFACE_GROUP = std::map<SurfaceType, VP_SURFACE*>;
 
+enum OutMode
+{
+    OUT_DISABLED = 0,
+    OUT_TO_TARGET,
+    OUT_TO_NEXTPASS
+};
+
 struct REMOVE_BB_SETTING
 {
     bool     isRemoveBB    = false;

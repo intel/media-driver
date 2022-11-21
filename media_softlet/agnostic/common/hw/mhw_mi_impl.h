@@ -279,7 +279,7 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS SetPrologCmd(
+    MOS_STATUS AddVeboxMMIOPrologCmd(
         PMOS_COMMAND_BUFFER cmdBuffer) override
     {
         MOS_STATUS eStatus          = MOS_STATUS_SUCCESS;

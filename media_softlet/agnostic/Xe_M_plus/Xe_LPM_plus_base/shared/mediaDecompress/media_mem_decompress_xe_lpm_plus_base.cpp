@@ -113,7 +113,7 @@ MOS_STATUS MediaMemDeCompNext_Xe_Lpm_Plus_Base::RenderDecompCMD(PMOS_SURFACE sur
     //---------------------------------
     // Send Pvt MMCD CMD
     //---------------------------------
-    VPHAL_MEMORY_DECOMP_CHK_STATUS_RETURN(m_miItf->SetPrologCmd(&cmdBuffer));
+    VPHAL_MEMORY_DECOMP_CHK_STATUS_RETURN(m_miItf->AddVeboxMMIOPrologCmd(&cmdBuffer));
 
 
     //---------------------------------
@@ -311,7 +311,7 @@ MOS_STATUS MediaMemDeCompNext_Xe_Lpm_Plus_Base::RenderDoubleBufferDecompCMD(PMOS
     //---------------------------------
     // Send Pvt MMCD CMD
     //---------------------------------
-    VPHAL_MEMORY_DECOMP_CHK_STATUS_RETURN(m_miItf->SetPrologCmd(&cmdBuffer));
+    VPHAL_MEMORY_DECOMP_CHK_STATUS_RETURN(m_miItf->AddVeboxMMIOPrologCmd(&cmdBuffer));
 
     //---------------------------------
     // Send CMD: Vebox_Surface_State

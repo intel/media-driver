@@ -250,6 +250,37 @@ VpBase *VphalDevice::CreateFactoryNext(
     return vpBase;
 }
 
+MOS_STATUS VphalDevice::CreateVPMhwInterfaces(
+    bool                              sfcNeeded,
+    bool                              veboxNeeded,
+    std::shared_ptr<mhw::vebox::Itf>  &veboxItf,
+    std::shared_ptr<mhw::sfc::Itf>    &sfcItf,
+    std::shared_ptr<mhw::mi::Itf>     &miItf,
+    PMOS_INTERFACE                    osInterface)
+{
+    MhwInterfacesNext               *mhwInterfaces = nullptr;
+    MhwInterfacesNext::CreateParams params         = {};
+    params.Flags.m_sfc   = sfcNeeded;
+    params.Flags.m_vebox = veboxNeeded;
+
+    mhwInterfaces = MhwInterfacesNext::CreateFactory(params, osInterface);
+    if (mhwInterfaces)
+    {
+        veboxItf = mhwInterfaces->m_veboxItf;
+        sfcItf   = mhwInterfaces->m_sfcItf;
+        miItf    = mhwInterfaces->m_miItf;
+
+        // MhwInterfaces always create CP and MI interfaces, so we have to delete those we don't need.
+        Delete_MhwCpInterface(mhwInterfaces->m_cpInterface);
+        mhwInterfaces->m_cpInterface = nullptr;
+        MOS_Delete(mhwInterfaces);
+        return MOS_STATUS_SUCCESS;
+    }
+
+    VP_PUBLIC_ASSERTMESSAGE("Allocate MhwInterfaces failed");
+    return MOS_STATUS_NO_SPACE;
+}
+
 void VphalDevice::Destroy()
 {
     MOS_Delete(m_vpBase);

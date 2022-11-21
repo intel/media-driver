@@ -27,13 +27,13 @@
 #ifndef __MEDIA_LIBVA_REGISTER_H__
 #define __MEDIA_LIBVA_REGISTER_H__
 
-//#include "ddi_decode_functions.h"
+#include "ddi_decode_functions.h"
 #include "ddi_encode_functions.h"
 #include "ddi_vp_functions.h"
 
 static const bool registeredMedia  = FunctionsFactory::Register<DdiMediaFunctions>((CompCommon));
 static const bool registeredEncode = FunctionsFactory::Register<DdiEncodeFunctions>((CompEncode));
-//static const bool registeredDecode = FunctionsFactory::Register<DdiDecodeFunctions>((CompDecode));
+static const bool registeredDecode = FunctionsFactory::Register<DdiDecodeFunctions>((CompDecode));
 static const bool registeredVp     = FunctionsFactory::Register<DdiVpFunctions>((CompVp));
 
 #endif //__MEDIA_LIBVA_REGISTER_H__

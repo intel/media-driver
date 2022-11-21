@@ -29,8 +29,9 @@
 #include "mos_os.h"
 #include "mos_defs.h"
 #include "hwinfo_linux.h"
-#include "media_ddi_decode_base.h"
+#include "ddi_decode_base_specific.h"
 #include "media_ddi_encode_base.h"
+//#include "ddi_libva_decoder_specific.h"
 #include "media_libva_decoder.h"
 #include "media_libva_encoder.h"
 #include "memory_policy_manager.h"
@@ -994,10 +995,10 @@ VAStatus MediaLibvaUtilNext::UnRegisterRTSurfaces(
             if (decVACtxHeapBase[j].pVaContext != nullptr)
             {
                 PDDI_DECODE_CONTEXT  decCtx = (PDDI_DECODE_CONTEXT)decVACtxHeapBase[j].pVaContext;
-                if (decCtx && decCtx->m_ddiDecode)
+                if (decCtx && decCtx->m_ddiDecodeNext)
                 {
                     //not check the return value since the surface may not be registered in the context. pay attention to LOGW.
-                    decCtx->m_ddiDecode->UnRegisterRTSurfaces(&decCtx->RTtbl, surface);
+                    decCtx->m_ddiDecodeNext->UnRegisterRTSurfaces(&decCtx->RTtbl, surface);
                 }
             }
         }
@@ -2196,10 +2197,10 @@ void MediaLibvaUtilNext::MediaPrintFps()
         int64_t diff  = (tv2.tv_sec - m_tv1.tv_sec)*1000000 + tv2.tv_usec - m_tv1.tv_usec;
         float fps     = m_frameCountFps / (diff / 1000000.0);
         DDI_NORMALMESSAGE("FPS:%6.4f, Interval:%11lu.", fps,((uint64_t)tv2.tv_sec)*1000 + (tv2.tv_usec/1000));
-        sprintf(temp,"FPS:%6.4f, Interval:%11lu\n", fps,((uint64_t)tv2.tv_sec)*1000 + (tv2.tv_usec/1000));
+        sprintf_s(temp, sizeof(temp), "FPS:%6.4f, Interval:%11lu\n", fps,((uint64_t)tv2.tv_sec)*1000 + (tv2.tv_usec/1000));
 
         MOS_ZeroMemory(fpsFileName,LENGTH_OF_FPS_FILE_NAME);
-        sprintf(fpsFileName, FPS_FILE_NAME);
+        sprintf_s(fpsFileName, sizeof(fpsFileName), FPS_FILE_NAME);
         if ((fp = fopen(fpsFileName, "wb")) == nullptr)
         {
             pthread_mutex_unlock(&m_fpsMutex);

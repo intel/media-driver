@@ -111,6 +111,64 @@ VASurfaceID MediaLibvaCommonNext::GetVASurfaceIDFromSurface(PDDI_MEDIA_SURFACE s
     return VA_INVALID_SURFACE;
 }
 
+PDDI_MEDIA_SURFACE MediaLibvaCommonNext::ReplaceSurfaceWithNewFormat(PDDI_MEDIA_SURFACE surface, DDI_MEDIA_FORMAT expectedFormat)
+{
+    DDI_FUNC_ENTER;
+    DDI_CHK_NULL(surface, "nullptr surface", nullptr);
+
+    PDDI_MEDIA_SURFACE_HEAP_ELEMENT surfaceElement = (PDDI_MEDIA_SURFACE_HEAP_ELEMENT)surface->pMediaCtx->pSurfaceHeap->pHeapBase;
+    PDDI_MEDIA_CONTEXT mediaCtx = surface->pMediaCtx;
+
+    // Check some conditions
+    if (expectedFormat == surface->format)
+    {
+        return surface;
+    }
+    // Create new dst surface and copy the structure
+    PDDI_MEDIA_SURFACE dstSurface = (DDI_MEDIA_SURFACE *)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_SURFACE));
+    if (nullptr == surfaceElement)
+    {
+        MOS_FreeMemory(dstSurface);
+        return nullptr;
+    }
+
+    MOS_SecureMemcpy(dstSurface, sizeof(DDI_MEDIA_SURFACE), surface, sizeof(DDI_MEDIA_SURFACE));
+    DDI_CHK_NULL(dstSurface, "nullptr dstSurface", nullptr);
+    dstSurface->format = expectedFormat;
+    dstSurface->uiLockedBufID = VA_INVALID_ID;
+    dstSurface->uiLockedImageID = VA_INVALID_ID;
+    dstSurface->pSurfDesc = nullptr;
+    // Lock surface heap
+    MosUtilities::MosLockMutex(&mediaCtx->SurfaceMutex);
+    uint32_t i;
+    // Get current element heap and index
+    for (i = 0; i < mediaCtx->pSurfaceHeap->uiAllocatedHeapElements; i++)
+    {
+        if (surface == surfaceElement->pSurface)
+        {
+            break;
+        }
+        surfaceElement++;
+    }
+    // If cant find
+    if (i == surface->pMediaCtx->pSurfaceHeap->uiAllocatedHeapElements)
+    {
+        MosUtilities::MosLockMutex(&mediaCtx->SurfaceMutex);
+        MOS_FreeMemory(dstSurface);
+        return nullptr;
+    }
+    // FreeSurface
+    MediaLibvaUtilNext::FreeSurface(surface);
+    MOS_FreeMemory(surface);
+    // CreateNewSurface
+    MediaLibvaUtilNext::CreateSurface(dstSurface,mediaCtx);
+    surfaceElement->pSurface = dstSurface;
+
+    MosUtilities::MosUnlockMutex(&mediaCtx->SurfaceMutex);
+
+    return dstSurface;
+}
+
 PDDI_MEDIA_SURFACE MediaLibvaCommonNext::ReplaceSurfaceWithVariant(PDDI_MEDIA_SURFACE surface, VAEntrypoint entrypoint)
 {
     DDI_FUNC_ENTER;

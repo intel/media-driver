@@ -91,6 +91,10 @@ struct ComponentData
         data.sessionMode = sessionMode; data.sessionType = sessionType; data.algorithm = algorithm; data.blockSize = blockSize;
         data.counterMode = counterMode; data.sampleType  = sampleType;  data.usage     = usage;
     }
+    ComponentData(uint32_t sliceMode, uint32_t encryptType, uint32_t processType)
+    {
+        data.sliceMode = sliceMode; data.encryptType = encryptType; data.processType = processType;
+    }
 };
 
 typedef std::vector<VASurfaceAttribInfo>  ProfileSurfaceAttribInfo;

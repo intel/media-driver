@@ -431,6 +431,23 @@ public:
         uint32_t         flags
     ) override;
 
+    //!
+    //! \brief Extract VAProcPipelineParameterBuffer params and set the appropriate VPHAL params
+    //!
+    //! \param [in]  vaDrvCtx
+    //!        VA Driver context
+    //! \param [in]  vpCtx
+    //!        VP context
+    //! \param [in]  pipelineParam
+    //!        Pipeline params from application (VAProcPipelineParameterBuffer)
+    //!
+    //! \returns VA_STATUS_SUCCESS if call succeeds
+    //!
+    VAStatus DdiSetProcPipelineParams(
+        VADriverContextP               vaDrvCtx,
+        PDDI_VP_CONTEXT                vpCtx,
+        VAProcPipelineParameterBuffer  *pipelineParam);
+
 private:
     //!
     //! \brief  Helper function for VpAllocateDrvCtxExt to Allocate PDDI_VP_CONTEXT
@@ -809,23 +826,6 @@ private:
     //! \returns VA_STATUS_SUCCESS if call succeeds
     //!
     VAStatus VpSetRenderTargetParams(
-        VADriverContextP               vaDrvCtx,
-        PDDI_VP_CONTEXT                vpCtx,
-        VAProcPipelineParameterBuffer  *pipelineParam);
-
-    //!
-    //! \brief Extract VAProcPipelineParameterBuffer params and set the appropriate VPHAL params
-    //!
-    //! \param [in]  vaDrvCtx
-    //!        VA Driver context
-    //! \param [in]  vpCtx
-    //!        VP context
-    //! \param [in]  pipelineParam
-    //!        Pipeline params from application (VAProcPipelineParameterBuffer)
-    //!
-    //! \returns VA_STATUS_SUCCESS if call succeeds
-    //!
-    VAStatus DdiSetProcPipelineParams(
         VADriverContextP               vaDrvCtx,
         PDDI_VP_CONTEXT                vpCtx,
         VAProcPipelineParameterBuffer  *pipelineParam);

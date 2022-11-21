@@ -904,25 +904,25 @@ MOS_STATUS Policy::GetCSCExecutionCaps(SwFilter* feature)
 MOS_STATUS Policy::GetScalingExecutionCapsHdr(SwFilter *feature)
 {
     VP_FUNC_CALL();
-    VP_PUBLIC_CHK_STATUS_RETURN(GetScalingExecutionCaps(feature, true, false));
+    VP_PUBLIC_CHK_STATUS_RETURN(GetScalingExecutionCaps(feature, true, OUT_DISABLED));
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS Policy::GetScalingExecutionCapsSR(SwFilter *feature)
+MOS_STATUS Policy::GetScalingExecutionCapsSR(SwFilter *feature, OutMode outMode)
 {
     VP_FUNC_CALL();
-    VP_PUBLIC_CHK_STATUS_RETURN(GetScalingExecutionCaps(feature, false, true));
+    VP_PUBLIC_CHK_STATUS_RETURN(GetScalingExecutionCaps(feature, false, outMode));
     return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter *feature)
 {
     VP_FUNC_CALL();
-    VP_PUBLIC_CHK_STATUS_RETURN(GetScalingExecutionCaps(feature, false, false));
+    VP_PUBLIC_CHK_STATUS_RETURN(GetScalingExecutionCaps(feature, false, OUT_DISABLED));
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter *feature, bool isHdrEnabled, bool isSREnabled)
+MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter *feature, bool isHdrEnabled, OutMode outMode)
 {
     VP_FUNC_CALL();
 
@@ -951,16 +951,6 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter *feature, bool isHdrEnabled,
         IsAlphaSettingSupportedBySfc(scalingParams->formatInput, scalingParams->formatOutput, scalingParams->pCompAlpha);
     bool isAlphaSettingSupportedByVebox =
         IsAlphaSettingSupportedByVebox(scalingParams->formatInput, scalingParams->formatOutput, scalingParams->pCompAlpha);
-
-    if (isSREnabled)
-    {
-        // SR is enabled, scaling is not needed
-        scalingEngine->value = 0;
-        VP_PUBLIC_NORMALMESSAGE("SR is enabled, scaling is not needed.");
-
-        PrintFeatureExecutionCaps(__FUNCTION__, *scalingEngine);
-        return MOS_STATUS_SUCCESS;
-    }
 
     // Clean usedForNextPass flag.
     if (scalingEngine->usedForNextPass)
@@ -1278,6 +1268,24 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter *feature, bool isHdrEnabled,
         scalingEngine->hdrKernelSupported = 1;
         scalingEngine->SfcNeeded    = 0;
         VP_PUBLIC_NORMALMESSAGE("Format is not supported by SFC. Switch to Render.");
+    }
+
+    if (outMode == OUT_TO_NEXTPASS)
+    {
+        // Output to Render and scaling was pushed to next pass
+        scalingEngine->usedForNextPass     = true;
+        scalingEngine->bInternalInputInuse = true;
+        scalingEngine->bEnabled            = 1;
+        scalingEngine->RenderNeeded        = 1;
+        scalingEngine->fcSupported         = 1;
+        scalingEngine->SfcNeeded           = 0;
+        VP_PUBLIC_NORMALMESSAGE("Output to Render and scaling was pushed to next pass");
+    }
+    else if (outMode == OUT_TO_TARGET)
+    {
+        // Output to target and scaling was disabled
+        scalingEngine->value = 0;
+        VP_PUBLIC_NORMALMESSAGE("Output to target and scaling was disabled");
     }
 
     PrintFeatureExecutionCaps(__FUNCTION__, *scalingEngine);
@@ -1988,7 +1996,8 @@ MOS_STATUS Policy::InitExecuteCaps(VP_EXECUTE_CAPS &caps, VP_EngineEntry &engine
     }
     else if (engineCapsInputPipe.isolated)
     {
-        caps.bTemperalInputInuse  = engineCapsInputPipe.bTemperalInputInuse;
+        caps.bTemperalInputInuse = engineCapsInputPipe.bTemperalInputInuse;
+        caps.bInternalInputInuse = engineCapsInputPipe.bInternalInputInuse;
         if (engineCapsInputPipe.VeboxNeeded != 0 || engineCapsInputPipe.SfcNeeded != 0)
         {
             caps.bVebox = true;
@@ -2030,6 +2039,7 @@ MOS_STATUS Policy::InitExecuteCaps(VP_EXECUTE_CAPS &caps, VP_EngineEntry &engine
         caps.bIECP = engineCaps.VeboxIECPNeeded;
         caps.bDiProcess2ndField = engineCaps.diProcess2ndField;
         caps.bTemperalInputInuse = engineCaps.bTemperalInputInuse;
+        caps.bInternalInputInuse = engineCaps.bInternalInputInuse;
 
         if (engineCaps.fcOnlyFeatureExists)
         {
@@ -2083,6 +2093,7 @@ MOS_STATUS Policy::InitExecuteCaps(VP_EXECUTE_CAPS &caps, VP_EngineEntry &engine
 
         caps.bDiProcess2ndField = engineCaps.diProcess2ndField;
         caps.bTemperalInputInuse = engineCaps.bTemperalInputInuse;
+        caps.bInternalInputInuse = engineCaps.bInternalInputInuse;
     }
 
     VP_PUBLIC_NORMALMESSAGE("Execute Caps, value 0x%llx (bVebox %d, bSFC %d, bRender %d, bComposite %d, bOutputPipeFeatureInuse %d, bIECP %d, bForceCscToRender %d, bDiProcess2ndField %d)",

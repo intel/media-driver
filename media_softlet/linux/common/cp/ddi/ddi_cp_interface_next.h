@@ -35,13 +35,17 @@
 #include "media_libva_util_next.h"
 
 struct CodechalDecodeParams;
-struct DDI_DECODE_CONTEXT;
 class CodechalSetting;
 class DdiCpInterfaceNext;
 
 namespace encode
 {
 typedef struct _DDI_ENCODE_STATUS_REPORT_INFO *PDDI_ENCODE_STATUS_REPORT_INFO;
+}
+
+namespace decode
+{
+struct DDI_DECODE_CONTEXT;
 }
 
 //core structure for CP DDI
@@ -152,7 +156,7 @@ public:
     }
 
     virtual VAStatus SetDecodeParams(
-        DDI_DECODE_CONTEXT *ddiDecodeContext,
+        decode::DDI_DECODE_CONTEXT *ddiDecodeContext,
         CodechalSetting    *setting)
     {
         DDI_CP_STUB_MESSAGE;
