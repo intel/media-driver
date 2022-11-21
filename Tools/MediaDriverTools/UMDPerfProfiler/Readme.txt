@@ -4,12 +4,13 @@ Introduction
 Usage
 • Step1: Build and install the latest internal-release version driver
 
-• Step2: Update igfx_user_feature file
-    Copy the igfx_user_feature.txt into /etc/ directory.
+• Step2: Update igfx_user_feature_next file(before device-based driver use igfx_user_feature file)
+    Copy the igfx_user_feature_next.txt/igfx_user_feature.txt into /etc/ directory.
     You will see some keys with default values in igfx_user_feature.txt.
     -    Perf Profiler Buffer Size – Size of Perf profiler buffer, if not set will use the default value.
     -    Perf Profiler Enable  - Enable/Disable UMD Perf Profiler, 1 – Enable, 0 – Disable
     -    Perf Profiler Output File Name – The name of Perf Profiler output, if not set will use the default value.
+    -    Perf Profiler Multi Process Support  - Enable/Disable multi session data capture, 1 – Enable, 0 – Disable
     
 • Step3: Run your test case
     When finish your test case, you will see a bin file under your working directory which is named as set by “Perf Profiler Output File Name” in igfx_user_feature. If you didn’t set this key, the default name should be “linux_perf_out.bin”

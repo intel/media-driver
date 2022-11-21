@@ -1,0 +1,8 @@
+[config]
+Perf Profiler Enable=1
+Perf Profiler Output File Name=linux_perf_out.bin
+Perf Profiler Multi Process Support=0
+Perf Profiler Register 8=1835148
+Perf Profiler Buffer Size=10000000
+
+[report]
