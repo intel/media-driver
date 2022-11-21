@@ -26,11 +26,11 @@
 
 #if (_DEBUG || _RELEASE_INTERNAL)
 #include <stdio.h>
-#include "vphal.h"
 #include "mhw_vebox.h"
 #include "mos_os.h"
 #include "vp_dumper.h"
 #include "ctype.h"
+#include "vp_utils.h"
 
 MOS_STATUS VpParameterDumper::SkuWa_DumpToXML(
     MEDIA_FEATURE_TABLE             *skuTable,
@@ -51,44 +51,44 @@ MOS_STATUS VpParameterDumper::SkuWa_DumpToXML(
     MediaFeatureTable::MediaMap *            mediaSkuMap = skuTable->GetMediaSku();
     MediaWaTable::MediaMap *                 mediaWaMap  = waTable->GetMediaWa();
 
-    VPHAL_DEBUG_CHK_NULL(pParamsDumpSpec);
+    VP_DEBUG_CHK_NULL(pParamsDumpSpec);
 
     if (!enableSkuWaDump)
         goto finish;
 
-    VPHAL_DEBUG_CHK_NULL(skuTable);
-    VPHAL_DEBUG_CHK_NULL(waTable);
+    VP_DEBUG_CHK_NULL(skuTable);
+    VP_DEBUG_CHK_NULL(waTable);
 
-    VPHAL_DEBUG_CHK_STATUS(VpDumperTool::AppendString(true, &pcOutContents, "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"));
-    VPHAL_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\n"));
+    VP_DEBUG_CHK_STATUS(VpDumperTool::AppendString(true, &pcOutContents, "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"));
+    VP_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\n"));
 
-    VPHAL_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t<ID>%d</ID>\n", MosUtilities::MosGetPid()));
+    VP_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t<ID>%d</ID>\n", MosUtilities::MosGetPid()));
 
-    VPHAL_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t<!-- SkuTable infomation -->\n"));
-    VPHAL_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t<SkuTable>\n"));
+    VP_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t<!-- SkuTable infomation -->\n"));
+    VP_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t<SkuTable>\n"));
 
-    VPHAL_DEBUG_CHK_NULL(mediaSkuMap);
+    VP_DEBUG_CHK_NULL(mediaSkuMap);
 
     for (iter = mediaSkuMap->begin(); iter != mediaSkuMap->end(); iter++)
     {
-        VPHAL_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t\t<%s> %d </%s>\n", iter->first.c_str(), unsigned(iter->second), iter->first.c_str()));
+        VP_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t\t<%s> %d </%s>\n", iter->first.c_str(), unsigned(iter->second), iter->first.c_str()));
     }
-    VPHAL_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t</SkuTable>\n"));
+    VP_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t</SkuTable>\n"));
 
-    VPHAL_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t<!-- WaTable information -->\n"));
-    VPHAL_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t<WaTable>\n"));
+    VP_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t<!-- WaTable information -->\n"));
+    VP_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t<WaTable>\n"));
 
-    VPHAL_DEBUG_CHK_NULL(mediaWaMap);
+    VP_DEBUG_CHK_NULL(mediaWaMap);
 
     for (iter = mediaWaMap->begin(); iter != mediaWaMap->end(); iter++)
     {
-        VPHAL_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t\t<%s> %d </%s>\n", iter->first.c_str(), unsigned(iter->second), iter->first.c_str()));
+        VP_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t\t<%s> %d </%s>\n", iter->first.c_str(), unsigned(iter->second), iter->first.c_str()));
     }
-    VPHAL_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t</WaTable>\n"));
+    VP_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t</WaTable>\n"));
 
     MOS_SecureStringPrint(sPath, MAX_PATH, MAX_PATH, "%s%c%s.xml", pParamsDumpSpec->outFileLocation, MOS_DIR_SEPERATOR, SkuWatableFileName.c_str());
     VpDumperTool::GetOsFilePath(sPath, sOsPath);
-    VPHAL_DEBUG_CHK_STATUS(MosUtilities::MosWriteFileFromPtr(sOsPath, pcOutContents, strlen(pcOutContents)));
+    VP_DEBUG_CHK_STATUS(MosUtilities::MosWriteFileFromPtr(sOsPath, pcOutContents, strlen(pcOutContents)));
 
 finish:
     if (pcOutContents)

@@ -42,7 +42,6 @@
 #include "mos_interface.h"
 #include "mos_oca_interface_specific.h"
 #include "mos_oca_rtlog_mgr.h"
-#include "vphal.h"
 #include "vp_debug.h"
 #include "codechal_oca_debug.h"
 #include "mhw_utilities_next.h"
