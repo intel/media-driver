@@ -171,7 +171,7 @@ public:
                 colStoreSizeLCU[1][1] = 3;
                 colStoreSizeLCU[1][2] = 3;
             }
-            colStoreSzLCU = colStoreSizeLCU[(maxBitDepth == 8) ? 0 : 1][par.dwCtbLog2SizeY - 4];
+            colStoreSzLCU = colStoreSizeLCU[(maxBitDepth == 8) ? 0 : 1][par.dwCtbLog2SizeY > 3 ? par.dwCtbLog2SizeY - 4 : 0];
             bufferSize    = colStoreSzLCU * MHW_CACHELINE_SIZE * heightInCtb;
             break;
         }
@@ -205,7 +205,7 @@ public:
                 colStoreSizeLCU[1][1] = 3;
                 colStoreSizeLCU[1][2] = 6;
             }
-            colStoreSzLCU = colStoreSizeLCU[(maxBitDepth == 8) ? 0 : 1][par.dwCtbLog2SizeY - 4];
+            colStoreSzLCU = colStoreSizeLCU[(maxBitDepth == 8) ? 0 : 1][par.dwCtbLog2SizeY > 3 ? par.dwCtbLog2SizeY - 4 : 0];
             bufferSize    = colStoreSzLCU * MHW_CACHELINE_SIZE * heightInCtb;
             break;
         }
@@ -230,7 +230,7 @@ public:
                 uiRowStoreSizeLCU[1][1] = 5;
                 uiRowStoreSizeLCU[1][2] = 8;
             }
-            rowStoreSzLCU = uiRowStoreSizeLCU[(maxBitDepth < 12) ? 0 : 1][par.dwCtbLog2SizeY - 4];
+            rowStoreSzLCU = uiRowStoreSizeLCU[(maxBitDepth < 12) ? 0 : 1][par.dwCtbLog2SizeY > 3 ? par.dwCtbLog2SizeY - 4 : 0];
             bufferSize    = rowStoreSzLCU * MHW_CACHELINE_SIZE * widthInCtb;
             break;
         }
@@ -255,7 +255,7 @@ public:
                 uiRowStoreSizeLCU[1][1] = 10;
                 uiRowStoreSizeLCU[1][2] = 16;
             }
-            rowStoreSzLCU = uiRowStoreSizeLCU[(maxBitDepth < 12) ? 0 : 1][par.dwCtbLog2SizeY - 4];
+            rowStoreSzLCU = uiRowStoreSizeLCU[(maxBitDepth < 12) ? 0 : 1][par.dwCtbLog2SizeY > 3 ? par.dwCtbLog2SizeY - 4 : 0];
             bufferSize    = rowStoreSzLCU * MHW_CACHELINE_SIZE * widthInCtb;
             break;
         }
@@ -272,7 +272,7 @@ public:
                 return eStatus;
             }
 
-            formatMultFactor = formatMultFactorTab[chromaFormat - 1][par.dwCtbLog2SizeY - 4];
+            formatMultFactor = formatMultFactorTab[chromaFormat - 1][par.dwCtbLog2SizeY > 3 ? par.dwCtbLog2SizeY - 4 : 0];
             colStoreSzLCU    = formatMultFactor;
             bufferSize       = colStoreSzLCU * MHW_CACHELINE_SIZE * heightInCtb;
             break;

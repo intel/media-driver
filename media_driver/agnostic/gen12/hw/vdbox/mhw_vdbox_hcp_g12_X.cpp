@@ -1041,7 +1041,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::GetHevcBufferSize(
             colStoreSizeLCU[0][0] = 1; colStoreSizeLCU[0][1] = 2; colStoreSizeLCU[0][2] = 2;
             colStoreSizeLCU[1][0] = 2; colStoreSizeLCU[1][1] = 3; colStoreSizeLCU[1][2] = 3;
         }
-        colStoreSzLCU = colStoreSizeLCU[(maxBitDepth == 8) ? 0 : 1][hcpBufSizeParam->dwCtbLog2SizeY - 4];
+        colStoreSzLCU = colStoreSizeLCU[(maxBitDepth == 8) ? 0 : 1][hcpBufSizeParam->dwCtbLog2SizeY > 3 ? hcpBufSizeParam->dwCtbLog2SizeY - 4 : 0];
         bufferSize = colStoreSzLCU * MHW_CACHELINE_SIZE * heightInCtb;
         break;
     }
@@ -1063,7 +1063,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::GetHevcBufferSize(
             colStoreSizeLCU[0][0] = 1; colStoreSizeLCU[0][1] = 2; colStoreSizeLCU[0][2] = 3;
             colStoreSizeLCU[1][0] = 2; colStoreSizeLCU[1][1] = 3; colStoreSizeLCU[1][2] = 6;
         }
-        colStoreSzLCU = colStoreSizeLCU[(maxBitDepth == 8) ? 0 : 1][hcpBufSizeParam->dwCtbLog2SizeY - 4];
+        colStoreSzLCU = colStoreSizeLCU[(maxBitDepth == 8) ? 0 : 1][hcpBufSizeParam->dwCtbLog2SizeY > 3 ? hcpBufSizeParam->dwCtbLog2SizeY - 4 : 0];
         bufferSize = colStoreSzLCU * MHW_CACHELINE_SIZE * heightInCtb;
         break;
     }
@@ -1080,7 +1080,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::GetHevcBufferSize(
                 uiRowStoreSizeLCU[0][0] = 3; uiRowStoreSizeLCU[0][1] = 4; uiRowStoreSizeLCU[0][2] = 7;
                 uiRowStoreSizeLCU[1][0] = 3; uiRowStoreSizeLCU[1][1] = 5; uiRowStoreSizeLCU[1][2] = 8;
             }
-            rowStoreSzLCU = uiRowStoreSizeLCU[(maxBitDepth < 12) ? 0 : 1][hcpBufSizeParam->dwCtbLog2SizeY - 4];
+            rowStoreSzLCU = uiRowStoreSizeLCU[(maxBitDepth < 12) ? 0 : 1][hcpBufSizeParam->dwCtbLog2SizeY > 3 ? hcpBufSizeParam->dwCtbLog2SizeY - 4 : 0];
             bufferSize = rowStoreSzLCU * MHW_CACHELINE_SIZE * widthInCtb;
             break;
         }
@@ -1097,7 +1097,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::GetHevcBufferSize(
                 uiRowStoreSizeLCU[0][0] = 6; uiRowStoreSizeLCU[0][1] = 8; uiRowStoreSizeLCU[0][2] = 14;
                 uiRowStoreSizeLCU[1][0] = 6; uiRowStoreSizeLCU[1][1] = 10; uiRowStoreSizeLCU[1][2] = 16;
             }
-            rowStoreSzLCU = uiRowStoreSizeLCU[(maxBitDepth < 12) ? 0 : 1][hcpBufSizeParam->dwCtbLog2SizeY - 4];
+            rowStoreSzLCU = uiRowStoreSizeLCU[(maxBitDepth < 12) ? 0 : 1][hcpBufSizeParam->dwCtbLog2SizeY > 3 ? hcpBufSizeParam->dwCtbLog2SizeY - 4 : 0];
             bufferSize = rowStoreSzLCU * MHW_CACHELINE_SIZE * widthInCtb;
             break;
         }
@@ -1114,7 +1114,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::GetHevcBufferSize(
                 return eStatus;
             }
 
-            formatMultFactor = formatMultFactorTab[chromaFormat - 1][hcpBufSizeParam->dwCtbLog2SizeY - 4];
+            formatMultFactor = formatMultFactorTab[chromaFormat - 1][hcpBufSizeParam->dwCtbLog2SizeY > 3 ? hcpBufSizeParam->dwCtbLog2SizeY - 4 : 0];
             colStoreSzLCU    = formatMultFactor;
             bufferSize       = colStoreSzLCU * MHW_CACHELINE_SIZE * heightInCtb;
             break;
