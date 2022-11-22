@@ -226,6 +226,7 @@ typedef enum _MOS_HW_RESOURCE_DEF
     // CP
     MOS_HW_RESOURCE_USAGE_CP_EXTERNAL_READ,
     MOS_HW_RESOURCE_USAGE_CP_INTERNAL_WRITE,
+
     // PAT Media Usages END
 
     // always last one

@@ -821,6 +821,20 @@ public:
         MOS_HW_RESOURCE_DEF mosUsage);
 
     //!
+    //! \brief    Get MOS_HW_RESOURCE_DEF
+    //! \details  [Resource Interface] Get Mos HW Resource DEF
+    //!           Caller: HAL & MHW
+    //!
+    //! \param    [in] gmmResUsage
+    //!           Gmm Resource usage as index
+    //!
+    //! \return   MOS_HW_RESOURCE_DEF
+    //!           Mos HW resource definition
+    //!
+    static MOS_HW_RESOURCE_DEF GmmToMosResourceUsageType(
+        GMM_RESOURCE_USAGE_TYPE gmmResUsage);
+
+    //!
     //! \brief    Get Cache Policy Memory Object
     //! \details  [Resource Interface] Get Cache Policy Memory Object in GMM corresponding to the resource usage
     //!           Caller: HAL & MHW
@@ -837,6 +851,21 @@ public:
     static MEMORY_OBJECT_CONTROL_STATE GetCachePolicyMemoryObject(
         GMM_CLIENT_CONTEXT *gmmClientContext,
         MOS_HW_RESOURCE_DEF mosUsage);
+
+    //!
+    //! \brief    Get default Cache Policy Memory Object
+    //! \details  [Resource Interface] Get Cache Policy Memory Object in GMM corresponding to the resource usage
+    //!           Caller: HAL & MHW
+    //!
+    //! \param    [in] gmmClientContext
+    //!           Handle of gmmClientContext
+    //!           If prociding unknown usage, default state will be returned
+    //!
+    //! \return   MEMORY_OBJECT_CONTROL_STATE
+    //!           The cache policy memory object got from MOS interface
+    //!
+    static MEMORY_OBJECT_CONTROL_STATE GetDefaultCachePolicyMemoryObject(
+        GMM_CLIENT_CONTEXT *gmmClientContext);
 
     //!
     //! \brief    Get Cache Policy Memory Object

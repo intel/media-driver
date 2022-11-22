@@ -991,8 +991,7 @@ MEMORY_OBJECT_CONTROL_STATE Mos_GetResourceCachePolicyMemoryObject(
 
     if (memObjCtrlState.DwordValue == 0)
     {
-        MOS_OS_NORMALMESSAGE("Invalid resource->mocsMosResUsageType = %d, use default cache MOS_MP_RESOURCE_USAGE_DEFAULT", resource->mocsMosResUsageType);
-        memObjCtrlState = MosInterface::GetCachePolicyMemoryObject(gmmClientContext, MOS_MP_RESOURCE_USAGE_DEFAULT);
+        memObjCtrlState = MosInterface::GetDefaultCachePolicyMemoryObject(gmmClientContext);
     }
     return memObjCtrlState;
 }

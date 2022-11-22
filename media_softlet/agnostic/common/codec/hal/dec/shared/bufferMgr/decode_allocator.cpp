@@ -640,40 +640,8 @@ MOS_STATUS DecodeAllocator::RegisterResource(PMOS_RESOURCE osResource)
 
 ResourceUsage DecodeAllocator::ConvertGmmResourceUsage(const GMM_RESOURCE_USAGE_TYPE gmmResUsage)
 {
-    ResourceUsage resUsageType;
-    switch (gmmResUsage)
-    {
-    case GMM_RESOURCE_USAGE_DECODE_INPUT_BITSTREAM:
-        resUsageType = resourceInputBitstream;
-        break;
-    case GMM_RESOURCE_USAGE_DECODE_INPUT_REFERENCE:
-        resUsageType = resourceInputReference;
-        break;
-    case GMM_RESOURCE_USAGE_DECODE_INTERNAL_READ:
-        resUsageType = resourceInternalRead;
-        break;
-    case GMM_RESOURCE_USAGE_DECODE_INTERNAL_WRITE:
-        resUsageType = resourceInternalWrite;
-        break;
-    case GMM_RESOURCE_USAGE_DECODE_INTERNAL_READ_WRITE_CACHE:
-        resUsageType = resourceInternalReadWriteCache;
-        break;
-    case GMM_RESOURCE_USAGE_DECODE_INTERNAL_READ_WRITE_NOCACHE:
-        resUsageType = resourceInternalReadWriteNoCache;
-        break;
-    case GMM_RESOURCE_USAGE_DECODE_OUTPUT_PICTURE:
-        resUsageType = resourceOutputPicture;
-        break;
-    case GMM_RESOURCE_USAGE_DECODE_OUTPUT_STATISTICS_WRITE:
-        resUsageType = resourceStatisticsWrite;
-        break;
-    case GMM_RESOURCE_USAGE_DECODE_OUTPUT_STATISTICS_READ_WRITE:
-        resUsageType = resourceStatisticsReadWrite;
-        break;
-    default:
-        resUsageType = resourceDefault;
-    }
-    return resUsageType;
+    MOS_HW_RESOURCE_DEF gmmUsage = MosInterface::GmmToMosResourceUsageType(gmmResUsage);
+    return (ResourceUsage)gmmUsage;
 }
 
 void DecodeAllocator::SetAccessRequirement(
