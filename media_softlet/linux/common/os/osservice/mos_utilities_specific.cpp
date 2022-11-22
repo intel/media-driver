@@ -2666,7 +2666,6 @@ void MosUtilities::MosGfxInfo(
 {
     // not implemented
 }
-
 #if (_DEBUG || _RELEASE_INTERNAL)
 void MosUtilities::MosMMPWriteFile(
     const std::string &name,

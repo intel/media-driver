@@ -33,7 +33,6 @@
 #include "mos_defs.h"
 #include "mos_os_trace_event.h"
 #include "media_class_trace.h"
-#include "mos_oca_util_debug.h"
 
 #if MOS_MESSAGES_ENABLED
 
@@ -578,6 +577,23 @@ MEDIA_CLASS_DEFINE_END(MosUtilDebug)
 #define MOS_ASSERT(_compID, _subCompID, _expr)
 
 #endif // MOS_ASSERT_ENABLED
+
+
+#define OCA_MT_ERR(id, p1, v1, cTpye, osStreamState)                                               \
+    {                                                                                              \
+        bool isErr = true;                                                                         \
+        MT_PARAM param[] = {{p1, v1}};                                                             \
+        MosInterface::InsertRTLog(osStreamState, cTpye, isErr, id, 1, param);                      \
+        MT_ERR1(id, p1, v1);                                                                       \
+    }
+
+#define OCA_MT_LOG(id, p1, v1, cTpye, osStreamState)                                               \
+    {                                                                                              \
+        bool isErr = false;                                                                        \
+        MT_PARAM param[] = {{p1, v1}};                                                             \
+        MosInterface::InsertRTLog(osStreamState, cTpye, isErr, id, 1, param);                      \
+        MT_LOG1(id, MT_NORMAL, p1,v1);                                                                           \
+    }
 
 #if MOS_MESSAGES_ENABLED
 

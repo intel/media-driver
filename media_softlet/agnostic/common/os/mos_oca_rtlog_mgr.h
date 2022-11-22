@@ -34,23 +34,14 @@
 
 #include "mos_oca_rtlog_mgr_defs.h"
 #include "mos_os_specific.h"
-#include "mos_utilities.h"
 #include <vector>
 
 class OsContextNext;
-class OsContextSpecificNext;
-
-struct MOS_OCA_RTLOG_RES_AND_INTERFACE
-{
-    PMOS_RESOURCE  ocaRTLogResource = nullptr;
-    PMOS_INTERFACE osInterface      = nullptr;
-};
 
 class MosOcaRtLogSectionMgr
 {
 public:
-    MosOcaRtLogSectionMgr();
-    void Init(uint8_t *logSysMem, uint32_t size, uint32_t componentSize, uint32_t offset);
+    MosOcaRtLogSectionMgr(MOS_OCA_RTLOG_HEAP ocaRtHeap, uint32_t size, uint32_t offset);
     virtual ~MosOcaRtLogSectionMgr();
     virtual MOS_STATUS InsertData(MOS_OCA_RTLOG_HEADER header, const void *param);
     virtual MOS_STATUS InsertUid(MOS_OCA_RTLOG_SECTION_HEADER sectionHeader);
@@ -62,11 +53,13 @@ public:
 protected:
     uint32_t                     m_HeapSize      = 0;        //!< Ring size in bytes.
     void                        *m_LockedHeap    = nullptr;  //!< System (logical) address for state heap.
+    uint64_t                     m_HeapGpuVa     = 0;        //!< Gpu virtual address to current heap.
     bool                         m_IsInitialized = false;    //!< ture if current heap object has been initialized.
     uint32_t                     m_Offset        = 0;
     int32_t                      m_HeapHandle    = 0;
     int32_t                      m_EntryCount    = 0;
 
+private:
     MosOcaRtLogSectionMgr &operator=(MosOcaRtLogSectionMgr &)
     {
         return *this;
@@ -80,13 +73,15 @@ class MosOcaRTLogMgr
 public:
     MOS_STATUS InsertRTLog(MOS_OCA_RTLOG_COMPONENT_TPYE componentType, bool isErr, int32_t id, uint32_t paramCount, const void *param);
 
-    bool IsMgrInitialized() { return m_isMgrInitialized; };
+    PMOS_RESOURCE GetOcaRTlogResource() { return m_ocaRTLogResource; }
 
-    uint32_t GetRtlogHeapSize() { return m_heapSize; };
+    bool IsMgrInitialized() { return m_IsMgrInitialized; };
 
-    static void RegisterContext(OsContextNext *osDriverContext, MOS_CONTEXT *osContext);
+    MOS_OCA_RTLOG_HEAP GetRtlogHeapInfo() { return m_ocaRtHeap; };
 
-    static void UnRegisterContext(OsContextNext *osDriverContext);
+    static MOS_STATUS InitMgr(MosOcaRTLogMgr *&ocaRTLogMgr, OsContextNext *osDriverContext);
+
+    static void UninitMgr(MosOcaRTLogMgr *&ocaRTLogMgr);
 
     static bool IsOcaRTLogEnabled() { return m_enableOcaRTLog; };
 
@@ -94,27 +89,24 @@ public:
     MosOcaRTLogMgr(MosOcaRTLogMgr &);
     virtual ~MosOcaRTLogMgr();
     MosOcaRTLogMgr &operator=(MosOcaRTLogMgr &);
-    static MosOcaRTLogMgr &GetInstance();
 
 protected:
-    virtual MOS_STATUS RegisterCtx(OsContextNext *osDriverContext, MOS_CONTEXT *osContext);
-    virtual MOS_STATUS UnRegisterCtx(OsContextNext *osDriverContext);
-    virtual MOS_STATUS RegisterRes(OsContextNext *osDriverContext, MOS_OCA_RTLOG_RES_AND_INTERFACE *resInterface, MOS_CONTEXT *osContext);
-    virtual void       UnregisterRes(OsContextNext *osDriverContext);
-    virtual MOS_STATUS MapGfxVa(PMOS_RESOURCE ocaRTLogResource, OsContextNext *osDriverContext);
+    virtual MOS_STATUS Initialize(OsContextNext *osDriverContext);
+    virtual void Uninitialize();
+    virtual MOS_STATUS MapGfxVa();
+    MOS_STATUS Clean();
+    MOS_STATUS Reset();
     int32_t GetGlobleIndex();
 
+    PMOS_RESOURCE                        m_ocaRTLogResource = nullptr;
     OsContextNext                       *m_osContext = nullptr;
-    MosOcaRtLogSectionMgr                m_rtLogSectionMgr[MOS_OCA_RTLOG_COMPONENT_MAX] = {};
-    int32_t                              m_globleIndex = -1;
-    bool                                 m_isMgrInitialized = false;
-    std::map<OsContextNext *, MOS_OCA_RTLOG_RES_AND_INTERFACE> m_resMap;
-    uint32_t                             m_heapSize = MAX_OCA_RT_SIZE;
-    uint8_t                             *m_heapAddr = nullptr;
+    MOS_OCA_RTLOG_HEAP                   m_ocaRtHeap   = {};
+    std::vector<MosOcaRtLogSectionMgr *> m_RTLogSectionMgr;
 
+    int32_t                              m_globleIndex = -1;
+    bool                                 m_IsMgrInitialized = false;
+    
     static bool                          m_enableOcaRTLog;
-    static uint8_t                       s_localSysMem[MAX_OCA_RT_POOL_SIZE];
-    static MosMutex                      s_ocaMutex;
 
 MEDIA_CLASS_DEFINE_END(MosOcaRTLogMgr)
 };

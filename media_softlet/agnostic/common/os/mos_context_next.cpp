@@ -44,7 +44,7 @@ void OsContextNext::CleanUp()
 #endif
     MOS_Delete(m_mosMediaCopy);
 
-    MosOcaRTLogMgr::UnRegisterContext(this);
+    MosOcaRTLogMgr::UninitMgr(m_ocaRTLogMgr);
 
     if (m_gpuContextMgr != nullptr)
     {

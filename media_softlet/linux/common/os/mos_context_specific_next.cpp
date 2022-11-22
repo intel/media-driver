@@ -277,7 +277,7 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
             }
         }
     }
-    MosOcaRTLogMgr::RegisterContext(this, osDriverContext);
+    MOS_OS_CHK_STATUS_RETURN(MosOcaRTLogMgr::InitMgr(m_ocaRTLogMgr, this));
     return eStatus;
 }
 
