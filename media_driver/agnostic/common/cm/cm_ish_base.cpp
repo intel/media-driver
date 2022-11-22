@@ -200,6 +200,9 @@ MOS_STATUS CmISHBase::ExpandHeapSize(uint32_t extraSize)
     if (m_resource)
     {
         m_destroyedResources.push_front(m_resource);
+    }
+    if(m_lastTrackerToken)
+    {
         m_destroyedTrackers.push_front(m_lastTrackerToken);
     }
 
