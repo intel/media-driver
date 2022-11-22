@@ -908,13 +908,6 @@ MOS_STATUS Policy::GetScalingExecutionCapsHdr(SwFilter *feature)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS Policy::GetScalingExecutionCapsSR(SwFilter *feature, OutMode outMode)
-{
-    VP_FUNC_CALL();
-    VP_PUBLIC_CHK_STATUS_RETURN(GetScalingExecutionCaps(feature, false, outMode));
-    return MOS_STATUS_SUCCESS;
-}
-
 MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter *feature)
 {
     VP_FUNC_CALL();
