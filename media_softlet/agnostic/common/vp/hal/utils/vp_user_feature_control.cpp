@@ -326,6 +326,24 @@ MOS_STATUS VpUserFeatureControl::CreateUserSettingForDebug()
         // Default value
         m_ctrlValDefault.enabledSFCRGBPRGB24Output = 0;
     }
+
+    //Enable IFNCC report
+    bool enableIFNCC  = false;
+    eRegKeyReadStatus = ReadUserSettingForDebug(
+        m_userSettingPtr,
+        enableIFNCC,
+        __MEDIA_USER_FEATURE_VALUE_ENABLE_IFNCC,
+        MediaUserSetting::Group::Sequence);
+    if (MOS_SUCCEEDED(eRegKeyReadStatus))
+    {
+        m_ctrlValDefault.enableIFNCC = enableIFNCC;
+        VP_PUBLIC_NORMALMESSAGE("Report IFNCC Reg Key Enabled. Will Report IFNCC Reg key at the end of VP pipeline.");
+    }
+    else
+    {
+        // Default value
+        m_ctrlValDefault.enableIFNCC = false;
+    }
 #endif
     return MOS_STATUS_SUCCESS;
 }

@@ -323,6 +323,7 @@ protected:
 
 #define __MEDIA_USER_FEATURE_VALUE_INTER_FRAME_MEMORY_NINJA_START_COUNTER "InterFrameNinjaStartCounter"
 #define __MEDIA_USER_FEATURE_VALUE_INTER_FRAME_MEMORY_NINJA_END_COUNTER "InterFrameNinjaEndCounter"
+#define __MEDIA_USER_FEATURE_VALUE_ENABLE_IFNCC                         "EnableIFNCC"
 #endif  //(_DEBUG || _RELEASE_INTERNAL)
 
 class VpUtils

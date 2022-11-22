@@ -55,6 +55,7 @@ public:
         bool forceDecompressedOutput        = false;
         uint32_t enabledSFCNv12P010LinearOutput = 0;
         uint32_t enabledSFCRGBPRGB24Output  = 0;
+        bool     enableIFNCC                    = false;
 #endif
         bool disablePacketReuse             = false;
         bool enablePacketReuseTeamsAlways   = false;
@@ -79,6 +80,10 @@ public:
     uint32_t EnabledSFCRGBPRGB24Output()
     {
         return m_ctrlVal.enabledSFCRGBPRGB24Output;
+    }
+
+    bool EnableIFNCC() {
+        return m_ctrlVal.enableIFNCC;
     }
 #endif
 

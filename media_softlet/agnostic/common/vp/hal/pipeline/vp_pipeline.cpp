@@ -136,14 +136,16 @@ MOS_STATUS VpPipeline::ReportIFNCC(bool bStart)
     //INTER_FRAME_MEMORY_NINJA_START_COUNTER will be reported in Prepare function
     //INTER_FRAME_MEMORY_NINJA_END_COUNTER will be reported in UserFeatureReport() function which runs in Execute()
     VP_FUNC_CALL();
-
-    int32_t memninjaCounter = 0;
-    memninjaCounter         = MosUtilities::m_mosMemAllocCounter + MosUtilities::m_mosMemAllocCounterGfx - MosUtilities::m_mosMemAllocFakeCounter;
-    ReportUserSettingForDebug(
-        m_userSettingPtr,
-        bStart ? __MEDIA_USER_FEATURE_VALUE_INTER_FRAME_MEMORY_NINJA_START_COUNTER : __MEDIA_USER_FEATURE_VALUE_INTER_FRAME_MEMORY_NINJA_END_COUNTER,
-        memninjaCounter,
-        MediaUserSetting::Group::Sequence);
+    if (m_userFeatureControl->EnableIFNCC())
+    {
+        int32_t memninjaCounter = 0;
+        memninjaCounter         = MosUtilities::m_mosMemAllocCounter + MosUtilities::m_mosMemAllocCounterGfx - MosUtilities::m_mosMemAllocFakeCounter;
+        ReportUserSettingForDebug(
+            m_userSettingPtr,
+            bStart ? __MEDIA_USER_FEATURE_VALUE_INTER_FRAME_MEMORY_NINJA_START_COUNTER : __MEDIA_USER_FEATURE_VALUE_INTER_FRAME_MEMORY_NINJA_END_COUNTER,
+            memninjaCounter,
+            MediaUserSetting::Group::Sequence);
+    }
     return MOS_STATUS_SUCCESS;
 }
 #endif
