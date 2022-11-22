@@ -23,7 +23,6 @@
 //! \file     ddi_vp_functions.cpp
 //! \brief    ddi vp functions implementaion.
 //!
-#include <va/va_dricommon.h>
 #include "ddi_vp_functions.h"
 #include "media_libva_util_next.h"
 #include "media_libva_common_next.h"
@@ -33,6 +32,7 @@
 #include "media_libva_interface_next.h"
 #include "media_libva_vp.h"
 #if !defined(ANDROID) && defined(X11_FOUND)
+#include <va/va_dricommon.h>
 #include <X11/Xutil.h>
 #include "media_libva_putsurface_linux.h"
 #endif
