@@ -684,6 +684,27 @@ MOS_STATUS VpUtils::DeclareUserSettings(MediaUserSettingSharedPtr userSettingPtr
         1,
         true);
 
+    DeclareUserSettingKey(  // Eanble Apogeios path in VP PipeLine. 1: enabled, 0: disabled.
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_VPP_APOGEIOS_ENABLE,
+        MediaUserSetting::Group::Sequence,
+        uint32_t(0),
+        true);
+
+    DeclareUserSettingKey(  // VP Render Target Compression Mode
+        userSettingPtr,
+        __VPHAL_RT_MMC_COMPRESSMODE,
+        MediaUserSetting::Group::Sequence,
+        0,
+        true);
+
+    DeclareUserSettingKey(  // VP Primary Input Compression Mode
+        userSettingPtr,
+        __VPHAL_PRIMARY_MMC_COMPRESSMODE,
+        MediaUserSetting::Group::Sequence,
+        0,
+        true);
+
 #if (_DEBUG || _RELEASE_INTERNAL)
     DeclareUserSettingKeyForDebug(  // FORCE VP DECOMPRESSED OUTPUT
         userSettingPtr,
@@ -741,13 +762,6 @@ MOS_STATUS VpUtils::DeclareUserSettings(MediaUserSettingSharedPtr userSettingPtr
         0,
         true);
 
-    DeclareUserSettingKeyForDebug(  // Eanble Apogeios path in VP PipeLine. 1: enabled, 0: disabled.
-        userSettingPtr,
-        __MEDIA_USER_FEATURE_VALUE_VPP_APOGEIOS_ENABLE,
-        MediaUserSetting::Group::Sequence,
-        uint32_t(0),
-        true);
-
     DeclareUserSettingKeyForDebug(  // VP Compression Enable
         userSettingPtr,
         __VPHAL_MMC_ENABLE,
@@ -762,23 +776,9 @@ MOS_STATUS VpUtils::DeclareUserSettings(MediaUserSettingSharedPtr userSettingPtr
         0,
         true);
 
-    DeclareUserSettingKeyForDebug(  // VP Render Target Compression Mode
-        userSettingPtr,
-        __VPHAL_RT_MMC_COMPRESSMODE,
-        MediaUserSetting::Group::Sequence,
-        0,
-        true);
-
     DeclareUserSettingKeyForDebug(  // VP Primary Input Compressible
         userSettingPtr,
         __VPHAL_PRIMARY_MMC_COMPRESSIBLE,
-        MediaUserSetting::Group::Sequence,
-        0,
-        true);
-
-    DeclareUserSettingKeyForDebug(  // VP Primary Input Compression Mode
-        userSettingPtr,
-        __VPHAL_PRIMARY_MMC_COMPRESSMODE,
         MediaUserSetting::Group::Sequence,
         0,
         true);

@@ -290,6 +290,9 @@ protected:
 #define __VPHAL_HDR_GPU_GENERTATE_3DLUT                                 "HDR GPU generate 3DLUT"
 #define __VPHAL_HDR_DISABLE_AUTO_MODE                                   "Disable HDR Auto Mode"
 #define __VPHAL_HDR_SPLIT_FRAME_PORTIONS                                "VPHAL HDR Split Frame Portions"
+#define __MEDIA_USER_FEATURE_VALUE_VPP_APOGEIOS_ENABLE                  "VP Apogeios Enabled"
+#define __VPHAL_PRIMARY_MMC_COMPRESSMODE                                "VP Primary Surface Compress Mode"
+#define __VPHAL_RT_MMC_COMPRESSMODE                                     "VP RT Compress Mode"
 
 #if (_DEBUG || _RELEASE_INTERNAL)
 #define __VPHAL_ENABLE_COMPUTE_CONTEXT                                  "VP Enable Compute Context"
@@ -300,14 +303,11 @@ protected:
 #define __VPHAL_HDR_ENABLE_QUALITY_TUNING                               "VPHAL HDR Enable Quality Tuning"
 #define __VPHAL_HDR_ENABLE_KERNEL_DUMP                                  "VPHAL HDR Enable Kernel Dump"
 #define __VPHAL_HDR_H2S_RGB_TM                                          "VPHAL H2S TM RGB Based"
-#define __MEDIA_USER_FEATURE_VALUE_VPP_APOGEIOS_ENABLE                  "VP Apogeios Enabled"
 
 // Compression
 #define __VPHAL_MMC_ENABLE                                              "VP MMC In Use"
 #define __VPHAL_RT_MMC_COMPRESSIBLE                                     "VP RT Compressible"
-#define __VPHAL_RT_MMC_COMPRESSMODE                                     "VP RT Compress Mode"
 #define __VPHAL_PRIMARY_MMC_COMPRESSIBLE                                "VP Primary Surface Compressible"
-#define __VPHAL_PRIMARY_MMC_COMPRESSMODE                                "VP Primary Surface Compress Mode"
 
 #define __VPHAL_RNDR_FORCE_VP_DECOMPRESSED_OUTPUT                       "FORCE VP DECOMPRESSED OUTPUT"
 #define __VPHAL_COMP_8TAP_ADAPTIVE_ENABLE                               "8-TAP Enable"

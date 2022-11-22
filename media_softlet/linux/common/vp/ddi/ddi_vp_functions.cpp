@@ -1570,6 +1570,21 @@ void DdiVpFunctions::VpFeatureReport(PVP_CONFIG config, PDDI_VP_CONTEXT vpCtx)
         config->dwCurrentVEFeatureInUse,
         MediaUserSetting::Group::Sequence);
 
+#ifdef _MMC_SUPPORTED
+    //VP Primary Surface Compress Mode Report
+    ReportUserSetting(
+        userSettingPtr,
+        __VPHAL_PRIMARY_MMC_COMPRESSMODE,
+        config->dwPrimaryCompressMode,
+        MediaUserSetting::Group::Sequence);
+    //VP RT Compress Mode
+    ReportUserSetting(
+        userSettingPtr,
+        __VPHAL_RT_MMC_COMPRESSMODE,
+        config->dwRTCompressMode,
+        MediaUserSetting::Group::Sequence);
+#endif
+
 #if (_DEBUG || _RELEASE_INTERNAL)
     ReportUserSettingForDebug(
         userSettingPtr,
@@ -1585,25 +1600,11 @@ void DdiVpFunctions::VpFeatureReport(PVP_CONFIG config, PDDI_VP_CONTEXT vpCtx)
         config->dwVPMMCInUse,
         MediaUserSetting::Group::Sequence);
 
-    //VP Primary Surface Compress Mode Report
-    ReportUserSettingForDebug(
-        userSettingPtr,
-        __VPHAL_PRIMARY_MMC_COMPRESSMODE,
-        config->dwPrimaryCompressMode,
-        MediaUserSetting::Group::Sequence);
-
     //VP Primary Surface Compressible
     ReportUserSettingForDebug(
         userSettingPtr,
         __VPHAL_PRIMARY_MMC_COMPRESSIBLE,
         config->dwPrimaryCompressible,
-        MediaUserSetting::Group::Sequence);
-
-    //VP RT Compress Mode
-    ReportUserSettingForDebug(
-        userSettingPtr,
-        __VPHAL_RT_MMC_COMPRESSMODE,
-        config->dwRTCompressMode,
         MediaUserSetting::Group::Sequence);
 
     //VP RT Compressible

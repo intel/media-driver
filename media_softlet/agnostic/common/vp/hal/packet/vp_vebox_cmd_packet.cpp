@@ -2563,8 +2563,8 @@ MOS_STATUS VpVeboxCmdPacket::AddVeboxIECPState()
         // Refer to IsBeCscNeededForAlphaFill for detail.
         VP_PUBLIC_NORMALMESSAGE("IecpState is not added with AlphaFromStateSelect %d",
             pRenderData->GetIECPParams().bAlphaEnable);
+        return m_veboxItf->SetDisableHistogram(&pRenderData->GetIECPParams());
     }
-    return MOS_STATUS_SUCCESS;
 }
 
 bool VpVeboxCmdPacket::IsVeboxGamutStateNeeded()
