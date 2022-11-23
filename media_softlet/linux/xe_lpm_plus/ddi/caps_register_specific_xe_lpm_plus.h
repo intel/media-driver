@@ -27,10 +27,7 @@
 #ifndef __CAPS_REGISTER_SPECIFIC_XE_LPM_PLUS_H__
 #define __CAPS_REGISTER_SPECIFIC_XE_LPM_PLUS_H__
 
-#include "media_capstable_specific.h"
-#include "capstable_data_linux_definition.h"
 #include "capstable_data_xe_lpm_plus_r0_specific.h"
-
-
+static bool capsTableXe_Lpm_Plus_r0Registered = MediaCapsTable<CapsData>::RegisterCaps(plt_Xe_Lpm_plus_r0, capsData_Xe_Lpm_plus_r0);
 
 #endif //__CAPS_REGISTER_SPECIFIC_XE_LPM_PLUS_H__

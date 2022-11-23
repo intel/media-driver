@@ -25,6 +25,7 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/media_libva_caps_next.cpp
     ${CMAKE_CURRENT_LIST_DIR}/media_libva_interface_next.cpp
     ${CMAKE_CURRENT_LIST_DIR}/media_libva_common_next.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/caps_register_specific.cpp
     
 )
 
