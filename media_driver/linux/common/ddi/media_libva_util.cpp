@@ -34,6 +34,7 @@
 #include <fcntl.h>
 #include <dlfcn.h>
 #include <errno.h>
+#include "inttypes.h"
 
 #include "media_libva_util.h"
 #include "mos_utilities.h"
@@ -91,7 +92,7 @@ void DdiMediaUtil_MediaPrintFps()
         int64_t diff  = (tv2.tv_sec - tv1.tv_sec)*1000000 + tv2.tv_usec - tv1.tv_usec;
         float fps     = frameCountFps / (diff / 1000000.0);
         DDI_NORMALMESSAGE("FPS:%6.4f, Interval:%11lu.", fps,((uint64_t)tv2.tv_sec)*1000 + (tv2.tv_usec/1000));
-        sprintf(temp,"FPS:%6.4f, Interval:%11lu\n", fps,((uint64_t)tv2.tv_sec)*1000 + (tv2.tv_usec/1000));
+        sprintf(temp,"FPS:%6.4f, Interval:%" PRIu64"\n", fps,((uint64_t)tv2.tv_sec)*1000 + (tv2.tv_usec/1000));
 
         MOS_ZeroMemory(fpsFileName,LENGTH_OF_FPS_FILE_NAME);
         sprintf(fpsFileName, FPS_FILE_NAME);

@@ -24,6 +24,7 @@
 //! \brief    libva util next implementaion.
 //!
 #include <sys/time.h>
+#include "inttypes.h"
 #include "media_libva_util_next.h"
 #include "mos_utilities.h"
 #include "mos_os.h"
@@ -2197,7 +2198,7 @@ void MediaLibvaUtilNext::MediaPrintFps()
         int64_t diff  = (tv2.tv_sec - m_tv1.tv_sec)*1000000 + tv2.tv_usec - m_tv1.tv_usec;
         float fps     = m_frameCountFps / (diff / 1000000.0);
         DDI_NORMALMESSAGE("FPS:%6.4f, Interval:%11lu.", fps,((uint64_t)tv2.tv_sec)*1000 + (tv2.tv_usec/1000));
-        sprintf_s(temp, sizeof(temp), "FPS:%6.4f, Interval:%11lu\n", fps,((uint64_t)tv2.tv_sec)*1000 + (tv2.tv_usec/1000));
+        sprintf_s(temp, sizeof(temp), "FPS:%6.4f, Interval:%" PRIu64"\n", fps,((uint64_t)tv2.tv_sec)*1000 + (tv2.tv_usec/1000));
 
         MOS_ZeroMemory(fpsFileName,LENGTH_OF_FPS_FILE_NAME);
         sprintf_s(fpsFileName, sizeof(fpsFileName), FPS_FILE_NAME);
