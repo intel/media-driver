@@ -134,7 +134,7 @@ namespace decode
             }
         }
 
-        virtual ~HucS2lPkt() {}
+        virtual ~HucS2lPkt();
 
         //!
         //! \brief  Initialize the media packet, allocate required resources
@@ -149,6 +149,13 @@ namespace decode
         //!         MOS_STATUS_SUCCESS if success, else fail reason
         //!
         virtual MOS_STATUS Prepare() override;
+
+        //!
+        //! \brief  destroy interal resource, should be invoked for each frame
+        //! \return MOS_STATUS
+        //!         MOS_STATUS_SUCCESS if success, else fail reason
+        //!
+        virtual MOS_STATUS FreeResource();
 
         //!
         //! \brief  Calculate Command Size
@@ -218,6 +225,7 @@ namespace decode
         PCODEC_HEVC_SCC_PIC_PARAMS m_hevcSccPicParams  = nullptr; //!< Pic params for SCC
 
         MOS_BUFFER*                m_s2lDmemBuffer     = nullptr; //!< Resource of current DMEM buffer
+        MOS_BUFFER*                m_s2lControlTempMVRegionBuffer = nullptr;  //!< Point to RegionBuffer which controls temporal MV Buffer
         uint32_t                   m_dmemBufferSize    = 0;       //!< Size of DMEM buffer
         uint32_t                   m_dmemTransferSize  = 0;       //!< Transfer size of current DMEM buffer
 

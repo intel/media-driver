@@ -50,6 +50,13 @@ namespace decode {
         m_sliceStatesSize += cpCmdsize;
         m_slicePatchListSize += cpPatchListSize;
 
+        if (m_s2lControlTempMVRegionBuffer == nullptr)
+        {
+            m_s2lControlTempMVRegionBuffer = m_allocator->AllocateBuffer(
+                sizeof(uint32_t), "S2lControlTempMVRegionBuffer", resourceInternalReadWriteCache, notLockableVideoMem);
+            DECODE_CHK_NULL(m_s2lControlTempMVRegionBuffer);
+        }
+
         return MOS_STATUS_SUCCESS;
     }
 
@@ -64,6 +71,20 @@ namespace decode {
 
         m_hevcRextPicParams = m_hevcBasicFeature->m_hevcRextPicParams;
         m_hevcSccPicParams  = m_hevcBasicFeature->m_hevcSccPicParams;
+
+        return MOS_STATUS_SUCCESS;
+    }
+
+    HucS2lPkt::~HucS2lPkt()
+    {
+        FreeResource();
+    }
+
+    MOS_STATUS HucS2lPkt::FreeResource()
+    {
+        DECODE_FUNC_CALL();
+
+        DECODE_CHK_STATUS(m_allocator->Destroy(m_s2lControlTempMVRegionBuffer));
 
         return MOS_STATUS_SUCCESS;
     }
@@ -280,9 +301,14 @@ namespace decode {
         DECODE_FUNC_CALL();
         
         PMHW_BATCH_BUFFER batchBuffer = m_hevcPipeline->GetSliceLvlCmdBuffer();
-        DECODE_ASSERT(batchBuffer != nullptr);
+        DECODE_CHK_NULL(batchBuffer);
         params.regionParams[0].presRegion = &batchBuffer->OsResource;
         params.regionParams[0].isWritable = true;
+  
+        PMOS_BUFFER regionBuffer = m_s2lControlTempMVRegionBuffer;
+        DECODE_CHK_NULL(regionBuffer);
+        params.regionParams[1].presRegion = &regionBuffer->OsResource;
+        params.regionParams[1].isWritable = true;
 
         return MOS_STATUS_SUCCESS;
     }
