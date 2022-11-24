@@ -506,6 +506,11 @@ protected:
         return false;
     }
 
+    virtual bool IsRenderContextBasedSchedulingNeeded()
+    {
+        return false;
+    }
+
 private:
     //!
     //! \brief    Put GPU context entry

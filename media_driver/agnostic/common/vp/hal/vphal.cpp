@@ -101,6 +101,12 @@ MOS_STATUS VphalState::Allocate(
     }
     addGpuCtxToCheckList = checkGpuCtxOverwriten && !IsGpuContextReused(m_renderGpuContext);
 
+    if (IsRenderContextBasedSchedulingNeeded())
+    {
+        Mos_SetVirtualEngineSupported(m_osInterface, true);
+        Mos_CheckVirtualEngineSupported(m_osInterface, true, true);
+    }
+
     // Create Render GPU Context
     {
         MOS_GPUCTX_CREATOPTIONS createOption;
