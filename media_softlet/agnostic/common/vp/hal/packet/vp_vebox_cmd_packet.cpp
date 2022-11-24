@@ -1141,6 +1141,46 @@ MOS_STATUS VpVeboxCmdPacket::SetDiParams(bool bDiEnabled, bool bSCDEnabled, bool
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS VpVeboxCmdPacket::SetCgcParams(
+    PVEBOX_CGC_PARAMS                    cgcParams)
+{
+    VP_FUNC_CALL();
+
+    VP_PUBLIC_CHK_NULL_RETURN(cgcParams);
+
+    VpVeboxRenderData* pRenderData = GetLastExecRenderData();
+    VP_PUBLIC_CHK_NULL_RETURN(pRenderData);
+
+    MHW_VEBOX_GAMUT_PARAMS& mhwVeboxGamutParams = pRenderData->GetGamutParams();
+
+    bool  bAdvancedMode = (cgcParams->GCompMode == GAMUT_MODE_ADVANCED) ? true : false;
+    bool  bypassGComp = false;
+
+    if (cgcParams->bBt2020ToRGB)
+    {
+        // Init GC params
+        pRenderData->IECP.CGC.bCGCEnabled = true;
+        mhwVeboxGamutParams.ColorSpace    = VpHalCspace2MhwCspace(cgcParams->inputColorSpace);
+        mhwVeboxGamutParams.dstColorSpace = VpHalCspace2MhwCspace(cgcParams->outputColorSpace);
+        mhwVeboxGamutParams.srcFormat     = cgcParams->inputFormat;
+        mhwVeboxGamutParams.dstFormat     = cgcParams->outputFormat;
+        mhwVeboxGamutParams.GCompMode     = MHW_GAMUT_MODE_NONE;
+        mhwVeboxGamutParams.GExpMode      = MHW_GAMUT_MODE_NONE;
+        mhwVeboxGamutParams.bGammaCorr    = false;
+    }
+    else
+    {
+        if (cgcParams->bEnableCGC && cgcParams->GCompMode != GAMUT_MODE_NONE)
+        {
+            VP_RENDER_ASSERTMESSAGE("Bypass GamutComp.");
+        }
+        pRenderData->IECP.CGC.bCGCEnabled = false;
+        mhwVeboxGamutParams.GCompMode = MHW_GAMUT_MODE_NONE;
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS VpVeboxCmdPacket::SetVeboxSurfaceControlBits(
     MHW_VEBOX_SURFACE_CNTL_PARAMS       *pVeboxSurfCntlParams,
     uint32_t                            *pSurfCtrlBits)
@@ -2546,14 +2586,15 @@ MOS_STATUS VpVeboxCmdPacket::AddVeboxIECPState()
 
     if (pRenderData->IECP.IsIecpEnabled())
     {
-        VP_PUBLIC_NORMALMESSAGE("IecpState is added. ace %d, lace %d, becsc %d, tcc %d, ste %d, procamp %d, std %d",
+        VP_PUBLIC_NORMALMESSAGE("IecpState is added. ace %d, lace %d, becsc %d, tcc %d, ste %d, procamp %d, std %d, gamut % d",
             pRenderData->IECP.ACE.bAceEnabled,
             pRenderData->IECP.LACE.bLaceEnabled,
             pRenderData->IECP.BeCSC.bBeCSCEnabled,
             pRenderData->IECP.TCC.bTccEnabled,
             pRenderData->IECP.STE.bSteEnabled,
             pRenderData->IECP.PROCAMP.bProcampEnabled,
-            pRenderData->IECP.STE.bStdEnabled);
+            pRenderData->IECP.STE.bStdEnabled,
+            pRenderData->IECP.CGC.bCGCEnabled);
 
         return m_veboxItf->SetVeboxIecpState(&pRenderData->GetIECPParams());
     }
@@ -2569,8 +2610,18 @@ MOS_STATUS VpVeboxCmdPacket::AddVeboxIECPState()
 
 bool VpVeboxCmdPacket::IsVeboxGamutStateNeeded()
 {
+    VP_FUNC_CALL();
+
     VpVeboxRenderData *renderData = GetLastExecRenderData();
-    return renderData ? renderData->HDR3DLUT.bHdr3DLut : false;
+
+    if (renderData)
+    {
+        return renderData->HDR3DLUT.bHdr3DLut || renderData->IECP.CGC.bCGCEnabled;
+    }
+    else
+    {
+        return false;
+    }
 }
 
 //!

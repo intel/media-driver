@@ -258,6 +258,16 @@ public:
     virtual MOS_STATUS SetDiParams(PVEBOX_DI_PARAMS diParams) override;
 
     //!
+    //! \brief    Setup CGC Params for Vebox
+    //! \details  Setup surface CGC Params for Vebox
+    //! \param    [in] cgcParams
+    //!           CGC Params
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS SetCgcParams(PVEBOX_CGC_PARAMS cgcParams) override;
+
+    //!
     //! \brief    Get DN luma parameters
     //! \details  Get DN luma parameters
     //! \param    [in] bDnEnabled

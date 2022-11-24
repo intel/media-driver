@@ -77,6 +77,7 @@ public:
         IECP.TCC.value           = 0;
         IECP.PROCAMP.value       = 0;
         IECP.LACE.value          = 0;
+        IECP.CGC.value           = 0;
 
         VP_PUBLIC_CHK_STATUS_RETURN(MOS_SecureMemcpy(&aceParams,
                 sizeof(MHW_ACE_PARAMS),
@@ -224,13 +225,23 @@ public:
             uint32_t value = 0;
         }BeCSC;
 
+        union
+        {
+             struct
+             {
+                 uint32_t bCGCEnabled : 1;  // Color Gamut Compression enabled;
+             };
+             uint32_t value = 0;
+        }CGC;
+
         bool IsIecpEnabled()
         {
             return ACE.bAceEnabled || LACE.bLaceEnabled ||
                     BeCSC.bBeCSCEnabled || TCC.bTccEnabled ||
-                    STE.bSteEnabled || PROCAMP.bProcampEnabled || STE.bStdEnabled;
+                   STE.bSteEnabled || PROCAMP.bProcampEnabled || STE.bStdEnabled || CGC.bCGCEnabled;
         }
     } IECP;
+
 
     // Perf
     VPHAL_PERFTAG                       PerfTag = VPHAL_NONE;

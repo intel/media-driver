@@ -31,6 +31,7 @@
 #include "vp_feature_manager.h"
 #include "vp_platform_interface.h"
 #include "sw_filter_handle.h"
+#include "vp_cgc_filter.h"
 #include "vp_user_feature_control.h"
 
 
@@ -224,6 +225,10 @@ MOS_STATUS Policy::RegisterFeatures()
     VP_PUBLIC_CHK_NULL_RETURN(p);
     m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeProcampOnRender, p));
 
+    p = MOS_New(PolicyVeboxCgcHandler, m_hwCaps);
+    VP_PUBLIC_CHK_NULL_RETURN(p);
+    m_VeboxSfcFeatureHandlers.insert(std::make_pair(FeatureTypeCgcOnVebox, p));
+
     // Next step to add a table to trace all SW features based on platforms
     m_featurePool.push_back(FeatureTypeCsc);
     m_featurePool.push_back(FeatureTypeScaling);
@@ -239,6 +244,7 @@ MOS_STATUS Policy::RegisterFeatures()
     m_featurePool.push_back(FeatureTypeBlending);
     m_featurePool.push_back(FeatureTypeColorFill);
     m_featurePool.push_back(FeatureTypeAlpha);
+    m_featurePool.push_back(FeatureTypeCgc);
 
     return MOS_STATUS_SUCCESS;
 }
@@ -376,6 +382,8 @@ MOS_STATUS Policy::GetExecutionCapsForSingleFeature(FeatureType featureType, SwF
     SwFilter* feature = swFilterPipe.GetSwFilter(featureType);
     SwFilter* di      = nullptr;
     SwFilter* hdr     = nullptr;
+    SwFilter* cgc     = nullptr;
+    VPHAL_CSPACE cscInputColorSpaceCheck = CSpace_None;
 
     if (!feature)
     {
@@ -396,9 +404,15 @@ MOS_STATUS Policy::GetExecutionCapsForSingleFeature(FeatureType featureType, SwF
     case FeatureTypeCsc:
         hdr = swFilterPipe.GetSwFilter(FeatureTypeHdr);
         di  = swFilterPipe.GetSwFilter(FeatureTypeDi);
+        cgc = dynamic_cast<SwFilterCgc *>(swFilterPipe.GetSwFilter(FeatureType(FeatureTypeCgc)));
+        cscInputColorSpaceCheck = (&((SwFilterCsc *)feature)->GetSwFilterParams())->input.colorSpace;
         if (hdr)
         {
             VP_PUBLIC_CHK_STATUS_RETURN(GetCSCExecutionCapsHdr(hdr, feature));
+        }
+        else if (IS_COLOR_SPACE_BT2020_YUV(cscInputColorSpaceCheck) && cgc)
+        {
+            VP_PUBLIC_CHK_STATUS_RETURN(GetCSCExecutionCapsBT2020ToRGB(cgc, feature));
         }
         else if (di)
         {
@@ -462,6 +476,9 @@ MOS_STATUS Policy::GetExecutionCapsForSingleFeature(FeatureType featureType, SwF
         break;
     case FeatureTypeAlpha:
         VP_PUBLIC_CHK_STATUS_RETURN(GetAlphaExecutionCaps(feature));
+        break;
+    case FeatureTypeCgc:
+        VP_PUBLIC_CHK_STATUS_RETURN(GetCgcExecutionCaps(feature));
         break;
     default:
         VP_PUBLIC_CHK_STATUS_RETURN(GetExecutionCaps(feature));
@@ -630,6 +647,76 @@ MOS_STATUS Policy::GetCSCExecutionCapsDi(SwFilter* feature)
         cscEngine->VeboxNeeded  = 0;
         cscEngine->RenderNeeded = 1;
         cscEngine->fcSupported  = 1;
+    }
+
+    PrintFeatureExecutionCaps(__FUNCTION__, *cscEngine);
+    return MOS_STATUS_SUCCESS;
+}
+
+
+MOS_STATUS Policy::GetCSCExecutionCapsBT2020ToRGB(SwFilter *cgc, SwFilter *csc)
+{
+    VP_FUNC_CALL();
+    VP_PUBLIC_CHK_NULL_RETURN(csc);
+    VP_PUBLIC_CHK_NULL_RETURN(cgc);
+    VP_PUBLIC_CHK_NULL_RETURN(m_vpInterface.GetHwInterface());
+    VP_PUBLIC_CHK_NULL_RETURN(m_vpInterface.GetHwInterface()->m_userFeatureControl);
+    auto         userFeatureControl = m_vpInterface.GetHwInterface()->m_userFeatureControl;
+    bool         disableVeboxOutput = userFeatureControl->IsVeboxOutputDisabled();
+    bool         disableSfc         = userFeatureControl->IsSfcDisabled();
+    MOS_FORMAT   midFormat          = Format_A8R8G8B8;
+
+    if (!((SwFilterCgc *)cgc)->IsBt2020ToRGBEnabled())
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_UNIMPLEMENTED);
+    }
+
+    FeatureParamCsc *cscParams = &((SwFilterCsc *)csc)->GetSwFilterParams();
+
+    VP_EngineEntry *cscEngine = &((SwFilterCsc *)csc)->GetFilterEngineCaps();
+
+    FeatureParamCgc *cgcParams = &((SwFilterCgc *)cgc)->GetSwFilterParams();
+
+    // Clean usedForNextPass flag.
+    if (cscEngine->usedForNextPass)
+    {
+        cscEngine->usedForNextPass = false;
+    }
+    if (cscEngine->value != 0)
+    {
+        VP_PUBLIC_NORMALMESSAGE("CSC Feature Already been processed, Skip further process");
+
+        PrintFeatureExecutionCaps(__FUNCTION__, *cscEngine);
+        return MOS_STATUS_SUCCESS;
+    }
+
+    if (m_hwCaps.m_sfcHwEntry[midFormat].cscSupported &&
+        m_hwCaps.m_sfcHwEntry[cscParams->formatOutput].outputSupported &&
+        m_hwCaps.m_sfcHwEntry[midFormat].inputSupported)
+    {
+        // Vebox GC + SFC/Render. The csc parameter below if for sfc or render.
+        cgcParams->formatOutput     = midFormat;
+        cgcParams->dstColorSpace    = CSpace_sRGB;
+        cscParams->formatInput      = cgcParams->formatOutput;
+        cscParams->input.colorSpace = cgcParams->dstColorSpace;
+        
+        cscEngine->bEnabled         = 1;
+        if (disableSfc)
+        {
+            cscEngine->SfcNeeded    = 0;
+        }
+        else
+        {
+            cscEngine->SfcNeeded    = 1;
+        }
+        cscEngine->VeboxNeeded      = 0;
+        cscEngine->RenderNeeded     = 1;
+        cscEngine->fcSupported      = 1;
+    }
+    else
+    {
+        PrintFeatureExecutionCaps(__FUNCTION__, *cscEngine);
+        VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
     }
 
     PrintFeatureExecutionCaps(__FUNCTION__, *cscEngine);
@@ -1951,6 +2038,43 @@ MOS_STATUS Policy::GetBlendingExecutionCaps(SwFilter* feature)
     engine.fcSupported = 1;
 
     PrintFeatureExecutionCaps(__FUNCTION__, engine);
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS Policy::GetCgcExecutionCaps(SwFilter* feature)
+{
+    VP_FUNC_CALL();
+    VP_PUBLIC_CHK_NULL_RETURN(feature);
+
+    SwFilterCgc* cgcFilter = dynamic_cast<SwFilterCgc*>(feature);
+    VP_PUBLIC_CHK_NULL_RETURN(cgcFilter);
+
+    FeatureParamCgc& cgcParams = cgcFilter->GetSwFilterParams();
+    VP_EngineEntry& cgcEngine = cgcFilter->GetFilterEngineCaps();
+    MOS_FORMAT inputformat = cgcParams.formatInput;
+
+    // MOS_FORMAT is [-14,103], cannot use -14~-1 as index for m_veboxHwEntry
+    if (inputformat < 0)
+    {
+        inputformat = Format_Any;
+    }
+
+    if (cgcEngine.value != 0)
+    {
+        VP_PUBLIC_NORMALMESSAGE("CGC Feature Already been processed, Skip further process");
+        PrintFeatureExecutionCaps(__FUNCTION__, cgcEngine);
+        return MOS_STATUS_SUCCESS;
+    }
+
+    if (m_hwCaps.m_veboxHwEntry[inputformat].inputSupported &&
+        m_hwCaps.m_veboxHwEntry[inputformat].iecp)
+    {
+        cgcEngine.bEnabled = 1;
+        cgcEngine.VeboxNeeded = 1;
+        cgcEngine.VeboxIECPNeeded = 1;
+    }
+
+    PrintFeatureExecutionCaps(__FUNCTION__, cgcEngine);
     return MOS_STATUS_SUCCESS;
 }
 
@@ -3327,6 +3451,11 @@ MOS_STATUS Policy::UpdateExeCaps(SwFilter* feature, VP_EXECUTE_CAPS& caps, Engin
             caps.bSR = 1;
             feature->SetFeatureType(FeatureType(FEATURE_TYPE_EXECUTE(SR, Vebox)));
             break;
+        case FeatureTypeCgc:
+            caps.bCGC = 1;
+            feature->SetFeatureType(FeatureType(FEATURE_TYPE_EXECUTE(Cgc, Vebox)));
+            VP_PUBLIC_CHK_STATUS_RETURN(UpdateCGCMode(feature, caps, Type));
+            break;
         default:
             break;
         }
@@ -3421,6 +3550,19 @@ MOS_STATUS Policy::UpdateExeCaps(SwFilter* feature, VP_EXECUTE_CAPS& caps, Engin
             VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
         }
     }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS Policy::UpdateCGCMode(SwFilter* feature, VP_EXECUTE_CAPS& caps, EngineType Type)
+{
+    VP_FUNC_CALL();
+
+    VP_PUBLIC_CHK_NULL_RETURN(feature);
+    SwFilterCgc  *cgcFilter = dynamic_cast<SwFilterCgc*>(feature);
+    VP_PUBLIC_CHK_NULL_RETURN(cgcFilter);
+
+    caps.bBt2020ToRGB = (caps.bCGC && cgcFilter->IsBt2020ToRGBEnabled()) ? 1 : 0;
 
     return MOS_STATUS_SUCCESS;
 }

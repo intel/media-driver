@@ -186,6 +186,10 @@ MOS_STATUS VpFeatureManagerNext::RegisterFeatures()
     VP_PUBLIC_CHK_NULL_RETURN(p);
     m_featureHandler.insert(std::make_pair(FeatureTypeAlpha, p));
 
+    p = MOS_New(SwFilterCgcHandler, m_vpInterface);
+    VP_PUBLIC_CHK_NULL_RETURN(p);
+    m_featureHandler.insert(std::make_pair(FeatureTypeCgc, p));
+
     m_isFeatureRegistered = true;
     return MOS_STATUS_SUCCESS;
 }

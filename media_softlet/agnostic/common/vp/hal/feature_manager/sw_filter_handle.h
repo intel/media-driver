@@ -274,6 +274,21 @@ protected:
 
 MEDIA_CLASS_DEFINE_END(vp__SwFilterAlphaHandler)
 };
+
+class SwFilterCgcHandler : public SwFilterFeatureHandler
+{
+public:
+    SwFilterCgcHandler(VpInterface& vpInterface);
+    virtual ~SwFilterCgcHandler();
+    virtual bool IsFeatureEnabled(VP_PIPELINE_PARAMS& params, bool isInputPipe, int surfIndex, SwFilterPipeType pipeType);
+    virtual SwFilter* CreateSwFilter();
+protected:
+    virtual void Destory(SwFilter*& swFilter);
+protected:
+    SwFilterFactory<SwFilterCgc> m_swFilterFactory;
+
+MEDIA_CLASS_DEFINE_END(vp__SwFilterCgcHandler)
+};
 }
 
 #endif //__SW_FILTER_HANDLE_H__

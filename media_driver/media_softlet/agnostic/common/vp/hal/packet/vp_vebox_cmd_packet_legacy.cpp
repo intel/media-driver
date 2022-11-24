@@ -975,6 +975,46 @@ MOS_STATUS VpVeboxCmdPacketLegacy::SetProcampParams(
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS VpVeboxCmdPacketLegacy::SetCgcParams(
+    PVEBOX_CGC_PARAMS                    cgcParams)
+{
+    VP_FUNC_CALL();
+
+    VP_PUBLIC_CHK_NULL_RETURN(cgcParams);
+
+    VpVeboxRenderData* pRenderData = GetLastExecRenderData();
+    VP_PUBLIC_CHK_NULL_RETURN(pRenderData);
+
+    MHW_VEBOX_GAMUT_PARAMS& mhwVeboxGamutParams = pRenderData->GetGamutParams();
+
+    bool  bAdvancedMode = (cgcParams->GCompMode == GAMUT_MODE_ADVANCED) ? true : false;
+    bool  bypassGComp = false;
+
+    if (cgcParams->bBt2020ToRGB)
+    {
+        // Init GC params
+        pRenderData->IECP.CGC.bCGCEnabled = true;
+        mhwVeboxGamutParams.ColorSpace    = VpHalCspace2MhwCspace(cgcParams->inputColorSpace);
+        mhwVeboxGamutParams.dstColorSpace = MHW_CSpace_sRGB; // GC output color space is sRGB for format ARGB8
+        mhwVeboxGamutParams.srcFormat     = cgcParams->inputFormat;
+        mhwVeboxGamutParams.dstFormat     = cgcParams->outputFormat;
+        mhwVeboxGamutParams.GCompMode     = MHW_GAMUT_MODE_NONE;
+        mhwVeboxGamutParams.GExpMode      = MHW_GAMUT_MODE_NONE;
+        mhwVeboxGamutParams.bGammaCorr    = false;
+    }
+    else
+    {
+        if (cgcParams->bEnableCGC && cgcParams->GCompMode != GAMUT_MODE_NONE)
+        {
+            VP_RENDER_ASSERTMESSAGE("Bypass GamutComp.");
+        }
+        pRenderData->IECP.CGC.bCGCEnabled = false;
+        mhwVeboxGamutParams.GCompMode = MHW_GAMUT_MODE_NONE;
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS VpVeboxCmdPacketLegacy::ValidateHDR3DLutParameters(bool is3DLutTableFilled)
 {
     VP_FUNC_CALL();

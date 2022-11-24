@@ -954,3 +954,81 @@ void SwFilterAlphaHandler::Destory(SwFilter*& swFilter)
     m_swFilterFactory.Destory(filter);
     return;
 }
+
+/****************************************************************************************************/
+/*                                      SwFilterCgcHandler                                          */
+/****************************************************************************************************/
+
+SwFilterCgcHandler::SwFilterCgcHandler(VpInterface& vpInterface) :
+    SwFilterFeatureHandler(vpInterface, FeatureTypeCgc),
+    m_swFilterFactory(vpInterface)
+{}
+SwFilterCgcHandler::~SwFilterCgcHandler()
+{}
+
+bool SwFilterCgcHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS& params, bool isInputSurf, int surfIndex, SwFilterPipeType pipeType)
+{
+    VP_FUNC_CALL();
+
+    if (!SwFilterFeatureHandler::IsFeatureEnabled(params, isInputSurf, surfIndex, pipeType))
+    {
+        return false;
+    }
+
+    // BT2020YUV->BT601/709YUV enable GC in Vebox for BT2020 to RGB process
+    // SFC for other format conversion. For such case, add Cgc only to input
+    // pipe for 1 to 1 or N to 1 case.
+    if (isInputSurf && (SwFilterPipeType1ToN == pipeType) ||
+        !isInputSurf && (SwFilterPipeType1To1 == pipeType || SwFilterPipeTypeNTo1 == pipeType))
+    {
+        return false;
+    }
+
+    PVPHAL_SURFACE inputSurf  = static_cast<PVPHAL_SURFACE>(isInputSurf ? params.pSrc[surfIndex] : params.pSrc[0]);
+    PVPHAL_SURFACE outputSurf = static_cast<PVPHAL_SURFACE>(isInputSurf ? params.pTarget[0] : params.pTarget[surfIndex]);
+
+    if (inputSurf && outputSurf &&
+        IS_COLOR_SPACE_BT2020_YUV(inputSurf->ColorSpace) &&
+      (!(inputSurf->pHDRParams && 
+        (inputSurf->pHDRParams->EOTF != VPHAL_HDR_EOTF_TRADITIONAL_GAMMA_SDR) &&
+       !(outputSurf->pHDRParams && 
+        (outputSurf->pHDRParams->EOTF != VPHAL_HDR_EOTF_TRADITIONAL_GAMMA_SDR))))) // When HDR Enabled, GC should always be turn off, not to create the sw filter
+    {
+        if ((outputSurf->ColorSpace == CSpace_BT601) ||
+            (outputSurf->ColorSpace == CSpace_BT709) ||
+            (outputSurf->ColorSpace == CSpace_BT601_FullRange) ||
+            (outputSurf->ColorSpace == CSpace_BT709_FullRange) ||
+            (outputSurf->ColorSpace == CSpace_stRGB) ||
+            (outputSurf->ColorSpace == CSpace_sRGB))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+SwFilter* SwFilterCgcHandler::CreateSwFilter()
+{
+    VP_FUNC_CALL();
+
+    SwFilter* swFilter = nullptr;
+    swFilter = m_swFilterFactory.Create();
+
+    if (swFilter)
+    {
+        swFilter->SetFeatureType(FeatureTypeCgc);
+    }
+
+    return swFilter;
+}
+
+void SwFilterCgcHandler::Destory(SwFilter*& swFilter)
+{
+    VP_FUNC_CALL();
+
+    SwFilterCgc* filter = nullptr;
+    filter = dynamic_cast<SwFilterCgc*>(swFilter);
+    m_swFilterFactory.Destory(filter);
+    return;
+}

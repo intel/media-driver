@@ -1558,6 +1558,42 @@ private:
 MEDIA_CLASS_DEFINE_END(vp__SwFilterAlpha)
 };
 
+struct FeatureParamCgc : public FeatureParam
+{
+    VPHAL_GAMUT_MODE    GCompMode           = GAMUT_MODE_NONE;
+    VPHAL_CSPACE        colorSpace          = CSpace_None;
+    VPHAL_CSPACE        dstColorSpace       = CSpace_None;
+    bool                bBt2020ToRGB        = false;
+    bool                bExtendedSrcGamut   = false;
+    bool                bExtendedDstGamut   = false;
+    uint32_t            dwAttenuation       = 0;                //!< U2.10 [0, 1024] 0 = No down scaling, 1024 = Full down scaling
+    float               displayRGBW_x[4]    = {};
+    float               displayRGBW_y[4]    = {};
+};
+
+class SwFilterCgc : public SwFilter
+{
+public:
+    SwFilterCgc(VpInterface& vpInterface);
+    virtual ~SwFilterCgc();
+    virtual MOS_STATUS Clean();
+    virtual MOS_STATUS Configure(VP_PIPELINE_PARAMS& params, bool isInputSurf, int surfIndex);
+    virtual FeatureParamCgc& GetSwFilterParams();
+    virtual SwFilter* Clone();
+    virtual bool operator == (SwFilter& swFilter);
+    virtual MOS_STATUS Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSurf, SwFilterSubPipe &pipe);
+    virtual bool IsBt2020ToRGB(VP_PIPELINE_PARAMS& params, bool isInputSurf, int surfIndex);
+    virtual bool IsBt2020ToRGBEnabled()
+    {
+        return m_Params.bBt2020ToRGB;
+    }
+
+protected:
+    FeatureParamCgc m_Params = {};
+
+MEDIA_CLASS_DEFINE_END(vp__SwFilterCgc)
+};
+
 class SwFilterSet
 {
 public:

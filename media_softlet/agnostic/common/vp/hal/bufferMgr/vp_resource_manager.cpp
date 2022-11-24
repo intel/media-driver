@@ -724,8 +724,29 @@ MOS_STATUS VpResourceManager::GetIntermediaColorAndFormat3DLutOutput(VPHAL_CSPAC
 
 MOS_STATUS VpResourceManager::GetIntermediaColorAndFormatBT2020toRGB(VP_EXECUTE_CAPS &caps, VPHAL_CSPACE &colorSpace, MOS_FORMAT &format, SwFilterPipe &executedFilters)
 {
+    SwFilterCsc *cscOnSfc = dynamic_cast<SwFilterCsc *>(executedFilters.GetSwFilter(true, 0, FeatureType::FeatureTypeCscOnSfc));
+    SwFilterCgc *cgc      = dynamic_cast<SwFilterCgc *>(executedFilters.GetSwFilter(true, 0, FeatureType::FeatureTypeCgc));
+
+    if (caps.bSFC && nullptr == cscOnSfc)
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+    }
+
+    if (cscOnSfc)
+    {
+        colorSpace = cscOnSfc->GetSwFilterParams().output.colorSpace;
+        format     = cscOnSfc->GetSwFilterParams().formatOutput;
+    }
+    else
+    {
+        VP_PUBLIC_CHK_NULL_RETURN(cgc);
+        colorSpace = cgc->GetSwFilterParams().dstColorSpace;
+        format     = cgc->GetSwFilterParams().formatOutput;
+    }
+
     return MOS_STATUS_SUCCESS;
 }
+
 
 MOS_STATUS VpResourceManager::GetIntermediaOutputSurfaceColorAndFormat(VP_EXECUTE_CAPS &caps, SwFilterPipe &executedFilters, MOS_FORMAT &format, VPHAL_CSPACE &colorSpace)
 {

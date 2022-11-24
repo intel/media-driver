@@ -1986,6 +1986,135 @@ MOS_STATUS vp::SwFilterAlpha::Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSu
 }
 
 /****************************************************************************************************/
+/*                                      SwFilterCgc                                                 */
+/****************************************************************************************************/
+
+SwFilterCgc::SwFilterCgc(VpInterface& vpInterface) : SwFilter(vpInterface, FeatureTypeCgc)
+{
+    m_Params.type = m_type;
+}
+
+SwFilterCgc::~SwFilterCgc()
+{
+    Clean();
+}
+
+MOS_STATUS SwFilterCgc::Clean()
+{
+    VP_FUNC_CALL();
+
+    VP_PUBLIC_CHK_STATUS_RETURN(SwFilter::Clean());
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS SwFilterCgc::Configure(VP_PIPELINE_PARAMS& params, bool isInputSurf, int surfIndex)
+{
+    VP_FUNC_CALL();
+
+    PVPHAL_SURFACE surfInput = static_cast<PVPHAL_SURFACE>(isInputSurf ? params.pSrc[surfIndex] : params.pSrc[0]);
+    PVPHAL_SURFACE surfOutput = isInputSurf ? params.pTarget[0] : params.pTarget[surfIndex];
+    VP_PUBLIC_CHK_NULL_RETURN(surfInput);
+    VP_PUBLIC_CHK_NULL_RETURN(surfOutput);
+
+    m_Params.formatInput   = surfInput->Format;
+    m_Params.formatOutput  = surfInput->Format; // CGC didn't change the original format;
+
+    if (IsBt2020ToRGB(params, isInputSurf, surfIndex))
+    {
+        m_Params.formatOutput     = Format_A8B8G8R8;
+        m_Params.bBt2020ToRGB     = true;
+        m_Params.colorSpace       = surfInput->ColorSpace;
+        m_Params.GCompMode        = GAMUT_MODE_NONE;
+        m_Params.bExtendedSrcGamut = false;
+        m_Params.bExtendedDstGamut = false;
+        m_Params.dwAttenuation = 0;
+        MOS_ZeroMemory(m_Params.displayRGBW_x, sizeof(m_Params.displayRGBW_x));
+        MOS_ZeroMemory(m_Params.displayRGBW_y, sizeof(m_Params.displayRGBW_y));
+    }
+    else
+    {
+        m_Params.GCompMode = GAMUT_MODE_NONE;
+        m_Params.colorSpace = CSpace_Any;
+        m_Params.bExtendedSrcGamut = false;
+        m_Params.bExtendedDstGamut = false;
+        m_Params.dwAttenuation = 0;
+        MOS_ZeroMemory(m_Params.displayRGBW_x, sizeof(m_Params.displayRGBW_x));
+        MOS_ZeroMemory(m_Params.displayRGBW_y, sizeof(m_Params.displayRGBW_y));
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+FeatureParamCgc& SwFilterCgc::GetSwFilterParams()
+{
+    VP_FUNC_CALL();
+
+    return m_Params;
+}
+
+SwFilter * SwFilterCgc::Clone()
+{
+    VP_FUNC_CALL();
+
+    SwFilter* p = CreateSwFilter(m_type);
+
+    SwFilterCgc *swFilter = dynamic_cast<SwFilterCgc *>(p);
+    if (nullptr == swFilter)
+    {
+        DestroySwFilter(p);
+        return nullptr;
+    }
+
+    swFilter->m_Params = m_Params;
+    return p;
+}
+
+bool SwFilterCgc::operator==(SwFilter& swFilter)
+{
+    VP_FUNC_CALL();
+
+    SwFilterCgc* p = dynamic_cast<SwFilterCgc*>(&swFilter);
+    return nullptr != p && 0 == memcmp(&this->m_Params, &p->m_Params, sizeof(FeatureParamCgc));
+}
+
+MOS_STATUS SwFilterCgc::Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSurf, SwFilterSubPipe &pipe)
+{
+    VP_FUNC_CALL();
+
+    VP_PUBLIC_CHK_NULL_RETURN(inputSurf);
+    VP_PUBLIC_CHK_NULL_RETURN(inputSurf->osSurface);
+    VP_PUBLIC_CHK_NULL_RETURN(outputSurf);
+    VP_PUBLIC_CHK_NULL_RETURN(outputSurf->osSurface);
+    m_Params.formatInput = inputSurf->osSurface->Format;
+    m_Params.formatOutput = outputSurf->osSurface->Format;
+    return MOS_STATUS_SUCCESS;
+}
+
+bool SwFilterCgc::IsBt2020ToRGB(VP_PIPELINE_PARAMS& params, bool isInputSurf, int surfIndex)
+{
+    VP_FUNC_CALL();
+
+    PVPHAL_SURFACE surfInput = static_cast<PVPHAL_SURFACE>(isInputSurf ? params.pSrc[surfIndex] : params.pSrc[0]);
+    PVPHAL_SURFACE surfOutput = isInputSurf ? params.pTarget[0] : params.pTarget[surfIndex];
+
+    if (surfInput && surfOutput &&
+        IS_COLOR_SPACE_BT2020_YUV(surfInput->ColorSpace))
+    {
+        if ((surfOutput->ColorSpace == CSpace_BT601) ||
+            (surfOutput->ColorSpace == CSpace_BT709) ||
+            (surfOutput->ColorSpace == CSpace_BT601_FullRange) ||
+            (surfOutput->ColorSpace == CSpace_BT709_FullRange) ||
+            (surfOutput->ColorSpace == CSpace_stRGB) ||
+            (surfOutput->ColorSpace == CSpace_sRGB))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/****************************************************************************************************/
 /*                                      SwFilterSet                                                 */
 /****************************************************************************************************/
 

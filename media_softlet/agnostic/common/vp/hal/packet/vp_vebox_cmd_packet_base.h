@@ -48,7 +48,7 @@ public:
     virtual MOS_STATUS SetScalingParams(PSFC_SCALING_PARAMS scalingParams)    = 0;
     virtual MOS_STATUS SetSteParams(PVEBOX_STE_PARAMS pSteParams)             = 0;
     virtual MOS_STATUS SetTccParams(PVEBOX_TCC_PARAMS pTccParams)             = 0;
-
+    virtual MOS_STATUS SetCgcParams(PVEBOX_CGC_PARAMS veboxCgcParams)         = 0;
 
 
     virtual MOS_STATUS UpdateCscParams(FeatureParamCsc &params) = 0;
