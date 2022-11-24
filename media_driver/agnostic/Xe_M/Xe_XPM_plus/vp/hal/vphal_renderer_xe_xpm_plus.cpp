@@ -49,11 +49,10 @@ void VphalRendererXe_Xpm_Plus::GetCacheCntl(
     VPHAL_RENDER_CHK_NULL_NO_STATUS_RETURN(pOsInterface);
     VPHAL_RENDER_CHK_NULL_NO_STATUS_RETURN(pSettings);
 
-    // set render surface as UC to avoid pre-silicon limation. will enable it after post-silicon.
-    pSettings->Composite.bL3CachingEnabled = false;
-    VPHAL_SET_SURF_MEMOBJCTL(pSettings->Composite.PrimaryInputSurfMemObjCtl, MOS_MP_RESOURCE_USAGE_DEFAULT_RCS);
-    VPHAL_SET_SURF_MEMOBJCTL(pSettings->Composite.InputSurfMemObjCtl, MOS_MP_RESOURCE_USAGE_DEFAULT_RCS);
-    VPHAL_SET_SURF_MEMOBJCTL(pSettings->Composite.TargetSurfMemObjCtl, MOS_MP_RESOURCE_USAGE_DEFAULT_RCS);
+    pSettings->Composite.bL3CachingEnabled = true;
+    VPHAL_SET_SURF_MEMOBJCTL(pSettings->Composite.PrimaryInputSurfMemObjCtl,   MOS_MP_RESOURCE_USAGE_SurfaceState_RCS);
+    VPHAL_SET_SURF_MEMOBJCTL(pSettings->Composite.InputSurfMemObjCtl,          MOS_MP_RESOURCE_USAGE_SurfaceState_RCS);
+    VPHAL_SET_SURF_MEMOBJCTL(pSettings->Composite.TargetSurfMemObjCtl,         MOS_MP_RESOURCE_USAGE_DEFAULT_RCS);
 
     if (pSettings->bDnDi)
     {
