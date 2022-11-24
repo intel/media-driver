@@ -624,46 +624,48 @@ VAStatus DdiDecodeFunctions::MapBufferInternal(
         break;
 
     case VASliceParameterBufferType:
-        switch (decCtx->wMode)
+        if(decCtx != nullptr)
         {
-        case CODECHAL_DECODE_MODE_AVCVLD:
-            if (decCtx->bShortFormatInUse)
-                *pbuf = (void *)((uint8_t*)(bufMgr->Codec_Param.Codec_Param_H264.pVASliceParaBufH264Base) + buf->uiOffset);
-            else
-                *pbuf = (void *)((uint8_t*)(bufMgr->Codec_Param.Codec_Param_H264.pVASliceParaBufH264) + buf->uiOffset);
-            break;
-        case CODECHAL_DECODE_MODE_MPEG2VLD:
-            *pbuf = (void *)((uint8_t*)(bufMgr->Codec_Param.Codec_Param_MPEG2.pVASliceParaBufMPEG2) + buf->uiOffset);
-            break;
-        case CODECHAL_DECODE_MODE_VC1VLD:
-            *pbuf = (void *)((uint8_t*)(bufMgr->Codec_Param.Codec_Param_VC1.pVASliceParaBufVC1) + buf->uiOffset);
-            break;
-        case CODECHAL_DECODE_MODE_JPEG:
-            *pbuf = (void *)((uint8_t*)(bufMgr->Codec_Param.Codec_Param_JPEG.pVASliceParaBufJPEG) + buf->uiOffset);
-            break;
-        case CODECHAL_DECODE_MODE_VP8VLD:
-            *pbuf = (void *)((uint8_t*)(bufMgr->Codec_Param.Codec_Param_VP8.pVASliceParaBufVP8) + buf->uiOffset);
-            break;
-        case CODECHAL_DECODE_MODE_HEVCVLD:
-            if (decCtx->bShortFormatInUse)
-                *pbuf = (void *)((uint8_t*)(bufMgr->Codec_Param.Codec_Param_HEVC.pVASliceParaBufBaseHEVC) + buf->uiOffset);
-            else
+            switch (decCtx->wMode)
             {
-                if (!decCtx->m_ddiDecodeNext->IsRextProfile())
-                    *pbuf = (void *)((uint8_t*)(bufMgr->Codec_Param.Codec_Param_HEVC.pVASliceParaBufHEVC) + buf->uiOffset);
+            case CODECHAL_DECODE_MODE_AVCVLD:
+                if (decCtx->bShortFormatInUse)
+                    *pbuf = (void *)((uint8_t*)(bufMgr->Codec_Param.Codec_Param_H264.pVASliceParaBufH264Base) + buf->uiOffset);
                 else
-                    *pbuf = (void *)((uint8_t*)(bufMgr->Codec_Param.Codec_Param_HEVC.pVASliceParaBufHEVCRext) + buf->uiOffset);
-
+                    *pbuf = (void *)((uint8_t*)(bufMgr->Codec_Param.Codec_Param_H264.pVASliceParaBufH264) + buf->uiOffset);
+                break;
+            case CODECHAL_DECODE_MODE_MPEG2VLD:
+                *pbuf = (void *)((uint8_t*)(bufMgr->Codec_Param.Codec_Param_MPEG2.pVASliceParaBufMPEG2) + buf->uiOffset);
+                break;
+            case CODECHAL_DECODE_MODE_VC1VLD:
+                *pbuf = (void *)((uint8_t*)(bufMgr->Codec_Param.Codec_Param_VC1.pVASliceParaBufVC1) + buf->uiOffset);
+                break;
+            case CODECHAL_DECODE_MODE_JPEG:
+                *pbuf = (void *)((uint8_t*)(bufMgr->Codec_Param.Codec_Param_JPEG.pVASliceParaBufJPEG) + buf->uiOffset);
+                break;
+            case CODECHAL_DECODE_MODE_VP8VLD:
+                *pbuf = (void *)((uint8_t*)(bufMgr->Codec_Param.Codec_Param_VP8.pVASliceParaBufVP8) + buf->uiOffset);
+                break;
+            case CODECHAL_DECODE_MODE_HEVCVLD:
+                if (decCtx->bShortFormatInUse)
+                    *pbuf = (void *)((uint8_t*)(bufMgr->Codec_Param.Codec_Param_HEVC.pVASliceParaBufBaseHEVC) + buf->uiOffset);
+                else
+                {
+                    if (!decCtx->m_ddiDecodeNext->IsRextProfile())
+                        *pbuf = (void *)((uint8_t*)(bufMgr->Codec_Param.Codec_Param_HEVC.pVASliceParaBufHEVC) + buf->uiOffset);
+                    else
+                        *pbuf = (void *)((uint8_t*)(bufMgr->Codec_Param.Codec_Param_HEVC.pVASliceParaBufHEVCRext) + buf->uiOffset);
+                }
+                break;
+            case CODECHAL_DECODE_MODE_VP9VLD:
+                *pbuf = (void *)((uint8_t*)(bufMgr->Codec_Param.Codec_Param_VP9.pVASliceParaBufVP9) + buf->uiOffset);
+                break;
+            case CODECHAL_DECODE_MODE_AV1VLD:
+                *pbuf = (void *)((uint8_t*)(bufMgr->pCodecSlcParamReserved) + buf->uiOffset);
+                break;
+            default:
+                break;
             }
-            break;
-        case CODECHAL_DECODE_MODE_VP9VLD:
-            *pbuf = (void *)((uint8_t*)(bufMgr->Codec_Param.Codec_Param_VP9.pVASliceParaBufVP9) + buf->uiOffset);
-            break;
-        case CODECHAL_DECODE_MODE_AV1VLD:
-            *pbuf = (void *)((uint8_t*)(bufMgr->pCodecSlcParamReserved) + buf->uiOffset);
-            break;
-        default:
-            break;
         }
         break;
 
