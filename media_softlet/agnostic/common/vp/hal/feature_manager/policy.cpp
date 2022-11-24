@@ -2067,7 +2067,8 @@ MOS_STATUS Policy::GetCgcExecutionCaps(SwFilter* feature)
     }
 
     if (m_hwCaps.m_veboxHwEntry[inputformat].inputSupported &&
-        m_hwCaps.m_veboxHwEntry[inputformat].iecp)
+        m_hwCaps.m_veboxHwEntry[inputformat].iecp           &&
+        m_hwCaps.m_veboxHwEntry[inputformat].cgcSupported)
     {
         cgcEngine.bEnabled = 1;
         cgcEngine.VeboxNeeded = 1;

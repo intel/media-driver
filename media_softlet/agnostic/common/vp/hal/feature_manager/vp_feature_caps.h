@@ -116,7 +116,7 @@ typedef struct VP_SFC_ENTRY_REC
 
 #define VP_FF_VEBOX_FORMAT(SurfaceFormat, bInput, bOutput, _MaxWidth, _MaxHeight, _MinWidth, _MinHeight, _HorizUnit, _VertUnit, _HdrSupported, _CapturePipeSupported, \
                            _DNSupported, _DISupported, _LACESupported, _FrontCscSupported, _BackEndCscSupported, _3DLutSupported, _IecpSupported, _bHsbMode, \
-                           _TCCSupported, _ACESupported, _STESupported)     \
+                           _TCCSupported, _ACESupported, _STESupported, _CGCSupported)     \
         {                                                                                                                   \
             veboxHwEntry[SurfaceFormat].inputSupported                          = bInput;                                   \
             veboxHwEntry[SurfaceFormat].outputSupported                         = bOutput;                                  \
@@ -140,6 +140,7 @@ typedef struct VP_SFC_ENTRY_REC
             veboxHwEntry[SurfaceFormat].aceSupported                            = _ACESupported;                            \
             veboxHwEntry[SurfaceFormat].tccSupported                            = _TCCSupported;                            \
             veboxHwEntry[SurfaceFormat].steSupported                            = _STESupported;                            \
+            veboxHwEntry[SurfaceFormat].cgcSupported                            = _CGCSupported;                            \
         }                                                                                                                   \
 
 typedef struct VP_VEBOX_ENTRY_REC
@@ -167,6 +168,7 @@ typedef struct VP_VEBOX_ENTRY_REC
     bool                          tccSupported;
     bool                          aceSupported;
     bool                          steSupported;
+    bool                          cgcSupported;
 }VP_VEBOX_ENTRY_REC;
 
 struct VP_POLICY_RULES
