@@ -1683,7 +1683,13 @@ VAStatus MediaLibvaCapsG12::QuerySurfaceAttributes(
         MOS_FreeMemory(attribs);
         return VA_STATUS_ERROR_UNIMPLEMENTED;
     }
-
+#if VA_CHECK_VERSION(1,17,0)
+    attribs[i].type = VASurfaceAttribValueMemoryRegion;
+    attribs[i].value.type = VAGenericValueTypeInteger;
+    attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+    attribs[i].value.value.i = 0x1;
+    i++;
+#endif
     if (i > *numAttribs)
     {
         *numAttribs = i;
