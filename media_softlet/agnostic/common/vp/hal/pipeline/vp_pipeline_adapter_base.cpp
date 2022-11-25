@@ -126,6 +126,14 @@ MOS_STATUS VpPipelineAdapterBase::GetVpMhwInterface(
 VpPipelineAdapterBase::~VpPipelineAdapterBase()
 {
     MOS_STATUS eStatus;
+
+    // Wait for all cmd before destroy gpu resource
+    if (m_osInterface && m_osInterface->pfnWaitAllCmdCompletion && m_osInterface->bDeallocateOnExit)
+    {
+        VP_PUBLIC_NORMALMESSAGE("WaitAllCmdCompletion in VpPipelineAdapterBase::~VpPipelineAdapterBase");
+        m_osInterface->pfnWaitAllCmdCompletion(m_osInterface);
+    }
+
     if (m_vprenderHal)
     {
         VPHAL_DBG_OCA_DUMPER_DESTORY(m_vprenderHal);
