@@ -106,10 +106,6 @@
 
 #include "renderhal_xe_hpg_next.h"
 
-#ifndef _VPHALNEXT_ENABLED
-#include "vphal_xe_lpm_plus.h"
-#include "renderhal_xe_hpg.h"
-#endif
 #include "decode_scalability_singlepipe_next.h"
 #include "decode_scalability_multipipe_next.h"
 
@@ -190,10 +186,6 @@ static const L3ConfigRegisterValues DG2_L3_PLANES[DG2_L3_CONFIG_COUNT] =
 class VphalInterfacesXe_Lpm_Plus : public VphalDevice
 {
 public:
-//Remove vphalstate after legacy code clean up.
-#ifndef _VPHALNEXT_ENABLED
-    using VphalState = VphalStateXe_Lpm_Plus;
-#endif
     MOS_STATUS Initialize(
         PMOS_INTERFACE  osInterface,
         bool            bInitVphalState,
@@ -213,9 +205,6 @@ MEDIA_CLASS_DEFINE_END(VphalInterfacesXe_Lpm_Plus)
 class RenderHalInterfacesXe_Lpg : public RenderHalDevice
 {
 protected:
-#ifndef _VPHALNEXT_ENABLED
-    using XRenderHalLegacy = XRenderHal_Interface_Xe_Hpg;
-#endif
     using XRenderHal = XRenderHal_Interface_Xe_Hpg_Next;
     MOS_STATUS Initialize();
 

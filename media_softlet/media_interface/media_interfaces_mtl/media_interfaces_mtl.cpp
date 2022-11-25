@@ -73,75 +73,40 @@ MOS_STATUS VphalInterfacesXe_Lpm_Plus::Initialize(
     bool           bInitVphalState,
     MOS_STATUS *   eStatus)
 {
-//Remove vphalstate after legacy code clean up.
-#ifndef _VPHALNEXT_ENABLED
-    bool                        bApogeiosEnable = true;
-    uint32_t                    userSettingVal  = 1;
-    MediaUserSettingSharedPtr   userSettingPtr = nullptr;
-    if (nullptr == osInterface)
+    vp::VpPlatformInterface *vpPlatformInterface = MOS_New(vp::VpPlatformInterfacesXe_Lpm_Plus, osInterface);
+    if (nullptr == vpPlatformInterface)
     {
         *eStatus = MOS_STATUS_NULL_POINTER;
         return *eStatus;
     }
-    userSettingPtr = osInterface->pfnGetUserSettingInstance(osInterface);
-    if (userSettingPtr != nullptr)
+
+    InitPlatformKernelBinary(vpPlatformInterface);
+
+    if (!bInitVphalState)
     {
-        ReadUserSetting(
-            userSettingPtr,
-            userSettingVal,
-            __MEDIA_USER_FEATURE_VALUE_APOGEIOS_ENABLE,
-            MediaUserSetting::Group::Device,
-            uint32_t(1),
-            true);
-    }
-    bApogeiosEnable = userSettingVal ? true : false;
-    if (bApogeiosEnable)
-    {
-#endif
-        vp::VpPlatformInterface *vpPlatformInterface = MOS_New(vp::VpPlatformInterfacesXe_Lpm_Plus, osInterface);
-        if (nullptr == vpPlatformInterface)
+        m_vpPipeline = MOS_New(vp::VpPipeline, osInterface);
+        if (nullptr == m_vpPipeline)
         {
-            *eStatus = MOS_STATUS_NULL_POINTER;
-            return *eStatus;
+            MOS_Delete(vpPlatformInterface);
+            MOS_OS_CHK_NULL_RETURN(m_vpPipeline);
         }
-
-        InitPlatformKernelBinary(vpPlatformInterface);
-
-        if (!bInitVphalState)
-        {
-            m_vpPipeline = MOS_New(vp::VpPipeline, osInterface);
-            if (nullptr == m_vpPipeline)
-            {
-                MOS_Delete(vpPlatformInterface);
-                MOS_OS_CHK_NULL_RETURN(m_vpPipeline);
-            }
             m_vpPlatformInterface = vpPlatformInterface;
             *eStatus              = MOS_STATUS_SUCCESS;
             return *eStatus;
-        }
+    }
 
-        m_vpBase = MOS_New(
-            VpPipelineAdapterXe_Lpm_Plus,
-            osInterface,
-            *vpPlatformInterface,
-            *eStatus);
-        if (nullptr == m_vpBase)
-        {
-            MOS_Delete(vpPlatformInterface);
-            *eStatus = MOS_STATUS_NULL_POINTER;
-            return *eStatus;
-        }
-        m_isNextEnabled = true;
-#ifndef _VPHALNEXT_ENABLED
-    }
-    else
+    m_vpBase = MOS_New(
+        VpPipelineAdapterXe_Lpm_Plus,
+        osInterface,
+        *vpPlatformInterface,
+        *eStatus);
+    if (nullptr == m_vpBase)
     {
-        m_vpBase = MOS_New(
-            VphalState,
-            osInterface,
-            eStatus);
+        MOS_Delete(vpPlatformInterface);
+        *eStatus = MOS_STATUS_NULL_POINTER;
+        return *eStatus;
     }
-#endif
+    m_isNextEnabled = true;
     return *eStatus;
 }
 
@@ -651,47 +616,12 @@ static bool mtlRegisteredRenderHal =
 
 MOS_STATUS RenderHalInterfacesXe_Lpg::Initialize()
 {
-//Remove below legacy renderhal platform interface contents after all vp features switch to APO.
-#ifndef _VPHALNEXT_ENABLED
-    bool                        bApogeiosEnable = true;
-    uint32_t                    userSettingVal  = 1;
-    MediaUserSettingSharedPtr   userSettingPtr = nullptr;
-    if (m_osInterface != nullptr)
+    m_renderhalDevice = MOS_New(XRenderHal);
+    if (m_renderhalDevice == nullptr)
     {
-        userSettingPtr = m_osInterface->pfnGetUserSettingInstance(m_osInterface);
-        if (userSettingPtr != nullptr)
-        {
-            ReadUserSetting(
-                userSettingPtr,
-                userSettingVal,
-                __MEDIA_USER_FEATURE_VALUE_APOGEIOS_ENABLE,
-                MediaUserSetting::Group::Device,
-                uint32_t(1),
-                true);
-        }
+        MHW_ASSERTMESSAGE("Create Render Hal interfaces failed.")
+        return MOS_STATUS_NO_SPACE;
     }
-    bApogeiosEnable = userSettingVal ? true : false;
-    if (bApogeiosEnable)
-    {
-#endif
-        m_renderhalDevice = MOS_New(XRenderHal);
-        if (m_renderhalDevice == nullptr)
-        {
-            MHW_ASSERTMESSAGE("Create Render Hal interfaces failed.")
-            return MOS_STATUS_NO_SPACE;
-        }
-#ifndef _VPHALNEXT_ENABLED
-    }
-    else
-    {
-        m_renderhalDevice = MOS_New(XRenderHalLegacy);
-        if (m_renderhalDevice == nullptr)
-        {
-            MHW_ASSERTMESSAGE("Create legacy Render Hal interfaces failed.")
-            return MOS_STATUS_NO_SPACE;
-        }
-    }
-#endif
     return MOS_STATUS_SUCCESS;
 }
 

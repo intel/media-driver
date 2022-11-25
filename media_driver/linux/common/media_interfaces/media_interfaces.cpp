@@ -31,7 +31,6 @@
 #include "media_interfaces_cmhal.h"
 #include "media_interfaces_mosutil.h"
 #include "media_interfaces_vphal.h"
-#include "media_interfaces_renderhal.h"
 #include "media_interfaces_nv12top010.h"
 #include "media_interfaces_decode_histogram.h"
 #include "media_interfaces_hwinfo_device.h"
@@ -57,7 +56,6 @@ template class MediaFactory<uint32_t, MosUtilDevice>;
 template class MediaFactory<uint32_t, CodechalDevice>;
 template class MediaFactory<uint32_t, CMHalDevice>;
 template class MediaFactory<uint32_t, VphalDevice>;
-template class MediaFactory<uint32_t, RenderHalDevice>;
 template class MediaFactory<uint32_t, Nv12ToP010Device>;
 template class MediaFactory<uint32_t, DecodeHistogramDevice>;
 template class MediaFactory<uint32_t, MediaInterfacesHwInfoDevice>;
@@ -69,7 +67,6 @@ typedef MediaFactory<uint32_t, MosUtilDevice> MosUtilFactory;
 typedef MediaFactory<uint32_t, CodechalDevice> CodechalFactory;
 typedef MediaFactory<uint32_t, CMHalDevice> CMHalFactory;
 typedef MediaFactory<uint32_t, VphalDevice> VphalFactory;
-typedef MediaFactory<uint32_t, RenderHalDevice> RenderHalFactory;
 typedef MediaFactory<uint32_t, Nv12ToP010Device> Nv12ToP010Factory;
 typedef MediaFactory<uint32_t, DecodeHistogramDevice> DecodeHistogramFactory;
 typedef MediaFactory<uint32_t, MediaInterfacesHwInfoDevice> HwInfoFactory;
@@ -159,133 +156,6 @@ VpBase* VphalDevice::CreateFactory(
     MOS_Delete(vphalDevice);
 
     return vphalState;
-}
-
-VpBase *VphalDevice::CreateFactoryNext(
-    PMOS_INTERFACE     osInterface,
-    MOS_CONTEXT_HANDLE osDriverContext,
-    MOS_STATUS         *eStatus)
-{
-    VpBase                *vpBase            = nullptr;
-    VphalDevice           *vphalDevice       = nullptr;
-    PLATFORM              platform;
-
-    if (eStatus == nullptr)
-    {
-        VP_DEBUG_ASSERTMESSAGE("Invalid null pointer.");
-        return nullptr;
-    }
-
-    // pOsInterface not provided - use default for the current OS
-    if (osInterface == nullptr)
-    {
-        osInterface = (PMOS_INTERFACE)MOS_AllocAndZeroMemory(sizeof(MOS_INTERFACE));
-
-        if (osInterface == nullptr)
-        {
-            VP_DEBUG_ASSERTMESSAGE("Allocate OS interface failed");
-            *eStatus = MOS_STATUS_NO_SPACE;
-            return nullptr;
-        }
-
-        if (MOS_STATUS_SUCCESS != Mos_InitInterface(osInterface, osDriverContext, COMPONENT_VPCommon))
-        {
-            VP_DEBUG_ASSERTMESSAGE("Initailze OS interface failed");
-            MOS_FreeMemAndSetNull(osInterface);
-            *eStatus = MOS_STATUS_NO_SPACE;
-            return nullptr;
-        }
-
-        osInterface->bDeallocateOnExit = true;
-    }
-    else
-    // pOsInterface provided - use OS interface functions provided by DDI (OS emulation)
-    {
-        // Copy OS interface structure, save context
-        osInterface->pOsContext = (PMOS_CONTEXT)osDriverContext;
-        osInterface->bDeallocateOnExit = false;
-    }
-
-    // Initialize platform
-    osInterface->pfnGetPlatform(osInterface, &platform);
-
-    vphalDevice = VphalFactory::Create(platform.eProductFamily);
-
-    if (vphalDevice == nullptr)
-    {
-        VP_DEBUG_ASSERTMESSAGE("Failed to create MediaInterface on the given platform!");
-        if (osInterface->bDeallocateOnExit)
-        {
-            MOS_FreeMemAndSetNull(osInterface);
-        }
-        *eStatus = MOS_STATUS_NO_SPACE;
-        return nullptr;
-    }
-
-    if (vphalDevice->Initialize(osInterface, true, eStatus) != MOS_STATUS_SUCCESS)
-    {
-        VP_DEBUG_ASSERTMESSAGE("VPHal interfaces were not successfully allocated!");
-
-        // If m_vpBase has been created, osInterface should be released in VphalState::~VphalState.
-        if (osInterface->bDeallocateOnExit && nullptr == vphalDevice->m_vpBase)
-        {
-            // Deallocate OS interface structure (except if externally provided)
-            if (osInterface->pfnDestroy)
-            {
-                osInterface->pfnDestroy(osInterface, true);
-            }
-            MOS_FreeMemAndSetNull(osInterface);
-        }
-
-        vphalDevice->Destroy();
-        MOS_Delete(vphalDevice);
-
-        *eStatus = MOS_STATUS_NO_SPACE;
-        return nullptr;
-    }
-
-    vpBase = vphalDevice->m_vpBase;
-   
-    MOS_Delete(vphalDevice);
-    return vpBase;
-}
-
-MOS_STATUS VphalDevice::CreateVPMhwInterfaces(
-    bool                              sfcNeeded,
-    bool                              veboxNeeded,
-    std::shared_ptr<mhw::vebox::Itf>  &veboxItf,
-    std::shared_ptr<mhw::sfc::Itf>    &sfcItf,
-    std::shared_ptr<mhw::mi::Itf>     &miItf,
-    PMOS_INTERFACE                    osInterface)
-{
-    MhwInterfacesNext               *mhwInterfaces = nullptr;
-    MhwInterfacesNext::CreateParams params         = {};
-    params.Flags.m_sfc   = sfcNeeded;
-    params.Flags.m_vebox = veboxNeeded;
-
-    mhwInterfaces = MhwInterfacesNext::CreateFactory(params, osInterface);
-    if (mhwInterfaces)
-    {
-        veboxItf = mhwInterfaces->m_veboxItf;
-        sfcItf   = mhwInterfaces->m_sfcItf;
-        miItf    = mhwInterfaces->m_miItf;
-
-        // MhwInterfaces always create CP and MI interfaces, so we have to delete those we don't need.
-        Delete_MhwCpInterface(mhwInterfaces->m_cpInterface);
-        mhwInterfaces->m_cpInterface = nullptr;
-        MOS_Delete(mhwInterfaces);
-        return MOS_STATUS_SUCCESS;
-    }
-
-    VP_PUBLIC_ASSERTMESSAGE("Allocate MhwInterfaces failed");
-    return MOS_STATUS_NO_SPACE;
-}
-
-void VphalDevice::Destroy()
-{
-    MOS_Delete(m_vpBase);
-    MOS_Delete(m_vpPipeline);
-    MOS_Delete(m_vpPlatformInterface);
 }
 
 MhwInterfaces* MhwInterfaces::CreateFactory(
@@ -682,31 +552,6 @@ void* MosUtilDevice::CreateFactory(
 
     MOS_Delete(device); // avoid mem leak
     return mosUtiInterface;
-}
-
-XRenderHal_Platform_Interface* RenderHalDevice::CreateFactory(
-        PMOS_INTERFACE osInterface)
-{
-    RenderHalDevice *device = nullptr;
-    PLATFORM platform = {};
-    osInterface->pfnGetPlatform(osInterface, &platform);
-    device = RenderHalFactory::Create(platform.eProductFamily);
-    if (device == nullptr)
-    {
-        return nullptr;
-    }
-    device->m_osInterface = osInterface;
-    device->Initialize();
-    if (device->m_renderhalDevice == nullptr)
-    {
-        MHW_ASSERTMESSAGE("RenderHal device creation failed!");
-        MOS_Delete(device);
-        return nullptr;
-    }
-
-    XRenderHal_Platform_Interface *pRet = device->m_renderhalDevice;
-    MOS_Delete(device);
-    return pRet;
 }
 
 CodechalDecodeHistogram* DecodeHistogramDevice::CreateFactory(
