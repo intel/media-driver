@@ -271,7 +271,8 @@ int mos_bufmgr_gem_get_devid(struct mos_bufmgr *bufmgr);
 struct mos_linux_context *mos_gem_context_create(struct mos_bufmgr *bufmgr);
 struct mos_linux_context *mos_gem_context_create_ext(
                             struct mos_bufmgr *bufmgr,
-                            __u32 flags);
+                            __u32 flags,
+                            bool bContextProtected);
 struct mos_linux_context *mos_gem_context_create_shared(
                             struct mos_bufmgr *bufmgr,
                             mos_linux_context* ctx,

@@ -593,8 +593,9 @@ struct _MOS_OS_CONTEXT
 
     std::vector<struct MOS_CONTEXT_OFFSET> contextOffsetList = {};
 
-    bool                bSimIsActive        = false;   //!< To indicate if simulation environment
-    bool                m_apoMosEnabled     = false;  //!< apo mos or not
+    bool                bSimIsActive            = false;   //!< To indicate if simulation environment
+    bool                m_apoMosEnabled         = false;   //!< apo mos or not
+    bool                m_protectedGEMContext   = false;   //!< Indicates to create protected GEM content
 
     MediaUserSettingSharedPtr m_userSettingPtr  = nullptr;  // used to save user setting instance
 

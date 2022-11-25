@@ -382,10 +382,11 @@ MOS_STATUS MosInterface::InitStreamParameters(
 
     mos_bufmgr_gem_enable_reuse(bufMgr);
 
-    context->m_skuTable           = *osDeviceContext->GetSkuTable();
-    context->m_waTable            = *osDeviceContext->GetWaTable();
-    context->m_gtSystemInfo       = *osDeviceContext->GetGtSysInfo();
-    context->m_platform           = *osDeviceContext->GetPlatformInfo();
+    context->m_skuTable            = *osDeviceContext->GetSkuTable();
+    context->m_waTable             = *osDeviceContext->GetWaTable();
+    context->m_gtSystemInfo        = *osDeviceContext->GetGtSysInfo();
+    context->m_platform            = *osDeviceContext->GetPlatformInfo();
+    context->m_protectedGEMContext = ((PMOS_CONTEXT)extraParams)->m_protectedGEMContext;
 
     context->bUse64BitRelocs    = true;
     context->bUseSwSwizzling    = context->bSimIsActive || MEDIA_IS_SKU(&context->m_skuTable, FtrUseSwSwizzling);
@@ -395,7 +396,7 @@ MOS_STATUS MosInterface::InitStreamParameters(
     {
         MOS_TraceEventExt(EVENT_GPU_CONTEXT_CREATE, EVENT_TYPE_START,
                           &eStatus, sizeof(eStatus), nullptr, 0);
-        context->intel_context = mos_gem_context_create_ext(context->bufmgr, 0);
+        context->intel_context = mos_gem_context_create_ext(context->bufmgr, 0, context->m_protectedGEMContext);
         MOS_OS_CHK_NULL_RETURN(context->intel_context);
         context->intel_context->vm = mos_gem_vm_create(context->bufmgr);
         MOS_OS_CHK_NULL_RETURN(context->intel_context->vm);

@@ -488,7 +488,7 @@ MOS_STATUS OsContextSpecific::Init(PMOS_CONTEXT pOsDriverContext)
                           &eStatus, sizeof(eStatus), nullptr, 0);
         if (!Mos_Solo_IsEnabled(nullptr) && MEDIA_IS_SKU(&m_skuTable,FtrContextBasedScheduling))
         {
-            m_intelContext = mos_gem_context_create_ext(pOsDriverContext->bufmgr,0);
+            m_intelContext = mos_gem_context_create_ext(pOsDriverContext->bufmgr,0, pOsDriverContext->m_protectedGEMContext);
             if (m_intelContext)
             {
                 m_intelContext->vm = mos_gem_vm_create(pOsDriverContext->bufmgr);
