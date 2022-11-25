@@ -85,6 +85,34 @@
 #define HUC_DMEM_OFFSET_RTOS_GEMS                  0x2000
 #define VDBOX_HUC_VDENC_BRC_INIT_KERNEL_DESCRIPTOR 4
 
+#define CODEC_720P_MAX_PIC_WIDTH       1280
+#define CODEC_720P_MAX_PIC_HEIGHT      1280
+
+#define CODEC_MAX_PIC_WIDTH            1920
+#define CODEC_MAX_PIC_HEIGHT           1920                // Tablet usage in portrait mode, image resolution = 1200x1920, so change MAX_HEIGHT to 1920
+
+#define CODEC_2K_MAX_PIC_WIDTH         2048
+#define CODEC_2K_MAX_PIC_HEIGHT        2048
+
+#define CODEC_4K_VC1_MAX_PIC_WIDTH     3840
+#define CODEC_4K_VC1_MAX_PIC_HEIGHT    3840
+
+#define CODEC_4K_MAX_PIC_WIDTH         4096
+#define CODEC_4K_MAX_PIC_HEIGHT        4096
+
+#define CODEC_8K_MAX_PIC_WIDTH         8192
+#define CODEC_8K_MAX_PIC_HEIGHT        8192
+
+#define CODEC_16K_MAX_PIC_WIDTH        16384
+#define CODEC_12K_MAX_PIC_HEIGHT       12288
+#define CODEC_16K_MAX_PIC_HEIGHT       16384
+
+#define CODECHAL_MAD_BUFFER_SIZE                4 // buffer size is 4 bytes
+
+#define CODEC_128_MIN_PIC_WIDTH        128
+#define CODEC_96_MIN_PIC_HEIGHT        96
+#define CODEC_128_MIN_PIC_HEIGHT       128
+
 /*! \brief Flags for various picture properties.
 */
 typedef enum _CODEC_PICTURE_FLAG
