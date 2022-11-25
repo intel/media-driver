@@ -69,6 +69,7 @@ set(SOFTLET_VP_PRIVATE_INCLUDE_DIRS_ "")
 set(CP_COMMON_SHARED_SOURCES_ "") # legacy and softlet shared source group
 set(CP_COMMON_NEXT_SOURCES_ "")   # softlet source group
 set(SOFTLET_DDI_PUBLIC_INCLUDE_DIRS_ "")
+set(SOFTLET_CODEC_SOURCES_ "")
 set(SOFTLET_CODEC_PRIVATE_INCLUDE_DIRS_ "")
 set(CP_INTERFACE_DIRECTORIES_ "")
 
@@ -138,6 +139,18 @@ target_include_directories(${LIB_NAME}_SOFTLET_VP BEFORE PRIVATE
     ${CP_INTERFACE_DIRECTORIES_}
 )
 
+add_library(${LIB_NAME}_SOFTLET_CODEC OBJECT ${SOFTLET_CODEC_SOURCES_})
+set_property(TARGET ${LIB_NAME}_SOFTLET_CODEC PROPERTY POSITION_INDEPENDENT_CODE 1)
+MediaAddCommonTargetDefines(${LIB_NAME}_SOFTLET_CODEC)
+target_include_directories(${LIB_NAME}_SOFTLET_CODEC BEFORE PRIVATE
+    ${SOFTLET_MOS_PREPEND_INCLUDE_DIRS_}
+    ${SOFTLET_MOS_PUBLIC_INCLUDE_DIRS_}
+    ${SOFTLET_COMMON_PRIVATE_INCLUDE_DIRS_}
+    ${SOFTLET_VP_PRIVATE_INCLUDE_DIRS_}
+    ${SOFTLET_DDI_PUBLIC_INCLUDE_DIRS_}
+    ${SOFTLET_CODEC_PRIVATE_INCLUDE_DIRS_}
+    ${CP_INTERFACE_DIRECTORIES_}
+)
 ############## MOS LIB ########################################
 set_source_files_properties(${MOS_COMMON_SOURCES_} PROPERTIES LANGUAGE "CXX")
 set_source_files_properties(${SOFTLET_MOS_COMMON_SOURCES_} PROPERTIES LANGUAGE "CXX")
@@ -171,6 +184,7 @@ target_include_directories(${LIB_NAME}_mos_softlet BEFORE PRIVATE
 add_library(${LIB_NAME_STATIC} STATIC
     $<TARGET_OBJECTS:${LIB_NAME}_mos_softlet>
     $<TARGET_OBJECTS:${LIB_NAME}_SOFTLET_VP>
+    $<TARGET_OBJECTS:${LIB_NAME}_SOFTLET_CODEC>
     $<TARGET_OBJECTS:${LIB_NAME}_SOFTLET_COMMON>)
 
 set_target_properties(${LIB_NAME_STATIC} PROPERTIES OUTPUT_NAME ${LIB_NAME_STATIC})
@@ -179,6 +193,7 @@ option(MEDIA_BUILD_FATAL_WARNINGS "Turn compiler warnings into fatal errors" ON)
 if(MEDIA_BUILD_FATAL_WARNINGS)
     set_target_properties(${LIB_NAME}_mos_softlet PROPERTIES COMPILE_FLAGS "-Werror")
     set_target_properties(${LIB_NAME}_SOFTLET_VP PROPERTIES COMPILE_FLAGS "-Werror")
+    set_target_properties(${LIB_NAME}_SOFTLET_CODEC PROPERTIES COMPILE_FLAGS "-Werror")
     set_target_properties(${LIB_NAME}_SOFTLET_COMMON PROPERTIES COMPILE_FLAGS "-Werror")
 endif()
 
