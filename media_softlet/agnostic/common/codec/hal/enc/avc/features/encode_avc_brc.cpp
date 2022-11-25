@@ -642,7 +642,7 @@ MOS_STATUS AvcEncodeBRC::SetDmemForUpdate(void* params, uint16_t numPasses, uint
     hucVdencBrcUpdateDmem->UPD_LA_TargetSize_U32    = avcPicParams->TargetFrameSize << 3;
     hucVdencBrcUpdateDmem->UPD_TCBRC_SCENARIO_U8    = 0;  // Temporal fix because of DDI flag deprication. Use Cloud Gaming mode by default
     hucVdencBrcUpdateDmem->UPD_NumSlicesForRounding = GetAdaptiveRoundingNumSlices();
-    hucVdencBrcUpdateDmem->UPD_UserMaxFramePB       = avcPicParams->TargetFrameSize;
+    hucVdencBrcUpdateDmem->UPD_UserMaxFramePB       = avcSeqParams->UserMaxPBFrameSize;
 
     if (avcSeqParams->LookaheadDepth == 0 && avcPicParams->TargetFrameSize > 0 &&
         (hucVdencBrcUpdateDmem->UPD_TCBRC_SCENARIO_U8 == 2 || avcSeqParams->UserMaxPBFrameSize <= avcPicParams->TargetFrameSize * 2))
