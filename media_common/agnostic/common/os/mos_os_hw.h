@@ -186,6 +186,10 @@ typedef enum _MOS_HW_RESOURCE_DEF
     // Media GMM Resource USAGES
     MOS_RESOURCE_USAGE_CCS_MEDIA_WRITABLE,
 
+    // Media BLT copy USAGES
+    MOS_GMM_RESOURCE_USAGE_BLT_SOURCE,
+    MOS_GMM_RESOURCE_USAGE_BLT_DESTINATION,
+
     // PAT Media Usages
     MOS_HW_RESOURCE_USAGE_MEDIA_BATCH_BUFFERS,
     // DECODE
@@ -232,7 +236,7 @@ typedef enum _MOS_HW_RESOURCE_DEF
     // always last one
     MOS_HW_RESOURCE_DEF_MAX
 } MOS_HW_RESOURCE_DEF;
-C_ASSERT(MOS_HW_RESOURCE_DEF_MAX == 172); //!< update this and Mos_CachePolicyGetMemoryObject_XXX()
+C_ASSERT(MOS_HW_RESOURCE_DEF_MAX == 174); //!< update this and Mos_CachePolicyGetMemoryObject_XXX()
 
 //!
 //! \brief Enum allow callers to specify a command streamer.

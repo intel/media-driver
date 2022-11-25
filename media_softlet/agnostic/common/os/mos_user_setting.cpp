@@ -1367,6 +1367,12 @@ MOS_STATUS MosUserSetting::InitUserSettingForDebug(MediaUserSettingSharedPtr use
         std::string(),
         false);
 
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_SET_MCPY_FORCE_MODE,
+        MediaUserSetting::Group::Device,
+        0,      // 0 is ignore. 1 blt, 2 render, 3 vebox, 4 bypass copy engine;
+        true);  //"media copy force copy model."
     return MOS_STATUS_SUCCESS;
 }
 

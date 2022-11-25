@@ -270,6 +270,7 @@ public:
     bool                  m_allowCPBltCopy = false;  // allow cp call media copy only for output clear cases.
 #if (_DEBUG || _RELEASE_INTERNAL)
     CommonSurfaceDumper  *m_surfaceDumper  = nullptr;
+    int                  m_MCPYForceMode   = 0;
 #endif
 
 

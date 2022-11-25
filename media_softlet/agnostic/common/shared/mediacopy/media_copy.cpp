@@ -84,6 +84,18 @@ MOS_STATUS MediaCopyBaseState::Initialize(PMOS_INTERFACE osInterface)
        m_surfaceDumper = MOS_New(CommonSurfaceDumper, osInterface);
        MOS_OS_CHK_NULL_RETURN(m_surfaceDumper);
     }
+    MediaUserSettingSharedPtr           userSettingPtr = nullptr;
+
+    if (m_osInterface)
+    {
+        userSettingPtr = m_osInterface->pfnGetUserSettingInstance(m_osInterface);
+        ReadUserSettingForDebug(
+            userSettingPtr,
+            m_MCPYForceMode,
+            __MEDIA_USER_FEATURE_SET_MCPY_FORCE_MODE,
+            MediaUserSetting::Group::Device);
+    }
+
    #endif
     return MOS_STATUS_SUCCESS;
 }
@@ -156,7 +168,6 @@ MOS_STATUS MediaCopyBaseState::PreCheckCpCopy(
 //!
 MOS_STATUS MediaCopyBaseState::CopyEnigneSelect(MCPY_METHOD preferMethod, MCPY_ENGINE& mcpyEngine, MCPY_ENGINE_CAPS& caps)
 {
-    // assume perf render > vebox > blt. blt data should be measured.
     // driver should make sure there is at least one he can process copy even customer choice doesn't match caps.
     switch (preferMethod)
     {
@@ -173,7 +184,24 @@ MOS_STATUS MediaCopyBaseState::CopyEnigneSelect(MCPY_METHOD preferMethod, MCPY_E
         default:
             break;
     }
-
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (MCPY_METHOD_PERFORMANCE == m_MCPYForceMode)
+    {
+        mcpyEngine = MCPY_ENGINE_RENDER;
+    }
+    else if (MCPY_METHOD_POWERSAVING == m_MCPYForceMode)
+    {
+        mcpyEngine = MCPY_ENGINE_BLT;
+    }
+    else if (MCPY_METHOD_BALANCE == m_MCPYForceMode)
+    {
+        mcpyEngine = MCPY_ENGINE_VEBOX;
+    }
+    else if (4 == m_MCPYForceMode)
+    {
+        return MOS_STATUS_INVALID_PARAMETER; // bypass copy engine, just let APP handle it.
+    }
+#endif
     return MOS_STATUS_SUCCESS;
 }
 

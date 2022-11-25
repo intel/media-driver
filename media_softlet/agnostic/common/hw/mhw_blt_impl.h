@@ -224,13 +224,17 @@ public:
         cmd.DW0.InstructionTargetOpcode = 0x41;
         cmd.DW0.ColorDepth              = params.dwColorDepth;
         cmd.DW1.DestinationPitch        = params.dwDstPitch - 1;
-        cmd.DW1.DestinationMocsValue    = this->m_osItf->pfnGetGmmClientContext(this->m_osItf)->CachePolicyGetMemoryObject(nullptr, GMM_RESOURCE_USAGE_BLT_DESTINATION).DwordValue;
+        cmd.DW1.DestinationMocsValue    =
+            this->m_osItf->pfnCachePolicyGetMemoryObject(MOS_GMM_RESOURCE_USAGE_BLT_DESTINATION,
+                                                         m_osItf->pfnGetGmmClientContext(m_osItf)).DwordValue;
 
         cmd.DW1.DestinationControlSurfaceType = 1;// 1 is media; 0 is 3D;
         cmd.DW1.DestinationTiling             = GetFastTilingMode(dstTiledMode);
         cmd.DW8.SourceControlSurfaceType      = 1; // 1 is media; 0 is 3D;
         cmd.DW8.SourceTiling                  = GetFastTilingMode(srcTiledMode);
-        cmd.DW8.SourceMocs                    = this->m_osItf->pfnGetGmmClientContext(this->m_osItf)->CachePolicyGetMemoryObject(nullptr, GMM_RESOURCE_USAGE_BLT_SOURCE).DwordValue;
+        cmd.DW8.SourceMocs                    =
+            this->m_osItf->pfnCachePolicyGetMemoryObject(MOS_GMM_RESOURCE_USAGE_BLT_SOURCE,
+                                                         m_osItf->pfnGetGmmClientContext(m_osItf)).DwordValue;
 
         cmd.DW2.DestinationX1CoordinateLeft   = 0;
         cmd.DW2.DestinationY1CoordinateTop    = 0;

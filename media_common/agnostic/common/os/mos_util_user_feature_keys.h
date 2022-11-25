@@ -86,6 +86,7 @@
 #define __MEDIA_USER_FEATURE_VALUE_MEDIA_DEBUG_CFG_GENERATION           "Media Debug Cfg Generation"
 #define __MEDIA_USER_FEATURE_MCPY_MODE                                  "MediaCopy Mode"
 #define __MEDIA_USER_FEATURE_VALUE_VEBOX_SPLIT_RATIO                    "Vebox Split Ratio"
+#define __MEDIA_USER_FEATURE_SET_MCPY_FORCE_MODE                        "MCPY Force Mode"
 
 //!
 //! \brief Keys for mmc
