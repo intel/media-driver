@@ -121,7 +121,7 @@ namespace encode
 
             if (m_LcuMap == nullptr)
             {
-                m_LcuMap = static_cast<uint32_t*>(MOS_AllocAndZeroMemory(m_widthInLCU * m_widthInLCU * sizeof(uint32_t)));
+                m_LcuMap = static_cast<uint32_t *>(MOS_AllocAndZeroMemory(m_widthInLCU * m_heightInLCU * sizeof(uint32_t)));
             }
             ENCODE_CHK_STATUS_RETURN(SetupLCUMap());
             m_initialized = true;
