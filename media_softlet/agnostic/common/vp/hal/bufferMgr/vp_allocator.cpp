@@ -638,7 +638,8 @@ MOS_STATUS VpAllocator::GetSurfaceInfo(VPHAL_SURFACE *surface, VPHAL_GET_SURFACE
          surface->TileType == MOS_TILE_YS))
     {
         surface->bCompressible   = true;
-        surface->CompressionMode = (MOS_RESOURCE_MMC_MODE)mmcMode;
+        surface->CompressionMode = (mmcMode == MOS_MEMCOMP_MC) ? MOS_MMC_MC :
+                                   (mmcMode == MOS_MEMCOMP_RC) ? MOS_MMC_RC : MOS_MMC_DISABLED;
     }
     else
     {

@@ -1494,6 +1494,7 @@ bool CompositeState::PreparePhases(
     bool                    bMultiplePhases;
     MOS_ALLOC_GFXRES_PARAMS AllocParams = {};
     VPHAL_GET_SURFACE_INFO  Info = {};
+    MOS_STATUS  eStatus = MOS_STATUS_SUCCESS;
 
     pTarget = pcRenderParams->pTarget[0];
 
@@ -1536,6 +1537,20 @@ bool CompositeState::PreparePhases(
                 VPHAL_RENDER_ASSERTMESSAGE("Force to 3D sampler for layer %d.", i);
                 ppSources[i]->ScalingMode = VPHAL_SCALING_BILINEAR;
             }
+
+            // Decompression RGB10 RC input for multi input cases cases
+            if ((ppSources[i]->CompressionMode == MOS_MMC_RC) &&
+                (MEDIA_IS_SKU(m_pSkuTable, FtrLocalMemory)    &&
+                !MEDIA_IS_SKU(m_pSkuTable, FtrFlatPhysCCS)))
+            {
+                eStatus = m_pOsInterface->pfnDecompResource(m_pOsInterface, &ppSources[i]->OsResource);
+
+                if (eStatus != MOS_STATUS_SUCCESS)
+                {
+                    VPHAL_RENDER_ASSERTMESSAGE("Additional decompression for RC failed.");
+                }
+            }
+
             if (!AddCompLayer(&Composite, ppSources[i], disableAvsSampler))
             {
                 bMultiplePhases = true;

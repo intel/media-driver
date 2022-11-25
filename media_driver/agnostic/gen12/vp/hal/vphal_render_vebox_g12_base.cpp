@@ -1170,9 +1170,9 @@ bool VPHAL_VEBOX_STATE_G12_BASE::IsMMCEnabledForCurrOutputSurf()
     VPHAL_RENDER_CHK_NULL_NO_STATUS(pRenderData);
     VPHAL_RENDER_CHK_NULL_NO_STATUS(pRenderData->pRenderTarget);
 
-    return bEnableMMC   &&
+    return bEnableMMC &&
            IsFormatMMCSupported(pRenderData->pRenderTarget->Format) &&
-           (pRenderData->pRenderTarget->CompressionMode == MOS_MMC_MC);
+           (pRenderData->pRenderTarget->CompressionMode != MOS_MMC_DISABLED);
 
 finish:
     return false;
