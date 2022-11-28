@@ -1543,11 +1543,52 @@ bool CompositeState::PreparePhases(
                 (MEDIA_IS_SKU(m_pSkuTable, FtrLocalMemory)    &&
                 !MEDIA_IS_SKU(m_pSkuTable, FtrFlatPhysCCS)))
             {
+                bool bAllocated = false;
+                //Use auxiliary surface to sync with decompression
+                eStatus = VpHal_ReAllocateSurface(
+                    m_pOsInterface,
+                    &m_AuxiliarySyncSurface,
+                    "AuxiliarySyncSurface",
+                    Format_Buffer,
+                    MOS_GFXRES_BUFFER,
+                    MOS_TILE_LINEAR,
+                    32,
+                    1,
+                    false,
+                    MOS_MMC_DISABLED,
+                    &bAllocated);
+
+                if (eStatus != MOS_STATUS_SUCCESS)
+                {
+                    VPHAL_RENDER_ASSERTMESSAGE("Additional AuxiliarySyncSurface  for sync create fail");
+                }
+
+                eStatus = m_pOsInterface->pfnSetDecompSyncRes(m_pOsInterface, &m_AuxiliarySyncSurface.OsResource);
+
+                if (eStatus != MOS_STATUS_SUCCESS)
+                {
+                    VPHAL_RENDER_ASSERTMESSAGE("Set Decomp sync resource fail");
+                }
+
                 eStatus = m_pOsInterface->pfnDecompResource(m_pOsInterface, &ppSources[i]->OsResource);
 
                 if (eStatus != MOS_STATUS_SUCCESS)
                 {
                     VPHAL_RENDER_ASSERTMESSAGE("Additional decompression for RC failed.");
+                }
+
+                eStatus = m_pOsInterface->pfnSetDecompSyncRes(m_pOsInterface, nullptr);
+
+                if (eStatus != MOS_STATUS_SUCCESS)
+                {
+                    VPHAL_RENDER_ASSERTMESSAGE("Set Decomp sync resource fail");
+                }
+
+                eStatus = m_pOsInterface->pfnRegisterResource(m_pOsInterface, &m_AuxiliarySyncSurface.OsResource, true, true);
+
+                if (eStatus != MOS_STATUS_SUCCESS)
+                {
+                    VPHAL_RENDER_ASSERTMESSAGE("register resources for sync failed.");
                 }
             }
 
