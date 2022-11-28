@@ -81,6 +81,7 @@ MOS_STATUS HevcDecodeSliceLongG12::ProcessSliceLong(uint8_t *cmdResBase, uint32_
     auto slc = m_hevcSliceParams;
     auto slcBase = slc;
     auto slcExt = m_hevcExtSliceParams;
+    auto pic = m_hevcPicParams;
 
     PMOS_COMMAND_BUFFER cmdBufArray, cmdBuf;
 
@@ -151,6 +152,12 @@ MOS_STATUS HevcDecodeSliceLongG12::ProcessSliceLong(uint8_t *cmdResBase, uint32_
                     break;
                 }
             }
+        }
+
+        if (m_hevcRefList[pic->CurrPic.FrameIdx]->bIsIntra &&
+            !m_hcpInterface->IsHevcISlice(slc->LongSliceFlags.fields.slice_type))
+        {
+            slc->LongSliceFlags.fields.slice_temporal_mvp_enabled_flag = 0;
         }
 
         if (m_isSeparateTileDecoding || m_isRealTile)
