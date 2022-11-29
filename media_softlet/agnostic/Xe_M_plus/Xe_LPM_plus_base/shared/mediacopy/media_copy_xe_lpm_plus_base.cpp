@@ -46,11 +46,7 @@ MOS_STATUS MediaCopyStateXe_Lpm_Plus_Base::Initialize(PMOS_INTERFACE  osInterfac
     m_mhwInterfaces = mhwInterfaces;
     pSkuTable       = osInterface->pfnGetSkuTable(osInterface);
 
-    if (m_inUseGPUMutex == nullptr)
-    {
-        m_inUseGPUMutex = MosUtilities::MosCreateMutex();
-        MCPY_CHK_NULL_RETURN(m_inUseGPUMutex);
-    }
+    MCPY_CHK_STATUS_RETURN(MediaCopyBaseState::Initialize(osInterface));
 
     if (MEDIA_IS_SKU(pSkuTable, FtrCCSNode))
     {
@@ -81,14 +77,6 @@ MOS_STATUS MediaCopyStateXe_Lpm_Plus_Base::Initialize(PMOS_INTERFACE  osInterfac
         MCPY_CHK_NULL_RETURN(m_veboxCopyState);
         MCPY_CHK_STATUS_RETURN(m_veboxCopyState->Initialize());
     }
-
-#if (_DEBUG || _RELEASE_INTERNAL)
-    if (m_surfaceDumper == nullptr)
-    {
-       m_surfaceDumper = MOS_New(CommonSurfaceDumper, osInterface);
-       MCPY_CHK_NULL_RETURN(m_surfaceDumper);
-    }
-#endif
 
     return eStatus;
 }

@@ -83,8 +83,6 @@ MOS_STATUS RenderCopyStateNext::Initialize()
 
     MCPY_CHK_NULL_RETURN(m_osInterface);
 
-    Mos_SetVirtualEngineSupported(m_osInterface, true);
-    Mos_CheckVirtualEngineSupported(m_osInterface, true, true);
     // Create render copy Context
     MCPY_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(
         m_osInterface,
