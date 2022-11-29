@@ -42,7 +42,6 @@ VAStatus DdiEncodeFunctions::CreateConfig (
 {
     VAStatus status = VA_STATUS_SUCCESS;
     DDI_CODEC_CHK_NULL(configId,   "nullptr configId",   VA_STATUS_ERROR_INVALID_PARAMETER);
-    DDI_CODEC_CHK_NULL(attribList, "nullptr attribList", VA_STATUS_ERROR_INVALID_PARAMETER);
 
     PDDI_MEDIA_CONTEXT mediaCtx = GetMediaContext(ctx);
     DDI_CODEC_CHK_NULL(mediaCtx,             "nullptr mediaCtx", VA_STATUS_ERROR_INVALID_CONTEXT);

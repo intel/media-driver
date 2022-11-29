@@ -2293,7 +2293,6 @@ VAStatus MediaLibvaInterfaceNext::QuerySurfaceAttributes(
 
     DDI_CHK_NULL(ctx,        "nullptr ctx",         VA_STATUS_ERROR_INVALID_CONTEXT);
     DDI_CHK_NULL(attribsNum, "nullptr attribsNum",  VA_STATUS_ERROR_INVALID_PARAMETER);
-    DDI_CHK_NULL(attribList, "nullptr attribList",  VA_STATUS_ERROR_INVALID_PARAMETER);
 
     PDDI_MEDIA_CONTEXT mediaCtx = GetMediaContext(ctx);
     DDI_CHK_NULL(mediaCtx,             "nullptr mediaCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
