@@ -302,4 +302,61 @@ struct EncodeStatusReadParams
     uint32_t      imageStatusCtrlOffset                    = 0;
 };
 
+//!
+//! \struct    FeiPreEncParams
+//! \brief     Fei pre-encode parameters
+//!
+struct FeiPreEncParams
+{
+    MOS_RESOURCE                    resMvPredBuffer;
+    MOS_RESOURCE                    resMbQpBuffer;
+    MOS_RESOURCE                    resMvBuffer;
+    MOS_RESOURCE                    resStatsBuffer;
+    MOS_RESOURCE                    resStatsBotFieldBuffer;
+
+    PMOS_SURFACE                    psCurrOriginalSurface;
+
+    bool                            bInterlaced;
+    uint32_t                        dwNumPastReferences;
+    uint32_t                        dwNumFutureReferences;
+
+    bool                            bCurPicUpdated;
+    CODEC_PICTURE                   CurrOriginalPicture;
+
+    CODEC_PICTURE                   PastRefPicture;
+    bool                            bPastRefUpdated;
+    MOS_SURFACE                     sPastRefSurface;
+    bool                            bPastRefStatsNeeded;
+    MOS_RESOURCE                    sPastRefStatsBuffer;
+    MOS_RESOURCE                    sPastRefStatsBotFieldBuffer;
+
+    CODEC_PICTURE                   FutureRefPicture;
+    bool                            bFutureRefUpdated;
+    MOS_SURFACE                     sFutureRefSurface;
+    bool                            bFutureRefStatsNeeded;
+    MOS_RESOURCE                    sFutureRefStatsBuffer;
+    MOS_RESOURCE                    sFutureRefStatsBotFieldBuffer;
+
+    uint32_t                        dwFrameQp;
+    uint32_t                        dwLenSP;
+    uint32_t                        dwSearchPath;
+    uint32_t                        dwSubMBPartMask;
+    uint32_t                        dwIntraPartMask;
+    uint32_t                        dwSubPelMode;
+    uint32_t                        dwInterSAD;
+    uint32_t                        dwIntraSAD;
+    bool                            bAdaptiveSearch;
+
+    uint32_t                        dwMVPredictorCtrl;
+    bool                            bMBQp;
+    bool                            bFTEnable;
+    uint32_t                        dwRefWidth;
+    uint32_t                        dwRefHeight;
+    uint32_t                        dwSearchWindow;
+    bool                            bDisableMVOutput;
+    bool                            bDisableStatisticsOutput;
+    bool                            bEnable8x8Statistics;
+    bool                            bInputUpdated;
+};
+
 #endif // !__CODEC_DEF_ENCODE_H__

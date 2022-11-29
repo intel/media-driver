@@ -177,15 +177,6 @@ typedef struct _DDI_ENCODE_CONTEXT
 
 } DDI_ENCODE_CONTEXT, *PDDI_ENCODE_CONTEXT;
 
-typedef struct _DDI_ENCODE_MFE_CONTEXT
-{
-    std::vector<PDDI_ENCODE_CONTEXT> pDdiEncodeContexts;            // Container to keep sub contexts
-    MEDIA_MUTEX_T                    encodeMfeMutex;
-    uint32_t                         currentStreamId;               // Current allocated id, increased monotonically
-    MfeSharedState                   *mfeEncodeSharedState;         // Keep shared state across sub contexts
-    bool                             isFEI;                         // Support legacy only or FEI only
-}DDI_ENCODE_MFE_CONTEXT, *PDDI_ENCODE_MFE_CONTEXT;
-
 static __inline PDDI_ENCODE_CONTEXT GetEncContextFromPVOID (void *encCtx)
 {
     return (PDDI_ENCODE_CONTEXT)encCtx;

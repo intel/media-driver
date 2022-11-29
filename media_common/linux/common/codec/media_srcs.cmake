@@ -1,4 +1,4 @@
-# Copyright (c) 2019-2022, Intel Corporation
+# Copyright (c) 2022, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,11 +18,18 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-media_include_subdirectory(os)
-media_include_subdirectory(cp)
-media_include_subdirectory(dec)
-media_include_subdirectory(vp)
-media_include_subdirectory(media_interfaces)
-media_include_subdirectory(shared)
-media_include_subdirectory(ddi)
-media_include_subdirectory(codec)
+if(NOT CMAKE_WDDM_LINUX)
+set(TMP_HEADERS_
+    ${CMAKE_CURRENT_LIST_DIR}/ddi_codec_def_specific.h
+)
+
+set(SOFTLET_CODEC_COMMON_HEADERS_
+    ${SOFTLET_CODEC_COMMON_HEADERS_}
+    ${TMP_HEADERS_}
+)
+
+set(SOFTLET_CODEC_COMMON_PRIVATE_INCLUDE_DIRS_
+    ${SOFTLET_CODEC_COMMON_PRIVATE_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)
+endif()

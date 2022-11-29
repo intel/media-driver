@@ -199,7 +199,7 @@ protected:
     //!
     //! \brief    Report extra encode status for completed coded buffer.
     //!
-    //! \param    [in] encodeStatusReport
+    //! \param    [in] encodeStatusReportData
     //!           Pointer to encode status reported by Codechal
     //! \param    [out] codedBufferSegment
     //!           Pointer to coded buffer segment
@@ -208,8 +208,8 @@ protected:
     //!           VA_STATUS_SUCCESS if success, else fail reason
     //!
     VAStatus ReportExtraStatus(
-        EncodeStatusReport   *encodeStatusReport,
-        VACodedBufferSegment *codedBufferSegment) override;
+        EncodeStatusReportData *encodeStatusReportData,
+        VACodedBufferSegment   *codedBufferSegment) override;
 
 private:
     //!

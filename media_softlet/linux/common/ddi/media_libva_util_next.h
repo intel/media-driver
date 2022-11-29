@@ -38,6 +38,8 @@
 #else
 #define DDI_FUNC_ENTER                                                      \
     MOS_FUNCTION_TRACE(MOS_COMPONENT_DDI, MOS_SUBCOMP_SELF)
+#define DDI_FUNCTION_EXIT(status)                                               \
+    MOS_FUNCTION_EXIT(MOS_COMPONENT_DDI, MOS_DDI_SUBCOMP_SELF, status)
 #endif
 
 #define DDI_CODEC_FUNC_ENTER                                                \

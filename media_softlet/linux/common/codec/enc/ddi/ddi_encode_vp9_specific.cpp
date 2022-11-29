@@ -360,7 +360,7 @@ VAStatus DdiEncodeVp9::ContextInitialize(CodechalSetting *codecHalSettings)
     DDI_CODEC_CHK_NULL(m_encodeCtx->pPicParams, "nullptr m_encodeCtx->pPicParams.", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
     // Allocate Encode Status Report
-    m_encodeCtx->pEncodeStatusReport = (void *)MOS_AllocAndZeroMemory(CODECHAL_ENCODE_STATUS_NUM * sizeof(EncodeStatusReport));
+    m_encodeCtx->pEncodeStatusReport = (void *)MOS_AllocAndZeroMemory(CODECHAL_ENCODE_STATUS_NUM * sizeof(EncodeStatusReportData));
     DDI_CODEC_CHK_NULL(m_encodeCtx->pEncodeStatusReport, "nullptr m_encodeCtx->pEncodeStatusReport.", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
     // Create the bit stream buffer to hold the packed headers from application
@@ -1063,22 +1063,22 @@ VAStatus DdiEncodeVp9::ParseMiscParams(void *ptr)
 }
 
 VAStatus DdiEncodeVp9::ReportExtraStatus(
-    EncodeStatusReport   *encodeStatusReport,
+    EncodeStatusReportData   *encodeStatusReportData,
     VACodedBufferSegment *codedBufferSegment)
 {
     DDI_CODEC_FUNC_ENTER;
 
-    DDI_CODEC_CHK_NULL(encodeStatusReport, "nullptr encodeStatusReport", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CODEC_CHK_NULL(encodeStatusReportData, "nullptr encodeStatusReportData", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CODEC_CHK_NULL(codedBufferSegment, "nullptr codedBufferSegment", VA_STATUS_ERROR_INVALID_PARAMETER);
 
     VAStatus vaStatus = VA_STATUS_SUCCESS;
 
     // The coded buffer status are one-to-one correspondence with report buffers, even though the index is updated.
     VACodedBufferVP9Status *codedBufStatus = &(m_codedBufStatus[m_encodeCtx->statusReportBuf.ulUpdatePosition]);
-    codedBufStatus->loop_filter_level = encodeStatusReport->loopFilterLevel;
-    codedBufStatus->long_term_indication = encodeStatusReport->LongTermIndication;
-    codedBufStatus->next_frame_width = encodeStatusReport->NextFrameWidthMinus1 + 1;
-    codedBufStatus->next_frame_height = encodeStatusReport->NextFrameHeightMinus1 + 1;
+    codedBufStatus->loop_filter_level = encodeStatusReportData->loopFilterLevel;
+    codedBufStatus->long_term_indication = encodeStatusReportData->longTermIndication;
+    codedBufStatus->next_frame_width = encodeStatusReportData->nextFrameWidthMinus1 + 1;
+    codedBufStatus->next_frame_height = encodeStatusReportData->nextFrameHeightMinus1 + 1;
 
     /*
      * Ignore the private status buffer temporarily. According to the comment for VACodedBufferVP9Status in VA-API,

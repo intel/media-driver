@@ -20,3 +20,4 @@
 
 media_include_subdirectory(os)
 media_include_subdirectory(cp)
+media_include_subdirectory(codec)

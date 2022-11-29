@@ -39,7 +39,7 @@
 //{
 
 DdiDecodeBase::DdiDecodeBase()
-    : DdiMediaBase()
+    : DdiCodecBase()
 {
     DDI_CODEC_FUNC_ENTER;
 

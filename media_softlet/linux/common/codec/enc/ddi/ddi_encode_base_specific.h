@@ -28,7 +28,7 @@
 #define __DDI_ENCODE_BASE_SPECIFIC_H__
 
 #include <va/va.h>
-#include "media_ddi_base.h"
+#include "ddi_codec_base_specific.h"
 #include "ddi_libva_encoder_specific.h"
 #include "codechal_setting.h"
 #include "media_libva_caps_next.h"
@@ -54,7 +54,7 @@ enum
 //! \class  DdiEncodeBase
 //! \brief  Ddi encode base
 //!
-class DdiEncodeBase : public DdiMediaBase
+class DdiEncodeBase : public codec::DdiCodecBase
 {
 public:
     //! \brief chroma format
@@ -555,7 +555,7 @@ protected:
     //!
     //! \brief    Report extra encode status for completed coded buffer.
     //!
-    //! \param    [in] encodeStatusReport
+    //! \param    [in] encodeStatusReportData
     //!           Pointer to encode status reported by Codechal
     //! \param    [out] codedBufferSegment
     //!           Pointer to coded buffer segment
@@ -564,8 +564,8 @@ protected:
     //!           VA_STATUS_SUCCESS if success, else fail reason
     //!
     virtual VAStatus ReportExtraStatus(
-        EncodeStatusReport   *encodeStatusReport,
-        VACodedBufferSegment *codedBufferSegment)
+        EncodeStatusReportData *encodeStatusReportData,
+        VACodedBufferSegment   *codedBufferSegment)
     {
         return VA_STATUS_SUCCESS;
     }

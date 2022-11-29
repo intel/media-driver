@@ -109,7 +109,7 @@ VAStatus DdiEncodeAV1::ContextInitialize(
     allocatedTileNum = TILE_GROUP_NUM_INCREMENT;
 
     // Allocate encode status report
-    m_encodeCtx->pEncodeStatusReport = (void *)MOS_AllocAndZeroMemory(CODECHAL_ENCODE_STATUS_NUM*sizeof(EncodeStatusReport));
+    m_encodeCtx->pEncodeStatusReport = (void *)MOS_AllocAndZeroMemory(CODECHAL_ENCODE_STATUS_NUM*sizeof(EncodeStatusReportData));
     DDI_CODEC_CHK_NULL(m_encodeCtx->pEncodeStatusReport, "nullptr m_encodeCtx->pEncodeStatusReport.", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
     //Allocate Slice Header Data

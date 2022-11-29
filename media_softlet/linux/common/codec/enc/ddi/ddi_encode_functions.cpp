@@ -30,7 +30,6 @@
 #include "codechal_memdecomp.h"
 #include "media_interfaces_codechal_next.h"
 #include "media_interfaces_mmd.h"
-#include "cm_device_rt_base.h"
 #include "media_libva_interface_next.h"
 
 VAStatus DdiEncodeFunctions::CreateConfig (
@@ -827,7 +826,7 @@ VAStatus DdiEncodeFunctions::RenderPicture (
             if(vaStatus != VA_STATUS_SUCCESS)
                 return vaStatus;
         }
-        MovePriorityBufferIdToEnd(buffers, priorityIndexInBuffers, numOfBuffers);
+        MediaLibvaCommonNext::MovePriorityBufferIdToEnd(buffers, priorityIndexInBuffers, numOfBuffers);
         numOfBuffers--;
     }
     if (numOfBuffers == 0)
@@ -896,19 +895,6 @@ VAStatus DdiEncodeFunctions::SetGpuPriority(
 
         //Set Gpu priority for encoder
         osInterface->pfnSetGpuPriority(osInterface, priority);
-
-        //Get the CMRT osInterface of encode
-        CodechalEncoderState *encoder = dynamic_cast<CodechalEncoderState *>(encCtx->pCodecHal);
-        DDI_CODEC_CHK_NULL(encoder, "nullptr encoder", VA_STATUS_ERROR_INVALID_CONTEXT);
-
-        if(encoder->m_cmDev != nullptr)
-        {
-            //Set Gpu priority for CMRT OsInterface
-            CmDeviceRTBase *cm_device = dynamic_cast<CmDeviceRTBase *>(encoder->m_cmDev);
-            PCM_HAL_STATE cm_hal_state = cm_device->GetHalState();
-            if(cm_hal_state->osInterface != nullptr)
-                cm_hal_state->osInterface->pfnSetGpuPriority(cm_hal_state->osInterface, priority);
-        }
     }
 
     return VA_STATUS_SUCCESS;

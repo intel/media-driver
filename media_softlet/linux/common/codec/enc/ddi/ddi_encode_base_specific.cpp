@@ -32,7 +32,7 @@ namespace encode
 {
 
 DdiEncodeBase::DdiEncodeBase()
-    :DdiMediaBase()
+    :DdiCodecBase()
 {
     m_codechalSettings = CodechalSetting::CreateCodechalSetting();
 }
@@ -195,12 +195,12 @@ VAStatus DdiEncodeBase::StatusReport(
 
         mos_bo_wait_rendering(mediaBuf->bo);
 
-        EncodeStatusReport *encodeStatusReport = (EncodeStatusReport*)m_encodeCtx->pEncodeStatusReport;
-        encodeStatusReport->bSequential = true;  //Query the encoded frame status in sequential.
+        EncodeStatusReportData *encodeStatusReportData = (EncodeStatusReportData*)m_encodeCtx->pEncodeStatusReport;
+        encodeStatusReportData->sequential = true;  //Query the encoded frame status in sequential.
 
         uint16_t numStatus = 1;
         MOS_STATUS mosStatus = MOS_STATUS_SUCCESS;
-        mosStatus = m_encodeCtx->pCodecHal->GetStatusReport(encodeStatusReport, numStatus);
+        mosStatus = m_encodeCtx->pCodecHal->GetStatusReport(encodeStatusReportData, numStatus);
         if (MOS_STATUS_NOT_ENOUGH_BUFFER == mosStatus)
         {
             return VA_STATUS_ERROR_NOT_ENOUGH_BUFFER;
@@ -209,10 +209,10 @@ VAStatus DdiEncodeBase::StatusReport(
             return VA_STATUS_ERROR_ENCODING_ERROR;
         }
 
-        if (CODECHAL_STATUS_SUCCESSFUL == encodeStatusReport[0].CodecStatus)
+        if (CODECHAL_STATUS_SUCCESSFUL == encodeStatusReportData[0].codecStatus)
         {
             // Only AverageQP is reported at this time. Populate other bits with relevant informaiton later;
-            status = (encodeStatusReport[0].AverageQp & VA_CODED_BUF_STATUS_PICTURE_AVE_QP_MASK);
+            status = (encodeStatusReportData[0].averageQP & VA_CODED_BUF_STATUS_PICTURE_AVE_QP_MASK);
             if(m_encodeCtx->wModeType == CODECHAL_ENCODE_MODE_AVC)
             {
                 CodecEncodeAvcFeiPicParams *feiPicParams = (CodecEncodeAvcFeiPicParams*) m_encodeCtx->pFeiPicParams;
@@ -221,16 +221,16 @@ VAStatus DdiEncodeBase::StatusReport(
                     // The reported the pass number should be multi-pass PAK caused by the MaxFrameSize.
                     // if the suggestedQpYDelta is 0, it means that MaxFrameSize doesn't trigger multi-pass PAK.
                     // The MaxMbSize triggers multi-pass PAK, the cases should be ignored when reporting the PAK pass.
-                    if ((encodeStatusReport[0].SuggestedQpYDelta == 0) && (encodeStatusReport[0].NumberPasses != 1))
+                    if ((encodeStatusReportData[0].suggestedQPYDelta == 0) && (encodeStatusReportData[0].numberPasses != 1))
                     {
-                        encodeStatusReport[0].NumberPasses = 1;
+                        encodeStatusReportData[0].numberPasses = 1;
                     }
                 }
             }
-            status = status | ((encodeStatusReport[0].NumberPasses) & 0xf)<<24;
+            status = status | ((encodeStatusReportData[0].numberPasses) & 0xf)<<24;
             // fill hdcp related buffer
-            DDI_CODEC_CHK_RET(m_encodeCtx->pCpDdiInterface->StatusReportForHdcp2Buffer(&m_encodeCtx->BufMgr, encodeStatusReport), "fail to get hdcp2 status report!");
-            if (UpdateStatusReportBuffer(encodeStatusReport[0].bitstreamSize, status) != VA_STATUS_SUCCESS)
+            DDI_CODEC_CHK_RET(m_encodeCtx->pCpDdiInterface->StatusReportForHdcp2Buffer(&m_encodeCtx->BufMgr, encodeStatusReportData), "fail to get hdcp2 status report!");
+            if (UpdateStatusReportBuffer(encodeStatusReportData[0].bitstreamSize, status) != VA_STATUS_SUCCESS)
             {
                 m_encodeCtx->BufMgr.pCodedBufferSegment->buf  = MediaLibvaUtilNext::LockBuffer(mediaBuf, MOS_LOCKFLAG_READONLY);
                 m_encodeCtx->BufMgr.pCodedBufferSegment->size = 0;
@@ -240,7 +240,7 @@ VAStatus DdiEncodeBase::StatusReport(
             }
 
             // Report extra status for completed coded buffer
-            eStatus = ReportExtraStatus(encodeStatusReport, m_encodeCtx->BufMgr.pCodedBufferSegment);
+            eStatus = ReportExtraStatus(encodeStatusReportData, m_encodeCtx->BufMgr.pCodedBufferSegment);
             if (VA_STATUS_SUCCESS != eStatus)
             {
                 break;
@@ -249,21 +249,8 @@ VAStatus DdiEncodeBase::StatusReport(
             //Add encoded frame information into status buffer queue.
             continue;
         }
-        else if (CODECHAL_STATUS_INCOMPLETE == encodeStatusReport[0].CodecStatus)
+        else if (CODECHAL_STATUS_INCOMPLETE == encodeStatusReportData[0].codecStatus)
         {
-            bool inlineEncodeStatusUpdate;
-            CodechalEncoderState *encoder = dynamic_cast<CodechalEncoderState *>(m_encodeCtx->pCodecHal);
-            inlineEncodeStatusUpdate = encoder == nullptr ? false : encoder->m_inlineEncodeStatusUpdate;
-
-            if (inlineEncodeStatusUpdate)
-            {
-                m_encodeCtx->BufMgr.pCodedBufferSegment->buf  = MediaLibvaUtilNext::LockBuffer(mediaBuf, MOS_LOCKFLAG_READONLY);
-                m_encodeCtx->BufMgr.pCodedBufferSegment->size = 0;
-                m_encodeCtx->BufMgr.pCodedBufferSegment->status |= VA_CODED_BUF_STATUS_BAD_BITSTREAM;
-                UpdateStatusReportBuffer(encodeStatusReport[0].bitstreamSize, m_encodeCtx->BufMgr.pCodedBufferSegment->status);
-                DDI_CODEC_ASSERTMESSAGE("Something unexpected happened in HW, return error to application");
-                break;
-            }
             // Wait until encode PAK complete, sometimes we application detect encoded buffer object is Idle, may Enc done, but Pak not.
             uint32_t maxTimeOut                               = 100000;  //set max sleep times to 100000 = 1s, other wise return error.
             if (timeOutCount < maxTimeOut)
@@ -280,18 +267,18 @@ VAStatus DdiEncodeBase::StatusReport(
                 m_encodeCtx->BufMgr.pCodedBufferSegment->buf  = MediaLibvaUtilNext::LockBuffer(mediaBuf, MOS_LOCKFLAG_READONLY);
                 m_encodeCtx->BufMgr.pCodedBufferSegment->size = 0;
                 m_encodeCtx->BufMgr.pCodedBufferSegment->status |= VA_CODED_BUF_STATUS_BAD_BITSTREAM;
-                UpdateStatusReportBuffer(encodeStatusReport[0].bitstreamSize, m_encodeCtx->BufMgr.pCodedBufferSegment->status);
+                UpdateStatusReportBuffer(encodeStatusReportData[0].bitstreamSize, m_encodeCtx->BufMgr.pCodedBufferSegment->status);
                 DDI_CODEC_ASSERTMESSAGE("Something unexpected happened in HW, return error to application");
                 return VA_STATUS_ERROR_ENCODING_ERROR;
             }
         }
-        else if (CODECHAL_STATUS_ERROR == encodeStatusReport[0].CodecStatus)
+        else if (CODECHAL_STATUS_ERROR == encodeStatusReportData[0].codecStatus)
         {
             DDI_CODEC_ASSERTMESSAGE("Encoding failure due to HW issue");
             m_encodeCtx->BufMgr.pCodedBufferSegment->buf  = MediaLibvaUtilNext::LockBuffer(mediaBuf, MOS_LOCKFLAG_READONLY);
             m_encodeCtx->BufMgr.pCodedBufferSegment->size = 0;
             m_encodeCtx->BufMgr.pCodedBufferSegment->status |= VA_CODED_BUF_STATUS_BAD_BITSTREAM;
-            UpdateStatusReportBuffer(encodeStatusReport[0].bitstreamSize, m_encodeCtx->BufMgr.pCodedBufferSegment->status);
+            UpdateStatusReportBuffer(encodeStatusReportData[0].bitstreamSize, m_encodeCtx->BufMgr.pCodedBufferSegment->status);
             return VA_STATUS_ERROR_ENCODING_ERROR;
         }
         else
@@ -316,7 +303,7 @@ VAStatus DdiEncodeBase::EncStatusReport(
     DDI_CODEC_CHK_NULL(mediaBuf, "Null mediaBuf", VA_STATUS_ERROR_INVALID_CONTEXT);
     DDI_CODEC_CHK_NULL(buf, "Null buf", VA_STATUS_ERROR_INVALID_CONTEXT);
 
-    EncodeStatusReport* encodeStatusReport = (EncodeStatusReport*)m_encodeCtx->pEncodeStatusReport;
+    EncodeStatusReportData* encodeStatusReportData = (EncodeStatusReportData*)m_encodeCtx->pEncodeStatusReport;
     uint16_t numStatus    = 1;
     uint32_t maxTimeOut   = 500000;  //set max sleep times to 500000 = 5s, other wise return error.
     uint32_t sleepTime    = 10;  //sleep 10 us when encode is not complete.
@@ -325,21 +312,21 @@ VAStatus DdiEncodeBase::EncStatusReport(
     //when this function is called, there must be a frame is ready, will wait until get the right information.
     while (1)
     {
-        encodeStatusReport->bSequential = true;  //Query the encoded frame status in sequential.
-        m_encodeCtx->pCodecHal->GetStatusReport(encodeStatusReport, numStatus);
+        encodeStatusReportData->sequential = true;  //Query the encoded frame status in sequential.
+        m_encodeCtx->pCodecHal->GetStatusReport(encodeStatusReportData, numStatus);
 
-        if (CODECHAL_STATUS_SUCCESSFUL == encodeStatusReport[0].CodecStatus)
+        if (CODECHAL_STATUS_SUCCESSFUL == encodeStatusReportData[0].codecStatus)
         {
             // Only AverageQP is reported at this time. Populate other bits with relevant informaiton later;
-            uint32_t status = (encodeStatusReport[0].AverageQp & VA_CODED_BUF_STATUS_PICTURE_AVE_QP_MASK);
-            status = status | ((encodeStatusReport[0].NumberPasses & 0xf)<<24);
+            uint32_t status = (encodeStatusReportData[0].averageQP & VA_CODED_BUF_STATUS_PICTURE_AVE_QP_MASK);
+            status = status | ((encodeStatusReportData[0].numberPasses & 0xf)<<24);
             if (UpdateEncStatusReportBuffer(status) != VA_STATUS_SUCCESS)
             {
                 return VA_STATUS_ERROR_INVALID_BUFFER;
             }
             break;
         }
-        else if (CODECHAL_STATUS_INCOMPLETE == encodeStatusReport[0].CodecStatus)
+        else if (CODECHAL_STATUS_INCOMPLETE == encodeStatusReportData[0].codecStatus)
         {
             // Wait until encode PAK complete, sometimes we application detect encoded buffer object is Idle, may Enc done, but Pak not.
             if (timeOutCount < maxTimeOut)
@@ -376,7 +363,7 @@ VAStatus DdiEncodeBase::PreEncStatusReport(
     DDI_CODEC_CHK_NULL(mediaBuf, "Null mediaBuf", VA_STATUS_ERROR_INVALID_CONTEXT);
     DDI_CODEC_CHK_NULL(buf, "Null buf", VA_STATUS_ERROR_INVALID_CONTEXT);
 
-    EncodeStatusReport* encodeStatusReport = (EncodeStatusReport*)m_encodeCtx->pEncodeStatusReport;
+    EncodeStatusReportData* encodeStatusReportData = (EncodeStatusReportData*)m_encodeCtx->pEncodeStatusReport;
     uint16_t numStatus    = 1;
     uint32_t maxTimeOut   = 500000;  //set max sleep times to 500000 = 5s, other wise return error.
     uint32_t sleepTime    = 10;  //sleep 10 us when encode is not complete.
@@ -385,21 +372,21 @@ VAStatus DdiEncodeBase::PreEncStatusReport(
     //when this function is called, there must be a frame is ready, will wait until get the right information.
     while (1)
     {
-        encodeStatusReport->bSequential = true;  //Query the encoded frame status in sequential.
-        m_encodeCtx->pCodecHal->GetStatusReport(encodeStatusReport, numStatus);
+        encodeStatusReportData->sequential = true;  //Query the encoded frame status in sequential.
+        m_encodeCtx->pCodecHal->GetStatusReport(encodeStatusReportData, numStatus);
 
-        if (CODECHAL_STATUS_SUCCESSFUL == encodeStatusReport[0].CodecStatus)
+        if (CODECHAL_STATUS_SUCCESSFUL == encodeStatusReportData[0].codecStatus)
         {
             // Only AverageQP is reported at this time. Populate other bits with relevant informaiton later;
-            uint32_t status = (encodeStatusReport[0].AverageQp & VA_CODED_BUF_STATUS_PICTURE_AVE_QP_MASK);
-            status = status | ((encodeStatusReport[0].NumberPasses & 0xf)<<24);
+            uint32_t status = (encodeStatusReportData[0].averageQP & VA_CODED_BUF_STATUS_PICTURE_AVE_QP_MASK);
+            status = status | ((encodeStatusReportData[0].numberPasses & 0xf)<<24);
             if (UpdatePreEncStatusReportBuffer(status) != VA_STATUS_SUCCESS)
             {
                 return VA_STATUS_ERROR_INVALID_BUFFER;
             }
             break;
         }
-        else if (CODECHAL_STATUS_INCOMPLETE == encodeStatusReport[0].CodecStatus)
+        else if (CODECHAL_STATUS_INCOMPLETE == encodeStatusReportData[0].codecStatus)
         {
             // Wait until encode PAK complete, sometimes we application detect encoded buffer object is Idle, may Enc done, but Pak not.
             if (timeOutCount < maxTimeOut)

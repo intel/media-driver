@@ -29,7 +29,7 @@
 
 #include <stdint.h>
 #include <va/va.h>
-#include "media_ddi_base.h"
+#include "ddi_codec_base_specific.h"
 #include "decode_pipeline_adapter.h"
 #include "media_libva_decoder.h"
 #include "media_capstable_specific.h"
@@ -41,7 +41,7 @@
 //! \class  DdiDecodeBase
 //! \brief  Ddi decode base
 //!
-class DdiDecodeBase : public DdiMediaBase
+class DdiDecodeBase : public codec::DdiCodecBase
 {
 public:
     //!

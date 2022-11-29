@@ -24,7 +24,6 @@
 //! \brief    Implements class for DDI media avc encode
 //!
 
-#include "media_libva.h"
 #include "media_libva_encoder.h"
 #include "media_libva_util_next.h"
 #include "hwinfo_linux.h"
@@ -829,7 +828,7 @@ VAStatus DdiEncodeAvc::ContextInitialize(CodechalSetting * codecHalSettings)
     DDI_CODEC_CHK_NULL(m_encodeCtx->pSliceParams, "nullptr m_encodeCtx->pSliceParams", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
     // Allocate Encode Status Report
-    m_encodeCtx->pEncodeStatusReport = (void *)MOS_AllocAndZeroMemory(CODECHAL_ENCODE_STATUS_NUM * sizeof(EncodeStatusReport));
+    m_encodeCtx->pEncodeStatusReport = (void *)MOS_AllocAndZeroMemory(CODECHAL_ENCODE_STATUS_NUM * sizeof(EncodeStatusReportData));
     DDI_CODEC_CHK_NULL(m_encodeCtx->pEncodeStatusReport, "nullptr m_encodeCtx->pEncodeStatusReport", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
     // Allocate SEI structure
@@ -1150,18 +1149,8 @@ VAStatus DdiEncodeAvc::EncodeInCodecHal(uint32_t numSlices)
     }
     else
     {
-        CodechalEncoderState *encoder = dynamic_cast<CodechalEncoderState *>(m_encodeCtx->pCodecHal);
-        DDI_CODEC_CHK_NULL(encoder, "nullptr Codechal encode", VA_STATUS_ERROR_INVALID_PARAMETER);
-
-        if (!encoder->m_mfeEnabled)
-        {
-            status = m_encodeCtx->pCodecHal->Execute(encodeParams);
-            if (MOS_STATUS_SUCCESS != status)
-            {
-                DDI_CODEC_ASSERTMESSAGE("DDI:Failed in Codechal!");
-                return VA_STATUS_ERROR_ENCODING_ERROR;
-            }
-        }
+        DDI_CODEC_ASSERTMESSAGE("DDI:Failed in Codechal!");
+        return VA_STATUS_ERROR_UNSUPPORTED_PROFILE;
     }
 
     return VA_STATUS_SUCCESS;
@@ -1511,11 +1500,6 @@ VAStatus DdiEncodeAvc::ParseSlcParams(
     DDI_CODEC_CHK_NULL(m_encodeCtx, "nullptr m_encodeCtx", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CODEC_CHK_NULL(ptr, "nullptr ptr", VA_STATUS_ERROR_INVALID_PARAMETER);
 
-    if (!m_encodeCtx->pCodecHal->IsApogeiosEnabled())
-    {
-        CodechalEncoderState *encoder = dynamic_cast<CodechalEncoderState *>(m_encodeCtx->pCodecHal);
-        DDI_CODEC_CHK_NULL(encoder, "nullptr codechal encoder", VA_STATUS_ERROR_INVALID_CONTEXT);
-    }
     VAEncSliceParameterBufferH264 *slc       = (VAEncSliceParameterBufferH264 *)ptr;
     PCODEC_AVC_ENCODE_SLICE_PARAMS slcParams = (CODEC_AVC_ENCODE_SLICE_PARAMS *)m_encodeCtx->pSliceParams;
     PCODEC_AVC_ENCODE_PIC_PARAMS   picParams = (PCODEC_AVC_ENCODE_PIC_PARAMS)((uint8_t *)m_encodeCtx->pPicParams + slc->pic_parameter_set_id * sizeof(CODEC_AVC_ENCODE_PIC_PARAMS));

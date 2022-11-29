@@ -18,11 +18,6 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-media_include_subdirectory(os)
-media_include_subdirectory(cp)
-media_include_subdirectory(dec)
-media_include_subdirectory(vp)
-media_include_subdirectory(media_interfaces)
-media_include_subdirectory(shared)
 media_include_subdirectory(ddi)
-media_include_subdirectory(codec)
+media_include_subdirectory(dec)
+media_include_subdirectory(enc)
