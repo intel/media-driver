@@ -722,6 +722,9 @@ VAStatus MediaLibvaCapsDG2::CreateEncAttributes(
     if (IsAV1Profile(profile))
     {
         attrib.value = VA_RC_CQP | VA_RC_CBR | VA_RC_VBR;
+#if VA_CHECK_VERSION(1, 10, 0)
+        attrib.value |= VA_RC_TCBRC;
+#endif
     }
     if (IsAvcProfile(profile) &&
             ((entrypoint == VAEntrypointEncSliceLP) && MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEnableMediaKernels)))

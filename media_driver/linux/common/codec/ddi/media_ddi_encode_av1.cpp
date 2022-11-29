@@ -912,6 +912,9 @@ VAStatus DdiEncodeAV1::ParseMiscParamRC(void *data)
     PCODEC_AV1_ENCODE_SEQUENCE_PARAMS seqParams = (PCODEC_AV1_ENCODE_SEQUENCE_PARAMS)m_encodeCtx->pSeqParams;
     DDI_CHK_NULL(seqParams, "nullptr seqParams", VA_STATUS_ERROR_INVALID_PARAMETER);
 
+    PCODEC_AV1_ENCODE_PICTURE_PARAMS  picParams = (PCODEC_AV1_ENCODE_PICTURE_PARAMS)(m_encodeCtx->pPicParams);
+    DDI_CHK_NULL(picParams, "nullptr picParams", VA_STATUS_ERROR_INVALID_PARAMETER);
+
     uint32_t temporalId = vaEncMiscParamRC->rc_flags.bits.temporal_id;
     DDI_CHK_LESS(temporalId, (seqParams->NumTemporalLayersMinus1 + 1),
         "invalid temporal id", VA_STATUS_ERROR_INVALID_PARAMETER);
@@ -919,6 +922,10 @@ VAStatus DdiEncodeAV1::ParseMiscParamRC(void *data)
     uint32_t bitRate                    = MOS_ROUNDUP_DIVIDE(vaEncMiscParamRC->bits_per_second, CODECHAL_ENCODE_BRC_KBPS);
     seqParams->MaxBitRate               = MOS_MAX(seqParams->MaxBitRate, bitRate);
     seqParams->SeqFlags.fields.ResetBRC = vaEncMiscParamRC->rc_flags.bits.reset;
+    seqParams->FrameSizeTolerance       = static_cast<ENCODE_FRAMESIZE_TOLERANCE>(vaEncMiscParamRC->rc_flags.bits.frame_tolerance_mode);
+#if VA_CHECK_VERSION(1, 10, 0)
+    picParams->TargetFrameSize = vaEncMiscParamRC->target_frame_size;
+#endif
 
     if (VA_RC_CBR == m_encodeCtx->uiRCMethod)
     {
