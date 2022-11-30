@@ -95,11 +95,7 @@ MOS_STATUS VpPipelineAdapterBase::GetVpMhwInterface(
         {
             SetMhwVeboxItf(veboxItf);
             SetMhwSfcItf(sfcItf);
-#if EMUL
-            SetMhwMiItf(miItf);
-#else
             SetMhwMiItf(m_vprenderHal->pRenderHalPltInterface->GetMhwMiItf());
-#endif
         }
         else
         {
