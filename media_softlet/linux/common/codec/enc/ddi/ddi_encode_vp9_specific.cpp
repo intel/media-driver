@@ -244,7 +244,9 @@ VAStatus DdiEncodeVp9::EncodeInCodecHal(uint32_t numSlices)
             MOS_ZeroMemory(&(m_segParams->SegData[i]), sizeof(CODEC_VP9_ENCODE_SEG_PARAMS));
         }
     }
-    else if (!isSegParamsChanged)
+    else if (!isSegParamsChanged && 
+            vp9PicParam->PicFlags.fields.frame_type != CODEC_VP9_KEY_FRAME && 
+            vp9PicParam->PicFlags.fields.error_resilient_mode == 0)
     {
         /* segmentation is enabled, but segment parameters are not changed */
         vp9PicParam->PicFlags.fields.seg_update_data = 0;
