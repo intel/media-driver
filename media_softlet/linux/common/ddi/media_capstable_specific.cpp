@@ -30,6 +30,7 @@
 #include "hwinfo_linux.h"
 #include "linux_system_info.h"
 #include "media_libva_caps_factory.h"
+#include "ddi_cp_caps_interface.h"
 
 bool operator<(const ComponentInfo &lhs, const ComponentInfo &rhs)
 {

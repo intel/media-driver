@@ -35,7 +35,6 @@
 #include "va/va_drmcommon.h"
 #include "capstable_data_linux_definition.h"
 #include "media_capstable.h"
-#include "ddi_cp_caps_interface.h"
 
 //!
 //! \class  ConfigInfo
@@ -91,7 +90,7 @@ typedef std::vector<ConfigLinux> ConfigList;
 #define REMOVE_CONFIG_ID_VP_OFFSET(x) (REMOVE_CONFIG_ID_OFFSET(x) - DDI_VP_GEN_CONFIG_ATTRIBUTES_BASE)
 #define IS_VALID_CONFIG_ID(x) ((x) >= CONFIG_ID_OFFSET)
 
-template<> typename MediaCapsTable<CapsData>::OsCapsTable MediaCapsTable<CapsData>::m_pltCaps;
+class DdiCpCapsInterface;
 //!
 //! \class  MediaLibvaCaps
 //! \brief  Media libva caps

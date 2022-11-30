@@ -20,20 +20,11 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     caps_register_specific.cpp
+//! \file     caps_register_specific_xe_lpm_plus.cpp
 //!
 
-
 #include "media_capstable_specific.h"
-
 #include "capstable_data_linux_definition.h"
+#include "capstable_data_xe_lpm_plus_r0_specific.h"
 
-template<> typename MediaCapsTable<CapsData>::OsCapsTable MediaCapsTable<CapsData>::m_pltCaps = {};
-
-#if IGFX_MTL_SUPPORTED
-#include "caps_register_specific_xe_lpm_plus.h"
-#endif
-
-#if _MEDIA_RESERVED
-#include "caps_register_specific_reserved.h"
-#endif
+static bool capsTableXe_Lpm_Plus_r0Registered = MediaCapsTable<CapsData>::RegisterCaps(plt_Xe_Lpm_plus_r0, capsData_Xe_Lpm_plus_r0);

@@ -30,7 +30,9 @@
 
 #include <va/va.h>
 #include <va/va_backend.h>
-#include "mos_os_specific.h"
+#include <semaphore.h>
+#include "GmmLib.h"
+#include "mos_bufmgr.h"
 
 #define DDI_MEDIA_MAX_SURFACE_NUMBER_CONTEXT       127
 #define DDI_MEDIA_MAX_INSTANCE_NUMBER              0x0FFFFFFF
@@ -342,7 +344,6 @@ typedef struct _DDI_X11_FUNC_TABLE
 
 #ifdef MEDIA_SOFTLET
 
-#include "mos_bufmgr.h"
 #include "media_interfaces_hwinfo.h"
 class MediaLibvaCapsNext;
 class OsContext;
