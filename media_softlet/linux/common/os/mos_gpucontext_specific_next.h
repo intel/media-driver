@@ -75,6 +75,15 @@ public:
     void Clear(void);
 
     //!
+    //! \brief    Recreate GPU context as protected or clear if needed
+    //! \param    [in] streamState
+    //!           Os stream state
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    MOS_STATUS PatchGPUContextProtection(MOS_STREAM_HANDLE streamState);
+
+    //!
     //! \brief    Register graphics resource
     //! \details  Set the Allocation Index in OS resource structure
     //! \param    [out] osContext
@@ -195,6 +204,12 @@ public:
     //!
     MOS_STATUS AllocateGPUStatusBuf();
 
+    //!
+    //! \brief    Store create options to member variable
+    //! \return   void
+    //!
+    void StoreCreateOptions(PMOS_GPUCTX_CREATOPTIONS createoption);
+
 #if MOS_COMMAND_RESINFO_DUMP_SUPPORTED
     void                PushCmdResPtr(const void *p) { m_cmdResPtrs.push_back(p); }
     void                ClearCmdResPtrs() { m_cmdResPtrs.clear(); }
@@ -309,7 +324,12 @@ private:
     //! \brief    mos context
     PMOS_CONTEXT  m_osParameters    = nullptr;
 
-    MOS_GPUCTX_CREATOPTIONS_ENHANCED *m_createOptionEnhanced = nullptr;
+    MOS_GPUCTX_CREATOPTIONS_ENHANCED m_createOptionEnhanced;            //!< stores create otpions if user is using MOS_GPUCTX_CREATOPTIONS_ENHANCED
+    MOS_GPUCTX_CREATOPTIONS          m_createOption;                    //!< stores create otpions if user is using MOS_GPUCTX_CREATOPTIONS
+    bool                             m_bEnhancedUsed        = false;    //!< true if caller is using MOS_GPUCTX_CREATOPTIONS_ENHANCED,
+                                                                        //!< false if using MOS_GPUCTX_CREATOPTIONS
+    bool                             m_bProtectedContext    = false;    //!< false if clear GEM context is created as protected or not
+
     MOS_LINUX_CONTEXT*  m_i915Context[MAX_ENGINE_INSTANCE_NUM+1];
     uint32_t     m_i915ExecFlag = 0;
     int32_t      m_currCtxPriority = 0;

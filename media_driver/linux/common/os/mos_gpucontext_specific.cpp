@@ -164,7 +164,8 @@ MOS_STATUS GpuContextSpecific::Init(OsContext *osContext,
 
         m_i915Context[0] = mos_gem_context_create_shared(osInterface->pOsContext->bufmgr,
                                              osInterface->pOsContext->intel_context,
-                                             I915_CONTEXT_CREATE_FLAGS_SINGLE_TIMELINE);
+                                             I915_CONTEXT_CREATE_FLAGS_SINGLE_TIMELINE,
+                                             false);
         if (m_i915Context[0] == nullptr)
         {
             MOS_OS_ASSERTMESSAGE("Failed to create context.\n");
@@ -282,7 +283,8 @@ MOS_STATUS GpuContextSpecific::Init(OsContext *osContext,
                 //master queue
                 m_i915Context[1] = mos_gem_context_create_shared(osInterface->pOsContext->bufmgr,
                                                                     osInterface->pOsContext->intel_context,
-                                                                    I915_CONTEXT_CREATE_FLAGS_SINGLE_TIMELINE);
+                                                                    I915_CONTEXT_CREATE_FLAGS_SINGLE_TIMELINE,
+                                                                    false);
                 if (m_i915Context[1] == nullptr)
                 {
                     MOS_OS_ASSERTMESSAGE("Failed to create master context.\n");
@@ -303,7 +305,8 @@ MOS_STATUS GpuContextSpecific::Init(OsContext *osContext,
                 {
                     m_i915Context[i+1] = mos_gem_context_create_shared(osInterface->pOsContext->bufmgr,
                                                                         osInterface->pOsContext->intel_context,
-                                                                        I915_CONTEXT_CREATE_FLAGS_SINGLE_TIMELINE);
+                                                                        I915_CONTEXT_CREATE_FLAGS_SINGLE_TIMELINE,
+                                                                        false);
                     if (m_i915Context[i+1] == nullptr)
                     {
                         MOS_OS_ASSERTMESSAGE("Failed to create slave context.\n");
@@ -343,7 +346,8 @@ MOS_STATUS GpuContextSpecific::Init(OsContext *osContext,
                         unsigned int ctxWidth = i + 1;
                         m_i915Context[i] = mos_gem_context_create_shared(osInterface->pOsContext->bufmgr,
                                                                      osInterface->pOsContext->intel_context,
-                                                                     0); // I915_CONTEXT_CREATE_FLAGS_SINGLE_TIMELINE not allowed for parallel submission
+                                                                     0, // I915_CONTEXT_CREATE_FLAGS_SINGLE_TIMELINE not allowed for parallel submission
+                                                                     false);
                         if (mos_set_context_param_parallel(m_i915Context[i], engine_map, ctxWidth) != S_SUCCESS)
                         {
                             MOS_OS_ASSERTMESSAGE("Failed to set parallel extension since discontinuous logical engine.\n");

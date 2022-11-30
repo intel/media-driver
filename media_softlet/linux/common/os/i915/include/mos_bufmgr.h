@@ -276,7 +276,8 @@ struct mos_linux_context *mos_gem_context_create_ext(
 struct mos_linux_context *mos_gem_context_create_shared(
                             struct mos_bufmgr *bufmgr,
                             mos_linux_context* ctx,
-                            __u32 flags);
+                            __u32 flags,
+                            bool bContextProtected);
 struct drm_i915_gem_vm_control* mos_gem_vm_create(struct mos_bufmgr *bufmgr);
 void mos_gem_vm_destroy(struct mos_bufmgr *bufmgr, struct drm_i915_gem_vm_control* vm);
 

@@ -4970,11 +4970,13 @@ void mos_gem_vm_destroy(struct mos_bufmgr *bufmgr, struct drm_i915_gem_vm_contro
 }
 
 struct mos_linux_context *
-mos_gem_context_create_shared(struct mos_bufmgr *bufmgr, mos_linux_context* ctx, __u32 flags)
+mos_gem_context_create_shared(struct mos_bufmgr *bufmgr, mos_linux_context* ctx, __u32 flags, bool bContextProtected)
 {
     struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *)bufmgr;
     struct drm_i915_gem_context_create_ext create;
     struct mos_linux_context *context = nullptr;
+    struct drm_i915_gem_context_create_ext_setparam p_protected;
+    struct drm_i915_gem_context_create_ext_setparam p_norecover;
     int ret;
 
     if (ctx == nullptr || ctx->vm == nullptr)
@@ -4987,6 +4989,23 @@ mos_gem_context_create_shared(struct mos_bufmgr *bufmgr, mos_linux_context* ctx,
     memclear(create);
     create.flags = flags;
     create.extensions = 0;
+    if (bContextProtected)
+    {
+        memclear(p_protected);
+        memclear(p_norecover);
+        p_protected.base.next_extension = 0;
+        p_protected.base.name           = I915_CONTEXT_CREATE_EXT_SETPARAM;
+        p_protected.param.param         = I915_CONTEXT_PARAM_PROTECTED_CONTENT;
+        p_protected.param.value         = 1;
+
+        p_norecover.base.next_extension = (uintptr_t)&p_protected;
+        p_norecover.base.name           = I915_CONTEXT_CREATE_EXT_SETPARAM;
+        p_norecover.param.param         = I915_CONTEXT_PARAM_RECOVERABLE;
+        p_norecover.param.value         = 0;
+
+        create.flags = flags|I915_CONTEXT_CREATE_FLAGS_USE_EXTENSIONS;
+        create.extensions = (uintptr_t)&p_norecover;
+    }
     ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_I915_GEM_CONTEXT_CREATE_EXT, &create);
     if (ret != 0) {
         MOS_DBG("DRM_IOCTL_I915_GEM_CONTEXT_CREATE failed: %s\n",

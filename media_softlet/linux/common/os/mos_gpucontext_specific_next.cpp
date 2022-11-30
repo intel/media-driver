@@ -38,6 +38,19 @@
 #define MI_BATCHBUFFER_END 0x05000000
 static pthread_mutex_t command_dump_mutex = PTHREAD_MUTEX_INITIALIZER;
 
+void GpuContextSpecificNext::StoreCreateOptions(PMOS_GPUCTX_CREATOPTIONS createoption)
+{
+    if (typeid(*createoption) == typeid(MOS_GPUCTX_CREATOPTIONS_ENHANCED))
+    {
+        m_bEnhancedUsed = true;
+        MosUtilities::MosSecureMemcpy(&m_createOptionEnhanced, sizeof(MOS_GPUCTX_CREATOPTIONS_ENHANCED), createoption, sizeof(MOS_GPUCTX_CREATOPTIONS_ENHANCED));
+    }
+    else
+    {
+        MosUtilities::MosSecureMemcpy(&m_createOption, sizeof(MOS_GPUCTX_CREATOPTIONS), createoption, sizeof(MOS_GPUCTX_CREATOPTIONS));
+    }
+}
+
 GpuContextSpecificNext::GpuContextSpecificNext(
     const MOS_GPU_NODE gpuNode,
     CmdBufMgrNext         *cmdBufMgr,
@@ -81,6 +94,72 @@ GpuContextSpecificNext::~GpuContextSpecificNext()
     MOS_OS_FUNCTION_ENTER;
 
     Clear();
+}
+
+MOS_STATUS GpuContextSpecificNext::PatchGPUContextProtection(MOS_STREAM_HANDLE streamState)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+    MOS_OS_CHK_NULL_RETURN(streamState);
+    auto osParameters = (PMOS_CONTEXT)streamState->perStreamParameters;
+    MOS_OS_CHK_NULL_RETURN(osParameters);
+
+    // clean up clear gem context and create protected gem context if CP is enabled
+    if (streamState->osCpInterface &&
+        streamState->osCpInterface->IsCpEnabled())    // Check if CP is enabled as protected GEM context is only needed when CP is enabled
+        {
+            if (streamState->ctxBasedScheduling)
+            {
+                if (m_bProtectedContext == false)    // Check if GEM context is already protected or not
+                {
+                    // Context is not protected, recreate it as protected
+                    Clear();
+                    m_bProtectedContext = true;
+                    PMOS_GPUCTX_CREATOPTIONS createOption;
+                    if (m_bEnhancedUsed)
+                    {
+                        createOption = &m_createOptionEnhanced;
+                    }
+                    else
+                    {
+                        createOption = &m_createOption;
+                    }
+                    eStatus = Init(m_osContext, streamState, createOption);
+                }
+            }
+            else
+            {
+                if (osParameters->m_protectedGEMContext == false)
+                {
+                    // for non context based scheduling protected context is always created as protected during Initialization if needed
+                    // If it is not created during Initialization then do nothing and add a comment for Debug purposes
+                    MOS_OS_CRITICALMESSAGE("Using Clear GEM context when protected Context is needed");
+                    eStatus = MOS_STATUS_SUCCESS;
+                }
+            }
+        }
+
+    // clean up protected gem context and recreate clear gem context if CP is disabled
+    if (streamState->osCpInterface &&
+        !streamState->osCpInterface->IsCpEnabled() &&
+        streamState->ctxBasedScheduling &&
+        m_bProtectedContext == true)    // Check if GEM context is protected or not
+        {
+            // Context is protected, recreate it as clear
+            Clear();
+            m_bProtectedContext = false;
+            PMOS_GPUCTX_CREATOPTIONS createOption;
+            if (m_bEnhancedUsed)
+            {
+                createOption = &m_createOptionEnhanced;
+            }
+            else
+            {
+                createOption = &m_createOption;
+            }
+            eStatus = Init(m_osContext, streamState, createOption);
+        }
+
+    return eStatus;
 }
 
 MOS_STATUS GpuContextSpecificNext::Init(OsContextNext *osContext,
@@ -155,15 +234,7 @@ MOS_STATUS GpuContextSpecificNext::Init(OsContextNext *osContext,
 
     m_GPUStatusTag = 1;
 
-    m_createOptionEnhanced = (MOS_GPUCTX_CREATOPTIONS_ENHANCED*)MOS_AllocAndZeroMemory(sizeof(MOS_GPUCTX_CREATOPTIONS_ENHANCED));
-    MOS_OS_CHK_NULL_RETURN(m_createOptionEnhanced);
-    m_createOptionEnhanced->SSEUValue = createOption->SSEUValue;
-
-    if (typeid(*createOption) == typeid(MOS_GPUCTX_CREATOPTIONS_ENHANCED))
-    {
-        PMOS_GPUCTX_CREATOPTIONS_ENHANCED createOptionEnhanced = static_cast<PMOS_GPUCTX_CREATOPTIONS_ENHANCED>(createOption);
-        m_createOptionEnhanced->UsingSFC = createOptionEnhanced->UsingSFC;
-    }
+    StoreCreateOptions(createOption);
 
     for (int i=0; i<MAX_ENGINE_INSTANCE_NUM+1; i++)
     {
@@ -181,7 +252,8 @@ MOS_STATUS GpuContextSpecificNext::Init(OsContextNext *osContext,
 
         m_i915Context[0] = mos_gem_context_create_shared(osParameters->bufmgr,
                                              osParameters->intel_context,
-                                             I915_CONTEXT_CREATE_FLAGS_SINGLE_TIMELINE);
+                                             I915_CONTEXT_CREATE_FLAGS_SINGLE_TIMELINE,
+                                             m_bProtectedContext);
         if (m_i915Context[0] == nullptr)
         {
             MOS_OS_ASSERTMESSAGE("Failed to create context.\n");
@@ -299,7 +371,8 @@ MOS_STATUS GpuContextSpecificNext::Init(OsContextNext *osContext,
                 //master queue
                 m_i915Context[1] = mos_gem_context_create_shared(osParameters->bufmgr,
                                                                     osParameters->intel_context,
-                                                                    I915_CONTEXT_CREATE_FLAGS_SINGLE_TIMELINE);
+                                                                    I915_CONTEXT_CREATE_FLAGS_SINGLE_TIMELINE,
+                                                                    m_bProtectedContext);
                 if (m_i915Context[1] == nullptr)
                 {
                     MOS_OS_ASSERTMESSAGE("Failed to create master context.\n");
@@ -320,7 +393,8 @@ MOS_STATUS GpuContextSpecificNext::Init(OsContextNext *osContext,
                 {
                     m_i915Context[i+1] = mos_gem_context_create_shared(osParameters->bufmgr,
                                                                         osParameters->intel_context,
-                                                                        I915_CONTEXT_CREATE_FLAGS_SINGLE_TIMELINE);
+                                                                        I915_CONTEXT_CREATE_FLAGS_SINGLE_TIMELINE,
+                                                                        m_bProtectedContext);
                     if (m_i915Context[i+1] == nullptr)
                     {
                         MOS_OS_ASSERTMESSAGE("Failed to create slave context.\n");
@@ -360,7 +434,8 @@ MOS_STATUS GpuContextSpecificNext::Init(OsContextNext *osContext,
                         unsigned int ctxWidth = i + 1;
                         m_i915Context[i] = mos_gem_context_create_shared(osParameters->bufmgr,
                                                                      osParameters->intel_context,
-                                                                     0); // I915_CONTEXT_CREATE_FLAGS_SINGLE_TIMELINE not allowed for parallel submission
+                                                                     0, // I915_CONTEXT_CREATE_FLAGS_SINGLE_TIMELINE not allowed for parallel submission
+                                                                     m_bProtectedContext);
                         if (mos_set_context_param_parallel(m_i915Context[i], engine_map, ctxWidth) != S_SUCCESS)
                         {
                             MOS_OS_ASSERTMESSAGE("Failed to set parallel extension since discontinuous logical engine.\n");
@@ -452,7 +527,6 @@ void GpuContextSpecificNext::Clear()
     MOS_SafeFreeMemory(m_patchLocationList);
     MOS_SafeFreeMemory(m_attachedResources);
     MOS_SafeFreeMemory(m_writeModeList);
-    MOS_SafeFreeMemory(m_createOptionEnhanced);
 
     for (int i=0; i<MAX_ENGINE_INSTANCE_NUM; i++)
     {
