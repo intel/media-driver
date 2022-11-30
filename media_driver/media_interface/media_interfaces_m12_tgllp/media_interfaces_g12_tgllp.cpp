@@ -522,6 +522,13 @@ MOS_STATUS CodechalInterfacesG12Tgllp::Initialize(
         return MOS_STATUS_NO_SPACE;
     }
     hwInterface->m_hwInterfaceNext                            = MOS_New(CodechalHwInterfaceNext, osInterface);
+    if (hwInterface->m_hwInterfaceNext == nullptr)
+    {
+        MOS_Delete(hwInterface);
+        mhwInterfaces->SetDestroyState(true);
+        CODECHAL_PUBLIC_ASSERTMESSAGE("hwInterfaceNext is not valid!");
+        return MOS_STATUS_NO_SPACE;
+    }
     hwInterface->m_hwInterfaceNext->pfnCreateDecodeSinglePipe = decode::DecodeScalabilitySinglePipe::CreateDecodeSinglePipe;
     hwInterface->m_hwInterfaceNext->pfnCreateDecodeMultiPipe  = decode::DecodeScalabilityMultiPipe::CreateDecodeMultiPipe;
     hwInterface->m_hwInterfaceNext->SetMediaSfcInterface(hwInterface->GetMediaSfcInterface());
