@@ -291,27 +291,17 @@ public:
         MCPY_CHK_STATUS_RETURN(this->m_osItf->pfnGetMemoryCompressionFormat(this->m_osItf, params.pSrcOsResource, &srcCompressionFormat));
         MCPY_CHK_STATUS_RETURN(this->m_osItf->pfnGetMemoryCompressionMode(this->m_osItf, params.pDstOsResource, (PMOS_MEMCOMP_STATE) & (dstMmcModel)));
         MCPY_CHK_STATUS_RETURN(this->m_osItf->pfnGetMemoryCompressionFormat(this->m_osItf, params.pDstOsResource, &dstCompressionFormat));
-        
-        if (dstMmcModel != MOS_MEMCOMP_DISABLED)
+
+        if (dstMmcModel != MOS_MEMCOMP_DISABLED) // will enable RC later
         {
             cmd.DW1.DestinationCompressionEnable = 1;
             cmd.DW14.DestinationCompressionFormat = dstCompressionFormat;
-            if (dstMmcModel == MOS_MEMCOMP_RC)
-            {
-                cmd.DW1.DestinationControlSurfaceType   = 0;// 1 is media; 0 is 3D;
-                cmd.DW1.DestinationAuxiliarysurfacemode = 5;// SURFACE_MODE_AUX_CCS_E;
-            }
         }
 
-        if (srcMmcModel != MOS_MEMCOMP_DISABLED)
+        if (srcMmcModel != MOS_MEMCOMP_DISABLED)//will enable RC later
         {
             cmd.DW8.SourceCompressionEnable = 1;
             cmd.DW12.SourceCompressionFormat = srcCompressionFormat;
-            if (srcMmcModel == MOS_MEMCOMP_RC)
-            {
-                cmd.DW8.SourceControlSurfaceType   = 0;// 1 is media; 0 is 3D;
-                cmd.DW8.SourceAuxiliarysurfacemode = 5;// SURFACE_MODE_AUX_CCS_E;
-            }
         }
 
         // add source address
@@ -342,7 +332,8 @@ public:
             this->m_currentCmdBuf,
             &ResourceParams));
 
-        MCPY_NORMALMESSAGE("Block BLT cmd:dstSampleNum = %d;  width = %d, hieght = %d, ColorDepth = %d, Source Pitch %d, mocs = %d,tiled %d, mmc model %d, mmc format %d;  dst Pitch %d, mocs = %d,tiled %d",
+        MCPY_NORMALMESSAGE("Block BLT cmd:dstSampleNum = %d;  width = %d, hieght = %d, ColorDepth = %d, Source Pitch %d, mocs = %d,tiled %d," 
+            "mmc model % d, mmc format % d, dst Pitch %d, mocs = %d,tiled %d, mmc model %d, MMC Format = %d",
             dstSampleNum, params.dwDstRight, params.dwDstBottom,
             cmd.DW0.ColorDepth, cmd.DW8.SourcePitch, cmd.DW8.SourceMocs, cmd.DW8.SourceTiling, srcMmcModel, cmd.DW12.SourceCompressionFormat,
             cmd.DW1.DestinationPitch, cmd.DW1.DestinationMocsValue, cmd.DW1.DestinationTiling, dstMmcModel, cmd.DW14.DestinationCompressionFormat);
