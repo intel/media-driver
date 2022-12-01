@@ -134,6 +134,11 @@ MOS_STATUS RenderCopy_Xe_Hpm::SubmitCMD( )
         MOS_GPU_NODE_COMPUTE,
         &createOption));
 
+    // Register context with the Batch Buffer completion event
+    MCPY_CHK_STATUS_RETURN(m_osInterface->pfnRegisterBBCompleteNotifyEvent(
+        m_osInterface,
+        MOS_GPU_CONTEXT_COMPUTE));
+
     // Set GPU Context to Render Engine
     MCPY_CHK_STATUS_RETURN(pOsInterface->pfnSetGpuContext(pOsInterface, MOS_GPU_CONTEXT_COMPUTE));
 

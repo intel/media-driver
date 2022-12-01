@@ -73,27 +73,9 @@ RenderCopyStateNext:: ~RenderCopyStateNext()
 
 MOS_STATUS RenderCopyStateNext::Initialize()
 {
-    MOS_GPU_NODE            RenderGpuNode;
-    MOS_GPU_CONTEXT         RenderGpuContext;
-    MOS_GPUCTX_CREATOPTIONS createOption;
     RENDERHAL_SETTINGS      RenderHalSettings;
 
-    RenderGpuContext   = MOS_GPU_CONTEXT_COMPUTE;
-    RenderGpuNode      = MOS_GPU_NODE_COMPUTE;
-
     MCPY_CHK_NULL_RETURN(m_osInterface);
-
-    // Create render copy Context
-    MCPY_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(
-        m_osInterface,
-        RenderGpuContext,
-        RenderGpuNode,
-        &createOption));
-
-    // Register context with the Batch Buffer completion event
-    MCPY_CHK_STATUS_RETURN(m_osInterface->pfnRegisterBBCompleteNotifyEvent(
-        m_osInterface,
-        RenderGpuContext));
 
     m_renderHal = (PRENDERHAL_INTERFACE)MOS_AllocAndZeroMemory(sizeof(*m_renderHal));
     MCPY_CHK_NULL_RETURN(m_renderHal);
