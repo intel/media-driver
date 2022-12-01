@@ -97,7 +97,7 @@ MOS_STATUS VpPlatformInterfaceXe_Hpm::InitVpRenderHwCaps()
     // Init CM kernel form VP ISA Kernel Binary List
     for (auto &curKernelEntry : m_vpIsaKernelBinaryList)
     {
-       VP_PUBLIC_CHK_STATUS_RETURN(InitVpCmKernels(curKernelEntry.kernelBin, curKernelEntry.kernelBinSize));
+       VP_PUBLIC_CHK_STATUS_RETURN(InitVpCmKernels(curKernelEntry.kernelBin, curKernelEntry.kernelBinSize, curKernelEntry.postfix));
     }
 #endif
 #endif

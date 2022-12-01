@@ -236,13 +236,15 @@ MOS_STATUS VpRenderKernel::AddKernelArg(KRN_ARG &kernelArg)
 
 void VpPlatformInterface::AddVpIsaKernelEntryToList(
     const uint32_t *kernelBin,
-    uint32_t        kernelBinSize)
+    uint32_t        kernelBinSize,
+    std::string     postfix)
 {
     VP_FUNC_CALL();
 
     VP_KERNEL_BINARY_ENTRY tmpEntry = {};
     tmpEntry.kernelBin     = kernelBin;
     tmpEntry.kernelBinSize = kernelBinSize;
+    tmpEntry.postfix       = postfix;
 
     m_vpIsaKernelBinaryList.push_back(tmpEntry);
 }
@@ -285,7 +287,7 @@ MOS_STATUS VpPlatformInterface::InitVpRenderHwCaps()
         // Init CM kernel form VP ISA Kernel Binary List
         for (auto &curKernelEntry : m_vpIsaKernelBinaryList)
         {
-            VP_PUBLIC_CHK_STATUS_RETURN(InitVpCmKernels(curKernelEntry.kernelBin, curKernelEntry.kernelBinSize));
+            VP_PUBLIC_CHK_STATUS_RETURN(InitVpCmKernels(curKernelEntry.kernelBin, curKernelEntry.kernelBinSize, curKernelEntry.postfix));
         }
     }
 
@@ -319,7 +321,8 @@ MOS_STATUS VpPlatformInterface::InitVpL0Kernels(
 
 MOS_STATUS VpPlatformInterface::InitVpCmKernels(
     const uint32_t *cisaCode,
-    uint32_t        cisaCodeSize)
+    uint32_t        cisaCodeSize,
+    std::string     postfix)
 {
     VP_FUNC_CALL();
     VP_RENDER_CHK_NULL_RETURN(cisaCode);
@@ -370,14 +373,19 @@ MOS_STATUS VpPlatformInterface::InitVpCmKernels(
         }
 
         std::string kernelName(kernel->getName(), kernel->getNameLen());
+        std::string fullKernelName = kernelName;
+        if (!postfix.empty())
+        {
+            fullKernelName += ('_' + postfix);
+        }
 
-        if (m_kernelPool.end() != m_kernelPool.find(kernelName))
+        if (m_kernelPool.end() != m_kernelPool.find(fullKernelName))
         {
             continue;
         }
 
         VpRenderKernel vpKernel;
-        vpKernel.SetKernelName(kernelName);
+        vpKernel.SetKernelName(fullKernelName);
         vpKernel.SetKernelBinPointer((void *)cisaCode);
 
         uint8_t          numGenBinaries = kernel->getNumGenBinaries();

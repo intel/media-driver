@@ -991,18 +991,18 @@ MOS_STATUS Policy::GetCSCExecutionCaps(SwFilter* feature)
 MOS_STATUS Policy::GetScalingExecutionCapsHdr(SwFilter *feature)
 {
     VP_FUNC_CALL();
-    VP_PUBLIC_CHK_STATUS_RETURN(GetScalingExecutionCaps(feature, true, OUT_DISABLED));
+    VP_PUBLIC_CHK_STATUS_RETURN(GetScalingExecutionCaps(feature, true));
     return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter *feature)
 {
     VP_FUNC_CALL();
-    VP_PUBLIC_CHK_STATUS_RETURN(GetScalingExecutionCaps(feature, false, OUT_DISABLED));
+    VP_PUBLIC_CHK_STATUS_RETURN(GetScalingExecutionCaps(feature, false));
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter *feature, bool isHdrEnabled, OutMode outMode)
+MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter *feature, bool isHdrEnabled)
 {
     VP_FUNC_CALL();
 
@@ -1348,24 +1348,6 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter *feature, bool isHdrEnabled,
         scalingEngine->hdrKernelSupported = 1;
         scalingEngine->SfcNeeded    = 0;
         VP_PUBLIC_NORMALMESSAGE("Format is not supported by SFC. Switch to Render.");
-    }
-
-    if (outMode == OUT_TO_NEXTPASS)
-    {
-        // Output to Render and scaling was pushed to next pass
-        scalingEngine->usedForNextPass     = true;
-        scalingEngine->bInternalInputInuse = true;
-        scalingEngine->bEnabled            = 1;
-        scalingEngine->RenderNeeded        = 1;
-        scalingEngine->fcSupported         = 1;
-        scalingEngine->SfcNeeded           = 0;
-        VP_PUBLIC_NORMALMESSAGE("Output to Render and scaling was pushed to next pass");
-    }
-    else if (outMode == OUT_TO_TARGET)
-    {
-        // Output to target and scaling was disabled
-        scalingEngine->value = 0;
-        VP_PUBLIC_NORMALMESSAGE("Output to target and scaling was disabled");
     }
 
     PrintFeatureExecutionCaps(__FUNCTION__, *scalingEngine);

@@ -43,6 +43,7 @@ struct VP_KERNEL_BINARY_ENTRY
 {
     const uint32_t        *kernelBin    = nullptr;
     uint32_t              kernelBinSize = 0;
+    std::string           postfix       = "";
 };
 
 struct VP_KERNEL_BINARY
@@ -143,7 +144,8 @@ public:
 
     virtual MOS_STATUS InitVpCmKernels(
         const uint32_t*       cisaCode,
-        uint32_t              cisaCodeSize);
+        uint32_t              cisaCodeSize,
+        std::string           postfix = "");
 
     virtual MOS_STATUS InitVpL0Kernels(
         std::string kernelName,
@@ -290,7 +292,8 @@ public:
 
     virtual void AddVpIsaKernelEntryToList(
                 const uint32_t *kernelBin,
-                uint32_t        kernelBinSize);
+                uint32_t        kernelBinSize,
+                std::string     postfix = "");
 
     virtual void AddVpL0KernelEntryToList(
                 const uint32_t *kernelBin,
