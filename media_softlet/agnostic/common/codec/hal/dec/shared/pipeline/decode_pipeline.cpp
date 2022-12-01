@@ -409,7 +409,7 @@ MOS_STATUS DecodePipeline::DumpOutput(const DecodeStatusReportData& reportData)
 {
     DECODE_FUNC_CALL();
 
-    if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrDecodeOutputSurface))
+    if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrDecodeOutputSurface) || MOS_TraceKeyEnabled(TR_KEY_DECODE_DSTYUV))
     {
         MOS_SURFACE dstSurface;
         MOS_ZeroMemory(&dstSurface, sizeof(dstSurface));
@@ -688,7 +688,7 @@ MOS_STATUS DecodePipeline::StatusCheck()
 #endif
 
 #if MOS_EVENT_TRACE_DUMP_SUPPORTED
-        if (MOS_TraceKeyEnabled(TR_KEY_DECODE_DSTYUV))
+        if (MOS_TraceKeyEnabled(TR_KEY_DECODE_DSTYUV_IN_TRACE))
         {
             const DecodeStatusReportData &reportETWData = statusReport->GetReportData(m_statusCheckCount);
             DECODE_CHK_STATUS(TraceDataDumpOutput(reportETWData));
