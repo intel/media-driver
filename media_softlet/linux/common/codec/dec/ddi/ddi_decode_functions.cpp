@@ -49,6 +49,10 @@
 
 using namespace decode;
 
+#if MOS_EVENT_TRACE_DUMP_SUPPORTED
+static uint32_t DecodeFrameIndex = 0;
+#endif
+
 VAStatus DdiDecodeFunctions::CreateConfig (
     VADriverContextP  ctx,
     VAProfile         profile,
@@ -132,6 +136,14 @@ VAStatus DdiDecodeFunctions::CreateContext(
     VAContextID      *context)
 {
     DDI_CODEC_FUNC_ENTER;
+
+#if MOS_EVENT_TRACE_DUMP_SUPPORTED
+    {
+        DECODE_EVENTDATA_VA_CREATECONTEXT_START eventData;
+        eventData.configId = configId;
+        MOS_TraceEvent(EVENT_DECODE_DDI_CREATECONTEXTVA, EVENT_TYPE_START, &eventData, sizeof(eventData), NULL, 0);
+    }
+#endif
 
     PERF_UTILITY_AUTO(__FUNCTION__, PERF_DECODE, PERF_LEVEL_DDI);
 
@@ -280,6 +292,15 @@ VAStatus DdiDecodeFunctions::CreateContext(
         decCtx->RecListSurfaceID[i] = VA_INVALID_ID;
     }
 
+#if MOS_EVENT_TRACE_DUMP_SUPPORTED
+    {
+        DECODE_EVENTDATA_VA_CREATECONTEXT eventData;
+        eventData.configId = configId;
+        eventData.hRes = va;
+        MOS_TraceEvent(EVENT_DECODE_DDI_CREATECONTEXTVA, EVENT_TYPE_END, &eventData, sizeof(eventData), NULL, 0);
+    }
+#endif
+
     return va;
 }
 
@@ -304,6 +325,15 @@ void DdiDecodeFunctions::FreeBufferHeapElements(VADriverContextP ctx, PDDI_DECOD
     }
 
     int32_t bufNums = mediaCtx->uiNumBufs;
+
+#if MOS_EVENT_TRACE_DUMP_SUPPORTED
+    {
+        DECODE_EVENTDATA_VA_FREEBUFFERHEAPELEMENTS eventData;
+        eventData.bufNums = bufNums;
+        MOS_TraceEvent(EVENT_DECODE_DDI_FREEBUFFERHEAPELEMENTSVA, EVENT_TYPE_START, &eventData, sizeof(eventData), NULL, 0);
+    }
+#endif
+
     for (int32_t elementId = 0; bufNums > 0; ++elementId)
     {
         PDDI_MEDIA_BUFFER_HEAP_ELEMENT mediaBufferHeapElmt = &mediaBufferHeapBase[elementId];
@@ -338,6 +368,15 @@ void DdiDecodeFunctions::FreeBufferHeapElements(VADriverContextP ctx, PDDI_DECOD
         // Ensure the non-empty buffer to be destroyed.
         --bufNums;
     }
+
+#if MOS_EVENT_TRACE_DUMP_SUPPORTED
+    {
+        DECODE_EVENTDATA_VA_FREEBUFFERHEAPELEMENTS eventData;
+        eventData.bufNums = bufNums;
+        MOS_TraceEvent(EVENT_DECODE_DDI_FREEBUFFERHEAPELEMENTSVA, EVENT_TYPE_END, &eventData, sizeof(eventData), NULL, 0);
+    }
+#endif
+
     return;
 }
 
@@ -346,6 +385,14 @@ VAStatus DdiDecodeFunctions::DestroyContext(
     VAContextID      context)
 {
     DDI_CODEC_FUNC_ENTER;
+
+#if MOS_EVENT_TRACE_DUMP_SUPPORTED
+    {
+        DECODE_EVENTDATA_VA_DESTROYCONTEXT_START eventData;
+        eventData.context = context;
+        MOS_TraceEvent(EVENT_DECODE_DDI_DESTROYCONTEXTVA, EVENT_TYPE_START, &eventData, sizeof(eventData), NULL, 0);
+    }
+#endif
 
     DDI_CODEC_CHK_NULL(ctx, "nullptr ctx in Decode DestroyContext", VA_STATUS_ERROR_INVALID_CONTEXT);
     PDDI_MEDIA_CONTEXT mediaCtx = GetMediaContext(ctx);
@@ -363,6 +410,14 @@ VAStatus DdiDecodeFunctions::DestroyContext(
     MosUtilities::MosUnlockMutex(&mediaCtx->DecoderMutex);
 
     FreeBufferHeapElements(ctx, decCtx);
+
+#if MOS_EVENT_TRACE_DUMP_SUPPORTED
+    {
+        DECODE_EVENTDATA_VA_DESTROYCONTEXT eventData;
+        eventData.context = context;
+        MOS_TraceEvent(EVENT_DECODE_DDI_DESTROYCONTEXTVA, EVENT_TYPE_END, &eventData, sizeof(eventData), NULL, 0);
+    }
+#endif
 
     if (decCtx->m_ddiDecodeNext)
     {
@@ -384,6 +439,12 @@ VAStatus DdiDecodeFunctions::CreateBuffer(
 {
     DDI_CODEC_FUNC_ENTER;
 
+#if MOS_EVENT_TRACE_DUMP_SUPPORTED
+    {
+        MOS_TraceEvent(EVENT_DECODE_DDI_CREATEBUFFERVA, EVENT_TYPE_START, NULL, 0, NULL, 0);
+    }
+#endif
+
     DDI_CODEC_CHK_NULL(ctx, "nullptr ctx in Decode CreateBuffer", VA_STATUS_ERROR_INVALID_CONTEXT);
     uint32_t ctxType;
     PDDI_DECODE_CONTEXT decCtx = (decltype(decCtx))MediaLibvaCommonNext::GetContextFromContextID(ctx, context, &ctxType);
@@ -395,6 +456,17 @@ VAStatus DdiDecodeFunctions::CreateBuffer(
         DDI_CHK_RET(decCtx->m_ddiDecodeNext->CreateBuffer(type, size, elementsNum, data, bufId), "Decode CreateBuffer failed!");
     }
 
+#if MOS_EVENT_TRACE_DUMP_SUPPORTED
+    {
+        DECODE_EVENTDATA_VA_CREATEBUFFER eventData;
+        eventData.type = type;
+        eventData.size = size;
+        eventData.numElements = elementsNum;
+        eventData.bufId = bufId;
+        MOS_TraceEvent(EVENT_DECODE_DDI_CREATEBUFFERVA, EVENT_TYPE_END, &eventData, sizeof(eventData), NULL, 0);
+    }
+#endif
+
     return VA_STATUS_SUCCESS;
 }
 
@@ -404,6 +476,14 @@ VAStatus DdiDecodeFunctions::BeginPicture(
     VASurfaceID      renderTarget)
 {
     DDI_CODEC_FUNC_ENTER;
+
+#if MOS_EVENT_TRACE_DUMP_SUPPORTED
+    {
+        DECODE_EVENTDATA_VA_BEGINPICTURE_START eventData;
+        eventData.FrameIndex    = DecodeFrameIndex;
+        MOS_TraceEvent(EVENT_DECODE_DDI_BEGINPICTUREVA, EVENT_TYPE_START, &eventData, sizeof(eventData), NULL, 0);
+    }
+#endif
 
     PERF_UTILITY_AUTO(__FUNCTION__, PERF_DECODE, PERF_LEVEL_DDI);
 
@@ -422,6 +502,16 @@ VAStatus DdiDecodeFunctions::BeginPicture(
     if (decCtx->m_ddiDecodeNext)
     {
         VAStatus va = decCtx->m_ddiDecodeNext->BeginPicture(ctx, context, renderTarget);
+
+#if MOS_EVENT_TRACE_DUMP_SUPPORTED
+        {
+            DECODE_EVENTDATA_VA_BEGINPICTURE eventData;
+            eventData.FrameIndex                  = DecodeFrameIndex;
+            eventData.hRes                        = va;
+            MOS_TraceEvent(EVENT_DECODE_DDI_BEGINPICTUREVA, EVENT_TYPE_END, &eventData, sizeof(eventData), NULL, 0);
+        }
+#endif
+
         return va;
     }
 
@@ -435,6 +525,14 @@ VAStatus DdiDecodeFunctions::RenderPicture(
     int32_t          buffersNum)
 {
     DDI_CODEC_FUNC_ENTER;
+
+#if MOS_EVENT_TRACE_DUMP_SUPPORTED
+    {
+        DECODE_EVENTDATA_VA_RENDERPICTURE_START eventData;
+        eventData.buffers = buffers;
+        MOS_TraceEvent(EVENT_DECODE_DDI_RENDERPICTUREVA, EVENT_TYPE_START, &eventData, sizeof(eventData), NULL, 0);
+    }
+#endif
 
     PERF_UTILITY_AUTO(__FUNCTION__, PERF_DECODE, PERF_LEVEL_DDI);
 
@@ -478,6 +576,17 @@ VAStatus DdiDecodeFunctions::RenderPicture(
     if (decCtx->m_ddiDecodeNext)
     {
         va = decCtx->m_ddiDecodeNext->RenderPicture(ctx, context, buffers, numOfBuffers);
+
+#if MOS_EVENT_TRACE_DUMP_SUPPORTED
+        {
+            DECODE_EVENTDATA_VA_RENDERPICTURE eventData;
+            eventData.buffers = buffers;
+            eventData.hRes    = va;
+            eventData.numBuffers = buffersNum;
+            MOS_TraceEvent(EVENT_DECODE_DDI_RENDERPICTUREVA, EVENT_TYPE_END, &eventData, sizeof(eventData), NULL, 0);
+        }
+#endif
+
         return va;
     }
 
@@ -489,6 +598,14 @@ VAStatus DdiDecodeFunctions::EndPicture(
     VAContextID      context)
 {
     DDI_CODEC_FUNC_ENTER;
+
+#if MOS_EVENT_TRACE_DUMP_SUPPORTED
+    {
+        DECODE_EVENTDATA_VA_ENDPICTURE_START eventData;
+        eventData.FrameIndex = DecodeFrameIndex;
+        MOS_TraceEvent(EVENT_DECODE_DDI_ENDPICTUREVA, EVENT_TYPE_START, &eventData, sizeof(eventData), NULL, 0);
+    }
+#endif
 
     PERF_UTILITY_AUTO(__FUNCTION__, PERF_DECODE, PERF_LEVEL_DDI);
 
@@ -505,6 +622,17 @@ VAStatus DdiDecodeFunctions::EndPicture(
         if (decCtx->pCpDdiInterface->IsCencProcessing())
         {
             VAStatus va = decCtx->pCpDdiInterface->EndPicture(ctx, context);
+
+#if MOS_EVENT_TRACE_DUMP_SUPPORTED
+            {
+                DECODE_EVENTDATA_VA_ENDPICTURE eventData;
+                eventData.FrameIndex = DecodeFrameIndex;
+                eventData.hRes       = va;
+                MOS_TraceEvent(EVENT_DECODE_DDI_ENDPICTUREVA, EVENT_TYPE_END, &eventData, sizeof(eventData), NULL, 0);
+                DecodeFrameIndex++;
+            }
+#endif
+
             return va;
         }
     }
@@ -512,6 +640,17 @@ VAStatus DdiDecodeFunctions::EndPicture(
     if (decCtx->m_ddiDecodeNext)
     {
         VAStatus va = decCtx->m_ddiDecodeNext->EndPicture(ctx, context);
+
+#if MOS_EVENT_TRACE_DUMP_SUPPORTED
+        {
+            DECODE_EVENTDATA_VA_ENDPICTURE eventData;
+            eventData.FrameIndex = DecodeFrameIndex;
+            eventData.hRes       = va;
+            MOS_TraceEvent(EVENT_DECODE_DDI_ENDPICTUREVA, EVENT_TYPE_END, &eventData, sizeof(eventData), NULL, 0);
+            DecodeFrameIndex++;
+        }
+#endif
+
         return va;
     }
 
@@ -904,6 +1043,12 @@ VAStatus DdiDecodeFunctions::StatusReport(
 {
     DDI_CODEC_FUNC_ENTER;
 
+#if MOS_EVENT_TRACE_DUMP_SUPPORTED
+    {
+        MOS_TraceEvent(EVENT_DECODE_DDI_STATUSREPORTVA, EVENT_TYPE_START, NULL, 0, NULL, 0);
+    }
+#endif
+
     if (surface->curStatusReportQueryState == DDI_MEDIA_STATUS_REPORT_QUERY_STATE_PENDING) // TODO: Use soltlet class
     {
         uint32_t uNumCompletedReport = decoder->GetCompletedReport();
@@ -949,6 +1094,12 @@ VAStatus DdiDecodeFunctions::StatusReport(
             }
         }
     }
+
+#if MOS_EVENT_TRACE_DUMP_SUPPORTED
+    {
+        MOS_TraceEvent(EVENT_DECODE_DDI_STATUSREPORTVA, EVENT_TYPE_END, NULL, 0, NULL, 0);
+    }
+#endif
 
     // check the report ptr of current surface.
     if (surface->curStatusReportQueryState == DDI_MEDIA_STATUS_REPORT_QUERY_STATE_COMPLETED)
@@ -1059,6 +1210,12 @@ int32_t DdiDecodeFunctions::GetDisplayInfo(VADriverContextP ctx)
 {
     DDI_CODEC_FUNC_ENTER;
 
+#if MOS_EVENT_TRACE_DUMP_SUPPORTED
+    {
+        MOS_TraceEvent(EVENT_DECODE_DDI_DISPLAYINFOVA, EVENT_TYPE_START, NULL, 0, NULL, 0);
+    }
+#endif
+
     PDDI_MEDIA_CONTEXT mediaDrvCtx = GetMediaContext(ctx);
     int32_t fd  = -1;
     struct fb_var_screeninfo vsinfo;
@@ -1090,6 +1247,15 @@ int32_t DdiDecodeFunctions::GetDisplayInfo(VADriverContextP ctx)
     DDI_CODEC_NORMALMESSAGE("DDI:mediaDrvCtx->uiDisplayWidth =%d", mediaDrvCtx->uiDisplayWidth);
     DDI_CODEC_NORMALMESSAGE("DDI:mediaDrvCtx->uiDisplayHeight =%d",mediaDrvCtx->uiDisplayHeight);
 
+#if MOS_EVENT_TRACE_DUMP_SUPPORTED
+    {
+        DECODE_EVENTDATA_VA_DISPLAYINFO eventData;
+        eventData.uiDisplayWidth  = mediaDrvCtx->uiDisplayWidth;
+        eventData.uiDisplayHeight = mediaDrvCtx->uiDisplayHeight;
+        MOS_TraceEvent(EVENT_DECODE_DDI_DISPLAYINFOVA, EVENT_TYPE_END, &eventData, sizeof(eventData), NULL, 0);
+    }
+#endif
+
     return 0;
 }
 
@@ -1098,6 +1264,12 @@ void DdiDecodeFunctions::CleanUp(
     PDDI_DECODE_CONTEXT decCtx)
 {
     DDI_CODEC_FUNC_ENTER;
+
+#if MOS_EVENT_TRACE_DUMP_SUPPORTED
+    {
+        MOS_TraceEvent(EVENT_DECODE_DDI_CLEARUPVA, EVENT_TYPE_START, NULL, 0, NULL, 0);
+    }
+#endif
 
     if (decCtx)
     {
@@ -1109,6 +1281,13 @@ void DdiDecodeFunctions::CleanUp(
             decCtx = nullptr;
         }
     }
+
+#if MOS_EVENT_TRACE_DUMP_SUPPORTED
+    {
+        MOS_TraceEvent(EVENT_DECODE_DDI_CLEARUPVA, EVENT_TYPE_END, NULL, 0, NULL, 0);
+    }
+#endif
+
     return;
 }
 
@@ -1118,6 +1297,12 @@ VAStatus DdiDecodeFunctions::SetGpuPriority(
     int32_t             priority)
 {
     DDI_CODEC_FUNC_ENTER;
+
+#if MOS_EVENT_TRACE_DUMP_SUPPORTED
+    {
+        MOS_TraceEvent(EVENT_DECODE_DDI_SETGPUPRIORITYVA, EVENT_TYPE_START, NULL, 0, NULL, 0);
+    }
+#endif
 
     DDI_CODEC_CHK_NULL(ctx, "nullptr ctx in Decode SetGpuPriority", VA_STATUS_ERROR_INVALID_CONTEXT);
     DDI_CODEC_CHK_NULL(decCtx, "nullptr decCtx in Decode SetGpuPriority", VA_STATUS_ERROR_INVALID_CONTEXT);
@@ -1132,6 +1317,13 @@ VAStatus DdiDecodeFunctions::SetGpuPriority(
         DDI_CODEC_CHK_NULL(osInterface, "nullptr osInterface.", VA_STATUS_ERROR_ALLOCATION_FAILED);
         osInterface->pfnSetGpuPriority(osInterface, priority);
     }
+
+#if MOS_EVENT_TRACE_DUMP_SUPPORTED
+    {
+        MOS_TraceEvent(EVENT_DECODE_DDI_SETGPUPRIORITYVA, EVENT_TYPE_END, NULL, 0, NULL, 0);
+    }
+#endif
+
     return VA_STATUS_SUCCESS;
 }
 

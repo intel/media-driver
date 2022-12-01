@@ -28,11 +28,11 @@
 #include "media_libva_util_next.h"
 #include "ddi_decode_hevc_specific.h"
 #include "media_ddi_factory.h"
-#include "codechal_memdecomp.h"
 #include "media_libva_common_next.h"
 #include "codec_def_decode_hevc.h"
 #include "media_libva_interface_next.h"
 #include "media_libva_decoder.h"
+#include "ddi_decode_trace_specific.h"
 
 //namespace decode
 //{

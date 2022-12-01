@@ -24,13 +24,10 @@
 //! \brief    Implements class for DDI media MPEG2 decode
 //!
 
-#include "media_libva_decoder.h"
 #include "media_libva_util_next.h"
 #include "media_libva_caps_next.h"
 #include "media_libva_interface_next.h"
 #include "ddi_decode_mpeg2_specific.h"
-#include "mos_solo_generic.h"
-#include "codechal_memdecomp.h"
 
 //namespace decode
 //{

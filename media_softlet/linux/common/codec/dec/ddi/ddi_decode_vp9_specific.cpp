@@ -24,12 +24,13 @@
 //! \brief    Implements class for DDI media VP9 decode
 //!
 
-#include "media_libva_decoder.h"
 #include "media_libva_util_next.h"
 #include "media_libva_interface_next.h"
 #include "ddi_decode_vp9_specific.h"
-#include "mos_solo_generic.h"
-#include "codechal_memdecomp.h"
+#include "ddi_decode_trace_specific.h"
+
+//namespace decode
+//{
 
 VAStatus DdiDecodeVp9::ParseSliceParams(
     DDI_MEDIA_CONTEXT         *mediaCtx,

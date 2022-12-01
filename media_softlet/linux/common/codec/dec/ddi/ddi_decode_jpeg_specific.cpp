@@ -24,8 +24,6 @@
 //! \brief    JPEG class definition for DDI media decoder
 //!
 
-#include <va/va_dec_jpeg.h>
-#include "media_libva_decoder.h"
 #include "media_libva_util_next.h"
 #include "media_libva_interface_next.h"
 #include "ddi_decode_jpeg_specific.h"

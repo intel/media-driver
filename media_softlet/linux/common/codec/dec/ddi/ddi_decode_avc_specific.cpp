@@ -24,13 +24,11 @@
 //! \brief    AVC class definition for DDI media decoder
 //!
 
-#include "media_libva_decoder.h"
 #include "ddi_decode_functions.h"
 #include "media_libva_util_next.h"
 #include "media_libva_interface_next.h"
 #include "ddi_decode_avc_specific.h"
-#include "mos_solo_generic.h"
-#include "codechal_memdecomp.h"
+#include "ddi_decode_trace_specific.h"
 
 //namespace decode
 //{

@@ -28,6 +28,7 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_mpeg2_specific.cpp
     ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_vp8_specific.cpp
     ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_vp9_specific.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_trace_specific.cpp
 )
 
 set(TMP_HEADERS_
@@ -40,6 +41,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_mpeg2_specific.h
     ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_vp8_specific.h
     ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_vp9_specific.h
+    ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_trace_specific.h
 )
 
 set(SOFTLET_DDI_SOURCES_

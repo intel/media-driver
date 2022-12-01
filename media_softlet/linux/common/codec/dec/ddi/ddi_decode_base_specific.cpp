@@ -26,14 +26,13 @@
 
 #include "ddi_vp_functions.h"
 #include "media_libva_util_next.h"
-#include "codechal.h"
-#include "codechal_memdecomp.h"
 #include "media_interfaces_codechal.h"
 #include "media_interfaces_mmd_next.h"
 #include "mos_solo_generic.h"
 #include "ddi_decode_base_specific.h"
 #include "media_libva_common_next.h"
 #include "media_interfaces_codechal_next.h"
+#include "ddi_decode_trace_specific.h"
 
 //namespace decode
 //{
@@ -1340,6 +1339,14 @@ void DdiDecodeBase::ReportDecodeMode(
     default:
         break;
     }
+#if MOS_EVENT_TRACE_DUMP_SUPPORTED
+    {
+        DECODE_EVENTDATA_VA_FEATURE_REPORTMODE eventData;
+        eventData.wMode = (uint32_t)wMode;
+        eventData.ValueID = userFeatureWriteData.ValueID;
+        MOS_TraceEvent(EVENT_DECODE_FEATURE_DECODEMODE_REPORTVA, EVENT_TYPE_INFO, &eventData, sizeof(eventData), NULL, 0);
+    }
+#endif
     return;
 }
 //} // namespace decode

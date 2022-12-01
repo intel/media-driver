@@ -24,12 +24,8 @@
 //! \brief    Implements class for DDI media VP8 decode
 //!
 
-#include "media_libva_decoder.h"
 #include "media_libva_util_next.h"
-
 #include "ddi_decode_vp8_specific.h"
-#include "mos_solo_generic.h"
-#include "codechal_memdecomp.h"
 #include "media_libva_interface_next.h"
 
 //namespace decode
