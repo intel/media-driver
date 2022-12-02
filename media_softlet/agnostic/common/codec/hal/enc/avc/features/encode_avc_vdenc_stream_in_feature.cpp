@@ -198,16 +198,6 @@ MHW_SETPAR_DECL_SRC(VDENC_AVC_IMG_STATE, AvcVdencStreamInFeature)
                                      picParams->NumROI && picParams->bNativeROI ||
                                      picParams->TargetFrameSize > 0 && !m_basicFeature->m_lookaheadDepth);  // TCBRC (for AdaptiveRegionBoost)
 
-#if _MEDIA_RESERVED
-    params.vdencAvcImgStatePar0 = m_enabled;
-#else
-    params.extSettings.emplace_back(
-        [this](uint32_t *data) {
-            data[13] |= m_enabled << 1;
-            return MOS_STATUS_SUCCESS;
-        });
-#endif  // _MEDIA_RESERVED
-
     params.mbLevelQpEnable      = m_enabled && picParams->EnableRollingIntraRefresh == ROLLING_I_DISABLED &&
                                    (picParams->NumROI && !picParams->bNativeROI || m_basicFeature->m_mbQpDataEnabled);
 
