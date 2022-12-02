@@ -29,8 +29,8 @@
 
 #include "ddi_decode_base_specific.h"
 
-//namespace decode
-//{
+namespace decode
+{
 
 //!
 //! \class  DdiDecodeAvc
@@ -234,8 +234,8 @@ private:
     static const uint32_t m_decAvcMaxWidth  = CODEC_4K_MAX_PIC_WIDTH;  //!< Maximum width for AVC decode
     static const uint32_t m_decAvcMaxHeight = CODEC_4K_MAX_PIC_HEIGHT; //!< Maximum height for AVC decode
 
-    MEDIA_CLASS_DEFINE_END(DdiDecodeAvc)
+    MEDIA_CLASS_DEFINE_END(decode__DdiDecodeAvc)
 };
-//} // namespace decode
+} // namespace decode
 
 #endif /* __DDI_DECODE_AVC_SPECIFIC_H__ */

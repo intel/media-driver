@@ -31,6 +31,7 @@
 #include "mos_solo_generic.h"
 #include "media_libva_interface_next.h"
 #include "media_libva_vp.h"
+#include "ddi_cp_interface_next.h"
 #if !defined(ANDROID) && defined(X11_FOUND)
 #include <X11/Xutil.h>
 #include "media_libva_putsurface_linux.h"
@@ -193,10 +194,9 @@ VAStatus DdiVpFunctions::DestroyContext (
     MOS_FreeMemory(vpCtx->MosDrvCtx.pPerfData);
     vpCtx->MosDrvCtx.pPerfData = nullptr;
 
-    if (vpCtx->pCpDdiInterface)
+    if (vpCtx->pCpDdiInterfaceNext)
     {
-        Delete_DdiCpInterface(vpCtx->pCpDdiInterface);
-        vpCtx->pCpDdiInterface = nullptr;
+        MOS_Delete(vpCtx->pCpDdiInterfaceNext);
     }
 
     // destroy vphal
@@ -865,8 +865,8 @@ VAStatus DdiVpFunctions::DdiInitCtx(
     DDI_VP_CHK_NULL(vpCtx->MosDrvCtx.pPerfData, "nullptr vpCtx->MosDrvCtx.pPerfData", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
     // initialize DDI level cp interface
-    vpCtx->pCpDdiInterface = Create_DdiCpInterface(vpCtx->MosDrvCtx);
-    if (nullptr == vpCtx->pCpDdiInterface)
+    vpCtx->pCpDdiInterfaceNext = CreateDdiCpNext(&vpCtx->MosDrvCtx);
+    if (nullptr == vpCtx->pCpDdiInterfaceNext)
     {
         FreeVpHalRenderParams(vpCtx, vpHalRenderParams);
         return VA_STATUS_ERROR_ALLOCATION_FAILED;
@@ -954,10 +954,9 @@ void DdiVpFunctions::FreeVpHalRenderParams(
         MOS_Delete(vpHalRenderParams);
     }
 
-    if (vpCtx->pCpDdiInterface)
+    if (vpCtx->pCpDdiInterfaceNext)
     {
-        Delete_DdiCpInterface(vpCtx->pCpDdiInterface);
-        vpCtx->pCpDdiInterface = nullptr;
+        MOS_Delete(vpCtx->pCpDdiInterfaceNext);
     }
 
 #if (_DEBUG || _RELEASE_INTERNAL)

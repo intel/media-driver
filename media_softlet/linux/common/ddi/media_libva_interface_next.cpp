@@ -45,8 +45,6 @@
 #include "ddi_encode_functions.h"
 #include "ddi_vp_functions.h"
 #include "media_libva_register.h"
-#include "media_libva_decoder.h"
-#include "media_libva_encoder.h"
 
 MEDIA_MUTEX_T MediaLibvaInterfaceNext::m_GlobalMutex = MEDIA_MUTEX_INITIALIZER;
 

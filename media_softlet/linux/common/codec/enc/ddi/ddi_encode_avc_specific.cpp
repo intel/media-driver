@@ -778,7 +778,7 @@ VAStatus DdiEncodeAvc::ParseMiscParamSubMbPartPel(void *data)
 VAStatus DdiEncodeAvc::ContextInitialize(CodechalSetting * codecHalSettings)
 {
     DDI_CODEC_CHK_NULL(m_encodeCtx, "nullptr m_encodeCtx.", VA_STATUS_ERROR_INVALID_CONTEXT);
-    DDI_CODEC_CHK_NULL(m_encodeCtx->pCpDdiInterface, "nullptr m_encodeCtx->pCpDdiInterface.", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CODEC_CHK_NULL(m_encodeCtx->pCpDdiInterfaceNext, "nullptr m_encodeCtx->pCpDdiInterfaceNext.", VA_STATUS_ERROR_INVALID_CONTEXT);
     DDI_CODEC_CHK_NULL(codecHalSettings, "nullptr codecHalSettings.", VA_STATUS_ERROR_INVALID_CONTEXT);
 
     if (m_encodeCtx->bVdencActive == true)
@@ -813,7 +813,7 @@ VAStatus DdiEncodeAvc::ContextInitialize(CodechalSetting * codecHalSettings)
         m_encodeCtx->ppNALUnitParams[i] = &(nalUnitParams[i]);
     }
 
-    VAStatus status = m_encodeCtx->pCpDdiInterface->ParseCpParamsForEncode();
+    VAStatus status = m_encodeCtx->pCpDdiInterfaceNext->ParseCpParamsForEncode();
     if (VA_STATUS_SUCCESS != status)
     {
         return status;
@@ -944,9 +944,9 @@ VAStatus DdiEncodeAvc::RenderPicture(
             break;
 
         default:
-            if(m_encodeCtx->pCpDdiInterface)
+            if(m_encodeCtx->pCpDdiInterfaceNext)
             {
-                vaStatus = m_encodeCtx->pCpDdiInterface->RenderCencPicture(ctx, context, buf, data);
+                vaStatus = m_encodeCtx->pCpDdiInterfaceNext->RenderCencPicture(ctx, context, buf, data);
             }
             else
             {
@@ -967,7 +967,7 @@ VAStatus DdiEncodeAvc::EncodeInCodecHal(uint32_t numSlices)
 
     DDI_CODEC_CHK_NULL(m_encodeCtx, "nullptr m_encodeCtx", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CODEC_CHK_NULL(m_encodeCtx->pMediaCtx, "nullptr m_encodeCtx->pMediaCtx", VA_STATUS_ERROR_INVALID_PARAMETER);
-    DDI_CODEC_CHK_NULL(m_encodeCtx->pCpDdiInterface, "nullptr m_encodeCtx->pCpDdiInterface.", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CODEC_CHK_NULL(m_encodeCtx->pCpDdiInterfaceNext, "nullptr m_encodeCtx->pCpDdiInterfaceNext.", VA_STATUS_ERROR_INVALID_PARAMETER);
 
     DDI_CODEC_RENDER_TARGET_TABLE *rtTbl     = &(m_encodeCtx->RTtbl);
 
@@ -995,7 +995,7 @@ VAStatus DdiEncodeAvc::EncodeInCodecHal(uint32_t numSlices)
     MediaLibvaCommonNext::MediaSurfaceToMosResource(rtTbl->pCurrentRT, &(rawSurface->OsResource));
 
     PMOS_INTERFACE osInterface = m_encodeCtx->pCodecHal->GetOsInterface();
-    m_encodeCtx->pCpDdiInterface->SetInputResourceEncryption(osInterface, &(rawSurface->OsResource));
+    m_encodeCtx->pCpDdiInterfaceNext->SetInputResourceEncryption(osInterface, &(rawSurface->OsResource));
 
     // Recon Surface
     PMOS_SURFACE reconSurface = &encodeParams->reconSurface;

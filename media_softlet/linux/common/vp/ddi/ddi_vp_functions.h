@@ -67,6 +67,7 @@ typedef struct _DDI_VP_FRAMEID_TRACER
 } DDI_VP_FRAMEID_TRACER;
 
 class DdiCpInterface;
+class DdiCpInterfaceNext;
 //core structure for VP DDI
 typedef struct DDI_VP_CONTEXT
 {
@@ -76,6 +77,7 @@ typedef struct DDI_VP_CONTEXT
     VPHAL_RENDER_PARAMS                       *pVpHalRenderParams = nullptr;
 
     DdiCpInterface                            *pCpDdiInterface    = nullptr;
+    DdiCpInterfaceNext                        *pCpDdiInterfaceNext = nullptr;
 
     // target surface id
     VASurfaceID                               TargetSurfID        = 0;

@@ -30,9 +30,9 @@
 
 #include "ddi_decode_base_specific.h"
 
-//namespace decode
-//{
-//
+namespace decode
+{
+
 //!
 //! \class  DdiDecodeMpeg2
 //! \brief  Ddi Decode MPEG2
@@ -196,8 +196,8 @@ private:
     static const uint32_t m_decMpeg2MaxWidth  = 2048; //!< Maximum width for Mpeg2 decode
     static const uint32_t m_decMpeg2MaxHeight = 2048; //!< Maximum height for Mpeg2 decode
 
-    MEDIA_CLASS_DEFINE_END(DdiDecodeMpeg2)
+    MEDIA_CLASS_DEFINE_END(decode__DdiDecodeMpeg2)
 };
 
-//} // namespace decode
+} // namespace decode
 #endif /* __DDI_DECODE_MPEG2_SPECIFIC_H__ */

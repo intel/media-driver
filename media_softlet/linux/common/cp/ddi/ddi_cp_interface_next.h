@@ -57,7 +57,7 @@ typedef struct _DDI_CP_CONTEXT_NEXT
     std::multimap<uint32_t, void *> mapAttaching;
 } DDI_CP_CONTEXT_NEXT, *PDDI_CP_CONTEXT_NEXT;
 
-static __inline PDDI_CP_CONTEXT_NEXT DdiCp_GetCpContextNextFromPVOID(void *cpCtx)
+static __inline PDDI_CP_CONTEXT_NEXT GetCpContextNextFromPVOID(void *cpCtx)
 {
     return (PDDI_CP_CONTEXT_NEXT)cpCtx;
 }

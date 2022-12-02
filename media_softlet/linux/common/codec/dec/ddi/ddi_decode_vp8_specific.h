@@ -29,9 +29,9 @@
 
 #include "ddi_decode_base_specific.h"
 
-//namespace decode
-//{
 struct _DDI_MEDIA_BUFFER;
+namespace decode
+{
 
 //!
 //! \class  DdiDecodeVp8
@@ -190,8 +190,8 @@ private:
     static const uint32_t m_decVp8MaxWidth  = 4096; //!< Maximum width for Vp8 decode
     static const uint32_t m_decVp8MaxHeight = 4096; //!< Maximum height for Vp8 decode
 
-    MEDIA_CLASS_DEFINE_END(DdiDecodeVp8)
+    MEDIA_CLASS_DEFINE_END(decode__DdiDecodeVp8)
 };
-// } namespace decode
+} //namespace decode
 
 #endif /* __DDI_DECODE_VP8_SPECIFIC_H__ */

@@ -28,11 +28,11 @@
 #define __DDI_DECODE_FUNCTIONS_H__
 
 #include "ddi_media_functions.h"
-#include "media_libva_decoder.h"
+#include "ddi_libva_decoder_specific.h"
 #include "media_libva_caps_next.h"
 #include "decode_pipeline_adapter.h"
 
-//using namespace decode;
+using namespace decode;
 
 class DdiDecodeFunctions :public DdiMediaFunctions
 {

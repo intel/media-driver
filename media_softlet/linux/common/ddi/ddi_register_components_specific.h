@@ -30,7 +30,7 @@
 #include "ddi_decode_base_specific.h"
 
 typedef MediaFactory<ComponentInfo, encode::DdiEncodeBase> DdiEncodeFactory;
-typedef MediaFactory<ComponentInfo, DdiDecodeBase> DdiDecodeFactory;
+typedef MediaFactory<ComponentInfo, decode::DdiDecodeBase> DdiDecodeFactory;
 
 #if defined (_HEVC_ENCODE_VDENC_SUPPORTED)
 #include "ddi_encode_hevc_specific.h"
@@ -111,40 +111,40 @@ static bool RegisteredJPEGBaseline =
 
 static bool RegisteredHEVCMainVLD =
     DdiDecodeFactory::
-        Register<DdiDecodeHevc>(ComponentInfo {VAProfileHEVCMain, VAEntrypointVLD});
+        Register<decode::DdiDecodeHevc>(ComponentInfo {VAProfileHEVCMain, VAEntrypointVLD});
 static bool RegisteredHEVCMain10VLD =
     DdiDecodeFactory::
-        Register<DdiDecodeHevc>(ComponentInfo {VAProfileHEVCMain10, VAEntrypointVLD});
+        Register<decode::DdiDecodeHevc>(ComponentInfo {VAProfileHEVCMain10, VAEntrypointVLD});
 static bool RegisteredHEVCMain12VLD =
     DdiDecodeFactory::
-        Register<DdiDecodeHevc>(ComponentInfo {VAProfileHEVCMain12, VAEntrypointVLD});
+        Register<decode::DdiDecodeHevc>(ComponentInfo {VAProfileHEVCMain12, VAEntrypointVLD});
 static bool RegisteredHEVCMain422_10VLD =
     DdiDecodeFactory::
-        Register<DdiDecodeHevc>(ComponentInfo {VAProfileHEVCMain422_10, VAEntrypointVLD});
+        Register<decode::DdiDecodeHevc>(ComponentInfo {VAProfileHEVCMain422_10, VAEntrypointVLD});
 static bool RegisteredHEVCMain422_12VLD =
     DdiDecodeFactory::
-        Register<DdiDecodeHevc>(ComponentInfo {VAProfileHEVCMain422_12, VAEntrypointVLD});
+        Register<decode::DdiDecodeHevc>(ComponentInfo {VAProfileHEVCMain422_12, VAEntrypointVLD});
 static bool RegisteredHEVCMain444VLD =
     DdiDecodeFactory::
-        Register<DdiDecodeHevc>(ComponentInfo {VAProfileHEVCMain444, VAEntrypointVLD});
+        Register<decode::DdiDecodeHevc>(ComponentInfo {VAProfileHEVCMain444, VAEntrypointVLD});
 static bool RegisteredHEVCMain444_10VLD =
     DdiDecodeFactory::
-        Register<DdiDecodeHevc>(ComponentInfo {VAProfileHEVCMain444_10, VAEntrypointVLD});
+        Register<decode::DdiDecodeHevc>(ComponentInfo {VAProfileHEVCMain444_10, VAEntrypointVLD});
 static bool RegisteredHEVCMain444_12VLD =
     DdiDecodeFactory::
-        Register<DdiDecodeHevc>(ComponentInfo {VAProfileHEVCMain444_12, VAEntrypointVLD});
+        Register<decode::DdiDecodeHevc>(ComponentInfo {VAProfileHEVCMain444_12, VAEntrypointVLD});
 static bool RegisteredHEVCMainSCCVLD =
     DdiDecodeFactory::
-        Register<DdiDecodeHevc>(ComponentInfo {VAProfileHEVCSccMain, VAEntrypointVLD});
+        Register<decode::DdiDecodeHevc>(ComponentInfo {VAProfileHEVCSccMain, VAEntrypointVLD});
 static bool RegisteredHEVCMainSCC_10VLD =
     DdiDecodeFactory::
-        Register<DdiDecodeHevc>(ComponentInfo {VAProfileHEVCSccMain10, VAEntrypointVLD});
+        Register<decode::DdiDecodeHevc>(ComponentInfo {VAProfileHEVCSccMain10, VAEntrypointVLD});
 static bool RegisteredHEVCMainSCC444VLD =
     DdiDecodeFactory::
-        Register<DdiDecodeHevc>(ComponentInfo {VAProfileHEVCSccMain444, VAEntrypointVLD});
+        Register<decode::DdiDecodeHevc>(ComponentInfo {VAProfileHEVCSccMain444, VAEntrypointVLD});
 static bool RegisteredHEVCMainSCC444_10VLD =
     DdiDecodeFactory::
-        Register<DdiDecodeHevc>(ComponentInfo {VAProfileHEVCSccMain444_10, VAEntrypointVLD});
+        Register<decode::DdiDecodeHevc>(ComponentInfo {VAProfileHEVCSccMain444_10, VAEntrypointVLD});
 #endif // _HEVC_DECODE_SUPPORTED
 
 #if defined (_AVC_DECODE_SUPPORTED)
@@ -152,13 +152,13 @@ static bool RegisteredHEVCMainSCC444_10VLD =
 
 static bool RegisteredH264MainVLD =
     DdiDecodeFactory::
-        Register<DdiDecodeAvc>(ComponentInfo {VAProfileH264Main, VAEntrypointVLD});
+        Register<decode::DdiDecodeAvc>(ComponentInfo {VAProfileH264Main, VAEntrypointVLD});
 static bool RegisteredH264HighVLD =
     DdiDecodeFactory::
-        Register<DdiDecodeAvc>(ComponentInfo{VAProfileH264High, VAEntrypointVLD});
+        Register<decode::DdiDecodeAvc>(ComponentInfo{VAProfileH264High, VAEntrypointVLD});
 static bool RegisteredH264ConstrainedBaselineVLD =
     DdiDecodeFactory::
-        Register<DdiDecodeAvc>(ComponentInfo{VAProfileH264ConstrainedBaseline, VAEntrypointVLD});
+        Register<decode::DdiDecodeAvc>(ComponentInfo{VAProfileH264ConstrainedBaseline, VAEntrypointVLD});
 #endif // _AVC_DECODE_SUPPORTED
 
 #if defined (_AV1_DECODE_SUPPORTED)
@@ -166,7 +166,7 @@ static bool RegisteredH264ConstrainedBaselineVLD =
 
 static bool RegisteredAv1Profile0VLD =
     DdiDecodeFactory::
-        Register<DdiDecodeAv1>(ComponentInfo {VAProfileAV1Profile0, VAEntrypointVLD});
+        Register<decode::DdiDecodeAv1>(ComponentInfo {VAProfileAV1Profile0, VAEntrypointVLD});
 #endif // _AV1_DECODE_SUPPORTED
 
 #if defined (_JPEG_DECODE_SUPPORTED)
@@ -174,7 +174,7 @@ static bool RegisteredAv1Profile0VLD =
 
 static bool RegisteredJpegBaselineVLD =
     DdiDecodeFactory::
-        Register<DdiDecodeJpeg>(ComponentInfo {VAProfileJPEGBaseline, VAEntrypointVLD});
+        Register<decode::DdiDecodeJpeg>(ComponentInfo {VAProfileJPEGBaseline, VAEntrypointVLD});
 #endif // _JPEG_DECODE_SUPPORTED
 
 #if defined (_MPEG2_DECODE_SUPPORTED)
@@ -182,10 +182,10 @@ static bool RegisteredJpegBaselineVLD =
 
 static bool RegisteredMPEG2SimpleVLD =
     DdiDecodeFactory::
-        Register<DdiDecodeMpeg2>(ComponentInfo {VAProfileMPEG2Simple, VAEntrypointVLD});
+        Register<decode::DdiDecodeMpeg2>(ComponentInfo {VAProfileMPEG2Simple, VAEntrypointVLD});
 static bool RegisteredMPEG2MainVLD =
     DdiDecodeFactory::
-        Register<DdiDecodeMpeg2>(ComponentInfo {VAProfileMPEG2Main, VAEntrypointVLD});
+        Register<decode::DdiDecodeMpeg2>(ComponentInfo {VAProfileMPEG2Main, VAEntrypointVLD});
 #endif // _MPEG2_DECODE_SUPPORTED
 
 #if defined (_VP8_DECODE_SUPPORTED)
@@ -193,7 +193,7 @@ static bool RegisteredMPEG2MainVLD =
 
 static bool RegisteredVP8Version0_3VLD =
     DdiDecodeFactory::
-        Register<DdiDecodeVp8>(ComponentInfo {VAProfileVP8Version0_3, VAEntrypointVLD});
+        Register<decode::DdiDecodeVp8>(ComponentInfo {VAProfileVP8Version0_3, VAEntrypointVLD});
 #endif // _VP8_DECODE_SUPPORTED
 
 #if defined (_VP9_DECODE_SUPPORTED)
@@ -201,16 +201,16 @@ static bool RegisteredVP8Version0_3VLD =
 
 static bool RegisteredVP9Profile0VLD =
     DdiDecodeFactory::
-        Register<DdiDecodeVp9>(ComponentInfo {VAProfileVP9Profile0, VAEntrypointVLD});
+        Register<decode::DdiDecodeVp9>(ComponentInfo {VAProfileVP9Profile0, VAEntrypointVLD});
 static bool RegisteredVP9Profile1VLD =
     DdiDecodeFactory::
-        Register<DdiDecodeVp9>(ComponentInfo {VAProfileVP9Profile1, VAEntrypointVLD});
+        Register<decode::DdiDecodeVp9>(ComponentInfo {VAProfileVP9Profile1, VAEntrypointVLD});
 static bool RegisteredVP9Profile2VLD =
     DdiDecodeFactory::
-        Register<DdiDecodeVp9>(ComponentInfo {VAProfileVP9Profile2, VAEntrypointVLD});
+        Register<decode::DdiDecodeVp9>(ComponentInfo {VAProfileVP9Profile2, VAEntrypointVLD});
 static bool RegisteredVP9Profile3VLD =
     DdiDecodeFactory::
-        Register<DdiDecodeVp9>(ComponentInfo {VAProfileVP9Profile3, VAEntrypointVLD});
+        Register<decode::DdiDecodeVp9>(ComponentInfo {VAProfileVP9Profile3, VAEntrypointVLD});
 #endif // _VP9_DECODE_SUPPORTED
 
 #endif // DDI_REGISTER_COMPONENTS_SPECIFIC_H

@@ -29,8 +29,8 @@
 
 #include "ddi_decode_base_specific.h"
 
-//namespace decode
-//{
+namespace decode
+{
 
 //!
 //! \class  DdiDecodeVp9
@@ -168,8 +168,8 @@ private:
     static const uint32_t m_decVp9Max16kWidth  = CODEC_16K_MAX_PIC_WIDTH;  //!< Maximum width for VP9 decode
     static const uint32_t m_decVp9Max16kHeight = CODEC_16K_MAX_PIC_HEIGHT; //!< Maximum height for VP9 decode
 
-    MEDIA_CLASS_DEFINE_END(DdiDecodeVp9)
+    MEDIA_CLASS_DEFINE_END(decode__DdiDecodeVp9)
 };
-//} // namespace decode
+} // namespace decode
 
 #endif /* __DDI_DECODE_VP9_SPECIFIC_H__ */

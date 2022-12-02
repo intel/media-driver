@@ -27,9 +27,10 @@
 #include "media_libva_util_next.h"
 #include "ddi_decode_vp8_specific.h"
 #include "media_libva_interface_next.h"
+#include "media_libva_common_next.h"
 
-//namespace decode
-//{
+namespace decode
+{
 #define DDI_DECODE_VP8_QINDEX_RANGE 128
 
 // Tables from the VP8 reference decoder
@@ -570,7 +571,7 @@ VAStatus DdiDecodeVp8::CodecHalInit(
     MOS_CONTEXT *mosCtx  = (MOS_CONTEXT *)ptr;
 
     CODECHAL_FUNCTION codecFunction = CODECHAL_FUNCTION_DECODE;
-    m_decodeCtx->pCpDdiInterface->SetCpParams(m_ddiDecodeAttr->componentData.data.encryptType, m_codechalSettings);
+    m_decodeCtx->pCpDdiInterfaceNext->SetCpParams(m_ddiDecodeAttr->componentData.data.encryptType, m_codechalSettings);
 
     CODECHAL_STANDARD_INFO standardInfo;
     memset(&standardInfo, 0, sizeof(standardInfo));
@@ -730,4 +731,4 @@ CODECHAL_MODE DdiDecodeVp8::GetDecodeCodecMode(VAProfile profile)
     }
 }
 
-//} // namespace decode
+} // namespace decode

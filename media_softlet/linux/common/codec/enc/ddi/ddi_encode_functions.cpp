@@ -150,8 +150,8 @@ VAStatus DdiEncodeFunctions::CreateContext (
 
     //initialize DDI level cp interface
     MOS_CONTEXT mosCtx      = {};
-    encCtx->pCpDdiInterface = Create_DdiCpInterface(mosCtx);
-    if (nullptr == encCtx->pCpDdiInterface)
+    encCtx->pCpDdiInterfaceNext = CreateDdiCpNext(&mosCtx);
+    if (nullptr == encCtx->pCpDdiInterfaceNext)
     {
         vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
         CleanUp(encCtx);
@@ -234,8 +234,8 @@ VAStatus DdiEncodeFunctions::CreateContext (
     // Attach PMEDIDA_DRIVER_CONTEXT
     encCtx->pMediaCtx = mediaCtx;
 
-    encCtx->pCpDdiInterface->SetCpFlags(flag);
-    encCtx->pCpDdiInterface->SetCpParams(CP_TYPE_NONE, encCtx->m_encode->m_codechalSettings);
+    encCtx->pCpDdiInterfaceNext->SetCpFlags(flag);
+    encCtx->pCpDdiInterfaceNext->SetCpParams(CP_TYPE_NONE, encCtx->m_encode->m_codechalSettings);
 
     vaStatus = encCtx->m_encode->ContextInitialize(encCtx->m_encode->m_codechalSettings);
 
@@ -349,10 +349,9 @@ VAStatus DdiEncodeFunctions::DestroyContext (
     codecHal->Destroy();
     MOS_Delete(codecHal);
 
-    if (encCtx->pCpDdiInterface)
+    if (encCtx->pCpDdiInterfaceNext)
     {
-        Delete_DdiCpInterface(encCtx->pCpDdiInterface);
-        encCtx->pCpDdiInterface = nullptr;
+        MOS_Delete(encCtx->pCpDdiInterfaceNext);
     }
 
     if (nullptr != encCtx->m_encode)
@@ -868,10 +867,9 @@ void DdiEncodeFunctions::CleanUp(encode::PDDI_ENCODE_CONTEXT encCtx)
         encCtx->m_encode = nullptr;
     }
 
-    if (encCtx->pCpDdiInterface)
+    if (encCtx->pCpDdiInterfaceNext)
     {
-        Delete_DdiCpInterface(encCtx->pCpDdiInterface);
-        encCtx->pCpDdiInterface = nullptr;
+        MOS_Delete(encCtx->pCpDdiInterfaceNext);
     }
 
     MOS_FreeMemory(encCtx);

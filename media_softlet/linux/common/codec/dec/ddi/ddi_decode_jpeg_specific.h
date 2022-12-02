@@ -29,8 +29,8 @@
 
 #include "ddi_decode_base_specific.h"
 
-//namespace decode
-//{
+namespace decode
+{
 
 //!
 //! \class DdiDecodeJpeg
@@ -234,7 +234,7 @@ private:
     static const uint32_t m_decJpegMaxWidth  = 16384; //!< Maximum width for JPEG decode
     static const uint32_t m_decJpegMaxHeight = 16384; //!< Maximum height for JPEG decode
 
-    MEDIA_CLASS_DEFINE_END(DdiDecodeJpeg)
+    MEDIA_CLASS_DEFINE_END(decode__DdiDecodeJpeg)
 };
-//} // namespace decode
+} // namespace decode
 #endif // __DDI_DECODE_JPEG_SPECIFIC_H__

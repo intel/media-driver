@@ -124,11 +124,11 @@ VAStatus MediaLibvaInterface::LoadFunction(VADriverContextP ctx)
     pVTableVpp->vaQueryVideoProcPipelineCaps = MediaLibvaInterfaceNext::QueryVideoProcPipelineCaps;
 
 #if VA_CHECK_VERSION(1,11,0)
-    pVTableProt->vaCreateProtectedSession    = DdiMediaProtected::DdiMedia_CreateProtectedSession;
-    pVTableProt->vaDestroyProtectedSession   = DdiMediaProtected::DdiMedia_DestroyProtectedSession;
-    pVTableProt->vaAttachProtectedSession    = DdiMediaProtected::DdiMedia_AttachProtectedSession;
-    pVTableProt->vaDetachProtectedSession    = DdiMediaProtected::DdiMedia_DetachProtectedSession;
-    pVTableProt->vaProtectedSessionExecute   = DdiMediaProtected::DdiMedia_ProtectedSessionExecute;
+    pVTableProt->vaCreateProtectedSession    = MediaLibvaInterfaceNext::CreateProtectedSession;
+    pVTableProt->vaDestroyProtectedSession   = MediaLibvaInterfaceNext::DestroyProtectedSession;
+    pVTableProt->vaAttachProtectedSession    = MediaLibvaInterfaceNext::AttachProtectedSession;
+    pVTableProt->vaDetachProtectedSession    = MediaLibvaInterfaceNext::DetachProtectedSession;
+    pVTableProt->vaProtectedSessionExecute   = MediaLibvaInterfaceNext::ProtectedSessionExecute;
 #endif
 
     //pVTable->vaSetSurfaceAttributes          = DdiMedia_SetSurfaceAttributes;
@@ -170,12 +170,6 @@ VAStatus MediaLibvaInterface::QueryConfigAttributes(
         if (!mediaCtx->m_apoDdiEnabled)
         return false;
 
-        //Temporarily disable APO for CP, remove when switch to CP DDI APO
-        if(*profile == VAProfileProtected)
-        {
-           return false; 
-        }
-
         if (mediaCtx->m_capsNext && mediaCtx->m_capsNext->m_capsTable)
         {
             ConfigLinux*  configItem = nullptr;
@@ -209,12 +203,6 @@ VAStatus MediaLibvaInterface::CreateConfig(
         PDDI_MEDIA_CONTEXT mediaCtx = GetMediaContext(ctx);
         if (mediaCtx && !mediaCtx->m_apoDdiEnabled)
         return false;
-
-        //Temporarily disable APO for CP, remove when switch to CP DDI APO
-        if(profile == VAProfileProtected)
-        {
-            return false;
-        }
 
         std::vector<VAEntrypoint> entrypointList(ctx->max_entrypoints);
         int32_t       entrypointNum   = -1;

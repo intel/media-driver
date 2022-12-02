@@ -94,7 +94,7 @@ VAStatus DdiEncodeHevc::ContextInitialize(
     CodechalSetting *codecHalSettings)
 {
     DDI_CODEC_CHK_NULL(m_encodeCtx, "nullptr m_encodeCtx.", VA_STATUS_ERROR_INVALID_CONTEXT);
-    DDI_CODEC_CHK_NULL(m_encodeCtx->pCpDdiInterface, "nullptr m_encodeCtx->pCpDdiInterface.", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CODEC_CHK_NULL(m_encodeCtx->pCpDdiInterfaceNext, "nullptr m_encodeCtx->pCpDdiInterfaceNext.", VA_STATUS_ERROR_INVALID_CONTEXT);
     DDI_CODEC_CHK_NULL(codecHalSettings, "nullptr codecHalSettings.", VA_STATUS_ERROR_INVALID_CONTEXT);
 
     if (true == m_encodeCtx->bVdencActive)

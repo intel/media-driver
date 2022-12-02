@@ -31,8 +31,8 @@
 #include "codec_def_decode_av1.h"
 #include "ddi_decode_trace_specific.h"
 
-//namespace decode
-//{
+namespace decode
+{
 
 VAStatus DdiDecodeAv1::ParseTileParams(
     DDI_MEDIA_CONTEXT         *mediaCtx,
@@ -684,7 +684,7 @@ VAStatus DdiDecodeAv1::RenderPicture(
         }
 
         default:
-            va = m_decodeCtx->pCpDdiInterface->RenderCencPicture(ctx, context, buf, data);
+            va = m_decodeCtx->pCpDdiInterfaceNext->RenderCencPicture(ctx, context, buf, data);
             break;
         }
         MediaLibvaInterfaceNext::UnmapBuffer(ctx, buffers[i]);
@@ -857,7 +857,7 @@ VAStatus DdiDecodeAv1::CodecHalInit(
     MOS_CONTEXT *mosCtx  = (MOS_CONTEXT *)ptr;
 
     CODECHAL_FUNCTION codecFunction = CODECHAL_FUNCTION_DECODE;
-    m_decodeCtx->pCpDdiInterface->SetCpParams(m_ddiDecodeAttr->componentData.data.encryptType, m_codechalSettings);
+    m_decodeCtx->pCpDdiInterfaceNext->SetCpParams(m_ddiDecodeAttr->componentData.data.encryptType, m_codechalSettings);
 
     CODECHAL_STANDARD_INFO standardInfo;
     memset(&standardInfo, 0, sizeof(standardInfo));
@@ -1076,4 +1076,4 @@ CODECHAL_MODE DdiDecodeAv1::GetDecodeCodecMode(VAProfile profile)
     }
 }
 
-//} // namespace decode
+} // namespace decode

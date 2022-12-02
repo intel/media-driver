@@ -32,8 +32,8 @@
 #define DECODE_ID_AV1             "VIDEO_DEC_AV1"
 #define MAX_ANCHOR_FRAME_NUM_AV1  128
 
-//namespace decode
-//{
+namespace decode
+{
 
 //!
 //! \class  DdiDecodeAv1
@@ -211,8 +211,8 @@ private:
     static const uint32_t m_decAv1Max16kWidth  = CODEC_16K_MAX_PIC_WIDTH;  //!< Maximum width for AV1 decode
     static const uint32_t m_decAv1Max16kHeight = CODEC_16K_MAX_PIC_HEIGHT; //!< Maximum height for AV1 decode
 
-    MEDIA_CLASS_DEFINE_END(DdiDecodeAv1)
+    MEDIA_CLASS_DEFINE_END(decode__DdiDecodeAv1)
 };
-//}; // namespace decode
+} // namespace decode
 
 #endif /* __DDI_DECODE_AV1_SPECIFIC_H__ */

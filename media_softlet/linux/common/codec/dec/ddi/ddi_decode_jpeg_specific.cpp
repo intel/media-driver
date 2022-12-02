@@ -36,8 +36,8 @@ typedef enum _DDI_DECODE_JPEG_BUFFER_STATE
     BUFFER_LOADED   = 1,
 } DDI_DECODE_JPEG_BUFFER_STATE;
 
-//namespace decode
-//{
+namespace decode
+{
 
 #define DDI_DECODE_JPEG_MAXIMUM_HUFFMAN_TABLE    2
 #define DDI_DECODE_JPEG_MAXIMUM_QMATRIX_NUM      4
@@ -865,7 +865,7 @@ VAStatus DdiDecodeJpeg::CodecHalInit(
     MOS_CONTEXT *mosCtx  = (MOS_CONTEXT *)ptr;
 
     CODECHAL_FUNCTION codecFunction = CODECHAL_FUNCTION_DECODE;
-    m_decodeCtx->pCpDdiInterface->SetCpParams(m_ddiDecodeAttr->componentData.data.encryptType, m_codechalSettings);
+    m_decodeCtx->pCpDdiInterfaceNext->SetCpParams(m_ddiDecodeAttr->componentData.data.encryptType, m_codechalSettings);
 
     CODECHAL_STANDARD_INFO standardInfo;
     memset(&standardInfo, 0, sizeof(standardInfo));
@@ -1007,4 +1007,4 @@ CODECHAL_MODE DdiDecodeJpeg::GetDecodeCodecMode(VAProfile profile)
     }
 }
 
-//} // namespace decode
+} // namespace decode

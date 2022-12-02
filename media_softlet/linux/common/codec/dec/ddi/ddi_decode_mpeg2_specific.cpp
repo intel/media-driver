@@ -29,8 +29,8 @@
 #include "media_libva_interface_next.h"
 #include "ddi_decode_mpeg2_specific.h"
 
-//namespace decode
-//{
+namespace decode
+{
 
 void DdiDecodeMpeg2::ParseNumMbsForSlice(
     int32_t numSlices)
@@ -629,7 +629,7 @@ VAStatus DdiDecodeMpeg2::CodecHalInit(
     MOS_CONTEXT *mosCtx  = (MOS_CONTEXT *)ptr;
 
     CODECHAL_FUNCTION codecFunction = CODECHAL_FUNCTION_DECODE;
-    m_decodeCtx->pCpDdiInterface->SetCpParams(m_ddiDecodeAttr->componentData.data.encryptType, m_codechalSettings);
+    m_decodeCtx->pCpDdiInterfaceNext->SetCpParams(m_ddiDecodeAttr->componentData.data.encryptType, m_codechalSettings);
 
     CODECHAL_STANDARD_INFO standardInfo;
     memset(&standardInfo, 0, sizeof(standardInfo));
@@ -765,4 +765,4 @@ CODECHAL_MODE DdiDecodeMpeg2::GetDecodeCodecMode(VAProfile profile)
     }
 }
 
-//} // namespace decode
+} // namespace decode

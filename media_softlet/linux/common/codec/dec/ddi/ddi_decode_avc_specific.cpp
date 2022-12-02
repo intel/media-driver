@@ -30,8 +30,8 @@
 #include "ddi_decode_avc_specific.h"
 #include "ddi_decode_trace_specific.h"
 
-//namespace decode
-//{
+namespace decode
+{
 
 VAStatus DdiDecodeAvc::ParseSliceParams(
     DDI_MEDIA_CONTEXT           *mediaCtx,
@@ -542,7 +542,7 @@ VAStatus DdiDecodeAvc::RenderPicture(
         }
 
         default:
-            va = m_decodeCtx->pCpDdiInterface->RenderCencPicture(ctx, context, buf, data);
+            va = m_decodeCtx->pCpDdiInterfaceNext->RenderCencPicture(ctx, context, buf, data);
             break;
         }
         MediaLibvaInterfaceNext::UnmapBuffer(ctx, buffers[i]);
@@ -697,7 +697,7 @@ VAStatus DdiDecodeAvc::CodecHalInit(
     m_codechalSettings->mode     = CODECHAL_DECODE_MODE_AVCVLD;
     m_codechalSettings->standard = CODECHAL_AVC;
 
-    m_decodeCtx->pCpDdiInterface->SetCpParams(m_ddiDecodeAttr->componentData.data.encryptType, m_codechalSettings);
+    m_decodeCtx->pCpDdiInterfaceNext->SetCpParams(m_ddiDecodeAttr->componentData.data.encryptType, m_codechalSettings);
 
     m_decodeCtx->DecodeParams.m_iqMatrixBuffer = (void*)MOS_AllocAndZeroMemory(sizeof(CODEC_AVC_IQ_MATRIX_PARAMS));
     if (m_decodeCtx->DecodeParams.m_iqMatrixBuffer == nullptr)
@@ -1082,4 +1082,4 @@ CODECHAL_MODE DdiDecodeAvc::GetDecodeCodecMode(VAProfile profile)
     }
 }
 
-//} // namespace decode
+} // namespace decode

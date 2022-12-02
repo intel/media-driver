@@ -995,7 +995,7 @@ VAStatus MediaLibvaUtilNext::UnRegisterRTSurfaces(
         {
             if (decVACtxHeapBase[j].pVaContext != nullptr)
             {
-                PDDI_DECODE_CONTEXT  decCtx = (PDDI_DECODE_CONTEXT)decVACtxHeapBase[j].pVaContext;
+                decode::PDDI_DECODE_CONTEXT decCtx = (decode::PDDI_DECODE_CONTEXT)decVACtxHeapBase[j].pVaContext;
                 if (decCtx && decCtx->m_ddiDecodeNext)
                 {
                     //not check the return value since the surface may not be registered in the context. pay attention to LOGW.

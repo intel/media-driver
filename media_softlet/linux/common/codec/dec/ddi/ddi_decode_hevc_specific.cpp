@@ -31,11 +31,11 @@
 #include "media_libva_common_next.h"
 #include "codec_def_decode_hevc.h"
 #include "media_libva_interface_next.h"
-#include "media_libva_decoder.h"
+#include "ddi_libva_decoder_specific.h"
 #include "ddi_decode_trace_specific.h"
 
-//namespace decode
-//{
+namespace decode
+{
 
 VAStatus DdiDecodeHevc::ParseSliceParams(
     DDI_MEDIA_CONTEXT          *mediaCtx,
@@ -683,7 +683,7 @@ VAStatus DdiDecodeHevc::RenderPicture(
             break;
         }
         default:
-            va = m_decodeCtx->pCpDdiInterface->RenderCencPicture(ctx, context, buf, data);
+            va = m_decodeCtx->pCpDdiInterfaceNext->RenderCencPicture(ctx, context, buf, data);
             break;
         }
         MediaLibvaInterfaceNext::UnmapBuffer(ctx, buffers[i]);
@@ -1267,7 +1267,7 @@ VAStatus DdiDecodeHevc::CodecHalInit(
     MOS_CONTEXT *mosCtx  = (MOS_CONTEXT *)ptr;
 
     CODECHAL_FUNCTION codecFunction = CODECHAL_FUNCTION_DECODE;
-    m_decodeCtx->pCpDdiInterface->SetCpParams(m_ddiDecodeAttr->componentData.data.encryptType, m_codechalSettings);
+    m_decodeCtx->pCpDdiInterfaceNext->SetCpParams(m_ddiDecodeAttr->componentData.data.encryptType, m_codechalSettings);
 
     CODECHAL_STANDARD_INFO standardInfo;
     memset(&standardInfo, 0, sizeof(standardInfo));
@@ -1580,4 +1580,4 @@ CODECHAL_MODE DdiDecodeHevc::GetDecodeCodecMode(VAProfile profile)
     }
 }
 
-//} // namespace decode
+} // namespace decode

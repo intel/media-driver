@@ -28,6 +28,7 @@
 #define  __DDI_LIBVA_ENCODER_SPECIFIC_H__
 
 #include "media_libva.h"
+#include "ddi_cp_interface_next.h"
 #include "media_libva_cp_interface.h"
 #include <vector>
 namespace encode
@@ -115,6 +116,7 @@ typedef struct _DDI_ENCODE_CONTEXT
     MOS_RESOURCE                      resMBQpBuffer;
     //CP related
     DdiCpInterface                   *pCpDdiInterface;
+    DdiCpInterfaceNext               *pCpDdiInterfaceNext;
 
     uint32_t                          indexNALUnit;
     uint8_t                           PicParamId;

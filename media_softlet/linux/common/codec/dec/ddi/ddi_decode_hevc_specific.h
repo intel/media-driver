@@ -29,8 +29,8 @@
 
 #include "ddi_decode_base_specific.h"
 
-//namespace decode
-//{
+namespace decode
+{
 
 //!
 //! \class  DdiDecodeHevc
@@ -224,8 +224,8 @@ protected:
     static const uint32_t m_decHevcMax16kWidth  = CODEC_16K_MAX_PIC_WIDTH;
     static const uint32_t m_decHevcMax16kHeight = CODEC_16K_MAX_PIC_HEIGHT;
 
-MEDIA_CLASS_DEFINE_END(DdiDecodeHevc)
+MEDIA_CLASS_DEFINE_END(decode__DdiDecodeHevc)
 };
 
-//} // namespace decode
+} // namespace decode
 #endif /* __DDI_DECODER_HEVC_SPECIFIC_H__ */

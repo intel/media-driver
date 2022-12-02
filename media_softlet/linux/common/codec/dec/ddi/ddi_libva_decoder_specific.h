@@ -27,6 +27,9 @@
 #ifndef __DDI_LIBVA_DECODER_SPECIFIC_H__
 #define __DDI_LIBVA_DECODER_SPECIFIC_H__
 
+#include "media_libva.h"
+#include "ddi_cp_interface_next.h"
+#include "media_libva_cp_interface.h"
 #include "ddi_vp_functions.h"
 
 namespace decode
@@ -38,7 +41,6 @@ namespace decode
 #define DDI_DECODE_SFC_MIN_HEIGHT      128
 #define DDI_DECODE_HCP_SFC_MAX_WIDTH   (16*1024)
 #define DDI_DECODE_HCP_SFC_MAX_HEIGHT  (16*1024)
-
 //!
 //! \struct DDI_DECODE_CONFIG_ATTR_NEXT
 //! \brief  Ddi decode configuration attribute
@@ -67,6 +69,7 @@ struct DDI_DECODE_CONTEXT
     DdiDecodeBase                 *m_ddiDecodeNext;
     // Decoder private data
     DdiCpInterface                *pCpDdiInterface;
+    DdiCpInterfaceNext            *pCpDdiInterfaceNext;
     DdiVpFunctions                *pVpDdiInterface;
     // Parameters
     CodechalDecodeParams          DecodeParams;

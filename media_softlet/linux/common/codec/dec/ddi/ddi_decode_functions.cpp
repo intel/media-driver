@@ -35,6 +35,7 @@
 #include "decode_status_report.h"
 #include "vphal_render_vebox_memdecomp.h"
 #include "media_libva_interface_next.h"
+#include "ddi_decode_trace_specific.h"
 
 #define DDI_DECODE_SFC_MAX_WIDTH       4096
 #define DDI_DECODE_SFC_MAX_HEIGHT      4096
@@ -233,8 +234,8 @@ VAStatus DdiDecodeFunctions::CreateContext(
     ddiDecode->ContextInit(pictureWidth, pictureHeight);
 
     // Initialize DDI level CP interface
-    decCtx->pCpDdiInterface = Create_DdiCpInterface(mosCtx);
-    if (nullptr == decCtx->pCpDdiInterface)
+    decCtx->pCpDdiInterfaceNext = CreateDdiCpNext(&mosCtx);
+    if (nullptr == decCtx->pCpDdiInterfaceNext)
     {
         va = VA_STATUS_ERROR_ALLOCATION_FAILED;
         CleanUp(ctx, decCtx);
@@ -493,9 +494,9 @@ VAStatus DdiDecodeFunctions::BeginPicture(
     PDDI_DECODE_CONTEXT decCtx = (decltype(decCtx))MediaLibvaCommonNext::GetContextFromContextID(ctx, context, &ctxType);
     DDI_CODEC_CHK_NULL(decCtx, "Null decCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
 
-    if (decCtx->pCpDdiInterface)
+    if (decCtx->pCpDdiInterfaceNext)
     {
-        VAStatus ret = decCtx->pCpDdiInterface->IsAttachedSessionAlive();
+        VAStatus ret = decCtx->pCpDdiInterfaceNext->IsAttachedSessionAlive();
         DDI_CODEC_CHK_CONDITION(VA_STATUS_SUCCESS != ret, "Session not alive!", ret);
     }
 
@@ -542,9 +543,9 @@ VAStatus DdiDecodeFunctions::RenderPicture(
     PDDI_DECODE_CONTEXT decCtx = (decltype(decCtx))MediaLibvaCommonNext::GetContextFromContextID(ctx, context, &ctxType);
     DDI_CODEC_CHK_NULL(decCtx, "Null decCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
 
-    if (decCtx->pCpDdiInterface)
+    if (decCtx->pCpDdiInterfaceNext)
     {
-        DDI_CHK_RET(decCtx->pCpDdiInterface->IsAttachedSessionAlive(), "Session not alive!");
+        DDI_CHK_RET(decCtx->pCpDdiInterfaceNext->IsAttachedSessionAlive(), "Session not alive!");
     }
 
     VAStatus va                     = VA_STATUS_SUCCESS;
@@ -615,13 +616,13 @@ VAStatus DdiDecodeFunctions::EndPicture(
     PDDI_DECODE_CONTEXT decCtx = (decltype(decCtx))MediaLibvaCommonNext::GetContextFromContextID(ctx, context, &ctxType);
     DDI_CODEC_CHK_NULL(decCtx, "Null decCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
 
-    if (decCtx->pCpDdiInterface)
+    if (decCtx->pCpDdiInterfaceNext)
     {
-        DDI_CHK_RET(decCtx->pCpDdiInterface->IsAttachedSessionAlive(), "Session not alive!");
+        DDI_CHK_RET(decCtx->pCpDdiInterfaceNext->IsAttachedSessionAlive(), "Session not alive!");
 
-        if (decCtx->pCpDdiInterface->IsCencProcessing())
+        if (decCtx->pCpDdiInterfaceNext->IsCencProcessing())
         {
-            VAStatus va = decCtx->pCpDdiInterface->EndPicture(ctx, context);
+            VAStatus va = decCtx->pCpDdiInterfaceNext->EndPicture(ctx, context);
 
 #if MOS_EVENT_TRACE_DUMP_SUPPORTED
             {
@@ -744,7 +745,7 @@ VAStatus DdiDecodeFunctions::MapBufferInternal(
     switch (ctxType)
     {
     case DDI_MEDIA_CONTEXT_TYPE_DECODER:
-        decCtx = (decltype(decCtx)) DdiDecode_GetDecContextFromPVOID(ctxPtr);
+        decCtx = (decltype(decCtx)) GetDecContextFromPVOID(ctxPtr);
         bufMgr = &(decCtx->BufMgr);
         break;
     case DDI_MEDIA_CONTEXT_TYPE_MEDIA:
@@ -889,7 +890,7 @@ VAStatus DdiDecodeFunctions::UnmapBuffer(
     switch (ctxType)
     {
     case DDI_MEDIA_CONTEXT_TYPE_DECODER:
-        decCtx = (decltype(decCtx)) DdiDecode_GetDecContextFromPVOID(ctxPtr);
+        decCtx = (decltype(decCtx)) GetDecContextFromPVOID(ctxPtr);
         bufMgr = &(decCtx->BufMgr);
         break;
     case DDI_MEDIA_CONTEXT_TYPE_MEDIA:
@@ -947,7 +948,7 @@ VAStatus DdiDecodeFunctions::DestroyBuffer(
     switch (ctxType)
     {
     case DDI_MEDIA_CONTEXT_TYPE_DECODER:
-        decCtx = (decltype(decCtx)) DdiDecode_GetDecContextFromPVOID(ctxPtr);
+        decCtx = (decltype(decCtx)) GetDecContextFromPVOID(ctxPtr);
         bufMgr = &(decCtx->BufMgr);
         break;
     case DDI_MEDIA_CONTEXT_TYPE_MEDIA:
@@ -1014,7 +1015,7 @@ VAStatus DdiDecodeFunctions::DestroyBuffer(
 
 VAStatus DdiDecodeFunctions::StatusCheck(
     PDDI_MEDIA_CONTEXT mediaCtx,
-    DDI_MEDIA_SURFACE  *surface,
+    DDI_MEDIA_SURFACE *surface,
     VASurfaceID        surfaceId)
 {
     DDI_CODEC_FUNC_ENTER;
@@ -1024,7 +1025,7 @@ VAStatus DdiDecodeFunctions::StatusCheck(
 
     uint32_t i = 0;
     PDDI_DECODE_CONTEXT decCtx = (decltype(decCtx))surface->pDecCtx;
-    DdiMediaUtil_LockGuard guard(&mediaCtx->SurfaceMutex); // TODO: Use softlet class
+    MediaLibvaUtilNext_LockGuard guard(&mediaCtx->SurfaceMutex);
 
     Codechal *codecHal = decCtx->pCodecHal;
     // return success just avoid vaDestroyContext is ahead of vaSyncSurface
@@ -1383,7 +1384,7 @@ bool DdiDecodeFunctions::ReleaseSliceControlBuffer(uint32_t ctxType, void *ctx, 
 {
     DDI_CODEC_FUNC_ENTER;
 
-    PDDI_DECODE_CONTEXT      decCtx  = (decltype(decCtx)) DdiDecode_GetDecContextFromPVOID(ctx);
+    PDDI_DECODE_CONTEXT      decCtx  = (decltype(decCtx)) GetDecContextFromPVOID(ctx);
     DDI_CODEC_COM_BUFFER_MGR *bufMgr = &(decCtx->BufMgr);
     switch (decCtx->wMode)
     {

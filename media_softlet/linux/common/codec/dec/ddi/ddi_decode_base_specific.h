@@ -31,11 +31,11 @@
 #include <va/va.h>
 #include "ddi_codec_base_specific.h"
 #include "decode_pipeline_adapter.h"
-#include "media_libva_decoder.h"
+#include "ddi_libva_decoder_specific.h"
 #include "media_capstable_specific.h"
 
-//namespace decode
-//{
+namespace decode
+{
 
 //!
 //! \class  DdiDecodeBase
@@ -481,8 +481,8 @@ protected:
     bool                           m_requireInputRegion = false;
     VAProcPipelineParameterBuffer *m_procBuf = nullptr; //!< Process parameters for vp sfc input
 #endif
-MEDIA_CLASS_DEFINE_END(DdiDecodeBase)
+MEDIA_CLASS_DEFINE_END(decode__DdiDecodeBase)
 };
 
-//} // namespace decode
+} // namespace decode
 #endif /*  _DDI_DECODE_BASE_SPECIFIC_H_ */

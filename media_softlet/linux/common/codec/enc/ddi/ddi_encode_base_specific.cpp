@@ -97,7 +97,7 @@ VAStatus DdiEncodeBase::EndPicture(
 
 VAStatus DdiEncodeBase::AddToStatusReportQueue(void *codedBuf)
 {
-    DDI_CODEC_CHK_NULL(m_encodeCtx->pCpDdiInterface, "Null m_encodeCtx->pCpDdiInterface", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CODEC_CHK_NULL(m_encodeCtx->pCpDdiInterfaceNext, "Null m_encodeCtx->pCpDdiInterfaceNext", VA_STATUS_ERROR_INVALID_CONTEXT);
     DDI_CODEC_CHK_NULL(codedBuf, "Null codedBuf", VA_STATUS_ERROR_INVALID_BUFFER);
 
     int32_t idx                                       = m_encodeCtx->statusReportBuf.ulHeadPosition;
@@ -105,7 +105,7 @@ VAStatus DdiEncodeBase::AddToStatusReportQueue(void *codedBuf)
     m_encodeCtx->statusReportBuf.infos[idx].uiSize    = 0;
     m_encodeCtx->statusReportBuf.infos[idx].uiStatus  = 0;
 #if 0 // TBD next PR common implementation
-    MOS_STATUS status = m_encodeCtx->pCpDdiInterface->StoreCounterToStatusReport(&m_encodeCtx->statusReportBuf.infos[idx]);
+    MOS_STATUS status = m_encodeCtx->pCpDdiInterfaceNext->StoreCounterToStatusReport(&m_encodeCtx->statusReportBuf.infos[idx]);
     if (status != MOS_STATUS_SUCCESS)
     {
         return VA_STATUS_ERROR_INVALID_BUFFER;
@@ -120,7 +120,7 @@ VAStatus DdiEncodeBase::AddToStatusReportQueue(void *codedBuf)
 VAStatus DdiEncodeBase::InitCompBuffer()
 {
     DDI_CODEC_CHK_NULL(m_encodeCtx, "Null m_encodeCtx.", VA_STATUS_ERROR_INVALID_CONTEXT);
-    DDI_CODEC_CHK_NULL(m_encodeCtx->pCpDdiInterface, "Null m_encodeCtx->pCpDdiInterface.", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CODEC_CHK_NULL(m_encodeCtx->pCpDdiInterfaceNext, "Null m_encodeCtx->pCpDdiInterfaceNext.", VA_STATUS_ERROR_INVALID_CONTEXT);
 
     DDI_CODEC_COM_BUFFER_MGR *bufMgr = &(m_encodeCtx->BufMgr);
     PDDI_MEDIA_CONTEXT      mediaCtx = m_encodeCtx->pMediaCtx;
@@ -135,7 +135,7 @@ VAStatus DdiEncodeBase::InitCompBuffer()
     }
     bufMgr->pCodedBufferSegment->next = nullptr;
 
-    DDI_CODEC_CHK_RET(m_encodeCtx->pCpDdiInterface->InitHdcp2Buffer(bufMgr), "fail to init hdcp2 buffer!");
+    DDI_CODEC_CHK_RET(m_encodeCtx->pCpDdiInterfaceNext->InitHdcp2Buffer(bufMgr), "fail to init hdcp2 buffer!");
 
     return VA_STATUS_SUCCESS;
 }
@@ -143,7 +143,7 @@ VAStatus DdiEncodeBase::InitCompBuffer()
 void DdiEncodeBase::FreeCompBuffer()
 {
     DDI_CODEC_CHK_NULL(m_encodeCtx, "Null m_encodeCtx.", );
-    DDI_CODEC_CHK_NULL(m_encodeCtx->pCpDdiInterface, "Null m_encodeCtx->pCpDdiInterface.", );
+    DDI_CODEC_CHK_NULL(m_encodeCtx->pCpDdiInterfaceNext, "Null m_encodeCtx->pCpDdiInterfaceNext.", );
     DDI_CODEC_CHK_NULL(m_encodeCtx->pMediaCtx, "Null m_encodeCtx->pMediaCtx.", );
 
     PDDI_MEDIA_CONTEXT mediaCtx = m_encodeCtx->pMediaCtx;
@@ -152,7 +152,7 @@ void DdiEncodeBase::FreeCompBuffer()
     MOS_FreeMemory(bufMgr->pSliceData);
     bufMgr->pSliceData = nullptr;
 
-    m_encodeCtx->pCpDdiInterface->FreeHdcp2Buffer(bufMgr);
+    m_encodeCtx->pCpDdiInterfaceNext->FreeHdcp2Buffer(bufMgr);
 
     // free status report struct
     MOS_FreeMemory(bufMgr->pCodedBufferSegment);
@@ -163,7 +163,7 @@ VAStatus DdiEncodeBase::StatusReport(
     DDI_MEDIA_BUFFER    *mediaBuf,
     void                **buf)
 {
-    DDI_CODEC_CHK_NULL(m_encodeCtx->pCpDdiInterface, "Null m_encodeCtx->pCpDdiInterface", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CODEC_CHK_NULL(m_encodeCtx->pCpDdiInterfaceNext, "Null m_encodeCtx->pCpDdiInterfaceNext", VA_STATUS_ERROR_INVALID_CONTEXT);
     DDI_CODEC_CHK_NULL(mediaBuf, "Null mediaBuf", VA_STATUS_ERROR_INVALID_CONTEXT);
     DDI_CODEC_CHK_NULL(buf, "Null buf", VA_STATUS_ERROR_INVALID_CONTEXT);
 
@@ -229,7 +229,7 @@ VAStatus DdiEncodeBase::StatusReport(
             }
             status = status | ((encodeStatusReportData[0].numberPasses) & 0xf)<<24;
             // fill hdcp related buffer
-            DDI_CODEC_CHK_RET(m_encodeCtx->pCpDdiInterface->StatusReportForHdcp2Buffer(&m_encodeCtx->BufMgr, encodeStatusReportData), "fail to get hdcp2 status report!");
+            DDI_CODEC_CHK_RET(m_encodeCtx->pCpDdiInterfaceNext->StatusReportForHdcp2Buffer(&m_encodeCtx->BufMgr, encodeStatusReportData), "fail to get hdcp2 status report!");
             if (UpdateStatusReportBuffer(encodeStatusReportData[0].bitstreamSize, status) != VA_STATUS_SUCCESS)
             {
                 m_encodeCtx->BufMgr.pCodedBufferSegment->buf  = MediaLibvaUtilNext::LockBuffer(mediaBuf, MOS_LOCKFLAG_READONLY);
@@ -523,7 +523,7 @@ VAStatus DdiEncodeBase::GetSizeFromStatusReportBuffer(
     VAStatus eStatus = VA_STATUS_SUCCESS;
 
     DDI_CODEC_CHK_NULL(m_encodeCtx, "Null m_encodeCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
-    DDI_CODEC_CHK_NULL(m_encodeCtx->pCpDdiInterface, "Null m_encodeCtx->pCpDdiInterface", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CODEC_CHK_NULL(m_encodeCtx->pCpDdiInterfaceNext, "Null m_encodeCtx->pCpDdiInterfaceNext", VA_STATUS_ERROR_INVALID_CONTEXT);
     DDI_CODEC_CHK_NULL(buf, "Null buf", VA_STATUS_ERROR_INVALID_CONTEXT);
     DDI_CODEC_CHK_NULL(size, "Null size", VA_STATUS_ERROR_INVALID_CONTEXT);
     DDI_CODEC_CHK_NULL(status, "Null status", VA_STATUS_ERROR_INVALID_CONTEXT);
@@ -1264,7 +1264,7 @@ VAStatus DdiEncodeBase::CreateBuffer(
             return va;
         }
 
-        va = m_encodeCtx->pCpDdiInterface->CreateBuffer(type, buf, size, elementsNum);
+        va = m_encodeCtx->pCpDdiInterfaceNext->CreateBuffer(type, buf, size, elementsNum);
         if (va  == VA_STATUS_ERROR_UNSUPPORTED_BUFFERTYPE)
         {
             MOS_FreeMemory(buf);

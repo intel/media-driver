@@ -34,8 +34,8 @@
 #include "media_interfaces_codechal_next.h"
 #include "ddi_decode_trace_specific.h"
 
-//namespace decode
-//{
+namespace decode
+{
 
 DdiDecodeBase::DdiDecodeBase()
     : DdiCodecBase()
@@ -423,10 +423,9 @@ void DdiDecodeBase::DestroyContext(VADriverContextP ctx)
         }
     }
 
-    if (m_decodeCtx->pCpDdiInterface)
+    if (m_decodeCtx->pCpDdiInterfaceNext)
     {
-        Delete_DdiCpInterface(m_decodeCtx->pCpDdiInterface);
-        m_decodeCtx->pCpDdiInterface = nullptr;
+        MOS_Delete(m_decodeCtx->pCpDdiInterfaceNext);
     }
 
     MOS_FreeMemory(m_decodeCtx->DecodeParams.m_iqMatrixBuffer);
@@ -721,9 +720,9 @@ VAStatus DdiDecodeBase::SetDecodeParams()
         m_decodeCtx->DecodeParams.m_externalStreamOutBuffer = nullptr;
     }
 
-    if (m_decodeCtx->pCpDdiInterface)
+    if (m_decodeCtx->pCpDdiInterfaceNext)
     {
-        DDI_CHK_RET(m_decodeCtx->pCpDdiInterface->SetDecodeParams(m_decodeCtx, m_codechalSettings), "SetDecodeParams failed!");
+        DDI_CHK_RET(m_decodeCtx->pCpDdiInterfaceNext->SetDecodeParams(m_decodeCtx, m_codechalSettings), "SetDecodeParams failed!");
     }
 
     Mos_Solo_OverrideBufferSize(m_decodeCtx->DecodeParams.m_dataSize, m_decodeCtx->DecodeParams.m_dataBuffer);
@@ -1083,7 +1082,7 @@ VAStatus DdiDecodeBase::CreateBuffer(
         }
 #endif
         default:
-            va = m_decodeCtx->pCpDdiInterface->CreateBuffer(type, buf, size, numElements);
+            va = m_decodeCtx->pCpDdiInterfaceNext->CreateBuffer(type, buf, size, numElements);
             if (va == VA_STATUS_ERROR_UNSUPPORTED_BUFFERTYPE)
             {
                 DDI_CODEC_ASSERTMESSAGE("DDI:Decode CreateBuffer unsuppoted buffer type.");
@@ -1206,7 +1205,7 @@ VAStatus DdiDecodeBase::CreateCodecHal(
 
     m_codechalSettings->sfcInUseHinted = true;
 
-    if (m_ddiDecodeAttr && m_ddiDecodeAttr->componentData.data.processType)
+    if (m_ddiDecodeAttr && m_ddiDecodeAttr->componentData.data.encryptType)
     {
         m_codechalSettings->secureMode = true;
     }
@@ -1226,7 +1225,7 @@ VAStatus DdiDecodeBase::CreateCodecHal(
         return vaStatus;
     }
 
-    m_decodeCtx->pCpDdiInterface->CreateCencDecode(codecHal->GetDebugInterface(), mosCtx, m_codechalSettings);
+    m_decodeCtx->pCpDdiInterfaceNext->CreateCencDecode(codecHal->GetDebugInterface(), mosCtx, m_codechalSettings);
 
     return vaStatus;
 }
@@ -1349,4 +1348,4 @@ void DdiDecodeBase::ReportDecodeMode(
 #endif
     return;
 }
-//} // namespace decode
+} // namespace decode
