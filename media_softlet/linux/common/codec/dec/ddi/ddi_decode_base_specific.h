@@ -153,7 +153,7 @@ public:
     //! \return   VAStatus 
     //!           VA_STATUS_SUCCESS if success
     //!
-    virtual VAStatus SetDecodeParams() = 0;
+    virtual VAStatus SetDecodeParams();
 
     //!
     //! \brief    Make the end of rendering for a picture

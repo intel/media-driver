@@ -32,6 +32,10 @@
 typedef MediaFactory<ComponentInfo, encode::DdiEncodeBase> DdiEncodeFactory;
 typedef MediaFactory<ComponentInfo, decode::DdiDecodeBase> DdiDecodeFactory;
 
+#if _MEDIA_RESERVED
+#include "ddi_register_components_specific_reserved.h"
+#endif
+
 #if defined (_HEVC_ENCODE_VDENC_SUPPORTED)
 #include "ddi_encode_hevc_specific.h"
 
