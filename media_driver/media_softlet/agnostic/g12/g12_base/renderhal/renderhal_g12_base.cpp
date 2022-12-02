@@ -222,8 +222,16 @@ MOS_STATUS XRenderHal_Interface_G12_Base::SetupSurfaceState (
         if (IsFormatMMCSupported(pSurface->Format) &&
             m_renderHalMMCEnabled)
         {
-            if (pSurface->MmcState == MOS_MEMCOMP_MC ||
-                pSurface->MmcState == MOS_MEMCOMP_RC)
+            // Set surface compression states
+            if (pSurface->MmcState == MOS_MEMCOMP_RC && pParams->isOutput)
+            {
+                // bCompressionEnabled/bCompressionMode is deprecated on Gen12+, use MmcState instead.
+                // RC compression mode is not supported on render output surface on tgllp.
+                SurfStateParams.MmcState = MOS_MEMCOMP_DISABLED;
+                SurfStateParams.dwCompressionFormat = 0;
+            }
+            else if(pSurface->MmcState == MOS_MEMCOMP_MC ||
+                    pSurface->MmcState == MOS_MEMCOMP_RC)
             {
                 SurfStateParams.MmcState    = pSurface->MmcState;
 
