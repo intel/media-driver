@@ -38,19 +38,23 @@
 #include "memory_policy_manager.h"
 #include "drm_fourcc.h"
 
+// will remove when mtl open source
+#define INTEL_PRELIM_ID_FLAG         (1ULL << 55)
+
+#define intel_prelim_fourcc_mod_code(val) \
+    (fourcc_mod_code(INTEL, (val)) | INTEL_PRELIM_ID_FLAG)
+
+/* this definition is to avoid duplicate drm_fourcc.h this file is updated seldom */
+#ifndef PRELIM_I915_FORMAT_MOD_4_TILED_MTL_MC_CCS
+#define PRELIM_I915_FORMAT_MOD_4_TILED_MTL_MC_CCS    intel_prelim_fourcc_mod_code(17)
+#endif
+#ifndef PRELIM_I915_FORMAT_MOD_4_TILED_MTL_RC_CCS
+#define PRELIM_I915_FORMAT_MOD_4_TILED_MTL_RC_CCS    intel_prelim_fourcc_mod_code(16)
+#endif
+
 // default protected surface tag
 #define PROTECTED_SURFACE_TAG   0x3000f
 
-/* this definition is to avoid duplicate drm_fourcc.h this file is updated seldom */
-#ifndef I915_FORMAT_MOD_F_TILED
-#define I915_FORMAT_MOD_F_TILED                 fourcc_mod_code(INTEL, 12)
-#endif
-#ifndef I915_FORMAT_MOD_F_TILED_MC_CCS
-#define I915_FORMAT_MOD_F_TILED_MC_CCS          fourcc_mod_code(INTEL, 10)
-#endif
-#ifndef I915_FORMAT_MOD_F_TILED_RC_CCS_CC
-#define I915_FORMAT_MOD_F_TILED_RC_CCS_CC       fourcc_mod_code(INTEL, 11)
-#endif
 int32_t         MediaLibvaUtilNext::m_frameCountFps             = -1;
 struct timeval  MediaLibvaUtilNext::m_tv1                       = {};
 pthread_mutex_t MediaLibvaUtilNext::m_fpsMutex                  = PTHREAD_MUTEX_INITIALIZER;
@@ -225,16 +229,16 @@ VAStatus MediaLibvaUtilNext::SetSurfaceParameterFromModifier(
     DDI_FUNC_ENTER;
     switch (modifier)
     {
-        case I915_FORMAT_MOD_F_TILED:
+        case I915_FORMAT_MOD_4_TILED:
             params.tileFormat = I915_TILING_Y;
             params.bMemCompEnable = false;
             break;
-        case I915_FORMAT_MOD_F_TILED_RC_CCS_CC:
+        case PRELIM_I915_FORMAT_MOD_4_TILED_MTL_RC_CCS:
             params.tileFormat = I915_TILING_Y;
             params.bMemCompEnable = true;
             params.bMemCompRC = true;
             break;
-        case I915_FORMAT_MOD_F_TILED_MC_CCS:
+        case PRELIM_I915_FORMAT_MOD_4_TILED_MTL_MC_CCS:
             params.tileFormat = I915_TILING_Y;
             params.bMemCompEnable = true;
             params.bMemCompRC = false;
@@ -1940,12 +1944,12 @@ VAStatus MediaLibvaUtilNext::GetSurfaceModifier(
         case GMM_TILED_4:
             if(mediaCtx->m_auxTableMgr && bMmcEnabled)
             {
-                modifier = gmmFlags.Info.MediaCompressed ? I915_FORMAT_MOD_F_TILED_MC_CCS :
-                    (gmmFlags.Info.RenderCompressed ? I915_FORMAT_MOD_F_TILED_RC_CCS_CC : I915_FORMAT_MOD_F_TILED);
+                modifier = gmmFlags.Info.MediaCompressed ? PRELIM_I915_FORMAT_MOD_4_TILED_MTL_MC_CCS :
+                    (gmmFlags.Info.RenderCompressed ? PRELIM_I915_FORMAT_MOD_4_TILED_MTL_RC_CCS : I915_FORMAT_MOD_4_TILED);
             }
             else
             {
-                modifier = I915_FORMAT_MOD_F_TILED;
+                modifier = I915_FORMAT_MOD_4_TILED;
             }
             break;
         case GMM_TILED_Y:
