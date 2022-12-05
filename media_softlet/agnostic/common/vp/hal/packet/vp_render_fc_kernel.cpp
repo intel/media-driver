@@ -2317,15 +2317,17 @@ bool VpRenderFcKernel::IsEufusionBypassed()
         VP_FC_LAYER &layer = compParams.source[0];
         bool bColorFill = false;
         bool bRotation  = false;
+        bool bLumakey   = false;
         if (compParams.pColorFillParams != nullptr)
         {
             // To avoid colorfill + rotation output cropution when Eu fusion is on.
             bColorFill =  (!RECT1_CONTAINS_RECT2(layer.surf->rcDst, compParams.target->surf->rcDst)) ? true : false;
             bRotation = (layer.rotation != VPHAL_ROTATION_IDENTITY) ? true : false;
+            bLumakey   = layer.lumaKeyParams ? true : false;
 
-            if (bColorFill && bRotation)
+            if ((bColorFill && bRotation) || bLumakey)
             {
-                VP_RENDER_NORMALMESSAGE("EufusionBypass is needed for colorfill + rotation case.");
+                VP_RENDER_NORMALMESSAGE("EufusionBypass is needed for colorfill + rotation case or lumakey case.");
                 return true;
             }
             else
