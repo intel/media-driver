@@ -41,14 +41,17 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/media_libva_common_next.h
 )
 
-set(SOURCES_
-    ${SOURCES_}
+set(SOFTLET_DDI_SOURCES_
+    ${SOFTLET_DDI_SOURCES_}
     ${TMP_SOURCES_}
  )
 
-set(HEADERS_
-    ${HEADERS_}
+set(SOFTLET_DDI_HEADERS_
+    ${SOFTLET_DDI_HEADERS_}
     ${TMP_HEADERS_}
 )
 
-media_add_curr_to_include_path()
+set(SOFTLET_DDI_PUBLIC_INCLUDE_DIRS_
+    ${SOFTLET_DDI_PUBLIC_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)

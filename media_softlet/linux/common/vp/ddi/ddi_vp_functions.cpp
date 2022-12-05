@@ -30,8 +30,8 @@
 #include "ddi_vp_tools.h"
 #include "mos_solo_generic.h"
 #include "media_libva_interface_next.h"
-#include "media_libva_vp.h"
 #include "ddi_cp_interface_next.h"
+#include "vp_utils.h"
 #if !defined(ANDROID) && defined(X11_FOUND)
 #include <X11/Xutil.h>
 #include "media_libva_putsurface_linux.h"

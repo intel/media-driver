@@ -25,9 +25,12 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/media_sku_wa_mtl.cpp
 )
 
-set(SOURCES_
-    ${SOURCES_}
+set(SOFTLET_DDI_SOURCES_
+    ${SOFTLET_DDI_SOURCES_}
     ${TMP_SOURCES_}
 )
 
-media_add_curr_to_include_path()
+set(SOFTLET_DDI_PUBLIC_INCLUDE_DIRS_
+    ${SOFTLET_DDI_PUBLIC_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)
