@@ -1172,15 +1172,14 @@ VAStatus DdiDecodeFunctions::QuerySurfaceError(
         if (errorStatus == -1 && surface->curCtxType == DDI_MEDIA_CONTEXT_TYPE_DECODER)
             //&& surface->curStatusReport.decode.status == CODECHAL_STATUS_SUCCESSFUL) // get the crc value whatever the status is
         {
-            CodechalDecode *decoder = dynamic_cast<CodechalDecode *>(decCtx->pCodecHal);
-            if (nullptr == decoder)
+            if (nullptr == decCtx->m_ddiDecodeNext)
             {
-                DDI_CODEC_ASSERTMESSAGE("nullptr codechal decoder");
+                DDI_CODEC_ASSERTMESSAGE("nullptr decCtx->m_ddiDecodeNext");
                 vaStatus = VA_STATUS_ERROR_INVALID_CONTEXT;
             }
             else
             {
-                if (decoder->GetStandard() != CODECHAL_AVC)
+                if (decCtx->m_ddiDecodeNext->GetStandard() != CODECHAL_AVC)
                 {
                     vaStatus = VA_STATUS_ERROR_UNIMPLEMENTED;
                 }

@@ -85,25 +85,6 @@
 #define DDI_VP_NUM_INPUT_COLOR_STD    6
 /* Number of supported output color formats */
 #define DDI_VP_NUM_OUT_COLOR_STD      6
-/* Number of forward references */
-#define DDI_CODEC_NUM_FWD_REF         0
-/* Number of backward references */
-#define DDI_CODEC_NUM_BK_REF          0
-/* Number of vp surface attributes */
-#define DDI_CODEC_NUM_QUERY_ATTR_VP   9
-
-#define DDI_CODEC_BITSTREAM_BUFFER_INDEX_BITS 4  //the bitstream buffer index is 4 bits length
-#define DDI_CODEC_MAX_BITSTREAM_BUFFER_INDEX  0xF  // the maximum bitstream buffer index is 0xF
-#define DDI_CODEC_INVALID_BUFFER_INDEX        -1
-#define DDI_CODEC_MIN_VALUE_OF_MAX_BS_SIZE    10240
-
-#define DDI_CODEC_FEI_MAX_INTERFACE_REVISION  1000
-#define DDI_CODEC_FEI_CTB_CMD_SIZE_SKL        16
-#define DDI_CODEC_FEI_CU_RECORD_SIZE_SKL_KBL  64
-#define DDI_CODEC_STATS_MAX_NUM_PAST_REFS     1
-#define DDI_CODEC_STATS_MAX_NUM_FUTURE_REFS   1
-#define DDI_CODEC_STATS_MAX_NUM_OUTPUTS       3
-#define DDI_CODEC_STATS_INTERLACED_SUPPORT    1
 
 #define DDI_CP_ENCRYPT_TYPES_NUM             5    // CP encryption types number
 
@@ -114,8 +95,6 @@
 #define DDI_BO_MAX_TIMEOUT       (~(0x8000000000000000))
 // Negative value for infinite timeout for i915 bo_wait
 #define DDI_BO_INFINITE_TIMEOUT  (-1)
-
-#define DDI_CODEC_NUM_MAX_REF_FRAME                16
 
 //!
 //! \brief  Get Device FD

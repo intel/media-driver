@@ -344,6 +344,13 @@ public:
     //!
     virtual CODECHAL_MODE GetDecodeCodecMode(VAProfile profile) = 0;
 
+    //!
+    //! \brief  Gets the decode standard
+    //! \return The decode standard \see m_standard
+    //!
+    uint32_t GetStandard() { return m_codechalSettings ? m_codechalSettings->standard : CODECHAL_UNDEFINED; }
+
+
     //! \brief    the referred DDI_DECODE_CONTEXT object
     //! \details  This is allocated when creating one new instance. As it is
     //!           referred by other component, it should be free explicitly

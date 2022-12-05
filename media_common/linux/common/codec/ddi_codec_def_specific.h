@@ -29,6 +29,28 @@
 
 #include "media_libva_common_next.h"
 
+/* Number of forward references */
+#define DDI_CODEC_NUM_FWD_REF         0
+/* Number of backward references */
+#define DDI_CODEC_NUM_BK_REF          0
+/* Number of vp surface attributes */
+#define DDI_CODEC_NUM_QUERY_ATTR_VP   9
+
+#define DDI_CODEC_BITSTREAM_BUFFER_INDEX_BITS 4  //the bitstream buffer index is 4 bits length
+#define DDI_CODEC_MAX_BITSTREAM_BUFFER_INDEX  0xF  // the maximum bitstream buffer index is 0xF
+#define DDI_CODEC_INVALID_BUFFER_INDEX        -1
+#define DDI_CODEC_MIN_VALUE_OF_MAX_BS_SIZE    10240
+
+#define DDI_CODEC_FEI_MAX_INTERFACE_REVISION  1000
+#define DDI_CODEC_FEI_CTB_CMD_SIZE_SKL        16
+#define DDI_CODEC_FEI_CU_RECORD_SIZE_SKL_KBL  64
+#define DDI_CODEC_STATS_MAX_NUM_PAST_REFS     1
+#define DDI_CODEC_STATS_MAX_NUM_FUTURE_REFS   1
+#define DDI_CODEC_STATS_MAX_NUM_OUTPUTS       3
+#define DDI_CODEC_STATS_INTERLACED_SUPPORT    1
+
+#define DDI_CODEC_NUM_MAX_REF_FRAME           16
+
 #define DDI_CODEC_MAX_BITSTREAM_BUFFER        16
 #define DDI_CODEC_MAX_BITSTREAM_BUFFER_MINUS1 (DDI_CODEC_MAX_BITSTREAM_BUFFER - 1)
 #define DDI_CODEC_VP8_MAX_REF_FRAMES          5
