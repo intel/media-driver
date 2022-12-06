@@ -51,7 +51,34 @@ public:
     virtual MOS_STATUS UpdatePacket(SwFilter *filter, VpCmdPacket *packet);
     virtual MOS_STATUS CheckTeamsParams(bool reusable, bool &reused, SwFilter *filter, uint32_t index);
     virtual MOS_STATUS StoreTeamsParams(SwFilter *filter, uint32_t index);
-MEDIA_CLASS_DEFINE_END(vp__VpFeatureReuseBase)
+
+    MOS_STATUS HandleNullSwFilter(bool reusableOfLastPipe, bool &isPacketPipeReused, SwFilter *filter, bool &ignoreUpdateFeatureParams)
+    {
+        if (filter == nullptr)
+        {
+            if (!reusableOfLastPipe || m_paramsAvailable)
+            {
+                isPacketPipeReused = false;
+            }
+            m_paramsAvailable = false;
+            ignoreUpdateFeatureParams = true;
+        }
+        else if (reusableOfLastPipe && m_paramsAvailable)
+        {
+            m_paramsAvailable = true;
+        }
+        else
+        {
+            isPacketPipeReused = false;
+            m_paramsAvailable  = true;
+        }
+
+        return MOS_STATUS_SUCCESS;
+    }
+
+protected:
+    bool m_paramsAvailable = true;
+    MEDIA_CLASS_DEFINE_END(vp__VpFeatureReuseBase)
 };
 
 class VpScalingReuse : public VpFeatureReuseBase

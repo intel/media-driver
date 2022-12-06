@@ -802,19 +802,36 @@ MOS_STATUS VpPacketReuseManager::PreparePacketPipeReuse(SwFilterPipe *&swFilterP
     for (auto feature : featureRegistered)
     {
         SwFilter *swfilter = pipe.GetSwFilter(true, 0, feature);
-        if (nullptr == swfilter)
-        {
-            continue;
-        }
         auto it = m_features.find(feature);
+        bool ignoreUpdateFeatureParams = false;
+
         if (m_features.end() == it)
         {
-            m_reusable = false;
-            isPacketPipeReused = false;
-            return MOS_STATUS_SUCCESS;
+            if (nullptr != swfilter)
+            {
+                // unreused feature && nullptr != swfilter
+                m_reusable         = false;
+                isPacketPipeReused = false;
+                return MOS_STATUS_SUCCESS;
+            }
+            else
+            {
+                // unreused feature && nullptr == swfilter
+                continue;
+            }
         }
+        else
+        {
+            // handle reused feature
+            VP_PUBLIC_CHK_STATUS_RETURN(it->second->HandleNullSwFilter(reusableOfLastPipe, isPacketPipeReused, swfilter, ignoreUpdateFeatureParams));
+            if (ignoreUpdateFeatureParams)
+            {
+                continue;
+            }
+        }
+
         bool reused = false;
-        it->second->UpdateFeatureParams(reusableOfLastPipe, reused, swfilter);
+        VP_PUBLIC_CHK_STATUS_RETURN(it->second->UpdateFeatureParams(reusableOfLastPipe, reused, swfilter));
         if (!reused)
         {
             VP_PUBLIC_NORMALMESSAGE("Packet not reused for feature %d", feature);
