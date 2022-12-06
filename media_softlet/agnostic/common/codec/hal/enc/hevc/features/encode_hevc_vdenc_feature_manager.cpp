@@ -293,7 +293,7 @@ MOS_STATUS EncodeHevcVdencFeatureManager::ValidatePassNum(
     if (((hevcPicParams->weighted_pred_flag ||
         hevcPicParams->weighted_bipred_flag) &&
         hevcPicParams->bEnableGPUWeightedPrediction == true) ||
-        hevcSeqParams->SliceSizeControl || (brcFeature->IsRateControlBrc(hevcSeqParams->RateControlMethod) && hevcPicParams->BRCPrecision != 1))
+        hevcSeqParams->SliceSizeControl || (brcFeature->IsRateControlBrc(hevcSeqParams->RateControlMethod) && hevcPicParams->BRCPrecision != 1))//&&!(hevcPicParams->tiles_enabled_flag&&hevcPicParams->constrained_mv_in_tile))
     {
         m_passNum = 2;
     }

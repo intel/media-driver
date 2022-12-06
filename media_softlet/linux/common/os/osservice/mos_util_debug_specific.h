@@ -40,7 +40,7 @@
 #endif //MOS_MESSAGES_ENABLED
 
 #define MOS_DIRECTORY_DELIMITER            '/'
-#define MOS_DEBUG_DEFAULT_OUTPUT_LOCATION  "/data/codechal_dump/"
+#define MOS_DEBUG_DEFAULT_OUTPUT_LOCATION  "/tmp/codechal_dump/"
 
 //!
 //! \def MOS_CHK_NULL_WITH_HR(_compID, _subCompID, _ptr)

@@ -174,6 +174,6 @@ MEDIA_CLASS_DEFINE_END(CodechalDebugInterface)
 #else
 #define USE_CODECHAL_DEBUG_TOOL 0
 #define CODECHAL_DEBUG_TOOL(expr) ;
-
+#define ZWJ 0
 #endif  // USE_MEDIA_DEBUG_TOOL
 #endif  /* __MEDIA_DEBUG_H__ */

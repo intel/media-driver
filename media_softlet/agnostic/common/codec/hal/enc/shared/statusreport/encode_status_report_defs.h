@@ -33,7 +33,7 @@
 
 namespace encode
 {
-enum EncodeStatusReportType
+enum EncodeStatusReportType//注意这里有好多status report，看我们需要的是哪一个
 {
     statusReportGlobalCount = STATUS_REPORT_GLOBAL_COUNT,
     //RCS

@@ -35,6 +35,105 @@ using namespace mhw::vdbox;
 
 namespace encode
 {
+
+static constexpr uint32_t OPCODE = 0x73a10000;
+struct SIDE_BAND
+{
+    uint32_t packetEnd : 1;
+    uint32_t realDw : 1;   // Not padded DWs for CL alignment
+    uint32_t dwCount : 3;  // Reset at LCU boundary and CU boundaries
+    uint32_t dwType : 2;   // 01: LCU Header Info, 10: CU Info, 00: Default
+    uint32_t mbz : 9;
+    uint32_t cuSad : 16;
+};
+
+struct LCU_HDR
+{
+    uint32_t  dw0;
+    SIDE_BAND sb0;
+
+    uint32_t  rsv0 : 30;
+    uint32_t  lastCtbOfTileFlag : 1;
+    uint32_t  lastCtbOfSliceFlag : 1;
+    SIDE_BAND sb1;
+
+    uint32_t  lcuX : 16;
+    uint32_t  lcuY : 16;
+    SIDE_BAND sb2;
+
+    uint32_t  estimatedLcuSizeInBytes : 14;
+    uint32_t  rsv1 : 18;
+    SIDE_BAND sb3;
+
+    uint32_t  rsv2 : 16;
+    uint32_t  timeBudgetOverflowOccurred : 1;
+    uint32_t  sliceEnd : 1;
+    uint32_t  sliceStart : 1;
+    uint32_t  reconSkip : 1;
+    uint32_t  firstNonStaticRowOfTile : 1;
+    uint32_t  rsv3 : 11;
+    SIDE_BAND sb4;
+};
+
+struct CU_RECORD
+{
+    int16_t  l0Mv0X : 16;
+    int16_t  l0Mv0Y : 16;
+    SIDE_BAND sb0;
+
+    int16_t  l0Mv1X : 16;
+    int16_t  l0Mv1Y : 16;
+    SIDE_BAND sb1;
+
+    int16_t  l1Mv0X : 16;
+    int16_t  l1Mv0Y : 16;
+    SIDE_BAND sb2;
+
+    int16_t  l1Mv1X : 16;
+    int16_t  l1Mv1Y : 16;
+    SIDE_BAND sb3;
+
+    uint32_t  l0Mv0RefId : 4;
+    uint32_t  l0Mv1RefId : 4;
+    uint32_t  l1Mv0RefId : 4;
+    uint32_t  l1Mv1RefId : 4;
+    uint32_t  sseClassId32x32 : 4;
+    uint32_t  EstimatedBytesPer32x32 : 12;
+    SIDE_BAND sb4;
+
+    uint32_t  tuSize;
+    SIDE_BAND sb5;
+
+    uint32_t  lumaIntraMode4x4_1 : 6;
+    uint32_t  lumaIntraMode4x4_2 : 6;
+    uint32_t  lumaIntraMode4x4_3 : 6;
+    uint32_t  roundingSelect : 4;
+    uint32_t  lastCuOf32x32 : 1;
+    uint32_t  lastCuOfLcu : 1;
+    uint32_t  tuCountM1 : 4;
+    uint32_t  escapePresentFlag : 1;
+    uint32_t  paletteTransposeFlag : 1;
+    uint32_t  paletteMode : 1;
+    uint32_t  ibcMode : 1;
+    SIDE_BAND sb6;
+
+    uint32_t  lumaIntraMode : 6;
+    uint32_t  cuSize : 2;
+    uint32_t  chromaIntraMode : 3;
+    uint32_t  cuTransquantBypassFlag : 1;
+    uint32_t  cuPartMode : 3;
+    uint32_t  cuPredMode : 1;
+    uint32_t  interPredIdcMv0 : 2;
+    uint32_t  interPredIdcMv1 : 2;
+    uint32_t  rsv0 : 2;
+    uint32_t  ipcmEnable : 1;
+    uint32_t  zeroOutCoefficients : 1;
+    uint32_t  cuQp : 7;
+    uint32_t  cuQpSign : 1;
+    SIDE_BAND sb7;
+};
+
+
     MOS_STATUS HevcVdencPkt::AllocateResources()
     {
         ENCODE_FUNC_CALL();
@@ -308,7 +407,7 @@ namespace encode
         uint8_t packetPhase)
     {
         ENCODE_FUNC_CALL();
-
+//printf("HevcVdencPkt::Submit\n");
         if (m_submitState == submitFrameByDefault)
         {
             ENCODE_CHK_STATUS_RETURN(SubmitPictureLevel(commandBuffer, packetPhase));
@@ -476,6 +575,7 @@ namespace encode
         {
             ENCODE_CHK_STATUS_RETURN(InsertSeqStreamEnd(cmdBuffer));
         }
+            /*d                                flush                                     */
 
         ENCODE_CHK_STATUS_RETURN(EnsureAllCommandsExecuted(cmdBuffer));
 
@@ -483,6 +583,7 @@ namespace encode
         SETPAR_AND_ADDCMD(VD_PIPELINE_FLUSH, m_vdencItf, &cmdBuffer);
 
         ENCODE_CHK_STATUS_RETURN(EnsureAllCommandsExecuted(cmdBuffer));
+            /*d                                flush                                     */
 
         ENCODE_CHK_STATUS_RETURN(ReadHcpStatus(m_vdboxIndex, m_statusReport, cmdBuffer));
         // BRC PAK statistics different for each pass
@@ -2014,7 +2115,112 @@ namespace encode
         }
 
         double squarePeakPixelValue = pow((1 << (m_basicFeature->m_hevcSeqParams->bit_depth_luma_minus8 + 8)) - 1, 2);
+   
+    
+#if 0
+       uint32_t numCtu = (((m_basicFeature->m_hevcSeqParams->wFrameHeightInMinCbMinus1 + 1) + 7) / 8)
+            * (((m_basicFeature->m_hevcSeqParams->wFrameWidthInMinCbMinus1 + 1) + 7) / 8);
 
+        MOS_LOCK_PARAMS lockFlag{};
+        lockFlag.ReadOnly = 1;
+        PMOS_RESOURCE buffer = m_basicFeature->m_recycleBuf->GetBuffer(
+            RecycleResId::CuRecordStreamOutBuffer, m_basicFeature->m_recycleBufferIdxes.front());
+            printf("dump buffer:%p\n",buffer);
+        ENCODE_CHK_NULL_RETURN(buffer);
+
+        auto data = static_cast<const uint8_t *>(m_allocator->Lock(buffer, &lockFlag));
+        ENCODE_CHK_NULL_RETURN(data);
+        uint32_t bufferSize = m_basicFeature->m_mbCodeSize;
+        while (*((uint32_t *)data) != OPCODE)  // add check to prevent infinite loop
+        {
+            data += sizeof(uint32_t);
+            bufferSize -= sizeof(uint32_t);
+            if (bufferSize == 0)
+            {
+                ENCODE_ASSERTMESSAGE("Failed to find OPCODE.");
+                return MOS_STATUS_INVALID_PARAMETER;
+            }
+        }
+
+#if 1//tile
+uint16_t ctuIdxInTile=0;
+uint16_t TileRowIdx=0;
+uint16_t TileColumIdx=0;
+int numTileColumns=m_basicFeature->m_hevcPicParams->num_tile_columns_minus1+1;
+int numTileRows=m_basicFeature->m_hevcPicParams->num_tile_rows_minus1+1;
+int numTile=numTileColumns*numTileRows;
+int tileidx=0;
+int tile_w=0;
+int tile_h=0;
+#endif 
+        for (uint32_t ctuIdx = 0; ctuIdx < numCtu; ctuIdx++)
+        {
+            auto lcuHdr = (const LCU_HDR *)data;
+#if 1//tile
+            tile_w=m_basicFeature->m_hevcPicParams->tile_column_width[TileColumIdx];
+            tile_h=m_basicFeature->m_hevcPicParams->tile_row_height[TileRowIdx];
+#endif  
+//printf("LCUX:%d, LCUY:%d\n",lcuHdr->lcuX,lcuHdr->lcuY);
+
+            data += sizeof(LCU_HDR);
+            auto  cuRecord = (const CU_RECORD *)data;
+            int cuCnt     = 0;
+            uint8_t minCuSize = 0xFF;
+            do
+            {
+                cuCnt++;
+                minCuSize = minCuSize < cuRecord->cuSize ? minCuSize : cuRecord->cuSize;
+#if 1//dump
+printf("TileRowIdx:%d,TileColumIdx:%d,tileidx:%d,ctuIdxInTile:%d | ",TileRowIdx,TileColumIdx,tileidx,ctuIdxInTile);
+
+printf("%d,%d,%d,|%d,",cuRecord->cuSize,cuRecord->cuPredMode,cuRecord->cuPartMode,cuRecord->interPredIdcMv0);
+printf("%d,|%d,%d,",cuRecord->interPredIdcMv1,cuRecord->lumaIntraMode,cuRecord->chromaIntraMode);
+printf("%d,%d,%d,|",cuRecord->lumaIntraMode4x4_1,cuRecord->lumaIntraMode4x4_2,cuRecord->lumaIntraMode4x4_3);
+printf("%d,%d,", cuRecord->cuQpSign ? -1 * (char)cuRecord->cuQp : (char)cuRecord->cuQp,cuRecord->sb7.cuSad);
+printf("|%d,%d,%d,%d,",cuRecord->l0Mv0X,cuRecord->l0Mv0Y,cuRecord->l0Mv1X,cuRecord->l0Mv1Y);
+printf("%d,%d,%d,%d\n",cuRecord->l1Mv0X,cuRecord->l1Mv0Y,cuRecord->l1Mv1X,cuRecord->l1Mv1Y);
+#endif
+                data += sizeof(CU_RECORD);
+            } while (!(cuRecord++)->lastCuOfLcu);
+            if (cuCnt == 0)
+            {
+                ENCODE_ASSERTMESSAGE("Invalid(0) cuCnt.");
+                return MOS_STATUS_INVALID_PARAMETER;
+            }
+
+#if 1//tile
+            if(ctuIdxInTile+1==tile_w*tile_h){
+                ctuIdxInTile=0;
+                if(tileidx+1!=numTile){
+                    while (*((uint32_t *)data) != OPCODE)  // add check to prevent infinite loop
+                    {
+                        data += sizeof(uint32_t);
+                        bufferSize -= sizeof(uint32_t);
+                        if (bufferSize == 0)
+                        {
+                            ENCODE_ASSERTMESSAGE("Failed to find OPCODE.");
+                            return MOS_STATUS_INVALID_PARAMETER;
+                        }
+                    }
+                }
+                if(TileColumIdx+1==numTileColumns)
+                {
+                    TileColumIdx=0;
+                    TileRowIdx++;
+                }else{
+                    TileColumIdx++;
+                }
+                tileidx++;
+            }else{
+                ctuIdxInTile++;
+            }
+#endif
+        }
+
+      //  m_basicFeature->m_recycleBufferIdxes.pop_front();
+        m_allocator->UnLock(buffer);
+#endif
+    
         for (auto i = 0; i < 3; i++)
         {
             uint32_t numPixels = i ? numPixelsPerChromaChannel : numLumaPixels;
@@ -2164,12 +2370,12 @@ namespace encode
     MHW_SETPAR_DECL_SRC(VDENC_PIPE_MODE_SELECT, HevcVdencPkt)
     {
         //params.tlbPrefetch = true;
-
+//printf("VDENC_PIPE_MODE_SELECT\n");
         params.pakObjCmdStreamOut = m_vdencPakObjCmdStreamOutForceEnabled? true : m_hevcPicParams->StatusReportEnable.fields.BlockStats;
 
         // needs to be enabled for 1st pass in multi-pass case
         // This bit is ignored if PAK only second pass is enabled.
-        if ((m_pipeline->GetCurrentPass() == 0) && !m_pipeline->IsLastPass()
+        if ((m_pipeline->GetCurrentPass() == 0) && !m_pipeline->IsLastPass()//||(m_hevcPicParams->tiles_enabled_flag&&m_hevcPicParams->constrained_mv_in_tile)
 #ifdef _ENCODE_RESERVED
             || (m_basicFeature->m_rsvdState && m_basicFeature->m_rsvdState->GetFeatureRsvdFlag())
 #endif
@@ -2537,6 +2743,26 @@ namespace encode
                 0,
                 CODECHAL_NUM_MEDIA_STATES));
         }
+
+
+        PMOS_RESOURCE cuRecordStreamOutBuffer = m_basicFeature->m_recycleBuf->GetBuffer(CuRecordStreamOutBuffer, 0);
+        ENCODE_CHK_NULL_RETURN(cuRecordStreamOutBuffer);
+        if (cuRecordStreamOutBuffer != nullptr)
+        {
+                        printf("curecord is not null ptr!!!!!!!");
+
+        ENCODE_CHK_STATUS_RETURN(debugInterface->DumpBuffer(
+            cuRecordStreamOutBuffer,
+            CodechalDbgAttr::attrCUStreamout,
+            "CUStreamout",
+            cuRecordStreamOutBuffer->iSize,
+            0,
+            CODECHAL_NUM_MEDIA_STATES));
+        }
+        else{
+            printf("curecord is null ptr!!!!!!!");
+        }
+
 
         // Slice Size Conformance
         if (m_hevcSeqParams->SliceSizeControl)
@@ -2912,6 +3138,7 @@ namespace encode
         params.presLcuILDBStreamOutBuffer    = m_resLCUIldbStreamOutBuffer;
         params.dwFrameStatStreamOutOffset    = 0;
         params.presSseSrcPixelRowStoreBuffer = m_resSSESrcPixelRowStoreBuffer;
+  //  printf("zwj cu stream outbuffer\n");
         params.presPakCuLevelStreamoutBuffer = m_resPakcuLevelStreamOutData;
         //    Mos_ResourceIsNull(&m_resPakcuLevelStreamoutData.sResource) ? nullptr : &m_resPakcuLevelStreamoutData.sResource;
 
@@ -2944,8 +3171,11 @@ namespace encode
         ENCODE_FUNC_CALL();
 
         params.presMvObjectBuffer      = m_basicFeature->m_resMbCodeBuffer;
+
+        //printf("m_mvOffset:%d\n",m_mvOffset);
         params.dwMvObjectOffset        = m_mvOffset;
         params.dwMvObjectSize          = m_basicFeature->m_mbCodeSize - m_mvOffset;
+        //printf("dwMvObjectSize:%d\n", params.dwMvObjectSize);
         params.presPakBaseObjectBuffer = &m_basicFeature->m_resBitstreamBuffer;
         params.dwPakBaseObjectSize     = m_basicFeature->m_bitstreamSize;
 

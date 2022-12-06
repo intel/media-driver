@@ -286,7 +286,7 @@ namespace encode
         //! \return MOS_STATUS
         //!         MOS_STATUS_SUCCESS if success, else fail reason
         //!
-        MOS_STATUS PatchTileLevelCommands(MOS_COMMAND_BUFFER &cmdBuffer, uint8_t packetPhase) ;
+        virtual MOS_STATUS PatchTileLevelCommands(MOS_COMMAND_BUFFER &cmdBuffer, uint8_t packetPhase) ;
 
         //!
         //! \brief  Add one tile commands
@@ -314,7 +314,7 @@ namespace encode
         //! \return MOS_STATUS
         //!         MOS_STATUS_SUCCESS if success, else fail reason
         //!
-        MOS_STATUS AddSlicesCommandsInTile(
+        virtual MOS_STATUS AddSlicesCommandsInTile(
             MOS_COMMAND_BUFFER &cmdBuffer);
 
         //!
@@ -334,7 +334,7 @@ namespace encode
         //! \return MOS_STATUS
         //!         MOS_STATUS_SUCCESS if success, else fail reason
         //!
-        MOS_STATUS AddPicStateWithTile(
+        virtual MOS_STATUS AddPicStateWithTile(
             MOS_COMMAND_BUFFER &cmdBuffer);
 
         //!
@@ -394,7 +394,7 @@ namespace encode
         //! \return MOS_STATUS
         //!         MOS_STATUS_SUCCESS if success, else fail reason
         //!
-        MOS_STATUS Construct3rdLevelBatch();
+        virtual MOS_STATUS Construct3rdLevelBatch();
 
         virtual MOS_STATUS AllocateResources();
 

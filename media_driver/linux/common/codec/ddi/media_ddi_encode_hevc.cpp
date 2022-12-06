@@ -479,6 +479,7 @@ VAStatus DdiEncodeHevc::ParseSeqParams(void *ptr)
     hevcSeqParams->VBVBufferSizeInBit         = (uint32_t)seqParams->bits_per_second << 1;
 
     hevcSeqParams->scaling_list_enable_flag           = seqParams->seq_fields.bits.scaling_list_enabled_flag;
+    //"seqParams->seq_fields.bits.sps_temporal_mvp_enabled_flag:%d\n",seqParams->seq_fields.bits.sps_temporal_mvp_enabled_flag);
     hevcSeqParams->sps_temporal_mvp_enable_flag       = seqParams->seq_fields.bits.sps_temporal_mvp_enabled_flag;
     hevcSeqParams->strong_intra_smoothing_enable_flag = seqParams->seq_fields.bits.strong_intra_smoothing_enabled_flag;
     hevcSeqParams->amp_enabled_flag                   = seqParams->seq_fields.bits.amp_enabled_flag;
@@ -607,11 +608,14 @@ VAStatus DdiEncodeHevc::ParsePicParams(
     hevcPicParams->transform_skip_enabled_flag    = picParams->pic_fields.bits.transform_skip_enabled_flag;
     hevcPicParams->transquant_bypass_enabled_flag = picParams->pic_fields.bits.transquant_bypass_enabled_flag;
     hevcPicParams->tiles_enabled_flag             = picParams->pic_fields.bits.tiles_enabled_flag;
+    hevcPicParams->constrained_mv_in_tile             = picParams->restricted_mv_in_tile;
+   // printf("hevcPicParams->constrained_mv_in_tile:%d\n",hevcPicParams->constrained_mv_in_tile);
     hevcPicParams->cu_qp_delta_enabled_flag       = picParams->pic_fields.bits.cu_qp_delta_enabled_flag;
     hevcPicParams->weighted_pred_flag             = picParams->pic_fields.bits.weighted_pred_flag;
     hevcPicParams->weighted_bipred_flag           = picParams->pic_fields.bits.weighted_bipred_flag;
     hevcPicParams->loop_filter_across_slices_flag = picParams->pic_fields.bits.pps_loop_filter_across_slices_enabled_flag;
-    hevcPicParams->loop_filter_across_tiles_flag  = picParams->pic_fields.bits.loop_filter_across_tiles_enabled_flag;
+    hevcPicParams->loop_filter_across_tiles_flag  =  picParams->pic_fields.bits.loop_filter_across_tiles_enabled_flag;
+    //  printf("loop_filter_across_tiles_enabled_flag:%d\n",picParams->pic_fields.bits.loop_filter_across_tiles_enabled_flag);
     hevcPicParams->scaling_list_data_present_flag = picParams->pic_fields.bits.scaling_list_data_present_flag;
     hevcPicParams->bLastPicInSeq                  = (picParams->last_picture & HEVC_LAST_PICTURE_EOSEQ) ? 1 : 0;
     hevcPicParams->bLastPicInStream               = (picParams->last_picture & HEVC_LAST_PICTURE_EOSTREAM) ? 1 : 0;
@@ -753,7 +757,7 @@ VAStatus DdiEncodeHevc::ParseSlcParams(
         hevcSlcParams->num_ref_idx_l1_active_minus1         = vaEncSlcParamsHEVC->num_ref_idx_l1_active_minus1;
         hevcSlcParams->bLastSliceOfPic                      = vaEncSlcParamsHEVC->slice_fields.bits.last_slice_of_pic_flag;
         hevcSlcParams->dependent_slice_segment_flag         = vaEncSlcParamsHEVC->slice_fields.bits.dependent_slice_segment_flag;
-        hevcSlcParams->slice_temporal_mvp_enable_flag       = vaEncSlcParamsHEVC->slice_fields.bits.slice_temporal_mvp_enabled_flag;
+        hevcSlcParams->slice_temporal_mvp_enable_flag       =vaEncSlcParamsHEVC->slice_fields.bits.slice_temporal_mvp_enabled_flag;
         hevcSlcParams->slice_type                           = vaEncSlcParamsHEVC->slice_type;
         hevcSlcParams->slice_sao_luma_flag                  = vaEncSlcParamsHEVC->slice_fields.bits.slice_sao_luma_flag;
         hevcSlcParams->slice_sao_chroma_flag                = vaEncSlcParamsHEVC->slice_fields.bits.slice_sao_chroma_flag;

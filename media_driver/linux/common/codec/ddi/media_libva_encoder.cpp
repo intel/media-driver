@@ -162,7 +162,7 @@ VAStatus DdiEncode_StatusReport(
     DDI_CHK_NULL(encCtx->m_encode, "nullptr encCtx->m_encode", VA_STATUS_ERROR_INVALID_CONTEXT);
     DDI_CHK_NULL(mediaBuf, "nullptr mediaBuf", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(buf, "nullptr buf", VA_STATUS_ERROR_INVALID_PARAMETER);
-
+//printf("||||||||||start status report|||||||||||\n");
     VAStatus vaStatus = encCtx->m_encode->StatusReport(mediaBuf, buf);
 
     return vaStatus;

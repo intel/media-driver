@@ -60,6 +60,7 @@ public:
         HucBrcTileRowUpdate,
         HucLaInit,
         HucLaUpdate,
+        hevcVdencPacketMcts
 #ifdef _ENCODE_RESERVED
         hevcVdencPacketRsvd,
 #endif

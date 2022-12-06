@@ -308,7 +308,7 @@ MOS_STATUS MediaDebugInterface::DumpCmdBuffer(
     }
 
     bool binaryDumpEnabled = m_configMgr->AttrIsEnabled(MediaDbgAttr::attrDumpCmdBufInBinary);
-
+printf("binaryDumpEnabled\n");
     std::string funcName = cmdName ? cmdName : m_configMgr->GetMediaStateStr(mediaState);
     const char *fileName = CreateFileName(
         funcName.c_str(),

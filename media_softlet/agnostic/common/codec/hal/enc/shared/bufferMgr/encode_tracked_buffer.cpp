@@ -77,6 +77,32 @@ MOS_STATUS TrackedBuffer::RegisterParam(BufferType type, MOS_ALLOC_GFXRES_PARAMS
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS TrackedBuffer::RegisterMbCodeBuffer(TrackedBuffer *trackedBuf, bool &isRegistered, uint32_t mbCodeSize)
+{
+    ENCODE_FUNC_CALL();
+
+    ENCODE_CHK_NULL_RETURN(trackedBuf);
+
+    MOS_ALLOC_GFXRES_PARAMS allocParamsForLinear;
+    MOS_ZeroMemory(&allocParamsForLinear, sizeof(MOS_ALLOC_GFXRES_PARAMS));
+    allocParamsForLinear.Type = MOS_GFXRES_BUFFER;
+    allocParamsForLinear.TileType = MOS_TILE_LINEAR;
+    allocParamsForLinear.Format   = Format_Buffer;
+    allocParamsForLinear.dwMemType        = MOS_MEMPOOL_SYSTEMMEMORY;
+    allocParamsForLinear.Flags.bCacheable = true;
+    // set the ResUsageType to enable coherency in gmm
+    allocParamsForLinear.ResUsageType     = MOS_HW_RESOURCE_USAGE_ENCODE_OUTPUT_BITSTREAM;
+    if (mbCodeSize > 0 && !isRegistered)
+    {
+        allocParamsForLinear.pBufName = "mbCodeBuffer";
+        allocParamsForLinear.dwBytes = mbCodeSize + 8 * CODECHAL_CACHELINE_SIZE;
+        ENCODE_CHK_STATUS_RETURN(trackedBuf->RegisterParam(encode::BufferType::mbCodedBuffer, allocParamsForLinear));
+        isRegistered = true;
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS TrackedBuffer::ReleaseUnusedSlots(
     CODEC_REF_LIST* refList,
     bool lazyRelease)

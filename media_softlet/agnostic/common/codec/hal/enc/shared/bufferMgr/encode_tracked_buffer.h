@@ -47,7 +47,7 @@ namespace encode
 enum class BufferType
 {
     mbCodedBuffer,
-    mvDataBuffer,
+    mvDataBuffer,//zwj 这个变量只有avc在用？
     mvTemporalBuffer,
     ds4xSurface,
     ds8xSurface,
@@ -114,6 +114,8 @@ public:
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS RegisterParam(BufferType type, MOS_ALLOC_GFXRES_PARAMS param);
+    
+    MOS_STATUS RegisterMbCodeBuffer(TrackedBuffer *trackedBuf, bool &isRegistered, uint32_t mbCodeSize);
 
     //!
     //! \brief  Acquire buffer before encoding start for each frame

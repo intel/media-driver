@@ -344,7 +344,7 @@ namespace encode {
 
         statusReportData->pFrmStatsInfo = ((EncodeStatusReportData *)report)->pFrmStatsInfo;
         statusReportData->pBlkStatsInfo = ((EncodeStatusReportData *)report)->pBlkStatsInfo;
-
+//printf("pBlkStatsInfo\n");
         if (m_enableRcs)
         {
             encodeStatusRcs = (EncodeStatusRcs*)(m_dataStatusRcs + index * m_statusBufSizeRcs);

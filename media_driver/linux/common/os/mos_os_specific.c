@@ -4210,9 +4210,10 @@ MOS_STATUS Mos_Specific_SubmitCommandBuffer(
 
     MOS_OS_CHK_NULL_RETURN(pOsInterface);
     MOS_OS_CHK_NULL_RETURN(pCmdBuffer);
-
     if (pOsInterface->apoMosEnabled)
     {
+       // printf("**submita\n");
+
         return MosInterface::SubmitCommandBuffer(pOsInterface->osStreamState, pCmdBuffer, bNullRendering);
     }
 

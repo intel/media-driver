@@ -734,6 +734,9 @@ typedef struct _CODEC_HEVC_ENCODE_PICTURE_PARAMS
     char                    pps_cr_qp_offset;                       //!< Same as HEVC syntax element
     uint8_t                 num_tile_columns_minus1;                //!< Same as HEVC syntax element
     uint8_t                 num_tile_rows_minus1;                   //!< Same as HEVC syntax element
+    #if 1
+    uint8_t                 constrained_mv_in_tile; //!< flag for constraining MV in tile
+    #endif
     /*! \brief Same as HEVC syntax elements of column_width_minus1 + 1 in PPS of HEVC bitstreams.
     *
     *    Driver expected to calculate the size of last column from frame resolution.

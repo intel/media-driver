@@ -81,7 +81,7 @@ struct EncodeTileData
     uint32_t numOfTilesInFrame;
     uint32_t numOfTileColumnsInFrame;
     union
-    {
+    {  
         uint32_t tileStartXInLCU;
         uint32_t tileStartXInSb;
         uint32_t tileStartX;

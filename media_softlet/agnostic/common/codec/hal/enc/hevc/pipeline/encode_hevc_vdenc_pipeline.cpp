@@ -102,6 +102,8 @@ MOS_STATUS HevcVdencPipeline::ActivateVdencVideoPackets()
 
     for (uint8_t curPass = 0; curPass < GetPassNum(); curPass++)
     {
+     //          immediateSubmit = 0;
+
         if (brcFeature->IsBRCUpdateRequired())
         {
             ENCODE_CHK_STATUS_RETURN(ActivatePacket(HucBrcUpdate, immediateSubmit, curPass, 0));
@@ -130,6 +132,7 @@ MOS_STATUS HevcVdencPipeline::ActivateVdencVideoPackets()
                 }
             }
         }
+      // immediateSubmit = true;
 
         if (tileEnabled)
         {
@@ -142,6 +145,15 @@ MOS_STATUS HevcVdencPipeline::ActivateVdencVideoPackets()
     // Last element in m_activePacketList must be immediately submitted
     m_activePacketList.back().immediateSubmit = true;
 
+    auto basicFeature = dynamic_cast<HevcBasicFeature *>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
+    ENCODE_CHK_NULL_RETURN(basicFeature);
+
+    if (basicFeature->m_hevcPicParams->tiles_enabled_flag &&basicFeature->m_hevcPicParams->constrained_mv_in_tile )
+    {
+        m_activePacketList.front().frameTrackingRequested = false;//zwj?什么意思
+        ENCODE_CHK_STATUS_RETURN(ActivatePacket(hevcVdencPacketMcts, true, 0, 0));
+        ENCODE_CHK_STATUS_RETURN(ActivatePacket(hevcPakIntegrate, true, 0, 0));
+    }
 #ifdef _ENCODE_RESERVED
     auto basicFeature = dynamic_cast<HevcBasicFeature *>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
     ENCODE_CHK_NULL_RETURN(basicFeature);

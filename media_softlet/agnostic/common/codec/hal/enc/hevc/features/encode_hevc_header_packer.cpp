@@ -77,6 +77,7 @@ MOS_STATUS HevcHeaderPacker::GetPPSParams(PCODEC_HEVC_ENCODE_PICTURE_PARAMS hevc
     m_ppsParams.deblocking_filter_override_enabled_flag     = 0;                                              //hevcPicParams->deblocking_filter_override_enabled_flag; exist but not transfered from msdk
     m_ppsParams.loop_filter_across_slices_enabled_flag      = hevcPicParams->loop_filter_across_slices_flag;  //>=CNL,else =0
     m_ppsParams.tiles_enabled_flag                          = hevcPicParams->tiles_enabled_flag;
+   // printf("HevcHeaderPacker::GetPPSParams\n");
     m_ppsParams.entropy_coding_sync_enabled_flag            = hevcPicParams->entropy_coding_sync_enabled_flag;
     m_ppsParams.slice_segment_header_extension_present_flag = 0;
     m_ppsParams.deblocking_filter_disabled_flag             = hevcPicParams->pps_deblocking_filter_disabled_flag;

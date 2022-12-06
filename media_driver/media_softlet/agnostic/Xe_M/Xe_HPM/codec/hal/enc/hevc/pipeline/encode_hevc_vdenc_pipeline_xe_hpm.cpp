@@ -28,6 +28,7 @@
 #include "encode_huc_brc_init_packet.h"
 #include "encode_huc_brc_update_packet.h"
 #include "encode_pak_integrate_packet.h"
+#include "encode_hevc_vdenc_packet_mcts.h"
 #include "encode_hevc_tile_replay_packet.h"
 #include "codechal_debug.h"
 #include "encode_huc_la_init_packet.h"
@@ -88,6 +89,8 @@ MOS_STATUS HevcVdencPipelineXe_Hpm::Init(void *settings)
 #ifdef _ENCODE_RESERVED
     RegisterPacket(hevcVdencPacketRsvd, [=]() -> MediaPacket * { return MOS_New(HevcVdencPktRsvd, this, task, m_hwInterface); });
 #endif
+
+    RegisterPacket(hevcVdencPacketMcts, [=]() -> MediaPacket * { return MOS_New(HevcVdencPktMcts, this, task, m_hwInterface); });
 
     return MOS_STATUS_SUCCESS;
 }

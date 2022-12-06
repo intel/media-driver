@@ -359,6 +359,11 @@ MOS_STATUS HevcBasicFeature::UpdateTrackedBufferParameters()
         ENCODE_CHK_STATUS_RETURN(m_rsvdState->RegisterMbCodeBuffer(m_trackedBuf, m_isMbCodeRegistered, m_mbCodeSize));
     }
 #endif
+    if (m_hevcPicParams->tiles_enabled_flag && m_hevcPicParams->constrained_mv_in_tile )
+    {
+        ;
+        ENCODE_CHK_STATUS_RETURN(m_trackedBuf->RegisterMbCodeBuffer(m_trackedBuf, m_isMbCodeRegistered, m_mbCodeSize));
+    }
 
     ENCODE_CHK_STATUS_RETURN(EncodeBasicFeature::UpdateTrackedBufferParameters());
 
@@ -561,6 +566,7 @@ MOS_STATUS HevcBasicFeature::GetRecycleBuffers()
             break;
         }
     }
+//printf("recycleBufferIdx:%d\n",recycleBufferIdx);
 
     if (recycleBufferIdx == -1 || recycleBufferIdx >= m_maxSyncDepth)
     {
@@ -571,7 +577,7 @@ MOS_STATUS HevcBasicFeature::GetRecycleBuffers()
     ENCODE_CHK_NULL_RETURN(m_resMbCodeBuffer);
 
     m_recycleBufferIdxes.push_back(recycleBufferIdx);
-
+//printf("recycleBufferIdx:%d\n",recycleBufferIdx);
     return MOS_STATUS_SUCCESS;
 }
 
@@ -820,11 +826,18 @@ MHW_SETPAR_DECL_SRC(VDENC_PIPE_BUF_ADDR_STATE, HevcBasicFeature)
         params.mmcStateRaw          = MOS_MEMCOMP_DISABLED;
         params.compressionFormatRaw = 0;
     }
-
+//printf("???????????????????\n");
     params.surfaceRaw               = m_rawSurfaceToPak;
     params.surfaceDsStage1          = m_8xDSSurface;
     params.surfaceDsStage2          = m_4xDSSurface;
     params.pakObjCmdStreamOutBuffer = m_resMbCodeBuffer;
+        MOS_LOCK_PARAMS lockFlags;
+    MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
+    lockFlags.ReadOnly       = 1;
+    uint8_t *buffer = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, m_resMbCodeBuffer, &lockFlags);
+     MOS_ZeroMemory(buffer,m_mbCodeSize);
+ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnUnlockResource(m_osInterface, m_resMbCodeBuffer));
+
     params.streamOutBuffer          = m_recycleBuf->GetBuffer(VdencStatsBuffer, 0);
     params.streamOutOffset          = 0;
 
@@ -877,6 +890,7 @@ MHW_SETPAR_DECL_SRC(VDENC_CMD1, HevcBasicFeature)
 
 MHW_SETPAR_DECL_SRC(VDENC_CMD2, HevcBasicFeature)
 {
+   // printf("VDENC_CMD2\n");
     params.width  = (m_hevcSeqParams->wFrameWidthInMinCbMinus1 + 1) << (m_hevcSeqParams->log2_min_coding_block_size_minus3 + 3);
     params.height = (m_hevcSeqParams->wFrameHeightInMinCbMinus1 + 1) << (m_hevcSeqParams->log2_min_coding_block_size_minus3 + 3);
 
