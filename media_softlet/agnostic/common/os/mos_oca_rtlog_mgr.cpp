@@ -27,18 +27,24 @@
 #include "mos_oca_rtlog_mgr.h"
 #include "mos_context_specific_next.h"
 
+#define ADDRESS_PAGE_ALIGNMENT_MASK 0xFFFFFFFFFFFFF000ULL
+
 bool MosOcaRTLogMgr::m_enableOcaRTLog = true;
+uint8_t MosOcaRTLogMgr::s_localSysMem[MAX_OCA_RT_POOL_SIZE] = {};
+MosMutex MosOcaRTLogMgr::s_ocaMutex;
 
 /****************************************************************************************************/
 /*                                      MosOcaRtLogSectionMgr                                       */
 /****************************************************************************************************/
-
-MosOcaRtLogSectionMgr::MosOcaRtLogSectionMgr(MOS_OCA_RTLOG_HEAP ocaRtHeap, uint32_t size, uint32_t offset)
+MosOcaRtLogSectionMgr::MosOcaRtLogSectionMgr()
 {
-    if (ocaRtHeap.ocaHeapCpuVa && ocaRtHeap.size)
+}
+
+void MosOcaRtLogSectionMgr::Init(uint8_t* logSysMem, uint32_t size, uint32_t componentSize, uint32_t offset)
+{
+    if (logSysMem && size && componentSize)
     {
-        m_LockedHeap = ocaRtHeap.ocaHeapCpuVa;
-        m_HeapGpuVa  = ocaRtHeap.ocaHeapGpuVa;
+        m_LockedHeap = logSysMem;
         m_HeapSize   = size;
         m_Offset     = offset;
         m_HeapHandle = -1;
@@ -46,13 +52,11 @@ MosOcaRtLogSectionMgr::MosOcaRtLogSectionMgr(MOS_OCA_RTLOG_HEAP ocaRtHeap, uint3
 
         m_IsInitialized = true;
     }
-
 }
 
 MosOcaRtLogSectionMgr::~MosOcaRtLogSectionMgr()
 {
     m_LockedHeap    = nullptr;
-    m_HeapGpuVa     = 0;
     m_HeapSize      = 0;
     m_Offset        = 0;
     m_HeapHandle    = -1;
@@ -99,153 +103,101 @@ MOS_STATUS MosOcaRtLogSectionMgr::InsertData(MOS_OCA_RTLOG_HEADER header, const 
 /*                                      MosOcaRTLogMgr                                              */
 /****************************************************************************************************/
 
-MOS_STATUS MosOcaRTLogMgr::Initialize(OsContextNext *osDriverContext)
+MOS_STATUS MosOcaRTLogMgr::RegisterCtx(OsContextNext *osDriverContext, MOS_CONTEXT *osContext)
 {
-    if (m_IsMgrInitialized)
+    MOS_OCA_RTLOG_RES_AND_INTERFACE resInterface = {};
+    MOS_OS_CHK_STATUS_RETURN(RegisterRes(osDriverContext, &resInterface, osContext));
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MosOcaRTLogMgr::UnRegisterCtx(OsContextNext *osDriverContext)
+{
+    if (!osDriverContext->GetOcaRTLogResource())
+    {
+        return MOS_STATUS_NULL_POINTER;
+    }
+    UnregisterRes(osDriverContext);
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MosOcaRTLogMgr::RegisterRes(OsContextNext *osDriverContext, MOS_OCA_RTLOG_RES_AND_INTERFACE *resInterface, MOS_CONTEXT *osContext)
+{
+    if (osDriverContext->GetOcaRTLogResource())
     {
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS      status      = MOS_STATUS_SUCCESS;
-    MosStreamState  streamState = {};
-
-    MOS_OS_CHK_NULL_RETURN(osDriverContext);
-
-    m_osContext = osDriverContext;
-
-    streamState.osDeviceContext = m_osContext;
-
-    m_ocaRtHeap.size = MAX_OCA_RT_SIZE;
-
-    MOS_ALLOC_GFXRES_PARAMS params = {};
-    // Initiate allocation paramters
-    params.Type          = MOS_GFXRES_BUFFER;
-    params.TileType      = MOS_TILE_LINEAR;
-    params.Format        = Format_Buffer;
-    params.dwBytes       = m_ocaRtHeap.size;
-    params.pBufName      = "OcaRtLog";
-    params.bIsPersistent = true;
-    params.dwMemType     = MOS_MEMPOOL_SYSTEMMEMORY;
-    if (nullptr == m_ocaRTLogResource)
+    resInterface->osInterface = (PMOS_INTERFACE)MOS_AllocAndZeroMemory(sizeof(MOS_INTERFACE));
+    MOS_OS_CHK_NULL_RETURN(resInterface->osInterface);
+    MOS_STATUS status         = Mos_InitInterface(resInterface->osInterface, osContext, COMPONENT_OCA);
+    if (MOS_FAILED(status))
     {
-        m_ocaRTLogResource = MOS_New(MOS_RESOURCE);
-        MOS_OS_CHK_NULL_RETURN(m_ocaRTLogResource);
-
-        status = MosInterface::AllocateResource(
-            &streamState,
-            &params,
-            m_ocaRTLogResource
-#if MOS_MESSAGES_ENABLED
-            ,
-            __FUNCTION__,
-            __FILE__,
-            __LINE__
-#endif
-            );
+        MOS_SafeFreeMemory(resInterface->osInterface);
         MOS_OS_CHK_STATUS_RETURN(status);
     }
-
-    MOS_OS_CHK_STATUS_RETURN(MapGfxVa());
-
-    MOS_LOCK_PARAMS LockFlags = {};
-    LockFlags.NoOverWrite     = 1;
-    LockFlags.WriteOnly       = 1;
-    m_ocaRtHeap.ocaHeapCpuVa = MosInterface::LockMosResource(&streamState, m_ocaRTLogResource, &LockFlags);
-
-    if (nullptr == m_ocaRtHeap.ocaHeapCpuVa)
-    {
-        Reset();
-        MOS_OS_CHK_STATUS_RETURN(MOS_STATUS_NULL_POINTER);
-    }
-    uint32_t offset = 0;
-
-    for (int i = 0; i < MOS_OCA_RTLOG_COMPONENTS_SIZE; ++i)
-    {
-        uint32_t size = MAX_OCA_RT_SUB_SIZE;
-
-        MosOcaRtLogSectionMgr *mgr = MOS_New(MosOcaRtLogSectionMgr, m_ocaRtHeap, size, offset);
-        if (nullptr == mgr)
-        {
-            MOS_OS_NORMALMESSAGE("Allocate m_RTLogSectionMgr failed!");
-            Clean();
-            MOS_OS_CHK_STATUS_RETURN(MOS_STATUS_NULL_POINTER);
-        }
-        MOS_OCA_RTLOG_SECTION_HEADER sectionHeader = {};
-        sectionHeader.magicNum      = MOS_OCA_RTLOG_MAGIC_NUM;
-        sectionHeader.componentType = (MOS_OCA_RTLOG_COMPONENT_TPYE)i;
-        sectionHeader.freq          = 0;
-        MosUtilities::MosQueryPerformanceFrequency(&sectionHeader.freq);
-        mgr->InsertUid(sectionHeader);
-        m_RTLogSectionMgr.push_back(mgr);
-        offset += MAX_OCA_RT_SUB_SIZE;
-    }
-
-    m_IsMgrInitialized = true;
-    return MOS_STATUS_SUCCESS;
-}
-
-void MosOcaRTLogMgr::Uninitialize()
-{
-    if (!m_IsMgrInitialized)
-    {
-        return;
-    }
     
-    m_IsMgrInitialized = false;
-    Clean();
-    m_globleIndex = -1;
-
-    return;
-}
-
-MOS_STATUS MosOcaRTLogMgr::Clean()
-{
-    for (std::vector<MosOcaRtLogSectionMgr *>::iterator it = m_RTLogSectionMgr.begin();
-         it != m_RTLogSectionMgr.end();
-         ++it)
+    MOS_ALLOC_GFXRES_PARAMS sParams = {};
+    sParams.Type                    = MOS_GFXRES_BUFFER;
+    sParams.dwBytes                 = MAX_OCA_RT_SIZE;
+    sParams.pSystemMemory           = (void *)m_heapAddr;
+    sParams.TileType                = MOS_TILE_LINEAR;
+    sParams.Format                  = Format_Buffer;
+    sParams.pBufName                = "OcaRtlog";
+    sParams.bIsPersistent           = 1;
+    resInterface->ocaRTLogResource  = (PMOS_RESOURCE)MOS_AllocAndZeroMemory(sizeof(MOS_RESOURCE));
+    if (nullptr == resInterface->ocaRTLogResource)
     {
-        MosOcaRtLogSectionMgr *p = *it;
-        if (p)
-        {
-            MOS_Delete(p);
-        }
+        Mos_DestroyInterface(resInterface->osInterface);
+        MOS_SafeFreeMemory(resInterface->osInterface);
+        MOS_OS_CHK_NULL_RETURN(resInterface->ocaRTLogResource);
     }
-    m_RTLogSectionMgr.clear();
-    Reset();
+
+    // Allocate resource
+    status = resInterface->osInterface->pfnAllocateResource(resInterface->osInterface, &sParams, resInterface->ocaRTLogResource);
+    if (MOS_FAILED(status))
+    {
+        MOS_SafeFreeMemory(resInterface->ocaRTLogResource);
+        Mos_DestroyInterface(resInterface->osInterface);
+        MOS_SafeFreeMemory(resInterface->osInterface);
+        MOS_OS_CHK_STATUS_RETURN(status);
+    }
+    status = MapGfxVa(resInterface->ocaRTLogResource, osDriverContext);
+    if (MOS_FAILED(status))
+    {
+        resInterface->osInterface->pfnFreeResource(resInterface->osInterface, resInterface->ocaRTLogResource);
+        MOS_SafeFreeMemory(resInterface->ocaRTLogResource);
+        Mos_DestroyInterface(resInterface->osInterface);
+        MOS_SafeFreeMemory(resInterface->osInterface);
+        MOS_OS_CHK_STATUS_RETURN(status);
+    }
+    s_ocaMutex.Lock();
+    m_resMap.insert(std::make_pair(osDriverContext, *resInterface));
+    s_ocaMutex.Unlock();
+    osDriverContext->SetRtLogRes(resInterface->ocaRTLogResource);
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS MosOcaRTLogMgr::Reset()
+void MosOcaRTLogMgr::UnregisterRes(OsContextNext *osDriverContext)
 {
-    MosStreamState  streamState = {};
-
-    MOS_OS_CHK_NULL_RETURN(m_osContext);
-
-    streamState.osDeviceContext = m_osContext;
-
-    if (m_ocaRTLogResource)
+    MOS_OCA_RTLOG_RES_AND_INTERFACE resInterface = {};
+    auto iter = m_resMap.find(osDriverContext);
+    if (iter != m_resMap.end())
     {
-        MosInterface::FreeResource(
-            &streamState,
-            m_ocaRTLogResource,
-            0
-#if MOS_MESSAGES_ENABLED
-            ,
-            __FUNCTION__,
-            __FILE__,
-            __LINE__
-#endif
-        );
-        MOS_Delete(m_ocaRTLogResource);
+        resInterface = iter->second;
     }
-
-    m_ocaRtHeap = {};
-    return MOS_STATUS_SUCCESS;
+    s_ocaMutex.Lock();
+    m_resMap.erase(osDriverContext);
+    s_ocaMutex.Unlock();
+    resInterface.osInterface->pfnFreeResource(resInterface.osInterface, resInterface.ocaRTLogResource);
+    MOS_SafeFreeMemory(resInterface.ocaRTLogResource);
+    Mos_DestroyInterface(resInterface.osInterface);
+    MOS_SafeFreeMemory(resInterface.osInterface);
 }
 
 MOS_STATUS MosOcaRTLogMgr::InsertRTLog(MOS_OCA_RTLOG_COMPONENT_TPYE componentType, bool isErr, int32_t id, uint32_t paramCount, const void *param)
 {
-    if (!m_IsMgrInitialized)
+    if (!m_isMgrInitialized)
     {
         return MOS_STATUS_UNIMPLEMENTED;
     }
@@ -256,13 +208,10 @@ MOS_STATUS MosOcaRTLogMgr::InsertRTLog(MOS_OCA_RTLOG_COMPONENT_TPYE componentTyp
     }
     MosOcaRtLogSectionMgr *insMgr = nullptr;
 
-    if (componentType < MOS_OCA_RTLOG_COMPONENTS_SIZE)
+    if (componentType < MOS_OCA_RTLOG_COMPONENT_MAX)
     {
-        insMgr = m_RTLogSectionMgr[componentType];
-    }
+        insMgr = &m_rtLogSectionMgr[componentType];
     
-    if (insMgr)
-    {
         if (insMgr->IsInitialized())
         {
             uint64_t index = 0;
@@ -279,6 +228,26 @@ MOS_STATUS MosOcaRTLogMgr::InsertRTLog(MOS_OCA_RTLOG_COMPONENT_TPYE componentTyp
 
 MosOcaRTLogMgr::MosOcaRTLogMgr()
 {
+    uint64_t linearAddress        = (uint64_t)s_localSysMem;
+    uint64_t linearAddressAligned = 0;
+
+    linearAddressAligned = ((linearAddress + MOS_PAGE_SIZE - 1) & ADDRESS_PAGE_ALIGNMENT_MASK);
+
+    m_heapAddr             = (uint8_t *)linearAddressAligned;
+    uint32_t offset = 0;
+    for (int i = 0; i < MOS_OCA_RTLOG_COMPONENT_MAX; ++i)
+    {
+        m_rtLogSectionMgr[i].Init(m_heapAddr, m_heapSize, MAX_OCA_RT_SUB_SIZE, offset);
+        MOS_OCA_RTLOG_SECTION_HEADER sectionHeader = {};
+        sectionHeader.magicNum      = MOS_OCA_RTLOG_MAGIC_NUM;
+        sectionHeader.componentType = (MOS_OCA_RTLOG_COMPONENT_TPYE)i;
+        sectionHeader.freq          = 0;
+        MosUtilities::MosQueryPerformanceFrequency(&sectionHeader.freq);
+        m_rtLogSectionMgr[i].InsertUid(sectionHeader);
+        offset += MAX_OCA_RT_SUB_SIZE;
+    }
+
+    m_isMgrInitialized = true;
 }
 
 MosOcaRTLogMgr::MosOcaRTLogMgr(MosOcaRTLogMgr &)
@@ -287,6 +256,8 @@ MosOcaRTLogMgr::MosOcaRTLogMgr(MosOcaRTLogMgr &)
 
 MosOcaRTLogMgr::~MosOcaRTLogMgr()
 {
+    m_globleIndex = -1;
+    m_isMgrInitialized = false;
 }
 
 
@@ -295,36 +266,42 @@ MosOcaRTLogMgr& MosOcaRTLogMgr::operator= (MosOcaRTLogMgr&)
     return *this;
 }
 
-MOS_STATUS MosOcaRTLogMgr::InitMgr(MosOcaRTLogMgr *&ocaRTLogMgr, OsContextNext *osDriverContext)
+MosOcaRTLogMgr &MosOcaRTLogMgr::GetInstance()
 {
-    if (!m_enableOcaRTLog)
-    {
-        return MOS_STATUS_SUCCESS;
-    }
-    ocaRTLogMgr = MOS_New(MosOcaRTLogMgr);
-    MOS_OS_CHK_NULL_RETURN(ocaRTLogMgr);
-    MOS_STATUS status = ocaRTLogMgr->Initialize(osDriverContext);
-    if (MOS_FAILED(status))
-    {
-        MOS_Delete(ocaRTLogMgr);
-        MOS_OS_CHK_STATUS_RETURN(status);
-    }
-    return status;
+    static MosOcaRTLogMgr mgr;
+    return mgr;
 }
 
-void MosOcaRTLogMgr::UninitMgr(MosOcaRTLogMgr *&ocaRTLogMgr)
+void MosOcaRTLogMgr::RegisterContext(OsContextNext *osDriverContext, MOS_CONTEXT *osContext)
 {
     if (!m_enableOcaRTLog)
     {
         return;
     }
-    if (ocaRTLogMgr == nullptr)
+    if (!osContext)
     {
-        MOS_OS_ASSERTMESSAGE("Allocate m_RTLogSectionMgr failed!");
         return;
     }
-    ocaRTLogMgr->Uninitialize();
-    MOS_Delete(ocaRTLogMgr);
+    MosOcaRTLogMgr &ocaRTLogMgr = GetInstance();
+    MOS_STATUS      status      = ocaRTLogMgr.RegisterCtx(osDriverContext, osContext);
+    if (status != MOS_STATUS_SUCCESS)
+    {
+        MOS_OS_NORMALMESSAGE("MosOcaRTLogMgr RegisterContext failed!");
+    }
+}
+
+void MosOcaRTLogMgr::UnRegisterContext(OsContextNext *osDriverContext)
+{
+    if (!m_enableOcaRTLog)
+    {
+        return;
+    }
+    MosOcaRTLogMgr &ocaRTLogMgr = GetInstance();
+    MOS_STATUS      status      = ocaRTLogMgr.UnRegisterCtx(osDriverContext);
+    if (status != MOS_STATUS_SUCCESS)
+    {
+        MOS_OS_NORMALMESSAGE("MosOcaRTLogMgr UnRegisterContext failed!");
+    }
 }
 
 int32_t MosOcaRTLogMgr::GetGlobleIndex()

@@ -128,12 +128,6 @@ public:
     GMM_CLIENT_CONTEXT *GetGmmClientContext() { return m_gmmClientContext; }
 
     //!
-    //! \brief  Get OCA RTLog manager
-    //! \return OCA RTLog manager
-    //!
-    MosOcaRTLogMgr *GetOCARTLogMgr() { return m_ocaRTLogMgr; }
-
-    //!
     //! \brief  Get MosDecompression
     //! \return ptr to MosDecompression
     //!
@@ -204,6 +198,25 @@ public:
     //!
     bool IsPoolingResourceEnabled() { return m_resourcePooling; }
 
+    //!
+    //! \brief  Set oca rtlog resource
+    //! \return Set oca rtlog resource and return success
+    //!
+    MOS_STATUS SetRtLogRes(PMOS_RESOURCE ocaRTLogResource)
+    {
+        m_ocaRTLogResource = ocaRTLogResource;
+        return MOS_STATUS_SUCCESS;
+    }
+
+    //!
+    //! \brief  Get OcaRTLogResource
+    //! \return ptr to OcaRTLogResource
+    //!
+    PMOS_RESOURCE GetOcaRTLogResource()
+    {
+        return m_ocaRTLogResource;
+    }
+
 protected:
     //!
     //! \brief  Destory the OS ContextNext Object, internal function, called by cleanup
@@ -218,7 +231,7 @@ protected:
     CmdBufMgrNext                  *m_cmdBufMgr         = nullptr; //!> Cmd buffer manager of the device
     GMM_CLIENT_CONTEXT             *m_gmmClientContext  = nullptr; //!> GMM client context of the device
 
-    MosOcaRTLogMgr                 *m_ocaRTLogMgr       = nullptr; // OCA RTLog manager
+    PMOS_RESOURCE                   m_ocaRTLogResource  = nullptr;
     uint32_t                        m_dumpframeNum = 0;             // For use when dump its compressed surface, override the frame number given from MediaVeboxDecompState
     char                            m_dumpLoc[MAX_PATH] = {0};       // For use when dump its compressed surface, to distinguish each loc's pre/post decomp
 

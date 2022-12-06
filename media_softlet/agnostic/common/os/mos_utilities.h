@@ -2252,6 +2252,7 @@ public:
         size_t                      dataSize,
         MediaUserSetting::Value     &dstValue,
         MOS_USER_FEATURE_VALUE_TYPE type);
+
 #if (_DEBUG || _RELEASE_INTERNAL)
 
     //!

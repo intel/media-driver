@@ -508,8 +508,9 @@ enum MOS_COMPONENT
     COMPONENT_CP,
     COMPONENT_MEMDECOMP,
     COMPONENT_MCPY,
+    COMPONENT_OCA,
 };
-C_ASSERT(COMPONENT_MCPY == 10); // When adding, update assert
+C_ASSERT(COMPONENT_OCA == 11);  // When adding, update assert
 
 #define MOS_MAX_ENGINE_INSTANCE_PER_CLASS   8
 #define MOS_BUF_NAME_LENGTH 64
