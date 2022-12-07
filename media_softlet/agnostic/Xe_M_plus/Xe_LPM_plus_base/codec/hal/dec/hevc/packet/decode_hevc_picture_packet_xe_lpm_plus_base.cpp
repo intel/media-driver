@@ -72,7 +72,7 @@ namespace decode
 
         auto &params = m_hcpItf->MHW_GETPAR_F(HCP_PIPE_BUF_ADDR_STATE)();
         params       = {};
-        HevcDecodePicPktXe_Lpm_Plus_Base::MHW_SETPAR_F(HCP_PIPE_BUF_ADDR_STATE)(params);
+        DECODE_CHK_STATUS(HevcDecodePicPktXe_Lpm_Plus_Base::MHW_SETPAR_F(HCP_PIPE_BUF_ADDR_STATE)(params));
         DECODE_CHK_STATUS(AddAllCmds_HCP_SURFACE_STATE(cmdBuffer));
         DECODE_CHK_STATUS(m_hcpItf->MHW_ADDCMD_F(HCP_PIPE_BUF_ADDR_STATE)(&cmdBuffer));
         SETPAR_AND_ADDCMD(HCP_IND_OBJ_BASE_ADDR_STATE, m_hcpItf, &cmdBuffer);
@@ -177,7 +177,7 @@ namespace decode
         DECODE_FUNC_CALL();
 
         params = {};
-        HevcDecodePicPkt::MHW_SETPAR_F(HCP_PIPE_BUF_ADDR_STATE)(params);
+        DECODE_CHK_STATUS(HevcDecodePicPkt::MHW_SETPAR_F(HCP_PIPE_BUF_ADDR_STATE)(params));
 
 #ifdef _MMC_SUPPORTED
         HevcDecodeMemCompXe_Lpm_Plus_Base *hevcDecodeMemComp = dynamic_cast<HevcDecodeMemCompXe_Lpm_Plus_Base *>(m_mmcState);

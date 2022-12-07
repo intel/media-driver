@@ -211,6 +211,7 @@ MOS_STATUS HevcPipelineXe_Lpm_Plus_Base::Prepare(void *params)
     if (IsFirstProcessPipe(*pipelineParams))
     {
         DECODE_CHK_STATUS(HevcPipeline::Prepare(params));
+        DECODE_CHK_STATUS(HevcPipeline::DestoryPhaseList());
     }
 
     DECODE_CHK_STATUS(m_preSubPipeline->Prepare(*pipelineParams));
