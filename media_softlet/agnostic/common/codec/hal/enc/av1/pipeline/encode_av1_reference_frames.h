@@ -67,8 +67,6 @@ public:
     //!
     MOS_STATUS Update();
 
-    MOS_STATUS UpdateEncRefBufType(BufferType ref, BufferType ref4x, BufferType ref8x);
-
     MOS_STATUS UpdateRefFrameSize(uint32_t width, uint32_t height);
 
     //! \brief   Check if low delay mode
