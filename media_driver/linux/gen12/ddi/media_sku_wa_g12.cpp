@@ -363,6 +363,7 @@ static bool InitTglMediaWa(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_WA(waTable, Wa_22010493002, 1);
 
     MEDIA_WR_WA(waTable, Wa_Vp9UnalignedHeight, 1);
+    MEDIA_WR_WA(waTable, WaDisableSetObjectCapture, 0);
     return true;
 }
 

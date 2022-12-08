@@ -282,6 +282,8 @@ static bool InitMtlMediaWaExt(struct GfxDeviceInfo *devInfo,
     /* Turn off MMC for VPP, need to remove once turn it on */
     MEDIA_WR_WA(waTable, WaDisableVPMmc, 0);
 
+    MEDIA_WR_WA(waTable, WaDisableSetObjectCapture, 1);
+
     return true;
 }
 

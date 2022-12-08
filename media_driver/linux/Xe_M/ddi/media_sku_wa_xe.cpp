@@ -909,6 +909,8 @@ static bool InitDg2MediaWa(struct GfxDeviceInfo *devInfo,
     // Remove the WA of DummyReference
     MEDIA_WR_WA(waTable, WaDummyReference, 0);
 
+    MEDIA_WR_WA(waTable, WaDisableSetObjectCapture, 1);
+
     return true;
 }
 

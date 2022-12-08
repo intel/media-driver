@@ -127,6 +127,7 @@ static bool InitBdwMediaWa(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_WA(waTable, WaEnableDscale, 1);
     MEDIA_WR_WA(waTable, Wa16KInputHeightNV12Planar420, 1);
     MEDIA_WR_WA(waTable, WaDisableCodecMmc, 1);
+    MEDIA_WR_WA(waTable, WaDisableSetObjectCapture, 0);
     return true;
 }
 
