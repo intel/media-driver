@@ -50,7 +50,7 @@ static const AttribList attribList_VAProfileVP8Version0_3_VAEntrypointVLD_Xe_Lpm
    {VAConfigAttribDecProcessing, VA_DEC_PROCESSING_NONE},
    {VAConfigAttribMaxPictureWidth, CODEC_4K_MAX_PIC_WIDTH},
    {VAConfigAttribMaxPictureHeight, CODEC_4K_MAX_PIC_HEIGHT},
-   {VAConfigAttribEncryption, VA_ATTRIB_NOT_SUPPORTED},
+   // {VAConfigAttribEncryption, VA_ATTRIB_NOT_SUPPORTED},
    {VAConfigAttribProcessingRate, VA_PROCESSING_RATE_DECODE},
    {VAConfigAttribCustomRoundingControl, 1},
 };

@@ -69,7 +69,7 @@ static const AttribList attribList_VAProfileH264Main_VAEntrypointVLD_Xe_Lpm_plus
    {VAConfigAttribDecProcessing, VA_DEC_PROCESSING},
    {VAConfigAttribMaxPictureWidth, CODEC_8K_MAX_PIC_WIDTH},
    {VAConfigAttribMaxPictureHeight, CODEC_8K_MAX_PIC_HEIGHT},
-   {VAConfigAttribEncryption, VA_ATTRIB_NOT_SUPPORTED},
+   // {VAConfigAttribEncryption, VA_ATTRIB_NOT_SUPPORTED},
    {VAConfigAttribProcessingRate, VA_PROCESSING_RATE_DECODE},
    {VAConfigAttribCustomRoundingControl, 1},
 };
@@ -81,7 +81,7 @@ static const AttribList attribList_VAProfileH264High_VAEntrypointVLD_Xe_Lpm_plus
    {VAConfigAttribDecProcessing, VA_DEC_PROCESSING},
    {VAConfigAttribMaxPictureWidth, CODEC_8K_MAX_PIC_WIDTH},
    {VAConfigAttribMaxPictureHeight, CODEC_8K_MAX_PIC_HEIGHT},
-   {VAConfigAttribEncryption, VA_ATTRIB_NOT_SUPPORTED},
+   // {VAConfigAttribEncryption, VA_ATTRIB_NOT_SUPPORTED},
    {VAConfigAttribProcessingRate, VA_PROCESSING_RATE_DECODE},
    {VAConfigAttribCustomRoundingControl, 1},
 };
@@ -93,7 +93,7 @@ static const AttribList attribList_VAProfileH264ConstrainedBaseline_VAEntrypoint
    {VAConfigAttribDecProcessing, VA_DEC_PROCESSING},
    {VAConfigAttribMaxPictureWidth, CODEC_8K_MAX_PIC_WIDTH},
    {VAConfigAttribMaxPictureHeight, CODEC_8K_MAX_PIC_HEIGHT},
-   {VAConfigAttribEncryption, VA_ATTRIB_NOT_SUPPORTED},
+   // {VAConfigAttribEncryption, VA_ATTRIB_NOT_SUPPORTED},
    {VAConfigAttribProcessingRate, VA_PROCESSING_RATE_DECODE},
    {VAConfigAttribCustomRoundingControl, 1},
 };

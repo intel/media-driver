@@ -409,7 +409,7 @@ VAStatus MediaLibvaCapsNext::QueryConfigEntrypoints(
     VAStatus      status = VA_STATUS_SUCCESS;
 
     entryMap = m_capsTable->QueryConfigEntrypointsMap(profile);
-    DDI_CHK_NULL(entryMap,       "QueryConfigEntrypointsMap failed", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(entryMap,       "QueryConfigEntrypointsMap failed", VA_STATUS_ERROR_UNSUPPORTED_PROFILE);
 
     int i = 0;
     for (auto it = entryMap->begin(); it!=entryMap->end(); ++it)

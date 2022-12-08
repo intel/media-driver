@@ -1205,7 +1205,10 @@ VAStatus MediaLibvaInterfaceNext::CreateContext (
         DDI_ASSERTMESSAGE("DDI: Invalid configID");
         return VA_STATUS_ERROR_INVALID_CONFIG;
     }
-
+    if(vaStatus != VA_STATUS_SUCCESS)
+    {
+        return vaStatus;
+    }
     if(*context < DDI_MEDIA_VACONTEXTID_BASE)
     {
         DDI_ASSERTMESSAGE("DDI: Invalid contextID");
@@ -1231,6 +1234,12 @@ VAStatus MediaLibvaInterfaceNext::DestroyContext (
     CompType componentIndex = MapComponentFromCtxType(ctxType);
     DDI_CHK_NULL(mediaDrvCtx->m_compList[componentIndex], "nullptr complist", VA_STATUS_ERROR_INVALID_CONTEXT);
 
+    if(componentIndex != CompCodec && componentIndex != CompEncode &&
+        componentIndex != CompDecode && componentIndex != CompVp &&
+        componentIndex != CompCp)
+    {
+        return VA_STATUS_ERROR_INVALID_CONTEXT;
+    }
     return mediaDrvCtx->m_compList[componentIndex]->DestroyContext(ctx, context);
 }
 
