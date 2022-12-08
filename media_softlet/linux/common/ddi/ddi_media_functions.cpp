@@ -26,6 +26,7 @@
 #include "ddi_media_functions.h"
 #include "media_libva_util_next.h"
 #include "media_libva_interface_next.h"
+#include "media_libva_caps_next.h"
 
 const VAProcColorStandardType DdiMediaFunctions::m_vpInputColorStd[DDI_VP_NUM_INPUT_COLOR_STD] = {
     VAProcColorStandardBT601,
@@ -231,7 +232,24 @@ VAStatus DdiMediaFunctions::CreateConfig (
     VAConfigID        *configId)
 {
     DDI_ASSERTMESSAGE("Unsupported function call.");
-    return VA_STATUS_ERROR_UNIMPLEMENTED;
+    DDI_CODEC_FUNC_ENTER;
+
+    VAStatus status = VA_STATUS_SUCCESS;
+    DDI_CODEC_CHK_NULL(configId,   "nullptr configId",   VA_STATUS_ERROR_INVALID_PARAMETER);
+    if(attribsNum)
+    {
+        DDI_CODEC_CHK_NULL(attribList, "nullptr attribList", VA_STATUS_ERROR_INVALID_PARAMETER);
+    }
+
+    PDDI_MEDIA_CONTEXT mediaCtx = GetMediaContext(ctx);
+    DDI_CODEC_CHK_NULL(mediaCtx, "nullptr mediaCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CODEC_CHK_NULL(mediaCtx->m_capsNext, "nullptr m_caps", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CODEC_CHK_NULL(mediaCtx->m_capsNext->m_capsTable, "nullptr m_capsTable", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    status = mediaCtx->m_capsNext->CreateConfig(profile, entrypoint, attribList, attribsNum, configId);
+    DDI_CODEC_CHK_RET(status, "Create common config failed");
+
+    return status;
 }
 
 VAStatus DdiMediaFunctions::QueryVideoProcFilters(

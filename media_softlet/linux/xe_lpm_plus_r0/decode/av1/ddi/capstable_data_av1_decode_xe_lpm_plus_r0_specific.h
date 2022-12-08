@@ -51,7 +51,7 @@ static const AttribList attribList_VAProfileAV1Profile0_VAEntrypointVLD_Xe_Lpm_p
   {VAConfigAttribMaxPictureHeight,      CODEC_16K_MAX_PIC_HEIGHT},
   {VAConfigAttribDecSliceMode,          VA_DEC_SLICE_MODE_NORMAL | VA_DEC_SLICE_MODE_BASE},
   {VAConfigAttribDecProcessing,         VA_DEC_PROCESSING_NONE},
-  {VAConfigAttribEncryption,            VA_ATTRIB_NOT_SUPPORTED},
+  // {VAConfigAttribEncryption,            VA_ATTRIB_NOT_SUPPORTED},
   {VAConfigAttribProcessingRate,        VA_PROCESSING_RATE_DECODE},
   {VAConfigAttribCustomRoundingControl, 1},
 #if VA_CHECK_VERSION(1, 11, 0)

@@ -228,19 +228,22 @@ VAStatus MediaCapsTableSpecific::CreateConfig(
     DDI_UNUSED(numAttribs);
     DDI_UNUSED(configId);
 
-    bool sameConfig = false;
+    VAStatus ret = VA_STATUS_ERROR_UNSUPPORTED_PROFILE;
     for (auto configItem : m_configList)
     {
         // check profile, entrypoint here
-        if (configItem.profile    == profile      &&
-            configItem.entrypoint == entrypoint)
+        if (configItem.profile == profile)
         {
-            sameConfig = true;
-            break;
+            ret = VA_STATUS_ERROR_UNSUPPORTED_ENTRYPOINT;
+            if(configItem.entrypoint == entrypoint)
+            {
+                ret = VA_STATUS_SUCCESS;
+                break;
+            }
         }
     }
 
-    return sameConfig ? VA_STATUS_SUCCESS : VA_STATUS_ERROR_INVALID_VALUE;
+    return ret;
 }
 
 bool MediaCapsTableSpecific::IsDecConfigId(VAConfigID configId)
