@@ -781,15 +781,7 @@ VAStatus DdiEncodeAvc::ContextInitialize(CodechalSetting * codecHalSettings)
     DDI_CODEC_CHK_NULL(m_encodeCtx->pCpDdiInterfaceNext, "nullptr m_encodeCtx->pCpDdiInterfaceNext.", VA_STATUS_ERROR_INVALID_CONTEXT);
     DDI_CODEC_CHK_NULL(codecHalSettings, "nullptr codecHalSettings.", VA_STATUS_ERROR_INVALID_CONTEXT);
 
-    if (m_encodeCtx->bVdencActive == true)
-    {
-        codecHalSettings->codecFunction = CODECHAL_FUNCTION_ENC_VDENC_PAK;
-    }
-    else
-    {
-        codecHalSettings->codecFunction = m_encodeCtx->codecFunction;
-    }
-
+    codecHalSettings->codecFunction = CODECHAL_FUNCTION_ENC_VDENC_PAK;
     codecHalSettings->width  = m_encodeCtx->dworiFrameWidth;
     codecHalSettings->height = m_encodeCtx->dworiFrameHeight;
     codecHalSettings->mode     = m_encodeCtx->wModeType;
@@ -978,14 +970,7 @@ VAStatus DdiEncodeAvc::EncodeInCodecHal(uint32_t numSlices)
     encodeParams->newPpsHeader           = m_newPpsHeader;
     encodeParams->arbitraryNumMbsInSlice = m_arbitraryNumMbsInSlice;
 
-    if (m_encodeCtx->bVdencActive == true)
-    {
-        encodeParams->ExecCodecFunction = CODECHAL_FUNCTION_ENC_VDENC_PAK;
-    }
-    else
-    {
-        encodeParams->ExecCodecFunction = CODECHAL_FUNCTION_ENC_PAK;
-    }
+    encodeParams->ExecCodecFunction = CODECHAL_FUNCTION_ENC_VDENC_PAK;
 
     // Raw Surface
     PMOS_SURFACE rawSurface = &encodeParams->rawSurface;

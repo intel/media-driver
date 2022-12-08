@@ -97,16 +97,9 @@ VAStatus DdiEncodeHevc::ContextInitialize(
     DDI_CODEC_CHK_NULL(m_encodeCtx->pCpDdiInterfaceNext, "nullptr m_encodeCtx->pCpDdiInterfaceNext.", VA_STATUS_ERROR_INVALID_CONTEXT);
     DDI_CODEC_CHK_NULL(codecHalSettings, "nullptr codecHalSettings.", VA_STATUS_ERROR_INVALID_CONTEXT);
 
-    if (true == m_encodeCtx->bVdencActive)
-    {
-        codecHalSettings->codecFunction = CODECHAL_FUNCTION_ENC_VDENC_PAK;
-        codecHalSettings->disableUltraHME = false;
-        codecHalSettings->disableSuperHME = false;
-    }
-    else
-    {
-        codecHalSettings->codecFunction = CODECHAL_FUNCTION_ENC_PAK;
-    }
+    codecHalSettings->codecFunction   = CODECHAL_FUNCTION_ENC_VDENC_PAK;
+    codecHalSettings->disableUltraHME = false;
+    codecHalSettings->disableSuperHME = false;
     codecHalSettings->height          = m_encodeCtx->dworiFrameHeight;
     codecHalSettings->width           = m_encodeCtx->dworiFrameWidth;
     codecHalSettings->mode            = m_encodeCtx->wModeType;
@@ -300,14 +293,7 @@ VAStatus DdiEncodeHevc::EncodeInCodecHal(uint32_t numSlices)
     EncoderParams encodeParams;
     MOS_ZeroMemory(&encodeParams, sizeof(encodeParams));
 
-    if (m_encodeCtx->bVdencActive)
-    {
-        encodeParams.ExecCodecFunction = CODECHAL_FUNCTION_ENC_VDENC_PAK;
-    }
-    else
-    {
-        encodeParams.ExecCodecFunction = CODECHAL_FUNCTION_ENC_PAK;
-    }
+    encodeParams.ExecCodecFunction = CODECHAL_FUNCTION_ENC_VDENC_PAK;
 
     // Raw Surface
     MOS_SURFACE rawSurface;
@@ -1144,19 +1130,11 @@ VAStatus DdiEncodeHevc::ParseMiscParams(void *ptr)
         //enable parallelBRC for Android and Linux
         seqParams->ParallelBRC = vaEncMiscParamRC->rc_flags.bits.enable_parallel_brc;
 
-        if (true == m_encodeCtx->bVdencActive)
-        {
-            picParams->BRCMaxQp  = (vaEncMiscParamRC->max_qp == 0) ? 51 : (uint8_t)CodecHal_Clip3(1, 51, (int8_t)vaEncMiscParamRC->max_qp);
-            picParams->BRCMinQp = (vaEncMiscParamRC->min_qp == 0) ? 1 : (uint8_t)CodecHal_Clip3(1, picParams->BRCMaxQp, (int8_t)vaEncMiscParamRC->min_qp);
+        picParams->BRCMaxQp  = (vaEncMiscParamRC->max_qp == 0) ? 51 : (uint8_t)CodecHal_Clip3(1, 51, (int8_t)vaEncMiscParamRC->max_qp);
+        picParams->BRCMinQp = (vaEncMiscParamRC->min_qp == 0) ? 1 : (uint8_t)CodecHal_Clip3(1, picParams->BRCMaxQp, (int8_t)vaEncMiscParamRC->min_qp);
 #if VA_CHECK_VERSION(1, 10, 0)
-            picParams->TargetFrameSize = vaEncMiscParamRC->target_frame_size;
+        picParams->TargetFrameSize = vaEncMiscParamRC->target_frame_size;
 #endif
-        }
-        else
-        {
-            picParams->BRCMaxQp  = (uint8_t)CodecHal_Clip3(0, 51, (int8_t)vaEncMiscParamRC->max_qp); //use 0 to ignore
-            picParams->BRCMinQp = (uint8_t)CodecHal_Clip3(0, picParams->BRCMaxQp, (int8_t)vaEncMiscParamRC->min_qp); //use 0 to ignore
-        }
 
         if (VA_RC_NONE == m_encodeCtx->uiRCMethod || VA_RC_CQP == m_encodeCtx->uiRCMethod)
         {
@@ -1252,7 +1230,7 @@ VAStatus DdiEncodeHevc::ParseMiscParams(void *ptr)
     case VAEncMiscParameterTypeROI:
     {
         VAEncMiscParameterBufferROI *vaEncMiscParamROI = (VAEncMiscParameterBufferROI *)miscParamBuf->data;
-        uint8_t                      blockSize         = (m_encodeCtx->bVdencActive) ? vdencRoiBlockSize : CODECHAL_MACROBLOCK_WIDTH;
+        uint8_t                      blockSize         = vdencRoiBlockSize;
 
          uint32_t frameWidth = (seqParams->wFrameWidthInMinCbMinus1 + 1) << (seqParams->log2_min_coding_block_size_minus3 + 3);
          uint32_t frameHeight = (seqParams->wFrameHeightInMinCbMinus1 + 1) << (seqParams->log2_min_coding_block_size_minus3 + 3);
@@ -1325,7 +1303,7 @@ VAStatus DdiEncodeHevc::ParseMiscParams(void *ptr)
     {
         VAEncMiscParameterBufferDirtyRect *vaEncMiscDirtyRect = (VAEncMiscParameterBufferDirtyRect *)miscParamBuf->data;
 
-        uint8_t blockSize  = (m_encodeCtx->bVdencActive) ? vdencRoiBlockSize : CODECHAL_MACROBLOCK_WIDTH;
+        uint8_t blockSize  = vdencRoiBlockSize;
         uint32_t rightBorder = CODECHAL_GET_WIDTH_IN_BLOCKS(m_encodeCtx->dwFrameWidth, blockSize) - 1;
         uint32_t bottomBorder = CODECHAL_GET_HEIGHT_IN_BLOCKS(m_encodeCtx->dwFrameHeight, blockSize) - 1;
 

@@ -91,7 +91,8 @@ MOS_STATUS JpegPipeline::Prepare(void *params)
     ENCODE_CHK_NULL_RETURN(encodeParams);
 
     //TODO: should check with m_codecFunction
-    if (encodeParams->ExecCodecFunction != CODECHAL_FUNCTION_ENC_PAK && encodeParams->ExecCodecFunction != CODECHAL_FUNCTION_PAK)
+    if (encodeParams->ExecCodecFunction != CODECHAL_FUNCTION_ENC_VDENC_PAK && 
+        encodeParams->ExecCodecFunction != CODECHAL_FUNCTION_PAK)
     {
         return MOS_STATUS_INVALID_PARAMETER;
     }
