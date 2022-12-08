@@ -1399,10 +1399,10 @@ VAStatus DdiEncodeBase::CheckEncodeResolution(
     const uint32_t numResolutionAttribs = 4;
     VASurfaceAttrib resolutionAttribs[numResolutionAttribs] =
     {
-        {VASurfaceAttribMaxWidth, VA_SURFACE_ATTRIB_GETTABLE, {VAGenericValueTypeInteger, {.i = 0}}},
-        {VASurfaceAttribMinWidth, VA_SURFACE_ATTRIB_GETTABLE, {VAGenericValueTypeInteger, {.i = 0}}},
-        {VASurfaceAttribMaxHeight, VA_SURFACE_ATTRIB_GETTABLE, {VAGenericValueTypeInteger, {.i = 0}}},
-        {VASurfaceAttribMinHeight, VA_SURFACE_ATTRIB_GETTABLE, {VAGenericValueTypeInteger, {.i = 0}}},
+        {VASurfaceAttribMaxWidth, VA_SURFACE_ATTRIB_GETTABLE, {VAGenericValueTypeInteger, {0}}},
+        {VASurfaceAttribMinWidth, VA_SURFACE_ATTRIB_GETTABLE, {VAGenericValueTypeInteger, {0}}},
+        {VASurfaceAttribMaxHeight, VA_SURFACE_ATTRIB_GETTABLE, {VAGenericValueTypeInteger, {0}}},
+        {VASurfaceAttribMinHeight, VA_SURFACE_ATTRIB_GETTABLE, {VAGenericValueTypeInteger, {0}}},
     };
 
     uint32_t numAttribs = 0;
