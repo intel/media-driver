@@ -654,6 +654,8 @@ MOS_STATUS CodechalEncoderState::Execute(void *params)
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
+    PERF_UTILITY_AUTO(__FUNCTION__, PERF_ENCODE, PERF_LEVEL_HAL);
+
     MOS_TraceEventExt(EVENT_CODECHAL_EXECUTE, EVENT_TYPE_START,
             &m_codecFunction, sizeof(m_codecFunction),
             nullptr, 0);
