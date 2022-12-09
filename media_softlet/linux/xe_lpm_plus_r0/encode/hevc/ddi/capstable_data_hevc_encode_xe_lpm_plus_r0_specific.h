@@ -44,6 +44,8 @@ static const VAConfigAttribValEncROI HEVCCommon_VAEntrypointEncSliceLP_encROI
 static ConfigDataList configDataList_VAProfileHEVCMain_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0 =
 {
   {VA_RC_CQP, 0},
+  {VA_RC_CBR, 0},
+  {VA_RC_VBR, 0},
   {VA_RC_CBR | VA_RC_MB, 0},
   {VA_RC_VBR | VA_RC_MB, 0},
   {VA_RC_ICQ, 0},
@@ -67,6 +69,8 @@ static ConfigDataList configDataList_VAProfileHEVCMain_VAEntrypointEncSliceLP_Xe
 static ConfigDataList configDataList_VAProfileHEVCMain10_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0 =
 {
   {VA_RC_CQP, 0},
+  {VA_RC_CBR, 0},
+  {VA_RC_VBR, 0},
   {VA_RC_CBR | VA_RC_MB, 0},
   {VA_RC_VBR | VA_RC_MB, 0},
   {VA_RC_ICQ, 0},
@@ -91,6 +95,8 @@ static ConfigDataList configDataList_VAProfileHEVCMain10_VAEntrypointEncSliceLP_
 static ConfigDataList configDataList_VAProfileHEVCMain444_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0 =
 {
   {VA_RC_CQP, 0},
+  {VA_RC_CBR, 0},
+  {VA_RC_VBR, 0},
   {VA_RC_CBR | VA_RC_MB, 0},
   {VA_RC_VBR | VA_RC_MB, 0},
   {VA_RC_ICQ, 0},
@@ -114,6 +120,8 @@ static ConfigDataList configDataList_VAProfileHEVCMain444_VAEntrypointEncSliceLP
 static ConfigDataList configDataList_VAProfileHEVCMain444_10_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0 =
 {
   {VA_RC_CQP, 0},
+  {VA_RC_CBR, 0},
+  {VA_RC_VBR, 0},
   {VA_RC_CBR | VA_RC_MB, 0},
   {VA_RC_VBR | VA_RC_MB, 0},
   {VA_RC_ICQ, 0},
