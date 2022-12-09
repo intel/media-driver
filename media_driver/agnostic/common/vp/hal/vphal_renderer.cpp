@@ -1230,7 +1230,7 @@ MOS_STATUS VphalRenderer::UpdateRenderGpuContext(MOS_GPU_CONTEXT currentGpuConte
     MOS_STATUS              eStatus = MOS_STATUS_SUCCESS;
     MOS_GPU_CONTEXT         renderGpuContext;
     MOS_GPU_NODE            renderGpuNode;
-    MOS_GPUCTX_CREATOPTIONS createOption;
+    MOS_GPUCTX_CREATOPTIONS_ENHANCED createOption = {};
     PVPHAL_VEBOX_STATE      pVeboxState = nullptr;
     int                     i           = 0;
 

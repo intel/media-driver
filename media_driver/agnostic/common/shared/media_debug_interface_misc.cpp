@@ -54,7 +54,7 @@ MOS_STATUS MediaDebugInterface::CopySurfaceData_Vdbox(
 
     if (!m_vdboxContextCreated)
     {
-        MOS_GPUCTX_CREATOPTIONS createOption{};
+        MOS_GPUCTX_CREATOPTIONS_ENHANCED createOption = {};
 
         MEDIA_DEBUG_CHK_STATUS(m_osInterface->pfnCreateGpuContext(
             m_osInterface,

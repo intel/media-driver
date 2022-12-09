@@ -96,7 +96,7 @@ MOS_STATUS BltState::Initialize()
 {
     MOS_GPU_NODE            BltGpuNode;
     MOS_GPU_CONTEXT         BltGpuContext;
-    MOS_GPUCTX_CREATOPTIONS createOption;
+    MOS_GPUCTX_CREATOPTIONS_ENHANCED createOption = {};
 
     BltGpuContext = MOS_GPU_CONTEXT_BLT;
     BltGpuNode    = MOS_GPU_NODE_BLT;
@@ -306,7 +306,7 @@ MOS_STATUS BltState::SubmitCMD(
     MOS_STATUS                   eStatus;
     MOS_COMMAND_BUFFER           cmdBuffer;
     MHW_FAST_COPY_BLT_PARAM      fastCopyBltParam;
-    MOS_GPUCTX_CREATOPTIONS      createOption;
+    MOS_GPUCTX_CREATOPTIONS_ENHANCED createOption = {};
     int                          planeNum = 1;
 
     // no gpucontext will be created if the gpu context has been created before.

@@ -180,7 +180,7 @@ MOS_STATUS BltStateXe_Xpm::CopyProtectSurface(
     BLT_CHK_NULL_RETURN(m_miInterface);
     BLT_CHK_NULL_RETURN(m_cpInterface);
 
-    MOS_GPUCTX_CREATOPTIONS createOption;
+    MOS_GPUCTX_CREATOPTIONS_ENHANCED createOption = {};
     BLT_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(
         m_osInterface,
         MOS_GPU_CONTEXT_VIDEO,
@@ -650,7 +650,7 @@ MOS_STATUS BltStateXe_Xpm::SubmitCMD(
     MOS_COMMAND_BUFFER           cmdBuffer;
     MHW_FAST_COPY_BLT_PARAM      fastCopyBltParam;
     MHW_CTRL_SURF_COPY_BLT_PARAM ctrlSurfCopyBltParam;
-    MOS_GPUCTX_CREATOPTIONS      createOption = {};
+    MOS_GPUCTX_CREATOPTIONS_ENHANCED createOption = {};
     int                          planeNum = 1;
     PMHW_BLT_INTERFACE_XE_HP     pbltInterface = dynamic_cast<PMHW_BLT_INTERFACE_XE_HP>(m_bltInterface);
 

@@ -197,7 +197,7 @@ MOS_STATUS VeboxCopyState::CopyMainSurface(PMOS_RESOURCE src, PMOS_RESOURCE dst)
 
     veboxInterface = m_veboxInterface;
 
-    MOS_GPUCTX_CREATOPTIONS      createOption;
+    MOS_GPUCTX_CREATOPTIONS_ENHANCED      createOption = {};
 
     // no gpucontext will be created if the gpu context has been created before.
     VEBOX_COPY_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(

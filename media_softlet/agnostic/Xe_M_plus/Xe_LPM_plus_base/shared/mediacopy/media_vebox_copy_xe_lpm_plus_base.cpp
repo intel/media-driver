@@ -111,7 +111,7 @@ MOS_STATUS VeboxCopyStateXe_Lpm_Plus_Base::CopyMainSurface(PMOS_RESOURCE src, PM
         return MOS_STATUS_UNIMPLEMENTED;
     }
 
-    MOS_GPUCTX_CREATOPTIONS      createOption;
+    MOS_GPUCTX_CREATOPTIONS_ENHANCED      createOption = {};
 
     // no gpucontext will be created if the gpu context has been created before.
     VEBOX_COPY_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(

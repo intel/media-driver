@@ -112,7 +112,7 @@ MOS_STATUS RenderCopyXe_LPM_Plus_Base::SubmitCMD( )
     PMHW_WALKER_PARAMS          pWalkerParams = nullptr;
     MHW_GPGPU_WALKER_PARAMS     ComputeWalkerParams = {0};
     PMHW_GPGPU_WALKER_PARAMS    pComputeWalkerParams = nullptr;
-    MOS_GPUCTX_CREATOPTIONS     createOption;
+    MOS_GPUCTX_CREATOPTIONS_ENHANCED createOption = {};
 
     pRenderHal   = pRenderCopy->m_renderHal;
     pOsInterface = pRenderCopy->m_osInterface;

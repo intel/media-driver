@@ -90,7 +90,7 @@ MOS_STATUS BltStateNext::Initialize()
 {
     MOS_GPU_NODE            BltGpuNode;
     MOS_GPU_CONTEXT         BltGpuContext;
-    MOS_GPUCTX_CREATOPTIONS createOption;
+    MOS_GPUCTX_CREATOPTIONS_ENHANCED createOption = {};
 
     BltGpuContext = MOS_GPU_CONTEXT_BLT;
     BltGpuNode    = MOS_GPU_NODE_BLT;

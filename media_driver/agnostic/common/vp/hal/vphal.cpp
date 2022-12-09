@@ -109,7 +109,7 @@ MOS_STATUS VphalState::Allocate(
 
     // Create Render GPU Context
     {
-        MOS_GPUCTX_CREATOPTIONS createOption;
+        MOS_GPUCTX_CREATOPTIONS_ENHANCED createOption = {};
         VPHAL_PUBLIC_CHK_STATUS(m_osInterface->pfnCreateGpuContext(
             m_osInterface,
             m_renderGpuContext,

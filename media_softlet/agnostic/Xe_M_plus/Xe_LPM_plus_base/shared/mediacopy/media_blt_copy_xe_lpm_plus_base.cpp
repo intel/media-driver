@@ -526,7 +526,7 @@ MOS_STATUS BltStateXe_Lpm_Plus_Base::SubmitCMD(
     MOS_COMMAND_BUFFER           cmdBuffer;
     MHW_FAST_COPY_BLT_PARAM      fastCopyBltParam;
     MHW_CTRL_SURF_COPY_BLT_PARAM ctrlSurfCopyBltParam;
-    MOS_GPUCTX_CREATOPTIONS      createOption = {};
+    MOS_GPUCTX_CREATOPTIONS_ENHANCED createOption = {};
     int                          planeNum = 1;
 
     BLT_CHK_NULL_RETURN(m_miItf);
