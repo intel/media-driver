@@ -1203,7 +1203,7 @@ VAStatus MediaLibvaInterfaceNext::CreateContext (
     else
     {
         DDI_ASSERTMESSAGE("DDI: Invalid configID");
-        vaStatus = VA_STATUS_ERROR_INVALID_CONFIG;
+        return VA_STATUS_ERROR_INVALID_CONFIG;
     }
 
     if(*context < DDI_MEDIA_VACONTEXTID_BASE)
@@ -1211,6 +1211,7 @@ VAStatus MediaLibvaInterfaceNext::CreateContext (
         DDI_ASSERTMESSAGE("DDI: Invalid contextID");
         return VA_STATUS_ERROR_INVALID_CONTEXT;
     }
+
     return vaStatus;
 }
 
