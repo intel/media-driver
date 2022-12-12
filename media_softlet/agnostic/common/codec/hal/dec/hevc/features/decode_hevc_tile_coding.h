@@ -240,9 +240,13 @@ protected:
                                  const CODEC_HEVC_SLICE_PARAMS & sliceParams,
                                  SliceTileInfo &sliceTileInfo);
 
+    MOS_STATUS RsToTsAddrConvert(const CODEC_HEVC_PIC_PARAMS &picParams, uint32_t picSizeInCtbsY);
+
     HevcBasicFeature *  m_basicFeature = nullptr;                   //!<  HEVC paramter
     uint16_t            m_tileColWidth[HEVC_NUM_MAX_TILE_COLUMN];   //!< Table of tile column width
     uint16_t            m_tileRowHeight[HEVC_NUM_MAX_TILE_ROW];     //!< Table of tile row height
+    uint32_t            *m_pCtbAddrRsToTs = nullptr;                //!< Entry of raster scan to tile scan map
+    uint32_t            m_CurRsToTsTableSize = 0;                   //!< Record of current rs to ts map table size
 
     std::vector<SliceTileInfo*> m_sliceTileInfoList;                //!< List of slice tile info
 
