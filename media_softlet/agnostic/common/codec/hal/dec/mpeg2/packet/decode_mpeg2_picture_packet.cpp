@@ -167,7 +167,7 @@ MHW_SETPAR_DECL_SRC(MFX_SURFACE_STATE, Mpeg2DecodePicPkt)
     params.width            = psSurface->dwWidth - 1;
     params.surfacePitch     = psSurface->dwPitch - 1;
     params.interleaveChroma = 1;
-    params.surfaceFormat    = m_mfxItf->MosToMediaStateFormat(psSurface->Format);
+    params.surfaceFormat    = SURFACE_FORMAT_PLANAR4208;
 
     params.tilemode = m_mfxItf->MosGetHWTileType(psSurface->TileType, psSurface->TileModeGMM, psSurface->bGMMTileEnabled);
 
@@ -190,24 +190,10 @@ MHW_SETPAR_DECL_SRC(MFX_SURFACE_STATE, Mpeg2DecodePicPkt)
         params.interleaveChroma = 0;
     }
 
-    if (m_mpeg2BasicFeature->m_mode == CODECHAL_DECODE_MODE_JPEG)
-    {
-        // this parameter must always be 0 for JPEG regardless of the YUV format
-        params.interleaveChroma = 0;
-
-        // Separate function for JPEG decode because this surface format should match with that programmed
-        // in JPEG Picture State
-        params.surfaceFormat = m_mfxItf->GetJpegDecodeFormat(psSurface->Format);
-    }
-
-    params.yOffsetForUCb = params.yOffsetForVCr =
-        MOS_ALIGN_CEIL((psSurface->UPlaneOffset.iSurfaceOffset - psSurface->dwOffset) / psSurface->dwPitch + psSurface->RenderOffset.YUV.U.YOffset, uvPlaneAlignment);
-
-    if (m_mfxItf->IsVPlanePresent(psSurface->Format))
-    {
-        params.yOffsetForVCr =
-            MOS_ALIGN_CEIL((psSurface->VPlaneOffset.iSurfaceOffset - psSurface->dwOffset) / psSurface->dwPitch + psSurface->RenderOffset.YUV.V.YOffset, uvPlaneAlignment);
-    }
+    params.yOffsetForUCb = MOS_ALIGN_CEIL((psSurface->UPlaneOffset.iSurfaceOffset - psSurface->dwOffset) /
+        psSurface->dwPitch + psSurface->RenderOffset.YUV.U.YOffset, uvPlaneAlignment);
+    params.yOffsetForVCr = MOS_ALIGN_CEIL((psSurface->VPlaneOffset.iSurfaceOffset - psSurface->dwOffset) /
+        psSurface->dwPitch + psSurface->RenderOffset.YUV.V.YOffset, uvPlaneAlignment);
 
     return MOS_STATUS_SUCCESS;
 }

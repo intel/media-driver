@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2021, Intel Corporation
+* Copyright (c) 2020-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -279,22 +279,18 @@ MHW_SETPAR_DECL_SRC(MFX_SURFACE_STATE, AvcDecodePicPkt)
     {
         uvPlaneAlignment = MHW_VDBOX_MFX_UV_PLANE_ALIGNMENT_LEGACY;
     }
-    params.surfaceFormat    = m_mfxItf->MosToMediaStateFormat(params.psSurface->Format);
+    params.surfaceFormat    = SURFACE_FORMAT_PLANAR4208;
     params.interleaveChroma = 1;
 
     if (params.psSurface->Format == Format_P8)
     {
         params.interleaveChroma = 0;
     }
-    params.yOffsetForUCb = params.yOffsetForVCr =
-        MOS_ALIGN_CEIL((params.psSurface->UPlaneOffset.iSurfaceOffset - params.psSurface->dwOffset) / params.psSurface->dwPitch + params.psSurface->RenderOffset.YUV.U.YOffset, uvPlaneAlignment);
-    
-    if (m_mfxItf->IsVPlanePresent(params.psSurface->Format))
-    {
-        params.yOffsetForVCr =
-            MOS_ALIGN_CEIL((params.psSurface->VPlaneOffset.iSurfaceOffset - params.psSurface->dwOffset) / params.psSurface->dwPitch + params.psSurface->RenderOffset.YUV.V.YOffset, uvPlaneAlignment);
 
-    }
+    params.yOffsetForUCb = MOS_ALIGN_CEIL((params.psSurface->UPlaneOffset.iSurfaceOffset - params.psSurface->dwOffset) /
+        params.psSurface->dwPitch + params.psSurface->RenderOffset.YUV.U.YOffset, uvPlaneAlignment);
+    params.yOffsetForVCr = MOS_ALIGN_CEIL((params.psSurface->VPlaneOffset.iSurfaceOffset - params.psSurface->dwOffset) /
+        params.psSurface->dwPitch + params.psSurface->RenderOffset.YUV.V.YOffset, uvPlaneAlignment);
 
 #ifdef _MMC_SUPPORTED
     DECODE_CHK_STATUS(m_mmcState->SetSurfaceMmcState(&(m_avcBasicFeature->m_destSurface)));

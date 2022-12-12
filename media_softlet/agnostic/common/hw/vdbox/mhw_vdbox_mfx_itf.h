@@ -115,38 +115,6 @@ public:
         MFD_MPEG2_IT_OBJECT_CMD_NUMBER_OF_ADDRESSES             = 0,   //  0 DW for    address fields
         MFD_VP8_BSD_OBJECT_CMD_NUMBER_OF_ADDRESSES              = 0,   //  0 DW for    address fields
     };
-    bool IsVPlanePresent(MOS_FORMAT format)
-    {
-        switch (format)
-        {
-            case Format_NV12:
-            case Format_NV11:
-            case Format_P208:
-            case Format_IMC1:
-            case Format_IMC3:
-            case Format_YUY2:
-            case Format_YUYV:
-            case Format_YVYU:
-            case Format_UYVY:
-            case Format_VYUY:
-            case Format_422H:
-            case Format_422V:
-                // Adding RGB formats because RGB is treated like YUV for JPEG encode and decode
-            case Format_RGBP:
-            case Format_BGRP:
-            case Format_A8R8G8B8:
-            case Format_X8R8G8B8:
-            case Format_A8B8G8R8:
-            case Format_411P:
-            case Format_411R:
-            case Format_444P:
-            case Format_IMC2:
-            case Format_IMC4:
-                return true;
-            default:
-                return false;
-        }
-    }
 
     static __inline uint32_t MosGetHWTileType(MOS_TILE_TYPE tileType, MOS_TILE_MODE_GMM tileModeGMM, bool gmmTileEnabled)
     {
@@ -173,67 +141,6 @@ public:
                 break;
         }
         return tileMode;
-    }
-
-    uint8_t MosToMediaStateFormat(MOS_FORMAT format)
-    {
-        switch (format)
-        {
-            case Format_A8R8G8B8:
-            case Format_X8R8G8B8:
-            case Format_A8B8G8R8:
-                return MHW_MEDIASTATE_SURFACEFORMAT_R8G8B8A8_UNORM;
-            case Format_422H:
-            case Format_422V:
-                return MHW_MEDIASTATE_SURFACEFORMAT_PLANAR_422_8;
-            case Format_AYUV:
-            case Format_AUYV:
-                return MHW_MEDIASTATE_SURFACEFORMAT_A8Y8U8V8_UNORM;
-            case Format_NV12:
-            case Format_NV11:
-            case Format_P208:
-            case Format_IMC1:
-            case Format_IMC3:
-                return MHW_MEDIASTATE_SURFACEFORMAT_PLANAR_420_8;
-            case Format_400P:
-            case Format_P8:
-                return MHW_MEDIASTATE_SURFACEFORMAT_Y8_UNORM;
-            case Format_411P:
-            case Format_411R:
-                return MHW_MEDIASTATE_SURFACEFORMAT_PLANAR_411_8;
-            case Format_UYVY:
-                return MHW_MEDIASTATE_SURFACEFORMAT_YCRCB_SWAPY;
-            case Format_YVYU:
-                return MHW_MEDIASTATE_SURFACEFORMAT_YCRCB_SWAPUV;
-            case Format_VYUY:
-                return MHW_MEDIASTATE_SURFACEFORMAT_YCRCB_SWAPUVY;
-            case Format_YUY2:
-            case Format_YUYV:
-            case Format_444P:
-            case Format_IMC2:
-            case Format_IMC4:
-            default:
-                return MHW_MEDIASTATE_SURFACEFORMAT_YCRCB_NORMAL;
-        }
-
-        return MHW_MEDIASTATE_SURFACEFORMAT_YCRCB_NORMAL;
-    }
-
-    MHW_VDBOX_DECODE_JPEG_FORMAT_CODE GetJpegDecodeFormat(MOS_FORMAT format)
-    {
-        switch (format)
-        {
-        case Format_NV12:
-            return MHW_VDBOX_DECODE_JPEG_FORMAT_NV12;
-        case Format_UYVY:
-            return MHW_VDBOX_DECODE_JPEG_FORMAT_UYVY;
-        case Format_YUY2:
-            return MHW_VDBOX_DECODE_JPEG_FORMAT_YUY2;
-        default:
-            return MHW_VDBOX_DECODE_JPEG_FORMAT_SEPARATE_PLANE;
-        }
-
-        return MHW_VDBOX_DECODE_JPEG_FORMAT_SEPARATE_PLANE;
     }
 
     class ParSetting

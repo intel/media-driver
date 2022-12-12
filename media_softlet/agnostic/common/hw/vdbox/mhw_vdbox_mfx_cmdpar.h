@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021 Intel Corporation
+* Copyright (c) 2021-2022 Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -45,6 +45,24 @@ namespace vdbox
 {
 namespace mfx
 {
+
+enum SURFACE_FORMAT
+{
+    SURFACE_FORMAT_YCRCBNORMAL      = 0,   //!< No additional details
+    SURFACE_FORMAT_YCRCBSWAPUVY     = 1,   //!< No additional details
+    SURFACE_FORMAT_YCRCBSWAPUV      = 2,   //!< No additional details
+    SURFACE_FORMAT_YCRCBSWAPY       = 3,   //!< No additional details
+    SURFACE_FORMAT_PLANAR4208       = 4,   //!< (NV12, IMC1,2,3,4, YV12)
+    SURFACE_FORMAT_PLANAR4118       = 5,   //!< Deinterlace Only
+    SURFACE_FORMAT_PLANAR4228       = 6,   //!< Deinterlace Only
+    SURFACE_FORMAT_STMMDNSTATISTICS = 7,   //!< Deinterlace Only
+    SURFACE_FORMAT_R10G10B10A2UNORM = 8,   //!< Sample_8x8 Only
+    SURFACE_FORMAT_R8G8B8A8UNORM    = 9,   //!< Sample_8x8 Only
+    SURFACE_FORMAT_R8B8UNORM_CRCB   = 10,  //!< Sample_8x8 Only
+    SURFACE_FORMAT_R8UNORM_CRCB     = 11,  //!< Sample_8x8 Only
+    SURFACE_FORMAT_Y8UNORM          = 12,  //!< Sample_8x8 Only
+};
+
 //!
 //! \enum     MfxDecoderModeSelect
 //! \brief    MFX decoder mode select

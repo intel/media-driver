@@ -29,6 +29,56 @@
 
 namespace decode{
 
+static MHW_VDBOX_DECODE_JPEG_FORMAT_CODE GetJpegDecodeFormat(MOS_FORMAT format)
+{
+    switch (format)
+    {
+    case Format_NV12:
+        return MHW_VDBOX_DECODE_JPEG_FORMAT_NV12;
+    case Format_UYVY:
+        return MHW_VDBOX_DECODE_JPEG_FORMAT_UYVY;
+    case Format_YUY2:
+        return MHW_VDBOX_DECODE_JPEG_FORMAT_YUY2;
+    default:
+        return MHW_VDBOX_DECODE_JPEG_FORMAT_SEPARATE_PLANE;
+    }
+
+    return MHW_VDBOX_DECODE_JPEG_FORMAT_SEPARATE_PLANE;
+}
+
+static bool IsVPlanePresent(MOS_FORMAT format)
+{
+    switch (format)
+    {
+    case Format_NV12:
+    case Format_NV11:
+    case Format_P208:
+    case Format_IMC1:
+    case Format_IMC3:
+    case Format_YUY2:
+    case Format_YUYV:
+    case Format_YVYU:
+    case Format_UYVY:
+    case Format_VYUY:
+    case Format_422H:
+    case Format_422V:
+        // Adding RGB formats because RGB is treated like YUV for JPEG encode and decode
+    case Format_RGBP:
+    case Format_BGRP:
+    case Format_A8R8G8B8:
+    case Format_X8R8G8B8:
+    case Format_A8B8G8R8:
+    case Format_411P:
+    case Format_411R:
+    case Format_444P:
+    case Format_IMC2:
+    case Format_IMC4:
+        return true;
+    default:
+        return false;
+    }
+}
+
 JpegDecodePicPkt::~JpegDecodePicPkt()
 {
     FreeResources();
@@ -148,7 +198,7 @@ MHW_SETPAR_DECL_SRC(MFX_SURFACE_STATE, JpegDecodePicPkt)
     }
 
     params.interleaveChroma = 0;
-    params.surfaceFormat    = m_mfxItf->GetJpegDecodeFormat(params.psSurface->Format);
+    params.surfaceFormat    = GetJpegDecodeFormat(params.psSurface->Format);
 
     if (params.psSurface->Format == Format_P8)
     {
@@ -157,7 +207,7 @@ MHW_SETPAR_DECL_SRC(MFX_SURFACE_STATE, JpegDecodePicPkt)
 
     params.yOffsetForUCb = params.yOffsetForVCr =
         MOS_ALIGN_CEIL((params.psSurface->UPlaneOffset.iSurfaceOffset - params.psSurface->dwOffset) / params.psSurface->dwPitch + params.psSurface->RenderOffset.YUV.U.YOffset, uvPlaneAlignment);
-    if (m_mfxItf->IsVPlanePresent(params.psSurface->Format))
+    if (IsVPlanePresent(params.psSurface->Format))
     {
         params.yOffsetForVCr =
             MOS_ALIGN_CEIL((params.psSurface->VPlaneOffset.iSurfaceOffset - params.psSurface->dwOffset) / params.psSurface->dwPitch + params.psSurface->RenderOffset.YUV.V.YOffset, uvPlaneAlignment);
@@ -221,8 +271,8 @@ MHW_SETPAR_DECL_SRC(MFX_JPEG_PIC_STATE, JpegDecodePicPkt)
     {
         params.inputFormatYuv = picParams->m_chromaType;
     }
-    params.rotation              = picParams->m_rotation;
-    params.outputFormatYuv = m_mfxItf->GetJpegDecodeFormat((MOS_FORMAT)params.dwOutputFormat);
+    params.rotation        = picParams->m_rotation;
+    params.outputFormatYuv = GetJpegDecodeFormat((MOS_FORMAT)params.dwOutputFormat);
 
     if (params.dwOutputFormat == Format_NV12)
     {
