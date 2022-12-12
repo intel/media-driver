@@ -25,7 +25,6 @@
 //!
 #include "encode_av1_vdenc_packet_xe_m_base.h"
 #include "mos_solo_generic.h"
-#include "media_user_settings_mgr_g12_plus.h"
 #include "mhw_mi_itf.h"
 #include "mhw_vdbox_g12_X.h"
 

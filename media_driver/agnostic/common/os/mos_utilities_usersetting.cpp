@@ -25,6 +25,7 @@
 //!
 
 #include "mos_os.h"
+#include "mos_util_user_interface.h"
 #include "media_user_settings_mgr.h"
 
 #define __MAX_MULTI_STRING_COUNT         128

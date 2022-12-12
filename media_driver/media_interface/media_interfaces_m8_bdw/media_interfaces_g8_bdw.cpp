@@ -39,7 +39,6 @@
 
 extern template class MediaFactory<uint32_t, MhwInterfaces>;
 extern template class MediaFactory<uint32_t, MmdDevice>;
-extern template class MediaFactory<uint32_t, MosUtilDevice>;
 extern template class MediaFactory<uint32_t, CodechalDevice>;
 extern template class MediaFactory<uint32_t, CMHalDevice>;
 extern template class MediaFactory<uint32_t, VphalDevice>;
@@ -386,40 +385,6 @@ MOS_STATUS CMHalInterfacesG8Bdw::Initialize(CM_HAL_STATE *pCmState)
     m_cmhalDevice->SetGenPlatformInfo(PLATFORM_INTEL_BDW, gengt, "BDW");
     uint32_t cisaID = GENX_BDW;
     m_cmhalDevice->AddSupportedCisaIDs(&cisaID);
-    return MOS_STATUS_SUCCESS;
-}
-
-static bool bdwRegisteredMosUtil =
-    MediaFactory<uint32_t, MosUtilDevice>::
-    Register<MosUtilDeviceG8Bdw>((uint32_t)IGFX_BROADWELL);
-
-MOS_STATUS MosUtilDeviceG8Bdw::Initialize()
-{
-#define MOSUTIL_FAILURE()                                   \
-{                                                           \
-    if (device != nullptr)                                  \
-    {                                                       \
-        delete device;                                      \
-    }                                                       \
-    return MOS_STATUS_NO_SPACE;                             \
-}
-
-    MosUtil *device = nullptr;
-
-    device = MOS_New(MosUtil);
-    
-    if (device == nullptr)
-    {
-        MOSUTIL_FAILURE();
-    }
-
-    if (device->Initialize() != MOS_STATUS_SUCCESS)
-    {
-        MOSUTIL_FAILURE();
-    }
-
-    m_mosUtilDevice = device;
-
     return MOS_STATUS_SUCCESS;
 }
 

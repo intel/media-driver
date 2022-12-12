@@ -39,7 +39,6 @@
 #include "mhw_vdbox_g12_X.h"
 #include "mhw_mi_g12_X.h"
 #include "mhw_render_g12_X.h"
-#include "media_user_settings_mgr_g12.h"
 #include "cm_queue_rt.h"
 #include "codechal_debug.h"
 
@@ -3079,7 +3078,7 @@ MOS_STATUS CodechalEncHevcStateG12::Initialize(CodechalSetting *settings)
     userFeatureData.StringData.pStringData = stringData;
     statusKey                              = MOS_UserFeature_ReadValue_ID(
         nullptr,
-        __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_LOAD_KERNEL_INPUT_ID_G12,
+        __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_LOAD_KERNEL_INPUT_ID,
         &userFeatureData,
         m_osInterface->pOsContext);
 
@@ -3254,7 +3253,7 @@ MOS_STATUS CodechalEncHevcStateG12::Initialize(CodechalSetting *settings)
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     statusKey = MOS_UserFeature_ReadValue_ID(
         nullptr,
-        __MEDIA_USER_FEATURE_VALUE_HEVC_VME_DISABLE_PANIC_MODE_ID_G12,
+        __MEDIA_USER_FEATURE_VALUE_HEVC_VME_DISABLE_PANIC_MODE_ID,
         &userFeatureData,
         m_osInterface->pOsContext);
     if (statusKey == MOS_STATUS_SUCCESS)
@@ -8758,7 +8757,7 @@ MOS_STATUS CodechalEncHevcStateG12::UserFeatureKeyReport()
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncHevcState::UserFeatureKeyReport());
 #if (_DEBUG || _RELEASE_INTERNAL)
     CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_REGION_NUMBER_ID, m_numberConcurrentGroup, m_osInterface->pOsContext);
-    CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_SUBTHREAD_NUM_ID_G12, m_numberEncKernelSubThread, m_osInterface->pOsContext);
+    CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_SUBTHREAD_NUM_ID, m_numberEncKernelSubThread, m_osInterface->pOsContext);
     CodecHalEncode_WriteKey64(__MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_ENABLE_VE_DEBUG_OVERRIDE, m_kmdVeOveride.Value, m_osInterface->pOsContext);
 
     if (m_pakOnlyTest)

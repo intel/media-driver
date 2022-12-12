@@ -33,7 +33,6 @@
 #include "mhw_vdbox_vdenc_g12_X.h"
 #include "mhw_vdbox_g12_X.h"
 #include "mhw_render_g12_X.h"
-#include "media_user_settings_mgr_g12.h"
 #include "codeckrnheader.h"
 #if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "igcodeckrn_g12.h"
@@ -1041,7 +1040,7 @@ MOS_STATUS CodechalVdencAvcStateG12::Initialize(CodechalSetting * settings)
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     MOS_UserFeature_ReadValue_ID(
         nullptr,
-        __MEDIA_USER_FEATURE_VALUE_VDENC_ULTRA_MODE_ENABLE_ID_G12,
+        __MEDIA_USER_FEATURE_VALUE_VDENC_ULTRA_MODE_ENABLE_ID,
         &userFeatureData,
         m_osInterface->pOsContext);
     m_vdencUltraModeEnable = userFeatureData.bData == 1;

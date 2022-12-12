@@ -28,7 +28,6 @@
 
 extern template class MediaFactory<uint32_t, MhwInterfaces>;
 extern template class MediaFactory<uint32_t, MmdDevice>;
-extern template class MediaFactory<uint32_t, MosUtilDevice>;
 extern template class MediaFactory<uint32_t, CodechalDevice>;
 extern template class MediaFactory<uint32_t, CMHalDevice>;
 extern template class MediaFactory<uint32_t, VphalDevice>;
@@ -92,11 +91,6 @@ MOS_STATUS CMHalInterfacesG12Adlp::Initialize(CM_HAL_STATE *pCmState)
     m_cmhalDevice->m_l3ConfigCount = TGL_L3_CONFIG_NUM;
     return MOS_STATUS_SUCCESS;
 }
-
-static bool adlpRegisteredMosUtil =
-    MediaFactory<uint32_t, MosUtilDevice>::
-    Register<MosUtilDeviceG12Tgllp>((uint32_t)IGFX_ALDERLAKE_P);
-
 
 static bool adlpRegisteredRenderHal =
     MediaFactory<uint32_t, RenderHalDevice>::

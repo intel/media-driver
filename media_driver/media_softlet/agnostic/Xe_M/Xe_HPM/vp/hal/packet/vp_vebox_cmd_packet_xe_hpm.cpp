@@ -27,7 +27,6 @@
 
 #include "vp_vebox_cmd_packet_xe_hpm.h"
 #include "mhw_sfc_xe_xpm.h"
-#include "media_user_settings_mgr_g12.h"
 #include "mhw_vebox_xe_hpm.h"
 
 using namespace vp;

@@ -30,7 +30,6 @@
 #include "decode_hevc_packet_real_tile_m12.h"
 #include "decode_hevc_picture_packet_m12.h"
 #include "decode_hevc_slice_packet_m12.h"
-#include "media_user_settings_mgr_g12.h"
 #include "decode_utils.h"
 #include "decode_common_feature_defs.h"
 #include "decode_hevc_mem_compression_m12.h"

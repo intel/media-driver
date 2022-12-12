@@ -24,7 +24,6 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/media_interfaces_cmhal.h
     ${CMAKE_CURRENT_LIST_DIR}/media_interfaces_mhw.h
     ${CMAKE_CURRENT_LIST_DIR}/media_interfaces_nv12top010.h
-    ${CMAKE_CURRENT_LIST_DIR}/media_interfaces_mosutil.h
     ${CMAKE_CURRENT_LIST_DIR}/media_interfaces_decode_histogram.h
     ${CMAKE_CURRENT_LIST_DIR}/media_interfaces_mcpy.h
 )

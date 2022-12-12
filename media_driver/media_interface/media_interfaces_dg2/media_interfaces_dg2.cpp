@@ -59,7 +59,6 @@ using namespace mhw::vdbox::huc::xe_hpm;
 extern template class MediaFactory<uint32_t, MhwInterfaces>;
 extern template class MediaFactory<uint32_t, MmdDevice>;
 extern template class MediaFactory<uint32_t, McpyDevice>;
-extern template class MediaFactory<uint32_t, MosUtilDevice>;
 extern template class MediaFactory<uint32_t, CodechalDevice>;
 extern template class MediaFactory<uint32_t, CodechalDeviceNext>;
 extern template class MediaFactory<uint32_t, CMHalDevice>;
@@ -925,38 +924,6 @@ MOS_STATUS CMHalInterfacesXe_Hpm::Initialize(CM_HAL_STATE *pCmState)
 }
 #endif
 
-static bool dg2RegisteredMosUtil =
-    MediaFactory<uint32_t, MosUtilDevice>::
-    Register<MosUtilDeviceXe_Hpm>((uint32_t)IGFX_DG2);
-
-MOS_STATUS MosUtilDeviceXe_Hpm::Initialize()
-{
-#define MOSUTIL_FAILURE()                                       \
-{                                                           \
-    if (device != nullptr)                                  \
-    {                                                       \
-        delete device;                                      \
-    }                                                       \
-    return MOS_STATUS_NO_SPACE;                             \
-}
-
-    MosUtil *device = nullptr;
-
-    device = MOS_New(MosUtil);
-
-    if (device == nullptr)
-    {
-        MOSUTIL_FAILURE();
-    }
-
-    if (device->Initialize() != MOS_STATUS_SUCCESS)
-    {
-        MOSUTIL_FAILURE();
-    }
-
-    m_mosUtilDevice = device;
-    return MOS_STATUS_SUCCESS;
-}
 static bool dg2RegisteredRenderHal =
     MediaFactory<uint32_t, RenderHalDevice>::
     Register<RenderHalInterfacesXe_Hpg>((uint32_t)IGFX_DG2);

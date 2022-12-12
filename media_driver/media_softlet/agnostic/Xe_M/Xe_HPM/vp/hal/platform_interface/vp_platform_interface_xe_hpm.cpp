@@ -27,7 +27,6 @@
 #include "vp_feature_manager_xe_hpm.h"
 #include "vp_platform_interface_xe_hpm.h"
 #include "vp_vebox_cmd_packet_xe_hpm.h"
-#include "media_user_settings_mgr_g12.h"
 #include "vp_render_sfc_xe_xpm_base.h"
 #include "vp_render_ief.h"
 #include "vp_render_cmd_packet.h"

@@ -27,7 +27,6 @@
 
 extern template class MediaFactory<uint32_t, MhwInterfaces>;
 extern template class MediaFactory<uint32_t, MmdDevice>;
-extern template class MediaFactory<uint32_t, MosUtilDevice>;
 extern template class MediaFactory<uint32_t, CodechalDevice>;
 extern template class MediaFactory<uint32_t, CMHalDevice>;
 extern template class MediaFactory<uint32_t, VphalDevice>;
@@ -62,10 +61,6 @@ static bool rklRegisteredCodecHal =
 static bool rklRegisteredCMHal =
     MediaFactory<uint32_t, CMHalDevice>::
     Register<CMHalInterfacesG12Rkl>((uint32_t)IGFX_ROCKETLAKE);
-
-static bool rklRegisteredMosUtil =
-    MediaFactory<uint32_t, MosUtilDevice>::
-    Register<MosUtilDeviceG12Tgllp>((uint32_t)IGFX_ROCKETLAKE);
 
 static bool rklRegisteredRenderHal =
     MediaFactory<uint32_t, RenderHalDevice>::

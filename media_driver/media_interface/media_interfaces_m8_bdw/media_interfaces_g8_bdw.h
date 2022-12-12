@@ -31,7 +31,6 @@
 #include "media_interfaces_codechal.h"
 #include "media_interfaces_mmd.h"
 #include "media_interfaces_cmhal.h"
-#include "media_interfaces_mosutil.h"
 #include "media_interfaces_vphal.h"
 #include "media_interfaces_renderhal.h"
 
@@ -169,14 +168,6 @@ protected:
     using CMHal = CM_HAL_G8_X;
     MOS_STATUS Initialize(
         CM_HAL_STATE *pCmState);
-};
-
-class MosUtilDeviceG8Bdw : public MosUtilDevice
-{
-public:
-    using MosUtil = MediaUserSettingsMgr;
-
-    MOS_STATUS Initialize();
 };
 
 class VphalInterfacesG8Bdw : public VphalDevice

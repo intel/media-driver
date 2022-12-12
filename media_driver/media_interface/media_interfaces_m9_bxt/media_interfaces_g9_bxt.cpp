@@ -33,7 +33,6 @@ extern template class MediaFactory<uint32_t, MhwInterfaces>;
 extern template class MediaFactory<uint32_t, MmdDevice>;
 extern template class MediaFactory<uint32_t, CodechalDevice>;
 extern template class MediaFactory<uint32_t, CMHalDevice>;
-extern template class MediaFactory<uint32_t, MosUtilDevice>;
 extern template class MediaFactory<uint32_t, VphalDevice>;
 extern template class MediaFactory<uint32_t, RenderHalDevice>;
 extern template class MediaFactory<uint32_t, Nv12ToP010Device>;
@@ -505,39 +504,6 @@ MOS_STATUS CMHalInterfacesG9Bxt::Initialize(CM_HAL_STATE *pCmState)
     const char *CmSteppingInfo_BXT[] = { "A0", "A0", "Ax", "B0", "B1", "Bx", "B0-prime", "B0-prime", 
                                          "Bx-prime", "C0", "C0", "Cx", "D0", "Dx" };
     pGen9Device->OverwriteSteppingTable(CmSteppingInfo_BXT, sizeof(CmSteppingInfo_BXT)/sizeof(const char *));
-    return MOS_STATUS_SUCCESS;
-}
-static bool bxtRegisteredMosUtil =
-    MediaFactory<uint32_t, MosUtilDevice>::
-    Register<MosUtilDeviceG9Bxt>((uint32_t)IGFX_BROXTON);
-
-MOS_STATUS MosUtilDeviceG9Bxt::Initialize()
-{
-#define MOSUTIL_FAILURE()                                   \
-{                                                           \
-    if (device != nullptr)                                  \
-    {                                                       \
-        delete device;                                      \
-    }                                                       \
-    return MOS_STATUS_NO_SPACE;                             \
-}
-
-    MosUtil *device = nullptr;
-
-    device = MOS_New(MosUtil);
-    
-    if (device == nullptr)
-    {
-        MOSUTIL_FAILURE();
-    }
-
-    if (device->Initialize() != MOS_STATUS_SUCCESS)
-    {
-        MOSUTIL_FAILURE();
-    }
-
-    m_mosUtilDevice = device;
-
     return MOS_STATUS_SUCCESS;
 }
 

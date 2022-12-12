@@ -38,7 +38,6 @@
 #include "media_interfaces_mmd.h"
 #include "media_interfaces_mcpy.h"
 #include "media_interfaces_cmhal.h"
-#include "media_interfaces_mosutil.h"
 #include "media_interfaces_vphal.h"
 #include "media_interfaces_renderhal.h"
 #include "media_interfaces_nv12top010.h"
@@ -140,7 +139,6 @@
 #include "vphal_xe_xpm.h"
 #include "vphal_xe_hpm.h"
 #include "renderhal_xe_hpg.h"
-#include "media_user_settings_mgr_g12_plus.h"
 
 #include "codechal_decode_histogram.h"
 #include "codechal_decode_histogram_g12.h"
@@ -367,14 +365,6 @@ protected:
         CM_HAL_STATE *pCmState);
 };
 #endif
-
-class MosUtilDeviceXe_Hpm : public MosUtilDevice
-{
-public:
-    using MosUtil = MediaUserSettingsMgr_g12;
-
-    MOS_STATUS Initialize();
-};
 
 class VphalInterfacesXe_Hpm : public VphalDevice
 {

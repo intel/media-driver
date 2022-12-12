@@ -36,7 +36,6 @@
 #include "mhw_mi_g12_X.h"
 #include "mhw_render_g12_X.h"
 #include "codechal_mmc_encode_hevc_g12.h"
-#include "media_user_settings_mgr_g12.h"
 #include "mhw_mmio_g12.h"
 #include "hal_oca_interface.h"
 #ifdef _ENCODE_VDENC_RESERVED
@@ -6292,7 +6291,7 @@ MOS_STATUS CodechalVdencHevcStateG12::Initialize(CodechalSetting * settings)
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     MOS_UserFeature_ReadValue_ID(
         nullptr,
-        __MEDIA_USER_FEATURE_VALUE_HEVC_VDENC_TILEREPLAY_ENABLE_ID_G12,
+        __MEDIA_USER_FEATURE_VALUE_HEVC_VDENC_TILEREPLAY_ENABLE_ID,
         &userFeatureData,
         m_osInterface->pOsContext);
     m_enableTileReplay = userFeatureData.i32Data ? true : false;
@@ -6303,7 +6302,7 @@ MOS_STATUS CodechalVdencHevcStateG12::Initialize(CodechalSetting * settings)
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     MOS_UserFeature_ReadValue_ID(
         nullptr,
-        __MEDIA_USER_FEATURE_VALUE_HEVC_VDENC_RGB_ENCODING_ENABLE_ID_G12,
+        __MEDIA_USER_FEATURE_VALUE_HEVC_VDENC_RGB_ENCODING_ENABLE_ID,
         &userFeatureData,
         m_osInterface->pOsContext);
     m_RGBEncodingEnable = userFeatureData.i32Data ? true : false;
@@ -6312,7 +6311,7 @@ MOS_STATUS CodechalVdencHevcStateG12::Initialize(CodechalSetting * settings)
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     MOS_UserFeature_ReadValue_ID(
         nullptr,
-        __MEDIA_USER_FEATURE_VALUE_HEVC_VDENC_CAPTURE_MODE_ENABLE_ID_G12,
+        __MEDIA_USER_FEATURE_VALUE_HEVC_VDENC_CAPTURE_MODE_ENABLE_ID,
         &userFeatureData,
         m_osInterface->pOsContext);
     m_CaptureModeEnable = userFeatureData.i32Data ? true : false;
@@ -6441,7 +6440,7 @@ MOS_STATUS CodechalVdencHevcStateG12::Initialize(CodechalSetting * settings)
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     MOS_UserFeature_ReadValue_ID(
         nullptr,
-        __MEDIA_USER_FEATURE_VALUE_HEVC_VDENC_FORCE_SCALABILITY_ID_G12,
+        __MEDIA_USER_FEATURE_VALUE_HEVC_VDENC_FORCE_SCALABILITY_ID,
         &userFeatureData,
         m_osInterface->pOsContext);
     m_forceScalability = userFeatureData.i32Data ? true : false;

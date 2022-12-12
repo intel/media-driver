@@ -30,7 +30,6 @@
 #include "mhw_vdbox_avp_generic.h"
 #include "mhw_vdbox_avp_hwcmd_g12_X.h"
 #include "mhw_vdbox_g12_X.h"
-#include "media_user_settings_mgr_g12.h"
 
 //!  MHW Vdbox Avp interface for Gen12
 /*!

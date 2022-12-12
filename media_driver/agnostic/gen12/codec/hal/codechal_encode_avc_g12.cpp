@@ -31,7 +31,6 @@
 #include "mhw_render_g12_X.h"
 #include "codeckrnheader.h"
 #include "igcodeckrn_g12.h"
-#include "media_user_settings_mgr_g12.h"
 #include "hal_oca_interface.h"
 #if USE_CODECHAL_DEBUG_TOOL
 #include "codechal_debug_encode_par_g12.h"

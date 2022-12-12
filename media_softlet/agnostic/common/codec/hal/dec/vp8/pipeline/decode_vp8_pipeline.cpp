@@ -25,7 +25,6 @@
 //!
 #include "decode_vp8_pipeline.h"
 #include "decode_utils.h"
-//#include "media_user_settings_mgr_g12_ext.h"
 #include "codechal_setting.h"
 #include "decode_vp8_feature_manager.h"
 

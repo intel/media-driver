@@ -18,10 +18,6 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-if(ENABLE_REQUIRED_GEN_CODE OR GEN12)
-    media_include_subdirectory(Xe_M_base)
-endif()
-
 if(XEHP_SDV OR XE_LPG)
     media_include_subdirectory(Xe_XPM)
 endif()

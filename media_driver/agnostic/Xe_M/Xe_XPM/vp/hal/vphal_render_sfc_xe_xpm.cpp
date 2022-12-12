@@ -31,7 +31,6 @@
 #include "mhw_sfc_xe_xpm.h"
 #include "vphal_render_vebox_base.h"
 #include "vphal_render_sfc_xe_xpm.h"
-#include "media_user_settings_mgr_g12.h"
 
 #if __VPHAL_SFC_SUPPORTED
 

@@ -21,50 +21,17 @@
 */
 //!
 //! \file     media_user_settings_mgr.h
-//! \brief    Common MOS util user feature key service across different platform
+//! \brief    Common MOS util user feature key base class
 //!
 
 #ifndef __MEDIA_USER_SETTINGS_MGR_H__
 #define __MEDIA_USER_SETTINGS_MGR_H__
 
-#include "mos_util_user_interface.h"
-#include "igfxfmid.h"
-
 class MediaUserSettingsMgr
 {
 public:
-    virtual MOS_STATUS Initialize() { return MOS_STATUS_SUCCESS; }
-
-    //!
-    //! \brief    Init Function for MOS utilities user interface
-    //! \details  Initial MOS utilities user interface related structures, and only execute once for multiple entries
-    //! \param    [in] platform
-    //!           Pointer to current platform info. Will use default platform when it's nullptr
-    //! \return   MOS_STATUS
-    //!           Returns one of the MOS_STATUS error codes if failed,
-    //!           else MOS_STATUS_SUCCESS
-    //!
-    static MOS_STATUS MediaUserSettingsInit(PRODUCT_FAMILY productFamily = IGFX_MAX_PRODUCT);
-
-    //!
-    //! \brief    Close Function for MOS util user interface
-    //! \details  close/remove MOS utilities user interface related structures, and only execute once for multiple entries
-    //! \return   MOS_STATUS
-    //!           Returns one of the MOS_STATUS error codes if failed,
-    //!           else MOS_STATUS_SUCCESS
-    //!
-    static MOS_STATUS MediaUserSettingClose();
-
-    MediaUserSettingsMgr();
-    virtual ~MediaUserSettingsMgr();
-
-private:
-    static MOS_STATUS Destroy();
-
-private:
-    static MosMutex m_userFeatureMutexLock;  // brief mutex for mos util user interface multi-threading protection
-    static uint32_t m_userFeatureRefCount;   // If there are more than one VPHAL state created, need reference count to keep only do initialization once
-    static MediaUserSettingsMgr *m_inst;
+    MediaUserSettingsMgr(){};
+    virtual ~MediaUserSettingsMgr(){};
 };
 
 #endif  //__MEDIA_USER_SETTINGS_MGR_H__

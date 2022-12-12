@@ -31,7 +31,6 @@
 #include "media_interfaces_codechal.h"
 #include "media_interfaces_mmd.h"
 #include "media_interfaces_cmhal.h"
-#include "media_interfaces_mosutil.h"
 #include "media_interfaces_vphal.h"
 #include "media_interfaces_renderhal.h"
 #include "media_interfaces_nv12top010.h"
@@ -222,14 +221,6 @@ protected:
     using CMHal = CM_HAL_G9_X;
     MOS_STATUS Initialize(
         CM_HAL_STATE *pCmState);
-};
-
-class MosUtilDeviceG9Bxt : public MosUtilDevice
-{
-public:
-    using MosUtil = MediaUserSettingsMgr;
-
-    MOS_STATUS Initialize();
 };
 
 class RenderHalInterfacesG9Bxt : public RenderHalDevice

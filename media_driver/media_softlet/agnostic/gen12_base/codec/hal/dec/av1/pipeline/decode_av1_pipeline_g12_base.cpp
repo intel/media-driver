@@ -25,7 +25,6 @@
 //!
 #include "decode_av1_pipeline_g12_base.h"
 #include "decode_utils.h"
-#include "media_user_settings_mgr_g12.h"
 #include "codechal_setting.h"
 #include "decode_av1_feature_manager_g12_base.h"
 #include "decode_huc_packet_creator_g12.h"

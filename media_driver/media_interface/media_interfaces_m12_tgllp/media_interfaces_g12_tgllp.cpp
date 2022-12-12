@@ -35,7 +35,6 @@
 extern template class MediaFactory<uint32_t, MhwInterfaces>;
 extern template class MediaFactory<uint32_t, MmdDevice>;
 extern template class MediaFactory<uint32_t, McpyDevice>;
-extern template class MediaFactory<uint32_t, MosUtilDevice>;
 extern template class MediaFactory<uint32_t, CodechalDevice>;
 extern template class MediaFactory<uint32_t, CMHalDevice>;
 extern template class MediaFactory<uint32_t, VphalDevice>;
@@ -962,40 +961,6 @@ MOS_STATUS CMHalInterfacesG12Tgllp::Initialize(CM_HAL_STATE *pCmState)
     m_cmhalDevice->AddSupportedCisaIDs(cisaIDs, sizeof(cisaIDs)/sizeof(uint32_t));
     m_cmhalDevice->m_l3Plane = TGL_L3_PLANE;
     m_cmhalDevice->m_l3ConfigCount = TGL_L3_CONFIG_NUM;
-    return MOS_STATUS_SUCCESS;
-}
-
-static bool tgllpRegisteredMosUtil =
-    MediaFactory<uint32_t, MosUtilDevice>::
-    Register<MosUtilDeviceG12Tgllp>((uint32_t)IGFX_TIGERLAKE_LP);
-
-MOS_STATUS MosUtilDeviceG12Tgllp::Initialize()
-{
-#define MOSUTIL_FAILURE()                                       \
-{                                                           \
-    if (device != nullptr)                                  \
-    {                                                       \
-        delete device;                                      \
-    }                                                       \
-    return MOS_STATUS_NO_SPACE;                             \
-}
-
-    MosUtil *device = nullptr;
-
-    device = MOS_New(MosUtil);
-    
-    if (device == nullptr)
-    {
-        MOSUTIL_FAILURE();
-    }
-
-    if (device->Initialize() != MOS_STATUS_SUCCESS)
-    {
-        MOSUTIL_FAILURE();
-    }
-
-    m_mosUtilDevice = device;
-
     return MOS_STATUS_SUCCESS;
 }
 

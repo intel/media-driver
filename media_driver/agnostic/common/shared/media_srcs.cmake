@@ -23,7 +23,6 @@ media_include_subdirectory(mediacopy)
 
 set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/media_perf_profiler_legacy.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/media_user_settings_mgr.cpp
     ${CMAKE_CURRENT_LIST_DIR}/null_hardware.cpp
     ${CMAKE_CURRENT_LIST_DIR}/media_debug_interface_misc.cpp
 )

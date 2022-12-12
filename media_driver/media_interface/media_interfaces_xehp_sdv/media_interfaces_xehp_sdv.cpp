@@ -47,7 +47,6 @@ unsigned char *pGPUInit_kernel_isa_xe_xpm = nullptr;
 extern template class MediaFactory<uint32_t, MhwInterfaces>;
 extern template class MediaFactory<uint32_t, MmdDevice>;
 extern template class MediaFactory<uint32_t, McpyDevice>;
-extern template class MediaFactory<uint32_t, MosUtilDevice>;
 extern template class MediaFactory<uint32_t, CodechalDevice>;
 extern template class MediaFactory<uint32_t, CMHalDevice>;
 extern template class MediaFactory<uint32_t, VphalDevice>;
@@ -738,40 +737,6 @@ MOS_STATUS CMHalInterfacesXe_Xpm::Initialize(CM_HAL_STATE *pCmState)
     return MOS_STATUS_SUCCESS;
 }
 #endif
-
-static bool xehpRegisteredMosUtil =
-    MediaFactory<uint32_t, MosUtilDevice>::
-    Register<MosUtilDeviceXe_Xpm>((uint32_t)IGFX_XE_HP_SDV);
-
-MOS_STATUS MosUtilDeviceXe_Xpm::Initialize()
-{
-#define MOSUTIL_FAILURE()                                       \
-{                                                           \
-    if (device != nullptr)                                  \
-    {                                                       \
-        delete device;                                      \
-    }                                                       \
-    return MOS_STATUS_NO_SPACE;                             \
-}
-
-    MosUtil *device = nullptr;
-
-    device = MOS_New(MosUtil);
-
-    if (device == nullptr)
-    {
-        MOSUTIL_FAILURE();
-    }
-
-    if (device->Initialize() != MOS_STATUS_SUCCESS)
-    {
-        MOSUTIL_FAILURE();
-    }
-
-    m_mosUtilDevice = device;
-
-    return MOS_STATUS_SUCCESS;
-}
 
 static bool xehpRegisteredRenderHal =
     MediaFactory<uint32_t, RenderHalDevice>::

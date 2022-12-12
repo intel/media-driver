@@ -29,7 +29,6 @@
 #include "media_interfaces_mmd.h"
 #include "media_interfaces_mcpy.h"
 #include "media_interfaces_cmhal.h"
-#include "media_interfaces_mosutil.h"
 #include "media_interfaces_vphal.h"
 #include "media_interfaces_nv12top010.h"
 #include "media_interfaces_decode_histogram.h"
@@ -52,7 +51,6 @@
 template class MediaFactory<uint32_t, MhwInterfaces>;
 template class MediaFactory<uint32_t, MmdDevice>;
 template class MediaFactory<uint32_t, McpyDevice>;
-template class MediaFactory<uint32_t, MosUtilDevice>;
 template class MediaFactory<uint32_t, CodechalDevice>;
 template class MediaFactory<uint32_t, CMHalDevice>;
 template class MediaFactory<uint32_t, VphalDevice>;
@@ -63,7 +61,6 @@ template class MediaFactory<uint32_t, MediaInterfacesHwInfoDevice>;
 typedef MediaFactory<uint32_t, MhwInterfaces> MhwFactory;
 typedef MediaFactory<uint32_t, MmdDevice> MmdFactory;
 typedef MediaFactory<uint32_t, McpyDevice> McpyFactory;
-typedef MediaFactory<uint32_t, MosUtilDevice> MosUtilFactory;
 typedef MediaFactory<uint32_t, CodechalDevice> CodechalFactory;
 typedef MediaFactory<uint32_t, CMHalDevice> CMHalFactory;
 typedef MediaFactory<uint32_t, VphalDevice> VphalFactory;
@@ -524,34 +521,6 @@ CM_HAL_GENERIC* CMHalDevice::CreateFactory(
     CM_HAL_GENERIC *pRet = device->m_cmhalDevice;
     MOS_Delete(device);
     return pRet;
-}
-
-void* MosUtilDevice::CreateFactory(
-    PRODUCT_FAMILY productFamily)
-{
-    MosUtilDevice *device = nullptr;
-
-    device = MosUtilFactory::Create(productFamily + MEDIA_EXT_FLAG);
-    if (device == nullptr)
-    {
-        device = MosUtilFactory::Create(productFamily);
-    }
-
-    if (device == nullptr)
-    {
-        return nullptr;
-    }
-
-    device->Initialize();
-    if (device->m_mosUtilDevice == nullptr)
-    {
-        return nullptr;
-    }
-
-    void* mosUtiInterface = device->m_mosUtilDevice;
-
-    MOS_Delete(device); // avoid mem leak
-    return mosUtiInterface;
 }
 
 CodechalDecodeHistogram* DecodeHistogramDevice::CreateFactory(

@@ -39,7 +39,6 @@
 extern template class MediaFactory<uint32_t, MhwInterfaces>;
 extern template class MediaFactory<uint32_t, MmdDevice>;
 extern template class MediaFactory<uint32_t, McpyDevice>;
-extern template class MediaFactory<uint32_t, MosUtilDevice>;
 extern template class MediaFactory<uint32_t, CodechalDevice>;
 extern template class MediaFactory<uint32_t, CMHalDevice>;
 extern template class MediaFactory<uint32_t, VphalDevice>;
@@ -727,38 +726,6 @@ MOS_STATUS CMHalInterfacesXe_Xpm_Plus::Initialize(CM_HAL_STATE *pCmState)
 }
 #endif
 
-static bool pvcRegisteredMosUtil =
-    MediaFactory<uint32_t, MosUtilDevice>::
-    Register<MosUtilDeviceXe_Xpm_Plus>((uint32_t)IGFX_PVC);
-
-MOS_STATUS MosUtilDeviceXe_Xpm_Plus::Initialize()
-{
-#define MOSUTIL_FAILURE()                                       \
-{                                                           \
-    if (device != nullptr)                                  \
-    {                                                       \
-        delete device;                                      \
-    }                                                       \
-    return MOS_STATUS_NO_SPACE;                             \
-}
-
-    MosUtil *device = nullptr;
-
-    device = MOS_New(MosUtil);
-
-    if (device == nullptr)
-    {
-        MOSUTIL_FAILURE();
-    }
-
-    if (device->Initialize() != MOS_STATUS_SUCCESS)
-    {
-        MOSUTIL_FAILURE();
-    }
-
-    m_mosUtilDevice = device;
-    return MOS_STATUS_SUCCESS;
-}
 static bool pvcRegisteredRenderHal =
     MediaFactory<uint32_t, RenderHalDevice>::
     Register<RenderHalInterfacesXe_Hpc>((uint32_t)IGFX_PVC);

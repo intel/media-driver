@@ -25,7 +25,6 @@
 //!
 #include "encode_hevc_vdenc_pipeline_xe_xpm_base.h"
 #include "encode_utils.h"
-#include "media_user_settings_mgr_g12.h"
 #include "encode_status_report_defs.h"
 #include "encode_scalability_defs.h"
 #include "encode_mem_compression_g12.h"

@@ -33,7 +33,6 @@ extern template class MediaFactory<uint32_t, MhwInterfaces>;
 extern template class MediaFactory<uint32_t, MmdDevice>;
 extern template class MediaFactory<uint32_t, CodechalDevice>;
 extern template class MediaFactory<uint32_t, CMHalDevice>;
-extern template class MediaFactory<uint32_t, MosUtilDevice>;
 extern template class MediaFactory<uint32_t, VphalDevice>;
 extern template class MediaFactory<uint32_t, RenderHalDevice>;
 extern template class MediaFactory<uint32_t, Nv12ToP010Device>;
@@ -520,40 +519,6 @@ MOS_STATUS CMHalInterfacesG9Kbl::Initialize(CM_HAL_STATE *pCmState)
     CM_HAL_G9_X *pGen9Device = static_cast<CM_HAL_G9_X *>(m_cmhalDevice);
     const char *CmSteppingInfo_KBL[] = { "A0", "B0", "C0", "D0", "E0" };
     pGen9Device->OverwriteSteppingTable(CmSteppingInfo_KBL, sizeof(CmSteppingInfo_KBL)/sizeof(const char *));
-    return MOS_STATUS_SUCCESS;
-}
-
-static bool kblRegisteredMosUtil =
-    MediaFactory<uint32_t, MosUtilDevice>::
-    Register<MosUtilDeviceG9Kbl>((uint32_t)IGFX_KABYLAKE);
-
-MOS_STATUS MosUtilDeviceG9Kbl::Initialize()
-{
-#define MOSUTIL_FAILURE()                                   \
-{                                                           \
-    if (device != nullptr)                                  \
-    {                                                       \
-        delete device;                                      \
-    }                                                       \
-    return MOS_STATUS_NO_SPACE;                             \
-}
-
-    MosUtil *device = nullptr;
-
-    device = MOS_New(MosUtil);
-    
-    if (device == nullptr)
-    {
-        MOSUTIL_FAILURE();
-    }
-
-    if (device->Initialize() != MOS_STATUS_SUCCESS)
-    {
-        MOSUTIL_FAILURE();
-    }
-
-    m_mosUtilDevice = device;
-
     return MOS_STATUS_SUCCESS;
 }
 

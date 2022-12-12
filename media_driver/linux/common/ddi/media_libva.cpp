@@ -1811,8 +1811,6 @@ VAStatus DdiMedia_InitMediaContext (
         mediaCtx->bIsAtomSOC                = mosCtx.bIsAtomSOC;
         mediaCtx->perfData                  = mosCtx.pPerfData;
 
-        MediaUserSettingsMgr::MediaUserSettingsInit(mediaCtx->platform.eProductFamily);
-
 #ifdef _MMC_SUPPORTED
         if (mosCtx.ppMediaMemDecompState == nullptr)
         {
@@ -1874,7 +1872,6 @@ VAStatus DdiMedia_InitMediaContext (
         {
             MEDIA_WR_WA(waTable, WaHucStreamoutOnlyDisable, 0);
         }
-        MediaUserSettingsMgr::MediaUserSettingsInit(platform.eProductFamily);
 
         GMM_SKU_FEATURE_TABLE gmmSkuTable;
         memset(&gmmSkuTable, 0, sizeof(gmmSkuTable));
@@ -2271,7 +2268,6 @@ VAStatus DdiMedia_Terminate (
         mediaCtx->m_osDeviceContext = MOS_INVALID_HANDLE;
         MOS_FreeMemory(mediaCtx->pGtSystemInfo);
         MosOcaInterfaceSpecific::UninitInterface();
-        MediaUserSettingsMgr::MediaUserSettingClose();
         MosInterface::CloseOsUtilities(&mosCtx);
     }
     else if (mediaCtx->modularizedGpuCtxEnabled)
@@ -2310,7 +2306,6 @@ VAStatus DdiMedia_Terminate (
         gmmOutArgs.pGmmClientContext = mediaCtx->pGmmClientContext;
         GmmAdapterDestroy(&gmmOutArgs);
         mediaCtx->pGmmClientContext = nullptr;
-        MediaUserSettingsMgr::MediaUserSettingClose();
         MosUtilities::MosUtilitiesClose(mediaCtx->m_userSettingPtr);
     }
 
