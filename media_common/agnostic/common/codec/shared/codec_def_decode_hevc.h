@@ -61,6 +61,14 @@ const uint8_t CODECHAL_DECODE_HEVC_Default_8x8_Inter[64] =
 17, 18, 20, 24, 25, 28, 33, 41, 18, 20, 24, 25, 28, 33, 41, 54,
 20, 24, 25, 28, 33, 41, 54, 71, 24, 25, 28, 33, 41, 54, 71, 91 };
 
+enum
+{
+    decodeHevcBSlice        = 0,
+    decodeHevcPSlice        = 1,
+    decodeHevcISlice        = 2,
+    decodeHevcNumSliceTypes = 3
+};
+
 /*! \brief Picture-level parameters of a compressed picture for HEVC decoding.
  *
  *   Note 1: Application only pass in the first num_tile_columns_minus1 tile column widths and first num_tile_rows_minus1 tile row heights. The last width and height need to be calculated by driver from the picture dimension. Values used for data type alignement. Their values should be set to 0, and can be ignored by decoder.
