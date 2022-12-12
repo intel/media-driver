@@ -66,7 +66,7 @@ VAStatus DdiEncodeFunctions::CreateConfig (
             feiFunction = attribList[i].value;
         }
 
-        if(attribList[i].type == VAConfigAttribRateControl)
+        if(attribList[i].type == VAConfigAttribRateControl && attribList[i].value != VA_RC_MB)
         {
             rcMode = attribList[i].value;
         }
