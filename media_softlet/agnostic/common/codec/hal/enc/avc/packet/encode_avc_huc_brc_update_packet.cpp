@@ -152,6 +152,13 @@ MOS_STATUS AvcHucBrcUpdatePkt::AllocateResources()
         }
     }
 
+    // PAK statistics output buffer 
+    allocParamsForBufferLinear.dwBytes  = CODECHAL_PAGE_SIZE;
+    allocParamsForBufferLinear.pBufName = "VDENC PAK Statistics MMIO Registers Output Buffer";
+    allocatedbuffer                     = m_allocator->AllocateResource(allocParamsForBufferLinear, true);
+    ENCODE_CHK_NULL_RETURN(allocatedbuffer);
+    m_resPakOutputViaMmioBuffer = *allocatedbuffer;
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -237,6 +244,21 @@ MOS_STATUS AvcHucBrcUpdatePkt::Execute(PMOS_COMMAND_BUFFER cmdBuffer, bool store
     }
 
     ENCODE_CHK_STATUS_RETURN(StartPerfCollect(*cmdBuffer));
+    if (m_pipeline->IsSingleTaskPhaseSupported())
+    {
+        auto &miCpyMemMemParams       = m_miItf->MHW_GETPAR_F(MI_COPY_MEM_MEM)();
+        miCpyMemMemParams             = {};
+        miCpyMemMemParams.presSrc     = &m_resPakOutputViaMmioBuffer;
+        miCpyMemMemParams.presDst     = &(m_vdencBrcUpdateDmemBuffer[m_pipeline->m_currRecycledBufIdx][m_pipeline->GetCurrentPass()]);
+        miCpyMemMemParams.dwSrcOffset = miCpyMemMemParams.dwDstOffset = CODECHAL_OFFSETOF(VdencAvcHucBrcUpdateDmem, FrameByteCount);
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_COPY_MEM_MEM)(cmdBuffer));
+
+        miCpyMemMemParams.dwSrcOffset = miCpyMemMemParams.dwDstOffset = CODECHAL_OFFSETOF(VdencAvcHucBrcUpdateDmem, ImgStatusCtrl);
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_COPY_MEM_MEM)(cmdBuffer));
+
+        miCpyMemMemParams.dwSrcOffset = miCpyMemMemParams.dwDstOffset = CODECHAL_OFFSETOF(VdencAvcHucBrcUpdateDmem, NumOfSlice);
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_COPY_MEM_MEM)(cmdBuffer));
+    }
 
     // load kernel from WOPCM into L2 storage RAM
     AddAllCmds_HUC_IMEM_STATE(cmdBuffer);
@@ -314,9 +336,22 @@ MOS_STATUS AvcHucBrcUpdatePkt::Submit(MOS_COMMAND_BUFFER *commandBuffer, uint8_t
     // They are first pass of next frame and next pass of current frame, as the 2nd VDEnc+PAK pass may not be triggered.
     uint32_t nextRecycledBufIdx = (m_pipeline->m_currRecycledBufIdx + 1) % CODECHAL_ENCODE_RECYCLED_BUFFER_NUM;
     uint32_t nextPass           = (m_pipeline->GetCurrentPass() + 1) % CODECHAL_VDENC_BRC_NUM_OF_PASSES;
-    RUN_FEATURE_INTERFACE_NO_RETURN(AvcEncodeBRC, AvcFeatureIDs::avcBrcFeature, SaveBrcUpdateDmemBufferPtr,
-        &m_vdencBrcUpdateDmemBuffer[nextRecycledBufIdx][0],
-        m_pipeline->IsLastPass() ? nullptr : &m_vdencBrcUpdateDmemBuffer[m_pipeline->m_currRecycledBufIdx][nextPass]);
+
+    PMOS_RESOURCE vdencBrcUpdateDmemBuffer0 = &m_vdencBrcUpdateDmemBuffer[nextRecycledBufIdx][0];
+    PMOS_RESOURCE vdencBrcUpdateDmemBuffer1  = m_pipeline->IsLastPass() ? nullptr : &m_vdencBrcUpdateDmemBuffer[m_pipeline->m_currRecycledBufIdx][nextPass];
+
+#if _SW_BRC
+    if (!m_swBrc->SwBrcEnabled())
+#endif
+    {
+        if (m_pipeline->IsSingleTaskPhaseSupported())
+        {
+            vdencBrcUpdateDmemBuffer0 = &m_resPakOutputViaMmioBuffer;
+            vdencBrcUpdateDmemBuffer1 = nullptr;
+        }
+    }
+
+    RUN_FEATURE_INTERFACE_NO_RETURN(AvcEncodeBRC, AvcFeatureIDs::avcBrcFeature, SaveBrcUpdateDmemBufferPtr, vdencBrcUpdateDmemBuffer0, vdencBrcUpdateDmemBuffer1);
 
     // Disable Brc Init/reset  here after init cmd executed, APP will re-trigger the reset by DDI params m_seqParam->bResetBRC
     RUN_FEATURE_INTERFACE_NO_RETURN(AvcEncodeBRC, AvcFeatureIDs::avcBrcFeature, DisableBrcInitReset);

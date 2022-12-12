@@ -251,6 +251,8 @@ protected:
     MOS_RESOURCE m_vdencBrcUpdateDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][VDENC_BRC_NUM_OF_PASSES];  //!< Brc Update DMEM Buffer Array.
     MOS_RESOURCE m_vdencBrcConstDataBuffer[CODECHAL_ENCODE_VDENC_BRC_CONST_BUFFER_NUM];                     //!< BRC Const Data Buffer for each frame type.
 
+    MOS_RESOURCE m_resPakOutputViaMmioBuffer;  //!< Buffer for PAK statistics output via MMIO
+
 MEDIA_CLASS_DEFINE_END(encode__AvcHucBrcUpdatePkt)
 };
 
