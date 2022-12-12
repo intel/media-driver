@@ -38,7 +38,11 @@
 bool VpHal_RndrCommonIsMiBBEndNeeded(
     PMOS_INTERFACE           pOsInterface)
 {
+#ifdef WDDM_LINUX
+    bool needed = true;
+#else
     bool needed = false;
+#endif
 
     VPHAL_RENDER_ASSERT(pOsInterface);
 

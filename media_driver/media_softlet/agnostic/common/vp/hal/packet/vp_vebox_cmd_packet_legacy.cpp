@@ -1421,6 +1421,13 @@ MOS_STATUS VpVeboxCmdPacketLegacy::SetupDiIecpState(
     pVeboxDiIecpCmdParams->pOsResStatisticsOutput         = &m_veboxPacketSurface.pStatisticsOutput->osSurface->OsResource;
     pVeboxDiIecpCmdParams->StatisticsOutputSurfCtrl.Value = m_surfMemCacheCtl->DnDi.StatisticsOutputSurfMemObjCtl;
 
+    if (m_veboxPacketSurface.pLaceOrAceOrRgbHistogram->osSurface)
+    {
+        pVeboxDiIecpCmdParams->pOsResLaceOrAceOrRgbHistogram =
+            &m_veboxPacketSurface.pLaceOrAceOrRgbHistogram->osSurface->OsResource;
+        pVeboxDiIecpCmdParams->LaceOrAceOrRgbHistogramSurfCtrl.Value =
+            m_surfMemCacheCtl->DnDi.LaceOrAceOrRgbHistogramSurfCtrl;
+    }
 finish:
     return eStatus;
 }
