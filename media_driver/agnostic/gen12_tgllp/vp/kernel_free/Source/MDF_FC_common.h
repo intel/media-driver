@@ -25,6 +25,8 @@
 
 #define MDF_FC_BLOCK_WIDTH                16
 #define MDF_FC_BLOCK_HEIGHT               16
+#define MDF_FC_SECURITY_COPY_BLOCK_WIDTH  64
+#define MDF_FC_SECURITY_COPY_BLOCK_HEIGHT 24
 #define MDF_FC_SAMPLER_UNORM_WIDTH        8
 #define MDF_FC_SAMPLER_UNORM_HEIGHT       4
 #define MDF_FC_MAX_INPUT_LAYER_NUM        8
@@ -357,7 +359,7 @@ typedef enum _MDF_FC_FORMAT
     FORMAT_NV12_2PLANES                       = 245,
     FORMAT_YV12_3PLANES                       = 246,
     FORMAT_Y210_2PLANES                       = 247,
-    FORMAT_P010_2PLANES                       = 248,
+
     FORMAT_BASE_MASK                          = 255,
     FORMAT_MASK                               = 255 + SURFACE_FORMAT_CHANNEL_SWAP,
     FORMAT_UNKNOWN                            = 0x7FFFFFFF,

@@ -76,7 +76,11 @@ if (CalculationMask != 0)
     |____B1_________B3_____|____B5_________B7_____|
     |____A1_________A3_____|____A5_________A7_____|
     */
+#if (defined BUFFER_4) || (defined BUFFER_5)
+    matrix <float, 11, 8> mesg;
+#else
     matrix <float, 2, 8> mesg;
+#endif
     mesg.select<1, 1, 8, 1>(0, 0).format<uint>() = cm_get_r0<uint>();
     mesg.select<1, 1, 8, 1>(1, 0).format<uint>() = cm_get_r0<uint>();
     uint desc_y;
@@ -644,16 +648,15 @@ if (CalculationMask != 0)
 
     desc_y = nSMPL_UNORM_444_16BITS_MSGDSC_4CH + (MDF_FC_3D_SAMPLER_SI_Y << 8) + MDF_FC_INPUT_BTI_START;
     cm_send(WriteBackBuffer.format<ushort, 16, 16>().select<8, 1, 16, 1>(0, 0),
-            mesg.format<ushort, 2, 16>(),
-            nSMPL_ENGINE,
-            desc_y,
-            0);
+        mesg.format<ushort, 2, 16>(),
+        nSMPL_ENGINE,
+        desc_y,
+        0);
 
     mesg.select<1, 1, 1, 1>(1, 2) = StartX1;
     mesg.select<1, 1, 1, 1>(1, 3) = StartY1;
     mesg.select<1, 1, 1, 1>(1, 4) = DeltaX;
     mesg.select<1, 1, 1, 1>(1, 5) = DeltaY;
-
     cm_send(WriteBackBuffer.format<ushort, 16, 16>().select<8, 1, 16, 1>(8, 0),
         mesg.format<ushort, 2, 16>(),
         nSMPL_ENGINE,
@@ -743,22 +746,28 @@ if (CalculationMask != 0)
     mesg.select<1, 1, 1, 1>(1, 4) = DeltaX;
     mesg.select<1, 1, 1, 1>(1, 5) = DeltaY;
 
-    desc_y = nSMPL_UNORM_444_16BITS_MSGDSC_4CH + (MDF_FC_3D_SAMPLER_SI_Y << 8) + MDF_FC_INPUT_BTI_START + MDF_FC_INPUT_BTI_PER_LAYER * Layer_Index_45;
-    cm_send(WriteBackBuffer.format<ushort, 16, 16>().select<8, 1, 16, 1>(0, 0),
-        mesg.format<ushort, 2, 16>(),
+    desc_y = nSMPL_UNORM_LK_444_16BITS_MSGDSC_4CH + (MDF_FC_3D_SAMPLER_SI_Y << 8) + MDF_FC_INPUT_BTI_START + MDF_FC_INPUT_BTI_PER_LAYER * Layer_Index_45;
+    cm_send(mesg.format<ushort, 11, 16>().select<9, 1, 16, 1>(2, 0),
+        mesg.format<ushort, 11, 16>().select<2, 1, 16, 1>(0, 0),
         nSMPL_ENGINE,
         desc_y,
         0);
+
+    WriteBackBuffer.format<ushort, 16, 16>().select<8, 1, 16, 1>(0, 0) = mesg.format<ushort, 11, 16>().select<8, 1, 16, 1>(2, 0);
+    TempMask0.select<1, 1, 2, 1>(0, 0) = mesg.format<ushort, 11, 16>().select<1, 1, 2, 1>(10, 0);
 
     mesg.select<1, 1, 1, 1>(1, 2) = StartX1;
     mesg.select<1, 1, 1, 1>(1, 3) = StartY1;
     mesg.select<1, 1, 1, 1>(1, 4) = DeltaX;
     mesg.select<1, 1, 1, 1>(1, 5) = DeltaY;
-    cm_send(WriteBackBuffer.format<ushort, 16, 16>().select<8, 1, 16, 1>(8, 0),
-        mesg.format<ushort, 2, 16>(),
+    cm_send(mesg.format<ushort, 11, 16>().select<9, 1, 16, 1>(2, 0),
+        mesg.format<ushort, 11, 16>().select<2, 1, 16, 1>(0, 0),
         nSMPL_ENGINE,
         desc_y,
         0);
+
+    WriteBackBuffer.format<ushort, 16, 16>().select<8, 1, 16, 1>(8, 0) = mesg.format<ushort, 11, 16>().select<8, 1, 16, 1>(2, 0);
+    TempMask0.select<1, 1, 2, 1>(0, 2) = mesg.format<ushort, 11, 16>().select<1, 1, 2, 1>(10, 0);
 
 #endif
 #ifdef BUFFER_5
@@ -768,22 +777,28 @@ if (CalculationMask != 0)
     mesg.select<1, 1, 1, 1>(1, 4) = DeltaX;
     mesg.select<1, 1, 1, 1>(1, 5) = DeltaY;
 
-    desc_y = nSMPL_UNORM_444_16BITS_MSGDSC_4CH + (MDF_FC_3D_SAMPLER_SI_Y << 8) + MDF_FC_INPUT_BTI_START + MDF_FC_INPUT_BTI_PER_LAYER * Layer_Index_45;
-    cm_send(WriteBackBuffer.format<ushort, 16, 16>().select<8, 1, 16, 1>(0, 0),
-        mesg.format<ushort, 2, 16>(),
+    desc_y = nSMPL_UNORM_LK_444_16BITS_MSGDSC_4CH + (MDF_FC_3D_SAMPLER_SI_Y << 8) + MDF_FC_INPUT_BTI_START + MDF_FC_INPUT_BTI_PER_LAYER * Layer_Index_45;
+    cm_send(mesg.format<ushort, 11, 16>().select<9, 1, 16, 1>(2, 0),
+        mesg.format<ushort, 11, 16>().select<2, 1, 16, 1>(0, 0),
         nSMPL_ENGINE,
         desc_y,
         0);
+
+    WriteBackBuffer.format<ushort, 16, 16>().select<8, 1, 16, 1>(0, 0) = mesg.format<ushort, 11, 16>().select<8, 1, 16, 1>(2, 0);
+    TempMask0.select<1, 1, 2, 1>(0, 4) = mesg.format<ushort, 11, 16>().select<1, 1, 2, 1>(10, 0);
 
     mesg.select<1, 1, 1, 1>(1, 2) = StartX1;
     mesg.select<1, 1, 1, 1>(1, 3) = StartY1;
     mesg.select<1, 1, 1, 1>(1, 4) = DeltaX;
     mesg.select<1, 1, 1, 1>(1, 5) = DeltaY;
-    cm_send(WriteBackBuffer.format<ushort, 16, 16>().select<8, 1, 16, 1>(8, 0),
-        mesg.format<ushort, 2, 16>(),
+    cm_send(mesg.format<ushort, 11, 16>().select<9, 1, 16, 1>(2, 0),
+        mesg.format<ushort, 11, 16>().select<2, 1, 16, 1>(0, 0),
         nSMPL_ENGINE,
         desc_y,
         0);
+
+    WriteBackBuffer.format<ushort, 16, 16>().select<8, 1, 16, 1>(8, 0) = mesg.format<ushort, 11, 16>().select<8, 1, 16, 1>(2, 0);
+    TempMask0.select<1, 1, 2, 1>(0, 6) = mesg.format<ushort, 11, 16>().select<1, 1, 2, 1>(10, 0);
 
 #endif
 

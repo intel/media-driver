@@ -37,6 +37,10 @@ _GENX_MAIN_ _CM_ENTRY_ void VP_Setup_MediaWalker(
     DstY = get_thread_origin_y() * 16;
     Layer_Index = 0xff;
 
+    Reserved1.format<ushort>().select<2, 1>(0) = TempMask0.row(0).select<2, 1>(10);
+    DstX = cm_max<ushort>(DstX, Reserved1.format<ushort>()[0]);
+    DstY = cm_max<ushort>(DstY, Reserved1.format<ushort>()[1]);
+
     {
         // X coordinate mask
         Mask_Temp = cm_add<ushort>(Top_Left(0), -DstX, SAT);

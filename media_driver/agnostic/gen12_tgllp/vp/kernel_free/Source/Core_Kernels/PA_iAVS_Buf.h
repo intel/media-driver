@@ -113,6 +113,8 @@ if (CalculationMask != 0)
 #endif
 #ifdef BUFFER_1
 #define WriteBackBuffer DataBuffer1
+    StartY = StartY + Reserved1.format<float>()[1];
+
     SurfaceIndex Src_Surface(MDF_FC_INPUT_BTI_F2);
     cm_avs_sampler(
         DataBuffer1,
@@ -155,6 +157,8 @@ if (CalculationMask != 0)
 #endif
 #ifdef BUFFER_3
 #define WriteBackBuffer DataBuffer3
+    StartY = StartY + Reserved1.format<float>()[1];
+
     SurfaceIndex Src_Surface(MDF_FC_INPUT_BTI_F2);
     cm_avs_sampler(
         DataBuffer3,

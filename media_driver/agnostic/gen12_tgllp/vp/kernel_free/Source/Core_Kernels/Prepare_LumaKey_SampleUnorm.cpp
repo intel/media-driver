@@ -30,7 +30,9 @@ _GENX_MAIN_ void Prepare_LumaKey_SampleUnorm(
     //   31 30 29 28 | 23 22 21 20 | 27 26 25 24 | 19 18 17 16 | 15 14 13 12 |07 06 05 04 | 11 10 09 08 | 03 02 01 00  -- Intermediate Format
     //   31 30 29 28 | 27 26 25 24 | 23 22 21 20 | 19 18 17 16 | 15 14 13 12 |11 10 09 08 | 07 06 05 04 | 03 02 01 00  -- Destination format
 
-    uchar Buffer_Index2 = (Buffer_Index >> 4) << 4;
+    uchar Buffer_Index2 = Buffer_Index >> 4;
+    Buffer_Index2 = cm_add<uchar>(Buffer_Index2, -4, SAT);
+    Buffer_Index2 = Buffer_Index2 << 3;
     uchar Mask_Index = cm_add<uchar>((Buffer_Index >> 4), -4, SAT);
     Mask_Index = Mask_Index << 2;
     Mask_Index = Mask_Index + ((Layer_Index & 0x80) >> 4); // Shift right Layer_Index 7 bits for sec half flag, left 3 bits for mask offset
@@ -41,17 +43,17 @@ _GENX_MAIN_ void Prepare_LumaKey_SampleUnorm(
     matrix<uchar, 1, 4> Sampler_Lumakey_Temp_Bit_67;
 
     // 1st half
-    Sampler_Lumakey_Temp_Bit_01.select<1, 1, 2, 2>(0, 0) = DataBuffer.format<uchar, 96, 32>().select<1, 1, 2, 1>(Buffer_Index2 + Channel_Offset_A_0, 0) & 0x03;
-    Sampler_Lumakey_Temp_Bit_01.select<1, 1, 2, 2>(0, 1) = (DataBuffer.format<uchar, 96, 32>().select<1, 1, 2, 1>(Buffer_Index2 + Channel_Offset_A_0, 0) & 0x0C) >> 2;
+    Sampler_Lumakey_Temp_Bit_01.select<1, 1, 2, 2>(0, 0) = TempMask0.format<uchar, 1, 32>().select<1, 1, 2, 1>(0, 0 + Buffer_Index2) & 0x03;
+    Sampler_Lumakey_Temp_Bit_01.select<1, 1, 2, 2>(0, 1) = (TempMask0.format<uchar, 1, 32>().select<1, 1, 2, 1>(0, 0 + Buffer_Index2) & 0x0C) >> 2;
 
-    Sampler_Lumakey_Temp_Bit_23.select<1, 1, 2, 2>(0, 0) = (DataBuffer.format<uchar, 96, 32>().select<1, 1, 2, 1>(Buffer_Index2 + Channel_Offset_A_0, 0) & 0x30) >> 2;
-    Sampler_Lumakey_Temp_Bit_23.select<1, 1, 2, 2>(0, 1) = (DataBuffer.format<uchar, 96, 32>().select<1, 1, 2, 1>(Buffer_Index2 + Channel_Offset_A_0, 0) & 0xC0) >> 4;
+    Sampler_Lumakey_Temp_Bit_23.select<1, 1, 2, 2>(0, 0) = (TempMask0.format<uchar, 1, 32>().select<1, 1, 2, 1>(0, 0 + Buffer_Index2) & 0x30) >> 2;
+    Sampler_Lumakey_Temp_Bit_23.select<1, 1, 2, 2>(0, 1) = (TempMask0.format<uchar, 1, 32>().select<1, 1, 2, 1>(0, 0 + Buffer_Index2) & 0xC0) >> 4;
 
-    Sampler_Lumakey_Temp_Bit_45.select<1, 1, 2, 2>(0, 0) = (DataBuffer.format<uchar, 96, 32>().select<1, 1, 2, 1>(Buffer_Index2 + Channel_Offset_A_0, 2) & 0x03) << 4;
-    Sampler_Lumakey_Temp_Bit_45.select<1, 1, 2, 2>(0, 1) = (DataBuffer.format<uchar, 96, 32>().select<1, 1, 2, 1>(Buffer_Index2 + Channel_Offset_A_0, 2) & 0x0C) << 2;
+    Sampler_Lumakey_Temp_Bit_45.select<1, 1, 2, 2>(0, 0) = (TempMask0.format<uchar, 1, 32>().select<1, 1, 2, 1>(0, 2 + Buffer_Index2) & 0x03) << 4;
+    Sampler_Lumakey_Temp_Bit_45.select<1, 1, 2, 2>(0, 1) = (TempMask0.format<uchar, 1, 32>().select<1, 1, 2, 1>(0, 2 + Buffer_Index2) & 0x0C) << 2;
 
-    Sampler_Lumakey_Temp_Bit_67.select<1, 1, 2, 2>(0, 0) = (DataBuffer.format<uchar, 96, 32>().select<1, 1, 2, 1>(Buffer_Index2 + Channel_Offset_A_0, 2) & 0x30) << 2;
-    Sampler_Lumakey_Temp_Bit_67.select<1, 1, 2, 2>(0, 1) = DataBuffer.format<uchar, 96, 32>().select<1, 1, 2, 1>(Buffer_Index2 + Channel_Offset_A_0, 2) & 0xC0;
+    Sampler_Lumakey_Temp_Bit_67.select<1, 1, 2, 2>(0, 0) = (TempMask0.format<uchar, 1, 32>().select<1, 1, 2, 1>(0, 2 + Buffer_Index2) & 0x30) << 2;
+    Sampler_Lumakey_Temp_Bit_67.select<1, 1, 2, 2>(0, 1) = TempMask0.format<uchar, 1, 32>().select<1, 1, 2, 1>(0, 2 + Buffer_Index2) & 0xC0;
 
     Sampler_Lumakey_Temp_Bit_01 = Sampler_Lumakey_Temp_Bit_01 | Sampler_Lumakey_Temp_Bit_23;
     Sampler_Lumakey_Temp_Bit_01 = Sampler_Lumakey_Temp_Bit_01 | Sampler_Lumakey_Temp_Bit_45;
@@ -61,17 +63,17 @@ _GENX_MAIN_ void Prepare_LumaKey_SampleUnorm(
     TempMask[Mask_Index + 1] = TempMask[Mask_Index + 1] & Sampler_Lumakey_Temp_Bit_01.format<ushort, 1, 2>().row(0)[1];
 
     // 2nd half
-    Sampler_Lumakey_Temp_Bit_01.select<1, 1, 2, 2>(0, 0) = DataBuffer.format<uchar, 96, 32>().select<1, 1, 2, 1>(Buffer_Index2 + Channel_Offset_A_0 + 1, 0) & 0x03;
-    Sampler_Lumakey_Temp_Bit_01.select<1, 1, 2, 2>(0, 1) = (DataBuffer.format<uchar, 96, 32>().select<1, 1, 2, 1>(Buffer_Index2 + Channel_Offset_A_0 + 1, 0) & 0x0C) >> 2;
+    Sampler_Lumakey_Temp_Bit_01.select<1, 1, 2, 2>(0, 0) = TempMask0.format<uchar, 1, 32>().select<1, 1, 2, 1>(0, 4 + Buffer_Index2) & 0x03;
+    Sampler_Lumakey_Temp_Bit_01.select<1, 1, 2, 2>(0, 1) = (TempMask0.format<uchar, 1, 32>().select<1, 1, 2, 1>(0, 4 + Buffer_Index2) & 0x0C) >> 2;
 
-    Sampler_Lumakey_Temp_Bit_23.select<1, 1, 2, 2>(0, 0) = (DataBuffer.format<uchar, 96, 32>().select<1, 1, 2, 1>(Buffer_Index2 + Channel_Offset_A_0 + 1, 0) & 0x30) >> 2;
-    Sampler_Lumakey_Temp_Bit_23.select<1, 1, 2, 2>(0, 1) = (DataBuffer.format<uchar, 96, 32>().select<1, 1, 2, 1>(Buffer_Index2 + Channel_Offset_A_0 + 1, 0) & 0xC0) >> 4;
+    Sampler_Lumakey_Temp_Bit_23.select<1, 1, 2, 2>(0, 0) = (TempMask0.format<uchar, 1, 32>().select<1, 1, 2, 1>(0, 4 + Buffer_Index2) & 0x30) >> 2;
+    Sampler_Lumakey_Temp_Bit_23.select<1, 1, 2, 2>(0, 1) = (TempMask0.format<uchar, 1, 32>().select<1, 1, 2, 1>(0, 4 + Buffer_Index2) & 0xC0) >> 4;
 
-    Sampler_Lumakey_Temp_Bit_45.select<1, 1, 2, 2>(0, 0) = (DataBuffer.format<uchar, 96, 32>().select<1, 1, 2, 1>(Buffer_Index2 + Channel_Offset_A_0 + 1, 2) & 0x03) << 4;
-    Sampler_Lumakey_Temp_Bit_45.select<1, 1, 2, 2>(0, 1) = (DataBuffer.format<uchar, 96, 32>().select<1, 1, 2, 1>(Buffer_Index2 + Channel_Offset_A_0 + 1, 2) & 0x0C) << 2;
+    Sampler_Lumakey_Temp_Bit_45.select<1, 1, 2, 2>(0, 0) = (TempMask0.format<uchar, 1, 32>().select<1, 1, 2, 1>(0, 6 + Buffer_Index2) & 0x03) << 4;
+    Sampler_Lumakey_Temp_Bit_45.select<1, 1, 2, 2>(0, 1) = (TempMask0.format<uchar, 1, 32>().select<1, 1, 2, 1>(0, 6 + Buffer_Index2) & 0x0C) << 2;
 
-    Sampler_Lumakey_Temp_Bit_67.select<1, 1, 2, 2>(0, 0) = (DataBuffer.format<uchar, 96, 32>().select<1, 1, 2, 1>(Buffer_Index2 + Channel_Offset_A_0 + 1, 2) & 0x30) << 2;
-    Sampler_Lumakey_Temp_Bit_67.select<1, 1, 2, 2>(0, 1) = DataBuffer.format<uchar, 96, 32>().select<1, 1, 2, 1>(Buffer_Index2 + Channel_Offset_A_0 + 1, 2) & 0xC0;
+    Sampler_Lumakey_Temp_Bit_67.select<1, 1, 2, 2>(0, 0) = (TempMask0.format<uchar, 1, 32>().select<1, 1, 2, 1>(0, 6 + Buffer_Index2) & 0x30) << 2;
+    Sampler_Lumakey_Temp_Bit_67.select<1, 1, 2, 2>(0, 1) = TempMask0.format<uchar, 1, 32>().select<1, 1, 2, 1>(0, 6 + Buffer_Index2) & 0xC0;
 
     Sampler_Lumakey_Temp_Bit_01 = Sampler_Lumakey_Temp_Bit_01 | Sampler_Lumakey_Temp_Bit_23;
     Sampler_Lumakey_Temp_Bit_01 = Sampler_Lumakey_Temp_Bit_01 | Sampler_Lumakey_Temp_Bit_45;

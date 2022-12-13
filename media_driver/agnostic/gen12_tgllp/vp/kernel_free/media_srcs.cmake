@@ -64,7 +64,7 @@ function(gen_vpkernel_from_cm)
     file(GLOB_RECURSE srcs ${krn_dir}/Source/*.cpp)
 
     set(objsname "")
-    set(cm_genx tgl)
+    set(cm_genx tgllp)
 
     foreach(src ${srcs})
         get_filename_component(obj ${src} NAME_WE) # there are other outputs from cmc command, but we use only .dat and .fcpatch

@@ -53,111 +53,155 @@ _GENX_MAIN_ _CM_CALLABLE_ void AlphaSrcBlendG(
     {
         matrix<uint, 1, 16> Temp;
 
-        if (TempMask[CalculationMask])
         {
             // R1/G1/B1/A1
             matrix<ushort, 1, 16> Alpha = DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index2 + 6, 0);
             Alpha = (Alpha * (cm_add<uchar>(ConstAlpha, 1, SAT))) >> 8;
 
             {
-                Temp = (((DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_RV_0, 0) * (cm_add<ushort>(0xFF00, -Alpha, SAT)))) + ((DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index2 + Channel_Offset_RV_0, 0) * Alpha1))) >> 16;
-                DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_RV_0, 0).merge(Temp.format<ushort, 1, 32>().select<1, 1, 16, 2>(0, 1), DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_RV_0, 0), TempMask[CalculationMask]);
+                Temp = cm_add<ushort>(0xFF00, -Alpha, SAT);
+                Temp = Temp * DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_RV_0, 0);
+                Temp += DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index2 + Channel_Offset_RV_0, 0) * Alpha1;
+                Temp = Temp >> 16;
+                DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_RV_0, 0).merge(Temp, TempMask[CalculationMask]);
             }
 
             {
-                Temp = (((DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_GY_0, 0) * (cm_add<ushort>(0xFF00, -Alpha, SAT)))) + ((DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index2 + Channel_Offset_GY_0, 0) * Alpha1))) >> 16;
-                DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_GY_0, 0).merge(Temp.format<ushort, 1, 32>().select<1, 1, 16, 2>(0, 1), DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_GY_0, 0), TempMask[CalculationMask]);
+                Temp = cm_add<ushort>(0xFF00, -Alpha, SAT);
+                Temp = Temp * DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_GY_0, 0);
+                Temp += DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index2 + Channel_Offset_GY_0, 0) * Alpha1;
+                Temp = Temp >> 16;
+                DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_GY_0, 0).merge(Temp, TempMask[CalculationMask]);
             }
 
             {
-                Temp = (((DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_BU_0, 0) * (cm_add<ushort>(0xFF00, -Alpha, SAT)))) + ((DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index2 + Channel_Offset_BU_0, 0) * Alpha1))) >> 16;
-                DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_BU_0, 0).merge(Temp.format<ushort, 1, 32>().select<1, 1, 16, 2>(0, 1), DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_BU_0, 0), TempMask[CalculationMask]);
+                Temp = cm_add<ushort>(0xFF00, -Alpha, SAT);
+                Temp = Temp * DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_BU_0, 0);
+                Temp += DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index2 + Channel_Offset_BU_0, 0) * Alpha1;
+                Temp = Temp >> 16;
+                DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_BU_0, 0).merge(Temp, TempMask[CalculationMask]);
             }
 
             {
-                Temp = (((DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_A_0, 0) * (cm_add<ushort>(0xFF00, -Alpha, SAT)))) + ((DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index2 + Channel_Offset_A_0, 0) * Alpha1))) >> 16;
-                DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_A_0, 0).merge(Temp.format<ushort, 1, 32>().select<1, 1, 16, 2>(0, 1), DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_A_0, 0), TempMask[CalculationMask]);
+                Temp = cm_add<ushort>(0xFF00, -Alpha, SAT);
+                Temp = Temp * DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_A_0, 0);
+                Temp += DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index2 + Channel_Offset_A_0, 0) * Alpha1;
+                Temp = Temp >> 16;
+                DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_A_0, 0).merge(Temp, TempMask[CalculationMask]);
             }
         }
 
-        if (TempMask[CalculationMask + 1])
         {
             // R2/G2/B2/A2
             matrix<ushort, 1, 16> Alpha = DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index2 + 7, 0);
             Alpha = (Alpha * (cm_add<uchar>(ConstAlpha, 1, SAT))) >> 8;
 
             {
-                Temp = (((DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_RV_1, 0) * (cm_add<ushort>(0xFF00, -Alpha, SAT)))) + ((DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index2 + Channel_Offset_RV_1, 0) * Alpha1))) >> 16;
-                DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_RV_1, 0).merge(Temp.format<ushort, 1, 32>().select<1, 1, 16, 2>(0, 1), DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_RV_1, 0), TempMask[CalculationMask + 1]);
+                Temp = cm_add<ushort>(0xFF00, -Alpha, SAT);
+                Temp = Temp * DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_RV_1, 0);
+                Temp += DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index2 + Channel_Offset_RV_1, 0) * Alpha1;
+                Temp = Temp >> 16;
+                DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_RV_1, 0).merge(Temp, TempMask[CalculationMask + 1]);
             }
 
             {
-                Temp = (((DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_GY_1, 0) * (cm_add<ushort>(0xFF00, -Alpha, SAT)))) + ((DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index2 + Channel_Offset_GY_1, 0) * Alpha1))) >> 16;
-                DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_GY_1, 0).merge(Temp.format<ushort, 1, 32>().select<1, 1, 16, 2>(0, 1), DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_GY_1, 0), TempMask[CalculationMask + 1]);
+                Temp = cm_add<ushort>(0xFF00, -Alpha, SAT);
+                Temp = Temp * DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_GY_1, 0);
+                Temp += DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index2 + Channel_Offset_GY_1, 0) * Alpha1;
+                Temp = Temp >> 16;
+                DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_GY_1, 0).merge(Temp, TempMask[CalculationMask + 1]);
             }
 
             {
-                Temp = (((DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_BU_1, 0) * (cm_add<ushort>(0xFF00, -Alpha, SAT)))) + ((DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index2 + Channel_Offset_BU_1, 0) * Alpha1))) >> 16;
-                DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_BU_1, 0).merge(Temp.format<ushort, 1, 32>().select<1, 1, 16, 2>(0, 1), DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_BU_1, 0), TempMask[CalculationMask + 1]);
+                Temp = cm_add<ushort>(0xFF00, -Alpha, SAT);
+                Temp = Temp * DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_BU_1, 0);
+                Temp += DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index2 + Channel_Offset_BU_1, 0) * Alpha1;
+                Temp = Temp >> 16;
+                DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_BU_1, 0).merge(Temp, TempMask[CalculationMask + 1]);
             }
 
             {
-                Temp = (((DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_A_1, 0) * (cm_add<ushort>(0xFF00, -Alpha, SAT)))) + ((DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index2 + Channel_Offset_A_1, 0) * Alpha1))) >> 16;
-                DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_A_1, 0).merge(Temp.format<ushort, 1, 32>().select<1, 1, 16, 2>(0, 1), DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_A_1, 0), TempMask[CalculationMask + 1]);
+                Temp = cm_add<ushort>(0xFF00, -Alpha, SAT);
+                Temp = Temp * DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_A_1, 0);
+                Temp += DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index2 + Channel_Offset_A_1, 0) * Alpha1;
+                Temp = Temp >> 16;
+                DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_A_1, 0).merge(Temp, TempMask[CalculationMask + 1]);
             }
         }
 
-        if (TempMask[CalculationMask + 2])
         {
             // R3/G3/B3/A3
             matrix<ushort, 1, 16> Alpha = DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index2 + 14, 0);
             Alpha = (Alpha * (cm_add<uchar>(ConstAlpha, 1, SAT))) >> 8;
 
             {
-                Temp = (((DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_RV_2, 0) * (cm_add<ushort>(0xFF00, -Alpha, SAT)))) + ((DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index2 + Channel_Offset_RV_2, 0) * Alpha1))) >> 16;
-                DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_RV_2, 0).merge(Temp.format<ushort, 1, 32>().select<1, 1, 16, 2>(0, 1), DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_RV_2, 0), TempMask[CalculationMask + 2]);
+                Temp = cm_add<ushort>(0xFF00, -Alpha, SAT);
+                Temp = Temp * DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_RV_2, 0);
+                Temp += DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index2 + Channel_Offset_RV_2, 0) * Alpha1;
+                Temp = Temp >> 16;
+                DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_RV_2, 0).merge(Temp, TempMask[CalculationMask + 2]);
             }
 
             {
-                Temp = (((DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_GY_2, 0) * (cm_add<ushort>(0xFF00, -Alpha, SAT)))) + ((DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index2 + Channel_Offset_GY_2, 0) * Alpha1))) >> 16;
-                DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_GY_2, 0).merge(Temp.format<ushort, 1, 32>().select<1, 1, 16, 2>(0, 1), DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_GY_2, 0), TempMask[CalculationMask + 2]);
+                Temp = cm_add<ushort>(0xFF00, -Alpha, SAT);
+                Temp = Temp * DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_GY_2, 0);
+                Temp += DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index2 + Channel_Offset_GY_2, 0) * Alpha1;
+                Temp = Temp >> 16;
+                DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_GY_2, 0).merge(Temp, TempMask[CalculationMask + 2]);
             }
 
             {
-                Temp = (((DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_BU_2, 0) * (cm_add<ushort>(0xFF00, -Alpha, SAT)))) + ((DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index2 + Channel_Offset_BU_2, 0) * Alpha1))) >> 16;
-                DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_BU_2, 0).merge(Temp.format<ushort, 1, 32>().select<1, 1, 16, 2>(0, 1), DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_BU_2, 0), TempMask[CalculationMask + 2]);
+                Temp = cm_add<ushort>(0xFF00, -Alpha, SAT);
+                Temp = Temp * DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_BU_2, 0);
+                Temp += DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index2 + Channel_Offset_BU_2, 0) * Alpha1;
+                Temp = Temp >> 16;
+                DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_BU_2, 0).merge(Temp, TempMask[CalculationMask + 2]);
             }
 
             {
-                Temp = (((DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_A_2, 0) * (cm_add<ushort>(0xFF00, -Alpha, SAT)))) + ((DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index2 + Channel_Offset_A_2, 0) * Alpha1))) >> 16;
-                DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_A_2, 0).merge(Temp.format<ushort, 1, 32>().select<1, 1, 16, 2>(0, 1), DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_A_2, 0), TempMask[CalculationMask + 2]);
+                Temp = cm_add<ushort>(0xFF00, -Alpha, SAT);
+                Temp = Temp * DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_A_2, 0);
+                Temp += DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index2 + Channel_Offset_A_2, 0) * Alpha1;
+                Temp = Temp >> 16;
+                DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_A_2, 0).merge(Temp, TempMask[CalculationMask + 2]);
             }
         }
 
-        if (TempMask[CalculationMask + 3])
         {
             // R4/G4/B4/A4
             matrix<ushort, 1, 16> Alpha = DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index2 + 15, 0);
             Alpha = (Alpha * (cm_add<uchar>(ConstAlpha, 1, SAT))) >> 8;
 
             {
-                Temp = (((DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_RV_3, 0) * (cm_add<ushort>(0xFF00, -Alpha, SAT)))) + ((DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index2 + Channel_Offset_RV_3, 0) * Alpha1))) >> 16;
-                DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_RV_3, 0).merge(Temp.format<ushort, 1, 32>().select<1, 1, 16, 2>(0, 1), DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_RV_3, 0), TempMask[CalculationMask + 3]);
+                Temp = cm_add<ushort>(0xFF00, -Alpha, SAT);
+                Temp = Temp * DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_RV_3, 0);
+                Temp += DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index2 + Channel_Offset_RV_3, 0) * Alpha1;
+                Temp = Temp >> 16;
+                DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_RV_3, 0).merge(Temp, TempMask[CalculationMask + 3]);
             }
 
             {
-                Temp = (((DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_GY_3, 0) * (cm_add<ushort>(0xFF00, -Alpha, SAT)))) + ((DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index2 + Channel_Offset_GY_3, 0) * Alpha1))) >> 16;
-                DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_GY_3, 0).merge(Temp.format<ushort, 1, 32>().select<1, 1, 16, 2>(0, 1), DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_GY_3, 0), TempMask[CalculationMask + 3]);
+                Temp = cm_add<ushort>(0xFF00, -Alpha, SAT);
+                Temp = Temp * DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_GY_3, 0);
+                Temp += DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index2 + Channel_Offset_GY_3, 0) * Alpha1;
+                Temp = Temp >> 16;
+                DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_GY_3, 0).merge(Temp, TempMask[CalculationMask + 3]);
             }
 
             {
-                Temp = (((DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_BU_3, 0) * (cm_add<ushort>(0xFF00, -Alpha, SAT)))) + ((DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index2 + Channel_Offset_BU_3, 0) * Alpha1))) >> 16;
-                DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_BU_3, 0).merge(Temp.format<ushort, 1, 32>().select<1, 1, 16, 2>(0, 1), DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_BU_3, 0), TempMask[CalculationMask + 3]);
+                Temp = cm_add<ushort>(0xFF00, -Alpha, SAT);
+                Temp = Temp * DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_BU_3, 0);
+                Temp += DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index2 + Channel_Offset_BU_3, 0) * Alpha1;
+                Temp = Temp >> 16;
+                DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_BU_3, 0).merge(Temp, TempMask[CalculationMask + 3]);
             }
 
             {
-                Temp = (((DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_A_3, 0) * (cm_add<ushort>(0xFF00, -Alpha, SAT)))) + ((DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index2 + Channel_Offset_A_3, 0) * Alpha1))) >> 16;
-                DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_A_3, 0).merge(Temp.format<ushort, 1, 32>().select<1, 1, 16, 2>(0, 1), DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_A_3, 0), TempMask[CalculationMask + 3]);
+                Temp = cm_add<ushort>(0xFF00, -Alpha, SAT);
+                Temp = Temp * DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_A_3, 0);
+                Temp += DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index2 + Channel_Offset_A_3, 0) * Alpha1;
+                Temp = Temp >> 16;
+                DataBuffer.format<ushort, 96, 16>().select<1, 1, 16, 1>(Buffer_Index1 + Channel_Offset_A_3, 0).merge(Temp, TempMask[CalculationMask + 3]);
             }
         }
     }

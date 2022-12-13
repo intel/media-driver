@@ -46,6 +46,16 @@ CalculationMask = (cm_pack_mask(LoadMaskTemp) >> (4 + sec_half_shift)) & 0x000F;
 Buffer_Index = 5;
 #endif
 
+#ifdef Y410_SUPPORT
+#define NORMALIZATION_10_BIT
+#endif
+
+#ifdef NORMALIZATION_10_BIT
+#undef MDF_FC_NORMALIZE_FACTOR
+#define MDF_FC_NORMALIZE_FACTOR 65472.0f
+#else
+#endif
+
 if (CalculationMask != 0)
 {
     float StartX;

@@ -26,5 +26,4 @@ _GENX_MAIN_ void Set_Dest_Surf_Indexes_Primary(
     GLOBAL_BUFFER_INPUT_OUTPUT)
 {
     // Place holder
-    DstX = get_thread_origin_x() * 16;
 }

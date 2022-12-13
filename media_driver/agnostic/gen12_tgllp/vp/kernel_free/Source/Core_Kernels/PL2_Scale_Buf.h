@@ -915,7 +915,7 @@ if (CalculationMask != 0)
         0);
 
     WriteBackBuffer.format<ushort, 16, 16>().select<2, 1, 16, 1>(2, 0) = pl2_temp.select<2, 1, 16, 1>(0, 0);
-    WriteBackBuffer.format<ushort, 16, 16>().select<1, 1, 16, 1>(6, 0) = pl2_temp.select<1, 1, 16, 1>(2, 0);
+    TempMask0.select<1, 1, 2, 1>(0, 0) = pl2_temp.select<1, 1, 2, 1>(2, 0);
 
     mesg.select<1, 1, 1, 1>(1, 2) = StartX1;
     mesg.select<1, 1, 1, 1>(1, 3) = StartY1;
@@ -929,7 +929,7 @@ if (CalculationMask != 0)
         0);
 
     WriteBackBuffer.format<ushort, 16, 16>().select<2, 1, 16, 1>(10, 0) = pl2_temp.select<2, 1, 16, 1>(0, 0);
-    WriteBackBuffer.format<ushort, 16, 16>().select<1, 1, 16, 1>(7, 0) = pl2_temp.select<1, 1, 16, 1>(2, 0);
+    TempMask0.select<1, 1, 2, 1>(0, 2) = pl2_temp.select<1, 1, 2, 1>(2, 0);
 
     // UV channel
     mesg.format<uint, 2, 8>().select<1, 1, 1, 1>(0, 2) = nSMPL_RED_GREEN_CHANNEL_444_16;
@@ -982,7 +982,7 @@ if (CalculationMask != 0)
         0);
 
     WriteBackBuffer.format<ushort, 16, 16>().select<2, 1, 16, 1>(2, 0) = pl2_temp.select<2, 1, 16, 1>(0, 0);
-    WriteBackBuffer.format<ushort, 16, 16>().select<1, 1, 16, 1>(6, 0) = pl2_temp.select<1, 1, 16, 1>(2, 0);
+    TempMask0.select<1, 1, 2, 1>(0, 4) = pl2_temp.select<1, 1, 2, 1>(2, 0);
 
     mesg.select<1, 1, 1, 1>(1, 2) = StartX1;
     mesg.select<1, 1, 1, 1>(1, 3) = StartY1;
@@ -996,7 +996,7 @@ if (CalculationMask != 0)
         0);
 
     WriteBackBuffer.format<ushort, 16, 16>().select<2, 1, 16, 1>(10, 0) = pl2_temp.select<2, 1, 16, 1>(0, 0);
-    WriteBackBuffer.format<ushort, 16, 16>().select<1, 1, 16, 1>(7, 0) = pl2_temp.select<1, 1, 16, 1>(2, 0);
+    TempMask0.select<1, 1, 2, 1>(0, 6) = pl2_temp.select<1, 1, 2, 1>(2, 0);
 
     // UV channel
     mesg.format<uint, 2, 8>().select<1, 1, 1, 1>(0, 2) = nSMPL_RED_GREEN_CHANNEL_444_16;

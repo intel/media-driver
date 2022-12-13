@@ -23,7 +23,7 @@ function(gen_vpkernel_from_cm)
     set(genx "xe")
     set(kind "hpg")
     set(name "vp")
-    set(platform "Xe_HPG")
+    set(platform "Xe_HPG_Base")
 
     set(krn ig${name}krn_${genx}_${kind})
     set(krnpatch ig${name}krn_${genx}_${kind}_cmfcpatch)
