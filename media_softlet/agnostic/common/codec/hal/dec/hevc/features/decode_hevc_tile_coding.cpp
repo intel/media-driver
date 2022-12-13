@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2022, Intel Corporation
+* Copyright (c) 2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -84,11 +84,23 @@ MOS_STATUS HevcTileCoding::UpdateSlice(const CODEC_HEVC_PIC_PARAMS & picParams,
         SliceTileInfo* sliceTileInfo = AllocateSliceTileInfo(slcIdx);
         DECODE_CHK_NULL(sliceTileInfo);
 
+        if(sliceParams[slcIdx].slice_data_offset + sliceParams[slcIdx].slice_data_size > m_basicFeature->m_dataSize)
+        {
+            DECODE_ASSERTMESSAGE("invalid slice %d, data size overflow\n", slcIdx);
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+
         if (m_basicFeature->IsIndependentSlice(slcIdx))
         {
             sliceTileInfo->origCtbX = sliceParams[slcIdx].slice_segment_address % m_basicFeature->m_widthInCtb;
             sliceTileInfo->origCtbY = sliceParams[slcIdx].slice_segment_address / m_basicFeature->m_widthInCtb;
 
+            if(slcIdx == 0 && sliceParams[slcIdx].slice_segment_address != 0)
+            {
+                DECODE_ASSERTMESSAGE("invalid independent slice %d, slice_segment_address=%d\n",
+                    slcIdx, sliceParams[slcIdx].slice_segment_address);
+                return MOS_STATUS_INVALID_PARAMETER;
+            }
         }
         else
         {
@@ -100,6 +112,12 @@ MOS_STATUS HevcTileCoding::UpdateSlice(const CODEC_HEVC_PIC_PARAMS & picParams,
                     sliceTileInfo->origCtbX = sliceParams[index].slice_segment_address % m_basicFeature->m_widthInCtb;
                     sliceTileInfo->origCtbY = sliceParams[index].slice_segment_address / m_basicFeature->m_widthInCtb;
 
+                    if(index == 0 && sliceParams[index].slice_segment_address != 0)
+                    {
+                        DECODE_ASSERTMESSAGE("invalid dependent slice %d, index %d, slice_segment_address=%d\n",
+                            index, sliceParams[index].slice_segment_address);
+                        return MOS_STATUS_INVALID_PARAMETER;
+                    }
                     break;
                 }
             }
@@ -213,14 +231,7 @@ MOS_STATUS HevcTileCoding::UpdateSubTileInfo(const CODEC_HEVC_PIC_PARAMS & picPa
                                              const CODEC_HEVC_SLICE_PARAMS & sliceParams,
                                              SliceTileInfo &sliceTileInfo)
 {
-    if (sliceTileInfo.numTiles > 1)
-    {
-        if (!picParams.entropy_coding_sync_enabled_flag)
-        {
-            DECODE_CHK_COND(sliceTileInfo.numTiles != (sliceParams.num_entry_point_offsets + 1),
-                            "tiles number does not equal to current num_entry_point_offsets.");
-        }
-    }
+    DECODE_ASSERT(sliceTileInfo.numTiles == (sliceParams.num_entry_point_offsets + 1));
 
     uint32_t* entryPointOffsets = nullptr;
     if (m_basicFeature->m_hevcSubsetParams != nullptr)

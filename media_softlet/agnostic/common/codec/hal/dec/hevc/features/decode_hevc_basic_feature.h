@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2022, Intel Corporation
+* Copyright (c) 2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -98,12 +98,6 @@ protected:
     MOS_STATUS SetPictureStructs();
     MOS_STATUS SetSliceStructs();
     MOS_STATUS ErrorDetectAndConceal();
-    MOS_STATUS ErrorDetectAndConcealForLongFormat();
-    MOS_STATUS SliceDataSizeCheck(uint32_t sliceIdx);
-    MOS_STATUS SliceSegmentAddressCheck(uint32_t sliceIdx, std::vector<int> &sliceSegmentAddressVector);
-    MOS_STATUS NumEntryPointOffsetsCheck(uint32_t sliceIdx);
-    MOS_STATUS ReferenceParamCheck(uint32_t sliceIdx);
-    MOS_STATUS CollocatedRefIdxCheck(uint32_t sliceIdx);
 
     PMOS_INTERFACE        m_osInterface  = nullptr;
 
