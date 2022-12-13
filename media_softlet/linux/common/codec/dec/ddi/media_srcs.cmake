@@ -21,28 +21,91 @@
 set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_functions.cpp
     ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_base_specific.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_av1_specific.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_avc_specific.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_hevc_specific.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_jpeg_specific.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_mpeg2_specific.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_vp8_specific.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_vp9_specific.cpp
     ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_trace_specific.cpp
 )
 
 set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_functions.h
     ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_base_specific.h
-    ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_av1_specific.h
-    ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_avc_specific.h
-    ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_hevc_specific.h
-    ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_jpeg_specific.h
-    ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_mpeg2_specific.h
-    ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_vp8_specific.h
-    ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_vp9_specific.h
     ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_trace_specific.h
 )
+
+if(${AVC_Decode_Supported} STREQUAL "yes")
+    set(TMP_SOURCES_
+        ${TMP_SOURCES_}
+        ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_avc_specific.cpp
+    )
+    set(TMP_HEADERS_
+        ${TMP_HEADERS_}
+        ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_avc_specific.h
+    )
+endif()
+
+if(${HEVC_Decode_Supported} STREQUAL "yes")
+    set(TMP_SOURCES_
+        ${TMP_SOURCES_}
+        ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_hevc_specific.cpp
+    )
+    set(TMP_HEADERS_
+        ${TMP_HEADERS_}
+        ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_hevc_specific.h
+    )
+endif()
+
+if(${JPEG_Decode_Supported} STREQUAL "yes")
+    set(TMP_SOURCES_
+        ${TMP_SOURCES_}
+        ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_jpeg_specific.cpp
+    )
+    set(TMP_HEADERS_
+        ${TMP_HEADERS_}
+        ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_jpeg_specific.h
+    )
+endif()
+
+if(${MPEG2_Decode_Supported} STREQUAL "yes")
+    set(TMP_SOURCES_
+        ${TMP_SOURCES_}
+        ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_mpeg2_specific.cpp
+    )
+    set(TMP_HEADERS_
+        ${TMP_HEADERS_}
+        ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_mpeg2_specific.h
+    )
+endif()
+
+if(${VP8_Decode_Supported} STREQUAL "yes")
+    set(TMP_SOURCES_
+        ${TMP_SOURCES_}
+        ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_vp8_specific.cpp
+    )
+    set(TMP_HEADERS_
+        ${TMP_HEADERS_}
+        ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_vp8_specific.h
+    )
+endif()
+
+if(${VP9_Decode_Supported} STREQUAL "yes")
+    set(TMP_SOURCES_
+        ${TMP_SOURCES_}
+        ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_vp9_specific.cpp
+    )
+    set(TMP_HEADERS_
+        ${TMP_HEADERS_}
+        ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_vp9_specific.h
+    )
+endif()
+
+if(${AV1_Decode_Supported} STREQUAL "yes")
+    set(TMP_SOURCES_
+        ${TMP_SOURCES_}
+        ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_av1_specific.cpp
+    )
+    set(TMP_HEADERS_
+        ${TMP_HEADERS_}
+        ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_av1_specific.h
+    )
+endif()
 
 set(SOFTLET_DDI_SOURCES_
     ${SOFTLET_DDI_SOURCES_}
