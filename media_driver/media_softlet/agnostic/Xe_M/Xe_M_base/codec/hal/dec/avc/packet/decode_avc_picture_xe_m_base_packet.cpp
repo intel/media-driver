@@ -277,6 +277,17 @@ namespace decode{
             uint8_t frameIdx = activeRefList[i];
             uint8_t frameId = (m_avcBasicFeature->m_picIdRemappingInUse) ? i : refFrames.m_refList[frameIdx]->ucFrameId;
             pipeBufAddrParams.presReferences[frameId] = refFrames.GetReferenceByFrameIndex(frameIdx);
+
+            // Return error if reference surface's width or height is less than dest surface.
+            if (pipeBufAddrParams.presReferences[frameId] != nullptr)
+            {
+                MOS_SURFACE refSurface;
+                refSurface.OsResource = *(pipeBufAddrParams.presReferences[frameId]);
+                DECODE_CHK_STATUS(m_allocator->GetSurfaceInfo(&refSurface));
+                DECODE_CHK_COND(((refSurface.dwWidth < m_avcBasicFeature->m_destSurface.dwWidth)
+                    || (refSurface.dwHeight < m_avcBasicFeature->m_destSurface.dwHeight)),
+                    "Reference surface's width or height is less than Dest surface.");
+            }
         }
 
         DECODE_CHK_STATUS(FixMfxPipeBufAddrParams(pipeBufAddrParams));

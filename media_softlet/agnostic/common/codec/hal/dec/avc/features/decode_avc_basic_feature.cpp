@@ -211,9 +211,9 @@ namespace decode {
         }
 
         if(m_avcPicParams->chroma_qp_index_offset < -12
-            || m_avcPicParams->pic_init_qp_minus26 > 12)
+            || m_avcPicParams->chroma_qp_index_offset > 12)
         {
-            DECODE_ASSERTMESSAGE("Conflict with H264 Spec! pic_init_qp_minus26 is out of range");
+            DECODE_ASSERTMESSAGE("Conflict with H264 Spec! chroma_qp_index_offset is out of range");
         }
 
         if(m_avcPicParams->second_chroma_qp_index_offset < -12
