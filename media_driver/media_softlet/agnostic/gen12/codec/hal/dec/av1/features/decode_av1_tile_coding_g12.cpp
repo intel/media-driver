@@ -134,6 +134,7 @@ namespace decode
             if (m_lastTileId != m_totalTileNum - 1)
             {
                 m_lastTileId = m_totalTileNum - 1;
+                m_newFrameStart = true;
             }
         }
 
