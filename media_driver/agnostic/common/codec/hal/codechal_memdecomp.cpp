@@ -436,7 +436,7 @@ MOS_STATUS MediaMemDecompState::MemoryDecompress(
     }
 
     uint32_t widthInBytes = GetSurfaceWidthInBytes(surfaceParams.psSurface);
-    surfaceParams.dwWidthToUse[MHW_Y_PLANE] = WIDTH_IN_DW(widthInBytes);
+    surfaceParams.dwWidthToUse[MHW_Y_PLANE] = MHW_WIDTH_IN_DW(widthInBytes);
 
     // UV Plane
     if (useUVPlane)
@@ -453,7 +453,7 @@ MOS_STATUS MediaMemDecompState::MemoryDecompress(
         surfaceParams.dwBaseAddrOffset[MHW_U_PLANE] =
             targetSurface.dwPitch *
             MOS_ALIGN_FLOOR(targetSurface.UPlaneOffset.iYOffset, MOS_YTILE_H_ALIGNMENT);
-        surfaceParams.dwWidthToUse[MHW_U_PLANE]  = WIDTH_IN_DW(widthInBytes);
+        surfaceParams.dwWidthToUse[MHW_U_PLANE]  = MHW_WIDTH_IN_DW(widthInBytes);
         surfaceParams.dwHeightToUse[MHW_U_PLANE] = surfaceParams.psSurface->dwHeight / 2;
         surfaceParams.dwYOffset[MHW_U_PLANE] =
             (targetSurface.UPlaneOffset.iYOffset % MOS_YTILE_H_ALIGNMENT);

@@ -31,7 +31,6 @@
 #include "mhw_mi.h"
 #include "mos_os.h"
 #include "mos_util_debug.h"
-#include "codec_def_common.h"
 
 class MhwMiInterface;
 namespace mhw
