@@ -89,6 +89,11 @@ VAStatus DdiDecodeHEVCG12::ParseSliceParams(
         }
         else
         {
+            if (m_decodeErrorFlag)
+            {
+                /* If error occurs in current GOP (m_decodeErrorFlag is true), set slice_temporal_mvp_enabled_flag = 0 to avoid GPU hang */
+                codecSlcParams->LongSliceFlags.fields.slice_temporal_mvp_enabled_flag = 0;
+            }
             codecSlcParams->slice_data_size   = slc->slice_data_size;
             codecSlcParams->slice_data_offset = sliceBaseOffset + slc->slice_data_offset;
             if (slcBase->slice_data_flag)
@@ -377,6 +382,12 @@ VAStatus DdiDecodeHEVCG12::ParsePicParams(
     codecPicParams->pps_cr_qp_offset        = picParamBase->pps_cr_qp_offset;
     codecPicParams->num_tile_columns_minus1 = picParamBase->num_tile_columns_minus1;
     codecPicParams->num_tile_rows_minus1    = picParamBase->num_tile_rows_minus1;
+
+    if (codecPicParams->IdrPicFlag)
+    {
+        /* Initiate m_decodeErrorFlag to false when it's an IDR picture */
+        m_decodeErrorFlag = false;
+    }
 
     for (i = 0; i < HEVC_NUM_MAX_TILE_COLUMN - 1; i++)
     {

@@ -280,6 +280,7 @@ VAStatus DdiMediaDecode::BeginPicture(
     MOS_STATUS eStatus = m_ddiDecodeCtx->pCodecHal->BeginFrame();
     if (eStatus != MOS_STATUS_SUCCESS)
     {
+        m_decodeErrorFlag = true;
         return VA_STATUS_ERROR_DECODING_ERROR;
     }
 
@@ -932,6 +933,7 @@ VAStatus DdiMediaDecode::EndPicture(
     MOS_STATUS status = m_ddiDecodeCtx->pCodecHal->Execute((void *)(&m_ddiDecodeCtx->DecodeParams));
     if (status != MOS_STATUS_SUCCESS)
     {
+        m_decodeErrorFlag = true;
         DDI_ASSERTMESSAGE("DDI:DdiDecode_DecodeInCodecHal return failure.");
         return VA_STATUS_ERROR_DECODING_ERROR;
     }
@@ -943,6 +945,7 @@ VAStatus DdiMediaDecode::EndPicture(
     status = m_ddiDecodeCtx->pCodecHal->EndFrame();
     if (status != MOS_STATUS_SUCCESS)
     {
+        m_decodeErrorFlag = true;
         return VA_STATUS_ERROR_DECODING_ERROR;
     }
 
