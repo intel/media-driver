@@ -36,6 +36,7 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/mos_os.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_oca_rtlog_mgr.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_oca_util_debug.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/memory_policy_manager.cpp
 )
 
 set(TMP_HEADERS_
@@ -56,6 +57,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mos_os_mock_adaptor.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_oca_rtlog_mgr.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_oca_util_debug.h
+    ${CMAKE_CURRENT_LIST_DIR}/memory_policy_manager.h
 )
 
 if(${Media_Scalability_Supported} STREQUAL "yes")
