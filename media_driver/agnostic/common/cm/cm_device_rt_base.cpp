@@ -409,7 +409,9 @@ int32_t CmDeviceRTBase::Initialize(MOS_CONTEXT *mosContext)
     }
 
     // prepare GPU predefined queue/kernel/task for surface init
+#if !defined(_FULL_OPEN_SOURCE)
     result = PrepareGPUinitSurface();
+#endif
     // get the last tracker
     PCM_HAL_STATE state = (( PCM_CONTEXT_DATA )m_accelData)->cmHalState;
     m_surfaceMgr->SetLatestVeboxTrackerAddr(state->renderHal->veBoxTrackerRes.data);

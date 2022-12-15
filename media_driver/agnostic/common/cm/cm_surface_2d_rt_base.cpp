@@ -1124,6 +1124,9 @@ CM_RT_API int32_t CmSurface2DRTBase::InitSurface(const unsigned int initValue, C
     uint32_t                            pitch       = 0;
     uint32_t                            *surf       = nullptr;
     uint32_t                            widthInBytes = 0;
+#if defined(_FULL_OPEN_SOURCE)
+    useGPU = 0;
+#endif
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     // Read VerbosityLevel from RegisterKey

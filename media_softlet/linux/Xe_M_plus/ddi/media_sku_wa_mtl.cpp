@@ -222,12 +222,13 @@ static bool InitMtlMediaSkuExt(struct GfxDeviceInfo *devInfo,
         compressibleSurfaceEnable,
         "Enable Compressible Surface Creation",
         MediaUserSetting::Group::Device);
-
+        
+#ifdef _MMC_SUPPORTED
     if (compressibleSurfaceEnable)
     {
         MEDIA_WR_SKU(skuTable, FtrCompressibleSurfaceDefault, 1);
     }
-
+#endif
     //Disable LocalMemory for all iGraphics
     MEDIA_WR_SKU(skuTable, FtrLocalMemory, 0);
 
