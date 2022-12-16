@@ -71,12 +71,11 @@ MOS_STATUS AvcHucBrcInitPkt::AllocateResources()
     allocParamsForBufferLinear.dwBytes  = MOS_ALIGN_CEIL(m_vdencBrcInitDmemBufferSize, CODECHAL_CACHELINE_SIZE);
     allocParamsForBufferLinear.pBufName = "VDENC BrcInit DmemBuffer";
 
-    MOS_RESOURCE *allocatedbuffer;
     for (uint32_t i = 0; i < CODECHAL_ENCODE_RECYCLED_BUFFER_NUM; i++)
     {
-        allocatedbuffer = m_allocator->AllocateResource(allocParamsForBufferLinear, true);
+        PMOS_RESOURCE allocatedbuffer = m_allocator->AllocateResource(allocParamsForBufferLinear, true);
         ENCODE_CHK_NULL_RETURN(allocatedbuffer);
-        m_vdencBrcInitDmemBuffer[i] = *allocatedbuffer;
+        m_vdencBrcInitDmemBuffer[i] = allocatedbuffer;
     }
 
     return MOS_STATUS_SUCCESS;
@@ -132,7 +131,7 @@ MHW_SETPAR_DECL_SRC(HUC_DMEM_STATE, AvcHucBrcInitPkt)
     SetDmemBuffer();
 
     params.function      = BRC_INIT;
-    params.hucDataSource = const_cast<PMOS_RESOURCE>(&m_vdencBrcInitDmemBuffer[m_pipeline->m_currRecycledBufIdx]);
+    params.hucDataSource = m_vdencBrcInitDmemBuffer[m_pipeline->m_currRecycledBufIdx];
     params.dataLength    = MOS_ALIGN_CEIL(m_vdencBrcInitDmemBufferSize, CODECHAL_CACHELINE_SIZE);
     params.dmemOffset    = HUC_DMEM_OFFSET_RTOS_GEMS;
 
@@ -180,15 +179,13 @@ MOS_STATUS AvcHucBrcInitPkt::SetDmemBuffer()const
     ENCODE_FUNC_CALL();
 
     // Setup BrcInit DMEM
-    auto hucVdencBrcInitDmem = (VdencAvcHucBrcInitDmem*)m_allocator->LockResourceForWrite(
-        const_cast<PMOS_RESOURCE>(&m_vdencBrcInitDmemBuffer[m_pipeline->m_currRecycledBufIdx]));
+    auto hucVdencBrcInitDmem = (VdencAvcHucBrcInitDmem*)m_allocator->LockResourceForWrite(m_vdencBrcInitDmemBuffer[m_pipeline->m_currRecycledBufIdx]);
     ENCODE_CHK_NULL_RETURN(hucVdencBrcInitDmem);
     MOS_ZeroMemory(hucVdencBrcInitDmem, sizeof(VdencAvcHucBrcInitDmem));
 
     RUN_FEATURE_INTERFACE_RETURN(AvcEncodeBRC, AvcFeatureIDs::avcBrcFeature, SetDmemForInit, hucVdencBrcInitDmem);
 
-    ENCODE_CHK_STATUS_RETURN(m_allocator->UnLock(
-        const_cast<PMOS_RESOURCE>(&m_vdencBrcInitDmemBuffer[m_pipeline->m_currRecycledBufIdx])));
+    ENCODE_CHK_STATUS_RETURN(m_allocator->UnLock(m_vdencBrcInitDmemBuffer[m_pipeline->m_currRecycledBufIdx]));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -207,8 +204,7 @@ MOS_STATUS AvcHucBrcInitPkt::DumpHucBrcInit(bool isInput)
 
     if (isInput)
     {
-        ENCODE_CHK_STATUS_RETURN(debugInterface->DumpHucDmem(
-            &m_vdencBrcInitDmemBuffer[m_pipeline->m_currRecycledBufIdx],
+        ENCODE_CHK_STATUS_RETURN(debugInterface->DumpHucDmem(m_vdencBrcInitDmemBuffer[m_pipeline->m_currRecycledBufIdx],
             m_vdencBrcInitDmemBufferSize,
             currentPass,
             hucRegionDumpInit));

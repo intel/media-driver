@@ -153,7 +153,7 @@ protected:
     AvcBasicFeature *m_basicFeature = nullptr;                                        //!< Avc Basic Feature used in each frame
 
     uint32_t m_vdencBrcInitDmemBufferSize = sizeof(VdencAvcHucBrcInitDmem);           //!< Brc Init-Dmem Buffer Size
-    MOS_RESOURCE m_vdencBrcInitDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM] = {};  //!< Brc Init DMEM Buffer Array
+    PMOS_RESOURCE m_vdencBrcInitDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM] = {};  //!< Brc Init DMEM Buffer Array
 
 MEDIA_CLASS_DEFINE_END(encode__AvcHucBrcInitPkt)
 };
