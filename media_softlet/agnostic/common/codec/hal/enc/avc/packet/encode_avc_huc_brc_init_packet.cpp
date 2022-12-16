@@ -97,7 +97,7 @@ MOS_STATUS AvcHucBrcInitPkt::Submit(MOS_COMMAND_BUFFER *commandBuffer, uint8_t p
     auto brcFeature = dynamic_cast<AvcEncodeBRC *>(m_featureManager->GetFeature(AvcFeatureIDs::avcBrcFeature));
     ENCODE_CHK_NULL_RETURN(brcFeature);
 
-    ENCODE_CHK_STATUS_RETURN(brcFeature->SaveHucStatus2Buffer(&m_resHucStatus2Buffer));
+    ENCODE_CHK_STATUS_RETURN(brcFeature->SaveHucStatus2Buffer(m_resHucStatus2Buffer));
 
     ENCODE_CHK_STATUS_RETURN(Execute(commandBuffer, true, requestProlog, BRC_INIT));
 

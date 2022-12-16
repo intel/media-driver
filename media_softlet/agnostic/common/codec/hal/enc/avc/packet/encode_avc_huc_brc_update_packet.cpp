@@ -234,12 +234,12 @@ MOS_STATUS AvcHucBrcUpdatePkt::Execute(PMOS_COMMAND_BUFFER cmdBuffer, bool store
 
     if (m_brcFeature->IsBRCInitRequired())
     {
-        m_resHucStatus2Buffer = *m_brcFeature->GetHucStatus2Buffer();
+        m_resHucStatus2Buffer = m_brcFeature->GetHucStatus2Buffer();
 
         // Insert conditional batch buffer end for HuC valid IMEM loaded check
         auto &miConditionalBatchBufferEndParams               = m_miItf->MHW_GETPAR_F(MI_CONDITIONAL_BATCH_BUFFER_END)();
         miConditionalBatchBufferEndParams                     = {};
-        miConditionalBatchBufferEndParams.presSemaphoreBuffer = &m_resHucStatus2Buffer;
+        miConditionalBatchBufferEndParams.presSemaphoreBuffer = m_resHucStatus2Buffer;
         ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_CONDITIONAL_BATCH_BUFFER_END)(cmdBuffer));
     }
 

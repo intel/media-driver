@@ -73,9 +73,9 @@ namespace encode
         // HUC STATUS 2 Buffer for HuC status check in COND_BB_END
         allocParamsForBufferLinear.dwBytes = sizeof(uint64_t);
         allocParamsForBufferLinear.pBufName = "HUC STATUS 2 Buffer";
-        MOS_RESOURCE *allocatedbuffer       = m_allocator->AllocateResource(allocParamsForBufferLinear, true);
+        PMOS_RESOURCE allocatedbuffer       = m_allocator->AllocateResource(allocParamsForBufferLinear, true);
         ENCODE_CHK_NULL_RETURN(allocatedbuffer);
-        m_resHucStatus2Buffer = *allocatedbuffer;
+        m_resHucStatus2Buffer = allocatedbuffer;
 
         return MOS_STATUS_SUCCESS;
     }
@@ -105,7 +105,7 @@ namespace encode
             // Write HUC_STATUS2 mask - bit 6 - valid IMEM loaded
             auto &storeDataParams            = m_miItf->MHW_GETPAR_F(MI_STORE_DATA_IMM)();
             storeDataParams                  = {};
-            storeDataParams.pOsResource      = &m_resHucStatus2Buffer;
+            storeDataParams.pOsResource      = m_resHucStatus2Buffer;
             storeDataParams.dwResourceOffset = 0;
             storeDataParams.dwValue          = m_hucItf->GetHucStatus2ImemLoadedMask();
             HUC_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(cmdBuffer));
@@ -113,7 +113,7 @@ namespace encode
             // Store HUC_STATUS2 register
             auto &storeRegParams             = m_miItf->MHW_GETPAR_F(MI_STORE_REGISTER_MEM)();
             storeRegParams                   = {};
-            storeRegParams.presStoreBuffer   = &m_resHucStatus2Buffer;
+            storeRegParams.presStoreBuffer   = m_resHucStatus2Buffer;
             storeRegParams.dwOffset          = sizeof(uint32_t);
             storeRegParams.dwRegister        = mmioRegisters->hucStatus2RegOffset;
             HUC_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_REGISTER_MEM)(cmdBuffer));
