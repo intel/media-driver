@@ -365,6 +365,7 @@ protected:
     VP_MHWINTERFACE        m_vpMhwInterface         = {};   //!< vp Pipeline Mhw Interface
 
     uint8_t                m_numVebox               = 0;
+    uint8_t                m_numVeboxOriginal       = 0;
     uint32_t               m_forceMultiplePipe      = 0;
     VpAllocator           *m_allocator              = nullptr;  //!< vp Pipeline allocator
     VPMediaMemComp        *m_mmc                    = nullptr;  //!< vp Pipeline mmc

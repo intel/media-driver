@@ -671,6 +671,8 @@ MOS_STATUS VpPipeline::GetSystemVeboxNumber()
 
     VP_PUBLIC_CHK_STATUS_RETURN(UpdateVeboxNumberforScalability());
 
+    m_numVeboxOriginal = m_numVebox;
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -1002,6 +1004,9 @@ MOS_STATUS VpPipeline::PrepareVpPipelineScalabilityParams(PVP_PIPELINE_PARAMS pa
     }
 
     VP_PUBLIC_CHK_NULL_RETURN(params->pTarget[0]);
+
+    VP_PUBLIC_NORMALMESSAGE("Reset m_numVebox %d -> %d", m_numVebox, m_numVeboxOriginal);
+    m_numVebox = m_numVeboxOriginal;
 
     // Disable vesfc scalability when reg key "Enable Vebox Scalability" was set to zero
     if (m_forceMultiplePipe == (MOS_SCALABILITY_ENABLE_MODE_USER_FORCE | MOS_SCALABILITY_ENABLE_MODE_FALSE))
