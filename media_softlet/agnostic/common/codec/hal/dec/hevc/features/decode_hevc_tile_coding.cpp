@@ -188,6 +188,28 @@ MOS_STATUS HevcTileCoding::UpdateSliceTileInfo()
             DECODE_CHK_STATUS(UpdateSubTileInfo(picParams, sliceParams[slcIdx], *sliceTileInfo));
         }
 
+        uint16_t tileStartCtbX = GetTileCtbX(sliceTileInfo->sliceTileX);
+        uint16_t tileStartCtbY = GetTileCtbY(sliceTileInfo->sliceTileY);
+        uint16_t subStreamCount = (sliceTileInfo->numTiles > 0) ? sliceTileInfo->numTiles : 1;
+        for (uint16_t tileId = 0; tileId < subStreamCount; tileId++)
+        {
+            if (sliceTileInfo->firstSliceOfTile)
+            {
+                /* Check the startCtbX and startCtbY for firstsliceoftile and firsttileofslice */
+                if (tileId == 0)
+                {
+                    uint32_t slicestartCtbX = sliceParams[slcIdx].slice_segment_address % m_basicFeature->m_widthInCtb;
+                    uint32_t slicestartCtbY = sliceParams[slcIdx].slice_segment_address / m_basicFeature->m_widthInCtb;
+                    if (slicestartCtbY != tileStartCtbY || slicestartCtbX != tileStartCtbX)
+                    {
+                        DECODE_ASSERTMESSAGE("slicestartCtbX(%d) does not equal to tilestartCtbX(%d) or slicestartCtbY(%d) does not equal to tilestartCtbY(%d)\n",
+                                             slicestartCtbX, tileStartCtbX, slicestartCtbY, tileStartCtbY);
+                        return MOS_STATUS_INVALID_PARAMETER;
+                    }
+                }
+            }
+        }
+
         /* Check slice segment address in tile scan should be increasing */
         if (picParams.tiles_enabled_flag == 1)
         {
@@ -232,7 +254,6 @@ MOS_STATUS HevcTileCoding::UpdateSubTileInfo(const CODEC_HEVC_PIC_PARAMS & picPa
     uint16_t  tileX = sliceTileInfo.sliceTileX;
     uint16_t  tileY = sliceTileInfo.sliceTileY;
     uint32_t  bsdOffset = 0;
-    uint32_t  preSliceSegmentAddressTs = 0;
 
     for (uint16_t i = 0; i < sliceTileInfo.numTiles; i++)
     {
@@ -267,34 +288,6 @@ MOS_STATUS HevcTileCoding::UpdateSubTileInfo(const CODEC_HEVC_PIC_PARAMS & picPa
         {
             tileX = 0;
             ++tileY;
-        }
-
-        if (sliceTileInfo.firstSliceOfTile)
-        {
-            /* Check the startCtbX and startCtbY for firstsliceoftile and firsttileofslice */
-            if (i == 0)
-            {
-                uint32_t slicestartCtbX = sliceParams.slice_segment_address % m_basicFeature->m_widthInCtb;
-                uint32_t slicestartCtbY = sliceParams.slice_segment_address / m_basicFeature->m_widthInCtb;
-                if (slicestartCtbY != sliceTileInfo.tileArrayBuf[i].ctbY || slicestartCtbX != sliceTileInfo.tileArrayBuf[i].ctbX)
-                {
-                    DECODE_ASSERTMESSAGE("slicestartCtbX(%d) does not equal to tilestartCtbX(%d) slicestartCtbY(%d) does not equal to tilestartCtbY(%d)\n",
-                                         slicestartCtbX, sliceTileInfo.tileArrayBuf[i].ctbX, slicestartCtbY, sliceTileInfo.tileArrayBuf[i].ctbY);
-                    return MOS_STATUS_INVALID_PARAMETER;
-                }
-            }
-        }
-
-        /* Check slice segment address in tile scan should be increasing */
-        if (i > 0)
-        {
-            uint32_t sliceSegmentAddressTs = m_basicFeature->m_widthInCtb * sliceTileInfo.tileArrayBuf[i].ctbY + sliceTileInfo.tileArrayBuf[i].ctbX;
-            if (sliceSegmentAddressTs <= preSliceSegmentAddressTs)
-            {
-                DECODE_ASSERTMESSAGE("%d slice sliceSegmentAddressTs %d is smaller than previous %d\n", i, sliceSegmentAddressTs, preSliceSegmentAddressTs);
-                return MOS_STATUS_INVALID_PARAMETER;
-            }
-            preSliceSegmentAddressTs = sliceSegmentAddressTs;
         }
     }
 
