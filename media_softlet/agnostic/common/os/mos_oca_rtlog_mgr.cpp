@@ -182,10 +182,11 @@ void MosOcaRTLogMgr::UnregisterRes(OsContextNext *osDriverContext)
 {
     MOS_OCA_RTLOG_RES_AND_INTERFACE resInterface = {};
     auto iter = m_resMap.find(osDriverContext);
-    if (iter != m_resMap.end())
+    if (iter == m_resMap.end())
     {
-        resInterface = iter->second;
+        return;
     }
+    resInterface = iter->second;
     s_ocaMutex.Lock();
     m_resMap.erase(osDriverContext);
     s_ocaMutex.Unlock();
