@@ -265,6 +265,7 @@ struct MHW_VDBOX_PIPE_MODE_SELECT_PARAMS
     bool                        bStreamObjectUsed = false;
     // No need to set protection settings
     bool                        disableProtectionSetting = false;
+    bool                        bFrameStatisticsStreamOutEnable = false;
 
     MHW_VDBOX_HCP_PIPE_WORK_MODE      PipeWorkMode    = MHW_VDBOX_HCP_PIPE_WORK_MODE_LEGACY;
     MHW_VDBOX_HCP_MULTI_ENGINE_MODE   MultiEngineMode = MHW_VDBOX_HCP_MULTI_ENGINE_MODE_FE_LEGACY;

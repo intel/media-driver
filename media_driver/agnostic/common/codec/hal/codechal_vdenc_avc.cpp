@@ -5205,6 +5205,36 @@ MOS_STATUS CodechalVdencAvcState::HuCBrcUpdate()
     // Set Const Data buffer
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetConstDataHuCBrcUpdate());
 
+    // Copy data from m_pakStatsBufferFull to m_pakStatsBuffer if m_perMBStreamOutEnable is true
+    if (m_perMBStreamOutEnable)
+    {
+        CodechalHucStreamoutParams hucStreamOutParams;
+        MOS_ZeroMemory(&hucStreamOutParams, sizeof(hucStreamOutParams));
+
+        PMOS_RESOURCE sourceSurface = &m_pakStatsBufferFull;
+        PMOS_RESOURCE destSurface   = &m_pakStatsBuffer;
+        uint32_t copySize           = m_vdencBrcPakStatsBufferSize;
+        uint32_t sourceOffset       = m_picWidthInMb * m_picHeightInMb * 64;
+        uint32_t destOffset         = 0;
+
+        // Ind Obj Addr command
+        hucStreamOutParams.dataBuffer            = sourceSurface;
+        hucStreamOutParams.dataSize              = copySize + sourceOffset;
+        hucStreamOutParams.dataOffset            = MOS_ALIGN_FLOOR(sourceOffset, CODECHAL_PAGE_SIZE);
+        hucStreamOutParams.streamOutObjectBuffer = destSurface;
+        hucStreamOutParams.streamOutObjectSize   = copySize + destOffset;
+        hucStreamOutParams.streamOutObjectOffset = MOS_ALIGN_FLOOR(destOffset, CODECHAL_PAGE_SIZE);
+
+        // Stream object params
+        hucStreamOutParams.indStreamInLength    = copySize;
+        hucStreamOutParams.inputRelativeOffset  = sourceOffset - hucStreamOutParams.dataOffset;
+        hucStreamOutParams.outputRelativeOffset = destOffset - hucStreamOutParams.streamOutObjectOffset;
+
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->PerformHucStreamOut(
+            &hucStreamOutParams,
+            &cmdBuffer));
+    }
+
     // Add Virtual addr
     MHW_VDBOX_HUC_VIRTUAL_ADDR_PARAMS virtualAddrParams;
     MOS_ZeroMemory(&virtualAddrParams, sizeof(virtualAddrParams));
@@ -6100,6 +6130,10 @@ MOS_STATUS CodechalVdencAvcState::ExecutePictureLevel()
     SetMfxBspBufBaseAddrStateParams(bspBufBaseAddrParams);
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxBspBufBaseAddrCmd(&cmdBuffer, &bspBufBaseAddrParams));
 
+    if (m_avcPicParam->StatusReportEnable.fields.FrameStats)
+    {
+        pipeModeSelectParams->bFrameStatisticsStreamOutEnable = true;
+    }
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencPipeModeSelectCmd(&cmdBuffer, pipeModeSelectParams));
     m_vdencInterface->ReleaseMhwVdboxPipeModeSelectParams(pipeModeSelectParams);
 

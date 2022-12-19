@@ -1287,7 +1287,7 @@ MhwVdboxVdencInterfaceG12<mhw::vdbox::vdenc::xe_hpm::Cmd>::AddVdencPipeModeSelec
     cmd.DW1.ScalabilityMode = !(paramsG12->MultiEngineMode == MHW_VDBOX_HCP_MULTI_ENGINE_MODE_FE_LEGACY);
     if (CODECHAL_ENCODE_MODE_HEVC == params->Mode || CODECHAL_ENCODE_MODE_AVC == params->Mode)
     {
-        cmd.DW1.FrameStatisticsStreamOutEnable = paramsG12->bBRCEnabled || paramsG12->bAdaptiveRounding || paramsG12->bLookaheadPass;
+        cmd.DW1.FrameStatisticsStreamOutEnable = paramsG12->bBRCEnabled || paramsG12->bAdaptiveRounding || paramsG12->bLookaheadPass || paramsG12->bFrameStatisticsStreamOutEnable;
     }
     else
     {
@@ -2732,7 +2732,7 @@ public:
 
         MOS_SecureMemcpy((uint8_t*)&cmd + sizeof(uint32_t),
                          cmd.byteSize - sizeof(uint32_t),
-                         tableCmd3[type][params->bPerMBStreamOut][qp],
+                         tableCmd3[type][0][qp],
                          22 * sizeof(uint32_t));
 
         if (codingType == I_TYPE && paramsXeHpm->pEncodeAvcSliceParams->num_ref_idx_l0_active_minus1 == 0)
