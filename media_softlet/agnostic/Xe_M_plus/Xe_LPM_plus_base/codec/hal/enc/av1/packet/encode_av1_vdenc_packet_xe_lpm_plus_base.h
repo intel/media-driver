@@ -45,8 +45,6 @@ public:
         m_avpItf       = std::static_pointer_cast<mhw::vdbox::avp::Itf>(hw->GetAvpInterfaceNext());
     }
 
-    MOS_STATUS Init() override;
-
     //!
     //! \brief  Add the command sequence into the commandBuffer and
     //!         and return to the caller task

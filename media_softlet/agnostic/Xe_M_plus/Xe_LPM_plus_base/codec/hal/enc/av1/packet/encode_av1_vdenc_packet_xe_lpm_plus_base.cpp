@@ -1,4 +1,4 @@
-﻿/*
+/*
 * Copyright (c) 2020-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
@@ -25,29 +25,9 @@
 //!
 #include "encode_av1_vdenc_packet_xe_lpm_plus_base.h"
 #include "mos_solo_generic.h"
-#if _MEDIA_RESERVED
-#define ENCODE_AV1_RESERVED_FRATURE0
-#include "encode_av1_feature_ext.h"
-#undef ENCODE_AV1_RESERVED_FRATURE0
-#endif // !(_MEDIA_RESERVED)
 
 namespace encode
 {
-MOS_STATUS Av1VdencPktXe_Lpm_Plus_Base::Init()
-{
-    ENCODE_FUNC_CALL();
-    ENCODE_CHK_STATUS_RETURN(Av1VdencPkt::Init());
-#if _MEDIA_RESERVED
-    auto reservedFeature = dynamic_cast<Av1ReservedFeature0 *>(m_featureManager->GetFeature(Av1FeatureIDs::av1ReservedFeatureID0));
-    ENCODE_CHK_NULL_RETURN(reservedFeature);
-    m_mmcState = m_pipeline->GetMmcState();
-    ENCODE_CHK_NULL_RETURN(m_mmcState);
-    ENCODE_CHK_STATUS_RETURN(reservedFeature->InitMMCState(m_mmcState));
-#endif  // !(_MEDIA_RESERVED)
-
-    return MOS_STATUS_SUCCESS;
-}
-
 MOS_STATUS Av1VdencPktXe_Lpm_Plus_Base::AllocateResources()
 {
     ENCODE_FUNC_CALL();

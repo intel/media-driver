@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021 - 2022, Intel Corporation
+* Copyright (c) 2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -36,27 +36,20 @@ namespace encode
 class Av1BasicFeatureXe_Lpm_Plus_Base : public Av1BasicFeature
 {
 public:
-    Av1BasicFeatureXe_Lpm_Plus_Base(MediaFeatureManager *featureManager,
-                           EncodeAllocator              *allocator,
-                           CodechalHwInterfaceNext      *hwInterface,
-                           TrackedBuffer                *trackedBuf,
-                           RecycleResource              *recycleBuf,
-                           void                         *constSettings) :
-                           Av1BasicFeature(allocator, hwInterface, trackedBuf, recycleBuf, constSettings),
-                           m_featureManager(featureManager){};
+    Av1BasicFeatureXe_Lpm_Plus_Base(EncodeAllocator *allocator,
+                     CodechalHwInterfaceNext *hwInterface,
+                     TrackedBuffer *trackedBuf,
+                     RecycleResource *recycleBuf,
+                     void *constSettings) :
+                     Av1BasicFeature(allocator, hwInterface, trackedBuf, recycleBuf, constSettings){};
 
     virtual ~Av1BasicFeatureXe_Lpm_Plus_Base(){};
-
-    virtual MOS_STATUS Update(void *params) override;
 
     MHW_SETPAR_DECL_HDR(VDENC_CMD2);
 
     MHW_SETPAR_DECL_HDR(AVP_SURFACE_STATE);
 
     MHW_SETPAR_DECL_HDR(AVP_PIC_STATE);
-
-protected:
-    MediaFeatureManager *m_featureManager = nullptr;
 
 MEDIA_CLASS_DEFINE_END(encode__Av1BasicFeatureXe_Lpm_Plus_Base)
 };

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2022, Intel Corporation
+* Copyright (c) 2020-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -99,11 +99,6 @@ MOS_STATUS Av1VdencPipelineXe_Lpm_Plus_Base::Prepare(void *params)
 
     inputParameters.numberTilesInFrame = numTileRows * numTileColumns;
 
-#if _MEDIA_RESERVED
-    m_sfcItf = std::make_shared<MediaSfcInterface>(m_osInterface);
-    ENCODE_CHK_NULL_RETURN(m_sfcItf);
-#endif  // !(_MEDIA_RESERVED)
-
     m_statusReport->Init(&inputParameters);
 
     return MOS_STATUS_SUCCESS;
@@ -112,24 +107,6 @@ MOS_STATUS Av1VdencPipelineXe_Lpm_Plus_Base::Prepare(void *params)
 MOS_STATUS Av1VdencPipelineXe_Lpm_Plus_Base::Execute()
 {
     ENCODE_FUNC_CALL();
-
-#if _MEDIA_RESERVED
-    ENCODE_CHK_NULL_RETURN(m_featureManager);
-    auto reservedFeature = dynamic_cast<Av1ReservedFeature0 *>(m_featureManager->GetFeature(Av1FeatureIDs::av1ReservedFeatureID0));
-    ENCODE_CHK_NULL_RETURN(reservedFeature);
-    if (reservedFeature->IsEnabled())
-    {
-        if (reservedFeature->m_useSuperRes)
-        {
-            MEDIA_SFC_INTERFACE_MODE sfcMode = {};
-            sfcMode.vdboxSfcEnabled          = false;
-            sfcMode.veboxSfcEnabled          = true;
-            m_sfcItf->Initialize(sfcMode);
-            ENCODE_CHK_STATUS_RETURN(m_sfcItf->Render(reservedFeature->downScalingParams));
-            ContextSwitchBack();
-        }
-    }
-#endif  // !(_MEDIA_RESERVED)
 
     ENCODE_CHK_STATUS_RETURN(ActivateVdencVideoPackets());
     ENCODE_CHK_STATUS_RETURN(ExecuteActivePackets());
@@ -168,6 +145,16 @@ MOS_STATUS Av1VdencPipelineXe_Lpm_Plus_Base::ActivateVdencVideoPackets()
         }
 #endif
     }
+
+    #if _MEDIA_RESERVED
+    auto reservedFeature = dynamic_cast<Av1ReservedFeature0 *>(m_featureManager->GetFeature(Av1FeatureIDs::av1ReservedFeatureID0));
+    ENCODE_CHK_NULL_RETURN(reservedFeature);
+
+    if (reservedFeature->IsEnabled())
+    {
+        ENCODE_CHK_STATUS_RETURN(ActivatePacket(Av1ReservedPktID, immediateSubmit, 0, 0));
+    }
+    #endif  // !(_MEDIA_RESERVED)
 
     if (brcFeature->IsBRCInitRequired())
     {
