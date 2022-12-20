@@ -922,7 +922,7 @@ namespace encode
 
         if (basicFeature->m_enableSWStitching)
         {
-            params.pakBaseObjectOffset = m_tileData[m_tileIdx].bitstreamByteOffset * CODECHAL_CACHELINE_SIZE;
+            params.pakBaseObjectOffset = MOS_ALIGN_CEIL(m_tileData[m_tileIdx].bitstreamByteOffset * CODECHAL_CACHELINE_SIZE, MOS_PAGE_SIZE);
         }
 
         return MOS_STATUS_SUCCESS;

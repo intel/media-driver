@@ -404,7 +404,7 @@ namespace encode{
 
         for (uint32_t i = 0; i < statusReportData->numberTilesInFrame; i++)
         {
-            uint32_t offset = tileReportData[i].bitstreamByteOffset * CODECHAL_CACHELINE_SIZE;
+            uint32_t offset = MOS_ALIGN_CEIL(tileReportData[i].bitstreamByteOffset * CODECHAL_CACHELINE_SIZE, MOS_PAGE_SIZE);
             uint32_t len    = tileRecord[i].Length;
 
             MOS_SecureMemcpy(bufPtr, len, &bitstream[offset], len);
