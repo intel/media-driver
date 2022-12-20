@@ -49,11 +49,14 @@ RenderCopyStateNext:: ~RenderCopyStateNext()
 {
     if (m_renderHal != nullptr)
     {
-       MOS_STATUS eStatus = m_renderHal->pfnDestroy(m_renderHal);
-       if (eStatus != MOS_STATUS_SUCCESS)
-       {
-           MCPY_ASSERTMESSAGE("Failed to destroy RenderHal, eStatus:%d.\n", eStatus);
-       }
+        if (m_renderHal->pfnDestroy)
+        {
+            MOS_STATUS eStatus = m_renderHal->pfnDestroy(m_renderHal);
+            if (eStatus != MOS_STATUS_SUCCESS)
+            {
+                MCPY_ASSERTMESSAGE("Failed to destroy RenderHal, eStatus:%d.\n", eStatus);
+            }
+        }
        MOS_FreeMemAndSetNull(m_renderHal);
     }
 

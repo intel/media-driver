@@ -913,6 +913,7 @@ MOS_STATUS PolicySfcScalingHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFi
         {
             SwFilterScaling *filter2ndPass = featureScaling;
             SwFilterScaling *filter1ndPass = (SwFilterScaling *)feature.Clone();
+            VP_PUBLIC_CHK_NULL_RETURN(filter1ndPass);
 
             filter1ndPass->GetFilterEngineCaps().value = 0;
             filter1ndPass->SetFeatureType(FeatureType::FeatureTypeScaling);
