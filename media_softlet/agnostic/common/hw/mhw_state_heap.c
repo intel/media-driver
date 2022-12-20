@@ -788,8 +788,10 @@ MOS_STATUS Mhw_StateHeapInterface_InitInterface(
     MHW_CHK_NULL_RETURN(pCommonStateHeapInterface);
     do
     {
-        if (Mhw_StateHeapInterface_AssignInterfaces(pCommonStateHeapInterface) != MOS_STATUS_SUCCESS)
+        eStatus = Mhw_StateHeapInterface_AssignInterfaces(pCommonStateHeapInterface);
+        if (eStatus != MOS_STATUS_SUCCESS)
         {
+            MHW_ASSERTMESSAGE("Assign the state heap interface fail");
             break;
         }
         MOS_ZeroMemory(&params, sizeof(params));
@@ -800,6 +802,8 @@ MOS_STATUS Mhw_StateHeapInterface_InitInterface(
         {
             if (mhwInterfaces->m_stateHeapInterface==nullptr)
             {
+                MHW_ASSERTMESSAGE("m_stateHeapInterface is nullptr");
+                eStatus = MOS_STATUS_NULL_POINTER;
                 break;
             }
             pCommonStateHeapInterface->pStateHeapInterface = mhwInterfaces->m_stateHeapInterface;
@@ -1469,20 +1473,28 @@ MOS_STATUS XMHW_STATE_HEAP_INTERFACE::ExtendStateHeapDyn(
     {
         if (m_pOsInterface==nullptr)
         {
+            MHW_ASSERTMESSAGE("m_pOsInterface is nullptr");
+            eStatus = MOS_STATUS_NULL_POINTER;
             break;
         }
         if (m_pOsInterface->pfnGetSkuTable == nullptr)
         {
+            MHW_ASSERTMESSAGE("pfnGetSkuTable is nullptr");
+            eStatus = MOS_STATUS_NULL_POINTER;
             break;
         }
         skuTable = m_pOsInterface->pfnGetSkuTable(m_pOsInterface);
         if (skuTable == nullptr)
         {
+            MHW_ASSERTMESSAGE("skuTable is nullptr");
+            eStatus = MOS_STATUS_NULL_POINTER;
             break;
         }
         pNewStateHeap = (PMHW_STATE_HEAP)MOS_AllocAndZeroMemory(sizeof(MHW_STATE_HEAP));
         if (pNewStateHeap == nullptr)
         {
+            MHW_ASSERTMESSAGE("pNewStateHeap is nullptr");
+            eStatus = MOS_STATUS_NULL_POINTER;
             break;
         }
         pNewStateHeap->dwSize = MOS_ALIGN_CEIL(dwSizeRequested, MHW_CACHELINE_SIZE);
@@ -1501,18 +1513,22 @@ MOS_STATUS XMHW_STATE_HEAP_INTERFACE::ExtendStateHeapDyn(
         {
             AllocParams.dwMemType = MOS_MEMPOOL_SYSTEMMEMORY;
         }
-        if (m_pOsInterface->pfnAllocateResource(
-                m_pOsInterface,
-                &AllocParams,
-                &pNewStateHeap->resHeap) != MOS_STATUS_SUCCESS)
+        eStatus = m_pOsInterface->pfnAllocateResource(
+            m_pOsInterface,
+            &AllocParams,
+            &pNewStateHeap->resHeap);
+        if (eStatus != MOS_STATUS_SUCCESS)
         {
+            MHW_ASSERTMESSAGE("Allocate resource fail");
             break;
         }
         // RegisterResource will be called in AddResourceToHWCmd. It is not allowed to be called by hal explicitly for Async mode
         if (MosInterface::IsAsyncDevice(m_pOsInterface->osStreamState) == false)
         {
-            if (m_pOsInterface->pfnRegisterResource(m_pOsInterface, &pNewStateHeap->resHeap, true, true) != MOS_STATUS_SUCCESS)
+            eStatus = m_pOsInterface->pfnRegisterResource(m_pOsInterface, &pNewStateHeap->resHeap, true, true);
+            if (eStatus != MOS_STATUS_SUCCESS)
             {
+                MHW_ASSERTMESSAGE("Reigister Resource fail");
                 break;
             }
         }
@@ -1592,22 +1608,30 @@ MOS_STATUS XMHW_STATE_HEAP_INTERFACE::ExtendStateHeapSta(
         pOsInterface = m_pOsInterface;
         if (pOsInterface == nullptr)
         {
+            MHW_ASSERTMESSAGE("pOsInterface is nullptr");
+            eStatus = MOS_STATUS_NULL_POINTER;
             break;
         }
         if (pOsInterface->pfnGetSkuTable == nullptr)
         {
+            MHW_ASSERTMESSAGE("pfnGetSkuTabl is nullptr");
+            eStatus = MOS_STATUS_NULL_POINTER;
             break;
         }
 
         skuTable = pOsInterface->pfnGetSkuTable(pOsInterface);
         if (skuTable == nullptr)
         {
+            MHW_ASSERTMESSAGE("skuTable is nullptr");
+            eStatus = MOS_STATUS_NULL_POINTER;
             break;
         }
 
         pNewStateHeap = (PMHW_STATE_HEAP)MOS_AllocAndZeroMemory(sizeof(MHW_STATE_HEAP));
         if (pNewStateHeap == nullptr)
         {
+            MHW_ASSERTMESSAGE("pNewStateHeap is nullptr");
+            eStatus = MOS_STATUS_NULL_POINTER;
             break;
         }
 
@@ -1624,20 +1648,24 @@ MOS_STATUS XMHW_STATE_HEAP_INTERFACE::ExtendStateHeapSta(
             AllocParams.dwMemType = MOS_MEMPOOL_SYSTEMMEMORY;
         }
 
-        if (pOsInterface->pfnAllocateResource(
-                pOsInterface,
-                &AllocParams,
-                &pNewStateHeap->resHeap) != MOS_STATUS_SUCCESS)
+        eStatus = pOsInterface->pfnAllocateResource(
+            pOsInterface,
+            &AllocParams,
+            &pNewStateHeap->resHeap);
+        if (eStatus != MOS_STATUS_SUCCESS)
         {
+            MHW_ASSERTMESSAGE("Allocate Resource fail");
             break;
         }
 
-        if (InitMemoryBlock(
-                pNewStateHeap,
-                &pNewStateHeap->pMemoryHead,
-                pNewStateHeap->dwSize,
-                false) != MOS_STATUS_SUCCESS)
+        eStatus = InitMemoryBlock(
+            pNewStateHeap,
+            &pNewStateHeap->pMemoryHead,
+            pNewStateHeap->dwSize,
+            false);
+        if (eStatus != MOS_STATUS_SUCCESS)
         {
+            MHW_ASSERTMESSAGE("Allocate memory block fail");
             break;
         }
 
@@ -1654,6 +1682,8 @@ MOS_STATUS XMHW_STATE_HEAP_INTERFACE::ExtendStateHeapSta(
 
         if (ppStateHeapPtr == nullptr)
         {
+            MHW_ASSERTMESSAGE("ppStateHeapPtr is nullptr");
+            eStatus = MOS_STATUS_NULL_POINTER;
             break;
         }
         pPrevStateHeap = nullptr;
@@ -1844,10 +1874,14 @@ PMHW_STATE_HEAP_MEMORY_BLOCK  XMHW_STATE_HEAP_INTERFACE::AllocateDynamicBlockDyn
     {
         if (pParams == nullptr)
         {
+            MHW_ASSERTMESSAGE("pParams is nullptr");
+            eStatus = MOS_STATUS_NULL_POINTER;
             break;
         }
         if (pParams->piSizes == nullptr)
         {
+            MHW_ASSERTMESSAGE("piSizes is nullptr");
+            eStatus = MOS_STATUS_NULL_POINTER;
             break;
         }
         MHW_ASSERT(pParams->iCount > 0);
