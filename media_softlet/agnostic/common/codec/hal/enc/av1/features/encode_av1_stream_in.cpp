@@ -107,7 +107,7 @@ namespace encode
             ENCODE_CHK_NULL_RETURN(m_streamInTemp);
 
             allocParams.pBufName = "Av1 StreamIn Data Buffer";
-            allocParams.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
+            allocParams.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_WRITE;
             m_basicFeature->m_recycleBuf->RegisterResource(RecycleResId::StreamInBuffer, allocParams);
 
             m_widthInLCU  = MOS_ALIGN_CEIL(CurFrameWidth, 64) / 64;

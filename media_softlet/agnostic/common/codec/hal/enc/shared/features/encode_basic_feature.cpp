@@ -286,6 +286,7 @@ MOS_STATUS EncodeBasicFeature::UpdateTrackedBufferParameters()
         // Must reserve at least 8 cachelines after MI_BATCH_BUFFER_END_CMD since HW prefetch max 8 cachelines from BB everytime
         // + 8 * CODECHAL_CACHELINE_SIZE is inherient from legacy code
         allocParamsForLinear.dwBytes = m_mbCodeSize + 8 * CODECHAL_CACHELINE_SIZE;
+        allocParamsForLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_NOCACHE;
         ENCODE_CHK_STATUS_RETURN(m_trackedBuf->RegisterParam(encode::BufferType::mbCodedBuffer, allocParamsForLinear));
     }
 
@@ -301,11 +302,13 @@ MOS_STATUS EncodeBasicFeature::UpdateTrackedBufferParameters()
         allocParamsForBuffer2D.dwWidth  = m_downscaledWidth4x;
         allocParamsForBuffer2D.dwHeight = m_downscaledHeight4x;
         allocParamsForBuffer2D.pBufName = "4xDSSurface";
+        allocParamsForBuffer2D.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
         ENCODE_CHK_STATUS_RETURN(m_trackedBuf->RegisterParam(encode::BufferType::ds4xSurface, allocParamsForBuffer2D));
 
         allocParamsForBuffer2D.dwWidth  = m_downscaledWidth4x >> 1;
         allocParamsForBuffer2D.dwHeight = MOS_ALIGN_CEIL(m_downscaledHeight4x >> 1, MOS_YTILE_H_ALIGNMENT) << 1;
         allocParamsForBuffer2D.pBufName = "8xDSSurface";
+        allocParamsForBuffer2D.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
         ENCODE_CHK_STATUS_RETURN(m_trackedBuf->RegisterParam(encode::BufferType::ds8xSurface, allocParamsForBuffer2D));
     }
 

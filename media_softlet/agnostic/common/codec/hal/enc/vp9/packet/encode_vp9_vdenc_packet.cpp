@@ -489,6 +489,7 @@ MOS_STATUS Vp9VdencPkt::AllocateResources()
             allocParamsForBuffer2D.dwWidth  = m_4xMeMvDataBuffer.dwWidth;
             allocParamsForBuffer2D.dwHeight = m_4xMeMvDataBuffer.dwHeight;
             allocParamsForBuffer2D.pBufName = "4xME MV Data Buffer";
+            allocParamsForBuffer2D.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_NOCACHE;
             allocatedBuffer                 = m_allocator->AllocateResource(allocParamsForBuffer2D, true);
             ENCODE_CHK_NULL_RETURN(allocatedBuffer);
             m_4xMeMvDataBuffer.OsResource = *allocatedBuffer;
@@ -522,6 +523,7 @@ MOS_STATUS Vp9VdencPkt::AllocateResources()
             allocParamsForBuffer2D.dwWidth  = m_16xMeMvDataBuffer.dwWidth;
             allocParamsForBuffer2D.dwHeight = m_16xMeMvDataBuffer.dwHeight;
             allocParamsForBuffer2D.pBufName = "16xME MV Data Buffer";
+            allocParamsForBuffer2D.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_NOCACHE;
             allocatedBuffer                 = m_allocator->AllocateResource(allocParamsForBuffer2D, true);
             ENCODE_CHK_NULL_RETURN(allocatedBuffer);
             m_16xMeMvDataBuffer.OsResource = *allocatedBuffer;
@@ -539,6 +541,7 @@ MOS_STATUS Vp9VdencPkt::AllocateResources()
         allocParamsForBuffer2D.dwWidth  = m_output16X16InterModes.dwWidth;
         allocParamsForBuffer2D.dwHeight = m_output16X16InterModes.dwHeight;
         allocParamsForBuffer2D.pBufName = "Intermediate surface";
+        allocParamsForBuffer2D.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_NOCACHE;
         allocatedBuffer                 = m_allocator->AllocateResource(allocParamsForBuffer2D, true);
         ENCODE_CHK_NULL_RETURN(allocatedBuffer);
         m_output16X16InterModes.OsResource = *allocatedBuffer;
@@ -547,6 +550,7 @@ MOS_STATUS Vp9VdencPkt::AllocateResources()
     // VDENC intra row store scratch buffer
     allocParamsForBufferLinear.dwBytes  = m_basicFeature->m_picWidthInMb * CODECHAL_CACHELINE_SIZE;
     allocParamsForBufferLinear.pBufName = "VDENC Intra Row Store Scratch Buffer";
+    allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_NOCACHE;
     allocatedBuffer                     = m_allocator->AllocateResource(allocParamsForBufferLinear, true);
     ENCODE_CHK_NULL_RETURN(allocatedBuffer);
     m_resVdencIntraRowStoreScratchBuffer = *allocatedBuffer;
@@ -554,6 +558,7 @@ MOS_STATUS Vp9VdencPkt::AllocateResources()
     // HVC tile row store buffer
     allocParamsForBufferLinear.dwBytes  = CODECHAL_CACHELINE_SIZE * maxPicWidthInSb;
     allocParamsForBufferLinear.pBufName = "HvcTileRowStoreBuffer";
+    allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ;
     allocatedBuffer                     = m_allocator->AllocateResource(allocParamsForBufferLinear, true);
     ENCODE_CHK_NULL_RETURN(allocatedBuffer);
     m_resHvcTileRowStoreBuffer = *allocatedBuffer;
@@ -563,6 +568,7 @@ MOS_STATUS Vp9VdencPkt::AllocateResources()
     // they can be the same buffer.
     allocParamsForBufferLinear.dwBytes  = CODECHAL_CACHELINE_SIZE * maxPicSizeInSb;
     allocParamsForBufferLinear.pBufName = "VDENC Segment Map Stream Out";
+    allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ;
     allocatedBuffer                     = m_allocator->AllocateResource(allocParamsForBufferLinear, true);
     ENCODE_CHK_NULL_RETURN(allocatedBuffer);
     m_resVdencSegmentMapStreamOut = *allocatedBuffer;
@@ -573,6 +579,7 @@ MOS_STATUS Vp9VdencPkt::AllocateResources()
     uint32_t size                       = m_basicFeature->m_sizeOfSseSrcPixelRowStoreBufferPerLcu * m_basicFeature->m_maxTileNumber;
     allocParamsForBufferLinear.dwBytes  = size;
     allocParamsForBufferLinear.pBufName = "SseSrcPixelRowStoreBuffer";
+    allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_NOCACHE;
     allocatedBuffer                     = m_allocator->AllocateResource(allocParamsForBufferLinear, true);
 
     ENCODE_CHK_NULL_RETURN(allocatedBuffer);
@@ -582,6 +589,7 @@ MOS_STATUS Vp9VdencPkt::AllocateResources()
     allocParamsForBufferLinear.dwBytes = (MOS_ALIGN_CEIL(m_basicFeature->m_frameWidth, 64) / 32) *
                                          (MOS_ALIGN_CEIL(m_basicFeature->m_frameHeight, 64) / 32) * CODECHAL_CACHELINE_SIZE;
     allocParamsForBufferLinear.pBufName = "VDEnc StreamIn Data Buffer";
+    allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_NOCACHE;
     m_basicFeature->m_recycleBuf->RegisterResource(RecycleResId::StreamInBuffer, allocParamsForBufferLinear);
 
     return MOS_STATUS_SUCCESS;

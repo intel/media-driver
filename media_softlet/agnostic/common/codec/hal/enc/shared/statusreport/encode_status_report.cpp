@@ -70,6 +70,7 @@ namespace encode {
         param.TileType = MOS_TILE_LINEAR;
         param.Format   = Format_Buffer;
         param.dwBytes  = sizeof(uint32_t) * 2;
+        param.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_NOCACHE;
         param.pBufName = "StatusQueryBufferGlobalCount";
         // keeping status buffer persistent since its used in all command buffers
         param.bIsPersistent = true;

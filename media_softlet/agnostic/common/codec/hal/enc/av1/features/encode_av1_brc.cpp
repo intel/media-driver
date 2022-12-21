@@ -101,17 +101,19 @@ namespace encode
         // BRC history buffer
         allocParamsForBufferLinear.dwBytes = MOS_ALIGN_CEIL(m_brcHistoryBufSize, CODECHAL_PAGE_SIZE);
         allocParamsForBufferLinear.pBufName = "VDENC BRC History Buffer";
+        allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
         m_basicFeature->m_recycleBuf->RegisterResource(VdencBRCHistoryBuffer, allocParamsForBufferLinear, 1);
 
         // VDENC BRC PAK MMIO buffer
         allocParamsForBufferLinear.dwBytes = sizeof(Av1BrcPakMmio);
         allocParamsForBufferLinear.pBufName = "VDENC BRC PAK MMIO Buffer";
+        allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
         m_basicFeature->m_recycleBuf->RegisterResource(VdencBrcPakMmioBuffer, allocParamsForBufferLinear, 1);
 
         // BRC HuC Data Buffer
         allocParamsForBufferLinear.dwBytes = MOS_ALIGN_CEIL(BRC_DATA_SIZE, CODECHAL_PAGE_SIZE);
         allocParamsForBufferLinear.pBufName = "BRC HuC Data Buffer";
-
+        allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ;
         MOS_RESOURCE* brcDataBuffer = m_allocator->AllocateResource(
             allocParamsForBufferLinear,
             true);

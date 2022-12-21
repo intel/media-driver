@@ -73,6 +73,7 @@ namespace encode {
             allocParamsForBufferLinear.Format   = Format_Buffer;
             allocParamsForBufferLinear.dwBytes  = MOS_ALIGN_CEIL(sizeof(HucPakIntegrateDmem), CODECHAL_CACHELINE_SIZE);
             allocParamsForBufferLinear.pBufName = "PAK Stitch Dmem Buffer";
+            allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_NOCACHE;
             auto numOfPasses                    = CODECHAL_VDENC_BRC_NUM_OF_PASSES;
 
             for (auto k = 0; k < CODECHAL_ENCODE_RECYCLED_BUFFER_NUM; k++)
@@ -88,6 +89,7 @@ namespace encode {
                 // HuC stitching data buffer
                 allocParamsForBufferLinear.dwBytes  = MOS_ALIGN_CEIL(sizeof(HucCommandData), CODECHAL_PAGE_SIZE);
                 allocParamsForBufferLinear.pBufName = "HEVC HuC Stitch Data Buffer";
+                allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
                 MOS_RESOURCE *allocatedBuffer       = nullptr;
                 for (auto i = 0; i < CODECHAL_ENCODE_RECYCLED_BUFFER_NUM; ++i)
                 {

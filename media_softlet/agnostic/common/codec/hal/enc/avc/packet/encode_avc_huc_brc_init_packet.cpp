@@ -67,6 +67,7 @@ MOS_STATUS AvcHucBrcInitPkt::AllocateResources()
     allocParamsForBufferLinear.Type     = MOS_GFXRES_BUFFER;
     allocParamsForBufferLinear.TileType = MOS_TILE_LINEAR;
     allocParamsForBufferLinear.Format   = Format_Buffer;
+    allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_WRITE;
 
     allocParamsForBufferLinear.dwBytes  = MOS_ALIGN_CEIL(m_vdencBrcInitDmemBufferSize, CODECHAL_CACHELINE_SIZE);
     allocParamsForBufferLinear.pBufName = "VDENC BrcInit DmemBuffer";

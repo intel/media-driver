@@ -126,6 +126,7 @@ MOS_STATUS PreEncBasicFeature::AllocateResources()
         }
         allocParamsForBufferLinear.dwBytes  = bufSize;
         allocParamsForBufferLinear.pBufName = bufferName;
+        allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
         res                                 = m_allocator->AllocateResource(allocParamsForBufferLinear, false);
         return MOS_STATUS_SUCCESS;
     };
@@ -141,8 +142,10 @@ MOS_STATUS PreEncBasicFeature::AllocateResources()
     {
         allocParamsForBufferLinear.dwBytes = EncodePreencBasicMember2 * sizeof(EncodePreencDef1);
         allocParamsForBufferLinear.pBufName = "pre_Ref0";
+        allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_NOCACHE;
         ENCODE_CHK_STATUS_RETURN(m_recycleBuf->RegisterResource(encode::RecycleResId::PreEncRef0, allocParamsForBufferLinear));
         allocParamsForBufferLinear.pBufName = "pre_Ref1";
+        allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_NOCACHE;
         ENCODE_CHK_STATUS_RETURN(m_recycleBuf->RegisterResource(encode::RecycleResId::PreEncRef1, allocParamsForBufferLinear));
     }
 
@@ -154,6 +157,7 @@ MOS_STATUS PreEncBasicFeature::AllocateResources()
     allocParamsForBuffer2D.dwWidth  = m_frameWidth;
     allocParamsForBuffer2D.dwHeight = m_frameHeight;
     allocParamsForBuffer2D.pBufName = "preRawDsSurface";
+    allocParamsForBuffer2D.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INPUT_RAW;
     ENCODE_CHK_STATUS_RETURN(m_recycleBuf->RegisterResource(encode::RecycleResId::PreEncRawSurface, allocParamsForBuffer2D));
 
     return eStatus;

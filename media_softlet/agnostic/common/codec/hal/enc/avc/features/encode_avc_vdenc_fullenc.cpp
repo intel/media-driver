@@ -182,8 +182,10 @@ MOS_STATUS AvcVdencFullEnc::UpdateTrackedBufferParameters()
     {
         allocParams.dwBytes  = ecodeAvcFullencMember5 * sizeof(EncodePreencDef1);
         allocParams.pBufName = "preencRef0";
+        allocParams.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
         ENCODE_CHK_STATUS_RETURN(m_basicFeature->m_trackedBuf->RegisterParam(encode::BufferType::preencRef0, allocParams));
         allocParams.pBufName = "preencRef1";
+        allocParams.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
         ENCODE_CHK_STATUS_RETURN(m_basicFeature->m_trackedBuf->RegisterParam(encode::BufferType::preencRef1, allocParams));
     }
 

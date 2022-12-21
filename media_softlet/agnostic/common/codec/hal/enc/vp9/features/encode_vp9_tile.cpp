@@ -229,6 +229,7 @@ MOS_STATUS Vp9EncodeTile::AllocateResources()
     uint32_t size                       = basicFeature->m_maxPicSizeInSb * CODECHAL_CACHELINE_SIZE;  // worst case: each SB is tile
     allocParamsForBufferLinear.dwBytes  = size;
     allocParamsForBufferLinear.pBufName = "TileRecordStreamOutBuffer";
+    allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ;
     allocatedBuffer                     = m_allocator->AllocateResource(allocParamsForBufferLinear, true);
     ENCODE_CHK_NULL_RETURN(allocatedBuffer);
     m_resTileRecordStrmOutBuffer = *allocatedBuffer;
@@ -237,6 +238,7 @@ MOS_STATUS Vp9EncodeTile::AllocateResources()
     size                                = MOS_ALIGN_CEIL(basicFeature->m_maxPicSizeInSb * 64 * 8, CODECHAL_CACHELINE_SIZE);
     allocParamsForBufferLinear.dwBytes  = size;
     allocParamsForBufferLinear.pBufName = "CuStatsStrmOutBuffer";
+    allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ;
     allocatedBuffer                     = m_allocator->AllocateResource(allocParamsForBufferLinear, true);
     ENCODE_CHK_NULL_RETURN(allocatedBuffer);
     m_resCuStatsStrmOutBuffer = *allocatedBuffer;
@@ -444,6 +446,7 @@ MOS_STATUS Vp9EncodeTile::AllocateTileStatistics(void *params)
     {
         allocParamsForBufferLinear.dwBytes  = m_hwInterface->m_pakIntAggregatedFrameStatsSize;
         allocParamsForBufferLinear.pBufName = "PAK HUC Integrated Aggregated Frame Statistics Streamout Buffer";
+        allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
 
         auto allocatedBuffer = m_allocator->AllocateResource(allocParamsForBufferLinear, true);
         ENCODE_CHK_NULL_RETURN(allocatedBuffer);
@@ -488,6 +491,7 @@ MOS_STATUS Vp9EncodeTile::AllocateTileStatistics(void *params)
         }
         allocParamsForBufferLinear.dwBytes  = m_hwInterface->m_pakIntTileStatsSize;
         allocParamsForBufferLinear.pBufName = "Tile Level Statistics Streamout Buffer";
+        allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
 
         auto allocatedBuffer = m_allocator->AllocateResource(allocParamsForBufferLinear, true);
         ENCODE_CHK_NULL_RETURN(allocatedBuffer);
@@ -501,6 +505,7 @@ MOS_STATUS Vp9EncodeTile::AllocateTileStatistics(void *params)
         auto size                           = m_maxTileNumber * MOS_ALIGN_CEIL(m_hcpInterfaceNew->GetPakHWTileSizeRecordSize(), CODECHAL_CACHELINE_SIZE);
         allocParamsForBufferLinear.dwBytes  = size;
         allocParamsForBufferLinear.pBufName = "Tile Record Buffer";
+        allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
 
         auto allocatedBuffer = m_allocator->AllocateResource(allocParamsForBufferLinear, true);
         ENCODE_CHK_NULL_RETURN(allocatedBuffer);

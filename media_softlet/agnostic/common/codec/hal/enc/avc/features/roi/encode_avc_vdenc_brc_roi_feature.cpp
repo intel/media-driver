@@ -58,6 +58,7 @@ namespace encode
             allocParams.Format = Format_Buffer;
             allocParams.dwBytes = m_basicFeature->m_picWidthInMb * m_basicFeature->m_picHeightInMb;
             allocParams.pBufName = "VDENC BRC ROI Map Buffer";
+            allocParams.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_WRITE;
             ENCODE_CHK_STATUS_RETURN(m_basicFeature->m_recycleBuf->RegisterResource(RecycleResId::HucRoiMapBuffer, allocParams));
         }
 

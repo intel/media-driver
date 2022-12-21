@@ -126,6 +126,7 @@ MOS_STATUS Vp9HucBrcInitPkt::AllocateResources()
     allocParamsForBufferLinear.Type     = MOS_GFXRES_BUFFER;
     allocParamsForBufferLinear.TileType = MOS_TILE_LINEAR;
     allocParamsForBufferLinear.Format   = Format_Buffer;
+    allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_NOCACHE;
 
     // BRC init/reset DMEM
     allocParamsForBufferLinear.dwBytes  = MOS_ALIGN_CEIL(sizeof(HucBrcInitDmem), CODECHAL_CACHELINE_SIZE);

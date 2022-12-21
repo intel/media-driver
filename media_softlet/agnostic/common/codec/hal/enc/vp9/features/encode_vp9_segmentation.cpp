@@ -248,6 +248,7 @@ MOS_STATUS Vp9Segmentation::AllocateMbBrcSegMapSurface()
     allocParamsForBuffer2D.dwWidth  = m_mbSegmentMapSurface.dwPitch;
     allocParamsForBuffer2D.dwHeight = picHeightInMb;
     allocParamsForBuffer2D.pBufName = "MBBRC driver Segment Map Surface";
+    allocParamsForBuffer2D.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_NOCACHE;
 
     uint32_t size = allocParamsForBuffer2D.dwWidth * allocParamsForBuffer2D.dwHeight;
 

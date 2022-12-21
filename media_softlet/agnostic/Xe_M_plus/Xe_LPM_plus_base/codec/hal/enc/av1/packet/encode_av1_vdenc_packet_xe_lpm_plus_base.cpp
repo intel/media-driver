@@ -400,6 +400,7 @@ MOS_STATUS Av1VdencPktXe_Lpm_Plus_Base::RegisterPostCdef()
         allocParamsForBuffer2D.dwWidth = MOS_ALIGN_CEIL(allocParamsForBuffer2D.dwWidth, 32) * 2;
     }
     allocParamsForBuffer2D.pBufName = "postCdefReconSurface";
+    allocParamsForBuffer2D.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
     ENCODE_CHK_STATUS_RETURN(m_basicFeature->m_trackedBuf->RegisterParam(encode::BufferType::postCdefReconSurface, allocParamsForBuffer2D));
 
     return MOS_STATUS_SUCCESS;

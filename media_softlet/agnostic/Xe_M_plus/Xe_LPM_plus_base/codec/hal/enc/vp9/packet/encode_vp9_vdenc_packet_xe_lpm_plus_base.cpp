@@ -121,6 +121,7 @@ MOS_STATUS Vp9VdencPktXe_Lpm_Plus_Base::AllocateResources()
     // VDENC tile row store buffer
     allocParamsForBufferLinear.dwBytes  = MOS_ROUNDUP_DIVIDE(m_basicFeature->m_frameWidth, 32) * CODECHAL_CACHELINE_SIZE * 2;
     allocParamsForBufferLinear.pBufName = "VDENC Tile Row Store Buffer";
+    allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ;
     allocatedBuffer                     = m_allocator->AllocateResource(allocParamsForBufferLinear, true);
     ENCODE_CHK_NULL_RETURN(allocatedBuffer);
     m_vdencTileRowStoreBuffer = *allocatedBuffer;

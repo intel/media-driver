@@ -475,6 +475,7 @@ MOS_STATUS Vp9HpuPkt::AllocateResources()
     // Huc default prob buffer
     allocParamsForBufferLinear.dwBytes  = sizeof(Keyframe_Default_Probs) + sizeof(Inter_Default_Probs);
     allocParamsForBufferLinear.pBufName = "HucDefaultProbBuffer";
+    allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
     allocatedBuffer                     = m_allocator->AllocateResource(allocParamsForBufferLinear, false);
     ENCODE_CHK_NULL_RETURN(allocatedBuffer);
     m_resHucDefaultProbBuffer = *allocatedBuffer;

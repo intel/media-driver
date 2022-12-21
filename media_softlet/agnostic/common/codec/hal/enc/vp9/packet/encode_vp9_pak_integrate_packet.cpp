@@ -225,6 +225,7 @@ MOS_STATUS Vp9PakIntegratePkt::AllocateResources()
         // HUC PAK Int DMEM buffer
         allocParamsForBufferLinear.dwBytes  = MOS_ALIGN_CEIL(m_hucPakIntDmemBufferSize, CODECHAL_CACHELINE_SIZE);
         allocParamsForBufferLinear.pBufName = "Huc Pak Int Dmem Buffer";
+        allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_NOCACHE;
         for (auto i = 0; i < CODECHAL_ENCODE_RECYCLED_BUFFER_NUM; ++i)
         {
             for (auto j = 0; j < Vp9EncodeBrc::m_brcMaxNumPasses; ++j)
@@ -238,6 +239,7 @@ MOS_STATUS Vp9PakIntegratePkt::AllocateResources()
         // HuC PAK Int region 7, 8
         allocParamsForBufferLinear.dwBytes  = MOS_ALIGN_CEIL(64, CODECHAL_PAGE_SIZE);
         allocParamsForBufferLinear.pBufName = "HUC PAK Int Dummy Buffer";
+        allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_NOCACHE;
         allocatedBuffer                     = m_allocator->AllocateResource(allocParamsForBufferLinear, true);
         ENCODE_CHK_NULL_RETURN(allocatedBuffer);
         m_hucPakIntDummyBuffer = *allocatedBuffer;
@@ -245,6 +247,7 @@ MOS_STATUS Vp9PakIntegratePkt::AllocateResources()
         // Allocate region 9 of PAK integration to be fed as input to HuC BRC region 7
         allocParamsForBufferLinear.dwBytes  = MOS_ALIGN_CEIL(CODECHAL_ENCODE_VP9_HUC_BRC_DATA_BUFFER_SIZE, CODECHAL_PAGE_SIZE);
         allocParamsForBufferLinear.pBufName = "HUC PAK Integration FrameByteCount output";
+        allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_WRITE;
         allocatedBuffer                     = m_allocator->AllocateResource(allocParamsForBufferLinear, true);
         ENCODE_CHK_NULL_RETURN(allocatedBuffer);
         m_basicFeature->m_hucPakIntBrcDataBuffer = allocatedBuffer;
@@ -254,6 +257,7 @@ MOS_STATUS Vp9PakIntegratePkt::AllocateResources()
             // HuC stitching data buffer
             allocParamsForBufferLinear.dwBytes  = MOS_ALIGN_CEIL(sizeof(HucCommandData), CODECHAL_PAGE_SIZE);
             allocParamsForBufferLinear.pBufName = "VP9 HuC Stitch Data Buffer";
+            allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_NOCACHE;
 
             for (auto i = 0; i < CODECHAL_ENCODE_RECYCLED_BUFFER_NUM; ++i)
             {

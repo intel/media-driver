@@ -252,6 +252,7 @@ MOS_STATUS Vp9BasicFeature::Resize4x8xforDS(uint8_t bufIdx)
         allocParamsForBuffer2D.dwWidth  = new8xWidth;
         allocParamsForBuffer2D.dwHeight = new8xHeight;
         allocParamsForBuffer2D.pBufName = "8xDSSurface";
+        allocParamsForBuffer2D.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
         ENCODE_CHK_STATUS_RETURN(m_trackedBuf->RegisterParam(encode::BufferType::ds8xSurface, allocParamsForBuffer2D));
     }
 
@@ -267,6 +268,7 @@ MOS_STATUS Vp9BasicFeature::Resize4x8xforDS(uint8_t bufIdx)
         allocParamsForBuffer2D.dwWidth  = new4xWidth;
         allocParamsForBuffer2D.dwHeight = new4xHeight;
         allocParamsForBuffer2D.pBufName = "4xDSSurface";
+        allocParamsForBuffer2D.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
         ENCODE_CHK_STATUS_RETURN(m_trackedBuf->RegisterParam(encode::BufferType::ds4xSurface, allocParamsForBuffer2D));
     }
 
@@ -320,7 +322,7 @@ MOS_STATUS Vp9BasicFeature::UpdateTrackedBufferParameters()
     {
         allocParams.dwBytes  = sizeOfSegmentIdMap;
         allocParams.pBufName = "SegmentIdBuffer";
-
+        allocParams.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
         ENCODE_CHK_STATUS_RETURN(m_trackedBuf->RegisterParam(encode::BufferType::segmentIdStreamOutBuffer, allocParams));
     }
 
@@ -330,6 +332,7 @@ MOS_STATUS Vp9BasicFeature::UpdateTrackedBufferParameters()
     {
         allocParams.dwBytes  = sizeOfMvTemporalBuffer;
         allocParams.pBufName = "mvTemporalBuffer";
+        allocParams.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_NOCACHE;
         ENCODE_CHK_STATUS_RETURN(m_trackedBuf->RegisterParam(encode::BufferType::mvTemporalBuffer, allocParams));
     }
 

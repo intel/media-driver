@@ -630,14 +630,14 @@ MOS_STATUS AvcBasicFeature::UpdateTrackedBufferParameters()
     {
         allocParams.dwBytes = m_colocatedMVBufferSize;
         allocParams.pBufName = "mvTemporalBuffer";
-
+        allocParams.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_NOCACHE;
         ENCODE_CHK_STATUS_RETURN(m_trackedBuf->RegisterParam(encode::BufferType::mvTemporalBuffer, allocParams));
 
         if (m_colocatedMVBufferForIFrames) {
             m_allocator->DestroyResource(m_colocatedMVBufferForIFrames);
             m_colocatedMVBufferForIFrames = nullptr;
         }
-
+        allocParams.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
         m_colocatedMVBufferForIFrames = m_allocator->AllocateResource(allocParams, true);
         ENCODE_CHK_NULL_RETURN(m_colocatedMVBufferForIFrames);
         uint8_t* pData = (uint8_t*)m_allocator->LockResourceForWrite(m_colocatedMVBufferForIFrames);

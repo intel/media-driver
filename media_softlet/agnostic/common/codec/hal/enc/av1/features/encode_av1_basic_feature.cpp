@@ -281,12 +281,14 @@ MOS_STATUS Av1BasicFeature::UpdateTrackedBufferParameters()
     {
         allocParams.dwBytes  = sizeOfSegmentIdMap;
         allocParams.pBufName = "segmentIdStreamOutBuffer";
+        allocParams.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_NOCACHE;
 
         ENCODE_CHK_STATUS_RETURN(m_trackedBuf->RegisterParam(encode::BufferType::segmentIdStreamOutBuffer, allocParams));
     }
 
     allocParams.dwBytes  = MOS_ALIGN_CEIL(m_cdfMaxNumBytes, CODECHAL_PAGE_SIZE);
     allocParams.pBufName = "bwdAdaptCdfBuffer";
+    allocParams.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_NOCACHE;
     ENCODE_CHK_STATUS_RETURN(m_trackedBuf->RegisterParam(encode::BufferType::bwdAdaptCdfBuffer, allocParams));
 
     uint32_t sizeOfMvTemporalbuffer = CODECHAL_CACHELINE_SIZE * ((m_isSb128x128) ? 16 : 4) * totalSbPerFrame;
@@ -294,6 +296,7 @@ MOS_STATUS Av1BasicFeature::UpdateTrackedBufferParameters()
     {
         allocParams.dwBytes  = sizeOfMvTemporalbuffer;
         allocParams.pBufName = "mvTemporalBuffer";
+        allocParams.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_NOCACHE;
 
         ENCODE_CHK_STATUS_RETURN(m_trackedBuf->RegisterParam(encode::BufferType::mvTemporalBuffer, allocParams));
     }
@@ -373,7 +376,7 @@ MOS_STATUS Av1BasicFeature::UpdateDefaultCdfTable()
         allocParams.Format          = Format_Buffer;
         allocParams.dwBytes         = cdfTableSize * 4;  // totally 4 cdf tables according to spec
         allocParams.pBufName        = "Av1CdfTablesBuffer";
-        allocParams.ResUsageType    = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
+        allocParams.ResUsageType    = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ;
         m_defaultCdfBuffers         = m_allocator->AllocateResource(allocParams, true);
 
         auto data = (uint16_t *)m_allocator->LockResourceForWrite(m_defaultCdfBuffers);
@@ -392,6 +395,7 @@ MOS_STATUS Av1BasicFeature::UpdateDefaultCdfTable()
         {
             allocParams.dwBytes           = cdfTableSize;
             allocParams.pBufName          = "ActiveAv1CdfTableBuffer";
+            allocParams.ResUsageType    = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ;
             m_defaultCdfBufferInUse       = m_allocator->AllocateResource(allocParams, true);
             m_defaultCdfBufferInUseOffset = 0;
         }

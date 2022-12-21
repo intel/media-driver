@@ -209,6 +209,7 @@ MOS_STATUS Vp9EncodeHpu::AllocateResources()
     // Probability delta buffer
     allocParamsForBufferLinear.dwBytes  = 29 * CODECHAL_CACHELINE_SIZE;
     allocParamsForBufferLinear.pBufName = "ProbabilityDeltaBuffer";
+    allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ;
     allocatedBuffer                     = m_allocator->AllocateResource(allocParamsForBufferLinear, true);
     ENCODE_CHK_NULL_RETURN(allocatedBuffer);
     m_resProbabilityDeltaBuffer = *allocatedBuffer;
@@ -216,6 +217,7 @@ MOS_STATUS Vp9EncodeHpu::AllocateResources()
     // Probability counter buffer
     allocParamsForBufferLinear.dwBytes  = m_probabilityCounterBufferSize * m_basicFeature->m_maxTileNumber;
     allocParamsForBufferLinear.pBufName = "ProbabilityCounterBuffer";
+    allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
     allocatedBuffer                     = m_allocator->AllocateResource(allocParamsForBufferLinear, true);
     ENCODE_CHK_NULL_RETURN(allocatedBuffer);
     m_resProbabilityCounterBuffer = *allocatedBuffer;
@@ -223,6 +225,7 @@ MOS_STATUS Vp9EncodeHpu::AllocateResources()
     // Huc Prob DMEM buffer
     allocParamsForBufferLinear.dwBytes  = MOS_ALIGN_CEIL(MOS_MAX(sizeof(HucProbDmem), sizeof(HucProbDmem)), CODECHAL_CACHELINE_SIZE);
     allocParamsForBufferLinear.pBufName = "HucProbDmemBuffer";
+    allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_NOCACHE;
     for (auto i = 0; i < CODECHAL_ENCODE_RECYCLED_BUFFER_NUM; ++i)
     {
         for (auto j = 0; j < 3; ++j)
@@ -236,6 +239,7 @@ MOS_STATUS Vp9EncodeHpu::AllocateResources()
     // Huc probability output buffer
     allocParamsForBufferLinear.dwBytes  = 32 * CODECHAL_CACHELINE_SIZE;
     allocParamsForBufferLinear.pBufName = "HucProbabilityOutputBuffer";
+    allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ;
     allocatedBuffer                     = m_allocator->AllocateResource(allocParamsForBufferLinear, true);
     ENCODE_CHK_NULL_RETURN(allocatedBuffer);
     m_resHucProbOutputBuffer = *allocatedBuffer;
@@ -243,6 +247,7 @@ MOS_STATUS Vp9EncodeHpu::AllocateResources()
     // Probability buffers
     allocParamsForBufferLinear.dwBytes  = 32 * CODECHAL_CACHELINE_SIZE;
     allocParamsForBufferLinear.pBufName = "ProbabilityBuffer";
+    allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
     for (auto i = 0; i < CODEC_VP9_NUM_CONTEXTS; ++i)
     {
         allocatedBuffer = m_allocator->AllocateResource(allocParamsForBufferLinear, true);

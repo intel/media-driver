@@ -42,11 +42,13 @@ HucForceQpROI::HucForceQpROI(
         allocParams.Format   = Format_Buffer;
         allocParams.dwBytes  = m_deltaQpRoiBufferSize;
         allocParams.pBufName = "Delta QP for ROI Buffer";
+        allocParams.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_WRITE;
         m_recycle->RegisterResource(
             RecycleResId::HucRoiDeltaQpBuffer, allocParams);
 
         allocParams.dwBytes  = m_roiStreamInBufferSize;
         allocParams.pBufName = "Output ROI Streamin Buffer";
+        allocParams.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_NOCACHE;
         m_recycle->RegisterResource(
             RecycleResId::HucRoiOutputBuffer, allocParams);
     }

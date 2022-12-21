@@ -84,6 +84,7 @@ MOS_STATUS AvcVdencStreamInFeature::Update(void* setting)
         allocParams.Type = MOS_GFXRES_BUFFER;
         allocParams.TileType = MOS_TILE_LINEAR;
         allocParams.Format = Format_Buffer;
+        allocParams.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_WRITE;
 
         m_widthInMb = m_basicFeature->m_picWidthInMb;
         m_heightInMb = m_basicFeature->m_picHeightInMb;

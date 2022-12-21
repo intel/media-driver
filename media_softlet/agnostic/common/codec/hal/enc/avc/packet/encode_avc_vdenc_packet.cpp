@@ -205,6 +205,7 @@ namespace encode {
         allocParamsForBufferLinear.Type     = MOS_GFXRES_BUFFER;
         allocParamsForBufferLinear.TileType = MOS_TILE_LINEAR;
         allocParamsForBufferLinear.Format   = Format_Buffer;
+        allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
 
         // PAK Slice Size Streamout Buffer
         allocParamsForBufferLinear.dwBytes  = MOS_ALIGN_CEIL(CODECHAL_ENCODE_SLICESIZE_BUF_SIZE, CODECHAL_PAGE_SIZE);
@@ -215,24 +216,28 @@ namespace encode {
         // 1 cacheline per MB
         allocParamsForBufferLinear.dwBytes  = m_basicFeature->m_picWidthInMb * CODECHAL_CACHELINE_SIZE;
         allocParamsForBufferLinear.pBufName = "VDENC Intra Row Store Scratch Buffer";
-        m_vdencIntraRowStoreScratch         = m_allocator->AllocateResource(allocParamsForBufferLinear, false, MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE);
+        allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ;
+        m_vdencIntraRowStoreScratch         = m_allocator->AllocateResource(allocParamsForBufferLinear, false);
 
         // PAK Statistics buffer
         allocParamsForBufferLinear.dwBytes = MOS_ALIGN_CEIL(brcSettings.vdencBrcPakStatsBufferSize, CODECHAL_PAGE_SIZE);
         allocParamsForBufferLinear.pBufName = "VDENC BRC PAK Statistics Buffer";
+        allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
         ENCODE_CHK_STATUS_RETURN(m_basicFeature->m_recycleBuf->RegisterResource(BrcPakStatisticBuffer, allocParamsForBufferLinear, 1));
 
         // Here allocate the buffer for MB+FrameLevel PAK statistics.
         uint32_t size = brcSettings.vdencBrcPakStatsBufferSize + m_basicFeature->m_picWidthInMb * m_basicFeature->m_picHeightInMb * 64;
         allocParamsForBufferLinear.dwBytes  = MOS_ALIGN_CEIL(size, CODECHAL_PAGE_SIZE);
-        m_pakStatsBufferFull               = m_allocator->AllocateResource(allocParamsForBufferLinear, false, MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_WRITE);
+        allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
+        m_pakStatsBufferFull               = m_allocator->AllocateResource(allocParamsForBufferLinear, false);
 
         if (m_mfxItf->IsDeblockingFilterRowstoreCacheEnabled() == false)
         {
             // Deblocking Filter Row Store Scratch buffer
             allocParamsForBufferLinear.dwBytes  = m_basicFeature->m_picWidthInMb * 4 * CODECHAL_CACHELINE_SIZE; // 4 cachelines per MB
             allocParamsForBufferLinear.pBufName = "Deblocking Filter Row Store Scratch Buffer";
-            m_resDeblockingFilterRowStoreScratchBuffer = m_allocator->AllocateResource(allocParamsForBufferLinear, false, MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE);
+            allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
+            m_resDeblockingFilterRowStoreScratchBuffer = m_allocator->AllocateResource(allocParamsForBufferLinear, false);
         }
 
         if (m_mfxItf->IsIntraRowstoreCacheEnabled() == false)
@@ -241,7 +246,8 @@ namespace encode {
             // 1 cacheline per MB
             allocParamsForBufferLinear.dwBytes  = m_basicFeature->m_picWidthInMb * CODECHAL_CACHELINE_SIZE;
             allocParamsForBufferLinear.pBufName = "Intra Row Store Scratch Buffer";
-            m_intraRowStoreScratchBuffer        = m_allocator->AllocateResource(allocParamsForBufferLinear, false, MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE);
+            allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
+            m_intraRowStoreScratchBuffer        = m_allocator->AllocateResource(allocParamsForBufferLinear, false);
         }
 
         if (m_mfxItf->IsBsdMpcRowstoreCacheEnabled() == false)
@@ -249,7 +255,8 @@ namespace encode {
             // MPC Row Store Scratch buffer
             allocParamsForBufferLinear.dwBytes  = m_basicFeature->m_picWidthInMb * 2 * 64; // 2 cachelines per MB
             allocParamsForBufferLinear.pBufName = "MPC Row Store Scratch Buffer";
-            m_resMPCRowStoreScratchBuffer       = m_allocator->AllocateResource(allocParamsForBufferLinear, false, MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE);
+            allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
+            m_resMPCRowStoreScratchBuffer       = m_allocator->AllocateResource(allocParamsForBufferLinear, false);
         }
 
         auto brcFeature = dynamic_cast<AvcEncodeBRC*>(m_featureManager->GetFeature(AvcFeatureIDs::avcBrcFeature));

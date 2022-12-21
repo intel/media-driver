@@ -61,11 +61,11 @@ namespace encode {
                 // BRC update DMEM
                 allocParamsForBufferLinear.dwBytes = MOS_ALIGN_CEIL(m_vdencbackAnnotationDmemBufferSize, CODECHAL_CACHELINE_SIZE);
                 allocParamsForBufferLinear.pBufName = "AV1 Back Annotation Dmem Buffer";
-                allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
+                allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_WRITE;
                 m_vdencBackAnnotationDmemBuffer[k][i] = m_allocator->AllocateResource(allocParamsForBufferLinear, true);
 
                 allocParamsForBufferLinear.dwBytes = MOS_ALIGN_CEIL(m_vdencAv1HucCtrlBufferSize, CODECHAL_CACHELINE_SIZE);
-                allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
+                allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_WRITE;
                 allocParamsForBufferLinear.pBufName = "AV1 Back Annotation Huc Ctrl Buffer";
                 m_vdencAv1HucCtrlBuffer[k][i] = m_allocator->AllocateResource(allocParamsForBufferLinear, true);
             }

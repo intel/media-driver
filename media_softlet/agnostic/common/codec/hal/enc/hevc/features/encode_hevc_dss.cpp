@@ -93,11 +93,13 @@ namespace encode
         // Slice Count buffer 1 DW = 4 Bytes
         allocParamsForBufferLinear.dwBytes    = MOS_ALIGN_CEIL(4, CODECHAL_CACHELINE_SIZE);
         allocParamsForBufferLinear.pBufName   = "Slice Count Buffer";
+        allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_NOCACHE;
         m_resSliceCountBuffer = m_allocator->AllocateResource(allocParamsForBufferLinear, false);
 
         // VDEncMode Timer buffer 1 DW = 4 Bytes
         allocParamsForBufferLinear.dwBytes        = MOS_ALIGN_CEIL(4, CODECHAL_CACHELINE_SIZE);
         allocParamsForBufferLinear.pBufName       = "VDEncMode Timer Buffer";
+        allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_NOCACHE;
         m_resVDEncModeTimerBuffer = m_allocator->AllocateResource(allocParamsForBufferLinear, false);
 
         return eStatus;
@@ -175,6 +177,7 @@ namespace encode
                 allocParamsForBufferLinear.Format   = Format_Buffer;
                 allocParamsForBufferLinear.dwBytes  = sizeOfSliceSizesBuffer;
                 allocParamsForBufferLinear.pBufName = "SliceReport";
+                allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_NOCACHE;
                 MOS_RESOURCE *allocatedresource     = m_allocator->AllocateResource(allocParamsForBufferLinear, false);
                 ENCODE_CHK_NULL_RETURN(allocatedresource);
                 m_resSliceReport[currIndex] = *allocatedresource;
@@ -256,6 +259,7 @@ namespace encode
                     allocParamsForBufferLinear.Format   = Format_Buffer;
                     allocParamsForBufferLinear.dwBytes  = sizeOfSliceSizesBuffer;
                     allocParamsForBufferLinear.pBufName = "SliceReport";
+                    allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_NOCACHE;
                     MOS_RESOURCE *allocatedresource     = m_allocator->AllocateResource(allocParamsForBufferLinear, false);
                     ENCODE_CHK_NULL_RETURN(allocatedresource);
                     m_resSliceReport[currIndex] = *allocatedresource;

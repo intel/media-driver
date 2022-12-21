@@ -94,6 +94,7 @@ MOS_STATUS HevcVdencRoi::Init(void *setting)
     m_streamInSize      = allocParams.dwBytes;
 
     allocParams.pBufName = "VDEnc StreamIn Data Buffer";
+    allocParams.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_NOCACHE;
     m_basicFeature->m_recycleBuf->RegisterResource(RecycleResId::StreamInBuffer, allocParams);
 
     return MOS_STATUS_SUCCESS;

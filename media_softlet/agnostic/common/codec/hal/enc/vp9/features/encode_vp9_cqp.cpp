@@ -100,6 +100,7 @@ MOS_STATUS Vp9EncodeCqp::AllocateResources()
     size                                = m_basicFeature->m_maxPicWidthInSb * size * CODECHAL_CACHELINE_SIZE;
     allocParamsForBufferLinear.dwBytes  = size;
     allocParamsForBufferLinear.pBufName = "DeblockingFilterLineBuffer";
+    allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ;
     allocatedBuffer                     = m_allocator->AllocateResource(allocParamsForBufferLinear, true);
     ENCODE_CHK_NULL_RETURN(allocatedBuffer);
     m_resDeblockingFilterLineBuffer = *allocatedBuffer;
@@ -107,6 +108,7 @@ MOS_STATUS Vp9EncodeCqp::AllocateResources()
     // Deblocking filter tile line buffer
     allocParamsForBufferLinear.dwBytes  = size;
     allocParamsForBufferLinear.pBufName = "DeblockingFilterTileLineBuffer";
+    allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ;
     allocatedBuffer                     = m_allocator->AllocateResource(allocParamsForBufferLinear, true);
     ENCODE_CHK_NULL_RETURN(allocatedBuffer);
     m_resDeblockingFilterTileLineBuffer = *allocatedBuffer;
@@ -117,6 +119,7 @@ MOS_STATUS Vp9EncodeCqp::AllocateResources()
     size                                = m_basicFeature->m_maxPicHeightInSb * size * CODECHAL_CACHELINE_SIZE;
     allocParamsForBufferLinear.dwBytes  = size;
     allocParamsForBufferLinear.pBufName = "DeblockingFilterTileColumnBuffer";
+    allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ;
     allocatedBuffer                     = m_allocator->AllocateResource(allocParamsForBufferLinear, true);
     ENCODE_CHK_NULL_RETURN(allocatedBuffer);
     m_resDeblockingFilterTileColumnBuffer = *allocatedBuffer;

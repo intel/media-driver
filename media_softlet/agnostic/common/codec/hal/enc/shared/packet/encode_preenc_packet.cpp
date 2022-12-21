@@ -115,6 +115,7 @@ namespace encode
 
         allocParamsForBufferLinear.dwBytes  = MOS_ROUNDUP_DIVIDE(m_basicFeature->m_frameWidth, m_basicFeature->m_maxLCUSize) * CODECHAL_CACHELINE_SIZE * 2 * 2;
         allocParamsForBufferLinear.pBufName = "vdencIntraRowStoreScratch";
+        allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ;
         m_vdencIntraRowStoreScratch         = m_allocator->AllocateResource(allocParamsForBufferLinear, false);
 
         MOS_ZeroMemory(&allocParamsForBufferLinear, sizeof(MOS_ALLOC_GFXRES_PARAMS));
@@ -125,6 +126,7 @@ namespace encode
         // VDENC tile row store buffer
         allocParamsForBufferLinear.dwBytes  = MOS_ROUNDUP_DIVIDE(m_basicFeature->m_frameWidth, 32) * CODECHAL_CACHELINE_SIZE * 2;
         allocParamsForBufferLinear.pBufName = "VDENC Tile Row Store Buffer";
+        allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ;
         m_vdencTileRowStoreBuffer           = m_allocator->AllocateResource(allocParamsForBufferLinear, false);
 
         hcp::HcpBufferSizePar hcpBufSizePar;
@@ -148,6 +150,7 @@ namespace encode
             }
             allocParamsForBufferLinear.dwBytes  = bufSize;
             allocParamsForBufferLinear.pBufName = bufferName;
+            allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ;
             res                                 = m_allocator->AllocateResource(allocParamsForBufferLinear, false);
             return MOS_STATUS_SUCCESS;
         };

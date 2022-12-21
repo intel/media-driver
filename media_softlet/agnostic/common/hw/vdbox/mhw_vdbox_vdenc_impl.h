@@ -591,9 +591,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.OriginalUncompressedPicture.PictureFields.DW0.MemoryObjectControlState =
-                this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_ORIGINAL_UNCOMPRESSED_PICTURE_ENCODE].Gen12_7.Index;
         }
 
         if (this->m_rowStoreCache.vdenc.enabled)
@@ -616,9 +613,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.RowStoreScratchBuffer.BufferPictureFields.DW0.MemoryObjectControlState =
-                this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_VDENC_ROW_STORE_BUFFER_CODEC].Gen12_7.Index;
         }
 
         if (!Mos_ResourceIsNull(params.streamOutBuffer))
@@ -636,9 +630,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.VdencStatisticsStreamout.PictureFields.DW0.MemoryObjectControlState =
-                this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_STREAMOUT_DATA_CODEC].Gen12_7.Index;
         }
 
         if (!Mos_ResourceIsNull(params.streamInBuffer))
@@ -656,9 +647,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.StreaminDataPicture.PictureFields.DW0.MemoryObjectControlState =
-                this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_VDENC_STREAMIN_CODEC].Gen12_7.Index;
         }
 
         typename cmd_t::VDENC_Reference_Picture_CMD *fwdRefs[] =
@@ -713,9 +701,6 @@ protected:
                     this->m_osItf,
                     this->m_currentCmdBuf,
                     &resourceParams));
-
-                fwdRefs[refIdx]->PictureFields.DW0.MemoryObjectControlState =
-                    this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_REFERENCE_PICTURE_CODEC].Gen12_7.Index;
             }
 
             if (!Mos_ResourceIsNull(params.refsDsStage1[refIdx]) && refIdx < sizeof(fwdRefsDsStage1) / sizeof(fwdRefsDsStage1[0]))
@@ -742,9 +727,6 @@ protected:
                     this->m_osItf,
                     this->m_currentCmdBuf,
                     &resourceParams));
-
-                fwdRefsDsStage1[refIdx]->PictureFields.DW0.MemoryObjectControlState =
-                    this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_REFERENCE_PICTURE_CODEC].Gen12_7.Index;
             }
 
             if (!Mos_ResourceIsNull(params.refsDsStage2[refIdx]) && refIdx < sizeof(fwdRefsDsStage2) / sizeof(fwdRefsDsStage2[0]))
@@ -772,9 +754,6 @@ protected:
                     this->m_currentCmdBuf,
                     &resourceParams));
 
-                fwdRefsDsStage2[refIdx]->PictureFields.DW0.MemoryObjectControlState =
-                    this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_REFERENCE_PICTURE_CODEC].Gen12_7.Index;
-
                 if (params.numActiveRefL0 == 2 && params.numActiveRefL1 == 1 && refIdx == 1)
                 {
                     resourceParams.dwLocationInCmd = fwdRefsDsStage2DwLoaction[refIdx + 1];
@@ -790,9 +769,6 @@ protected:
                         this->m_osItf,
                         this->m_currentCmdBuf,
                         &resourceParams));
-
-                    fwdRefsDsStage2[refIdx + 1]->PictureFields.DW0.MemoryObjectControlState =
-                        this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_REFERENCE_PICTURE_CODEC].Gen12_7.Index;
                 }
             }
         }
@@ -832,9 +808,6 @@ protected:
                     this->m_osItf,
                     this->m_currentCmdBuf,
                     &resourceParams));
-
-                cmd.BwdRef0.PictureFields.DW0.MemoryObjectControlState =
-                    this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_REFERENCE_PICTURE_CODEC].Gen12_7.Index;
             }
 
             if (!Mos_ResourceIsNull(params.refsDsStage1[refIdx]))
@@ -861,9 +834,6 @@ protected:
                     this->m_osItf,
                     this->m_currentCmdBuf,
                     &resourceParams));
-
-                cmd.DsBwdRef0.PictureFields.DW0.MemoryObjectControlState =
-                    this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_REFERENCE_PICTURE_CODEC].Gen12_7.Index;
             }
 
             if (!Mos_ResourceIsNull(params.refsDsStage2[refIdx]))
@@ -890,9 +860,6 @@ protected:
                     this->m_osItf,
                     this->m_currentCmdBuf,
                     &resourceParams));
-
-                cmd.DsBwdRef04X.PictureFields.DW0.MemoryObjectControlState =
-                    this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_REFERENCE_PICTURE_CODEC].Gen12_7.Index;
             }
         }
 
@@ -914,9 +881,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.ColocatedMv.PictureFields.DW0.MemoryObjectControlState =
-                this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_REFERENCE_PICTURE_CODEC].Gen12_7.Index;
         }
 
         if (!Mos_ResourceIsNull(params.colMvTempBuffer[0]))
@@ -937,9 +901,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.ColocatedMv.PictureFields.DW0.MemoryObjectControlState =
-                this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_REFERENCE_PICTURE_CODEC].Gen12_7.Index;
         }
 
         if (params.surfaceDsStage1)
@@ -962,9 +923,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.ScaledReferenceSurfaceStage1.PictureFields.DW0.MemoryObjectControlState =
-                this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_REFERENCE_PICTURE_CODEC].Gen12_7.Index;
         }
 
         if (params.surfaceDsStage2)
@@ -987,9 +945,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.ScaledReferenceSurfaceStage2.PictureFields.DW0.MemoryObjectControlState =
-                this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_REFERENCE_PICTURE_CODEC].Gen12_7.Index;
         }
 
         if (!Mos_ResourceIsNull(params.pakObjCmdStreamOutBuffer))
@@ -1010,9 +965,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.VdencLcuPakObjCmdBuffer.PictureFields.DW0.MemoryObjectControlState =
-                this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_REFERENCE_PICTURE_CODEC].Gen12_7.Index;
         }
 
         if (!Mos_ResourceIsNull(params.segmentMapStreamInBuffer))
@@ -1030,9 +982,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.Vp9SegmentationMapStreaminBuffer.PictureFields.DW0.MemoryObjectControlState =
-                this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_REFERENCE_PICTURE_CODEC].Gen12_7.Index;
         }
 
         if (!Mos_ResourceIsNull(params.segmentMapStreamOutBuffer))
@@ -1050,9 +999,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.Vp9SegmentationMapStreamoutBuffer.PictureFields.DW0.MemoryObjectControlState =
-                this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_STREAMOUT_DATA_CODEC].Gen12_7.Index;
         }
 
         cmd.DW61.WeightsHistogramStreamoutOffset = 3 * MHW_CACHELINE_SIZE;
@@ -1072,9 +1018,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.VdencTileRowStoreBuffer.BufferPictureFields.DW0.MemoryObjectControlState =
-                this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_VDENC_ROW_STORE_BUFFER_CODEC].Gen12_7.Index;
         }
 
         if (this->m_rowStoreCache.ipdl.enabled)
@@ -1099,9 +1042,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.IntraPredictionRowstoreBaseAddress.BufferPictureFields.DW0.MemoryObjectControlState =
-                m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_INTRA_ROWSTORE_SCRATCH_BUFFER_CODEC].Gen12_7.Index;
         }
 
         if (!Mos_ResourceIsNull(params.cumulativeCuCountStreamOutBuffer))
@@ -1139,9 +1079,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.ColocatedMvAvcWriteBuffer.PictureFields.DW0.MemoryObjectControlState =
-                this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_REFERENCE_PICTURE_CODEC].Gen12_7.Index;
         }
 
         return MOS_STATUS_SUCCESS;

@@ -80,9 +80,8 @@ protected:
                 resourceParams.bIsWritable     = false;                                                   
                                                                                                           
                 cmd.VDENC_PIPE_BUF_ADDR_STATE_DW71_73.PictureFields.DW0.MemoryCompressionEnable  = 0;                 
-                cmd.VDENC_PIPE_BUF_ADDR_STATE_DW71_73.PictureFields.DW0.CompressionType          = 0;                 
-                cmd.VDENC_PIPE_BUF_ADDR_STATE_DW71_73.PictureFields.DW0.MemoryObjectControlState =                   
-                    this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_REFERENCE_PICTURE_CODEC].Value; 
+                cmd.VDENC_PIPE_BUF_ADDR_STATE_DW71_73.PictureFields.DW0.CompressionType          = 0;
+                InitMocsParams(resourceParams, &cmd.VDENC_PIPE_BUF_ADDR_STATE_DW71_73.PictureFields.DW0.Value, 1, 6);
                                                                                                           
                 MHW_MI_CHK_STATUS(this->AddResourceToCmd(                                                 
                     this->m_osItf,                                                                        
@@ -98,9 +97,8 @@ protected:
                 resourceParams.bIsWritable     = true;                                                    
                                                                                                           
                 cmd.VDENC_PIPE_BUF_ADDR_STATE_DW74_76.PictureFields.DW0.MemoryCompressionEnable  = 0;                 
-                cmd.VDENC_PIPE_BUF_ADDR_STATE_DW74_76.PictureFields.DW0.CompressionType          = 0;                 
-                cmd.VDENC_PIPE_BUF_ADDR_STATE_DW74_76.PictureFields.DW0.MemoryObjectControlState =                   
-                    this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_REFERENCE_PICTURE_CODEC].Value; 
+                cmd.VDENC_PIPE_BUF_ADDR_STATE_DW74_76.PictureFields.DW0.CompressionType          = 0;
+                InitMocsParams(resourceParams, &cmd.VDENC_PIPE_BUF_ADDR_STATE_DW74_76.PictureFields.DW0.Value, 1, 6);
                                                                                                           
                 MHW_MI_CHK_STATUS(this->AddResourceToCmd(                                                 
                     this->m_osItf,                                                                        

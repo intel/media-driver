@@ -434,12 +434,14 @@ MOS_STATUS Vp9EncodeBrc::AllocateResources()
     // VDENC BRC statistics buffer
     allocParamsForBufferLinear.dwBytes  = MOS_ALIGN_CEIL(m_basicFeature->m_maxTileNumber * m_vdencBrcStatsBufferSize, CODECHAL_PAGE_SIZE);
     allocParamsForBufferLinear.pBufName = "VDENC BRC Statistics Buffer";
+    allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_WRITE;
     m_basicFeature->m_recycleBuf->RegisterResource(VdencStatsBuffer, allocParamsForBufferLinear, 1);
 
     // Allocate frame statistics stream out data destination buffer
     uint32_t size                       = MOS_ALIGN_CEIL(m_vdencBrcPakStatsBufferSize, CODECHAL_PAGE_SIZE);  // Align to page is HuC requirement
     allocParamsForBufferLinear.dwBytes  = size * m_basicFeature->m_maxTileNumber;
     allocParamsForBufferLinear.pBufName = "FrameStatStreamOutBuffer";
+    allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
     m_basicFeature->m_recycleBuf->RegisterResource(FrameStatStreamOutBuffer, allocParamsForBufferLinear, 1);
     allocatedBuffer = m_basicFeature->m_recycleBuf->GetBuffer(FrameStatStreamOutBuffer, 0);
     ENCODE_CHK_NULL_RETURN(allocatedBuffer);
@@ -453,6 +455,7 @@ MOS_STATUS Vp9EncodeBrc::AllocateResources()
     // BRC history buffer
     allocParamsForBufferLinear.dwBytes  = m_vdencEnabled ? MOS_ALIGN_CEIL(m_brcHistoryBufferSize, CODECHAL_PAGE_SIZE) : m_brcHistoryBufferSize;
     allocParamsForBufferLinear.pBufName = "BRC History Buffer";
+    allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
     m_basicFeature->m_recycleBuf->RegisterResource(VdencBRCHistoryBuffer, allocParamsForBufferLinear, 1);
     allocatedBuffer = m_basicFeature->m_recycleBuf->GetBuffer(VdencBRCHistoryBuffer, 0);
     ENCODE_CHK_NULL_RETURN(allocatedBuffer);
@@ -461,6 +464,7 @@ MOS_STATUS Vp9EncodeBrc::AllocateResources()
     // BRC constant data buffer of I/P frame
     allocParamsForBufferLinear.dwBytes  = m_vdencEnabled ? MOS_ALIGN_CEIL(m_brcConstantSurfaceSize, CODECHAL_PAGE_SIZE) : CODECHAL_ENCODE_VP9_BRC_CONSTANTSURFACE_SIZE;
     allocParamsForBufferLinear.pBufName = "BRC Constant Data Buffer";
+    allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_WRITE;
 
     for (auto i = 0; i < 2; ++i)
     {
@@ -473,6 +477,7 @@ MOS_STATUS Vp9EncodeBrc::AllocateResources()
     size                                = CODECHAL_ENCODE_VP9_PIC_STATE_BUFFER_SIZE_PER_PASS * m_brcMaxNumPasses;
     allocParamsForBufferLinear.dwBytes  = size;
     allocParamsForBufferLinear.pBufName = "BRC Pic State Read Buffer";
+    allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_NOCACHE;
     allocatedBuffer                     = m_allocator->AllocateResource(allocParamsForBufferLinear, false);
     ENCODE_CHK_NULL_RETURN(allocatedBuffer);
     m_brcBuffers.resPicStateBrcReadBuffer = *allocatedBuffer;
@@ -518,6 +523,7 @@ MOS_STATUS Vp9EncodeBrc::AllocateResources()
     // BRC bitstream size data buffer
     allocParamsForBufferLinear.dwBytes  = m_vdencEnabled ? MOS_ALIGN_CEIL(CODECHAL_ENCODE_VP9_BRC_BITSTREAM_SIZE_BUFFER_SIZE, CODECHAL_PAGE_SIZE) : CODECHAL_ENCODE_VP9_BRC_BITSTREAM_SIZE_BUFFER_SIZE;
     allocParamsForBufferLinear.pBufName = "BRC Bitstream Size Data buffer";
+    allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
     allocatedBuffer                     = m_allocator->AllocateResource(allocParamsForBufferLinear, true);
     ENCODE_CHK_NULL_RETURN(allocatedBuffer);
     m_brcBuffers.resBrcBitstreamSizeBuffer = *allocatedBuffer;
@@ -525,6 +531,7 @@ MOS_STATUS Vp9EncodeBrc::AllocateResources()
     // BRC HuC data buffer
     allocParamsForBufferLinear.dwBytes  = m_vdencEnabled ? MOS_ALIGN_CEIL(CODECHAL_ENCODE_VP9_HUC_BRC_DATA_BUFFER_SIZE, CODECHAL_PAGE_SIZE) : CODECHAL_ENCODE_VP9_HUC_BRC_DATA_BUFFER_SIZE;
     allocParamsForBufferLinear.pBufName = "BRC HuC Data Buffer";
+    allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
     allocatedBuffer                     = m_allocator->AllocateResource(allocParamsForBufferLinear, true);
     ENCODE_CHK_NULL_RETURN(allocatedBuffer);
     m_brcBuffers.resBrcHucDataBuffer = *allocatedBuffer;
@@ -532,6 +539,7 @@ MOS_STATUS Vp9EncodeBrc::AllocateResources()
     // BRC MSDK buffer
     allocParamsForBufferLinear.dwBytes  = CODECHAL_ENCODE_VP9_BRC_MSDK_PAK_BUFFER_SIZE;
     allocParamsForBufferLinear.pBufName = "BRC MSDK Buffer";
+    allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_NOCACHE;
     allocatedBuffer                     = m_allocator->AllocateResource(allocParamsForBufferLinear, true);
     ENCODE_CHK_NULL_RETURN(allocatedBuffer);
     m_brcBuffers.resBrcMsdkPakBuffer = *allocatedBuffer;
@@ -539,11 +547,13 @@ MOS_STATUS Vp9EncodeBrc::AllocateResources()
     // Huc debug output buffer
     allocParamsForBufferLinear.dwBytes  = MOS_ALIGN_CEIL(1024 * sizeof(uint32_t), CODECHAL_PAGE_SIZE);
     allocParamsForBufferLinear.pBufName = "HucDebugOutputBuffer";
+    allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
     m_basicFeature->m_recycleBuf->RegisterResource(VdencBrcDebugBuffer, allocParamsForBufferLinear, 1);
 
     // Huc VP9 pak mmio buffer
     allocParamsForBufferLinear.dwBytes  = 4 * sizeof(uint32_t);
     allocParamsForBufferLinear.pBufName = "HucPakMmioBuffer";
+    allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_NOCACHE;
     m_basicFeature->m_recycleBuf->RegisterResource(VdencBrcPakMmioBuffer, allocParamsForBufferLinear, 1);
 
     return MOS_STATUS_SUCCESS;

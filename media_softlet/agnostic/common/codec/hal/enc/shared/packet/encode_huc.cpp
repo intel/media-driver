@@ -73,6 +73,7 @@ namespace encode
         // HUC STATUS 2 Buffer for HuC status check in COND_BB_END
         allocParamsForBufferLinear.dwBytes = sizeof(uint64_t);
         allocParamsForBufferLinear.pBufName = "HUC STATUS 2 Buffer";
+        allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_NOCACHE;
         PMOS_RESOURCE allocatedbuffer       = m_allocator->AllocateResource(allocParamsForBufferLinear, true);
         ENCODE_CHK_NULL_RETURN(allocatedbuffer);
         m_resHucStatus2Buffer = allocatedbuffer;

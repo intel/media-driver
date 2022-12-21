@@ -558,8 +558,6 @@ protected:
         InitMmioRegisters();
     }
 
-    virtual uint32_t GetMocsValue(MOS_HW_RESOURCE_DEF hwResType) = 0;
-
     // Programming Note: CodecHAL layer must add MFX wait command
     //                   for both KIN and VRT before and after AVP_PIPE_MODE_SELECT
 
@@ -946,8 +944,6 @@ protected:
                     &resourceParams));
             }
         }
-        cmd.ReferenceFrameBufferBaseAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables =
-            GetMocsValue(MOS_CODEC_RESOURCE_USAGE_REFERENCE_PICTURE_CODEC);
 
         //Decoded Output Frame Buffer
         cmd.DecodedOutputFrameBufferAddressAttributes.DW0.BaseAddressMemoryCompressionEnable = MmcEnabled(params.mmcStatePreDeblock);
@@ -983,8 +979,6 @@ protected:
                 this->m_currentCmdBuf,
                 &resourceParams));
 
-            cmd.IntrabcDecodedOutputFrameBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = GetMocsValue(MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED);
-
             //This surface should not have memory compression turned on
             cmd.IntrabcDecodedOutputFrameBufferAddressAttributes.DW0.BaseAddressMemoryCompressionEnable = 0;
             cmd.IntrabcDecodedOutputFrameBufferAddressAttributes.DW0.CompressionType                    = 0;
@@ -1006,8 +1000,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.CdfTablesInitializationBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = GetMocsValue(MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED);
         }
 
         if (!Mos_ResourceIsNull(params.cdfTableBwdAdaptBuffer))
@@ -1024,8 +1016,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.CdfTablesBackwardAdaptationBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = GetMocsValue(MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED);
         }
 
         // Reset dwSharedMocsOffset
@@ -1047,8 +1037,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.Av1SegmentIdReadBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = GetMocsValue(MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED);
         }
 
         // AV1 Segment Id Write Buffer
@@ -1068,8 +1056,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.Av1SegmentIdWriteBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = GetMocsValue(MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED);
         }
 
         //Collocated MV Temporal buffers
@@ -1092,7 +1078,6 @@ protected:
                     &resourceParams));
             }
         }
-        cmd.CollocatedMotionVectorTemporalBufferBaseAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = GetMocsValue(MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED);
 
         // Current Motion Vector Temporal Buffer
         if (!Mos_ResourceIsNull(params.curMvTempBuffer))
@@ -1109,8 +1094,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.CurrentFrameMotionVectorWriteBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = GetMocsValue(MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED);
         }
 
         // Reset dwSharedMocsOffset
@@ -1135,8 +1118,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.BitstreamDecoderEncoderLineRowstoreReadWriteBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = GetMocsValue(MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED);
         }
 
         // Bitstream Decode Tile Line Rowstore Buffer
@@ -1154,8 +1135,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.BitstreamDecoderEncoderTileLineRowstoreReadWriteBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = GetMocsValue(MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED);
         }
 
         // Reset dwSharedMocsOffset
@@ -1180,8 +1159,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.IntraPredictionLineRowstoreReadWriteBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = GetMocsValue(MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED);
         }
 
         if (!Mos_ResourceIsNull(params.intraPredTileLineRowstoreBuffer))
@@ -1198,8 +1175,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.IntraPredictionTileLineRowstoreReadWriteBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = GetMocsValue(MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED);
         }
 
         // Spatial Motion Vector Line Buffer
@@ -1222,8 +1197,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.SpatialMotionVectorLineReadWriteBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = GetMocsValue(MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED);
         }
 
         // Spatial Motion Vector Tile Line Buffer
@@ -1241,8 +1214,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.SpatialMotionVectorTileLineReadWriteBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = GetMocsValue(MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED);
         }
 
         //Loop Restoration Meta Tile Column Read/Write Buffer
@@ -1260,8 +1231,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.LoopRestorationMetaTileColumnReadWriteBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = GetMocsValue(MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED);
         }
 
         //Deblocker Filter Control Parameters Line Read Write Buffer
@@ -1279,8 +1248,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.LoopRestorationFilterTileReadWriteLineYBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = GetMocsValue(MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED);
         }
 
         //Deblocker Filter Control Parameters Tile Line Read Write Buffer
@@ -1298,8 +1265,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.LoopRestorationFilterTileReadWriteLineUBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = GetMocsValue(MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED);
         }
 
         //Deblocker Filter Control Parameters Tile Column Read Write Buffer
@@ -1317,8 +1282,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.LoopRestorationFilterTileReadWriteLineVBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = GetMocsValue(MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED);
         }
 
         // Deblocker Filter Line Read Write Y Buffer
@@ -1341,8 +1304,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.DeblockerFilterLineReadWriteYBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = GetMocsValue(MOS_CODEC_RESOURCE_USAGE_DEBLOCKINGFILTER_ROWSTORE_SCRATCH_BUFFER_CODEC);
         }
 
         // Deblocker Filter Line Read Write U Buffer
@@ -1365,8 +1326,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.DeblockerFilterLineReadWriteUBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = GetMocsValue(MOS_CODEC_RESOURCE_USAGE_DEBLOCKINGFILTER_ROWSTORE_SCRATCH_BUFFER_CODEC);
         }
         // Deblocker Filter Line Read Write V Buffer
         if (m_dflvRowstoreCache.enabled)
@@ -1388,8 +1347,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.DeblockerFilterLineReadWriteVBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = GetMocsValue(MOS_CODEC_RESOURCE_USAGE_DEBLOCKINGFILTER_ROWSTORE_SCRATCH_BUFFER_CODEC);
         }
 
         // Deblocker Filter Tile Line Read Write Y Buffer
@@ -1407,8 +1364,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.DeblockerFilterTileLineReadWriteYBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = GetMocsValue(MOS_CODEC_RESOURCE_USAGE_DEBLOCKINGFILTER_ROWSTORE_SCRATCH_BUFFER_CODEC);
         }
 
         // Deblocker Filter Tile Line Read Write V Buffer
@@ -1426,8 +1381,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.DeblockerFilterTileLineReadWriteVBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = GetMocsValue(MOS_CODEC_RESOURCE_USAGE_DEBLOCKINGFILTER_ROWSTORE_SCRATCH_BUFFER_CODEC);
         }
 
         // Deblocker Filter Tile Line Read Write U Buffer
@@ -1445,8 +1398,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.DeblockerFilterTileLineReadWriteUBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = GetMocsValue(MOS_CODEC_RESOURCE_USAGE_DEBLOCKINGFILTER_ROWSTORE_SCRATCH_BUFFER_CODEC);
         }
 
         // Deblocker Filter Tile Column Read Write Y Buffer
@@ -1464,8 +1415,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.DeblockerFilterTileColumnReadWriteYBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = GetMocsValue(MOS_CODEC_RESOURCE_USAGE_DEBLOCKINGFILTER_ROWSTORE_SCRATCH_BUFFER_CODEC);
         }
 
         // Deblocker Filter Tile Column Read Write U Buffer
@@ -1483,8 +1432,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.DeblockerFilterTileColumnReadWriteUBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = GetMocsValue(MOS_CODEC_RESOURCE_USAGE_DEBLOCKINGFILTER_ROWSTORE_SCRATCH_BUFFER_CODEC);
         }
 
         // Deblocker Filter Tile Column Read Write V Buffer
@@ -1502,7 +1449,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-            cmd.DeblockerFilterTileColumnReadWriteVBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = GetMocsValue(MOS_CODEC_RESOURCE_USAGE_DEBLOCKINGFILTER_ROWSTORE_SCRATCH_BUFFER_CODEC);
         }
 
         // Cdef Filter Line Read Write Y Buffer
@@ -1525,9 +1471,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.CdefFilterLineReadWriteBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = GetMocsValue(MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED);
-
         }
 
         // Cdef Filter Tile Line Read Write Y Buffer
@@ -1545,8 +1488,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.CdefFilterTileLineReadWriteBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = GetMocsValue(MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED);
         }
 
         // Cdef Filter Tile Line Read Write U Buffer
@@ -1564,8 +1505,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.CdefFilterTileColumnReadWriteBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = GetMocsValue(MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED);
         }
 
         // Cdef Filter Tile Line Read Write V Buffer
@@ -1583,8 +1522,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.CdefFilterMetaTileLineReadWriteBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = GetMocsValue(MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED);
         }
 
         // Cdef Filter Tile Column Read Write Y Buffer
@@ -1602,8 +1539,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.CdefFilterMetaTileColumnReadWriteBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = GetMocsValue(MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED);
         }
 
         // Cdef Filter Top Left Corner Read Write Buffer
@@ -1621,8 +1556,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.CdefFilterTopLeftCornerReadWriteBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = GetMocsValue(MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED);
         }
 
         // Super-Res Tile Column Read Write Y Buffer
@@ -1640,8 +1573,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.SuperResTileColumnReadWriteYBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = GetMocsValue(MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED);
         }
 
         // Super-Res Tile Column Read Write U Buffer
@@ -1659,8 +1590,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.SuperResTileColumnReadWriteUBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = GetMocsValue(MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED);
         }
 
         // Super-Res Tile Column Read Write V Buffer
@@ -1678,8 +1607,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.SuperResTileColumnReadWriteVBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = GetMocsValue(MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED);
         }
 
         // Loop Restoration Filter Tile Column Read Write Y Buffer
@@ -1697,8 +1624,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.LoopRestorationFilterTileColumnReadWriteYBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = GetMocsValue(MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED);
         }
 
         // Loop Restoration Filter Tile Column Read Write U Buffer
@@ -1716,8 +1641,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.LoopRestorationFilterTileColumnReadWriteUBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = GetMocsValue(MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED);
         }
 
         // Loop Restoration Filter Tile Column Read Write V Buffer
@@ -1735,8 +1658,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.LoopRestorationFilterTileColumnReadWriteVBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = GetMocsValue(MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED);
         }
 
         // Decoded Frame Status Error Buffer
@@ -1771,8 +1692,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.DecodedBlockDataStreamoutBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = GetMocsValue(MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED);
         }
 
         // below is encode part
@@ -1801,8 +1720,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.OriginalUncompressedPictureSourceBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = GetMocsValue(MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED);
         }
 
         // Downscaled Uncompressed Picture Source Buffer
@@ -1829,8 +1746,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.DownscaledUncompressedPictureSourceBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = GetMocsValue(MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED);
         }
 
         // Tile Size Streamout Buffer
@@ -1849,8 +1764,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.TileSizeStreamoutBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = GetMocsValue(MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED);
         }
 
         // Tile Statistics Streamout Buffer
@@ -1868,8 +1781,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.TileStatisticsStreamoutBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = GetMocsValue(MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED);
         }
 
         // CU Streamout Buffer
@@ -1887,8 +1798,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.CUStreamoutBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = GetMocsValue(MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED);
         }
 
         // SSE Line Read / Write Buffer
@@ -1906,8 +1815,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.SSELineReadWriteBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = GetMocsValue(MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED);
         }
 
         // SSE Tile Line Read/Write Buffer
@@ -1925,8 +1832,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.SSETileLineReadWriteBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = GetMocsValue(MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED);
         }
 
         // PostCDEF pixels Buffer
@@ -1950,8 +1855,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.PostCDEFpixelsBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = GetMocsValue(MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED);
         }
 
         return MOS_STATUS_SUCCESS;
@@ -2058,10 +1961,6 @@ protected:
                 &resourceParams));
 
             resourceParams.dwUpperBoundLocationOffsetFromCmd = 0;
-
-            cmd.AvpIndirectBitstreamObjectMemoryAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables =
-                GetMocsValue(MOS_CODEC_RESOURCE_USAGE_MFX_INDIRECT_BITSTREAM_OBJECT_DECODE);
-
         }
 
         if (!Mos_ResourceIsNull(params.pakBaseObjectBuffer))
@@ -2081,9 +1980,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.AvpIndirectBitstreamObjectMemoryAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables =
-                GetMocsValue(MOS_CODEC_RESOURCE_USAGE_MFC_INDIRECT_PAKBASE_OBJECT_CODEC);
         }
 
         if (!Mos_ResourceIsNull(params.mvObjectBuffer))
@@ -2104,9 +2000,6 @@ protected:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
-
-            cmd.AvpIndirectCuObjectMemoryAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables =
-                GetMocsValue(MOS_CODEC_RESOURCE_USAGE_MFX_INDIRECT_MV_OBJECT_CODEC);
         }
 
         return MOS_STATUS_SUCCESS;

@@ -50,6 +50,7 @@ namespace encode
 
         allocParamsForBufferLinear.dwBytes  = MOS_ROUNDUP_DIVIDE(m_basicFeature->m_frameWidth, m_basicFeature->m_maxLCUSize) * CODECHAL_CACHELINE_SIZE * 2 * 2;
         allocParamsForBufferLinear.pBufName = "vdencIntraRowStoreScratch";
+        allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ;
         m_vdencIntraRowStoreScratch         = m_allocator->AllocateResource(allocParamsForBufferLinear, false);
 
         MOS_ZeroMemory(&allocParamsForBufferLinear, sizeof(MOS_ALLOC_GFXRES_PARAMS));
@@ -60,6 +61,7 @@ namespace encode
         // VDENC tile row store buffer
         allocParamsForBufferLinear.dwBytes  = MOS_ROUNDUP_DIVIDE(m_basicFeature->m_frameWidth, 32) * CODECHAL_CACHELINE_SIZE * 2;
         allocParamsForBufferLinear.pBufName = "VDENC Tile Row Store Buffer";
+        allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ;
         m_vdencTileRowStoreBuffer = m_allocator->AllocateResource(allocParamsForBufferLinear,false);
 
         hcp::HcpBufferSizePar hcpBufSizePar;
@@ -83,6 +85,7 @@ namespace encode
             }
             allocParamsForBufferLinear.dwBytes  = bufSize;
             allocParamsForBufferLinear.pBufName = bufferName;
+            allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ;
             res                                 = m_allocator->AllocateResource(allocParamsForBufferLinear, false);
             return MOS_STATUS_SUCCESS;
         };
@@ -98,12 +101,14 @@ namespace encode
         // This is not enabled with HCP_PIPE_MODE_SELECT yet, placeholder here
         allocParamsForBufferLinear.dwBytes = CODECHAL_CACHELINE_SIZE;
         allocParamsForBufferLinear.pBufName = "LcuILDBStreamOutBuffer";
+        allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ;
         m_resLCUIldbStreamOutBuffer = m_allocator->AllocateResource(allocParamsForBufferLinear,false);
 
         // Allocate SSE Source Pixel Row Store Buffer
         uint32_t maxTileColumns    = MOS_ROUNDUP_DIVIDE(m_basicFeature->m_frameWidth, CODECHAL_HEVC_MIN_TILE_SIZE);
         allocParamsForBufferLinear.dwBytes  = 2 * m_basicFeature->m_sizeOfSseSrcPixelRowStoreBufferPerLcu * (m_basicFeature->m_widthAlignedMaxLCU + 3 * maxTileColumns);
         allocParamsForBufferLinear.pBufName = "SseSrcPixelRowStoreBuffer";
+        allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ;
         m_resSSESrcPixelRowStoreBuffer = m_allocator->AllocateResource(allocParamsForBufferLinear,false);
 
         uint32_t frameWidthInCus = CODECHAL_GET_WIDTH_IN_BLOCKS(m_basicFeature->m_frameWidth, CODECHAL_HEVC_MIN_CU_SIZE);
@@ -115,6 +120,7 @@ namespace encode
         auto size = MOS_ALIGN_CEIL(frameWidthInCus * frameHeightInCus * 16, CODECHAL_CACHELINE_SIZE);
         allocParamsForBufferLinear.dwBytes = size;
         allocParamsForBufferLinear.pBufName = "PAK CU Level Streamout Data";
+        allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ;
         m_resPakcuLevelStreamOutData = m_allocator->AllocateResource(allocParamsForBufferLinear,false);
 
         MOS_ZeroMemory(&allocParamsForBufferLinear, sizeof(MOS_ALLOC_GFXRES_PARAMS));
@@ -130,7 +136,7 @@ namespace encode
             allocParamsForBufferLinear.Type     = MOS_GFXRES_BUFFER;
             allocParamsForBufferLinear.TileType = MOS_TILE_LINEAR;
             allocParamsForBufferLinear.Format   = Format_Buffer;
-
+            allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
             size  = MHW_CACHELINE_SIZE * 4 * 2; //  each set of scratch is 4 cacheline size, and allocate 2 set.
             allocParamsForBufferLinear.dwBytes  = size;
             allocParamsForBufferLinear.pBufName = "atomic sratch buffer";

@@ -163,11 +163,6 @@ namespace xe_hpm
         using cmd_t  = Cmd;
         using base_t = avp::Impl<Cmd>;
 
-        uint32_t GetMocsValue(MOS_HW_RESOURCE_DEF hwResType) override
-        {
-            return this->m_cacheabilitySettings[hwResType].Gen12_5.Index;
-        }
-
         // Programming Note: CodecHAL layer must add MFX wait command
         //                   for both KIN and VRT before and after AVP_PIPE_MODE_SELECT
         _MHW_SETCMD_OVERRIDE_DECL(AVP_PIPE_MODE_SELECT)

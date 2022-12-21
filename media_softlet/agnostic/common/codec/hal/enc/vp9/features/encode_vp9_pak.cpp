@@ -424,6 +424,7 @@ MOS_STATUS Vp9EncodePak::AllocateResources()
     // VDENC picture second level batch buffer (Read/Write)
     allocParamsForBufferLinear.dwBytes  = MOS_ALIGN_CEIL(m_vdencPicStateSecondLevelBatchBufferSize, CODECHAL_PAGE_SIZE);
     allocParamsForBufferLinear.pBufName = "VDENC Picture Second Level Batch Buffer Read";
+    allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
     for (auto i = 0; i < CODECHAL_VP9_ENCODE_RECYCLED_BUFFER_NUM; ++i)
     {
         for (auto j = 0; j < 3; ++j)
@@ -435,6 +436,7 @@ MOS_STATUS Vp9EncodePak::AllocateResources()
     }
 
     allocParamsForBufferLinear.pBufName = "VDENC Picture Second Level Batch Buffer Write";
+    allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
     for (auto i = 0; i < CODECHAL_VP9_ENCODE_RECYCLED_BUFFER_NUM; ++i)
     {
         allocatedBuffer = m_allocator->AllocateResource(allocParamsForBufferLinear, true);
@@ -445,6 +447,7 @@ MOS_STATUS Vp9EncodePak::AllocateResources()
     // Huc VP9 pak insert uncompressed header
     allocParamsForBufferLinear.dwBytes  = CODECHAL_ENCODE_VP9_PAK_INSERT_UNCOMPRESSED_HEADER;
     allocParamsForBufferLinear.pBufName = "HucPakInsertUncompressedHeaderReadBuffer";
+    allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
     for (auto i = 0; i < CODECHAL_ENCODE_RECYCLED_BUFFER_NUM; ++i)
     {
         allocatedBuffer = m_allocator->AllocateResource(allocParamsForBufferLinear, true);
@@ -454,6 +457,7 @@ MOS_STATUS Vp9EncodePak::AllocateResources()
 
     allocParamsForBufferLinear.dwBytes  = CODECHAL_ENCODE_VP9_PAK_INSERT_UNCOMPRESSED_HEADER;
     allocParamsForBufferLinear.pBufName = "HucPakInsertUncompressedHeaderWriteBuffer";
+    allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
     allocatedBuffer                     = m_allocator->AllocateResource(allocParamsForBufferLinear, true);
     ENCODE_CHK_NULL_RETURN(allocatedBuffer);
     m_resHucPakInsertUncompressedHeaderWriteBuffer = *allocatedBuffer;
@@ -461,6 +465,7 @@ MOS_STATUS Vp9EncodePak::AllocateResources()
     // Compressed header buffer
     allocParamsForBufferLinear.dwBytes  = 32 * CODECHAL_CACHELINE_SIZE;
     allocParamsForBufferLinear.pBufName = "CompressedHeaderBuffer";
+    allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ;
     allocatedBuffer                     = m_allocator->AllocateResource(allocParamsForBufferLinear, true);
     ENCODE_CHK_NULL_RETURN(allocatedBuffer);
     m_resCompressedHeaderBuffer = *allocatedBuffer;
@@ -468,6 +473,7 @@ MOS_STATUS Vp9EncodePak::AllocateResources()
     // Allocate data extension buffer
     allocParamsForBufferLinear.dwBytes  = CODECHAL_ENCODE_VP9_VDENC_DATA_EXTENSION_SIZE;
     allocParamsForBufferLinear.pBufName = "DataExtensionBuffer";
+    allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ;
     allocatedBuffer                     = m_allocator->AllocateResource(allocParamsForBufferLinear, true);
     ENCODE_CHK_NULL_RETURN(allocatedBuffer);
     m_resVdencDataExtensionBuffer = *allocatedBuffer;
@@ -476,6 +482,7 @@ MOS_STATUS Vp9EncodePak::AllocateResources()
     uint32_t size                       = m_basicFeature->m_maxPicWidthInSb * 5 * CODECHAL_CACHELINE_SIZE;
     allocParamsForBufferLinear.dwBytes  = size;
     allocParamsForBufferLinear.pBufName = "MetadataLineBuffer";
+    allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ;
     allocatedBuffer                     = m_allocator->AllocateResource(allocParamsForBufferLinear, true);
     ENCODE_CHK_NULL_RETURN(allocatedBuffer);
     m_resMetadataLineBuffer = allocatedBuffer;
@@ -484,6 +491,7 @@ MOS_STATUS Vp9EncodePak::AllocateResources()
     size                                = m_basicFeature->m_maxPicWidthInSb * 5 * CODECHAL_CACHELINE_SIZE;
     allocParamsForBufferLinear.dwBytes  = size;
     allocParamsForBufferLinear.pBufName = "MetadataTileLineBuffer";
+    allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ;
     allocatedBuffer                     = m_allocator->AllocateResource(allocParamsForBufferLinear, true);
     ENCODE_CHK_NULL_RETURN(allocatedBuffer);
     m_resMetadataTileLineBuffer = allocatedBuffer;
@@ -492,6 +500,7 @@ MOS_STATUS Vp9EncodePak::AllocateResources()
     size                                = m_basicFeature->m_maxPicHeightInSb * 5 * CODECHAL_CACHELINE_SIZE;
     allocParamsForBufferLinear.dwBytes  = size;
     allocParamsForBufferLinear.pBufName = "MetadataTileColumnBuffer";
+    allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ;
     allocatedBuffer                     = m_allocator->AllocateResource(allocParamsForBufferLinear, true);
     ENCODE_CHK_NULL_RETURN(allocatedBuffer);
     m_resMetadataTileColumnBuffer = allocatedBuffer;

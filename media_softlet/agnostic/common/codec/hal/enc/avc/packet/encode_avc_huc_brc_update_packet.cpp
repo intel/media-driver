@@ -125,6 +125,7 @@ MOS_STATUS AvcHucBrcUpdatePkt::AllocateResources()
     // Const Data buffer
     allocParamsForBufferLinear.dwBytes  = MOS_ALIGN_CEIL(m_vdencBrcConstDataBufferSize, CODECHAL_PAGE_SIZE);
     allocParamsForBufferLinear.pBufName = "VDENC BRC Const Data Buffer";
+    allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_WRITE;
     for (uint32_t i = 0; i < CODECHAL_ENCODE_VDENC_BRC_CONST_BUFFER_NUM; i++)
     {
         allocatedbuffer = m_allocator->AllocateResource(allocParamsForBufferLinear, true);
@@ -137,6 +138,7 @@ MOS_STATUS AvcHucBrcUpdatePkt::AllocateResources()
         // VDENC IMG STATE read buffer
         allocParamsForBufferLinear.dwBytes  = m_brcFeature->GetVdencBRCImgStateBufferSize();
         allocParamsForBufferLinear.pBufName = "VDENC BRC IMG State Read Buffer";
+        allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
         allocatedbuffer = m_allocator->AllocateResource(allocParamsForBufferLinear, true);
         ENCODE_CHK_NULL_RETURN(allocatedbuffer);
         m_vdencBrcImageStatesReadBuffer[k] = allocatedbuffer;
@@ -146,7 +148,8 @@ MOS_STATUS AvcHucBrcUpdatePkt::AllocateResources()
             // BRC update DMEM
             allocParamsForBufferLinear.dwBytes  = MOS_ALIGN_CEIL(m_vdencBrcUpdateDmemBufferSize, CODECHAL_CACHELINE_SIZE);
             allocParamsForBufferLinear.pBufName = "VDENC BrcUpdate DmemBuffer";
-            allocatedbuffer = m_allocator->AllocateResource(allocParamsForBufferLinear, true, MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ);
+            allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_WRITE;
+            allocatedbuffer = m_allocator->AllocateResource(allocParamsForBufferLinear, true);
             ENCODE_CHK_NULL_RETURN(allocatedbuffer);
             m_vdencBrcUpdateDmemBuffer[k][i] = allocatedbuffer;
         }

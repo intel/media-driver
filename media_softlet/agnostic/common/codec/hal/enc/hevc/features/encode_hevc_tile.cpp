@@ -568,7 +568,7 @@ namespace encode
             allocParamsForBufferLinear.Format   = Format_Buffer;
             allocParamsForBufferLinear.dwBytes  = m_hwInterface->m_pakIntAggregatedFrameStatsSize;
             allocParamsForBufferLinear.pBufName = "HCP Aggregated Frame Statistics Streamout Buffer";
-
+            allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
             auto resource = m_allocator->AllocateResource(allocParamsForBufferLinear, true);
             ENCODE_CHK_NULL_RETURN(resource);
             m_resHuCPakAggregatedFrameStatsBuffer = *resource;
@@ -609,7 +609,7 @@ namespace encode
             allocParamsForBufferLinear.Format   = Format_Buffer;
             allocParamsForBufferLinear.dwBytes  = m_hwInterface->m_pakIntTileStatsSize;
             allocParamsForBufferLinear.pBufName = "HCP Tile Level Statistics Streamout Buffer";
-
+            allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_NOCACHE;
             auto resource = m_allocator->AllocateResource(allocParamsForBufferLinear, true);
             ENCODE_CHK_NULL_RETURN(resource);
             m_resTileBasedStatisticsBuffer[m_statisticsBufIndex] = *resource;
@@ -625,6 +625,7 @@ namespace encode
             allocParamsForBufferLinear.Format   = Format_Buffer;
             allocParamsForBufferLinear.dwBytes  = CODECHAL_CACHELINE_SIZE * num_tiles;
             allocParamsForBufferLinear.pBufName = "Tile Record Buffer";
+            allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_NOCACHE;
 
             auto resource = m_allocator->AllocateResource(allocParamsForBufferLinear, true);
             ENCODE_CHK_NULL_RETURN(resource);

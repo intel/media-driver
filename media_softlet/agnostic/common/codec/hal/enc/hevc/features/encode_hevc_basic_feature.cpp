@@ -73,16 +73,18 @@ MOS_STATUS HevcBasicFeature::Init(void *setting)
 
     allocParams.dwBytes  = MOS_ALIGN_CEIL(m_sizeOfHcpPakFrameStats * m_maxTileNumber, CODECHAL_PAGE_SIZE);
     allocParams.pBufName = "FrameStatStreamOutBuffer";
+    allocParams.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
     m_recycleBuf->RegisterResource(FrameStatStreamOutBuffer, allocParams, 1);
 
     allocParams.dwBytes  = MOS_ALIGN_CEIL(1216 * m_maxTileNumber, CODECHAL_PAGE_SIZE);
     allocParams.pBufName = "vdencStats";
+    allocParams.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_WRITE;
     m_recycleBuf->RegisterResource(VdencStatsBuffer, allocParams, 1);
 
     uint32_t numOfLCU    = MOS_ROUNDUP_DIVIDE(m_frameWidth, m_maxLCUSize) * (MOS_ROUNDUP_DIVIDE(m_frameHeight, m_maxLCUSize) + 1);
     allocParams.dwBytes  = MOS_ALIGN_CEIL(2 * sizeof(uint32_t) * (numOfLCU * 5 + numOfLCU * 64 * 8), CODECHAL_PAGE_SIZE);
     allocParams.pBufName = "CuRecordStreamOutBuffer";
-
+    allocParams.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_OUTPUT_STATISTICS_WRITE;
     ENCODE_NORMALMESSAGE("osCpInterface = %p\n", m_osInterface->osCpInterface);
     if (m_osInterface->osCpInterface != nullptr)
     {
@@ -350,7 +352,7 @@ MOS_STATUS HevcBasicFeature::UpdateTrackedBufferParameters()
     {
         allocParams.dwBytes  = m_sizeOfMvTemporalBuffer;
         allocParams.pBufName = "mvTemporalBuffer";
-
+        allocParams.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_NOCACHE;
         ENCODE_CHK_STATUS_RETURN(m_trackedBuf->RegisterParam(encode::BufferType::mvTemporalBuffer, allocParams));
     }
 

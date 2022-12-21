@@ -184,7 +184,7 @@ MOS_STATUS HevcEncodeCqp::AllocateResources()
     hcpBufSizePar.dwPicWidth     = MOS_ALIGN_CEIL(m_basicFeature->m_frameWidth, ((HevcBasicFeature *)m_basicFeature)->m_maxLCUSize);
     hcpBufSizePar.dwPicHeight    = MOS_ALIGN_CEIL(m_basicFeature->m_frameHeight, ((HevcBasicFeature *)m_basicFeature)->m_maxLCUSize);
 
-    auto AllocateResource = [&](PMOS_RESOURCE &res, const hcp::HCP_INTERNAL_BUFFER_TYPE bufferType, const char *bufferName) {
+    auto AllocateResource = [&](PMOS_RESOURCE &res, const hcp::HCP_INTERNAL_BUFFER_TYPE bufferType, const char *bufferName, bool usecache) {
         hcpBufSizePar.bufferType     = bufferType;
         eStatus                      = m_hcpItf->GetHcpBufSize(hcpBufSizePar, bufSize);
         if (eStatus != MOS_STATUS_SUCCESS)
@@ -194,24 +194,32 @@ MOS_STATUS HevcEncodeCqp::AllocateResources()
         }
         allocParamsForBufferLinear.dwBytes  = bufSize;
         allocParamsForBufferLinear.pBufName = bufferName;
-        res                                 = m_allocator->AllocateResource(allocParamsForBufferLinear, false);
+        if (usecache)
+        {
+            allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
+        }
+        else
+        {
+            allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_NOCACHE;
+        }
+        res = m_allocator->AllocateResource(allocParamsForBufferLinear, false);
         return MOS_STATUS_SUCCESS;
     };
 
     // Deblocking Filter Row Store Scratch data surface
-    ENCODE_CHK_STATUS_RETURN(AllocateResource(m_resDeblockingFilterRowStoreScratchBuffer, hcp::HCP_INTERNAL_BUFFER_TYPE::DBLK_LINE, "DeblockingScratchBuffer"));
+    ENCODE_CHK_STATUS_RETURN(AllocateResource(m_resDeblockingFilterRowStoreScratchBuffer, hcp::HCP_INTERNAL_BUFFER_TYPE::DBLK_LINE, "DeblockingScratchBuffer", true));
     // Deblocking Filter Tile Row Store Scratch data surface
-    ENCODE_CHK_STATUS_RETURN(AllocateResource(m_resDeblockingFilterTileRowStoreScratchBuffer, hcp::HCP_INTERNAL_BUFFER_TYPE::DBLK_TILE_LINE, "DeblockingTileRowScratchBuffer"));
+    ENCODE_CHK_STATUS_RETURN(AllocateResource(m_resDeblockingFilterTileRowStoreScratchBuffer, hcp::HCP_INTERNAL_BUFFER_TYPE::DBLK_TILE_LINE, "DeblockingTileRowScratchBuffer", true));
     // Deblocking Filter Column Row Store Scratch data surface
-    ENCODE_CHK_STATUS_RETURN(AllocateResource(m_resDeblockingFilterColumnRowStoreScratchBuffer, hcp::HCP_INTERNAL_BUFFER_TYPE::DBLK_TILE_COL, "DeblockingColumnScratchBuffer"));
+    ENCODE_CHK_STATUS_RETURN(AllocateResource(m_resDeblockingFilterColumnRowStoreScratchBuffer, hcp::HCP_INTERNAL_BUFFER_TYPE::DBLK_TILE_COL, "DeblockingColumnScratchBuffer", true));
 
     // SAO Line buffer
-    ENCODE_CHK_STATUS_RETURN(AllocateResource(m_resSAOLineBuffer, hcp::HCP_INTERNAL_BUFFER_TYPE::SAO_LINE, "SaoLineBuffer"));
+    ENCODE_CHK_STATUS_RETURN(AllocateResource(m_resSAOLineBuffer, hcp::HCP_INTERNAL_BUFFER_TYPE::SAO_LINE, "SaoLineBuffer", false));
     // SAO Tile Line buffer
-    ENCODE_CHK_STATUS_RETURN(AllocateResource(m_resSAOTileLineBuffer, hcp::HCP_INTERNAL_BUFFER_TYPE::SAO_TILE_LINE, "SaoTileLineBuffer"));
+    ENCODE_CHK_STATUS_RETURN(AllocateResource(m_resSAOTileLineBuffer, hcp::HCP_INTERNAL_BUFFER_TYPE::SAO_TILE_LINE, "SaoTileLineBuffer", false));
 
     // SAO Tile Column buffer
-    ENCODE_CHK_STATUS_RETURN(AllocateResource(m_resSAOTileColumnBuffer, hcp::HCP_INTERNAL_BUFFER_TYPE::SAO_TILE_COL, "SaoTileColumnBuffer"));
+    ENCODE_CHK_STATUS_RETURN(AllocateResource(m_resSAOTileColumnBuffer, hcp::HCP_INTERNAL_BUFFER_TYPE::SAO_TILE_COL, "SaoTileColumnBuffer", false));
 
     // SAO StreamOut buffer
     uint32_t size = MOS_ALIGN_CEIL(((HevcBasicFeature *)m_basicFeature)->m_picWidthInMinLCU, 4) * m_hevcSAOStreamoutSizePerLCU;
@@ -219,6 +227,7 @@ MOS_STATUS HevcEncodeCqp::AllocateResources()
     size += 3 * 20 * m_hevcSAOStreamoutSizePerLCU;
     allocParamsForBufferLinear.dwBytes  = size;
     allocParamsForBufferLinear.pBufName = "SaoStreamOutBuffer";
+    allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ;
     m_resSAOStreamOutBuffer             = m_allocator->AllocateResource(allocParamsForBufferLinear, false);
 
     const uint32_t minLCUSize        = 16;
@@ -228,6 +237,7 @@ MOS_STATUS HevcEncodeCqp::AllocateResources()
     uint32_t maxTileColumn              = MOS_ROUNDUP_DIVIDE(m_basicFeature->m_frameWidth, CODECHAL_HEVC_MIN_TILE_SIZE);
     allocParamsForBufferLinear.dwBytes  = MOS_ALIGN_CEIL(picWidthInMinLCU + 3 * maxTileColumn, 4) * 16;
     allocParamsForBufferLinear.pBufName = "SaoRowStoreBuffer";
+    allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ;
     MOS_RESOURCE *allocatedresource = m_allocator->AllocateResource(allocParamsForBufferLinear, false);
     ENCODE_CHK_NULL_RETURN(allocatedresource);
     m_vdencSAORowStoreBuffer = *allocatedresource;

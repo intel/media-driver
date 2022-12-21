@@ -138,11 +138,6 @@ protected:
         InitMmioRegisters();
     }
 
-    virtual uint32_t GetMocsValue(MOS_HW_RESOURCE_DEF hwResType)
-    {
-        return this->m_cacheabilitySettings[hwResType].Gen12_7.Index;
-    }
-
     _MHW_SETCMD_OVERRIDE_DECL(HUC_PIPE_MODE_SELECT)
     {
         _MHW_SETCMD_CALLBASE(HUC_PIPE_MODE_SELECT);
@@ -265,9 +260,6 @@ protected:
 
             // set data length
             cmd.DW5.HucDataLength = params.dataLength >> MHW_VDBOX_HUC_GENERAL_STATE_SHIFT;
-
-            cmd.HucDataSourceAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables =
-                GetMocsValue(MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED);
         }
         return MOS_STATUS_SUCCESS;
     }
@@ -299,9 +291,6 @@ protected:
                     this->m_osItf,
                     this->m_currentCmdBuf,
                     &resourceParams));
-
-                cmd.HucVirtualAddressRegion[i].HucSurfaceVirtualaddrregion015.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables =
-                    GetMocsValue(MOS_CODEC_RESOURCE_USAGE_HUC_VIRTUAL_ADDR_REGION_BUFFER_CODEC);
             }
         }
         return MOS_STATUS_SUCCESS;

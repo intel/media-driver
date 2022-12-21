@@ -151,11 +151,6 @@ protected:
 
     BaseImpl(PMOS_INTERFACE osItf) : base_t(osItf){};
 
-    uint32_t GetMocsValue(MOS_HW_RESOURCE_DEF hwResType) override
-    {
-        return this->m_cacheabilitySettings[hwResType].Gen12_7.Index;
-    }
-
     // Programming Note: CodecHAL layer must add MFX wait command
     //                   for both KIN and VRT before and after AVP_PIPE_MODE_SELECT
 

@@ -95,6 +95,7 @@ namespace encode
             // Const Data buffer
             allocParamsForBufferLinear.dwBytes = MOS_ALIGN_CEIL(m_vdencBrcConstDataBufferSize, CODECHAL_PAGE_SIZE);
             allocParamsForBufferLinear.pBufName = "VDENC BRC Const Data Buffer";
+            allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_WRITE;
             allocatedbuffer       = m_allocator->AllocateResource(allocParamsForBufferLinear, true);
             ENCODE_CHK_NULL_RETURN(allocatedbuffer);
             m_vdencBrcConstDataBuffer[k] = *allocatedbuffer;
@@ -102,6 +103,7 @@ namespace encode
             // Pak insert buffer (input for HuC FW)
             allocParamsForBufferLinear.dwBytes  = CODECHAL_PAGE_SIZE;
             allocParamsForBufferLinear.pBufName = "VDENC Read Batch Buffer";
+            allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_WRITE;
             allocatedbuffer                     = m_allocator->AllocateResource(allocParamsForBufferLinear, true);
             ENCODE_CHK_NULL_RETURN(allocatedbuffer);
             m_vdencPakInsertBatchBuffer[k] = *allocatedbuffer;
@@ -111,6 +113,7 @@ namespace encode
                 // VDEnc read batch buffer (input for HuC FW)
                 allocParamsForBufferLinear.dwBytes = MOS_ALIGN_CEIL(m_hwInterface->m_vdencReadBatchBufferSize, CODECHAL_PAGE_SIZE);
                 allocParamsForBufferLinear.pBufName = "VDENC Read Batch Buffer";
+                allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_WRITE;
                 allocatedbuffer                     = m_allocator->AllocateResource(allocParamsForBufferLinear, true);
                 ENCODE_CHK_NULL_RETURN(allocatedbuffer);
                 m_vdencReadBatchBuffer[k][i] = *allocatedbuffer;
@@ -118,6 +121,7 @@ namespace encode
                 // BRC update DMEM
                 allocParamsForBufferLinear.dwBytes = MOS_ALIGN_CEIL(m_vdencBrcUpdateDmemBufferSize, CODECHAL_CACHELINE_SIZE);
                 allocParamsForBufferLinear.pBufName = "VDENC BrcUpdate DmemBuffer";
+                allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_WRITE;
                 allocatedbuffer                     = m_allocator->AllocateResource(allocParamsForBufferLinear, true);
                 ENCODE_CHK_NULL_RETURN(allocatedbuffer);
                 m_vdencBrcUpdateDmemBuffer[k][i] = *allocatedbuffer;
