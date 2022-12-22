@@ -1685,6 +1685,50 @@ MOS_STATUS RenderHal_ReAllocateStateHeapsforAdvFeature(
     return eStatus;
 }
 
+MOS_STATUS RenderHal_ReAllocateStateHeapsforAdvFeatureWithSetting(
+    PRENDERHAL_INTERFACE      pRenderHal,
+    PRENDERHAL_ENLARGE_PARAMS pParams,
+    bool                     &bAllocated)
+{
+    PRENDERHAL_STATE_HEAP_SETTINGS pRenderhalSettings = nullptr;
+    MOS_STATUS                     eStatus            = MOS_STATUS_SUCCESS;
+    //------------------------------------------------
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pOsInterface);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pHwSizes);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pRenderHalPltInterface);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pStateHeap);
+
+    pRenderhalSettings = &pRenderHal->StateHeapSettings;
+    bAllocated         = false;
+
+    //------------------------------------------------
+    // Enlarge the binding table size and surface state size
+    if ((pRenderhalSettings->iBindingTables  == pParams->iBindingTables) &&
+        (pRenderhalSettings->iSurfaceStates  == pParams->iSurfaceStates) &&
+        (pRenderhalSettings->iKernelCount    == pParams->iKernelCount) &&
+        (pRenderhalSettings->iCurbeSize      == pParams->iCurbeSize) &&
+        (pRenderhalSettings->iKernelHeapSize == pParams->iKernelHeapSize))
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    // Free State Heaps(RenderHal_FreeStateHeaps):
+    // Free state heap here will only destroy software allocations.
+    // Will not destroy resources used by hw.
+    MHW_RENDERHAL_CHK_STATUS_RETURN((MOS_STATUS)(pRenderHal->pfnFreeStateHeaps(pRenderHal)));
+
+    pRenderhalSettings->iBindingTables  = pParams->iBindingTables;
+    pRenderhalSettings->iSurfaceStates  = pParams->iSurfaceStates;
+    pRenderhalSettings->iKernelCount    = pParams->iKernelCount;
+    pRenderhalSettings->iCurbeSize      = pParams->iCurbeSize;
+    pRenderhalSettings->iKernelHeapSize = pParams->iKernelHeapSize;
+    eStatus                             = pRenderHal->pfnAllocateStateHeaps(pRenderHal, pRenderhalSettings);
+    bAllocated                          = true;
+
+    return eStatus;
+}
+
 //!
 //! \brief    Free State Heaps (including MHW interfaces)
 //! \details  Free State Heap resources allocated by RenderHal
@@ -6910,6 +6954,7 @@ MOS_STATUS RenderHal_InitInterface(
     pRenderHal->pfnAllocateStateHeaps                = RenderHal_AllocateStateHeaps;
     pRenderHal->pfnFreeStateHeaps                    = RenderHal_FreeStateHeaps;
     pRenderHal->pfnReAllocateStateHeapsforAdvFeature = RenderHal_ReAllocateStateHeapsforAdvFeature;
+    pRenderHal->pfnReAllocateStateHeapsforAdvFeatureWithSetting = RenderHal_ReAllocateStateHeapsforAdvFeatureWithSetting;
 
     // Slice Shutdown Mode
     pRenderHal->pfnSetSliceShutdownMode       = RenderHal_SetSliceShutdownMode;

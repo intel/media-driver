@@ -1025,8 +1025,11 @@ MOS_STATUS XMHW_STATE_HEAP_INTERFACE::InitializeInterface(
     }
 
     //Sync tags and sync tag id
-    m_pSyncTags = (PMHW_SYNC_TAG)MOS_AllocAndZeroMemory(sizeof(MHW_SYNC_TAG) *
-                        StateHeapSettings.dwNumSyncTags);
+    if (m_pSyncTags == nullptr)
+    {
+        m_pSyncTags = (PMHW_SYNC_TAG)MOS_AllocAndZeroMemory(sizeof(MHW_SYNC_TAG) *
+                                                            StateHeapSettings.dwNumSyncTags);
+    }
     MHW_CHK_NULL_RETURN(m_pSyncTags);
 
     if(m_bDynamicMode == MHW_DSH_MODE)
@@ -1055,17 +1058,20 @@ MOS_STATUS XMHW_STATE_HEAP_INTERFACE::InitializeInterface(
     }
 
     //Allocate resCmdBufIdGlobal
-    MOS_ZeroMemory(&AllocParams, sizeof(AllocParams));
-    AllocParams.Type = MOS_GFXRES_BUFFER;
-    AllocParams.TileType = MOS_TILE_LINEAR;
-    AllocParams.Format = Format_Buffer;
-    AllocParams.dwBytes = MHW_CACHELINE_SIZE;
-    AllocParams.pBufName = "CmdBufIdGlobal";
-    MHW_CHK_STATUS_RETURN(m_pOsInterface->pfnAllocateResource(
-        m_pOsInterface,
-        &AllocParams,
-        &m_resCmdBufIdGlobal));
-    m_dwCurrCmdBufId = 1;
+    if (Mos_ResourceIsNull(&m_resCmdBufIdGlobal))
+    {
+        MOS_ZeroMemory(&AllocParams, sizeof(AllocParams));
+        AllocParams.Type     = MOS_GFXRES_BUFFER;
+        AllocParams.TileType = MOS_TILE_LINEAR;
+        AllocParams.Format   = Format_Buffer;
+        AllocParams.dwBytes  = MHW_CACHELINE_SIZE;
+        AllocParams.pBufName = "CmdBufIdGlobal";
+        MHW_CHK_STATUS_RETURN(m_pOsInterface->pfnAllocateResource(
+            m_pOsInterface,
+            &AllocParams,
+            &m_resCmdBufIdGlobal));
+        m_dwCurrCmdBufId = 1;
+    }
 
     MOS_ZeroMemory(&LockParams, sizeof(LockParams));
     LockParams.WriteOnly = 1;

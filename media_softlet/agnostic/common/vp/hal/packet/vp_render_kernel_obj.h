@@ -480,6 +480,11 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
+    virtual MOS_STATUS SetPerfTag()
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
     virtual MOS_STATUS InitRenderHalSurface(
         SurfaceType             type,
         VP_SURFACE              *surf,

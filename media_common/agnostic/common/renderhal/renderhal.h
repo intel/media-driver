@@ -1122,6 +1122,15 @@ typedef struct _RENDERHAL_SETMARKER_SETTINGS
 
 typedef MhwMiInterface *PMHW_MI_INTERFACE;
 
+typedef struct _RENDERHAL_ENLARGE_PARAMS
+{
+    int32_t iBindingTables;   // Number of BT per SSH instance
+    int32_t iSurfaceStates;   // Number of Surfaces per SSH
+    int32_t iKernelCount;     // Number of Kernels that can be loaded
+    int32_t iKernelHeapSize;  // Size of GSH block for kernels
+    int32_t iCurbeSize;       // Size of CURBE area
+} RENDERHAL_ENLARGE_PARAMS, *PRENDERHAL_ENLARGE_PARAMS;
+
 //!
 // \brief   Hardware dependent render engine interface
 //!
@@ -1280,6 +1289,11 @@ typedef struct _RENDERHAL_INTERFACE
     MOS_STATUS (* pfnReAllocateStateHeapsforAdvFeature) (
                 PRENDERHAL_INTERFACE            pRenderHal,
                 bool                            &bAllocated);
+
+    MOS_STATUS (*pfnReAllocateStateHeapsforAdvFeatureWithSetting)(
+        PRENDERHAL_INTERFACE                    pRenderHal,
+        PRENDERHAL_ENLARGE_PARAMS               pParams,
+        bool                                    &bAllocated);
 
     MOS_STATUS (* pfnFreeStateHeaps) (
                 PRENDERHAL_INTERFACE     pRenderHal);

@@ -930,9 +930,9 @@ public:
 
     virtual ~XMHW_STATE_HEAP_INTERFACE();
 
-    PMHW_STATE_HEAP GetDSHPointer(){ return   m_pDynamicStateHeaps; };
+    virtual PMHW_STATE_HEAP GetDSHPointer(){ return   m_pDynamicStateHeaps; };
 
-    PMHW_STATE_HEAP GetISHPointer(){ return   m_pInstructionStateHeaps;};
+    virtual PMHW_STATE_HEAP GetISHPointer() { return m_pInstructionStateHeaps; };
 
     uint32_t GetNumDsh(){return m_dwNumDsh;};
 

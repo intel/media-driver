@@ -334,6 +334,13 @@ MOS_STATUS MediaContext::CreateContext(MediaFunction func, T params, uint32_t& i
     indexReturn = m_gpuContextAttributeTable.size();
     m_gpuContextAttributeTable.push_back(newAttr);
 
+    if (func == VeboxVppFunc || func == ComputeVppFunc)
+    {
+         m_osInterface->pfnRegisterBBCompleteNotifyEvent(
+            m_osInterface,
+            newAttr.ctxForLegacyMos);
+    }
+
     return MOS_STATUS_SUCCESS;
 }
 

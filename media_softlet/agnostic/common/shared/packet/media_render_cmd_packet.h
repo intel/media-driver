@@ -217,6 +217,8 @@ public:
 
     bool m_isLargeSurfaceStateNeeded = false;
 
+    bool m_isMultiKernelOneMediaState = false;
+
 protected:
     // Step5: Load Kernel
     virtual MOS_STATUS LoadKernel();

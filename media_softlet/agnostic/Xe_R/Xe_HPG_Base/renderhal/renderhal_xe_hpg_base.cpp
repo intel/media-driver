@@ -706,7 +706,7 @@ MOS_STATUS XRenderHal_Interface_Xe_Hpg_Base::SendComputeWalker(
     mhwIdEntryParams.dwSamplerCount  = pKernelEntry->Params.Sampler_Count;
     mhwIdEntryParams.dwSamplerOffset = pCurMediaState->dwOffset +
                                        pRenderHal->pStateHeap->dwOffsetSampler +
-                                       pGpGpuWalkerParams->InterfaceDescriptorOffset * pRenderHal->pStateHeap->dwSizeSampler;
+                                       pGpGpuWalkerParams->InterfaceDescriptorOffset * pRenderHal->pStateHeap->dwSizeSamplers;
     mhwIdEntryParams.dwBindingTableOffset          = pGpGpuWalkerParams->BindingTableID * pRenderHal->pStateHeap->iBindingTableSize;
     mhwIdEntryParams.dwSharedLocalMemorySize       = pGpGpuWalkerParams->SLMSize;
     mhwIdEntryParams.dwNumberofThreadsInGPGPUGroup = pGpGpuWalkerParams->ThreadWidth * pGpGpuWalkerParams->ThreadHeight;

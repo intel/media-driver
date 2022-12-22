@@ -39,6 +39,10 @@ private:
     uint16_t m_wSizeOfInterfaceDescriptor;
     uint32_t m_dwSizeSurfaceState;
     uint32_t m_dwSizeSurfaceStateAdv;
+    PMHW_STATE_HEAP m_pLastDSHPinter = nullptr;
+    PMHW_STATE_HEAP m_pLastISHPinter = nullptr;
+    uint32_t        m_lastDwNumDsh = 0;
+    uint32_t        m_lastDwNumIsh = 0;
 
 public:
     MHW_STATE_HEAP_INTERFACE_XE_HPG(PMOS_INTERFACE pInputOSInterface, int8_t bDynamicMode);
@@ -86,5 +90,52 @@ public:
     MOS_STATUS SetMissingShaderChannels(
         mhw_state_heap_xe_hpg::RENDER_SURFACE_STATE_CMD *pSurfaceState,
         uint32_t                                         dwFormat);
+
+    PMHW_STATE_HEAP GetDSHPointer()
+    {
+        PMHW_STATE_HEAP pDSHPinter = XMHW_STATE_HEAP_INTERFACE::GetDSHPointer();
+        uint32_t        numDSH     = XMHW_STATE_HEAP_INTERFACE::GetNumDsh();
+        if (numDSH > 1)
+        {
+            if (numDSH != m_lastDwNumDsh)
+            {
+                for (uint32_t i = 0; i < (numDSH - 1); i++)
+                {
+                    pDSHPinter = pDSHPinter->pNext;
+                }
+                m_lastDwNumDsh = numDSH;
+                m_pLastDSHPinter = pDSHPinter;
+            }
+            else
+            {
+                pDSHPinter = m_pLastDSHPinter;
+            }
+
+        }
+        return pDSHPinter;
+    }
+
+    PMHW_STATE_HEAP GetISHPointer()
+    {
+        PMHW_STATE_HEAP pISHPinter = XMHW_STATE_HEAP_INTERFACE::GetISHPointer();
+        uint32_t        numISH     = XMHW_STATE_HEAP_INTERFACE::GetNumIsh();
+        if (numISH > 1)
+        {
+            if (numISH != m_lastDwNumIsh)
+            {
+                for (uint32_t i = 0; i < (numISH - 1); i++)
+                {
+                    pISHPinter = pISHPinter->pNext;
+                }
+                m_lastDwNumIsh = numISH;
+                m_pLastISHPinter = pISHPinter;
+            }
+            else
+            {
+                pISHPinter = m_pLastISHPinter;
+            }
+        }
+        return pISHPinter;
+    }
 };
 #endif
