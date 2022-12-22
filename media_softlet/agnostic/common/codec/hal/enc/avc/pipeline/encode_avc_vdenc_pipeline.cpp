@@ -170,28 +170,6 @@ MOS_STATUS AvcVdencPipeline::Prepare(void *params)
 
     ENCODE_CHK_STATUS_RETURN(m_statusReport->Init(&inputParameters));
 
-#if MHW_HWCMDPARSER_ENABLED
-    char frameType = '\0';
-    switch (((PCODEC_AVC_ENCODE_PIC_PARAMS)encodeParams->pPicParams)->CodingType)
-    {
-    case I_TYPE:
-        frameType = 'I';
-        break;
-    case P_TYPE:
-        frameType = 'P';
-        break;
-    case B_TYPE:
-        frameType = (((PCODEC_AVC_ENCODE_PIC_PARAMS)encodeParams->pPicParams)->RefPicFlag) ? 'B' : 'b';
-        break;
-    }
-
-    auto instance = mhw::HwcmdParser::GetInstance();
-    if (instance)
-    {
-        instance->Update(frameType, nullptr);
-    }
-#endif
-
     return MOS_STATUS_SUCCESS;
 }
 
@@ -274,22 +252,44 @@ MOS_STATUS AvcVdencPipeline::ResetParams()
 {
     ENCODE_FUNC_CALL();
 
+    auto avcBasicfeature = dynamic_cast<AvcBasicFeature *>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
+    ENCODE_CHK_NULL_RETURN(avcBasicfeature);
+
+#if MHW_HWCMDPARSER_ENABLED
+    char frameType = '\0';
+    switch (avcBasicfeature->m_picParam->CodingType)
+    {
+    case I_TYPE:
+        frameType = 'I';
+        break;
+    case P_TYPE:
+        frameType = 'P';
+        break;
+    case B_TYPE:
+        frameType = (avcBasicfeature->m_picParam->RefPicFlag) ? 'B' : 'b';
+        break;
+    }
+
+    auto instance = mhw::HwcmdParser::GetInstance();
+    if (instance)
+    {
+        instance->Update(frameType, (void *)m_featureManager);
+    }
+#endif
+
     m_currRecycledBufIdx = (m_currRecycledBufIdx + 1) % CODECHAL_ENCODE_RECYCLED_BUFFER_NUM;
     if (m_currRecycledBufIdx == 0)
     {
         MOS_ZeroMemory(m_recycledBufStatusNum, sizeof(m_recycledBufStatusNum));
     }
 
-    auto feature = dynamic_cast<EncodeBasicFeature*>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
-    ENCODE_CHK_NULL_RETURN(feature);
-
     // Only update user features for first frame.
-    if (feature->m_frameNum == 0)
+    if (avcBasicfeature->m_frameNum == 0)
     {
         ENCODE_CHK_STATUS_RETURN(UserFeatureReport());
     }
 
-    feature->m_frameNum++;
+    avcBasicfeature->m_frameNum++;
 
     ENCODE_CHK_STATUS_RETURN(m_statusReport->Reset());
 
