@@ -3536,6 +3536,9 @@ MOS_STATUS Mos_Specific_InitInterface(
     osInterface->phasedSubmission           = true;
     osInterface->apoMosEnabled              = true;
 
+    MOS_OS_CHK_NULL_RETURN(osDriverContext->m_osDeviceContext);
+    osInterface->bNullHwIsEnabled  = osDriverContext->m_osDeviceContext->GetNullHwIsEnabled();
+
     osInterface->streamStateIniter = true;
     eStatus = MosInterface::CreateOsStreamState(
         &osInterface->osStreamState,

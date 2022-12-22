@@ -150,7 +150,6 @@ namespace decode {
         MediaFeatureManager* m_featureManager = nullptr;
         Mpeg2Pipeline* m_mpeg2Pipeline = nullptr;
         DecodeAllocator* m_allocator = nullptr;
-        PMOS_INTERFACE          m_osInterface = nullptr;
         Mpeg2BasicFeature* m_mpeg2BasicFeature = nullptr;
         CodechalHwInterface* m_hwInterface = nullptr;
         DecodeMemComp* m_mmcState = nullptr;

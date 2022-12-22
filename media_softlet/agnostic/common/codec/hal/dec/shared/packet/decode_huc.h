@@ -143,7 +143,6 @@ namespace decode
         DecodePipeline *         m_pipeline            = nullptr;
         MediaFeatureManager *    m_featureManager      = nullptr;
         DecodeAllocator *        m_allocator           = nullptr;
-        PMOS_INTERFACE           m_osInterface         = nullptr;
         CodechalHwInterfaceNext *m_hwInterface         = nullptr;
         DecodeBasicFeature *     m_basicFeature        = nullptr;
         DecodeCpInterface*       m_decodecp            = nullptr;

@@ -561,7 +561,6 @@ namespace encode
 
         // Interfaces
         EncodeAllocator *         m_allocator         = nullptr;
-        PMOS_INTERFACE            m_osInterface       = nullptr;
         CodechalHwInterfaceNext *     m_hwInterface       = nullptr;
         HevcBasicFeature *        m_basicFeature      = nullptr;  //!< Encode parameters used in each frame
         EncodeMemComp *           m_mmcState          = nullptr;

@@ -114,7 +114,7 @@ MOS_STATUS EncodePipeline::Initialize(void *settings)
     ENCODE_CHK_NULL_RETURN(m_packetUtilities);
     ENCODE_CHK_STATUS_RETURN(m_packetUtilities->Init());
 
-    m_statusReport = MOS_New(EncoderStatusReport, m_allocator, true, true, cpenable);
+    m_statusReport = MOS_New(EncoderStatusReport, m_allocator, m_osInterface, true, true, cpenable);
     ENCODE_CHK_NULL_RETURN(m_statusReport);
     ENCODE_CHK_STATUS_RETURN(m_statusReport->Create());
 

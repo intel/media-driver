@@ -104,7 +104,6 @@ protected:
     MediaFeatureManager         *m_featureManager   = nullptr;
     Vp8Pipeline                 *m_vp8Pipeline      = nullptr;
     DecodeAllocator             *m_allocator        = nullptr;
-    PMOS_INTERFACE               m_osInterface      = nullptr;
     Vp8BasicFeature             *m_vp8BasicFeature  = nullptr;
     CodechalHwInterfaceNext     *m_hwInterface      = nullptr;
     Vp8DecodePicPkt             *m_picturePkt       = nullptr;

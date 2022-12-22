@@ -424,7 +424,6 @@ protected:
     JpegPipeline             *m_pipeline       = nullptr;
 
     // Interfaces
-    PMOS_INTERFACE          m_osInterface     = nullptr;
     CodechalHwInterfaceNext     *m_hwInterface    = nullptr;
     JpegBasicFeature        *m_basicFeature   = nullptr;
     JpegPackerFeature       *m_jpgPkrFeature  = nullptr;

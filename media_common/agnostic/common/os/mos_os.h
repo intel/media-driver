@@ -1435,6 +1435,8 @@ typedef struct _MOS_INTERFACE
 
     bool                            bOptimizeCpuTiming;                           //!< Optimize Cpu Timing
 
+    bool                            bNullHwIsEnabled;                             //!< Null Hw is enabled or not
+
     //!< os interface extension
     void                            *pOsExt;
 } MOS_INTERFACE;

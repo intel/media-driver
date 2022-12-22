@@ -26,6 +26,7 @@
 
 #include "mos_os.h"
 #include "mos_os_specific.h"
+#include "mos_context_next.h"
 #include "mos_interface.h"
 #include "mos_os_mock_adaptor.h"
 #include "mos_os_mock_adaptor_specific.h"
@@ -91,13 +92,15 @@ MOS_STATUS MosMockAdaptor::RegkeyRead(PMOS_CONTEXT osContext)
 }
 
 MOS_STATUS MosMockAdaptor::Init(
-    MOS_CONTEXT_HANDLE osDeviceContext,
-    bool               &enabled)
+    MOS_CONTEXT_HANDLE osDriverContext,
+    OsContextNext      *osDeviceContext)
 {
-    MOS_STATUS   eStatus   = MOS_STATUS_SUCCESS;
-    uint32_t     value     = 0;
-    PMOS_CONTEXT osContext = (PMOS_CONTEXT)osDeviceContext;
+    MOS_STATUS   eStatus       = MOS_STATUS_SUCCESS;
+    uint32_t     value         = 0;
+    bool         nullHwEnabled = false;
+    PMOS_CONTEXT osContext     = (PMOS_CONTEXT)osDriverContext;
     MOS_OS_CHK_NULL_RETURN(osContext);
+    MOS_OS_CHK_NULL_RETURN(osDeviceContext);
 
     MediaUserSettingSharedPtr userSettingPtr = MosInterface::MosGetUserSettingInstance(osContext);
     ReadUserSettingForDebug(
@@ -105,9 +108,10 @@ MOS_STATUS MosMockAdaptor::Init(
         value,
         __MEDIA_USER_FEATURE_VALUE_NULLHW_ENABLE,
         MediaUserSetting::Group::Device);
-    enabled = (value) ? true : false;
+    nullHwEnabled = (value) ? true : false;
+    osDeviceContext->SetNullHwIsEnabled(nullHwEnabled);
 
-    if (enabled && !m_enabled) {
+    if (nullHwEnabled && !m_enabled) {
         m_enabled = true;
 
         MOS_OS_CHK_STATUS_RETURN(RegkeyRead(osContext));

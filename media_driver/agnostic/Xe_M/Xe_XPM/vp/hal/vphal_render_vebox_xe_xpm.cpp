@@ -1034,7 +1034,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_XE_XPM::VeboxRenderVeboxCmd(
                 VPHAL_RENDER_CHK_STATUS(pRenderHal->pPerfProfiler->AddPerfCollectStartCmd((void*)pRenderHal, pOsInterface, pRenderHal->pMhwMiInterface, pCmdBufferInUse));
             }
 
-            VPHAL_RENDER_CHK_STATUS(NullHW::StartPredicate(pRenderHal->pMhwMiInterface, pCmdBufferInUse));
+            VPHAL_RENDER_CHK_STATUS(NullHW::StartPredicate(pOsInterface, pRenderHal->pMhwMiInterface, pCmdBufferInUse));
 
             // Insert prolog with VE params
             VPHAL_RENDER_CHK_STATUS(pVeboxInterfaceXe_Xpm->setVeboxPrologCmd(m_pRenderHal->pMhwMiInterface, pCmdBufferInUse));
@@ -1211,7 +1211,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_XE_XPM::VeboxRenderVeboxCmd(
             VPHAL_RENDER_CHK_STATUS(pMhwMiInterface->AddMiStoreDataImmCmd(
                 pCmdBufferInUse, &dataParams));
 
-            VPHAL_RENDER_CHK_STATUS(NullHW::StopPredicate(pRenderHal->pMhwMiInterface, &CmdBuffer));
+            VPHAL_RENDER_CHK_STATUS(NullHW::StopPredicate(pOsInterface, pRenderHal->pMhwMiInterface, &CmdBuffer));
 
             // Profiler end cmd
             if (pRenderHal->pPerfProfiler)

@@ -43,6 +43,26 @@ protected:
     //!
     OsContextNext(){};
 
+    //!
+    //! \brief    Interface for initializing NULL Hardware.
+    //! \details  Interface for initializing NULL Hardware.
+    //! \param    [in] osContext
+    //!           Pointer to OS context.
+    //! \param    [in] osDeviceContext
+    //!           Pointer to OS device context.
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    MOS_STATUS NullHwInit(MOS_CONTEXT_HANDLE osContext);
+
+    //!
+    //! \brief    Destroy NULL Hardware.
+    //! \details  Destroy NULL Hardware.
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    MOS_STATUS NullHwDestroy();
+
 public:
     //!
     //! \brief Destructor for the OsContextNext
@@ -108,6 +128,19 @@ public:
     //! \return true if the OS contextNext is valid, false if not valid
     //!
     bool GetOsContextValid() { return m_osContextValid; };
+
+    //!
+    //! \brief  Set Null Hw enabled flag
+    //! \param  [in] isNullHwEnabled
+    //!         Flag to indicate if Null Hw is enabled. 
+    //!
+    void SetNullHwIsEnabled(bool isNullHwEnabled) { m_nullHwIsEnabled = isNullHwEnabled; }
+
+    //!
+    //! \brief  Return Null Hw enabled flag
+    //! \return true if Null Hw is enabled, false if not enabled
+    //!
+    bool GetNullHwIsEnabled() { return m_nullHwIsEnabled; }
 
     //!
     //! \brief  Get GPU context manager of the device
@@ -253,6 +286,9 @@ protected:
 
     //! \brief  Flag to mark whether the os context is valid
     bool                            m_osContextValid =  false;
+
+    //! \brief  Flag to mark whether Null Hw is enabled
+    bool                            m_nullHwIsEnabled = false;
 
     //! \brief  Whether or not need deallocation on exit
     bool                            m_deallocateOnExit = false;

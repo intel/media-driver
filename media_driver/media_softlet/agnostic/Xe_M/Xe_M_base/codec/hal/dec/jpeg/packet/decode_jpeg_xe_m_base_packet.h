@@ -148,7 +148,6 @@ protected:
     MediaFeatureManager    *m_featureManager    = nullptr;
     JpegPipeline           *m_jpegPipeline      = nullptr;
     DecodeAllocator        *m_allocator         = nullptr;
-    PMOS_INTERFACE          m_osInterface       = nullptr;
     JpegBasicFeature       *m_jpegBasicFeature  = nullptr;
     CodechalHwInterface    *m_hwInterface       = nullptr;
     DecodeMemComp          *m_mmcState          = nullptr;

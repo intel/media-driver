@@ -155,7 +155,6 @@ protected:
     MediaFeatureManager    *m_featureManager   = nullptr;
     Av1PipelineG12_Base    *m_av1Pipeline      = nullptr;
     DecodeAllocator        *m_allocator        = nullptr;
-    PMOS_INTERFACE          m_osInterface      = nullptr;
     Av1BasicFeatureG12     *m_av1BasicFeature  = nullptr;
     MhwVdboxVdencInterface *m_vdencInterface   = nullptr;
     CodechalHwInterface    *m_hwInterface      = nullptr;

@@ -215,7 +215,7 @@ MOS_STATUS HevcDecodeRealTilePktXe_Lpm_Plus_Base::PackPictureLevelCmds(MOS_COMMA
     }
     else
     {
-        DECODE_CHK_STATUS(NullHW::StopPredicateNext(m_miItf, &cmdBuffer));
+        DECODE_CHK_STATUS(NullHW::StopPredicateNext(m_osInterface, m_miItf, &cmdBuffer));
     }
 
     return MOS_STATUS_SUCCESS;

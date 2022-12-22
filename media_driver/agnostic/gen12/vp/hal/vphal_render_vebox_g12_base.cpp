@@ -596,7 +596,9 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::AllocateResources()
     pVeboxInterface         = pVeboxState->m_pVeboxInterface;
     InitValue               = 0;
     // change the init value when null hw is enabled
-    if (NullHW::IsEnabled())
+    VPHAL_RENDER_CHK_NULL(pOsInterface);
+
+    if (pOsInterface->bNullHwIsEnabled)
     {
         InitValue = 0x80;
     }
@@ -960,7 +962,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::AllocateResources()
         MOS_MMC_DISABLED,
         &bAllocated));
 
-    if (bAllocated && NullHW::IsEnabled())
+    if (bAllocated && pOsInterface->bNullHwIsEnabled)
     {
         // Initialize VeboxRGBHistogram Surface
         VPHAL_RENDER_CHK_STATUS(pOsInterface->pfnFillResource(

@@ -535,7 +535,6 @@ protected:
 
     // Interfaces
     EncodeAllocator *         m_allocator         = nullptr;  //!< Interface of encode allocator
-    PMOS_INTERFACE            m_osInterface       = nullptr;  //!< Interface of OS instance
     CodechalHwInterfaceNext * m_hwInterface       = nullptr;  //!< Interface of Codec HAL HW
     MediaFeatureManager *     m_featureManager    = nullptr;  //!< Interface of feature manager
     Vp9BasicFeature *         m_basicFeature      = nullptr;  //!< Encode parameters used in each frame

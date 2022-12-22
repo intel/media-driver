@@ -211,7 +211,7 @@ MOS_STATUS HevcDecodeRealTilePktM12::PackPictureLevelCmds(MOS_COMMAND_BUFFER &cm
     }
     else
     {
-        DECODE_CHK_STATUS(NullHW::StopPredicate(m_miInterface, &cmdBuffer));
+        DECODE_CHK_STATUS(NullHW::StopPredicate(m_osInterface, m_miInterface, &cmdBuffer));
     }
 
     return MOS_STATUS_SUCCESS;

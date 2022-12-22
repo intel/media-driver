@@ -36,9 +36,9 @@
 
 RenderCmdPacket::RenderCmdPacket(MediaTask* task, PMOS_INTERFACE pOsInterface, RENDERHAL_INTERFACE* renderHal) : CmdPacket(task),
 m_renderHal(renderHal),
-m_cpInterface(nullptr),
-m_osInterface(pOsInterface)
+m_cpInterface(nullptr)
 {
+    m_osInterface = pOsInterface;
 }
 
 RenderCmdPacket::~RenderCmdPacket()

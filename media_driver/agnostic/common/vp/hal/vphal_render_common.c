@@ -497,7 +497,7 @@ MOS_STATUS VpHal_RndrCommonSubmitCommands(
     VPHAL_RENDER_CHK_STATUS(pRenderHalLegacy->pfnSendTimingData(pRenderHalLegacy, &CmdBuffer, true));
     VPHAL_RENDER_CHK_STATUS(pPerfProfiler->AddPerfCollectStartCmd((void*)pRenderHalLegacy, pOsInterface, pMhwMiInterface, &CmdBuffer));
 
-    VPHAL_RENDER_CHK_STATUS(NullHW::StartPredicate(pRenderHalLegacy->pMhwMiInterface, &CmdBuffer));
+    VPHAL_RENDER_CHK_STATUS(NullHW::StartPredicate(pOsInterface, pRenderHalLegacy->pMhwMiInterface, &CmdBuffer));
 
     bEnableSLM = (pGpGpuWalkerParams && pGpGpuWalkerParams->SLMSize > 0)? true : false;
     VPHAL_RENDER_CHK_STATUS(pRenderHalLegacy->pfnSetCacheOverrideParams(
@@ -535,7 +535,7 @@ MOS_STATUS VpHal_RndrCommonSubmitCommands(
         VPHAL_RENDER_CHK_STATUS(pRenderHalLegacy->pfnSendRcsStatusTag(pRenderHalLegacy, &CmdBuffer));
     }
 
-    VPHAL_RENDER_CHK_STATUS(NullHW::StopPredicate(pRenderHalLegacy->pMhwMiInterface, &CmdBuffer));
+    VPHAL_RENDER_CHK_STATUS(NullHW::StopPredicate(pOsInterface, pRenderHalLegacy->pMhwMiInterface, &CmdBuffer));
 
     VPHAL_RENDER_CHK_STATUS(pPerfProfiler->AddPerfCollectEndCmd((void*)pRenderHalLegacy, pOsInterface, pMhwMiInterface, &CmdBuffer));
 
@@ -767,7 +767,7 @@ MOS_STATUS VpHal_RndrSubmitCommands(
 
     VPHAL_RENDER_CHK_STATUS(pPerfProfiler->AddPerfCollectStartCmd((void*)pRenderHalLegacy, pOsInterface, pMhwMiInterface, &CmdBuffer));
 
-    VPHAL_RENDER_CHK_STATUS(NullHW::StartPredicate(pRenderHalLegacy->pMhwMiInterface, &CmdBuffer));
+    VPHAL_RENDER_CHK_STATUS(NullHW::StartPredicate(pOsInterface, pRenderHalLegacy->pMhwMiInterface, &CmdBuffer));
 
     // Write timing data for 3P budget
     VPHAL_RENDER_CHK_STATUS(pRenderHalLegacy->pfnSendTimingData(pRenderHalLegacy, &CmdBuffer, true));
@@ -816,7 +816,7 @@ MOS_STATUS VpHal_RndrSubmitCommands(
         VPHAL_RENDER_CHK_STATUS(pRenderHalLegacy->pfnSendRcsStatusTag(pRenderHalLegacy, &CmdBuffer));
     }
 
-    VPHAL_RENDER_CHK_STATUS(NullHW::StopPredicate(pRenderHalLegacy->pMhwMiInterface, &CmdBuffer));
+    VPHAL_RENDER_CHK_STATUS(NullHW::StopPredicate(pOsInterface, pRenderHalLegacy->pMhwMiInterface, &CmdBuffer));
 
     VPHAL_RENDER_CHK_STATUS(pPerfProfiler->AddPerfCollectEndCmd((void*)pRenderHalLegacy, pOsInterface, pMhwMiInterface, &CmdBuffer));
 

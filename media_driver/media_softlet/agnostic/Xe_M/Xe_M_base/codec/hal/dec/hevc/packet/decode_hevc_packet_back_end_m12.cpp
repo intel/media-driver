@@ -185,7 +185,7 @@ MOS_STATUS HevcDecodeBackEndPktM12::PackPictureLevelCmds(MOS_COMMAND_BUFFER &cmd
     }
     else
     {
-        DECODE_CHK_STATUS(NullHW::StopPredicate(m_miInterface, &cmdBuffer));
+        DECODE_CHK_STATUS(NullHW::StopPredicate(m_osInterface, m_miInterface, &cmdBuffer));
     }
     DECODE_CHK_STATUS(MiFlush(cmdBuffer));
 

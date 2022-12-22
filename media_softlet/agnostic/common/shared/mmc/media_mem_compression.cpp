@@ -80,7 +80,7 @@ bool MediaMemComp::IsMmcFeatureEnabled()
         m_mmcEnabled = m_bComponentMmcEnabled;
     }
 
-    if (NullHW::IsEnabled())
+    if (m_osInterface && m_osInterface->bNullHwIsEnabled)
     {
         m_mmcEnabled = false;
     }

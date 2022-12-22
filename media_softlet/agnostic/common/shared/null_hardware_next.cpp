@@ -22,38 +22,14 @@
 //!
 //! \file     null_hardware_next.cpp
 //! \brief    Defines interfaces for null hardware
-#include "mos_os_mock_adaptor.h"
 #include "null_hardware.h"
 #include "mhw_mi.h"
 #include "mhw_mi_itf.h"
 
-bool  NullHW::m_initilized = false;
-bool  NullHW::m_enabled = false;
-
-MOS_STATUS NullHW::Init(
-    MOS_CONTEXT_HANDLE osContext)
+MOS_STATUS NullHW::StartPredicateNext(PMOS_INTERFACE pOsInterface, std::shared_ptr<void> pMiItf, PMOS_COMMAND_BUFFER cmdBuffer)
 {
-    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-    if (!m_initilized) {
-        m_initilized = true;
-
-        eStatus = MosMockAdaptor::Init(osContext, m_enabled);
-        if (eStatus != MOS_STATUS_SUCCESS)
-        {
-            return eStatus;
-        }
-    }
-    return eStatus;
-}
-
-MOS_STATUS NullHW::Destroy()
-{
-    return MosMockAdaptor::Destroy();
-}
-
-MOS_STATUS NullHW::StartPredicateNext(std::shared_ptr<void> pMiItf, PMOS_COMMAND_BUFFER cmdBuffer)
-{
-    if (!m_enabled)
+    MOS_OS_CHK_NULL_RETURN(pOsInterface);
+    if (!pOsInterface->bNullHwIsEnabled)
     {
         return MOS_STATUS_SUCCESS;
     }
@@ -68,9 +44,10 @@ MOS_STATUS NullHW::StartPredicateNext(std::shared_ptr<void> pMiItf, PMOS_COMMAND
     return miItf->MHW_ADDCMD_F(MI_SET_PREDICATE)(cmdBuffer);
 }
 
-MOS_STATUS NullHW::StopPredicateNext(std::shared_ptr<void> pMiItf, PMOS_COMMAND_BUFFER cmdBuffer)
+MOS_STATUS NullHW::StopPredicateNext(PMOS_INTERFACE pOsInterface, std::shared_ptr<void> pMiItf, PMOS_COMMAND_BUFFER cmdBuffer)
 {
-    if (!m_enabled)
+    MOS_OS_CHK_NULL_RETURN(pOsInterface);
+    if (!pOsInterface->bNullHwIsEnabled)
     {
         return MOS_STATUS_SUCCESS;
     }
@@ -85,9 +62,9 @@ MOS_STATUS NullHW::StopPredicateNext(std::shared_ptr<void> pMiItf, PMOS_COMMAND_
     return miItf->MHW_ADDCMD_F(MI_SET_PREDICATE)(cmdBuffer);
 }
 
-void NullHW::StatusReport(uint32_t &status, uint32_t &streamSize)
+void NullHW::StatusReport(PMOS_INTERFACE pOsInterface, uint32_t &status, uint32_t &streamSize)
 {
-    if (!m_enabled)
+    if (!pOsInterface || !pOsInterface->bNullHwIsEnabled)
     {
         return;
     }

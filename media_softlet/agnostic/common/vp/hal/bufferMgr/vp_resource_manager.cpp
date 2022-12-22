@@ -1760,7 +1760,7 @@ MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SU
     VP_PUBLIC_CHK_NULL_RETURN(outputSurface->osSurface);
 
     // change the init value when null hw is enabled
-    if (NullHW::IsEnabled())
+    if (m_osInterface.bNullHwIsEnabled)
     {
         InitValue = 0x80;
     }
@@ -1877,7 +1877,7 @@ MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SU
 
     m_isHistogramReallocated = bAllocated;
 
-    if (bAllocated && NullHW::IsEnabled())
+    if (bAllocated && m_osInterface.bNullHwIsEnabled)
     {
         // Initialize veboxRgbHistogram Surface
         VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.OsFillResource(
@@ -2406,7 +2406,7 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxStatisticsSurface(VP_SURFACE *&stat
     uint8_t     InitValue                   = 0;
 
     // change the init value when null hw is enabled
-    if (NullHW::IsEnabled())
+    if (m_osInterface.bNullHwIsEnabled)
     {
         InitValue = 0x80;
     }

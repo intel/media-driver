@@ -46,7 +46,8 @@ namespace encode {
     };
 
     EncoderStatusReport::EncoderStatusReport(
-        EncodeAllocator *allocator, bool enableMfx, bool enableRcs, bool enablecp):
+        EncodeAllocator *allocator, PMOS_INTERFACE pOsInterface, bool enableMfx, bool enableRcs, bool enablecp):
+        m_osInterface(pOsInterface),
         m_enableMfx(enableMfx),
         m_enableRcs(enableRcs),
         m_enableCp(enablecp),
@@ -376,8 +377,9 @@ namespace encode {
             eStatus = NotifyObservers(encodeStatusMfx, encodeStatusRcs, statusReportData);
         }
 
-        NullHW::StatusReport((uint32_t &)statusReportData->codecStatus,
-                                         statusReportData->bitstreamSize);
+        NullHW::StatusReport(m_osInterface, 
+                             (uint32_t &)statusReportData->codecStatus,
+                             statusReportData->bitstreamSize);
 
         *((EncodeStatusReportData *)report) = *statusReportData;
         return eStatus;

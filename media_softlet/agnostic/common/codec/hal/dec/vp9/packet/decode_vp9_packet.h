@@ -100,7 +100,6 @@ protected:
     MediaFeatureManager *   m_featureManager  = nullptr;
     Vp9Pipeline *           m_vp9Pipeline     = nullptr;
     DecodeAllocator *       m_allocator       = nullptr;
-    PMOS_INTERFACE          m_osInterface     = nullptr;
     Vp9BasicFeature *       m_vp9BasicFeature = nullptr;
     CodechalHwInterfaceNext * m_hwInterface   = nullptr;
 

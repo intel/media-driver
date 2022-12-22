@@ -188,7 +188,6 @@ namespace encode
         EncodeAllocator        *m_allocator      = nullptr;
         MediaFeatureManager    *m_featureManager = nullptr;
         CodechalHwInterfaceNext *m_hwInterface   = nullptr;
-        MOS_INTERFACE          *m_osInterface    = nullptr;
 
         std::shared_ptr<mhw::vdbox::vdenc::Itf> m_vdencItf = nullptr;
         std::shared_ptr<mhw::vdbox::huc::Itf>   m_hucItf   = nullptr;

@@ -7117,6 +7117,8 @@ MOS_STATUS Mos_Specific_InitInterface(
     pOsInterface->apoMosEnabled             = pOsDriverContext->m_apoMosEnabled;
     if (pOsInterface->apoMosEnabled)
     {
+        MOS_OS_CHK_NULL(pOsDriverContext->m_osDeviceContext);
+        pOsInterface->bNullHwIsEnabled  = pOsDriverContext->m_osDeviceContext->GetNullHwIsEnabled();
         pOsInterface->streamStateIniter = true;
         MOS_OS_CHK_STATUS(MosInterface::CreateOsStreamState(
             &pOsInterface->osStreamState,

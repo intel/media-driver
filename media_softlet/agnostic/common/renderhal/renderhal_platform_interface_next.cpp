@@ -699,7 +699,7 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::StartPredicate(
     MHW_RENDERHAL_CHK_NULL_RETURN(m_miItf);
     MHW_RENDERHAL_CHK_NULL_RETURN(cmdBuffer);
 
-    MHW_CHK_STATUS_RETURN(NullHW::StartPredicateNext(m_miItf, cmdBuffer));
+    MHW_CHK_STATUS_RETURN(NullHW::StartPredicateNext(pRenderHal->pOsInterface, m_miItf, cmdBuffer));
 
     return eStatus;
 }
@@ -713,7 +713,7 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::StopPredicate(
     MHW_RENDERHAL_CHK_NULL_RETURN(m_miItf);
     MHW_RENDERHAL_CHK_NULL_RETURN(cmdBuffer);
 
-    MHW_CHK_STATUS_RETURN(NullHW::StopPredicateNext(m_miItf, cmdBuffer));
+    MHW_CHK_STATUS_RETURN(NullHW::StopPredicateNext(pRenderHal->pOsInterface, m_miItf, cmdBuffer));
 
     return eStatus;
 }

@@ -263,7 +263,6 @@ protected:
 protected:
     PRENDERHAL_INTERFACE        m_renderHal = nullptr;
     MhwCpInterface*             m_cpInterface = nullptr;
-    PMOS_INTERFACE              m_osInterface = nullptr;
     MediaFeatureManager*        m_featureManager = nullptr;
 
     // Perf

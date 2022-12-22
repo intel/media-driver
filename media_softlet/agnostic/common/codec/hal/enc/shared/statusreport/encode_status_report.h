@@ -287,7 +287,7 @@ namespace encode {
         //! \param  [in] enableRcs
         //!         Enable Rcs status buffer contarol if true
         //!
-        EncoderStatusReport(EncodeAllocator *allocator, bool enableMfx, bool enableRcs, bool enableCp);
+        EncoderStatusReport(EncodeAllocator *allocator, PMOS_INTERFACE pOsInterface, bool enableMfx, bool enableRcs, bool enableCp);
         virtual ~EncoderStatusReport();
 
         //!
@@ -397,6 +397,7 @@ namespace encode {
 
     protected:
         EncodeStatusReportData m_statusReportData[m_statusNum] = {};
+        PMOS_INTERFACE         m_osInterface = nullptr;
         bool                   m_enableMfx = false;
         bool                   m_enableRcs = false;
         bool                   m_enableCp  = false;

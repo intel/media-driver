@@ -25,9 +25,10 @@
 #include "null_hardware.h"
 #include "mhw_mi.h"
 
-MOS_STATUS NullHW::StartPredicate(MhwMiInterface* miInterface, PMOS_COMMAND_BUFFER cmdBuffer)
+MOS_STATUS NullHW::StartPredicate(PMOS_INTERFACE pOsInterface, MhwMiInterface* miInterface, PMOS_COMMAND_BUFFER cmdBuffer)
 {
-    if (!m_enabled)
+    MOS_OS_CHK_NULL_RETURN(pOsInterface);
+    if (!pOsInterface->bNullHwIsEnabled)
     {
         return MOS_STATUS_SUCCESS;
     }
@@ -37,9 +38,10 @@ MOS_STATUS NullHW::StartPredicate(MhwMiInterface* miInterface, PMOS_COMMAND_BUFF
     return miInterface->AddMiSetPredicateCmd(cmdBuffer, MHW_MI_SET_PREDICATE_ENABLE_ALWAYS);
 }
 
-MOS_STATUS NullHW::StopPredicate(MhwMiInterface* miInterface, PMOS_COMMAND_BUFFER cmdBuffer)
+MOS_STATUS NullHW::StopPredicate(PMOS_INTERFACE pOsInterface, MhwMiInterface* miInterface, PMOS_COMMAND_BUFFER cmdBuffer)
 {
-    if (!m_enabled)
+    MOS_OS_CHK_NULL_RETURN(pOsInterface);
+    if (!pOsInterface->bNullHwIsEnabled)
     {
         return MOS_STATUS_SUCCESS;
     }

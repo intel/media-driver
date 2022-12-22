@@ -108,7 +108,6 @@ protected:
     MediaFeatureManager *    m_featureManager   = nullptr;
     HevcPipeline *           m_hevcPipeline     = nullptr;
     DecodeAllocator *        m_allocator        = nullptr;
-    PMOS_INTERFACE           m_osInterface      = nullptr;
     HevcBasicFeature *       m_hevcBasicFeature = nullptr;
     CodechalHwInterfaceNext *m_hwInterface      = nullptr;
 

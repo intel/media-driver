@@ -798,12 +798,12 @@ MOS_STATUS CodechalDecodeVp9G12 :: DecodeStateLevel()
         }
         else
         {
-            CODECHAL_DECODE_CHK_STATUS_RETURN(NullHW::StartPredicate(m_miInterface, cmdBufferInUse));
+            CODECHAL_DECODE_CHK_STATUS_RETURN(NullHW::StartPredicate(m_osInterface, m_miInterface, cmdBufferInUse));
         }
     }
     else
     {
-        CODECHAL_DECODE_CHK_STATUS_RETURN(NullHW::StartPredicate(m_miInterface, cmdBufferInUse));
+        CODECHAL_DECODE_CHK_STATUS_RETURN(NullHW::StartPredicate(m_osInterface, m_miInterface, cmdBufferInUse));
     }
 
     if (CodecHalDecodeScalabilityIsScalableMode(m_scalabilityState))
@@ -1051,12 +1051,12 @@ MOS_STATUS CodechalDecodeVp9G12 :: DecodePrimitiveLevel()
         }
         else
         {
-            CODECHAL_DECODE_CHK_STATUS_RETURN(NullHW::StopPredicate(m_miInterface, cmdBufferInUse));
+            CODECHAL_DECODE_CHK_STATUS_RETURN(NullHW::StopPredicate(m_osInterface, m_miInterface, cmdBufferInUse));
         }
     }
     else
     {
-        CODECHAL_DECODE_CHK_STATUS_RETURN(NullHW::StopPredicate(m_miInterface, cmdBufferInUse));
+        CODECHAL_DECODE_CHK_STATUS_RETURN(NullHW::StopPredicate(m_osInterface, m_miInterface, cmdBufferInUse));
     }
 
     MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));

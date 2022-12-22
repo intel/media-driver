@@ -169,7 +169,7 @@ MOS_STATUS Vp9DecodeBackEndPktXe_Lpm_Plus_Base::PackPictureLevelCmds(MOS_COMMAND
     }
     else
     {
-        DECODE_CHK_STATUS(NullHW::StopPredicateNext(m_miItf, &cmdBuffer));
+        DECODE_CHK_STATUS(NullHW::StopPredicateNext(m_osInterface, m_miItf, &cmdBuffer));
     }
     DECODE_CHK_STATUS(MiFlush(cmdBuffer));
 

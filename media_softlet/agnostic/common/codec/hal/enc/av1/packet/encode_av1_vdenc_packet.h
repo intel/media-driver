@@ -247,7 +247,6 @@ protected:
 
     // Interfaces
     EncodeAllocator                 *m_allocator        = nullptr;
-    PMOS_INTERFACE                   m_osInterface      = nullptr;
     CodechalHwInterfaceNext         *m_hwInterface      = nullptr;
     CodechalHwInterfaceNext         *m_hwInterfaceNext  = nullptr;
     EncodeMemComp                   *m_mmcState         = nullptr;

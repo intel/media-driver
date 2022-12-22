@@ -37,24 +37,6 @@ public:
     ~NullHW() = delete;
 
     //!
-    //! \brief    Interface for initializing NULL Hardware.
-    //! \details  Interface for initializing NULL Hardware.
-    //! \param    [in/out] osContext
-    //!           Pointer to OS context.
-    //! \return   MOS_STATUS
-    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
-    //!
-    static MOS_STATUS Init(MOS_CONTEXT_HANDLE osContext);
-
-    //!
-    //! \brief    Destroy NULL Hardware.
-    //! \details  Destroy NULL Hardware.
-    //! \return   MOS_STATUS
-    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
-    //!
-    static MOS_STATUS Destroy();
-
-    //!
     //! \brief    Start predicate.
     //! \details  Add predicate command to skip the following commands with NOOP.
     //! \param    [in] miInterface
@@ -64,7 +46,7 @@ public:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    static MOS_STATUS StartPredicate(MhwMiInterface* miInterface, PMOS_COMMAND_BUFFER cmdBuffer);
+    static MOS_STATUS StartPredicate(PMOS_INTERFACE pOsInterface, MhwMiInterface* miInterface, PMOS_COMMAND_BUFFER cmdBuffer);
 
     //!
     //! \brief    Start predicate. - Refactor Version
@@ -76,7 +58,7 @@ public:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    static MOS_STATUS StartPredicateNext(std::shared_ptr<void> pMiItf, PMOS_COMMAND_BUFFER cmdBuffer);
+    static MOS_STATUS StartPredicateNext(PMOS_INTERFACE pOsInterface, std::shared_ptr<void> pMiItf, PMOS_COMMAND_BUFFER cmdBuffer);
 
     //!
     //! \brief    Stop predicate.
@@ -88,7 +70,7 @@ public:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    static MOS_STATUS StopPredicate(MhwMiInterface* miInterface, PMOS_COMMAND_BUFFER cmdBuffer);
+    static MOS_STATUS StopPredicate(PMOS_INTERFACE pOsInterface, MhwMiInterface* miInterface, PMOS_COMMAND_BUFFER cmdBuffer);
 
     //!
     //! \brief    Stop predicate. - Refactor
@@ -100,7 +82,7 @@ public:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    static MOS_STATUS StopPredicateNext(std::shared_ptr<void> pMiItf, PMOS_COMMAND_BUFFER cmdBuffer);
+    static MOS_STATUS StopPredicateNext(PMOS_INTERFACE pOsInterface, std::shared_ptr<void> pMiItf, PMOS_COMMAND_BUFFER cmdBuffer);
 
     //!
     //! \brief    Overwrite status report.
@@ -111,18 +93,6 @@ public:
     //!           The size of bit-stream.
     //! \return   void
     //!
-    static void StatusReport(uint32_t &status, uint32_t &streamSize);
-
-    //!
-    //! \brief    Check whether NULL Hardware enabled.
-    //! \details  Check whether NULL Hardware enabled.
-    //! \return   bool
-    //!           Return true if enabled, otherwise false
-    //!
-    static bool IsEnabled() { return m_enabled; }
-
-private:
-    static bool m_initilized;
-    static bool m_enabled;
+    static void StatusReport(PMOS_INTERFACE pOsInterface, uint32_t &status, uint32_t &streamSize);
 };
 #endif

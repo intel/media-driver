@@ -52,7 +52,7 @@ MOS_STATUS MediaPacket::StartStatusReport(
 
     result = SetStartTag(osResource, offset, srType, cmdBuffer);
 
-    MEDIA_CHK_STATUS_RETURN(NullHW::StartPredicate(m_miInterface, cmdBuffer));
+    MEDIA_CHK_STATUS_RETURN(NullHW::StartPredicate(m_osInterface, m_miInterface, cmdBuffer));
 
     return result;
 }
@@ -101,7 +101,7 @@ MOS_STATUS MediaPacket::EndStatusReport(
     PMOS_RESOURCE osResource = nullptr;
     uint32_t      offset     = 0;
 
-    MEDIA_CHK_STATUS_RETURN(NullHW::StopPredicate(m_miInterface, cmdBuffer));
+    MEDIA_CHK_STATUS_RETURN(NullHW::StopPredicate(m_osInterface, m_miInterface, cmdBuffer));
 
     result = m_statusReport->GetAddress(srType, osResource, offset);
 
