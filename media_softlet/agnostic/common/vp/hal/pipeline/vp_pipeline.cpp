@@ -631,7 +631,7 @@ MOS_STATUS VpPipeline::UpdateVeboxNumberforScalability()
     }
     else if (m_forceMultiplePipe == MOS_SCALABILITY_ENABLE_MODE_DEFAULT)
     {
-        if (m_vpMhwInterface.m_vpPlatformInterface->VeboxScalabilitywith4K(m_vpMhwInterface) == true)
+        if (m_vpMhwInterface.m_vpPlatformInterface->IsVeboxScalabilityWith4KNotSupported(m_vpMhwInterface) == true)
         {
             m_numVebox = 1;
             VP_PUBLIC_NORMALMESSAGE("ForceMultiplePipe Vebox Number of Enabled %d", m_numVebox);

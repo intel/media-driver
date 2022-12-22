@@ -697,6 +697,7 @@ MOS_STATUS Policy::GetCSCExecutionCapsBT2020ToRGB(SwFilter *cgc, SwFilter *csc)
         // Vebox GC + SFC/Render. The csc parameter below if for sfc or render.
         cgcParams->formatOutput     = midFormat;
         cgcParams->dstColorSpace    = CSpace_sRGB;
+        cscParams->formatforCUS     = cscParams->formatInput;
         cscParams->formatInput      = cgcParams->formatOutput;
         cscParams->input.colorSpace = cgcParams->dstColorSpace;
         
@@ -2052,9 +2053,10 @@ MOS_STATUS Policy::GetCgcExecutionCaps(SwFilter* feature)
         m_hwCaps.m_veboxHwEntry[inputformat].iecp           &&
         m_hwCaps.m_veboxHwEntry[inputformat].cgcSupported)
     {
-        cgcEngine.bEnabled = 1;
-        cgcEngine.VeboxNeeded = 1;
-        cgcEngine.VeboxIECPNeeded = 1;
+        cgcEngine.bEnabled         = 1;
+        cgcEngine.VeboxNeeded      = 1;
+        cgcEngine.VeboxIECPNeeded  = 1;
+        cgcEngine.bt2020ToRGB      = cgcParams.bBt2020ToRGB;
     }
 
     PrintFeatureExecutionCaps(__FUNCTION__, cgcEngine);
@@ -2434,7 +2436,10 @@ MOS_STATUS Policy::GetInputPipeEngineCaps(SwFilterPipe& featurePipe, VP_EngineEn
                     }
                     else
                     {
-                        engineCapsForVeboxSfc.veboxRGBOutputWithoutLumaKey = false;
+                        if (!engineCapsForVeboxSfc.veboxRGBOutputWithoutLumaKey)
+                        {
+                            engineCapsForVeboxSfc.veboxRGBOutputWithoutLumaKey = false;
+                        }
                     }
                 }
             }
@@ -3707,8 +3712,9 @@ MOS_STATUS Policy::GetCscParamsOnCaps(PVP_SURFACE surfInput, PVP_SURFACE surfOut
 {
     if (caps.bHDR3DLUT)
     {
-        cscParams.input.colorSpace  = surfInput->ColorSpace;
-        cscParams.formatInput       = surfInput->osSurface->Format;
+        cscParams.input.colorSpace   = surfInput->ColorSpace;
+        cscParams.formatInput        = surfInput->osSurface->Format;
+        cscParams.formatforCUS       = Format_None;
         cscParams.input.chromaSiting = surfInput->ChromaSiting;
 
         // CSC before HDR converts BT2020 P010 to ARGB10
@@ -3730,9 +3736,10 @@ MOS_STATUS Policy::GetCscParamsOnCaps(PVP_SURFACE surfInput, PVP_SURFACE surfOut
         cscParams.input.colorSpace = surfInput->ColorSpace;
         cscParams.output.colorSpace = surfInput->ColorSpace;
 
-        cscParams.formatInput        = surfInput->osSurface->Format;
-        cscParams.formatOutput       = veboxOutputFormat;
-        cscParams.input.chromaSiting = surfInput->ChromaSiting;
+        cscParams.formatInput         = surfInput->osSurface->Format;
+        cscParams.formatforCUS        = Format_None;
+        cscParams.formatOutput        = veboxOutputFormat;
+        cscParams.input.chromaSiting  = surfInput->ChromaSiting;
         cscParams.output.chromaSiting = surfOutput->ChromaSiting;
 
         cscParams.pAlphaParams = nullptr;
@@ -3751,6 +3758,7 @@ MOS_STATUS Policy::GetCscParamsOnCaps(PVP_SURFACE surfInput, PVP_SURFACE surfOut
         // just use the input format to ensure chroma-sitting parameters being correct.
         cscParams.input.colorSpace   = surfInput->ColorSpace;
         cscParams.formatInput        = surfInput->osSurface->Format;
+        cscParams.formatforCUS       = Format_None;
         cscParams.input.chromaSiting = surfInput->ChromaSiting;
 
         cscParams.output.colorSpace   = surfInput->ColorSpace;

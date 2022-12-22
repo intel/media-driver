@@ -174,6 +174,7 @@ MOS_STATUS SwFilterCsc::Configure(VP_PIPELINE_PARAMS &params, bool isInputSurf, 
     m_Params.output.chromaSiting    = surfOutput->ChromaSiting;
     // Alpha should be handled in input pipe to avoid alpha data lost from image.
     m_Params.pAlphaParams           = params.pCompAlpha;
+    // formatForCUS will be set on demand in Policy::GetCSCExecutionCapsBT2020ToRGB.
     m_Params.formatforCUS           = Format_None;
 
     VP_PUBLIC_NORMALMESSAGE("formatInput %d, formatOutput %d", m_Params.formatInput, m_Params.formatOutput);
@@ -207,6 +208,8 @@ MOS_STATUS SwFilterCsc::Configure(PVP_SURFACE surfInput, PVP_SURFACE surfOutput,
         m_Params.output.colorSpace = surfInput->ColorSpace;
 
         m_Params.formatInput = surfInput->osSurface->Format;
+        // formatForCUS will be set on demand in Policy::GetCSCExecutionCapsBT2020ToRGB.
+        m_Params.formatforCUS = Format_None;
         m_Params.formatOutput = veboxOutputFormat;
         m_Params.input.chromaSiting = surfInput->ChromaSiting;
         m_Params.output.chromaSiting = surfOutput->ChromaSiting;
@@ -223,6 +226,8 @@ MOS_STATUS SwFilterCsc::Configure(PVP_SURFACE surfInput, PVP_SURFACE surfOutput,
         // Skip CSC and only for chroma sitting purpose
         m_Params.input.colorSpace = m_Params.output.colorSpace = surfInput->ColorSpace;
         m_Params.formatInput = m_Params.formatOutput = surfInput->osSurface->Format;
+        // formatForCUS will be set on demand in Policy::GetCSCExecutionCapsBT2020ToRGB.
+        m_Params.formatforCUS                        = Format_None;
         m_Params.input.chromaSiting                  = surfInput->ChromaSiting;
         m_Params.output.chromaSiting                 = surfOutput->ChromaSiting;
         m_Params.pAlphaParams                        = nullptr;
@@ -232,8 +237,6 @@ MOS_STATUS SwFilterCsc::Configure(PVP_SURFACE surfInput, PVP_SURFACE surfOutput,
 
         return MOS_STATUS_SUCCESS;
     }
-
-    return MOS_STATUS_UNIMPLEMENTED;
 }
 
 MOS_STATUS SwFilterCsc::Configure(FeatureParamCsc &params)
@@ -257,6 +260,8 @@ MOS_STATUS SwFilterCsc::Configure(VEBOX_SFC_PARAMS &params)
     m_Params.output.colorSpace      = params.output.colorSpace;
     m_Params.pIEFParams             = nullptr;
     m_Params.formatInput            = params.input.surface->Format;
+    // formatForCUS will be set on demand in Policy::GetCSCExecutionCapsBT2020ToRGB.
+    m_Params.formatforCUS           = Format_None;
     m_Params.formatOutput           = params.output.surface->Format;
     m_Params.input.chromaSiting     = params.input.chromaSiting;
     m_Params.output.chromaSiting    = params.output.chromaSiting;
