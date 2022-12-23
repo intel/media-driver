@@ -172,6 +172,11 @@ MOS_STATUS VpKernelSet::CreateKernelObjects(
         {
             if (kernel)
             {
+                auto it = m_cachedKernels.find(kernel->GetKernelId());
+                if (it != m_cachedKernels.end() && it->second == kernel)
+                {
+                    m_cachedKernels.erase(it);
+                }
                 MOS_Delete(kernel);
             }
         }
