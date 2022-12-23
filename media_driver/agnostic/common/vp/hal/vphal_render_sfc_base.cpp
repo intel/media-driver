@@ -571,7 +571,8 @@ VPHAL_OUTPUT_PIPE_MODE VphalSfcState::GetOutputPipe(
     if (OutputPipe == VPHAL_OUTPUT_PIPE_MODE_SFC)
     {
         // Decompress resource if surfaces need write from a un-align offset
-        if ((pRenderTarget->CompressionMode != MOS_MMC_DISABLED)        &&
+        // skip RGB RC as default MC on current platforms, No need these logics
+        if ((pRenderTarget->CompressionMode == MOS_MMC_MC)        &&
             IsSFCUncompressedWriteNeeded(pRenderTarget))
         {
 
