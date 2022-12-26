@@ -68,6 +68,11 @@ public:
         return false;
     }
 
+    virtual bool IsAdvanceNativeKernelSupported()
+    {
+        return false;
+    }
+
     virtual MOS_STATUS GetInputFrameWidthHeightAlignUnit(
         PVP_MHWINTERFACE          pvpMhwInterface,
         uint32_t                 &widthAlignUnit,

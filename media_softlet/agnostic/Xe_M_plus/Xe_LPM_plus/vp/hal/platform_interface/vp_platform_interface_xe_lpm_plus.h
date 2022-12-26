@@ -74,6 +74,11 @@ public:
         return true;
     }
 
+    virtual bool IsAdvanceNativeKernelSupported()
+    {
+        return false;
+    }
+
 protected:
     bool m_disableSfcDithering = false;
 

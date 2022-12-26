@@ -312,6 +312,11 @@ public:
         return false;
     }
 
+    virtual bool IsAdvanceNativeKernelSupported()
+    {
+        return true;
+    }
+
 protected:
     PMOS_INTERFACE m_pOsInterface = nullptr;
     VP_KERNEL_BINARY m_vpKernelBinary = {};                 //!< vp kernels
