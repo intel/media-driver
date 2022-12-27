@@ -58,7 +58,7 @@ MOS_STATUS JpegReferenceFrames::UpdatePicture()
     uint8_t currRefIdx  = m_basicFeature->m_currOriginalPic.FrameIdx;
     
     jpegRefList[currRefIdx]->sRefRawBuffer   = m_basicFeature->m_rawSurface;
-    jpegRefList[currRefIdx]->sFrameNumber    = m_basicFeature->m_frameNum;
+    jpegRefList[currRefIdx]->sFrameNumber    = (int16_t)m_basicFeature->m_frameNum;
     jpegRefList[currRefIdx]->RefPic          = m_basicFeature->m_currOriginalPic;
 
     jpegRefList[currRefIdx]->resBitstreamBuffer = m_basicFeature->m_resBitstreamBuffer;

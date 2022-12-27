@@ -107,7 +107,7 @@ public:
     CODEC_PICTURE               m_currOriginalPic = {};       //!< Raw.
     CODEC_PICTURE               m_currReconstructedPic = {};  //!< RECON.
     uint16_t                    m_pictureCodingType = 0;      //!< I, P, or B frame
-    int16_t                     m_frameNum = 0;               //!< Frame number
+    uint32_t                    m_frameNum             = 0;   //!< Frame number
     bool                        m_firstField = true;          //!< Flag to indicate if it is first field
     bool                        m_resolutionChanged = false;  //!< Flag to indicate if resolution is changed
 
