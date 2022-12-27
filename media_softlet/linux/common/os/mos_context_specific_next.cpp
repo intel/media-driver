@@ -153,7 +153,16 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
         }
 
         uint64_t isRecoverableContextEnabled = 0;
-        mos_get_context_param(osDriverContext->intel_context, 0, I915_CONTEXT_PARAM_RECOVERABLE, &isRecoverableContextEnabled);
+        MOS_LINUX_CONTEXT *intel_context = mos_gem_context_create_ext(m_bufmgr, 0, false);
+        int ret = mos_get_context_param(intel_context, 0, I915_CONTEXT_PARAM_RECOVERABLE, &isRecoverableContextEnabled);
+        if (ret == -EINVAL)
+        {
+            isRecoverableContextEnabled = 1;
+        }
+        if (intel_context)
+        {
+            mos_gem_context_destroy(intel_context);
+        }
         // set recoverablecontext disabled if want disable object capture
         if (MEDIA_IS_WA(&m_waTable, WaDisableSetObjectCapture) && isRecoverableContextEnabled)
         {
