@@ -31,6 +31,7 @@
 #include "mhw_sfc_xe_xpm.h"
 #include "vphal_render_vebox_base.h"
 #include "vphal_render_sfc_xe_xpm.h"
+#include "vp_hal_ddi_utils.h"
 
 #if __VPHAL_SFC_SUPPORTED
 
@@ -526,13 +527,13 @@ finish:
 
 bool VphalSfcStateXe_Xpm::IsDitheringNeeded(MOS_FORMAT formatInput, MOS_FORMAT formatOutput)
 {
-    uint32_t inputBitDepth = VpUtils::GetSurfaceBitDepth(formatInput);
+    uint32_t inputBitDepth = VpHalDDIUtils::GetSurfaceBitDepth(formatInput);
     if (inputBitDepth == 0)
     {
         VPHAL_RENDER_ASSERTMESSAGE("Unknown Input format %d for bit depth, return false", formatInput);
         return false;
     }
-    uint32_t outputBitDepth = VpUtils::GetSurfaceBitDepth(formatOutput);
+    uint32_t outputBitDepth = VpHalDDIUtils::GetSurfaceBitDepth(formatOutput);
     if (outputBitDepth == 0)
     {
         VPHAL_RENDER_ASSERTMESSAGE("Unknown Output format %d for bit depth, return false", formatOutput);
@@ -705,7 +706,7 @@ void VphalSfcStateXe_Xpm::GetOutputWidthHeightAlignUnit(
     widthAlignUnit  = 1;
     heightAlignUnit = 1;
 
-    switch (VpHal_GetSurfaceColorPack(outputFormat))
+    switch (VpHalDDIUtils::GetSurfaceColorPack(outputFormat))
     {
     case VPHAL_COLORPACK_420:
         widthAlignUnit  = 2;
@@ -735,7 +736,7 @@ void VphalSfcStateXe_Xpm::GetInputWidthHeightAlignUnit(
     heightAlignUnit = 1;
 
     // Apply alignment restriction to Region of the input frame.
-    switch (VpHal_GetSurfaceColorPack(inputFormat))
+    switch (VpHalDDIUtils::GetSurfaceColorPack(inputFormat))
     {
         case VPHAL_COLORPACK_420:
             widthAlignUnit  = 2;

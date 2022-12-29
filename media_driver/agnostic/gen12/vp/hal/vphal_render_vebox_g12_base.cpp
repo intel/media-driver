@@ -35,6 +35,7 @@
 #include "igvpkrn_isa_g12_tgllp.h"
 #endif
 #include "vphal_render_hdr_3dlut_g12.h"
+#include "vp_hal_ddi_utils.h"
 
 const char g_KernelDNDI_Str_g12[KERNEL_VEBOX_BASE_MAX][MAX_PATH] =
 {
@@ -1984,7 +1985,7 @@ void VPHAL_VEBOX_STATE_G12_BASE::SetupChromaSampling(
     {
         pSrcSurface->ChromaSiting = (CHROMA_SITING_HORZ_LEFT | CHROMA_SITING_VERT_CENTER);
     }
-    srcColorPack = VpHal_GetSurfaceColorPack(pSrcSurface->Format);
+    srcColorPack = VpHalDDIUtils::GetSurfaceColorPack(pSrcSurface->Format);
     switch (srcColorPack)
     {
         // For 422 format, vertical should be always 0.
@@ -2138,7 +2139,7 @@ void VPHAL_VEBOX_STATE_G12_BASE::SetupChromaSampling(
     {
         pRenderTarget->ChromaSiting = (CHROMA_SITING_HORZ_LEFT | CHROMA_SITING_VERT_CENTER);
     }
-    dstColorPack = VpHal_GetSurfaceColorPack(pRenderTarget->Format);
+    dstColorPack = VpHalDDIUtils::GetSurfaceColorPack(pRenderTarget->Format);
     switch (dstColorPack)
     {
         case VPHAL_COLORPACK_422:

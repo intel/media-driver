@@ -1,4 +1,4 @@
-# Copyright (c) 2019-2022, Intel Corporation
+# Copyright (c) 2022, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,43 +18,30 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-media_include_subdirectory(hal_ddi_share)
-
 set(TMP_SOURCES_
-    ${CMAKE_CURRENT_LIST_DIR}/vp_dumper.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/vp_debug.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/vp_debug_interface.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/vp_debug_config_manager.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/vp_utils.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/vp_user_feature_control.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/vp_visa.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/vp_hal_ddi_utils.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/vp_user_setting.cpp
 )
 
 set(TMP_HEADERS_
-    ${CMAKE_CURRENT_LIST_DIR}/vp_dumper.h
-    ${CMAKE_CURRENT_LIST_DIR}/vp_utils.h
-    ${CMAKE_CURRENT_LIST_DIR}/vp_debug.h
-    ${CMAKE_CURRENT_LIST_DIR}/vp_debug_interface.h
-    ${CMAKE_CURRENT_LIST_DIR}/vp_debug_config_manager.h
-    ${CMAKE_CURRENT_LIST_DIR}/vp_user_feature_control.h
-    ${CMAKE_CURRENT_LIST_DIR}/vp_oca_defs.h
-    ${CMAKE_CURRENT_LIST_DIR}/vp_visa.h
+    ${CMAKE_CURRENT_LIST_DIR}/vp_hal_ddi_utils.h
+    ${CMAKE_CURRENT_LIST_DIR}/vp_user_setting.h
 )
 
-set(SOFTLET_VP_SOURCES_
-    ${SOFTLET_VP_SOURCES_}
+set(SOFTLET_VP_HAL_DDI_SHARED_SOURCES_
+    ${SOFTLET_VP_HAL_DDI_SHARED_SOURCES_}
     ${TMP_SOURCES_}
 )
 
-set(SOFTLET_VP_HEADERS_
-    ${SOFTLET_VP_HEADERS_}
+set(SOFTLET_VP_HAL_DDI_SHARED_HEADERS_
+    ${SOFTLET_VP_HAL_DDI_SHARED_HEADERS_}
     ${TMP_HEADERS_}
 )
 
 source_group( VpHalNext\\Shared FILES ${TMP_SOURCES_} ${TMP_HEADERS_})
 set(TMP_SOURCES_ "")
 set(TMP_HEADERS_ "")
-set (SOFTLET_VP_PRIVATE_INCLUDE_DIRS_
-    ${SOFTLET_VP_PRIVATE_INCLUDE_DIRS_}
+set (SOFTLET_VP_HAL_DDI_SHARED_INCLUDE_DIRS_
+    ${SOFTLET_VP_HAL_DDI_SHARED_INCLUDE_DIRS_}
     ${CMAKE_CURRENT_LIST_DIR}
 )

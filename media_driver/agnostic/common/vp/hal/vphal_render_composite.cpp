@@ -29,6 +29,7 @@
 #include "vphal_renderer.h"         // for VpHal_RenderAllocateBB
 #include "vphal_render_common.h"    // for VPHAL_RENDER_CACHE_CNTL
 #include "vphal_render_ief.h"
+#include "vp_hal_ddi_utils.h"
 #include "renderhal_platform_interface.h"
 
 // Compositing surface binding table index
@@ -4767,7 +4768,7 @@ bool CompositeState::SubmitStates(
             (m_CSpaceSrc     != src_cspace)  ||
             (m_CSpaceDst     != dst_cspace))
         {
-            VpHal_CSC_8(&m_csDst, &Src, src_cspace, dst_cspace);
+            VpHalDDIUtils::GetCscMatrixForRender8Bit(&m_csDst, &Src, src_cspace, dst_cspace);
 
             // store the values for next iteration
             m_csSrc     = Src;

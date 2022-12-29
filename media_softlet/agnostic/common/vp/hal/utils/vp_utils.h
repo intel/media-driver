@@ -22,18 +22,8 @@
 #ifndef __VP_UTILS_H__
 #define __VP_UTILS_H__
 
-#include <stdint.h>
-#include <vector>
-#include "mos_defs.h"
-#include "mos_os_hw.h"
-#include "mos_os_specific.h"
-#include "mos_resource_defs.h"
-#include "mos_util_debug_specific.h"
-#include "mos_utilities.h"
 #include "mos_util_debug.h"
-#include "mos_os.h"
 #include "vp_common.h"
-#include "media_user_setting.h"
 
 using MosFormatArray = std::vector<MOS_FORMAT>;
 
@@ -329,40 +319,6 @@ protected:
 class VpUtils
 {
 public:
-    // it is only be used by vpdata->pVpHalState->CopySurface, will be removed after mediaCopy ready
-    static MOS_SURFACE VpHalConvertVphalSurfaceToMosSurface(PVPHAL_SURFACE surface);
-
-    //!
-    //! \brief    Get the color pack type of a surface
-    //! \details  Map mos surface format to color pack format and return.
-    //!           For unknown format return VPHAL_COLORPACK_UNKNOWN
-    //! \param    [in] format
-    //!           MOS_FORMAT of a surface
-    //! \return   VPHAL_COLORPACK
-    //!           Color pack type of the surface
-    //!
-    static VPHAL_COLORPACK GetSurfaceColorPack(MOS_FORMAT format);
-
-    //!
-    //! \brief    Performs Color Space Convert for Sample 8 bit
-    //! \details  Performs Color Space Convert from Src Color Spase to Dst Color Spase
-    //! \param    [out] pOutput
-    //!           Pointer to VPHAL_COLOR_SAMPLE_8
-    //! \param    [in] pInput
-    //!           Pointer to VPHAL_COLOR_SAMPLE_8
-    //! \param    [in] srcCspace
-    //!           Source Color Space
-    //! \param    [in] dstCspace
-    //!           Dest Color Space
-    //! \return   bool
-    //!           Return true if successful, otherwise false
-    //!
-    static bool GetCscMatrixForRender8Bit(
-        VPHAL_COLOR_SAMPLE_8  *output,
-        VPHAL_COLOR_SAMPLE_8  *input,
-        VPHAL_CSPACE          srcCspace,
-        VPHAL_CSPACE          dstCspace);
-
     //!
     //! \brief    Allocates the Surface
     //! \details  Allocates the Surface
@@ -440,39 +396,8 @@ public:
         float        *fCscInOffset,
         float        *fCscOutOffset);
 
-    //! \brief    Get the bit depth of a surface
-    //! \details  Get bit depth of input mos surface format and return.
-    //!           For unknown format return 0
-    //! \param    [in] format
-    //!           MOS_FORMAT of a surface
-    //! \return   uint32_t
-    //!           Bit depth of the surface
-    //!
-    static uint32_t GetSurfaceBitDepth(
-        MOS_FORMAT format);
-
     static bool IsSyncFreeNeededForMMCSurface(PVPHAL_SURFACE surface, PMOS_INTERFACE osInterface);
 
-    //!
-    //! \brief    Performs Color Space Convert for Sample 8 bit Using Specified Coeff Matrix
-    //! \details  Performs Color Space Convert from Src Color Spase to Dst Color Spase
-    //            Using Secified input CSC Coeff Matrix
-    //! \param    [out] output
-    //!           Pointer to VPHAL_COLOR_SAMPLE_8
-    //! \param    [in] input
-    //!           Pointer to VPHAL_COLOR_SAMPLE_8
-    //! \param    [in] srcCspace
-    //!           Source Color Space
-    //! \param    [in] dstCspace
-    //!           Dest Color Space
-    //! \param    [in] iCscMatrix
-    //!           input CSC coeff Matrxi
-    //! \return   bool
-    //!           Return true if successful, otherwise false
-    //!
-    static bool GetCscMatrixForRender8BitWithCoeff(VPHAL_COLOR_SAMPLE_8 *output, VPHAL_COLOR_SAMPLE_8 *input, VPHAL_CSPACE srcCspace, VPHAL_CSPACE dstCspace, int32_t *iCscMatrix);
-
-    static MOS_STATUS  DeclareUserSettings(MediaUserSettingSharedPtr userSettingPtr);
 MEDIA_CLASS_DEFINE_END(VpUtils)
 };
 

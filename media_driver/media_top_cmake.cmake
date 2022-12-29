@@ -83,6 +83,12 @@ set(SOFTLET_DDI_PRIVATE_INCLUDE_DIRS_ "")
 set(SOFTLET_DDI_PUBLIC_INCLUDE_DIRS_ "")
 
 ################################################################################
+# ddi hal share
+################################################################################
+set(SOFTLET_VP_HAL_DDI_SHARED_SOURCES_ "")             # softlet source group
+set(SOFTLET_VP_HAL_DDI_SHARED_INCLUDE_DIRS_ "")
+
+################################################################################
 # codec
 ################################################################################
 set(CODEC_SOURCES_ "")                  # legacy source group
@@ -229,6 +235,7 @@ set_source_files_properties(${SOFTLET_ENCODE_SOURCES_} PROPERTIES LANGUAGE "CXX"
 set_source_files_properties(${SOFTLET_DECODE_SOURCES_} PROPERTIES LANGUAGE "CXX")
 set_source_files_properties(${VP_SOURCES_} PROPERTIES LANGUAGE "CXX")
 set_source_files_properties(${SOFTLET_VP_SOURCES_} PROPERTIES LANGUAGE "CXX")
+set_source_files_properties(${SOFTLET_VP_HAL_DDI_SHARED_SOURCES_} PROPERTIES LANGUAGE "CXX")
 set_source_files_properties(${CP_COMMON_SOURCES_} PROPERTIES LANGUAGE "CXX")
 set_source_files_properties(${CP_COMMON_SHARED_SOURCES_} PROPERTIES LANGUAGE "CXX")
 set_source_files_properties(${CP_COMMON_NEXT_SOURCES_} PROPERTIES LANGUAGE "CXX")
@@ -386,6 +393,14 @@ set (COMMON_SOURCES_
 set(COMMON_PRIVATE_INCLUDE_DIRS_
     ${COMMON_PRIVATE_INCLUDE_DIRS_}
     ${SOFTLET_COMMON_PRIVATE_INCLUDE_DIRS_})
+
+set (SOFTLET_VP_SOURCES_
+    ${SOFTLET_VP_SOURCES_}
+    ${SOFTLET_VP_HAL_DDI_SHARED_SOURCES_})
+
+set (SOFTLET_VP_PRIVATE_INCLUDE_DIRS_
+    ${SOFTLET_VP_PRIVATE_INCLUDE_DIRS_}
+    ${SOFTLET_VP_HAL_DDI_SHARED_INCLUDE_DIRS_})
 
 set (VP_PRIVATE_INCLUDE_DIRS_
     ${VP_PRIVATE_INCLUDE_DIRS_}

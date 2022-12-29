@@ -29,6 +29,7 @@
 #include "vphal_render_vebox_base.h"
 #include "vphal_render_ief.h"
 #include "vphal_render_sfc_base.h"
+#include "vp_hal_ddi_utils.h"
 
 #if __VPHAL_SFC_SUPPORTED
 
@@ -690,7 +691,7 @@ void VphalSfcState::SetRenderingFlags(
     wHeightAlignUnit = 1;
     dwVeboxBottom    = (uint32_t)pSrc->rcSrc.bottom;
     dwVeboxRight     = (uint32_t)pSrc->rcSrc.right;
-    dstColorPack     = VpHal_GetSurfaceColorPack(pRenderTarget->Format);
+    dstColorPack     = VpHalDDIUtils::GetSurfaceColorPack(pRenderTarget->Format);
 
     // Get the SFC input surface size from Vebox
     AdjustBoundary(
@@ -795,7 +796,7 @@ void VphalSfcState::SetRenderingFlags(
     {
         m_renderData.SfcSrcChromaSiting = (CHROMA_SITING_HORZ_LEFT | CHROMA_SITING_VERT_CENTER);
     }
-    switch (VpHal_GetSurfaceColorPack(m_renderData.SfcInputFormat))
+    switch (VpHalDDIUtils::GetSurfaceColorPack(m_renderData.SfcInputFormat))
     {
         case VPHAL_COLORPACK_422:
             m_renderData.SfcSrcChromaSiting = (m_renderData.SfcSrcChromaSiting & 0x7) | CHROMA_SITING_VERT_TOP;
@@ -1035,7 +1036,7 @@ void VphalSfcState::GetOutputWidthHeightAlignUnit(
     widthAlignUnit  = 1;
     heightAlignUnit = 1;
 
-    switch (VpHal_GetSurfaceColorPack(outputFormat))
+    switch (VpHalDDIUtils::GetSurfaceColorPack(outputFormat))
     {
         case VPHAL_COLORPACK_420:
             widthAlignUnit  = 2;
@@ -1091,7 +1092,7 @@ MOS_STATUS VphalSfcState::SetSfcStateParams(
     wInputHeightAlignUnit  = 1;
     dwVeboxBottom          = (uint32_t)pSrcSurface->rcSrc.bottom;
     dwVeboxRight           = (uint32_t)pSrcSurface->rcSrc.right;
-    dstColorPack           = VpHal_GetSurfaceColorPack(pOutSurface->Format);
+    dstColorPack           = VpHalDDIUtils::GetSurfaceColorPack(pOutSurface->Format);
 
     VPHAL_RENDER_CHK_NULL(pSfcStateParams);
     MOS_ZeroMemory(pSfcStateParams, sizeof(*pSfcStateParams));
@@ -1121,12 +1122,12 @@ MOS_STATUS VphalSfcState::SetSfcStateParams(
             pSfcStateParams->dwInputChromaSubSampling = MEDIASTATE_SFC_CHROMA_SUBSAMPLING_420;
             pSfcStateParams->b8tapChromafiltering     = false;
         }
-        else if (VpHal_GetSurfaceColorPack(m_renderData.SfcInputFormat) == VPHAL_COLORPACK_422)
+        else if (VpHalDDIUtils::GetSurfaceColorPack(m_renderData.SfcInputFormat) == VPHAL_COLORPACK_422)
         {
             pSfcStateParams->dwInputChromaSubSampling = MEDIASTATE_SFC_CHROMA_SUBSAMPLING_422H;
             pSfcStateParams->b8tapChromafiltering     = false;
         }
-        else if (VpHal_GetSurfaceColorPack(m_renderData.SfcInputFormat) == VPHAL_COLORPACK_444)
+        else if (VpHalDDIUtils::GetSurfaceColorPack(m_renderData.SfcInputFormat) == VPHAL_COLORPACK_444)
         {
             pSfcStateParams->dwInputChromaSubSampling = MEDIASTATE_SFC_CHROMA_SUBSAMPLING_444;
             pSfcStateParams->b8tapChromafiltering     = true;
@@ -1357,7 +1358,7 @@ MOS_STATUS VphalSfcState::SetSfcStateParams(
             (m_colorFillRTCspace           != dst_cspace))
         {
             // Clean history Dst BG Color if hit unsupported format
-            if (!VpHal_CSC_8(&m_colorFillColorDst, &Src, src_cspace, dst_cspace))
+            if (!VpHalDDIUtils::GetCscMatrixForRender8Bit(&m_colorFillColorDst, &Src, src_cspace, dst_cspace))
             {
                 MOS_ZeroMemory(&m_colorFillColorDst, sizeof(m_colorFillColorDst));
             }
@@ -1563,7 +1564,7 @@ MOS_STATUS VphalSfcState::SetAvsStateParams()
         {
             m_renderData.SfcSrcChromaSiting = MHW_CHROMA_SITING_HORZ_LEFT | MHW_CHROMA_SITING_VERT_TOP;
 
-            if (VpHal_GetSurfaceColorPack(m_renderData.SfcInputFormat) == VPHAL_COLORPACK_420)  // For 420, default is Left & Center, else default is Left & Top
+            if (VpHalDDIUtils::GetSurfaceColorPack(m_renderData.SfcInputFormat) == VPHAL_COLORPACK_420)  // For 420, default is Left & Center, else default is Left & Top
             {
                 pMhwAvsState->dwInputVerticalSitting = SFC_AVS_INPUT_SITING_COEF_4_OVER_8;
             }

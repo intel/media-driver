@@ -29,6 +29,7 @@
 #include "media_interfaces_vphal.h"
 #include "vp_platform_interface.h"
 #include "vp_debug.h"
+#include "vp_user_setting.h"
 #include "renderhal_platform_interface.h"
 
 VpPipelineAdapterBase::VpPipelineAdapterBase(
@@ -41,7 +42,7 @@ VpPipelineAdapterBase::VpPipelineAdapterBase(
     {
         m_userSettingPtr = m_osInterface->pfnGetUserSettingInstance(m_osInterface);
     }
-    VpUtils::DeclareUserSettings(m_userSettingPtr);
+    VpUserSetting::InitVpUserSetting(m_userSettingPtr);
     eStatus = MOS_STATUS_SUCCESS;
 }
 

@@ -27,6 +27,7 @@
 #include "vphal_render_hdr_base.h"
 #include "vphal_render_hdr_g9_base.h"
 #include "vphal_render_composite.h"
+#include "vp_hal_ddi_utils.h"
 #include "renderhal_platform_interface.h"
 
 #include "vphal_renderer.h"
@@ -3099,7 +3100,7 @@ MOS_STATUS VpHal_HdrLoadStaticData_g9(
         dst_cspace = pHdrState->pTargetSurf[0]->ColorSpace;
 
         // Convert BG color only if not done so before. CSC is expensive!
-        if (VpHal_CSC_8(&Dst, &Src, src_cspace, dst_cspace))
+        if (VpHalDDIUtils::GetCscMatrixForRender8Bit(&Dst, &Src, src_cspace, dst_cspace))
         {
             HDRStatic.DW60.FixedPointFillColorRVChannel     = Dst.R << 8;
             HDRStatic.DW60.FixedPointFillColorGYChannel     = Dst.G << 8;

@@ -26,6 +26,7 @@
 //!
 #include "vp_platform_interface.h"
 #include "vp_visa.h"
+#include "vp_user_setting.h"
 
 using namespace vp;
 extern const Kdll_RuleEntry g_KdllRuleTable_Next[];
@@ -38,7 +39,7 @@ VpPlatformInterface::VpPlatformInterface(PMOS_INTERFACE pOsInterface)
     {
         m_userSettingPtr = m_pOsInterface->pfnGetUserSettingInstance(m_pOsInterface);
     }
-    VpUtils::DeclareUserSettings(m_userSettingPtr);
+    VpUserSetting::InitVpUserSetting(m_userSettingPtr);
 }
 
 MOS_STATUS VpRenderKernel::InitVPKernel(

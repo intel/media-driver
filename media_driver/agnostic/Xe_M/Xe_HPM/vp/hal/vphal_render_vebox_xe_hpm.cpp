@@ -30,6 +30,7 @@
 #include "mhw_vebox_xe_hpm.h"
 #include "mos_interface.h"
 #include "vphal_debug.h"
+#include "vp_hal_ddi_utils.h"
 #if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "igvpkrn_isa_xe_hpg.h"
 #endif
@@ -622,7 +623,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_XE_HPM::VeboxUpdateDnStatesForHVS(
         pVeboxInterfaceXe_Hpm->bTGNEEnable  = true;
         pVeboxInterfaceXe_Hpm->dwLumaStadTh = 3200;
         if (MEDIA_IS_WA(pVeboxState->m_pRenderHal->pWaTable, Wa_1609102037) &&
-            VpHal_GetSurfaceColorPack(pVeboxState->m_currentSurface->Format) == VPHAL_COLORPACK_444)
+            VpHalDDIUtils::GetSurfaceColorPack(pVeboxState->m_currentSurface->Format) == VPHAL_COLORPACK_444)
         {
             pVeboxInterfaceXe_Hpm->dw4X4TGNEThCnt = ((pVeboxState->m_currentSurface->dwWidth - 32) *
                                                         (pVeboxState->m_currentSurface->dwHeight - 8)) /
@@ -705,7 +706,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_XE_HPM::VeboxUpdateDnStatesForHVS(
         }
 
         if (MEDIA_IS_WA(pVeboxState->m_pRenderHal->pWaTable, Wa_1609102037) &&
-            VpHal_GetSurfaceColorPack(pVeboxState->m_currentSurface->Format) == VPHAL_COLORPACK_444)
+            VpHalDDIUtils::GetSurfaceColorPack(pVeboxState->m_currentSurface->Format) == VPHAL_COLORPACK_444)
         {
             pVeboxInterfaceXe_Hpm->dw4X4TGNEThCnt = ((pVeboxState->m_currentSurface->dwWidth - 32) *
                                                         (pVeboxState->m_currentSurface->dwHeight - 8)) /

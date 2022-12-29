@@ -28,6 +28,7 @@
 //!           resource allocation/free and rendering
 //!
 #include "vphal_render_composite_xe_xpm.h"
+#include "vp_hal_ddi_utils.h"
 
 #define VPHAL_SAMPLER_Y1                 4
 #define VPHAL_SAMPLER_U1                 5
@@ -106,7 +107,7 @@ MOS_STATUS CompositeStateXe_Xpm ::UpdateInlineDataStatus(
         return MOS_STATUS_INVALID_PARAMETER;
     }
 
-    uiBitDepth                = VpHal_GetSurfaceBitDepth(pSurface->Format);
+    uiBitDepth                = VpHalDDIUtils::GetSurfaceBitDepth(pSurface->Format);
     pStatic->DW07.OutputDepth = VPHAL_COMP_P010_DEPTH;
     if (uiBitDepth && !(pSurface->Format == Format_P010 || pSurface->Format == Format_Y210))
     {

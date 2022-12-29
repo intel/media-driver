@@ -93,7 +93,8 @@ public:
     //! \details  set VphalFeatureReport value
     //!
     virtual void SetConfigValues(
-        PVP_CONFIG configValues);
+        PVP_CONFIG configValues,
+        bool       traceEvent = true);
 
     VP_FEATURES &GetFeatures()
     {

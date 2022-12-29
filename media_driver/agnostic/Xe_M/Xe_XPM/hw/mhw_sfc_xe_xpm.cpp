@@ -32,6 +32,7 @@
 #include "mhw_sfc_xe_xpm.h"
 #include "mhw_sfc_hwcmd_xe_xpm.h"
 #include "mhw_utilities_xe_xpm.h"
+#include "vp_hal_ddi_utils.h"
 
 #define VALUE_XOFFSET 3
 
@@ -769,7 +770,7 @@ MOS_STATUS MhwSfcInterfaceXe_Xpm::AddSfcState(
             }
         }
 
-        if (VpHal_GetSurfaceColorPack(pSfcStateparamsXe_Xpm->OutputFrameFormat) != VPHAL_COLORPACK_444 &&
+        if (VpHalDDIUtils::GetSurfaceColorPack(pSfcStateparamsXe_Xpm->OutputFrameFormat) != VPHAL_COLORPACK_444 &&
             (dest_startX[m_indexofSfc] %2 != 0))
         {
             if (dest_startX[m_indexofSfc] >= 1)

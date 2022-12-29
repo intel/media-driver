@@ -31,6 +31,7 @@
 #include "hw_filter.h"
 #include "sw_filter_pipe.h"
 #include "vp_platform_interface.h"
+#include "vp_hal_ddi_utils.h"
 
 using namespace vp;
 
@@ -131,7 +132,7 @@ void VpScalingFilter::GetFormatWidthHeightAlignUnit(
     widthAlignUnit = 1;
     heightAlignUnit = 1;
 
-    switch (VpUtils::GetSurfaceColorPack(format))
+    switch (VpHalDDIUtils::GetSurfaceColorPack(format))
     {
     case VPHAL_COLORPACK_420:
         widthAlignUnit = 2;
@@ -195,9 +196,9 @@ MOS_STATUS VpScalingFilter::SetColorFillParams()
         {
             VP_PUBLIC_NORMALMESSAGE("colorFillColorDst need be recalculated.");
             // Clean history Dst BG Color if hit unsupported format
-            if (!VpUtils::GetCscMatrixForRender8Bit(&m_colorFillColorDst, &Src, src_cspace, dst_cspace))
+            if (!VpHalDDIUtils::GetCscMatrixForRender8Bit(&m_colorFillColorDst, &Src, src_cspace, dst_cspace))
             {
-                VP_PUBLIC_NORMALMESSAGE("VpHal_CSC_8 failed!");
+                VP_PUBLIC_NORMALMESSAGE("VpHalDDIUtils::GetCscMatrixForRender8Bit failed!");
                 MOS_ZeroMemory(&m_colorFillColorDst, sizeof(m_colorFillColorDst));
             }
             // store the values for next iteration

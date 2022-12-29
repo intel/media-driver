@@ -29,6 +29,7 @@
 #include "vp_vebox_cmd_packet_base.h"
 #include "hw_filter.h"
 #include "sw_filter_pipe.h"
+#include "vp_hal_ddi_utils.h"
 
 namespace vp {
 
@@ -179,13 +180,13 @@ VPHAL_CSPACE GetSfcInputColorSpace(VP_EXECUTE_CAPS &executeCaps, VPHAL_CSPACE in
 
 bool VpCscFilter::IsDitheringNeeded(MOS_FORMAT formatInput, MOS_FORMAT formatOutput)
 {
-    uint32_t inputBitDepth = VpUtils::GetSurfaceBitDepth(formatInput);
+    uint32_t inputBitDepth = VpHalDDIUtils::GetSurfaceBitDepth(formatInput);
     if (inputBitDepth == 0)
     {
         VP_PUBLIC_ASSERTMESSAGE("Unknown Input format %d for bit depth, return false", formatInput);
         return false;
     }
-    uint32_t outputBitDepth = VpUtils::GetSurfaceBitDepth(formatOutput);
+    uint32_t outputBitDepth = VpHalDDIUtils::GetSurfaceBitDepth(formatOutput);
     if (outputBitDepth == 0)
     {
         VP_PUBLIC_ASSERTMESSAGE("Unknown Output format %d for bit depth, return false", formatOutput);
@@ -340,7 +341,7 @@ MOS_STATUS VpCscFilter::SetSfcChromaParams(
 
     if (vpExecuteCaps.bVebox)
     {
-        if (VpUtils::GetSurfaceColorPack(m_sfcCSCParams->inputFormat) == VPHAL_COLORPACK_444)
+        if (VpHalDDIUtils::GetSurfaceColorPack(m_sfcCSCParams->inputFormat) == VPHAL_COLORPACK_444)
         {
             m_sfcCSCParams->b8tapChromafiltering = true;
         }
@@ -379,11 +380,11 @@ MOS_STATUS VpCscFilter::SetVeboxCUSChromaParams(VP_EXECUTE_CAPS vpExecuteCaps)
 
     if (Format_None != m_cscParams.formatforCUS)
     {
-        srcColorPack = VpUtils::GetSurfaceColorPack(m_cscParams.formatforCUS);
+        srcColorPack = VpHalDDIUtils::GetSurfaceColorPack(m_cscParams.formatforCUS);
     }
     else
     {
-        srcColorPack = VpUtils::GetSurfaceColorPack(m_cscParams.formatInput);
+        srcColorPack = VpHalDDIUtils::GetSurfaceColorPack(m_cscParams.formatInput);
     }
 
     // Init CUS as disabled
@@ -531,7 +532,7 @@ MOS_STATUS VpCscFilter::SetVeboxCDSChromaParams(VP_EXECUTE_CAPS vpExecuteCaps)
 
     bool bNeedDownSampling = false;
 
-    VPHAL_COLORPACK dstColorPack = VpUtils::GetSurfaceColorPack(m_cscParams.formatOutput);
+    VPHAL_COLORPACK dstColorPack = VpHalDDIUtils::GetSurfaceColorPack(m_cscParams.formatOutput);
 
     // Only VEBOX output, we use VEO to do downsampling.
     // Else, we use SFC/FC path to do downscaling.
@@ -650,7 +651,7 @@ MOS_STATUS VpCscFilter::UpdateChromaSiting(VP_EXECUTE_CAPS vpExecuteCaps)
     {
         m_cscParams.input.chromaSiting = (CHROMA_SITING_HORZ_LEFT | CHROMA_SITING_VERT_CENTER);
     }
-    switch (VpUtils::GetSurfaceColorPack(m_cscParams.formatInput))
+    switch (VpHalDDIUtils::GetSurfaceColorPack(m_cscParams.formatInput))
     {
     case VPHAL_COLORPACK_422:
         m_cscParams.input.chromaSiting = (m_cscParams.input.chromaSiting & 0x7) | CHROMA_SITING_VERT_TOP;
@@ -666,7 +667,7 @@ MOS_STATUS VpCscFilter::UpdateChromaSiting(VP_EXECUTE_CAPS vpExecuteCaps)
     {
         m_cscParams.output.chromaSiting = (CHROMA_SITING_HORZ_LEFT | CHROMA_SITING_VERT_CENTER);
     }
-    switch (VpUtils::GetSurfaceColorPack(m_cscParams.formatOutput))
+    switch (VpHalDDIUtils::GetSurfaceColorPack(m_cscParams.formatOutput))
     {
     case VPHAL_COLORPACK_422:
         m_cscParams.output.chromaSiting = (m_cscParams.output.chromaSiting & 0x7) | CHROMA_SITING_VERT_TOP;
@@ -688,8 +689,8 @@ bool VpCscFilter::IsChromaUpSamplingNeeded()
     bool                  bChromaUpSampling = false;
     VPHAL_COLORPACK       srcColorPack, dstColorPack;
 
-    srcColorPack = VpUtils::GetSurfaceColorPack(m_cscParams.formatInput);
-    dstColorPack = VpUtils::GetSurfaceColorPack(m_cscParams.formatOutput);
+    srcColorPack = VpHalDDIUtils::GetSurfaceColorPack(m_cscParams.formatInput);
+    dstColorPack = VpHalDDIUtils::GetSurfaceColorPack(m_cscParams.formatOutput);
 
     if ((srcColorPack == VPHAL_COLORPACK_420 &&
         (dstColorPack == VPHAL_COLORPACK_422 || dstColorPack == VPHAL_COLORPACK_444)) ||

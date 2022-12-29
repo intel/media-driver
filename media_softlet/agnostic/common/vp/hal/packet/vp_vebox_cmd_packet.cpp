@@ -32,6 +32,7 @@
 #include "vp_render_ief.h"
 #include "vp_feature_caps.h"
 #include "vp_platform_interface.h"
+#include "vp_hal_ddi_utils.h"
 #include "mhw_vebox_itf.h"
 #include "mhw_mi_itf.h"
 #include "mhw_mi_cmdpar.h"
@@ -3413,7 +3414,7 @@ MOS_STATUS VpVeboxCmdPacket::UpdateDnHVSParameters(
         tgneParams.chromaStadTh = 1600;
 
         if (MEDIA_IS_WA(m_hwInterface->m_waTable, Wa_1609102037) &&
-            VpHal_GetSurfaceColorPack(m_currentSurface->osSurface->Format) == VPHAL_COLORPACK_444)
+            VpHalDDIUtils::GetSurfaceColorPack(m_currentSurface->osSurface->Format) == VPHAL_COLORPACK_444)
         {
             tgneParams.dw4X4TGNEThCnt = ((m_currentSurface->osSurface->dwWidth - 32) *
                                             (m_currentSurface->osSurface->dwHeight - 8)) /
@@ -3510,7 +3511,7 @@ MOS_STATUS VpVeboxCmdPacket::UpdateDnHVSParameters(
         }
 
         if (MEDIA_IS_WA(m_hwInterface->m_waTable, Wa_1609102037) &&
-            VpHal_GetSurfaceColorPack(m_currentSurface->osSurface->Format) == VPHAL_COLORPACK_444)
+            VpHalDDIUtils::GetSurfaceColorPack(m_currentSurface->osSurface->Format) == VPHAL_COLORPACK_444)
         {
             tgneParams.dw4X4TGNEThCnt = ((m_currentSurface->osSurface->dwWidth - 32) *
                                             (m_currentSurface->osSurface->dwHeight - 8)) /

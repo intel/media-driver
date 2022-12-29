@@ -32,6 +32,7 @@
 #include "mhw_vebox.h"
 #include "mhw_sfc.h"
 #include "vp_render_ief.h"
+#include "vp_hal_ddi_utils.h"
 #include "mos_interface.h"
 
 namespace vp {
@@ -371,7 +372,7 @@ MOS_STATUS SfcRenderBaseLegacy::SetAvsStateParams()
     {
         if (m_renderDataLegacy.SfcSrcChromaSiting == MHW_CHROMA_SITING_NONE)
         {
-            if (VpUtils::GetSurfaceColorPack(m_renderDataLegacy.SfcInputFormat) == VPHAL_COLORPACK_420)  // For 420, default is Left & Center, else default is Left & Top
+            if (VpHalDDIUtils::GetSurfaceColorPack(m_renderDataLegacy.SfcInputFormat) == VPHAL_COLORPACK_420)  // For 420, default is Left & Center, else default is Left & Top
             {
                 m_renderDataLegacy.SfcSrcChromaSiting = MHW_CHROMA_SITING_HORZ_LEFT | MHW_CHROMA_SITING_VERT_CENTER;
             }
@@ -836,7 +837,7 @@ MOS_STATUS SfcRenderBaseLegacy::SetSfcStateInputChromaSubSampling(
     VP_FUNC_CALL();
 
     VP_PUBLIC_CHK_NULL_RETURN(sfcStateParams);
-    VPHAL_COLORPACK colorPack = VpUtils::GetSurfaceColorPack(m_renderDataLegacy.SfcInputFormat);
+    VPHAL_COLORPACK colorPack = VpHalDDIUtils::GetSurfaceColorPack(m_renderDataLegacy.SfcInputFormat);
     if (VPHAL_COLORPACK_400 == colorPack)
     {
         sfcStateParams->dwInputChromaSubSampling = MEDIASTATE_SFC_CHROMA_SUBSAMPLING_400;
@@ -1125,7 +1126,7 @@ uint32_t SfcRenderBaseLegacy::GetSfdLineBufferSize(bool lineTiledBuffer, MOS_FOR
     // For VD+SFC mode, width needs be used. For VE+SFC mode, height needs be used.
     if (MhwSfcInterface::SFC_PIPE_MODE_VEBOX == m_pipeMode)
     {
-        size = (VPHAL_COLORPACK_444 == VpUtils::GetSurfaceColorPack(formatOutput)) ? 0 : (heightOutput * SFC_SFD_LINEBUFFER_SIZE_PER_PIXEL);
+        size = (VPHAL_COLORPACK_444 == VpHalDDIUtils::GetSurfaceColorPack(formatOutput)) ? 0 : (heightOutput * SFC_SFD_LINEBUFFER_SIZE_PER_PIXEL);
     }
     else
     {

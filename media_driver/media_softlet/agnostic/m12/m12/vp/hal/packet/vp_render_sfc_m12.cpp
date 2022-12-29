@@ -28,6 +28,7 @@
 //!
 
 #include "vp_render_sfc_m12.h"
+#include "vp_hal_ddi_utils.h"
 #include "mhw_sfc_g12_X.h"
 #include "mos_defs.h"
 
@@ -125,7 +126,7 @@ MOS_STATUS SfcRenderM12::SetSfcStateInputOrderingModeHcp(
     }
     else if (CODECHAL_VP9 == m_videoConfig.codecStandard)
     {
-        VPHAL_COLORPACK colorPack = VpUtils::GetSurfaceColorPack(m_renderDataLegacy.SfcInputFormat);
+        VPHAL_COLORPACK colorPack = VpHalDDIUtils::GetSurfaceColorPack(m_renderDataLegacy.SfcInputFormat);
 
         if ((VPHAL_COLORPACK_420 == colorPack)
             || (VPHAL_COLORPACK_444 == colorPack))
@@ -200,7 +201,7 @@ MOS_STATUS SfcRenderM12::SetupScalabilityParams()
 
     if (MhwSfcInterfaceG12::SFC_PIPE_MODE_HCP == m_pipeMode)
     {
-        VPHAL_COLORPACK colorPack = VpUtils::GetSurfaceColorPack(m_renderDataLegacy.SfcInputFormat);
+        VPHAL_COLORPACK colorPack = VpHalDDIUtils::GetSurfaceColorPack(m_renderDataLegacy.SfcInputFormat);
 
         if ((VPHAL_COLORPACK_420 == colorPack || VPHAL_COLORPACK_422 == colorPack) &&
             (!MOS_IS_ALIGNED(m_scalabilityParams.srcStartX, 2) || MOS_IS_ALIGNED(m_scalabilityParams.srcEndX, 2)))

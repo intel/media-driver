@@ -34,6 +34,7 @@
 #include "mhw_impl.h"
 #include "vp_common.h"
 #include "vp_utils.h"
+#include "vp_hal_ddi_utils.h"
 
 #define VALUE_XOFFSET 3
 #define MHW_SFC_MAX_PIPE_NUM_XE_M_PLUS  4
@@ -872,7 +873,7 @@ public:
                 }
             }
 
-            if (VpUtils::GetSurfaceColorPack(params.OutputFrameFormat) != VPHAL_COLORPACK_444 &&
+            if (VpHalDDIUtils::GetSurfaceColorPack(params.OutputFrameFormat) != VPHAL_COLORPACK_444 &&
                 (dest_startX[m_indexofSfc] % 2 != 0))
             {
                 if (dest_startX[m_indexofSfc] >= 1)

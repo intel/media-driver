@@ -29,6 +29,7 @@
 #include "hal_kerneldll_next.h"
 #include "hal_oca_interface_next.h"
 #include "vp_user_feature_control.h"
+#include "vp_hal_ddi_utils.h"
 
 using namespace vp;
 
@@ -3413,7 +3414,7 @@ MOS_STATUS VpRenderHdrKernel::GetCurbeState(void *&curbe, uint32_t &curbeLength)
         dst_cspace = targetSurf->ColorSpace;
 
         // Convert BG color only if not done so before. CSC is expensive!
-        if (VpUtils::GetCscMatrixForRender8Bit(&Dst, &Src, src_cspace, dst_cspace))
+        if (VpHalDDIUtils::GetCscMatrixForRender8Bit(&Dst, &Src, src_cspace, dst_cspace))
         {
             m_hdrCurbe.DW60.FixedPointFillColorRVChannel     = Dst.R << 8;
             m_hdrCurbe.DW60.FixedPointFillColorGYChannel     = Dst.G << 8;

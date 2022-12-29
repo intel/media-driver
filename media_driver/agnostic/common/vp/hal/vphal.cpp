@@ -36,6 +36,7 @@
 #include "media_interfaces_mhw.h"
 #include "mhw_vebox_itf.h"
 #include "mos_oca_rtlog_mgr.h"
+#include "vp_user_setting.h"
 
 //!
 //! \brief    Allocate VPHAL Resources
@@ -706,7 +707,7 @@ VphalState::VphalState(
     m_waTable  = m_osInterface->pfnGetWaTable (m_osInterface);
 
     m_userSettingPtr = m_osInterface->pfnGetUserSettingInstance(m_osInterface);
-    VpUtils::DeclareUserSettings(m_userSettingPtr);
+    VpUserSetting::InitVpUserSetting(m_userSettingPtr);
 
     m_renderHal = (PRENDERHAL_INTERFACE_LEGACY)MOS_AllocAndZeroMemory(sizeof(RENDERHAL_INTERFACE_LEGACY));
     VPHAL_PUBLIC_CHK_NULL(m_renderHal);

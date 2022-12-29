@@ -28,6 +28,7 @@
 //!           parameter dumper
 //!
 #include "vphal_debug_xe_xpm.h"
+#include "vp_hal_ddi_utils.h"
 
 #if (_DEBUG || _RELEASE_INTERNAL)
 
@@ -115,7 +116,7 @@ MOS_STATUS VphalSurfaceDumperXe_Xpm::DumpCompressedSurface(
     MOS_ZeroMemory(sPath, MAX_PATH);
     MOS_ZeroMemory(sOsPath, MAX_PATH);
 
-    MOS_SURFACE surface = VpHal_ConvertVphalSurfaceToMosSurface(pSurface);
+    MOS_SURFACE surface = VpHalDDIUtils::ConvertVphalSurfaceToMosSurface(pSurface);
     VPHAL_DEBUG_CHK_STATUS(pBltState->LockSurface(&surface));
 
     // dump main surface

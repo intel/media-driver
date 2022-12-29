@@ -31,6 +31,7 @@
 #include "vphal_render_vebox_util_base.h"
 #include "vpkrnheader.h"
 #include "vphal_common_hdr.h"
+#include "vp_hal_ddi_utils.h"
 #if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "igvpkrn_isa_g11_icllp.h"
 #endif
@@ -1777,7 +1778,7 @@ void VPHAL_VEBOX_STATE_G11_BASE::SetupChromaSampling(
     {
         pSrcSurface->ChromaSiting = (CHROMA_SITING_HORZ_LEFT | CHROMA_SITING_VERT_CENTER);
     }
-    srcColorPack = VpHal_GetSurfaceColorPack(pSrcSurface->Format);
+    srcColorPack = VpHalDDIUtils::GetSurfaceColorPack(pSrcSurface->Format);
     switch (srcColorPack)
     {
         // For 422 format, vertical should be always 0.
@@ -1931,7 +1932,7 @@ void VPHAL_VEBOX_STATE_G11_BASE::SetupChromaSampling(
     {
         pRenderTarget->ChromaSiting = (CHROMA_SITING_HORZ_LEFT | CHROMA_SITING_VERT_CENTER);
     }
-    dstColorPack = VpHal_GetSurfaceColorPack(pRenderTarget->Format);
+    dstColorPack = VpHalDDIUtils::GetSurfaceColorPack(pRenderTarget->Format);
     switch (dstColorPack)
     {
         case VPHAL_COLORPACK_422:

@@ -28,6 +28,7 @@
 //!           resource allocation/free and rendering
 //!
 #include "vphal_render_composite_xe_xpm_plus.h"
+#include "vp_hal_ddi_utils.h"
 
 extern const Kdll_Layer g_cSurfaceType_Layer[];
 extern const MEDIA_WALKER_KA2_STATIC_DATA g_cInit_MEDIA_WALKER_KA2_STATIC_DATA;
@@ -479,7 +480,7 @@ bool CompositeStateXe_Xpm_Plus::SubmitStates(
             (m_CSpaceSrc     != src_cspace)  ||
             (m_CSpaceDst     != dst_cspace))
         {
-            VpHal_CSC_8(&m_csDst, &Src, src_cspace, dst_cspace);
+            VpHalDDIUtils::GetCscMatrixForRender8Bit(&m_csDst, &Src, src_cspace, dst_cspace);
 
             // store the values for next iteration
             m_csSrc     = Src;

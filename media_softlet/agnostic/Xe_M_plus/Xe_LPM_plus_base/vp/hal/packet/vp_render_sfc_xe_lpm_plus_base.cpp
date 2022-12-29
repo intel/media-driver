@@ -30,6 +30,7 @@
 #include "vp_render_sfc_xe_lpm_plus_base.h"
 #include "mhw_sfc_itf.h"
 #include "mos_defs.h"
+#include "vp_hal_ddi_utils.h"
 
 using namespace vp;
 
@@ -135,7 +136,7 @@ MOS_STATUS SfcRenderXe_Lpm_Plus_Base::SetSfcStateInputOrderingModeAvp(
         return MOS_STATUS_INVALID_PARAMETER;
     }
 
-    VPHAL_COLORPACK colorPack = VpUtils::GetSurfaceColorPack(m_renderData.SfcInputFormat);
+    VPHAL_COLORPACK colorPack = VpHalDDIUtils::GetSurfaceColorPack(m_renderData.SfcInputFormat);
     if (VPHAL_COLORPACK_420 != colorPack)
     {
         VP_PUBLIC_ASSERTMESSAGE("The color pack of input surface is not 420 for AVP!");
@@ -170,7 +171,7 @@ MOS_STATUS SfcRenderXe_Lpm_Plus_Base::SetSfcStateInputOrderingModeHcp(
     }
     else if (CODECHAL_VP9 == m_videoConfig.codecStandard)
     {
-        VPHAL_COLORPACK colorPack = VpUtils::GetSurfaceColorPack(m_renderData.SfcInputFormat);
+        VPHAL_COLORPACK colorPack = VpHalDDIUtils::GetSurfaceColorPack(m_renderData.SfcInputFormat);
         if ((VPHAL_COLORPACK_420 == colorPack)
             || (VPHAL_COLORPACK_444 == colorPack))
         {
@@ -254,7 +255,7 @@ bool SfcRenderXe_Lpm_Plus_Base::IsVdboxSfcInputFormatSupported(
     }
     else if (CODECHAL_AV1 == codecStandard)
     {
-        VPHAL_COLORPACK colorPack = VpUtils::GetSurfaceColorPack(inputFormat);
+        VPHAL_COLORPACK colorPack = VpHalDDIUtils::GetSurfaceColorPack(inputFormat);
         if (VPHAL_COLORPACK_420 != colorPack)
         {
             VP_PUBLIC_ASSERTMESSAGE("Unsupported Input Format '0x%08x' for SFC.", inputFormat);
@@ -346,7 +347,7 @@ MOS_STATUS SfcRenderXe_Lpm_Plus_Base::SetupScalabilityParams()
 
     if (mhw::sfc::SFC_PIPE_MODE_HCP == m_pipeMode)
     {
-        VPHAL_COLORPACK colorPack = VpUtils::GetSurfaceColorPack(m_renderData.SfcInputFormat);
+        VPHAL_COLORPACK colorPack = VpHalDDIUtils::GetSurfaceColorPack(m_renderData.SfcInputFormat);
         if ((VPHAL_COLORPACK_420 == colorPack || VPHAL_COLORPACK_422 == colorPack) &&
             (!MOS_IS_ALIGNED(m_scalabilityParams.srcStartX, 2) || MOS_IS_ALIGNED(m_scalabilityParams.srcEndX, 2)))
         {

@@ -29,6 +29,7 @@
 #include "hal_kerneldll_next.h"
 #include "hal_oca_interface_next.h"
 #include "vp_user_feature_control.h"
+#include "vp_hal_ddi_utils.h"
 
 using namespace vp;
 
@@ -1622,7 +1623,7 @@ MOS_STATUS VpRenderFcKernel::InitLayerInCurbeData(VP_FC_LAYER *layer)
             m_curbeData.DW11.ChromasitingUOffset, m_curbeData.DW12.ChromasitingVOffset);
 
         // Set output depth.
-        bitDepth                        = VpUtils::GetSurfaceBitDepth(layer->surf->osSurface->Format);
+        bitDepth                        = VpHalDDIUtils::GetSurfaceBitDepth(layer->surf->osSurface->Format);
         m_curbeData.DW07.OutputDepth    = VP_COMP_P010_DEPTH;
         if (bitDepth && !(layer->surf->osSurface->Format == Format_P010 || layer->surf->osSurface->Format == Format_Y210))
         {
@@ -1894,7 +1895,7 @@ MOS_STATUS VpRenderFcKernel::InitColorFillInCurbeData()
             (m_srcCspace     != srcCspace)  ||
             (m_dstCspace     != dstCspace))
         {
-            VpUtils::GetCscMatrixForRender8Bit(&m_dstColor, &srcColor, srcCspace, dstCspace);
+            VpHalDDIUtils::GetCscMatrixForRender8Bit(&m_dstColor, &srcColor, srcCspace, dstCspace);
 
             // store the values for next iteration
             m_srcColor     = srcColor;

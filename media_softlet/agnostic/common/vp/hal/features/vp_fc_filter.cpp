@@ -28,6 +28,7 @@
 #include "vp_render_cmd_packet.h"
 #include "hw_filter.h"
 #include "sw_filter_pipe.h"
+#include "vp_hal_ddi_utils.h"
 #include <vector>
 
 namespace vp {
@@ -816,8 +817,8 @@ static MOS_STATUS IsChromaSamplingNeeded(bool &isChromaUpSamplingNeeded, bool &i
                                 VPHAL_SURFACE_TYPE surfType, int layerIndex,
                                 MOS_FORMAT inputFormat, MOS_FORMAT outputFormat)
 {
-    VPHAL_COLORPACK srcColorPack = VpHal_GetSurfaceColorPack(inputFormat);
-    VPHAL_COLORPACK dstColorPack = VpHal_GetSurfaceColorPack(outputFormat);
+    VPHAL_COLORPACK srcColorPack = VpHalDDIUtils::GetSurfaceColorPack(inputFormat);
+    VPHAL_COLORPACK dstColorPack = VpHalDDIUtils::GetSurfaceColorPack(outputFormat);
 
     if (SURF_IN_PRIMARY == surfType                         &&
         // when 3D sampler been used, PL2 chromasitting kernel does not support sub-layer chromasitting

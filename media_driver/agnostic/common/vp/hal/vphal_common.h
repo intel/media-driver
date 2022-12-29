@@ -211,26 +211,6 @@ typedef struct _VPHAL_CONSTRICTION_PARAMS
 } VPHAL_CONSTRICTION_PARAMS, *PVPHAL_CONSTRICTION_PARAMS;
 
 //!
-//! \brief    Performs Color Space Convert for Sample 8 bit
-//! \details  Performs Color Space Convert from Src Color Spase to Dst Color Spase
-//! \param    [out] pOutput
-//!           Pointer to VPHAL_COLOR_SAMPLE_8
-//! \param    [in] pInput
-//!           Pointer to VPHAL_COLOR_SAMPLE_8
-//! \param    [in] srcCspace
-//!           Source Color Space 
-//! \param    [in] dstCspace
-//!           Dest Color Space 
-//! \return   bool
-//!           Return true if successful, otherwise false
-//!
-bool VpHal_CSC_8(
-    VPHAL_COLOR_SAMPLE_8    *pOutput,
-    VPHAL_COLOR_SAMPLE_8    *pInput,
-    VPHAL_CSPACE            srcCspace,
-    VPHAL_CSPACE            dstCspace);
-
-//!
 //! \brief    sinc
 //! \details  Calculate sinc(x)
 //! \param    [in] x
@@ -383,17 +363,6 @@ bool VpHal_IsChromaDownSamplingNeeded(
     PVPHAL_SURFACE          pSource,
     PVPHAL_SURFACE          pTarget);
 
-//! \brief    Get the bit depth of a surface
-//! \details  Get bit depth of input mos surface format and return.
-//!           For unknown format return 0
-//! \param    [in] Format
-//!           MOS_FORMAT of a surface
-//! \return   uint32_t
-//!           Bit depth of the surface
-//!
-uint32_t VpHal_GetSurfaceBitDepth(
-    MOS_FORMAT      Format);
-
 //!
 //! \brief      Get the scale ratio
 //! \details    Get the scale ratio from input surface to output surface
@@ -422,9 +391,6 @@ void VpHal_GetScalingRatio(
 //!
 uint16_t VpHal_FloatToHalfFloatA(
     float fInputA);
-
-MOS_SURFACE VpHal_ConvertVphalSurfaceToMosSurface(
-    PVPHAL_SURFACE pSurface);
 
 bool IsSyncFreeNeededForMMCSurface(PVPHAL_SURFACE pSurface, PMOS_INTERFACE pOsInterface);
 

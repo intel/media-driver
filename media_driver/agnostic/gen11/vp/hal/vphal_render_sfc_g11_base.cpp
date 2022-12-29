@@ -28,6 +28,7 @@
 //!
 #include "vphal_render_vebox_base.h"
 #include "vphal_render_sfc_g11_base.h"
+#include "vp_hal_ddi_utils.h"
 
 #if __VPHAL_SFC_SUPPORTED
 
@@ -108,7 +109,7 @@ void VphalSfcStateG11::GetInputWidthHeightAlignUnit(
     heightAlignUnit = 1;
 
     // Apply alignment restriction to Region of the input frame.
-    switch (VpHal_GetSurfaceColorPack(inputFormat))
+    switch (VpHalDDIUtils::GetSurfaceColorPack(inputFormat))
     {
         case VPHAL_COLORPACK_420:
             widthAlignUnit  = 2;

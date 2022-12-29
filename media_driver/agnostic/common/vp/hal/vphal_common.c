@@ -28,7 +28,7 @@
 #include "vphal.h"
 #include "hal_kerneldll.h"
 #include "mos_os.h"
-
+#include "vp_hal_ddi_utils.h"
 #include <math.h>
 
 #if EMUL || VPHAL_LIB
@@ -57,151 +57,6 @@ union FP16
         uint16_t Sign : 1;
     };
 };
-//!
-//! \brief    Performs Color Space Convert for Sample 8 bit Using Specified Coeff Matrix
-//! \details  Performs Color Space Convert from Src Color Spase to Dst Color Spase
-//            Using Secified input CSC Coeff Matrix
-//! \param    [out] pOutput
-//!           Pointer to VPHAL_COLOR_SAMPLE_8
-//! \param    [in] pInput
-//!           Pointer to VPHAL_COLOR_SAMPLE_8
-//! \param    [in] srcCspace
-//!           Source Color Space
-//! \param    [in] dstCspace
-//!           Dest Color Space
-//! \param    [in] piCscMatrix
-//!           input CSC coeff Matrxi
-//! \return   bool
-//!           Return true if successful, otherwise false
-//!
-bool VpHal_CSC(
-    VPHAL_COLOR_SAMPLE_8    *pOutput,
-    VPHAL_COLOR_SAMPLE_8    *pInput,
-    VPHAL_CSPACE            srcCspace,
-    VPHAL_CSPACE            dstCspace,
-    int32_t*                piCscMatrix)
-{
-    bool        bResult;
-    int32_t     A, R, G, B;
-    int32_t     Y1, U1, V1;
-
-    bResult = true;
-
-    Y1 = R = pInput->YY;
-    U1 = G = pInput->Cb;
-    V1 = B = pInput->Cr;
-    A      = pInput->Alpha;
-
-    if (srcCspace == dstCspace)
-    {
-        // no conversion needed
-        if ((dstCspace == CSpace_sRGB) || (dstCspace == CSpace_stRGB) || IS_COLOR_SPACE_BT2020_RGB(dstCspace))
-        {
-            pOutput->A = (uint8_t)A;
-            pOutput->R = (uint8_t)R;
-            pOutput->G = (uint8_t)G;
-            pOutput->B = (uint8_t)B;
-        }
-        else
-        {
-            pOutput->a = (uint8_t)A;
-            pOutput->Y = (uint8_t)Y1;
-            pOutput->U = (uint8_t)U1;
-            pOutput->V = (uint8_t)V1;
-        }
-    }
-    else
-    {
-        // conversion needed
-        R = (Y1 * piCscMatrix[0]  + U1 * piCscMatrix[1]  +
-             V1 * piCscMatrix[2]  +      piCscMatrix[3]  + 0x00080000) >> 20;
-        G = (Y1 * piCscMatrix[4]  + U1 * piCscMatrix[5]  +
-             V1 * piCscMatrix[6]  +      piCscMatrix[7]  + 0x00080000) >> 20;
-        B = (Y1 * piCscMatrix[8]  + U1 * piCscMatrix[9]  +
-             V1 * piCscMatrix[10] +      piCscMatrix[11] + 0x00080000) >> 20;
-
-        switch (dstCspace)
-        {
-            case CSpace_sRGB:
-                pOutput->A = (uint8_t)A;
-                pOutput->R = MOS_MIN(MOS_MAX(0,R),255);
-                pOutput->G = MOS_MIN(MOS_MAX(0,G),255);
-                pOutput->B = MOS_MIN(MOS_MAX(0,B),255);
-                break;
-
-            case CSpace_stRGB:
-                pOutput->A = (uint8_t)A;
-                pOutput->R = MOS_MIN(MOS_MAX(16,R),235);
-                pOutput->G = MOS_MIN(MOS_MAX(16,G),235);
-                pOutput->B = MOS_MIN(MOS_MAX(16,B),235);
-                break;
-
-            case CSpace_BT601:
-            case CSpace_BT709:
-                pOutput->a = (uint8_t)A;
-                pOutput->Y = MOS_MIN(MOS_MAX(16,R),235);
-                pOutput->U = MOS_MIN(MOS_MAX(16,G),240);
-                pOutput->V = MOS_MIN(MOS_MAX(16,B),240);
-                break;
-
-            case CSpace_xvYCC601:
-            case CSpace_xvYCC709:
-            case CSpace_BT601_FullRange:
-            case CSpace_BT709_FullRange:
-                pOutput->a = (uint8_t)A;
-                pOutput->Y = MOS_MIN(MOS_MAX(0,R),255);
-                pOutput->U = MOS_MIN(MOS_MAX(0,G),255);
-                pOutput->V = MOS_MIN(MOS_MAX(0,B),255);
-                break;
-
-            default:
-                VPHAL_PUBLIC_NORMALMESSAGE("Unsupported Output ColorSpace %d.", (uint32_t)dstCspace);
-                bResult = false;
-                break;
-        }
-    }
-
-    return bResult;
-}
-
-//!
-//! \brief    Performs Color Space Convert for Sample 8 bit
-//! \details  Performs Color Space Convert from Src Color Spase to Dst Color Spase
-//! \param    [out] pOutput
-//!           Pointer to VPHAL_COLOR_SAMPLE_8
-//! \param    [in] pInput
-//!           Pointer to VPHAL_COLOR_SAMPLE_8
-//! \param    [in] srcCspace
-//!           Source Color Space
-//! \param    [in] dstCspace
-//!           Dest Color Space
-//! \return   bool
-//!           Return true if successful, otherwise false
-//!
-bool VpHal_CSC_8(
-    VPHAL_COLOR_SAMPLE_8    *pOutput,
-    VPHAL_COLOR_SAMPLE_8    *pInput,
-    VPHAL_CSPACE            srcCspace,
-    VPHAL_CSPACE            dstCspace)
-{
-    float    pfCscMatrix[12] = {0};
-    int32_t piCscMatrix[12] = {0};
-    bool    bResult;
-    int32_t i;
-
-    KernelDll_GetCSCMatrix(srcCspace, dstCspace, pfCscMatrix);
-
-    // convert float to fixed point format for the 3x4 matrix
-    for (i = 0; i < 12; i++)
-    {
-        // multiply by 2^20 and round up
-        piCscMatrix[i] = (int32_t)((pfCscMatrix[i] * 1048576.0f) + 0.5f);
-    }
-
-    bResult = VpHal_CSC(pOutput, pInput, srcCspace, dstCspace, piCscMatrix);
-
-    return bResult;
-}
 
 //!
 //! \brief    sinc
@@ -598,8 +453,8 @@ bool VpHal_IsChromaUpSamplingNeeded(
 
     bChromaUpSampling = false;
 
-    srcColorPack = VpHal_GetSurfaceColorPack(pSource->Format);
-    dstColorPack = VpHal_GetSurfaceColorPack(pTarget->Format);
+    srcColorPack = VpHalDDIUtils::GetSurfaceColorPack(pSource->Format);
+    dstColorPack = VpHalDDIUtils::GetSurfaceColorPack(pTarget->Format);
 
     if ((srcColorPack == VPHAL_COLORPACK_420 &&
         (dstColorPack == VPHAL_COLORPACK_422 || dstColorPack == VPHAL_COLORPACK_444)) ||
@@ -632,8 +487,8 @@ bool VpHal_IsChromaDownSamplingNeeded(
 
     bChromaDownSampling = false;
 
-    srcColorPack = VpHal_GetSurfaceColorPack(pSource->Format);
-    dstColorPack = VpHal_GetSurfaceColorPack(pTarget->Format);
+    srcColorPack = VpHalDDIUtils::GetSurfaceColorPack(pSource->Format);
+    dstColorPack = VpHalDDIUtils::GetSurfaceColorPack(pTarget->Format);
 
     if ((srcColorPack == VPHAL_COLORPACK_444 &&
         (dstColorPack == VPHAL_COLORPACK_422 || dstColorPack == VPHAL_COLORPACK_420)) ||
@@ -643,83 +498,6 @@ bool VpHal_IsChromaDownSamplingNeeded(
     }
 
     return bChromaDownSampling;
-}
-
-//! \brief    Get the bit depth of a surface
-//! \details  Get bit depth of input mos surface format and return.
-//!           For unknown format return 0
-//! \param    [in] Format
-//!           MOS_FORMAT of a surface
-//! \return   uint32_t
-//!           Bit depth of the surface
-//!
-uint32_t VpHal_GetSurfaceBitDepth (
-    MOS_FORMAT      Format)
-{
-    uint32_t uBitDepth;
-
-    uBitDepth = 0;
-
-    switch (Format)
-    {
-        case Format_IMC1:
-        case Format_IMC2:
-        case Format_IMC3:
-        case Format_IMC4:
-        case Format_NV12:
-        case Format_NV21:
-        case Format_YV12:
-        case Format_I420:
-        case Format_IYUV:
-        case Format_YUY2:
-        case Format_YUYV:
-        case Format_YVYU:
-        case Format_UYVY:
-        case Format_VYUY:
-        case Format_P208:
-        case Format_422H:
-        case Format_422V:
-        case Format_R5G6B5:
-        case Format_R8G8B8:
-        case Format_A8R8G8B8:
-        case Format_X8R8G8B8:
-        case Format_A8B8G8R8:
-        case Format_X8B8G8R8:
-        case Format_444P:
-        case Format_AYUV:
-        case Format_AUYV:
-        case Format_RGBP:
-        case Format_BGRP:
-            uBitDepth = 8;
-            break;
-
-        case Format_P010:
-        case Format_R10G10B10A2:
-        case Format_B10G10R10A2:
-        case Format_Y210:
-        case Format_Y410:
-        case Format_P210:
-            uBitDepth = 10;
-            break;
-
-        case Format_A16B16G16R16:
-        case Format_A16R16G16B16:
-        case Format_A16B16G16R16F:
-        case Format_A16R16G16B16F:
-        case Format_P016:
-        case Format_Y416:
-        case Format_Y216:
-        case Format_P216:
-            uBitDepth = 16;
-            break;
-
-        default:
-            VPHAL_PUBLIC_ASSERTMESSAGE("Input format color pack unknown.");
-            uBitDepth = 0;
-            break;
-    }
-
-    return uBitDepth;
 }
 
 //!
@@ -833,29 +611,4 @@ uint16_t VpHal_FloatToHalfFloatA(float fInputA)
     fOutput.Sign = fInput.Sign;
     uint16_t res = *(uint16_t*)(&fOutput);
     return res;
-}
-
-MOS_SURFACE VpHal_ConvertVphalSurfaceToMosSurface(PVPHAL_SURFACE pSurface)
-{
-    VPHAL_PUBLIC_ASSERT(pSurface);
-
-    MOS_SURFACE outSurface;
-    MOS_ZeroMemory(&outSurface, sizeof(MOS_SURFACE));
-    outSurface.OsResource      = pSurface->OsResource;
-    outSurface.Format          = pSurface->Format;
-    outSurface.dwWidth         = pSurface->dwWidth;
-    outSurface.dwHeight        = pSurface->dwHeight;
-    outSurface.TileType        = pSurface->TileType;
-    outSurface.TileModeGMM     = pSurface->TileModeGMM;
-    outSurface.bGMMTileEnabled = pSurface->bGMMTileEnabled;
-    outSurface.dwDepth         = pSurface->dwDepth;
-    outSurface.dwPitch         = pSurface->dwPitch;
-    outSurface.dwSlicePitch    = pSurface->dwSlicePitch;
-    outSurface.dwOffset        = pSurface->dwOffset;
-    outSurface.bCompressible   = pSurface->bCompressible;
-    outSurface.bIsCompressed   = pSurface->bIsCompressed;
-    outSurface.CompressionMode = pSurface->CompressionMode;
-    outSurface.CompressionFormat = pSurface->CompressionFormat;
-
-    return outSurface;
 }

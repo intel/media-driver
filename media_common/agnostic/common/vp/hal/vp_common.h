@@ -306,18 +306,6 @@ void VpHal_GetCscMatrix(
     float *      pfCscInOffset,
     float *      pfCscOutOffset);
 
-//!
-//! \brief    Get the color pack type of a surface
-//! \details  Map mos surface format to color pack format and return.
-//!           For unknown format return VPHAL_COLORPACK_UNKNOWN
-//! \param    [in] Format
-//!           MOS_FORMAT of a surface
-//! \return   VPHAL_COLORPACK
-//!           Color pack type of the surface
-//!
-VPHAL_COLORPACK VpHal_GetSurfaceColorPack(
-    MOS_FORMAT Format);
-
 //! \brief    Transfer float type to half precision float type
 //! \details  Transfer float type to half precision float (16bit) type
 //! \param    [in] fInput

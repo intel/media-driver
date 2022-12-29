@@ -29,6 +29,7 @@
 #include "vphal_render_vebox_g10_base.h"
 #include "vphal_render_sfc_g10_base.h"
 #include "vphal_render_vebox_util_base.h"
+#include "vp_hal_ddi_utils.h"
 #include "vpkrnheader.h"
 
 #define MAX_INPUT_PREC_BITS         16
@@ -1661,7 +1662,7 @@ void VPHAL_VEBOX_STATE_G10_BASE::SetupChromaSampling(
     {
         pSrcSurface->ChromaSiting = (CHROMA_SITING_HORZ_LEFT | CHROMA_SITING_VERT_CENTER);
     }
-    srcColorPack = VpHal_GetSurfaceColorPack(pSrcSurface->Format);
+    srcColorPack = VpHalDDIUtils::GetSurfaceColorPack(pSrcSurface->Format);
     switch (srcColorPack)
     {
         // For 422 format, vertical should be always 0.
@@ -1815,7 +1816,7 @@ void VPHAL_VEBOX_STATE_G10_BASE::SetupChromaSampling(
     {
         pRenderTarget->ChromaSiting = (CHROMA_SITING_HORZ_LEFT | CHROMA_SITING_VERT_CENTER);
     }
-    dstColorPack = VpHal_GetSurfaceColorPack(pRenderTarget->Format);
+    dstColorPack = VpHalDDIUtils::GetSurfaceColorPack(pRenderTarget->Format);
     switch (dstColorPack)
     {
         case VPHAL_COLORPACK_422:
