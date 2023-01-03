@@ -90,7 +90,7 @@ MOS_STATUS AvcHucBrcUpdatePkt::SetDmemBuffer()const
         m_vdencBrcUpdateDmemBuffer[m_pipeline->m_currRecycledBufIdx][m_pipeline->GetCurrentPass()]);
     ENCODE_CHK_NULL_RETURN(hucVdencBrcUpdateDmem);
 
-    RUN_FEATURE_INTERFACE_RETURN(AvcEncodeBRC, AvcFeatureIDs::avcBrcFeature, SetDmemForUpdate, hucVdencBrcUpdateDmem, m_pipeline->GetPassNum(), m_pipeline->GetCurrentPass());
+    RUN_FEATURE_INTERFACE_RETURN(AvcEncodeBRC, AvcFeatureIDs::avcBrcFeature, SetDmemForUpdate, hucVdencBrcUpdateDmem, m_pipeline->GetCurrentPass(), m_pipeline->IsLastPass());
 
     ENCODE_CHK_STATUS_RETURN(m_allocator->UnLock(
         m_vdencBrcUpdateDmemBuffer[m_pipeline->m_currRecycledBufIdx][m_pipeline->GetCurrentPass()]));

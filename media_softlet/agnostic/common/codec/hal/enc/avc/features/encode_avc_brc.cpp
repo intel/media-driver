@@ -129,6 +129,34 @@ MOS_STATUS AvcEncodeBRC::Init(void *setting)
 
     m_vdencSinglePassEnable = outValue.Get<int32_t>() == 1;
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    auto statusKey = ReadUserSettingForDebug(
+        m_userSettingPtr,
+        outValue,
+        "Lpla TargetBufferFulness Data Address",
+        MediaUserSetting::Group::Sequence);
+    const char             *path_buffer = outValue.ConstString().c_str();
+
+    if (statusKey == MOS_STATUS_SUCCESS && strcmp(path_buffer, "") != 0)
+        m_useBufferFulnessData = true;
+
+    if (m_useBufferFulnessData)
+    {
+        std::ifstream fp(path_buffer);
+        if (!fp.is_open())
+        {
+            m_useBufferFulnessData = false;
+            ENCODE_ASSERTMESSAGE("lpla targetBufferFulness data load failed!");
+        }
+        int         cnt  = 0;
+        std::string line = "";
+        while (getline(fp, line))
+        {
+            m_bufferFulnessData_csv[cnt++] = atoi(line.c_str());
+        }
+    }
+#endif
+
     ENCODE_CHK_STATUS_RETURN(AllocateResources());
 
     return MOS_STATUS_SUCCESS;
@@ -479,7 +507,7 @@ MOS_STATUS AvcEncodeBRC::SetDmemForInit(void *params)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS AvcEncodeBRC::SetDmemForUpdate(void* params, uint16_t numPasses, uint16_t currPass)
+MOS_STATUS AvcEncodeBRC::SetDmemForUpdate(void *params, uint16_t currPass, bool bIsLastPass)
 {
     ENCODE_FUNC_CALL();
 
@@ -507,7 +535,7 @@ MOS_STATUS AvcEncodeBRC::SetDmemForUpdate(void* params, uint16_t numPasses, uint
         m_dBrcTargetSize -= avcSeqParams->VBVBufferSizeInBit;
     }
 
-    hucVdencBrcUpdateDmem->UPD_FRAMENUM_U32           = m_basicFeature->m_sliceParams->frame_num;
+    hucVdencBrcUpdateDmem->UPD_FRAMENUM_U32           = m_basicFeature->m_frameNum;
     hucVdencBrcUpdateDmem->UPD_TARGETSIZE_U32         = (uint32_t)(m_dBrcTargetSize);
     hucVdencBrcUpdateDmem->UPD_PeakTxBitsPerFrame_U32 = (uint32_t)(m_dBrcInitCurrentTargetBufFullInBits - m_brcInitPreviousTargetBufFullInBits);
 
@@ -674,9 +702,13 @@ MOS_STATUS AvcEncodeBRC::SetDmemForUpdate(void* params, uint16_t numPasses, uint
 
     if (m_basicFeature->m_lookaheadDepth > 0)
     {
-        DeltaQPUpdate(avcPicParams->QpModulationStrength, numPasses, currPass);
+        DeltaQPUpdate(avcPicParams->QpModulationStrength, bIsLastPass);
         hucVdencBrcUpdateDmem->EnableLookAhead          = 1;
+#if (_DEBUG || _RELEASE_INTERNAL)
+        hucVdencBrcUpdateDmem->UPD_LA_TargetFulness_U32 = m_useBufferFulnessData ? m_bufferFulnessData_csv[m_basicFeature->m_frameNum % m_bufferFulnessDataSize] : m_basicFeature->m_targetBufferFulness;
+#else
         hucVdencBrcUpdateDmem->UPD_LA_TargetFulness_U32 = m_basicFeature->m_targetBufferFulness;
+#endif
         hucVdencBrcUpdateDmem->UPD_Delta_U8             = m_qpModulationStrength;
     }
 
@@ -1080,7 +1112,7 @@ int32_t AvcEncodeBRC::ComputeBRCInitQP()
     return QP;
 }
 
-MOS_STATUS AvcEncodeBRC::DeltaQPUpdate(uint8_t qpModulationStrength, uint16_t numPasses, uint16_t currPass)
+MOS_STATUS AvcEncodeBRC::DeltaQPUpdate(uint8_t qpModulationStrength, bool bIsLastPass)
 {
     ENCODE_FUNC_CALL();
 
@@ -1099,7 +1131,7 @@ MOS_STATUS AvcEncodeBRC::DeltaQPUpdate(uint8_t qpModulationStrength, uint16_t nu
     else
     {
         m_qpModulationStrength = qpStrength;
-        if (currPass == numPasses)
+        if (bIsLastPass)
         {
             m_isFirstDeltaQPCalculation = false;
         }

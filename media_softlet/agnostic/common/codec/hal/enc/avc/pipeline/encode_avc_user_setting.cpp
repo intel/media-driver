@@ -111,6 +111,13 @@ MOS_STATUS AvcVdencPipeline::InitUserSetting(MediaUserSettingSharedPtr userSetti
         MediaUserSetting::Group::Frame,
         false,
         true);
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        "Lpla TargetBufferFulness Data Address",
+        MediaUserSetting::Group::Sequence,
+        "",
+        false);
 #endif
     return MOS_STATUS_SUCCESS;
 }

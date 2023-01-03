@@ -170,7 +170,7 @@ public:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS SetDmemForUpdate(void *params, uint16_t numPasses, uint16_t currPass);
+    MOS_STATUS SetDmemForUpdate(void *params, uint16_t currPass, bool bIsLastPass);
 
     virtual MOS_STATUS FillHucConstData(uint8_t *data, uint8_t pictureType);
 
@@ -237,7 +237,8 @@ protected:
     //!
     int32_t ComputeBRCInitQP();
 
-    MOS_STATUS DeltaQPUpdate(uint8_t QpModulationStrength, uint16_t numPasses, uint16_t currPass);
+    MOS_STATUS DeltaQPUpdate(uint8_t qpModulationStrength, bool bIsLastPass);
+
     CodechalHwInterfaceNext    *m_hwInterface    = nullptr;
     EncodeAllocator        *m_allocator      = nullptr;
     AvcBasicFeature        *m_basicFeature   = nullptr;  //!< EncodeBasicFeature
@@ -268,6 +269,12 @@ protected:
     uint32_t m_brcInitPreviousTargetBufFullInBits = 0;  //!< BRC Init Previous Target Buffer Full In Bits
     double   m_dBrcTargetSize                     = 0;  //!< BRC target size.
     uint8_t  m_qpModulationStrength               = 0;  //!< Current QP modulation strength
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    static const uint32_t m_bufferFulnessDataSize = 600;
+    uint32_t       m_bufferFulnessData_csv[m_bufferFulnessDataSize] = {};     //!< bufFulness for lpla. Read from file
+    bool           m_useBufferFulnessData       = false; //!< To force using bufFulness for lpla from input file
+#endif
 
 MEDIA_CLASS_DEFINE_END(encode__AvcEncodeBRC)
 };
