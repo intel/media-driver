@@ -33,13 +33,6 @@ set(TMP_1_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/codechal_debug_config_manager.cpp
 )
 
-if(NOT "${Media_Reserved}" STREQUAL "yes")
-    set(TMP_1_SOURCES_
-            ${TMP_1_SOURCES_}
-            ${CMAKE_CURRENT_LIST_DIR}/codechal_setting.cpp
-       )
-endif()
-
 set(SOFTLET_CODEC_COMMON_SOURCES_
     ${SOFTLET_CODEC_COMMON_SOURCES_}
     ${TMP_1_SOURCES_}

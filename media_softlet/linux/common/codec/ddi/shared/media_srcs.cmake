@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Intel Corporation
+# Copyright (c) 2022, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,4 +18,34 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-media_include_subdirectory(ddi)
+if(NOT CMAKE_WDDM_LINUX)
+set(TMP_SOURCES_
+    ${CMAKE_CURRENT_LIST_DIR}/ddi_codec_base_specific.cpp 
+)
+
+set(TMP_HEADERS_
+    ${CMAKE_CURRENT_LIST_DIR}/ddi_codec_base_specific.h
+)
+
+if(NOT "${Media_Reserved}" STREQUAL "yes")
+    set(TMP_SOURCES_
+            ${TMP_SOURCES_}
+            ${CMAKE_CURRENT_LIST_DIR}/create_codechal_setting.cpp
+       )
+endif()
+
+set(SOFTLET_DDI_SOURCES_
+    ${SOFTLET_DDI_SOURCES_}
+    ${TMP_SOURCES_}
+ )
+
+set(SOFTLET_DDI_HEADERS_
+    ${SOFTLET_DDI_HEADERS_}
+    ${TMP_HEADERS_}
+)
+
+set(SOFTLET_DDI_PUBLIC_INCLUDE_DIRS_
+    ${SOFTLET_DDI_PUBLIC_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)
+endif()

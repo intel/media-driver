@@ -19,5 +19,3 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 media_include_subdirectory(ddi)
-media_include_subdirectory(dec)
-media_include_subdirectory(enc)

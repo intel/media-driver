@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2017, Intel Corporation
+* Copyright (c) 2011-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -20,7 +20,7 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     codechal_setting.cpp
+//! \file     create_codechal_setting.cpp
 //! \brief    Implements class CodechalSetting
 //!
 
