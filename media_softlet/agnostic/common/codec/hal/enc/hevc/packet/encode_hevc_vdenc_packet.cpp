@@ -374,6 +374,8 @@ namespace encode
     {
         ENCODE_FUNC_CALL();
 
+        cmdBuffer.Attributes.bFrequencyBoost = (m_basicFeature->m_hevcSeqParams->ScenarioInfo == ESCENARIO_REMOTEGAMING);
+
         ENCODE_CHK_STATUS_RETURN(m_miItf->SetWatchdogTimerThreshold(m_basicFeature->m_frameWidth, m_basicFeature->m_frameHeight, true));
 
         uint16_t perfTag = m_pipeline->IsFirstPass() ? CODECHAL_ENCODE_PERFTAG_CALL_PAK_ENGINE : CODECHAL_ENCODE_PERFTAG_CALL_PAK_ENGINE_SECOND_PASS;
@@ -1582,8 +1584,6 @@ namespace encode
         MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
         ENCODE_FUNC_CALL();
-
-        cmdBuffer.Attributes.bFrequencyBoost = (m_basicFeature->m_hevcSeqParams->ScenarioInfo == ESCENARIO_REMOTEGAMING);
 
 #ifdef _MMC_SUPPORTED
         ENCODE_CHK_NULL_RETURN(m_mmcState);
