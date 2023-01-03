@@ -253,6 +253,87 @@ MOS_STATUS AvcReferenceFrames::UpdateSlice()
         slcParams++;
     }
 
+    if (seqParams->NumRefFrames == CODEC_AVC_MAX_NUM_REF_FRAME)
+    {
+        slcParams = m_basicFeature->m_sliceParams;
+        bool    isActiveRef[15] = {};
+        uint8_t swapIndex       = CODEC_AVC_NUM_UNCOMPRESSED_SURFACE;
+        for (uint32_t sliceCount = 0; sliceCount < m_basicFeature->m_numSlices; sliceCount++)
+        {
+            if (m_pictureCodingType != I_TYPE)
+            {
+                for (uint8_t i = 0; i < (slcParams->num_ref_idx_l0_active_minus1 + 1); i++)
+                {
+                    auto index = m_picIdx[slcParams->RefPicList[0][i].FrameIdx].ucPicIdx;
+                    if (m_refList[index]->ucFrameId < 15)
+                    {
+                        isActiveRef[m_refList[index]->ucFrameId] = true;
+                    }
+                    else if (m_refList[index]->ucFrameId == 15 && swapIndex == CODEC_AVC_NUM_UNCOMPRESSED_SURFACE)
+                    {
+                        swapIndex = index;
+                    }
+                    else
+                    {
+                        // should never happen, something must be wrong
+                        CODECHAL_PUBLIC_ASSERT(false);
+                    }
+                }
+            }
+            if (m_pictureCodingType == B_TYPE)
+            {
+                for (uint8_t i = 0; i < (slcParams->num_ref_idx_l1_active_minus1 + 1); i++)
+                {
+                    auto index = m_picIdx[slcParams->RefPicList[1][i].FrameIdx].ucPicIdx;
+                    if (m_refList[index]->ucFrameId < 15)
+                    {
+                        isActiveRef[m_refList[index]->ucFrameId] = true;
+                    }
+                    else if (m_refList[index]->ucFrameId == 15 && swapIndex == CODEC_AVC_NUM_UNCOMPRESSED_SURFACE)
+                    {
+                        swapIndex = index;
+                    }
+                    else
+                    {
+                        // should never happen, something must be wrong
+                        CODECHAL_PUBLIC_ASSERT(false);
+                    }
+                }
+            }
+            slcParams++;
+        }
+
+        if (swapIndex != CODEC_AVC_NUM_UNCOMPRESSED_SURFACE)
+        {
+            uint8_t i = 0;
+            for (i = 0; i < 15; i++)
+            {
+                if (isActiveRef[i])
+                {
+                    continue;
+                }
+                uint8_t j = 0;
+                for (j = 0; j < CODEC_AVC_MAX_NUM_REF_FRAME; j++)
+                {
+                    if (m_picIdx[j].bValid && m_refList[m_picIdx[j].ucPicIdx]->ucFrameId == i)
+                    {
+                        std::swap(m_refList[m_picIdx[j].ucPicIdx]->ucFrameId, m_refList[swapIndex]->ucFrameId);
+                        break;
+                    }
+                }
+                if (j != CODEC_AVC_MAX_NUM_REF_FRAME)
+                {
+                    break;
+                }
+            }
+            if (i == 15)
+            {
+                // should never happen, something must be wrong
+                CODECHAL_PUBLIC_ASSERT(false);
+            }
+        }
+    }
+
     return MOS_STATUS_SUCCESS;
 }
 
