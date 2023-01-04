@@ -256,6 +256,9 @@ static bool dg1Gt2Device4907 = DeviceInfoFactory<GfxDeviceInfo>::
 
 static bool dg1Gt2Device4908 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x4908, &dg1Gt2Info);
+
+static bool dg1Gt2Device4909 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x4909, &dg1Gt2Info);
 #endif
 
 #ifdef IGFX_GEN12_RKL_SUPPORTED
