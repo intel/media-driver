@@ -28,7 +28,18 @@
 #ifndef __IGVPKRN_XE_HPG_H__
 #define __IGVPKRN_XE_HPG_H__
 
-extern const unsigned int IGVPKRN_XE_HPG_SIZE;
-extern const unsigned int IGVPKRN_XE_HPG[];
+#include "media_bin_mgr.h"
+DECLARE_SHARED_ARRAY_SIZE_UINT32(IGVPKRN_XE_HPG_SIZE);
+DECLARE_SHARED_ARRAY_UINT32(IGVPKRN_XE_HPG);
+
+#if defined(MEDIA_BIN_SUPPORT)
+
+#define IGVPKRN_XE_HPG_NAME "IGVPKRN_XE_HPG"
+
+#if defined(MEDIA_BIN_DLL)
+static bool registerIGVPKRN_XE_HPG = RegisterMediaBin(IGVPKRN_XE_HPG_NAME, IGVPKRN_XE_HPG_SIZE, IGVPKRN_XE_HPG);
+#endif  // defined(MEDIA_BIN_DLL)
+
+#endif  // defined(MEDIA_BIN_SUPPORT)
 
 #endif // __IGVPKRN_XE_HPG_H__
