@@ -44,6 +44,7 @@ set(TMP_2_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/codec_def_encode_mpeg2.h
     ${CMAKE_CURRENT_LIST_DIR}/codec_def_encode_vp9.h
     ${CMAKE_CURRENT_LIST_DIR}/codec_def_encode_hevc.h
+    ${CMAKE_CURRENT_LIST_DIR}/codec_def_encode_hevc_trace.h
     ${CMAKE_CURRENT_LIST_DIR}/codec_def_encode_av1.h
     ${CMAKE_CURRENT_LIST_DIR}/codec_def_vp8_probs.h
     ${CMAKE_CURRENT_LIST_DIR}/codec_def_vp9_probs.h

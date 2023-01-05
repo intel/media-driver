@@ -460,7 +460,7 @@ MOS_STATUS MediaDebugInterface::SetFastDumpConfig(MediaCopyBaseState *mediaCopy)
             }
 
         private:
-            const std::map<const char *, MEDIA_EVENT_FILTER_KEYID> m_filter = {
+            const std::map<std::string, MEDIA_EVENT_FILTER_KEYID> m_filter = {
                 {MediaDbgAttr::attrDecodeOutputSurface, TR_KEY_DECODE_DSTYUV},
                 {MediaDbgAttr::attrEncodeRawInputSurface, TR_KEY_ENCODE_DATA_INPUT_SURFACE},
                 {MediaDbgAttr::attrReferenceSurfaces, TR_KEY_ENCODE_DATA_REF_SURFACE},
