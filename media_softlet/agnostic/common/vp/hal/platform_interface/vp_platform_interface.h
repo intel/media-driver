@@ -44,6 +44,7 @@ struct VP_KERNEL_BINARY_ENTRY
     const uint32_t        *kernelBin    = nullptr;
     uint32_t              kernelBinSize = 0;
     std::string           postfix       = "";
+    DelayLoadedKernelType kernelType    = KernelNone;
 };
 
 struct VP_KERNEL_BINARY
@@ -291,9 +292,10 @@ public:
                 uint32_t         fcPatchKernelBinSize);
 
     virtual void AddVpIsaKernelEntryToList(
-                const uint32_t *kernelBin,
-                uint32_t        kernelBinSize,
-                std::string     postfix = "");
+        const uint32_t       *kernelBin,
+        uint32_t              kernelBinSize,
+        std::string           postfix         = "",
+        DelayLoadedKernelType delayKernelType = KernelNone);
 
     virtual void AddVpL0KernelEntryToList(
                 const uint32_t *kernelBin,
@@ -302,6 +304,8 @@ public:
 
     //only for get kernel binary in legacy path not being used in APO path.
     virtual MOS_STATUS GetKernelBinary(const void *&kernelBin, uint32_t &kernelSize, const void *&patchKernelBin, uint32_t &patchKernelSize);
+
+    virtual MOS_STATUS InitializeDelayedKernels(DelayLoadedKernelType type);
 
     virtual MOS_STATUS ConfigVirtualEngine() = 0;
 
@@ -325,6 +329,7 @@ protected:
     bool m_sfc2PassScalingEnabled = false;
     bool m_sfc2PassScalingPerfMode = false;
     bool m_vpMmcDisabled = false;
+
     MediaUserSettingSharedPtr m_userSettingPtr  = nullptr;  //!< usersettingInstance
     std::shared_ptr<mhw::vebox::Itf>        m_veboxItf  = nullptr;
     std::shared_ptr<mhw::sfc::Itf>          m_sfcItf    = nullptr;
@@ -332,6 +337,8 @@ protected:
     std::shared_ptr<mhw::mi::Itf>           m_miItf     = nullptr;
 
     std::vector<VP_KERNEL_BINARY_ENTRY>    m_vpIsaKernelBinaryList;
+    std::vector<VP_KERNEL_BINARY_ENTRY>    m_vpDelayLoadedBinaryList;
+    std::map<DelayLoadedKernelType, bool>  m_vpDelayLoadedFeatureSet;
     std::map<std::string, VP_KERNEL_BINARY_ENTRY> m_vpL0KernelBinaryList;
 
     MEDIA_CLASS_DEFINE_END(vp__VpPlatformInterface)

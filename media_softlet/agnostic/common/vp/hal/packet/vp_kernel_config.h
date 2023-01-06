@@ -39,6 +39,15 @@
 
 #define VP_ADV_KERNEL_BINARY_ID(kernelId)   ((IDR_VP_TOTAL_NUM_KERNELS) + (kernelId))
 
+enum DelayLoadedKernelType
+{
+    KernelNone = 0,
+    KernelFDFB,
+    KernelSEG,
+    KernelSR,
+    //If more kernels need to load delayed, can add to list
+};
+
 namespace vp {
 class VpKernelConfig
 {

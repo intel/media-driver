@@ -238,7 +238,8 @@ MOS_STATUS VpRenderKernel::AddKernelArg(KRN_ARG &kernelArg)
 void VpPlatformInterface::AddVpIsaKernelEntryToList(
     const uint32_t *kernelBin,
     uint32_t        kernelBinSize,
-    std::string     postfix)
+    std::string     postfix,
+    DelayLoadedKernelType delayKernelType)
 {
     VP_FUNC_CALL();
 
@@ -246,8 +247,17 @@ void VpPlatformInterface::AddVpIsaKernelEntryToList(
     tmpEntry.kernelBin     = kernelBin;
     tmpEntry.kernelBinSize = kernelBinSize;
     tmpEntry.postfix       = postfix;
+    tmpEntry.kernelType    = delayKernelType;
 
-    m_vpIsaKernelBinaryList.push_back(tmpEntry);
+    if (delayKernelType == KernelNone)
+    {
+        m_vpIsaKernelBinaryList.push_back(tmpEntry);
+    }
+    else
+    {
+        m_vpDelayLoadedBinaryList.push_back(tmpEntry);
+        m_vpDelayLoadedFeatureSet.insert(std::make_pair(delayKernelType, false));
+    }
 }
 
 void VpPlatformInterface::AddVpL0KernelEntryToList(
@@ -472,6 +482,11 @@ VpPlatformInterface::~VpPlatformInterface()
     {
         kernel.second.Destroy();
     }
+
+    if (!m_vpDelayLoadedBinaryList.empty())
+    {
+        m_vpDelayLoadedBinaryList.clear();
+    }
 }
 
 MOS_STATUS VpPlatformInterface::GetKernelParam(VpKernelID kernlId, RENDERHAL_KERNEL_PARAM &param)
@@ -494,6 +509,30 @@ void VpPlatformInterface::SetVpFCKernelBinary(
     m_vpKernelBinary.kernelBinSize        = kernelBinSize;
     m_vpKernelBinary.fcPatchKernelBin     = fcPatchKernelBin;
     m_vpKernelBinary.fcPatchKernelBinSize = fcPatchKernelBinSize;
+}
+
+MOS_STATUS VpPlatformInterface::InitializeDelayedKernels(DelayLoadedKernelType type)
+{
+    VP_FUNC_CALL();
+    auto feature = m_vpDelayLoadedFeatureSet.find(type);
+    if (feature != m_vpDelayLoadedFeatureSet.end() && feature->second == false && !m_vpDelayLoadedBinaryList.empty())
+    {
+        // Init CM kernel form VP ISA Kernel Binary List
+        for (auto it = m_vpDelayLoadedBinaryList.begin(); it != m_vpDelayLoadedBinaryList.end();)
+        {
+            if (it->kernelType == type)
+            {
+                VP_PUBLIC_CHK_STATUS_RETURN(InitVpCmKernels(it->kernelBin, it->kernelBinSize, it->postfix));
+                m_vpDelayLoadedBinaryList.erase(it);
+            }
+            else
+            {
+                ++it;
+            }
+        }
+        feature->second = true;
+    }
+    return MOS_STATUS_SUCCESS;
 }
 
 //only for get kernel binary in legacy path not being used in APO path.

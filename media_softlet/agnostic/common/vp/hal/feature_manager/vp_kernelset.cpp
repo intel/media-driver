@@ -90,6 +90,7 @@ MOS_STATUS VpKernelSet::FindAndInitKernelObj(VpRenderKernelObj* kernelObj)
     VP_RENDER_CHK_NULL_RETURN(m_pKernelPool);
 
     bool bFind = false;
+    VP_RENDER_CHK_STATUS_RETURN(m_hwInterface->m_vpPlatformInterface->InitializeDelayedKernels(kernelObj->GetKernelType()));
 
     if (m_pKernelPool)
     {
