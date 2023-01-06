@@ -1058,14 +1058,14 @@ MOS_STATUS XMHW_STATE_HEAP_INTERFACE::InitializeInterface(
     }
 
     //Allocate resCmdBufIdGlobal
+    MOS_ZeroMemory(&AllocParams, sizeof(AllocParams));
+    AllocParams.Type     = MOS_GFXRES_BUFFER;
+    AllocParams.TileType = MOS_TILE_LINEAR;
+    AllocParams.Format   = Format_Buffer;
+    AllocParams.dwBytes  = MHW_CACHELINE_SIZE;
+    AllocParams.pBufName = "CmdBufIdGlobal";
     if (Mos_ResourceIsNull(&m_resCmdBufIdGlobal))
     {
-        MOS_ZeroMemory(&AllocParams, sizeof(AllocParams));
-        AllocParams.Type     = MOS_GFXRES_BUFFER;
-        AllocParams.TileType = MOS_TILE_LINEAR;
-        AllocParams.Format   = Format_Buffer;
-        AllocParams.dwBytes  = MHW_CACHELINE_SIZE;
-        AllocParams.pBufName = "CmdBufIdGlobal";
         MHW_CHK_STATUS_RETURN(m_pOsInterface->pfnAllocateResource(
             m_pOsInterface,
             &AllocParams,
