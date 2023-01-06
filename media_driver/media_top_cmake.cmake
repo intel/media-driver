@@ -586,6 +586,12 @@ target_include_directories(${LIB_NAME}_mos_softlet BEFORE PRIVATE
     ${SOFTLET_MOS_PUBLIC_INCLUDE_DIRS_}
     ${SOFTLET_MOS_EXT_INCLUDE_DIRS_}
 )
+
+option (ENABLE_CUSTOM_CONFIG_PATH "Enable overriding config location via GFX_FEATURE_FILE var" ON)
+if (ENABLE_CUSTOM_CONFIG_PATH)
+    target_compile_definitions(${LIB_NAME}_mos PUBLIC CUSTOM_CONFIG_PATH=1)
+    target_compile_definitions(${LIB_NAME}_mos_softlet PUBLIC CUSTOM_CONFIG_PATH=1)
+endif()
 ############## MOS LIB END ########################################
 
 ############## Media Driver Static and Shared Lib #################

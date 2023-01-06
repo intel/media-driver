@@ -48,6 +48,7 @@
 #include "inttypes.h"
 
 const char           *MosUtilitiesSpecificNext::m_szUserFeatureFile     = USER_FEATURE_FILE;
+const char           *MosUtilitiesSpecificNext::m_szUserFeatureFileNext = USER_FEATURE_FILE_NEXT;
 MOS_PUF_KEYLIST      MosUtilitiesSpecificNext::m_ufKeyList              = nullptr;
 
 double MosUtilities::MosGetTime()
@@ -1313,6 +1314,33 @@ MOS_STATUS MosUtilitiesSpecificNext::MosUserFeatureSetValueExFile(
     return eStatus;
 }
 
+#if CUSTOM_CONFIG_PATH
+void MosUtilitiesSpecificNext::CheckEnvVarOverrides(void)
+{
+    // We only want to do this check once per lifetime of this process.
+    static int checked=0;
+    if (checked)
+        return;
+    checked = 1;
+
+    // Try to get the user feature file from env, instead of default.
+    char* name0 = getenv("GFX_FEATURE_FILE");
+    if (name0 != nullptr)
+    {
+        MosUtilitiesSpecificNext::m_szUserFeatureFile = name0;
+        MOS_OS_NORMALMESSAGE("using %s for USER_FEATURE_FILE", MosUtilitiesSpecificNext::m_szUserFeatureFile);
+    }
+
+    // Try to get the user feature file next from env, instead of default.
+    char* name1 = getenv("GFX_FEATURE_FILE_NEXT");
+    if (name1 != nullptr)
+    {
+        MosUtilitiesSpecificNext::m_szUserFeatureFileNext = name1;
+        MOS_OS_NORMALMESSAGE("using %s for USER_FEATURE_FILE_NEXT", MosUtilitiesSpecificNext::m_szUserFeatureFileNext);
+    }
+}
+#endif
+
 MOS_STATUS MosUtilities::MosOsUtilitiesInit(MediaUserSettingSharedPtr userSettingPtr)
 {
     MOS_STATUS     eStatus = MOS_STATUS_SUCCESS;
@@ -1320,26 +1348,8 @@ MOS_STATUS MosUtilities::MosOsUtilitiesInit(MediaUserSettingSharedPtr userSettin
     // lock mutex to avoid multi init in multi-threading env
     m_mutexLock.Lock();
 
-#if (_DEBUG || _RELEASE_INTERNAL)
-    // Get use user feature file from env, instead of default.
-    FILE* fp = nullptr;
-    static char* tmpFile = getenv("GFX_FEATURE_FILE");
-
-    if (tmpFile != nullptr)
-    {
-      if ((fp = fopen(tmpFile, "r")) != nullptr)
-      {
-          MosUtilitiesSpecificNext::m_szUserFeatureFile = tmpFile;
-          fclose(fp);
-          MOS_OS_NORMALMESSAGE("using %s for USER_FEATURE_FILE", MosUtilitiesSpecificNext::m_szUserFeatureFile);
-      }
-      else
-      {
-          MOS_OS_ASSERTMESSAGE("Can't open %s for USER_FEATURE_FILE!!!", tmpFile);
-          m_mutexLock.Unlock();
-          return MOS_STATUS_FILE_NOT_FOUND;
-      }
-    }
+#if CUSTOM_CONFIG_PATH
+    MosUtilitiesSpecificNext::CheckEnvVarOverrides();
 #endif
 
     //The user setting is device based, no need to guard with the reference count.
@@ -1495,10 +1505,14 @@ MOS_STATUS MosUtilities::MosInitializeReg(RegBufferMap &regBufferMap)
 {
     MOS_STATUS status = MOS_STATUS_SUCCESS;
 
+#if CUSTOM_CONFIG_PATH
+    MosUtilitiesSpecificNext::CheckEnvVarOverrides();
+#endif
+
     std::ifstream regStream;
     try
     {
-        regStream.open(USER_FEATURE_FILE_NEXT);
+        regStream.open(MosUtilitiesSpecificNext::m_szUserFeatureFileNext);
         if (regStream.good())
         {
             std::string id       = "";
@@ -1575,7 +1589,7 @@ MOS_STATUS MosUtilities::MosUninitializeReg(RegBufferMap &regBufferMap)
     std::ofstream regStream;
     try
     {
-        regStream.open(USER_FEATURE_FILE_NEXT, std::ios::out | std::ios::trunc);
+        regStream.open(MosUtilitiesSpecificNext::m_szUserFeatureFileNext, std::ios::out | std::ios::trunc);
         if (regStream.good())
         {
             for(auto pair: regBufferMap)
@@ -1830,25 +1844,10 @@ int32_t MosUtilities::MosUnregisterWaitEx(PTP_WAIT hWaitHandle)
 #if (_DEBUG || _RELEASE_INTERNAL)
 MOS_STATUS MosUtilities::MosGetApoMosEnabledUserFeatureFile()
 {
-    // Get use user feature file from env, instead of default.
-    FILE *       fp      = nullptr;
-    static char *tmpFile = getenv("GFX_FEATURE_FILE");
-
-    if (tmpFile != nullptr)
-    {
-        if ((fp = fopen(tmpFile, "r")) != nullptr)
-        {
-            if (MosUtilitiesSpecificNext::m_szUserFeatureFile != tmpFile)
-                MosUtilitiesSpecificNext::m_szUserFeatureFile = tmpFile;
-            fclose(fp);
-            MOS_OS_NORMALMESSAGE("using %s for USER_FEATURE_FILE", MosUtilitiesSpecificNext::m_szUserFeatureFile);
-        }
-        else
-        {
-            MOS_OS_ASSERTMESSAGE("Can't open %s for USER_FEATURE_FILE!!!", tmpFile);
-            return MOS_STATUS_FILE_NOT_FOUND;
-        }
-    }
+    FILE* fp = open(m_szUserFeatureFile, "r");
+    if (fp == nullptr)
+        return MOS_STATUS_FILE_NOT_FOUND;
+    fclose(fp);
     return MOS_STATUS_SUCCESS;
 }
 #endif
