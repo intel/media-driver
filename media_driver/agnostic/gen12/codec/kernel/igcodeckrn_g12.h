@@ -28,7 +28,17 @@
 #ifndef __IGCODECKRN_G12_H__
 #define __IGCODECKRN_G12_H__
 
-extern const unsigned int IGCODECKRN_G12_SIZE;
-extern const unsigned int IGCODECKRN_G12[];
+#include "media_bin_mgr.h"
+DECLARE_SHARED_ARRAY_SIZE_UINT32(IGCODECKRN_G12_SIZE);
+DECLARE_SHARED_ARRAY_UINT32(IGCODECKRN_G12);
+
+#if defined(MEDIA_BIN_SUPPORT)
+#define IGCODECKRN_G12_NAME      "IGCODECKRN_G12"
+
+#if defined(MEDIA_BIN_DLL)
+static bool registerIGCODECKRN_G12 = RegisterMediaBin(IGCODECKRN_G12_NAME, IGCODECKRN_G12_SIZE, IGCODECKRN_G12);
+#endif  // defined(MEDIA_BIN_DLL)
+
+#endif  // defined(MEDIA_BIN_SUPPORT)
 
 #endif // __IGCODECKRN_G12_H__

@@ -28,7 +28,17 @@
 #ifndef __XE_HPM_FILM_GRAIN_H__
 #define __XE_HPM_FILM_GRAIN_H__
 
-extern const unsigned int XE_HPM_FILM_GRAIN_SIZE;
-extern const unsigned int XE_HPM_FILM_GRAIN[];
+#include "media_bin_mgr.h"
+DECLARE_SHARED_ARRAY_SIZE_UINT32(XE_HPM_FILM_GRAIN_SIZE);
+DECLARE_SHARED_ARRAY_UINT32(XE_HPM_FILM_GRAIN);
+
+#if defined(MEDIA_BIN_SUPPORT)
+#define XE_HPM_FILM_GRAIN_NAME      "XE_HPM_FILM_GRAIN"
+
+#if defined(MEDIA_BIN_DLL)
+static bool registerXE_HPM_FILM_GRAIN = RegisterMediaBin(XE_HPM_FILM_GRAIN_NAME, XE_HPM_FILM_GRAIN_SIZE, XE_HPM_FILM_GRAIN);
+#endif  // defined(MEDIA_BIN_DLL)
+
+#endif  // defined(MEDIA_BIN_SUPPORT)
 
 #endif // __XE_HPM_FILM_GRAIN_H__

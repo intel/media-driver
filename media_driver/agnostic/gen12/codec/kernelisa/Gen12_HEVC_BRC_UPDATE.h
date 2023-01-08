@@ -28,7 +28,17 @@
 #ifndef __HEVC_BRC_UPDATE_GENX_H__
 #define __HEVC_BRC_UPDATE_GENX_H__
 
-extern const unsigned int HEVC_BRC_UPDATE_GENX_SIZE;
-extern const unsigned int HEVC_BRC_UPDATE_GENX[];
+#include "media_bin_mgr.h"
+DECLARE_SHARED_ARRAY_SIZE_UINT32(HEVC_BRC_UPDATE_GENX_SIZE);
+DECLARE_SHARED_ARRAY_UINT32(HEVC_BRC_UPDATE_GENX);
+
+#if defined(MEDIA_BIN_SUPPORT)
+#define HEVC_BRC_UPDATE_GENX_NAME      "HEVC_BRC_UPDATE_GENX"
+
+#if defined(MEDIA_BIN_DLL)
+static bool registerHEVC_BRC_UPDATE_GENX = RegisterMediaBin(HEVC_BRC_UPDATE_GENX_NAME, HEVC_BRC_UPDATE_GENX_SIZE, HEVC_BRC_UPDATE_GENX);
+#endif  // defined(MEDIA_BIN_DLL)
+
+#endif  // defined(MEDIA_BIN_SUPPORT)
 
 #endif // __HEVC_BRC_UPDATE_GENX_H__

@@ -28,7 +28,17 @@
 #ifndef __XE_HPM_VC1_OLP_H__
 #define __XE_HPM_VC1_OLP_H__
 
-extern const unsigned int XE_HPM_VC1_OLP_SIZE;
-extern const unsigned int XE_HPM_VC1_OLP[];
+#include "media_bin_mgr.h"
+DECLARE_SHARED_ARRAY_SIZE_UINT32(XE_HPM_VC1_OLP_SIZE);
+DECLARE_SHARED_ARRAY_UINT32(XE_HPM_VC1_OLP);
+
+#if defined(MEDIA_BIN_SUPPORT)
+#define XE_HPM_VC1_OLP_NAME      "XE_HPM_VC1_OLP"
+
+#if defined(MEDIA_BIN_DLL)
+static bool registerXE_HPM_VC1_OLP = RegisterMediaBin(XE_HPM_VC1_OLP_NAME, XE_HPM_VC1_OLP_SIZE, XE_HPM_VC1_OLP);
+#endif  // defined(MEDIA_BIN_DLL)
+
+#endif  // defined(MEDIA_BIN_SUPPORT)
 
 #endif // __XE_HPM_VC1_OLP_H__

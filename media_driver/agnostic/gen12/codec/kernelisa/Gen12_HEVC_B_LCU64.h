@@ -28,7 +28,18 @@
 #ifndef __GEN12_HEVC_B_LCU64_H__
 #define __GEN12_HEVC_B_LCU64_H__
 
-extern const unsigned int GEN12_HEVC_B_LCU64_SIZE;
-extern const unsigned int GEN12_HEVC_B_LCU64[];
+#include "media_bin_mgr.h"
+
+DECLARE_SHARED_ARRAY_SIZE_UINT32(GEN12_HEVC_B_LCU64_SIZE);
+DECLARE_SHARED_ARRAY_UINT32(GEN12_HEVC_B_LCU64);
+
+#if defined(MEDIA_BIN_SUPPORT)
+#define GEN12_HEVC_B_LCU64_NAME      "GEN12_HEVC_B_LCU64"
+
+#if defined(MEDIA_BIN_DLL)
+static bool registerGEN12_HEVC_B_LCU64 = RegisterMediaBin(GEN12_HEVC_B_LCU64_NAME, GEN12_HEVC_B_LCU64_SIZE, GEN12_HEVC_B_LCU64);
+#endif  // defined(MEDIA_BIN_DLL)
+
+#endif  // defined(MEDIA_BIN_SUPPORT)
 
 #endif // __GEN12_HEVC_B_LCU64_H__
