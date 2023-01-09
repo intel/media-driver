@@ -303,7 +303,7 @@ MOS_STATUS AvcReferenceFrames::UpdateSlice()
             slcParams++;
         }
 
-        if (swapIndex != CODEC_AVC_NUM_UNCOMPRESSED_SURFACE)
+        if (swapIndex < CODEC_AVC_NUM_UNCOMPRESSED_SURFACE)
         {
             uint8_t i = 0;
             for (i = 0; i < 15; i++)
