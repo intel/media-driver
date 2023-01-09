@@ -206,6 +206,8 @@ static bool InitSklMediaSku(struct GfxDeviceInfo *devInfo,
 
     MEDIA_WR_SKU(skuTable, FtrTileY, 1);
 
+    MEDIA_WR_SKU(skuTable, FtrUseSwSwizzling, 1);
+
     return true;
 }
 
@@ -300,6 +302,8 @@ static bool InitBxtMediaSku(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_SKU(skuTable, FtrPerCtxtPreemptionGranularityControl, 1);
 
     MEDIA_WR_SKU(skuTable, FtrVpP010Output, 1);
+
+    MEDIA_WR_SKU(skuTable, FtrUseSwSwizzling, 1);
 
     return true;
 }
@@ -432,6 +436,8 @@ static bool InitKblMediaSku(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_SKU(skuTable, FtrVpP010Output, 1);
 
     MEDIA_WR_SKU(skuTable, FtrPerCtxtPreemptionGranularityControl, 1);
+
+    MEDIA_WR_SKU(skuTable, FtrUseSwSwizzling, 1);
 
     return true;
 }
