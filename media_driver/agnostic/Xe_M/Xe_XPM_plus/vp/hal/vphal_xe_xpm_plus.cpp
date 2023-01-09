@@ -45,11 +45,12 @@ MOS_STATUS VphalStateXe_Xpm_Plus::Allocate(
 {
     MOS_STATUS                  eStatus;
 
+    VPHAL_PUBLIC_CHK_NULL(m_osInterface);
     VPHAL_PUBLIC_CHK_NULL(pVpHalSettings);
     VPHAL_PUBLIC_CHK_NULL(m_renderHal);
 
     Mos_SetVirtualEngineSupported(m_osInterface, true);
-    Mos_CheckVirtualEngineSupported(m_osInterface, true, true);
+    m_osInterface->pfnVirtualEngineSupported(m_osInterface, true, true);
     VPHAL_PUBLIC_CHK_STATUS(VphalState::Allocate(pVpHalSettings));
 
     // Update MOCS

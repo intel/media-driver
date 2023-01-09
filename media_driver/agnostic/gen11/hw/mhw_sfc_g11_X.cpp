@@ -282,7 +282,7 @@ MOS_STATUS MhwSfcInterfaceG11::AddSfcState(
           &ResourceParams));
     }
 
-    MHW_CHK_STATUS_RETURN(Mos_AddCommand(pCmdBuffer, &cmd, cmd.byteSize));
+    MHW_CHK_STATUS_RETURN(pOsInterface->pfnAddCommand(pCmdBuffer, &cmd, cmd.byteSize));
 
     return MOS_STATUS_SUCCESS;
 }

@@ -2059,7 +2059,7 @@ MOS_STATUS CodecHalDecodeScalability_InitializeState (
     VEInitParms.ucMaxNumPipesInUse        = (vdboxNum == 2) ? 2 : 3;
     VEInitParms.ucNumOfSdryCmdBufSets     = CODECHAL_SCALABILITY_DECODE_SECONDARY_CMDBUFSET_NUM;
     VEInitParms.ucMaxNumOfSdryCmdBufInOneFrame = (pScalabilityState->bFESeparateSubmission) ? VEInitParms.ucMaxNumPipesInUse : (VEInitParms.ucMaxNumPipesInUse + 1);
-    CODECHAL_DECODE_CHK_STATUS_RETURN(Mos_VirtualEngineInterface_Initialize(osInterface, &VEInitParms));
+    CODECHAL_DECODE_CHK_STATUS_RETURN(osInterface->pfnVirtualEngineInterfaceInitialize(osInterface, &VEInitParms));
     pScalabilityState->pVEInterface = pVEInterface = osInterface->pVEInterf;
 
     if (pVEInterface->pfnVEGetHintParams)

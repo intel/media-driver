@@ -32,6 +32,7 @@ MOS_STATUS MhwVdboxVdencInterfaceG9Bxt::AddVdencSrcSurfaceStateCmd(
 {
     MHW_FUNCTION_ENTER;
 
+    MHW_MI_CHK_NULL(m_osInterface);
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(params);
     MHW_MI_CHK_NULL(params->psSurface);
@@ -53,7 +54,7 @@ MOS_STATUS MhwVdboxVdencInterfaceG9Bxt::AddVdencSrcSurfaceStateCmd(
     cmd.Dwords25.DW2.YOffsetForUCb = cmd.Dwords25.DW3.YOffsetForVCr =
         MOS_ALIGN_CEIL(params->psSurface->UPlaneOffset.iYOffset, MHW_VDBOX_MFX_RAW_UV_PLANE_ALIGNMENT_GEN9);
 
-    MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+    MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -278,7 +279,7 @@ MOS_STATUS MhwVdboxVdencInterfaceG9Bxt::AddVdencImgStateCmd(
         return MOS_STATUS_NULL_POINTER;
     }
 
-    MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
+    MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -289,6 +290,7 @@ MOS_STATUS MhwVdboxVdencInterfaceG9Bxt::AddVdencWalkerStateCmd(
 {
     MHW_FUNCTION_ENTER;
 
+    MHW_MI_CHK_NULL(m_osInterface);
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(params);
 
@@ -298,7 +300,7 @@ MOS_STATUS MhwVdboxVdencInterfaceG9Bxt::AddVdencWalkerStateCmd(
     cmd.DW1.MbLcuStartXPosition = 0;
     cmd.DW1.MbLcuStartYPosition = 0;
 
-    MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+    MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
     return MOS_STATUS_SUCCESS;
 }

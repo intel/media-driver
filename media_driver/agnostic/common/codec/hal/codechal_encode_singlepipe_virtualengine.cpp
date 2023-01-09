@@ -87,7 +87,7 @@ MOS_STATUS CodecHalEncodeSinglePipeVE_InitInterface(
     //virtual engine init with singlepipe
     MOS_ZeroMemory(&VEInitParams, sizeof(VEInitParams));
     VEInitParams.bScalabilitySupported = false;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(Mos_VirtualEngineInterface_Initialize(pOsInterface, &VEInitParams));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(pOsInterface->pfnVirtualEngineInterfaceInitialize(pOsInterface, &VEInitParams));
     pVEState->pVEInterface = pVEInterface = pOsInterface->pVEInterf;
 
     if(pVEInterface->pfnVEGetHintParams)

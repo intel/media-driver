@@ -226,6 +226,7 @@ protected:
     {
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(this->m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
 
@@ -237,7 +238,7 @@ protected:
         cmd.DW1.PakThresholdCheckEnable        = params->bDynamicSliceEnable;
         cmd.DW1.VdencStreamInEnable            = params->bVdencStreamInEnable;
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(this->m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
         return MOS_STATUS_SUCCESS;
     }
@@ -479,7 +480,7 @@ protected:
             }
         }
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(this->m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
         return MOS_STATUS_SUCCESS;
     }
@@ -490,6 +491,7 @@ protected:
     {
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(this->m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
         MHW_MI_CHK_NULL(params->psSurface);
@@ -512,7 +514,7 @@ protected:
         cmd.Dwords25.DW1.SurfacePitch     = params->psSurface->dwPitch - 1;
         cmd.Dwords25.DW2.YOffsetForUCb    = cmd.Dwords25.DW3.YOffsetForVCr = params->psSurface->UPlaneOffset.iYOffset;
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(this->m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
         return MOS_STATUS_SUCCESS;
     }
@@ -526,6 +528,7 @@ protected:
 
         MOS_UNUSED(numSurfaces);
 
+        MHW_MI_CHK_NULL(this->m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
         MHW_MI_CHK_NULL(params->psSurface);
@@ -547,7 +550,7 @@ protected:
         cmd.Dwords25.DW1.SurfacePitch     = params->psSurface->dwPitch - 1;
         cmd.Dwords25.DW2.YOffsetForUCb    = cmd.Dwords25.DW3.YOffsetForVCr = params->psSurface->UPlaneOffset.iYOffset;
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(this->m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
         return MOS_STATUS_SUCCESS;
     }

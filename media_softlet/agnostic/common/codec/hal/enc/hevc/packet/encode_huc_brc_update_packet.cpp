@@ -1089,7 +1089,7 @@ namespace encode
                         MHW_MI_CHK_NULL(pBsBuffer);
                         MHW_MI_CHK_NULL(pBsBuffer->pBase);
                         uint8_t *data = (uint8_t *)(pBsBuffer->pBase + offSet);
-                        MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, nullptr, data, byteSize));
+                        MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, nullptr, data, byteSize));
                     }
                     m_1stPakInsertObjectCmdSize += (cmdBuffer->iOffset - cmdBufOffset);
                 }
@@ -1132,7 +1132,7 @@ namespace encode
                 MHW_MI_CHK_NULL(pBsBuffer);
                 MHW_MI_CHK_NULL(pBsBuffer->pBase);
                 uint8_t *data = (uint8_t *)(pBsBuffer->pBase + offSet);
-                MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, nullptr, data, byteSize));
+                MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, nullptr, data, byteSize));
             }
 
             // Send HCP_PAK_INSERT_OBJ command. For dynamic slice, we are skipping the beginning part of slice header.
@@ -1154,7 +1154,7 @@ namespace encode
                 MHW_MI_CHK_NULL(pBsBuffer);
                 MHW_MI_CHK_NULL(pBsBuffer->pBase);
                 uint8_t *data = (uint8_t *)(pBsBuffer->pBase + offSet);
-                MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, nullptr, data, byteSize));
+                MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, nullptr, data, byteSize));
             }
             m_basicFeature->m_vdencBatchBufferPerSliceVarSize[m_basicFeature->m_curNumSlices] += (cmdBuffer->iOffset - cmdBufOffset);
         }
@@ -1174,7 +1174,7 @@ namespace encode
                 MHW_MI_CHK_NULL(pBsBuffer);
                 MHW_MI_CHK_NULL(pBsBuffer->pBase);
                 uint8_t *data = (uint8_t *)(pBsBuffer->pBase + offSet);
-                MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, nullptr, data, byteSize));
+                MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, nullptr, data, byteSize));
             }
         }
 

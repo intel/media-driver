@@ -432,7 +432,7 @@ MOS_STATUS MediaVeboxDecompStateG12::VeboxSendVeboxTileConvertCMD(
         (outputSurface != nullptr ? outputSurface->dwOffset : inputSurface->dwOffset) + veboxOutputSurfCtrlBits.DW0.Value;
     m_veboxInterface->pfnAddResourceToCmd(m_osInterface, cmdBuffer, &ResourceParams);
 
-    Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize);
+    m_osInterface->pfnAddCommand(cmdBuffer, &cmd, cmd.byteSize);
 
     return eStatus;
 }

@@ -69,6 +69,7 @@ protected:
 
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(m_osInterface);
         MHW_MI_CHK_NULL(params);
         MHW_ASSERT(params->Mode != CODECHAL_UNSUPPORTED_MODE);
 
@@ -90,7 +91,7 @@ protected:
 
         cmd.DW2.YOffsetForUCbInPixel =
             MOS_ALIGN_CEIL((params->psSurface->UPlaneOffset.iSurfaceOffset - params->psSurface->dwOffset) / params->psSurface->dwPitch + params->psSurface->RenderOffset.YUV.U.YOffset, uvPlaneAlignment);
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
+        MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, cmd.byteSize));
 
         return eStatus;
     }
@@ -102,13 +103,14 @@ protected:
         MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
         MHW_FUNCTION_ENTER;
+        MHW_MI_CHK_NULL(m_osInterface);
 
         typename TAvpCmds::AVP_BSD_OBJECT_CMD   cmd;
 
         cmd.DW1.IndirectBsdDataLength       = params->m_bsdDataLength;
         cmd.DW2.IndirectDataStartAddress    = params->m_bsdDataStartOffset;
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
         return eStatus;
     }

@@ -65,6 +65,7 @@ protected:
 
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
         MHW_MI_CHK_NULL(params->pAvcPicIdx);
@@ -100,7 +101,7 @@ protected:
             }
         }
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
         return eStatus;
     }
@@ -113,6 +114,7 @@ protected:
 
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
 
@@ -137,7 +139,7 @@ protected:
                     qMatrix[i * 16 + ii] = params->pAvcIqMatrix->List4x4[i][ii];
                 }
             }
-            MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+            MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
             cmd.DW1.Obj0.Avc = avcQmInter4x4;
             for (auto i = 3; i < 6; i++)
@@ -147,21 +149,21 @@ protected:
                     qMatrix[(i - 3) * 16 + ii] = params->pAvcIqMatrix->List4x4[i][ii];
                 }
             }
-            MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+            MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
             cmd.DW1.Obj0.Avc = avcQmIntra8x8;
             for (auto ii = 0; ii < 64; ii++)
             {
                 qMatrix[ii] = params->pAvcIqMatrix->List8x8[0][ii];
             }
-            MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+            MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
             cmd.DW1.Obj0.Avc = avcQmInter8x8;
             for (auto ii = 0; ii < 64; ii++)
             {
                 qMatrix[ii] = params->pAvcIqMatrix->List8x8[1][ii];
             }
-            MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+            MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
         }
         else if (params->Standard == CODECHAL_MPEG2)
         {
@@ -184,7 +186,7 @@ protected:
                         qMatrix[i] = (uint8_t)(m_mpeg2DefaultIntraQuantizerMatrix[i]);
                     }
                 }
-                MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+                MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
                 cmd.DW1.Obj0.Avc = mpeg2QmNonIntra;
                 if (params->pMpeg2IqMatrix->m_loadNonIntraQuantiserMatrix)
@@ -201,7 +203,7 @@ protected:
                         qMatrix[i] = (uint8_t)(m_mpeg2DefaultNonIntraQuantizerMatrix[i]);
                     }
                 }
-                MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+                MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
             }
             else
             {
@@ -222,7 +224,7 @@ protected:
                     }
                 }
 
-                MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+                MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
                 cmd.DW1.Obj0.Avc = mpeg2QmNonIntra;
                 if (params->pMpeg2IqMatrix->m_loadNonIntraQuantiserMatrix)
@@ -241,7 +243,7 @@ protected:
                     }
                 }
 
-                MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+                MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
             }
         }
         else if (params->Standard == CODECHAL_JPEG)
@@ -267,7 +269,7 @@ protected:
                 }
             }
 
-            MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+            MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
         }
         else
         {
@@ -285,6 +287,7 @@ protected:
 
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
 
@@ -311,7 +314,7 @@ protected:
                         GetReciprocalScalingValue(iqMatrix->List4x4[i][m_columnScan4x4[ii]]);
                 }
             }
-            MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+            MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
             cmd.DW1.Obj0.Avc = avcQmInter4x4;
             for (auto i = 0; i < 3; i++)
@@ -322,21 +325,21 @@ protected:
                         GetReciprocalScalingValue(iqMatrix->List4x4[i + 3][m_columnScan4x4[ii]]);
                 }
             }
-            MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+            MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
             cmd.DW1.Obj0.Avc = avcQmIntra8x8;
             for (auto i = 0; i < 64; i++)
             {
                 fqMatrix[i] = GetReciprocalScalingValue(iqMatrix->List8x8[0][m_columnScan8x8[i]]);
             }
-            MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+            MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
             cmd.DW1.Obj0.Avc = avcQmInter8x8;
             for (auto i = 0; i < 64; i++)
             {
                 fqMatrix[i] = GetReciprocalScalingValue(iqMatrix->List8x8[1][m_columnScan8x8[i]]);
             }
-            MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+            MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
         }
         else if (params->Standard == CODECHAL_MPEG2)
         {
@@ -359,7 +362,7 @@ protected:
                         (uint8_t)m_mpeg2DefaultIntraQuantizerMatrix[m_columnScan8x8[i]]);
                 }
             }
-            MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+            MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
             cmd.DW1.Obj0.Avc = mpeg2QmNonIntra;
             if (params->pMpeg2IqMatrix->m_loadNonIntraQuantiserMatrix)
@@ -378,7 +381,7 @@ protected:
                         (uint8_t)m_mpeg2DefaultNonIntraQuantizerMatrix[m_columnScan8x8[i]]);
                 }
             }
-            MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+            MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
         }
 
         return eStatus;
@@ -457,7 +460,7 @@ protected:
             }
         }
 
-        MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
 
         return MOS_STATUS_SUCCESS;
     }
@@ -494,7 +497,7 @@ protected:
             cmd.Weightoffset[3 * i + 2] |= (params->Weights[params->uiList][i][2][1] & 0xFFFF) << 16; // Cr offset
         }
 
-        MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
 
         return eStatus;
     }
@@ -549,7 +552,7 @@ protected:
             }
         }
 
-        MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
 
         return eStatus;
     }
@@ -644,7 +647,7 @@ protected:
             }
         }
 
-        MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
 
         return eStatus;
     }
@@ -779,7 +782,7 @@ protected:
         cmd.DW9.Roundintra = avcSliceState->dwRoundingIntraValue;
         cmd.DW9.Roundintraenable = 1;
 
-        MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
 
         return eStatus;
     }
@@ -792,6 +795,7 @@ protected:
 
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
         MHW_MI_CHK_NULL(params->pAvcPicParams);
@@ -875,7 +879,7 @@ protected:
             }
         }
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
         return eStatus;
     }
@@ -945,6 +949,7 @@ protected:
 
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
         MHW_MI_CHK_NULL(params->pMpeg2PicParams);
@@ -1006,7 +1011,7 @@ protected:
         cmd.DW6.Intrambmaxsize = 0xfff;
         cmd.DW6.Intermbmaxsize = 0xfff;
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
         return eStatus;
     }
@@ -1019,6 +1024,7 @@ protected:
 
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
         MHW_MI_CHK_NULL(params->pEncodeMpeg2PicParams);
@@ -1067,7 +1073,7 @@ protected:
         cmd.DW6.Intrambmaxsize = 0xfff;
         cmd.DW6.Intermbmaxsize = 0xfff;
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
         return eStatus;
     }
@@ -1132,7 +1138,7 @@ protected:
             batchBuffer,
             &sliceInfoParam));
 
-        MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
 
         return eStatus;
     }
@@ -1209,7 +1215,7 @@ protected:
             }
         }
 
-        MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
 
         return eStatus;
     }
@@ -1222,6 +1228,7 @@ protected:
 
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(mpeg2SliceState);
         MHW_MI_CHK_NULL(mpeg2SliceState->pEncodeMpeg2PicParams);
@@ -1272,7 +1279,7 @@ protected:
         // H/W should use this start addr only for the first slice, since LoadSlicePointerFlag = 0 in PIC_STATE
         cmd.DW4.BitstreamoffsetIndirectPakBseDataStartAddressWrite = 0;
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
         return eStatus;
     }
@@ -1420,6 +1427,7 @@ protected:
 
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
         MHW_MI_CHK_NULL(params->pVc1PicParams);
@@ -1857,7 +1865,7 @@ protected:
         cmd.DW1.VinIntensitycompSingleFwden = fwdSingleIcEnable;
         cmd.DW1.VinIntensitycompSingleBwden = bwdSingleIcEnable;
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
         return eStatus;
     }
@@ -1870,6 +1878,7 @@ protected:
 
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(vc1PicState);
         MHW_MI_CHK_NULL(vc1PicState->pVc1PicParams);
@@ -2109,7 +2118,7 @@ protected:
             cmd.DW5.MvtabMotionVectorTable = vc1PicParams->mv_fields.mv_table;
         }
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
         return eStatus;
     }
@@ -2122,6 +2131,7 @@ protected:
 
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(vc1PicState);
         MHW_MI_CHK_NULL(vc1PicState->pVc1PicParams);
@@ -2237,7 +2247,7 @@ protected:
             cmd.DW4.BfractionEnumeration = vc1PicParams->b_picture_fraction;
         }
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
         return eStatus;
     }
@@ -2250,6 +2260,7 @@ protected:
 
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
 
@@ -2288,7 +2299,7 @@ protected:
             cmdBuffer,
             &resourceParams));
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
         return eStatus;
     }
@@ -2301,6 +2312,7 @@ protected:
 
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(vc1SliceState);
         MHW_MI_CHK_NULL(vc1SliceState->pSlc);
@@ -2328,7 +2340,7 @@ protected:
             nullptr,
             &sliceInfoParam));
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
         return eStatus;
     }
@@ -2749,6 +2761,7 @@ protected:
 
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
         MHW_MI_CHK_NULL(params->pDCBits);
@@ -2787,7 +2800,7 @@ protected:
             (uint8_t*)params->pACValues + sizeof(cmd.AcHuffval1608BitArray), 
             sizeof(uint16_t)));
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
         return eStatus;
     }
@@ -2800,6 +2813,7 @@ protected:
 
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
 
@@ -2814,7 +2828,7 @@ protected:
         cmd.DW4.Interleaved = params->bInterleaved;
         cmd.DW5.Restartinterval16Bit = params->dwRestartInterval;
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
         return eStatus;
     }
@@ -2827,6 +2841,7 @@ protected:
 
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
 
@@ -2898,7 +2913,7 @@ protected:
             cmd.DW20.IndirectPartition8DataStartOffset = cmd.DW18.IndirectPartition7DataStartOffset + vp8PicParams->uiPartitionSize[i - 1];
         }
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
         return eStatus;
     }

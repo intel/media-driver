@@ -686,7 +686,7 @@ CodechalVdencAvcStateG11::CodechalVdencAvcStateG11(
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    CODECHAL_ENCODE_ASSERT(m_osInterface);
+    CODECHAL_ENCODE_CHK_NULL_NO_STATUS_RETURN(m_osInterface);
 
 #if defined(ENABLE_KERNELS)
     m_kernelBase = (uint8_t*)IGCODECKRN_G11;
@@ -711,7 +711,7 @@ CodechalVdencAvcStateG11::CodechalVdencAvcStateG11(
     m_16xMeSupported = true;
     m_32xMeSupported = true;
 
-    Mos_CheckVirtualEngineSupported(m_osInterface, false, true);
+    m_osInterface->pfnVirtualEngineSupported(m_osInterface, false, true);
 
     CODECHAL_DEBUG_TOOL(
         CODECHAL_ENCODE_CHK_NULL_NO_STATUS_RETURN(m_encodeParState = MOS_New(CodechalDebugEncodeParG11, this));

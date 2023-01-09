@@ -36,6 +36,7 @@ MOS_STATUS MhwMiInterfaceG8::AddMiBatchBufferStartCmd(
 {
     MHW_FUNCTION_ENTER;
 
+    MHW_MI_CHK_NULL(m_osInterface);
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(batchBuffer);
 
@@ -63,7 +64,7 @@ MOS_STATUS MhwMiInterfaceG8::AddMiBatchBufferStartCmd(
     cmd.DW0.AddressSpaceIndicator = !IsGlobalGttInUse();
 
     // Send BB start command
-    MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
+    MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, cmd.byteSize));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -74,6 +75,7 @@ MOS_STATUS MhwMiInterfaceG8::AddMiConditionalBatchBufferEndCmd(
 {
     MHW_FUNCTION_ENTER;
 
+    MHW_MI_CHK_NULL(m_osInterface);
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(params);
     MHW_MI_CHK_NULL(params->presSemaphoreBuffer);
@@ -104,7 +106,7 @@ MOS_STATUS MhwMiInterfaceG8::AddMiConditionalBatchBufferEndCmd(
         &resourceParams));
 
     // Send Conditional Batch Buffer End command
-    MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
+    MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, cmd.byteSize));
 
     //Re-enable CP for Case 2
     MHW_MI_CHK_STATUS(m_cpInterface->AddProlog(m_osInterface, cmdBuffer));
@@ -147,7 +149,7 @@ MOS_STATUS MhwMiInterfaceG8::AddMediaStateFlush(
         AddMediaStateFlushcmd.DW1.InterfaceDescriptorOffset = params->ui8InterfaceDescriptorOffset;
     }
 
-    MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &AddMediaStateFlushcmd, AddMediaStateFlushcmd.byteSize));
+    MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, batchBuffer, &AddMediaStateFlushcmd, AddMediaStateFlushcmd.byteSize));
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     if (batchBuffer)
@@ -222,6 +224,7 @@ MOS_STATUS MhwMiInterfaceG8::AddMiFlushDwCmd(
 {
     MHW_FUNCTION_ENTER;
 
+    MHW_MI_CHK_NULL(m_osInterface);
     MHW_MI_CHK_STATUS(MhwMiInterfaceGeneric<mhw_mi_g8_X>::AddMiFlushDwCmd(cmdBuffer, params));
 
     mhw_mi_g8_X::MI_FLUSH_DW_CMD cmd;
@@ -268,7 +271,7 @@ MOS_STATUS MhwMiInterfaceG8::AddMiFlushDwCmd(
         cmd.DW0.DwordLength--;
     }
 
-    MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
+    MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, cmd.byteSize));
 
     return MOS_STATUS_SUCCESS;
 }

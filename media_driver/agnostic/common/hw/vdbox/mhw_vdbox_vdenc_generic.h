@@ -57,6 +57,7 @@ protected:
     {
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
 
@@ -72,7 +73,7 @@ protected:
         cmd.DW1.MflPipelineCommandFlush    = params->Flags.bFlushMFL;
         cmd.DW1.MfxPipelineCommandFlush    = params->Flags.bFlushMFX;
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
         return MOS_STATUS_SUCCESS;
     }
@@ -83,6 +84,7 @@ protected:
     {
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
 
@@ -287,7 +289,7 @@ protected:
             }
         }
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
         return MOS_STATUS_SUCCESS;
     }

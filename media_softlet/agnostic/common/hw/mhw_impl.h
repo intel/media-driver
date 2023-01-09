@@ -252,7 +252,7 @@ protected:
     #endif
 
         // add cmd to cmd buffer
-        return Mhw_AddCommandCmdOrBB(cmdBuf, batchBuf, &cmd, sizeof(cmd));
+        return Mhw_AddCommandCmdOrBB(m_osItf, cmdBuf, batchBuf, &cmd, sizeof(cmd));
     }
 
 protected:

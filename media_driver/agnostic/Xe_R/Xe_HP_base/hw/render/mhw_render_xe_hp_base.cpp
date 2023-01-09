@@ -40,6 +40,7 @@ MOS_STATUS MhwRenderInterfaceXe_Xpm_Base::AddCfeStateCmd(
 
     MHW_FUNCTION_ENTER;
 
+    MHW_MI_CHK_NULL(m_osInterface);
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(params);
 
@@ -70,7 +71,7 @@ MOS_STATUS MhwRenderInterfaceXe_Xpm_Base::AddCfeStateCmd(
         return MOS_STATUS_INVALID_PARAMETER;
     }
 
-    MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
+    MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, cmd.byteSize));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -144,7 +145,7 @@ MOS_STATUS MhwRenderInterfaceXe_Xpm_Base::AddComputeWalkerCmd(
         cmd.postsync_data.DW0.Operation = mhw_render_xe_xpm_base::COMPUTE_WALKER_CMD::POSTSYNC_DATA_CMD ::POSTSYNC_OPERATION_WRITE_TIMESTAMP;
     }
 
-    MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
+    MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, cmd.byteSize));
     return eStatus;
 }
 
@@ -152,11 +153,12 @@ MOS_STATUS MhwRenderInterfaceXe_Xpm_Base::AddStateComputeModeCmd(
     const MHW_STATE_COMPUTE_MODE_PARAMS &computeStateMode,
     MOS_COMMAND_BUFFER *                 cmdBuffer)
 {
+    MHW_MI_CHK_NULL(m_osInterface);
     mhw_render_xe_xpm_base::STATE_COMPUTE_MODE_CMD cmd;
     cmd.DW1.MaskBits         = 0xFFFF;
     cmd.DW1.LargeGrfMode     = computeStateMode.enableLargeGrf ? 1 : 0;
     cmd.DW1.ForceNonCoherent = 2;
-    MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
+    MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, cmd.byteSize));
     return MOS_STATUS_SUCCESS;
 }
 
@@ -166,6 +168,7 @@ MOS_STATUS MhwRenderInterfaceXe_Xpm_Base::AddStateBaseAddrCmd(
 {
     MHW_FUNCTION_ENTER;
 
+    MHW_MI_CHK_NULL(m_osInterface);
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(params);
 
@@ -319,7 +322,7 @@ MOS_STATUS MhwRenderInterfaceXe_Xpm_Base::AddStateBaseAddrCmd(
     cmd.DW3.StatelessDataPortAccessMemoryObjectControlState = params->mocs4StatelessDataport;
     cmd.DW3.L1CachePolicy                                   = params->l1CacheConfig;
 
-    MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
+    MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, cmd.byteSize));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -329,6 +332,7 @@ MOS_STATUS MhwRenderInterfaceXe_Xpm_Base::Add3DStateBindingTablePoolAllocCmd(
     mhw_render_xe_xpm_base::_3DSTATE_BINDING_TABLE_POOL_ALLOC_CMD cmd)
 {
     uint32_t indirect_state_offset = 0, indirect_state_size = 0;
+    MHW_MI_CHK_NULL(m_osInterface);
     MHW_MI_CHK_STATUS(m_osInterface->pfnGetIndirectState(m_osInterface,
         &indirect_state_offset,
         &indirect_state_size));
@@ -349,6 +353,6 @@ MOS_STATUS MhwRenderInterfaceXe_Xpm_Base::Add3DStateBindingTablePoolAllocCmd(
         &resource_params));
 
     cmd.DW3.BindingTablePoolBufferSize = indirect_state_size;
-    MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
+    MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, cmd.byteSize));
     return MOS_STATUS_SUCCESS;
 }

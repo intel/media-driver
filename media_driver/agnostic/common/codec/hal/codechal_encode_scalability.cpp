@@ -60,7 +60,7 @@ MOS_STATUS CodecHalEncodeScalability_InitializeState (
     VEInitParms.ucMaxNumOfSdryCmdBufInOneFrame  = VEInitParms.ucNumOfSdryCmdBufSets = 0;
     VEInitParms.ucMaxNumPipesInUse              = MOS_MAX_ENGINE_INSTANCE_PER_CLASS;
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(Mos_VirtualEngineInterface_Initialize(osInterface, &VEInitParms));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(osInterface->pfnVirtualEngineInterfaceInitialize(osInterface, &VEInitParms));
     pScalabilityState->pVEInterface = pVEInterface = osInterface->pVEInterf;
 
     if (pVEInterface->pfnVEGetHintParams)

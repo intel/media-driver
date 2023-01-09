@@ -35,6 +35,7 @@ MOS_STATUS MhwVdboxMfxInterfaceG9Skl::AddMfxPipeBufAddrCmd(
 
     MHW_FUNCTION_ENTER;
 
+    MHW_MI_CHK_NULL(m_osInterface);
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(params);
 
@@ -354,7 +355,7 @@ MOS_STATUS MhwVdboxMfxInterfaceG9Skl::AddMfxPipeBufAddrCmd(
         MHW_MI_CHK_STATUS(m_osInterface->pfnSetMemoryCompressionMode(m_osInterface, resourceParams.presResource, params->Ps4xDsSurfMmcState));
     }
 
-    MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+    MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
     return eStatus;
 }

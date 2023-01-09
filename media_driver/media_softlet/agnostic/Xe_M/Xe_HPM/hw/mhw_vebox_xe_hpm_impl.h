@@ -2725,8 +2725,6 @@ public:
             (outputSurface != nullptr ? veboxSurfaceStateCmdParams.SurfOutput.dwOffset : veboxSurfaceStateCmdParams.SurfInput.dwOffset) + veboxOutputSurfCtrlBits.DW0.Value;
         MHW_CHK_STATUS_RETURN(AddResourceToCmd(this->m_osItf, this->m_currentCmdBuf, &resourceParams));
 
-        //Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize);
-
         return MOS_STATUS_SUCCESS;
     }
 
@@ -3048,7 +3046,6 @@ public:
             MHW_NORMALMESSAGE("VEBOX%d STATE: output startx %d endx %d", m_indexofVebox, cmd.DW24.OutputStartingX, cmd.DW24.OutputEndingX);
         }
 
-        //Mos_AddCommand(this->m_currentCmdBuf, &cmd, cmd.byteSize);
         return MOS_STATUS_SUCCESS;
     }
 

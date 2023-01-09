@@ -3482,7 +3482,14 @@ MOS_STATUS Mos_Specific_LoadFunction(
     osInterface->pfnSetGpuPriority                = Mos_Specific_SetGpuPriority;
     osInterface->pfnIsSetMarkerEnabled            = Mos_Specific_IsSetMarkerEnabled;
     osInterface->pfnGetMarkerResource             = Mos_Specific_GetMarkerResource;
-
+    osInterface->pfnGetResType                    = GetResType;
+    osInterface->pfnGetTsFrequency                = Mos_Specific_GetTsFrequency;
+    osInterface->pfnSetHintParams                 = Mos_Specific_SetHintParams;
+    osInterface->pfnVirtualEngineInit             = Mos_Specific_Virtual_Engine_Init;
+    osInterface->pfnDestroyVeInterface            = Mos_Specific_DestroyVeInterface;
+#if (_DEBUG || _RELEASE_INTERNAL)
+    osInterface->pfnGetEngineLogicId              = Mos_Specific_GetEngineLogicId;
+#endif
     osInterface->pfnSetGpuContextHandle   = Mos_Specific_SetGpuContextHandle;
     osInterface->pfnGetGpuContextbyHandle = Mos_Specific_GetGpuContextbyHandle;
 

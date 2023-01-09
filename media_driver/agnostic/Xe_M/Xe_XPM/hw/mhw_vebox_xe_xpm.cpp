@@ -383,7 +383,7 @@ MOS_STATUS MhwVeboxInterfaceXe_Xpm::AddVeboxDiIecp(
         MHW_NORMALMESSAGE("VEBOX%d STATE: output startx %d endx %d", m_indexofVebox, cmd.DW24.OutputStartingX, cmd.DW24.OutputEndingX);
     }
 
-    Mos_AddCommand(pCmdBuffer, &cmd, cmd.byteSize);
+    pOsInterface->pfnAddCommand(pCmdBuffer, &cmd, cmd.byteSize);
 
 finish:
     return eStatus;
@@ -528,7 +528,7 @@ MOS_STATUS MhwVeboxInterfaceXe_Xpm::CreateGpuContext(
     }
 #endif
     Mos_SetVirtualEngineSupported(pOsInterface, true);
-    Mos_CheckVirtualEngineSupported(pOsInterface, true, true);
+    pOsInterface->pfnVirtualEngineSupported(pOsInterface, true, true);
 
     pGtSystemInfo = pOsInterface->pfnGetGtSystemInfo(pOsInterface);
     MHW_CHK_NULL(pGtSystemInfo);
@@ -575,7 +575,7 @@ MOS_STATUS MhwVeboxInterfaceXe_Xpm::AddVeboxSurfaces(
         false,
         pVeboxSurfaceStateCmdParams->bDIEnable,
         pVeboxSurfaceStateCmdParams->b3DlutEnable);
-    Mos_AddCommand(pCmdBuffer, &cmd1, cmd1.byteSize);
+    m_osInterface->pfnAddCommand(pCmdBuffer, &cmd1, cmd1.byteSize);
 
     // Setup Surface State for Output surface
     if (bOutputValid)
@@ -598,7 +598,7 @@ MOS_STATUS MhwVeboxInterfaceXe_Xpm::AddVeboxSurfaces(
             cmd2.DW3.SurfaceFormat = cmd1.DW3.SurfaceFormat;
         }
 
-        Mos_AddCommand(pCmdBuffer, &cmd2, cmd2.byteSize);
+        m_osInterface->pfnAddCommand(pCmdBuffer, &cmd2, cmd2.byteSize);
     }
 
 finish:

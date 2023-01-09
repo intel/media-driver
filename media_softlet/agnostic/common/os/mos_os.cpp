@@ -641,12 +641,16 @@ MOS_STATUS Mos_InitInterface(
     MediaUserSettingSharedPtr   userSettingPtr = nullptr;
     PMOS_CONTEXT                pOsDriverContext = (PMOS_CONTEXT)osDriverContext;
     // Setup Member functions
-    pOsInterface->pfnFillResource       = Mos_OsFillResource;
-    pOsInterface->pfnGetBitsPerPixel    = Mos_OsGetBitsPerPixel;
-    pOsInterface->Component             = component;
-    pOsInterface->modulizedMosEnabled   = true;
-    pOsInterface->osContextPtr          = nullptr;
-    pOsInterface->veDefaultEnable       = true;
+    pOsInterface->pfnFillResource                       = Mos_OsFillResource;
+    pOsInterface->pfnGetBitsPerPixel                    = Mos_OsGetBitsPerPixel;
+    pOsInterface->pfnAddCommand                         = Mos_AddCommand;
+    pOsInterface->pfnVirtualEngineSupported             = Mos_CheckVirtualEngineSupported;
+    pOsInterface->pfnGetResourceCachePolicyMemoryObject = Mos_GetResourceCachePolicyMemoryObject;
+
+    pOsInterface->Component                 = component;
+    pOsInterface->modulizedMosEnabled       = true;
+    pOsInterface->osContextPtr              = nullptr;
+    pOsInterface->veDefaultEnable           = true;
 
     pOsInterface->streamIndex = 0;
     pOsInterface->bSimIsActive = 0;

@@ -804,7 +804,7 @@ MOS_STATUS CodechalVdencVp9State::ConstructPicStateBatchBuf(
         // Max 7 segments, 32 bytes each
         uint8_t zeroBlock[m_segmentStateBlockSize * (CODEC_VP9_MAX_SEGMENTS - 1)];
         MOS_ZeroMemory(zeroBlock, sizeof(zeroBlock));
-        Mhw_AddCommandCmdOrBB(&constructedCmdBuf, nullptr, zeroBlock, (CODEC_VP9_MAX_SEGMENTS - segmentCount) * m_segmentStateBlockSize);
+        Mhw_AddCommandCmdOrBB(m_osInterface, &constructedCmdBuf, nullptr, zeroBlock, (CODEC_VP9_MAX_SEGMENTS - segmentCount) * m_segmentStateBlockSize);
     }
     m_slbbImgStateOffset = (uint16_t)constructedCmdBuf.iOffset;
     constructedCmdBuf.iOffset += m_cmd2Size;

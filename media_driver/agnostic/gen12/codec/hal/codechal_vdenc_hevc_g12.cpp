@@ -6494,6 +6494,7 @@ CodechalVdencHevcStateG12::CodechalVdencHevcStateG12(
     MOS_ZeroMemory(&m_thirdLevelBatchBuffer, sizeof(MHW_BATCH_BUFFER));
     MOS_ZeroMemory(&m_vdencSAORowStoreBuffer, sizeof(m_vdencSAORowStoreBuffer));
 
+    CODECHAL_ENCODE_CHK_NULL_NO_STATUS_RETURN(m_osInterface);
     for (auto i = 0; i < CODECHAL_VDENC_BRC_NUM_OF_PASSES; i++)
     {
         MOS_ZeroMemory(&m_tileLevelBatchBuffer[i], sizeof(PMHW_BATCH_BUFFER));
@@ -6534,7 +6535,7 @@ CodechalVdencHevcStateG12::CodechalVdencHevcStateG12(
 
     m_hwInterface->m_hucCommandBufferSize += 64;
 
-    Mos_CheckVirtualEngineSupported(m_osInterface, false, true);
+    m_osInterface->pfnVirtualEngineSupported(m_osInterface, false, true);
     Mos_SetVirtualEngineSupported(m_osInterface, true);
 
     CODECHAL_DEBUG_TOOL(

@@ -2754,7 +2754,7 @@ MOS_STATUS DumpDNDIStates(uint8_t *pDndiSate)
             cmdBuffer,
             &ResourceParams));
 
-        Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize);
+        m_osItf->pfnAddCommand(cmdBuffer, &cmd, cmd.byteSize);
 
         return eStatus;
     }
@@ -3099,7 +3099,7 @@ MOS_STATUS DumpDNDIStates(uint8_t *pDndiSate)
         MHW_CHK_NULL_RETURN(pOsInterface);
 
         Mos_SetVirtualEngineSupported(pOsInterface, true);
-        Mos_CheckVirtualEngineSupported(pOsInterface, true, true);
+        pOsInterface->pfnVirtualEngineSupported(pOsInterface, true, true);
 
         if (!MOS_VE_CTXBASEDSCHEDULING_SUPPORTED(pOsInterface))
         {

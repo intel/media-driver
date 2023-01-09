@@ -693,6 +693,7 @@ protected:
 
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(this->m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
 
@@ -743,7 +744,7 @@ protected:
             cmd.DW1.FrameStatisticsStreamoutEnable = 1;
         }
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(this->m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
         return eStatus;
     }
@@ -756,6 +757,7 @@ protected:
 
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(this->m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
 
@@ -816,7 +818,7 @@ protected:
                 MOS_ALIGN_CEIL(params->psSurface->VPlaneOffset.iYOffset, uvPlaneAlignment);
         }
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(this->m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
         return eStatus;
     }
@@ -829,6 +831,7 @@ protected:
 
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(this->m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
 
@@ -927,7 +930,7 @@ protected:
                 &resourceParams));
         }
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(this->m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
         return eStatus;
     }
@@ -940,6 +943,7 @@ protected:
 
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(this->m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
 
@@ -1014,7 +1018,7 @@ protected:
                 &resourceParams));
         }
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(this->m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
         return eStatus;
     }
@@ -1030,6 +1034,7 @@ protected:
 
         MOS_UNUSED(batchBuffer);
 
+        MHW_MI_CHK_NULL(this->m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
         MHW_MI_CHK_NULL(params->pAvcPicParams);
@@ -1094,7 +1099,7 @@ protected:
             cmd.DW16_17.InterViewOrderDisable = 0;
         }
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(this->m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
         return eStatus;
     }
@@ -1259,7 +1264,7 @@ protected:
             cmd.DW20.TargetSliceSizeInBytes = avcPicParams->SliceSizeInBytes;
         }
 
-        MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(this->m_osInterface, cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
 
         return eStatus;
     }
@@ -1270,6 +1275,7 @@ protected:
     {
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(this->m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
 
@@ -1403,7 +1409,7 @@ protected:
             }
         }
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(this->m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
         return MOS_STATUS_SUCCESS;
     }
@@ -1416,6 +1422,7 @@ protected:
 
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(this->m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(avcSliceState);
 
@@ -1445,7 +1452,7 @@ protected:
             nullptr,
             &sliceInfoParam));
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(this->m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
         return eStatus;
     }
@@ -1458,6 +1465,7 @@ protected:
 
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(this->m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(avcSliceState);
         MHW_MI_CHK_NULL(avcSliceState->pAvcSliceParams);
@@ -1521,7 +1529,7 @@ protected:
             nullptr,
             &sliceInfoParam));
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(this->m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
         return eStatus;
     }
@@ -1563,13 +1571,14 @@ protected:
             cmd.DW1.DatabyteoffsetSrcdatastartingbyteoffset10 = 0;
             cmd.DW1.Headerlengthexcludefrmsize = cmd.DW1.EmulationflagEmulationbytebitsinsertenable ? false : params->bHeaderLengthExcludeFrmSize; // Cannot be set to true if emulation byte bit insertion is enabled
 
-            MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
+            MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(this->m_osInterface, cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
 
             if (params->bLastPicInSeq) // only used by AVC, not used by MPEG2
             {
                 uint32_t lastPicInSeqData = params->dwLastPicInSeqData;
 
                 MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(
+                    this->m_osInterface,
                     cmdBuffer,
                     batchBuffer,
                     &lastPicInSeqData,
@@ -1581,6 +1590,7 @@ protected:
                 uint32_t lastPicInStreamData = params->dwLastPicInStreamData;
 
                 MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(
+                    this->m_osInterface,
                     cmdBuffer,
                     batchBuffer,
                     &lastPicInStreamData,
@@ -1608,11 +1618,11 @@ protected:
             cmd.DW1.DatabyteoffsetSrcdatastartingbyteoffset10 = 0;
             cmd.DW1.Headerlengthexcludefrmsize = cmd.DW1.EmulationflagEmulationbytebitsinsertenable ? false :
                 params->bHeaderLengthExcludeFrmSize; // Cannot be set to true if emulation byte bit insertion is enabled
-            MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
+            MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(this->m_osInterface, cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
 
             // Add actual data
             uint8_t* data = (uint8_t*)(params->pBsBuffer->pBase + params->dwOffset);
-            MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, data, byteSize));
+            MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(this->m_osInterface, cmdBuffer, batchBuffer, data, byteSize));
         }
 
         return eStatus;
@@ -1626,6 +1636,7 @@ protected:
 
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(this->m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
         MHW_MI_CHK_NULL(params->pJpegPicParams);
@@ -1669,7 +1680,7 @@ protected:
         cmd.DW2.Obj0.FrameWidthInBlocksMinus1 = params->dwWidthInBlocks;
         cmd.DW2.Obj0.FrameHeightInBlocksMinus1 = params->dwHeightInBlocks;
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(this->m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
         return eStatus;
     }
@@ -1682,6 +1693,7 @@ protected:
 
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(this->m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
         MHW_MI_CHK_NULL(params->pJpegEncodePicParams);
@@ -1747,7 +1759,7 @@ protected:
         cmd.DW2.Obj0.FrameWidthInBlocksMinus1 = (((picParams->m_picWidth + (horizontalSamplingFactor * 8 - 1)) / (horizontalSamplingFactor * 8)) * horizontalSamplingFactor) - 1;
         cmd.DW2.Obj0.FrameHeightInBlocksMinus1 = (((picParams->m_picHeight + (verticalSamplingFactor * 8 - 1)) / (verticalSamplingFactor * 8)) * verticalSamplingFactor) - 1;
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(this->m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
         return eStatus;
     }
@@ -1761,6 +1773,7 @@ protected:
 
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(this->m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
 
@@ -1785,7 +1798,7 @@ protected:
                 }
             }
 
-            MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+            MHW_MI_CHK_STATUS(this->m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
         }
 
         return eStatus;
@@ -1799,6 +1812,7 @@ protected:
 
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(this->m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
 
@@ -1823,7 +1837,7 @@ protected:
                 | ((params->pACCodeValues[j] & 0xFFFF) << 8);
         }
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(this->m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
         return eStatus;
     }
@@ -1836,6 +1850,7 @@ protected:
 
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(this->m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
         MHW_MI_CHK_NULL(params->pJpegEncodeScanParams);
@@ -1856,7 +1871,7 @@ protected:
             cmd.DW2.HuffmanAcTable |= (params->pJpegEncodeScanParams->m_acCodingTblSelector[i]) << i;
         }
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(this->m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
         return eStatus;
     }
@@ -1869,6 +1884,7 @@ protected:
 
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(this->m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
 
@@ -2081,7 +2097,7 @@ protected:
                 &resourceParams));
         }
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(this->m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
         return eStatus;
     }
@@ -2094,6 +2110,7 @@ protected:
 
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(this->m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
         MHW_MI_CHK_NULL(params->pEncodeVP8SeqParams);
@@ -2250,7 +2267,7 @@ protected:
         cmd.DW34.Modelfdelta2ForNearestNearAndNewMode = vp8PicParams->mode_lf_delta[2];
         cmd.DW34.Modelfdelta3ForSplitmvMode = vp8PicParams->mode_lf_delta[3];
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(this->m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
         return eStatus;
     }
@@ -2379,6 +2396,7 @@ protected:
 
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(this->m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
 
@@ -2510,7 +2528,7 @@ protected:
                 &resourceParams));
         }
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(this->m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
         return eStatus;
     }

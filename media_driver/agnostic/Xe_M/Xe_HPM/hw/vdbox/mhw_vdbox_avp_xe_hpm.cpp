@@ -217,6 +217,7 @@ MOS_STATUS MhwVdboxAvpInterfaceXe_Hpm::AddAvpPipeBufAddrCmd(
 
     MHW_FUNCTION_ENTER;
 
+    MHW_MI_CHK_NULL(m_osInterface);
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(params);
     MHW_MI_CHK_NULL(params->m_decodedPic);
@@ -1176,7 +1177,7 @@ MOS_STATUS MhwVdboxAvpInterfaceXe_Hpm::AddAvpPipeBufAddrCmd(
     }
 #endif
 
-    MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+    MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
     return MOS_STATUS_SUCCESS;
 }
 
@@ -1236,7 +1237,7 @@ MOS_STATUS MhwVdboxAvpInterfaceXe_Hpm::AddAvpPipeModeSelectCmd(
     }
 #endif
 
-    MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, params->pBatchBuffer, &cmd, sizeof(cmd)));
+    MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, params->pBatchBuffer, &cmd, sizeof(cmd)));
 
     // for Gen11+, we need to add MFX wait for both KIN and VRT before and after AVP Pipemode select...
     MHW_MI_CHK_STATUS(m_miInterface->AddMfxWaitCmd(cmdBuffer, nullptr, true));
@@ -1252,6 +1253,7 @@ MOS_STATUS MhwVdboxAvpInterfaceXe_Hpm::AddAvpPipeModeSelectCmd(
 
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(m_osInterface);
         MHW_MI_CHK_NULL(params);
 
         MHW_RESOURCE_PARAMS resourceParams;
@@ -1329,7 +1331,7 @@ MOS_STATUS MhwVdboxAvpInterfaceXe_Hpm::AddAvpPipeModeSelectCmd(
             }
         }
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
+        MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, cmd.byteSize));
 
         return eStatus;
     }

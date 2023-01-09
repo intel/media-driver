@@ -32,9 +32,9 @@ DecodeAv1PipelineAdapterG12::DecodeAv1PipelineAdapterG12(
     CodechalDebugInterface *debugInterface)
     : DecodePipelineAdapter(*hwInterface, debugInterface)
 {
-    DECODE_ASSERT(m_osInterface != nullptr);
+    DECODE_CHK_NULL_NO_STATUS_RETURN(m_osInterface);
     m_hwInterface = hwInterface;
-    Mos_CheckVirtualEngineSupported(m_osInterface, true, true);
+    m_osInterface->pfnVirtualEngineSupported(m_osInterface, true, true);
     Mos_SetVirtualEngineSupported(m_osInterface, true);
 }
 

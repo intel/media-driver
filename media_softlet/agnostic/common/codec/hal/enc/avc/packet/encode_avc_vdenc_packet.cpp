@@ -1652,13 +1652,13 @@ namespace encode {
             if (bLastPicInSeq) // only used by AVC, not used by MPEG2
             {
                 uint32_t lastPicInSeqData = (uint32_t)((1 << 16) | CODECHAL_ENCODE_AVC_NAL_UT_EOSEQ << 24);
-                MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, nullptr, &lastPicInSeqData, sizeof(lastPicInSeqData)));
+                MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, nullptr, &lastPicInSeqData, sizeof(lastPicInSeqData)));
             }
 
             if (bLastPicInStream)  // used by AVC, MPEG2
             {
                 uint32_t lastPicInStreamData = (uint32_t)((1 << 16) | CODECHAL_ENCODE_AVC_NAL_UT_EOSTREAM << 24);
-                MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, nullptr, &lastPicInStreamData, sizeof(lastPicInStreamData)));
+                MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, nullptr, &lastPicInStreamData, sizeof(lastPicInStreamData)));
             }
         }
         else // used by AVC, MPEG2, JPEG
@@ -1716,7 +1716,7 @@ namespace encode {
 
                         // Add actual data
                         uint8_t* data = (uint8_t*)(m_basicFeature->m_bsBuffer.pBase + nalunitPosiOffset);
-                        MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, nullptr, data, byteSize));
+                        MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, nullptr, data, byteSize));
 
                         if (nalunitPosiSize > maxBytesInPakInsertObjCmd)
                         {
@@ -1760,7 +1760,7 @@ namespace encode {
 
                 // Add actual data
                 uint8_t* data = (uint8_t*)(m_basicFeature->m_bsBuffer.pBase + m_basicFeature->m_slcData[m_basicFeature->m_curNumSlices].SliceOffset);
-                MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, nullptr, data, byteSize));
+                MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, nullptr, data, byteSize));
             }
 
             // Insert slice header
@@ -1812,7 +1812,7 @@ namespace encode {
 
             // Add actual data
             uint8_t* data = (uint8_t*)(m_basicFeature->m_bsBuffer.pBase + dwOffset);
-            MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, nullptr, data, byteSize));
+            MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, nullptr, data, byteSize));
         }
 
         return MOS_STATUS_SUCCESS;

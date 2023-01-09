@@ -7855,6 +7855,7 @@ CodechalEncHevcStateG12::CodechalEncHevcStateG12(
     MOS_ZeroMemory(&m_resBrcDataBuffer, sizeof(m_resBrcDataBuffer));
     MOS_ZeroMemory(&m_skipFrameInfo.m_resMbCodeSkipFrameSurface, sizeof(m_skipFrameInfo.m_resMbCodeSkipFrameSurface));
 
+    CODECHAL_ENCODE_CHK_NULL_NO_STATUS_RETURN(m_osInterface);
     m_hwInterface->GetStateHeapSettings()->dwNumSyncTags = CODECHAL_ENCODE_HEVC_NUM_SYNC_TAGS;
     m_hwInterface->GetStateHeapSettings()->dwDshSize     = CODECHAL_INIT_DSH_SIZE_HEVC_ENC;
 
@@ -7869,7 +7870,7 @@ CodechalEncHevcStateG12::CodechalEncHevcStateG12(
     m_hwInterface->GetStateHeapSettings()->dwIshSize +=
         MOS_ALIGN_CEIL(m_combinedKernelSize, (1 << MHW_KERNEL_OFFSET_SHIFT));
 
-    Mos_CheckVirtualEngineSupported(m_osInterface, false, true);
+    m_osInterface->pfnVirtualEngineSupported(m_osInterface, false, true);
 
     Mos_SetVirtualEngineSupported(m_osInterface, true);
 }

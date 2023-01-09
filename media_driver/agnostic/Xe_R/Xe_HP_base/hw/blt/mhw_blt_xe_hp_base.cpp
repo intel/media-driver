@@ -200,7 +200,7 @@ MOS_STATUS MhwBltInterfaceXe_Hp_Base::AddCtrlSurfCopyBlt(
         pCmdBuffer,
         &ResourceParams));
 
-    Mos_AddCommand(pCmdBuffer, &cmd, cmd.byteSize);
+    m_osInterface->pfnAddCommand(pCmdBuffer, &cmd, cmd.byteSize);
 
 finish:
     return eStatus;
@@ -221,6 +221,7 @@ MOS_STATUS MhwBltInterfaceXe_Hp_Base::AddBlockCopyBlt(
 
     mhw_blt_state_xe_hp_base::XY_BLOCK_COPY_BLT_CMD cmd;
 
+    MHW_CHK_NULL_RETURN(m_osInterface);
     MHW_CHK_NULL_RETURN(pFastCopyBltParam);
     MHW_CHK_NULL_RETURN(pFastCopyBltParam->pSrcOsResource);
     MHW_CHK_NULL_RETURN(pFastCopyBltParam->pSrcOsResource->pGmmResInfo);
@@ -315,7 +316,7 @@ MOS_STATUS MhwBltInterfaceXe_Hp_Base::AddBlockCopyBlt(
         pCmdBuffer,
         &ResourceParams));
 
-    Mos_AddCommand(pCmdBuffer, &cmd, cmd.byteSize);
+    m_osInterface->pfnAddCommand(pCmdBuffer, &cmd, cmd.byteSize);
 
 finish:
     return eStatus;

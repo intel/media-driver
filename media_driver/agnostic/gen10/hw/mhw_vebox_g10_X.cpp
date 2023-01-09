@@ -844,7 +844,7 @@ MOS_STATUS MhwVeboxInterfaceG10::AddVeboxState(
     cmd.DW18.BypassChromaUpsampling                    = pChromaSampling->BypassChromaUpsampling;
     cmd.DW18.BypassChromaDownsampling                  = pChromaSampling->BypassChromaDownsampling;
 
-    Mos_AddCommand(pCmdBuffer, &cmd, cmd.byteSize);
+    pOsInterface->pfnAddCommand(pCmdBuffer, &cmd, cmd.byteSize);
 
 finish:
     return eStatus;
@@ -1059,7 +1059,7 @@ MOS_STATUS MhwVeboxInterfaceG10::AddVeboxDiIecp(
     cmd.DW1.EndingX   = pVeboxDiIecpCmdParams->dwEndingX;
     cmd.DW1.StartingX = pVeboxDiIecpCmdParams->dwStartingX;
 
-    Mos_AddCommand(pCmdBuffer, &cmd, cmd.byteSize);
+    pOsInterface->pfnAddCommand(pCmdBuffer, &cmd, cmd.byteSize);
 
 finish:
     return eStatus;

@@ -1202,9 +1202,9 @@ CodechalEncodeAvcEncG12::CodechalEncodeAvcEncG12(
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    CODECHAL_ENCODE_ASSERT(m_osInterface);
+    CODECHAL_ENCODE_CHK_NULL_NO_STATUS_RETURN(m_osInterface);
 
-    Mos_CheckVirtualEngineSupported(m_osInterface, false, true);
+    m_osInterface->pfnVirtualEngineSupported(m_osInterface, false, true);
 
     // Virtual Engine is enabled in default.
     Mos_SetVirtualEngineSupported(m_osInterface, true);
@@ -1229,7 +1229,7 @@ CodechalEncodeAvcEncG12::CodechalEncodeAvcEncG12(
 
     m_vdboxOneDefaultUsed = true;
 
-    Mos_CheckVirtualEngineSupported(m_osInterface, false, false);
+    m_osInterface->pfnVirtualEngineSupported(m_osInterface, false, false);
 
     CODECHAL_DEBUG_TOOL(
         CODECHAL_ENCODE_CHK_NULL_NO_STATUS_RETURN(m_encodeParState = MOS_New(CodechalDebugEncodeParG12, this));

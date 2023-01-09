@@ -60,7 +60,7 @@ MOS_STATUS MhwVdboxHucInterfaceG9Bxt::AddHucPipeModeSelectCmd(
     MOS_COMMAND_BUFFER                  *cmdBuffer,
     MHW_VDBOX_PIPE_MODE_SELECT_PARAMS   *params)
 {
-
+    MHW_MI_CHK_NULL(m_osInterface);
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(params);
 
@@ -75,7 +75,7 @@ MOS_STATUS MhwVdboxHucInterfaceG9Bxt::AddHucPipeModeSelectCmd(
     cmd.DW1.HucStreamObjectEnable = params->bStreamObjectUsed;
     cmd.DW2.MediaSoftResetCounterPer1000Clocks = params->dwMediaSoftResetCounterValue;
 
-    MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
+    MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, cmd.byteSize));
 
     return MOS_STATUS_SUCCESS;
 }

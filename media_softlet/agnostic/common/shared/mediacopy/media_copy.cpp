@@ -77,9 +77,9 @@ MOS_STATUS MediaCopyBaseState::Initialize(PMOS_INTERFACE osInterface)
         m_inUseGPUMutex     = MosUtilities::MosCreateMutex();
         MCPY_CHK_NULL_RETURN(m_inUseGPUMutex);
     }
-
+    MCPY_CHK_NULL_RETURN(m_osInterface);
     Mos_SetVirtualEngineSupported(m_osInterface, true);
-    Mos_CheckVirtualEngineSupported(m_osInterface, true, true);
+    m_osInterface->pfnVirtualEngineSupported(m_osInterface, true, true);
 
    #if (_DEBUG || _RELEASE_INTERNAL)
     if (m_surfaceDumper == nullptr)

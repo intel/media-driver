@@ -7105,6 +7105,16 @@ MOS_STATUS Mos_Specific_InitInterface(
     pOsInterface->pfnGetDecoderVirtualNodePerStream         = Mos_Specific_pfnGetDecoderVirtualNodePerStream;
     pOsInterface->pfnSetDecoderVirtualNodePerStream         = Mos_Specific_pfnSetDecoderVirtualNodePerStream;
 
+    pOsInterface->pfnGetResType                             = GetResType;
+    pOsInterface->pfnGetTsFrequency                         = Mos_Specific_GetTsFrequency;
+    pOsInterface->pfnSetHintParams                          = Mos_Specific_SetHintParams;
+    pOsInterface->pfnIsResourceReleasable                   = Mos_Specific_IsResourceReleasable;
+    pOsInterface->pfnVirtualEngineInit                      = Mos_Specific_Virtual_Engine_Init;
+    pOsInterface->pfnDestroyVeInterface                     = Mos_Specific_DestroyVeInterface;
+    pOsInterface->pfnVirtualEngineInterfaceInitialize       = Mos_VirtualEngineInterface_Initialize;
+#if (_DEBUG || _RELEASE_INTERNAL)
+    pOsInterface->pfnGetEngineLogicId                       = Mos_Specific_GetEngineLogicId;
+#endif
     pOsContext              = nullptr;
     pOsUserFeatureInterface = (PMOS_USER_FEATURE_INTERFACE)&pOsInterface->UserFeatureInterface;
 

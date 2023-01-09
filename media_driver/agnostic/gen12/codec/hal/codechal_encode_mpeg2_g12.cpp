@@ -1020,11 +1020,11 @@ CodechalEncodeMpeg2G12::CodechalEncodeMpeg2G12(
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    CODECHAL_ENCODE_ASSERT(m_osInterface);
+    CODECHAL_ENCODE_CHK_NULL_NO_STATUS_RETURN(m_osInterface);
 
     m_kuidCommon = IDR_CODEC_HME_DS_SCOREBOARD_KERNEL;
 
-    Mos_CheckVirtualEngineSupported(m_osInterface, false, true);
+    m_osInterface->pfnVirtualEngineSupported(m_osInterface, false, true);
 
     pfnGetKernelHeaderAndSize = GetKernelHeaderAndSize;
 

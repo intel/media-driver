@@ -154,8 +154,8 @@ CodechalVdencVp9StateG11::CodechalVdencVp9StateG11(
     {
         MOS_ZeroMemory(&m_refPicList0[i], sizeof(m_refPicList0[i]));
     }
-
-    Mos_CheckVirtualEngineSupported(m_osInterface, false, true);
+    CODECHAL_ENCODE_CHK_NULL_NO_STATUS_RETURN(m_osInterface);
+    m_osInterface->pfnVirtualEngineSupported(m_osInterface, false, true);
     Mos_SetVirtualEngineSupported(m_osInterface, true);
 }
 
@@ -530,6 +530,7 @@ MOS_STATUS CodechalVdencVp9StateG11::SetupSegmentationStreamIn()
         return eStatus;
     }
 
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_osInterface);
     MOS_LOCK_PARAMS lockFlagsWriteOnly;
     MOS_ZeroMemory(&lockFlagsWriteOnly, sizeof(MOS_LOCK_PARAMS));
     lockFlagsWriteOnly.WriteOnly = 1;
@@ -620,7 +621,7 @@ MOS_STATUS CodechalVdencVp9StateG11::SetupSegmentationStreamIn()
 
 
     uint32_t dwPitch = m_mbSegmentMapSurface.dwPitch;
-    if (GetResType(&m_mbSegmentMapSurface.OsResource) == MOS_GFXRES_BUFFER)
+    if (m_osInterface->pfnGetResType(&m_mbSegmentMapSurface.OsResource) == MOS_GFXRES_BUFFER)
     {
         //application can send 1D or 2D buffer, based on that change the pitch to correctly access the map buffer
         //driver reads the seg ids from the buffer for each 16x16 block. Reads 4 values for each 32x32 block
@@ -3128,7 +3129,7 @@ MOS_STATUS CodechalVdencVp9StateG11::ConstructPicStateBatchBuf(
         // Max 7 segments, 32 bytes each
         uint8_t zeroBlock[m_segmentStateBlockSize * (CODEC_VP9_MAX_SEGMENTS - 1)];
         MOS_ZeroMemory(zeroBlock, sizeof(zeroBlock));
-        Mhw_AddCommandCmdOrBB(&constructedCmdBuf, nullptr, zeroBlock, (CODEC_VP9_MAX_SEGMENTS - segmentCount) * m_segmentStateBlockSize);
+        Mhw_AddCommandCmdOrBB(m_osInterface, &constructedCmdBuf, nullptr, zeroBlock, (CODEC_VP9_MAX_SEGMENTS - segmentCount) * m_segmentStateBlockSize);
     }
     m_slbbImgStateOffset = (uint16_t)constructedCmdBuf.iOffset;
     constructedCmdBuf.iOffset += m_cmd2Size;

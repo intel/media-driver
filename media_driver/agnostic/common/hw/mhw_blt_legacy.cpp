@@ -61,6 +61,7 @@ MOS_STATUS MhwBltInterface::AddFastCopyBlt(
 
     eStatus = MOS_STATUS_SUCCESS;
 
+    MHW_CHK_NULL_RETURN(m_osInterface);
     MHW_CHK_NULL_RETURN(pFastCopyBltParam);
     MHW_CHK_NULL_RETURN(pFastCopyBltParam->pDstOsResource);
     MHW_CHK_NULL_RETURN(pFastCopyBltParam->pSrcOsResource);
@@ -114,7 +115,7 @@ MOS_STATUS MhwBltInterface::AddFastCopyBlt(
         pCmdBuffer,
         &ResourceParams));
 
-    Mos_AddCommand(pCmdBuffer, &cmd, cmd.byteSize);
+    m_osInterface->pfnAddCommand(pCmdBuffer, &cmd, cmd.byteSize);
 
 finish:
     return eStatus;
@@ -134,7 +135,7 @@ MOS_STATUS MhwBltInterface::AddBlockCopyBlt(
     eStatus = MOS_STATUS_SUCCESS;
 
     mhw_blt_state::XY_BLOCK_COPY_BLT_CMD cmd;
-
+    MHW_CHK_NULL(m_osInterface);
     cmd.DW0.ColorDepth = pFastCopyBltParam->dwColorDepth;
     cmd.DW1.DestinationPitch = pFastCopyBltParam->dwDstPitch -1;
     cmd.DW1.DestinationMocsValue =
@@ -181,7 +182,7 @@ MOS_STATUS MhwBltInterface::AddBlockCopyBlt(
         pCmdBuffer,
         &ResourceParams));
 
-    Mos_AddCommand(pCmdBuffer, &cmd, cmd.byteSize);
+    m_osInterface->pfnAddCommand(pCmdBuffer, &cmd, cmd.byteSize);
 
 finish:
     return eStatus;

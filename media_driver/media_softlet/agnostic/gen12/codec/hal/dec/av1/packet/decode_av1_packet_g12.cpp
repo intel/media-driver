@@ -202,13 +202,13 @@ namespace decode
             0x00000050, 0x0000003d, 0x718a0001, 0x00000000,
             0x00000004, 0x77800000, 0x00100030
         };
-
-        Mos_AddCommand(&cmdBuffer, section1, sizeof(section1));
+        DECODE_CHK_NULL(m_osInterface);
+        m_osInterface->pfnAddCommand(&cmdBuffer, section1, sizeof(section1));
 
         DECODE_CHK_STATUS(m_picturePkt->UpdatePipeBufAddrForDummyWL(cmdBuffer));
         DECODE_CHK_STATUS(m_picturePkt->UpdateIndObjAddrForDummyWL(cmdBuffer));
 
-        Mos_AddCommand(&cmdBuffer, section2, sizeof(section2));
+        m_osInterface->pfnAddCommand(&cmdBuffer, section2, sizeof(section2));
 
         return MOS_STATUS_SUCCESS;
     }

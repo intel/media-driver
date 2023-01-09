@@ -77,6 +77,7 @@ MOS_STATUS MhwVdboxVdencInterfaceG9Kbl::AddVdencSrcSurfaceStateCmd(
 {
     MHW_FUNCTION_ENTER;
 
+    MHW_MI_CHK_NULL(m_osInterface);
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(params);
     MHW_MI_CHK_NULL(params->psSurface);
@@ -99,7 +100,7 @@ MOS_STATUS MhwVdboxVdencInterfaceG9Kbl::AddVdencSrcSurfaceStateCmd(
     cmd.Dwords25.DW2.YOffsetForUCb = cmd.Dwords25.DW3.YOffsetForVCr =
         MOS_ALIGN_CEIL(params->psSurface->UPlaneOffset.iYOffset, MHW_VDBOX_MFX_RAW_UV_PLANE_ALIGNMENT_GEN9);
 
-    MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+    MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -330,7 +331,7 @@ MOS_STATUS MhwVdboxVdencInterfaceG9Kbl::AddVdencImgStateCmd(
         return MOS_STATUS_NULL_POINTER;
     }
 
-    MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
+    MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -341,6 +342,7 @@ MOS_STATUS MhwVdboxVdencInterfaceG9Kbl::AddVdencWalkerStateCmd(
 {
     MHW_FUNCTION_ENTER;
 
+    MHW_MI_CHK_NULL(m_osInterface);
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(params);
     MHW_MI_CHK_NULL(params->pAvcSeqParams);
@@ -369,7 +371,7 @@ MOS_STATUS MhwVdboxVdencInterfaceG9Kbl::AddVdencWalkerStateCmd(
         cmd.DW3.Log2WeightDenomLuma = avcSlcParams->luma_log2_weight_denom;
     }
 
-    MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+    MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -380,6 +382,7 @@ MOS_STATUS MhwVdboxVdencInterfaceG9Kbl::AddVdencAvcWeightsOffsetsStateCmd(
 {
     MHW_FUNCTION_ENTER;
 
+    MHW_MI_CHK_NULL(m_osInterface);
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(params);
     MHW_MI_CHK_NULL(params->pAvcPicParams);
@@ -408,7 +411,7 @@ MOS_STATUS MhwVdboxVdencInterfaceG9Kbl::AddVdencAvcWeightsOffsetsStateCmd(
         cmd.DW2.OffsetForwardReference2  = 0;
     }
 
-    MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+    MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
     return MOS_STATUS_SUCCESS;
 }

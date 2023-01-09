@@ -69,7 +69,7 @@ MOS_STATUS MhwVdboxHucInterfaceG12::AddHucPipeModeSelectCmd(
     MOS_COMMAND_BUFFER                  *cmdBuffer,
     MHW_VDBOX_PIPE_MODE_SELECT_PARAMS   *params)
 {
-
+    MHW_MI_CHK_NULL(m_osInterface);
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(params);
 
@@ -86,7 +86,7 @@ MOS_STATUS MhwVdboxHucInterfaceG12::AddHucPipeModeSelectCmd(
     cmd.DW1.IndirectStreamOutEnable = params->bStreamOutEnabled;
     cmd.DW2.MediaSoftResetCounterPer1000Clocks = params->dwMediaSoftResetCounterValue;
 
-    MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
+    MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, cmd.byteSize));
 
     //for gen 11, we need to add MFX wait for both KIN and VRT before and after HUC Pipemode select...
     MHW_MI_CHK_STATUS(m_MiInterface->AddMfxWaitCmd(cmdBuffer, nullptr, true));
@@ -98,6 +98,7 @@ MOS_STATUS MhwVdboxHucInterfaceG12::AddHucImemStateCmd(
     MOS_COMMAND_BUFFER                  *cmdBuffer,
     MHW_VDBOX_HUC_IMEM_STATE_PARAMS     *params)
 {
+    MHW_MI_CHK_NULL(m_osInterface);
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(params);
 
@@ -105,7 +106,7 @@ MOS_STATUS MhwVdboxHucInterfaceG12::AddHucImemStateCmd(
 
     cmd.DW4.HucFirmwareDescriptor = params->dwKernelDescriptor;
 
-    MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
+    MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, cmd.byteSize));
 
     MHW_MI_CHK_STATUS(m_MiInterface->AddMfxWaitCmd(cmdBuffer, nullptr, true));
 

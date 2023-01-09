@@ -35,7 +35,7 @@ DecodeHevcPipelineAdapterXe_Lpm_Plus_Base::DecodeHevcPipelineAdapterXe_Lpm_Plus_
     DECODE_ASSERT(m_osInterface != nullptr);
     if (m_osInterface != nullptr)
     {
-        Mos_CheckVirtualEngineSupported(m_osInterface, true, true);
+        m_osInterface->pfnVirtualEngineSupported(m_osInterface, true, true);
         Mos_SetVirtualEngineSupported(m_osInterface, true);
     }
 }

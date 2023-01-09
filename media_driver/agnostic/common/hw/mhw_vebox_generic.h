@@ -98,6 +98,7 @@ public:
         typename TVeboxCmds::VEBOX_SURFACE_STATE_CMD cmd1, cmd2;
 
         MEDIA_FEATURE_TABLE    *pSkuTable = nullptr;
+        MHW_CHK_NULL(m_osInterface);
         pSkuTable = m_osInterface->pfnGetSkuTable(m_osInterface);
         MHW_CHK_NULL(pSkuTable);
         MHW_CHK_NULL(pCmdBuffer);
@@ -121,7 +122,7 @@ public:
             MHW_NORMALMESSAGE("Align Input Height as 8x due to 3DlutEnable");
         }
 
-        Mos_AddCommand(pCmdBuffer, &cmd1, cmd1.byteSize);
+        m_osInterface->pfnAddCommand(pCmdBuffer, &cmd1, cmd1.byteSize);
         MHW_NORMALMESSAGE("Vebox input Height: %d, Width: %d;", cmd1.DW2.Height, cmd1.DW2.Width);
 
         // Setup Surface State for Output surface
@@ -147,7 +148,7 @@ public:
                 MHW_NORMALMESSAGE("Align Output Height as 8x due to 3DlutEnable");
             }
 
-            Mos_AddCommand(pCmdBuffer, &cmd2, cmd2.byteSize);
+            m_osInterface->pfnAddCommand(pCmdBuffer, &cmd2, cmd2.byteSize);
             MHW_NORMALMESSAGE("Vebox output Height: %d, Width: %d;", cmd2.DW2.Height, cmd2.DW2.Width);
         }
 

@@ -185,6 +185,7 @@ public:
 
         typename TMiCmds::MI_NOOP_CMD cmd;
         MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(
+            m_osInterface,
             cmdBuffer,
             batchBuffer,
             &cmd,
@@ -231,6 +232,7 @@ public:
 
         typename TMiCmds::MI_BATCH_BUFFER_END_CMD cmd;
         MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(
+            m_osInterface,
             cmdBuffer,
             batchBuffer,
             &cmd,
@@ -279,6 +281,7 @@ public:
 
         typename TMiCmds::MI_BATCH_BUFFER_END_CMD cmd;
         MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(
+            m_osInterface,
             cmdBuffer,
             batchBuffer,
             &cmd,
@@ -307,6 +310,7 @@ public:
     {
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
         MHW_MI_CHK_NULL(params->pOsResource);
@@ -334,7 +338,7 @@ public:
 
         cmd.DW3.DataDword0 = params->dwValue;
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
+        MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, cmd.byteSize));
 
         return MOS_STATUS_SUCCESS;
     }
@@ -357,6 +361,7 @@ public:
     {
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
         MHW_MI_CHK_NULL(params->presSrc);
@@ -395,7 +400,7 @@ public:
             cmdBuffer,
             &resourceParams));
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
+        MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, cmd.byteSize));
 
         return MOS_STATUS_SUCCESS;
     }
@@ -406,6 +411,7 @@ public:
     {
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
         MHW_MI_CHK_NULL(params->presStoreBuffer);
@@ -429,7 +435,7 @@ public:
         cmd.DW0.UseGlobalGtt = IsGlobalGttInUse();
         cmd.DW1.RegisterAddress = params->dwRegister >> 2;
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
+        MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, cmd.byteSize));
 
         return MOS_STATUS_SUCCESS;
     }
@@ -440,6 +446,7 @@ public:
     {
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
         MHW_MI_CHK_NULL(params->presStoreBuffer);
@@ -463,7 +470,7 @@ public:
         cmd.DW0.UseGlobalGtt    = IsGlobalGttInUse();
         cmd.DW1.RegisterAddress = params->dwRegister >> 2;
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
+        MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, cmd.byteSize));
 
         return MOS_STATUS_SUCCESS;
     }
@@ -474,6 +481,7 @@ public:
     {
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
 
@@ -481,7 +489,7 @@ public:
         cmd.DW1.RegisterOffset = params->dwRegister >> 2;
         cmd.DW2.DataDword = params->dwData;
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
+        MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, cmd.byteSize));
 
         return MOS_STATUS_SUCCESS;
     }
@@ -492,6 +500,7 @@ public:
     {
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
 
@@ -499,7 +508,7 @@ public:
         cmd.DW1.SourceRegisterAddress = params->dwSrcRegister >> 2;
         cmd.DW2.DestinationRegisterAddress = params->dwDstRegister >> 2;
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
+        MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, cmd.byteSize));
 
         return MOS_STATUS_SUCCESS;
     }
@@ -510,6 +519,7 @@ public:
     {
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
 
@@ -522,9 +532,9 @@ public:
         typename TMiCmds::MI_MATH_CMD cmd;
         cmd.DW0.DwordLength = params->dwNumAluParams - 1;
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
+        MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, cmd.byteSize));
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(
+        MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(
             cmdBuffer,
             &params->pAluPayload[0],
             sizeof(MHW_MI_ALU_PARAMS)* params->dwNumAluParams));
@@ -538,11 +548,12 @@ public:
     {
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
 
         typename TMiCmds::MI_SET_PREDICATE_CMD cmd;
         cmd.DW0.PredicateEnable = enableFlag;
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
+        MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, cmd.byteSize));
 
         return MOS_STATUS_SUCCESS;
     }
@@ -553,6 +564,7 @@ public:
     {
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
         MHW_MI_CHK_NULL(params->pOsResource);
@@ -631,7 +643,7 @@ public:
             cmd.DW10.Operand2DataDword3 = params->dwOperand2Data[3];
         }
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
+        MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, cmd.byteSize));
 
         return MOS_STATUS_SUCCESS;
     }
@@ -642,6 +654,7 @@ public:
     {
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
         MHW_MI_CHK_NULL(params->presSemaphoreMem);
@@ -667,7 +680,7 @@ public:
         cmd.DW0.CompareOperation    = params->CompareOperation;
         cmd.DW1.SemaphoreDataDword  = params->dwSemaphoreData;
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
+        MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, cmd.byteSize));
 
         return MOS_STATUS_SUCCESS;
     }
@@ -677,10 +690,11 @@ public:
     {
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
 
         typename TMiCmds::MI_ARB_CHECK_CMD cmd;
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
+        MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, cmd.byteSize));
 
         return MOS_STATUS_SUCCESS;
     }
@@ -792,7 +806,7 @@ public:
             cmd.DW1.IndirectStatePointersDisable = true;
         }
 
-        MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, cmd.byteSize));
+        MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, batchBuffer, &cmd, cmd.byteSize));
 
         return MOS_STATUS_SUCCESS;
     }
@@ -816,7 +830,7 @@ public:
         // set the protection bit based on CP status
         MHW_MI_CHK_STATUS(m_cpInterface->SetProtectionSettingsForMfxWait(m_osInterface, &cmd));
 
-        MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, cmd.byteSize));
+        MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, batchBuffer, &cmd, cmd.byteSize));
 
         return MOS_STATUS_SUCCESS;
     }

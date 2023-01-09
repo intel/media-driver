@@ -1391,6 +1391,153 @@ typedef struct _MOS_INTERFACE
     //!
     bool (*pfnIsMismatchOrderProgrammingSupported)();
 
+    //! \brief    Unified OS add command to command buffer
+    //! \details  Offset returned is dword aligned but size requested can be byte aligned
+    //! \param    PMOS_COMMAND_BUFFER pCmdBuffer
+    //!           [in/out] Pointer to Command Buffer
+    //! \param    void  *pCmd
+    //!           [in] Command Pointer
+    //! \param    uint32_t dwCmdSize
+    //!           [in] Size of command in bytes
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    MOS_STATUS (*pfnAddCommand)(
+        PMOS_COMMAND_BUFFER pCmdBuffer,
+        const void          *pCmd,
+        uint32_t            dwCmdSize);
+
+    //!
+    //! \brief    Check virtual engine is supported
+    //! \details  Check virtual engine is supported
+    //! \param    PMOS_INTERFACE pOsInterface
+    //!           [in] OS Interface
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if succeeded, otherwise error code
+    //!
+    MOS_STATUS (*pfnVirtualEngineSupported)(
+        PMOS_INTERFACE osInterface,
+        bool           isDecode,
+        bool           veDefaultEnable);
+
+    //!
+    //! \brief    Retrieve the CachePolicyMemoryObject for a resource
+    //! \details  Retrieve the CachePolicyMemoryObject for a resource
+    //! \param    PMOS_INTERFACE osInterface
+    //!           [in] OS Interface
+    //! \param    PMOS_RESOURCE resource
+    //!           [in] resource
+    //! \return   MEMORY_OBJECT_CONTROL_STATE
+    //!           return a value of MEMORY_OBJECT_CONTROL_STATE
+    //!
+    MEMORY_OBJECT_CONTROL_STATE (*pfnGetResourceCachePolicyMemoryObject)(
+        PMOS_INTERFACE      osInterface,
+        PMOS_RESOURCE       resource);
+
+    //!
+    //! \brief    Get Buffer Type
+    //! \details  Returns the type of buffer, 1D, 2D or volume
+    //! \param    PMOS_RESOURCE pOsResource
+    //!           [in] Pointer to OS Resource
+    //! \return   GFX resource Type
+    //!
+    MOS_GFXRES_TYPE (*pfnGetResType)(
+        PMOS_RESOURCE pOsResource);
+
+    //!
+    //! \brief    Get TimeStamp frequency base
+    //! \details  Get TimeStamp frequency base from OsInterface
+    //! \param    PMOS_INTERFACE pOsInterface
+    //!           [in] OS Interface
+    //! \return   uint32_t
+    //!           time stamp frequency base
+    //!
+    uint32_t (*pfnGetTsFrequency)(
+        PMOS_INTERFACE         pOsInterface);
+
+    //!
+    //! \brief    Set hint parameters
+    //! \details  
+    //! \param    PMOS_INTERFACE pOsInterface
+    //!           [in] Pointer to OS interface structure
+    //! \param    MOS_VIRTUALENGINE_SET_PARAMS veParams
+    //!           [out] VIRTUALENGINE SET PARAMS
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if succeeded, otherwise error code
+    //!
+    MOS_STATUS (*pfnSetHintParams)(
+        PMOS_INTERFACE                pOsInterface,
+        PMOS_VIRTUALENGINE_SET_PARAMS veParams);
+
+    //!
+    //! \brief    Checks whether the requested resource is releasable
+    //! \param    PMOS_INTERFACE pOsInterface
+    //!           [in] OS Interface
+    //! \param    PMOS_RESOURCE pOsResource
+    //!           [in] Pointer to OS Resource
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if requested can be released, otherwise MOS_STATUS_UNKNOWN
+    //!
+    MOS_STATUS (*pfnIsResourceReleasable)(
+        PMOS_INTERFACE         pOsInterface,
+        PMOS_RESOURCE          pOsResource);
+
+    //!
+    //! \brief    Virtual Engine Init for media Scalability
+    //! \details  
+    //! \param    PMOS_INTERFACE pOsInterface
+    //!           [in] Pointer to OS interface structure
+    //! \param    PMOS_VIRTUALENGINE_HINT_PARAMS veHitParams
+    //!           [out] Pointer to Virtual Engine hint parameters
+    //! \param    PMOS_VIRTUALENGINE_INTERFACE veInterface
+    //!           [out] Pointer to Virtual Engine Interface
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if succeeded, otherwise error code
+    //!
+    MOS_STATUS (*pfnVirtualEngineInit)(
+        PMOS_INTERFACE                  pOsInterface,
+        PMOS_VIRTUALENGINE_HINT_PARAMS* veHitParams,
+        MOS_VIRTUALENGINE_INIT_PARAMS&  veInParams);
+    //!
+    //! \brief    initialize virtual engine interface
+    //! \details  initialize virtual engine interface
+    //! \param    [in]  PMOS_INTERFACE
+    //!                pointer to mos interface
+    //! \param    [in]  PMOS_VIRTUALENGINE_INIT_PARAMS pVEInitParms
+    //!                pointer to VE init parameters
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS (*pfnVirtualEngineInterfaceInitialize)(
+        PMOS_INTERFACE                    pOsInterface,
+        PMOS_VIRTUALENGINE_INIT_PARAMS    pVEInitParms);
+
+    //!
+    //! \brief    Destroy veInterface
+    //! \details  
+    //! \param    PMOS_VIRTUALENGINE_INTERFACE *veInterface
+    //!           [in] Pointer to PMOS_VIRTUALENGINE_INTERFACE
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if succeeded, otherwise error code
+    //!
+    MOS_STATUS (*pfnDestroyVeInterface)(
+        PMOS_VIRTUALENGINE_INTERFACE *veInterface);
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    //!
+    //! \brief    gpuCtxCreateOption Init for media Scalability
+    //! \details  
+    //! \param    PMOS_INTERFACE pOsInterface
+    //!           [in] Pointer to OS interface structure
+    //! \param    uint8_t id
+    //!           [out] EngineLogicId
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if succeeded, otherwise error code
+    //!
+    MOS_STATUS (*pfnGetEngineLogicId)(
+        PMOS_INTERFACE                 pOsInterface,
+        uint8_t&                       id);
+#endif
     //!
     //! \brief   Get User Setting instance
     //!

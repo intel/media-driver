@@ -1354,7 +1354,7 @@ MhwVdboxVdencInterfaceG12<mhw::vdbox::vdenc::xe_hpm::Cmd>::AddVdencPipeModeSelec
         cmd.DW5.CaptureMode           = mhw::vdbox::vdenc::xe_hpm::Cmd::VDENC_PIPE_MODE_SELECT_CMD::CAPTURE_MODE_CAMERA;
     }
 
-    MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+    MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -1378,6 +1378,7 @@ MhwVdboxVdencInterfaceG12<mhw::vdbox::vdenc::xe_hpm::Cmd>::AddVdencAvcWeightsOff
 {
     MHW_FUNCTION_ENTER;
 
+    MHW_MI_CHK_NULL(m_osInterface);
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(params);
     MHW_MI_CHK_NULL(params->pAvcPicParams);
@@ -1401,7 +1402,7 @@ MhwVdboxVdencInterfaceG12<mhw::vdbox::vdenc::xe_hpm::Cmd>::AddVdencAvcWeightsOff
         cmd.DW2.OffsetBackwardReference0  = params->Weights[1][0][0][1];
     }
 
-    MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+    MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -1505,7 +1506,7 @@ MhwVdboxVdencInterfaceG12<mhw::vdbox::vdenc::xe_hpm::Cmd>::AddVdencWeightsOffset
         return MOS_STATUS_NULL_POINTER;
     }
 
-    MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
+    MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -1671,7 +1672,7 @@ MhwVdboxVdencInterfaceG12<mhw::vdbox::vdenc::xe_hpm::Cmd>::AddVdencImgStateCmd(
     cmd.DW18.PocNumberForFwdRef2        = refPoc[0][2];
     cmd.DW19.PocNumberForBwdRef0        = refPoc[1][0];
 
-    MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
+    MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -2334,7 +2335,7 @@ MhwVdboxVdencInterfaceG12<mhw::vdbox::vdenc::xe_hpm::Cmd>::AddVdencPipeBufAddrCm
         }
     }
 
-    MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+    MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -2345,6 +2346,7 @@ MhwVdboxVdencInterfaceG12<mhw::vdbox::vdenc::xe_hpm::Cmd>::AddVdencWalkerStateCm
 {
     MHW_FUNCTION_ENTER;
 
+    MHW_MI_CHK_NULL(m_osInterface);
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(params);
 
@@ -2436,7 +2438,7 @@ MhwVdboxVdencInterfaceG12<mhw::vdbox::vdenc::xe_hpm::Cmd>::AddVdencWalkerStateCm
         }
     }
 
-     MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+     MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
      return MOS_STATUS_SUCCESS;
 }
@@ -2452,6 +2454,7 @@ MhwVdboxVdencInterfaceG12<mhw::vdbox::vdenc::xe_hpm::Cmd>::AddVdencSrcSurfaceSta
 {
     MHW_FUNCTION_ENTER;
 
+    MHW_MI_CHK_NULL(m_osInterface);
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(params);
     MHW_MI_CHK_NULL(params->psSurface);
@@ -2475,7 +2478,7 @@ MhwVdboxVdencInterfaceG12<mhw::vdbox::vdenc::xe_hpm::Cmd>::AddVdencSrcSurfaceSta
 
     cmd.Dwords25.DW1.ChromaDownsampleFilterControl = 7;
 
-    MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+    MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -2491,6 +2494,7 @@ MhwVdboxVdencInterfaceG12<mhw::vdbox::vdenc::xe_hpm::Cmd>::AddVdencRefSurfaceSta
 {
     MHW_FUNCTION_ENTER;
 
+    MHW_MI_CHK_NULL(m_osInterface);
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(params);
     MHW_MI_CHK_NULL(params->psSurface);
@@ -2562,7 +2566,7 @@ MhwVdboxVdencInterfaceG12<mhw::vdbox::vdenc::xe_hpm::Cmd>::AddVdencRefSurfaceSta
         cmd.Dwords25.DW2.YOffsetForUCb = cmd.Dwords25.DW3.YOffsetForVCr = params->dwReconSurfHeight;
     }
 
-    MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+    MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -2580,6 +2584,7 @@ MhwVdboxVdencInterfaceG12<mhw::vdbox::vdenc::xe_hpm::Cmd>::AddVdencDsRefSurfaceS
     uint32_t tilemode = 0;
     MHW_FUNCTION_ENTER;
 
+    MHW_MI_CHK_NULL(m_osInterface);
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(params);
     MHW_MI_CHK_NULL(params->psSurface);
@@ -2634,7 +2639,7 @@ MhwVdboxVdencInterfaceG12<mhw::vdbox::vdenc::xe_hpm::Cmd>::AddVdencDsRefSurfaceS
             (params->psSurface->UPlaneOffset.iSurfaceOffset - params->psSurface->dwOffset) / params->psSurface->dwPitch + params->psSurface->RenderOffset.YUV.U.YOffset;
     }
 
-    MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+    MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -2741,7 +2746,7 @@ public:
             *value &= 0xf0ff;
         }
 
-        MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
 
         return MOS_STATUS_SUCCESS;
     }
@@ -2752,6 +2757,7 @@ public:
     {
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(m_osInterface);
         MHW_MI_CHK_NULL(params);
         MHW_MI_CHK_NULL(params->pEncodeAvcSliceParams);
 
@@ -2783,7 +2789,7 @@ public:
             }
         }
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
         return MOS_STATUS_SUCCESS;
     }
@@ -2791,11 +2797,12 @@ public:
     MOS_STATUS AddVdencControlStateCmd(
         PMOS_COMMAND_BUFFER cmdBuffer) override
     {
+        MHW_MI_CHK_NULL(m_osInterface);
         typename mhw::vdbox::vdenc::xe_hpm::Cmd::VDENC_CONTROL_STATE_CMD cmd;
 
         cmd.DW1.VdencInitialization = 1;
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
         return MOS_STATUS_SUCCESS;
     }
@@ -2806,6 +2813,7 @@ public:
     )
     {
         MHW_FUNCTION_ENTER;
+        MHW_MI_CHK_NULL(m_osInterface);
         typename mhw::vdbox::vdenc::xe_hpm::Cmd::VDENC_HEVC_VP9_TILE_SLICE_STATE_CMD cmd;
 
         auto paramsG12 = dynamic_cast<PMHW_VDBOX_VDENC_WALKER_STATE_PARAMS_G12>(params);
@@ -2866,7 +2874,7 @@ public:
             cmd.DW9.TileLcuStreamOutOffset   = tileLCUStreamOutOffsetInCachelines;
         }
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
         return MOS_STATUS_SUCCESS;
     }
 
@@ -2881,7 +2889,7 @@ public:
 
         AddVdencCmd2Cmd(cmd, params);
 
-        MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
 
         return MOS_STATUS_SUCCESS;
     }
@@ -3120,7 +3128,7 @@ public:
         cmd.DW32.Value = 0;
 
         MHW_MI_CHK_STATUS(AddVdencCmd1CmdVp9(cmd, params));
-        MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
 
         return MOS_STATUS_SUCCESS;
     }

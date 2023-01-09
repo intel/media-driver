@@ -2751,7 +2751,7 @@ namespace encode
             dwPadding[0] = (uint32_t)((1 << 16) | ((HEVC_NAL_UT_EOS << 1) << 24));
             dwPadding[1] = (1L | (1L << 24));
             dwPadding[2] = (HEVC_NAL_UT_EOB << 1) | (1L << 8);
-            MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, nullptr, &dwPadding[0], sizeof(dwPadding)));
+            MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, nullptr, &dwPadding[0], sizeof(dwPadding)));
         }
         else if (bLastPicInSeq || bLastPicInStream)
         {
@@ -2774,14 +2774,14 @@ namespace encode
             {
                 dwLastPicInSeqData[0] = (uint32_t)((1 << 16) | ((HEVC_NAL_UT_EOS << 1) << 24));
                 dwLastPicInSeqData[1] = 1;  // nuh_temporal_id_plus1
-                MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, nullptr, &dwLastPicInSeqData[0], sizeof(dwLastPicInSeqData)));
+                MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, nullptr, &dwLastPicInSeqData[0], sizeof(dwLastPicInSeqData)));
             }
 
             if (bLastPicInStream)
             {
                 dwLastPicInStreamData[0] = (uint32_t)((1 << 16) | ((HEVC_NAL_UT_EOB << 1) << 24));
                 dwLastPicInStreamData[1] = 1;  // nuh_temporal_id_plus1
-                MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, nullptr, &dwLastPicInStreamData[0], sizeof(dwLastPicInStreamData)));
+                MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, nullptr, &dwLastPicInStreamData[0], sizeof(dwLastPicInStreamData)));
             }
         }
         else
@@ -2844,7 +2844,7 @@ namespace encode
                             MHW_MI_CHK_NULL(pBsBuffer);
                             MHW_MI_CHK_NULL(pBsBuffer->pBase);
                             uint8_t *data = (uint8_t *)(pBsBuffer->pBase + offSet);
-                            MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, data, byteSize));
+                            MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, batchBuffer, data, byteSize));
                         }
                     }
                 }
@@ -2883,7 +2883,7 @@ namespace encode
                     MHW_MI_CHK_NULL(pBsBuffer);
                     MHW_MI_CHK_NULL(pBsBuffer->pBase);
                     uint8_t *data = (uint8_t *)(pBsBuffer->pBase + offSet);
-                    MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, data, byteSize));
+                    MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, batchBuffer, data, byteSize));
                 }
 
                 // Send HCP_PAK_INSERT_OBJ command. For dynamic slice, we are skipping the beginning part of slice header.
@@ -2904,7 +2904,7 @@ namespace encode
                     MHW_MI_CHK_NULL(pBsBuffer);
                     MHW_MI_CHK_NULL(pBsBuffer->pBase);
                     uint8_t *data = (uint8_t *)(pBsBuffer->pBase + offSet);
-                    MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, data, byteSize));
+                    MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, batchBuffer, data, byteSize));
                 }
             }
             else
@@ -2922,7 +2922,7 @@ namespace encode
                     MHW_MI_CHK_NULL(pBsBuffer);
                     MHW_MI_CHK_NULL(pBsBuffer->pBase);
                     uint8_t *data = (uint8_t *)(pBsBuffer->pBase + offSet);
-                    MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, data, byteSize));
+                    MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, batchBuffer, data, byteSize));
                 }
             }
         }

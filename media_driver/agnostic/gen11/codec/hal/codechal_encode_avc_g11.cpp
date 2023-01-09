@@ -3982,7 +3982,7 @@ CodechalEncodeAvcEncG11::CodechalEncodeAvcEncG11(
 
     m_vdboxOneDefaultUsed = true;
 
-    Mos_CheckVirtualEngineSupported(m_osInterface, false, true);
+    m_osInterface->pfnVirtualEngineSupported(m_osInterface, false, true);
 
     CODECHAL_DEBUG_TOOL(
         CODECHAL_ENCODE_CHK_NULL_NO_STATUS_RETURN(m_encodeParState = MOS_New(CodechalDebugEncodeParG11, this));

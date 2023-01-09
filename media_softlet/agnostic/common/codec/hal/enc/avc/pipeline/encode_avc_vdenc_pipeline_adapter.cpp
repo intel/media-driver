@@ -33,7 +33,7 @@ EncodeAvcVdencPipelineAdapter::EncodeAvcVdencPipelineAdapter(
 {
     ENCODE_CHK_NULL_NO_STATUS_RETURN(m_osInterface);
 
-    Mos_CheckVirtualEngineSupported(m_osInterface, false, true);
+    m_osInterface->pfnVirtualEngineSupported(m_osInterface, false, true);
     Mos_SetVirtualEngineSupported(m_osInterface, true);
 
     m_vdencEnabled = true;

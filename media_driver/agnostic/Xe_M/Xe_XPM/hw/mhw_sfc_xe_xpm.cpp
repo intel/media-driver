@@ -822,7 +822,7 @@ MOS_STATUS MhwSfcInterfaceXe_Xpm::AddSfcState(
         MHW_NORMALMESSAGE("SFC%d STATE: dest startx %d endx %d", m_indexofSfc, cmd.DW35.Destinationstartx, cmd.DW35.Destinationendx);
     }
 
-    MHW_CHK_STATUS_RETURN(Mos_AddCommand(pCmdBuffer, &cmd, cmd.byteSize));
+    MHW_CHK_STATUS_RETURN(pOsInterface->pfnAddCommand(pCmdBuffer, &cmd, cmd.byteSize));
 
     return MOS_STATUS_SUCCESS;
 }

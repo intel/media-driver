@@ -7221,7 +7221,7 @@ MOS_STATUS RenderHal_SetBufferSurfaceForHwAccess(
     {
         MOS_ZeroMemory(&SurfaceParam, sizeof(SurfaceParam));
 
-        auto memObjCtrlState = Mos_GetResourceCachePolicyMemoryObject(pRenderHal->pOsInterface, &pRenderHalSurface->OsSurface.OsResource);
+        auto memObjCtrlState = pOsInterface->pfnGetResourceCachePolicyMemoryObject(pRenderHal->pOsInterface, &pRenderHalSurface->OsSurface.OsResource);
         SurfaceParam.MemObjCtl = memObjCtrlState.DwordValue;
 
         pSurfaceParams = &SurfaceParam;

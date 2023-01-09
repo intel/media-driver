@@ -378,6 +378,7 @@ namespace encode
     {
         ENCODE_FUNC_CALL();
 
+        ENCODE_CHK_NULL_RETURN(m_osInterface);
         auto& params = m_avpItf->MHW_GETPAR_F(AVP_PAK_INSERT_OBJECT)();
         params      = {};
 
@@ -416,7 +417,7 @@ namespace encode
                     params.lastHeader = !tgOBUValid && (i == nalNum);
 
                     m_avpItf->MHW_ADDCMD_F(AVP_PAK_INSERT_OBJECT)(cmdBuffer);
-                    Mos_AddCommand(cmdBuffer, GetExtraData(), GetExtraSize());
+                    m_osInterface->pfnAddCommand(cmdBuffer, GetExtraData(), GetExtraSize());
                 }
             }
         }

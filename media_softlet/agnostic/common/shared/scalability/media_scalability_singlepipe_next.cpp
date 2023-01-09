@@ -56,7 +56,7 @@ MOS_STATUS MediaScalabilitySinglePipeNext::Initialize(const MediaScalabilityOpti
         MOS_VIRTUALENGINE_INIT_PARAMS veInitParms;
         MOS_ZeroMemory(&veInitParms, sizeof(veInitParms));
         veInitParms.bScalabilitySupported = false;
-        MOS_STATUS status                 = Mos_Specific_Virtual_Engine_Init(m_osInterface, &m_veHitParams, veInitParms);
+        MOS_STATUS status                 = m_osInterface->pfnVirtualEngineInit(m_osInterface, &m_veHitParams, veInitParms);
         SCALABILITY_CHK_STATUS_MESSAGE_RETURN(status, "Virtual Engine Init failed");
         m_veInterface = m_osInterface->pVEInterf;
         if (m_osInterface->osStreamState && m_osInterface->osStreamState->virtualEngineInterface)
@@ -80,7 +80,7 @@ MOS_STATUS MediaScalabilitySinglePipeNext::Initialize(const MediaScalabilityOpti
     {
         gpuCtxCreateOption->DebugOverride = true;
         uint8_t engineLogicId             = 0;
-        if (Mos_Specific_GetEngineLogicId(m_osInterface, engineLogicId) == MOS_STATUS_SUCCESS)
+        if (m_osInterface->pfnGetEngineLogicId(m_osInterface, engineLogicId) == MOS_STATUS_SUCCESS)
         {
             gpuCtxCreateOption->EngineInstance[0] = engineLogicId;
         }
@@ -96,6 +96,7 @@ MOS_STATUS MediaScalabilitySinglePipeNext::Destroy()
     SCALABILITY_FUNCTION_ENTER;
 
     SCALABILITY_CHK_STATUS_RETURN(MediaScalability::Destroy());
+    SCALABILITY_CHK_NULL_RETURN(m_osInterface);
 
     if (m_gpuCtxCreateOption != nullptr)
     {
@@ -107,7 +108,7 @@ MOS_STATUS MediaScalabilitySinglePipeNext::Destroy()
         MOS_Delete(m_scalabilityOption);
     }
 #if !EMUL
-    Mos_Specific_DestroyVeInterface(&m_veInterface);
+    m_osInterface->pfnDestroyVeInterface(&m_veInterface);
 #endif
     return MOS_STATUS_SUCCESS;
 }
@@ -188,7 +189,7 @@ MOS_STATUS MediaScalabilitySinglePipeNext::SetHintParams()
     }
     m_osInterface->pVEInterf = m_veInterface;
 #if !EMUL
-    eStatus = Mos_Specific_SetHintParams(m_osInterface, &veParams);
+    eStatus = m_osInterface->pfnSetHintParams(m_osInterface, &veParams);
 #endif
     SCALABILITY_CHK_STATUS_MESSAGE_RETURN(eStatus, "SetHintParams failed");
 

@@ -64,7 +64,10 @@ struct PACKET_SURFACE_STATE
 
 CM_HAL_G12_X::CM_HAL_G12_X(CM_HAL_STATE *cmState): CM_HAL_GENERIC(cmState)
 {   // Enables scheduling based on virtual enngine.
-    Mos_CheckVirtualEngineSupported(m_cmState->osInterface, false, true);
+    if (m_cmState && m_cmState->osInterface)
+    {
+        m_cmState->osInterface->pfnVirtualEngineSupported(m_cmState->osInterface, false, true);
+    }
     return;
 }
 

@@ -192,7 +192,7 @@ MOS_STATUS MhwVdboxHcpInterfaceXe_Xpm::AddHcpEncodePicStateCmd(
     }
 #endif
 
-    MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
+    MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
 
     return eStatus;
 }

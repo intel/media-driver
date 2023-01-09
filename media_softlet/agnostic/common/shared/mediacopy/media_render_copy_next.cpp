@@ -33,9 +33,14 @@ RenderCopyStateNext::RenderCopyStateNext(PMOS_INTERFACE osInterface, MhwInterfac
     m_osInterface(osInterface),
     m_mhwInterfaces(mhwInterfaces)
 {
+    if (nullptr == osInterface)
+    {
+        MCPY_ASSERTMESSAGE("osInterface is nullptr");
+        return;
+    }
     m_RenderData.pKernelParam = (PRENDERHAL_KERNEL_PARAM)g_rendercopy_KernelParam;
     Mos_SetVirtualEngineSupported(osInterface, true);
-    Mos_CheckVirtualEngineSupported(osInterface, true, false);
+    osInterface->pfnVirtualEngineSupported(osInterface, true, false);
 
     MOS_NULL_RENDERING_FLAGS        NullRenderingFlags;
     NullRenderingFlags = osInterface->pfnGetNullHWRenderFlags(osInterface);

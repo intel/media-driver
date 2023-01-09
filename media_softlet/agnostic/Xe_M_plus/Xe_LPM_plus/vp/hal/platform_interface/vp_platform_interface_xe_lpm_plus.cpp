@@ -193,8 +193,9 @@ VpKernelConfig &VpPlatformInterfacesXe_Lpm_Plus::GetKernelConfig()
 
 MOS_STATUS VpPlatformInterfacesXe_Lpm_Plus::ConfigVirtualEngine()
 {
+    VP_PUBLIC_CHK_NULL_RETURN(m_pOsInterface);
     Mos_SetVirtualEngineSupported(m_pOsInterface, true);
-    Mos_CheckVirtualEngineSupported(m_pOsInterface, true, true);
+    m_pOsInterface->pfnVirtualEngineSupported(m_pOsInterface, true, true);
     return MOS_STATUS_SUCCESS;
 }
 

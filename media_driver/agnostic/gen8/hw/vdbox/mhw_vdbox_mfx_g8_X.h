@@ -592,6 +592,7 @@ protected:
 
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(this->m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
 
@@ -628,7 +629,7 @@ protected:
 
         cmd.DW1.StandardSelect = CodecHal_GetStandardFromMode(params->Mode);
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(this->m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
         return eStatus;
     }
@@ -641,6 +642,7 @@ protected:
 
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(this->m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
         MHW_MI_CHK_NULL(params->psSurface);
@@ -678,7 +680,7 @@ protected:
                 MOS_ALIGN_CEIL(params->psSurface->VPlaneOffset.iYOffset, MHW_VDBOX_MFX_UV_PLANE_ALIGNMENT_LEGACY);
         }
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(this->m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
         return eStatus;
     }
@@ -691,6 +693,7 @@ protected:
 
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(this->m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
 
@@ -789,7 +792,7 @@ protected:
                 &resourceParams));
         }
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(this->m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
         return eStatus;
     }
@@ -805,6 +808,7 @@ protected:
 
         MOS_UNUSED(batchBuffer);
 
+        MHW_MI_CHK_NULL(this->m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
         MHW_MI_CHK_NULL(params->pAvcPicParams);
@@ -871,7 +875,7 @@ protected:
             cmd.DW16.InterViewOrderDisable = 0;
         }
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(this->m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
         return eStatus;
     }
@@ -1023,7 +1027,7 @@ protected:
             cmd.DW5.IntraIntermbipcmflagForceipcmcontrolmask = true;
         }
 
-        MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(this->m_osInterface, cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
 
         return eStatus;
     }
@@ -1034,6 +1038,7 @@ protected:
     {
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(this->m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
 
@@ -1171,7 +1176,7 @@ protected:
             }
         }
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(this->m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
         return MOS_STATUS_SUCCESS;
     }
@@ -1184,6 +1189,7 @@ protected:
 
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(this->m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(avcSliceState);
 
@@ -1213,7 +1219,7 @@ protected:
             nullptr,
             &sliceInfoParam));
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(this->m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
         return eStatus;
     }
@@ -1226,6 +1232,7 @@ protected:
 
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(this->m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(avcSliceState);
         MHW_MI_CHK_NULL(avcSliceState->pAvcSliceParams);
@@ -1289,7 +1296,7 @@ protected:
             nullptr,
             &sliceInfoParam));
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(this->m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
         return eStatus;
     }
@@ -1332,13 +1339,14 @@ protected:
             cmd.DW1.Headerlengthexcludefrmsize = cmd.DW1.EmulationflagEmulationbytebitsinsertenable ? false
                 : params->bHeaderLengthExcludeFrmSize; // Cannot be set to true if emulation byte bit insertion is enabled
 
-            MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
+            MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(this->m_osInterface, cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
 
             if (params->bLastPicInSeq) // only used by AVC, not used by MPEG2
             {
                 uint32_t lastPicInSeqData = params->dwLastPicInSeqData;
 
                 MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(
+                    this->m_osInterface,
                     cmdBuffer,
                     batchBuffer,
                     &lastPicInSeqData,
@@ -1350,6 +1358,7 @@ protected:
                 uint32_t lastPicInStreamData = params->dwLastPicInStreamData;
 
                 MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(
+                    this->m_osInterface,
                     cmdBuffer,
                     batchBuffer,
                     &lastPicInStreamData,
@@ -1377,11 +1386,11 @@ protected:
             cmd.DW1.DatabyteoffsetSrcdatastartingbyteoffset10 = 0;
             cmd.DW1.Headerlengthexcludefrmsize = cmd.DW1.EmulationflagEmulationbytebitsinsertenable ? false
                 : params->bHeaderLengthExcludeFrmSize; // Cannot be set to true if emulation byte bit insertion is enabled
-            MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
+            MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(this->m_osInterface, cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
 
             // Add actual data
             uint8_t* data = (uint8_t*)(params->pBsBuffer->pBase + params->dwOffset);
-            MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, data, byteSize));
+            MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(this->m_osInterface, cmdBuffer, batchBuffer, data, byteSize));
         }
 
         return eStatus;

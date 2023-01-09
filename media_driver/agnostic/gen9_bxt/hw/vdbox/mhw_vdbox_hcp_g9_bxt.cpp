@@ -505,7 +505,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Bxt::AddHcpVp9PicStateCmd(
         cmd.DW9.AltrefFrameHieghtInPixelsMinus1 = altRefFrameHeight - 1;
     }
 
-    MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, cmd.byteSize));
+    MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, batchBuffer, &cmd, cmd.byteSize));
 
     return eStatus;
 }
@@ -571,7 +571,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Bxt::AddHcpVp9SegmentStateCmd(
         segData = &cmd;
     }
 
-    MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, segData, cmd.byteSize));
+    MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, batchBuffer, segData, cmd.byteSize));
 
     return eStatus;
 }

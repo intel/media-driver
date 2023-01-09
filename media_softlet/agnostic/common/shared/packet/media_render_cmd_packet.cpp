@@ -594,7 +594,7 @@ uint32_t RenderCmdPacket::SetBufferForHwAccess(PMOS_SURFACE buffer, PRENDERHAL_S
     {
         MOS_ZeroMemory(&SurfaceParam, sizeof(SurfaceParam));
 
-        auto memObjCtrlState = Mos_GetResourceCachePolicyMemoryObject(m_renderHal->pOsInterface, &buffer->OsResource);
+        auto memObjCtrlState = m_osInterface->pfnGetResourceCachePolicyMemoryObject(m_renderHal->pOsInterface, &buffer->OsResource);
         SurfaceParam.MemObjCtl = memObjCtrlState.DwordValue;
 
         pSurfaceParams = &SurfaceParam;

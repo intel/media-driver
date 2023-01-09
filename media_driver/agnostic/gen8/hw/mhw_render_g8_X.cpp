@@ -107,6 +107,7 @@ MOS_STATUS MhwRenderInterfaceG8::AddPaletteLoadCmd(
 {
     MHW_FUNCTION_ENTER;
 
+    MHW_MI_CHK_NULL(m_osInterface);
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(params);
     MHW_MI_CHK_NULL(params->pPaletteData);
@@ -123,14 +124,14 @@ MOS_STATUS MhwRenderInterfaceG8::AddPaletteLoadCmd(
         mhw_render_g8_X::_3DSTATE_SAMPLER_PALETTE_LOAD0_CMD cmd;
         // Set size of palette load command
         cmd.DW0.DwordLength = params->iNumEntries - 1;
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
+        MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, cmd.byteSize));
     }
     else if (params->iPaletteID == 1)
     {
         mhw_render_g8_X::_3DSTATE_SAMPLER_PALETTE_LOAD1_CMD cmd;
         // Set size of palette load command
         cmd.DW0.DwordLength = params->iNumEntries - 1;
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
+        MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, cmd.byteSize));
     }
     else
     {
@@ -142,7 +143,7 @@ MOS_STATUS MhwRenderInterfaceG8::AddPaletteLoadCmd(
     uint32_t cmdSize = entry.byteSize * params->iNumEntries;
 
     // Send palette load command followed by palette data
-    MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, params->pPaletteData, cmdSize));
+    MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, params->pPaletteData, cmdSize));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -187,6 +188,7 @@ MOS_STATUS MhwRenderInterfaceG8::AddGpgpuCsrBaseAddrCmd(
     PMOS_COMMAND_BUFFER             cmdBuffer,
     PMOS_RESOURCE                   csrResource)
 {
+    MHW_MI_CHK_NULL(m_osInterface);
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(csrResource);
 
@@ -207,7 +209,7 @@ MOS_STATUS MhwRenderInterfaceG8::AddGpgpuCsrBaseAddrCmd(
         cmdBuffer,
         &resourceParams));
 
-    MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
+    MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, cmd.byteSize));
 
     return MOS_STATUS_SUCCESS;
 }

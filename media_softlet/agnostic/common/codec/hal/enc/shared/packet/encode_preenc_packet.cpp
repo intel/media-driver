@@ -1178,6 +1178,7 @@ namespace encode
     {
         ENCODE_FUNC_CALL();
 
+        ENCODE_CHK_NULL_RETURN(m_osInterface);
         ENCODE_CHK_NULL_RETURN(cmdBuffer);
 
         auto &params = m_hcpItf->MHW_GETPAR_F(HCP_PAK_INSERT_OBJECT)();
@@ -1235,7 +1236,7 @@ namespace encode
                     MHW_MI_CHK_NULL(pBsBuffer);
                     MHW_MI_CHK_NULL(pBsBuffer->pBase);
                     uint8_t *data = (uint8_t *)(pBsBuffer->pBase + offSet);
-                    MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, data, byteSize));
+                    MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, data, byteSize));
                 }
             }
         }
@@ -1273,7 +1274,7 @@ namespace encode
             MHW_MI_CHK_NULL(pBsBuffer);
             MHW_MI_CHK_NULL(pBsBuffer->pBase);
             uint8_t *data = (uint8_t *)(pBsBuffer->pBase + offSet);
-            MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, data, byteSize));
+            MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, data, byteSize));
         }
 
         return MOS_STATUS_SUCCESS;

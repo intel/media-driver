@@ -267,6 +267,7 @@ MOS_STATUS MhwVdboxVdencInterfaceG10::AddVdencPipeModeSelectCmd(
 {
     MHW_FUNCTION_ENTER;
 
+    MHW_MI_CHK_NULL(m_osInterface);
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(params);
 
@@ -287,7 +288,7 @@ MOS_STATUS MhwVdboxVdencInterfaceG10::AddVdencPipeModeSelectCmd(
     }
     cmd.DW1.BitDepth = params->ucVdencBitDepthMinus8;
 
-    MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+    MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -301,6 +302,7 @@ MOS_STATUS MhwVdboxVdencInterfaceG10::AddVdencPipeBufAddrCmd(
 
     MHW_FUNCTION_ENTER;
 
+    MHW_MI_CHK_NULL(m_osInterface);
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(params);
 
@@ -797,7 +799,7 @@ MOS_STATUS MhwVdboxVdencInterfaceG10::AddVdencPipeBufAddrCmd(
     // Hence it's a dummy CL for us. Histogram stats start from 4th CL onwards.
     cmd.DW61.WeightsHistogramStreamoutOffset = 3 * MHW_CACHELINE_SIZE;
 
-    MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+    MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -808,6 +810,7 @@ MOS_STATUS MhwVdboxVdencInterfaceG10::AddVdencSrcSurfaceStateCmd(
 {
     MHW_FUNCTION_ENTER;
 
+    MHW_MI_CHK_NULL(m_osInterface);
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(params);
     MHW_MI_CHK_NULL(params->psSurface);
@@ -839,7 +842,7 @@ MOS_STATUS MhwVdboxVdencInterfaceG10::AddVdencSrcSurfaceStateCmd(
     cmd.Dwords25.DW2.YOffsetForUCb = cmd.Dwords25.DW3.YOffsetForVCr =
         MOS_ALIGN_CEIL(params->psSurface->UPlaneOffset.iYOffset, MHW_VDBOX_MFX_RAW_UV_PLANE_ALIGNMENT_GEN9);
 
-    MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+    MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -850,6 +853,7 @@ MOS_STATUS MhwVdboxVdencInterfaceG10::AddVdencRefSurfaceStateCmd(
 {
     MHW_FUNCTION_ENTER;
 
+    MHW_MI_CHK_NULL(m_osInterface);
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(params);
     MHW_MI_CHK_NULL(params->psSurface);
@@ -886,7 +890,7 @@ MOS_STATUS MhwVdboxVdencInterfaceG10::AddVdencRefSurfaceStateCmd(
     cmd.Dwords25.DW1.SurfacePitch     = params->psSurface->dwPitch - 1;
     cmd.Dwords25.DW2.YOffsetForUCb    = cmd.Dwords25.DW3.YOffsetForVCr = params->psSurface->UPlaneOffset.iYOffset;
 
-    MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+    MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -898,6 +902,7 @@ MOS_STATUS MhwVdboxVdencInterfaceG10::AddVdencDsRefSurfaceStateCmd(
 {
     MHW_FUNCTION_ENTER;
 
+    MHW_MI_CHK_NULL(m_osInterface);
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(params);
     MHW_MI_CHK_NULL(params->psSurface);
@@ -961,7 +966,7 @@ MOS_STATUS MhwVdboxVdencInterfaceG10::AddVdencDsRefSurfaceStateCmd(
         cmd.Dwords69.DW2.YOffsetForUCb    = cmd.Dwords69.DW3.YOffsetForVCr = params->psSurface->UPlaneOffset.iYOffset;
     }
 
-    MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+    MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -1192,7 +1197,7 @@ MOS_STATUS MhwVdboxVdencInterfaceG10::AddVdencImgStateCmd(
         return MOS_STATUS_NULL_POINTER;
     }
 
-    MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
+    MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -1203,6 +1208,7 @@ MOS_STATUS MhwVdboxVdencInterfaceG10::AddVdencWalkerStateCmd(
 {
     MHW_FUNCTION_ENTER;
 
+    MHW_MI_CHK_NULL(m_osInterface);
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(params);
 
@@ -1255,7 +1261,7 @@ MOS_STATUS MhwVdboxVdencInterfaceG10::AddVdencWalkerStateCmd(
         cmd.DW5.TileWidth                    = vp9PicParams->SrcFrameWidthMinus1;
     }
 
-    MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+    MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -1266,6 +1272,7 @@ MOS_STATUS MhwVdboxVdencInterfaceG10::AddVdencAvcWeightsOffsetsStateCmd(
 {
     MHW_FUNCTION_ENTER;
 
+    MHW_MI_CHK_NULL(m_osInterface);
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(params);
     MHW_MI_CHK_NULL(params->pAvcPicParams);
@@ -1294,7 +1301,7 @@ MOS_STATUS MhwVdboxVdencInterfaceG10::AddVdencAvcWeightsOffsetsStateCmd(
         cmd.DW2.OffsetForwardReference2  = 0;
     }
 
-    MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+    MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -1352,7 +1359,7 @@ MOS_STATUS MhwVdboxVdencInterfaceG10::AddVdencWeightsOffsetsStateCmd(
         return MOS_STATUS_NULL_POINTER;
     }
 
-    MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
+    MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
 
     return MOS_STATUS_SUCCESS;
 }

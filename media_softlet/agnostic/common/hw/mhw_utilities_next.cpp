@@ -83,7 +83,7 @@ MOS_STATUS Mhw_SetMocsTableIndex(
 
     value = *data;
 
-    auto memObjCtrlState = Mos_GetResourceCachePolicyMemoryObject(osInterface, resource);
+    auto memObjCtrlState = osInterface->pfnGetResourceCachePolicyMemoryObject(osInterface, resource);
     memObjCtrlStateValue = (memObjCtrlState.DwordValue >> indexBitFieldLow) & indexMask;
 
     if (bitFieldHigh == 31)

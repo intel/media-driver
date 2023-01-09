@@ -83,7 +83,7 @@ MOS_STATUS EncodeScalabilitySinglePipe::Initialize(const MediaScalabilityOption 
 
     // !Don't check the return status here, because this function will return fail if there's no regist key in register.
     // But it's normal that regist key not in register.
-    Mos_CheckVirtualEngineSupported(m_osInterface, false, true);
+    m_osInterface->pfnVirtualEngineSupported(m_osInterface, false, true);
     m_miItf = m_hwInterface->GetMiInterfaceNext();
     SCALABILITY_CHK_NULL_RETURN(m_miItf);
 

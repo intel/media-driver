@@ -730,7 +730,7 @@ namespace encode {
 
         // Add actual data
         uint8_t* data = (uint8_t*)(bsBuffer.pBase);
-        MOS_STATUS eStatus = Mhw_AddCommandCmdOrBB(cmdBuffer, nullptr, data, byteSize);
+        MOS_STATUS eStatus = Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, nullptr, data, byteSize);
 
         MOS_SafeFreeMemory(bsBuffer.pBase);
 
@@ -802,7 +802,7 @@ namespace encode {
 
             // Add actual data
             uint8_t* data = (uint8_t*)(bsBuffer.pBase);
-            eStatus = Mhw_AddCommandCmdOrBB(cmdBuffer, nullptr, data, byteSize);
+            eStatus = Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, nullptr, data, byteSize);
             if (eStatus != MOS_STATUS_SUCCESS)
             {
                 MOS_SafeFreeMemory(appDataChunk);
@@ -851,7 +851,7 @@ namespace encode {
 
             // Add actual data
             uint8_t* data = (uint8_t*)(bsBuffer.pBase);
-            eStatus = Mhw_AddCommandCmdOrBB(cmdBuffer, nullptr, data, byteSize);
+            eStatus = Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, nullptr, data, byteSize);
             if (eStatus != MOS_STATUS_SUCCESS)
             {
                 MOS_SafeFreeMemory(appDataChunk);
@@ -890,7 +890,7 @@ namespace encode {
 
         // Add actual data
         uint8_t* data = (uint8_t*)(bsBuffer.pBase);
-        MOS_STATUS eStatus = Mhw_AddCommandCmdOrBB(cmdBuffer, nullptr, data, byteSize);
+        MOS_STATUS eStatus = Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, nullptr, data, byteSize);
 
         MOS_SafeFreeMemory(bsBuffer.pBase);
 
@@ -920,7 +920,7 @@ namespace encode {
 
                 // Add actual data
                 data = (uint8_t*)(bsBuffer.pBase);
-                eStatus = Mhw_AddCommandCmdOrBB(cmdBuffer, nullptr, data, byteSize);
+                eStatus = Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, nullptr, data, byteSize);
 
                 MOS_SafeFreeMemory(bsBuffer.pBase);
 
@@ -945,7 +945,7 @@ namespace encode {
 
                 // Add actual data
                 data = (uint8_t*)(bsBuffer.pBase);
-                eStatus = Mhw_AddCommandCmdOrBB(cmdBuffer, nullptr, data, byteSize);
+                eStatus = Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, nullptr, data, byteSize);
 
                 MOS_SafeFreeMemory(bsBuffer.pBase);
 
@@ -981,7 +981,7 @@ namespace encode {
 
         // Add actual data
         uint8_t* data = (uint8_t*)(bsBuffer.pBase);
-        MOS_STATUS eStatus = Mhw_AddCommandCmdOrBB(cmdBuffer, nullptr, data, byteSize);
+        MOS_STATUS eStatus = Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, nullptr, data, byteSize);
 
         MOS_SafeFreeMemory(bsBuffer.pBase);
 
@@ -1013,7 +1013,7 @@ namespace encode {
 
         // Add actual data
         uint8_t* data = (uint8_t*)(bsBuffer.pBase);
-        MOS_STATUS eStatus = Mhw_AddCommandCmdOrBB(cmdBuffer, nullptr, data, byteSize);
+        MOS_STATUS eStatus = Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, nullptr, data, byteSize);
 
         MOS_SafeFreeMemory(bsBuffer.pBase);
 
@@ -1045,7 +1045,7 @@ namespace encode {
 
         // Add actual data
         uint8_t* data = (uint8_t*)(bsBuffer.pBase);
-        MOS_STATUS eStatus = Mhw_AddCommandCmdOrBB(cmdBuffer, nullptr, data, byteSize);
+        MOS_STATUS eStatus = Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, nullptr, data, byteSize);
 
         MOS_SafeFreeMemory(bsBuffer.pBase);
 
@@ -1079,7 +1079,7 @@ namespace encode {
 
         // Add actual data
         uint8_t* data = (uint8_t*)(bsBuffer.pBase);
-        MOS_STATUS eStatus = Mhw_AddCommandCmdOrBB(cmdBuffer, nullptr, data, byteSize);
+        MOS_STATUS eStatus = Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, nullptr, data, byteSize);
 
         MOS_SafeFreeMemory(bsBuffer.pBase);
 

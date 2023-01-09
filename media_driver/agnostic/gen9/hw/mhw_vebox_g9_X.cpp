@@ -682,7 +682,7 @@ MOS_STATUS MhwVeboxInterfaceG9::AddVeboxState(
     cmd.DW1.SinglePipeEnable             = pVeboxMode->SinglePipeIECPEnable;
     cmd.DW1.ForwardGammaCorrectionEnable = pVeboxMode->ForwardGammaCorrectionEnable;
 
-    Mos_AddCommand(pCmdBuffer, &cmd, cmd.byteSize);
+    pOsInterface->pfnAddCommand(pCmdBuffer, &cmd, cmd.byteSize);
 
 finish:
     return eStatus;
@@ -1620,7 +1620,7 @@ MOS_STATUS MhwVeboxInterfaceG9::AddVeboxDiIecp(
     cmd.DW1.EndingX   = pVeboxDiIecpCmdParams->dwEndingX;
     cmd.DW1.StartingX = pVeboxDiIecpCmdParams->dwStartingX;
 
-    Mos_AddCommand(pCmdBuffer, &cmd, cmd.byteSize);
+    pOsInterface->pfnAddCommand(pCmdBuffer, &cmd, cmd.byteSize);
 
 finish:
     return eStatus;

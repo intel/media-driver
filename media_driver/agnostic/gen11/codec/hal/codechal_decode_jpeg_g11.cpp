@@ -587,6 +587,6 @@ CodechalDecodeJpegG11::CodechalDecodeJpegG11(
 
     CODECHAL_DECODE_CHK_NULL_NO_STATUS_RETURN(m_osInterface);
 
-    Mos_CheckVirtualEngineSupported(m_osInterface, true, true);
+    m_osInterface->pfnVirtualEngineSupported(m_osInterface, true, true);
 }
 

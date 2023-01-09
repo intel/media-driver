@@ -435,7 +435,7 @@ MOS_STATUS MhwVeboxInterfaceG8::AddVeboxState(
     cmd.DW1.HotPixelFilteringEnable     = pVeboxMode->HotPixelFilteringEnable;
     cmd.DW1.SingleSliceVeboxEnable      = pVeboxMode->SingleSliceVeboxEnable;
 
-    Mos_AddCommand(pCmdBuffer, &cmd, cmd.byteSize);
+    pOsInterface->pfnAddCommand(pCmdBuffer, &cmd, cmd.byteSize);
 
 finish:
     return eStatus;
@@ -447,6 +447,7 @@ MOS_STATUS MhwVeboxInterfaceG8::AddVeboxSurfaces(
 {
     mhw_vebox_g8_X::VEBOX_SURFACE_STATE_CMD cmd1, cmd2;
 
+    MHW_CHK_NULL_RETURN(m_osInterface);
     MHW_CHK_NULL_RETURN(pCmdBuffer);
     MHW_CHK_NULL_RETURN(pVeboxSurfaceStateCmdParams);
 
@@ -458,7 +459,7 @@ MOS_STATUS MhwVeboxInterfaceG8::AddVeboxSurfaces(
         &cmd1,
         false,
         pVeboxSurfaceStateCmdParams->bDIEnable);
-    Mos_AddCommand(pCmdBuffer, &cmd1, cmd1.byteSize);
+    m_osInterface->pfnAddCommand(pCmdBuffer, &cmd1, cmd1.byteSize);
 
     // Setup Surface State for Output surface
     SetVeboxSurfaces(
@@ -468,7 +469,7 @@ MOS_STATUS MhwVeboxInterfaceG8::AddVeboxSurfaces(
         &cmd2,
         true,
         pVeboxSurfaceStateCmdParams->bDIEnable);
-    Mos_AddCommand(pCmdBuffer, &cmd2, cmd2.byteSize);
+    m_osInterface->pfnAddCommand(pCmdBuffer, &cmd2, cmd2.byteSize);
 
     return MOS_STATUS_SUCCESS;
 }
@@ -809,7 +810,7 @@ MOS_STATUS MhwVeboxInterfaceG8::AddVeboxDiIecp(
     cmd.DW1.EndingX   = pVeboxDiIecpCmdParams->dwEndingX;
     cmd.DW1.StartingX = pVeboxDiIecpCmdParams->dwStartingX;
 
-    Mos_AddCommand(pCmdBuffer, &cmd, cmd.byteSize);
+    m_osInterface->pfnAddCommand(pCmdBuffer, &cmd, cmd.byteSize);
 
 finish:
     return eStatus;

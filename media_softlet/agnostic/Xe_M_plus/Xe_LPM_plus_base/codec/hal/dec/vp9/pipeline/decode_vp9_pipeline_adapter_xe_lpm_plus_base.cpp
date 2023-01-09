@@ -32,8 +32,8 @@ DecodeVp9PipelineAdapterXe_Lpm_Plus_Base::DecodeVp9PipelineAdapterXe_Lpm_Plus_Ba
     CodechalDebugInterface *debugInterface)
     : DecodePipelineAdapter(hwInterface, debugInterface)
 {
-    DECODE_ASSERT(m_osInterface != nullptr);
-    Mos_CheckVirtualEngineSupported(m_osInterface, true, true);
+    DECODE_CHK_NULL_NO_STATUS_RETURN(m_osInterface);
+    m_osInterface->pfnVirtualEngineSupported(m_osInterface, true, true);
     Mos_SetVirtualEngineSupported(m_osInterface, true);
 }
 

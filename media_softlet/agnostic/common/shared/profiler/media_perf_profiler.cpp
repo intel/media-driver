@@ -277,7 +277,7 @@ MOS_STATUS MediaPerfProfiler::Initialize(void* context, MOS_INTERFACE *osInterfa
             __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_BUFFER_SIZE_KEY,
             MediaUserSetting::Group::Device);
 
-    m_timerBase = Mos_Specific_GetTsFrequency(osInterface);
+    m_timerBase = osInterface->pfnGetTsFrequency(osInterface);
 
     // Read multi processes support
     ReadUserSetting(

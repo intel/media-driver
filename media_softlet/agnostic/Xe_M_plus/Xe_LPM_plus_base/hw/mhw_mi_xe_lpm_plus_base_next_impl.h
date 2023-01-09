@@ -982,7 +982,7 @@ public:
 
         base_t::MHW_ADDCMD_F(MI_MATH)(cmdBuf, batchBuf);
 
-        return Mhw_AddCommandCmdOrBB(cmdBuf, nullptr, &params.pAluPayload[0],
+        return Mhw_AddCommandCmdOrBB(m_osItf, cmdBuf, nullptr, &params.pAluPayload[0],
             sizeof(MHW_MI_ALU_PARAMS)* params.dwNumAluParams);
     }
 

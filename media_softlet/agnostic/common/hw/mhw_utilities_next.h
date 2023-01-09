@@ -774,14 +774,16 @@ static __inline MOS_STATUS Mhw_AddCommandBB(
 //| Return:     MOS_STATUS_SUCCESS if call succeeds
 //*-----------------------------------------------------------------------------
 static __inline MOS_STATUS Mhw_AddCommandCmdOrBB(
-    void* pCmdBuffer,     // [in] Pointer to Command Buffer
-    void* pBatchBuffer,   // [in] Pointer to Batch Buffer
-    const void* pCmd,           // [in] Command Pointer
-    uint32_t   dwCmdSize)       // [in] Size of command in bytes
+    PMOS_INTERFACE pOsInterface, // [in] Pointer to mos interface
+    void* pCmdBuffer,            // [in] Pointer to Command Buffer
+    void* pBatchBuffer,          // [in] Pointer to Batch Buffer
+    const void* pCmd,            // [in] Command Pointer
+    uint32_t   dwCmdSize)        // [in] Size of command in bytes
 {
     if (pCmdBuffer)
     {
-        return ((MOS_STATUS)Mos_AddCommand((PMOS_COMMAND_BUFFER)pCmdBuffer, pCmd, dwCmdSize));
+        MHW_CHK_NULL_RETURN(pOsInterface);
+        return pOsInterface->pfnAddCommand((PMOS_COMMAND_BUFFER)pCmdBuffer, pCmd, dwCmdSize);
     }
     else if (pBatchBuffer)
     {

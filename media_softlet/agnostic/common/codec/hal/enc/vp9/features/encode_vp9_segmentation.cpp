@@ -271,6 +271,9 @@ MOS_STATUS Vp9Segmentation::SetupSegmentationStreamIn()
         return MOS_STATUS_SUCCESS;
     }
 
+    ENCODE_CHK_NULL_RETURN(m_hwInterface);
+    PMOS_INTERFACE osInterface = m_hwInterface->GetOsInterface();
+    ENCODE_CHK_NULL_RETURN(osInterface);
     auto basicFeature = static_cast<Vp9BasicFeature *>(m_basicFeature);
     ENCODE_CHK_NULL_RETURN(basicFeature);
     ENCODE_CHK_NULL_RETURN(basicFeature->m_recycleBuf);
@@ -369,7 +372,7 @@ MOS_STATUS Vp9Segmentation::SetupSegmentationStreamIn()
     }
 
     uint32_t dwPitch = m_mbSegmentMapSurface.dwPitch;
-    if (GetResType(&m_mbSegmentMapSurface.OsResource) == MOS_GFXRES_BUFFER)
+    if (osInterface->pfnGetResType(&m_mbSegmentMapSurface.OsResource) == MOS_GFXRES_BUFFER)
     {
         // Application can send 1D or 2D buffer, based on that change the pitch to correctly access the map buffer.
         // Driver reads the seg ids from the buffer for each 16x16 block. Reads 4 values for each 32x32 block

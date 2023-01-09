@@ -85,7 +85,7 @@ CodechalDecodeVp9G12::CodechalDecodeVp9G12(
 
     CODECHAL_DECODE_CHK_NULL_NO_STATUS_RETURN(m_osInterface);
 
-    Mos_CheckVirtualEngineSupported(m_osInterface, true, true);
+    m_osInterface->pfnVirtualEngineSupported(m_osInterface, true, true);
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     MOS_USER_FEATURE_VALUE_DATA userFeatureData;

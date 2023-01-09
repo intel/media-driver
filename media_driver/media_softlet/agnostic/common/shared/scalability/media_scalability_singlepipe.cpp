@@ -67,7 +67,7 @@ MOS_STATUS MediaScalabilitySinglePipe::Initialize(const MediaScalabilityOption &
         }
         else
         {
-            SCALABILITY_CHK_STATUS_RETURN(Mos_VirtualEngineInterface_Initialize(m_osInterface, &VEInitParams));
+            SCALABILITY_CHK_STATUS_RETURN(m_osInterface->pfnVirtualEngineInterfaceInitialize(m_osInterface, &VEInitParams));
             m_veInterface = m_osInterface->pVEInterf;
             SCALABILITY_CHK_NULL_RETURN(m_veInterface);
             if (m_veInterface->pfnVEGetHintParams)

@@ -39,7 +39,7 @@ CodechalEncodeJpegStateG12::CodechalEncodeJpegStateG12(
 
     CODECHAL_ENCODE_CHK_NULL_NO_STATUS_RETURN(m_osInterface);
     Mos_SetVirtualEngineSupported(m_osInterface, true);
-    Mos_CheckVirtualEngineSupported(m_osInterface, false, true);
+    m_osInterface->pfnVirtualEngineSupported(m_osInterface, false, true);
 }
 
 CodechalEncodeJpegStateG12::~CodechalEncodeJpegStateG12()

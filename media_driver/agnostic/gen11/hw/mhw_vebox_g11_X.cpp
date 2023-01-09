@@ -954,7 +954,7 @@ MOS_STATUS MhwVeboxInterfaceG11::AddVeboxState(
     cmd.DW18.BypassChromaUpsampling                    = pChromaSampling->BypassChromaUpsampling;
     cmd.DW18.BypassChromaDownsampling                  = pChromaSampling->BypassChromaDownsampling;
 
-    Mos_AddCommand(pCmdBuffer, &cmd, cmd.byteSize);
+    pOsInterface->pfnAddCommand(pCmdBuffer, &cmd, cmd.byteSize);
 
 finish:
     return eStatus;
@@ -1254,7 +1254,7 @@ MOS_STATUS MhwVeboxInterfaceG11::AddVeboxDiIecp(
         MHW_ASSERTMESSAGE("Unsupported Vebox Scalability Settings");
     }
 
-    Mos_AddCommand(pCmdBuffer, &cmd, cmd.byteSize);
+    pOsInterface->pfnAddCommand(pCmdBuffer, &cmd, cmd.byteSize);
 
 finish:
     return eStatus;
@@ -2809,7 +2809,7 @@ MOS_STATUS MhwVeboxInterfaceG11::CreateGpuContext(
     MHW_CHK_NULL(pOsInterface);
 
     Mos_SetVirtualEngineSupported(pOsInterface, true);
-    Mos_CheckVirtualEngineSupported(pOsInterface, true, true);
+    pOsInterface->pfnVirtualEngineSupported(pOsInterface, true, true);
 
     if (!MOS_VE_CTXBASEDSCHEDULING_SUPPORTED(pOsInterface))
     {

@@ -635,7 +635,7 @@ protected:
     MOS_STATUS GetResInfo(MOS_RESOURCE &res, ResInfo &resInfo) const
     {
         auto        ret     = MOS_STATUS_SUCCESS;
-        auto        resType = GetResType(&res);
+        auto        resType = m_osItf.pfnGetResType(&res);
         MOS_SURFACE details = {};
 
         if (resType != MOS_GFXRES_BUFFER)

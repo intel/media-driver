@@ -1469,7 +1469,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpPipeModeSelectCmd(
     }
 #endif
 
-    MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, params->pBatchBuffer, &cmd, sizeof(cmd)));
+    MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, params->pBatchBuffer, &cmd, sizeof(cmd)));
 
     // for Gen11+, we need to add MFX wait for both KIN and VRT before and after HCP Pipemode select...
     MHW_MI_CHK_STATUS(m_miInterface->AddMfxWaitCmd(cmdBuffer, nullptr, true));
@@ -1728,6 +1728,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpPipeBufAddrCmd(
 
     MHW_FUNCTION_ENTER;
 
+    MHW_MI_CHK_NULL(m_osInterface);
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(params);
 
@@ -2427,7 +2428,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpPipeBufAddrCmd(
     }
 #endif
 
-    MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+    MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
     return eStatus;
 }
@@ -2440,6 +2441,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpIndObjBaseAddrCmd(
 
     MHW_FUNCTION_ENTER;
 
+    MHW_MI_CHK_NULL(m_osInterface);
     MHW_MI_CHK_NULL(params);
 
     MHW_RESOURCE_PARAMS resourceParams;
@@ -2624,7 +2626,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpIndObjBaseAddrCmd(
 
     }
 
-    MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
+    MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, cmd.byteSize));
 
     return eStatus;
 }
@@ -2872,7 +2874,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpEncodePicStateCmd(
     {
         cmd.DW19.TemporalMvPredDisable = 1;
     }
-    MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
+    MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
 
     return eStatus;
 }
@@ -2885,6 +2887,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpTileStateCmd(
 
     MHW_FUNCTION_ENTER;
 
+    MHW_MI_CHK_NULL(m_osInterface);
     MHW_MI_CHK_NULL(params);
     MHW_MI_CHK_NULL(params->pTileColWidth);
     MHW_MI_CHK_NULL(params->pTileRowHeight);
@@ -3035,7 +3038,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpTileStateCmd(
         }
     }
 
-    MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+    MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
     return eStatus;
 }
@@ -3135,7 +3138,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpWeightOffsetStateCmd(
         MHW_ASSERTMESSAGE("There was no valid buffer to add the HW command to.");
     }
 
-    MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
+    MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
 
     return eStatus;
 }
@@ -3148,6 +3151,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpFqmStateCmd(
 
     MHW_FUNCTION_ENTER;
 
+    MHW_MI_CHK_NULL(m_osInterface);
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(params);
 
@@ -3177,7 +3181,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpFqmStateCmd(
                     GetReciprocalScalingValue(iqMatrix->List4x4[3 * intraInter][i]);
             }
 
-            MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
+            MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, cmd.byteSize));
         }
 
         /* 8x8, 16x16 and 32x32 */
@@ -3197,7 +3201,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpFqmStateCmd(
                     GetReciprocalScalingValue(iqMatrix->List8x8[3 * intraInter][i]);
             }
 
-            MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
+            MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, cmd.byteSize));
         }
 
         /* 16x16 DC */
@@ -3218,7 +3222,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpFqmStateCmd(
                     GetReciprocalScalingValue(iqMatrix->List16x16[3 * intraInter][i]);
             }
 
-            MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
+            MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, cmd.byteSize));
         }
 
         /* 32x32 DC */
@@ -3239,7 +3243,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpFqmStateCmd(
                     GetReciprocalScalingValue(iqMatrix->List32x32[intraInter][i]);
             }
 
-            MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
+            MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, cmd.byteSize));
         }
     }
     else
@@ -3519,7 +3523,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpEncodeSliceStateCmd(
         cmd.DW6.Roundintra = hevcSliceState->RoundingIntra;
     }
 
-    MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, hevcSliceState->pBatchBufferForPakSlices, &cmd, sizeof(cmd)));
+    MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, hevcSliceState->pBatchBufferForPakSlices, &cmd, sizeof(cmd)));
 
     return eStatus;
 }
@@ -3554,12 +3558,12 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpPakInsertObject(
         cmd.DW1.DatabyteoffsetSrcdatastartingbyteoffset10           = 0;
         cmd.DW1.IndirectPayloadEnable                               = 0;
 
-        MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer,  params->pBatchBufferForPakSlices, &cmd, cmd.byteSize));
+        MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer,  params->pBatchBufferForPakSlices, &cmd, cmd.byteSize));
 
         dwPadding[0] = (uint32_t)((1 << 16) | ((HEVC_NAL_UT_EOS << 1) << 24));
         dwPadding[1] = (1L | (1L << 24));
         dwPadding[2] = (HEVC_NAL_UT_EOB << 1) | (1L << 8);
-        MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer,  params->pBatchBufferForPakSlices, &dwPadding[0], sizeof(dwPadding)));
+        MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer,  params->pBatchBufferForPakSlices, &dwPadding[0], sizeof(dwPadding)));
     }
     else
     if (params->bLastPicInSeq || params->bLastPicInStream)
@@ -3578,20 +3582,20 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpPakInsertObject(
         cmd.DW1.DatabyteoffsetSrcdatastartingbyteoffset10           = 0;
         cmd.DW1.IndirectPayloadEnable                               = 0;
 
-        MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer,  params->pBatchBufferForPakSlices, &cmd, cmd.byteSize));
+        MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer,  params->pBatchBufferForPakSlices, &cmd, cmd.byteSize));
 
         if (params->bLastPicInSeq)
         {
             dwLastPicInSeqData[0] = (uint32_t)((1 << 16) | ((HEVC_NAL_UT_EOS << 1) << 24));
             dwLastPicInSeqData[1] = 1;  // nuh_temporal_id_plus1
-            MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer,   params->pBatchBufferForPakSlices, &dwLastPicInSeqData[0], sizeof(dwLastPicInSeqData)));
+            MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer,   params->pBatchBufferForPakSlices, &dwLastPicInSeqData[0], sizeof(dwLastPicInSeqData)));
         }
 
         if (params->bLastPicInStream)
         {
             dwLastPicInStreamData[0] = (uint32_t)((1 << 16) | ((HEVC_NAL_UT_EOB << 1) << 24));
             dwLastPicInStreamData[1] = 1; // nuh_temporal_id_plus1
-            MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer,   params->pBatchBufferForPakSlices, &dwLastPicInStreamData[0], sizeof(dwLastPicInStreamData)));
+            MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer,   params->pBatchBufferForPakSlices, &dwLastPicInStreamData[0], sizeof(dwLastPicInStreamData)));
         }
     }
     else
@@ -3615,14 +3619,14 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpPakInsertObject(
         cmd.DW1.DatabyteoffsetSrcdatastartingbyteoffset10           = 0;
         cmd.DW1.IndirectPayloadEnable                               = 0;
 
-        MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer,  params->pBatchBufferForPakSlices, &cmd, cmd.byteSize));
+        MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer,  params->pBatchBufferForPakSlices, &cmd, cmd.byteSize));
 
         if (byteSize)
         {
             MHW_MI_CHK_NULL(params->pBsBuffer);
             MHW_MI_CHK_NULL(params->pBsBuffer->pBase);
             uint8_t *data = (uint8_t*)(params->pBsBuffer->pBase + params->dwOffset);
-            MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer,  params->pBatchBufferForPakSlices, data, byteSize));
+            MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer,  params->pBatchBufferForPakSlices, data, byteSize));
         }
     }
 
@@ -3767,7 +3771,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpVp9PicStateCmd(
         cmd.DW9.AltrefFrameHieghtInPixelsMinus1 = altRefFrameHeight - 1;
     }
 
-    MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, cmd.byteSize));
+    MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, batchBuffer, &cmd, cmd.byteSize));
 
     return eStatus;
 }
@@ -3950,7 +3954,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpVp9PicStateEncCmd(
 
     cmd.DW19.VdencPakOnlyPass               = params->bVdencPakOnlyPassFlag;
 
-    MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
+    MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
 
     return eStatus;
 }
@@ -4008,7 +4012,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpVp9SegmentStateCmd(
         cmd.DW6.ChromaAcQuantScaleDecodeModeOnly    = vp9SegData.ChromaACQuantScale;
     }
 
-    MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, cmd.byteSize));
+    MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, batchBuffer, &cmd, cmd.byteSize));
 
     return eStatus;
 }
@@ -4019,6 +4023,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpHevcVp9RdoqStateCmd(
 {    
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
+    MHW_MI_CHK_NULL(m_osInterface);
     MHW_MI_CHK_NULL(params);
     MHW_MI_CHK_NULL(params->pHevcEncSeqParams);
 
@@ -4204,7 +4209,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpHevcVp9RdoqStateCmd(
         cmd.DW1.DisableHtqPerformanceFix1 = true;
     }
 
-    MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+    MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
     return eStatus;
 }
@@ -4217,6 +4222,7 @@ MOS_STATUS  MhwVdboxHcpInterfaceG12::AddHcpDecodeTileCodingCmd(
 
     MHW_FUNCTION_ENTER;
 
+    MHW_MI_CHK_NULL(m_osInterface);
     MHW_MI_CHK_NULL(params);
     
     mhw_vdbox_hcp_g12_X::HCP_TILE_CODING_CMD cmd;
@@ -4235,7 +4241,7 @@ MOS_STATUS  MhwVdboxHcpInterfaceG12::AddHcpDecodeTileCodingCmd(
     cmd.DW3.Tileheightinmincbminus1  = params->TileHeightInMinCbMinus1;
     cmd.DW3.Tilewidthinmincbminus1   = params->TileWidthInMinCbMinus1;
 
-    MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+    MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
     return eStatus;
 }
@@ -4250,6 +4256,7 @@ MOS_STATUS  MhwVdboxHcpInterfaceG12::AddHcpEncodeTileCodingCmd(
 
     mhw_vdbox_hcp_g12_X::HCP_TILE_CODING_CMD cmd;
 
+    MHW_CHK_NULL(m_osInterface);
     MHW_CHK_NULL(params);
     
     cmd.DW1.NumberOfActiveBePipes    = params->NumberOfActiveBePipes;
@@ -4305,7 +4312,7 @@ MOS_STATUS  MhwVdboxHcpInterfaceG12::AddHcpEncodeTileCodingCmd(
             &resourceParams));
     }    
     
-    MHW_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+    MHW_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
 finish:
     return eStatus;
@@ -4376,6 +4383,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpPaletteInitializerStateCmd(
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
+    MHW_MI_CHK_NULL(m_osInterface);
     MHW_MI_CHK_NULL(params);
 
     mhw_vdbox_hcp_g12_X::HCP_PALETTE_INITIALIZER_STATE_CMD cmd;
@@ -4415,7 +4423,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpPaletteInitializerStateCmd(
         cmd.Second64ColorEntries[i + 2] |= (crEntry << 16); // Cr
     }
 
-    MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+    MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
     return eStatus;
 }

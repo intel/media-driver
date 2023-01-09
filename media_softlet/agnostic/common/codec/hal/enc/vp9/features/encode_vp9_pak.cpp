@@ -259,7 +259,7 @@ MOS_STATUS Vp9EncodePak::ConstructPicStateBatchBuffer(EncodePipeline* pipeline)
         // Max 7 segments, 32 bytes each
         uint8_t zeroBlock[Vp9Segmentation::m_segmentStateBlockSize * (CODEC_VP9_MAX_SEGMENTS - 1)];
         MOS_ZeroMemory(zeroBlock, sizeof(zeroBlock));
-        Mhw_AddCommandCmdOrBB(&constructedCmdBuf, nullptr, zeroBlock, (CODEC_VP9_MAX_SEGMENTS - segmentCount) * Vp9Segmentation::m_segmentStateBlockSize);
+        Mhw_AddCommandCmdOrBB(osInterface, &constructedCmdBuf, nullptr, zeroBlock, (CODEC_VP9_MAX_SEGMENTS - segmentCount) * Vp9Segmentation::m_segmentStateBlockSize);
     }
 
     m_basicFeature->m_slbbImgStateOffset = (uint16_t)constructedCmdBuf.iOffset;
@@ -512,6 +512,7 @@ MOS_STATUS Vp9EncodePak::ConstructPakInsertObjBatchBuffer()
 {
     ENCODE_FUNC_CALL();
 
+    ENCODE_CHK_NULL_RETURN(m_hwInterface);
     uint32_t nalUnitSize   = m_basicFeature->m_nalUnitParams[0]->uiSize;
     uint32_t nalUnitOffset = m_basicFeature->m_nalUnitParams[0]->uiOffset;
     ENCODE_ASSERT(nalUnitSize > 0 && nalUnitSize < CODECHAL_ENCODE_VP9_PAK_INSERT_UNCOMPRESSED_HEADER);
@@ -535,7 +536,7 @@ MOS_STATUS Vp9EncodePak::ConstructPakInsertObjBatchBuffer()
         MHW_MI_CHK_NULL(&m_basicFeature->m_bsBuffer);
         MHW_MI_CHK_NULL(m_basicFeature->m_bsBuffer.pBase);
         uint8_t *data_bb = (uint8_t *)(m_basicFeature->m_bsBuffer.pBase + nalUnitOffset);
-        MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(&constructedCmdBuf, nullptr, data_bb, byteSize));
+        MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_hwInterface->GetOsInterface(), &constructedCmdBuf, nullptr, data_bb, byteSize));
     }
 
     ENCODE_CHK_STATUS_RETURN(m_miItf->AddMiBatchBufferEnd(&constructedCmdBuf, nullptr));

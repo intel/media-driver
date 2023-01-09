@@ -35,6 +35,7 @@ MOS_STATUS MhwVdboxMfxInterfaceG8Bdw::AddMfxPipeBufAddrCmd(
 
     MHW_FUNCTION_ENTER;
 
+    MHW_MI_CHK_NULL(m_osInterface);
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(params);
 
@@ -232,7 +233,7 @@ MOS_STATUS MhwVdboxMfxInterfaceG8Bdw::AddMfxPipeBufAddrCmd(
             &resourceParams));
     }
 
-    MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+    MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
     return eStatus;
 }
@@ -245,6 +246,7 @@ MOS_STATUS MhwVdboxMfxInterfaceG8Bdw::AddMfxBspBufBaseAddrCmd(
 
     MHW_FUNCTION_ENTER;
 
+    MHW_MI_CHK_NULL(m_osInterface);
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(params);
 
@@ -306,7 +308,7 @@ MOS_STATUS MhwVdboxMfxInterfaceG8Bdw::AddMfxBspBufBaseAddrCmd(
             &resourceParams));
     }
 
-    MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+    MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
     return eStatus;
 }
@@ -319,6 +321,7 @@ MOS_STATUS MhwVdboxMfxInterfaceG8Bdw::AddMfxJpegPicCmd(
 
     MHW_FUNCTION_ENTER;
 
+    MHW_MI_CHK_NULL(m_osInterface);
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(params);
     MHW_MI_CHK_NULL(params->pJpegPicParams);
@@ -363,7 +366,7 @@ MOS_STATUS MhwVdboxMfxInterfaceG8Bdw::AddMfxJpegPicCmd(
     cmd.DW2.FrameWidthInBlocksMinus1 = params->dwWidthInBlocks;
     cmd.DW2.FrameHeightInBlocksMinus1 = params->dwHeightInBlocks;
 
-    MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+    MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
     return eStatus;
 }
@@ -376,6 +379,7 @@ MOS_STATUS MhwVdboxMfxInterfaceG8Bdw::AddMfxDecodeVp8PicCmd(
 
     MHW_FUNCTION_ENTER;
 
+    MHW_MI_CHK_NULL(m_osInterface);
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(params);
 
@@ -588,7 +592,7 @@ MOS_STATUS MhwVdboxMfxInterfaceG8Bdw::AddMfxDecodeVp8PicCmd(
             &resourceParams));
     }
 
-    MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+    MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
     return eStatus;
 }

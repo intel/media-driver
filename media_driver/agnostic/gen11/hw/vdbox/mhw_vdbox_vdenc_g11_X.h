@@ -483,6 +483,7 @@ public:
     {
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(this->m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
  
@@ -507,7 +508,7 @@ public:
         // can add a DDI flag to control if needed
         cmd.DW1.OutputRangeControlAfterColorSpaceConversion = 1;
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(this->m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
         return MOS_STATUS_SUCCESS;
     }
@@ -1000,7 +1001,7 @@ public:
         // Hence it's a dummy CL for us. Histogram stats start from 4th CL onwards. 
         cmd.DW61.WeightsHistogramStreamoutOffset = 3 * MHW_CACHELINE_SIZE;
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(this->m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
         return MOS_STATUS_SUCCESS;
     }
@@ -1011,6 +1012,7 @@ public:
     {
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(this->m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
         MHW_MI_CHK_NULL(params->psSurface);
@@ -1041,7 +1043,7 @@ public:
         cmd.Dwords25.DW2.YOffsetForUCb            = cmd.Dwords25.DW3.YOffsetForVCr =
             MOS_ALIGN_CEIL(params->psSurface->UPlaneOffset.iYOffset, MHW_VDBOX_MFX_RAW_UV_PLANE_ALIGNMENT_GEN9);
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(this->m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
         return MOS_STATUS_SUCCESS;
     }
@@ -1052,6 +1054,7 @@ public:
     {
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(this->m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
         MHW_MI_CHK_NULL(params->psSurface);
@@ -1123,7 +1126,7 @@ public:
             cmd.Dwords25.DW2.YOffsetForUCb = cmd.Dwords25.DW3.YOffsetForVCr = params->dwReconSurfHeight;
         }
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(this->m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
         return MOS_STATUS_SUCCESS;
     }
@@ -1135,6 +1138,7 @@ public:
     {
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(this->m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
         MHW_MI_CHK_NULL(params->psSurface);
@@ -1196,7 +1200,7 @@ public:
             cmd.Dwords69.DW2.YOffsetForUCb = cmd.Dwords69.DW3.YOffsetForVCr = params->psSurface->UPlaneOffset.iYOffset;
         }
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(this->m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
         return MOS_STATUS_SUCCESS;
     }
@@ -1448,7 +1452,7 @@ public:
             return MOS_STATUS_NULL_POINTER;
         }
 
-        MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(this->m_osInterface, cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
 
         return MOS_STATUS_SUCCESS;
     }
@@ -1459,6 +1463,7 @@ public:
     {
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(this->m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
 
@@ -1634,7 +1639,7 @@ public:
             }
         }
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(this->m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
         return MOS_STATUS_SUCCESS;
     }
@@ -1645,6 +1650,7 @@ public:
     {
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(this->m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
         MHW_MI_CHK_NULL(params->pAvcPicParams);
@@ -1673,7 +1679,7 @@ public:
             cmd.DW2.OffsetForwardReference2  = 0;
         }
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(this->m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
         return MOS_STATUS_SUCCESS;
     }
@@ -1730,7 +1736,7 @@ public:
             return MOS_STATUS_NULL_POINTER;
         }
 
-        MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
+        MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(this->m_osInterface, cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
 
         return MOS_STATUS_SUCCESS;
     }

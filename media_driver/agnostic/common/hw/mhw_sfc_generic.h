@@ -48,13 +48,14 @@ public:
     {
         typename TSfcCmds::SFC_LOCK_CMD cmd;
 
+        MHW_CHK_NULL_RETURN(m_osInterface);
         MHW_CHK_NULL_RETURN(pCmdBuffer);
         MHW_CHK_NULL_RETURN(pSfcLockParams);
 
         cmd.DW1.VeSfcPipeSelect                    = (pSfcLockParams->sfcPipeMode == SFC_PIPE_MODE_VEBOX) ? 1 : 0;
         cmd.DW1.PreScaledOutputSurfaceOutputEnable = pSfcLockParams->bOutputToMemory ? 1 : 0;
 
-        MHW_CHK_STATUS_RETURN(Mos_AddCommand(pCmdBuffer, &cmd, cmd.byteSize));
+        MHW_CHK_STATUS_RETURN(m_osInterface->pfnAddCommand(pCmdBuffer, &cmd, cmd.byteSize));
         return MOS_STATUS_SUCCESS;
     }
 
@@ -63,8 +64,9 @@ public:
         uint8_t                        sfcPipeMode)
     {
         typename TSfcCmds::SFC_FRAME_START_CMD cmd;
+        MHW_CHK_NULL_RETURN(m_osInterface);
         MHW_CHK_NULL_RETURN(pCmdBuffer);
-        MHW_CHK_STATUS_RETURN(Mos_AddCommand(pCmdBuffer, &cmd, cmd.byteSize));
+        MHW_CHK_STATUS_RETURN(m_osInterface->pfnAddCommand(pCmdBuffer, &cmd, cmd.byteSize));
 
         return MOS_STATUS_SUCCESS;
     }
@@ -75,6 +77,7 @@ public:
     {
         typename TSfcCmds::SFC_IEF_STATE_CMD cmd;
 
+        MHW_CHK_NULL_RETURN(m_osInterface);
         MHW_CHK_NULL_RETURN(pCmdBuffer);
         MHW_CHK_NULL_RETURN(pSfcIefStateParams);
 
@@ -144,7 +147,7 @@ public:
             cmd.DW23.OffsetOut3 = (uint32_t)MOS_F_ROUND(pSfcIefStateParams->pfCscOutOffset[2] * 4.0F); // S8.2
         }
 
-        MHW_CHK_STATUS_RETURN(Mos_AddCommand(pCmdBuffer, &cmd, cmd.byteSize));
+        MHW_CHK_STATUS_RETURN(m_osInterface->pfnAddCommand(pCmdBuffer, &cmd, cmd.byteSize));
 
         return MOS_STATUS_SUCCESS;
     }
@@ -156,6 +159,7 @@ public:
         PSFC_AVS_CHROMA_FILTER_COEFF                      pChromaCoeff;
         typename TSfcCmds::SFC_AVS_CHROMA_Coeff_Table_CMD cmd;
 
+        MHW_CHK_NULL_RETURN(m_osInterface);
         MHW_CHK_NULL_RETURN(pCmdBuffer);
         MHW_CHK_NULL_RETURN(pChromaTable);
         pChromaCoeff = pChromaTable->ChromaTable;
@@ -167,7 +171,7 @@ public:
             pChromaCoeff,
             sizeof(SFC_AVS_CHROMA_FILTER_COEFF)* 32));
 
-        MHW_CHK_STATUS_RETURN(Mos_AddCommand(pCmdBuffer, &cmd, cmd.byteSize));
+        MHW_CHK_STATUS_RETURN(m_osInterface->pfnAddCommand(pCmdBuffer, &cmd, cmd.byteSize));
 
         return MOS_STATUS_SUCCESS;
     }
@@ -179,6 +183,7 @@ public:
        PSFC_AVS_LUMA_FILTER_COEFF                      pLumaCoeff;
        typename TSfcCmds::SFC_AVS_LUMA_Coeff_Table_CMD cmd;
 
+       MHW_CHK_NULL_RETURN(m_osInterface);
        MHW_CHK_NULL_RETURN(pCmdBuffer);
        MHW_CHK_NULL_RETURN(pLumaTable);
 
@@ -191,7 +196,7 @@ public:
            pLumaCoeff,
            sizeof(SFC_AVS_LUMA_FILTER_COEFF)* 32));
 
-       MHW_CHK_STATUS_RETURN(Mos_AddCommand(pCmdBuffer, &cmd, cmd.byteSize));
+       MHW_CHK_STATUS_RETURN(m_osInterface->pfnAddCommand(pCmdBuffer, &cmd, cmd.byteSize));
 
        return MOS_STATUS_SUCCESS;
    }
@@ -201,6 +206,7 @@ public:
        PMHW_SFC_AVS_STATE              pSfcAvsState)
    {
        typename TSfcCmds::SFC_AVS_STATE_CMD cmd;
+       MHW_CHK_NULL_RETURN(m_osInterface);
        MHW_CHK_NULL_RETURN(pCmdBuffer);
        MHW_CHK_NULL_RETURN(pSfcAvsState);
 
@@ -219,7 +225,7 @@ public:
        cmd.DW2.MaxDerivativePoint8       = 20;
        cmd.DW2.MaxDerivative4Pixels      = 7;
 
-       MHW_CHK_STATUS_RETURN(Mos_AddCommand(pCmdBuffer, &cmd, cmd.byteSize));
+       MHW_CHK_STATUS_RETURN(m_osInterface->pfnAddCommand(pCmdBuffer, &cmd, cmd.byteSize));
        return MOS_STATUS_SUCCESS;
    }
 };

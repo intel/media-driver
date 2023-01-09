@@ -50,12 +50,13 @@ public:
     {
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
 
         typename TRenderCmds::PIPELINE_SELECT_CMD  cmd;
         cmd.DW0.PipelineSelection = (gpGpuPipe) ? cmd.PIPELINE_SELECTION_GPGPU : cmd.PIPELINE_SELECTION_MEDIA;
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
+        MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, cmd.byteSize));
 
         return MOS_STATUS_SUCCESS;
     }
@@ -66,6 +67,7 @@ public:
     {
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
 
@@ -224,7 +226,7 @@ public:
         // stateless dataport access
         cmd.DW3.StatelessDataPortAccessMemoryObjectControlState = params->mocs4StatelessDataport;
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
+        MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, cmd.byteSize));
 
         return MOS_STATUS_SUCCESS;
     }
@@ -235,6 +237,7 @@ public:
     {
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
 
@@ -296,7 +299,7 @@ public:
             return MOS_STATUS_INVALID_PARAMETER;
         }
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
+        MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, cmd.byteSize));
 
         return MOS_STATUS_SUCCESS;
     }
@@ -307,6 +310,7 @@ public:
     {
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
 
@@ -335,7 +339,7 @@ public:
         // Send the command only if there is data to load
         if (cmd.DW2.CurbeTotalDataLength)
         {
-            MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
+            MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, cmd.byteSize));
         }
         else
         {
@@ -351,6 +355,7 @@ public:
     {
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
         MHW_MI_CHK_NULL(m_stateHeapInterface->pStateHeapInterface);
@@ -378,7 +383,7 @@ public:
 
         if (cmd.DW2.InterfaceDescriptorTotalLength > 0)
         {
-            MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
+            MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, cmd.byteSize));
         }
         else
         {
@@ -419,6 +424,7 @@ public:
         cmd.DW3.IndirectDataStartAddress    = params->dwIndirectDataStartAddress;
 
         MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(
+            m_osInterface,
             cmdBuffer,
             batchBuffer,
             &cmd,
@@ -427,6 +433,7 @@ public:
         if (params->pInlineData && params->dwInlineDataSize > 0)
         {
             MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(
+                m_osInterface,
                 cmdBuffer,
                 batchBuffer,
                 params->pInlineData,
@@ -442,6 +449,7 @@ public:
     {
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
 
@@ -478,13 +486,13 @@ public:
         cmd.DW16.GlobalInnerLoopUnitX       = params->GlobalInnerLoopUnit.x;
         cmd.DW16.GlobalInnerLoopUnitY       = params->GlobalInnerLoopUnit.y;
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
+        MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, cmd.byteSize));
 
         if (params->pInlineData)
         {
             if (params->InlineDataLength > 0)
             {
-                MHW_MI_CHK_STATUS(Mos_AddCommand(
+                MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(
                     cmdBuffer,
                     params->pInlineData,
                     params->InlineDataLength));
@@ -504,6 +512,7 @@ public:
     {
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
 
@@ -531,7 +540,7 @@ public:
         cmd.DW13.RightExecutionMask             = 0xffffffff;
         cmd.DW14.BottomExecutionMask            = 0xffffffff;
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
+        MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, cmd.byteSize));
 
         return MOS_STATUS_SUCCESS;
     }
@@ -541,6 +550,7 @@ public:
     {
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
 
@@ -549,7 +559,7 @@ public:
         cmd.DW2.ChromakeyLowValue   = params->dwLow;
         cmd.DW3.ChromakeyHighValue  = params->dwHigh;
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
+        MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, cmd.byteSize));
 
         return MOS_STATUS_SUCCESS;
     }
@@ -560,13 +570,14 @@ public:
     {
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(m_osInterface);
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
 
         typename TRenderCmds::STATE_SIP_CMD cmd;
         cmd.DW1_2.SystemInstructionPointer = (uint64_t)(params->dwSipBase >> 4);
 
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize))
+        MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, cmd.byteSize))
 
         return MOS_STATUS_SUCCESS;
     }

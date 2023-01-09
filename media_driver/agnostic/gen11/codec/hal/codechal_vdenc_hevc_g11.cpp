@@ -4786,6 +4786,7 @@ CodechalVdencHevcStateG11::CodechalVdencHevcStateG11(
     MOS_ZeroMemory(&m_resPipeStartSemaMem, sizeof(m_resPipeStartSemaMem));
     MOS_ZeroMemory(&m_resSyncSemaMem, sizeof(m_resSyncSemaMem));
 
+    CODECHAL_ENCODE_CHK_NULL_NO_STATUS_RETURN(m_osInterface);
     for (auto k = 0; k < CODECHAL_ENCODE_RECYCLED_BUFFER_NUM; k++)
     {
         for (auto i = 0; i < CODECHAL_VDENC_BRC_NUM_OF_PASSES; i++)
@@ -4816,7 +4817,7 @@ CodechalVdencHevcStateG11::CodechalVdencHevcStateG11(
     m_hwInterface->GetStateHeapSettings()->dwIshSize +=
         MOS_ALIGN_CEIL(m_combinedKernelSize, (1 << MHW_KERNEL_OFFSET_SHIFT));
 
-    Mos_CheckVirtualEngineSupported(m_osInterface, false, true);
+    m_osInterface->pfnVirtualEngineSupported(m_osInterface, false, true);
     Mos_SetVirtualEngineSupported(m_osInterface, true);
 
     CODECHAL_DEBUG_TOOL(
