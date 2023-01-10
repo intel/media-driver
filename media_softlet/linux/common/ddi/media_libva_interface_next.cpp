@@ -1595,11 +1595,6 @@ VAStatus MediaLibvaInterfaceNext::CopySurfaceToImage(
         }
     }
 
-    if (image->format.fourcc != VA_FOURCC_NV12)
-    {
-       flag = flag | MOS_LOCKFLAG_NO_SWIZZLE;
-    }
-
     void *surfData = MediaLibvaUtilNext::LockSurface(surface, flag);
     if (surfData == nullptr)
     {
@@ -1616,30 +1611,8 @@ VAStatus MediaLibvaInterfaceNext::CopySurfaceToImage(
         return vaStatus;
     }
 
-    uint8_t *ySrc = nullptr;
+    uint8_t *ySrc = (uint8_t*)surfData;
     uint8_t *yDst = (uint8_t*)imageData;
-    uint8_t *swizzleData = nullptr;
-
-    if (!surface->pMediaCtx->bIsAtomSOC && surface->TileType != I915_TILING_NONE && image->format.fourcc != VA_FOURCC_NV12)
-    {
-        swizzleData = (uint8_t*)MOS_AllocMemory(surface->data_size);
-        if (nullptr != swizzleData)
-        {
-            MediaLibvaUtilNext::SwizzleSurface(surface->pMediaCtx, surface->pGmmResourceInfo, surfData, (MOS_TILE_TYPE)surface->TileType, (uint8_t*)swizzleData, false);
-            ySrc = swizzleData;
-        }
-        else
-        {
-             DDI_ASSERTMESSAGE("nullptr swizzleData.");
-             UnmapBuffer(ctx, image->buf);
-             MediaLibvaUtilNext::UnlockSurface(surface);
-             return VA_STATUS_ERROR_INVALID_BUFFER;
-        }
-    }
-    else
-    {
-        ySrc = (uint8_t*)surfData;
-    }
 
     CopyPlane(yDst, image->pitches[0], ySrc, surface->iPitch, image->height);
     if (image->num_planes > 1)
@@ -1662,11 +1635,6 @@ VAStatus MediaLibvaInterfaceNext::CopySurfaceToImage(
         }
     }
 
-    if (nullptr != swizzleData)
-    {
-        MOS_FreeMemory(swizzleData);
-        swizzleData = nullptr;
-    }
     vaStatus = UnmapBuffer(ctx, image->buf);
     if (vaStatus != VA_STATUS_SUCCESS)
     {
