@@ -43,7 +43,6 @@ namespace CodechalDbgExtType     = MediaDbgExtType;
 namespace CodechalDbgSurfaceType = MediaDbgSurfaceType;
 namespace CodechalDbgBufferType  = MediaDbgBufferType;
 namespace CodechalDbgAttr        = MediaDbgAttr;
-namespace CodechalDbgKernel      = MediaDbgKernel;
 
 #define __MEDIA_USER_FEATURE_VALUE_DECODE_SFC_RGBFORMAT_OUTPUT_DEBUG "Decode SFC RGB Format Output"
 #define __MEDIA_USER_FEATURE_VALUE_DECODE_SFC_LINEAR_OUTPUT_DEBUG "Decode SFC Linear Output Debug"
@@ -154,12 +153,12 @@ public:
     void CheckGoldenReferenceExist();
 
     MOS_STATUS DumpRgbDataOnYUVSurface(
-        PMOS_SURFACE           surface,
-        const char             *attrName,
-        const char             *surfName,
-        MEDIA_DEBUG_STATE_TYPE mediaState = CODECHAL_NUM_MEDIA_STATES,
-        uint32_t               width_in   = 0,
-        uint32_t               height_in  = 0) override;
+        PMOS_SURFACE               surface,
+        const char                *attrName,
+        const char                *surfName,
+        CODECHAL_MEDIA_STATE_TYPE  mediaState = CODECHAL_NUM_MEDIA_STATES,
+        uint32_t                   width_in   = 0,
+        uint32_t                   height_in  = 0);
 
     MOS_STATUS DumpBltOutput(
         PMOS_SURFACE surface,
@@ -167,15 +166,110 @@ public:
 
     virtual MOS_STATUS InitializeUserSetting() override;
 
+    bool DumpIsEnabled(
+        const char *              attr,
+        CODECHAL_MEDIA_STATE_TYPE mediaState = CODECHAL_NUM_MEDIA_STATES);
+
+    MOS_STATUS SetFastDumpConfig(MediaCopyBaseState *mediaCopy);
+
+    const char *CreateFileName(
+        const char *funcName,
+        const char *bufType,
+        const char *extType);
+
+    MOS_STATUS DumpStringStream(
+        std::stringstream& ss,
+        const char*        bufferName,
+        const char*        attrName);
+
+    MOS_STATUS DumpCmdBuffer(
+        PMOS_COMMAND_BUFFER       cmdBuffer,
+        CODECHAL_MEDIA_STATE_TYPE mediaState,
+        const char *              cmdName = nullptr);
+
+    MOS_STATUS Dump2ndLvlBatch(
+        PMHW_BATCH_BUFFER         batchBuffer,
+        CODECHAL_MEDIA_STATE_TYPE mediaState,
+        const char *              batchName = nullptr);
+
+    MOS_STATUS DumpCurbe(
+        CODECHAL_MEDIA_STATE_TYPE mediaState,
+        PMHW_KERNEL_STATE         kernelState);
+
+    MOS_STATUS DumpMDFCurbe(
+        CODECHAL_MEDIA_STATE_TYPE mediaState,
+        uint8_t *                 curbeBuffer,
+        uint32_t                  curbeSize);
+
+    MOS_STATUS DumpKernelRegion(
+        CODECHAL_MEDIA_STATE_TYPE mediaState,
+        MHW_STATE_HEAP_TYPE       stateHeapType,
+        PMHW_KERNEL_STATE         kernelState);
+
+    MOS_STATUS DumpYUVSurfaceToBuffer(PMOS_SURFACE surface, uint8_t *buffer, uint32_t &size);
+
+    MOS_STATUS DumpYUVSurface(
+        PMOS_SURFACE              surface,
+        const char *              attrName,
+        const char *              surfName,
+        CODECHAL_MEDIA_STATE_TYPE mediaState = CODECHAL_NUM_MEDIA_STATES,
+        uint32_t                  width_in   = 0,
+        uint32_t                  height_in  = 0);
+
+    MOS_STATUS DumpBuffer(
+        PMOS_RESOURCE             resource,
+        const char *              attrName,
+        const char *              bufferName,
+        uint32_t                  size,
+        uint32_t                  offset = 0,
+        CODECHAL_MEDIA_STATE_TYPE mediaState = CODECHAL_NUM_MEDIA_STATES);
+
+    MOS_STATUS DumpSurface(
+        PMOS_SURFACE              surface,
+        const char *              attrName,
+        const char *              surfaceName,
+        CODECHAL_MEDIA_STATE_TYPE mediaState = CODECHAL_NUM_MEDIA_STATES);
+
+    MOS_STATUS DumpData(
+        void       *data,
+        uint32_t   size,
+        const char *attrName,
+        const char *bufferName);
+
+    MOS_STATUS DumpSurfaceInfo(
+        PMOS_SURFACE surface,
+        const char*  surfaceName);
+
     CodechalHwInterface     *m_hwInterface      = nullptr;
     CodechalHwInterfaceNext *m_hwInterfaceNext  = nullptr;
     CODECHAL_FUNCTION        m_codecFunction    = CODECHAL_FUNCTION_INVALID;
     PCODECHAL_DBG_CFG        m_dbgCfgHead       = nullptr;
+    CODEC_PICTURE            m_currPic          = {};
 
 protected:
     std::string SetOutputPathKey() override;
     std::string InitDefaultOutput() override;
     uint8_t *m_decodeOutputBuf = nullptr;
+
+    std::function<
+        MOS_STATUS(
+            PMOS_SURFACE              surface,
+            const char               *attrName,
+            const char               *surfName,
+            CODECHAL_MEDIA_STATE_TYPE mediaState,
+            uint32_t                  width_in,
+            uint32_t                  height_in)>
+        m_dumpYUVSurface;
+
+    std::function<
+        MOS_STATUS(
+            PMOS_RESOURCE             resource,
+            const char               *attrName,
+            const char               *bufferName,
+            uint32_t                  size,
+            uint32_t                  offset,
+            CODECHAL_MEDIA_STATE_TYPE mediaState)>
+        m_dumpBuffer;
 
 MEDIA_CLASS_DEFINE_END(CodechalDebugInterface)
 };

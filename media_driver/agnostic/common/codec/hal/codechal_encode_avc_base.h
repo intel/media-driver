@@ -31,6 +31,7 @@
 #include "codechal_kernel_hme.h"
 #if USE_CODECHAL_DEBUG_TOOL
 #include "codechal_debug_encode_par.h"
+#include "codechal_debug_kernel.h"
 #endif
 
 #define CODECHAL_ENCODE_AVC_INVALID_ROUNDING                0xFF

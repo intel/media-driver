@@ -50,90 +50,10 @@ public:
 
     MOS_STATUS InitDumpLocation();
 
-    MOS_STATUS SetFastDumpConfig(MediaCopyBaseState *mediaCopy);
-
-    bool DumpIsEnabled(
-        const char *           attr,
-        MEDIA_DEBUG_STATE_TYPE mediaState = CODECHAL_NUM_MEDIA_STATES);
-
-    const char *CreateFileName(
-        const char *funcName,
-        const char *bufType,
-        const char *extType);
-
     MOS_STATUS SetOutputFilePath();
-
-    MOS_STATUS DumpStringStream(
-        std::stringstream& ss,
-        const char*        bufferName,
-        const char*        attrName);
-
-    MOS_STATUS DumpCmdBuffer(
-        PMOS_COMMAND_BUFFER    cmdBuffer,
-        MEDIA_DEBUG_STATE_TYPE mediaState,
-        const char *           cmdName = nullptr);
-
-    MOS_STATUS Dump2ndLvlBatch(
-        PMHW_BATCH_BUFFER      batchBuffer,
-        MEDIA_DEBUG_STATE_TYPE mediaState,
-        const char *           batchName = nullptr);
-
-    MOS_STATUS DumpCurbe(
-        MEDIA_DEBUG_STATE_TYPE mediaState,
-        PMHW_KERNEL_STATE      kernelState);
-
-    MOS_STATUS DumpMDFCurbe(
-        MEDIA_DEBUG_STATE_TYPE mediaState,
-        uint8_t *              curbeBuffer,
-        uint32_t               curbeSize);
-
-    MOS_STATUS DumpKernelRegion(
-        MEDIA_DEBUG_STATE_TYPE mediaState,
-        MHW_STATE_HEAP_TYPE    stateHeapType,
-        PMHW_KERNEL_STATE      kernelState);
-
-    virtual MOS_STATUS DumpRgbDataOnYUVSurface(
-        PMOS_SURFACE           surface,
-        const char *           attrName,
-        const char *           surfName,
-        MEDIA_DEBUG_STATE_TYPE mediaState = CODECHAL_NUM_MEDIA_STATES,
-        uint32_t               width_in   = 0,
-        uint32_t               height_in  = 0);
-
-    MOS_STATUS DumpYUVSurface(
-        PMOS_SURFACE           surface,
-        const char *           attrName,
-        const char *           surfName,
-        MEDIA_DEBUG_STATE_TYPE mediaState = CODECHAL_NUM_MEDIA_STATES,
-        uint32_t               width_in   = 0,
-        uint32_t               height_in  = 0);
 
     virtual MOS_STATUS DumpUncompressedYUVSurface(
         PMOS_SURFACE           surface);
-
-    MOS_STATUS DumpBuffer(
-        PMOS_RESOURCE          resource,
-        const char *           attrName,
-        const char *           bufferName,
-        uint32_t               size,
-        uint32_t               offset = 0,
-        MEDIA_DEBUG_STATE_TYPE mediaState = CODECHAL_NUM_MEDIA_STATES);
-
-    MOS_STATUS DumpSurface(
-        PMOS_SURFACE           surface,
-        const char *           attrName,
-        const char *           surfaceName,
-        MEDIA_DEBUG_STATE_TYPE mediaState = CODECHAL_NUM_MEDIA_STATES);
-
-    MOS_STATUS DumpData(
-        void       *data,
-        uint32_t   size,
-        const char *attrName,
-        const char *bufferName);
-
-    MOS_STATUS DumpSurfaceInfo(
-        PMOS_SURFACE surface,
-        const char*  surfaceName);
 
     MOS_STATUS DumpMosSpecificResourceInfoToOfs(
         PMOS_RESOURCE  pOsResource,
@@ -165,7 +85,7 @@ public:
     MOS_STATUS SetSWCrcMode(bool swCrc);
 
     MOS_STATUS SubmitDummyWorkload(MOS_COMMAND_BUFFER *pcmdBuffer, int32_t bNullRendering);
-    MOS_STATUS DumpYUVSurfaceToBuffer(PMOS_SURFACE surface, uint8_t *buffer, uint32_t &size);
+
     MOS_STATUS LockResource(uint32_t *semaData, PMOS_RESOURCE reSemaphore);
 
     MOS_STATUS DumpToFile(const GoldenReferences &goldenReferences);
@@ -191,7 +111,6 @@ public:
     void             *m_miInterface       = nullptr;
 
     MediaDbgFunction  m_mediafunction     = MEDIA_FUNCTION_DEFAULT;
-    CODEC_PICTURE     m_currPic;
     uint32_t          m_scaledBottomFieldOffset = 0;
     uint16_t          m_frameType               = 0;
     uint32_t          m_sliceId                 = 0;  // used for constructing debug file name
@@ -230,12 +149,6 @@ protected:
         PMOS_RESOURCE presSourceSurface,
         PMOS_RESOURCE presCopiedSurface);
 
-    MOS_STATUS DumpNotSwizzled(
-        std::string  surfName,
-        MOS_SURFACE &surf,
-        uint8_t *    lockedAddr,
-        int32_t      size);
-
     MOS_STATUS DumpBufferInBinary(
         uint8_t *data,
         uint32_t size);
@@ -253,26 +166,6 @@ protected:
 
     std::string          m_outputFileName;
     MediaDebugConfigMgr *m_configMgr = nullptr;
-
-    std::function<
-        MOS_STATUS(
-            PMOS_SURFACE           surface,
-            const char            *attrName,
-            const char            *surfName,
-            MEDIA_DEBUG_STATE_TYPE mediaState,
-            uint32_t               width_in,
-            uint32_t               height_in)>
-        m_dumpYUVSurface;
-
-    std::function<
-        MOS_STATUS(
-            PMOS_RESOURCE          resource,
-            const char            *attrName,
-            const char            *bufferName,
-            uint32_t               size,
-            uint32_t               offset,
-            MEDIA_DEBUG_STATE_TYPE mediaState)>
-        m_dumpBuffer;
 
     MEDIA_CLASS_DEFINE_END(MediaDebugInterface)
 };

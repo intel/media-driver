@@ -103,6 +103,8 @@ protected:
     Vp9BasicFeature *       m_vp9BasicFeature = nullptr;
     CodechalHwInterfaceNext * m_hwInterface   = nullptr;
 
+    std::shared_ptr<mhw::vdbox::vdenc::Itf> m_vdencItf = nullptr;
+
     // Parameters passed from application
     const CODEC_VP9_PIC_PARAMS *m_vp9PicParams = nullptr;  //!< Pointer to picture parameter
 

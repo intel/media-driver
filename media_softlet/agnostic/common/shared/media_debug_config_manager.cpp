@@ -314,18 +314,6 @@ MOS_STATUS MediaDebugConfigMgr::DeleteCfgNode(uint32_t frameIdx)
     return MOS_STATUS_SUCCESS;
 }
 
-std::string MediaDebugConfigMgr::GetMediaStateStr(MEDIA_DEBUG_STATE_TYPE mediaState)
-{
-    MediaDbgKernel::KernelStateMap::kernelMapType &kernelMap = MediaDbgKernel::KernelStateMap::GetKernelStateMap();
-    auto                                           it        = kernelMap.find(mediaState);
-    if (it != kernelMap.end())
-    {
-        return it->second;
-    }
-
-    return "";
-}
-
 bool MediaDebugConfigMgr::AttrIsEnabled(std::string attrName)
 {
     if (nullptr != m_debugAllConfigs)
@@ -346,37 +334,6 @@ bool MediaDebugConfigMgr::AttrIsEnabled(std::string attrName)
         }
     }
 
-    return false;
-}
-
-bool MediaDebugConfigMgr::AttrIsEnabled(
-    MEDIA_DEBUG_STATE_TYPE mediaState,
-    std::string            attrName)
-{
-    std::string kernelName = GetMediaStateStr(mediaState);
-    if (kernelName.empty())
-    {
-        return false;
-    }
-
-    if (nullptr != m_debugAllConfigs)
-    {
-        MediaKernelDumpConfig attrs   = m_debugAllConfigs->kernelAttribs[kernelName];
-        bool                  enabled = KernelAttrEnabled(attrs, attrName);
-        if (enabled)
-        {
-            return enabled;
-        }
-    }
-
-    for (auto it : m_debugFrameConfigs)
-    {
-        if (it.frameIndex == GetDumpFrameNum())
-        {
-            MediaKernelDumpConfig attrs = it.kernelAttribs[kernelName];
-            return KernelAttrEnabled(attrs, attrName);
-        }
-    }
     return false;
 }
 
@@ -532,17 +489,6 @@ void MediaDebugConfigMgr::GenerateDefaultConfig(std::string configFileName)
     ofs << "#" << MediaDbgAttr::attrVuiParams << ":0" << std::endl;
     ofs << "#" << MediaDbgAttr::attrDumpEncodePar << ":0" << std::endl;
     ofs << "#" << MediaDbgAttr::attrVdencOutput << ":0" << std::endl;
-    ofs << std::endl;
-
-    ofs << "###############################################################" << std::endl;
-    ofs << "## key words defined for kernel" << std::endl;
-    ofs << "###############################################################" << std::endl;
-    // generate kernel related config
-    MediaDbgKernel::KernelStateMap::kernelMapType &kernelMap = MediaDbgKernel::KernelStateMap::GetKernelStateMap();
-    for (auto &it : kernelMap)
-    {
-        ofs << "#@" << it.second << " ALL" << std::endl;
-    }
     ofs << std::endl;
 
     ofs << "### Encode plug-in ###" << std::endl;

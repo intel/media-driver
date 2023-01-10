@@ -31,7 +31,6 @@
 
 VpDebugInterface::VpDebugInterface()
 {
-    memset(&m_currPic, 0, sizeof(CODEC_PICTURE));
     memset(m_fileName, 0, sizeof(m_fileName));
     memset(m_path, 0, sizeof(m_path));
 }

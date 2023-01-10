@@ -25,6 +25,9 @@
 //!
 
 #include "codechal_vdenc_hevc.h"
+#if USE_CODECHAL_DEBUG_TOOL
+#include "codechal_debug_kernel.h"
+#endif
 
 //!< \cond SKIP_DOXYGEN
 const uint8_t CodechalVdencHevcState::m_estRateThreshP0[7] =

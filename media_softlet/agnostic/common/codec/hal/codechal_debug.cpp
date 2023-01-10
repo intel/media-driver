@@ -32,17 +32,16 @@
 
 CodechalDebugInterface::CodechalDebugInterface()
 {
-    MOS_ZeroMemory(&m_currPic, sizeof(CODEC_PICTURE));
     MOS_ZeroMemory(m_fileName, sizeof(m_fileName));
     MOS_ZeroMemory(m_path, sizeof(m_path));
 
     m_dumpYUVSurface = [this](
-                           PMOS_SURFACE           surface,
-                           const char            *attrName,
-                           const char            *surfName,
-                           MEDIA_DEBUG_STATE_TYPE mediaState,
-                           uint32_t               width_in,
-                           uint32_t               height_in) {
+                           PMOS_SURFACE              surface,
+                           const char               *attrName,
+                           const char               *surfName,
+                           CODECHAL_MEDIA_STATE_TYPE mediaState,
+                           uint32_t                  width_in,
+                           uint32_t                  height_in) {
         bool     hasAuxSurf   = false;
         bool     isPlanar     = true;
         bool     hasRefSurf   = false;
@@ -380,6 +379,87 @@ CodechalDebugInterface::CodechalDebugInterface()
 
         return MOS_STATUS_SUCCESS;
     };
+
+    m_dumpBuffer = [this](
+                       PMOS_RESOURCE             resource,
+                       const char               *attrName,
+                       const char               *bufferName,
+                       uint32_t                  size,
+                       uint32_t                  offset,
+                       CODECHAL_MEDIA_STATE_TYPE mediaState) {
+        MEDIA_DEBUG_FUNCTION_ENTER;
+
+        MEDIA_DEBUG_CHK_NULL(resource);
+        MEDIA_DEBUG_CHK_NULL(bufferName);
+
+        if (size == 0)
+        {
+            return MOS_STATUS_SUCCESS;
+        }
+
+        if (attrName)
+        {
+            bool attrEnabled = false;
+
+            if (mediaState == CODECHAL_NUM_MEDIA_STATES)
+            {
+                attrEnabled = m_configMgr->AttrIsEnabled(attrName);
+            }
+            else
+            {
+                attrEnabled = static_cast<CodecDebugConfigMgr*>(m_configMgr)->AttrIsEnabled(mediaState, attrName);
+            }
+
+            if (!attrEnabled)
+            {
+                return MOS_STATUS_SUCCESS;
+            }
+        }
+
+        const char *fileName;
+        bool        binaryDump = m_configMgr->AttrIsEnabled(MediaDbgAttr::attrDumpBufferInBinary);
+        const char *extType    = binaryDump ? MediaDbgExtType::dat : MediaDbgExtType::txt;
+
+        if (mediaState == CODECHAL_NUM_MEDIA_STATES)
+        {
+            fileName = CreateFileName(bufferName, attrName, extType);
+        }
+        else
+        {
+            std::string kernelName = static_cast<CodecDebugConfigMgr*>(m_configMgr)->GetMediaStateStr(mediaState);
+            fileName               = CreateFileName(kernelName.c_str(), bufferName, extType);
+        }
+
+        if (DumpIsEnabled(MediaDbgAttr::attrEnableFastDump))
+        {
+            MediaDebugFastDump::Dump(*resource, fileName, size, offset);
+            return MOS_STATUS_SUCCESS;
+        }
+
+        MOS_LOCK_PARAMS lockFlags;
+        MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
+        lockFlags.ReadOnly = 1;
+        uint8_t *data      = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, resource, &lockFlags);
+        MEDIA_DEBUG_CHK_NULL(data);
+        data += offset;
+
+        MOS_STATUS status;
+        if (binaryDump)
+        {
+            status = DumpBufferInBinary(data, size);
+        }
+        else
+        {
+            status = DumpBufferInHexDwords(data, size);
+        }
+
+        if (data)
+        {
+            m_osInterface->pfnUnlockResource(m_osInterface, resource);
+        }
+
+        return status;
+    };
 }
 
 CodechalDebugInterface::~CodechalDebugInterface()
@@ -399,12 +479,12 @@ void CodechalDebugInterface::CheckGoldenReferenceExist()
 }
 
 MOS_STATUS CodechalDebugInterface::DumpRgbDataOnYUVSurface(
-    PMOS_SURFACE           surface,
-    const char             *attrName,
-    const char             *surfName,
-    MEDIA_DEBUG_STATE_TYPE mediaState,
-    uint32_t               width_in,
-    uint32_t               height_in)
+    PMOS_SURFACE              surface,
+    const char               *attrName,
+    const char               *surfName,
+    CODECHAL_MEDIA_STATE_TYPE mediaState,
+    uint32_t                  width_in,
+    uint32_t                  height_in)
 {
     bool     hasAuxSurf   = false;
     bool     isPlanar     = true;
@@ -1086,5 +1166,934 @@ MOS_STATUS CodechalDebugInterface::DumpEncodeStatusReport(const encode::EncodeSt
 
 #undef FIELD_TO_OFS
 #undef PTR_TO_OFS
+
+bool CodechalDebugInterface::DumpIsEnabled(
+    const char *              attr,
+    CODECHAL_MEDIA_STATE_TYPE mediaState)
+{
+    if (nullptr == m_configMgr)
+    {
+        return false;
+    }
+
+    if (mediaState != CODECHAL_NUM_MEDIA_STATES)
+    {
+        return static_cast<CodecDebugConfigMgr*>(m_configMgr)->AttrIsEnabled(mediaState, attr);
+    }
+    else
+    {
+        return m_configMgr->AttrIsEnabled(attr);
+    }
+}
+
+MOS_STATUS CodechalDebugInterface::SetFastDumpConfig(MediaCopyBaseState *mediaCopy)
+{
+    auto traceSetting = MosUtilities::GetTraceSetting();
+    if (!mediaCopy || !(DumpIsEnabled(MediaDbgAttr::attrEnableFastDump) || traceSetting))
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MediaDebugFastDump::Config cfg{};
+    if (traceSetting)
+    {
+        const auto &c           = traceSetting->fastDump;
+        cfg.allowDataLoss       = c.allowDataLoss;
+        cfg.frameIdx            = c.frameIdxBasedSampling ? &m_bufferDumpFrameNum : nullptr;
+        cfg.samplingTime        = static_cast<size_t>(c.samplingTime);
+        cfg.samplingInterval    = static_cast<size_t>(c.samplingInterval);
+        cfg.memUsagePolicy      = c.memUsagePolicy;
+        cfg.maxPrioritizedMem   = c.maxPrioritizedMem;
+        cfg.maxDeprioritizedMem = c.maxDeprioritizedMem;
+        cfg.weightRenderCopy    = c.weightRenderCopy;
+        cfg.weightVECopy        = c.weightVECopy;
+        cfg.weightBLTCopy       = c.weightBLTCopy;
+        cfg.writeMode           = c.writeMode;
+        cfg.bufferSize          = static_cast<size_t>(c.bufferSize);
+        cfg.informOnError       = c.informOnError;
+
+        auto suffix = cfg.writeMode < 2 ? ".bin" : cfg.writeMode == 2 ? ".txt"
+                                                                      : "";
+
+        class DumpEnabled
+        {
+        public:
+            bool operator()(const char *attrName)
+            {
+                decltype(m_filter)::const_iterator it;
+                return (it = m_filter.find(attrName)) != m_filter.end() &&
+                       MOS_TraceKeyEnabled(it->second);
+            }
+
+        private:
+            const std::map<std::string, MEDIA_EVENT_FILTER_KEYID> m_filter = {
+                {MediaDbgAttr::attrDecodeOutputSurface, TR_KEY_DECODE_DSTYUV},
+                {MediaDbgAttr::attrEncodeRawInputSurface, TR_KEY_ENCODE_DATA_INPUT_SURFACE},
+                {MediaDbgAttr::attrReferenceSurfaces, TR_KEY_ENCODE_DATA_REF_SURFACE},
+                {MediaDbgAttr::attrReconstructedSurface, TR_KEY_ENCODE_DATA_RECON_SURFACE},
+                {MediaDbgAttr::attrBitstream, TR_KEY_ENCODE_DATA_BITSTREAM},
+            };
+        };
+
+        auto dumpEnabled = std::make_shared<DumpEnabled>();
+
+        m_dumpYUVSurface = [this, dumpEnabled, traceSetting, suffix](
+                               PMOS_SURFACE              surface,
+                               const char               *attrName,
+                               const char               *surfName,
+                               CODECHAL_MEDIA_STATE_TYPE mediaState,
+                               uint32_t,
+                               uint32_t) {
+            if ((*dumpEnabled)(attrName))
+            {
+                MediaDebugFastDump::Dump(
+                    surface->OsResource,
+                    std::string(traceSetting->fastDump.filePath) +
+                        std::to_string(m_bufferDumpFrameNum) +
+                        '-' +
+                        surfName +
+                        "w[0]_h[0]_p[0]" +
+                        suffix);
+            }
+            return MOS_STATUS_SUCCESS;
+        };
+
+        m_dumpBuffer = [this, dumpEnabled, traceSetting, suffix](
+                           PMOS_RESOURCE             resource,
+                           const char               *attrName,
+                           const char               *bufferName,
+                           uint32_t                  size,
+                           uint32_t                  offset,
+                           CODECHAL_MEDIA_STATE_TYPE mediaState) {
+            if ((*dumpEnabled)(attrName))
+            {
+                MediaDebugFastDump::Dump(
+                    *resource,
+                    std::string(traceSetting->fastDump.filePath) +
+                        std::to_string(m_bufferDumpFrameNum) +
+                        '-' +
+                        bufferName +
+                        suffix,
+                    size,
+                    offset);
+            }
+            return MOS_STATUS_SUCCESS;
+        };
+    }
+    else
+    {
+        cfg.allowDataLoss = DumpIsEnabled(MediaDbgAttr::attrFastDumpAllowDataLoss);
+        cfg.informOnError = DumpIsEnabled(MediaDbgAttr::attrFastDumpInformOnError);
+    }
+
+    MediaDebugFastDump::CreateInstance(*m_osInterface, *mediaCopy, &cfg);
+
+    return MOS_STATUS_SUCCESS;
+}
+
+const char *CodechalDebugInterface::CreateFileName(
+    const char *funcName,
+    const char *bufType,
+    const char *extType)
+{
+    if (nullptr == funcName || nullptr == extType)
+    {
+        return nullptr;
+    }
+
+    char frameType = 'X';
+    // Sets the frameType label
+    if (m_frameType == I_TYPE)
+    {
+        frameType = 'I';
+    }
+    else if (m_frameType == P_TYPE)
+    {
+        frameType = 'P';
+    }
+    else if (m_frameType == B_TYPE)
+    {
+        frameType = 'B';
+    }
+    else if (m_frameType == MIXED_TYPE)
+    {
+        frameType = 'M';
+    }
+
+    const char *fieldOrder;
+    // Sets the Field Order label
+    if (CodecHal_PictureIsTopField(m_currPic))
+    {
+        fieldOrder = MediaDbgFieldType::topField;
+    }
+    else if (CodecHal_PictureIsBottomField(m_currPic))
+    {
+        fieldOrder = MediaDbgFieldType::botField;
+    }
+    else
+    {
+        fieldOrder = MediaDbgFieldType::frame;
+    }
+
+    // Sets the Postfix label
+    if (m_configMgr->AttrIsEnabled(MediaDbgAttr::attrDumpBufferInBinary) &&
+        strcmp(extType, MediaDbgExtType::txt) == 0)
+    {
+        extType = MediaDbgExtType::dat;
+    }
+
+    if (bufType != nullptr &&
+        !strncmp(bufType, MediaDbgBufferType::bufSlcParams, sizeof(MediaDbgBufferType::bufSlcParams) - 1) && !strncmp(funcName, "_DDIEnc", sizeof("_DDIEnc") - 1))
+    {
+        m_outputFileName = m_outputFilePath +
+                           std::to_string(m_bufferDumpFrameNum) + '-' +
+                           std::to_string(m_streamId) + '_' +
+                           std::to_string(m_sliceId + 1) +
+                           funcName + '_' + bufType + '_' + frameType + fieldOrder + extType;
+    }
+    else if (bufType != nullptr &&
+             !strncmp(bufType, MediaDbgBufferType::bufEncodePar, sizeof(MediaDbgBufferType::bufEncodePar) - 1))
+    {
+        if (!strncmp(funcName, "EncodeSequence", sizeof("EncodeSequence") - 1))
+        {
+            m_outputFileName = m_outputFilePath +
+                               std::to_string(m_streamId) + '_' +
+                               funcName + extType;
+        }
+        else
+        {
+            m_outputFileName = m_outputFilePath +
+                               std::to_string(m_bufferDumpFrameNum) + '-' +
+                               std::to_string(m_streamId) + '_' +
+                               funcName + frameType + fieldOrder + extType;
+        }
+    }
+    else
+    {
+        if (funcName[0] == '_')
+            funcName += 1;
+
+        if (bufType != nullptr)
+        {
+            m_outputFileName = m_outputFilePath +
+                               std::to_string(m_bufferDumpFrameNum) + '-' +
+                               std::to_string(m_streamId) + '_' +
+                               funcName + '_' + bufType + '_' + frameType + fieldOrder + extType;
+        }
+        else
+        {
+            m_outputFileName = m_outputFilePath +
+                               std::to_string(m_bufferDumpFrameNum) + '-' +
+                               std::to_string(m_streamId) + '_' +
+                               funcName + '_' + frameType + fieldOrder + extType;
+        }
+    }
+
+    return m_outputFileName.c_str();
+}
+
+MOS_STATUS CodechalDebugInterface::DumpStringStream(std::stringstream& ss, const char* bufferName, const char* attrName)
+{
+    MEDIA_DEBUG_FUNCTION_ENTER;
+
+    MEDIA_DEBUG_CHK_NULL(bufferName);
+    MEDIA_DEBUG_CHK_NULL(attrName);
+
+    if (!m_configMgr->AttrIsEnabled(attrName))
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    const char* filePath = CreateFileName(bufferName, nullptr, MediaDbgExtType::txt);
+    std::ofstream ofs(filePath);
+    ofs << ss.str();
+    ofs.close();
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS CodechalDebugInterface::DumpCmdBuffer(
+    PMOS_COMMAND_BUFFER       cmdBuffer,
+    CODECHAL_MEDIA_STATE_TYPE mediaState,
+    const char *              cmdName)
+{
+    MEDIA_DEBUG_FUNCTION_ENTER;
+
+    bool attrEnabled = m_configMgr->AttrIsEnabled(MediaDbgAttr::attrCmdBufferMfx);
+
+    if (!attrEnabled && mediaState != CODECHAL_NUM_MEDIA_STATES)
+    {
+        attrEnabled = static_cast<CodecDebugConfigMgr*>(m_configMgr)->AttrIsEnabled(mediaState, MediaDbgAttr::attrCmdBuffer);
+    }
+
+    if (!attrEnabled)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    bool binaryDumpEnabled = m_configMgr->AttrIsEnabled(MediaDbgAttr::attrDumpCmdBufInBinary);
+
+    std::string funcName = cmdName ? cmdName : static_cast<CodecDebugConfigMgr*>(m_configMgr)->GetMediaStateStr(mediaState);
+    const char *fileName = CreateFileName(
+        funcName.c_str(),
+        MediaDbgBufferType::bufCmd,
+        binaryDumpEnabled ? MediaDbgExtType::dat : MediaDbgExtType::txt);
+
+    if (binaryDumpEnabled)
+    {
+        DumpBufferInBinary((uint8_t *)cmdBuffer->pCmdBase, (uint32_t)cmdBuffer->iOffset);
+    }
+    else
+    {
+        DumpBufferInHexDwords((uint8_t *)cmdBuffer->pCmdBase, (uint32_t)cmdBuffer->iOffset);
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS CodechalDebugInterface::Dump2ndLvlBatch(
+    PMHW_BATCH_BUFFER         batchBuffer,
+    CODECHAL_MEDIA_STATE_TYPE mediaState,
+    const char *              batchName)
+{
+    MEDIA_DEBUG_FUNCTION_ENTER;
+
+    bool attrEnabled = m_configMgr->AttrIsEnabled(MediaDbgAttr::attr2ndLvlBatchMfx);
+
+    if (!attrEnabled && mediaState != CODECHAL_NUM_MEDIA_STATES)
+    {
+        attrEnabled = static_cast<CodecDebugConfigMgr*>(m_configMgr)->AttrIsEnabled(mediaState, MediaDbgAttr::attr2ndLvlBatch);
+    }
+
+    if (!attrEnabled)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    bool        batchLockedForDebug = !batchBuffer->bLocked;
+    std::string funcName            = batchName ? batchName : static_cast<CodecDebugConfigMgr*>(m_configMgr)->GetMediaStateStr(mediaState);
+
+    if (batchLockedForDebug)
+    {
+        (Mhw_LockBb(m_osInterface, batchBuffer));
+    }
+
+    const char *fileName = CreateFileName(
+        funcName.c_str(),
+        MediaDbgBufferType::buf2ndLvl,
+        MediaDbgExtType::txt);
+
+    batchBuffer->pData += batchBuffer->dwOffset;
+
+    DumpBufferInHexDwords(batchBuffer->pData,
+        (uint32_t)batchBuffer->iLastCurrent);
+
+    if (batchLockedForDebug)
+    {
+        (Mhw_UnlockBb(m_osInterface, batchBuffer, false));
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS CodechalDebugInterface::DumpCurbe(
+    CODECHAL_MEDIA_STATE_TYPE mediaState,
+    PMHW_KERNEL_STATE         kernelState)
+{
+    MEDIA_DEBUG_FUNCTION_ENTER;
+
+    if (mediaState >= CODECHAL_NUM_MEDIA_STATES ||
+        !static_cast<CodecDebugConfigMgr*>(m_configMgr)->AttrIsEnabled(mediaState, MediaDbgAttr::attrCurbe))
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    std::string funcName   = static_cast<CodecDebugConfigMgr*>(m_configMgr)->GetMediaStateStr(mediaState);
+    bool        binaryDump = m_configMgr->AttrIsEnabled(MediaDbgAttr::attrDumpBufferInBinary);
+
+    const char *fileName = CreateFileName(
+        funcName.c_str(),
+        MediaDbgBufferType::bufCurbe,
+        MediaDbgExtType::txt);
+
+    return kernelState->m_dshRegion.Dump(
+        fileName,
+        kernelState->dwCurbeOffset,
+        kernelState->KernelParams.iCurbeLength,
+        binaryDump);
+}
+
+MOS_STATUS CodechalDebugInterface::DumpMDFCurbe(
+    CODECHAL_MEDIA_STATE_TYPE mediaState,
+    uint8_t *                 curbeBuffer,
+    uint32_t                  curbeSize)
+{
+    MEDIA_DEBUG_FUNCTION_ENTER;
+
+    uint8_t *  curbeAlignedData = nullptr;
+    uint32_t   curbeAlignedSize = 0;
+    MOS_STATUS eStatus          = MOS_STATUS_SUCCESS;
+
+    if (mediaState >= CODECHAL_NUM_MEDIA_STATES ||
+        !static_cast<CodecDebugConfigMgr*>(m_configMgr)->AttrIsEnabled(mediaState, MediaDbgAttr::attrCurbe))
+    {
+        return eStatus;
+    }
+
+    std::string funcName   = static_cast<CodecDebugConfigMgr*>(m_configMgr)->GetMediaStateStr(mediaState);
+    bool        binaryDump = m_configMgr->AttrIsEnabled(MediaDbgAttr::attrDumpBufferInBinary);
+    const char *extType    = binaryDump ? MediaDbgExtType::dat : MediaDbgExtType::txt;
+
+    const char *fileName = CreateFileName(
+        funcName.c_str(),
+        MediaDbgBufferType::bufCurbe,
+        extType);
+
+    curbeAlignedSize = MOS_ALIGN_CEIL(curbeSize, 64);
+    curbeAlignedData = (uint8_t *)malloc(curbeAlignedSize * sizeof(uint8_t));
+    if (curbeAlignedData == nullptr)
+    {
+        eStatus = MOS_STATUS_NULL_POINTER;
+        return eStatus;
+    }
+
+    MOS_ZeroMemory(curbeAlignedData, curbeAlignedSize);
+    MOS_SecureMemcpy(curbeAlignedData, curbeSize, curbeBuffer, curbeSize);
+
+    if (binaryDump)
+    {
+        eStatus = DumpBufferInBinary(curbeAlignedData, curbeAlignedSize);
+    }
+    else
+    {
+        eStatus = DumpBufferInHexDwords(curbeAlignedData, curbeAlignedSize);
+    }
+
+    free(curbeAlignedData);
+
+    return eStatus;
+}
+
+MOS_STATUS CodechalDebugInterface::DumpKernelRegion(
+    CODECHAL_MEDIA_STATE_TYPE mediaState,
+    MHW_STATE_HEAP_TYPE       stateHeap,
+    PMHW_KERNEL_STATE         kernelState)
+{
+    MEDIA_DEBUG_FUNCTION_ENTER;
+
+    uint8_t *sshData = nullptr;
+    uint32_t sshSize = 0;
+
+    MemoryBlock *regionBlock = nullptr;
+    bool         attrEnabled = false;
+    const char * bufferType;
+    if (stateHeap == MHW_ISH_TYPE)
+    {
+        regionBlock = &kernelState->m_ishRegion;
+        attrEnabled = static_cast<CodecDebugConfigMgr*>(m_configMgr)->AttrIsEnabled(mediaState, MediaDbgAttr::attrIsh);
+        bufferType  = MediaDbgBufferType::bufISH;
+    }
+    else if (stateHeap == MHW_DSH_TYPE)
+    {
+        regionBlock = &kernelState->m_dshRegion;
+        attrEnabled = static_cast<CodecDebugConfigMgr*>(m_configMgr)->AttrIsEnabled(mediaState, MediaDbgAttr::attrDsh);
+        bufferType  = MediaDbgBufferType::bufDSH;
+    }
+    else
+    {
+        attrEnabled = static_cast<CodecDebugConfigMgr*>(m_configMgr)->AttrIsEnabled(mediaState, MediaDbgAttr::attrSsh);
+        bufferType  = MediaDbgBufferType::bufSSH;
+
+        MEDIA_DEBUG_CHK_NULL(m_osInterface);
+        MEDIA_DEBUG_CHK_STATUS(m_osInterface->pfnGetIndirectStatePointer(
+            m_osInterface,
+            &sshData));
+        sshData += kernelState->dwSshOffset;
+        sshSize = kernelState->dwSshSize;
+    }
+
+    if (!attrEnabled)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    std::string funcName = static_cast<CodecDebugConfigMgr*>(m_configMgr)->GetMediaStateStr(mediaState);
+
+    const char *fileName = CreateFileName(
+        funcName.c_str(),
+        bufferType,
+        MediaDbgExtType::txt);
+
+    bool binaryDump = m_configMgr->AttrIsEnabled(MediaDbgAttr::attrDumpBufferInBinary);
+
+    if (regionBlock)
+    {
+        return regionBlock->Dump(fileName, 0, 0, binaryDump);
+    }
+    else
+    {
+        return DumpBufferInHexDwords(sshData, sshSize);
+    }
+}
+
+MOS_STATUS CodechalDebugInterface::DumpYUVSurfaceToBuffer(PMOS_SURFACE surface,
+    uint8_t *                                                          buffer,
+    uint32_t &                                                         size)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    MOS_LOCK_PARAMS lockFlags;
+    MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
+    lockFlags.ReadOnly     = 1;
+    lockFlags.TiledAsTiled = 1;  // Bypass GMM CPU blit due to some issues in GMM CpuBlt function
+
+    uint8_t *lockedAddr = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, &surface->OsResource, &lockFlags);
+    if (lockedAddr == nullptr)  // Failed to lock. Try to submit copy task and dump another surface
+    {
+        uint32_t        sizeToBeCopied = 0;
+        MOS_GFXRES_TYPE ResType;
+
+#if LINUX
+        // Linux does not have OsResource->ResType
+        ResType = surface->Type;
+#else
+        ResType = surface->OsResource.ResType;
+#endif
+
+        GMM_RESOURCE_FLAG gmmFlags  = surface->OsResource.pGmmResInfo->GetResFlags();
+        bool              allocated = false;
+
+        MEDIA_DEBUG_CHK_STATUS(ReAllocateSurface(
+            &m_temp2DSurfForCopy,
+            surface,
+            "Temp2DSurfForSurfDumper",
+            ResType));
+
+        // Ensure allocated buffer size contains the source surface size
+        if (m_temp2DSurfForCopy.OsResource.pGmmResInfo->GetSizeMainSurface() >= surface->OsResource.pGmmResInfo->GetSizeMainSurface())
+        {
+            sizeToBeCopied = (uint32_t)surface->OsResource.pGmmResInfo->GetSizeMainSurface();
+        }
+
+        if (sizeToBeCopied == 0)
+        {
+            // Currently, MOS's pfnAllocateResource does not support allocate a surface reference to another surface.
+            // When the source surface is not created from Media, it is possible that we cannot allocate the same size as source.
+            // For example, on Gen9, Render target might have GMM set CCS=1 MMC=0, but MOS cannot allocate surface with such combination.
+            // When Gmm allocation parameter is different, the resulting surface size/padding/pitch will be differnt.
+            // Once if MOS can support allocate a surface by reference another surface, we can do a bit to bit copy without problem.
+            MEDIA_DEBUG_ASSERTMESSAGE("Cannot allocate correct size, failed to copy nonlockable resource");
+            return MOS_STATUS_NULL_POINTER;
+        }
+
+        MEDIA_DEBUG_VERBOSEMESSAGE("Temp2DSurfaceForCopy width %d, height %d, pitch %d, TileType %d, bIsCompressed %d, CompressionMode %d",
+            m_temp2DSurfForCopy.dwWidth,
+            m_temp2DSurfForCopy.dwHeight,
+            m_temp2DSurfForCopy.dwPitch,
+            m_temp2DSurfForCopy.TileType,
+            m_temp2DSurfForCopy.bIsCompressed,
+            m_temp2DSurfForCopy.CompressionMode);
+
+        if (CopySurfaceData_Vdbox(sizeToBeCopied, &surface->OsResource, &m_temp2DSurfForCopy.OsResource) != MOS_STATUS_SUCCESS)
+        {
+            MEDIA_DEBUG_ASSERTMESSAGE("CopyDataSurface_Vdbox failed");
+            m_osInterface->pfnFreeResource(m_osInterface, &m_temp2DSurfForCopy.OsResource);
+            return MOS_STATUS_NULL_POINTER;
+        }
+        lockedAddr = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, &m_temp2DSurfForCopy.OsResource, &lockFlags);
+        MEDIA_DEBUG_CHK_NULL(lockedAddr);
+    }
+
+    uint32_t sizeMain     = (uint32_t)(surface->OsResource.pGmmResInfo->GetSizeMainSurface());
+    uint8_t *surfBaseAddr = (uint8_t *)MOS_AllocMemory(sizeMain);
+    MEDIA_DEBUG_CHK_NULL(surfBaseAddr);
+
+    Mos_SwizzleData(lockedAddr, surfBaseAddr, surface->TileType, MOS_TILE_LINEAR, sizeMain / surface->dwPitch, surface->dwPitch, 0);
+
+    uint8_t *data = surfBaseAddr;
+    data += surface->dwOffset + surface->YPlaneOffset.iYOffset * surface->dwPitch;
+
+    uint32_t width  = surface->dwWidth;
+    uint32_t height = surface->dwHeight;
+
+    switch (surface->Format)
+    {
+    case Format_YUY2:
+    case Format_Y216V:
+    case Format_P010:
+    case Format_P016:
+        width = width << 1;
+        break;
+    case Format_Y216:
+    case Format_Y210:  //422 10bit -- Y0[15:0]:U[15:0]:Y1[15:0]:V[15:0] = 32bits per pixel = 4Bytes per pixel
+    case Format_Y410:  //444 10bit -- A[31:30]:V[29:20]:Y[19:10]:U[9:0] = 32bits per pixel = 4Bytes per pixel
+    case Format_R10G10B10A2:
+    case Format_AYUV:  //444 8bit  -- A[31:24]:Y[23:16]:U[15:8]:V[7:0] = 32bits per pixel = 4Bytes per pixel
+    case Format_A8R8G8B8:
+        width = width << 2;
+        break;
+    default:
+        break;
+    }
+
+    uint32_t pitch = surface->dwPitch;
+    if (surface->Format == Format_UYVY)
+        pitch = width;
+
+    if (CodecHal_PictureIsBottomField(m_currPic))
+    {
+        data += pitch;
+    }
+
+    if (CodecHal_PictureIsField(m_currPic))
+    {
+        pitch *= 2;
+        height /= 2;
+    }
+
+    // write luma data to file
+    for (uint32_t h = 0; h < height; h++)
+    {
+        MOS_SecureMemcpy(buffer, width, data, width);
+        buffer += width;
+        size += width;
+        data += pitch;
+    }
+
+    if (surface->Format != Format_A8B8G8R8)
+    {
+        switch (surface->Format)
+        {
+        case Format_NV12:
+        case Format_P010:
+        case Format_P016:
+            height >>= 1;
+            break;
+        case Format_Y416:
+        case Format_AUYV:
+        case Format_R10G10B10A2:
+            height *= 2;
+            break;
+        case Format_YUY2:
+        case Format_YUYV:
+        case Format_YUY2V:
+        case Format_Y216V:
+        case Format_YVYU:
+        case Format_UYVY:
+        case Format_VYUY:
+        case Format_Y216:  //422 16bit
+        case Format_Y210:  //422 10bit
+        case Format_P208:  //422 8bit
+            break;
+        case Format_422V:
+        case Format_IMC3:
+            height = height / 2;
+            break;
+        case Format_AYUV:
+        default:
+            height = 0;
+            break;
+        }
+
+        uint8_t *vPlaneData = surfBaseAddr;
+#ifdef LINUX
+        data = surfBaseAddr + surface->UPlaneOffset.iSurfaceOffset;
+        if (surface->Format == Format_422V || surface->Format == Format_IMC3)
+        {
+            vPlaneData = surfBaseAddr + surface->VPlaneOffset.iSurfaceOffset;
+        }
+#else
+        data = surfBaseAddr + surface->UPlaneOffset.iLockSurfaceOffset;
+        if (surface->Format == Format_422V || surface->Format == Format_IMC3)
+        {
+            vPlaneData = surfBaseAddr + surface->VPlaneOffset.iLockSurfaceOffset;
+        }
+
+#endif
+
+        // write chroma data to file
+        for (uint32_t h = 0; h < height; h++)
+        {
+            MOS_SecureMemcpy(buffer, width, data, width);
+            buffer += width;
+            size += width;
+            data += pitch;
+        }
+
+        // write v planar data to file
+        if (surface->Format == Format_422V || surface->Format == Format_IMC3)
+        {
+            for (uint32_t h = 0; h < height; h++)
+            {
+                MOS_SecureMemcpy(buffer, width, vPlaneData, width);
+                buffer += width;
+                size += width;
+                vPlaneData += pitch;
+            }
+        }
+    }
+
+    m_osInterface->pfnUnlockResource(m_osInterface, &surface->OsResource);
+
+    MOS_FreeMemory(surfBaseAddr);
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS CodechalDebugInterface::DumpYUVSurface(
+    PMOS_SURFACE              surface,
+    const char *              attrName,
+    const char *              surfName,
+    CODECHAL_MEDIA_STATE_TYPE mediaState,
+    uint32_t                  width_in,
+    uint32_t                  height_in)
+{
+    return m_dumpYUVSurface(
+        surface,
+        attrName,
+        surfName,
+        mediaState,
+        width_in,
+        height_in);
+}
+
+MOS_STATUS CodechalDebugInterface::DumpBuffer(
+    PMOS_RESOURCE             resource,
+    const char *              attrName,
+    const char *              bufferName,
+    uint32_t                  size,
+    uint32_t                  offset,
+    CODECHAL_MEDIA_STATE_TYPE mediaState)
+{
+    return m_dumpBuffer(
+        resource,
+        attrName,
+        bufferName,
+        size,
+        offset,
+        mediaState);
+}
+
+MOS_STATUS CodechalDebugInterface::DumpSurface(
+    PMOS_SURFACE              surface,
+    const char *              attrName,
+    const char *              surfaceName,
+    CODECHAL_MEDIA_STATE_TYPE mediaState)
+{
+    MEDIA_DEBUG_FUNCTION_ENTER;
+
+    MEDIA_DEBUG_CHK_NULL(surface);
+    MEDIA_DEBUG_CHK_NULL(attrName);
+    MEDIA_DEBUG_CHK_NULL(surfaceName);
+
+    bool attrEnabled = false;
+
+    if (mediaState == CODECHAL_NUM_MEDIA_STATES)
+    {
+        attrEnabled = m_configMgr->AttrIsEnabled(attrName);
+    }
+    else
+    {
+        attrEnabled = static_cast<CodecDebugConfigMgr*>(m_configMgr)->AttrIsEnabled(mediaState, attrName);
+    }
+
+    if (!attrEnabled)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    bool        binaryDump = m_configMgr->AttrIsEnabled(MediaDbgAttr::attrDumpBufferInBinary);
+    const char *extType    = binaryDump ? MediaDbgExtType::dat : MediaDbgExtType::txt;
+
+    MOS_LOCK_PARAMS lockFlags;
+    MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
+    lockFlags.ReadOnly = 1;
+    uint8_t *data      = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, &surface->OsResource, &lockFlags);
+    MEDIA_DEBUG_CHK_NULL(data);
+
+    std::string bufName = std::string(surfaceName) + "_w[" + std::to_string(surface->dwWidth) + "]_h[" + std::to_string(surface->dwHeight) + "]_p[" + std::to_string(surface->dwPitch) + "]";
+    const char *fileName;
+    if (mediaState == CODECHAL_NUM_MEDIA_STATES)
+    {
+        fileName = CreateFileName(bufName.c_str(), nullptr, extType);
+    }
+    else
+    {
+        std::string kernelName = static_cast<CodecDebugConfigMgr*>(m_configMgr)->GetMediaStateStr(mediaState);
+        fileName               = CreateFileName(kernelName.c_str(), bufName.c_str(), extType);
+    }
+
+    MOS_STATUS status;
+    if (binaryDump)
+    {
+        status = Dump2DBufferInBinary(data, surface->dwWidth, surface->dwHeight, surface->dwPitch);
+    }
+    else
+    {
+        status = DumpBufferInHexDwords(data, surface->dwHeight * surface->dwPitch);
+    }
+
+    if (data)
+    {
+        m_osInterface->pfnUnlockResource(m_osInterface, &surface->OsResource);
+    }
+
+    return status;
+}
+
+MOS_STATUS CodechalDebugInterface::DumpData(
+    void *      data,
+    uint32_t    size,
+    const char *attrName,
+    const char *bufferName)
+{
+    MEDIA_DEBUG_FUNCTION_ENTER;
+
+    MEDIA_DEBUG_CHK_NULL(data);
+    MEDIA_DEBUG_CHK_NULL(attrName);
+    MEDIA_DEBUG_CHK_NULL(bufferName);
+
+    if (!m_configMgr->AttrIsEnabled(attrName))
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    bool        binaryDump = m_configMgr->AttrIsEnabled(MediaDbgAttr::attrDumpBufferInBinary);
+    const char *fileName   = CreateFileName(bufferName, nullptr, binaryDump ? MediaDbgExtType::dat : MediaDbgExtType::txt);
+
+    if (binaryDump)
+    {
+        DumpBufferInBinary((uint8_t *)data, size);
+    }
+    else
+    {
+        DumpBufferInHexDwords((uint8_t *)data, size);
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+#define FIELD_TO_OFS(name, shift) ofs << shift #name << ": " << (int64_t)ptr->name << std::endl;
+#define EMPTY_TO_OFS()
+#define UNION_STRUCT_START_TO_OFS()     ofs << "union"      << std::endl \
+                                            << "{"          << std::endl \
+                                            << "    struct" << std::endl \
+                                            << "    {"      << std::endl;
+
+#define UNION_STRUCT_FIELD_TO_OFS(name) ofs << "        "#name << ": " << ptr->name << std::endl;
+#define UNION_END_TO_OFS(name)          ofs << "    }"      << std::endl \
+                                            << "    "#name << ": " << ptr->name << std::endl \
+                                            << "}" << std::endl;
+#define OFFSET_FIELD_TO_OFS(class_name, f_name, shift) << shift "                 "#f_name": " << ptr->class_name.f_name << std::endl
+#define PLANE_OFFSET_TO_OFS(name) ofs << "MOS_PLANE_OFFSET "#name << std::endl \
+                                                            OFFSET_FIELD_TO_OFS(name, iSurfaceOffset,)    \
+                                                            OFFSET_FIELD_TO_OFS(name, iXOffset,)          \
+                                                            OFFSET_FIELD_TO_OFS(name, iYOffset,)          \
+                                                            OFFSET_FIELD_TO_OFS(name, iLockSurfaceOffset,);
+#define RESOURCE_OFFSET_TO_OFS(name, shift) ofs << shift "MOS_RESOURCE_OFFSETS "#name << std::endl \
+                                                                                OFFSET_FIELD_TO_OFS(name, BaseOffset, shift) \
+                                                                                OFFSET_FIELD_TO_OFS(name, XOffset, shift)    \
+                                                                                OFFSET_FIELD_TO_OFS(name, YOffset, shift);
+
+#define FIELD_TO_OFS_8SHIFT(name) FIELD_TO_OFS(name, "        ")
+
+MOS_STATUS CodechalDebugInterface::DumpSurfaceInfo(
+    PMOS_SURFACE surface,
+    const char* surfaceName)
+{
+    MEDIA_DEBUG_FUNCTION_ENTER;
+
+    MEDIA_DEBUG_CHK_NULL(surface);
+    MEDIA_DEBUG_CHK_NULL(surfaceName);
+
+    if (!m_configMgr->AttrIsEnabled(MediaDbgAttr::attrSurfaceInfo))
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    const char* funcName = (m_mediafunction == MEDIA_FUNCTION_VP) ? "_VP" : ((m_mediafunction == MEDIA_FUNCTION_ENCODE) ? "_ENC" : "_DEC");
+    const char* filePath = CreateFileName(funcName, surfaceName, MediaDbgExtType::txt);
+    std::ofstream ofs(filePath);
+    PMOS_SURFACE ptr = surface;
+
+    if (ofs.fail())
+    {
+        return MOS_STATUS_UNKNOWN;
+    }
+
+    ofs << "Surface name: " << surfaceName << std::endl;
+
+    EMPTY_TO_OFS();
+    ofs << "MOS_SURFACE:" << std::endl;
+    FIELD_TO_OFS(dwArraySlice, );
+    FIELD_TO_OFS(dwMipSlice, );
+    FIELD_TO_OFS(S3dChannel, );
+
+    EMPTY_TO_OFS();
+    FIELD_TO_OFS(Type, );
+    FIELD_TO_OFS(bOverlay, );
+    FIELD_TO_OFS(bFlipChain, );
+
+#if !defined(LINUX)
+    EMPTY_TO_OFS();
+    UNION_STRUCT_START_TO_OFS();
+    UNION_STRUCT_FIELD_TO_OFS(dwFirstArraySlice);
+    UNION_STRUCT_FIELD_TO_OFS(dwFirstMipSlice);
+    UNION_END_TO_OFS(dwSubResourceIndex);
+#endif
+
+    EMPTY_TO_OFS();
+    FIELD_TO_OFS(dwWidth, );
+    FIELD_TO_OFS(dwHeight, );
+    FIELD_TO_OFS(dwSize, );
+    FIELD_TO_OFS(dwDepth, );
+    FIELD_TO_OFS(dwArraySize, );
+    FIELD_TO_OFS(dwLockPitch, );
+    FIELD_TO_OFS(dwPitch, );
+    FIELD_TO_OFS(dwSlicePitch, );
+    FIELD_TO_OFS(dwQPitch, );
+    FIELD_TO_OFS(TileType, );
+    FIELD_TO_OFS(TileModeGMM, );
+    FIELD_TO_OFS(bGMMTileEnabled, );
+    FIELD_TO_OFS(Format, );
+    FIELD_TO_OFS(bArraySpacing, );
+    FIELD_TO_OFS(bCompressible, );
+
+    EMPTY_TO_OFS();
+    FIELD_TO_OFS(dwOffset, );
+    PLANE_OFFSET_TO_OFS(YPlaneOffset);
+    PLANE_OFFSET_TO_OFS(UPlaneOffset);
+    PLANE_OFFSET_TO_OFS(VPlaneOffset);
+
+    EMPTY_TO_OFS();
+    UNION_STRUCT_START_TO_OFS();
+    RESOURCE_OFFSET_TO_OFS(RenderOffset.YUV.Y, "    ");
+    RESOURCE_OFFSET_TO_OFS(RenderOffset.YUV.U, "    ");
+    RESOURCE_OFFSET_TO_OFS(RenderOffset.YUV.V, "    ");
+    ofs << "    } YUV;" << std::endl;
+    RESOURCE_OFFSET_TO_OFS(RenderOffset.RGB, );
+    ofs << "}" << std::endl;
+
+    EMPTY_TO_OFS();
+    UNION_STRUCT_START_TO_OFS();
+    UNION_STRUCT_FIELD_TO_OFS(LockOffset.YUV.Y);
+    UNION_STRUCT_FIELD_TO_OFS(LockOffset.YUV.U);
+    UNION_STRUCT_FIELD_TO_OFS(LockOffset.YUV.V);
+    UNION_END_TO_OFS(LockOffset.RGB);
+
+    EMPTY_TO_OFS();
+    FIELD_TO_OFS(bIsCompressed, );
+    FIELD_TO_OFS(CompressionMode, );
+    FIELD_TO_OFS(CompressionFormat, );
+    FIELD_TO_OFS(YoffsetForUplane, );
+    FIELD_TO_OFS(YoffsetForVplane, );
+
+    EMPTY_TO_OFS();
+    EMPTY_TO_OFS();
+    MOS_STATUS sts = DumpMosSpecificResourceInfoToOfs(&surface->OsResource, ofs);
+    ofs.close();
+
+    return sts;
+}
 
 #endif // USE_CODECHAL_DEBUG_TOOL

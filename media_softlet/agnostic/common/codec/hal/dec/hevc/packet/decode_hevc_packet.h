@@ -111,6 +111,8 @@ protected:
     HevcBasicFeature *       m_hevcBasicFeature = nullptr;
     CodechalHwInterfaceNext *m_hwInterface      = nullptr;
 
+    std::shared_ptr<mhw::vdbox::vdenc::Itf> m_vdencItf = nullptr;
+
     // Parameters passed from application
     const CODEC_HEVC_PIC_PARAMS *m_hevcPicParams = nullptr; //!< Pointer to picture parameter
 

@@ -24,6 +24,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/codechal_debug.h
     ${CMAKE_CURRENT_LIST_DIR}/codechal_oca_debug.h
     ${CMAKE_CURRENT_LIST_DIR}/codechal_debug_config_manager.h
+    ${CMAKE_CURRENT_LIST_DIR}/codechal_debug_kernel.h
 )
 
 set(TMP_1_SOURCES_

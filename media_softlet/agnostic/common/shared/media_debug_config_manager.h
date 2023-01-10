@@ -71,10 +71,7 @@ public:
     MOS_STATUS ParseConfig(MOS_CONTEXT_HANDLE mosCtx);
     MOS_STATUS DeleteCfgNode(uint32_t frameIdx);
 
-    std::string GetMediaStateStr(MEDIA_DEBUG_STATE_TYPE mediaState);
-
     bool AttrIsEnabled(std::string attrName);
-    bool AttrIsEnabled(MEDIA_DEBUG_STATE_TYPE mediaState, std::string attrName);
 
  protected:
     void     GenerateDefaultConfig(std::string configFileName);

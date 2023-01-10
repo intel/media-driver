@@ -28,6 +28,7 @@
 #define __CODECHAL_DEBUG_CONFIG_MANAGER_H__
 
 #include "codechal_debug.h"
+#include "codechal_debug_kernel.h"
 #if USE_CODECHAL_DEBUG_TOOL
 
 class CodecDebugConfigMgr : public MediaDebugConfigMgr
@@ -38,6 +39,10 @@ public:
         CODECHAL_FUNCTION       codecFunction,
         std::string             outputFolderPath);
     virtual ~CodecDebugConfigMgr();
+
+    std::string GetMediaStateStr(CODECHAL_MEDIA_STATE_TYPE mediaState);
+    bool AttrIsEnabled(CODECHAL_MEDIA_STATE_TYPE mediaState, std::string attrName);
+    bool AttrIsEnabled(std::string attrName);
 
 protected:
     void     GetFunctionType();

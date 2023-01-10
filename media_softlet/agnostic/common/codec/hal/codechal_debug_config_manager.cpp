@@ -86,5 +86,71 @@ uint32_t CodecDebugConfigMgr::GetDumpFrameNum()
     return (uint32_t)m_debugInterface->m_bufferDumpFrameNum;
 }
 
+std::string CodecDebugConfigMgr::GetMediaStateStr(CODECHAL_MEDIA_STATE_TYPE mediaState)
+{
+    CodechalDbgKernel::KernelStateMap::kernelMapType &kernelMap = CodechalDbgKernel::KernelStateMap::GetKernelStateMap();
+    auto it = kernelMap.find(mediaState);
+    if (it != kernelMap.end())
+    {
+        return it->second;
+    }
+
+    return "";
+}
+
+bool CodecDebugConfigMgr::AttrIsEnabled(
+    CODECHAL_MEDIA_STATE_TYPE mediaState,
+    std::string               attrName)
+{
+    std::string kernelName = GetMediaStateStr(mediaState);
+    if (kernelName.empty())
+    {
+        return false;
+    }
+
+    if (nullptr != m_debugAllConfigs)
+    {
+        MediaKernelDumpConfig attrs   = m_debugAllConfigs->kernelAttribs[kernelName];
+        bool                  enabled = KernelAttrEnabled(attrs, attrName);
+        if (enabled)
+        {
+            return enabled;
+        }
+    }
+
+    for (auto it : m_debugFrameConfigs)
+    {
+        if (it.frameIndex == GetDumpFrameNum())
+        {
+            MediaKernelDumpConfig attrs = it.kernelAttribs[kernelName];
+            return KernelAttrEnabled(attrs, attrName);
+        }
+    }
+    return false;
+}
+
+bool CodecDebugConfigMgr::AttrIsEnabled(std::string attrName)
+{
+    if (nullptr != m_debugAllConfigs)
+    {
+        int attrValue = m_debugAllConfigs->cmdAttribs[attrName];
+        if (attrValue > 0)
+        {
+            return true;
+        }
+    }
+
+    for (auto it : m_debugFrameConfigs)
+    {
+        if (it.frameIndex == GetDumpFrameNum())
+        {
+            int attrValue = it.cmdAttribs[attrName];
+            return attrValue > 0;
+        }
+    }
+
+    return false;
+}
+
 #endif  // USE_CODECHAL_DEBUG_TOOL
 

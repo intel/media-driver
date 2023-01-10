@@ -146,7 +146,9 @@ namespace decode
         CodechalHwInterfaceNext *m_hwInterface         = nullptr;
         DecodeBasicFeature *     m_basicFeature        = nullptr;
         DecodeCpInterface*       m_decodecp            = nullptr;
-        std::shared_ptr<mhw::vdbox::huc::Itf> m_hucItf = nullptr;
+
+        std::shared_ptr<mhw::vdbox::huc::Itf>   m_hucItf   = nullptr;
+        std::shared_ptr<mhw::vdbox::vdenc::Itf> m_vdencItf = nullptr;
 
         static const uint32_t m_hucStatusInvalidMask = 0;         //!< Invalid mask of Huc status MMIO
         uint32_t       m_hucStatusMask = m_hucStatusInvalidMask;  //!< MMIO mask for HuC status
