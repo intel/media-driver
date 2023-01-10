@@ -3122,9 +3122,13 @@ VAStatus DdiVpFunctions::VpUpdateProcHdrState(
                 vpHalSurf->pHDRParams->white_point_x = hdr10MetaData->white_point_x;
                 vpHalSurf->pHDRParams->white_point_y = hdr10MetaData->white_point_y;
                 DDI_VP_NORMALMESSAGE("hdr10MetaData white_point_x %d, white_point_y %d.", hdr10MetaData->white_point_x, hdr10MetaData->white_point_y);
+             
+                // From VAAPI defintion which is following video spec, max/min_display_mastering_luminance are in units of 0.0001 candelas per square metre.
+                uint32_t max_display_mastering_luminance = (hdr10MetaData->max_display_mastering_luminance > 655350000 ) ? 655350000 : hdr10MetaData->max_display_mastering_luminance;
+                uint32_t min_display_mastering_luminance = (hdr10MetaData->min_display_mastering_luminance > 655350000 ) ? 655350000 : hdr10MetaData->min_display_mastering_luminance;
 
-                vpHalSurf->pHDRParams->max_display_mastering_luminance = hdr10MetaData->max_display_mastering_luminance;
-                vpHalSurf->pHDRParams->min_display_mastering_luminance = hdr10MetaData->min_display_mastering_luminance;
+                vpHalSurf->pHDRParams->max_display_mastering_luminance = (uint16_t)(max_display_mastering_luminance / 10000);;
+                vpHalSurf->pHDRParams->min_display_mastering_luminance = (uint16_t)(min_display_mastering_luminance / 10000);
                 DDI_VP_NORMALMESSAGE("hdr10MetaData max_display_mastering_luminance %d, min_display_mastering_luminance %d.", hdr10MetaData->max_display_mastering_luminance, hdr10MetaData->min_display_mastering_luminance);
 
                 vpHalSurf->pHDRParams->MaxCLL  = hdr10MetaData->max_content_light_level;
