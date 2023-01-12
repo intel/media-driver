@@ -36,6 +36,10 @@ MediaMemDeCompNext::MediaMemDeCompNext():
     m_cpInterface(nullptr)
 {
     m_veboxMMCResolveEnabled = false;
+    if (!m_renderMutex)
+    {
+        m_renderMutex = MosUtilities::MosCreateMutex();
+    }
 }
 
 MediaMemDeCompNext::~MediaMemDeCompNext()
@@ -58,6 +62,11 @@ MediaMemDeCompNext::~MediaMemDeCompNext()
         m_osInterface->pfnDestroy(m_osInterface, false);
         MOS_FreeMemory(m_osInterface);
         m_osInterface = nullptr;
+    }
+    if (m_renderMutex)
+    {
+        MosUtilities::MosDestroyMutex(m_renderMutex);
+        m_renderMutex = nullptr;
     }
 }
 
@@ -91,7 +100,10 @@ MOS_STATUS MediaMemDeCompNext::MemoryDecompress(PMOS_RESOURCE targetResource)
 
             if (targetSurface.bCompressible)
             {
+                VPHAL_MEMORY_DECOMP_CHK_NULL_RETURN(m_renderMutex);
+                MosUtilities::MosLockMutex(m_renderMutex);
                 VPHAL_MEMORY_DECOMP_CHK_STATUS_RETURN(RenderDecompCMD(&targetSurface));
+                MosUtilities::MosUnlockMutex(m_renderMutex);
             }
         }
     }

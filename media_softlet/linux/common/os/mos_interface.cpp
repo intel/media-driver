@@ -325,6 +325,12 @@ MOS_STATUS MosInterface::DestroyOsStreamState(
 
     MOS_OS_CHK_NULL_RETURN(streamState);
 
+    if (streamState->mosDecompression)
+    {
+        MOS_Delete(streamState->mosDecompression);
+        streamState->mosDecompression = nullptr;
+    }
+
     MOS_Delete(streamState);
     streamState = nullptr;
 
@@ -426,6 +432,9 @@ MOS_STATUS MosInterface::InitStreamParameters(
 
     context->bIsAtomSOC           = false;
     context->bFreeContext         = true;
+
+    streamState->enableDecomp     = true;
+
 #ifndef ANDROID
     {
         drm_i915_getparam_t gp;
@@ -674,6 +683,7 @@ MOS_STATUS MosInterface:: SetObjectCapture(
 
     //---------------------------------------
     MOS_OS_CHK_NULL_RETURN(osResource);
+    MOS_OS_CHK_NULL_RETURN(osResource->bo);
     //---------------------------------------
 
     mos_bo_set_object_capture(osResource->bo);
@@ -2412,10 +2422,8 @@ MOS_STATUS MosInterface::DoubleBufferCopyResource(
     if (inputResource && inputResource->bo && inputResource->pGmmResInfo &&
         outputResource && outputResource->bo && outputResource->pGmmResInfo)
     {
-        OsContextNext *osCtx = streamState->osDeviceContext;
-        MOS_OS_CHK_NULL_RETURN(osCtx);
-
-        MosDecompression *mosDecompression = osCtx->GetMosDecompression();
+        MosDecompression   *mosDecompression = nullptr;
+        MOS_OS_CHK_STATUS_RETURN(MosInterface::GetMosDecompressionFromStreamState(streamState, mosDecompression));
         MOS_OS_CHK_NULL_RETURN(mosDecompression);
 
         // Double Buffer Copy can support any tile status surface with/without compression
@@ -2446,10 +2454,8 @@ MOS_STATUS MosInterface::MediaCopyResource2D(
     if (inputResource && inputResource->bo && inputResource->pGmmResInfo &&
         outputResource && outputResource->bo && outputResource->pGmmResInfo)
     {
-        OsContextNext *osCtx = streamState->osDeviceContext;
-        MOS_OS_CHK_NULL_RETURN(osCtx);
-
-        MosDecompression *mosDecompression = osCtx->GetMosDecompression();
+        MosDecompression   *mosDecompression = nullptr;
+        MOS_OS_CHK_STATUS_RETURN(MosInterface::GetMosDecompressionFromStreamState(streamState, mosDecompression));
         MOS_OS_CHK_NULL_RETURN(mosDecompression);
 
         // Double Buffer Copy can support any tile status surface with/without compression
@@ -2480,16 +2486,43 @@ MOS_STATUS MosInterface::DecompResource(
         gmmFlags.Gpu.UnifiedAuxSurface) ||
         resource->pGmmResInfo->IsMediaMemoryCompressed(0))
     {
-        OsContextNext *osCtx = streamState->osDeviceContext;
-        MOS_OS_CHK_NULL_RETURN(osCtx);
+        MosDecompression   *mosDecompression = nullptr;
+        MOS_OS_CHK_STATUS_RETURN(MosInterface::GetMosDecompressionFromStreamState(streamState, mosDecompression));
 
-        MosDecompression *mosDecompression = osCtx->GetMosDecompression();
         MOS_OS_CHK_NULL_RETURN(mosDecompression);
-
         mosDecompression->MemoryDecompress(resource);
     }
 
     return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MosInterface::GetMosDecompressionFromStreamState(
+    MOS_STREAM_HANDLE   streamState,
+    MosDecompression* & mosDecompression)
+{
+    MOS_OS_FUNCTION_ENTER;
+    MOS_STATUS status = MOS_STATUS_SUCCESS;
+
+    MOS_OS_CHK_NULL_RETURN(streamState);
+    mosDecompression = streamState->mosDecompression;
+    if (!mosDecompression)
+    {
+        if (streamState->enableDecomp)
+        {
+            PMOS_CONTEXT mosContext = (PMOS_CONTEXT)streamState->perStreamParameters;
+            MOS_OS_CHK_NULL_RETURN(mosContext);
+            mosDecompression = streamState->mosDecompression = MOS_New(MosDecompression, mosContext);
+        }
+        else
+        {
+            OsContextNext *osCtx = streamState->osDeviceContext;
+            MOS_OS_CHK_NULL_RETURN(osCtx);
+            mosDecompression = osCtx->GetMosDecompression();
+        }
+    }
+    MOS_OS_CHK_NULL_RETURN(mosDecompression);
+    
+    return status;
 }
 
 MOS_STATUS MosInterface::SetDecompSyncRes(

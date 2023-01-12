@@ -909,14 +909,9 @@ void* GraphicsResourceSpecificNext::LockExternalResource(
         if (!flags->NoDecompress &&
             (((GmmFlags.Gpu.MMC || GmmFlags.Gpu.CCS) && GmmFlags.Info.MediaCompressed) ||
             resource->pGmmResInfo->IsMediaMemoryCompressed(0)))
-        {
-            OsContextNext *osCtx = streamState->osDeviceContext;
-            if (nullptr == osCtx)
-            {
-                MOS_OS_ASSERTMESSAGE("osCtx is NULL.");
-                return nullptr;
-            }
-            MosDecompression *mosDecompression = osCtx->GetMosDecompression();
+        {            
+            MosDecompression   *mosDecompression = nullptr;
+            MosInterface::GetMosDecompressionFromStreamState(streamState, mosDecompression);
             if (nullptr == mosDecompression)
             {
                 MOS_OS_ASSERTMESSAGE("mosDecompression is NULL.");

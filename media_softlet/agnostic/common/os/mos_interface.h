@@ -1455,6 +1455,20 @@ public:
         MOS_RESOURCE_HANDLE resource);
 
     //!
+    //! \brief    Decompress resource
+    //!
+    //! \param    [in] streamState
+    //!           Handle of Os Stream State
+    //! \param    [out] mosDecompression
+    //!           MosDecompression in stramStatate or in osDeviceContext.
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    static MOS_STATUS GetMosDecompressionFromStreamState(
+        MOS_STREAM_HANDLE streamState,
+        MosDecompression* & mosDecompression);
+
+    //!
     //! \brief    Set auxiliary resource to sync with decompression
     //!
     //! \param    [in] streamState

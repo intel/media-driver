@@ -334,6 +334,7 @@ protected:
     std::shared_ptr<mhw::mi::Itf>           m_miItf = nullptr;
     MhwCpInterface                        * m_cpInterface;
     bool                                    m_veboxMMCResolveEnabled;
+    PMOS_MUTEX                              m_renderMutex = nullptr;
 
     MediaUserSettingSharedPtr m_userSettingPtr = nullptr;  //!< UserSettingInstance
 MEDIA_CLASS_DEFINE_END(MediaMemDeCompNext)
