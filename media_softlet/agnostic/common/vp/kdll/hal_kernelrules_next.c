@@ -1744,7 +1744,7 @@ extern const Kdll_RuleEntry g_KdllRuleTable_Next[] =
     // Please not change the order of these two rules
     { RID_Op_NewEntry      , RULE_NO_OVERRIDE                   , Kdll_None },
     { RID_IsParserState    , Parser_ExecuteCSC0Done             , Kdll_None },
-    { RID_IsSrc0Sampling   , Sample_iScaling                    , Kdll_None },
+    { RID_IsSrc0Sampling   , Sample_iScaling_034x               , Kdll_None },
     { RID_SetSrc0Coeff     , CoeffID_None                       , Kdll_None },
     { RID_SetNextLayer     , -2                                 , Kdll_None }, // jump back to main layer
     { RID_SetParserState   , Parser_SampleLayer0Mix             , Kdll_None },
