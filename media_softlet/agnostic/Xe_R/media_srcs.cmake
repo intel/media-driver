@@ -26,4 +26,12 @@ if(XE_HPG OR XE_LPG)
     media_include_subdirectory(Xe_HPG)
 endif()
 
+set(MEDIA_BIN_HEADERS_
+    ${MEDIA_BIN_HEADERS_}
+    ${CMAKE_CURRENT_LIST_DIR}/media_bin_register_xe_hpg.h
+)
 
+set(MEDIA_BIN_INCLUDE_DIR
+    ${MEDIA_BIN_INCLUDE_DIR}
+    ${CMAKE_CURRENT_LIST_DIR}
+)
