@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021-2022 Intel Corporation
+* Copyright (c) 2021-2023 Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -323,7 +323,7 @@ struct _MHW_PAR_T(MFX_AVC_SLICE_STATE)
     uint8_t                   numberOfReferencePicturesInInterPredictionList1 = 0;
     uint8_t                   sliceAlphaC0OffsetDiv2                          = 0;
     uint8_t                   sliceBetaOffsetDiv2                             = 0;
-    uint8_t                   sliceQuantizationParameter                      = 0;
+    int8_t                    sliceQuantizationParameter                      = 0;
     uint8_t                   cabacInitIdc10                                  = 0;
     uint8_t                   disableDeblockingFilterIndicator                = 0;
     uint8_t                   directPredictionType                            = 0;

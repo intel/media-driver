@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -121,12 +121,7 @@ namespace decode {
         DECODE_CHK_NULL(m_avcPicParams);
         DECODE_CHK_NULL(m_avcSliceParams);
 
-        if(m_avcPicParams->seq_fields.chroma_format_idc > avcChromaFormat420
-            || m_avcPicParams->bit_depth_luma_minus8 > 0
-            || m_avcPicParams->bit_depth_chroma_minus8 > 0)
-        {
-            DECODE_ASSERTMESSAGE("Only 4:2:0 8bit is supported!");
-        }
+        DECODE_CHK_STATUS(CheckBitDepthAndChromaSampling());
 
         if(m_avcPicParams->seq_fields.chroma_format_idc != 3
             && m_avcPicParams->seq_fields.residual_colour_transform_flag)
@@ -436,6 +431,21 @@ namespace decode {
             m_sliceRecord[slcCount].offset = m_slcOffset;
             m_lastValidSlice = slcCount;
             slc++;
+        }
+
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MOS_STATUS AvcBasicFeature::CheckBitDepthAndChromaSampling()
+    {
+        DECODE_FUNC_CALL();
+        DECODE_CHK_NULL(m_avcPicParams);
+
+        if (m_avcPicParams->seq_fields.chroma_format_idc > avcChromaFormat420
+            || m_avcPicParams->bit_depth_luma_minus8 > 0
+            || m_avcPicParams->bit_depth_chroma_minus8 > 0)
+        {
+            DECODE_ASSERTMESSAGE("Only 4:2:0 8bit is supported!");
         }
 
         return MOS_STATUS_SUCCESS;

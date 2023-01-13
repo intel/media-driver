@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -172,6 +172,7 @@ protected:
     virtual MOS_STATUS SetRequiredBitstreamSize(uint32_t requiredSize) override;
     MOS_STATUS SetPictureStructs();
     MOS_STATUS SetSliceStructs();
+    virtual MOS_STATUS CheckBitDepthAndChromaSampling();
 
     PMOS_INTERFACE        m_osInterface  = nullptr;
 
