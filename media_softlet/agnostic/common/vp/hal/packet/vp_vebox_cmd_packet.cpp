@@ -2280,6 +2280,10 @@ MOS_STATUS VpVeboxCmdPacket::SetUpdatedExecuteResource(
     // Adjust boundary for statistics surface block
     VP_RENDER_CHK_STATUS_RETURN(AdjustBlockStatistics());
 
+    if (m_PacketCaps.bSFC)
+    {
+        VP_RENDER_CHK_STATUS_RETURN(SetSfcMmcParams());
+    }
     return MOS_STATUS_SUCCESS;
 }
 
