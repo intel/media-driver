@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2021, Intel Corporation
+* Copyright (c) 2019-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -155,6 +155,7 @@ namespace decode
         MOS_STATUS SetTileStructs();
         MOS_STATUS SetSegmentData(CodecAv1PicParams &picParams);
         MOS_STATUS GetDecodeTargetFormat(MOS_FORMAT &format);
+        virtual MOS_STATUS CheckProfileAndSubsampling();
 
         //!
         //! \brief    Calculate global motion params

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2021, Intel Corporation
+* Copyright (c) 2019-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -153,20 +153,29 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1BasicFeature::ErrorDetectAndConceal()
+    MOS_STATUS Av1BasicFeature::CheckProfileAndSubsampling()
     {
-        DECODE_FUNC_CALL()
-        DECODE_CHK_NULL(m_av1PicParams);
+        DECODE_FUNC_CALL();
 
         // Profile and subsampling
         if (m_av1PicParams->m_seqInfoFlags.m_fields.m_monoChrome ||
             m_av1PicParams->m_profile != 0 ||
-            !(m_av1PicParams->m_seqInfoFlags.m_fields.m_subsamplingX ==1 &&
+            !(m_av1PicParams->m_seqInfoFlags.m_fields.m_subsamplingX == 1 &&
                 m_av1PicParams->m_seqInfoFlags.m_fields.m_subsamplingY == 1))
         {
             DECODE_ASSERTMESSAGE("Only 4:2:0 8bit and 10bit are supported!");
             return MOS_STATUS_INVALID_PARAMETER;
         }
+
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MOS_STATUS Av1BasicFeature::ErrorDetectAndConceal()
+    {
+        DECODE_FUNC_CALL()
+        DECODE_CHK_NULL(m_av1PicParams);
+
+        DECODE_CHK_STATUS(CheckProfileAndSubsampling());
 
         if(m_av1PicParams->m_picInfoFlags.m_fields.m_allowIntrabc &&
             (!(m_av1PicParams->m_picInfoFlags.m_fields.m_frameType == keyFrame ||
