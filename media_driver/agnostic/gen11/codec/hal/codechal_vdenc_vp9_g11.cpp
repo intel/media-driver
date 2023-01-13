@@ -38,7 +38,6 @@
 #include "codechal_kernel_header_g11.h"
 #include "codeckrnheader.h"
 #if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
-#include "igcodeckrn_g10.h"
 #include "igcodeckrn_g11.h"
 #endif
 #include "mhw_vdbox_hcp_g11_X.h"
