@@ -177,8 +177,6 @@ public:
     virtual MOS_STATUS CmdInitializerAllocateResources(
         CodechalHwInterface*    m_hwInterface) override;
 
-    virtual MOS_STATUS CmdInitializerSetDmem(bool brcEnabled) override;
-
     //!
     //! \brief    Free Resources
     //!
@@ -198,6 +196,9 @@ public:
     virtual MOS_STATUS AddCopyCmds(
         PMOS_COMMAND_BUFFER cmdBuffer,
         HucCopyParams* params);
+
+#if defined (_HEVC_ENCODE_VME_SUPPORTED) || defined (_HEVC_ENCODE_VDENC_SUPPORTED)
+    virtual MOS_STATUS CmdInitializerSetDmem(bool brcEnabled) override;
 
     //!
     //! \brief    Add command of initializer HuC FW
@@ -220,7 +221,7 @@ public:
         uint16_t size,
         uint32_t startOffset
     );
-
+#endif
 
 #ifdef _VP9_ENCODE_VDENC_SUPPORTED
     //!

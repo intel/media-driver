@@ -40,7 +40,6 @@ if ("${AVC_Encode_VDEnc_Supported}" STREQUAL "yes")
     )
 endif ()
 
-if ("${HEVC_Encode_VDEnc_Supported}" STREQUAL "yes")
     set (TMP_ENC_SOURCES_
         ${TMP_ENC_SOURCES_}
         ${CMAKE_CURRENT_LIST_DIR}/codechal_hw_xe_hpm.cpp
@@ -49,7 +48,6 @@ if ("${HEVC_Encode_VDEnc_Supported}" STREQUAL "yes")
         ${TMP_ENC_HEADERS_}
         ${CMAKE_CURRENT_LIST_DIR}/codechal_hw_xe_hpm.h
     )
-endif ()
 
 # mmc
 if("${MMC_Supported}" STREQUAL "yes")
