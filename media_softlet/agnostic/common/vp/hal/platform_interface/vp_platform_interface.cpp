@@ -279,13 +279,6 @@ void       KernelDll_ModifyFunctionPointers_Next(Kdll_State *pState);
 MOS_STATUS VpPlatformInterface::InitVpRenderHwCaps()
 {
     VP_FUNC_CALL();
-
-    if (m_isRenderDisabled)
-    {
-        VP_PUBLIC_NORMALMESSAGE("Bypass InitVpRenderHwCaps, since render disabled.");
-        return MOS_STATUS_SUCCESS;
-    }
-
     VP_RENDER_CHK_NULL_RETURN(m_vpKernelBinary.kernelBin);
     VP_RENDER_CHK_NULL_RETURN(m_vpKernelBinary.fcPatchKernelBin);
     // Only Lpm Plus will use this base function
@@ -600,11 +593,4 @@ bool VpPlatformInterface::IsVeboxScalabilityWith4KNotSupported(
     {
         return false;
     }
-}
-
-void VpPlatformInterface::DisableRender()
-{
-    // media sfc interface should come to here.
-    VP_PUBLIC_NORMALMESSAGE("Disable Render.");
-    m_isRenderDisabled = true;
 }

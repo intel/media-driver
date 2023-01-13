@@ -321,13 +321,6 @@ public:
         return true;
     }
 
-    bool IsRenderDisabled()
-    {
-        return m_isRenderDisabled;
-    }
-
-    void DisableRender();
-
 protected:
     PMOS_INTERFACE m_pOsInterface = nullptr;
     VP_KERNEL_BINARY m_vpKernelBinary = {};                 //!< vp kernels
@@ -347,8 +340,6 @@ protected:
     std::vector<VP_KERNEL_BINARY_ENTRY>    m_vpDelayLoadedBinaryList;
     std::map<DelayLoadedKernelType, bool>  m_vpDelayLoadedFeatureSet;
     std::map<std::string, VP_KERNEL_BINARY_ENTRY> m_vpL0KernelBinaryList;
-
-    bool m_isRenderDisabled = false;
 
     MEDIA_CLASS_DEFINE_END(vp__VpPlatformInterface)
 };
