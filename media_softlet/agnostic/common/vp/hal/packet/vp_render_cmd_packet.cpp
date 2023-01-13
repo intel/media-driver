@@ -723,6 +723,11 @@ MOS_STATUS VpRenderCmdPacket::SetupSurfaceState()
                 VP_RENDER_CHK_STATUS_RETURN(UpdateRenderSurface(renderHalSurface, *kernelSurfaceParam));
             }
 
+            if (m_hwInterface->m_vpPlatformInterface->IsRenderMMCLimitationCheckNeeded())
+            {
+                RenderMMCLimitationCheck(vpSurface, renderHalSurface, type);
+            }
+
             uint32_t index = 0;
 
             if (kernelSurfaceParam->surfaceOverwriteParams.bindedKernel && !kernelSurfaceParam->surfaceOverwriteParams.bufferResource)
@@ -778,6 +783,103 @@ MOS_STATUS VpRenderCmdPacket::SetupSurfaceState()
     }
 
     return MOS_STATUS_SUCCESS;
+}
+
+void VpRenderCmdPacket::RenderMMCLimitationCheck(VP_SURFACE *vpSurface, RENDERHAL_SURFACE_NEXT &renderHalSurface, SurfaceType type)
+{
+    if (vpSurface &&
+        vpSurface->osSurface &&
+        (type == SurfaceTypeFcTarget0 ||
+         type == SurfaceTypeFcTarget1 ||
+         type == SurfaceTypeRenderOutput))
+    {
+        if (!vpSurface->osSurface->OsResource.bUncompressedWriteNeeded &&
+            vpSurface->osSurface->CompressionMode == MOS_MMC_MC        &&
+            IsRenderUncompressedWriteNeeded(vpSurface))
+        {
+            MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+            eStatus = m_renderHal->pOsInterface->pfnDecompResource(m_renderHal->pOsInterface, &vpSurface->osSurface->OsResource);
+
+            if (eStatus != MOS_STATUS_SUCCESS)
+            {
+                VP_RENDER_NORMALMESSAGE("inplace decompression failed for render target.");
+            }
+            else
+            {
+                VP_RENDER_NORMALMESSAGE("inplace decompression enabled for render target RECT is not compression block align.");
+                vpSurface->osSurface->OsResource.bUncompressedWriteNeeded = 1;
+            }
+        }
+        if (vpSurface->osSurface->OsResource.bUncompressedWriteNeeded)
+        {
+            renderHalSurface.OsSurface.CompressionMode = MOS_MMC_MC;
+        }
+    }
+}
+
+bool VpRenderCmdPacket::IsRenderUncompressedWriteNeeded(PVP_SURFACE VpSurface)
+{
+    VP_FUNC_CALL();
+
+    if ((!VpSurface)          ||
+        (!VpSurface->osSurface))
+    {
+        return false;
+    }
+
+    auto *skuTable = m_renderHal->pOsInterface->pfnGetSkuTable(m_renderHal->pOsInterface);
+    if (!MEDIA_IS_SKU(skuTable, FtrE2ECompression))
+    {
+        return false;
+    }
+
+    if (m_renderHal->pOsInterface && m_renderHal->pOsInterface->bSimIsActive)
+    {
+        return false;
+    }
+
+    uint32_t byteInpixel = 1;
+#if !EMUL
+    if (!VpSurface->osSurface->OsResource.pGmmResInfo)
+    {
+        VP_RENDER_NORMALMESSAGE("IsSFCUncompressedWriteNeeded cannot support non GMM info cases");
+        return false;
+    }
+
+    byteInpixel = VpSurface->osSurface->OsResource.pGmmResInfo->GetBitsPerPixel() >> 3;
+#endif // !EMUL
+
+    if (byteInpixel == 0)
+    {
+        VP_RENDER_NORMALMESSAGE("surface format is not a valid format for Render");
+        return false;
+    }
+    uint32_t writeAlignInWidth  = 32 / byteInpixel;
+    uint32_t writeAlignInHeight = 8;
+    
+
+    if ((VpSurface->rcSrc.top % writeAlignInHeight) ||
+        ((VpSurface->rcSrc.bottom - VpSurface->rcSrc.top) % writeAlignInHeight) ||
+        (VpSurface->rcSrc.left % writeAlignInWidth) ||
+        ((VpSurface->rcSrc.right - VpSurface->rcSrc.left) % writeAlignInWidth))
+    {
+        VP_RENDER_NORMALMESSAGE(
+            "Render Target Uncompressed write needed, \
+            VpSurface->rcSrc.top % d, \
+            VpSurface->rcSrc.bottom % d, \
+            VpSurface->rcSrc.left % d, \
+            VpSurface->rcSrc.right % d \
+            VpSurface->Format % d",
+            VpSurface->rcSrc.top,
+            VpSurface->rcSrc.bottom,
+            VpSurface->rcSrc.left,
+            VpSurface->rcSrc.right,
+            VpSurface->osSurface->Format);
+
+        return true;
+    }
+
+    return false;
 }
 
 MOS_STATUS VpRenderCmdPacket::SetupCurbeState()

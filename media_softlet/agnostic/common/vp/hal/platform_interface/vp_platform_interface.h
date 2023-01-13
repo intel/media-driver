@@ -321,6 +321,11 @@ public:
         return true;
     }
 
+    virtual bool IsRenderMMCLimitationCheckNeeded()
+    {
+        return false;
+    }
+
 protected:
     PMOS_INTERFACE m_pOsInterface = nullptr;
     VP_KERNEL_BINARY m_vpKernelBinary = {};                 //!< vp kernels

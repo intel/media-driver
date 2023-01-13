@@ -97,6 +97,11 @@ public:
 
     virtual MOS_STATUS ConfigureVpScalability(VP_MHWINTERFACE &vpMhwInterface);
 
+    virtual bool IsRenderMMCLimitationCheckNeeded()
+    {
+        return true;
+    }
+
 protected:
     bool m_disableSfcDithering = false;
 

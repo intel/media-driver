@@ -79,6 +79,11 @@ public:
         return false;
     }
 
+    virtual bool IsRenderMMCLimitationCheckNeeded()
+    {
+        return true;
+    }
+
 protected:
     bool m_disableSfcDithering = false;
 

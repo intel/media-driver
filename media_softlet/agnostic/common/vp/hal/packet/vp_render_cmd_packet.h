@@ -72,6 +72,9 @@ public:
     void PrintWalkerParas(MHW_WALKER_PARAMS &WalkerParams);
 
     virtual MOS_STATUS SetHdrParams(PRENDER_HDR_PARAMS params);
+    virtual bool IsRenderUncompressedWriteNeeded(PVP_SURFACE VpSurface);
+
+    void RenderMMCLimitationCheck(VP_SURFACE *vpSurface, RENDERHAL_SURFACE_NEXT &renderHalSurface, SurfaceType type);
 
 protected:
 
