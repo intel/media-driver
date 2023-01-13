@@ -26,11 +26,13 @@
 //!
 
 #include "codechal_encoder_base.h"
-#include "codechal_encode_tracked_buffer_hevc.h"
 #include "mos_solo_generic.h"
 #include "hal_oca_interface.h"
 #include "codechal_encode_csc_ds.h"
 #include "mos_os_cp_interface_specific.h"
+#if defined (_HEVC_ENCODE_VME_SUPPORTED) || defined (_HEVC_ENCODE_VDENC_SUPPORTED)
+#include "codechal_encode_tracked_buffer_hevc.h"
+#endif
 
 void CodechalEncoderState::PrepareNodes(
     MOS_GPU_NODE& videoGpuNode,
@@ -606,11 +608,13 @@ MOS_STATUS CodechalEncoderState::Allocate(CodechalSetting * codecHalSettings)
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_allocator = MOS_New(CodechalEncodeAllocator, this));
 
     // create tracked buffer state
+#if defined (_HEVC_ENCODE_VME_SUPPORTED) || defined (_HEVC_ENCODE_VDENC_SUPPORTED)
     if (m_standard == CODECHAL_HEVC)
     {
         CODECHAL_ENCODE_CHK_NULL_RETURN(m_trackedBuf = MOS_New(CodechalEncodeTrackedBufferHevc, this));
     }
     else
+#endif
     {
         CODECHAL_ENCODE_CHK_NULL_RETURN(m_trackedBuf = MOS_New(CodechalEncodeTrackedBuffer, this));
     }

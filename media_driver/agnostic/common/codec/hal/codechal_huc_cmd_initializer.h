@@ -274,6 +274,7 @@ public:
     //!
     virtual MOS_STATUS CmdInitializerAllocateResources(CodechalHwInterface*    m_hwInterface);
 
+#if defined (_HEVC_ENCODE_VME_SUPPORTED) || defined (_HEVC_ENCODE_VDENC_SUPPORTED)
     //!
     //! \brief    Set all the data of the InputCom of command initializer HuC FW
     //!
@@ -326,7 +327,7 @@ public:
             bool brcEnabled, 
             PMOS_RESOURCE secondlevelBB, 
             MOS_COMMAND_BUFFER* cmdBuffer = nullptr);
-
+#endif
     //!
     //! \brief    Set Add Commands to BatchBuffer
     //!

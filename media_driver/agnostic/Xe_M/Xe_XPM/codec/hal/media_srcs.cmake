@@ -29,7 +29,6 @@ set (TMP_DEC_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/codechal_kernel_olp_mdf_xe_xpm.h
 )
 
-if ("${HEVC_Encode_VDEnc_Supported}" STREQUAL "yes")
     set (TMP_ENC_SOURCES_
         ${TMP_ENC_SOURCES_}
         ${CMAKE_CURRENT_LIST_DIR}/codechal_hw_xe_xpm.cpp
@@ -38,7 +37,6 @@ if ("${HEVC_Encode_VDEnc_Supported}" STREQUAL "yes")
         ${TMP_ENC_HEADERS_}
         ${CMAKE_CURRENT_LIST_DIR}/codechal_hw_xe_xpm.h
     )
-endif ()
 
 set(SOURCES_
     ${SOURCES_}
