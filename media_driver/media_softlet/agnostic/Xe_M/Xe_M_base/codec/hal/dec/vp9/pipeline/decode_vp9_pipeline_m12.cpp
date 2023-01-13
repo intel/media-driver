@@ -292,7 +292,9 @@ MOS_STATUS Vp9PipelineG12::Initialize(void *settings)
     DECODE_FUNC_CALL();
 
     DECODE_CHK_STATUS(MediaPipeline::InitPlatform());
-    DECODE_CHK_STATUS(MediaPipeline::CreateMediaCopy());
+    DECODE_CHK_STATUS(MediaPipeline::CreateMediaCopyWrapper());
+    DECODE_CHK_NULL(m_mediaCopyWrapper);
+    m_mediaCopyWrapper->CreateMediaCopyState();
 
     DECODE_CHK_NULL(m_waTable);
 
@@ -300,14 +302,14 @@ MOS_STATUS Vp9PipelineG12::Initialize(void *settings)
     DECODE_CHK_NULL(m_hwInterface);
     DECODE_CHK_STATUS(m_hwInterface->Initialize(codecSettings));
 
-    if (m_mediaCopy == nullptr)
+    if (m_mediaCopyWrapper->MediaCopyStateIsNull())
     {
-        m_mediaCopy = m_hwInterface->CreateMediaCopy(m_osInterface);
+        m_mediaCopyWrapper->SetMediaCopyState(m_hwInterface->CreateMediaCopy(m_osInterface));
     }
 
 #if USE_CODECHAL_DEBUG_TOOL
     DECODE_CHK_NULL(m_debugInterface);
-    DECODE_CHK_STATUS(m_debugInterface->SetFastDumpConfig(m_mediaCopy));
+    DECODE_CHK_STATUS(m_debugInterface->SetFastDumpConfig(m_mediaCopyWrapper->GetMediaCopyState()));
 #endif
     if (m_hwInterface->m_hwInterfaceNext)
     {

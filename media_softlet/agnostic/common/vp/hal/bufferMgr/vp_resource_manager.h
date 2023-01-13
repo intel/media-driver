@@ -33,7 +33,7 @@
 #include "vp_pipeline_common.h"
 #include "vp_utils.h"
 #include "vp_hdr_resource_manager.h"
-#include "media_copy.h"
+#include "media_copy_wrapper.h"
 
 #define VP_MAX_NUM_VEBOX_SURFACES     4                                       //!< Vebox output surface creation, also can be reuse for DI usage:
                                                                               //!< for DI: 2 for ADI plus additional 2 for parallel execution
@@ -338,7 +338,7 @@ struct VP_SURFACE_PARAMS;
 class VpResourceManager
 {
 public:
-    VpResourceManager(MOS_INTERFACE &osInterface, VpAllocator &allocator, VphalFeatureReport &reporting, vp::VpPlatformInterface &vpPlatformInterface, MediaCopyBaseState *mediaCopy);
+    VpResourceManager(MOS_INTERFACE &osInterface, VpAllocator &allocator, VphalFeatureReport &reporting, vp::VpPlatformInterface &vpPlatformInterface, MediaCopyWrapper *mediaCopyWrapper);
     virtual ~VpResourceManager();
     virtual MOS_STATUS OnNewFrameProcessStart(SwFilterPipe &pipe);
     virtual void OnNewFrameProcessEnd();
@@ -581,7 +581,7 @@ protected:
     VphdrResourceManager *m_hdrResourceManager                = nullptr;
     MediaUserSettingSharedPtr m_userSettingPtr                = nullptr;   //!< usersettingInstance
 
-    MediaCopyBaseState *m_mediaCopy                           = nullptr;
+    MediaCopyWrapper *m_mediaCopyWrapper                      = nullptr;
 
     MEDIA_CLASS_DEFINE_END(vp__VpResourceManager)
 };

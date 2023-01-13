@@ -98,13 +98,14 @@ MOS_STATUS Av1VdencPipelineXe_LPM_Plus::Initialize(void *settings)
             MOS_Delete(m_debugInterface);
         } m_debugInterface = MOS_New(CodechalDebugInterface);
         ENCODE_CHK_NULL_RETURN(m_debugInterface);
-        ENCODE_CHK_STATUS_RETURN(m_debugInterface->Initialize(m_hwInterface, m_codecFunction, m_mediaCopy));
+        ENCODE_CHK_NULL_RETURN(m_mediaCopyWrapper);
+        ENCODE_CHK_STATUS_RETURN(m_debugInterface->Initialize(m_hwInterface, m_codecFunction, m_mediaCopyWrapper->GetMediaCopyState()));
 
         if (m_statusReportDebugInterface != nullptr) {
             MOS_Delete(m_statusReportDebugInterface);
         } m_statusReportDebugInterface = MOS_New(CodechalDebugInterface);
         ENCODE_CHK_NULL_RETURN(m_statusReportDebugInterface);
-        ENCODE_CHK_STATUS_RETURN(m_statusReportDebugInterface->Initialize(m_hwInterface, m_codecFunction, m_mediaCopy)););
+        ENCODE_CHK_STATUS_RETURN(m_statusReportDebugInterface->Initialize(m_hwInterface, m_codecFunction, m_mediaCopyWrapper->GetMediaCopyState())););
 
     return MOS_STATUS_SUCCESS;
 }

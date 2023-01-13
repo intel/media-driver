@@ -21,6 +21,7 @@
 set(TMP_SOURCES_
     ${TMP_SOURCES_}
     ${CMAKE_CURRENT_LIST_DIR}/media_copy.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/media_copy_wrapper.cpp
     ${CMAKE_CURRENT_LIST_DIR}/media_blt_copy_next.cpp
     ${CMAKE_CURRENT_LIST_DIR}/media_vebox_copy_next.cpp
     ${CMAKE_CURRENT_LIST_DIR}/media_render_copy_next.cpp
@@ -30,6 +31,7 @@ set(TMP_HEADERS_
     ${TMP_HEADERS_}
     ${CMAKE_CURRENT_LIST_DIR}/media_copy_common.h
     ${CMAKE_CURRENT_LIST_DIR}/media_copy.h
+    ${CMAKE_CURRENT_LIST_DIR}/media_copy_wrapper.h
     ${CMAKE_CURRENT_LIST_DIR}/media_blt_copy_next.h
     ${CMAKE_CURRENT_LIST_DIR}/media_vebox_copy_next.h
     ${CMAKE_CURRENT_LIST_DIR}/media_render_copy_next.h

@@ -59,7 +59,7 @@ MediaPipeline::~MediaPipeline()
     DeletePackets();
     DeleteTasks();
 
-    MOS_Delete(m_mediaCopy);
+    MOS_Delete(m_mediaCopyWrapper);
 
     MEDIA_DEBUG_TOOL(MOS_Delete(m_debugInterface));
 
@@ -277,15 +277,20 @@ MOS_STATUS MediaPipeline::CreateFeatureManager()
     }
 }
 
-MOS_STATUS MediaPipeline::CreateMediaCopy()
+MOS_STATUS MediaPipeline::CreateMediaCopyWrapper()
 {
-    PMOS_CONTEXT mos_context = nullptr;
-    if (m_osInterface && m_osInterface->pfnGetMosContext)
+    if (nullptr == m_mediaCopyWrapper)
     {
-        m_osInterface->pfnGetMosContext(m_osInterface, &mos_context);
+        m_mediaCopyWrapper = MOS_New(MediaCopyWrapper, m_osInterface);
     }
-    m_mediaCopy = static_cast<MediaCopyBaseState *>(McpyDeviceNext::CreateFactory((MOS_CONTEXT_HANDLE)mos_context));
-    return MOS_STATUS_SUCCESS;
+    if (nullptr != m_mediaCopyWrapper)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+    else
+    {
+        return MOS_STATUS_NO_SPACE;
+    }
 }
 
 bool MediaPipeline::IsFrameTrackingEnabled()

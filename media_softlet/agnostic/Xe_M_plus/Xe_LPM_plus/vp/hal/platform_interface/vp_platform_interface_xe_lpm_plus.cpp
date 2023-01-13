@@ -104,22 +104,6 @@ VpCmdPacket *VpPlatformInterfacesXe_Lpm_Plus::CreateRenderPacket(MediaTask * tas
     return MOS_New(VpRenderCmdPacket, task, hwInterface, allocator, mmc, kernel);
 }
 
-MediaCopyBaseState *VpPlatformInterfacesXe_Lpm_Plus::CreateMediaCopy()
-{
-    VP_FUNC_CALL();
-
-    MediaCopyBaseState *mediaCopy   = nullptr;
-    PMOS_CONTEXT       mos_context  = nullptr;
-
-    if (m_pOsInterface && m_pOsInterface->pfnGetMosContext)
-    {
-        m_pOsInterface->pfnGetMosContext(m_pOsInterface, &mos_context);
-    }
-    mediaCopy = static_cast<MediaCopyBaseState *>(McpyDeviceNext::CreateFactory((MOS_CONTEXT_HANDLE)mos_context));
-
-    return mediaCopy;
-}
-
 MOS_STATUS VpPlatformInterfacesXe_Lpm_Plus::CreateSfcRender(SfcRenderBase *&sfcRender, VP_MHWINTERFACE &vpMhwinterface, PVpAllocator allocator)
 {
     VP_FUNC_CALL();
