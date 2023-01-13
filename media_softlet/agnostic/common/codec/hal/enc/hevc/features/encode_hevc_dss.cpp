@@ -163,7 +163,7 @@ namespace encode
         
         uint32_t sizeOfSliceSizesBuffer = MOS_ALIGN_CEIL(CODECHAL_HEVC_MAX_NUM_SLICES_LVL_6 * CODECHAL_CACHELINE_SIZE, CODECHAL_PAGE_SIZE);
 
-        uint32_t currIndex = statusReport->GetSubmittedCount();
+        uint32_t currIndex = statusReport->GetIndex(statusReport->GetSubmittedCount());
 
         if (pipeline->IsFirstPass())
         {
@@ -243,7 +243,7 @@ namespace encode
 
         uint32_t sizeOfSliceSizesBuffer = MOS_ALIGN_CEIL(CODECHAL_HEVC_MAX_NUM_SLICES_LVL_6 * CODECHAL_CACHELINE_SIZE, CODECHAL_PAGE_SIZE);
 
-        uint32_t currIndex = statusReport->GetSubmittedCount();
+        uint32_t currIndex = statusReport->GetIndex(statusReport->GetSubmittedCount());
 
         if (pipeline->IsFirstPipe())
         {
