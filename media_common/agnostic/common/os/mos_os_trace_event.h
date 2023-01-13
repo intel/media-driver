@@ -140,7 +140,12 @@ struct MtSetting
         char     filePath[1024];
     } fastDump;
 
-    uint8_t rsv[2528];
+    struct HwcmdParser
+    {
+        char filePath[1024];
+    } hwcmdParser;
+
+    uint8_t rsv[1504];
 };
 
 // 4KB in total
