@@ -21,3 +21,12 @@
 media_include_subdirectory(hw)
 media_include_subdirectory(vp)
 media_include_subdirectory(codec)
+set(MEDIA_BIN_HEADERS_
+    ${MEDIA_BIN_HEADERS_}
+    ${CMAKE_CURRENT_LIST_DIR}/media_bin_register_xe_hpm.h
+)
+
+set(MEDIA_BIN_INCLUDE_DIR
+    ${MEDIA_BIN_INCLUDE_DIR}
+    ${CMAKE_CURRENT_LIST_DIR}
+)

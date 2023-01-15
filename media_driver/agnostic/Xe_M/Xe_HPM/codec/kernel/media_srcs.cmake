@@ -27,16 +27,6 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/Xe_Hpm_Film_Grain.h
 )
 
-set(SOURCES_
-    ${SOURCES_}
-    ${TMP_SOURCES_}
-)
-
-set(HEADERS_
-    ${HEADERS_}
-    ${TMP_HEADERS_}
-)
-
 set(CODEC_SOURCES_
     ${CODEC_SOURCES_}
     ${TMP_SOURCES_}
@@ -46,9 +36,22 @@ set(CODEC_HEADERS_
     ${CODEC_HEADERS_}
     ${TMP_HEADERS_}
 )
+set(MEDIA_BIN_SOURCES_
+    ${MEDIA_BIN_SOURCES_}
+    ${TMP_SOURCES_}
+)
+
+set(MEDIA_BIN_HEADERS_
+    ${MEDIA_BIN_HEADERS_}
+    ${TMP_HEADERS_}
+)
 
 source_group( "Kernel\\CodecKernel" FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
 set(TMP_SOURCES_ "")
 set(TMP_HEADERS_ "")
 
+set(MEDIA_BIN_INCLUDE_DIR
+    ${MEDIA_BIN_INCLUDE_DIR}
+    ${CMAKE_CURRENT_LIST_DIR}
+)
 media_add_curr_to_include_path()
