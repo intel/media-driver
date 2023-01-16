@@ -263,8 +263,7 @@ void VPHAL_VEBOX_IECP_RENDERER::SetParams(
     // If 3DLUT is enabled, Front End CSC needs to be enabled explicitly for YUV output
     if (pRenderData->bHdr3DLut)
     {
-        if (IS_YUV_FORMAT(pOutSurface->Format) &&
-           (pVeboxState->CscOutputCspace != pOutSurface->ColorSpace))
+        if (IS_YUV_FORMAT(pOutSurface->Format))
         {
             VPHAL_CSPACE outColorSpace         = pOutSurface->ColorSpace;
             VPHAL_CSPACE inColorSpace          = (IS_COLOR_SPACE_BT2020_YUV(pOutSurface->ColorSpace)) ? CSpace_BT2020_RGB : CSpace_sRGB;

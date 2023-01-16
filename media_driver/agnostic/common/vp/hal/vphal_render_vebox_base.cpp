@@ -3944,7 +3944,7 @@ bool VPHAL_VEBOX_STATE::VeboxIs2PassesCSCNeeded(
             (pRenderTarget->ColorSpace == CSpace_stRGB)           ||
             (pRenderTarget->ColorSpace == CSpace_sRGB))
         {
-            b2PassesCSCNeeded = (pRenderData->bHdr3DLut || pSrc->p3DLutParams) ? false : true;
+            b2PassesCSCNeeded = (pRenderData->bHdr3DLut || pSrc->p3DLutParams || pSrc->pHDRParams) ? false : true;
         }
     }
 
