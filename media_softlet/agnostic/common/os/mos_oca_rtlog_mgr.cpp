@@ -190,6 +190,12 @@ void MosOcaRTLogMgr::UnregisterRes(OsContextNext *osDriverContext)
     s_ocaMutex.Lock();
     m_resMap.erase(osDriverContext);
     s_ocaMutex.Unlock();
+    if (!resInterface.osInterface || !resInterface.osInterface->pfnFreeResource)
+    {
+        MOS_SafeFreeMemory(resInterface.ocaRTLogResource);
+        MOS_SafeFreeMemory(resInterface.osInterface);
+        return;
+    }
     resInterface.osInterface->pfnFreeResource(resInterface.osInterface, resInterface.ocaRTLogResource);
     MOS_SafeFreeMemory(resInterface.ocaRTLogResource);
     Mos_DestroyInterface(resInterface.osInterface);
