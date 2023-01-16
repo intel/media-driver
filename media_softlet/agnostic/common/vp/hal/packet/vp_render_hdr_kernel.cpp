@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022, Intel Corporation
+* Copyright (c) 2022-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -3414,7 +3414,7 @@ MOS_STATUS VpRenderHdrKernel::GetCurbeState(void *&curbe, uint32_t &curbeLength)
         dst_cspace = targetSurf->ColorSpace;
 
         // Convert BG color only if not done so before. CSC is expensive!
-        if (VpHalDDIUtils::GetCscMatrixForRender8Bit(&Dst, &Src, src_cspace, dst_cspace))
+        if (VpUtils::GetCscMatrixForRender8Bit(&Dst, &Src, src_cspace, dst_cspace))
         {
             m_hdrCurbe.DW60.FixedPointFillColorRVChannel     = Dst.R << 8;
             m_hdrCurbe.DW60.FixedPointFillColorGYChannel     = Dst.G << 8;

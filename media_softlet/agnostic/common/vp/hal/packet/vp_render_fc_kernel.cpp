@@ -1,5 +1,5 @@
 ﻿/*
-* Copyright (c) 2021, Intel Corporation
+* Copyright (c) 2021-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1895,7 +1895,7 @@ MOS_STATUS VpRenderFcKernel::InitColorFillInCurbeData()
             (m_srcCspace     != srcCspace)  ||
             (m_dstCspace     != dstCspace))
         {
-            VpHalDDIUtils::GetCscMatrixForRender8Bit(&m_dstColor, &srcColor, srcCspace, dstCspace);
+            VpUtils::GetCscMatrixForRender8Bit(&m_dstColor, &srcColor, srcCspace, dstCspace);
 
             // store the values for next iteration
             m_srcColor     = srcColor;

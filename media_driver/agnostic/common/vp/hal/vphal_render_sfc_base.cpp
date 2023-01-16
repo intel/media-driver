@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2012-2021, Intel Corporation
+* Copyright (c) 2012-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1358,7 +1358,7 @@ MOS_STATUS VphalSfcState::SetSfcStateParams(
             (m_colorFillRTCspace           != dst_cspace))
         {
             // Clean history Dst BG Color if hit unsupported format
-            if (!VpHalDDIUtils::GetCscMatrixForRender8Bit(&m_colorFillColorDst, &Src, src_cspace, dst_cspace))
+            if (!VpUtils::GetCscMatrixForRender8Bit(&m_colorFillColorDst, &Src, src_cspace, dst_cspace))
             {
                 MOS_ZeroMemory(&m_colorFillColorDst, sizeof(m_colorFillColorDst));
             }

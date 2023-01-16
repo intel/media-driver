@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2010-2020, Intel Corporation
+* Copyright (c) 2010-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -3100,7 +3100,7 @@ MOS_STATUS VpHal_HdrLoadStaticData_g9(
         dst_cspace = pHdrState->pTargetSurf[0]->ColorSpace;
 
         // Convert BG color only if not done so before. CSC is expensive!
-        if (VpHalDDIUtils::GetCscMatrixForRender8Bit(&Dst, &Src, src_cspace, dst_cspace))
+        if (VpUtils::GetCscMatrixForRender8Bit(&Dst, &Src, src_cspace, dst_cspace))
         {
             HDRStatic.DW60.FixedPointFillColorRVChannel     = Dst.R << 8;
             HDRStatic.DW60.FixedPointFillColorGYChannel     = Dst.G << 8;

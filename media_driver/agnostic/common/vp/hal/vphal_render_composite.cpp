@@ -1,5 +1,5 @@
 ﻿/*
-* Copyright (c) 2016-2022, Intel Corporation
+* Copyright (c) 2016-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -4768,7 +4768,7 @@ bool CompositeState::SubmitStates(
             (m_CSpaceSrc     != src_cspace)  ||
             (m_CSpaceDst     != dst_cspace))
         {
-            VpHalDDIUtils::GetCscMatrixForRender8Bit(&m_csDst, &Src, src_cspace, dst_cspace);
+            VpUtils::GetCscMatrixForRender8Bit(&m_csDst, &Src, src_cspace, dst_cspace);
 
             // store the values for next iteration
             m_csSrc     = Src;

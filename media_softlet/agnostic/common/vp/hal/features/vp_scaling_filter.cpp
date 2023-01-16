@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2022, Intel Corporation
+* Copyright (c) 2018-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -196,9 +196,9 @@ MOS_STATUS VpScalingFilter::SetColorFillParams()
         {
             VP_PUBLIC_NORMALMESSAGE("colorFillColorDst need be recalculated.");
             // Clean history Dst BG Color if hit unsupported format
-            if (!VpHalDDIUtils::GetCscMatrixForRender8Bit(&m_colorFillColorDst, &Src, src_cspace, dst_cspace))
+            if (!VpUtils::GetCscMatrixForRender8Bit(&m_colorFillColorDst, &Src, src_cspace, dst_cspace))
             {
-                VP_PUBLIC_NORMALMESSAGE("VpHalDDIUtils::GetCscMatrixForRender8Bit failed!");
+                VP_PUBLIC_NORMALMESSAGE("VpUtils::GetCscMatrixForRender8Bit failed!");
                 MOS_ZeroMemory(&m_colorFillColorDst, sizeof(m_colorFillColorDst));
             }
             // store the values for next iteration

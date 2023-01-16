@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2022, Intel Corporation
+* Copyright (c) 2018-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -396,7 +396,52 @@ public:
         float        *fCscInOffset,
         float        *fCscOutOffset);
 
+    //!
+    //! \brief    Performs Color Space Convert for Sample 8 bit
+    //! \details  Performs Color Space Convert from Src Color Spase to Dst Color Spase
+    //! \param    [out] pOutput
+    //!           Pointer to VPHAL_COLOR_SAMPLE_8
+    //! \param    [in] pInput
+    //!           Pointer to VPHAL_COLOR_SAMPLE_8
+    //! \param    [in] srcCspace
+    //!           Source Color Space
+    //! \param    [in] dstCspace
+    //!           Dest Color Space
+    //! \return   bool
+    //!           Return true if successful, otherwise false
+    //!
+    static bool GetCscMatrixForRender8Bit(
+        VPHAL_COLOR_SAMPLE_8 *output,
+        VPHAL_COLOR_SAMPLE_8 *input,
+        VPHAL_CSPACE          srcCspace,
+        VPHAL_CSPACE          dstCspace);
+
     static bool IsSyncFreeNeededForMMCSurface(PVPHAL_SURFACE surface, PMOS_INTERFACE osInterface);
+
+private:
+    //!
+    //! \brief    Performs Color Space Convert for Sample 8 bit Using Specified Coeff Matrix
+    //! \details  Performs Color Space Convert from Src Color Spase to Dst Color Spase
+    //            Using Secified input CSC Coeff Matrix
+    //! \param    [out] output
+    //!           Pointer to VPHAL_COLOR_SAMPLE_8
+    //! \param    [in] input
+    //!           Pointer to VPHAL_COLOR_SAMPLE_8
+    //! \param    [in] srcCspace
+    //!           Source Color Space
+    //! \param    [in] dstCspace
+    //!           Dest Color Space
+    //! \param    [in] iCscMatrix
+    //!           input CSC coeff Matrxi
+    //! \return   bool
+    //!           Return true if successful, otherwise false
+    //!
+    static bool GetCscMatrixForRender8BitWithCoeff(
+        VPHAL_COLOR_SAMPLE_8 *output,
+        VPHAL_COLOR_SAMPLE_8 *input,
+        VPHAL_CSPACE          srcCspace,
+        VPHAL_CSPACE          dstCspace,
+        int32_t              *iCscMatrix);
 
 MEDIA_CLASS_DEFINE_END(VpUtils)
 };
