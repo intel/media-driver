@@ -52,6 +52,7 @@ protected:
     VP_SURFACE  *m_hdrAutoModeCoeffSurface                     = nullptr;
     VP_SURFACE  *m_hdrAutoModeIirTempSurface                   = nullptr;
     VP_SURFACE  *m_hdrOETF1DLUTSurface[VP_MAX_HDR_INPUT_LAYER] = {};
+    VP_SURFACE  *m_hdrCri3DLUTSurface[VP_MAX_HDR_INPUT_LAYER]  = {};
 
 MEDIA_CLASS_DEFINE_END(vp__VphdrResourceManager)
 };

@@ -1073,7 +1073,7 @@ MOS_STATUS PolicyFcHandler::RemoveTransparentLayers(SwFilterPipe& featurePipe)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS PolicyFcHandler::LayerSelectForProcess(std::vector<int> &layerIndexes, SwFilterPipe& featurePipe, bool isSingleSubPipe, uint32_t pipeIndex, VP_EXECUTE_CAPS& caps)
+MOS_STATUS PolicyFcHandler::LayerSelectForProcess(std::vector<int> &layerIndexes, SwFilterPipe& featurePipe, VP_EXECUTE_CAPS& caps)
 {
     layerIndexes.clear();
     m_resCounter.Reset(m_hwCaps.m_rules.isAvsSamplerSupported);

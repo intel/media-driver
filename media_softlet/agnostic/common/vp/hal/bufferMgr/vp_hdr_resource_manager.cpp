@@ -137,11 +137,18 @@ MOS_STATUS VphdrResourceManager::AssignRenderResource(VP_EXECUTE_CAPS &caps, std
     {
         surfSetting.surfGroup.insert(std::make_pair((SurfaceType)(SurfaceTypeHdrInputLayer0 + i), inputSurfaces[i]));
 
+        SwFilterHdr *hdr = dynamic_cast<SwFilterHdr *>(executedFilters.GetSwFilter(true, i, FeatureType::FeatureTypeHdrOnRender));
+        FeatureParamHdr params = {};
+        if (hdr)
+        {
+            params = hdr->GetSwFilterParams();
+        }
+        
         // If LUTMode is not 2D, then there is no need to allocate OETF LUT surface.
         // One exception is that, LUTMode is 3D, but bGpuGenerate3DLUT user feature key is set to force using GPU to generate 3D LUT.
         // In this case, it has to go through the full pipe first for 3D LUT generation.
-        if ((params.LUTMode[i] != VPHAL_HDR_LUT_MODE_2D) &&
-            !(params.LUTMode[i] == VPHAL_HDR_LUT_MODE_3D && params.bGpuGenerate3DLUT))
+        if ((params.lutMode != VPHAL_HDR_LUT_MODE_2D) &&
+            !(params.lutMode == VPHAL_HDR_LUT_MODE_3D && params.bGpuGenerate3DLUT))
         {
             continue;
         }
@@ -161,9 +168,42 @@ MOS_STATUS VphdrResourceManager::AssignRenderResource(VP_EXECUTE_CAPS &caps, std
                 deferredDestroyed,
                 MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_RENDER));
 
-        surfSetting.OETF1DLUTAllocated = allocated;;
+        surfSetting.OETF1DLUTAllocated = allocated;
         surfSetting.surfGroup.insert(std::make_pair((SurfaceType)(SurfaceTypeHdrOETF1DLUTSurface0 + i), m_hdrOETF1DLUTSurface[i]));
-     }
+    }
+
+    dwWidth = dwHeight = VPHAL_HDR_CRI_3DLUT_SIZE;
+    for (size_t i = 0; i < VPHAL_MAX_HDR_INPUT_LAYER; ++i)
+    {
+        SwFilterHdr *hdr = dynamic_cast<SwFilterHdr *>(executedFilters.GetSwFilter(true, i, FeatureType::FeatureTypeHdrOnRender));
+        FeatureParamHdr params = {};
+        if (hdr)
+        {
+            params = hdr->GetSwFilterParams();
+        }
+        if (params.lutMode != VPHAL_HDR_LUT_MODE_3D)
+        {
+            continue;
+        }
+
+         VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.ReAllocateSurface(
+             m_hdrCri3DLUTSurface[i],
+             "Cri3DLUTSurface",
+             params.bGpuGenerate3DLUT ? Format_R10G10B10A2 : Format_A16B16G16R16,
+             MOS_GFXRES_2D,
+             MOS_TILE_LINEAR,
+             dwWidth,
+             dwHeight,
+             false,
+             MOS_MMC_DISABLED,
+             allocated,
+             false,
+             deferredDestroyed,
+             MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_RENDER));
+
+         surfSetting.Cri3DLUTAllocated = allocated;
+         surfSetting.surfGroup.insert(std::make_pair((SurfaceType)(SurfaceTypeHdrCRI3DLUTSurface0 + i), m_hdrCri3DLUTSurface[i]));
+    }
 
     surfSetting.surfGroup.insert(std::make_pair(SurfaceTypeHdrTarget0, outputSurface));
     surfSetting.dumpPostSurface = false;

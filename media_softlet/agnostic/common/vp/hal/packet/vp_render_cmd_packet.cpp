@@ -1038,7 +1038,7 @@ MOS_STATUS VpRenderCmdPacket::InitStateHeapSurface(SurfaceType type, RENDERHAL_S
         break;
     default:
         eStatus = MOS_STATUS_UNIMPLEMENTED;
-        VP_RENDER_ASSERTMESSAGE("Not Inplenmented in driver now, return fail");
+        VP_RENDER_ASSERTMESSAGE("Not Inplenmented in driver now, return fail, surfacetype %d", type);
         break;
     }
 
@@ -2030,6 +2030,7 @@ MOS_STATUS VpRenderCmdPacket::SetHdrParams(PRENDER_HDR_PARAMS params)
 
     params->coeffAllocated       = m_surfSetting.coeffAllocated;
     params->OETF1DLUTAllocated   = m_surfSetting.OETF1DLUTAllocated;
+    params->Cri3DLUTAllocated    = m_surfSetting.Cri3DLUTAllocated;
     params->pHDRStageConfigTable = m_surfSetting.pHDRStageConfigTable;
 
     //MOS_SURFACE *surface = surf->osSurface;

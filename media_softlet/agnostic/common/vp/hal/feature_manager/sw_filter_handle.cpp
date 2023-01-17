@@ -674,7 +674,7 @@ bool SwFilterHdrHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS &params, bool isInp
     VP_FUNC_CALL();
 
     // Avoid recheck when it is output or surfIndex > 0
-    if (!isInputSurf || surfIndex > 0)
+    if (!isInputSurf)
     {
         return false;
     }

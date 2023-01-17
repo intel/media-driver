@@ -1321,6 +1321,10 @@ MOS_STATUS SwFilterHdr::Configure(VP_PIPELINE_PARAMS &params, bool isInputSurf, 
             }
         }
     }
+    else if (surfInput->pHDRParams->EOTF == VPHAL_HDR_EOTF_TRADITIONAL_GAMMA_SDR && surfOutput->pHDRParams->EOTF == VPHAL_HDR_EOTF_SMPTE_ST2084)
+    {
+        m_Params.hdrMode = VPHAL_HDR_MODE_INVERSE_TONE_MAPPING;
+    }
 
     if (m_Params.hdrMode == VPHAL_HDR_MODE_NONE)
     {
@@ -1330,91 +1334,55 @@ MOS_STATUS SwFilterHdr::Configure(VP_PIPELINE_PARAMS &params, bool isInputSurf, 
 
     m_Params.pColorFillParams = params.pColorFillParams;
 
-    for (i = 0; i < VPHAL_MAX_HDR_INPUT_LAYER; i++)
+    if (surfInput->SurfType == SURF_IN_PRIMARY && m_Params.globalLutMode != VPHAL_HDR_LUT_MODE_3D)
     {
-        if (params.pSrc[i] == nullptr)
-        {
-            m_Params.LUTMode[i] = VPHAL_HDR_LUT_MODE_NONE;
-            continue;
-        }
-
-        if (params.pSrc[i]->SurfType == SURF_IN_PRIMARY && m_Params.GlobalLutMode != VPHAL_HDR_LUT_MODE_3D)
-        {
-            CurrentLUTMode = VPHAL_HDR_LUT_MODE_2D;
-        }
-        else
-        {
-            CurrentLUTMode = VPHAL_HDR_LUT_MODE_3D;
-        }
-
-        // Neither 1D nor 3D LUT is needed in linear output case.
-        if (IS_RGB64_FLOAT_FORMAT(params.pTarget[0]->Format))
-        {
-            CurrentLUTMode = VPHAL_HDR_LUT_MODE_NONE;
-        }
-
-        m_Params.LUTMode[i] = CurrentLUTMode;
+        CurrentLUTMode = VPHAL_HDR_LUT_MODE_2D;
+    }
+    else
+    {
+        CurrentLUTMode = VPHAL_HDR_LUT_MODE_2D;
     }
 
-    m_Params.uSourceCount = 0;
-
-    for (i = 0; i < params.uSrcCount && i < VPHAL_MAX_HDR_INPUT_LAYER; i++)
+    // Neither 1D nor 3D LUT is needed in linear output case.
+    if (IS_RGB64_FLOAT_FORMAT(surfOutput->Format))
     {
-        if (params.pSrc[i] == nullptr)
-        {
-            continue;
-        }
-
-        VP_PUBLIC_CHK_STATUS_RETURN(HdrIsInputFormatSupported(params.pSrc[i], &bSupported));
-
-        if (!bSupported)
-        {
-            VP_RENDER_ASSERTMESSAGE("HDR Unsupported Source Format\n");
-            return MOS_STATUS_SUCCESS;
-        }
-
-        m_Params.InputSrc[i] = true;
-        m_Params.uSourceCount++;
-
-        if (params.pSrc[i] && params.pSrc[i]->pHDRParams)
-        {
-            MOS_SecureMemcpy(&m_Params.srcHDRParams[i], sizeof(HDR_PARAMS), (HDR_PARAMS *)params.pSrc[i]->pHDRParams, sizeof(HDR_PARAMS));
-        }
-        else
-        {
-            MOS_ZeroMemory(&m_Params.srcHDRParams[i], sizeof(HDR_PARAMS));
-        }
+        CurrentLUTMode = VPHAL_HDR_LUT_MODE_NONE;
     }
 
-    // reset render target count to 1
-    m_Params.uTargetCount = 0;
+    m_Params.lutMode = CurrentLUTMode;
 
-    for (i = 0; i < params.uDstCount; i++)
+    VP_PUBLIC_CHK_STATUS_RETURN(HdrIsInputFormatSupported(surfInput, &bSupported));
+
+    if (!bSupported)
     {
-        if (params.pTarget[i] == nullptr)
-        {
-            continue;
-        }
+        VP_RENDER_ASSERTMESSAGE("HDR Unsupported Source Format\n");
+        return MOS_STATUS_SUCCESS;
+    }
 
-        VP_PUBLIC_CHK_STATUS_RETURN(HdrIsOutputFormatSupported(params.pTarget[i], &bSupported));
+    if (surfInput && surfInput->pHDRParams)
+    {
+        MOS_SecureMemcpy(&m_Params.srcHDRParams, sizeof(HDR_PARAMS), (HDR_PARAMS *)surfInput->pHDRParams, sizeof(HDR_PARAMS));
+    }
+    else
+    {
+        MOS_ZeroMemory(&m_Params.srcHDRParams, sizeof(HDR_PARAMS));
+    }
 
-        if (!bSupported)
-        {
-            VP_RENDER_ASSERTMESSAGE("HDR Unsupported Target Format\n");
-            return MOS_STATUS_SUCCESS;
-        }
+    VP_PUBLIC_CHK_STATUS_RETURN(HdrIsOutputFormatSupported(surfOutput, &bSupported));
 
-        m_Params.Target[i] = true;
-        m_Params.uTargetCount++;
+    if (!bSupported)
+    {
+        VP_RENDER_ASSERTMESSAGE("HDR Unsupported Target Format\n");
+        return MOS_STATUS_SUCCESS;
+    }
 
-        if (params.pTarget[i] && params.pTarget[i]->pHDRParams)
-        {
-            MOS_SecureMemcpy(&m_Params.targetHDRParams[i], sizeof(HDR_PARAMS), (HDR_PARAMS *)params.pTarget[i]->pHDRParams, sizeof(HDR_PARAMS));
-        }
-        else
-        {
-            MOS_ZeroMemory(&m_Params.targetHDRParams[i], sizeof(HDR_PARAMS));
-        }
+    if (surfOutput && surfOutput->pHDRParams)
+    {
+        MOS_SecureMemcpy(&m_Params.targetHDRParams, sizeof(HDR_PARAMS), (HDR_PARAMS *)surfOutput->pHDRParams, sizeof(HDR_PARAMS));
+    }
+    else
+    {
+        MOS_ZeroMemory(&m_Params.targetHDRParams, sizeof(HDR_PARAMS));
     }
 
      return MOS_STATUS_SUCCESS;

@@ -826,6 +826,7 @@ struct VP_SURFACE_SETTING
     const uint16_t     *pHDRStageConfigTable                   = nullptr;
     bool                coeffAllocated                         = false;
     bool                OETF1DLUTAllocated                     = false;
+    bool                Cri3DLUTAllocated                      = false;
 
     void Clean()
     {
@@ -848,6 +849,7 @@ struct VP_SURFACE_SETTING
         pHDRStageConfigTable                   = nullptr;
         coeffAllocated                         = false;
         OETF1DLUTAllocated                     = false;
+        Cri3DLUTAllocated                      = false;
     }
 };
 
@@ -1401,11 +1403,9 @@ struct FeatureParamHdr : public FeatureParam
     HDR_STAGE          stage                                                = HDR_STAGE_DEFAULT;
     uint32_t           widthInput                                           = 0;
     uint32_t           heightInput                                          = 0;
-    VPHAL_HDR_LUT_MODE LUTMode[VPHAL_MAX_HDR_INPUT_LAYER]                   = {};                  //!< LUT Mode
-    VPHAL_HDR_LUT_MODE GlobalLutMode                                        = {};                  //!< Global LUT mode control for debugging purpose
+    VPHAL_HDR_LUT_MODE lutMode                                              = VPHAL_HDR_LUT_MODE_NONE; //!< LUT Mode
+    VPHAL_HDR_LUT_MODE globalLutMode                                        = VPHAL_HDR_LUT_MODE_NONE; //!< Global LUT mode control for debugging purpose
     bool               bGpuGenerate3DLUT                                    = false;               //!< Flag for per frame GPU generation of 3DLUT
-    uint32_t           uSourceCount                                         = 0;                   //!< Number of sources
-    uint32_t           uTargetCount                                         = 0;                   //!< Number of targets
 
     PVPHAL_COLORFILL_PARAMS pColorFillParams                     = nullptr;               //!< ColorFill - BG only
     bool                    bDisableAutoMode                     = false;                 //!< Force to disable Hdr auto mode tone mapping for debugging purpose
@@ -1413,10 +1413,8 @@ struct FeatureParamHdr : public FeatureParam
     bool                    bForceSplitFrame                     = false;
     bool                    bNeed3DSampler                       = false;                 //!< indicate whether 3D should neede by force considering AVS removal etc.
 
-    uint16_t         InputSrc[VPHAL_MAX_HDR_INPUT_LAYER]                 = {}; // Input Surface
-    uint16_t         Target[VPHAL_MAX_HDR_OUTPUT_LAYER]                  = {}; // Target Surface
-    HDR_PARAMS       srcHDRParams[VPHAL_MAX_HDR_INPUT_LAYER]             = {};
-    HDR_PARAMS       targetHDRParams[VPHAL_MAX_HDR_OUTPUT_LAYER]         = {};
+    HDR_PARAMS srcHDRParams    = {};
+    HDR_PARAMS targetHDRParams = {};
 };
 
 class SwFilterHdr : public SwFilter

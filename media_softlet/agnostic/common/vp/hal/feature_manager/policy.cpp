@@ -2317,7 +2317,6 @@ MOS_STATUS Policy::GetInputPipeEngineCaps(SwFilterPipe& featurePipe, VP_EngineEn
     VP_EngineEntry engineCapsForVeboxSfc = {};  // Input pipe engine caps for non-fc feature exists case.
     VP_EngineEntry engineCapsForFc = {};        // Input pipe engine caps for fc supported by all features cases.
     VP_EngineEntry engineCapsForHdrKernel = {0}; // Input pipe engine caps for hdr kernel supported by all features cases.
-
     for (uint32_t pipeIndex = 0; pipeIndex < featurePipe.GetSurfaceCount(true); ++pipeIndex)
     {
         SwFilterSubPipe *featureSubPipe = featurePipe.GetSwFilterSubPipe(true, pipeIndex);
@@ -2980,7 +2979,7 @@ MOS_STATUS Policy::LayerSelectForProcess(std::vector<int> &layerIndexes, SwFilte
         }
         PolicyRenderHdrHandler *hdrHandler = dynamic_cast<PolicyRenderHdrHandler *>(it->second);
         VP_PUBLIC_CHK_NULL_RETURN(hdrHandler);
-        VP_PUBLIC_CHK_STATUS_RETURN(hdrHandler->LayerSelectForProcess(layerIndexes, featurePipe, isSingleSubPipe, pipeIndex, caps));
+        VP_PUBLIC_CHK_STATUS_RETURN(hdrHandler->LayerSelectForProcess(layerIndexes, featurePipe, caps));
         return MOS_STATUS_SUCCESS;
     }
 
@@ -3014,7 +3013,7 @@ MOS_STATUS Policy::LayerSelectForProcess(std::vector<int> &layerIndexes, SwFilte
     VP_PUBLIC_NORMALMESSAGE("target, gpuVa = 0x%llx", gpuVa);
 
     PolicyFcHandler *fcHandler = dynamic_cast<PolicyFcHandler *>(it->second);
-    VP_PUBLIC_CHK_STATUS_RETURN(fcHandler->LayerSelectForProcess(layerIndexes, featurePipe, isSingleSubPipe, pipeIndex, caps));
+    VP_PUBLIC_CHK_STATUS_RETURN(fcHandler->LayerSelectForProcess(layerIndexes, featurePipe, caps));
 
     if (layerIndexes.size() < featurePipe.GetSurfaceCount(true))
     {

@@ -70,44 +70,68 @@ MOS_STATUS VpHdrRenderFilter::SetExecuteEngineCaps(
 }
 
 MOS_STATUS VpHdrRenderFilter::CalculateEngineParams(
-    FeatureParamHdr &hdrParams,
+    FeatureParamHdr  &hdrParams,
     VP_EXECUTE_CAPS  vpExecuteCaps)
 {
     VP_FUNC_CALL();
-    uint32_t i = 0;
+    uint32_t   i          = 0;
+    VP_SURFACE *inputSrc  = nullptr;
+    VP_SURFACE *targetSrc = nullptr;
 
-    if (!vpExecuteCaps.bRender || HDR_STAGE_3DLUT_KERNEL == hdrParams.stage)
-    {
-        VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
-    }
+    VP_PUBLIC_CHK_NULL_RETURN(m_executedPipe);
 
     // create a filter Param buffer
     MOS_ZeroMemory(&m_renderHdrParams, sizeof(m_renderHdrParams));
 
     m_renderHdrParams.kernelId                         = (VpKernelID)kernelHdrMandatory;
-    m_renderHdrParams.uSourceCount                     = hdrParams.uSourceCount;
-    m_renderHdrParams.uTargetCount                     = hdrParams.uTargetCount;
+    m_renderHdrParams.uSourceCount                     = m_executedPipe->GetSurfaceCount(true);
+    m_renderHdrParams.uTargetCount                     = m_executedPipe->GetSurfaceCount(false);
     m_renderHdrParams.pColorFillParams                 = hdrParams.pColorFillParams;
     m_renderHdrParams.uiMaxDisplayLum                  = hdrParams.uiMaxDisplayLum;
 
-    VP_PUBLIC_CHK_NULL_RETURN(m_executedPipe);
+
     SwFilterScaling *scaling      = dynamic_cast<SwFilterScaling *>(m_executedPipe->GetSwFilter(true, 0, FeatureTypeScaling));
     m_renderHdrParams.ScalingMode = scaling ? scaling->GetSwFilterParams().scalingMode : VPHAL_SCALING_BILINEAR;
 
     SwFilterRotMir *rotation      = dynamic_cast<SwFilterRotMir *>(m_executedPipe->GetSwFilter(true, 0, FeatureTypeRotMir));
     m_renderHdrParams.Rotation    = rotation ? rotation->GetSwFilterParams().rotation : VPHAL_ROTATION_IDENTITY;
 
-    for (i = 0; i < VPHAL_MAX_HDR_INPUT_LAYER; i++)
+    for (i = 0; i < m_renderHdrParams.uSourceCount && i < VPHAL_MAX_HDR_INPUT_LAYER; ++i)
     {
-        m_renderHdrParams.InputSrc[i]     = hdrParams.InputSrc[i];
-        m_renderHdrParams.srcHDRParams[i] = hdrParams.srcHDRParams[i];
+        auto &hdrParams = ((SwFilterHdr *)m_executedPipe->GetSwFilter(true, i, FeatureTypeHdr))->GetSwFilterParams();
+
+        if (!vpExecuteCaps.bRender || HDR_STAGE_3DLUT_KERNEL == hdrParams.stage)
+        {
+            VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+        }
+        auto &surfGroup             = m_executedPipe->GetSurfacesSetting().surfGroup;
+
+        SurfaceType surfId          = (SurfaceType)(SurfaceTypeHdrInputLayer0 + i);
+        inputSrc                    = surfGroup.find(surfId)->second;
+
+        if (inputSrc == nullptr)
+        {
+            m_renderHdrParams.InputSrc[i] = false;
+            continue;
+        }
+        m_renderHdrParams.InputSrc[i]     = true;
+        m_renderHdrParams.srcHDRParams[i] = hdrParams.srcHDRParams;
         m_renderHdrParams.uSourceBindingTableIndex[i] = VPHAL_HDR_BTINDEX_LAYER0 + i * VPHAL_HDR_BTINDEX_PER_LAYER0;
     }
 
-    for (i = 0; i < hdrParams.uTargetCount; i++)
+    for (i = 0; i < m_renderHdrParams.uTargetCount; i++)
     {
-        m_renderHdrParams.Target[i]          = hdrParams.Target[i];
-        m_renderHdrParams.targetHDRParams[i] = hdrParams.targetHDRParams[i];
+        auto &surfGroup             = m_executedPipe->GetSurfacesSetting().surfGroup;
+
+        SurfaceType surfId          = (SurfaceType)(SurfaceTypeHdrTarget0 + i);
+        targetSrc                   = surfGroup.find(surfId)->second;
+
+        if (targetSrc == nullptr)
+        {
+            continue;
+        }
+        //auto &hdrParams                               = ((SwFilterHdr *)m_executedPipe->GetSwFilter(false, 0, FeatureTypeHdr))->GetSwFilterParams();
+        m_renderHdrParams.targetHDRParams[i]          = hdrParams.targetHDRParams;
         m_renderHdrParams.uTargetBindingTableIndex[i] = VPHAL_HDR_BTINDEX_RENDERTARGET + i * VPHAL_HDR_BTINDEX_PER_TARGET;
     }
 
@@ -248,12 +272,6 @@ HwFilterParameter *PolicyRenderHdrHandler::CreateHwFilterParam(VP_EXECUTE_CAPS v
 
     if (IsFeatureEnabled(vpExecuteCaps))
     {
-        if (SwFilterPipeType1To1 != swFilterPipe.GetSwFilterPipeType())
-        {
-            VP_PUBLIC_ASSERTMESSAGE("Invalid parameter! Sfc only support 1To1 swFilterPipe!");
-            return nullptr;
-        }
-
         SwFilterHdr *swFilter = dynamic_cast<SwFilterHdr *>(swFilterPipe.GetSwFilter(true, 0, FeatureTypeHdrOnRender));
 
         if (nullptr == swFilter)
@@ -295,27 +313,34 @@ HwFilterParameter *PolicyRenderHdrHandler::CreateHwFilterParam(VP_EXECUTE_CAPS v
     }
 }
 
-MOS_STATUS PolicyRenderHdrHandler::LayerSelectForProcess(std::vector<int> &layerIndexes, SwFilterPipe &featurePipe, bool isSingleSubPipe, uint32_t pipeIndex, VP_EXECUTE_CAPS &caps)
+MOS_STATUS PolicyRenderHdrHandler::LayerSelectForProcess(std::vector<int> &layerIndexes, SwFilterPipe &featurePipe, VP_EXECUTE_CAPS &caps)
 {
-
-    SwFilterSubPipe *subpipe = featurePipe.GetSwFilterSubPipe(true, 0);
-    VP_PUBLIC_CHK_NULL_RETURN(subpipe);
-    SwFilterScaling *scaling = dynamic_cast<SwFilterScaling *>(subpipe->GetSwFilter(FeatureType::FeatureTypeScaling));
-    VP_PUBLIC_CHK_NULL_RETURN(scaling);
-
-    // Disable AVS scaling mode
-    if (!m_hwCaps.m_rules.isAvsSamplerSupported)
+    for (uint32_t index = 0; index < featurePipe.GetSurfaceCount(true); ++index)
     {
-        if (VPHAL_SCALING_AVS == scaling->GetSwFilterParams().scalingMode)
+        SwFilterSubPipe *subpipe = featurePipe.GetSwFilterSubPipe(true, index);
+        VP_PUBLIC_CHK_NULL_RETURN(subpipe);
+
+        SwFilterHdr *hdr = dynamic_cast<SwFilterHdr *>(subpipe->GetSwFilter(FeatureType::FeatureTypeHdr));
+        if (nullptr == hdr)
         {
-            scaling->GetSwFilterParams().scalingMode = VPHAL_SCALING_BILINEAR;
+            continue;
         }
+
+        SwFilterScaling *scaling = dynamic_cast<SwFilterScaling *>(subpipe->GetSwFilter(FeatureType::FeatureTypeScaling));
+        VP_PUBLIC_CHK_NULL_RETURN(scaling);
+
+        // Disable AVS scaling mode
+        if (!m_hwCaps.m_rules.isAvsSamplerSupported)
+        {
+            if (VPHAL_SCALING_AVS == scaling->GetSwFilterParams().scalingMode)
+            {
+                scaling->GetSwFilterParams().scalingMode = VPHAL_SCALING_BILINEAR;
+            }
+        }
+        // first step to process all layers when hdr kernel used, todo: add handle for >8 layers cases.
+        layerIndexes.push_back(index);
     }
 
-    layerIndexes.clear();
-    layerIndexes.push_back(pipeIndex);
-
-    // No procamp in target being used.
     return MOS_STATUS_SUCCESS;
 }
 

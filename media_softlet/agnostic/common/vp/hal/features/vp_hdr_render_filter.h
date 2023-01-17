@@ -128,7 +128,7 @@ public:
         return VpRenderHdrParameter::Create(*HdrParam);
     }
 
-    virtual MOS_STATUS LayerSelectForProcess(std::vector<int> &layerIndexes, SwFilterPipe &featurePipe, bool isSingleSubPipe, uint32_t pipeIndex, VP_EXECUTE_CAPS &caps);
+    virtual MOS_STATUS LayerSelectForProcess(std::vector<int> &layerIndexes, SwFilterPipe &featurePipe, VP_EXECUTE_CAPS &caps);
 
 private:
     PacketParamFactory< VpRenderHdrParameter> m_PacketParamFactory;

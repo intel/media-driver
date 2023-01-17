@@ -903,6 +903,7 @@ public:
 
     void DumpSurfaces() override;
     void DumpCurbe(void *pCurbe, int32_t iSize);
+    void PrintCurbeData(PMEDIA_WALKER_HDR_STATIC_DATA curbeData);
 
 protected:
     virtual MOS_STATUS SetupSurfaceState() override;
@@ -960,10 +961,34 @@ protected:
             float *pTransferMatrix,
             float *pOutMatrix);
 
+    MOS_STATUS VpHal_HdrColorTransfer3dLut(
+        PRENDER_HDR_PARAMS params,
+        int32_t            iIndex,
+        float              fInputX,
+        float              fInputY,
+        float              fInputZ,
+        uint16_t          *puOutputX,
+        uint16_t          *puOutputY,
+        uint16_t          *puOutputZ);
+
+    MOS_STATUS VpHal_HdrToneMapping3dLut(
+        VPHAL_HDR_MODE HdrMode,
+        double         fInputX,
+        double         fInputY,
+        double         fInputZ,
+        double        *pfOutputX,
+        double        *pfOutputY,
+        double        *pfOutputZ);
+
     //MOS_STATUS HdrUpdatePerLayerPipelineStates(FeatureParamHdr    &params, uint32_t* pdwUpdateMask);
     MOS_STATUS InitOETF1DLUT(PRENDER_HDR_PARAMS params, int32_t iIndex, VP_SURFACE *pOETF1DLUTSurface);
     virtual MOS_STATUS HdrInitCoeff(PRENDER_HDR_PARAMS params, VP_SURFACE *pCoeffSurface);
     //MOS_STATUS HdrInitInput3DLUTExt(PRENDER_HDR_PARAMS params, PVPHAL_SURFACE pInput3DLUTSurface);
+
+    MOS_STATUS InitCri3DLUT(
+        PRENDER_HDR_PARAMS params,
+        int32_t            iIndex,
+        VP_SURFACE         *pCRI3DLUTSurface);
 
     virtual void CalculateH2HPWLFCoefficients(
         HDR_PARAMS       *pSource,
@@ -975,7 +1000,8 @@ protected:
     bool ToneMappingStagesAssemble(
         HDR_PARAMS          *srcHDRParams,
         HDR_PARAMS          *targetHDRParams,
-        HDRStageConfigEntry *pConfigEntry);
+        HDRStageConfigEntry *pConfigEntry,
+        uint32_t index);
 
     MOS_STATUS UpdatePerLayerPipelineStates(
         uint32_t           *pdwUpdateMask);

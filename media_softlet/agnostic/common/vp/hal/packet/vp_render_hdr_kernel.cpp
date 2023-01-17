@@ -1347,6 +1347,621 @@ void HdrGenerate2SegmentsOETFLUT(float fStretchFactor, pfnOETFFunc oetfFunc, uin
 }
 
 //!
+//! \brief    Color Transfer for Hdr 3d Lut
+//! \details  Color Transfer for Hdr 3d Lut
+//! \param    PVPHAL_HDR_STATE pHdrState
+//!           [in] Pointer to Hdr State
+//! \param    int32_t iIndex
+//!           [in] Input Surface index
+//! \param    float fInputX
+//!           [in] Input color for x axis of 3D Lut
+//! \param    float fInputY
+//!           [in] Input color for y axis of 3D Lut
+//! \param    float fInputZ
+//!           [in] Input color for z axis of 3D Lut
+//! \param    uint16_t *puOutputX
+//!           [in] Output color for x axis of 3D Lut
+//! \param    uint16_t *puOutputX
+//!           [in] Output color for y axis of 3D Lut
+//! \param    uint16_t *puOutputX
+//!           [in] Output color for z axis of 3D Lut
+//! \return   MOS_STATUS
+//!
+MOS_STATUS VpRenderHdrKernel::VpHal_HdrColorTransfer3dLut(
+    PRENDER_HDR_PARAMS params,
+    int32_t          iIndex,
+    float            fInputX,
+    float            fInputY,
+    float            fInputZ,
+    uint16_t        *puOutputX,
+    uint16_t        *puOutputY,
+    uint16_t        *puOutputZ)
+{
+    VP_FUNC_CALL();
+
+    MOS_STATUS           eStatus = MOS_STATUS_SUCCESS;
+    float                PriorCscMatrix[12] = {}, PostCscMatrix[12] = {};
+    float                TempMatrix[12] = {};
+    double               fTempX = 0, fTempY = 0, fTempZ = 0;
+    double               fTemp1X = 0, fTemp1Y = 0, fTemp1Z = 0;
+    double               fTemp = 0;
+    double               m1        = 0.1593017578125;  // SMPTE ST2084 EOTF parameters
+    double               m2        = 78.84375;         // SMPTE ST2084 EOTF parameters
+    double               c2        = 18.8515625;       // SMPTE ST2084 EOTF parameters
+    double               c3        = 18.6875;          // SMPTE ST2084 EOTF parameters
+    double               c1        = c3 - c2 + 1;      // SMPTE ST2084 EOTF parameters
+
+    VP_PUBLIC_CHK_NULL_RETURN(params);
+    VP_PUBLIC_CHK_NULL_RETURN(puOutputX);
+    VP_PUBLIC_CHK_NULL_RETURN(puOutputX);
+    VP_PUBLIC_CHK_NULL_RETURN(puOutputX);
+
+    fTempX = (double)fInputX;
+    fTempY = (double)fInputY;
+    fTempZ = (double)fInputZ;
+
+#define SET_MATRIX(_c0, _c1, _c2, _c3, _c4, _c5, _c6, _c7, _c8, _c9, _c10, _c11) \
+    {                                                                            \
+        TempMatrix[0]  = _c0;                                                    \
+        TempMatrix[1]  = _c1;                                                    \
+        TempMatrix[2]  = _c2;                                                    \
+        TempMatrix[3]  = _c3;                                                    \
+        TempMatrix[4]  = _c4;                                                    \
+        TempMatrix[5]  = _c5;                                                    \
+        TempMatrix[6]  = _c6;                                                    \
+        TempMatrix[7]  = _c7;                                                    \
+        TempMatrix[8]  = _c8;                                                    \
+        TempMatrix[9]  = _c9;                                                    \
+        TempMatrix[10] = _c10;                                                   \
+        TempMatrix[11] = _c11;                                                   \
+    }
+
+#define CLAMP_MIN_MAX(_a, _min, _max) \
+    {                                 \
+        if (_a < _min)                \
+        {                             \
+            _a = _min;                \
+        }                             \
+        if (_a > _max)                \
+        {                             \
+            _a = _max;                \
+        }                             \
+    }
+
+    auto        inputSurface = m_surfaceGroup->find(SurfaceType(SurfaceTypeHdrInputLayer0 + iIndex));
+    VP_SURFACE *input        = (m_surfaceGroup->end() != inputSurface) ? inputSurface->second : nullptr;
+    // EOTF/CCM/Tone Mapping/OETF require RGB input
+    // So if prior CSC is needed, it will always be YUV to RGB conversion
+    if (params->StageEnableFlags[iIndex].PriorCSCEnable)
+    {
+        if (params->PriorCSC[iIndex] == VPHAL_HDR_CSC_YUV_TO_RGB_BT601)
+        {
+            SET_MATRIX(1.000000f, 0.000000f, 1.402000f, 0.000000f, 1.000000f, -0.344136f, -0.714136f, 0.000000f, 1.000000f, 1.772000f, 0.000000f, 0.000000f);
+            VpHal_HdrCalcYuvToRgbMatrix(CSpace_BT601, CSpace_sRGB, TempMatrix, PriorCscMatrix);
+        }
+        else if (params->PriorCSC[iIndex] == VPHAL_HDR_CSC_YUV_TO_RGB_BT709)
+        {
+            SET_MATRIX(1.000000f, 0.000000f, 1.574800f, 0.000000f, 1.000000f, -0.187324f, -0.468124f, 0.000000f, 1.000000f, 1.855600f, 0.000000f, 0.000000f);
+            VpHal_HdrCalcYuvToRgbMatrix(CSpace_BT709, CSpace_sRGB, TempMatrix, PriorCscMatrix);
+        }
+        else if (params->PriorCSC[iIndex] == VPHAL_HDR_CSC_YUV_TO_RGB_BT2020)
+        {
+            SET_MATRIX(1.000000f, 0.000000f, 1.474600f, 0.000000f, 1.000000f, -0.164550f, -0.571350f, 0.000000f, 1.000000f, 1.881400f, 0.000000f, 0.000000f);
+            VpHal_HdrCalcYuvToRgbMatrix(CSpace_BT2020, CSpace_sRGB, TempMatrix, PriorCscMatrix);
+        }
+        else
+        {
+            VP_RENDER_ASSERTMESSAGE("Invalid Prior CSC parameter.");
+            eStatus = MOS_STATUS_INVALID_PARAMETER;
+        }
+
+        fTemp1X = fTempX;
+        fTemp1Y = fTempY;
+        fTemp1Z = fTempZ;
+
+        if (input && (input->osSurface->Format == Format_AYUV))
+        {
+            fTempX = PriorCscMatrix[0] * fTemp1Y + PriorCscMatrix[1] * fTemp1Z + PriorCscMatrix[2] * fTemp1X + PriorCscMatrix[3];
+            fTempY = PriorCscMatrix[4] * fTemp1Y + PriorCscMatrix[5] * fTemp1Z + PriorCscMatrix[6] * fTemp1X + PriorCscMatrix[7];
+            fTempZ = PriorCscMatrix[8] * fTemp1Y + PriorCscMatrix[9] * fTemp1Z + PriorCscMatrix[10] * fTemp1X + PriorCscMatrix[11];
+        }
+        else
+        {
+            fTempX = PriorCscMatrix[0] * fTemp1Z + PriorCscMatrix[1] * fTemp1Y + PriorCscMatrix[2] * fTemp1X + PriorCscMatrix[3];
+            fTempY = PriorCscMatrix[4] * fTemp1Z + PriorCscMatrix[5] * fTemp1Y + PriorCscMatrix[6] * fTemp1X + PriorCscMatrix[7];
+            fTempZ = PriorCscMatrix[8] * fTemp1Z + PriorCscMatrix[9] * fTemp1Y + PriorCscMatrix[10] * fTemp1X + PriorCscMatrix[11];
+        }
+
+        CLAMP_MIN_MAX(fTempX, 0.0f, 1.0f);
+        CLAMP_MIN_MAX(fTempY, 0.0f, 1.0f);
+        CLAMP_MIN_MAX(fTempZ, 0.0f, 1.0f);
+    }
+
+    if (params->StageEnableFlags[iIndex].EOTFEnable)
+    {
+        if (params->EOTFGamma[iIndex] == VPHAL_GAMMA_TRADITIONAL_GAMMA)
+        {
+            if (fTempX < 0.081)
+            {
+                fTempX = fTempX / 4.5;
+            }
+            else
+            {
+                fTempX = (fTempX + 0.099) / 1.099;
+                fTempX = pow(fTempX, 1.0 / 0.45);
+            }
+
+            if (fTempY < 0.081)
+            {
+                fTempY = fTempY / 4.5;
+            }
+            else
+            {
+                fTempY = (fTempY + 0.099) / 1.099;
+                fTempY = pow(fTempY, 1.0 / 0.45);
+            }
+
+            if (fTempZ < 0.081)
+            {
+                fTempZ = fTempZ / 4.5;
+            }
+            else
+            {
+                fTempZ = (fTempZ + 0.099) / 1.099;
+                fTempZ = pow(fTempZ, 1.0 / 0.45);
+            }
+        }
+        else if (params->EOTFGamma[iIndex] == VPHAL_GAMMA_SMPTE_ST2084)
+        {
+            fTempX = pow(fTempX, 1.0f / m2);
+            fTemp  = c2 - c3 * fTempX;
+            fTempX = fTempX > c1 ? fTempX - c1 : 0;
+            fTempX = fTempX / fTemp;
+            fTempX = pow(fTempX, 1.0f / m1);
+
+            fTempY = pow(fTempY, 1.0f / m2);
+            fTemp  = c2 - c3 * fTempY;
+            fTempY = fTempY > c1 ? fTempY - c1 : 0;
+            fTempY = fTempY / fTemp;
+            fTempY = pow(fTempY, 1.0f / m1);
+
+            fTempZ = pow(fTempZ, 1.0f / m2);
+            fTemp  = c2 - c3 * fTempZ;
+            fTempZ = fTempZ > c1 ? fTempZ - c1 : 0;
+            fTempZ = fTempZ / fTemp;
+            fTempZ = pow(fTempZ, 1.0f / m1);
+        }
+        else if (params->EOTFGamma[iIndex] == VPHAL_GAMMA_BT1886)
+        {
+            if (fTempX < -0.0f)
+            {
+                fTempX = 0;
+            }
+            else
+            {
+                fTempX = pow(fTempX, 2.4);
+            }
+
+            if (fTempY < -0.0f)
+            {
+                fTempY = 0;
+            }
+            else
+            {
+                fTempY = pow(fTempY, 2.4);
+            }
+
+            if (fTempZ < -0.0f)
+            {
+                fTempZ = 0;
+            }
+            else
+            {
+                fTempZ = pow(fTempZ, 2.4);
+            }
+        }
+        else
+        {
+            VP_RENDER_ASSERTMESSAGE("Invalid EOTF setting for tone mapping");
+            eStatus = MOS_STATUS_INVALID_PARAMETER;
+        }
+
+        CLAMP_MIN_MAX(fTempX, 0.0f, 1.0f);
+        CLAMP_MIN_MAX(fTempY, 0.0f, 1.0f);
+        CLAMP_MIN_MAX(fTempZ, 0.0f, 1.0f);
+    }
+
+    if (params->StageEnableFlags[iIndex].CCMEnable)
+    {
+        // BT709 to BT2020 CCM
+        if (params->CCM[iIndex] == VPHAL_HDR_CCM_BT601_BT709_TO_BT2020_MATRIX)
+        {
+            SET_MATRIX(0.627404078626f, 0.329282097415f, 0.043313797587f, 0.000000f, 0.069097233123f, 0.919541035593f, 0.011361189924f, 0.000000f, 0.016391587664f, 0.088013255546f, 0.895595009604f, 0.000000f);
+        }
+        // BT2020 to BT709 CCM
+        else if (params->CCM[iIndex] == VPHAL_HDR_CCM_BT2020_TO_BT601_BT709_MATRIX)
+        {
+            SET_MATRIX(1.660490254890140f, -0.587638564717282f, -0.072851975229213f, 0.000000f, -0.124550248621850f, 1.132898753013895f, -0.008347895599309f, 0.000000f, -0.018151059958635f, -0.100578696221493f, 1.118729865913540f, 0.000000f);
+        }
+        else
+        {
+            SET_MATRIX(1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+        }
+
+        fTemp1X = fTempX;
+        fTemp1Y = fTempY;
+        fTemp1Z = fTempZ;
+
+        fTempX = TempMatrix[0] * fTemp1X + TempMatrix[1] * fTemp1Y + TempMatrix[2] * fTemp1Z + TempMatrix[3];
+        fTempY = TempMatrix[4] * fTemp1X + TempMatrix[5] * fTemp1Y + TempMatrix[6] * fTemp1Z + TempMatrix[7];
+        fTempZ = TempMatrix[8] * fTemp1X + TempMatrix[9] * fTemp1Y + TempMatrix[10] * fTemp1Z + TempMatrix[11];
+
+        CLAMP_MIN_MAX(fTempX, 0.0f, 1.0f);
+        CLAMP_MIN_MAX(fTempY, 0.0f, 1.0f);
+        CLAMP_MIN_MAX(fTempZ, 0.0f, 1.0f);
+    }
+
+    if (params->StageEnableFlags[iIndex].PWLFEnable)
+    {
+        VpHal_HdrToneMapping3dLut(params->HdrMode[iIndex], fTempX, fTempY, fTempZ, &fTempX, &fTempY, &fTempZ);
+
+        CLAMP_MIN_MAX(fTempX, 0.0f, 1.0f);
+        CLAMP_MIN_MAX(fTempY, 0.0f, 1.0f);
+        CLAMP_MIN_MAX(fTempZ, 0.0f, 1.0f);
+    }
+
+    if (params->StageEnableFlags[iIndex].CCMExt1Enable)
+    {
+        // BT709 to BT2020 CCM
+        if (params->CCMExt1[iIndex] == VPHAL_HDR_CCM_BT601_BT709_TO_BT2020_MATRIX)
+        {
+            SET_MATRIX(0.627404078626f, 0.329282097415f, 0.043313797587f, 0.000000f, 0.069097233123f, 0.919541035593f, 0.011361189924f, 0.000000f, 0.016391587664f, 0.088013255546f, 0.895595009604f, 0.000000f);
+        }
+        // BT2020 to BT709 CCM
+        else if (params->CCMExt1[iIndex] == VPHAL_HDR_CCM_BT2020_TO_BT601_BT709_MATRIX)
+        {
+            SET_MATRIX(1.660490254890140f, -0.587638564717282f, -0.072851975229213f, 0.000000f, -0.124550248621850f, 1.132898753013895f, -0.008347895599309f, 0.000000f, -0.018151059958635f, -0.100578696221493f, 1.118729865913540f, 0.000000f);
+        }
+        else if (params->CCMExt1[iIndex] == VPHAL_HDR_CCM_BT2020_TO_MONITOR_MATRIX ||
+                 params->CCMExt1[iIndex] == VPHAL_HDR_CCM_MONITOR_TO_BT2020_MATRIX ||
+                 params->CCMExt1[iIndex] == VPHAL_HDR_CCM_MONITOR_TO_BT709_MATRIX)
+        {
+            HdrCalculateCCMWithMonitorGamut(params->CCMExt1[iIndex], params->targetHDRParams[0], TempMatrix);
+        }
+        else
+        {
+            SET_MATRIX(1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+        }
+
+        fTemp1X = fTempX;
+        fTemp1Y = fTempY;
+        fTemp1Z = fTempZ;
+
+        fTempX = TempMatrix[0] * fTemp1X + TempMatrix[1] * fTemp1Y + TempMatrix[2] * fTemp1Z + TempMatrix[3];
+        fTempY = TempMatrix[4] * fTemp1X + TempMatrix[5] * fTemp1Y + TempMatrix[6] * fTemp1Z + TempMatrix[7];
+        fTempZ = TempMatrix[8] * fTemp1X + TempMatrix[9] * fTemp1Y + TempMatrix[10] * fTemp1Z + TempMatrix[11];
+
+        CLAMP_MIN_MAX(fTempX, 0.0f, 1.0f);
+        CLAMP_MIN_MAX(fTempY, 0.0f, 1.0f);
+        CLAMP_MIN_MAX(fTempZ, 0.0f, 1.0f);
+    }
+
+    if (params->StageEnableFlags[iIndex].CCMExt2Enable)
+    {
+        // BT709 to BT2020 CCM
+        if (params->CCMExt2[iIndex] == VPHAL_HDR_CCM_BT601_BT709_TO_BT2020_MATRIX)
+        {
+            SET_MATRIX(0.627404078626f, 0.329282097415f, 0.043313797587f, 0.000000f, 0.069097233123f, 0.919541035593f, 0.011361189924f, 0.000000f, 0.016391587664f, 0.088013255546f, 0.895595009604f, 0.000000f);
+        }
+        // BT2020 to BT709 CCM
+        else if (params->CCMExt2[iIndex] == VPHAL_HDR_CCM_BT2020_TO_BT601_BT709_MATRIX)
+        {
+            SET_MATRIX(1.660490254890140f, -0.587638564717282f, -0.072851975229213f, 0.000000f, -0.124550248621850f, 1.132898753013895f, -0.008347895599309f, 0.000000f, -0.018151059958635f, -0.100578696221493f, 1.118729865913540f, 0.000000f);
+        }
+        else if (params->CCMExt2[iIndex] == VPHAL_HDR_CCM_BT2020_TO_MONITOR_MATRIX ||
+                 params->CCMExt2[iIndex] == VPHAL_HDR_CCM_MONITOR_TO_BT2020_MATRIX ||
+                 params->CCMExt2[iIndex] == VPHAL_HDR_CCM_MONITOR_TO_BT709_MATRIX)
+        {
+            HdrCalculateCCMWithMonitorGamut(params->CCMExt2[iIndex], params->targetHDRParams[0], TempMatrix);
+        }
+        else
+        {
+            SET_MATRIX(1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+        }
+
+        fTemp1X = fTempX;
+        fTemp1Y = fTempY;
+        fTemp1Z = fTempZ;
+
+        fTempX = TempMatrix[0] * fTemp1X + TempMatrix[1] * fTemp1Y + TempMatrix[2] * fTemp1Z + TempMatrix[3];
+        fTempY = TempMatrix[4] * fTemp1X + TempMatrix[5] * fTemp1Y + TempMatrix[6] * fTemp1Z + TempMatrix[7];
+        fTempZ = TempMatrix[8] * fTemp1X + TempMatrix[9] * fTemp1Y + TempMatrix[10] * fTemp1Z + TempMatrix[11];
+
+        CLAMP_MIN_MAX(fTempX, 0.0f, 1.0f);
+        CLAMP_MIN_MAX(fTempY, 0.0f, 1.0f);
+        CLAMP_MIN_MAX(fTempZ, 0.0f, 1.0f);
+    }
+
+    if (params->OETFGamma[iIndex] != VPHAL_GAMMA_NONE)
+    {
+        if (params->OETFGamma[iIndex] == VPHAL_GAMMA_TRADITIONAL_GAMMA)
+        {
+            if (fTempX < 0.018)
+            {
+                fTempX = 4.5 * fTempX;
+            }
+            else
+            {
+                fTempX = pow(fTempX, 0.45);
+                fTempX = 1.099 * fTempX - 0.099;
+            }
+
+            if (fTempY < 0.018)
+            {
+                fTempY = 4.5 * fTempY;
+            }
+            else
+            {
+                fTempY = pow(fTempY, 0.45);
+                fTempY = 1.099 * fTempY - 0.099;
+            }
+
+            if (fTempZ < 0.018)
+            {
+                fTempZ = 4.5 * fTempZ;
+            }
+            else
+            {
+                fTempZ = pow(fTempZ, 0.45);
+                fTempZ = 1.099 * fTempZ - 0.099;
+            }
+        }
+        else if (params->OETFGamma[iIndex] == VPHAL_GAMMA_SMPTE_ST2084)
+        {
+            fTempX = pow(fTempX, m1);
+            fTempX = (c1 + c2 * fTempX) / (1 + c3 * fTempX);
+            fTempX = pow(fTempX, m2);
+
+            fTempY = pow(fTempY, m1);
+            fTempY = (c1 + c2 * fTempY) / (1 + c3 * fTempY);
+            fTempY = pow(fTempY, m2);
+
+            fTempZ = pow(fTempZ, m1);
+            fTempZ = (c1 + c2 * fTempZ) / (1 + c3 * fTempZ);
+            fTempZ = pow(fTempZ, m2);
+        }
+        else if (params->OETFGamma[iIndex] == VPHAL_GAMMA_SRGB)
+        {
+            if (fTempX < 0.0031308f)
+            {
+                fTempX = 12.92 * fTempX;
+            }
+            else
+            {
+                fTempX = pow(fTempX, (double)(1.0f / 2.4f));
+                fTempX = 1.055 * fTempX - 0.055;
+            }
+
+            if (fTempY < 0.0031308f)
+            {
+                fTempY = 12.92 * fTempY;
+            }
+            else
+            {
+                fTempY = pow(fTempY, (double)(1.0f / 2.4f));
+                fTempY = 1.055 * fTempY - 0.055;
+            }
+
+            if (fTempZ < 0.0031308f)
+            {
+                fTempZ = 12.92 * fTempZ;
+            }
+            else
+            {
+                fTempZ = pow(fTempZ, (double)(1.0f / 2.4f));
+                fTempZ = 1.055 * fTempZ - 0.055;
+            }
+        }
+        else
+        {
+            VP_RENDER_ASSERTMESSAGE("Invalid EOTF setting for tone mapping");
+            eStatus = MOS_STATUS_INVALID_PARAMETER;
+        }
+
+        CLAMP_MIN_MAX(fTempX, 0.0f, 1.0f);
+        CLAMP_MIN_MAX(fTempY, 0.0f, 1.0f);
+        CLAMP_MIN_MAX(fTempZ, 0.0f, 1.0f);
+    }
+
+    // OETF will output RGB surface
+    // So if post CSC is needed, it will always be RGB to YUV conversion
+    if (params->PostCSC[iIndex] != VPHAL_HDR_CSC_NONE)
+    {
+        if (params->PostCSC[iIndex] == VPHAL_HDR_CSC_RGB_TO_YUV_BT601)
+        {
+            SET_MATRIX(-0.331264f, -0.168736f, 0.500000f, 0.000000f, 0.587000f, 0.299000f, 0.114000f, 0.000000f, -0.418688f, 0.500000f, -0.081312f, 0.000000f);
+
+            SET_MATRIX(0.500000f, -0.418688f, -0.081312f, 0.000000f, 0.299000f, 0.587000f, 0.114000f, 0.000000f, -0.168736f, -0.331264f, 0.500000f, 0.000000f);
+
+            VpHal_HdrCalcRgbToYuvMatrix(CSpace_sRGB, CSpace_BT601, TempMatrix, PostCscMatrix);
+        }
+        else if (params->PostCSC[iIndex] == VPHAL_HDR_CSC_RGB_TO_YUV_BT709)
+        {
+            SET_MATRIX(-0.385428f, -0.114572f, 0.500000f, 0.000000f, 0.715200f, 0.212600f, 0.072200f, 0.000000f, -0.454153f, 0.500000f, -0.045847f, 0.000000f);
+
+            SET_MATRIX(0.500000f, -0.454153f, -0.045847f, 0.000000f, 0.212600f, 0.715200f, 0.072200f, 0.000000f, -0.114572f, -0.385428f, 0.500000f, 0.000000f);
+
+            VpHal_HdrCalcRgbToYuvMatrix(CSpace_sRGB, CSpace_BT709, TempMatrix, PostCscMatrix);
+        }
+        else if (params->PostCSC[iIndex] == VPHAL_HDR_CSC_RGB_TO_YUV_BT2020)
+        {
+            SET_MATRIX(-0.360370f, -0.139630f, 0.500000f, 0.000000f, 0.678000f, 0.262700f, 0.059300f, 0.000000f, -0.459786f, 0.500000f, -0.040214f, 0.000000f);
+
+            SET_MATRIX(0.500000f, -0.459786f, -0.040214f, 0.000000f, 0.262700f, 0.678000f, 0.059300f, 0.000000f, -0.139630f, -0.360370f, 0.500000f, 0.000000f);
+
+            VpHal_HdrCalcRgbToYuvMatrix(CSpace_sRGB, CSpace_BT2020, TempMatrix, PostCscMatrix);
+        }
+        else
+        {
+            VP_RENDER_ASSERTMESSAGE("Color Space Not found.");
+            eStatus = MOS_STATUS_INVALID_PARAMETER;
+        }
+
+        fTemp1X = fTempX;
+        fTemp1Y = fTempY;
+        fTemp1Z = fTempZ;
+
+        fTempX = PostCscMatrix[0] * fTemp1X + PostCscMatrix[1] * fTemp1Y + PostCscMatrix[2] * fTemp1Z + PostCscMatrix[3];
+        fTempY = PostCscMatrix[4] * fTemp1X + PostCscMatrix[5] * fTemp1Y + PostCscMatrix[6] * fTemp1Z + PostCscMatrix[7];
+        fTempZ = PostCscMatrix[8] * fTemp1X + PostCscMatrix[9] * fTemp1Y + PostCscMatrix[10] * fTemp1Z + PostCscMatrix[11];
+
+        CLAMP_MIN_MAX(fTempX, 0.0f, 1.0f);
+        CLAMP_MIN_MAX(fTempY, 0.0f, 1.0f);
+        CLAMP_MIN_MAX(fTempZ, 0.0f, 1.0f);
+    }
+
+#undef SET_MATRIX
+#undef CLAMP_MIN_MAX
+
+    if (params->bGpuGenerate3DLUT)
+    {
+        params->f3DLUTNormalizationFactor = 1023.0f;
+    }
+    else
+    {
+        params->f3DLUTNormalizationFactor = 65535.0f;
+    }
+
+    // Convert and round up the [0, 1] float color value to 16 bit integer value
+    *puOutputX = (uint16_t)(fTempX * params->f3DLUTNormalizationFactor + 0.5f);
+    *puOutputY = (uint16_t)(fTempY * params->f3DLUTNormalizationFactor + 0.5f);
+    *puOutputZ = (uint16_t)(fTempZ * params->f3DLUTNormalizationFactor + 0.5f);
+
+    eStatus = MOS_STATUS_SUCCESS;
+
+    return eStatus;
+}
+
+//!
+//! \brief    Color Transfer for Hdr 3d Lut
+//! \details  Color Transfer for Hdr 3d Lut
+//! \param    VPHAL_HDR_MODE HdrMode
+//!           [in] Hdr mode
+//! \param    double fInputX
+//!           [in] Input color for Tone Mapping
+//! \param    double fInputY
+//!           [in] Input color for Tone Mapping
+//! \param    double fInputZ
+//!           [in] Input color for Tone Mapping
+//! \param    double * pfOutputX
+//!           [in/out] Output color for Tone Mapping
+//! \param    double * pfOutputY
+//!           [in/out] Output color for Tone Mapping
+//! \param    double * pfOutputZ
+//!           [in/out] Output color for Tone Mapping
+//! \return   MOS_STATUS
+//!
+MOS_STATUS VpRenderHdrKernel::VpHal_HdrToneMapping3dLut(
+    VPHAL_HDR_MODE HdrMode,
+    double         fInputX,
+    double         fInputY,
+    double         fInputZ,
+    double        *pfOutputX,
+    double        *pfOutputY,
+    double        *pfOutputZ)
+{
+    VP_FUNC_CALL();
+
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+    double     fPivot[5] = {};
+    double     fSlope[6] = {};
+    double     fIntercept[6] = {};
+
+    VP_PUBLIC_CHK_NULL_RETURN(pfOutputX);
+    VP_PUBLIC_CHK_NULL_RETURN(pfOutputX);
+    VP_PUBLIC_CHK_NULL_RETURN(pfOutputX);
+
+#define TONE_MAPPING(Input, Output)                     \
+    {                                                   \
+        if (Input < fPivot[0])                          \
+        {                                               \
+            Output = Input * fSlope[0] + fIntercept[0]; \
+        }                                               \
+        else if (Input < fPivot[1])                     \
+        {                                               \
+            Output = Input * fSlope[1] + fIntercept[1]; \
+        }                                               \
+        else if (Input < fPivot[2])                     \
+        {                                               \
+            Output = Input * fSlope[2] + fIntercept[2]; \
+        }                                               \
+        else if (Input < fPivot[3])                     \
+        {                                               \
+            Output = Input * fSlope[3] + fIntercept[3]; \
+        }                                               \
+        else if (Input < fPivot[4])                     \
+        {                                               \
+            Output = Input * fSlope[4] + fIntercept[4]; \
+        }                                               \
+        else                                            \
+        {                                               \
+            Output = Input * fSlope[5] + fIntercept[5]; \
+        }                                               \
+        if (Output > 1.0f)                              \
+        {                                               \
+            Output = 1.0f;                              \
+        }                                               \
+    }
+
+    if (HdrMode == VPHAL_HDR_MODE_TONE_MAPPING || HdrMode == VPHAL_HDR_MODE_TONE_MAPPING_AUTO_MODE)
+    {
+        // TODO: add auto mode support, i.e. read back the coeffs from audo mode output surface.
+        fPivot[0]     = VPHAL_HDR_TONE_MAPPING_PIVOT_POINT_X1;
+        fPivot[1]     = VPHAL_HDR_TONE_MAPPING_PIVOT_POINT_X2;
+        fPivot[2]     = VPHAL_HDR_TONE_MAPPING_PIVOT_POINT_X3;
+        fPivot[3]     = VPHAL_HDR_TONE_MAPPING_PIVOT_POINT_X4;
+        fPivot[4]     = VPHAL_HDR_TONE_MAPPING_PIVOT_POINT_X5;
+        fSlope[0]     = VPHAL_HDR_TONE_MAPPING_SLOPE0;
+        fSlope[1]     = VPHAL_HDR_TONE_MAPPING_SLOPE1;
+        fSlope[2]     = VPHAL_HDR_TONE_MAPPING_SLOPE2;
+        fSlope[3]     = VPHAL_HDR_TONE_MAPPING_SLOPE3;
+        fSlope[4]     = VPHAL_HDR_TONE_MAPPING_SLOPE4;
+        fSlope[5]     = VPHAL_HDR_TONE_MAPPING_SLOPE5;
+        fIntercept[0] = VPHAL_HDR_TONE_MAPPING_INTERCEPT0;
+        fIntercept[1] = VPHAL_HDR_TONE_MAPPING_INTERCEPT1;
+        fIntercept[2] = VPHAL_HDR_TONE_MAPPING_INTERCEPT2;
+        fIntercept[3] = VPHAL_HDR_TONE_MAPPING_INTERCEPT3;
+        fIntercept[4] = VPHAL_HDR_TONE_MAPPING_INTERCEPT4;
+        fIntercept[5] = VPHAL_HDR_TONE_MAPPING_INTERCEPT5;
+
+        TONE_MAPPING(fInputX, *pfOutputX);
+        TONE_MAPPING(fInputY, *pfOutputY);
+        TONE_MAPPING(fInputZ, *pfOutputZ);
+    }
+    else if (HdrMode == VPHAL_HDR_MODE_INVERSE_TONE_MAPPING)
+    {
+        // For inverse tone mapping in 3D LUT
+        // PWLF function should not be applied
+        // A simple / 100 devision should be performed
+        *pfOutputX = fInputX / 100.0f;
+        *pfOutputY = fInputY / 100.0f;
+        *pfOutputZ = fInputZ / 100.0f;
+    }
+    else if (HdrMode == VPHAL_HDR_MODE_H2H)
+    {
+        // TODO: port the H2H mapping algorithm
+        *pfOutputX = fInputX;
+        *pfOutputY = fInputY;
+        *pfOutputZ = fInputZ;
+    }
+
+#undef TONE_MAPPING
+
+    return eStatus;
+}
+
+
+//!
 //! \brief    Initiate EOTF Surface for HDR
 //! \details  Initiate EOTF Surface for HDR
 //! \param    PVPHAL_HDR_STATE paramse
@@ -1435,6 +2050,128 @@ MOS_STATUS VpRenderHdrKernel::InitOETF1DLUT(
     VP_PUBLIC_CHK_STATUS_RETURN(m_allocator->UnLock(&pOETF1DLUTSurface->osSurface->OsResource));
 
     eStatus = MOS_STATUS_SUCCESS;
+
+    return eStatus;
+}
+
+//!
+//! \brief    Initiate Cri 3D Lut Surface for HDR
+//! \details  Initiate Cri 3D Lut Surface for HDR
+//! \param    PVPHAL_HDR_STATE pHdrStatee
+//!           [in] Pointer to HDR state
+//! \param    int32_t iIndex
+//!           [in] input surface index
+//! \param    PVPHAL_SURFACE pCRI3DLUTSurface
+//!           [in/out] Pointer to Cri 3D Lut Surface
+//! \return   MOS_STATUS
+//!
+MOS_STATUS VpRenderHdrKernel::InitCri3DLUT(
+    PRENDER_HDR_PARAMS params,
+    int32_t          iIndex,
+    VP_SURFACE       *pCRI3DLUTSurface)
+{
+    VP_FUNC_CALL();
+
+    MOS_STATUS      eStatus = MOS_STATUS_SUCCESS;
+    uint32_t        i = 0, j = 0, k = 0;
+    uint16_t        u3dLutOutputX = 0, u3dLutOutputY = 0, u3dLutOutputZ = 0;
+    uint16_t       *pwDst3dLut = nullptr;
+    uint32_t       *puiDst3dLut = nullptr;
+    uint8_t        *pByte = nullptr;
+    MOS_LOCK_PARAMS LockFlags     = {};
+    uint8_t         bBytePerPixel = 0;
+
+    VP_PUBLIC_CHK_NULL_RETURN(pCRI3DLUTSurface);
+    VP_PUBLIC_CHK_NULL_RETURN(pCRI3DLUTSurface->osSurface);
+
+    MOS_ZeroMemory(&LockFlags, sizeof(MOS_LOCK_PARAMS));
+
+    LockFlags.WriteOnly = 1;
+
+    // Lock the surface for writing
+    pByte = (uint8_t *)m_allocator->Lock(
+        &(pCRI3DLUTSurface->osSurface->OsResource),
+        &LockFlags);
+
+    VP_PUBLIC_CHK_NULL_RETURN(pByte);
+
+    if (pCRI3DLUTSurface->osSurface->Format == Format_A16B16G16R16)
+    {
+        bBytePerPixel = 8;
+
+        for (i = 0; i < params->Cri3DLUTSize; i++)
+        {
+            for (j = 0; j < params->Cri3DLUTSize; j++)
+            {
+                for (k = 0; k < params->Cri3DLUTSize; k++)
+                {
+                    pwDst3dLut = (uint16_t *)(pByte +
+                                              i * params->Cri3DLUTSize * pCRI3DLUTSurface->osSurface->dwPitch +
+                                              j * pCRI3DLUTSurface->osSurface->dwPitch +
+                                              k * bBytePerPixel);
+
+                    u3dLutOutputX = u3dLutOutputY = u3dLutOutputZ = 0;
+
+                    VpHal_HdrColorTransfer3dLut(params,
+                        iIndex,
+                        (float)k / (float)(params->Cri3DLUTSize - 1),
+                        (float)j / (float)(params->Cri3DLUTSize - 1),
+                        (float)i / (float)(params->Cri3DLUTSize - 1),
+                        &u3dLutOutputX,
+                        &u3dLutOutputY,
+                        &u3dLutOutputZ);
+
+                    *pwDst3dLut++ = u3dLutOutputX;
+                    *pwDst3dLut++ = u3dLutOutputY;
+                    *pwDst3dLut++ = u3dLutOutputZ;
+                }
+            }
+        }
+
+        eStatus = MOS_STATUS_SUCCESS;
+    }
+    else if (pCRI3DLUTSurface->osSurface->Format == Format_R10G10B10A2)
+    {
+        bBytePerPixel = 4;
+
+        for (i = 0; i < params->Cri3DLUTSize; i++)
+        {
+            for (j = 0; j < params->Cri3DLUTSize; j++)
+            {
+                for (k = 0; k < params->Cri3DLUTSize; k++)
+                {
+                    puiDst3dLut = (uint32_t *)(pByte +
+                                               i * params->Cri3DLUTSize * pCRI3DLUTSurface->osSurface->dwPitch +
+                                               j * pCRI3DLUTSurface->osSurface->dwPitch +
+                                               k * bBytePerPixel);
+
+                    u3dLutOutputX = u3dLutOutputY = u3dLutOutputZ = 0;
+
+                    VpHal_HdrColorTransfer3dLut(params,
+                        iIndex,
+                        (float)k / (float)(params->Cri3DLUTSize - 1),
+                        (float)j / (float)(params->Cri3DLUTSize - 1),
+                        (float)i / (float)(params->Cri3DLUTSize - 1),
+                        &u3dLutOutputX,
+                        &u3dLutOutputY,
+                        &u3dLutOutputZ);
+
+                    *puiDst3dLut = (uint32_t)u3dLutOutputX +
+                                   ((uint32_t)u3dLutOutputY << 10) +
+                                   ((uint32_t)u3dLutOutputZ << 20);
+                }
+            }
+        }
+
+        eStatus = MOS_STATUS_SUCCESS;
+    }
+    else
+    {
+        VP_RENDER_ASSERTMESSAGE("Unexpected HDR 3DLUT format.");
+        eStatus = MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    VP_PUBLIC_CHK_STATUS_RETURN(m_allocator->UnLock(&pCRI3DLUTSurface->osSurface->OsResource));
 
     return eStatus;
 }
@@ -2119,7 +2856,8 @@ MOS_STATUS VpRenderHdrKernel::HdrInitCoeff(
 bool VpRenderHdrKernel::ToneMappingStagesAssemble(
     HDR_PARAMS          *srcHDRParams,
     HDR_PARAMS          *targetHDRParams,
-    HDRStageConfigEntry *pConfigEntry)
+    HDRStageConfigEntry *pConfigEntry,
+    uint32_t index)
 {
     HDRCaseID id = {0};
     VP_FUNC_CALL();
@@ -2128,7 +2866,7 @@ bool VpRenderHdrKernel::ToneMappingStagesAssemble(
     VP_RENDER_ASSERT(srcHDRParams);
     VP_RENDER_ASSERT(targetHDRParams);
 
-    auto inputSurface = m_surfaceGroup->find(SurfaceTypeHdrInputLayer0);
+    auto        inputSurface = m_surfaceGroup->find(SurfaceType(SurfaceTypeHdrInputLayer0 + index));
     VP_SURFACE *input = (m_surfaceGroup->end() != inputSurface) ? inputSurface->second : nullptr;
     if (input == nullptr)
     {
@@ -2225,14 +2963,6 @@ MOS_STATUS VpRenderHdrKernel::UpdatePerLayerPipelineStates(
     //VP_PUBLIC_CHK_NULL(m_hdrParams->pTarget[0]);
 
     *pdwUpdateMask = 0;
-    auto        inputSurface = m_surfaceGroup->find(SurfaceTypeHdrInputLayer0);
-    VP_SURFACE *input = (m_surfaceGroup->end() != inputSurface) ? inputSurface->second : nullptr;
-    if (input == nullptr)
-    {
-        VP_RENDER_ASSERTMESSAGE("input surface creat failed, skip process");
-        return MOS_STATUS_NULL_POINTER;
-    }
-    VP_RENDER_CHK_NULL_RETURN(input->osSurface);
 
     auto        targetSurface = m_surfaceGroup->find(SurfaceTypeHdrTarget0);
     VP_SURFACE *target = (m_surfaceGroup->end() != targetSurface) ? targetSurface->second : nullptr;
@@ -2243,8 +2973,16 @@ MOS_STATUS VpRenderHdrKernel::UpdatePerLayerPipelineStates(
     }
     VP_RENDER_CHK_NULL_RETURN(target->osSurface);
 
-    for (i = 0; i < VPHAL_MAX_HDR_INPUT_LAYER; i++)
+    for (i = 0; i < m_hdrParams->uSourceCount; i++)
     {
+        auto        inputSurface = m_surfaceGroup->find(SurfaceType(SurfaceTypeHdrInputLayer0 + i));
+        VP_SURFACE *input        = (m_surfaceGroup->end() != inputSurface) ? inputSurface->second : nullptr;
+        if (input == nullptr)
+        {
+            VP_RENDER_ASSERTMESSAGE("input surface creat failed, skip process");
+            return MOS_STATUS_NULL_POINTER;
+        }
+        VP_RENDER_CHK_NULL_RETURN(input->osSurface);
         if (m_hdrParams->InputSrc[i] == false)
         {
             m_hdrParams->LUTMode[i]        = VPHAL_HDR_LUT_MODE_NONE;
@@ -2275,7 +3013,9 @@ MOS_STATUS VpRenderHdrKernel::UpdatePerLayerPipelineStates(
         CurrentPriorCSC = VPHAL_HDR_CSC_NONE;
         CurrentPostCSC  = VPHAL_HDR_CSC_NONE;
 
-        if (!ToneMappingStagesAssemble(&m_hdrParams->srcHDRParams[i], &m_hdrParams->targetHDRParams[0], &ConfigEntry))
+        m_hdrParams->Cri3DLUTSize = VPHAL_HDR_CRI_3DLUT_SIZE;
+
+        if (!ToneMappingStagesAssemble(&m_hdrParams->srcHDRParams[i], &m_hdrParams->targetHDRParams[0], &ConfigEntry, i))
         {
             eStatus = MOS_STATUS_INVALID_PARAMETER;
             return eStatus;
@@ -2329,7 +3069,7 @@ MOS_STATUS VpRenderHdrKernel::UpdatePerLayerPipelineStates(
         }
         else
         {
-            CurrentLUTMode = VPHAL_HDR_LUT_MODE_3D;
+            CurrentLUTMode = VPHAL_HDR_LUT_MODE_2D;
         }
 
         // Neither 1D nor 3D LUT is needed in linear output case.
@@ -2553,22 +3293,10 @@ MOS_STATUS VpRenderHdrKernel::InitRenderHalSurface(
     VP_RENDER_CHK_NULL_RETURN(surf);
     VP_RENDER_CHK_NULL_RETURN(m_hdrParams);
 
-    auto  inputSurface   = m_surfaceGroup->find(SurfaceTypeHdrInputLayer0);
-    VP_SURFACE *inputSrc = (m_surfaceGroup->end() != inputSurface) ? inputSurface->second : nullptr;
-    if (inputSrc == nullptr)
-    {
-        VP_RENDER_ASSERTMESSAGE("input surface creat failed, skip process");
-        return MOS_STATUS_NULL_POINTER;
-    }
-
     if (type >= SurfaceTypeHdrInputLayer0 && type <= SurfaceTypeHdrInputLayerMax)
     {
-        int32_t layerID = (int32_t)type - (int32_t)SurfaceTypeHdrInputLayer0;
-        for (int32_t i = 0; i < (int32_t)m_hdrParams->uSourceCount; ++i)
-        {
-            VP_RENDER_CHK_STATUS_RETURN(InitRenderHalSurface(inputSrc, renderHalSurface));
-            return MOS_STATUS_SUCCESS;
-        }
+        VP_RENDER_CHK_STATUS_RETURN(InitRenderHalSurface(surf, renderHalSurface));
+        return MOS_STATUS_SUCCESS;
     }
     else if (SurfaceTypeHdrTarget0 == type)
     {
@@ -2680,7 +3408,7 @@ MOS_STATUS VpRenderHdrKernel::SetupSurfaceState()
     for (i = 0; i < m_hdrParams->uSourceCount && i < VPHAL_MAX_HDR_INPUT_LAYER; i++)
     {
         KERNEL_SURFACE_STATE_PARAM surfParam = {};
-        auto inputSrc = m_surfaceGroup->find(SurfaceTypeHdrInputLayer0);
+        auto                       inputSrc  = m_surfaceGroup->find(SurfaceType(SurfaceTypeHdrInputLayer0 + i));
         VP_SURFACE *layer = (m_surfaceGroup->end() != inputSrc) ? inputSrc->second : nullptr;
         VP_RENDER_CHK_NULL_RETURN(layer);
 
@@ -2697,13 +3425,21 @@ MOS_STATUS VpRenderHdrKernel::SetupSurfaceState()
 
         m_surfaceState.insert(std::make_pair(SurfaceType(SurfaceTypeHdrInputLayer0 + i), surfParam));
 
-        auto OETF1DLUT = m_surfaceGroup->find(SurfaceTypeHdrOETF1DLUTSurface0);
+        auto OETF1DLUT = m_surfaceGroup->find(SurfaceType(SurfaceTypeHdrOETF1DLUTSurface0 + i));
         VP_SURFACE *OETF1DLUTSrc = (m_surfaceGroup->end() != OETF1DLUT) ? OETF1DLUT->second : nullptr;
-        VP_RENDER_CHK_NULL_RETURN(OETF1DLUTSrc);
 
-        if (m_hdrParams->OETF1DLUTAllocated || (dwUpdateMask & (1 << i)) || (dwUpdateMask & (1 << VPHAL_MAX_HDR_INPUT_LAYER)))
+        if (OETF1DLUTSrc && (m_hdrParams->OETF1DLUTAllocated || (dwUpdateMask & (1 << i)) || (dwUpdateMask & (1 << VPHAL_MAX_HDR_INPUT_LAYER))))
         {
             InitOETF1DLUT(m_hdrParams, i, OETF1DLUTSrc);
+        }
+
+        auto        Cri3DLUT     = m_surfaceGroup->find(SurfaceType(SurfaceTypeHdrCRI3DLUTSurface0 + i));
+        VP_SURFACE *Cri3DLUTSrc = (m_surfaceGroup->end() != Cri3DLUT) ? Cri3DLUT->second : nullptr;
+
+        if (Cri3DLUTSrc && (m_hdrParams->Cri3DLUTAllocated || (dwUpdateMask & (1 << i)) || (dwUpdateMask & (1 << VPHAL_MAX_HDR_INPUT_LAYER))) ||
+            m_hdrParams->HdrMode[i] == VPHAL_HDR_MODE_TONE_MAPPING_AUTO_MODE)
+        {
+            InitCri3DLUT(m_hdrParams, i, Cri3DLUTSrc);
         }
 
         KERNEL_SURFACE_STATE_PARAM surfaceResource = {};
@@ -2852,7 +3588,7 @@ MOS_STATUS VpRenderHdrKernel::GetCurbeState(void *&curbe, uint32_t &curbeLength)
         {
             return MOS_STATUS_INVALID_PARAMETER;
         }
-        auto it = m_surfaceGroup->find(SurfaceTypeHdrInputLayer0);
+        auto it = m_surfaceGroup->find(SurfaceType(SurfaceTypeHdrInputLayer0 + i));
         pSource = (m_surfaceGroup->end() != it) ? it->second : nullptr;
         VP_RENDER_CHK_NULL_RETURN(pSource);
         VP_RENDER_CHK_NULL_RETURN(pSource->osSurface);
@@ -3434,6 +4170,8 @@ MOS_STATUS VpRenderHdrKernel::GetCurbeState(void *&curbe, uint32_t &curbeLength)
     curbeLength = (uint32_t)sizeof(MEDIA_WALKER_HDR_STATIC_DATA);
 
     //DumpCurbe(&m_hdrCurbe, sizeof(MEDIA_WALKER_HDR_STATIC_DATA));
+
+    PrintCurbeData(&m_hdrCurbe);
 
     return eStatus;
 }
@@ -4073,4 +4811,356 @@ void VpRenderHdrKernel::DumpCurbe(void *pCurbe, int32_t iSize)
         (const char *)CurbeName,
         pCurbe,
         iSize);
+}
+
+void VpRenderHdrKernel::PrintCurbeData(PMEDIA_WALKER_HDR_STATIC_DATA curbeData)
+{
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (curbeData == nullptr)
+    {
+        VP_RENDER_ASSERTMESSAGE("The curbeData pointer is null");
+        return;
+    }
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW0.Value = %x", curbeData->DW0.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     HorizontalFrameOriginLayer0 = %x",
+        curbeData->DW0.HorizontalFrameOriginLayer0);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW1.Value = %x", curbeData->DW1.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     HorizontalFrameOriginLayer1 = %x",
+        curbeData->DW1.HorizontalFrameOriginLayer1);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW2.Value = %x", curbeData->DW2.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     HorizontalFrameOriginLayer2 = %x",
+        curbeData->DW2.HorizontalFrameOriginLayer2);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW3.Value = %x", curbeData->DW3.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     HorizontalFrameOriginLayer3 = %x",
+        curbeData->DW3.HorizontalFrameOriginLayer3);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW4.Value = %x", curbeData->DW4.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     HorizontalFrameOriginLayer4 = %x",
+        curbeData->DW4.HorizontalFrameOriginLayer4);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW5.Value = %x", curbeData->DW5.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     HorizontalFrameOriginLayer5 = %x",
+        curbeData->DW5.HorizontalFrameOriginLayer5);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW6.Value = %x", curbeData->DW6.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     HorizontalFrameOriginLayer6 = %x",
+        curbeData->DW6.HorizontalFrameOriginLayer6);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW7.Value = %x", curbeData->DW7.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     HorizontalFrameOriginLayer7 = %x",
+        curbeData->DW7.HorizontalFrameOriginLayer7);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW8.Value = %x", curbeData->DW8.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     VerticalFrameOriginLayer0 = %x",
+        curbeData->DW8.VerticalFrameOriginLayer0);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW9.Value = %x", curbeData->DW9.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     VerticalFrameOriginLayer1 = %x",
+        curbeData->DW9.VerticalFrameOriginLayer1);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW10.Value = %x", curbeData->DW10.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     VerticalFrameOriginLayer2 = %x",
+        curbeData->DW10.VerticalFrameOriginLayer2);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW11.Value = %x", curbeData->DW11.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     VerticalFrameOriginLayer3 = %x",
+        curbeData->DW11.VerticalFrameOriginLayer3);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW12.Value = %x", curbeData->DW12.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     VerticalFrameOriginLayer4 = %x",
+        curbeData->DW12.VerticalFrameOriginLayer4);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW13.Value = %x", curbeData->DW13.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     VerticalFrameOriginLayer5 = %x",
+        curbeData->DW13.VerticalFrameOriginLayer5);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW14.Value = %x", curbeData->DW14.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     VerticalFrameOriginLayer6 = %x",
+        curbeData->DW14.VerticalFrameOriginLayer6);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW15.Value = %x", curbeData->DW15.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     VerticalFrameOriginLayer7 = %x",
+        curbeData->DW15.VerticalFrameOriginLayer7);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW16.Value = %x", curbeData->DW16.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     HorizontalScalingStepRatioLayer0 = %x",
+        curbeData->DW16.HorizontalScalingStepRatioLayer0);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW17.Value = %x", curbeData->DW17.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     HorizontalScalingStepRatioLayer1 = %x",
+        curbeData->DW17.HorizontalScalingStepRatioLayer1);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW18.Value = %x", curbeData->DW18.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     HorizontalScalingStepRatioLayer2 = %x",
+        curbeData->DW18.HorizontalScalingStepRatioLayer2);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW19.Value = %x", curbeData->DW19.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     HorizontalScalingStepRatioLayer3 = %x",
+        curbeData->DW19.HorizontalScalingStepRatioLayer3);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW20.Value = %x", curbeData->DW20.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     HorizontalScalingStepRatioLayer4 = %x",
+        curbeData->DW20.HorizontalScalingStepRatioLayer4);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW21.Value = %x", curbeData->DW21.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     HorizontalScalingStepRatioLayer5 = %x",
+        curbeData->DW21.HorizontalScalingStepRatioLayer5);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW22.Value = %x", curbeData->DW22.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     HorizontalScalingStepRatioLayer6 = %x",
+        curbeData->DW22.HorizontalScalingStepRatioLayer6);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW23.Value = %x", curbeData->DW23.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     HorizontalScalingStepRatioLayer7 = %x",
+        curbeData->DW23.HorizontalScalingStepRatioLayer7);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW24.Value = %x", curbeData->DW24.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     VerticalScalingStepRatioLayer0 = %x",
+        curbeData->DW24.VerticalScalingStepRatioLayer0);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW25.Value = %x", curbeData->DW25.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     VerticalScalingStepRatioLayer1 = %x",
+        curbeData->DW25.VerticalScalingStepRatioLayer1);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW26.Value = %x", curbeData->DW26.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     VerticalScalingStepRatioLayer2 = %x",
+        curbeData->DW26.VerticalScalingStepRatioLayer2);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW27.Value = %x", curbeData->DW27.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     VerticalScalingStepRatioLayer3 = %x",
+        curbeData->DW27.VerticalScalingStepRatioLayer3);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW28.Value = %x", curbeData->DW28.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     VerticalScalingStepRatioLayer4 = %x",
+        curbeData->DW28.VerticalScalingStepRatioLayer4);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW29.Value = %x", curbeData->DW29.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     VerticalScalingStepRatioLayer5 = %x",
+        curbeData->DW29.VerticalScalingStepRatioLayer5);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW30.Value = %x", curbeData->DW30.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     VerticalScalingStepRatioLayer6 = %x",
+        curbeData->DW30.VerticalScalingStepRatioLayer6);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW31.Value = %x", curbeData->DW31.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     VerticalScalingStepRatioLayer7 = %x",
+        curbeData->DW31.VerticalScalingStepRatioLayer7);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW32.Value = %d", curbeData->DW32.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     LeftCoordinateRectangleLayer0 = 0x%d, TopCoordinateRectangleLayer0 = 0x%d",
+        curbeData->DW32.LeftCoordinateRectangleLayer0,
+        curbeData->DW32.TopCoordinateRectangleLayer0);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW33.Value = %d", curbeData->DW33.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     LeftCoordinateRectangleLayer1 = 0x%d, TopCoordinateRectangleLayer2 = 0x%d",
+        curbeData->DW33.LeftCoordinateRectangleLayer1,
+        curbeData->DW33.TopCoordinateRectangleLayer1);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW34.Value = %d", curbeData->DW34.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     LeftCoordinateRectangleLayer2 = 0x%d, TopCoordinateRectangleLayer2 = 0x%d",
+        curbeData->DW34.LeftCoordinateRectangleLayer2,
+        curbeData->DW34.TopCoordinateRectangleLayer2);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW35.Value = %d", curbeData->DW35.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     LeftCoordinateRectangleLayer3 = 0x%d, TopCoordinateRectangleLayer3 = 0x%d",
+        curbeData->DW35.LeftCoordinateRectangleLayer3,
+        curbeData->DW35.TopCoordinateRectangleLayer3);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW36.Value = %d", curbeData->DW36.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     LeftCoordinateRectangleLayer4 = 0x%d, TopCoordinateRectangleLayer4 = 0x%d",
+        curbeData->DW36.LeftCoordinateRectangleLayer4,
+        curbeData->DW36.TopCoordinateRectangleLayer4);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW37.Value = %d", curbeData->DW37.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     LeftCoordinateRectangleLayer5 = 0x%d, TopCoordinateRectangleLayer5 = 0x%d",
+        curbeData->DW37.LeftCoordinateRectangleLayer5,
+        curbeData->DW37.TopCoordinateRectangleLayer5);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW38.Value = %d", curbeData->DW38.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     LeftCoordinateRectangleLayer6 = 0x%d, TopCoordinateRectangleLayer6 = 0x%d",
+        curbeData->DW38.LeftCoordinateRectangleLayer6,
+        curbeData->DW38.TopCoordinateRectangleLayer6);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW39.Value = %d", curbeData->DW39.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     LeftCoordinateRectangleLayer7 = 0x%d, TopCoordinateRectangleLayer7 = 0x%d",
+        curbeData->DW39.LeftCoordinateRectangleLayer7,
+        curbeData->DW39.TopCoordinateRectangleLayer7);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW40.Value = %d", curbeData->DW40.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     BottomCoordinateRectangleLayer0 = 0x%d, RightCoordinateRectangleLayer0 = 0x%d",
+        curbeData->DW40.BottomCoordinateRectangleLayer0,
+        curbeData->DW40.RightCoordinateRectangleLayer0);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW41.Value = %d", curbeData->DW41.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     BottomCoordinateRectangleLayer1 = 0x%d, RightCoordinateRectangleLayer1 = 0x%d",
+        curbeData->DW41.BottomCoordinateRectangleLayer1,
+        curbeData->DW41.RightCoordinateRectangleLayer1);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW42.Value = %d", curbeData->DW42.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     BottomCoordinateRectangleLayer2 = 0x%d, RightCoordinateRectangleLayer2 = 0x%d",
+        curbeData->DW42.BottomCoordinateRectangleLayer2,
+        curbeData->DW42.RightCoordinateRectangleLayer2);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW43.Value = %d", curbeData->DW43.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     BottomCoordinateRectangleLayer3 = 0x%d, RightCoordinateRectangleLayer3 = 0x%d",
+        curbeData->DW43.BottomCoordinateRectangleLayer3,
+        curbeData->DW43.RightCoordinateRectangleLayer3);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW44.Value = %d", curbeData->DW44.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     BottomCoordinateRectangleLayer4 = 0x%d, RightCoordinateRectangleLayer4 = 0x%d",
+        curbeData->DW44.BottomCoordinateRectangleLayer4,
+        curbeData->DW44.RightCoordinateRectangleLayer4);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW45.Value = %d", curbeData->DW45.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     BottomCoordinateRectangleLayer5 = 0x%d, RightCoordinateRectangleLayer5 = 0x%d",
+        curbeData->DW45.BottomCoordinateRectangleLayer5,
+        curbeData->DW45.RightCoordinateRectangleLayer5);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW46.Value = %d", curbeData->DW46.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     BottomCoordinateRectangleLayer6 = 0x%d, RightCoordinateRectangleLayer6 = 0x%d",
+        curbeData->DW46.BottomCoordinateRectangleLayer6,
+        curbeData->DW46.RightCoordinateRectangleLayer6);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW47.Value = %d", curbeData->DW47.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     BottomCoordinateRectangleLayer7 = 0x%d, RightCoordinateRectangleLayer7 = 0x%d",
+        curbeData->DW47.BottomCoordinateRectangleLayer7,
+        curbeData->DW47.RightCoordinateRectangleLayer7);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW48.Value = %d", curbeData->DW48.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     CCMEnablingFlagLayer0 = %d, CCMExtensionEnablingFlagLayer0 = %d, ChannelSwapEnablingFlagLayer0 = %d, ChromaSittingLocationLayer0 = %d, Enabling3DLUTFlagLayer0 = %d, EOTF1DLUTEnablingFlagLayer0 = %d, FormatDescriptorLayer0 = %d, IEFBypassEnablingFlagLayer0 = %d, OETF1DLUTEnablingFlagLayer0 = %d, PostCSCEnablingFlagLayer0 = %d, PriorCSCEnablingFlagLayer0 = %d, RotationAngleMirrorDirectionLayer0 = %d, SamplerIndexFirstPlaneLayer0 = %d, SamplerIndexSecondThirdPlaneLayer0 = %d, ToneMappingEnablingFlagLayer0 = %d",
+        curbeData->DW48.CCMEnablingFlagLayer0,
+        curbeData->DW48.CCMExtensionEnablingFlagLayer0,
+        curbeData->DW48.ChannelSwapEnablingFlagLayer0,
+        curbeData->DW48.ChromaSittingLocationLayer0,
+        curbeData->DW48.Enabling3DLUTFlagLayer0,
+        curbeData->DW48.EOTF1DLUTEnablingFlagLayer0,
+        curbeData->DW48.FormatDescriptorLayer0,
+        curbeData->DW48.IEFBypassEnablingFlagLayer0,
+        curbeData->DW48.OETF1DLUTEnablingFlagLayer0,
+        curbeData->DW48.PostCSCEnablingFlagLayer0,
+        curbeData->DW48.PriorCSCEnablingFlagLayer0,
+        curbeData->DW48.RotationAngleMirrorDirectionLayer0,
+        curbeData->DW48.SamplerIndexFirstPlaneLayer0,
+        curbeData->DW48.SamplerIndexSecondThirdPlaneLayer0,
+        curbeData->DW48.ToneMappingEnablingFlagLayer0);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW49.Value = %d", curbeData->DW49.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     CCMEnablingFlagLayer1 = %d, CCMExtensionEnablingFlagLayer1 = %d, ChannelSwapEnablingFlagLayer1 = %d, ChromaSittingLocationLayer1 = %d, Enabling3DLUTFlagLayer1 = %d, EOTF1DLUTEnablingFlagLayer1 = %d, FormatDescriptorLayer1 = %d, IEFBypassEnablingFlagLayer1 = %d, OETF1DLUTEnablingFlagLayer0 = %d, PostCSCEnablingFlagLayer1 = %d, PriorCSCEnablingFlagLayer1 = %d, RotationAngleMirrorDirectionLayer1 = %d, SamplerIndexFirstPlaneLayer0 = %d, SamplerIndexSecondThirdPlaneLayer1 = %d, ToneMappingEnablingFlagLayer1 = %d",
+        curbeData->DW49.CCMEnablingFlagLayer1,
+        curbeData->DW49.CCMExtensionEnablingFlagLayer1,
+        curbeData->DW49.ChannelSwapEnablingFlagLayer1,
+        curbeData->DW49.ChromaSittingLocationLayer1,
+        curbeData->DW49.Enabling3DLUTFlagLayer1,
+        curbeData->DW49.EOTF1DLUTEnablingFlagLayer1,
+        curbeData->DW49.FormatDescriptorLayer1,
+        curbeData->DW49.IEFBypassEnablingFlagLayer1,
+        curbeData->DW49.OETF1DLUTEnablingFlagLayer1,
+        curbeData->DW49.PostCSCEnablingFlagLayer1,
+        curbeData->DW49.PriorCSCEnablingFlagLayer1,
+        curbeData->DW49.RotationAngleMirrorDirectionLayer1,
+        curbeData->DW49.SamplerIndexFirstPlaneLayer1,
+        curbeData->DW49.SamplerIndexSecondThirdPlaneLayer1,
+        curbeData->DW49.ToneMappingEnablingFlagLayer1);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW50.Value = %d", curbeData->DW50.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     CCMEnablingFlagLayer2 = %d, CCMExtensionEnablingFlagLayer2 = %d, ChannelSwapEnablingFlagLayer2 = %d, ChromaSittingLocationLayer2 = %d, Enabling3DLUTFlagLayer2 = %d, EOTF1DLUTEnablingFlagLayer2 = %d, FormatDescriptorLayer2 = %d, IEFBypassEnablingFlagLayer2 = %d, OETF1DLUTEnablingFlagLayer2 = %d, PostCSCEnablingFlagLayer2 = %d, PriorCSCEnablingFlagLayer2 = %d, RotationAngleMirrorDirectionLayer2 = %d, SamplerIndexFirstPlaneLayer2 = %d, SamplerIndexSecondThirdPlaneLayer2 = %d, ToneMappingEnablingFlagLayer2 = %d",
+        curbeData->DW50.CCMEnablingFlagLayer2,
+        curbeData->DW50.CCMExtensionEnablingFlagLayer2,
+        curbeData->DW50.ChannelSwapEnablingFlagLayer2,
+        curbeData->DW50.ChromaSittingLocationLayer2,
+        curbeData->DW50.Enabling3DLUTFlagLayer2,
+        curbeData->DW50.EOTF1DLUTEnablingFlagLayer2,
+        curbeData->DW50.FormatDescriptorLayer2,
+        curbeData->DW50.IEFBypassEnablingFlagLayer2,
+        curbeData->DW50.OETF1DLUTEnablingFlagLayer2,
+        curbeData->DW50.PostCSCEnablingFlagLayer2,
+        curbeData->DW50.PriorCSCEnablingFlagLayer2,
+        curbeData->DW50.RotationAngleMirrorDirectionLayer2,
+        curbeData->DW50.SamplerIndexFirstPlaneLayer2,
+        curbeData->DW50.SamplerIndexSecondThirdPlaneLayer2,
+        curbeData->DW50.ToneMappingEnablingFlagLayer2);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW51.Value = %d", curbeData->DW51.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     CCMEnablingFlagLayer3 = %d, CCMExtensionEnablingFlagLayer3 = %d, ChannelSwapEnablingFlagLayer3 = %d, ChromaSittingLocationLayer3 = %d, Enabling3DLUTFlagLayer3 = %d, EOTF1DLUTEnablingFlagLayer3 = %d, FormatDescriptorLayer3 = %d, IEFBypassEnablingFlagLayer3 = %d, OETF1DLUTEnablingFlagLayer3 = %d, PostCSCEnablingFlagLayer3 = %d, PriorCSCEnablingFlagLayer3 = %d, RotationAngleMirrorDirectionLayer3 = %d, SamplerIndexFirstPlaneLayer3 = %d, SamplerIndexSecondThirdPlaneLayer3 = %d, ToneMappingEnablingFlagLayer3 = %d",
+        curbeData->DW51.CCMEnablingFlagLayer3,
+        curbeData->DW51.CCMExtensionEnablingFlagLayer3,
+        curbeData->DW51.ChannelSwapEnablingFlagLayer3,
+        curbeData->DW51.ChromaSittingLocationLayer3,
+        curbeData->DW51.Enabling3DLUTFlagLayer3,
+        curbeData->DW51.EOTF1DLUTEnablingFlagLayer3,
+        curbeData->DW51.FormatDescriptorLayer3,
+        curbeData->DW51.IEFBypassEnablingFlagLayer3,
+        curbeData->DW51.OETF1DLUTEnablingFlagLayer3,
+        curbeData->DW51.PostCSCEnablingFlagLayer3,
+        curbeData->DW51.PriorCSCEnablingFlagLayer3,
+        curbeData->DW51.RotationAngleMirrorDirectionLayer3,
+        curbeData->DW51.SamplerIndexFirstPlaneLayer3,
+        curbeData->DW51.SamplerIndexSecondThirdPlaneLayer3,
+        curbeData->DW51.ToneMappingEnablingFlagLayer3);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW52.Value = %d", curbeData->DW52.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     CCMEnablingFlagLayer4 = %d, CCMExtensionEnablingFlagLayer4 = %d, ChannelSwapEnablingFlagLayer4 = %d, ChromaSittingLocationLayer4 = %d, Enabling3DLUTFlagLayer4 = %d, EOTF1DLUTEnablingFlagLayer4 = %d, FormatDescriptorLayer4 = %d, IEFBypassEnablingFlagLayer4 = %d, OETF1DLUTEnablingFlagLayer4 = %d, PostCSCEnablingFlagLayer4 = %d, PriorCSCEnablingFlagLayer4 = %d, RotationAngleMirrorDirectionLayer4 = %d, SamplerIndexFirstPlaneLayer4 = %d, SamplerIndexSecondThirdPlaneLayer4 = %d, ToneMappingEnablingFlagLayer4 = %d",
+        curbeData->DW52.CCMEnablingFlagLayer4,
+        curbeData->DW52.CCMExtensionEnablingFlagLayer4,
+        curbeData->DW52.ChannelSwapEnablingFlagLayer4,
+        curbeData->DW52.ChromaSittingLocationLayer4,
+        curbeData->DW52.Enabling3DLUTFlagLayer4,
+        curbeData->DW52.EOTF1DLUTEnablingFlagLayer4,
+        curbeData->DW52.FormatDescriptorLayer4,
+        curbeData->DW52.IEFBypassEnablingFlagLayer4,
+        curbeData->DW52.OETF1DLUTEnablingFlagLayer4,
+        curbeData->DW52.PostCSCEnablingFlagLayer4,
+        curbeData->DW52.PriorCSCEnablingFlagLayer4,
+        curbeData->DW52.RotationAngleMirrorDirectionLayer4,
+        curbeData->DW52.SamplerIndexFirstPlaneLayer4,
+        curbeData->DW52.SamplerIndexSecondThirdPlaneLayer4,
+        curbeData->DW52.ToneMappingEnablingFlagLayer4);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW53.Value = %d", curbeData->DW53.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     CCMEnablingFlagLayer5 = %d, CCMExtensionEnablingFlagLayer5 = %d, ChannelSwapEnablingFlagLayer5 = %d, ChromaSittingLocationLayer5 = %d, Enabling3DLUTFlagLayer5 = %d, EOTF1DLUTEnablingFlagLayer5 = %d, FormatDescriptorLayer5 = %d, IEFBypassEnablingFlagLayer5 = %d, OETF1DLUTEnablingFlagLayer5 = %d, PostCSCEnablingFlagLayer5 = %d, PriorCSCEnablingFlagLayer5 = %d, RotationAngleMirrorDirectionLayer5 = %d, SamplerIndexFirstPlaneLayer5 = %d, SamplerIndexSecondThirdPlaneLayer5 = %d, ToneMappingEnablingFlagLayer5 = %d",
+        curbeData->DW53.CCMEnablingFlagLayer5,
+        curbeData->DW53.CCMExtensionEnablingFlagLayer5,
+        curbeData->DW53.ChannelSwapEnablingFlagLayer5,
+        curbeData->DW53.ChromaSittingLocationLayer5,
+        curbeData->DW53.Enabling3DLUTFlagLayer5,
+        curbeData->DW53.EOTF1DLUTEnablingFlagLayer5,
+        curbeData->DW53.FormatDescriptorLayer5,
+        curbeData->DW53.IEFBypassEnablingFlagLayer5,
+        curbeData->DW53.OETF1DLUTEnablingFlagLayer5,
+        curbeData->DW53.PostCSCEnablingFlagLayer5,
+        curbeData->DW53.PriorCSCEnablingFlagLayer5,
+        curbeData->DW53.RotationAngleMirrorDirectionLayer5,
+        curbeData->DW53.SamplerIndexFirstPlaneLayer5,
+        curbeData->DW53.SamplerIndexSecondThirdPlaneLayer5,
+        curbeData->DW53.ToneMappingEnablingFlagLayer5);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW54.Value = %d", curbeData->DW54.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     CCMEnablingFlagLayer6 = %d, CCMExtensionEnablingFlagLayer6 = %d, ChannelSwapEnablingFlagLayer6 = %d, ChromaSittingLocationLayer6 = %d, Enabling3DLUTFlagLayer6 = %d, EOTF1DLUTEnablingFlagLayer6 = %d, FormatDescriptorLayer6 = %d, IEFBypassEnablingFlagLayer6 = %d, OETF1DLUTEnablingFlagLayer6 = %d, PostCSCEnablingFlagLayer6 = %d, PriorCSCEnablingFlagLayer6 = %d, RotationAngleMirrorDirectionLayer6 = %d, SamplerIndexFirstPlaneLayer6 = %d, SamplerIndexSecondThirdPlaneLayer6 = %d, ToneMappingEnablingFlagLayer6 = %d",
+        curbeData->DW54.CCMEnablingFlagLayer6,
+        curbeData->DW54.CCMExtensionEnablingFlagLayer6,
+        curbeData->DW54.ChannelSwapEnablingFlagLayer6,
+        curbeData->DW54.ChromaSittingLocationLayer6,
+        curbeData->DW54.Enabling3DLUTFlagLayer6,
+        curbeData->DW54.EOTF1DLUTEnablingFlagLayer6,
+        curbeData->DW54.FormatDescriptorLayer6,
+        curbeData->DW54.IEFBypassEnablingFlagLayer6,
+        curbeData->DW54.OETF1DLUTEnablingFlagLayer6,
+        curbeData->DW54.PostCSCEnablingFlagLayer6,
+        curbeData->DW54.PriorCSCEnablingFlagLayer6,
+        curbeData->DW54.RotationAngleMirrorDirectionLayer6,
+        curbeData->DW54.SamplerIndexFirstPlaneLayer6,
+        curbeData->DW54.SamplerIndexSecondThirdPlaneLayer6,
+        curbeData->DW54.ToneMappingEnablingFlagLayer6);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW55.Value = %x", curbeData->DW55.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     CCMEnablingFlagLayer7 = %d, CCMExtensionEnablingFlagLayer7 = %d, ChannelSwapEnablingFlagLayer7 = %d, ChromaSittingLocationLayer7 = %d, Enabling3DLUTFlagLayer7 = %d, EOTF1DLUTEnablingFlagLayer7 = %d, FormatDescriptorLayer7 = %d, IEFBypassEnablingFlagLayer7 = %d, OETF1DLUTEnablingFlagLayer7 = %d, PostCSCEnablingFlagLayer7 = %d, PriorCSCEnablingFlagLayer7 = %d, RotationAngleMirrorDirectionLayer7 = %d, SamplerIndexFirstPlaneLayer7 = %d, SamplerIndexSecondThirdPlaneLayer7 = %d, ToneMappingEnablingFlagLayer7 = %d",
+        curbeData->DW55.CCMEnablingFlagLayer7,
+        curbeData->DW55.CCMExtensionEnablingFlagLayer7,
+        curbeData->DW55.ChannelSwapEnablingFlagLayer7,
+        curbeData->DW55.ChromaSittingLocationLayer7,
+        curbeData->DW55.Enabling3DLUTFlagLayer7,
+        curbeData->DW55.EOTF1DLUTEnablingFlagLayer7,
+        curbeData->DW55.FormatDescriptorLayer7,
+        curbeData->DW55.IEFBypassEnablingFlagLayer7,
+        curbeData->DW55.OETF1DLUTEnablingFlagLayer7,
+        curbeData->DW55.PostCSCEnablingFlagLayer7,
+        curbeData->DW55.PriorCSCEnablingFlagLayer7,
+        curbeData->DW55.RotationAngleMirrorDirectionLayer7,
+        curbeData->DW55.SamplerIndexFirstPlaneLayer7,
+        curbeData->DW55.SamplerIndexSecondThirdPlaneLayer7,
+        curbeData->DW55.ToneMappingEnablingFlagLayer7);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW56.Value = %d", curbeData->DW56.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     ConstantBlendingAlphaFillColorLayer0 = %d, ConstantBlendingAlphaFillColorLayer1 = %d, ConstantBlendingAlphaFillColorLayer2 = %d, ConstantBlendingAlphaFillColorLayer3 = %d",
+        curbeData->DW56.ConstantBlendingAlphaFillColorLayer0,
+        curbeData->DW56.ConstantBlendingAlphaFillColorLayer1,
+        curbeData->DW56.ConstantBlendingAlphaFillColorLayer2,
+        curbeData->DW56.ConstantBlendingAlphaFillColorLayer3);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW57.Value = %d", curbeData->DW57.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     ConstantBlendingAlphaFillColorLayer4 = %d, ConstantBlendingAlphaFillColorLayer5 = %d, ConstantBlendingAlphaFillColorLayer6 = %d, ConstantBlendingAlphaFillColorLayer7 = %d",
+        curbeData->DW57.ConstantBlendingAlphaFillColorLayer4,
+        curbeData->DW57.ConstantBlendingAlphaFillColorLayer5,
+        curbeData->DW57.ConstantBlendingAlphaFillColorLayer6,
+        curbeData->DW57.ConstantBlendingAlphaFillColorLayer7);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW58.Value = %d", curbeData->DW58.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     TwoLayerOperationLayer0 = %d, TwoLayerOperationLayer1 = %d, TwoLayerOperationLayer2 = %d, TwoLayerOperationLayer3 = %d",
+        curbeData->DW58.TwoLayerOperationLayer0,
+        curbeData->DW58.TwoLayerOperationLayer1,
+        curbeData->DW58.TwoLayerOperationLayer2,
+        curbeData->DW58.TwoLayerOperationLayer3);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW59.Value = %d", curbeData->DW59.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     TwoLayerOperationLayer4 = %d, TwoLayerOperationLayer5 = %d, TwoLayerOperationLayer6 = %d, TwoLayerOperationLayer7 = %d",
+        curbeData->DW59.TwoLayerOperationLayer4,
+        curbeData->DW59.TwoLayerOperationLayer5,
+        curbeData->DW59.TwoLayerOperationLayer6,
+        curbeData->DW59.TwoLayerOperationLayer7);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW60.Value = %d", curbeData->DW60.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     FixedPointFillColorGYChannel = %d, FixedPointFillColorRVChannel = %d",
+        curbeData->DW60.FixedPointFillColorGYChannel,
+        curbeData->DW60.FixedPointFillColorRVChannel);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW61.Value = %x", curbeData->DW61.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     FixedPointFillColorAlphaChannel = %d, FixedPointFillColorBUChannel = %d",
+        curbeData->DW61.FixedPointFillColorAlphaChannel,
+        curbeData->DW61.FixedPointFillColorBUChannel);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW62.Value = %d", curbeData->DW62.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     DestinationHeight = %d, DestinationWidth = %d",
+        curbeData->DW62.DestinationHeight,
+        curbeData->DW62.DestinationWidth);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData: DW63.Value = %d", curbeData->DW63.Value);
+    VP_RENDER_VERBOSEMESSAGE("CurbeData:     ChannelSwapEnablingFlagDestination = %d, ChromaSittingLocationDestination = %d, DitherRoundEnablingFlagDestinationSurface = %d, DstCSCEnablingFlagDestination = %d, FormatDescriptorDestination = %d, Reserved = %d, TotalNumberInputLayers = %d",
+        curbeData->DW63.ChannelSwapEnablingFlagDestination,
+        curbeData->DW63.ChromaSittingLocationDestination,
+        curbeData->DW63.DitherRoundEnablingFlagDestinationSurface,
+        curbeData->DW63.DstCSCEnablingFlagDestination,
+        curbeData->DW63.FormatDescriptorDestination,
+        curbeData->DW63.Reserved,
+        curbeData->DW63.TotalNumberInputLayers);
+#endif
 }

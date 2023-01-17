@@ -3128,9 +3128,361 @@ MOS_STATUS VpHal_HdrLoadStaticData_g9(
         goto finish;
     }
     pRenderData->iCurbeOffset = *piCurbeOffsetOut;
-
+    PrintCurbeData(&HDRStatic);
 finish:
     return eStatus;
+}
+
+void PrintCurbeData(MEDIA_WALKER_HDR_STATIC_DATA_G9 *pObjectStatic)
+{
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (pObjectStatic == nullptr)
+    {
+        VPHAL_RENDER_ASSERTMESSAGE("The ObjectStatic pointer is null");
+        return;
+    }
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW0.Value = %x", pObjectStatic->DW0.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     HorizontalFrameOriginLayer0 = %x",
+        pObjectStatic->DW0.HorizontalFrameOriginLayer0);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW1.Value = %x", pObjectStatic->DW1.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     HorizontalFrameOriginLayer1 = %x",
+        pObjectStatic->DW1.HorizontalFrameOriginLayer1);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW2.Value = %x", pObjectStatic->DW2.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     HorizontalFrameOriginLayer2 = %x",
+        pObjectStatic->DW2.HorizontalFrameOriginLayer2);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW3.Value = %x", pObjectStatic->DW3.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     HorizontalFrameOriginLayer3 = %x",
+        pObjectStatic->DW3.HorizontalFrameOriginLayer3);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW4.Value = %x", pObjectStatic->DW4.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     HorizontalFrameOriginLayer4 = %x",
+        pObjectStatic->DW4.HorizontalFrameOriginLayer4);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW5.Value = %x", pObjectStatic->DW5.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     HorizontalFrameOriginLayer5 = %x",
+        pObjectStatic->DW5.HorizontalFrameOriginLayer5);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW6.Value = %x", pObjectStatic->DW6.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     HorizontalFrameOriginLayer6 = %x",
+        pObjectStatic->DW6.HorizontalFrameOriginLayer6);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW7.Value = %x", pObjectStatic->DW7.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     HorizontalFrameOriginLayer7 = %x",
+        pObjectStatic->DW7.HorizontalFrameOriginLayer7);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW8.Value = %x", pObjectStatic->DW8.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     VerticalFrameOriginLayer0 = %x",
+        pObjectStatic->DW8.VerticalFrameOriginLayer0);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW9.Value = %x", pObjectStatic->DW9.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     VerticalFrameOriginLayer1 = %x",
+        pObjectStatic->DW9.VerticalFrameOriginLayer1);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW10.Value = %x", pObjectStatic->DW10.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     VerticalFrameOriginLayer2 = %x",
+        pObjectStatic->DW10.VerticalFrameOriginLayer2);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW11.Value = %x", pObjectStatic->DW11.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     VerticalFrameOriginLayer3 = %x",
+        pObjectStatic->DW11.VerticalFrameOriginLayer3);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW12.Value = %x", pObjectStatic->DW12.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     VerticalFrameOriginLayer4 = %x",
+        pObjectStatic->DW12.VerticalFrameOriginLayer4);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW13.Value = %x", pObjectStatic->DW13.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     VerticalFrameOriginLayer5 = %x",
+        pObjectStatic->DW13.VerticalFrameOriginLayer5);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW14.Value = %x", pObjectStatic->DW14.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     VerticalFrameOriginLayer6 = %x",
+        pObjectStatic->DW14.VerticalFrameOriginLayer6);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW15.Value = %x", pObjectStatic->DW15.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     VerticalFrameOriginLayer7 = %x",
+        pObjectStatic->DW15.VerticalFrameOriginLayer7);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW16.Value = %x", pObjectStatic->DW16.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     HorizontalScalingStepRatioLayer0 = %x",
+        pObjectStatic->DW16.HorizontalScalingStepRatioLayer0);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW17.Value = %x", pObjectStatic->DW17.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     HorizontalScalingStepRatioLayer1 = %x",
+        pObjectStatic->DW17.HorizontalScalingStepRatioLayer1);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW18.Value = %x", pObjectStatic->DW18.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     HorizontalScalingStepRatioLayer2 = %x",
+        pObjectStatic->DW18.HorizontalScalingStepRatioLayer2);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW19.Value = %x", pObjectStatic->DW19.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     HorizontalScalingStepRatioLayer3 = %x",
+        pObjectStatic->DW19.HorizontalScalingStepRatioLayer3);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW20.Value = %x", pObjectStatic->DW20.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     HorizontalScalingStepRatioLayer4 = %x",
+        pObjectStatic->DW20.HorizontalScalingStepRatioLayer4);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW21.Value = %x", pObjectStatic->DW21.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     HorizontalScalingStepRatioLayer5 = %x",
+        pObjectStatic->DW21.HorizontalScalingStepRatioLayer5);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW22.Value = %x", pObjectStatic->DW22.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     HorizontalScalingStepRatioLayer6 = %x",
+        pObjectStatic->DW22.HorizontalScalingStepRatioLayer6);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW23.Value = %x", pObjectStatic->DW23.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     HorizontalScalingStepRatioLayer7 = %x",
+        pObjectStatic->DW23.HorizontalScalingStepRatioLayer7);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW24.Value = %x", pObjectStatic->DW24.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     VerticalScalingStepRatioLayer0 = %x",
+        pObjectStatic->DW24.VerticalScalingStepRatioLayer0);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW25.Value = %x", pObjectStatic->DW25.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     VerticalScalingStepRatioLayer1 = %x",
+        pObjectStatic->DW25.VerticalScalingStepRatioLayer1);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW26.Value = %x", pObjectStatic->DW26.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     VerticalScalingStepRatioLayer2 = %x",
+        pObjectStatic->DW26.VerticalScalingStepRatioLayer2);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW27.Value = %x", pObjectStatic->DW27.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     VerticalScalingStepRatioLayer3 = %x",
+        pObjectStatic->DW27.VerticalScalingStepRatioLayer3);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW28.Value = %x", pObjectStatic->DW28.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     VerticalScalingStepRatioLayer4 = %x",
+        pObjectStatic->DW28.VerticalScalingStepRatioLayer4);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW29.Value = %x", pObjectStatic->DW29.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     VerticalScalingStepRatioLayer5 = %x",
+        pObjectStatic->DW29.VerticalScalingStepRatioLayer5);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW30.Value = %x", pObjectStatic->DW30.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     VerticalScalingStepRatioLayer6 = %x",
+        pObjectStatic->DW30.VerticalScalingStepRatioLayer6);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW31.Value = %x", pObjectStatic->DW31.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     VerticalScalingStepRatioLayer7 = %x",
+        pObjectStatic->DW31.VerticalScalingStepRatioLayer7);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW32.Value = %d", pObjectStatic->DW32.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     LeftCoordinateRectangleLayer0 = 0x%d, TopCoordinateRectangleLayer0 = 0x%d",
+        pObjectStatic->DW32.LeftCoordinateRectangleLayer0,
+        pObjectStatic->DW32.TopCoordinateRectangleLayer0);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW33.Value = %d", pObjectStatic->DW33.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     LeftCoordinateRectangleLayer1 = 0x%d, TopCoordinateRectangleLayer2 = 0x%d",
+        pObjectStatic->DW33.LeftCoordinateRectangleLayer1,
+        pObjectStatic->DW33.TopCoordinateRectangleLayer1);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW34.Value = %d", pObjectStatic->DW34.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     LeftCoordinateRectangleLayer2 = 0x%d, TopCoordinateRectangleLayer2 = 0x%d",
+        pObjectStatic->DW34.LeftCoordinateRectangleLayer2,
+        pObjectStatic->DW34.TopCoordinateRectangleLayer2);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW35.Value = %d", pObjectStatic->DW35.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     LeftCoordinateRectangleLayer3 = 0x%d, TopCoordinateRectangleLayer3 = 0x%d",
+        pObjectStatic->DW35.LeftCoordinateRectangleLayer3,
+        pObjectStatic->DW35.TopCoordinateRectangleLayer3);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW36.Value = %d", pObjectStatic->DW36.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     LeftCoordinateRectangleLayer4 = 0x%d, TopCoordinateRectangleLayer4 = 0x%d",
+        pObjectStatic->DW36.LeftCoordinateRectangleLayer4,
+        pObjectStatic->DW36.TopCoordinateRectangleLayer4);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW37.Value = %d", pObjectStatic->DW37.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     LeftCoordinateRectangleLayer5 = 0x%d, TopCoordinateRectangleLayer5 = 0x%d",
+        pObjectStatic->DW37.LeftCoordinateRectangleLayer5,
+        pObjectStatic->DW37.TopCoordinateRectangleLayer5);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW38.Value = %d", pObjectStatic->DW38.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     LeftCoordinateRectangleLayer6 = 0x%d, TopCoordinateRectangleLayer6 = 0x%d",
+        pObjectStatic->DW38.LeftCoordinateRectangleLayer6,
+        pObjectStatic->DW38.TopCoordinateRectangleLayer6);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW39.Value = %d", pObjectStatic->DW39.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     LeftCoordinateRectangleLayer7 = 0x%d, TopCoordinateRectangleLayer7 = 0x%d",
+        pObjectStatic->DW39.LeftCoordinateRectangleLayer7,
+        pObjectStatic->DW39.TopCoordinateRectangleLayer7);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW40.Value = %d", pObjectStatic->DW40.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     BottomCoordinateRectangleLayer0 = 0x%d, RightCoordinateRectangleLayer0 = 0x%d",
+        pObjectStatic->DW40.BottomCoordinateRectangleLayer0,
+        pObjectStatic->DW40.RightCoordinateRectangleLayer0);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW41.Value = %d", pObjectStatic->DW41.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     BottomCoordinateRectangleLayer1 = 0x%d, RightCoordinateRectangleLayer1 = 0x%d",
+        pObjectStatic->DW41.BottomCoordinateRectangleLayer1,
+        pObjectStatic->DW41.RightCoordinateRectangleLayer1);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW42.Value = %d", pObjectStatic->DW42.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     BottomCoordinateRectangleLayer2 = 0x%d, RightCoordinateRectangleLayer2 = 0x%d",
+        pObjectStatic->DW42.BottomCoordinateRectangleLayer2,
+        pObjectStatic->DW42.RightCoordinateRectangleLayer2);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW43.Value = %d", pObjectStatic->DW43.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     BottomCoordinateRectangleLayer3 = 0x%d, RightCoordinateRectangleLayer3 = 0x%d",
+        pObjectStatic->DW43.BottomCoordinateRectangleLayer3,
+        pObjectStatic->DW43.RightCoordinateRectangleLayer3);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW44.Value = %d", pObjectStatic->DW44.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     BottomCoordinateRectangleLayer4 = 0x%d, RightCoordinateRectangleLayer4 = 0x%d",
+        pObjectStatic->DW44.BottomCoordinateRectangleLayer4,
+        pObjectStatic->DW44.RightCoordinateRectangleLayer4);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW45.Value = %d", pObjectStatic->DW45.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     BottomCoordinateRectangleLayer5 = 0x%d, RightCoordinateRectangleLayer5 = 0x%d",
+        pObjectStatic->DW45.BottomCoordinateRectangleLayer5,
+        pObjectStatic->DW45.RightCoordinateRectangleLayer5);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW46.Value = %d", pObjectStatic->DW46.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     BottomCoordinateRectangleLayer6 = 0x%d, RightCoordinateRectangleLayer6 = 0x%d",
+        pObjectStatic->DW46.BottomCoordinateRectangleLayer6,
+        pObjectStatic->DW46.RightCoordinateRectangleLayer6);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW47.Value = %d", pObjectStatic->DW47.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     BottomCoordinateRectangleLayer7 = 0x%d, RightCoordinateRectangleLayer7 = 0x%d",
+        pObjectStatic->DW47.BottomCoordinateRectangleLayer7,
+        pObjectStatic->DW47.RightCoordinateRectangleLayer7);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW48.Value = %d", pObjectStatic->DW48.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     CCMEnablingFlagLayer0 = %d, CCMExtensionEnablingFlagLayer0 = %d, ChannelSwapEnablingFlagLayer0 = %d, ChromaSittingLocationLayer0 = %d, Enabling3DLUTFlagLayer0 = %d, EOTF1DLUTEnablingFlagLayer0 = %d, FormatDescriptorLayer0 = %d, IEFBypassEnablingFlagLayer0 = %d, OETF1DLUTEnablingFlagLayer0 = %d, PostCSCEnablingFlagLayer0 = %d, PriorCSCEnablingFlagLayer0 = %d, RotationAngleMirrorDirectionLayer0 = %d, SamplerIndexFirstPlaneLayer0 = %d, SamplerIndexSecondThirdPlaneLayer0 = %d, ToneMappingEnablingFlagLayer0 = %d",
+        pObjectStatic->DW48.CCMEnablingFlagLayer0,
+        pObjectStatic->DW48.CCMExtensionEnablingFlagLayer0,
+        pObjectStatic->DW48.ChannelSwapEnablingFlagLayer0,
+        pObjectStatic->DW48.ChromaSittingLocationLayer0,
+        pObjectStatic->DW48.Enabling3DLUTFlagLayer0,
+        pObjectStatic->DW48.EOTF1DLUTEnablingFlagLayer0,
+        pObjectStatic->DW48.FormatDescriptorLayer0,
+        pObjectStatic->DW48.IEFBypassEnablingFlagLayer0,
+        pObjectStatic->DW48.OETF1DLUTEnablingFlagLayer0,
+        pObjectStatic->DW48.PostCSCEnablingFlagLayer0,
+        pObjectStatic->DW48.PriorCSCEnablingFlagLayer0,
+        pObjectStatic->DW48.RotationAngleMirrorDirectionLayer0,
+        pObjectStatic->DW48.SamplerIndexFirstPlaneLayer0,
+        pObjectStatic->DW48.SamplerIndexSecondThirdPlaneLayer0,
+        pObjectStatic->DW48.ToneMappingEnablingFlagLayer0);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW49.Value = %d", pObjectStatic->DW49.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     CCMEnablingFlagLayer1 = %d, CCMExtensionEnablingFlagLayer1 = %d, ChannelSwapEnablingFlagLayer1 = %d, ChromaSittingLocationLayer1 = %d, Enabling3DLUTFlagLayer1 = %d, EOTF1DLUTEnablingFlagLayer1 = %d, FormatDescriptorLayer1 = %d, IEFBypassEnablingFlagLayer1 = %d, OETF1DLUTEnablingFlagLayer0 = %d, PostCSCEnablingFlagLayer1 = %d, PriorCSCEnablingFlagLayer1 = %d, RotationAngleMirrorDirectionLayer1 = %d, SamplerIndexFirstPlaneLayer0 = %d, SamplerIndexSecondThirdPlaneLayer1 = %d, ToneMappingEnablingFlagLayer1 = %d",
+        pObjectStatic->DW49.CCMEnablingFlagLayer1,
+        pObjectStatic->DW49.CCMExtensionEnablingFlagLayer1,
+        pObjectStatic->DW49.ChannelSwapEnablingFlagLayer1,
+        pObjectStatic->DW49.ChromaSittingLocationLayer1,
+        pObjectStatic->DW49.Enabling3DLUTFlagLayer1,
+        pObjectStatic->DW49.EOTF1DLUTEnablingFlagLayer1,
+        pObjectStatic->DW49.FormatDescriptorLayer1,
+        pObjectStatic->DW49.IEFBypassEnablingFlagLayer1,
+        pObjectStatic->DW49.OETF1DLUTEnablingFlagLayer1,
+        pObjectStatic->DW49.PostCSCEnablingFlagLayer1,
+        pObjectStatic->DW49.PriorCSCEnablingFlagLayer1,
+        pObjectStatic->DW49.RotationAngleMirrorDirectionLayer1,
+        pObjectStatic->DW49.SamplerIndexFirstPlaneLayer1,
+        pObjectStatic->DW49.SamplerIndexSecondThirdPlaneLayer1,
+        pObjectStatic->DW49.ToneMappingEnablingFlagLayer1);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW50.Value = %d", pObjectStatic->DW50.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     CCMEnablingFlagLayer2 = %d, CCMExtensionEnablingFlagLayer2 = %d, ChannelSwapEnablingFlagLayer2 = %d, ChromaSittingLocationLayer2 = %d, Enabling3DLUTFlagLayer2 = %d, EOTF1DLUTEnablingFlagLayer2 = %d, FormatDescriptorLayer2 = %d, IEFBypassEnablingFlagLayer2 = %d, OETF1DLUTEnablingFlagLayer2 = %d, PostCSCEnablingFlagLayer2 = %d, PriorCSCEnablingFlagLayer2 = %d, RotationAngleMirrorDirectionLayer2 = %d, SamplerIndexFirstPlaneLayer2 = %d, SamplerIndexSecondThirdPlaneLayer2 = %d, ToneMappingEnablingFlagLayer2 = %d",
+        pObjectStatic->DW50.CCMEnablingFlagLayer2,
+        pObjectStatic->DW50.CCMExtensionEnablingFlagLayer2,
+        pObjectStatic->DW50.ChannelSwapEnablingFlagLayer2,
+        pObjectStatic->DW50.ChromaSittingLocationLayer2,
+        pObjectStatic->DW50.Enabling3DLUTFlagLayer2,
+        pObjectStatic->DW50.EOTF1DLUTEnablingFlagLayer2,
+        pObjectStatic->DW50.FormatDescriptorLayer2,
+        pObjectStatic->DW50.IEFBypassEnablingFlagLayer2,
+        pObjectStatic->DW50.OETF1DLUTEnablingFlagLayer2,
+        pObjectStatic->DW50.PostCSCEnablingFlagLayer2,
+        pObjectStatic->DW50.PriorCSCEnablingFlagLayer2,
+        pObjectStatic->DW50.RotationAngleMirrorDirectionLayer2,
+        pObjectStatic->DW50.SamplerIndexFirstPlaneLayer2,
+        pObjectStatic->DW50.SamplerIndexSecondThirdPlaneLayer2,
+        pObjectStatic->DW50.ToneMappingEnablingFlagLayer2);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW51.Value = %d", pObjectStatic->DW51.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     CCMEnablingFlagLayer3 = %d, CCMExtensionEnablingFlagLayer3 = %d, ChannelSwapEnablingFlagLayer3 = %d, ChromaSittingLocationLayer3 = %d, Enabling3DLUTFlagLayer3 = %d, EOTF1DLUTEnablingFlagLayer3 = %d, FormatDescriptorLayer3 = %d, IEFBypassEnablingFlagLayer3 = %d, OETF1DLUTEnablingFlagLayer3 = %d, PostCSCEnablingFlagLayer3 = %d, PriorCSCEnablingFlagLayer3 = %d, RotationAngleMirrorDirectionLayer3 = %d, SamplerIndexFirstPlaneLayer3 = %d, SamplerIndexSecondThirdPlaneLayer3 = %d, ToneMappingEnablingFlagLayer3 = %d",
+        pObjectStatic->DW51.CCMEnablingFlagLayer3,
+        pObjectStatic->DW51.CCMExtensionEnablingFlagLayer3,
+        pObjectStatic->DW51.ChannelSwapEnablingFlagLayer3,
+        pObjectStatic->DW51.ChromaSittingLocationLayer3,
+        pObjectStatic->DW51.Enabling3DLUTFlagLayer3,
+        pObjectStatic->DW51.EOTF1DLUTEnablingFlagLayer3,
+        pObjectStatic->DW51.FormatDescriptorLayer3,
+        pObjectStatic->DW51.IEFBypassEnablingFlagLayer3,
+        pObjectStatic->DW51.OETF1DLUTEnablingFlagLayer3,
+        pObjectStatic->DW51.PostCSCEnablingFlagLayer3,
+        pObjectStatic->DW51.PriorCSCEnablingFlagLayer3,
+        pObjectStatic->DW51.RotationAngleMirrorDirectionLayer3,
+        pObjectStatic->DW51.SamplerIndexFirstPlaneLayer3,
+        pObjectStatic->DW51.SamplerIndexSecondThirdPlaneLayer3,
+        pObjectStatic->DW51.ToneMappingEnablingFlagLayer3);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW52.Value = %d", pObjectStatic->DW52.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     CCMEnablingFlagLayer4 = %d, CCMExtensionEnablingFlagLayer4 = %d, ChannelSwapEnablingFlagLayer4 = %d, ChromaSittingLocationLayer4 = %d, Enabling3DLUTFlagLayer4 = %d, EOTF1DLUTEnablingFlagLayer4 = %d, FormatDescriptorLayer4 = %d, IEFBypassEnablingFlagLayer4 = %d, OETF1DLUTEnablingFlagLayer4 = %d, PostCSCEnablingFlagLayer4 = %d, PriorCSCEnablingFlagLayer4 = %d, RotationAngleMirrorDirectionLayer4 = %d, SamplerIndexFirstPlaneLayer4 = %d, SamplerIndexSecondThirdPlaneLayer4 = %d, ToneMappingEnablingFlagLayer4 = %d",
+        pObjectStatic->DW52.CCMEnablingFlagLayer4,
+        pObjectStatic->DW52.CCMExtensionEnablingFlagLayer4,
+        pObjectStatic->DW52.ChannelSwapEnablingFlagLayer4,
+        pObjectStatic->DW52.ChromaSittingLocationLayer4,
+        pObjectStatic->DW52.Enabling3DLUTFlagLayer4,
+        pObjectStatic->DW52.EOTF1DLUTEnablingFlagLayer4,
+        pObjectStatic->DW52.FormatDescriptorLayer4,
+        pObjectStatic->DW52.IEFBypassEnablingFlagLayer4,
+        pObjectStatic->DW52.OETF1DLUTEnablingFlagLayer4,
+        pObjectStatic->DW52.PostCSCEnablingFlagLayer4,
+        pObjectStatic->DW52.PriorCSCEnablingFlagLayer4,
+        pObjectStatic->DW52.RotationAngleMirrorDirectionLayer4,
+        pObjectStatic->DW52.SamplerIndexFirstPlaneLayer4,
+        pObjectStatic->DW52.SamplerIndexSecondThirdPlaneLayer4,
+        pObjectStatic->DW52.ToneMappingEnablingFlagLayer4);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW53.Value = %d", pObjectStatic->DW53.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     CCMEnablingFlagLayer5 = %d, CCMExtensionEnablingFlagLayer5 = %d, ChannelSwapEnablingFlagLayer5 = %d, ChromaSittingLocationLayer5 = %d, Enabling3DLUTFlagLayer5 = %d, EOTF1DLUTEnablingFlagLayer5 = %d, FormatDescriptorLayer5 = %d, IEFBypassEnablingFlagLayer5 = %d, OETF1DLUTEnablingFlagLayer5 = %d, PostCSCEnablingFlagLayer5 = %d, PriorCSCEnablingFlagLayer5 = %d, RotationAngleMirrorDirectionLayer5 = %d, SamplerIndexFirstPlaneLayer5 = %d, SamplerIndexSecondThirdPlaneLayer5 = %d, ToneMappingEnablingFlagLayer5 = %d",
+        pObjectStatic->DW53.CCMEnablingFlagLayer5,
+        pObjectStatic->DW53.CCMExtensionEnablingFlagLayer5,
+        pObjectStatic->DW53.ChannelSwapEnablingFlagLayer5,
+        pObjectStatic->DW53.ChromaSittingLocationLayer5,
+        pObjectStatic->DW53.Enabling3DLUTFlagLayer5,
+        pObjectStatic->DW53.EOTF1DLUTEnablingFlagLayer5,
+        pObjectStatic->DW53.FormatDescriptorLayer5,
+        pObjectStatic->DW53.IEFBypassEnablingFlagLayer5,
+        pObjectStatic->DW53.OETF1DLUTEnablingFlagLayer5,
+        pObjectStatic->DW53.PostCSCEnablingFlagLayer5,
+        pObjectStatic->DW53.PriorCSCEnablingFlagLayer5,
+        pObjectStatic->DW53.RotationAngleMirrorDirectionLayer5,
+        pObjectStatic->DW53.SamplerIndexFirstPlaneLayer5,
+        pObjectStatic->DW53.SamplerIndexSecondThirdPlaneLayer5,
+        pObjectStatic->DW53.ToneMappingEnablingFlagLayer5);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW54.Value = %d", pObjectStatic->DW54.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     CCMEnablingFlagLayer6 = %d, CCMExtensionEnablingFlagLayer6 = %d, ChannelSwapEnablingFlagLayer6 = %d, ChromaSittingLocationLayer6 = %d, Enabling3DLUTFlagLayer6 = %d, EOTF1DLUTEnablingFlagLayer6 = %d, FormatDescriptorLayer6 = %d, IEFBypassEnablingFlagLayer6 = %d, OETF1DLUTEnablingFlagLayer6 = %d, PostCSCEnablingFlagLayer6 = %d, PriorCSCEnablingFlagLayer6 = %d, RotationAngleMirrorDirectionLayer6 = %d, SamplerIndexFirstPlaneLayer6 = %d, SamplerIndexSecondThirdPlaneLayer6 = %d, ToneMappingEnablingFlagLayer6 = %d",
+        pObjectStatic->DW54.CCMEnablingFlagLayer6,
+        pObjectStatic->DW54.CCMExtensionEnablingFlagLayer6,
+        pObjectStatic->DW54.ChannelSwapEnablingFlagLayer6,
+        pObjectStatic->DW54.ChromaSittingLocationLayer6,
+        pObjectStatic->DW54.Enabling3DLUTFlagLayer6,
+        pObjectStatic->DW54.EOTF1DLUTEnablingFlagLayer6,
+        pObjectStatic->DW54.FormatDescriptorLayer6,
+        pObjectStatic->DW54.IEFBypassEnablingFlagLayer6,
+        pObjectStatic->DW54.OETF1DLUTEnablingFlagLayer6,
+        pObjectStatic->DW54.PostCSCEnablingFlagLayer6,
+        pObjectStatic->DW54.PriorCSCEnablingFlagLayer6,
+        pObjectStatic->DW54.RotationAngleMirrorDirectionLayer6,
+        pObjectStatic->DW54.SamplerIndexFirstPlaneLayer6,
+        pObjectStatic->DW54.SamplerIndexSecondThirdPlaneLayer6,
+        pObjectStatic->DW54.ToneMappingEnablingFlagLayer6);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW55.Value = %x", pObjectStatic->DW55.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     CCMEnablingFlagLayer7 = %d, CCMExtensionEnablingFlagLayer7 = %d, ChannelSwapEnablingFlagLayer7 = %d, ChromaSittingLocationLayer7 = %d, Enabling3DLUTFlagLayer7 = %d, EOTF1DLUTEnablingFlagLayer7 = %d, FormatDescriptorLayer7 = %d, IEFBypassEnablingFlagLayer7 = %d, OETF1DLUTEnablingFlagLayer7 = %d, PostCSCEnablingFlagLayer7 = %d, PriorCSCEnablingFlagLayer7 = %d, RotationAngleMirrorDirectionLayer7 = %d, SamplerIndexFirstPlaneLayer7 = %d, SamplerIndexSecondThirdPlaneLayer7 = %d, ToneMappingEnablingFlagLayer7 = %d",
+        pObjectStatic->DW55.CCMEnablingFlagLayer7,
+        pObjectStatic->DW55.CCMExtensionEnablingFlagLayer7,
+        pObjectStatic->DW55.ChannelSwapEnablingFlagLayer7,
+        pObjectStatic->DW55.ChromaSittingLocationLayer7,
+        pObjectStatic->DW55.Enabling3DLUTFlagLayer7,
+        pObjectStatic->DW55.EOTF1DLUTEnablingFlagLayer7,
+        pObjectStatic->DW55.FormatDescriptorLayer7,
+        pObjectStatic->DW55.IEFBypassEnablingFlagLayer7,
+        pObjectStatic->DW55.OETF1DLUTEnablingFlagLayer7,
+        pObjectStatic->DW55.PostCSCEnablingFlagLayer7,
+        pObjectStatic->DW55.PriorCSCEnablingFlagLayer7,
+        pObjectStatic->DW55.RotationAngleMirrorDirectionLayer7,
+        pObjectStatic->DW55.SamplerIndexFirstPlaneLayer7,
+        pObjectStatic->DW55.SamplerIndexSecondThirdPlaneLayer7,
+        pObjectStatic->DW55.ToneMappingEnablingFlagLayer7);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW56.Value = %d", pObjectStatic->DW56.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     ConstantBlendingAlphaFillColorLayer0 = %d, ConstantBlendingAlphaFillColorLayer1 = %d, ConstantBlendingAlphaFillColorLayer2 = %d, ConstantBlendingAlphaFillColorLayer3 = %d",
+        pObjectStatic->DW56.ConstantBlendingAlphaFillColorLayer0,
+        pObjectStatic->DW56.ConstantBlendingAlphaFillColorLayer1,
+        pObjectStatic->DW56.ConstantBlendingAlphaFillColorLayer2,
+        pObjectStatic->DW56.ConstantBlendingAlphaFillColorLayer3);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW57.Value = %d", pObjectStatic->DW57.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     ConstantBlendingAlphaFillColorLayer4 = %d, ConstantBlendingAlphaFillColorLayer5 = %d, ConstantBlendingAlphaFillColorLayer6 = %d, ConstantBlendingAlphaFillColorLayer7 = %d",
+        pObjectStatic->DW57.ConstantBlendingAlphaFillColorLayer4,
+        pObjectStatic->DW57.ConstantBlendingAlphaFillColorLayer5,
+        pObjectStatic->DW57.ConstantBlendingAlphaFillColorLayer6,
+        pObjectStatic->DW57.ConstantBlendingAlphaFillColorLayer7);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW58.Value = %d", pObjectStatic->DW58.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     TwoLayerOperationLayer0 = %d, TwoLayerOperationLayer1 = %d, TwoLayerOperationLayer2 = %d, TwoLayerOperationLayer3 = %d",
+        pObjectStatic->DW58.TwoLayerOperationLayer0,
+        pObjectStatic->DW58.TwoLayerOperationLayer1,
+        pObjectStatic->DW58.TwoLayerOperationLayer2,
+        pObjectStatic->DW58.TwoLayerOperationLayer3);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW59.Value = %d", pObjectStatic->DW59.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     TwoLayerOperationLayer4 = %d, TwoLayerOperationLayer5 = %d, TwoLayerOperationLayer6 = %d, TwoLayerOperationLayer7 = %d",
+        pObjectStatic->DW59.TwoLayerOperationLayer4,
+        pObjectStatic->DW59.TwoLayerOperationLayer5,
+        pObjectStatic->DW59.TwoLayerOperationLayer6,
+        pObjectStatic->DW59.TwoLayerOperationLayer7);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW60.Value = %d", pObjectStatic->DW60.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     FixedPointFillColorGYChannel = %d, FixedPointFillColorRVChannel = %d",
+        pObjectStatic->DW60.FixedPointFillColorGYChannel,
+        pObjectStatic->DW60.FixedPointFillColorRVChannel);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW61.Value = %x", pObjectStatic->DW61.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     FixedPointFillColorAlphaChannel = %d, FixedPointFillColorBUChannel = %d",
+        pObjectStatic->DW61.FixedPointFillColorAlphaChannel,
+        pObjectStatic->DW61.FixedPointFillColorBUChannel);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW62.Value = %d", pObjectStatic->DW62.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     DestinationHeight = %d, DestinationWidth = %d",
+        pObjectStatic->DW62.DestinationHeight,
+        pObjectStatic->DW62.DestinationWidth);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW63.Value = %d", pObjectStatic->DW63.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     ChannelSwapEnablingFlagDestination = %d, ChromaSittingLocationDestination = %d, DitherRoundEnablingFlagDestinationSurface = %d, DstCSCEnablingFlagDestination = %d, FormatDescriptorDestination = %d, Reserved = %d, TotalNumberInputLayers = %d",
+        pObjectStatic->DW63.ChannelSwapEnablingFlagDestination,
+        pObjectStatic->DW63.ChromaSittingLocationDestination,
+        pObjectStatic->DW63.DitherRoundEnablingFlagDestinationSurface,
+        pObjectStatic->DW63.DstCSCEnablingFlagDestination,
+        pObjectStatic->DW63.FormatDescriptorDestination,
+        pObjectStatic->DW63.Reserved,
+        pObjectStatic->DW63.TotalNumberInputLayers);
+#endif
 }
 
 //!

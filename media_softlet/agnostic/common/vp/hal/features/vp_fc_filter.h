@@ -174,7 +174,7 @@ public:
         return VpRenderFcParameter::Create(*fcParam);
     }
 
-    virtual MOS_STATUS LayerSelectForProcess(std::vector<int> &layerIndexes, SwFilterPipe& featurePipe, bool isSingleSubPipe, uint32_t pipeIndex, VP_EXECUTE_CAPS& caps);
+    virtual MOS_STATUS LayerSelectForProcess(std::vector<int> &layerIndexes, SwFilterPipe& featurePipe, VP_EXECUTE_CAPS& caps);
 
     // true to force all layer to use bilinear if bilinear is needed by any layer.
     // false to use nearest or bilinear based on the requirement of each layer.

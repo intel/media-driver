@@ -534,6 +534,7 @@ struct _RENDER_HDR_PARAMS
    bool                             bDisableAutoMode;                          //!< Force to disable Hdr auto mode tone mapping for debugging purpose
    bool                             coeffAllocated     = false;
    bool                             OETF1DLUTAllocated = false;
+   bool                             Cri3DLUTAllocated  = false;
 };
 using RENDER_HDR_PARAMS  = _RENDER_HDR_PARAMS;
 using PRENDER_HDR_PARAMS = RENDER_HDR_PARAMS *;

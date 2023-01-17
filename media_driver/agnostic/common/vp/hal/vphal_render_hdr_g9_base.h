@@ -1308,6 +1308,8 @@ MOS_STATUS VpHal_HdrPreprocessLoadStaticData_g9(
     PVPHAL_HDR_STATE            pHdrState,
     PVPHAL_HDR_RENDER_DATA      pRenderData,
     int32_t*                    piCurbeOffsetOut);
+
+void PrintCurbeData(MEDIA_WALKER_HDR_STATIC_DATA_G9 *pObjectStatic);
 #if __cplusplus
 }
 #endif // __cplusplus
