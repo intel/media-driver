@@ -151,6 +151,14 @@ namespace encode
             }
 
             ENCODE_CHK_STATUS_RETURN(CheckQPAndLossless());
+
+            if (m_segmentMapProvided)
+            {
+                m_streamIn = m_basicFeature->GetStreamIn();
+                ENCODE_CHK_NULL_RETURN(m_streamIn);
+                ENCODE_CHK_STATUS_RETURN(m_streamIn->Update());
+                ENCODE_CHK_STATUS_RETURN(SetupSegmentationMap());
+            }
         }
         else
         {
@@ -165,14 +173,6 @@ namespace encode
             m_segmentParams.m_losslessFlag[0] = IsFrameLossless(*av1PicParams);
 
             m_hasZeroSegmentQIndex = av1PicParams->base_qindex == 0;
-        }
-
-        if (m_segmentMapProvided)
-        {
-            m_streamIn = m_basicFeature->GetStreamIn();
-            ENCODE_CHK_NULL_RETURN(m_streamIn);
-            ENCODE_CHK_STATUS_RETURN(m_streamIn->Update());
-            ENCODE_CHK_STATUS_RETURN(SetupSegmentationMap());
         }
 
         return MOS_STATUS_SUCCESS;
