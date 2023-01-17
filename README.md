@@ -25,32 +25,32 @@ Equivalents for other distributions should work.
 1. Build and install [LibVA](https://github.com/intel/libva)
 2. Build and install [GmmLib](https://github.com/intel/gmmlib) following [GmmLib compatibility](https://github.com/intel/media-driver/wiki/Compatibility-with-GmmLib)
 3. Get media repo and format the workspace folder as below (suggest the workspace to be a dedicated one for media driver build):
-```
-<workspace>
-    |- media-driver
-```
+    ```
+    <workspace>
+        |- media-driver
+    ```
 4. Create build_media new folder under your workspace
-```
-$ mkdir <workspace>/build_media
-```
-then the workspace looks like below
-```
-<workspace>
-    |- media-driver
-    |- build_media
-```
-5. 
-```
-$ cd <workspace>/build_media
-```
-6. 
-```
-$ cmake ../media-driver
-```
-7. 
-```
-$ make -j"$(nproc)"
-```
+    ```
+    $ mkdir <workspace>/build_media
+    ```
+    then the workspace looks like below
+    ```
+    <workspace>
+        |- media-driver
+        |- build_media
+    ```
+5.
+    ```
+    $ cd <workspace>/build_media
+    ```
+6.
+    ```
+    $ cmake ../media-driver
+    ```
+7.
+    ```
+    $ make -j"$(nproc)"
+    ```
 
 ## Install
 
