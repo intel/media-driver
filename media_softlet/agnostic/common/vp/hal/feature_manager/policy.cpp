@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2022, Intel Corporation
+* Copyright (c) 2019-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -365,6 +365,8 @@ MOS_STATUS Policy::GetExecuteCaps(SwFilterPipe& subSwFilterPipe, HW_FILTER_PARAM
         VP_PUBLIC_CHK_STATUS_RETURN(BuildExecutionEngines(subSwFilterPipe, true, index, engineCapsCombinedAllPipes));
     }
 
+    VP_PUBLIC_CHK_STATUS_RETURN(UpdateExecuteEngineCapsForCrossPipeFeatures(subSwFilterPipe, engineCapsCombinedAllPipes));
+
     for (index = 0; index < outputSurfCount; ++index)
     {
         VP_PUBLIC_CHK_STATUS_RETURN(BuildExecutionEngines(subSwFilterPipe, false, index, engineCapsCombinedAllPipes));
@@ -501,6 +503,95 @@ MOS_STATUS Policy::GetExecutionCapsForSingleFeature(FeatureType featureType, SwF
         engineCaps.VeboxNeeded, MT_VP_HAL_ENGINECAPS_SFC_NEEDED, engineCaps.SfcNeeded, MT_VP_HAL_ENGINECAPS_RENDER_NEEDED, engineCaps.RenderNeeded,
         MT_VP_HAL_ENGINECAPS_FC_SUPPORT, engineCaps.fcSupported);
 
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS Policy::UpdateExecuteEngineCapsForHDR(SwFilterPipe &swFilterPipe, VP_EngineEntry &engineCapsCombinedAllPipes)
+{
+    VP_FUNC_CALL();
+
+    uint32_t pipeCount = swFilterPipe.GetSurfaceCount(true);
+    std::vector<SwFilterHdr *> hdrFilters;
+    bool isHdrKernelNeeded = false;
+    auto outputSurf = swFilterPipe.GetSurface(false, 0);
+    VP_PUBLIC_CHK_NULL_RETURN(outputSurf);
+
+    if (1 == pipeCount)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    // Multi-layer S2H or H2H case.
+    if (pipeCount > 1 && IS_COLOR_SPACE_BT2020(outputSurf->ColorSpace))
+    {
+        VP_PUBLIC_NORMALMESSAGE("multi-layer H2H or S2H, use HDR kernel.");
+        isHdrKernelNeeded = true;
+    }
+
+    for (uint32_t i = 0; i < pipeCount; ++i)
+    {
+        auto filter = (SwFilterHdr *)swFilterPipe.GetSwFilter(true, i, FeatureTypeHdr);
+        if (nullptr == filter)
+        {
+            continue;
+        }
+
+        if (!filter->GetFilterEngineCaps().bEnabled)
+        {
+            continue;
+        }  
+
+        hdrFilters.push_back(filter);
+    }
+
+    if (!isHdrKernelNeeded)
+    {
+        // 1 H2S layer, use vebox 3DLut + fc or HDR kernel based on hdrKernelNeeded flag on hdr filter.
+        if (hdrFilters.size() <= 1)
+        {
+            return MOS_STATUS_SUCCESS;
+        }
+        VP_PUBLIC_NORMALMESSAGE("multi-layer H2S, use HDR kernel.");
+        isHdrKernelNeeded = true;
+    }
+
+    if (isHdrKernelNeeded)
+    {
+        for (auto filter : hdrFilters)
+        {
+            auto &engineCaps = filter->GetFilterEngineCaps();
+            if (!filter->GetFilterEngineCaps().hdrKernelNeeded)
+            {
+                engineCaps.VeboxNeeded          = 0;
+                engineCaps.RenderNeeded         = 1;
+                engineCaps.hdrKernelNeeded      = 1;
+                engineCaps.hdrKernelSupported   = 1;
+                VP_PUBLIC_NORMALMESSAGE("Update HDR filter to use HDR kernel.");
+                PrintFeatureExecutionCaps(__FUNCTION__, engineCaps);
+            }
+        }
+        engineCapsCombinedAllPipes.RenderNeeded         = 1;
+        engineCapsCombinedAllPipes.hdrKernelNeeded      = 1;
+        engineCapsCombinedAllPipes.hdrKernelSupported   = 1;
+
+        for (uint32_t i = 0; i < pipeCount; ++i)
+        {
+            SwFilterSubPipe *pipe = nullptr;
+            pipe                  = swFilterPipe.GetSwFilterSubPipe(true, i);
+            // All layers will be processed by hdr kernel if hdr kernel being used. The features not supported by hdr kernel in all pipes will be filtered out.
+            VP_PUBLIC_CHK_STATUS_RETURN(FilterFeatureCombinationForHDRKernel(pipe));
+
+        }
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS Policy::UpdateExecuteEngineCapsForCrossPipeFeatures(SwFilterPipe &swFilterPipe, VP_EngineEntry &engineCapsCombinedAllPipes)
+{
+    VP_FUNC_CALL();
+
+    VP_PUBLIC_CHK_STATUS_RETURN(UpdateExecuteEngineCapsForHDR(swFilterPipe, engineCapsCombinedAllPipes));
     return MOS_STATUS_SUCCESS;
 }
 
@@ -2324,8 +2415,6 @@ MOS_STATUS Policy::GetInputPipeEngineCaps(SwFilterPipe& featurePipe, VP_EngineEn
 
         bool isSfcNeeded = false;
         engineCapsForVeboxSfc.value = 0;
-        // Consider multi-layer hdr case later.
-        engineCapsForHdrKernel.value = 0;
 
         for (auto featureType : m_featurePool)
         {
@@ -2385,6 +2474,7 @@ MOS_STATUS Policy::GetInputPipeEngineCaps(SwFilterPipe& featurePipe, VP_EngineEn
                     // Non-FC render feature should be isolated.
                     VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
                 }
+
                 if (engineCaps.hdrKernelSupported)
                 {
                     engineCapsForHdrKernel.value |= engineCaps.value;
@@ -2392,10 +2482,7 @@ MOS_STATUS Policy::GetInputPipeEngineCaps(SwFilterPipe& featurePipe, VP_EngineEn
 
                 if (engineCaps.hdrKernelNeeded)
                 {
-                    // Consider multi-layer hdr case later.
-                    isSingleSubPipe    = true;
-                    selectedPipeIndex  = pipeIndex;
-                    singlePipeSelected = featureSubPipe;
+                    VP_PUBLIC_NORMALMESSAGE("HDR kernel is needed.");
                 }
                 else
                 {
@@ -2451,7 +2538,7 @@ MOS_STATUS Policy::GetInputPipeEngineCaps(SwFilterPipe& featurePipe, VP_EngineEn
 
                 if (engineCaps.hdrKernelNeeded)
                 {
-                    // fc should not be supported hdr kernel case.
+                    VP_PUBLIC_ASSERTMESSAGE("hdrKernelNeeded and fcSupported should not be set at same time.");
                     VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER)
                 }
 
@@ -2709,21 +2796,7 @@ MOS_STATUS Policy::FilterFeatureCombination(SwFilterPipe &swFilterPipe, bool isI
 
     if (engineCapsCombinedAllPipes.hdrKernelNeeded)
     {
-        for (auto filterID : m_featurePool)
-        {
-            auto feature = pipe->GetSwFilter(FeatureType(filterID));
-            if (feature && feature->GetFilterEngineCaps().bEnabled &&
-                !feature->GetFilterEngineCaps().hdrKernelSupported)
-            {
-                auto feature = pipe->GetSwFilter(FeatureType(filterID));
-                if (feature && feature->GetFilterEngineCaps().bEnabled)
-                {
-                    feature->GetFilterEngineCaps().bEnabled = false;
-                    VP_PUBLIC_NORMALMESSAGE("Disable feature 0x%x for HDR.", filterID);
-                    PrintFeatureExecutionCaps("Disable feature for HDR", feature->GetFilterEngineCaps());
-                }
-            }
-        }
+        VP_PUBLIC_CHK_STATUS_RETURN(FilterFeatureCombinationForHDRKernel(pipe));
     }
     else
     {
@@ -2758,6 +2831,28 @@ MOS_STATUS Policy::FilterFeatureCombination(SwFilterPipe &swFilterPipe, bool isI
         }
     }
 
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS Policy::FilterFeatureCombinationForHDRKernel(SwFilterSubPipe *pipe)
+{
+    VP_FUNC_CALL();
+
+    for (auto filterID : m_featurePool)
+    {
+        auto feature = pipe->GetSwFilter(FeatureType(filterID));
+        if (feature && feature->GetFilterEngineCaps().bEnabled &&
+            !feature->GetFilterEngineCaps().hdrKernelSupported)
+        {
+            auto feature = pipe->GetSwFilter(FeatureType(filterID));
+            if (feature && feature->GetFilterEngineCaps().bEnabled)
+            {
+                feature->GetFilterEngineCaps().bEnabled = false;
+                VP_PUBLIC_NORMALMESSAGE("Disable feature 0x%x for HDR.", filterID);
+                PrintFeatureExecutionCaps("Disable feature for HDR", feature->GetFilterEngineCaps());
+            }
+        }
+    }
     return MOS_STATUS_SUCCESS;
 }
 

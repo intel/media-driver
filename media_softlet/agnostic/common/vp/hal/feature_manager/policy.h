@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2022, Intel Corporation
+* Copyright (c) 2019-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -81,6 +81,8 @@ protected:
     virtual MOS_STATUS UpdateCGCMode(SwFilter* feature, VP_EXECUTE_CAPS& caps, EngineType Type);
     virtual MOS_STATUS BuildVeboxSecureFilters(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS& params);
 
+    MOS_STATUS UpdateExecuteEngineCapsForHDR(SwFilterPipe &swFilterPipe, VP_EngineEntry &engineCapsCombinedAllPipes);
+    MOS_STATUS UpdateExecuteEngineCapsForCrossPipeFeatures(SwFilterPipe &swFilterPipe, VP_EngineEntry &engineCapsCombinedAllPipes);
     MOS_STATUS BuildExecutionEngines(SwFilterPipe &swFilterPipe, bool isInputPipe, uint32_t index, VP_EngineEntry &engineCapsCombinedAllPipes);
     MOS_STATUS GetHwFilterParam(SwFilterPipe& subSwFilterPipe, HW_FILTER_PARAMS& params);
     MOS_STATUS ReleaseHwFilterParam(HW_FILTER_PARAMS &params);
@@ -160,6 +162,7 @@ protected:
     virtual bool IsExcludedFeatureForHdr(FeatureType feature);
 
     virtual MOS_STATUS FilterFeatureCombination(SwFilterPipe &pipe, bool isInputPipe, uint32_t index, VP_EngineEntry &engineCapsCombined, VP_EngineEntry &engineCapsCombinedAllPipes);
+    virtual MOS_STATUS FilterFeatureCombinationForHDRKernel(SwFilterSubPipe *pipe);
     MOS_STATUS AddCommonFilters(SwFilterSubPipe &swFilterSubPipe, VP_SURFACE *input, VP_SURFACE *outputs);
 
     virtual bool IsVeboxSecurePathEnabled(SwFilterPipe& subSwFilterPipe, VP_EXECUTE_CAPS& caps)
