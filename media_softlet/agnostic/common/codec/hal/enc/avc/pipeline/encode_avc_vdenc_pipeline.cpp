@@ -232,6 +232,8 @@ MOS_STATUS AvcVdencPipeline::ActivateVdencVideoPackets()
         ENCODE_CHK_STATUS_RETURN(ActivatePacket(VdencPacket, immediateSubmit, curPass, 0));
     }
 
+    SetFrameTrackingForMultiTaskPhase();
+
     // Last element in m_activePacketList must be immediately submitted
     m_activePacketList.back().immediateSubmit = true;
 

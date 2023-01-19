@@ -206,6 +206,8 @@ MOS_STATUS HevcVdencPipeline::ActivateVdencTileReplayVideoPackets()
     // Frame Level Pak Integration
     ENCODE_CHK_STATUS_RETURN(ActivatePacket(hevcPakIntegrate, immediateSubmit, 0, 0));
 
+    SetFrameTrackingForMultiTaskPhase();
+
     // Last element in m_activePacketList must be immediately submitted
     m_activePacketList.back().immediateSubmit = true;
 

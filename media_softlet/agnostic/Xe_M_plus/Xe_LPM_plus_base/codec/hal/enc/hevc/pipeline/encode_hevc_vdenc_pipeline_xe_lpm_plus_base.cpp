@@ -270,6 +270,8 @@ MOS_STATUS HevcVdencPipelineXe_Lpm_Plus_Base::ActivateVdencVideoPackets()
         }
     }
 
+    SetFrameTrackingForMultiTaskPhase();
+
     // Last element in m_activePacketList must be immediately submitted
     m_activePacketList.back().immediateSubmit = true;
 

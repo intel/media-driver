@@ -209,6 +209,8 @@ MOS_STATUS Vp9VdencPipeline::ActivateVdencVideoPackets()
         }
     }
 
+    SetFrameTrackingForMultiTaskPhase();
+
     // Last element in m_activePacketList must be immediately submitted
     m_activePacketList.back().immediateSubmit = true;
     // In the case of Temporal Scalability, we need wait to request frame tracking until the last submission, in the super frame pass
