@@ -1155,7 +1155,13 @@ namespace vISA
         //! \brief      Destructor of LabelInfo class.
         //!
         ~LabelInfo() {
-            for (AttributeInfo *s : attribute_info) delete s;
+            for (AttributeInfo *s : attribute_info)
+            {
+                if (s)
+                {
+                    delete s;
+                }
+            }
         }
 
         //!
@@ -1336,7 +1342,13 @@ namespace vISA
         //! \brief      Destructor of PredicateInfo class.
         //!
         ~PredicateInfo() {
-            for (AttributeInfo *s : attribute_info) delete s;
+            for (AttributeInfo *s : attribute_info)
+            {
+                if (s)
+                {
+                    delete s;
+                }
+            }
         }
 
         //!
@@ -1658,7 +1670,13 @@ namespace vISA
         //! \brief      Destructor of AddressInfo class.
         //!
         ~AddressInfo() {
-            for (AttributeInfo *s : attribute_info) delete s;
+            for (AttributeInfo *s : attribute_info)
+            {
+                if (s)
+                {
+                    delete s;
+                }
+            }
         }
 
         //!
@@ -1843,7 +1861,13 @@ namespace vISA
         //! \brief      Destructor of Variable class.
         //!
         ~Variable() {
-            for (AttributeInfo *s : attribute_info) delete s;
+            for (AttributeInfo *s : attribute_info)
+            {
+                if (s)
+                {
+                    delete s;
+                }
+            }
         }
 
         //!
@@ -2807,7 +2831,13 @@ namespace vISA
         //! \brief      Destructor of GlobalVariable class.
         //!
         ~GlobalVariable() {
-            for (AttributeInfo *s : attribute_info) delete s;
+            for (AttributeInfo *s : attribute_info)
+            {
+                if (s)
+                {
+                    delete s;
+                }
+            }
         }
 
         //!

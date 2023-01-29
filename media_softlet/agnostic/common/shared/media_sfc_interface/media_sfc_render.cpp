@@ -397,7 +397,7 @@ MOS_STATUS MediaSfcRender::IsParameterSupported(
     VP_PUBLIC_CHK_NULL_RETURN(params);
 
     // Check original input size (for JPEG)
-    uint32_t minWidth, minHeight, maxWidth, maxHeight;
+    uint32_t minWidth = 0, minHeight = 0, maxWidth = 0, maxHeight = 0;
     VP_PUBLIC_CHK_STATUS_RETURN(m_sfcItf->GetMinWidthHeightInfo(minWidth, minHeight));
     VP_PUBLIC_CHK_STATUS_RETURN(m_sfcItf->GetMaxWidthHeightInfo(maxWidth, maxHeight));
     if (!MOS_WITHIN_RANGE(sfcParam.input.width, minWidth, maxWidth) ||
@@ -477,7 +477,7 @@ MOS_STATUS MediaSfcRender::IsParameterSupported(
     VP_PUBLIC_CHK_NULL_RETURN(params);
 
     // Check original input size
-    uint32_t minInputWidth, minInputHeight, minOutputWidth, minOutputHeight, maxWidth, maxHeight;
+    uint32_t minInputWidth = 0, minInputHeight = 0, minOutputWidth = 0, minOutputHeight = 0, maxWidth = 0, maxHeight = 0;
     VP_PUBLIC_CHK_STATUS_RETURN(m_sfcItf->GetInputMinWidthHeightInfo(minInputWidth, minInputHeight));
     VP_PUBLIC_CHK_STATUS_RETURN(m_sfcItf->GetOutputMinWidthHeightInfo(minOutputWidth, minOutputHeight));
     VP_PUBLIC_CHK_STATUS_RETURN(m_sfcItf->GetMaxWidthHeightInfo(maxWidth, maxHeight));
