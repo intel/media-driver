@@ -98,7 +98,13 @@ MOS_STATUS VpHdrRenderFilter::CalculateEngineParams(
 
     for (i = 0; i < m_renderHdrParams.uSourceCount && i < VPHAL_MAX_HDR_INPUT_LAYER; ++i)
     {
-        auto &hdrParams = ((SwFilterHdr *)m_executedPipe->GetSwFilter(true, i, FeatureTypeHdr))->GetSwFilterParams();
+        SwFilterHdr *hdrfilter = dynamic_cast<SwFilterHdr *>(m_executedPipe->GetSwFilter(true, i, FeatureTypeHdr));
+
+        if (nullptr == hdrfilter)
+        {
+            continue;
+        }
+        auto &hdrParams = hdrfilter->GetSwFilterParams();
 
         if (!vpExecuteCaps.bRender || HDR_STAGE_3DLUT_KERNEL == hdrParams.stage)
         {
