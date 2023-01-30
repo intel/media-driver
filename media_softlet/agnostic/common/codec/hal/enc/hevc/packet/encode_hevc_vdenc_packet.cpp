@@ -394,18 +394,16 @@ namespace encode
 
         if (m_pipeline->GetPipeNum() >= 2)
         {
+            auto scalability = m_pipeline->GetMediaScalability();
             if (m_pipeline->IsFirstPass())
             {
                 // Reset multi-pipe sync semaphores
-                auto scalability = m_pipeline->GetMediaScalability();
                 ENCODE_CHK_STATUS_RETURN(scalability->ResetSemaphore(syncOnePipeWaitOthers, 0, &cmdBuffer));
             }
-            if (feature->IsVdencHucUsed())
-            {
-                // Other pipes wait for BRCupdate done on first pipe
-                auto scalability = m_pipeline->GetMediaScalability();
-                ENCODE_CHK_STATUS_RETURN(scalability->SyncPipe(syncOtherPipesForOne, 0, &cmdBuffer));
-            }
+
+            // For brc case, other pipes wait for BRCupdate done on first pipe
+            // For cqp case, pipes also need sync 
+            ENCODE_CHK_STATUS_RETURN(scalability->SyncPipe(syncOtherPipesForOne, 0, &cmdBuffer));
         }
 
         m_streamInEnabled = false;
