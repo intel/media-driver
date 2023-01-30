@@ -31,7 +31,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include "linux_skuwa_debug.h"
 #include "linux_media_skuwa.h"
 #include "linux_shadow_skuwa.h"
-#include "mos_utilities.h"
+#include "media_user_setting_specific.h"
 
 #define THREADS_NUMBER_PER_EU_HP 8
 

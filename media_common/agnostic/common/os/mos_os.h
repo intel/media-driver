@@ -39,7 +39,7 @@
 #endif
 #endif
 
-#include "media_user_setting.h"
+#include "media_user_setting_specific.h"
 #include "null_hardware.h"
 extern PerfUtility *g_perfutility;
 

@@ -48,6 +48,20 @@
 #include <map>
 #include "media_user_setting_configure.h"
 
+#define MOS_UserFeature_ReadValue_ID(pOsUserFeatureInterface, valueID, pValueData, osCtx)                 \
+    UserFeatureReadValue(pOsUserFeatureInterface, valueID, pValueData, osCtx)
+
+#define MOS_UserFeature_WriteValues_ID(pOsUserFeatureInterface, pWriteValues, uiNumOfValues, osCtx)       \
+    UserFeatureWriteValue(pOsUserFeatureInterface, pWriteValues, uiNumOfValues, osCtx)
+
+#define WriteUserFeature(key, value, osCtx)                                            \
+{                                                                                                    \
+    MOS_USER_FEATURE_VALUE_WRITE_DATA UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__; \
+    UserFeatureWriteData.Value.i32Data                     = (value);                                \
+    UserFeatureWriteData.ValueID                           = (key);                                  \
+    UserFeatureWriteValue(nullptr, &UserFeatureWriteData, 1, osCtx);                   \
+}
+
 namespace MediaUserSetting {
 
 class MediaUserSetting
@@ -62,19 +76,6 @@ public:
     //! \brief    Constructor
     //!
     MediaUserSetting(MOS_USER_FEATURE_KEY_PATH_INFO *keyPathInfo);
-
-    //!
-    //! \brief    Static entrypoint, get the instance of media user setting
-    //! \return   std::shared_ptr<MediaUserSetting>
-    //!           Pointer of media user setting
-    //!
-    static std::shared_ptr<MediaUserSetting> Instance();
-
-    //!
-    //! \brief    Destroy media user setting
-    //! \return   void
-    //!
-    static void Destroy();
 
     //!
     //! \brief    Register user setting item
@@ -161,6 +162,45 @@ public:
     bool IsDeclaredUserSetting(const std::string &valueName);
 
     //!
+    //! \brief    Read single value from User Feature
+    //! \param    [in] pOsUserFeatureInterface
+    //!           Pointer to OS User Interface structure
+    //! \param    [in] valueID
+    //!           value of enum type in MOS_USER_FEATURE_VALUE_TYPE. declares the user feature key to be readed
+    //! \param    [in,out] pValueData
+    //!           Pointer to User Feature Data
+    //! \param    [in] mosCtx
+    //!           Pointer to DDI device context
+    //! \return   MOS_STATUS
+    //!           Returns one of the MOS_STATUS error codes if failed
+    //!
+    MOS_STATUS UserFeatureReadValue(
+        PMOS_USER_FEATURE_INTERFACE     pOsUserFeatureInterface,
+        uint32_t                        valueID,
+        PMOS_USER_FEATURE_VALUE_DATA    pValueData,
+        MOS_CONTEXT_HANDLE              mosCtx);
+
+    //!
+    //! \brief    Write Values to User Feature with specified ID
+    //! \param    [in] pOsUserFeatureInterface
+    //!           Pointer to OS User Interface structure
+    //! \param    [in] pWriteValues
+    //!           Pointer to User Feature Data, and related User Feature Key ID (enum type in MOS_USER_FEATURE_VALUE_TYPE)
+    //! \param    [in] uiNumOfValues
+    //!           number of user feature keys to be written.
+    //! \param    [in] mosCtx
+    //!           Pointer to DDI device context
+    //! \return   MOS_STATUS
+    //!           Returns one of the MOS_STATUS error codes if failed,
+    //!           else MOS_STATUS_SUCCESS
+    //!
+    MOS_STATUS UserFeatureWriteValue(
+        PMOS_USER_FEATURE_INTERFACE        pOsUserFeatureInterface,
+        PMOS_USER_FEATURE_VALUE_WRITE_DATA pWriteValues,
+        uint32_t                           uiNumOfValues,
+        MOS_CONTEXT_HANDLE                 mosCtx);
+
+    //!
     //! \brief    Get media user setting definitions of specific group
     //! \param    [in] group
     //!           Group of the item
@@ -173,7 +213,6 @@ public:
     }
 
 protected:
-    static std::shared_ptr<MediaUserSetting> m_instance;
     Internal::Configure m_configure{};  //!< The pointer of Configure
 };
 
@@ -189,12 +228,11 @@ inline MOS_STATUS DeclareUserSettingKey(
     const std::string &customPath = "",
     bool statePath = true)
 {
-    MediaUserSettingSharedPtr instance = userSetting;
-    if (userSetting == nullptr)
+    if (nullptr == userSetting)
     {
-        instance = MediaUserSetting::MediaUserSetting::Instance();
+        return MOS_STATUS_NULL_POINTER;
     }
-    return instance->Register(valueName, group, defaultValue, isReportKey, false, useCustomPath, customPath, statePath);
+    return userSetting->Register(valueName, group, defaultValue, isReportKey, false, useCustomPath, customPath, statePath);
 }
 
 inline MOS_STATUS ReadUserSetting(
@@ -206,12 +244,11 @@ inline MOS_STATUS ReadUserSetting(
     bool                            useCustomValue = false,
     uint32_t                        option = MEDIA_USER_SETTING_INTERNAL)
 {
-    MediaUserSettingSharedPtr  instance = userSetting;
-    if (userSetting == nullptr)
+    if (nullptr == userSetting)
     {
-        instance = MediaUserSetting::MediaUserSetting::Instance();
+        return MOS_STATUS_NULL_POINTER;
     }
-    return instance->Read(value, valueName, group, customValue, useCustomValue, option);
+    return userSetting->Read(value, valueName, group, customValue, useCustomValue, option);
 }
 
 template <typename T>
@@ -243,12 +280,11 @@ inline MOS_STATUS WriteUserSetting(
     const MediaUserSetting::Group &group,
     uint32_t option = MEDIA_USER_SETTING_INTERNAL)
 {
-    MediaUserSettingSharedPtr instance = userSetting;
-    if (userSetting == nullptr)
+    if (nullptr == userSetting)
     {
-        instance = MediaUserSetting::MediaUserSetting::Instance();
+        return MOS_STATUS_NULL_POINTER;
     }
-    return instance->Write(valueName, value, group);
+    return userSetting->Write(valueName, value, group);
 }
 
 inline MOS_STATUS ReportUserSetting(
@@ -258,24 +294,22 @@ inline MOS_STATUS ReportUserSetting(
     const MediaUserSetting::Group &group,
     uint32_t option = MEDIA_USER_SETTING_INTERNAL)
 {
-    MediaUserSettingSharedPtr  instance = userSetting;
-    if (userSetting == nullptr)
+    if (nullptr == userSetting)
     {
-        instance = MediaUserSetting::MediaUserSetting::Instance();
+        return MOS_STATUS_NULL_POINTER;
     }
-    return instance->Write(valueName, value, group, true, option);
+    return userSetting->Write(valueName, value, group, true, option);
 }
 
 inline bool IsDeclaredUserSetting(
     MediaUserSettingSharedPtr userSetting,
     const std::string &valueName)
 {
-    MediaUserSettingSharedPtr instance = userSetting;
-    if (userSetting == nullptr)
+    if (nullptr == userSetting)
     {
-        instance = MediaUserSetting::MediaUserSetting::Instance();
+        return false;
     }
-    return instance->IsDeclaredUserSetting(valueName);
+    return userSetting->IsDeclaredUserSetting(valueName);
 }
 
 #if (_DEBUG || _RELEASE_INTERNAL)
@@ -289,12 +323,11 @@ inline MOS_STATUS DeclareUserSettingKeyForDebug(
     const std::string &customPath = "",
     bool statePath = true)
 {
-    MediaUserSettingSharedPtr instance = userSetting;
-    if (userSetting == nullptr)
+    if (nullptr == userSetting)
     {
-        instance = MediaUserSetting::MediaUserSetting::Instance();
+        return MOS_STATUS_NULL_POINTER;
     }
-    return instance->Register(valueName, group, defaultValue, isReportKey, true, useCustomPath, customPath, statePath);
+    return userSetting->Register(valueName, group, defaultValue, isReportKey, true, useCustomPath, customPath, statePath);
 }
 
 inline MOS_STATUS ReadUserSettingForDebug(
@@ -306,12 +339,11 @@ inline MOS_STATUS ReadUserSettingForDebug(
     bool                            useCustomValue = false,
     uint32_t                        option = MEDIA_USER_SETTING_INTERNAL)
 {
-    MediaUserSettingSharedPtr instance = userSetting;
-    if (userSetting == nullptr)
+    if (nullptr == userSetting)
     {
-        instance = MediaUserSetting::MediaUserSetting::Instance();
+        return MOS_STATUS_NULL_POINTER;
     }
-    return instance->Read(value, valueName, group, customValue, useCustomValue, option);
+    return userSetting->Read(value, valueName, group, customValue, useCustomValue, option);
 }
 
 template <typename T>
@@ -344,12 +376,11 @@ inline MOS_STATUS WriteUserSettingForDebug(
     const MediaUserSetting::Group &group,
     uint32_t option = MEDIA_USER_SETTING_INTERNAL)
 {
-    MediaUserSettingSharedPtr  instance = userSetting;
-    if (userSetting == nullptr)
+    if (nullptr == userSetting)
     {
-        instance = MediaUserSetting::MediaUserSetting::Instance();
+        return MOS_STATUS_NULL_POINTER;
     }
-    return instance->Write(valueName, value, group);
+    return userSetting->Write(valueName, value, group);
 }
 
 inline MOS_STATUS ReportUserSettingForDebug(
@@ -359,12 +390,11 @@ inline MOS_STATUS ReportUserSettingForDebug(
     const MediaUserSetting::Group &group,
     uint32_t option = MEDIA_USER_SETTING_INTERNAL)
 {
-    MediaUserSettingSharedPtr  instance = userSetting;
-    if (userSetting == nullptr)
+    if (nullptr == userSetting)
     {
-        instance = MediaUserSetting::MediaUserSetting::Instance();
+        return MOS_STATUS_NULL_POINTER;
     }
-    return instance->Write(valueName, value, group, true, option);
+    return userSetting->Write(valueName, value, group, true, option);
 }
 
 #else
@@ -374,35 +404,4 @@ inline MOS_STATUS ReportUserSettingForDebug(
 #define ReportUserSettingForDebug(userSetting, valueName, value, group, ...) MOS_STATUS_SUCCESS
 #endif
 
-template <typename T, typename U = int>
-class UserSettingInstanceOpsT
-{
-public:
-    MediaUserSettingSharedPtr GetUserSettingInstancePtr(T *object)
-    {
-        return MediaUserSetting::MediaUserSetting::Instance();
-    }
-};
-
-template <typename T>
-class UserSettingInstanceOpsT<T, decltype(T::m_userSettingPtr, 0)>
-{
-public:
-    MediaUserSettingSharedPtr GetUserSettingInstancePtr(T *object)
-    {
-        if (object && object->m_userSettingPtr)
-        {
-            return object->m_userSettingPtr;
-        }
-        return MediaUserSetting::MediaUserSetting::Instance();
-    }
-};
-
-template <typename T>
-inline MediaUserSettingSharedPtr GetUserSettingInstance(T *p)
-{
-    UserSettingInstanceOpsT<T>   ops;
-
-    return ops.GetUserSettingInstancePtr(p);
-}
 #endif

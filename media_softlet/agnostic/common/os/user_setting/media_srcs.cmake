@@ -25,13 +25,9 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/media_user_setting.cpp
 )
 
-set(COMMON_SOURCES_
-    ${COMMON_SOURCES_}
-    ${TMP_SOURCES_})
-
-source_group( "Common Files" FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
-
-set(COMMON_PRIVATE_INCLUDE_DIRS_
-    ${COMMON_PRIVATE_INCLUDE_DIRS_}
-    ${CMAKE_CURRENT_LIST_DIR}
+set(SOFTLET_MOS_COMMON_SOURCES_
+    ${SOFTLET_MOS_COMMON_SOURCES_}
+    ${TMP_SOURCES_}
 )
+
+source_group( "mos_softlet" FILES ${TMP_SOURCES_})

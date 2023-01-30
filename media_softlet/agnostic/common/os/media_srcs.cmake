@@ -19,6 +19,7 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 media_include_subdirectory(private)
+media_include_subdirectory(user_setting)
 
 set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/mos_context_next.cpp

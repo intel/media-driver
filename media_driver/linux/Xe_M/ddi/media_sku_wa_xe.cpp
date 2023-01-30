@@ -31,7 +31,7 @@
 #include "linux_media_skuwa.h"
 #include "mos_utilities.h"
 #include "mos_os_specific.h"
-#include "media_user_setting.h"
+#include "media_user_setting_specific.h"
 
 #ifndef SI_REV_LO
 #define SI_REV_LO(SteppingID) (SteppingID & 0xFFFF)

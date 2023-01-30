@@ -1377,9 +1377,3 @@ MOS_STATUS MosUserSetting::InitUserSettingForDebug(MediaUserSettingSharedPtr use
 }
 
 #endif
-
-MOS_STATUS MosUserSetting::DestroyMediaUserSetting()
-{
-    MediaUserSetting::MediaUserSetting::Destroy();
-    return MOS_STATUS_SUCCESS;
-}

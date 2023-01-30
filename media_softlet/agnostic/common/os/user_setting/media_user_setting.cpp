@@ -29,38 +29,12 @@
 
 namespace MediaUserSetting {
 
-struct MakeSharedEnabler : public MediaUserSetting
-{
-};
-
-std::shared_ptr<MediaUserSetting> MediaUserSetting::m_instance = nullptr;
-
 MediaUserSetting::MediaUserSetting()
 {
 }
 MediaUserSetting::MediaUserSetting(MOS_USER_FEATURE_KEY_PATH_INFO *keyPathInfo) : m_configure(keyPathInfo)
 {
 
-}
-
-void MediaUserSetting::Destroy()
-{
-    if (m_instance != nullptr)
-    {
-        m_instance.reset();
-        m_instance = nullptr;
-    }
- }
-
-
-std::shared_ptr<MediaUserSetting> MediaUserSetting::Instance()
-{
-    if (m_instance == nullptr)
-    {
-        m_instance = std::make_shared<MakeSharedEnabler>();
-    }
-
-    return m_instance;
 }
 
 MOS_STATUS MediaUserSetting::Register(
@@ -112,6 +86,24 @@ MOS_STATUS MediaUserSetting::Write(
 bool MediaUserSetting::IsDeclaredUserSetting(const std::string &valueName)
 {
     return m_configure.IsDefinitionExist(valueName);
+}
+
+MOS_STATUS MediaUserSetting::UserFeatureReadValue(
+    PMOS_USER_FEATURE_INTERFACE     pOsUserFeatureInterface,
+    uint32_t                        valueID,
+    PMOS_USER_FEATURE_VALUE_DATA    pValueData,
+    MOS_CONTEXT_HANDLE              mosCtx)
+{
+    return MosUtilities::MosUserFeatureReadValueID(pOsUserFeatureInterface, valueID, pValueData, mosCtx);
+}
+
+MOS_STATUS MediaUserSetting::UserFeatureWriteValue(
+    PMOS_USER_FEATURE_INTERFACE        pOsUserFeatureInterface,
+    PMOS_USER_FEATURE_VALUE_WRITE_DATA pWriteValues,
+    uint32_t                           uiNumOfValues,
+    MOS_CONTEXT_HANDLE                 mosCtx)
+{
+    return MosUtilities::MosUserFeatureWriteValuesID(pOsUserFeatureInterface, pWriteValues, uiNumOfValues, mosCtx);
 }
 
 }

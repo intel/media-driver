@@ -18,8 +18,6 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-media_include_subdirectory(user_setting)
-
 if(NOT CMAKE_WDDM_LINUX)
 set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/hal_oca_interface_next.cpp

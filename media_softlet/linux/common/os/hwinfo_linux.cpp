@@ -31,7 +31,7 @@
 #include "linux_system_info.h"
 #include "linux_shadow_skuwa.h"
 #include "mos_solo_generic.h"
-
+#include "media_user_setting_specific.h"
 
 typedef DeviceInfoFactory<struct GfxDeviceInfo> DeviceInfoFact;
 typedef DeviceInfoFactory<struct LinuxDeviceInit> DeviceInitFact;

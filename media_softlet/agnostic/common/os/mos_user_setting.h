@@ -35,15 +35,6 @@ class MosUserSetting
 {
 public:
     //!
-    //! \brief    Close MediaUserSetting context
-    //! \details  througt MediaUserSetting's destroy method reset ptr
-    //! \return   MOS_STATUS
-    //!           Returns one of the MOS_STATUS error codes if failed,
-    //!           else MOS_STATUS_SUCCESS
-    //!
-    static MOS_STATUS DestroyMediaUserSetting();
-
-    //!
     //! \brief    Init the mos user settings
     //! \details  declare the common user settings
     //! \return   MOS_STATUS

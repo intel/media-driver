@@ -29,8 +29,7 @@
 #include "skuwa_factory.h"
 #include "linux_skuwa_debug.h"
 #include "linux_media_skuwa.h"
-#include "mos_utilities.h"
-#include "media_user_setting.h"
+#include "media_user_setting_specific.h"
 
 static constexpr uint32_t singleVeboxSubSliceNumMax = 24;
 

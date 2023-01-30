@@ -3063,43 +3063,6 @@ do{                                                     \
     MosUtilities::MosFillMemory(pDestination, stLength, bFill)
 
 //------------------------------------------------------------------------------
-//  User Settings
-//------------------------------------------------------------------------------
-//ptr could be moscontext or user feature key info
-#define MOS_UserFeature_ReadValue_ID(pOsUserFeatureInterface, valueID, pValueData, ptr)                 \
-    MosUtilities::MosUserFeatureReadValueID(pOsUserFeatureInterface, valueID, pValueData, ptr)
-
-//ptr could be moscontext or user feature key info
-#define MOS_UserFeature_WriteValues_ID(pOsUserFeatureInterface, pWriteValues, uiNumOfValues, ptr)        \
-    MosUtilities::MosUserFeatureWriteValuesID(pOsUserFeatureInterface, pWriteValues, uiNumOfValues, ptr)
-
-// User Feature Report Writeout
-#define WriteUserFeature64(key, value, mosCtx)                                                       \
-{                                                                                                    \
-    MOS_USER_FEATURE_VALUE_WRITE_DATA UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__; \
-    UserFeatureWriteData.Value.i64Data                     = (value);                                \
-    UserFeatureWriteData.ValueID                           = (key);                                  \
-    MosUtilities::MosUserFeatureWriteValuesID(nullptr, &UserFeatureWriteData, 1, mosCtx);            \
-}
-
-#define WriteUserFeature(key, value, mosCtx)                                                         \
-{                                                                                                    \
-    MOS_USER_FEATURE_VALUE_WRITE_DATA UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__; \
-    UserFeatureWriteData.Value.i32Data                     = (value);                                \
-    UserFeatureWriteData.ValueID                           = (key);                                  \
-    MosUtilities::MosUserFeatureWriteValuesID(nullptr, &UserFeatureWriteData, 1, mosCtx);            \
-}
-
-#define WriteUserFeatureString(key, value, len, mosCtx)                                              \
-{                                                                                                    \
-    MOS_USER_FEATURE_VALUE_WRITE_DATA UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__; \
-    UserFeatureWriteData.Value.StringData.pStringData      = (value);                                \
-    UserFeatureWriteData.Value.StringData.uSize            = (len + 1);                              \
-    UserFeatureWriteData.ValueID                           = (key);                                  \
-    MosUtilities::MosUserFeatureWriteValuesID(nullptr, &UserFeatureWriteData, 1, mosCtx);            \
-}
-
-//------------------------------------------------------------------------------
 //  string
 //------------------------------------------------------------------------------
 #define MOS_SecureStrcat(strDestination, numberOfElements, strSource)                               \

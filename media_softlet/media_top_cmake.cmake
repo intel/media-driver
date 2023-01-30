@@ -202,7 +202,6 @@ set_source_files_properties(${SOFTLET_MOS_COMMON_SOURCES_} PROPERTIES LANGUAGE "
 set (SOFTLET_MOS_EXT_INCLUDE_DIRS_
 ${SOFTLET_MOS_EXT_INCLUDE_DIRS_}
 ${BS_DIR_MEDIA}/cmrtlib/linux/hardware
-${MEDIA_COMMON}/agnostic/common/shared/user_setting
 )
 
 

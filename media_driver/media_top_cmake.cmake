@@ -569,7 +569,6 @@ ${SOFTLET_MOS_EXT_INCLUDE_DIRS_}
 ${BS_DIR_MEDIA}/cmrtlib/linux/hardware # This is to include drm_device.h in cmrtlib, no cpp file needed.
 ${MEDIA_COMMON}/agnostic/common/media_interfaces
 ${MEDIA_COMMON}/agnostic/common/shared
-${MEDIA_COMMON}/agnostic/common/shared/user_setting
 ${MEDIA_COMMON}/linux/common/cp/os
 ${MEDIA_SOFTLET}/agnostic/common/media_interfaces
 ${MEDIA_SOFTLET}/agnostic/common/shared
