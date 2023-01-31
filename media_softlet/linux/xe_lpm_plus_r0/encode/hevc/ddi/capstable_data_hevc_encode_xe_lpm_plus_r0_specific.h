@@ -162,6 +162,46 @@ static ConfigDataList configDataList_VAProfileHEVCSccMain444_10_VAEntrypointEncS
   {VA_RC_CQP, 0},
 };
 
+#if VA_CHECK_VERSION(1, 12, 0)
+static VAConfigAttribValEncHEVCFeatures vaConfigAttribValEncHEVCFeatures =
+{
+  {
+    .separate_colour_planes = VA_FEATURE_NOT_SUPPORTED,
+    .scaling_lists = VA_FEATURE_SUPPORTED,
+    .amp = VA_FEATURE_REQUIRED,
+    .sao = VA_FEATURE_SUPPORTED,
+    .pcm = VA_FEATURE_NOT_SUPPORTED,
+    .temporal_mvp = VA_FEATURE_SUPPORTED,
+    .strong_intra_smoothing = VA_FEATURE_NOT_SUPPORTED,
+    .dependent_slices = VA_FEATURE_NOT_SUPPORTED,
+    .sign_data_hiding = VA_FEATURE_NOT_SUPPORTED,
+    .constrained_intra_pred = VA_FEATURE_NOT_SUPPORTED,
+    .transform_skip = VA_FEATURE_SUPPORTED,
+    .cu_qp_delta = VA_FEATURE_REQUIRED,
+    .weighted_prediction = VA_FEATURE_SUPPORTED,
+    .transquant_bypass = VA_FEATURE_NOT_SUPPORTED,
+    .deblocking_filter_disable = VA_FEATURE_NOT_SUPPORTED
+  }
+};
+
+static VAConfigAttribValEncHEVCBlockSizes vaConfigAttribValEncHEVCBlockSizes =
+{
+  {
+    .log2_max_coding_tree_block_size_minus3     = 3,
+    .log2_min_coding_tree_block_size_minus3     = 3,
+    .log2_min_luma_coding_block_size_minus3     = 0,
+    .log2_max_luma_transform_block_size_minus2  = 3,
+    .log2_min_luma_transform_block_size_minus2  = 0,
+    .max_max_transform_hierarchy_depth_inter    = 2,
+    .min_max_transform_hierarchy_depth_inter    = 0,
+    .max_max_transform_hierarchy_depth_intra    = 2,
+    .min_max_transform_hierarchy_depth_intra    = 0,
+    .log2_max_pcm_coding_block_size_minus3      = 0,
+    .log2_min_pcm_coding_block_size_minus3      = 0
+  }
+};
+#endif
+
 //!
 //! \brief  Definion for AttribList
 //!
@@ -200,6 +240,10 @@ static const AttribList attribList_VAProfileHEVCMain_VAEntrypointEncSliceLP_Xe_L
    {VAConfigAttribCustomRoundingControl, 1},
    {VAConfigAttribMaxFrameSize, 3},
    {VAConfigAttribPredictionDirection, 7},
+#if VA_CHECK_VERSION(1, 12, 0)
+   {VAConfigAttribEncHEVCFeatures, vaConfigAttribValEncHEVCFeatures.value},
+   {VAConfigAttribEncHEVCBlockSizes, vaConfigAttribValEncHEVCBlockSizes.value},
+#endif
 };
 
 static const AttribList attribList_VAProfileHEVCMain10_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0
@@ -237,6 +281,10 @@ static const AttribList attribList_VAProfileHEVCMain10_VAEntrypointEncSliceLP_Xe
    {VAConfigAttribCustomRoundingControl, 1},
    {VAConfigAttribMaxFrameSize, 3},
    {VAConfigAttribPredictionDirection, 7},
+#if VA_CHECK_VERSION(1, 12, 0)
+   {VAConfigAttribEncHEVCFeatures, vaConfigAttribValEncHEVCFeatures.value},
+   {VAConfigAttribEncHEVCBlockSizes, vaConfigAttribValEncHEVCBlockSizes.value},
+#endif
 };
 
 static const AttribList attribList_VAProfileHEVCMain444_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0
@@ -274,6 +322,10 @@ static const AttribList attribList_VAProfileHEVCMain444_VAEntrypointEncSliceLP_X
    {VAConfigAttribCustomRoundingControl, 1},
    {VAConfigAttribMaxFrameSize, 3},
    {VAConfigAttribPredictionDirection, 7},
+#if VA_CHECK_VERSION(1, 12, 0)
+   {VAConfigAttribEncHEVCFeatures, vaConfigAttribValEncHEVCFeatures.value},
+   {VAConfigAttribEncHEVCBlockSizes, vaConfigAttribValEncHEVCBlockSizes.value},
+#endif
 };
 
 static const AttribList attribList_VAProfileHEVCMain444_10_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0
@@ -311,6 +363,10 @@ static const AttribList attribList_VAProfileHEVCMain444_10_VAEntrypointEncSliceL
    {VAConfigAttribCustomRoundingControl, 1},
    {VAConfigAttribMaxFrameSize, 3},
    {VAConfigAttribPredictionDirection, 7},
+#if VA_CHECK_VERSION(1, 12, 0)
+   {VAConfigAttribEncHEVCFeatures, vaConfigAttribValEncHEVCFeatures.value},
+   {VAConfigAttribEncHEVCBlockSizes, vaConfigAttribValEncHEVCBlockSizes.value},
+#endif
 };
 
 static const AttribList attribList_VAProfileHEVCSccMain_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0
@@ -351,6 +407,10 @@ static const AttribList attribList_VAProfileHEVCSccMain_VAEntrypointEncSliceLP_X
    {VAConfigAttribCustomRoundingControl, 1},
    {VAConfigAttribMaxFrameSize, 3},
    {VAConfigAttribPredictionDirection, 7},
+#if VA_CHECK_VERSION(1, 12, 0)
+   {VAConfigAttribEncHEVCFeatures, vaConfigAttribValEncHEVCFeatures.value},
+   {VAConfigAttribEncHEVCBlockSizes, vaConfigAttribValEncHEVCBlockSizes.value},
+#endif
 };
 
 static const AttribList attribList_VAProfileHEVCSccMain10_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0
@@ -391,6 +451,10 @@ static const AttribList attribList_VAProfileHEVCSccMain10_VAEntrypointEncSliceLP
    {VAConfigAttribCustomRoundingControl, 1},
    {VAConfigAttribMaxFrameSize, 3},
    {VAConfigAttribPredictionDirection, 7},
+#if VA_CHECK_VERSION(1, 12, 0)
+   {VAConfigAttribEncHEVCFeatures, vaConfigAttribValEncHEVCFeatures.value},
+   {VAConfigAttribEncHEVCBlockSizes, vaConfigAttribValEncHEVCBlockSizes.value},
+#endif
 };
 
 static const AttribList attribList_VAProfileHEVCSccMain444_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0
@@ -431,6 +495,10 @@ static const AttribList attribList_VAProfileHEVCSccMain444_VAEntrypointEncSliceL
    {VAConfigAttribCustomRoundingControl, 1},
    {VAConfigAttribMaxFrameSize, 3},
    {VAConfigAttribPredictionDirection, 7},
+#if VA_CHECK_VERSION(1, 12, 0)
+   {VAConfigAttribEncHEVCFeatures, vaConfigAttribValEncHEVCFeatures.value},
+   {VAConfigAttribEncHEVCBlockSizes, vaConfigAttribValEncHEVCBlockSizes.value},
+#endif
 };
 
 static const AttribList attribList_VAProfileHEVCSccMain444_10_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0
@@ -471,6 +539,10 @@ static const AttribList attribList_VAProfileHEVCSccMain444_10_VAEntrypointEncSli
    {VAConfigAttribCustomRoundingControl, 1},
    {VAConfigAttribMaxFrameSize, 3},
    {VAConfigAttribPredictionDirection, 7},
+#if VA_CHECK_VERSION(1, 12, 0)
+   {VAConfigAttribEncHEVCFeatures, vaConfigAttribValEncHEVCFeatures.value},
+   {VAConfigAttribEncHEVCBlockSizes, vaConfigAttribValEncHEVCBlockSizes.value},
+#endif
 };
 
 //!
