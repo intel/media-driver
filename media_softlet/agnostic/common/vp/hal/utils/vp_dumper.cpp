@@ -852,6 +852,78 @@ bool VpSurfaceDumper::HasAuxSurf(
     return hasAuxSurf;
 }
 
+MOS_STATUS VpSurfaceDumper::CopyThenLockResources(
+    PMOS_INTERFACE               pOsInterface,
+    PVPHAL_SURFACE               pSurface,
+    bool                         hasAuxSurf,
+    bool                         enableAuxDump,
+    PMOS_LOCK_PARAMS             pLockFlags,
+    PMOS_RESOURCE                pLockedResource,
+    VPHAL_SURF_DUMP_SURFACE_DEF *pPlanes,
+    uint32_t                    *pdwNumPlanes,
+    uint32_t                    *pdwSize,
+    uint8_t                     *&pData)
+{
+    VP_FUNC_CALL();
+
+    MOS_STATUS     eStatus = MOS_STATUS_SUCCESS;
+    bool           bAllocated;
+    PVPHAL_SURFACE temp2DSurfForCopy = nullptr;
+
+    temp2DSurfForCopy = (PVPHAL_SURFACE)MOS_AllocAndZeroMemory(sizeof(VPHAL_SURFACE));
+    VP_DEBUG_CHK_NULL(temp2DSurfForCopy);
+    VP_RENDER_CHK_STATUS(VpUtils::ReAllocateSurface(
+        pOsInterface,
+        temp2DSurfForCopy,
+        "Temp2DSurfForSurfDumper",
+        pSurface->Format,
+        MOS_GFXRES_2D,
+        MOS_TILE_LINEAR,
+        pSurface->dwWidth,
+        pSurface->dwHeight,
+        false,
+        MOS_MMC_DISABLED,
+        &bAllocated,
+        MOS_HW_RESOURCE_DEF_MAX,
+        MOS_TILE_UNSET_GMM,
+        MOS_MEMPOOL_SYSTEMMEMORY));
+
+    m_osInterface->pfnDoubleBufferCopyResource(
+        m_osInterface,
+        &pSurface->OsResource,
+        &temp2DSurfForCopy->OsResource,
+        false);
+
+    pData = (uint8_t *)pOsInterface->pfnLockResource(
+        pOsInterface,
+        &temp2DSurfForCopy->OsResource,
+        pLockFlags);
+    pLockedResource = &temp2DSurfForCopy->OsResource;
+
+    // get plane definitions
+    VP_DEBUG_CHK_STATUS(GetPlaneDefs(
+        temp2DSurfForCopy,
+        pPlanes,
+        pdwNumPlanes,
+        pdwSize,
+        hasAuxSurf,        //(hasAuxSurf && enableAuxDump),
+        !enableAuxDump));  // !(hasAuxSurf && enableAuxDump)));
+
+finish:
+    if (temp2DSurfForCopy)
+    {
+        MOS_GFXRES_FREE_FLAGS resFreeFlags = {0};
+        if (VpUtils::IsSyncFreeNeededForMMCSurface(temp2DSurfForCopy, pOsInterface))
+        {
+            resFreeFlags.SynchronousDestroy = 1;
+        }
+        pOsInterface->pfnFreeResourceWithFlag(pOsInterface, &(temp2DSurfForCopy->OsResource), resFreeFlags.Value);
+    }
+    MOS_SafeFreeMemory(temp2DSurfForCopy);
+
+    return eStatus;
+}
+
 MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
     PMOS_INTERFACE          pOsInterface,
     PVPHAL_SURFACE          pSurface,
@@ -875,7 +947,6 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
     bool                                enableAuxDump;
     bool                                enablePlaneDump = false;
     PMOS_RESOURCE                       pLockedResource = nullptr;
-    PVPHAL_SURFACE                      temp2DSurfForCopy = nullptr;
     VP_DEBUG_ASSERT(pSurface);
     VP_DEBUG_ASSERT(pOsInterface);
     VP_DEBUG_ASSERT(psPathPrefix);
@@ -938,46 +1009,8 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
             (pSurface->TileType != MOS_TILE_LINEAR) &&
             !(pSurface->Format == Format_RGBP || pSurface->Format == Format_BGRP))
         {
-            bool bAllocated;
-
-            temp2DSurfForCopy = (PVPHAL_SURFACE)MOS_AllocAndZeroMemory(sizeof(VPHAL_SURFACE));
-            VP_DEBUG_CHK_NULL(temp2DSurfForCopy);
-            VP_RENDER_CHK_STATUS(VpUtils::ReAllocateSurface(
-                pOsInterface,
-                temp2DSurfForCopy,
-                "Temp2DSurfForSurfDumper",
-                pSurface->Format,
-                MOS_GFXRES_2D,
-                MOS_TILE_LINEAR,
-                pSurface->dwWidth,
-                pSurface->dwHeight,
-                false,
-                MOS_MMC_DISABLED,
-                &bAllocated,
-                MOS_HW_RESOURCE_DEF_MAX,
-                MOS_TILE_UNSET_GMM,
-                MOS_MEMPOOL_SYSTEMMEMORY));
-
-            m_osInterface->pfnDoubleBufferCopyResource(
-                m_osInterface,
-                &pSurface->OsResource,
-                &temp2DSurfForCopy->OsResource,
-                false);
-
-            pData = (uint8_t *)pOsInterface->pfnLockResource(
-                pOsInterface,
-                &temp2DSurfForCopy->OsResource,
-                &LockFlags);
-            pLockedResource = &temp2DSurfForCopy->OsResource;
-
-            // get plane definitions
-            VP_DEBUG_CHK_STATUS(GetPlaneDefs(
-                temp2DSurfForCopy,
-                planes,
-                &dwNumPlanes,
-                &dwSize,
-                hasAuxSurf,        //(hasAuxSurf && enableAuxDump),
-                !enableAuxDump));  // !(hasAuxSurf && enableAuxDump)));
+            CopyThenLockResources(pOsInterface, pSurface, hasAuxSurf, enableAuxDump, &LockFlags,
+                pLockedResource, planes, &dwNumPlanes, &dwSize, pData);
         }
         else
         {
@@ -986,6 +1019,12 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
                 &pSurface->OsResource,
                 &LockFlags);
             pLockedResource = &pSurface->OsResource;
+            // if lock failed, fallback to DoubleBufferCopy
+            if (nullptr == pData)
+            {
+                CopyThenLockResources(pOsInterface, pSurface, hasAuxSurf, enableAuxDump, &LockFlags,
+                    pLockedResource, planes, &dwNumPlanes, &dwSize, pData);
+            }
         }
         VP_DEBUG_CHK_NULL(pData);
 
@@ -1213,16 +1252,6 @@ finish:
         eStatus = (MOS_STATUS)pOsInterface->pfnUnlockResource(pOsInterface, pLockedResource);
         VP_DEBUG_ASSERT(eStatus == MOS_STATUS_SUCCESS);
     }
-    if (temp2DSurfForCopy)
-    {
-        MOS_GFXRES_FREE_FLAGS resFreeFlags = {0};
-        if (VpUtils::IsSyncFreeNeededForMMCSurface(temp2DSurfForCopy, pOsInterface))
-        {
-            resFreeFlags.SynchronousDestroy = 1;
-        }
-        pOsInterface->pfnFreeResourceWithFlag(pOsInterface, &(temp2DSurfForCopy->OsResource), resFreeFlags.Value);
-    }
-    MOS_SafeFreeMemory(temp2DSurfForCopy);
 
     return eStatus;
 }

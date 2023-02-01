@@ -275,6 +275,17 @@ public:
         bool                        bNoDecompWhenLock,
         uint8_t*                    pData);
 
+    virtual MOS_STATUS CopyThenLockResources(
+        PMOS_INTERFACE               pOsInterface,
+        PVPHAL_SURFACE               pSurface,
+        bool                         hasAuxSurf,
+        bool                         enableAuxDump,
+        PMOS_LOCK_PARAMS             pLockFlags,
+        PMOS_RESOURCE                pLockedResource,
+        VPHAL_SURF_DUMP_SURFACE_DEF *pPlanes,
+        uint32_t                    *pdwNumPlanes,
+        uint32_t                    *pdwSize,
+        uint8_t                     *&pData);
 
     VPHAL_SURF_DUMP_SPEC    m_dumpSpec;
 
