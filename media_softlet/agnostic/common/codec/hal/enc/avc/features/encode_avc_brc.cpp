@@ -1023,7 +1023,7 @@ MOS_STATUS AvcEncodeBRC::SetSequenceStructs()
         m_brcReset = seqParams->bResetBRC;
     }
 
-    if (seqParams->RateControlMethod == RATECONTROL_ICQ)
+    if (seqParams->RateControlMethod == RATECONTROL_ICQ || seqParams->RateControlMethod == RATECONTROL_QVBR)
     {
         if (seqParams->ICQQualityFactor < ENCODE_AVC_VDENC_MIN_ICQ_QUALITYFACTOR ||
             seqParams->ICQQualityFactor > CODECHAL_ENCODE_AVC_MAX_ICQ_QUALITYFACTOR)
