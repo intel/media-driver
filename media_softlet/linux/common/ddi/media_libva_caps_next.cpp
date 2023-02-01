@@ -142,7 +142,10 @@ VAStatus MediaLibvaCapsNext::QueryConfigAttributes(
     *numAttribs     = configItem->numAttribs;
     for (int i = 0; i < configItem->numAttribs; ++i)
     {
-        attribList[i] = configItem->attribList[i];
+        if (configItem->attribList[i].value != VA_ATTRIB_NOT_SUPPORTED)
+        {
+            attribList[i] = configItem->attribList[i];
+        }
     }
     return VA_STATUS_SUCCESS;
 }

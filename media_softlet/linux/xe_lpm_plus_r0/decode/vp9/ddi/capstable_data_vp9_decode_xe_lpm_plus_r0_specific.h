@@ -77,7 +77,7 @@ static const AttribList attribList_VAProfileVP9Profile0_VAEntrypointVLD_Xe_Lpm_p
    {VAConfigAttribMaxPictureWidth, CODEC_16K_MAX_PIC_WIDTH},
    {VAConfigAttribMaxPictureHeight, CODEC_16K_MAX_PIC_HEIGHT},
    {VAConfigAttribDecProcessing, VA_DEC_PROCESSING},
-   // {VAConfigAttribEncryption, VA_ATTRIB_NOT_SUPPORTED},
+   {VAConfigAttribEncryption, VA_ATTRIB_NOT_SUPPORTED},
    {VAConfigAttribProcessingRate, VA_PROCESSING_RATE_DECODE},
    {VAConfigAttribCustomRoundingControl, 1},
 };
@@ -89,7 +89,7 @@ static const AttribList attribList_VAProfileVP9Profile1_VAEntrypointVLD_Xe_Lpm_p
    {VAConfigAttribMaxPictureWidth, CODEC_16K_MAX_PIC_WIDTH},
    {VAConfigAttribMaxPictureHeight, CODEC_16K_MAX_PIC_HEIGHT},
    {VAConfigAttribDecProcessing, VA_DEC_PROCESSING},
-   // {VAConfigAttribEncryption, VA_ATTRIB_NOT_SUPPORTED},
+   {VAConfigAttribEncryption, VA_ATTRIB_NOT_SUPPORTED},
    {VAConfigAttribProcessingRate, VA_PROCESSING_RATE_DECODE},
    {VAConfigAttribCustomRoundingControl, 1},
 };
@@ -101,7 +101,7 @@ static const AttribList attribList_VAProfileVP9Profile2_VAEntrypointVLD_Xe_Lpm_p
    {VAConfigAttribMaxPictureWidth, CODEC_16K_MAX_PIC_WIDTH},
    {VAConfigAttribMaxPictureHeight, CODEC_16K_MAX_PIC_HEIGHT},
    {VAConfigAttribDecProcessing, VA_DEC_PROCESSING},
-   // {VAConfigAttribEncryption, VA_ATTRIB_NOT_SUPPORTED},
+   {VAConfigAttribEncryption, VA_ATTRIB_NOT_SUPPORTED},
    {VAConfigAttribProcessingRate, VA_PROCESSING_RATE_DECODE},
    {VAConfigAttribCustomRoundingControl, 1},
 };
@@ -113,7 +113,7 @@ static const AttribList attribList_VAProfileVP9Profile3_VAEntrypointVLD_Xe_Lpm_p
    {VAConfigAttribMaxPictureWidth, CODEC_16K_MAX_PIC_WIDTH},
    {VAConfigAttribMaxPictureHeight, CODEC_16K_MAX_PIC_HEIGHT},
    {VAConfigAttribDecProcessing, VA_DEC_PROCESSING},
-   // {VAConfigAttribEncryption, VA_ATTRIB_NOT_SUPPORTED},
+   {VAConfigAttribEncryption, VA_ATTRIB_NOT_SUPPORTED},
    {VAConfigAttribProcessingRate, VA_PROCESSING_RATE_DECODE},
    {VAConfigAttribCustomRoundingControl, 1},
 };
