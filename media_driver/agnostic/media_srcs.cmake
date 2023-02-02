@@ -326,7 +326,7 @@ if(ENABLE_REQUIRED_GEN_CODE OR GEN9_KBL)
     media_include_subdirectory(gen9_kbl)
 endif()
 
-if(ENABLE_REQUIRED_GEN_CODE OR GEN10)
+if(GEN10)
     media_include_subdirectory(gen10)
 endif()
 

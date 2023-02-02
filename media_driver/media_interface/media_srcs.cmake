@@ -43,7 +43,7 @@ if(ENABLE_REQUIRED_GEN_CODE OR GEN9_KBL)
     media_include_subdirectory(media_interfaces_m9_kbl)
 endif()
 
-if(ENABLE_REQUIRED_GEN_CODE OR GEN10_CNL)
+if(GEN10_CNL)
     media_include_subdirectory(media_interfaces_m10_cnl)
 endif()
 

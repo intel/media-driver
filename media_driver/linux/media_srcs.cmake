@@ -48,11 +48,11 @@ if(ENABLE_REQUIRED_GEN_CODE OR GEN9_CFL)
     media_include_subdirectory(gen9_cfl)
 endif()
 
-if(ENABLE_REQUIRED_GEN_CODE OR GEN10)
+if(GEN10)
     media_include_subdirectory(gen10)
 endif()
 
-if(ENABLE_REQUIRED_GEN_CODE OR GEN10_CNL)
+if(GEN10_CNL)
     media_include_subdirectory(gen10_cnl)
 endif()
 
