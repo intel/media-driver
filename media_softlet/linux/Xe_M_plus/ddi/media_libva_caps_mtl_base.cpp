@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021-2022, Intel Corporation
+* Copyright (c) 2021-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1189,7 +1189,7 @@ VAStatus MediaLibvaCapsMtlBase::CreateDecAttributes(
     }
     if(IsAvcProfile(profile))
     {
-        attrib.value = CODEC_8K_MAX_PIC_WIDTH;
+        attrib.value = CODEC_4K_MAX_PIC_WIDTH;
     }
     if(IsHevcProfile(profile) || IsVp9Profile(profile) || IsAV1Profile(profile))
     {
@@ -1213,7 +1213,7 @@ VAStatus MediaLibvaCapsMtlBase::CreateDecAttributes(
     }
     if(IsAvcProfile(profile))
     {
-        attrib.value = CODEC_8K_MAX_PIC_HEIGHT;
+        attrib.value = CODEC_4K_MAX_PIC_HEIGHT;
     }
     if(IsHevcProfile(profile) || IsVp9Profile(profile) || IsAV1Profile(profile))
     {

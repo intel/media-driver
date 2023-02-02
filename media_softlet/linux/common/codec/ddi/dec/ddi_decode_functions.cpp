@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022, Intel Corporation
+* Copyright (c) 2022-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -169,19 +169,13 @@ VAStatus DdiDecodeFunctions::CreateContext(
     configItem = mediaCtx->m_capsNext->m_capsTable->QueryConfigItemFromIndex(configId + DDI_CODEC_GEN_CONFIG_ATTRIBUTES_DEC_BASE);
     DDI_CODEC_CHK_NULL(configItem, "Invalid config id!", VA_STATUS_ERROR_INVALID_PARAMETER);
 
-    uint16_t mode = CODECHAL_DECODE_MODE_AVCVLD;
     PDDI_DECODE_CONTEXT decCtx = nullptr;
     VAStatus va = VA_STATUS_SUCCESS;
 
     DdiDecodeBase *ddiDecode = DdiDecodeFactory::Create(ComponentInfo{configItem->profile, configItem->entrypoint});
     DDI_CODEC_CHK_NULL(ddiDecode, "DDI: failed to Create Decode Context in CreateContext", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
-    mode = ddiDecode->GetDecodeCodecMode(configItem->profile);
-    va   = ddiDecode->CheckDecodeResolution(
-           mode,
-           configItem->profile,
-           pictureWidth,
-           pictureHeight);
+    va = ddiDecode->CheckDecodeResolution(configItem, pictureWidth, pictureHeight);
     if (va != VA_STATUS_SUCCESS)
     {
         return va;

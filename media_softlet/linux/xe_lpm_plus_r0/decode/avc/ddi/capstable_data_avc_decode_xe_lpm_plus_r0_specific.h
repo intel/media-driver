@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022, Intel Corporation
+* Copyright (c) 2022-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -67,8 +67,8 @@ static const AttribList attribList_VAProfileH264Main_VAEntrypointVLD_Xe_Lpm_plus
    {VAConfigAttribRTFormat, VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV422 | VA_RT_FORMAT_RGB32},
    {VAConfigAttribDecSliceMode, VA_DEC_SLICE_MODE_NORMAL | VA_DEC_SLICE_MODE_BASE},
    {VAConfigAttribDecProcessing, VA_DEC_PROCESSING},
-   {VAConfigAttribMaxPictureWidth, CODEC_8K_MAX_PIC_WIDTH},
-   {VAConfigAttribMaxPictureHeight, CODEC_8K_MAX_PIC_HEIGHT},
+   {VAConfigAttribMaxPictureWidth, CODEC_4K_MAX_PIC_WIDTH},
+   {VAConfigAttribMaxPictureHeight, CODEC_4K_MAX_PIC_WIDTH},
    {VAConfigAttribEncryption, VA_ATTRIB_NOT_SUPPORTED},
    {VAConfigAttribProcessingRate, VA_PROCESSING_RATE_DECODE},
    {VAConfigAttribCustomRoundingControl, 1},
@@ -79,8 +79,8 @@ static const AttribList attribList_VAProfileH264High_VAEntrypointVLD_Xe_Lpm_plus
    {VAConfigAttribRTFormat, VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV422 | VA_RT_FORMAT_RGB32},
    {VAConfigAttribDecSliceMode, VA_DEC_SLICE_MODE_NORMAL | VA_DEC_SLICE_MODE_BASE},
    {VAConfigAttribDecProcessing, VA_DEC_PROCESSING},
-   {VAConfigAttribMaxPictureWidth, CODEC_8K_MAX_PIC_WIDTH},
-   {VAConfigAttribMaxPictureHeight, CODEC_8K_MAX_PIC_HEIGHT},
+   {VAConfigAttribMaxPictureWidth, CODEC_4K_MAX_PIC_WIDTH},
+   {VAConfigAttribMaxPictureHeight, CODEC_4K_MAX_PIC_WIDTH},
    {VAConfigAttribEncryption, VA_ATTRIB_NOT_SUPPORTED},
    {VAConfigAttribProcessingRate, VA_PROCESSING_RATE_DECODE},
    {VAConfigAttribCustomRoundingControl, 1},
@@ -91,8 +91,8 @@ static const AttribList attribList_VAProfileH264ConstrainedBaseline_VAEntrypoint
    {VAConfigAttribRTFormat, VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV422 | VA_RT_FORMAT_RGB32},
    {VAConfigAttribDecSliceMode, VA_DEC_SLICE_MODE_NORMAL | VA_DEC_SLICE_MODE_BASE},
    {VAConfigAttribDecProcessing, VA_DEC_PROCESSING},
-   {VAConfigAttribMaxPictureWidth, CODEC_8K_MAX_PIC_WIDTH},
-   {VAConfigAttribMaxPictureHeight, CODEC_8K_MAX_PIC_HEIGHT},
+   {VAConfigAttribMaxPictureWidth, CODEC_4K_MAX_PIC_WIDTH},
+   {VAConfigAttribMaxPictureHeight, CODEC_4K_MAX_PIC_WIDTH},
    {VAConfigAttribEncryption, VA_ATTRIB_NOT_SUPPORTED},
    {VAConfigAttribProcessingRate, VA_PROCESSING_RATE_DECODE},
    {VAConfigAttribCustomRoundingControl, 1},
