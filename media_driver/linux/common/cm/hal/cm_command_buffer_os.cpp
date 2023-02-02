@@ -34,7 +34,6 @@
 #include "cm_group_space.h"
 
 #include "mhw_render_g12_X.h"
-#include "mhw_render_g11_X.h"
 #include "mhw_mi_g12_X.h"
 
 #include "mos_solo_generic.h"
