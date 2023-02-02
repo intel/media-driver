@@ -260,7 +260,7 @@ void VpPlatformInterface::AddVpIsaKernelEntryToList(
     }
 }
 
-void VpPlatformInterface::AddVpL0KernelEntryToList(
+void VpPlatformInterface::AddVpNativeAdvKernelEntryToList(
     const uint32_t *kernelBin,
     uint32_t        kernelBinSize,
     std::string     kernelName)
@@ -271,7 +271,28 @@ void VpPlatformInterface::AddVpL0KernelEntryToList(
     tmpEntry.kernelBin     = kernelBin;
     tmpEntry.kernelBinSize = kernelBinSize;
 
-    m_vpL0KernelBinaryList.insert(std::make_pair(kernelName, tmpEntry));
+    m_vpNativeAdvKernelBinaryList.insert(std::make_pair(kernelName, tmpEntry));
+}
+
+void VpPlatformInterface::InitVpDelayedNativeAdvKernel(
+    const uint32_t *kernelBin,
+    uint32_t        kernelBinSize,
+    std::string     kernelName)
+{
+    VP_FUNC_CALL();
+
+    VP_KERNEL_BINARY_ENTRY tmpEntry = {};
+    tmpEntry.kernelBin              = kernelBin;
+    tmpEntry.kernelBinSize          = kernelBinSize;
+    InitVpNativeAdvKernels(kernelName, tmpEntry);
+}
+
+void VpPlatformInterface::AddNativeAdvKernelToDelayedList(
+    DelayLoadedKernelType kernelType,
+    DelayLoadedFunc       func)
+{
+    VP_FUNC_CALL();
+    m_vpDelayLoadedNativeFunctionSet.insert(std::make_pair(kernelType, func));
 }
 
 void       KernelDll_ModifyFunctionPointers_Next(Kdll_State *pState);
@@ -309,18 +330,18 @@ MOS_STATUS VpPlatformInterface::InitVpRenderHwCaps()
         }
     }
 
-    if (!m_vpL0KernelBinaryList.empty())
+    if (!m_vpNativeAdvKernelBinaryList.empty())
     {
-        // Init L0 kernel form VP L0 Kernel Binary List
-        for (auto &curKernelEntry : m_vpL0KernelBinaryList)
+        // Init native adv kernel form VP Native adv kernel Binary List
+        for (auto &curKernelEntry : m_vpNativeAdvKernelBinaryList)
         {
-            VP_PUBLIC_CHK_STATUS_RETURN(InitVpL0Kernels(curKernelEntry.first, curKernelEntry.second));
+            VP_PUBLIC_CHK_STATUS_RETURN(InitVpNativeAdvKernels(curKernelEntry.first, curKernelEntry.second));
         }
     }
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpPlatformInterface::InitVpL0Kernels(
+MOS_STATUS VpPlatformInterface::InitVpNativeAdvKernels(
     std::string            kernelName,
     VP_KERNEL_BINARY_ENTRY kernelBinaryEntry)
 {
@@ -494,6 +515,11 @@ VpPlatformInterface::~VpPlatformInterface()
     {
         m_vpDelayLoadedBinaryList.clear();
     }
+
+    if (!m_vpDelayLoadedNativeFunctionSet.empty())
+    {
+        m_vpDelayLoadedNativeFunctionSet.clear();
+    }
 }
 
 MOS_STATUS VpPlatformInterface::GetKernelParam(VpKernelID kernlId, RENDERHAL_KERNEL_PARAM &param)
@@ -539,6 +565,19 @@ MOS_STATUS VpPlatformInterface::InitializeDelayedKernels(DelayLoadedKernelType t
         }
         feature->second = true;
     }
+
+    if (!m_vpDelayLoadedNativeFunctionSet.empty())
+    {
+        auto delayLoadedKernel = m_vpDelayLoadedNativeFunctionSet.find(type);
+        if (delayLoadedKernel != m_vpDelayLoadedNativeFunctionSet.end())
+        {
+            DelayLoadedFunc func = delayLoadedKernel->second;
+            VP_PUBLIC_CHK_NULL_RETURN(func);
+            func(*this);
+            m_vpDelayLoadedNativeFunctionSet.erase(delayLoadedKernel->first);
+        }
+    }
+
     return MOS_STATUS_SUCCESS;
 }
 

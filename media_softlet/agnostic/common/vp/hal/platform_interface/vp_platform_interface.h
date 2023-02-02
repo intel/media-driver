@@ -38,6 +38,7 @@ namespace vp
 class VPFeatureManager;
 class SfcRenderBase;
 class VpKernelSet;
+typedef void (*DelayLoadedFunc)(vp::VpPlatformInterface &vpPlatformInterface);
 
 struct VP_KERNEL_BINARY_ENTRY
 {
@@ -148,7 +149,7 @@ public:
         uint32_t              cisaCodeSize,
         std::string           postfix = "");
 
-    virtual MOS_STATUS InitVpL0Kernels(
+    virtual MOS_STATUS InitVpNativeAdvKernels(
         std::string kernelName,
         VP_KERNEL_BINARY_ENTRY kernelBinaryEntry);
 
@@ -297,10 +298,19 @@ public:
         std::string           postfix         = "",
         DelayLoadedKernelType delayKernelType = KernelNone);
 
-    virtual void AddVpL0KernelEntryToList(
+    virtual void AddVpNativeAdvKernelEntryToList(
                 const uint32_t *kernelBin,
                 uint32_t        kernelBinSize,
                 std::string     kernelName);
+
+    virtual void InitVpDelayedNativeAdvKernel(
+        const uint32_t *kernelBin,
+        uint32_t        kernelBinSize,
+        std::string     kernelName);
+
+    virtual void AddNativeAdvKernelToDelayedList(
+        DelayLoadedKernelType kernelType,
+        DelayLoadedFunc       func);
 
     //only for get kernel binary in legacy path not being used in APO path.
     virtual MOS_STATUS GetKernelBinary(const void *&kernelBin, uint32_t &kernelSize, const void *&patchKernelBin, uint32_t &patchKernelSize);
@@ -351,7 +361,8 @@ protected:
     std::vector<VP_KERNEL_BINARY_ENTRY>    m_vpIsaKernelBinaryList;
     std::vector<VP_KERNEL_BINARY_ENTRY>    m_vpDelayLoadedBinaryList;
     std::map<DelayLoadedKernelType, bool>  m_vpDelayLoadedFeatureSet;
-    std::map<std::string, VP_KERNEL_BINARY_ENTRY> m_vpL0KernelBinaryList;
+    std::map<std::string, VP_KERNEL_BINARY_ENTRY> m_vpNativeAdvKernelBinaryList;
+    std::map<DelayLoadedKernelType, DelayLoadedFunc> m_vpDelayLoadedNativeFunctionSet;
 
     bool m_isRenderDisabled = false;
 
