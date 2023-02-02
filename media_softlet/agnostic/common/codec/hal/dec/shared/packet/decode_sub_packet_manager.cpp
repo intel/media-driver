@@ -75,7 +75,7 @@ MOS_STATUS DecodeSubPacketManager::Prepare()
 {
     for (auto subPacket : m_subPacketList)
     {
-        subPacket.second->Prepare();
+        DECODE_CHK_STATUS(subPacket.second->Prepare());
     }
     return MOS_STATUS_SUCCESS;
 }
