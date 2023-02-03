@@ -330,15 +330,15 @@ if(GEN10)
     media_include_subdirectory(gen10)
 endif()
 
-if(ENABLE_REQUIRED_GEN_CODE OR GEN11)
+if(GEN11)
     media_include_subdirectory(gen11)
 endif()
 
-if(ENABLE_REQUIRED_GEN_CODE OR GEN11_ICLLP)
+if(GEN11_ICLLP)
     media_include_subdirectory(gen11_icllp)
 endif()
 
-if(ENABLE_REQUIRED_GEN_CODE OR GEN11_JSL)
+if(GEN11_JSL)
     media_include_subdirectory(gen11_jsl_ehl)
 endif()
 

@@ -47,11 +47,11 @@ if(GEN10_CNL)
     media_include_subdirectory(media_interfaces_m10_cnl)
 endif()
 
-if(ENABLE_REQUIRED_GEN_CODE OR GEN11_ICLLP)
+if(GEN11_ICLLP)
     media_include_subdirectory(media_interfaces_m11_icllp)
 endif()
 
-if(ENABLE_REQUIRED_GEN_CODE OR GEN11_JSL)
+if(GEN11_JSL)
     media_include_subdirectory(media_interfaces_m11_jsl_ehl)
 endif()
 
