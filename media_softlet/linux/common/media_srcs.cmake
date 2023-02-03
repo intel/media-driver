@@ -20,7 +20,6 @@
 
 media_include_subdirectory(os)
 media_include_subdirectory(cp)
-media_include_subdirectory(dec)
 media_include_subdirectory(vp)
 media_include_subdirectory(media_interfaces)
 media_include_subdirectory(shared)
