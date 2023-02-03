@@ -535,6 +535,7 @@ struct _RENDER_HDR_PARAMS
    bool                             coeffAllocated     = false;
    bool                             OETF1DLUTAllocated = false;
    bool                             Cri3DLUTAllocated  = false;
+   PVPHAL_BLENDING_PARAMS           pBlendingParams    = nullptr;              //!< Blending parameters
 };
 using RENDER_HDR_PARAMS  = _RENDER_HDR_PARAMS;
 using PRENDER_HDR_PARAMS = RENDER_HDR_PARAMS *;

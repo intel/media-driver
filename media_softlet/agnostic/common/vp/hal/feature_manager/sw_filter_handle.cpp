@@ -712,7 +712,7 @@ bool SwFilterHdrHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS &params, bool isInp
 
     // Temorary solution for menu/FBI not show up : route all S2S uage to HDR kernel path, need to consider RenderBlockedFromCp
 
-    return (bBt2020Output || bToneMapping || bMultiLayerBt2020);
+    return (bBt2020Output || bToneMapping || bMultiLayerBt2020 || bFP16);
 }
 
 SwFilter *SwFilterHdrHandler::CreateSwFilter()

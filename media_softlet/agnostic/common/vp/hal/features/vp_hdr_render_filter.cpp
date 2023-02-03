@@ -96,6 +96,13 @@ MOS_STATUS VpHdrRenderFilter::CalculateEngineParams(
     SwFilterRotMir *rotation      = dynamic_cast<SwFilterRotMir *>(m_executedPipe->GetSwFilter(true, 0, FeatureTypeRotMir));
     m_renderHdrParams.Rotation    = rotation ? rotation->GetSwFilterParams().rotation : VPHAL_ROTATION_IDENTITY;
 
+    auto blending = dynamic_cast<SwFilterBlending *>(m_executedPipe->GetSwFilter(true, i, FeatureTypeBlending));
+    if (blending)
+    {
+        auto &blendingParams              = blending->GetSwFilterParams();
+        m_renderHdrParams.pBlendingParams = blendingParams.blendingParams;
+    }
+
     for (i = 0; i < m_renderHdrParams.uSourceCount && i < VPHAL_MAX_HDR_INPUT_LAYER; ++i)
     {
         SwFilterHdr *hdrfilter = dynamic_cast<SwFilterHdr *>(m_executedPipe->GetSwFilter(true, i, FeatureTypeHdr));

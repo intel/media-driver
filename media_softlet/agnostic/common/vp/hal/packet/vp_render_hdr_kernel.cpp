@@ -2476,7 +2476,7 @@ MOS_STATUS VpRenderHdrKernel::HdrInitCoeff(
         }
         else
         {
-            pCoeff += pCoeffSurface->osSurface->dwDepth / sizeof(float) * 2;
+            pCoeff += pCoeffSurface->osSurface->dwPitch / sizeof(float) * 2;
         }
 
         if (params->StageEnableFlags[i].CCMEnable)
@@ -3830,6 +3830,8 @@ MOS_STATUS VpRenderHdrKernel::GetCurbeState(void *&curbe, uint32_t &curbeLength)
             }
             m_hdrCurbe.DW58.TwoLayerOperationLayer0              = VPHAL_HDR_TWO_LAYER_OPTION_COMP;
             if (pSource->SurfType == SURF_IN_PRIMARY                &&
+                m_hdrParams->pBlendingParams                        &&
+                m_hdrParams->pBlendingParams->BlendType == BLEND_SOURCE &&
                 (IS_RGB_CSPACE(pSource->ColorSpace) || IS_COLOR_SPACE_BT2020_RGB(pSource->ColorSpace)))
             {
                 // For PDVD alpha blending issue:
