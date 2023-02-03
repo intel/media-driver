@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022-2023, Intel Corporation
+* Copyright (c) 2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -310,10 +310,13 @@ public:
     VAStatus DecodeCombineBitstream(DDI_MEDIA_CONTEXT *mediaCtx);
 
     //!
-    //! \brief    Check if the resolution is valid for a given decode config
+    //! \brief    Check if the resolution is valid for a given decode codec mode
     //!
-    //! \param    [in] configItem
-    //!           Pointer to ConfigLinux
+    //! \param    [in] codecMode
+    //!           Specify the codec mode
+    //!
+    //! \param    [in] profile
+    //!           VA profile
     //!
     //! \param    [in] width
     //!           Specify the width for checking
@@ -325,10 +328,21 @@ public:
     //!           VA_STATUS_SUCCESS if the resolution is supported
     //!           VA_STATUS_ERROR_RESOLUTION_NOT_SUPPORTED if the resolution isn't valid
     //!
-    VAStatus CheckDecodeResolution(
-        ConfigLinux       *configItem,
-        uint32_t          width,
-        uint32_t          height);
+    virtual VAStatus CheckDecodeResolution(
+            int32_t   codecMode,
+            VAProfile profile,
+            uint32_t  width,
+            uint32_t  height) = 0;
+
+    //!
+    //! \brief    Return internal decode mode for given profile
+    //!
+    //! \param    [in] profile
+    //!           Specify the VAProfile
+    //!
+    //! \return   Codehal mode: decode codec mode
+    //!
+    virtual CODECHAL_MODE GetDecodeCodecMode(VAProfile profile) = 0;
 
     //!
     //! \brief  Gets the decode standard

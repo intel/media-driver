@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022-2023, Intel Corporation
+* Copyright (c) 2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1027,6 +1027,53 @@ void DdiDecodeAv1::ContextInit(
     m_decodeCtx->wMode = CODECHAL_DECODE_MODE_AV1VLD;
 
     return;
+}
+
+VAStatus DdiDecodeAv1::CheckDecodeResolution(
+    int32_t   codecMode,
+    VAProfile profile,
+    uint32_t  width,
+    uint32_t  height)
+{
+    DDI_CODEC_FUNC_ENTER;
+
+    uint32_t maxWidth = 0, maxHeight = 0;
+    switch (codecMode)
+    {
+    case CODECHAL_DECODE_MODE_AV1VLD:
+        maxWidth  = m_decAv1Max16kWidth;
+        maxHeight = m_decAv1Max16kHeight;
+        break;
+    default:
+        maxWidth  = m_decDefaultMaxWidth;
+        maxHeight = m_decDefaultMaxHeight;
+        break;
+    }
+
+    if (width > maxWidth || height > maxHeight)
+    {
+        return VA_STATUS_ERROR_RESOLUTION_NOT_SUPPORTED;
+    }
+    else
+    {
+        return VA_STATUS_SUCCESS;
+    }
+}
+
+CODECHAL_MODE DdiDecodeAv1::GetDecodeCodecMode(VAProfile profile)
+{
+    DDI_CODEC_FUNC_ENTER;
+
+    int8_t vaProfile = (int8_t)profile;
+    switch (vaProfile)
+    {
+    case VAProfileAV1Profile0:
+    case VAProfileAV1Profile1:
+        return CODECHAL_DECODE_MODE_AV1VLD;
+    default:
+        DDI_CODEC_ASSERTMESSAGE("Invalid Decode Mode");
+        return CODECHAL_UNSUPPORTED_MODE;
+    }
 }
 
 } // namespace decode

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022-2023, Intel Corporation
+* Copyright (c) 2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -33,7 +33,6 @@
 #include "media_libva_common_next.h"
 #include "media_interfaces_codechal_next.h"
 #include "ddi_decode_trace_specific.h"
-#include "media_libva_caps_next.h"
 
 namespace decode
 {
@@ -389,47 +388,6 @@ VAStatus DdiDecodeBase::DecodeCombineBitstream(DDI_MEDIA_CONTEXT *mediaCtx)
     MediaLibvaCommonNext::MediaBufferToMosResource(m_decodeCtx->BufMgr.pBitStreamBuffObject[bufMgr->dwBitstreamIndex], &m_decodeCtx->BufMgr.resBitstreamBuffer);
 
     return VA_STATUS_SUCCESS;
-}
-
-VAStatus DdiDecodeBase::CheckDecodeResolution(
-    ConfigLinux       *configItem,
-    uint32_t          width,
-    uint32_t          height)
-{
-    DDI_CODEC_FUNC_ENTER;
-    uint32_t maxWidth  = 0;
-    uint32_t maxHeight = 0;
-
-    DDI_CODEC_CHK_NULL(configItem, "nullptr configItem", VA_STATUS_ERROR_INVALID_CONFIG);
-    VAConfigAttrib  *supportedAttribList = configItem->attribList;
-    DDI_CODEC_CHK_NULL(supportedAttribList, "nullptr supportedAttribList", VA_STATUS_ERROR_INVALID_CONFIG);
-
-    // parse supported width and height from capstable attributes
-    for (uint32_t i = 0; i < configItem->numAttribs; i++)
-    {
-        if (supportedAttribList[i].type == VAConfigAttribMaxPictureWidth)
-        {
-            maxWidth = supportedAttribList[i].value;
-        }
-        else if (supportedAttribList[i].type == VAConfigAttribMaxPictureHeight)
-        {
-            maxHeight = supportedAttribList[i].value;
-        }
-        else
-        {
-            continue;
-        }
-    }
-
-    if (width > maxWidth || height > maxHeight)
-    {
-        return VA_STATUS_ERROR_RESOLUTION_NOT_SUPPORTED;
-    }
-    else
-    {
-        return VA_STATUS_SUCCESS;
-    }
-
 }
 
 void DdiDecodeBase::DestroyContext(VADriverContextP ctx)

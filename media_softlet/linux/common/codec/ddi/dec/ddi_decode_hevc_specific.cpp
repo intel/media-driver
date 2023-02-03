@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022-2023, Intel Corporation
+* Copyright (c) 2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1521,6 +1521,63 @@ void DdiDecodeHevc::SetupCodecPicture(
     }
 
     return;
+}
+
+VAStatus DdiDecodeHevc::CheckDecodeResolution(
+    int32_t   codecMode,
+    VAProfile profile,
+    uint32_t  width,
+    uint32_t  height)
+{
+    DDI_CODEC_FUNC_ENTER;
+
+    uint32_t maxWidth = 0, maxHeight = 0;
+    switch (codecMode)
+    {
+    case CODECHAL_DECODE_MODE_HEVCVLD:
+        maxWidth  = m_decHevcMax16kWidth;
+        maxHeight = m_decHevcMax16kHeight;
+        break;
+    default:
+        maxWidth  = m_decDefaultMaxWidth;
+        maxHeight = m_decDefaultMaxHeight;
+        break;
+    }
+
+    if (width > maxWidth || height > maxHeight)
+    {
+        return VA_STATUS_ERROR_RESOLUTION_NOT_SUPPORTED;
+    }
+    else
+    {
+        return VA_STATUS_SUCCESS;
+    }
+}
+
+CODECHAL_MODE DdiDecodeHevc::GetDecodeCodecMode(VAProfile profile)
+{
+    DDI_CODEC_FUNC_ENTER;
+
+    int8_t vaProfile = (int8_t)profile;
+    switch (vaProfile)
+    {
+    case VAProfileHEVCMain:
+    case VAProfileHEVCMain10:
+    case VAProfileHEVCMain12:
+    case VAProfileHEVCMain422_10:
+    case VAProfileHEVCMain422_12:
+    case VAProfileHEVCMain444:
+    case VAProfileHEVCMain444_10:
+    case VAProfileHEVCMain444_12:
+    case VAProfileHEVCSccMain:
+    case VAProfileHEVCSccMain10:
+    case VAProfileHEVCSccMain444:
+    case VAProfileHEVCSccMain444_10:
+        return CODECHAL_DECODE_MODE_HEVCVLD;
+    default:
+        DDI_CODEC_ASSERTMESSAGE("Invalid Decode Mode");
+        return CODECHAL_UNSUPPORTED_MODE;
+    }
 }
 
 } // namespace decode

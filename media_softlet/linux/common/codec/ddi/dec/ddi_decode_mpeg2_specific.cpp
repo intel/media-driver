@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022-2023, Intel Corporation
+* Copyright (c) 2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -315,8 +315,12 @@ VAStatus DdiDecodeMpeg2::ParsePicParams(
     codecPicParam->m_statusReportFeedbackNumber = 0;
 
     DDI_CODEC_CHK_NULL(mediaCtx, "Null mediaCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
-    if (codecPicParam->m_horizontalSize > CODEC_2K_MAX_PIC_WIDTH ||
-        codecPicParam->m_verticalSize > CODEC_2K_MAX_PIC_HEIGHT)
+    VAStatus vaStatus = CheckDecodeResolution(
+            m_decodeCtx->wMode,
+            VAProfileMPEG2Simple,
+            codecPicParam->m_horizontalSize,
+            codecPicParam->m_verticalSize);
+    if (vaStatus != VA_STATUS_SUCCESS)
     {
         return VA_STATUS_ERROR_RESOLUTION_NOT_SUPPORTED;
     }
@@ -712,6 +716,53 @@ void DdiDecodeMpeg2::FreeResource()
     m_decodeCtx->DecodeParams.m_sliceParams = nullptr;
 
     return;
+}
+
+VAStatus DdiDecodeMpeg2::CheckDecodeResolution(
+    int32_t   codecMode,
+    VAProfile profile,
+    uint32_t  width,
+    uint32_t  height)
+{
+    DDI_CODEC_FUNC_ENTER;
+
+    uint32_t maxWidth = 0, maxHeight = 0;
+    switch (codecMode)
+    {
+    case CODECHAL_DECODE_MODE_MPEG2VLD:
+        maxWidth  = m_decMpeg2MaxWidth;
+        maxHeight = m_decMpeg2MaxHeight;
+        break;
+    default:
+        maxWidth  = m_decDefaultMaxWidth;
+        maxHeight = m_decDefaultMaxHeight;
+        break;
+    }
+
+    if (width > maxWidth || height > maxHeight)
+    {
+        return VA_STATUS_ERROR_RESOLUTION_NOT_SUPPORTED;
+    }
+    else
+    {
+        return VA_STATUS_SUCCESS;
+    }
+}
+
+CODECHAL_MODE DdiDecodeMpeg2::GetDecodeCodecMode(VAProfile profile)
+{
+    DDI_CODEC_FUNC_ENTER;
+
+    int8_t vaProfile = (int8_t)profile;
+    switch (vaProfile)
+    {
+    case VAProfileMPEG2Main:
+    case VAProfileMPEG2Simple:
+        return CODECHAL_DECODE_MODE_MPEG2VLD;
+    default:
+        DDI_CODEC_ASSERTMESSAGE("Invalid Decode Mode");
+        return CODECHAL_UNSUPPORTED_MODE;
+    }
 }
 
 } // namespace decode
