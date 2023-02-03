@@ -453,6 +453,8 @@ MOS_STATUS MediaRenderCommon::EukernelSubmitCommands(
     // Write timing data for 3P budget
     MHW_CHK_STATUS_RETURN(pRenderHal->pfnSendTimingData(pRenderHal, &CmdBuffer, true));
 
+    MHW_CHK_STATUS_RETURN(pRenderHal->pRenderHalPltInterface->AddPerfCollectStartCmd(pRenderHal, pOsInterface, &CmdBuffer));
+
     MHW_CHK_STATUS_RETURN(pRenderHal->pRenderHalPltInterface->StartPredicate(pRenderHal, &CmdBuffer));
 
     bEnableSLM = (pGpGpuWalkerParams && pGpGpuWalkerParams->SLMSize > 0) ? true : false;
