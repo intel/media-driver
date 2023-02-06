@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2021, Intel Corporation
+* Copyright (c) 2018-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -516,12 +516,6 @@ MOS_STATUS SfcRenderBaseLegacy::SetupSfcState(PVP_SURFACE targetSurface)
     {
         MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
         MOS_SURFACE details = {};
-
-        m_osInterface->pfnSyncOnResource(
-            m_osInterface,
-            &targetSurface->osSurface->OsResource,
-            MOS_GPU_CONTEXT_VEBOX,
-            true);
 
         eStatus = m_osInterface->pfnGetResourceInfo(m_osInterface, &targetSurface->osSurface->OsResource, &details);
 

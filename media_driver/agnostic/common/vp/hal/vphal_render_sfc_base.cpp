@@ -577,12 +577,6 @@ VPHAL_OUTPUT_PIPE_MODE VphalSfcState::GetOutputPipe(
             IsSFCUncompressedWriteNeeded(pRenderTarget))
         {
 
-            m_osInterface->pfnSyncOnResource(
-                m_osInterface,
-                &pRenderTarget->OsResource,
-                MOS_GPU_CONTEXT_VEBOX,
-                true);
-
             eStatus = m_osInterface->pfnGetResourceInfo(m_osInterface, &pRenderTarget->OsResource, &details);
 
             if (eStatus != MOS_STATUS_SUCCESS)
