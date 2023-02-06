@@ -1065,7 +1065,7 @@ MOS_STATUS CodechalDecode::EndFrame ()
 
             if (m_standard == CODECHAL_HEVC     &&
                 m_isHybridDecoder               &&
-                (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrReferenceSurfaces)|| m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrDecodeOutputSurface)))
+                (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrDecodeReferenceSurfaces) || m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrDecodeOutputSurface)))
             {
                 CODECHAL_DECODE_CHK_STATUS_BREAK(DecodeGetHybridStatus(
                     m_decodeStatusBuf.m_decodeStatus, index, CODECHAL_STATUS_QUERY_START_FLAG));
@@ -1416,7 +1416,7 @@ MOS_STATUS CodechalDecode::Execute(void *params)
             {
                 CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
                     decodeParams->m_dataBuffer,
-                    CodechalDbgAttr::attrBitstream,
+                    CodechalDbgAttr::attrDecodeBitstream,
                     "_DEC",
                     decodeParams->m_dataSize,
                     decodeParams->m_dataOffset,

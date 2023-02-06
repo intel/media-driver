@@ -571,7 +571,7 @@ MOS_STATUS CodechalDebugInterface::DumpRgbDataOnYUVSurface(
         hasAuxSurf = false;
     }
 
-    if (strcmp(attrName, CodechalDbgAttr::attrReferenceSurfaces) == 0)
+    if (strcmp(attrName, CodechalDbgAttr::attrDecodeReferenceSurfaces) == 0)
     {
         hasRefSurf = true;
     }
@@ -1228,6 +1228,8 @@ MOS_STATUS CodechalDebugInterface::SetFastDumpConfig(MediaCopyBaseState *mediaCo
         private:
             const std::map<std::string, MEDIA_EVENT_FILTER_KEYID> m_filter = {
                 {MediaDbgAttr::attrDecodeOutputSurface, TR_KEY_DECODE_DSTYUV},
+                {MediaDbgAttr::attrDecodeReferenceSurfaces, TR_KEY_DECODE_REFYUV},
+                {MediaDbgAttr::attrDecodeBitstream, TR_KEY_DECODE_BITSTREAM},
                 {MediaDbgAttr::attrEncodeRawInputSurface, TR_KEY_ENCODE_DATA_INPUT_SURFACE},
                 {MediaDbgAttr::attrReferenceSurfaces, TR_KEY_ENCODE_DATA_REF_SURFACE},
                 {MediaDbgAttr::attrReconstructedSurface, TR_KEY_ENCODE_DATA_RECON_SURFACE},
@@ -1263,18 +1265,25 @@ MOS_STATUS CodechalDebugInterface::SetFastDumpConfig(MediaCopyBaseState *mediaCo
         m_dumpBuffer = [this, dumpEnabled, traceSetting, suffix](
                            PMOS_RESOURCE             resource,
                            const char               *attrName,
-                           const char               *bufferName,
+                           const char               *compName,
                            uint32_t                  size,
                            uint32_t                  offset,
                            CODECHAL_MEDIA_STATE_TYPE mediaState) {
             if ((*dumpEnabled)(attrName))
             {
+                std::string bufferName = "";
+
+                if (!strcmp(attrName, "DecodeBitstream") || !strcmp(attrName, "Bitstream"))
+                {
+                    bufferName = "_Bitstream";
+                }
+
                 MediaDebugFastDump::Dump(
                     *resource,
                     std::string(traceSetting->fastDump.filePath) +
                         std::to_string(m_bufferDumpFrameNum) +
                         '-' +
-                        bufferName +
+                        compName + bufferName +
                         suffix,
                     size,
                     offset);

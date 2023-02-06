@@ -1194,7 +1194,7 @@ MOS_STATUS CodechalDecodeVp9::SetFrameStates ()
     CODECHAL_DEBUG_TOOL(
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
             m_copyDataBufferInUse ? &m_resCopyDataBuffer : &m_resDataBuffer,
-            CodechalDbgAttr::attrBitstream,
+            CodechalDbgAttr::attrDecodeBitstream,
             "_DEC",
             m_copyDataBufferInUse ? m_copyDataBufferSize : m_dataSize,
             m_copyDataBufferInUse ? 0 : m_dataOffset,

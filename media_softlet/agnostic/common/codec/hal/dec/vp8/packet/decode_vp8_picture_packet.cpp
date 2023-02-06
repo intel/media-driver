@@ -594,7 +594,7 @@ namespace decode
                 std::string refSurfName    = "RefSurf[" + std::to_string(static_cast<uint32_t>(debugInterface->m_refIndex)) + "]";
                 DECODE_CHK_STATUS(debugInterface->DumpYUVSurface(
                     &refSurface,
-                    CodechalDbgAttr::attrReferenceSurfaces,
+                    CodechalDbgAttr::attrDecodeReferenceSurfaces,
                     refSurfName.c_str()));
             }
         }

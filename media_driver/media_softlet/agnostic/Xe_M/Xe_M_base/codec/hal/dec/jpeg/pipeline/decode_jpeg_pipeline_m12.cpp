@@ -381,7 +381,7 @@ MOS_STATUS JpegPipelineM12::DumpParams(JpegBasicFeature &basicFeature)
 
     //dump bitstream
     DECODE_CHK_STATUS(m_debugInterface->DumpBuffer(
-        &basicFeature.m_resDataBuffer.OsResource, CodechalDbgAttr::attrBitstream, "_DEC", basicFeature.m_dataSize, 0, CODECHAL_NUM_MEDIA_STATES));
+        &basicFeature.m_resDataBuffer.OsResource, CodechalDbgAttr::attrDecodeBitstream, "_DEC", basicFeature.m_dataSize, 0, CODECHAL_NUM_MEDIA_STATES));
 
     DECODE_CHK_STATUS(DumpPicParams(basicFeature.m_jpegPicParams));
     DECODE_CHK_STATUS(DumpScanParams(basicFeature.m_jpegScanParams));

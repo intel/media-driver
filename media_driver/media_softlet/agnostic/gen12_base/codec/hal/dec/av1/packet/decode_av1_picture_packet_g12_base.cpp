@@ -1673,7 +1673,7 @@ namespace decode{
                     std::string refSurfName = "RefSurf[" + std::to_string(static_cast<uint32_t>(n)) + "]";
                     DECODE_CHK_STATUS(debugInterface->DumpYUVSurface(
                         &destSurface,
-                        CodechalDbgAttr::attrReferenceSurfaces,
+                        CodechalDbgAttr::attrDecodeReferenceSurfaces,
                         refSurfName.c_str()));
                 }
             }
@@ -1682,7 +1682,7 @@ namespace decode{
         //Should dump each tile's bit stream
         DECODE_CHK_STATUS(debugInterface->DumpBuffer(
             &m_av1BasicFeature->m_resDataBuffer.OsResource,
-            CodechalDbgAttr::attrBitstream,
+            CodechalDbgAttr::attrDecodeBitstream,
             "DEC",
             m_av1BasicFeature->m_dataSize,
             m_av1BasicFeature->m_dataOffset,

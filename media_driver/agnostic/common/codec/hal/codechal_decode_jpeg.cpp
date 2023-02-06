@@ -549,7 +549,7 @@ MOS_STATUS CodechalDecodeJpeg::SetFrameStates()
         if (&(m_resDataBuffer)) {
             CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
                 &m_resDataBuffer,
-                CodechalDbgAttr::attrBitstream,
+                CodechalDbgAttr::attrDecodeBitstream,
                 "_DEC",
                 (m_copiedDataBufferInUse ? m_nextCopiedDataOffset : m_dataSize),
                 0,

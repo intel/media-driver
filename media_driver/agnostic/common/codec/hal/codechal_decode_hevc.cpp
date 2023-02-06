@@ -1352,7 +1352,7 @@ MOS_STATUS CodechalDecodeHevc::SetFrameStates ()
         if (!m_incompletePicture && !IsFirstExecuteCall()) {
             CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
                 &m_resCopyDataBuffer,
-                CodechalDbgAttr::attrBitstream,
+                CodechalDbgAttr::attrDecodeBitstream,
                 "_DEC",
                 m_estiBytesInBitstream,
                 0,
@@ -1973,7 +1973,7 @@ MOS_STATUS CodechalDecodeHevc::SendPictureLongFormat()
                 std::string refSurfName      = "RefSurf[" + std::to_string(static_cast<uint32_t>(m_debugInterface->m_refIndex)) + "]";
                 CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->DumpYUVSurface(
                     &dstSurface,
-                    CodechalDbgAttr::attrReferenceSurfaces,
+                    CodechalDbgAttr::attrDecodeReferenceSurfaces,
                     refSurfName.c_str()));
             }
 

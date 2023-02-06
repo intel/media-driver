@@ -572,14 +572,14 @@ namespace decode{
                 std::string refSurfName = "RefSurf[" + std::to_string(static_cast<uint32_t>(n)) + "]";
                 DECODE_CHK_STATUS(debugInterface->DumpYUVSurface(
                     &destSurface,
-                    CodechalDbgAttr::attrReferenceSurfaces,
+                    CodechalDbgAttr::attrDecodeReferenceSurfaces,
                     refSurfName.c_str()));
             }
         }
 
         DECODE_CHK_STATUS(debugInterface->DumpBuffer(
             &m_avcBasicFeature->m_resDataBuffer.OsResource,
-            CodechalDbgAttr::attrBitstream,
+            CodechalDbgAttr::attrDecodeBitstream,
             "DEC",
             m_avcBasicFeature->m_dataSize,
             m_avcBasicFeature->m_dataOffset,

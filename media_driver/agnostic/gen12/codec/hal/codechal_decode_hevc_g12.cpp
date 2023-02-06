@@ -1054,7 +1054,7 @@ MOS_STATUS CodechalDecodeHevcG12::SetFrameStates ()
         if (!m_incompletePicture && !IsFirstExecuteCall()) {
             CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
                 &m_resCopyDataBuffer,
-                CodechalDbgAttr::attrBitstream,
+                CodechalDbgAttr::attrDecodeBitstream,
                 "_DEC",
                 m_estiBytesInBitstream,
                 0,
@@ -1659,7 +1659,7 @@ MOS_STATUS CodechalDecodeHevcG12::SendPictureLongFormat()
                 m_debugInterface->m_refIndex = (uint16_t)n;
                 CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->DumpYUVSurface(
                     &dstSurface,
-                    CodechalDbgAttr::attrReferenceSurfaces,
+                    CodechalDbgAttr::attrDecodeReferenceSurfaces,
                     "RefSurf"));
             }
 

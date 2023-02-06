@@ -382,7 +382,7 @@ MOS_STATUS Vp9PipelineXe_Lpm_Plus_Base::DumpParams(Vp9BasicFeature &basicFeature
     //dump bitstream
     DECODE_CHK_STATUS(m_debugInterface->DumpBuffer(
         &basicFeature.m_resDataBuffer.OsResource, 
-        CodechalDbgAttr::attrBitstream, 
+        CodechalDbgAttr::attrDecodeBitstream, 
         "_DEC", 
         basicFeature.m_dataSize, 0, CODECHAL_NUM_MEDIA_STATES));
 

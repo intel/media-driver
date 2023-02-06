@@ -870,7 +870,7 @@ MOS_STATUS Vp9DecodePicPkt::DumpRefResources(HCP_PIPE_BUF_ADDR_STATE_PAR &params
             std::string refSurfName    = "RefSurf[" + std::to_string(static_cast<uint32_t>(debugInterface->m_refIndex)) + "]";
             DECODE_CHK_STATUS(debugInterface->DumpYUVSurface(
                 &dstSurface,
-                CodechalDbgAttr::attrReferenceSurfaces,
+                CodechalDbgAttr::attrDecodeReferenceSurfaces,
                 refSurfName.c_str()));
         }
     }

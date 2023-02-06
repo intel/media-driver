@@ -399,6 +399,7 @@ void MediaDebugConfigMgr::GenerateDefaultConfig(std::string configFileName)
     ofs << "#" << MediaDbgAttr::attrSlcParams << ":0" << std::endl;
     ofs << "#" << MediaDbgAttr::attrSubsetsParams << ":0" << std::endl;
     ofs << "#" << MediaDbgAttr::attrIqParams << ":0" << std::endl;
+    ofs << "#" << MediaDbgAttr::attrDecodeBitstream << ":0" << std::endl;
     ofs << "#" << MediaDbgAttr::attrBitstream << ":0" << std::endl;
     ofs << "#" << MediaDbgAttr::attrHucRegions << ":0" << std::endl;
     ofs << "#" << MediaDbgAttr::attrHuCDmem << ":0" << std::endl;
@@ -426,6 +427,7 @@ void MediaDebugConfigMgr::GenerateDefaultConfig(std::string configFileName)
     ofs << "##" << MediaDbgAttr::attrDisableSwizzleForDumps << ":0" << std::endl;
     ofs << "##" << MediaDbgAttr::attrSfcOutputSurface << ":0" << std::endl;
     ofs << "##" << MediaDbgAttr::attrSfcBuffers << ":0" << std::endl;
+    ofs << "##" << MediaDbgAttr::attrDecodeReferenceSurfaces << ":0" << std::endl;
     ofs << "##" << MediaDbgAttr::attrReferenceSurfaces << ":0" << std::endl;
     ofs << "##" << MediaDbgAttr::attrEncodeRawInputSurface << ":0" << std::endl;
     ofs << "##" << MediaDbgAttr::attrReconstructedSurface << ":0" << std::endl;

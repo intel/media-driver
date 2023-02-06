@@ -658,7 +658,7 @@ MOS_STATUS HevcPipelineM12::DumpParams(HevcBasicFeature &basicFeature)
     m_debugInterface->m_frameType          = basicFeature.m_pictureCodingType;
 
     DECODE_CHK_STATUS(m_debugInterface->DumpBuffer(
-        &basicFeature.m_resDataBuffer.OsResource, CodechalDbgAttr::attrBitstream, "_DEC",
+        &basicFeature.m_resDataBuffer.OsResource, CodechalDbgAttr::attrDecodeBitstream, "_DEC",
         basicFeature.m_dataSize, 0, CODECHAL_NUM_MEDIA_STATES));
 
     DECODE_CHK_STATUS(DumpPicParams(

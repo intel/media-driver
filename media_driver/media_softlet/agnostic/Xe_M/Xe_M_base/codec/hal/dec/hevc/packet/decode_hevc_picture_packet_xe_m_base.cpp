@@ -568,7 +568,7 @@ MOS_STATUS HevcDecodePicPktXe_M_Base::SetHcpPipeBufAddrParams(MHW_VDBOX_PIPE_BUF
                 std::string refSurfDumpName = "RefSurf_" + std::to_string(n);
                 DECODE_CHK_STATUS(debugInterface->DumpYUVSurface(
                     &dstSurface,
-                    CodechalDbgAttr::attrReferenceSurfaces,
+                    CodechalDbgAttr::attrDecodeReferenceSurfaces,
                     refSurfDumpName.c_str()));
             }
 
