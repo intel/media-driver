@@ -308,6 +308,8 @@ private:
     VAStatus CheckCDEF(const VAEncPictureParameterBufferAV1 *picParams,
         PRODUCT_FAMILY platform);
 
+    VAStatus CheckTile(const VAEncPictureParameterBufferAV1 *picParams);
+
     //!
     //! \brief    Return the CODECHAL_FUNCTION type for give profile and entrypoint
     //!

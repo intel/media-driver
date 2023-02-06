@@ -1083,7 +1083,9 @@ VAStatus DdiEncodeAV1::CheckTile(const VAEncPictureParameterBufferAV1 *picParams
         minTileHeightInSB = MOS_MIN(minTileHeightInSB, picParams->height_in_sbs_minus_1[i] + 1);
     }
 
-    if(minTileWidthInSB * minTileHeightInSB < 2)
+    if(minTileWidthInSB * minTileHeightInSB < 4 ||
+        minTileWidthInSB < 2 ||
+        minTileHeightInSB < 2)
     {
         DDI_ASSERTMESSAGE("Unsupported Tile Size");
         return VA_STATUS_ERROR_INVALID_PARAMETER;

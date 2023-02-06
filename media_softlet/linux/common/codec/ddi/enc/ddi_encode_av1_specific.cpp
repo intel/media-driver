@@ -632,6 +632,8 @@ VAStatus DdiEncodeAV1::ParsePicParams(DDI_MEDIA_CONTEXT *mediaCtx, void *ptr)
 
     DDI_CODEC_CHK_RET(CheckCDEF(picParams, mediaCtx->platform.eProductFamily), "invalid CDEF Paramter");
 
+    DDI_CODEC_CHK_RET(CheckTile(picParams), "invalid Tile Paramter");
+    
     av1PicParams->context_update_tile_id = picParams->context_update_tile_id;
     av1PicParams->temporal_id            = picParams->temporal_id;
 
@@ -1039,6 +1041,31 @@ VAStatus DdiEncodeAV1::CheckCDEF(const VAEncPictureParameterBufferAV1 *picParams
             return VA_STATUS_ERROR_INVALID_PARAMETER;
         }
     }
+    return VA_STATUS_SUCCESS;
+}
+
+VAStatus DdiEncodeAV1::CheckTile(const VAEncPictureParameterBufferAV1 *picParams)
+{
+    int minTileHeightInSB = picParams->height_in_sbs_minus_1[0] + 1;
+    int minTileWidthInSB = picParams->width_in_sbs_minus_1[0] + 1;
+
+    for(int i = 1;i < picParams->tile_cols;i++)
+    {
+        minTileWidthInSB = MOS_MIN(minTileWidthInSB, picParams->width_in_sbs_minus_1[i] + 1);
+    }
+    for(int i = 1;i < picParams->tile_rows;i++)
+    {
+        minTileHeightInSB = MOS_MIN(minTileHeightInSB, picParams->height_in_sbs_minus_1[i] + 1);
+    }
+
+    if(minTileWidthInSB * minTileHeightInSB < 4 ||
+        minTileWidthInSB < 2 ||
+        minTileHeightInSB < 2)
+    {
+        DDI_CODEC_ASSERTMESSAGE("Unsupported Tile Size");
+        return VA_STATUS_ERROR_INVALID_PARAMETER;
+    }
+
     return VA_STATUS_SUCCESS;
 }
 
