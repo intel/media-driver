@@ -475,6 +475,12 @@ static bool dg2Gt4Device56B0 = DeviceInfoFactory<GfxDeviceInfo>::
 static bool dg2Gt4Device56B1 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x56B1, &dg2Gt4Info);
 
+static bool dg2Gt4Device56B2 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x56B2, &dg2Gt4Info);
+
+static bool dg2Gt4Device56B3 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x56B3, &dg2Gt4Info);
+
 static bool dg2Gt4Device56C0 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x56C0, &dg2Gt4Info);
 
