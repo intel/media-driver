@@ -20,7 +20,7 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      mhw_block_manager.c 
+//! \file      mhw_block_manager.cpp
 //! \brief         This modules implements memory block management functions as part of MHW     dynamic state heap implementation 
 //!
 #include "mhw_block_manager.h"

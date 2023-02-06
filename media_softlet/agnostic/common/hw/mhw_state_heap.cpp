@@ -20,7 +20,7 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      mhw_state_heap.c 
+//! \file      mhw_state_heap.cpp
 //! \brief         This modules implements HW interface layer to be used on all platforms on     all operating systems/DDIs, across MHW components. 
 //!
 #include "mhw_state_heap.h"

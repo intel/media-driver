@@ -20,7 +20,7 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      mhw_memory_pool.c 
+//! \file      mhw_memory_pool.cpp
 //! \brief         This modules implements simple memory pool infrastructure for MHW 
 //!
 #include "mhw_memory_pool.h"
