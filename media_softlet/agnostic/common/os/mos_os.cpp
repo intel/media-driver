@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2022, Intel Corporation
+* Copyright (c) 2009-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -623,12 +623,14 @@ const char *GpuCmdResInfoDump::GetTileType(MOS_TILE_TYPE tileType) const
 //! \details  OS Interface initilization
 //! \param    PMOS_INTERFACE pOsInterface
 //!           [in/out] Pointer to OS Interface
-//! \param    PMOS_CONTEXT pOsDriverContext
+//! \param    MOS_CONTEXT_HANDLE osDriverContext
 //!           [in] Pointer to Driver context
+//! \param    MOS_COMPONENT component
+//!           [in] OS component
 //! \return   MOS_STATUS
 //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
 //!
-MOS_STATUS Mos_InitInterface(
+MOS_STATUS Mos_InitOsInterface(
     PMOS_INTERFACE     pOsInterface,
     MOS_CONTEXT_HANDLE osDriverContext,
     MOS_COMPONENT      component)

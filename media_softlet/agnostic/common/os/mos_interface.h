@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2022, Intel Corporation
+* Copyright (c) 2009-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -105,6 +105,18 @@ public:
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     static MOS_STATUS CloseOsUtilities(PMOS_CONTEXT mosCtx);
+
+    //!
+    //! \brief    Init Os context interface
+    //! \details  Init Os context interface
+    //!
+    //! \param    [in/out] ctxInterface
+    //!           Pointer of MOS_CONTEXT_INTERFACE
+    //!
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    static MOS_STATUS InitCtxInterface(MOS_CONTEXT_INTERFACE *ctxInterface);
 
     //!
     //! \brief    Create Os Device Context

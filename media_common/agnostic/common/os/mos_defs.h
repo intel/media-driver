@@ -532,4 +532,5 @@ class OsContextNext;
 typedef OsContextNext    OsDeviceContext;
 typedef OsDeviceContext *MOS_DEVICE_HANDLE;
 
+struct MOS_CONTEXT_INTERFACE;
 #endif // __MOS_DEFS_H__
