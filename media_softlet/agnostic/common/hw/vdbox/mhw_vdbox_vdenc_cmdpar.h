@@ -175,6 +175,7 @@ struct _MHW_PAR_T(VDENC_PIPE_MODE_SELECT)
     uint8_t VdencPipeModeSelectPar5  = 0;
     uint8_t VdencPipeModeSelectPar6  = 0;
     uint8_t VdencPipeModeSelectPar7  = 0;
+    uint8_t VdencPipeModeSelectPar8  = 0;
 };
 
 struct _MHW_PAR_T(VDENC_SRC_SURFACE_STATE)
@@ -575,6 +576,10 @@ struct _MHW_PAR_T(VDENC_CMD2)
     uint8_t  vdencCmd2Par126                  = 0;
     uint8_t  vdencCmd2Par127                  = 0;
     uint8_t  vdencCmd2Par128                  = 0;
+    uint8_t  vdencCmd2Par129                  = 0;
+    uint8_t  vdencCmd2Par130                  = 0;
+    uint8_t  vdencCmd2Par131                  = 0;
+    uint8_t  vdencCmd2Par132                  = 0;
 
     __MHW_VDBOX_VDENC_WRAPPER(
         std::vector<std::function<MOS_STATUS(uint32_t *)>> extSettings);
