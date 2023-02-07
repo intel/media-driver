@@ -3743,8 +3743,9 @@ MOS_STATUS CodechalEncodeVp8::ExecuteSliceLevel()
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_hwInterface);
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_hwInterface->GetMiInterface());
-
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_osInterface);
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
 
     // read image status
@@ -3949,7 +3950,7 @@ MOS_STATUS CodechalEncodeVp8::ExecuteSliceLevel()
 
     CODECHAL_DEBUG_TOOL(
         if (!m_mmcUserFeatureUpdated) {
-            CODECHAL_UPDATE_ENCODE_MMC_USER_FEATURE(m_reconSurface, m_osInterface);
+            CODECHAL_UPDATE_ENCODE_MMC_USER_FEATURE(m_reconSurface, m_osInterface->pOsContext);
             m_mmcUserFeatureUpdated = true;
         })
 

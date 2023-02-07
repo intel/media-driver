@@ -37,6 +37,10 @@ MediaUserSetting::MediaUserSetting(MOS_USER_FEATURE_KEY_PATH_INFO *keyPathInfo) 
 
 }
 
+MediaUserSetting::~MediaUserSetting()
+{
+}
+
 MOS_STATUS MediaUserSetting::Register(
     const std::string &valueName,
     const Group &group,

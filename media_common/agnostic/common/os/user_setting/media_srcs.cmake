@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022, Intel Corporation
+# Copyright (c) 2021-2023, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -20,7 +20,6 @@
 
 
 set(TMP_HEADERS_
-    ${CMAKE_CURRENT_LIST_DIR}/media_user_setting_value.h
     ${CMAKE_CURRENT_LIST_DIR}/media_user_setting_configure.h
     ${CMAKE_CURRENT_LIST_DIR}/media_user_setting_definition.h
     ${CMAKE_CURRENT_LIST_DIR}/media_user_setting.h
@@ -35,4 +34,19 @@ set(SOFTLET_MOS_PUBLIC_INCLUDE_DIRS_
     ${CMAKE_CURRENT_LIST_DIR}
 )
 
+set(TMP_SHARED_HEADERS_
+    ${CMAKE_CURRENT_LIST_DIR}/media_user_setting_value.h
+)
+
+set(SOFTLET_COMMON_HAL_DDI_SHARED_HEADERS_
+    ${SOFTLET_COMMON_HAL_DDI_SHARED_HEADERS_}
+    ${TMP_SHARED_HEADERS_}
+)
+
+set (SOFTLET_COMMON_HAL_DDI_SHARED_INCLUDE_DIRS_
+    ${SOFTLET_COMMON_HAL_DDI_SHARED_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)
+
 source_group( "mos_softlet" FILES ${TMP_HEADERS_} )
+source_group( "Hal_DDI_Shared" FILES ${TMP_SHARED_HEADERS_})

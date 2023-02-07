@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2022, Intel Corporation
+# Copyright (c) 2017-2023, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -85,7 +85,10 @@ set(SOFTLET_DDI_PUBLIC_INCLUDE_DIRS_ "")
 ################################################################################
 # ddi hal share
 ################################################################################
-set(SOFTLET_VP_HAL_DDI_SHARED_SOURCES_ "")             # softlet source group
+set(SOFTLET_COMMON_HAL_DDI_SHARED_SOURCES_ "")             # softlet source group
+set(SOFTLET_COMMON_HAL_DDI_SHARED_INCLUDE_DIRS_ "")
+
+set(SOFTLET_VP_HAL_DDI_SHARED_SOURCES_ "")
 set(SOFTLET_VP_HAL_DDI_SHARED_INCLUDE_DIRS_ "")
 
 ################################################################################
@@ -239,6 +242,7 @@ bs_set_defines()
 set_source_files_properties(${SOURCES_} PROPERTIES LANGUAGE "CXX")
 set_source_files_properties(${COMMON_SOURCES_} PROPERTIES LANGUAGE "CXX")
 set_source_files_properties(${SOFTLET_COMMON_SOURCES_} PROPERTIES LANGUAGE "CXX")
+set_source_files_properties(${SOFTLET_COMMON_HAL_DDI_SHARED_SOURCES_} PROPERTIES LANGUAGE "CXX")
 set_source_files_properties(${CODEC_SOURCES_} PROPERTIES LANGUAGE "CXX")
 set_source_files_properties(${SOFTLET_CODEC_SOURCES_} PROPERTIES LANGUAGE "CXX")
 set_source_files_properties(${SOFTLET_ENCODE_SOURCES_} PROPERTIES LANGUAGE "CXX")
@@ -407,6 +411,14 @@ FOREACH(SRC1 ${SOURCES_})
             ${SRC1})
     endif()
 ENDFOREACH()
+
+set (SOFTLET_COMMON_SOURCES_
+    ${SOFTLET_COMMON_SOURCES_}
+    ${SOFTLET_COMMON_HAL_DDI_SHARED_SOURCES_})
+
+set (SOFTLET_COMMON_PRIVATE_INCLUDE_DIRS_
+    ${SOFTLET_COMMON_PRIVATE_INCLUDE_DIRS_}
+    ${SOFTLET_COMMON_HAL_DDI_SHARED_INCLUDE_DIRS_})
 
 set (COMMON_SOURCES_
     ${COMMON_SOURCES_}

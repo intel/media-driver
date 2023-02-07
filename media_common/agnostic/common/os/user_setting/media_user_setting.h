@@ -1,6 +1,6 @@
 
 /*
-* Copyright (c) 2021-2022, Intel Corporation
+* Copyright (c) 2021-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -78,6 +78,11 @@ public:
     MediaUserSetting(MOS_USER_FEATURE_KEY_PATH_INFO *keyPathInfo);
 
     //!
+    //! \brief    Destructor
+    //!
+    virtual ~MediaUserSetting();
+
+    //!
     //! \brief    Register user setting item
     //! \param    [in] valueName
     //!           Name of the item
@@ -96,7 +101,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if no error, otherwise will return failed reason
     //!
-    MOS_STATUS Register(
+    virtual MOS_STATUS Register(
         const std::string &valueName,
         const Group &group,
         const Value &defaultValue,
@@ -123,7 +128,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if no error, otherwise will return failed reason
     //!
-    MOS_STATUS Read(Value &value,
+    virtual MOS_STATUS Read(Value &value,
         const std::string &valueName,
         const Group &group,
         const Value &customValue = Value(),
@@ -145,7 +150,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if no error, otherwise will return failed reason
     //!
-    MOS_STATUS Write(
+    virtual MOS_STATUS Write(
         const std::string &valueName,
         const Value &value,
         const Group &group,
@@ -174,7 +179,7 @@ public:
     //! \return   MOS_STATUS
     //!           Returns one of the MOS_STATUS error codes if failed
     //!
-    MOS_STATUS UserFeatureReadValue(
+    virtual MOS_STATUS UserFeatureReadValue(
         PMOS_USER_FEATURE_INTERFACE     pOsUserFeatureInterface,
         uint32_t                        valueID,
         PMOS_USER_FEATURE_VALUE_DATA    pValueData,
@@ -194,7 +199,7 @@ public:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    MOS_STATUS UserFeatureWriteValue(
+    virtual MOS_STATUS UserFeatureWriteValue(
         PMOS_USER_FEATURE_INTERFACE        pOsUserFeatureInterface,
         PMOS_USER_FEATURE_VALUE_WRITE_DATA pWriteValues,
         uint32_t                           uiNumOfValues,

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2021, Intel Corporation
+* Copyright (c) 2011-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -92,10 +92,7 @@ do                                                                              
     userFeatureData.i32Data++;                                                                                  \
     MOS_ZeroMemory(&userFeatureWriteData, sizeof(userFeatureWriteData));                                        \
     userFeatureWriteData.ValueID = valueID;                                                                     \
-    MosUtilities::MosCopyUserFeatureValueData(                                                                  \
-            &userFeatureData,                                                                                   \
-            &userFeatureWriteData.Value,                                                                        \
-            MOS_USER_FEATURE_VALUE_TYPE_INT32);                                                                 \
+    userFeatureWriteData.Value.i32Data = userFeatureData.i32Data;                                               \
     MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, mosCtx);                                  \
 } while (0)
 
@@ -119,10 +116,7 @@ do                                                                              
         userFeatureData.i32Data |= 1 << ((instanceId) << 2);                                                    \
         userFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;                                          \
         userFeatureWriteData.ValueID = valueID;                                                                 \
-        MosUtilities::MosCopyUserFeatureValueData(                                                              \
-            &userFeatureData,                                                                                   \
-            &userFeatureWriteData.Value,                                                                        \
-            MOS_USER_FEATURE_VALUE_TYPE_INT32);                                                                 \
+        userFeatureWriteData.Value.i32Data = userFeatureData.i32Data;                                           \
         MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, mosCtx);                              \
     }                                                                                                           \
 } while (0)

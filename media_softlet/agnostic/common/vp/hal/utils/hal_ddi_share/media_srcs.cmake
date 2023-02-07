@@ -1,4 +1,4 @@
-# Copyright (c) 2022, Intel Corporation
+# Copyright (c) 2022-2023, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -38,7 +38,7 @@ set(SOFTLET_VP_HAL_DDI_SHARED_HEADERS_
     ${TMP_HEADERS_}
 )
 
-source_group( VpHalNext\\Shared FILES ${TMP_SOURCES_} ${TMP_HEADERS_})
+source_group( "Hal_DDI_Shared\\VP" FILES ${TMP_SOURCES_} ${TMP_HEADERS_})
 set(TMP_SOURCES_ "")
 set(TMP_HEADERS_ "")
 set (SOFTLET_VP_HAL_DDI_SHARED_INCLUDE_DIRS_
