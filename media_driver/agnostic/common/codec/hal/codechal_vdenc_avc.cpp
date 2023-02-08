@@ -4015,6 +4015,40 @@ MOS_STATUS CodechalVdencAvcState::SetSequenceStructs()
         m_vdencBrcEnabled = false;
     }
 
+    if (Mos_ResourceIsNull(&m_batchBufferForVdencImgStat[0].OsResource))
+    {
+        // VDENC uses second level batch buffer for image state cmds
+        if (!m_vdencBrcEnabled)
+        {
+            // CQP mode needs a set of buffers for concurrency between SFD and VDEnc
+            for (uint8_t i = 0; i < CODECHAL_ENCODE_RECYCLED_BUFFER_NUM; i++)
+            {
+                MOS_ZeroMemory(
+                    &m_batchBufferForVdencImgStat[i],
+                    sizeof(m_batchBufferForVdencImgStat[i]));
+                m_batchBufferForVdencImgStat[i].bSecondLevel = true;
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(Mhw_AllocateBb(
+                    m_osInterface,
+                    &m_batchBufferForVdencImgStat[i],
+                    nullptr,
+                    m_hwInterface->m_vdencBrcImgStateBufferSize));
+            }
+            m_vdencBrcImgStatAllocated = true;
+        }
+        else
+        {
+            MOS_ZeroMemory(
+                &m_batchBufferForVdencImgStat[0],
+                sizeof(m_batchBufferForVdencImgStat[0]));
+            m_batchBufferForVdencImgStat[0].bSecondLevel = true;
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(Mhw_AllocateBb(
+                m_osInterface,
+                &m_batchBufferForVdencImgStat[0],
+                nullptr,
+                GetVdencBRCImgStateBufferSize()));
+        }
+    }
+
     // BRC Init or Reset
     if (seqParams->bInitBRC)
     {
@@ -7084,37 +7118,6 @@ MOS_STATUS CodechalVdencAvcState::AllocateResources()
     {
         CODECHAL_ENCODE_ASSERTMESSAGE("%s: Failed to allocate VDENC BRC PerMB and framel level PAK Statistics Buffer\n", __FUNCTION__);
         return eStatus;
-    }
-
-    // VDENC uses second level batch buffer for image state cmds
-    if (!m_vdencBrcEnabled)
-    {
-        // CQP mode needs a set of buffers for concurrency between SFD and VDEnc
-        for (uint8_t i = 0; i < CODECHAL_ENCODE_RECYCLED_BUFFER_NUM; i++)
-        {
-            MOS_ZeroMemory(
-                &m_batchBufferForVdencImgStat[i],
-                sizeof(m_batchBufferForVdencImgStat[i]));
-            m_batchBufferForVdencImgStat[i].bSecondLevel = true;
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(Mhw_AllocateBb(
-                m_osInterface,
-                &m_batchBufferForVdencImgStat[i],
-                nullptr,
-                m_hwInterface->m_vdencBrcImgStateBufferSize));
-        }
-        m_vdencBrcImgStatAllocated = true;
-    }
-    else
-    {
-        MOS_ZeroMemory(
-            &m_batchBufferForVdencImgStat[0],
-            sizeof(m_batchBufferForVdencImgStat[0]));
-        m_batchBufferForVdencImgStat[0].bSecondLevel = true;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(Mhw_AllocateBb(
-            m_osInterface,
-            &m_batchBufferForVdencImgStat[0],
-            nullptr,
-            GetVdencBRCImgStateBufferSize()));
     }
 
     // Buffer to store VDEnc TLB MMIO values (registers MFX_LRA_0/1/2)

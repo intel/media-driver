@@ -812,7 +812,7 @@ uint32_t CodechalVdencAvcStateXe_Hpm::GetCurrConstDataBufIdx()
 
 uint32_t CodechalVdencAvcStateXe_Hpm::GetVdencBRCImgStateBufferSize()
 {
-    return MOS_ALIGN_CEIL(MOS_ALIGN_CEIL(m_hwInterface->m_vdencBrcImgStateBufferSize, CODECHAL_CACHELINE_SIZE) + m_numSlices * (m_mfxInterface->GetAvcSlcStateSize() + m_vdencInterface->GetVdencAvcSlcStateSize() + m_miInterface->GetMiBatchBufferEndCmdSize()), CODECHAL_PAGE_SIZE);
+    return MOS_ALIGN_CEIL(MOS_ALIGN_CEIL(m_hwInterface->m_vdencBrcImgStateBufferSize, CODECHAL_CACHELINE_SIZE) + ENCODE_AVC_MAX_SLICES_SUPPORTED * (m_mfxInterface->GetAvcSlcStateSize() + m_vdencInterface->GetVdencAvcSlcStateSize() + m_miInterface->GetMiBatchBufferEndCmdSize()), CODECHAL_PAGE_SIZE);
 }
 
 MOS_STATUS CodechalVdencAvcStateXe_Hpm::AddVdencBrcImgBuffer(
