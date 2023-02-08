@@ -3056,18 +3056,31 @@ int32_t MosInterface::IsGPUHung(
 
     osParameters = (PMOS_CONTEXT)streamState->perStreamParameters;
 
-    ret = mos_get_reset_stats(osParameters->intel_context, &resetCount, &activeBatch, &pendingBatch);
+    MOS_LINUX_CONTEXT *intel_i915_ctx = osParameters->intel_context;
+    auto gpuContext = MosInterface::GetGpuContext(streamState, streamState->currentGpuContextHandle);
+    if(gpuContext != nullptr && gpuContext->GetI915Context(0) != nullptr)
+    {
+        intel_i915_ctx = gpuContext->GetI915Context(0);
+    }
+
+    ret = mos_get_reset_stats(intel_i915_ctx, &resetCount, &activeBatch, &pendingBatch);
     if (ret)
     {
         MOS_OS_NORMALMESSAGE("mos_get_reset_stats return error(%d)\n", ret);
         return false;
     }
 
-    if (resetCount      != streamState->gpuResetCount ||
-        activeBatch     != streamState->gpuActiveBatch ||
-        pendingBatch    != streamState->gpuPendingBatch)
+    //Chip reset will count this value, but maybe caused by ctx in other process.
+    //In this case, reset has no impact on current process
+    if (resetCount      != streamState->gpuResetCount)
     {
         streamState->gpuResetCount    = resetCount;
+    }
+
+    //Thses two values are ctx specific, it must reset in current process if either changes
+    if  (activeBatch     != streamState->gpuActiveBatch ||
+        pendingBatch    != streamState->gpuPendingBatch)
+    {
         streamState->gpuActiveBatch   = activeBatch;
         streamState->gpuPendingBatch  = pendingBatch;
         result                        = true;

@@ -176,6 +176,15 @@ public:
     uint32_t   GetGpuStatusTag() { return m_GPUStatusTag; }
 
     //!
+    //! \brief    Get i915 ctx
+    //! \param    [in] ctxNodeIndex
+    //!           ctx index in array
+    //! \return   MOS_LINUX_CONTEXT
+    //!           mos linux ctx in array of ctxNodeIndex
+    //!
+    MOS_LINUX_CONTEXT* GetI915Context(uint32_t ctxNodeIndex){return ctxNodeIndex < (MAX_ENGINE_INSTANCE_NUM+1) ?  m_i915Context[ctxNodeIndex] : nullptr;}
+
+    //!
     //! \brief    Increment GPU status tag
     //!
     void       IncrementGpuStatusTag();

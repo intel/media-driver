@@ -70,7 +70,7 @@ DecodePipeline::DecodePipeline(
 
 MOS_STATUS DecodePipeline::CreateStatusReport()
 {
-    m_statusReport = MOS_New(DecodeStatusReport, m_allocator, true);
+    m_statusReport = MOS_New(DecodeStatusReport, m_allocator, true, m_osInterface);
     DECODE_CHK_NULL(m_statusReport);
     DECODE_CHK_STATUS(m_statusReport->Create());
 

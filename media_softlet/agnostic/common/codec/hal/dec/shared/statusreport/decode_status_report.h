@@ -87,7 +87,7 @@ namespace decode {
     class DecodeStatusReport : public MediaStatusReport
     {
     public:
-        DecodeStatusReport(DecodeAllocator *alloc, bool enableRcs);
+        DecodeStatusReport(DecodeAllocator *alloc, bool enableRcs, PMOS_INTERFACE osInterface = nullptr);
         virtual ~DecodeStatusReport();
 
         //!
@@ -194,6 +194,7 @@ namespace decode {
         PMOS_BUFFER            m_statusBufRcs = nullptr;
         uint8_t               *m_dataStatusMfx = nullptr;
         uint8_t               *m_dataStatusRcs = nullptr;
+        PMOS_INTERFACE        m_osInterface = nullptr;
 
     MEDIA_CLASS_DEFINE_END(decode__DecodeStatusReport)
     };

@@ -31,9 +31,10 @@
 namespace decode {
 
     DecodeStatusReport::DecodeStatusReport(
-        DecodeAllocator* allocator, bool enableRcs):
+        DecodeAllocator* allocator, bool enableRcs, PMOS_INTERFACE osInterface):
         m_enableRcs(enableRcs),
-        m_allocator(allocator)
+        m_allocator(allocator),
+        m_osInterface(osInterface)
     {
         m_sizeOfReport = sizeof(DecodeStatusReportData);
     }
@@ -233,7 +234,12 @@ namespace decode {
         DECODE_CHK_NULL(statusReportData);
         DECODE_CHK_NULL(decodeStatus);
 
-        if (!completed)
+        if(m_osInterface != nullptr && m_osInterface->pfnIsGPUHung(m_osInterface))
+        {
+            statusReportData->codecStatus = CODECHAL_STATUS_INCOMPLETE;
+            DECODE_ASSERTMESSAGE("Gpu hang may have occured.");
+        }
+        else if (!completed)
         {
             statusReportData->codecStatus = CODECHAL_STATUS_ERROR;
             DECODE_ASSERTMESSAGE("Media reset may have occured.");

@@ -6591,9 +6591,19 @@ int32_t Mos_Specific_IsGPUHung(
         return MosInterface::IsGPUHung(pOsInterface->osStreamState);
     }
 
+    MOS_LINUX_CONTEXT *intel_i915_ctx = pOsInterface->pOsContext->intel_context;
+    if (pOsInterface->modularizedGpuCtxEnabled && !Mos_Solo_IsEnabled(nullptr))
+    {
+        auto gpuContext = Linux_GetGpuContext(pOsInterface, pOsInterface->CurrentGpuContextHandle);
+        if(gpuContext != nullptr && gpuContext->GetI915Context(0) != nullptr)
+        {
+            intel_i915_ctx = gpuContext->GetI915Context(0);
+        }
+    }
+
     dwResetCount = dwActiveBatch = dwPendingBatch = 0;
 
-    ret = mos_get_reset_stats(pOsInterface->pOsContext->intel_context, &dwResetCount,
+    ret = mos_get_reset_stats(intel_i915_ctx, &dwResetCount,
                                 &dwActiveBatch, &dwPendingBatch);
     if (ret)
     {
@@ -6601,11 +6611,17 @@ int32_t Mos_Specific_IsGPUHung(
         goto finish;
     }
 
-    if (dwResetCount != pOsInterface->dwGPUResetCount   ||
-        dwActiveBatch != pOsInterface->dwGPUActiveBatch ||
-        dwPendingBatch != pOsInterface->dwGPUPendingBatch)
+    //Chip reset will count this value, but maybe caused by ctx in other process.
+    //In this case, reset has no impact on current process
+    if (dwResetCount != pOsInterface->dwGPUResetCount)
     {
         pOsInterface->dwGPUResetCount   = dwResetCount;
+    }
+
+    //Thses two values are ctx specific, it must reset in current process if either changes
+    if  (dwActiveBatch != pOsInterface->dwGPUActiveBatch ||
+        dwPendingBatch != pOsInterface->dwGPUPendingBatch)
+    {
         pOsInterface->dwGPUActiveBatch  = dwActiveBatch;
         pOsInterface->dwGPUPendingBatch = dwPendingBatch;
         bResult = true;
