@@ -5811,9 +5811,11 @@ MOS_STATUS CodechalVdencAvcState::ExecuteKernelFunctions()
     {
         m_pollingSyncEnabled = false;
     }
-
+    // Only CodechalVdencAvcStateXe_Hpm may call EnableMediaCopy and IsMediaCopyEnabled can be true.
+    // However, CodechalEncodeInterfacesXe_Hpm does not has CscDs and m_cscDsState will always be nullptr.
     if (m_cscDsState->IsMediaCopyEnabled() && m_cscDsState->RequireCopyOnly())
     {
+        // No condition can go into RawSurfaceMediaCopy function now
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cscDsState->RawSurfaceMediaCopy(m_rawSurfaceToEnc->Format));
         return eStatus;
     }

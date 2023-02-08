@@ -1868,14 +1868,12 @@ MOS_STATUS CodechalEncodeCscDs::RawSurfaceMediaCopy(MOS_FORMAT srcFormat)
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    PMOS_CONTEXT mos_context = nullptr;
-    CODECHAL_ENCODE_CHK_NULL_RETURN(m_osInterface);
-    m_osInterface->pfnGetMosContext(m_osInterface, &mos_context);
-
-    if (!m_pMosMediaCopy)
+    // Call m_hwInterface->CreateMediaCopy directly for legacy code
+    if (nullptr == m_mediaCopyBaseState)
     {
-        MOS_OS_CHK_NULL_RETURN(m_pMosMediaCopy = MOS_New(MosMediaCopy, mos_context));
+        m_mediaCopyBaseState = m_hwInterface->CreateMediaCopy(m_osInterface);
     }
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_mediaCopyBaseState);
 
     // Call raw surface Copy function
     CODECHAL_ENCODE_CHK_STATUS_RETURN(AllocateSurfaceCopy(srcFormat));
@@ -1883,7 +1881,7 @@ MOS_STATUS CodechalEncodeCscDs::RawSurfaceMediaCopy(MOS_FORMAT srcFormat)
     auto cscSurface = m_encoder->m_trackedBuf->GetCscSurface(CODEC_CURR_TRACKED_BUFFER);
 
     // Copy through VEBOX from Linear/TileY to TileY
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_pMosMediaCopy->MediaCopy(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mediaCopyBaseState->SurfaceCopy(
         &m_rawSurfaceToEnc->OsResource,
         &cscSurface->OsResource,
         MCPY_METHOD_BALANCE));
@@ -1975,5 +1973,5 @@ CodechalEncodeCscDs::~CodechalEncodeCscDs()
 {
     MOS_Delete(m_cscKernelState);
     MOS_Delete(m_sfcState);
-    MOS_Delete(m_pMosMediaCopy);
+    MOS_Delete(m_mediaCopyBaseState);
 }

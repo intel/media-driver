@@ -712,7 +712,7 @@ protected:
     CodecHalEncodeSfc*                      m_sfcState = nullptr;                           //!< SFC interface
     MHW_KERNEL_STATE*                       m_cscKernelState = nullptr;                     //!< CSC kernel state
     MHW_KERNEL_STATE*                       m_dsKernelState = nullptr;                      //!< DS kernel state
-    MosMediaCopy*                           m_pMosMediaCopy = nullptr;                      //!< Mos Media Copy interface
+    MediaCopyBaseState*                     m_mediaCopyBaseState = nullptr;                 //!< Media copy state
 
     union
     {
