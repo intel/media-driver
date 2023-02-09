@@ -479,7 +479,7 @@ public:
     //!
     //! \brief    Destructor
     //!
-    virtual ~MhwVdboxHcpInterfaceG12() { MHW_FUNCTION_ENTER; }
+    virtual ~MhwVdboxHcpInterfaceG12();
 
     uint32_t GetHcpPakObjSize()
     {

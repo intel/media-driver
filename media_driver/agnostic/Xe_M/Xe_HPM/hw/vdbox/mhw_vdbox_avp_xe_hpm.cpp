@@ -43,6 +43,23 @@ MhwVdboxAvpInterfaceXe_Hpm::MhwVdboxAvpInterfaceXe_Hpm(
 MhwVdboxAvpInterfaceXe_Hpm::~MhwVdboxAvpInterfaceXe_Hpm()
 {
     MHW_FUNCTION_ENTER;
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    MOS_USER_FEATURE_VALUE_WRITE_DATA UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
+    UserFeatureWriteData.ValueID                           = __MEDIA_USER_FEATURE_VALUE_IS_CODEC_ROW_STORE_CACHE_ENABLED_ID;
+    if (m_btdlRowstoreCache.bEnabled ||
+        m_smvlRowstoreCache.bEnabled ||
+        m_ipdlRowstoreCache.bEnabled ||
+        m_dflyRowstoreCache.bEnabled ||
+        m_dfluRowstoreCache.bEnabled ||
+        m_dflvRowstoreCache.bEnabled ||
+        m_cdefRowstoreCache.bEnabled)
+    {
+        UserFeatureWriteData.Value.i32Data = 1;
+    }
+    MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1, m_osInterface->pOsContext);
+#endif
+
 }
 
 void MhwVdboxAvpPipeBufAddrParamsXe_Hpm::Initialize()
@@ -225,22 +242,6 @@ MOS_STATUS MhwVdboxAvpInterfaceXe_Hpm::AddAvpPipeBufAddrCmd(
     MHW_RESOURCE_PARAMS resourceParams;
     MOS_SURFACE details;
     mhw::vdbox::avp::xe_hpm::Cmd::AVP_PIPE_BUF_ADDR_STATE_CMD cmd;
-
-#if (_DEBUG || _RELEASE_INTERNAL)
-    MOS_USER_FEATURE_VALUE_WRITE_DATA UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
-    UserFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_IS_CODEC_ROW_STORE_CACHE_ENABLED_ID;
-    if (m_btdlRowstoreCache.bEnabled    ||
-        m_smvlRowstoreCache.bEnabled    ||
-        m_ipdlRowstoreCache.bEnabled    ||
-        m_dflyRowstoreCache.bEnabled    ||
-        m_dfluRowstoreCache.bEnabled    ||
-        m_dflvRowstoreCache.bEnabled    ||
-        m_cdefRowstoreCache.bEnabled)
-    {
-        UserFeatureWriteData.Value.i32Data = 1;
-    }
-    MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1, m_osInterface->pOsContext);
-#endif
 
     MOS_ZeroMemory(&resourceParams, sizeof(resourceParams));
 

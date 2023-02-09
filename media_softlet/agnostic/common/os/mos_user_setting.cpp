@@ -633,6 +633,12 @@ MOS_STATUS MosUserSetting::InitUserSettingForDebug(MediaUserSettingSharedPtr use
         true);
     DeclareUserSettingKeyForDebug(
         userSettingPtr,
+        "Codec RowStore Cache Enabled",
+        MediaUserSetting::Group::Device,
+        0,
+        true);
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
         "DisableVp9DfRowStoreCache",
         MediaUserSetting::Group::Device,
         0,

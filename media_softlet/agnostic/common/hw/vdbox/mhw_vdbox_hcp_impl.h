@@ -785,6 +785,30 @@ protected:
         InitMmioRegisters();
     }
 
+    virtual ~Impl()
+    {
+        MHW_FUNCTION_ENTER;
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+        if (m_hevcDatRowStoreCache.enabled ||
+            m_hevcDfRowStoreCache.enabled ||
+            m_hevcSaoRowStoreCache.enabled ||
+            m_hevcHSaoRowStoreCache.enabled ||
+            m_vp9HvdRowStoreCache.enabled ||
+            m_vp9DatRowStoreCache.enabled ||
+            m_vp9DfRowStoreCache.enabled)
+        {
+            // Report rowstore cache usage status to regkey
+            ReportUserSettingForDebug(
+                m_userSettingPtr,
+                "Codec RowStore Cache Enabled",
+                1,
+                MediaUserSetting::Group::Device);
+        }
+#endif
+
+    }
+
     _MHW_SETCMD_OVERRIDE_DECL(HCP_SURFACE_STATE)
     {
         _MHW_SETCMD_CALLBASE(HCP_SURFACE_STATE);
@@ -1427,22 +1451,6 @@ protected:
 
         MHW_RESOURCE_PARAMS resourceParams;
         MOS_SURFACE         details;
-
-#if (_DEBUG || _RELEASE_INTERNAL)
-        MOS_USER_FEATURE_VALUE_WRITE_DATA UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
-        UserFeatureWriteData.ValueID                           = __MEDIA_USER_FEATURE_VALUE_IS_CODEC_ROW_STORE_CACHE_ENABLED_ID;
-        if (m_hevcDatRowStoreCache.enabled ||
-            m_hevcDfRowStoreCache.enabled ||
-            m_hevcSaoRowStoreCache.enabled ||
-            m_hevcHSaoRowStoreCache.enabled ||
-            m_vp9HvdRowStoreCache.enabled ||
-            m_vp9DatRowStoreCache.enabled ||
-            m_vp9DfRowStoreCache.enabled)
-        {
-            UserFeatureWriteData.Value.i32Data = 1;
-        }
-        MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1, m_osItf->pOsContext);
-#endif
 
         MOS_ZeroMemory(&resourceParams, sizeof(resourceParams));
 

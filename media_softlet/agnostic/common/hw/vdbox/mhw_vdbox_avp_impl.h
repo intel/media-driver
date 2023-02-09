@@ -558,6 +558,30 @@ protected:
         InitMmioRegisters();
     }
 
+    virtual ~Impl()
+    {
+        MHW_FUNCTION_ENTER;
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+        if (m_btdlRowstoreCache.enabled ||
+            m_smvlRowstoreCache.enabled ||
+            m_ipdlRowstoreCache.enabled ||
+            m_dflyRowstoreCache.enabled ||
+            m_dfluRowstoreCache.enabled ||
+            m_dflvRowstoreCache.enabled ||
+            m_cdefRowstoreCache.enabled)
+        {
+            // Report rowstore cache usage status to regkey
+            ReportUserSettingForDebug(
+                m_userSettingPtr,
+                "Codec RowStore Cache Enabled",
+                1,
+                MediaUserSetting::Group::Device);
+        }
+#endif
+
+    }
+
     // Programming Note: CodecHAL layer must add MFX wait command
     //                   for both KIN and VRT before and after AVP_PIPE_MODE_SELECT
 

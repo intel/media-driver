@@ -37,6 +37,25 @@
 #define GEN12_VP8_IP_ROWSTORE_BASEADDRESS                                     256
 #define GEN12_VP8_VLF_ROWSTORE_BASEADDRESS                                    512
 
+MhwVdboxMfxInterfaceG12::~MhwVdboxMfxInterfaceG12()
+{
+    MHW_FUNCTION_ENTER;
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    MOS_USER_FEATURE_VALUE_WRITE_DATA UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
+    UserFeatureWriteData.ValueID                           = __MEDIA_USER_FEATURE_VALUE_IS_CODEC_ROW_STORE_CACHE_ENABLED_ID;
+    if (m_intraRowstoreCache.bEnabled ||
+        m_deblockingFilterRowstoreCache.bEnabled ||
+        m_bsdMpcRowstoreCache.bEnabled ||
+        m_mprRowstoreCache.bEnabled)
+    {
+        UserFeatureWriteData.Value.i32Data = 1;
+    }
+    MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1, m_osInterface->pOsContext);
+#endif
+
+}
+
 void MhwVdboxMfxInterfaceG12::InitMmioRegisters()
 {
     MmioRegistersMfx *mmioRegisters = &m_mmioRegisters[MHW_VDBOX_NODE_1];
@@ -793,19 +812,6 @@ MOS_STATUS MhwVdboxMfxInterfaceG12::AddMfxPipeBufAddrCmd(
     resourceParams.HwCommandType = MOS_MFX_PIPE_BUF_ADDR;
 
     mhw_vdbox_mfx_g12_X::MFX_PIPE_BUF_ADDR_STATE_CMD cmd;
-
-#if (_DEBUG || _RELEASE_INTERNAL)
-    MOS_USER_FEATURE_VALUE_WRITE_DATA UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
-    UserFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_IS_CODEC_ROW_STORE_CACHE_ENABLED_ID;
-    if (m_intraRowstoreCache.bEnabled               ||
-        m_deblockingFilterRowstoreCache.bEnabled    ||
-        m_bsdMpcRowstoreCache.bEnabled              ||
-        m_mprRowstoreCache.bEnabled)
-    {
-        UserFeatureWriteData.Value.i32Data = 1;
-    }
-    MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1, m_osInterface->pOsContext);
-#endif
 
     // Encoding uses both surfaces regardless of deblocking status
     if (params->psPreDeblockSurface != nullptr)

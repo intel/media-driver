@@ -404,6 +404,27 @@ protected:
         SetCacheabilitySettings();
     }
 
+    virtual ~Impl()
+    {
+        MHW_FUNCTION_ENTER;
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+        if (m_intraRowstoreCache.enabled ||
+            m_deblockingFilterRowstoreCache.enabled ||
+            m_bsdMpcRowstoreCache.enabled ||
+            m_mprRowstoreCache.enabled)
+        {
+            // Report rowstore cache usage status to regkey
+            ReportUserSettingForDebug(
+                m_userSettingPtr,
+                "Codec RowStore Cache Enabled",
+                1,
+                MediaUserSetting::Group::Device);
+        }
+#endif
+
+    }
+
     MOS_STATUS InitRowstoreUserFeatureSettings()
     {
         MHW_FUNCTION_ENTER;

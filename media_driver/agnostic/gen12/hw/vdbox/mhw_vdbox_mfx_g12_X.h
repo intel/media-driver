@@ -116,7 +116,7 @@ public:
     //!
     //! \brief    Destructor
     //!
-    virtual ~MhwVdboxMfxInterfaceG12() { MHW_FUNCTION_ENTER; }
+    virtual ~MhwVdboxMfxInterfaceG12();
 
 public:
     //!
