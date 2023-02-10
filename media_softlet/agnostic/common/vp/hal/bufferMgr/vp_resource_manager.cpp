@@ -1520,84 +1520,6 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxDenoiseOutputSurface(VP_EXECUTE_CAP
     return MOS_STATUS_SUCCESS;
 }
 
-//!
-//! \brief    Vebox initialize STMM History
-//! \details  Initialize STMM History surface
-//! Description:
-//!   This function is used by VEBox for initializing
-//!   the STMM surface.  The STMM / Denoise history is a custom surface used 
-//!   for both input and output. Each cache line contains data for 4 4x4s. 
-//!   The STMM for each 4x4 is 8 bytes, while the denoise history is 1 byte 
-//!   and the chroma denoise history is 1 byte for each U and V.
-//!   Byte    Data\n
-//!   0       STMM for 2 luma values at luma Y=0, X=0 to 1\n
-//!   1       STMM for 2 luma values at luma Y=0, X=2 to 3\n
-//!   2       Luma Denoise History for 4x4 at 0,0\n
-//!   3       Not Used\n
-//!   4-5     STMM for luma from X=4 to 7\n
-//!   6       Luma Denoise History for 4x4 at 0,4\n
-//!   7       Not Used\n
-//!   8-15    Repeat for 4x4s at 0,8 and 0,12\n
-//!   16      STMM for 2 luma values at luma Y=1,X=0 to 1\n
-//!   17      STMM for 2 luma values at luma Y=1, X=2 to 3\n
-//!   18      U Chroma Denoise History\n
-//!   19      Not Used\n
-//!   20-31   Repeat for 3 4x4s at 1,4, 1,8 and 1,12\n
-//!   32      STMM for 2 luma values at luma Y=2,X=0 to 1\n
-//!   33      STMM for 2 luma values at luma Y=2, X=2 to 3\n
-//!   34      V Chroma Denoise History\n
-//!   35      Not Used\n
-//!   36-47   Repeat for 3 4x4s at 2,4, 2,8 and 2,12\n
-//!   48      STMM for 2 luma values at luma Y=3,X=0 to 1\n
-//!   49      STMM for 2 luma values at luma Y=3, X=2 to 3\n
-//!   50-51   Not Used\n
-//!   36-47   Repeat for 3 4x4s at 3,4, 3,8 and 3,12\n
-//! \param    [in] iSurfaceIndex
-//!           Index of STMM surface array
-//! \return   MOS_STATUS
-//!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
-//!
-MOS_STATUS VpResourceManager::VeboxInitSTMMHistory(MOS_SURFACE *stmmSurface)
-{
-    VP_FUNC_CALL();
-
-    uint32_t            dwSize = 0;
-    int32_t             x = 0, y = 0;
-    uint8_t*            pByte = nullptr;
-    MOS_LOCK_PARAMS     LockFlags;
-
-    VP_PUBLIC_CHK_NULL_RETURN(stmmSurface);
-    MOS_ZeroMemory(&LockFlags, sizeof(MOS_LOCK_PARAMS));
-
-    LockFlags.WriteOnly = 1;
-    LockFlags.TiledAsTiled = 1; // Set TiledAsTiled flag for STMM surface initialization.
-
-    // Lock the surface for writing
-    pByte = (uint8_t*)m_allocator.Lock(
-        &stmmSurface->OsResource,
-        &LockFlags);
-    VP_PUBLIC_CHK_NULL_RETURN(pByte);
-
-    dwSize = stmmSurface->dwWidth >> 2;
-
-    // Fill STMM surface with DN history init values.
-    for (y = 0; y < (int32_t)stmmSurface->dwHeight; y++)
-    {
-        for (x = 0; x < (int32_t)dwSize; x++)
-        {
-            MOS_FillMemory(pByte, 2, DNDI_HISTORY_INITVALUE);
-            // skip denosie history init.
-            pByte += 4;
-        }
-
-        pByte += stmmSurface->dwPitch - stmmSurface->dwWidth;
-    }
-
-    // Unlock the surface
-    VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.UnLock(&stmmSurface->OsResource));
-    return MOS_STATUS_SUCCESS;
-}
-
 // Allocate STMM (Spatial-Temporal Motion Measure) Surfaces
 MOS_STATUS VpResourceManager::ReAllocateVeboxSTMMSurface(VP_EXECUTE_CAPS& caps, VP_SURFACE *inputSurface, bool &allocated)
 {
@@ -1664,10 +1586,6 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxSTMMSurface(VP_EXECUTE_CAPS& caps, 
         if (allocated)
         {
             VP_PUBLIC_CHK_NULL_RETURN(m_veboxSTMMSurface[i]);
-            if (!isSTMMNotLockable)
-            {
-                VP_PUBLIC_CHK_STATUS_RETURN(VeboxInitSTMMHistory(m_veboxSTMMSurface[i]->osSurface));
-            }
             // Report Compress Status
             m_reporting.GetFeatures().stmmCompressible = bSurfCompressible;
             m_reporting.GetFeatures().stmmCompressMode = (uint8_t)surfCompressionMode;
@@ -1815,47 +1733,49 @@ MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SU
     }
 
 #if VEBOX_AUTO_DENOISE_SUPPORTED
-    // Allocate Temp Surface for Vebox Update kernels----------------------------------------
-    // the surface size is one Page
-    dwSize = MHW_PAGE_SIZE;
-    VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.ReAllocateSurface(
-        m_veboxDNTempSurface,
-        "VeboxDNTempSurface",
-        Format_Buffer,
-        MOS_GFXRES_BUFFER,
-        MOS_TILE_LINEAR,
-        dwSize,
-        1,
-        false,
-        MOS_MMC_DISABLED,
-        bAllocated,
-        true,
-        IsDeferredResourceDestroyNeeded(),
-        MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_FF));
-
-    // Allocate Spatial Attributes Configuration Surface for DN kernel Gen9+-----------
-    dwSize = MHW_PAGE_SIZE;
-    VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.ReAllocateSurface(
-        m_veboxDNSpatialConfigSurface,
-        "VeboxSpatialAttributesConfigurationSurface",
-        Format_RAW,
-        MOS_GFXRES_BUFFER,
-        MOS_TILE_LINEAR,
-        dwSize,
-        1,
-        false,
-        MOS_MMC_DISABLED,
-        bAllocated,
-        false,
-        IsDeferredResourceDestroyNeeded(),
-        MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_FF));
-
-    if (bAllocated)
+    if (caps.bDnKernelUpdate)
     {
-        // initialize Spatial Attributes Configuration Surface
-        VP_PUBLIC_CHK_STATUS_RETURN(InitVeboxSpatialAttributesConfiguration());
-    }
+        // Allocate Temp Surface for Vebox Update kernels----------------------------------------
+        // the surface size is one Page
+        dwSize = MHW_PAGE_SIZE;
+        VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.ReAllocateSurface(
+            m_veboxDNTempSurface,
+            "VeboxDNTempSurface",
+            Format_Buffer,
+            MOS_GFXRES_BUFFER,
+            MOS_TILE_LINEAR,
+            dwSize,
+            1,
+            false,
+            MOS_MMC_DISABLED,
+            bAllocated,
+            true,
+            IsDeferredResourceDestroyNeeded(),
+            MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_FF));
 
+        // Allocate Spatial Attributes Configuration Surface for DN kernel Gen9+-----------
+        dwSize = MHW_PAGE_SIZE;
+        VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.ReAllocateSurface(
+            m_veboxDNSpatialConfigSurface,
+            "VeboxSpatialAttributesConfigurationSurface",
+            Format_RAW,
+            MOS_GFXRES_BUFFER,
+            MOS_TILE_LINEAR,
+            dwSize,
+            1,
+            false,
+            MOS_MMC_DISABLED,
+            bAllocated,
+            false,
+            IsDeferredResourceDestroyNeeded(),
+            MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_FF));
+
+        if (bAllocated)
+        {
+            // initialize Spatial Attributes Configuration Surface
+            VP_PUBLIC_CHK_STATUS_RETURN(InitVeboxSpatialAttributesConfiguration());
+        }
+    }
 #endif
 
     dwSize = GetHistogramSurfaceSize(caps, inputSurface->osSurface->dwWidth, inputSurface->osSurface->dwHeight);
@@ -2215,10 +2135,13 @@ MOS_STATUS VpResourceManager::AssignVeboxResource(VP_EXECUTE_CAPS& caps, VP_SURF
     }
 
 #if VEBOX_AUTO_DENOISE_SUPPORTED
-    // Insert Vebox auto DN noise level surface
-    surfGroup.insert(std::make_pair(SurfaceTypeAutoDNNoiseLevel, m_veboxDNTempSurface));
-    // Insert Vebox auto DN spatial config surface/buffer
-    surfGroup.insert(std::make_pair(SurfaceTypeAutoDNSpatialConfig, m_veboxDNSpatialConfigSurface));
+    if (caps.bDnKernelUpdate)
+    {
+        // Insert Vebox auto DN noise level surface
+        surfGroup.insert(std::make_pair(SurfaceTypeAutoDNNoiseLevel, m_veboxDNTempSurface));
+        // Insert Vebox auto DN spatial config surface/buffer
+        surfGroup.insert(std::make_pair(SurfaceTypeAutoDNSpatialConfig, m_veboxDNSpatialConfigSurface));
+    }
 #endif
 
     // Insert Vebox histogram surface
@@ -2434,14 +2357,6 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxStatisticsSurface(VP_SURFACE *&stat
         if (caps.bSecureVebox)
         {
             VP_PUBLIC_CHK_STATUS_RETURN(FillLinearBufferWithEncZero(statisticsSurface, dwWidth, dwHeight));
-        }
-        else
-        {
-            // Initialize veboxStatisticsSurface Surface
-            VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.OsFillResource(
-                &(statisticsSurface->osSurface->OsResource),
-                dwWidth * dwHeight,
-                InitValue));
         }
     }
 

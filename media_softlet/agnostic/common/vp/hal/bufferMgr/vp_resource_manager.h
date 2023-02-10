@@ -444,46 +444,6 @@ protected:
     virtual MOS_STATUS AssignVeboxResource(VP_EXECUTE_CAPS& caps, VP_SURFACE* inputSurface, VP_SURFACE* outputSurface, VP_SURFACE* pastSurface, VP_SURFACE* futureSurface,
         RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING& surfSetting, SwFilterPipe& executedFilters);
     MOS_STATUS ReAllocateVeboxStatisticsSurface(VP_SURFACE *&statisticsSurface, VP_EXECUTE_CAPS &caps, VP_SURFACE *inputSurface, uint32_t dwWidth, uint32_t dwHeight);
-
-    //!
-    //! \brief    Vebox initialize STMM History
-    //! \details  Initialize STMM History surface
-    //! Description:
-    //!   This function is used by VEBox for initializing
-    //!   the STMM surface.  The STMM / Denoise history is a custom surface used 
-    //!   for both input and output. Each cache line contains data for 4 4x4s. 
-    //!   The STMM for each 4x4 is 8 bytes, while the denoise history is 1 byte 
-    //!   and the chroma denoise history is 1 byte for each U and V.
-    //!   Byte    Data\n
-    //!   0       STMM for 2 luma values at luma Y=0, X=0 to 1\n
-    //!   1       STMM for 2 luma values at luma Y=0, X=2 to 3\n
-    //!   2       Luma Denoise History for 4x4 at 0,0\n
-    //!   3       Not Used\n
-    //!   4-5     STMM for luma from X=4 to 7\n
-    //!   6       Luma Denoise History for 4x4 at 0,4\n
-    //!   7       Not Used\n
-    //!   8-15    Repeat for 4x4s at 0,8 and 0,12\n
-    //!   16      STMM for 2 luma values at luma Y=1,X=0 to 1\n
-    //!   17      STMM for 2 luma values at luma Y=1, X=2 to 3\n
-    //!   18      U Chroma Denoise History\n
-    //!   19      Not Used\n
-    //!   20-31   Repeat for 3 4x4s at 1,4, 1,8 and 1,12\n
-    //!   32      STMM for 2 luma values at luma Y=2,X=0 to 1\n
-    //!   33      STMM for 2 luma values at luma Y=2, X=2 to 3\n
-    //!   34      V Chroma Denoise History\n
-    //!   35      Not Used\n
-    //!   36-47   Repeat for 3 4x4s at 2,4, 2,8 and 2,12\n
-    //!   48      STMM for 2 luma values at luma Y=3,X=0 to 1\n
-    //!   49      STMM for 2 luma values at luma Y=3, X=2 to 3\n
-    //!   50-51   Not Used\n
-    //!   36-47   Repeat for 3 4x4s at 3,4, 3,8 and 3,12\n
-    //! \param    [in] stmmSurface
-    //!           STMM surface
-    //! \return   MOS_STATUS
-    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
-    //!
-    MOS_STATUS VeboxInitSTMMHistory(MOS_SURFACE *stmmSurface);
-
     void InitSurfaceConfigMap();
     void AddSurfaceConfig(bool _b64DI, bool _sfcEnable, bool _sameSample, bool _outOfBound, bool _pastRefAvailable, bool _futureRefAvailable, bool _firstDiField,
         VEBOX_SURFACE_ID _currentInputSurface, VEBOX_SURFACE_ID _pastInputSurface, VEBOX_SURFACE_ID _currentOutputSurface, VEBOX_SURFACE_ID _pastOutputSurface)
