@@ -417,6 +417,11 @@ namespace encode
             ENCODE_CHK_STATUS_RETURN(StartStatusReport(statusReportMfx, &cmdBuffer));
         }
 
+        MediaPerfProfiler *perfProfiler = MediaPerfProfiler::Instance();
+        ENCODE_CHK_NULL_RETURN(perfProfiler);
+        ENCODE_CHK_STATUS_RETURN(perfProfiler->AddPerfCollectStartCmd(
+            (void *)m_pipeline, m_osInterface, m_miItf, &cmdBuffer));
+
         ENCODE_CHK_STATUS_RETURN(AddPictureHcpCommands(cmdBuffer));
 
         ENCODE_CHK_STATUS_RETURN(AddPictureVdencCommands(cmdBuffer));
@@ -768,10 +773,16 @@ namespace encode
             }
         }
 
-        // Insert end of sequence/stream if set
-        if ((m_basicFeature->m_lastPicInSeq || m_basicFeature->m_lastPicInStream) && m_pipeline->IsLastPipe())
+        if(m_pipeline->IsLastPipe())
         {
-            ENCODE_CHK_STATUS_RETURN(InsertSeqStreamEnd(cmdBuffer));
+            // increment the 3rd lvl bb to break successive frames dependency
+            RUN_FEATURE_INTERFACE_RETURN(HevcEncodeTile, HevcFeatureIDs::encodeTile, IncrementThirdLevelBatchBuffer);
+
+            // Insert end of sequence/stream if set
+            if (m_basicFeature->m_lastPicInSeq || m_basicFeature->m_lastPicInStream)
+            {
+                ENCODE_CHK_STATUS_RETURN(InsertSeqStreamEnd(cmdBuffer));
+            }
         }
 
         // Send VD_CONTROL_STATE (Memory Implict Flush)
@@ -788,6 +799,11 @@ namespace encode
         // Wait all pipe cmds done for the packet
         auto scalability = m_pipeline->GetMediaScalability();
         ENCODE_CHK_STATUS_RETURN(scalability->SyncPipe(syncOnePipeWaitOthers, 0, &cmdBuffer));
+
+        MediaPerfProfiler *perfProfiler = MediaPerfProfiler::Instance();
+        ENCODE_CHK_NULL_RETURN(perfProfiler);
+        ENCODE_CHK_STATUS_RETURN(perfProfiler->AddPerfCollectEndCmd(
+            (void *)m_pipeline, m_osInterface, m_miItf, &cmdBuffer));
 
         // post-operations are done by pak integrate pkt
 
@@ -1737,11 +1753,6 @@ namespace encode
 
         ENCODE_CHK_STATUS_RETURN(MediaPacket::StartStatusReportNext(srType, cmdBuffer));
         m_encodecp->StartCpStatusReport(cmdBuffer);
-
-        MediaPerfProfiler *perfProfiler = MediaPerfProfiler::Instance();
-        ENCODE_CHK_NULL_RETURN(perfProfiler);
-        ENCODE_CHK_STATUS_RETURN(perfProfiler->AddPerfCollectStartCmd(
-            (void *)m_pipeline, m_osInterface, m_miItf, cmdBuffer));
 
         return MOS_STATUS_SUCCESS;
     }

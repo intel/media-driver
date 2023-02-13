@@ -146,12 +146,20 @@ namespace encode {
         bool firstTaskInPhase = packetPhase & firstPacket;
         bool requestProlog = !m_pipeline->IsSingleTaskPhaseSupported() || firstTaskInPhase;
 
+        uint16_t perfTag = CODECHAL_ENCODE_PERFTAG_CALL_PAK_KERNEL;
+        SetPerfTag(perfTag, (uint16_t)m_basicFeature->m_mode, m_basicFeature->m_pictureCodingType);
+
         auto brcFeature = dynamic_cast<HEVCEncodeBRC *>(m_featureManager->GetFeature(HevcFeatureIDs::hevcBrcFeature));
         ENCODE_CHK_NULL_RETURN(brcFeature);
         m_vdencHucUsed = brcFeature->IsVdencHucUsed();
 
         bool isTileReplayEnabled = false;
         RUN_FEATURE_INTERFACE_RETURN(HevcEncodeTile, FeatureIDs::encodeTile, IsTileReplayEnabled, isTileReplayEnabled);
+
+        MediaPerfProfiler *perfProfiler = MediaPerfProfiler::Instance();
+        ENCODE_CHK_NULL_RETURN(perfProfiler);
+        ENCODE_CHK_STATUS_RETURN(perfProfiler->AddPerfCollectStartCmd(
+            (void *)m_pipeline, m_osInterface, m_miItf, commandBuffer));
 
         if (m_vdencHucUsed || (m_basicFeature->m_enableTileStitchByHW && (isTileReplayEnabled || m_pipeline->GetPipeNum() > 1)))
         {

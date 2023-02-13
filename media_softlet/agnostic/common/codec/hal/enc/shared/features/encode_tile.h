@@ -25,8 +25,12 @@
 //!
 #ifndef __ENCODE_TILE_H__
 #define __ENCODE_TILE_H__
+#include <array>
+
 #include "encode_basic_feature.h"
 #include "encode_pipeline.h"
+
+#define __THIRD_LVL_BB_DEFAULT_COUNT 4
 
 namespace encode
 {
@@ -211,6 +215,13 @@ public:
     //!
     virtual MOS_STATUS GetThirdLevelBatchBuffer(
         PMHW_BATCH_BUFFER &thirdLevelBatchBuffer);
+
+    //!
+    //! \brief  Increment the current third Level Batch Buffer from Encode Tile features
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS IncrementThirdLevelBatchBuffer();
 
     //!
     //! \brief  Begin Patching tile Level Batch Buffer
@@ -495,8 +506,9 @@ protected:
     EncodeTileCodingParams m_curTileCodingParams = {};  //! Current tile coding paramters
 
     // 3rd Level Batch buffer
-    uint32_t         m_thirdLevelBatchSize   = 0;   //!< Size of the 3rd level batch buffer
-    MHW_BATCH_BUFFER m_thirdLevelBatchBuffer = {};  //!< 3rd level batch buffer
+    uint32_t                                                                m_thirdLevelBatchSize   = 0;   //!< Size of the 3rd level batch buffer
+    std::array<MHW_BATCH_BUFFER, __THIRD_LVL_BB_DEFAULT_COUNT>              m_thirdLevelBatchBuffers = { 0 };  //!< 3rd level batch buffer
+    std::array<MHW_BATCH_BUFFER, __THIRD_LVL_BB_DEFAULT_COUNT>::iterator    m_currentThirdLevelBatchBuffer;   
 
     // Tile level batch buffer
     uint32_t          m_tileLevelBatchSize    = 0;    //!< Size of the 2rd level batch buffer for each tile

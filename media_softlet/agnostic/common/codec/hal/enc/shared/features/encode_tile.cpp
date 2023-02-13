@@ -40,13 +40,16 @@ namespace encode
     {
         m_hwInterface = hwInterface;
         m_featureManager = featureManager;
+        m_currentThirdLevelBatchBuffer = m_thirdLevelBatchBuffers.begin();
     }
 
     EncodeTile::~EncodeTile()
     {
         if (m_hwInterface != nullptr)
         {
-            Mhw_FreeBb(m_hwInterface->GetOsInterface(), &m_thirdLevelBatchBuffer, nullptr);
+            for(auto& iter : m_thirdLevelBatchBuffers){
+                Mhw_FreeBb(m_hwInterface->GetOsInterface(), &iter, nullptr);
+            }
         }
         FreeTileLevelBatch();
         FreeTileRowLevelBRCBatch();
@@ -160,13 +163,32 @@ namespace encode
 
         // 3rd level batch buffer
         // To be moved to a more proper place later
-        MOS_ZeroMemory(&m_thirdLevelBatchBuffer, sizeof(m_thirdLevelBatchBuffer));
-        m_thirdLevelBatchBuffer.bSecondLevel = true;
-        ENCODE_CHK_STATUS_RETURN(Mhw_AllocateBb(
-            m_hwInterface->GetOsInterface(),
-            &m_thirdLevelBatchBuffer,
-            nullptr,
-            m_thirdLevelBatchSize));
+        for(auto& iter: m_thirdLevelBatchBuffers){
+            MOS_ZeroMemory(&iter, sizeof(iter));
+            iter.bSecondLevel = true;
+            ENCODE_CHK_STATUS_RETURN(Mhw_AllocateBb(
+                m_hwInterface->GetOsInterface(),
+                &iter,
+                nullptr,
+                m_thirdLevelBatchSize));
+        }
+        m_currentThirdLevelBatchBuffer = m_thirdLevelBatchBuffers.begin();
+
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MOS_STATUS EncodeTile::IncrementThirdLevelBatchBuffer()
+    {
+        ENCODE_FUNC_CALL();
+
+        if (!m_enabled)
+        {
+            return MOS_STATUS_SUCCESS;
+        }
+
+        if(++m_currentThirdLevelBatchBuffer == m_thirdLevelBatchBuffers.end()){
+            m_currentThirdLevelBatchBuffer = m_thirdLevelBatchBuffers.begin();
+        }
 
         return MOS_STATUS_SUCCESS;
     }
@@ -175,12 +197,14 @@ namespace encode
         PMHW_BATCH_BUFFER &thirdLevelBatchBuffer)
     {
         ENCODE_FUNC_CALL();
+        
         if (!m_enabled)
         {
             return MOS_STATUS_SUCCESS;
         }
 
-        thirdLevelBatchBuffer = &m_thirdLevelBatchBuffer;
+        thirdLevelBatchBuffer = &(*m_currentThirdLevelBatchBuffer);
+
         return MOS_STATUS_SUCCESS;
     }
 
@@ -279,9 +303,9 @@ namespace encode
     {
         ENCODE_FUNC_CALL();
 
-        uint8_t *data = (uint8_t *)m_allocator->LockResourceForWrite(&(m_thirdLevelBatchBuffer.OsResource));
+        uint8_t *data = (uint8_t *)m_allocator->LockResourceForWrite(&(m_currentThirdLevelBatchBuffer->OsResource));
         ENCODE_CHK_NULL_RETURN(data);
-        m_thirdLevelBatchBuffer.pData = data;
+        m_currentThirdLevelBatchBuffer->pData = data;
 
         MOS_ZeroMemory(&cmdBuffer, sizeof(cmdBuffer));
         cmdBuffer.pCmdBase = cmdBuffer.pCmdPtr = (uint32_t *)data;
@@ -294,8 +318,8 @@ namespace encode
     {
         ENCODE_FUNC_CALL();
 
-        ENCODE_CHK_STATUS_RETURN(m_allocator->UnLock(&(m_thirdLevelBatchBuffer.OsResource)));
-        m_thirdLevelBatchBuffer.pData = nullptr;
+        ENCODE_CHK_STATUS_RETURN(m_allocator->UnLock(&(m_currentThirdLevelBatchBuffer->OsResource)));
+        m_currentThirdLevelBatchBuffer->pData = nullptr;
 
         return MOS_STATUS_SUCCESS;
     }
