@@ -382,10 +382,7 @@ MOS_STATUS SwFilterScaling::Configure(VP_PIPELINE_PARAMS &params, bool isInputSu
     // Alpha should be handled in input pipe to avoid alpha data lost from image.
     m_Params.pCompAlpha             = params.pCompAlpha;
 
-    if (surfInput->Rotation == VPHAL_ROTATION_IDENTITY ||
-        surfInput->Rotation == VPHAL_ROTATION_180 ||
-        surfInput->Rotation == VPHAL_MIRROR_HORIZONTAL ||
-        surfInput->Rotation == VPHAL_MIRROR_VERTICAL)
+    if (!VpUtils::IsVerticalRotation(surfInput->Rotation))
     {
         m_Params.rotation.rotationNeeded    = false;
         m_Params.output.dwWidth             = surfOutput->dwWidth;

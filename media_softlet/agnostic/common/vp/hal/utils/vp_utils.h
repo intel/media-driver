@@ -418,6 +418,8 @@ public:
 
     static bool IsSyncFreeNeededForMMCSurface(PVPHAL_SURFACE surface, PMOS_INTERFACE osInterface);
 
+    static bool IsVerticalRotation(VPHAL_ROTATION rotation);
+
 private:
     //!
     //! \brief    Performs Color Space Convert for Sample 8 bit Using Specified Coeff Matrix

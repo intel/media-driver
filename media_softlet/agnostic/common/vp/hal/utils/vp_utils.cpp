@@ -122,6 +122,13 @@ finish:
     return eStatus;
 }
 
+bool VpUtils::IsVerticalRotation(VPHAL_ROTATION rotation) {
+    return (rotation != VPHAL_ROTATION_IDENTITY &&
+            rotation != VPHAL_ROTATION_180 &&
+            rotation != VPHAL_MIRROR_VERTICAL &&
+            rotation != VPHAL_MIRROR_HORIZONTAL);
+}
+
 bool VpUtils::IsSyncFreeNeededForMMCSurface(PVPHAL_SURFACE surface, PMOS_INTERFACE osInterface)
 {
     if (nullptr == surface || nullptr == osInterface)
