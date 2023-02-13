@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2022, Intel Corporation
+* Copyright (c) 2009-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -386,6 +386,7 @@
 #define __VPHAL_DBG_STATE_DUMP_ENABLE                                 "enableStateDump"
 //User feature key for Codec debug
 #define __MEDIA_USER_FEATURE_VALUE_CODECHAL_DEBUG_OUTPUT_DIRECTORY    "CodecHal Debug Output Directory"
+#define __MEDIA_USER_FEATURE_VALUE_IS_CODEC_ROW_STORE_CACHE_ENABLED   "Codec Row Store Cache Enabled"
 
 // !
 // ! \brief User feature key for Split-Screen Demo Mode

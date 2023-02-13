@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021-2022, Intel Corporation
+* Copyright (c) 2021-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -417,7 +417,7 @@ protected:
             // Report rowstore cache usage status to regkey
             ReportUserSettingForDebug(
                 m_userSettingPtr,
-                "Codec RowStore Cache Enabled",
+                __MEDIA_USER_FEATURE_VALUE_IS_CODEC_ROW_STORE_CACHE_ENABLED,
                 1,
                 MediaUserSetting::Group::Device);
         }
