@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -54,6 +54,7 @@ struct LinuxDriverInfo
     uint32_t hasVebox : 1;
     uint32_t hasBltRing : 1;
     uint32_t hasHuc   : 1;
+    uint32_t hasProtectedHuc : 1;
     uint32_t hasPpgtt : 1;
     uint32_t hasPreemption : 1;
     uint32_t isServer : 1;

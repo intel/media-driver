@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-2017, Intel Corporation
+* Copyright (c) 2015-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -562,6 +562,7 @@ typedef enum _MT_LOG_ID
     MT_CP_HAL_STATUS_CHECK,
     MT_CP_PROVISION_CERT_CHECK,
     MT_CP_PROVISION_CERT_NOT_FOUND,
+    MT_CP_HUC_NOT_AUTHENTICATED,
     MT_CP_KERNEL_RULE,
     MT_CP_KERNEL_TRANSCRYPT,
     MT_CP_BUFFER_RULE,
