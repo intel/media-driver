@@ -774,15 +774,16 @@ static void DdiMedia_FreeSurfaceHeapElements(PDDI_MEDIA_CONTEXT mediaCtx)
         return;
 
     int32_t surfaceNums = mediaCtx->uiNumSurfaces;
-    for (int32_t elementId = 0; elementId < surfaceNums; elementId++)
+    for (int32_t elementId = 0; surfaceNums > 0 && elementId < surfaceHeap->uiAllocatedHeapElements; elementId++)
     {
         PDDI_MEDIA_SURFACE_HEAP_ELEMENT mediaSurfaceHeapElmt = &mediaSurfaceHeapBase[elementId];
-        if (nullptr == mediaSurfaceHeapElmt->pSurface)
+        if (nullptr != mediaSurfaceHeapElmt && nullptr == mediaSurfaceHeapElmt->pSurface)
             continue;
 
         DdiMediaUtil_FreeSurface(mediaSurfaceHeapElmt->pSurface);
         MOS_FreeMemory(mediaSurfaceHeapElmt->pSurface);
         DdiMediaUtil_ReleasePMediaSurfaceFromHeap(surfaceHeap,mediaSurfaceHeapElmt->uiVaSurfaceID);
+        surfaceNums--;
         mediaCtx->uiNumSurfaces--;
     }
 }
@@ -809,14 +810,15 @@ static void DdiMedia_FreeBufferHeapElements(VADriverContextP    ctx)
         return;
 
     int32_t bufNums = mediaCtx->uiNumBufs;
-    for (int32_t elementId = 0; bufNums > 0; ++elementId)
+    for (int32_t elementId = 0; bufNums > 0 && elementId < bufferHeap->uiAllocatedHeapElements; ++elementId)
     {
         PDDI_MEDIA_BUFFER_HEAP_ELEMENT mediaBufferHeapElmt = &mediaBufferHeapBase[elementId];
-        if (nullptr == mediaBufferHeapElmt->pBuffer)
+        if (nullptr != mediaBufferHeapElmt && nullptr == mediaBufferHeapElmt->pBuffer)
             continue;
+        //Note: uiNumBufs will recount in DdiMedia_DestroyBuffer
         DdiMedia_DestroyBuffer(ctx,mediaBufferHeapElmt->uiVaBufferID);
         //Ensure the non-empty buffer to be destroyed.
-        --bufNums;
+        bufNums--;
     }
 }
 
@@ -842,12 +844,14 @@ static void DdiMedia_FreeImageHeapElements(VADriverContextP    ctx)
         return;
 
     int32_t imageNums = mediaCtx->uiNumImages;
-    for (int32_t elementId = 0; elementId < imageNums; ++elementId)
+    for (int32_t elementId = 0; imageNums > 0 && elementId < imageHeap->uiAllocatedHeapElements; ++elementId)
     {
         PDDI_MEDIA_IMAGE_HEAP_ELEMENT mediaImageHeapElmt = &mediaImageHeapBase[elementId];
-        if (nullptr == mediaImageHeapElmt->pImage)
+        if (nullptr != mediaImageHeapElmt && nullptr == mediaImageHeapElmt->pImage)
             continue;
+        //Note: uiNumImages will recount in DdiMedia_DestroyImage
         DdiMedia_DestroyImage(ctx,mediaImageHeapElmt->uiVaImageID);
+        imageNums--;
     }
 }
 
@@ -865,13 +869,14 @@ static void DdiMedia_FreeContextHeap(VADriverContextP ctx, PDDI_MEDIA_HEAP conte
     if (nullptr == mediaContextHeapBase)
         return;
 
-    for (int32_t elementId = 0; elementId < ctxNums; ++elementId)
+    for (int32_t elementId = 0; ctxNums > 0 && elementId < contextHeap->uiAllocatedHeapElements; ++elementId)
     {
         PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT mediaContextHeapElmt = &mediaContextHeapBase[elementId];
-        if (nullptr == mediaContextHeapElmt->pVaContext)
+        if (nullptr != mediaContextHeapElmt && nullptr == mediaContextHeapElmt->pVaContext)
             continue;
         VAContextID vaCtxID = (VAContextID)(mediaContextHeapElmt->uiVaContextID + vaContextOffset);
         DdiMedia_DestroyContext(ctx,vaCtxID);
+        ctxNums--;
     }
 
 }
