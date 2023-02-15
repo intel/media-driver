@@ -99,11 +99,11 @@ const VAImageFormat m_supportedImageformatsXe_Lpm_Plus_Base[] =
     (fourcc_mod_code(INTEL, (val)) | INTEL_PRELIM_ID_FLAG)
 
 /* this definition is to avoid duplicate drm_fourcc.h this file is updated seldom */
-#ifndef PRELIM_I915_FORMAT_MOD_4_TILED_MTL_MC_CCS
-#define PRELIM_I915_FORMAT_MOD_4_TILED_MTL_MC_CCS    intel_prelim_fourcc_mod_code(17)
+#ifndef I915_FORMAT_MOD_4_TILED_MTL_MC_CCS
+#define I915_FORMAT_MOD_4_TILED_MTL_MC_CCS    fourcc_mod_code(INTEL, 14)
 #endif
-#ifndef PRELIM_I915_FORMAT_MOD_4_TILED_MTL_RC_CCS
-#define PRELIM_I915_FORMAT_MOD_4_TILED_MTL_RC_CCS    intel_prelim_fourcc_mod_code(16)
+#ifndef I915_FORMAT_MOD_4_TILED_MTL_RC_CCS_CC
+#define I915_FORMAT_MOD_4_TILED_MTL_RC_CCS_CC    fourcc_mod_code(INTEL, 15)
 #endif
 
 extern template class MediaLibvaCapsFactory<MediaLibvaCaps, DDI_MEDIA_CONTEXT>;
@@ -2660,8 +2660,8 @@ VAStatus MediaLibvaCapsMtlBase::GetSurfaceModifier(DDI_MEDIA_SURFACE* mediaSurfa
     {
         if(m_mediaCtx->m_auxTableMgr && bMmcEnabled)
         {
-            modifier = GmmFlags.Info.MediaCompressed ? PRELIM_I915_FORMAT_MOD_4_TILED_MTL_MC_CCS :
-                (GmmFlags.Info.RenderCompressed ? PRELIM_I915_FORMAT_MOD_4_TILED_MTL_RC_CCS : I915_FORMAT_MOD_4_TILED);
+            modifier = GmmFlags.Info.MediaCompressed ? I915_FORMAT_MOD_4_TILED_MTL_MC_CCS :
+                (GmmFlags.Info.RenderCompressed ? I915_FORMAT_MOD_4_TILED_MTL_RC_CCS_CC : I915_FORMAT_MOD_4_TILED);
         }
         else
         {
@@ -2686,12 +2686,12 @@ VAStatus MediaLibvaCapsMtlBase::SetExternalSurfaceTileFormat(DDI_MEDIA_SURFACE* 
             tileformat = I915_TILING_Y;
             bMemCompEnable = false;
             break;
-        case PRELIM_I915_FORMAT_MOD_4_TILED_MTL_RC_CCS:
+        case I915_FORMAT_MOD_4_TILED_MTL_RC_CCS_CC:
             tileformat = I915_TILING_Y;
             bMemCompEnable = true;
             bMemCompRC = true;
             break;
-        case PRELIM_I915_FORMAT_MOD_4_TILED_MTL_MC_CCS:
+        case I915_FORMAT_MOD_4_TILED_MTL_MC_CCS:
             tileformat = I915_TILING_Y;
             bMemCompEnable = true;
             bMemCompRC = false;
