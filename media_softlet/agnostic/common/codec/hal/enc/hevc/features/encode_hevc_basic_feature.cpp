@@ -257,6 +257,122 @@ MOS_STATUS HevcBasicFeature::CalcLCUMaxCodingSize()
     return MOS_STATUS_SUCCESS;
 }
 
+void HevcBasicFeature::CreateFlatScalingList()
+{
+    ENCODE_FUNC_CALL();
+
+    for (auto i = 0; i < 6; i++)
+    {
+        memset(&(m_hevcIqMatrixParams->ucScalingLists0[i][0]),
+            0x10,
+            sizeof(m_hevcIqMatrixParams->ucScalingLists0[i]));
+
+        memset(&(m_hevcIqMatrixParams->ucScalingLists1[i][0]),
+            0x10,
+            sizeof(m_hevcIqMatrixParams->ucScalingLists1[i]));
+
+        memset(&(m_hevcIqMatrixParams->ucScalingLists2[i][0]),
+            0x10,
+            sizeof(m_hevcIqMatrixParams->ucScalingLists2[i]));
+    }
+
+    memset(&(m_hevcIqMatrixParams->ucScalingLists3[0][0]),
+        0x10,
+        sizeof(m_hevcIqMatrixParams->ucScalingLists3[0]));
+
+    memset(&(m_hevcIqMatrixParams->ucScalingLists3[1][0]),
+        0x10,
+        sizeof(m_hevcIqMatrixParams->ucScalingLists3[1]));
+
+    memset(&(m_hevcIqMatrixParams->ucScalingListDCCoefSizeID2[0]),
+        0x10,
+        sizeof(m_hevcIqMatrixParams->ucScalingListDCCoefSizeID2));
+
+    memset(&(m_hevcIqMatrixParams->ucScalingListDCCoefSizeID3[0]),
+        0x10,
+        sizeof(m_hevcIqMatrixParams->ucScalingListDCCoefSizeID3));
+}
+
+void HevcBasicFeature::CreateDefaultScalingList()
+{
+    ENCODE_FUNC_CALL();
+
+    const uint8_t flatScalingList4x4[16] =
+    {
+        16,16,16,16,
+        16,16,16,16,
+        16,16,16,16,
+        16,16,16,16
+    };
+
+    const uint8_t defaultScalingList8x8[2][64] =
+    {
+        {
+            16,16,16,16,17,18,21,24,
+            16,16,16,16,17,19,22,25,
+            16,16,17,18,20,22,25,29,
+            16,16,18,21,24,27,31,36,
+            17,17,20,24,30,35,41,47,
+            18,19,22,27,35,44,54,65,
+            21,22,25,31,41,54,70,88,
+            24,25,29,36,47,65,88,115
+        },
+        {
+            16,16,16,16,17,18,20,24,
+            16,16,16,17,18,20,24,25,
+            16,16,17,18,20,24,25,28,
+            16,17,18,20,24,25,28,33,
+            17,18,20,24,25,28,33,41,
+            18,20,24,25,28,33,41,54,
+            20,24,25,28,33,41,54,71,
+            24,25,28,33,41,54,71,91
+        }
+    };
+
+    for (auto i = 0; i < 6; i++)
+    {
+        memcpy(&(m_hevcIqMatrixParams->ucScalingLists0[i][0]),
+            flatScalingList4x4,
+            sizeof(m_hevcIqMatrixParams->ucScalingLists0[i]));
+    }
+
+    for (auto i = 0; i < 3; i++)
+    {
+        memcpy(&(m_hevcIqMatrixParams->ucScalingLists1[i][0]),
+            defaultScalingList8x8[0],
+            sizeof(m_hevcIqMatrixParams->ucScalingLists1[i]));
+
+        memcpy(&(m_hevcIqMatrixParams->ucScalingLists1[3 + i][0]),
+            defaultScalingList8x8[1],
+            sizeof(m_hevcIqMatrixParams->ucScalingLists1[3 + i]));
+
+        memcpy(&(m_hevcIqMatrixParams->ucScalingLists2[i][0]),
+            defaultScalingList8x8[0],
+            sizeof(m_hevcIqMatrixParams->ucScalingLists2[i]));
+
+        memcpy(&(m_hevcIqMatrixParams->ucScalingLists2[3 + i][0]),
+            defaultScalingList8x8[1],
+            sizeof(m_hevcIqMatrixParams->ucScalingLists2[3 + i]));
+    }
+
+    memcpy(&(m_hevcIqMatrixParams->ucScalingLists3[0][0]),
+        defaultScalingList8x8[0],
+        sizeof(m_hevcIqMatrixParams->ucScalingLists3[0]));
+
+    memcpy(&(m_hevcIqMatrixParams->ucScalingLists3[1][0]),
+        defaultScalingList8x8[1],
+        sizeof(m_hevcIqMatrixParams->ucScalingLists3[1]));
+
+    memset(&(m_hevcIqMatrixParams->ucScalingListDCCoefSizeID2[0]),
+        0x10,
+        sizeof(m_hevcIqMatrixParams->ucScalingListDCCoefSizeID2));
+
+    memset(&(m_hevcIqMatrixParams->ucScalingListDCCoefSizeID3[0]),
+        0x10,
+        sizeof(m_hevcIqMatrixParams->ucScalingListDCCoefSizeID3));
+}
+
+
 MOS_STATUS HevcBasicFeature::SetPictureStructs()
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
@@ -283,12 +399,13 @@ MOS_STATUS HevcBasicFeature::SetPictureStructs()
         return MOS_STATUS_INVALID_PARAMETER;
     }
 
-    if (!m_hevcSeqParams->scaling_list_enable_flag)
+    if (m_hevcSeqParams->scaling_list_enable_flag && !m_hevcPicParams->scaling_list_data_present_flag)
     {
-        //Create flat scaling list
-        memset(m_hevcIqMatrixParams,
-            0x10,
-            sizeof(*m_hevcIqMatrixParams));
+        CreateDefaultScalingList();
+    }
+    else if (!m_hevcSeqParams->scaling_list_enable_flag)
+    {
+        CreateFlatScalingList();
     }
 
     ENCODE_CHK_STATUS_RETURN(CalcLCUMaxCodingSize());
