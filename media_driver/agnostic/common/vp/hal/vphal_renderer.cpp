@@ -1006,6 +1006,11 @@ void VphalRenderer::UpdateReport(
         m_reporting->GetFeatures().rtCompressible = true;
         m_reporting->GetFeatures().rtCompressMode = (uint8_t)(pRenderParams->pTarget[0]->CompressionMode);
     }
+
+    if (m_reporting->GetFeatures().outputPipeMode == VPHAL_OUTPUT_PIPE_MODE_COMP)
+    {
+        m_reporting->GetFeatures().vpMMCInUse = m_pRenderHal->isMMCEnabled;
+    }
 }
 
 //!
