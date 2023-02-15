@@ -298,7 +298,7 @@ namespace encode
         dmem->UPD_FrameHdrOBUSizeInBytes         = (uint16_t)((m_basicFeature->m_av1PicParams->FrameHdrOBUSizeInBits + 7) >> 3);
         dmem->UPD_FrameHdrOBUSizeByteOffset      = (uint16_t)(m_basicFeature->m_av1PicParams->FrameHdrOBUSizeByteOffset - m_basicFeature->GetAppHdrSizeInBytes(true));
         dmem->UPD_FrameType                      = 0;
-        dmem->UPD_ErrorResilientMode             = 0;
+        dmem->UPD_ErrorResilientMode             = m_basicFeature->m_av1PicParams->PicFlags.fields.error_resilient_mode;
         dmem->UPD_IntraOnly                      = 0;
         dmem->UPD_PrimaryRefFrame                = 0;
         dmem->UPD_SegOn                          = m_basicFeature->m_av1PicParams->stAV1Segments.SegmentFlags.fields.segmentation_enabled;

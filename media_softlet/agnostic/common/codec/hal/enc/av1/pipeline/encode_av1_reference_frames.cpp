@@ -680,7 +680,7 @@ MHW_SETPAR_DECL_SRC(VDENC_PIPE_BUF_ADDR_STATE, Av1ReferenceFrames)
         return MOS_STATUS_INVALID_PARAMETER;
     }
 
-    if (m_basicFeature->m_pictureCodingType != I_TYPE)
+    if (m_basicFeature->m_pictureCodingType != I_TYPE && picParams->primary_ref_frame != av1PrimaryRefNone)
     {
         uint8_t frameIdx = picParams->RefFrameList[picParams->primary_ref_frame].FrameIdx;
         uint8_t idxForTempMV = m_refList[frameIdx]->ucScalingIdx;
