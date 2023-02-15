@@ -777,7 +777,7 @@ static void DdiMedia_FreeSurfaceHeapElements(PDDI_MEDIA_CONTEXT mediaCtx)
     for (int32_t elementId = 0; surfaceNums > 0 && elementId < surfaceHeap->uiAllocatedHeapElements; elementId++)
     {
         PDDI_MEDIA_SURFACE_HEAP_ELEMENT mediaSurfaceHeapElmt = &mediaSurfaceHeapBase[elementId];
-        if (nullptr != mediaSurfaceHeapElmt && nullptr == mediaSurfaceHeapElmt->pSurface)
+        if (nullptr == mediaSurfaceHeapElmt->pSurface)
             continue;
 
         DdiMediaUtil_FreeSurface(mediaSurfaceHeapElmt->pSurface);
@@ -813,7 +813,7 @@ static void DdiMedia_FreeBufferHeapElements(VADriverContextP    ctx)
     for (int32_t elementId = 0; bufNums > 0 && elementId < bufferHeap->uiAllocatedHeapElements; ++elementId)
     {
         PDDI_MEDIA_BUFFER_HEAP_ELEMENT mediaBufferHeapElmt = &mediaBufferHeapBase[elementId];
-        if (nullptr != mediaBufferHeapElmt && nullptr == mediaBufferHeapElmt->pBuffer)
+        if (nullptr == mediaBufferHeapElmt->pBuffer)
             continue;
         //Note: uiNumBufs will recount in DdiMedia_DestroyBuffer
         DdiMedia_DestroyBuffer(ctx,mediaBufferHeapElmt->uiVaBufferID);
@@ -847,7 +847,7 @@ static void DdiMedia_FreeImageHeapElements(VADriverContextP    ctx)
     for (int32_t elementId = 0; imageNums > 0 && elementId < imageHeap->uiAllocatedHeapElements; ++elementId)
     {
         PDDI_MEDIA_IMAGE_HEAP_ELEMENT mediaImageHeapElmt = &mediaImageHeapBase[elementId];
-        if (nullptr != mediaImageHeapElmt && nullptr == mediaImageHeapElmt->pImage)
+        if (nullptr == mediaImageHeapElmt->pImage)
             continue;
         //Note: uiNumImages will recount in DdiMedia_DestroyImage
         DdiMedia_DestroyImage(ctx,mediaImageHeapElmt->uiVaImageID);
@@ -872,7 +872,7 @@ static void DdiMedia_FreeContextHeap(VADriverContextP ctx, PDDI_MEDIA_HEAP conte
     for (int32_t elementId = 0; ctxNums > 0 && elementId < contextHeap->uiAllocatedHeapElements; ++elementId)
     {
         PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT mediaContextHeapElmt = &mediaContextHeapBase[elementId];
-        if (nullptr != mediaContextHeapElmt && nullptr == mediaContextHeapElmt->pVaContext)
+        if (nullptr == mediaContextHeapElmt->pVaContext)
             continue;
         VAContextID vaCtxID = (VAContextID)(mediaContextHeapElmt->uiVaContextID + vaContextOffset);
         DdiMedia_DestroyContext(ctx,vaCtxID);

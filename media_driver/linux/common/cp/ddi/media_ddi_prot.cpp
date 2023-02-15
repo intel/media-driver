@@ -333,7 +333,7 @@ void DdiMedia_FreeProtectedSessionHeap(
     for (int32_t elementId = 0; ctxNums > 0  && elementId < contextHeap->uiAllocatedHeapElements; ++elementId)
     {
         PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT mediaContextHeapElmt = &mediaContextHeapBase[elementId];
-        if (nullptr != mediaContextHeapElmt && nullptr == mediaContextHeapElmt->pVaContext)
+        if (nullptr == mediaContextHeapElmt->pVaContext)
             continue;
         VAContextID vaCtxID = (VAContextID)(mediaContextHeapElmt->uiVaContextID + vaContextOffset);
         DdiMediaProtected::DdiMedia_DestroyProtectedSession(ctx, vaCtxID);
