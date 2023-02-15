@@ -162,6 +162,9 @@ protected:
     MOS_STATUS CalcLCUMaxCodingSize();
     virtual MOS_STATUS GetRecycleBuffers();
 
+    void CreateDefaultScalingList();
+    void CreateFlatScalingList();
+
 MEDIA_CLASS_DEFINE_END(encode__HevcBasicFeature)
 };
 
