@@ -45,11 +45,11 @@
     (fourcc_mod_code(INTEL, (val)) | INTEL_PRELIM_ID_FLAG)
 
 /* this definition is to avoid duplicate drm_fourcc.h this file is updated seldom */
-#ifndef PRELIM_I915_FORMAT_MOD_4_TILED_MTL_MC_CCS
-#define PRELIM_I915_FORMAT_MOD_4_TILED_MTL_MC_CCS    intel_prelim_fourcc_mod_code(17)
+#ifndef I915_FORMAT_MOD_4_TILED_MTL_MC_CCS
+#define I915_FORMAT_MOD_4_TILED_MTL_MC_CCS    fourcc_mod_code(INTEL, 14)
 #endif
-#ifndef PRELIM_I915_FORMAT_MOD_4_TILED_MTL_RC_CCS
-#define PRELIM_I915_FORMAT_MOD_4_TILED_MTL_RC_CCS    intel_prelim_fourcc_mod_code(16)
+#ifndef I915_FORMAT_MOD_4_TILED_MTL_RC_CCS_CC
+#define I915_FORMAT_MOD_4_TILED_MTL_RC_CCS_CC    fourcc_mod_code(INTEL, 15)
 #endif
 
 // default protected surface tag
@@ -233,12 +233,12 @@ VAStatus MediaLibvaUtilNext::SetSurfaceParameterFromModifier(
             params.tileFormat = I915_TILING_Y;
             params.bMemCompEnable = false;
             break;
-        case PRELIM_I915_FORMAT_MOD_4_TILED_MTL_RC_CCS:
+        case I915_FORMAT_MOD_4_TILED_MTL_RC_CCS_CC:
             params.tileFormat = I915_TILING_Y;
             params.bMemCompEnable = true;
             params.bMemCompRC = true;
             break;
-        case PRELIM_I915_FORMAT_MOD_4_TILED_MTL_MC_CCS:
+        case I915_FORMAT_MOD_4_TILED_MTL_MC_CCS:
             params.tileFormat = I915_TILING_Y;
             params.bMemCompEnable = true;
             params.bMemCompRC = false;
@@ -1944,8 +1944,8 @@ VAStatus MediaLibvaUtilNext::GetSurfaceModifier(
         case GMM_TILED_4:
             if(mediaCtx->m_auxTableMgr && bMmcEnabled)
             {
-                modifier = gmmFlags.Info.MediaCompressed ? PRELIM_I915_FORMAT_MOD_4_TILED_MTL_MC_CCS :
-                    (gmmFlags.Info.RenderCompressed ? PRELIM_I915_FORMAT_MOD_4_TILED_MTL_RC_CCS : I915_FORMAT_MOD_4_TILED);
+                modifier = gmmFlags.Info.MediaCompressed ? I915_FORMAT_MOD_4_TILED_MTL_MC_CCS :
+                    (gmmFlags.Info.RenderCompressed ? I915_FORMAT_MOD_4_TILED_MTL_RC_CCS_CC : I915_FORMAT_MOD_4_TILED);
             }
             else
             {
