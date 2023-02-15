@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2022, Intel Corporation
+* Copyright (c) 2020-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -279,6 +279,12 @@ public:
     //!
     MOS_STATUS PakConstructPicStateBatchBuffer(
         PMOS_RESOURCE picStateBuffer);
+
+    //!
+    //! \brief  Get compressed header buffer
+    //! \return Pointer to the buffer
+    //!
+    PMOS_RESOURCE GetCompressedHeaderBuffer();
 
     //!
     //! \brief MHW parameters declaration

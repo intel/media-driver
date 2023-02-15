@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2022, Intel Corporation
+* Copyright (c) 2020-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -178,7 +178,7 @@ MOS_STATUS Vp9EncodePak::ConstructPicStateBatchBuffer(EncodePipeline* pipeline)
     if ((dysRefFrameFlags == DYS_REF_NONE) && m_basicFeature->m_pakOnlyModeEnabledForLastPass)
     {
         // This flag sets PAK-only mode in SLBB for rePAK pass. In single-pass mode, this flag should be disabled.
-        m_basicFeature->m_vdencPakonlyMultipassEnabled = ((passNum > 0) && isLastPass) ? true : false;
+        m_basicFeature->m_vdencPakonlyMultipassEnabled = ((passNum > 1) && isLastPass) ? true : false;
     }
 
     // This function will call by Vp9HucProbPkt or Vp9HucBrcUpdatePkt.
@@ -406,6 +406,13 @@ MOS_STATUS Vp9EncodePak::PakConstructPicStateBatchBuffer(PMOS_RESOURCE picStateB
     m_allocator->UnLock(picStateBuffer);
 
     return MOS_STATUS_SUCCESS;
+}
+
+PMOS_RESOURCE Vp9EncodePak::GetCompressedHeaderBuffer()
+{
+    ENCODE_FUNC_CALL();
+
+    return &m_resCompressedHeaderBuffer;
 }
 
 MOS_STATUS Vp9EncodePak::AllocateResources()

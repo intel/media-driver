@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2022, Intel Corporation
+* Copyright (c) 2020-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -196,6 +196,7 @@ MOS_STATUS Vp9VdencPktXe_Lpm_Plus_Base::AddPictureVdencCommands(MOS_COMMAND_BUFF
     ENCODE_CHK_STATUS_RETURN(AddVdencSurfacesStateCmd(cmdBuffer));
     // Add vdenc pipeline buffer address command
     ENCODE_CHK_STATUS_RETURN(AddVdencPipeBufAddrCmd(cmdBuffer));
+
     // Add second level batch buffer command
     ENCODE_CHK_STATUS_RETURN(AddVdencSecondLevelBatchBufferCmd(cmdBuffer));
 
@@ -305,6 +306,14 @@ MOS_STATUS Vp9VdencPktXe_Lpm_Plus_Base::PatchPictureLevelCommands(MOS_COMMAND_BU
         else
         {
             m_vdencPakObjCmdStreamOutEnabled = false;
+        }
+
+        if (!m_basicFeature->m_hucEnabled)
+        {
+            // Construct picture state 2nd level batch buffer
+            RUN_FEATURE_INTERFACE_RETURN(Vp9EncodePak, Vp9FeatureIDs::vp9PakFeature, ConstructPicStateBatchBuffer, m_pipeline);
+            // Refresh internal bufferes
+            RUN_FEATURE_INTERFACE_RETURN(Vp9EncodeHpu, Vp9FeatureIDs::vp9HpuFeature, RefreshFrameInternalBuffers);
         }
     }
 

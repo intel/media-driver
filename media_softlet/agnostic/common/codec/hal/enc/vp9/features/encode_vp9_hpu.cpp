@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2021, Intel Corporation
+* Copyright (c) 2020-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -25,6 +25,7 @@
 //!
 
 #include "encode_vp9_hpu.h"
+#include "encode_vp9_pak.h"
 #include "encode_vp9_vdenc_feature_manager.h"
 #include "encode_vp9_vdenc_const_settings.h"
 #include "media_vp9_packet_defs.h"
@@ -303,6 +304,915 @@ MHW_SETPAR_DECL_SRC(HCP_PIPE_BUF_ADDR_STATE, Vp9EncodeHpu)
     }
 
     return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS Vp9EncodeHpu::SetDefaultTxProbs(uint8_t *ctxBuffer, uint32_t &byteCnt) const
+{
+    ENCODE_FUNC_CALL();
+
+    int32_t i, j;
+    // TX probs
+    for (i = 0; i < CODEC_VP9_TX_SIZE_CONTEXTS; ++i)
+    {
+        for (j = 0; j < CODEC_VP9_TX_SIZES - 3; ++j)
+        {
+            ctxBuffer[byteCnt++] = DefaultTxProbs.p8x8[i][j];
+        }
+    }
+    for (i = 0; i < CODEC_VP9_TX_SIZE_CONTEXTS; ++i)
+    {
+        for (j = 0; j < CODEC_VP9_TX_SIZES - 2; ++j)
+        {
+            ctxBuffer[byteCnt++] = DefaultTxProbs.p16x16[i][j];
+        }
+    }
+    for (i = 0; i < CODEC_VP9_TX_SIZE_CONTEXTS; ++i)
+    {
+        for (j = 0; j < CODEC_VP9_TX_SIZES - 1; ++j)
+        {
+            ctxBuffer[byteCnt++] = DefaultTxProbs.p32x32[i][j];
+        }
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS Vp9EncodeHpu::SetDefaultCoeffProbs(uint8_t *ctxBuffer, uint32_t &byteCnt) const
+{
+    ENCODE_FUNC_CALL();
+
+    uint8_t blocktype          = 0;
+    uint8_t reftype            = 0;
+    uint8_t coeffbands         = 0;
+    uint8_t unConstrainedNodes = 0;
+    uint8_t prevCoefCtx        = 0;
+    // Coeff probs
+    for (blocktype = 0; blocktype < CODEC_VP9_BLOCK_TYPES; ++blocktype)
+    {
+        for (reftype = 0; reftype < CODEC_VP9_REF_TYPES; ++reftype)
+        {
+            for (coeffbands = 0; coeffbands < CODEC_VP9_COEF_BANDS; ++coeffbands)
+            {
+                uint8_t numPrevCoeffCtxts = (coeffbands == 0) ? 3 : CODEC_VP9_PREV_COEF_CONTEXTS;
+                for (prevCoefCtx = 0; prevCoefCtx < numPrevCoeffCtxts; ++prevCoefCtx)
+                {
+                    for (unConstrainedNodes = 0; unConstrainedNodes < CODEC_VP9_UNCONSTRAINED_NODES; ++unConstrainedNodes)
+                    {
+                        ctxBuffer[byteCnt++] = DefaultCoefProbs4x4[blocktype][reftype][coeffbands][prevCoefCtx][unConstrainedNodes];
+                    }
+                }
+            }
+        }
+    }
+
+    for (blocktype = 0; blocktype < CODEC_VP9_BLOCK_TYPES; ++blocktype)
+    {
+        for (reftype = 0; reftype < CODEC_VP9_REF_TYPES; ++reftype)
+        {
+            for (coeffbands = 0; coeffbands < CODEC_VP9_COEF_BANDS; ++coeffbands)
+            {
+                uint8_t numPrevCoeffCtxts = (coeffbands == 0) ? 3 : CODEC_VP9_PREV_COEF_CONTEXTS;
+                for (prevCoefCtx = 0; prevCoefCtx < numPrevCoeffCtxts; ++prevCoefCtx)
+                {
+                    for (unConstrainedNodes = 0; unConstrainedNodes < CODEC_VP9_UNCONSTRAINED_NODES; ++unConstrainedNodes)
+                    {
+                        ctxBuffer[byteCnt++] = DefaultCoefPprobs8x8[blocktype][reftype][coeffbands][prevCoefCtx][unConstrainedNodes];
+                    }
+                }
+            }
+        }
+    }
+
+    for (blocktype = 0; blocktype < CODEC_VP9_BLOCK_TYPES; ++blocktype)
+    {
+        for (reftype = 0; reftype < CODEC_VP9_REF_TYPES; ++reftype)
+        {
+            for (coeffbands = 0; coeffbands < CODEC_VP9_COEF_BANDS; ++coeffbands)
+            {
+                uint8_t numPrevCoeffCtxts = (coeffbands == 0) ? 3 : CODEC_VP9_PREV_COEF_CONTEXTS;
+                for (prevCoefCtx = 0; prevCoefCtx < numPrevCoeffCtxts; ++prevCoefCtx)
+                {
+                    for (unConstrainedNodes = 0; unConstrainedNodes < CODEC_VP9_UNCONSTRAINED_NODES; ++unConstrainedNodes)
+                    {
+                        ctxBuffer[byteCnt++] = DefaultCoefProbs16x16[blocktype][reftype][coeffbands][prevCoefCtx][unConstrainedNodes];
+                    }
+                }
+            }
+        }
+    }
+
+    for (blocktype = 0; blocktype < CODEC_VP9_BLOCK_TYPES; ++blocktype)
+    {
+        for (reftype = 0; reftype < CODEC_VP9_REF_TYPES; ++reftype)
+        {
+            for (coeffbands = 0; coeffbands < CODEC_VP9_COEF_BANDS; ++coeffbands)
+            {
+                uint8_t numPrevCoeffCtxts = (coeffbands == 0) ? 3 : CODEC_VP9_PREV_COEF_CONTEXTS;
+                for (prevCoefCtx = 0; prevCoefCtx < numPrevCoeffCtxts; ++prevCoefCtx)
+                {
+                    for (unConstrainedNodes = 0; unConstrainedNodes < CODEC_VP9_UNCONSTRAINED_NODES; ++unConstrainedNodes)
+                    {
+                        ctxBuffer[byteCnt++] = DefaultCoefProbs32x32[blocktype][reftype][coeffbands][prevCoefCtx][unConstrainedNodes];
+                    }
+                }
+            }
+        }
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS Vp9EncodeHpu::SetDefaultMbskipProbs(uint8_t *ctxBuffer, uint32_t &byteCnt) const
+{
+    ENCODE_FUNC_CALL();
+
+    // mb skip probs
+    for (auto i = 0; i < CODEC_VP9_MBSKIP_CONTEXTS; ++i)
+    {
+        ctxBuffer[byteCnt++] = DefaultMbskipProbs[i];
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS Vp9EncodeHpu::SetDefaultInterModeProbs(uint8_t *ctxBuffer, uint32_t &byteCnt, bool setToKey) const
+{
+    ENCODE_FUNC_CALL();
+
+    int32_t i, j;
+
+    // Inter mode probs
+    for (i = 0; i < CODEC_VP9_INTER_MODE_CONTEXTS; ++i)
+    {
+        for (j = 0; j < CODEC_VP9_INTER_MODES - 1; ++j)
+        {
+            if (!setToKey)
+            {
+                ctxBuffer[byteCnt++] = DefaultInterModeProbs[i][j];
+            }
+            else
+            {
+                // Zeros for key frame
+                byteCnt++;
+            }
+        }
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS Vp9EncodeHpu::SetDefaultSwitchableInterpProb(uint8_t *ctxBuffer, uint32_t &byteCnt, bool setToKey) const
+{
+    ENCODE_FUNC_CALL();
+
+    int32_t i, j;
+
+    // Switchable interprediction probs
+    for (i = 0; i < CODEC_VP9_SWITCHABLE_FILTERS + 1; ++i)
+    {
+        for (j = 0; j < CODEC_VP9_SWITCHABLE_FILTERS - 1; ++j)
+        {
+            if (!setToKey)
+            {
+                ctxBuffer[byteCnt++] = DefaultSwitchableInterpProb[i][j];
+            }
+            else
+            {
+                // Zeros for key frame
+                byteCnt++;
+            }
+        }
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS Vp9EncodeHpu::SetDefaultIntraInterProb(uint8_t *ctxBuffer, uint32_t &byteCnt, bool setToKey) const
+{
+    ENCODE_FUNC_CALL();
+
+    // Intra inter probs
+    for (auto i = 0; i < CODEC_VP9_INTRA_INTER_CONTEXTS; ++i)
+    {
+        if (!setToKey)
+        {
+            ctxBuffer[byteCnt++] = DefaultIntraInterProb[i];
+        }
+        else
+        {
+            // Zeros for key frame
+            byteCnt++;
+        }
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS Vp9EncodeHpu::SetDefaultCompInterProb(uint8_t *ctxBuffer, uint32_t &byteCnt, bool setToKey) const
+{
+    ENCODE_FUNC_CALL();
+
+    // Comp inter probs
+    for (auto i = 0; i < CODEC_VP9_COMP_INTER_CONTEXTS; ++i)
+    {
+        if (!setToKey)
+        {
+            ctxBuffer[byteCnt++] = DefaultCompInterProb[i];
+        }
+        else
+        {
+            // Zeros for key frame
+            byteCnt++;
+        }
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS Vp9EncodeHpu::SetDefaultSingleRefProb(uint8_t *ctxBuffer, uint32_t &byteCnt, bool setToKey) const
+{
+    ENCODE_FUNC_CALL();
+
+    int32_t i, j;
+
+    // Single ref probs
+    for (i = 0; i < CODEC_VP9_REF_CONTEXTS; ++i)
+    {
+        for (j = 0; j < 2; ++j)
+        {
+            if (!setToKey)
+            {
+                ctxBuffer[byteCnt++] = DefaultSingleRefProb[i][j];
+            }
+            else
+            {
+                // Zeros for key frame
+                byteCnt++;
+            }
+        }
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS Vp9EncodeHpu::SetDefaultCompRefProb(uint8_t *ctxBuffer, uint32_t &byteCnt, bool setToKey) const
+{
+    ENCODE_FUNC_CALL();
+
+    // Comp ref probs
+    for (auto i = 0; i < CODEC_VP9_REF_CONTEXTS; ++i)
+    {
+        if (!setToKey)
+        {
+            ctxBuffer[byteCnt++] = DefaultCompRefProb[i];
+        }
+        else
+        {
+            // Zeros for key frame
+            byteCnt++;
+        }
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS Vp9EncodeHpu::SetDefaultYModeProb(uint8_t *ctxBuffer, uint32_t &byteCnt, bool setToKey) const
+{
+    ENCODE_FUNC_CALL();
+
+    int32_t i, j;
+
+    // y mode probs
+    for (i = 0; i < CODEC_VP9_BLOCK_SIZE_GROUPS; ++i)
+    {
+        for (j = 0; j < CODEC_VP9_INTRA_MODES - 1; ++j)
+        {
+            if (!setToKey)
+            {
+                ctxBuffer[byteCnt++] = DefaultIFYProb[i][j];
+            }
+            else
+            {
+                // Zeros for key frame, since HW will not use this buffer, but default right buffer
+                byteCnt++;
+            }
+        }
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS Vp9EncodeHpu::SetDefaultPartitionProb(uint8_t *ctxBuffer, uint32_t &byteCnt, bool setToKey) const
+{
+    ENCODE_FUNC_CALL();
+
+    int32_t i, j;
+
+    // Partition probs, key & intra-only frames use key type, other inter frames use inter type
+    for (i = 0; i < CODECHAL_VP9_PARTITION_CONTEXTS; ++i)
+    {
+        for (j = 0; j < CODEC_VP9_PARTITION_TYPES - 1; ++j)
+        {
+            if (setToKey)
+            {
+                ctxBuffer[byteCnt++] = DefaultKFPartitionProb[i][j];
+            }
+            else
+            {
+                ctxBuffer[byteCnt++] = DefaultPartitionProb[i][j];
+            }
+        }
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS Vp9EncodeHpu::SetDefaultNmvContext(uint8_t *ctxBuffer, uint32_t &byteCnt, bool setToKey) const
+{
+    ENCODE_FUNC_CALL();
+
+    int32_t i, j;
+
+    for (i = 0; i < (CODEC_VP9_MV_JOINTS - 1); ++i)
+    {
+        if (!setToKey)
+        {
+            ctxBuffer[byteCnt++] = DefaultNmvContext.joints[i];
+        }
+        else
+        {
+            byteCnt++;
+        }
+    }
+
+    for (i = 0; i < 2; ++i)
+    {
+        if (!setToKey)
+        {
+            ctxBuffer[byteCnt++] = DefaultNmvContext.comps[i].sign;
+            for (j = 0; j < (CODEC_VP9_MV_CLASSES - 1); ++j)
+            {
+                ctxBuffer[byteCnt++] = DefaultNmvContext.comps[i].classes[j];
+            }
+            for (j = 0; j < (CODECHAL_VP9_CLASS0_SIZE - 1); ++j)
+            {
+                ctxBuffer[byteCnt++] = DefaultNmvContext.comps[i].class0[j];
+            }
+            for (j = 0; j < CODECHAL_VP9_MV_OFFSET_BITS; ++j)
+            {
+                ctxBuffer[byteCnt++] = DefaultNmvContext.comps[i].bits[j];
+            }
+        }
+        else
+        {
+            byteCnt += 1;
+            byteCnt += (CODEC_VP9_MV_CLASSES - 1);
+            byteCnt += (CODECHAL_VP9_CLASS0_SIZE - 1);
+            byteCnt += (CODECHAL_VP9_MV_OFFSET_BITS);
+        }
+    }
+    for (i = 0; i < 2; ++i)
+    {
+        if (!setToKey)
+        {
+            for (j = 0; j < CODECHAL_VP9_CLASS0_SIZE; ++j)
+            {
+                for (int32_t k = 0; k < (CODEC_VP9_MV_FP_SIZE - 1); ++k)
+                {
+                    ctxBuffer[byteCnt++] = DefaultNmvContext.comps[i].class0_fp[j][k];
+                }
+            }
+            for (j = 0; j < (CODEC_VP9_MV_FP_SIZE - 1); ++j)
+            {
+                ctxBuffer[byteCnt++] = DefaultNmvContext.comps[i].fp[j];
+            }
+        }
+        else
+        {
+            byteCnt += (CODECHAL_VP9_CLASS0_SIZE * (CODEC_VP9_MV_FP_SIZE - 1));
+            byteCnt += (CODEC_VP9_MV_FP_SIZE - 1);
+        }
+    }
+    for (i = 0; i < 2; ++i)
+    {
+        if (!setToKey)
+        {
+            ctxBuffer[byteCnt++] = DefaultNmvContext.comps[i].class0_hp;
+            ctxBuffer[byteCnt++] = DefaultNmvContext.comps[i].hp;
+        }
+        else
+        {
+            byteCnt += 2;
+        }
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS Vp9EncodeHpu::SetDefaultUVModeProbs(uint8_t *ctxBuffer, uint32_t &byteCnt, bool setToKey) const
+{
+    ENCODE_FUNC_CALL();
+
+    int32_t i, j;
+
+    // uv mode probs
+    for (i = 0; i < CODEC_VP9_INTRA_MODES; ++i)
+    {
+        for (j = 0; j < CODEC_VP9_INTRA_MODES - 1; ++j)
+        {
+            if (setToKey)
+            {
+                ctxBuffer[byteCnt++] = DefaultKFUVModeProb[i][j];
+            }
+            else
+            {
+                ctxBuffer[byteCnt++] = DefaultIFUVProbs[i][j];
+            }
+        }
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS Vp9EncodeHpu::CtxBufDiffInit(uint8_t *ctxBuffer, bool setToKey) const
+{
+    ENCODE_FUNC_CALL();
+
+    uint32_t byteCnt = CODEC_VP9_INTER_PROB_OFFSET;
+
+    ENCODE_CHK_STATUS_RETURN(SetDefaultInterModeProbs(ctxBuffer, byteCnt, setToKey));
+
+    ENCODE_CHK_STATUS_RETURN(SetDefaultSwitchableInterpProb(ctxBuffer, byteCnt, setToKey));
+
+    ENCODE_CHK_STATUS_RETURN(SetDefaultIntraInterProb(ctxBuffer, byteCnt, setToKey));
+
+    ENCODE_CHK_STATUS_RETURN(SetDefaultCompInterProb(ctxBuffer, byteCnt, setToKey));
+
+    ENCODE_CHK_STATUS_RETURN(SetDefaultSingleRefProb(ctxBuffer, byteCnt, setToKey));
+
+    ENCODE_CHK_STATUS_RETURN(SetDefaultCompRefProb(ctxBuffer, byteCnt, setToKey));
+
+    ENCODE_CHK_STATUS_RETURN(SetDefaultYModeProb(ctxBuffer, byteCnt, setToKey));
+
+    ENCODE_CHK_STATUS_RETURN(SetDefaultPartitionProb(ctxBuffer, byteCnt, setToKey));
+
+    ENCODE_CHK_STATUS_RETURN(SetDefaultNmvContext(ctxBuffer, byteCnt, setToKey));
+
+    // 47 bytes of zeros
+    byteCnt += 47;
+
+    ENCODE_CHK_STATUS_RETURN(SetDefaultUVModeProbs(ctxBuffer, byteCnt, setToKey));
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS Vp9EncodeHpu::ContextBufferInit(uint8_t *ctxBuffer, bool setToKey) const
+{
+    ENCODE_FUNC_CALL();
+
+    MOS_ZeroMemory(ctxBuffer, CODEC_VP9_SEG_PROB_OFFSET);
+
+    uint32_t byteCnt = 0;
+
+    ENCODE_CHK_STATUS_RETURN(SetDefaultTxProbs(ctxBuffer, byteCnt));
+
+    // 52 bytes of zeros
+    byteCnt += 52;
+
+    ENCODE_CHK_STATUS_RETURN(SetDefaultCoeffProbs(ctxBuffer, byteCnt));
+
+    // 16 bytes of zeros
+    byteCnt += 16;
+
+    ENCODE_CHK_STATUS_RETURN(SetDefaultMbskipProbs(ctxBuffer, byteCnt));
+
+    // Populate prob values which are different between Key and Non-Key frame
+    CtxBufDiffInit(ctxBuffer, setToKey);
+
+    // Skip Seg tree/pred probs, updating not done in this function
+    byteCnt = CODEC_VP9_SEG_PROB_OFFSET;
+    byteCnt += 7;
+    byteCnt += 3;
+
+    // 28 bytes of zeros
+    for (auto i = 0; i < 28; i++)
+    {
+        ctxBuffer[byteCnt++] = 0;
+    }
+
+    if (byteCnt > CODEC_VP9_PROB_MAX_NUM_ELEM)
+    {
+        CODECHAL_PUBLIC_ASSERTMESSAGE("Error: FrameContext array out-of-bounds, byteCnt = %d!\n", byteCnt);
+        return MOS_STATUS_NO_SPACE;
+    }
+    else
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+}
+
+void Vp9EncodeHpu::PutDataForCompressedHdr(
+    CompressedHeader *compressedHdr,
+    uint32_t          bit,
+    uint32_t          prob,
+    uint32_t          binIdx)
+{
+    compressedHdr[binIdx].fields.valid        = 1;
+    compressedHdr[binIdx].fields.bin_probdiff = 1;
+    compressedHdr[binIdx].fields.bin          = bit;
+    compressedHdr[binIdx].fields.prob         = (prob == 128) ? 0 : 1;
+}
+
+MOS_STATUS Vp9EncodeHpu::RefreshFrameInternalBuffers()
+{
+    ENCODE_FUNC_CALL();
+    ENCODE_CHK_NULL_RETURN(m_basicFeature);
+    ENCODE_CHK_NULL_RETURN(m_basicFeature->m_vp9PicParams);
+
+    auto hpuFeature = dynamic_cast<Vp9EncodeHpu *>(m_featureManager->GetFeature(Vp9FeatureIDs::vp9HpuFeature));
+    ENCODE_CHK_NULL_RETURN(hpuFeature);
+    auto pakFeature = dynamic_cast<Vp9EncodePak *>(m_featureManager->GetFeature(Vp9FeatureIDs::vp9PakFeature));
+    ENCODE_CHK_NULL_RETURN(pakFeature);
+
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    auto &picFields = m_basicFeature->m_vp9PicParams->PicFlags.fields;
+    ENCODE_ASSERT(picFields.refresh_frame_context == 0);
+
+    MOS_LOCK_PARAMS lockFlagsWriteOnly;
+    MOS_ZeroMemory(&lockFlagsWriteOnly, sizeof(MOS_LOCK_PARAMS));
+    lockFlagsWriteOnly.WriteOnly = 1;
+
+    bool keyFrame      = !picFields.frame_type;
+    bool isScaling     = (m_basicFeature->m_oriFrameWidth == m_basicFeature->m_prevFrameInfo.FrameWidth) &&
+                             (m_basicFeature->m_oriFrameHeight == m_basicFeature->m_prevFrameInfo.FrameHeight)
+                             ? false
+                             : true;
+    bool resetSegIdBuf = keyFrame || isScaling ||
+                         picFields.error_resilient_mode ||
+                         picFields.intra_only;
+
+    if (resetSegIdBuf)
+    {
+        uint8_t *data = (uint8_t *)m_allocator->LockResourceForWrite(m_basicFeature->m_resSegmentIdBuffer);
+        ENCODE_CHK_NULL_RETURN(data);
+
+        MOS_ZeroMemory(data, m_basicFeature->m_picSizeInSb * CODECHAL_CACHELINE_SIZE);
+
+        ENCODE_CHK_STATUS_RETURN(m_allocator->UnLock(m_basicFeature->m_resSegmentIdBuffer));
+    }
+
+    //refresh inter probs in needed frame context buffers
+    bool clearAll = (keyFrame || picFields.error_resilient_mode ||
+                     (picFields.reset_frame_context == 3 && picFields.intra_only));
+
+    bool clearSpecified = (picFields.reset_frame_context == 2 &&
+                           picFields.intra_only);
+
+    for (auto i = 0; i < CODEC_VP9_NUM_CONTEXTS; i++)
+    {
+        PMOS_RESOURCE resProbBuffer = nullptr;
+        ENCODE_CHK_STATUS_RETURN(hpuFeature->GetProbabilityBuffer(i, resProbBuffer));
+        ENCODE_CHK_NULL_RETURN(resProbBuffer);
+
+        if (clearAll || (clearSpecified && i == picFields.frame_context_idx))
+        {
+            uint8_t *data = (uint8_t *)m_allocator->LockResourceForWrite(resProbBuffer);
+            ENCODE_CHK_NULL_RETURN(data);
+
+            eStatus = ContextBufferInit(data, keyFrame || picFields.intra_only);
+
+            ENCODE_CHK_STATUS_RETURN(m_allocator->UnLock(resProbBuffer));
+            ENCODE_CHK_STATUS_RETURN(eStatus);
+
+            m_clearAllToKey[i] = keyFrame || picFields.intra_only;
+            if (i == 0)  //reset this flag when Ctx buffer 0 is cleared.
+            {
+                m_isPreCtx0InterProbSaved = false;
+            }
+        }
+        else if (m_clearAllToKey[i])  // this buffer is inside inter frame, but its interProb has not been init to default inter type data.
+        {
+            uint8_t *data = (uint8_t *)m_allocator->LockResourceForWrite(resProbBuffer);
+            ENCODE_CHK_NULL_RETURN(data);
+
+            if (picFields.intra_only && i == 0)  // this buffer is used as intra_only context, do not need to set interprob to be inter type.
+            {
+                eStatus = CtxBufDiffInit(data, true);
+            }
+            else  // set interprob to be inter type.
+            {
+                eStatus            = CtxBufDiffInit(data, false);
+                m_clearAllToKey[i] = false;
+            }
+
+            ENCODE_CHK_STATUS_RETURN(m_allocator->UnLock(resProbBuffer));
+            ENCODE_CHK_STATUS_RETURN(eStatus);
+        }
+        else if (i == 0)  // this buffer do not need to clear in current frame, also it has not been cleared to key type in previous frame.
+        {                 // in this case, only context buffer 0 will be temporally overwritten.
+            if (picFields.intra_only)
+            {
+                uint8_t *data = (uint8_t *)m_allocator->LockResourceForWrite(resProbBuffer);
+                ENCODE_CHK_NULL_RETURN(data);
+
+                if (!m_isPreCtx0InterProbSaved)  // only when non intra-only -> intra-only need save InterProb, otherwise leave saved InterProb unchanged.
+                {
+                    //save current interprob
+                    ENCODE_CHK_STATUS_RETURN(MOS_SecureMemcpy(m_preCtx0InterProbSaved, CODECHAL_VP9_INTER_PROB_SIZE, data + CODEC_VP9_INTER_PROB_OFFSET, CODECHAL_VP9_INTER_PROB_SIZE));
+                    m_isPreCtx0InterProbSaved = true;
+                }
+                eStatus = CtxBufDiffInit(data, true);
+                ENCODE_CHK_STATUS_RETURN(m_allocator->UnLock(resProbBuffer));
+                ENCODE_CHK_STATUS_RETURN(eStatus);
+            }
+            else if (m_isPreCtx0InterProbSaved)
+            {
+                uint8_t *data = (uint8_t *)m_allocator->LockResourceForWrite(resProbBuffer);
+                ENCODE_CHK_NULL_RETURN(data);
+
+                //reload former interprob
+                ENCODE_CHK_STATUS_RETURN(MOS_SecureMemcpy(data + CODEC_VP9_INTER_PROB_OFFSET, CODECHAL_VP9_INTER_PROB_SIZE, m_preCtx0InterProbSaved, CODECHAL_VP9_INTER_PROB_SIZE));
+
+                ENCODE_CHK_STATUS_RETURN(m_allocator->UnLock(resProbBuffer));
+                m_isPreCtx0InterProbSaved = false;
+            }
+        }
+    }
+
+    // compressed header
+    uint32_t          index         = 0;
+    auto              txMode        = m_basicFeature->m_txMode;
+    CompressedHeader *compressedHdr = (CompressedHeader *)MOS_AllocAndZeroMemory(sizeof(CompressedHeader) * (PAK_COMPRESSED_HDR_SYNTAX_ELEMS + 1));
+    ENCODE_CHK_NULL_RETURN(compressedHdr);
+
+    if (!picFields.LosslessFlag)
+    {
+        if (txMode == CODEC_VP9_TX_SELECTABLE)
+        {
+            PutDataForCompressedHdr(compressedHdr, 1, 128, PAK_TX_MODE_IDX);
+            PutDataForCompressedHdr(compressedHdr, 1, 128, PAK_TX_MODE_IDX + 1);
+            PutDataForCompressedHdr(compressedHdr, 1, 128, PAK_TX_MODE_SELECT_IDX);
+        }
+        else if (txMode == CODEC_VP9_TX_32X32)
+        {
+            PutDataForCompressedHdr(compressedHdr, 1, 128, PAK_TX_MODE_IDX);
+            PutDataForCompressedHdr(compressedHdr, 1, 128, PAK_TX_MODE_IDX + 1);
+            PutDataForCompressedHdr(compressedHdr, 0, 128, PAK_TX_MODE_SELECT_IDX);
+        }
+        else
+        {
+            PutDataForCompressedHdr(compressedHdr, (txMode & 0x02) >> 1, 128, PAK_TX_MODE_IDX);
+            PutDataForCompressedHdr(compressedHdr, (txMode & 0x01), 128, PAK_TX_MODE_IDX + 1);
+        }
+
+        if (txMode == CODEC_VP9_TX_SELECTABLE)
+        {
+            index = PAK_TX_8x8_PROB_IDX;
+            for (auto i = 0; i < 2; i++)
+            {
+                PutDataForCompressedHdr(compressedHdr, 0, 252, index);
+                index += 2;
+            }
+
+            index = PAK_TX_16x16_PROB_IDX;
+            for (auto i = 0; i < 2; i++)
+            {
+                for (auto j = 0; j < 2; j++)
+                {
+                    PutDataForCompressedHdr(compressedHdr, 0, 252, index);
+                    index += 2;
+                }
+            }
+
+            index = PAK_TX_32x32_PROB_IDX;
+            for (auto i = 0; i < 2; i++)
+            {
+                for (auto j = 0; j < 3; j++)
+                {
+                    PutDataForCompressedHdr(compressedHdr, 0, 252, index);
+                    index += 2;
+                }
+            }
+        }
+    }
+
+    for (auto coeffSize = 0; coeffSize < 4; coeffSize++)
+    {
+        if (coeffSize > txMode)
+        {
+            continue;
+        }
+
+        switch (coeffSize)
+        {
+        case 0:
+            index = PAK_TX_4x4_COEFF_PROB_IDX;
+            break;
+        case 1:
+            index = PAK_TX_8x8_COEFF_PROB_IDX;
+            break;
+        case 2:
+            index = PAK_TX_16x16_COEFF_PROB_IDX;
+            break;
+        case 3:
+            index = PAK_TX_32x32_COEFF_PROB_IDX;
+            break;
+        }
+
+        PutDataForCompressedHdr(compressedHdr, 0, 128, index);
+    }
+
+    PutDataForCompressedHdr(compressedHdr, 0, 252, PAK_SKIP_CONTEXT_IDX);
+    PutDataForCompressedHdr(compressedHdr, 0, 252, PAK_SKIP_CONTEXT_IDX + 2);
+    PutDataForCompressedHdr(compressedHdr, 0, 252, PAK_SKIP_CONTEXT_IDX + 4);
+
+    if (picFields.frame_type != 0 && !picFields.intra_only)
+    {
+        index = PAK_INTER_MODE_CTX_IDX;
+        for (auto i = 0; i < 7; i++)
+        {
+            for (auto j = 0; j < 3; j++)
+            {
+                PutDataForCompressedHdr(compressedHdr, 0, 252, index);
+                index += 2;
+            }
+        }
+
+        if (picFields.mcomp_filter_type == CODEC_VP9_SWITCHABLE_FILTERS)
+        {
+            index = PAK_SWITCHABLE_FILTER_CTX_IDX;
+            for (auto i = 0; i < 4; i++)
+            {
+                for (auto j = 0; j < 2; j++)
+                {
+                    PutDataForCompressedHdr(compressedHdr, 0, 252, index);
+                    index += 2;
+                }
+            }
+        }
+
+        index = PAK_INTRA_INTER_CTX_IDX;
+        for (auto i = 0; i < 4; i++)
+        {
+            PutDataForCompressedHdr(compressedHdr, 0, 252, index);
+            index += 2;
+        }
+
+        auto &picRefFields = m_basicFeature->m_vp9PicParams->RefFlags.fields;
+        bool  allowComp    = !(
+            (picRefFields.LastRefSignBias && picRefFields.GoldenRefSignBias && picRefFields.AltRefSignBias) ||
+            (!picRefFields.LastRefSignBias && !picRefFields.GoldenRefSignBias && !picRefFields.AltRefSignBias));
+
+        if (allowComp)
+        {
+            if (picFields.comp_prediction_mode == PRED_MODE_HYBRID)
+            {
+                PutDataForCompressedHdr(compressedHdr, 1, 128, PAK_COMPOUND_PRED_MODE_IDX);
+                PutDataForCompressedHdr(compressedHdr, 1, 128, PAK_COMPOUND_PRED_MODE_IDX + 1);
+                index = PAK_HYBRID_PRED_CTX_IDX;
+                for (auto i = 0; i < 5; i++)
+                {
+                    PutDataForCompressedHdr(compressedHdr, 0, 252, index);
+                    index += 2;
+                }
+            }
+            else if (picFields.comp_prediction_mode == PRED_MODE_COMPOUND)
+            {
+                PutDataForCompressedHdr(compressedHdr, 1, 128, PAK_COMPOUND_PRED_MODE_IDX);
+                PutDataForCompressedHdr(compressedHdr, 0, 128, PAK_COMPOUND_PRED_MODE_IDX + 1);
+            }
+            else
+            {
+                PutDataForCompressedHdr(compressedHdr, 0, 128, PAK_COMPOUND_PRED_MODE_IDX);
+            }
+        }
+
+        if (picFields.comp_prediction_mode != PRED_MODE_COMPOUND)
+        {
+            index = PAK_SINGLE_REF_PRED_CTX_IDX;
+            for (auto i = 0; i < 5; i++)
+            {
+                for (auto j = 0; j < 2; j++)
+                {
+                    PutDataForCompressedHdr(compressedHdr, 0, 252, index);
+                    index += 2;
+                }
+            }
+        }
+
+        if (picFields.comp_prediction_mode != PRED_MODE_SINGLE)
+        {
+            index = PAK_CMPUND_PRED_CTX_IDX;
+            for (auto i = 0; i < 5; i++)
+            {
+                PutDataForCompressedHdr(compressedHdr, 0, 252, index);
+                index += 2;
+            }
+        }
+
+        index = PAK_INTRA_MODE_PROB_CTX_IDX;
+        for (auto i = 0; i < 4; i++)
+        {
+            for (auto j = 0; j < 9; j++)
+            {
+                PutDataForCompressedHdr(compressedHdr, 0, 252, index);
+                index += 2;
+            }
+        }
+
+        index = PAK_PARTITION_PROB_IDX;
+        for (auto i = 0; i < 16; i++)
+        {
+            for (auto j = 0; j < 3; j++)
+            {
+                PutDataForCompressedHdr(compressedHdr, 0, 252, index);
+                index += 2;
+            }
+        }
+
+        index = PAK_MVJOINTS_PROB_IDX;
+        for (auto i = 0; i < 3; i++)
+        {
+            PutDataForCompressedHdr(compressedHdr, 0, 252, index);
+            index += 8;
+        }
+
+        for (auto d = 0; d < 2; d++)
+        {
+            index = (d == 0) ? PAK_MVCOMP0_IDX : PAK_MVCOMP1_IDX;
+            PutDataForCompressedHdr(compressedHdr, 0, 252, index);
+            index += 8;
+            for (auto i = 0; i < 10; i++)
+            {
+                PutDataForCompressedHdr(compressedHdr, 0, 252, index);
+                index += 8;
+            }
+            PutDataForCompressedHdr(compressedHdr, 0, 252, index);
+            index += 8;
+            for (auto i = 0; i < 10; i++)
+            {
+                PutDataForCompressedHdr(compressedHdr, 0, 252, index);
+                index += 8;
+            }
+        }
+
+        for (auto d = 0; d < 2; d++)
+        {
+            index = (d == 0) ? PAK_MVFRAC_COMP0_IDX : PAK_MVFRAC_COMP1_IDX;
+            for (auto i = 0; i < 3; i++)
+            {
+                PutDataForCompressedHdr(compressedHdr, 0, 252, index);
+                index += 8;
+            }
+            for (auto i = 0; i < 3; i++)
+            {
+                PutDataForCompressedHdr(compressedHdr, 0, 252, index);
+                index += 8;
+            }
+            for (auto i = 0; i < 3; i++)
+            {
+                PutDataForCompressedHdr(compressedHdr, 0, 252, index);
+                index += 8;
+            }
+        }
+
+        if (picFields.allow_high_precision_mv)
+        {
+            for (auto d = 0; d < 2; d++)
+            {
+                index = (d == 0) ? PAK_MVHP_COMP0_IDX : PAK_MVHP_COMP1_IDX;
+                PutDataForCompressedHdr(compressedHdr, 0, 252, index);
+                index += 8;
+                PutDataForCompressedHdr(compressedHdr, 0, 252, index);
+            }
+        }
+    }
+
+    PMOS_RESOURCE comprHeaderBuffer = pakFeature->GetCompressedHeaderBuffer();
+    ENCODE_CHK_NULL_RETURN(comprHeaderBuffer);
+
+    uint8_t *data = (uint8_t *)m_allocator->LockResourceForWrite(comprHeaderBuffer);
+    if (data == nullptr)
+    {
+        MOS_FreeMemory(compressedHdr);
+        ENCODE_CHK_NULL_RETURN(nullptr);
+    }
+
+    for (uint32_t i = 0; i < PAK_COMPRESSED_HDR_SYNTAX_ELEMS; i += 2)
+    {
+        data[i >> 1] = (compressedHdr[i + 1].value << 0x04) | (compressedHdr[i].value);
+    }
+
+    eStatus = m_allocator->UnLock(comprHeaderBuffer);
+    if (eStatus != MOS_STATUS_SUCCESS)
+    {
+        MOS_FreeMemory(compressedHdr);
+        ENCODE_CHK_STATUS_RETURN(eStatus);
+    }
+
+    MOS_FreeMemory(compressedHdr);
+    return eStatus;
 }
 
 }  // namespace encode
