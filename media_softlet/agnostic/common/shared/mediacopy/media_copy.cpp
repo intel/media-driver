@@ -30,6 +30,7 @@
 #include "media_debug_dumper.h"
 #include "mhw_cp_interface.h"
 #include "mos_utilities.h"
+#include "mos_util_debug.h"
 
 MediaCopyBaseState::MediaCopyBaseState():
     m_osInterface(nullptr)
@@ -208,6 +209,69 @@ MOS_STATUS MediaCopyBaseState::CopyEnigneSelect(MCPY_METHOD preferMethod, MCPY_E
     return MOS_STATUS_SUCCESS;
 }
 
+uint32_t GetMinRequiredSurfaceSizeInBytes(uint32_t pitch, uint32_t height, MOS_FORMAT format)
+{
+    uint32_t nBytes = 0;
+    switch (format)
+    {
+    case Format_NV12:
+    case Format_YV12:
+    case Format_I420:
+    case Format_P010:
+    case Format_P016:
+        nBytes = pitch * height + (pitch >> 1) * (height >> 1) + (pitch >> 1) * (height >> 1);
+        break;
+    case Format_RGBP:
+    case Format_BGRP:
+        nBytes = pitch * height + pitch * height + pitch * height;
+        break;
+    case Format_Y410:
+    case Format_Y416:
+    case Format_Y210:
+    case Format_Y216:
+    case Format_YUY2:
+    case Format_R5G6B5:
+    case Format_R8G8B8:
+    case Format_A8R8G8B8:
+    case Format_A8B8G8R8:
+    case Format_X8R8G8B8:
+    case Format_X8B8G8R8:
+    case Format_AYUV:
+    case Format_R10G10B10A2:
+    case Format_B10G10R10A2:
+    case Format_P8:
+        nBytes = pitch * height;
+        break;
+    default:
+        MCPY_ASSERTMESSAGE("Unsupported format!");
+        break;
+    }
+    return nBytes;
+}
+
+MOS_STATUS CheckResourceSizeValidForCopy(MOS_SURFACE& res)
+{
+    if (res.TileType != MOS_TILE_LINEAR)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    uint32_t nBytes = GetMinRequiredSurfaceSizeInBytes(res.dwPitch, res.dwHeight, res.Format);
+    if (nBytes == 0)
+    {
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+    if (res.dwSize < nBytes)
+    {
+        MT_ERR2(MT_MEDIA_COPY, 
+        MT_MEDIA_COPY_DATASIZE, nBytes,
+        MT_MEDIA_COPY_DATASIZE, res.dwSize);
+
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+    return MOS_STATUS_SUCCESS;
+}
+
 //!
 //! \brief    surface copy func.
 //! \details  copy surface.
@@ -237,6 +301,15 @@ MOS_STATUS MediaCopyBaseState::SurfaceCopy(PMOS_RESOURCE src, PMOS_RESOURCE dst,
     mcpySrc.OsRes           = src;
     MCPY_NORMALMESSAGE("input surface's format %d, width %d; hight %d, pitch %d, tiledmode %d, mmc mode %d",
         ResDetails.Format, ResDetails.dwWidth, ResDetails.dwHeight, ResDetails.dwPitch, mcpySrc.TileMode, mcpySrc.CompressionMode);
+    MT_LOG7(MT_MEDIA_COPY, MT_NORMAL, 
+        MT_SURF_PITCH,          ResDetails.dwPitch, 
+        MT_SURF_HEIGHT,         ResDetails.dwHeight, 
+        MT_SURF_WIDTH,          ResDetails.dwWidth, 
+        MT_SURF_MOS_FORMAT,     ResDetails.Format, 
+        MT_MEDIA_COPY_DATASIZE, ResDetails.dwSize,
+        MT_SURF_TILE_TYPE,      ResDetails.TileType,
+        MT_SURF_COMP_MODE,      mcpySrc.CompressionMode);
+    MCPY_CHK_STATUS_RETURN(CheckResourceSizeValidForCopy(ResDetails));
 
     MOS_ZeroMemory(&ResDetails, sizeof(MOS_SURFACE));
     ResDetails.Format = Format_Invalid;
@@ -247,6 +320,15 @@ MOS_STATUS MediaCopyBaseState::SurfaceCopy(PMOS_RESOURCE src, PMOS_RESOURCE dst,
     mcpyDst.OsRes           = dst;
     MCPY_NORMALMESSAGE("Output surface's format %d, width %d; hight %d, pitch %d, tiledmode %d, mmc mode %d",
         ResDetails.Format, ResDetails.dwWidth, ResDetails.dwHeight, ResDetails.dwPitch, mcpyDst.TileMode, mcpyDst.CompressionMode);
+    MT_LOG7(MT_MEDIA_COPY, MT_NORMAL, 
+        MT_SURF_PITCH,          ResDetails.dwPitch, 
+        MT_SURF_HEIGHT,         ResDetails.dwHeight, 
+        MT_SURF_WIDTH,          ResDetails.dwWidth, 
+        MT_SURF_MOS_FORMAT,     ResDetails.Format, 
+        MT_MEDIA_COPY_DATASIZE, ResDetails.dwSize,
+        MT_SURF_TILE_TYPE,      ResDetails.TileType,
+        MT_SURF_COMP_MODE,      mcpyDst.CompressionMode);
+    MCPY_CHK_STATUS_RETURN(CheckResourceSizeValidForCopy(ResDetails));
 
     MCPY_CHK_STATUS_RETURN(PreCheckCpCopy(mcpySrc, mcpyDst, preferMethod));
 
