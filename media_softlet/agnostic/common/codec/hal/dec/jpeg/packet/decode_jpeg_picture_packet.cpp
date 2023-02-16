@@ -420,6 +420,7 @@ MOS_STATUS JpegDecodePicPkt::AddAllCmds_MFD_JPEG_BSD_OBJECT(PMOS_COMMAND_BUFFER 
     for (uint16_t scanCount = 0; scanCount < m_jpegBasicFeature->m_jpegScanParams->NumScans; scanCount++)
     {
         uint16_t numComponents = m_jpegBasicFeature->m_jpegScanParams->ScanHeader[scanCount].NumComponents;
+        MOS_ZeroMemory(&params, sizeof(params));
 
         params.indirectDataLength     = m_jpegBasicFeature->m_jpegScanParams->ScanHeader[scanCount].DataLength;
         params.dataStartAddress       = m_jpegBasicFeature->m_jpegScanParams->ScanHeader[scanCount].DataOffset;
