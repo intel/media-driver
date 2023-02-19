@@ -615,10 +615,7 @@ MOS_STATUS SwFilterScaling::Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf
     m_Params.csc.colorSpaceOutput   = outputSurf->ColorSpace;
 
     if (rotMir &&
-        (rotMir->GetSwFilterParams().rotation == VPHAL_ROTATION_90 ||
-        rotMir->GetSwFilterParams().rotation == VPHAL_ROTATION_270 ||
-        rotMir->GetSwFilterParams().rotation == VPHAL_ROTATE_90_MIRROR_VERTICAL ||
-        rotMir->GetSwFilterParams().rotation == VPHAL_ROTATE_90_MIRROR_HORIZONTAL))
+        VpUtils::IsVerticalRotation(rotMir->GetSwFilterParams().rotation))
     {
         m_Params.rotation.rotationNeeded = true;
 

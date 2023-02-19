@@ -696,7 +696,6 @@ enum SurfaceType
 
     // SR
     SurfaceTypeSRLumaInputSurf,
-    SurfaceTypeSRTempOutputSurf,
     SurfaceTypeSRTempLumaOutput,
     SurfaceTypeSRTempLumaOutputEnd = SurfaceTypeSRTempLumaOutput + SURFACETYPE_SIZE32,
     SurfaceTypeSRTempLuma2Output,

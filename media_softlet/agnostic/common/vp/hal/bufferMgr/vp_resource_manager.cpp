@@ -226,11 +226,6 @@ VpResourceManager::~VpResourceManager()
         m_allocator.DestroyVpSurface(m_temperalInput);
     }
 
-    if (m_internalInput)
-    {
-        m_allocator.DestroyVpSurface(m_internalInput);
-    }
-
     if (m_hdrResourceManager)
     {
         MOS_Delete(m_hdrResourceManager);
@@ -693,20 +688,6 @@ MOS_STATUS VpResourceManager::GetResourceHint(std::vector<FeatureType> &featureP
     return MOS_STATUS_SUCCESS;
 }
 
-struct VP_SURFACE_PARAMS
-{
-    uint32_t                width               = 0;
-    uint32_t                height              = 0;
-    MOS_FORMAT              format              = Format_None;
-    MOS_TILE_TYPE           tileType            = MOS_TILE_X;
-    MOS_RESOURCE_MMC_MODE   surfCompressionMode = MOS_MMC_DISABLED;
-    bool                    surfCompressible    = false;
-    VPHAL_CSPACE            colorSpace          = CSpace_None;
-    RECT                    rcSrc               = {0, 0, 0, 0};  //!< Source rectangle
-    RECT                    rcDst               = {0, 0, 0, 0};  //!< Destination rectangle
-    RECT                    rcMaxSrc            = {0, 0, 0, 0};  //!< Max source rectangle
-    VPHAL_SAMPLE_TYPE       sampleType          = SAMPLE_PROGRESSIVE;
-};
 MOS_STATUS VpResourceManager::GetIntermediaColorAndFormat3DLutOutput(VPHAL_CSPACE &colorSpace, MOS_FORMAT &format, SwFilterPipe &executedFilters)
 {
     SwFilterHdr *hdr = dynamic_cast<SwFilterHdr *>(executedFilters.GetSwFilter(true, 0, FeatureType::FeatureTypeHdr));
@@ -916,6 +897,7 @@ MOS_STATUS VpResourceManager::AssignIntermediaSurface(VP_EXECUTE_CAPS& caps, SwF
 
     VP_SURFACE *outputSurface = executedFilters.GetSurface(false, 0);
     VP_SURFACE *intermediaSurface = nullptr;
+    VP_SURFACE_PARAMS params            = {};
     if (outputSurface)
     {
         // No need intermedia surface.
@@ -932,7 +914,6 @@ MOS_STATUS VpResourceManager::AssignIntermediaSurface(VP_EXECUTE_CAPS& caps, SwF
         {
             m_intermediaSurfaces.push_back(nullptr);
         }
-        VP_SURFACE_PARAMS params = {};
         bool allocated = false;
         // Get surface parameter.
         GetIntermediaOutputSurfaceParams(caps, params, executedFilters);
@@ -1029,14 +1010,7 @@ MOS_STATUS VpResourceManager::AssignFcResources(VP_EXECUTE_CAPS &caps, std::vect
     {
         for (size_t i = 0; i < inputSurfaces.size(); ++i)
         {
-            if (caps.bInternalInputInuse && i==0)
-            {
-                surfSetting.surfGroup.insert(std::make_pair((SurfaceType)(SurfaceTypeFcInputLayer0 + i), m_internalInput));
-            }
-            else
-            {
-                surfSetting.surfGroup.insert(std::make_pair((SurfaceType)(SurfaceTypeFcInputLayer0 + i), inputSurfaces[i]));
-            }
+            surfSetting.surfGroup.insert(std::make_pair((SurfaceType)(SurfaceTypeFcInputLayer0 + i), inputSurfaces[i]));
 
             if (!resHint.isIScalingTypeNone)
             {
@@ -1106,11 +1080,6 @@ MOS_STATUS VpResourceManager::AssignRenderResource(VP_EXECUTE_CAPS &caps, std::v
     if (caps.bComposite)
     {
         VP_PUBLIC_CHK_STATUS_RETURN(AssignFcResources(caps, inputSurfaces, outputSurface, pastSurfaces, futureSurfaces, resHint, surfSetting));
-        if (caps.bInternalInputInuse)
-        {
-            m_internalInput->ColorSpace = inputSurfaces[0]->ColorSpace;
-            executedFilters.AddSurface(m_internalInput, true, 0);
-        }
     }
     else if (caps.b3DLutCalc)
     {

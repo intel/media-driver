@@ -2190,7 +2190,6 @@ MOS_STATUS Policy::InitExecuteCaps(VP_EXECUTE_CAPS &caps, VP_EngineEntry &engine
     else if (engineCapsInputPipe.isolated)
     {
         caps.bTemperalInputInuse = engineCapsInputPipe.bTemperalInputInuse;
-        caps.bInternalInputInuse = engineCapsInputPipe.bInternalInputInuse;
         if (engineCapsInputPipe.VeboxNeeded != 0 || engineCapsInputPipe.SfcNeeded != 0)
         {
             caps.bVebox = true;
@@ -2232,7 +2231,6 @@ MOS_STATUS Policy::InitExecuteCaps(VP_EXECUTE_CAPS &caps, VP_EngineEntry &engine
         caps.bIECP = engineCaps.VeboxIECPNeeded;
         caps.bDiProcess2ndField = engineCaps.diProcess2ndField;
         caps.bTemperalInputInuse = engineCaps.bTemperalInputInuse;
-        caps.bInternalInputInuse = engineCaps.bInternalInputInuse;
 
         if (engineCaps.fcOnlyFeatureExists)
         {
@@ -2286,7 +2284,6 @@ MOS_STATUS Policy::InitExecuteCaps(VP_EXECUTE_CAPS &caps, VP_EngineEntry &engine
 
         caps.bDiProcess2ndField = engineCaps.diProcess2ndField;
         caps.bTemperalInputInuse = engineCaps.bTemperalInputInuse;
-        caps.bInternalInputInuse = engineCaps.bInternalInputInuse;
     }
 
     VP_PUBLIC_NORMALMESSAGE("Execute Caps, value 0x%llx (bVebox %d, bSFC %d, bRender %d, bComposite %d, bOutputPipeFeatureInuse %d, bIECP %d, bForceCscToRender %d, bDiProcess2ndField %d)",

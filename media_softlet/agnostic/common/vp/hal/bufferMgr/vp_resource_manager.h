@@ -333,7 +333,22 @@ struct VP_FRAME_IDS
     int32_t     pastFrameId;
     int32_t     futureFrameId;
 };
-struct VP_SURFACE_PARAMS;
+
+struct VP_SURFACE_PARAMS
+{
+    uint32_t              width               = 0;
+    uint32_t              height              = 0;
+    MOS_FORMAT            format              = Format_None;
+    MOS_TILE_TYPE         tileType            = MOS_TILE_X;
+    MOS_RESOURCE_MMC_MODE surfCompressionMode = MOS_MMC_DISABLED;
+    bool                  surfCompressible    = false;
+    VPHAL_CSPACE          colorSpace          = CSpace_None;
+    RECT                  rcSrc               = {0, 0, 0, 0};  //!< Source rectangle
+    RECT                  rcDst               = {0, 0, 0, 0};  //!< Destination rectangle
+    RECT                  rcMaxSrc            = {0, 0, 0, 0};  //!< Max source rectangle
+    VPHAL_SAMPLE_TYPE     sampleType          = SAMPLE_PROGRESSIVE;
+    VPHAL_SURFACE_TYPE    surfType            = SURF_NONE;
+};
 
 class VpResourceManager
 {
@@ -453,7 +468,7 @@ protected:
 
     virtual MOS_STATUS GetIntermediaColorAndFormat3DLutOutput(VPHAL_CSPACE &colorSpace, MOS_FORMAT &format, SwFilterPipe &executedFilters);
     virtual MOS_STATUS GetIntermediaColorAndFormatBT2020toRGB(VP_EXECUTE_CAPS &caps, VPHAL_CSPACE &colorSpace, MOS_FORMAT &format, SwFilterPipe &executedFilters);
-    MOS_STATUS GetIntermediaOutputSurfaceParams(VP_EXECUTE_CAPS& caps, VP_SURFACE_PARAMS &params, SwFilterPipe &executedFilters);
+    virtual MOS_STATUS GetIntermediaOutputSurfaceParams(VP_EXECUTE_CAPS& caps, VP_SURFACE_PARAMS &params, SwFilterPipe &executedFilters);
     MOS_STATUS         GetIntermediaOutputSurfaceColorAndFormat(VP_EXECUTE_CAPS &caps, SwFilterPipe &executedFilters, MOS_FORMAT &format, VPHAL_CSPACE &colorSpace);
     MOS_STATUS AssignIntermediaSurface(VP_EXECUTE_CAPS& caps, SwFilterPipe &executedFilters);
 
@@ -531,7 +546,6 @@ protected:
     VP_SURFACE *m_veboxWeitCoefSurface                        = nullptr;       //!< VEBOX 1D LUT surface for Vebox Gen12
     VP_SURFACE *m_veboxGlobalToneMappingCurveLUTSurface       = nullptr;       //!< VEBOX 1D LUT surface for Vebox Gen12
     VP_SURFACE *m_temperalInput                               = nullptr;
-    VP_SURFACE *m_internalInput                               = nullptr;
 
     // Fc Resource
     VP_SURFACE *m_cmfcCoeff                                   = nullptr;
