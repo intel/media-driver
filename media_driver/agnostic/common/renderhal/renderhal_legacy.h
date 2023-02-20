@@ -98,6 +98,36 @@ typedef struct _RENDERHAL_INTERFACE_LEGACY : _RENDERHAL_INTERFACE
 } RENDERHAL_INTERFACE_LEGACY, *PRENDERHAL_INTERFACE_LEGACY;
 
 //!
+//! \brief    Create Interface
+//! \details  Create RenderHal Interface structure, responsible for HW
+//!           abstraction of HW Rendering Engine for CM(MDF) and VP.
+//! \param    PRENDERHAL_INTERFACE renderHal
+//!           [in/out] Pointer to Hardware Interface Structure
+//! \param    MhwCpInterface* cpInterface
+//!           [out] Pointer of pointer to MHW CP Interface Structure, which
+//!           is created during renderhal initialization
+//! \param    PMOS_INTERFACE osInterface
+//!           [in] Pointer to OS Interface Structure
+//! \param    PRENDERHAL_SETTINGS_LEGACY renderHalSettings
+//!           [in] Pointer to RenderHal Settings
+//!
+MOS_STATUS Create_RenderHal_Interface_Legacy(
+    PRENDERHAL_INTERFACE &renderHal,
+    MhwCpInterface       **cpInterface,
+    PMOS_INTERFACE       osInterface,
+    PRENDERHAL_SETTINGS_LEGACY renderHalSettings);
+
+//!
+//! \brief    Destroy Interface
+//! \details  Create RenderHal Interface structure, responsible for HW
+//!           abstraction of HW Rendering Engine for CM(MDF) and VP.
+//! \param    PRENDERHAL_INTERFACE_LEGACY renderHal
+//!           [in] Pointer to Hardware Interface Structure
+//!
+MOS_STATUS Destroy_RenderHal_Interface_Legacy(
+    PRENDERHAL_INTERFACE_LEGACY renderHal);
+
+//!
 //! \brief    Init Interface
 //! \details  Initializes Render Hal Interface structure, responsible for HW
 //!           abstraction of Render Engine for MDF/VP
