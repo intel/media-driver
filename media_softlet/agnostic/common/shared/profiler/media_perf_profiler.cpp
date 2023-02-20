@@ -720,6 +720,9 @@ PerfGPUNode MediaPerfProfiler::GpuContextToGpuNode(MOS_GPU_CONTEXT context)
         case MOS_GPU_CONTEXT_VEBOX2:
             node = PERF_GPU_NODE_VE;
             break;
+        case MOS_GPU_CONTEXT_BLT:
+            node = PERF_GPU_NODE_BLT;
+            break;
         default:
             node = PERF_GPU_NODE_UNKNOW;
             break;

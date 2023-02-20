@@ -481,7 +481,6 @@ MOS_STATUS BltStateXe_Xpm_Plus::SetupCtrlSurfCopyBltParam(
 MOS_STATUS BltStateXe_Xpm_Plus::SubmitCMD(
     PBLT_STATE_PARAM pBltStateParam)
 {
-    MOS_STATUS                   eStatus = MOS_STATUS_SUCCESS;
     MOS_COMMAND_BUFFER           cmdBuffer;
     MHW_FAST_COPY_BLT_PARAM      fastCopyBltParam;
     MHW_CTRL_SURF_COPY_BLT_PARAM ctrlSurfCopyBltParam;
@@ -489,7 +488,7 @@ MOS_STATUS BltStateXe_Xpm_Plus::SubmitCMD(
     int                          planeNum = 1;
     PMHW_BLT_INTERFACE_XE_HPC    pbltInterface = dynamic_cast<PMHW_BLT_INTERFACE_XE_HPC>(m_bltInterface);
 
-    BLT_CHK_NULL(pbltInterface);
+    BLT_CHK_NULL_RETURN(pbltInterface);
 
     // no gpucontext will be created if the gpu context has been created before.
     BLT_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(
@@ -517,6 +516,10 @@ MOS_STATUS BltStateXe_Xpm_Plus::SubmitCMD(
         return MOS_STATUS_INVALID_PARAMETER;
     }
     planeNum = GetPlaneNum(dstResDetails.Format);
+
+    MediaPerfProfiler* perfProfiler = MediaPerfProfiler::Instance();
+    BLT_CHK_NULL_RETURN(perfProfiler);
+    BLT_CHK_STATUS_RETURN(perfProfiler->AddPerfCollectStartCmd((void*)this, m_osInterface, m_miInterface, &cmdBuffer));
 
     if (pBltStateParam->bCopyMainSurface)
     {
@@ -596,6 +599,8 @@ MOS_STATUS BltStateXe_Xpm_Plus::SubmitCMD(
         //    &ctrlSurfCopyBltParam));
     }
 
+    BLT_CHK_STATUS_RETURN(perfProfiler->AddPerfCollectEndCmd((void*)this, m_osInterface, m_miInterface, &cmdBuffer));
+
     // Add flush DW
     MHW_MI_FLUSH_DW_PARAMS FlushDwParams;
     MOS_ZeroMemory(&FlushDwParams, sizeof(FlushDwParams));
@@ -607,8 +612,7 @@ MOS_STATUS BltStateXe_Xpm_Plus::SubmitCMD(
     // Flush the command buffer
     BLT_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, false));
 
-finish:
-    return eStatus;
+    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS BltStateXe_Xpm_Plus::CopyMainSurface(

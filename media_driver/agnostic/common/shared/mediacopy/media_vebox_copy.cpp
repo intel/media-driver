@@ -239,6 +239,9 @@ MOS_STATUS VeboxCopyState::CopyMainSurface(PMOS_RESOURCE src, PMOS_RESOURCE dst)
     VEBOX_COPY_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
     VEBOX_COPY_CHK_STATUS_RETURN(InitCommandBuffer(&cmdBuffer));
 
+    MediaPerfProfiler* perfProfiler = MediaPerfProfiler::Instance();
+    VEBOX_COPY_CHK_NULL_RETURN(perfProfiler);
+    VEBOX_COPY_CHK_STATUS_RETURN(perfProfiler->AddPerfCollectStartCmd((void*)this, m_osInterface, m_miInterface, &cmdBuffer));
     // Set Vebox Aux MMIO
     VEBOX_COPY_CHK_STATUS_RETURN(m_veboxInterface->setVeboxPrologCmd(m_miInterface, &cmdBuffer));
 
@@ -256,6 +259,7 @@ MOS_STATUS VeboxCopyState::CopyMainSurface(PMOS_RESOURCE src, PMOS_RESOURCE dst)
     // Send CMD: Vebox_Tiling_Convert
     //---------------------------------
     VEBOX_COPY_CHK_STATUS_RETURN(m_veboxInterface->AddVeboxTilingConvert(&cmdBuffer, &mhwVeboxSurfaceStateCmdParams.SurfInput, &mhwVeboxSurfaceStateCmdParams.SurfOutput));
+    VEBOX_COPY_CHK_STATUS_RETURN(perfProfiler->AddPerfCollectEndCmd((void*)this, m_osInterface, m_miInterface, &cmdBuffer));
 
     MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
 

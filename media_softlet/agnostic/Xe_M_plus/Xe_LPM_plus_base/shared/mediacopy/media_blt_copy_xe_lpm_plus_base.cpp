@@ -27,7 +27,7 @@
 
 #include "media_blt_copy_xe_lpm_plus_base.h"
 #include "mhw_cp_interface.h"
-
+#include "media_perf_profiler.h"
 //!
 //! \brief    BltStateXe_Xpm_Plus constructor
 //! \details  Initialize the BltStateXe_Xpm_Plus members.
@@ -560,6 +560,10 @@ MOS_STATUS BltStateXe_Lpm_Plus_Base::SubmitCMD(
     }
     planeNum = GetPlaneNum(dstResDetails.Format);
 
+    MediaPerfProfiler* perfProfiler = MediaPerfProfiler::Instance();
+    BLT_CHK_NULL_RETURN(perfProfiler);
+    BLT_CHK_STATUS_RETURN(perfProfiler->AddPerfCollectStartCmd((void*)this, m_osInterface, m_miItf, &cmdBuffer));
+
     if (pBltStateParam->bCopyMainSurface)
     {
         BLT_CHK_STATUS_RETURN(SetupBltCopyParam(
@@ -653,18 +657,7 @@ MOS_STATUS BltStateXe_Lpm_Plus_Base::SubmitCMD(
             }
          }
     }
-
-    if (pBltStateParam->bCopyCCS)
-    {
-        BLT_CHK_STATUS_RETURN(SetupCtrlSurfCopyBltParam(
-            &ctrlSurfCopyBltParam,
-            pBltStateParam->pSrcCCS,
-            pBltStateParam->pDstCCS,
-            pBltStateParam->ccsFlag));
-        //BLT_CHK_STATUS_RETURN(pbltInterfacePvc->AddCtrlSurfCopyBlt(
-        //    &cmdBuffer,
-        //    &ctrlSurfCopyBltParam));
-    }
+    BLT_CHK_STATUS_RETURN(perfProfiler->AddPerfCollectEndCmd((void*)this, m_osInterface, m_miItf, &cmdBuffer));
 
     // Add flush DW
     auto& flushDwParams = m_miItf->MHW_GETPAR_F(MI_FLUSH_DW)();

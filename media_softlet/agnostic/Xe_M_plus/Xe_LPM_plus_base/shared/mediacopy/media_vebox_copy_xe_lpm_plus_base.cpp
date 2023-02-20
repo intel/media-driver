@@ -155,6 +155,10 @@ MOS_STATUS VeboxCopyStateXe_Lpm_Plus_Base::CopyMainSurface(PMOS_RESOURCE src, PM
     VEBOX_COPY_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
     VEBOX_COPY_CHK_STATUS_RETURN(InitCommandBuffer(&cmdBuffer));
 
+    MediaPerfProfiler* perfProfiler = MediaPerfProfiler::Instance();
+    VEBOX_COPY_CHK_NULL_RETURN(perfProfiler);
+    VEBOX_COPY_CHK_STATUS_RETURN(perfProfiler->AddPerfCollectStartCmd((void*)this, m_osInterface, m_miItf, &cmdBuffer));
+
     // Set Vebox MMIO
     VEBOX_COPY_CHK_STATUS_RETURN(m_miItf->AddVeboxMMIOPrologCmd(&cmdBuffer));
 
@@ -186,7 +190,7 @@ MOS_STATUS VeboxCopyStateXe_Lpm_Plus_Base::CopyMainSurface(PMOS_RESOURCE src, PM
         flushDwParams.dwDataDW1 = veboxHeap->dwNextTag;
         VEBOX_COPY_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(&cmdBuffer));
     }
-
+    VEBOX_COPY_CHK_STATUS_RETURN(perfProfiler->AddPerfCollectEndCmd((void*)this, m_osInterface, m_miItf, &cmdBuffer));
     VEBOX_COPY_CHK_STATUS_RETURN(m_miItf->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
 
     // Return unused command buffer space to OS

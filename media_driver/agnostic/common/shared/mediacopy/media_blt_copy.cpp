@@ -32,6 +32,7 @@
 #include "media_copy.h"
 #include "mhw_mi.h"
 #include "mos_utilities.h"
+#include "media_perf_profiler.h"
 #define BIT( n )                            ( 1 << (n) )
 
 //!
@@ -341,6 +342,10 @@ MOS_STATUS BltState::SubmitCMD(
     }
     planeNum = GetPlaneNum(dstResDetails.Format);
 
+    MediaPerfProfiler* perfProfiler = MediaPerfProfiler::Instance();
+    BLT_CHK_NULL_RETURN(perfProfiler);
+    BLT_CHK_STATUS_RETURN(perfProfiler->AddPerfCollectStartCmd((void*)this, m_osInterface, m_miInterface, &cmdBuffer));
+
     if (pBltStateParam->bCopyMainSurface)
     {
         m_blokCopyon = true;
@@ -408,6 +413,8 @@ MOS_STATUS BltState::SubmitCMD(
               }
          }
     }
+
+    BLT_CHK_STATUS_RETURN(perfProfiler->AddPerfCollectEndCmd((void*)this, m_osInterface, m_miInterface, &cmdBuffer));
     // Add flush DW
     BLT_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(&cmdBuffer, &FlushDwParams));
 
