@@ -137,7 +137,7 @@ MOS_STATUS VphdrResourceManager::AssignRenderResource(VP_EXECUTE_CAPS &caps, std
     {
         surfSetting.surfGroup.insert(std::make_pair((SurfaceType)(SurfaceTypeHdrInputLayer0 + i), inputSurfaces[i]));
 
-        SwFilterHdr *hdr = dynamic_cast<SwFilterHdr *>(executedFilters.GetSwFilter(true, i, FeatureType::FeatureTypeHdrOnRender));
+        SwFilterHdr    *hdr    = dynamic_cast<SwFilterHdr *>(executedFilters.GetSwFilter(true, i, FeatureType::FeatureTypeHdrOnRender));
         FeatureParamHdr params = {};
         if (hdr)
         {
@@ -172,10 +172,10 @@ MOS_STATUS VphdrResourceManager::AssignRenderResource(VP_EXECUTE_CAPS &caps, std
         surfSetting.surfGroup.insert(std::make_pair((SurfaceType)(SurfaceTypeHdrOETF1DLUTSurface0 + i), m_hdrOETF1DLUTSurface[i]));
     }
 
-    dwWidth = dwHeight = VPHAL_HDR_CRI_3DLUT_SIZE;
+    dwWidth = dwHeight = dwDepth = VPHAL_HDR_CRI_3DLUT_SIZE;
     for (size_t i = 0; i < VPHAL_MAX_HDR_INPUT_LAYER; ++i)
     {
-        SwFilterHdr *hdr = dynamic_cast<SwFilterHdr *>(executedFilters.GetSwFilter(true, i, FeatureType::FeatureTypeHdrOnRender));
+        SwFilterHdr    *hdr    = dynamic_cast<SwFilterHdr *>(executedFilters.GetSwFilter(true, i, FeatureType::FeatureTypeHdrOnRender));
         FeatureParamHdr params = {};
         if (hdr)
         {
@@ -190,7 +190,7 @@ MOS_STATUS VphdrResourceManager::AssignRenderResource(VP_EXECUTE_CAPS &caps, std
              m_hdrCri3DLUTSurface[i],
              "Cri3DLUTSurface",
              params.bGpuGenerate3DLUT ? Format_R10G10B10A2 : Format_A16B16G16R16,
-             MOS_GFXRES_2D,
+             MOS_GFXRES_VOLUME,
              MOS_TILE_LINEAR,
              dwWidth,
              dwHeight,
@@ -199,7 +199,12 @@ MOS_STATUS VphdrResourceManager::AssignRenderResource(VP_EXECUTE_CAPS &caps, std
              allocated,
              false,
              deferredDestroyed,
-             MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_RENDER));
+             MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_RENDER,
+             MOS_TILE_UNSET_GMM,
+             MOS_MEMPOOL_VIDEOMEMORY,
+             false,
+             nullptr,
+             dwDepth));
 
          surfSetting.Cri3DLUTAllocated = allocated;
          surfSetting.surfGroup.insert(std::make_pair((SurfaceType)(SurfaceTypeHdrCRI3DLUTSurface0 + i), m_hdrCri3DLUTSurface[i]));

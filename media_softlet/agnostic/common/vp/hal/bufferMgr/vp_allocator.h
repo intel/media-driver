@@ -386,7 +386,8 @@ public:
         MOS_TILE_MODE_GMM       tileModeByForce = MOS_TILE_UNSET_GMM,
         Mos_MemPool             memType = MOS_MEMPOOL_VIDEOMEMORY,
         bool                    isNotLockable = false,
-        void                    *systemMemory = nullptr);
+        void                    *systemMemory = nullptr,
+        uint32_t                depth = 0);
 
     //!
     //! \brief    Allocates the Surface

@@ -773,7 +773,8 @@ MOS_STATUS VpAllocator::ReAllocateSurface(
         MOS_TILE_MODE_GMM       tileModeByForce,
         Mos_MemPool             memType,
         bool                    isNotLockable,
-        void *                  systemMemory)
+        void *                  systemMemory,
+        uint32_t                depth)
 {
     VP_FUNC_CALL();
     MOS_STATUS              eStatus = MOS_STATUS_SUCCESS;
@@ -838,6 +839,7 @@ MOS_STATUS VpAllocator::ReAllocateSurface(
 
     allocParams.dwWidth         = width;
     allocParams.dwHeight        = height;
+    allocParams.dwDepth         = depth;
     allocParams.Format          = format;
     allocParams.bIsCompressible = compressible;
     allocParams.CompressionMode = compressionMode;

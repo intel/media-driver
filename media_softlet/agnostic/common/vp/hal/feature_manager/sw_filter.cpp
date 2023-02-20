@@ -1335,7 +1335,7 @@ MOS_STATUS SwFilterHdr::Configure(VP_PIPELINE_PARAMS &params, bool isInputSurf, 
     }
     else
     {
-        CurrentLUTMode = VPHAL_HDR_LUT_MODE_2D;
+        CurrentLUTMode = VPHAL_HDR_LUT_MODE_3D;
     }
 
     // Neither 1D nor 3D LUT is needed in linear output case.
