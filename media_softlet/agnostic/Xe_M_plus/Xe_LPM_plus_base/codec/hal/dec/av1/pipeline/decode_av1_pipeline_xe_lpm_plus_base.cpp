@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2021, Intel Corporation
+* Copyright (c) 2020-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -139,7 +139,7 @@ namespace decode
                         m_featureManager->GetFeature(DecodeFeatureIDs::decodeDownSampling));
                     if (downSamplingFeature != nullptr) {
                         auto frameIdx                   = basicFeature->m_curRenderPic.FrameIdx;
-                        inputParameters.sfcOutputPicRes = &downSamplingFeature->m_outputSurfaceList[frameIdx].OsResource;
+                        inputParameters.sfcOutputSurface = &downSamplingFeature->m_outputSurfaceList[frameIdx];
                         DumpDownSamplingParams(*downSamplingFeature);
                     });
 #endif

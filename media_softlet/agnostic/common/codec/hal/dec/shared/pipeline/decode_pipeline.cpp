@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2022, Intel Corporation
+* Copyright (c) 2018-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -428,18 +428,14 @@ MOS_STATUS DecodePipeline::DumpOutput(const DecodeStatusReportData& reportData)
         m_featureManager->GetFeature(DecodeFeatureIDs::decodeDownSampling));
     if (downSamplingFeature != nullptr && downSamplingFeature->IsEnabled())
     {
-        if (reportData.currSfcOutputPicRes != nullptr &&
+        if (reportData.currSfcOutputSurface != nullptr &&
             m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrSfcOutputSurface))
         {
-            MOS_SURFACE sfcDstSurface;
-            MOS_ZeroMemory(&sfcDstSurface, sizeof(sfcDstSurface));
-            sfcDstSurface.Format     = Format_NV12;
-            sfcDstSurface.OsResource = *reportData.currSfcOutputPicRes;
+            MOS_SURFACE &sfcDstSurface = *reportData.currSfcOutputSurface;
 
             if (!Mos_ResourceIsNull(&sfcDstSurface.OsResource))
             {
 #if (_DEBUG || _RELEASE_INTERNAL)
-                DECODE_CHK_STATUS(m_allocator->GetSurfaceInfo(&sfcDstSurface));
                 //rgb format read from reg key
                 uint32_t sfcOutputRgbFormatFlag =
                     ReadUserFeature(m_userSettingPtr, "Decode SFC RGB Format Output", MediaUserSetting::Group::Sequence).Get<uint32_t>();
@@ -615,15 +611,11 @@ MOS_STATUS DecodePipeline::ReportSfcLinearSurfaceUsage(const DecodeStatusReportD
         m_featureManager->GetFeature(DecodeFeatureIDs::decodeDownSampling));
     if (downSamplingFeature != nullptr && downSamplingFeature->IsEnabled())
     {
-        if (reportData.currSfcOutputPicRes != nullptr)
+        if (reportData.currSfcOutputSurface != nullptr)
         {
-            MOS_SURFACE sfcDstSurface;
-            MOS_ZeroMemory(&sfcDstSurface, sizeof(sfcDstSurface));
-            sfcDstSurface.Format     = Format_NV12;
-            sfcDstSurface.OsResource = *reportData.currSfcOutputPicRes;
+            MOS_SURFACE sfcDstSurface = *reportData.currSfcOutputSurface;
             if (!Mos_ResourceIsNull(&sfcDstSurface.OsResource))
             {
-                DECODE_CHK_STATUS(m_allocator->GetSurfaceInfo(&sfcDstSurface));
                 if (sfcDstSurface.TileType == MOS_TILE_LINEAR)
                 {
                     WriteUserFeature(__MEDIA_USER_FEATURE_VALUE_SFC_LINEAR_OUTPUT_USED_ID, 1, m_osInterface->pOsContext);

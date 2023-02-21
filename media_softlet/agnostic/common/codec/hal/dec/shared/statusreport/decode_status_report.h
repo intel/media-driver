@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2020, Intel Corporation
+* Copyright (c) 2019-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -66,7 +66,7 @@ namespace decode {
 
 #if (_DEBUG || _RELEASE_INTERNAL)
         //! \brief Applies when debug dumps are enabled, pointer to SFC output resource for the picture associated with this status report
-        PMOS_RESOURCE           currSfcOutputPicRes = nullptr;
+        PMOS_SURFACE            currSfcOutputSurface = nullptr;
         //! \brief Applies when debug dumps are enabled, pointer to histogram output resource for the picture associated with this status report
         PMOS_RESOURCE           currHistogramOutBuf = nullptr;
         //! \brief Applies when debug dumps are enabled, pointer to AV1 film grain output resource for the picture associated with this status report

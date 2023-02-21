@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021, Intel Corporation
+* Copyright (c) 2021-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -213,7 +213,7 @@ MOS_STATUS AvcPipelineXe_Lpm_Plus_Base::Prepare(void *params)
                 if (downSamplingFeature != nullptr)
                 {
                     auto frameIdx = m_basicFeature->m_curRenderPic.FrameIdx;
-                    inputParameters.sfcOutputPicRes = &downSamplingFeature->m_outputSurfaceList[frameIdx].OsResource;
+                    inputParameters.sfcOutputSurface = &downSamplingFeature->m_outputSurfaceList[frameIdx];
                     DumpDownSamplingParams(*downSamplingFeature);
                 });
 #endif

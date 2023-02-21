@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2021, Intel Corporation
+* Copyright (c) 2019-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -115,7 +115,7 @@ struct DecodeStatusParameters
     uint32_t           numSlices;
     MOS_RESOURCE       currDecodedPicRes;
 #if (_DEBUG || _RELEASE_INTERNAL)
-    MOS_RESOURCE      *sfcOutputPicRes;
+    MOS_SURFACE       *sfcOutputSurface;
     MOS_RESOURCE      *histogramOutputBuf;
     MOS_RESOURCE      *fgOutputPicRes;
 #endif
