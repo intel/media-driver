@@ -75,9 +75,10 @@ namespace decode {
         return MOS_STATUS_SUCCESS;
     }
 
-    HucS2lPkt::~HucS2lPkt()
+    MOS_STATUS HucS2lPkt::Destroy() 
     {
         FreeResource();
+        return MOS_STATUS_SUCCESS;
     }
 
     MOS_STATUS HucS2lPkt::FreeResource()

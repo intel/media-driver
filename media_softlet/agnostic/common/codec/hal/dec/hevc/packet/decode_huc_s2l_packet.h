@@ -134,7 +134,7 @@ namespace decode
             }
         }
 
-        virtual ~HucS2lPkt();
+        virtual ~HucS2lPkt() {}
 
         //!
         //! \brief  Initialize the media packet, allocate required resources
@@ -156,6 +156,8 @@ namespace decode
         //!         MOS_STATUS_SUCCESS if success, else fail reason
         //!
         virtual MOS_STATUS FreeResource();
+
+        virtual MOS_STATUS Destroy() override;
 
         //!
         //! \brief  Calculate Command Size
