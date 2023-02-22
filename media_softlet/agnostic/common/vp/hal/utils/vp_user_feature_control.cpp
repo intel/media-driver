@@ -113,6 +113,24 @@ VpUserFeatureControl::VpUserFeatureControl(MOS_INTERFACE &osInterface, VpPlatfor
     }
     VP_PUBLIC_NORMALMESSAGE("disableDn %d", m_ctrlValDefault.disableDn);
 
+   // Force enable vebox ouptut surface.
+    bool forceEnableVeboxOutputSurf = false;
+    status = ReadUserSetting(
+        m_userSettingPtr,
+        forceEnableVeboxOutputSurf,
+        __MEDIA_USER_FEATURE_VALUE_FORCE_ENABLE_VEBOX_OUTPUT_SURF,
+        MediaUserSetting::Group::Sequence);
+    if (MOS_SUCCEEDED(status))
+    {
+        m_ctrlValDefault.ForceEnableVeboxOutputSurf = forceEnableVeboxOutputSurf;
+    }
+    else
+    {
+        // Default value
+        m_ctrlValDefault.ForceEnableVeboxOutputSurf = false;
+    }
+    VP_PUBLIC_NORMALMESSAGE("ForceEnableVeboxOutputSurf %d", m_ctrlValDefault.ForceEnableVeboxOutputSurf);
+
     // __MEDIA_USER_FEATURE_VALUE_CSC_COEFF_PATCH_MODE_DISABLE
     bool cscCoeffPatchModeDisabled = false;
     status = ReadUserSetting(

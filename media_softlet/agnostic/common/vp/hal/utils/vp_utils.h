@@ -275,6 +275,7 @@ protected:
 #define __MEDIA_USER_FEATURE_VALUE_DISABLE_DN                           "Disable Dn"
 #define __MEDIA_USER_FEATURE_VALUE_DISABLE_PACKET_REUSE                 "Disable PacketReuse"
 #define __MEDIA_USER_FEATURE_VALUE_ENABLE_PACKET_REUSE_TEAMS_ALWAYS     "Enable PacketReuse Teams mode Always"
+#define __MEDIA_USER_FEATURE_VALUE_FORCE_ENABLE_VEBOX_OUTPUT_SURF       "Force Enable Vebox Output Surf"
 
 #define __VPHAL_HDR_LUT_MODE                                            "HDR Lut Mode"
 #define __VPHAL_HDR_GPU_GENERTATE_3DLUT                                 "HDR GPU generate 3DLUT"

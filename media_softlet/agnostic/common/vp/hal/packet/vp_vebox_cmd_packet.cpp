@@ -1773,8 +1773,14 @@ MOS_STATUS VpVeboxCmdPacket::RenderVeboxCmd(
 
             VP_RENDER_CHK_STATUS_RETURN(m_sfcRender->SetupSfcState(m_renderTarget));
 
+            bool enableVeboxOutputSurf = false;
+            if (m_vpUserFeatureControl)
+            {
+                enableVeboxOutputSurf = m_vpUserFeatureControl->IsVeboxOutputSurfEnabled();
+            }
+
             VP_RENDER_CHK_STATUS_RETURN(m_sfcRender->SendSfcCmd(
-                (pRenderData->DI.bDeinterlace || pRenderData->DN.bDnEnabled),
+                (enableVeboxOutputSurf || pRenderData->DI.bDeinterlace || pRenderData->DN.bDnEnabled),
                 pCmdBufferInUse));
         }
 
@@ -2453,6 +2459,7 @@ VpVeboxCmdPacket::VpVeboxCmdPacket(
     VP_PUBLIC_CHK_NULL_NO_STATUS_RETURN(hwInterface->m_vpPlatformInterface);
     m_veboxItf = hwInterface->m_vpPlatformInterface->GetMhwVeboxItf();
     m_miItf = hwInterface->m_vpPlatformInterface->GetMhwMiItf();
+    m_vpUserFeatureControl = hwInterface->m_userFeatureControl;
 }
 
 VpVeboxCmdPacket:: ~VpVeboxCmdPacket()

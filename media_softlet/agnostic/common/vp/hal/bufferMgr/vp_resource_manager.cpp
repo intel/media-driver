@@ -150,11 +150,12 @@ extern const VEBOX_SPATIAL_ATTRIBUTES_CONFIGURATION g_cInit_VEBOX_SPATIAL_ATTRIB
     }
 };
 
-VpResourceManager::VpResourceManager(MOS_INTERFACE &osInterface, VpAllocator &allocator, VphalFeatureReport &reporting, vp::VpPlatformInterface &vpPlatformInterface, MediaCopyWrapper *mediaCopyWrapper)
+VpResourceManager::VpResourceManager(MOS_INTERFACE &osInterface, VpAllocator &allocator, VphalFeatureReport &reporting, vp::VpPlatformInterface &vpPlatformInterface, MediaCopyWrapper *mediaCopyWrapper, vp::VpUserFeatureControl *vpUserFeatureControl)
     : m_osInterface(osInterface), m_allocator(allocator), m_reporting(reporting), m_vpPlatformInterface(vpPlatformInterface), m_mediaCopyWrapper(mediaCopyWrapper)
 {
     InitSurfaceConfigMap();
     m_userSettingPtr = m_osInterface.pfnGetUserSettingInstance(&m_osInterface);
+    m_vpUserFeatureControl = vpUserFeatureControl;
 }
 
 VpResourceManager::~VpResourceManager()
@@ -1309,15 +1310,23 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxOutputSurface(VP_EXECUTE_CAPS& caps
                                             outputSurface->osSurface->Format, veboxOutputFormat, veboxOutputTileType));
 
     allocated = false;
-    if (IS_VP_VEBOX_DN_ONLY(caps))
+
+    bool enableVeboxOutputSurf = false;
+    if (m_vpUserFeatureControl)
     {
-        bSurfCompressible = inputSurface->osSurface->bCompressible;
+        enableVeboxOutputSurf = m_vpUserFeatureControl->IsVeboxOutputSurfEnabled();
+    }
+
+    if (enableVeboxOutputSurf || IS_VP_VEBOX_DN_ONLY(caps))
+    {
+        bSurfCompressible   = inputSurface->osSurface->bCompressible;
         surfCompressionMode = inputSurface->osSurface->CompressionMode;
     }
     else
     {
-        bSurfCompressible = true;
+        bSurfCompressible   = true;
         surfCompressionMode = MOS_MMC_MC;
+
     }
 
     if (m_currentFrameIds.pastFrameAvailable && m_currentFrameIds.futureFrameAvailable)
@@ -1325,6 +1334,8 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxOutputSurface(VP_EXECUTE_CAPS& caps
         // Not switch back to 2 after being set to 4.
         m_veboxOutputCount = 4;
     }
+
+    bool isVppInterResourceLocakable = enableVeboxOutputSurf ? VPP_INTER_RESOURCE_LOCKABLE : VPP_INTER_RESOURCE_NOTLOCKABLE;
 
     for (i = 0; i < m_veboxOutputCount; i++)
     {
@@ -1344,7 +1355,7 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxOutputSurface(VP_EXECUTE_CAPS& caps
             MOS_HW_RESOURCE_USAGE_VP_OUTPUT_PICTURE_FF,
             MOS_TILE_UNSET_GMM,
             memTypeSurfVideoMem,
-            VPP_INTER_RESOURCE_NOTLOCKABLE));
+            isVppInterResourceLocakable));
 
         m_veboxOutput[i]->ColorSpace = inputSurface->ColorSpace;
         m_veboxOutput[i]->rcDst      = inputSurface->rcDst;
@@ -2182,6 +2193,12 @@ VP_SURFACE* VpResourceManager::GetVeboxOutputSurface(VP_EXECUTE_CAPS& caps, VP_S
 {
     VP_FUNC_CALL();
 
+    bool enableVeboxOutputSurf = false;
+    if (m_vpUserFeatureControl)
+    {
+        enableVeboxOutputSurf = m_vpUserFeatureControl->IsVeboxOutputSurfEnabled();
+    }
+
     if (caps.bRender)
     {
         // Place Holder when enable DI
@@ -2202,7 +2219,7 @@ VP_SURFACE* VpResourceManager::GetVeboxOutputSurface(VP_EXECUTE_CAPS& caps, VP_S
     {
         return m_veboxOutput[m_currentDnOutput];
     }
-    else if (caps.bDN) // SFC + DN case
+    else if (enableVeboxOutputSurf || caps.bDN)  // SFC + DN case
     {
         // DN + SFC scenario needs IECP implicitly, which need vebox output surface being assigned.
         // Use m_currentDnOutput to ensure m_veboxOutput surface paired with DN output surface.
@@ -2231,11 +2248,17 @@ MOS_STATUS VpResourceManager::InitVeboxSpatialAttributesConfiguration()
 bool VpResourceManager::VeboxOutputNeeded(VP_EXECUTE_CAPS& caps)
 {
     VP_FUNC_CALL();
+    bool enableVeboxOutputSurf = false;
+    if (m_vpUserFeatureControl)
+    {
+        enableVeboxOutputSurf = m_vpUserFeatureControl->IsVeboxOutputSurfEnabled();
+    }
 
     // If DN and/or Hotpixel are the only functions enabled then the only output is the Denoised Output
     // and no need vebox output.
     // For any other vebox features being enabled, vebox output surface is needed.
-    if (caps.bDI                ||
+    if (enableVeboxOutputSurf   ||
+        caps.bDI                ||
         caps.bQueryVariance     ||
         caps.bDiProcess2ndField ||
         caps.bIECP              ||

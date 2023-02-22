@@ -1150,7 +1150,7 @@ MOS_STATUS VpSinglePipeContext::CreateResourceManager(PMOS_INTERFACE osInterface
     VP_FUNC_CALL();
     if (nullptr == m_resourceManager)
     {
-        m_resourceManager = MOS_New(VpResourceManager, *osInterface, *allocator, *reporting, *vpPlatformInterface, mediaCopyWrapper);
+        m_resourceManager = MOS_New(VpResourceManager, *osInterface, *allocator, *reporting, *vpPlatformInterface, mediaCopyWrapper, userFeatureControl);
         VP_PUBLIC_CHK_NULL_RETURN(m_resourceManager);
     }
     

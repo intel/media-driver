@@ -50,6 +50,7 @@ public:
         bool eufusionBypassWaEnabled        = false;
         bool disableDn                      = false;
         bool cscCosffPatchModeDisabled      = false;
+        bool ForceEnableVeboxOutputSurf     = false;
 
 #if (_DEBUG || _RELEASE_INTERNAL)
         bool forceDecompressedOutput        = false;
@@ -90,6 +91,11 @@ public:
     virtual MOS_STATUS CreateUserSettingForDebug();
 
     virtual MOS_STATUS Update(PVP_PIPELINE_PARAMS params);
+
+    bool IsVeboxOutputSurfEnabled()
+    {
+        return m_ctrlVal.ForceEnableVeboxOutputSurf;
+    }
 
     bool IsVeboxOutputDisabled()
     {

@@ -1199,6 +1199,7 @@ protected:
     std::shared_ptr<mhw::vebox::Itf> m_veboxItf            = nullptr;
     MediaFeatureManager        *m_featureManager           = nullptr;
     std::shared_ptr<mhw::mi::Itf> m_miItf                  = nullptr;
+    vp::VpUserFeatureControl   *m_vpUserFeatureControl     = nullptr;
 
 MEDIA_CLASS_DEFINE_END(vp__VpVeboxCmdPacket)
 };
