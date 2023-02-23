@@ -53,6 +53,10 @@ protected:
     //!
     virtual MOS_STATUS SetTUSettings() override;
 
+    virtual MOS_STATUS SetVdencCmd1Settings() override;
+
+    virtual MOS_STATUS SetVdencCmd2Settings() override;
+
     static const uint32_t m_numMergeCandidateCu64x64Xe_Lpm_Plus[NUM_TARGET_USAGE_MODES + 1];
     static const uint32_t m_numMergeCandidateCu32x32Xe_Lpm_Plus[NUM_TARGET_USAGE_MODES + 1];
     static const uint32_t m_numMergeCandidateCu16x16Xe_Lpm_Plus[NUM_TARGET_USAGE_MODES + 1];

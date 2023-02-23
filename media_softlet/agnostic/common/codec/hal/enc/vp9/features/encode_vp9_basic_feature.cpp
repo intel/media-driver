@@ -764,10 +764,6 @@ static inline bool isTemporalMvpEnabledForTargetUsage(uint8_t targetUsage)
 
 static inline bool isTemporalMvpEnabled(uint8_t targetUsage, uint32_t frameType, uint32_t lastFrameType, PCODEC_VP9_ENCODE_PIC_PARAMS vp9PicParams)
 {
-    if (false == isTemporalMvpEnabledForTargetUsage(targetUsage) || true == refIdxEqual(vp9PicParams))
-    {
-        return false;
-    }
     return frameType && !lastFrameType;  // frame_type == 1 ? NON_KEY_FRAME : KEY_FRAME
 }
 
@@ -881,16 +877,16 @@ MHW_SETPAR_DECL_SRC(VDENC_CMD2, Vp9BasicFeature)
     params.pictureType   = frameType;
 
     // DW3
-    params.pocL1Ref1 = (int8_t)0xfe; // PocNumberForRefid1InL1
-    params.pocL0Ref1 = (int8_t)0x02; // PocNumberForRefid1InL0
-    params.pocL1Ref0 = (int8_t)0xff; // BwdPocNumberForRefid0InL1
-    params.pocL0Ref0 = (int8_t)0x01; // FwdPocNumberForRefid0InL0
+    params.pocL1Ref1 = 0; // PocNumberForRefid1InL1
+    params.pocL0Ref1 = 0; // PocNumberForRefid1InL0
+    params.pocL1Ref0 = 0; // BwdPocNumberForRefid0InL1
+    params.pocL0Ref0 = 0; // FwdPocNumberForRefid0InL0
 
     // DW4
-    params.pocL1Ref3 = (int8_t)0xfc; // PocNumberForRefid3InL1
-    params.pocL0Ref3 = (int8_t)0x04; // PocNumberForRefid3InL0
-    params.pocL1Ref2 = (int8_t)0xfd; // PocNumberForRefid2InL1
-    params.pocL0Ref2 = (int8_t)0x03; // PocNumberForRefid2InL0
+    params.pocL1Ref3 = 0; // PocNumberForRefid3InL1
+    params.pocL0Ref3 = 0; // PocNumberForRefid3InL0
+    params.pocL1Ref2 = 0; // PocNumberForRefid2InL1
+    params.pocL0Ref2 = 0; // PocNumberForRefid2InL0
 
     // DW5
     params.numRefL1 = 0;             // NumRefIdxL1Minus1 + 1
@@ -909,13 +905,10 @@ MHW_SETPAR_DECL_SRC(VDENC_CMD2, Vp9BasicFeature)
     // DW17
     params.temporalMvEnableForIntegerSearch = params.temporalMvp; // TemporalMVEnableForIntegerSearch
 
-    // DW20
-    params.intraRefreshMbSizeMinus1 = 0;
-
     // DW21
-    params.qpAdjustmentForRollingI = 0;
-    params.intraRefresh            = 0;
-
+    params.qpAdjustmentForRollingI  = 0;
+    params.intraRefresh             = 0;
+    params.intraRefreshMbSizeMinus1 = 1;
 
     // DW26
     params.vp9DynamicSlice = ((m_ref.DysRefFrameFlags() != DYS_REF_NONE) && !m_dysVdencMultiPassEnabled);
