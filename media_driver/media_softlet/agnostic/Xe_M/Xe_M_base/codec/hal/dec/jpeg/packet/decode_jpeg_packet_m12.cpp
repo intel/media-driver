@@ -50,7 +50,6 @@ MOS_STATUS JpegDecodePktM12::Submit(
         m_jpegBasicFeature->m_width, m_jpegBasicFeature->m_height, false));
 
     DECODE_CHK_STATUS(Mos_Solo_PreProcessDecode(m_osInterface, &m_jpegBasicFeature->m_destSurface));
-    SetPerfTag(m_jpegBasicFeature->m_mode, m_jpegBasicFeature->m_pictureCodingType);
 
     if (IsPrologRequired())
     {

@@ -82,7 +82,9 @@ void JpegDecodePkt::SetPerfTag(CODECHAL_MODE mode, uint16_t picCodingType)
     DECODE_FUNC_CALL();
 
     uint16_t perfTag = ((mode << 4) & 0xF0) | (picCodingType & 0xF);
+    m_osInterface->pfnIncPerfFrameID(m_osInterface);
     m_osInterface->pfnSetPerfTag(m_osInterface, perfTag);
+    m_osInterface->pfnResetPerfBufferID(m_osInterface);
 }
 
 bool JpegDecodePkt::IsPrologRequired()
@@ -238,7 +240,8 @@ MOS_STATUS JpegDecodePkt::StartStatusReport(uint32_t srType, MOS_COMMAND_BUFFER*
 
     DECODE_CHK_STATUS(MediaPacket::StartStatusReportNext(srType, cmdBuffer));
 
-    SetPerfTag(CODECHAL_DECODE_MODE_JPEG, m_jpegBasicFeature->m_pictureCodingType);
+    // no frame type for Jpeg decode, use I as default value here
+    SetPerfTag(CODECHAL_DECODE_MODE_JPEG, I_TYPE);
 
     MediaPerfProfiler *perfProfiler = MediaPerfProfiler::Instance();
     DECODE_CHK_NULL(perfProfiler);
