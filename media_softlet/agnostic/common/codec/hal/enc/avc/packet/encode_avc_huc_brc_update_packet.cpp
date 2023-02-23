@@ -246,6 +246,9 @@ MOS_STATUS AvcHucBrcUpdatePkt::Execute(PMOS_COMMAND_BUFFER cmdBuffer, bool store
         ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_CONDITIONAL_BATCH_BUFFER_END)(cmdBuffer));
     }
 
+    SetPerfTag(m_pipeline->IsFirstPass() ? CODECHAL_ENCODE_PERFTAG_CALL_BRC_UPDATE : CODECHAL_ENCODE_PERFTAG_CALL_BRC_UPDATE_SECOND_PASS,
+        (uint16_t)m_basicFeature->m_mode,
+        m_basicFeature->m_pictureCodingType);
     ENCODE_CHK_STATUS_RETURN(StartPerfCollect(*cmdBuffer));
     if (m_pipeline->IsSingleTaskPhaseSupported())
     {

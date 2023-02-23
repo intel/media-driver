@@ -100,6 +100,7 @@ MOS_STATUS AvcHucBrcInitPkt::Submit(MOS_COMMAND_BUFFER *commandBuffer, uint8_t p
 
     ENCODE_CHK_STATUS_RETURN(brcFeature->SaveHucStatus2Buffer(m_resHucStatus2Buffer));
 
+    SetPerfTag(CODECHAL_ENCODE_PERFTAG_CALL_BRC_INIT_RESET, (uint16_t)m_basicFeature->m_mode, m_basicFeature->m_pictureCodingType);
     ENCODE_CHK_STATUS_RETURN(Execute(commandBuffer, true, requestProlog, BRC_INIT));
 
     CODECHAL_DEBUG_TOOL(
