@@ -758,7 +758,6 @@ typedef struct _MOS_INTERFACE
 #endif
 
     bool                            bEnableVdboxBalancing;                            //!< Enable per BB VDBox balancing
-
 #if (_DEBUG || _RELEASE_INTERNAL)
     int                             eForceVdbox;                                  //!< Force select Vdbox
     uint32_t                        dwForceTileYfYs;                              // force to allocate Yf (=1) or Ys (=2), remove after full validation

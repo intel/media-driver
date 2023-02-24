@@ -71,7 +71,8 @@ static bool mtlRegisteredVphal =
 MOS_STATUS VphalInterfacesXe_Lpm_Plus::Initialize(
     PMOS_INTERFACE osInterface,
     bool           bInitVphalState,
-    MOS_STATUS *   eStatus)
+    MOS_STATUS *   eStatus,
+    bool           clearViewMode)
 {
     vp::VpPlatformInterface *vpPlatformInterface = MOS_New(vp::VpPlatformInterfacesXe_Lpm_Plus, osInterface);
     if (nullptr == vpPlatformInterface)

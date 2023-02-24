@@ -129,6 +129,7 @@ struct _VP_SETTINGS
     uint32_t               kernelUpdate           = 0;                   //!< For VEBox Copy and Update kernels
     uint32_t               disableHdr             = 0;                   //!< Disable Hdr
     uint32_t               veboxParallelExecution = 0;                   //!< Control VEBox parallel execution with render engine
+    bool                   clearVideoViewMode     = 0;                   //!< Perf Optimize for ClearVideoView DDI
 };
 
 using VP_SETTINGS = _VP_SETTINGS;

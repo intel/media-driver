@@ -64,6 +64,7 @@ public:
         VPHAL_HDR_LUT_MODE globalLutMode      = VPHAL_HDR_LUT_MODE_NONE;  //!< Global LUT mode control for debugging purpose
         bool               gpuGenerate3DLUT   = false;                        //!< Flag for per frame GPU generation of 3DLUT
         bool               disableAutoMode    = false;
+        bool               clearVideoViewMode = false;
         uint32_t           splitFramePortions = 1;
     };
 
@@ -150,6 +151,17 @@ public:
     bool IsDisableAutoMode()
     {
         return m_ctrlVal.disableAutoMode;
+    }
+
+    bool IsClearVideoViewMode()
+    {
+        return m_ctrlVal.clearVideoViewMode;
+    }
+
+    MOS_STATUS SetClearVideoViewMode(bool mode)
+    {
+        m_ctrlVal.clearVideoViewMode = mode;
+        return MOS_STATUS_SUCCESS;
     }
 
     uint32_t GetSplitFramePortions()

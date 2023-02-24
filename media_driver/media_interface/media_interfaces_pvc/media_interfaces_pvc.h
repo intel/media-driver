@@ -348,7 +348,8 @@ public:
     MOS_STATUS Initialize(
         PMOS_INTERFACE  osInterface,
         bool            bInitVphalState,
-        MOS_STATUS      *eStatus);
+        MOS_STATUS      *eStatus,
+        bool            clearViewMode = false);
 };
 
 class RenderHalInterfacesXe_Hpc : public RenderHalDevice

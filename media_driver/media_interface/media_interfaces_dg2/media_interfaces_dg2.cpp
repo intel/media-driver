@@ -78,7 +78,8 @@ Register<VphalInterfacesXe_Hpm>((uint32_t)IGFX_DG2);
 MOS_STATUS VphalInterfacesXe_Hpm::Initialize(
     PMOS_INTERFACE  osInterface,
     bool            bInitVphalState,
-    MOS_STATUS      *eStatus)
+    MOS_STATUS      *eStatus,
+    bool            clearViewMode)
 {
     bool bApogeiosEnable = true;
     MOS_USER_FEATURE_VALUE_DATA         UserFeatureData;

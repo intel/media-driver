@@ -39,8 +39,8 @@ using namespace vp;
 extern const Kdll_RuleEntry         g_KdllRuleTable_Next[];
 #define VEBOX_KERNEL_BASE_MAX_G13 2
 
-VpPlatformInterfacesXe_Lpm_Plus::VpPlatformInterfacesXe_Lpm_Plus(PMOS_INTERFACE pOsInterface)
-    : VpPlatformInterface(pOsInterface)
+VpPlatformInterfacesXe_Lpm_Plus::VpPlatformInterfacesXe_Lpm_Plus(PMOS_INTERFACE pOsInterface, bool clearViewMode)
+    : VpPlatformInterface(pOsInterface, clearViewMode)
 {
     bool defaultValue = 0;
     // get dithering flag.

@@ -58,7 +58,8 @@ typedef MediaFactory<uint32_t, MmdDeviceNext> MmdFactoryNext;
 VpBase *VphalDevice::CreateFactoryNext(
     PMOS_INTERFACE     osInterface,
     MOS_CONTEXT_HANDLE osDriverContext,
-    MOS_STATUS         *eStatus)
+    MOS_STATUS         *eStatus,
+    bool               clearViewMode)
 {
     VpBase                *vpBase            = nullptr;
     VphalDevice           *vphalDevice       = nullptr;

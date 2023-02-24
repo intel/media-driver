@@ -32,14 +32,17 @@ using namespace vp;
 extern const Kdll_RuleEntry g_KdllRuleTable_Next[];
 const std::string VpRenderKernel::s_kernelNameNonAdvKernels = "vpFcKernels";
 
-VpPlatformInterface::VpPlatformInterface(PMOS_INTERFACE pOsInterface)
+VpPlatformInterface::VpPlatformInterface(PMOS_INTERFACE pOsInterface, bool clearViewMode)
 {
     m_pOsInterface = pOsInterface;
     if (m_pOsInterface)
     {
         m_userSettingPtr = m_pOsInterface->pfnGetUserSettingInstance(m_pOsInterface);
     }
-    VpUserSetting::InitVpUserSetting(m_userSettingPtr);
+    if (!clearViewMode)
+    {
+        VpUserSetting::InitVpUserSetting(m_userSettingPtr);
+    }
 }
 
 MOS_STATUS VpRenderKernel::InitVPKernel(

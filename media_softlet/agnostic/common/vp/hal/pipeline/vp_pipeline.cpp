@@ -260,6 +260,10 @@ MOS_STATUS VpPipeline::Init(void *mhwInterface)
         VP_PUBLIC_CHK_STATUS_RETURN(CreateUserFeatureControl());
         m_vpMhwInterface.m_userFeatureControl = m_userFeatureControl;
     }
+    if (m_userFeatureControl && m_vpMhwInterface.m_settings)
+    {
+        m_userFeatureControl->SetClearVideoViewMode(((VP_SETTINGS *)m_vpMhwInterface.m_settings)->clearVideoViewMode);
+    }
 
     VP_PUBLIC_CHK_STATUS_RETURN(m_vpMhwInterface.m_vpPlatformInterface->ConfigVirtualEngine());
 
@@ -321,10 +325,9 @@ MOS_STATUS VpPipeline::Init(void *mhwInterface)
     VP_PUBLIC_CHK_STATUS_RETURN(SetVideoProcessingSettings(m_vpMhwInterface.m_settings));
 
     m_vpMhwInterface.m_settings = m_vpSettings;
-
     if (m_vpMhwInterface.m_vpPlatformInterface->IsGpuContextCreatedInPipelineInit())
     {
-        if (m_numVebox > 0)
+        if (m_numVebox > 0 && !(m_vpSettings && m_vpSettings->clearVideoViewMode))
         {
             VP_PUBLIC_NORMALMESSAGE("Create GpuContext for Vebox.");
             VP_PUBLIC_CHK_STATUS_RETURN(PacketPipe::SwitchContext(VP_PIPELINE_PACKET_VEBOX, m_scalability,

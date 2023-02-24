@@ -50,7 +50,8 @@ static bool glkRegisteredVphal =
 MOS_STATUS VphalInterfacesG9Glk::Initialize(
     PMOS_INTERFACE  osInterface,
     bool            bInitVphalState,
-    MOS_STATUS      *eStatus)
+    MOS_STATUS      *eStatus,
+    bool            clearViewMode)
 {
     m_vpBase = MOS_New(
         VphalState,

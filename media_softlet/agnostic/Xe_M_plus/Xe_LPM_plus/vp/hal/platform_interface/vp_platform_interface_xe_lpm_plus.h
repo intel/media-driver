@@ -46,7 +46,7 @@ class VpPlatformInterfacesXe_Lpm_Plus : public VpPlatformInterface
 {
 public:
 
-    VpPlatformInterfacesXe_Lpm_Plus(PMOS_INTERFACE pOsInterface);
+    VpPlatformInterfacesXe_Lpm_Plus(PMOS_INTERFACE pOsInterface, bool clearViewMode = false);
 
     virtual ~VpPlatformInterfacesXe_Lpm_Plus()
     {}

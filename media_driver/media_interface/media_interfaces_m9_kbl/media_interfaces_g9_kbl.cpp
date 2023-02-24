@@ -45,7 +45,8 @@ static bool kblRegisteredVphal =
 MOS_STATUS VphalInterfacesG9Kbl::Initialize(
     PMOS_INTERFACE  osInterface,
     bool            bInitVphalState,
-    MOS_STATUS      *eStatus)
+    MOS_STATUS      *eStatus,
+    bool            clearViewMode)
 {
     m_vpBase = MOS_New(
         VphalState,

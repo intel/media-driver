@@ -34,7 +34,8 @@
 
 VpPipelineAdapterBase::VpPipelineAdapterBase(
     vp::VpPlatformInterface &vpPlatformInterface,
-    MOS_STATUS              &eStatus):
+    MOS_STATUS              &eStatus,
+    bool                    clearViewMode) :
     m_vpPlatformInterface(vpPlatformInterface)
 {
     m_osInterface = m_vpPlatformInterface.GetOsInterface();
@@ -42,7 +43,11 @@ VpPipelineAdapterBase::VpPipelineAdapterBase(
     {
         m_userSettingPtr = m_osInterface->pfnGetUserSettingInstance(m_osInterface);
     }
-    VpUserSetting::InitVpUserSetting(m_userSettingPtr);
+    if (!clearViewMode)
+    {
+        VpUserSetting::InitVpUserSetting(m_userSettingPtr);
+    }
+
     eStatus = MOS_STATUS_SUCCESS;
 }
 
@@ -50,6 +55,7 @@ MOS_STATUS VpPipelineAdapterBase::GetVpMhwInterface(
     VP_MHWINTERFACE &vpMhwinterface)
 {
     VP_FUNC_CALL();
+
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
     bool       sfcNeeded                          = false;
     bool       veboxNeeded                        = false;
@@ -89,14 +95,14 @@ MOS_STATUS VpPipelineAdapterBase::GetVpMhwInterface(
 
     veboxNeeded = MEDIA_IS_SKU(m_skuTable, FtrVERing);
     sfcNeeded   = MEDIA_IS_SKU(m_skuTable, FtrSFCPipe);
-    if (veboxNeeded || sfcNeeded)
+    SetMhwMiItf(m_vprenderHal->pRenderHalPltInterface->GetMhwMiItf());
+    if ((veboxNeeded || sfcNeeded) && !m_clearVideoViewMode)
     {
         eStatus = VphalDevice::CreateVPMhwInterfaces(sfcNeeded, veboxNeeded, veboxItf, sfcItf, miItf, m_osInterface);
         if (eStatus == MOS_STATUS_SUCCESS)
         {
             SetMhwVeboxItf(veboxItf);
             SetMhwSfcItf(sfcItf);
-            SetMhwMiItf(m_vprenderHal->pRenderHalPltInterface->GetMhwMiItf());
         }
         else
         {

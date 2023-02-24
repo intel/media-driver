@@ -49,7 +49,8 @@ Register<VphalInterfacesG12Tgllp>((uint32_t)IGFX_TIGERLAKE_LP);
 MOS_STATUS VphalInterfacesG12Tgllp::Initialize(
     PMOS_INTERFACE  osInterface,
     bool            bInitVphalState,
-    MOS_STATUS      *eStatus)
+    MOS_STATUS      *eStatus,
+    bool            clearViewMode)
 {
     MOS_OS_CHK_NULL_RETURN(eStatus);
     MOS_OS_CHK_NULL_RETURN(osInterface);

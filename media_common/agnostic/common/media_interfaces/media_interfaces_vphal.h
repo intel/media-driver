@@ -84,7 +84,8 @@ public:
     static VpBase *CreateFactoryNext(
         PMOS_INTERFACE     osInterface,
         MOS_CONTEXT_HANDLE osDriverContext,
-        MOS_STATUS         *eStatus);
+        MOS_STATUS         *eStatus,
+        bool               clearViewMode = false);
 
     static MOS_STATUS CreateVPMhwInterfaces(
         bool                             sfcNeeded,
@@ -108,7 +109,8 @@ public:
     virtual MOS_STATUS Initialize(
         PMOS_INTERFACE  osInterface,
         bool            bInitVphalState,
-        MOS_STATUS      *eStatus) = 0;
+        MOS_STATUS      *eStatus,
+        bool            clearViewMode = false) = 0;
 
     virtual MOS_STATUS CreateVpPlatformInterface(
         PMOS_INTERFACE osInterface,

@@ -56,7 +56,8 @@ Register<VphalInterfacesXe_Xpm_Plus>((uint32_t)IGFX_PVC);
 MOS_STATUS VphalInterfacesXe_Xpm_Plus::Initialize(
     PMOS_INTERFACE  osInterface,
     bool            bInitVphalState,
-    MOS_STATUS      *eStatus)
+    MOS_STATUS      *eStatus,
+    bool            clearViewMode)
 {
     m_vpBase = MOS_New(
         VphalState,

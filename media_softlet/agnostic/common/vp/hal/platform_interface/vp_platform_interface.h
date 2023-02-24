@@ -140,7 +140,7 @@ class VpPlatformInterface
 {
 public:
 
-    VpPlatformInterface(PMOS_INTERFACE pOsInterface);
+    VpPlatformInterface(PMOS_INTERFACE pOsInterface, bool clearViewMode = false);
 
     virtual ~VpPlatformInterface();
 

@@ -48,7 +48,8 @@ Register<VphalInterfacesG11Icllp>((uint32_t)IGFX_ICELAKE_LP);
 MOS_STATUS VphalInterfacesG11Icllp::Initialize(
     PMOS_INTERFACE  osInterface,
     bool            bInitVphalState,
-    MOS_STATUS      *eStatus)
+    MOS_STATUS      *eStatus,
+    bool            clearViewMode)
 {
     m_vpBase = MOS_New(
         VphalState,

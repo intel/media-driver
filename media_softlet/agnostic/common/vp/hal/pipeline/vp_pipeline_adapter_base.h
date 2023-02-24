@@ -74,7 +74,8 @@ public:
     //!
     VpPipelineAdapterBase(
         vp::VpPlatformInterface &vpPlatformInterface,
-        MOS_STATUS &eStatus);
+        MOS_STATUS &eStatus,
+        bool       clearViewMode = false);
 
     virtual MOS_STATUS GetVpMhwInterface(
         VP_MHWINTERFACE &vpMhwinterface);
@@ -235,7 +236,9 @@ protected:
     vp::VpPlatformInterface &m_vpPlatformInterface;  //!< vp platform interface. Should be destroyed during deconstruction.
     MediaUserSettingSharedPtr m_userSettingPtr = nullptr;  //!< usersettingInstance
 
-MEDIA_CLASS_DEFINE_END(VpPipelineAdapterBase)
+    // Perf Optimize for ClearVideoView DDI
+    bool m_clearVideoViewMode = false;
+    MEDIA_CLASS_DEFINE_END(VpPipelineAdapterBase)
 };
 
 #endif  // __VP_PIPELINE_ADAPTER_BASE_H__

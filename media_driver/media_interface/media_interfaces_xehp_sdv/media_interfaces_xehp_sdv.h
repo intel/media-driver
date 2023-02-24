@@ -304,7 +304,8 @@ public:
     MOS_STATUS Initialize(
         PMOS_INTERFACE  osInterface,
         bool            bInitVphalState,
-        MOS_STATUS      *eStatus);
+        MOS_STATUS      *eStatus,
+        bool            clearViewMode = false);
 
     MOS_STATUS CreateVpPlatformInterface(
         PMOS_INTERFACE           osInterface,

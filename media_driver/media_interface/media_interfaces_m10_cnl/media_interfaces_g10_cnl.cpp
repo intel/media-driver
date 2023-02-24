@@ -47,7 +47,8 @@ static bool cnlRegisteredVphal =
 MOS_STATUS VphalInterfacesG10Cnl::Initialize(
     PMOS_INTERFACE  osInterface,
     bool            bInitVphalState,
-    MOS_STATUS      *eStatus)
+    MOS_STATUS      *eStatus,
+    bool            clearViewMode)
 {
     m_vpBase = MOS_New(
         VphalState,

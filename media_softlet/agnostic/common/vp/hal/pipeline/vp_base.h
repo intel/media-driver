@@ -87,7 +87,7 @@ struct VpSettings
     uint32_t kernelUpdate;            //!< For VEBox Copy and Update kernels
     uint32_t disableHdr;              //!< Disable Hdr
     uint32_t veboxParallelExecution;  //!< Control VEBox parallel execution with render engine
-    uint32_t clearVideoViewMode;      //!< Perf Optimize for ClearVideoView DDI
+    bool     clearVideoViewMode;      //!< Perf Optimize for ClearVideoView DDI
 };
 
 struct _VP_MHWINTERFACE
@@ -142,7 +142,8 @@ public:
     static VpBase* VphalStateFactory(
         PMOS_INTERFACE     osInterface,
         MOS_CONTEXT_HANDLE osDriverContext,
-        MOS_STATUS         *eStatus);
+        MOS_STATUS         *eStatus,
+        bool               clearViewMode = false);
 
     //!
     //! \brief    Allocate VpPipelineAdapterBase Resources
