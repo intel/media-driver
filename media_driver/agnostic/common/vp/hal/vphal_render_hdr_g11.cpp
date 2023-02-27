@@ -292,7 +292,7 @@ Hdr3DLutGenerator::Hdr3DLutGenerator(PRENDERHAL_INTERFACE renderHal, uint32_t *k
 {
     VPHAL_RENDER_CHK_NULL_NO_STATUS_RETURN(m_renderHal);
     VPHAL_RENDER_CHK_NULL_NO_STATUS_RETURN(m_renderHal->pOsInterface);
-    m_cmContext    = MOS_New(CmContext, m_renderHal->pOsInterface->pOsContext);
+    m_cmContext    = MOS_New(CmContext, m_renderHal->pOsInterface);
 
     VPHAL_RENDER_NORMALMESSAGE("Hdr3DLutGenerator Constructor!");
 

@@ -658,6 +658,13 @@ typedef void *              MOS_INTERFACE_HANDLE;
 
 class GpuContextMgr;
 
+namespace CMRT_UMD
+{
+    class CmDevice;
+};
+struct _CM_HAL_STATE;
+typedef struct _CM_HAL_STATE *PCM_HAL_STATE;
+
 //!
 //! \brief Structure to Unified HAL OS resources
 //!
@@ -1524,6 +1531,54 @@ typedef struct _MOS_INTERFACE
     //!
     MOS_STATUS (*pfnDestroyVeInterface)(
         PMOS_VIRTUALENGINE_INTERFACE *veInterface);
+
+    //!
+    //! \brief    Creates a CmDevice from a MOS context.
+    //! \details  If an existing CmDevice has already associated to the MOS context,
+    //!           the existing CmDevice will be returned. Otherwise, a new CmDevice
+    //!           instance will be created and associatied with that MOS context.
+    //! \param    mosContext
+    //!           [in] pointer to MOS conetext.
+    //! \param    device
+    //!           [in,out] reference to the pointer to the CmDevice.
+    //! \param    devCreateOption
+    //!           [in] option to customize CmDevice.
+    //! \return   int32_t
+    //!           CM_SUCCESS if the CmDevice is successfully created.
+    //!           CM_NULL_POINTER if pMosContext is null.
+    //!           CM_FAILURE otherwise.
+    //!
+    int32_t (*pfnCreateCmDevice)(
+        MOS_CONTEXT             *mosContext,
+        CMRT_UMD::CmDevice      *&device,
+        uint32_t                devCreateOption,
+        uint8_t                 priority);
+
+    //!
+    //! \brief    Destroys the CmDevice. 
+    //! \details  This function also destroys surfaces, kernels, programs, samplers,
+    //!           threadspaces, tasks and the queues that were created using this
+    //!           device instance but haven't explicitly been destroyed by calling
+    //!           respective destroy functions. 
+    //! \param    device
+    //!           [in] reference to the pointer to the CmDevice.
+    //! \return   int32_t
+    //!           CM_SUCCESS if CmDevice is successfully destroyed.
+    //!           CM_FAILURE otherwise.
+    //!
+    int32_t (*pfnDestroyCmDevice)(
+        CMRT_UMD::CmDevice      *&device);
+
+    //!
+    //! \brief    Initialize cm hal ddi interfaces
+    //! \details  Initialize cm hal ddi interfaces
+    //! \param    cmState
+    //!           [in,out] the pointer to the cm state.
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if succeeded, otherwise error code
+    //!
+    MOS_STATUS (*pfnInitCmInterface)(
+        PCM_HAL_STATE           cmState);
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     //!

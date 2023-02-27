@@ -81,7 +81,7 @@ public:
     // noncopyable
     CmContext(const CmContext&) = delete;
     CmContext& operator=(const CmContext&) = delete;
-    CmContext(PMOS_CONTEXT OsContext);
+    CmContext(PMOS_INTERFACE osInterface);
     virtual ~CmContext();
 
     void Destroy();
@@ -137,6 +137,7 @@ private:
     CmQueue   *mCmQueue;
     CmVebox   *mCmVebox;
 
+    PMOS_INTERFACE                m_osInterface = nullptr;
     CmTask                       *mBatchTask;
     std::vector<CmKernel *>       mAddedKernels;
     std::vector<CmKernel *>       mKernelsToPurge;

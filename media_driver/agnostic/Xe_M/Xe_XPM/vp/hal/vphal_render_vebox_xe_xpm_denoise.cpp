@@ -175,7 +175,7 @@ VphalHVSDenoiserHpm::VphalHVSDenoiserHpm(PRENDERHAL_INTERFACE renderHal) : m_eve
 {
     VPHAL_RENDER_CHK_NULL_NO_STATUS_RETURN(m_renderHal);
     VPHAL_RENDER_CHK_NULL_NO_STATUS_RETURN(m_renderHal->pOsInterface);
-    m_cmContext    = MOS_New(CmContext, m_renderHal->pOsInterface->pOsContext);
+    m_cmContext    = MOS_New(CmContext, m_renderHal->pOsInterface);
     m_eventManager = MOS_New(EventManager, "HVSEventManager", m_cmContext);
     VPHAL_RENDER_NORMALMESSAGE("Constructor!");
 }

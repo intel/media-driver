@@ -42,27 +42,8 @@
 #include "cm_thread_space.h"
 #include "cm_vebox.h"
 #include "cm_type.h"
+
 using namespace CMRT_UMD;
-
-
-//!
-//! \brief    Creates a CmDevice from a MOS context.
-//! \details  If an existing CmDevice has already associated to the MOS context,
-//!           the existing CmDevice will be returned. Otherwise, a new CmDevice
-//!           instance will be created and associatied with that MOS context.
-//! \param    mosContext
-//!           [in] pointer to MOS conetext.
-//! \param    device
-//!           [in,out] reference to the pointer to the CmDevice.
-//! \param    devCreateOption
-//!           [in] option to customize CmDevice.
-//! \retval   CM_SUCCESS if the CmDevice is successfully created.
-//! \retval   CM_NULL_POINTER if pMosContext is null.
-//! \retval   CM_FAILURE otherwise.
-//!
-CM_RT_API int32_t CreateCmDevice(MOS_CONTEXT *mosContext,
-                                 CmDevice* &device,
-                                 uint32_t devCreateOption);
 
 //!
 //! \brief    Creates a CmDevice from a MOS context.
@@ -84,7 +65,7 @@ CM_RT_API int32_t CreateCmDevice(MOS_CONTEXT *mosContext,
 CM_RT_API int32_t CreateCmDevice(MOS_CONTEXT *mosContext,
                                  CmDevice *&  device,
                                  uint32_t devCreateOption,
-                                 uint8_t  priority);
+                                 uint8_t  priority = CM_DEVICE_CREATE_PRIORITY_DEFAULT);
 
 //!
 //! \brief    Destroys the CmDevice. 

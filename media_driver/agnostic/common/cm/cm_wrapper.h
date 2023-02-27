@@ -549,13 +549,6 @@ int32_t CmThinExecuteInternal(CmDevice *device,
                         void *inputData,
                         uint32_t inputDataLen);
 
-// Below APIs are called in CmThinExecute(), so they are declared here again.
-extern int32_t CreateCmDevice(MOS_CONTEXT *mosContext,
-                              CmDevice* &device,
-                              uint32_t devCreateOption);
-
-extern int32_t DestroyCmDevice(CmDevice* &device);
-
 namespace CMRT_UMD
 {
 // class of CmWrapperEx for functionality extention in cm wrapper

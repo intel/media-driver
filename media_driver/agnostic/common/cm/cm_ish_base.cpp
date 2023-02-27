@@ -30,6 +30,10 @@
 using namespace CMRT_UMD;
 
 CmISHBase::CmISHBase():
+    m_isSipKernelLoaded(false),
+    m_sipKernel(nullptr),
+    m_sipKernelSize(0),
+    m_sipKernelOffset(0),
     m_osInterface(nullptr),
     m_resource(nullptr),
     m_lockedData(nullptr),
@@ -37,11 +41,7 @@ CmISHBase::CmISHBase():
     m_offset(0),
     m_trackerProducer(nullptr),
     m_lastTrackerToken(nullptr),
-    m_addedKernelCount(0),
-    m_isSipKernelLoaded(false),
-    m_sipKernel(nullptr),
-    m_sipKernelSize(0),
-    m_sipKernelOffset(0)
+    m_addedKernelCount(0)
 {
 
 }

@@ -60,7 +60,7 @@ public:
                          PMOS_RESOURCE pMosResource, void* &pSysMem,
                          bool isConditionalBuffer, uint32_t comparisonValue );
     int32_t DestroySurface( CmBuffer_RT* & pSurface, SURFACE_DESTROY_KIND destroyKind);
-    int32_t UpdateBuffer(MOS_RESOURCE * mosResource, int index, uint32_t handle);
+    virtual int32_t UpdateBuffer(MOS_RESOURCE * mosResource, int index, uint32_t handle);
 
     int32_t CreateSurface2DUP(uint32_t width, uint32_t height,
                               CM_SURFACE_FORMAT format, void* pSysMem,
@@ -95,10 +95,10 @@ public:
 
     int32_t DestroySurface( CmSurfaceSampler8x8* & pSurfaceSampler8x8 );
 
-    int32_t GetSurface( const uint32_t index, CmSurface* & pSurface );
-    int32_t GetCmDevice( CmDeviceRT* & pCmDevice );
+    virtual int32_t GetSurface( const uint32_t index, CmSurface* & pSurface );
+    virtual int32_t GetCmDevice( CmDeviceRT* & pCmDevice );
 
-    int32_t GetPixelBytesAndHeight(uint32_t width, uint32_t height,
+    virtual int32_t GetPixelBytesAndHeight(uint32_t width, uint32_t height,
                                    CM_SURFACE_FORMAT format, uint32_t& sizePerPixel,
                                    uint32_t& updatedHeight);
     virtual int32_t Surface2DSanityCheck(uint32_t width, uint32_t height, CM_SURFACE_FORMAT format) = 0;
@@ -111,10 +111,10 @@ public:
                                  SurfaceIndex* & pSamplerSurfaceIndex);
     int32_t DestroySamplerSurface(SurfaceIndex* & pSamplerSurfaceIndex );
     int32_t DestroySurface( CmSurfaceSampler* & pSurfaceSampler );
-    uint32_t GetSurfacePoolSize();
+    virtual uint32_t GetSurfacePoolSize();
     int32_t IncreaseSurfaceUsage(uint32_t index);
     int32_t DecreaseSurfaceUsage(uint32_t index);
-    int32_t RefreshDelayDestroySurfaces(uint32_t &freeSurfaceCount);
+    virtual int32_t RefreshDelayDestroySurfaces(uint32_t &freeSurfaceCount);
     int32_t TouchSurfaceInPoolForDestroy();
     int32_t GetFreeSurfaceIndexFromPool(uint32_t &freeIndex);
     int32_t GetFreeSurfaceIndex(uint32_t &index);
@@ -126,7 +126,7 @@ public:
     int32_t DestroySurfaceArrayElement( uint32_t index );
     inline int32_t GetMemorySizeOfSurfaces();
 
-    int32_t GetSurfaceArraySize(uint32_t& surfaceArraySize);
+    virtual int32_t GetSurfaceArraySize(uint32_t& surfaceArraySize);
 
     int32_t UpdateStateForDelayedDestroy(SURFACE_DESTROY_KIND destroyKind, uint32_t i);
 
@@ -137,20 +137,20 @@ public:
     int32_t UpdateProfileFor3DSurface(uint32_t index, uint32_t width,
                                       uint32_t height, uint32_t depth, CM_SURFACE_FORMAT format);
 
-    int32_t UpdateSurface2DTableMosResource( uint32_t index, PMOS_RESOURCE pMosResource );
-    int32_t UpdateSurface2DTableRotation(uint32_t index, CM_ROTATION rotationFlag);
+    virtual int32_t UpdateSurface2DTableMosResource( uint32_t index, PMOS_RESOURCE pMosResource );
+    virtual int32_t UpdateSurface2DTableRotation(uint32_t index, CM_ROTATION rotationFlag);
 
-    int32_t UpdateSurface2DTableFrameType(uint32_t index, CM_FRAME_TYPE frameType);
-    int32_t UpdateSurface2DTableChromaSiting(uint32_t index, int32_t chromaSiting);
+    virtual int32_t UpdateSurface2DTableFrameType(uint32_t index, CM_FRAME_TYPE frameType);
+    virtual int32_t UpdateSurface2DTableChromaSiting(uint32_t index, int32_t chromaSiting);
 
     int32_t DestroyStateBuffer( CmStateBuffer *&buffer_ptr,
                                 SURFACE_DESTROY_KIND destroyKind );
     int32_t DestroyMediaState( void  *media_state_ptr );
 
-    bool IsCmReservedSurfaceIndex(uint32_t surfBTI);
-    bool IsValidSurfaceIndex(uint32_t surfBTI);
+    virtual bool IsCmReservedSurfaceIndex(uint32_t surfBTI);
+    virtual bool IsValidSurfaceIndex(uint32_t surfBTI);
     uint32_t MaxIndirectSurfaceCount();
-    uint32_t ValidSurfaceIndexStart();
+    virtual uint32_t ValidSurfaceIndexStart();
     bool IsSupportedForSamplerSurface2D(CM_SURFACE_FORMAT format);
     inline void SetLatestVeboxTrackerAddr(uint32_t *tracker) {m_latestVeboxTracker = tracker; }
     inline uint32_t LatestVeboxTracker() {return *m_latestVeboxTracker; }
@@ -160,7 +160,7 @@ public:
     std::set<CmSurface *> & GetStatelessSurfaceArray() { return m_statelessSurfaceArray; }
 
 #if MDF_SURFACE_CONTENT_DUMP
-    CM_HAL_STATE* GetHalState();
+    virtual CM_HAL_STATE* GetHalState();
 #endif  // #if MDF_SURFACE_CONTENT_DUMP
 
 protected:

@@ -45,8 +45,10 @@ using CMRT_UMD::CmDeviceRT;
 //!
 CM_RT_API int32_t CreateCmDevice(MOS_CONTEXT *mosContext,
                                  CmDevice* &device,
-                                 uint32_t devCreateOption)
+                                 uint32_t devCreateOption,
+                                 uint8_t  priority)
 {
+    UNUSED(priority);
     if (mosContext == nullptr)
     {
         return CM_NULL_POINTER;
@@ -90,4 +92,18 @@ CM_RT_API int32_t DestroyCmDevice(CmDevice* & device)
     device = nullptr;
 
     return CM_SUCCESS;
+}
+
+//!
+//! \brief    Initialize cm hal ddi interfaces
+//! \details  Initialize cm hal ddi interfaces
+//! \param    cmState
+//!           [in,out] the pointer to the cm state.
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if succeeded, otherwise error code
+//!
+MOS_STATUS InitCmOsDDIInterface(PCM_HAL_STATE cmState)
+{
+    UNUSED(cmState);
+    return MOS_STATUS_SUCCESS;
 }

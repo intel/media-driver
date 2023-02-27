@@ -87,6 +87,8 @@ private:
     CmTask          *m_cmTask = nullptr;
     //! \brief Pointer to CM thread space
     CmThreadSpace   *m_cmThreadSpace = nullptr;
+    //! \brief Pointer to os interface
+    PMOS_INTERFACE  m_osInterface = nullptr;
 };
 
 #endif

@@ -86,9 +86,6 @@ int32_t HalCm_InsertCloneKernel(
     PCM_HAL_KERNEL_PARAM       kernelParam,
     PRENDERHAL_KRN_ALLOCATION  &kernelAllocation);
 
-extern MOS_STATUS HalCm_GetSipBinary(
-    PCM_HAL_STATE   state);
-
 #if MDF_COMMAND_BUFFER_DUMP
 extern int32_t HalCm_InitDumpCommandBuffer(PCM_HAL_STATE state);
 
@@ -2135,7 +2132,7 @@ int32_t HalCm_UnloadKernel(
         goto finish;
     }
 
-    CM_CHK_CMSTATUS_GOTOFINISH(HalCm_SyncKernel(state, kernelAllocation->dwSync));
+    CM_CHK_CMSTATUS_GOTOFINISH(state->pfnSyncKernel(state, kernelAllocation->dwSync));
 
     // Unload kernel
     if (kernelAllocation->pMhwKernelParam)
@@ -4333,7 +4330,7 @@ MOS_STATUS HalCm_Setup2DSurfaceState(
 
     if (state->cmHalInterface->GetDecompressFlag())
     {
-        HalCm_DecompressSurface(state, argParam, threadIndex);
+        state->pfnDecompressSurface(state, argParam, threadIndex);
     }
 
     //Binding surface based at the unit of dword
@@ -9139,11 +9136,11 @@ MOS_STATUS HalCm_RegisterSampler(
     {
         entry->ElementType = MHW_Sampler4Elements;
     }
-    CM_CHK_MOSSTATUS_GOTOFINISH(HalCm_GetGfxMapFilter(param->minFilter,  &entry->Unorm.MinFilter));
-    CM_CHK_MOSSTATUS_GOTOFINISH(HalCm_GetGfxMapFilter(param->magFilter,  &entry->Unorm.MagFilter));
-    CM_CHK_MOSSTATUS_GOTOFINISH(HalCm_GetGfxTextAddress(param->addressU, &entry->Unorm.AddressU));
-    CM_CHK_MOSSTATUS_GOTOFINISH(HalCm_GetGfxTextAddress(param->addressV, &entry->Unorm.AddressV));
-    CM_CHK_MOSSTATUS_GOTOFINISH(HalCm_GetGfxTextAddress(param->addressW, &entry->Unorm.AddressW));
+    CM_CHK_MOSSTATUS_GOTOFINISH(state->pfnGetGfxMapFilter(param->minFilter,  &entry->Unorm.MinFilter));
+    CM_CHK_MOSSTATUS_GOTOFINISH(state->pfnGetGfxMapFilter(param->magFilter,  &entry->Unorm.MagFilter));
+    CM_CHK_MOSSTATUS_GOTOFINISH(state->pfnGetGfxTextAddress(param->addressU, &entry->Unorm.AddressU));
+    CM_CHK_MOSSTATUS_GOTOFINISH(state->pfnGetGfxTextAddress(param->addressV, &entry->Unorm.AddressV));
+    CM_CHK_MOSSTATUS_GOTOFINISH(state->pfnGetGfxTextAddress(param->addressW, &entry->Unorm.AddressW));
 
     entry->Unorm.SurfaceFormat = (MHW_SAMPLER_SURFACE_PIXEL_TYPE)param->surfaceFormat;
     switch (entry->Unorm.SurfaceFormat)
@@ -10679,11 +10676,12 @@ MOS_STATUS HalCm_Create(
     state->pfnSetSurfaceReadFlag          = HalCm_SetSurfaceReadFlag;
     state->pfnSetVtuneProfilingFlag       = HalCm_SetVtuneProfilingFlag;
     state->pfnExecuteVeboxTask            = HalCm_ExecuteVeboxTask;
-    state->pfnGetSipBinary                = HalCm_GetSipBinary;
     state->pfnGetTaskSyncLocation         = HalCm_GetTaskSyncLocation;
 
     state->pfnGetGlobalTime               = HalCm_GetGlobalTime;
     state->pfnConvertToQPCTime            = HalCm_ConvertToQPCTime;
+
+    state->pfnSyncOnResource              = HalCm_SyncOnResource;
 
     state->pfnDeleteFromStateBufferList = HalCm_DeleteFromStateBufferList;
     state->pfnGetMediaStatePtrForKernel = HalCm_GetMediaStatePtrForKernel;
@@ -10704,6 +10702,8 @@ MOS_STATUS HalCm_Create(
     //==========<Initialize 5 OS-dependent DDI functions: pfnAllocate3DResource, pfnAllocateSurface2DUP====
     //                 pfnAllocateBuffer,pfnRegisterKMDNotifyEventHandle, pfnGetSurface2DPitchAndSize >====
     HalCm_OsInitInterface(state);
+    
+    state->osInterface->pfnInitCmInterface(state);
 
     HalCm_InitPerfTagIndexMap(state);
 

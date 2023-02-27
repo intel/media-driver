@@ -26,7 +26,7 @@
 //!
 
 #include "cm_wrapper.h"
-
+#include "cm_rt_umd.h"
 #include "cm_device_rt.h"
 #include "cm_surface_2d_rt.h"
 #include "media_libva_util.h"

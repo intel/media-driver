@@ -327,30 +327,30 @@ public:
 
     uint32_t GetAccelsize(){ return m_accelSize; }
 
-    int32_t GetHalMaxValues(CM_HAL_MAX_VALUES* & pHalMaxValues,
+    virtual int32_t GetHalMaxValues(CM_HAL_MAX_VALUES* & pHalMaxValues,
                             CM_HAL_MAX_VALUES_EX* & pHalMaxValuesEx);
 
-    int32_t GetGenPlatform(uint32_t &platform);
+    virtual int32_t GetGenPlatform(uint32_t &platform);
 
     void Sampler8x8CoefficientFormatTransform(
          CM_AVS_INTERNEL_NONPIPLINED_STATE* dst_avs_state,
          CM_AVS_NONPIPLINED_STATE* src_avs_state);
 
-    int32_t GetSurfaceManager(CmSurfaceManager* &pSurfaceMgr);
+    virtual int32_t GetSurfaceManager(CmSurfaceManager* &pSurfaceMgr);
 
-    std::vector<CmQueueRT *> &GetQueue();
+    virtual std::vector<CmQueueRT *> &GetQueue();
 
-    CSync* GetSurfaceLock();
+    virtual CSync* GetSurfaceLock();
 
-    CSync* GetSurfaceCreationLock();
+    virtual CSync* GetSurfaceCreationLock();
 
-    CSync* GetProgramKernelLock();
+    virtual CSync* GetProgramKernelLock();
 
-    CSync* GetQueueLock();
+    virtual CSync* GetQueueLock();
 
-    int32_t LoadPredefinedCopyKernel(CmProgram*& pProgram);
+    virtual int32_t LoadPredefinedCopyKernel(CmProgram*& pProgram);
 
-    int32_t LoadPredefinedInitKernel(CmProgram*& pProgram);
+    virtual int32_t LoadPredefinedInitKernel(CmProgram*& pProgram);
 
     int32_t GetKernelSlot()
     {
@@ -359,8 +359,8 @@ public:
 
     int32_t PrepareGPUinitSurface();
 
-    int32_t GPUinitSurface(CmSurface2D* surf2D, const uint32_t initValue, CmEvent*& event);
-    bool CheckGTPinEnabled();
+    virtual int32_t GPUinitSurface(CmSurface2D* surf2D, const uint32_t initValue, CmEvent*& event);
+    virtual bool CheckGTPinEnabled();
 
 #if USE_EXTENSION_CODE
     int32_t EnableGTPin(CmBufferUP* pBufferUP0,
@@ -369,10 +369,10 @@ public:
                         char * pGTPinCom,
                         GTPIN_INVOKE_STRUCT* pInvokeStruct,
                         bool reserveRegisters);
-    CmGTPin *GetGTPin();
+    virtual CmGTPin *GetGTPin();
 #endif
 
-    int32_t GetGenStepInfo(char*& stepinfostr);
+    virtual int32_t GetGenStepInfo(char*& stepinfostr);
 
     int32_t GetCapsInternal(void *pCaps, uint32_t *puSize);
 
@@ -380,11 +380,11 @@ public:
 
     int32_t Release();
 
-    int32_t GetPrintBufferIndex(SurfaceIndex *& pIndex) const;
+    virtual int32_t GetPrintBufferIndex(SurfaceIndex *& pIndex) const;
 
-    bool IsPrintEnable() const;
+    virtual bool IsPrintEnable() const;
 
-    bool IsVtuneLogOn() const;
+    virtual bool IsVtuneLogOn() const;
 
     int32_t GetPrintBufferMem(unsigned char *& pPrintBufferMem) const;
 
@@ -397,9 +397,9 @@ public:
                             bool bIsCmCreated,
                             CmSurface2D* & pSurface) = 0;
 
-    int32_t GetSampler8x8(uint32_t index, CmSampler8x8State_RT *&pSampler8x8);
+    virtual int32_t GetSampler8x8(uint32_t index, CmSampler8x8State_RT *&pSampler8x8);
 
-    bool IsScratchSpaceDisabled();
+    virtual bool IsScratchSpaceDisabled();
 
     int32_t SetSurfaceArraySizeForAlias();
 
@@ -410,18 +410,18 @@ public:
         m_isDriverStoreEnabled = dsEnabled;
     }
 
-    CmDynamicArray* GetKernelArray();
+    virtual CmDynamicArray* GetKernelArray();
 
-    uint32_t *GetKernelCount();
+    virtual uint32_t *GetKernelCount();
 
 #if CM_LOG_ON
     std::string Log();
 #endif
-    CM_HAL_STATE* GetHalState();
+    virtual CM_HAL_STATE* GetHalState();
 
     int32_t DestroyVmeSurface(SurfaceIndex *& pVmeIndex);
 
-    int32_t CreatePrintBuffer();
+    virtual int32_t CreatePrintBuffer();
 
     CmNotifierGroup* GetNotifiers() {return m_notifierGroup;}
 

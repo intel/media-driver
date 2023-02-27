@@ -30,6 +30,7 @@
 #include "cm_common.h"
 #include "cm_debug.h"
 #include "cm_csync.h"
+#include "cm_ish.h"
 #include "mhw_vebox.h"
 #include "cm_hal_generic.h"
 #include "media_perf_profiler.h"
@@ -1863,6 +1864,42 @@ typedef struct _CM_HAL_STATE
         PCM_HAL_STATE state,
         MOS_GPUCTX_CREATOPTIONS *mosCreateOption);
 
+    MOS_STATUS(*pfnGetGfxMapFilter) (
+        uint32_t                     filter,
+        MHW_GFX3DSTATE_MAPFILTER     *pGfxFilter);
+
+    MOS_STATUS(*pfnGetGfxTextAddress) (
+        uint32_t                     addressMode,
+        MHW_GFX3DSTATE_TEXCOORDMODE  *gfxAddress);
+    
+    MOS_STATUS(*pfnDecompressSurface) (
+        PCM_HAL_STATE                state,
+        PCM_HAL_KERNEL_ARG_PARAM     argParam,
+        uint32_t                     threadIndex);
+
+    MOS_STATUS (*pfnSetOsResourceFromDdi)(
+        PMOS_RESOURCE     resource,
+        PMOS_RESOURCE     osResource,
+        uint32_t          mipSlice);
+
+    int32_t (*pfnSyncKernel)(
+        PCM_HAL_STATE     state,
+        uint32_t          sync);
+
+    MOS_STATUS (*pfnSurfaceSync)(
+        PCM_HAL_STATE     pState,
+        PMOS_SURFACE      pSurface,
+        bool              bReadSync);
+
+    MOS_STATUS (*pfnSyncOnResource)(
+        PCM_HAL_STATE     state,
+        PMOS_SURFACE      surface,
+        bool              isWrite);
+    
+    MOS_STATUS (*pfnCreateSipKernel)(
+        PCM_HAL_STATE     state,
+        CmISH             *cmISH);
+
     //*-----------------------------------------------------------------------------
     //| Purpose: Selects the required stream index and sets the correct GPU context for further function calls.
     //| Returns: Previous stream index.
@@ -2046,6 +2083,37 @@ MOS_STATUS HalCm_SendGpGpuWalkerState(
     PCM_HAL_STATE           state,
     PCM_HAL_KERNEL_PARAM    kernelParam,
     PMOS_COMMAND_BUFFER     cmdBuffer);
+
+MOS_STATUS HalCm_SetOsResourceFromDdi(
+    PMOS_RESOURCE     resource,
+    PMOS_RESOURCE     osResource,
+    uint32_t          mipSlice = 0);
+
+MOS_STATUS HalCm_GetSurface2DPitchAndSize(
+    PCM_HAL_STATE               state,
+    PCM_HAL_SURFACE2D_UP_PARAM  param);
+
+MOS_STATUS HalCm_GetGPUCurrentFrequency(
+    PCM_HAL_STATE               state,
+    uint32_t                    *currentFreq);
+
+MOS_STATUS HalCm_RegisterUMDNotifyEventHandle(
+    PCM_HAL_STATE               state,
+    PCM_HAL_OSSYNC_PARAM        syncParam);
+
+MOS_STATUS HalCm_GetGpuTime(
+    PCM_HAL_STATE               state,
+    uint64_t                    *gpuTime);
+
+uint32_t HalCm_RegisterStream(
+    PCM_HAL_STATE               state);
+
+MOS_STATUS HalCm_GetSipBinary(
+    PCM_HAL_STATE               state);
+
+MOS_STATUS HalCm_CreateSipKernel(
+    PCM_HAL_STATE               state,
+    CmISH                       *cmISH);
 
 //===============<Below are Os-non-dependent Private/Non-DDI Functions>=========================================
 

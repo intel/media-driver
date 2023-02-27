@@ -390,11 +390,13 @@ MOS_STATUS CodecHalHevcMbencG12::AllocateMDFResources()
         //create CM device
         if (!m_cmDev)
         {
+            CODECHAL_ENCODE_CHK_NULL_RETURN(m_osInterface);
             m_osInterface->pfnNotifyStreamIndexSharing(m_osInterface);
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(CreateCmDevice(
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateCmDevice(
                 m_osInterface->pOsContext,
                 m_cmDev,
-                devOp));
+                devOp,
+                CM_DEVICE_CREATE_PRIORITY_DEFAULT));
         }
 
         if (!m_surfIndexArray)
@@ -410,11 +412,13 @@ MOS_STATUS CodecHalHevcMbencG12::AllocateMDFResources()
         {
             if (!m_mfeEncodeSharedState->pCmDev)
             {
+                CODECHAL_ENCODE_CHK_NULL_RETURN(m_osInterface);
                 m_osInterface->pfnNotifyStreamIndexSharing(m_osInterface);
-                CODECHAL_ENCODE_CHK_STATUS_RETURN(CreateCmDevice(
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateCmDevice(
                     m_osInterface->pOsContext,
                     m_cmDev,
-                    devOp));
+                    devOp,
+                    CM_DEVICE_CREATE_PRIORITY_DEFAULT));
 
                 m_mfeEncodeSharedState->pCmDev = m_cmDev;
             }
@@ -474,9 +478,11 @@ MOS_STATUS CodecHalHevcMbencG12::DestroyMDFResources()
     {
         delete[] m_surfIndexArray;
         m_surfIndexArray = nullptr;
-
-        DestroyCmDevice(m_cmDev);
-        m_cmDev = nullptr;
+        if (m_osInterface != nullptr)
+        {
+            m_osInterface->pfnDestroyCmDevice(m_cmDev);
+            m_cmDev = nullptr;
+        }
     }
     else 
     {
@@ -488,9 +494,11 @@ MOS_STATUS CodecHalHevcMbencG12::DestroyMDFResources()
             delete[] m_surfIndexArray;
             m_surfIndexArray = nullptr;
             m_mfeEncodeSharedState->commonSurface = nullptr;
-
-            DestroyCmDevice(m_cmDev);
-            m_mfeEncodeSharedState->pCmDev = m_cmDev = nullptr;
+            if (m_osInterface != nullptr)
+            {
+                m_osInterface->pfnDestroyCmDevice(m_cmDev);
+                m_mfeEncodeSharedState->pCmDev = m_cmDev = nullptr;
+            }
         }
         else
         {

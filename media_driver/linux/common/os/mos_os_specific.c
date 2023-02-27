@@ -66,6 +66,15 @@
 #include "mos_oca_interface_specific.h"
 #include "mos_os_next.h"
 
+extern int32_t CreateCmDevice(MOS_CONTEXT *mosContext,
+                              CMRT_UMD::CmDevice* &device,
+                              uint32_t devCreateOption,
+                              uint8_t  priority);
+
+extern int32_t DestroyCmDevice(CMRT_UMD::CmDevice* &device);
+
+extern MOS_STATUS InitCmOsDDIInterface(PCM_HAL_STATE cmState);
+
 //!
 //! \brief DRM VMAP patch
 //!
@@ -7128,6 +7137,11 @@ MOS_STATUS Mos_Specific_InitInterface(
     pOsInterface->pfnVirtualEngineInit                      = Mos_Specific_Virtual_Engine_Init;
     pOsInterface->pfnDestroyVeInterface                     = Mos_Specific_DestroyVeInterface;
     pOsInterface->pfnVirtualEngineInterfaceInitialize       = Mos_VirtualEngineInterface_Initialize;
+
+    pOsInterface->pfnCreateCmDevice                         = CreateCmDevice;
+    pOsInterface->pfnDestroyCmDevice                        = DestroyCmDevice;
+    pOsInterface->pfnInitCmInterface                        = InitCmOsDDIInterface;
+
 #if (_DEBUG || _RELEASE_INTERNAL)
     pOsInterface->pfnGetEngineLogicId                       = Mos_Specific_GetEngineLogicId;
 #endif

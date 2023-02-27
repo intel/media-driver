@@ -1072,7 +1072,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
                         &mosSurface));
                 mosSurface.OsResource = state->bufferTable[i].osResource;
 
-                CM_CHK_HRESULT_GOTOFINISH_MOSERROR(HalCm_SurfaceSync(state, &mosSurface, false));
+                CM_CHK_HRESULT_GOTOFINISH_MOSERROR(state->pfnSurfaceSync(state, &mosSurface, false));
             }
         }
     }

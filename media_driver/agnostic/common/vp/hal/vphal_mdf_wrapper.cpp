@@ -98,18 +98,19 @@ CmEvent* EventManager::GetLastEvent() const
     return mLastEvent;
 }
 
-CmContext::CmContext(PMOS_CONTEXT OsContext) :
+CmContext::CmContext(PMOS_INTERFACE osInterface) :
     mRefCount(0),
     mCmDevice(nullptr),
     mCmQueue(nullptr),
     mCmVebox(nullptr),
+    m_osInterface(osInterface),
     mBatchTask(nullptr),
     mHasBatchedTask(false),
     mConditionalBatchBuffer(nullptr),
     mCondParam({ 0 }),
     mEventListener(nullptr)
 {
-    VPHAL_RENDER_ASSERT(OsContext);
+    VPHAL_RENDER_CHK_NULL_NO_STATUS_RETURN(osInterface);
 
     const unsigned int MDF_DEVICE_CREATE_OPTION =
         ((CM_DEVICE_CREATE_OPTION_SCRATCH_SPACE_DISABLE)                                |
@@ -120,7 +121,7 @@ CmContext::CmContext(PMOS_CONTEXT OsContext) :
          (CM_DEVICE_CONFIG_GPUCONTEXT_ENABLE)                                           |
          (32 << CM_DEVICE_CONFIG_KERNELBINARYGSH_OFFSET));
 
-    int result = CreateCmDevice(OsContext, mCmDevice, MDF_DEVICE_CREATE_OPTION);
+    int result = osInterface->pfnCreateCmDevice(osInterface->pOsContext, mCmDevice, MDF_DEVICE_CREATE_OPTION, CM_DEVICE_CREATE_PRIORITY_DEFAULT);
     if (result != CM_SUCCESS)
     {
         VPHAL_RENDER_ASSERTMESSAGE("CmDevice creation error %d\n", result);
@@ -344,9 +345,9 @@ void CmContext::Destroy()
         mCmDevice->DestroyVebox(mCmVebox);
     }
 
-    if (mCmDevice)
+    if (mCmDevice && m_osInterface)
     {
-        DestroyCmDevice(mCmDevice);
+        m_osInterface->pfnDestroyCmDevice(mCmDevice);
     }
 
     mBatchTask = nullptr;

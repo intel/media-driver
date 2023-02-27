@@ -52,6 +52,12 @@ public:
 
     void Clean();
 
+    // SIP kernels
+    bool m_isSipKernelLoaded;
+    uint8_t *m_sipKernel;
+    uint32_t m_sipKernelSize;
+    uint32_t m_sipKernelOffset;
+
 protected:
     CmISHBase();
     virtual ~CmISHBase();
@@ -86,10 +92,5 @@ protected:
     const uint32_t m_expandStep = 0x80000;
     const uint32_t m_kernelAlign = 64;
     const uint32_t m_kernelPadding = 128;
-    
-    // SIP kernels
-    bool m_isSipKernelLoaded;
-    uint8_t *m_sipKernel;
-    uint32_t m_sipKernelSize;
-    uint32_t m_sipKernelOffset;
+
 };

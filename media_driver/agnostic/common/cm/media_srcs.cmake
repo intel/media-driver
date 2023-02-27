@@ -23,7 +23,6 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/cm_buffer_rt.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_state_buffer.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_def.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/cm_device_rt_base.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_event_rt.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_group_space.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_hal.cpp
@@ -44,7 +43,6 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/cm_surface.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_surface_2d_up_rt.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_surface_3d_rt.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/cm_surface_manager_base.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_surface_sampler.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_surface_sampler8x8.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_surface_vme.cpp
@@ -54,7 +52,6 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/cm_vebox_rt.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_vebox_data.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_visa.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/cm_global_api.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_execution_adv.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_ish_base.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_kernel_ex.cpp
@@ -67,8 +64,7 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/cm_tracker.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_event_ex_base.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_command_buffer.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/cm_surface_2d_rt_base.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/cm_wrapper.cpp)
+    ${CMAKE_CURRENT_LIST_DIR}/cm_surface_2d_rt_base.cpp)
 
 set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/cm_array.h
@@ -120,9 +116,6 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/cm_vebox_data.h
     ${CMAKE_CURRENT_LIST_DIR}/cm_visa.h
     ${CMAKE_CURRENT_LIST_DIR}/cm_execution_adv.h
-    ${CMAKE_CURRENT_LIST_DIR}/cm_rt_umd.h
-    ${CMAKE_CURRENT_LIST_DIR}/cm_surface_manager_base.h
-    ${CMAKE_CURRENT_LIST_DIR}/cm_device_rt_base.h
     ${CMAKE_CURRENT_LIST_DIR}/cm_ish_base.h
     ${CMAKE_CURRENT_LIST_DIR}/cm_kernel_ex.h
     ${CMAKE_CURRENT_LIST_DIR}/cm_surface_state.h
@@ -134,7 +127,6 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/cm_tracker.h
     ${CMAKE_CURRENT_LIST_DIR}/cm_event_ex_base.h
     ${CMAKE_CURRENT_LIST_DIR}/cm_command_buffer.h
-    ${CMAKE_CURRENT_LIST_DIR}/cm_wrapper.h
     ${CMAKE_CURRENT_LIST_DIR}/cm_surface_2d_rt_base.h)
 
 set(COMMON_SOURCES_
@@ -150,9 +142,31 @@ set(COMMON_PRIVATE_INCLUDE_DIRS_
     ${CMAKE_CURRENT_LIST_DIR}
 )
 
+set(TMP_1_SOURCES_
+    ${CMAKE_CURRENT_LIST_DIR}/cm_global_api.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/cm_device_rt_base.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/cm_surface_manager_base.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/cm_wrapper.cpp
+)
+
+set(TMP_1_HEADERS_
+    ${CMAKE_CURRENT_LIST_DIR}/cm_rt_umd.h
+    ${CMAKE_CURRENT_LIST_DIR}/cm_device_rt_base.h
+    ${CMAKE_CURRENT_LIST_DIR}/cm_surface_manager_base.h
+    ${CMAKE_CURRENT_LIST_DIR}/cm_wrapper.h
+)
+
+set(SOURCES_
+    ${SOURCES_} 
+    ${TMP_1_SOURCES_})
+
+set(HEADERS_
+    ${HEADERS_} 
+    ${TMP_1_HEADERS_})
+
 set(SOURCES_SSE2
     ${CMAKE_CURRENT_LIST_DIR}/cm_mem_sse2_impl.cpp)
 
-source_group(CM FILES ${TMP_SOURCES_} ${TMP_HEADERS_})
+source_group(CM FILES ${TMP_SOURCES_} ${TMP_HEADERS_} ${TMP_1_SOURCES_} ${TMP_1_HEADERS_})
 
 media_add_curr_to_include_path()

@@ -38,15 +38,16 @@ MOS_STATUS CodechalDecodeNV12ToP010::Init(PMOS_INTERFACE osInterface)
     CODECHAL_DECODE_FUNCTION_ENTER;
 
     CODECHAL_DECODE_CHK_NULL_RETURN(osInterface);
-
+    m_osInterface = osInterface;
     uint32_t devCreateOption = CM_DEVICE_CREATE_OPTION_FOR_HEVC;
     devCreateOption &= (~CM_DEVICE_CONFIG_GPUCONTEXT_ENABLE);
 
     osInterface->pfnNotifyStreamIndexSharing(osInterface);
-    CODECHAL_DECODE_CHK_STATUS_RETURN(CreateCmDevice(
+    CODECHAL_DECODE_CHK_STATUS_RETURN(osInterface->pfnCreateCmDevice(
         osInterface->pOsContext,
         m_cmDevice,
-        devCreateOption));
+        devCreateOption,
+        CM_DEVICE_CREATE_PRIORITY_DEFAULT));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_cmDevice->CreateQueue(
         m_cmQueue));
@@ -148,7 +149,9 @@ CodechalDecodeNV12ToP010::~CodechalDecodeNV12ToP010()
         m_cmDevice->DestroyKernel(m_cmKernel);
         m_cmKernel = nullptr;
     }
-
-    DestroyCmDevice(m_cmDevice);
+    if (m_osInterface != nullptr)
+    {
+        m_osInterface->pfnDestroyCmDevice(m_cmDevice);
+    }
 }
 

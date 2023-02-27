@@ -82,6 +82,7 @@ protected:
     MOS_STATUS SetKernelArgs(uint16_t flags, bool uv);
 
 protected:
+    PMOS_INTERFACE      m_osInterface = nullptr;
     CmDevice            *m_cmDevice = nullptr;
     CmQueue             *m_cmQueue = nullptr;
     CmTask              *m_cmTask = nullptr;

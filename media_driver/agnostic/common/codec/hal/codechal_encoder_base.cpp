@@ -1080,8 +1080,9 @@ MOS_STATUS CodechalEncoderState::AllocateMDFResources()
 
         if (m_cmDev == nullptr)
         {
+            CODECHAL_ENCODE_CHK_NULL_RETURN(m_osInterface);
             m_osInterface->pfnNotifyStreamIndexSharing(m_osInterface);
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(CreateCmDevice(m_osInterface->pOsContext, m_cmDev, devOp));
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateCmDevice(m_osInterface->pOsContext, m_cmDev, devOp, CM_DEVICE_CREATE_PRIORITY_DEFAULT));
         }
         //just WA for issues in MDF null support
         if (!m_cmQueue)
@@ -1105,9 +1106,9 @@ MOS_STATUS CodechalEncoderState::DestroyMDFResources()
         m_cmDev->DestroyTask(m_cmTask);
         m_cmTask = nullptr;
     }
-    if (m_cmDev)
+    if (m_cmDev && m_osInterface)
     {
-        DestroyCmDevice(m_cmDev);
+        m_osInterface->pfnDestroyCmDevice(m_cmDev);
         m_cmDev = nullptr;
     }
 

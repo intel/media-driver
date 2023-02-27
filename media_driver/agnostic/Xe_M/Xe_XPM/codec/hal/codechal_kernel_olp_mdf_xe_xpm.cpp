@@ -35,7 +35,7 @@ MOS_STATUS CodechalKernelOlpMdf::Init(PMOS_INTERFACE osInterface)
 {
     CODECHAL_DECODE_FUNCTION_ENTER;
     CODECHAL_DECODE_CHK_NULL_RETURN(osInterface);
-
+    m_osInterface = osInterface;
     if (m_cmDevice)
     {
         return MOS_STATUS_SUCCESS;
@@ -44,10 +44,11 @@ MOS_STATUS CodechalKernelOlpMdf::Init(PMOS_INTERFACE osInterface)
     osInterface->pfnNotifyStreamIndexSharing(osInterface);
 
     uint32_t devCreateOption = CM_DEVICE_CREATE_OPTION_SCRATCH_SPACE_DISABLE;
-    CODECHAL_DECODE_CHK_STATUS_RETURN(CreateCmDevice(
+    CODECHAL_DECODE_CHK_STATUS_RETURN(osInterface->pfnCreateCmDevice(
         osInterface->pOsContext,
         m_cmDevice,
-        devCreateOption));
+        devCreateOption,
+        CM_DEVICE_CREATE_PRIORITY_DEFAULT));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_cmDevice->CreateQueue(m_cmQueue));
 #if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
@@ -215,7 +216,10 @@ MOS_STATUS CodechalKernelOlpMdf::UnInit()
         m_cmDevice->DestroyProgram(m_cmProgram);
         m_cmProgram = nullptr;
     }
-    DestroyCmDevice(m_cmDevice);
+    if (m_osInterface != nullptr)
+    {
+        m_osInterface->pfnDestroyCmDevice(m_cmDevice);
+    }
 
     return MOS_STATUS_SUCCESS;
 }
