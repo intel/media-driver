@@ -1006,6 +1006,8 @@ void VphalRenderer::UpdateReport(
         m_reporting->GetFeatures().rtCompressible = true;
         m_reporting->GetFeatures().rtCompressMode = (uint8_t)(pRenderParams->pTarget[0]->CompressionMode);
     }
+
+    m_reporting->GetFeatures().rtCacheSetting = (uint8_t)(pRenderParams->pTarget[0]->CacheSetting);
 }
 
 //!

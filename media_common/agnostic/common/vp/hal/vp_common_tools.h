@@ -125,6 +125,8 @@ typedef struct _VP_CONFIG
     uint32_t   dwRTCompressibleReported;   // RT MMC Reported compressible flag
     uint32_t   dwRTCompressMode;           // RT MMC Compression Mode
     uint32_t   dwRTCompressModeReported;   // RT MMC Reported Compression Mode
+    uint32_t   dwRTCacheSetting;          // RT cache usage
+    uint32_t   dwRTCacheSettingReported;  // RT cache Reported usage
     uint32_t   dwFFDICompressible;         // FFDI Compressible flag
     uint32_t   dwFFDICompressMode;         // FFDI Compression mode
     uint32_t   dwFFDNCompressible;         // FFDN Compressible flag

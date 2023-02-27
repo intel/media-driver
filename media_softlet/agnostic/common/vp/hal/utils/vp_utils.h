@@ -284,6 +284,7 @@ protected:
 #define __MEDIA_USER_FEATURE_VALUE_VPP_APOGEIOS_ENABLE                  "VP Apogeios Enabled"
 #define __VPHAL_PRIMARY_MMC_COMPRESSMODE                                "VP Primary Surface Compress Mode"
 #define __VPHAL_RT_MMC_COMPRESSMODE                                     "VP RT Compress Mode"
+#define __VPHAL_RT_Cache_Setting                                        "VP RT Cache Setting"
 
 #if (_DEBUG || _RELEASE_INTERNAL)
 #define __VPHAL_ENABLE_COMPUTE_CONTEXT                                  "VP Enable Compute Context"

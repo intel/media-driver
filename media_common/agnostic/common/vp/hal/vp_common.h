@@ -169,6 +169,9 @@ struct VPHAL_SURFACE
     MOS_RESOURCE_MMC_MODE CompressionMode   = MOS_MMC_DISABLED;
     uint32_t              CompressionFormat = 0;
 
+    //Surface cache Usage
+    uint32_t CacheSetting = 0;
+
     bool bUseSampleUnorm    = false;  //!<  true: sample unorm is used, false: DScaler or AVS is used.
     bool bUseSamplerLumakey = false;  //!<  true: sampler lumakey is used, false: lumakey is disabled or EU computed lumakey is used.
     //------------------------------------------

@@ -1582,6 +1582,12 @@ void DdiVpFunctions::VpFeatureReport(PVP_CONFIG config, PDDI_VP_CONTEXT vpCtx)
         config->dwRTCompressMode,
         MediaUserSetting::Group::Sequence);
 #endif
+    //VP RT Cache Usage
+    ReportUserSetting(
+        userSettingPtr,
+        __VPHAL_RT_Cache_Setting,
+        config->dwRTCacheSetting,
+        MediaUserSetting::Group::Sequence);
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     ReportUserSettingForDebug(

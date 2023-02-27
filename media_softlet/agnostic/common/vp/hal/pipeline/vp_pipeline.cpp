@@ -184,6 +184,8 @@ MOS_STATUS VpPipeline::UserFeatureReport()
                 m_reporting->GetFeatures().rtCompressible = true;
                 m_reporting->GetFeatures().rtCompressMode = (uint8_t)(params->pTarget[0]->CompressionMode);
             }
+            
+            m_reporting->GetFeatures().rtCacheSetting = (uint8_t)(params->pTarget[0]->CacheSetting);
         }
     }
 

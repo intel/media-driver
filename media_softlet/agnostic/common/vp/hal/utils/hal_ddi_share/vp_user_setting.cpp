@@ -157,6 +157,13 @@ MOS_STATUS VpUserSetting::InitVpUserSetting(MediaUserSettingSharedPtr userSettin
         0,
         true);
 
+    DeclareUserSettingKey(  // VP Render Target Cache Usage
+        userSettingPtr,
+        __VPHAL_RT_Cache_Setting,
+        MediaUserSetting::Group::Sequence,
+        0,
+        true);
+
     DeclareUserSettingKey(  // VP Primary Input Compression Mode
         userSettingPtr,
         __VPHAL_PRIMARY_MMC_COMPRESSMODE,

@@ -598,6 +598,7 @@ MOS_STATUS VpAllocator::GetSurfaceInfo(VPHAL_SURFACE *surface, VPHAL_GET_SURFACE
     surface->Format          = resDetails.Format;
     surface->bCompressible   = resDetails.bCompressible ? true : false;
     surface->bIsCompressed   = resDetails.bIsCompressed ? true : false;
+    surface->CacheSetting    = resDetails.CacheSetting;
 
     if (IS_RGB32_FORMAT(surface->Format) ||
         IS_RGB16_FORMAT(surface->Format) ||
@@ -695,6 +696,8 @@ MOS_STATUS VpAllocator::GetSurfaceInfo(VP_SURFACE* surface, VPHAL_GET_SURFACE_IN
     surface->osSurface->Format          = resDetails.Format;
     surface->osSurface->bCompressible   = resDetails.bCompressible ? true : false;
     surface->osSurface->bIsCompressed   = resDetails.bIsCompressed ? true : false;
+    surface->osSurface->CacheSetting    = resDetails.CacheSetting;
+
     
     return MOS_STATUS_SUCCESS;
 }

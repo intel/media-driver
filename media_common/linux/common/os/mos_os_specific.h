@@ -375,6 +375,8 @@ struct MOS_SURFACE
     bool                bGMMTileEnabled;                                        //!< [out] GMM defined tile mode flag
     uint32_t            YoffsetForUplane;                                       //!< [out] Y offset from U plane to Y plane.
     uint32_t            YoffsetForVplane;                                       //!< [out] Y offset from V plane to Y plane.
+    // Surface cache Usage
+    uint32_t CacheSetting;
 };
 typedef MOS_SURFACE *PMOS_SURFACE;
 
