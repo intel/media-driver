@@ -2345,6 +2345,12 @@ MOS_STATUS CodechalEncodeAvcBase::SetSequenceStructs()
 
     auto seqParams = m_avcSeqParam;
 
+    if (seqParams->FrameHeight > m_rawSurface.dwHeight || seqParams->FrameWidth > m_rawSurface.dwWidth)
+    {
+        CODECHAL_ENCODE_ASSERTMESSAGE("Error: Allocated surface width and height cannot be less than SPS width and height");
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
     // seq_scaling_matrix_present_flag and chroma_format_idc
     // shall not be present for main profile
     if (seqParams->Profile == CODEC_AVC_MAIN_PROFILE)
