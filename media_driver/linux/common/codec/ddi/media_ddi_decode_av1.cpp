@@ -230,8 +230,8 @@ VAStatus DdiDecodeAV1::ParsePicParams(
             if (frameIdx == DDI_CODEC_INVALID_FRAME_INDEX) {
                 return VA_STATUS_ERROR_INVALID_PARAMETER;
             }
-            picAV1Params->m_refFrameMap[i].FrameIdx = ((uint32_t)frameIdx >= CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP9) ?
-                                                      (CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP9 - 1) : frameIdx;
+            picAV1Params->m_refFrameMap[i].FrameIdx = ((uint32_t)frameIdx >= CODECHAL_NUM_UNCOMPRESSED_SURFACE_AV1) ?
+                                                      (CODECHAL_NUM_UNCOMPRESSED_SURFACE_AV1 - 1) : frameIdx;
         }
         else
         {
@@ -240,17 +240,17 @@ VAStatus DdiDecodeAV1::ParsePicParams(
                 frameIdx = GetRenderTargetID(&m_ddiDecodeCtx->RTtbl, refSurface);
                 if (frameIdx != DDI_CODEC_INVALID_FRAME_INDEX)
                 {
-                    picAV1Params->m_refFrameMap[i].FrameIdx = ((uint32_t)frameIdx >= CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP9) ?
-                                                              (CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP9 - 1) : frameIdx;
+                    picAV1Params->m_refFrameMap[i].FrameIdx = ((uint32_t)frameIdx >= CODECHAL_NUM_UNCOMPRESSED_SURFACE_AV1) ?
+                                                              (CODECHAL_NUM_UNCOMPRESSED_SURFACE_AV1 - 1) : frameIdx;
                 }
                 else
                 {
-                    picAV1Params->m_refFrameMap[i].FrameIdx = CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP9 - 1;
+                    picAV1Params->m_refFrameMap[i].FrameIdx = CODECHAL_NUM_UNCOMPRESSED_SURFACE_AV1 - 1;
                 }
             }
             else
             {
-                picAV1Params->m_refFrameMap[i].FrameIdx = CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP9 - 1;
+                picAV1Params->m_refFrameMap[i].FrameIdx = CODECHAL_NUM_UNCOMPRESSED_SURFACE_AV1 - 1;
             }
         }
     }
