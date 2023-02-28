@@ -511,6 +511,11 @@ MOS_STATUS Vp9ReferenceFrames::SetupRefFlags()
 
     // Consolidate the reference flag, because two reference frame may have the same index
     if ((m_refFrameFlags & 0x01) &&
+        (picParams->RefFrameList[lastRefIdx].FrameIdx == picParams->RefFrameList[goldenRefIdx].FrameIdx))
+    {
+        m_refFrameFlags &= ~0x2;  // Skip golden frame
+    }
+    if ((m_refFrameFlags & 0x01) &&
         (picParams->RefFrameList[lastRefIdx].FrameIdx == picParams->RefFrameList[altRefIdx].FrameIdx))
     {
         m_refFrameFlags &= ~0x4;  // Skip alt frame
