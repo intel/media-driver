@@ -225,6 +225,29 @@ public:
     const std::vector<const void *> &GetCmdResPtrs() const { return m_cmdResPtrs; }
 #endif // MOS_COMMAND_RESINFO_DUMP_SUPPORTED
 protected:
+    MOS_STATUS Init3DCtx(PMOS_CONTEXT osParameters,
+                PMOS_GPUCTX_CREATOPTIONS createOption,
+                unsigned int *nengine,
+                struct i915_engine_class_instance *engine_map);
+
+    MOS_STATUS InitComputeCtx(PMOS_CONTEXT osParameters,
+                unsigned int *nengine,
+                struct i915_engine_class_instance *engine_map,
+                MOS_GPU_NODE gpuNode,
+                bool *isEngineSelectEnable);
+
+    MOS_STATUS InitVdVeCtx(PMOS_CONTEXT osParameters,
+                MOS_STREAM_HANDLE streamState,
+                PMOS_GPUCTX_CREATOPTIONS createOption,
+                unsigned int *nengine,
+                struct i915_engine_class_instance *engine_map,
+                MOS_GPU_NODE gpuNode,
+                bool *isEngineSelectEnable);
+
+    MOS_STATUS InitBltCtx(PMOS_CONTEXT osParameters,
+                unsigned int *nengine,
+                struct i915_engine_class_instance *engine_map);
+
     //!
     //! \brief    Map resources with aux plane to aux table
     //! \return   MOS_STATUS
