@@ -79,7 +79,7 @@ public:
 
     CM_RT_API int32_t GetIndex(SurfaceIndex *&pIndex);
 
-    CM_RT_API int32_t GetSurfaceDesc(unsigned int &width,
+   virtual CM_RT_API int32_t GetSurfaceDesc(unsigned int &width,
                                      unsigned int &height,
                                      CM_SURFACE_FORMAT &format,
                                      unsigned int &sizeperpixel);
@@ -116,9 +116,9 @@ public:
 
     CM_RT_API int32_t SetProperty(CM_FRAME_TYPE frameType);
 
-    int32_t GetIndexFor2D(unsigned int &index);
+    virtual int32_t GetIndexFor2D(unsigned int &index);
 
-    int32_t GetHandle(unsigned int &handle);
+    virtual int32_t GetHandle(unsigned int &handle);
 
     int32_t SetSurfaceProperties(unsigned int width,
                                  unsigned int height,
@@ -142,11 +142,11 @@ public:
                              int updateMosResource = 0,
                              PMOS_RESOURCE pMosResource = nullptr);
 
-    int32_t UpdateResource(MOS_RESOURCE *resource);
+    virtual int32_t UpdateResource(MOS_RESOURCE *resource);
 
-    int32_t Create2DAlias(SurfaceIndex *&pAliasSurfIndex);
+    virtual int32_t Create2DAlias(SurfaceIndex *&pAliasSurfIndex);
 
-    int32_t GetNumAliases(unsigned int &numAliases);
+    virtual int32_t GetNumAliases(unsigned int &numAliases);
 
     void Log(std::ostringstream &oss);
 

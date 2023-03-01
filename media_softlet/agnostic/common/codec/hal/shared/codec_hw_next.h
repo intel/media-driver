@@ -108,6 +108,12 @@ public:
     //!
     virtual ~CodechalHwInterfaceNext();
 
+    static CodechalHwInterfaceNext* Create(
+        PMOS_INTERFACE     osInterface,
+        CODECHAL_FUNCTION  codecFunction,
+        MhwInterfacesNext* mhwInterfacesNext,
+        bool               disableScalability);
+
     //!
     //! \brief    Initialize the codechal hw interface
     //! \details  Initialize the interface before using

@@ -112,6 +112,8 @@ public:
     CodechalDebugInterface();
     virtual ~CodechalDebugInterface();
 
+    static CodechalDebugInterface* Create();
+
     virtual MOS_STATUS Initialize(
         CodechalHwInterface *hwInterface,
         CODECHAL_FUNCTION    codecFunction,
@@ -122,13 +124,13 @@ public:
         CODECHAL_FUNCTION        codecFunction,
         MediaCopyBaseState      *mediaCopy = nullptr);
 
-    MOS_STATUS DumpHucDmem(
+    virtual MOS_STATUS DumpHucDmem(
         PMOS_RESOURCE             dmemResource,
         uint32_t                  dmemSize,
         uint32_t                  hucPassNum,
         CodechalHucRegionDumpType dumpType);
 
-    MOS_STATUS DumpHucRegion(
+    virtual MOS_STATUS DumpHucRegion(
         PMOS_RESOURCE             region,
         uint32_t                  regionOffset,
         uint32_t                  regionSize,
@@ -182,7 +184,7 @@ public:
         const char*        bufferName,
         const char*        attrName);
 
-    MOS_STATUS DumpCmdBuffer(
+    virtual MOS_STATUS DumpCmdBuffer(
         PMOS_COMMAND_BUFFER       cmdBuffer,
         CODECHAL_MEDIA_STATE_TYPE mediaState,
         const char *              cmdName = nullptr);
@@ -216,7 +218,7 @@ public:
         uint32_t                  width_in   = 0,
         uint32_t                  height_in  = 0);
 
-    MOS_STATUS DumpBuffer(
+    virtual MOS_STATUS DumpBuffer(
         PMOS_RESOURCE             resource,
         const char *              attrName,
         const char *              bufferName,

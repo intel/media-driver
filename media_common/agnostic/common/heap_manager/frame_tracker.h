@@ -100,36 +100,6 @@ static inline void FrameTrackerTokenFlat_Stick(FrameTrackerTokenFlat *self)
     self->stick = true;
 }
 
-class FrameTrackerToken
-{
-public:
-    FrameTrackerToken():
-        m_producer(nullptr)
-    {
-    }
-
-    ~FrameTrackerToken()
-    {
-    }
-
-    bool IsExpired();
-
-    void Merge(const FrameTrackerToken *token);
-
-    inline void Merge(uint32_t index, uint32_t tracker) {m_holdTrackers[index] = tracker; }
-
-    inline void SetProducer(FrameTrackerProducer *producer)
-    {
-        m_producer = producer;
-    }
-
-    inline void Clear() {m_holdTrackers.clear(); }
-
-protected:
-    FrameTrackerProducer *m_producer;
-    std::map<uint32_t, uint32_t> m_holdTrackers;
-};
-
 class FrameTrackerProducer
 {
 public:
@@ -181,5 +151,52 @@ protected:
     MOS_INTERFACE *m_osInterface;
 };
 
+class FrameTrackerToken
+{
+public:
+    FrameTrackerToken():
+        m_producer(nullptr)
+    {
+    }
+
+    ~FrameTrackerToken()
+    {
+    }
+
+    bool IsExpired()
+    {
+        if (m_producer == nullptr)
+        {
+            return true;
+        }
+
+        for (auto ite = m_holdTrackers.begin(); ite != m_holdTrackers.end(); ite ++)
+        {
+            uint32_t index = ite->first;
+            volatile uint32_t latestTracker = *(m_producer->GetLatestTrackerAddress(index));
+            uint32_t holdTracker = ite->second;
+            if ((int)(holdTracker - latestTracker) > 0)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    void Merge(const FrameTrackerToken *token);
+
+    inline void Merge(uint32_t index, uint32_t tracker) {m_holdTrackers[index] = tracker; }
+
+    inline void SetProducer(FrameTrackerProducer *producer)
+    {
+        m_producer = producer;
+    }
+
+    inline void Clear() {m_holdTrackers.clear(); }
+
+protected:
+    FrameTrackerProducer *m_producer;
+    std::map<uint32_t, uint32_t> m_holdTrackers;
+};
 
 #endif // __FRAME_TRACKER_H__

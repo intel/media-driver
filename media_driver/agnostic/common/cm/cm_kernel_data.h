@@ -47,7 +47,7 @@ public:
     uint32_t Acquire(void);
     uint32_t SafeRelease(void);
 
-    PCM_HAL_KERNEL_PARAM GetHalCmKernelData( );
+    virtual PCM_HAL_KERNEL_PARAM GetHalCmKernelData( );
     bool IsInUse( void );
     uint32_t GetKernelCurbeSize( void );
     int32_t ResetStatus( void );

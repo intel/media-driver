@@ -41,7 +41,7 @@ public:
     static int32_t Destroy( CmThreadGroupSpace* &threadGroupSpace );
 
     int32_t GetThreadGroupSpaceSize(uint32_t & threadSpaceWidth, uint32_t & threadSpaceHeight, uint32_t & threadSpaceDepth, uint32_t & groupSpaceWidth, uint32_t & groupSpaceHeight, uint32_t &groupSpaceDepth) const;
-    uint32_t GetIndexInTGsArray();
+    virtual uint32_t GetIndexInTGsArray();
 
 #if CM_LOG_ON
     std::string Log();

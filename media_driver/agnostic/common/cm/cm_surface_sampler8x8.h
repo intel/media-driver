@@ -41,7 +41,7 @@ public:
         CM_SURFACE_ADDRESS_CONTROL_MODE mode,
         CM_FLAG* flag);
 
-    int32_t GetIndex(SurfaceIndex*& index);
+    virtual int32_t GetIndex(SurfaceIndex*& index);
     int32_t GetIndexCurrent( uint32_t& index );
     int32_t GetCmIndex( uint16_t & index );
     CM_SAMPLER8x8_SURFACE GetSampler8x8SurfaceType();

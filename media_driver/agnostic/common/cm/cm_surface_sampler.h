@@ -42,7 +42,7 @@ class CmSurfaceSampler : public CmSurface
 {
 public:
     static int32_t Create(uint32_t index, uint32_t handleFor2D3D, uint32_t indexForCurrent, SAMPLER_SURFACE_TYPE surfaceType, CmSurfaceManager* surfaceManager, CmSurfaceSampler* &surfaceSampler, CM_FLAG* flag);
-    int32_t GetSurfaceIndex(SurfaceIndex*& index);
+    virtual int32_t GetSurfaceIndex(SurfaceIndex*& index);
     int32_t GetHandle( uint32_t& handle );
     int32_t GetSurfaceType(SAMPLER_SURFACE_TYPE& type);
     int32_t GetCmIndexCurrent( uint16_t & index ) ;

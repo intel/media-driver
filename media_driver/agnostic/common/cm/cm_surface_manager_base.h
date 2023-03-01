@@ -52,7 +52,7 @@ class CmKernelRT;
 class CmSurfaceManagerBase
 {
 public:
-    int32_t CreateSurface2D(uint32_t width, uint32_t height, uint32_t pitch,
+    virtual int32_t CreateSurface2D(uint32_t width, uint32_t height, uint32_t pitch,
                             bool bIsCmCreated, CM_SURFACE_FORMAT format,
                             CmSurface2DRT* & pSurface);
     int32_t CreateBuffer(size_t size, CM_BUFFER_TYPE type,

@@ -106,7 +106,7 @@ class CmSurfaceStateBufferMgr
 public:
     CmSurfaceStateBufferMgr(CM_HAL_STATE *cmhal, MOS_RESOURCE *resource);
     ~CmSurfaceStateBufferMgr();
-    CmSurfaceState* GetSurfaceState(CM_HAL_BUFFER_SURFACE_STATE_ENTRY *param = nullptr);
+    virtual CmSurfaceState* GetSurfaceState(CM_HAL_BUFFER_SURFACE_STATE_ENTRY *param = nullptr);
     inline void SetOrigSize(uint32_t size) {m_origSize = size; }
     inline void SetMemoryObjectControl(uint16_t moc) {UPDATE_IF_DIFFERENT(m_defaultMoc, moc); }
 protected:

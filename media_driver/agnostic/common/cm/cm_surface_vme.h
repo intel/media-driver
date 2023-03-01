@@ -59,7 +59,7 @@ public:
         CmSurfaceManager* surfaceManager,
         CmSurfaceVme* &surface );
 
-    int32_t GetIndex(SurfaceIndex*& index);
+    virtual int32_t GetIndex(SurfaceIndex*& index);
     int32_t GetIndexCurrent( uint32_t& index );
     int32_t GetIndexForward( uint32_t& index );
     int32_t GetIndexBackward( uint32_t& index );
@@ -75,7 +75,7 @@ public:
     int32_t GetCmIndexBackwardArray( uint32_t*& index );
 
     int32_t GetSurfaceStateResolution(uint32_t& width, uint32_t& height);
-    int32_t SetSurfaceStateResolution(uint32_t width, uint32_t height);
+    virtual int32_t SetSurfaceStateResolution(uint32_t width, uint32_t height);
 
     bool IsVmeSurfaceGen7_5();
 

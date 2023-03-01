@@ -52,26 +52,6 @@ bool FrameTrackerTokenFlat_IsExpired(const FrameTrackerTokenFlat *self)
     return true;
 }
 
-bool FrameTrackerToken::IsExpired()
-{
-    if (m_producer == nullptr)
-    {
-        return true;
-    }
-
-    for (auto ite = m_holdTrackers.begin(); ite != m_holdTrackers.end(); ite ++)
-    {
-        uint32_t index = ite->first;
-        volatile uint32_t latestTracker = *(m_producer->GetLatestTrackerAddress(index));
-        uint32_t holdTracker = ite->second;
-        if ((int)(holdTracker - latestTracker) > 0)
-        {
-            return false;
-        }
-    }
-    return true;
-}
-
 void FrameTrackerToken::Merge(const FrameTrackerToken *token)
 {
     m_producer = token->m_producer;

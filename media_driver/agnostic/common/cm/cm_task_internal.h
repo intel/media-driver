@@ -100,9 +100,9 @@ public:
                            uint32_t numGeneratedTasks, bool isLastTask, uint32_t hints,
                            CmDeviceRT* device);
 
-    int32_t GetKernelCount( uint32_t& count );
-    int32_t GetKernel( const uint32_t index, CmKernelRT* & kernel );
-    int32_t GetKernelData( const uint32_t index, CmKernelData* & kernelData );
+    virtual int32_t GetKernelCount( uint32_t& count );
+    virtual int32_t GetKernel( const uint32_t index, CmKernelRT* & kernel );
+    virtual int32_t GetKernelData( const uint32_t index, CmKernelData* & kernelData );
     int32_t GetKernelDataSize( const uint32_t index, uint32_t & size );
     uint32_t GetKernelCurbeOffset( const uint32_t index );
     int32_t GetTotalThreadCount( uint32_t& totalThreadCount );

@@ -216,9 +216,9 @@ public:
 
     uint32_t GetAlignedCurbeSize(uint32_t value);
 
-    int32_t GetCmDevice(CmDeviceRT *&);
+    virtual int32_t GetCmDevice(CmDeviceRT *&);
 
-    int32_t GetCmProgram(CmProgramRT *&);
+    virtual int32_t GetCmProgram(CmProgramRT *&);
 
     int32_t GetSizeInPayload(uint32_t &size);
 
@@ -230,7 +230,7 @@ public:
                              uint32_t &kernelDataSize,
                              const CmThreadGroupSpace *threadGroupSpace);
 
-    char *GetName();
+    virtual char *GetName();
 
     int32_t SetIndexInTask(uint32_t index);
 
@@ -240,7 +240,7 @@ public:
 
     bool IsThreadArgExisted();
 
-    uint32_t GetKernelIndex();
+    virtual uint32_t GetKernelIndex();
 
     int32_t GetThreadSpace(CmThreadSpaceRT *&threadSpace)
     {
@@ -285,7 +285,7 @@ public:
 
     int32_t AcquireKernelData(CmKernelData *&kernelData);
 
-    int32_t CloneKernel(CmKernelRT *&kernelOut, uint32_t id);
+    virtual int32_t CloneKernel(CmKernelRT*& kernelOut, uint32_t id);
 
     void SetAsClonedKernel(uint32_t cloneKernelID);
 

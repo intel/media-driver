@@ -208,7 +208,7 @@ public:
                                         const uint32_t option,
                                         CmEvent *&event);
 
-    int32_t EnqueueCopyInternal(CmSurface2DRT *surface,
+    virtual int32_t EnqueueCopyInternal(CmSurface2DRT *surface,
                                 unsigned char *sysMem,
                                 const uint32_t widthStride,
                                 const uint32_t heightStride,
@@ -226,14 +226,14 @@ public:
 
     int32_t GetTaskCount(uint32_t &numTasks);
 
-    int32_t TouchFlushedTasks();
+    virtual int32_t TouchFlushedTasks();
 
     int32_t GetTaskHasThreadArg(CmKernelRT *kernelArray[],
                                 uint32_t numKernels,
                                 bool &threadArgExists);
-    int32_t CleanQueue();
+    virtual int32_t CleanQueue();
 
-    CM_QUEUE_CREATE_OPTION &GetQueueOption();
+    virtual CM_QUEUE_CREATE_OPTION &GetQueueOption();
 
     int32_t GetOSSyncEventHandle(void *& hOSSyncEvent);
 
@@ -243,7 +243,7 @@ public:
 
     GPU_CONTEXT_HANDLE GpuContextHandle() { return m_gpuContextHandle; };
 
-    int32_t EnqueueBufferCopy(  CmBuffer* buffer,
+    virtual int32_t EnqueueBufferCopy(  CmBuffer* buffer,
                                 size_t   offset,
                                 const unsigned char* sysMem,
                                 uint64_t sysMemSize,

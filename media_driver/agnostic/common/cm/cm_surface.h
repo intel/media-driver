@@ -43,7 +43,7 @@ public:
     bool IsCmCreated( void ){ return m_isCmCreated; }
     virtual CM_ENUM_CLASS_TYPE Type() const = 0;
     int32_t TouchDeviceQueue();
-    int32_t WaitForReferenceFree();
+    virtual int32_t WaitForReferenceFree();
     int32_t SetMemoryObjectControl(MEMORY_OBJECT_CONTROL memCtrl, MEMORY_TYPE memType, uint32_t age);
     int32_t SetResourceUsage(MOS_HW_RESOURCE_DEF mosUsage);
 

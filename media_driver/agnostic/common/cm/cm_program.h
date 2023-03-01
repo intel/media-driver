@@ -183,8 +183,8 @@ public:
     static int32_t Destroy( CmProgramRT* &program );
 
     int32_t GetCommonISACode( void* & commonISACode, uint32_t & size );
-    int32_t GetKernelCount( uint32_t& kernelCount );
-    int32_t GetKernelInfo( uint32_t index, CM_KERNEL_INFO*& kernelInfo );
+    virtual int32_t GetKernelCount( uint32_t& kernelCount );
+    virtual int32_t GetKernelInfo( uint32_t index, CM_KERNEL_INFO*& kernelInfo );
     int32_t GetIsaFileName( char* & kernelName );
     int32_t GetKernelOptions( char* & kernelOptions );
 
@@ -203,7 +203,7 @@ public:
     int32_t Acquire( void);
     int32_t SafeRelease( void);
 
-    uint32_t GetProgramIndex();
+    virtual uint32_t GetProgramIndex();
 
     uint32_t GetKernelStartIndex()
     {

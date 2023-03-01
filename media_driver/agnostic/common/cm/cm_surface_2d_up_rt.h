@@ -46,7 +46,7 @@ public:
 
     CM_RT_API int32_t GetIndex(SurfaceIndex* &index);
 
-    int32_t GetHandle(uint32_t &handle);
+    virtual int32_t GetHandle(uint32_t &handle);
 
     //NOT depend on RTTI::dynamic_cast
     CM_ENUM_CLASS_TYPE Type() const
@@ -56,7 +56,7 @@ public:
                                    MEMORY_TYPE memType,
                                    uint32_t age);
 
-    CM_RT_API int32_t GetSurfaceDesc(uint32_t &width,
+    CM_RT_API virtual int32_t GetSurfaceDesc(uint32_t &width,
                                      uint32_t &height,
                                      CM_SURFACE_FORMAT &format,
                                      uint32_t &sizeperpixel);

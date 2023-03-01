@@ -63,7 +63,7 @@ public:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS AcquireSpace(
+    virtual MOS_STATUS AcquireSpace(
         MemoryBlockManager::AcquireParams &params,
         std::vector<MemoryBlock> &blocks,
         uint32_t &spaceNeeded);
@@ -75,7 +75,7 @@ public:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS SubmitBlocks(std::vector<MemoryBlock> &blocks)
+    virtual MOS_STATUS SubmitBlocks(std::vector<MemoryBlock> &blocks)
     {
         return m_blockManager.SubmitBlocks(blocks);
     }
@@ -100,7 +100,7 @@ public:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS RegisterTrackerResource(uint32_t *trackerData);
+    virtual MOS_STATUS RegisterTrackerResource(uint32_t *trackerData);
 
     //!
     //! \brief  Registers the tracker producer to be used for determining whether a
@@ -136,7 +136,7 @@ public:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS SetInitialHeapSize(uint32_t size);
+    virtual MOS_STATUS SetInitialHeapSize(uint32_t size);
 
     //!
     //! \brief  Updates the extend heap size when the behavior is not to wait. \see m_behavior \see Behavior::wait
@@ -154,7 +154,7 @@ public:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!  
-    MOS_STATUS RegisterOsInterface(PMOS_INTERFACE osInterface);
+    virtual MOS_STATUS RegisterOsInterface(PMOS_INTERFACE osInterface);
 
     //!
     //! \brief  Indicates the total size of all managed heaps

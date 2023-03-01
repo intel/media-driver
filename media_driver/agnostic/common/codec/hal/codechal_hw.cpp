@@ -66,6 +66,16 @@ CodechalHwInterface::CodechalHwInterface(
     MOS_ZeroMemory(&m_conditionalBbEndDummy, sizeof(m_conditionalBbEndDummy));
 }
 
+CodechalHwInterface *CodechalHwInterface::Create(
+    PMOS_INTERFACE    osInterface,
+    CODECHAL_FUNCTION codecFunction,
+    MhwInterfaces     *mhwInterfaces,
+    bool              disableScalability)
+{
+    return MOS_New(CodechalHwInterface,
+        osInterface, codecFunction, mhwInterfaces, disableScalability);
+}
+
 MOS_STATUS CodechalHwInterface::SetCacheabilitySettings(
     MHW_MEMORY_OBJECT_CONTROL_PARAMS cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_END_CODEC])
 {

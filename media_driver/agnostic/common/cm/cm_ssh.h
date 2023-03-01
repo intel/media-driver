@@ -41,7 +41,7 @@ public:
 
     int GetBindingTableOffset(int btIndex = -1);
 
-    int AddSurfaceState(CmSurfaceState *surfState, int bteIndex = -1, int btIndex = -1);
+    virtual int AddSurfaceState(CmSurfaceState *surfState, int bteIndex = -1, int btIndex = -1);
 
     int AddScratchSpace(CmScratchSpace *scratch);
 

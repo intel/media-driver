@@ -76,7 +76,7 @@ public:
 
     CM_RT_API int32_t GetIndex(SurfaceIndex *&index);
 
-    int32_t GetHandle(uint32_t &handle);
+    virtual int32_t GetHandle(uint32_t &handle);
 
     //NOT depend on RTTI::dynamic_cast
     CM_RT_API CM_ENUM_CLASS_TYPE Type() const
@@ -102,7 +102,7 @@ public:
 
     CM_RT_API int32_t GetSysAddress(void* &sysAddr);
 
-    int32_t UpdateResource(MOS_RESOURCE *resource);
+    virtual int32_t UpdateResource(MOS_RESOURCE *resource);
 
     size_t GetSize() { return m_size; }
 
@@ -112,7 +112,7 @@ public:
 
     bool IsSVMSurface();
 
-    bool IsCMRTAllocatedSVMBuffer();
+    virtual bool IsCMRTAllocatedSVMBuffer();
 
     bool IsConditionalSurface();
 
@@ -122,9 +122,9 @@ public:
 
     uint32_t GetBufferType() { return m_bufferType; }
 
-    int32_t CreateBufferAlias(SurfaceIndex *&aliasSurfIndex);
+    virtual int32_t CreateBufferAlias(SurfaceIndex *&aliasSurfIndex);
 
-    int32_t GetNumAliases(uint32_t &numAliases);
+    virtual int32_t GetNumAliases(uint32_t &numAliases);
 
     void Log(std::ostringstream &oss);
 
@@ -134,7 +134,7 @@ public:
                      uint32_t argIndex,
                      uint32_t vectorIndex);
 
-    int32_t UpdateProperty(uint32_t size);
+    virtual int32_t UpdateProperty(uint32_t size);
 
 protected:
     CmBuffer_RT(uint32_t handle,

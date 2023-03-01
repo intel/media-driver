@@ -97,6 +97,19 @@ CodechalHwInterfaceNext::~CodechalHwInterfaceNext()
     }
 }
 
+CodechalHwInterfaceNext* CodechalHwInterfaceNext::Create(
+    PMOS_INTERFACE     osInterface,
+    CODECHAL_FUNCTION  codecFunction,
+    MhwInterfacesNext* mhwInterfacesNext,
+    bool               disableScalability)
+{
+    return MOS_New(CodechalHwInterfaceNext,
+        osInterface,
+        codecFunction,
+        mhwInterfacesNext,
+        disableScalability);
+}
+
 MOS_STATUS CodechalHwInterfaceNext::Initialize(
     CodechalSetting *settings)
 {

@@ -65,11 +65,11 @@ public:
 
     CM_RT_API int32_t AddKernelWithConfig(CmKernel *kernel, const CM_EXECUTION_CONFIG *config);
 
-    uint32_t GetKernelCount();
+    virtual uint32_t GetKernelCount();
 
-    CmKernelRT *GetKernelPointer(uint32_t index);
+    virtual CmKernelRT *GetKernelPointer(uint32_t index);
 
-    uint32_t GetIndexInTaskArray();
+    virtual uint32_t GetIndexInTaskArray();
 
     bool IntegrityCheckKernelThreadspace();
 

@@ -167,7 +167,7 @@ public:
 
     bool IsDependencySet();
 
-    uint32_t GetIndexInTsArray();
+    virtual uint32_t GetIndexInTsArray();
 
     CM_THREAD_SPACE_DIRTY_STATUS GetDirtyStatus() const;
 

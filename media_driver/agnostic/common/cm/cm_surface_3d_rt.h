@@ -56,9 +56,9 @@ public:
 
     CM_RT_API int32_t GetIndex(SurfaceIndex* &index);
 
-    int32_t GetHandle(uint32_t &handle);
+    virtual int32_t GetHandle(uint32_t &handle);
 
-    int32_t GetProperties(uint32_t &width,
+    virtual int32_t GetProperties(uint32_t &width,
                           uint32_t &height,
                           uint32_t &depth,
                           CM_SURFACE_FORMAT &format);

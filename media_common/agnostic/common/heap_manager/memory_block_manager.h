@@ -88,7 +88,7 @@ protected:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS AcquireSpace(
+    virtual MOS_STATUS AcquireSpace(
         AcquireParams &params,
         std::vector<MemoryBlock> &blocks,
         uint32_t &spaceNeeded);
@@ -100,7 +100,7 @@ protected:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS SubmitBlocks(std::vector<MemoryBlock> &blocks);
+    virtual MOS_STATUS SubmitBlocks(std::vector<MemoryBlock> &blocks);
 
     //!
     //! \brief   Either directly adds a block to the free list, or prepares it to be added
@@ -109,7 +109,7 @@ protected:
     //! \return  MOS_STATUS
     //!          MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS ClearSpace(MemoryBlock &block);
+    virtual MOS_STATUS ClearSpace(MemoryBlock &block);
 
     //! \brief   Reclaims free memory based on whether or not blocks are no longer in use \see m_trackerData
     //! \param   [out] blocksUpdated
@@ -117,7 +117,7 @@ protected:
     //! \return  MOS_STATUS
     //!          MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS RefreshBlockStates(bool &blocksUpdated);
+    virtual MOS_STATUS RefreshBlockStates(bool &blocksUpdated);
 
     //!
     //! \brief  Stores heap and initializes memory blocks for future use.
@@ -128,7 +128,7 @@ protected:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS RegisterHeap(uint32_t heapId, uint32_t size, bool hwWriteOnly = false);
+    virtual MOS_STATUS RegisterHeap(uint32_t heapId, uint32_t size, bool hwWriteOnly = false);
 
     //!
     //! \brief  Removes the specified heap from the block manager, this occurs when the
@@ -136,7 +136,7 @@ protected:
     //! \param  [in] heapId
     //!         ID for heap to be removed.
     //!
-    MOS_STATUS UnregisterHeap(uint32_t heapId);
+    virtual MOS_STATUS UnregisterHeap(uint32_t heapId);
 
     //!
     //! \brief  Completes heap deletion for all heaps with unused space in the deleted heaps list.
@@ -153,7 +153,7 @@ protected:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS RegisterTrackerResource(uint32_t *trackerData);
+    virtual MOS_STATUS RegisterTrackerResource(uint32_t *trackerData);
 
     //!
     //! \brief  Registers the tracker producer to be used for determining whether a
@@ -165,7 +165,7 @@ protected:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS RegisterTrackerProducer(FrameTrackerProducer *trackerProducer);
+    virtual MOS_STATUS RegisterTrackerProducer(FrameTrackerProducer *trackerProducer);
 
     //!
     //! \brief  Gets the size of the all heaps
@@ -240,7 +240,7 @@ private:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!  
-    MOS_STATUS RegisterOsInterface(PMOS_INTERFACE osInterface);
+    virtual MOS_STATUS RegisterOsInterface(PMOS_INTERFACE osInterface);
 
     //!
     //! \brief  Determines whether or not space is available, if not enough space returns

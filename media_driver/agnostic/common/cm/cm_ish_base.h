@@ -38,7 +38,7 @@ class CmISHBase
 public:
     MOS_STATUS Initialize(CM_HAL_STATE *cmhal, FrameTrackerProducer *trackerProducer);
 
-    MOS_STATUS LoadKernels(CmKernelEx **kernels, int count);
+    virtual MOS_STATUS LoadKernels(CmKernelEx **kernels, int count);
 
     inline MOS_RESOURCE* GetResource() {return m_resource; }
 
@@ -50,7 +50,7 @@ public:
 
     inline uint32_t GetSipKernelOffset() {return m_sipKernelOffset; }
 
-    void Clean();
+    virtual void Clean();
 
     // SIP kernels
     bool m_isSipKernelLoaded;

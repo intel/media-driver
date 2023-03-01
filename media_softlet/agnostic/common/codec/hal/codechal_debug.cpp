@@ -472,6 +472,11 @@ CodechalDebugInterface::~CodechalDebugInterface()
     MediaDebugFastDump::DestroyInstance();
 }
 
+CodechalDebugInterface* CodechalDebugInterface::Create()
+{
+    return MOS_New(CodechalDebugInterface);
+}
+
 void CodechalDebugInterface::CheckGoldenReferenceExist()
 {
     std::ifstream crcGoldenRefStream(m_crcGoldenRefFileName);

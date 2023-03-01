@@ -226,7 +226,7 @@ public:
 
     int32_t GetSurface(uint32_t surfUsage, CmSurface2DRT *&surface);
 
-    uint32_t GetIndexInVeboxArray();
+    virtual uint32_t GetIndexInVeboxArray();
 
     CM_VEBOX_STATE GetState();
 
