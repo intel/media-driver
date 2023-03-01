@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022, Intel Corporation
+* Copyright (c) 2022-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -235,6 +235,8 @@ MOS_STATUS HevcDecodePkt::StartStatusReport(uint32_t srType, MOS_COMMAND_BUFFER*
     DECODE_CHK_NULL(cmdBuffer);
     DECODE_CHK_STATUS(MediaPacket::StartStatusReportNext(srType, cmdBuffer));
 
+    SetPerfTag(CODECHAL_DECODE_MODE_HEVCVLD, m_hevcBasicFeature->m_pictureCodingType);
+
     MediaPerfProfiler *perfProfiler = MediaPerfProfiler::Instance();
     DECODE_CHK_NULL(perfProfiler);
     DECODE_CHK_STATUS(perfProfiler->AddPerfCollectStartCmd((void*)m_hevcPipeline, m_osInterface, m_miItf, cmdBuffer));
@@ -248,8 +250,6 @@ MOS_STATUS HevcDecodePkt::EndStatusReport(uint32_t srType, MOS_COMMAND_BUFFER* c
     DECODE_CHK_NULL(cmdBuffer);
     DECODE_CHK_STATUS(ReadHcpStatus(m_statusReport, *cmdBuffer));
     DECODE_CHK_STATUS(MediaPacket::EndStatusReportNext(srType, cmdBuffer));
-
-    SetPerfTag(CODECHAL_DECODE_MODE_HEVCVLD, m_hevcBasicFeature->m_pictureCodingType);
 
     MediaPerfProfiler *perfProfiler = MediaPerfProfiler::Instance();
     DECODE_CHK_NULL(perfProfiler);

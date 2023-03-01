@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022, Intel Corporation
+* Copyright (c) 2022-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -259,6 +259,8 @@ MOS_STATUS Vp9DecodePkt::StartStatusReport(uint32_t srType, MOS_COMMAND_BUFFER* 
     DECODE_CHK_NULL(cmdBuffer);
     DECODE_CHK_STATUS(MediaPacket::StartStatusReportNext(srType, cmdBuffer));
 
+    SetPerfTag(CODECHAL_DECODE_MODE_VP9VLD, m_vp9BasicFeature->m_pictureCodingType);
+
     MediaPerfProfiler *perfProfiler = MediaPerfProfiler::Instance();
     DECODE_CHK_NULL(perfProfiler);
     DECODE_CHK_STATUS(perfProfiler->AddPerfCollectStartCmd(
@@ -274,7 +276,6 @@ MOS_STATUS Vp9DecodePkt::EndStatusReport(uint32_t srType, MOS_COMMAND_BUFFER* cm
     DECODE_CHK_STATUS(ReadHcpStatus(m_statusReport, *cmdBuffer));
     DECODE_CHK_STATUS(MediaPacket::EndStatusReportNext(srType, cmdBuffer));
 
-    SetPerfTag(CODECHAL_DECODE_MODE_VP9VLD, m_vp9BasicFeature->m_pictureCodingType);
     MediaPerfProfiler *perfProfiler = MediaPerfProfiler::Instance();
     DECODE_CHK_NULL(perfProfiler);
     DECODE_CHK_STATUS(perfProfiler->AddPerfCollectEndCmd(
