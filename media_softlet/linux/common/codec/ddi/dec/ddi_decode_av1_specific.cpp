@@ -226,7 +226,10 @@ VAStatus DdiDecodeAv1::ParsePicParams(
         if (picParam->ref_frame_map[i] < mediaCtx->uiNumSurfaces)
         {
             frameIdx = GetRenderTargetID(&m_decodeCtx->RTtbl, refSurface);
-            if (frameIdx == DDI_CODEC_INVALID_FRAME_INDEX) {
+            if ((frameIdx == DDI_CODEC_INVALID_FRAME_INDEX) &&
+                (picParam->pic_info_fields.bits.frame_type != keyFrame) &&
+                (picParam->pic_info_fields.bits.frame_type != intraOnlyFrame))
+            {
                 return VA_STATUS_ERROR_INVALID_PARAMETER;
             }
             picAV1Params->m_refFrameMap[i].FrameIdx = ((uint32_t)frameIdx >= CODECHAL_NUM_UNCOMPRESSED_SURFACE_AV1) ?
