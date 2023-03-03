@@ -7215,6 +7215,8 @@ VAStatus DdiMedia_ExportSurfaceHandle(
     desc->fourcc = DdiMedia_MediaFormatToOsFormat(mediaSurface->format);
     if(desc->fourcc == VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT)
     {
+        // close the handle to avoid leak
+        close(mediaSurface->name);
         return VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT;
     }
     desc->width           = mediaSurface->iWidth;
@@ -7227,9 +7229,10 @@ VAStatus DdiMedia_ExportSurfaceHandle(
 
     if(VA_STATUS_SUCCESS != mediaCtx->m_caps->GetSurfaceModifier(mediaSurface, desc->objects[0].drm_format_modifier))
     {
+        close(mediaSurface->name);
         DDI_ASSERTMESSAGE("could not find related modifier values");
         return VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT;
-    }    
+    }
 
     int composite_object = flags & VA_EXPORT_SURFACE_COMPOSED_LAYERS;
 
@@ -7259,6 +7262,7 @@ VAStatus DdiMedia_ExportSurfaceHandle(
         formats[0] = DdiMedia_GetDrmFormatOfCompositeObject(desc->fourcc);
         if(!formats[0])
         {
+            close(mediaSurface->name);
             DDI_ASSERTMESSAGE("vaExportSurfaceHandle: fourcc %08x is not supported for export as a composite object.\n", desc->fourcc);
             return VA_STATUS_ERROR_INVALID_SURFACE;
         }
@@ -7270,6 +7274,7 @@ VAStatus DdiMedia_ExportSurfaceHandle(
             formats[i] = DdiMedia_GetDrmFormatOfSeparatePlane(desc->fourcc,i);
             if (!formats[i])
             {
+                close(mediaSurface->name);
                 DDI_ASSERTMESSAGE("vaExportSurfaceHandle: fourcc %08x is not supported for export as separate planes.\n", desc->fourcc);
                 return VA_STATUS_ERROR_INVALID_SURFACE;
             }
