@@ -368,6 +368,12 @@ private:
     bool m_ocaLogSectionSupported = true;
     // bool m_ocaSizeIncreaseDone = false;
 
+    //! \brief Recreate GEM Context
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise error code
+    //!
+    MOS_STATUS RecreateContext(bool bIsProtected, MOS_STREAM_HANDLE streamState);
+
 #if (_DEBUG || _RELEASE_INTERNAL)
     /*!\brief bits(23...16), (15...8), (7...0) are for Compute, VEbox and VDbox ;
     single or multi engine instance can be selected at same time(0x10103 to select Compute1, VE1, VD1&VD2 for example)*/

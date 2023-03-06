@@ -91,6 +91,11 @@ public:
         return false;
     }
 
+    virtual void RegisterAndCheckProtectedGemCtx(bool bRegister, void *identifier, bool *bIsStale)
+    {
+        OsStubMessage();
+    }
+
     virtual void SetCpEnabled(bool bIsCpEnabled)
     {
         OsStubMessage();
@@ -244,5 +249,4 @@ MosCpInterface* Create_MosCpInterface(void* pvOsInterface);
 //!           MosCpInterface
 //!
 void Delete_MosCpInterface(MosCpInterface* pMosCpInterface);
-
 #endif  // __MOS_OS_CP_SPECIFIC_H__

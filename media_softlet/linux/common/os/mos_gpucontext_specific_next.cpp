@@ -96,6 +96,25 @@ GpuContextSpecificNext::~GpuContextSpecificNext()
     Clear();
 }
 
+MOS_STATUS GpuContextSpecificNext::RecreateContext(bool bIsProtected, MOS_STREAM_HANDLE streamState)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+    // clear existing context
+    Clear();
+    m_bProtectedContext = bIsProtected;
+    PMOS_GPUCTX_CREATOPTIONS createOption;
+    if (m_bEnhancedUsed)
+    {
+        createOption = &m_createOptionEnhanced;
+    }
+    else
+    {
+        createOption = &m_createOption;
+    }
+    eStatus = Init(m_osContext, streamState, createOption);
+    return eStatus;
+}
+
 MOS_STATUS GpuContextSpecificNext::PatchGPUContextProtection(MOS_STREAM_HANDLE streamState)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
@@ -112,18 +131,31 @@ MOS_STATUS GpuContextSpecificNext::PatchGPUContextProtection(MOS_STREAM_HANDLE s
                 if (m_bProtectedContext == false)    // Check if GEM context is already protected or not
                 {
                     // Context is not protected, recreate it as protected
-                    Clear();
-                    m_bProtectedContext = true;
-                    PMOS_GPUCTX_CREATOPTIONS createOption;
-                    if (m_bEnhancedUsed)
+                    eStatus = RecreateContext(true, streamState);
+                    if (eStatus == MOS_STATUS_SUCCESS)
                     {
-                        createOption = &m_createOptionEnhanced;
+                        //Register Protected Context
+                        streamState->osCpInterface->RegisterAndCheckProtectedGemCtx(true, (void*)this, nullptr);
                     }
-                    else
+                }
+                //If m_bProtectedContext == true then check if is stale context or not.
+                //If it is stale protected context then recreate another one
+                else
+                {
+                    bool bIsContextStale = false;
+                    //Check protected context
+                    streamState->osCpInterface->RegisterAndCheckProtectedGemCtx(false, (void*)this, &bIsContextStale);
+
+                    //Recreate protected context
+                    if (bIsContextStale)
                     {
-                        createOption = &m_createOption;
+                        eStatus = RecreateContext(true, streamState);
+                        if (eStatus == MOS_STATUS_SUCCESS)
+                        {
+                            //Register Protected Context
+                            streamState->osCpInterface->RegisterAndCheckProtectedGemCtx(true, (void*)this, nullptr);
+                        }
                     }
-                    eStatus = Init(m_osContext, streamState, createOption);
                 }
             }
             else
@@ -145,18 +177,7 @@ MOS_STATUS GpuContextSpecificNext::PatchGPUContextProtection(MOS_STREAM_HANDLE s
         m_bProtectedContext == true)    // Check if GEM context is protected or not
         {
             // Context is protected, recreate it as clear
-            Clear();
-            m_bProtectedContext = false;
-            PMOS_GPUCTX_CREATOPTIONS createOption;
-            if (m_bEnhancedUsed)
-            {
-                createOption = &m_createOptionEnhanced;
-            }
-            else
-            {
-                createOption = &m_createOption;
-            }
-            eStatus = Init(m_osContext, streamState, createOption);
+            eStatus = RecreateContext(false, streamState);
         }
 
     return eStatus;
