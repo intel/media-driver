@@ -158,7 +158,7 @@ public:
 
     void DumpContentToFile(const char *filename);
 
-    int32_t UpdateSurfaceProperty(uint32_t width, uint32_t height, uint32_t pitch, CM_SURFACE_FORMAT format);
+    virtual int32_t UpdateSurfaceProperty(uint32_t width, uint32_t height, uint32_t pitch, CM_SURFACE_FORMAT format);
 
 protected:
     CmSurface2DRTBase(unsigned int handle,
