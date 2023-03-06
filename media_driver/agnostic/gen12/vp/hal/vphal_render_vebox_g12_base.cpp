@@ -1529,7 +1529,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::SetupDiIecpState(
     pVeboxDiIecpCmdParams->pOsResStatisticsOutput         = &pVeboxState->VeboxStatisticsSurface.OsResource;
     pVeboxDiIecpCmdParams->StatisticsOutputSurfCtrl.Value = pVeboxState->DnDiSurfMemObjCtl.StatisticsOutputSurfMemObjCtl;
 
-    if (pRenderData->bHdr3DLut)
+    if (!Mos_ResourceIsNull(&pVeboxState->VeboxRGBHistogram.OsResource))
     {
         VPHAL_RENDER_CHK_STATUS(pOsInterface->pfnRegisterResource(
             pOsInterface,
@@ -1538,6 +1538,8 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::SetupDiIecpState(
             true));
 
         pVeboxDiIecpCmdParams->pOsResLaceOrAceOrRgbHistogram = &pVeboxState->VeboxRGBHistogram.OsResource;
+        pVeboxDiIecpCmdParams->LaceOrAceOrRgbHistogramSurfCtrl.Value =
+            pVeboxState->DnDiSurfMemObjCtl.LaceOrAceOrRgbHistogramSurfCtrl;
     }
 
 finish:
