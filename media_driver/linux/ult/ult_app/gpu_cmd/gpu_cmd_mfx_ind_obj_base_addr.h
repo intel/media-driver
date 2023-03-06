@@ -25,7 +25,9 @@
 #include "gpu_cmd.h"
 #include "mhw_vdbox_mfx_hwcmd_g9_bxt.h"
 #include "mhw_vdbox_mfx_hwcmd_g9_skl.h"
+#ifdef IGFX_GEN10_SUPPORTED
 #include "mhw_vdbox_mfx_hwcmd_g10_X.h"
+#endif // IGFX_GEN10_SUPPORTED
 
 template<typename _CmdType>
 class GpuCmdMfxIndObjBaseAddr : public GpuCmd<_CmdType>
@@ -77,6 +79,7 @@ protected:
     void InitCachePolicy();
 };
 
+#ifdef IGFX_GEN10_SUPPORTED
 class GpuCmdMfxIndObjBaseAddrG10 : public GpuCmdMfxIndObjBaseAddr<mhw_vdbox_mfx_g10_X::MFX_IND_OBJ_BASE_ADDR_STATE_CMD>
 {
 public:
@@ -90,5 +93,6 @@ protected:
 
     void InitCachePolicy();
 };
+#endif // IGFX_GEN10_SUPPORTED
 
 #endif // __GPU_CMD_MFX_IND_OBJ_BASE_ADDR_H__

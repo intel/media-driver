@@ -21,6 +21,7 @@
 */
 #include "gpu_cmd_hcp_pipe_buf_addr.h"
 
+#ifdef IGFX_GEN10_SUPPORTED
 void GpuCmdHcpPipeBufAddrG10::InitCachePolicy()
 {
     m_pCmd->DecodedPictureMemoryAddressAttributes.DW0.Value                             |= 8;
@@ -48,3 +49,4 @@ void GpuCmdHcpPipeBufAddrG10::InitCachePolicy()
     m_pCmd->FrameStatisticsStreamoutDataDestinationBufferAttributesReadWrite.DW0.Value  |= 8;
     m_pCmd->SseSourcePixelRowstoreBufferAttributesReadWrite.DW0.Value                   |= 6;
 }
+#endif // IGFX_GEN10_SUPPORTED

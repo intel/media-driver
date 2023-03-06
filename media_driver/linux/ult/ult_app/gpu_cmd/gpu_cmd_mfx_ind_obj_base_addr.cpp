@@ -37,6 +37,7 @@ void GpuCmdMfxIndObjBaseAddrG9Skl::InitCachePolicy()
     m_pCmd->DW23.Value |= 2;
 }
 
+#ifdef IGFX_GEN10_SUPPORTED
 void GpuCmdMfxIndObjBaseAddrG10::InitCachePolicy()
 {
     m_pCmd->DW3.Value  |= 8;
@@ -44,3 +45,4 @@ void GpuCmdMfxIndObjBaseAddrG10::InitCachePolicy()
     m_pCmd->DW13.Value |= 8;
     m_pCmd->DW23.Value |= 8;
 }
+#endif // IGFX_GEN10_SUPPORTED

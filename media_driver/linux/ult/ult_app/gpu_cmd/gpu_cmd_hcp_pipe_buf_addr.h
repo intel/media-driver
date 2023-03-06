@@ -23,7 +23,9 @@
 #define __GPU_CMD_HCP_PIPE_BUF_ADDR_H__
 
 #include "gpu_cmd.h"
+#ifdef IGFX_GEN10_SUPPORTED
 #include "mhw_vdbox_hcp_hwcmd_g10_X.h"
+#endif // IGFX_GEN10_SUPPORTED
 
 template<typename _CmdType>
 class GpuCmdHcpPipeBufAddr : public GpuCmd<_CmdType>
@@ -91,6 +93,7 @@ protected:
     }
 };
 
+#ifdef IGFX_GEN10_SUPPORTED
 class GpuCmdHcpPipeBufAddrG10 : public GpuCmdHcpPipeBufAddr<mhw_vdbox_hcp_g10_X::HCP_PIPE_BUF_ADDR_STATE_CMD>
 {
 public:
@@ -104,5 +107,6 @@ protected:
 
     void InitCachePolicy();
 };
+#endif // IGFX_GEN10_SUPPORTED
 
 #endif // __GPU_CMD_HCP_PIPE_BUF_ADDR_H__
