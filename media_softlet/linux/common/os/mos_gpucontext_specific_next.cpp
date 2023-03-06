@@ -307,7 +307,7 @@ MOS_STATUS GpuContextSpecificNext::InitVdVeCtx(PMOS_CONTEXT osParameters,
         return MOS_STATUS_UNKNOWN;
     }
 
-    if (*nengine >= 2)
+    if (*nengine >= 2 && *nengine <= MAX_ENGINE_INSTANCE_NUM)
     {
         int i;
         //master queue
