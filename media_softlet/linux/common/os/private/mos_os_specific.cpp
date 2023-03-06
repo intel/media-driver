@@ -561,11 +561,6 @@ void Linux_IncGpuCtxBufferTag(
     }
 }
 
-MosOcaInterface* Linux_GetOcaInterface()
-{
-    return nullptr;
-}
-
 //!
 //! \brief    Get Buffer Type
 //! \details  Returns the type of buffer, 1D, 2D or volume

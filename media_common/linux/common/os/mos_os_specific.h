@@ -693,7 +693,6 @@ struct _MOS_OS_CONTEXT
     GMM_CLIENT_CONTEXT* (* GetGmmClientContext)(
         PMOS_CONTEXT               pOsContext) = nullptr;
 
-    MosOcaInterface* (*GetOcaInterface)()      = nullptr;
 };
 
 //!

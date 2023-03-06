@@ -400,7 +400,7 @@ protected:
             MOS_MEMPOOL_VIDEOMEMORY,
             policy);
 
-        auto adapter = MosInterface::GetAdapterInfo(m_osItf.osStreamState);
+        auto adapter = m_osItf.pfnGetAdapterInfo(m_osItf.osStreamState);
         if (adapter)
         {
             TMP_ASSIGN(

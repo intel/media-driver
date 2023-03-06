@@ -119,7 +119,7 @@ MOS_STATUS BltStateXe_Xpm::InitProtectResource(PMOS_RESOURCE target)
         MOS_ZeroMemory(&AllocParams, sizeof(MOS_ALLOC_GFXRES_PARAMS));
         AllocParams.Type = MOS_GFXRES_2D;
         AllocParams.TileType = MapTileType(target->pGmmResInfo->GetResFlags(), target->pGmmResInfo->GetTileType());
-        AllocParams.Format = MosInterface::GmmFmtToMosFmt(target->pGmmResInfo->GetResourceFormat());
+        AllocParams.Format = m_osInterface->pfnGmmFmtToMosFmt(target->pGmmResInfo->GetResourceFormat());
         AllocParams.dwWidth = (uint32_t)target->pGmmResInfo->GetBaseWidth();
         AllocParams.dwHeight = (uint32_t)target->pGmmResInfo->GetBaseHeight();
 

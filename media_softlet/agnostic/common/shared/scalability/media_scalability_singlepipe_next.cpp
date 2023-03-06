@@ -201,9 +201,10 @@ MOS_STATUS MediaScalabilitySinglePipeNext::PopulateHintParams(PMOS_COMMAND_BUFFE
     SCALABILITY_FUNCTION_ENTER;
     SCALABILITY_CHK_NULL_RETURN(cmdBuffer);
     SCALABILITY_CHK_NULL_RETURN(m_veHitParams);
+    SCALABILITY_CHK_NULL_RETURN(m_osInterface);
 
     MOS_STATUS            eStatus  = MOS_STATUS_SUCCESS;
-    PMOS_CMD_BUF_ATTRI_VE attriVe  = MosInterface::GetAttributeVeBuffer(cmdBuffer);
+    PMOS_CMD_BUF_ATTRI_VE attriVe  = m_osInterface->pfnGetAttributeVeBuffer(cmdBuffer);
     if (attriVe)
     {
         attriVe->VEngineHintParams     = *(m_veHitParams);

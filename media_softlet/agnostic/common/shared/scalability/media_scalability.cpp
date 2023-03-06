@@ -176,8 +176,9 @@ MOS_STATUS MediaScalability::Destroy()
     {
         if (m_veState)
         {
-            SCALABILITY_CHK_STATUS_RETURN(MosInterface::SetVirtualEngineState(m_osInterface->osStreamState, m_veState));
-            return MosInterface::DestroyVirtualEngineState(m_osInterface->osStreamState);
+            SCALABILITY_CHK_NULL_RETURN(m_osInterface->osStreamState);
+            m_osInterface->osStreamState->virtualEngineInterface = m_veState;
+            return m_osInterface->pfnDestroyVirtualEngineState(m_osInterface->osStreamState);
         }
 
         // No VE state to destroy in some scalability instances

@@ -1325,9 +1325,12 @@ MOS_STATUS VP_SURFACE::Clean()
 uint64_t VP_SURFACE::GetAllocationHandle(MOS_INTERFACE* osIntf)
 {
     VP_FUNC_CALL();
-
+    if (nullptr == osIntf)
+    {
+        return 0;
+    }
 #if MOS_MEDIASOLO_SUPPORTED
-    if (Mos_Solo_IsInUse(osIntf))
+    if (osIntf && osIntf->bSoloInUse)
     {
         uint64_t handle = osSurface ? (uint64_t)osSurface->OsResource.pData : 0;
         if (handle)
@@ -1339,35 +1342,11 @@ uint64_t VP_SURFACE::GetAllocationHandle(MOS_INTERFACE* osIntf)
     }
 #endif
 
-#if(LINUX) && !(WDDM_LINUX)
-    if (osSurface && osSurface->OsResource.bo)
-    {
-        return osSurface->OsResource.bo->handle;
-    }
-    else
+    if (nullptr == osSurface || nullptr == osIntf)
     {
         return 0;
     }
-#elif (_VULKAN)
-    return 0;
-#elif (EMUL)
-    uint64_t handle = osSurface ? (uint64_t)osSurface->OsResource.pData : 0;
-    if (handle)
-    {
-        return handle;
-    }
-    else
-    {
-        return 0;
-    }
-#else
-    if (osSurface == nullptr)
-    {
-        return 0;
-    }
-
-    return MosInterface::GetResourceHandle(osIntf->osStreamState, &osSurface->OsResource);
-#endif
+    return osIntf->pfnGetResourceHandle(osIntf->osStreamState, &osSurface->OsResource);
 }
 
 MOS_STATUS VpAllocator::SetMmcFlags(MOS_SURFACE &osSurface)

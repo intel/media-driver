@@ -4886,7 +4886,7 @@ MOS_STATUS CodechalVdencVp9StateG12::Initialize(CodechalSetting * settings)
                 __MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_BRC_DLL_PATH,
                 &userFeatureData,
                 m_osInterface->pOsContext);
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(MosInterface::MosLoadLibrary(m_osInterface->osStreamState, path_buffer, &m_swBrcMode));
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnLoadLibrary(m_osInterface, path_buffer, &m_swBrcMode));
         }
     }
 #endif  // (_DEBUG || _RELEASE_INTERNAL)

@@ -324,7 +324,9 @@ void Hdr3DLutGenerator::AllocateResources()
     m_hdr3DLutSysBuffer = MOS_NewArray(uint8_t, m_lutSizeInBytes);
     Init3DLutSurface();
     // Allocate 3DLut Surface
-    m_hdr3DLutSurface = MOS_New(VpCmSurfaceHolder<CmSurface2D>, lutWidth, lutHeight, 1, MosInterface::MosFmtToGmmFmt(Format_A8R8G8B8), m_cmContext);
+    VPHAL_RENDER_CHK_NULL_NO_STATUS_RETURN(m_renderHal);
+    VPHAL_RENDER_CHK_NULL_NO_STATUS_RETURN(m_renderHal->pOsInterface);
+    m_hdr3DLutSurface = MOS_New(VpCmSurfaceHolder<CmSurface2D>, lutWidth, lutHeight, 1, m_renderHal->pOsInterface->pfnMosFmtToGmmFmt(Format_A8R8G8B8), m_cmContext);
     m_hdr3DLutSurface->GetCmSurface()->WriteSurface(m_hdr3DLutSysBuffer, nullptr);
 
     // Allocate Coefficient Surface in GPU memory

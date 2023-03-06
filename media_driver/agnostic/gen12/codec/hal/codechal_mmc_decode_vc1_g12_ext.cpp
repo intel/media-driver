@@ -53,14 +53,18 @@ MOS_STATUS CodechalMmcDecodeVc1G12Ext::CopyAuxSurfForSkip(
     CODECHAL_DECODE_CHK_NULL_RETURN(srcResource->pGmmResInfo);
     CODECHAL_DECODE_CHK_NULL_RETURN(destResource);
     CODECHAL_DECODE_CHK_NULL_RETURN(destResource->pGmmResInfo);
+    CODECHAL_DECODE_CHK_NULL_RETURN(m_hwInterface);
 
     GMM_RESOURCE_FLAG srcFlags  = srcResource->pGmmResInfo->GetResFlags();
     GMM_RESOURCE_FLAG destFlags = destResource->pGmmResInfo->GetResFlags();
     uint32_t          srcArrayIndex = 0;
     uint32_t          destArrayIndex = 0;
+    PMOS_INTERFACE    osInterface = m_hwInterface->GetOsInterface();
 
-    srcArrayIndex  = MosInterface::GetResourceArrayIndex(srcResource);
-    destArrayIndex = MosInterface::GetResourceArrayIndex(destResource);
+    CODECHAL_DECODE_CHK_NULL_RETURN(osInterface);
+
+    srcArrayIndex  = osInterface->pfnGetResourceArrayIndex(srcResource);
+    destArrayIndex = osInterface->pfnGetResourceArrayIndex(destResource);
 
     if (m_mmcState->IsMmcEnabled() && srcFlags.Gpu.UnifiedAuxSurface && destFlags.Gpu.UnifiedAuxSurface)
     {

@@ -649,6 +649,29 @@ MOS_STATUS Mos_InitOsInterface(
     pOsInterface->pfnVirtualEngineSupported             = Mos_CheckVirtualEngineSupported;
     pOsInterface->pfnGetResourceCachePolicyMemoryObject = Mos_GetResourceCachePolicyMemoryObject;
 
+    pOsInterface->pfnIsAsyncDevice                      = Mos_IsAsyncDevice;
+    pOsInterface->pfnMosFmtToOsFmt                      = Mos_MosFmtToOsFmt;
+    pOsInterface->pfnOsFmtToMosFmt                      = Mos_OsFmtToMosFmt;
+    pOsInterface->pfnMosFmtToGmmFmt                     = Mos_MosFmtToGmmFmt;
+    pOsInterface->pfnGmmFmtToMosFmt                     = Mos_GmmFmtToMosFmt;
+    pOsInterface->pfnWaitForCmdCompletion               = Mos_WaitForCmdCompletion;
+    pOsInterface->pfnGetResourceArrayIndex              = Mos_GetResourceArrayIndex;
+    pOsInterface->pfnSetupAttributeVeBuffer             = Mos_SetupAttributeVeBuffer;
+    pOsInterface->pfnGetAttributeVeBuffer               = Mos_GetAttributeVeBuffer;
+    pOsInterface->pfnSetupCurrentCmdListAndPool         = Mos_SetupCurrentCmdListAndPool;
+    pOsInterface->pfnGmmToMosResourceUsageType          = Mos_GmmToMosResourceUsageType;
+    pOsInterface->pfnGetAdapterInfo                     = Mos_GetAdapterInfo;
+    pOsInterface->pfnIsCompressibelSurfaceSupported     = Mos_IsCompressibelSurfaceSupported;
+    pOsInterface->pfnDestroyVirtualEngineState          = Mos_DestroyVirtualEngineState;
+    pOsInterface->pfnGetResourceHandle                  = Mos_GetResourceHandle;
+    pOsInterface->pfnGetRtLogResourceInfo               = Mos_GetRtLogResourceInfo;
+    pOsInterface->pfnResetResource                      = Mos_ResetMosResource;
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    pOsInterface->pfnGetVeEngineCount                   = Mos_GetVeEngineCount;
+    pOsInterface->pfnGetEngineLogicIdByIdx              = Mos_GetEngineLogicId;
+#endif
+
     pOsInterface->Component                 = component;
     pOsInterface->modulizedMosEnabled       = true;
     pOsInterface->osContextPtr              = nullptr;
@@ -1002,5 +1025,127 @@ MEMORY_OBJECT_CONTROL_STATE Mos_GetResourceCachePolicyMemoryObject(
     return memObjCtrlState;
 }
 
+bool Mos_IsAsyncDevice(
+    MOS_STREAM_HANDLE   streamState)
+{
+    return MosInterface::IsAsyncDevice(streamState);
+}
+
+uint32_t Mos_MosFmtToOsFmt(
+    MOS_FORMAT          format)
+{
+    return MosInterface::MosFmtToOsFmt(format);
+}
+
+MOS_FORMAT Mos_OsFmtToMosFmt(
+    uint32_t            format)
+{
+    return MosInterface::OsFmtToMosFmt(format);
+}
+
+GMM_RESOURCE_FORMAT Mos_MosFmtToGmmFmt(
+    MOS_FORMAT          format)
+{
+    return MosInterface::MosFmtToGmmFmt(format);
+}
+
+MOS_FORMAT Mos_GmmFmtToMosFmt(
+    GMM_RESOURCE_FORMAT format)
+{
+    return MosInterface::GmmFmtToMosFmt(format);
+}
+
+MOS_STATUS Mos_WaitForCmdCompletion(
+    MOS_STREAM_HANDLE   streamState,
+    GPU_CONTEXT_HANDLE  gpuCtx)
+{
+    return MosInterface::WaitForCmdCompletion(streamState, gpuCtx);
+}
+
+uint32_t Mos_GetResourceArrayIndex(
+    PMOS_RESOURCE       resource)
+{
+    return MosInterface::GetResourceArrayIndex(resource);
+}
+
+MOS_STATUS Mos_SetupAttributeVeBuffer(
+    MOS_STREAM_HANDLE       streamState,
+    COMMAND_BUFFER_HANDLE   cmdBuffer)
+{
+    return MosInterface::SetupAttributeVeBuffer(streamState, cmdBuffer);
+}
+
+MOS_CMD_BUF_ATTRI_VE *Mos_GetAttributeVeBuffer(
+    COMMAND_BUFFER_HANDLE   cmdBuffer)
+{
+    return MosInterface::GetAttributeVeBuffer(cmdBuffer);
+}
+
+MOS_STATUS Mos_SetupCurrentCmdListAndPool(
+    PMOS_INTERFACE          osInterface,
+    MOS_STREAM_HANDLE       streamState)
+{
+    return MosInterface::SetupCurrentCmdListAndPoolFromOsInterface(osInterface, streamState);
+}
+
+MOS_HW_RESOURCE_DEF Mos_GmmToMosResourceUsageType(
+    GMM_RESOURCE_USAGE_TYPE gmmResUsage)
+{
+    return MosInterface::GmmToMosResourceUsageType(gmmResUsage);
+}
+
+ADAPTER_INFO *Mos_GetAdapterInfo(
+    MOS_STREAM_HANDLE       streamState)
+{
+    return MosInterface::GetAdapterInfo(streamState);
+}
+
+bool Mos_IsCompressibelSurfaceSupported(
+    MEDIA_FEATURE_TABLE     *skuTable)
+{
+    return MosInterface::IsCompressibelSurfaceSupported(skuTable);
+}
+
+MOS_STATUS Mos_DestroyVirtualEngineState(
+    MOS_STREAM_HANDLE       streamState)
+{
+    return MosInterface::DestroyVirtualEngineState(streamState);
+}
+
+uint64_t Mos_GetResourceHandle(
+    MOS_STREAM_HANDLE       streamState,
+    PMOS_RESOURCE           osResource)
+{
+    return MosInterface::GetResourceHandle(streamState, osResource);
+}
+
+void Mos_GetRtLogResourceInfo(
+    MOS_STREAM_HANDLE       streamState,
+    PMOS_RESOURCE           &osResource,
+    uint32_t                &size)
+{
+    return MosInterface::GetRtLogResourceInfo(streamState, osResource, size);
+}
+
+void Mos_ResetMosResource(
+    PMOS_RESOURCE           resource)
+{
+    return MosInterface::MosResetResource(resource);
+}
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+uint8_t Mos_GetVeEngineCount(
+    MOS_STREAM_HANDLE       streamState)
+{
+    return MosInterface::GetVeEngineCount(streamState);
+}
+
+uint8_t Mos_GetEngineLogicId(
+    MOS_STREAM_HANDLE       streamState,
+    uint32_t                instanceIdx)
+{
+    return MosInterface::GetEngineLogicId(streamState, instanceIdx);
+}
+#endif
 void *MosStreamState::pvSoloContext = nullptr; 
 

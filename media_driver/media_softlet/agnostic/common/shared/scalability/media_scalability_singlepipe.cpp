@@ -55,24 +55,20 @@ MOS_STATUS MediaScalabilitySinglePipe::Initialize(const MediaScalabilityOption &
         MOS_ZeroMemory(&VEInitParams, sizeof(VEInitParams));
         VEInitParams.bScalabilitySupported = false;
 
+        SCALABILITY_CHK_STATUS_RETURN(m_osInterface->pfnVirtualEngineInit(m_osInterface, &m_veHitParams, VEInitParams));
         if (m_osInterface->apoMosEnabled)
         {
             SCALABILITY_CHK_NULL_RETURN(m_osInterface->osStreamState);
-            SCALABILITY_CHK_STATUS_RETURN(MosInterface::CreateVirtualEngineState(
-                m_osInterface->osStreamState, &VEInitParams, m_veState));
+            m_veState = m_osInterface->osStreamState->virtualEngineInterface;
             SCALABILITY_CHK_NULL_RETURN(m_veState);
-
-            SCALABILITY_CHK_STATUS_RETURN(MosInterface::GetVeHintParams(m_osInterface->osStreamState, false, &m_veHitParams));
             SCALABILITY_CHK_NULL_RETURN(m_veHitParams);
         }
         else
         {
-            SCALABILITY_CHK_STATUS_RETURN(m_osInterface->pfnVirtualEngineInterfaceInitialize(m_osInterface, &VEInitParams));
             m_veInterface = m_osInterface->pVEInterf;
             SCALABILITY_CHK_NULL_RETURN(m_veInterface);
-            if (m_veInterface->pfnVEGetHintParams)
+            if (m_veInterface->pfnVEGetHintParams != nullptr)
             {
-                SCALABILITY_CHK_STATUS_RETURN(m_veInterface->pfnVEGetHintParams(m_veInterface, false, &m_veHitParams));
                 SCALABILITY_CHK_NULL_RETURN(m_veHitParams);
             }
         }
@@ -92,8 +88,8 @@ MOS_STATUS MediaScalabilitySinglePipe::Initialize(const MediaScalabilityOption &
         gpuCtxCreateOption->DebugOverride = true;
         if (m_osInterface->apoMosEnabled)
         {
-            SCALABILITY_ASSERT(MosInterface::GetVeEngineCount(m_osInterface->osStreamState) == 1);
-            gpuCtxCreateOption->EngineInstance[0] = MosInterface::GetEngineLogicId(m_osInterface->osStreamState, 0);
+            SCALABILITY_ASSERT(m_osInterface->pfnGetVeEngineCount(m_osInterface->osStreamState) == 1);
+            gpuCtxCreateOption->EngineInstance[0] = m_osInterface->pfnGetEngineLogicIdByIdx(m_osInterface->osStreamState, 0);
         }
         else
         {
@@ -173,17 +169,8 @@ MOS_STATUS MediaScalabilitySinglePipe::SetHintParams()
         veParams.bSFCInUse                   = false;
     }
 
-    if (m_osInterface->apoMosEnabled)
-    {
-        SCALABILITY_CHK_STATUS_RETURN(MosInterface::SetVeHintParams(m_osInterface->osStreamState, &veParams));
-    }
-    else
-    {
-        if (m_veInterface && m_veInterface->pfnVESetHintParams)
-        {
-            SCALABILITY_CHK_STATUS_RETURN(m_veInterface->pfnVESetHintParams(m_veInterface, &veParams));
-        }
-    }
+    SCALABILITY_CHK_STATUS_RETURN(m_osInterface->pfnSetHintParams(m_osInterface, &veParams));
+
     return eStatus;
 }
 

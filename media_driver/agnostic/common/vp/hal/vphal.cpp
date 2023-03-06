@@ -1050,9 +1050,9 @@ MOS_STATUS VphalState::DestroyGpuContextWithInvalidHandle()
             m_osInterface->CurrentGpuContextHandle != curGpuEntry.gpuContextHandle) &&
             m_osInterface->pfnGetGpuContextbyHandle(m_osInterface, curGpuEntry.gpuContextHandle) == curGpuEntry.pGpuContext)
         {
-            MosInterface::WaitForCmdCompletion(m_osInterface->osStreamState, curGpuEntry.gpuContextHandle);
+            m_osInterface->pfnWaitForCmdCompletion(m_osInterface->osStreamState, curGpuEntry.gpuContextHandle);
 
-            MosInterface::DestroyGpuContext(m_osInterface->osStreamState, curGpuEntry.gpuContextHandle);
+            m_osInterface->pfnDestroyGpuContextByHandle(m_osInterface, curGpuEntry.gpuContextHandle);
         }
     }
     if (m_osInterface->CurrentGpuContextOrdinal != originalGpuCtxOrdinal)

@@ -182,6 +182,7 @@ MOS_STATUS HalCm_AllocateTsResource(
     MOS_LOCK_PARAMS         lockFlags;
 
     osInterface    = state->osInterface;
+    CM_CHK_NULL_GOTOFINISH_MOSERROR(osInterface);
 
     size = state->cmHalInterface->GetTimeStampResourceSize() * state->cmDeviceParam.maxTasks;    
     // allocate render engine Ts Resource
@@ -198,7 +199,7 @@ MOS_STATUS HalCm_AllocateTsResource(
                                          &state->renderTimeStampResource.osResource));
 
     // RegisterResource will be called in AddResourceToHWCmd. It is not allowed to be called by hal explicitly for Async mode
-    if (MosInterface::IsAsyncDevice(osInterface->osStreamState) == false)
+    if (osInterface->pfnIsAsyncDevice(osInterface->osStreamState) == false)
     {
         CM_CHK_MOSSTATUS_GOTOFINISH(
             osInterface->pfnRegisterResource(osInterface,
@@ -273,11 +274,12 @@ MOS_STATUS HalCm_AllocateTrackerResource(
     osInterface = state->osInterface;
     renderHal   = state->renderHal;
 
+    CM_CHK_NULL_GOTOFINISH_MOSERROR(osInterface);
     // Tracker producer for RENDER engine
     renderHal->trackerProducer.Initialize(osInterface);
 
     // Tracker resource for VeBox engine
-    Mos_ResetResource(&renderHal->veBoxTrackerRes.osResource);
+    osInterface->pfnResetResource(&renderHal->veBoxTrackerRes.osResource);
 
     MOS_ZeroMemory(&allocParamsLinearBuffer, sizeof(MOS_ALLOC_GFXRES_PARAMS));
     allocParamsLinearBuffer.Type = MOS_GFXRES_BUFFER;
@@ -9845,6 +9847,7 @@ MOS_STATUS HalCm_AllocateSurface3D(CM_HAL_STATE *state, // [in]  Pointer to CM S
     CM_ASSERT(param->height > 0);
     //-----------------------------------------------
 
+    MOS_INTERFACE *osInterface = state->osInterface;
     // Finds a free slot.
     CM_HAL_3DRESOURCE_ENTRY *entry = nullptr;
     for (uint32_t i = 0; i < state->cmDeviceParam.max3DSurfaceTableSize; i++)
@@ -9862,7 +9865,8 @@ MOS_STATUS HalCm_AllocateSurface3D(CM_HAL_STATE *state, // [in]  Pointer to CM S
         CM_ASSERTMESSAGE("3D surface table is full");
         return eStatus;
     }
-    Mos_ResetResource(&entry->osResource);  // Resets the Resource
+    CM_CHK_NULL_GOTOFINISH_MOSERROR(osInterface);
+    osInterface->pfnResetResource(&entry->osResource);  // Resets the Resource
 
     MOS_ALLOC_GFXRES_PARAMS alloc_params;
     MOS_ZeroMemory(&alloc_params, sizeof(alloc_params));
@@ -9875,7 +9879,6 @@ MOS_STATUS HalCm_AllocateSurface3D(CM_HAL_STATE *state, // [in]  Pointer to CM S
     alloc_params.Format        = param->format;
     alloc_params.pBufName      = "CmSurface3D";
 
-    MOS_INTERFACE *osInterface = state->renderHal->pOsInterface;
     CM_CHK_HRESULT_GOTOFINISH_MOSERROR(osInterface->pfnAllocateResource(
         osInterface,
         &alloc_params,
@@ -11001,6 +11004,9 @@ MOS_STATUS HalCm_GetSurfaceDetails(
     MOS_OS_FORMAT              tempOsFormat   ;
 
     CM_SURFACE_BTI_INFO surfBTIInfo;
+    CM_CHK_NULL_GOTOFINISH_MOSERROR(cmState);
+    CM_CHK_NULL_GOTOFINISH_MOSERROR(cmState->cmHalInterface);
+    CM_CHK_NULL_GOTOFINISH_MOSERROR(cmState->osInterface);
     cmState->cmHalInterface->GetHwSurfaceBTIInfo(&surfBTIInfo);
 
     UNUSED(indexParam);
@@ -11017,7 +11023,7 @@ MOS_STATUS HalCm_GetSurfaceDetails(
     surfaceInfos  = taskParam->surfEntryInfoArrays.surfEntryInfosArray[curKernelIndex].surfEntryInfos;
     pgSurfaceInfos = taskParam->surfEntryInfoArrays.surfEntryInfosArray[curKernelIndex].globalSurfInfos;
 
-    tempOsFormat = (MOS_OS_FORMAT)MosInterface::MosFmtToOsFmt(surface.Format);
+    tempOsFormat = (MOS_OS_FORMAT)cmState->osInterface->pfnMosFmtToOsFmt(surface.Format);
 
     switch (argKind)
     {

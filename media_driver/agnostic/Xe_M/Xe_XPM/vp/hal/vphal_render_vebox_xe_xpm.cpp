@@ -902,7 +902,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_XE_XPM::VeboxRenderVeboxCmd(
             if (pOsInterface->apoMosEnabled)
             {
                 VPHAL_RENDER_CHK_NULL(pOsInterface->osStreamState);
-                VPHAL_RENDER_CHK_STATUS(MosInterface::SetupAttributeVeBuffer(pOsInterface->osStreamState, &CmdBuffer));
+                VPHAL_RENDER_CHK_STATUS(pOsInterface->pfnSetupAttributeVeBuffer(pOsInterface->osStreamState, &CmdBuffer));
             }
             CmdBuffer.Attributes.pAttriVe = &pOsInterface->bufAttriVe[pOsInterface->CurrentGpuContextOrdinal];
         }

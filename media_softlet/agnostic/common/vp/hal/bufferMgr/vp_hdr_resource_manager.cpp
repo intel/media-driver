@@ -48,7 +48,7 @@ MOS_STATUS VphdrResourceManager::AssignRenderResource(VP_EXECUTE_CAPS &caps, std
     VP_FUNC_CALL();
 
     bool allocated = false;
-    auto        *skuTable            = MosInterface::GetSkuTable(osInterface.osStreamState);
+    auto        *skuTable            = osInterface.pfnGetSkuTable(&osInterface);
     Mos_MemPool memTypeSurfVideoMem = MOS_MEMPOOL_VIDEOMEMORY;
     uint32_t    dwWidth             = 0;
     uint32_t    dwHeight            = 0;

@@ -340,8 +340,8 @@ MOS_STATUS DecodeScalabilityMultiPipeNext::GetCmdBuffer(PMOS_COMMAND_BUFFER cmdB
     if (m_osInterface->apoMosEnabled)
     {
         SCALABILITY_CHK_NULL_RETURN(m_osInterface->osStreamState);
-        SCALABILITY_CHK_STATUS_RETURN(MosInterface::SetVeSubmissionType(
-            m_osInterface->osStreamState, &scdryCmdBuffer, m_phase->GetSubmissionType()));
+        SCALABILITY_CHK_NULL_RETURN(m_osInterface->osStreamState->virtualEngineInterface);
+        SCALABILITY_CHK_STATUS_RETURN(m_osInterface->osStreamState->virtualEngineInterface->SetSubmissionType(&scdryCmdBuffer, m_phase->GetSubmissionType()));
     }
     else
     {
@@ -403,8 +403,9 @@ MOS_STATUS DecodeScalabilityMultiPipeNext::PopulateHintParams(PMOS_COMMAND_BUFFE
     SCALABILITY_FUNCTION_ENTER;
     SCALABILITY_CHK_NULL_RETURN(cmdBuffer);
     SCALABILITY_CHK_NULL_RETURN(m_veHitParams);
+    SCALABILITY_CHK_NULL_RETURN(m_osInterface);
 
-    PMOS_CMD_BUF_ATTRI_VE attriVe  = MosInterface::GetAttributeVeBuffer(cmdBuffer);
+    PMOS_CMD_BUF_ATTRI_VE attriVe  = m_osInterface->pfnGetAttributeVeBuffer(cmdBuffer);
     if (attriVe)
     {
         attriVe->VEngineHintParams     = *(m_veHitParams);

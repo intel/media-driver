@@ -1387,7 +1387,7 @@ MOS_STATUS SfcRenderBase::AllocateLineBuffer(VP_SURFACE *&lineBuffer, uint32_t s
 
     VP_PUBLIC_CHK_NULL_RETURN(m_osInterface)
 
-    skuTable = MosInterface::GetSkuTable(m_osInterface->osStreamState);
+    skuTable = m_osInterface->pfnGetSkuTable(m_osInterface);
 
     if (skuTable && MEDIA_IS_SKU(skuTable, FtrLimitedLMemBar))
     {

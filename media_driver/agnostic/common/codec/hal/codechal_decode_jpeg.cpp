@@ -381,7 +381,8 @@ MOS_STATUS CodechalDecodeJpeg::CheckSupportedFormat(
     // real output format (ARGB8888) should also be from JPEG PPS; MSDK would handle the details of treating AYUV as ARGB.
     if (*format == Format_420O || *format == Format_AYUV)
     {
-        *format = MosInterface::OsFmtToMosFmt(m_jpegPicParams->m_renderTargetFormat);
+        CODECHAL_DECODE_CHK_NULL_RETURN(m_osInterface);
+        *format = m_osInterface->pfnOsFmtToMosFmt(m_jpegPicParams->m_renderTargetFormat);
     }
 
     //No support for RGBP/BGRP channel swap or YUV/RGB conversion!

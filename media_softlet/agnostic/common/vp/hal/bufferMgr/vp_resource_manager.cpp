@@ -990,7 +990,7 @@ MOS_STATUS VpResourceManager::AssignFcResources(VP_EXECUTE_CAPS &caps, std::vect
     VP_FUNC_CALL();
 
     bool allocated = false;
-    auto *skuTable = MosInterface::GetSkuTable(m_osInterface.osStreamState);
+    auto *skuTable = m_osInterface.pfnGetSkuTable(&m_osInterface);
     Mos_MemPool memTypeSurfVideoMem = MOS_MEMPOOL_VIDEOMEMORY;
 
     if (skuTable && MEDIA_IS_SKU(skuTable, FtrLimitedLMemBar))
@@ -1290,7 +1290,7 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxOutputSurface(VP_EXECUTE_CAPS& caps
     MOS_RESOURCE_MMC_MODE           surfCompressionMode = MOS_MMC_DISABLED;
     bool                            bSurfCompressible   = false;
     uint32_t                        i                   = 0;
-    auto                           *skuTable            = MosInterface::GetSkuTable(m_osInterface.osStreamState);
+    auto                           *skuTable            = m_osInterface.pfnGetSkuTable(&m_osInterface);
     Mos_MemPool                     memTypeSurfVideoMem = MOS_MEMPOOL_VIDEOMEMORY;
 
     VP_PUBLIC_CHK_NULL_RETURN(inputSurface);
@@ -1385,7 +1385,7 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxDenoiseOutputSurface(VP_EXECUTE_CAP
     MOS_RESOURCE_MMC_MODE           surfCompressionMode = MOS_MMC_DISABLED;
     bool                            bSurfCompressible   = false;
     MOS_TILE_MODE_GMM               tileModeByForce     = MOS_TILE_UNSET_GMM;
-    auto *                          skuTable            = MosInterface::GetSkuTable(m_osInterface.osStreamState);
+    auto *                          skuTable            = m_osInterface.pfnGetSkuTable(&m_osInterface);
     Mos_MemPool                     memTypeSurfVideoMem = MOS_MEMPOOL_VIDEOMEMORY;
     uint32_t                        dwHeight;
     MOS_TILE_TYPE                   TileType;
@@ -1511,7 +1511,7 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxSTMMSurface(VP_EXECUTE_CAPS& caps, 
     bool                            bSurfCompressible   = false;
     uint32_t                        i                   = 0;
     MOS_TILE_MODE_GMM               tileModeByForce     = MOS_TILE_UNSET_GMM;
-    auto *                          skuTable            = MosInterface::GetSkuTable(m_osInterface.osStreamState);
+    auto *                          skuTable            = m_osInterface.pfnGetSkuTable(&m_osInterface);
     Mos_MemPool                     memTypeHistStat     = GetHistStatMemType(caps);
     uint32_t                        dwHeight;
 

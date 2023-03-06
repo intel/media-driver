@@ -1529,7 +1529,7 @@ MOS_STATUS XMHW_STATE_HEAP_INTERFACE::ExtendStateHeapDyn(
             break;
         }
         // RegisterResource will be called in AddResourceToHWCmd. It is not allowed to be called by hal explicitly for Async mode
-        if (MosInterface::IsAsyncDevice(m_pOsInterface->osStreamState) == false)
+        if (m_pOsInterface->pfnIsAsyncDevice(m_pOsInterface->osStreamState) == false)
         {
             eStatus = m_pOsInterface->pfnRegisterResource(m_pOsInterface, &pNewStateHeap->resHeap, true, true);
             if (eStatus != MOS_STATUS_SUCCESS)

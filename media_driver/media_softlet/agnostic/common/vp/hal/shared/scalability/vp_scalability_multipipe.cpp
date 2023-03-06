@@ -104,27 +104,21 @@ MOS_STATUS VpScalabilityMultiPipe::Initialize(const MediaScalabilityOption &opti
     {
         SCALABILITY_CHK_NULL_RETURN(m_osInterface->osStreamState);
         m_osInterface->osStreamState->component = COMPONENT_VPCommon;
-
-        SCALABILITY_CHK_STATUS_RETURN(MosInterface::CreateVirtualEngineState(
-            m_osInterface->osStreamState, &veInitParms, m_veState));
+        SCALABILITY_CHK_STATUS_RETURN(m_osInterface->pfnVirtualEngineInit(m_osInterface, &m_veHitParams, veInitParms));
+        m_veState = m_osInterface->osStreamState->virtualEngineInterface;
         SCALABILITY_CHK_NULL_RETURN(m_veState);
-
-        SCALABILITY_CHK_STATUS_RETURN(MosInterface::GetVeHintParams(m_osInterface->osStreamState, true, &m_veHitParams));
         SCALABILITY_CHK_NULL_RETURN(m_veHitParams);
     }
     else
     {
-        SCALABILITY_CHK_STATUS_RETURN(m_osInterface->pfnVirtualEngineInterfaceInitialize(m_osInterface, &veInitParms));
+        SCALABILITY_CHK_STATUS_RETURN(m_osInterface->pfnVirtualEngineInit(m_osInterface, &m_veHitParams, veInitParms));
         m_veInterface = m_osInterface->pVEInterf;
         SCALABILITY_CHK_NULL_RETURN(m_veInterface);
-
         if (m_veInterface->pfnVEGetHintParams != nullptr)
         {
-            SCALABILITY_CHK_STATUS_RETURN(m_veInterface->pfnVEGetHintParams(m_veInterface, true, &m_veHitParams));
             SCALABILITY_CHK_NULL_RETURN(m_veHitParams);
         }
     }
-
     m_pipeNum            = m_scalabilityOption->GetNumPipe();
     m_pipeIndexForSubmit = m_pipeNum;
 
@@ -138,10 +132,10 @@ MOS_STATUS VpScalabilityMultiPipe::Initialize(const MediaScalabilityOption &opti
     {
         if (m_osInterface->apoMosEnabled)
         {
-            for (uint32_t i = 0; i < MosInterface::GetVeEngineCount(m_osInterface->osStreamState); i++)
+            for (uint32_t i = 0; i < m_osInterface->pfnGetVeEngineCount(m_osInterface->osStreamState); i++)
             {
                 gpuCtxCreateOption->EngineInstance[i] =
-                    MosInterface::GetEngineLogicId(m_osInterface->osStreamState, i);
+                    m_osInterface->pfnGetEngineLogicIdByIdx(m_osInterface->osStreamState, i);
             }
         }
         else
@@ -424,8 +418,8 @@ MOS_STATUS VpScalabilityMultiPipe::GetCmdBuffer(PMOS_COMMAND_BUFFER cmdBuffer, b
             submissionType |= SUBMISSION_TYPE_MULTI_PIPE_FLAGS_LAST_PIPE;
         }
         SCALABILITY_CHK_NULL_RETURN(m_osInterface->osStreamState);
-        SCALABILITY_CHK_STATUS_RETURN(MosInterface::SetVeSubmissionType(
-            m_osInterface->osStreamState, &(m_secondaryCmdBuffers[bufIdx]), submissionType));
+        SCALABILITY_CHK_NULL_RETURN(m_osInterface->osStreamState->virtualEngineInterface);
+        SCALABILITY_CHK_STATUS_RETURN(m_osInterface->osStreamState->virtualEngineInterface->SetSubmissionType(&(m_secondaryCmdBuffers[bufIdx]), submissionType));
     }
     else
     {
@@ -457,7 +451,7 @@ MOS_STATUS VpScalabilityMultiPipe::SetHintParams()
     VP_FUNC_CALL();
 
     SCALABILITY_FUNCTION_ENTER;
-
+    SCALABILITY_CHK_NULL_RETURN(m_osInterface);
     if (m_osInterface->apoMosEnabled)
     {
         SCALABILITY_CHK_NULL_RETURN(m_osInterface->osStreamState);
@@ -476,14 +470,7 @@ MOS_STATUS VpScalabilityMultiPipe::SetHintParams()
     veParams.ucScalablePipeNum = m_pipeNum;
     veParams.bScalableMode     = true;
 
-    if (m_osInterface->apoMosEnabled)
-    {
-        SCALABILITY_CHK_STATUS_RETURN(MosInterface::SetVeHintParams(m_osInterface->osStreamState, &veParams));
-    }
-    else
-    {
-        SCALABILITY_CHK_STATUS_RETURN(m_veInterface->pfnVESetHintParams(m_veInterface, &veParams));
-    }
+    SCALABILITY_CHK_STATUS_RETURN(m_osInterface->pfnSetHintParams(m_osInterface, &veParams));
 
     return MOS_STATUS_SUCCESS;
 }

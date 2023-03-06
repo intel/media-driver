@@ -640,7 +640,12 @@ MOS_STATUS DecodeAllocator::RegisterResource(PMOS_RESOURCE osResource)
 
 ResourceUsage DecodeAllocator::ConvertGmmResourceUsage(const GMM_RESOURCE_USAGE_TYPE gmmResUsage)
 {
-    MOS_HW_RESOURCE_DEF gmmUsage = MosInterface::GmmToMosResourceUsageType(gmmResUsage);
+    if (nullptr == m_osInterface)
+    {
+        DECODE_ASSERTMESSAGE("mos interface is nullptr")
+        return resourceDefault;
+    }
+    MOS_HW_RESOURCE_DEF gmmUsage = m_osInterface->pfnGmmToMosResourceUsageType(gmmResUsage);
     return (ResourceUsage)gmmUsage;
 }
 

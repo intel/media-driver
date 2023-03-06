@@ -506,7 +506,7 @@ void HalOcaInterfaceNext::AddRTLogReource(MOS_COMMAND_BUFFER &cmdBuffer,
     {
         return;
     }
-    MosInterface::GetRtLogResourceInfo(osInterface.osStreamState, osResource, size);
+    osInterface.pfnGetRtLogResourceInfo(osInterface.osStreamState, osResource, size);
     
     MOS_LINUX_BO *bo = cmdBuffer.OsResource.bo;
     OCA_LOG_SECTION_HEADER *header = (OCA_LOG_SECTION_HEADER *)((uint64_t)bo->virt + bo->size - OCA_LOG_SECTION_SIZE_MAX);

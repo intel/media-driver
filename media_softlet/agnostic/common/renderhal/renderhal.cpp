@@ -1207,15 +1207,15 @@ MOS_STATUS RenderHal_AllocateStateHeaps(
     //-------------------------------------------------------------------------
     // Reset resource allocations
     //-------------------------------------------------------------------------
-    Mos_ResetResource(&pStateHeap->GshOsResource);
+    pRenderHal->pOsInterface->pfnResetResource(&pStateHeap->GshOsResource);
     pStateHeap->bGshLocked = false;
     pStateHeap->pGshBuffer = nullptr;
 
-    Mos_ResetResource(&pStateHeap->SshOsResource);
+    pRenderHal->pOsInterface->pfnResetResource(&pStateHeap->SshOsResource);
     pStateHeap->pSshBuffer = nullptr;
     pStateHeap->bSshLocked = false;
 
-    Mos_ResetResource(&pStateHeap->IshOsResource);
+    pRenderHal->pOsInterface->pfnResetResource(&pStateHeap->IshOsResource);
     pStateHeap->bIshLocked = false;
     pStateHeap->pIshBuffer = nullptr;
 

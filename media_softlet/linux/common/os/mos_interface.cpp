@@ -2686,13 +2686,6 @@ MosCpInterface *MosInterface::GetCpInterface(MOS_STREAM_HANDLE streamState)
     return streamState ? streamState->osCpInterface : nullptr;
 }
 
-MosOcaInterface *MosInterface::GetOcaInterface(MOS_STREAM_HANDLE streamState)
-{
-    MOS_OS_FUNCTION_ENTER;
-
-    return nullptr;
-}
-
 MOS_VE_HANDLE MosInterface::GetVirtualEngineState(
     MOS_STREAM_HANDLE streamState)
 {
@@ -3150,6 +3143,25 @@ uint32_t MosInterface::GetResourceArrayIndex(
     PMOS_RESOURCE resource)
 {
     return 0;
+}
+
+MOS_STATUS MosInterface::SetupCurrentCmdListAndPoolFromOsInterface(
+    PMOS_INTERFACE    pMosInterface,
+    MOS_STREAM_HANDLE streamState)
+{
+    return MOS_STATUS_SUCCESS;
+}
+
+uint64_t MosInterface::GetResourceHandle(MOS_STREAM_HANDLE streamState, PMOS_RESOURCE osResource)
+{
+    if (osResource && osResource->bo)
+    {
+        return osResource->bo->handle;
+    }
+    else
+    {
+        return 0;
+    }
 }
 
 MediaUserSettingSharedPtr MosInterface::MosGetUserSettingInstance(

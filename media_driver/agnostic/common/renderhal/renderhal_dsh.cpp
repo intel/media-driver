@@ -680,11 +680,11 @@ MOS_STATUS RenderHal_DSH_AllocateStateHeaps(
     pStateHeap->dwSizeMediaID = pHwSizes->dwSizeInterfaceDescriptor;
 
     // Not used in Dynamic mode - heaps may change
-    Mos_ResetResource(&pStateHeap->GshOsResource);
+    pRenderHalLegacy->pOsInterface->pfnResetResource(&pStateHeap->GshOsResource);
     pStateHeap->pGshBuffer = nullptr;
     pStateHeap->bGshLocked = false;
 
-    Mos_ResetResource(&pStateHeap->IshOsResource);
+    pRenderHalLegacy->pOsInterface->pfnResetResource(&pStateHeap->IshOsResource);
     pStateHeap->pIshBuffer = nullptr;
     pStateHeap->bIshLocked = false;
 

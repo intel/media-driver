@@ -104,9 +104,9 @@ MediaContext::~MediaContext()
 
         if (curAttribute.gpuContext != MOS_GPU_CONTEXT_INVALID_HANDLE)
         {
-            if (m_osInterface->apoMosEnabled)
+            if (m_osInterface->apoMosEnabled || m_osInterface->modularizedGpuCtxEnabled)
             {
-                auto status = MosInterface::DestroyGpuContext(m_osInterface->osStreamState, curAttribute.gpuContext);
+                auto status = m_osInterface->pfnDestroyGpuContextByHandle(m_osInterface, curAttribute.gpuContext);
 
                 if (status != MOS_STATUS_SUCCESS)
                 {
@@ -114,18 +114,6 @@ MediaContext::~MediaContext()
                     return;
                 }
             }
-#if !_VULKAN
-            else if (m_osInterface->modularizedGpuCtxEnabled)
-            {
-                // Be compatible to legacy MOS
-                auto status = m_osInterface->pfnDestroyGpuContextByHandle(m_osInterface, curAttribute.gpuContext);
-                if (status != MOS_STATUS_SUCCESS)
-                {
-                    MOS_OS_NORMALMESSAGE("Could not destroy gpu context");
-                    return;
-                }
-            }
-#endif //!_VULKAN
             else
             {
                 auto status = m_osInterface->pfnDestroyGpuContext(
@@ -262,8 +250,8 @@ MOS_STATUS MediaContext::SearchContext(MediaFunction func, T params, uint32_t& i
                 {
                     if (curAttribute.scalabilityState->m_veState)
                     {
-                        MOS_OS_CHK_STATUS_RETURN(MosInterface::SetVirtualEngineState(
-                            m_osInterface->osStreamState, curAttribute.scalabilityState->m_veState));
+                        MOS_OS_CHK_NULL_RETURN(m_osInterface->osStreamState);
+                        m_osInterface->osStreamState->virtualEngineInterface = curAttribute.scalabilityState->m_veState;
                     }
                 }
                 break;

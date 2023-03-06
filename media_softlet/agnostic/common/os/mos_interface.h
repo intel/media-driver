@@ -1695,19 +1695,7 @@ public:
     //!           CP Interface got from stream State, nullptr if get failed
     //!
     static MosCpInterface *GetCpInterface(MOS_STREAM_HANDLE streamState);
-    
-    //!
-    //! \brief   Get OCA Interface
-    //!
-    //! \param    [in] streamState
-    //!           Handle of Os Stream State
-    //!
-    //! \return   MosOcaInterface
-    //!           OCA Interface got from stream State, nullptr if get failed
-    //!
-    static MosOcaInterface *GetOcaInterface(MOS_STREAM_HANDLE streamState);
 
-    static MosOcaInterface *GetOcaInterface(MOS_CONTEXT_HANDLE mosContextHandle);
     //!
     //! \brief    Maps the specified executable module into the address space of
     //!           the calling process.

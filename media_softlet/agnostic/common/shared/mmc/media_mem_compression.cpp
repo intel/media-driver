@@ -33,8 +33,12 @@ MediaMemComp::MediaMemComp(PMOS_INTERFACE osInterface) :
     m_osInterface(osInterface),
     m_mmcEnabled(false)
 {
+    if (nullptr == m_osInterface)
+    {
+        return;
+    }
     MEDIA_FEATURE_TABLE *skuTable = m_osInterface->pfnGetSkuTable(m_osInterface);
-    m_isCompSurfAllocable = MosInterface::IsCompressibelSurfaceSupported(skuTable);
+    m_isCompSurfAllocable = m_osInterface->pfnIsCompressibelSurfaceSupported(skuTable);
     m_userSettingPtr = m_osInterface->pfnGetUserSettingInstance(m_osInterface);
 }
 
