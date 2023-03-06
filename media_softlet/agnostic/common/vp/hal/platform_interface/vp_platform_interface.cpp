@@ -39,10 +39,7 @@ VpPlatformInterface::VpPlatformInterface(PMOS_INTERFACE pOsInterface, bool clear
     {
         m_userSettingPtr = m_pOsInterface->pfnGetUserSettingInstance(m_pOsInterface);
     }
-    if (!clearViewMode)
-    {
-        VpUserSetting::InitVpUserSetting(m_userSettingPtr);
-    }
+    VpUserSetting::InitVpUserSetting(m_userSettingPtr, clearViewMode);
 }
 
 MOS_STATUS VpRenderKernel::InitVPKernel(

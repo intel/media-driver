@@ -2695,7 +2695,7 @@ MOS_STATUS VpParameterDumper::DumpToXML(
     VP_DEBUG_CHK_NULL(pRenderParams);
     VP_DEBUG_CHK_NULL(pParamsDumpSpec);
 
-    if ((pParamsDumpSpec->uiEndFrame < pParamsDumpSpec->uiStartFrame) || strlen(pParamsDumpSpec->outFileLocation) == 0)
+    if ((pParamsDumpSpec->uiEndFrame < pParamsDumpSpec->uiStartFrame) || pParamsDumpSpec->uiEndFrame ==0 || strlen(pParamsDumpSpec->outFileLocation) == 0)
         goto finish;
 
     // Create a processing instruction element.

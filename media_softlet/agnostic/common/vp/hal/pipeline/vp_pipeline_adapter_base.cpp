@@ -43,10 +43,7 @@ VpPipelineAdapterBase::VpPipelineAdapterBase(
     {
         m_userSettingPtr = m_osInterface->pfnGetUserSettingInstance(m_osInterface);
     }
-    if (!clearViewMode)
-    {
-        VpUserSetting::InitVpUserSetting(m_userSettingPtr);
-    }
+    VpUserSetting::InitVpUserSetting(m_userSettingPtr, clearViewMode);
 
     eStatus = MOS_STATUS_SUCCESS;
 }

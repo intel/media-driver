@@ -28,7 +28,7 @@ class VpUserSetting
 {
 public:
 
-    static MOS_STATUS InitVpUserSetting(MediaUserSettingSharedPtr userSettingPtr);
+    static MOS_STATUS InitVpUserSetting(MediaUserSettingSharedPtr userSettingPtr, bool clearViewMode = false);
 
 MEDIA_CLASS_DEFINE_END(VpUserSetting)
 };
