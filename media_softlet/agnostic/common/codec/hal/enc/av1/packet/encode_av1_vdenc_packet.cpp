@@ -662,9 +662,15 @@ namespace encode{
 
     MOS_STATUS Av1VdencPkt::CalculateAvpPictureStateCommandSize(uint32_t * commandsSize, uint32_t * patchListSize)
     {
-        // there are no picture level AVP commands for encode
-        commandsSize  = 0;
-        patchListSize = 0;
+        *commandsSize = m_miItf->MHW_GETSIZE_F(MI_FLUSH_DW)() * 10                +  //8 for UpdateStatusReport, 2 for profiler
+                        m_miItf->MHW_GETSIZE_F(MI_STORE_DATA_IMM)() * 10          +  //4 For UpdateStatusReport, 6 for profiler
+                        m_miItf->MHW_GETSIZE_F(MI_STORE_REGISTER_MEM)() * 16      +  //16 for profiler
+                        m_miItf->MHW_GETSIZE_F(MI_ATOMIC)() * 4;                     //For UpdateStatusReport
+
+        *patchListSize = PATCH_LIST_COMMAND(mhw::mi::Itf::MI_FLUSH_DW_CMD) * 10            +
+                         PATCH_LIST_COMMAND(mhw::mi::Itf::MI_STORE_DATA_IMM_CMD) * 10      +
+                         PATCH_LIST_COMMAND(mhw::mi::Itf::MI_STORE_REGISTER_MEM_CMD) * 16  +
+                         PATCH_LIST_COMMAND(mhw::mi::Itf::MI_ATOMIC_CMD) * 4;
 
         return MOS_STATUS_SUCCESS;
     }
@@ -1136,6 +1142,7 @@ namespace encode{
             m_miItf->MHW_GETSIZE_F(MI_BATCH_BUFFER_END)();
 
         patchListMaxSize =
+            PATCH_LIST_COMMAND(mhw::mi::Itf::MI_BATCH_BUFFER_START_CMD) * 5           +
             PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::VD_PIPELINE_FLUSH_CMD)           +
             PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::AVP_PIPE_MODE_SELECT_CMD)        +
             PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::AVP_SURFACE_STATE_CMD) * 11      +
