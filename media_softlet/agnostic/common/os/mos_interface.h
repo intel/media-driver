@@ -2301,6 +2301,5 @@ MEDIA_CLASS_DEFINE_END(MosInterface)
 };
 
 #define Mos_ResetResource(resource)     MosInterface::MosResetResource(resource)
-#define Mos_ResourceIsNull(resource)    MosInterface::MosResourceIsNull(resource)
 
 #endif  // __MOS_INTERFACE_H__
