@@ -998,8 +998,8 @@ void MosUtilities::MosSwizzleData(
                     SrcTiling,
                     false,
                     extFlags);
-
-                *(pDst + LinearOffset) = *(pSrc + TileOffset);
+                if(TileOffset < iHeight * iPitch)
+                    *(pDst + LinearOffset) = *(pSrc + TileOffset);
             }
             // linear --> x or y
             else if (IS_LINEAR_TO_TILED(SrcTiling, DstTiling))
@@ -1011,8 +1011,8 @@ void MosUtilities::MosSwizzleData(
                     DstTiling,
                     false,
                     extFlags);
-
-                *(pDst + TileOffset) = *(pSrc + LinearOffset);
+                if(TileOffset < iHeight * iPitch)
+                    *(pDst + TileOffset) = *(pSrc + LinearOffset);
             }
             else
             {
