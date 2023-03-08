@@ -28,9 +28,11 @@
 #define __MOS_CONTEXT_NEXT_H__
 
 #include "mos_os.h"
-#include "mos_cmdbufmgr_next.h" 
 #include "mos_gpucontextmgr_next.h"
+#if !EMUL
+#include "mos_cmdbufmgr_next.h" 
 #include "mos_decompression.h"
+#endif
 #include "mos_mediacopy.h"
 
 class MosOcaRTLogMgr;
@@ -164,10 +166,12 @@ public:
     //! \brief  Get MosDecompression
     //! \return ptr to MosDecompression
     //!
+#if !EMUL
     MosDecompression *GetMosDecompression()
     {
         return m_mosDecompression;
     }
+#endif
 
     //!
     //! \brief  Get MosMediaCopy
@@ -312,7 +316,9 @@ protected:
     bool                            m_noGfxMemoryNeeded = false;
 
     //! \brief  the ptr to mos decompression module
+#if !EMUL
     MosDecompression                *m_mosDecompression = nullptr;
+#endif
 
     //! \brief the ptr to mos media copy module
     MosMediaCopy                    *m_mosMediaCopy = nullptr;

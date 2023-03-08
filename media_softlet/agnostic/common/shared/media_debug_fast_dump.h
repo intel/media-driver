@@ -25,7 +25,7 @@
 
 #pragma once
 
-#if ((_DEBUG || _RELEASE_INTERNAL) && !EMUL) && !defined(USE_MEDIA_DEBUG_TOOL)
+#if ((_DEBUG || _RELEASE_INTERNAL)) && !defined(USE_MEDIA_DEBUG_TOOL)
 #define USE_MEDIA_DEBUG_TOOL 1
 #endif  // ((_DEBUG || _RELEASE_INTERNAL) && !EMUL) && !defined(USE_MEDIA_DEBUG_TOOL)
 

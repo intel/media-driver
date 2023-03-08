@@ -543,7 +543,7 @@ MOS_STATUS VpPipeline::UpdateExecuteStatus(uint32_t frameCnt)
     VP_FUNC_CALL();
 
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-#if ((_DEBUG || _RELEASE_INTERNAL) && !EMUL)
+#if ((_DEBUG || _RELEASE_INTERNAL))
     if (PIPELINE_PARAM_TYPE_LEGACY == m_pvpParams.type)
     {
         PVP_PIPELINE_PARAMS params = m_pvpParams.renderParams;

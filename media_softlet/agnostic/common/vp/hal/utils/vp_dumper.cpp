@@ -998,8 +998,9 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
         }
 
         bool isPlanar = false;
+#if !EMUL
         isPlanar      = (pSurface->Format == Format_NV12) || (pSurface->Format == Format_P010) || (pSurface->Format == Format_P016);
-
+#endif
         VP_DEBUG_CHK_NULL(pOsInterface);
         VP_DEBUG_CHK_NULL(pOsInterface->pfnGetSkuTable);
         auto *skuTable = pOsInterface->pfnGetSkuTable(pOsInterface);
@@ -1753,6 +1754,37 @@ finish:
     return eStatus;
 }
 
+void VpSurfaceDumper::GetSurfaceDumpSpecForVPSolo(VPHAL_SURF_DUMP_SPEC *pDumpSpec, MediaUserSetting::Value outValue)
+{
+    VP_FUNC_CALL();
+
+    MOS_STATUS eStatus      = MOS_STATUS_SUCCESS;
+    pDumpSpec->uiStartFrame = 0;
+    pDumpSpec->uiEndFrame   = 0xFFFFFFFF;
+    outValue                = "C:\\dumps";
+    if (outValue.ConstString().size() > 0 && outValue.ConstString().size() < MOS_USER_CONTROL_MAX_DATA_SIZE)
+    {
+        // Copy the Output path
+        MOS_SecureMemcpy(
+            pDumpSpec->pcOutputPath,
+            MAX_PATH,
+            outValue.ConstString().c_str(),
+            outValue.ConstString().size());
+    }
+    outValue = "postall";
+    if (outValue.ConstString().size() > 0 && outValue.ConstString().size() < MOS_USER_CONTROL_MAX_DATA_SIZE && pDumpSpec->pcOutputPath[0] != '\0')
+    {
+        VP_DEBUG_CHK_STATUS(ProcessDumpLocations(const_cast<char *>(outValue.ConstString().c_str())));
+    }
+
+finish:
+    if ((eStatus != MOS_STATUS_SUCCESS) || (pDumpSpec->pcOutputPath[0] == '\0'))
+    {
+        pDumpSpec->uiStartFrame = 1;
+        pDumpSpec->uiEndFrame   = 0;
+    }
+}
+
 void VpSurfaceDumper::GetSurfaceDumpSpec()
 {
     VP_FUNC_CALL();
@@ -1760,12 +1792,17 @@ void VpSurfaceDumper::GetSurfaceDumpSpec()
     MOS_STATUS                      eStatus = MOS_STATUS_SUCCESS;
     char                            pcDumpLocData[VPHAL_SURF_DUMP_MAX_DATA_LEN];
     VPHAL_SURF_DUMP_SPEC           *pDumpSpec = &m_dumpSpec;
-    MediaUserSetting::Value        outValue;
+    MediaUserSetting::Value         outValue;
 
     pDumpSpec->uiStartFrame    = 0xFFFFFFFF;
     pDumpSpec->uiEndFrame      = 0;
     pDumpSpec->pcOutputPath[0] = '\0';
     pcDumpLocData[0]           = '\0';
+
+#if EMUL
+    GetSurfaceDumpSpecForVPSolo(pDumpSpec, outValue);
+    return;
+#endif
 
     // Get start frame
     // if start frame is not got assign a default value of 0

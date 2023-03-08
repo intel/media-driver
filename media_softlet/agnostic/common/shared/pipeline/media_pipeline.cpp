@@ -60,9 +60,9 @@ MediaPipeline::~MediaPipeline()
     DeleteTasks();
 
     MOS_Delete(m_mediaCopyWrapper);
-
+#if !EMUL
     MEDIA_DEBUG_TOOL(MOS_Delete(m_debugInterface));
-
+#endif
     MediaPerfProfiler *perfProfiler = MediaPerfProfiler::Instance();
 
     if (!perfProfiler)

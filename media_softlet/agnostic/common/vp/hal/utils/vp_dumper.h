@@ -357,6 +357,8 @@ public:
     //!
     void GetSurfaceDumpSpec();
 
+    void GetSurfaceDumpSpecForVPSolo(VPHAL_SURF_DUMP_SPEC * pDumpSpec, MediaUserSetting::Value outValue);
+
 protected:
     //!
     //! \brief    Convert a string to loc enum type
