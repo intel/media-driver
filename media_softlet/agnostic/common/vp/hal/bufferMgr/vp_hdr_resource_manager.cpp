@@ -242,6 +242,11 @@ MOS_STATUS VphdrResourceManager::FreeHdrRenderResource()
         {
             m_allocator.DestroyVpSurface(m_hdrOETF1DLUTSurface[i]);
         }
+
+        if (m_hdrCri3DLUTSurface[i])
+        {
+            m_allocator.DestroyVpSurface(m_hdrCri3DLUTSurface[i]);
+        }
     }
 
     return MOS_STATUS_SUCCESS;
