@@ -349,6 +349,20 @@ protected:
     //!
     MOS_STATUS UnlockBatchBufferForPakSlices();
 
+    //!
+    //! \brief    Report Slice Size to MetaData buffer
+    //! \details  Report Slice Size to MetaData buffer.
+    //! \param    [in] cmdBuffer
+    //!               Pointer to primary cmd buffer
+    //!           [in] slcCount
+    //!               Current slice count
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS ReportSliceSizeMetaData(
+        PMOS_COMMAND_BUFFER cmdBuffer,
+        uint32_t            slcCount);
+
     MHW_SETPAR_DECL_HDR(VDENC_PIPE_BUF_ADDR_STATE);
 
     MHW_SETPAR_DECL_HDR(VD_PIPELINE_FLUSH);

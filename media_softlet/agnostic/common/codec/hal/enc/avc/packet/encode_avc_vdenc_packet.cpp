@@ -456,6 +456,8 @@ namespace encode {
                 ENCODE_CHK_STATUS_RETURN(SetSliceStateParams(m_basicFeature->sliceState, slcData, slcCount)))
 
             ENCODE_CHK_STATUS_RETURN(SendSlice(&cmdBuffer));
+            ENCODE_CHK_STATUS_RETURN(ReportSliceSizeMetaData(&cmdBuffer, slcCount));
+
             m_lastSlice = (slcCount == (m_basicFeature->m_numSlices) - 1);
             SETPAR_AND_ADDCMD(VD_PIPELINE_FLUSH, m_vdencItf, &cmdBuffer);
 
@@ -556,15 +558,6 @@ namespace encode {
             return MOS_STATUS_SUCCESS;
         }
 
-        ENCODE_CHK_COND_RETURN((m_vdboxIndex > m_mfxItf->GetMaxVdboxIndex()), "ERROR - vdbox index exceed the maximum");
-
-        MmioRegistersMfx *mmioRegisters = SelectVdboxAndGetMmioRegister(m_vdboxIndex, cmdBuffer);
-        CODEC_HW_CHK_NULL_RETURN(mmioRegisters);
-        m_pResource = m_basicFeature->m_recycleBuf->GetBuffer(PakSliceSizeStreamOutBuffer, m_basicFeature->m_frameNum);
-        m_dwOffset  = 0;
-        m_dwValue   = mmioRegisters->mfcBitstreamBytecountFrameRegOffset;
-        SETPAR_AND_ADDCMD(MI_STORE_REGISTER_MEM, m_miItf, cmdBuffer);
-
         m_pResource = presMetadataBuffer;
         m_dwOffset  = resourceOffset.dwEncodeErrorFlags;
         m_dwValue   = 0;
@@ -574,33 +567,52 @@ namespace encode {
         m_dwValue  = m_basicFeature->m_numSlices;
         SETPAR_AND_ADDCMD(MI_STORE_DATA_IMM, m_miItf, cmdBuffer);
 
-        auto &miCpyMemMemParams = m_miItf->MHW_GETPAR_F(MI_COPY_MEM_MEM)();
-        miCpyMemMemParams       = {};
-        for (uint16_t slcCount = 0; slcCount < m_basicFeature->m_numSlices; slcCount++)
-        {
-            uint32_t subRegionSartOffset = resourceOffset.dwMetaDataSize + slcCount * resourceOffset.dwMetaDataSubRegionSize;
-
-            m_dwOffset              = subRegionSartOffset + resourceOffset.dwbStartOffset;
-            m_dwValue  = m_basicFeature->m_slcData[slcCount].SliceOffset;
-            SETPAR_AND_ADDCMD(MI_STORE_DATA_IMM, m_miItf, cmdBuffer);
-
-            m_dwOffset              = subRegionSartOffset + resourceOffset.dwbHeaderSize;
-            m_dwValue  = m_basicFeature->m_slcData[slcCount].BitSize;
-            SETPAR_AND_ADDCMD(MI_STORE_DATA_IMM, m_miItf, cmdBuffer);
-
-            miCpyMemMemParams.presSrc     = m_basicFeature->m_recycleBuf->GetBuffer(PakSliceSizeStreamOutBuffer, m_basicFeature->m_frameNum);
-            miCpyMemMemParams.presDst     = presMetadataBuffer;
-            miCpyMemMemParams.dwSrcOffset = slcCount * 2;
-            miCpyMemMemParams.dwDstOffset = subRegionSartOffset + resourceOffset.dwbSize;
-            ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_COPY_MEM_MEM)(cmdBuffer));
-        }
-
         ENCODE_CHK_COND_RETURN((m_vdboxIndex > m_mfxItf->GetMaxVdboxIndex()), "ERROR - vdbox index exceed the maximum");
-        mmioRegisters = SelectVdboxAndGetMmioRegister(m_vdboxIndex, cmdBuffer);
+        MmioRegistersMfx *mmioRegisters = SelectVdboxAndGetMmioRegister(m_vdboxIndex, cmdBuffer);
         CODEC_HW_CHK_NULL_RETURN(mmioRegisters);
         m_pResource = presMetadataBuffer;
         m_dwOffset  = resourceOffset.dwEncodedBitstreamWrittenBytesCount;
         m_dwValue   = mmioRegisters->mfcBitstreamBytecountFrameRegOffset;
+        SETPAR_AND_ADDCMD(MI_STORE_REGISTER_MEM, m_miItf, cmdBuffer);
+
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MOS_STATUS AvcVdencPkt::ReportSliceSizeMetaData(
+        PMOS_COMMAND_BUFFER cmdBuffer,
+        uint32_t            slcCount)
+    {
+        ENCODE_FUNC_CALL();
+
+        PMOS_RESOURCE  presMetadataBuffer = m_basicFeature->m_resMetadataBuffer;
+        MetaDataOffset resourceOffset     = m_basicFeature->m_metaDataOffset;
+        if ((presMetadataBuffer == nullptr) || !m_pipeline->IsLastPass())
+        {
+            return MOS_STATUS_SUCCESS;
+        }
+
+        uint32_t subRegionSartOffset = resourceOffset.dwMetaDataSize + slcCount * resourceOffset.dwMetaDataSubRegionSize;
+
+        auto &flushDwParams                         = m_miItf->MHW_GETPAR_F(MI_FLUSH_DW)();
+        flushDwParams                               = {};
+        flushDwParams.bVideoPipelineCacheInvalidate = true;
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(cmdBuffer));
+
+        m_pResource = presMetadataBuffer;
+        m_dwOffset = subRegionSartOffset + resourceOffset.dwbStartOffset;
+        m_dwValue   = 0;
+        SETPAR_AND_ADDCMD(MI_STORE_DATA_IMM, m_miItf, cmdBuffer);
+
+        m_dwOffset = subRegionSartOffset + resourceOffset.dwbHeaderSize;
+        m_dwValue  = m_basicFeature->m_slcData[slcCount].BitSize;
+        SETPAR_AND_ADDCMD(MI_STORE_DATA_IMM, m_miItf, cmdBuffer);
+
+        MmioRegistersMfx *mmioRegisters = SelectVdboxAndGetMmioRegister(m_vdboxIndex, cmdBuffer);
+        CODEC_HW_CHK_NULL_RETURN(mmioRegisters);
+        ENCODE_CHK_COND_RETURN((m_vdboxIndex > m_mfxItf->GetMaxVdboxIndex()), "ERROR - vdbox index exceed the maximum");
+        m_pResource = presMetadataBuffer;
+        m_dwOffset  = subRegionSartOffset + resourceOffset.dwbSize;
+        m_dwValue   = mmioRegisters->mfcBitstreamBytecountSliceRegOffset;
         SETPAR_AND_ADDCMD(MI_STORE_REGISTER_MEM, m_miItf, cmdBuffer);
 
         return MOS_STATUS_SUCCESS;
