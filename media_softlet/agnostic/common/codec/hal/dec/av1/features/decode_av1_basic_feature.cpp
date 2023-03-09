@@ -177,13 +177,26 @@ namespace decode
 
         DECODE_CHK_STATUS(CheckProfileAndSubsampling());
 
+        // Frame Width/Frame Height, valid range is [15, 16383]
+        if (m_av1PicParams->m_frameWidthMinus1 < 15 || m_av1PicParams->m_frameHeightMinus1 < 15)
+        {
+            DECODE_ASSERTMESSAGE("Frame Width/Height is invalid, out of [15, 16383].");
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+
+        if (!m_av1PicParams->m_seqInfoFlags.m_fields.m_enableOrderHint &&
+            (m_av1PicParams->m_orderHint != 0))
+        {
+            DECODE_ASSERTMESSAGE("orderHint Conflict with AV1 Spec!");
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
         if(m_av1PicParams->m_picInfoFlags.m_fields.m_allowIntrabc &&
             (!(m_av1PicParams->m_picInfoFlags.m_fields.m_frameType == keyFrame ||
                 m_av1PicParams->m_picInfoFlags.m_fields.m_frameType == intraOnlyFrame) ||
                 !m_av1PicParams->m_picInfoFlags.m_fields.m_allowScreenContentTools ||
                 m_av1PicParams->m_picInfoFlags.m_fields.m_useSuperres))
         {
-            DECODE_ASSERTMESSAGE("Conflict with AV1 Spec.");
+            DECODE_ASSERTMESSAGE("Superres use Conflict with AV1 Spec.");
             return MOS_STATUS_INVALID_PARAMETER;
         }
 
@@ -355,6 +368,16 @@ namespace decode
             m_av1PicParams->m_loopRestorationFlags.m_value = 0;
         }
 
+        // LRU Luma Size cannot < Superblock Size. If Superblock Size is 128x128, LRU Luma Size cannot be 64x64.
+        if (m_av1PicParams->m_seqInfoFlags.m_fields.m_use128x128Superblock)
+        {
+            if (m_av1PicParams->m_loopRestorationFlags.m_fields.m_lrUnitShift == 0)
+            {
+                DECODE_ASSERTMESSAGE("Superblock use Conflict with AV1 Spec!");
+                m_av1PicParams->m_loopRestorationFlags.m_value = 0;
+            }
+        }
+
         // Error Concealment for DeltaLF and DeltaQ
         if (m_av1PicParams->m_baseQindex == 0)
         {
@@ -386,6 +409,12 @@ namespace decode
               m_av1PicParams->m_picInfoFlags.m_fields.m_showableFrame))
         {
             memset(&m_av1PicParams->m_filmGrainParams, 0, sizeof(CodecAv1FilmGrainParams));
+        }
+
+        // Error Concealment for Reference List
+        if (m_av1PicParams->m_picInfoFlags.m_fields.m_frameType != keyFrame && m_av1PicParams->m_picInfoFlags.m_fields.m_frameType != intraOnlyFrame)
+        {
+            DECODE_CHK_STATUS(m_refFrames.ErrorConcealment(*m_av1PicParams));
         }
 
         return MOS_STATUS_SUCCESS;

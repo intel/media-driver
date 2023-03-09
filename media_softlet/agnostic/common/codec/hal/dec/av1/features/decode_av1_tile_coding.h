@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2021, Intel Corporation
+* Copyright (c) 2019-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -53,6 +53,7 @@ namespace decode
             uint16_t    m_tileColumn;       //!< tile column index in source position if large scale tile is enabled
             uint16_t    m_tileIndex;        //!< tile index in tile list, valid when large scale tile is enabled
             uint8_t     m_anchorFrameIdx;   //!< anchor frame index for this tile, valid when large scale tile is enabled
+            uint16_t    m_tileIndexCount;   //!< tile index in tile list, valid when large scale tile is enabled
         };
 
         //multiple tiles enabling
@@ -64,6 +65,7 @@ namespace decode
         bool            m_isTruncatedTile        = false;        //!< flag to indicate if the last tile is truncated tile
         TileDesc        *m_tileDesc              = nullptr;      //!< tile descriptors for each tile of the frame
         bool            m_hasTileMissing         = false;        //! flag to indicate if having tile missing
+        bool            m_hasDuplicateTile       = false;        //! flag to indicate if having tile duplicate
         uint32_t        m_tileStartOffset        = 0;            //!< record the tile or tile group header start address offset against the first byte of the bitstream buffer
         bool            m_newFrameStart          = true;         //!< flag to indicate a new frame is coming, which means m_lastTileId should be reset to -1.
         uint32_t        m_numTiles               = 0;            //!< Num of tiles

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2021, Intel Corporation
+* Copyright (c) 2020-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -50,6 +50,11 @@ namespace decode
         m_isLastTileInPartialFrm = (tileIdx == int16_t(m_av1BasicFeature->m_tileCoding.m_lastTileId)) ? 1 : 0;
         m_isFirstTileInPartialFrm = (tileIdx == int16_t(m_av1BasicFeature->m_tileCoding.m_lastTileId
             - m_av1BasicFeature->m_tileCoding.m_numTiles + 1)) ? 1 : 0;
+        // For tile missing scenario and duplicate tile scenario
+        if (m_av1BasicFeature->m_tileCoding.m_hasTileMissing || m_av1BasicFeature->m_tileCoding.m_hasDuplicateTile)
+        {
+            m_isFirstTileInPartialFrm = (tileIdx == int16_t(m_av1BasicFeature->m_tileCoding.m_lastTileId - m_av1BasicFeature->m_tileCoding.m_totalTileNum + 1)) ? 1 : 0;
+        }
 
         if (m_isFirstTileInPartialFrm || m_av1Pipeline->TileBasedDecodingInuse() ||
             (m_av1PicParams->m_picInfoFlags.m_fields.m_largeScaleTile))
@@ -157,7 +162,7 @@ namespace decode
 
         int16_t tileIdx = m_av1BasicFeature->m_tileCoding.m_curTile;
 
-        if ( tileIdx < int16_t(m_av1BasicFeature->m_tileCoding.m_numTiles))
+        if (tileIdx < int16_t(m_av1BasicFeature->m_tileCoding.m_totalTileNum))
         {
             DECODE_CHK_STATUS(m_tilePkt->Execute(cmdBuffer, tileIdx));
         }
@@ -171,7 +176,7 @@ namespace decode
             DECODE_CHK_STATUS(EndStatusReport(statusReportMfx, &cmdBuffer));
         }
 
-        bool isLastTileInFullFrm = (tileIdx == int16_t(m_av1BasicFeature->m_tileCoding.m_numTiles) - 1) ? 1 : 0;
+        bool isLastTileInFullFrm = (tileIdx == int16_t(m_av1BasicFeature->m_tileCoding.m_totalTileNum) - 1) ? 1 : 0;
 
         if (isLastTileInFullFrm)
         {

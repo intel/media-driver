@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2021, Intel Corporation
+* Copyright (c) 2019-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -68,6 +68,7 @@ namespace decode
             m_isTruncatedTile   = false;
             m_decPassNum        = 1;
             m_hasTileMissing    = false;
+            m_hasDuplicateTile  = false;
         }
 
         if (m_numTiles > av1MaxTileNum)
@@ -115,23 +116,53 @@ namespace decode
     {
         DECODE_FUNC_CALL()
         DECODE_CHK_NULL(m_tileDesc);
+        uint64_t datasize = 0;
+
+        // detect if any tile missing
+        if (m_numTiles < m_totalTileNum)
+        {
+            if (!m_hasTileMissing)
+            {
+                m_hasTileMissing = true;
+            }
+        }
+
+        // make sure the last tile equals to m_totalTileNum-1
+        if (m_hasTileMissing)
+        {
+            if (m_lastTileId != m_totalTileNum - 1)
+            {
+                m_lastTileId    = m_totalTileNum - 1;
+                m_newFrameStart = true;
+            }
+        }
 
         // Error Concealment for Tile size
         // m_numTiles means the tile number from application
         // m_totalTileNum means the total number of tile, m_lastTileId means the last tile index
         for (uint32_t i = 0; i < m_totalTileNum; i++)
         {
-            if (m_tileDesc[i].m_size + m_tileDesc[i].m_offset > m_basicFeature->m_dataSize)
+            // m_tileDesc[i].m_size + m_tileDesc[i].m_offset could oversize the maximum of uint32_t
+            datasize = (uint64_t)m_tileDesc[i].m_size + (uint64_t)m_tileDesc[i].m_offset;
+            if (datasize > m_basicFeature->m_dataSize)
             {
                 if (i == m_lastTileId)
                 {
-                    DECODE_ASSERTMESSAGE("The last tile size is oversize!");
-                    m_tileDesc[i].m_size = m_basicFeature->m_dataSize - m_tileDesc[i].m_offset;
+                    if (m_basicFeature->m_dataSize > m_tileDesc[i].m_offset)
+                    {
+                        m_tileDesc[i].m_size = m_basicFeature->m_dataSize - m_tileDesc[i].m_offset;
+                        DECODE_ASSERTMESSAGE("The last tile size is oversize, the remaining size is %d\n", m_tileDesc[i].m_size);
+                    }
+                    else
+                    {
+                        m_tileDesc[i].m_size = 0;
+                        DECODE_ASSERTMESSAGE("The last tile size is invalid, take current tile as missing tile and then set 4 byte dummy WL!!");
+                    }
                 }
                 else
                 {
-                    DECODE_ASSERTMESSAGE("The non-last tile size is oversize! Skip Frame!");
-                    return MOS_STATUS_INVALID_PARAMETER;
+                    m_tileDesc[i].m_size = 0;
+                    DECODE_ASSERTMESSAGE("The non-last tile size is oversize, take current tile as missing tile and then set 4 byte dummy WL!\n");
                 }
             }
             // For tile missing scenario
@@ -142,10 +173,6 @@ namespace decode
                 m_tileDesc[i].m_offset     = 0;
                 m_tileDesc[i].m_tileRow    = i / m_basicFeature->m_av1PicParams->m_tileCols;
                 m_tileDesc[i].m_tileColumn = i % m_basicFeature->m_av1PicParams->m_tileCols;
-                if (!m_hasTileMissing)
-                {
-                    m_hasTileMissing = true;
-                }
             }
         }
         return MOS_STATUS_SUCCESS;
@@ -167,6 +194,13 @@ namespace decode
             DECODE_ASSERT(tileParams[i].m_badBSBufferChopping == 0);//this is to assume the whole tile is in one single bitstream buffer
             DECODE_ASSERT(tileParams[i].m_bsTileBytesInBuffer == tileParams[i].m_bsTilePayloadSizeInBytes);//this is to assume the whole tile is in one single bitstream buffer
 
+            // Check invalid tile column and tile row
+            if (tileParams[i].m_tileColumn > picParams.m_tileCols || tileParams[i].m_tileRow > picParams.m_tileRows)
+            {
+                DECODE_ASSERTMESSAGE("Invalid tile column or tile row\n");
+                return MOS_STATUS_INVALID_PARAMETER;
+            }
+
             if (!picParams.m_picInfoFlags.m_fields.m_largeScaleTile)
             {
                 //record info
@@ -182,11 +216,26 @@ namespace decode
                 }
             }
 
-            auto index                     = (picParams.m_picInfoFlags.m_fields.m_largeScaleTile) ? i : tileId;
-            m_tileDesc[index].m_offset     = tileParams[i].m_bsTileDataLocation;
-            m_tileDesc[index].m_size       = tileParams[i].m_bsTileBytesInBuffer;
-            m_tileDesc[index].m_tileRow    = tileParams[i].m_tileRow;
-            m_tileDesc[index].m_tileColumn = tileParams[i].m_tileColumn;
+            // check duplicate tile
+            auto index = (picParams.m_picInfoFlags.m_fields.m_largeScaleTile) ? i : tileId; 
+            if (m_tileDesc[index].m_tileIndexCount > 0 )
+            {
+                if (tileParams[i].m_bsTileBytesInBuffer > m_tileDesc[index].m_size)
+                {
+                    m_tileDesc[index].m_offset = tileParams[i].m_bsTileDataLocation;
+                    m_tileDesc[index].m_size   = tileParams[i].m_bsTileBytesInBuffer;
+                }
+                m_tileDesc[index].m_tileIndexCount++;
+                m_hasDuplicateTile = true;
+            }
+            else
+            {
+                m_tileDesc[index].m_offset     = tileParams[i].m_bsTileDataLocation;
+                m_tileDesc[index].m_size       = tileParams[i].m_bsTileBytesInBuffer;
+                m_tileDesc[index].m_tileRow    = tileParams[i].m_tileRow;
+                m_tileDesc[index].m_tileColumn = tileParams[i].m_tileColumn;
+                m_tileDesc[index].m_tileIndexCount++;
+            }
 
             if (!picParams.m_picInfoFlags.m_fields.m_largeScaleTile)
             {
@@ -240,6 +289,7 @@ namespace decode
 
         //calc for the last tile
         m_tileColStartSb[i] = start_sb;
+        DECODE_CHK_COND(sbCols < (start_sb + 1), "Invalid tile col start of the last tile");
         picParams.m_widthInSbsMinus1[i] = sbCols - start_sb - 1;
 
         return MOS_STATUS_SUCCESS;
@@ -263,6 +313,7 @@ namespace decode
 
         //calc for the last tile
         m_tileRowStartSb[i] = start_sb;
+        DECODE_CHK_COND(sbRows < (start_sb + 1), "Invalid tile row start of the last tile");
         picParams.m_heightInSbsMinus1[i] = sbRows - start_sb - 1;
 
         return MOS_STATUS_SUCCESS;
