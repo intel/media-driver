@@ -160,7 +160,7 @@ public:
     //! \brief  Indicates the total size of all managed heaps
     //! \return The size of all heaps managed \see m_totalSizeOfHeaps
     //!  
-    uint32_t GetTotalSize();
+    virtual uint32_t GetTotalSize();
 
     //!
     //! \brief  Indicates the size of heap extensions
