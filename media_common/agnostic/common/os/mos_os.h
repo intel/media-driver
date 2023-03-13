@@ -132,8 +132,22 @@ static int perf_count_stop = 0;
 class AutoPerfUtility
 {
 public:
-    AutoPerfUtility(std::string tag, std::string comp, std::string level);
-    ~AutoPerfUtility();
+    AutoPerfUtility(std::string tag, std::string comp, std::string level)
+    {
+        if (PERFUTILITY_IS_ENABLED(comp, level))
+        {
+            g_perfutility->startTick(tag);
+            autotag = tag;
+            bEnable = true;
+        }
+    }
+    ~AutoPerfUtility()
+    {
+        if (bEnable)
+        {
+            g_perfutility->stopTick(autotag);
+        }
+    }
 
 private:
     bool bEnable = false;
@@ -1630,6 +1644,129 @@ typedef struct _MOS_INTERFACE
         uint32_t                    instanceIdx);
 #endif
 
+#if MOS_MEDIASOLO_SUPPORTED
+    //!
+    //! \brief    Solo Check node limitation
+    //! \details  Solo Check node limitation
+    //! \param    [in] osInterface
+    //!           Pointer to OsInterface
+    //! \param    [out] pGpuNodeToUse
+    //!           Pointer to the GPU node to use
+    //! \return   void
+    //!
+    void (*pfnMosSoloCheckNodeLimitation)(
+        PMOS_INTERFACE              osInterface,
+        uint32_t                    *pGpuNodeToUse);
+
+    //!
+    //! \brief    Set MSDK event handling
+    //! \details  Receive MSDK event to be set in mediasolo
+    //! \param    [in] osInterface
+    //!           Pointer to OsInterface
+    //! \param    [out] gpuAppTaskEvent
+    //!           Event handle
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    MOS_STATUS (*pfnMosSoloSetGpuAppTaskEvent)(
+        PMOS_INTERFACE              osInterface,
+        HANDLE                      gpuAppTaskEvent);
+
+    //!
+    //! \brief    Solo force dump
+    //! \details  After dwBufferDumpFrameNum submissions are dumped. Force enable mediasolo debug out dump.
+    //!           If no solo interface exists, creates one.
+    //! \param    [in] dwBufferDumpFrameNum
+    //!           Frame Number of the buffer to dump
+    //! \param    [in, out] osInterface
+    //!           Pointer to OsInterface
+    //! \return   void
+    //!
+    MOS_STATUS (*pfnMosSoloForceDumps)(
+        uint32_t                    dwBufferDumpFrameNum,
+        PMOS_INTERFACE              osInterface);
+
+    //!
+    //! \brief    Solo Pre Process for Decode
+    //! \details  Do solo specific operations before decode.
+    //!           Include disable aubload optimization.
+    //!           And set dumped resource in Aubcapture.
+    //! \param    [in] osInterface
+    //!           Indicate if this is first execute call
+    //! \param    [in] psDestSurface
+    //!           Pointer to the surface to add to Aubcapture dump
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    MOS_STATUS (*pfnMosSoloPreProcessDecode)(
+        PMOS_INTERFACE              osInterface,
+        PMOS_SURFACE                psDestSurface);
+
+    //!
+    //! \brief    Solo Post Process for Decode
+    //! \details  Do solo specific operations after decode.
+    //!           Include remove dumped resource in Aubcapture.
+    //! \param    [in] osInterface
+    //!           Pointer to OsInterface
+    //! \param    [in] psDestSurface
+    //!           Pointer to the surface to remove from Aubcapture dump
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    MOS_STATUS (*pfnMosSoloPostProcessDecode)(
+        PMOS_INTERFACE              osInterface,
+        PMOS_SURFACE                psDestSurface);
+
+    //!
+    //! \brief    Solo Pre Process for Encode
+    //! \details  Do solo specific operations before encode.
+    //!           Include set dumped resource in Aubcapture.
+    //! \param    [in] osInterface
+    //!           Pointer to OsInterface
+    //! \param    [in] pBitstreamBuffer
+    //!           Pointer to the resource to add to Aubcapture dump
+    //! \param    [in] pReconSurface
+    //!           Pointer to the surface to add to Aubcapture dump
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    MOS_STATUS (*pfnMosSoloPreProcessEncode)(
+        PMOS_INTERFACE              osInterface,
+        PMOS_RESOURCE               pBitstreamBuffer,
+        PMOS_SURFACE                pReconSurface);
+
+    //!
+    //! \brief    Solo Post Process for Encode
+    //! \details  Do solo specific operations after encode.
+    //!           Include remove dumped resource in Aubcapture.
+    //! \param    [in] osInterface
+    //!           Pointer to OsInterface
+    //! \param    [in] pBitstreamBuffer
+    //!           Pointer to the resource to remove from Aubcapture dump
+    //! \param    [in] pReconSurface
+    //!           Pointer to the surface to remove from Aubcapture dump
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    MOS_STATUS (*pfnMosSoloPostProcessEncode)(
+        PMOS_INTERFACE              osInterface,
+        PMOS_RESOURCE               pBitstreamBuffer,
+        PMOS_SURFACE                pReconSurface);
+
+    //!
+    //! \brief    Solo Disable Aubcapture Optimizations
+    //! \details  Solo Disable Aubcapture Optimizations
+    //! \param    [in] osInterface
+    //!           Pointer to OsInterface pointer list
+    //! \param    [in] bFirstExecuteCall
+    //!           Indicate if this is first execute call
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    MOS_STATUS (*pfnMosSoloDisableAubcaptureOptimizations)(
+        PMOS_INTERFACE              osInterface,
+        int32_t                     bFirstExecuteCall);
+#endif
     //!
     //! \brief    Notify shared Stream index
     //!

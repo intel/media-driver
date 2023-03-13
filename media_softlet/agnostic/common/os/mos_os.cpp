@@ -34,26 +34,6 @@
 #include "mos_interface.h"
 #include "media_user_setting.h"
 
-PerfUtility* g_perfutility = PerfUtility::getInstance();
-
-AutoPerfUtility::AutoPerfUtility(std::string tag, std::string comp, std::string level)
-{
-    if (PERFUTILITY_IS_ENABLED(comp, level))
-    {
-        g_perfutility->startTick(tag);
-        autotag = tag;
-        bEnable = true;
-    }
-}
-
-AutoPerfUtility::~AutoPerfUtility()
-{
-    if (bEnable)
-    {
-        g_perfutility->stopTick(autotag);
-    }
-}
-
 #if MOS_MEDIASOLO_SUPPORTED
 void *   _MOS_INTERFACE::pvSoloContext = nullptr; 
 uint32_t _MOS_INTERFACE::soloRefCnt = 0;

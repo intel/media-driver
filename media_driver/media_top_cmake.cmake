@@ -83,8 +83,10 @@ set(SOFTLET_DDI_PRIVATE_INCLUDE_DIRS_ "")
 set(SOFTLET_DDI_PUBLIC_INCLUDE_DIRS_ "")
 
 ################################################################################
-# ddi hal share
+# ddi/mos hal share
 ################################################################################
+set(MOS_COMMON_HAL_SHARED_SOURCES_ "")                     # source group
+
 set(SOFTLET_COMMON_HAL_DDI_SHARED_SOURCES_ "")             # softlet source group
 set(SOFTLET_COMMON_HAL_DDI_SHARED_INCLUDE_DIRS_ "")
 
@@ -574,6 +576,11 @@ ENDFOREACH()
 ######################################################
 #MOS LIB
 ############## MOS ########################################
+set(MOS_COMMON_SOURCES_
+${MOS_COMMON_SOURCES_}
+${MOS_COMMON_HAL_SHARED_SOURCES_}
+)
+
 set_source_files_properties(${MOS_COMMON_SOURCES_} PROPERTIES LANGUAGE "CXX")
 set_source_files_properties(${SOFTLET_MOS_COMMON_SOURCES_} PROPERTIES LANGUAGE "CXX")
 

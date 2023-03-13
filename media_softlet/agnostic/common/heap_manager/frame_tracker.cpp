@@ -68,7 +68,7 @@ FrameTrackerProducer::FrameTrackerProducer():
     m_resourceData(nullptr),
     m_osInterface(nullptr)
 {
-    Mos_ResetResource(&m_resource);
+    MOS_ZeroMemory(&m_resource, sizeof(MOS_RESOURCE));
     MOS_ZeroMemory(m_trackerInUse, sizeof(m_trackerInUse));
     MOS_ZeroMemory(m_counters, sizeof(m_counters));
 }
@@ -96,7 +96,8 @@ MOS_STATUS FrameTrackerProducer::Initialize(MOS_INTERFACE *osInterface)
 {
     m_osInterface = osInterface;
     MHW_CHK_NULL_RETURN(m_osInterface);
-    
+
+    m_osInterface->pfnResetResource(&m_resource);
     // allocate the resource
     MOS_ALLOC_GFXRES_PARAMS allocParamsLinearBuffer;
     uint32_t size = MOS_ALIGN_CEIL(MAX_TRACKER_NUMBER * m_trackerSize, MHW_CACHELINE_SIZE);

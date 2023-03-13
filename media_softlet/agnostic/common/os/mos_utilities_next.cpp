@@ -1180,6 +1180,7 @@ MOS_STATUS MosUtilities::DataToMediaUserSettingValue(
 
 std::shared_ptr<PerfUtility> PerfUtility::instance = nullptr;
 std::mutex PerfUtility::perfMutex;
+PerfUtility* g_perfutility = PerfUtility::getInstance();
 
 PerfUtility *PerfUtility::getInstance()
 {
