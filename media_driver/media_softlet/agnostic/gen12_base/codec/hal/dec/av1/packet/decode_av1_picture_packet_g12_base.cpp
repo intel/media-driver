@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2021, Intel Corporation
+* Copyright (c) 2019-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -136,11 +136,11 @@ namespace decode{
 
         if (m_av1PicParams->m_seqInfoFlags.m_fields.m_subsamplingX == 1 && m_av1PicParams->m_seqInfoFlags.m_fields.m_subsamplingY == 1)
         {
-            chromaSamplingFormat = HCP_CHROMA_FORMAT_YUV420;//Use HCP definitions here, since AVP and HCP will merge together in the future
+            chromaSamplingFormat = avpChromaFormatYuv420;
         }
         else if (m_av1PicParams->m_seqInfoFlags.m_fields.m_subsamplingX == 0 && m_av1PicParams->m_seqInfoFlags.m_fields.m_subsamplingY == 0)
         {
-            chromaSamplingFormat = HCP_CHROMA_FORMAT_YUV444;
+            chromaSamplingFormat = avpChromaFormatYuv444;
         }
         else
         {
