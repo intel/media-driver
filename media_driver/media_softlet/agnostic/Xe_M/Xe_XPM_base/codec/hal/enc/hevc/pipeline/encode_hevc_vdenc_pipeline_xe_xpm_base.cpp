@@ -185,7 +185,7 @@ MOS_STATUS HevcVdencPipelineXe_Xpm_Base::Initialize(void *settings)
     ENCODE_FUNC_CALL();
     ENCODE_CHK_STATUS_RETURN(InitMmcState());
     CodechalSetting* codecSettings = (CodechalSetting*)settings;
-    codecSettings ->isMmcEnabled = m_mmcState->IsMmcEnabled();
+    codecSettings ->isMmcEnabled = m_mmcState ? m_mmcState->IsMmcEnabled() : false;
     ENCODE_CHK_STATUS_RETURN(HevcVdencPipeline::Initialize(settings));
 
     CODECHAL_DEBUG_TOOL(

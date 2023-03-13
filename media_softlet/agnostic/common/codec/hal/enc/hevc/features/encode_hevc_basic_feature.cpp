@@ -668,8 +668,9 @@ MOS_STATUS HevcBasicFeature::GetSurfaceMmcInfo(PMOS_SURFACE surface, MOS_MEMCOMP
     ENCODE_FUNC_CALL();
 
     ENCODE_CHK_NULL_RETURN(surface);
-    ENCODE_CHK_NULL_RETURN(m_mmcState);
 
+#ifdef _MMC_SUPPORTED
+    ENCODE_CHK_NULL_RETURN(m_mmcState);
     if (m_mmcState->IsMmcEnabled())
     {
         ENCODE_CHK_STATUS_RETURN(m_mmcState->GetSurfaceMmcState(surface, &mmcState));
@@ -679,6 +680,7 @@ MOS_STATUS HevcBasicFeature::GetSurfaceMmcInfo(PMOS_SURFACE surface, MOS_MEMCOMP
     {
         mmcState = MOS_MEMCOMP_DISABLED;
     }
+#endif
 
     return MOS_STATUS_SUCCESS;
 }
@@ -811,6 +813,8 @@ MHW_SETPAR_DECL_SRC(VDENC_DS_REF_SURFACE_STATE, HevcBasicFeature)
 
 MHW_SETPAR_DECL_SRC(VDENC_PIPE_BUF_ADDR_STATE, HevcBasicFeature)
 {
+#ifdef _MMC_SUPPORTED
+    ENCODE_CHK_NULL_RETURN(m_mmcState);   
     if (m_mmcState->IsMmcEnabled())
     {
         params.mmcEnabled = true;
@@ -823,6 +827,7 @@ MHW_SETPAR_DECL_SRC(VDENC_PIPE_BUF_ADDR_STATE, HevcBasicFeature)
         params.mmcStateRaw          = MOS_MEMCOMP_DISABLED;
         params.compressionFormatRaw = 0;
     }
+#endif
 
     params.surfaceRaw               = m_rawSurfaceToPak;
     params.surfaceDsStage1          = m_8xDSSurface;

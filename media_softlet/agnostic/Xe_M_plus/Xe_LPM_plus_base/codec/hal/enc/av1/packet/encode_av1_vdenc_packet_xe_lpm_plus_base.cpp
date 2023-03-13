@@ -389,11 +389,14 @@ MOS_STATUS Av1VdencPktXe_Lpm_Plus_Base::RegisterPostCdef()
     allocParamsForBuffer2D.Format   = Format_NV12;
     allocParamsForBuffer2D.dwWidth  = MOS_ALIGN_CEIL(m_basicFeature->m_frameWidth, av1SuperBlockWidth);
     allocParamsForBuffer2D.dwHeight = MOS_ALIGN_CEIL(m_basicFeature->m_frameHeight, av1SuperBlockHeight);
+#ifdef _MMC_SUPPORTED     
+    ENCODE_CHK_NULL_RETURN(m_mmcState);
     if (m_mmcState->IsMmcEnabled())
     {
         allocParamsForBuffer2D.CompressionMode = MOS_MMC_MC;
         allocParamsForBuffer2D.bIsCompressible = true;
     }
+#endif   
     if (m_basicFeature->m_is10Bit)
     {
         // This is temporary fix for Sim specific ( Grits Utility) issue, HW has no restriction for current platform

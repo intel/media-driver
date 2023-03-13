@@ -225,10 +225,11 @@ namespace encode{
         MHW_VDBOX_SURFACE_PARAMS &      reconSurfaceParams)
     {
         ENCODE_FUNC_CALL();
-        ENCODE_CHK_NULL_RETURN(m_mmcState);
         ENCODE_CHK_NULL_RETURN(srcSurfaceParams.psSurface);
         ENCODE_CHK_NULL_RETURN(reconSurfaceParams.psSurface);
 
+#ifdef _MMC_SUPPORTED
+        ENCODE_CHK_NULL_RETURN(m_mmcState);
         if (m_mmcState->IsMmcEnabled())
         {
             ENCODE_CHK_STATUS_RETURN(m_mmcState->GetSurfaceMmcState(&m_basicFeature->m_reconSurface, &pipeBufAddrParams->PreDeblockSurfMmcState));
@@ -241,6 +242,7 @@ namespace encode{
             pipeBufAddrParams->PreDeblockSurfMmcState = MOS_MEMCOMP_DISABLED;
             pipeBufAddrParams->RawSurfMmcState        = MOS_MEMCOMP_DISABLED;
         }
+#endif
 
         CODECHAL_DEBUG_TOOL(
             m_basicFeature->m_reconSurface.MmcState = pipeBufAddrParams->PreDeblockSurfMmcState;)
@@ -255,10 +257,11 @@ namespace encode{
 
         ENCODE_CHK_NULL_RETURN(surfaceStateParams);
         ENCODE_CHK_NULL_RETURN(surfaceStateParams->psSurface);
-        ENCODE_CHK_NULL_RETURN(m_mmcState);
 
         ENCODE_FUNC_CALL();
 
+#ifdef _MMC_SUPPORTED
+        ENCODE_CHK_NULL_RETURN(m_mmcState);
         if (m_mmcState->IsMmcEnabled())
         {
             ENCODE_CHK_STATUS_RETURN(m_mmcState->GetSurfaceMmcState(surfaceStateParams->psSurface, &surfaceStateParams->mmcState));
@@ -268,6 +271,7 @@ namespace encode{
         {
             surfaceStateParams->mmcState = MOS_MEMCOMP_DISABLED;
         }
+#endif
         return eStatus;
     }
 
