@@ -130,10 +130,12 @@ MOS_STATUS AvcPipelineM12::Initialize(void *settings)
         m_mediaCopyWrapper->SetMediaCopyState(m_hwInterface->CreateMediaCopy(m_osInterface));
     }
 
-#if USE_CODECHAL_DEBUG_TOOL
-    DECODE_CHK_NULL(m_debugInterface);
-    DECODE_CHK_STATUS(m_debugInterface->SetFastDumpConfig(m_mediaCopyWrapper->GetMediaCopyState()));
-#endif
+    CODECHAL_DEBUG_TOOL(
+        m_debugInterface = MOS_New(CodechalDebugInterface);
+        DECODE_CHK_NULL(m_debugInterface);
+        DECODE_CHK_STATUS(
+            m_debugInterface->Initialize(m_hwInterface, codecSettings->codecFunction, m_mediaCopyWrapper->GetMediaCopyState())););
+
     if (m_hwInterface->m_hwInterfaceNext)
     {
         m_hwInterface->m_hwInterfaceNext->legacyHwInterface = m_hwInterface;

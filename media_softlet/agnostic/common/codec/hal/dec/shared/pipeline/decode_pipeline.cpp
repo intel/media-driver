@@ -168,10 +168,12 @@ MOS_STATUS DecodePipeline::Initialize(void *settings)
         m_mediaCopyWrapper->SetMediaCopyState(m_hwInterface->CreateMediaCopy(m_osInterface));
     }
 
-#if USE_CODECHAL_DEBUG_TOOL
-    DECODE_CHK_NULL(m_debugInterface);
-    DECODE_CHK_STATUS(m_debugInterface->SetFastDumpConfig(m_mediaCopyWrapper->GetMediaCopyState()));
-#endif
+    CODECHAL_DEBUG_TOOL(
+        m_debugInterface = MOS_New(CodechalDebugInterface);
+        DECODE_CHK_NULL(m_debugInterface);
+        DECODE_CHK_STATUS(
+            m_debugInterface->Initialize(m_hwInterface, codecSettings->codecFunction, m_mediaCopyWrapper->GetMediaCopyState()));
+    );
 
     m_mediaContext = MOS_New(MediaContext, scalabilityDecoder, m_hwInterface, m_osInterface);
     DECODE_CHK_NULL(m_mediaContext);
@@ -222,6 +224,8 @@ MOS_STATUS DecodePipeline::Uninitialize()
     MOS_Delete(m_subPacketManager);
 
     MOS_Delete(m_allocator);
+
+    CODECHAL_DEBUG_TOOL(MOS_Delete(m_debugInterface););
 
     return MOS_STATUS_SUCCESS;
 }
