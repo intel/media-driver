@@ -273,10 +273,12 @@ namespace decode
             pair.second->Destroy();
         }
 
+#ifdef _MMC_SUPPORTED
         if (m_mmcState != nullptr)
         {
             MOS_Delete(m_mmcState);
         }
+#endif
 
         return Av1Pipeline::Uninitialize();
     }

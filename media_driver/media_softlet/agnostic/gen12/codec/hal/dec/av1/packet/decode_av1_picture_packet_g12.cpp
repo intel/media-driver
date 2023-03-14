@@ -104,13 +104,15 @@ namespace decode
     {
         DECODE_FUNC_CALL();
 
-        if (m_mmcState->IsMmcEnabled())
+#ifdef _MMC_SUPPORTED
+        if (m_mmcState && m_mmcState->IsMmcEnabled())
         {
             DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcState(
                 &m_av1BasicFeature->m_destSurface,
                 &pipeBufAddrParams.m_preDeblockSurfMmcState));
         }
         else
+#endif
         {
             pipeBufAddrParams.m_preDeblockSurfMmcState = MOS_MEMCOMP_DISABLED;
         }
