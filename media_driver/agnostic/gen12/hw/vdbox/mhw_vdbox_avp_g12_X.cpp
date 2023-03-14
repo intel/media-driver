@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2023, Intel Corporation
+* Copyright (c) 2020-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -583,11 +583,11 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpDecodeSurfaceStateCmd(
 
     if (params->ucBitDepthLumaMinus8 == 0 && params->ucBitDepthChromaMinus8 == 0)
     {
-        if (params->ChromaType == avpChromaFormatYuv420 && params->psSurface->Format == Format_NV12)  // 4:2:0 8bit surface
+        if (params->ChromaType == HCP_CHROMA_FORMAT_YUV420 && params->psSurface->Format == Format_NV12)// 4:2:0 8bit surface
         {
             cmd->DW2.SurfaceFormat = cmd->SURFACE_FORMAT_PLANAR4208;
         }
-        else if (params->ChromaType == avpChromaFormatYuv420 && params->psSurface->Format == Format_P010)  // 4:2:0 10bit surface
+        else if (params->ChromaType == HCP_CHROMA_FORMAT_YUV420 && params->psSurface->Format == Format_P010)// 4:2:0 10bit surface
         {
             cmd->DW2.SurfaceFormat = cmd->SURFACE_FORMAT_P010;
         }
@@ -598,7 +598,7 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpDecodeSurfaceStateCmd(
     }
     else if ((params->ucBitDepthLumaMinus8 == 2) && (params->ucBitDepthChromaMinus8 == 2))
     {
-        if (params->ChromaType == avpChromaFormatYuv420 && params->psSurface->Format == Format_P010)  // 4:2:0 10b
+        if (params->ChromaType == HCP_CHROMA_FORMAT_YUV420 && params->psSurface->Format == Format_P010)// 4:2:0 10b
         {
             cmd->DW2.SurfaceFormat = cmd->SURFACE_FORMAT_P010;
         }
