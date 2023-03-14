@@ -147,8 +147,10 @@ MOS_STATUS DecodeDownSamplingFeature::Update(void *params)
 
         m_inputSurfaceRegion.m_x      = 0;
         m_inputSurfaceRegion.m_y      = 0;
-        m_inputSurfaceRegion.m_width  = m_basicFeature->m_width;
-        m_inputSurfaceRegion.m_height = m_basicFeature->m_height;
+        m_inputSurfaceRegion.m_width  = (procParams->m_inputSurfaceRegion.m_width == 0 || procParams->m_inputSurfaceRegion.m_width > m_basicFeature->m_width) ?
+            m_basicFeature->m_width : procParams->m_inputSurfaceRegion.m_width;
+        m_inputSurfaceRegion.m_height = (procParams->m_inputSurfaceRegion.m_height == 0 || procParams->m_inputSurfaceRegion.m_height > m_basicFeature->m_height) ?
+            m_basicFeature->m_height : procParams->m_inputSurfaceRegion.m_height;
     }
 
     // Histogram
