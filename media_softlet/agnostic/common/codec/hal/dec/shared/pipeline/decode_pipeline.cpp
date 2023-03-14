@@ -260,11 +260,16 @@ uint8_t DecodePipeline::GetSystemVdboxNumber()
 {
     uint8_t numVdbox = 1;
 
-    MEDIA_SYSTEM_INFO *gtSystemInfo = m_osInterface->pfnGetGtSystemInfo(m_osInterface);
-    if (gtSystemInfo != nullptr)
+    MEDIA_ENGINE_INFO mediaSysInfo;
+    MOS_ZeroMemory(&mediaSysInfo, sizeof(MEDIA_ENGINE_INFO));
+    MOS_STATUS eStatus = m_osInterface->pfnGetMediaEngineInfo(m_osInterface, mediaSysInfo);
+    if (eStatus == MOS_STATUS_SUCCESS)
     {
-        // Both VE mode and media solo mode should be able to get the VDBOX number via the same interface
-        numVdbox = (uint8_t)(gtSystemInfo->VDBoxInfo.NumberOfVDBoxEnabled);
+        numVdbox = (uint8_t)(mediaSysInfo.VDBoxInfo.NumberOfVDBoxEnabled);
+    }
+    else
+    {
+        DECODE_ASSERTMESSAGE("Failed to query media engine info!!");
     }
 
     return numVdbox;

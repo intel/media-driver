@@ -155,6 +155,7 @@ protected:
     uint16_t       m_passNum          = 1;                //!< Decode pass number
     bool           m_isFirstTileInFrm = true;             //!< First tile in the first frame
     bool           m_forceTileBasedDecoding = false;      //!< Force tile based decoding
+    bool           m_allowVirtualNodeReassign = false;            //!< Whether allow virtual node reassign
 
 MEDIA_CLASS_DEFINE_END(decode__Av1Pipeline)
 };
