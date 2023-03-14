@@ -2748,9 +2748,9 @@ public:
     static int32_t                      m_mosMemAllocCounterNoUserFeatureGfx;
 
     //Temporarily defined as the reference to compatible with the cases using uf key to enable/disable APG.
-    static int32_t                      m_mosMemAllocCounter;
-    static int32_t                      m_mosMemAllocFakeCounter;
-    static int32_t                      m_mosMemAllocCounterGfx;
+    static int32_t                      *m_mosMemAllocCounter;
+    static int32_t                      *m_mosMemAllocFakeCounter;
+    static int32_t                      *m_mosMemAllocCounterGfx;
 
     static bool                         m_enableAddressDump;
 
@@ -2771,9 +2771,8 @@ private:
     static uint32_t                     m_mosAllocMemoryFailSimulateMode;
     static uint32_t                     m_mosAllocMemoryFailSimulateFreq;
     static uint32_t                     m_mosAllocMemoryFailSimulateHint;
-    static uint32_t                     m_mosAllocMemoryFailSimulateAllocCounter;
+    static int32_t                      *m_mosAllocMemoryFailSimulateAllocCounter;
 #endif
-    static MOS_USER_FEATURE_KEY_PATH_INFO m_mosUtilUserFeatureKeyPathInfo;
 MEDIA_CLASS_DEFINE_END(MosUtilities)
 };
 
@@ -2811,25 +2810,25 @@ MEDIA_CLASS_DEFINE_END(MosMutex)
 #define MOS_MEMNINJA_ALLOC_MESSAGE(ptr, size, functionName, filename, line)                                                                                 \
     MOS_OS_MEMNINJAMESSAGE(                                                                                                                                 \
         "MemNinjaSysAlloc: Time = %f, MemNinjaCounter = %d, memPtr = %p, size = %d, functionName = \"%s\", "                                                \
-        "filename = \"%s\", line = %d/", MosUtilities::MosGetTime(), MosUtilities::m_mosMemAllocCounter, ptr, size, functionName, filename, line);          \
+        "filename = \"%s\", line = %d/", MosUtilities::MosGetTime(), (MosUtilities::m_mosMemAllocCounter ? *MosUtilities::m_mosMemAllocCounter : 0), ptr, size, functionName, filename, line);          \
 
 
 #define MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line)                                                                                        \
     MOS_OS_MEMNINJAMESSAGE(                                                                                                                                 \
         "MemNinjaSysFree: Time = %f, MemNinjaCounter = %d, memPtr = %p, functionName = \"%s\", "                                                            \
-        "filename = \"%s\", line = %d/", MosUtilities::MosGetTime(), MosUtilities::m_mosMemAllocCounter, ptr, functionName, filename, line);                \
+        "filename = \"%s\", line = %d/", MosUtilities::MosGetTime(), (MosUtilities::m_mosMemAllocCounter ? *MosUtilities::m_mosMemAllocCounter : 0), ptr, functionName, filename, line);                \
 
 
 #define MOS_MEMNINJA_GFX_ALLOC_MESSAGE(ptr, bufName, component, size, arraySize, functionName, filename, line)                                              \
     MOS_OS_MEMNINJAMESSAGE(                                                                                                                                 \
         "MemNinjaGfxAlloc: Time = %f, MemNinjaCounterGfx = %d, memPtr = %p, bufName = %s, component = %d, size = %lld, "                                  \
-        "arraySize = %d, functionName = \"%s\", filename = \"%s\", line = %d/", MosUtilities::MosGetTime(), MosUtilities::m_mosMemAllocCounterGfx, ptr,     \
+        "arraySize = %d, functionName = \"%s\", filename = \"%s\", line = %d/", MosUtilities::MosGetTime(), (MosUtilities::m_mosMemAllocCounterGfx ? *MosUtilities::m_mosMemAllocCounterGfx : 0), ptr,     \
         bufName, component, size, arraySize, functionName, filename, line);                                                                                 \
 
 #define MOS_MEMNINJA_GFX_FREE_MESSAGE(ptr, functionName, filename, line)                                                                                    \
     MOS_OS_MEMNINJAMESSAGE(                                                                                                                                 \
         "MemNinjaGfxFree: Time = %f, MemNinjaCounterGfx = %d, memPtr = %p, functionName = \"%s\", "                                                         \
-        "filename = \"%s\", line = %d/", MosUtilities::MosGetTime(), MosUtilities::m_mosMemAllocCounterGfx, ptr, functionName, filename, line);             \
+        "filename = \"%s\", line = %d/", MosUtilities::MosGetTime(), (MosUtilities::m_mosMemAllocCounterGfx ? *MosUtilities::m_mosMemAllocCounterGfx : 0), ptr, functionName, filename, line);             \
 
 #if MOS_MESSAGES_ENABLED
 template<class _Ty, class... _Types> inline
@@ -2851,7 +2850,7 @@ _Ty* MosUtilities::MosNewUtil(_Types&&... _Args)
     _Ty* ptr = new (std::nothrow) _Ty(std::forward<_Types>(_Args)...);
     if (ptr != nullptr)
     {
-        MosAtomicIncrement(&m_mosMemAllocCounter);
+        MosAtomicIncrement(m_mosMemAllocCounter);
         MOS_MEMNINJA_ALLOC_MESSAGE(ptr, sizeof(_Ty), functionName, filename, line);
     }
     else
@@ -2886,7 +2885,7 @@ _Ty* MosUtilities::MosNewArrayUtil(size_t numElements)
     _Ty* ptr = new (std::nothrow) _Ty[numElements]();
     if (ptr != nullptr)
     {
-        MosAtomicIncrement(&m_mosMemAllocCounter);
+        MosAtomicIncrement(m_mosMemAllocCounter);
         MOS_MEMNINJA_ALLOC_MESSAGE(ptr, numElements*sizeof(_Ty), functionName, filename, line);
     }
     return ptr;
@@ -2906,7 +2905,7 @@ void MosUtilities::MosDeleteUtil(_Ty& ptr)
 {
     if (ptr != nullptr)
     {
-        MosAtomicDecrement(&m_mosMemAllocCounter);
+        MosAtomicDecrement(m_mosMemAllocCounter);
         MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line);
         delete(ptr);
         ptr = nullptr;
@@ -2927,7 +2926,7 @@ void MosUtilities::MosDeleteArrayUtil(_Ty& ptr)
 {
     if (ptr != nullptr)
     {
-        MosAtomicDecrement(&m_mosMemAllocCounter);
+        MosAtomicDecrement(m_mosMemAllocCounter);
         MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line);
 
         delete[](ptr);
@@ -2961,7 +2960,7 @@ void MosUtilities::MosDeleteArrayUtil(_Ty& ptr)
     #define MOS_DeleteUtil(functionName, filename, line, ptr) \
         if (ptr != nullptr) \
             { \
-                MosUtilities::MosAtomicDecrement(&MosUtilities::m_mosMemAllocCounter); \
+                MosUtilities::MosAtomicDecrement(MosUtilities::m_mosMemAllocCounter); \
                 MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line); \
                 delete(ptr); \
                 ptr = nullptr; \
@@ -2970,7 +2969,7 @@ void MosUtilities::MosDeleteArrayUtil(_Ty& ptr)
     #define MOS_DeleteUtil(ptr) \
         if (ptr != nullptr) \
             { \
-                MosUtilities::MosAtomicDecrement(&MosUtilities::m_mosMemAllocCounter); \
+                MosUtilities::MosAtomicDecrement(MosUtilities::m_mosMemAllocCounter); \
                 MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line); \
                 delete(ptr); \
                 ptr = nullptr; \
@@ -2981,7 +2980,7 @@ void MosUtilities::MosDeleteArrayUtil(_Ty& ptr)
     #define MOS_DeleteArrayUtil(functionName, filename, line, ptr) \
         if (ptr != nullptr) \
         { \
-            MosUtilities::MosAtomicDecrement(&MosUtilities::m_mosMemAllocCounter); \
+            MosUtilities::MosAtomicDecrement(MosUtilities::m_mosMemAllocCounter); \
             MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line); \
             delete[](ptr); \
             ptr = nullptr; \
@@ -2990,7 +2989,7 @@ void MosUtilities::MosDeleteArrayUtil(_Ty& ptr)
     #define MOS_DeleteArrayUtil(ptr) \
         if (ptr != nullptr) \
         { \
-            MosUtilities::MosAtomicDecrement(&MosUtilities::m_mosMemAllocCounter); \
+            MosUtilities::MosAtomicDecrement(MosUtilities::m_mosMemAllocCounter); \
             MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line); \
             delete[](ptr); \
             ptr = nullptr; \

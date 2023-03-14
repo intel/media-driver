@@ -530,7 +530,7 @@ MOS_STATUS HalCm_AllocateBuffer_Linux(
             GMM_RESOURCE_INFO* tmpGmmResInfoPtr = pGmmClientContext->CreateResInfoObject(&gmmParams);
             osResource->pGmmResInfo = tmpGmmResInfoPtr;
 
-            MosUtilities::MosAtomicIncrement(&MosUtilities::m_mosMemAllocCounterGfx);
+            MosUtilities::MosAtomicIncrement(MosUtilities::m_mosMemAllocCounterGfx);
 
 #if defined(DRM_IOCTL_I915_GEM_USERPTR)
            bo =  mos_bo_alloc_userptr(osInterface->pOsContext->bufmgr,

@@ -1757,7 +1757,7 @@ MOS_STATUS MosInterface::AllocateResource(
     }
 
     MOS_OS_CHK_NULL_RETURN(resource->pGmmResInfo);
-    MosUtilities::MosAtomicIncrement(&MosUtilities::m_mosMemAllocCounterGfx);
+    MosUtilities::MosAtomicIncrement(MosUtilities::m_mosMemAllocCounterGfx);
 
     MOS_MEMNINJA_GFX_ALLOC_MESSAGE(
         resource->pGmmResInfo,
@@ -1814,7 +1814,7 @@ MOS_STATUS MosInterface::FreeResource(
         MOS_Delete(resource->pGfxResourceNext);
         resource->pGfxResourceNext = nullptr;
 
-        MosUtilities::MosAtomicDecrement(&MosUtilities::m_mosMemAllocCounterGfx);
+        MosUtilities::MosAtomicDecrement(MosUtilities::m_mosMemAllocCounterGfx);
         MOS_MEMNINJA_GFX_FREE_MESSAGE(resource->pGmmResInfo, functionName, filename, line);
         MosUtilities::MosZeroMemory(resource, sizeof(*resource));
 
@@ -1829,7 +1829,7 @@ MOS_STATUS MosInterface::FreeResource(
         PMOS_CONTEXT perStreamParameters = (PMOS_CONTEXT)streamState->perStreamParameters;
         if (perStreamParameters && perStreamParameters->pGmmClientContext)
         {
-            MosUtilities::m_mosMemAllocCounterGfx--;
+            MosUtilities::MosAtomicDecrement(MosUtilities::m_mosMemAllocCounterGfx);
             MOS_MEMNINJA_GFX_FREE_MESSAGE(resource->pGmmResInfo, functionName, filename, line);
 
             perStreamParameters->pGmmClientContext->DestroyResInfoObject(resource->pGmmResInfo);

@@ -2312,9 +2312,10 @@ MOS_STATUS Mos_Specific_AllocateResource(
             MOS_OS_ASSERTMESSAGE("invalid osContextPtr.");
             return MOS_STATUS_INVALID_HANDLE;
         }
-
-        GraphicsResource::SetMemAllocCounterGfx(MosUtilities::m_mosMemAllocCounterGfx);
-
+        if (MosUtilities::m_mosMemAllocCounterGfx != nullptr)
+        {
+            GraphicsResource::SetMemAllocCounterGfx(*MosUtilities::m_mosMemAllocCounterGfx);
+        }
         GraphicsResource::CreateParams params(pParams);
         eStatus = pOsResource->pGfxResource->Allocate(pOsInterface->osContextPtr, params);
         if (eStatus != MOS_STATUS_SUCCESS)
@@ -2329,8 +2330,10 @@ MOS_STATUS Mos_Specific_AllocateResource(
             MOS_OS_ASSERTMESSAGE("Convert graphic resource failed");
             return MOS_STATUS_INVALID_HANDLE;
         }
-
-        MosUtilities::m_mosMemAllocCounterGfx = GraphicsResource::GetMemAllocCounterGfx();
+        if (MosUtilities::m_mosMemAllocCounterGfx != nullptr)
+        {
+            *MosUtilities::m_mosMemAllocCounterGfx = GraphicsResource::GetMemAllocCounterGfx();
+        }
         MOS_OS_CHK_NULL(pOsResource->pGmmResInfo);
         MOS_MEMNINJA_GFX_ALLOC_MESSAGE(pOsResource->pGmmResInfo, bufname, pOsInterface->Component,
             (uint32_t)pOsResource->pGmmResInfo->GetSizeSurface(), pParams->dwArraySize, functionName, filename, line);
@@ -2555,7 +2558,7 @@ MOS_STATUS Mos_Specific_AllocateResource(
         eStatus = MOS_STATUS_NO_SPACE;
     }
 
-    MosUtilities::m_mosMemAllocCounterGfx++;
+    MosUtilities::MosAtomicIncrement(MosUtilities::m_mosMemAllocCounterGfx);
     MOS_MEMNINJA_GFX_ALLOC_MESSAGE(pOsResource->pGmmResInfo, bufname, pOsInterface->Component,
         (uint32_t)pOsResource->pGmmResInfo->GetSizeSurface(), pParams->dwArraySize, functionName, filename, line);
 
@@ -2769,9 +2772,10 @@ void Mos_Specific_FreeResource(
             MOS_OS_ASSERTMESSAGE("invalid osContextPtr.");
             return;
         }
-
-        GraphicsResource::SetMemAllocCounterGfx(MosUtilities::m_mosMemAllocCounterGfx);
-
+        if (MosUtilities::m_mosMemAllocCounterGfx != nullptr)
+        {
+            GraphicsResource::SetMemAllocCounterGfx(*MosUtilities::m_mosMemAllocCounterGfx);
+        }
         if (pOsResource && pOsResource->pGfxResource)
         {
             pOsResource->pGfxResource->Free(pOsInterface->osContextPtr);
@@ -2782,8 +2786,10 @@ void Mos_Specific_FreeResource(
         }
         MOS_Delete(pOsResource->pGfxResource);
         pOsResource->pGfxResource = nullptr;
-
-        MosUtilities::m_mosMemAllocCounterGfx = GraphicsResource::GetMemAllocCounterGfx();
+        if (MosUtilities::m_mosMemAllocCounterGfx != nullptr)
+        {
+            *MosUtilities::m_mosMemAllocCounterGfx = GraphicsResource::GetMemAllocCounterGfx();
+        }
         MOS_MEMNINJA_GFX_FREE_MESSAGE(pOsResource->pGmmResInfo, functionName, filename, line);
         MOS_ZeroMemory(pOsResource, sizeof(*pOsResource));
         return;
@@ -2833,7 +2839,7 @@ void Mos_Specific_FreeResource(
             pOsInterface->pOsContext != nullptr &&
             pOsInterface->pOsContext->pGmmClientContext != nullptr)
         {
-            MosUtilities::m_mosMemAllocCounterGfx--;
+            MosUtilities::MosAtomicDecrement(MosUtilities::m_mosMemAllocCounterGfx);
             MOS_MEMNINJA_GFX_FREE_MESSAGE(pOsResource->pGmmResInfo, functionName, filename, line);
 
             pOsInterface->pOsContext->pGmmClientContext->DestroyResInfoObject(pOsResource->pGmmResInfo);

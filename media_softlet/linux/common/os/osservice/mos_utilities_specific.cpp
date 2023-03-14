@@ -47,8 +47,21 @@
 #include "mos_util_debug.h"
 #include "inttypes.h"
 
+int32_t g_mosMemAllocCounter         = 0;
+int32_t g_mosMemAllocFakeCounter     = 0;
+int32_t g_mosMemAllocCounterGfx      = 0;
+
+int32_t *MosUtilities::m_mosMemAllocCounter       = &g_mosMemAllocCounter;
+int32_t *MosUtilities::m_mosMemAllocFakeCounter   = &g_mosMemAllocFakeCounter;
+int32_t *MosUtilities::m_mosMemAllocCounterGfx    = &g_mosMemAllocCounterGfx;
+
 const char           *MosUtilitiesSpecificNext::m_szUserFeatureFile     = USER_FEATURE_FILE;
 MOS_PUF_KEYLIST      MosUtilitiesSpecificNext::m_ufKeyList              = nullptr;
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+int32_t g_mosMemoryFailSimulateAllocCounter = 0;
+int32_t *MosUtilities::m_mosAllocMemoryFailSimulateAllocCounter = &g_mosMemoryFailSimulateAllocCounter;
+#endif
 
 double MosUtilities::MosGetTime()
 {
@@ -621,7 +634,7 @@ MOS_STATUS MosUtilitiesSpecificNext::UserFeatureSet(MOS_PUF_KEYLIST *pKeyList, M
     {
          return MOS_STATUS_NO_SPACE;
     }
-    MosUtilities::MosAtomicIncrement(&MosUtilities::m_mosMemAllocFakeCounter);  //ulValueBuf does not count it, because it is freed after the MEMNJA final report.
+    MosUtilities::MosAtomicIncrement(MosUtilities::m_mosMemAllocFakeCounter);  //ulValueBuf does not count it, because it is freed after the MEMNJA final report.
     MOS_OS_NORMALMESSAGE("ulValueBuf %p for key %s", ulValueBuf, NewKey.pValueArray[0].pcValueName);
 
     m_userSettingMutex.Lock();
@@ -647,7 +660,7 @@ MOS_STATUS MosUtilitiesSpecificNext::UserFeatureSet(MOS_PUF_KEYLIST *pKeyList, M
     {
         //if found, the previous value buffer needs to be freed before reallocating
         MOS_FreeMemory(Key->pValueArray[iPos].ulValueBuf);
-        MosUtilities::MosAtomicDecrement(&MosUtilities::m_mosMemAllocFakeCounter);
+        MosUtilities::MosAtomicDecrement(MosUtilities::m_mosMemAllocFakeCounter);
         MOS_OS_NORMALMESSAGE("ulValueBuf %p for key %s", ulValueBuf, NewKey.pValueArray[0].pcValueName);
     }
 
@@ -1356,9 +1369,19 @@ MOS_STATUS MosUtilities::MosOsUtilitiesInit(MediaUserSettingSharedPtr userSettin
         // Initialize MOS message params structure and HLT
         MosUtilDebug::MosMessageInit(userSettingPtr);
 #endif // MOS_MESSAGES_ENABLED
-        m_mosMemAllocCounter     = 0;
-        m_mosMemAllocFakeCounter = 0;
-        m_mosMemAllocCounterGfx  = 0;
+        if (m_mosMemAllocCounter &&
+            m_mosMemAllocCounterGfx &&
+            m_mosMemAllocFakeCounter)
+        {
+            *m_mosMemAllocCounter     = 0;
+            *m_mosMemAllocFakeCounter = 0;
+            *m_mosMemAllocCounterGfx  = 0;
+        }
+        else
+        {
+            MOS_OS_ASSERTMESSAGE("MemNinja count pointers are nullptr");
+        }
+
         MosTraceEventInit();
     }
     m_mosUtilInitCount++;
@@ -1378,18 +1401,21 @@ MOS_STATUS MosUtilities::MosOsUtilitiesClose(MediaUserSettingSharedPtr userSetti
     if (m_mosUtilInitCount == 0)
     {
         MosTraceEventClose();
-        m_mosMemAllocCounter -= m_mosMemAllocFakeCounter;
-        memoryCounter = m_mosMemAllocCounter + m_mosMemAllocCounterGfx;
-        m_mosMemAllocCounterNoUserFeature    = m_mosMemAllocCounter;
-        m_mosMemAllocCounterNoUserFeatureGfx = m_mosMemAllocCounterGfx;
-        MOS_OS_VERBOSEMESSAGE("MemNinja leak detection end");
-
-        ReportUserSetting(
-            userSettingPtr,
-            __MEDIA_USER_FEATURE_VALUE_MEMNINJA_COUNTER,
-            memoryCounter,
-            MediaUserSetting::Group::Device);
-
+        if (m_mosMemAllocCounter &&
+            m_mosMemAllocCounterGfx &&
+            m_mosMemAllocFakeCounter)
+        {
+            *m_mosMemAllocCounter -= *m_mosMemAllocFakeCounter;
+            memoryCounter = *m_mosMemAllocCounter + *m_mosMemAllocCounterGfx;
+            m_mosMemAllocCounterNoUserFeature    = *m_mosMemAllocCounter;
+            m_mosMemAllocCounterNoUserFeatureGfx = *m_mosMemAllocCounterGfx;
+            MOS_OS_VERBOSEMESSAGE("MemNinja leak detection end");
+            ReportUserSetting(
+                userSettingPtr,
+                __MEDIA_USER_FEATURE_VALUE_MEMNINJA_COUNTER,
+                memoryCounter,
+                MediaUserSetting::Group::Device);
+        }
         MosDestroyUserFeature();
 
 #if (_DEBUG || _RELEASE_INTERNAL)
@@ -2259,13 +2285,21 @@ uint32_t MosUtilities::MosWaitForMultipleObjects(
 int32_t MosUtilities::MosAtomicIncrement(
     int32_t *pValue)
 {
-    return __sync_add_and_fetch(pValue, 1);
+    if (pValue != nullptr)
+    {
+        return __sync_add_and_fetch(pValue, 1);
+    }
+    return 0;
 }
 
 int32_t MosUtilities::MosAtomicDecrement(
     int32_t *pValue)
 {
-    return __sync_sub_and_fetch(pValue, 1);
+    if (pValue != nullptr)
+    {
+        return __sync_sub_and_fetch(pValue, 1);
+    }
+    return 0;
 }
 
 #ifndef WDDM_LINUX

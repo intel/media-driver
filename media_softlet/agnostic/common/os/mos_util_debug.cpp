@@ -466,9 +466,19 @@ void MosUtilDebug::MosMessageInit(MediaUserSettingSharedPtr userSettingPtr)
         MosHLTInit(userSettingPtr);
 
         // all above action should not be covered by memninja since its destroy is behind memninja counter report to test result.
-        MosUtilities::m_mosMemAllocCounter     = 0;
-        MosUtilities::m_mosMemAllocFakeCounter = 0;
-        MosUtilities::m_mosMemAllocCounterGfx  = 0;
+        if (MosUtilities::m_mosMemAllocCounter &&
+            MosUtilities::m_mosMemAllocCounterGfx &&
+            MosUtilities::m_mosMemAllocFakeCounter)
+        {
+            *MosUtilities::m_mosMemAllocCounter     = 0;
+            *MosUtilities::m_mosMemAllocFakeCounter = 0;
+            *MosUtilities::m_mosMemAllocCounterGfx  = 0;
+        }
+        else
+        {
+            MOS_OS_ASSERTMESSAGE("MemNinja count pointers are nullptr");
+        }
+
         MOS_OS_VERBOSEMESSAGE("MemNinja leak detection begin");
     }
 
