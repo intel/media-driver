@@ -222,6 +222,12 @@ MOS_STATUS DecodePipeline::InitUserSetting(MediaUserSettingSharedPtr userSetting
         true);
     DeclareUserSettingKeyForDebug(
         userSettingPtr,
+        "Delay Miliseconds",
+        MediaUserSetting::Group::Sequence,
+        int32_t(0),
+        true);
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
         "Decode SFC RGB Format Output",
         MediaUserSetting::Group::Sequence,
         int32_t(0),

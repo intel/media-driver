@@ -524,6 +524,7 @@ protected:
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     uint32_t                m_statusCheckCount = 0;     //!< count for status check
+    uint32_t                m_delayMiliseconds = 0;     //!< miliseconds delay after each frame
 #endif
 
     PMOS_SURFACE            m_tempOutputSurf = nullptr;

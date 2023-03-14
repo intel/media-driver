@@ -200,6 +200,10 @@ MOS_STATUS DecodePipeline::Initialize(void *settings)
     DECODE_CHK_STATUS(CreateSubPipeLineManager(codecSettings));
     DECODE_CHK_STATUS(CreateSubPacketManager(codecSettings));
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    m_delayMiliseconds = ReadUserFeature(m_userSettingPtr, "Delay Miliseconds", MediaUserSetting::Group::Sequence).Get<uint32_t>();
+#endif
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -638,6 +642,13 @@ MOS_STATUS DecodePipeline::ReportSfcLinearSurfaceUsage(const DecodeStatusReportD
 MOS_STATUS DecodePipeline::StatusCheck()
 {
     DECODE_FUNC_CALL();
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (m_delayMiliseconds > 0)
+    {
+        MosUtilities::MosSleep(m_delayMiliseconds);
+    }
+#endif
 
     uint32_t completedCount = m_statusReport->GetCompletedCount();
     if (completedCount <= m_statusCheckCount)
