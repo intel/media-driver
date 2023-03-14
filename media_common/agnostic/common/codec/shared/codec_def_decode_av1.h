@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2021, Intel Corporation
+* Copyright (c) 2017-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -319,6 +319,14 @@ struct Av1RefAssociatedBufs
     Av1SharedBuf  bwdAdaptCdfBuf;
     Av1SharedBuf  defaultCdfBuf;
     bool          disableFrmEndUpdateCdf = false;
+};
+
+enum
+{
+    av1ChromaFormatMonochrome = 0,
+    av1ChromaFormatYuv420     = 1,
+    av1ChromaFormatYuv422     = 2,
+    av1ChromaFormatYuv444     = 3,
 };
 
 #endif  // __CODEC_DEF_DECODE_AV1_H__
