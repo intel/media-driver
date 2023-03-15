@@ -259,7 +259,9 @@ public:
         }
         MOS_GPU_CONTEXT gpuContext = this->m_osItf->pfnGetGpuContext(this->m_osItf);
 
-        if ((MOS_VCS_ENGINE_USED(gpuContext) || MOS_VECS_ENGINE_USED(gpuContext)) &&
+        if ((MOS_VCS_ENGINE_USED(gpuContext) || 
+             MOS_VECS_ENGINE_USED(gpuContext) || 
+             MOS_TEECS_ENGINE_USED(gpuContext)) &&
             (reg >= M_MMIO_MEDIA_LOW_OFFSET && reg < M_MMIO_MEDIA_HIGH_OFFSET))
         {
             reg &= M_MMIO_MAX_RELATIVE_OFFSET;

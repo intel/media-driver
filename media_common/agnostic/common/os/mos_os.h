@@ -210,7 +210,7 @@ private:
     ((GpuContext) == MOS_GPU_CONTEXT_VEBOX))
 #endif
 
-#define MOS_GCS_ENGINE_USED(GpuContext) (             \
+#define MOS_TEECS_ENGINE_USED(GpuContext) (             \
     ((GpuContext) == MOS_GPU_CONTEXT_TEE))
 
 #if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
