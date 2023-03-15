@@ -1035,7 +1035,7 @@ private:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    MOS_STATUS DecompressInterlacedSurf(PVPHAL_SURFACE pSource);
+    MOS_STATUS DecompressInterlacedSurfInRCMode(PVPHAL_SURFACE pSource);
 
     //!
     //! \brief    Allocate Composite BatchBuffer
