@@ -48,6 +48,13 @@ MOS_STATUS EncodeHevcVdencPipelineAdapterXe_Lpm_Plus_Base::Allocate(CodechalSett
     return m_encoder->Init(codecHalSettings);
 }
 
+MOS_STATUS EncodeHevcVdencPipelineAdapterXe_Lpm_Plus_Base::ResolveMetaData(PMOS_RESOURCE pInput, PMOS_RESOURCE pOutput)
+{
+    ENCODE_FUNC_CALL();
+
+    return m_encoder->ExecuteResolveMetaData(pInput, pOutput);
+}
+
 MOS_STATUS EncodeHevcVdencPipelineAdapterXe_Lpm_Plus_Base::Execute(void    *params)
 {
     ENCODE_FUNC_CALL();

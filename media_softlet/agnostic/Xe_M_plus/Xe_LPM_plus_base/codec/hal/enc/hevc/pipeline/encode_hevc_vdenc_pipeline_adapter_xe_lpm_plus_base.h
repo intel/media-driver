@@ -39,13 +39,15 @@ public:
 
     virtual ~EncodeHevcVdencPipelineAdapterXe_Lpm_Plus_Base() {}
 
-    virtual MOS_STATUS Allocate(CodechalSetting *codecHalSettings);
+    virtual MOS_STATUS Allocate(CodechalSetting *codecHalSettings) override;
 
-    virtual MOS_STATUS Execute(void *params);
+    virtual MOS_STATUS ResolveMetaData(PMOS_RESOURCE pInput, PMOS_RESOURCE pOutput) override;
 
-    virtual MOS_STATUS GetStatusReport(void *status, uint16_t numStatus);
+    virtual MOS_STATUS Execute(void *params) override;
 
-    virtual void Destroy();
+    virtual MOS_STATUS GetStatusReport(void *status, uint16_t numStatus) override;
+
+    virtual void Destroy() override;
 
 protected:
     std::shared_ptr<encode::HevcVdencPipelineXe_Lpm_Plus_Base> m_encoder = nullptr;
