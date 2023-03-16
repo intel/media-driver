@@ -53,12 +53,12 @@ MOS_STATUS EncodeAv1VdencFeatureManagerXe_Lpm_Plus_Base::CreateFeatures(void *co
 
     // packetIdListType indicate whether packet ID list is a block list or an allow list, by default it is a block list.
 
-    #if _MEDIA_RESERVED
-    Av1ReservedFeature0 *av1ReservedFeature = MOS_New(Av1ReservedFeature0, constSettings, this);
+#if _MEDIA_RESERVED
+    Av1ReservedFeature0 *av1ReservedFeature = MOS_New(Av1ReservedFeature0, this, m_allocator, constSettings);
     ENCODE_CHK_STATUS_RETURN(RegisterFeatures(Av1FeatureIDs::av1ReservedFeatureID0, av1ReservedFeature, {Av1Pipeline::encodePreEncPacket}));
-    #endif  // !(_MEDIA_RESERVED)
+#endif  // !(_MEDIA_RESERVED)
 
-    EncodeBasicFeature *encBasic = MOS_New(Av1BasicFeatureXe_Lpm_Plus_Base, m_allocator, m_hwInterface, m_trackedBuf, m_recycleResource, constSettings);
+    EncodeBasicFeature *encBasic = MOS_New(Av1BasicFeatureXe_Lpm_Plus_Base, this, m_allocator, m_hwInterface, m_trackedBuf, m_recycleResource, constSettings);
     ENCODE_CHK_STATUS_RETURN(RegisterFeatures(Av1FeatureIDs::basicFeature, encBasic, {Av1Pipeline::encodePreEncPacket}));
 
     Av1EncodeTile *encTile = MOS_New(Av1EncodeTile, this, m_allocator, m_hwInterface, constSettings);
