@@ -275,6 +275,12 @@ MOS_STATUS JpegDecodePicPktXe_M_Base::AddMfxJpegHuffTableCmd(MOS_COMMAND_BUFFER 
                 MOS_ZeroMemory(&huffmanTableParams, sizeof(huffmanTableParams));
                 huffmanTableParams.HuffTableID = huffTableID;
 
+                if (acTableSelector >= JPEG_MAX_NUM_HUFF_TABLE_INDEX || dcTableSelector >= JPEG_MAX_NUM_HUFF_TABLE_INDEX)
+                {
+                    MEDIA_ASSERTMESSAGE("acTableSelector and dcTableSelector cannot exceed 2 by spec.");
+                    return MOS_STATUS_INVALID_PARAMETER;
+                }
+
                 huffmanTableParams.pACBits   = &m_jpegBasicFeature->m_jpegHuffmanTable->HuffTable[acTableSelector].AC_BITS[0];
                 huffmanTableParams.pDCBits   = &m_jpegBasicFeature->m_jpegHuffmanTable->HuffTable[dcTableSelector].DC_BITS[0];
                 huffmanTableParams.pACValues = &m_jpegBasicFeature->m_jpegHuffmanTable->HuffTable[acTableSelector].AC_HUFFVAL[0];
