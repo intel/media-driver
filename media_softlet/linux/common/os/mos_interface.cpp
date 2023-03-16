@@ -398,8 +398,11 @@ MOS_STATUS MosInterface::InitStreamParameters(
                           &eStatus, sizeof(eStatus), nullptr, 0);
         context->intel_context = mos_gem_context_create_ext(context->bufmgr, 0, context->m_protectedGEMContext);
         MOS_OS_CHK_NULL_RETURN(context->intel_context);
-        context->intel_context->vm = mos_gem_vm_create(context->bufmgr);
-        MOS_OS_CHK_NULL_RETURN(context->intel_context->vm);
+        if (!getenv("ENABLE_XE"))
+        {
+            context->intel_context->vm = mos_gem_vm_create(context->bufmgr);
+            MOS_OS_CHK_NULL_RETURN(context->intel_context->vm);
+        }
         MOS_TraceEventExt(EVENT_GPU_CONTEXT_CREATE, EVENT_TYPE_END,
                           &context->intel_context, sizeof(void *),
                           &eStatus, sizeof(eStatus));
@@ -428,15 +431,11 @@ MOS_STATUS MosInterface::InitStreamParameters(
     context->bFreeContext         = true;
 #ifndef ANDROID
     {
-        drm_i915_getparam_t gp;
         int32_t             ret   = -1;
-        int32_t             value = 0;
+        uint32_t            value = 0;
 
         //KMD support VCS2?
-        gp.value = &value;
-        gp.param = I915_PARAM_HAS_BSD2;
-
-        ret = drmIoctl(context->fd, DRM_IOCTL_I915_GETPARAM, &gp);
+        ret = mos_get_param(context->fd, I915_PARAM_HAS_BSD2, &value);
         if (ret == 0 && value != 0)
         {
             context->bKMDHasVCS2 = true;

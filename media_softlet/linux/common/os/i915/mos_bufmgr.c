@@ -74,6 +74,8 @@
 #define VG(x)
 #endif
 
+#include "xe_drm.h"
+
 #define memclear(s) memset(&s, 0, sizeof(s))
 
 #define MOS_DBG(...) do {                                             \
@@ -174,6 +176,7 @@ struct mos_bufmgr_gem {
     char mem_profiler_buffer[MEM_PROFILER_BUFFER_SIZE];
     char* mem_profiler_path;
     int mem_profiler_fd;
+    uint32_t vm_id;
 } mos_bufmgr_gem;
 
 #define DRM_INTEL_RELOC_FENCE (1<<0)
@@ -803,6 +806,7 @@ mos_setup_reloc_list(struct mos_linux_bo *bo)
 static int
 mos_gem_bo_busy(struct mos_linux_bo *bo)
 {
+    //xetodo
     struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *) bo->bufmgr;
     struct mos_bo_gem *bo_gem = (struct mos_bo_gem *) bo;
     struct drm_i915_gem_busy busy;
@@ -938,7 +942,10 @@ static uint8_t mos_gem_get_lmem_region_count(int fd)
  */
 static bool mos_gem_has_lmem(int fd)
 {
-    return mos_gem_get_lmem_region_count(fd) > 0;
+    if(getenv("ENABLE_XE"))
+        return false;
+    else
+        return mos_gem_get_lmem_region_count(fd) > 0;
 }
 
 static enum mos_memory_zone
@@ -1113,6 +1120,22 @@ retry:
             bo_gem->mem_region = I915_MEMORY_CLASS_DEVICE;
         }
         else {
+            if(getenv("ENABLE_XE"))
+            {
+                struct drm_xe_gem_create create;
+                memclear(create);
+                create.vm_id = bufmgr_gem->vm_id; //xetodo, create bo with vm_id?
+                create.flags = 1; //xetodo
+                create.size = bo_size;
+                ret = drmIoctl(bufmgr_gem->fd,
+                    DRM_IOCTL_XE_GEM_CREATE,
+                    &create);
+                bo_gem->gem_handle = create.handle;
+                bo_gem->bo.handle = bo_gem->gem_handle;
+
+            }
+            else
+            {
             struct drm_i915_gem_create create;
             memclear(create);
             create.size = bo_size;
@@ -1121,6 +1144,7 @@ retry:
                    &create);
             bo_gem->gem_handle = create.handle;
             bo_gem->bo.handle = bo_gem->gem_handle;
+            }
         }
         if (ret != 0) {
             free(bo_gem);
@@ -1387,6 +1411,9 @@ check_bo_alloc_userptr(struct mos_bufmgr *bufmgr,
                unsigned long size,
                unsigned long flags)
 {
+    if (getenv("ENABLE_XE"))
+        bufmgr->bo_alloc_userptr = mos_gem_bo_alloc_userptr;
+    else
     if (has_userptr((struct mos_bufmgr_gem *)bufmgr))
         bufmgr->bo_alloc_userptr = mos_gem_bo_alloc_userptr;
     else
@@ -1539,6 +1566,7 @@ mos_gem_bo_free(struct mos_linux_bo *bo)
         drm_munmap(bo_gem->mem_wc_virtual, bo_gem->bo.size);
     }
 
+    //xetodo, bo busy
     if(bufmgr_gem->bufmgr.bo_wait_rendering && mos_gem_bo_busy(bo))
     {
         bufmgr_gem->bufmgr.bo_wait_rendering(bo);
@@ -1907,6 +1935,30 @@ drm_export int mos_gem_bo_map(struct mos_linux_bo *bo, int write_enable)
 
     pthread_mutex_lock(&bufmgr_gem->lock);
 
+    if (getenv("ENABLE_XE"))
+    {
+        void *map;
+
+        struct drm_xe_gem_mmap_offset mmo = {
+		    .handle = bo->handle,
+	        };
+
+	    ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_XE_GEM_MMAP_OFFSET, &mmo);
+        if (ret)
+            return ret;
+        bo_gem->mem_virtual = drm_mmap(0, bo->size, PROT_READ | PROT_WRITE,
+            MAP_SHARED, bufmgr_gem->fd,
+            mmo.offset);
+        if (bo_gem->mem_virtual == MAP_FAILED) {
+            bo_gem->mem_virtual = nullptr;
+            ret = -errno;
+            MOS_DBG("%s:%d: Error mapping buffer %d (%s): %s .\n",
+                __FILE__, __LINE__,
+                bo_gem->gem_handle, bo_gem->name,
+                strerror(errno));
+        }
+    }
+    else
     if (bufmgr_gem->has_mmap_offset) {
         struct drm_i915_gem_wait wait;
 
@@ -2381,6 +2433,8 @@ mos_gem_bo_wait_rendering(struct mos_linux_bo *bo)
 drm_export int
 mos_gem_bo_wait(struct mos_linux_bo *bo, int64_t timeout_ns)
 {
+    if (getenv("ENABLE_XE"))
+        return 0;//xetodo, wait
 
     struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *) bo->bufmgr;
     struct mos_bo_gem *bo_gem = (struct mos_bo_gem *) bo;
@@ -3154,6 +3208,30 @@ mos_gem_bo_exec(struct mos_linux_bo *bo, int used,
     return ret;
 }
 
+uint32_t
+syncobj_create(int fd, uint32_t flags);
+void
+syncobj_destroy(int fd, uint32_t handle);
+bool
+syncobj_wait(int fd, uint32_t *handles, uint32_t count,
+	     uint64_t abs_timeout_nsec, uint32_t flags,
+	     uint32_t *first_signaled);
+
+int xe_exec(int fd, uint32_t engine, uint64_t addr, struct drm_xe_sync *sync,
+	     uint32_t num_syncs)
+{
+	struct drm_xe_exec exec = {
+        .extensions = 0,
+		.engine_id = engine,
+		.num_syncs = num_syncs,
+		.syncs = (uint64_t)sync,
+		.address = addr,
+		.num_batch_buffer = 1,
+	};
+
+	return drmIoctl(fd, DRM_IOCTL_XE_EXEC, &exec);
+}
+
 drm_export int
 do_exec2(struct mos_linux_bo *bo, int used, struct mos_linux_context *ctx,
      drm_clip_rect_t *cliprects, int num_cliprects, int DR4,
@@ -3225,6 +3303,15 @@ do_exec2(struct mos_linux_bo *bo, int used, struct mos_linux_context *ctx,
     if (bufmgr_gem->no_exec)
         goto skip_execution;
 
+    if (getenv("ENABLE_XE"))
+    {
+	    struct drm_xe_sync sync = { 0 };
+	    sync.handle = syncobj_create(bufmgr_gem->fd, 0);
+	    sync.flags = DRM_XE_SYNC_SYNCOBJ | DRM_XE_SYNC_SIGNAL;
+	    xe_exec(bufmgr_gem->fd, ctx->engine_id, bo->offset64,  &sync, 1);
+	    syncobj_wait(bufmgr_gem->fd, &sync.handle, 1, INT64_MAX, 0, NULL);
+    }
+    else
     ret = drmIoctl(bufmgr_gem->fd,
                DRM_IOCTL_I915_GEM_EXECBUFFER2_WR,
                &execbuf);
@@ -3663,6 +3750,119 @@ mos_gem_bo_get_tiling(struct mos_linux_bo *bo, uint32_t * tiling_mode,
 }
 
 static int
+__syncobj_create(int fd, uint32_t *handle, uint32_t flags)
+{
+	struct drm_syncobj_create create = { 0 };
+	int err = 0;
+
+	create.flags = flags;
+	if (drmIoctl(fd, DRM_IOCTL_SYNCOBJ_CREATE, &create)) {
+		err = -errno;
+		errno = 0;
+	}
+	*handle = create.handle;
+	return err;
+}
+
+uint32_t
+syncobj_create(int fd, uint32_t flags)
+{
+	uint32_t handle;
+	assert(__syncobj_create(fd, &handle, flags) == 0);
+	assert(handle);
+	return handle;
+}
+
+static int
+__syncobj_destroy(int fd, uint32_t handle)
+{
+	struct drm_syncobj_destroy destroy = { 0 };
+	int err = 0;
+
+	destroy.handle = handle;
+	if (drmIoctl(fd, DRM_IOCTL_SYNCOBJ_DESTROY, &destroy)) {
+		err = -errno;
+		errno = 0;
+	}
+	return err;
+}
+
+void
+syncobj_destroy(int fd, uint32_t handle)
+{
+	assert(__syncobj_destroy(fd, handle) == 0);
+}
+
+bool
+syncobj_wait(int fd, uint32_t *handles, uint32_t count,
+	     uint64_t abs_timeout_nsec, uint32_t flags,
+	     uint32_t *first_signaled)
+{
+	struct drm_syncobj_wait wait;
+	int ret;
+
+	wait.handles = (uint64_t)(handles);
+	wait.timeout_nsec = abs_timeout_nsec;
+	wait.count_handles = count;
+	wait.flags = flags;
+	wait.first_signaled = 0;
+	wait.pad = 0;
+
+	ret = drmIoctl(fd, DRM_IOCTL_SYNCOBJ_WAIT, &wait);
+	if (ret == -ETIME)
+		return false;
+
+	assert(ret == 0);
+	if (first_signaled)
+		*first_signaled = wait.first_signaled;
+
+	return true;
+}
+
+int  __xe_vm_bind(int fd, uint32_t vm, uint32_t engine, uint32_t bo,
+		  uint64_t offset, uint64_t addr, uint64_t size, uint32_t op,
+		  struct drm_xe_sync *sync, uint32_t num_syncs, uint64_t ext)
+{
+	struct drm_xe_vm_bind bind = {
+		.extensions = ext,
+		.vm_id = vm,
+		.engine_id = engine,
+		.num_binds = 1,
+		.num_syncs = num_syncs,
+		.syncs = (uintptr_t)sync,
+	};
+	bind.bind.obj = bo;
+	bind.bind.obj_offset = offset;
+	bind.bind.range = size;
+	bind.bind.addr = addr;
+	bind.bind.op = op;
+
+	if (drmIoctl(fd, DRM_IOCTL_XE_VM_BIND, &bind))
+		return -errno;
+
+	return 0;
+}
+
+static void __xe_vm_bind_sync(int fd, uint32_t vm, uint32_t bo, uint64_t offset,
+			      uint64_t addr, uint64_t size, uint32_t op)
+{
+	struct drm_xe_sync sync = {
+		.flags = DRM_XE_SYNC_SYNCOBJ | DRM_XE_SYNC_SIGNAL,
+		.handle = syncobj_create(fd, 0),
+	};
+
+	assert(__xe_vm_bind(fd, vm, 0, bo, offset, addr, size, op, &sync, 1, 0) == 0);
+
+	syncobj_wait(fd, &sync.handle, 1, INT64_MAX, 0, NULL);
+	syncobj_destroy(fd, sync.handle);
+}
+
+void xe_vm_bind_sync(int fd, uint32_t vm, uint32_t bo, uint64_t offset,
+		     uint64_t addr, uint64_t size)
+{
+	__xe_vm_bind_sync(fd, vm, bo, offset, addr, size, XE_VM_BIND_OP_MAP);
+}
+static int
 mos_gem_bo_set_softpin_offset(struct mos_linux_bo *bo, uint64_t offset)
 {
     struct mos_bo_gem *bo_gem = (struct mos_bo_gem *) bo;
@@ -3686,6 +3886,15 @@ mos_gem_bo_set_softpin(MOS_LINUX_BO *bo)
         uint64_t alignment = (bufmgr_gem->softpin_va1Malign) ? PAGE_SIZE_1M : PAGE_SIZE_64K;
         uint64_t offset = mos_gem_bo_vma_alloc(bo->bufmgr, (enum mos_memory_zone)bo_gem->mem_region, bo->size, alignment);
         ret = mos_gem_bo_set_softpin_offset(bo, offset);
+    }
+    if (getenv("ENABLE_XE"))
+    {
+        xe_vm_bind_sync(bufmgr_gem->fd,
+                        bufmgr_gem->vm_id,
+                        bo_gem->bo.handle,
+                        0,
+                        bo_gem->bo.offset64,
+                        bo_gem->bo.size);
     }
     pthread_mutex_unlock(&bufmgr_gem->lock);
 
@@ -3854,7 +4063,10 @@ mos_bufmgr_gem_enable_reuse(struct mos_bufmgr *bufmgr)
 {
     struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *) bufmgr;
 
-    bufmgr_gem->bo_reuse = true;
+    if (getenv("ENABLE_XE"))
+        bufmgr_gem->bo_reuse = false;
+    else
+        bufmgr_gem->bo_reuse = true;
 }
 
 /**
@@ -4290,6 +4502,13 @@ mos_gem_context_create(struct mos_bufmgr *bufmgr)
     if (!context)
         return nullptr;
 
+    if (getenv("ENABLE_XE"))
+    {
+        context->ctx_id = 0;
+        context->bufmgr = bufmgr;
+        return context;
+    }
+
     memclear(create);
     ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_I915_GEM_CONTEXT_CREATE, &create);
     if (ret != 0) {
@@ -4646,6 +4865,32 @@ void mos_bufmgr_gem_disable_object_capture(struct mos_bufmgr *bufmgr)
     }
 }
 
+static uint32_t xe_vm_create(struct mos_bufmgr *bufmgr)
+{
+    struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *)bufmgr;
+    struct drm_xe_vm_create *vm = nullptr;
+    int ret;
+
+    vm = (struct drm_xe_vm_create *)calloc(1, sizeof(*vm));
+    if (nullptr == vm)
+    {
+        return 0;
+    }
+    memset(vm, 0, sizeof(*vm));
+    vm->extensions = 0;
+    vm->flags = 0;
+
+    ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_XE_VM_CREATE, vm);
+    if (ret != 0) {
+        MOS_DBG("DRM_IOCTL_XE_VM_CREATE failed: %s\n",
+            strerror(errno));
+        free(vm);
+        return 0;
+    }
+
+    return vm->vm_id;//xetodo
+}
+
 /**
  * Initializes the GEM buffer manager, which uses the kernel to allocate, map,
  * and manage map buffer objections.
@@ -4703,6 +4948,13 @@ mos_bufmgr_gem_init(int fd, int batch_size)
     }
 
     memclear(aperture);
+    if(getenv("ENABLE_XE"))
+    {
+        aperture.aper_available_size = 4285956096;
+        aperture.aper_size = 4294967296;
+    }
+    else
+    {
     ret = drmIoctl(bufmgr_gem->fd,
                DRM_IOCTL_I915_GEM_GET_APERTURE,
                &aperture);
@@ -4718,9 +4970,17 @@ mos_bufmgr_gem_init(int fd, int batch_size)
             "rendering.\n",
             (int)bufmgr_gem->gtt_size / 1024);
     }
+    }
 
     /* support Gen 8+ */
-    bufmgr_gem->pci_device = get_pci_device_id(bufmgr_gem);
+    if(getenv("ENABLE_XE"))
+    {
+        bufmgr_gem->pci_device = 0x9a49;
+    }
+    else
+    {
+        bufmgr_gem->pci_device = get_pci_device_id(bufmgr_gem);
+    }
 
     if (bufmgr_gem->pci_device == 0) {
         pthread_mutex_destroy(&bufmgr_gem->lock);
@@ -4736,6 +4996,31 @@ mos_bufmgr_gem_init(int fd, int batch_size)
     memclear(gp);
     gp.value = &tmp;
 
+    if (getenv("ENABLE_XE")) //xetodo, init
+    {
+        exec2 = true;
+        bufmgr_gem->has_bsd = true;
+        bufmgr_gem->has_blt = true;
+        bufmgr_gem->has_relaxed_fencing = false;
+        bufmgr_gem->bufmgr.bo_alloc_userptr = check_bo_alloc_userptr;
+        bufmgr_gem->has_wait_timeout = false;
+        bufmgr_gem->has_llc = true;
+        bufmgr_gem->has_vebox = true;
+        bufmgr_gem->has_ext_mmap = false;
+        bufmgr_gem->has_fence_reg = false;
+        bufmgr_gem->bufmgr.bo_set_softpin        = mos_gem_bo_set_softpin;
+        bufmgr_gem->bufmgr.bo_add_softpin_target = mos_gem_bo_add_softpin_target;
+        bufmgr_gem->bufmgr.set_object_async      = mos_gem_bo_set_object_async;
+        bufmgr_gem->bufmgr.set_exec_object_async = mos_gem_bo_set_exec_object_async;
+        //bufmgr_gem->bufmgr.set_object_capture      = mos_gem_bo_set_object_capture;
+        bufmgr_gem->object_capture_disabled = true;
+        bufmgr_gem->has_mmap_offset  =  true;
+        bufmgr_gem->bufmgr.bo_use_48b_address_range = mos_gem_bo_use_48b_address_range;
+        bufmgr_gem->has_lmem = false;
+        bufmgr_gem->vm_id = xe_vm_create((mos_bufmgr*)bufmgr_gem);
+    }
+    else
+    {
     gp.param = I915_PARAM_HAS_EXECBUF2;
     ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_I915_GETPARAM, &gp);
     if (!ret)
@@ -4817,6 +5102,7 @@ mos_bufmgr_gem_init(int fd, int batch_size)
     }
 
     bufmgr_gem->has_lmem = mos_gem_has_lmem(bufmgr_gem->fd);
+    }//if ENABLE_XE
 
     bufmgr_gem->bufmgr.has_full_vd = true;
 
@@ -4893,6 +5179,14 @@ mos_gem_context_create_ext(struct mos_bufmgr *bufmgr, __u32 flags, bool bContext
     context = (struct mos_linux_context *)calloc(1, sizeof(*context));
     if (!context)
         return nullptr;
+
+    if (getenv("ENABLE_XE"))
+    {
+        context->ctx_id = 0;
+        context->bufmgr = bufmgr;
+        context->vm_id = bufmgr_gem->vm_id;
+        return context;
+    }
 
     memclear(create);
     create.flags = flags;
@@ -4977,6 +5271,17 @@ mos_gem_context_create_shared(struct mos_bufmgr *bufmgr, mos_linux_context* ctx,
     struct mos_linux_context *context = nullptr;
     int ret;
 
+    if (getenv("ENABLE_XE"))
+    {
+        context = (struct mos_linux_context *)calloc(1, sizeof(*context));
+        if (!context || !ctx)
+            return nullptr;
+        context->ctx_id = ctx->ctx_id;
+        context->bufmgr = bufmgr;
+        context->vm_id = ctx->vm_id;
+        return context;
+    }
+
     if (ctx == nullptr || ctx->vm == nullptr)
         return nullptr;
 
@@ -5017,6 +5322,12 @@ mos_gem_context_create_shared(struct mos_bufmgr *bufmgr, mos_linux_context* ctx,
 int mos_query_engines_count(struct mos_bufmgr *bufmgr,
                       unsigned int *nengine)
 {
+    if (getenv("ENABLE_XE"))
+    {
+        assert(nengine);
+        *nengine = 5;
+        return 0;
+    }
     assert(bufmgr);
     assert(nengine);
     int fd = ((struct mos_bufmgr_gem*)bufmgr)->fd;
@@ -5075,6 +5386,38 @@ int mos_query_engines(struct mos_bufmgr *bufmgr,
                       unsigned int *nengine,
                       struct i915_engine_class_instance *ci)
 {
+    if (getenv("ENABLE_XE"))
+    {
+        assert(nengine);
+        assert(ci);
+        switch (engine_class)
+        {
+        case I915_ENGINE_CLASS_RENDER:
+            ci->engine_class = engine_class;
+            ci->engine_instance = 0;
+            *nengine = 1;
+            break;
+        case I915_ENGINE_CLASS_COPY:
+            ci->engine_class = engine_class;
+            ci->engine_instance = 0;
+            *nengine = 1;
+            break;
+        case I915_ENGINE_CLASS_VIDEO:
+            ci->engine_class = engine_class;
+            ci->engine_instance = 0;
+            (ci+1)->engine_class = engine_class;
+            (ci+1)->engine_instance = 1;
+            *nengine = 2;
+            break;
+        case I915_ENGINE_CLASS_VIDEO_ENHANCE:
+            ci->engine_class = engine_class;
+            ci->engine_instance = 0;
+            *nengine = 1;
+            break;
+        }
+
+        return 0;
+    }
     struct drm_i915_query query;
     struct drm_i915_query_item query_item;
     struct drm_i915_query_engine_info *engines = nullptr;
@@ -5214,6 +5557,41 @@ int mos_set_context_param_load_balance(struct mos_linux_context *ctx,
     uint32_t size;
     struct i915_context_engines_load_balance* balancer = nullptr;
     struct i915_context_param_engines* set_engines = nullptr;
+
+    if(getenv("ENABLE_XE"))
+    {
+        int fd = ((struct mos_bufmgr_gem*)ctx->bufmgr)->fd;
+        struct drm_xe_engine_class_instance instances[2] = {
+            {
+            .engine_class = ci[0].engine_class, //xetodo
+            .engine_instance = 0, //xetodo, more engine instances
+            .gt_id = 0,
+            },
+            {
+            .engine_class = ci[0].engine_class, //xetodo
+            .engine_instance = 1, //xetodo, more engine instances
+            .gt_id = 0,
+            },
+        };
+        struct drm_xe_engine_create create = {
+            .extensions = 0,
+            .width = 1,
+            .num_placements = 1,
+            .vm_id = ctx->vm_id,
+            .flags = 0,
+            .engine_id = 0,
+            .instances = (uint64_t)(&instances[0]),
+        };
+
+        if (ci[0].engine_class == DRM_XE_ENGINE_CLASS_VIDEO_DECODE)
+        {
+            create.num_placements = 2;
+        }
+        ret = drmIoctl(fd, DRM_IOCTL_XE_ENGINE_CREATE, &create);
+
+        ctx->engine_id =  create.engine_id;
+        return ret;
+    }
 
     MOS_OS_CHECK_CONDITION(ci == nullptr, "Invalid (nullptr) Pointer.", EINVAL);
     MOS_OS_CHECK_CONDITION(count == 0, "Invalid input parameter. Number of engines must be > 0.", EINVAL);
@@ -5362,4 +5740,36 @@ void mos_set_platform_information(struct mos_bufmgr *bufmgr, uint64_t p)
 {
     assert(bufmgr);
     bufmgr->platform_information |= p;
+}
+
+int mos_get_param(int fd, int32_t param, uint32_t *retValue)
+{
+    struct drm_i915_getparam gp;
+
+    gp.param = param;
+    gp.value = (int32_t *)retValue;
+    //return drmIoctl(fd, DRM_IOCTL_I915_GETPARAM, &gp);
+    //xetodo
+    if(getenv("ENABLE_XE"))
+    {
+        switch (gp.param)
+        {
+        case 10: *gp.value = 1; break;
+        case 18: *gp.value = 2; break;
+        case 22: *gp.value = 1; break;
+        case 31: *gp.value = 1; break;
+        case 32: *gp.value = 1; break;
+        case 33: *gp.value = 6; break;
+        case 34: *gp.value = 96; break;
+        case 4:  *gp.value = 39497; break;
+        case 42: *gp.value = 0; break;
+        }
+    }
+    else
+    {
+        drmIoctl(fd, DRM_IOCTL_I915_GETPARAM, &gp);
+    }
+
+    printf("mos_get_param, %d, %d\n", gp.param, *gp.value);
+    return 0;
 }

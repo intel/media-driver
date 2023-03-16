@@ -3774,11 +3774,7 @@ PMOS_RESOURCE Mos_Specific_GetMarkerResource(
 uint32_t Mos_Specific_GetTsFrequency(PMOS_INTERFACE osInterface)
 {
     int32_t freq = 0;
-    drm_i915_getparam_t gp;
-    MOS_ZeroMemory(&gp, sizeof(gp));
-    gp.param = I915_PARAM_CS_TIMESTAMP_FREQUENCY;
-    gp.value = &freq;
-    int ret = drmIoctl(osInterface->pOsContext->fd, DRM_IOCTL_I915_GETPARAM, &gp);
+    int ret = mos_get_param(osInterface->pOsContext->fd, I915_PARAM_CS_TIMESTAMP_FREQUENCY, &freq);
     if(ret == 0)
     {
         return freq;

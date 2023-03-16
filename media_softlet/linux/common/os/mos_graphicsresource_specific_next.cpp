@@ -512,8 +512,16 @@ void* GraphicsResourceSpecificNext::Lock(OsContextNext* osContextPtr, LockParams
                 }
                 else if (params.m_uncached)
                 {
-                    mos_gem_bo_map_wc(boPtr);
-                    m_mmapOperation = MOS_MMAP_OPERATION_MMAP_WC;
+                    if (getenv("ENABLE_XE"))//xetodo, map wc is not supported yet
+                    {
+                        mos_bo_map(boPtr, ( OSKM_LOCKFLAG_WRITEONLY & params.m_writeRequest ));
+                        m_mmapOperation = MOS_MMAP_OPERATION_MMAP;
+                    }
+                    else
+                    {
+                        mos_gem_bo_map_wc(boPtr);
+                        m_mmapOperation = MOS_MMAP_OPERATION_MMAP_WC;
+                    }
                 }
                 else
                 {
@@ -960,8 +968,16 @@ void* GraphicsResourceSpecificNext::LockExternalResource(
                 }
                 else if (flags->Uncached)
                 {
-                    mos_gem_bo_map_wc(bo);
-                    resource->MmapOperation = MOS_MMAP_OPERATION_MMAP_WC;
+                    if (getenv("ENABLE_XE"))//xetodo, map wc is not supported yet
+                    {
+                        mos_bo_map(bo, (OSKM_LOCKFLAG_WRITEONLY & flags->WriteOnly));
+                        resource->MmapOperation = MOS_MMAP_OPERATION_MMAP;
+                    }
+                    else
+                    {
+                        mos_gem_bo_map_wc(bo);
+                        resource->MmapOperation = MOS_MMAP_OPERATION_MMAP_WC;
+                    }
                 }
                 else
                 {

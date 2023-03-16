@@ -489,13 +489,16 @@ MOS_STATUS OsContextSpecific::Init(PMOS_CONTEXT pOsDriverContext)
         if (!Mos_Solo_IsEnabled(nullptr) && MEDIA_IS_SKU(&m_skuTable,FtrContextBasedScheduling))
         {
             m_intelContext = mos_gem_context_create_ext(pOsDriverContext->bufmgr,0, pOsDriverContext->m_protectedGEMContext);
-            if (m_intelContext)
+            if (!getenv("ENABLE_XE"))
             {
-                m_intelContext->vm = mos_gem_vm_create(pOsDriverContext->bufmgr);
-                if (m_intelContext->vm == nullptr)
+                if (m_intelContext)
                 {
-                    MOS_OS_ASSERTMESSAGE("Failed to create vm.\n");
-                    return MOS_STATUS_UNKNOWN;
+                    m_intelContext->vm = mos_gem_vm_create(pOsDriverContext->bufmgr);
+                    if (m_intelContext->vm == nullptr)
+                    {
+                        MOS_OS_ASSERTMESSAGE("Failed to create vm.\n");
+                        return MOS_STATUS_UNKNOWN;
+                    }
                 }
             }
         }

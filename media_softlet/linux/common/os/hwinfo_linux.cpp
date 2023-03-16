@@ -50,15 +50,6 @@ static LinuxDeviceInit *getDeviceInit(uint32_t platKey)
     return devInfo;
 }
 
-static bool MediaGetParam(int fd, int32_t param, uint32_t *retValue)
-{
-    struct drm_i915_getparam gp;
-
-    gp.param = param;
-    gp.value = (int32_t *)retValue;
-    return drmIoctl(fd, DRM_IOCTL_I915_GETPARAM, &gp) == 0;
-}
-
 #ifdef _MEDIA_RESERVED
 /*****************************************************************************\
 Description:
@@ -410,62 +401,62 @@ MOS_STATUS HWInfoGetLinuxDrvInfo(int fd, struct LinuxDriverInfo *drvInfo)
     uint32_t retValue = 0;
 
     drvInfo->hasBsd = 0;
-    if (MediaGetParam(fd, I915_PARAM_HAS_BSD, &retValue))
+    if (mos_get_param(fd, I915_PARAM_HAS_BSD, &retValue) == 0)
     {
         drvInfo->hasBsd = !!retValue;
     }
 
     drvInfo->hasBsd2 = 0;
     retValue = 0;
-    if (MediaGetParam(fd, LOCAL_I915_PARAM_HAS_BSD2, &retValue))
+    if (mos_get_param(fd, LOCAL_I915_PARAM_HAS_BSD2, &retValue) == 0)
     {
         drvInfo->hasBsd2 = !!retValue;
     }
 
     drvInfo->hasVebox = 0;
     retValue = 0;
-    if (MediaGetParam(fd, I915_PARAM_HAS_VEBOX, &retValue))
+    if (mos_get_param(fd, I915_PARAM_HAS_VEBOX, &retValue) == 0)
     {
         drvInfo->hasVebox = !!retValue;
     }
 
     drvInfo->hasPpgtt = 1;
     retValue = 0;
-    if (MediaGetParam(fd, I915_PARAM_HAS_ALIASING_PPGTT, &retValue))
+    if (mos_get_param(fd, I915_PARAM_HAS_ALIASING_PPGTT, &retValue) == 0)
     {
         drvInfo->hasPpgtt = !!retValue;
     }
 
     drvInfo->hasHuc = 0;
     retValue = 0;
-    if (MediaGetParam(fd, LOCAL_I915_PARAM_HAS_HUC, &retValue))
+    if (mos_get_param(fd, LOCAL_I915_PARAM_HAS_HUC, &retValue) == 0)
     {
         drvInfo->hasHuc = !!retValue;
     }
 
     drvInfo->devId = 0;
     retValue = 0;
-    if (MediaGetParam(fd, I915_PARAM_CHIPSET_ID, &retValue))
+    if (mos_get_param(fd, I915_PARAM_CHIPSET_ID, &retValue) == 0)
     {
         drvInfo->devId = retValue;
     }
     drvInfo->devRev = 0;
     retValue = 0;
-    if (MediaGetParam(fd, LOCAL_I915_PARAM_REVISION, &retValue))
+    if (mos_get_param(fd, LOCAL_I915_PARAM_REVISION, &retValue) == 0)
     {
         drvInfo->devRev = retValue;
     }
 
     drvInfo->euCount = 0;
     retValue = 0;
-    if (MediaGetParam(fd, LOCAL_I915_PARAM_EU_TOTAL, &retValue))
+    if (mos_get_param(fd, LOCAL_I915_PARAM_EU_TOTAL, &retValue) == 0)
     {
         drvInfo->euCount = retValue;
     }
 
     drvInfo->subSliceCount = 0;
     retValue = 0;
-    if (MediaGetParam(fd, LOCAL_I915_PARAM_SUBSLICE, &retValue))
+    if (mos_get_param(fd, LOCAL_I915_PARAM_SUBSLICE, &retValue) == 0)
     {
         drvInfo->subSliceCount = retValue;
     }

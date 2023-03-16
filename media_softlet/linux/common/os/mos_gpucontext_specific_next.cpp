@@ -293,84 +293,87 @@ MOS_STATUS GpuContextSpecificNext::Init(OsContextNext *osContext,
                 return MOS_STATUS_UNKNOWN;
             }
 
-            if (nengine >= 2)
+            if (!getenv("ENABLE_XE"))
             {
-                int i;
-                //master queue
-                m_i915Context[1] = mos_gem_context_create_shared(osParameters->bufmgr,
-                                                                    osParameters->intel_context,
-                                                                    I915_CONTEXT_CREATE_FLAGS_SINGLE_TIMELINE);
-                if (m_i915Context[1] == nullptr)
+                if (nengine >= 2)
                 {
-                    MOS_OS_ASSERTMESSAGE("Failed to create master context.\n");
-                    MOS_SafeFreeMemory(engine_map);
-                    return MOS_STATUS_UNKNOWN;
-                }
-                m_i915Context[1]->pOsContext = osParameters;
-
-                if (mos_set_context_param_load_balance(m_i915Context[1], engine_map, 1))
-                {
-                    MOS_OS_ASSERTMESSAGE("Failed to set master context bond extension.\n");
-                    MOS_SafeFreeMemory(engine_map);
-                    return MOS_STATUS_UNKNOWN;
-                }
-
-                //slave queue
-                for (i=1; i<nengine; i++)
-                {
-                    m_i915Context[i+1] = mos_gem_context_create_shared(osParameters->bufmgr,
+                    int i;
+                    //master queue
+                    m_i915Context[1] = mos_gem_context_create_shared(osParameters->bufmgr,
                                                                         osParameters->intel_context,
                                                                         I915_CONTEXT_CREATE_FLAGS_SINGLE_TIMELINE);
-                    if (m_i915Context[i+1] == nullptr)
+                    if (m_i915Context[1] == nullptr)
                     {
-                        MOS_OS_ASSERTMESSAGE("Failed to create slave context.\n");
+                        MOS_OS_ASSERTMESSAGE("Failed to create master context.\n");
                         MOS_SafeFreeMemory(engine_map);
                         return MOS_STATUS_UNKNOWN;
                     }
-                    m_i915Context[i+1]->pOsContext = osParameters;
+                    m_i915Context[1]->pOsContext = osParameters;
 
-                    if (mos_set_context_param_bond(m_i915Context[i+1], engine_map[0], &engine_map[i], 1) != S_SUCCESS)
+                    if (mos_set_context_param_load_balance(m_i915Context[1], engine_map, 1))
                     {
-                        int err = errno;
-                        if (err == ENODEV)
+                        MOS_OS_ASSERTMESSAGE("Failed to set master context bond extension.\n");
+                        MOS_SafeFreeMemory(engine_map);
+                        return MOS_STATUS_UNKNOWN;
+                    }
+
+                    //slave queue
+                    for (i=1; i<nengine; i++)
+                    {
+                        m_i915Context[i+1] = mos_gem_context_create_shared(osParameters->bufmgr,
+                                                                            osParameters->intel_context,
+                                                                            I915_CONTEXT_CREATE_FLAGS_SINGLE_TIMELINE);
+                        if (m_i915Context[i+1] == nullptr)
                         {
-                            mos_gem_context_destroy(m_i915Context[1]);
-                            mos_gem_context_destroy(m_i915Context[i+1]);
-                            m_i915Context[i+1] = nullptr;
-                            break;
-                        }
-                        else
-                        {
-                            MOS_OS_ASSERTMESSAGE("Failed to set slave context bond extension. errno=%d\n",err);
+                            MOS_OS_ASSERTMESSAGE("Failed to create slave context.\n");
                             MOS_SafeFreeMemory(engine_map);
                             return MOS_STATUS_UNKNOWN;
                         }
-                    }
-                }
-                if (i == nengine)
-                {
-                    streamState->bGucSubmission = false;
-                }
-                else
-                {
-                    streamState->bGucSubmission = true;
-                    //create context with different width
-                    for(i = 1; i < nengine; i++)
-                    {
-                        unsigned int ctxWidth = i + 1;
-                        m_i915Context[i] = mos_gem_context_create_shared(osParameters->bufmgr,
-                                                                     osParameters->intel_context,
-                                                                     0); // I915_CONTEXT_CREATE_FLAGS_SINGLE_TIMELINE not allowed for parallel submission
-                        if (mos_set_context_param_parallel(m_i915Context[i], engine_map, ctxWidth) != S_SUCCESS)
+                        m_i915Context[i+1]->pOsContext = osParameters;
+
+                        if (mos_set_context_param_bond(m_i915Context[i+1], engine_map[0], &engine_map[i], 1) != S_SUCCESS)
                         {
-                            MOS_OS_ASSERTMESSAGE("Failed to set parallel extension since discontinuous logical engine.\n");
-                            mos_gem_context_destroy(m_i915Context[i]);
-                            m_i915Context[i] = nullptr;
-                            break;
+                            int err = errno;
+                            if (err == ENODEV)
+                            {
+                                mos_gem_context_destroy(m_i915Context[1]);
+                                mos_gem_context_destroy(m_i915Context[i+1]);
+                                m_i915Context[i+1] = nullptr;
+                                break;
+                            }
+                            else
+                            {
+                                MOS_OS_ASSERTMESSAGE("Failed to set slave context bond extension. errno=%d\n",err);
+                                MOS_SafeFreeMemory(engine_map);
+                                return MOS_STATUS_UNKNOWN;
+                            }
+                        }
+                    }
+                    if (i == nengine)
+                    {
+                        streamState->bGucSubmission = false;
+                    }
+                    else
+                    {
+                        streamState->bGucSubmission = true;
+                        //create context with different width
+                        for(i = 1; i < nengine; i++)
+                        {
+                            unsigned int ctxWidth = i + 1;
+                            m_i915Context[i] = mos_gem_context_create_shared(osParameters->bufmgr,
+                                                                        osParameters->intel_context,
+                                                                        0); // I915_CONTEXT_CREATE_FLAGS_SINGLE_TIMELINE not allowed for parallel submission
+                            if (mos_set_context_param_parallel(m_i915Context[i], engine_map, ctxWidth) != S_SUCCESS)
+                            {
+                                MOS_OS_ASSERTMESSAGE("Failed to set parallel extension since discontinuous logical engine.\n");
+                                mos_gem_context_destroy(m_i915Context[i]);
+                                m_i915Context[i] = nullptr;
+                                break;
+                            }
                         }
                     }
                 }
-            }
+            }//ENABLE_XE
         }
         else if (gpuNode == MOS_GPU_NODE_BLT)
         {

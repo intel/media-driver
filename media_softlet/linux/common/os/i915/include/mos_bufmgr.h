@@ -86,6 +86,8 @@ struct mos_linux_context {
     struct mos_bufmgr *bufmgr;
     struct _MOS_OS_CONTEXT    *pOsContext;
     struct drm_i915_gem_vm_control* vm;
+    uint32_t vm_id;
+    uint32_t engine_id;
 };
 
 struct mos_linux_bo {
@@ -397,6 +399,7 @@ uint8_t mos_switch_off_n_bits(uint8_t in_mask, int n);
 unsigned int mos_hweight8(uint8_t w);
 int mos_query_device_blob(int fd, MEDIA_SYSTEM_INFO* gfx_info);
 int mos_query_hw_ip_version(int fd, struct i915_engine_class_instance engine, void *ip_ver_info);
+int mos_get_param(int fd, int32_t param, uint32_t *retValue);
 
 #if defined(__cplusplus)
 extern "C" {

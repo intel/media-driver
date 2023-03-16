@@ -1476,20 +1476,17 @@ MOS_STATUS Linux_InitContext(
 
 #ifndef ANDROID
     {
-        drm_i915_getparam_t gp;
         int32_t             ret   = -1;
-        int32_t             value = 0;
+        uint32_t            value = 0;
 
         //KMD support VCS2?
-        gp.value = &value;
-        gp.param = I915_PARAM_HAS_BSD2;
         if (pContext->fd < 0)
         {
             MOS_OS_ASSERTMESSAGE("pContext->fd is not valid.");
             eStatus = MOS_STATUS_INVALID_PARAMETER;
             goto finish;
         }
-        ret = drmIoctl(pContext->fd, DRM_IOCTL_I915_GETPARAM, &gp);
+        ret = mos_get_param(pContext->fd, I915_PARAM_HAS_BSD2, &value);
         if (ret == 0 && value != 0)
         {
             pContext->bKMDHasVCS2 = true;
@@ -7441,12 +7438,8 @@ PMOS_RESOURCE Mos_Specific_GetMarkerResource(
 //!
 uint32_t Mos_Specific_GetTsFrequency(PMOS_INTERFACE osInterface)
 {
-    int32_t freq = 0;
-    drm_i915_getparam_t gp;
-    MOS_ZeroMemory(&gp, sizeof(gp));
-    gp.param = I915_PARAM_CS_TIMESTAMP_FREQUENCY;
-    gp.value = &freq;
-    int ret = drmIoctl(osInterface->pOsContext->fd, DRM_IOCTL_I915_GETPARAM, &gp);
+    uint32_t freq = 0;
+    int ret = mos_get_param(osInterface->pOsContext->fd, I915_PARAM_CS_TIMESTAMP_FREQUENCY, &freq);
     if(ret == 0)
     {
         return freq;
