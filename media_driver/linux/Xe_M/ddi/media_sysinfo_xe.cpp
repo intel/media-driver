@@ -203,8 +203,6 @@ bool InitXeHPShadowWa(struct GfxDeviceInfo *devInfo,
     waTable->WaDisregardPlatformChecks          = 1;
     waTable->Wa4kAlignUVOffsetNV12LinearSurface = 1;
 
-    waTable->WaDefaultTile4 = 1;
-
     waTable->Wa_15010089951 = 1;
 
     return true;
@@ -232,8 +230,6 @@ bool InitPvcShadowWa(struct GfxDeviceInfo *devInfo,
 
     // Set it to 0 if need to support 256B compress mode
     waTable->WaLimit128BMediaCompr = 0;
-
-    waTable->WaDefaultTile4 = 1;
 
     return true;
 }
