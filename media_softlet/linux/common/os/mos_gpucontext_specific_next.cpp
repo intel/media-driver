@@ -1901,6 +1901,21 @@ MOS_STATUS GpuContextSpecificNext::AllocateGPUStatusBuf()
     return MOS_STATUS_SUCCESS;
 }
 
+PMOS_RESOURCE GpuContextSpecificNext::GetOcaRTLogResource(PMOS_RESOURCE globalInst)
+{
+    // OcaRTLogResources are shared w/ different video processors.
+    // iAllocationIndex array in MOS_RESOURCE indexed by gpu_context type. When resource being accessed
+    // in GpuContextSpecificNext::RegisterResource and Mos_Specific_GetResourceAllocationIndex w/ more
+    // than 2 video processors, the value may be overwritten and wrong allocation Index in array may be used.
+    // To avoid this, use duplicate MOS_RESOURCE instance in GPU Context to ensure differnt iAllocationIndex
+    // array of OcaRTLogResources being used for different GPU Context.
+    if (!m_ocaRtLogResInited)
+    {
+        m_ocaRtLogResource = *globalInst;
+        m_ocaRtLogResInited = true;
+    }
+    return &m_ocaRtLogResource;
+}
 
 #if (_DEBUG || _RELEASE_INTERNAL)
 bool GpuContextSpecificNext::SelectEngineInstanceByUser(struct i915_engine_class_instance *engineMap,

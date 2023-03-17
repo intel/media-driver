@@ -219,6 +219,12 @@ public:
     //!
     void StoreCreateOptions(PMOS_GPUCTX_CREATOPTIONS createoption);
 
+    //!
+    //! \brief    Get Oca RTLog resource instance on GPU Context.
+    //! \return   PMOS_RESOURCE
+    //!
+    PMOS_RESOURCE GetOcaRTLogResource(PMOS_RESOURCE globalInst);
+
 #if MOS_COMMAND_RESINFO_DUMP_SUPPORTED
     void                PushCmdResPtr(const void *p) { m_cmdResPtrs.push_back(p); }
     void                ClearCmdResPtrs() { m_cmdResPtrs.clear(); }
@@ -368,6 +374,8 @@ private:
     bool m_ocaLogSectionSupported = true;
     // bool m_ocaSizeIncreaseDone = false;
 
+    bool m_ocaRtLogResInited = false;
+    MOS_RESOURCE m_ocaRtLogResource = {};
     //! \brief Recreate GEM Context
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise error code
