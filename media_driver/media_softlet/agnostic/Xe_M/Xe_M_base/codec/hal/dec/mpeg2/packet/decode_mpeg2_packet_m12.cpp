@@ -145,6 +145,13 @@ MOS_STATUS Mpeg2DecodePktM12::PackMbLevelCmds(MOS_COMMAND_BUFFER &cmdBuffer)
     DECODE_CHK_STATUS(m_miInterface->AddMiBatchBufferEnd(nullptr, batchBuf));
     DECODE_CHK_STATUS(Mhw_UnlockBb(m_osInterface, batchBuf,true));
 
+#if USE_CODECHAL_DEBUG_TOOL
+    DECODE_CHK_STATUS(m_mpeg2Pipeline->GetDebugInterface()->Dump2ndLvlBatch(
+        batchBuf,
+        CODECHAL_NUM_MEDIA_STATES,
+        "_DEC"));
+#endif
+
     DECODE_CHK_STATUS(EnsureAllCommandsExecuted(cmdBuffer));
     DECODE_CHK_STATUS(EndStatusReport(statusReportMfx, &cmdBuffer));
     DECODE_CHK_STATUS(UpdateStatusReport(statusReportGlobalCount, &cmdBuffer));

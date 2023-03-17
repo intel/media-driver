@@ -204,7 +204,7 @@ MOS_STATUS Mpeg2PipelineM12::CreateSubPackets(DecodeSubPacketManager &subPacketM
     DECODE_CHK_STATUS(subPacketManager.Register(
                         DecodePacketId(this, mpeg2PictureSubPacketId), *pictureDecodePkt));
 
-    if (codecSettings.mode = CODECHAL_DECODE_MODE_MPEG2VLD)
+    if (codecSettings.mode == CODECHAL_DECODE_MODE_MPEG2VLD)
     {
         Mpeg2DecodeSlcPktM12 *sliceDecodePkt = MOS_New(Mpeg2DecodeSlcPktM12, this, m_hwInterface);
         DECODE_CHK_NULL(sliceDecodePkt);
@@ -331,6 +331,10 @@ MOS_STATUS Mpeg2PipelineM12::Execute()
             DECODE_CHK_STATUS(CopyDummyBitstream());
             DECODE_CHK_STATUS(ActivateDecodePackets());
             DECODE_CHK_STATUS(ExecuteActivePackets());
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+            DECODE_CHK_STATUS(StatusCheck());
+#endif
 
             // Only update user features for the first frame.
             if (m_basicFeature->m_frameNum == 0)

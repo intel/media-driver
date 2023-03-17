@@ -81,6 +81,8 @@ namespace decode {
             mpeg2MbState.dwDCTLength += mb->m_numCoeff[i];
         }
 
+        mpeg2MbState.dwITCoffDataAddrOffset = mb->m_mbDataLoc << 2;  // byte offset
+
         // only for MB in PB picture.
         if (mpeg2MbState.wPicCodingType != I_TYPE)
         {
