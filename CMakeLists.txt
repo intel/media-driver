@@ -54,6 +54,7 @@ cmake_dependent_option( BUILD_KERNELS
 option (BUILD_CMRTLIB "Build and Install cmrtlib together with media driver" ON)
 
 option (ENABLE_PRODUCTION_KMD "Enable Production KMD header files" OFF)
+option (ENABLE_XE_KMD "Enable XE KMD header files" ON)
 
 include(GNUInstallDirs)
 
