@@ -1055,29 +1055,6 @@ VAStatus DdiEncodeHevc::ParseMiscParams(void *ptr)
     {
         VAEncMiscParameterBufferQualityLevel *vaEncMiscParamQualityLevel = (VAEncMiscParameterBufferQualityLevel *)miscParamBuf->data;
         m_encodeCtx->targetUsage                                         = (uint8_t)vaEncMiscParamQualityLevel->quality_level;
-
-#ifdef _FULL_OPEN_SOURCE
-        if(seqParams->TargetUsage >= 1 && seqParams->TargetUsage <= 2)
-        {
-            seqParams->TargetUsage = 4;
-        }
-        else if(seqParams->TargetUsage >= 3 && seqParams->TargetUsage <= 5)
-        {
-            seqParams->TargetUsage = 7;
-        }
-        else
-        {
-            DDI_CODEC_ASSERTMESSAGE("unsupported target usage in HEVC encoder.");
-            return VA_STATUS_ERROR_INVALID_PARAMETER;
-        }
-#endif
-
-        // HEVC only supports TU=1, 4, and 7
-        if (1 != m_encodeCtx->targetUsage && 4 != m_encodeCtx->targetUsage && 7 != m_encodeCtx->targetUsage)
-        {
-            DDI_CODEC_ASSERTMESSAGE("unsupported target usage in HEVC encoder.");
-            return VA_STATUS_ERROR_INVALID_PARAMETER;
-        }
         break;
     }
     case VAEncMiscParameterTypeHRD:
