@@ -20,7 +20,7 @@
 
 cmake_minimum_required(VERSION 3.5)
 project(IntelMediaDriver)
-set(MEDIA_VERSION "23.1.4${MEDIA_VERSION_EXTRA}" CACHE STRING "" FORCE)
+set(MEDIA_VERSION "23.1.5${MEDIA_VERSION_EXTRA}" CACHE STRING "" FORCE)
 
 
 
