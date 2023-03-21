@@ -953,13 +953,6 @@ protected:
                 resourceParams.bIsWritable        = false;
                 resourceParams.dwSharedMocsOffset = 17 - resourceParams.dwLocationInCmd;
 
-                MOS_GPU_CONTEXT gpuContext = m_osItf->pfnGetGpuContext(m_osItf);
-                m_osItf->pfnSyncOnResource(
-                    m_osItf,
-                    params.refs[i],
-                    gpuContext,
-                    false);
-
                 InitMocsParams(resourceParams, &cmd.ReferenceFrameBufferBaseAddressAttributes.DW0.Value, 1, 6);
 
                 MHW_MI_CHK_STATUS(AddResourceToCmd(

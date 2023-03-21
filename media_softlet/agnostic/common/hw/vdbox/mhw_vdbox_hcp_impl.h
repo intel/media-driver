@@ -1708,13 +1708,6 @@ protected:
 
                 resourceParams.dwSharedMocsOffset = 53 - resourceParams.dwLocationInCmd;  // Common Prodected Data bit is in DW53
 
-                MOS_GPU_CONTEXT gpuContext = this->m_osItf->pfnGetGpuContext(this->m_osItf);
-                this->m_osItf->pfnSyncOnResource(
-                    this->m_osItf,
-                    params.presReferences[i],
-                    gpuContext,
-                    false);
-
                 InitMocsParams(resourceParams, &cmd.ReferencePictureBaseAddressMemoryAddressAttributes.DW0.Value, 1, 6);
 
                 MHW_MI_CHK_STATUS(AddResourceToCmd(

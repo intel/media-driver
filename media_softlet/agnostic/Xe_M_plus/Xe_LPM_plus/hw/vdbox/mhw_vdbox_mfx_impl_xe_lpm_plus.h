@@ -245,13 +245,6 @@ protected:
 
                 resourceParams.dwSharedMocsOffset = 51 - resourceParams.dwLocationInCmd;
 
-                MOS_GPU_CONTEXT gpuContext = this->m_osItf->pfnGetGpuContext(this->m_osItf);
-                this->m_osItf->pfnSyncOnResource(
-                    this->m_osItf,
-                    references[i],
-                    gpuContext,
-                    false);
-
                 MHW_MI_CHK_STATUS(AddResourceToCmd(
                     this->m_osItf,
                     this->m_currentCmdBuf,

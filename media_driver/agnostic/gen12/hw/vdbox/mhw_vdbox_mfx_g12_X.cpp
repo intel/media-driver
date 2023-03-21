@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2020, Intel Corporation
+* Copyright (c) 2017-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1012,13 +1012,6 @@ MOS_STATUS MhwVdboxMfxInterfaceG12::AddMfxPipeBufAddrCmd(
             resourceParams.bIsWritable = false;
 
             resourceParams.dwSharedMocsOffset = 51 - resourceParams.dwLocationInCmd;
-
-            MOS_GPU_CONTEXT gpuContext = m_osInterface->pfnGetGpuContext(m_osInterface);
-            m_osInterface->pfnSyncOnResource(
-                m_osInterface,
-                references[i],
-                gpuContext,
-                false);
 
             MHW_MI_CHK_STATUS(AddResourceToCmd(
                 m_osInterface,
