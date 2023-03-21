@@ -49,7 +49,7 @@ static const AttribList attribList_VAProfileJPEGBaseline_VAEntrypointVLD_Xe_Lpm_
    {VAConfigAttribDecSliceMode, VA_DEC_SLICE_MODE_NORMAL},
    {VAConfigAttribDecProcessing, VA_DEC_PROCESSING},
    {VAConfigAttribMaxPictureWidth, CODEC_16K_MAX_PIC_WIDTH},
-   {VAConfigAttribMaxPictureHeight, CODEC_16K_MAX_PIC_WIDTH},
+   {VAConfigAttribMaxPictureHeight, CODEC_16K_MAX_PIC_HEIGHT},
    {VAConfigAttribEncryption, VA_ATTRIB_NOT_SUPPORTED},
    {VAConfigAttribDecJPEG, ((1 << VA_ROTATION_NONE) | (1 << VA_ROTATION_90) | (1 << VA_ROTATION_180) | (1 << VA_ROTATION_270))},
    {VAConfigAttribProcessingRate, VA_PROCESSING_RATE_DECODE},

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022, Intel Corporation
+* Copyright (c) 2022-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -165,41 +165,6 @@ private:
 
     void FreeResource();
 
-    //!
-    //! \brief    Check if the resolution is valid for a given decode codec mode
-    //!
-    //! \param    [in] codecMode
-    //!           Specify the codec mode
-    //!
-    //! \param    [in] profile
-    //!           VA profile
-    //!
-    //! \param    [in] width
-    //!           Specify the width for checking
-    //!
-    //! \param    [in] height
-    //!           Specify the height for checking
-    //!
-    //! \return   VAStatus
-    //!           VA_STATUS_SUCCESS if the resolution is supported
-    //!           VA_STATUS_ERROR_RESOLUTION_NOT_SUPPORTED if the resolution isn't valid
-    //!
-    VAStatus CheckDecodeResolution(
-            int32_t   codecMode,
-            VAProfile profile,
-            uint32_t  width,
-            uint32_t  height) override;
-
-    //!
-    //! \brief    Return internal decode mode for given profile
-    //!
-    //! \param    [in] profile
-    //!           Specify the VAProfile
-    //!
-    //! \return   Codehal mode: decode codec mode
-    //!
-    CODECHAL_MODE GetDecodeCodecMode(VAProfile profile) override;
-
     //! \brief   film grain output surface
     PDDI_MEDIA_SURFACE filmGrainOutSurface = nullptr;
     //! \brief   film grain output surface structure
@@ -207,9 +172,6 @@ private:
 
     MOS_SURFACE anchorFrameList[MAX_ANCHOR_FRAME_NUM_AV1];
     VASurfaceID anchorFrameListVA[MAX_ANCHOR_FRAME_NUM_AV1] = {0};
-
-    static const uint32_t m_decAv1Max16kWidth  = CODEC_16K_MAX_PIC_WIDTH;  //!< Maximum width for AV1 decode
-    static const uint32_t m_decAv1Max16kHeight = CODEC_16K_MAX_PIC_HEIGHT; //!< Maximum height for AV1 decode
 
     MEDIA_CLASS_DEFINE_END(decode__DdiDecodeAv1)
 };

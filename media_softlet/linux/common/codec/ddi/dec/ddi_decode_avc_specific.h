@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022, Intel Corporation
+* Copyright (c) 2022-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -195,44 +195,6 @@ private:
         bool                          sliceReference);
 
     void FreeResource();
-
-    //!
-    //! \brief    Check if the resolution is valid for a given decode codec mode
-    //!
-    //! \param    [in] codecMode
-    //!           Specify the codec mode
-    //!
-    //! \param    [in] profile
-    //!           VA profile
-    //!
-    //! \param    [in] width
-    //!           Specify the width for checking
-    //!
-    //! \param    [in] height
-    //!           Specify the height for checking
-    //!
-    //! \return   VAStatus
-    //!           VA_STATUS_SUCCESS if the resolution is supported
-    //!           VA_STATUS_ERROR_RESOLUTION_NOT_SUPPORTED if the resolution isn't valid
-    //!
-    VAStatus CheckDecodeResolution(
-            int32_t   codecMode,
-            VAProfile profile,
-            uint32_t  width,
-            uint32_t  height) override;
-
-    //!
-    //! \brief    Return internal decode mode for given profile
-    //!
-    //! \param    [in] profile
-    //!           Specify the VAProfile
-    //!
-    //! \return   Codehal mode: decode codec mode
-    //!
-    CODECHAL_MODE GetDecodeCodecMode(VAProfile profile) override;
-
-    static const uint32_t m_decAvcMaxWidth  = CODEC_4K_MAX_PIC_WIDTH;  //!< Maximum width for AVC decode
-    static const uint32_t m_decAvcMaxHeight = CODEC_4K_MAX_PIC_HEIGHT; //!< Maximum height for AVC decode
 
     MEDIA_CLASS_DEFINE_END(decode__DdiDecodeAvc)
 };
