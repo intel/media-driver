@@ -582,6 +582,7 @@ MOS_STATUS MosUtilities::MosDestroyUserFeatureData(PMOS_USER_FEATURE_VALUE_DATA 
             MosFreeUserFeatureValueString(&pData->MultiStringData.pStrings[ui]);
         }
         MOS_SafeFreeMemory(pData->MultiStringData.pStrings);
+        MosAtomicDecrement(m_mosMemAllocFakeCounter);
         pData->MultiStringData.pStrings = nullptr;
         pData->MultiStringData.pMultStringData = nullptr;
         pData->MultiStringData.uSize = 0;

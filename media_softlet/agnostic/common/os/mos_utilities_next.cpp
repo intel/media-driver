@@ -36,7 +36,6 @@
 
 int32_t              MosUtilities::m_mosMemAllocCounterNoUserFeature    = 0;
 int32_t              MosUtilities::m_mosMemAllocCounterNoUserFeatureGfx = 0;
-uint8_t              MosUtilities::m_mosUltFlag                         = 0;
 const MtControlData *MosUtilities::m_mosTraceControlData                = nullptr;
 MtEnable             MosUtilities::m_mosTraceEnable                     = false;
 MtFilter             MosUtilities::m_mosTraceFilter                     = {};
@@ -46,7 +45,10 @@ bool MosUtilities::m_enableAddressDump = false;
 
 MOS_FUNC_EXPORT void MosUtilities::MosSetUltFlag(uint8_t ultFlag)
 {
-    MosUtilities::m_mosUltFlag = ultFlag;
+    if (MosUtilities::m_mosUltFlag != nullptr)
+    {
+        *MosUtilities::m_mosUltFlag = ultFlag;
+    }
 }
 
 MOS_FUNC_EXPORT int32_t MosUtilities::MosGetMemNinjaCounter()
@@ -236,9 +238,12 @@ MOS_STATUS MosUtilities::MosUtilitiesInit(MediaUserSettingSharedPtr userSettingP
 
 #if (_DEBUG || _RELEASE_INTERNAL)
 
+#if COMMON_DLL_SEPARATION_SUPPORT
+    MosInitAllocFailSimulateFlagInCommon(userSettingPtr);
+#else
     //Initialize MOS simulate random alloc memorflag
     MosInitAllocMemoryFailSimulateFlag(userSettingPtr);
-
+#endif
     eStatus = ReadUserSettingForDebug(
         userSettingPtr,
         MosUtilities::m_enableAddressDump,
@@ -262,7 +267,11 @@ MOS_STATUS MosUtilities::MosUtilitiesClose(MediaUserSettingSharedPtr userSetting
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     //Reset Simulate Alloc Memory Fail flags
+#if COMMON_DLL_SEPARATION_SUPPORT
+    MosInitAllocFailSimulateFlagInCommon(userSettingPtr);
+#else
     MosInitAllocMemoryFailSimulateFlag(userSettingPtr);
+#endif
 #endif
 
     return eStatus;

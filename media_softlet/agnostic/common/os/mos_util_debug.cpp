@@ -345,7 +345,7 @@ MOS_STATUS MosUtilDebug::MosHLTInit(MediaUserSettingSharedPtr userSettingPtr)
             MediaUserSetting::Group::Device);
     }
 
-    bUseHybridLogTrace = MosUtilities::m_mosUltFlag ? 1 : bUseHybridLogTrace;
+    bUseHybridLogTrace = (MosUtilities::m_mosUltFlag && *MosUtilities::m_mosUltFlag) ? 1 : bUseHybridLogTrace;
 
     // Dumping memory mapped regions to trace file disabled for now
     // Need to add new user feature key or derive from the above key.
@@ -357,7 +357,7 @@ MOS_STATUS MosUtilDebug::MosHLTInit(MediaUserSettingSharedPtr userSettingPtr)
         return MOS_STATUS_SUCCESS;               //[SH]: Check this.
     }
 
-    nPID = MosUtilities::m_mosUltFlag ? 0 : MosUtilities::MosGetPid();
+    nPID = (MosUtilities::m_mosUltFlag && *MosUtilities::m_mosUltFlag) ? 0 : MosUtilities::MosGetPid();
 
     // Get logfile directory.
     MosLogFileNamePrefix(fileNamePrefix, userSettingPtr);
@@ -452,7 +452,7 @@ void MosUtilDebug::MosMessageInit(MediaUserSettingSharedPtr userSettingPtr)
                 MediaUserSetting::Group::Device);
         }
 
-        if (MosUtilities::m_mosUltFlag)
+        if (MosUtilities::m_mosUltFlag && (*MosUtilities::m_mosUltFlag))
         {
             MosSetCompMessageLevelAll(MOS_MESSAGE_LVL_DISABLED);
             MosSetCompMessageLevel(MOS_COMPONENT_OS, MOS_MESSAGE_LVL_CRITICAL);

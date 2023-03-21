@@ -50,10 +50,12 @@
 int32_t g_mosMemAllocCounter         = 0;
 int32_t g_mosMemAllocFakeCounter     = 0;
 int32_t g_mosMemAllocCounterGfx      = 0;
+uint8_t g_mosUltFlag                 = 0;
 
 int32_t *MosUtilities::m_mosMemAllocCounter       = &g_mosMemAllocCounter;
 int32_t *MosUtilities::m_mosMemAllocFakeCounter   = &g_mosMemAllocFakeCounter;
 int32_t *MosUtilities::m_mosMemAllocCounterGfx    = &g_mosMemAllocCounterGfx;
+uint8_t *MosUtilities::m_mosUltFlag               = &g_mosUltFlag;
 
 const char           *MosUtilitiesSpecificNext::m_szUserFeatureFile     = USER_FEATURE_FILE;
 MOS_PUF_KEYLIST      MosUtilitiesSpecificNext::m_ufKeyList              = nullptr;

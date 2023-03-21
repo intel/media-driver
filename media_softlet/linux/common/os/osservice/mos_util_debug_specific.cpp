@@ -133,7 +133,7 @@ MOS_STATUS MosUtilDebug::MosLogFileNamePrefix(char *fileNamePrefix, MediaUserSet
     MOS_STATUS                          eStatus = MOS_STATUS_UNKNOWN;
     MediaUserSetting::Value             outValue;
 
-    if (MosUtilities::m_mosUltFlag)
+    if (MosUtilities::m_mosUltFlag && (*MosUtilities::m_mosUltFlag))
     {
         iRet =  MosUtilities::MosSecureStringPrint(
                      fileNamePrefix,

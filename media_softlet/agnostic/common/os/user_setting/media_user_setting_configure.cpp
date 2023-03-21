@@ -232,14 +232,7 @@ MOS_STATUS Configure::Write(
     if (status != MOS_STATUS_SUCCESS)
     {
         // When any fail happen, just print out a critical message, but not return error to break normal call sequence.
-        if(MosUtilities::m_mosUltFlag)
-        {
-            MOS_OS_NORMALMESSAGE("Failed to write media user setting %s value.", valueName.c_str());
-        }
-        else
-        {
-            MOS_OS_NORMALMESSAGE("Failed to write media user setting %s value.", valueName.c_str());
-        }
+        MOS_OS_NORMALMESSAGE("Failed to write media user setting %s value.", valueName.c_str());
     }
 
     return MOS_STATUS_SUCCESS;

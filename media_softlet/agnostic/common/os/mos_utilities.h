@@ -51,7 +51,12 @@
 class MediaUserSettingsMgr;
 
 class MosMutex;
-
+#if COMMON_DLL_SEPARATION_SUPPORT
+namespace CommonLib
+{
+    class MosCallback;
+}
+#endif
 class MosUtilities
 {
 public:
@@ -62,6 +67,18 @@ public:
     MOS_FUNC_EXPORT static int32_t MosGetMemNinjaCounter();
     MOS_FUNC_EXPORT static int32_t MosGetMemNinjaCounterGfx();
 
+#if COMMON_DLL_SEPARATION_SUPPORT
+    friend class CommonLib::MosCallback;
+    
+    //!
+    //! \brief    Set trace setup info
+    //! \details  Set trace setup info
+    //! \return   MOS_STATUS
+    //!           Returns one of the MOS_STATUS error codes if failed,
+    //!           else MOS_STATUS_SUCCESS
+    //!
+    static MOS_STATUS MosTraceSetupInfoInCommon(uint32_t DrvVer, uint32_t PlatFamily, uint32_t RenderFamily, uint32_t DeviceID);
+#endif
     //!
     //! \brief    Get current run time
     //! \details  Get current run time in us
@@ -165,7 +182,58 @@ private:
     //!           else MOS_STATUS_SUCCESS
     //!
     static MOS_STATUS MosOsUtilitiesInit(MediaUserSettingSharedPtr userSettingPtr);
+#if COMMON_DLL_SEPARATION_SUPPORT
+    //!
+    //! \brief    Init Mos os utilities in common dll
+    //! \details  Init Mos os utilities in common dll
+    //! \param    [in] userSettingPtr
+    //!           MediaUserSettingSharedPtr
+    //! \return   MOS_STATUS
+    //!           Returns one of the MOS_STATUS error codes if failed,
+    //!           else MOS_STATUS_SUCCESS
+    //!
+    static MOS_STATUS MosOsUtilitiesInitInCommon(MediaUserSettingSharedPtr userSettingPtr);
 
+    //!
+    //! \brief    Close Mos os utilities in common dll
+    //! \details  Close Mos os utilities in common dll
+    //! \param    [in] userSettingPtr
+    //!           MediaUserSettingSharedPtr
+    //! \return   MOS_STATUS
+    //!           Returns one of the MOS_STATUS error codes if failed,
+    //!           else MOS_STATUS_SUCCESS
+    //!
+    static MOS_STATUS MosOsUtilitiesCloseInCommon(MediaUserSettingSharedPtr userSettingPtr);
+
+    //!
+    //! \brief    Init mos utilities values from common dll
+    //! \details  Init mos utilities values from common dll
+    //! \return   MOS_STATUS
+    //!           Returns one of the MOS_STATUS error codes if failed,
+    //!           else MOS_STATUS_SUCCESS
+    //!
+    static MOS_STATUS MosInitOsUtilitiesValuesFromCommon();
+
+    //!
+    //! \brief    Clear mos utilities values from common dll
+    //! \details  Clear mos utilities values from common dll
+    //! \return   MOS_STATUS
+    //!           Returns one of the MOS_STATUS error codes if failed,
+    //!           else MOS_STATUS_SUCCESS
+    //!
+    static MOS_STATUS MosClearOsUtilitiesValuesFromCommon();
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    //!
+    //! \brief    Init simulate random memory allocation fail flag in Common dll
+    //! \details  Init simulate random memory allocation fail flag in Common dll
+    //! \param    [in] userSettingPtr
+    //!           MediaUserSettingSharedPtr
+    //! \return   void
+    //!
+    static MOS_STATUS MosInitAllocFailSimulateFlagInCommon(MediaUserSettingSharedPtr userSettingPtr);
+#endif
+#endif
     //!
     //! \brief    Init user feature
     //! \details  Initial MOS OS specific utilitiesNext related structures, and only execute once for multiple entries
@@ -2743,7 +2811,7 @@ private:
     static void MosGfxInfoClose();
 
 public:
-    static uint8_t                      m_mosUltFlag;
+    static uint8_t                      *m_mosUltFlag;
     static int32_t                      m_mosMemAllocCounterNoUserFeature;
     static int32_t                      m_mosMemAllocCounterNoUserFeatureGfx;
 
@@ -2751,6 +2819,9 @@ public:
     static int32_t                      *m_mosMemAllocCounter;
     static int32_t                      *m_mosMemAllocFakeCounter;
     static int32_t                      *m_mosMemAllocCounterGfx;
+#if (_DEBUG || _RELEASE_INTERNAL)
+    static int32_t                      *m_mosAllocMemoryFailSimulateAllocCounter;
+#endif
 
     static bool                         m_enableAddressDump;
 
@@ -2771,7 +2842,6 @@ private:
     static uint32_t                     m_mosAllocMemoryFailSimulateMode;
     static uint32_t                     m_mosAllocMemoryFailSimulateFreq;
     static uint32_t                     m_mosAllocMemoryFailSimulateHint;
-    static int32_t                      *m_mosAllocMemoryFailSimulateAllocCounter;
 #endif
 MEDIA_CLASS_DEFINE_END(MosUtilities)
 };
@@ -3193,13 +3263,13 @@ public:
 
 public:
     static PerfUtility *getInstance();
-    ~PerfUtility();
+    virtual ~PerfUtility();
     PerfUtility();
-    void startTick(std::string tag);
-    void stopTick(std::string tag);
-    void savePerfData();
-    void setupFilePath(const char *perfFilePath);
-    void setupFilePath();
+    virtual void startTick(std::string tag);
+    virtual void stopTick(std::string tag);
+    virtual void savePerfData();
+    virtual void setupFilePath(const char *perfFilePath);
+    virtual void setupFilePath();
     bool bPerfUtilityKey    = false;
     char sSummaryFileName[MOS_MAX_PERF_FILENAME_LEN + 1] = {'\0'};
     char sDetailsFileName[MOS_MAX_PERF_FILENAME_LEN + 1] = {'\0'};
