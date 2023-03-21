@@ -55,7 +55,6 @@ void VpVeboxCmdPacketLegacy::SetupSurfaceStates(
     PVPHAL_VEBOX_SURFACE_STATE_CMD_PARAMS   pVeboxSurfaceStateCmdParams)
 {
     VP_FUNC_CALL();
-
     VP_PUBLIC_CHK_NULL_NO_STATUS_RETURN(pVeboxSurfaceStateCmdParams);
     MOS_ZeroMemory(pVeboxSurfaceStateCmdParams, sizeof(VPHAL_VEBOX_SURFACE_STATE_CMD_PARAMS));
     pVeboxSurfaceStateCmdParams->pSurfInput    = m_veboxPacketSurface.pCurrInput;
@@ -64,6 +63,37 @@ void VpVeboxCmdPacketLegacy::SetupSurfaceStates(
     pVeboxSurfaceStateCmdParams->pSurfDNOutput = m_veboxPacketSurface.pDenoisedCurrOutput;
     pVeboxSurfaceStateCmdParams->bDIEnable     = m_PacketCaps.bDI;
     pVeboxSurfaceStateCmdParams->b3DlutEnable  = m_PacketCaps.bHDR3DLUT;  // Need to consider cappipe
+
+    UpdateCpPrepareResources();
+}
+
+void VpVeboxCmdPacketLegacy::UpdateCpPrepareResources()
+{
+    VP_FUNC_CALL();
+
+    VpVeboxRenderData *pRenderData = GetLastExecRenderData();
+    VP_RENDER_ASSERT(pRenderData);
+    // For 3DLut usage, it update in CpPrepareResources() for kernel usage, should
+    // reupdate here. For other feature usage, it already update in vp_pipeline
+    if (pRenderData->HDR3DLUT.is3DLutTableUpdatedByKernel == true)
+    {
+        VP_RENDER_NORMALMESSAGE("Update CP Prepare Resource for 3DLut kernel.");
+        PMOS_RESOURCE source[VPHAL_MAX_SOURCES] = {nullptr};
+        PMOS_RESOURCE target[VPHAL_MAX_TARGETS] = {nullptr};
+
+        if ((nullptr != m_hwInterface->m_osInterface) &&
+            (nullptr != m_hwInterface->m_osInterface->osCpInterface))
+        {
+            VP_SURFACE *surf = GetSurface(SurfaceTypeVeboxInput);
+            VP_PUBLIC_CHK_NULL_NO_STATUS_RETURN(surf);
+            source[0] = &(surf->osSurface->OsResource);
+
+            VP_PUBLIC_CHK_NULL_NO_STATUS_RETURN(m_renderTarget);
+            target[0] = &(m_renderTarget->osSurface->OsResource);
+
+            m_hwInterface->m_osInterface->osCpInterface->PrepareResources((void **)source, 1, (void **)target, 1);
+        }
+    }
 }
 
 MOS_STATUS VpVeboxCmdPacketLegacy::Init3DLutTable(PVP_SURFACE surf3DLut)
