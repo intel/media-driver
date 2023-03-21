@@ -135,7 +135,7 @@ MOS_STATUS MhwInterfacesG9Bxt::Initialize(
 
     return MOS_STATUS_SUCCESS;
 }
-#ifdef _MMC_SUPPORTED
+#if defined(_MMC_SUPPORTED) && defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 static bool bxtRegisteredMmd =
     MediaFactory<uint32_t, MmdDevice>::
     Register<MmdDeviceG9Bxt>((uint32_t)IGFX_BROXTON);

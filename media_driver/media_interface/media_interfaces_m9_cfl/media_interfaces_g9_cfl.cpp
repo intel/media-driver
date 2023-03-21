@@ -44,7 +44,7 @@ static bool cflRegisteredMhw =
     MediaFactory<uint32_t, MhwInterfaces>::
     Register<MhwInterfacesG9Kbl>((uint32_t)IGFX_COFFEELAKE);
 
-#ifdef _MMC_SUPPORTED
+#if defined(_MMC_SUPPORTED) && defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 static bool cflRegisteredMmd =
     MediaFactory<uint32_t, MmdDevice>::
     Register<MmdDeviceG9Kbl>((uint32_t)IGFX_COFFEELAKE);

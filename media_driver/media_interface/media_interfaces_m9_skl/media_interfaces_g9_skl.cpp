@@ -139,7 +139,7 @@ MOS_STATUS MhwInterfacesG9Skl::Initialize(
 
     return MOS_STATUS_SUCCESS;
 }
-#ifdef _MMC_SUPPORTED
+#if defined(_MMC_SUPPORTED) && defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 static bool sklRegisteredMmd =
     MediaFactory<uint32_t, MmdDevice>::
     Register<MmdDeviceG9Skl>((uint32_t)IGFX_SKYLAKE);

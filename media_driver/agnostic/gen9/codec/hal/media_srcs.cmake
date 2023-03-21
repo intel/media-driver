@@ -27,7 +27,7 @@ set(TMP_1_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/codechal_hw_g9_X.h
 )
 
-if(${MMC_Supported} STREQUAL "yes")
+if(${MMC_Supported} STREQUAL "yes" AND ENABLE_NONFREE_KERNELS AND ENABLE_KERNELS)
     set(TMP_1_SOURCES_
         ${TMP_1_SOURCES_}
         ${CMAKE_CURRENT_LIST_DIR}/codechal_memdecomp_g9.cpp
