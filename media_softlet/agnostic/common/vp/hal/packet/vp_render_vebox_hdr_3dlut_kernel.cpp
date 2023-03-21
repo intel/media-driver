@@ -258,31 +258,6 @@ MOS_STATUS VpRenderHdr3DLutKernel::SetupSurfaceState()
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpRenderHdr3DLutKernel::CpPrepareResources()
-{
-    VP_FUNC_CALL();
-
-    PMOS_RESOURCE source[VPHAL_MAX_SOURCES] = {nullptr};
-    PMOS_RESOURCE target[VPHAL_MAX_TARGETS] = {nullptr};
-
-    if ((nullptr != m_hwInterface->m_osInterface) &&
-        (nullptr != m_hwInterface->m_osInterface->osCpInterface))
-    {
-        auto        it   = m_surfaceGroup->find(SurfaceType3DLutCoef);
-        VP_SURFACE *surf = (m_surfaceGroup->end() != it) ? it->second : nullptr;
-        VP_RENDER_CHK_NULL_RETURN(surf);
-        source[0] = &(surf->osSurface->OsResource);
-
-        it   = m_surfaceGroup->find(SurfaceType3DLut);
-        surf = (m_surfaceGroup->end() != it) ? it->second : nullptr;
-        VP_RENDER_CHK_NULL_RETURN(surf);
-
-        target[0] = &(surf->osSurface->OsResource);
-        m_hwInterface->m_osInterface->osCpInterface->PrepareResources((void **)source, 1, (void **)target, 1);
-    }
-    return MOS_STATUS_SUCCESS;
-}
-
 MOS_STATUS VpRenderHdr3DLutKernel::GetCurbeState(void *&curbe, uint32_t &curbeLength)
 {
     VP_FUNC_CALL();
@@ -574,31 +549,6 @@ MOS_STATUS VpRenderHdr3DLutKernelCM::SetupSurfaceState()
     
     VP_RENDER_CHK_STATUS_RETURN(InitCoefSurface(m_maxDisplayLum, m_maxContentLevelLum, m_hdrMode));
 
-    return MOS_STATUS_SUCCESS;
-}
-
-MOS_STATUS VpRenderHdr3DLutKernelCM::CpPrepareResources()
-{
-    VP_FUNC_CALL();
-
-    PMOS_RESOURCE source[VPHAL_MAX_SOURCES] = {nullptr};
-    PMOS_RESOURCE target[VPHAL_MAX_TARGETS] = {nullptr};
-
-    if ((nullptr != m_hwInterface->m_osInterface) &&
-        (nullptr != m_hwInterface->m_osInterface->osCpInterface))
-    {
-        auto        it   = m_surfaceGroup->find(SurfaceType3DLutCoef);
-        VP_SURFACE *surf = (m_surfaceGroup->end() != it) ? it->second : nullptr;
-        VP_RENDER_CHK_NULL_RETURN(surf);
-        source[0] = &(surf->osSurface->OsResource);
-
-        it   = m_surfaceGroup->find(SurfaceType3DLut);
-        surf = (m_surfaceGroup->end() != it) ? it->second : nullptr;
-        VP_RENDER_CHK_NULL_RETURN(surf);
-
-        target[0] = &(surf->osSurface->OsResource);
-        m_hwInterface->m_osInterface->osCpInterface->PrepareResources((void **)source, 1, (void **)target, 1);
-    }
     return MOS_STATUS_SUCCESS;
 }
 

@@ -1108,7 +1108,6 @@ protected:
     virtual MOS_STATUS SetupHDRLuts(
         mhw::vebox::VEBOX_STATE_PAR &veboxStateCmdParams);
     virtual MOS_STATUS Init3DLutTable(PVP_SURFACE surf3DLut);
-    void    UpdateCpPrepareResources();
     MOS_STATUS SetupVebox3DLutForHDR(
         mhw::vebox::VEBOX_STATE_PAR &veboxStateCmdParams);
 
