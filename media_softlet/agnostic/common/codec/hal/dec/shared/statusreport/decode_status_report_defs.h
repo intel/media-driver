@@ -114,6 +114,7 @@ struct DecodeStatusParameters
     uint16_t           frameFieldHeightInMb;
     uint32_t           numSlices;
     MOS_RESOURCE       currDecodedPicRes;
+    bool               isSecondField;
 #if (_DEBUG || _RELEASE_INTERNAL)
     MOS_SURFACE       *sfcOutputSurface;
     MOS_RESOURCE      *histogramOutputBuf;

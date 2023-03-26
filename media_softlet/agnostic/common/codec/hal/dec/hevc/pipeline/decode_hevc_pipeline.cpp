@@ -33,6 +33,7 @@
 #include "decode_hevc_phase_real_tile.h"
 #include "decode_hevc_feature_manager.h"
 #include "decode_hevc_downsampling_packet.h"
+#include "media_debug_fast_dump.h"
 
 namespace decode {
 
@@ -369,99 +370,6 @@ MHW_BATCH_BUFFER* HevcPipeline::GetSliceLvlCmdBuffer()
 }
 
 #if USE_CODECHAL_DEBUG_TOOL
-MOS_STATUS HevcPipeline::DumpIQParams(
-    PCODECHAL_HEVC_IQ_MATRIX_PARAMS matrixData)
-{
-    CODECHAL_DEBUG_FUNCTION_ENTER;
-
-    if (!m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrIqParams))
-    {
-        return MOS_STATUS_SUCCESS;
-    }
-
-    CODECHAL_DEBUG_CHK_NULL(matrixData);
-
-    std::ostringstream oss;
-    oss.setf(std::ios::showbase | std::ios::uppercase);
-
-    uint32_t idx;
-    uint32_t idx2;
-    // 4x4 block
-    for (idx2 = 0; idx2 < 6; idx2++)
-    {
-        oss << "Qmatrix_HEVC_ucScalingLists0[" << std::dec << +idx2 << "]:" << std::endl;
-
-        oss << "ucScalingLists0[" << +idx2 << "]:";
-        for (uint8_t i = 0; i < 16; i++)
-            oss << std::hex << +matrixData->ucScalingLists0[idx2][i] << " ";
-        oss << std::endl;
-    }
-
-    // 8x8 block
-    for (idx2 = 0; idx2 < 6; idx2++)
-    {
-        oss << "ucScalingLists1[" << std::dec << +idx2 << "]:" << std::endl;
-
-        for (idx = 0; idx < 64; idx += 8)
-        {
-            oss << "ucScalingLists1[" << std::dec << +idx / 8 << "]:" << std::endl;
-            for (uint8_t i = 0; i < 8; i++)
-                oss << std::hex << +matrixData->ucScalingLists1[idx2][idx + i] << " ";
-            oss << std::endl;
-        }
-    }
-
-    // 16x16 block
-    for (idx2 = 0; idx2 < 6; idx2++)
-    {
-        oss << "ucScalingLists2[" << std::dec << +idx2 << "]:" << std::endl;
-
-        for (idx = 0; idx < 64; idx += 8)
-        {
-            oss << "ucScalingLists2[" << std::dec << +idx / 8 << "]:" << std::endl;
-            for (uint8_t i = 0; i < 8; i++)
-                oss << std::hex << +matrixData->ucScalingLists2[idx2][idx + i] << " ";
-            oss << std::endl;
-        }
-    }
-    // 32x32 block
-    for (idx2 = 0; idx2 < 2; idx2++)
-    {
-        oss << "ucScalingLists3[" << std::dec << +idx2 << "]:" << std::endl;
-
-        for (idx = 0; idx < 64; idx += 8)
-        {
-            oss << "ucScalingLists3[" << std::dec << +idx / 8 << "]:" << std::endl;
-            for (uint8_t i = 0; i < 8; i++)
-                oss << std::hex << +matrixData->ucScalingLists3[idx2][idx + i] << " ";
-            oss << std::endl;
-        }
-    }
-
-    //DC16x16 block
-    oss << "ucScalingListDCCoefSizeID2: ";
-    for (uint8_t i = 0; i < 6; i++)
-        oss << std::hex << +matrixData->ucScalingListDCCoefSizeID2[i] << " ";
-
-    oss << std::endl;
-
-    //DC32x32 block
-
-    oss << "ucScalingListDCCoefSizeID3: ";
-    oss << +matrixData->ucScalingListDCCoefSizeID3[0] << " " << +matrixData->ucScalingListDCCoefSizeID3[1] << std::endl;
-
-    const char *fileName = m_debugInterface->CreateFileName(
-        "_DEC",
-        CodechalDbgBufferType::bufIqParams,
-        CodechalDbgExtType::txt);
-
-    std::ofstream ofs(fileName, std::ios::out);
-    ofs << oss.str();
-    ofs.close();
-
-    return MOS_STATUS_SUCCESS;
-}
-
 MOS_STATUS HevcPipeline::DumpPicParams(
     PCODEC_HEVC_PIC_PARAMS     picParams,
     PCODEC_HEVC_EXT_PIC_PARAMS extPicParams,
@@ -469,231 +377,82 @@ MOS_STATUS HevcPipeline::DumpPicParams(
 {
     CODECHAL_DEBUG_FUNCTION_ENTER;
 
-    if (!m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrPicParams))
+    if (picParams == nullptr)
     {
         return MOS_STATUS_SUCCESS;
     }
 
-    CODECHAL_DEBUG_CHK_NULL(picParams);
-
-    std::ostringstream oss;
-    oss.setf(std::ios::showbase | std::ios::uppercase);
-    oss.setf(std::ios::hex, std::ios::basefield);
-
-    oss << "PicWidthInMinCbsY: " << +picParams->PicWidthInMinCbsY << std::endl;
-    oss << "PicHeightInMinCbsY: " << +picParams->PicHeightInMinCbsY << std::endl;
-    //wFormatAndSequenceInfoFlags
-    oss << "chroma_format_idc: " << +picParams->chroma_format_idc << std::endl;
-    oss << "separate_colour_plane_flag: " << +picParams->separate_colour_plane_flag << std::endl;
-    oss << "bit_depth_luma_minus8: " << +picParams->bit_depth_luma_minus8 << std::endl;
-    oss << "bit_depth_chroma_minus8: " << +picParams->bit_depth_chroma_minus8 << std::endl;
-    oss << "log2_max_pic_order_cnt_lsb_minus4: " << +picParams->log2_max_pic_order_cnt_lsb_minus4 << std::endl;
-    oss << "NoPicReorderingFlag: " << +picParams->NoPicReorderingFlag << std::endl;
-    oss << "ReservedBits1: " << +picParams->ReservedBits1 << std::endl;
-    oss << "wFormatAndSequenceInfoFlags: " << +picParams->wFormatAndSequenceInfoFlags << std::endl;
-    oss << "CurrPic FrameIdx: " << +picParams->CurrPic.FrameIdx << std::endl;
-    oss << "CurrPic PicFlags: " << +picParams->CurrPic.PicFlags << std::endl;
-    oss << "sps_max_dec_pic_buffering_minus1: " << +picParams->sps_max_dec_pic_buffering_minus1 << std::endl;
-    oss << "log2_min_luma_coding_block_size_minus3: " << +picParams->log2_min_luma_coding_block_size_minus3 << std::endl;
-    oss << "log2_diff_max_min_luma_coding_block_size: " << +picParams->log2_diff_max_min_luma_coding_block_size << std::endl;
-    oss << "log2_min_transform_block_size_minus2: " << +picParams->log2_min_transform_block_size_minus2 << std::endl;
-    oss << "log2_diff_max_min_transform_block_size: " << +picParams->log2_diff_max_min_transform_block_size << std::endl;
-    oss << "max_transform_hierarchy_depth_intra: " << +picParams->max_transform_hierarchy_depth_intra << std::endl;
-    oss << "max_transform_hierarchy_depth_inter: " << +picParams->max_transform_hierarchy_depth_inter << std::endl;
-    oss << "num_short_term_ref_pic_sets: " << +picParams->num_short_term_ref_pic_sets << std::endl;
-    oss << "num_long_term_ref_pic_sps: " << +picParams->num_long_term_ref_pic_sps << std::endl;
-    oss << "num_ref_idx_l0_default_active_minus1: " << +picParams->num_ref_idx_l0_default_active_minus1 << std::endl;
-    oss << "num_ref_idx_l1_default_active_minus1: " << +picParams->num_ref_idx_l1_default_active_minus1 << std::endl;
-    oss << "init_qp_minus26: " << +picParams->init_qp_minus26 << std::endl;
-    oss << "ucNumDeltaPocsOfRefRpsIdx: " << +picParams->ucNumDeltaPocsOfRefRpsIdx << std::endl;
-    oss << "wNumBitsForShortTermRPSInSlice: " << +picParams->wNumBitsForShortTermRPSInSlice << std::endl;
-    oss << "ReservedBits2: " << +picParams->ReservedBits2 << std::endl;
-    //dwCodingParamToolFlags
-    oss << "scaling_list_enabled_flag: " << +picParams->scaling_list_enabled_flag << std::endl;
-    oss << "amp_enabled_flag: " << +picParams->amp_enabled_flag << std::endl;
-    oss << "sample_adaptive_offset_enabled_flag: " << +picParams->sample_adaptive_offset_enabled_flag << std::endl;
-    oss << "pcm_enabled_flag: " << +picParams->pcm_enabled_flag << std::endl;
-    oss << "pcm_sample_bit_depth_luma_minus1: " << +picParams->pcm_sample_bit_depth_luma_minus1 << std::endl;
-    oss << "pcm_sample_bit_depth_chroma_minus1: " << +picParams->pcm_sample_bit_depth_chroma_minus1 << std::endl;
-    oss << "log2_min_pcm_luma_coding_block_size_minus3: " << +picParams->log2_min_pcm_luma_coding_block_size_minus3 << std::endl;
-    oss << "log2_diff_max_min_pcm_luma_coding_block_size: " << +picParams->log2_diff_max_min_pcm_luma_coding_block_size << std::endl;
-    oss << "pcm_loop_filter_disabled_flag: " << +picParams->pcm_loop_filter_disabled_flag << std::endl;
-    oss << "long_term_ref_pics_present_flag: " << +picParams->long_term_ref_pics_present_flag << std::endl;
-    oss << "sps_temporal_mvp_enabled_flag: " << +picParams->sps_temporal_mvp_enabled_flag << std::endl;
-    oss << "strong_intra_smoothing_enabled_flag: " << +picParams->strong_intra_smoothing_enabled_flag << std::endl;
-    oss << "dependent_slice_segments_enabled_flag: " << +picParams->dependent_slice_segments_enabled_flag << std::endl;
-    oss << "output_flag_present_flag: " << +picParams->output_flag_present_flag << std::endl;
-    oss << "num_extra_slice_header_bits: " << +picParams->num_extra_slice_header_bits << std::endl;
-    oss << "sign_data_hiding_enabled_flag: " << +picParams->sign_data_hiding_enabled_flag << std::endl;
-    oss << "cabac_init_present_flag: " << +picParams->cabac_init_present_flag << std::endl;
-    oss << "ReservedBits3: " << +picParams->ReservedBits3 << std::endl;
-    oss << "dwCodingParamToolFlags: " << +picParams->dwCodingParamToolFlags << std::endl;
-    //dwCodingSettingPicturePropertyFlags
-    oss << "constrained_intra_pred_flag: " << +picParams->constrained_intra_pred_flag << std::endl;
-    oss << "transform_skip_enabled_flag: " << +picParams->transform_skip_enabled_flag << std::endl;
-    oss << "cu_qp_delta_enabled_flag: " << +picParams->cu_qp_delta_enabled_flag << std::endl;
-    oss << "diff_cu_qp_delta_depth: " << +picParams->diff_cu_qp_delta_depth << std::endl;
-    oss << "pps_slice_chroma_qp_offsets_present_flag: " << +picParams->pps_slice_chroma_qp_offsets_present_flag << std::endl;
-    oss << "weighted_pred_flag: " << +picParams->weighted_pred_flag << std::endl;
-    oss << "weighted_bipred_flag: " << +picParams->weighted_bipred_flag << std::endl;
-    oss << "transquant_bypass_enabled_flag: " << +picParams->transquant_bypass_enabled_flag << std::endl;
-    oss << "tiles_enabled_flag: " << +picParams->tiles_enabled_flag << std::endl;
-    oss << "entropy_coding_sync_enabled_flag: " << +picParams->entropy_coding_sync_enabled_flag << std::endl;
-    oss << "uniform_spacing_flag: " << +picParams->uniform_spacing_flag << std::endl;
-    oss << "loop_filter_across_tiles_enabled_flag: " << +picParams->loop_filter_across_tiles_enabled_flag << std::endl;
-    oss << "pps_loop_filter_across_slices_enabled_flag: " << +picParams->pps_loop_filter_across_slices_enabled_flag << std::endl;
-    oss << "deblocking_filter_override_enabled_flag: " << +picParams->deblocking_filter_override_enabled_flag << std::endl;
-    oss << "pps_deblocking_filter_disabled_flag: " << +picParams->pps_deblocking_filter_disabled_flag << std::endl;
-    oss << "lists_modification_present_flag: " << +picParams->lists_modification_present_flag << std::endl;
-    oss << "slice_segment_header_extension_present_flag: " << +picParams->slice_segment_header_extension_present_flag << std::endl;
-    oss << "IrapPicFlag: " << +picParams->IrapPicFlag << std::endl;
-    oss << "IdrPicFlag: " << +picParams->IdrPicFlag << std::endl;
-    oss << "IntraPicFlag: " << +picParams->IntraPicFlag << std::endl;
-    oss << "ReservedBits4: " << +picParams->ReservedBits4 << std::endl;
-    oss << "dwCodingSettingPicturePropertyFlags: " << +picParams->dwCodingSettingPicturePropertyFlags << std::endl;
-    oss << "pps_cb_qp_offset: " << +picParams->pps_cb_qp_offset << std::endl;
-    oss << "pps_cr_qp_offset: " << +picParams->pps_cr_qp_offset << std::endl;
-    oss << "num_tile_columns_minus1: " << +picParams->num_tile_columns_minus1 << std::endl;
-    oss << "num_tile_rows_minus1: " << +picParams->num_tile_rows_minus1 << std::endl;
-    //Dump column width
-    oss << "column_width_minus1[19]:";
-    for (uint8_t i = 0; i < 19; i++)
-        oss << picParams->column_width_minus1[i] << " ";
-    oss << std::endl;
-
-    //Dump row height
-    oss << "row_height_minus1[21]:";
-    for (uint8_t i = 0; i < 21; i++)
-        oss << picParams->row_height_minus1[i] << " ";
-    oss << std::endl;
-
-    oss << "pps_beta_offset_div2: " << +picParams->pps_beta_offset_div2 << std::endl;
-    oss << "pps_tc_offset_div2: " << +picParams->pps_tc_offset_div2 << std::endl;
-    oss << "log2_parallel_merge_level_minus2: " << +picParams->log2_parallel_merge_level_minus2 << std::endl;
-    oss << "CurrPicOrderCntVal: " << +picParams->CurrPicOrderCntVal << std::endl;
-
-    oss.setf(std::ios::dec, std::ios::basefield);
-    //Dump RefFrameList[15]
-    for (uint8_t i = 0; i < 15; ++i)
+    if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrPicParams))
     {
-        oss << "RefFrameList[" << +i << "].FrameIdx:" << +picParams->RefFrameList[i].FrameIdx << std::endl;
-        oss << "RefFrameList[" << +i << "].PicFlags:" << +picParams->RefFrameList[i].PicFlags << std::endl;
-    }
+        const char *picFileName = nullptr;
+        const char *extFileName = nullptr;
+        const char *sccFileName = nullptr;
 
-    //Dump POC List
-    oss << "PicOrderCntValList[15]:";
-    for (uint8_t i = 0; i < 15; i++)
-        oss << std::hex << picParams->PicOrderCntValList[i] << " ";
-    oss << std::endl;
+        picFileName = m_debugInterface->CreateFileName(
+            "_DEC",
+            CodechalDbgBufferType::bufPicParams,
+            CodechalDbgExtType::txt);
 
-    //Dump Ref RefPicSetStCurrBefore List
-    oss << "RefPicSetStCurrBefore[8]:";
-    for (uint8_t i = 0; i < 8; i++)
-        oss << +picParams->RefPicSetStCurrBefore[i] << " ";
-    oss << std::endl;
-
-    //Dump Ref RefPicSetStCurrAfter List
-    oss << "RefPicSetStCurrAfter[16]:";
-    for (uint8_t i = 0; i < 8; i++)
-        oss << +picParams->RefPicSetStCurrAfter[i] << " ";
-    oss << std::endl;
-
-    //Dump Ref PicSetStCurr List
-    oss << "RefPicSetLtCurr[16]:";
-    for (uint8_t i = 0; i < 8; i++)
-        oss << +picParams->RefPicSetLtCurr[i] << " ";
-    oss << std::endl;
-
-    //Dump Ref RefPicSetStCurrBefore List with POC
-    oss << "POC of RefPicSetStCurrBefore[8]: ";
-    for (uint8_t i = 0; i < 8; i++)
-        oss << +picParams->PicOrderCntValList[picParams->RefPicSetStCurrBefore[i]%15] << " ";
-    oss << std::endl;
-
-    //Dump Ref RefPicSetStCurrAfter List with POC
-    oss << "POC of RefPicSetStCurrAfter[16]:";
-    for (uint8_t i = 0; i < 8; i++)
-        oss << +picParams->PicOrderCntValList[picParams->RefPicSetStCurrAfter[i]%15] << " ";
-    oss << std::endl;
-
-    //Dump Ref PicSetStCurr List with POC
-    oss << "POC of RefPicSetLtCurr[16]: ";
-    for (uint8_t i = 0; i < 8; i++)
-        oss << +picParams->PicOrderCntValList[picParams->RefPicSetLtCurr[i]%15] << " ";
-    oss << std::endl;
-
-    oss << "RefFieldPicFlag: " << +picParams->RefFieldPicFlag << std::endl;
-    oss << "RefBottomFieldFlag: " << +picParams->RefBottomFieldFlag << std::endl;
-    oss << "StatusReportFeedbackNumber: " << +picParams->StatusReportFeedbackNumber << std::endl;
-
-    if (extPicParams)
-    {
-        //PicRangeExtensionFlags
-        oss << "transform_skip_rotation_enabled_flag: " << +extPicParams->PicRangeExtensionFlags.fields.transform_skip_rotation_enabled_flag << std::endl;
-        oss << "transform_skip_context_enabled_flag: " << +extPicParams->PicRangeExtensionFlags.fields.transform_skip_context_enabled_flag << std::endl;
-        oss << "implicit_rdpcm_enabled_flag: " << +extPicParams->PicRangeExtensionFlags.fields.implicit_rdpcm_enabled_flag << std::endl;
-        oss << "explicit_rdpcm_enabled_flag: " << +extPicParams->PicRangeExtensionFlags.fields.explicit_rdpcm_enabled_flag << std::endl;
-        oss << "extended_precision_processing_flag: " << +extPicParams->PicRangeExtensionFlags.fields.extended_precision_processing_flag << std::endl;
-        oss << "intra_smoothing_disabled_flag: " << +extPicParams->PicRangeExtensionFlags.fields.intra_smoothing_disabled_flag << std::endl;
-        oss << "high_precision_offsets_enabled_flag: " << +extPicParams->PicRangeExtensionFlags.fields.high_precision_offsets_enabled_flag << std::endl;
-        oss << "persistent_rice_adaptation_enabled_flag: " << +extPicParams->PicRangeExtensionFlags.fields.persistent_rice_adaptation_enabled_flag << std::endl;
-        oss << "cabac_bypass_alignment_enabled_flag: " << +extPicParams->PicRangeExtensionFlags.fields.cabac_bypass_alignment_enabled_flag << std::endl;
-        oss << "cross_component_prediction_enabled_flag: " << +extPicParams->PicRangeExtensionFlags.fields.cross_component_prediction_enabled_flag << std::endl;
-        oss << "chroma_qp_offset_list_enabled_flag: " << +extPicParams->PicRangeExtensionFlags.fields.chroma_qp_offset_list_enabled_flag << std::endl;
-        oss << "BitDepthLuma16: " << +extPicParams->PicRangeExtensionFlags.fields.BitDepthLuma16 << std::endl;
-        oss << "BitDepthChroma16: " << +extPicParams->PicRangeExtensionFlags.fields.BitDepthChroma16 << std::endl;
-        oss << "diff_cu_chroma_qp_offset_depth: " << +extPicParams->diff_cu_chroma_qp_offset_depth << std::endl;
-        oss << "chroma_qp_offset_list_len_minus1: " << +extPicParams->chroma_qp_offset_list_len_minus1 << std::endl;
-        oss << "log2_sao_offset_scale_luma: " << +extPicParams->log2_sao_offset_scale_luma << std::endl;
-        oss << "log2_sao_offset_scale_chroma: " << +extPicParams->log2_sao_offset_scale_chroma << std::endl;
-        oss << "log2_max_transform_skip_block_size_minus2: " << +extPicParams->log2_max_transform_skip_block_size_minus2 << std::endl;
-
-        //Dump cb_qp_offset_list[6]
-        oss << "cb_qp_offset_list[6]: ";
-        for (uint8_t i = 0; i < 6; i++)
-            oss << +extPicParams->cb_qp_offset_list[i] << " ";
-        oss << std::endl;
-
-        //Dump cr_qp_offset_list[6]
-        oss << "cr_qp_offset_list[6]: ";
-        for (uint8_t i = 0; i < 6; i++)
-            oss << +extPicParams->cr_qp_offset_list[i] << " ";
-        oss << std::endl;
-
-        //Dump scc pic parameters
-        if(sccPicParams)
+        if (extPicParams)
         {
-            oss << "pps_curr_pic_ref_enabled_flag: " << +sccPicParams->PicSCCExtensionFlags.fields.pps_curr_pic_ref_enabled_flag<< std::endl;
-            oss << "palette_mode_enabled_flag: " << +sccPicParams->PicSCCExtensionFlags.fields.palette_mode_enabled_flag << std::endl;
-            oss << "motion_vector_resolution_control_idc: " << +sccPicParams->PicSCCExtensionFlags.fields.motion_vector_resolution_control_idc << std::endl;
-            oss << "intra_boundary_filtering_disabled_flag: " << +sccPicParams->PicSCCExtensionFlags.fields.intra_boundary_filtering_disabled_flag << std::endl;
-            oss << "residual_adaptive_colour_transform_enabled_flag: " << +sccPicParams->PicSCCExtensionFlags.fields.residual_adaptive_colour_transform_enabled_flag << std::endl;
-            oss << "pps_slice_act_qp_offsets_present_flag: " << +sccPicParams->PicSCCExtensionFlags.fields.pps_slice_act_qp_offsets_present_flag << std::endl;
-            oss << "palette_max_size: " << +sccPicParams->palette_max_size << std::endl;
-            oss << "delta_palette_max_predictor_size: " << +sccPicParams->delta_palette_max_predictor_size << std::endl;
-            oss << "PredictorPaletteSize: " << +sccPicParams->PredictorPaletteSize << std::endl;
+            extFileName = m_debugInterface->CreateFileName(
+                "_DEC_EXT",
+                CodechalDbgBufferType::bufPicParams,
+                CodechalDbgExtType::txt);
+        }
 
-            for(uint8_t i = 0; i < 128; i++)
+        if (sccPicParams)
+        {
+            sccFileName = m_debugInterface->CreateFileName(
+                "_DEC_SCC",
+                CodechalDbgBufferType::bufPicParams,
+                CodechalDbgExtType::txt);
+        }
+
+        if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrEnableFastDump))
+        {
+            MediaDebugFastDump::Dump(
+                (uint8_t *)picParams,
+                picFileName,
+                sizeof(CODEC_HEVC_PIC_PARAMS),
+                0,
+                MediaDebugSerializer<CODEC_HEVC_PIC_PARAMS>());
+
+            if (extPicParams)
             {
-                oss << "PredictorPaletteEntries[0][" << +i << "]: " << +sccPicParams->PredictorPaletteEntries[0][i] << std::endl;
-                oss << "PredictorPaletteEntries[1][" << +i << "]: " << +sccPicParams->PredictorPaletteEntries[1][i] << std::endl;
-                oss << "PredictorPaletteEntries[2][" << +i << "]: " << +sccPicParams->PredictorPaletteEntries[2][i] << std::endl;
+                MediaDebugFastDump::Dump(
+                    (uint8_t *)extPicParams,
+                    extFileName,
+                    sizeof(CODEC_HEVC_EXT_PIC_PARAMS),
+                    0,
+                    MediaDebugSerializer<CODEC_HEVC_EXT_PIC_PARAMS>());
             }
 
-            oss << "pps_act_y_qp_offset_plus5: " << +sccPicParams->pps_act_y_qp_offset_plus5 << std::endl;
-            oss << "pps_act_cb_qp_offset_plus5: " << +sccPicParams->pps_act_y_qp_offset_plus5 << std::endl;
-            oss << "pps_act_cr_qp_offset_plus3: " << +sccPicParams->pps_act_y_qp_offset_plus5 << std::endl;
+            if (sccPicParams)
+            {
+                MediaDebugFastDump::Dump(
+                    (uint8_t *)sccPicParams,
+                    sccFileName,
+                    sizeof(CODEC_HEVC_SCC_PIC_PARAMS),
+                    0,
+                    MediaDebugSerializer<CODEC_HEVC_SCC_PIC_PARAMS>());
+            }
         }
+        else
+        {
+            DumpDecodeHevcPicParams(picParams, picFileName);
+
+            if (extPicParams)
+            {
+                DumpDecodeHevcExtPicParams(extPicParams, extFileName);
+            }
+
+            if (sccPicParams)
+            {
+                DumpDecodeHevcSccPicParams(sccPicParams, sccFileName);
+            }
+        }        
     }
-
-    const char *fileName = m_debugInterface->CreateFileName(
-        "_DEC",
-        CodechalDbgBufferType::bufPicParams,
-        CodechalDbgExtType::txt);
-
-    std::ofstream ofs(fileName, std::ios::out);
-    ofs << oss.str();
-    ofs.close();
 
     return MOS_STATUS_SUCCESS;
 }
@@ -705,168 +464,156 @@ MOS_STATUS HevcPipeline::DumpSliceParams(
     bool                         shortFormatInUse)
 {
     CODECHAL_DEBUG_FUNCTION_ENTER;
-    if (!m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrSlcParams))
+
+    if (sliceParams == nullptr)
     {
         return MOS_STATUS_SUCCESS;
     }
 
-    CODECHAL_DEBUG_CHK_NULL(sliceParams);
-
-    PCODEC_HEVC_SLICE_PARAMS     hevcSliceControl    = nullptr;
-    PCODEC_HEVC_EXT_SLICE_PARAMS hevcExtSliceControl = nullptr;
-
-    std::ostringstream oss;
-    oss.setf(std::ios::showbase | std::ios::uppercase);
-
-    for (uint16_t j = 0; j < numSlices; j++)
+    if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrSlcParams))
     {
-        hevcSliceControl = &sliceParams[j];
-        if (extSliceParams)
+        const char *slcFileName       = nullptr;
+        const char *extSlcFileName    = nullptr;
+        bool        hasExtSliceParams = false;
+            
+        if (extSliceParams && !shortFormatInUse)
         {
-            hevcExtSliceControl = &extSliceParams[j];
+            hasExtSliceParams = true;
         }
 
-        oss << "====================================================================================================" << std::endl;
-        oss << "Data for Slice number = " << +j << std::endl;
-        oss << "slice_data_size: " << +hevcSliceControl->slice_data_size << std::endl;
-        oss << "slice_data_offset: " << +hevcSliceControl->slice_data_offset << std::endl;
+        slcFileName = m_debugInterface->CreateFileName(
+            "_DEC",
+            CodechalDbgBufferType::bufSlcParams,
+            CodechalDbgExtType::txt);
 
-        if (!shortFormatInUse)
+        if (hasExtSliceParams)
         {
-            //Dump Long format specific
-            oss << "ByteOffsetToSliceData: " << +hevcSliceControl->ByteOffsetToSliceData << std::endl;
-            oss << "slice_segment_address: " << +hevcSliceControl->slice_segment_address << std::endl;
+            extSlcFileName = m_debugInterface->CreateFileName(
+                "_DEC_EXT",
+                CodechalDbgBufferType::bufSlcParams,
+                CodechalDbgExtType::txt);
+        }
 
-            //Dump RefPicList[2][15]
-            for (uint8_t i = 0; i < 15; ++i)
+        if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrEnableFastDump))
+        {
+            if (shortFormatInUse)
             {
-                oss << "RefPicList[0][" << +i << "]";
-                oss << ".FrameIdx: " << +hevcSliceControl->RefPicList[0][i].FrameIdx << std::endl;
-                oss << "RefPicList[0][" << +i << "]";
-                oss << ".PicFlags: " << +hevcSliceControl->RefPicList[0][i].PicFlags << std::endl;
+                PCODEC_HEVC_SF_SLICE_PARAMS slcParamsSF =
+                    (PCODEC_HEVC_SF_SLICE_PARAMS)MOS_AllocMemory(sizeof(PCODEC_HEVC_SF_SLICE_PARAMS) * numSlices);
+
+                for (uint16_t i = 0; i < numSlices; i++)
+                {
+                    slcParamsSF[i] = reinterpret_cast<CODEC_HEVC_SF_SLICE_PARAMS &>(sliceParams[i]);
+                }
+
+                MediaDebugFastDump::Dump(
+                    (uint8_t *)slcParamsSF,
+                    slcFileName,
+                    sizeof(CODEC_HEVC_SF_SLICE_PARAMS) * numSlices,
+                    0,
+                    MediaDebugSerializer<CODEC_HEVC_SF_SLICE_PARAMS>());
             }
-            for (uint8_t i = 0; i < 15; ++i)
+            else
             {
-                oss << "RefPicList[1][" << +i << "]";
-                oss << ".FrameIdx: " << +hevcSliceControl->RefPicList[1][i].FrameIdx << std::endl;
-                oss << "RefPicList[1][" << +i << "]";
-                oss << ".PicFlags: " << +hevcSliceControl->RefPicList[1][i].PicFlags << std::endl;
+                MediaDebugFastDump::Dump(
+                    (uint8_t *)sliceParams,
+                    slcFileName,
+                    sizeof(CODEC_HEVC_SLICE_PARAMS) * numSlices,
+                    0,
+                    MediaDebugSerializer<CODEC_HEVC_SLICE_PARAMS>());
+
+                if (extSliceParams)
+                {
+                    MediaDebugFastDump::Dump(
+                        (uint8_t *)extSliceParams,
+                        extSlcFileName,
+                        sizeof(CODEC_HEVC_EXT_SLICE_PARAMS) * numSlices,
+                        0,
+                        MediaDebugSerializer<CODEC_HEVC_EXT_SLICE_PARAMS>());
+                }
             }
+        }
+        else
+        {
+            DumpDecodeHevcSliceParams(sliceParams, numSlices, slcFileName, shortFormatInUse);
 
-            oss << "last_slice_of_pic: " << +hevcSliceControl->LongSliceFlags.fields.LastSliceOfPic << std::endl;
-            oss << "dependent_slice_segment_flag: " << +hevcSliceControl->LongSliceFlags.fields.dependent_slice_segment_flag << std::endl;
-            oss << "slice_type: " << +hevcSliceControl->LongSliceFlags.fields.slice_type << std::endl;
-            oss << "color_plane_id: " << +hevcSliceControl->LongSliceFlags.fields.color_plane_id << std::endl;
-            oss << "slice_sao_luma_flag: " << +hevcSliceControl->LongSliceFlags.fields.slice_sao_luma_flag << std::endl;
-            oss << "slice_sao_chroma_flag: " << +hevcSliceControl->LongSliceFlags.fields.slice_sao_chroma_flag << std::endl;
-            oss << "mvd_l1_zero_flag: " << +hevcSliceControl->LongSliceFlags.fields.mvd_l1_zero_flag << std::endl;
-            oss << "cabac_init_flag: " << +hevcSliceControl->LongSliceFlags.fields.cabac_init_flag << std::endl;
-            oss << "slice_temporal_mvp_enabled_flag: " << +hevcSliceControl->LongSliceFlags.fields.slice_temporal_mvp_enabled_flag << std::endl;
-            oss << "slice_deblocking_filter_disabled_flag: " << +hevcSliceControl->LongSliceFlags.fields.slice_deblocking_filter_disabled_flag << std::endl;
-            oss << "collocated_from_l0_flag: " << +hevcSliceControl->LongSliceFlags.fields.collocated_from_l0_flag << std::endl;
-            oss << "slice_loop_filter_across_slices_enabled_flag: " << +hevcSliceControl->LongSliceFlags.fields.slice_loop_filter_across_slices_enabled_flag << std::endl;
-            oss << "reserved: " << +hevcSliceControl->LongSliceFlags.fields.reserved << std::endl;
-            oss << "collocated_ref_idx: " << +hevcSliceControl->collocated_ref_idx << std::endl;
-            oss << "num_ref_idx_l0_active_minus1: " << +hevcSliceControl->num_ref_idx_l0_active_minus1 << std::endl;
-            oss << "num_ref_idx_l1_active_minus1: " << +hevcSliceControl->num_ref_idx_l1_active_minus1 << std::endl;
-            oss << "slice_qp_delta: " << +hevcSliceControl->slice_qp_delta << std::endl;
-            oss << "slice_cb_qp_offset: " << +hevcSliceControl->slice_cb_qp_offset << std::endl;
-            oss << "slice_cr_qp_offset: " << +hevcSliceControl->slice_cr_qp_offset << std::endl;
-            oss << "slice_beta_offset_div2: " << +hevcSliceControl->slice_beta_offset_div2 << std::endl;
-            oss << "slice_tc_offset_div2: " << +hevcSliceControl->slice_tc_offset_div2 << std::endl;
-            oss << "luma_log2_weight_denom: " << +hevcSliceControl->luma_log2_weight_denom << std::endl;
-            oss << "delta_chroma_log2_weight_denom: " << +hevcSliceControl->delta_chroma_log2_weight_denom << std::endl;
-
-            //Dump luma_offset[2][15]
-            for (uint8_t i = 0; i < 15; i++)
+            if (hasExtSliceParams)
             {
-                oss << "luma_offset_l0[" << +i << "]: " << (extSliceParams ? +hevcExtSliceControl->luma_offset_l0[i] : +hevcSliceControl->luma_offset_l0[i]) << std::endl;
-                oss << "luma_offset_l1[" << +i << "]: " << (extSliceParams ? +hevcExtSliceControl->luma_offset_l1[i] : +hevcSliceControl->luma_offset_l1[i]) << std::endl;
-            }
-            //Dump delta_luma_weight[2][15]
-            for (uint8_t i = 0; i < 15; i++)
-            {
-                oss << "delta_luma_weight_l0[" << +i << "]: " << +hevcSliceControl->delta_luma_weight_l0[i] << std::endl;
-                oss << "delta_luma_weight_l1[" << +i << "]: " << +hevcSliceControl->delta_luma_weight_l1[i] << std::endl;
-            }
-            //Dump chroma_offset[2][15][2]
-            for (uint8_t i = 0; i < 15; i++)
-            {
-                oss << "ChromaOffsetL0[" << +i << "][0]: " << (extSliceParams ? +hevcExtSliceControl->ChromaOffsetL0[i][0] : +hevcSliceControl->ChromaOffsetL0[i][0]) << std::endl;
-
-                oss << "ChromaOffsetL0[" << +i << "][1]: " << (extSliceParams ? +hevcExtSliceControl->ChromaOffsetL0[i][1] : +hevcSliceControl->ChromaOffsetL0[i][1]) << std::endl;
-
-                oss << "ChromaOffsetL1[" << +i << "][0]: " << (extSliceParams ? +hevcExtSliceControl->ChromaOffsetL1[i][0] : +hevcSliceControl->ChromaOffsetL1[i][0]) << std::endl;
-
-                oss << "ChromaOffsetL1[" << +i << "][1]: " << (extSliceParams ? +hevcExtSliceControl->ChromaOffsetL1[i][1] : +hevcSliceControl->ChromaOffsetL1[i][1]) << std::endl;
-            }
-            //Dump delta_chroma_weight[2][15][2]
-            for (uint8_t i = 0; i < 15; i++)
-            {
-                oss << "delta_chroma_weight_l0[" << +i << "][0]: " << +hevcSliceControl->delta_chroma_weight_l0[i][0] << std::endl;
-                oss << "delta_chroma_weight_l0[" << +i << "][1]: " << +hevcSliceControl->delta_chroma_weight_l0[i][1] << std::endl;
-                oss << "delta_chroma_weight_l1[" << +i << "][0]: " << +hevcSliceControl->delta_chroma_weight_l1[i][0] << std::endl;
-                oss << "delta_chroma_weight_l1[" << +i << "][1]: " << +hevcSliceControl->delta_chroma_weight_l1[i][1] << std::endl;
-            }
-
-            oss << "five_minus_max_num_merge_cand: " << +hevcSliceControl->five_minus_max_num_merge_cand << std::endl;
-            oss << "num_entry_point_offsets: " << +hevcSliceControl->num_entry_point_offsets << std::endl;
-            oss << "EntryOffsetToSubsetArray: " << +hevcSliceControl->EntryOffsetToSubsetArray << std::endl;
-
-            if (extSliceParams)
-            {
-                oss << "cu_chroma_qp_offset_enabled_flag: " << +hevcExtSliceControl->cu_chroma_qp_offset_enabled_flag << std::endl;
-
-                //Dump scc slice parameters
-                oss << "slice_act_y_qp_offset: " << +hevcExtSliceControl->slice_act_y_qp_offset<< std::endl;
-                oss << "slice_act_cb_qp_offset: " << +hevcExtSliceControl->slice_act_cb_qp_offset << std::endl;
-                oss << "slice_act_cr_qp_offset: " << +hevcExtSliceControl->slice_act_cr_qp_offset << std::endl;
-                oss << "use_integer_mv_flag: " << +hevcExtSliceControl->use_integer_mv_flag << std::endl;
+                DumpDecodeHevcExtSliceParams(extSliceParams, numSlices, extSlcFileName);
             }
         }
     }
-
-    const char *fileName = m_debugInterface->CreateFileName(
-        "_DEC",
-        CodechalDbgBufferType::bufSlcParams,
-        CodechalDbgExtType::txt);
-
-    std::ofstream ofs;
-    ofs.open(fileName, std::ios::out);
-    ofs << oss.str();
-    ofs.close();
 
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS HevcPipeline::DumpSubsetsParams(PCODEC_HEVC_SUBSET_PARAMS subsetsParams)
+MOS_STATUS HevcPipeline::DumpIQParams(
+    PCODECHAL_HEVC_IQ_MATRIX_PARAMS iqParams)
 {
-    CODECHAL_DEBUG_FUNCTION_ENTER;
-    if (!m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrSubsetsParams))
+    DECODE_FUNC_CALL();
+
+    if (iqParams == nullptr)
     {
         return MOS_STATUS_SUCCESS;
     }
 
-    if(subsetsParams)
+    if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrIqParams))
     {
-        std::ostringstream oss;
-        oss.setf(std::ios::showbase | std::ios::uppercase);
-
-        for(uint16_t i = 0; i < 440; i++)
-        {
-            oss << "entry_point_offset_minus1[" << +i << "]: " << +subsetsParams->entry_point_offset_minus1[i]<< std::endl;
-        }
-
-        //create the file
         const char *fileName = m_debugInterface->CreateFileName(
-        "_DEC",
-        CodechalDbgBufferType::bufSubsetsParams,
-        CodechalDbgExtType::txt);
+            "_DEC",
+            CodechalDbgBufferType::bufIqParams,
+            CodechalDbgExtType::txt);
 
-        std::ofstream ofs(fileName, std::ios::out);
-        ofs << oss.str();
-        ofs.close();
+        if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrEnableFastDump))
+        {
+            MediaDebugFastDump::Dump(
+                (uint8_t *)iqParams,
+                fileName,
+                sizeof(CODECHAL_HEVC_IQ_MATRIX_PARAMS),
+                0,
+                MediaDebugSerializer<CODECHAL_HEVC_IQ_MATRIX_PARAMS>());
+        }
+        else
+        {
+            DumpDecodeHevcIQParams(iqParams, fileName);
+        }
     }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS HevcPipeline::DumpSubsetsParams(
+    PCODEC_HEVC_SUBSET_PARAMS subsetsParams)
+{
+    DECODE_FUNC_CALL();
+
+    if (subsetsParams == nullptr)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrSubsetsParams))
+    {
+        const char *fileName = m_debugInterface->CreateFileName(
+            "_DEC",
+            CodechalDbgBufferType::bufSubsetsParams,
+            CodechalDbgExtType::txt);
+
+        if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrEnableFastDump))
+        {
+            MediaDebugFastDump::Dump(
+                (uint8_t *)subsetsParams,
+                fileName,
+                sizeof(CODEC_HEVC_SUBSET_PARAMS),
+                0,
+                MediaDebugSerializer<CODEC_HEVC_SUBSET_PARAMS>());
+        }
+        else
+        {
+            DumpDecodeHevcSubsetParams(subsetsParams, fileName);
+        }
+    }
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -883,6 +630,7 @@ MOS_STATUS HevcPipeline::DumpSecondLevelBatchBuffer()
                         batchBuffer,
                         CODECHAL_NUM_MEDIA_STATES,
                         "_DEC"));
+
     return MOS_STATUS_SUCCESS;
 }
 #endif

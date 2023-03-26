@@ -603,6 +603,48 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
+#if USE_CODECHAL_DEBUG_TOOL
+    MOS_STATUS HevcDecodePicPkt::DumpResources(
+        HCP_PIPE_BUF_ADDR_STATE_PAR &pipeBufAddrParams,
+        uint8_t                      activeRefListSize,
+        uint32_t                     mvBufferSize) const
+    {
+        DECODE_FUNC_CALL();
+
+        CodechalDebugInterface *debugInterface = m_pipeline->GetDebugInterface();
+        DECODE_CHK_NULL(debugInterface);
+
+        for (uint32_t i = 0; i < activeRefListSize; i++)
+        {
+            if (pipeBufAddrParams.presReferences[i] != nullptr)
+            {
+                MOS_SURFACE refSurface;
+                MOS_ZeroMemory(&refSurface, sizeof(MOS_SURFACE));
+                refSurface.OsResource = *(pipeBufAddrParams.presReferences[i]);
+                DECODE_CHK_STATUS(CodecUtilities::CodecHalGetResourceInfo(m_osInterface, &refSurface));
+
+                std::string refSurfDumpName = "RefSurf_" + std::to_string(i);
+                DECODE_CHK_STATUS(debugInterface->DumpYUVSurface(
+                    &refSurface,
+                    CodechalDbgAttr::attrDecodeReferenceSurfaces,
+                    refSurfDumpName.c_str()));
+            }
+
+            if (pipeBufAddrParams.presColMvTempBuffer[i] != nullptr)
+            {
+                std::string mvBufDumpName = "_DEC_" + std::to_string(i);
+                DECODE_CHK_STATUS(debugInterface->DumpBuffer(
+                    pipeBufAddrParams.presColMvTempBuffer[i],
+                    CodechalDbgAttr::attrMvData,
+                    mvBufDumpName.c_str(),
+                    mvBufferSize));
+            }
+        }
+
+        return MOS_STATUS_SUCCESS;
+    }
+#endif
+
     MHW_SETPAR_DECL_SRC(HCP_PIPE_BUF_ADDR_STATE, HevcDecodePicPkt)
     {
         DECODE_FUNC_CALL();
@@ -685,34 +727,7 @@ namespace decode
             params.IBCRefIdxMask = refIdxMask;
         }
 
-        CODECHAL_DEBUG_TOOL(
-            CodechalDebugInterface *debugInterface = m_pipeline->GetDebugInterface();
-            DECODE_CHK_NULL(debugInterface);
-            for (uint32_t n = 0; n < CODECHAL_MAX_CUR_NUM_REF_FRAME_HEVC; n++) {
-                if (params.presReferences[n] != nullptr)
-                {
-                    MOS_SURFACE dstSurface;
-                    MOS_ZeroMemory(&dstSurface, sizeof(MOS_SURFACE));
-                    dstSurface.OsResource = *(params.presReferences[n]);
-                    DECODE_CHK_STATUS(CodecUtilities::CodecHalGetResourceInfo(m_osInterface, &dstSurface));
-
-                    std::string refSurfDumpName = "RefSurf_" + std::to_string(n);
-                    DECODE_CHK_STATUS(debugInterface->DumpYUVSurface(
-                        &dstSurface,
-                        CodechalDbgAttr::attrDecodeReferenceSurfaces,
-                        refSurfDumpName.c_str()));
-                }
-
-                if (params.presColMvTempBuffer[n] != nullptr)
-                {
-                    std::string mvBufDumpName = "_DEC_" + std::to_string(n);
-                    DECODE_CHK_STATUS(debugInterface->DumpBuffer(
-                        params.presColMvTempBuffer[n],
-                        CodechalDbgAttr::attrMvData,
-                        mvBufDumpName.c_str(),
-                        curMvBuffer->size));
-                }
-            })
+        CODECHAL_DEBUG_TOOL(DECODE_CHK_STATUS(DumpResources(params, activeRefList.size(), curMvBuffer->size)));        
 
         return MOS_STATUS_SUCCESS;
     }
@@ -916,6 +931,5 @@ namespace decode
         
         return MOS_STATUS_SUCCESS;
     }
-
 }
 

@@ -28,6 +28,7 @@
 //!
 #include "decode_basic_feature.h"
 #include "decode_utils.h"
+#include "codechal_debug.h"
 
 namespace decode {
 
@@ -78,6 +79,8 @@ MOS_STATUS DecodeBasicFeature::Init(void *setting)
     m_picHeightInMb = (uint16_t)CODECHAL_GET_HEIGHT_IN_MACROBLOCKS(m_height);
 
     m_disableDecodeSyncLock = codecSettings->disableDecodeSyncLock ? true : false;
+
+    m_frameNum = DecodeFrameIndex;
 
     return MOS_STATUS_SUCCESS;
 }

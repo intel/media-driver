@@ -142,10 +142,11 @@ protected:
 
     MOS_STATUS DumpSliceParams(
         PCODEC_AVC_SLICE_PARAMS sliceParams,
-        uint32_t                numSlices);
+        uint32_t                numSlices,
+        bool                    shortFormatInUse);
 
     MOS_STATUS DumpIQParams(
-        PCODEC_AVC_IQ_MATRIX_PARAMS matrixData);
+        PCODEC_AVC_IQ_MATRIX_PARAMS iqParams);
 #endif
 
 protected:

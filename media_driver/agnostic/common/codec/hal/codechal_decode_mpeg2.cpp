@@ -518,7 +518,7 @@ MOS_STATUS CodechalDecodeMpeg2::SetFrameStates ()
     m_destSurface                         = *m_decodeParams.m_destSurface;
     m_resDataBuffer                       = *m_decodeParams.m_dataBuffer;
     m_numMacroblocks                      = m_decodeParams.m_numMacroblocks;
-    m_mbParams                            = (CodecDecodeMpeg2MbParmas *)m_decodeParams.m_macroblockParams;
+    m_mbParams                            = (CodecDecodeMpeg2MbParams *)m_decodeParams.m_macroblockParams;
     m_mpeg2ISliceConcealmentMode          = m_decodeParams.m_mpeg2ISliceConcealmentMode;
     m_mpeg2PbSliceConcealmentMode         = m_decodeParams.m_mpeg2PBSliceConcealmentMode;
     m_mpeg2PbSlicePredBiDirMvTypeOverride = m_decodeParams.m_mpeg2PBSlicePredBiDirMVTypeOverride;
@@ -1219,7 +1219,7 @@ void CodechalDecodeMpeg2::PackMotionVectors(
     CODEC_PICTURE_FLAG          pic_flag,
     PMHW_VDBOX_MPEG2_MB_STATE   mpeg2MbState)
 {
-    CodecDecodeMpeg2MbParmas *mbParams = mpeg2MbState->pMBParams;
+    CodecDecodeMpeg2MbParams *mbParams = mpeg2MbState->pMBParams;
 
     uint16_t motionType     = mbParams->MBType.m_motionType;
     uint16_t intelMotionType = CODECHAL_MPEG2_IMT_NONE;
@@ -1328,7 +1328,7 @@ MOS_STATUS CodechalDecodeMpeg2::InsertSkippedMacroblocks(
     CODECHAL_DECODE_CHK_NULL_RETURN(params->pMBParams);
 
     //save the original MB params, and restore the orignal MB params when function exit.
-    CodechalDecodeRestoreData<CodecDecodeMpeg2MbParmas> MBParamsRestore(params->pMBParams);
+    CodechalDecodeRestoreData<CodecDecodeMpeg2MbParams> MBParamsRestore(params->pMBParams);
 
     params->dwDCTLength                    = 0;
     params->dwITCoffDataAddrOffset         = 0;
@@ -1908,7 +1908,7 @@ MOS_STATUS CodechalDecodeMpeg2::DumpIQParams(
 }
 
 MOS_STATUS CodechalDecodeMpeg2::DumpMbParams(
-    CodecDecodeMpeg2MbParmas *mbParams)
+    CodecDecodeMpeg2MbParams *mbParams)
 {
     CODECHAL_DEBUG_FUNCTION_ENTER;
 

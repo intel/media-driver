@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2020, Intel Corporation
+* Copyright (c) 2011-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -30,6 +30,15 @@
 #include "media_debug_interface.h"
 #include "codec_hw_next.h"
 #include "encode_status_report.h"
+#include "codechal_event_debug.h"
+#include "codec_def_decode_avc.h"
+#include "codec_def_decode_av1.h"
+#include "codec_def_decode_jpeg.h"
+#include "codec_def_decode_mpeg2.h"
+#include "codec_def_decode_vp8.h"
+
+static uint32_t DecodeFrameIndex = 0;
+static uint32_t DecodeOutputIndex = 0;
 
 #if USE_MEDIA_DEBUG_TOOL
 
@@ -103,6 +112,62 @@ typedef struct _CODECHAL_ME_OUTPUT_PARAMS
     bool          b32xMeInUse;
     bool          bVdencStreamInInUse;
 } CODECHAL_ME_OUTPUT_PARAMS, *PCODECHAL_ME_OUTPUT_PARAMS;
+
+std::ostream &operator<<(std::ostream &oss, const CODEC_AVC_PIC_PARAMS &cr);
+std::ostream &operator<<(std::ostream &oss, const CODEC_AVC_SF_SLICE_PARAMS &cr);
+std::ostream &operator<<(std::ostream &oss, const CODEC_AVC_SLICE_PARAMS &cr);
+std::ostream &operator<<(std::ostream &oss, const CODEC_AVC_IQ_MATRIX_PARAMS &cr);
+std::ostream &operator<<(std::ostream &oss, const CODEC_HEVC_PIC_PARAMS &cr);
+std::ostream &operator<<(std::ostream &oss, const CODEC_HEVC_EXT_PIC_PARAMS &cr);
+std::ostream &operator<<(std::ostream &oss, const CODEC_HEVC_SCC_PIC_PARAMS &cr);
+std::ostream &operator<<(std::ostream &oss, const CODEC_HEVC_SF_SLICE_PARAMS &cr);
+std::ostream &operator<<(std::ostream &oss, const CODEC_HEVC_SLICE_PARAMS &cr);
+std::ostream &operator<<(std::ostream &oss, const CODEC_HEVC_EXT_SLICE_PARAMS &cr);
+std::ostream &operator<<(std::ostream &oss, const CODECHAL_HEVC_IQ_MATRIX_PARAMS &cr);
+std::ostream &operator<<(std::ostream &oss, const CODEC_HEVC_SUBSET_PARAMS &cr);
+std::ostream &operator<<(std::ostream &oss, const CODEC_VP9_PIC_PARAMS &cr);
+std::ostream &operator<<(std::ostream &oss, const CODEC_VP9_SLICE_PARAMS &cr);
+std::ostream &operator<<(std::ostream &oss, const CODEC_VP9_SEGMENT_PARAMS &cr);
+std::ostream &operator<<(std::ostream &oss, const CodecAv1PicParams &cr);
+std::ostream &operator<<(std::ostream &oss, const CodecAv1TileParams &cr);
+std::ostream &operator<<(std::ostream &oss, const CodecDecodeJpegPicParams &cr);
+std::ostream &operator<<(std::ostream &oss, const CodecDecodeJpegScanParameter &cr);
+std::ostream &operator<<(std::ostream &oss, const CODECHAL_DECODE_JPEG_HUFFMAN_TABLE &cr);
+std::ostream &operator<<(std::ostream &oss, const CodecJpegQuantMatrix &cr);
+std::ostream &operator<<(std::ostream &oss, const CodecDecodeMpeg2PicParams &cr);
+std::ostream &operator<<(std::ostream &oss, const CodecDecodeMpeg2SliceParams &cr);
+std::ostream &operator<<(std::ostream &oss, const CodecDecodeMpeg2MbParams &cr);
+std::ostream &operator<<(std::ostream &oss, const CodecMpeg2IqMatrix &cr);
+std::ostream &operator<<(std::ostream &oss, const CODEC_VP8_PIC_PARAMS &cr);
+std::ostream &operator<<(std::ostream &oss, const CODEC_VP8_SLICE_PARAMS &cr);
+std::ostream &operator<<(std::ostream &oss, const CODEC_VP8_IQ_MATRIX_PARAMS &cr);
+
+void DumpDecodeAvcPicParams(PCODEC_AVC_PIC_PARAMS picParams, std::string fileName);
+void DumpDecodeAvcSliceParams(PCODEC_AVC_SLICE_PARAMS sliceParams, uint32_t numSlices, std::string fileName, bool shortFormatInUse);
+void DumpDecodeAvcIQParams(PCODEC_AVC_IQ_MATRIX_PARAMS iqParams, std::string fileName);
+void DumpDecodeHevcPicParams(PCODEC_HEVC_PIC_PARAMS picParams, std::string fileName);
+void DumpDecodeHevcExtPicParams(PCODEC_HEVC_EXT_PIC_PARAMS extPicParams, std::string fileName);
+void DumpDecodeHevcSccPicParams(PCODEC_HEVC_SCC_PIC_PARAMS sccPicParams, std::string fileName);
+void DumpDecodeHevcSliceParams(PCODEC_HEVC_SLICE_PARAMS sliceParams, uint32_t numSlices, std::string fileName, bool shortFormatInUse);
+void DumpDecodeHevcExtSliceParams(PCODEC_HEVC_EXT_SLICE_PARAMS extSliceParams, uint32_t numSlices, std::string fileName);
+void DumpDecodeHevcIQParams(PCODECHAL_HEVC_IQ_MATRIX_PARAMS iqParams, std::string fileName);
+void DumpDecodeHevcSubsetParams(PCODEC_HEVC_SUBSET_PARAMS subsetsParams, std::string fileName);
+void DumpDecodeVp9PicParams(PCODEC_VP9_PIC_PARAMS picParams, std::string fileName);
+void DumpDecodeVp9SliceParams(PCODEC_VP9_SLICE_PARAMS slcParams, std::string fileName);
+void DumpDecodeVp9SegmentParams(PCODEC_VP9_SEGMENT_PARAMS segmentParams, std::string fileName);
+void DumpDecodeAv1PicParams(CodecAv1PicParams *picParams, std::string fileName);
+void DumpDecodeAv1TileParams(CodecAv1TileParams *tileParams, uint32_t tileNum, std::string fileName);
+void DumpDecodeJpegPicParams(CodecDecodeJpegPicParams *picParams, std::string fileName);
+void DumpDecodeJpegScanParams(CodecDecodeJpegScanParameter *scanParams, std::string fileName);
+void DumpDecodeJpegHuffmanParams(PCODECHAL_DECODE_JPEG_HUFFMAN_TABLE huffmanTable, std::string fileName);
+void DumpDecodeJpegIqParams(CodecJpegQuantMatrix *iqParams, std::string fileName);
+void DumpDecodeMpeg2PicParams(CodecDecodeMpeg2PicParams *picParams, std::string fileName);
+void DumpDecodeMpeg2SliceParams(CodecDecodeMpeg2SliceParams *sliceParams, uint32_t numSlices, std::string fileName);
+void DumpDecodeMpeg2MbParams(CodecDecodeMpeg2MbParams *mbParams, uint32_t numMbs, std::string fileName);
+void DumpDecodeMpeg2IqParams(CodecMpeg2IqMatrix *iqParams, std::string fileName);
+void DumpDecodeVp8PicParams(PCODEC_VP8_PIC_PARAMS picParams, std::string fileName);
+void DumpDecodeVp8SliceParams(PCODEC_VP8_SLICE_PARAMS sliceParams, std::string fileName);
+void DumpDecodeVp8IqParams(PCODEC_VP8_IQ_MATRIX_PARAMS iqParams, std::string fileName);
 
 class MediaDebugInterface;
 class CodechalHwInterface;

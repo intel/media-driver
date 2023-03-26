@@ -29,6 +29,7 @@
 #include "decode_avc_feature_manager.h"
 #include "decode_huc_packet_creator_base.h" 
 #include "mos_os_cp_interface_specific.h"
+#include "media_debug_fast_dump.h"
 
 namespace decode
 {
@@ -259,257 +260,131 @@ namespace decode
     }
 
 #if USE_CODECHAL_DEBUG_TOOL
-    MOS_STATUS AvcPipeline::DumpPicParams(
-        PCODEC_AVC_PIC_PARAMS picParams)
+MOS_STATUS AvcPipeline::DumpPicParams(
+    PCODEC_AVC_PIC_PARAMS picParams)
+{
+    DECODE_FUNC_CALL();
+
+    if (picParams == nullptr)
     {
-        DECODE_FUNC_CALL();
+        return MOS_STATUS_SUCCESS;
+    }
 
-        if (!m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrPicParams))
-        {
-            return MOS_STATUS_SUCCESS;
-        }
-
-        CODECHAL_DEBUG_CHK_NULL(picParams);
-
-        std::ostringstream oss;
-        oss.setf(std::ios::showbase | std::ios::uppercase);
-
-        oss << "CurrPic FrameIdx: " << std::dec << +picParams->CurrPic.FrameIdx << std::endl;
-        oss << "CurrPic PicFlags: " << std::hex << +picParams->CurrPic.PicFlags << std::endl;
-
-        //Dump RefFrameList[15]
-        for (uint8_t i = 0; i < 15; ++i)
-        {
-            oss << "RefFrameList[" << std::dec << +i << "] FrameIdx:" << +picParams->RefFrameList[i].FrameIdx << std::endl;
-            oss << "RefFrameList[" << +i << "] PicFlags:" << std::hex << +picParams->RefFrameList[i].PicFlags << std::endl;
-        }
-
-        oss << "pic_width_in_mbs_minus1: " << std::dec << +picParams->pic_width_in_mbs_minus1 << std::endl;
-        oss << "pic_height_in_mbs_minus1: " << +picParams->pic_height_in_mbs_minus1 << std::endl;
-        oss << "bit_depth_luma_minus8: " << +picParams->bit_depth_luma_minus8 << std::endl;
-        oss << "bit_depth_chroma_minus8: " << +picParams->bit_depth_chroma_minus8 << std::endl;
-        oss << "num_ref_frames: " << +picParams->num_ref_frames << std::endl;
-        oss << "CurrFieldOrderCnt: " << +picParams->CurrFieldOrderCnt[0] << std::endl;
-        oss << "CurrFieldOrderCnt: " << +picParams->CurrFieldOrderCnt[1] << std::endl;
-
-        //Dump FieldOrderCntList (16x2)
-        for (uint8_t i = 0; i < 2; ++i)
-        {
-            oss << "FieldOrderCntList[" << +i << "]:";
-            for (uint8_t j = 0; j < 16; j++)
-                oss << +picParams->FieldOrderCntList[j][i] << " ";
-            oss << std::endl;
-        }
-
-        //Dump seq_fields
-        oss << "seq_fields value: " << +picParams->seq_fields.value << std::endl;
-        oss << "chroma_format_idc: " << +picParams->seq_fields.chroma_format_idc << std::endl;
-        oss << "residual_colour_transform_flag: " << std::hex << +picParams->seq_fields.residual_colour_transform_flag << std::endl;
-        oss << "frame_mbs_only_flag: " << std::hex << +picParams->seq_fields.frame_mbs_only_flag << std::endl;
-        oss << "mb_adaptive_frame_field_flag: " << std::hex << +picParams->seq_fields.mb_adaptive_frame_field_flag << std::endl;
-        oss << "direct_8x8_inference_flag: " << std::hex << +picParams->seq_fields.direct_8x8_inference_flag << std::endl;
-        oss << "log2_max_frame_num_minus4: " << std::dec << +picParams->seq_fields.log2_max_frame_num_minus4 << std::endl;
-        oss << "pic_order_cnt_type: " << +picParams->seq_fields.pic_order_cnt_type << std::endl;
-        oss << "log2_max_pic_order_cnt_lsb_minus4: " << +picParams->seq_fields.log2_max_pic_order_cnt_lsb_minus4 << std::endl;
-        oss << "delta_pic_order_always_zero_flag: " << std::hex << +picParams->seq_fields.delta_pic_order_always_zero_flag << std::endl;
-        oss << "num_slice_groups_minus1:" << std::dec << +picParams->num_slice_groups_minus1 << std::endl;
-        oss << "slice_group_map_type:" << std::dec << +picParams->slice_group_map_type << std::endl;
-        oss << "slice_group_change_rate_minus1:" << std::dec << +picParams->slice_group_change_rate_minus1 << std::endl;
-        oss << "pic_init_qp_minus26:" << std::dec << +picParams->pic_init_qp_minus26 << std::endl;
-        oss << "chroma_qp_index_offset:" << std::dec << +picParams->chroma_qp_index_offset << std::endl;
-        oss << "second_chroma_qp_index_offset:" << std::dec << +picParams->second_chroma_qp_index_offset << std::endl;
-
-        //Dump pic_fields
-        oss << "pic_fields value: " << std::dec << +picParams->pic_fields.value << std::endl;
-        oss << "entropy_coding_mode_flag: " << std::hex << +picParams->pic_fields.entropy_coding_mode_flag << std::endl;
-        oss << "weighted_pred_flag: " << std::hex << +picParams->pic_fields.weighted_pred_flag << std::endl;
-        oss << "weighted_bipred_idc: " << std::dec << +picParams->pic_fields.weighted_bipred_idc << std::endl;
-        oss << "transform_8x8_mode_flag: " << std::hex << +picParams->pic_fields.transform_8x8_mode_flag << std::endl;
-        oss << "field_pic_flag: " << std::hex << +picParams->pic_fields.field_pic_flag << std::endl;
-        oss << "constrained_intra_pred_flag: " << std::hex << +picParams->pic_fields.constrained_intra_pred_flag << std::endl;
-        oss << "pic_order_present_flag: " << std::hex << +picParams->pic_fields.pic_order_present_flag << std::endl;
-        oss << "deblocking_filter_control_present_flag: " << std::hex << +picParams->pic_fields.deblocking_filter_control_present_flag << std::endl;
-        oss << "redundant_pic_cnt_present_flag: " << std::hex << +picParams->pic_fields.redundant_pic_cnt_present_flag << std::endl;
-        oss << "reference_pic_flag: " << std::hex << +picParams->pic_fields.reference_pic_flag << std::endl;
-        oss << "IntraPicFlag: " << std::hex << +picParams->pic_fields.IntraPicFlag << std::endl;
-
-        //Dump Short format specific
-        oss << "num_ref_idx_l0_active_minus1: " << std::dec << +picParams->num_ref_idx_l0_active_minus1 << std::endl;
-        oss << "num_ref_idx_l1_active_minus1: " << std::dec << +picParams->num_ref_idx_l1_active_minus1 << std::endl;
-        oss << "NonExistingFrameFlags: " << std::hex << +picParams->NonExistingFrameFlags << std::endl;
-        oss << "UsedForReferenceFlags: " << std::hex << +picParams->UsedForReferenceFlags << std::endl;
-        oss << "frame_num: " << std::dec << +picParams->frame_num << std::endl;
-        oss << "StatusReportFeedbackNumber: " << std::dec << +picParams->StatusReportFeedbackNumber << std::endl;
-
-        //Dump FrameNumList[16]
-        oss << "scaling_list_present_flag_buffer:";
-        for (uint8_t i = 0; i < 16; i++)
-            oss << std::hex << picParams->FrameNumList[i];
-        oss << std::endl;
-
+    if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrPicParams))
+    {
         const char *fileName = m_debugInterface->CreateFileName(
             "_DEC",
             CodechalDbgBufferType::bufPicParams,
             CodechalDbgExtType::txt);
 
-        std::ofstream ofs(fileName, std::ios::out);
-        ofs << oss.str();
-        ofs.close();
+        if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrEnableFastDump))
+        {
+            MediaDebugFastDump::Dump(
+                (uint8_t *)picParams,
+                fileName,
+                sizeof(CODEC_AVC_PIC_PARAMS),
+                0,
+                MediaDebugSerializer<CODEC_AVC_PIC_PARAMS>());
+        }
+        else
+        {
+            DumpDecodeAvcPicParams(picParams, fileName);
+        }
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS AvcPipeline::DumpSliceParams(
+    PCODEC_AVC_SLICE_PARAMS slcParams,
+    uint32_t                numSlices,
+    bool                    shortFormatInUse)
+{
+    DECODE_FUNC_CALL();
+
+    if (slcParams == nullptr)
+    {
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS AvcPipeline::DumpSliceParams(
-        PCODEC_AVC_SLICE_PARAMS sliceParams,
-        uint32_t                numSlices)
+    if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrSlcParams))
     {
-        DECODE_FUNC_CALL();
+        const char *fileName = m_debugInterface->CreateFileName(
+            "_DEC",
+            CodechalDbgBufferType::bufSlcParams,
+            CodechalDbgExtType::txt);
 
-        if (!m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrSlcParams))
+        if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrEnableFastDump))
         {
-            return MOS_STATUS_SUCCESS;
-        }
-
-        CODECHAL_DEBUG_CHK_NULL(sliceParams);
-
-        PCODEC_AVC_SLICE_PARAMS sliceControl = nullptr;
-
-        std::ostringstream oss;
-        oss.setf(std::ios::showbase | std::ios::uppercase);
-
-        for (uint16_t j = 0; j < numSlices; j++)
-        {
-            sliceControl = &sliceParams[j];
-
-            oss << "Data for Slice number = " << std::dec << +j << std::endl;
-            oss << "slice_data_size: " << std::dec << +sliceControl->slice_data_size << std::endl;
-            oss << "slice_data_offset: " << std::dec << +sliceControl->slice_data_offset << std::endl;
-            //Dump Long format specific
-            oss << "slice_data_bit_offset: " << std::dec << +sliceControl->slice_data_bit_offset << std::endl;
-            oss << "first_mb_in_slice: " << std::dec << +sliceControl->first_mb_in_slice << std::endl;
-            oss << "NumMbsForSlice: " << std::dec << +sliceControl->NumMbsForSlice << std::endl;
-            oss << "slice_type: " << std::dec << +sliceControl->slice_type << std::endl;
-            oss << "direct_spatial_mv_pred_flag: " << std::hex << +sliceControl->direct_spatial_mv_pred_flag << std::endl;
-            oss << "num_ref_idx_l0_active_minus1: " << std::dec << +sliceControl->num_ref_idx_l0_active_minus1 << std::endl;
-            oss << "num_ref_idx_l1_active_minus1: " << std::dec << +sliceControl->num_ref_idx_l1_active_minus1 << std::endl;
-            oss << "cabac_init_idc: " << std::dec << +sliceControl->cabac_init_idc << std::endl;
-            oss << "slice_qp_delta: " << std::dec << +sliceControl->slice_qp_delta << std::endl;
-            oss << "disable_deblocking_filter_idc: " << std::dec << +sliceControl->disable_deblocking_filter_idc << std::endl;
-            oss << "slice_alpha_c0_offset_div2: " << std::dec << +sliceControl->slice_alpha_c0_offset_div2 << std::endl;
-            oss << "slice_beta_offset_div2: " << std::dec << +sliceControl->slice_beta_offset_div2 << std::endl;
-
-            //Dump RefPicList[2][32]
-            for (uint8_t i = 0; i < 32; ++i)
+            if (shortFormatInUse)
             {
-                oss << "RefPicList[0][" << std::dec << +i << "] FrameIdx: " << std::dec << +sliceControl->RefPicList[0][i].FrameIdx << std::endl;
-                oss << "RefPicList[0][" << std::dec << +i << "] PicFlags: " << std::hex << +sliceControl->RefPicList[0][i].PicFlags << std::endl;
-                oss << "RefPicList[1][" << std::dec << +i << "] FrameIdx: " << std::dec << +sliceControl->RefPicList[1][i].FrameIdx << std::endl;
-                oss << "RefPicList[1][" << std::dec << +i << "] PicFlags: " << std::hex << +sliceControl->RefPicList[1][i].PicFlags << std::endl;
-            }
+                PCODEC_AVC_SF_SLICE_PARAMS slcParamsSF = 
+                    (PCODEC_AVC_SF_SLICE_PARAMS)MOS_AllocMemory(sizeof(PCODEC_AVC_SF_SLICE_PARAMS) * numSlices);
 
-            oss << "luma_log2_weight_denom: " << std::dec << +sliceControl->luma_log2_weight_denom << std::endl;
-            oss << "chroma_log2_weight_denom: " << std::dec << +sliceControl->chroma_log2_weight_denom << std::endl;
-            oss << "slice_id: " << std::dec << +sliceControl->slice_id << std::endl;
+                for (uint16_t i = 0; i < numSlices; i++)
+                {
+                    slcParamsSF[i] = reinterpret_cast<CODEC_AVC_SF_SLICE_PARAMS &>(slcParams[i]);
+                }
 
-            //Dump Weights[2][32][3][2]
-            for (uint8_t i = 0; i < 32; ++i)
-            {
-                oss << "Weights[0][" << std::dec << +i << "][0][0]: " << std::hex << +sliceControl->Weights[0][i][0][0] << std::endl;
-                oss << "Weights[0][" << std::dec << +i << "][0][1]: " << std::hex << +sliceControl->Weights[0][i][0][1] << std::endl;
-                oss << "Weights[0][" << std::dec << +i << "][1][0]: " << std::hex << +sliceControl->Weights[0][i][1][0] << std::endl;
-                oss << "Weights[0][" << std::dec << +i << "][1][1]: " << std::hex << +sliceControl->Weights[0][i][1][1] << std::endl;
-                oss << "Weights[1][" << std::dec << +i << "][0][0]: " << std::hex << +sliceControl->Weights[1][i][0][0] << std::endl;
-                oss << "Weights[1][" << std::dec << +i << "][0][1]: " << std::hex << +sliceControl->Weights[1][i][0][1] << std::endl;
-                oss << "Weights[1][" << std::dec << +i << "][1][0]: " << std::hex << +sliceControl->Weights[1][i][1][0] << std::endl;
-                oss << "Weights[1][" << std::dec << +i << "][1][1]: " << std::hex << +sliceControl->Weights[1][i][1][1] << std::endl;
-                oss << "Weights[0][" << std::dec << +i << "][2][0]: " << std::hex << +sliceControl->Weights[0][i][2][0] << std::endl;
-                oss << "Weights[0][" << std::dec << +i << "][2][1]: " << std::hex << +sliceControl->Weights[0][i][2][1] << std::endl;
-                oss << "Weights[1][" << std::dec << +i << "][2][0]: " << std::hex << +sliceControl->Weights[1][i][2][0] << std::endl;
-                oss << "Weights[1][" << std::dec << +i << "][2][1]: " << std::hex << +sliceControl->Weights[1][i][2][1] << std::endl;
-            }
-
-            const char *fileName = m_debugInterface->CreateFileName(
-                "_DEC",
-                CodechalDbgBufferType::bufSlcParams,
-                CodechalDbgExtType::txt);
-
-            std::ofstream ofs;
-            if (j == 0)
-            {
-                ofs.open(fileName, std::ios::out);
+                MediaDebugFastDump::Dump(
+                    (uint8_t *)slcParamsSF,
+                    fileName,
+                    sizeof(CODEC_AVC_SF_SLICE_PARAMS) * numSlices,
+                    0,
+                    MediaDebugSerializer<CODEC_AVC_SF_SLICE_PARAMS>());
             }
             else
             {
-                ofs.open(fileName, std::ios::app);
+                MediaDebugFastDump::Dump(
+                    (uint8_t *)slcParams,
+                    fileName,
+                    sizeof(CODEC_AVC_SLICE_PARAMS) * numSlices,
+                    0,
+                    MediaDebugSerializer<CODEC_AVC_SLICE_PARAMS>());
             }
-            ofs << oss.str();
-            ofs.close();
         }
+        else
+        {
+            DumpDecodeAvcSliceParams(slcParams, numSlices, fileName, shortFormatInUse);
+        }
+    }
 
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS AvcPipeline::DumpIQParams(
+    PCODEC_AVC_IQ_MATRIX_PARAMS iqParams)
+{
+    DECODE_FUNC_CALL();
+
+    if (iqParams == nullptr)
+    {
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS AvcPipeline::DumpIQParams(
-        PCODEC_AVC_IQ_MATRIX_PARAMS matrixData)
+    if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrIqParams))
     {
-        DECODE_FUNC_CALL();
-
-        if (!m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrIqParams))
-        {
-            return MOS_STATUS_SUCCESS;
-        }
-
-        CODECHAL_DEBUG_CHK_NULL(matrixData);
-
-        std::ostringstream oss;
-        oss.setf(std::ios::showbase | std::ios::uppercase);
-
-        uint32_t idx, idx2;
-        // 4x4 block
-        for (idx2 = 0; idx2 < 6; idx2++)
-        {
-            oss << "Qmatrix_H264_ScalingLists4x4[" << std::dec << +idx2 << "]:" << std::endl;
-            for (idx = 0; idx < 12; idx += 4)
-            {
-                oss << "ScalingList4x4[" << std::dec << +idx / 4 << "]:";
-                oss << std::hex << +matrixData->ScalingList4x4[idx2][idx] << " ";
-                oss << std::hex << +matrixData->ScalingList4x4[idx2][idx + 1] << " ";
-                oss << std::hex << +matrixData->ScalingList4x4[idx2][idx + 2] << " ";
-                oss << std::hex << +matrixData->ScalingList4x4[idx2][idx + 3] << " ";
-                oss << std::endl;
-            }
-            oss << std::endl;
-        }
-        // 8x8 block
-        for (idx2 = 0; idx2 < 2; idx2++)
-        {
-            oss << "Qmatrix_H264_ScalingLists8x8[" << std::dec << +idx2 << "]:" << std::endl;
-            for (idx = 0; idx < 56; idx += 8)
-            {
-                oss << "ScalingList8x8[" << std::dec << +idx / 8 << "]:";
-                oss << std::hex << +matrixData->ScalingList8x8[idx2][idx] << " " ;
-                oss << std::hex << +matrixData->ScalingList8x8[idx2][idx + 1] << " " ;
-                oss << std::hex << +matrixData->ScalingList8x8[idx2][idx + 2] << " " ;
-                oss << std::hex << +matrixData->ScalingList8x8[idx2][idx + 3] << " " ;
-                oss << std::hex << +matrixData->ScalingList8x8[idx2][idx + 4] << " " ;
-                oss << std::hex << +matrixData->ScalingList8x8[idx2][idx + 5] << " " ;
-                oss << std::hex << +matrixData->ScalingList8x8[idx2][idx + 6] << " " ;
-                oss << std::hex << +matrixData->ScalingList8x8[idx2][idx + 7] << " " ;
-                oss << std::endl;
-            }
-            oss << std::endl;
-        }
-
         const char *fileName = m_debugInterface->CreateFileName(
             "_DEC",
             CodechalDbgBufferType::bufIqParams,
             CodechalDbgExtType::txt);
 
-        std::ofstream ofs(fileName, std::ios::out);
-        ofs << oss.str();
-        ofs.close();
-
-        return MOS_STATUS_SUCCESS;
+        if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrEnableFastDump))
+        {
+            MediaDebugFastDump::Dump(
+                (uint8_t *)iqParams,
+                fileName,
+                sizeof(CODEC_AVC_IQ_MATRIX_PARAMS),
+                0,
+                MediaDebugSerializer<CODEC_AVC_IQ_MATRIX_PARAMS>());
+        }
+        else
+        {
+            DumpDecodeAvcIQParams(iqParams, fileName);
+        }
     }
 
+    return MOS_STATUS_SUCCESS;
+}
 #endif
 }

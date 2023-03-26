@@ -31,6 +31,7 @@
 #include "decode_vp9_phase_back_end.h"
 #include "decode_vp9_feature_manager.h"
 #include "decode_vp9_buffer_update.h"
+#include "media_debug_fast_dump.h"
 
 namespace decode
 {
@@ -308,77 +309,66 @@ MOS_STATUS Vp9Pipeline::DumpPicParams(CODEC_VP9_PIC_PARAMS *picParams)
 {
     CODECHAL_DEBUG_FUNCTION_ENTER;
 
-    if (!m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrPicParams))
+    if (picParams == nullptr)
     {
         return MOS_STATUS_SUCCESS;
     }
-    CODECHAL_DEBUG_CHK_NULL(picParams);
 
-    std::ostringstream oss;
-    oss.setf(std::ios::showbase | std::ios::uppercase);
-
-    oss << "CurrPic FrameIdx: " << std::hex << +picParams->CurrPic.FrameIdx << std::endl;
-    oss << "CurrPic PicFlags: " << std::hex << +picParams->CurrPic.PicFlags << std::endl;
-
-    for (uint8_t i = 0; i < 8; ++i)
+    if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrPicParams))
     {
-        oss << "RefFrameList[" << +i << "] FrameIdx:" << std::hex << +picParams->RefFrameList[i].FrameIdx << std::endl;
-        oss << "RefFrameList[" << +i << "] PicFlags:" << std::hex << +picParams->RefFrameList[i].PicFlags << std::endl;
-    }
-    oss << "FrameWidthMinus1: " << std::hex << +picParams->FrameWidthMinus1 << std::endl;
-    oss << "FrameHeightMinus1: " << std::hex << +picParams->FrameHeightMinus1 << std::endl;
-    oss << "PicFlags value: " << std::hex << +picParams->PicFlags.value << std::endl;
-    oss << "frame_type: " << std::hex << +picParams->PicFlags.fields.frame_type << std::endl;
-    oss << "show_frame: " << std::hex << +picParams->PicFlags.fields.show_frame << std::endl;
-    oss << "error_resilient_mode: " << std::hex << +picParams->PicFlags.fields.error_resilient_mode << std::endl;
-    oss << "intra_only: " << std::hex << +picParams->PicFlags.fields.intra_only << std::endl;
-    oss << "LastRefIdx: " << std::hex << +picParams->PicFlags.fields.LastRefIdx << std::endl;
-    oss << "LastRefSignBias: " << std::hex << +picParams->PicFlags.fields.LastRefSignBias << std::endl;
-    oss << "GoldenRefIdx: " << std::hex << +picParams->PicFlags.fields.GoldenRefIdx << std::endl;
-    oss << "GoldenRefSignBias: " << std::hex << +picParams->PicFlags.fields.GoldenRefSignBias << std::endl;
-    oss << "AltRefIdx: " << std::hex << +picParams->PicFlags.fields.AltRefIdx << std::endl;
-    oss << "AltRefSignBias: " << std::hex << +picParams->PicFlags.fields.AltRefSignBias << std::endl;
-    oss << "allow_high_precision_mv: " << std::hex << +picParams->PicFlags.fields.allow_high_precision_mv << std::endl;
-    oss << "mcomp_filter_type: " << std::hex << +picParams->PicFlags.fields.mcomp_filter_type << std::endl;
-    oss << "frame_parallel_decoding_mode: " << std::hex << +picParams->PicFlags.fields.frame_parallel_decoding_mode << std::endl;
-    oss << "segmentation_enabled: " << std::hex << +picParams->PicFlags.fields.segmentation_enabled << std::endl;
-    oss << "segmentation_temporal_update: " << std::hex << +picParams->PicFlags.fields.segmentation_temporal_update << std::endl;
-    oss << "segmentation_update_map: " << std::hex << +picParams->PicFlags.fields.segmentation_update_map << std::endl;
-    oss << "reset_frame_context: " << std::hex << +picParams->PicFlags.fields.reset_frame_context << std::endl;
-    oss << "refresh_frame_context: " << std::hex << +picParams->PicFlags.fields.refresh_frame_context << std::endl;
-    oss << "frame_context_idx: " << std::hex << +picParams->PicFlags.fields.frame_context_idx << std::endl;
-    oss << "LosslessFlag: " << std::hex << +picParams->PicFlags.fields.LosslessFlag << std::endl;
-    oss << "ReservedField: " << std::hex << +picParams->PicFlags.fields.ReservedField << std::endl;
-    oss << "filter_level: " << std::hex << +picParams->filter_level << std::endl;
-    oss << "sharpness_level: " << std::hex << +picParams->sharpness_level << std::endl;
-    oss << "log2_tile_rows: " << std::hex << +picParams->log2_tile_rows << std::endl;
-    oss << "log2_tile_columns: " << std::hex << +picParams->log2_tile_columns << std::endl;
-    oss << "UncompressedHeaderLengthInBytes: " << std::hex << +picParams->UncompressedHeaderLengthInBytes << std::endl;
-    oss << "FirstPartitionSize: " << std::hex << +picParams->FirstPartitionSize << std::endl;
-    oss << "profile: " << std::hex << +picParams->profile << std::endl;
-    oss << "BitDepthMinus8: " << std::hex << +picParams->BitDepthMinus8 << std::endl;
-    oss << "subsampling_x: " << std::hex << +picParams->subsampling_x << std::endl;
-    oss << "subsampling_y: " << std::hex << +picParams->subsampling_y << std::endl;
+        const char *fileName = m_debugInterface->CreateFileName(
+            "_DEC",
+            CodechalDbgBufferType::bufPicParams,
+            CodechalDbgExtType::txt);
 
-    for (uint8_t i = 0; i < 7; ++i)
+        if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrEnableFastDump))
+        {
+            MediaDebugFastDump::Dump(
+                (uint8_t *)picParams,
+                fileName,
+                sizeof(CODEC_VP9_PIC_PARAMS),
+                0,
+                MediaDebugSerializer<CODEC_VP9_PIC_PARAMS>());
+        }
+        else
+        {
+            DumpDecodeVp9PicParams(picParams, fileName);
+        }
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS Vp9Pipeline::DumpSliceParams(CODEC_VP9_SLICE_PARAMS *slcParams)
+{
+    CODECHAL_DEBUG_FUNCTION_ENTER;
+
+    if (slcParams == nullptr)
     {
-        oss << "SegTreeProbs[" << +i << "]: " << std::hex << +picParams->SegTreeProbs[i] << std::endl;
+        return MOS_STATUS_SUCCESS;
     }
-    for (uint8_t i = 0; i < 3; ++i)
+
+    if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrSlcParams))
     {
-        oss << "SegPredProbs[" << +i << "]: " << std::hex << +picParams->SegPredProbs[i] << std::endl;
+        const char *fileName = m_debugInterface->CreateFileName(
+            "_DEC",
+            CodechalDbgBufferType::bufSlcParams,
+            CodechalDbgExtType::txt);
+
+        if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrEnableFastDump))
+        {
+            MediaDebugFastDump::Dump(
+                (uint8_t *)slcParams,
+                fileName,
+                sizeof(CODEC_VP9_SLICE_PARAMS),
+                0,
+                MediaDebugSerializer<CODEC_VP9_SLICE_PARAMS>());
+        }
+        else
+        {
+            DumpDecodeVp9SliceParams(slcParams, fileName);
+        }
     }
-    oss << "BSBytesInBuffer: " << std::hex << +picParams->BSBytesInBuffer << std::endl;
-    oss << "StatusReportFeedbackNumber: " << std::hex << +picParams->StatusReportFeedbackNumber << std::endl;
-
-    const char *fileName = m_debugInterface->CreateFileName(
-        "_DEC",
-        CodechalDbgBufferType::bufPicParams,
-        CodechalDbgExtType::txt);
-
-    std::ofstream ofs(fileName, std::ios::out);
-    ofs << oss.str();
-    ofs.close();
 
     return MOS_STATUS_SUCCESS;
 }
@@ -387,44 +377,33 @@ MOS_STATUS Vp9Pipeline::DumpSegmentParams(CODEC_VP9_SEGMENT_PARAMS *segmentParam
 {
     CODECHAL_DEBUG_FUNCTION_ENTER;
 
-    if (!m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrSegmentParams))
+    if (segmentParams == nullptr)
     {
         return MOS_STATUS_SUCCESS;
     }
 
-    CODECHAL_DEBUG_CHK_NULL(segmentParams);
-
-    std::ostringstream oss;
-    oss.setf(std::ios::showbase | std::ios::uppercase);
-
-    for (uint8_t i = 0; i < 8; ++i)
+    if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrSegmentParams))
     {
-        oss << "SegData[" << +i << "] SegmentFlags value: " << std::hex << +segmentParams->SegData[i].SegmentFlags.value << std::endl;
-        oss << "SegData[" << +i << "] SegmentReferenceEnabled: " << std::hex << +segmentParams->SegData[i].SegmentFlags.fields.SegmentReferenceEnabled << std::endl;
-        oss << "SegData[" << +i << "] SegmentReference: " << std::hex << +segmentParams->SegData[i].SegmentFlags.fields.SegmentReference << std::endl;
-        oss << "SegData[" << +i << "] SegmentReferenceSkipped: " << std::hex << +segmentParams->SegData[i].SegmentFlags.fields.SegmentReferenceSkipped << std::endl;
-        oss << "SegData[" << +i << "] ReservedField3: " << std::hex << +segmentParams->SegData[i].SegmentFlags.fields.ReservedField3 << std::endl;
+        const char *fileName = m_debugInterface->CreateFileName(
+            "_DEC",
+            CodechalDbgBufferType::bufSegmentParams,
+            CodechalDbgExtType::txt);
 
-        for (uint8_t j = 0; j < 4; ++j)
+        if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrEnableFastDump))
         {
-            oss << "SegData[" << +i << "] FilterLevel[" << +j << "]:";
-            oss << std::hex << +segmentParams->SegData[i].FilterLevel[j][0] << " ";
-            oss << std::hex << +segmentParams->SegData[i].FilterLevel[j][1] << std::endl;
+            MediaDebugFastDump::Dump(
+                (uint8_t *)segmentParams,
+                fileName,
+                sizeof(CODEC_VP9_SEGMENT_PARAMS),
+                0,
+                MediaDebugSerializer<CODEC_VP9_SEGMENT_PARAMS>());
         }
-        oss << "SegData[" << +i << "] LumaACQuantScale: " << std::hex << +segmentParams->SegData[i].LumaACQuantScale << std::endl;
-        oss << "SegData[" << +i << "] LumaDCQuantScale: " << std::hex << +segmentParams->SegData[i].LumaDCQuantScale << std::endl;
-        oss << "SegData[" << +i << "] ChromaACQuantScale: " << std::hex << +segmentParams->SegData[i].ChromaACQuantScale << std::endl;
-        oss << "SegData[" << +i << "] ChromaDCQuantScale: " << std::hex << +segmentParams->SegData[i].ChromaDCQuantScale << std::endl;
+        else
+        {
+            DumpDecodeVp9SegmentParams(segmentParams, fileName);
+        }
     }
 
-    const char *fileName = m_debugInterface->CreateFileName(
-        "_DEC",
-        CodechalDbgBufferType::bufSegmentParams,
-        CodechalDbgExtType::txt);
-
-    std::ofstream ofs(fileName, std::ios::out);
-    ofs << oss.str();
-    ofs.close();
     return MOS_STATUS_SUCCESS;
 }
 #endif

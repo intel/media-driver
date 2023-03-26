@@ -137,7 +137,7 @@ namespace decode
         //! \return MOS_STATUS
         //!         MOS_STATUS_SUCCESS if success, else fail reason
         //!
-        MOS_STATUS DumpResources() const;
+        MOS_STATUS DumpResources(uint32_t refSize) const;
 #endif
 
         //Interfaces

@@ -227,7 +227,8 @@ MOS_STATUS Mpeg2PipelineXe_Lpm_Plus_Base::Execute()
 
             if (m_basicFeature->m_secondField || CodecHal_PictureIsFrame(m_basicFeature->m_curRenderPic))
             {
-                m_basicFeature->m_frameNum++;
+                DecodeFrameIndex++;
+                m_basicFeature->m_frameNum = DecodeFrameIndex;
             }
 
             DECODE_CHK_STATUS(m_statusReport->Reset());
@@ -252,7 +253,8 @@ MOS_STATUS Mpeg2PipelineXe_Lpm_Plus_Base::Execute()
 
             if (m_basicFeature->m_secondField || CodecHal_PictureIsFrame(m_basicFeature->m_curRenderPic))
             {
-                m_basicFeature->m_frameNum++;
+                DecodeFrameIndex++;
+                m_basicFeature->m_frameNum = DecodeFrameIndex;
             }
 
             DECODE_CHK_STATUS(m_statusReport->Reset());
@@ -290,21 +292,10 @@ MOS_STATUS Mpeg2PipelineXe_Lpm_Plus_Base::DumpParams(Mpeg2BasicFeature &basicFea
     m_debugInterface->m_bufferDumpFrameNum = basicFeature.m_frameNum;
 
     DECODE_CHK_STATUS(DumpPicParams(basicFeature.m_mpeg2PicParams));
-
-    if (basicFeature.m_mpeg2IqMatrixParams)
-    {
-        DECODE_CHK_STATUS(DumpIQParams(basicFeature.m_mpeg2IqMatrixParams));
-    }
-
-    if (basicFeature.m_mpeg2SliceParams)
-    {
-        DECODE_CHK_STATUS(DumpSliceParams(basicFeature.m_mpeg2SliceParams, basicFeature.m_numSlices));
-    }
-
-    if (basicFeature.m_mpeg2MbParams)
-    {
-        DECODE_CHK_STATUS(DumpMbParams(basicFeature.m_mpeg2MbParams));
-    }
+    DECODE_CHK_STATUS(DumpSliceParams(basicFeature.m_mpeg2SliceParams, basicFeature.m_numSlices));
+    DECODE_CHK_STATUS(DumpMbParams(basicFeature.m_mpeg2MbParams, basicFeature.m_numMacroblocks));
+    DECODE_CHK_STATUS(DumpIQParams(basicFeature.m_mpeg2IqMatrixParams));
+    DECODE_CHK_STATUS(DumpBitstream(&basicFeature.m_resDataBuffer.OsResource, basicFeature.m_dataSize, 0));
 
     return MOS_STATUS_SUCCESS;
 }

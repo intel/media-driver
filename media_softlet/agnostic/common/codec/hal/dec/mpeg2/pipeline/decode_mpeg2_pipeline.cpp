@@ -28,6 +28,7 @@
 #include "codechal_setting.h"
 #include "decode_mpeg2_feature_manager.h"
 #include "decode_huc_packet_creator_base.h"
+#include "media_debug_fast_dump.h"
 
 namespace decode{
 
@@ -202,50 +203,32 @@ MOS_STATUS Mpeg2Pipeline::DumpPicParams(
 {
     DECODE_FUNC_CALL();
 
-    if (!m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrPicParams))
+    if (picParams == nullptr)
     {
         return MOS_STATUS_SUCCESS;
     }
 
-    DECODE_CHK_NULL(picParams);
+    if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrPicParams))
+    {
+        const char *fileName = m_debugInterface->CreateFileName(
+            "_DEC",
+            CodechalDbgBufferType::bufPicParams,
+            CodechalDbgExtType::txt);
 
-    std::ostringstream oss;
-    oss.setf(std::ios::showbase | std::ios::uppercase);
-
-    oss << "m_currPic FrameIdx: " << +picParams->m_currPic.FrameIdx << std::endl;
-    oss << "m_currPic PicFlags: " << +picParams->m_currPic.PicFlags << std::endl;
-    oss << "m_forwardRefIdx: " << +picParams->m_forwardRefIdx << std::endl;
-    oss << "m_backwardRefIdx: " << +picParams->m_backwardRefIdx << std::endl;
-    oss << "m_topFieldFirst: " << +picParams->m_topFieldFirst << std::endl;
-    oss << "m_secondField: " << +picParams->m_secondField << std::endl;
-    oss << "m_statusReportFeedbackNumber: " << +picParams->m_statusReportFeedbackNumber << std::endl;
-    //Dump union w0
-    oss << "w0 m_value: " << +picParams->W0.m_value << std::endl;
-    oss << "m_scanOrder: " << +picParams->W0.m_scanOrder << std::endl;
-    oss << "m_intraVlcFormat: " << +picParams->W0.m_intraVlcFormat << std::endl;
-    oss << "m_quantizerScaleType: " << +picParams->W0.m_quantizerScaleType << std::endl;
-    oss << "m_concealmentMVFlag: " << +picParams->W0.m_concealmentMVFlag << std::endl;
-    oss << "m_frameDctPrediction: " << +picParams->W0.m_frameDctPrediction << std::endl;
-    oss << "m_topFieldFirst: " << +picParams->W0.m_topFieldFirst << std::endl;
-    oss << "m_intraDCPrecision: " << +picParams->W0.m_intraDCPrecision << std::endl;
-    //Dump union w1
-    oss << "w1 m_value: " << +picParams->W1.m_value << std::endl;
-    oss << "m_fcode11: " << +picParams->W1.m_fcode11 << std::endl;
-    oss << "m_fcode10: " << +picParams->W1.m_fcode10 << std::endl;
-    oss << "m_fcode01: " << +picParams->W1.m_fcode01 << std::endl;
-    oss << "m_fcode00: " << +picParams->W1.m_fcode00 << std::endl;
-    oss << "m_horizontalSize: " << +picParams->m_horizontalSize << std::endl;
-    oss << "m_verticalSize: " << +picParams->m_verticalSize << std::endl;
-    oss << "m_pictureCodingType: " << +picParams->m_pictureCodingType << std::endl;
-
-    const char *fileName = m_debugInterface->CreateFileName(
-        "_DEC",
-        CodechalDbgBufferType::bufPicParams,
-        CodechalDbgExtType::txt);
-
-    std::ofstream ofs(fileName, std::ios::out);
-    ofs << oss.str();
-    ofs.close();
+        if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrEnableFastDump))
+        {
+            MediaDebugFastDump::Dump(
+                (uint8_t *)picParams,
+                fileName,
+                sizeof(CodecDecodeMpeg2PicParams),
+                0,
+                MediaDebugSerializer<CodecDecodeMpeg2PicParams>());
+        }
+        else
+        {
+            DumpDecodeMpeg2PicParams(picParams, fileName);
+        }
+    }
 
     return MOS_STATUS_SUCCESS;
 }
@@ -256,186 +239,104 @@ MOS_STATUS Mpeg2Pipeline::DumpSliceParams(
 {
     DECODE_FUNC_CALL();
 
-    if (!m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrSlcParams))
+    if (sliceParams == nullptr)
     {
         return MOS_STATUS_SUCCESS;
     }
 
-    DECODE_CHK_NULL(sliceParams);
-
-    const char *fileName = m_debugInterface->CreateFileName(
-        "_DEC",
-        CodechalDbgBufferType::bufSlcParams,
-        CodechalDbgExtType::txt);
-
-    std::ostringstream oss;
-    oss.setf(std::ios::showbase | std::ios::uppercase);
-
-    CodecDecodeMpeg2SliceParams *sliceControl = nullptr;
-
-    for (uint16_t i = 0; i < numSlices; i++)
+    if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrSlcParams))
     {
-        sliceControl = &sliceParams[i];
+        const char *fileName = m_debugInterface->CreateFileName(
+            "_DEC",
+            CodechalDbgBufferType::bufSlcParams,
+            CodechalDbgExtType::txt);
 
-        oss << "===================================================================" << std::endl;
-        oss << "Data for Slice number = " << +i << std::endl;
-        oss << "m_sliceDataSize: " << +sliceControl->m_sliceDataSize << std::endl;
-        oss << "m_sliceDataOffset: " << +sliceControl->m_sliceDataOffset << std::endl;
-        oss << "m_macroblockOffset: " << +sliceControl->m_macroblockOffset << std::endl;
-        oss << "m_sliceHorizontalPosition: " << +sliceControl->m_sliceHorizontalPosition << std::endl;
-        oss << "m_sliceVerticalPosition: " << +sliceControl->m_sliceVerticalPosition << std::endl;
-        oss << "m_quantiserScaleCode: " << +sliceControl->m_quantiserScaleCode << std::endl;
-        oss << "m_numMbsForSlice: " << +sliceControl->m_numMbsForSlice << std::endl;
-        oss << "m_numMbsForSliceOverflow: " << +sliceControl->m_numMbsForSliceOverflow << std::endl;
-        oss << "m_reservedBits: " << +sliceControl->m_reservedBits << std::endl;
-        oss << "m_startCodeBitOffset: " << +sliceControl->m_startCodeBitOffset << std::endl;
-
-        std::ofstream ofs;
-        if (i == 0)
+        if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrEnableFastDump))
         {
-            ofs.open(fileName, std::ios::out);
+            MediaDebugFastDump::Dump(
+                (uint8_t *)sliceParams,
+                fileName,
+                sizeof(CodecDecodeMpeg2SliceParams) * numSlices,
+                0,
+                MediaDebugSerializer<CodecDecodeMpeg2SliceParams>());
         }
         else
         {
-            ofs.open(fileName, std::ios::app);
+            DumpDecodeMpeg2SliceParams(sliceParams, numSlices, fileName);
         }
-        ofs << oss.str();
-        ofs.close();
     }
 
     return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS Mpeg2Pipeline::DumpMbParams(
-    CodecDecodeMpeg2MbParmas *mbParams)
+    CodecDecodeMpeg2MbParams *mbParams,
+    uint32_t                  numMbs)
 {
     DECODE_FUNC_CALL();
 
-    if (!m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrMbParams))
+    if (mbParams == nullptr)
     {
         return MOS_STATUS_SUCCESS;
     }
 
-    DECODE_CHK_NULL(mbParams);
-
-    std::ostringstream oss;
-    oss.setf(std::ios::showbase | std::ios::uppercase);
-
-    oss << "m_mbAddr: " << +mbParams->m_mbAddr << std::endl;
-    //Dump union MBType
-    oss << "MBType.m_intraMb: " << +mbParams->MBType.m_intraMb << std::endl;
-    oss << "MBType.m_motionFwd: " << +mbParams->MBType.m_motionFwd << std::endl;
-    oss << "MBType.m_motionBwd: " << +mbParams->MBType.m_motionBwd << std::endl;
-    oss << "MBType.m_motion4mv: " << +mbParams->MBType.m_motion4mv << std::endl;
-    oss << "MBType.m_h261Lpfilter: " << +mbParams->MBType.m_h261Lpfilter << std::endl;
-    oss << "MBType.m_fieldResidual: " << +mbParams->MBType.m_fieldResidual << std::endl;
-    oss << "MBType.m_mbScanMethod: " << +mbParams->MBType.m_mbScanMethod << std::endl;
-    oss << "MBType.m_motionType: " << +mbParams->MBType.m_motionType << std::endl;
-    oss << "MBType.m_hostResidualDiff: " << +mbParams->MBType.m_hostResidualDiff << std::endl;
-    oss << "MBType.m_mvertFieldSel: " << +mbParams->MBType.m_mvertFieldSel << std::endl;
-    oss << "m_mbSkipFollowing: " << +mbParams->m_mbSkipFollowing << std::endl;
-    oss << "m_mbDataLoc: " << +mbParams->m_mbDataLoc << std::endl;
-    oss << "m_codedBlockPattern: " << +mbParams->m_codedBlockPattern << std::endl;
-
-    //Dump NumCoeff[CODEC_NUM_BLOCK_PER_MB]
-    for (uint16_t i = 0; i < CODEC_NUM_BLOCK_PER_MB; ++i)
+    if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrMbParams))
     {
-        oss << "m_numCoeff[" << +i << "]: " << +mbParams->m_numCoeff[i] << std::endl;
+        const char *fileName = m_debugInterface->CreateFileName(
+            "_DEC",
+            CodechalDbgBufferType::bufMbParams,
+            CodechalDbgExtType::txt);
+
+        if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrEnableFastDump))
+        {
+            MediaDebugFastDump::Dump(
+                (uint8_t *)mbParams,
+                fileName,
+                sizeof(CodecDecodeMpeg2MbParams) * numMbs,
+                0,
+                MediaDebugSerializer<CodecDecodeMpeg2MbParams>());
+        }
+        else
+        {
+            DumpDecodeMpeg2MbParams(mbParams, numMbs, fileName);
+        }
     }
-
-    //Dump motion_vectors[8],printing them in 4 value chunks per line
-    for (uint8_t i = 0; i < 2; ++i)
-    {
-        oss << "m_motionVectors[" << +i * 4 << "-" << (+i * 4) + 3 << "]: ";
-        for (uint8_t j = 0; j < 4; j++)
-            oss << +mbParams->m_motionVectors[i * 4 + j] << " ";
-        oss << std::endl;
-    }
-
-    const char *fileName = m_debugInterface->CreateFileName(
-        "_DEC",
-        CodechalDbgBufferType::bufMbParams,
-        CodechalDbgExtType::txt);
-
-    std::ofstream ofs(fileName, std::ios::out);
-    ofs << oss.str();
-    ofs.close();
 
     return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS Mpeg2Pipeline::DumpIQParams(
-    CodecMpeg2IqMatrix *matrixData)
+    CodecMpeg2IqMatrix *iqParams)
 {
     DECODE_FUNC_CALL();
 
-    if (!m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrIqParams))
+    if (iqParams == nullptr)
     {
         return MOS_STATUS_SUCCESS;
     }
 
-    DECODE_CHK_NULL(matrixData);
-
-    std::ostringstream oss;
-    oss.setf(std::ios::showbase | std::ios::uppercase);
-
-    if (matrixData->m_loadIntraQuantiserMatrix)
+    if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrIqParams))
     {
-        oss << "intra_QmatrixData:" << std::endl;
+        const char *fileName = m_debugInterface->CreateFileName(
+            "_DEC",
+            CodechalDbgBufferType::bufIqParams,
+            CodechalDbgExtType::txt);
 
-        for (uint8_t i = 0; i < 56; i += 8)
+        if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrEnableFastDump))
         {
-            oss << "Qmatrix[" << +i / 8 << "]: ";
-            for (uint8_t j = 0; j < 8; j++)
-                oss << +matrixData->m_intraQuantiserMatrix[i + j] << " ";
-            oss << std::endl;
+            MediaDebugFastDump::Dump(
+                (uint8_t *)iqParams,
+                fileName,
+                sizeof(CodecMpeg2IqMatrix),
+                0,
+                MediaDebugSerializer<CodecMpeg2IqMatrix>());
+        }
+        else
+        {
+            DumpDecodeMpeg2IqParams(iqParams, fileName);
         }
     }
-    if (matrixData->m_loadNonIntraQuantiserMatrix)
-    {
-        oss << "non_intra_QmatrixData:" << std::endl;
-
-        for (uint8_t i = 0; i < 56; i += 8)
-        {
-            oss << "Qmatrix[" << +i / 8 << "]: ";
-            for (uint8_t j = 0; j < 8; j++)
-                oss << +matrixData->m_nonIntraQuantiserMatrix[i + j] << " ";
-            oss << std::endl;
-        }
-    }
-    if (matrixData->m_loadChromaIntraQuantiserMatrix)
-    {
-        oss << "chroma_intra_QmatrixData:" << std::endl;
-
-        for (uint8_t i = 0; i < 56; i += 8)
-        {
-            oss << "Qmatrix[" << +i / 8 << "]: ";
-            for (uint8_t j = 0; j < 8; j++)
-                oss << +matrixData->m_chromaIntraQuantiserMatrix[i + j] << " ";
-            oss << std::endl;
-        }
-    }
-    if (matrixData->m_loadChromaNonIntraQuantiserMatrix)
-    {
-        oss << "chroma_non_intra_QmatrixData:" << std::endl;
-
-        for (uint8_t i = 0; i < 56; i += 8)
-        {
-            oss << "Qmatrix[" << +i / 8 << "]: ";
-            for (uint8_t j = 0; j < 8; j++)
-                oss << +matrixData->m_chromaNonIntraQuantiserMatrix[i + j] << " ";
-            oss << std::endl;
-        }
-    }
-
-    const char *fileName = m_debugInterface->CreateFileName(
-        "_DEC",
-        CodechalDbgBufferType::bufIqParams,
-        CodechalDbgExtType::txt);
-
-    std::ofstream ofs(fileName, std::ios::out);
-    ofs << oss.str();
-    ofs.close();
+        
     return MOS_STATUS_SUCCESS;
 }
 #endif

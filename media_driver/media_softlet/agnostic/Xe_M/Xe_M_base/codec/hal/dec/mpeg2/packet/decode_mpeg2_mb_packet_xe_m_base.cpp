@@ -66,7 +66,7 @@ namespace decode {
         DECODE_FUNC_CALL();
 
         MOS_ZeroMemory(&mpeg2MbState, sizeof(mpeg2MbState));
-        CodecDecodeMpeg2MbParmas* mb = &m_mpeg2BasicFeature->m_mbRecord[mbIdx].recordMbParam;
+        CodecDecodeMpeg2MbParams* mb = &m_mpeg2BasicFeature->m_mbRecord[mbIdx].recordMbParam;
 
         mpeg2MbState.wPicWidthInMb = m_mpeg2BasicFeature->m_picWidthInMb;
         mpeg2MbState.wPicHeightInMb = m_mpeg2BasicFeature->m_picHeightInMb;
@@ -102,7 +102,7 @@ namespace decode {
 
     void Mpeg2DecodeMbPktXe_M_Base::PackMotionVectors(CODEC_PICTURE_FLAG pic_flag, PMHW_VDBOX_MPEG2_MB_STATE mpeg2MbState)
     {
-        CodecDecodeMpeg2MbParmas* mbParams = mpeg2MbState->pMBParams;
+        CodecDecodeMpeg2MbParams* mbParams = mpeg2MbState->pMBParams;
 
         uint16_t motionType = mbParams->MBType.m_motionType;
         uint16_t intelMotionType = Mpeg2ImtNone;
@@ -229,7 +229,7 @@ namespace decode {
         mpeg2MbState.pMBParams = &(m_mpeg2BasicFeature->m_mbRecord[mbIdx].recordMbParam);
 
         // save the original MB params, and restore the orignal MB params when function exit.
-        CodechalDecodeRestoreData<CodecDecodeMpeg2MbParmas> MBParamsRestore(mpeg2MbState.pMBParams);
+        CodechalDecodeRestoreData<CodecDecodeMpeg2MbParams> MBParamsRestore(mpeg2MbState.pMBParams);
 
         mpeg2MbState.dwDCTLength = 0;
         mpeg2MbState.dwITCoffDataAddrOffset = 0;

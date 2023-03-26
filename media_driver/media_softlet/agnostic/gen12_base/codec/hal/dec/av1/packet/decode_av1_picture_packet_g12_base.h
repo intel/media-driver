@@ -149,12 +149,7 @@ namespace decode
         //! \return MOS_STATUS
         //!         MOS_STATUS_SUCCESS if success, else fail reason
         //!
-        MOS_STATUS DumpResources(MhwVdboxAvpPipeBufAddrParams& pipeBufAddrParams);
-
-#if MOS_EVENT_TRACE_DUMP_SUPPORTED
-        MOS_STATUS TraceDataDumpInternalBuffers(MhwVdboxAvpPipeBufAddrParams &pipeBufAddrParams);
-        MOS_STATUS TraceDataDumpReferences(MhwVdboxAvpPipeBufAddrParams &pipeBufAddrParams);
-#endif
+        MOS_STATUS DumpResources(MhwVdboxAvpPipeBufAddrParams& pipeBufAddrParams, uint32_t refSize);
 
         //Interfaces
         Av1PipelineG12_Base        *m_av1Pipeline     = nullptr;
@@ -167,10 +162,6 @@ namespace decode
 
         CodecAv1PicParams          *m_av1PicParams    = nullptr; //!< Pointer to picture parameter
         MOS_SURFACE                 refSurface[av1TotalRefsPerFrame];
-
-#if MOS_EVENT_TRACE_DUMP_SUPPORTED
-        PMOS_SURFACE                m_tempRefSurf     = nullptr;
-#endif
 
         //!
         //! \brief    Setup SkipModeFrame[0] and SkipModeFrame[1] per av1_setup_skip_mode_allowed of ref decoder

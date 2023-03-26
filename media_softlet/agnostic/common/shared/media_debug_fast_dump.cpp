@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022, Intel Corporation
+* Copyright (c) 2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -58,10 +58,10 @@ void MediaDebugFastDump::DestroyInstance()
 }
 
 void MediaDebugFastDump::Dump(
-    MOS_RESOURCE &res,
-    std::string &&name,
-    size_t        dumpSize,
-    size_t        offset,
+    MOS_RESOURCE  &res,
+    std::string  &&name,
+    size_t         dumpSize,
+    size_t         offset,
     std::function<
         void(std::ostream &, const void *, size_t)>
         &&serializer)
@@ -69,6 +69,21 @@ void MediaDebugFastDump::Dump(
     if (imp)
     {
         (*imp)(res, std::move(name), dumpSize, offset, std::move(serializer));
+    }
+}
+
+void MediaDebugFastDump::Dump(
+    uint8_t       *buffer,
+    std::string  &&name,
+    size_t         dumpSize,
+    size_t         offset,
+    std::function<
+        void(std::ostream &, const void *, size_t)>
+        &&serializer)
+{
+    if (imp)
+    {
+        (*imp)(buffer, std::move(name), dumpSize, offset, std::move(serializer));
     }
 }
 

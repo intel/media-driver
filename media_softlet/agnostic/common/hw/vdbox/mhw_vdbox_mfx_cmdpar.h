@@ -734,7 +734,7 @@ struct _MHW_PAR_T(MFD_IT_OBJECT)
 
 struct _MHW_PAR_T(MFD_IT_OBJECT_MPEG2_INLINE_DATA)
 {
-    CodecDecodeMpeg2MbParmas *pMBParams = nullptr;
+    CodecDecodeMpeg2MbParams *pMBParams = nullptr;
 
     int32_t CodingType     = 0;
     int16_t sPackedMVs0[4] = {};

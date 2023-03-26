@@ -347,8 +347,31 @@ namespace decode {
     {
         DECODE_FUNC_CALL();
 
+        CodechalDebugInterface *debugInterface = m_pipeline->GetDebugInterface();
+        DECODE_CHK_NULL(debugInterface);
+
+        if (m_mpeg2PicParams->m_pictureCodingType != I_TYPE)
+        {
+            for (uint16_t n = 0; n <= CodechalDecodeBwdRefBottom; n++)
+            {
+                if (pipeBufAddrParams.presReferences[n])
+                {
+                    MOS_SURFACE refSurface;
+                    MOS_ZeroMemory(&refSurface, sizeof(MOS_SURFACE));
+                    refSurface.OsResource = *(pipeBufAddrParams.presReferences[n]);
+                    DECODE_CHK_STATUS(m_allocator->GetSurfaceInfo(&refSurface));
+
+                    debugInterface->m_refIndex = n;
+                    std::string refSurfName    = "RefSurf[" + std::to_string(static_cast<uint32_t>(debugInterface->m_refIndex)) + "]";
+                    DECODE_CHK_STATUS(debugInterface->DumpYUVSurface(
+                        &refSurface,
+                        CodechalDbgAttr::attrDecodeReferenceSurfaces,
+                        refSurfName.c_str()));
+                }
+            }
+        }
+
         return MOS_STATUS_SUCCESS;
     }
-
 #endif
 }  // namespace decode

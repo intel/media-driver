@@ -27,7 +27,7 @@
 #include "decode_utils.h"
 #include "codechal_setting.h"
 #include "decode_vp8_feature_manager.h"
-
+#include "media_debug_fast_dump.h"
 
 namespace decode
 {
@@ -131,102 +131,32 @@ MOS_STATUS Vp8Pipeline::DumpPicParams(PCODEC_VP8_PIC_PARAMS picParams)
 {
     DECODE_FUNC_CALL();
 
-    if (!m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrPicParams))
+    if (picParams == nullptr)
     {
         return MOS_STATUS_SUCCESS;
     }
 
-    DECODE_CHK_NULL(picParams);
-
-    std::ostringstream oss;
-    oss.setf(std::ios::showbase | std::ios::uppercase);
-
-    oss<< "CurrPic FrameIdx: "<<std::hex<< +picParams->CurrPic.FrameIdx<<std::endl;
-    oss<< "CurrPic PicFlags: "<<std::hex<< +picParams->CurrPic.PicFlags<<std::endl;
-    oss<< "wFrameWidthInMbsMinus1: "<<std::hex<< +picParams->wFrameWidthInMbsMinus1<<std::endl;
-    oss<< "wFrameHeightInMbsMinus1: "<<std::hex<< +picParams->wFrameHeightInMbsMinus1<<std::endl;
-    oss<< "ucCurrPicIndex: "<<std::hex<< +picParams->ucCurrPicIndex<<std::endl;
-    oss<< "ucLastRefPicIndex: "<<std::hex<< +picParams->ucLastRefPicIndex<<std::endl;
-    oss<< "ucGoldenRefPicIndex: "<<std::hex<< +picParams->ucGoldenRefPicIndex<<std::endl;
-    oss<< "ucAltRefPicIndex: "<<std::hex<< +picParams->ucAltRefPicIndex<<std::endl;
-    oss<< "ucDeblockedPicIndex: "<<std::hex<< +picParams->ucDeblockedPicIndex<<std::endl;
-    oss<< "ucReserved8Bits: "<<std::hex<< +picParams->ucReserved8Bits<<std::endl;
-    oss<< "wPicFlags: "<<std::hex<< +picParams->wPicFlags<<std::endl;
-    oss<< "key_frame: "<<std::hex<< +picParams->key_frame<<std::endl;
-    oss<< "version: "<<std::hex<< +picParams->version<<std::endl;
-    oss<< "segmentation_enabled: "<<std::hex<< +picParams->segmentation_enabled<<std::endl;
-    oss<< "update_mb_segmentation_map: "<<std::hex<< +picParams->update_mb_segmentation_map<<std::endl;
-    oss<< "update_segment_feature_data: "<<std::hex<< +picParams->update_segment_feature_data<<std::endl;
-    oss<< "filter_type: "<<std::hex<< +picParams->filter_type<<std::endl;
-    oss<< "sign_bias_golden: "<<std::hex<< +picParams->sign_bias_golden<<std::endl;
-    oss<< "sign_bias_alternate: "<<std::hex<< +picParams->sign_bias_alternate<<std::endl;
-    oss<< "mb_no_coeff_skip: "<<std::hex<< +picParams->mb_no_coeff_skip<<std::endl;
-    oss<< "mode_ref_lf_delta_update: "<<std::hex<< +picParams->mode_ref_lf_delta_update<<std::endl;
-    oss<< "CodedCoeffTokenPartition: "<<std::hex<< +picParams->CodedCoeffTokenPartition<<std::endl;
-    oss<< "LoopFilterDisable: "<<std::hex<< +picParams->LoopFilterDisable<<std::endl;
-    oss<< "loop_filter_adj_enable: "<<std::hex<< +picParams->loop_filter_adj_enable<<std::endl;
-
-    for(uint8_t i=0;i<4;++i)
+    if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrPicParams))
     {
-        oss<< "ucLoopFilterLevel[" <<std::dec<<+i<<"]: "<<std::hex<< +picParams->ucLoopFilterLevel[i]<<std::endl;
-    }
+        const char *fileName = m_debugInterface->CreateFileName(
+            "_DEC",
+            CodechalDbgBufferType::bufPicParams,
+            CodechalDbgExtType::txt);
 
-    for(uint8_t i=0;i<4;++i)
-    {
-        oss<< "cRefLfDelta["<<std::dec<<+i<<"]: "<<std::hex<< +picParams->cRefLfDelta[i]<<std::endl;
-    }
-
-    for(uint8_t i=0;i<4;++i)
-    {
-        oss<< "cModeLfDelta[" <<std::dec<<+i<<"]: "<<std::hex<< +picParams->cModeLfDelta[i]<<std::endl;
-    }
-    oss<< "ucSharpnessLevel: " <<std::dec<<std::hex<< +picParams->ucSharpnessLevel<<std::endl;
-
-    for(uint8_t i=0;i<3;++i)
-    {
-        oss<< "cMbSegmentTreeProbs[" <<std::dec<<+i<<"]: "<<std::hex<< +picParams->cMbSegmentTreeProbs[i]<<std::endl;
-    }
-    oss<< "ucProbSkipFalse: "<<std::hex<< +picParams->ucProbSkipFalse<<std::endl;
-    oss<< "ucProbIntra: "<<std::hex<< +picParams->ucProbIntra<<std::endl;
-    oss<< "ucProbLast: "<<std::hex<< +picParams->ucProbLast<<std::endl;
-    oss<< "ucProbGolden: "<<std::hex<< +picParams->ucProbGolden<<std::endl;
-
-    for(uint8_t i=0;i<4;++i)
-    {
-        oss<< "ucYModeProbs[" <<std::dec<<+i<<"]: "<<std::hex<< +picParams->ucYModeProbs[i]<<std::endl;
-    }
-
-    for(uint8_t i=0;i<3;++i)
-    {
-        oss<< "ucUvModeProbs[" <<std::dec<<+i<<"]: "<<std::hex<< +picParams->ucUvModeProbs[i]<<std::endl;
-    }
-    oss<< "ucReserved8Bits1: "<<std::hex<< +picParams->ucReserved8Bits1<<std::endl;
-    oss<< "ucP0EntropyCount: "<<std::hex<< +picParams->ucP0EntropyCount<<std::endl;
-    oss<< "ucP0EntropyValue: "<<std::hex<< +picParams->ucP0EntropyValue<<std::endl;
-    oss<< "uiP0EntropyRange: "<<std::hex<< +picParams->uiP0EntropyRange<<std::endl;
-    oss<< "uiFirstMbByteOffset: "<<std::hex<< +picParams->uiFirstMbByteOffset<<std::endl;
-
-    for(uint8_t i=0;i<2;++i)
-    {
-        for(uint8_t j=0;j<CODEC_VP8_MVP_COUNT;++j)
+        if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrEnableFastDump))
         {
-            oss<< "ucMvUpdateProb["<<std::dec<<+i<<"]["<<std::dec<<+j<<"]: "<<std::hex<< +picParams->ucMvUpdateProb[i][j]<<std::endl;
+            MediaDebugFastDump::Dump(
+                (uint8_t *)picParams,
+                fileName,
+                sizeof(CODEC_VP8_PIC_PARAMS),
+                0,
+                MediaDebugSerializer<CODEC_VP8_PIC_PARAMS>());
+        }
+        else
+        {
+            DumpDecodeVp8PicParams(picParams, fileName);
         }
     }
-    for(uint8_t i=0;i<CODEC_VP8_MAX_PARTITION_NUMBER;++i)
-    {
-        oss<< "uiPartitionSize["<<std::dec<<+i<<"]: "<<std::hex<< +picParams->uiPartitionSize[i]<<std::endl;
-    }
-    oss<< "uiStatusReportFeedbackNumber: "<<std::hex<< +picParams->uiStatusReportFeedbackNumber<<std::endl;
-
-    const char* fileName = m_debugInterface->CreateFileName(
-        "_DEC",
-        CodechalDbgBufferType::bufPicParams,
-        CodechalDbgExtType::txt);
-
-    std::ofstream ofs(fileName, std::ios::out);
-    ofs << oss.str();
-    ofs.close();
 
     return MOS_STATUS_SUCCESS;
 }
@@ -235,60 +165,67 @@ MOS_STATUS Vp8Pipeline::DumpSliceParams(PCODEC_VP8_SLICE_PARAMS sliceParams)
 {
     DECODE_FUNC_CALL();
 
-    if (!m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrSlcParams))
+    if (sliceParams == nullptr)
     {
         return MOS_STATUS_SUCCESS;
     }
 
-    DECODE_CHK_NULL(sliceParams);
-
-    std::ostringstream oss;
-    oss.setf(std::ios::showbase | std::ios::uppercase);
-
-    oss<< "BSNALunitDataLocation: "<<std::hex<< +sliceParams->BSNALunitDataLocation<<std::endl;
-    oss<< "SliceBytesInBuffer: "<<std::hex<< +sliceParams->SliceBytesInBuffer<<std::endl;
-
-    const char* fileName = m_debugInterface->CreateFileName(
-        "_DEC",
-        CodechalDbgBufferType::bufSlcParams,
-        CodechalDbgExtType::txt);
-
-    std::ofstream ofs(fileName, std::ios::out);
-    ofs << oss.str();
-    ofs.close();
-    return MOS_STATUS_SUCCESS;
-}
-
-MOS_STATUS Vp8Pipeline::DumpIQParams(CODEC_VP8_IQ_MATRIX_PARAMS *matrixData)
-{
-    DECODE_FUNC_CALL();
-
-    if (!m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrIqParams))
+    if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrSlcParams))
     {
-        return MOS_STATUS_SUCCESS;
-    }
+        const char *fileName = m_debugInterface->CreateFileName(
+            "_DEC",
+            CodechalDbgBufferType::bufSlcParams,
+            CodechalDbgExtType::txt);
 
-    DECODE_CHK_NULL(matrixData);
-
-    std::ostringstream oss;
-    oss.setf(std::ios::showbase | std::ios::uppercase);
-
-    for(uint8_t i=0;i<4;++i)
-    {
-        for(uint8_t j=0;j<6;++j)
+        if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrEnableFastDump))
         {
-            oss<< "quantization_values["<< std::dec<< +i <<"]["<<+j<<"]: "<<std::hex<< +matrixData->quantization_values[i][j]<<std::endl;
+            MediaDebugFastDump::Dump(
+                (uint8_t *)sliceParams,
+                fileName,
+                sizeof(CODEC_VP8_SLICE_PARAMS),
+                0,
+                MediaDebugSerializer<CODEC_VP8_SLICE_PARAMS>());
+        }
+        else
+        {
+            DumpDecodeVp8SliceParams(sliceParams, fileName);
         }
     }
 
-    const char* fileName = m_debugInterface->CreateFileName(
-        "_DEC",
-        CodechalDbgBufferType::bufIqParams,
-        CodechalDbgExtType::txt);
+    return MOS_STATUS_SUCCESS;
+}
 
-    std::ofstream ofs(fileName, std::ios::out);
-    ofs << oss.str();
-    ofs.close();
+MOS_STATUS Vp8Pipeline::DumpIQParams(PCODEC_VP8_IQ_MATRIX_PARAMS iqParams)
+{
+    DECODE_FUNC_CALL();
+
+    if (iqParams == nullptr)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrIqParams))
+    {
+        const char *fileName = m_debugInterface->CreateFileName(
+            "_DEC",
+            CodechalDbgBufferType::bufIqParams,
+            CodechalDbgExtType::txt);
+
+        if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrEnableFastDump))
+        {
+            MediaDebugFastDump::Dump(
+                (uint8_t *)iqParams,
+                fileName,
+                sizeof(CODEC_VP8_IQ_MATRIX_PARAMS),
+                0,
+                MediaDebugSerializer<CODEC_VP8_IQ_MATRIX_PARAMS>());
+        }
+        else
+        {
+            DumpDecodeVp8IqParams(iqParams, fileName);
+        }
+    }
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -296,20 +233,22 @@ MOS_STATUS Vp8Pipeline::DumpCoefProbBuffer(PMOS_RESOURCE m_resCoefProbBuffer)
 {
     DECODE_FUNC_CALL();
 
-    if (!m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrCoeffProb))
+    if (m_resCoefProbBuffer == nullptr)
     {
         return MOS_STATUS_SUCCESS;
     }
 
-    DECODE_CHK_STATUS(m_debugInterface->DumpBuffer(
+    if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrCoefProb))
+    {
+        DECODE_CHK_STATUS(m_debugInterface->DumpBuffer(
             m_resCoefProbBuffer,
-            CodechalDbgAttr::attrCoeffProb,
+            CodechalDbgAttr::attrCoefProb,
             "_DEC_CoefProb",
             m_basicFeature->m_coefProbSize));
+    }
 
     return MOS_STATUS_SUCCESS;
 }
-
 #endif
 
 }  // namespace decode

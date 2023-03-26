@@ -420,11 +420,73 @@ MOS_STATUS DecodePipeline::DumpDownSamplingParams(DecodeDownSamplingFeature &dow
 }
 #endif
 
+MOS_STATUS DecodePipeline::DumpBitstream(PMOS_RESOURCE pBitstream, uint32_t size, uint32_t offset)
+{
+    DECODE_FUNC_CALL();
+
+    DECODE_CHK_NULL(pBitstream);
+
+    DECODE_CHK_STATUS(m_debugInterface->DumpBuffer(
+        pBitstream, 
+        CodechalDbgAttr::attrDecodeBitstream,
+        "_DEC", 
+        size, 
+        offset, 
+        CODECHAL_NUM_MEDIA_STATES));
+
+    if (MOS_TraceKeyEnabled(TR_KEY_DECODE_BITSTREAM_INFO))
+    {
+        MOS_LOCK_PARAMS lockFlags;
+        MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
+        lockFlags.ReadOnly = 1;
+        
+        uint8_t *data = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, pBitstream, &lockFlags);
+        MEDIA_DEBUG_CHK_NULL(data);
+        data += offset;
+
+        DECODE_EVENTDATA_BITSTREAM eventData;
+        eventData.BitstreamSize = size;
+        for (uint32_t i = 0; i < MOS_MIN(BITSTREAM_INFO_SIZE, size); i++)
+        {
+            eventData.Data[i] = data[i];
+        }
+        MOS_TraceEvent(EVENT_DECODE_INFO_BITSTREAM, EVENT_TYPE_INFO, &eventData, sizeof(eventData));
+
+        m_osInterface->pfnUnlockResource(m_osInterface, pBitstream);
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS DecodePipeline::DelayForDumpOutput()
+{
+    DECODE_FUNC_CALL();
+
+    if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrDelayForDumpOutput))
+    {
+        uint32_t completedCount = m_statusReport->GetCompletedCount();
+        for (uint8_t i = 0; i < 20; i++)
+        {
+            if (completedCount <= m_statusCheckCount)
+            {
+                MosUtilities::MosSleep(5);
+                completedCount = m_statusReport->GetCompletedCount();
+            }
+            else
+            {
+                break;
+            }
+        }
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS DecodePipeline::DumpOutput(const DecodeStatusReportData& reportData)
 {
     DECODE_FUNC_CALL();
 
-    if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrDecodeOutputSurface) || MOS_TraceKeyEnabled(TR_KEY_DECODE_DSTYUV))
+    if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrDecodeOutputSurface))
     {
         MOS_SURFACE dstSurface;
         MOS_ZeroMemory(&dstSurface, sizeof(dstSurface));
@@ -448,7 +510,8 @@ MOS_STATUS DecodePipeline::DumpOutput(const DecodeStatusReportData& reportData)
 
             if (!Mos_ResourceIsNull(&sfcDstSurface.OsResource))
             {
-#if (_DEBUG || _RELEASE_INTERNAL)
+                DECODE_CHK_STATUS(m_allocator->GetSurfaceInfo(&sfcDstSurface));
+
                 //rgb format read from reg key
                 uint32_t sfcOutputRgbFormatFlag =
                     ReadUserFeature(m_userSettingPtr, "Decode SFC RGB Format Output", MediaUserSetting::Group::Sequence).Get<uint32_t>();
@@ -462,7 +525,6 @@ MOS_STATUS DecodePipeline::DumpOutput(const DecodeStatusReportData& reportData)
                     DECODE_CHK_STATUS(m_debugInterface->DumpYUVSurface(
                         &sfcDstSurface, CodechalDbgAttr::attrSfcOutputSurface, "SfcDstSurf"));
                 }
-#endif
             }
         }
 
@@ -477,112 +539,6 @@ MOS_STATUS DecodePipeline::DumpOutput(const DecodeStatusReportData& reportData)
         }
     }
 #endif
-
-    return MOS_STATUS_SUCCESS;
-}
-#endif
-
-#if MOS_EVENT_TRACE_DUMP_SUPPORTED
-MOS_STATUS DecodePipeline::TraceDataDumpOutput(const DecodeStatusReportData &reportData)
-{
-    bool bAllocate = false;
-    MOS_SURFACE dstSurface;
-    MOS_ZeroMemory(&dstSurface, sizeof(dstSurface));
-    dstSurface.OsResource = reportData.currDecodedPicRes;
-    DECODE_CHK_STATUS(m_allocator->GetSurfaceInfo(&dstSurface));
-
-    if (!m_allocator->ResourceIsNull(&dstSurface.OsResource))
-    {
-        if (m_tempOutputSurf == nullptr || m_allocator->ResourceIsNull(&m_tempOutputSurf->OsResource))
-        {
-            bAllocate = true;
-        }
-        else if (m_tempOutputSurf->dwWidth  < dstSurface.dwWidth ||
-                 m_tempOutputSurf->dwHeight < dstSurface.dwHeight)
-        {
-            bAllocate = true;
-        }
-        else
-        {
-            bAllocate = false;
-        }
-
-        if (bAllocate)
-        {
-            if (!m_allocator->ResourceIsNull(&m_tempOutputSurf->OsResource))
-            {
-                m_allocator->Destroy(m_tempOutputSurf);
-            }
-
-            m_tempOutputSurf = m_allocator->AllocateLinearSurface(
-                dstSurface.dwWidth,
-                dstSurface.dwHeight,
-                "Decode Output Surf",
-                dstSurface.Format,
-                dstSurface.bIsCompressed,
-                resourceOutputPicture,
-                lockableSystemMem,
-                MOS_TILE_LINEAR_GMM);
-        }
-
-        DECODE_CHK_STATUS(m_osInterface->pfnDoubleBufferCopyResource(
-            m_osInterface,
-            &dstSurface.OsResource,
-            &m_tempOutputSurf->OsResource,
-            false));
-
-        DECODE_EVENTDATA_YUV_SURFACE_INFO eventData =
-        {
-            (uint32_t)reportData.currDecodedPic.PicFlags,
-            reportData.frameType,
-            m_tempOutputSurf->dwOffset,
-            m_tempOutputSurf->YPlaneOffset.iYOffset,
-            m_tempOutputSurf->dwPitch,
-            m_tempOutputSurf->dwWidth,
-            m_tempOutputSurf->dwHeight,
-            (uint32_t)m_tempOutputSurf->Format,
-            m_tempOutputSurf->UPlaneOffset.iLockSurfaceOffset,
-            m_tempOutputSurf->VPlaneOffset.iLockSurfaceOffset,
-            m_tempOutputSurf->UPlaneOffset.iSurfaceOffset,
-            m_tempOutputSurf->VPlaneOffset.iSurfaceOffset,
-        };
-        MOS_TraceEvent(EVENT_DECODE_DUMPINFO_DST, EVENT_TYPE_INFO, &eventData, sizeof(eventData), NULL, 0); 
-
-        ResourceAutoLock resLock(m_allocator, &m_tempOutputSurf->OsResource);
-        auto             pData = (uint8_t *)resLock.LockResourceForRead();
-        DECODE_CHK_NULL(pData);
-
-        MOS_TraceDataDump(
-            "Decode_OutputSurf",
-            0,
-            pData,
-            (uint32_t)m_tempOutputSurf->OsResource.pGmmResInfo->GetSizeMainSurface());
-        
-        m_allocator->UnLock(&m_tempOutputSurf->OsResource);
-    }
-
-    return MOS_STATUS_SUCCESS;
-}
-
-MOS_STATUS DecodePipeline::TraceDataDump2ndLevelBB(PMHW_BATCH_BUFFER batchBuffer)
-{
-    DECODE_FUNC_CALL();
-
-    DECODE_CHK_NULL(batchBuffer);
-    batchBuffer->iLastCurrent = batchBuffer->iSize * batchBuffer->count;
-    batchBuffer->dwOffset     = 0;
-
-    ResourceAutoLock resLock(m_allocator, &batchBuffer->OsResource);
-    auto             pData = (uint8_t *)resLock.LockResourceForRead();
-    DECODE_CHK_NULL(pData);
-
-    MOS_TraceDataDump(
-        "Decode_2ndLevelCmdBB",
-        m_osInterface->pfnGetGpuContext(m_osInterface),
-        pData,
-        batchBuffer->iLastCurrent);
-
-    m_allocator->UnLock(&batchBuffer->OsResource);
 
     return MOS_STATUS_SUCCESS;
 }
@@ -655,6 +611,8 @@ MOS_STATUS DecodePipeline::StatusCheck()
     }
 #endif
 
+    CODECHAL_DEBUG_TOOL(DECODE_CHK_STATUS(DelayForDumpOutput()));
+
     uint32_t completedCount = m_statusReport->GetCompletedCount();
     if (completedCount <= m_statusCheckCount)
     {
@@ -687,26 +645,29 @@ MOS_STATUS DecodePipeline::StatusCheck()
         auto bufferDumpNumTemp = m_debugInterface->m_bufferDumpFrameNum;
         auto currPicTemp       = m_debugInterface->m_currPic;
         auto frameTypeTemp     = m_debugInterface->m_frameType;
+        auto secondField       = m_debugInterface->m_secondField;
 
-        m_debugInterface->m_bufferDumpFrameNum = m_statusCheckCount;
+        m_debugInterface->m_bufferDumpFrameNum = DecodeOutputIndex;
         m_debugInterface->m_currPic            = reportData.currDecodedPic;
         m_debugInterface->m_frameType          = reportData.frameType;
+        m_debugInterface->m_secondField        = reportData.secondField;
+
 #ifdef _DECODE_PROCESSING_SUPPORTED
         ReportSfcLinearSurfaceUsage(reportData);
 #endif
+
         DECODE_CHK_STATUS(DumpOutput(reportData));
+
+        if ((CodecHal_PictureIsFrame(m_debugInterface->m_currPic)) ||
+            (CodecHal_PictureIsField(m_debugInterface->m_currPic) && m_debugInterface->m_secondField))
+        {            
+            DecodeOutputIndex++;
+        }
 
         m_debugInterface->m_bufferDumpFrameNum = bufferDumpNumTemp;
         m_debugInterface->m_currPic            = currPicTemp;
         m_debugInterface->m_frameType          = frameTypeTemp;
-#endif
-
-#if MOS_EVENT_TRACE_DUMP_SUPPORTED
-        if (MOS_TraceKeyEnabled(TR_KEY_DECODE_DSTYUV_IN_TRACE))
-        {
-            const DecodeStatusReportData &reportETWData = statusReport->GetReportData(m_statusCheckCount);
-            DECODE_CHK_STATUS(TraceDataDumpOutput(reportETWData));
-        }
+        m_debugInterface->m_secondField        = secondField;
 #endif
 
         m_statusCheckCount++;

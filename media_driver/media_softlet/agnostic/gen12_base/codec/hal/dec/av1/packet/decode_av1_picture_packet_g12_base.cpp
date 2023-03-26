@@ -98,9 +98,6 @@ namespace decode{
             m_allocator->Destroy(m_curMvBufferForDummyWL);
             m_allocator->Destroy(m_bwdAdaptCdfBufForDummyWL);
             m_allocator->Destroy(m_resDataBufferForDummyWL);
-#if MOS_EVENT_TRACE_DUMP_SUPPORTED
-            m_allocator->Destroy(m_tempRefSurf);
-#endif
         }
 
         return MOS_STATUS_SUCCESS;
@@ -1235,9 +1232,11 @@ namespace decode{
         Av1ReferenceFramesG12 &refFrames = m_av1BasicFeature->m_refFrames;
         uint8_t prevFrameIdx = refFrames.GetPrimaryRefIdx();
 
+        uint32_t refSize = 0;
         if (m_av1PicParams->m_picInfoFlags.m_fields.m_frameType != keyFrame)
         {
             const std::vector<uint8_t> &activeRefList = refFrames.GetActiveReferenceList(*m_av1PicParams, m_av1BasicFeature->m_av1TileParams[m_av1BasicFeature->m_tileCoding.m_curTile]);
+            refSize = activeRefList.size();
 
             //set for INTRA_FRAME
             pipeBufAddrParams.m_references[0] = &m_av1BasicFeature->m_destSurface.OsResource;
@@ -1286,18 +1285,7 @@ namespace decode{
             }
         }
 
-        CODECHAL_DEBUG_TOOL(DumpResources(pipeBufAddrParams));
-
-#if MOS_EVENT_TRACE_DUMP_SUPPORTED
-        TraceDataDumpInternalBuffers(pipeBufAddrParams);
-#endif
-
-#if MOS_EVENT_TRACE_DUMP_SUPPORTED
-        if (MOS_TraceKeyEnabled(TR_KEY_DECODE_REFYUV))
-        {
-            TraceDataDumpReferences(pipeBufAddrParams);
-        }
-#endif
+        CODECHAL_DEBUG_TOOL(DumpResources(pipeBufAddrParams, refSize));
 
         return MOS_STATUS_SUCCESS;
     }
@@ -1632,25 +1620,35 @@ namespace decode{
     }
 
 #if USE_CODECHAL_DEBUG_TOOL
-    MOS_STATUS Av1DecodePicPkt_G12_Base::DumpResources(MhwVdboxAvpPipeBufAddrParams& pipeBufAddrParams)
+    MOS_STATUS Av1DecodePicPkt_G12_Base::DumpResources(MhwVdboxAvpPipeBufAddrParams &pipeBufAddrParams, uint32_t refSize)
     {
         DECODE_FUNC_CALL();
 
         CodechalDebugInterface *debugInterface = m_av1Pipeline->GetDebugInterface();
-        debugInterface->m_frameType = m_av1PicParams->m_picInfoFlags.m_fields.m_frameType ? P_TYPE : I_TYPE;
-        m_av1PicParams->m_currPic.PicFlags  = PICTURE_FRAME;
-        debugInterface->m_currPic      = m_av1PicParams->m_currPic;
-        debugInterface->m_bufferDumpFrameNum = m_av1BasicFeature->m_frameNum;
+        debugInterface->m_frameType            = m_av1PicParams->m_picInfoFlags.m_fields.m_frameType ? P_TYPE : I_TYPE;
+        m_av1PicParams->m_currPic.PicFlags     = PICTURE_FRAME;
+        debugInterface->m_currPic              = m_av1PicParams->m_currPic;
+        debugInterface->m_bufferDumpFrameNum   = m_av1BasicFeature->m_frameNum;
+
+        if (m_av1PicParams->m_picInfoFlags.m_fields.m_frameType != keyFrame)
+        {
+            for (uint32_t n = 0; n < refSize; n++)
+            {
+                MOS_SURFACE refSurface;
+                MOS_ZeroMemory(&refSurface, sizeof(MOS_SURFACE));
+                refSurface.OsResource = *(pipeBufAddrParams.m_references[n + lastFrame]);
+                DECODE_CHK_STATUS(m_allocator->GetSurfaceInfo(&refSurface));
+                std::string refSurfName = "RefSurf[" + std::to_string(static_cast<uint32_t>(n + lastFrame)) + "]";
+                DECODE_CHK_STATUS(debugInterface->DumpYUVSurface(
+                    &refSurface,
+                    CodechalDbgAttr::attrDecodeReferenceSurfaces,
+                    refSurfName.c_str()));
+            }
+        }
+
         //For multi-tiles per frame case, only need dump these resources once.
         if (m_av1BasicFeature->m_tileCoding.m_curTile == 0)
         {
-            DECODE_CHK_STATUS(debugInterface->DumpBuffer(
-                pipeBufAddrParams.m_cdfTableInitializationBuffer,
-                CodechalDbgAttr::attrCoefProb,
-                "CdfTableInitialization",
-                m_av1BasicFeature->m_cdfMaxNumBytes,
-                CODECHAL_NUM_MEDIA_STATES));
-
             if (pipeBufAddrParams.m_segmentIdReadBuffer != nullptr &&
                 !m_allocator->ResourceIsNull(pipeBufAddrParams.m_segmentIdReadBuffer))
             {
@@ -1662,171 +1660,12 @@ namespace decode{
                     CODECHAL_NUM_MEDIA_STATES));
             }
 
-            if (m_av1PicParams->m_picInfoFlags.m_fields.m_frameType != keyFrame)
-            {
-                for (auto n = 1; n < av1TotalRefsPerFrame; n++)
-                {
-                    MOS_SURFACE destSurface;
-                    MOS_ZeroMemory(&destSurface, sizeof(MOS_SURFACE));
-                    destSurface.OsResource = *(pipeBufAddrParams.m_references[n]);
-                    DECODE_CHK_STATUS(m_allocator->GetSurfaceInfo(&destSurface));
-                    std::string refSurfName = "RefSurf[" + std::to_string(static_cast<uint32_t>(n)) + "]";
-                    DECODE_CHK_STATUS(debugInterface->DumpYUVSurface(
-                        &destSurface,
-                        CodechalDbgAttr::attrDecodeReferenceSurfaces,
-                        refSurfName.c_str()));
-                }
-            }
-        }
-
-        //Should dump each tile's bit stream
-        DECODE_CHK_STATUS(debugInterface->DumpBuffer(
-            &m_av1BasicFeature->m_resDataBuffer.OsResource,
-            CodechalDbgAttr::attrDecodeBitstream,
-            "DEC",
-            m_av1BasicFeature->m_dataSize,
-            m_av1BasicFeature->m_dataOffset,
-            CODECHAL_NUM_MEDIA_STATES));
-
-        return MOS_STATUS_SUCCESS;
-    }
-#endif
-
-#if MOS_EVENT_TRACE_DUMP_SUPPORTED
-    MOS_STATUS Av1DecodePicPkt_G12_Base::TraceDataDumpInternalBuffers(MhwVdboxAvpPipeBufAddrParams &pipeBufAddrParams)
-    {        
-        if (MOS_TraceKeyEnabled(TR_KEY_DECODE_INTERNAL))
-        {
-            if (m_av1BasicFeature->m_tileCoding.m_curTile == 0)
-            {
-                ResourceAutoLock resLock(m_allocator, pipeBufAddrParams.m_cdfTableInitializationBuffer);
-                auto             pData = (uint8_t *)resLock.LockResourceForRead();
-                DECODE_CHK_NULL(pData);
-
-                MOS_TraceDataDump(
-                    "Decode_Av1CdfTableInitBuffer",
-                    0,
-                    pData,
-                    m_av1BasicFeature->m_cdfMaxNumBytes);
-
-                m_allocator->UnLock(pipeBufAddrParams.m_cdfTableInitializationBuffer);
-            }
-
-            if (m_av1BasicFeature->m_tileCoding.m_curTile == 0)
-            {
-                if (pipeBufAddrParams.m_segmentIdReadBuffer != nullptr &&
-                    !m_allocator->ResourceIsNull(pipeBufAddrParams.m_segmentIdReadBuffer))
-                {
-                    ResourceAutoLock resLock(m_allocator, pipeBufAddrParams.m_segmentIdReadBuffer);
-                    auto             pData = (uint8_t *)resLock.LockResourceForRead();
-                    DECODE_CHK_NULL(pData);
-                    
-                    MOS_TraceDataDump(
-                        "Decode_Av1SegmentIdReadBuffer",
-                        0,
-                        pData,
-                        m_widthInSb * m_heightInSb * CODECHAL_CACHELINE_SIZE);
-
-                    m_allocator->UnLock(pipeBufAddrParams.m_segmentIdReadBuffer);
-                }
-            }
-        }
-
-        return MOS_STATUS_SUCCESS;
-    }
-
-    MOS_STATUS Av1DecodePicPkt_G12_Base::TraceDataDumpReferences(MhwVdboxAvpPipeBufAddrParams &pipeBufAddrParams)
-    {
-        bool bReport = false;
-
-        if (m_av1BasicFeature->m_tileCoding.m_curTile == 0)
-        {
-            if (m_av1PicParams->m_picInfoFlags.m_fields.m_frameType != keyFrame)
-            {
-                for (auto n = 1; n < av1TotalRefsPerFrame; n++)
-                {
-                    bool        bAllocate = false;
-                    MOS_SURFACE dstSurface;
-                    MOS_ZeroMemory(&dstSurface, sizeof(MOS_SURFACE));
-                    dstSurface.OsResource = *(pipeBufAddrParams.m_references[n]);
-                    DECODE_CHK_STATUS(m_allocator->GetSurfaceInfo(&dstSurface));
-
-                    if (!m_allocator->ResourceIsNull(&dstSurface.OsResource))
-                    {
-                        if (m_tempRefSurf == nullptr || m_allocator->ResourceIsNull(&m_tempRefSurf->OsResource))
-                        {
-                            bAllocate = true;
-                        }
-                        else if (m_tempRefSurf->dwWidth < dstSurface.dwWidth ||
-                                 m_tempRefSurf->dwHeight < dstSurface.dwHeight)
-                        {
-                            bAllocate = true;
-                        }
-                        else
-                        {
-                            bAllocate = false;
-                        }
-
-                        if (bAllocate)
-                        {
-                            if (!m_allocator->ResourceIsNull(&m_tempRefSurf->OsResource))
-                            {
-                                m_allocator->Destroy(m_tempRefSurf);
-                            }
-
-                            m_tempRefSurf = m_allocator->AllocateLinearSurface(
-                                dstSurface.dwWidth,
-                                dstSurface.dwHeight,
-                                "Decode Ref Surf",
-                                dstSurface.Format,
-                                dstSurface.bIsCompressed,
-                                resourceInputReference,
-                                lockableSystemMem,
-                                MOS_TILE_LINEAR_GMM);
-                        }
-
-                        DECODE_CHK_STATUS(m_osInterface->pfnDoubleBufferCopyResource(
-                            m_osInterface,
-                            &dstSurface.OsResource,
-                            &m_tempRefSurf->OsResource,
-                            false));
-
-                        if (!bReport)
-                        {
-                            DECODE_EVENTDATA_YUV_SURFACE_INFO eventData =
-                            {
-                                PICTURE_FRAME,
-                                0,
-                                m_tempRefSurf->dwOffset,
-                                m_tempRefSurf->YPlaneOffset.iYOffset,
-                                m_tempRefSurf->dwPitch,
-                                m_tempRefSurf->dwWidth,
-                                m_tempRefSurf->dwHeight,
-                                (uint32_t)m_tempRefSurf->Format,
-                                m_tempRefSurf->UPlaneOffset.iLockSurfaceOffset,
-                                m_tempRefSurf->VPlaneOffset.iLockSurfaceOffset,
-                                m_tempRefSurf->UPlaneOffset.iSurfaceOffset,
-                                m_tempRefSurf->VPlaneOffset.iSurfaceOffset,
-                            };
-                            MOS_TraceEvent(EVENT_DECODE_DUMPINFO_REF, EVENT_TYPE_INFO, &eventData, sizeof(eventData), NULL, 0);
-
-                            bReport = true;
-                        }
-
-                        ResourceAutoLock resLock(m_allocator, &m_tempRefSurf->OsResource);
-                        auto             pData = (uint8_t *)resLock.LockResourceForRead();
-                        DECODE_CHK_NULL(pData);
-
-                        MOS_TraceDataDump(
-                            "Decode_AV1RefSurf",
-                            n,
-                            pData,
-                            (uint32_t)m_tempRefSurf->OsResource.pGmmResInfo->GetSizeMainSurface());
-                        
-                        m_allocator->UnLock(&m_tempRefSurf->OsResource);
-                    }
-                }
-            }
+            DECODE_CHK_STATUS(debugInterface->DumpBuffer(
+                pipeBufAddrParams.m_cdfTableInitializationBuffer,
+                CodechalDbgAttr::attrCoefProb,
+                "CdfTableInitialization",
+                m_av1BasicFeature->m_cdfMaxNumBytes,
+                CODECHAL_NUM_MEDIA_STATES));
         }
 
         return MOS_STATUS_SUCCESS;

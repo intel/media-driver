@@ -259,6 +259,8 @@ MHW_SETPAR_DECL_SRC(MFX_PIPE_BUF_ADDR_STATE, Mpeg2DecodePicPkt)
 
     DECODE_CHK_STATUS(FixMfxPipeBufAddrParams());
 
+    CODECHAL_DEBUG_TOOL(DumpResources(params));
+
 #ifdef _MMC_SUPPORTED
     Mpeg2DecodeMemComp *mpeg2DecodeMemComp = dynamic_cast<Mpeg2DecodeMemComp *>(m_mmcState);
     DECODE_CHK_NULL(mpeg2DecodeMemComp);
@@ -405,13 +407,36 @@ MOS_STATUS Mpeg2DecodePicPkt::CalculateCommandSize(uint32_t &commandBufferSize, 
 }
 
 #if USE_CODECHAL_DEBUG_TOOL
-MOS_STATUS Mpeg2DecodePicPkt::DumpResources(MHW_VDBOX_PIPE_BUF_ADDR_PARAMS& pipeBufAddrParams)
-{
-    DECODE_FUNC_CALL();
+    MOS_STATUS Mpeg2DecodePicPkt::DumpResources(MFX_PIPE_BUF_ADDR_STATE_PAR &pipeBufAddrParams) const
+    {
+        DECODE_FUNC_CALL();
 
-    return MOS_STATUS_SUCCESS;
-}
+        CodechalDebugInterface *debugInterface = m_pipeline->GetDebugInterface();
+        DECODE_CHK_NULL(debugInterface);
 
+        if (m_mpeg2PicParams->m_pictureCodingType != I_TYPE)
+        {
+            for (uint16_t n = 0; n <= CodechalDecodeBwdRefBottom; n++)
+            {
+                if (pipeBufAddrParams.presReferences[n])
+                {
+                    MOS_SURFACE refSurface;
+                    MOS_ZeroMemory(&refSurface, sizeof(MOS_SURFACE));
+                    refSurface.OsResource = *(pipeBufAddrParams.presReferences[n]);
+                    DECODE_CHK_STATUS(m_allocator->GetSurfaceInfo(&refSurface));
+
+                    debugInterface->m_refIndex = n;
+                    std::string refSurfName    = "RefSurf[" + std::to_string(static_cast<uint32_t>(debugInterface->m_refIndex)) + "]";
+                    DECODE_CHK_STATUS(debugInterface->DumpYUVSurface(
+                        &refSurface,
+                        CodechalDbgAttr::attrDecodeReferenceSurfaces,
+                        refSurfName.c_str()));
+                }
+            }
+        }
+
+        return MOS_STATUS_SUCCESS;
+    }
 #endif
 
 MOS_STATUS Mpeg2DecodePicPkt::AddAllCmds_MFX_PIPE_MODE_SELECT(MOS_COMMAND_BUFFER &cmdBuffer)

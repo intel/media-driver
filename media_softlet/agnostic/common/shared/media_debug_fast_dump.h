@@ -35,6 +35,7 @@
 #include <string>
 #include "media_debug_serializer.h"
 #include "media_copy.h"
+#include "codechal_debug.h"
 
 class MediaDebugFastDump
 {
@@ -109,10 +110,19 @@ public:
 
     // if file name contains "w[0]_h[0]_p[0]", it will be replaced to "w[RealWidth]_h[RealHeight]_p[RealPitch]" by fast dump
     static void Dump(
-        MOS_RESOURCE &res,
-        std::string &&name,
-        size_t        dumpSize = 0,
-        size_t        offset   = 0,
+        MOS_RESOURCE  &res,
+        std::string  &&name,
+        size_t         dumpSize = 0,
+        size_t         offset   = 0,
+        std::function<
+            void(std::ostream &, const void *, size_t)>
+            &&serializer = MediaDebugSerializer<uint32_t>());
+
+    static void Dump(
+        uint8_t       *buffer,
+        std::string  &&name,
+        size_t         dumpSize = 0,
+        size_t         offset   = 0,
         std::function<
             void(std::ostream &, const void *, size_t)>
             &&serializer = MediaDebugSerializer<uint32_t>());

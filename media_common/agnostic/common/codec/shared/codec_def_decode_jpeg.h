@@ -62,9 +62,9 @@ struct CodecDecodeJpegScanParameter
     struct
     {
         uint16_t              NumComponents;                         //!<  Number of components
-        uint8_t               ComponentSelector[jpegNumComponent];//!<  Component selector
-        uint8_t               DcHuffTblSelector[jpegNumComponent];//!<  DC Huffman table selector
-        uint8_t               AcHuffTblSelector[jpegNumComponent];//!<  AC Huffman table selector
+        uint8_t               ComponentSelector[jpegNumComponent];   //!<  Component selector
+        uint8_t               DcHuffTblSelector[jpegNumComponent];   //!<  DC Huffman table selector
+        uint8_t               AcHuffTblSelector[jpegNumComponent];   //!<  AC Huffman table selector
         uint16_t              RestartInterval;                       //!<  Indicate restart interval
         uint32_t              MCUCount;                              //!<  MCU count
         uint16_t              ScanHoriPosition;                      //!<  Scan horizontal position
@@ -76,5 +76,12 @@ struct CodecDecodeJpegScanParameter
     uint16_t              NumScans;
 };
 
+typedef struct tagJPEG_DECODE_QUERY_STATUS
+{
+    uint32_t StatusReportFeedbackNumber;
+    uint8_t  bStatus;
+    uint8_t  reserved8bits;
+    uint16_t reserved16bits;
+} JPEG_DECODE_QUERY_STATUS, *PJPEG_DECODE_QUERY_STATUS;
 #endif  // __CODEC_DEF_DECODE_JPEG_H__
 

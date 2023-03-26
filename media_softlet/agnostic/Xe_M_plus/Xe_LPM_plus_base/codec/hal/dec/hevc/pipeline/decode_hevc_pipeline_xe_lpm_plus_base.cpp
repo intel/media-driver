@@ -240,7 +240,7 @@ MOS_STATUS HevcPipelineXe_Lpm_Plus_Base::Prepare(void *params)
 
             CODECHAL_DEBUG_TOOL(
                 m_debugInterface->m_bufferDumpFrameNum = m_basicFeature->m_frameNum;
-            DECODE_CHK_STATUS(DumpParams(*m_basicFeature))
+                DECODE_CHK_STATUS(DumpParams(*m_basicFeature))
                 );
 
             DecodeStatusParameters inputParameters = {};
@@ -313,7 +313,9 @@ MOS_STATUS HevcPipelineXe_Lpm_Plus_Base::Execute()
             {
                 DECODE_CHK_STATUS(UserFeatureReport());
             }
-            m_basicFeature->m_frameNum++;
+            
+            DecodeFrameIndex++;
+            m_basicFeature->m_frameNum = DecodeFrameIndex;
 
             DECODE_CHK_STATUS(m_statusReport->Reset());
 
@@ -461,30 +463,22 @@ MOS_STATUS HevcPipelineXe_Lpm_Plus_Base::DumpParams(HevcBasicFeature &basicFeatu
     m_debugInterface->m_secondField        = basicFeature.m_secondField;
     m_debugInterface->m_frameType          = basicFeature.m_pictureCodingType;
 
-    DECODE_CHK_STATUS(m_debugInterface->DumpBuffer(
-        &basicFeature.m_resDataBuffer.OsResource, CodechalDbgAttr::attrDecodeBitstream, "_DEC",
-        basicFeature.m_dataSize, 0, CODECHAL_NUM_MEDIA_STATES));
-
     DECODE_CHK_STATUS(DumpPicParams(
         basicFeature.m_hevcPicParams,
         basicFeature.m_hevcRextPicParams,
         basicFeature.m_hevcSccPicParams));
 
-    if (basicFeature.m_hevcIqMatrixParams != nullptr)
-    {
-        DECODE_CHK_STATUS(DumpIQParams(basicFeature.m_hevcIqMatrixParams));
-    }
+    DECODE_CHK_STATUS(DumpSliceParams(
+        basicFeature.m_hevcSliceParams,
+        basicFeature.m_hevcRextSliceParams,
+        basicFeature.m_numSlices,
+        basicFeature.m_shortFormatInUse));
 
-    if (basicFeature.m_hevcSliceParams != nullptr)
-    {
-        DECODE_CHK_STATUS(DumpSliceParams(
-            basicFeature.m_hevcSliceParams,
-            basicFeature.m_hevcRextSliceParams,
-            basicFeature.m_numSlices,
-            basicFeature.m_shortFormatInUse));
-    }
+    DECODE_CHK_STATUS(DumpIQParams(basicFeature.m_hevcIqMatrixParams));
 
-    if(basicFeature.m_hevcSubsetParams != nullptr)
+    DECODE_CHK_STATUS(DumpBitstream(&basicFeature.m_resDataBuffer.OsResource, basicFeature.m_dataSize, 0));
+
+    if (!basicFeature.m_shortFormatInUse)
     {
         DECODE_CHK_STATUS(DumpSubsetsParams(basicFeature.m_hevcSubsetParams));
     }

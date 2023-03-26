@@ -94,7 +94,7 @@ typedef struct _MHW_VDBOX_MPEG2_SLICE_STATE
 
 typedef struct _MHW_VDBOX_MPEG2_MB_STATE
 {
-    CodecDecodeMpeg2MbParmas       *pMBParams;
+    CodecDecodeMpeg2MbParams       *pMBParams;
     uint16_t                        wPicWidthInMb;
     uint16_t                        wPicHeightInMb;
     uint16_t                        wPicCodingType;

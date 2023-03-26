@@ -146,15 +146,6 @@ namespace decode
         //!
         MOS_STATUS DumpResources(MHW_VDBOX_PIPE_BUF_ADDR_PARAMS& pipeBufAddrParams);
 
-#if MOS_EVENT_TRACE_DUMP_SUPPORTED
-        //!
-        //! \brief  Trace Dump Ref Resources
-        //! \return MOS_STATUS
-        //!         MOS_STATUS_SUCCESS if success, else fail reason
-        //!
-        MOS_STATUS TraceDataDumpReferences(MHW_VDBOX_PIPE_BUF_ADDR_PARAMS &pipeBufAddrParams);
-#endif
-
 #ifdef _DECODE_PROCESSING_SUPPORTED
         DecodeDownSamplingFeature *m_downSamplingFeature = nullptr;
         DecodeDownSamplingPkt     *m_downSamplingPkt     = nullptr;
@@ -184,10 +175,6 @@ namespace decode
         CodechalHwInterface *m_hwInterface = nullptr;
         MhwMiInterface      *m_miInterface = nullptr;
 
-        
-#if MOS_EVENT_TRACE_DUMP_SUPPORTED
-        PMOS_SURFACE m_tempRefSurf = nullptr;
-#endif
     MEDIA_CLASS_DEFINE_END(decode__AvcDecodePicPktXe_M_Base)
     };
 

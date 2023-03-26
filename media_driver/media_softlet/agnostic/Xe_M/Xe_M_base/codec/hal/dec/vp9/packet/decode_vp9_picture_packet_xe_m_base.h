@@ -173,23 +173,7 @@ namespace decode
         //! \return MOS_STATUS
         //!         MOS_STATUS_SUCCESS if success, else fail reason
         //!
-        MOS_STATUS DumpRefResources(MHW_VDBOX_PIPE_BUF_ADDR_PARAMS &pipeBufAddrParams, uint32_t size);
-
-#if MOS_EVENT_TRACE_DUMP_SUPPORTED
-        //!
-        //! \brief  Dump mv resources
-        //! \return MOS_STATUS
-        //!         MOS_STATUS_SUCCESS if success, else fail reason
-        //!
-        MOS_STATUS TraceDataDumpMV(MHW_VDBOX_PIPE_BUF_ADDR_PARAMS &pipeBufAddrParams, uint32_t size);
-        
-        //!
-        //! \brief  Dump ref resources
-        //! \return MOS_STATUS
-        //!         MOS_STATUS_SUCCESS if success, else fail reason
-        //!
-        MOS_STATUS TraceDataDumpReferences(MHW_VDBOX_PIPE_BUF_ADDR_PARAMS &pipeBufAddrParams);
-#endif
+        MOS_STATUS DumpResources(MHW_VDBOX_PIPE_BUF_ADDR_PARAMS &pipeBufAddrParams, uint32_t refSize, uint32_t mvSize);
 
         DecodePhase                *m_phase           = nullptr;
 
@@ -236,12 +220,6 @@ namespace decode
         PMOS_BUFFER m_resIntraPredLeftReconColStoreBuffer          = nullptr;  //!< Handle of intra prediction left recon column store buffer
         PMOS_BUFFER m_resCABACSyntaxStreamOutBuffer                = nullptr;  //!< Handle of CABAC syntax stream out buffer
         PMOS_BUFFER m_resCABACStreamOutSizeBuffer                  = nullptr;  //!< Handle of CABAC stream out size buffer
-
-#if MOS_EVENT_TRACE_DUMP_SUPPORTED
-        PMOS_SURFACE m_tempLastRefSurf                             = nullptr;
-        PMOS_SURFACE m_tempGoldenRefSurf                           = nullptr;
-        PMOS_SURFACE m_tempAltRefSurf                              = nullptr;
-#endif
 
 MEDIA_CLASS_DEFINE_END(decode__Vp9DecodePicPktXe_M_Base)
     };

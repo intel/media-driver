@@ -444,6 +444,29 @@ typedef struct _CODEC_HEVC_SLICE_PARAMS
     uint16_t            EntryOffsetToSubsetArray;               // [0..540]
 } CODEC_HEVC_SLICE_PARAMS, *PCODEC_HEVC_SLICE_PARAMS;
 
+/*! \brief Short Format Slice-level parameters of a compressed picture for HEVC decoding.
+*
+*   The slice control buffer is accompanied by a raw bitstream data buffer. The total quantity of data in the bitstream buffer (and the amount of data reported by the host decoder) shall be an integer multiple of 128 bytes.
+*/
+typedef struct _CODEC_HEVC_SF_SLICE_PARAMS
+{
+    /*! \brief Number of bytes in the bitstream data buffer that are associated with this slice control data structure.
+    *
+    *   Starting with the byte at the offset given in slice_data_offset. The bitstream data buffer shall not contain additional byte stream NAL units in the bytes following BSNALunitDataLocation up to the location slice_data_offset + slice_data_size. If slice_data_offset + slice_data_size exceeds the boundary of current bitstream data buffer, the excess slice bytes should continue from the first byte of next bitstream data buffer.
+    */
+    uint32_t slice_data_size;
+    /*! \brief This member locates the NAL unit with nal_unit_type equal to 1 .. 8 for the current slice.
+    *
+    *   At least one bit stream data buffer should be present which is associated with the slice control data buffer. If necessary, multiple bit stream data buffers are allowed, but not suggested. The size of the data in the bitstream data buffer (and the amount of data reported by the host decoder) shall be an integer multiple of 128 bytes. When  the end of the slice data is not an even multiple of 128 bytes, the decoder should pad the end of the buffer with zeroes.  When more than one bitstream data buffers are present, these data buffers should be in sequential order. They should be treated as if concatenated linearly with no space in between.  The value of slice_data_offset is the byte offset, from the start of the first bitstream data buffer, of the first byte of the start code prefix in the byte stream NAL unit that contains the NAL unit with nal_unit_type equal to 1 .. 8. The current slice is the slice associated with this slice control data structure. The bitstream data buffer shall not contain NAL units with values of nal_unit_type outside the range [1 .. 8]. However, the accelerator shall allow any such NAL units to be present and should ignore their content if present.
+    *   Note: The bitstream data buffer shall contain the full NAL unit byte stream, either encrpted or clear. This means that the buffer will contain emulation_prevention_three_byte syntax elements where those elements are required to be present in a NAL unit, as defined in the HEVC specification. The bitstream data buffer may or may not contrain leading_zero_8bits, zero_byte, and trailing_zero_8bits syntax elements. If present, the accelerator shall ignore these elements.
+    */
+    uint32_t slice_data_offset;
+    /*! \brief This member indicated if current slice is complete.
+    *
+    *   0 - Complete; 1 - Partial slice data with the start of slice; 2 - Partial slice data with the end of slice; 3 - Partial slice data with the middle of slice;
+    */
+    uint16_t slice_chopping;
+} CODEC_HEVC_SF_SLICE_PARAMS, *PCODEC_HEVC_SF_SLICE_PARAMS;
 
 /*! \brief Additional picture-level parameters of a compressed picture for HEVC decoding.
 *

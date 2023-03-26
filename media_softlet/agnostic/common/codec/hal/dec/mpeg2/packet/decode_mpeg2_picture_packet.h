@@ -119,7 +119,7 @@ protected:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS DumpResources(MHW_VDBOX_PIPE_BUF_ADDR_PARAMS& pipeBufAddrParams);
+    MOS_STATUS DumpResources(MFX_PIPE_BUF_ADDR_STATE_PAR &pipeBufAddrParams) const;
 
     //Interfaces
     Mpeg2Pipeline               *m_mpeg2Pipeline     = nullptr;

@@ -61,7 +61,7 @@ MOS_STATUS Mpeg2DecodeMbPkt::Prepare()
 
 void Mpeg2DecodeMbPkt::PackMotionVectors(CODEC_PICTURE_FLAG pic_flag, uint32_t mbIdx, int16_t sPackedMVs0[], int16_t sPackedMVs1[])
 {
-    CodecDecodeMpeg2MbParmas *mbParams = &m_mpeg2BasicFeature->m_mbRecord[mbIdx].recordMbParam;
+    CodecDecodeMpeg2MbParams *mbParams = &m_mpeg2BasicFeature->m_mbRecord[mbIdx].recordMbParam;
 
     uint16_t motionType = mbParams->MBType.m_motionType;
     uint16_t intelMotionType = Mpeg2ImtNone;
@@ -215,7 +215,7 @@ MOS_STATUS Mpeg2DecodeMbPkt::AddAllCmdsInsertSkippedMacroblocks(MHW_BATCH_BUFFER
     MHW_MI_CHK_NULL(mbParams);
 
     // save the original MB params, and restore the orignal MB params when function exit.
-    CodechalDecodeRestoreData<CodecDecodeMpeg2MbParmas> MBParamsRestore(mbParams);
+    CodechalDecodeRestoreData<CodecDecodeMpeg2MbParams> MBParamsRestore(mbParams);
 
     auto &inlinePar = m_mfxItf->MHW_GETPAR_F(MFD_IT_OBJECT_MPEG2_INLINE_DATA)();
     auto &headerPar = m_mfxItf->MHW_GETPAR_F(MFD_IT_OBJECT)();

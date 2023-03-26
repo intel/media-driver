@@ -3168,6 +3168,21 @@ inline void MOS_TraceEvent(
 
 inline void MOS_TraceEvent(
     MEDIA_EVENT_FILTER_KEYID key,
+    uint16_t                 usId,
+    uint8_t                  ucType,
+    const void              *pArg1,
+    uint32_t                 dwSize1,
+    const void              *pArg2   = nullptr,
+    uint32_t                 dwSize2 = 0)
+{
+    if (MosUtilities::TraceKeyEnabled(key))
+    {
+        MosUtilities::MosTraceEvent(usId, ucType, pArg1, dwSize1, pArg2, dwSize2);
+    }
+}
+
+inline void MOS_TraceEvent(
+    MEDIA_EVENT_FILTER_KEYID key,
     MT_EVENT_LEVEL           level,
     uint16_t                 usId,
     uint8_t                  ucType,
@@ -3189,6 +3204,19 @@ inline void MOS_TraceDataDump(
     uint32_t    dwSize)
 {
     MosUtilities::MosTraceDataDump(pcName, flags, pBuf, dwSize);
+}
+
+inline void MOS_TraceDataDump(
+    MEDIA_EVENT_FILTER_KEYID key,
+    const char              *pcName,
+    uint32_t                 flags,
+    const void              *pBuf,
+    uint32_t                 dwSize)
+{
+    if (MosUtilities::TraceKeyEnabled(TR_KEY_DATA_DUMP))
+    {
+        MosUtilities::MosTraceDataDump(pcName, flags, pBuf, dwSize);
+    }
 }
 
 inline void MOS_TraceDataDump(

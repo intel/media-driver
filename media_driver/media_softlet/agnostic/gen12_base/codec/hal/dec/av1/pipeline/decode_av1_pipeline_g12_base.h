@@ -165,7 +165,7 @@ protected:
         //! \return   MOS_STATUS
         //!           MOS_STATUS_SUCCESS if success, else fail reason
         //!
-        MOS_STATUS DumpBitstreamControlParams(CodecAv1TileParams *tileParams, uint32_t tileNum);
+        MOS_STATUS DumpTileParams(CodecAv1TileParams *tileParams, uint32_t tileNum);
 #endif
 
 protected:

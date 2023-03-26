@@ -315,6 +315,8 @@ namespace decode
         DECODE_CHK_STATUS(vp8DecodeMemComp->CheckReferenceList(*m_vp8BasicFeature, params.PostDeblockSurfMmcState, params.PreDeblockSurfMmcState));
     #endif
 
+        CODECHAL_DEBUG_TOOL(DumpResources(params));
+
         return MOS_STATUS_SUCCESS;
     }
 
@@ -573,15 +575,14 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
-//dump reference 
 #if USE_CODECHAL_DEBUG_TOOL
-    MOS_STATUS Vp8DecodePicPkt::DumpRefResources(MHW_VDBOX_PIPE_BUF_ADDR_PARAMS &pipeBufAddrParams)
+    MOS_STATUS Vp8DecodePicPkt::DumpResources(MFX_PIPE_BUF_ADDR_STATE_PAR &pipeBufAddrParams) const
     {
         DECODE_FUNC_CALL();
 
         CodechalDebugInterface *debugInterface = m_pipeline->GetDebugInterface();
         DECODE_CHK_NULL(debugInterface);
-        for (uint16_t n = 0; n < CodechalDecodeAlternateRef; n++)
+        for (uint16_t n = 0; n <= CodechalDecodeAlternateRef; n++)
         {
             if (pipeBufAddrParams.presReferences[n])
             {

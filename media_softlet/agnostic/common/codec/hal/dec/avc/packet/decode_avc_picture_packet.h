@@ -135,15 +135,6 @@ protected:
     //!
     MOS_STATUS DumpResources() const;
 
-#if MOS_EVENT_TRACE_DUMP_SUPPORTED
-    //!
-    //! \brief  Trace Dump Ref Resources
-    //! \return MOS_STATUS
-    //!         MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    MOS_STATUS TraceDataDumpReferences();
-#endif
-
 #ifdef _DECODE_PROCESSING_SUPPORTED
     DecodeDownSamplingFeature *m_downSamplingFeature = nullptr;
     DecodeDownSamplingPkt *    m_downSamplingPkt     = nullptr;
@@ -170,10 +161,6 @@ protected:
     uint32_t m_picturePatchListSize        = 0;  //!< Picture patch list size
     uint16_t m_picWidthInMbLastMaxAlloced  = 0;  //!< Max Picture Width in MB  used for buffer allocation in past frames
     uint16_t m_picHeightInMbLastMaxAlloced = 0;  //!< Max Picture Height in MB used for buffer allocation in past frames
-
-#if MOS_EVENT_TRACE_DUMP_SUPPORTED
-    PMOS_SURFACE m_tempRefSurf = nullptr;
-#endif
 
     enum AvcDecoderFormatMode
     {

@@ -54,9 +54,6 @@ MOS_STATUS AvcDecodePicPkt::FreeResources()
         {
             m_allocator->Destroy(m_resMprRowStoreScratchBuffer);
         }
-#if MOS_EVENT_TRACE_DUMP_SUPPORTED
-        m_allocator->Destroy(m_tempRefSurf);
-#endif
     }
 
     return MOS_STATUS_SUCCESS;
@@ -643,89 +640,6 @@ MOS_STATUS AvcDecodePicPkt::DumpResources() const
                 &destSurface,
                 CodechalDbgAttr::attrDecodeReferenceSurfaces,
                 refSurfName.c_str()));
-        }
-    }
-
-    DECODE_CHK_STATUS(debugInterface->DumpBuffer(
-        &m_avcBasicFeature->m_resDataBuffer.OsResource,
-        CodechalDbgAttr::attrDecodeBitstream,
-        "DEC",
-        m_avcBasicFeature->m_dataSize,
-        m_avcBasicFeature->m_dataOffset,
-        CODECHAL_NUM_MEDIA_STATES));
-
-    return MOS_STATUS_SUCCESS;
-}
-#endif
-
-#if MOS_EVENT_TRACE_DUMP_SUPPORTED
-MOS_STATUS AvcDecodePicPkt::TraceDataDumpReferences()
-{
-    auto &par = m_mfxItf->MHW_GETPAR_F(MFX_PIPE_BUF_ADDR_STATE)();
-    for (auto n = 0; n < CODEC_AVC_MAX_NUM_REF_FRAME; n++)
-    {
-        if (m_avcBasicFeature->m_refFrames.m_avcPicIdx[n].bValid)
-        {
-            bool        bAllocate = false;
-            MOS_SURFACE dstSurface;
-            MOS_ZeroMemory(&dstSurface, sizeof(MOS_SURFACE));
-            dstSurface.OsResource = *(par.presReferences[n]);
-            DECODE_CHK_STATUS(m_allocator->GetSurfaceInfo(&dstSurface));
-
-            if (!m_allocator->ResourceIsNull(&dstSurface.OsResource))
-            {
-                if (m_tempRefSurf == nullptr || m_allocator->ResourceIsNull(&m_tempRefSurf->OsResource))
-                {
-                    bAllocate = true;
-                }
-                else if (m_tempRefSurf->dwWidth < dstSurface.dwWidth ||
-                         m_tempRefSurf->dwHeight < dstSurface.dwHeight)
-                {
-                    bAllocate = true;
-                }
-                else
-                {
-                    bAllocate = false;
-                }
-
-                if (bAllocate)
-                {
-                    if (!m_allocator->ResourceIsNull(&m_tempRefSurf->OsResource))
-                    {
-                        m_allocator->Destroy(m_tempRefSurf);
-                    }
-
-                    m_tempRefSurf = m_allocator->AllocateLinearSurface(
-                        dstSurface.dwWidth,
-                        dstSurface.dwHeight,
-                        "Decode Ref Surf",
-                        dstSurface.Format,
-                        dstSurface.bIsCompressed,
-                        resourceInputReference,
-                        lockableSystemMem,
-                        MOS_TILE_LINEAR_GMM);
-
-                    DECODE_CHK_NULL(m_tempRefSurf);
-                }
-
-                DECODE_CHK_STATUS(m_osInterface->pfnDoubleBufferCopyResource(
-                    m_osInterface,
-                    &dstSurface.OsResource,
-                    &m_tempRefSurf->OsResource,
-                    false));
-
-                ResourceAutoLock resLock(m_allocator, &m_tempRefSurf->OsResource);
-                auto             pData = (uint8_t *)resLock.LockResourceForRead();
-                DECODE_CHK_NULL(pData);
-
-                MOS_TraceDataDump(
-                    "Decode_AVCRefSurf",
-                    n,
-                    pData,
-                    (uint32_t)m_tempRefSurf->OsResource.pGmmResInfo->GetSizeMainSurface());
-                
-                m_allocator->UnLock(&m_tempRefSurf->OsResource);
-            }
         }
     }
 

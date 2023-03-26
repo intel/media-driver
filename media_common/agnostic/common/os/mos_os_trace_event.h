@@ -342,7 +342,7 @@ typedef enum _MEDIA_EVENT
     EVENT_DECODE_CMD_HCP_INDOBJBASEADDRSTATE,      //! event for Decode HcpIndObjBaseAddrState Cmd
     EVENT_DECODE_CMD_HCP_SEGMENTSTATE_VP9,         //! event for Decode HcpVp9SegmentState Cmd
     EVENT_DECODE_CMD_HCP_PICSTATE_VP9,             //! event for Decode HcpVp9PicState Cmd
-    EVENT_DECODE_CMD_HCP_BSDOBJECT,                //! event for Decode HcpBsdObject Cmd
+    EVENT_DECODE_BUFFER_IQPARAM_AVC,               //! event for Decode AVC IQ Paramters
     EVENT_DECODE_BUFFER_PICPARAM_AV1,              //! event for Decode AV1 Pic Paramters
     EVENT_DECODE_BUFFER_SEGPARAM_AV1,              //! event for Decode AV1 Segment Paramters
     EVENT_DECODE_BUFFER_FILMGRAINPARAM_AV1,        //! event for Decode AV1 Film Grain Paramters
@@ -356,10 +356,10 @@ typedef enum _MEDIA_EVENT
     EVENT_DECODE_BUFFER_LONGSLICEPARAM_HEVC,       //! event for Decode HEVC Long Slice Paramters
     EVENT_DECODE_BUFFER_REXTLONGSLICEPARAM_HEVC,   //! event for Decode HEVC RExt Long Slice Paramters
     EVENT_DECODE_BUFFER_LONGSLICEPARAM_AVC,        //! event for Decode AVC Long Slice Paramters
-    EVENT_DECODE_FEATURE_MMC,                      //! event for Decode Feature MMC
-    EVENT_DECODE_FEATURE_VT_SCALABILITY,           //! event for Decode Feature Virtual Tile Scalability
-    EVENT_DECODE_FEATURE_RT_SCALABILITY,           //! event for Decode Feature Real Tile Scalability
-    EVENT_DECODE_FEATURE_DECODEMODE_REPORT,        //! event for Decode Feature Decode Mode Report
+    EVENT_DECODE_INFO_MMC,                         //! event for Decode Info MMC
+    EVENT_DECODE_INFO_SCALABILITY,                 //! event for Decode Info Scalability
+    EVENT_DECODE_INFO_SFC,                         //! event for Decode Info SFC
+    EVENT_DECODE_INFO_DECODEMODE_REPORT,           //! event for Decode Info Decode Mode Report
     EVENT_DECODE_DUMPINFO_DST,                     //! event for Decode Dst Dump Info
     EVENT_DECODE_DUMPINFO_REF,                     //! event for Decode Ref Dump Info
     EVENT_CALL_STACK,                              //! event for call stack dump

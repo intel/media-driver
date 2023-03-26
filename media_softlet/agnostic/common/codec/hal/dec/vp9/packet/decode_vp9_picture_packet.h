@@ -162,7 +162,7 @@ namespace decode
         //! \return MOS_STATUS
         //!         MOS_STATUS_SUCCESS if success, else fail reason
         //!
-        MOS_STATUS DumpRefResources(HCP_PIPE_BUF_ADDR_STATE_PAR &params, uint32_t size) const;
+        MOS_STATUS DumpResources(HCP_PIPE_BUF_ADDR_STATE_PAR &params, uint32_t refSize, uint32_t mvSize) const;
 
         DecodePhase *m_phase = nullptr;
 

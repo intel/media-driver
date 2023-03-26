@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022, Intel Corporation
+* Copyright (c) 2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -80,15 +80,23 @@ protected:
             {
                 osItf->pfnFreeResource(osItf, &res);
             }
+
+            if (buf != nullptr)
+            {
+                free(buf);
+                buf = nullptr;
+            }
         }
 
-    public:
-        bool         occupied = false;
-        bool         localMem = false;
-        MOS_RESOURCE res      = {};
-        size_t       size     = 0;
-        size_t       offset   = 0;
-        std::string  name;
+    public:        
+        bool               occupied = false;
+        bool               gpuMem   = false;
+        bool               localMem = false;
+        MOS_RESOURCE       res      = {};
+        uint8_t           *buf      = nullptr;
+        size_t             size     = 0;
+        size_t             offset   = 0;
+        std::string        name;
         std::function<
             void(std::ostream &, const void *, size_t)>
             serializer;
@@ -270,10 +278,10 @@ public:
     }
 
     void operator()(
-        MOS_RESOURCE &res,
-        std::string &&name,
-        size_t        dumpSize,
-        size_t        offset,
+        MOS_RESOURCE  &res,
+        std::string  &&name,
+        size_t         dumpSize,
+        size_t         offset,
         std::function<
             void(std::ostream &, const void *, size_t)>
             &&serializer)
@@ -345,6 +353,7 @@ public:
             }
 
             (*resIt)->occupied   = true;
+            (*resIt)->gpuMem     = true;
             (*resIt)->localMem   = resInfo.dwMemType != MOS_MEMPOOL_SYSTEMMEMORY;
             (*resIt)->size       = dumpSize;
             (*resIt)->offset     = offset;
@@ -352,6 +361,68 @@ public:
             (*resIt)->serializer = std::move(serializer);
             m_resQueue.emplace(*resIt);
         }
+
+        m_cond.notify_one();
+    }
+
+    void operator()(
+        uint8_t       *buffer,
+        std::string  &&name,
+        size_t         dumpSize,
+        size_t         offset,
+        std::function<
+            void(std::ostream &, const void *, size_t)>
+            &&serializer)
+    {
+        if (buffer == nullptr)
+        {
+            return;
+        }
+
+        std::unique_lock<std::mutex> lk(m_mutex);
+
+        std::shared_ptr<Res> pRes = nullptr;
+        std::map<int, std::shared_ptr<Res>>::iterator it;
+        for (it = m_bufPool.begin(); it != m_bufPool.end(); it++)
+        {
+            if ((size_t)it->first >= dumpSize && it->second->occupied == false)
+            {
+                pRes = it->second;
+            }
+        }
+
+        if (pRes == nullptr)
+        {
+            auto tmpRes = std::make_shared<Res>();
+
+            tmpRes->buf = (uint8_t *)malloc(dumpSize);
+            if (tmpRes->buf != nullptr)
+            {
+                m_bufPool[dumpSize] = std::move(tmpRes);
+                pRes                = m_bufPool[dumpSize];
+            }
+            else
+            {
+                return m_writeError(
+                    name,
+                    "discarded");
+            }
+        }
+
+        if (MOS_SecureMemcpy(pRes->buf, dumpSize, buffer, dumpSize) != 0)
+        {
+            return m_writeError(
+                name,
+                "input_buffer_copy_failed");
+        }
+
+        pRes->occupied   = true;
+        pRes->gpuMem     = false;
+        pRes->size       = dumpSize;
+        pRes->offset     = offset;
+        pRes->name       = std::move(name);
+        pRes->serializer = std::move(serializer);
+        m_resQueue.emplace(pRes);
 
         m_cond.notify_one();
     }
@@ -657,74 +728,86 @@ protected:
 
     void DoDump(std::shared_ptr<Res> res) const
     {
-        MOS_LOCK_PARAMS lockFlags{};
-        lockFlags.ReadOnly     = 1;
-        lockFlags.TiledAsTiled = 1;
-
-        auto         pRes   = &res->res;
-        MOS_RESOURCE tmpRes = {};
-        if (res->localMem)
+        if (res->gpuMem)
         {
-            // locking/reading resource from local graphic memory is extremely inefficient, so
-            // copy resource to a temporary buffer allocated in shared memory before lock
+            MOS_LOCK_PARAMS lockFlags{};
+            lockFlags.ReadOnly     = 1;
+            lockFlags.TiledAsTiled = 1;
 
-            ResInfo resInfo{};
-            if (GetResInfo(res->res, resInfo) != MOS_STATUS_SUCCESS)
+            auto         pRes   = &res->res;
+            MOS_RESOURCE tmpRes = {};
+
+            if (res->localMem)
+            {
+                // locking/reading resource from local graphic memory is extremely inefficient, so
+                // copy resource to a temporary buffer allocated in shared memory before lock
+
+                ResInfo resInfo{};
+                if (GetResInfo(res->res, resInfo) != MOS_STATUS_SUCCESS)
+                {
+                    return m_writeError(
+                        res->name,
+                        "get_internal_resource_info_failed");
+                }
+                resInfo.dwMemType = MOS_MEMPOOL_SYSTEMMEMORY;
+
+                if (m_osItf.pfnAllocateResource(&m_osItf, &resInfo, &tmpRes) != MOS_STATUS_SUCCESS)
+                {
+                    return m_writeError(
+                        res->name,
+                        "allocate_tmp_resource_failed");
+                }
+
+                if (m_mediaCopyItf.SurfaceCopy(&res->res, &tmpRes, m_copyMethod()) !=
+                    MOS_STATUS_SUCCESS)
+                {
+                    return m_writeError(
+                        res->name,
+                        "internal_surface_copy_failed");
+                }
+
+                pRes = &tmpRes;
+            }
+
+            auto resSize = GetResSizeAndFixName(pRes->pGmmResInfo, res->name);
+            if (resSize < res->offset + res->size)
             {
                 return m_writeError(
                     res->name,
-                    "get_internal_resource_info_failed");
+                    "incorrect_size_offset");
             }
-            resInfo.dwMemType = MOS_MEMPOOL_SYSTEMMEMORY;
 
-            if (m_osItf.pfnAllocateResource(&m_osItf, &resInfo, &tmpRes) != MOS_STATUS_SUCCESS)
+            auto data = static_cast<const uint8_t *>(
+                m_osItf.pfnLockResource(&m_osItf, pRes, &lockFlags));
+
+            if (data)
             {
-                return m_writeError(
-                    res->name,
-                    "allocate_tmp_resource_failed");
+                m_write(
+                    std::move(res->name),
+                    data + res->offset,
+                    res->size == 0 ? resSize - res->offset : res->size,
+                    std::move(res->serializer));
+                m_osItf.pfnUnlockResource(&m_osItf, pRes);
             }
-
-            if (m_mediaCopyItf.SurfaceCopy(&res->res, &tmpRes, m_copyMethod()) !=
-                MOS_STATUS_SUCCESS)
+            else
             {
-                return m_writeError(
+                m_writeError(
                     res->name,
-                    "internal_surface_copy_failed");
+                    "lock_failed");
             }
 
-            pRes = &tmpRes;
-        }
-
-        auto resSize = GetResSizeAndFixName(pRes->pGmmResInfo, res->name);
-        if (resSize < res->offset + res->size)
-        {
-            return m_writeError(
-                res->name,
-                "incorrect_size_offset");
-        }
-
-        auto data = static_cast<const uint8_t *>(
-            m_osItf.pfnLockResource(&m_osItf, pRes, &lockFlags));
-
-        if (data)
-        {
-            m_write(
-                std::move(res->name),
-                data + res->offset,
-                res->size == 0 ? resSize - res->offset : res->size,
-                std::move(res->serializer));
-            m_osItf.pfnUnlockResource(&m_osItf, pRes);
+            if (Mos_ResourceIsNull(&tmpRes) == false)
+            {
+                m_osItf.pfnFreeResource(&m_osItf, &tmpRes);
+            }
         }
         else
         {
-            m_writeError(
-                res->name,
-                "lock_failed");
-        }
-
-        if (Mos_ResourceIsNull(&tmpRes) == false)
-        {
-            m_osItf.pfnFreeResource(&m_osItf, &tmpRes);
+            m_write(
+                std::move(res->name),
+                res->buf + res->offset,
+                res->size,
+                std::move(res->serializer));
         }
     }
 
@@ -737,6 +820,11 @@ protected:
         m_memMng;
 
     std::thread m_scheduler;
+
+    std::map<
+        int,
+        std::shared_ptr<Res>>
+        m_bufPool;
 
     std::map<
         ResInfo,

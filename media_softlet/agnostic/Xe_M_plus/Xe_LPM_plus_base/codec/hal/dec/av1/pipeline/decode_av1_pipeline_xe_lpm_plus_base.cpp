@@ -222,7 +222,9 @@ namespace decode
                 {
                     DECODE_CHK_STATUS(UserFeatureReport());
                 }
-                basicFeature->m_frameNum++;
+
+                DecodeFrameIndex++;
+                basicFeature->m_frameNum = DecodeFrameIndex;
 
                 DECODE_CHK_STATUS(m_statusReport->Reset());
             }

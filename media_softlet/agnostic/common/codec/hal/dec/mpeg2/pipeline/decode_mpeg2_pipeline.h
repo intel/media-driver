@@ -141,7 +141,8 @@ protected:
         uint32_t                     numSlices);
 
     MOS_STATUS DumpMbParams(
-        CodecDecodeMpeg2MbParmas *mbParams);
+        CodecDecodeMpeg2MbParams *mbParams,
+        uint32_t                  numMbs);
 
     MOS_STATUS DumpIQParams(
         CodecMpeg2IqMatrix *matrixData);

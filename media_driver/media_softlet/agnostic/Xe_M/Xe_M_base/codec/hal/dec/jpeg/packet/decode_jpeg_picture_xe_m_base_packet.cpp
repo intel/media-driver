@@ -364,7 +364,6 @@ MOS_STATUS JpegDecodePicPktXe_M_Base::DumpResources(MHW_VDBOX_PIPE_BUF_ADDR_PARA
 
     return MOS_STATUS_SUCCESS;
 }
-
 #endif
 
 }

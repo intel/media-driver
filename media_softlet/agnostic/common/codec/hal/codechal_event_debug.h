@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022, Intel Corporation
+* Copyright (c) 2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -20,16 +20,28 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     ddi_decode_trace_specific.cpp
-//! \brief    Definition for decode event trace dump
+//! \file     codechal_event_debug.h
+//! \brief    Defines the event dump interface shared by codec only.
+//! \details  The debug interface dumps output from Media based on in input config file.
 //!
+#ifndef __CODEC_EVENT_DEBUG_H__
+#define __CODEC_EVENT_DEBUG_H__
 
-#include "ddi_decode_trace_specific.h"
-#include "codec_def_decode_vp9.h"
+#include "media_debug_interface.h"
 
-namespace decode
+#define BITSTREAM_INFO_SIZE 16
+
+typedef struct _DECODE_EVENTDATA_BITSTREAM
 {
-#if MOS_EVENT_TRACE_DUMP_SUPPORTED
+    uint32_t BitstreamSize;
+    uint8_t  Data[BITSTREAM_INFO_SIZE];
+} DECODE_EVENTDATA_BITSTREAM;
 
-#endif
-}
+typedef struct _DECODE_EVENTDATA_FRAME
+{
+    uint32_t FrameIdx;
+    uint32_t PicFlags;
+    uint32_t PicEntry;
+} DECODE_EVENTDATA_FRAME;
+
+#endif /* __CODEC_EVENT_DEBUG_H__ */

@@ -72,15 +72,6 @@ VAStatus DdiDecodeVp9::ParseSliceParams(
         segParams->SegData[i].ChromaDCQuantScale = slcParam->seg_param[i].chroma_dc_quant_scale;
     }
 
-#if MOS_EVENT_TRACE_DUMP_SUPPORTED
-    if (MOS_TraceKeyEnabled(TR_KEY_DECODE_PICPARAM))
-    {
-        DECODE_EVENTDATA_SEGPARAM_VP9 eventDataSegParam;
-        DecodeEventDataVP9SegParamInit(&eventDataSegParam, picParam, segParams->SegData);
-        MOS_TraceEvent(EVENT_DECODE_BUFFER_SEGPARAM_VP9, EVENT_TYPE_INFO, &eventDataSegParam, sizeof(eventDataSegParam), NULL, 0);
-    }
-#endif
-
     return VA_STATUS_SUCCESS;
 }
 
@@ -203,13 +194,6 @@ VAStatus DdiDecodeVp9::ParsePicParams(
     eventData.ChromaFormat                    = (subSamplingSum == 2) ? 1 : (subSamplingSum == 1 ? 2 : 3);  // 1-4:2:0; 2-4:2:2; 3-4:4:4
     eventData.EnabledSegment                  = picVp9Params->PicFlags.fields.segmentation_enabled;
     MOS_TraceEvent(EVENT_DECODE_INFO_PICTUREVA, EVENT_TYPE_INFO, &eventData, sizeof(eventData), NULL, 0);
-
-    if (MOS_TraceKeyEnabled(TR_KEY_DECODE_PICPARAM))
-    {
-        DECODE_EVENTDATA_PICPARAM_VP9 eventDataPicParam;
-        DecodeEventDataVP9PicParamInit(&eventDataPicParam, picVp9Params);
-        MOS_TraceEvent(EVENT_DECODE_BUFFER_PICPARAM_VP9, EVENT_TYPE_INFO, &eventDataPicParam, sizeof(eventDataPicParam), NULL, 0);
-    }
 #endif
 
     return VA_STATUS_SUCCESS;
@@ -296,32 +280,6 @@ VAStatus DdiDecodeVp9::RenderPicture(
             MediaLibvaCommonNext::MediaBufferToMosResource(m_decodeCtx->BufMgr.pBitStreamBuffObject[index], &m_decodeCtx->BufMgr.resBitstreamBuffer);
             m_decodeCtx->DecodeParams.m_dataSize += dataSize;
             slcFlag = true;
-
-#if MOS_EVENT_TRACE_DUMP_SUPPORTED
-            uint8_t *pDataBuf = (uint8_t *)MediaLibvaUtilNext::LockBuffer(m_decodeCtx->BufMgr.pBitStreamBuffObject[index], MOS_LOCKFLAG_READONLY);
-            DDI_CODEC_CHK_NULL(pDataBuf, "nullptr bitstream", VA_STATUS_ERROR_INVALID_BUFFER);
-
-            if (MOS_TraceKeyEnabled(TR_KEY_DECODE_BITSTREAM_INFO))
-            {
-                DECODE_EVENTDATA_BITSTREAM eventData;
-                for (int i = 0; i < 32; i++)
-                {
-                    eventData.Data[i] = pDataBuf[i];
-                }
-                MOS_TraceEvent(EVENT_DECODE_INFO_BITSTREAM, EVENT_TYPE_INFO, &eventData, sizeof(eventData), NULL, 0);
-            }
-
-            if (MOS_TraceKeyEnabled(TR_KEY_DECODE_BITSTREAM))
-            {
-                MOS_TraceDataDump(
-                "Decode_Bitstream",
-                0,
-                pDataBuf,
-                m_decodeCtx->DecodeParams.m_dataSize);
-            }
-                
-            MediaLibvaUtilNext::UnlockBuffer(m_decodeCtx->BufMgr.pBitStreamBuffObject[index]);
-#endif
 
             break;
         }

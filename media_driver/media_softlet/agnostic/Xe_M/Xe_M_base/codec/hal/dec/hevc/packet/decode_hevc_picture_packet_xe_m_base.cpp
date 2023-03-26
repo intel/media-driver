@@ -62,9 +62,6 @@ MOS_STATUS HevcDecodePicPktXe_M_Base::FreeResources()
         m_allocator->Destroy(m_resIntraPredLeftReconColStoreBuffer);
         m_allocator->Destroy(m_resCABACSyntaxStreamOutBuffer);
         m_allocator->Destroy(m_resCABACStreamOutSizeBuffer);
-#if MOS_EVENT_TRACE_DUMP_SUPPORTED
-        m_allocator->Destroy(m_tempRefSurf);
-#endif
     }
 
     return MOS_STATUS_SUCCESS;
@@ -522,6 +519,7 @@ MOS_STATUS HevcDecodePicPktXe_M_Base::SetHcpPipeBufAddrParams(MHW_VDBOX_PIPE_BUF
                 DECODE_ASSERTMESSAGE("Reference frame for current Frame is not exist, current frame will be skipped. Thus, clear current frame resource in reference list.");
                 return MOS_STATUS_INVALID_PARAMETER;
             }
+
             PMOS_BUFFER mvBuf = mvBuffers->GetBufferByFrameIndex(frameIdx);
             pipeBufAddrParams.presColMvTempBuffer[i] = mvBuf ? (&mvBuf->OsResource) : nullptr;
 
@@ -553,191 +551,10 @@ MOS_STATUS HevcDecodePicPktXe_M_Base::SetHcpPipeBufAddrParams(MHW_VDBOX_PIPE_BUF
         pipeBufAddrParams.IBCRefIdxMask = refIdxMask;
     }
 
-    CODECHAL_DEBUG_TOOL(
-        CodechalDebugInterface *debugInterface = m_pipeline->GetDebugInterface();
-        DECODE_CHK_NULL(debugInterface);
-        for (uint32_t n = 0; n < CODECHAL_MAX_CUR_NUM_REF_FRAME_HEVC; n++)
-        {
-            if (pipeBufAddrParams.presReferences[n] != nullptr)
-            {
-                MOS_SURFACE dstSurface;
-                MOS_ZeroMemory(&dstSurface, sizeof(MOS_SURFACE));
-                dstSurface.OsResource = *(pipeBufAddrParams.presReferences[n]);
-                DECODE_CHK_STATUS(CodecHalGetResourceInfo(m_osInterface, &dstSurface));
-
-                std::string refSurfDumpName = "RefSurf_" + std::to_string(n);
-                DECODE_CHK_STATUS(debugInterface->DumpYUVSurface(
-                    &dstSurface,
-                    CodechalDbgAttr::attrDecodeReferenceSurfaces,
-                    refSurfDumpName.c_str()));
-            }
-
-            if (pipeBufAddrParams.presColMvTempBuffer[n] != nullptr)
-            {
-                std::string mvBufDumpName = "_DEC_" + std::to_string(n);
-                DECODE_CHK_STATUS(debugInterface->DumpBuffer(
-                    pipeBufAddrParams.presColMvTempBuffer[n],
-                    CodechalDbgAttr::attrMvData,
-                    mvBufDumpName.c_str(),
-                    curMvBuffer->size));
-            }
-        })
-
-#if MOS_EVENT_TRACE_DUMP_SUPPORTED
-    if (MOS_TraceKeyEnabled(TR_KEY_DECODE_MV))
-    {
-        TraceDataDumpMV(pipeBufAddrParams);
-    }
-    
-    if (MOS_TraceKeyEnabled(TR_KEY_DECODE_REFYUV))
-    {
-        TraceDataDumpReferences(pipeBufAddrParams);
-    }
-#endif
+    CODECHAL_DEBUG_TOOL(DECODE_CHK_STATUS(DumpResources(pipeBufAddrParams, activeRefList.size(), curMvBuffer->size)));
 
     return MOS_STATUS_SUCCESS;
 }
-
-#if MOS_EVENT_TRACE_DUMP_SUPPORTED
-MOS_STATUS HevcDecodePicPktXe_M_Base::TraceDataDumpMV(MHW_VDBOX_PIPE_BUF_ADDR_PARAMS &pipeBufAddrParams)
-{
-    auto        mvBuffers   = &(m_hevcBasicFeature->m_mvBuffers);
-    PMOS_BUFFER curMvBuffer = mvBuffers->GetCurBuffer();
-    DECODE_CHK_NULL(curMvBuffer);
-
-    for (uint32_t n = 0; n < CODECHAL_MAX_CUR_NUM_REF_FRAME_HEVC; n++)
-    {
-        if (!m_allocator->ResourceIsNull(pipeBufAddrParams.presReferences[n]))
-        {
-            if (pipeBufAddrParams.presColMvTempBuffer[n] != nullptr)
-            {
-                ResourceAutoLock resLock(m_allocator, pipeBufAddrParams.presColMvTempBuffer[n]);
-                auto             pData = (uint8_t *)resLock.LockResourceForRead();
-                DECODE_CHK_NULL(pData);
-
-                MOS_TraceDataDump(
-                    "Decode_HevcColMvTempBuffer",
-                    n,
-                    pData,
-                    curMvBuffer->size);
-                
-                m_allocator->UnLock(pipeBufAddrParams.presColMvTempBuffer[n]);
-            }
-        }
-    }
-
-    if (!m_allocator->ResourceIsNull(pipeBufAddrParams.presCurMvTempBuffer))
-    {
-        ResourceAutoLock resLock(m_allocator, pipeBufAddrParams.presCurMvTempBuffer);
-        auto             pData = (uint8_t *)resLock.LockResourceForRead();
-        DECODE_CHK_NULL(pData);
-
-        MOS_TraceDataDump(
-                    "Decode_HevcCurMvTempBuffer",
-                    0,
-                    pData,
-                    curMvBuffer->size);
-        
-        m_allocator->UnLock(pipeBufAddrParams.presCurMvTempBuffer);
-    }
-    
-    return MOS_STATUS_SUCCESS;
-}
-
-MOS_STATUS HevcDecodePicPktXe_M_Base::TraceDataDumpReferences(MHW_VDBOX_PIPE_BUF_ADDR_PARAMS &pipeBufAddrParams)
-{
-    bool        bReport     = false;
-
-    for (uint32_t n = 0; n < CODECHAL_MAX_CUR_NUM_REF_FRAME_HEVC; n++)
-    {
-        if (!m_allocator->ResourceIsNull(pipeBufAddrParams.presReferences[n]))
-        {
-            bool        bAllocate = false;
-            MOS_SURFACE dstSurface;
-            MOS_ZeroMemory(&dstSurface, sizeof(MOS_SURFACE));
-            dstSurface.OsResource = *(pipeBufAddrParams.presReferences[n]);
-            DECODE_CHK_STATUS(m_allocator->GetSurfaceInfo(&dstSurface));
-
-            if (!m_allocator->ResourceIsNull(&dstSurface.OsResource))
-            {
-                if (m_tempRefSurf == nullptr || m_allocator->ResourceIsNull(&m_tempRefSurf->OsResource))
-                {
-                    bAllocate = true;
-                }
-                else if (m_tempRefSurf->dwWidth < dstSurface.dwWidth ||
-                         m_tempRefSurf->dwHeight < dstSurface.dwHeight)
-                {
-                    bAllocate = true;
-                }
-                else
-                {
-                    bAllocate = false;
-                }
-
-                if (bAllocate)
-                {
-                    if (!m_allocator->ResourceIsNull(&m_tempRefSurf->OsResource))
-                    {
-                        m_allocator->Destroy(m_tempRefSurf);
-                    }
-
-                    m_tempRefSurf = m_allocator->AllocateLinearSurface(
-                        dstSurface.dwWidth,
-                        dstSurface.dwHeight,
-                        "Decode Ref Surf",
-                        dstSurface.Format,
-                        dstSurface.bIsCompressed,
-                        resourceInputReference,
-                        lockableSystemMem,
-                        MOS_TILE_LINEAR_GMM);
-                }
-
-                DECODE_CHK_STATUS(m_osInterface->pfnDoubleBufferCopyResource(
-                    m_osInterface,
-                    &dstSurface.OsResource,
-                    &m_tempRefSurf->OsResource,
-                    false));
-
-                if (!bReport)
-                {
-                    DECODE_EVENTDATA_YUV_SURFACE_INFO eventData =
-                    {
-                        PICTURE_FRAME,
-                        0,
-                        m_tempRefSurf->dwOffset,
-                        m_tempRefSurf->YPlaneOffset.iYOffset,
-                        m_tempRefSurf->dwPitch,
-                        m_tempRefSurf->dwWidth,
-                        m_tempRefSurf->dwHeight,
-                        (uint32_t)m_tempRefSurf->Format,
-                        m_tempRefSurf->UPlaneOffset.iLockSurfaceOffset,
-                        m_tempRefSurf->VPlaneOffset.iLockSurfaceOffset,
-                        m_tempRefSurf->UPlaneOffset.iSurfaceOffset,
-                        m_tempRefSurf->VPlaneOffset.iSurfaceOffset,
-                    };
-                    MOS_TraceEvent(EVENT_DECODE_DUMPINFO_REF, EVENT_TYPE_INFO, &eventData, sizeof(eventData), NULL, 0);
-
-                    bReport = true;
-                }
-
-                ResourceAutoLock resLock(m_allocator, &m_tempRefSurf->OsResource);
-                auto             pData = (uint8_t *)resLock.LockResourceForRead();
-                DECODE_CHK_NULL(pData);
-
-                MOS_TraceDataDump(
-                    "Decode_HEVCRefSurf",
-                    n,
-                    pData,
-                    (uint32_t)m_tempRefSurf->OsResource.pGmmResInfo->GetSizeMainSurface());
-                
-                m_allocator->UnLock(&m_tempRefSurf->OsResource);
-            }
-        }
-    }
-    
-    return MOS_STATUS_SUCCESS;
-}
-#endif
 
 void HevcDecodePicPktXe_M_Base::SetHcpIndObjBaseAddrParams(MHW_VDBOX_IND_OBJ_BASE_ADDR_PARAMS& indObjBaseAddrParams)
 {
@@ -806,5 +623,47 @@ MOS_STATUS HevcDecodePicPktXe_M_Base::AddHcpTileStateCmd(MOS_COMMAND_BUFFER  &cm
     DECODE_CHK_STATUS(m_hcpInterface->AddHcpTileStateCmd(&cmdBuffer, &tileStateParams));
     return MOS_STATUS_SUCCESS;
 }
+
+#if USE_CODECHAL_DEBUG_TOOL
+MOS_STATUS HevcDecodePicPktXe_M_Base::DumpResources(
+    MHW_VDBOX_PIPE_BUF_ADDR_PARAMS &pipeBufAddrParams, 
+    uint8_t activeRefListSize,
+    uint32_t mvBufferSize)
+{
+    DECODE_FUNC_CALL();
+
+    CodechalDebugInterface *debugInterface = m_pipeline->GetDebugInterface();
+    DECODE_CHK_NULL(debugInterface);
+
+    for (uint32_t i = 0; i < activeRefListSize; i++)
+    {
+        if (pipeBufAddrParams.presReferences[i] != nullptr)
+        {
+            MOS_SURFACE refSurface;
+            MOS_ZeroMemory(&refSurface, sizeof(MOS_SURFACE));
+            refSurface.OsResource = *(pipeBufAddrParams.presReferences[i]);
+            DECODE_CHK_STATUS(CodecHalGetResourceInfo(m_osInterface, &refSurface));
+
+            std::string refSurfDumpName = "RefSurf_" + std::to_string(i);
+            DECODE_CHK_STATUS(debugInterface->DumpYUVSurface(
+                &refSurface,
+                CodechalDbgAttr::attrDecodeReferenceSurfaces,
+                refSurfDumpName.c_str()));
+        }
+
+        if (pipeBufAddrParams.presColMvTempBuffer[i] != nullptr)
+        {
+            std::string mvBufDumpName = "_DEC_" + std::to_string(i);
+            DECODE_CHK_STATUS(debugInterface->DumpBuffer(
+                pipeBufAddrParams.presColMvTempBuffer[i],
+                CodechalDbgAttr::attrMvData,
+                mvBufDumpName.c_str(),
+                mvBufferSize));
+        }
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+#endif
 
 }

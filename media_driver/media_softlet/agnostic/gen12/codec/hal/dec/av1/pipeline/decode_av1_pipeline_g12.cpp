@@ -209,13 +209,6 @@ namespace decode
                             "AV1_DEC_Secondary"));
                     })
 
-#if MOS_EVENT_TRACE_DUMP_SUPPORTED
-                if (MOS_TraceKeyEnabled(TR_KEY_DECODE_COMMAND))
-                {
-                    TraceDataDump2ndLevelBB(m_av1DecodePkt->GetSecondLvlBB());
-                }
-#endif
-
 #if (_DEBUG || _RELEASE_INTERNAL)
                 DECODE_CHK_STATUS(StatusCheck());
 #endif
@@ -224,7 +217,9 @@ namespace decode
                 {
                     DECODE_CHK_STATUS(UserFeatureReport());
                 }
-                basicFeature->m_frameNum++;
+
+                DecodeFrameIndex++;
+                basicFeature->m_frameNum = DecodeFrameIndex;
 
                 DECODE_CHK_STATUS(m_statusReport->Reset());
             }

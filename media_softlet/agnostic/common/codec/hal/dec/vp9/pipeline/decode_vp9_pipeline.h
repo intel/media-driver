@@ -195,6 +195,16 @@ protected:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS DumpSegmentParams(CODEC_VP9_SEGMENT_PARAMS *segmentParams);
+
+    //! \brief    Dump slice parameters into file
+    //!
+    //! \param    [in] slcParams
+    //!           Pointer to PCODEC_VP9_SLICE_PARAMS
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS DumpSliceParams(CODEC_VP9_SLICE_PARAMS *slcParams);
 #endif
 
 protected:

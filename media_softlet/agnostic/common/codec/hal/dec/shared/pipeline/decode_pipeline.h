@@ -45,24 +45,6 @@
 
 namespace decode {
 
-#if MOS_EVENT_TRACE_DUMP_SUPPORTED
-    typedef struct _DECODE_EVENTDATA_YUV_SURFACE_INFO
-    {
-        uint32_t PicFlags;
-        uint32_t FrameType;
-        uint32_t dwOffset;
-        int32_t  YPlaneOffset_iYOffset;
-        uint32_t dwPitch;
-        uint32_t dwWidth;
-        uint32_t dwHeight;
-        uint32_t Format;
-        int32_t  UPlaneOffset_iLockSurfaceOffset;
-        int32_t  VPlaneOffset_iLockSurfaceOffset;
-        int32_t  UPlaneOffset_iSurfaceOffset;
-        int32_t  VPlaneOffset_iSurfaceOffset;
-    } DECODE_EVENTDATA_YUV_SURFACE_INFO;
-#endif
-
 enum DecodePipeMode
 {
     decodePipeModeBegin = 0,
@@ -422,6 +404,26 @@ protected:
 #endif
 
     //!
+    //! \brief  Dump Bitstream
+    //! \param  [in] pBitstream
+    //!         Bitstream Resource
+    //! \param  [in] size
+    //!         Bitstream Size
+    //! \param  [in] offset
+    //!         Bitstream Offset 
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS DumpBitstream(PMOS_RESOURCE pBitstream, uint32_t size, uint32_t offset);
+
+    //!
+    //! \brief  Add delay for dump render targets
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS DelayForDumpOutput();
+
+    //!
     //! \brief  Dump render targets
     //! \param  [in] reportData
     //!         Decode report data
@@ -429,11 +431,6 @@ protected:
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS DumpOutput(const DecodeStatusReportData& reportData);
-#endif
-
-#if MOS_EVENT_TRACE_DUMP_SUPPORTED
-    MOS_STATUS TraceDataDumpOutput(const DecodeStatusReportData &reportData);
-    MOS_STATUS TraceDataDump2ndLevelBB(PMHW_BATCH_BUFFER batchBuffer);
 #endif
 
 #if (_DEBUG || _RELEASE_INTERNAL)

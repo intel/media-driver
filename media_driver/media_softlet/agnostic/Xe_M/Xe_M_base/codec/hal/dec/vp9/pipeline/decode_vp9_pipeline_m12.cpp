@@ -105,10 +105,6 @@ MOS_STATUS Vp9PipelineG12::Prepare(void *params)
                 DECODE_CHK_STATUS(DumpParams(*m_basicFeature));
                 );
 
-#if MOS_EVENT_TRACE_DUMP_SUPPORTED
-            TraceDataDumpInternalBuffers(*m_basicFeature);
-#endif
-
             DecodeStatusParameters inputParameters = {};
             MOS_ZeroMemory(&inputParameters, sizeof(DecodeStatusParameters));
             inputParameters.statusReportFeedbackNumber = m_basicFeature->m_vp9PicParams->StatusReportFeedbackNumber;
@@ -230,7 +226,9 @@ MOS_STATUS Vp9PipelineG12::Execute()
             {
                 DECODE_CHK_STATUS(UserFeatureReport());
             }
-            m_basicFeature->m_frameNum++;
+
+            DecodeFrameIndex++;
+            m_basicFeature->m_frameNum = DecodeFrameIndex;
 
             DECODE_CHK_STATUS(m_statusReport->Reset());
 
@@ -469,13 +467,12 @@ MOS_STATUS Vp9PipelineG12::DumpParams(Vp9BasicFeature &basicFeature)
     m_debugInterface->m_secondField               = basicFeature.m_secondField;
     m_debugInterface->m_bufferDumpFrameNum        = basicFeature.m_frameNum;
 
-    DECODE_CHK_STATUS(DumpPicParams(
-        basicFeature.m_vp9PicParams));
+    DECODE_CHK_STATUS(DumpPicParams(basicFeature.m_vp9PicParams));
+    DECODE_CHK_STATUS(DumpSliceParams(basicFeature.m_vp9SliceParams));
+    DECODE_CHK_STATUS(DumpSegmentParams(basicFeature.m_vp9SegmentParams));
+    DECODE_CHK_STATUS(DumpBitstream(&basicFeature.m_resDataBuffer.OsResource, basicFeature.m_dataSize, 0));
 
-    DECODE_CHK_STATUS(DumpSegmentParams(
-        basicFeature.m_vp9SegmentParams));
-
-     DECODE_CHK_STATUS(m_debugInterface->DumpBuffer(
+    DECODE_CHK_STATUS(m_debugInterface->DumpBuffer(
         &(basicFeature.m_resVp9SegmentIdBuffer->OsResource),
         CodechalDbgAttr::attrSegId,
         "SegId_beforeHCP",
@@ -486,53 +483,6 @@ MOS_STATUS Vp9PipelineG12::DumpParams(Vp9BasicFeature &basicFeature)
         CodechalDbgAttr::attrCoefProb,
         "PakHwCoeffProbs_beforeHCP",
         CODEC_VP9_PROB_MAX_NUM_ELEM));
-
-    //dump bitstream
-    DECODE_CHK_STATUS(m_debugInterface->DumpBuffer(
-        &basicFeature.m_resDataBuffer.OsResource, 
-        CodechalDbgAttr::attrDecodeBitstream, 
-        "_DEC", 
-        basicFeature.m_dataSize, 0, CODECHAL_NUM_MEDIA_STATES));
-
-    return MOS_STATUS_SUCCESS;
-}
-#endif
-
-#if MOS_EVENT_TRACE_DUMP_SUPPORTED
-MOS_STATUS Vp9PipelineG12::TraceDataDumpInternalBuffers(Vp9BasicFeature &basicFeature)
-{  
-    if (MOS_TraceKeyEnabled(TR_KEY_DECODE_INTERNAL))
-    {
-        if (!m_allocator->ResourceIsNull(&(basicFeature.m_resVp9SegmentIdBuffer->OsResource)))
-        {
-            ResourceAutoLock resLock(m_allocator, &(basicFeature.m_resVp9SegmentIdBuffer->OsResource));
-            auto             pData = (uint8_t *)resLock.LockResourceForRead();
-            DECODE_CHK_NULL(pData);
-
-            MOS_TraceDataDump(
-                "Decode_Vp9SegmentIdBeforeHCP",
-                0,
-                pData,
-                basicFeature.m_allocatedWidthInSb * basicFeature.m_allocatedHeightInSb * CODECHAL_CACHELINE_SIZE);
-
-            m_allocator->UnLock(&(basicFeature.m_resVp9SegmentIdBuffer->OsResource));
-        }
-
-        if (!m_allocator->ResourceIsNull(&(basicFeature.m_resVp9ProbBuffer[basicFeature.m_frameCtxIdx]->OsResource)))
-        {
-            ResourceAutoLock resLock(m_allocator, &(basicFeature.m_resVp9ProbBuffer[basicFeature.m_frameCtxIdx]->OsResource));
-            auto             pData = (uint8_t *)resLock.LockResourceForRead();
-            DECODE_CHK_NULL(pData);
-
-            MOS_TraceDataDump(
-                "Decode_Vp9CoeffProbsBeforeHCP",
-                0,
-                pData,
-                CODEC_VP9_PROB_MAX_NUM_ELEM);
-
-            m_allocator->UnLock(&(basicFeature.m_resVp9ProbBuffer[basicFeature.m_frameCtxIdx]->OsResource));
-        }
-    }
 
     return MOS_STATUS_SUCCESS;
 }

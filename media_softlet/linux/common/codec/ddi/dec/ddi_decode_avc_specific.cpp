@@ -176,26 +176,6 @@ VAStatus DdiDecodeAvc::ParseSliceParams(
         avcSliceParams++;
     }
 
-#if MOS_EVENT_TRACE_DUMP_SUPPORTED
-    if (MOS_TraceKeyEnabled(TR_KEY_DECODE_SLICEPARAM))
-    {
-        if (m_decodeCtx->bShortFormatInUse)
-        {
-            DECODE_EVENTDATA_SLICEPARAM_AVC *pEventData = (DECODE_EVENTDATA_SLICEPARAM_AVC *)MOS_AllocMemory(numSlices * sizeof(DECODE_EVENTDATA_SLICEPARAM_AVC));
-            DecodeEventDataAVCSliceParamInit(pEventData, (PCODEC_AVC_SLICE_PARAMS)(m_decodeCtx->DecodeParams.m_sliceParams), numSlices);
-            MOS_TraceEvent(EVENT_DECODE_BUFFER_SLICEPARAM_AVC, EVENT_TYPE_INFO, &numSlices, sizeof(uint32_t), pEventData, numSlices * sizeof(DECODE_EVENTDATA_SLICEPARAM_AVC));
-            MOS_FreeMemory(pEventData);
-        }
-        else
-        {
-            DECODE_EVENTDATA_LONGSLICEPARAM_AVC *pEventData = (DECODE_EVENTDATA_LONGSLICEPARAM_AVC *)MOS_AllocMemory(numSlices * sizeof(DECODE_EVENTDATA_LONGSLICEPARAM_AVC));
-            DecodeEventDataAVCLongSliceParamInit(pEventData, (PCODEC_AVC_SLICE_PARAMS)(m_decodeCtx->DecodeParams.m_sliceParams), numSlices);
-            MOS_TraceEvent(EVENT_DECODE_BUFFER_LONGSLICEPARAM_AVC, EVENT_TYPE_INFO, &numSlices, sizeof(uint32_t), pEventData, numSlices * sizeof(DECODE_EVENTDATA_LONGSLICEPARAM_AVC));
-            MOS_FreeMemory(pEventData);
-        }
-    }
-#endif
-
     return VA_STATUS_SUCCESS;
 }
 
@@ -342,13 +322,6 @@ VAStatus DdiDecodeAvc::ParsePicParams(
     eventData.Bitdepth                      = avcPicParams->bit_depth_luma_minus8 + 8;
     eventData.ChromaFormat                  = avcPicParams->seq_fields.chroma_format_idc;  // 0-4:0:0; 1-4:2:0; 2-4:2:2; 3-4:4:4
     MOS_TraceEvent(EVENT_DECODE_INFO_PICTUREVA, EVENT_TYPE_INFO, &eventData, sizeof(eventData), NULL, 0);
-
-    if (MOS_TraceKeyEnabled(TR_KEY_DECODE_PICPARAM))
-    {
-        DECODE_EVENTDATA_PICPARAM_AVC eventData;
-        DecodeEventDataAVCPicParamInit(&eventData, avcPicParams);
-        MOS_TraceEvent(EVENT_DECODE_BUFFER_PICPARAM_AVC, EVENT_TYPE_INFO, &eventData, sizeof(eventData), NULL, 0);
-    }
 #endif
 
     return VA_STATUS_SUCCESS;
@@ -460,32 +433,6 @@ VAStatus DdiDecodeAvc::RenderPicture(
             MediaLibvaCommonNext::MediaBufferToMosResource(m_decodeCtx->BufMgr.pBitStreamBuffObject[index], &m_decodeCtx->BufMgr.resBitstreamBuffer);
             m_decodeCtx->DecodeParams.m_dataSize += dataSize;
 
-#if MOS_EVENT_TRACE_DUMP_SUPPORTED
-            uint8_t * pDataBuf = (uint8_t *)MediaLibvaUtilNext::LockBuffer(m_decodeCtx->BufMgr.pBitStreamBuffObject[index], MOS_LOCKFLAG_READONLY);
-            DDI_CODEC_CHK_NULL(pDataBuf, "nullptr bitstream", VA_STATUS_ERROR_INVALID_BUFFER);
-
-            if (MOS_TraceKeyEnabled(TR_KEY_DECODE_BITSTREAM_INFO))
-            {
-                DECODE_EVENTDATA_BITSTREAM eventData;
-                for (int i = 0; i < 32; i++)
-                {
-                    eventData.Data[i] = pDataBuf[i];
-                }
-                MOS_TraceEvent(EVENT_DECODE_INFO_BITSTREAM, EVENT_TYPE_INFO, &eventData, sizeof(eventData), NULL, 0);
-            }
-
-            if (MOS_TraceKeyEnabled(TR_KEY_DECODE_BITSTREAM))
-            {
-                MOS_TraceDataDump(
-                "Decode_Bitstream",
-                0,
-                pDataBuf,
-                m_decodeCtx->DecodeParams.m_dataSize);
-            }
-                
-            MediaLibvaUtilNext::UnlockBuffer(m_decodeCtx->BufMgr.pBitStreamBuffObject[index]);
-#endif
-
             break;
         }
         case VASliceParameterBufferType:
@@ -508,17 +455,6 @@ VAStatus DdiDecodeAvc::RenderPicture(
         {
             VAIQMatrixBufferH264 *imxBuf = (VAIQMatrixBufferH264 *)data;
             DDI_CHK_RET(ParseIQMatrix(mediaCtx, imxBuf),"ParseIQMatrix failed!");
-
-#if MOS_EVENT_TRACE_DUMP_SUPPORTED
-            if (MOS_TraceKeyEnabled(TR_KEY_DECODE_QMATRIX))
-            {
-                MOS_TraceDataDump(
-                    "Decode_QMatrix",
-                    0,
-                    imxBuf,
-                    sizeof(VAIQMatrixBufferH264));
-            }
-#endif
 
             break;
         }

@@ -117,6 +117,13 @@ protected:
     //!
     MOS_STATUS FreeResources();
 
+#if USE_CODECHAL_DEBUG_TOOL
+    MOS_STATUS DumpResources(
+        mhw::vdbox::hcp::HCP_PIPE_BUF_ADDR_STATE_PAR &pipeBufAddrParams,
+        uint8_t                                       activeRefListSize,
+        uint32_t                                      mvBufferSize) const;
+#endif
+
     static constexpr uint32_t sliceStateCachelinesPerSlice = 9;
     static const uint32_t     m_rawUVPlaneAlignment        = 4;
     static const uint32_t     m_reconUVPlaneAlignment      = 8;

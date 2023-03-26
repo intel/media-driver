@@ -38,22 +38,6 @@
 //!
 #define CODECHAL_DECODE_JPEG_BLOCK_SIZE            8
 
-//!
-//! \struct _CODECHAL_DECODE_JPEG_HUFFMAN_TABLE
-//! \brief typedef of struct Huffman Table used by JPEG
-//! Note: Some DDIs have no HuffTable selector and are based on Component type
-//!
-typedef struct _CODECHAL_DECODE_JPEG_HUFFMAN_TABLE
-{
-    struct
-    {
-        uint8_t           DC_BITS[JPEG_NUM_HUFF_TABLE_DC_BITS];       //!<  DC number of Huffman codes length
-        uint8_t           DC_HUFFVAL[JPEG_NUM_HUFF_TABLE_DC_HUFFVAL]; //!<  DC value of Huffman codes
-        uint8_t           AC_BITS[JPEG_NUM_HUFF_TABLE_AC_BITS];       //!<  AC number of Huffman codes length
-        uint8_t           AC_HUFFVAL[JPEG_NUM_HUFF_TABLE_AC_HUFFVAL]; //!<  AC value of Huffman codes
-    } HuffTable[JPEG_MAX_NUM_HUFF_TABLE_INDEX];
-} CODECHAL_DECODE_JPEG_HUFFMAN_TABLE, *PCODECHAL_DECODE_JPEG_HUFFMAN_TABLE;
-
 typedef class CodechalDecodeJpeg *PCODECHAL_DECODE_JPEG_STATE;
 
 //!

@@ -215,6 +215,12 @@ typedef struct _CODEC_AVC_SLICE_PARAMS
     uint16_t                    first_mb_in_next_slice;         //!< If there is a subsequent slice, specifies first_mb_in_slice for the next slice, otherwise is 0.
 } CODEC_AVC_SLICE_PARAMS, *PCODEC_AVC_SLICE_PARAMS;
 
+typedef struct _CODEC_AVC_SF_SLICE_PARAMS
+{
+    uint32_t slice_data_size;    //!< Number of bytes in the bitstream buffer for this slice.
+    uint32_t slice_data_offset;  //!< The offset to the NAL start code for this slice.
+} CODEC_AVC_SF_SLICE_PARAMS, *PCODEC_AVC_SF_SLICE_PARAMS;
+
 // AVC MVC Extension Picture Parameter Set
 // (sent along with regular _CODEC_AVC_PIC_PARAMS)
 typedef struct _CODEC_MVC_EXT_PIC_PARAMS

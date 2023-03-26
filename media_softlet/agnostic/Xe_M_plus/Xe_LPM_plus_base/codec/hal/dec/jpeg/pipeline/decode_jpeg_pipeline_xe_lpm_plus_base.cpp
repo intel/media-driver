@@ -238,7 +238,8 @@ MOS_STATUS JpegPipelineXe_Lpm_Plus_Base::Execute()
 
             if (m_basicFeature->m_secondField || CodecHal_PictureIsFrame(m_basicFeature->m_curRenderPic))
             {
-                m_basicFeature->m_frameNum++;
+                DecodeFrameIndex++;
+                m_basicFeature->m_frameNum = DecodeFrameIndex;
             }
 
             DECODE_CHK_STATUS(m_statusReport->Reset());
@@ -277,14 +278,11 @@ MOS_STATUS JpegPipelineXe_Lpm_Plus_Base::DumpParams(JpegBasicFeature &basicFeatu
     m_debugInterface->m_secondField        = basicFeature.m_secondField;
     m_debugInterface->m_bufferDumpFrameNum = basicFeature.m_frameNum;
 
-    //dump bitstream
-    DECODE_CHK_STATUS(m_debugInterface->DumpBuffer(
-        &basicFeature.m_resDataBuffer.OsResource, CodechalDbgAttr::attrDecodeBitstream, "_DEC", basicFeature.m_dataSize, 0, CODECHAL_NUM_MEDIA_STATES));
-
     DECODE_CHK_STATUS(DumpPicParams(basicFeature.m_jpegPicParams));
     DECODE_CHK_STATUS(DumpScanParams(basicFeature.m_jpegScanParams));
     DECODE_CHK_STATUS(DumpHuffmanTable(basicFeature.m_jpegHuffmanTable));
     DECODE_CHK_STATUS(DumpIQParams(basicFeature.m_jpegQMatrix));
+    DECODE_CHK_STATUS(DumpBitstream(&basicFeature.m_resDataBuffer.OsResource, basicFeature.m_dataSize, 0));
 
     return MOS_STATUS_SUCCESS;
 }

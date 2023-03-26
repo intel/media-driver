@@ -131,10 +131,8 @@ protected:
     //!
     MOS_STATUS DumpParams(Vp9BasicFeature &basicFeature);
 #endif
+
     CodechalHwInterface *m_hwInterface = nullptr;
-#if MOS_EVENT_TRACE_DUMP_SUPPORTED
-    MOS_STATUS TraceDataDumpInternalBuffers(Vp9BasicFeature &basicFeature);
-#endif
 MEDIA_CLASS_DEFINE_END(decode__Vp9PipelineG12)
 };
 }  // namespace decode

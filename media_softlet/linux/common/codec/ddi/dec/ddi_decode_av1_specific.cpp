@@ -85,19 +85,6 @@ VAStatus DdiDecodeAv1::ParseTileParams(
         pTileCtrl++;
     }
 
-#if MOS_EVENT_TRACE_DUMP_SUPPORTED
-    if (MOS_TraceKeyEnabled(TR_KEY_DECODE_TILEPARAM))
-    {
-        CodecAv1PicParams* picAV1Params = (CodecAv1PicParams*)(m_decodeCtx->DecodeParams.m_picParams);
-
-        DECODE_EVENTDATA_TILEPARAM_AV1 eventData;
-        DECODE_EVENTDATA_TILEINFO_AV1  *pEventTileData = (DECODE_EVENTDATA_TILEINFO_AV1 *)MOS_AllocMemory(numTiles * sizeof(DECODE_EVENTDATA_TILEINFO_AV1));
-        DecodeEventDataAV1TileParamInit(&eventData, pEventTileData, picAV1Params, (CodecAv1TileParams *)(m_decodeCtx->DecodeParams.m_sliceParams), numTiles);
-        MOS_TraceEvent(EVENT_DECODE_BUFFER_TILEPARAM_AV1, EVENT_TYPE_INFO, &eventData, sizeof(eventData), pEventTileData, numTiles * sizeof(DECODE_EVENTDATA_TILEINFO_AV1));
-        MOS_FreeMemory(pEventTileData);
-    }
-#endif
-
     return VA_STATUS_SUCCESS;
 }
 
@@ -473,27 +460,6 @@ VAStatus DdiDecodeAv1::ParsePicParams(
     eventData.EnabledSegment                  = picAV1Params->m_av1SegData.m_enabled;
     eventData.EnabledFilmGrain                = picAV1Params->m_seqInfoFlags.m_fields.m_filmGrainParamsPresent;
     MOS_TraceEvent(EVENT_DECODE_INFO_PICTUREVA, EVENT_TYPE_INFO, &eventData, sizeof(eventData), NULL, 0);
-
-    if (MOS_TraceKeyEnabled(TR_KEY_DECODE_PICPARAM))
-    {
-        DECODE_EVENTDATA_PICPARAM_AV1 eventData;
-        DecodeEventDataAV1PicParamInit(&eventData, picAV1Params);
-        MOS_TraceEvent(EVENT_DECODE_BUFFER_PICPARAM_AV1, EVENT_TYPE_INFO, &eventData, sizeof(eventData), NULL, 0);
-
-        if (picAV1Params->m_av1SegData.m_enabled)
-        {
-            DECODE_EVENTDATA_SEGPARAM_AV1 segEventData;
-            DecodeEventDataAV1SegParamInit(&segEventData, picAV1Params);
-            MOS_TraceEvent(EVENT_DECODE_BUFFER_SEGPARAM_AV1, EVENT_TYPE_INFO, &segEventData, sizeof(segEventData), NULL, 0);
-        }
-
-        if (picAV1Params->m_filmGrainParams.m_filmGrainInfoFlags.m_fields.m_applyGrain)
-        {
-            DECODE_EVENTDATA_FILMGRAINPARAM_AV1 filmGrainEventData;
-            DecodeEventDataAV1FilmGrainParamInit(&filmGrainEventData, picAV1Params);
-            MOS_TraceEvent(EVENT_DECODE_BUFFER_FILMGRAINPARAM_AV1, EVENT_TYPE_INFO, &filmGrainEventData, sizeof(filmGrainEventData), NULL, 0);
-        }
-    }
 #endif
 
     return VA_STATUS_SUCCESS;
@@ -624,32 +590,6 @@ VAStatus DdiDecodeAv1::RenderPicture(
             MediaLibvaCommonNext::MediaBufferToMosResource(m_decodeCtx->BufMgr.pBitStreamBuffObject[index],
                                               &m_decodeCtx->BufMgr.resBitstreamBuffer);
             m_decodeCtx->DecodeParams.m_dataSize += dataSize;
-
-#if MOS_EVENT_TRACE_DUMP_SUPPORTED
-            uint8_t * pDataBuf = (uint8_t *)MediaLibvaUtilNext::LockBuffer(m_decodeCtx->BufMgr.pBitStreamBuffObject[index], MOS_LOCKFLAG_READONLY);            
-            DDI_CODEC_CHK_NULL(pDataBuf, "nullptr bitstream", VA_STATUS_ERROR_INVALID_BUFFER);
-
-            if (MOS_TraceKeyEnabled(TR_KEY_DECODE_BITSTREAM_INFO))
-            {
-                DECODE_EVENTDATA_BITSTREAM eventData;
-                for (int i = 0; i < 32; i++)
-                {
-                    eventData.Data[i] = pDataBuf[i];
-                }
-                MOS_TraceEvent(EVENT_DECODE_INFO_BITSTREAM, EVENT_TYPE_INFO, &eventData, sizeof(eventData), NULL, 0);
-            }
-
-            if (MOS_TraceKeyEnabled(TR_KEY_DECODE_BITSTREAM))
-            {
-                MOS_TraceDataDump(
-                "Decode_Bitstream",
-                0,
-                pDataBuf,
-                m_decodeCtx->DecodeParams.m_dataSize);
-            }
-                
-            MediaLibvaUtilNext::UnlockBuffer(m_decodeCtx->BufMgr.pBitStreamBuffObject[index]);
-#endif
 
             break;
         }

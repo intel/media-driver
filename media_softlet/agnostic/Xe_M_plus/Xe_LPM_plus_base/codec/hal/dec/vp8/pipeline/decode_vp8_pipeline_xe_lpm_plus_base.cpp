@@ -121,7 +121,9 @@ MOS_STATUS Vp8PipelineXe_Lpm_Plus_Base::Execute()
             {
                 DECODE_CHK_STATUS(UserFeatureReport());
             }
-            m_basicFeature->m_frameNum++;
+            
+            DecodeFrameIndex++;
+            m_basicFeature->m_frameNum = DecodeFrameIndex;
 
             DECODE_CHK_STATUS(m_statusReport->Reset());
 
@@ -244,21 +246,18 @@ MOS_STATUS Vp8PipelineXe_Lpm_Plus_Base::DumpParams(Vp8BasicFeature &basicFeature
     m_debugInterface->m_secondField               = basicFeature.m_secondField;
     m_debugInterface->m_bufferDumpFrameNum        = basicFeature.m_frameNum;
 
-    DECODE_CHK_STATUS(DumpPicParams(
-        basicFeature.m_vp8PicParams));
-
-    DECODE_CHK_STATUS(DumpIQParams(
-        basicFeature.m_vp8IqMatrixParams));
+    DECODE_CHK_STATUS(DumpPicParams(basicFeature.m_vp8PicParams));
+    DECODE_CHK_STATUS(DumpSliceParams(basicFeature.m_vp8SliceParams));
+    DECODE_CHK_STATUS(DumpIQParams(basicFeature.m_vp8IqMatrixParams));
+    DECODE_CHK_STATUS(DumpBitstream(&basicFeature.m_resDataBuffer.OsResource, basicFeature.m_dataSize, 0));
 
     if (basicFeature.m_bitstreamLockingInUse)
     {
-        DECODE_CHK_STATUS(DumpCoefProbBuffer(
-            &(basicFeature.m_resCoefProbBufferInternal->OsResource)));
+        DECODE_CHK_STATUS(DumpCoefProbBuffer(&(basicFeature.m_resCoefProbBufferInternal->OsResource)));
     }
     else
     {
-        DECODE_CHK_STATUS(DumpCoefProbBuffer(
-            &(basicFeature.m_resCoefProbBufferExternal)));
+        DECODE_CHK_STATUS(DumpCoefProbBuffer(&(basicFeature.m_resCoefProbBufferExternal)));
     }
 
     return MOS_STATUS_SUCCESS;

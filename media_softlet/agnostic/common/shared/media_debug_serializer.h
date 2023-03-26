@@ -44,8 +44,20 @@ public:
     {
         size_t num = size / sizeof(T);
         size_t idx = 0;
+
+        if (num > 1)
+        {
+            os << "Total Num: " << num << std::endl;
+            os << std::endl;
+        }
+
         while (idx < num)
         {
+            if (num > 1)
+            {
+                os << "---------"<< "Index = " << idx << "---------" << std::endl;
+            }
+
             os << reinterpret_cast<const T *>(data)[idx++] << std::endl;
         }
 
@@ -79,7 +91,7 @@ class MediaDebugSerializer<
 public:
     void operator()(std::ostream &os, const void *data, size_t size)
     {
-        constexpr size_t LINE_WIDTH = 32 / sizeof(T);
+        constexpr size_t LINE_WIDTH = 16 / sizeof(T);
         constexpr size_t ELEM_WIDTH = sizeof(T) << 1;
 
         size_t num = size / sizeof(T);
@@ -87,7 +99,7 @@ public:
         while (idx < num)
         {
             os << std::setfill('0') << std::setw(ELEM_WIDTH) << std::hex
-               << std::uppercase << reinterpret_cast<const T *>(data)[idx]
+               << reinterpret_cast<const T *>(data)[idx]
                << ((idx + 1) % LINE_WIDTH == 0 ? "\n" : " ");
             ++idx;
         }

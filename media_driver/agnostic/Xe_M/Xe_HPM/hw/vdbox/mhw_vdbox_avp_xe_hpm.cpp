@@ -1160,17 +1160,6 @@ MOS_STATUS MhwVdboxAvpInterfaceXe_Hpm::AddAvpPipeBufAddrCmd(
         }
     }
 
-#if MOS_EVENT_TRACE_DUMP_SUPPORTED
-    if (m_decodeInUse)
-    {
-        if (cmd.DecodedOutputFrameBufferAddressAttributes.DW0.BaseAddressMemoryCompressionEnable && !bMMCReported)
-        {
-            MOS_TraceEvent(EVENT_DECODE_FEATURE_MMC, EVENT_TYPE_INFO, NULL, 0, NULL, 0);
-            bMMCReported = true;
-        }
-    }
-#endif
-
     MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
     return MOS_STATUS_SUCCESS;
 }
@@ -1220,16 +1209,6 @@ MOS_STATUS MhwVdboxAvpInterfaceXe_Hpm::AddAvpPipeModeSelectCmd(
         cmd.DW6.SourcePixelPrefetchEnable = true;
         cmd.DW6.SSEEnable = false;
     }
-
-#if MOS_EVENT_TRACE_DUMP_SUPPORTED
-    if (m_decodeInUse)
-    {
-        if (cmd.DW1.PipeWorkingMode == MHW_VDBOX_HCP_PIPE_WORK_MODE_CABAC_REAL_TILE)
-        {
-            MOS_TraceEvent(EVENT_DECODE_FEATURE_RT_SCALABILITY, EVENT_TYPE_INFO, NULL, 0, NULL, 0);
-        }
-    }
-#endif
 
     MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, params->pBatchBuffer, &cmd, sizeof(cmd)));
 

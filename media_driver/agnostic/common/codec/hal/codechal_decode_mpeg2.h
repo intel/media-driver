@@ -259,7 +259,7 @@ public:
         CodecMpeg2IqMatrix *matrixData);
 
     MOS_STATUS DumpMbParams(
-        CodecDecodeMpeg2MbParmas *mbParams);
+        CodecDecodeMpeg2MbParams *mbParams);
 #endif
     // Parameters passed by application
     uint16_t                     m_picWidthInMb   = 0;                               //!< Picture Width in MB width count
@@ -270,7 +270,7 @@ public:
     uint32_t                     m_numMacroblocks = 0;                               //!< Number of macro blocks
     CodecDecodeMpeg2PicParams *  m_picParams      = nullptr;                         //!< Pointer to MPEG2 picture parameter
     CodecDecodeMpeg2SliceParams *m_sliceParams    = nullptr;                         //!< Pointer to MPEG2 slice parameter
-    CodecDecodeMpeg2MbParmas *   m_mbParams       = nullptr;                         //!< Pointer to MPEG2 macro block parameter
+    CodecDecodeMpeg2MbParams *   m_mbParams       = nullptr;                         //!< Pointer to MPEG2 macro block parameter
     CodecMpeg2IqMatrix *         m_iqMatrixBuffer = nullptr;                         //!< Pointer to MPEG2 IQ matrix parameter
     MOS_SURFACE                  m_destSurface;                                      //!< Handle of render surface
     PMOS_RESOURCE                m_presReferences[CODEC_MAX_NUM_REF_FRAME_NON_AVC];  //!< Pointer to Handle of Reference Frames
@@ -306,7 +306,7 @@ public:
     MOS_RESOURCE m_resSyncObjectWaContextInUse;     //!< signals on the video WA context
     MOS_RESOURCE m_resSyncObjectVideoContextInUse;  //!< signals on the video context
 
-    CodecDecodeMpeg2MbParmas m_savedMpeg2MbParam;  //!< save last MB parameters to be able to reconstruct MPEG2 IT Object Command for Skipped MBs.
+    CodecDecodeMpeg2MbParams m_savedMpeg2MbParam;  //!< save last MB parameters to be able to reconstruct MPEG2 IT Object Command for Skipped MBs.
 };
 
 #endif  // __CODECHAL_DECODER_MPEG2_H__

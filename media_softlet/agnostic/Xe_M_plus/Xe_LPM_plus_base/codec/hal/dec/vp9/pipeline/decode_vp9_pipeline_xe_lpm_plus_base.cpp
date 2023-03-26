@@ -152,7 +152,9 @@ MOS_STATUS Vp9PipelineXe_Lpm_Plus_Base::Execute()
             {
                 DECODE_CHK_STATUS(UserFeatureReport());
             }
-            m_basicFeature->m_frameNum++;
+            
+            DecodeFrameIndex++;
+            m_basicFeature->m_frameNum = DecodeFrameIndex;
 
             DECODE_CHK_STATUS(m_statusReport->Reset());
 
@@ -361,13 +363,12 @@ MOS_STATUS Vp9PipelineXe_Lpm_Plus_Base::DumpParams(Vp9BasicFeature &basicFeature
     m_debugInterface->m_secondField               = basicFeature.m_secondField;
     m_debugInterface->m_bufferDumpFrameNum        = basicFeature.m_frameNum;
 
-    DECODE_CHK_STATUS(DumpPicParams(
-        basicFeature.m_vp9PicParams));
+    DECODE_CHK_STATUS(DumpPicParams(basicFeature.m_vp9PicParams));
+    DECODE_CHK_STATUS(DumpSliceParams(basicFeature.m_vp9SliceParams));
+    DECODE_CHK_STATUS(DumpSegmentParams(basicFeature.m_vp9SegmentParams));
+    DECODE_CHK_STATUS(DumpBitstream(&basicFeature.m_resDataBuffer.OsResource, basicFeature.m_dataSize, 0));
 
-    DECODE_CHK_STATUS(DumpSegmentParams(
-        basicFeature.m_vp9SegmentParams));
-
-     DECODE_CHK_STATUS(m_debugInterface->DumpBuffer(
+    DECODE_CHK_STATUS(m_debugInterface->DumpBuffer(
         &(basicFeature.m_resVp9SegmentIdBuffer->OsResource),
         CodechalDbgAttr::attrSegId,
         "SegId_beforeHCP",
@@ -378,13 +379,6 @@ MOS_STATUS Vp9PipelineXe_Lpm_Plus_Base::DumpParams(Vp9BasicFeature &basicFeature
         CodechalDbgAttr::attrCoefProb,
         "PakHwCoeffProbs_beforeHCP",
         CODEC_VP9_PROB_MAX_NUM_ELEM));
-
-    //dump bitstream
-    DECODE_CHK_STATUS(m_debugInterface->DumpBuffer(
-        &basicFeature.m_resDataBuffer.OsResource, 
-        CodechalDbgAttr::attrDecodeBitstream, 
-        "_DEC", 
-        basicFeature.m_dataSize, 0, CODECHAL_NUM_MEDIA_STATES));
 
     return MOS_STATUS_SUCCESS;
 }

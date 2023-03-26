@@ -50,10 +50,6 @@
 
 using namespace decode;
 
-#if MOS_EVENT_TRACE_DUMP_SUPPORTED
-static uint32_t DecodeFrameIndex = 0;
-#endif
-
 VAStatus DdiDecodeFunctions::CreateConfig (
     VADriverContextP  ctx,
     VAProfile         profile,

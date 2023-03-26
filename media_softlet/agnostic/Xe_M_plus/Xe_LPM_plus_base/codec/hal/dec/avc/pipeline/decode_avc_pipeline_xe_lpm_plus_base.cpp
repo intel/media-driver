@@ -266,7 +266,8 @@ MOS_STATUS AvcPipelineXe_Lpm_Plus_Base::Execute()
             {
                 if (m_basicFeature->m_secondField || CodecHal_PictureIsFrame(m_basicFeature->m_avcPicParams->CurrPic))
                 {
-                    m_basicFeature->m_frameNum++;
+                    DecodeFrameIndex++;
+                    m_basicFeature->m_frameNum = DecodeFrameIndex;
                 }
             }
             DECODE_CHK_STATUS(m_statusReport->Reset());
@@ -305,18 +306,9 @@ MOS_STATUS AvcPipelineXe_Lpm_Plus_Base::DumpParams(AvcBasicFeature &basicFeature
     m_debugInterface->m_bufferDumpFrameNum = m_basicFeature->m_frameNum;
 
     DECODE_CHK_STATUS(DumpPicParams(basicFeature.m_avcPicParams));
-
-    if (basicFeature.m_avcIqMatrixParams != nullptr)
-    {
-        DECODE_CHK_STATUS(DumpIQParams(basicFeature.m_avcIqMatrixParams));
-    }
-
-    if (basicFeature.m_avcSliceParams != nullptr)
-    {
-        DECODE_CHK_STATUS(DumpSliceParams(
-            basicFeature.m_avcSliceParams,
-            basicFeature.m_numSlices));
-    }
+    DECODE_CHK_STATUS(DumpSliceParams(basicFeature.m_avcSliceParams, basicFeature.m_numSlices, basicFeature.m_shortFormatInUse));
+    DECODE_CHK_STATUS(DumpIQParams(basicFeature.m_avcIqMatrixParams));
+    DECODE_CHK_STATUS(DumpBitstream(&basicFeature.m_resDataBuffer.OsResource, basicFeature.m_dataSize, 0));
 
     return MOS_STATUS_SUCCESS;
 }

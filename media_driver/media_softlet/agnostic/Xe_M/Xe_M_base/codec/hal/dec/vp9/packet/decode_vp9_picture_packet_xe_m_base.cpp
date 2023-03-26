@@ -62,11 +62,6 @@ MOS_STATUS Vp9DecodePicPktXe_M_Base::FreeResources()
         m_allocator->Destroy(m_resIntraPredLeftReconColStoreBuffer);
         m_allocator->Destroy(m_resCABACSyntaxStreamOutBuffer);
         m_allocator->Destroy(m_resCABACStreamOutSizeBuffer);
-#if MOS_EVENT_TRACE_DUMP_SUPPORTED
-        m_allocator->Destroy(m_tempLastRefSurf);
-        m_allocator->Destroy(m_tempGoldenRefSurf);
-        m_allocator->Destroy(m_tempAltRefSurf);
-#endif
     }
 
     return MOS_STATUS_SUCCESS;
@@ -513,20 +508,8 @@ MOS_STATUS Vp9DecodePicPktXe_M_Base::SetHcpPipeBufAddrParams(MHW_VDBOX_PIPE_BUF_
 
     DECODE_CHK_STATUS(FixHcpPipeBufAddrParams(pipeBufAddrParams));    
 
-    CODECHAL_DEBUG_TOOL(DumpRefResources(pipeBufAddrParams, m_vp9BasicFeature->m_resVp9MvTemporalBuffer[0]->size));
+    CODECHAL_DEBUG_TOOL(DumpResources(pipeBufAddrParams, activeRefList.size(), m_vp9BasicFeature->m_resVp9MvTemporalBuffer[0]->size));
    
-#if MOS_EVENT_TRACE_DUMP_SUPPORTED
-    if (MOS_TraceKeyEnabled(TR_KEY_DECODE_MV))
-    {
-        TraceDataDumpMV(pipeBufAddrParams, m_vp9BasicFeature->m_resVp9MvTemporalBuffer[0]->size);
-    }
-
-    if (MOS_TraceKeyEnabled(TR_KEY_DECODE_REFYUV))
-    {
-        TraceDataDumpReferences(pipeBufAddrParams);
-    }
-#endif
-
     return MOS_STATUS_SUCCESS;
 }
 
@@ -638,327 +621,57 @@ MOS_STATUS Vp9DecodePicPktXe_M_Base::CalculateCommandSize(uint32_t &commandBuffe
 
 //dump reference 
 #if USE_CODECHAL_DEBUG_TOOL
-MOS_STATUS Vp9DecodePicPktXe_M_Base::DumpRefResources(MHW_VDBOX_PIPE_BUF_ADDR_PARAMS &pipeBufAddrParams, uint32_t size)
+MOS_STATUS Vp9DecodePicPktXe_M_Base::DumpResources(MHW_VDBOX_PIPE_BUF_ADDR_PARAMS &params, uint32_t refSize, uint32_t mvSize)
 {
     DECODE_FUNC_CALL();
 
     CodechalDebugInterface *debugInterface = m_pipeline->GetDebugInterface();
     DECODE_CHK_NULL(debugInterface);
-    for (uint16_t n = 0; n < CODECHAL_DECODE_VP9_MAX_NUM_REF_FRAME; n++)
-    {
-        if (pipeBufAddrParams.presReferences[n])
-        {
-            MOS_SURFACE dstSurface;
-            MOS_ZeroMemory(&dstSurface, sizeof(MOS_SURFACE));
-            dstSurface.OsResource = *(pipeBufAddrParams.presReferences[n]);
-            DECODE_CHK_STATUS(CodecHalGetResourceInfo(
-                m_osInterface,
-                &dstSurface));
 
-            debugInterface->m_refIndex = n;
-            std::string refSurfName    = "RefSurf[" + std::to_string(static_cast<uint32_t>(debugInterface->m_refIndex)) + "]";
-            DECODE_CHK_STATUS(debugInterface->DumpYUVSurface(
-                &dstSurface,
-                CodechalDbgAttr::attrDecodeReferenceSurfaces,
-                refSurfName.c_str()));
+    if (m_vp9PicParams->PicFlags.fields.frame_type == CODEC_VP9_INTER_FRAME)
+    {
+        for (uint16_t n = 0; n < refSize; n++)
+        {
+            if (params.presReferences[n])
+            {
+                MOS_SURFACE refSurface;
+                MOS_ZeroMemory(&refSurface, sizeof(MOS_SURFACE));
+                refSurface.OsResource = *(params.presReferences[n]);
+                DECODE_CHK_STATUS(CodecHalGetResourceInfo(
+                    m_osInterface,
+                    &refSurface));
+
+                debugInterface->m_refIndex = n;
+                std::string refSurfName    = "RefSurf[" + std::to_string(static_cast<uint32_t>(debugInterface->m_refIndex)) + "]";
+                DECODE_CHK_STATUS(debugInterface->DumpYUVSurface(
+                    &refSurface,
+                    CodechalDbgAttr::attrDecodeReferenceSurfaces,
+                    refSurfName.c_str()));
+            }
         }
     }
 
-    if (pipeBufAddrParams.presColMvTempBuffer[0])
+    if (params.presColMvTempBuffer[0])
     {
         // dump mvdata
         DECODE_CHK_STATUS(debugInterface->DumpBuffer(
-            pipeBufAddrParams.presColMvTempBuffer[0],
+            params.presColMvTempBuffer[0],
             CodechalDbgAttr::attrMvData,
             "DEC_Col_MV_",
-            size));
+            mvSize));
     };
 
-    if (pipeBufAddrParams.presCurMvTempBuffer)
+    if (params.presCurMvTempBuffer)
     {
-
         // dump mvdata
         DECODE_CHK_STATUS(debugInterface->DumpBuffer(
-            pipeBufAddrParams.presCurMvTempBuffer,
+            params.presCurMvTempBuffer,
             CodechalDbgAttr::attrMvData,
             "DEC_Cur_MV_",
-            size));
+            mvSize));
     };
 
    return MOS_STATUS_SUCCESS;
-}
-#endif
-
-#if MOS_EVENT_TRACE_DUMP_SUPPORTED
-MOS_STATUS Vp9DecodePicPktXe_M_Base::TraceDataDumpMV(
-    MHW_VDBOX_PIPE_BUF_ADDR_PARAMS &pipeBufAddrParams,
-    uint32_t size)
-{
-    if (!m_allocator->ResourceIsNull(pipeBufAddrParams.presColMvTempBuffer[0]))
-    {
-        ResourceAutoLock resLock(m_allocator, pipeBufAddrParams.presColMvTempBuffer[0]);
-        auto             pData = (uint8_t *)resLock.LockResourceForRead();
-        DECODE_CHK_NULL(pData);
-
-        MOS_TraceDataDump(
-            "Decode_Vp9ColMvTempBuffer",
-            0,
-            pData,
-            size);
-
-        m_allocator->UnLock(pipeBufAddrParams.presColMvTempBuffer[0]);
-    };
-
-    if (!m_allocator->ResourceIsNull(pipeBufAddrParams.presCurMvTempBuffer))
-    {
-        ResourceAutoLock resLock(m_allocator, pipeBufAddrParams.presCurMvTempBuffer);
-        auto             pData = (uint8_t *)resLock.LockResourceForRead();
-        DECODE_CHK_NULL(pData);
-
-        MOS_TraceDataDump(
-            "Decode_Vp9CurMvTempBuffer",
-            0,
-            pData,
-            size);
-
-        m_allocator->UnLock(pipeBufAddrParams.presCurMvTempBuffer);
-    };
-
-    return MOS_STATUS_SUCCESS;
-}
-
-MOS_STATUS Vp9DecodePicPktXe_M_Base::TraceDataDumpReferences(MHW_VDBOX_PIPE_BUF_ADDR_PARAMS &pipeBufAddrParams)
-{
-    bool bAllocateLastRef   = false;
-    bool bAllocateGoldenRef = false;
-    bool bAllocateAltRef    = false;
-
-    if (!m_allocator->ResourceIsNull(pipeBufAddrParams.presReferences[CodechalDecodeLastRef]))
-    {
-        MOS_SURFACE dstSurface;
-        MOS_ZeroMemory(&dstSurface, sizeof(MOS_SURFACE));
-        dstSurface.OsResource = *(pipeBufAddrParams.presReferences[CodechalDecodeLastRef]);
-        DECODE_CHK_STATUS(m_allocator->GetSurfaceInfo(&dstSurface));
-
-        if (m_tempLastRefSurf == nullptr || m_allocator->ResourceIsNull(&m_tempLastRefSurf->OsResource))
-        {
-            bAllocateLastRef = true;
-        }
-        else if (m_tempLastRefSurf->dwWidth  < dstSurface.dwWidth ||
-                 m_tempLastRefSurf->dwHeight < dstSurface.dwHeight)
-        {
-            bAllocateLastRef = true;
-        }
-        else
-        {
-            bAllocateLastRef = false;
-        }
-
-        if (bAllocateLastRef)
-        {
-            if (!m_allocator->ResourceIsNull(&m_tempLastRefSurf->OsResource))
-            {
-                m_allocator->Destroy(m_tempLastRefSurf);
-            }
-            
-            m_tempLastRefSurf = m_allocator->AllocateLinearSurface(
-                dstSurface.dwWidth,
-                dstSurface.dwHeight,
-                "VP9 last reference",
-                dstSurface.Format,
-                dstSurface.bIsCompressed,
-                resourceInputReference,
-                lockableSystemMem,
-                MOS_TILE_LINEAR_GMM);
-        }
-
-        DECODE_CHK_STATUS(m_osInterface->pfnDoubleBufferCopyResource(
-            m_osInterface,
-            &dstSurface.OsResource,
-            &m_tempLastRefSurf->OsResource,
-            false));
-
-        DECODE_EVENTDATA_YUV_SURFACE_INFO eventData =
-        {
-            PICTURE_FRAME,
-            0,
-            m_tempLastRefSurf->dwOffset,
-            m_tempLastRefSurf->YPlaneOffset.iYOffset,
-            m_tempLastRefSurf->dwPitch,
-            m_tempLastRefSurf->dwWidth,
-            m_tempLastRefSurf->dwHeight,
-            (uint32_t)m_tempLastRefSurf->Format,
-            m_tempLastRefSurf->UPlaneOffset.iLockSurfaceOffset,
-            m_tempLastRefSurf->VPlaneOffset.iLockSurfaceOffset,
-            m_tempLastRefSurf->UPlaneOffset.iSurfaceOffset,
-            m_tempLastRefSurf->VPlaneOffset.iSurfaceOffset,
-        };
-        MOS_TraceEvent(EVENT_DECODE_DUMPINFO_REF, EVENT_TYPE_INFO, &eventData, sizeof(eventData), NULL, 0);
-
-        ResourceAutoLock resLock(m_allocator, &m_tempLastRefSurf->OsResource);
-        auto             pData = (uint8_t *)resLock.LockResourceForRead();
-        DECODE_CHK_NULL(pData);
-
-        MOS_TraceDataDump(
-            "Decode_VP9LastRef",
-            0, 
-            pData,
-            (uint32_t)m_tempLastRefSurf->OsResource.pGmmResInfo->GetSizeMainSurface());
-        
-        m_allocator->UnLock(&m_tempLastRefSurf->OsResource);
-    }
-
-    if (!m_allocator->ResourceIsNull(pipeBufAddrParams.presReferences[CodechalDecodeGoldenRef]))
-    {
-        MOS_SURFACE dstSurface;
-        MOS_ZeroMemory(&dstSurface, sizeof(MOS_SURFACE));
-        dstSurface.OsResource = *(pipeBufAddrParams.presReferences[CodechalDecodeGoldenRef]);
-        DECODE_CHK_STATUS(m_allocator->GetSurfaceInfo(&dstSurface));
-
-        if (m_tempGoldenRefSurf == nullptr || m_allocator->ResourceIsNull(&m_tempGoldenRefSurf->OsResource))
-        {
-            bAllocateGoldenRef = true;
-        }
-        else if (m_tempGoldenRefSurf->dwWidth  < dstSurface.dwWidth ||
-                 m_tempGoldenRefSurf->dwHeight < dstSurface.dwHeight)
-        {
-            bAllocateGoldenRef = true;
-        }
-        else
-        {
-            bAllocateGoldenRef = false;
-        }
-
-        if (bAllocateGoldenRef)
-        {
-            if (!m_allocator->ResourceIsNull(&m_tempGoldenRefSurf->OsResource))
-            {
-                m_allocator->Destroy(m_tempGoldenRefSurf);
-            }
-
-            m_tempGoldenRefSurf = m_allocator->AllocateLinearSurface(
-                dstSurface.dwWidth,
-                dstSurface.dwHeight,
-                "VP9 golden reference",
-                dstSurface.Format,
-                dstSurface.bIsCompressed,
-                resourceInputReference,
-                lockableSystemMem,
-                MOS_TILE_LINEAR_GMM);
-        }
-
-        DECODE_CHK_STATUS(m_osInterface->pfnDoubleBufferCopyResource(
-            m_osInterface,
-            &dstSurface.OsResource,
-            &m_tempGoldenRefSurf->OsResource,
-            false));
-
-        DECODE_EVENTDATA_YUV_SURFACE_INFO eventData =
-        {
-            PICTURE_FRAME,
-            0,
-            m_tempGoldenRefSurf->dwOffset,
-            m_tempGoldenRefSurf->YPlaneOffset.iYOffset,
-            m_tempGoldenRefSurf->dwPitch,
-            m_tempGoldenRefSurf->dwWidth,
-            m_tempGoldenRefSurf->dwHeight,
-            (uint32_t)m_tempGoldenRefSurf->Format,
-            m_tempGoldenRefSurf->UPlaneOffset.iLockSurfaceOffset,
-            m_tempGoldenRefSurf->VPlaneOffset.iLockSurfaceOffset,
-            m_tempGoldenRefSurf->UPlaneOffset.iSurfaceOffset,
-            m_tempGoldenRefSurf->VPlaneOffset.iSurfaceOffset,
-        };
-        MOS_TraceEvent(EVENT_DECODE_DUMPINFO_REF, EVENT_TYPE_INFO, &eventData, sizeof(eventData), NULL, 0);
-
-        ResourceAutoLock resLock(m_allocator, &m_tempGoldenRefSurf->OsResource);
-        auto             pData = (uint8_t *)resLock.LockResourceForRead();
-        DECODE_CHK_NULL(pData);
-
-        MOS_TraceDataDump(
-            "Decode_VP9GoldenRef",
-            0,
-            pData,
-            (uint32_t)m_tempGoldenRefSurf->OsResource.pGmmResInfo->GetSizeMainSurface());
-        
-        m_allocator->UnLock(&m_tempGoldenRefSurf->OsResource);
-    }
-
-    if (!m_allocator->ResourceIsNull(pipeBufAddrParams.presReferences[CodechalDecodeAlternateRef]))
-    {
-        MOS_SURFACE dstSurface;
-        MOS_ZeroMemory(&dstSurface, sizeof(MOS_SURFACE));
-        dstSurface.OsResource = *(pipeBufAddrParams.presReferences[CodechalDecodeAlternateRef]);
-        DECODE_CHK_STATUS(m_allocator->GetSurfaceInfo(&dstSurface));
-
-        if (m_tempAltRefSurf == nullptr || m_allocator->ResourceIsNull(&m_tempAltRefSurf->OsResource))
-        {
-            bAllocateAltRef = true;
-        }
-        else if (m_tempAltRefSurf->dwWidth  < dstSurface.dwWidth ||
-                 m_tempAltRefSurf->dwHeight < dstSurface.dwHeight)
-        {
-            bAllocateAltRef = true;
-        }
-        else
-        {
-            bAllocateAltRef = false;
-        }
-
-        if (bAllocateAltRef)
-        {
-            if (!m_allocator->ResourceIsNull(&m_tempAltRefSurf->OsResource))
-            {
-                m_allocator->Destroy(m_tempAltRefSurf);
-            }
-
-            m_tempAltRefSurf = m_allocator->AllocateLinearSurface(
-                dstSurface.dwWidth,
-                dstSurface.dwHeight,
-                "VP9 alt reference",
-                dstSurface.Format,
-                dstSurface.bIsCompressed,
-                resourceInputReference,
-                lockableSystemMem,
-                MOS_TILE_LINEAR_GMM);
-        }
-
-        DECODE_CHK_STATUS(m_osInterface->pfnDoubleBufferCopyResource(
-            m_osInterface,
-            &dstSurface.OsResource,
-            &m_tempAltRefSurf->OsResource,
-            false));
-
-        DECODE_EVENTDATA_YUV_SURFACE_INFO eventData =
-        {
-            PICTURE_FRAME,
-            0,
-            m_tempAltRefSurf->dwOffset,
-            m_tempAltRefSurf->YPlaneOffset.iYOffset,
-            m_tempAltRefSurf->dwPitch,
-            m_tempAltRefSurf->dwWidth,
-            m_tempAltRefSurf->dwHeight,
-            (uint32_t)m_tempAltRefSurf->Format,
-            m_tempAltRefSurf->UPlaneOffset.iLockSurfaceOffset,
-            m_tempAltRefSurf->VPlaneOffset.iLockSurfaceOffset,
-            m_tempAltRefSurf->UPlaneOffset.iSurfaceOffset,
-            m_tempAltRefSurf->VPlaneOffset.iSurfaceOffset,
-        };
-        MOS_TraceEvent(EVENT_DECODE_DUMPINFO_REF, EVENT_TYPE_INFO, &eventData, sizeof(eventData), NULL, 0);
-
-        ResourceAutoLock resLock(m_allocator, &m_tempAltRefSurf->OsResource);
-        auto             pData = (uint8_t *)resLock.LockResourceForRead();
-        DECODE_CHK_NULL(pData);
-        
-        MOS_TraceDataDump(
-            "Decode_VP9AltRef",
-            0,
-            pData,
-            (uint32_t)m_tempAltRefSurf->OsResource.pGmmResInfo->GetSizeMainSurface());
-        
-        m_allocator->UnLock(&m_tempAltRefSurf->OsResource);
-    }
-
-    return MOS_STATUS_SUCCESS;
 }
 #endif
 
