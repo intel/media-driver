@@ -672,12 +672,35 @@ typedef void *              MOS_INTERFACE_HANDLE;
 
 class GpuContextMgr;
 
+
 namespace CMRT_UMD
 {
     class CmDevice;
 };
 struct _CM_HAL_STATE;
 typedef struct _CM_HAL_STATE *PCM_HAL_STATE;
+
+struct MOS_SURF_DUMP_SURFACE_DEF
+{
+    uint32_t offset;  //!< Offset from start of the plane
+    uint32_t height;  //!< Height in rows
+    uint32_t width;   //!< Width in bytes
+    uint32_t pitch;   //!< Pitch in bytes
+};
+
+struct ResourceDumpAttri
+{
+    MOS_RESOURCE            res           = {};
+    MOS_LOCK_PARAMS         lockFlags     = {};
+    std::string             fullFileName  = {};
+    uint32_t                width         = 0;
+    uint32_t                height        = 0;
+    uint32_t                pitch         = 0;
+    MOS_GFXRES_FREE_FLAGS   resFreeFlags  = {};
+    MOS_PLANE_OFFSET        yPlaneOffset;  // Y surface plane offset
+    MOS_PLANE_OFFSET        uPlaneOffset;  // U surface plane offset
+    MOS_PLANE_OFFSET        vPlaneOffset;  // V surface plane offset
+};
 
 //!
 //! \brief Structure to Unified HAL OS resources
@@ -787,6 +810,7 @@ typedef struct _MOS_INTERFACE
 #endif // (_DEBUG || _RELEASE_INTERNAL)
 
     bool                            apoMosEnabled;                                //!< apo mos or not
+    std::vector<ResourceDumpAttri>  resourceDumpAttriArray;
 
     MEMORY_OBJECT_CONTROL_STATE (* pfnCachePolicyGetMemoryObject) (
         MOS_HW_RESOURCE_DEF         Usage,
@@ -1979,6 +2003,19 @@ typedef struct _MOS_INTERFACE
         PMOS_INTERFACE                 pOsInterface,
         uint8_t&                       id);
 #endif
+    //!
+    //! \brief    Is Device Async or not
+    //! \details  Is Device Async or not.
+    //!
+    //! \param    PMOS_INTERFACE pOsInterface
+    //!           [in] OS Interface
+    //!
+    //! \return   bool
+    //!           Return true if is async, otherwise false
+    //!
+    bool (*pfnIsAsynDevice)(
+        PMOS_INTERFACE              osInterface);
+
     //!
     //! \brief   Get User Setting instance
     //!
