@@ -154,7 +154,7 @@ MOS_STATUS JpegDecodePicPkt::CalculateCommandSize(uint32_t &commandBufferSize, u
 MHW_SETPAR_DECL_SRC(MFX_PIPE_MODE_SELECT, JpegDecodePicPkt)
 {
     params.Mode                                           = m_jpegBasicFeature->m_mode;
-    params.streamOutEnabled                               = false;
+    params.streamOutEnable                                = false;
     params.deblockerStreamOutEnable                       = false;
     params.preDeblockingOutputEnablePredeblockoutenable   = true;
     params.postDeblockingOutputEnablePostdeblockoutenable = false;

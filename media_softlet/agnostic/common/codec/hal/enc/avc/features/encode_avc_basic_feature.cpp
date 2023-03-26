@@ -1277,6 +1277,7 @@ MHW_SETPAR_DECL_SRC(MFX_PIPE_MODE_SELECT, AvcBasicFeature)
     params.deblockerStreamOutEnable = 0;
     params.vdencMode = 1;
     params.decoderShortFormatMode = 1;
+    params.sliceSizeStreamout32bit = true;
 
     return MOS_STATUS_SUCCESS;
 }
