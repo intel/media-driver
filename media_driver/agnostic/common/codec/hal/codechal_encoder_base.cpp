@@ -4713,7 +4713,7 @@ MOS_STATUS CodechalEncoderState::SendPredicationCommand(
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(cmdBuffer, &flushDwParams));
 
         // load presPredication to general purpose register0
-        MHW_MI_STORE_REGISTER_MEM_PARAMS    loadRegisterMemParams;
+        MHW_MI_LOAD_REGISTER_MEM_PARAMS    loadRegisterMemParams;
         MOS_ZeroMemory(&loadRegisterMemParams, sizeof(loadRegisterMemParams));
         loadRegisterMemParams.presStoreBuffer = m_encodeParams.m_presPredication;
         loadRegisterMemParams.dwOffset = (uint32_t)m_encodeParams.m_predicationResOffset;
