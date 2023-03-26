@@ -34,7 +34,7 @@ std::unique_ptr<MediaDebugFastDumpImp> imp = nullptr;
 
 void MediaDebugFastDump::CreateInstance(
     MOS_INTERFACE      &osItf,
-    MediaCopyBaseState &mediaCopyItf,
+    MediaCopyWrapper   &mediaCopyWrapper,
     const Config       *cfg)
 {
     if (imp == nullptr)
@@ -42,9 +42,9 @@ void MediaDebugFastDump::CreateInstance(
         imp =
 #if __cplusplus < 201402L
             decltype(imp)(
-                new MediaDebugFastDumpImp(osItf, mediaCopyItf, cfg));
+                new MediaDebugFastDumpImp(osItf, mediaCopyWrapper, cfg));
 #else
-            std::make_unique<MediaDebugFastDumpImp>(osItf, mediaCopyItf, cfg);
+            std::make_unique<MediaDebugFastDumpImp>(osItf, mediaCopyWrapper, cfg);
 #endif
     }
 }

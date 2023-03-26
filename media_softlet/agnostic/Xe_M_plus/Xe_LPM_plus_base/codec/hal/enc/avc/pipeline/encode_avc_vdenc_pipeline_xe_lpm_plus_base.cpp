@@ -94,7 +94,7 @@ MOS_STATUS AvcVdencPipelineXe_Lpm_Plus_Base::Initialize(void *settings)
         ENCODE_CHK_NULL_RETURN(m_debugInterface);
         ENCODE_CHK_NULL_RETURN(m_mediaCopyWrapper);
         ENCODE_CHK_STATUS_RETURN(
-            m_debugInterface->Initialize(m_hwInterface, m_codecFunction, m_mediaCopyWrapper->GetMediaCopyState()));
+            m_debugInterface->Initialize(m_hwInterface, m_codecFunction, m_mediaCopyWrapper));
 
         if (m_statusReportDebugInterface != nullptr) {
             MOS_Delete(m_statusReportDebugInterface);
@@ -102,7 +102,7 @@ MOS_STATUS AvcVdencPipelineXe_Lpm_Plus_Base::Initialize(void *settings)
         m_statusReportDebugInterface = MOS_New(CodechalDebugInterface);
         ENCODE_CHK_NULL_RETURN(m_statusReportDebugInterface);
         ENCODE_CHK_STATUS_RETURN(
-            m_statusReportDebugInterface->Initialize(m_hwInterface, m_codecFunction, m_mediaCopyWrapper->GetMediaCopyState())););
+            m_statusReportDebugInterface->Initialize(m_hwInterface, m_codecFunction, m_mediaCopyWrapper)););
 
     ENCODE_CHK_STATUS_RETURN(GetSystemVdboxNumber());
 

@@ -36,7 +36,7 @@
 #include "mhw_cp_interface.h"
 #include "media_debug_config_manager.h"
 #include "media_debug_utils.h"
-#include "media_copy.h"
+#include "media_copy_wrapper.h"
 #include <sstream>
 #include <fstream>
 #include <functional>

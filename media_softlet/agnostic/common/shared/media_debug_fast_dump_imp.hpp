@@ -243,9 +243,9 @@ protected:
 public:
     MediaDebugFastDumpImp(
         MOS_INTERFACE      &osItf,
-        MediaCopyBaseState &mediaCopyItf,
+        MediaCopyWrapper   &mediaCopyWrapper,
         const Config       *cfg) : m_osItf(osItf),
-                             m_mediaCopyItf(mediaCopyItf)
+                             m_mediaCopyWrapper(mediaCopyWrapper)
     {
         std::unique_ptr<const Config> cfg1 = nullptr;
 
@@ -344,7 +344,7 @@ public:
                 }
             }
 
-            if (m_mediaCopyItf.SurfaceCopy(&res, &(*resIt)->res, m_copyMethod()) !=
+            if (m_mediaCopyWrapper.MediaCopy(&res, &(*resIt)->res, m_copyMethod()) !=
                 MOS_STATUS_SUCCESS)
             {
                 return m_writeError(
@@ -758,7 +758,7 @@ protected:
                         "allocate_tmp_resource_failed");
                 }
 
-                if (m_mediaCopyItf.SurfaceCopy(&res->res, &tmpRes, m_copyMethod()) !=
+                if (m_mediaCopyWrapper.MediaCopy(&res->res, &tmpRes, m_copyMethod()) !=
                     MOS_STATUS_SUCCESS)
                 {
                     return m_writeError(
@@ -868,7 +868,7 @@ protected:
     std::condition_variable m_cond;
 
     MOS_INTERFACE      &m_osItf;
-    MediaCopyBaseState &m_mediaCopyItf;
+    MediaCopyWrapper   &m_mediaCopyWrapper;
 
     MEDIA_CLASS_DEFINE_END(MediaDebugFastDumpImp)
 };

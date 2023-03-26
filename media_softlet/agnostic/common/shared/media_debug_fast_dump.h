@@ -34,7 +34,7 @@
 #include <functional>
 #include <string>
 #include "media_debug_serializer.h"
-#include "media_copy.h"
+#include "media_copy_wrapper.h"
 #include "codechal_debug.h"
 
 class MediaDebugFastDump
@@ -103,7 +103,7 @@ public:
 public:
     static void CreateInstance(
         MOS_INTERFACE      &osItf,
-        MediaCopyBaseState &mediaCopyItf,
+        MediaCopyWrapper   &mediaCopyWrapper,
         const Config       *cfg = nullptr);
 
     static void DestroyInstance();

@@ -182,12 +182,12 @@ public:
     virtual MOS_STATUS Initialize(
         CodechalHwInterface *hwInterface,
         CODECHAL_FUNCTION    codecFunction,
-        MediaCopyBaseState  *mediaCopy = nullptr);
+        MediaCopyWrapper    *mediaCopyWrapper = nullptr);
 
     virtual MOS_STATUS Initialize(
         CodechalHwInterfaceNext *hwInterface,
         CODECHAL_FUNCTION        codecFunction,
-        MediaCopyBaseState      *mediaCopy = nullptr);
+        MediaCopyWrapper        *mediaCopyWrapper = nullptr);
 
     virtual MOS_STATUS DumpHucDmem(
         PMOS_RESOURCE             dmemResource,
@@ -237,7 +237,7 @@ public:
         const char *              attr,
         CODECHAL_MEDIA_STATE_TYPE mediaState = CODECHAL_NUM_MEDIA_STATES);
 
-    MOS_STATUS SetFastDumpConfig(MediaCopyBaseState *mediaCopy);
+    MOS_STATUS SetFastDumpConfig(MediaCopyWrapper *mediaCopyWrapper);
 
     const char *CreateFileName(
         const char *funcName,

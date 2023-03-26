@@ -52,7 +52,6 @@ MOS_STATUS EncodePipeline::Initialize(void *settings)
     ENCODE_CHK_STATUS_RETURN(MediaPipeline::InitPlatform());
     ENCODE_CHK_STATUS_RETURN(MediaPipeline::CreateMediaCopyWrapper());
     ENCODE_CHK_NULL_RETURN(m_mediaCopyWrapper);
-    m_mediaCopyWrapper->CreateMediaCopyState();
 
     ENCODE_CHK_NULL_RETURN(m_hwInterface);
     ENCODE_CHK_NULL_RETURN(m_hwInterface->GetOsInterface());
@@ -86,13 +85,13 @@ MOS_STATUS EncodePipeline::Initialize(void *settings)
         m_debugInterface = MOS_New(CodechalDebugInterface);
         ENCODE_CHK_NULL_RETURN(m_debugInterface);
         ENCODE_CHK_STATUS_RETURN(
-            m_debugInterface->Initialize(m_hwInterface, m_codecFunction, m_mediaCopyWrapper->GetMediaCopyState())
+            m_debugInterface->Initialize(m_hwInterface, m_codecFunction, m_mediaCopyWrapper)
         );
 
         m_statusReportDebugInterface = MOS_New(CodechalDebugInterface);
         ENCODE_CHK_NULL_RETURN(m_statusReportDebugInterface);
         ENCODE_CHK_STATUS_RETURN(
-        m_statusReportDebugInterface->Initialize(m_hwInterface, m_codecFunction, m_mediaCopyWrapper->GetMediaCopyState()));
+        m_statusReportDebugInterface->Initialize(m_hwInterface, m_codecFunction, m_mediaCopyWrapper));
     );
 
     MediaUserSetting::Value outValue;

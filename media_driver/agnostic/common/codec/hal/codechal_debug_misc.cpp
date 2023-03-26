@@ -41,7 +41,7 @@
 MOS_STATUS CodechalDebugInterface::Initialize(
     CodechalHwInterface *hwInterface,
     CODECHAL_FUNCTION    codecFunction,
-    MediaCopyBaseState  *mediaCopy)
+    MediaCopyWrapper    *mediaCopyWrapper)
 {
     CODECHAL_DEBUG_FUNCTION_ENTER;
 
@@ -109,8 +109,6 @@ MOS_STATUS CodechalDebugInterface::Initialize(
         m_swCRC = outValue.Get<bool>();
     }
 #endif
-
-    SetFastDumpConfig(mediaCopy);
 
     return MOS_STATUS_SUCCESS;
 }

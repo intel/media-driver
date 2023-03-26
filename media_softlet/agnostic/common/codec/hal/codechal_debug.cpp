@@ -2795,7 +2795,7 @@ MOS_STATUS CodechalDebugInterface::InitializeUserSetting()
 MOS_STATUS CodechalDebugInterface::Initialize(
     CodechalHwInterfaceNext *hwInterface,
     CODECHAL_FUNCTION        codecFunction,
-    MediaCopyBaseState      *mediaCopy)
+    MediaCopyWrapper        *mediaCopyWrapper)
 {
     CODECHAL_DEBUG_FUNCTION_ENTER;
 
@@ -2878,7 +2878,7 @@ MOS_STATUS CodechalDebugInterface::Initialize(
     }
 #endif
 
-    SetFastDumpConfig(mediaCopy);
+    SetFastDumpConfig(mediaCopyWrapper);
 
     return MOS_STATUS_SUCCESS;
 }
@@ -3145,10 +3145,10 @@ bool CodechalDebugInterface::DumpIsEnabled(
     }
 }
 
-MOS_STATUS CodechalDebugInterface::SetFastDumpConfig(MediaCopyBaseState *mediaCopy)
+MOS_STATUS CodechalDebugInterface::SetFastDumpConfig(MediaCopyWrapper *mediaCopyWrapper)
 {
     auto traceSetting = MosUtilities::GetTraceSetting();
-    if (!mediaCopy || !(DumpIsEnabled(MediaDbgAttr::attrEnableFastDump) || traceSetting))
+    if (!mediaCopyWrapper || !(DumpIsEnabled(MediaDbgAttr::attrEnableFastDump) || traceSetting))
     {
         return MOS_STATUS_SUCCESS;
     }
@@ -3256,7 +3256,7 @@ MOS_STATUS CodechalDebugInterface::SetFastDumpConfig(MediaCopyBaseState *mediaCo
         cfg.informOnError = false;
     }
 
-    MediaDebugFastDump::CreateInstance(*m_osInterface, *mediaCopy, &cfg);
+    MediaDebugFastDump::CreateInstance(*m_osInterface, *mediaCopyWrapper, &cfg);
 
     return MOS_STATUS_SUCCESS;
 }
