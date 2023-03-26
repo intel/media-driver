@@ -3894,13 +3894,30 @@ VAStatus MediaLibvaInterfaceNext::ExportSurfaceHandle(
     {
         DDI_ASSERTMESSAGE("could not find related modifier values");
         return VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT;
-    }    
+    }
+
+    // Query Aux Plane info form GMM
+    bool hasAuxPlane           = false;
+    GMM_RESOURCE_FLAG GmmFlags = mediaSurface->pGmmResourceInfo->GetResFlags();
+
+    if (((GmmFlags.Gpu.MMC                           ||
+          GmmFlags.Gpu.CCS)                          &&
+         (GmmFlags.Info.MediaCompressed              ||
+          GmmFlags.Info.RenderCompressed)            &&
+          mediaCtx->m_auxTableMgr) )
+          {
+              hasAuxPlane = true;
+          }
+          else
+          {
+              hasAuxPlane = false;
+          }
 
     int compositeObject = flags & VA_EXPORT_SURFACE_COMPOSED_LAYERS;
 
     uint32_t formats[4];
-    bool hasAuxPlane = (mediaCtx->m_auxTableMgr)? true: false;
     uint32_t planesNum = GetPlaneNum(mediaSurface, hasAuxPlane);
+
     if(compositeObject)
     {
         formats[0] = GetDrmFormatOfCompositeObject(desc->fourcc);
@@ -3947,7 +3964,7 @@ VAStatus MediaLibvaInterfaceNext::ExportSurfaceHandle(
     uint32_t auxOffsetY = (uint32_t)mediaSurface->pGmmResourceInfo->GetPlanarAuxOffset(0, GMM_AUX_Y_CCS);
     uint32_t auxOffsetUV = (uint32_t)mediaSurface->pGmmResourceInfo->GetPlanarAuxOffset(0, GMM_AUX_UV_CCS);
 
-    if(mediaCtx->m_auxTableMgr)
+    if(hasAuxPlane)
     {
         status = InitSurfaceDescriptorWithAuxTableMgr(desc, formats, compositeObject, planesNum,
             offsetY, offsetU, offsetV, auxOffsetY, auxOffsetUV, mediaSurface->iPitch);
