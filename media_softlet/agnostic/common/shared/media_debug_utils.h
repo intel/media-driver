@@ -41,8 +41,6 @@ static const char *attrDumpBufferInBinary    = "DumpBufferInBinary";
 static const char *attrDumpToThreadFolder    = "DumpToThreadFolder";
 static const char *attrDumpCmdBufInBinary    = "DumpCmdBufInBinary";
 static const char *attrEnableFastDump        = "EnableFastDump";
-static const char *attrFastDumpAllowDataLoss = "FastDumpAllowDataLoss";
-static const char *attrFastDumpInformOnError = "FastDumpInformOnError";
 
 //Codec Attr 
 static const char *attrPicParams               = "PicParams";

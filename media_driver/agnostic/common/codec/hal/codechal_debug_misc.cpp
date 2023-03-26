@@ -65,6 +65,10 @@ MOS_STATUS CodechalDebugInterface::Initialize(
 
     MediaDebugInterface::InitDumpLocation();
 
+    m_dumpYUVSurface = m_dumpYUVSurface_legacy_dump;
+
+    m_dumpBuffer = m_dumpBuffer_legacy_dump;
+
 #if (_DEBUG || _RELEASE_INTERNAL)
     {
         MediaUserSetting::Value outValue;

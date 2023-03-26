@@ -317,6 +317,7 @@ protected:
     std::string SetOutputPathKey() override;
     std::string InitDefaultOutput() override;
     uint8_t *m_decodeOutputBuf = nullptr;
+    PLATFORM    m_platform        = {};
 
     std::function<
         MOS_STATUS(
@@ -330,6 +331,26 @@ protected:
 
     std::function<
         MOS_STATUS(
+            PMOS_SURFACE              surface,
+            const char               *attrName,
+            const char               *surfName,
+            CODECHAL_MEDIA_STATE_TYPE mediaState,
+            uint32_t                  width_in,
+            uint32_t                  height_in)>
+        m_dumpYUVSurface_fast_dump;
+
+    std::function<
+        MOS_STATUS(
+            PMOS_SURFACE              surface,
+            const char               *attrName,
+            const char               *surfName,
+            CODECHAL_MEDIA_STATE_TYPE mediaState,
+            uint32_t                  width_in,
+            uint32_t                  height_in)>
+        m_dumpYUVSurface_legacy_dump;
+
+    std::function<
+        MOS_STATUS(
             PMOS_RESOURCE             resource,
             const char               *attrName,
             const char               *bufferName,
@@ -337,6 +358,26 @@ protected:
             uint32_t                  offset,
             CODECHAL_MEDIA_STATE_TYPE mediaState)>
         m_dumpBuffer;
+
+    std::function<
+        MOS_STATUS(
+            PMOS_RESOURCE             resource,
+            const char               *attrName,
+            const char               *bufferName,
+            uint32_t                  size,
+            uint32_t                  offset,
+            CODECHAL_MEDIA_STATE_TYPE mediaState)>
+        m_dumpBuffer_fast_dump;
+
+    std::function<
+        MOS_STATUS(
+            PMOS_RESOURCE             resource,
+            const char               *attrName,
+            const char               *bufferName,
+            uint32_t                  size,
+            uint32_t                  offset,
+            CODECHAL_MEDIA_STATE_TYPE mediaState)>
+        m_dumpBuffer_legacy_dump;
 
 MEDIA_CLASS_DEFINE_END(CodechalDebugInterface)
 };
