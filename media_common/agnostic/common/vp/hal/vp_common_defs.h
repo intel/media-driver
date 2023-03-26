@@ -841,9 +841,10 @@ typedef struct _VPHAL_STE_PARAMS
 //!
 typedef struct _VPHAL_STD_PARAMS
 {
-    uint32_t           paraSizeInBytes = 0;
-    void              *param           = nullptr;
-    unsigned long long sysMem          = 0;
+    uint32_t           paraSizeInBytes  = 0;
+    void              *param            = nullptr;
+    unsigned long long sysMem           = 0;
+    bool               bOutputSkinScore = false;
 } VPHAL_STD_PARAMS, *PVPHAL_STD_PARAMS;
 
 //!

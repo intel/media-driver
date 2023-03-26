@@ -66,7 +66,8 @@ using PCVP_PIPELINE_PARAMS = const VPHAL_RENDER_PARAMS*;
     uint32_t isHVSTableNeeded : 1;
 
 #define RESOURCE_ASSIGNMENT_HINT_BITS_STD_ALONE \
-    uint32_t isSkinScoreDumpNeededForSTDonly : 1;
+    uint32_t isSkinScoreDumpNeededForSTDonly : 1; \
+    uint32_t isSkinScoreOutputNeededForSTDOnly : 1;
 
 #define RESOURCE_ASSIGNMENT_HINT_BITS           \
         RESOURCE_ASSIGNMENT_HINT_BITS_DI        \

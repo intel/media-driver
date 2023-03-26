@@ -1281,7 +1281,12 @@ public:
     virtual MOS_STATUS Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSurf, SwFilterSubPipe &pipe);
     virtual MOS_STATUS SetResourceAssignmentHint(RESOURCE_ASSIGNMENT_HINT &hint)
     {
-        hint.isSkinScoreDumpNeededForSTDonly = m_Params.bEnableSTD;
+        if (m_Params.bEnableSTD)
+        {
+            hint.isSkinScoreDumpNeededForSTDonly = !m_Params.STDParam.bOutputSkinScore;
+            hint.isSkinScoreOutputNeededForSTDOnly = m_Params.STDParam.bOutputSkinScore;
+        }
+
         return MOS_STATUS_SUCCESS;
     }
 
