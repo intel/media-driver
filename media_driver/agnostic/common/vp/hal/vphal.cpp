@@ -251,7 +251,13 @@ static bool IsSurfNeedAvs(
 
         if (IS_YUV_FORMAT(pSurf->Format))
         {
-            return true;
+            // Not perform AVS for surface with VPHAL_SCALING_NEAREST
+            // or VPHAL_SCALING_BILINEAR scaling mode.
+            if (pSurf->ScalingMode == VPHAL_SCALING_AVS ||
+                pSurf->ScalingMode == VPHAL_SCALING_ADV_QUALITY)
+            {
+                return true;
+            }
         }
     }
 finish:
