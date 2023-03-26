@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022, Intel Corporation
+* Copyright (c) 2022-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -25,79 +25,11 @@
 //!
 
 #include "mos_oca_rtlog_mgr.h"
+#include "oca_rtlog_section_mgr.h"
 #include "mos_context_specific_next.h"
 
-#define ADDRESS_PAGE_ALIGNMENT_MASK 0xFFFFFFFFFFFFF000ULL
-
 bool MosOcaRTLogMgr::m_enableOcaRTLog = true;
-uint8_t MosOcaRTLogMgr::s_localSysMem[MAX_OCA_RT_POOL_SIZE] = {};
 MosMutex MosOcaRTLogMgr::s_ocaMutex;
-
-/****************************************************************************************************/
-/*                                      MosOcaRtLogSectionMgr                                       */
-/****************************************************************************************************/
-MosOcaRtLogSectionMgr::MosOcaRtLogSectionMgr()
-{
-}
-
-void MosOcaRtLogSectionMgr::Init(uint8_t* logSysMem, uint32_t size, uint32_t componentSize, uint32_t offset)
-{
-    if (logSysMem && size && componentSize)
-    {
-        m_LockedHeap = logSysMem;
-        m_HeapSize   = size;
-        m_Offset     = offset;
-        m_HeapHandle = -1;
-        m_EntryCount = (MAX_OCA_RT_SUB_SIZE - sizeof(MOS_OCA_RTLOG_SECTION_HEADER))/ MOS_OCA_RTLOG_ENTRY_SIZE;
-
-        m_IsInitialized = true;
-    }
-}
-
-MosOcaRtLogSectionMgr::~MosOcaRtLogSectionMgr()
-{
-    m_LockedHeap    = nullptr;
-    m_HeapSize      = 0;
-    m_Offset        = 0;
-    m_HeapHandle    = -1;
-    m_IsInitialized = false;
-}
-
-int32_t MosOcaRtLogSectionMgr::AllocHeapHandle()
-{
-    return MosUtilities::MosAtomicIncrement(&m_HeapHandle);
-}
-
-MOS_STATUS MosOcaRtLogSectionMgr::InsertUid(MOS_OCA_RTLOG_SECTION_HEADER sectionHeader)
-{
-    if (0 == sectionHeader.magicNum)
-    {
-        return MOS_STATUS_INVALID_PARAMETER;
-    }
-    MOS_OS_CHK_STATUS_RETURN(MOS_SecureMemcpy((uint8_t *)m_LockedHeap + m_Offset, sizeof(MOS_OCA_RTLOG_SECTION_HEADER), &sectionHeader, sizeof(MOS_OCA_RTLOG_SECTION_HEADER)));
-    m_Offset += sizeof(MOS_OCA_RTLOG_SECTION_HEADER);
-    return MOS_STATUS_SUCCESS;
-}
-
-MOS_STATUS MosOcaRtLogSectionMgr::InsertData(MOS_OCA_RTLOG_HEADER header, const void *param)
-{
-    if (param)
-    {
-        if (header.paramCount * (sizeof(int32_t) + sizeof(int64_t)) > MOS_OCA_RTLOG_ENTRY_SIZE)
-        {
-            return MOS_STATUS_NO_SPACE;
-        }
-        int32_t heapHandle = AllocHeapHandle()%m_EntryCount;
-        if (heapHandle < m_EntryCount)
-        {
-            uint8_t *copyAddr = (uint8_t *)m_LockedHeap + m_Offset + heapHandle * MOS_OCA_RTLOG_ENTRY_SIZE;
-            MOS_OS_CHK_STATUS_RETURN(MOS_SecureMemcpy(copyAddr, sizeof(MOS_OCA_RTLOG_HEADER), &header, sizeof(MOS_OCA_RTLOG_HEADER)));
-            uint32_t copySize = header.paramCount * (sizeof(int32_t) + sizeof(int64_t));
-            MOS_OS_CHK_STATUS_RETURN(MOS_SecureMemcpy(copyAddr + sizeof(MOS_OCA_RTLOG_HEADER), copySize, param, copySize));
-        }
-    }
-    return MOS_STATUS_SUCCESS;
-}
 
 /****************************************************************************************************/
 /*                                      MosOcaRTLogMgr                                              */
@@ -202,57 +134,9 @@ void MosOcaRTLogMgr::UnregisterRes(OsContextNext *osDriverContext)
     MOS_SafeFreeMemory(resInterface.osInterface);
 }
 
-MOS_STATUS MosOcaRTLogMgr::InsertRTLog(MOS_OCA_RTLOG_COMPONENT_TPYE componentType, bool isErr, int32_t id, uint32_t paramCount, const void *param)
-{
-    if (!m_isMgrInitialized)
-    {
-        return MOS_STATUS_UNIMPLEMENTED;
-    }
-
-    if (paramCount != MOS_OCA_RTLOG_MAX_PARAM_COUNT)
-    {
-        return MOS_STATUS_UNIMPLEMENTED;
-    }
-    MosOcaRtLogSectionMgr *insMgr = nullptr;
-
-    if (componentType < MOS_OCA_RTLOG_COMPONENT_MAX)
-    {
-        insMgr = &m_rtLogSectionMgr[componentType];
-    
-        if (insMgr->IsInitialized())
-        {
-            uint64_t index = 0;
-            MosUtilities::MosQueryPerformanceCounter(&index);
-            MOS_OCA_RTLOG_HEADER header = {};
-            header.globalId             = index;
-            header.id                   = id;
-            header.paramCount           = paramCount;
-            MOS_OS_CHK_STATUS_RETURN(insMgr->InsertData(header, (uint8_t *)param));
-        }
-    }
-    return MOS_STATUS_SUCCESS;
-}
-
 MosOcaRTLogMgr::MosOcaRTLogMgr()
 {
-    uint64_t linearAddress        = (uint64_t)s_localSysMem;
-    uint64_t linearAddressAligned = 0;
-
-    linearAddressAligned = ((linearAddress + MOS_PAGE_SIZE - 1) & ADDRESS_PAGE_ALIGNMENT_MASK);
-
-    m_heapAddr             = (uint8_t *)linearAddressAligned;
-    uint32_t offset = 0;
-    for (int i = 0; i < MOS_OCA_RTLOG_COMPONENT_MAX; ++i)
-    {
-        m_rtLogSectionMgr[i].Init(m_heapAddr, m_heapSize, MAX_OCA_RT_SUB_SIZE, offset);
-        MOS_OCA_RTLOG_SECTION_HEADER sectionHeader = {};
-        sectionHeader.magicNum      = MOS_OCA_RTLOG_MAGIC_NUM;
-        sectionHeader.componentType = (MOS_OCA_RTLOG_COMPONENT_TPYE)i;
-        sectionHeader.freq          = 0;
-        MosUtilities::MosQueryPerformanceFrequency(&sectionHeader.freq);
-        m_rtLogSectionMgr[i].InsertUid(sectionHeader);
-        offset += MAX_OCA_RT_SUB_SIZE;
-    }
+    m_heapAddr = OcaRtLogSectionMgr::GetMemAddress();
 
     m_isMgrInitialized = true;
 }

@@ -261,6 +261,38 @@ public:
     }
 
     //!
+    //! \brief  Get OCA status
+    //! \return MOS_STATUS
+    //!         Return oca status
+    //!
+    virtual MOS_STATUS GetOCAStatus()
+    {
+        return s_ocaStatus;
+    }
+
+    //!
+    //! \brief  Set OCA status
+    //! \param  [in] status
+    //!         oca status
+    //! \return void
+    //!
+    virtual void SetOCAStatus(MOS_STATUS status)
+    {
+        s_ocaStatus = status;
+    }
+
+    //!
+    //! \brief  Set OCA error line number
+    //! \param  [in] num
+    //!         line number
+    //! \return void
+    //!
+    virtual void SetOCAErrorLineNumber(uint32_t num)
+    {
+        s_lineNumForOcaErr = num;
+    }
+
+    //!
     //! \brief  Oca Interface Initialize.
     //!
     static void InitInterface(PMOS_CONTEXT mosCtx);

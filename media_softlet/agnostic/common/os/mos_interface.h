@@ -2246,14 +2246,6 @@ public:
         MOS_STREAM_HANDLE   streamState,
         GPU_CONTEXT_HANDLE  gpuContextHandle);
 
-    static void InsertRTLog(
-        MOS_STREAM_HANDLE streamState,
-        MOS_OCA_RTLOG_COMPONENT_TPYE componentType,
-        bool isErr,
-        int32_t id,
-        uint8_t paramCount,
-        const void *param);
-
     static void GetRtLogResourceInfo(
         MOS_STREAM_HANDLE streamState,
         PMOS_RESOURCE &osResource,

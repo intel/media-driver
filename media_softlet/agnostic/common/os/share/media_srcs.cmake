@@ -1,4 +1,4 @@
-# Copyright (c) 2022-2023, Intel Corporation
+# Copyright (c) 2023, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -19,45 +19,41 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 set(TMP_SOURCES_
-    ${CMAKE_CURRENT_LIST_DIR}/vp_hal_ddi_utils.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/vp_user_setting.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/mos_oca_util_debug.cpp
 )
 
 set(TMP_HEADERS_
-    ${CMAKE_CURRENT_LIST_DIR}/vp_hal_ddi_utils.h
-    ${CMAKE_CURRENT_LIST_DIR}/vp_user_setting.h
+    ${CMAKE_CURRENT_LIST_DIR}/mos_oca_util_debug.h
 )
 
-set(SOFTLET_VP_SOURCES_
-    ${SOFTLET_VP_SOURCES_}
+set(SOFTLET_MOS_COMMON_SOURCES_
+    ${SOFTLET_MOS_COMMON_SOURCES_}
     ${TMP_SOURCES_}
 )
 
-set(SOFTLET_VP_HEADERS_
-    ${SOFTLET_VP_HEADERS_}
+set(SOFTLET_MOS_COMMON_HEADERS_
+    ${SOFTLET_MOS_COMMON_HEADERS_}
     ${TMP_HEADERS_}
 )
 
-set(SOFTLET_VP_PRIVATE_INCLUDE_DIRS_
-    ${SOFTLET_VP_PRIVATE_INCLUDE_DIRS_}
+set(SOFTLET_MOS_PUBLIC_INCLUDE_DIRS_
+    ${SOFTLET_MOS_PUBLIC_INCLUDE_DIRS_}
     ${CMAKE_CURRENT_LIST_DIR}
 )
 
-set(SOFTLET_VP_HAL_DDI_SHARED_SOURCES_
-    ${SOFTLET_VP_HAL_DDI_SHARED_SOURCES_}
+set(SOFTLET_MOS_COMMON_HAL_SHARED_SOURCES_
+    ${SOFTLET_MOS_COMMON_HAL_SHARED_SOURCES_}
     ${TMP_SOURCES_}
 )
 
-set(SOFTLET_VP_HAL_DDI_SHARED_HEADERS_
-    ${SOFTLET_VP_HAL_DDI_SHARED_HEADERS_}
+set(SOFTLET_MOS_COMMON_HAL_SHARED_HEADERS_
+    ${SOFTLET_MOS_COMMON_HAL_SHARED_HEADERS_}
     ${TMP_HEADERS_}
 )
 
-set(SOFTLET_VP_HAL_DDI_SHARED_INCLUDE_DIRS_
-    ${SOFTLET_VP_HAL_DDI_SHARED_INCLUDE_DIRS_}
+set(COMMON_DLL_INCLUDE_DIRS_
+    ${COMMON_DLL_INCLUDE_DIRS_}
     ${CMAKE_CURRENT_LIST_DIR}
 )
 
-source_group( VpHalNext\\Shared FILES ${TMP_SOURCES_} ${TMP_HEADERS_})
-set(TMP_SOURCES_ "")
-set(TMP_HEADERS_ "")
+source_group( "mos_softlet" FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )

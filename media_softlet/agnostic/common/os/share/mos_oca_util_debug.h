@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022, Intel Corporation
+* Copyright (c) 2022-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -29,12 +29,13 @@
 #define __MOS_OCA_UTIL_DEBUG_H__
 #if !EMUL
 #include "mos_oca_rtlog_mgr_defs.h"
+#include "oca_rtlog_section_mgr.h"
 
 #define OCA_MT_ERR(id, p1, v1, cTpye, osStreamState)                                               \
     {                                                                                              \
         bool isErr = true;                                                                         \
         MT_PARAM param[] = {{p1, v1}};                                                             \
-        MosInterface::InsertRTLog(osStreamState, cTpye, isErr, id, 1, param);                      \
+        OcaRtLogSectionMgr::InsertRTLog(cTpye, isErr, id, 1, param);                      \
         MT_ERR1(id, p1, v1);                                                                       \
     }
 
@@ -42,7 +43,7 @@
     {                                                                                              \
         bool isErr = false;                                                                        \
         MT_PARAM param[] = {{p1, v1}};                                                             \
-        MosInterface::InsertRTLog(osStreamState, cTpye, isErr, id, 1, param);                      \
+        OcaRtLogSectionMgr::InsertRTLog(cTpye, isErr, id, 1, param);                      \
         MT_LOG1(id, MT_NORMAL, p1,v1);                                                             \
     }
 

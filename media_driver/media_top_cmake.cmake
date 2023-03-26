@@ -83,17 +83,6 @@ set(SOFTLET_DDI_PRIVATE_INCLUDE_DIRS_ "")
 set(SOFTLET_DDI_PUBLIC_INCLUDE_DIRS_ "")
 
 ################################################################################
-# ddi/mos hal share
-################################################################################
-set(MOS_COMMON_HAL_SHARED_SOURCES_ "")                     # source group
-
-set(SOFTLET_COMMON_HAL_DDI_SHARED_SOURCES_ "")             # softlet source group
-set(SOFTLET_COMMON_HAL_DDI_SHARED_INCLUDE_DIRS_ "")
-
-set(SOFTLET_VP_HAL_DDI_SHARED_SOURCES_ "")
-set(SOFTLET_VP_HAL_DDI_SHARED_INCLUDE_DIRS_ "")
-
-################################################################################
 # codec
 ################################################################################
 set(CODEC_SOURCES_ "")                  # legacy source group
@@ -244,14 +233,12 @@ bs_set_defines()
 set_source_files_properties(${SOURCES_} PROPERTIES LANGUAGE "CXX")
 set_source_files_properties(${COMMON_SOURCES_} PROPERTIES LANGUAGE "CXX")
 set_source_files_properties(${SOFTLET_COMMON_SOURCES_} PROPERTIES LANGUAGE "CXX")
-set_source_files_properties(${SOFTLET_COMMON_HAL_DDI_SHARED_SOURCES_} PROPERTIES LANGUAGE "CXX")
 set_source_files_properties(${CODEC_SOURCES_} PROPERTIES LANGUAGE "CXX")
 set_source_files_properties(${SOFTLET_CODEC_SOURCES_} PROPERTIES LANGUAGE "CXX")
 set_source_files_properties(${SOFTLET_ENCODE_SOURCES_} PROPERTIES LANGUAGE "CXX")
 set_source_files_properties(${SOFTLET_DECODE_SOURCES_} PROPERTIES LANGUAGE "CXX")
 set_source_files_properties(${VP_SOURCES_} PROPERTIES LANGUAGE "CXX")
 set_source_files_properties(${SOFTLET_VP_SOURCES_} PROPERTIES LANGUAGE "CXX")
-set_source_files_properties(${SOFTLET_VP_HAL_DDI_SHARED_SOURCES_} PROPERTIES LANGUAGE "CXX")
 set_source_files_properties(${CP_COMMON_SOURCES_} PROPERTIES LANGUAGE "CXX")
 set_source_files_properties(${CP_COMMON_SHARED_SOURCES_} PROPERTIES LANGUAGE "CXX")
 set_source_files_properties(${CP_COMMON_NEXT_SOURCES_} PROPERTIES LANGUAGE "CXX")
@@ -414,14 +401,6 @@ FOREACH(SRC1 ${SOURCES_})
     endif()
 ENDFOREACH()
 
-set (SOFTLET_COMMON_SOURCES_
-    ${SOFTLET_COMMON_SOURCES_}
-    ${SOFTLET_COMMON_HAL_DDI_SHARED_SOURCES_})
-
-set (SOFTLET_COMMON_PRIVATE_INCLUDE_DIRS_
-    ${SOFTLET_COMMON_PRIVATE_INCLUDE_DIRS_}
-    ${SOFTLET_COMMON_HAL_DDI_SHARED_INCLUDE_DIRS_})
-
 set (COMMON_SOURCES_
     ${COMMON_SOURCES_}
     ${UPDATED_SOURCES_})
@@ -429,14 +408,6 @@ set (COMMON_SOURCES_
 set(COMMON_PRIVATE_INCLUDE_DIRS_
     ${COMMON_PRIVATE_INCLUDE_DIRS_}
     ${SOFTLET_COMMON_PRIVATE_INCLUDE_DIRS_})
-
-set (SOFTLET_VP_SOURCES_
-    ${SOFTLET_VP_SOURCES_}
-    ${SOFTLET_VP_HAL_DDI_SHARED_SOURCES_})
-
-set (SOFTLET_VP_PRIVATE_INCLUDE_DIRS_
-    ${SOFTLET_VP_PRIVATE_INCLUDE_DIRS_}
-    ${SOFTLET_VP_HAL_DDI_SHARED_INCLUDE_DIRS_})
 
 set (VP_PRIVATE_INCLUDE_DIRS_
     ${VP_PRIVATE_INCLUDE_DIRS_}
@@ -576,11 +547,6 @@ ENDFOREACH()
 ######################################################
 #MOS LIB
 ############## MOS ########################################
-set(MOS_COMMON_SOURCES_
-${MOS_COMMON_SOURCES_}
-${MOS_COMMON_HAL_SHARED_SOURCES_}
-)
-
 set_source_files_properties(${MOS_COMMON_SOURCES_} PROPERTIES LANGUAGE "CXX")
 set_source_files_properties(${SOFTLET_MOS_COMMON_SOURCES_} PROPERTIES LANGUAGE "CXX")
 

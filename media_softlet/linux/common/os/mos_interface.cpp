@@ -3712,18 +3712,6 @@ MOS_STATUS MosInterface::RegisterBBCompleteNotifyEvent(
     return MOS_STATUS_SUCCESS;
 }
 
-void MosInterface::InsertRTLog(
-    MOS_STREAM_HANDLE streamState,
-    MOS_OCA_RTLOG_COMPONENT_TPYE componentType,
-    bool isErr,
-    int32_t id,
-    uint8_t paramCount,
-    const void *param)
-{
-    MosOcaRTLogMgr &ocaRTLogMgr = MosOcaRTLogMgr::GetInstance();
-    ocaRTLogMgr.InsertRTLog(componentType, isErr, id, paramCount, param);
-}
-
 void MosInterface::GetRtLogResourceInfo(
     MOS_STREAM_HANDLE streamState,
     PMOS_RESOURCE &osResource,

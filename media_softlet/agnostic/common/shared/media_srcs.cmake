@@ -42,6 +42,7 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/null_hardware_next.cpp
     ${CMAKE_CURRENT_LIST_DIR}/media_debug_dumper.cpp
     ${CMAKE_CURRENT_LIST_DIR}/media_debug_fast_dump.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/oca_rtlog_section_mgr.cpp
 )
 
 set(TMP_HEADERS_
@@ -58,6 +59,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/media_debug_serializer.h
     ${CMAKE_CURRENT_LIST_DIR}/media_debug_fast_dump.h
     ${CMAKE_CURRENT_LIST_DIR}/media_debug_fast_dump_imp.hpp
+    ${CMAKE_CURRENT_LIST_DIR}/oca_rtlog_section_mgr.h
 )
 
 

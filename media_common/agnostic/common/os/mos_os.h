@@ -1670,6 +1670,19 @@ typedef struct _MOS_INTERFACE
 
 #if MOS_MEDIASOLO_SUPPORTED
     //!
+    //! \brief    Solo set ready to execute
+    //! \details  Solo set ready to execute
+    //! \param    [in] osInterface
+    //!           Pointer to OsInterface
+    //! \param    [in] readyToExecute
+    //!           ready to execute
+    //! \return   void
+    //!
+    void (*pfnMosSoloSetReadyToExecute)(
+        PMOS_INTERFACE              osInterface,
+        bool                        readyToExecute);
+
+    //!
     //! \brief    Solo Check node limitation
     //! \details  Solo Check node limitation
     //! \param    [in] osInterface
