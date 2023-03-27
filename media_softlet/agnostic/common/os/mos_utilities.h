@@ -51,12 +51,12 @@
 class MediaUserSettingsMgr;
 
 class MosMutex;
-#if COMMON_DLL_SEPARATION_SUPPORT
+
 namespace CommonLib
 {
     class MosCallback;
 }
-#endif
+
 class MosUtilities
 {
 public:
@@ -67,8 +67,8 @@ public:
     MOS_FUNC_EXPORT static int32_t MosGetMemNinjaCounter();
     MOS_FUNC_EXPORT static int32_t MosGetMemNinjaCounterGfx();
 
-#if COMMON_DLL_SEPARATION_SUPPORT
     friend class CommonLib::MosCallback;
+#if COMMON_DLL_SEPARATION_SUPPORT
     
     //!
     //! \brief    Set trace setup info
@@ -79,6 +79,7 @@ public:
     //!
     static MOS_STATUS MosTraceSetupInfoInCommon(uint32_t DrvVer, uint32_t PlatFamily, uint32_t RenderFamily, uint32_t DeviceID);
 #endif
+
     //!
     //! \brief    Get current run time
     //! \details  Get current run time in us
@@ -2845,6 +2846,19 @@ private:
 #endif
 MEDIA_CLASS_DEFINE_END(MosUtilities)
 };
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+#define MEMORY_ALLOC_FAIL_SIMULATE_MODE_DEFAULT (0)
+#define MEMORY_ALLOC_FAIL_SIMULATE_MODE_RANDOM (1)
+#define MEMORY_ALLOC_FAIL_SIMULATE_MODE_TRAVERSE (2)
+
+#define MIN_MEMORY_ALLOC_FAIL_FREQ (1)      //max memory allcation fail rate 100%
+#define MAX_MEMORY_ALLOC_FAIL_FREQ (10000)  //min memory allcation fail rate 1/10000
+
+#define MosAllocMemoryFailSimulationEnabled                                        \
+    (m_mosAllocMemoryFailSimulateMode == MEMORY_ALLOC_FAIL_SIMULATE_MODE_RANDOM || \
+        m_mosAllocMemoryFailSimulateMode == MEMORY_ALLOC_FAIL_SIMULATE_MODE_TRAVERSE)
+#endif
 
 class MosMutex
 {
