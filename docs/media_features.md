@@ -44,7 +44,7 @@
 | 4:0:0, 8-bit                                         | 400P          | 16K            | BDW+                |
 | 420 / 422H<br/>interleaved single scan               | YUY2          | 16K            | BDW+                |
 | 420 / 422H<br/>interleaved single scan               | UYVY          | 16K            | BDW+                |
-| 420 / 422H / 422<br/>interleaved single scanV        | NV12          | 16K            | BDW+                |
+| 420 / 422H / 422V<br/>interleaved single scan        | NV12          | 16K            | BDW+                |
 | 400/420/422H/444/RGB/BGR<br/>interleaved single scan | A8R8G8B8      | 16K            | SKL+                |
 
 ## Supported Encoding Input Format and Max Resolution

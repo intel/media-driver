@@ -752,3 +752,86 @@ jobs:
           ..
         make VERBOSE=1 -j$(nproc)
         sudo make install
+
+  32bit:
+    runs-on: ubuntu-22.04
+    env:
+      CC: /usr/bin/i686-linux-gnu-gcc-11
+      CXX: /usr/bin/i686-linux-gnu-g++-11
+      ASM: /usr/bin/i686-linux-gnu-gcc-11
+      # machine: i386
+    steps:
+    - name: checkout media-driver
+      uses: actions/checkout@v2
+      with:
+        path: media
+    - name: checkout libva
+      uses: actions/checkout@v2
+      with:
+        repository: intel/libva
+        path: libva
+    - name: checkout gmmlib
+      uses: actions/checkout@v2
+      with:
+        repository: intel/gmmlib
+        path: gmmlib
+    - name: install prerequisites
+      run: |
+        sudo dpkg --add-architecture i386
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends \
+          automake \
+          cmake \
+          gcc \
+          g++ \
+          libtool \
+          debhelper:i386 \
+          debhelper-compat:i386 \
+          crossbuild-essential-i386 \
+          dpkg-cross \
+          g++-i686-linux-gnu \
+          gcc-i686-linux-gnu \
+          libc6-i386 \
+          libc6-dev-i386 \
+          libegl1-mesa-dev:i386 \
+          libgl1-mesa-dev:i386 \
+          libglx-dev:i386 \
+          libva-dev:i386 \
+          libdrm-dev:i386 \
+          libxext-dev:i386 \
+          libxfixes-dev:i386 \
+          libx32gcc-9-dev \
+          libx32gcc-9-dev-i386-cross \
+          pkg-config:i386 \
+          libxcb-dri3-dev:i386 \
+          libx11-dev:i386 \
+          libx11-xcb-dev:i386 \
+          libwayland-dev:i386 \
+          ninja-build:i386 \
+          make
+        sudo apt-get clean
+    - name: print tools versions
+      run: |
+        cmake --version
+        $CC --version
+        $CXX --version
+    - name: build libva
+      run: |
+        cd libva
+        ./autogen.sh --prefix=/usr --libdir=/usr/lib/i386-linux-gnu --host=i686-linux-gnu "CFLAGS=-m32" "CXXFLAGS=-m32" "LDFLAGS=-m32"
+        make -j$(nproc)
+        sudo make install
+    - name: build gmmlib
+      run: |
+        cd gmmlib
+        mkdir build && cd build
+        cmake .. -DCMAKE_INSTALL_PREFIX=/usr/ -DCMAKE_BUILD_TYPE=Release -DARCH=32 -DCMAKE_CXX_FLAGS=-m32 -DCMAKE_C_FLAGS=-m32 -DCMAKE_C_COMPILER=/usr/bin/i686-linux-gnu-gcc -DCMAKE_CXX_COMPILER=/usr/bin/i686-linux-gnu-g++
+        make VERBOSE=1 -j$(nproc)
+        sudo make install
+    - name: build media-driver
+      run: |
+        cd media
+        mkdir build && cd build
+        cmake .. -DGMM_DYNAMIC_MOCS_TABLE=TRUE -DSKIP_GMM_CHECK=1 -DMEDIA_VERSION=2.0.0 -DBUILD_TYPE=release -DLIBVA_INSTALL_PATH=/usr/include -DCP_LIBDRM_DIR=/usr/lib/i386-linux-gnu -DCMAKE_INSTALL_PREFIX=/usr -DARCH=32 -DCMAKE_C_COMPILER=/usr/bin/i686-linux-gnu-gcc -DCMAKE_CXX_COMPILER=/usr/bin/i686-linux-gnu-g++ -DCMAKE_CXX_FLAGS=-m32 -DCMAKE_C_FLAGS=-m32
+        make VERBOSE=1 -j$(nproc)
+        sudo make install
