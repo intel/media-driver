@@ -124,7 +124,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS ContextBufferInit(
+    virtual MOS_STATUS ContextBufferInit(
             uint8_t *ctxBuffer,
             bool setToKey);
 

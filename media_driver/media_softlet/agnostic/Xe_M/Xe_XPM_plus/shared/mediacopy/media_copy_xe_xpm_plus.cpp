@@ -87,8 +87,15 @@ MediaCopyStateXe_Xpm_Plus::~MediaCopyStateXe_Xpm_Plus()
     {
         if (m_mhwInterfacesXeXpmPlus->m_cpInterface)
         {
-            Delete_MhwCpInterface(m_mhwInterfacesXeXpmPlus->m_cpInterface);
-            m_mhwInterfacesXeXpmPlus->m_cpInterface = nullptr;
+            if (m_osInterface)
+            {
+                m_osInterface->pfnDeleteMhwCpInterface(m_mhwInterfacesXeXpmPlus->m_cpInterface);
+                m_mhwInterfacesXeXpmPlus->m_cpInterface = nullptr;
+            }
+            else
+            {
+                MCPY_ASSERTMESSAGE("Failed to destroy cpInterface.");
+            }
         }
         MOS_Delete(m_mhwInterfacesXeXpmPlus->m_miInterface);
         MOS_Delete(m_mhwInterfacesXeXpmPlus->m_veboxInterface);

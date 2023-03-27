@@ -351,8 +351,15 @@ void MhwInterfacesNext::Destroy()
         return;
     }
 
-    Delete_MhwCpInterface(m_cpInterface);
-    m_cpInterface = nullptr;
+    if(m_osInterface)
+    {
+        m_osInterface->pfnDeleteMhwCpInterface(m_cpInterface);
+        m_cpInterface = nullptr;
+    }
+    else
+    {
+        MHW_ASSERTMESSAGE("Failed to destroy cpInterface.");
+    }
     MOS_Delete(m_stateHeapInterface);
 }
 

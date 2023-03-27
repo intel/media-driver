@@ -616,7 +616,7 @@ MOS_STATUS CodechalDecode::Allocate (CodechalSetting * codecHalSettings)
 
     if (codecHalSettings->secureMode)
     {
-        m_secureDecoder = Create_SecureDecodeInterface(codecHalSettings, m_hwInterface);
+        m_secureDecoder = m_osInterface->pfnCreateSecureDecodeInterface(codecHalSettings, m_hwInterface);
     }
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
@@ -868,8 +868,15 @@ CodechalDecode::~CodechalDecode()
 {
     CODECHAL_DECODE_FUNCTION_ENTER;
 
-    Delete_SecureDecodeInterface(m_secureDecoder);
-    m_secureDecoder = nullptr;
+    if (m_osInterface)
+    {
+        m_osInterface->pfnDeleteSecureDecodeInterface(m_secureDecoder);
+        m_secureDecoder = nullptr;
+    }
+    else
+    {
+        CODECHAL_DECODE_ASSERTMESSAGE("Failed to destroy secureDecoder.");
+    }
 
     if (m_mmc)
     {

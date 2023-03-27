@@ -39,6 +39,17 @@ void *   _MOS_INTERFACE::pvSoloContext = nullptr;
 uint32_t _MOS_INTERFACE::soloRefCnt = 0;
 #endif  // MOS_MEDIASOLO_SUPPORTED
 
+extern MhwCpInterface* Create_MhwCpInterface(PMOS_INTERFACE osInterface);
+extern void Delete_MhwCpInterface(MhwCpInterface* mhwInterface);
+
+#if !EMUL
+extern CpCopyInterface* Create_CpCopyInterface(MOS_CONTEXT_HANDLE osDriverContext, MOS_STATUS& status);
+extern void Delete_CpCopyInterface(CpCopyInterface* cpCopyInterface);
+
+extern CodechalSecureDecodeInterface* Create_SecureDecodeInterface(CodechalSetting* codechalSettings, CodechalHwInterface* hwInterfaceInput);
+extern void Delete_SecureDecodeInterface(CodechalSecureDecodeInterface* codechalSecureDecodeInterface);
+#endif
+
 //! \brief    Unified OS add command to command buffer
 //! \details  Offset returned is dword aligned but size requested can be byte aligned
 //! \param    PMOS_COMMAND_BUFFER pCmdBuffer
@@ -647,6 +658,15 @@ MOS_STATUS Mos_InitOsInterface(
     pOsInterface->pfnGetRtLogResourceInfo               = Mos_GetRtLogResourceInfo;
     pOsInterface->pfnResetResource                      = Mos_ResetMosResource;
 
+    pOsInterface->pfnCreateMhwCpInterface               = Create_MhwCpInterface;
+    pOsInterface->pfnDeleteMhwCpInterface               = Delete_MhwCpInterface;
+#if !EMUL
+    pOsInterface->pfnCreateCpCopyInterface              = Create_CpCopyInterface;
+    pOsInterface->pfnDeleteCpCopyInterface              = Delete_CpCopyInterface;
+
+    pOsInterface->pfnCreateSecureDecodeInterface        = Create_SecureDecodeInterface;
+    pOsInterface->pfnDeleteSecureDecodeInterface        = Delete_SecureDecodeInterface;
+#endif
 #if (_DEBUG || _RELEASE_INTERNAL)
     pOsInterface->pfnGetVeEngineCount                   = Mos_GetVeEngineCount;
     pOsInterface->pfnGetEngineLogicIdByIdx              = Mos_GetEngineLogicId;
@@ -1127,5 +1147,6 @@ uint8_t Mos_GetEngineLogicId(
     return MosInterface::GetEngineLogicId(streamState, instanceIdx);
 }
 #endif
+
 void *MosStreamState::pvSoloContext = nullptr; 
 

@@ -51,8 +51,4 @@ public:
     MEDIA_CLASS_DEFINE_END(CpCopyInterface)
 };
 
-CpCopyInterface *Create_CpCopyInterface(MOS_CONTEXT_HANDLE pOsDriverContext, MOS_STATUS &status);
-
-void Delete_CpCopyInterface(CpCopyInterface *pCpCopyInterface);
-
 #endif  // __CP_COPY_INTERFACE_H__

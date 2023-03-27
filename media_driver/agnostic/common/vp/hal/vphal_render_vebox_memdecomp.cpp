@@ -45,8 +45,15 @@ MediaVeboxDecompState::~MediaVeboxDecompState()
 
     if (m_cpInterface)
     {
-        Delete_MhwCpInterface(m_cpInterface);
-        m_cpInterface = nullptr;
+        if(m_osInterface)
+        {
+            m_osInterface->pfnDeleteMhwCpInterface(m_cpInterface);
+            m_cpInterface = nullptr;
+        }
+        else
+        {
+            VPHAL_MEMORY_DECOMP_ASSERTMESSAGE("Failed to destroy cpInterface.");
+        }
     }
 
     if (m_veboxInterface)

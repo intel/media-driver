@@ -679,6 +679,12 @@ namespace CMRT_UMD
 };
 struct _CM_HAL_STATE;
 typedef struct _CM_HAL_STATE *PCM_HAL_STATE;
+class MhwCpInterface;
+class CpCopyInterface;
+class CodechalSecureDecodeInterface;
+class CodechalSetting;
+class CodechalHwInterface;
+class CodechalHwInterfaceNext;
 
 struct MOS_SURF_DUMP_SURFACE_DEF
 {
@@ -2000,6 +2006,44 @@ typedef struct _MOS_INTERFACE
     //!
     MOS_STATUS (*pfnInitCmInterface)(
         PCM_HAL_STATE           cmState);
+
+    //!
+    //! \brief    Create MhwCpInterface Object
+    //!           Must use Delete_MhwCpInterface to delete created Object to avoid ULT Memory Leak errors
+    //!
+    //! \return   Return CP Wrapper Object if CPLIB not loaded
+    //!
+    MhwCpInterface* (*pfnCreateMhwCpInterface)(PMOS_INTERFACE osInterface);
+
+    //!
+    //! \brief    Delete the MhwCpInterface Object
+    //!
+    //! \param    [in] *pMhwCpInterface
+    //!           MhwCpInterface
+    //!
+    void (*pfnDeleteMhwCpInterface)(MhwCpInterface *mhwCpInterface);
+
+    CpCopyInterface* (*pfnCreateCpCopyInterface)(MOS_CONTEXT_HANDLE osDriverContext, MOS_STATUS &status);
+
+    void (*pfnDeleteCpCopyInterface)(CpCopyInterface *cpCopyInterface);
+
+    //!
+    //! \brief    Create CodechalSecureDeocde Object
+    //!           Must use Delete_CodechalSecureDecodeInterface to delete created Object to avoid ULT Memory Leak errors
+    //!
+    //! \return   Return CP Wrapper Object
+    //!
+    CodechalSecureDecodeInterface* (*pfnCreateSecureDecodeInterface)(
+        CodechalSetting *codechalSettings,
+        CodechalHwInterface *hwInterfaceInput);
+
+    //!
+    //! \brief    Delete the CodecHalSecureDecode Object
+    //!
+    //! \param    [in] *codechalSecureDecodeInterface
+    //!           CodechalSecureDecodeInterface
+    //!
+    void (*pfnDeleteSecureDecodeInterface)(CodechalSecureDecodeInterface *codechalSecureDecodeInterface);
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     //!

@@ -91,7 +91,7 @@ MOS_STATUS MhwInterfacesG11JslEhl::Initialize(
 
     // MHW_CP and MHW_MI must always be created
     MOS_STATUS status;
-    m_cpInterface = Create_MhwCpInterface(osInterface);
+    m_cpInterface = osInterface->pfnCreateMhwCpInterface(osInterface);
     m_miInterface = MOS_New(Mi, m_cpInterface, osInterface);
 
     if (params.Flags.m_render)

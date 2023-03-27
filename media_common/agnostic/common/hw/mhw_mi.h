@@ -666,6 +666,18 @@ public:
     }
 
     //!
+    //! \brief    Get Os interface
+    //! \details  Get Os interface in codechal hw interface
+    //!
+    //! \return   [out] PMOS_INTERFACE
+    //!           Interface got.
+    //!
+    inline PMOS_INTERFACE GetOsInterface()
+    {
+        return m_osInterface;
+    }
+
+    //!
     //! \brief    get the size of hw command
     //! \details  Internal function to get the size of MI_FLUSH_DW_CMD
     //! \return   commandSize

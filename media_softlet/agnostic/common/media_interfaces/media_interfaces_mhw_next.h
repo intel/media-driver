@@ -105,7 +105,7 @@ public:
     XMHW_STATE_HEAP_INTERFACE *m_stateHeapInterface = nullptr;
     MhwVeboxInterface         *m_veboxInterface     = nullptr;
     MhwBltInterface           *m_bltInterface       = nullptr;
-
+    PMOS_INTERFACE            m_osInterface         = nullptr;
     /* New mhw sub interfaces*/
     std::shared_ptr<mhw::vdbox::avp::Itf>   m_avpItf    = nullptr;
     std::shared_ptr<mhw::vdbox::vdenc::Itf> m_vdencItf  = nullptr;

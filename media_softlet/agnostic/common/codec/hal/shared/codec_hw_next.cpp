@@ -78,10 +78,12 @@ CodechalHwInterfaceNext::~CodechalHwInterfaceNext()
         m_osInterface->pfnFreeResource(m_osInterface, &m_dummyStreamOut);
 
         m_osInterface->pfnFreeResource(m_osInterface, &m_conditionalBbEndDummy);
+        if (m_cpInterface)
+        {
+            m_osInterface->pfnDeleteMhwCpInterface(m_cpInterface);
+            m_cpInterface = nullptr;
+        }
     }
-
-    Delete_MhwCpInterface(m_cpInterface);
-    m_cpInterface = nullptr;
 
     if (m_veboxInterface)
     {

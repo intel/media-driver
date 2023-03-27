@@ -44,8 +44,15 @@ CodechalHwInterfaceNextXe_Hpm::~CodechalHwInterfaceNextXe_Hpm()
 
         if (m_renderHalCpInterface)
         {
-            Delete_MhwCpInterface(m_renderHalCpInterface);
-            m_renderHalCpInterface = nullptr;
+            if (m_osInterface)
+            {
+                m_osInterface->pfnDeleteMhwCpInterface(m_renderHalCpInterface);
+                m_renderHalCpInterface = nullptr;
+            }
+            else
+            {
+                MHW_ASSERTMESSAGE("Failed to destroy renderHalCpInterface.");
+            }
         }
     }
 

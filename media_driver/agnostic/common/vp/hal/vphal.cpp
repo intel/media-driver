@@ -83,7 +83,7 @@ MOS_STATUS VphalState::Allocate(
 
             // MhwInterfaces always create CP and MI interfaces, so we have to delete those we don't need.
             MOS_Delete(mhwInterfaces->m_miInterface);
-            Delete_MhwCpInterface(mhwInterfaces->m_cpInterface);
+            m_osInterface->pfnDeleteMhwCpInterface(mhwInterfaces->m_cpInterface);
             mhwInterfaces->m_cpInterface = nullptr;
             MOS_Delete(mhwInterfaces);
         }
@@ -765,8 +765,15 @@ VphalState::~VphalState()
 
     if (m_cpInterface)
     {
-        Delete_MhwCpInterface(m_cpInterface);
-        m_cpInterface = nullptr;
+        if (m_osInterface)
+        {
+            m_osInterface->pfnDeleteMhwCpInterface(m_cpInterface);
+            m_cpInterface = nullptr;
+        }
+        else
+        {
+            VPHAL_PUBLIC_ASSERTMESSAGE("Failed to destroy cpInterface.");
+        }
     }
 
     if (m_sfcInterface)
