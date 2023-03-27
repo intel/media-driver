@@ -478,7 +478,7 @@ void* GraphicsResourceSpecificNext::Lock(OsContextNext* osContextPtr, LockParams
         {
             if (pOsContextSpecific->IsAtomSoc())
             {
-                mos_gem_bo_map_gtt(boPtr);
+                mos_bo_map_gtt(boPtr);
             }
             else
             {
@@ -506,13 +506,13 @@ void* GraphicsResourceSpecificNext::Lock(OsContextNext* osContextPtr, LockParams
                     }
                     else
                     {
-                        mos_gem_bo_map_gtt(boPtr);
+                        mos_bo_map_gtt(boPtr);
                         m_mmapOperation = MOS_MMAP_OPERATION_MMAP_GTT;
                     }
                 }
                 else if (params.m_uncached)
                 {
-                    mos_gem_bo_map_wc(boPtr);
+                    mos_bo_map_wc(boPtr);
                     m_mmapOperation = MOS_MMAP_OPERATION_MMAP_WC;
                 }
                 else
@@ -557,7 +557,7 @@ MOS_STATUS GraphicsResourceSpecificNext::Unlock(OsContextNext* osContextPtr)
         {
            if (pOsContextSpecific->IsAtomSoc())
            {
-               mos_gem_bo_unmap_gtt(boPtr);
+               mos_bo_unmap_gtt(boPtr);
            }
            else
            {
@@ -576,10 +576,10 @@ MOS_STATUS GraphicsResourceSpecificNext::Unlock(OsContextNext* osContextPtr)
                switch(m_mmapOperation)
                {
                    case MOS_MMAP_OPERATION_MMAP_GTT:
-                        mos_gem_bo_unmap_gtt(boPtr);
+                        mos_bo_unmap_gtt(boPtr);
                         break;
                    case MOS_MMAP_OPERATION_MMAP_WC:
-                        mos_gem_bo_unmap_wc(boPtr);
+                        mos_bo_unmap_wc(boPtr);
                         break;
                    case MOS_MMAP_OPERATION_MMAP:
                         mos_bo_unmap(boPtr);
@@ -924,7 +924,7 @@ void* GraphicsResourceSpecificNext::LockExternalResource(
         {
             if (perStreamParameters->bIsAtomSOC)
             {
-                mos_gem_bo_map_gtt(bo);
+                mos_bo_map_gtt(bo);
             }
             else
             {
@@ -949,13 +949,13 @@ void* GraphicsResourceSpecificNext::LockExternalResource(
                     }
                     else
                     {
-                        mos_gem_bo_map_gtt(bo);
+                        mos_bo_map_gtt(bo);
                         resource->MmapOperation = MOS_MMAP_OPERATION_MMAP_GTT;
                     }
                 }
                 else if (flags->Uncached)
                 {
-                    mos_gem_bo_map_wc(bo);
+                    mos_bo_map_wc(bo);
                     resource->MmapOperation = MOS_MMAP_OPERATION_MMAP_WC;
                 }
                 else
@@ -994,7 +994,7 @@ MOS_STATUS GraphicsResourceSpecificNext::UnlockExternalResource(
         {
             if (perStreamParameters->bIsAtomSOC)
             {
-                mos_gem_bo_unmap_gtt(resource->bo);
+                mos_bo_unmap_gtt(resource->bo);
             }
             else
             {
@@ -1009,10 +1009,10 @@ MOS_STATUS GraphicsResourceSpecificNext::UnlockExternalResource(
                 switch (resource->MmapOperation)
                 {
                 case MOS_MMAP_OPERATION_MMAP_GTT:
-                    mos_gem_bo_unmap_gtt(resource->bo);
+                    mos_bo_unmap_gtt(resource->bo);
                     break;
                 case MOS_MMAP_OPERATION_MMAP_WC:
-                    mos_gem_bo_unmap_wc(resource->bo);
+                    mos_bo_unmap_wc(resource->bo);
                     break;
                 case MOS_MMAP_OPERATION_MMAP:
                     mos_bo_unmap(resource->bo);

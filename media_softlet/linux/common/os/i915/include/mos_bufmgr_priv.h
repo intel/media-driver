@@ -188,16 +188,8 @@ struct mos_bufmgr {
      */
     int (*bo_emit_reloc) (struct mos_linux_bo *bo, uint32_t offset,
                   struct mos_linux_bo *target_bo, uint32_t target_offset,
-                  uint32_t read_domains, uint32_t write_domain);
-    int (*bo_emit_reloc2) (struct mos_linux_bo *bo, uint32_t offset,
-                  struct mos_linux_bo *target_bo, uint32_t target_offset,
                   uint32_t read_domains, uint32_t write_domain,
                   uint64_t presumed_offset);
-    int (*bo_emit_reloc_fence)(struct mos_linux_bo *bo, uint32_t offset,
-                   struct mos_linux_bo *target_bo,
-                   uint32_t target_offset,
-                   uint32_t read_domains,
-                   uint32_t write_domain);
 
     /** Executes the command buffer pointed to by bo. */
     int (*bo_exec) (struct mos_linux_bo *bo, int used,
@@ -209,21 +201,6 @@ struct mos_bufmgr {
     int (*bo_mrb_exec) (struct mos_linux_bo *bo, int used,
                 drm_clip_rect_t *cliprects, int num_cliprects,
                 int DR4, unsigned flags);
-
-    /**
-     * Pin a buffer to the aperture and fix the offset until unpinned
-     *
-     * \param buf Buffer to pin
-     * \param alignment Required alignment for aperture, in bytes
-     */
-    int (*bo_pin) (struct mos_linux_bo *bo, uint32_t alignment);
-
-    /**
-     * Unpin a buffer from the aperture, allowing it to be removed
-     *
-     * \param buf Buffer to unpin
-     */
-    int (*bo_unpin) (struct mos_linux_bo *bo);
 
     /**
      * Ask that the buffer be placed in tiling mode
@@ -304,19 +281,6 @@ struct mos_bufmgr {
      */
     int (*bo_is_reusable) (struct mos_linux_bo *bo);
 
-    /**
-     *
-     * Return the pipe associated with a crtc_id so that vblank
-     * synchronization can use the correct data in the request.
-     * This is only supported for KMS and gem at this point, when
-     * unsupported, this function returns -1 and leaves the decision
-     * of what to do in that case to the caller
-     *
-     * \param bufmgr the associated buffer manager
-     * \param crtc_id the crtc identifier
-     */
-    int (*get_pipe_from_crtc_id) (struct mos_bufmgr *bufmgr, int crtc_id);
-
     /** Returns true if target_bo is in the relocation tree rooted at bo. */
     int (*bo_references) (struct mos_linux_bo *bo, struct mos_linux_bo *target_bo);
 
@@ -341,6 +305,121 @@ struct mos_bufmgr {
      * \param bo Buffer to set capture
      */
     void (*set_object_capture)(struct mos_linux_bo *bo);
+
+    /**
+     * Waits on a BO for the given amount of time.
+     *
+     * @bo: buffer object to wait for
+     * @timeout_ns: amount of time to wait in nanoseconds.
+     *   If value is less than 0, an infinite wait will occur.
+     *
+     * Returns 0 if the wait was successful ie. the last batch referencing the
+     * object has completed within the allotted time. Otherwise some negative return
+     * value describes the error. Of particular interest is -ETIME when the wait has
+     * failed to yield the desired result.
+     *
+     * Similar to drm_intel_gem_bo_wait_rendering except a timeout parameter allows
+     * the operation to give up after a certain amount of time. Another subtle
+     * difference is the internal locking semantics are different (this variant does
+     * not hold the lock for the duration of the wait). This makes the wait subject
+     * to a larger userspace race window.
+     *
+     * The implementation shall wait until the object is no longer actively
+     * referenced within a batch buffer at the time of the call. The wait will
+     * not guarantee that the buffer is re-issued via another thread, or an flinked
+     * handle. Userspace must make sure this race does not occur if such precision
+     * is important.
+     *
+     * Note that some kernels have broken the inifite wait for negative values
+     * promise, upgrade to latest stable kernels if this is the case.
+     */
+    int (*bo_wait)(struct mos_linux_bo *bo, int64_t timeout_ns);
+
+    void (*bo_clear_relocs)(struct mos_linux_bo *bo, int start);
+    struct mos_linux_context *(*context_create)(struct mos_bufmgr *bufmgr);
+    struct mos_linux_context *(*context_create_ext)(
+                                struct mos_bufmgr *bufmgr,
+                                __u32 flags,
+                                bool bContextProtected);
+    struct mos_linux_context *(*context_create_shared)(
+                                struct mos_bufmgr *bufmgr,
+                                mos_linux_context* ctx,
+                                __u32 flags,
+                                bool bContextProtected);
+    void (*context_destroy)(struct mos_linux_context *ctx);
+    struct drm_i915_gem_vm_control* (*vm_create)(struct mos_bufmgr *bufmgr);
+    void (*vm_destroy)(struct mos_bufmgr *bufmgr, struct drm_i915_gem_vm_control* vm);
+    int (*bo_context_exec2)(struct mos_linux_bo *bo, int used, struct mos_linux_context *ctx,
+                                   struct drm_clip_rect *cliprects, int num_cliprects, int DR4,
+                                   unsigned int flags, int *fence);
+    
+    int (*bo_context_exec3)(struct mos_linux_bo **bo, int num_bo, struct mos_linux_context *ctx,
+                                   struct drm_clip_rect *cliprects, int num_cliprects, int DR4,
+                                   unsigned int flags, int *fence);
+    bool (*bo_is_exec_object_async)(struct mos_linux_bo *bo);
+    bool (*bo_is_softpin)(struct mos_linux_bo *bo);
+    int (*bo_map_gtt)(struct mos_linux_bo *bo);
+    int (*bo_unmap_gtt)(struct mos_linux_bo *bo);
+    int (*bo_map_wc)(struct mos_linux_bo *bo);
+    int (*bo_unmap_wc)(struct mos_linux_bo *bo);
+    int (*bo_map_unsynchronized)(struct mos_linux_bo *bo);
+    void (*bo_start_gtt_access)(struct mos_linux_bo *bo, int write_enable);
+    mos_oca_exec_list_info* (*bo_get_softpin_targets_info)(struct mos_linux_bo *bo, int *count);
+    struct mos_linux_bo *(*bo_create_from_name)(struct mos_bufmgr *bufmgr,
+                            const char *name,
+                            unsigned int handle);
+    void (*enable_reuse)(struct mos_bufmgr *bufmgr);
+    void (*enable_softpin)(struct mos_bufmgr *bufmgr, bool va1m_align);
+    void (*enable_vmbind)(struct mos_bufmgr *bufmgr);
+    void (*disable_object_capture)(struct mos_bufmgr *bufmgr);
+    int (*get_memory_info)(struct mos_bufmgr *bufmgr, char *info, uint32_t length);
+    int (*get_devid)(struct mos_bufmgr *bufmgr);
+    int (*query_engines_count)(struct mos_bufmgr *bufmgr,
+                          unsigned int *nengine);
+    
+    int (*query_engines)(struct mos_bufmgr *bufmgr,
+                          __u16 engine_class,
+                          __u64 caps,
+                          unsigned int *nengine,
+                          struct i915_engine_class_instance *ci);
+    int (*set_context_param)(struct mos_linux_context *ctx,
+                    uint32_t size,
+                    uint64_t param,
+                    uint64_t value);
+    int (*set_context_param_parallel)(struct mos_linux_context *ctx,
+                             struct i915_engine_class_instance *ci,
+                             unsigned int count);
+    int (*set_context_param_load_balance)(struct mos_linux_context *ctx,
+                             struct i915_engine_class_instance *ci,
+                             unsigned int count);
+    int (*set_context_param_bond)(struct mos_linux_context *ctx,
+                            struct i915_engine_class_instance master_ci,
+                            struct i915_engine_class_instance *bond_ci,
+                            unsigned int bond_count);
+    int (*get_context_param)(struct mos_linux_context *ctx,
+                               uint32_t size,
+                               uint64_t param,
+                               uint64_t *value);
+    struct mos_linux_bo *(*bo_create_from_prime)(struct mos_bufmgr *bufmgr,
+                            int prime_fd, int size);
+    int (*bo_export_to_prime)(struct mos_linux_bo *bo, int *prime_fd);
+    int (*reg_read)(struct mos_bufmgr *bufmgr,
+                   uint32_t offset,
+                   uint64_t *result);
+    int (*get_reset_stats)(struct mos_linux_context *ctx,
+                      uint32_t *reset_count,
+                      uint32_t *active,
+                      uint32_t *pending);
+    int (*get_context_param_sseu)(struct mos_linux_context *ctx,
+                    struct drm_i915_gem_context_param_sseu *sseu);
+    int (*set_context_param_sseu)(struct mos_linux_context *ctx,
+                    struct drm_i915_gem_context_param_sseu sseu);
+    int (*query_device_blob)(struct mos_bufmgr *bufmgr, MEDIA_SYSTEM_INFO* gfx_info);
+    int (*query_hw_ip_version)(struct mos_bufmgr *bufmgr, struct i915_engine_class_instance engine, void *ip_ver_info);
+    uint64_t (*get_platform_information)(struct mos_bufmgr *bufmgr);
+    void (*set_platform_information)(struct mos_bufmgr *bufmgr, uint64_t p);
+    uint8_t (*switch_off_n_bits)(struct mos_linux_context *ctx, uint8_t in_mask, int n);
+    unsigned int (*hweight8)(struct mos_linux_context *ctx, uint8_t w);
 
     /**< Enables verbose debugging printouts */
     int debug;

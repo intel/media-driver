@@ -344,11 +344,11 @@ VAStatus DdiMediaUtil_AllocateSurface(
         {
             if (mediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM)
             {
-                bo = mos_bo_gem_create_from_name(mediaDrvCtx->pDrmBufMgr, "MEDIA", mediaSurface->pSurfDesc->ulBuffer);
+                bo = mos_bo_create_from_name(mediaDrvCtx->pDrmBufMgr, "MEDIA", mediaSurface->pSurfDesc->ulBuffer);
             }
             else
             {
-                bo = mos_bo_gem_create_from_prime(mediaDrvCtx->pDrmBufMgr, mediaSurface->pSurfDesc->ulBuffer, mediaSurface->pSurfDesc->uiSize);
+                bo = mos_bo_create_from_prime(mediaDrvCtx->pDrmBufMgr, mediaSurface->pSurfDesc->ulBuffer, mediaSurface->pSurfDesc->uiSize);
             }
 
             if (bo != nullptr)
@@ -369,7 +369,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
         }
         else if (mediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2)
         {
-            bo = mos_bo_gem_create_from_prime(mediaDrvCtx->pDrmBufMgr, mediaSurface->pSurfDesc->ulBuffer, mediaSurface->pSurfDesc->uiSize);
+            bo = mos_bo_create_from_prime(mediaDrvCtx->pDrmBufMgr, mediaSurface->pSurfDesc->ulBuffer, mediaSurface->pSurfDesc->uiSize);
             if( bo != nullptr )
             {
                 pitch = mediaSurface->pSurfDesc->uiPitches[0];
@@ -1198,7 +1198,7 @@ void* DdiMediaUtil_LockSurfaceInternal(DDI_MEDIA_SURFACE  *surface, uint32_t fla
 
     if (surface->pMediaCtx->bIsAtomSOC)
     {
-        mos_gem_bo_map_gtt(surface->bo);
+        mos_bo_map_gtt(surface->bo);
     }
     else
     {
@@ -1264,12 +1264,12 @@ void* DdiMediaUtil_LockSurfaceInternal(DDI_MEDIA_SURFACE  *surface, uint32_t fla
         }
         else if (flag & MOS_LOCKFLAG_WRITEONLY)
         {
-            mos_gem_bo_map_gtt(surface->bo);
+            mos_bo_map_gtt(surface->bo);
         }
         else
         {
-            mos_gem_bo_map_unsynchronized(surface->bo);     // only call mmap_gtt ioctl
-            mos_gem_bo_start_gtt_access(surface->bo, 0);    // set to GTT domain,0 means readonly
+            mos_bo_map_unsynchronized(surface->bo);     // only call mmap_gtt ioctl
+            mos_bo_start_gtt_access(surface->bo, 0);    // set to GTT domain,0 means readonly
         }
     }
     surface->uiMapFlag = flag;
@@ -1330,7 +1330,7 @@ void DdiMediaUtil_UnlockSurfaceInternal(DDI_MEDIA_SURFACE  *surface)
 
     if (surface->pMediaCtx->bIsAtomSOC)
     {
-        mos_gem_bo_unmap_gtt(surface->bo);
+        mos_bo_unmap_gtt(surface->bo);
     }
     else
     {
@@ -1365,7 +1365,7 @@ void DdiMediaUtil_UnlockSurfaceInternal(DDI_MEDIA_SURFACE  *surface)
         }
         else
         {
-           mos_gem_bo_unmap_gtt(surface->bo);
+           mos_bo_unmap_gtt(surface->bo);
         }
     }
     surface->pData       = nullptr;
@@ -1389,7 +1389,7 @@ void* DdiMediaUtil_LockBuffer(DDI_MEDIA_BUFFER *buf, uint32_t flag)
         {
             if (buf->pMediaCtx->bIsAtomSOC)
             {
-                mos_gem_bo_map_gtt(buf->bo);
+                mos_bo_map_gtt(buf->bo);
             }
             else
             {
@@ -1399,7 +1399,7 @@ void* DdiMediaUtil_LockBuffer(DDI_MEDIA_BUFFER *buf, uint32_t flag)
                 }
                 else
                 {
-                    mos_gem_bo_map_gtt(buf->bo);
+                    mos_bo_map_gtt(buf->bo);
                 }
              }
 
@@ -1437,7 +1437,7 @@ void DdiMediaUtil_UnlockBuffer(DDI_MEDIA_BUFFER *buf)
         {
              if (buf->pMediaCtx->bIsAtomSOC)
              {
-                 mos_gem_bo_unmap_gtt(buf->bo);
+                 mos_bo_unmap_gtt(buf->bo);
              }
              else
              {
@@ -1447,7 +1447,7 @@ void DdiMediaUtil_UnlockBuffer(DDI_MEDIA_BUFFER *buf)
                  }
                  else
                  {
-                     mos_gem_bo_unmap_gtt(buf->bo);
+                     mos_bo_unmap_gtt(buf->bo);
                  }
             }
             buf->bo->virt = nullptr;

@@ -431,7 +431,7 @@ MOS_STATUS OsContextSpecific::Init(PMOS_CONTEXT pOsDriverContext)
         m_cmdBufMgr     = static_cast<CmdBufMgr *>(pOsDriverContext->m_cmdBufMgr);
         m_fd            = pOsDriverContext->fd;
         MOS_SecureMemcpy(&m_perfData, sizeof(PERF_DATA), pOsDriverContext->pPerfData, sizeof(PERF_DATA));
-        mos_bufmgr_gem_enable_reuse(pOsDriverContext->bufmgr);
+        mos_bufmgr_enable_reuse(pOsDriverContext->bufmgr);
         m_pGmmClientContext = pOsDriverContext->pGmmClientContext;
         m_auxTableMgr = pOsDriverContext->m_auxTableMgr;
     
@@ -488,10 +488,10 @@ MOS_STATUS OsContextSpecific::Init(PMOS_CONTEXT pOsDriverContext)
                           &eStatus, sizeof(eStatus), nullptr, 0);
         if (!Mos_Solo_IsEnabled(nullptr) && MEDIA_IS_SKU(&m_skuTable,FtrContextBasedScheduling))
         {
-            m_intelContext = mos_gem_context_create_ext(pOsDriverContext->bufmgr,0, pOsDriverContext->m_protectedGEMContext);
+            m_intelContext = mos_context_create_ext(pOsDriverContext->bufmgr,0, pOsDriverContext->m_protectedGEMContext);
             if (m_intelContext)
             {
-                m_intelContext->vm = mos_gem_vm_create(pOsDriverContext->bufmgr);
+                m_intelContext->vm = mos_vm_create(pOsDriverContext->bufmgr);
                 if (m_intelContext->vm == nullptr)
                 {
                     MOS_OS_ASSERTMESSAGE("Failed to create vm.\n");
@@ -501,7 +501,7 @@ MOS_STATUS OsContextSpecific::Init(PMOS_CONTEXT pOsDriverContext)
         }
         else //use legacy context create ioctl for pre-gen11 platforms
         {
-           m_intelContext = mos_gem_context_create(pOsDriverContext->bufmgr);
+           m_intelContext = mos_context_create(pOsDriverContext->bufmgr);
            if (m_intelContext)
            {
                m_intelContext->vm = nullptr;
@@ -620,11 +620,11 @@ void OsContextSpecific::Destroy()
                           &m_intelContext, sizeof(void *), nullptr, 0);
         if (m_intelContext && m_intelContext->vm)
         {
-            mos_gem_vm_destroy(m_intelContext->bufmgr, m_intelContext->vm);
+            mos_vm_destroy(m_intelContext->bufmgr, m_intelContext->vm);
         }
         if (m_intelContext)
         {
-            mos_gem_context_destroy(m_intelContext);
+            mos_context_destroy(m_intelContext);
         }
         MOS_TraceEventExt(EVENT_GPU_CONTEXT_DESTROY, EVENT_TYPE_END,
                           nullptr, 0, nullptr, 0);

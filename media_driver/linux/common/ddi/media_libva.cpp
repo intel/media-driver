@@ -1836,10 +1836,10 @@ VAStatus DdiMedia_InitMediaContext (
             FreeForMediaContext(mediaCtx);
             return VA_STATUS_ERROR_INVALID_PARAMETER;
         }
-        mos_bufmgr_gem_enable_reuse(mediaCtx->pDrmBufMgr);
+        mos_bufmgr_enable_reuse(mediaCtx->pDrmBufMgr);
 
         //Latency reducation:replace HWGetDeviceID to get device using ioctl from drm.
-        mediaCtx->iDeviceId = mos_bufmgr_gem_get_devid(mediaCtx->pDrmBufMgr);
+        mediaCtx->iDeviceId = mos_bufmgr_get_devid(mediaCtx->pDrmBufMgr);
 
         //TO--DO, apo set it to FALSE by default, to remove the logic in apo mos controlled by it????
         mediaCtx->bIsAtomSOC = IS_ATOMSOC(mediaCtx->iDeviceId);
@@ -2575,7 +2575,7 @@ VAStatus DdiMedia_DestroySurfaces (
             while (1)
             {
                 uint32_t timeout_NS = 10;
-                int ret = mos_gem_bo_wait(surface->bo, timeout_NS);
+                int ret = mos_bo_wait(surface->bo, timeout_NS);
                 MosUtilities::MosQueryPerformanceCounter(&countCur);
                 if(ret == 0 || countCur - countStart > countTimeout)
                 {
@@ -3528,7 +3528,7 @@ VAStatus DdiMedia_MapBufferInternal (
             if(buf->bo)
             {
                  uint32_t timeout_NS = 100000000;
-                 while (0 != mos_gem_bo_wait(buf->bo, timeout_NS))
+                 while (0 != mos_bo_wait(buf->bo, timeout_NS))
                  {
                      // Just loop while gem_bo_wait times-out.
                  }
@@ -4196,7 +4196,7 @@ VAStatus DdiMedia_SyncSurface (
     // check the bo here?
     // zero is a expected return value
     uint32_t timeout_NS = 100000000;
-    while (0 != mos_gem_bo_wait(surface->bo, timeout_NS))
+    while (0 != mos_bo_wait(surface->bo, timeout_NS))
     {
         // Just loop while gem_bo_wait times-out.
     }
@@ -4237,7 +4237,7 @@ VAStatus DdiMedia_SyncSurface2 (
     if (timeout_ns == VA_TIMEOUT_INFINITE)
     {
         // zero is an expected return value when not hit timeout
-        auto ret = mos_gem_bo_wait(surface->bo, DDI_BO_INFINITE_TIMEOUT);
+        auto ret = mos_bo_wait(surface->bo, DDI_BO_INFINITE_TIMEOUT);
         if (0 != ret)
         {
             DDI_NORMALMESSAGE("vaSyncSurface2: surface is still used by HW\n\r");
@@ -4259,12 +4259,12 @@ VAStatus DdiMedia_SyncSurface2 (
         }
         
         // zero is an expected return value when not hit timeout
-        auto ret = mos_gem_bo_wait(surface->bo, timeoutBoWait1);
+        auto ret = mos_bo_wait(surface->bo, timeoutBoWait1);
         if (0 != ret)
         {
             if (timeoutBoWait2)
             {
-                ret = mos_gem_bo_wait(surface->bo, timeoutBoWait2); 
+                ret = mos_bo_wait(surface->bo, timeoutBoWait2); 
             }
             if (0 != ret)
             {
@@ -4303,7 +4303,7 @@ VAStatus DdiMedia_SyncBuffer (
     if (timeout_ns == VA_TIMEOUT_INFINITE)
     {
         // zero is a expected return value when not hit timeout
-        auto ret = mos_gem_bo_wait(buffer->bo, DDI_BO_INFINITE_TIMEOUT);
+        auto ret = mos_bo_wait(buffer->bo, DDI_BO_INFINITE_TIMEOUT);
         if (0 != ret)
         {
             DDI_NORMALMESSAGE("vaSyncBuffer: buffer is still used by HW\n\r");
@@ -4325,12 +4325,12 @@ VAStatus DdiMedia_SyncBuffer (
         }
 
         // zero is a expected return value when not hit timeout
-        auto ret = mos_gem_bo_wait(buffer->bo, timeoutBoWait1);
+        auto ret = mos_bo_wait(buffer->bo, timeoutBoWait1);
         if (0 != ret)
         {
             if (timeoutBoWait2)
             {
-                ret = mos_gem_bo_wait(buffer->bo, timeoutBoWait2);
+                ret = mos_bo_wait(buffer->bo, timeoutBoWait2);
             }
             if (0 != ret)
             {
@@ -6288,7 +6288,7 @@ DdiMedia_Copy(
     if ((option.bits.va_copy_sync == VA_EXEC_SYNC) && dst_surface)
     {
         uint32_t timeout_NS = 100000000;
-        while (0 != mos_gem_bo_wait(dst_surface->bo, timeout_NS))
+        while (0 != mos_bo_wait(dst_surface->bo, timeout_NS))
         {
             // Just loop while gem_bo_wait times-out.
         }
@@ -6815,7 +6815,7 @@ VAStatus DdiMedia_AcquireBufferHandle(
         }
         case VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME: {
             int32_t prime_fd = 0;
-            if (mos_bo_gem_export_to_prime(buf->bo, &prime_fd) != 0)
+            if (mos_bo_export_to_prime(buf->bo, &prime_fd) != 0)
             {
                 DdiMediaUtil_UnLockMutex(&mediaCtx->BufferMutex);
                 return VA_STATUS_ERROR_INVALID_BUFFER;
@@ -7179,7 +7179,7 @@ VAStatus DdiMedia_ExportSurfaceHandle(
         return VA_STATUS_ERROR_UNSUPPORTED_MEMORY_TYPE;
     }
 
-    if (mos_bo_gem_export_to_prime(mediaSurface->bo, (int32_t*)&mediaSurface->name))
+    if (mos_bo_export_to_prime(mediaSurface->bo, (int32_t*)&mediaSurface->name))
     {
         DDI_ASSERTMESSAGE("Failed drm_intel_gem_export_to_prime operation!!!\n");
         return VA_STATUS_ERROR_OPERATION_FAILED;
@@ -7507,7 +7507,7 @@ MEDIAAPI_EXPORT VAStatus DdiMedia_ExtGetSurfaceHandle(
     {
         if (mediaSurface->bo)
         {
-            int32_t ret = mos_bo_gem_export_to_prime(mediaSurface->bo, (int32_t*)&mediaSurface->name);
+            int32_t ret = mos_bo_export_to_prime(mediaSurface->bo, (int32_t*)&mediaSurface->name);
             if (ret)
             {
                 //LOGE("Failed drm_intel_gem_export_to_prime operation!!!\n");

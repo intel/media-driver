@@ -194,18 +194,9 @@ int mos_bo_mrb_exec(struct mos_linux_bo *bo, int used,
 int mos_bufmgr_check_aperture_space(struct mos_linux_bo ** bo_array, int count);
 
 int mos_bo_emit_reloc(struct mos_linux_bo *bo, uint32_t offset,
-                struct mos_linux_bo *target_bo, uint32_t target_offset,
-                uint32_t read_domains, uint32_t write_domain);
-int mos_bo_emit_reloc2(struct mos_linux_bo *bo, uint32_t offset,
          struct mos_linux_bo *target_bo, uint32_t target_offset,
          uint32_t read_domains, uint32_t write_domain,
          uint64_t presumed_offset);
-int mos_bo_emit_reloc_fence(struct mos_linux_bo *bo, uint32_t offset,
-                  struct mos_linux_bo *target_bo,
-                  uint32_t target_offset,
-                  uint32_t read_domains, uint32_t write_domain);
-int mos_bo_pin(struct mos_linux_bo *bo, uint32_t alignment);
-int mos_bo_unpin(struct mos_linux_bo *bo);
 int mos_bo_set_tiling(struct mos_linux_bo *bo, uint32_t * tiling_mode,
                 uint32_t stride);
 int mos_bo_get_tiling(struct mos_linux_bo *bo, uint32_t * tiling_mode,
@@ -229,57 +220,35 @@ int mos_bo_pad_to_size(struct mos_linux_bo *bo, uint64_t pad_to_size);
 
 /* drm_intel_bufmgr_gem.c */
 struct mos_bufmgr *mos_bufmgr_gem_init(int fd, int batch_size);
-struct mos_linux_bo *mos_bo_gem_create_from_name(struct mos_bufmgr *bufmgr,
+struct mos_linux_bo *mos_bo_create_from_name(struct mos_bufmgr *bufmgr,
                         const char *name,
                         unsigned int handle);
-void mos_bufmgr_gem_enable_reuse(struct mos_bufmgr *bufmgr);
-void mos_bufmgr_gem_enable_fenced_relocs(struct mos_bufmgr *bufmgr);
-void mos_bufmgr_gem_enable_softpin(struct mos_bufmgr *bufmgr, bool va1m_align);
-void mos_bufmgr_gem_enable_vmbind(struct mos_bufmgr *bufmgr);
-void mos_bufmgr_gem_disable_object_capture(struct mos_bufmgr *bufmgr);
+void mos_bufmgr_enable_reuse(struct mos_bufmgr *bufmgr);
+void mos_bufmgr_enable_softpin(struct mos_bufmgr *bufmgr, bool va1m_align);
+void mos_bufmgr_enable_vmbind(struct mos_bufmgr *bufmgr);
+void mos_bufmgr_disable_object_capture(struct mos_bufmgr *bufmgr);
+int mos_bufmgr_get_memory_info(struct mos_bufmgr *bufmgr, char *info, uint32_t length);
+int mos_bufmgr_get_devid(struct mos_bufmgr *bufmgr);
 
-void mos_bufmgr_gem_set_vma_cache_size(struct mos_bufmgr *bufmgr,
-                         int limit);
-int mos_bufmgr_gem_get_memory_info(struct mos_bufmgr *bufmgr, char *info, uint32_t length);
-int mos_gem_bo_map_unsynchronized(struct mos_linux_bo *bo);
-int mos_gem_bo_map_gtt(struct mos_linux_bo *bo);
-int mos_gem_bo_unmap_gtt(struct mos_linux_bo *bo);
-int mos_gem_bo_map_wc_unsynchronized(struct mos_linux_bo *bo);
-int mos_gem_bo_unmap_wc(struct mos_linux_bo *bo);
+int mos_bo_map_unsynchronized(struct mos_linux_bo *bo);
+int mos_bo_map_gtt(struct mos_linux_bo *bo);
+int mos_bo_unmap_gtt(struct mos_linux_bo *bo);
+int mos_bo_unmap_wc(struct mos_linux_bo *bo);
 
-int mos_gem_bo_get_fake_offset(struct mos_linux_bo *bo);
-int mos_gem_bo_get_reloc_count(struct mos_linux_bo *bo);
-void mos_gem_bo_start_gtt_access(struct mos_linux_bo *bo, int write_enable);
+void mos_bo_start_gtt_access(struct mos_linux_bo *bo, int write_enable);
 
-void
-mos_bufmgr_gem_set_aub_filename(struct mos_bufmgr *bufmgr,
-                      const char *filename);
-void mos_bufmgr_gem_set_aub_dump(struct mos_bufmgr *bufmgr, int enable);
-void mos_gem_bo_aub_dump_bmp(struct mos_linux_bo *bo,
-                   int x1, int y1, int width, int height,
-                   enum mos_aub_dump_bmp_format format,
-                   int pitch, int offset);
-void
-mos_bufmgr_gem_set_aub_annotations(struct mos_linux_bo *bo,
-                     struct mos_aub_annotation *annotations,
-                     unsigned count);
-
-int mos_get_pipe_from_crtc_id(struct mos_bufmgr *bufmgr, int crtc_id);
-
-int mos_bufmgr_gem_get_devid(struct mos_bufmgr *bufmgr);
-
-struct mos_linux_context *mos_gem_context_create(struct mos_bufmgr *bufmgr);
-struct mos_linux_context *mos_gem_context_create_ext(
+struct mos_linux_context *mos_context_create(struct mos_bufmgr *bufmgr);
+struct mos_linux_context *mos_context_create_ext(
                             struct mos_bufmgr *bufmgr,
                             __u32 flags,
                             bool bContextProtected);
-struct mos_linux_context *mos_gem_context_create_shared(
+struct mos_linux_context *mos_context_create_shared(
                             struct mos_bufmgr *bufmgr,
                             mos_linux_context* ctx,
                             __u32 flags,
                             bool bContextProtected);
-struct drm_i915_gem_vm_control* mos_gem_vm_create(struct mos_bufmgr *bufmgr);
-void mos_gem_vm_destroy(struct mos_bufmgr *bufmgr, struct drm_i915_gem_vm_control* vm);
+struct drm_i915_gem_vm_control* mos_vm_create(struct mos_bufmgr *bufmgr);
+void mos_vm_destroy(struct mos_bufmgr *bufmgr, struct drm_i915_gem_vm_control* vm);
 
 #define MAX_ENGINE_INSTANCE_NUM 8
 #define MAX_PARALLEN_CMD_BO_NUM MAX_ENGINE_INSTANCE_NUM
@@ -305,66 +274,21 @@ int mos_set_context_param_bond(struct mos_linux_context *ctx,
                         struct i915_engine_class_instance *bond_ci,
                         unsigned int bond_count);
 
-void mos_gem_context_destroy(struct mos_linux_context *ctx);
-int mos_gem_bo_context_exec(struct mos_linux_bo *bo, struct mos_linux_context *ctx,
-                  int used, unsigned int flags);
+void mos_context_destroy(struct mos_linux_context *ctx);
+
 int
-mos_gem_bo_context_exec2(struct mos_linux_bo *bo, int used, struct mos_linux_context *ctx,
+mos_bo_context_exec2(struct mos_linux_bo *bo, int used, struct mos_linux_context *ctx,
                                struct drm_clip_rect *cliprects, int num_cliprects, int DR4,
                                unsigned int flags, int *fence);
 
 int
-mos_gem_bo_context_exec3(struct mos_linux_bo **bo, int num_bo, struct mos_linux_context *ctx,
+mos_bo_context_exec3(struct mos_linux_bo **bo, int num_bo, struct mos_linux_context *ctx,
                                struct drm_clip_rect *cliprects, int num_cliprects, int DR4,
                                unsigned int flags, int *fence);
 
-int mos_bo_gem_export_to_prime(struct mos_linux_bo *bo, int *prime_fd);
-struct mos_linux_bo *mos_bo_gem_create_from_prime(struct mos_bufmgr *bufmgr,
+int mos_bo_export_to_prime(struct mos_linux_bo *bo, int *prime_fd);
+struct mos_linux_bo *mos_bo_create_from_prime(struct mos_bufmgr *bufmgr,
                         int prime_fd, int size);
-
-/* drm_intel_bufmgr_fake.c */
-struct mos_bufmgr *mos_bufmgr_fake_init(int fd,
-                         unsigned long low_offset,
-                         void *low_virtual,
-                         unsigned long size,
-                         volatile unsigned int
-                         *last_dispatch);
-void mos_bufmgr_fake_set_last_dispatch(struct mos_bufmgr *bufmgr,
-                         volatile unsigned int
-                         *last_dispatch);
-void mos_bufmgr_fake_set_exec_callback(struct mos_bufmgr *bufmgr,
-                         int (*exec) (struct mos_linux_bo *bo,
-                              unsigned int used,
-                              void *priv),
-                         void *priv);
-void mos_bufmgr_fake_set_fence_callback(struct mos_bufmgr *bufmgr,
-                          unsigned int (*emit) (void *priv),
-                          void (*wait) (unsigned int fence,
-                                void *priv),
-                          void *priv);
-struct mos_linux__bo *mos_bo_fake_alloc_static(struct mos_bufmgr *bufmgr,
-                         const char *name,
-                         unsigned long offset,
-                         unsigned long size, void *virt);
-void mos_bo_fake_disable_backing_store(struct mos_linux_bo *bo,
-                     void (*invalidate_cb) (struct mos_linux_bo * bo,
-                                    void *ptr),
-                         void *ptr);
-
-void mos_bufmgr_fake_contended_lock_take(struct mos_bufmgr *bufmgr);
-void mos_bufmgr_fake_evict_all(struct mos_bufmgr *bufmgr);
-
-struct mos_decode *mos_decode_context_alloc(uint32_t devid);
-void mos_decode_context_free(struct mos_decode *ctx);
-void mos_decode_set_batch_pointer(struct mos_decode *ctx,
-                    void *data, uint32_t hw_offset,
-                    int count);
-void mos_decode_set_dump_past_end(struct mos_decode *ctx,
-                    int dump_past_end);
-void mos_decode_set_head_tail(struct mos_decode *ctx,
-                    uint32_t head, uint32_t tail);
-void mos_decode_set_output_file(struct mos_decode *ctx, FILE *out);
-void mos_decode(struct mos_decode *ctx);
 
 int mos_reg_read(struct mos_bufmgr *bufmgr,
                uint32_t offset,
@@ -385,55 +309,26 @@ int mos_set_context_param(struct mos_linux_context *ctx,
                 uint64_t param,
                 uint64_t value);
 
-int mos_get_subslice_total(int fd, unsigned int *subslice_total);
-int mos_get_eu_total(int fd, unsigned int *eu_total);
-
 int mos_get_context_param_sseu(struct mos_linux_context *ctx,
                 struct drm_i915_gem_context_param_sseu *sseu);
 int mos_set_context_param_sseu(struct mos_linux_context *ctx,
                 struct drm_i915_gem_context_param_sseu sseu);
-int mos_get_subslice_mask(int fd, unsigned int *subslice_mask);
-int mos_get_slice_mask(int fd, unsigned int *slice_mask);
-uint8_t mos_switch_off_n_bits(uint8_t in_mask, int n);
-unsigned int mos_hweight8(uint8_t w);
-int mos_query_device_blob(int fd, MEDIA_SYSTEM_INFO* gfx_info);
-int mos_query_hw_ip_version(int fd, struct i915_engine_class_instance engine, void *ip_ver_info);
+uint8_t mos_switch_off_n_bits(struct mos_linux_context *ctx, uint8_t in_mask, int n);
+unsigned int mos_hweight8(struct mos_linux_context *ctx, uint8_t w);
+
+int mos_query_device_blob(struct mos_bufmgr *bufmgr, MEDIA_SYSTEM_INFO* gfx_info);
+int mos_query_hw_ip_version(struct mos_bufmgr *bufmgr, struct i915_engine_class_instance engine, void *ip_ver_info);
 
 #if defined(__cplusplus)
 extern "C" {
 #endif
 
-drm_export int mos_gem_bo_map_wc(struct mos_linux_bo *bo);
-drm_export void mos_gem_bo_clear_relocs(struct mos_linux_bo *bo, int start);
-drm_export int mos_gem_bo_wait(struct mos_linux_bo *bo, int64_t timeout_ns);
-drm_export struct mos_linux_bo *
-mos_gem_bo_alloc_internal(struct mos_bufmgr *bufmgr,
-                const char *name,
-                unsigned long size,
-                unsigned long flags,
-                uint32_t tiling_mode,
-                unsigned long stride,
-                unsigned int alignment,
-                int mem_type);
-drm_export int
-mos_gem_bo_exec(struct mos_linux_bo *bo, int used,
-              drm_clip_rect_t * cliprects, int num_cliprects, int DR4);
-drm_export int do_exec2(struct mos_linux_bo *bo, int used, struct mos_linux_context *ctx,
-     drm_clip_rect_t *cliprects, int num_cliprects, int DR4,
-     unsigned int flags, int *fence);
+drm_export int mos_bo_map_wc(struct mos_linux_bo *bo);
+drm_export void mos_bo_clear_relocs(struct mos_linux_bo *bo, int start);
+drm_export int mos_bo_wait(struct mos_linux_bo *bo, int64_t timeout_ns);
 
-drm_export int do_exec3(struct mos_linux_bo **bo, int num_bo, struct mos_linux_context *ctx,
-     drm_clip_rect_t *cliprects, int num_cliprects, int DR4,
-     unsigned int flags, int *fence);
-
-drm_export void mos_gem_bo_free(struct mos_linux_bo *bo);
-drm_export void mos_gem_bo_unreference_final(struct mos_linux_bo *bo, time_t time);
-drm_export int mos_gem_bo_map(struct mos_linux_bo *bo, int write_enable);
-drm_export int map_gtt(struct mos_linux_bo *bo);
-drm_export int mos_gem_bo_unmap(struct mos_linux_bo *bo);
-
-drm_export bool mos_gem_bo_is_softpin(struct mos_linux_bo *bo);
-drm_export bool mos_gem_bo_is_exec_object_async(struct mos_linux_bo *bo);
+drm_export bool mos_bo_is_softpin(struct mos_linux_bo *bo);
+drm_export bool mos_bo_is_exec_object_async(struct mos_linux_bo *bo);
 #if defined(__cplusplus)
 }
 #endif

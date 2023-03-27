@@ -1183,10 +1183,10 @@ void Linux_Destroy(
     {
         if (pOsContext->intel_context->vm)
         {
-            mos_gem_vm_destroy(pOsContext->intel_context->bufmgr,pOsContext->intel_context->vm);
+            mos_vm_destroy(pOsContext->intel_context->bufmgr,pOsContext->intel_context->vm);
             pOsContext->intel_context->vm = nullptr;
         }
-        mos_gem_context_destroy(pOsContext->intel_context);
+        mos_context_destroy(pOsContext->intel_context);
     }
 
     MOS_Delete(pOsContext);
@@ -1342,14 +1342,14 @@ MOS_STATUS Linux_InitContext(
     pContext->m_auxTableMgr   = pOsDriverContext->m_auxTableMgr;
     pContext->m_userSettingPtr = pOsDriverContext->m_userSettingPtr;
 
-    mos_bufmgr_gem_enable_reuse(pOsDriverContext->bufmgr);
+    mos_bufmgr_enable_reuse(pOsDriverContext->bufmgr);
 
     // DDI layer can pass over the DeviceID.
     iDeviceId = pOsDriverContext->iDeviceId;
     if (0 == iDeviceId)
     {
         //Such as CP, it calls InitMosInterface() dretly without creating MediaContext.
-        iDeviceId = mos_bufmgr_gem_get_devid(pOsDriverContext->bufmgr);
+        iDeviceId = mos_bufmgr_get_devid(pOsDriverContext->bufmgr);
         pOsDriverContext->iDeviceId = iDeviceId;
 
         MOS_OS_CHK_STATUS_MESSAGE(
@@ -1378,10 +1378,10 @@ MOS_STATUS Linux_InitContext(
     // when MODS enabled, intel_context will be created by pOsContextSpecific, should not recreate it here, or will cause memory leak.
     if (!MODSEnabled)
     {
-       pContext->intel_context = mos_gem_context_create_ext(pOsDriverContext->bufmgr, 0, pOsDriverContext->m_protectedGEMContext);
+       pContext->intel_context = mos_context_create_ext(pOsDriverContext->bufmgr, 0, pOsDriverContext->m_protectedGEMContext);
        if (!Mos_Solo_IsEnabled(nullptr) && pContext->intel_context)
        {
-           pContext->intel_context->vm = mos_gem_vm_create(pOsDriverContext->bufmgr);
+           pContext->intel_context->vm = mos_vm_create(pOsDriverContext->bufmgr);
            if (pContext->intel_context->vm == nullptr)
            {
                MOS_OS_ASSERTMESSAGE("Failed to create vm.\n");
@@ -1390,7 +1390,7 @@ MOS_STATUS Linux_InitContext(
        }
        else //try legacy context create ioctl if DRM_IOCTL_I915_GEM_CONTEXT_CREATE_EXT is not supported
        {
-           pContext->intel_context = mos_gem_context_create(pOsDriverContext->bufmgr);
+           pContext->intel_context = mos_context_create(pOsDriverContext->bufmgr);
            if (pContext->intel_context)
            {
                pContext->intel_context->vm = nullptr;
@@ -1904,10 +1904,10 @@ MOS_STATUS Mos_DestroyInterface(PMOS_INTERFACE pOsInterface)
         {
             if (perStreamParameters->intel_context->vm)
             {
-                mos_gem_vm_destroy(perStreamParameters->intel_context->bufmgr, perStreamParameters->intel_context->vm);
+                mos_vm_destroy(perStreamParameters->intel_context->bufmgr, perStreamParameters->intel_context->vm);
                 perStreamParameters->intel_context->vm = nullptr;
             }
-            mos_gem_context_destroy(perStreamParameters->intel_context);
+            mos_context_destroy(perStreamParameters->intel_context);
             perStreamParameters->intel_context = nullptr;
         }
         MOS_Delete(perStreamParameters);
@@ -3009,7 +3009,7 @@ void  *Mos_Specific_LockResource(
         {
             if (pContext->bIsAtomSOC)
             {
-                mos_gem_bo_map_gtt(bo);
+                mos_bo_map_gtt(bo);
             }
             else
             {
@@ -3035,13 +3035,13 @@ void  *Mos_Specific_LockResource(
                     }
                     else
                     {
-                        mos_gem_bo_map_gtt(bo);
+                        mos_bo_map_gtt(bo);
                         pOsResource->MmapOperation = MOS_MMAP_OPERATION_MMAP_GTT;
                     }
                 }
                 else if (pLockFlags->Uncached)
                 {
-                    mos_gem_bo_map_wc(bo);
+                    mos_bo_map_wc(bo);
                     pOsResource->MmapOperation = MOS_MMAP_OPERATION_MMAP_WC;
                 }
                 else
@@ -3134,7 +3134,7 @@ MOS_STATUS Mos_Specific_UnlockResource(
         {
            if (pContext->bIsAtomSOC)
            {
-               mos_gem_bo_unmap_gtt(pOsResource->bo);
+               mos_bo_unmap_gtt(pOsResource->bo);
            }
            else
            {
@@ -3150,10 +3150,10 @@ MOS_STATUS Mos_Specific_UnlockResource(
                switch(pOsResource->MmapOperation)
                {
                    case MOS_MMAP_OPERATION_MMAP_GTT:
-                        mos_gem_bo_unmap_gtt(pOsResource->bo);
+                        mos_bo_unmap_gtt(pOsResource->bo);
                         break;
                    case MOS_MMAP_OPERATION_MMAP_WC:
-                        mos_gem_bo_unmap_wc(pOsResource->bo);
+                        mos_bo_unmap_wc(pOsResource->bo);
                         break;
                    case MOS_MMAP_OPERATION_MMAP:
                         mos_bo_unmap(pOsResource->bo);
@@ -4285,7 +4285,7 @@ uint64_t Mos_Specific_GetResourceGfxAddress(
         return MosInterface::GetResourceGfxAddress(pOsInterface->osStreamState, pResource);
     }
 
-    if (!mos_gem_bo_is_softpin(pResource->bo))
+    if (!mos_bo_is_softpin(pResource->bo))
     {
         mos_bo_set_softpin(pResource->bo);
     }
@@ -4436,10 +4436,10 @@ MOS_STATUS Mos_Specific_CreateGpuContext(
                 return MOS_STATUS_UNKNOWN;
             };
 
-            if (mos_hweight8(sseu.subslice_mask) > createOption->packed.SubSliceCount)
+            if (mos_hweight8(pOsInterface->pOsContext->intel_context, sseu.subslice_mask) > createOption->packed.SubSliceCount)
             {
-                sseu.subslice_mask = mos_switch_off_n_bits(sseu.subslice_mask,
-                        mos_hweight8(sseu.subslice_mask)-createOption->packed.SubSliceCount);
+                sseu.subslice_mask = mos_switch_off_n_bits(pOsInterface->pOsContext->intel_context, sseu.subslice_mask,
+                        mos_hweight8(pOsInterface->pOsContext->intel_context, sseu.subslice_mask)-createOption->packed.SubSliceCount);
             }
 
             if (mos_set_context_param_sseu(pOsInterface->pOsContext->intel_context, sseu))
@@ -7257,7 +7257,7 @@ MOS_STATUS Mos_Specific_InitInterface(
 
         //Added by Ben for video memory allocation
         pOsContext->bufmgr = pOsDriverContext->bufmgr;
-        mos_bufmgr_gem_enable_reuse(pOsDriverContext->bufmgr);
+        mos_bufmgr_enable_reuse(pOsDriverContext->bufmgr);
     }
 
     pOsInterface->pOsContext                  = pOsContext;

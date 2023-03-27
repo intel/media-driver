@@ -171,54 +171,15 @@ mos_bo_flink(struct mos_linux_bo *bo, uint32_t * name)
 }
 
 int
-mos_bo_emit_reloc2(struct mos_linux_bo *bo, uint32_t offset,
+mos_bo_emit_reloc(struct mos_linux_bo *bo, uint32_t offset,
                        struct mos_linux_bo *target_bo, uint32_t target_offset,
                        uint32_t read_domains, uint32_t write_domain,
                        uint64_t presumed_offset)
 {
-       return bo->bufmgr->bo_emit_reloc2(bo, offset,
+       return bo->bufmgr->bo_emit_reloc(bo, offset,
                                         target_bo, target_offset,
                                         read_domains, write_domain,
                                         presumed_offset);
-}
-
-int
-mos_bo_emit_reloc(struct mos_linux_bo *bo, uint32_t offset,
-            struct mos_linux_bo *target_bo, uint32_t target_offset,
-            uint32_t read_domains, uint32_t write_domain)
-{
-    return bo->bufmgr->bo_emit_reloc(bo, offset,
-                     target_bo, target_offset,
-                     read_domains, write_domain);
-}
-
-/* For fence registers, not GL fences */
-int
-mos_bo_emit_reloc_fence(struct mos_linux_bo *bo, uint32_t offset,
-                  struct mos_linux_bo *target_bo, uint32_t target_offset,
-                  uint32_t read_domains, uint32_t write_domain)
-{
-    return bo->bufmgr->bo_emit_reloc_fence(bo, offset,
-                           target_bo, target_offset,
-                           read_domains, write_domain);
-}
-
-int
-mos_bo_pin(struct mos_linux_bo *bo, uint32_t alignment)
-{
-    if (bo->bufmgr->bo_pin)
-        return bo->bufmgr->bo_pin(bo, alignment);
-
-    return -ENODEV;
-}
-
-int
-mos_bo_unpin(struct mos_linux_bo *bo)
-{
-    if (bo->bufmgr->bo_unpin)
-        return bo->bufmgr->bo_unpin(bo);
-
-    return -ENODEV;
 }
 
 int
@@ -331,11 +292,211 @@ mos_bo_references(struct mos_linux_bo *bo, struct mos_linux_bo *target_bo)
     return bo->bufmgr->bo_references(bo, target_bo);
 }
 
-int
-mos_get_pipe_from_crtc_id(struct mos_bufmgr *bufmgr, int crtc_id)
+drm_export int
+mos_bo_wait(struct mos_linux_bo *bo, int64_t timeout_ns)
 {
-    if (bufmgr->get_pipe_from_crtc_id)
-        return bufmgr->get_pipe_from_crtc_id(bufmgr, crtc_id);
-    return -1;
+    return bo->bufmgr->bo_wait(bo, timeout_ns);
+}
+
+drm_export void
+mos_bo_clear_relocs(struct mos_linux_bo *bo, int start)
+{
+    bo->bufmgr->bo_clear_relocs(bo, start);
+}
+
+struct mos_linux_context *
+mos_context_create(struct mos_bufmgr *bufmgr)
+{
+    return bufmgr->context_create(bufmgr);
+}
+
+struct mos_linux_context *
+mos_context_create_ext(
+                            struct mos_bufmgr *bufmgr,
+                            __u32 flags,
+                            bool bContextProtected)
+{
+    return bufmgr->context_create_ext(bufmgr, flags, bContextProtected);
+
+}
+
+struct mos_linux_context *
+mos_context_create_shared(
+                            struct mos_bufmgr *bufmgr,
+                            mos_linux_context* ctx,
+                            __u32 flags,
+                            bool bContextProtected)
+{
+    return bufmgr->context_create_shared(bufmgr, ctx, flags, bContextProtected);
+}
+
+void
+mos_context_destroy(struct mos_linux_context *ctx)
+{
+    return ctx->bufmgr->context_destroy(ctx);
+}
+
+struct drm_i915_gem_vm_control* 
+mos_vm_create(struct mos_bufmgr *bufmgr)
+{
+    return bufmgr->vm_create(bufmgr);
+}
+
+void
+mos_vm_destroy(struct mos_bufmgr *bufmgr, struct drm_i915_gem_vm_control* vm)
+{
+    return bufmgr->vm_destroy(bufmgr, vm);
+}
+
+int
+mos_bo_context_exec2(struct mos_linux_bo *bo, int used, struct mos_linux_context *ctx,
+                               struct drm_clip_rect *cliprects, int num_cliprects, int DR4,
+                               unsigned int flags, int *fence)
+
+{
+    return bo->bufmgr->bo_context_exec2(bo, used, ctx, cliprects, num_cliprects, DR4, flags, fence);
+}
+                               
+int
+mos_bo_context_exec3(struct mos_linux_bo **bo, int num_bo, struct mos_linux_context *ctx,
+                               struct drm_clip_rect *cliprects, int num_cliprects, int DR4,
+                               unsigned int flags, int *fence)
+{
+    return (*bo)->bufmgr->bo_context_exec3(bo, num_bo, ctx, cliprects, num_cliprects, DR4, flags, fence);
+}
+
+drm_export bool
+mos_bo_is_softpin(struct mos_linux_bo *bo)
+{
+    return bo->bufmgr->bo_is_softpin(bo);
+}
+
+int
+mos_bo_map_gtt(struct mos_linux_bo *bo)
+{
+    return bo->bufmgr->bo_map_gtt(bo);
+}
+int
+mos_bo_unmap_gtt(struct mos_linux_bo *bo)
+{
+    return bo->bufmgr->bo_unmap_gtt(bo);
+}
+
+drm_export int
+mos_bo_map_wc(struct mos_linux_bo *bo)
+{
+    return bo->bufmgr->bo_map_wc(bo);
+}
+
+int
+mos_bo_unmap_wc(struct mos_linux_bo *bo)
+{
+    return bo->bufmgr->bo_unmap_wc(bo);
+}
+
+int
+mos_bo_map_unsynchronized(struct mos_linux_bo *bo)
+{
+    return bo->bufmgr->bo_map_unsynchronized(bo);
+}
+
+void
+mos_bo_start_gtt_access(struct mos_linux_bo *bo, int write_enable)
+{
+    return bo->bufmgr->bo_start_gtt_access(bo, write_enable);
+}
+
+int
+mos_set_context_param(struct mos_linux_context *ctx,
+                uint32_t size,
+                uint64_t param,
+                uint64_t value)
+{
+    return ctx->bufmgr->set_context_param(ctx, size, param, value);
+}
+
+int
+mos_set_context_param_load_balance(struct mos_linux_context *ctx,
+                         struct i915_engine_class_instance *ci,
+                         unsigned int count)
+{
+    return ctx->bufmgr->set_context_param_load_balance(ctx, ci, count);
+}
+
+int
+mos_get_context_param(struct mos_linux_context *ctx,
+                           uint32_t size,
+                           uint64_t param,
+                           uint64_t *value)
+{
+    return ctx->bufmgr->get_context_param(ctx, size, param, value);
+}
+
+struct mos_linux_bo *
+mos_bo_create_from_prime(struct mos_bufmgr *bufmgr,
+                        int prime_fd, int size)
+{
+    return bufmgr->bo_create_from_prime(bufmgr, prime_fd, size);
+}
+
+int
+mos_bo_export_to_prime(struct mos_linux_bo *bo, int *prime_fd)
+{
+    return bo->bufmgr->bo_export_to_prime(bo, prime_fd);
+}
+
+int
+mos_reg_read(struct mos_bufmgr *bufmgr,
+               uint32_t offset,
+               uint64_t *result)
+{
+    return bufmgr->reg_read(bufmgr, offset, result);
+}
+
+int
+mos_get_reset_stats(struct mos_linux_context *ctx,
+                  uint32_t *reset_count,
+                  uint32_t *active,
+                  uint32_t *pending)
+{
+    return ctx->bufmgr->get_reset_stats(ctx, reset_count, active, pending);
+}
+
+int
+mos_get_context_param_sseu(struct mos_linux_context *ctx,
+                struct drm_i915_gem_context_param_sseu *sseu)
+{
+    return ctx->bufmgr->get_context_param_sseu(ctx, sseu);
+}
+
+int
+mos_set_context_param_sseu(struct mos_linux_context *ctx,
+                struct drm_i915_gem_context_param_sseu sseu)
+{
+    return ctx->bufmgr->set_context_param_sseu(ctx, sseu);
+}
+                
+uint64_t
+mos_get_platform_information(struct mos_bufmgr *bufmgr)
+{
+    return bufmgr->get_platform_information(bufmgr);
+}
+
+void
+mos_set_platform_information(struct mos_bufmgr *bufmgr, uint64_t p)
+{
+    return bufmgr->set_platform_information(bufmgr, p);
+}
+
+uint8_t
+mos_switch_off_n_bits(struct mos_linux_context *ctx, uint8_t in_mask, int n)
+{
+    return ctx->bufmgr->switch_off_n_bits(ctx, in_mask, n);
+}
+
+unsigned int
+mos_hweight8(struct mos_linux_context *ctx, uint8_t w)
+{
+    return ctx->bufmgr->hweight8(ctx, w);
 }
 

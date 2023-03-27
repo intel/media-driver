@@ -4605,7 +4605,7 @@ VAStatus DdiVpFunctions::PutSurfaceLinuxHW(
     surf.rcSrc                  = srcRect;
     surf.rcDst                  = dstRect;
 
-    MOS_LINUX_BO *drawableBo = mos_bo_gem_create_from_name(mediaCtx->pDrmBufMgr, "rendering buffer", buffer->dri2.name);
+    MOS_LINUX_BO *drawableBo = mos_bo_create_from_name(mediaCtx->pDrmBufMgr, "rendering buffer", buffer->dri2.name);
     DDI_VP_CHK_NULL(drawableBo, "nullptr drawableBo", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
     if (!mos_bo_get_tiling(drawableBo, &drawableTilingMode, &drawableSwizzleMode))

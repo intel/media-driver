@@ -806,7 +806,7 @@ VAStatus DdiDecodeFunctions::MapBufferInternal(
         if (buf->bo)
         {
             uint32_t timeout_NS = 100000000;
-            while (0 != mos_gem_bo_wait(buf->bo, timeout_NS))
+            while (0 != mos_bo_wait(buf->bo, timeout_NS))
             {
                 // Just loop while gem_bo_wait times-out.
             }

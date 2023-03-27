@@ -1430,7 +1430,7 @@ VAStatus MediaLibvaInterfaceNext::SyncSurface(
     // check the bo here?
     // zero is a expected return value
     uint32_t timeout_NS = 100000000;
-    while (0 != mos_gem_bo_wait(surface->bo, timeout_NS))
+    while (0 != mos_bo_wait(surface->bo, timeout_NS))
     {
         // Just loop while gem_bo_wait times-out.
     }
@@ -2885,7 +2885,7 @@ VAStatus MediaLibvaInterfaceNext::SyncSurface2 (
     if (timeoutNs == VA_TIMEOUT_INFINITE)
     {
         // zero is an expected return value when not hit timeout
-        auto ret = mos_gem_bo_wait(surface->bo, DDI_BO_INFINITE_TIMEOUT);
+        auto ret = mos_bo_wait(surface->bo, DDI_BO_INFINITE_TIMEOUT);
         if (0 != ret)
         {
             DDI_NORMALMESSAGE("vaSyncSurface2: surface is still used by HW\n\r");
@@ -2907,12 +2907,12 @@ VAStatus MediaLibvaInterfaceNext::SyncSurface2 (
         }
         
         // zero is an expected return value when not hit timeout
-        auto ret = mos_gem_bo_wait(surface->bo, timeoutBoWait1);
+        auto ret = mos_bo_wait(surface->bo, timeoutBoWait1);
         if (0 != ret)
         {
             if (timeoutBoWait2)
             {
-                ret = mos_gem_bo_wait(surface->bo, timeoutBoWait2); 
+                ret = mos_bo_wait(surface->bo, timeoutBoWait2); 
             }
             if (0 != ret)
             {
@@ -2963,7 +2963,7 @@ VAStatus MediaLibvaInterfaceNext::SyncBuffer (
     if (timeoutNs == VA_TIMEOUT_INFINITE)
     {
         // zero is a expected return value when not hit timeout
-        auto ret = mos_gem_bo_wait(buffer->bo, DDI_BO_INFINITE_TIMEOUT);
+        auto ret = mos_bo_wait(buffer->bo, DDI_BO_INFINITE_TIMEOUT);
         if (0 != ret)
         {
             DDI_NORMALMESSAGE("vaSyncBuffer: buffer is still used by HW\n\r");
@@ -2985,12 +2985,12 @@ VAStatus MediaLibvaInterfaceNext::SyncBuffer (
         }
 
         // zero is a expected return value when not hit timeout
-        auto ret = mos_gem_bo_wait(buffer->bo, timeoutBoWait1);
+        auto ret = mos_bo_wait(buffer->bo, timeoutBoWait1);
         if (0 != ret)
         {
             if (timeoutBoWait2)
             {
-                ret = mos_gem_bo_wait(buffer->bo, timeoutBoWait2);
+                ret = mos_bo_wait(buffer->bo, timeoutBoWait2);
             }
             if (0 != ret)
             {
@@ -3596,7 +3596,7 @@ VAStatus MediaLibvaInterfaceNext::AcquireBufferHandle(
             case VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME:
             {
                 int32_t prime_fd = 0;
-                if (mos_bo_gem_export_to_prime(buf->bo, &prime_fd) != 0)
+                if (mos_bo_export_to_prime(buf->bo, &prime_fd) != 0)
                 {
                     MosUtilities::MosUnlockMutex(&mediaCtx->BufferMutex);
                     return VA_STATUS_ERROR_INVALID_BUFFER;
@@ -3872,7 +3872,7 @@ VAStatus MediaLibvaInterfaceNext::ExportSurfaceHandle(
         return VA_STATUS_ERROR_UNSUPPORTED_MEMORY_TYPE;
     }
 
-    if (mos_bo_gem_export_to_prime(mediaSurface->bo, (int32_t*)&mediaSurface->name))
+    if (mos_bo_export_to_prime(mediaSurface->bo, (int32_t*)&mediaSurface->name))
     {
         DDI_ASSERTMESSAGE("Failed drm_intel_gem_export_to_prime operation!!!\n");
         return VA_STATUS_ERROR_OPERATION_FAILED;
@@ -5169,7 +5169,7 @@ VAStatus MediaLibvaInterfaceNext::Copy(
     if ((option.bits.va_copy_sync == VA_EXEC_SYNC) && dst_surface)
     {
         uint32_t timeout_NS = 100000000;
-        while (0 != mos_gem_bo_wait(dst_surface->bo, timeout_NS))
+        while (0 != mos_bo_wait(dst_surface->bo, timeout_NS))
         {
             // Just loop while gem_bo_wait times-out.
         }

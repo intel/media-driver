@@ -94,7 +94,7 @@ static MOS_STATUS MediaGetIpGmdID(int32_t       fd,
         return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
     }
 
-    if (mos_query_hw_ip_version(fd, uengines[0], (void *)ipVerInfo))
+    if (mos_query_hw_ip_version(pDrmBufMgr, uengines[0], (void *)ipVerInfo))
     {
         MOS_OS_ASSERTMESSAGE("Failed to query hw_ip_version\n");
         MOS_SafeFreeMemory(uengines);
@@ -199,7 +199,7 @@ MOS_STATUS HWInfo_GetGfxInfo(int32_t           fd,
     gfxPlatform->usDeviceID         = drvInfo.devId;
     gfxPlatform->usRevId            = drvInfo.devRev;
 
-    if (mos_query_device_blob(fd, gtSystemInfo) == 0)
+    if (mos_query_device_blob(pDrmBufMgr, gtSystemInfo) == 0)
     {
         gtSystemInfo->EUCount           = gtSystemInfo->SubSliceCount * gtSystemInfo->MaxEuPerSubSlice;
         gtSystemInfo->ThreadCount       = gtSystemInfo->EUCount * gtSystemInfo->NumThreadsPerEu;

@@ -386,7 +386,7 @@ MOS_STATUS MosInterface::InitStreamParameters(
     context->m_userSettingPtr   = ((PMOS_CONTEXT)extraParams)->m_userSettingPtr;
     context->m_auxTableMgr      = osDeviceContext->GetAuxTableMgr();
 
-    mos_bufmgr_gem_enable_reuse(bufMgr);
+    mos_bufmgr_enable_reuse(bufMgr);
 
     context->m_skuTable            = *osDeviceContext->GetSkuTable();
     context->m_waTable             = *osDeviceContext->GetWaTable();
@@ -402,9 +402,9 @@ MOS_STATUS MosInterface::InitStreamParameters(
     {
         MOS_TraceEventExt(EVENT_GPU_CONTEXT_CREATE, EVENT_TYPE_START,
                           &eStatus, sizeof(eStatus), nullptr, 0);
-        context->intel_context = mos_gem_context_create_ext(context->bufmgr, 0, context->m_protectedGEMContext);
+        context->intel_context = mos_context_create_ext(context->bufmgr, 0, context->m_protectedGEMContext);
         MOS_OS_CHK_NULL_RETURN(context->intel_context);
-        context->intel_context->vm = mos_gem_vm_create(context->bufmgr);
+        context->intel_context->vm = mos_vm_create(context->bufmgr);
         MOS_OS_CHK_NULL_RETURN(context->intel_context->vm);
         MOS_TraceEventExt(EVENT_GPU_CONTEXT_CREATE, EVENT_TYPE_END,
                           &context->intel_context, sizeof(void *),
@@ -585,10 +585,10 @@ MOS_STATUS MosInterface::CreateGpuContext(
             return MOS_STATUS_UNKNOWN;
         };
 
-        if (mos_hweight8(sseu.subslice_mask) > createOption.packed.SubSliceCount)
+        if (mos_hweight8(osParameters->intel_context, sseu.subslice_mask) > createOption.packed.SubSliceCount)
         {
-            sseu.subslice_mask = mos_switch_off_n_bits(sseu.subslice_mask,
-                mos_hweight8(sseu.subslice_mask) - createOption.packed.SubSliceCount);
+            sseu.subslice_mask = mos_switch_off_n_bits(osParameters->intel_context, sseu.subslice_mask,
+                mos_hweight8(osParameters->intel_context, sseu.subslice_mask) - createOption.packed.SubSliceCount);
         }
 
         if (mos_set_context_param_sseu(osParameters->intel_context, sseu))
@@ -2107,7 +2107,7 @@ uint64_t MosInterface::GetResourceGfxAddress(
     MOS_OS_CHK_NULL_RETURN(streamState);
     MOS_OS_CHK_NULL_RETURN(resource);
 
-    if (!mos_gem_bo_is_softpin(resource->bo))
+    if (!mos_bo_is_softpin(resource->bo))
     {
         mos_bo_set_softpin(resource->bo);
     }

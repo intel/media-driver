@@ -49,8 +49,8 @@ void CmEventEx::SetTaskOsData(MOS_RESOURCE *resource, HANDLE handle)
 
 int32_t CmEventEx::WaitForTaskFinished(uint32_t timeOutMs)
 {
-    int32_t result = mos_gem_bo_wait((MOS_LINUX_BO*)m_osData, 1000000LL*timeOutMs);
-    mos_gem_bo_clear_relocs((MOS_LINUX_BO*)m_osData, 0);
+    int32_t result = mos_bo_wait((MOS_LINUX_BO*)m_osData, 1000000LL*timeOutMs);
+    mos_bo_clear_relocs((MOS_LINUX_BO*)m_osData, 0);
 
     if (result) {
         return CM_EXCEED_MAX_TIMEOUT;   //translate the drm ecode (-ETIME or potentional variants) to CM ecode.
@@ -82,8 +82,8 @@ int32_t CmEventEx::GetStatus(CM_STATUS &status)
         {
             CM_CHK_NULL_RETURN_CMERROR(m_osData);
             MOS_LINUX_BO *buffer_object = reinterpret_cast<MOS_LINUX_BO*>(m_osData);
-            int result = mos_gem_bo_wait(buffer_object, TIME_OUT);
-            mos_gem_bo_clear_relocs(buffer_object, 0);
+            int result = mos_bo_wait(buffer_object, TIME_OUT);
+            mos_bo_clear_relocs(buffer_object, 0);
             m_osSignalTriggered = (result == 0);
         }
         if (m_osSignalTriggered)

@@ -946,10 +946,10 @@ MOS_STATUS Mos_DestroyInterface(PMOS_INTERFACE osInterface)
         {
             if (perStreamParameters->intel_context->vm)
             {
-                mos_gem_vm_destroy(perStreamParameters->intel_context->bufmgr, perStreamParameters->intel_context->vm);
+                mos_vm_destroy(perStreamParameters->intel_context->bufmgr, perStreamParameters->intel_context->vm);
                 perStreamParameters->intel_context->vm = nullptr;
             }
-            mos_gem_context_destroy(perStreamParameters->intel_context);
+            mos_context_destroy(perStreamParameters->intel_context);
             perStreamParameters->intel_context = nullptr;
         }
         MOS_Delete(perStreamParameters);
@@ -1346,13 +1346,13 @@ void  *Mos_Specific_LockResource(
             }
             else
             {
-                mos_gem_bo_map_gtt(bo);
+                mos_bo_map_gtt(bo);
                 osResource->MmapOperation = MOS_MMAP_OPERATION_MMAP_GTT;
             }
         }
         else if (lockFlags->Uncached)
         {
-            mos_gem_bo_map_wc(bo);
+            mos_bo_map_wc(bo);
             osResource->MmapOperation = MOS_MMAP_OPERATION_MMAP_WC;
         }
         else
@@ -1409,10 +1409,10 @@ MOS_STATUS Mos_Specific_UnlockResource(
         switch(osResource->MmapOperation)
         {
             case MOS_MMAP_OPERATION_MMAP_GTT:
-                mos_gem_bo_unmap_gtt(osResource->bo);
+                mos_bo_unmap_gtt(osResource->bo);
                 break;
             case MOS_MMAP_OPERATION_MMAP_WC:
-                mos_gem_bo_unmap_wc(osResource->bo);
+                mos_bo_unmap_wc(osResource->bo);
                 break;
             case MOS_MMAP_OPERATION_MMAP:
                 mos_bo_unmap(osResource->bo);
@@ -2077,10 +2077,10 @@ MOS_STATUS Mos_Specific_CreateGpuContext(
                 return MOS_STATUS_UNKNOWN;
             };
 
-            if (mos_hweight8(sseu.subslice_mask) > createOption->packed.SubSliceCount)
+            if (mos_hweight8(osInterface->pOsContext->intel_context, sseu.subslice_mask) > createOption->packed.SubSliceCount)
             {
-                sseu.subslice_mask = mos_switch_off_n_bits(sseu.subslice_mask,
-                        mos_hweight8(sseu.subslice_mask)-createOption->packed.SubSliceCount);
+                sseu.subslice_mask = mos_switch_off_n_bits(osInterface->pOsContext->intel_context, sseu.subslice_mask,
+                        mos_hweight8(osInterface->pOsContext->intel_context, sseu.subslice_mask)-createOption->packed.SubSliceCount);
             }
 
             if (mos_set_context_param_sseu(osInterface->pOsContext->intel_context, sseu))
@@ -3581,7 +3581,7 @@ MOS_STATUS Mos_Specific_InitInterface(
 
         //Added by Ben for video memory allocation
         osContext->bufmgr = osDriverContext->bufmgr;
-        mos_bufmgr_gem_enable_reuse(osDriverContext->bufmgr);
+        mos_bufmgr_enable_reuse(osDriverContext->bufmgr);
     }
 #endif
     osInterface->pOsContext = osContext;

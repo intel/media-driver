@@ -95,12 +95,12 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
             MOS_OS_ASSERTMESSAGE("Not able to allocate buffer manager, fd=0x%d", m_fd);
             return MOS_STATUS_INVALID_PARAMETER;
         }
-        mos_bufmgr_gem_enable_reuse(m_bufmgr);
+        mos_bufmgr_enable_reuse(m_bufmgr);
 
         osDriverContext->bufmgr                 = m_bufmgr;
 
         //Latency reducation:replace HWGetDeviceID to get device using ioctl from drm.
-        iDeviceId   = mos_bufmgr_gem_get_devid(m_bufmgr);
+        iDeviceId   = mos_bufmgr_get_devid(m_bufmgr);
         m_isAtomSOC = IS_ATOMSOC(iDeviceId);
 
         eStatus = NullHwInit((MOS_CONTEXT_HANDLE)osDriverContext);
@@ -137,7 +137,7 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
                 softpin_va1Malign = true;
             }
 
-            mos_bufmgr_gem_enable_softpin(m_bufmgr, softpin_va1Malign);
+            mos_bufmgr_enable_softpin(m_bufmgr, softpin_va1Malign);
 
             ReadUserSetting(
                 userSettingPtr,
@@ -147,13 +147,13 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
 
             if (value)
             {
-                 mos_bufmgr_gem_enable_vmbind(m_bufmgr);
-                 MOS_OS_NORMALMESSAGE("mos_bufmgr_gem_enable_vmbind");
+                 mos_bufmgr_enable_vmbind(m_bufmgr);
+                 MOS_OS_NORMALMESSAGE("mos_bufmg_enable_vmbind");
             }
         }
 
         uint64_t isRecoverableContextEnabled = 0;
-        MOS_LINUX_CONTEXT *intel_context = mos_gem_context_create_ext(m_bufmgr, 0, false);
+        MOS_LINUX_CONTEXT *intel_context = mos_context_create_ext(m_bufmgr, 0, false);
         int ret = mos_get_context_param(intel_context, 0, I915_CONTEXT_PARAM_RECOVERABLE, &isRecoverableContextEnabled);
         if (ret == -EINVAL)
         {
@@ -161,12 +161,12 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
         }
         if (intel_context)
         {
-            mos_gem_context_destroy(intel_context);
+            mos_context_destroy(intel_context);
         }
         // set recoverablecontext disabled if want disable object capture
         if (MEDIA_IS_WA(&m_waTable, WaDisableSetObjectCapture) && isRecoverableContextEnabled)
         {
-            mos_bufmgr_gem_disable_object_capture(m_bufmgr);
+            mos_bufmgr_disable_object_capture(m_bufmgr);
         }
 
         if (MEDIA_IS_SKU(&m_skuTable, FtrEnableMediaKernels) == 0)
