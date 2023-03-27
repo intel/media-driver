@@ -3664,8 +3664,8 @@ int32_t CompositeState::SetLayer(
                     fShiftX = VPHAL_HW_LINEAR_SHIFT;  // Bilinear scaling shift
                     fShiftY = VPHAL_HW_LINEAR_SHIFT;
                 }
-
-                pSamplerStateParams->Unorm.SamplerFilterMode = MHW_SAMPLER_FILTER_BILINEAR;
+                if(!pSamplerStateParams->bIsSamplerSet)
+                    pSamplerStateParams->Unorm.SamplerFilterMode = MHW_SAMPLER_FILTER_BILINEAR;
             }
 
             if (MHW_SAMPLER_FILTER_BILINEAR == pSamplerStateParams->Unorm.SamplerFilterMode &&
@@ -3707,7 +3707,7 @@ int32_t CompositeState::SetLayer(
                 pSamplerStateParams->Unorm.ChromaKeyIndex   = pRenderHal->pfnAllocateChromaKey(pRenderHal, dwLow, dwHigh);
             }
 
-            if ((!IsSamplerIDForY(iSamplerID)) && bForceNearestForUV)
+            if ((!IsSamplerIDForY(iSamplerID)) && bForceNearestForUV && !pSamplerStateParams->bIsSamplerSet)
             {
                 pSamplerStateParams->Unorm.SamplerFilterMode = MHW_SAMPLER_FILTER_NEAREST;
             }
@@ -3743,6 +3743,7 @@ int32_t CompositeState::SetLayer(
         oriShiftY = fShiftY;
 
         pSamplerStateParams->bInUse        = true;
+        pSamplerStateParams->bIsSamplerSet = true;
 
         // Set AVS Scaling Table
         if (pSurfaceEntries[i] && pSurfaceEntries[i]->bAVS)

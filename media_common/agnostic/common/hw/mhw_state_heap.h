@@ -805,6 +805,7 @@ typedef struct _MHW_SAMPLER_STATE_PARAM
     PMHW_KERNEL_STATE           pKernelState;
     MHW_SAMPLER_TYPE            SamplerType;
     MHW_SAMPLER_ELEMENT_TYPE    ElementType;
+    bool                        bIsSamplerSet;
     union
     {
         MHW_SAMPLER_STATE_UNORM_PARAM     Unorm;
