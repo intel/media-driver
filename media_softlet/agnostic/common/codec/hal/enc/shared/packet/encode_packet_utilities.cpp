@@ -101,6 +101,124 @@ namespace encode {
         return eStatus;
     }
 
+    MOS_STATUS PacketUtilities::SendMarkerCommand(PMOS_COMMAND_BUFFER cmdBuffer, PMOS_RESOURCE presSetMarker)
+    {
+        ENCODE_FUNC_CALL();
+
+        ENCODE_CHK_NULL_RETURN(cmdBuffer);
+
+        EncodeBasicFeature *basicFeature = dynamic_cast<EncodeBasicFeature *>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
+        ENCODE_CHK_NULL_RETURN(basicFeature);
+
+        if (presSetMarker == nullptr)
+        {
+            return MOS_STATUS_SUCCESS;
+        }
+
+        // Send flush_dw to get the timestamp
+        auto &params             = m_miItf->MHW_GETPAR_F(MI_FLUSH_DW)();
+        params                   = {};
+        params.pOsResource       = presSetMarker;
+        params.dwResourceOffset  = 0;  //sizeof(uint64_t);
+        params.postSyncOperation = MHW_FLUSH_WRITE_TIMESTAMP_REG;
+        params.bQWordEnable      = 1;
+        m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(cmdBuffer);
+
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MOS_STATUS PacketUtilities::SendPredicationCommand(PMOS_COMMAND_BUFFER cmdBuffer)
+    {
+        ENCODE_FUNC_CALL();
+
+        ENCODE_CHK_NULL_RETURN(cmdBuffer);
+
+        EncodeBasicFeature *basicFeature = dynamic_cast<EncodeBasicFeature *>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
+        ENCODE_CHK_NULL_RETURN(basicFeature);
+
+        // Predication can be set based on the value of 64-bits within a buffer
+        auto PreparePredicationBuf = [&](bool predicationNotEqualZero) {
+            auto  mmioRegistersMfx = m_hwInterface->SelectVdAndGetMmioReg(m_vdboxIndex, cmdBuffer);
+            auto &flushDwParams    = m_miItf->MHW_GETPAR_F(MI_FLUSH_DW)();
+            flushDwParams          = {};
+            ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(cmdBuffer));
+
+            // load presPredication to general purpose register0
+            auto &miLoadRegMemParams           = m_miItf->MHW_GETPAR_F(MI_LOAD_REGISTER_MEM)();
+            miLoadRegMemParams                  = {};
+            miLoadRegMemParams.presStoreBuffer  = basicFeature->m_presPredication;
+            miLoadRegMemParams.dwOffset         = (uint32_t)basicFeature->m_predicationResOffset;
+            miLoadRegMemParams.dwRegister       = mmioRegistersMfx->generalPurposeRegister0LoOffset;
+            ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_MEM)(cmdBuffer));
+
+            auto &miLoadRegImmParams      = m_miItf->MHW_GETPAR_F(MI_LOAD_REGISTER_IMM)();
+            miLoadRegImmParams            = {};
+            miLoadRegImmParams.dwData     = 0;
+            miLoadRegImmParams.dwRegister = mmioRegistersMfx->generalPurposeRegister0HiOffset;
+            ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(cmdBuffer));
+
+            miLoadRegMemParams                 = {};
+            miLoadRegMemParams.presStoreBuffer = basicFeature->m_presPredication;
+            miLoadRegMemParams.dwOffset        = (uint32_t)basicFeature->m_predicationResOffset + sizeof(uint32_t);
+            miLoadRegMemParams.dwRegister      = mmioRegistersMfx->generalPurposeRegister4LoOffset;
+            ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_MEM)(cmdBuffer));
+
+            miLoadRegImmParams            = {};
+            miLoadRegImmParams.dwData     = 0;
+            miLoadRegImmParams.dwRegister = mmioRegistersMfx->generalPurposeRegister4HiOffset;
+            ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(cmdBuffer));
+
+            mhw::mi::MHW_MI_ALU_PARAMS miAluParams[4] = {};
+            miAluParams[0].AluOpcode         = MHW_MI_ALU_LOAD;
+            miAluParams[0].Operand1          = MHW_MI_ALU_SRCA;
+            miAluParams[0].Operand2          = MHW_MI_ALU_GPREG0;
+            // load     srcB, reg4
+            miAluParams[1].AluOpcode = MHW_MI_ALU_LOAD;
+            miAluParams[1].Operand1  = MHW_MI_ALU_SRCB;
+            miAluParams[1].Operand2  = MHW_MI_ALU_GPREG4;
+            // add      srcA, srcB
+            miAluParams[2].AluOpcode = predicationNotEqualZero ? MHW_MI_ALU_ADD : MHW_MI_ALU_OR;
+            miAluParams[2].Operand1  = MHW_MI_ALU_SRCB;
+            miAluParams[2].Operand2  = MHW_MI_ALU_GPREG4;
+            // store      reg0, ZF
+            miAluParams[3].AluOpcode = MHW_MI_ALU_STORE;
+            miAluParams[3].Operand1  = MHW_MI_ALU_GPREG0;
+            miAluParams[3].Operand2  = predicationNotEqualZero ? MHW_MI_ALU_ZF : MHW_MI_ALU_ACCU;
+
+            auto &miMathParams = m_miItf->MHW_GETPAR_F(MI_MATH)();
+            miMathParams                = {};
+            miMathParams.pAluPayload = miAluParams;
+            miMathParams.dwNumAluParams = 4;
+            ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_MATH)(cmdBuffer));
+
+            // if MHW_MI_ALU_ZF, the zero flag will be 0xFFFFFFFF, else zero flag will be 0x0.
+            // if MHW_MI_ALU_ACCU, the OR result directly copied
+            auto &miStoreRegMemParams           = m_miItf->MHW_GETPAR_F(MI_STORE_REGISTER_MEM)();
+            miStoreRegMemParams                 = {};
+            miStoreRegMemParams.presStoreBuffer = basicFeature->m_predicationBuffer;
+            miStoreRegMemParams.dwOffset        = 0;
+            miStoreRegMemParams.dwRegister      = mmioRegistersMfx->generalPurposeRegister0LoOffset;
+            ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_REGISTER_MEM)(cmdBuffer));
+
+            ENCODE_CHK_NULL_RETURN(basicFeature->m_tempPredicationBuffer);
+            *basicFeature->m_tempPredicationBuffer = basicFeature->m_predicationBuffer;
+
+            return MOS_STATUS_SUCCESS;
+        };
+
+        ENCODE_CHK_STATUS_RETURN(PreparePredicationBuf(basicFeature->m_predicationNotEqualZero));
+
+        auto &miConditionalBatchBufferEndParams               = m_miItf->MHW_GETPAR_F(MI_CONDITIONAL_BATCH_BUFFER_END)();
+        miConditionalBatchBufferEndParams                     = {};
+        miConditionalBatchBufferEndParams.dwOffset            = 0;
+        miConditionalBatchBufferEndParams.dwValue             = 0;
+        miConditionalBatchBufferEndParams.bDisableCompareMask = true;
+        miConditionalBatchBufferEndParams.presSemaphoreBuffer = basicFeature->m_predicationBuffer;
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_CONDITIONAL_BATCH_BUFFER_END)(cmdBuffer));
+
+        return MOS_STATUS_SUCCESS;
+    }
+
 #if USE_CODECHAL_DEBUG_TOOL
     MOS_STATUS PacketUtilities::ModifyEncodedFrameSizeWithFakeHeaderSize(
         PMOS_COMMAND_BUFFER     cmdBuffer,

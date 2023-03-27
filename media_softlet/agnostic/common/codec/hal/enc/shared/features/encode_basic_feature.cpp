@@ -198,6 +198,27 @@ MOS_STATUS EncodeBasicFeature::Update(void *params)
     // check output Chroma format
     UpdateFormat(params);
 
+    m_predicationNotEqualZero              = encodeParams->m_predicationNotEqualZero;
+    m_predicationEnabled                   = encodeParams->m_predicationEnabled;
+    m_setMarkerEnabled                     = encodeParams->m_setMarkerEnabled;
+    m_predicationResOffset                 = encodeParams->m_predicationResOffset;
+    m_presPredication                      = encodeParams->m_presPredication;
+    m_tempPredicationBuffer                = encodeParams->m_tempPredicationBuffer;
+
+    if (m_predicationBuffer == nullptr && m_predicationEnabled)
+    {
+        // initiate allocation parameters and lock flags
+        MOS_ALLOC_GFXRES_PARAMS allocParamsForBufferLinear;
+        MOS_ZeroMemory(&allocParamsForBufferLinear, sizeof(MOS_ALLOC_GFXRES_PARAMS));
+        allocParamsForBufferLinear.Type         = MOS_GFXRES_BUFFER;
+        allocParamsForBufferLinear.TileType     = MOS_TILE_LINEAR;
+        allocParamsForBufferLinear.Format       = Format_Buffer;
+        allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
+        allocParamsForBufferLinear.dwBytes      = sizeof(uint32_t);
+        allocParamsForBufferLinear.pBufName     = "PredicationBuffer";
+        m_predicationBuffer                     = m_allocator->AllocateResource(allocParamsForBufferLinear, false);
+    }
+
     return MOS_STATUS_SUCCESS;
 }
 

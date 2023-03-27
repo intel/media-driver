@@ -165,6 +165,13 @@ public:
     MOS_SURFACE                 m_mbQpDataSurface = {};            //!< pointer to surface of Mb QP Data
     bool                        m_rgbEncodingEnable = false;       //!< Enable RGB encoding
     bool                        m_captureModeEnable = false;       //!< Enable Capture mode with display
+    bool                        m_predicationNotEqualZero = false;       //!< [Predication] Predication mode
+    bool                        m_predicationEnabled      = false;       //!< [Predication] Indicates whether or not Predication is enabled
+    bool                        m_setMarkerEnabled        = false;       //!< [SetMarker] Indicates whether or not SetMarker is enabled
+    uint64_t                    m_predicationResOffset    = 0;           //!< [Predication] Offset for Predication resource
+    PMOS_RESOURCE               m_presPredication         = nullptr;     //!< [Predication] Resource for predication
+    PMOS_RESOURCE              *m_tempPredicationBuffer   = nullptr;     //!< [Predication] Temp buffer for Predication
+    PMOS_RESOURCE               m_predicationBuffer       = nullptr;     //!< [Predication] Internal buffer for predication
 
     uint8_t                     m_targetUsage =0;
 

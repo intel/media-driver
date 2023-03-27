@@ -48,6 +48,10 @@ public:
 
     MOS_STATUS Init();
 
+    MOS_STATUS SendMarkerCommand(PMOS_COMMAND_BUFFER cmdBuffer, PMOS_RESOURCE presSetMarker);
+
+    MOS_STATUS SendPredicationCommand(PMOS_COMMAND_BUFFER cmdBuffer);
+
 #if USE_CODECHAL_DEBUG_TOOL
     //!
     //! \brief  Modify the frame size with fake header size
