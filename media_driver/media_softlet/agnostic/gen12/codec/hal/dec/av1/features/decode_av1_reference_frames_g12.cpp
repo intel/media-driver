@@ -529,7 +529,6 @@ namespace decode
             {
                 if (hasValidRefIndex == false)
                 {
-                    uint8_t validfPicIndex = 0;
                     //Get valid reference frame index
                     hr = GetValidReferenceIndex(&validfPicIndex);
                     hasValidRefIndex = true;
