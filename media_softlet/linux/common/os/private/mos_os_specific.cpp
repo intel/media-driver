@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022-2023, Intel Corporation
+* Copyright (c) 2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -3378,11 +3378,6 @@ bool Mos_Specific_pfnIsMultipleCodecDevicesInUse(
     return false;
 }
 
-bool Mos_Specific_IsAsyncDevice(PMOS_INTERFACE osInterface)
-{
-    return false;
-}
-
 MOS_STATUS Mos_Specific_LoadFunction(
     PMOS_INTERFACE osInterface)
 {
@@ -3498,7 +3493,6 @@ MOS_STATUS Mos_Specific_LoadFunction(
     osInterface->pfnIsMismatchOrderProgrammingSupported = Mos_Specific_IsMismatchOrderProgrammingSupported;
 
     osInterface->pfnIsMultipleCodecDevicesInUse = Mos_Specific_pfnIsMultipleCodecDevicesInUse;
-    osInterface->pfnIsAsynDevice               = Mos_Specific_IsAsyncDevice;
 
     return MOS_STATUS_SUCCESS;
 }
