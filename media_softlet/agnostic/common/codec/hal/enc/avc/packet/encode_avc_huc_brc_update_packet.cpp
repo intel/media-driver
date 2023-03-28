@@ -533,6 +533,9 @@ MOS_STATUS AvcHucBrcUpdatePkt::DumpHucBrcUpdate(bool isInput)
             currentPass,
             hucRegionDumpUpdate));
 
+        // History Buffer dump
+        ENCODE_CHK_STATUS_RETURN(DumpRegion(0, "_History", isInput, hucRegionDumpUpdate, brcSettings.vdencBrcHistoryBufferSize));
+
         // Constant Data Buffer dump
         ENCODE_CHK_STATUS_RETURN(DumpRegion(5, "_ConstData", isInput, hucRegionDumpUpdate, m_vdencBrcConstDataBufferSize));
 
