@@ -75,7 +75,7 @@ namespace decode
         //! \return MOS_STATUS
         //!         MOS_STATUS_SUCCESS if success, else fail reason
         //!
-        MOS_STATUS ErrorDetectAndConceal();
+        virtual MOS_STATUS ErrorDetectAndConceal();
 
         //!
         //! \brief    Initialize one of AV1 Decode frame context buffers with default values
