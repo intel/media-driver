@@ -665,6 +665,7 @@ static VAStatus DdiMedia_GetChromaPitchHeight(
         case VA_FOURCC_411P:
         case VA_FOURCC_422H:
         case VA_FOURCC_444P:
+        case VA_FOURCC_RGBP:
             *chromaHeight = height;
             *chromaPitch = pitch;
             break;
@@ -5673,9 +5674,6 @@ VAStatus DdiMedia_PutImage(
             {
                 DDI_MEDIA_SURFACE uPlane = *mediaSurface;
 
-                uPlane.iWidth              = src_width;
-                uPlane.iRealHeight         = src_height;
-                uPlane.iHeight             = src_height;
                 uint32_t chromaHeight      = 0;
                 uint32_t chromaPitch       = 0;
                 DdiMedia_GetChromaPitchHeight(DdiMedia_MediaFormatToOsFormat(uPlane.format), uPlane.iPitch, uPlane.iHeight, &chromaPitch, &chromaHeight);
