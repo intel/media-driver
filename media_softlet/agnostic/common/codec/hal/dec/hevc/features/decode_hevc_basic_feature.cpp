@@ -271,6 +271,24 @@ MOS_STATUS HevcBasicFeature::ErrorDetectAndConceal()
         }
     }
 
+    if (!m_shortFormatInUse)
+    {
+        for (uint32_t slcCount = 0; slcCount < m_numSlices; slcCount++)
+        {
+            for (uint32_t i = 0; i < 2; i++)
+            {
+                for (uint32_t j = 0; j < CODEC_MAX_NUM_REF_FRAME_HEVC; j++)
+                {
+                    if (m_hevcSliceParams->RefPicList[i][j].FrameIdx > 0x7f)
+                    {
+                        DECODE_ASSERTMESSAGE("Reference frame index is out of range\n");
+                        return MOS_STATUS_INVALID_PARAMETER;
+                    }
+                }
+            }
+        }
+    }
+
     return MOS_STATUS_SUCCESS;
 }
 
