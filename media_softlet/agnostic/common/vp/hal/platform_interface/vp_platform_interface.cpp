@@ -190,6 +190,7 @@ MOS_STATUS VpPlatformInterface::InitPolicyRules(VP_POLICY_RULES &rules)
     }
 
     rules.isAvsSamplerSupported = false;
+    rules.isHDR3DLutKernelEnabled = true;
 
     return MOS_STATUS_SUCCESS;
 }

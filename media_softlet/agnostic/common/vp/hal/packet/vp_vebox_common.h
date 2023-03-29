@@ -161,8 +161,9 @@ public:
             bool           bHdr3DLut;             //!< Enable 3DLut to process HDR
             bool           bUseVEHdrSfc;          //!< Use SFC to perform CSC/Scaling for HDR content
             bool           is3DLutTableFilled;    //!< 3DLut is filled by kernel/
-            uint32_t       uiMaxDisplayLum;       //!< Maximum Display Luminance
-            uint32_t       uiMaxContentLevelLum;  //!< Maximum Content Level Luminance
+            bool           is3DLutTableUpdatedByKernel;  //!< 3DLut is updated by kernel/
+            uint32_t       uiMaxDisplayLum;              //!< Maximum Display Luminance
+            uint32_t       uiMaxContentLevelLum;         //!< Maximum Content Level Luminance
             VPHAL_HDR_MODE hdrMode;
             uint32_t       uiLutSize;
         };

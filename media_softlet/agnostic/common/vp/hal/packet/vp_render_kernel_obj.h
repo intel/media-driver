@@ -510,12 +510,9 @@ protected:
 
     virtual MOS_STATUS SetKernelConfigs(KERNEL_CONFIGS& kernelConfigs);
 
-    MOS_STATUS SetProcessSurfaceGroup(VP_SURFACE_GROUP& surfaces)
-    {
-        m_surfaceGroup = &surfaces;
-        VP_RENDER_CHK_STATUS_RETURN(SetupSurfaceState());
-        return MOS_STATUS_SUCCESS;
-    }
+    virtual MOS_STATUS SetProcessSurfaceGroup(VP_SURFACE_GROUP &surfaces);
+
+    virtual MOS_STATUS CpPrepareResources();
 
     virtual MOS_STATUS GetCurbeState(void *&curbe, uint32_t &curbeLength) = 0;
 

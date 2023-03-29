@@ -173,6 +173,20 @@ MOS_STATUS VpRenderKernelObj::InitKernel(void* binary, uint32_t size, KERNEL_CON
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS VpRenderKernelObj::CpPrepareResources()
+{
+    VP_RENDER_NORMALMESSAGE("Not prepare reousces for CP in kernel %d.", m_kernelId);
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpRenderKernelObj::SetProcessSurfaceGroup(VP_SURFACE_GROUP &surfaces)
+{
+    m_surfaceGroup = &surfaces;
+    VP_RENDER_CHK_STATUS_RETURN(SetupSurfaceState());
+    VP_RENDER_CHK_STATUS_RETURN(CpPrepareResources());
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS GetSurfaceSize(
     VP_SURFACE    *pSurface,
     uint32_t       iBpp,

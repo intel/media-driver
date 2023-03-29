@@ -795,7 +795,11 @@ protected:
 
     virtual MOS_STATUS SetupHDRLuts(
         PMHW_VEBOX_STATE_CMD_PARAMS pVeboxStateCmdParams);
+
     virtual MOS_STATUS Init3DLutTable(PVP_SURFACE surf3DLut);
+
+    void UpdateCpPrepareResources();
+
     MOS_STATUS SetupVebox3DLutForHDR(
         PMHW_VEBOX_STATE_CMD_PARAMS pVeboxStateCmdParams);
 
