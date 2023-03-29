@@ -319,21 +319,26 @@ MOS_STATUS AvcHucBrcUpdatePkt::Submit(MOS_COMMAND_BUFFER *commandBuffer, uint8_t
                            "ERROR - vdbox index exceed the maximum");
     auto mmioRegisters = m_hucItf->GetMmioRegisters(m_vdboxIndex);
 
-    // Write HUC_STATUS mask
-    auto &storeDataParams            = m_miItf->MHW_GETPAR_F(MI_STORE_DATA_IMM)();
-    storeDataParams                  = {};
-    storeDataParams.pOsResource      = m_basicFeature->m_recycleBuf->GetBuffer(VdencBrcPakMmioBuffer, 0);
-    storeDataParams.dwResourceOffset = sizeof(uint32_t);
-    storeDataParams.dwValue          = VDENC_AVC_BRC_HUC_STATUS_REENCODE_MASK;
-    ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(commandBuffer));
+#if _SW_BRC
+    if (!m_swBrc->SwBrcEnabled())
+#endif
+    {
+        // Write HUC_STATUS mask
+        auto &storeDataParams            = m_miItf->MHW_GETPAR_F(MI_STORE_DATA_IMM)();
+        storeDataParams                  = {};
+        storeDataParams.pOsResource      = m_basicFeature->m_recycleBuf->GetBuffer(VdencBrcPakMmioBuffer, 0);
+        storeDataParams.dwResourceOffset = sizeof(uint32_t);
+        storeDataParams.dwValue          = VDENC_AVC_BRC_HUC_STATUS_REENCODE_MASK;
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(commandBuffer));
 
-    // store HUC_STATUS register
-    auto &storeRegMemParams           = m_miItf->MHW_GETPAR_F(MI_STORE_REGISTER_MEM)();
-    storeRegMemParams                 = {};
-    storeRegMemParams.presStoreBuffer = m_basicFeature->m_recycleBuf->GetBuffer(VdencBrcPakMmioBuffer, 0);
-    storeRegMemParams.dwOffset        = 0;
-    storeRegMemParams.dwRegister      = mmioRegisters->hucStatusRegOffset;
-    ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_REGISTER_MEM)(commandBuffer));
+        // store HUC_STATUS register
+        auto &storeRegMemParams           = m_miItf->MHW_GETPAR_F(MI_STORE_REGISTER_MEM)();
+        storeRegMemParams                 = {};
+        storeRegMemParams.presStoreBuffer = m_basicFeature->m_recycleBuf->GetBuffer(VdencBrcPakMmioBuffer, 0);
+        storeRegMemParams.dwOffset        = 0;
+        storeRegMemParams.dwRegister      = mmioRegisters->hucStatusRegOffset;
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_REGISTER_MEM)(commandBuffer));
+    }
 
     CODECHAL_DEBUG_TOOL(
         ENCODE_CHK_STATUS_RETURN(DumpHucBrcUpdate(true));)
