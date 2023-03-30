@@ -1590,6 +1590,13 @@ void DdiVpFunctions::VpFeatureReport(PVP_CONFIG config, PDDI_VP_CONTEXT vpCtx)
         MediaUserSetting::Group::Sequence);
 
 #if (_DEBUG || _RELEASE_INTERNAL)
+    //VP RT Old Cache Usage
+    ReportUserSetting(
+        userSettingPtr,
+        __VPHAL_RT_Old_Cache_Setting,
+        config->dwRTOldCacheSetting,
+        MediaUserSetting::Group::Sequence);
+
     ReportUserSettingForDebug(
         userSettingPtr,
         __VPHAL_VEBOX_HDR_MODE,

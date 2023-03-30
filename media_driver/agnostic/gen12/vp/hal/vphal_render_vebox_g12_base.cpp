@@ -1309,6 +1309,9 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::SetupDiIecpStateForOutputSurf(
                 (uint32_t *)&(pVeboxDiIecpCmdParams->CurrOutputSurfCtrl.Value)));
         }
     }
+#if (_DEBUG || _RELEASE_INTERNAL)
+    pRenderHal->oldCacheSettingForTargetSurface = (uint8_t)((pVeboxDiIecpCmdParams->CurrOutputSurfCtrl.Value >> 1) & 0x0000003f);
+#endif
 
 finish:
     return eStatus;

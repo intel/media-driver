@@ -160,6 +160,15 @@ MOS_STATUS VpUserSetting::InitVpUserSetting(MediaUserSettingSharedPtr userSettin
             0,
             true);
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+        DeclareUserSettingKey(  // VP Render Target Old Cache Usage
+            userSettingPtr,
+            __VPHAL_RT_Old_Cache_Setting,
+            MediaUserSetting::Group::Sequence,
+            0,
+            true);
+#endif
+
         DeclareUserSettingKey(  // VP Render Target Cache Usage
             userSettingPtr,
             __VPHAL_RT_Cache_Setting,

@@ -1262,6 +1262,10 @@ typedef struct _RENDERHAL_INTERFACE
     bool                        bIsAVS;
 
     bool                        isMMCEnabled;
+#if (_DEBUG || _RELEASE_INTERNAL)
+    // RT Old cacheSetting
+    uint32_t                    oldCacheSettingForTargetSurface = 0;
+#endif
 
     MediaPerfProfiler           *pPerfProfiler = nullptr; //!< Performance data profiler
     bool                        eufusionBypass = false;

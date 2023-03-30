@@ -287,6 +287,7 @@ protected:
 #define __VPHAL_RT_Cache_Setting                                        "VP RT Cache Setting"
 
 #if (_DEBUG || _RELEASE_INTERNAL)
+#define __VPHAL_RT_Old_Cache_Setting                                    "VP RT Old Cache Setting"
 #define __VPHAL_ENABLE_COMPUTE_CONTEXT                                  "VP Enable Compute Context"
 #define __VPHAL_RNDR_SCOREBOARD_CONTROL                                 "SCOREBOARD Control"
 #define __VPHAL_RNDR_CMFC_CONTROL                                       "CMFC Control"

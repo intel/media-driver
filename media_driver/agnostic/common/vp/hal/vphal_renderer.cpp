@@ -1008,6 +1008,9 @@ void VphalRenderer::UpdateReport(
     }
 
     m_reporting->GetFeatures().rtCacheSetting = (uint8_t)(pRenderParams->pTarget[0]->CacheSetting);
+#if (_DEBUG || _RELEASE_INTERNAL)
+    m_reporting->GetFeatures().rtOldCacheSetting = (uint8_t)(m_pRenderHal->oldCacheSettingForTargetSurface);
+#endif
 }
 
 //!

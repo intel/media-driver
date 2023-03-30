@@ -1459,6 +1459,12 @@ MOS_STATUS VpVeboxCmdPacketLegacy::SetupDiIecpState(
         pVeboxDiIecpCmdParams->LaceOrAceOrRgbHistogramSurfCtrl.Value =
             m_surfMemCacheCtl->DnDi.LaceOrAceOrRgbHistogramSurfCtrl;
     }
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (m_hwInterface->m_renderHal)
+    {
+        m_hwInterface->m_renderHal->oldCacheSettingForTargetSurface = (uint8_t)((m_surfMemCacheCtl->DnDi.CurrentOutputSurfMemObjCtl >> 1) & 0x0000003f);
+    }
+#endif
 finish:
     return eStatus;
 }

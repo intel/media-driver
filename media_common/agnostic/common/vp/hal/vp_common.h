@@ -171,6 +171,9 @@ struct VPHAL_SURFACE
 
     //Surface cache Usage
     uint32_t CacheSetting = 0;
+#if (_DEBUG || _RELEASE_INTERNAL)
+    uint32_t oldCacheSetting = 0;
+#endif
 
     bool bUseSampleUnorm    = false;  //!<  true: sample unorm is used, false: DScaler or AVS is used.
     bool bUseSamplerLumakey = false;  //!<  true: sampler lumakey is used, false: lumakey is disabled or EU computed lumakey is used.

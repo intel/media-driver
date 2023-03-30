@@ -379,6 +379,9 @@ struct MOS_SURFACE
     uint32_t            YoffsetForVplane;                                       //!< [out] Y offset from V plane to Y plane.
     // Surface cache Usage
     uint32_t CacheSetting;
+#if (_DEBUG || _RELEASE_INTERNAL)
+    uint32_t oldCacheSetting;
+#endif
 };
 typedef MOS_SURFACE *PMOS_SURFACE;
 

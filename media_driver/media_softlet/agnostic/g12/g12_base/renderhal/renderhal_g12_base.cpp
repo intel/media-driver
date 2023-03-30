@@ -217,6 +217,15 @@ MOS_STATUS XRenderHal_Interface_G12_Base::SetupSurfaceState (
                                                             .DwordValue;
                 MHW_RENDERHAL_NORMALMESSAGE(" MOS_RESOURCE_USAGE_CCS_MEDIA_WRITABLE is queried, and target SurfStateParams.dwCacheabilityControl = %d \n", SurfStateParams.dwCacheabilityControl);
             }
+            #if (_DEBUG || _RELEASE_INTERNAL)
+                pSurface->OsResource.memObjCtrlState.DwordValue = SurfStateParams.dwCacheabilityControl;
+                pParams->MemObjCtl                              = SurfStateParams.dwCacheabilityControl;
+                pSurface->oldCacheSetting                       = (SurfStateParams.dwCacheabilityControl >> 1) & 0x0000003f;
+                if (pParams->isOutput)
+                {
+                    pRenderHal->oldCacheSettingForTargetSurface = pSurface->oldCacheSetting;
+                }
+            #endif
         }
     #endif
         if (IsFormatMMCSupported(pSurface->Format) &&

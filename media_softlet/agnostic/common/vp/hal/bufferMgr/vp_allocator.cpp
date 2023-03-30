@@ -697,7 +697,6 @@ MOS_STATUS VpAllocator::GetSurfaceInfo(VP_SURFACE* surface, VPHAL_GET_SURFACE_IN
     surface->osSurface->bCompressible   = resDetails.bCompressible ? true : false;
     surface->osSurface->bIsCompressed   = resDetails.bIsCompressed ? true : false;
     surface->osSurface->CacheSetting    = resDetails.CacheSetting;
-
     
     return MOS_STATUS_SUCCESS;
 }

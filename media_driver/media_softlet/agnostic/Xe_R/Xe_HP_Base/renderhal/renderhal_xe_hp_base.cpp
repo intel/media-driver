@@ -147,6 +147,15 @@ MOS_STATUS XRenderHal_Interface_Xe_Hp_Base::SetupSurfaceState(
         SurfStateParams.TileModeGMM           = pSurface->TileModeGMM;
         SurfStateParams.bGMMTileEnabled       = pSurface->bGMMTileEnabled;
 
+        #if (_DEBUG || _RELEASE_INTERNAL)
+            pParams->MemObjCtl                              = SurfStateParams.dwCacheabilityControl;
+            pSurface->oldCacheSetting                       = (SurfStateParams.dwCacheabilityControl >> 1) & 0x0000003f;
+            if (pParams->isOutput)
+            {
+                pRenderHal->oldCacheSettingForTargetSurface = pSurface->oldCacheSetting;
+            }
+        #endif
+
         if (pSurface->MmcState == MOS_MEMCOMP_RC)
         {
             m_renderHalMMCEnabled    = MEDIA_IS_SKU(pRenderHal->pSkuTable, FtrE2ECompression);

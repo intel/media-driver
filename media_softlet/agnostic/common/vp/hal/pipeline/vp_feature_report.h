@@ -70,6 +70,9 @@ public:
         VPHAL_HDR_MODE                hdrMode             = VPHAL_HDR_MODE_NONE;          //!< HDR mode
         bool                          packetReused        = false;                        //!< true if packet reused.
         uint8_t                       rtCacheSetting      = 0;                            //!< Render Target cache usage
+#if (_DEBUG || _RELEASE_INTERNAL)
+        uint8_t                       rtOldCacheSetting   = 0;                            //!< Render Target old cache usage
+#endif
     };
 
     virtual ~VpFeatureReport(){};
