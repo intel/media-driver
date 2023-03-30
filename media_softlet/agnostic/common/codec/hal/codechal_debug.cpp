@@ -3171,7 +3171,7 @@ MOS_STATUS CodechalDebugInterface::SetFastDumpConfig(MediaCopyWrapper *mediaCopy
         cfg.bufferSize          = static_cast<size_t>(c.bufferSize);
         cfg.informOnError       = c.informOnError;
 
-        auto suffix = cfg.writeMode < 2 ? ".bin" : cfg.writeMode == 2 ? ".txt"
+        auto suffix = cfg.writeMode == 0 ? ".bin" : cfg.writeMode == 1 ? ".txt"
                                                                       : "";
 
         class DumpEnabled
@@ -3245,7 +3245,8 @@ MOS_STATUS CodechalDebugInterface::SetFastDumpConfig(MediaCopyWrapper *mediaCopy
                         compName + bufferName +
                         suffix,
                     size,
-                    offset);
+                    offset,
+                    MediaDebugSerializer<uint32_t>());
             }
             return MOS_STATUS_SUCCESS;
         };

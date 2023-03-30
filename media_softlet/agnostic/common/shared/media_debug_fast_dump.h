@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022, Intel Corporation
+* Copyright (c) 2022-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -35,7 +35,6 @@
 #include <string>
 #include "media_debug_serializer.h"
 #include "media_copy_wrapper.h"
-#include "codechal_debug.h"
 
 class MediaDebugFastDump
 {
@@ -65,9 +64,6 @@ public:
         template <uint8_t MIN = 0, uint8_t MAX = 100>
         using RangedUint8 = RangedValue<uint8_t, MIN, MAX>;
 
-        template <size_t MIN = 0, size_t MAX = -1>
-        using RangedSize = RangedValue<size_t, MIN, MAX>;
-
     public:
         bool allowDataLoss = true;  // allow dumped data loss to reduce perf impact
 
@@ -95,37 +91,41 @@ public:
                                                // selecting render copy is weightRenderCopy/(weightRenderCopy+weightVECopy+weightBLTCopy)
 
         // file/trace writing configurations
-        RangedUint8<0, 3> writeMode     = 0;     // 0: binary file, direct writing; 1: binary file, buffered writing; 2: text file; 3: trace
-        RangedSize<64>    bufferSize    = 0;     // buffer size in MB for buffered writing, effective when writeMode is 1
-        bool              informOnError = true;  // dump 1 byte filename.error_info file instead of nothing when error occurs
+        RangedUint8<0, 2> writeDst      = 0;     // 0: file; 1: trace; 2: no write, for debug purpose
+        RangedUint8<0, 2> writeMode     = 2;     // 0: binary; 1: text, valid when writeDst is 0; 2: adaptive
+        size_t            bufferSize    = 0;     // buffer size in MB for buffered writing, valid when writeDst and writeMode are both 0
+        bool              informOnError = true;  // dump 1 byte filename.error_info file instead of nothing when error occurs, valid when
+                                                 // writeDst is 0
     };
+
+    using DefaultSerializer = MediaDebugSerializer<void>;
 
 public:
     static void CreateInstance(
-        MOS_INTERFACE      &osItf,
-        MediaCopyWrapper   &mediaCopyWrapper,
-        const Config       *cfg = nullptr);
+        MOS_INTERFACE    &osItf,
+        MediaCopyWrapper &mediaCopyWrapper,
+        const Config     *cfg = nullptr);
 
     static void DestroyInstance();
 
     // if file name contains "w[0]_h[0]_p[0]", it will be replaced to "w[RealWidth]_h[RealHeight]_p[RealPitch]" by fast dump
     static void Dump(
-        MOS_RESOURCE  &res,
-        std::string  &&name,
-        size_t         dumpSize = 0,
-        size_t         offset   = 0,
+        MOS_RESOURCE &res,
+        std::string &&name,
+        size_t        dumpSize = 0,
+        size_t        offset   = 0,
         std::function<
             void(std::ostream &, const void *, size_t)>
-            &&serializer = MediaDebugSerializer<uint32_t>());
+            &&serializer = DefaultSerializer());
 
     static void Dump(
-        uint8_t       *buffer,
-        std::string  &&name,
-        size_t         dumpSize = 0,
-        size_t         offset   = 0,
+        const void   *res,
+        std::string &&name,
+        size_t        dumpSize = 0,
+        size_t        offset   = 0,
         std::function<
             void(std::ostream &, const void *, size_t)>
-            &&serializer = MediaDebugSerializer<uint32_t>());
+            &&serializer = DefaultSerializer());
 
 public:
     virtual ~MediaDebugFastDump() = default;

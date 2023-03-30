@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2023, Intel Corporation
+* Copyright (c) 2022-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -62,7 +62,22 @@ protected:
         }
     };
 
-    struct Res
+    struct ResBase
+    {
+    public:
+        virtual ~ResBase() = default;
+
+    public:
+        bool        occupied = false;
+        size_t      size     = 0;
+        size_t      offset   = 0;
+        std::string name;
+        std::function<
+            void(std::ostream &, const void *, size_t)>
+            serializer;
+    };
+
+    struct Res final : public ResBase
     {
     public:
         static void SetOsInterface(PMOS_INTERFACE itf)
@@ -80,26 +95,23 @@ protected:
             {
                 osItf->pfnFreeResource(osItf, &res);
             }
-
-            if (buf != nullptr)
-            {
-                free(buf);
-                buf = nullptr;
-            }
         }
 
-    public:        
-        bool               occupied = false;
-        bool               gpuMem   = false;
-        bool               localMem = false;
-        MOS_RESOURCE       res      = {};
-        uint8_t           *buf      = nullptr;
-        size_t             size     = 0;
-        size_t             offset   = 0;
-        std::string        name;
-        std::function<
-            void(std::ostream &, const void *, size_t)>
-            serializer;
+    public:
+        bool         localMem = false;
+        MOS_RESOURCE res      = {};
+    };
+
+    struct ResSys final : public ResBase
+    {
+    public:
+        ~ResSys()
+        {
+            MOS_DeleteArray(res);
+        }
+
+    public:
+        char *res = nullptr;
     };
 
     struct MemMng
@@ -242,9 +254,9 @@ protected:
 
 public:
     MediaDebugFastDumpImp(
-        MOS_INTERFACE      &osItf,
-        MediaCopyWrapper   &mediaCopyWrapper,
-        const Config       *cfg) : m_osItf(osItf),
+        MOS_INTERFACE    &osItf,
+        MediaCopyWrapper &mediaCopyWrapper,
+        const Config     *cfg) : m_osItf(osItf),
                              m_mediaCopyWrapper(mediaCopyWrapper)
     {
         std::unique_ptr<const Config> cfg1 = nullptr;
@@ -269,19 +281,28 @@ public:
             std::lock_guard<std::mutex> lk(m_mutex);
             m_stopScheduler = true;
         }
-
         if (m_scheduler.joinable())
         {
             m_cond.notify_one();
             m_scheduler.join();
         }
+
+        {
+            std::lock_guard<std::mutex> lk(m_mutexSys);
+            m_stopSchedulerSys = true;
+        }
+        if (m_schedulerSys.joinable())
+        {
+            m_condSys.notify_one();
+            m_schedulerSys.join();
+        }
     }
 
     void operator()(
-        MOS_RESOURCE  &res,
-        std::string  &&name,
-        size_t         dumpSize,
-        size_t         offset,
+        MOS_RESOURCE &res,
+        std::string &&name,
+        size_t        dumpSize,
+        size_t        offset,
         std::function<
             void(std::ostream &, const void *, size_t)>
             &&serializer)
@@ -353,7 +374,6 @@ public:
             }
 
             (*resIt)->occupied   = true;
-            (*resIt)->gpuMem     = true;
             (*resIt)->localMem   = resInfo.dwMemType != MOS_MEMPOOL_SYSTEMMEMORY;
             (*resIt)->size       = dumpSize;
             (*resIt)->offset     = offset;
@@ -366,65 +386,93 @@ public:
     }
 
     void operator()(
-        uint8_t       *buffer,
-        std::string  &&name,
-        size_t         dumpSize,
-        size_t         offset,
+        const void   *res,
+        std::string &&name,
+        size_t        dumpSize,
+        size_t        offset,
         std::function<
             void(std::ostream &, const void *, size_t)>
             &&serializer)
     {
-        if (buffer == nullptr)
+        if (m_2CacheTask() == false)
         {
             return;
         }
 
-        std::unique_lock<std::mutex> lk(m_mutex);
-
-        std::shared_ptr<Res> pRes = nullptr;
-        std::map<int, std::shared_ptr<Res>>::iterator it;
-        for (it = m_bufPool.begin(); it != m_bufPool.end(); it++)
-        {
-            if ((size_t)it->first >= dumpSize && it->second->occupied == false)
-            {
-                pRes = it->second;
-            }
-        }
-
-        if (pRes == nullptr)
-        {
-            auto tmpRes = std::make_shared<Res>();
-
-            tmpRes->buf = (uint8_t *)malloc(dumpSize);
-            if (tmpRes->buf != nullptr)
-            {
-                m_bufPool[dumpSize] = std::move(tmpRes);
-                pRes                = m_bufPool[dumpSize];
-            }
-            else
-            {
-                return m_writeError(
-                    name,
-                    "discarded");
-            }
-        }
-
-        if (MOS_SecureMemcpy(pRes->buf, dumpSize, buffer, dumpSize) != 0)
+        if (res == nullptr)
         {
             return m_writeError(
                 name,
-                "input_buffer_copy_failed");
+                "resource_is_null");
         }
 
-        pRes->occupied   = true;
-        pRes->gpuMem     = false;
-        pRes->size       = dumpSize;
-        pRes->offset     = offset;
-        pRes->name       = std::move(name);
-        pRes->serializer = std::move(serializer);
-        m_resQueue.emplace(pRes);
+        if (dumpSize == 0)
+        {
+            return m_writeError(
+                name,
+                "dump_size_is_0");
+        }
 
-        m_cond.notify_one();
+        // prepare resource pool and resource queue
+        {
+            std::unique_lock<std::mutex> lk(m_mutexSys);
+
+            auto &resArray = m_resPoolSys[dumpSize];
+
+            using CR = std::remove_reference<decltype(resArray)>::type::const_reference;
+
+            auto resIt = std::find_if(
+                resArray.begin(),
+                resArray.end(),
+                [](CR r) {
+                    return r->occupied == false;
+                });
+
+            if (resIt == resArray.end())
+            {
+                auto tmpRes = std::make_shared<ResSys>();
+                if ((tmpRes->res = MOS_NewArray(char, dumpSize)) != nullptr)
+                {
+                    resArray.emplace_back(std::move(tmpRes));
+                    --(resIt = resArray.end());
+                }
+                else if (!m_allowDataLoss && !resArray.empty())
+                {
+                    m_condSys.wait(
+                        lk,
+                        [&] {
+                            resIt = std::find_if(
+                                resArray.begin(),
+                                resArray.end(),
+                                [](CR r) {
+                                    return r->occupied == false;
+                                });
+                            return resIt != resArray.end();
+                        });
+                }
+                else
+                {
+                    return m_writeError(
+                        name,
+                        "discarded");
+                }
+            }
+
+            MOS_SecureMemcpy(
+                (*resIt)->res,
+                dumpSize,
+                static_cast<const char *>(res) + offset,
+                dumpSize);
+
+            (*resIt)->occupied   = true;
+            (*resIt)->size       = dumpSize;
+            (*resIt)->offset     = 0;
+            (*resIt)->name       = std::move(name);
+            (*resIt)->serializer = std::move(serializer);
+            m_resQueueSys.emplace(*resIt);
+        }
+
+        m_condSys.notify_one();
     }
 
 protected:
@@ -587,35 +635,60 @@ protected:
 
     void ConfigureWriter(const Config &cfg)
     {
-        switch (cfg.writeMode)
+        switch (cfg.writeDst)
         {
         case 0: {
-            m_write = [](
-                          std::string &&name,
-                          const void   *data,
-                          size_t        size,
-                          std::function<void(std::ostream &, const void *, size_t)> &&) {
-                std::ofstream ofs(name, std::ios_base::out | std::ios_base::binary);
-                ofs.write(static_cast<const char *>(data), size);
-            };
+            if (cfg.writeMode == 0 && cfg.bufferSize > 0)
+            {
+                m_write = BufferedWriter(cfg.bufferSize);
+            }
+            else if (cfg.writeMode == 0)
+            {
+                m_write = [=](
+                              std::string &&name,
+                              const void   *data,
+                              size_t        size,
+                              std::function<void(std::ostream &, const void *, size_t)> &&) {
+                    std::ofstream ofs(name, std::ios_base::out | std::ios_base::binary);
+                    ofs.write(static_cast<const char *>(data), size);
+                };
+            }
+            else if (cfg.writeMode == 1)
+            {
+                m_write = [](std::string &&name,
+                              const void  *data,
+                              size_t       size,
+                              std::function<void(std::ostream &, const void *, size_t)>
+                                  &&serializer) {
+                    std::ofstream ofs(name, std::ios_base::out);
+                    serializer(ofs, data, size);
+                };
+            }
+            else
+            {
+                m_write = [](std::string &&name,
+                              const void  *data,
+                              size_t       size,
+                              std::function<void(std::ostream &, const void *, size_t)>
+                                  &&serializer) {
+                    if (serializer.target_type() ==
+                        std::function<void(std::ostream &, const void *, size_t)>(
+                            DefaultSerializer())
+                            .target_type())
+                    {
+                        std::ofstream ofs(name + ".bin", std::ios_base::out | std::ios_base::binary);
+                        ofs.write(static_cast<const char *>(data), size);
+                    }
+                    else
+                    {
+                        std::ofstream ofs(name + ".txt", std::ios_base::out);
+                        serializer(ofs, data, size);
+                    }
+                };
+            }
             break;
         }
         case 1: {
-            m_write = BufferedWriter(cfg.bufferSize);
-            break;
-        }
-        case 2: {
-            m_write = [](std::string &&name,
-                          const void  *data,
-                          size_t       size,
-                          std::function<void(std::ostream &, const void *, size_t)>
-                              &&serializer) {
-                std::ofstream ofs(name, std::ios_base::out);
-                serializer(ofs, data, size);
-            };
-            break;
-        }
-        case 3: {
             m_write = [](
                           std::string &&name,
                           const void   *data,
@@ -625,8 +698,8 @@ protected:
             };
             break;
         }
+        case 2:
         default: {
-            // should not happen
             m_write = [](
                           std::string &&,
                           const void *,
@@ -636,7 +709,7 @@ protected:
         }
         }
 
-        if (cfg.informOnError && cfg.writeMode != 3)
+        if (cfg.informOnError && cfg.writeDst == 0)
         {
             m_writeError = [this](const std::string &name, const std::string &error) {
                 static const char dummy = 0;
@@ -701,6 +774,59 @@ protected:
                     m_resQueue.pop();
                 }
             });
+
+        m_schedulerSys = std::thread(
+            [this] {
+                std::future<void> future;
+                while (true)
+                {
+                    std::unique_lock<std::mutex> lk(m_mutexSys);
+                    m_condSys.wait(
+                        lk,
+                        [this] {
+                            return (m_ready4DumpSys && !m_resQueueSys.empty()) || m_stopSchedulerSys;
+                        });
+                    if (m_stopSchedulerSys)
+                    {
+                        break;
+                    }
+                    auto qf         = m_resQueueSys.front();
+                    m_ready4DumpSys = false;
+                    lk.unlock();
+                    future = std::async(
+                        std::launch::async,
+                        [this, qf] {
+                            m_write(
+                                std::move(qf->name),
+                                qf->res + qf->offset,
+                                qf->size,
+                                std::move(qf->serializer));
+                            {
+                                std::lock_guard<std::mutex> lk(m_mutexSys);
+                                m_resQueueSys.front()->occupied = false;
+                                m_resQueueSys.pop();
+                                m_ready4DumpSys = true;
+                            }
+                            m_condSys.notify_all();
+                        });
+                }
+                if (future.valid())
+                {
+                    future.wait();
+                }
+                std::lock_guard<std::mutex> lk(m_mutexSys);
+                while (!m_resQueueSys.empty())
+                {
+                    auto qf = m_resQueueSys.front();
+                    m_write(
+                        std::move(qf->name),
+                        qf->res + qf->offset,
+                        qf->size,
+                        std::move(qf->serializer));
+                    qf->occupied = false;
+                    m_resQueueSys.pop();
+                }
+            });
     }
 
     MOS_STATUS GetResInfo(MOS_RESOURCE &res, ResInfo &resInfo) const
@@ -728,86 +854,75 @@ protected:
 
     void DoDump(std::shared_ptr<Res> res) const
     {
-        if (res->gpuMem)
+        MOS_LOCK_PARAMS lockFlags{};
+        lockFlags.ReadOnly     = 1;
+        lockFlags.TiledAsTiled = 1;
+
+        auto         pRes   = &res->res;
+        MOS_RESOURCE tmpRes = {};
+
+        if (res->localMem)
         {
-            MOS_LOCK_PARAMS lockFlags{};
-            lockFlags.ReadOnly     = 1;
-            lockFlags.TiledAsTiled = 1;
+            // locking/reading resource from local graphic memory is extremely inefficient, so
+            // copy resource to a temporary buffer allocated in shared memory before lock
 
-            auto         pRes   = &res->res;
-            MOS_RESOURCE tmpRes = {};
-
-            if (res->localMem)
-            {
-                // locking/reading resource from local graphic memory is extremely inefficient, so
-                // copy resource to a temporary buffer allocated in shared memory before lock
-
-                ResInfo resInfo{};
-                if (GetResInfo(res->res, resInfo) != MOS_STATUS_SUCCESS)
-                {
-                    return m_writeError(
-                        res->name,
-                        "get_internal_resource_info_failed");
-                }
-                resInfo.dwMemType = MOS_MEMPOOL_SYSTEMMEMORY;
-
-                if (m_osItf.pfnAllocateResource(&m_osItf, &resInfo, &tmpRes) != MOS_STATUS_SUCCESS)
-                {
-                    return m_writeError(
-                        res->name,
-                        "allocate_tmp_resource_failed");
-                }
-
-                if (m_mediaCopyWrapper.MediaCopy(&res->res, &tmpRes, m_copyMethod()) !=
-                    MOS_STATUS_SUCCESS)
-                {
-                    return m_writeError(
-                        res->name,
-                        "internal_surface_copy_failed");
-                }
-
-                pRes = &tmpRes;
-            }
-
-            auto resSize = GetResSizeAndFixName(pRes->pGmmResInfo, res->name);
-            if (resSize < res->offset + res->size)
+            ResInfo resInfo{};
+            if (GetResInfo(res->res, resInfo) != MOS_STATUS_SUCCESS)
             {
                 return m_writeError(
                     res->name,
-                    "incorrect_size_offset");
+                    "get_internal_resource_info_failed");
             }
+            resInfo.dwMemType = MOS_MEMPOOL_SYSTEMMEMORY;
 
-            auto data = static_cast<const uint8_t *>(
-                m_osItf.pfnLockResource(&m_osItf, pRes, &lockFlags));
-
-            if (data)
+            if (m_osItf.pfnAllocateResource(&m_osItf, &resInfo, &tmpRes) != MOS_STATUS_SUCCESS)
             {
-                m_write(
-                    std::move(res->name),
-                    data + res->offset,
-                    res->size == 0 ? resSize - res->offset : res->size,
-                    std::move(res->serializer));
-                m_osItf.pfnUnlockResource(&m_osItf, pRes);
-            }
-            else
-            {
-                m_writeError(
+                return m_writeError(
                     res->name,
-                    "lock_failed");
+                    "allocate_tmp_resource_failed");
             }
 
-            if (Mos_ResourceIsNull(&tmpRes) == false)
+            if (m_mediaCopyWrapper.MediaCopy(&res->res, &tmpRes, m_copyMethod()) !=
+                MOS_STATUS_SUCCESS)
             {
-                m_osItf.pfnFreeResource(&m_osItf, &tmpRes);
+                return m_writeError(
+                    res->name,
+                    "internal_surface_copy_failed");
             }
+
+            pRes = &tmpRes;
         }
-        else
+
+        auto resSize = GetResSizeAndFixName(pRes->pGmmResInfo, res->name);
+        if (resSize < res->offset + res->size)
+        {
+            return m_writeError(
+                res->name,
+                "incorrect_size_offset");
+        }
+
+        auto data = static_cast<const char *>(
+            m_osItf.pfnLockResource(&m_osItf, pRes, &lockFlags));
+
+        if (data)
         {
             m_write(
                 std::move(res->name),
-                res->buf + res->offset,
-                res->size,
+                data + res->offset,
+                res->size == 0 ? resSize - res->offset : res->size,
                 std::move(res->serializer));
+            m_osItf.pfnUnlockResource(&m_osItf, pRes);
+        }
+        else
+        {
+            m_writeError(
+                res->name,
+                "lock_failed");
+        }
+
+        if (Mos_ResourceIsNull(&tmpRes) == false)
+        {
+            m_osItf.pfnFreeResource(&m_osItf, &tmpRes);
         }
     }
 
@@ -820,11 +935,7 @@ protected:
         m_memMng;
 
     std::thread m_scheduler;
-
-    std::map<
-        int,
-        std::shared_ptr<Res>>
-        m_bufPool;
+    std::thread m_schedulerSys;
 
     std::map<
         ResInfo,
@@ -832,9 +943,18 @@ protected:
         ResInfoCmp>
         m_resPool;  // synchronization needed
 
+    std::map<
+        size_t,
+        std::vector<std::shared_ptr<ResSys>>>
+        m_resPoolSys;  // synchronization needed
+
     std::queue<
         std::shared_ptr<Res>>
         m_resQueue;  // synchronization needed
+
+    std::queue<
+        std::shared_ptr<ResSys>>
+        m_resQueueSys;  // synchronization needed
 
     std::function<
         bool()>
@@ -861,14 +981,18 @@ protected:
         m_writeError;
 
     // threads intercommunication flags, synchronization needed
-    bool m_ready4Dump    = true;
-    bool m_stopScheduler = false;
+    bool m_ready4Dump       = true;
+    bool m_ready4DumpSys    = true;
+    bool m_stopScheduler    = false;
+    bool m_stopSchedulerSys = false;
 
     std::mutex              m_mutex;
+    std::mutex              m_mutexSys;
     std::condition_variable m_cond;
+    std::condition_variable m_condSys;
 
-    MOS_INTERFACE      &m_osItf;
-    MediaCopyWrapper   &m_mediaCopyWrapper;
+    MOS_INTERFACE    &m_osItf;
+    MediaCopyWrapper &m_mediaCopyWrapper;
 
     MEDIA_CLASS_DEFINE_END(MediaDebugFastDumpImp)
 };
