@@ -1599,6 +1599,14 @@ namespace encode
 
         ENCODE_FUNC_CALL();
 
+        auto packetUtilities = m_pipeline->GetPacketUtilities();
+        ENCODE_CHK_NULL_RETURN(packetUtilities);
+        if (m_basicFeature->m_setMarkerEnabled)
+        {
+            PMOS_RESOURCE presSetMarker = m_osInterface->pfnGetMarkerResource(m_osInterface);
+            ENCODE_CHK_STATUS_RETURN(packetUtilities->SendMarkerCommand(&cmdBuffer, presSetMarker));
+        }
+
 #ifdef _MMC_SUPPORTED
         ENCODE_CHK_NULL_RETURN(m_mmcState);
         ENCODE_CHK_STATUS_RETURN(m_mmcState->SendPrologCmd(&cmdBuffer, false));
@@ -1610,6 +1618,12 @@ namespace encode
         genericPrologParams.pvMiInterface = nullptr;
         genericPrologParams.bMmcEnabled   = m_mmcState ? m_mmcState->IsMmcEnabled() : false;
         ENCODE_CHK_STATUS_RETURN(Mhw_SendGenericPrologCmdNext(&cmdBuffer, &genericPrologParams, m_miItf));
+
+        // Send predication command
+        if (m_basicFeature->m_predicationEnabled)
+        {
+            ENCODE_CHK_STATUS_RETURN(packetUtilities->SendPredicationCommand(&cmdBuffer));
+        }
 
         return eStatus;
     }
