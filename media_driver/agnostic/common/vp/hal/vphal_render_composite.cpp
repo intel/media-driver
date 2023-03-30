@@ -2825,6 +2825,44 @@ static MOS_STATUS GetBindingIndex(
 }
 
 //!
+//! \brief    Update SamplerStateParams associated with a surface state for composite
+//! \param    [in] pSamplerStateParams
+//!           Pointer to SamplerStateParams
+//! \param    [in] pEntry
+//!           Pointer to Surface state
+//! \param    [in] pRenderData
+//!           Pointer to RenderData
+//! \param    [in] uLayerNum
+//!           Layer total number
+//! \param    [in] SamplerFilterMode
+//!           SamplerFilterMode to be set
+//! \param    [out] pSamplerIndex
+//!           Pointer to Sampler Index
+//! \param    [out] pSurface
+//!           point to Surface
+//! \return   MOS_STATUS
+//!           Return MOS_STATUS_SUCCESS if successful, otherwise MOS_STATUS_UNKNOWN
+//!
+MOS_STATUS CompositeState::SetSamplerFilterMode(
+    PMHW_SAMPLER_STATE_PARAM&       pSamplerStateParams,
+    PRENDERHAL_SURFACE_STATE_ENTRY  pEntry,
+    PVPHAL_RENDERING_DATA_COMPOSITE pRenderData,
+    uint32_t                        uLayerNum,
+    MHW_SAMPLER_FILTER_MODE         SamplerFilterMode,
+    int32_t*                        pSamplerIndex,
+    PVPHAL_SURFACE                  pSource)
+{
+    VPHAL_RENDER_CHK_NULL_RETURN(pSamplerStateParams);
+    MOS_UNUSED(pEntry);
+    MOS_UNUSED(pRenderData);
+    MOS_UNUSED(pSamplerIndex);
+    MOS_UNUSED(pSource);
+
+    pSamplerStateParams->Unorm.SamplerFilterMode = SamplerFilterMode;
+    return MOS_STATUS_SUCCESS;
+}
+
+//!
 //! \brief    Get Sampler Index associated with a surface state for composite
 //! \param    [in] pSurface
 //!           point to input Surface
@@ -3647,7 +3685,17 @@ int32_t CompositeState::SetLayer(
             {
                 fShiftX  = 0.0f;
                 fShiftY  = 0.0f;
-                pSamplerStateParams->Unorm.SamplerFilterMode = MHW_SAMPLER_FILTER_NEAREST;
+                eStatus  = SetSamplerFilterMode(pSamplerStateParams,
+                                                pSurfaceEntries[i],
+                                                pRenderingData,
+                                                pCompParams->uSourceCount,
+                                                MHW_SAMPLER_FILTER_NEAREST,
+                                                &iSamplerID,
+                                                pSource);
+                if (MOS_FAILED(eStatus))
+                {
+                    continue;
+                }
             }
             else
             {
@@ -3665,7 +3713,17 @@ int32_t CompositeState::SetLayer(
                     fShiftY = VPHAL_HW_LINEAR_SHIFT;
                 }
 
-                pSamplerStateParams->Unorm.SamplerFilterMode = MHW_SAMPLER_FILTER_BILINEAR;
+                eStatus     = SetSamplerFilterMode(pSamplerStateParams,
+                                                   pSurfaceEntries[i],
+                                                   pRenderingData,
+                                                   pCompParams->uSourceCount,
+                                                   MHW_SAMPLER_FILTER_BILINEAR,
+                                                   &iSamplerID,
+                                                   pSource);
+                if (MOS_FAILED(eStatus))
+                {
+                    continue;
+                }
             }
 
             if (MHW_SAMPLER_FILTER_BILINEAR == pSamplerStateParams->Unorm.SamplerFilterMode &&
