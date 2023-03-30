@@ -56,12 +56,8 @@ typedef enum _CM_LOG_LEVEL{
     CM_LOG_LEVEL_INFO    = 4
 }CM_LOG_LEVEL;
 
-#define _CM_LOG(priority, msg, halState) {        \
-    std::ostringstream __debug_stream__; \
-    __debug_stream__ << msg; \
-    CmLogger::GetInstance(halState).Print(priority, __FILE__, __LINE__, \
-                                          __debug_stream__.str()); \
-    }
+#define _CM_LOG(priority, msg, halState)         \
+    CmLogPrint(priority, msg, halState)
 
 #define CM_DEBUG(msg, halState)  _CM_LOG(CM_LOG_LEVEL_DEBUG, msg, halState)
 #define INSERT_API_CALL_LOG(halState) CmLogTimer _LogTimer(__FUNCTION__, halState)
@@ -72,17 +68,13 @@ typedef enum _CM_LOG_LEVEL{
 class CmLogger
 {
 public:
-    static CmLogger& GetInstance(CM_HAL_STATE *halState)
-    {
-        static CmLogger m_globalCmLogger(halState);
-        return m_globalCmLogger;
-    }
+    static CmLogger* GetInstance(CM_HAL_STATE *halState);
 
     static void LogDataArrayHex(std::ostringstream &oss,
                                 unsigned char *data,
                                 unsigned int size);
 
-    void Print(const unsigned int verbosityLevel,
+    virtual void Print(const unsigned int verbosityLevel,
                const std::string &sourceFile,
                const int codeLine,
                const std::string &message);
@@ -124,6 +116,18 @@ private:
     void GetVerbosityLevel(CM_HAL_STATE *halState);
 };
 
+inline void CmLogPrint(CM_LOG_LEVEL priority, std::string msg, CM_HAL_STATE *halState)
+{
+    std::ostringstream __debug_stream__;
+    __debug_stream__ << msg;
+    CmLogger* logTmp = CmLogger::GetInstance(halState);
+    if (logTmp != nullptr)
+    {
+        logTmp->Print(priority, __FILE__, __LINE__,
+                                        __debug_stream__.str());
+    }
+}
+
 class CmLogTimer
 {
 
@@ -133,9 +137,18 @@ public:
               m_timer(str),
               m_halState(halState) {}
 
-    ~CmLogTimer();
+    ~CmLogTimer()
+    {
+        m_timer.Stop();
+        m_string = m_timer.ToString();
+        _CM_LOG(CM_LOG_LEVEL_INFO, m_string, m_halState);
+        return;
+    }
 
-    void Stop();
+    void Stop()
+    {
+        m_timer.Stop();
+    }
 
 private:
     std::string m_string;

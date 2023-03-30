@@ -82,6 +82,12 @@ CmLogger::~CmLogger()
     }
 }
 
+CmLogger* CmLogger::GetInstance(CM_HAL_STATE *halState)
+{
+    static CmLogger m_globalCmLogger(halState);
+    return &m_globalCmLogger;
+}
+
 void CmLogger::GetVerbosityLevel(CM_HAL_STATE *halState)
 {
     // Read VerbosityLevel from RegisterKey
@@ -169,19 +175,6 @@ void CmLogger::Lock()
 void CmLogger::Unlock()
 {
     globalCmLogLock.Release();
-}
-
-CmLogTimer::~CmLogTimer()
-{
-    m_timer.Stop();
-    m_string = m_timer.ToString();
-    _CM_LOG(CM_LOG_LEVEL_INFO, m_string, m_halState);
-    return;
-}
-
-void CmLogTimer::Stop()
-{
-    m_timer.Stop();
 }
 
 #endif  // #if CM_LOG_ON

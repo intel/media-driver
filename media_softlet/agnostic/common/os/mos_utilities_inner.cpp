@@ -39,9 +39,12 @@ MOS_STATUS MosUtilities::MosUtilitiesInit(MediaUserSettingSharedPtr userSettingP
     eStatus = MosOsUtilitiesInit(userSettingPtr);
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-
     //Initialize MOS simulate random alloc memorflag
+#if COMMON_DLL_SEPARATION_SUPPORT
+    MosInitAllocFailSimulateFlagInCommon(userSettingPtr);
+#else
     MosInitAllocMemoryFailSimulateFlag(userSettingPtr);
+#endif
 
     eStatus = ReadUserSettingForDebug(
         userSettingPtr,
@@ -66,7 +69,11 @@ MOS_STATUS MosUtilities::MosUtilitiesClose(MediaUserSettingSharedPtr userSetting
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     //Reset Simulate Alloc Memory Fail flags
+#if COMMON_DLL_SEPARATION_SUPPORT
+    MosInitAllocFailSimulateFlagInCommon(userSettingPtr);
+#else
     MosInitAllocMemoryFailSimulateFlag(userSettingPtr);
+#endif
 #endif
 
     return eStatus;

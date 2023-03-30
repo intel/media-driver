@@ -68,8 +68,7 @@ public:
     MOS_FUNC_EXPORT static int32_t MosGetMemNinjaCounterGfx();
 
     friend class CommonLib::MosCallback;
-#if COMMON_DLL_SEPARATION_SUPPORT
-    
+
     //!
     //! \brief    Set trace setup info
     //! \details  Set trace setup info
@@ -78,7 +77,6 @@ public:
     //!           else MOS_STATUS_SUCCESS
     //!
     static MOS_STATUS MosTraceSetupInfoInCommon(uint32_t DrvVer, uint32_t PlatFamily, uint32_t RenderFamily, uint32_t DeviceID);
-#endif
 
     //!
     //! \brief    Get current run time
@@ -183,7 +181,7 @@ private:
     //!           else MOS_STATUS_SUCCESS
     //!
     static MOS_STATUS MosOsUtilitiesInit(MediaUserSettingSharedPtr userSettingPtr);
-#if COMMON_DLL_SEPARATION_SUPPORT
+
     //!
     //! \brief    Init Mos os utilities in common dll
     //! \details  Init Mos os utilities in common dll
@@ -234,7 +232,7 @@ private:
     //!
     static MOS_STATUS MosInitAllocFailSimulateFlagInCommon(MediaUserSettingSharedPtr userSettingPtr);
 #endif
-#endif
+
     //!
     //! \brief    Init user feature
     //! \details  Initial MOS OS specific utilitiesNext related structures, and only execute once for multiple entries
