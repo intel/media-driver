@@ -3148,6 +3148,7 @@ MOS_STATUS Policy::SetupExecuteFilter(SwFilterPipe& featurePipe, std::vector<int
 
     VP_PUBLIC_CHK_NULL_RETURN(params.executedFilters);
 
+    MT_LOG1(MT_VP_FEATURE_GRAPTH_SETUPEXECUTESWFILTER_START, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_LAYERINDEXES_COUNT, (int64_t)layerIndexes.size());
     for (uint32_t i = 0; i < layerIndexes.size(); ++i)
     {
         VP_PUBLIC_CHK_STATUS_RETURN(AddInputSurfaceForSingleLayer(featurePipe, layerIndexes[i], *params.executedFilters, i, caps));
@@ -3159,6 +3160,12 @@ MOS_STATUS Policy::SetupExecuteFilter(SwFilterPipe& featurePipe, std::vector<int
 
     VP_PUBLIC_CHK_STATUS_RETURN(UpdateFeatureOutputPipe(layerIndexes, featurePipe, *params.executedFilters, caps));
 
+    featurePipe.AddRTLog();
+    if (params.executedFilters)
+    {
+        params.executedFilters->AddRTLog();
+    }
+    MT_LOG1(MT_VP_FEATURE_GRAPTH_SETUPEXECUTESWFILTER_END, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_LAYERINDEXES_COUNT, (int64_t)layerIndexes.size());
     return MOS_STATUS_SUCCESS;
 }
 

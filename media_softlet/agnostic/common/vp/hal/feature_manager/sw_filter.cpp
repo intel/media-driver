@@ -2196,6 +2196,20 @@ MOS_STATUS SwFilterSet::Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf, Sw
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS SwFilterSet::AddFeatureGraphRTLog()
+{
+    VP_FUNC_CALL();
+
+    for (auto swFilter : m_swFilters)
+    {
+        if (swFilter.second)
+        {
+            swFilter.second->AddFeatureGraphRTLog();
+        }
+    }
+    return MOS_STATUS_SUCCESS;
+}
+
 RenderTargetType SwFilterSet::GetRenderTargetType()
 {
     VP_FUNC_CALL();

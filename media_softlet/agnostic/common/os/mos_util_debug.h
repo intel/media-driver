@@ -794,6 +794,20 @@ MEDIA_CLASS_DEFINE_END(MosUtilDebug)
         MosUtilities::MosTraceEvent(EVENT_MEDIA_LOG, 7, head, sizeof(head), param, sizeof(param)); \
     }
 
+#define MT_LOG8(id, lvl, p1, v1, p2, v2, p3, v3, p4, v4, p5, v5, p6, v6, p7, v7, p8, v8)                     \
+    {                                                                                                        \
+        int32_t  head[]  = {id, lvl};                                                                        \
+        MT_PARAM param[] = {{p1, v1}, {p2, v2}, {p3, v3}, {p4, v4}, {p5, v5}, {p6, v6}, {p7, v7}, {p8, v8}}; \
+        MosUtilities::MosTraceEvent(EVENT_MEDIA_LOG, 8, head, sizeof(head), param, sizeof(param));           \
+    }
+
+#define MT_LOG9(id, lvl, p1, v1, p2, v2, p3, v3, p4, v4, p5, v5, p6, v6, p7, v7, p8, v8, p9, v9)                       \
+    {                                                                                                                  \
+        int32_t  head[]  = {id, lvl};                                                                                  \
+        MT_PARAM param[] = {{p1, v1}, {p2, v2}, {p3, v3}, {p4, v4}, {p5, v5}, {p6, v6}, {p7, v7}, {p8, v8}, {p9, v9}}; \
+        MosUtilities::MosTraceEvent(EVENT_MEDIA_LOG, 9, head, sizeof(head), param, sizeof(param));                     \
+    }
+
 
 #define MT_ERR(id)                                                          \
     {                                                                       \
@@ -850,6 +864,8 @@ MEDIA_CLASS_DEFINE_END(MosUtilDebug)
 #define MT_LOG5(id, lvl, p1, v1, p2, v2, p3, v3, p4, v4, p5, v5)
 #define MT_LOG6(id, lvl, p1, v1, p2, v2, p3, v3, p4, v4, p5, v5, p6, v6)
 #define MT_LOG7(id, lvl, p1, v1, p2, v2, p3, v3, p4, v4, p5, v5, p6, v6, p7, v7)
+#define MT_LOG8(id, lvl, p1, v1, p2, v2, p3, v3, p4, v4, p5, v5, p6, v6, p7, v7, p8, v8)
+#define MT_LOG9(id, lvl, p1, v1, p2, v2, p3, v3, p4, v4, p5, v5, p6, v6, p7, v7, p8, v8, p9, v9)
 #define MT_ERR(id)
 #define MT_ERR1(id, p1, v1)
 #define MT_ERR2(id, p1, v1, p2, v2)

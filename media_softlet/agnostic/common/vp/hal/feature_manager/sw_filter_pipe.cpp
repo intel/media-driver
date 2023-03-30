@@ -83,6 +83,22 @@ MOS_STATUS SwFilterSubPipe::Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS SwFilterSubPipe::AddFeatureGraphRTLog()
+{
+    VP_FUNC_CALL();
+
+    for (auto &featureSet : m_OrderedFilters)
+    {
+        if (featureSet)
+        {
+            VP_PUBLIC_CHK_STATUS_RETURN(featureSet->AddFeatureGraphRTLog());
+        }
+    }
+    VP_PUBLIC_CHK_STATUS_RETURN(m_UnorderedFilters.AddFeatureGraphRTLog());
+
+    return MOS_STATUS_SUCCESS;
+}
+
 SwFilter *SwFilterSubPipe::GetSwFilter(FeatureType type)
 {
     VP_FUNC_CALL();
@@ -1134,4 +1150,44 @@ bool SwFilterPipe::IsAllInputPipeSurfaceFeatureEmpty(std::vector<int> &layerInde
     }
 
     return true;
+}
+
+MOS_STATUS SwFilterPipe::AddRTLog()
+{
+    VP_FUNC_CALL();
+
+    uint32_t i = 0;
+
+    for (i = 0; i < m_InputPipes.size(); ++i)
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(AddFeatureGraphRTLog(true, i));
+    }
+
+    for (i = 0; i < m_OutputPipes.size(); ++i)
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(AddFeatureGraphRTLog(false, i));
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS SwFilterPipe::AddFeatureGraphRTLog(bool isInputPipe, uint32_t pipeIndex)
+{
+    VP_FUNC_CALL();
+
+    // Always use index 0 for the pipe whose pipeIndex not being specified.
+    auto inputPipe  = m_InputPipes.size() > 0 ? (isInputPipe ? m_InputPipes[pipeIndex] : m_InputPipes[0]) : nullptr;
+    auto outputPipe = m_OutputPipes.size() > 0 ? (isInputPipe ? m_OutputPipes[0] : m_OutputPipes[pipeIndex]) : nullptr;
+
+    // Input surface/pipe may be empty for some feature.
+    if (isInputPipe)
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(inputPipe->AddFeatureGraphRTLog());
+    }
+    else
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(outputPipe->AddFeatureGraphRTLog());
+    }
+
+    return MOS_STATUS_SUCCESS;
 }

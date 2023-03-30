@@ -423,9 +423,14 @@ MOS_STATUS VpPipeline::ExecuteVpPipeline()
 
     VP_PUBLIC_CHK_STATUS_RETURN(CreateSwFilterPipe(m_pvpParams, swFilterPipes));
 
+    MT_LOG1(MT_VP_FEATURE_GRAPTH_CREATESWFILTERPIPE_START, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_SWFILTERPIPE_COUNT, (int64_t)swFilterPipes.size());
     for (uint32_t pipeIdx = 0; pipeIdx < swFilterPipes.size(); pipeIdx++)
     {
         auto &pipe = swFilterPipes[pipeIdx];
+        if (pipe)
+        {
+            pipe->AddRTLog();
+        }
         if (pipeIdx >= m_vpPipeContexts.size())
         {
             VP_PUBLIC_CHK_STATUS_RETURN(CreateSinglePipeContext());
@@ -438,6 +443,7 @@ MOS_STATUS VpPipeline::ExecuteVpPipeline()
         VP_PUBLIC_CHK_STATUS_RETURN(ExecuteSingleswFilterPipe(singlePipeCtx, pipe, pPacketPipe, featureManagerNext));
     }
 
+    MT_LOG1(MT_VP_FEATURE_GRAPTH_CREATESWFILTERPIPE_END, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_SWFILTERPIPE_COUNT, (int64_t)swFilterPipes.size());
     return eStatus;
 }
 

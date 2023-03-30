@@ -982,6 +982,11 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
+    virtual MOS_STATUS AddFeatureGraphRTLog()
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
     void SetExePipeFlag(bool isInExePipe)
     {
         m_isInExePipe = isInExePipe;
@@ -1034,6 +1039,12 @@ public:
     virtual bool operator == (SwFilter& swFilter);
     virtual MOS_STATUS Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf, SwFilterSubPipe &pipe);
     virtual MOS_STATUS SetFeatureType(FeatureType type);
+    virtual MOS_STATUS AddFeatureGraphRTLog()
+    {
+        MT_LOG5(MT_VP_FEATURE_GRAPTH_SWFILTERCSC, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_INPUTCOLORSPACE, m_Params.input.colorSpace, MT_VP_FEATURE_GRAPH_FILTER_OUTPUTCOLORSPACE, m_Params.output.colorSpace,
+                MT_VP_FEATURE_GRAPH_FILTER_INPUTFORMAT, m_Params.formatInput, MT_VP_FEATURE_GRAPH_FILTER_OUTPUTFORMAT, m_Params.formatOutput, MT_VP_FEATURE_GRAPH_FILTER_FEATURETYPE, GetFeatureType());
+        return MOS_STATUS_SUCCESS;
+    }
 
 private:
     FeatureParamCsc m_Params = {};
@@ -1124,6 +1135,14 @@ public:
         hint.isFieldWeaving     = ISCALING_FIELD_TO_INTERLEAVED == m_Params.interlacedScalingType;
         return MOS_STATUS_SUCCESS;
     }
+    virtual MOS_STATUS AddFeatureGraphRTLog()
+    {
+        MT_LOG9(MT_VP_FEATURE_GRAPTH_SWFILTERSCALING, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_INPUTHEIGHT, m_Params.input.dwHeight, MT_VP_FEATURE_GRAPH_FILTER_INPUTWIDTH, m_Params.input.dwWidth,
+                MT_VP_FEATURE_GRAPH_FILTER_INPUTTILEMODE, m_Params.input.tileMode, MT_VP_FEATURE_GRAPH_FILTER_OUTPUTHEIGHT, m_Params.output.dwHeight, MT_VP_FEATURE_GRAPH_FILTER_OUTPUTWIDTH,
+                m_Params.output.dwWidth, MT_VP_FEATURE_GRAPH_FILTER_OUTPUTTILEMODE, m_Params.output.tileMode, MT_VP_FEATURE_GRAPH_FILTER_ISCALINGTYPE, m_Params.interlacedScalingType,
+                MT_VP_FEATURE_GRAPH_FILTER_SCALINGMODE, m_Params.scalingMode, MT_VP_FEATURE_GRAPH_FILTER_FEATURETYPE, GetFeatureType());
+        return MOS_STATUS_SUCCESS;
+    }
 
 private:
     FeatureParamScaling m_Params = {};
@@ -1160,6 +1179,11 @@ public:
     virtual SwFilter *Clone();
     virtual bool operator == (SwFilter& swFilter);
     virtual MOS_STATUS Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf, SwFilterSubPipe &pipe);
+    virtual MOS_STATUS AddFeatureGraphRTLog()
+    {
+        MT_LOG2(MT_VP_FEATURE_GRAPTH_SWFILTERROTMIR, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_ROTATION, m_Params.rotation, MT_VP_FEATURE_GRAPH_FILTER_FEATURETYPE, GetFeatureType());
+        return MOS_STATUS_SUCCESS;
+    }
 
 private:
     FeatureParamRotMir m_Params = {};
@@ -1215,6 +1239,13 @@ public:
                                 DN_STAGE_VEBOX_HVS_UPDATE == m_Params.stage;
         return MOS_STATUS_SUCCESS;
     }
+    virtual MOS_STATUS AddFeatureGraphRTLog()
+    {
+        MT_LOG7(MT_VP_FEATURE_GRAPTH_SWFILTERDENOISE, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_CHROMADN, m_Params.denoiseParams.bEnableChroma, MT_VP_FEATURE_GRAPH_FILTER_LUMADN, m_Params.denoiseParams.bEnableLuma,
+                MT_VP_FEATURE_GRAPH_FILTER_AUTODETECT, m_Params.denoiseParams.bAutoDetect, MT_VP_FEATURE_GRAPH_FILTER_HVSDN, m_Params.denoiseParams.bEnableHVSDenoise, MT_VP_FEATURE_GRAPH_FILTER_DNFACTOR,
+                (int64_t)m_Params.denoiseParams.fDenoiseFactor, MT_VP_FEATURE_GRAPH_FILTER_SECUREDNNEED, m_Params.secureDnNeeded, MT_VP_FEATURE_GRAPH_FILTER_FEATURETYPE, GetFeatureType());
+        return MOS_STATUS_SUCCESS;
+    }
 
 private:
     FeatureParamDenoise m_Params = {};
@@ -1249,6 +1280,13 @@ public:
     {
         hint.bDi        = 1;
         hint.b60fpsDi   = m_Params.diParams && !m_Params.diParams->bSingleField;
+        return MOS_STATUS_SUCCESS;
+    }
+    virtual MOS_STATUS AddFeatureGraphRTLog()
+    {
+        MT_LOG5(MT_VP_FEATURE_GRAPTH_SWFILTERDEINTERLACE, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_SAMPLETYPEINPUT, m_Params.sampleTypeInput, MT_VP_FEATURE_GRAPH_FILTER_FMDKERNELENABLE, m_Params.bFmdKernelEnable,
+                MT_VP_FEATURE_GRAPH_FILTER_SINGLEFIELD, m_Params.diParams ? m_Params.diParams->bSingleField : -1, MT_VP_FEATURE_GRAPH_FILTER_DIMODE, m_Params.diParams ? m_Params.diParams->DIMode : -1,
+                MT_VP_FEATURE_GRAPH_FILTER_FEATURETYPE, GetFeatureType());
         return MOS_STATUS_SUCCESS;
     }
 
@@ -1289,6 +1327,11 @@ public:
 
         return MOS_STATUS_SUCCESS;
     }
+    virtual MOS_STATUS AddFeatureGraphRTLog()
+    {
+        MT_LOG3(MT_VP_FEATURE_GRAPTH_SWFILTERSTE, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_STEFACTOR, m_Params.dwSTEFactor, MT_VP_FEATURE_GRAPH_FILTER_ENABLESTD, m_Params.bEnableSTD, MT_VP_FEATURE_GRAPH_FILTER_FEATURETYPE, GetFeatureType());
+        return MOS_STATUS_SUCCESS;
+    }
 
 private:
     FeatureParamSte m_Params = {};
@@ -1318,6 +1361,12 @@ public:
     virtual SwFilter* Clone();
     virtual bool operator == (SwFilter& swFilter);
     virtual MOS_STATUS Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSurf, SwFilterSubPipe &pipe);
+    virtual MOS_STATUS AddFeatureGraphRTLog()
+    {
+        MT_LOG4(MT_VP_FEATURE_GRAPTH_SWFILTERTCC, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_TCCRED, m_Params.Red, MT_VP_FEATURE_GRAPH_FILTER_TCCGREEN, m_Params.Green, MT_VP_FEATURE_GRAPH_FILTER_TCCBLUE,
+                m_Params.Blue, MT_VP_FEATURE_GRAPH_FILTER_FEATURETYPE, GetFeatureType());
+        return MOS_STATUS_SUCCESS;
+    }
 
 private:
     FeatureParamTcc m_Params = {};
@@ -1341,6 +1390,13 @@ public:
     virtual SwFilter* Clone();
     virtual bool operator == (SwFilter& swFilter);
     virtual MOS_STATUS Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSurf, SwFilterSubPipe &pipe);
+    virtual MOS_STATUS AddFeatureGraphRTLog()
+    {
+        MT_LOG5(MT_VP_FEATURE_GRAPTH_SWFILTERPROCAMP, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_BRIGHTNESS, m_Params.procampParams ? (int64_t)m_Params.procampParams->fBrightness : -1,
+                MT_VP_FEATURE_GRAPH_FILTER_CONTRAST, m_Params.procampParams ? (int64_t)m_Params.procampParams->fContrast : -1, MT_VP_FEATURE_GRAPH_FILTER_HUE, m_Params.procampParams ? (int64_t)m_Params.procampParams->fHue : -1,
+                MT_VP_FEATURE_GRAPH_FILTER_SATURATION, m_Params.procampParams ? (int64_t) m_Params.procampParams->fSaturation : -1, MT_VP_FEATURE_GRAPH_FILTER_FEATURETYPE, GetFeatureType());
+        return MOS_STATUS_SUCCESS;
+    }
 
 private:
     FeatureParamProcamp m_Params = {};
@@ -1446,6 +1502,13 @@ public:
     MOS_STATUS HdrIsOutputFormatSupported(
             PVPHAL_SURFACE pTargetSurface,
             bool          *pbSupported);
+    virtual MOS_STATUS AddFeatureGraphRTLog()
+    {
+        MT_LOG8(MT_VP_FEATURE_GRAPTH_SWFILTERHDR, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_HDRMODE, m_Params.hdrMode, MT_VP_FEATURE_GRAPH_FILTER_LUTMODE, m_Params.lutMode,
+                MT_VP_FEATURE_GRAPH_FILTER_GPUGENERATE3DLUT, m_Params.bGpuGenerate3DLUT, MT_VP_FEATURE_GRAPH_FILTER_INPUTFORMAT, m_Params.formatInput, MT_VP_FEATURE_GRAPH_FILTER_OUTPUTFORMAT,
+                m_Params.formatOutput, MT_VP_FEATURE_GRAPH_FILTER_INPUTCOLORSPACE, m_Params.srcColorSpace, MT_VP_FEATURE_GRAPH_FILTER_OUTPUTCOLORSPACE, m_Params.dstColorSpace, MT_VP_FEATURE_GRAPH_FILTER_FEATURETYPE, GetFeatureType());
+        return MOS_STATUS_SUCCESS;
+    }
 
 private:
     FeatureParamHdr m_Params = {};
@@ -1469,6 +1532,12 @@ public:
     virtual SwFilter *       Clone();
     virtual bool             operator==(SwFilter &swFilter);
     virtual MOS_STATUS       Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf, SwFilterSubPipe &pipe);
+    virtual MOS_STATUS       AddFeatureGraphRTLog()
+    {
+        MT_LOG3(MT_VP_FEATURE_GRAPTH_SWFILTERLUMAKEY, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_LUMAHIGH, m_Params.lumaKeyParams ? m_Params.lumaKeyParams->LumaHigh : -1, MT_VP_FEATURE_GRAPH_FILTER_LUMALOW,
+                m_Params.lumaKeyParams ? m_Params.lumaKeyParams->LumaLow : -1, MT_VP_FEATURE_GRAPH_FILTER_FEATURETYPE, GetFeatureType());
+        return MOS_STATUS_SUCCESS;
+    }
 
 private:
     FeatureParamLumakey m_Params = {};
@@ -1492,6 +1561,12 @@ public:
     virtual SwFilter *       Clone();
     virtual bool             operator==(SwFilter &swFilter);
     virtual MOS_STATUS       Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf, SwFilterSubPipe &pipe);
+    virtual MOS_STATUS       AddFeatureGraphRTLog()
+    {
+        MT_LOG3(MT_VP_FEATURE_GRAPTH_SWFILTERBLENDING, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_BLENDTYPE, m_Params.blendingParams ? m_Params.blendingParams->BlendType : -1, MT_VP_FEATURE_GRAPH_FILTER_FALPHA,
+                m_Params.blendingParams ? (int64_t) m_Params.blendingParams->fAlpha : -1, MT_VP_FEATURE_GRAPH_FILTER_FEATURETYPE, GetFeatureType());
+        return MOS_STATUS_SUCCESS;
+    }
 
 private:
     FeatureParamBlending m_Params = {};
@@ -1522,6 +1597,12 @@ public:
     virtual bool             operator==(SwFilter &swFilter);
     virtual MOS_STATUS       Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf, SwFilterSubPipe &pipe);
     virtual VP_EngineEntry   GetCombinedFilterEngineCaps(SwFilterSubPipe *singleInputPipeSelected);
+    virtual MOS_STATUS       AddFeatureGraphRTLog()
+    {
+        MT_LOG3(MT_VP_FEATURE_GRAPTH_SWFILTERCOLORFILL, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_INPUTCOLORSPACE, m_Params.colorFillParams ? m_Params.colorFillParams->CSpace : -1,
+                MT_VP_FEATURE_GRAPH_FILTER_DISABLECFINSFC, m_Params.colorFillParams ? m_Params.colorFillParams->bDisableColorfillinSFC : -1, MT_VP_FEATURE_GRAPH_FILTER_FEATURETYPE, GetFeatureType());
+        return MOS_STATUS_SUCCESS;
+    }
 
 private:
     FeatureParamColorFill m_Params = {};
@@ -1553,6 +1634,13 @@ public:
     virtual SwFilter *       Clone();
     virtual bool             operator==(SwFilter &swFilter);
     virtual MOS_STATUS       Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf, SwFilterSubPipe &pipe);
+    virtual MOS_STATUS       AddFeatureGraphRTLog()
+    {
+        MT_LOG4(MT_VP_FEATURE_GRAPTH_SWFILTERALPHA, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_CALCULATINGALPHA, m_Params.calculatingAlpha, MT_VP_FEATURE_GRAPH_FILTER_ALPHAMODE,
+                m_Params.compAlpha ? m_Params.compAlpha->AlphaMode : -1, MT_VP_FEATURE_GRAPH_FILTER_FALPHA, m_Params.compAlpha ? (int64_t) m_Params.compAlpha->fAlpha : -1,
+                MT_VP_FEATURE_GRAPH_FILTER_FEATURETYPE, GetFeatureType());
+        return MOS_STATUS_SUCCESS;
+    }
 
 private:
     FeatureParamAlpha m_Params = {};
@@ -1589,6 +1677,12 @@ public:
     {
         return m_Params.bBt2020ToRGB;
     }
+    virtual MOS_STATUS AddFeatureGraphRTLog()
+    {
+        MT_LOG5(MT_VP_FEATURE_GRAPTH_SWFILTERCGC, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_GCOMPMODE, m_Params.GCompMode, MT_VP_FEATURE_GRAPH_FILTER_INPUTCOLORSPACE, m_Params.colorSpace,
+                MT_VP_FEATURE_GRAPH_FILTER_OUTPUTCOLORSPACE, m_Params.dstColorSpace, MT_VP_FEATURE_GRAPH_FILTER_BT2020TORGB, m_Params.bBt2020ToRGB, MT_VP_FEATURE_GRAPH_FILTER_FEATURETYPE, GetFeatureType());
+        return MOS_STATUS_SUCCESS;
+    }
 
 protected:
     FeatureParamCgc m_Params = {};
@@ -1605,6 +1699,7 @@ public:
     MOS_STATUS AddSwFilter(SwFilter *swFilter);
     MOS_STATUS RemoveSwFilter(SwFilter *swFilter);
     MOS_STATUS Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf, SwFilterSubPipe &pipe);
+    MOS_STATUS AddFeatureGraphRTLog();
     MOS_STATUS Clean();
     SwFilter *GetSwFilter(FeatureType type);
     bool IsEmpty()
