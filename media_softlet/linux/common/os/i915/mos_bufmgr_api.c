@@ -1254,7 +1254,7 @@ mos_query_engines(struct mos_bufmgr *bufmgr,
                       __u16 engine_class,
                       __u64 caps,
                       unsigned int *nengine,
-                      struct i915_engine_class_instance *ci)
+                      void *ci)
 {
     if(!bufmgr)
     {

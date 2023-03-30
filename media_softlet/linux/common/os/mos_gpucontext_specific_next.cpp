@@ -186,7 +186,7 @@ MOS_STATUS GpuContextSpecificNext::PatchGPUContextProtection(MOS_STREAM_HANDLE s
 MOS_STATUS GpuContextSpecificNext::Init3DCtx(PMOS_CONTEXT osParameters,
                 PMOS_GPUCTX_CREATOPTIONS createOption,
                 unsigned int *nengine,
-                struct i915_engine_class_instance *engine_map)
+                void *engine_map)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -210,7 +210,7 @@ MOS_STATUS GpuContextSpecificNext::Init3DCtx(PMOS_CONTEXT osParameters,
         return MOS_STATUS_UNKNOWN;
     }
 
-    if (mos_set_context_param_load_balance(m_i915Context[0], engine_map, *nengine))
+    if (mos_set_context_param_load_balance(m_i915Context[0], (struct i915_engine_class_instance *)engine_map, *nengine))
     {
         MOS_OS_ASSERTMESSAGE("Failed to set balancer extension.\n");
         return MOS_STATUS_UNKNOWN;
@@ -247,7 +247,7 @@ MOS_STATUS GpuContextSpecificNext::Init3DCtx(PMOS_CONTEXT osParameters,
 
 MOS_STATUS GpuContextSpecificNext::InitComputeCtx(PMOS_CONTEXT osParameters,
                 unsigned int *nengine,
-                struct i915_engine_class_instance *engine_map,
+                void *engine_map,
                 MOS_GPU_NODE gpuNode,
                 bool *isEngineSelectEnable)
 {
@@ -276,7 +276,7 @@ MOS_STATUS GpuContextSpecificNext::InitComputeCtx(PMOS_CONTEXT osParameters,
 #if (_DEBUG || _RELEASE_INTERNAL)
     *isEngineSelectEnable = SelectEngineInstanceByUser(engine_map, nengine, m_engineInstanceSelect, gpuNode);
 #endif
-    if (mos_set_context_param_load_balance(m_i915Context[0], engine_map, *nengine))
+    if (mos_set_context_param_load_balance(m_i915Context[0], (struct i915_engine_class_instance *)engine_map, *nengine))
     {
         MOS_OS_ASSERTMESSAGE("Failed to set balancer extension.\n");
         return MOS_STATUS_UNKNOWN;
@@ -289,7 +289,7 @@ MOS_STATUS GpuContextSpecificNext::InitVdVeCtx(PMOS_CONTEXT osParameters,
                 MOS_STREAM_HANDLE streamState,
                 PMOS_GPUCTX_CREATOPTIONS createOption,
                 unsigned int *nengine,
-                struct i915_engine_class_instance *engine_map,
+                void *engine_map,
                 MOS_GPU_NODE gpuNode,
                 bool *isEngineSelectEnable)
 {
@@ -306,6 +306,7 @@ MOS_STATUS GpuContextSpecificNext::InitVdVeCtx(PMOS_CONTEXT osParameters,
         MOS_OS_ASSERTMESSAGE("Failed to create context.\n");
         return MOS_STATUS_UNKNOWN;
     }
+    struct i915_engine_class_instance *_engine_map = (struct i915_engine_class_instance *)engine_map;
     m_i915Context[0]->pOsContext = osParameters;
 
     __u16 engine_class = (gpuNode == MOS_GPU_NODE_VE)? I915_ENGINE_CLASS_VIDEO_ENHANCE : I915_ENGINE_CLASS_VIDEO;
@@ -313,16 +314,16 @@ MOS_STATUS GpuContextSpecificNext::InitVdVeCtx(PMOS_CONTEXT osParameters,
 
     SetEngineQueryFlags(createOption, caps);
 
-    if (mos_query_engines(osParameters->bufmgr, engine_class, caps, nengine, engine_map))
+    if (mos_query_engines(osParameters->bufmgr, engine_class, caps, nengine, (void *)_engine_map))
     {
         MOS_OS_ASSERTMESSAGE("Failed to query engines.\n");
         return MOS_STATUS_UNKNOWN;
     }
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-    *isEngineSelectEnable = SelectEngineInstanceByUser(engine_map, nengine, m_engineInstanceSelect, gpuNode);
+    *isEngineSelectEnable = SelectEngineInstanceByUser((void *)_engine_map, nengine, m_engineInstanceSelect, gpuNode);
 #endif
-    if (mos_set_context_param_load_balance(m_i915Context[0], engine_map, *nengine))
+    if (mos_set_context_param_load_balance(m_i915Context[0], _engine_map, *nengine))
     {
         MOS_OS_ASSERTMESSAGE("Failed to set balancer extension.\n");
         return MOS_STATUS_UNKNOWN;
@@ -343,7 +344,7 @@ MOS_STATUS GpuContextSpecificNext::InitVdVeCtx(PMOS_CONTEXT osParameters,
         }
         m_i915Context[1]->pOsContext = osParameters;
 
-        if (mos_set_context_param_load_balance(m_i915Context[1], engine_map, 1))
+        if (mos_set_context_param_load_balance(m_i915Context[1], _engine_map, 1))
         {
             MOS_OS_ASSERTMESSAGE("Failed to set master context bond extension.\n");
             return MOS_STATUS_UNKNOWN;
@@ -363,7 +364,7 @@ MOS_STATUS GpuContextSpecificNext::InitVdVeCtx(PMOS_CONTEXT osParameters,
             }
             m_i915Context[i+1]->pOsContext = osParameters;
 
-            if (mos_set_context_param_bond(m_i915Context[i+1], engine_map[0], &engine_map[i], 1) != S_SUCCESS)
+            if (mos_set_context_param_bond(m_i915Context[i+1], _engine_map[0], &_engine_map[i], 1) != S_SUCCESS)
             {
                 int err = errno;
                 if (err == ENODEV)
@@ -395,7 +396,7 @@ MOS_STATUS GpuContextSpecificNext::InitVdVeCtx(PMOS_CONTEXT osParameters,
                                                              osParameters->intel_context,
                                                              0, // I915_CONTEXT_CREATE_FLAGS_SINGLE_TIMELINE not allowed for parallel submission
                                                              m_bProtectedContext);
-                if (mos_set_context_param_parallel(m_i915Context[i], engine_map, ctxWidth) != S_SUCCESS)
+                if (mos_set_context_param_parallel(m_i915Context[i], _engine_map, ctxWidth) != S_SUCCESS)
                 {
                     MOS_OS_ASSERTMESSAGE("Failed to set parallel extension since discontinuous logical engine.\n");
                     mos_context_destroy(m_i915Context[i]);
@@ -411,7 +412,7 @@ MOS_STATUS GpuContextSpecificNext::InitVdVeCtx(PMOS_CONTEXT osParameters,
 
 MOS_STATUS GpuContextSpecificNext::InitBltCtx(PMOS_CONTEXT osParameters,
                 unsigned int *nengine,
-                struct i915_engine_class_instance *engine_map)
+                void *engine_map)
 {
     MOS_OS_FUNCTION_ENTER;
 
@@ -437,7 +438,7 @@ MOS_STATUS GpuContextSpecificNext::InitBltCtx(PMOS_CONTEXT osParameters,
         return MOS_STATUS_UNKNOWN;
     }
 
-    if (mos_set_context_param_load_balance(m_i915Context[0], engine_map, *nengine))
+    if (mos_set_context_param_load_balance(m_i915Context[0], (struct i915_engine_class_instance *)engine_map, *nengine))
     {
         MOS_OS_ASSERTMESSAGE("Failed to set balancer extension.\n");
         return MOS_STATUS_UNKNOWN;
@@ -549,20 +550,20 @@ MOS_STATUS GpuContextSpecificNext::Init(OsContextNext *osContext,
 
         if (gpuNode == MOS_GPU_NODE_3D)
         {
-            eStatus = Init3DCtx(osParameters, createOption, &nengine, engine_map);
+            eStatus = Init3DCtx(osParameters, createOption, &nengine, (void *)engine_map);
         }
         else if (gpuNode == MOS_GPU_NODE_COMPUTE)
         {
-            eStatus = InitComputeCtx(osParameters, &nengine, engine_map, gpuNode, &isEngineSelectEnable);
+            eStatus = InitComputeCtx(osParameters, &nengine, (void *)engine_map, gpuNode, &isEngineSelectEnable);
         }
         else if (gpuNode == MOS_GPU_NODE_VIDEO || gpuNode == MOS_GPU_NODE_VIDEO2
                 || gpuNode == MOS_GPU_NODE_VE)
         {
-            eStatus = InitVdVeCtx(osParameters, streamState, createOption, &nengine, engine_map, gpuNode, &isEngineSelectEnable);
+            eStatus = InitVdVeCtx(osParameters, streamState, createOption, &nengine, (void *)engine_map, gpuNode, &isEngineSelectEnable);
         }
         else if (gpuNode == MOS_GPU_NODE_BLT)
         {
-            eStatus = InitBltCtx(osParameters, &nengine, engine_map);
+            eStatus = InitBltCtx(osParameters, &nengine, (void *)engine_map);
         }
         else
         {
@@ -1918,10 +1919,11 @@ PMOS_RESOURCE GpuContextSpecificNext::GetOcaRTLogResource(PMOS_RESOURCE globalIn
 }
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-bool GpuContextSpecificNext::SelectEngineInstanceByUser(struct i915_engine_class_instance *engineMap,
+bool GpuContextSpecificNext::SelectEngineInstanceByUser(void *engine_map,
         uint32_t *engineNum, uint32_t userEngineInstance, MOS_GPU_NODE gpuNode)
 {
     uint32_t engineInstance     = 0x0;
+    struct i915_engine_class_instance *engineMap = (struct i915_engine_class_instance *)engine_map;
 
     if(gpuNode == MOS_GPU_NODE_COMPUTE)
     {

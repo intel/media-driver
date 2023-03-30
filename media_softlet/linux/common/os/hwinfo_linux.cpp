@@ -87,7 +87,7 @@ static MOS_STATUS MediaGetIpGmdID(int32_t       fd,
 
     uengines = (struct i915_engine_class_instance *)MOS_AllocAndZeroMemory(nengine * sizeof(struct i915_engine_class_instance));
     MOS_OS_CHK_NULL_RETURN(uengines);
-    if (mos_query_engines(pDrmBufMgr, engineClass, 0, &nengine, uengines) || (nengine == 0))
+    if (mos_query_engines(pDrmBufMgr, engineClass, 0, &nengine, (void *)uengines) || (nengine == 0))
     {
         MOS_OS_ASSERTMESSAGE("Failed to query engine\n");
         MOS_SafeFreeMemory(uengines);
@@ -242,7 +242,7 @@ MOS_STATUS HWInfo_GetGfxInfo(int32_t           fd,
         struct i915_engine_class_instance *uengines = nullptr;
         uengines = (struct i915_engine_class_instance *)MOS_AllocAndZeroMemory(nengine * sizeof(struct i915_engine_class_instance));
         MOS_OS_CHK_NULL_RETURN(uengines);
-        if (mos_query_engines(pDrmBufMgr,I915_ENGINE_CLASS_VIDEO,0,&nengine,uengines) == 0)
+        if (mos_query_engines(pDrmBufMgr, I915_ENGINE_CLASS_VIDEO, 0, &nengine, (void *)uengines) == 0)
         {
             gtSystemInfo->VDBoxInfo.NumberOfVDBoxEnabled = nengine;
         }
@@ -265,7 +265,7 @@ MOS_STATUS HWInfo_GetGfxInfo(int32_t           fd,
         struct i915_engine_class_instance *uengines = nullptr;
         uengines = (struct i915_engine_class_instance *)MOS_AllocAndZeroMemory(nengine * sizeof(struct i915_engine_class_instance));
         MOS_OS_CHK_NULL_RETURN(uengines);
-        if (mos_query_engines(pDrmBufMgr,I915_ENGINE_CLASS_VIDEO_ENHANCE,0,&nengine,uengines) == 0)
+        if (mos_query_engines(pDrmBufMgr, I915_ENGINE_CLASS_VIDEO_ENHANCE, 0, &nengine, (void *)uengines) == 0)
         {
             MOS_OS_ASSERT(nengine <= maxNengine);
             gtSystemInfo->VEBoxInfo.NumberOfVEBoxEnabled = nengine;

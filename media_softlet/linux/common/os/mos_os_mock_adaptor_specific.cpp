@@ -111,7 +111,7 @@ MOS_STATUS MosMockAdaptorSpecific::InitializeSkuWaTable(PMOS_CONTEXT context)
         struct i915_engine_class_instance *uengines = nullptr;
         uengines = (struct i915_engine_class_instance *)MOS_AllocAndZeroMemory(nengine * sizeof(struct i915_engine_class_instance));
         MOS_OS_CHK_NULL_RETURN(uengines);
-        if (mos_query_engines(context->bufmgr, I915_ENGINE_CLASS_VIDEO, 0, &nengine,uengines) == 0)
+        if (mos_query_engines(context->bufmgr, I915_ENGINE_CLASS_VIDEO, 0, &nengine, (void *)uengines) == 0)
         {
             m_pGtSystemInfo->VDBoxInfo.NumberOfVDBoxEnabled = nengine;
         }
@@ -134,7 +134,7 @@ MOS_STATUS MosMockAdaptorSpecific::InitializeSkuWaTable(PMOS_CONTEXT context)
         struct i915_engine_class_instance *uengines = nullptr;
         uengines = (struct i915_engine_class_instance *)MOS_AllocAndZeroMemory(nengine * sizeof(struct i915_engine_class_instance));
         MOS_OS_CHK_NULL_RETURN(uengines);
-        if (mos_query_engines(context->bufmgr,I915_ENGINE_CLASS_VIDEO_ENHANCE,0,&nengine,uengines) == 0)
+        if (mos_query_engines(context->bufmgr, I915_ENGINE_CLASS_VIDEO_ENHANCE, 0, &nengine, (void *)uengines) == 0)
         {
             MOS_OS_ASSERT(nengine <= maxNengine);
             m_pGtSystemInfo->VEBoxInfo.NumberOfVEBoxEnabled = nengine;

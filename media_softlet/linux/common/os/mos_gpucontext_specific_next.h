@@ -234,11 +234,11 @@ protected:
     MOS_STATUS Init3DCtx(PMOS_CONTEXT osParameters,
                 PMOS_GPUCTX_CREATOPTIONS createOption,
                 unsigned int *nengine,
-                struct i915_engine_class_instance *engine_map);
+                void *engine_map);
 
     MOS_STATUS InitComputeCtx(PMOS_CONTEXT osParameters,
                 unsigned int *nengine,
-                struct i915_engine_class_instance *engine_map,
+                void *engine_map,
                 MOS_GPU_NODE gpuNode,
                 bool *isEngineSelectEnable);
 
@@ -246,13 +246,13 @@ protected:
                 MOS_STREAM_HANDLE streamState,
                 PMOS_GPUCTX_CREATOPTIONS createOption,
                 unsigned int *nengine,
-                struct i915_engine_class_instance *engine_map,
+                void *engine_map,
                 MOS_GPU_NODE gpuNode,
                 bool *isEngineSelectEnable);
 
     MOS_STATUS InitBltCtx(PMOS_CONTEXT osParameters,
                 unsigned int *nengine,
-                struct i915_engine_class_instance *engine_map);
+                void *engine_map);
 
     //!
     //! \brief    Map resources with aux plane to aux table
@@ -299,7 +299,7 @@ protected:
         __u64 &caps);
 
     MOS_STATUS ReportEngineInfo(
-        struct i915_engine_class_instance *engineMap,
+        void *engine_map,
         int engineNum, bool engineSelectEnable = false);
 
     MOS_STATUS ReportMemoryInfo(
@@ -309,7 +309,7 @@ protected:
     MOS_LINUX_BO* GetNopCommandBuffer(
         MOS_STREAM_HANDLE streamState);
 
-    bool SelectEngineInstanceByUser(struct i915_engine_class_instance *engineMap,
+    bool SelectEngineInstanceByUser(void *engine_map,
         uint32_t *engineNum, uint32_t userEngineInstance, MOS_GPU_NODE gpuNode);
 #endif // _DEBUG || _RELEASE_INTERNAL
 

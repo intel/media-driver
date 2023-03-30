@@ -188,7 +188,7 @@ MOS_STATUS GpuContextSpecific::Init(OsContext *osContext,
             __u16 engine_class = I915_ENGINE_CLASS_RENDER;
             __u64 caps = 0;
 
-            if (mos_query_engines(osInterface->pOsContext->bufmgr, engine_class, caps, &nengine, engine_map))
+            if (mos_query_engines(osInterface->pOsContext->bufmgr, engine_class, caps, &nengine, (void *)engine_map))
             {
                 MOS_OS_ASSERTMESSAGE("Failed to query engines.\n");
                 MOS_SafeFreeMemory(engine_map);
@@ -235,7 +235,7 @@ MOS_STATUS GpuContextSpecific::Init(OsContext *osContext,
             __u16 engine_class = 4; //To change later when linux define the name
             __u64 caps = 0;
 
-            if (mos_query_engines(osInterface->pOsContext->bufmgr, engine_class, caps, &nengine, engine_map))
+            if (mos_query_engines(osInterface->pOsContext->bufmgr, engine_class, caps, &nengine, (void *)engine_map))
             {
                 MOS_OS_ASSERTMESSAGE("Failed to query engines.\n");
                 MOS_SafeFreeMemory(engine_map);
@@ -260,7 +260,7 @@ MOS_STATUS GpuContextSpecific::Init(OsContext *osContext,
 
             SetEngineQueryFlags(createOption, caps);
 
-            if (mos_query_engines(osInterface->pOsContext->bufmgr, engine_class, caps, &nengine, engine_map))
+            if (mos_query_engines(osInterface->pOsContext->bufmgr, engine_class, caps, &nengine, (void *)engine_map))
             {
                 MOS_OS_ASSERTMESSAGE("Failed to query engines.\n");
                 MOS_SafeFreeMemory(engine_map);
@@ -364,7 +364,7 @@ MOS_STATUS GpuContextSpecific::Init(OsContext *osContext,
             __u16 engine_class = I915_ENGINE_CLASS_COPY;
             __u64 caps = 0;
 
-            if (mos_query_engines(osInterface->pOsContext->bufmgr, engine_class, caps, &nengine, engine_map))
+            if (mos_query_engines(osInterface->pOsContext->bufmgr, engine_class, caps, &nengine, (void *)engine_map))
             {
                 MOS_OS_ASSERTMESSAGE("Failed to query engines.\n");
                 MOS_SafeFreeMemory(engine_map);

@@ -4446,13 +4446,18 @@ static int mos_bufmgr_query_engines(struct mos_bufmgr *bufmgr,
                       __u16 engine_class,
                       __u64 caps,
                       unsigned int *nengine,
-                      struct i915_engine_class_instance *ci)
+                      void *engine_map)
 {
+    struct i915_engine_class_instance *ci = (struct i915_engine_class_instance *)engine_map;
+    if((bufmgr == nullptr) || (nengine == nullptr) || (ci == nullptr))
+    {
+        return -EINVAL;
+    }
+
     struct drm_i915_query query;
     struct drm_i915_query_item query_item;
     struct drm_i915_query_engine_info *engines = nullptr;
     int ret, len;
-    assert(bufmgr);
     int fd = ((struct mos_bufmgr_gem*)bufmgr)->fd;
 
     memclear(query_item);
