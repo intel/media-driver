@@ -27,8 +27,6 @@
 
 #include "mos_os.h"
 
-int32_t              MosUtilities::m_mosMemAllocCounterNoUserFeature    = 0;
-int32_t              MosUtilities::m_mosMemAllocCounterNoUserFeatureGfx = 0;
 bool                 MosUtilities::m_enableAddressDump = false;
 
 MOS_STATUS MosUtilities::MosUtilitiesInit(MediaUserSettingSharedPtr userSettingPtr)
