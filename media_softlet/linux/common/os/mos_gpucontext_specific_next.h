@@ -68,7 +68,7 @@ public:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    MOS_STATUS Init(OsContextNext *osContext,
+    virtual MOS_STATUS Init(OsContextNext *osContext,
                     MOS_STREAM_HANDLE streamState,
                     PMOS_GPUCTX_CREATOPTIONS createOption);
 
@@ -204,7 +204,7 @@ public:
     //!             priority to set for current workload.
     //! \return void
     //!
-    void UpdatePriority(int32_t priority);
+    virtual void UpdatePriority(int32_t priority);
 
     //!
     //! \brief    Allocate gpu status buffer for gpu sync
@@ -231,18 +231,18 @@ public:
     const std::vector<const void *> &GetCmdResPtrs() const { return m_cmdResPtrs; }
 #endif // MOS_COMMAND_RESINFO_DUMP_SUPPORTED
 protected:
-    MOS_STATUS Init3DCtx(PMOS_CONTEXT osParameters,
+    virtual MOS_STATUS Init3DCtx(PMOS_CONTEXT osParameters,
                 PMOS_GPUCTX_CREATOPTIONS createOption,
                 unsigned int *nengine,
                 void *engine_map);
 
-    MOS_STATUS InitComputeCtx(PMOS_CONTEXT osParameters,
+    virtual MOS_STATUS InitComputeCtx(PMOS_CONTEXT osParameters,
                 unsigned int *nengine,
                 void *engine_map,
                 MOS_GPU_NODE gpuNode,
                 bool *isEngineSelectEnable);
 
-    MOS_STATUS InitVdVeCtx(PMOS_CONTEXT osParameters,
+    virtual MOS_STATUS InitVdVeCtx(PMOS_CONTEXT osParameters,
                 MOS_STREAM_HANDLE streamState,
                 PMOS_GPUCTX_CREATOPTIONS createOption,
                 unsigned int *nengine,
@@ -250,7 +250,7 @@ protected:
                 MOS_GPU_NODE gpuNode,
                 bool *isEngineSelectEnable);
 
-    MOS_STATUS InitBltCtx(PMOS_CONTEXT osParameters,
+    virtual MOS_STATUS InitBltCtx(PMOS_CONTEXT osParameters,
                 unsigned int *nengine,
                 void *engine_map);
 
@@ -285,7 +285,7 @@ protected:
     //! \return   int32_t
     //!           Return 0 if successful, otherwise error code
     //!
-    int32_t ParallelSubmitCommands(std::map<uint32_t, PMOS_COMMAND_BUFFER> secondaryCmdBufs,
+    virtual int32_t ParallelSubmitCommands(std::map<uint32_t, PMOS_COMMAND_BUFFER> secondaryCmdBufs,
                                    PMOS_CONTEXT osContext,
                                    uint32_t execFlag,
                                    int32_t dr4);
@@ -315,7 +315,7 @@ protected:
 
     void UnlockPendingOcaBuffers(PMOS_COMMAND_BUFFER cmdBuffer, PMOS_CONTEXT mosContext);
 
-private:
+protected:
     //! \brief    internal command buffer pool per gpu context
     std::vector<CommandBufferNext *> m_cmdBufPool;
 
