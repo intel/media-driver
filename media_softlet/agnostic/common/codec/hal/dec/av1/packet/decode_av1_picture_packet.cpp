@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021-2022, Intel Corporation
+* Copyright (c) 2021-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -123,21 +123,7 @@ namespace decode{
     {
         DECODE_FUNC_CALL();
 
-        m_av1PicParams      = m_av1BasicFeature->m_av1PicParams;
-
-        if (m_av1PicParams->m_seqInfoFlags.m_fields.m_subsamplingX == 1 && m_av1PicParams->m_seqInfoFlags.m_fields.m_subsamplingY == 1)
-        {
-            chromaSamplingFormat = HCP_CHROMA_FORMAT_YUV420;
-        }
-        else if (m_av1PicParams->m_seqInfoFlags.m_fields.m_subsamplingX == 0 && m_av1PicParams->m_seqInfoFlags.m_fields.m_subsamplingY == 0)
-        {
-            chromaSamplingFormat = HCP_CHROMA_FORMAT_YUV444;
-        }
-        else
-        {
-            DECODE_ASSERTMESSAGE("Invalid Chroma sampling format!");
-            return MOS_STATUS_INVALID_PARAMETER;
-        }
+        DECODE_CHK_STATUS(GetChromaFormat());
 
 #ifdef _MMC_SUPPORTED
         m_mmcState = m_av1Pipeline->GetMmcState();
@@ -147,6 +133,25 @@ namespace decode{
         DECODE_CHK_STATUS(SetRowstoreCachingOffsets());
 
         DECODE_CHK_STATUS(AllocateVariableResources());
+
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MOS_STATUS Av1DecodePicPkt::GetChromaFormat()
+    {
+        DECODE_FUNC_CALL();
+
+        m_av1PicParams = m_av1BasicFeature->m_av1PicParams;
+
+        if (m_av1PicParams->m_seqInfoFlags.m_fields.m_subsamplingX == 1 && m_av1PicParams->m_seqInfoFlags.m_fields.m_subsamplingY == 1)
+        {
+            chromaSamplingFormat = av1ChromaFormatYuv420;
+        }
+        else
+        {
+            DECODE_ASSERTMESSAGE("Invalid Chroma sampling format!");
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
 
         return MOS_STATUS_SUCCESS;
     }
@@ -162,7 +167,7 @@ namespace decode{
             rowstoreParams.bMbaff           = false;
             rowstoreParams.Mode             = CODECHAL_DECODE_MODE_AV1VLD;
             rowstoreParams.ucBitDepthMinus8 = m_av1PicParams->m_bitDepthIdx << 1;
-            rowstoreParams.ucChromaFormat   = m_av1BasicFeature->m_chromaFormat;
+            rowstoreParams.ucChromaFormat   = static_cast<uint8_t>(chromaSamplingFormat);
             DECODE_CHK_STATUS(m_hwInterface->SetRowstoreCachingOffsets(&rowstoreParams));
         }
 
@@ -192,6 +197,7 @@ namespace decode{
         avpBufSizeParam.isSb128x128     = m_av1PicParams->m_seqInfoFlags.m_fields.m_use128x128Superblock ? true : false;
         avpBufSizeParam.curFrameTileNum = m_av1PicParams->m_tileCols * m_av1PicParams->m_tileRows;
         avpBufSizeParam.numTileCol      = m_av1PicParams->m_tileCols;
+        avpBufSizeParam.chromaFormat    = chromaSamplingFormat;
 
         // Lamda expression
         auto AllocateBuffer = [&] (PMOS_BUFFER &buffer, AvpBufferType bufferType, const char *bufferName)
@@ -532,15 +538,15 @@ namespace decode{
 
         if (m_av1PicParams->m_seqInfoFlags.m_fields.m_subsamplingX == 1 && m_av1PicParams->m_seqInfoFlags.m_fields.m_subsamplingY == 1)
         {
-            if (m_av1PicParams->m_seqInfoFlags.m_fields.m_monoChrome)
+            if (!m_av1PicParams->m_seqInfoFlags.m_fields.m_monoChrome &&
+                (m_av1PicParams->m_bitDepthIdx == 0 || m_av1PicParams->m_bitDepthIdx == 1))
             {
-                //4:0:0
-                params.chromaFormat = 0;
+                //4:2:0
+                params.chromaFormat = av1ChromaFormatYuv420;
             }
             else
             {
-                //4:2:0
-                params.chromaFormat = 1;
+                return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
             }
         }
 

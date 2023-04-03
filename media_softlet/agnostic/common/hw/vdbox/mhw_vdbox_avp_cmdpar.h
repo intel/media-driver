@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2022, Intel Corporation
+* Copyright (c) 2020-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -30,6 +30,7 @@
 
 #include "codec_def_common_encode.h"
 #include "codec_def_common_av1.h"
+#include "codec_def_decode_av1.h"
 #include "mhw_vdbox.h"
 #include "mhw_vdbox_cmdpar.h"
 
@@ -115,6 +116,18 @@ struct AvpBufferSizePar
     uint32_t     curFrameTileNum;
     uint32_t     numTileCol;
     uint8_t      numOfActivePipes;
+    uint16_t     chromaFormat;
+};
+
+struct AvpVdboxRowStorePar
+{
+    uint32_t mode;
+    uint32_t picWidth;
+    uint32_t mbaff;
+    bool     isFrame;
+    uint8_t  bitDepthMinus8;
+    uint8_t  chromaFormat;
+    uint8_t  lcuSize;
 };
 
 struct _MHW_PAR_T(AVP_PIPE_MODE_SELECT)

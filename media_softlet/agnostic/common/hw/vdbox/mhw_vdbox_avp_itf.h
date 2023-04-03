@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2022, Intel Corporation
+* Copyright (c) 2020-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -107,7 +107,7 @@ public:
     virtual MOS_STATUS GetAvpPrimitiveCmdSize(uint32_t *commandsSize, uint32_t *patchListSize, PMHW_VDBOX_STATE_CMDSIZE_PARAMS params) = 0;
     virtual MOS_STATUS GetAvpStateCmdSize(uint32_t *commandsSize, uint32_t *patchListSize, PMHW_VDBOX_STATE_CMDSIZE_PARAMS params) = 0;
     virtual AvpMmioRegisters* GetMmioRegisters(MHW_VDBOX_NODE_IND index) = 0;
-    virtual MOS_STATUS GetRowstoreCachingAddrs() = 0;
+    virtual MOS_STATUS GetRowstoreCachingAddrs(mhw::vdbox::avp::AvpVdboxRowStorePar rowstoreParams) = 0;
 
     _AVP_CMD_DEF(_MHW_CMD_ALL_DEF_FOR_ITF);
 MEDIA_CLASS_DEFINE_END(mhw__vdbox__avp__Itf)
