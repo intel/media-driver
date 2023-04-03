@@ -21,16 +21,14 @@
 # encode
 
 
-if ("${AVC_Encode_VDEnc_Supported}" STREQUAL "yes")
-    set (TMP_ENC_SOURCES_
-        ${TMP_ENC_SOURCES_}
-        ${CMAKE_CURRENT_LIST_DIR}/codechal_hw_xe_xpm_plus.cpp
-    )
-    set (TMP_ENC_HEADERS_
-        ${TMP_ENC_HEADERS_}
-        ${CMAKE_CURRENT_LIST_DIR}/codechal_hw_xe_xpm_plus.h
-    )
-endif ()
+set (TMP_ENC_SOURCES_
+    ${TMP_ENC_SOURCES_}
+    ${CMAKE_CURRENT_LIST_DIR}/codechal_hw_xe_xpm_plus.cpp
+)
+set (TMP_ENC_HEADERS_
+    ${TMP_ENC_HEADERS_}
+    ${CMAKE_CURRENT_LIST_DIR}/codechal_hw_xe_xpm_plus.h
+)
 
 set(SOURCES_
     ${SOURCES_}
