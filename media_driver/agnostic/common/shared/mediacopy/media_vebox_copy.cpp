@@ -232,7 +232,7 @@ MOS_STATUS VeboxCopyState::CopyMainSurface(PMOS_RESOURCE src, PMOS_RESOURCE dst)
 
     // preprocess in cp first
     m_osInterface->osCpInterface->PrepareResources((void **)&surfaceArray, sizeof(surfaceArray) / sizeof(PMOS_RESOURCE), nullptr, 0);
-
+    m_osInterface->pfnSetPerfTag(m_osInterface,VEBOX_COPY);
     // initialize the command buffer struct
     MOS_ZeroMemory(&cmdBuffer, sizeof(MOS_COMMAND_BUFFER));
 

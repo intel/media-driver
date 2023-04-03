@@ -645,6 +645,7 @@ MOS_STATUS BltState_Xe_Hpm::SubmitCMD(
     dstResDetails.Format = Format_Invalid;
     BLT_CHK_STATUS_RETURN(m_osInterface->pfnGetResourceInfo(m_osInterface, pBltStateParam->pSrcSurface, &srcResDetails));
     BLT_CHK_STATUS_RETURN(m_osInterface->pfnGetResourceInfo(m_osInterface, pBltStateParam->pDstSurface, &dstResDetails));
+    m_osInterface->pfnSetPerfTag(m_osInterface, BLT_COPY);
 
     if (srcResDetails.Format != dstResDetails.Format)
     {

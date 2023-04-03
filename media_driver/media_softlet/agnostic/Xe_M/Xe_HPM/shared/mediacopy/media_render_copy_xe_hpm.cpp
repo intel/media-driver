@@ -250,6 +250,7 @@ MOS_STATUS RenderCopy_Xe_Hpm::SubmitCMD( )
     RenderCopyComputerWalker(
        &ComputeWalkerParams);
 
+    pOsInterface->pfnSetPerfTag(pOsInterface, RENDER_COPY);
     // Submit all states to render the kernel
     MCPY_CHK_STATUS_RETURN(VpHal_RndrCommonSubmitCommands(
         pRenderHal,

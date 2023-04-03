@@ -48,33 +48,8 @@ public:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    virtual MOS_STATUS Initialize();
-
-    //!
-    //! \brief    Copy main surface
-    //! \details  Vebox Copy State engine will copy source surface to destination surface
-    //! \param    src
-    //!           [in] Pointer to source resource
-    //! \param    dst
-    //!           [in] Pointer to destination resource
-    //! \return   MOS_STATUS
-    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
-    //!
-    virtual MOS_STATUS CopyMainSurface(
-        PMOS_RESOURCE src,
-        PMOS_RESOURCE dst);
 
 protected:
-
-    //!
-    //! \brief    Get resource information
-    //! \details  Get resource information for the specifc surface
-    //! \param    [in] cmdBuffer
-    //!           CmdBuffer pointer
-    //! \return   MOS_STATUS_SUCCESS if succeeded, else error code.
-    //!
-    MOS_STATUS InitCommandBuffer(
-        PMOS_COMMAND_BUFFER              cmdBuffer);
 
 MEDIA_CLASS_DEFINE_END(VeboxCopyStateXe_Lpm_Plus_Base)
 };

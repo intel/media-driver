@@ -228,9 +228,7 @@ MOS_STATUS RenderCopyXe_LPM_Plus_Base::SubmitCMD( )
 
     // Set Perf Tag
     pOsInterface->pfnResetPerfBufferID(pOsInterface);
-    pOsInterface->pfnSetPerfTag(
-        pOsInterface,
-        pRenderData->PerfTag);
+    pOsInterface->pfnSetPerfTag(pOsInterface,RENDER_COPY);
 
     // Setup Compute Walker
     pWalkerParams = nullptr;
