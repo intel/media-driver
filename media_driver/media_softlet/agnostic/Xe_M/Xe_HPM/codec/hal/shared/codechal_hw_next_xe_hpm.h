@@ -77,20 +77,13 @@ public:
     //!           Indicate the command size parameters
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
     virtual MOS_STATUS GetAvpStateCommandSize(
             uint32_t                        mode,
             uint32_t                        *commandsSize,
             uint32_t                        *patchListSize,
             PMHW_VDBOX_STATE_CMDSIZE_PARAMS params) override;
 
-    //! \brief    Create media copy
-    //! \details  Create media copy instance.
-    //! \param    osInterface
-    //!           [in] Pointer to MOS_INTERFACE.
-    //! \return   MediaCopyBaseState*
-    //!           Pointer to MediaCopyBaseState
-    //!
-    virtual MediaCopyBaseState *CreateMediaCopy(PMOS_INTERFACE mosInterface) override;
     //!
     //! \brief    Calculates maximum size for AVP tile level commands
     //! \details  Client facing function to calculate maximum size for AVP tile level commands
