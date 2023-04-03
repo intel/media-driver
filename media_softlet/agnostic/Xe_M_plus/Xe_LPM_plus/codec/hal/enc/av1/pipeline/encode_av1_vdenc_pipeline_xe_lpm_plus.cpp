@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020 - 2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -25,11 +25,7 @@
 //!
 
 #include "encode_av1_vdenc_pipeline_xe_lpm_plus.h"
-#if _MEDIA_RESERVED
-#define AV1_REVERVED_PACKET
-#include "encode_av1_packet_ext.h"
-#undef AV1_REVERVED_PACKET
-#endif // _MEDIA_RESERVED
+#include "encode_av1_superres_packet.h"
 #include "encode_av1_vdenc_packet_xe_lpm_plus.h"
 #include "encode_av1_brc_init_packet.h"
 #include "encode_av1_brc_update_packet.h"
@@ -59,11 +55,9 @@ MOS_STATUS Av1VdencPipelineXe_LPM_Plus::Init(void *settings)
         ENCODE_CHK_STATUS_RETURN(av1PreEncPkt->Init());
     }
 
-    #if _MEDIA_RESERVED
-    auto av1ReservedPkt = MOS_New(Av1ReservedPkt, this, task, m_hwInterface);
-    RegisterPacket(Av1ReservedPktID, av1ReservedPkt);
-    av1ReservedPkt->Init();
-    #endif  // !(_MEDIA_RESERVED)
+    auto av1DownscalingPkt = MOS_New(Av1SuperresPkt, this, task, m_hwInterface);
+    RegisterPacket(Av1Superres, av1DownscalingPkt);
+    av1DownscalingPkt->Init();
 
     Av1BrcInitPkt *brcInitpkt = MOS_New(Av1BrcInitPkt, this, task, m_hwInterface);
     ENCODE_CHK_STATUS_RETURN(RegisterPacket(Av1HucBrcInit, brcInitpkt));

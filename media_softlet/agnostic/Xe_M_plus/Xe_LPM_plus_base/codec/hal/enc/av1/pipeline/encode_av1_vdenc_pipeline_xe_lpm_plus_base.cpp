@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2021, Intel Corporation
+* Copyright (c) 2020-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -28,11 +28,7 @@
 #include "encode_av1_vdenc_feature_manager_xe_lpm_plus_base.h"
 #include "codechal_debug.h"
 #include "encode_mem_compression_xe_lpm_plus_base.h"
-#if _MEDIA_RESERVED
-#define ENCODE_AV1_RESERVED_FRATURE0
-#include "encode_av1_feature_ext.h"
-#undef ENCODE_AV1_RESERVED_FRATURE0
-#endif  // !(_MEDIA_RESERVED)
+#include "encode_av1_superres.h"
 
 namespace encode
 {
@@ -146,15 +142,13 @@ MOS_STATUS Av1VdencPipelineXe_Lpm_Plus_Base::ActivateVdencVideoPackets()
 #endif
     }
 
-    #if _MEDIA_RESERVED
-    auto reservedFeature = dynamic_cast<Av1ReservedFeature0 *>(m_featureManager->GetFeature(Av1FeatureIDs::av1ReservedFeatureID0));
-    ENCODE_CHK_NULL_RETURN(reservedFeature);
+    auto superResFeature = dynamic_cast<Av1SuperRes *>(m_featureManager->GetFeature(Av1FeatureIDs::av1SuperRes));
+    ENCODE_CHK_NULL_RETURN(superResFeature);
 
-    if (reservedFeature->IsEnabled())
+    if (superResFeature->IsEnabled())
     {
-        ENCODE_CHK_STATUS_RETURN(ActivatePacket(Av1ReservedPktID, immediateSubmit, 0, 0));
+        ENCODE_CHK_STATUS_RETURN(ActivatePacket(Av1Superres, immediateSubmit, 0, 0));
     }
-    #endif  // !(_MEDIA_RESERVED)
 
     if (brcFeature->IsBRCInitRequired())
     {

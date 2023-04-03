@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020 - 2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -35,6 +35,7 @@ struct Av1FeatureIDs : public FeatureIDs
 {
     enum av1FeatureIDs
     {
+        av1SuperRes   = basicFeature - 1,
         av1CqpFeature = CONSTRUCTFEATUREID(FEATURE_COMPONENT_ENCODE, FEATURE_SUBCOMPONENT_AV1, 0),
         av1Segmentation,
         av1BrcFeature,

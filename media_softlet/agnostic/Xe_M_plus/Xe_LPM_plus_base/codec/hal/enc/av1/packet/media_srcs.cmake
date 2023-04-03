@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2021, Intel Corporation
+# Copyright (c) 2020-2023, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -20,10 +20,12 @@
 
 if ("${AV1_Encode_VDEnc_Supported}" STREQUAL "yes")
 set(TMP_SOURCES_
+    ${CMAKE_CURRENT_LIST_DIR}/encode_av1_superres_packet.cpp
     ${CMAKE_CURRENT_LIST_DIR}/encode_av1_vdenc_packet_xe_lpm_plus_base.cpp
 )
 
 set(TMP_HEADERS_
+    ${CMAKE_CURRENT_LIST_DIR}/encode_av1_superres_packet.h
     ${CMAKE_CURRENT_LIST_DIR}/encode_av1_vdenc_packet_xe_lpm_plus_base.h
 )
 
