@@ -3480,7 +3480,7 @@ void CodechalVdencVp9StateG12::fill_pad_with_value(PMOS_SURFACE psSurface, uint3
     {
         uint32_t pitch         = psSurface->dwPitch;
         uint32_t UVPlaneOffset = psSurface->UPlaneOffset.iSurfaceOffset;
-        uint32_t YPlaneOffset  = psSurface->dwOffset;     
+        uint32_t YPlaneOffset  = psSurface->dwOffset;
 
         MOS_LOCK_PARAMS lockFlags;
         MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
@@ -3493,29 +3493,25 @@ void CodechalVdencVp9StateG12::fill_pad_with_value(PMOS_SURFACE psSurface, uint3
             return;
         }
 
-        uint8_t *src_data_y = src_data + YPlaneOffset;
+        uint32_t pad_rows = aligned_height - real_height;
 
-        uint32_t plane_size      = pitch * real_height;
-        uint32_t plane_size_full = UVPlaneOffset;
-
-        uint8_t *src_data_y_end = src_data_y + plane_size;
-
-        uint32_t y_pad_rows = aligned_height - real_height;
-        uint32_t y_pad_length = y_pad_rows * pitch;
-
-        if (src_data_y_end > src_data_y_end - y_pad_length)
+        uint8_t *src_data_y     = src_data + YPlaneOffset;
+        uint32_t y_plane_size   = pitch * real_height;
+        uint8_t *src_data_y_end = src_data_y + y_plane_size;
+        uint32_t y_pitch = pitch;
+        for (uint32_t i = 0; i < pad_rows; i++)
         {
-            memcpy_s(src_data_y_end, y_pad_length, src_data_y_end - y_pad_length, y_pad_length);
+            MOS_SecureMemcpy(src_data_y_end + i * y_pitch, y_pitch, src_data_y_end - y_pitch, y_pitch);
         }
 
-        uint32_t uv_plane_size      = (pitch * real_height)/2;
-        uint32_t uv_plane_size_full = plane_size_full / 2;
-        uint8_t *src_data_uv_end = src_data_y + plane_size_full + uv_plane_size;
-
-        if (src_data_uv_end - y_pad_length > src_data_y_end)
+        uint8_t *src_data_uv     = src_data + UVPlaneOffset;
+        uint32_t uv_plane_size   = pitch * real_height / 2;
+        uint8_t *src_data_uv_end = src_data_uv + uv_plane_size;
+        uint32_t uv_pitch = pitch / 2;
+        for (uint32_t i = 0; i < pad_rows; i++)
         {
-            memcpy_s(src_data_uv_end, y_pad_length, src_data_uv_end - y_pad_length, y_pad_length);
-        }    
+            MOS_SecureMemcpy(src_data_uv_end + i * uv_pitch, uv_pitch, src_data_uv_end - uv_pitch, uv_pitch);
+        }
 
         m_osInterface->pfnUnlockResource(m_osInterface, &(psSurface->OsResource));
     }
@@ -3960,12 +3956,13 @@ MOS_STATUS CodechalVdencVp9StateG12::ExecutePictureLevel()
 
     if (MEDIA_IS_WA(m_waTable, Wa_Vp9UnalignedHeight))
     {
-        uint32_t real_height = m_oriFrameHeight; 
-        uint32_t aligned_height = MOS_ALIGN_CEIL(real_height, CODEC_VP9_MIN_BLOCK_WIDTH);
+        uint32_t real_height = m_oriFrameHeight;
+        uint32_t aligned_height = MOS_ALIGN_CEIL(real_height, CODEC_VP9_MIN_BLOCK_HEIGHT);
+
         fill_pad_with_value(m_rawSurfaceToPak, real_height, aligned_height);
         fill_pad_with_value(&m_reconSurface, real_height, aligned_height);
     }
-        
+
     if (m_pictureCodingType != I_TYPE)
     {
 #ifdef _MMC_SUPPORTED
