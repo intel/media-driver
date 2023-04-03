@@ -263,6 +263,7 @@ public:
     virtual MOS_STATUS SetCpInterface(MhwCpInterface *cpInterface, std::shared_ptr<mhw::mi::Itf> m_miItf) override
     {
         m_cpInterface = cpInterface;
+        MHW_CHK_NULL_RETURN(m_cpInterface);
         m_cpInterface->RegisterMiInterfaceNext(m_miItf);
         return MOS_STATUS_SUCCESS;
     }
