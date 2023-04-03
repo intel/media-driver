@@ -2376,7 +2376,7 @@ MOS_STATUS CompositeState::Render(
             pSrc));
 
         //Need to decompress input surface, only if input surface is interlaced and in the RC compression Mode
-        VPHAL_RENDER_CHK_STATUS(DecompressInterlacedSurfInRCMode(pSrc));
+        VPHAL_RENDER_CHK_STATUS(DecompressInterlacedSurf(pSrc));
 
         // Ensure the input is ready to be read
         pOsInterface->pfnSyncOnResource(
@@ -3015,12 +3015,12 @@ void CompositeState::SetSurfaceParams(
 //! \return   MOS_STATUS
 //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
 //!
-MOS_STATUS CompositeState::DecompressInterlacedSurfInRCMode(PVPHAL_SURFACE pSource)
+MOS_STATUS CompositeState::DecompressInterlacedSurf(PVPHAL_SURFACE pSource)
 {
     VPHAL_RENDER_CHK_NULL_RETURN(pSource);
 
-    // Interlaced surface in the RC compression mode needs to decompress
-    if (pSource->CompressionMode == MOS_MMC_RC &&
+    // Interlaced surface in the compression mode needs to decompress
+    if (pSource->CompressionMode == MOS_MMC_RC                             &&
         (pSource->SampleType == SAMPLE_INTERLEAVED_EVEN_FIRST_TOP_FIELD    ||
          pSource->SampleType == SAMPLE_INTERLEAVED_EVEN_FIRST_BOTTOM_FIELD ||
          pSource->SampleType == SAMPLE_INTERLEAVED_ODD_FIRST_TOP_FIELD     ||
@@ -3047,7 +3047,7 @@ MOS_STATUS CompositeState::DecompressInterlacedSurfInRCMode(PVPHAL_SURFACE pSour
         VPHAL_RENDER_CHK_STATUS_RETURN(m_pOsInterface->pfnDecompResource(m_pOsInterface, &pSource->OsResource));
         VPHAL_RENDER_CHK_STATUS_RETURN(m_pOsInterface->pfnSetDecompSyncRes(m_pOsInterface, nullptr));
         VPHAL_RENDER_CHK_STATUS_RETURN(m_pOsInterface->pfnRegisterResource(m_pOsInterface, &m_AuxiliarySyncSurface.OsResource, true, true));
-        
+
         pSource->bIsCompressed     = false;
         pSource->CompressionMode   = MOS_MMC_DISABLED;
         pSource->CompressionFormat = 0;

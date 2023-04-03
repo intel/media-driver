@@ -880,6 +880,16 @@ protected:
         int32_t         iSources,
         bool            isTargetY);
 
+    //!
+    //! \brief    Decompress the Surface
+    //! \details  Decompress the interlaced Surface which is in the RC compression mode
+    //! \param    [in,out] pSource
+    //!           Pointer to Source Surface
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS DecompressInterlacedSurf(PVPHAL_SURFACE pSource);
+
 private:
     //!
     //! \brief    Prepare phases for composite and determine intermediate colorspace
@@ -1054,16 +1064,6 @@ private:
     void SetSurfaceParams(
         PVPHAL_SURFACE                  pSource,
         PRENDERHAL_SURFACE_STATE_PARAMS pSurfaceParams);
-
-    //!
-    //! \brief    Decompress the Surface
-    //! \details  Decompress the interlaced Surface which is in the RC compression mode
-    //! \param    [in,out] pSource
-    //!           Pointer to Source Surface
-    //! \return   MOS_STATUS
-    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
-    //!
-    MOS_STATUS DecompressInterlacedSurfInRCMode(PVPHAL_SURFACE pSource);
 
     //!
     //! \brief    Allocate Composite BatchBuffer

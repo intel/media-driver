@@ -151,6 +151,16 @@ protected:
     //!           Return the chose output
     //!
     virtual MOS_STATUS GetIntermediateOutput(PVPHAL_SURFACE &output) override;
+
+    //!
+    //! \brief    Decompress the Surface
+    //! \details  Decompress the interlaced Surface which is in the RC compression mode
+    //! \param    [in,out] pSource
+    //!           Pointer to Source Surface
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS DecompressInterlacedSurf(PVPHAL_SURFACE pSource);
 };
 
 #endif // __VPHAL_RENDER_COMPOSITE_XE_XPM_H__
