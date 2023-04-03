@@ -17,6 +17,7 @@
 # OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
+if(${VP9_Decode_Supported} STREQUAL "yes")
 set(TMP_SOURCES_
     ${TMP_SOURCES_}
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_basic_feature_m12.cpp
@@ -28,5 +29,6 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_basic_feature_m12.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_feature_manager_m12.h
 )
+endif()
 
 media_add_curr_to_include_path()

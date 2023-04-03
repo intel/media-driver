@@ -18,7 +18,7 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-if(${AV1_Decode_Supported} STREQUAL "yes")
+if(${VP9_Decode_Supported} STREQUAL "yes")
 set(TMP_SOURCES_
     ${TMP_SOURCES_}
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_pipeline_m12.cpp
