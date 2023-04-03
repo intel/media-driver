@@ -79,6 +79,24 @@ public:
     static MOS_STATUS MosTraceSetupInfoInCommon(uint32_t DrvVer, uint32_t PlatFamily, uint32_t RenderFamily, uint32_t DeviceID);
 
     //!
+    //! \brief    Callback funtion for C Runtime (CRT) fwrite
+    //! \details  Every DLL has its own CRT
+    //!           When we share CRT objects such as file handles, we should use callback function.
+    //! \param    [in] buf
+    //!           Content Buffer
+    //! \param    [in] size
+    //!           Element size
+    //! \param    [in] count
+    //!           Element count
+    //! \param    [in] file
+    //!           Pointer to file
+    //! \return   MOS_STATUS
+    //!           Returns one of the MOS_STATUS error codes if failed,
+    //!           else MOS_STATUS_SUCCESS
+    //!
+    static MOS_STATUS MosWriteFileInCommon(void const *buf, size_t size, size_t count, FILE *file);
+
+    //!
     //! \brief    Get current run time
     //! \details  Get current run time in us
     //! \return   double

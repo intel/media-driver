@@ -486,8 +486,13 @@ MOS_STATUS MosUtilities::MosAssignUserFeatureValueData(
             pDstData->MultiStringData.uCount          = 0;
             return MOS_STATUS_NULL_POINTER;
         }
+        MosAtomicIncrement(m_mosMemAllocFakeCounter);
         if ((pData != nullptr) && (strlen(pData) != 0))
         {
+            if (!pDstData->MultiStringData.pMultStringData)
+            {
+                MosAtomicIncrement(m_mosMemAllocFakeCounter);
+            }
             MOS_SafeFreeMemory(pDstData->MultiStringData.pMultStringData);
             pDstData->MultiStringData.pMultStringData = (char *)MOS_AllocAndZeroMemory(strlen(pData) + 1);
             if (pDstData->MultiStringData.pMultStringData == nullptr)
