@@ -491,8 +491,8 @@ MOS_STATUS OsContextSpecific::Init(PMOS_CONTEXT pOsDriverContext)
             m_intelContext = mos_context_create_ext(pOsDriverContext->bufmgr,0, pOsDriverContext->m_protectedGEMContext);
             if (m_intelContext)
             {
-                m_intelContext->vm = mos_vm_create(pOsDriverContext->bufmgr);
-                if (m_intelContext->vm == nullptr)
+                m_intelContext->vm_id = mos_vm_create(pOsDriverContext->bufmgr);
+                if (m_intelContext->vm_id == INVALID_VM)
                 {
                     MOS_OS_ASSERTMESSAGE("Failed to create vm.\n");
                     return MOS_STATUS_UNKNOWN;
@@ -504,7 +504,7 @@ MOS_STATUS OsContextSpecific::Init(PMOS_CONTEXT pOsDriverContext)
            m_intelContext = mos_context_create(pOsDriverContext->bufmgr);
            if (m_intelContext)
            {
-               m_intelContext->vm = nullptr;
+               m_intelContext->vm_id = INVALID_VM;
            }
         }
         MOS_TraceEventExt(EVENT_GPU_CONTEXT_CREATE, EVENT_TYPE_END,
@@ -618,9 +618,10 @@ void OsContextSpecific::Destroy()
         m_waTable.reset();
         MOS_TraceEventExt(EVENT_GPU_CONTEXT_DESTROY, EVENT_TYPE_START,
                           &m_intelContext, sizeof(void *), nullptr, 0);
-        if (m_intelContext && m_intelContext->vm)
+        if (m_intelContext && m_intelContext->vm_id != INVALID_VM)
         {
-            mos_vm_destroy(m_intelContext->bufmgr, m_intelContext->vm);
+            mos_vm_destroy(m_intelContext->bufmgr, m_intelContext->vm_id);
+            m_intelContext->vm_id = INVALID_VM;
         }
         if (m_intelContext)
         {

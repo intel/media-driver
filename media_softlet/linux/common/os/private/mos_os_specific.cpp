@@ -944,10 +944,10 @@ MOS_STATUS Mos_DestroyInterface(PMOS_INTERFACE osInterface)
         }
         if (perStreamParameters->intel_context)
         {
-            if (perStreamParameters->intel_context->vm)
+            if (perStreamParameters->intel_context->vm_id != INVALID_VM)
             {
-                mos_vm_destroy(perStreamParameters->intel_context->bufmgr, perStreamParameters->intel_context->vm);
-                perStreamParameters->intel_context->vm = nullptr;
+                mos_vm_destroy(perStreamParameters->intel_context->bufmgr, perStreamParameters->intel_context->vm_id);
+                perStreamParameters->intel_context->vm_id = INVALID_VM;
             }
             mos_context_destroy(perStreamParameters->intel_context);
             perStreamParameters->intel_context = nullptr;

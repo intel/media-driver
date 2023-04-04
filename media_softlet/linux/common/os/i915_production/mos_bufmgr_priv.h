@@ -347,8 +347,8 @@ struct mos_bufmgr {
                                 __u32 flags,
                                 bool bContextProtected);
     void (*context_destroy)(struct mos_linux_context *ctx);
-    struct drm_i915_gem_vm_control* (*vm_create)(struct mos_bufmgr *bufmgr);
-    void (*vm_destroy)(struct mos_bufmgr *bufmgr, struct drm_i915_gem_vm_control* vm);
+    __u32 (*vm_create)(struct mos_bufmgr *bufmgr);
+    void (*vm_destroy)(struct mos_bufmgr *bufmgr, __u32 vm_id);
     int (*bo_context_exec2)(struct mos_linux_bo *bo, int used, struct mos_linux_context *ctx,
                                    struct drm_clip_rect *cliprects, int num_cliprects, int DR4,
                                    unsigned int flags, int *fence);
@@ -415,7 +415,7 @@ struct mos_bufmgr {
     int (*set_context_param_sseu)(struct mos_linux_context *ctx,
                     struct drm_i915_gem_context_param_sseu sseu);
     int (*query_device_blob)(struct mos_bufmgr *bufmgr, MEDIA_SYSTEM_INFO* gfx_info);
-    int (*query_hw_ip_version)(struct mos_bufmgr *bufmgr, struct i915_engine_class_instance engine, void *ip_ver_info);
+    int (*query_hw_ip_version)(struct mos_bufmgr *bufmgr, __u16 engine_class, void *ip_ver_info);
     uint64_t (*get_platform_information)(struct mos_bufmgr *bufmgr);
     void (*set_platform_information)(struct mos_bufmgr *bufmgr, uint64_t p);
     uint8_t (*switch_off_n_bits)(struct mos_linux_context *ctx, uint8_t in_mask, int n);

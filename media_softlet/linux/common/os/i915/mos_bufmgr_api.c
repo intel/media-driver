@@ -1074,13 +1074,13 @@ mos_context_create_shared(
     }
 }
 
-struct drm_i915_gem_vm_control* 
+__u32
 mos_vm_create(struct mos_bufmgr *bufmgr)
 {
     if(!bufmgr)
     {
         MOS_OS_CRITICALMESSAGE("Input null ptr\n");
-        return nullptr;
+        return INVALID_VM;
     }
 
     if (bufmgr->vm_create)
@@ -1090,12 +1090,12 @@ mos_vm_create(struct mos_bufmgr *bufmgr)
     else
     {
         MOS_OS_CRITICALMESSAGE("Unsupported\n");
-        return nullptr;
+        return INVALID_VM;
     }
 }
 
 void
-mos_vm_destroy(struct mos_bufmgr *bufmgr, struct drm_i915_gem_vm_control* vm)
+mos_vm_destroy(struct mos_bufmgr *bufmgr, __u32 vm_id)
 {
     if(!bufmgr)
     {
@@ -1105,7 +1105,7 @@ mos_vm_destroy(struct mos_bufmgr *bufmgr, struct drm_i915_gem_vm_control* vm)
 
     if (bufmgr->vm_destroy)
     {
-        bufmgr->vm_destroy(bufmgr, vm);
+        bufmgr->vm_destroy(bufmgr, vm_id);
     }
     else
     {
@@ -1294,7 +1294,7 @@ mos_query_device_blob(struct mos_bufmgr *bufmgr, MEDIA_SYSTEM_INFO* gfx_info)
 }
 
 int
-mos_query_hw_ip_version(struct mos_bufmgr *bufmgr, struct i915_engine_class_instance engine, void *ip_ver_info)
+mos_query_hw_ip_version(struct mos_bufmgr *bufmgr, __u16 engine_class, void *ip_ver_info)
 {
     if(!bufmgr)
     {
@@ -1304,7 +1304,7 @@ mos_query_hw_ip_version(struct mos_bufmgr *bufmgr, struct i915_engine_class_inst
 
     if (bufmgr->query_hw_ip_version)
     {
-        return bufmgr->query_hw_ip_version(bufmgr, engine, ip_ver_info);
+        return bufmgr->query_hw_ip_version(bufmgr, engine_class, ip_ver_info);
     }
     else
     {

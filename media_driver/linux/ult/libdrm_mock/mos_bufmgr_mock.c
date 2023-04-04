@@ -3546,17 +3546,20 @@ mos_gem_context_create_ext(struct mos_bufmgr *bufmgr, __u32 flags, bool bContext
     return context;
 }
 
-static struct drm_i915_gem_vm_control* mos_gem_vm_create(struct mos_bufmgr *bufmgr)
+static __u32 mos_gem_vm_create(struct mos_bufmgr *bufmgr)
 {
     struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *)bufmgr;
     struct drm_i915_gem_vm_control *vm = nullptr;
+    __u32 vm_id;
     int ret;
 
-    vm = (struct drm_i915_gem_vm_control *)calloc(1, sizeof(*vm));
+    vm = (struct drm_i915_gem_vm_control *)calloc(1, sizeof(struct drm_i915_gem_vm_control));
     if (nullptr == vm)
     {
-        return nullptr;
+        MOS_DBG("vm calloc failed\n" );
+        return INVALID_VM;
     }
+
     memset(vm, 0, sizeof(*vm));
 
     ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_I915_GEM_VM_CREATE, vm);
@@ -3564,23 +3567,43 @@ static struct drm_i915_gem_vm_control* mos_gem_vm_create(struct mos_bufmgr *bufm
         MOS_DBG("DRM_IOCTL_I915_GEM_VM_CREATE failed: %s\n",
             strerror(errno));
         free(vm);
-        return nullptr;
+        return INVALID_VM;
     }
 
-    return vm;
+    vm_id = vm->vm_id;
+    free(vm);
+
+    return vm_id;
 }
 
-static void mos_gem_vm_destroy(struct mos_bufmgr *bufmgr, struct drm_i915_gem_vm_control* vm)
+
+static void mos_gem_vm_destroy(struct mos_bufmgr *bufmgr, __u32 vm_id)
 {
     struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *)bufmgr;
-    assert(vm);
+    struct drm_i915_gem_vm_control *vm = nullptr;
     int ret;
 
+    if (vm_id == INVALID_VM)
+    {
+        MOS_DBG("input invalid param\n" );
+        return;
+    }
+
+    vm = (struct drm_i915_gem_vm_control *)calloc(1, sizeof(struct drm_i915_gem_vm_control));
+
+    if (nullptr == vm)
+    {
+        MOS_DBG("vm calloc failed\n" );
+        return;
+    }
+
+    vm->vm_id = vm_id;
     ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_I915_GEM_VM_DESTROY, vm);
     if (ret != 0) {
         MOS_DBG("DRM_IOCTL_I915_GEM_VM_DESTROY failed: %s\n",
             strerror(errno));
     }
+
     free(vm);
 }
 
@@ -3594,7 +3617,7 @@ mos_gem_context_create_shared(struct mos_bufmgr *bufmgr, mos_linux_context* ctx,
     struct drm_i915_gem_context_create_ext_setparam p_norecover;
     int ret;
 
-    if (ctx == nullptr || ctx->vm == nullptr)
+    if (ctx == nullptr || ctx->vm_id == INVALID_VM)
         return nullptr;
 
     context = (struct mos_linux_context *)calloc(1, sizeof(*context));
@@ -3635,7 +3658,7 @@ mos_gem_context_create_shared(struct mos_bufmgr *bufmgr, mos_linux_context* ctx,
     ret = mos_set_context_param(context,
                 0,
                 I915_CONTEXT_PARAM_VM,
-                ctx->vm->vm_id);
+                ctx->vm_id);
     if(ret != 0) {
         MOS_DBG("I915_CONTEXT_PARAM_VM failed: %s\n",
             strerror(errno));

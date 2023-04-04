@@ -50,62 +50,6 @@ static LinuxDeviceInit *getDeviceInit(uint32_t platKey)
     return devInfo;
 }
 
-static bool MediaGetParam(int fd, int32_t param, uint32_t *retValue)
-{
-    struct drm_i915_getparam gp;
-
-    gp.param = param;
-    gp.value = (int32_t *)retValue;
-    return drmIoctl(fd, DRM_IOCTL_I915_GETPARAM, &gp) == 0;
-}
-
-#ifdef _MEDIA_RESERVED
-/*****************************************************************************\
-Description:
-    Get IpGmdID for separate IP products according to input engine_class
-
-Input:
-    fd              - file descriptor to the /dev/dri/cardX
-    engine_class    - engine class
-Output:
-    ipVerInfo       - GmdID info describing current IP version info
-\*****************************************************************************/
-static MOS_STATUS MediaGetIpGmdID(int32_t       fd,
-                          MOS_BUFMGR            *pDrmBufMgr,
-                          uint16_t              engineClass,
-                          unsigned int          maxNengine,
-                          GFX_GMD_ID            *ipVerInfo)
-{
-    unsigned int nengine = maxNengine;
-    struct i915_engine_class_instance *uengines = nullptr;
-
-    if ((fd < 0) || (pDrmBufMgr == nullptr) || (maxNengine == 0) || (ipVerInfo == nullptr))
-    {
-        MOS_OS_ASSERTMESSAGE("Invalid parameter \n");
-        return MOS_STATUS_INVALID_PARAMETER;
-    }
-
-    uengines = (struct i915_engine_class_instance *)MOS_AllocAndZeroMemory(nengine * sizeof(struct i915_engine_class_instance));
-    MOS_OS_CHK_NULL_RETURN(uengines);
-    if (mos_query_engines(pDrmBufMgr, engineClass, 0, &nengine, (void *)uengines) || (nengine == 0))
-    {
-        MOS_OS_ASSERTMESSAGE("Failed to query engine\n");
-        MOS_SafeFreeMemory(uengines);
-        return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
-    }
-
-    if (mos_query_hw_ip_version(pDrmBufMgr, uengines[0], (void *)ipVerInfo))
-    {
-        MOS_OS_ASSERTMESSAGE("Failed to query hw_ip_version\n");
-        MOS_SafeFreeMemory(uengines);
-        return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
-    }
-
-    MOS_SafeFreeMemory(uengines);
-
-    return MOS_STATUS_SUCCESS;
-}
-#endif
 /*****************************************************************************\
 Description:
     Get ProductFamily according to input device FD
@@ -295,7 +239,7 @@ MOS_STATUS HWInfo_GetGfxInfo(int32_t           fd,
 
             if (0 == gfxPlatform->sMediaBlockID.Value)
             {
-                if (MediaGetIpGmdID(fd, pDrmBufMgr, I915_ENGINE_CLASS_VIDEO, maxNengine, &(gfxPlatform->sMediaBlockID)))
+                if (mos_query_hw_ip_version(pDrmBufMgr, I915_ENGINE_CLASS_VIDEO, (void *)&(gfxPlatform->sMediaBlockID)))
                 {
                     MOS_OS_ASSERTMESSAGE("Failed to query vdbox engine GmdID\n");
                     return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
@@ -309,7 +253,7 @@ MOS_STATUS HWInfo_GetGfxInfo(int32_t           fd,
 
             if (0 == gfxPlatform->sRenderBlockID.Value)
             {
-                if (MediaGetIpGmdID(fd, pDrmBufMgr, I915_ENGINE_CLASS_RENDER, maxNengine, &(gfxPlatform->sRenderBlockID)))
+                if (mos_query_hw_ip_version(pDrmBufMgr, I915_ENGINE_CLASS_RENDER, (void *)&(gfxPlatform->sRenderBlockID)))
                 {
                     MOS_OS_ASSERTMESSAGE("Failed to query render GmdID\n");
                     return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
@@ -370,35 +314,15 @@ MOS_STATUS HWInfo_GetGfxInfo(int32_t           fd,
     return MOS_STATUS_SUCCESS;
 }
 
-#ifndef I915_PARAM_HAS_BSD2
-#define LOCAL_I915_PARAM_HAS_BSD2 I915_PARAM_HAS_BSD2
-#else
-#define LOCAL_I915_PARAM_HAS_BSD2 31
-#endif
-
-#ifdef I915_PARAM_HUC_STATUS
-#define LOCAL_I915_PARAM_HAS_HUC I915_PARAM_HUC_STATUS
-#else
-#define LOCAL_I915_PARAM_HAS_HUC 42
-#endif
-
-#ifdef I915_PARAM_EU_TOTAL
-#define LOCAL_I915_PARAM_EU_TOTAL I915_PARAM_EU_TOTAL
-#else
-#define LOCAL_I915_PARAM_EU_TOTAL 34
-#endif
-
-#ifdef I915_PARAM_SUBSLICE_TOTAL
-#define LOCAL_I915_PARAM_SUBSLICE I915_PARAM_SUBSLICE_TOTAL
-#else
-#define LOCAL_I915_PARAM_SUBSLICE 33
-#endif
-
-#ifdef I915_PARAM_REVISION
-#define LOCAL_I915_PARAM_REVISION I915_PARAM_REVISION
-#else
-#define LOCAL_I915_PARAM_REVISION 32
-#endif
+#define PARAM_CHIPSET_ID             4
+#define PARAM_HAS_BSD                10
+#define PARAM_HAS_ALIASING_PPGTT     18
+#define PARAM_HAS_VEBOX              22
+#define PARAM_HAS_BSD2               31
+#define PARAM_REVISION               32
+#define PARAM_SUBSLICE               33
+#define PARAM_EU_TOTAL               34
+#define PARAM_HAS_HUC                42
 
 MOS_STATUS HWInfoGetLinuxDrvInfo(int fd, struct LinuxDriverInfo *drvInfo)
 {
@@ -410,35 +334,35 @@ MOS_STATUS HWInfoGetLinuxDrvInfo(int fd, struct LinuxDriverInfo *drvInfo)
     uint32_t retValue = 0;
 
     drvInfo->hasBsd = 0;
-    if (MediaGetParam(fd, I915_PARAM_HAS_BSD, &retValue))
+    if (mos_get_param(fd, PARAM_HAS_BSD, &retValue))
     {
         drvInfo->hasBsd = !!retValue;
     }
 
     drvInfo->hasBsd2 = 0;
     retValue = 0;
-    if (MediaGetParam(fd, LOCAL_I915_PARAM_HAS_BSD2, &retValue))
+    if (mos_get_param(fd, PARAM_HAS_BSD2, &retValue))
     {
         drvInfo->hasBsd2 = !!retValue;
     }
 
     drvInfo->hasVebox = 0;
     retValue = 0;
-    if (MediaGetParam(fd, I915_PARAM_HAS_VEBOX, &retValue))
+    if (mos_get_param(fd, PARAM_HAS_VEBOX, &retValue))
     {
         drvInfo->hasVebox = !!retValue;
     }
 
     drvInfo->hasPpgtt = 1;
     retValue = 0;
-    if (MediaGetParam(fd, I915_PARAM_HAS_ALIASING_PPGTT, &retValue))
+    if (mos_get_param(fd, PARAM_HAS_ALIASING_PPGTT, &retValue))
     {
         drvInfo->hasPpgtt = !!retValue;
     }
 
     drvInfo->hasHuc = 0;
     retValue = 0;
-    if (MediaGetParam(fd, LOCAL_I915_PARAM_HAS_HUC, &retValue))
+    if (mos_get_param(fd, PARAM_HAS_HUC, &retValue))
     {
         drvInfo->hasHuc = !!retValue;
         if (retValue == 1)
@@ -449,27 +373,27 @@ MOS_STATUS HWInfoGetLinuxDrvInfo(int fd, struct LinuxDriverInfo *drvInfo)
 
     drvInfo->devId = 0;
     retValue = 0;
-    if (MediaGetParam(fd, I915_PARAM_CHIPSET_ID, &retValue))
+    if (mos_get_param(fd, PARAM_CHIPSET_ID, &retValue))
     {
         drvInfo->devId = retValue;
     }
     drvInfo->devRev = 0;
     retValue = 0;
-    if (MediaGetParam(fd, LOCAL_I915_PARAM_REVISION, &retValue))
+    if (mos_get_param(fd,PARAM_REVISION, &retValue))
     {
         drvInfo->devRev = retValue;
     }
 
     drvInfo->euCount = 0;
     retValue = 0;
-    if (MediaGetParam(fd, LOCAL_I915_PARAM_EU_TOTAL, &retValue))
+    if (mos_get_param(fd, PARAM_EU_TOTAL, &retValue))
     {
         drvInfo->euCount = retValue;
     }
 
     drvInfo->subSliceCount = 0;
     retValue = 0;
-    if (MediaGetParam(fd, LOCAL_I915_PARAM_SUBSLICE, &retValue))
+    if (mos_get_param(fd, PARAM_SUBSLICE, &retValue))
     {
         drvInfo->subSliceCount = retValue;
     }

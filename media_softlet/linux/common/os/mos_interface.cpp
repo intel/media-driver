@@ -404,8 +404,12 @@ MOS_STATUS MosInterface::InitStreamParameters(
                           &eStatus, sizeof(eStatus), nullptr, 0);
         context->intel_context = mos_context_create_ext(context->bufmgr, 0, context->m_protectedGEMContext);
         MOS_OS_CHK_NULL_RETURN(context->intel_context);
-        context->intel_context->vm = mos_vm_create(context->bufmgr);
-        MOS_OS_CHK_NULL_RETURN(context->intel_context->vm);
+        context->intel_context->vm_id = mos_vm_create(context->bufmgr);
+        if (context->intel_context->vm_id == INVALID_VM)
+        {
+            MOS_OS_ASSERTMESSAGE("Failed to create vm.\n");
+            return MOS_STATUS_UNKNOWN;
+        }
         MOS_TraceEventExt(EVENT_GPU_CONTEXT_CREATE, EVENT_TYPE_END,
                           &context->intel_context, sizeof(void *),
                           &eStatus, sizeof(eStatus));

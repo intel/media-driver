@@ -1181,10 +1181,10 @@ void Linux_Destroy(
 
     if (!MODSEnabled && (pOsContext->intel_context))
     {
-        if (pOsContext->intel_context->vm)
+        if (pOsContext->intel_context->vm_id != INVALID_VM)
         {
-            mos_vm_destroy(pOsContext->intel_context->bufmgr,pOsContext->intel_context->vm);
-            pOsContext->intel_context->vm = nullptr;
+            mos_vm_destroy(pOsContext->intel_context->bufmgr,pOsContext->intel_context->vm_id);
+            pOsContext->intel_context->vm_id = INVALID_VM;
         }
         mos_context_destroy(pOsContext->intel_context);
     }
@@ -1381,8 +1381,8 @@ MOS_STATUS Linux_InitContext(
        pContext->intel_context = mos_context_create_ext(pOsDriverContext->bufmgr, 0, pOsDriverContext->m_protectedGEMContext);
        if (!Mos_Solo_IsEnabled(nullptr) && pContext->intel_context)
        {
-           pContext->intel_context->vm = mos_vm_create(pOsDriverContext->bufmgr);
-           if (pContext->intel_context->vm == nullptr)
+           pContext->intel_context->vm_id = mos_vm_create(pOsDriverContext->bufmgr);
+           if (pContext->intel_context->vm_id == INVALID_VM)
            {
                MOS_OS_ASSERTMESSAGE("Failed to create vm.\n");
                return MOS_STATUS_UNKNOWN;
@@ -1393,7 +1393,7 @@ MOS_STATUS Linux_InitContext(
            pContext->intel_context = mos_context_create(pOsDriverContext->bufmgr);
            if (pContext->intel_context)
            {
-               pContext->intel_context->vm = nullptr;
+               pContext->intel_context->vm_id = INVALID_VM;
            }
        }
 
@@ -1902,10 +1902,10 @@ MOS_STATUS Mos_DestroyInterface(PMOS_INTERFACE pOsInterface)
         }
         if (perStreamParameters->intel_context)
         {
-            if (perStreamParameters->intel_context->vm)
+            if (perStreamParameters->intel_context->vm_id != INVALID_VM)
             {
-                mos_vm_destroy(perStreamParameters->intel_context->bufmgr, perStreamParameters->intel_context->vm);
-                perStreamParameters->intel_context->vm = nullptr;
+                mos_vm_destroy(perStreamParameters->intel_context->bufmgr, perStreamParameters->intel_context->vm_id);
+                perStreamParameters->intel_context->vm_id = INVALID_VM;
             }
             mos_context_destroy(perStreamParameters->intel_context);
             perStreamParameters->intel_context = nullptr;

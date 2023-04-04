@@ -336,16 +336,16 @@ mos_context_destroy(struct mos_linux_context *ctx)
     return ctx->bufmgr->context_destroy(ctx);
 }
 
-struct drm_i915_gem_vm_control* 
+__u32
 mos_vm_create(struct mos_bufmgr *bufmgr)
 {
     return bufmgr->vm_create(bufmgr);
 }
 
 void
-mos_vm_destroy(struct mos_bufmgr *bufmgr, struct drm_i915_gem_vm_control* vm)
+mos_vm_destroy(struct mos_bufmgr *bufmgr, __u32 vm_id)
 {
-    return bufmgr->vm_destroy(bufmgr, vm);
+    return bufmgr->vm_destroy(bufmgr, vm_id);
 }
 
 int

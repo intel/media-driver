@@ -50,6 +50,8 @@
         return _ret;                            \
     }
 
+#define INVALID_VM -1
+
 struct drm_clip_rect;
 struct mos_bufmgr;
 struct mos_linux_context;
@@ -85,7 +87,7 @@ struct mos_linux_context {
     unsigned int ctx_id;
     struct mos_bufmgr *bufmgr;
     struct _MOS_OS_CONTEXT    *pOsContext;
-    struct drm_i915_gem_vm_control* vm;
+    __u32 vm_id;
 };
 
 struct mos_linux_bo {
@@ -140,7 +142,7 @@ struct mos_linux_bo {
      */
     bool aux_mapped;
 
-    struct drm_i915_gem_vm_control* vm;
+    __u32 vm_id;
 };
 
 enum mos_aub_dump_bmp_format {
@@ -247,8 +249,8 @@ struct mos_linux_context *mos_context_create_shared(
                             mos_linux_context* ctx,
                             __u32 flags,
                             bool bContextProtected);
-struct drm_i915_gem_vm_control* mos_vm_create(struct mos_bufmgr *bufmgr);
-void mos_vm_destroy(struct mos_bufmgr *bufmgr, struct drm_i915_gem_vm_control* vm);
+__u32 mos_vm_create(struct mos_bufmgr *bufmgr);
+void mos_vm_destroy(struct mos_bufmgr *bufmgr, __u32 vm_id);
 
 #define MAX_ENGINE_INSTANCE_NUM 8
 #define MAX_PARALLEN_CMD_BO_NUM MAX_ENGINE_INSTANCE_NUM
@@ -317,7 +319,8 @@ uint8_t mos_switch_off_n_bits(struct mos_linux_context *ctx, uint8_t in_mask, in
 unsigned int mos_hweight8(struct mos_linux_context *ctx, uint8_t w);
 
 int mos_query_device_blob(struct mos_bufmgr *bufmgr, MEDIA_SYSTEM_INFO* gfx_info);
-int mos_query_hw_ip_version(struct mos_bufmgr *bufmgr, struct i915_engine_class_instance engine, void *ip_ver_info);
+int mos_query_hw_ip_version(struct mos_bufmgr *bufmgr, __u16 engine_class, void *ip_ver_info);
+int mos_get_param(int fd, int32_t param, uint32_t *param_value);
 
 #if defined(__cplusplus)
 extern "C" {
