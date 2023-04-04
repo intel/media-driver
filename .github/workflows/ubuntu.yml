@@ -759,7 +759,6 @@ jobs:
       CC: /usr/bin/i686-linux-gnu-gcc-11
       CXX: /usr/bin/i686-linux-gnu-g++-11
       ASM: /usr/bin/i686-linux-gnu-gcc-11
-      # machine: i386
     steps:
     - name: checkout media-driver
       uses: actions/checkout@v2
