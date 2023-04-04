@@ -97,6 +97,18 @@ public:
     static MOS_STATUS MosWriteFileInCommon(void const *buf, size_t size, size_t count, FILE *file);
 
     //!
+    //! \brief    Callback funtion for C Runtime (CRT) fflush
+    //! \details  Every DLL has its own CRT
+    //!           When we share CRT objects such as file handles, we should use callback function.
+    //! \param    [in] file
+    //!           Pointer to file
+    //! \return   MOS_STATUS
+    //!           Returns one of the MOS_STATUS error codes if failed,
+    //!           else MOS_STATUS_SUCCESS
+    //!
+    static MOS_STATUS MosFlushToFileInCommon(FILE *file);
+
+    //!
     //! \brief    Get current run time
     //! \details  Get current run time in us
     //! \return   double
