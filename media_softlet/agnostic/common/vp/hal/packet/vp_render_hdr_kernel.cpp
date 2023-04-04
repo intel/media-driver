@@ -2354,6 +2354,7 @@ MOS_STATUS VpRenderHdrKernel::HdrInitCoeff(
     float          *pEOTFCoeff         = nullptr;
     float          *pPivotPoint        = nullptr;
     uint32_t       *pTMType            = nullptr;
+    float          *pFP16Normalizer    = nullptr;
     uint32_t       *pOETFNeqType       = nullptr;
     uint32_t       *pCCMEnable         = nullptr;
     float          *pPWLFStretch       = nullptr;
@@ -2749,6 +2750,10 @@ MOS_STATUS VpRenderHdrKernel::HdrInitCoeff(
             *pOETFNeqType = 0;  // OETFNEQ
         }
     }
+
+    // Coef[64][7] is to normalize the fp16 input value
+    pFP16Normalizer  = pFloat + 7;
+    *pFP16Normalizer = 1.0f / 125.0f;
 
     // Skip the Dst CSC area
     pFloat += 2 * pCoeffSurface->osSurface->dwPitch / sizeof(float);
