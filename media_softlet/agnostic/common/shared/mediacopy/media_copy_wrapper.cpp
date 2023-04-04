@@ -48,6 +48,10 @@ void MediaCopyWrapper::CreateMediaCopyState()
             m_osInterface->pfnGetMosContext(m_osInterface, &mos_context);
         }
         m_mediaCopyState = static_cast<MediaCopyBaseState *>(McpyDeviceNext::CreateFactory((MOS_CONTEXT_HANDLE)mos_context));
+        if (m_mediaCopyState && m_osInterface->pfnIsAsyncDevice(m_osInterface->osStreamState))
+        {
+            m_osInterface->pfnSetupCurrentCmdListAndPool(m_osInterface, m_mediaCopyState->m_osInterface->osStreamState);
+        }
     }
 }
 
