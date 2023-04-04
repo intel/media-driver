@@ -293,7 +293,9 @@ using MOS_CONTEXT_HANDLE = void *;
 //! \def MOS_UNUSED(param)
 //! Fix compiling warning for unused parameter
 //!
+#ifndef MOS_UNUSED
 #define MOS_UNUSED(param) (void)(param)
+#endif
 
 #define MOS_BITFIELD_VALUE(_x, _bits)         ((_x) & ((1 << (_bits)) - 1))
 

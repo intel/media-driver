@@ -325,9 +325,14 @@ mos_context_create_shared(
                             struct mos_bufmgr *bufmgr,
                             mos_linux_context* ctx,
                             __u32 flags,
-                            bool bContextProtected)
+                            bool bContextProtected,
+                            void *engine_map,
+                            uint8_t ctx_width,
+                            uint8_t num_placements,
+                            uint32_t ctx_type)
 {
-    return bufmgr->context_create_shared(bufmgr, ctx, flags, bContextProtected);
+    return bufmgr->context_create_shared(bufmgr, ctx, flags, bContextProtected,
+                engine_map, ctx_width, num_placements, ctx_type);
 }
 
 void

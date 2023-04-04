@@ -4436,8 +4436,20 @@ static void mos_gem_vm_destroy(struct mos_bufmgr *bufmgr, __u32 vm_id)
 
 
 static struct mos_linux_context *
-mos_gem_context_create_shared(struct mos_bufmgr *bufmgr, mos_linux_context* ctx, __u32 flags, bool bContextProtected)
+mos_gem_context_create_shared(struct mos_bufmgr *bufmgr,
+            mos_linux_context* ctx,
+            __u32 flags,
+            bool bContextProtected,
+            void *engine_map,
+            uint8_t ctx_width,
+            uint8_t num_placements,
+            uint32_t ctx_type)
 {
+    MOS_UNUSED(engine_map);
+    MOS_UNUSED(ctx_width);
+    MOS_UNUSED(num_placements);
+    MOS_UNUSED(ctx_type);
+
     struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *)bufmgr;
     struct drm_i915_gem_context_create_ext create;
     struct mos_linux_context *context = nullptr;

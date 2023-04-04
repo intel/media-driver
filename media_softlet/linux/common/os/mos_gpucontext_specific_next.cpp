@@ -193,7 +193,11 @@ MOS_STATUS GpuContextSpecificNext::Init3DCtx(PMOS_CONTEXT osParameters,
     m_i915Context[0] = mos_context_create_shared(osParameters->bufmgr,
                                              osParameters->intel_context,
                                              I915_CONTEXT_CREATE_FLAGS_SINGLE_TIMELINE,
-                                             m_bProtectedContext);
+                                             m_bProtectedContext,
+                                             engine_map,
+                                             1,
+                                             *nengine,
+                                             0);
     if (m_i915Context[0] == nullptr)
     {
         MOS_OS_ASSERTMESSAGE("Failed to create context.\n");
@@ -256,7 +260,11 @@ MOS_STATUS GpuContextSpecificNext::InitComputeCtx(PMOS_CONTEXT osParameters,
     m_i915Context[0] = mos_context_create_shared(osParameters->bufmgr,
                                              osParameters->intel_context,
                                              I915_CONTEXT_CREATE_FLAGS_SINGLE_TIMELINE,
-                                             m_bProtectedContext);
+                                             m_bProtectedContext,
+                                             engine_map,
+                                             1,
+                                             *nengine,
+                                             0);
     if (m_i915Context[0] == nullptr)
     {
         MOS_OS_ASSERTMESSAGE("Failed to create context.\n");
@@ -300,7 +308,11 @@ MOS_STATUS GpuContextSpecificNext::InitVdVeCtx(PMOS_CONTEXT osParameters,
     m_i915Context[0] = mos_context_create_shared(osParameters->bufmgr,
                                              osParameters->intel_context,
                                              I915_CONTEXT_CREATE_FLAGS_SINGLE_TIMELINE,
-                                             m_bProtectedContext);
+                                             m_bProtectedContext,
+                                             engine_map,
+                                             1,
+                                             *nengine,
+                                             0);
     if (m_i915Context[0] == nullptr)
     {
         MOS_OS_ASSERTMESSAGE("Failed to create context.\n");
@@ -336,7 +348,11 @@ MOS_STATUS GpuContextSpecificNext::InitVdVeCtx(PMOS_CONTEXT osParameters,
         m_i915Context[1] = mos_context_create_shared(osParameters->bufmgr,
                                                             osParameters->intel_context,
                                                             I915_CONTEXT_CREATE_FLAGS_SINGLE_TIMELINE,
-                                                            m_bProtectedContext);
+                                                            m_bProtectedContext,
+                                                            (void *)_engine_map,
+                                                            1,
+                                                            1,
+                                                            0);
         if (m_i915Context[1] == nullptr)
         {
             MOS_OS_ASSERTMESSAGE("Failed to create master context.\n");
@@ -356,7 +372,11 @@ MOS_STATUS GpuContextSpecificNext::InitVdVeCtx(PMOS_CONTEXT osParameters,
             m_i915Context[i+1] = mos_context_create_shared(osParameters->bufmgr,
                                                                 osParameters->intel_context,
                                                                 I915_CONTEXT_CREATE_FLAGS_SINGLE_TIMELINE,
-                                                                m_bProtectedContext);
+                                                                m_bProtectedContext,
+                                                                (void *)_engine_map,
+                                                                1,
+                                                                1,
+                                                                0);
             if (m_i915Context[i+1] == nullptr)
             {
                 MOS_OS_ASSERTMESSAGE("Failed to create slave context.\n");
@@ -395,7 +415,11 @@ MOS_STATUS GpuContextSpecificNext::InitVdVeCtx(PMOS_CONTEXT osParameters,
                 m_i915Context[i] = mos_context_create_shared(osParameters->bufmgr,
                                                              osParameters->intel_context,
                                                              0, // I915_CONTEXT_CREATE_FLAGS_SINGLE_TIMELINE not allowed for parallel submission
-                                                             m_bProtectedContext);
+                                                             m_bProtectedContext,
+                                                             (void *)_engine_map,
+                                                             ctxWidth,
+                                                             1,
+                                                             0);
                 if (mos_set_context_param_parallel(m_i915Context[i], _engine_map, ctxWidth) != S_SUCCESS)
                 {
                     MOS_OS_ASSERTMESSAGE("Failed to set parallel extension since discontinuous logical engine.\n");
@@ -421,7 +445,11 @@ MOS_STATUS GpuContextSpecificNext::InitBltCtx(PMOS_CONTEXT osParameters,
     m_i915Context[0] = mos_context_create_shared(osParameters->bufmgr,
                                              osParameters->intel_context,
                                              I915_CONTEXT_CREATE_FLAGS_SINGLE_TIMELINE,
-                                             m_bProtectedContext);
+                                             m_bProtectedContext,
+                                             engine_map,
+                                             1,
+                                             *nengine,
+                                             0);
     if (m_i915Context[0] == nullptr)
     {
         MOS_OS_ASSERTMESSAGE("Failed to create context.\n");

@@ -345,7 +345,11 @@ struct mos_bufmgr {
                                 struct mos_bufmgr *bufmgr,
                                 mos_linux_context* ctx,
                                 __u32 flags,
-                                bool bContextProtected);
+                                bool bContextProtected,
+                                void *engine_map,
+                                uint8_t ctx_width,
+                                uint8_t num_placements,
+                                uint32_t ctx_type);
     void (*context_destroy)(struct mos_linux_context *ctx);
     __u32 (*vm_create)(struct mos_bufmgr *bufmgr);
     void (*vm_destroy)(struct mos_bufmgr *bufmgr, __u32 vm_id);

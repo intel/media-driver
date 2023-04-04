@@ -52,6 +52,10 @@
 
 #define INVALID_VM -1
 
+#ifndef MOS_UNUSED
+#define MOS_UNUSED(param) (void)(param)
+#endif
+
 struct drm_clip_rect;
 struct mos_bufmgr;
 struct mos_linux_context;
@@ -248,7 +252,12 @@ struct mos_linux_context *mos_context_create_shared(
                             struct mos_bufmgr *bufmgr,
                             mos_linux_context* ctx,
                             __u32 flags,
-                            bool bContextProtected);
+                            bool bContextProtected,
+                            void *engine_map,
+                            uint8_t ctx_width,
+                            uint8_t num_placements,
+                            uint32_t ctx_type);
+
 __u32 mos_vm_create(struct mos_bufmgr *bufmgr);
 void mos_vm_destroy(struct mos_bufmgr *bufmgr, __u32 vm_id);
 
