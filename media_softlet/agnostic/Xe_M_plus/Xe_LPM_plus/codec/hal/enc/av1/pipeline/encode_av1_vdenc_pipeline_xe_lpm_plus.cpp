@@ -26,6 +26,9 @@
 
 #include "encode_av1_vdenc_pipeline_xe_lpm_plus.h"
 #include "encode_av1_superres_packet.h"
+#if _MEDIA_RESERVED
+#include "encode_av1_vdenc_packet_xe_lpm_plus_ext.h"
+#endif // _MEDIA_RESERVED
 #include "encode_av1_vdenc_packet_xe_lpm_plus.h"
 #include "encode_av1_brc_init_packet.h"
 #include "encode_av1_brc_update_packet.h"
@@ -67,7 +70,11 @@ MOS_STATUS Av1VdencPipelineXe_LPM_Plus::Init(void *settings)
     ENCODE_CHK_STATUS_RETURN(RegisterPacket(Av1HucBrcUpdate, brcUpdatepkt));
     ENCODE_CHK_STATUS_RETURN(brcUpdatepkt->Init());
 
+#if _MEDIA_RESERVED
+    auto av1Vdencpkt = MOS_New(Av1VdencPktXe_Lpm_PlusExt, this, task, m_hwInterface);
+#else
     auto av1Vdencpkt = MOS_New(Av1VdencPktXe_Lpm_Plus, this, task, m_hwInterface);
+#endif  // !(_MEDIA_RESERVED)
     RegisterPacket(Av1VdencPacket, av1Vdencpkt);
     av1Vdencpkt->Init();
 

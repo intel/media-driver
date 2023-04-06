@@ -32,6 +32,12 @@
 #include "encode_av1_pipeline.h"
 #include "encode_av1_vdenc_lpla_enc.h"
 
+#if _MEDIA_RESERVED
+#define ENCODE_AV1_RESERVED_FRATURE1
+#include "encode_av1_feature_ext.h"
+#undef ENCODE_AV1_RESERVED_FRATURE1
+#endif  // !(_MEDIA_RESERVED)
+
 namespace encode
 {
 
@@ -76,6 +82,10 @@ MOS_STATUS EncodeAv1VdencFeatureManagerXe_Lpm_Plus_Base::CreateFeatures(void *co
     AV1VdencLplaEnc* lplaEnc = MOS_New(AV1VdencLplaEnc, this, m_allocator, m_hwInterface, constSettings);
     ENCODE_CHK_STATUS_RETURN(RegisterFeatures(Av1FeatureIDs::av1LplaEncFeature, lplaEnc, {Av1Pipeline::encodePreEncPacket}));
 
+#if _MEDIA_RESERVED
+    Av1ReservedFeature1* av1ReservedFeature1 = MOS_New(Av1ReservedFeature1, this, m_allocator, m_hwInterface, constSettings);
+    ENCODE_CHK_STATUS_RETURN(RegisterFeatures(Av1FeatureIDs::av1ReservedFeatureID3, av1ReservedFeature1, {Av1Pipeline::encodePreEncPacket}));
+#endif  // !(_MEDIA_RESERVED)
     return MOS_STATUS_SUCCESS;
 }
 
