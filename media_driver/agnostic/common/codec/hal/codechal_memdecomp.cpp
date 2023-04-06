@@ -163,9 +163,16 @@ MediaMemDecompState::~MediaMemDecompState()
 
     if (m_cmdBufIdGlobal)
     {
-        m_osInterface->pfnUnlockResource(m_osInterface, &m_resCmdBufIdGlobal);
-        m_osInterface->pfnFreeResource(m_osInterface, &m_resCmdBufIdGlobal);
-        m_cmdBufIdGlobal = nullptr;
+        if (m_osInterface)
+        {
+            m_osInterface->pfnUnlockResource(m_osInterface, &m_resCmdBufIdGlobal);
+            m_osInterface->pfnFreeResource(m_osInterface, &m_resCmdBufIdGlobal);
+            m_cmdBufIdGlobal = nullptr;
+        }
+        else
+        {
+            MHW_ASSERTMESSAGE("Failed to destroy command buffer global Id.");
+        }
     }
 
     if (m_miInterface)

@@ -898,7 +898,10 @@ CodechalDecode::~CodechalDecode()
     if (MEDIA_IS_SKU(m_skuTable, FtrVcs2) && (m_videoGpuNode < MOS_GPU_NODE_MAX))
     {
         // Destroy decode video node association
-        m_osInterface->pfnDestroyVideoNodeAssociation(m_osInterface, m_videoGpuNode);
+        if (m_osInterface)
+        {
+            m_osInterface->pfnDestroyVideoNodeAssociation(m_osInterface, m_videoGpuNode);
+        }
     }
 
     if (m_statusQueryReportingEnabled)
