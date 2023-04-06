@@ -77,8 +77,8 @@ MOS_STATUS EncodeHevcVdencConstSettingsXe_Lpm_Plus_Base::SetTUSettings()
                 numMergeCandidates = {{
                     {0, 3, 3, 2, 2, 2, 1, 1},
                     {0, 3, 3, 2, 2, 2, 2, 2},
-                    {0, 3, 3, 3, 3, 3, 2, 2},
-                    {0, 3, 3, 3, 3, 3, 2, 2},
+                    {0, 3, 3, 2, 2, 2, 2, 2},
+                    {0, 3, 3, 2, 2, 2, 2, 2},
                 }};
 
             static const std::array<
