@@ -43,44 +43,6 @@ public:
 
     virtual ~RenderCopyXe_LPM_Plus_Base();
 
-
-     //!
-    //! \brief    Copy input surface to Output surface
-    //! \details  Copy 2D surface to 2D surface
-    //! \param    src
-    //!           [in] Pointer to source resource
-    //! \param    dst
-    //!           [in] Pointer to destination resource
-    //! \return   MOS_STATUS
-    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
-    //!
-    virtual MOS_STATUS CopySurface(
-        PMOS_RESOURCE src,
-        PMOS_RESOURCE dst);
-
-    //!
-    //! \brief    Render copy omputer walker setup
-    //! \details  Computer walker setup for render copy
-    //! \param    PMHW_WALKER_PARAMS pWalkerParams
-    //!           [in/out] Pointer to Walker params
-    //! \return   MOS_STATUS
-    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
-    //!
-   virtual MOS_STATUS RenderCopyComputerWalker(
-     PMHW_GPGPU_WALKER_PARAMS    pWalkerParams);
-
-protected:
-
-    //!
-    //! \brief    Submit command
-    //! \details  Submit render command
-    //! \return   MOS_STATUS
-    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
-    //!
-    virtual MOS_STATUS SubmitCMD( );
-
-    MOS_STATUS SetupKernel(int32_t iKDTIndex);
-
 MEDIA_CLASS_DEFINE_END(RenderCopyXe_LPM_Plus_Base)
 };
 

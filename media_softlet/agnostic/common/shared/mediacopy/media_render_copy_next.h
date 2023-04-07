@@ -144,6 +144,19 @@ public:
 
     MOS_STATUS LoadStaticData(int32_t  *piCurbeOffset);
 
+    //!
+    //! \brief    Copy input surface to Output surface
+    //! \details  Copy 2D surface to 2D surface
+    //! \param    src
+    //!           [in] Pointer to source resource
+    //! \param    dst
+    //!           [in] Pointer to destination resource
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS CopySurface(
+        PMOS_RESOURCE src,
+        PMOS_RESOURCE dst);
 protected:
 
     //!
@@ -153,6 +166,7 @@ protected:
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     virtual MOS_STATUS SubmitCMD( );
+    MOS_STATUS SetupKernel(int32_t iKDTIndex);
 
 public:
     PMOS_INTERFACE               m_osInterface     = nullptr;
@@ -172,6 +186,8 @@ public:
 
     uint32_t                     m_WalkerWidthBlockSize = 128;
     uint32_t                     m_WalkerHeightBlockSize = 8;
+    const void*                  m_KernelBin = nullptr;
+    uint32_t                     m_KernelBinSize = 0;
     MEDIA_CLASS_DEFINE_END(RenderCopyStateNext)
 };
 
