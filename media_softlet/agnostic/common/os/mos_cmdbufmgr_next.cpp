@@ -101,22 +101,27 @@ MOS_STATUS CmdBufMgrNext::Reset()
     CommandBufferNext *cmdBuf = nullptr;
     auto gpuContextMgr      = m_osContext->GetGpuContextMgr();
     MOS_OS_CHK_NULL_RETURN(gpuContextMgr);
-
-    MosUtilities::MosLockMutex(m_availablePoolMutex);
+    std::vector<CommandBufferNext *> tmpInUseCmdBufPool = {};
 
     MosUtilities::MosLockMutex(m_inUsePoolMutex);
 
     if (!m_inUseCmdBufPool.empty())
     {
-        for (auto& cmdBuf : m_inUseCmdBufPool)
-        {
-            UpperInsert(cmdBuf);
-        }
+        tmpInUseCmdBufPool = std::move(m_inUseCmdBufPool);
     }
 
     // clear in-use command buffer pool
     m_inUseCmdBufPool.clear();
     MosUtilities::MosUnlockMutex(m_inUsePoolMutex);
+
+    MosUtilities::MosLockMutex(m_availablePoolMutex);
+    if (!tmpInUseCmdBufPool.empty())
+    {
+        for (auto& cmdBuf : tmpInUseCmdBufPool)
+        {
+            UpperInsert(cmdBuf);
+        }
+    }
 
     for (auto& cmdBuf : m_availableCmdBufPool)
     {
