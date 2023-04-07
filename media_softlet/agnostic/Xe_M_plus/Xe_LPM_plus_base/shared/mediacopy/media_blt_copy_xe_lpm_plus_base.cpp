@@ -559,7 +559,7 @@ MOS_STATUS BltStateXe_Lpm_Plus_Base::SubmitCMD(
         return MOS_STATUS_INVALID_PARAMETER;
     }
     planeNum = GetPlaneNum(dstResDetails.Format);
-
+    m_osInterface->pfnSetPerfTag(m_osInterface, BLT_COPY);
     MediaPerfProfiler* perfProfiler = MediaPerfProfiler::Instance();
     BLT_CHK_NULL_RETURN(perfProfiler);
     BLT_CHK_STATUS_RETURN(perfProfiler->AddPerfCollectStartCmd((void*)this, m_osInterface, m_miItf, &cmdBuffer));
