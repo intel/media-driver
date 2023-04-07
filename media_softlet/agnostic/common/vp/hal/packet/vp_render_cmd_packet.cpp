@@ -729,6 +729,11 @@ MOS_STATUS VpRenderCmdPacket::SetupSurfaceState()
             }
 
             uint32_t index = 0;
+            bool     bWrite = renderSurfaceParams.isOutput;
+            if (renderSurfaceParams.bSurfaceTypeDefined)
+            {
+                bWrite = false;
+            }
 
             if (kernelSurfaceParam->surfaceOverwriteParams.bindedKernel && !kernelSurfaceParam->surfaceOverwriteParams.bufferResource)
             {
@@ -737,7 +742,7 @@ MOS_STATUS VpRenderCmdPacket::SetupSurfaceState()
                     &renderHalSurface,
                     &renderSurfaceParams,
                     kernelSurfaceParam->surfaceOverwriteParams.bindIndex,
-                    renderSurfaceParams.isOutput,
+                    bWrite,
                     kernelSurfaceParam->surfaceEntries,
                     kernelSurfaceParam->sizeOfSurfaceEntries);
             }
@@ -752,7 +757,7 @@ MOS_STATUS VpRenderCmdPacket::SetupSurfaceState()
                         &renderHalSurface,
                         &renderSurfaceParams,
                         kernelSurfaceParam->surfaceOverwriteParams.bindIndex,
-                        renderSurfaceParams.isOutput);
+                        bWrite);
                 }
                 else if ((kernelSurfaceParam->surfaceOverwriteParams.updatedSurfaceParams &&
                      kernelSurfaceParam->surfaceOverwriteParams.bufferResource            &&
@@ -765,7 +770,7 @@ MOS_STATUS VpRenderCmdPacket::SetupSurfaceState()
                         &renderHalSurface.OsSurface,
                         &renderHalSurface,
                         &renderSurfaceParams,
-                        renderSurfaceParams.isOutput);
+                        bWrite);
                 }
                 else
                 {
@@ -774,7 +779,7 @@ MOS_STATUS VpRenderCmdPacket::SetupSurfaceState()
                         &renderHalSurface.OsSurface,
                         &renderHalSurface,
                         &renderSurfaceParams,
-                        renderSurfaceParams.isOutput);
+                        bWrite);
                 }
             }
             VP_RENDER_CHK_STATUS_RETURN(m_kernel->UpdateCurbeBindingIndex(type, index));
