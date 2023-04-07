@@ -123,6 +123,7 @@ namespace decode
         {
             params.isSb128x128 = m_basicFeature->m_av1PicParams->m_seqInfoFlags.m_fields.m_use128x128Superblock ? true : false;
         }
+        params.chromaFormat = m_basicFeature->m_chromaFormat;
     }
 
     void Av1TempBufferOpInf::RecordSegIdBufInfo(Av1RefAssociatedBufs *buffer)
