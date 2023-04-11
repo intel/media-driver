@@ -335,6 +335,9 @@ MOS_STATUS Vp9HpuPkt::PatchHucProbCommands(MOS_COMMAND_BUFFER *commandBuffer, ui
     // Construct picture state 2nd level batch buffer
     RUN_FEATURE_INTERFACE_RETURN(Vp9EncodePak, Vp9FeatureIDs::vp9PakFeature, ConstructPicStateBatchBuffer, m_pipeline);
 
+    // Construct pak insert batch buffer
+    RUN_FEATURE_INTERFACE_RETURN(Vp9EncodePak, Vp9FeatureIDs::vp9PakFeature, ConstructPakInsertObjBatchBuffer);
+
     bool firstTaskInPhase = ((packetPhase & firstPacket) == firstPacket);
     bool requestProlog    = false;
 

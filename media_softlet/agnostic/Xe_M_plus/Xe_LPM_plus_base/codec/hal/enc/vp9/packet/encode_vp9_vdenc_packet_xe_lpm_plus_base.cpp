@@ -487,8 +487,11 @@ MOS_STATUS Vp9VdencPktXe_Lpm_Plus_Base::PatchTileLevelCommands(MOS_COMMAND_BUFFE
 {
     ENCODE_FUNC_CALL();
 
-    // Update and construct pak insert batch buffer
-    RUN_FEATURE_INTERFACE_RETURN(Vp9EncodePak, Vp9FeatureIDs::vp9PakFeature, ConstructPakInsertObjBatchBuffer);
+    if (!m_basicFeature->m_hucEnabled)
+    {
+        // Construct pak insert batch buffer
+        RUN_FEATURE_INTERFACE_RETURN(Vp9EncodePak, Vp9FeatureIDs::vp9PakFeature, ConstructPakInsertObjBatchBuffer);
+    }
 
     if (m_pipeline->IsFirstPipe())
     {
