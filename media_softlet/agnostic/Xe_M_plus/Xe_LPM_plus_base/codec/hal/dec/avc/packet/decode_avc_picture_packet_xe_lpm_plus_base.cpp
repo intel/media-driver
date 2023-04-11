@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021-2022, Intel Corporation
+* Copyright (c) 2021-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -109,7 +109,7 @@ namespace decode
                 CODECHAL_DECODE_MODE_AVCVLD,
                 &m_pictureStatesSize,
                 &m_picturePatchListSize,
-                m_avcPipeline->IsShortFormat()));
+                m_avcBasicFeature->m_shortFormatInUse));
 
         return MOS_STATUS_SUCCESS;
     }

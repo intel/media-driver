@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021, Intel Corporation
+* Copyright (c) 2021-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -447,7 +447,7 @@ MOS_STATUS AvcDecodeSlcPkt::CalculateSliceStateCommandSize()
     DECODE_FUNC_CALL();
 
     // Slice Level Commands
-    DECODE_CHK_STATUS(m_hwInterface->GetMfxPrimitiveCommandsDataSize(CODECHAL_DECODE_MODE_AVCVLD, &m_sliceStatesSize, &m_slicePatchListSize, m_avcPipeline->IsShortFormat()));
+    DECODE_CHK_STATUS(m_hwInterface->GetMfxPrimitiveCommandsDataSize(CODECHAL_DECODE_MODE_AVCVLD, &m_sliceStatesSize, &m_slicePatchListSize, m_avcBasicFeature->m_shortFormatInUse));
 
     return MOS_STATUS_SUCCESS;
 }
