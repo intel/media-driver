@@ -404,7 +404,7 @@ public:
     //!           Pointer to VEBOX_SURFACE_STATE command parameters
     //! \return   void
     //!
-    virtual void SetupSurfaceStates(
+    virtual MOS_STATUS SetupSurfaceStates(
         PVPHAL_VEBOX_SURFACE_STATE_CMD_PARAMS  pVeboxSurfaceStateCmdParams);
 
     //!

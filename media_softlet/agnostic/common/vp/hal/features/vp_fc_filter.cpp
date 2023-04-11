@@ -704,8 +704,8 @@ MOS_STATUS PolicyFcFeatureHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFil
         else if(FeatureTypeColorFillOnRender == type)
         {
             // Only apply color fill on 1st pass.
-            featurePipe.RemoveSwFilter(&feature);
-            executePipe.AddSwFilterUnordered(&feature, isInputPipe, index);
+            VP_PUBLIC_CHK_STATUS_RETURN(featurePipe.RemoveSwFilter(&feature));
+            VP_PUBLIC_CHK_STATUS_RETURN(executePipe.AddSwFilterUnordered(&feature, isInputPipe, index));
         }
         else
         {

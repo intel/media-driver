@@ -737,14 +737,16 @@ MOS_STATUS VpRenderCmdPacket::SetupSurfaceState()
 
             if (kernelSurfaceParam->surfaceOverwriteParams.bindedKernel && !kernelSurfaceParam->surfaceOverwriteParams.bufferResource)
             {
-                index = SetSurfaceForHwAccess(
+                VP_RENDER_CHK_STATUS_RETURN(SetSurfaceForHwAccess(
                     &renderHalSurface.OsSurface,
                     &renderHalSurface,
                     &renderSurfaceParams,
                     kernelSurfaceParam->surfaceOverwriteParams.bindIndex,
                     bWrite,
                     kernelSurfaceParam->surfaceEntries,
-                    kernelSurfaceParam->sizeOfSurfaceEntries);
+                    kernelSurfaceParam->sizeOfSurfaceEntries));
+
+                index = kernelSurfaceParam->surfaceOverwriteParams.bindIndex;
             }
             else
             {

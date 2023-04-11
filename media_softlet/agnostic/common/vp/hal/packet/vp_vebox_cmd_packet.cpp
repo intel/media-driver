@@ -53,12 +53,12 @@ const uint32_t   VpVeboxCmdPacket::m_satS0Table[MHW_STE_FACTOR_MAX + 1] = {
 const uint32_t   VpVeboxCmdPacket::m_satS1Table[MHW_STE_FACTOR_MAX + 1] = {
     0x000000ab, 0x00000080, 0x00000066, 0x00000055, 0x000000c2, 0x000000b9, 0x000000b0, 0x000000a9, 0x000000a2, 0x0000009c };
 
-void VpVeboxCmdPacket::SetupSurfaceStates(
+MOS_STATUS VpVeboxCmdPacket::SetupSurfaceStates(
     PVPHAL_VEBOX_SURFACE_STATE_CMD_PARAMS   pVeboxSurfaceStateCmdParams)
 {
     VP_FUNC_CALL();
 
-    VP_PUBLIC_CHK_NULL_NO_STATUS_RETURN(pVeboxSurfaceStateCmdParams);
+    VP_RENDER_CHK_NULL_RETURN(pVeboxSurfaceStateCmdParams);
     MOS_ZeroMemory(pVeboxSurfaceStateCmdParams, sizeof(VPHAL_VEBOX_SURFACE_STATE_CMD_PARAMS));
     pVeboxSurfaceStateCmdParams->pSurfInput    = m_veboxPacketSurface.pCurrInput;
     pVeboxSurfaceStateCmdParams->pSurfOutput   = m_veboxPacketSurface.pCurrOutput;
@@ -68,6 +68,7 @@ void VpVeboxCmdPacket::SetupSurfaceStates(
     pVeboxSurfaceStateCmdParams->b3DlutEnable  = m_PacketCaps.bHDR3DLUT;  // Need to consider cappipe
 
     UpdateCpPrepareResources();
+    return MOS_STATUS_SUCCESS;
 }
 
 void VpVeboxCmdPacket::UpdateCpPrepareResources()
@@ -1581,7 +1582,7 @@ MOS_STATUS VpVeboxCmdPacket::SetVeboxIndex(
 {
     VP_RENDER_CHK_NULL_RETURN(m_veboxItf);
 
-    m_veboxItf->SetVeboxIndex(dwVeboxIndex, dwVeboxCount, dwUsingSFC);
+    VP_RENDER_CHK_STATUS_RETURN(m_veboxItf->SetVeboxIndex(dwVeboxIndex, dwVeboxCount, dwUsingSFC));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -1593,7 +1594,7 @@ MOS_STATUS VpVeboxCmdPacket::SetVeboxState(
     VP_RENDER_CHK_NULL_RETURN(pCmdBufferInUse);
     VP_RENDER_CHK_NULL_RETURN(m_veboxItf);
 
-    m_veboxItf->MHW_ADDCMD_F(VEBOX_STATE)(pCmdBufferInUse, nullptr);
+    VP_RENDER_CHK_STATUS_RETURN(m_veboxItf->MHW_ADDCMD_F(VEBOX_STATE)(pCmdBufferInUse, nullptr));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -1606,7 +1607,7 @@ MOS_STATUS VpVeboxCmdPacket::SetVeboxSurfaces(
     VP_RENDER_CHK_NULL_RETURN(pCmdBufferInUse);
     VP_RENDER_CHK_NULL_RETURN(m_veboxItf);
 
-    m_veboxItf->AddVeboxSurfaces(pCmdBufferInUse, pMhwVeboxSurfaceStateCmdParams);
+    VP_RENDER_CHK_STATUS_RETURN(m_veboxItf->AddVeboxSurfaces(pCmdBufferInUse, pMhwVeboxSurfaceStateCmdParams));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -1618,7 +1619,7 @@ MOS_STATUS VpVeboxCmdPacket::SetVeboxDiIecp(
     VP_RENDER_CHK_NULL_RETURN(pCmdBufferInUse);
     VP_RENDER_CHK_NULL_RETURN(m_veboxItf);
 
-    m_veboxItf->MHW_ADDCMD_F(VEB_DI_IECP)(pCmdBufferInUse, nullptr);
+    VP_RENDER_CHK_STATUS_RETURN(m_veboxItf->MHW_ADDCMD_F(VEB_DI_IECP)(pCmdBufferInUse, nullptr));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -1687,10 +1688,10 @@ MOS_STATUS VpVeboxCmdPacket::RenderVeboxCmd(
 
     bDiVarianceEnable = m_PacketCaps.bDI;
 
-    SetupSurfaceStates(
-        &VeboxSurfaceStateCmdParams);
+    VP_RENDER_CHK_STATUS_RETURN(SetupSurfaceStates(
+        &VeboxSurfaceStateCmdParams));
 
-    SetupVeboxState(veboxStateCmdParams);
+    VP_RENDER_CHK_STATUS_RETURN(SetupVeboxState(veboxStateCmdParams));
 
     VP_RENDER_CHK_STATUS_RETURN(SetupDiIecpState(
         bDiVarianceEnable,
@@ -1888,28 +1889,28 @@ MOS_STATUS VpVeboxCmdPacket::RenderVeboxCmd(
 
         if (pOsInterface->bNoParsingAssistanceInKmd)
         {
-            m_miItf->AddMiBatchBufferEnd(pCmdBufferInUse, nullptr);
+            VP_RENDER_CHK_STATUS_RETURN(m_miItf->AddMiBatchBufferEnd(pCmdBufferInUse, nullptr));
         }
         else if (RndrCommonIsMiBBEndNeeded(pOsInterface))
         {
             // Add Batch Buffer end command (HW/OS dependent)
-            m_miItf->AddMiBatchBufferEnd(pCmdBufferInUse, nullptr);
+            VP_RENDER_CHK_STATUS_RETURN(m_miItf->AddMiBatchBufferEnd(pCmdBufferInUse, nullptr));
         }
 
         if (bMultipipe)
         {
-            scalability->ReturnCmdBuffer(pCmdBufferInUse);
+            VP_RENDER_CHK_STATUS_RETURN(scalability->ReturnCmdBuffer(pCmdBufferInUse));
         }
     }
 
     if (bMultipipe)
     {
         scalability->SetCurrentPipeIndex(inputPipe);
-        ReportUserSetting(m_userSettingPtr, __MEDIA_USER_FEATURE_VALUE_ENABLE_VEBOX_SCALABILITY_MODE, true, MediaUserSetting::Group::Device);
+        VP_RENDER_CHK_STATUS_RETURN(ReportUserSetting(m_userSettingPtr, __MEDIA_USER_FEATURE_VALUE_ENABLE_VEBOX_SCALABILITY_MODE, true, MediaUserSetting::Group::Device));
     }
     else
     {
-        ReportUserSetting(m_userSettingPtr, __MEDIA_USER_FEATURE_VALUE_ENABLE_VEBOX_SCALABILITY_MODE, false, MediaUserSetting::Group::Device);
+        VP_RENDER_CHK_STATUS_RETURN(ReportUserSetting(m_userSettingPtr, __MEDIA_USER_FEATURE_VALUE_ENABLE_VEBOX_SCALABILITY_MODE, false, MediaUserSetting::Group::Device));
     }
 
     MT_LOG2(MT_VP_HAL_RENDER_VE, MT_NORMAL, MT_VP_MHW_VE_SCALABILITY_EN, bMultipipe, MT_VP_MHW_VE_SCALABILITY_USE_SFC, m_IsSfcUsed);
@@ -2120,8 +2121,8 @@ MOS_STATUS VpVeboxCmdPacket::DumpVeboxStateHeap()
     kernelResource.osSurface->OsResource = pVeboxHeap->KernelResource;
 
     VPHAL_GET_SURFACE_INFO info = {};
-    m_allocator->GetSurfaceInfo(&driverResource, info);
-    m_allocator->GetSurfaceInfo(&kernelResource, info);
+    VP_RENDER_CHK_STATUS_RETURN(m_allocator->GetSurfaceInfo(&driverResource, info));
+    VP_RENDER_CHK_STATUS_RETURN(m_allocator->GetSurfaceInfo(&kernelResource, info));
 
 
     VP_SURFACE_DUMP(debuginterface,
@@ -2216,7 +2217,7 @@ MOS_STATUS VpVeboxCmdPacket::PrepareState()
     {
         const MHW_VEBOX_HEAP *veboxHeap = nullptr;
 
-        m_veboxItf->GetVeboxHeapInfo(&veboxHeap);
+        VP_RENDER_CHK_STATUS_RETURN(m_veboxItf->GetVeboxHeapInfo(&veboxHeap));
         VP_RENDER_CHK_NULL_RETURN(veboxHeap);
 
         m_veboxHeapCurState = veboxHeap->uiCurState;

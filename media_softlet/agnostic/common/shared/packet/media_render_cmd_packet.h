@@ -168,11 +168,11 @@ public:
         bool                            bWrite);
 
     // Step3: RSS Setup with fixed binding index, return index insert in binding table
-    virtual uint32_t SetSurfaceForHwAccess(
+    virtual MOS_STATUS SetSurfaceForHwAccess(
         PMOS_SURFACE                    surface,
         PRENDERHAL_SURFACE_NEXT         pRenderSurface,
         PRENDERHAL_SURFACE_STATE_PARAMS pSurfaceParams,
-        uint32_t                        bindingIndex,
+        uint32_t                        &bindingIndex,
         bool                            bWrite,
         PRENDERHAL_SURFACE_STATE_ENTRY *surfaceEntries      = nullptr,
         uint32_t *                      numOfSurfaceEntries = nullptr);
