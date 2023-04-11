@@ -176,6 +176,9 @@ struct _MHW_PAR_T(VDENC_PIPE_MODE_SELECT)
     uint8_t VdencPipeModeSelectPar6  = 0;
     uint8_t VdencPipeModeSelectPar7  = 0;
     uint8_t VdencPipeModeSelectPar8  = 0;
+    bool    VdencPipeModeSelectPar9  = false;
+    uint8_t VdencPipeModeSelectPar10 = 0;
+    uint8_t VdencPipeModeSelectPar11 = 0;
 };
 
 struct _MHW_PAR_T(VDENC_SRC_SURFACE_STATE)
