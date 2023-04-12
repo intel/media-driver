@@ -116,6 +116,8 @@ public:
     //!
     virtual MOS_STATUS Initialize();
 
+    bool IsInitialized() { return m_initialized; }
+
 protected:
     MOS_STATUS InitScalingParams(vp::FeatureParamScaling &scalingParams, VDBOX_SFC_PARAMS &sfcParam);
     MOS_STATUS InitScalingParams(vp::FeatureParamScaling &scalingParams, VEBOX_SFC_PARAMS &sfcParam);

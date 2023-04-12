@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2021, Intel Corporation
+* Copyright (c) 2019-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -66,8 +66,6 @@ public:
     //!          MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS Update();
-
-    MOS_STATUS UpdateEncRefBufType(BufferType ref, BufferType ref4x, BufferType ref8x);
 
     MOS_STATUS UpdateRefFrameSize(uint32_t width, uint32_t height);
 

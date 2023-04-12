@@ -44,6 +44,20 @@ Av1SuperRes::Av1SuperRes(MediaFeatureManager *featureManager,
     ENCODE_CHK_NULL_NO_STATUS_RETURN(m_allocator);
 }
 
+MOS_STATUS Av1SuperRes::Init(void *setting)
+{
+    ENCODE_FUNC_CALL();
+    ENCODE_CHK_NULL_RETURN(setting);
+
+    m_basicFeature = dynamic_cast<Av1BasicFeature *>(m_featureManager->GetFeature(Av1FeatureIDs::basicFeature));
+    ENCODE_CHK_NULL_RETURN(m_basicFeature);
+
+    m_trackedBuf = m_basicFeature->m_trackedBuf;
+    ENCODE_CHK_NULL_RETURN(m_trackedBuf);
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS Av1SuperRes::Update(void *params)
 {
     ENCODE_FUNC_CALL();
@@ -57,9 +71,14 @@ MOS_STATUS Av1SuperRes::Update(void *params)
     auto av1PicParams = static_cast<PCODEC_AV1_ENCODE_PICTURE_PARAMS>(encodeParams->pPicParams);
     ENCODE_CHK_NULL_RETURN(av1SeqParams);
 
-    m_enabled       = av1SeqParams->CodingToolFlags.fields.enable_superres;
-    m_useSuperRes   = av1PicParams->PicFlags.fields.use_superres;
-    m_widthUpscaled = av1PicParams->frame_width_minus1 + 1;
+    m_oriFrameHeight       = av1PicParams->frame_height_minus1 + 1;
+    m_oriAlignedFrameWidth = av1PicParams->frame_width_minus1 + 1;
+
+    uint16_t picHeightInMb = (uint16_t)CODECHAL_GET_HEIGHT_IN_MACROBLOCKS(m_oriFrameHeight);
+    m_frameHeight          = picHeightInMb * CODECHAL_MACROBLOCK_HEIGHT;
+
+    m_enabled     = av1SeqParams->CodingToolFlags.fields.enable_superres;
+    m_useSuperRes = av1PicParams->PicFlags.fields.use_superres;
 
     ENCODE_CHK_COND_RETURN(!m_enabled && m_useSuperRes == true, "Super-res disabled in SPS, but enabled in PPS!");
     ENCODE_CHK_COND_RETURN(m_enabled && !m_useSuperRes && av1PicParams->superres_scale_denominator != av1ScaleNumerator, "Super-res not used in current frame, but scale denominator is not 8!");
@@ -72,15 +91,15 @@ MOS_STATUS Av1SuperRes::Update(void *params)
         // HW restriction of SuperRes denominator for SuperRes + LoopRestoration
         ENCODE_CHK_COND_RETURN(av1SeqParams->CodingToolFlags.fields.enable_restoration && m_superResDenom % 2 == 1, "When both SuperRes and LoopRestoration are enabled, only valid SuperRes denominator values are 10, 12, 14 and 16");
 
-        m_widthDownscaled = ((m_widthUpscaled << 3) + (m_superResDenom >> 1)) / m_superResDenom;
+        m_frameWidthDs = ((m_oriAlignedFrameWidth << 3) + (m_superResDenom >> 1)) / m_superResDenom;
 
         // update DDI width so that subsequent features will use downscaled width
-        av1PicParams->frame_width_minus1 = m_widthDownscaled - 1;
+        av1PicParams->frame_width_minus1 = m_frameWidthDs - 1;
     }
     else
     {
-        m_widthDownscaled = m_widthUpscaled;
-        m_superResDenom   = av1ScaleNumerator;
+        m_frameWidthDs  = m_oriAlignedFrameWidth;
+        m_superResDenom = av1ScaleNumerator;
     }
 
     int8_t subsamplingX = /*SequenceChromaSubSamplingFormat != chromaIdc444 ? 1 : 0*/ 1;
@@ -88,10 +107,128 @@ MOS_STATUS Av1SuperRes::Update(void *params)
     m_subsamplingX[1]   = subsamplingX;
     m_subsamplingX[2]   = subsamplingX;
 
-    auto basicFeature = dynamic_cast<Av1BasicFeature *>(m_featureManager->GetFeature(Av1FeatureIDs::basicFeature));
-    ENCODE_CHK_NULL_RETURN(basicFeature);
+    ENCODE_CHK_STATUS_RETURN(m_basicFeature->m_ref.UpdateRefFrameSize(m_oriAlignedFrameWidth, av1PicParams->frame_height_minus1 + 1));
 
-    ENCODE_CHK_STATUS_RETURN(basicFeature->m_ref.UpdateRefFrameSize(m_widthUpscaled, av1PicParams->frame_height_minus1 + 1));
+    if (m_enabled)
+    {
+        m_basicFeature->m_ref.SetPostCdefAsEncRef(true);
+
+        m_widthChanged = m_prevDsWidth != av1PicParams->frame_width_minus1 + 1;
+
+        ENCODE_CHK_NULL_RETURN(encodeParams->psRawSurface);
+        m_raw.resource = encodeParams->psRawSurface;
+        m_allocator->GetSurfaceInfo(m_raw.resource);
+
+        ENCODE_CHK_STATUS_RETURN(PrepareRawSurface());
+
+        PrepareVeSfcDownscalingParam(m_raw, m_rawDs, m_downScalingParams);
+
+        m_prevDsWidth = m_frameWidthDs;
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS Av1SuperRes::InitMMCState(EncodeMemComp *mmcState)
+{
+    ENCODE_CHK_NULL_RETURN(mmcState);
+    m_mmcState = mmcState;
+    return MOS_STATUS_SUCCESS;
+}
+
+static inline MOS_STATUS SetSurfaceMMCParams(EncodeMemComp &mmcState, MOS_SURFACE &surf)
+{
+    ENCODE_CHK_STATUS_RETURN(mmcState.SetSurfaceMmcMode(&surf));
+    ENCODE_CHK_STATUS_RETURN(mmcState.SetSurfaceMmcState(&surf));
+    ENCODE_CHK_STATUS_RETURN(mmcState.SetSurfaceMmcFormat(&surf));
+    surf.bIsCompressed = surf.CompressionMode != MOS_MMC_DISABLED;
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS Av1SuperRes::PrepareRawSurface()
+{
+    ENCODE_FUNC_CALL();
+
+    if (m_enabled)
+    {
+        m_raw.unalignedWidth  = GetUpscaledWidth();
+        m_raw.unalignedHeight = m_oriFrameHeight;
+
+        ENCODE_CHK_NULL_RETURN(m_mmcState);
+
+        if (m_widthChanged)
+        {
+            if (!Mos_ResourceIsNull(&m_rawDs.resource->OsResource))
+            {
+                m_allocator->DestroySurface(m_rawDs.resource);
+            }
+
+            MOS_ALLOC_GFXRES_PARAMS allocParamsForBuffer2D;
+            MOS_ZeroMemory(&allocParamsForBuffer2D, sizeof(MOS_ALLOC_GFXRES_PARAMS));
+
+            allocParamsForBuffer2D.Type         = MOS_GFXRES_2D;
+            allocParamsForBuffer2D.TileType     = MOS_TILE_Y;
+            allocParamsForBuffer2D.Format       = m_raw.resource->Format;
+            allocParamsForBuffer2D.dwWidth      = MOS_ALIGN_CEIL(m_frameWidthDs, av1SuperBlockWidth);
+            allocParamsForBuffer2D.dwHeight     = MOS_ALIGN_CEIL(m_frameHeight, av1SuperBlockHeight);
+            allocParamsForBuffer2D.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
+            allocParamsForBuffer2D.pBufName     = "superResEncRawSurface";
+
+            if (m_mmcState->IsMmcEnabled())
+            {
+                allocParamsForBuffer2D.CompressionMode = MOS_MMC_MC;
+                allocParamsForBuffer2D.bIsCompressible = true;
+            }
+
+            m_rawDs.resource = m_allocator->AllocateSurface(allocParamsForBuffer2D, false);
+            ENCODE_CHK_NULL_RETURN(m_rawDs.resource);
+            ENCODE_CHK_STATUS_RETURN(m_allocator->GetSurfaceInfo(m_rawDs.resource));
+
+            m_rawDs.unalignedWidth  = m_frameWidthDs;
+            m_rawDs.unalignedHeight = m_oriFrameHeight;
+        }
+
+        if (m_mmcState->IsMmcEnabled())
+        {
+            SetSurfaceMMCParams(*m_mmcState, *m_raw.resource);
+            SetSurfaceMMCParams(*m_mmcState, *m_rawDs.resource);
+        }
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS Av1SuperRes::PrepareVeSfcDownscalingParam(const SURFACE &inSurf, const SURFACE &outSurf, VEBOX_SFC_PARAMS &params)
+{
+    ENCODE_FUNC_CALL();
+
+    params.input.surface      = inSurf.resource;
+    params.input.chromaSiting = 0;
+    params.input.rcSrc        = {0, 0, (long)inSurf.unalignedWidth, (long)inSurf.unalignedHeight};
+    params.input.rotation     = ROTATION_IDENTITY;
+
+    params.output.surface      = outSurf.resource;
+    params.output.chromaSiting = 0;
+    params.output.rcDst        = {0, 0, (long)outSurf.unalignedWidth, (long)outSurf.unalignedHeight};
+
+    switch (inSurf.resource->Format)
+    {
+    case Format_NV12:
+    case Format_P010:
+        params.input.colorSpace  = CSpace_Any;
+        params.output.colorSpace = CSpace_Any;
+        break;
+    case Format_A8R8G8B8:
+    case Format_A8B8G8R8:
+        params.input.colorSpace  = CSpace_sRGB;
+        params.output.colorSpace = CSpace_sRGB;
+        break;
+    default:
+        params.input.colorSpace  = CSpace_Any;
+        params.output.colorSpace = CSpace_Any;
+        break;
+    }
 
     return MOS_STATUS_SUCCESS;
 }
@@ -125,7 +262,7 @@ static inline int32_t GetUpscaleConvolveX0(int32_t inLength, int32_t outLength, 
 
 MHW_SETPAR_DECL_SRC(AVP_INLOOP_FILTER_STATE, Av1SuperRes)
 {
-    params.superresUpscaledWidthMinus1 = m_widthUpscaled - 1;
+    params.superresUpscaledWidthMinus1 = m_oriAlignedFrameWidth - 1;
     params.superresDenom               = m_superResDenom;
 
     int32_t xStepQn[3];
@@ -135,8 +272,8 @@ MHW_SETPAR_DECL_SRC(AVP_INLOOP_FILTER_STATE, Av1SuperRes)
     {
         for (int32_t plane = 0; plane < 2; plane++)
         {
-            int32_t downscaledPlaneWidth = ROUND_POWER_OF_TWO(m_widthDownscaled, m_subsamplingX[plane]);
-            int32_t upscaledPlaneWidth   = ROUND_POWER_OF_TWO(m_widthUpscaled, m_subsamplingX[plane]);
+            int32_t downscaledPlaneWidth = ROUND_POWER_OF_TWO(m_frameWidthDs, m_subsamplingX[plane]);
+            int32_t upscaledPlaneWidth   = ROUND_POWER_OF_TWO(m_oriAlignedFrameWidth, m_subsamplingX[plane]);
 
             xStepQn[plane] = GetUpscaleConvolveStep(downscaledPlaneWidth, upscaledPlaneWidth);
             x0Qn[plane]    = GetUpscaleConvolveX0(downscaledPlaneWidth, upscaledPlaneWidth, xStepQn[plane]);

@@ -54,8 +54,6 @@ MOS_STATUS Av1VdencPipelineXe_Lpm_Plus_Base::Init(void *settings)
     return MOS_STATUS_SUCCESS;
 }
 
-
-
 MOS_STATUS Av1VdencPipelineXe_Lpm_Plus_Base::Prepare(void *params)
 {
     ENCODE_FUNC_CALL();
@@ -104,6 +102,25 @@ MOS_STATUS Av1VdencPipelineXe_Lpm_Plus_Base::Execute()
 {
     ENCODE_FUNC_CALL();
 
+    ENCODE_CHK_NULL_RETURN(m_featureManager);
+    auto superResFeature = dynamic_cast<Av1SuperRes *>(m_featureManager->GetFeature(Av1FeatureIDs::av1SuperRes));
+    ENCODE_CHK_NULL_RETURN(superResFeature);
+    if (superResFeature->IsEnabled())
+    {
+        if (superResFeature->IsSuperResUsed())
+        {
+            MEDIA_SFC_INTERFACE_MODE sfcMode = {};
+            sfcMode.vdboxSfcEnabled          = false;
+            sfcMode.veboxSfcEnabled          = true;
+            if (!m_sfcItf->IsRenderInitialized())
+            {
+                m_sfcItf->Initialize(sfcMode);
+            }
+            ENCODE_CHK_STATUS_RETURN(m_sfcItf->Render(superResFeature->GetDownScalingParams()));
+            ContextSwitchBack();
+        }
+    }
+
     ENCODE_CHK_STATUS_RETURN(ActivateVdencVideoPackets());
     ENCODE_CHK_STATUS_RETURN(ExecuteActivePackets());
 
@@ -140,14 +157,6 @@ MOS_STATUS Av1VdencPipelineXe_Lpm_Plus_Base::ActivateVdencVideoPackets()
             return MOS_STATUS_SUCCESS;
         }
 #endif
-    }
-
-    auto superResFeature = dynamic_cast<Av1SuperRes *>(m_featureManager->GetFeature(Av1FeatureIDs::av1SuperRes));
-    ENCODE_CHK_NULL_RETURN(superResFeature);
-
-    if (superResFeature->IsEnabled())
-    {
-        ENCODE_CHK_STATUS_RETURN(ActivatePacket(Av1Superres, immediateSubmit, 0, 0));
     }
 
     if (brcFeature->IsBRCInitRequired())

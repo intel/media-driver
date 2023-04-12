@@ -25,7 +25,6 @@
 //!
 
 #include "encode_av1_vdenc_pipeline_xe_lpm_plus.h"
-#include "encode_av1_superres_packet.h"
 #if _MEDIA_RESERVED
 #include "encode_av1_vdenc_packet_xe_lpm_plus_ext.h"
 #endif // _MEDIA_RESERVED
@@ -35,6 +34,7 @@
 #include "codechal_debug.h"
 #include "encode_av1_vdenc_feature_manager_xe_lpm_plus_base.h"
 #include "encode_preenc_packet.h"
+#include "encode_av1_superres.h"
 
 namespace encode
 {
@@ -58,10 +58,6 @@ MOS_STATUS Av1VdencPipelineXe_LPM_Plus::Init(void *settings)
         ENCODE_CHK_STATUS_RETURN(av1PreEncPkt->Init());
     }
 
-    auto av1DownscalingPkt = MOS_New(Av1SuperresPkt, this, task, m_hwInterface);
-    RegisterPacket(Av1Superres, av1DownscalingPkt);
-    av1DownscalingPkt->Init();
-
     Av1BrcInitPkt *brcInitpkt = MOS_New(Av1BrcInitPkt, this, task, m_hwInterface);
     ENCODE_CHK_STATUS_RETURN(RegisterPacket(Av1HucBrcInit, brcInitpkt));
     ENCODE_CHK_STATUS_RETURN(brcInitpkt->Init());
@@ -81,6 +77,9 @@ MOS_STATUS Av1VdencPipelineXe_LPM_Plus::Init(void *settings)
     auto av1BackAnnotationpkt = MOS_New(Av1BackAnnotationPkt, this, task, m_hwInterface);
     RegisterPacket(Av1BackAnnotation, av1BackAnnotationpkt);
     av1BackAnnotationpkt->Init();
+
+    m_sfcItf = m_hwInterface->GetMediaSfcInterface();
+    ENCODE_CHK_NULL_RETURN(m_sfcItf);
 
     return MOS_STATUS_SUCCESS;
 }
