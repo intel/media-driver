@@ -142,7 +142,6 @@ MOS_STATUS HevcVdencPipeline::ActivateVdencVideoPackets()
     // Last element in m_activePacketList must be immediately submitted
     m_activePacketList.back().immediateSubmit = true;
 
-#ifdef _ENCODE_RESERVED
     auto basicFeature = dynamic_cast<HevcBasicFeature *>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
     ENCODE_CHK_NULL_RETURN(basicFeature);
     if (basicFeature->m_rsvdState && basicFeature->m_rsvdState->GetFeatureRsvdFlag())
@@ -150,7 +149,6 @@ MOS_STATUS HevcVdencPipeline::ActivateVdencVideoPackets()
         m_activePacketList.front().frameTrackingRequested = false;
         ENCODE_CHK_STATUS_RETURN(ActivatePacket(hevcVdencPacketRsvd, true, 0, 0));
     }
-#endif
 
     return MOS_STATUS_SUCCESS;
 }

@@ -37,13 +37,11 @@ namespace encode
 {
 HevcBasicFeature::~HevcBasicFeature()
 {
-#ifdef _ENCODE_RESERVED
     if (m_rsvdState)
     {
         MOS_Delete(m_rsvdState);
         m_rsvdState = nullptr;
     }
-#endif
 }
 
 MOS_STATUS HevcBasicFeature::Init(void *setting)
@@ -107,9 +105,9 @@ MOS_STATUS HevcBasicFeature::Init(void *setting)
 #endif  // _DEBUG || _RELEASE_INTERNAL
     m_hevcRDOQPerfDisabled = outValue.Get<bool>();
 
-#ifdef _ENCODE_RESERVED
+
     ENCODE_CHK_STATUS_RETURN(InitRsvdState());
-#endif
+
 
     return MOS_STATUS_SUCCESS;
 }
@@ -125,6 +123,7 @@ MOS_STATUS HevcBasicFeature::Update(void *params)
 
     m_hevcSeqParams = static_cast<PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS>(encodeParams->pSeqParams);
     ENCODE_CHK_NULL_RETURN(m_hevcSeqParams);
+
     m_hevcPicParams = static_cast<PCODEC_HEVC_ENCODE_PICTURE_PARAMS>(encodeParams->pPicParams);
     ENCODE_CHK_NULL_RETURN(m_hevcPicParams);
     m_hevcSliceParams = static_cast<PCODEC_HEVC_ENCODE_SLICE_PARAMS>(encodeParams->pSliceParams);
@@ -135,12 +134,10 @@ MOS_STATUS HevcBasicFeature::Update(void *params)
     ENCODE_CHK_NULL_RETURN(m_nalUnitParams);
     m_NumNalUnits   = encodeParams->uiNumNalUnits;
 
-#ifdef _ENCODE_RESERVED
     if (m_rsvdState && m_rsvdState->GetFeatureRsvdFlag())
     {
         ENCODE_CHK_STATUS_RETURN(m_rsvdState->UpdateRsvdFormat(m_hevcSeqParams, m_outputChromaFormat, m_reconSurface.Format, m_is10Bit));
     }
-#endif
 
     if (encodeParams->bAcceleratorHeaderPackingCaps)
     {
@@ -353,12 +350,10 @@ MOS_STATUS HevcBasicFeature::UpdateTrackedBufferParameters()
         ENCODE_CHK_STATUS_RETURN(m_trackedBuf->RegisterParam(encode::BufferType::mvTemporalBuffer, allocParams));
     }
 
-#ifdef _ENCODE_RESERVED
     if (m_rsvdState && m_rsvdState->GetFeatureRsvdFlag())
     {
         ENCODE_CHK_STATUS_RETURN(m_rsvdState->RegisterMbCodeBuffer(m_trackedBuf, m_isMbCodeRegistered, m_mbCodeSize));
     }
-#endif
 
     ENCODE_CHK_STATUS_RETURN(EncodeBasicFeature::UpdateTrackedBufferParameters());
 
@@ -648,7 +643,6 @@ MOS_STATUS HevcBasicFeature::SetRoundingValues()
     return eStatus;
 }
 
-#ifdef _ENCODE_RESERVED
 MOS_STATUS HevcBasicFeature::InitRsvdState()
 {
     ENCODE_FUNC_CALL();
@@ -658,7 +652,6 @@ MOS_STATUS HevcBasicFeature::InitRsvdState()
 
     return MOS_STATUS_SUCCESS;
 }
-#endif
 
 MOS_STATUS HevcBasicFeature::GetSurfaceMmcInfo(PMOS_SURFACE surface, MOS_MEMCOMP_STATE &mmcState, uint32_t &compressionFormat) const
 {

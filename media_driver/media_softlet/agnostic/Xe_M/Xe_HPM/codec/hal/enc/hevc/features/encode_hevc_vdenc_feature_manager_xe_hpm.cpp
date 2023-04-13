@@ -27,6 +27,7 @@
 
 #include "encode_hevc_vdenc_feature_manager_xe_hpm.h"
 #include "encode_hevc_vdenc_scc.h"
+#include "encode_hevc_basic_feature_rsvd.h"
 namespace encode
 {
 MOS_STATUS EncodeHevcVdencFeatureManagerXe_Hpm::CreateFeatures(void *constSettings)
@@ -54,19 +55,17 @@ MOS_STATUS EncodeHevcVdencFeatureManagerXe_Hpm::CheckFeatures(void* params)
     PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS hevcSeqParams =
         static_cast<PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS>(encodeParams->pSeqParams);
     ENCODE_CHK_NULL_RETURN(hevcSeqParams);
-
-#ifdef _ENCODE_RESERVED
+    PCODEC_HEVC_ENCODE_PICTURE_PARAMS hevcPicParams =
+        static_cast<PCODEC_HEVC_ENCODE_PICTURE_PARAMS>(encodeParams->pPicParams);
+    ENCODE_CHK_NULL_RETURN(hevcPicParams);
     if (m_basicFeature->m_rsvdState)
     {
-        ENCODE_CHK_STATUS_RETURN(m_basicFeature->m_rsvdState->Init(hevcSeqParams));
+        ENCODE_CHK_STATUS_RETURN(m_basicFeature->m_rsvdState->Init(hevcSeqParams,hevcPicParams));
     }
-#endif
 
     if (MEDIA_IS_WA(waTable, WaEnableOnlyASteppingFeatures))
     {
-        PCODEC_HEVC_ENCODE_PICTURE_PARAMS hevcPicParams =
-            static_cast<PCODEC_HEVC_ENCODE_PICTURE_PARAMS>(encodeParams->pPicParams);
-        ENCODE_CHK_NULL_RETURN(hevcPicParams);
+
         ENCODE_CHK_STATUS_RETURN(ValidateASteppingNotSupportedFeatures(hevcSeqParams, hevcPicParams));
     }
 

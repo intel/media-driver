@@ -528,9 +528,7 @@ namespace encode
             }
         }
         else if (m_osInterface->bInlineCodecStatusUpdate
-#ifdef _ENCODE_RESERVED
             && !(m_basicFeature->m_rsvdState && m_basicFeature->m_rsvdState->GetFeatureRsvdFlag())
-#endif
             )
         {
             ENCODE_CHK_STATUS_RETURN(UpdateStatusReport(statusReportGlobalCount, &cmdBuffer));
@@ -2170,9 +2168,7 @@ namespace encode
         // needs to be enabled for 1st pass in multi-pass case
         // This bit is ignored if PAK only second pass is enabled.
         if ((m_pipeline->GetCurrentPass() == 0) && !m_pipeline->IsLastPass()
-#ifdef _ENCODE_RESERVED
             || (m_basicFeature->m_rsvdState && m_basicFeature->m_rsvdState->GetFeatureRsvdFlag())
-#endif
         )
         {
             params.pakObjCmdStreamOut = true;

@@ -35,11 +35,7 @@
 #include "mhw_vdbox_vdenc_itf.h"
 #include "mhw_vdbox_hcp_itf.h"
 #include "encode_mem_compression.h"
-
-#ifdef _ENCODE_RESERVED
 #include "encode_hevc_basic_feature_rsvd.h"
-#endif
-
 namespace encode
 {
 #define CODECHAL_HEVC_VDENC_LCU_SIZE           64
@@ -139,10 +135,8 @@ public:
 
     uint32_t m_picStateCmdStartInBytes = 0;       //!< Offset of PIC_STATE cmd in batch buffer
 
-#ifdef _ENCODE_RESERVED
     HevcBasicFeatureRsvd *m_rsvdState = nullptr;
     MOS_STATUS            InitRsvdState();
-#endif
 
     std::deque<uint32_t> m_recycleBufferIdxes;
 
