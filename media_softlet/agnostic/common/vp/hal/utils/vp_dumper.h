@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2021, Intel Corporation
+* Copyright (c) 2018-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -39,8 +39,6 @@
 #if !defined(LINUX) && !defined(ANDROID)
 #include "UmdStateSeparation.h"
 #endif
-
-
 
 #define MAX_NAME_LEN            100
 
@@ -285,7 +283,9 @@ public:
         VPHAL_SURF_DUMP_SURFACE_DEF *pPlanes,
         uint32_t                    *pdwNumPlanes,
         uint32_t                    *pdwSize,
-        uint8_t                     *&pData);
+        uint8_t                     *&pData,
+        const char                  *psPathPrefix = nullptr,
+        uint64_t                     iCounter = 0);
 
     VPHAL_SURF_DUMP_SPEC    m_dumpSpec;
 
@@ -437,6 +437,7 @@ private:
         uint32_t*                           pdwSize,
         bool                                auxEnable,
         bool                                isDeswizzled);
+
     //!
     //! \brief    Parse dump location
     //! \details  Take dump location strings and break down into individual post-
