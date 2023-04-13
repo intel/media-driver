@@ -131,6 +131,7 @@ namespace encode {
             rowstoreParams.Mode       = CODECHAL_ENCODE_MODE_AVC;
             rowstoreParams.dwPicWidth = m_basicFeature->m_frameWidth;
             rowstoreParams.bIsFrame   = (m_seqParam->frame_mbs_only_flag == 1);
+            rowstoreParams.ucChromaFormat = m_basicFeature->m_chromaFormat;
             ENCODE_CHK_STATUS_RETURN(m_hwInterface->SetRowstoreCachingOffsets(&rowstoreParams));
 
             if (m_vdencItf)
