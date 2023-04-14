@@ -34,7 +34,7 @@
 //!
 static const VAConfigAttribValEncAV1Ext2 VAProfileAV1Profile0_VAEntrypointEncSliceLP_encAV1Ext2
 {
-    {TILE_SIZE_BYTES - 1,0,AV1_TX_MODE_LARGEST_SUPPORTED,0,0}
+    {TILE_SIZE_BYTES - 1,3,AV1_TX_MODE_LARGEST_SUPPORTED,511,0}
 };
 
 static const VAConfigAttribValEncAV1 VAProfileAV1Profile0_VAEntrypointEncSliceLP_encAV1
