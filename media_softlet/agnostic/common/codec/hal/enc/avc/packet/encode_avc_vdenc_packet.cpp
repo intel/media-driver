@@ -726,6 +726,8 @@ namespace encode {
         }
 
         statusReportData->codecStatus = CODECHAL_STATUS_SUCCESSFUL;
+        statusReportData->numberPasses = (uint8_t)encodeStatusMfx->numberPasses;
+        ENCODE_VERBOSEMESSAGE("statusReportData->numberPasses: %d\n", statusReportData->numberPasses);
 
         CODECHAL_DEBUG_TOOL(
             ENCODE_CHK_STATUS_RETURN(DumpResources(encodeStatusMfx, statusReportData)););
