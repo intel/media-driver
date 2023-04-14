@@ -68,6 +68,8 @@ protected:
         uint32_t            tileCol,
         uint32_t            tileRowPass = 0);
 
+    virtual MOS_STATUS AddCommandsExt(MOS_COMMAND_BUFFER& cmdBuffer) { return MOS_STATUS_SUCCESS; };
+
     MOS_STATUS Construct3rdLevelBatch();
 
     void UpdateParameters() override;

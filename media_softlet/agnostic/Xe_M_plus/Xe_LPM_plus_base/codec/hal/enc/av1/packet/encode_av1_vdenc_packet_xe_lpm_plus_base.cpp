@@ -620,6 +620,9 @@ MOS_STATUS Av1VdencPktXe_Lpm_Plus_Base::AddOneTileCommands(
     m_basicFeature->m_flushCmd = Av1BasicFeature::waitVdenc;
     SETPAR_AND_ADDCMD(VD_PIPELINE_FLUSH, m_vdencItf, tempCmdBuffer);
 
+#if _MEDIA_RESERVED
+    AddCommandsExt(*tempCmdBuffer);
+#endif  // !(_MEDIA_RESERVED)
     ENCODE_CHK_STATUS_RETURN(EnsureAllCommandsExecuted(*tempCmdBuffer));
 
     if (!m_osInterface->bUsesPatchList)
