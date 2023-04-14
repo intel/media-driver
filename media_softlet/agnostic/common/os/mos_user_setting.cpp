@@ -214,6 +214,15 @@ MOS_STATUS MosUserSetting::InitMosCommonUserSetting(MediaUserSettingSharedPtr us
 
     DeclareUserSettingKey(
         userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_MUL_PROC_SINGLE_BIN,
+        MediaUserSetting::Group::Device,
+        int32_t(0),
+        true,
+        true,
+        USER_SETTING_CONFIG_PERF_PATH); //"Perf Profiler Multi Process Single Binary Flag."
+
+    DeclareUserSettingKey(
+        userSettingPtr,
         __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_BUFFER_SIZE_KEY,
         MediaUserSetting::Group::Device,
         uint32_t(10000000),

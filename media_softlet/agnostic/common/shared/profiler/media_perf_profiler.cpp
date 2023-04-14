@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021-2022, Intel Corporation
+* Copyright (c) 2021-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -295,6 +295,13 @@ MOS_STATUS MediaPerfProfiler::Initialize(void* context, MOS_INTERFACE *osInterfa
             m_registersKey[regIndex],
             MediaUserSetting::Group::Device);
     }
+
+    // Read multi processes single binary flag
+    ReadUserSetting(
+        userSettingPtr,
+        m_multiprocesssinglebin,
+        __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_MUL_PROC_SINGLE_BIN,
+        MediaUserSetting::Group::Device);
 
     PMOS_RESOURCE  pPerfStoreBuffer = (PMOS_RESOURCE)MOS_AllocAndZeroMemory(sizeof(MOS_RESOURCE));
     m_perfStoreBufferMap[pOsContext] = pPerfStoreBuffer;
@@ -643,7 +650,75 @@ MOS_STATUS MediaPerfProfiler::SavePerfData(MOS_INTERFACE *osInterface)
     PMOS_CONTEXT pOsContext = osInterface->pOsContext;
     CHK_NULL_RETURN(pOsContext);
 
-    if (m_perfDataIndexMap[pOsContext] > 0)
+    if (m_multiprocesssinglebin)
+    {
+        uint32_t        cnt                     = 0;
+        MOS_LOCK_PARAMS LockFlagsNoOverWrite    = {};
+
+        MOS_ZeroMemory(&LockFlagsNoOverWrite, sizeof(MOS_LOCK_PARAMS));
+        LockFlagsNoOverWrite.WriteOnly = 1;
+        LockFlagsNoOverWrite.NoOverWrite = 1;
+
+        if (m_perfDataCombined == nullptr)
+        {
+            m_perfDataCombinedSize  = 96;
+
+            for (auto iter = m_perfDataIndexMap.begin(); iter != m_perfDataIndexMap.end(); ++iter)
+            {
+                if (iter->second > 0)
+                {
+                    m_perfDataCombinedSize += BASE_OF_NODE(m_perfDataIndexMap[iter->first]) + 4;
+                    cnt += 1;
+                }
+            }
+
+            if (cnt == 0)
+            {
+                return status;
+            }
+
+            m_perfDataCombined = (uint32_t *)MOS_AllocAndZeroMemory(m_perfDataCombinedSize);
+            CHK_NULL_RETURN(m_perfDataCombined);
+
+            m_perfDataCombined[0] = 0x8086;
+            m_perfDataCombined[2] = m_perfDataCombinedSize - (cnt * 4);
+            m_perfDataCombined[3] = cnt;
+
+            m_perfDataCombinedOffset = 96 + (cnt * 4);
+        }
+
+        if (m_perfDataIndexMap[pOsContext] > 0)
+        {
+            uint8_t* pData = (uint8_t*)osInterface->pfnLockResource(
+                osInterface,
+                m_perfStoreBufferMap[pOsContext],
+                &LockFlagsNoOverWrite);
+
+            CHK_NULL_RETURN(pData);
+            MOS_SecureMemcpy(((uint8_t *)m_perfDataCombined) + m_perfDataCombinedOffset, BASE_OF_NODE(m_perfDataIndexMap[pOsContext]), pData, BASE_OF_NODE(m_perfDataIndexMap[pOsContext]));
+
+            osInterface->pfnUnlockResource(
+                osInterface,
+                m_perfStoreBufferMap[pOsContext]);
+
+            m_perfDataCombinedOffset += BASE_OF_NODE(m_perfDataIndexMap[pOsContext]);
+            m_perfDataCombined[24 + m_perfDataCombinedIndex] = BASE_OF_NODE(m_perfDataIndexMap[pOsContext]);
+            m_perfDataCombinedIndex ++;
+
+            if (m_perfDataCombinedOffset == m_perfDataCombinedSize)
+            {
+                MosUtilities::MosWriteFileFromPtr(m_outputFileName.c_str(), m_perfDataCombined, m_perfDataCombinedSize);
+                MOS_SafeFreeMemory(m_perfDataCombined);
+                m_perfDataCombined = nullptr;
+                m_perfDataCombinedIndex = 0;
+                m_perfDataCombinedOffset = 0;
+                m_perfDataCombinedSize = 0;
+            }
+        }
+
+        return status;
+    }
+    else if (m_perfDataIndexMap[pOsContext] > 0)
     {
         MOS_LOCK_PARAMS     LockFlagsNoOverWrite;
         MOS_ZeroMemory(&LockFlagsNoOverWrite, sizeof(MOS_LOCK_PARAMS));

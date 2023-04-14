@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021-2022, Intel Corporation
+* Copyright (c) 2021-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -529,6 +529,11 @@ private:
     std::string                   m_outputFileName = "";         //!< Name of output file
     bool                          m_enableProfilerDump = true;   //!< Indicate whether enable UMD Profiler dump
     std::shared_ptr<mhw::mi::Itf> m_miItf = nullptr;
+    int32_t                       m_multiprocesssinglebin = 0;   //!< multi process single binary flag
+    uint32_t*                     m_perfDataCombined = nullptr;  //!< Combined perf data pointer
+    uint32_t                      m_perfDataCombinedSize = 0;    //!< Combined perf data size
+    uint32_t                      m_perfDataCombinedIndex = 0;   //!< Combined perf data index
+    uint32_t                      m_perfDataCombinedOffset = 0;  //!< Combined perf data offset
 MEDIA_CLASS_DEFINE_END(MediaPerfProfiler)
 };
 
