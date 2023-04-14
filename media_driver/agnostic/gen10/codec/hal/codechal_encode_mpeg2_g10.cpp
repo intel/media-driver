@@ -29,7 +29,7 @@
 #include "igcodeckrn_g10.h"
 #endif
 
-struct KernelHeader
+struct KernelHeaderMpegG10
 {
     uint32_t m_kernelCount;
 
@@ -1663,7 +1663,7 @@ MOS_STATUS CodechalEncodeMpeg2G10::GetKernelHeaderAndSize(
     CODECHAL_ENCODE_CHK_NULL_RETURN(krnHeader);
     CODECHAL_ENCODE_CHK_NULL_RETURN(krnSize);
 
-    auto kernelHeaderTable = (KernelHeader *)binary;
+    auto kernelHeaderTable = (KernelHeaderMpegG10 *)binary;
     PCODECHAL_KERNEL_HEADER currKrnHeader;
 
     if (operation == ENC_SCALING4X)

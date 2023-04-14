@@ -27,7 +27,7 @@
 #include "codechal_encode_mpeg2_g8.h"
 #include "igcodeckrn_g8.h"
 
-struct KernelHeader
+struct KernelHeaderMpegG8
 {
     uint32_t m_kernelCount;
 
@@ -1653,7 +1653,7 @@ MOS_STATUS CodechalEncodeMpeg2G8::GetKernelHeaderAndSize(
     CODECHAL_ENCODE_CHK_NULL_RETURN(krnHeader);
     CODECHAL_ENCODE_CHK_NULL_RETURN(krnSize);
 
-    auto kernelHeaderTable = (KernelHeader *)binary;
+    auto kernelHeaderTable = (KernelHeaderMpegG8 *)binary;
     PCODECHAL_KERNEL_HEADER currKrnHeader;
 
     if (operation == ENC_SCALING4X)

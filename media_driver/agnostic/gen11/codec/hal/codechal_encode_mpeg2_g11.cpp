@@ -34,7 +34,7 @@
 #include "mos_util_user_interface.h"
 #include "codeckrnheader.h"
 
-struct KernelHeader
+struct KernelHeaderMpegG11
 {
     uint32_t m_kernelCount;
 
@@ -1161,7 +1161,7 @@ MOS_STATUS CodechalEncodeMpeg2G11::GetKernelHeaderAndSize(
     CODECHAL_ENCODE_CHK_NULL_RETURN(krnHeader);
     CODECHAL_ENCODE_CHK_NULL_RETURN(krnSize);
 
-    auto kernelHeaderTable = (KernelHeader *)binary;
+    auto kernelHeaderTable = (KernelHeaderMpegG11 *)binary;
     PCODECHAL_KERNEL_HEADER currKrnHeader;
 
     if (operation == ENC_BRC)

@@ -28,7 +28,7 @@
 
 typedef class MhwVeboxInterface              *PMHW_VEBOX_INTERFACE;
 
-typedef struct _VPHAL_VEBOX_SURFACE_STATE_CMD_PARAMS
+typedef struct _VP_VEBOX_SURFACE_STATE_CMD_PARAMS
 {
     PVP_SURFACE                     pSurfInput;
     PVP_SURFACE                     pSurfOutput;
@@ -37,7 +37,7 @@ typedef struct _VPHAL_VEBOX_SURFACE_STATE_CMD_PARAMS
     PVP_SURFACE                     pSurfSkinScoreOutput;
     bool                            bDIEnable;
     bool                            b3DlutEnable;
-} VPHAL_VEBOX_SURFACE_STATE_CMD_PARAMS, *PVPHAL_VEBOX_SURFACE_STATE_CMD_PARAMS;
+} VP_VEBOX_SURFACE_STATE_CMD_PARAMS, *PVP_VEBOX_SURFACE_STATE_CMD_PARAMS;
 
 enum GFX_MEDIA_VEBOX_DI_OUTPUT_MODE
 {

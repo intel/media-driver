@@ -52,11 +52,11 @@ const uint32_t   VpVeboxCmdPacketLegacy::m_satS1Table[MHW_STE_FACTOR_MAX + 1] = 
     0x000000ab, 0x00000080, 0x00000066, 0x00000055, 0x000000c2, 0x000000b9, 0x000000b0, 0x000000a9, 0x000000a2, 0x0000009c };
 
 void VpVeboxCmdPacketLegacy::SetupSurfaceStates(
-    PVPHAL_VEBOX_SURFACE_STATE_CMD_PARAMS   pVeboxSurfaceStateCmdParams)
+    PVP_VEBOX_SURFACE_STATE_CMD_PARAMS   pVeboxSurfaceStateCmdParams)
 {
     VP_FUNC_CALL();
     VP_PUBLIC_CHK_NULL_NO_STATUS_RETURN(pVeboxSurfaceStateCmdParams);
-    MOS_ZeroMemory(pVeboxSurfaceStateCmdParams, sizeof(VPHAL_VEBOX_SURFACE_STATE_CMD_PARAMS));
+    MOS_ZeroMemory(pVeboxSurfaceStateCmdParams, sizeof(VP_VEBOX_SURFACE_STATE_CMD_PARAMS));
     pVeboxSurfaceStateCmdParams->pSurfInput    = m_veboxPacketSurface.pCurrInput;
     pVeboxSurfaceStateCmdParams->pSurfOutput   = m_veboxPacketSurface.pCurrOutput;
     pVeboxSurfaceStateCmdParams->pSurfSTMM     = m_veboxPacketSurface.pSTMMInput;
@@ -1528,7 +1528,7 @@ MOS_STATUS VpVeboxCmdPacketLegacy::SendVeboxCmd(MOS_COMMAND_BUFFER* commandBuffe
     MOS_STATUS                              eStatus;
     int32_t                                 iRemaining;
     MHW_VEBOX_DI_IECP_CMD_PARAMS            VeboxDiIecpCmdParams;
-    VPHAL_VEBOX_SURFACE_STATE_CMD_PARAMS    VeboxSurfaceStateCmdParams;
+    VP_VEBOX_SURFACE_STATE_CMD_PARAMS    VeboxSurfaceStateCmdParams;
     MHW_VEBOX_SURFACE_STATE_CMD_PARAMS      MhwVeboxSurfaceStateCmdParams;
     MHW_VEBOX_STATE_CMD_PARAMS              VeboxStateCmdParams;
     MHW_MI_FLUSH_DW_PARAMS                  FlushDwParams;
@@ -1824,7 +1824,7 @@ MOS_STATUS VpVeboxCmdPacketLegacy::SetVeboxDiIecp(
 MOS_STATUS VpVeboxCmdPacketLegacy::RenderVeboxCmd(
     MOS_COMMAND_BUFFER                      *CmdBuffer,
     MHW_VEBOX_DI_IECP_CMD_PARAMS            &VeboxDiIecpCmdParams,
-    VPHAL_VEBOX_SURFACE_STATE_CMD_PARAMS    &VeboxSurfaceStateCmdParams,
+    VP_VEBOX_SURFACE_STATE_CMD_PARAMS    &VeboxSurfaceStateCmdParams,
     MHW_VEBOX_SURFACE_STATE_CMD_PARAMS      &MhwVeboxSurfaceStateCmdParams,
     MHW_VEBOX_STATE_CMD_PARAMS              &VeboxStateCmdParams,
     MHW_MI_FLUSH_DW_PARAMS                  &FlushDwParams,
@@ -2160,7 +2160,7 @@ void VpVeboxCmdPacketLegacy::AddCommonOcaMessage(PMOS_COMMAND_BUFFER pCmdBufferI
 
 
 MOS_STATUS VpVeboxCmdPacketLegacy::InitVeboxSurfaceStateCmdParams(
-    PVPHAL_VEBOX_SURFACE_STATE_CMD_PARAMS    pVpHalVeboxSurfaceStateCmdParams,
+    PVP_VEBOX_SURFACE_STATE_CMD_PARAMS    pVpHalVeboxSurfaceStateCmdParams,
     PMHW_VEBOX_SURFACE_STATE_CMD_PARAMS      pMhwVeboxSurfaceStateCmdParams)
 {
     VP_FUNC_CALL();
@@ -3058,7 +3058,7 @@ void VpVeboxCmdPacketLegacy::VeboxGetBeCSCMatrix(
 MOS_STATUS VpVeboxCmdPacketLegacy::IsCmdParamsValid(
     const MHW_VEBOX_STATE_CMD_PARAMS            &VeboxStateCmdParams,
     const MHW_VEBOX_DI_IECP_CMD_PARAMS          &VeboxDiIecpCmdParams,
-    const VPHAL_VEBOX_SURFACE_STATE_CMD_PARAMS  &VeboxSurfaceStateCmdParams)
+    const VP_VEBOX_SURFACE_STATE_CMD_PARAMS  &VeboxSurfaceStateCmdParams)
 {
     VP_FUNC_CALL();
 

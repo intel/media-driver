@@ -3696,7 +3696,7 @@ public:
     };
 };
 
-class KernelHeader
+class KernelHeaderAvcG11
 {
 public:
     int m_kernelCount;
@@ -3907,7 +3907,7 @@ MOS_STATUS CodechalEncodeAvcEncG11::GetKernelHeaderAndSize(void *binary, EncOper
     CODECHAL_ENCODE_CHK_NULL_RETURN(krnHeader);
     CODECHAL_ENCODE_CHK_NULL_RETURN(krnSize);
 
-    auto kernelHeaderTable = (KernelHeader *)binary;
+    auto kernelHeaderTable = (KernelHeaderAvcG11 *)binary;
     auto                    invalidEntry      = &(kernelHeaderTable->m_avcWeightedPrediction) + 1;
     auto nextKrnOffset = *krnSize;
     PCODECHAL_KERNEL_HEADER currKrnHeader = nullptr;

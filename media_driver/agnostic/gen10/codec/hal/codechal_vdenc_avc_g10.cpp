@@ -36,7 +36,7 @@
 #include "mhw_vdbox_vdenc_hwcmd_g10_X.h"
 #endif
 
-struct KernelHeader {
+struct KernelHeaderAvcG10 {
     int m_kernelCount;
     // Quality mode for Frame/Field
     CODECHAL_KERNEL_HEADER m_mbEncQltyI;
@@ -83,7 +83,7 @@ struct KernelHeader {
     CODECHAL_KERNEL_HEADER m_staticFrameDetection;
 
 };
-using PKernelHeader = struct KernelHeader*;
+using PKernelHeader = struct KernelHeaderAvcG10*;
 
 struct BrcInitDmem
 {

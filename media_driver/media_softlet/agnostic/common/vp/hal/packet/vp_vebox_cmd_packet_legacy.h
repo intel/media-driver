@@ -105,7 +105,7 @@ public:
     //! \return   void
     //!
     virtual void SetupSurfaceStates(
-        PVPHAL_VEBOX_SURFACE_STATE_CMD_PARAMS  pVeboxSurfaceStateCmdParams);
+        PVP_VEBOX_SURFACE_STATE_CMD_PARAMS  pVeboxSurfaceStateCmdParams);
 
     //!
     //! \brief    Setup surface states for Vebox
@@ -511,7 +511,7 @@ public:
     virtual MOS_STATUS IsCmdParamsValid(
         const MHW_VEBOX_STATE_CMD_PARAMS            &VeboxStateCmdParams,
         const MHW_VEBOX_DI_IECP_CMD_PARAMS          &VeboxDiIecpCmdParams,
-        const VPHAL_VEBOX_SURFACE_STATE_CMD_PARAMS  &VeboxSurfaceStateCmdParams);
+        const VP_VEBOX_SURFACE_STATE_CMD_PARAMS  &VeboxSurfaceStateCmdParams);
 
     virtual MOS_STATUS QueryStatLayout(
         VEBOX_STAT_QUERY_TYPE QueryType,
@@ -653,7 +653,7 @@ protected:
     virtual MOS_STATUS RenderVeboxCmd(
         MOS_COMMAND_BUFFER                      *CmdBuffer,
         MHW_VEBOX_DI_IECP_CMD_PARAMS            &VeboxDiIecpCmdParams,
-        VPHAL_VEBOX_SURFACE_STATE_CMD_PARAMS    &VeboxSurfaceStateCmdParams,
+        VP_VEBOX_SURFACE_STATE_CMD_PARAMS    &VeboxSurfaceStateCmdParams,
         MHW_VEBOX_SURFACE_STATE_CMD_PARAMS      &MhwVeboxSurfaceStateCmdParams,
         MHW_VEBOX_STATE_CMD_PARAMS              &VeboxStateCmdParams,
         MHW_MI_FLUSH_DW_PARAMS                  &FlushDwParams,
@@ -688,7 +688,7 @@ protected:
       PMOS_COMMAND_BUFFER                 pCmdBuffer);
 
     virtual MOS_STATUS InitVeboxSurfaceStateCmdParams(
-        PVPHAL_VEBOX_SURFACE_STATE_CMD_PARAMS    pVpHalVeboxSurfaceStateCmdParams,
+        PVP_VEBOX_SURFACE_STATE_CMD_PARAMS    pVpHalVeboxSurfaceStateCmdParams,
         PMHW_VEBOX_SURFACE_STATE_CMD_PARAMS      pMhwVeboxSurfaceStateCmdParams);
 
     virtual MOS_STATUS InitVeboxSurfaceParams(
