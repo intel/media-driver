@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2022, Intel Corporation
+* Copyright (c) 2020-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -468,7 +468,6 @@ protected:
     PMOS_RESOURCE          m_resDeblockingFilterRowStoreScratchBuffer = nullptr;   //!< Handle of De-block row store surface
     PMOS_RESOURCE          m_intraRowStoreScratchBuffer = nullptr;                 //!< Handle of intra row store surface
     PMOS_RESOURCE          m_vdencIntraRowStoreScratch = nullptr;                  //!< Handle of intra row store surface
-    PMOS_RESOURCE          m_pakStatsBufferFull = nullptr;                         //!< Handle of PAK status buffer include PerMB and frame level.
     PMOS_RESOURCE          m_resMPCRowStoreScratchBuffer = nullptr;                //!< Handle of mpc row store surface
 
     bool                   m_vdencBrcImgStatAllocated = false;  //!< Vdenc bitrate control image state allocated flag

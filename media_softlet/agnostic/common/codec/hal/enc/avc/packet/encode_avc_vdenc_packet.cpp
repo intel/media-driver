@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2022, Intel Corporation
+* Copyright (c) 2020-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -34,6 +34,7 @@
 #include "mos_solo_generic.h"
 #include "encode_avc_header_packer.h"
 #include "media_perf_profiler.h"
+#include "mos_os_cp_interface_specific.h"
 
 namespace encode {
 
@@ -206,11 +207,11 @@ namespace encode {
         allocParamsForBufferLinear.Type     = MOS_GFXRES_BUFFER;
         allocParamsForBufferLinear.TileType = MOS_TILE_LINEAR;
         allocParamsForBufferLinear.Format   = Format_Buffer;
-        allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
 
         // PAK Slice Size Streamout Buffer
         allocParamsForBufferLinear.dwBytes  = MOS_ALIGN_CEIL(CODECHAL_ENCODE_SLICESIZE_BUF_SIZE, CODECHAL_PAGE_SIZE);
         allocParamsForBufferLinear.pBufName = "PAK Slice Size Streamout Buffer";
+        allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
         ENCODE_CHK_STATUS_RETURN(m_basicFeature->m_recycleBuf->RegisterResource(PakSliceSizeStreamOutBuffer, allocParamsForBufferLinear));
 
         // VDENC Intra Row Store Scratch buffer
@@ -227,10 +228,17 @@ namespace encode {
         ENCODE_CHK_STATUS_RETURN(m_basicFeature->m_recycleBuf->RegisterResource(BrcPakStatisticBuffer, allocParamsForBufferLinear, 1));
 
         // Here allocate the buffer for MB+FrameLevel PAK statistics.
+        MOS_ALLOC_GFXRES_PARAMS allocParamsForStatisticBufferFull = allocParamsForBufferLinear;
         uint32_t size = brcSettings.vdencBrcPakStatsBufferSize + m_basicFeature->m_picWidthInMb * m_basicFeature->m_picHeightInMb * 64;
-        allocParamsForBufferLinear.dwBytes  = MOS_ALIGN_CEIL(size, CODECHAL_PAGE_SIZE);
-        allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
-        m_pakStatsBufferFull               = m_allocator->AllocateResource(allocParamsForBufferLinear, false);
+        allocParamsForStatisticBufferFull.dwBytes = MOS_ALIGN_CEIL(size, CODECHAL_PAGE_SIZE);
+        allocParamsForStatisticBufferFull.pBufName = "VDENC BRC PAK Statistics Buffer Full";
+        allocParamsForStatisticBufferFull.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
+        if (m_osInterface->osCpInterface == nullptr || !m_osInterface->osCpInterface->IsCpEnabled())
+        {
+            allocParamsForStatisticBufferFull.dwMemType = MOS_MEMPOOL_SYSTEMMEMORY;
+            allocParamsForStatisticBufferFull.Flags.bCacheable = true;
+        }
+        ENCODE_CHK_STATUS_RETURN(m_basicFeature->m_recycleBuf->RegisterResource(BrcPakStatisticBufferFull, allocParamsForStatisticBufferFull));
 
         if (m_mfxItf->IsDeblockingFilterRowstoreCacheEnabled() == false)
         {
@@ -1926,7 +1934,7 @@ namespace encode {
         if (m_basicFeature->m_perMBStreamOutEnable)
         {
             // Using frame and PerMB level buffer to get PerMB StreamOut PAK Statistic.
-            params.presStreamOutBuffer = m_pakStatsBufferFull;
+            params.presStreamOutBuffer = m_basicFeature->m_recycleBuf->GetBuffer(BrcPakStatisticBufferFull, m_basicFeature->m_frameNum);
         }
         else
         {
@@ -2002,6 +2010,10 @@ namespace encode {
         debugInterface->m_bufferDumpFrameNum = m_statusReport->GetReportedCount() + 1; // ToDo: for debug purpose
         debugInterface->m_frameType          = encodeStatusMfx->pictureCodingType;
 
+        auto settings = static_cast<AvcVdencFeatureSettings *>(m_legacyFeatureManager->GetFeatureSettings()->GetConstSettings());
+        ENCODE_CHK_NULL_RETURN(settings);
+        auto brcSettings = settings->brcSettings;
+
         ENCODE_CHK_STATUS_RETURN(debugInterface->DumpBuffer(
             &currRefList.resBitstreamBuffer,
             CodechalDbgAttr::attrBitstream,
@@ -2072,6 +2084,13 @@ namespace encode {
             CodechalDbgAttr::attrSliceSizeStreamout,
             "_SliceSizeStreamOut",
             CODECHAL_ENCODE_SLICESIZE_BUF_SIZE));
+
+        //  here add the dump buffer for PAK statistics
+        ENCODE_CHK_STATUS_RETURN(debugInterface->DumpBuffer(
+            m_basicFeature->m_recycleBuf->GetBuffer(BrcPakStatisticBufferFull, m_statusReport->GetReportedCount()),
+            CodechalDbgAttr::attrPakOutput,
+            "MB and FrameLevel PAK staistics vdenc",
+            brcSettings.vdencBrcPakStatsBufferSize + m_basicFeature->m_picWidthInMb * m_basicFeature->m_picHeightInMb * 64));
 
         return MOS_STATUS_SUCCESS;
     }
