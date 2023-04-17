@@ -599,10 +599,7 @@ namespace encode {
 
         uint32_t subRegionSartOffset = resourceOffset.dwMetaDataSize + slcCount * resourceOffset.dwMetaDataSubRegionSize;
 
-        auto &flushDwParams                         = m_miItf->MHW_GETPAR_F(MI_FLUSH_DW)();
-        flushDwParams                               = {};
-        flushDwParams.bVideoPipelineCacheInvalidate = true;
-        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(cmdBuffer));
+        SETPAR_AND_ADDCMD(MI_FLUSH_DW, m_miItf, cmdBuffer);
 
         m_pResource = presMetadataBuffer;
         m_dwOffset = subRegionSartOffset + resourceOffset.dwbStartOffset;
