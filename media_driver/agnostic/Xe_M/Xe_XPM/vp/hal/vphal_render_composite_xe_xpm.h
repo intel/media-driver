@@ -160,7 +160,7 @@ protected:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    virtual MOS_STATUS DecompressInterlacedSurf(PVPHAL_SURFACE pSource);
+    virtual MOS_STATUS DecompressInterlacedSurf(PVPHAL_SURFACE pSource) override;
 };
 
 #endif // __VPHAL_RENDER_COMPOSITE_XE_XPM_H__
