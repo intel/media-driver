@@ -414,7 +414,7 @@ MOS_STATUS Mpeg2PipelineM12::DumpParams(Mpeg2BasicFeature &basicFeature)
     DECODE_CHK_STATUS(DumpPicParams(basicFeature.m_mpeg2PicParams));
     DECODE_CHK_STATUS(DumpSliceParams(basicFeature.m_mpeg2SliceParams, basicFeature.m_numSlices));
     DECODE_CHK_STATUS(DumpMbParams(basicFeature.m_mpeg2MbParams, basicFeature.m_numMacroblocks));
-    DECODE_CHK_STATUS(DumpIQParams(basicFeature.m_mpeg2IqMatrixParams));
+    DECODE_CHK_STATUS(DumpIQParams(basicFeature.m_mpeg2IqMatrixBuffer));
     DECODE_CHK_STATUS(DumpBitstream(&basicFeature.m_resDataBuffer.OsResource, basicFeature.m_dataSize, 0));
 
     return MOS_STATUS_SUCCESS;

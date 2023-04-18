@@ -110,6 +110,8 @@ MOS_STATUS CodechalDebugInterface::Initialize(
     }
 #endif
 
+    SetFastDumpConfig(mediaCopyWrapper);
+
     return MOS_STATUS_SUCCESS;
 }
 

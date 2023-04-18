@@ -658,7 +658,8 @@ MOS_STATUS DecodePipeline::StatusCheck()
         DECODE_CHK_STATUS(DumpOutput(reportData));
 
         if ((CodecHal_PictureIsFrame(m_debugInterface->m_currPic)) ||
-            (CodecHal_PictureIsField(m_debugInterface->m_currPic) && m_debugInterface->m_secondField))
+            (CodecHal_PictureIsField(m_debugInterface->m_currPic) && m_debugInterface->m_secondField) ||
+            (!CodecHal_PictureIsFrame(m_debugInterface->m_currPic) && !CodecHal_PictureIsField(m_debugInterface->m_currPic)))
         {            
             DecodeOutputIndex++;
         }

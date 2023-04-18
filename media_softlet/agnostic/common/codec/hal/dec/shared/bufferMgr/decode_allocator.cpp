@@ -235,8 +235,11 @@ PMHW_BATCH_BUFFER DecodeAllocator::AllocateBatchBuffer(
     {
         if (accessReq == notLockableVideoMem)
         {
-            notLockable = true;
-            inSystemMem = false;
+            if (m_osInterface->osCpInterface->IsHMEnabled())
+            {
+                notLockable = true;
+                inSystemMem = false;
+            }
         }
         else
         {

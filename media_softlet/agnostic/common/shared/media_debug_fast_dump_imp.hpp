@@ -676,12 +676,12 @@ protected:
                             DefaultSerializer())
                             .target_type())
                     {
-                        std::ofstream ofs(name + ".bin", std::ios_base::out | std::ios_base::binary);
+                        std::ofstream ofs(name, std::ios_base::out | std::ios_base::binary);
                         ofs.write(static_cast<const char *>(data), size);
                     }
                     else
                     {
-                        std::ofstream ofs(name + ".txt", std::ios_base::out);
+                        std::ofstream ofs(name, std::ios_base::out);
                         serializer(ofs, data, size);
                     }
                 };

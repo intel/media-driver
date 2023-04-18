@@ -250,7 +250,7 @@ void DumpDecodeAvcSliceParams(PCODEC_AVC_SLICE_PARAMS sliceParams, uint32_t numS
     {
         if (numSlices > 1)
         {
-            oss << "Index = " << i << std::endl;
+            oss << "---------Index = " << i << "---------" << std::endl;
         }
 
         if (shortFormatInUse)
@@ -779,7 +779,7 @@ void DumpDecodeHevcSliceParams(PCODEC_HEVC_SLICE_PARAMS sliceParams, uint32_t nu
     {
         if (numSlices > 1)
         {
-            oss << "Index = " << i << std::endl;
+            oss << "---------Index = " << i << "---------" << std::endl;
         }
 
         if (shortFormatInUse)
@@ -812,7 +812,7 @@ void DumpDecodeHevcExtSliceParams(PCODEC_HEVC_EXT_SLICE_PARAMS extSliceParams, u
     {
         if (numSlices > 1)
         {
-            oss << "Index = " << i << std::endl;
+            oss << "---------Index = " << i << "---------" << std::endl;
         }
 
         oss << extSliceParams[i] << std::endl;
@@ -1287,7 +1287,7 @@ void DumpDecodeAv1TileParams(CodecAv1TileParams *tileParams, uint32_t tileNum, s
     {
         if (tileNum > 1)
         {
-            oss << "Index = " << i << std::endl;
+            oss << "---------Index = " << i << "---------" << std::endl;
         }
 
         oss << tileParams[i] << std::endl;
@@ -1673,7 +1673,7 @@ void DumpDecodeMpeg2SliceParams(CodecDecodeMpeg2SliceParams *sliceParams, uint32
     {
         if (numSlices > 1)
         {
-            oss << "Index = " << i << std::endl;
+            oss << "---------Index = " << i << "---------" << std::endl;
         }
 
         oss << sliceParams[i] << std::endl;
@@ -1699,7 +1699,7 @@ void DumpDecodeMpeg2MbParams(CodecDecodeMpeg2MbParams *mbParams, uint32_t numMbs
     {
         if (numMbs > 1)
         {
-            oss << "Index = " << i << std::endl;
+            oss << "---------Index = " << i << "---------" << std::endl;
         }
 
         oss << mbParams[i] << std::endl;
