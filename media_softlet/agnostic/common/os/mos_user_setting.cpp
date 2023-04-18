@@ -1388,6 +1388,13 @@ MOS_STATUS MosUserSetting::InitUserSettingForDebug(MediaUserSettingSharedPtr use
         MediaUserSetting::Group::Device,
         0,      // 0 is ignore. 1 blt, 2 render, 3 vebox, 4 bypass copy engine;
         true);  //"media copy force copy model."
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        "Bypass Evict",
+        MediaUserSetting::Group::Device,
+        0,
+        true);
     return MOS_STATUS_SUCCESS;
 }
 
