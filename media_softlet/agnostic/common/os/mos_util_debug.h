@@ -250,6 +250,7 @@ typedef struct _MOS_MESSAGE_PARAMS
     int32_t                     bUseOutputDebugString;                          //!< Onscreen debug message prints enabled or not
     uint32_t                    bEnableMaps;                                    //!< Dump mapped memory regions to trace file
     uint32_t                    bDisableAssert;                                 //!< Disable assert
+    uint32_t                    bEnableFlush;                                   //!< Enable flush
     MOS_COMPONENT_DEBUG_PARAMS  components[MOS_COMPONENT_COUNT];
     char                        g_MosMsgBuffer[MOS_MAX_MSG_BUF_SIZE];           //!< Array for debug message
 } MOS_MESSAGE_PARAMS;
@@ -292,6 +293,14 @@ public:
     //! \return   void
     //!
     static void MosMessageClose();
+
+    //!
+    //! \brief    Close file handles and frees resources
+    //! \details  Close file handles and frees resources,
+    //!           and reopen file handles.To be called before workload submission
+    //! \return   void
+    //!
+    static void MosHLTFlush();
 
     //!
     //! \brief    Form a string that will prefix MOS's log file name
@@ -581,6 +590,9 @@ MEDIA_CLASS_DEFINE_END(MosUtilDebug)
 
 #if MOS_MESSAGES_ENABLED
 
+// flush hlt message before workload submission
+#define MOS_FLUSH_HLT_MESSAGE MosUtilDebug::MosHLTFlush();
+
 
 //!
 //! \def MOS_DEBUGMESSAGE(_compID, _subCompID, _message, ...)
@@ -837,6 +849,8 @@ MEDIA_CLASS_DEFINE_END(MosUtilDebug)
     }
 
 #else // !MOS_MESSAGES_ENABLED
+
+#define MOS_FLUSH_HLT_MESSAGE
 
 //!
 //! \brief   The two methods below are used only for debug or release internal drivers
