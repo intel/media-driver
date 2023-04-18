@@ -113,6 +113,15 @@ namespace encode
             }
 #if _SW_BRC
         }
+        else
+        {
+            //add force wake up for ladll path, to avoid that ladll path directly use MI_COPY to get data in ReadLPLAData
+            if (requestProlog)
+            {
+                ENCODE_CHK_STATUS_RETURN(AddForceWakeup(*commandBuffer));
+                ENCODE_CHK_STATUS_RETURN(SendPrologCmds(*commandBuffer));
+            }
+        }
 #endif
 
         ReadLPLAData(commandBuffer);
@@ -198,7 +207,7 @@ namespace encode
 
         m_statusReport->GetAddress(statusReportLpla, osResource, offset);
 
-        RUN_FEATURE_INTERFACE_RETURN(VdencLplaAnalysis, HevcFeatureIDs::vdencLplaAnalysisFeature, ReadLPLAData, commandBuffer, osResource, offset, IsHuCStsUpdNeeded());
+        RUN_FEATURE_INTERFACE_RETURN(VdencLplaAnalysis, HevcFeatureIDs::vdencLplaAnalysisFeature, ReadLPLAData, commandBuffer, osResource, offset);
 
         return MOS_STATUS_SUCCESS;
     }
