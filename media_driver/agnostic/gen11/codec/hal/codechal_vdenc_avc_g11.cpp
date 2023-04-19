@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2020, Intel Corporation
+* Copyright (c) 2017-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1204,8 +1204,8 @@ MOS_STATUS CodechalVdencAvcStateG11::ExecuteSliceLevel()
     CODECHAL_DEBUG_TOOL(
         // here add the dump buffer for PAK statistics.
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
-            &m_pakStatsBufferFull,
-            CodechalDbgAttr::attrInput,
+            &m_pakStatsBufferFull[m_currRecycledBufIdx],
+            CodechalDbgAttr::attrPakOutput,
             "MB and FrameLevel PAK staistics vdenc",
             m_vdencBrcPakStatsBufferSize + m_picWidthInMb * m_picHeightInMb * 64,   //size
             0, //offset

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2022, Intel Corporation
+* Copyright (c) 2011-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -3048,8 +3048,11 @@ CodechalVdencAvcState::CodechalVdencAvcState(
     MOS_ZeroMemory(&m_vdencIntraRowStoreScratchBuffer, sizeof(MOS_RESOURCE));
     MOS_ZeroMemory(&m_pakStatsBuffer, sizeof(MOS_RESOURCE));
     MOS_ZeroMemory(&m_vdencStatsBuffer, sizeof(MOS_RESOURCE));
-    MOS_ZeroMemory(&m_pakStatsBufferFull, sizeof(MOS_RESOURCE));
     MOS_ZeroMemory(&m_vdencTlbMmioBuffer, sizeof(MOS_RESOURCE));
+    for (uint32_t i = 0; i < CODECHAL_ENCODE_RECYCLED_BUFFER_NUM; i++)
+    {
+        MOS_ZeroMemory(&m_pakStatsBufferFull[i], sizeof(MOS_RESOURCE));
+    }
 }
 
 CodechalVdencAvcState::~CodechalVdencAvcState()
@@ -3059,8 +3062,13 @@ CodechalVdencAvcState::~CodechalVdencAvcState()
     m_osInterface->pfnFreeResource(m_osInterface, &m_vdencIntraRowStoreScratchBuffer);
     m_osInterface->pfnFreeResource(m_osInterface, &m_vdencStatsBuffer);
     m_osInterface->pfnFreeResource(m_osInterface, &m_pakStatsBuffer);
-    m_osInterface->pfnFreeResource(m_osInterface, &m_pakStatsBufferFull);
     m_osInterface->pfnFreeResource(m_osInterface, &m_vdencTlbMmioBuffer);
+
+    for (uint32_t i = 0; i < CODECHAL_ENCODE_RECYCLED_BUFFER_NUM; i++)
+    {
+        m_osInterface->pfnFreeResource(m_osInterface, &m_pakStatsBufferFull[i]);
+    }
+
     if (m_vdencBrcImgStatAllocated)
     {
         for (uint8_t i = 0; i < CODECHAL_ENCODE_RECYCLED_BUFFER_NUM; i++)
@@ -5245,7 +5253,7 @@ MOS_STATUS CodechalVdencAvcState::HuCBrcUpdate()
         CodechalHucStreamoutParams hucStreamOutParams;
         MOS_ZeroMemory(&hucStreamOutParams, sizeof(hucStreamOutParams));
 
-        PMOS_RESOURCE sourceSurface = &m_pakStatsBufferFull;
+        PMOS_RESOURCE sourceSurface = &m_pakStatsBufferFull[m_currRecycledBufIdx];
         PMOS_RESOURCE destSurface   = &m_pakStatsBuffer;
         uint32_t copySize           = m_vdencBrcPakStatsBufferSize;
         uint32_t sourceOffset       = m_picWidthInMb * m_picHeightInMb * 64;
@@ -6664,20 +6672,13 @@ MOS_STATUS CodechalVdencAvcState::ExecuteSliceLevel()
     CODECHAL_DEBUG_TOOL(
         // here add the dump buffer for PAK statistics.
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
-            &m_pakStatsBufferFull,
-            CodechalDbgAttr::attrInput,
+            &m_pakStatsBufferFull[m_currRecycledBufIdx],
+            CodechalDbgAttr::attrPakOutput,
             "MB and FrameLevel PAK staistics vdenc",
             m_vdencBrcPakStatsBufferSize + m_picWidthInMb * m_picHeightInMb * 64,   //size
             0, //offset
             CODECHAL_MEDIA_STATE_16X_ME));
     )
-
-    // HW limitation, skip block count for B frame must be acquired in GetAvcVdencMBLevelStatusExt
-    if (m_avcPicParam->StatusReportEnable.fields.BlockStats ||
-       (m_avcPicParam->StatusReportEnable.fields.FrameStats && m_avcPicParam->CodingType == B_TYPE))
-    {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(GetAvcVdencMBLevelStatusExt(m_avcPicParam->StatusReportFeedbackNumber, m_avcSliceParams->slice_type));
-    }
 
     if (m_vdencBrcEnabled)
     {
@@ -7104,6 +7105,7 @@ MOS_STATUS CodechalVdencAvcState::AllocateResources()
     // Here allocate the buffer for MB+FrameLevel PAK statistics.
     uint32_t size = m_vdencBrcPakStatsBufferSize + m_picWidthInMb*m_picHeightInMb*64;
     allocParamsForBufferLinear.dwBytes  = MOS_ALIGN_CEIL(size, CODECHAL_PAGE_SIZE);
+    allocParamsForBufferLinear.pBufName = "VDENC BRC PAK Full Statistics Buffer";
 
     if (m_osInterface->osCpInterface == nullptr || !m_osInterface->osCpInterface->IsCpEnabled())
     {
@@ -7111,15 +7113,18 @@ MOS_STATUS CodechalVdencAvcState::AllocateResources()
         allocParamsForBufferLinear.Flags.bCacheable = true;
     }
 
-    eStatus = (MOS_STATUS)m_osInterface->pfnAllocateResource(
-        m_osInterface,
-        &allocParamsForBufferLinear,
-        &m_pakStatsBufferFull);
-
-    if (eStatus != MOS_STATUS_SUCCESS)
+    for (uint32_t i = 0; i < CODECHAL_ENCODE_RECYCLED_BUFFER_NUM; i++)
     {
-        CODECHAL_ENCODE_ASSERTMESSAGE("%s: Failed to allocate VDENC BRC PerMB and framel level PAK Statistics Buffer\n", __FUNCTION__);
-        return eStatus;
+        eStatus = (MOS_STATUS)m_osInterface->pfnAllocateResource(
+            m_osInterface,
+            &allocParamsForBufferLinear,
+            &m_pakStatsBufferFull[i]);
+
+        if (eStatus != MOS_STATUS_SUCCESS)
+        {
+            CODECHAL_ENCODE_ASSERTMESSAGE("%s: Failed to allocate VDENC BRC PerMB and framel level PAK Statistics Buffer\n", __FUNCTION__);
+            return eStatus;
+        }
     }
 
     // Buffer to store VDEnc TLB MMIO values (registers MFX_LRA_0/1/2)
@@ -7714,7 +7719,7 @@ MOS_STATUS CodechalVdencAvcState::SetMfxPipeBufAddrStateParams(
     if (m_perMBStreamOutEnable)
     {
         // Using frame and PerMB level buffer to get PerMB StreamOut PAK Statistic.
-        param.presStreamOutBuffer                 = &m_pakStatsBufferFull;
+        param.presStreamOutBuffer                 = &m_pakStatsBufferFull[m_currRecycledBufIdx];
     }
     else
     {
@@ -7979,7 +7984,7 @@ MOS_STATUS CodechalVdencAvcState::PrepareHWMetaData(
         CODECHAL_ENCODE_NORMALMESSAGE("RC mode is temporarily not supported");
     }
 
-    MOS_RESOURCE *pPakFrameStat = (m_perMBStreamOutEnable) ? &m_pakStatsBufferFull : &m_pakStatsBuffer;  //& m_resFrameStatStreamOutBuffer; or m_pakStatsBuffer
+    MOS_RESOURCE *pPakFrameStat = (m_perMBStreamOutEnable) ? &m_pakStatsBufferFull[m_currRecycledBufIdx] : &m_pakStatsBuffer;  //& m_resFrameStatStreamOutBuffer; or m_pakStatsBuffer
     MHW_MI_LOAD_REGISTER_REG_PARAMS miLoadRegRegParams;
     MHW_MI_FLUSH_DW_PARAMS          flushDwParams;
 

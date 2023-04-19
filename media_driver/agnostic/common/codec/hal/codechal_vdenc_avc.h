@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2021, Intel Corporation
+* Copyright (c) 2011-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -799,21 +799,6 @@ public:
         return MOS_STATUS_SUCCESS;
     };
 
-    //!
-    //! \brief    Get AVC VDenc MB level status extention
-    //!
-    //! \param    [in] encodeStatusReport
-    //!           Point to EncodeStatusReport
-    //!           [in] StatusReportFeedbackNumber
-    //!           Status report number
-    //! \return   MOS_STATUS
-    //!           MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    virtual MOS_STATUS GetAvcVdencMBLevelStatusExt(uint32_t StatusReportFeedbackNumber, uint8_t SliceType)
-    {
-        return MOS_STATUS_SUCCESS;
-    };
-
 protected:
     // AvcGeneraicState functions
     //!
@@ -1022,11 +1007,11 @@ protected:
 protected:
     bool                                        m_vdencSinglePassEnable = false;   //!< Enable VDEnc single pass
 
-    MOS_RESOURCE                                m_vdencIntraRowStoreScratchBuffer; //!< Handle of intra row store surface
-    MOS_RESOURCE                                m_pakStatsBuffer;                  //!< Handle of PAK status buffer
-    MOS_RESOURCE                                m_pakStatsBufferFull;              //!< Handle of PAK status buffer include PerMB and frame level.
-    MOS_RESOURCE                                m_vdencStatsBuffer;                //!< Handle of VDEnc status buffer
-    MOS_RESOURCE                                m_vdencTlbMmioBuffer;              //!< VDEnc TLB MMIO buffer
+    MOS_RESOURCE                                m_vdencIntraRowStoreScratchBuffer;                         //!< Handle of intra row store surface
+    MOS_RESOURCE                                m_pakStatsBuffer;                                          //!< Handle of PAK status buffer
+    MOS_RESOURCE                                m_pakStatsBufferFull[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM]; //!< Handle of PAK status buffer include PerMB and frame level.
+    MOS_RESOURCE                                m_vdencStatsBuffer;                                        //!< Handle of VDEnc status buffer
+    MOS_RESOURCE                                m_vdencTlbMmioBuffer;                                      //!< VDEnc TLB MMIO buffer
 
     uint32_t                                    m_mmioMfxLra0Override = 0;         //!< Override Register MFX_LRA_0
     uint32_t                                    m_mmioMfxLra1Override = 0;         //!< Override Register MFX_LRA_1
