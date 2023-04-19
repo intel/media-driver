@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2022, Intel Corporation
+* Copyright (c) 2009-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1983,6 +1983,12 @@ MOS_STATUS MosInterface::GetResourceInfo(
     details.YoffsetForVplane = (details.VPlaneOffset.iSurfaceOffset - details.dwOffset) / details.dwPitch +
                               details.VPlaneOffset.iYOffset;
 
+    // Update Uncompressed write request from resources
+    if (gmmResourceInfo->GetMmcHint(0) == GMM_MMC_HINT_OFF)
+    {
+        resource->bUncompressedWriteNeeded = true;
+    }
+
     return eStatus;
 }
 
@@ -2495,6 +2501,8 @@ MOS_STATUS MosInterface::DecompResource(
 
         MOS_OS_CHK_NULL_RETURN(mosDecompression);
         mosDecompression->MemoryDecompress(resource);
+
+        MOS_OS_CHK_STATUS_RETURN(MosInterface::SetMemoryCompressionHint(streamState, resource, false));
     }
 
     return MOS_STATUS_SUCCESS;
