@@ -298,7 +298,7 @@ protected:
         PMOS_GPUCTX_CREATOPTIONS option,
         __u64 &caps);
 
-    MOS_STATUS ReportEngineInfo(
+    virtual MOS_STATUS ReportEngineInfo(
         void *engine_map,
         int engineNum, bool engineSelectEnable = false);
 
@@ -309,7 +309,7 @@ protected:
     MOS_LINUX_BO* GetNopCommandBuffer(
         MOS_STREAM_HANDLE streamState);
 
-    bool SelectEngineInstanceByUser(void *engine_map,
+    virtual bool SelectEngineInstanceByUser(void *engine_map,
         uint32_t *engineNum, uint32_t userEngineInstance, MOS_GPU_NODE gpuNode);
 #endif // _DEBUG || _RELEASE_INTERNAL
 
