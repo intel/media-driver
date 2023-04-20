@@ -300,6 +300,8 @@ static bool InitTglMediaSkuExt(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_SKU(skuTable, FtrLinearCCS, 1);
     MEDIA_WR_SKU(skuTable, FtrFlatPhysCCS, 0);
 
+    MEDIA_WR_SKU(skuTable, FtrHeight8AlignVE3DLUTDualPipe, 1);
+
     // Disable MMC for all components if set reg key
     MOS_USER_FEATURE_VALUE_DATA userFeatureData;
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
