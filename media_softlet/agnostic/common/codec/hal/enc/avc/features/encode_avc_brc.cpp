@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2021, Intel Corporation
+* Copyright (c) 2020-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1196,7 +1196,7 @@ uint32_t AvcEncodeBRC::GetVdencOneSliceStateSize()
 
 MHW_SETPAR_DECL_SRC(VDENC_PIPE_MODE_SELECT, AvcEncodeBRC)
 {
-    params.frameStatisticsStreamOut = m_vdencBrcEnabled;
+    params.frameStatisticsStreamOut = m_vdencBrcEnabled || m_basicFeature->m_picParam->StatusReportEnable.fields.FrameStats;
 
     return MOS_STATUS_SUCCESS;
 }

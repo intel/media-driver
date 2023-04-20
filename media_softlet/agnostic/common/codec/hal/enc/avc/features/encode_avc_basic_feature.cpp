@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2021, Intel Corporation
+* Copyright (c) 2020-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -198,6 +198,13 @@ MOS_STATUS AvcBasicFeature::Update(void *params)
     ENCODE_CHK_STATUS_RETURN(GetTrackedBuffers());
 
     m_brcAdaptiveRegionBoostEnabled = m_brcAdaptiveRegionBoostSupported && (m_picParam->TargetFrameSize != 0) && m_lookaheadDepth == 0;
+
+    // HW limitation, skip block count for B frame must be acquired in GetAvcVdencMBLevelStatusExt
+    if (m_picParam->StatusReportEnable.fields.BlockStats ||
+        (m_picParam->StatusReportEnable.fields.FrameStats && m_picParam->CodingType == B_TYPE))
+    {
+        m_perMBStreamOutEnable = true;
+    }
 
     return MOS_STATUS_SUCCESS;
 }
@@ -1000,6 +1007,7 @@ MHW_SETPAR_DECL_SRC(VDENC_PIPE_MODE_SELECT, AvcBasicFeature)
     params.dynamicSlice   = m_seqParam->EnableSliceLevelRateCtrl;
     params.chromaType     = m_seqParam->chroma_format_idc;
     params.randomAccess   = (m_picParam->CodingType == B_TYPE);
+    params.frameStatisticsStreamOut = m_picParam->StatusReportEnable.fields.FrameStats;
 
     // override perf settings for AVC codec on B-stepping
     static const uint8_t par1table[] = { 0, 0, 1, 1, 1, 1, 1 };

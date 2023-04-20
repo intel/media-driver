@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2021, Intel Corporation
+* Copyright (c) 2020-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -959,18 +959,6 @@ const uint8_t AvcVdencBrcConstSettings::m_BRC_UPD_P_RefId[42] =
 EncodeAvcVdencConstSettings::EncodeAvcVdencConstSettings(PMOS_INTERFACE osInterface) : VdencConstSettings(osInterface)
 {
     m_featureSetting = MOS_New(AvcVdencFeatureSettings);
-
-#if (_DEBUG || _RELEASE_INTERNAL)
-    MediaUserSetting::Value outValue = 0;
-
-    ReadUserSettingForDebug(
-        m_userSettingPtr,
-        outValue,
-        "AVC VDEnc PerMB StreamOut Enable",
-        MediaUserSetting::Group::Sequence);
-
-    m_perMBStreamOutEnable = (outValue.Get<int32_t>()) ? true : false;
-#endif // _DEBUG || _RELEASE_INTERNAL
 }
 
 MOS_STATUS EncodeAvcVdencConstSettings::PrepareConstSettings()
@@ -1305,24 +1293,6 @@ MOS_STATUS EncodeAvcVdencConstSettings::SetVdencCmd3Settings()
             par.vdencCmd3Par29 = 0;
             par.vdencCmd3Par30 = 0;
 
-            if (m_perMBStreamOutEnable)
-            {
-                par.vdencCmd3Par9  = 155;
-                par.vdencCmd3Par12 = 155;
-                par.vdencCmd3Par13 = 155;
-                par.vdencCmd3Par14 = 155;
-                par.vdencCmd3Par15 = 155;
-                par.vdencCmd3Par16 = 155;
-                par.vdencCmd3Par17 = 155;
-                par.vdencCmd3Par18 = 155;
-                par.vdencCmd3Par19 = 155;
-                par.vdencCmd3Par20 = 155;
-                par.vdencCmd3Par23 = 155;
-                par.vdencCmd3Par21 = 155;
-                par.vdencCmd3Par22 = 155;
-                par.vdencCmd3Par27 = 155;
-                par.vdencCmd3Par28 = 155;
-            }
             return MOS_STATUS_SUCCESS;
         },
         VDENC_CMD3_LAMBDA()

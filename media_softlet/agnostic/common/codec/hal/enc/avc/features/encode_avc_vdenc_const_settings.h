@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2021, Intel Corporation
+* Copyright (c) 2020-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -375,7 +375,6 @@ protected:
     PCODEC_AVC_ENCODE_SLICE_PARAMS    m_avcSliceParams = nullptr;
 
     int32_t m_qp                   = 0;
-    bool    m_perMBStreamOutEnable = false;
 
 MEDIA_CLASS_DEFINE_END(encode__EncodeAvcVdencConstSettings)
 };

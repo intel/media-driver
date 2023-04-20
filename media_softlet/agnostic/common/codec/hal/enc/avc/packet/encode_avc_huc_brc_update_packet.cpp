@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2021, Intel Corporation
+* Copyright (c) 2020-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -274,6 +274,39 @@ MOS_STATUS AvcHucBrcUpdatePkt::Execute(PMOS_COMMAND_BUFFER cmdBuffer, bool store
 
     // set HuC DMEM param
     SETPAR_AND_ADDCMD(HUC_DMEM_STATE, m_hucItf, cmdBuffer);
+
+    // Copy data from BrcPakStatisticBufferFull to BrcPakStatisticBuffer if m_perMBStreamOutEnable is true
+    if (m_basicFeature->m_perMBStreamOutEnable)
+    {
+        CodechalHucStreamoutParams hucStreamOutParams;
+        MOS_ZeroMemory(&hucStreamOutParams, sizeof(hucStreamOutParams));
+
+        auto setting = static_cast<AvcVdencFeatureSettings *>(m_featureManager->GetFeatureSettings()->GetConstSettings());
+        ENCODE_CHK_NULL_RETURN(setting);
+
+        PMOS_RESOURCE sourceSurface = m_basicFeature->m_recycleBuf->GetBuffer(BrcPakStatisticBufferFull, m_basicFeature->m_frameNum);
+        PMOS_RESOURCE destSurface   = m_basicFeature->m_recycleBuf->GetBuffer(BrcPakStatisticBuffer, 0);
+        uint32_t      copySize      = setting->brcSettings.vdencBrcPakStatsBufferSize;
+        uint32_t      sourceOffset  = m_basicFeature->m_picWidthInMb * m_basicFeature->m_picHeightInMb * 64;
+        uint32_t      destOffset    = 0;
+
+        // Ind Obj Addr command
+        hucStreamOutParams.dataBuffer            = sourceSurface;
+        hucStreamOutParams.dataSize              = copySize + sourceOffset;
+        hucStreamOutParams.dataOffset            = MOS_ALIGN_FLOOR(sourceOffset, CODECHAL_PAGE_SIZE);
+        hucStreamOutParams.streamOutObjectBuffer = destSurface;
+        hucStreamOutParams.streamOutObjectSize   = copySize + destOffset;
+        hucStreamOutParams.streamOutObjectOffset = MOS_ALIGN_FLOOR(destOffset, CODECHAL_PAGE_SIZE);
+
+        // Stream object params
+        hucStreamOutParams.indStreamInLength    = copySize;
+        hucStreamOutParams.inputRelativeOffset  = sourceOffset - hucStreamOutParams.dataOffset;
+        hucStreamOutParams.outputRelativeOffset = destOffset - hucStreamOutParams.streamOutObjectOffset;
+
+        ENCODE_CHK_STATUS_RETURN(m_hwInterface->PerformHucStreamOut(
+            &hucStreamOutParams,
+            cmdBuffer));
+    }
 
     SETPAR_AND_ADDCMD(HUC_VIRTUAL_ADDR_STATE, m_hucItf, cmdBuffer);
 

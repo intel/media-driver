@@ -363,6 +363,37 @@ protected:
         PMOS_COMMAND_BUFFER cmdBuffer,
         uint32_t            slcCount);
 
+    //! \brief    Get AVC VDenc frame level status extention
+    //!
+    //! \param    [in] cmdBuffer
+    //!           Point to MOS_COMMAND_BUFFER
+    //!           [in] StatusReportFeedbackNumber
+    //!           Status report number
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS GetAvcVdencFrameLevelStatusExt(uint32_t StatusReportFeedbackNumber, MOS_COMMAND_BUFFER *cmdBuffer)
+    {
+        return MOS_STATUS_SUCCESS;
+    };
+
+    //! \brief    Report extended statistics
+    //!
+    //! \param    [in] encodeStatusMfx
+    //!           Reference to encoder status for vdbox
+    //! \param    [in, out] statusReportData
+    //!           Reference to encoder status report data
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS ReportExtStatistics(
+        EncodeStatusMfx        &encodeStatusMfx,
+        EncodeStatusReportData &statusReportData)
+    {
+        return MOS_STATUS_SUCCESS;
+    };
+
     MHW_SETPAR_DECL_HDR(VDENC_PIPE_BUF_ADDR_STATE);
 
     MHW_SETPAR_DECL_HDR(VD_PIPELINE_FLUSH);
@@ -423,7 +454,6 @@ protected:
     // Interfaces
     EncodeAllocator          *m_allocator       = nullptr;
     CodechalHwInterfaceNext  *m_hwInterface     = nullptr;
-    CodechalHwInterfaceNext  *m_hwInterfaceNext = nullptr;
     AvcBasicFeature          *m_basicFeature    = nullptr;
     EncodeMemComp            *m_mmcState        = nullptr;
     EncodeCp                 *m_encodecp        = nullptr;
