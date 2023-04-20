@@ -1,6 +1,8 @@
 # Media Features Summary
 
 ## Supported Decoding Output Format and Max Resolution
+## Note: Before vaapi version(1.9.0), media driver only allow create 16bit surface for 12bit bitstream decoding, padding bits will be filled with 0 by hw;
+## And after that version, media driver has supported to create both 12bit and 16bit surface for 12bit bitstream decoding.
 
 | Codec      | Type     | MTL            | DG2/ATSM       | DG1/SG1        | TGLx           | ICL            | KBLx | BXTx | SKL  | BDW  |
 |------------|--------- |----------------|----------------|----------------|----------------|----------------|------|------|------|------|
@@ -22,7 +24,7 @@
 |            | Max Res. | 16k            | 16k            | 8k             | 8k             | 8k             | 8k   | 4k   |      |      |
 | VP9 10bit  | Output   | P010/Y410      | P010/Y410      | P010/Y410      | P010/Y410      | P010/Y410      | P010 |      |      |      |
 |            | Max Res. | 16k            | 16k            | 8k             | 8k             | 8k             | 8k   |      |      |      |
-| VP9 12bit  | Output** | P016/Y216/Y416 | P016/Y216/Y416 | P016/Y216/Y416 | P016/Y216/Y416 |                |      |      |      |      |
+| VP9 12bit  | Output** | P016/Y416      | P016/Y416      | P016/Y416      | P016/Y416      |                |      |      |      |      |
 |            | Max Res. | 16k            | 16k            | 8k             | 8k             |                |      |      |      |      |
 | AV1 8bit   | Output   | NV12           | NV12           | NV12           | NV12           |                |      |      |      |      |
 |            | Max Res. | 16k            | 16k            | 8k             | 8k             |                |      |      |      |      |
