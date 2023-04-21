@@ -87,7 +87,7 @@ public:
     //!
     bool SafeToDestory();
 
-    void SetResourceType(ResourceType resType) { m_resourceType = resType; }
+    void SetResourceType(ResourceType resType);
 
 protected:
     //!

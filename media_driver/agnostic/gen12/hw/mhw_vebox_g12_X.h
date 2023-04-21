@@ -336,6 +336,7 @@ private:
     MOS_STATUS ValidateVeboxScalabilityConfig();
 #endif
 
+protected:
     void SetVeboxSurfaces(
         PMHW_VEBOX_SURFACE_PARAMS                 pSurfaceParam,
         PMHW_VEBOX_SURFACE_PARAMS                 pDerivedSurfaceParam,

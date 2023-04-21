@@ -48,6 +48,10 @@ public:
         MediaPipeline       *pipeline,
         MediaTask           *task,
         CodechalHwInterface *hwInterface);
+        
+    using HucPacketCreatorBase::CreateHucCopyPkt;
+    using HucPacketCreatorBase::CreateProbUpdatePkt;
+    using HucPacketCreatorBase::CreateStreamOutInterface;
     MEDIA_CLASS_DEFINE_END(decode__HucPacketCreatorG12)
 };
 

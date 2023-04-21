@@ -6410,9 +6410,6 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::FreeEncResources()
 
      m_cmKernelMap.clear();
 
-     CmKernelMapType deallocator;
-     m_cmKernelMap.swap(deallocator);
-
 #endif
 
     return eStatus;
