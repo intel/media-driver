@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2023, Intel Corporation
+* Copyright (c) 2017-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1768,15 +1768,15 @@ public:
     //!         Encoder status
     //! \param  [out] encodeStatusReport
     //!         Encoder status report
-    //! \param  [in] index
-    //!         The index of status report number
+    //! \param  [in] last
+    //!         Indicate whether it's the last call of a GetStatusReport loop
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS GetStatusReportExt(
         EncodeStatus* encodeStatus,
         EncodeStatusReport* encodeStatusReport,
-        uint16_t index)
+        bool last)
     {
         return MOS_STATUS_SUCCESS;
     };
