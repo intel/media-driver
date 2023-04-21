@@ -1041,8 +1041,10 @@ public:
     virtual MOS_STATUS SetFeatureType(FeatureType type);
     virtual MOS_STATUS AddFeatureGraphRTLog()
     {
-        MT_LOG5(MT_VP_FEATURE_GRAPTH_SWFILTERCSC, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_INPUTCOLORSPACE, m_Params.input.colorSpace, MT_VP_FEATURE_GRAPH_FILTER_OUTPUTCOLORSPACE, m_Params.output.colorSpace,
+        MT_LOG5(MT_VP_FEATURE_GRAPH_SWFILTERCSC, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_INPUTCOLORSPACE, m_Params.input.colorSpace, MT_VP_FEATURE_GRAPH_FILTER_OUTPUTCOLORSPACE, m_Params.output.colorSpace,
                 MT_VP_FEATURE_GRAPH_FILTER_INPUTFORMAT, m_Params.formatInput, MT_VP_FEATURE_GRAPH_FILTER_OUTPUTFORMAT, m_Params.formatOutput, MT_VP_FEATURE_GRAPH_FILTER_FEATURETYPE, GetFeatureType());
+        VP_PUBLIC_NORMALMESSAGE("Feature Graph: SwFilterCsc: inputcolorSpace %d, outputcolorSpace, %d, formatInput %d, formatOutput %d, FeatureType %d", m_Params.input.colorSpace, m_Params.output.colorSpace,
+                                m_Params.formatInput, m_Params.formatOutput, GetFeatureType());
         return MOS_STATUS_SUCCESS;
     }
 
@@ -1137,10 +1139,13 @@ public:
     }
     virtual MOS_STATUS AddFeatureGraphRTLog()
     {
-        MT_LOG9(MT_VP_FEATURE_GRAPTH_SWFILTERSCALING, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_INPUTHEIGHT, m_Params.input.dwHeight, MT_VP_FEATURE_GRAPH_FILTER_INPUTWIDTH, m_Params.input.dwWidth,
+        MT_LOG9(MT_VP_FEATURE_GRAPH_SWFILTERSCALING, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_INPUTHEIGHT, m_Params.input.dwHeight, MT_VP_FEATURE_GRAPH_FILTER_INPUTWIDTH, m_Params.input.dwWidth,
                 MT_VP_FEATURE_GRAPH_FILTER_INPUTTILEMODE, m_Params.input.tileMode, MT_VP_FEATURE_GRAPH_FILTER_OUTPUTHEIGHT, m_Params.output.dwHeight, MT_VP_FEATURE_GRAPH_FILTER_OUTPUTWIDTH,
                 m_Params.output.dwWidth, MT_VP_FEATURE_GRAPH_FILTER_OUTPUTTILEMODE, m_Params.output.tileMode, MT_VP_FEATURE_GRAPH_FILTER_ISCALINGTYPE, m_Params.interlacedScalingType,
                 MT_VP_FEATURE_GRAPH_FILTER_SCALINGMODE, m_Params.scalingMode, MT_VP_FEATURE_GRAPH_FILTER_FEATURETYPE, GetFeatureType());
+        VP_PUBLIC_NORMALMESSAGE("Feature Graph: SwFilterScaling: input_dwHeight %d, input_dwWidth, %d, input_tileMode %d, output_dwHeight %d, output_dwWidth %d, output_tileMode %d, interlacedScalingType %d, \
+                                 scalingMode %d, FeatureType %d", m_Params.input.dwHeight, m_Params.input.dwWidth, m_Params.input.tileMode, m_Params.output.dwHeight, m_Params.output.dwWidth,
+                                 m_Params.output.tileMode, m_Params.interlacedScalingType, m_Params.scalingMode, GetFeatureType());
         return MOS_STATUS_SUCCESS;
     }
 
@@ -1181,7 +1186,8 @@ public:
     virtual MOS_STATUS Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf, SwFilterSubPipe &pipe);
     virtual MOS_STATUS AddFeatureGraphRTLog()
     {
-        MT_LOG2(MT_VP_FEATURE_GRAPTH_SWFILTERROTMIR, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_ROTATION, m_Params.rotation, MT_VP_FEATURE_GRAPH_FILTER_FEATURETYPE, GetFeatureType());
+        MT_LOG2(MT_VP_FEATURE_GRAPH_SWFILTERROTMIR, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_ROTATION, m_Params.rotation, MT_VP_FEATURE_GRAPH_FILTER_FEATURETYPE, GetFeatureType());
+        VP_PUBLIC_NORMALMESSAGE("Feature Graph: SwFilterRotMir: rotation %d, FeatureType %d", m_Params.rotation, GetFeatureType());
         return MOS_STATUS_SUCCESS;
     }
 
@@ -1241,9 +1247,11 @@ public:
     }
     virtual MOS_STATUS AddFeatureGraphRTLog()
     {
-        MT_LOG7(MT_VP_FEATURE_GRAPTH_SWFILTERDENOISE, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_CHROMADN, m_Params.denoiseParams.bEnableChroma, MT_VP_FEATURE_GRAPH_FILTER_LUMADN, m_Params.denoiseParams.bEnableLuma,
+        MT_LOG7(MT_VP_FEATURE_GRAPH_SWFILTERDENOISE, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_CHROMADN, m_Params.denoiseParams.bEnableChroma, MT_VP_FEATURE_GRAPH_FILTER_LUMADN, m_Params.denoiseParams.bEnableLuma,
                 MT_VP_FEATURE_GRAPH_FILTER_AUTODETECT, m_Params.denoiseParams.bAutoDetect, MT_VP_FEATURE_GRAPH_FILTER_HVSDN, m_Params.denoiseParams.bEnableHVSDenoise, MT_VP_FEATURE_GRAPH_FILTER_DNFACTOR,
                 (int64_t)m_Params.denoiseParams.fDenoiseFactor, MT_VP_FEATURE_GRAPH_FILTER_SECUREDNNEED, m_Params.secureDnNeeded, MT_VP_FEATURE_GRAPH_FILTER_FEATURETYPE, GetFeatureType());
+        VP_PUBLIC_NORMALMESSAGE("Feature Graph: SwFilterDenoise: bEnableChroma %d, bEnableLuma %d, bAutoDetect %d, bEnableHVSDenoise %d, fDenoiseFactor %f, secureDnNeeded %d, FeatureType %d", m_Params.denoiseParams.bEnableChroma,
+                                m_Params.denoiseParams.bEnableLuma, m_Params.denoiseParams.bAutoDetect, m_Params.denoiseParams.bEnableHVSDenoise, m_Params.denoiseParams.fDenoiseFactor, m_Params.secureDnNeeded, GetFeatureType());
         return MOS_STATUS_SUCCESS;
     }
 
@@ -1284,9 +1292,11 @@ public:
     }
     virtual MOS_STATUS AddFeatureGraphRTLog()
     {
-        MT_LOG5(MT_VP_FEATURE_GRAPTH_SWFILTERDEINTERLACE, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_SAMPLETYPEINPUT, m_Params.sampleTypeInput, MT_VP_FEATURE_GRAPH_FILTER_FMDKERNELENABLE, m_Params.bFmdKernelEnable,
+        MT_LOG5(MT_VP_FEATURE_GRAPH_SWFILTERDEINTERLACE, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_SAMPLETYPEINPUT, m_Params.sampleTypeInput, MT_VP_FEATURE_GRAPH_FILTER_FMDKERNELENABLE, m_Params.bFmdKernelEnable,
                 MT_VP_FEATURE_GRAPH_FILTER_SINGLEFIELD, m_Params.diParams ? m_Params.diParams->bSingleField : -1, MT_VP_FEATURE_GRAPH_FILTER_DIMODE, m_Params.diParams ? m_Params.diParams->DIMode : -1,
                 MT_VP_FEATURE_GRAPH_FILTER_FEATURETYPE, GetFeatureType());
+        VP_PUBLIC_NORMALMESSAGE("Feature Graph: SwFilterDeinterlace: sampleTypeInput %d, bFmdKernelEnable %d, bSingleField %d, DIMode %d, FeatureType %d", m_Params.sampleTypeInput, m_Params.bFmdKernelEnable,
+                                m_Params.diParams ? m_Params.diParams->bSingleField : -1, m_Params.diParams ? m_Params.diParams->DIMode : -1, GetFeatureType());
         return MOS_STATUS_SUCCESS;
     }
 
@@ -1329,7 +1339,8 @@ public:
     }
     virtual MOS_STATUS AddFeatureGraphRTLog()
     {
-        MT_LOG3(MT_VP_FEATURE_GRAPTH_SWFILTERSTE, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_STEFACTOR, m_Params.dwSTEFactor, MT_VP_FEATURE_GRAPH_FILTER_ENABLESTD, m_Params.bEnableSTD, MT_VP_FEATURE_GRAPH_FILTER_FEATURETYPE, GetFeatureType());
+        MT_LOG3(MT_VP_FEATURE_GRAPH_SWFILTERSTE, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_STEFACTOR, m_Params.dwSTEFactor, MT_VP_FEATURE_GRAPH_FILTER_ENABLESTD, m_Params.bEnableSTD, MT_VP_FEATURE_GRAPH_FILTER_FEATURETYPE, GetFeatureType());
+        VP_PUBLIC_NORMALMESSAGE("Feature Graph: SwFilterSte: dwSTEFactor %d, bEnableSTD %d, FeatureType %d", m_Params.dwSTEFactor, m_Params.bEnableSTD, GetFeatureType());
         return MOS_STATUS_SUCCESS;
     }
 
@@ -1363,8 +1374,9 @@ public:
     virtual MOS_STATUS Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSurf, SwFilterSubPipe &pipe);
     virtual MOS_STATUS AddFeatureGraphRTLog()
     {
-        MT_LOG4(MT_VP_FEATURE_GRAPTH_SWFILTERTCC, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_TCCRED, m_Params.Red, MT_VP_FEATURE_GRAPH_FILTER_TCCGREEN, m_Params.Green, MT_VP_FEATURE_GRAPH_FILTER_TCCBLUE,
+        MT_LOG4(MT_VP_FEATURE_GRAPH_SWFILTERTCC, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_TCCRED, m_Params.Red, MT_VP_FEATURE_GRAPH_FILTER_TCCGREEN, m_Params.Green, MT_VP_FEATURE_GRAPH_FILTER_TCCBLUE,
                 m_Params.Blue, MT_VP_FEATURE_GRAPH_FILTER_FEATURETYPE, GetFeatureType());
+        VP_PUBLIC_NORMALMESSAGE("Feature Graph: SwFilterTcc: Red %d, Green %d, Blue %d, FeatureType %d", m_Params.Red, m_Params.Green, m_Params.Blue, GetFeatureType());
         return MOS_STATUS_SUCCESS;
     }
 
@@ -1392,9 +1404,12 @@ public:
     virtual MOS_STATUS Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSurf, SwFilterSubPipe &pipe);
     virtual MOS_STATUS AddFeatureGraphRTLog()
     {
-        MT_LOG5(MT_VP_FEATURE_GRAPTH_SWFILTERPROCAMP, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_BRIGHTNESS, m_Params.procampParams ? (int64_t)m_Params.procampParams->fBrightness : -1,
+        MT_LOG5(MT_VP_FEATURE_GRAPH_SWFILTERPROCAMP, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_BRIGHTNESS, m_Params.procampParams ? (int64_t)m_Params.procampParams->fBrightness : -1,
                 MT_VP_FEATURE_GRAPH_FILTER_CONTRAST, m_Params.procampParams ? (int64_t)m_Params.procampParams->fContrast : -1, MT_VP_FEATURE_GRAPH_FILTER_HUE, m_Params.procampParams ? (int64_t)m_Params.procampParams->fHue : -1,
                 MT_VP_FEATURE_GRAPH_FILTER_SATURATION, m_Params.procampParams ? (int64_t) m_Params.procampParams->fSaturation : -1, MT_VP_FEATURE_GRAPH_FILTER_FEATURETYPE, GetFeatureType());
+        VP_PUBLIC_NORMALMESSAGE("Feature Graph: SwFilterProcamp: fBrightness %f, fContrast %f, fHue %f, fSaturation %f, FeatureType %d", m_Params.procampParams ? m_Params.procampParams->fBrightness : -1,
+                                m_Params.procampParams ? m_Params.procampParams->fContrast : -1, m_Params.procampParams ? m_Params.procampParams->fHue : -1,
+                                m_Params.procampParams ? m_Params.procampParams->fSaturation : -1, GetFeatureType());
         return MOS_STATUS_SUCCESS;
     }
 
@@ -1504,9 +1519,11 @@ public:
             bool          *pbSupported);
     virtual MOS_STATUS AddFeatureGraphRTLog()
     {
-        MT_LOG8(MT_VP_FEATURE_GRAPTH_SWFILTERHDR, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_HDRMODE, m_Params.hdrMode, MT_VP_FEATURE_GRAPH_FILTER_LUTMODE, m_Params.lutMode,
+        MT_LOG8(MT_VP_FEATURE_GRAPH_SWFILTERHDR, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_HDRMODE, m_Params.hdrMode, MT_VP_FEATURE_GRAPH_FILTER_LUTMODE, m_Params.lutMode,
                 MT_VP_FEATURE_GRAPH_FILTER_GPUGENERATE3DLUT, m_Params.bGpuGenerate3DLUT, MT_VP_FEATURE_GRAPH_FILTER_INPUTFORMAT, m_Params.formatInput, MT_VP_FEATURE_GRAPH_FILTER_OUTPUTFORMAT,
                 m_Params.formatOutput, MT_VP_FEATURE_GRAPH_FILTER_INPUTCOLORSPACE, m_Params.srcColorSpace, MT_VP_FEATURE_GRAPH_FILTER_OUTPUTCOLORSPACE, m_Params.dstColorSpace, MT_VP_FEATURE_GRAPH_FILTER_FEATURETYPE, GetFeatureType());
+        VP_PUBLIC_NORMALMESSAGE("Feature Graph: SwFilterHdr: hdrMode %d, lutMode %d, bGpuGenerate3DLUT %d, formatInput %d, formatOutput %d, srcColorSpace %d, dstColorSpace %d, FeatureType %d", m_Params.hdrMode,
+                                m_Params.lutMode, m_Params.bGpuGenerate3DLUT, m_Params.formatInput, m_Params.formatOutput, m_Params.srcColorSpace, m_Params.dstColorSpace, GetFeatureType());
         return MOS_STATUS_SUCCESS;
     }
 
@@ -1534,8 +1551,10 @@ public:
     virtual MOS_STATUS       Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf, SwFilterSubPipe &pipe);
     virtual MOS_STATUS       AddFeatureGraphRTLog()
     {
-        MT_LOG3(MT_VP_FEATURE_GRAPTH_SWFILTERLUMAKEY, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_LUMAHIGH, m_Params.lumaKeyParams ? m_Params.lumaKeyParams->LumaHigh : -1, MT_VP_FEATURE_GRAPH_FILTER_LUMALOW,
+        MT_LOG3(MT_VP_FEATURE_GRAPH_SWFILTERLUMAKEY, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_LUMAHIGH, m_Params.lumaKeyParams ? m_Params.lumaKeyParams->LumaHigh : -1, MT_VP_FEATURE_GRAPH_FILTER_LUMALOW,
                 m_Params.lumaKeyParams ? m_Params.lumaKeyParams->LumaLow : -1, MT_VP_FEATURE_GRAPH_FILTER_FEATURETYPE, GetFeatureType());
+        VP_PUBLIC_NORMALMESSAGE("Feature Graph: SwFilterLumakey: LumaHigh %d, LumaLow %d, FeatureType %d", m_Params.lumaKeyParams ? m_Params.lumaKeyParams->LumaHigh : -1, m_Params.lumaKeyParams ? m_Params.lumaKeyParams->LumaLow : -1,
+                                GetFeatureType());
         return MOS_STATUS_SUCCESS;
     }
 
@@ -1563,8 +1582,10 @@ public:
     virtual MOS_STATUS       Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf, SwFilterSubPipe &pipe);
     virtual MOS_STATUS       AddFeatureGraphRTLog()
     {
-        MT_LOG3(MT_VP_FEATURE_GRAPTH_SWFILTERBLENDING, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_BLENDTYPE, m_Params.blendingParams ? m_Params.blendingParams->BlendType : -1, MT_VP_FEATURE_GRAPH_FILTER_FALPHA,
+        MT_LOG3(MT_VP_FEATURE_GRAPH_SWFILTERBLENDING, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_BLENDTYPE, m_Params.blendingParams ? m_Params.blendingParams->BlendType : -1, MT_VP_FEATURE_GRAPH_FILTER_FALPHA,
                 m_Params.blendingParams ? (int64_t) m_Params.blendingParams->fAlpha : -1, MT_VP_FEATURE_GRAPH_FILTER_FEATURETYPE, GetFeatureType());
+        VP_PUBLIC_NORMALMESSAGE("Feature Graph: SwFilterBlending: BlendType %d, fAlpha %f, FeatureType %d", m_Params.blendingParams ? m_Params.blendingParams->BlendType : -1,
+                                m_Params.blendingParams ? m_Params.blendingParams->fAlpha : -1, GetFeatureType());
         return MOS_STATUS_SUCCESS;
     }
 
@@ -1599,8 +1620,10 @@ public:
     virtual VP_EngineEntry   GetCombinedFilterEngineCaps(SwFilterSubPipe *singleInputPipeSelected);
     virtual MOS_STATUS       AddFeatureGraphRTLog()
     {
-        MT_LOG3(MT_VP_FEATURE_GRAPTH_SWFILTERCOLORFILL, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_INPUTCOLORSPACE, m_Params.colorFillParams ? m_Params.colorFillParams->CSpace : -1,
+        MT_LOG3(MT_VP_FEATURE_GRAPH_SWFILTERCOLORFILL, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_INPUTCOLORSPACE, m_Params.colorFillParams ? m_Params.colorFillParams->CSpace : -1,
                 MT_VP_FEATURE_GRAPH_FILTER_DISABLECFINSFC, m_Params.colorFillParams ? m_Params.colorFillParams->bDisableColorfillinSFC : -1, MT_VP_FEATURE_GRAPH_FILTER_FEATURETYPE, GetFeatureType());
+        VP_PUBLIC_NORMALMESSAGE("Feature Graph: SwFilterColorFill: CSpace %d, bDisableColorfillinSFC %d, FeatureType %d", m_Params.colorFillParams ? m_Params.colorFillParams->CSpace : -1,
+                                m_Params.colorFillParams ? m_Params.colorFillParams->bDisableColorfillinSFC : -1, GetFeatureType());
         return MOS_STATUS_SUCCESS;
     }
 
@@ -1636,9 +1659,11 @@ public:
     virtual MOS_STATUS       Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf, SwFilterSubPipe &pipe);
     virtual MOS_STATUS       AddFeatureGraphRTLog()
     {
-        MT_LOG4(MT_VP_FEATURE_GRAPTH_SWFILTERALPHA, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_CALCULATINGALPHA, m_Params.calculatingAlpha, MT_VP_FEATURE_GRAPH_FILTER_ALPHAMODE,
+        MT_LOG4(MT_VP_FEATURE_GRAPH_SWFILTERALPHA, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_CALCULATINGALPHA, m_Params.calculatingAlpha, MT_VP_FEATURE_GRAPH_FILTER_ALPHAMODE,
                 m_Params.compAlpha ? m_Params.compAlpha->AlphaMode : -1, MT_VP_FEATURE_GRAPH_FILTER_FALPHA, m_Params.compAlpha ? (int64_t) m_Params.compAlpha->fAlpha : -1,
                 MT_VP_FEATURE_GRAPH_FILTER_FEATURETYPE, GetFeatureType());
+        VP_PUBLIC_NORMALMESSAGE("Feature Graph: SwFilterAlpha: calculatingAlpha %d, AlphaMode %d, fAlpha %f, FeatureType %d", m_Params.calculatingAlpha, m_Params.compAlpha ? m_Params.compAlpha->AlphaMode : -1,
+                                m_Params.compAlpha ? m_Params.compAlpha->fAlpha : -1, GetFeatureType());
         return MOS_STATUS_SUCCESS;
     }
 
@@ -1679,8 +1704,10 @@ public:
     }
     virtual MOS_STATUS AddFeatureGraphRTLog()
     {
-        MT_LOG5(MT_VP_FEATURE_GRAPTH_SWFILTERCGC, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_GCOMPMODE, m_Params.GCompMode, MT_VP_FEATURE_GRAPH_FILTER_INPUTCOLORSPACE, m_Params.colorSpace,
+        MT_LOG5(MT_VP_FEATURE_GRAPH_SWFILTERCGC, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_GCOMPMODE, m_Params.GCompMode, MT_VP_FEATURE_GRAPH_FILTER_INPUTCOLORSPACE, m_Params.colorSpace,
                 MT_VP_FEATURE_GRAPH_FILTER_OUTPUTCOLORSPACE, m_Params.dstColorSpace, MT_VP_FEATURE_GRAPH_FILTER_BT2020TORGB, m_Params.bBt2020ToRGB, MT_VP_FEATURE_GRAPH_FILTER_FEATURETYPE, GetFeatureType());
+        VP_PUBLIC_NORMALMESSAGE("Feature Graph: SwFilterCgc: GCompMode %d, srccolorSpace %d, dstColorSpace %d, bBt2020ToRGB %d, FeatureType %d", m_Params.GCompMode, m_Params.colorSpace,
+                                m_Params.dstColorSpace, m_Params.bBt2020ToRGB, GetFeatureType());
         return MOS_STATUS_SUCCESS;
     }
 
