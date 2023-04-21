@@ -19,10 +19,6 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 if ("${AV1_Encode_VDEnc_Supported}" STREQUAL "yes")
-set(TMP_SOURCES_
-    ${TMP_SOURCES_}
-    ${CMAKE_CURRENT_LIST_DIR}/encode_av1_vdenc_packet_xe_hpm.cpp
-)
 
 set(TMP_HEADERS_
     ${TMP_HEADERS_}

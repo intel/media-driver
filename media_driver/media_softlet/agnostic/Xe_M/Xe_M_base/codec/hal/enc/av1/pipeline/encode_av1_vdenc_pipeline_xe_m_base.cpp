@@ -52,19 +52,19 @@ MOS_STATUS Av1VdencPipelineXe_M_Base::Init(void *settings)
 
     Av1BrcInitPkt* brcInitpkt = MOS_New(Av1BrcInitPkt, this, task, m_hwInterface);
     RegisterPacket(Av1HucBrcInit, brcInitpkt);
-    brcInitpkt->Init();
+    ENCODE_CHK_STATUS_RETURN(brcInitpkt->Init());
 
     Av1BrcUpdatePkt* brcUpdatepkt = MOS_New(Av1BrcUpdatePkt, this, task, m_hwInterface);
     RegisterPacket(Av1HucBrcUpdate, brcUpdatepkt);
-    brcUpdatepkt->Init();
+    ENCODE_CHK_STATUS_RETURN(brcUpdatepkt->Init());
 
     Av1VdencPktXe_M_Base *av1Vdencpkt = MOS_New(Av1VdencPktXe_M_Base, this, task, m_hwInterface);
     RegisterPacket(Av1VdencPacket, av1Vdencpkt);
-    av1Vdencpkt->Init();
+    ENCODE_CHK_STATUS_RETURN(av1Vdencpkt->Init());
 
     Av1BackAnnotationPkt *av1BackAnnotationpkt = MOS_New(Av1BackAnnotationPkt, this, task, m_hwInterface);
     RegisterPacket(Av1BackAnnotation, av1BackAnnotationpkt);
-    av1BackAnnotationpkt->Init();
+    ENCODE_CHK_STATUS_RETURN(av1BackAnnotationpkt->Init());
 
     return MOS_STATUS_SUCCESS;
 }
@@ -110,7 +110,7 @@ MOS_STATUS Av1VdencPipelineXe_M_Base::Prepare(void *params)
 
     inputParameters.numberTilesInFrame         = numTileRows * numTileColumns;
 
-    m_statusReport->Init(&inputParameters);
+    ENCODE_CHK_STATUS_RETURN(m_statusReport->Init(&inputParameters));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -130,7 +130,7 @@ MOS_STATUS Av1VdencPipelineXe_M_Base::Execute()
 MOS_STATUS Av1VdencPipelineXe_M_Base::GetStatusReport(void *status, uint16_t numStatus)
 {
     ENCODE_FUNC_CALL();
-    m_statusReport->GetReport(numStatus, status);
+    ENCODE_CHK_STATUS_RETURN(m_statusReport->GetReport(numStatus, status));
 
     return MOS_STATUS_SUCCESS;
 }

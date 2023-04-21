@@ -1131,33 +1131,35 @@ namespace encode{
         uint32_t maxSize          = 0;
         uint32_t patchListMaxSize = 0;
 
-        maxSize = m_miItf->MHW_GETSIZE_F(MI_BATCH_BUFFER_START)() * 5 +
-            m_miItf->MHW_GETSIZE_F(VD_CONTROL_STATE)()                +
-            m_avpItf->MHW_GETSIZE_F(AVP_PIPE_MODE_SELECT)() * 2       +
-            m_avpItf->MHW_GETSIZE_F(AVP_SURFACE_STATE)() * 11         +
-            m_avpItf->MHW_GETSIZE_F(AVP_PIPE_BUF_ADDR_STATE)()        +
-            m_avpItf->MHW_GETSIZE_F(AVP_IND_OBJ_BASE_ADDR_STATE)()    +
-            m_avpItf->MHW_GETSIZE_F(AVP_PIC_STATE)()                  +
-            m_avpItf->MHW_GETSIZE_F(AVP_INTER_PRED_STATE)()           +
-            m_avpItf->MHW_GETSIZE_F(AVP_SEGMENT_STATE)() * 8          +
-            m_avpItf->MHW_GETSIZE_F(AVP_INLOOP_FILTER_STATE)()        +
-            m_avpItf->MHW_GETSIZE_F(AVP_TILE_CODING)()                +
-            m_avpItf->MHW_GETSIZE_F(AVP_PAK_INSERT_OBJECT)() * 9      +
+        maxSize = m_miItf->MHW_GETSIZE_F(MI_BATCH_BUFFER_START)() * AV1_MAX_NUM_OF_BATCH_BUFFER +
+            m_miItf->MHW_GETSIZE_F(VD_CONTROL_STATE)()                                          +
+            m_miItf->MHW_GETSIZE_F(MFX_WAIT)()                                                  +
+            m_avpItf->MHW_GETSIZE_F(AVP_PIPE_MODE_SELECT)()                                     +
+            m_miItf->MHW_GETSIZE_F(MFX_WAIT)()                                                  +
+            m_avpItf->MHW_GETSIZE_F(AVP_SURFACE_STATE)() * av1SurfaceNums                       +
+            m_avpItf->MHW_GETSIZE_F(AVP_PIPE_BUF_ADDR_STATE)()                                  +
+            m_avpItf->MHW_GETSIZE_F(AVP_IND_OBJ_BASE_ADDR_STATE)()                              +
+            m_avpItf->MHW_GETSIZE_F(AVP_PIC_STATE)()                                            +
+            m_avpItf->MHW_GETSIZE_F(AVP_INTER_PRED_STATE)()                                     +
+            m_avpItf->MHW_GETSIZE_F(AVP_SEGMENT_STATE)() * AV1_MAX_NUM_OF_SEGMENTS              +
+            m_avpItf->MHW_GETSIZE_F(AVP_INLOOP_FILTER_STATE)()                                  +
+            m_avpItf->MHW_GETSIZE_F(AVP_TILE_CODING)()                                          +
+            m_avpItf->MHW_GETSIZE_F(AVP_PAK_INSERT_OBJECT)() * MAX_NUM_OBU_TYPES                +
             m_miItf->MHW_GETSIZE_F(MI_BATCH_BUFFER_END)();
 
         patchListMaxSize =
-            PATCH_LIST_COMMAND(mhw::mi::Itf::MI_BATCH_BUFFER_START_CMD) * 5           +
-            PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::VD_PIPELINE_FLUSH_CMD)           +
-            PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::AVP_PIPE_MODE_SELECT_CMD)        +
-            PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::AVP_SURFACE_STATE_CMD) * 11      +
-            PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::AVP_PIPE_BUF_ADDR_STATE_CMD)     +
-            PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::AVP_IND_OBJ_BASE_ADDR_STATE_CMD) +
-            PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::AVP_PIC_STATE_CMD)               +
-            PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::AVP_INTER_PRED_STATE_CMD)        +
-            PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::AVP_SEGMENT_STATE_CMD) * 8       +
-            PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::AVP_INLOOP_FILTER_STATE_CMD)     +
-            PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::AVP_TILE_CODING_CMD)             +
-            PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::AVP_PAK_INSERT_OBJECT_CMD) * 9;
+            PATCH_LIST_COMMAND(mhw::mi::Itf::MI_BATCH_BUFFER_START_CMD) * AV1_MAX_NUM_OF_BATCH_BUFFER +
+            PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::VD_PIPELINE_FLUSH_CMD)                           +
+            PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::AVP_PIPE_MODE_SELECT_CMD)                        +
+            PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::AVP_SURFACE_STATE_CMD) * av1SurfaceNums          +
+            PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::AVP_PIPE_BUF_ADDR_STATE_CMD)                     +
+            PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::AVP_IND_OBJ_BASE_ADDR_STATE_CMD)                 +
+            PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::AVP_PIC_STATE_CMD)                               +
+            PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::AVP_INTER_PRED_STATE_CMD)                        +
+            PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::AVP_SEGMENT_STATE_CMD) * AV1_MAX_NUM_OF_SEGMENTS +
+            PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::AVP_INLOOP_FILTER_STATE_CMD)                     +
+            PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::AVP_TILE_CODING_CMD)                             +
+            PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::AVP_PAK_INSERT_OBJECT_CMD) * MAX_NUM_OBU_TYPES;
 
         ENCODE_CHK_NULL_RETURN(commandsSize);
         ENCODE_CHK_NULL_RETURN(patchListSize);

@@ -72,11 +72,11 @@ MOS_STATUS Av1VdencPipelineXe_LPM_Plus::Init(void *settings)
     auto av1Vdencpkt = MOS_New(Av1VdencPktXe_Lpm_Plus, this, task, m_hwInterface);
 #endif  // !(_MEDIA_RESERVED)
     RegisterPacket(Av1VdencPacket, av1Vdencpkt);
-    av1Vdencpkt->Init();
+    ENCODE_CHK_STATUS_RETURN(av1Vdencpkt->Init());
 
     auto av1BackAnnotationpkt = MOS_New(Av1BackAnnotationPkt, this, task, m_hwInterface);
     RegisterPacket(Av1BackAnnotation, av1BackAnnotationpkt);
-    av1BackAnnotationpkt->Init();
+    ENCODE_CHK_STATUS_RETURN(av1BackAnnotationpkt->Init());
 
     m_sfcItf = m_hwInterface->GetMediaSfcInterface();
     ENCODE_CHK_NULL_RETURN(m_sfcItf);

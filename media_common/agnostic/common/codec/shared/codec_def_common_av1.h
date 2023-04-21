@@ -338,7 +338,8 @@ enum Av1SurfaceId
     av1AltRef2      = 12,   //!< Altref2 frame
     av1AltRef       = 13,    //!< Altref frame
     intrabcDecodedFrame = 14,   //!< IntraBC Decoded Frame
-    av1CdefPixelsStreamout = 15 //!< Cdef pixels streamout (encoder only)
+    av1CdefPixelsStreamout = 15, //!< Cdef pixels streamout (encoder only)
+    av1SurfaceNums               //!< max surface ids
 };
 
 //CDF tables for Intra

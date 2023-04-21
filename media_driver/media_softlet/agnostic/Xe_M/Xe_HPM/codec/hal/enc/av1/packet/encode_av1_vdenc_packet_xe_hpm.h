@@ -37,7 +37,7 @@ namespace encode
         Av1VdencPktXe_Hpm(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterfaceNext *hwInterface) :
             Av1VdencPktXe_M_Base(pipeline, task, hwInterface) { }
 
-        virtual ~Av1VdencPktXe_Hpm();
+        virtual ~Av1VdencPktXe_Hpm(){};
 
     MEDIA_CLASS_DEFINE_END(encode__Av1VdencPktXe_Hpm)
     };

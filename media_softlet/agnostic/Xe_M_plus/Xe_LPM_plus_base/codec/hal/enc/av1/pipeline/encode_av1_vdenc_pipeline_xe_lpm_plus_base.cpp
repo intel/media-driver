@@ -93,7 +93,7 @@ MOS_STATUS Av1VdencPipelineXe_Lpm_Plus_Base::Prepare(void *params)
 
     inputParameters.numberTilesInFrame = numTileRows * numTileColumns;
 
-    m_statusReport->Init(&inputParameters);
+    ENCODE_CHK_STATUS_RETURN(m_statusReport->Init(&inputParameters));
 
     return MOS_STATUS_SUCCESS;
 }

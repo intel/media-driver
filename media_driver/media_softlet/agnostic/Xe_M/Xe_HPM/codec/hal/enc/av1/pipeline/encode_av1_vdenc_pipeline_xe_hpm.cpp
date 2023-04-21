@@ -53,19 +53,19 @@ MOS_STATUS Av1VdencPipelineXe_Hpm::Init(void *settings)
 
     Av1BrcInitPkt* brcInitpkt = MOS_New(Av1BrcInitPkt, this, task, m_hwInterface);
     RegisterPacket(Av1HucBrcInit, brcInitpkt);
-    brcInitpkt->Init();
+    ENCODE_CHK_STATUS_RETURN(brcInitpkt->Init());
 
     Av1BrcUpdatePkt* brcUpdatepkt = MOS_New(Av1BrcUpdatePkt, this, task, m_hwInterface);
     RegisterPacket(Av1HucBrcUpdate, brcUpdatepkt);
-    brcUpdatepkt->Init();
+    ENCODE_CHK_STATUS_RETURN(brcUpdatepkt->Init());
 
     Av1VdencPktXe_Hpm *av1Vdencpkt = MOS_New(Av1VdencPktXe_Hpm, this, task, m_hwInterface);
     RegisterPacket(Av1VdencPacket, av1Vdencpkt);
-    av1Vdencpkt->Init();
+    ENCODE_CHK_STATUS_RETURN(av1Vdencpkt->Init());
 
     Av1BackAnnotationPkt *av1BackAnnotationpkt = MOS_New(Av1BackAnnotationPkt, this, task, m_hwInterface);
     RegisterPacket(Av1BackAnnotation, av1BackAnnotationpkt);
-    av1BackAnnotationpkt->Init();
+    ENCODE_CHK_STATUS_RETURN(av1BackAnnotationpkt->Init());
 
     return MOS_STATUS_SUCCESS;
 }
