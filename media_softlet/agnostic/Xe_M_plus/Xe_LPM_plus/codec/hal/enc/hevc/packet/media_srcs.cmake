@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Intel Corporation
+# Copyright (c) 2020, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,6 +18,35 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-media_include_subdirectory(pipeline)
-media_include_subdirectory(packet)
-media_include_subdirectory(features)
+if ("${HEVC_Encode_VDEnc_Supported}" STREQUAL "yes")
+set(TMP_SOURCES_
+    ${CMAKE_CURRENT_LIST_DIR}/encode_huc_brc_update_packet_xe_lpm_plus.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/encode_hevc_vdenc_packet_xe_lpm_plus.cpp
+)
+
+set(TMP_HEADERS_
+    ${CMAKE_CURRENT_LIST_DIR}/encode_huc_brc_update_packet_xe_lpm_plus.h
+    ${CMAKE_CURRENT_LIST_DIR}/encode_hevc_vdenc_packet_xe_lpm_plus.h
+)
+
+set(SOFTLET_ENCODE_HEVC_HEADERS_
+    ${SOFTLET_ENCODE_HEVC_HEADERS_}
+    ${TMP_HEADERS_}
+)
+
+set(SOFTLET_ENCODE_HEVC_SOURCES_
+    ${SOFTLET_ENCODE_HEVC_SOURCES_}
+    ${TMP_SOURCES_}
+)
+
+source_group( CodecHalNext\\Xe_LPM_plus\\Encode FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
+
+set(TMP_SOURCES_ "")
+set(TMP_HEADERS_ "")
+
+endif()
+
+set(SOFTLET_ENCODE_HEVC_PRIVATE_INCLUDE_DIRS_
+    ${SOFTLET_ENCODE_HEVC_PRIVATE_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)
