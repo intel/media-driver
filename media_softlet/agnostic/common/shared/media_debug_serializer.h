@@ -34,6 +34,7 @@
 #include <string>
 #include <typeinfo>
 #include <type_traits>
+#include <stdint.h>
 #include "media_class_trace.h"
 
 template <typename T, typename = void>

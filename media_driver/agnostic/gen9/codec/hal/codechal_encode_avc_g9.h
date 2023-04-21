@@ -5668,6 +5668,7 @@ public:
     MOS_STATUS GetStatusReport(
         void *status,
         uint16_t numStatus) override;
+    using CodechalEncodeAvcEnc::GetStatusReport;
 
 #if USE_CODECHAL_DEBUG_TOOL
 protected:

@@ -202,6 +202,7 @@ protected:
 
      MOS_STATUS CscKernel(
         KernelParams* pParams) override;
+    using CodechalEncodeCscDsG12::InitKernelStateCsc;
     MOS_STATUS InitKernelStateCsc(KernelParams* pParams);
     MOS_STATUS SetupKernelArgsCSC(CmKernel *cmKrnCSCDS, SurfaceParamsCscMdf* surfaceparams);
     MOS_STATUS SetCurbeCscforMDF(CMRT_UMD::vector<uint32_t, 10> & curbeData);

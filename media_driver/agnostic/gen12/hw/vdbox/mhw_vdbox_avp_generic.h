@@ -95,24 +95,5 @@ protected:
 
         return eStatus;
     }
-
-    MOS_STATUS AddAvpBsdObjectCmd(
-        PMOS_COMMAND_BUFFER                 cmdBuffer,
-        MhwVdboxAvpBsdParams                *params)
-    {
-        MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-
-        MHW_FUNCTION_ENTER;
-        MHW_MI_CHK_NULL(m_osInterface);
-
-        typename TAvpCmds::AVP_BSD_OBJECT_CMD   cmd;
-
-        cmd.DW1.IndirectBsdDataLength       = params->m_bsdDataLength;
-        cmd.DW2.IndirectDataStartAddress    = params->m_bsdDataStartOffset;
-
-        MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
-
-        return eStatus;
-    }
 };
 #endif

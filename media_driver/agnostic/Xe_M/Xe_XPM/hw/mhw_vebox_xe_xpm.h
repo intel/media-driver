@@ -110,15 +110,6 @@ public:
         PMOS_COMMAND_BUFFER                 pCmdBuffer,
         PMHW_VEBOX_SURFACE_STATE_CMD_PARAMS pVeboxSurfaceStateCmdParams) override;
 
-    void SetVeboxSurfaces(
-        PMHW_VEBOX_SURFACE_PARAMS                  pSurfaceParam,
-        PMHW_VEBOX_SURFACE_PARAMS                  pDerivedSurfaceParam,
-        PMHW_VEBOX_SURFACE_PARAMS                  pSkinScoreSurfaceParam,
-        mhw_vebox_xe_xpm::VEBOX_SURFACE_STATE_CMD *pVeboxSurfaceState,
-        bool                                       bIsOutputSurface,
-        bool                                       bDIEnable,
-        bool                                       b3DlutEnable);
-
     MOS_STATUS FindVeboxGpuNodeToUse(
         PMHW_VEBOX_GPUNODE_LIMIT pGpuNodeLimit) override;
 
@@ -144,6 +135,18 @@ protected:
     uint32_t m_indexofVebox              = 0;
     uint32_t m_numofVebox                = 1;
     uint32_t m_usingSfc                  = 0;
+   
+    using MhwVeboxInterfaceG12::SetVeboxSurfaces;
+
+    void SetVeboxSurfaces(
+        PMHW_VEBOX_SURFACE_PARAMS                  pSurfaceParam,
+        PMHW_VEBOX_SURFACE_PARAMS                  pDerivedSurfaceParam,
+        PMHW_VEBOX_SURFACE_PARAMS                  pSkinScoreSurfaceParam,
+        mhw_vebox_xe_xpm::VEBOX_SURFACE_STATE_CMD *pVeboxSurfaceState,
+        bool                                       bIsOutputSurface,
+        bool                                       bDIEnable,
+        bool                                       b3DlutEnable);
+
 };
 
 #endif // __MHW_VEBOX_XE_XPM_H__

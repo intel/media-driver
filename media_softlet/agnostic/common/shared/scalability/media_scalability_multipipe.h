@@ -50,7 +50,7 @@ public:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS UpdateState();
+    virtual MOS_STATUS UpdateState(void *statePars);
 
 protected:
     inline bool IsFirstPipe() { return (m_currentPipe == 0) ? true : false; }
