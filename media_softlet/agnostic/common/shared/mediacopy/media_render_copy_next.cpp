@@ -393,9 +393,7 @@ MOS_STATUS RenderCopyStateNext::SubmitCMD()
 
     // Set Perf Tag
     pOsInterface->pfnResetPerfBufferID(pOsInterface);
-    pOsInterface->pfnSetPerfTag(
-        pOsInterface,
-        pRenderData->PerfTag);
+    m_osInterface->pfnSetPerfTag(m_osInterface, RENDER_COPY);
 
     // Setup Compute Walker
     pWalkerParams = nullptr;

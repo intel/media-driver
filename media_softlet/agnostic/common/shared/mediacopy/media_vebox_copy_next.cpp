@@ -76,27 +76,7 @@ VeboxCopyStateNext::~VeboxCopyStateNext()
 
 MOS_STATUS VeboxCopyStateNext::Initialize()
 {
-    MHW_VEBOX_GPUNODE_LIMIT     GpuNodeLimit;
-    MOS_GPU_NODE                VeboxGpuNode;
-    MOS_GPU_CONTEXT             VeboxGpuContext;
-
     VEBOX_COPY_CHK_NULL_RETURN(m_veboxItf);
-    
-    GpuNodeLimit.bCpEnabled = (m_osInterface->osCpInterface->IsCpEnabled())? true : false;
-    VEBOX_COPY_CHK_STATUS_RETURN(m_veboxItf->FindVeboxGpuNodeToUse(&GpuNodeLimit));
-    VeboxGpuNode = (MOS_GPU_NODE)(GpuNodeLimit.dwGpuNodeToUse);
-    VeboxGpuContext = (VeboxGpuNode == MOS_GPU_NODE_VE) ? MOS_GPU_CONTEXT_VEBOX : MOS_GPU_CONTEXT_VEBOX2;
-    // Create VEBOX/VEBOX2 Context
-    VEBOX_COPY_CHK_STATUS_RETURN(m_veboxItf->CreateGpuContext(
-            m_osInterface,
-            VeboxGpuContext,
-            VeboxGpuNode));
-
-    // Register Vebox GPU context with the Batch Buffer completion event
-    VEBOX_COPY_CHK_STATUS_RETURN(m_osInterface->pfnRegisterBBCompleteNotifyEvent(
-            m_osInterface,
-            MOS_GPU_CONTEXT_VEBOX));
-
     const MHW_VEBOX_HEAP* veboxHeap = nullptr;
     m_veboxItf->GetVeboxHeapInfo(&veboxHeap);
 
@@ -146,15 +126,26 @@ MOS_STATUS VeboxCopyStateNext::CopyMainSurface(PMOS_RESOURCE src, PMOS_RESOURCE 
         return MOS_STATUS_UNIMPLEMENTED;
     }
 
-    MOS_GPUCTX_CREATOPTIONS_ENHANCED      createOption = {};
-
-    // no gpucontext will be created if the gpu context has been created before.
-    VEBOX_COPY_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(
+    MHW_VEBOX_GPUNODE_LIMIT     GpuNodeLimit;
+    MOS_GPU_NODE                VeboxGpuNode;
+    MOS_GPU_CONTEXT             VeboxGpuContext;
+    GpuNodeLimit.bCpEnabled = (m_osInterface->osCpInterface->IsCpEnabled()) ? true : false;
+    VEBOX_COPY_CHK_STATUS_RETURN(m_veboxItf->FindVeboxGpuNodeToUse(&GpuNodeLimit));
+    VeboxGpuNode = (MOS_GPU_NODE)(GpuNodeLimit.dwGpuNodeToUse);
+    VeboxGpuContext = (VeboxGpuNode == MOS_GPU_NODE_VE) ? MOS_GPU_CONTEXT_VEBOX : MOS_GPU_CONTEXT_VEBOX2;
+    // Create VEBOX/VEBOX2 Context
+    VEBOX_COPY_CHK_STATUS_RETURN(m_veboxItf->CreateGpuContext(
         m_osInterface,
-        MOS_GPU_CONTEXT_VEBOX,
-        MOS_GPU_NODE_VE,
-        &createOption));
-    VEBOX_COPY_CHK_STATUS_RETURN(m_osInterface->pfnSetGpuContext(m_osInterface, MOS_GPU_CONTEXT_VEBOX));
+        VeboxGpuContext,
+        VeboxGpuNode));
+
+    // Register Vebox GPU context with the Batch Buffer completion event
+    VEBOX_COPY_CHK_STATUS_RETURN(m_osInterface->pfnRegisterBBCompleteNotifyEvent(
+        m_osInterface,
+        VeboxGpuContext));
+
+    VEBOX_COPY_CHK_STATUS_RETURN(m_osInterface->pfnSetGpuContext(m_osInterface, VeboxGpuContext));
+
     m_osInterface->pfnSetPerfTag(m_osInterface, VEBOX_COPY);
     // Sync on Vebox Input Resource, Ensure the input is ready to be read
     // Currently, MOS RegisterResourcere cannot sync the 3d resource.

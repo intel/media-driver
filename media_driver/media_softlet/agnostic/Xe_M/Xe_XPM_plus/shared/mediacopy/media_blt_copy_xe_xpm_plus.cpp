@@ -91,7 +91,6 @@ BltStateXe_Xpm_Plus::~BltStateXe_Xpm_Plus()
 //!
 MOS_STATUS BltStateXe_Xpm_Plus::Initialize()
 {
-    BltState::Initialize();
     initialized = true;
 
     return MOS_STATUS_SUCCESS;
@@ -498,6 +497,10 @@ MOS_STATUS BltStateXe_Xpm_Plus::SubmitCMD(
         &createOption));
     // Set GPU context
     BLT_CHK_STATUS_RETURN(m_osInterface->pfnSetGpuContext(m_osInterface, MOS_GPU_CONTEXT_BLT));
+    // Register context with the Batch Buffer completion event
+    BLT_CHK_STATUS_RETURN(m_osInterface->pfnRegisterBBCompleteNotifyEvent(
+        m_osInterface,
+        MOS_GPU_CONTEXT_BLT));
 
     // Initialize the command buffer struct
     MOS_ZeroMemory(&cmdBuffer, sizeof(MOS_COMMAND_BUFFER));

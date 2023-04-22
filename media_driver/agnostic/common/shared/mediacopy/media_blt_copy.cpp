@@ -95,28 +95,6 @@ BltState::~BltState()
 //!
 MOS_STATUS BltState::Initialize()
 {
-    MOS_GPU_NODE            BltGpuNode;
-    MOS_GPU_CONTEXT         BltGpuContext;
-    MOS_GPUCTX_CREATOPTIONS_ENHANCED createOption = {};
-
-    BltGpuContext = MOS_GPU_CONTEXT_BLT;
-    BltGpuNode    = MOS_GPU_NODE_BLT;
-
-    BLT_CHK_NULL_RETURN(m_osInterface);
-    BLT_CHK_NULL_RETURN(m_bltInterface);
-
-    // Create BLT Context
-    BLT_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(
-        m_osInterface,
-        BltGpuContext,
-        BltGpuNode,
-        &createOption));
-
-    // Register context with the Batch Buffer completion event
-    BLT_CHK_STATUS_RETURN(m_osInterface->pfnRegisterBBCompleteNotifyEvent(
-        m_osInterface,
-        MOS_GPU_CONTEXT_BLT));
-
     return MOS_STATUS_SUCCESS;
 }
 
@@ -318,6 +296,11 @@ MOS_STATUS BltState::SubmitCMD(
         &createOption));
     // Set GPU context
     BLT_CHK_STATUS_RETURN(m_osInterface->pfnSetGpuContext(m_osInterface, MOS_GPU_CONTEXT_BLT));
+
+    // Register context with the Batch Buffer completion event
+    BLT_CHK_STATUS_RETURN(m_osInterface->pfnRegisterBBCompleteNotifyEvent(
+        m_osInterface,
+        MOS_GPU_CONTEXT_BLT));
 
     // Initialize the command buffer struct
     MOS_ZeroMemory(&cmdBuffer, sizeof(MOS_COMMAND_BUFFER));
