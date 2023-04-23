@@ -125,8 +125,20 @@ struct HevcVdencArbSettings  // adaptive region boot settings
 
 struct HevcVdencFeatureSettings : VdencFeatureSettings
 {
+    std::vector<
+        std::function<
+            MOS_STATUS(mhw::vdbox::vdenc::_MHW_PAR_T(VDENC_CMD1) & par, bool isLowDelay)> >
+        vdencLaCmd1Settings;
+
+    std::vector<
+        std::function<
+            MOS_STATUS(mhw::vdbox::vdenc::_MHW_PAR_T(VDENC_CMD2) & par, bool isLowDelay)> >
+        vdencLaCmd2Settings;
+
     std::array<bool, NUM_TARGET_USAGE_MODES + 1> rdoqEnable{};
     std::array<bool, NUM_TARGET_USAGE_MODES + 1> acqpEnable{};
+    std::array<bool, NUM_TARGET_USAGE_MODES + 1> rdoqLaEnable{};
+    std::array<bool, NUM_TARGET_USAGE_MODES + 1> acqpLaEnable{};
 
     std::array<
         std::array<
@@ -273,6 +285,10 @@ protected:
         return MOS_STATUS_SUCCESS;
     }
 
+    MOS_STATUS SetLaTUSettings();
+    MOS_STATUS SetVdencLaCmd1Settings();
+    MOS_STATUS SetVdencLaCmd2Settings();
+
     MOS_STATUS SetBrcSettings() override;
 
     HevcVdencBrcConstSettings m_brcSettings;
@@ -283,6 +299,7 @@ protected:
 
     bool m_hevcVdencRoundingPrecisionEnabled = true;  //!<  Roinding Precision enabled
     bool m_hevcRdoqEnabled                   = false;
+    bool m_isLaSetting                       = false;
 
 MEDIA_CLASS_DEFINE_END(encode__EncodeHevcVdencConstSettings)
 };

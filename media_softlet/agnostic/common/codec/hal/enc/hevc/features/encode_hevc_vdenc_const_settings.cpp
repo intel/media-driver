@@ -438,6 +438,9 @@ MOS_STATUS EncodeHevcVdencConstSettings::PrepareConstSettings()
     ENCODE_CHK_STATUS_RETURN(SetVdencCmd1Settings());
     ENCODE_CHK_STATUS_RETURN(SetVdencCmd2Settings());
     ENCODE_CHK_STATUS_RETURN(SetBrcSettings());
+    ENCODE_CHK_STATUS_RETURN(SetLaTUSettings());
+    ENCODE_CHK_STATUS_RETURN(SetVdencLaCmd1Settings());
+    ENCODE_CHK_STATUS_RETURN(SetVdencLaCmd2Settings());
 
     if (m_osItf != nullptr)
     {
@@ -477,6 +480,10 @@ MOS_STATUS EncodeHevcVdencConstSettings::PrepareConstSettings()
 MOS_STATUS EncodeHevcVdencConstSettings::Update(void *params)
 {
     ENCODE_FUNC_CALL();
+    ENCODE_CHK_NULL_RETURN(m_featureSetting);
+
+    auto setting = static_cast<HevcVdencFeatureSettings *>(m_featureSetting);
+    ENCODE_CHK_NULL_RETURN(setting);
 
     EncoderParams *encodeParams = (EncoderParams *)params;
 
@@ -494,6 +501,16 @@ MOS_STATUS EncodeHevcVdencConstSettings::Update(void *params)
         static_cast<PCODEC_HEVC_ENCODE_SLICE_PARAMS>(encodeParams->pSliceParams);
     ENCODE_CHK_NULL_RETURN(hevcSliceParams);
     m_hevcSliceParams = hevcSliceParams;
+
+    bool isLaAnalysisPass = (m_hevcSeqParams->LookaheadDepth > 0) && m_hevcSeqParams->bLookAheadPhase;
+    if (isLaAnalysisPass == true && m_isLaSetting == false)
+    {
+        setting->rdoqEnable.swap(setting->rdoqLaEnable);
+        setting->acqpEnable.swap(setting->acqpLaEnable);
+        setting->vdencCmd1Settings.swap(setting->vdencLaCmd1Settings);
+        setting->vdencCmd2Settings.swap(setting->vdencLaCmd2Settings);
+        m_isLaSetting = true;
+    }
 
     return MOS_STATUS_SUCCESS;
 }
@@ -1318,4 +1335,659 @@ MOS_STATUS EncodeHevcVdencConstSettings::SetBrcSettings()
 
     return MOS_STATUS_SUCCESS;
 }
+
+MOS_STATUS EncodeHevcVdencConstSettings::SetLaTUSettings()
+{
+    ENCODE_FUNC_CALL();
+    ENCODE_CHK_NULL_RETURN(m_featureSetting);
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    auto setting = static_cast<HevcVdencFeatureSettings *>(m_featureSetting);
+    ENCODE_CHK_NULL_RETURN(setting);
+
+    setting->rdoqLaEnable = {true, true, true, true, true, true, true, true};
+    setting->acqpLaEnable = {true, true, true, true, true, true, true, false};
+
+    return eStatus;
+}
+
+MOS_STATUS EncodeHevcVdencConstSettings::SetVdencLaCmd1Settings()
+{
+    ENCODE_FUNC_CALL();
+    ENCODE_CHK_NULL_RETURN(m_featureSetting);
+
+    auto setting = static_cast<HevcVdencFeatureSettings *>(m_featureSetting);
+    ENCODE_CHK_NULL_RETURN(setting);
+
+    setting->vdencLaCmd1Settings = {
+        VDENC_CMD1_LAMBDA()
+        {
+            static constexpr std::array<std::array<double, 4>, 2> ConstTable1 =
+            {{
+                {0.68445, 1.03428, 1.17, 1.17},
+                {0.7605, 0.9464, 0.9464, 1.04}
+            }};
+
+            static constexpr std::array<double, 13> LowDelayTable =
+            {
+                0.7048, 0.763533, 0.822267, 0.881, 0.939733, 0.998467,
+                1.0572, 1.11593, 1.17467, 1.2334, 1.29213, 1.35087, 1.4096
+            };
+
+            static constexpr std::array<double, 52> ConstTable2 =
+            {
+                1.000000,  1.000000,  1.000000,  1.000000,  1.000000,
+                1.000000,  1.000000,  1.000000,  1.000000,  1.000000,
+                1.000000,  1.000000,  1.259921,  1.587401,  2.000000,
+                2.519842,  3.174802,  4.000000,  5.039684,  6.349604,
+                8.000000,  10.079368, 12.699208, 16.000000, 20.158737,
+                25.398417, 32.000000, 40.317474, 50.796834, 64.000000,
+                80.634947, 101.593667, 128.0000, 161.269894, 203.187335,
+                256.00000, 322.539789, 406.374669, 512.0000, 645.079578,
+                812.749339, 1024.0000, 1290.159155, 1625.498677, 2048.0,
+                2580.31831, 3250.997354, 4096.0000, 5160.636620, 6501.994709, 8192
+            };
+
+            double doubleNum0;
+
+            uint32_t bGopSize = m_hevcSeqParams->GopRefDist;
+            int32_t  depth    = m_hevcPicParams->HierarchLevelPlus1 ? m_hevcPicParams->HierarchLevelPlus1 - 1 : 0;
+            uint8_t  qp       = m_hevcPicParams->QpY + m_hevcSliceParams->slice_qp_delta;
+
+            if (m_hevcSeqParams->LowDelayMode)
+            {
+                if (m_hevcPicParams->CodingType == I_TYPE)
+                {
+                    doubleNum0 = 0.4845;
+                }
+                else
+                {
+                    if (depth == 0)
+                    {
+                        doubleNum0 = 0.578;
+                    }
+                    else
+                    {
+                        int tmp = CLIP3(24, 36, qp);
+                        doubleNum0 = LowDelayTable[tmp - 24];
+                    }
+                }
+            }
+            else
+            {
+                if (m_hevcPicParams->CodingType == I_TYPE)
+                {
+                    doubleNum0 = 0.60;
+                }
+                else if (m_hevcPicParams->CodingType == B_TYPE && bGopSize == 4)
+                {
+                    doubleNum0 = ConstTable1[0][depth];
+                }
+                else if (m_hevcPicParams->CodingType == B_TYPE && bGopSize == 8)
+                {
+                    doubleNum0 = ConstTable1[1][depth];
+                }
+                else
+                {
+                    doubleNum0 = 0.65;
+                }
+            }
+
+            double doubleNum1 = doubleNum0 * ConstTable2[qp - 1];
+            par.vdencCmd1Par0 = (uint16_t)(MOS_MIN(65535, doubleNum1 * 4 + 0.5));
+
+            doubleNum1 = sqrt(doubleNum1);
+            par.vdencCmd1Par1 = (uint16_t)(MOS_MIN(65535, doubleNum1 * 4 + 0.5));
+
+            par.vdencCmd1Par2[0] = 0;
+            par.vdencCmd1Par2[1] = 2;
+            par.vdencCmd1Par2[2] = 3;
+            par.vdencCmd1Par2[3] = 5;
+            par.vdencCmd1Par2[4] = 6;
+            par.vdencCmd1Par2[5] = 8;
+            par.vdencCmd1Par2[6] = 9;
+            par.vdencCmd1Par2[7] = 11;
+
+            return MOS_STATUS_SUCCESS;
+        },
+        VDENC_CMD1_LAMBDA()
+        {
+            static const std::array<uint8_t, 12> data = {
+                4, 12, 20, 28, 36, 44, 52, 60, 68, 76, 84, 92
+            };
+
+            for (size_t i = 0; i < data.size(); i++)
+            {
+                par.vdencCmd1Par3[i] = data[i];
+            }
+
+            return MOS_STATUS_SUCCESS;
+        },
+        VDENC_CMD1_LAMBDA()
+        {
+            static const std::array<uint8_t, 12> data = {
+                3, 10, 16, 22, 29, 35, 42, 48, 54, 61, 67, 74};
+
+            for (size_t i = 0; i < data.size(); i++)
+            {
+                par.vdencCmd1Par4[i] = data[i];
+            }
+
+            return MOS_STATUS_SUCCESS;
+        },
+        VDENC_CMD1_LAMBDA()
+        {
+            par.vdencCmd1Par22 = 4;
+
+            return MOS_STATUS_SUCCESS;
+        },
+        VDENC_CMD1_LAMBDA()
+        {
+            par.vdencCmd1Par24 = 0;
+            par.vdencCmd1Par25 = 0;
+            par.vdencCmd1Par26 = 0;
+            par.vdencCmd1Par27 = 0;
+            par.vdencCmd1Par28 = 0;
+            par.vdencCmd1Par29 = 0;
+            par.vdencCmd1Par30 = 0;
+            par.vdencCmd1Par31 = 0;
+
+            return MOS_STATUS_SUCCESS;
+        },
+        VDENC_CMD1_LAMBDA()
+        {
+            par.vdencCmd1Par32 = 0;
+            par.vdencCmd1Par33 = 0;
+
+            if (m_hevcPicParams->CodingType == I_TYPE)
+            {
+                par.vdencCmd1Par34 = 21;
+                par.vdencCmd1Par35 = 0;
+            }
+            else
+            {
+                par.vdencCmd1Par34 = 7;
+                par.vdencCmd1Par35 = 4;
+            }
+
+            return MOS_STATUS_SUCCESS;
+        },
+        VDENC_CMD1_LAMBDA()
+        {
+            par.vdencCmd1Par44 = 0;
+            par.vdencCmd1Par45 = 20;
+            par.vdencCmd1Par46 = 0;
+
+            return MOS_STATUS_SUCCESS;
+        },
+        VDENC_CMD1_LAMBDA()
+        {
+            par.vdencCmd1Par47 = 12;
+            par.vdencCmd1Par48 = 12;
+            par.vdencCmd1Par49 = 12;
+            par.vdencCmd1Par50 = 12;
+            par.vdencCmd1Par51 = 12;
+            par.vdencCmd1Par52 = 12;
+            par.vdencCmd1Par53 = 12;
+            par.vdencCmd1Par54 = 12;
+
+            return MOS_STATUS_SUCCESS;
+        },
+        VDENC_CMD1_LAMBDA()
+        {
+            par.vdencCmd1Par55 = 0x0E;
+            par.vdencCmd1Par56 = 0x0E;
+            par.vdencCmd1Par57 = 0x0C;
+            par.vdencCmd1Par58 = 0x0B;
+            par.vdencCmd1Par59 = 0x10;
+            par.vdencCmd1Par60 = 0x10;
+            par.vdencCmd1Par61 = 0x0F;
+            par.vdencCmd1Par62 = 0x0F;
+            par.vdencCmd1Par63 = 0x10;
+            par.vdencCmd1Par64 = 0x10;
+            par.vdencCmd1Par65 = 0x10;
+            par.vdencCmd1Par66 = 0x10;
+            par.vdencCmd1Par67 = 0x14;
+            par.vdencCmd1Par68 = 0x10;
+            par.vdencCmd1Par69 = 0x10;
+            par.vdencCmd1Par70 = 0x10;
+            par.vdencCmd1Par71 = 0x0C;
+            par.vdencCmd1Par72 = 0x0C;
+            par.vdencCmd1Par73 = 0x0A;
+            par.vdencCmd1Par74 = 0x0A;
+            par.vdencCmd1Par75 = 0x10;
+            par.vdencCmd1Par76 = 0x10;
+            par.vdencCmd1Par77 = 0x10;
+            par.vdencCmd1Par78 = 0x10;
+            par.vdencCmd1Par79 = 0x10;
+            par.vdencCmd1Par80 = 0x10;
+            par.vdencCmd1Par81 = 0x10;
+            par.vdencCmd1Par82 = 0x10;
+            par.vdencCmd1Par83 = 0x10;
+            par.vdencCmd1Par84 = 0x10;
+            par.vdencCmd1Par85 = 0x0E;
+            par.vdencCmd1Par86 = 0x0F;
+
+            return MOS_STATUS_SUCCESS;
+        },
+    };
+
+    setting->vdencLaCmd1Settings.emplace_back(
+        VDENC_CMD1_LAMBDA() {
+            static const std::array<uint8_t, 16> data = {
+                11, 0, 0, 0, 14, 0, 0, 0,
+                11, 0, 0, 0, 0, 0, 0, 0
+            };
+
+            if (m_hevcPicParams->CodingType == I_TYPE)
+            {
+                return MOS_STATUS_SUCCESS;
+            }
+
+            for (size_t i = 0; i < 4; i++)
+            {
+                par.vdencCmd1Par8[i]  = data[i];
+                par.vdencCmd1Par9[i]  = data[i + 4];
+                par.vdencCmd1Par10[i] = data[i + 8];
+                par.vdencCmd1Par11[i] = data[i + 12];
+            }
+
+            return MOS_STATUS_SUCCESS;
+        });
+
+    setting->vdencLaCmd1Settings.emplace_back(
+        VDENC_CMD1_LAMBDA() {
+            static const std::array<uint8_t, 16> data = {
+                23, 0, 0, 0, 26, 0, 0, 0,
+                21, 0, 0, 0, 0, 0, 0, 0
+            };
+
+            if (m_hevcPicParams->CodingType == I_TYPE)
+            {
+                return MOS_STATUS_SUCCESS;
+            }
+
+            for (size_t i = 0; i < 4; i++)
+            {
+                par.vdencCmd1Par12[i] = data[i];
+                par.vdencCmd1Par13[i] = data[i + 4];
+                par.vdencCmd1Par14[i] = data[i + 8];
+                par.vdencCmd1Par15[i] = data[i + 12];
+            }
+
+            return MOS_STATUS_SUCCESS;
+        });
+
+    setting->vdencLaCmd1Settings.emplace_back(
+        VDENC_CMD1_LAMBDA() {
+            if (m_hevcPicParams->CodingType == P_TYPE)
+            {
+                par.vdencCmd1Par16 = 82;
+                par.vdencCmd1Par17 = 20;
+                par.vdencCmd1Par18 = 83;
+                par.vdencCmd1Par19 = 17;
+                par.vdencCmd1Par20 = 15;
+                par.vdencCmd1Par21 = 0;
+            }
+            else if (m_hevcPicParams->CodingType == B_TYPE)
+            {
+                par.vdencCmd1Par16 = 99;
+                par.vdencCmd1Par17 = 23;
+                par.vdencCmd1Par18 = 99;
+                par.vdencCmd1Par19 = 19;
+                par.vdencCmd1Par20 = 17;
+                par.vdencCmd1Par21 = 0;
+            }
+
+            return MOS_STATUS_SUCCESS;
+        });
+
+    setting->vdencLaCmd1Settings.emplace_back(
+        VDENC_CMD1_LAMBDA() {
+            if (m_hevcPicParams->CodingType == I_TYPE)
+            {
+                par.vdencCmd1Par23 = 63;
+            }
+            else
+            {
+                par.vdencCmd1Par23 = 54;
+            }
+
+            return MOS_STATUS_SUCCESS;
+        });
+
+    setting->vdencLaCmd1Settings.emplace_back(
+        VDENC_CMD1_LAMBDA() {
+            if (m_hevcPicParams->CodingType == I_TYPE)
+            {
+                par.vdencCmd1Par30 = 12;
+            }
+
+            return MOS_STATUS_SUCCESS;
+        });
+
+    setting->vdencLaCmd1Settings.emplace_back(
+        VDENC_CMD1_LAMBDA() {
+            if (m_hevcPicParams->CodingType == I_TYPE)
+            {
+                par.vdencCmd1Par36 = 17;
+                par.vdencCmd1Par37 = 47;
+                par.vdencCmd1Par38 = 20;
+                par.vdencCmd1Par39 = 9;
+                par.vdencCmd1Par40 = 17;
+                par.vdencCmd1Par41 = m_hevcPicParams->NumROI ? 0 : 30;
+            }
+            else
+            {
+                par.vdencCmd1Par36 = 7;
+                par.vdencCmd1Par37 = 18;
+                par.vdencCmd1Par38 = 18;
+                par.vdencCmd1Par39 = 18;
+                par.vdencCmd1Par40 = 27;
+                par.vdencCmd1Par41 = m_hevcPicParams->NumROI ? 0 : 68;
+            }
+
+            return MOS_STATUS_SUCCESS;
+        });
+
+    setting->vdencLaCmd1Settings.emplace_back(
+        VDENC_CMD1_LAMBDA() {
+            if (m_hevcPicParams->CodingType == P_TYPE)
+            {
+                par.vdencCmd1Par48 = 0;
+                par.vdencCmd1Par49 = 32;
+                par.vdencCmd1Par50 = 68;
+            }
+
+            return MOS_STATUS_SUCCESS;
+        });
+
+    setting->vdencLaCmd1Settings.emplace_back(
+        VDENC_CMD1_LAMBDA() {
+            static constexpr std::array<
+                std::array<uint8_t,
+                    3>,
+                3>
+                data = {{
+                    {20, 35, 35},
+                    {20, 35, 35},
+                    {47, 16, 16}
+                    }};
+
+            if (m_hevcPicParams->CodingType == I_TYPE)
+            {
+                par.vdencCmd1Par87 = data[2][2];
+                par.vdencCmd1Par88 = data[2][1];
+                par.vdencCmd1Par89 = data[2][0];
+            }
+            else if (m_hevcPicParams->CodingType == P_TYPE)
+            {
+                par.vdencCmd1Par87 = data[1][2];
+                par.vdencCmd1Par88 = data[1][1];
+                par.vdencCmd1Par89 = data[1][0];
+            }
+            else if (m_hevcPicParams->CodingType == B_TYPE)
+            {
+                par.vdencCmd1Par87 = data[0][2];
+                par.vdencCmd1Par88 = data[0][1];
+                par.vdencCmd1Par89 = data[0][0];
+            }
+
+            return MOS_STATUS_SUCCESS;
+        });
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS EncodeHevcVdencConstSettings::SetVdencLaCmd2Settings()
+{
+
+    ENCODE_FUNC_CALL();
+    ENCODE_CHK_NULL_RETURN(m_featureSetting);
+
+    auto setting = static_cast<HevcVdencFeatureSettings *>(m_featureSetting);
+    ENCODE_CHK_NULL_RETURN(setting);
+
+#if !(_MEDIA_RESERVED)
+    setting->vdencLaCmd2Settings.emplace_back(
+        VDENC_CMD2_LAMBDA()
+        {
+            par.extSettings.emplace_back(
+                [this, isLowDelay, &par](uint32_t *data) {
+                    auto waTable = m_osItf->pfnGetWaTable(m_osItf);
+                    ENCODE_CHK_NULL_RETURN(waTable);
+
+                    uint32_t CodingTypeMinus1              = m_hevcPicParams->CodingType - 1;
+                    uint32_t numL0Minus1Is0                = m_hevcSliceParams->num_ref_idx_l0_active_minus1 == 0;
+                    uint32_t lowDelay                      = isLowDelay;
+                    uint32_t currPicRef                    = m_hevcPicParams->pps_curr_pic_ref_enabled_flag;
+                    uint32_t paletteMode                   = m_hevcSeqParams->palette_mode_enabled_flag;
+                    uint32_t depthMinus8                   = m_hevcSeqParams->bit_depth_luma_minus8;
+                    uint32_t rdoq                          = m_hevcRdoqEnabled;
+                    uint32_t numRef0                       = par.numRefL0;
+                    uint32_t numRef1                       = par.numRefL1;
+                    uint32_t Wa_22012463389                = MEDIA_IS_WA(waTable, Wa_22012463389);
+                    uint32_t WaEnableOnlyASteppingFeatures = MEDIA_IS_WA(waTable, WaEnableOnlyASteppingFeatures);
+                    uint32_t Wa_22011549751                = MEDIA_IS_WA(waTable, Wa_22011549751);
+                    uint32_t Wa_14010476401                = MEDIA_IS_WA(waTable, Wa_14010476401);
+                    uint32_t Wa_22011531258                = MEDIA_IS_WA(waTable, Wa_22011531258);
+
+                    static const uint32_t dw2Lut[3][2] = { { 0x3, 0x2,}, { 0x3, 0x3,}, { 0x3, 0x3,},};
+                    data[2] |= dw2Lut[CodingTypeMinus1][currPicRef];
+
+                    static const uint32_t dw5Lut[3] = { 0xc0a000, 0xc1a000, 0xc0a000,};
+                    data[5] |= dw5Lut[CodingTypeMinus1];
+
+                    static const uint32_t dw7Lut[3][2][2][2][2] = { { { { { 0x64003, 0xe4003,}, { 0x64003, 0x64003,},}, { { 0x64003, 0xe4003,}, { 0x64003, 0x64003,},},}, { { { 0x64003, 0xe4003,}, { 0x64003, 0x64003,},}, { { 0x64003, 0xe4003,}, { 0x64003, 0x64003,},},},}, { { { { 0x64003, 0x64003,}, { 0x64003, 0x64003,},}, { { 0x64003, 0x64003,}, { 0x64003, 0x64003,},},}, { { { 0x64003, 0x64003,}, { 0x64003, 0x64003,},}, { { 0xe4003, 0xe4003,}, { 0xe4003, 0xe4003,},},},}, { { { { 0x64003, 0x64003,}, { 0x64003, 0x64003,},}, { { 0x64003, 0x64003,}, { 0x64003, 0x64003,},},}, { { { 0x64003, 0x64003,}, { 0x64003, 0x64003,},}, { { 0xe4003, 0xe4003,}, { 0xe4003, 0xe4003,},},},},};
+                    data[7] |= dw7Lut[CodingTypeMinus1][numL0Minus1Is0][lowDelay][currPicRef][Wa_22011549751];
+
+                    static const uint32_t dw8Lut[3][2] = { { 0x54555555, 0,}, { 0x55550000, 0x55550000,}, { 0x55550000, 0x55550000,},};
+                    data[8] |= dw8Lut[CodingTypeMinus1][lowDelay];
+
+                    static const uint32_t dw9Lut[3][2][2][2] = { { { { 0x425555, 0x25555, }, { 0x425555, 0x425555, }, }, { { 0x420000, 0x20000, }, { 0x420000, 0x420000, }, },  }, { { { 0x420000, 0x420000, }, { 0x420000, 0x420000, }, }, { { 0x420000, 0x420000, }, { 0x420000, 0x420000, }, },  }, { { { 0x420000, 0x420000, }, { 0x420000, 0x420000, }, }, { { 0x420000, 0x420000, }, { 0x420000, 0x420000, }, }, }, };
+                    data[9] |= dw9Lut[CodingTypeMinus1][lowDelay][currPicRef][Wa_22011549751];
+
+                    data[12] |= 0x89800dc0;
+
+                    static const uint32_t dw37Lut[2] = { 0, 0x40,};
+                    data[37] |= dw37Lut[currPicRef];
+
+                    static const uint32_t dw39Lut[2][5] = { { 0, 0, 0, 0, 0,}, { 0x8000fc, 0x10001f8, 0x20003f0, 0x40007e0, 0x8000fc0,},};
+                    data[39] |= dw39Lut[paletteMode][depthMinus8];
+
+                    static const uint32_t dw40Lut[2][5] = { { 0, 0, 0, 0, 0,}, { 0xb10080, 0x1620100, 0x2c40200, 0x5880400, 0xb100800,},};
+                    data[40] |= dw40Lut[paletteMode][depthMinus8];
+
+                    static const uint32_t dw41Lut[2][5] = { { 0, 0, 0, 0, 0,}, { 0x300aa, 0x60154, 0xc02a8, 0x180550, 0x300aa0,},};
+                    data[41] |= dw41Lut[paletteMode][depthMinus8];
+
+                    static const uint32_t dw42Lut[2][5] = { { 0, 0, 0, 0, 0,}, { 0xd30069, 0x1a600d2, 0x34c01a4, 0x6980348, 0xd300690,},};
+                    data[42] |= dw42Lut[paletteMode][depthMinus8];
+
+                    static const uint32_t dw43Lut[2][5] = { { 0, 0, 0, 0, 0,}, { 0xe000e9, 0x1c001d2, 0x38003a4, 0x7000748, 0xe000e90,},};
+                    data[43] |= dw43Lut[paletteMode][depthMinus8];
+
+                    static const uint32_t dw44Lut[2][5] = { { 0, 0, 0, 0, 0,}, { 0x940003, 0x1280006, 0x250000c, 0x4a00018, 0x9400030,},};
+                    data[44] |= dw44Lut[paletteMode][depthMinus8];
+
+                    static const uint32_t dw45Lut[2][5] = { { 0, 0, 0, 0, 0,}, { 0x56004d, 0xac009a, 0x1580134, 0x2b00268, 0x56004d0,},};
+                    data[45] |= dw45Lut[paletteMode][depthMinus8];
+
+                    static const uint32_t dw46Lut[2][5] = { { 0, 0, 0, 0, 0,}, { 0x9500fd, 0x12a01fa, 0x25403f4, 0x4a807e8, 0x9500fd0,},};
+                    data[46] |= dw46Lut[paletteMode][depthMinus8];
+
+                    static const uint32_t dw47Lut[2][5] = { { 0, 0, 0, 0, 0,}, { 0x17002d, 0x2e005a, 0x5c00b4, 0xb80168, 0x17002d0,},};
+                    data[47] |= dw47Lut[paletteMode][depthMinus8];
+
+                    static const uint32_t dw48Lut[2][5] = { { 0, 0, 0, 0, 0,}, { 0xfd001f, 0x1fa003e, 0x3f4007c, 0x7e800f8, 0xfd001f0,},};
+                    data[48] |= dw48Lut[paletteMode][depthMinus8];
+
+                    static const uint32_t dw49Lut[2][5] = { { 0, 0, 0, 0, 0,}, { 0x2006c, 0x400d8, 0x801b0, 0x100360, 0x2006c0,},};
+                    data[49] |= dw49Lut[paletteMode][depthMinus8];
+
+                    static const uint32_t dw50Lut[2][5] = { { 0, 0, 0, 0, 0,}, { 0x800080, 0x1000100, 0x2000200, 0x4000400, 0x8000800,},};
+                    data[50] |= dw50Lut[paletteMode][depthMinus8];
+
+                    static const uint32_t dw51Lut[3][2][2][2][2] = { { { { { 0x22227152, 0x20007152, }, { 0x22227152, 0x20007152, }, }, { { 0x22227152, 0x20007152, }, { 0x22227152, 0x20007152, }, }, }, { { { 0x22227152, 0x22227152, }, { 0x22227152, 0x22227152, }, }, { { 0x22227152, 0x22227152, }, { 0x22227152, 0x22227152, }, }, }, }, { { { { 0x22227152, 0x22227152, }, { 0x20007152, 0x20007152, }, }, { { 0x22227152, 0x22227152, }, { 0x20007152, 0x20007152, }, }, }, { { { 0x22227152, 0x22227152, }, { 0x20007152, 0x20007152, }, }, { { 0x22227152, 0x22227152, }, { 0x20007152, 0x20007152, }, }, }, }, { { { { 0x22227152, 0x22227152, }, { 0x22227152, 0x22227152, }, }, { { 0x22227152, 0x22227152, }, { 0x22227152, 0x22227152, }, }, }, { { { 0x22227152, 0x22227152, }, { 0x22227152, 0x22227152, }, }, { { 0x22227152, 0x22227152, }, { 0x22227152, 0x22227152, }, }, }, }, };
+                    data[51] |= dw51Lut[CodingTypeMinus1][currPicRef][paletteMode][Wa_22012463389][Wa_22011549751];
+
+                    data[52] |= 0x929595a;
+
+                    static const uint32_t dw53Lut[3][2][2][2][2] = { { { { { 0xffff0000, 0xffff0000, }, { 0x80000000, 0x80000000, }, }, { { 0xffff0000, 0xffff0000, }, { 0x80000000, 0x80000000, }, }, }, { { { 0xffff0000, 0xffff0000, }, { 0xffff0000, 0xffff0000, }, }, { { 0xffff0000, 0xffff0000, }, { 0xffff0000, 0xffff0000, }, }, }, }, { { { { 0xffff0000, 0xfffffff0, }, { 0xffff0000, 0xfffffff0, }, }, { { 0x80000000, 0x80000000, }, { 0x80000000, 0x80000000, }, }, }, { { { 0xffff0000, 0xfffffff0, }, { 0xffff0000, 0xfffffff0, }, }, { { 0x80000000, 0x80000000, }, { 0x80000000, 0x80000000, }, }, }, }, { { { { 0xffff0000, 0xfffffff0, }, { 0xffff0000, 0xfffffff0, }, }, { { 0xffff0000, 0xfffffff0, }, { 0xffff0000, 0xfffffff0, }, }, }, { { { 0xffff0000, 0xfffffff0, }, { 0xffff0000, 0xfffffff0, }, }, { { 0xffff0000, 0xfffffff0, }, { 0xffff0000, 0xfffffff0, }, }, }, }, };
+                    data[53] |= dw53Lut[CodingTypeMinus1][currPicRef][Wa_22012463389][Wa_22011549751][Wa_14010476401];
+
+                    static const uint32_t dw54Lut[2] = { 0xbc000004, 0x34000004,};
+                    data[54] |= dw54Lut[Wa_22011531258];
+
+                    static const uint32_t dw55Lut[2] = { 0, 0xcdef0123,};
+                    data[55] |= dw55Lut[rdoq];
+
+                    static const uint32_t dw56Lut[3][2][2][5][4][2] = { { { { { { 0, 0,}, { 0, 0,}, { 0, 0,}, { 0, 0,},}, { { 0, 0,}, { 0, 0,}, { 0, 0,}, { 0, 0,},}, { { 0, 0,}, { 0x300, 0,}, { 0, 0,}, { 0, 0,},}, { { 0, 0,}, { 0, 0,}, { 0, 0,}, { 0x300, 0,},}, { { 0, 0,}, { 0, 0,}, { 0, 0,}, { 0, 0,},},}, { { { 0xb, 0xb,}, { 0xb, 0xb,}, { 0xb, 0xb,}, { 0xb, 0xb,},}, { { 0xb, 0xb,}, { 0xb, 0xb,}, { 0xb, 0xb,}, { 0xb, 0xb,},}, { { 0xb, 0xb,}, { 0x30b, 0xb,}, { 0xb, 0xb,}, { 0xb, 0xb,},}, { { 0xb, 0xb,}, { 0xb, 0xb,}, { 0xb, 0xb,}, { 0x30b, 0xb,},}, { { 0xb, 0xb,}, { 0xb, 0xb,}, { 0xb, 0xb,}, { 0xb, 0xb,},},},}, { { { { 0, 0,}, { 0, 0,}, { 0, 0,}, { 0, 0,},}, { { 0, 0,}, { 0, 0,}, { 0, 0,}, { 0, 0,},}, { { 0, 0,}, { 0, 0,}, { 0, 0,}, { 0, 0,},}, { { 0, 0,}, { 0, 0,}, { 0, 0,}, { 0, 0,},}, { { 0, 0,}, { 0, 0,}, { 0, 0,}, { 0x300, 0,},},}, { { { 0xb, 0xb,}, { 0xb, 0xb,}, { 0xb, 0xb,}, { 0xb, 0xb,},}, { { 0xb, 0xb,}, { 0xb, 0xb,}, { 0xb, 0xb,}, { 0xb, 0xb,},}, { { 0xb, 0xb,}, { 0xb, 0xb,}, { 0xb, 0xb,}, { 0xb, 0xb,},}, { { 0xb, 0xb,}, { 0xb, 0xb,}, { 0xb, 0xb,}, { 0xb, 0xb,},}, { { 0xb, 0xb,}, { 0xb, 0xb,}, { 0xb, 0xb,}, { 0x30b, 0xb,},},},},}, { { { { { 0, 0,}, { 0, 0,}, { 0, 0,}, { 0, 0,},}, { { 0, 0,}, { 0, 0,}, { 0, 0,}, { 0, 0,},}, { { 0, 0,}, { 0, 0,}, { 0, 0,}, { 0, 0,},}, { { 0x300, 0,}, { 0x300, 0,}, { 0x300, 0,}, { 0x300, 0,},}, { { 0, 0,}, { 0, 0,}, { 0, 0,}, { 0, 0,},},}, { { { 0xb, 0xb,}, { 0xb, 0xb,}, { 0xb, 0xb,}, { 0xb, 0xb,},}, { { 0xb, 0xb,}, { 0xb, 0xb,}, { 0xb, 0xb,}, { 0xb, 0xb,},}, { { 0xb, 0xb,}, { 0xb, 0xb,}, { 0xb, 0xb,}, { 0xb, 0xb,},}, { { 0x30b, 0xb,}, { 0x30b, 0xb,}, { 0x30b, 0xb,}, { 0x30b, 0xb,},}, { { 0xb, 0xb,}, { 0xb, 0xb,}, { 0xb, 0xb,}, { 0xb, 0xb,},},},}, { { { { 0, 0,}, { 0, 0,}, { 0, 0,}, { 0, 0,},}, { { 0, 0,}, { 0, 0,}, { 0, 0,}, { 0, 0,},}, { { 0, 0,}, { 0, 0,}, { 0, 0,}, { 0, 0,},}, { { 0, 0,}, { 0, 0,}, { 0, 0,}, { 0, 0,},}, { { 0x300, 0,}, { 0x300, 0,}, { 0x300, 0,}, { 0x300, 0,},},}, { { { 0xb, 0xb,}, { 0xb, 0xb,}, { 0xb, 0xb,}, { 0xb, 0xb,},}, { { 0xb, 0xb,}, { 0xb, 0xb,}, { 0xb, 0xb,}, { 0xb, 0xb,},}, { { 0xb, 0xb,}, { 0xb, 0xb,}, { 0xb, 0xb,}, { 0xb, 0xb,},}, { { 0xb, 0xb,}, { 0xb, 0xb,}, { 0xb, 0xb,}, { 0xb, 0xb,},}, { { 0x30b, 0xb,}, { 0x30b, 0xb,}, { 0x30b, 0xb,}, { 0x30b, 0xb,},},},},}, { { { { { 0, 0,}, { 0, 0,}, { 0, 0,}, { 0, 0,},}, { { 0, 0,}, { 0, 0,}, { 0, 0,}, { 0, 0,},}, { { 0, 0,}, { 0x300, 0,}, { 0, 0,}, { 0, 0,},}, { { 0, 0,}, { 0, 0,}, { 0, 0,}, { 0x300, 0,},}, { { 0, 0,}, { 0, 0,}, { 0, 0,}, { 0, 0,},},}, { { { 0xb, 0xb,}, { 0xb, 0xb,}, { 0xb, 0xb,}, { 0xb, 0xb,},}, { { 0xb, 0xb,}, { 0xb, 0xb,}, { 0xb, 0xb,}, { 0xb, 0xb,},}, { { 0xb, 0xb,}, { 0x30b, 0xb,}, { 0xb, 0xb,}, { 0xb, 0xb,},}, { { 0xb, 0xb,}, { 0xb, 0xb,}, { 0xb, 0xb,}, { 0x30b, 0xb,},}, { { 0xb, 0xb,}, { 0xb, 0xb,}, { 0xb, 0xb,}, { 0xb, 0xb,},},},}, { { { { 0, 0,}, { 0, 0,}, { 0, 0,}, { 0, 0,},}, { { 0, 0,}, { 0, 0,}, { 0, 0,}, { 0, 0,},}, { { 0, 0,}, { 0, 0,}, { 0, 0,}, { 0, 0,},}, { { 0, 0,}, { 0, 0,}, { 0, 0,}, { 0, 0,},}, { { 0, 0,}, { 0, 0,}, { 0, 0,}, { 0x300, 0,},},}, { { { 0xb, 0xb,}, { 0xb, 0xb,}, { 0xb, 0xb,}, { 0xb, 0xb,},}, { { 0xb, 0xb,}, { 0xb, 0xb,}, { 0xb, 0xb,}, { 0xb, 0xb,},}, { { 0xb, 0xb,}, { 0xb, 0xb,}, { 0xb, 0xb,}, { 0xb, 0xb,},}, { { 0xb, 0xb,}, { 0xb, 0xb,}, { 0xb, 0xb,}, { 0xb, 0xb,},}, { { 0xb, 0xb,}, { 0xb, 0xb,}, { 0xb, 0xb,}, { 0x30b, 0xb,},},},},},};
+                    data[56] |= dw56Lut[CodingTypeMinus1][currPicRef][rdoq][numRef0][numRef1][WaEnableOnlyASteppingFeatures];
+
+                    static const uint32_t dw57Lut[2] = { 0, 0x508c23,};
+                    data[57] |= dw57Lut[rdoq];
+
+                    static const uint32_t dw58Lut[2] = { 0, 0x466419,};
+                    data[58] |= dw58Lut[rdoq];
+
+                    static const uint32_t dw59Lut[2] = { 0, 0x7d6c5c4b,};
+                    data[59] |= dw59Lut[rdoq];
+
+                    static const uint32_t dw60Lut[2] = { 0, 0xbfaf9e8e,};
+                    data[60] |= dw60Lut[rdoq];
+
+                    static const uint32_t dwsLut[] = {0x80000000, 0xf000000, 0x98000000, 0xcccc0000, 0x7d00fa0, 0x2bc0bb8, 0x32003e8, 0x1f4012c, 0x190, 0xecc};
+                    data[11] |= dwsLut[0];
+                    data[16] |= dwsLut[1];
+                    data[19] |= dwsLut[2];
+                    data[23] |= dwsLut[3];
+                    data[28] |= dwsLut[4];
+                    data[29] |= dwsLut[5];
+                    data[30] |= dwsLut[6];
+                    data[31] |= dwsLut[7];
+                    data[32] |= dwsLut[8];
+                    data[35] |= dwsLut[9];
+
+                    return MOS_STATUS_SUCCESS;
+                });
+
+            return MOS_STATUS_SUCCESS;
+        });
+
+    setting->vdencLaCmd2Settings.emplace_back(
+        VDENC_CMD2_LAMBDA()
+        {
+            par.extSettings.emplace_back(
+                [this](uint32_t *data) {
+
+                    if (!m_hevcVdencRoundingPrecisionEnabled)
+                    {
+                        return MOS_STATUS_SUCCESS;
+                    }
+
+                    uint8_t tmp0 = 0;
+                    uint8_t tmp1 = 0;
+
+                    if (m_hevcPicParams->CustomRoundingOffsetsParams.fields.EnableCustomRoudingIntra)
+                    {
+                        tmp0 = m_hevcPicParams->CustomRoundingOffsetsParams.fields.RoundingOffsetIntra;
+                    }
+                    else
+                    {
+                        if (m_hevcPicParams->CodingType == I_TYPE)
+                        {
+                            tmp0 = 10;
+                        }
+                        else if (m_hevcSeqParams->HierarchicalFlag && m_hevcPicParams->HierarchLevelPlus1 > 0)
+                        {
+                            //Hierachical GOP
+                            if (m_hevcPicParams->HierarchLevelPlus1 == 1)
+                            {
+                                tmp0 = 10;
+                            }
+                            else if (m_hevcPicParams->HierarchLevelPlus1 == 2)
+                            {
+                                tmp0 = 9;
+                            }
+                            else
+                            {
+                                tmp0 = 8;
+                            }
+                        }
+                        else
+                        {
+                            tmp0 = 10;
+                        }
+                    }
+
+                    if (m_hevcPicParams->CustomRoundingOffsetsParams.fields.EnableCustomRoudingInter)
+                    {
+                        tmp1 = m_hevcPicParams->CustomRoundingOffsetsParams.fields.RoundingOffsetInter;
+                    }
+                    else
+                    {
+                        if (m_hevcPicParams->CodingType == I_TYPE)
+                        {
+                            tmp1 = 4;
+                        }
+                        else if (m_hevcSeqParams->HierarchicalFlag && m_hevcPicParams->HierarchLevelPlus1 > 0)
+                        {
+                            //Hierachical GOP
+                            if (m_hevcPicParams->HierarchLevelPlus1 == 1)
+                            {
+                                tmp1 = 4;
+                            }
+                            else if (m_hevcPicParams->HierarchLevelPlus1 == 2)
+                            {
+                                tmp1 = 3;
+                            }
+                            else
+                            {
+                                tmp1 = 2;
+                            }
+                        }
+                        else
+                        {
+                            tmp1 = 4;
+                        }
+                    }
+                    tmp0 &= 0xf;
+                    tmp1 &= 0xf;
+
+                    data[32] |= (tmp1 << 16);
+                    data[32] |= (tmp1 << 20);
+                    data[32] |= (tmp0 << 24);
+                    data[32] |= (tmp0 << 28);
+
+                    data[33] |= tmp1;
+                    data[33] |= (tmp1 << 4);
+                    data[33] |= (tmp1 << 8);
+                    data[33] |= (tmp1 << 12);
+                    data[33] |= (tmp0 << 16);
+                    data[33] |= (tmp0 << 20);
+                    data[33] |= (tmp1 << 24);
+                    data[33] |= (tmp1 << 28);
+
+                    data[34] |= tmp1;
+                    data[34] |= (tmp1 << 4);
+                    data[34] |= (tmp0 << 8);
+                    data[34] |= (tmp0 << 12);
+                    data[34] |= (tmp1 << 16);
+                    data[34] |= (tmp1 << 20);
+
+                    return MOS_STATUS_SUCCESS;
+                });
+
+            return MOS_STATUS_SUCCESS;
+        });
+#else
+#define VDENC_LA_CMD2_SETTINGS_EXT
+#include "encode_hevc_vdenc_la_const_settings_ext.h"
+#undef VDENC_LA_CMD2_SETTINGS_EXT
+#endif  // !(_MEDIA_RESERVED)
+
+    return MOS_STATUS_SUCCESS;
+}
+
 }  // namespace encode
