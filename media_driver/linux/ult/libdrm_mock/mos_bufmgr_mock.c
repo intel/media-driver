@@ -159,6 +159,8 @@ struct mos_bufmgr_gem {
     // manage address for softpin buffer object
     mos_vma_heap vma_heap[MEMZONE_COUNT];
     bool use_softpin;
+
+    int device_type;
 } mos_bufmgr_gem;
 
 #define DRM_INTEL_RELOC_FENCE (1<<0)
@@ -4010,6 +4012,7 @@ mos_bufmgr_gem_init(int fd, int batch_size)
      * Every 4 was too few for the blender benchmark.
      */
     bufmgr_gem->max_relocs = batch_size / sizeof(uint32_t) / 2 - 2;
+    bufmgr_gem->device_type = DEVICE_TYPE_I915;
 
     DRMINITLISTHEAD(&bufmgr_gem->named);
     init_cache_buckets(bufmgr_gem);

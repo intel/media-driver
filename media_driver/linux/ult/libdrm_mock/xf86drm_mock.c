@@ -382,6 +382,16 @@ mosdrmIoctl(int fd, unsigned long request, void *arg)
             ret = 0;
         }
         break;
+        case DRM_IOCTL_VERSION:
+        {
+            drm_version_t *version = (drm_version_t *)arg;
+            if(version)
+            {
+                strcpy(version->name, "i915");
+            }
+            ret = 0;
+        }
+        break;
         default:
             printf("drmIoctl: with unsupport IOType\n");
             do {

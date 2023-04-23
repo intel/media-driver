@@ -74,6 +74,12 @@ enum mos_memory_zone {
    MEMZONE_COUNT,
 };
 
+enum device_type {
+    DEVICE_TYPE_I915,
+    DEVICE_TYPE_XE,
+    DEVICE_TYPE_COUNT,
+};
+
 #define MEMZONE_SYS_START     (1ull << 16)
 #define MEMZONE_DEVICE_START  (1ull << 40)
 #define MEMZONE_SYS_SIZE      (MEMZONE_DEVICE_START - MEMZONE_SYS_START)
@@ -334,6 +340,38 @@ int mos_get_param(int fd, int32_t param, uint32_t *param_value);
 #if defined(__cplusplus)
 extern "C" {
 #endif
+extern drm_export int drmIoctl(int fd, unsigned long request, void *arg);
+
+static inline int mos_query_device_type(int fd)
+{
+    int device_type = DEVICE_TYPE_COUNT;
+    drm_version_t version;
+    char name[5] = "";
+
+    memset(&version, 0, sizeof(version));
+    version.name_len = 4;
+    version.name = name;
+
+    if (drmIoctl(fd, DRM_IOCTL_VERSION, &version))
+    {
+        fprintf(stderr, "DRM_IOCTL_VERSION failed: %s\n", strerror(errno));
+        return device_type;
+    }
+
+    if(strcmp("i915", name) == 0)
+    {
+        device_type = DEVICE_TYPE_I915;
+    }
+    else if(strcmp("xe", name) == 0)
+    {
+        device_type = DEVICE_TYPE_XE;
+    }
+    else
+    {
+        fprintf(stderr, "DRM_IOCTL_VERSION, unsupported drm device by media driver: %s\n", name);
+    }
+    return device_type;
+}
 
 drm_export int mos_bo_map_wc(struct mos_linux_bo *bo);
 drm_export void mos_bo_clear_relocs(struct mos_linux_bo *bo, int start);

@@ -177,6 +177,8 @@ typedef struct mos_bufmgr_gem {
     char mem_profiler_buffer[MEM_PROFILER_BUFFER_SIZE];
     char* mem_profiler_path;
     int mem_profiler_fd;
+
+    int device_type;
 } mos_bufmgr_gem;
 
 #define DRM_INTEL_RELOC_FENCE (1<<0)
@@ -4909,7 +4911,7 @@ static void mos_bufmgr_set_platform_information(struct mos_bufmgr *bufmgr, uint6
  * \param fd File descriptor of the opened DRM device.
  */
 struct mos_bufmgr *
-mos_bufmgr_gem_init(int fd, int batch_size)
+mos_bufmgr_gem_init_i915(int fd, int batch_size)
 {
     struct mos_bufmgr_gem *bufmgr_gem;
     struct drm_i915_gem_get_aperture aperture;
@@ -5148,6 +5150,8 @@ mos_bufmgr_gem_init(int fd, int batch_size)
 
     bufmgr_gem->has_lmem = mos_gem_has_lmem(bufmgr_gem);
 
+    bufmgr_gem->device_type = DEVICE_TYPE_I915;
+
     if (nullptr != bufmgr_gem->prelim) {
         bufmgr_gem->prelim->Init(bufmgr_gem->bufmgr, bufmgr_gem->has_lmem);
     }
@@ -5180,6 +5184,17 @@ exit:
     pthread_mutex_unlock(&bufmgr_list_mutex);
 
     return bufmgr_gem != nullptr ? &bufmgr_gem->bufmgr : nullptr;
+}
+
+struct mos_bufmgr *
+mos_bufmgr_gem_init(int fd, int batch_size)
+{
+    if(DEVICE_TYPE_I915 == mos_query_device_type(fd))
+    {
+        return mos_bufmgr_gem_init_i915(fd, batch_size);
+    }
+
+    return nullptr;
 }
 
 int mos_get_param(int fd, int32_t param, uint32_t *param_value)
