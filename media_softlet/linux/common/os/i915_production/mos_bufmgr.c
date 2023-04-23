@@ -1048,8 +1048,12 @@ mos_gem_bo_alloc_internal(struct mos_bufmgr *bufmgr,
                 uint32_t tiling_mode,
                 unsigned long stride,
                 unsigned int alignment,
-                int mem_type)
+                int mem_type,
+                unsigned int pat_index,
+                bool cpu_cacheable)
 {
+    MOS_UNUSED(pat_index);
+    MOS_UNUSED(cpu_cacheable);
     struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *) bufmgr;
     struct mos_bo_gem *bo_gem;
     unsigned int page_size = getpagesize();
@@ -1231,12 +1235,14 @@ mos_gem_bo_alloc_for_render(struct mos_bufmgr *bufmgr,
                   const char *name,
                   unsigned long size,
                   unsigned int alignment,
-                  int mem_type)
+                  int mem_type,
+                  unsigned int pat_index,
+                  bool cpu_cacheable)
 {
     return mos_gem_bo_alloc_internal(bufmgr, name, size,
                            I915_TILING_NONE, 0,
                            BO_ALLOC_FOR_RENDER,
-                           alignment, mem_type);
+                           alignment, mem_type, pat_index, cpu_cacheable);
 }
 
 static struct mos_linux_bo *
@@ -1244,17 +1250,19 @@ mos_gem_bo_alloc(struct mos_bufmgr *bufmgr,
                const char *name,
                unsigned long size,
                unsigned int alignment,
-               int mem_type)
+               int mem_type,
+               unsigned int pat_index,
+               bool cpu_cacheable)
 {
     return mos_gem_bo_alloc_internal(bufmgr, name, size, 0,
-                           I915_TILING_NONE, 0, 0, mem_type);
+                           I915_TILING_NONE, 0, 0, mem_type, pat_index, cpu_cacheable);
 }
 
 static struct mos_linux_bo *
 mos_gem_bo_alloc_tiled(struct mos_bufmgr *bufmgr, const char *name,
                  int x, int y, int cpp, uint32_t *tiling_mode,
                  unsigned long *pitch, unsigned long flags,
-                 int mem_type)
+                 int mem_type, unsigned int pat_index, bool cpu_cacheable)
 {
     struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *)bufmgr;
     unsigned long size, stride;
@@ -1298,7 +1306,7 @@ mos_gem_bo_alloc_tiled(struct mos_bufmgr *bufmgr, const char *name,
         stride = 0;
 
     return mos_gem_bo_alloc_internal(bufmgr, name, size, flags,
-                           tiling, stride, 0, mem_type);
+                           tiling, stride, 0, mem_type, pat_index, cpu_cacheable);
 }
 
 static struct mos_linux_bo *
