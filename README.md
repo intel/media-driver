@@ -200,12 +200,12 @@ or later, which officially supported C++11.
 2. SKL: Green or other incorrect color will be observed in output frames when using YV12/I420 as input format for csc/scaling/blending/rotation, etc. on Ubuntu 16.04 stock (with kernel 4.10). The issue can be addressed with the kernel patch: [WaEnableYV12BugFixInHalfSliceChicken7](https://cgit.freedesktop.org/drm-tip/commit/?id=0b71cea29fc29bbd8e9dd9c641fee6bd75f68274)
 
 3. HuC firmware is necessary for AVC/HEVC/VP9/AV1 low power encoding bitrate control, including CBR, VBR, etc. The [default Kernel configuration](https://elixir.bootlin.com/linux/latest/source/drivers/gpu/drm/i915/gt/uc/intel_uc.c#L21) didn't enable Huc loading for TGL/RKL and legacy platforms but enabled it from ADL+ platforms. You could change Huc setting by ```"options i915 enable_guc=2" > /etc/modprobe.d/i915.conf``` under root. For ADL+ platforms, Kernel loads Huc as default if [related platform Huc binary](https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git/tree/i915) exist in ```/lib/firware/i915```. You could see the Huc firmwares are avaiable from below kernel versions for different platforms:
-   - APL/KBL: starting from Kernal 4.11, Huc loading is disabled as default so need to set i915.enable_guc=2
-   - CFL: starting from Kernal 4.15, Huc loading is disabled as default so need to set i915.enable_guc=2
-   - ICL: starting from Kernal 5.2, Huc loading is disabled as default so need to set i915.enable_guc=2
-   - EHL/JSL: starting from Kernal 5.8, Huc loading is disabled as default so need to set i915.enable_guc=2
-   - TGL: starting from Kernal 5.9, Huc loading is disabled as default so need to set i915.enable_guc=2
-   - RKL: starting from Kernal 5.17, Huc loading is disabled as default so need to set i915.enable_guc=2
+   - APL/KBL: starting from Kernal 4.11, Huc loading is disabled as default so need to set `i915.enable_guc=2`
+   - CFL: starting from Kernal 4.15, Huc loading is disabled as default so need to set `i915.enable_guc=2`
+   - ICL: starting from Kernal 5.2, Huc loading is disabled as default so need to set `i915.enable_guc=2`
+   - EHL/JSL: starting from Kernal 5.8, Huc loading is disabled as default so need to set `i915.enable_guc=2`
+   - TGL: starting from Kernal 5.9, Huc loading is disabled as default so need to set `i915.enable_guc=2`
+   - RKL: starting from Kernal 5.17, Huc loading is disabled as default so need to set `i915.enable_guc=2`
    - ADL-S/ADL-P: starting from Kernal 5.17
    - ADL-N/RPL-S/RPL-P: starting from Kernal 6.2
    - DG1/SG1: [intel-gpu/intel-gpu-i915-backports](https://github.com/intel-gpu/intel-gpu-i915-backports)
