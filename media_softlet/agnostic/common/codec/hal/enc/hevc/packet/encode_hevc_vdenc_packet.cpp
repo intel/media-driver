@@ -544,7 +544,14 @@ namespace encode
 #endif
             )
         {
-            ENCODE_CHK_STATUS_RETURN(UpdateStatusReport(statusReportGlobalCount, &cmdBuffer));
+            if (feature->IsBRCEnabled())
+            {
+                ENCODE_CHK_STATUS_RETURN(UpdateStatusReport(statusReportGlobalCount, &cmdBuffer));
+            }
+            else
+            {
+                ENCODE_CHK_STATUS_RETURN(MediaPacket::UpdateStatusReportNext(statusReportGlobalCount, &cmdBuffer));
+            }
         }
 
         CODECHAL_DEBUG_TOOL(
