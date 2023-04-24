@@ -1790,6 +1790,12 @@ MOS_STATUS VphalSfcState::SendSfcCmd(
         pCmdBuffer,
         m_renderData.SfcStateParams,
         &OutSurfaceParam));
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if ((&OutSurfaceParam)->pOsResource)
+    {
+        (m_renderData.pSfcPipeOutSurface)->oldCacheSetting = ((&OutSurfaceParam)->pOsResource->memObjCtrlState.DwordValue >> 1) & 0x0000003f;
+    }
+#endif
 
     // Send SFC_AVS_STATE command
     VPHAL_RENDER_CHK_STATUS(pSfcInterface->AddSfcAvsState(

@@ -190,7 +190,14 @@ MOS_STATUS VpPipeline::UserFeatureReport()
             
             m_reporting->GetFeatures().rtCacheSetting = (uint8_t)(params->pTarget[0]->CacheSetting);
 #if (_DEBUG || _RELEASE_INTERNAL)
-            if (m_vpMhwInterface.m_renderHal)
+            if (m_reporting->GetFeatures().outputPipeMode == VPHAL_OUTPUT_PIPE_MODE_SFC)
+            {
+                if (m_vpMhwInterface.m_sfcInterface)
+                {
+                    m_reporting->GetFeatures().rtOldCacheSetting = (uint8_t)((m_vpMhwInterface.m_sfcInterface->m_outputSurfCtrl.Value >> 1) & 0x0000003f);
+                }
+            }
+            else if (m_vpMhwInterface.m_renderHal)
             {
                 m_reporting->GetFeatures().rtOldCacheSetting = (uint8_t)(m_vpMhwInterface.m_renderHal->oldCacheSettingForTargetSurface);
             }
