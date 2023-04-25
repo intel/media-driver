@@ -141,7 +141,6 @@ struct VPHAL_SURFACE
     int32_t                  iLayerID                  = 0;                         //!<  Layer index (0-based index)
     VPHAL_SCALING_MODE       ScalingMode               = VPHAL_SCALING_NEAREST;     //!<  Scaling Mode
     VPHAL_SCALING_PREFERENCE ScalingPreference         = VPHAL_SCALING_PREFER_SFC;  //!<  Scaling preference
-    bool                     bForceToScalingPreference = false;                     //!<  Force to use engine specified by scaling preference
     bool                     bIEF                      = false;                     //!<  IEF flag
     uint32_t                 dwSlicePitch              = 0;                         //!<  SlicePitch of a 3D surface(GT-PIN support)
 

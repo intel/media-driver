@@ -1035,6 +1035,8 @@ struct VPHAL_RENDER_PARAMS
     bool bNonFirstFrame     = false;  // first frame or not: first frame false, otherwise true considering zeromemory parameters.
     bool bOptimizeCpuTiming = false;  //!< Optimize Cpu Timing
 
+    bool bForceToRender = false;  // Force to render to perform scaling.
+
     VPHAL_RENDER_PARAMS() : uSrcCount(0),
                             pSrc(),
                             uDstCount(0),

@@ -1043,23 +1043,21 @@ DdiVp_SetProcPipelineParams(
     }
 #endif //(_DEBUG || _RELEASE_INTERNAL)
 
-    // Set stream type using pipeline_flags VA_PROC_PIPELINE_FAST flag
     // Currently we only support 1 primary surface in VP
-    if (pPipelineParam->pipeline_flags & VA_PROC_PIPELINE_FAST)
+    if (pVpCtx->iPriSurfs < VP_MAX_PRIMARY_SURFS)
     {
-        pVpHalSrcSurf->SurfType = SURF_IN_SUBSTREAM;
+        pVpHalSrcSurf->SurfType = SURF_IN_PRIMARY;
+        pVpCtx->iPriSurfs++;
     }
     else
     {
-        if (pVpCtx->iPriSurfs < VP_MAX_PRIMARY_SURFS)
-        {
-            pVpHalSrcSurf->SurfType = SURF_IN_PRIMARY;
-            pVpCtx->iPriSurfs++;
-        }
-        else
-        {
-            pVpHalSrcSurf->SurfType = SURF_IN_SUBSTREAM;
-        }
+        pVpHalSrcSurf->SurfType = SURF_IN_SUBSTREAM;
+    }
+    
+    // Set workload path using pipeline_flags VA_PROC_PIPELINE_FAST flag
+    if (pPipelineParam->pipeline_flags & VA_PROC_PIPELINE_FAST)
+    {
+        pVpHalRenderParams->bForceToRender = true;
     }
 
     // Set src rect
