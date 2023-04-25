@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2021, Intel Corporation
+* Copyright (c) 2017-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -4119,6 +4119,9 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
         PCODEC_REF_LIST refList = encodeStatusReport->pCurrRefList;
         uint32_t localCount = encodeStatus->dwStoredData - globalHWStoredData;
 
+        encodeStatusReport->pFrmStatsInfo = codecStatus[i].pFrmStatsInfo;
+        encodeStatusReport->pBlkStatsInfo = codecStatus[i].pBlkStatsInfo;
+
         if (localCount == 0 || localCount > globalCount)
         {
             CODECHAL_DEBUG_TOOL(
@@ -4260,7 +4263,7 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
                     return eStatus;
                 }
 
-                CODECHAL_ENCODE_CHK_STATUS_RETURN(GetStatusReportExt(encodeStatus, encodeStatusReport, i == (numStatus - 1)));
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(GetStatusReportExt(encodeStatus, encodeStatusReport, index));
 
                 if (m_osInterface->osCpInterface->IsCpEnabled() && m_skipFrameBasedHWCounterRead == false)
                 {
