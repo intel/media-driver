@@ -1139,13 +1139,13 @@ public:
     }
     virtual MOS_STATUS AddFeatureGraphRTLog()
     {
-        MT_LOG9(MT_VP_FEATURE_GRAPH_SWFILTERSCALING, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_INPUTHEIGHT, m_Params.input.dwHeight, MT_VP_FEATURE_GRAPH_FILTER_INPUTWIDTH, m_Params.input.dwWidth,
+        MT_LOG7(MT_VP_FEATURE_GRAPH_SWFILTERSCALING, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_INPUTHEIGHT, m_Params.input.dwHeight, MT_VP_FEATURE_GRAPH_FILTER_INPUTWIDTH, m_Params.input.dwWidth,
                 MT_VP_FEATURE_GRAPH_FILTER_INPUTTILEMODE, m_Params.input.tileMode, MT_VP_FEATURE_GRAPH_FILTER_OUTPUTHEIGHT, m_Params.output.dwHeight, MT_VP_FEATURE_GRAPH_FILTER_OUTPUTWIDTH,
-                m_Params.output.dwWidth, MT_VP_FEATURE_GRAPH_FILTER_OUTPUTTILEMODE, m_Params.output.tileMode, MT_VP_FEATURE_GRAPH_FILTER_ISCALINGTYPE, m_Params.interlacedScalingType,
-                MT_VP_FEATURE_GRAPH_FILTER_SCALINGMODE, m_Params.scalingMode, MT_VP_FEATURE_GRAPH_FILTER_FEATURETYPE, GetFeatureType());
+                m_Params.output.dwWidth, MT_VP_FEATURE_GRAPH_FILTER_OUTPUTTILEMODE, m_Params.output.tileMode, MT_VP_FEATURE_GRAPH_FILTER_FEATURETYPE, GetFeatureType());
         VP_PUBLIC_NORMALMESSAGE("Feature Graph: SwFilterScaling: input_dwHeight %d, input_dwWidth, %d, input_tileMode %d, output_dwHeight %d, output_dwWidth %d, output_tileMode %d, interlacedScalingType %d, \
                                  scalingMode %d, FeatureType %d", m_Params.input.dwHeight, m_Params.input.dwWidth, m_Params.input.tileMode, m_Params.output.dwHeight, m_Params.output.dwWidth,
                                  m_Params.output.tileMode, m_Params.interlacedScalingType, m_Params.scalingMode, GetFeatureType());
+
         return MOS_STATUS_SUCCESS;
     }
 
@@ -1519,11 +1519,12 @@ public:
             bool          *pbSupported);
     virtual MOS_STATUS AddFeatureGraphRTLog()
     {
-        MT_LOG8(MT_VP_FEATURE_GRAPH_SWFILTERHDR, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_HDRMODE, m_Params.hdrMode, MT_VP_FEATURE_GRAPH_FILTER_LUTMODE, m_Params.lutMode,
-                MT_VP_FEATURE_GRAPH_FILTER_GPUGENERATE3DLUT, m_Params.bGpuGenerate3DLUT, MT_VP_FEATURE_GRAPH_FILTER_INPUTFORMAT, m_Params.formatInput, MT_VP_FEATURE_GRAPH_FILTER_OUTPUTFORMAT,
-                m_Params.formatOutput, MT_VP_FEATURE_GRAPH_FILTER_INPUTCOLORSPACE, m_Params.srcColorSpace, MT_VP_FEATURE_GRAPH_FILTER_OUTPUTCOLORSPACE, m_Params.dstColorSpace, MT_VP_FEATURE_GRAPH_FILTER_FEATURETYPE, GetFeatureType());
+        MT_LOG7(MT_VP_FEATURE_GRAPH_SWFILTERHDR, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_HDRMODE, m_Params.hdrMode, MT_VP_FEATURE_GRAPH_FILTER_GPUGENERATE3DLUT, m_Params.bGpuGenerate3DLUT,
+                MT_VP_FEATURE_GRAPH_FILTER_INPUTFORMAT, m_Params.formatInput, MT_VP_FEATURE_GRAPH_FILTER_OUTPUTFORMAT, m_Params.formatOutput, MT_VP_FEATURE_GRAPH_FILTER_INPUTCOLORSPACE,
+                m_Params.srcColorSpace, MT_VP_FEATURE_GRAPH_FILTER_OUTPUTCOLORSPACE, m_Params.dstColorSpace, MT_VP_FEATURE_GRAPH_FILTER_FEATURETYPE, GetFeatureType());
         VP_PUBLIC_NORMALMESSAGE("Feature Graph: SwFilterHdr: hdrMode %d, lutMode %d, bGpuGenerate3DLUT %d, formatInput %d, formatOutput %d, srcColorSpace %d, dstColorSpace %d, FeatureType %d", m_Params.hdrMode,
                                 m_Params.lutMode, m_Params.bGpuGenerate3DLUT, m_Params.formatInput, m_Params.formatOutput, m_Params.srcColorSpace, m_Params.dstColorSpace, GetFeatureType());
+
         return MOS_STATUS_SUCCESS;
     }
 
