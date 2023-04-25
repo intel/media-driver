@@ -211,3 +211,19 @@ MOS_STATUS CodechalHwInterfaceNextXe_Hpm::Initialize(
     }
     return eStatus;
 }
+#if USE_CODECHAL_DEBUG_TOOL
+MediaCopyBaseState *CodechalHwInterfaceNextXe_Hpm::CreateMediaCopy(PMOS_INTERFACE mosInterface)
+{
+    CODECHAL_HW_FUNCTION_ENTER;
+    MediaCopyBaseState *mediaCopy   = nullptr;
+    PMOS_CONTEXT        mos_context = nullptr;
+
+    if (mosInterface && mosInterface->pfnGetMosContext)
+    {
+        mosInterface->pfnGetMosContext(mosInterface, &mos_context);
+    }
+    mediaCopy = static_cast<MediaCopyBaseState *>(McpyDevice::CreateFactory(mos_context));
+
+    return mediaCopy;
+}
+#endif
