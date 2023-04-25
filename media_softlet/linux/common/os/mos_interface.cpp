@@ -1845,6 +1845,22 @@ MOS_STATUS MosInterface::FreeResource(
     return status;
 }
 
+MOS_STATUS MosInterface::FreeResource(
+    OsDeviceContext    *osDeviceContext,
+    MOS_RESOURCE_HANDLE resource,
+    uint32_t            flag
+#if MOS_MESSAGES_ENABLED
+    ,
+    const char *functionName,
+    const char *filename,
+    int32_t     line
+#endif  // MOS_MESSAGES_ENABLED
+)
+{
+    MOS_OS_FUNCTION_ENTER;
+    return MOS_STATUS_UNIMPLEMENTED;
+}
+
 MOS_STATUS MosInterface::GetResourceInfo(
     MOS_STREAM_HANDLE   streamState,
     MOS_RESOURCE_HANDLE resource,
@@ -2038,6 +2054,16 @@ void *MosInterface::LockMosResource(
     return pData;
 }
 
+void *MosInterface::LockMosResource(
+    OsDeviceContext    *osDeviceContext,
+    MOS_RESOURCE_HANDLE resource,
+    PMOS_LOCK_PARAMS    flags,
+    bool                isDumpPacket)
+{
+    MOS_OS_FUNCTION_ENTER;
+    return nullptr;
+}
+
 MOS_STATUS MosInterface::UnlockMosResource(
     MOS_STREAM_HANDLE   streamState,
     MOS_RESOURCE_HANDLE resource)
@@ -2066,6 +2092,14 @@ MOS_STATUS MosInterface::UnlockMosResource(
     eStatus = GraphicsResourceSpecificNext::UnlockExternalResource(streamState, resource);
 
     return eStatus;
+}
+
+MOS_STATUS MosInterface::UnlockMosResource(
+    OsDeviceContext    *osDeviceContext,
+    MOS_RESOURCE_HANDLE resource)
+{
+    MOS_OS_FUNCTION_ENTER;
+    return MOS_STATUS_UNIMPLEMENTED;
 }
 
 MOS_STATUS MosInterface::UpdateResourceUsageType(
