@@ -101,6 +101,7 @@ public:
     MhwVdboxHucInterface *m_hucInterface = nullptr;
     MhwVdboxVdencInterface *m_vdencInterface = nullptr;
     MhwBltInterface *m_bltInterface = nullptr;
+    PMOS_INTERFACE m_osInterface = nullptr;
 
     //!
     //! \brief    Calls the factory function to initialize all requested interfaces.

@@ -194,9 +194,9 @@ void MhwInterfaces::Destroy()
     {
         return;
     }
-    if (m_miInterface && m_miInterface->GetOsInterface())
+    if (m_osInterface)
     {
-        m_miInterface->GetOsInterface()->pfnDeleteMhwCpInterface(m_cpInterface);
+        m_osInterface->pfnDeleteMhwCpInterface(m_cpInterface);
         m_cpInterface = nullptr;
     }
     else
