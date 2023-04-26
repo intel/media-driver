@@ -64,7 +64,8 @@ public:
     static class GpuContextNext* Create(
         const MOS_GPU_NODE gpuNode,
         CmdBufMgrNext      *cmdBufMgr,
-        GpuContextNext     *reusedContext);
+        GpuContextNext     *reusedContext,
+        OsContextNext      *osContext = nullptr);
 
     //!
     //! \brief    Clear gpu context

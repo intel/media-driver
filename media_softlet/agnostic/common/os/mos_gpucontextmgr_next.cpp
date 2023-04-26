@@ -149,7 +149,7 @@ GpuContextNext *GpuContextMgrNext::CreateGpuContext(
         reusedContext = SelectContextToReuse();
     }
 
-    GpuContextNext *gpuContext = GpuContextNext::Create(gpuNode, cmdBufMgr, reusedContext);
+    GpuContextNext *gpuContext = GpuContextNext::Create(gpuNode, cmdBufMgr, reusedContext, m_osContext);
     if (gpuContext == nullptr)
     {
         MOS_OS_ASSERTMESSAGE("nullptr returned by GpuContext::Create.");

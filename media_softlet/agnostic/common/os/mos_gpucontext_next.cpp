@@ -29,9 +29,11 @@
 GpuContextNext *GpuContextNext::Create(
     const MOS_GPU_NODE gpuNode,
     CmdBufMgrNext         *cmdBufMgr,
-    GpuContextNext        *reusedContext)
+    GpuContextNext        *reusedContext,
+    OsContextNext         *osContext)
 {
     MOS_OS_FUNCTION_ENTER;
+    MOS_UNUSED(osContext);
 
     GpuContextNext* gpuContextNext = nullptr;
 
