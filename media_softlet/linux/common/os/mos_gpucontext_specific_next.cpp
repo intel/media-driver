@@ -653,10 +653,15 @@ void GpuContextSpecificNext::Clear()
     MosUtilities::MosDestroyMutex(m_cmdBufPoolMutex);
     m_cmdBufPoolMutex = nullptr;
     MOS_SafeFreeMemory(m_commandBuffer);
+    m_commandBuffer = nullptr;
     MOS_SafeFreeMemory(m_allocationList);
+    m_allocationList = nullptr;
     MOS_SafeFreeMemory(m_patchLocationList);
+    m_patchLocationList = nullptr;
     MOS_SafeFreeMemory(m_attachedResources);
+    m_attachedResources = nullptr;
     MOS_SafeFreeMemory(m_writeModeList);
+    m_writeModeList = nullptr;
 
     for (int i=0; i<MAX_ENGINE_INSTANCE_NUM; i++)
     {
