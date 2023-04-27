@@ -241,6 +241,7 @@ uint32_t GetMinRequiredSurfaceSizeInBytes(uint32_t pitch, uint32_t height, MOS_F
     case Format_B10G10R10A2:
     case Format_P8:
     case Format_L8:
+    case Format_A8:
         nBytes = pitch * height;
         break;
     default:
