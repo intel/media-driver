@@ -1,8 +1,7 @@
 # Media Features Summary
 
 ## Supported Decoding Output Format and Max Resolution
-## Note: Before vaapi version(1.9.0), media driver only allow create 16bit surface for 12bit bitstream decoding, padding bits will be filled with 0 by hw;
-## And after that version, media driver has supported to create both 12bit and 16bit surface for 12bit bitstream decoding.
+Note: Before vaapi version(1.9.0), media driver only allow to create 16bit surface for 12bit bitstream decoding, padding bits will be filled with 0 by hardware. After 1.9.0 vaapi version, media driver is supported to create both 12bit and 16bit surface for 12bit bitstream decoding.
 
 | Codec      | Type     | MTL            | DG2/ATSM       | DG1/SG1        | TGLx           | ICL            | KBLx | BXTx | SKL  | BDW  |
 |------------|--------- |----------------|----------------|----------------|----------------|----------------|------|------|------|------|
@@ -123,5 +122,13 @@ Video processing has various feature filters including Blending(or Composition),
      ##### HDR10 TM is the feature for HDR video content, hence, not compatible with denoise, deinterlace, STD/E, TCC.
 * SFC: Chroma Sitting, CSC, Mirroring, Rotation, Scaling, Sharpening, Color Fill
 * EU (Media Kernel or Shader): Blending, CSC, Rotation, Scaling, Color Fill
+
+## Supported Media Copy
+For media usage, there are a lot of interactive between CPU and GPU memory. To accelerate CPU<->GPU surface sharing performance, media copy is enabled to use GPU hardware engine or GPU kernel to copy the surface from/to CPU accessable location. It's supported from ATSM/Meteor Lake(MTL)+ platforms. You could get the detail API information from [vaCopy](http://intel.github.io/libva/va_8h.html#a5ff39794f6201b8a68ccb0d0f934be1e).
+
+Media Copy support most of formats like Nv12/p010/p016/ARGB/yuy2/y210/y216/AYUV/y410/ARGB10, and also popular resolution like 8K/4k/2k/1080p/720p/480p/320P, etc.
+
+Besides, it's required that CPU start address need 4k alignment, you can refer: [drm_i915_gem_userptr](https://dri.freedesktop.org/docs/drm/gpu/driver-uapi.html#c.drm_i915_gem_userptr)
+
 
 ##### Resolution definition: 2k=2048x2048, 4k=4096x4096, 8k=8192x8192, 16k=16384x16384
