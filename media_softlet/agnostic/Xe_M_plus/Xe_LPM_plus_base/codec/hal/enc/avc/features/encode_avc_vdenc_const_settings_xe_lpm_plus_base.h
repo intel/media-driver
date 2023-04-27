@@ -31,6 +31,30 @@
 
 namespace encode
 {
+struct AvcVdencBrcConstSettingsXe_Lpm_Plus_Base
+{
+    static const uint8_t  m_BRC_UPD_global_rate_ratio_threshold_Xe_Lpm_Plus_Base[7];                  //!< Global Rate Ratio Threshold
+    static const uint8_t  m_BRC_UPD_slwin_global_rate_ratio_threshold_Xe_Lpm_Plus_Base[7];            //!< Slide Window Global Rate Ratio Threshold
+    static const int8_t   m_BRC_UPD_global_rate_ratio_threshold_qp_Xe_Lpm_Plus_Base[8];               //!< Global Rate Ratio QP Threshold
+
+    static const int8_t   m_BRC_UPD_GlobalRateQPAdjTabI_U8_Xe_Lpm_Plus_Base[64];                      //!< I Picture Global Rate QP Adjustment Table.
+    static const int8_t   m_BRC_UPD_GlobalRateQPAdjTabP_U8_Xe_Lpm_Plus_Base[64];                      //!< P Picture Global Rate QP Adjustment Table.
+    static const int8_t   m_BRC_UPD_SlWinGlobalRateQPAdjTabP_U8_Xe_Lpm_Plus_Base[64];                 //!< P picture Global Rate QP Adjustment Table for Sliding Window BRC
+    static const int8_t   m_BRC_UPD_GlobalRateQPAdjTabB_U8_Xe_Lpm_Plus_Base[64];                      //!< B Picture Global Rate QP Adjustment Table.
+
+    static const uint8_t  m_BRC_UPD_DistThreshldI_U8_Xe_Lpm_Plus_Base[10];                            //!< I Picture Distortion THreshold.
+    static const uint8_t  m_BRC_UPD_DistThreshldP_U8_Xe_Lpm_Plus_Base[10];                            //!< P Picture Distortion THreshold.
+    static const uint8_t  m_BRC_UPD_DistThreshldB_U8_Xe_Lpm_Plus_Base[10];                            //!< P Picture Distortion THreshold.
+
+    static const int8_t   m_CBR_UPD_DistQPAdjTabI_U8_Xe_Lpm_Plus_Base[81];                            //!< I Picture Distortion QP Adjustment Table under CBR Mode.
+    static const int8_t   m_CBR_UPD_DistQPAdjTabP_U8_Xe_Lpm_Plus_Base[81];                            //!< P Picture Distortion QP Adjustment Table under CBR Mode.
+    static const int8_t   m_CBR_UPD_DistQPAdjTabB_U8_Xe_Lpm_Plus_Base[81];                            //!< B Picture Distortion QP Adjustment Table under CBR Mode.
+    static const int8_t   m_VBR_UPD_DistQPAdjTabI_U8_Xe_Lpm_Plus_Base[81];                            //!< I Picture Distortion QP Adjustment Table under VBR Mode.
+    static const int8_t   m_VBR_UPD_DistQPAdjTabP_U8_Xe_Lpm_Plus_Base[81];                            //!< P Picture Distortion QP Adjustment Table under VBR Mode.
+    static const int8_t   m_VBR_UPD_DistQPAdjTabB_U8_Xe_Lpm_Plus_Base[81];                            //!< B Picture Distortion QP Adjustment Table under VBR Mode.
+
+};
+
 class EncodeAvcVdencConstSettingsXe_Lpm_Plus_Base : public EncodeAvcVdencConstSettings
 {
 public:
@@ -41,6 +65,9 @@ public:
 
 protected:
     MOS_STATUS SetVdencAvcImgStateSettings() override;
+    virtual MOS_STATUS SetBrcSettings() override;
+
+    AvcVdencBrcConstSettingsXe_Lpm_Plus_Base m_brcSettings_Xe_Lpm_Plus_Base;
 
 MEDIA_CLASS_DEFINE_END(encode__EncodeAvcVdencConstSettingsXe_Lpm_Plus_Base)
 };

@@ -630,6 +630,7 @@ const int8_t AvcVdencBrcConstSettings::m_BRC_UPD_GlobalRateQPAdjTabB_U8[64] =
 
 const uint8_t AvcVdencBrcConstSettings::m_BRC_UPD_DistThreshldI_U8[10] = {2, 4, 8, 12, 19, 32, 64, 128, 0, 0};
 const uint8_t AvcVdencBrcConstSettings::m_BRC_UPD_DistThreshldP_U8[10] = {2, 4, 8, 12, 19, 32, 64, 128, 0, 0};
+const uint8_t AvcVdencBrcConstSettings::m_BRC_UPD_DistThreshldB_U8[10] = {2, 4, 8, 12, 19, 32, 64, 128, 0, 0};
 
 const int8_t AvcVdencBrcConstSettings::m_CBR_UPD_DistQPAdjTabI_U8[81] =
 {
@@ -1072,6 +1073,7 @@ MOS_STATUS EncodeAvcVdencConstSettings::SetBrcSettings()
     setting->brcSettings.BRC_UPD_GlobalRateQPAdjTabB_U8      = (int8_t*)m_brcSettings.m_BRC_UPD_GlobalRateQPAdjTabB_U8;
     setting->brcSettings.BRC_UPD_DistThreshldI_U8            = (uint8_t*)m_brcSettings.m_BRC_UPD_DistThreshldI_U8;
     setting->brcSettings.BRC_UPD_DistThreshldP_U8            = (uint8_t*)m_brcSettings.m_BRC_UPD_DistThreshldP_U8;
+    setting->brcSettings.BRC_UPD_DistThreshldB_U8            = (uint8_t*)m_brcSettings.m_BRC_UPD_DistThreshldB_U8;
     setting->brcSettings.CBR_UPD_DistQPAdjTabI_U8            = (int8_t*)m_brcSettings.m_CBR_UPD_DistQPAdjTabI_U8;
     setting->brcSettings.CBR_UPD_DistQPAdjTabP_U8            = (int8_t*)m_brcSettings.m_CBR_UPD_DistQPAdjTabP_U8;
     setting->brcSettings.CBR_UPD_DistQPAdjTabB_U8            = (int8_t*)m_brcSettings.m_CBR_UPD_DistQPAdjTabB_U8;

@@ -745,7 +745,7 @@ MOS_STATUS AvcEncodeBRC::FillHucConstData(uint8_t *data, uint8_t pictureType)
     MOS_SecureMemcpy(hucConstData->UPD_DistThreshldP_U8, 10 * sizeof(uint8_t),
                      brcSettings.BRC_UPD_DistThreshldP_U8, 10 * sizeof(uint8_t));
     MOS_SecureMemcpy(hucConstData->UPD_DistThreshldB_U8, 10 * sizeof(uint8_t),
-                     brcSettings.BRC_UPD_DistThreshldP_U8, 10 * sizeof(uint8_t));
+                     brcSettings.BRC_UPD_DistThreshldB_U8, 10 * sizeof(uint8_t));
 
     if (avcSeqParams->RateControlMethod == RATECONTROL_CBR)
     {
