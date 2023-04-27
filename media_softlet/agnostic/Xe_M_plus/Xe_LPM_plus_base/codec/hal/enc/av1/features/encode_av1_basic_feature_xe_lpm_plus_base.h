@@ -49,8 +49,6 @@ public:
 
     virtual MOS_STATUS Update(void *params) override;
 
-    MHW_SETPAR_DECL_HDR(VDENC_CMD2);
-
     MHW_SETPAR_DECL_HDR(AVP_SURFACE_STATE);
 
     MHW_SETPAR_DECL_HDR(AVP_PIC_STATE);

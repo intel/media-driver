@@ -47,16 +47,6 @@ MOS_STATUS Av1BasicFeatureXe_Lpm_Plus_Base::Update(void *params)
     return MOS_STATUS_SUCCESS;
 }
 
-MHW_SETPAR_DECL_SRC(VDENC_CMD2, Av1BasicFeatureXe_Lpm_Plus_Base)
-{
-    ENCODE_CHK_STATUS_RETURN(Av1BasicFeature::MHW_SETPAR_F(VDENC_CMD2)(params));
-
-    //lossless issue fix
-    params.qpPrimeYDc = (uint8_t)CodecHal_Clip3(0, 255, m_av1PicParams->base_qindex + m_av1PicParams->y_dc_delta_q);
-
-    return MOS_STATUS_SUCCESS;
-}
-
 MHW_SETPAR_DECL_SRC(AVP_SURFACE_STATE, Av1BasicFeatureXe_Lpm_Plus_Base)
 {
     ENCODE_CHK_STATUS_RETURN(Av1BasicFeature::MHW_SETPAR_F(AVP_SURFACE_STATE)(params));
