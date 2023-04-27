@@ -333,11 +333,10 @@ namespace encode {
 
         if (m_pipeline->GetCurrentPass())
         {
-            if ((Mos_Solo_Extension((MOS_CONTEXT_HANDLE)m_osInterface->pOsContext) || m_osInterface->bInlineCodecStatusUpdate)
-                && brcFeature->IsVdencBrcEnabled())
+            if (m_osInterface->bInlineCodecStatusUpdate && brcFeature->IsVdencBrcEnabled())
             {
-                // increment dwStoreData conditionaly
-                MediaPacket::UpdateStatusReportNext(statusReportGlobalCount, &cmdBuffer);
+                // inc dwStoreData conditionaly
+                UpdateStatusReportNext(statusReportGlobalCount, &cmdBuffer);
             }
 
             // Insert conditional batch buffer end
@@ -528,19 +527,15 @@ namespace encode {
 
         ENCODE_CHK_STATUS_RETURN(EndStatusReport(statusReportMfx, &cmdBuffer));
 
-        CODECHAL_DEBUG_TOOL(
-            if (m_mmcState && m_pipeline->IsLastPass() && m_pipeline->IsFirstPipe())
-            {
-                m_mmcState->UpdateUserFeatureKey(&(m_basicFeature->m_reconSurface));
-            })
-
-        if (Mos_Solo_Extension((MOS_CONTEXT_HANDLE)m_osInterface->pOsContext) || m_osInterface->bInlineCodecStatusUpdate)
+        if (!m_pipeline->IsSingleTaskPhaseSupported() || m_pipeline->IsLastPass())
         {
-            if (m_pipeline->IsLastPass() && m_pipeline->IsFirstPipe())
-            {
-                // increment dwStoreData conditionaly
-                MediaPacket::UpdateStatusReportNext(statusReportGlobalCount, &cmdBuffer);
-            }
+            ENCODE_CHK_STATUS_RETURN(UpdateStatusReportNext(statusReportGlobalCount, &cmdBuffer));
+
+            CODECHAL_DEBUG_TOOL(
+                if (m_mmcState)
+                {
+                    m_mmcState->UpdateUserFeatureKey(&(m_basicFeature->m_reconSurface));
+                })
         }
 
         // Reset parameters for next PAK execution
