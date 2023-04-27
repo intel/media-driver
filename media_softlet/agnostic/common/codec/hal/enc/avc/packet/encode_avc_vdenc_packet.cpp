@@ -333,10 +333,10 @@ namespace encode {
 
         if (m_pipeline->GetCurrentPass())
         {
-            if ((Mos_Solo_Extension((MOS_CONTEXT_HANDLE)m_osInterface->pOsContext) || m_osInterface->bInlineCodecStatusUpdate || m_pipeline->IsLastPass() && m_pipeline->IsFirstPipe())
+            if ((Mos_Solo_Extension((MOS_CONTEXT_HANDLE)m_osInterface->pOsContext) || m_osInterface->bInlineCodecStatusUpdate)
                 && brcFeature->IsVdencBrcEnabled())
             {
-                // increment storeData forcely
+                // increment dwStoreData conditionaly
                 MediaPacket::UpdateStatusReportNext(statusReportGlobalCount, &cmdBuffer);
             }
 
@@ -534,24 +534,13 @@ namespace encode {
                 m_mmcState->UpdateUserFeatureKey(&(m_basicFeature->m_reconSurface));
             })
 
-        ENCODE_NORMALMESSAGE("Pipeline parameters: GetSubmittedCount() %u; current frame %u; MosSoloExtension %d; inlineCodeStatusUpdate %d; GetCurrentPass() %u; GetCurrentPipe() %u; GetCurrentSubPass() %u; GetCurrentRow() %u; IsLastPass() %d; IsFirstPipe() %d",
-            m_statusReport->GetSubmittedCount(),
-            m_statusReport->GetSubmittedCount() + 1,
-            Mos_Solo_Extension((MOS_CONTEXT_HANDLE)m_osInterface->pOsContext),
-            m_osInterface->bInlineCodecStatusUpdate,
-            m_pipeline->GetCurrentPass(),
-            m_pipeline->GetCurrentPipe(),
-            m_pipeline->GetCurrentSubPass(),
-            m_pipeline->GetCurrentRow(),
-            m_pipeline->IsLastPass(),
-            m_pipeline->IsFirstPipe());
-
-        if (Mos_Solo_Extension(m_osInterface->pOsContext) ||
-            (!brcFeature->IsVdencBrcEnabled() && m_osInterface->bInlineCodecStatusUpdate) ||
-            m_pipeline->IsLastPass() && m_pipeline->IsFirstPipe())
+        if (Mos_Solo_Extension((MOS_CONTEXT_HANDLE)m_osInterface->pOsContext) || m_osInterface->bInlineCodecStatusUpdate)
         {
-            // increment storeData forcely
-            ENCODE_CHK_STATUS_RETURN(MediaPacket::UpdateStatusReportNext(statusReportGlobalCount, &cmdBuffer));
+            if (m_pipeline->IsLastPass() && m_pipeline->IsFirstPipe())
+            {
+                // increment dwStoreData conditionaly
+                MediaPacket::UpdateStatusReportNext(statusReportGlobalCount, &cmdBuffer);
+            }
         }
 
         // Reset parameters for next PAK execution
