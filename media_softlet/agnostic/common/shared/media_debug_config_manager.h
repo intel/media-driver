@@ -44,6 +44,11 @@ struct MediaKernelDumpConfig
 
 struct MediaDbgCfg
 {
+    MediaDbgCfg()
+    {
+        cmdAttribs[MediaDbgAttr::attrEnableFastDump] = 1;
+    }
+
     int32_t                                      frameIndex;
     std::map<std::string, int32_t>               cmdAttribs;
     std::map<std::string, MediaKernelDumpConfig> kernelAttribs;

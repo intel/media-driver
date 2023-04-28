@@ -412,7 +412,7 @@ void MediaDebugConfigMgr::GenerateDefaultConfig(std::string configFileName)
     ofs << "#" << MediaDbgAttr::attrDumpBufferInBinary << ":0" << std::endl;
     ofs << "#" << MediaDbgAttr::attrDumpToThreadFolder << ":0" << std::endl;
     ofs << "#" << MediaDbgAttr::attrDumpCmdBufInBinary << ":0" << std::endl;
-    ofs << "#" << MediaDbgAttr::attrEnableFastDump << ":0" << std::endl;
+    ofs << "#" << MediaDbgAttr::attrEnableFastDump << ":1" << std::endl;
     ofs << "#" << MediaDbgAttr::attrStatusReport << ":0" << std::endl;
     ofs << std::endl;
 
