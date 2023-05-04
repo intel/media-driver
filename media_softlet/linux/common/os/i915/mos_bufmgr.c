@@ -1017,6 +1017,7 @@ mos_gem_bo_alloc_internal(struct mos_bufmgr *bufmgr,
     struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *) bufmgr;
     struct mos_bo_gem *bo_gem;
     unsigned int page_size = getpagesize();
+    static bool support_pat_index = true;
     int ret;
     struct mos_gem_bo_bucket *bucket;
     bool alloc_from_cache;
@@ -1118,7 +1119,7 @@ retry:
 
         bo_gem->bo.size = bo_size;
         bo_gem->mem_region = I915_MEMORY_CLASS_SYSTEM;
-        bo_gem->pat_index  = pat_index;
+        bo_gem->pat_index  = PAT_INDEX_INVALID;
         bo_gem->cpu_cacheable = true;
 
         if (bufmgr_gem->has_lmem &&
@@ -1146,33 +1147,50 @@ retry:
             bo_gem->bo.handle = bo_gem->gem_handle;
             bo_gem->mem_region = I915_MEMORY_CLASS_DEVICE;
         }
-        else if (pat_index != PAT_INDEX_INVALID)
+        else
         {
-            struct drm_i915_gem_create_ext_set_pat set_pat_ext;
-            memclear(set_pat_ext);
-            set_pat_ext.base.name = I915_GEM_CREATE_EXT_SET_PAT;
-            set_pat_ext.pat_index = pat_index;
+            ret = -EINVAL;
+            if (support_pat_index && pat_index != PAT_INDEX_INVALID)
+            {
+                struct drm_i915_gem_create_ext_set_pat set_pat_ext;
+                memclear(set_pat_ext);
+                set_pat_ext.base.name = I915_GEM_CREATE_EXT_SET_PAT;
+                set_pat_ext.pat_index = pat_index;
 
-            struct drm_i915_gem_create_ext create;
-            memclear(create);
-            create.size = bo_size;
-            create.extensions = (uintptr_t)(&set_pat_ext);
-            ret = drmIoctl(bufmgr_gem->fd,
-                    DRM_IOCTL_I915_GEM_CREATE_EXT,
+                struct drm_i915_gem_create_ext create;
+                memclear(create);
+                create.size = bo_size;
+                create.extensions = (uintptr_t)(&set_pat_ext);
+                ret = drmIoctl(bufmgr_gem->fd,
+                        DRM_IOCTL_I915_GEM_CREATE_EXT,
+                        &create);
+                bo_gem->gem_handle = create.handle;
+                bo_gem->bo.handle = bo_gem->gem_handle;
+                bo_gem->pat_index = pat_index;
+                bo_gem->cpu_cacheable = cpu_cacheable;
+                if (ret != 0)
+                {
+                    /* For old kernel without pat_index support,
+                     * DRM_IOCTL_I915_GEM_CREATE_EXT with unknown
+                     * set_pat_ext extension will return -EINVAL
+                     * support_pat_index need to be set false.
+                     */
+                    support_pat_index = false;
+                }
+            }
+            if (ret != 0)
+            {
+                struct drm_i915_gem_create create;
+                memclear(create);
+                create.size = bo_size;
+                ret = drmIoctl(bufmgr_gem->fd,
+                    DRM_IOCTL_I915_GEM_CREATE,
                     &create);
-            bo_gem->gem_handle = create.handle;
-            bo_gem->bo.handle = bo_gem->gem_handle;
-            bo_gem->cpu_cacheable = cpu_cacheable;
-        }
-        else {
-            struct drm_i915_gem_create create;
-            memclear(create);
-            create.size = bo_size;
-            ret = drmIoctl(bufmgr_gem->fd,
-                   DRM_IOCTL_I915_GEM_CREATE,
-                   &create);
-            bo_gem->gem_handle = create.handle;
-            bo_gem->bo.handle = bo_gem->gem_handle;
+                bo_gem->gem_handle = create.handle;
+                bo_gem->bo.handle = bo_gem->gem_handle;
+                bo_gem->pat_index = PAT_INDEX_INVALID;
+                bo_gem->cpu_cacheable = true;
+            }
         }
         if (ret != 0) {
             free(bo_gem);
