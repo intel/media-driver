@@ -255,9 +255,10 @@ MOS_STATUS AvcReferenceFrames::UpdateSlice()
 
     if (seqParams->NumRefFrames == CODEC_AVC_MAX_NUM_REF_FRAME)
     {
-        slcParams = m_basicFeature->m_sliceParams;
-        bool    isActiveRef[15] = {};
-        uint8_t swapIndex       = CODEC_AVC_NUM_UNCOMPRESSED_SURFACE;
+        const uint8_t hwInvalidFrameId              = CODEC_AVC_MAX_NUM_REF_FRAME - 1;
+        slcParams                                   = m_basicFeature->m_sliceParams;
+        bool          isActiveRef[hwInvalidFrameId] = {};
+        uint8_t       swapIndex                     = CODEC_AVC_NUM_UNCOMPRESSED_SURFACE;
         for (uint32_t sliceCount = 0; sliceCount < m_basicFeature->m_numSlices; sliceCount++)
         {
             if (m_pictureCodingType != I_TYPE)
@@ -265,11 +266,11 @@ MOS_STATUS AvcReferenceFrames::UpdateSlice()
                 for (uint8_t i = 0; i < (slcParams->num_ref_idx_l0_active_minus1 + 1); i++)
                 {
                     auto index = m_picIdx[slcParams->RefPicList[0][i].FrameIdx].ucPicIdx;
-                    if (m_refList[index]->ucFrameId < 15)
+                    if (m_refList[index]->ucFrameId < hwInvalidFrameId)
                     {
                         isActiveRef[m_refList[index]->ucFrameId] = true;
                     }
-                    else if (m_refList[index]->ucFrameId == 15 && swapIndex == CODEC_AVC_NUM_UNCOMPRESSED_SURFACE)
+                    else if (m_refList[index]->ucFrameId == hwInvalidFrameId && swapIndex == CODEC_AVC_NUM_UNCOMPRESSED_SURFACE)
                     {
                         swapIndex = index;
                     }
@@ -285,11 +286,11 @@ MOS_STATUS AvcReferenceFrames::UpdateSlice()
                 for (uint8_t i = 0; i < (slcParams->num_ref_idx_l1_active_minus1 + 1); i++)
                 {
                     auto index = m_picIdx[slcParams->RefPicList[1][i].FrameIdx].ucPicIdx;
-                    if (m_refList[index]->ucFrameId < 15)
+                    if (m_refList[index]->ucFrameId < hwInvalidFrameId)
                     {
                         isActiveRef[m_refList[index]->ucFrameId] = true;
                     }
-                    else if (m_refList[index]->ucFrameId == 15 && swapIndex == CODEC_AVC_NUM_UNCOMPRESSED_SURFACE)
+                    else if (m_refList[index]->ucFrameId == hwInvalidFrameId && swapIndex == CODEC_AVC_NUM_UNCOMPRESSED_SURFACE)
                     {
                         swapIndex = index;
                     }
@@ -306,7 +307,7 @@ MOS_STATUS AvcReferenceFrames::UpdateSlice()
         if (swapIndex < CODEC_AVC_NUM_UNCOMPRESSED_SURFACE)
         {
             uint8_t i = 0;
-            for (i = 0; i < 15; i++)
+            for (i = 0; i < hwInvalidFrameId; i++)
             {
                 if (isActiveRef[i])
                 {
@@ -326,7 +327,7 @@ MOS_STATUS AvcReferenceFrames::UpdateSlice()
                     break;
                 }
             }
-            if (i == 15)
+            if (i == hwInvalidFrameId)
             {
                 // should never happen, something must be wrong
                 CODECHAL_PUBLIC_ASSERT(false);
