@@ -40,6 +40,7 @@
 #include <sys/types.h>
 #include <sys/sem.h>
 #include <sys/mman.h>
+#include <pwd.h>
 #include "mos_compat.h" // libc variative definitions: backtrace
 #include "mos_user_setting.h"
 #include "mos_utilities_specific.h"
@@ -1526,7 +1527,21 @@ MOS_STATUS MosUtilities::MosInitializeReg(RegBufferMap &regBufferMap)
     std::ifstream regStream;
     try
     {
-        regStream.open(USER_FEATURE_FILE_NEXT);
+        // try to read user folder config first
+        struct passwd *pw = getpwuid(getuid());
+        if (pw != NULL)
+        {
+            std::string UserFeatureFileNext(pw->pw_dir);
+            UserFeatureFileNext+=USER_FEATURE_FILE_NAME;
+            regStream.open(UserFeatureFileNext);
+        }
+
+        if (!regStream.good() || pw == NULL)
+        {
+            // try to read root config if user config not found
+            regStream.open(USER_FEATURE_FILE_NEXT);
+        }
+
         if (regStream.good())
         {
             std::string id       = "";
@@ -1603,7 +1618,20 @@ MOS_STATUS MosUtilities::MosUninitializeReg(RegBufferMap &regBufferMap)
     std::ofstream regStream;
     try
     {
+        // try to write to root config first
         regStream.open(USER_FEATURE_FILE_NEXT, std::ios::out | std::ios::trunc);
+        if (!regStream.good())
+        {
+            struct passwd *pw = getpwuid(getuid());
+            if (pw != NULL)
+            {
+                std::string UserFeatureFileNext(pw->pw_dir);
+                UserFeatureFileNext+=USER_FEATURE_FILE_NAME;
+                // try to write config to user folder
+                regStream.open(UserFeatureFileNext, std::ios::out | std::ios::trunc);
+            }
+        }
+
         if (regStream.good())
         {
             for(auto pair: regBufferMap)
