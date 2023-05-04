@@ -547,9 +547,7 @@ MOS_STATUS AvcBasicFeature::SetSliceStructs()
         slcParams->redundant_pic_cnt                  = 0;
         slcParams->sp_for_switch_flag                 = 0;
         slcParams->slice_qs_delta                     = 0;
-        slcParams->ref_pic_list_reordering_flag_l0    = 0;
         slcParams->ref_pic_list_reordering_flag_l1    = 0;
-        slcParams->adaptive_ref_pic_marking_mode_flag = 0;
         slcParams->no_output_of_prior_pics_flag       = 0;
         slcParams->redundant_pic_cnt                  = 0;
 
