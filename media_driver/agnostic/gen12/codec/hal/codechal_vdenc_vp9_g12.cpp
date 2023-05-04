@@ -3960,7 +3960,6 @@ MOS_STATUS CodechalVdencVp9StateG12::ExecutePictureLevel()
         uint32_t aligned_height = MOS_ALIGN_CEIL(real_height, CODEC_VP9_MIN_BLOCK_HEIGHT);
 
         fill_pad_with_value(m_rawSurfaceToPak, real_height, aligned_height);
-        fill_pad_with_value(&m_reconSurface, real_height, aligned_height);
     }
 
     if (m_pictureCodingType != I_TYPE)
