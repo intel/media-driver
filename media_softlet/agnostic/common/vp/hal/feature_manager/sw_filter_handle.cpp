@@ -826,6 +826,11 @@ bool SwFilterBlendingHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS& params, bool 
     PVPHAL_SURFACE surf = isInputSurf ? params.pSrc[surfIndex] : params.pTarget[surfIndex];
     if (surf && surf->pBlendingParams)
     {
+        if (!isInputSurf)
+        {
+            VP_PUBLIC_NORMALMESSAGE("Skip blending parameters on target.");
+            return false;
+        }
         return true;
     }
 
