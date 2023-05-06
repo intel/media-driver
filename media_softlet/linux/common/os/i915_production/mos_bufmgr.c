@@ -66,6 +66,7 @@
 #include "mos_util_debug.h"
 #include "mos_bufmgr_prelim.h"
 #include "mos_oca_defs_specific.h"
+#include "intel_hwconfig_types.h"
 
 #ifdef HAVE_VALGRIND
 #include <valgrind.h>
@@ -4878,21 +4879,138 @@ mos_gem_bo_is_exec_object_async(struct mos_linux_bo *bo)
     return bo_gem->exec_async;
 }
 
-
 static int mos_bufmgr_query_device_blob(struct mos_bufmgr *bufmgr, MEDIA_SYSTEM_INFO* gfx_info)
 {
-    if((bufmgr == nullptr) || (gfx_info == nullptr))
+    if ((bufmgr == nullptr) || (gfx_info == nullptr))
     {
         return -EINVAL;
     }
 
     struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem*)bufmgr;
-    int fd = bufmgr_gem->fd;
-
-    if (BufmgrPrelim::IsPrelimSupported()) {
-        return BufmgrPrelim::QueryDeviceBlob(fd, gfx_info);
+    if (bufmgr_gem == nullptr)
+    {
+        return -EINVAL;
     }
-    return -1;
+    int fd = bufmgr_gem->fd;
+    uint32_t *hw_info = nullptr;
+    uint32_t  ulength= 0;
+    int ret, i;
+    struct drm_i915_query_item query_item;
+
+    memclear(query_item);
+    query_item.length = 0;
+    query_item.query_id = DRM_I915_QUERY_HWCONFIG_BLOB;
+    ret = mos_gem_query_items(fd, &query_item, 1);
+    if (ret != 0 || query_item.length <= 0)
+    {
+        mos_safe_free(hw_info);
+        return (ret != 0) ? ret : -1;
+    }
+
+    hw_info = (uint32_t*) malloc(query_item.length);
+    if (hw_info != nullptr)
+    {
+        memset(hw_info, 0, query_item.length);
+    }
+    else
+    {
+        mos_safe_free(hw_info);
+        return -ENOMEM;
+    }
+    query_item.data_ptr = (uintptr_t) hw_info;
+    ret = mos_gem_query_items(fd, &query_item, 1);
+    if (ret != 0 || query_item.length <= 0)
+    {
+        mos_safe_free(hw_info);
+        return (ret != 0) ? ret : -1;
+    }
+    ulength = query_item.length / sizeof(uint32_t);
+    i = 0;
+    while (i < ulength) {
+        /* Attribute ID starts with 1 */
+        if (hw_info[i] <= 0)
+        {
+            mos_safe_free(hw_info);
+            return -EINVAL;
+        }
+        
+        #if DEBUG_BLOB_QUERY
+        fprintf("%s: %d\n", key_string[hw_info[i]], hw_info[i+2]);
+        #endif
+        if (INTEL_HWCONFIG_MAX_SLICES_SUPPORTED == hw_info[i])
+        {
+            if (hw_info[i+1] != 1)
+            {
+                mos_safe_free(hw_info);
+                return -EINVAL;
+            }
+            gfx_info->SliceCount = hw_info[i+2];
+            gfx_info->MaxSlicesSupported = hw_info[i+2];
+        }
+
+        if (INTEL_HWCONFIG_MAX_DUAL_SUBSLICES_SUPPORTED == hw_info[i])
+        {
+            if (hw_info[i+1] != 1)
+            {
+                mos_safe_free(hw_info);
+                return -EINVAL;
+            }
+            gfx_info->SubSliceCount = hw_info[i+2];
+            gfx_info->MaxSubSlicesSupported = hw_info[i+2];
+        }
+
+        if (INTEL_HWCONFIG_MAX_NUM_EU_PER_DSS == hw_info[i])
+        {
+            if (hw_info[i+1] != 1)
+            {
+                mos_safe_free(hw_info);
+                return -EINVAL;
+            }
+            gfx_info->MaxEuPerSubSlice = hw_info[i+2];
+        }
+
+        if (INTEL_HWCONFIG_L3_CACHE_SIZE_IN_KB == hw_info[i])
+        {
+            if (hw_info[i+1] != 1)
+            {
+                mos_safe_free(hw_info);
+                return -EINVAL;
+            }
+            gfx_info->L3CacheSizeInKb = hw_info[i+2];
+        }
+
+        if (INTEL_HWCONFIG_NUM_THREADS_PER_EU == hw_info[i])
+        {
+            if (hw_info[i+1] != 1)
+            {
+                mos_safe_free(hw_info);
+                return -EINVAL;
+            }
+            gfx_info->NumThreadsPerEu = hw_info[i+2];
+        }
+
+        if (INTEL_HWCONFIG_MAX_VECS == hw_info[i])
+        {
+            if (hw_info[i+1] != 1)
+            {
+                mos_safe_free(hw_info);
+                return -EINVAL;
+            }
+            gfx_info->MaxVECS = hw_info[i+2];
+        }
+
+        /* Advance to next key */
+        i += hw_info[i + 1];  // value size
+        i += 2;// KL size
+    }
+
+    if (hw_info != nullptr)
+    {
+        mos_safe_free(hw_info);
+        hw_info = nullptr;
+    }
+
+    return ret;
 }
 
 static int mos_bufmgr_query_hw_ip_version(struct mos_bufmgr *bufmgr, __u16 engine_class, void *ip_ver_info)
