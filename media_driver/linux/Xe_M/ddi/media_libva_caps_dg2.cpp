@@ -76,7 +76,7 @@ VAStatus MediaLibvaCapsDG2::LoadAv1EncProfileEntrypoints()
         attribValAV1ToolsExt2.bits.tile_size_bytes_minus1 = 3;
         attribValAV1ToolsExt2.bits.obu_size_bytes_minus1  = 3;
         attribValAV1ToolsExt2.bits.max_tile_num_minus1    = 511;
-        attribValAV1ToolsExt2.bits.tx_mode_support        = 2;
+        attribValAV1ToolsExt2.bits.tx_mode_support        = 4;
 
         attrib.value = attribValAV1ToolsExt2.value;
         (*attributeList)[attrib.type] = attrib.value;
