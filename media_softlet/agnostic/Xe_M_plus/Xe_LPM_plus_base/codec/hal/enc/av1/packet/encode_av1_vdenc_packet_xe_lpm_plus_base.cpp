@@ -635,13 +635,14 @@ MOS_STATUS Av1VdencPktXe_Lpm_Plus_Base::AddOneTileCommands(
     }
 
 #if USE_CODECHAL_DEBUG_TOOL
+    std::string             name           = std::to_string(tileRow) + std::to_string(tileCol) + std::to_string(tileRowPass) + "_TILE_CMD_BUFFER";
     CodechalDebugInterface *debugInterface = m_pipeline->GetDebugInterface();
     ENCODE_CHK_NULL_RETURN(debugInterface);
 
     ENCODE_CHK_STATUS_RETURN(debugInterface->DumpCmdBuffer(
         &constructTileBatchBuf,
         CODECHAL_NUM_MEDIA_STATES,
-        "_TILE_CMD_BUFFER"));
+        name.c_str()));
 #endif
 
     // End patching tile level batch cmds
