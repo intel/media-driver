@@ -123,6 +123,7 @@ public:
 
 protected:
     MOS_SURFACE m_tempLinearSurface = {};
+    int32_t     m_multiprocesssinglebin = 0;   //!< multi process single binary flag
 MEDIA_CLASS_DEFINE_END(MediaMemDeCompNext_Xe_Lpm_Plus_Base)
 };
 

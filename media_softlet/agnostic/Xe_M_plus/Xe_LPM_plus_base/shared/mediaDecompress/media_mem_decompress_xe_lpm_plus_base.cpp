@@ -50,6 +50,7 @@ MOS_STATUS MediaMemDeCompNext_Xe_Lpm_Plus_Base::RenderDecompCMD(PMOS_SURFACE sur
     PMHW_MI_MMIOREGISTERS               pMmioRegisters = nullptr;
     bool                                isPerfCollected = false;
     MediaPerfProfiler*                  perfProfiler = nullptr;
+    uint32_t                            perfTag = 0;
 
     VPHAL_MEMORY_DECOMP_CHK_NULL_RETURN(surface);
     VPHAL_MEMORY_DECOMP_CHK_NULL_RETURN(m_osInterface);
@@ -109,18 +110,21 @@ MOS_STATUS MediaMemDeCompNext_Xe_Lpm_Plus_Base::RenderDecompCMD(PMOS_SURFACE sur
 
     VPHAL_MEMORY_DECOMP_CHK_STATUS_RETURN(InitCommandBuffer(&cmdBuffer));
 
-    // check the decompress was called from whether media driver or apps
-    if (m_osInterface->pfnGetPerfTag(m_osInterface) != VPHAL_NONE)
+    if (m_multiprocesssinglebin)
     {
-        isPerfCollected = true;
-    }
+        perfTag = m_osInterface->pfnGetPerfTag(m_osInterface);
+        // check the decompress was called from whether media driver or apps
+        if (perfTag != VPHAL_NONE)
+        {
+            isPerfCollected = true;
 
-    if (isPerfCollected)
-    {
-        perfProfiler = MediaPerfProfiler::Instance();
-        VPHAL_MEMORY_DECOMP_CHK_NULL_RETURN(perfProfiler);
-        VPHAL_MEMORY_DECOMP_CHK_STATUS_RETURN(perfProfiler->Initialize((void *)this, m_osInterface));
-        VPHAL_MEMORY_DECOMP_CHK_STATUS_RETURN(perfProfiler->AddPerfCollectStartCmd((void *)this, m_osInterface, m_miItf, &cmdBuffer));
+            perfProfiler = MediaPerfProfiler::Instance();
+            VPHAL_MEMORY_DECOMP_CHK_NULL_RETURN(perfProfiler);
+            // clear the decompress tag to separate the vpblt perf tag
+            m_osInterface->pfnSetPerfTag(m_osInterface, VPHAL_NONE);
+            VPHAL_MEMORY_DECOMP_CHK_STATUS_RETURN(perfProfiler->Initialize((void *)this, m_osInterface));
+            VPHAL_MEMORY_DECOMP_CHK_STATUS_RETURN(perfProfiler->AddPerfCollectStartCmd((void *)this, m_osInterface, m_miItf, &cmdBuffer));
+        }
     }
 
     // Prepare Vebox_Surface_State, surface input/and output are the same but the compressed status.
@@ -186,6 +190,12 @@ MOS_STATUS MediaMemDeCompNext_Xe_Lpm_Plus_Base::RenderDecompCMD(PMOS_SURFACE sur
 
     m_veboxItf->UpdateVeboxSync();
 
+    // Restore the perf tag
+    if (isPerfCollected)
+    {
+        m_osInterface->pfnSetPerfTag(m_osInterface, perfTag);
+    }
+
     return eStatus;
 }
 
@@ -207,6 +217,13 @@ MOS_STATUS MediaMemDeCompNext_Xe_Lpm_Plus_Base::IsVeboxDecompressionEnabled()
         MediaUserSetting::Group::Device,
         customValue,
         true);
+
+    // Read multi processes single binary flag
+    ReadUserSetting(
+        m_userSettingPtr,
+        m_multiprocesssinglebin,
+        __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_MUL_PROC_SINGLE_BIN,
+        MediaUserSetting::Group::Device);
 
     return eStatus;
 }
