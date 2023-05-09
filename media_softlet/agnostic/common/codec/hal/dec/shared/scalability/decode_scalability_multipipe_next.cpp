@@ -150,6 +150,7 @@ MOS_STATUS DecodeScalabilityMultiPipeNext::Initialize(const MediaScalabilityOpti
     {
         MOS_STATUS status = m_osInterface->pfnVirtualEngineInit(m_osInterface, &m_veHitParams, veInitParms);
         SCALABILITY_CHK_STATUS_MESSAGE_RETURN(status, "Virtual Engine Init failed");
+        m_veInterface = m_osInterface->pVEInterf;
         if (m_osInterface->osStreamState && m_osInterface->osStreamState->virtualEngineInterface)
         {
             // we set m_veState here when pOsInterface->apoMosEnabled is true
@@ -216,6 +217,8 @@ MOS_STATUS DecodeScalabilityMultiPipeNext::Destroy()
     {
         MOS_Delete(m_scalabilityOption);
     }
+
+    m_osInterface->pfnDestroyVeInterface(&m_veInterface);
 
     for (auto &semaphoreBufferVec : m_resSemaphoreAllPipes)
     {
@@ -393,6 +396,7 @@ MOS_STATUS DecodeScalabilityMultiPipeNext::SetHintParams()
                                  (!decodeScalabilityOption->IsFESeparateSubmission());
     veParams.bScalableMode     = true;
 
+    m_osInterface->pVEInterf = m_veInterface;
     eStatus = m_osInterface->pfnSetHintParams(m_osInterface, &veParams);
 
     return eStatus;
