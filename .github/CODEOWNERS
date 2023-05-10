@@ -1,30 +1,43 @@
 # Encoders Reviewers
-media_driver/agnostic/common/codec/hal/*encoder_base*       thomas.li@intel.com xiaogang.li@intel.com chunbo.chen@intel.com
-media_driver/agnostic/common/codec/hal/*encode_csc_ds*      thomas.li@intel.com xiaogang.li@intel.com chunbo.chen@intel.com
-media_driver/agnostic/common/codec/hal/*encode_sfc*         thomas.li@intel.com xiaogang.li@intel.com chunbo.chen@intel.com
-media_driver/agnostic/gen*/codec/hal/*encode_csc_ds*        thomas.li@intel.com xiaogang.li@intel.com chunbo.chen@intel.com
+media_driver/agnostic/common/codec/hal/*encoder_base*       thomas.li@intel.com otto.yang@intel.com isaac.bai@intel.com chunbo.chen@intel.com
+media_driver/agnostic/common/codec/hal/*encode_csc_ds*      thomas.li@intel.com otto.yang@intel.com isaac.bai@intel.com chunbo.chen@intel.com
+media_driver/agnostic/common/codec/hal/*encode_sfc*         thomas.li@intel.com otto.yang@intel.com isaac.bai@intel.com chunbo.chen@intel.com
+media_driver/agnostic/gen*/codec/hal/*encode_csc_ds*        thomas.li@intel.com otto.yang@intel.com isaac.bai@intel.com chunbo.chen@intel.com
+media_softlet/linux/common/codec/ddi/enc                    thomas.li@intel.com otto.yang@intel.com isaac.bai@intel.com chunbo.chen@intel.com
+media_softlet/agnostic/common/codec/hal/enc/shared          thomas.li@intel.com otto.yang@intel.com isaac.bai@intel.com chunbo.chen@intel.com
 
 # AVC and legacy Encoding Reviewers
-media_driver/agnostic/common/codec/hal/*encode_avc*         thomas.li@intel.com xiaogang.li@intel.com
-media_driver/agnostic/common/codec/hal/*encode_mpeg2*       thomas.li@intel.com xiaogang.li@intel.com
-media_driver/agnostic/common/codec/hal/*encode_jpeg*        thomas.li@intel.com xiaogang.li@intel.com
-media_driver/agnostic/common/codec/hal/*vdenc_avc*          thomas.li@intel.com xiaogang.li@intel.com
-media_driver/agnostic/gen*/codec/hal/*encode_avc*           thomas.li@intel.com xiaogang.li@intel.com
-media_driver/agnostic/gen*/codec/hal/*vdenc_avc*            thomas.li@intel.com xiaogang.li@intel.com
-media_driver/agnostic/gen*/codec/hal/*encode_mpeg2*         thomas.li@intel.com xiaogang.li@intel.com
+media_driver/agnostic/common/codec/hal/*encode_avc*         thomas.li@intel.com otto.yang@intel.com isaac.bai@intel.com
+media_driver/agnostic/common/codec/hal/*encode_mpeg2*       thomas.li@intel.com otto.yang@intel.com isaac.bai@intel.com
+media_driver/agnostic/common/codec/hal/*encode_jpeg*        thomas.li@intel.com otto.yang@intel.com isaac.bai@intel.com
+media_driver/agnostic/common/codec/hal/*vdenc_avc*          thomas.li@intel.com otto.yang@intel.com isaac.bai@intel.com
+media_driver/agnostic/gen*/codec/hal/*encode_avc*           thomas.li@intel.com otto.yang@intel.com isaac.bai@intel.com
+media_driver/agnostic/gen*/codec/hal/*vdenc_avc*            thomas.li@intel.com otto.yang@intel.com isaac.bai@intel.com
+media_driver/agnostic/gen*/codec/hal/*encode_mpeg2*         thomas.li@intel.com otto.yang@intel.com isaac.bai@intel.com
+media_softlet/agnostic/common/codec/hal/enc/avc             thomas.li@intel.com otto.yang@intel.com isaac.bai@intel.com
+media_softlet/agnostic/Xe_M_plus/Xe*/codec/hal/enc/avc      thomas.li@intel.com otto.yang@intel.com isaac.bai@intel.com
+media_softlet/agnostic/Xe_M_plus/Xe*/codec/hal/enc/jpeg     thomas.li@intel.com otto.yang@intel.com isaac.bai@intel.com
 
 # HEVC Encoding Reviewers
-media_driver/agnostic/common/codec/hal/*encode_hevc_base*   thomas.li@intel.com xiaogang.li@intel.com
-media_driver/agnostic/common/codec/hal/*vdenc_hevc*         thomas.li@intel.com xiaogang.li@intel.com
-media_driver/agnostic/common/codec/shared/*common_hevc*     thomas.li@intel.com xiaogang.li@intel.com
-media_driver/agnostic/common/codec/shared/*encode_hevc*     thomas.li@intel.com xiaogang.li@intel.com
-media_driver/agnostic/gen*/codec/hal/*vdenc_hevc*           thomas.li@intel.com xiaogang.li@intel.com
+media_driver/agnostic/common/codec/hal/*encode_hevc_base*   thomas.li@intel.com otto.yang@intel.com isaac.bai@intel.com
+media_driver/agnostic/common/codec/hal/*vdenc_hevc*         thomas.li@intel.com otto.yang@intel.com isaac.bai@intel.com
+media_driver/agnostic/common/codec/shared/*common_hevc*     thomas.li@intel.com otto.yang@intel.com isaac.bai@intel.com
+media_driver/agnostic/common/codec/shared/*encode_hevc*     thomas.li@intel.com otto.yang@intel.com isaac.bai@intel.com
+media_driver/agnostic/gen*/codec/hal/*vdenc_hevc*           thomas.li@intel.com otto.yang@intel.com isaac.bai@intel.com
+media_softlet/agnostic/common/codec/hal/enc/hevc            thomas.li@intel.com otto.yang@intel.com isaac.bai@intel.com
+media_softlet/agnostic/Xe_M_plus/Xe*/codec/hal/enc/hevc     thomas.li@intel.com otto.yang@intel.com isaac.bai@intel.com
 
 # VP9 Encoding Reviewers
-media_driver/agnostic/common/codec/hal/*encode_vp9*         xiaogang.li@intel.com chunbo.chen@intel.com
-media_driver/agnostic/common/codec/hal/*vdenc_vp9*          xiaogang.li@intel.com chunbo.chen@intel.com
-media_driver/agnostic/gen*/codec/hal/*encode_vp9*           xiaogang.li@intel.com chunbo.chen@intel.com
-media_driver/agnostic/gen*/codec/hal/*vdenc_vp9*            xiaogang.li@intel.com chunbo.chen@intel.com
+media_driver/agnostic/common/codec/hal/*encode_vp9*         leyu.yao@intel.com chunbo.chen@intel.com
+media_driver/agnostic/common/codec/hal/*vdenc_vp9*          leyu.yao@intel.com chunbo.chen@intel.com
+media_driver/agnostic/gen*/codec/hal/*encode_vp9*           leyu.yao@intel.com chunbo.chen@intel.com
+media_driver/agnostic/gen*/codec/hal/*vdenc_vp9*            leyu.yao@intel.com chunbo.chen@intel.com
+media_softlet/agnostic/common/codec/hal/enc/vp9             leyu.yao@intel.com chunbo.chen@intel.com
+media_softlet/agnostic/Xe_M_plus/Xe*/codec/hal/enc/vp9      leyu.yao@intel.com chunbo.chen@intel.com
+
+# AV1 Encoding Reviewers
+media_softlet/agnostic/common/codec/hal/enc/av1             leyu.yao@intel.com chunbo.chen@intel.com
+media_softlet/agnostic/Xe_M_plus/Xe*/codec/hal/enc/av1      leyu.yao@intel.com chunbo.chen@intel.com
 
 # DDI Reviewers
 media_driver/linux/common/*ddi/                             carl.zhang@intel.com
