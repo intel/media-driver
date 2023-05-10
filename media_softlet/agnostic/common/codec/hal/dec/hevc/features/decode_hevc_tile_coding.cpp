@@ -171,7 +171,11 @@ MOS_STATUS HevcTileCoding::UpdateSliceTileInfo()
         bool lastSlice = m_basicFeature->IsLastSlice(slcIdx);
         sliceTileInfo->numTiles = ComputeTileNumForSlice(picParams, slcIdx,
                                     sliceTileInfo->sliceTileX, sliceTileInfo->sliceTileY, lastSlice);
-
+        if(sliceTileInfo->numTiles > (picParams.num_tile_columns_minus1+1)*(picParams.num_tile_rows_minus1+1))
+        {
+            DECODE_ASSERTMESSAGE("Number of slice tile is exceeds the number of total tile!\n");
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
         // Case 1: multiple tiles in single slice, this is the last slice in tile.
         // Case 2: multiple slices in single tile, these slices share same tile position which means numTilesInSlice is 0.
         sliceTileInfo->lastSliceOfTile = (sliceTileInfo->numTiles > 0);
