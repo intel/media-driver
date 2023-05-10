@@ -4,7 +4,6 @@ title: "[Bug]: "
 assignees:
   - XinfengZhang
   - Jexu
-  - Xiaogangli-intel
 body:
 - type: dropdown
   id: component
@@ -70,9 +69,10 @@ body:
       Please provide debug information as detail as possible to accelerate issue resolved.
       1. What's libva/libva-utils/gmmlib/media-driver version?
       2. Could you confirm whether GPU hardware exist or not by `ls /dev/dri`?
-      3. Could you provide vainfo log by `vainfo >vainfo.log 2>&1`?
-      4. Could you provide libva trace log? Run cmd `export LIBVA_TRACE=/tmp/libva_trace.log` first then execute the case.
-      5. Could you attach dmesg log if GPU hang by `dmesg >dmesg.log 2>&1`?
+      3. Could you provide the GPU hardware infromation by `lspci -nn |grep  -Ei 'VGA|DISPLAY'`?
+      4. Could you provide vainfo log by `vainfo >vainfo.log 2>&1`?
+      5. Could you provide libva trace log? Run cmd `export LIBVA_TRACE=/tmp/libva_trace.log` first then execute the case.
+      6. Could you attach dmesg log if GPU hang by `dmesg >dmesg.log 2>&1`?
   validations:
     required: false
 - type: dropdown
