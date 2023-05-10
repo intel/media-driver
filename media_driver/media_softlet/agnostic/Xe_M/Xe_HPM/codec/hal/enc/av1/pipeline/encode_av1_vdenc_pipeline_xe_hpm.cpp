@@ -70,40 +70,6 @@ MOS_STATUS Av1VdencPipelineXe_Hpm::Init(void *settings)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS Av1VdencPipelineXe_Hpm::Initialize(void *settings)
-{
-    ENCODE_FUNC_CALL();
-
-    CodechalSetting *codecSettings = (CodechalSetting *)settings;
-    ENCODE_CHK_NULL_RETURN(m_hwInterface);
-    ENCODE_CHK_STATUS_RETURN(m_hwInterface->Initialize(codecSettings));
-    ENCODE_CHK_STATUS_RETURN(Av1VdencPipelineXe_M_Base::Initialize(settings));
-
-    CODECHAL_DEBUG_TOOL
-    (
-        if (m_debugInterface != nullptr)
-        {
-            MOS_Delete(m_debugInterface);
-        }
-        m_debugInterface = MOS_New(CodechalDebugInterface);
-        ENCODE_CHK_NULL_RETURN(m_debugInterface);
-        ENCODE_CHK_NULL_RETURN(m_mediaCopyWrapper);
-        ENCODE_CHK_STATUS_RETURN(
-            m_debugInterface->Initialize(m_hwInterface, m_codecFunction, m_mediaCopyWrapper));
-
-        if (m_statusReportDebugInterface != nullptr)
-        {
-            MOS_Delete(m_statusReportDebugInterface);
-        }
-        m_statusReportDebugInterface = MOS_New(CodechalDebugInterface);
-        ENCODE_CHK_NULL_RETURN(m_statusReportDebugInterface);
-        ENCODE_CHK_STATUS_RETURN(
-            m_statusReportDebugInterface->Initialize(m_hwInterface, m_codecFunction, m_mediaCopyWrapper));
-    );
-
-    return MOS_STATUS_SUCCESS;
-}
-
 MOS_STATUS Av1VdencPipelineXe_Hpm::CreateFeatureManager()
 {
     ENCODE_FUNC_CALL();

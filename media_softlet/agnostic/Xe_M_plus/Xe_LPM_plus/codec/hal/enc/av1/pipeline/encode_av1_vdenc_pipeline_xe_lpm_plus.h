@@ -47,9 +47,6 @@ public:
 
     MOS_STATUS Init(void *settings) override;
 
-protected:
-    MOS_STATUS Initialize(void *settings) override;
-
 MEDIA_CLASS_DEFINE_END(encode__Av1VdencPipelineXe_LPM_Plus)
 };
 

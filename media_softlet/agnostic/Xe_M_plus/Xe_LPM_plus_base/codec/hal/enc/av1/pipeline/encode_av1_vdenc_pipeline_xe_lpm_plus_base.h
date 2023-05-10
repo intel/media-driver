@@ -55,15 +55,13 @@ public:
 
     virtual MOS_STATUS Destroy() override;
 
-    virtual MOS_STATUS InitMmcState();
+    virtual MOS_STATUS InitMmcState() override;
 
 protected:
     std::shared_ptr<MediaSfcInterface> m_sfcItf = nullptr;
 
     virtual MOS_STATUS CreateFeatureManager() override;
-    virtual MOS_STATUS Initialize(void *settings) override;
     virtual MOS_STATUS ActivateVdencVideoPackets() override;
-    virtual MOS_STATUS Uninitialize() override;
     virtual MOS_STATUS ResetParams();
     virtual MOS_STATUS UserFeatureReport() override;
 

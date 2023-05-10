@@ -128,38 +128,20 @@ MOS_STATUS EncodePipeline::Uninitialize()
 {
     ENCODE_FUNC_CALL();
 
-    if(m_mediaContext != nullptr)
-    {
-        MOS_Delete(m_mediaContext);
-    }
+    MOS_Delete(m_mediaContext);
 
-    if (m_encodecp != nullptr)
-    {
-        MOS_Delete(m_encodecp);
-    }
+    MOS_Delete(m_encodecp);
 
-    if (m_statusReport != nullptr)
-    {
-        MOS_Delete(m_statusReport);
-    }
+    MOS_Delete(m_statusReport);
 
     CODECHAL_DEBUG_TOOL(
-        if (m_statusReportDebugInterface != nullptr)
-        {
-            MOS_Delete(m_statusReportDebugInterface);
-            m_statusReportDebugInterface = nullptr;
-        }
+        MOS_Delete(m_debugInterface);
+        MOS_Delete(m_statusReportDebugInterface);
     );
 
-    if (m_trackedBuf != nullptr)
-    {
-        MOS_Delete(m_trackedBuf);
-    }
+    MOS_Delete(m_trackedBuf);
 
-    if (m_recycleBuf != nullptr)
-    {
-        MOS_Delete(m_recycleBuf);
-    }
+    MOS_Delete(m_recycleBuf);
 
     if (m_featureManager != nullptr)
     {
@@ -174,10 +156,7 @@ MOS_STATUS EncodePipeline::Uninitialize()
         MOS_Delete(m_allocator);
     }
 
-    if (m_packetUtilities != nullptr)
-    {
-        MOS_Delete(m_packetUtilities);
-    }
+    MOS_Delete(m_packetUtilities);
 
     return MOS_STATUS_SUCCESS;
 }

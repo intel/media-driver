@@ -43,12 +43,25 @@ MOS_STATUS Av1VdencPipeline::Initialize(void *settings)
 {
     ENCODE_FUNC_CALL();
     ENCODE_CHK_STATUS_RETURN(Av1Pipeline::Initialize(settings));
+
+    // Init hwInterface
+    CodechalSetting *codecSettings = (CodechalSetting *)settings;
+    ENCODE_CHK_NULL_RETURN(m_hwInterface);
+    ENCODE_CHK_STATUS_RETURN(m_hwInterface->Initialize(codecSettings));
+
+    ENCODE_CHK_STATUS_RETURN(InitMmcState());
+
+    ENCODE_CHK_STATUS_RETURN(GetSystemVdboxNumber());
+
     return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS Av1VdencPipeline::Uninitialize()
 {
     ENCODE_FUNC_CALL();
+
+    MOS_Delete(m_mmcState);
+    
     return Av1Pipeline::Uninitialize();
 }
 
