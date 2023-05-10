@@ -422,10 +422,14 @@ struct mos_bufmgr {
                     struct drm_i915_gem_context_param_sseu *sseu);
     int (*set_context_param_sseu)(struct mos_linux_context *ctx,
                     struct drm_i915_gem_context_param_sseu sseu);
+    int (*query_sys_engines)(struct mos_bufmgr *bufmgr, MEDIA_SYSTEM_INFO* gfx_info);
     int (*query_device_blob)(struct mos_bufmgr *bufmgr, MEDIA_SYSTEM_INFO* gfx_info);
     int (*query_hw_ip_version)(struct mos_bufmgr *bufmgr, __u16 engine_class, void *ip_ver_info);
     uint64_t (*get_platform_information)(struct mos_bufmgr *bufmgr);
     void (*set_platform_information)(struct mos_bufmgr *bufmgr, uint64_t p);
+    int (*get_ts_frequency)(struct mos_bufmgr *bufmgr, uint32_t *ts_freq);
+    bool (*has_bsd2)(struct mos_bufmgr *bufmgr);
+    void (*enable_turbo_boost)(struct mos_bufmgr *bufmgr);
     uint8_t (*switch_off_n_bits)(struct mos_linux_context *ctx, uint8_t in_mask, int n);
     unsigned int (*hweight8)(struct mos_linux_context *ctx, uint8_t w);
 

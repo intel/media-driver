@@ -169,58 +169,10 @@ MOS_STATUS HWInfo_GetGfxInfo(int32_t           fd,
         }
     }
 
-    unsigned int maxNengine = 0;
-    if((gtSystemInfo->VDBoxInfo.NumberOfVDBoxEnabled == 0)
-        || (gtSystemInfo->VEBoxInfo.NumberOfVEBoxEnabled == 0))
+    if (mos_query_sys_engines(pDrmBufMgr, gtSystemInfo))
     {
-        if (mos_query_engines_count(pDrmBufMgr, &maxNengine) || (maxNengine == 0))
-        {
-            MOS_OS_ASSERTMESSAGE("Failed to query engines count.\n");
-            return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
-        }
-    }
-
-    if (gtSystemInfo->VDBoxInfo.NumberOfVDBoxEnabled == 0)
-    {
-        unsigned int nengine = maxNengine;
-        struct i915_engine_class_instance *uengines = nullptr;
-        uengines = (struct i915_engine_class_instance *)MOS_AllocAndZeroMemory(nengine * sizeof(struct i915_engine_class_instance));
-        MOS_OS_CHK_NULL_RETURN(uengines);
-        if (mos_query_engines(pDrmBufMgr, I915_ENGINE_CLASS_VIDEO, 0, &nengine, (void *)uengines) == 0)
-        {
-            gtSystemInfo->VDBoxInfo.NumberOfVDBoxEnabled = nengine;
-        }
-        else
-        {
-            MOS_OS_ASSERTMESSAGE("Failed to query vdbox engine\n");
-            MOS_SafeFreeMemory(uengines);
-            return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
-        }
-        for (int i=0; i<nengine; i++)
-        {
-            gtSystemInfo->VDBoxInfo.Instances.VDBoxEnableMask |= 1<<uengines[i].engine_instance;
-        }
-        MOS_SafeFreeMemory(uengines);
-    }
-
-    if (gtSystemInfo->VEBoxInfo.NumberOfVEBoxEnabled == 0)
-    {
-        unsigned int nengine = maxNengine;
-        struct i915_engine_class_instance *uengines = nullptr;
-        uengines = (struct i915_engine_class_instance *)MOS_AllocAndZeroMemory(nengine * sizeof(struct i915_engine_class_instance));
-        MOS_OS_CHK_NULL_RETURN(uengines);
-        if (mos_query_engines(pDrmBufMgr, I915_ENGINE_CLASS_VIDEO_ENHANCE, 0, &nengine, (void *)uengines) == 0)
-        {
-            MOS_OS_ASSERT(nengine <= maxNengine);
-            gtSystemInfo->VEBoxInfo.NumberOfVEBoxEnabled = nengine;
-        }
-        else
-        {
-            MOS_OS_ASSERTMESSAGE("Failed to query vebox engine\n");
-            MOS_SafeFreeMemory(uengines);
-            return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
-        }
-        MOS_SafeFreeMemory(uengines);
+        MOS_OS_ASSERTMESSAGE("Failed to Init Gt System Info\n");
+        return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
     }
 
     uint32_t platformKey = devInfo->productFamily;
@@ -310,97 +262,6 @@ MOS_STATUS HWInfo_GetGfxInfo(int32_t           fd,
     //Disable plarform checks to support pre-si features (e.g., MMCD) on MediaSolo
     MEDIA_WR_WA(waTable, WaDisregardPlatformChecks, (UserFeatureData.i32Data) ? true : false);
 #endif
-
-    return MOS_STATUS_SUCCESS;
-}
-
-#define PARAM_CHIPSET_ID             4
-#define PARAM_HAS_BSD                10
-#define PARAM_HAS_ALIASING_PPGTT     18
-#define PARAM_HAS_VEBOX              22
-#define PARAM_HAS_BSD2               31
-#define PARAM_REVISION               32
-#define PARAM_SUBSLICE               33
-#define PARAM_EU_TOTAL               34
-#define PARAM_HAS_HUC                42
-
-MOS_STATUS HWInfoGetLinuxDrvInfo(int fd, struct LinuxDriverInfo *drvInfo)
-{
-    if ((fd < 0) || (drvInfo == nullptr))
-    {
-        return MOS_STATUS_INVALID_HANDLE;
-    }
-
-    uint32_t retValue = 0;
-
-    drvInfo->hasBsd = 0;
-    if (mos_get_param(fd, PARAM_HAS_BSD, &retValue))
-    {
-        drvInfo->hasBsd = !!retValue;
-    }
-
-    drvInfo->hasBsd2 = 0;
-    retValue = 0;
-    if (mos_get_param(fd, PARAM_HAS_BSD2, &retValue))
-    {
-        drvInfo->hasBsd2 = !!retValue;
-    }
-
-    drvInfo->hasVebox = 0;
-    retValue = 0;
-    if (mos_get_param(fd, PARAM_HAS_VEBOX, &retValue))
-    {
-        drvInfo->hasVebox = !!retValue;
-    }
-
-    drvInfo->hasPpgtt = 1;
-    retValue = 0;
-    if (mos_get_param(fd, PARAM_HAS_ALIASING_PPGTT, &retValue))
-    {
-        drvInfo->hasPpgtt = !!retValue;
-    }
-
-    drvInfo->hasHuc = 0;
-    retValue = 0;
-    if (mos_get_param(fd, PARAM_HAS_HUC, &retValue))
-    {
-        drvInfo->hasHuc = !!retValue;
-        if (retValue == 1)
-        {
-            drvInfo->hasProtectedHuc = 1;
-        }
-    }
-
-    drvInfo->devId = 0;
-    retValue = 0;
-    if (mos_get_param(fd, PARAM_CHIPSET_ID, &retValue))
-    {
-        drvInfo->devId = retValue;
-    }
-    drvInfo->devRev = 0;
-    retValue = 0;
-    if (mos_get_param(fd,PARAM_REVISION, &retValue))
-    {
-        drvInfo->devRev = retValue;
-    }
-
-    drvInfo->euCount = 0;
-    retValue = 0;
-    if (mos_get_param(fd, PARAM_EU_TOTAL, &retValue))
-    {
-        drvInfo->euCount = retValue;
-    }
-
-    drvInfo->subSliceCount = 0;
-    retValue = 0;
-    if (mos_get_param(fd, PARAM_SUBSLICE, &retValue))
-    {
-        drvInfo->subSliceCount = retValue;
-    }
-
-    // There is no interface to read total slice count from drm/i915, so we
-    // will set the slice count in InitMediaSysInfo accordint to Device ID.
-    drvInfo->sliceCount = 0;
 
     return MOS_STATUS_SUCCESS;
 }

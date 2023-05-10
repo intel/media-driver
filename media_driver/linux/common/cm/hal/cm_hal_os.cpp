@@ -30,6 +30,7 @@
 #include "cm_execution_adv.h"
 #include "mos_graphicsresource.h"
 #include "mos_utilities.h"
+#include "mos_bufmgr.h"
 
 #define Y_TILE_WIDTH  128
 #define Y_TILE_HEIGHT 32
@@ -1119,19 +1120,11 @@ bool HalCm_IsWaSLMinL3Cache_Linux()
 //| Purpose:    Enable GPU frequency Turbo boost on Linux
 //| Returns:    MOS_STATUS_SUCCESS.
 //*-----------------------------------------------------------------------------
-#define I915_CONTEXT_PRIVATE_PARAM_BOOST 0x80000000
 MOS_STATUS HalCm_EnableTurboBoost_Linux(
     PCM_HAL_STATE             state)
 {
 #ifndef ANDROID
-    struct drm_i915_gem_context_param ctxParam;
-    int32_t retVal = 0;
-
-    MOS_ZeroMemory( &ctxParam, sizeof( ctxParam ) );
-    ctxParam.param = I915_CONTEXT_PRIVATE_PARAM_BOOST;
-    ctxParam.value = 1;
-    retVal = drmIoctl( state->osInterface->pOsContext->fd,
-                      DRM_IOCTL_I915_GEM_CONTEXT_SETPARAM, &ctxParam );
+    mos_enable_turbo_boost(state->osInterface->pOsContext->bufmgr);
 #endif
     //if drmIoctl fail, we will stay in normal mode.
     return MOS_STATUS_SUCCESS;

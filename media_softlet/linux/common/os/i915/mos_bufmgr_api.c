@@ -1279,6 +1279,27 @@ mos_query_engines(struct mos_bufmgr *bufmgr,
 }
 
 int
+mos_query_sys_engines(struct mos_bufmgr *bufmgr, MEDIA_SYSTEM_INFO* gfx_info)
+{
+    if(!bufmgr)
+    {
+        MOS_OS_CRITICALMESSAGE("Input null ptr\n");
+        return -EINVAL;
+    }
+
+    if (bufmgr->query_sys_engines)
+    {
+        return bufmgr->query_sys_engines(bufmgr, gfx_info);
+    }
+    else
+    {
+        MOS_OS_CRITICALMESSAGE("Unsupported\n");
+        return -EPERM;
+    }
+
+}
+
+int
 mos_query_device_blob(struct mos_bufmgr *bufmgr, MEDIA_SYSTEM_INFO* gfx_info)
 {
     if(!bufmgr)
@@ -1357,6 +1378,66 @@ mos_set_platform_information(struct mos_bufmgr *bufmgr, uint64_t p)
         MOS_OS_CRITICALMESSAGE("Unsupported\n");
     }
 }
+
+bool
+mos_has_bsd2(struct mos_bufmgr *bufmgr)
+{
+    if(!bufmgr)
+    {
+        MOS_OS_CRITICALMESSAGE("Input null ptr\n");
+        return false;
+    }
+
+    if (bufmgr->has_bsd2)
+    {
+        return bufmgr->has_bsd2(bufmgr);
+    }
+    else
+    {
+        MOS_OS_CRITICALMESSAGE("Unsupported\n");
+        return false;
+    }
+}
+
+void
+mos_enable_turbo_boost(struct mos_bufmgr *bufmgr)
+{
+    if(!bufmgr)
+    {
+        MOS_OS_CRITICALMESSAGE("Input null ptr\n");
+        return;
+    }
+
+    if (bufmgr->enable_turbo_boost)
+    {
+        bufmgr->enable_turbo_boost(bufmgr);
+    }
+    else
+    {
+        MOS_OS_CRITICALMESSAGE("Unsupported\n");
+    }
+}
+
+int
+mos_get_ts_frequency(struct mos_bufmgr *bufmgr, uint32_t *ts_freq)
+{
+    if(!bufmgr)
+    {
+        MOS_OS_CRITICALMESSAGE("Input null ptr\n");
+        return -EINVAL;
+    }
+
+    if (bufmgr->get_ts_frequency)
+    {
+        return bufmgr->get_ts_frequency(bufmgr, ts_freq);
+    }
+    else
+    {
+        MOS_OS_CRITICALMESSAGE("Unsupported\n");
+        return -EPERM;
+    }
+}
+
 
 int
 mos_reg_read(struct mos_bufmgr *bufmgr,

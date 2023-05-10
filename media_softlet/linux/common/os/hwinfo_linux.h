@@ -56,9 +56,6 @@ extern MOS_STATUS HWInfo_GetGfxInfo(int32_t    fd,
                           MEDIA_SYSTEM_INFO    *gtSystemInfo,
                           MediaUserSettingSharedPtr userSettingPtr);
 
-struct LinuxDriverInfo;
-extern MOS_STATUS HWInfoGetLinuxDrvInfo(int  fd, struct LinuxDriverInfo *drvInfo);
-
 extern MOS_STATUS HWInfo_GetGmmInfo(int               fd,
                           SHADOW_MEDIA_FEATURE_TABLE  *shadowSkuTable,
                           SHADOW_MEDIA_WA_TABLE       *shadowWaTable,

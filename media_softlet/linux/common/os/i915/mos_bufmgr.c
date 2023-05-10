@@ -67,6 +67,9 @@
 #include "mos_util_debug.h"
 #include "mos_oca_defs_specific.h"
 #include "intel_hwconfig_types.h"
+#include "mos_utilities.h"
+#include "linux_system_info.h"
+
 #ifdef HAVE_VALGRIND
 #include <valgrind.h>
 #include <memcheck.h>
@@ -146,6 +149,7 @@ struct mos_bufmgr_gem {
     int available_fences;
     int pci_device;
     unsigned int has_bsd : 1;
+    unsigned int has_bsd2 : 1;
     unsigned int has_blt : 1;
     unsigned int has_relaxed_fencing : 1;
     unsigned int has_llc : 1;
@@ -177,6 +181,8 @@ struct mos_bufmgr_gem {
     int mem_profiler_fd;
 
     int device_type;
+
+    uint32_t ts_freq;
 } mos_bufmgr_gem;
 
 #define DRM_INTEL_RELOC_FENCE (1<<0)
@@ -4644,6 +4650,85 @@ fini:
     return ret;
 }
 
+static int
+mos_bufmgr_query_sys_engines(struct mos_bufmgr *bufmgr, MEDIA_SYSTEM_INFO* gfx_info)
+{
+    struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *)bufmgr;
+    int ret;
+
+    if (nullptr == gfx_info)
+    {
+        return -EINVAL;
+    }
+
+    unsigned int maxNengine = 0;
+    if((gfx_info->VDBoxInfo.NumberOfVDBoxEnabled == 0)
+        || (gfx_info->VEBoxInfo.NumberOfVEBoxEnabled == 0))
+    {
+        if (mos_query_engines_count(bufmgr, &maxNengine) || (maxNengine == 0))
+        {
+            MOS_OS_ASSERTMESSAGE("Failed to query engines count.\n");
+            return -ENODEV;
+        }
+    }
+
+    if (gfx_info->VDBoxInfo.NumberOfVDBoxEnabled == 0)
+    {
+        unsigned int nengine = maxNengine;
+        struct i915_engine_class_instance *uengines = nullptr;
+        uengines = (struct i915_engine_class_instance *)MOS_AllocAndZeroMemory(nengine * sizeof(struct i915_engine_class_instance));
+        if (nullptr == uengines)
+        {
+            return -ENOMEM;
+        }
+        ret = mos_bufmgr_query_engines(bufmgr, I915_ENGINE_CLASS_VIDEO, 0, &nengine, (void *)uengines);
+        if (ret)
+        {
+            MOS_OS_ASSERTMESSAGE("Failed to query vdbox engine\n");
+            MOS_SafeFreeMemory(uengines);
+            return -ENODEV;
+        }
+        else
+        {
+            gfx_info->VDBoxInfo.NumberOfVDBoxEnabled = nengine;
+        }
+
+        for (int i=0; i<nengine; i++)
+        {
+            gfx_info->VDBoxInfo.Instances.VDBoxEnableMask |= 1<<uengines[i].engine_instance;
+        }
+
+        MOS_SafeFreeMemory(uengines);
+    }
+
+    if (gfx_info->VEBoxInfo.NumberOfVEBoxEnabled == 0)
+    {
+        unsigned int nengine = maxNengine;
+        struct i915_engine_class_instance *uengines = nullptr;
+        uengines = (struct i915_engine_class_instance *)MOS_AllocAndZeroMemory(nengine * sizeof(struct i915_engine_class_instance));
+        if (nullptr == uengines)
+        {
+            return -ENOMEM;
+        }
+        ret = mos_bufmgr_query_engines(bufmgr, I915_ENGINE_CLASS_VIDEO_ENHANCE, 0, &nengine, (void *)uengines);
+        if (ret)
+        {
+            MOS_OS_ASSERTMESSAGE("Failed to query vebox engine\n");
+            MOS_SafeFreeMemory(uengines);
+            return -ENODEV;
+        }
+        else
+        {
+            MOS_OS_ASSERT(nengine <= maxNengine);
+            gfx_info->VEBoxInfo.NumberOfVEBoxEnabled = nengine;
+        }
+
+        MOS_SafeFreeMemory(uengines);
+    }
+
+    return 0;
+}
+
 static int mos_gem_set_context_param_parallel(struct mos_linux_context *ctx,
                      struct i915_engine_class_instance *ci,
                      unsigned int count)
@@ -4987,6 +5072,39 @@ static void mos_bufmgr_set_platform_information(struct mos_bufmgr *bufmgr, uint6
     bufmgr->platform_information |= p;
 }
 
+static int
+mos_bufmgr_get_ts_frequency(struct mos_bufmgr *bufmgr, uint32_t *ts_freq)
+{
+    struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem*)bufmgr;
+
+    *ts_freq = bufmgr_gem->ts_freq;
+
+    return 0;
+}
+
+static bool
+mos_bufmgr_has_bsd2(struct mos_bufmgr *bufmgr)
+{
+    struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem*)bufmgr;
+
+    return bufmgr_gem->has_bsd2;
+}
+
+#define I915_CONTEXT_PRIVATE_PARAM_BOOST 0x80000000
+void
+mos_bufmgr_enable_turbo_boost(struct mos_bufmgr *bufmgr)
+{
+    struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem*)bufmgr;
+    struct drm_i915_gem_context_param ctxParam;
+    int32_t retVal = 0;
+
+    MOS_ZeroMemory( &ctxParam, sizeof( ctxParam ) );
+    ctxParam.param = I915_CONTEXT_PRIVATE_PARAM_BOOST;
+    ctxParam.value = 1;
+    retVal = drmIoctl(bufmgr_gem->fd,
+                      DRM_IOCTL_I915_GEM_CONTEXT_SETPARAM, &ctxParam );
+}
+
 /**
  * Initializes the GEM buffer manager, which uses the kernel to allocate, map,
  * and manage map buffer objections.
@@ -5084,6 +5202,7 @@ mos_bufmgr_gem_init_i915(int fd, int batch_size)
     bufmgr_gem->bufmgr.get_reset_stats = mos_bufmg_get_reset_stats;
     bufmgr_gem->bufmgr.get_context_param_sseu = mos_bufmgr_get_context_param_sseu;
     bufmgr_gem->bufmgr.set_context_param_sseu = mos_bufmgr_set_context_param_sseu;
+    bufmgr_gem->bufmgr.query_sys_engines = mos_bufmgr_query_sys_engines;
     bufmgr_gem->bufmgr.query_device_blob = mos_bufmgr_query_device_blob;
     bufmgr_gem->bufmgr.query_hw_ip_version = mos_bufmgr_query_hw_ip_version;
     bufmgr_gem->bufmgr.get_platform_information = mos_bufmgr_get_platform_information;
@@ -5092,6 +5211,9 @@ mos_bufmgr_gem_init_i915(int fd, int batch_size)
     bufmgr_gem->bufmgr.query_engines = mos_bufmgr_query_engines;
     bufmgr_gem->bufmgr.switch_off_n_bits = mos_bufmgr_switch_off_n_bits;
     bufmgr_gem->bufmgr.hweight8 = mos_bufmgr_hweight8;
+    bufmgr_gem->bufmgr.get_ts_frequency = mos_bufmgr_get_ts_frequency;
+    bufmgr_gem->bufmgr.has_bsd2 = mos_bufmgr_has_bsd2;
+    bufmgr_gem->bufmgr.enable_turbo_boost = mos_bufmgr_enable_turbo_boost;
 
     bufmgr_gem->mem_profiler_path = getenv("MEDIA_MEMORY_PROFILER_LOG");
     if (bufmgr_gem->mem_profiler_path != nullptr)
@@ -5158,6 +5280,10 @@ mos_bufmgr_gem_init_i915(int fd, int batch_size)
     ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_I915_GETPARAM, &gp);
     bufmgr_gem->has_bsd = ret == 0;
 
+    gp.param = I915_PARAM_HAS_BSD2;
+    ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_I915_GETPARAM, &gp);
+    bufmgr_gem->has_bsd2 = (ret == 0 && *gp.value != 0);
+
     gp.param = I915_PARAM_HAS_BLT;
     ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_I915_GETPARAM, &gp);
     bufmgr_gem->has_blt = ret == 0;
@@ -5216,6 +5342,10 @@ mos_bufmgr_gem_init_i915(int fd, int batch_size)
     gp.param = I915_PARAM_MMAP_GTT_VERSION;
     ret =  drmIoctl(fd, DRM_IOCTL_I915_GETPARAM, &gp);
     bufmgr_gem->has_mmap_offset  =  (ret == 0) && (*gp.value >= 4);
+
+    gp.param = I915_PARAM_CS_TIMESTAMP_FREQUENCY;
+    ret =  drmIoctl(fd, DRM_IOCTL_I915_GETPARAM, &gp);
+    bufmgr_gem->ts_freq   =  (ret == 0) ? *gp.value : 0;
 
     struct drm_i915_gem_context_param context_param;
     memset(&context_param, 0, sizeof(context_param));
@@ -5280,5 +5410,86 @@ int mos_get_param(int fd, int32_t param, uint32_t *param_value)
     gp.value = (int32_t *)param_value;
 
     return drmIoctl(fd, DRM_IOCTL_I915_GETPARAM, &gp) == 0;
+}
+
+MOS_STATUS HWInfoGetLinuxDrvInfo(int fd, struct LinuxDriverInfo *drvInfo)
+{
+    if ((fd < 0) || (drvInfo == nullptr))
+    {
+        return MOS_STATUS_INVALID_HANDLE;
+    }
+
+    uint32_t retValue = 0;
+
+    drvInfo->hasBsd = 0;
+    if (mos_get_param(fd, I915_PARAM_HAS_BSD, &retValue))
+    {
+        drvInfo->hasBsd = !!retValue;
+    }
+
+    drvInfo->hasBsd2 = 0;
+    retValue = 0;
+    if (mos_get_param(fd, I915_PARAM_HAS_BSD2, &retValue))
+    {
+        drvInfo->hasBsd2 = !!retValue;
+    }
+
+    drvInfo->hasVebox = 0;
+    retValue = 0;
+    if (mos_get_param(fd, I915_PARAM_HAS_VEBOX, &retValue))
+    {
+        drvInfo->hasVebox = !!retValue;
+    }
+
+    drvInfo->hasPpgtt = 1;
+    retValue = 0;
+    if (mos_get_param(fd, I915_PARAM_HAS_ALIASING_PPGTT, &retValue))
+    {
+        drvInfo->hasPpgtt = !!retValue;
+    }
+
+    drvInfo->hasHuc = 0;
+    retValue = 0;
+    if (mos_get_param(fd, I915_PARAM_HUC_STATUS, &retValue))
+    {
+        drvInfo->hasHuc = !!retValue;
+        if (retValue == 1)
+        {
+            drvInfo->hasProtectedHuc = 1;
+        }
+    }
+
+    drvInfo->devId = 0;
+    retValue = 0;
+    if (mos_get_param(fd, I915_PARAM_CHIPSET_ID, &retValue))
+    {
+        drvInfo->devId = retValue;
+    }
+    drvInfo->devRev = 0;
+    retValue = 0;
+    if (mos_get_param(fd, I915_PARAM_REVISION, &retValue))
+    {
+        drvInfo->devRev = retValue;
+    }
+
+    drvInfo->euCount = 0;
+    retValue = 0;
+    if (mos_get_param(fd, I915_PARAM_EU_TOTAL, &retValue))
+    {
+        drvInfo->euCount = retValue;
+    }
+
+    drvInfo->subSliceCount = 0;
+    retValue = 0;
+    if (mos_get_param(fd, I915_PARAM_SUBSLICE_TOTAL, &retValue))
+    {
+        drvInfo->subSliceCount = retValue;
+    }
+
+    // There is no interface to read total slice count from drm/i915, so we
+    // will set the slice count in InitMediaSysInfo accordint to Device ID.
+    drvInfo->sliceCount = 0;
+
+    return MOS_STATUS_SUCCESS;
 }
 

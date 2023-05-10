@@ -340,9 +340,13 @@ int mos_set_context_param_sseu(struct mos_linux_context *ctx,
 uint8_t mos_switch_off_n_bits(struct mos_linux_context *ctx, uint8_t in_mask, int n);
 unsigned int mos_hweight8(struct mos_linux_context *ctx, uint8_t w);
 
+int mos_query_sys_engines(struct mos_bufmgr *bufmgr, MEDIA_SYSTEM_INFO* gfx_info);
 int mos_query_device_blob(struct mos_bufmgr *bufmgr, MEDIA_SYSTEM_INFO* gfx_info);
 int mos_query_hw_ip_version(struct mos_bufmgr *bufmgr, __u16 engine_class, void *ip_ver_info);
 int mos_get_param(int fd, int32_t param, uint32_t *param_value);
+
+struct LinuxDriverInfo;
+extern MOS_STATUS HWInfoGetLinuxDrvInfo(int  fd, struct LinuxDriverInfo *drvInfo);
 
 #if defined(__cplusplus)
 extern "C" {
@@ -393,4 +397,7 @@ drm_export bool mos_bo_is_exec_object_async(struct mos_linux_bo *bo);
 #define PLATFORM_INFORMATION_IS_SERVER     0x1
 uint64_t mos_get_platform_information(struct mos_bufmgr *bufmgr);
 void mos_set_platform_information(struct mos_bufmgr *bufmgr, uint64_t p);
+bool mos_has_bsd2(struct mos_bufmgr *bufmgr);
+int mos_get_ts_frequency(struct mos_bufmgr *bufmgr, uint32_t *ts_freq);
+void mos_enable_turbo_boost(struct mos_bufmgr *bufmgr);
 #endif /* INTEL_BUFMGR_H */
