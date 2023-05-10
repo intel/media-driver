@@ -352,6 +352,13 @@ namespace decode
             m_curTile = startTile;
         }
 
+        // Check invalid tile num
+        if (passNum < 1)
+        {
+            DECODE_ASSERTMESSAGE("valid tile doesn't exist in bitstream\n");
+            return MOS_STATUS_MORE_DATA;
+        }        
+
         m_decPassNum = passNum;
         return MOS_STATUS_SUCCESS;
     }
