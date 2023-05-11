@@ -4424,18 +4424,30 @@ VAStatus DdiMedia_QuerySurfaceError(
     DdiMediaUtil_LockMutex(&mediaCtx->SurfaceMutex);
     if (surface->curStatusReportQueryState == DDI_MEDIA_STATUS_REPORT_QUERY_STATE_COMPLETED)
     {
-        if (error_status != -1 && surface->curCtxType == DDI_MEDIA_CONTEXT_TYPE_DECODER &&
-            surface->curStatusReport.decode.status == CODECHAL_STATUS_ERROR)
+        if (error_status != -1 && surface->curCtxType == DDI_MEDIA_CONTEXT_TYPE_DECODER)
         {
-            surfaceErrors[1].status            = -1;
-            surfaceErrors[0].status            = 2;
-            surfaceErrors[0].start_mb          = 0;
-            surfaceErrors[0].end_mb            = 0;
-            surfaceErrors[0].num_mb            = surface->curStatusReport.decode.errMbNum;
-            surfaceErrors[0].decode_error_type = VADecodeMBError;
-            *error_info = surfaceErrors;
-            DdiMediaUtil_UnLockMutex(&mediaCtx->SurfaceMutex);
-            return VA_STATUS_SUCCESS;
+            if (surface->curStatusReport.decode.status == CODECHAL_STATUS_ERROR)
+            {
+                surfaceErrors[1].status            = -1;
+                surfaceErrors[0].status            = 2;
+                surfaceErrors[0].start_mb          = 0;
+                surfaceErrors[0].end_mb            = 0;
+                surfaceErrors[0].num_mb            = surface->curStatusReport.decode.errMbNum;
+                surfaceErrors[0].decode_error_type = VADecodeMBError;
+                *error_info = surfaceErrors;
+                DdiMediaUtil_UnLockMutex(&mediaCtx->SurfaceMutex);
+                return VA_STATUS_SUCCESS;
+            }
+            else if (surface->curStatusReport.decode.status == CODECHAL_STATUS_INCOMPLETE ||
+                surface->curStatusReport.decode.status == CODECHAL_STATUS_UNAVAILABLE)
+            {
+                MOS_ZeroMemory(&surfaceErrors[0], sizeof(VASurfaceDecodeMBErrors));
+                surfaceErrors[1].status            = -1;
+                surfaceErrors[0].status            = VA_STATUS_ERROR_HW_BUSY;
+                *error_info                        = surfaceErrors;
+                DdiMediaUtil_UnLockMutex(&mediaCtx->SurfaceMutex);
+                return VA_STATUS_SUCCESS;
+            }
         }
 
         if (error_status == -1 && surface->curCtxType == DDI_MEDIA_CONTEXT_TYPE_DECODER)
