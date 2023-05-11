@@ -97,7 +97,6 @@ MOS_STATUS CodechalEncoderState::CreateGpuContexts()
                 setVideoNode,
                 &videoGpuNode));
             m_videoNodeAssociationCreated = true;
-            m_osInterface->pfnSetLatestVirtualNode(m_osInterface, videoGpuNode);
         }
         m_videoGpuNode = videoGpuNode;
 
@@ -671,6 +670,11 @@ MOS_STATUS CodechalEncoderState::Execute(void *params)
     CODECHAL_ENCODE_CHK_STATUS_RETURN(Mos_Solo_SetGpuAppTaskEvent(m_osInterface,encodeParams->gpuAppTaskEvent));
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->SetWatchdogTimerThreshold(m_frameWidth, m_frameHeight));
+
+    if (m_frameNum == 0)
+    {
+        m_osInterface->pfnSetLatestVirtualNode(m_osInterface, m_videoGpuNode);
+    }
 
     if (m_codecFunction == CODECHAL_FUNCTION_FEI_PRE_ENC)
     {
