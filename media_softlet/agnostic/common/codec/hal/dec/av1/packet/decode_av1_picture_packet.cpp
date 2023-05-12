@@ -1097,8 +1097,6 @@ namespace decode{
 
         if (AV1_KEY_OR_INRA_FRAME(m_av1PicParams->m_picInfoFlags.m_fields.m_frameType))
         {
-            MOS_ZeroMemory(par.refFrameRes, sizeof(par.refFrameRes));
-            MOS_ZeroMemory(par.refScaleFactor, sizeof(par.refScaleFactor));
             par.refFrameSide = 0;
         }
 
