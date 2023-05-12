@@ -198,8 +198,8 @@ MOS_STATUS HalCm_AllocateTsResource(
                                          &allocParams,
                                          &state->renderTimeStampResource.osResource));
 
-    // RegisterResource will be called in AddResourceToHWCmd. It is not allowed to be called by hal explicitly for Async mode
-    if (osInterface->pfnIsAsyncDevice(osInterface->osStreamState) == false)
+    // RegisterResource will be called in AddResourceToHWCmd. It is not allowed to be called by hal explicitly
+    if (!osInterface->apoMosEnabled)
     {
         CM_CHK_MOSSTATUS_GOTOFINISH(
             osInterface->pfnRegisterResource(osInterface,
@@ -9354,9 +9354,12 @@ MOS_STATUS HalCm_LockBuffer(
         goto finish;
     }
 
-    CM_CHK_HRESULT_GOTOFINISH_MOSERROR(
-        osInterface->pfnRegisterResource(osInterface, &entry->osResource, true,
-                                         true));
+    // RegisterResource will be called in AddResourceToHWCmd. It is not allowed to be called by hal explicitly
+    if (!osInterface->apoMosEnabled)
+    {
+        CM_CHK_HRESULT_GOTOFINISH_MOSERROR(
+            osInterface->pfnRegisterResource(osInterface, &entry->osResource, true, true));
+    }
 
     // Lock the resource
     MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));

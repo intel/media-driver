@@ -113,8 +113,8 @@ MOS_STATUS FrameTrackerProducer::Initialize(MOS_INTERFACE *osInterface)
         &allocParamsLinearBuffer,
         &m_resource));
 
-    // RegisterResource will be called in AddResourceToHWCmd. It is not allowed to be called by hal explicitly for Async mode
-    if (m_osInterface->pfnIsAsyncDevice(m_osInterface->osStreamState) == false)
+    // RegisterResource will be called in AddResourceToHWCmd. It is not allowed to be called by hal explicitly
+    if (!m_osInterface->apoMosEnabled)
     {
         MHW_CHK_STATUS_RETURN(
             m_osInterface->pfnRegisterResource(m_osInterface, &m_resource, true, true));
