@@ -346,7 +346,7 @@ int mos_query_hw_ip_version(struct mos_bufmgr *bufmgr, __u16 engine_class, void 
 int mos_get_param(int fd, int32_t param, uint32_t *param_value);
 
 struct LinuxDriverInfo;
-extern MOS_STATUS HWInfoGetLinuxDrvInfo(int  fd, struct LinuxDriverInfo *drvInfo);
+int mos_get_drvinfo(int  fd, struct LinuxDriverInfo *drvInfo);
 
 #if defined(__cplusplus)
 extern "C" {

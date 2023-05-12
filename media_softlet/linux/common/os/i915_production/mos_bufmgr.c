@@ -5153,7 +5153,7 @@ mos_bufmgr_enable_turbo_boost(struct mos_bufmgr *bufmgr)
  *
  * \param fd File descriptor of the opened DRM device.
  */
-struct mos_bufmgr *
+static struct mos_bufmgr *
 mos_bufmgr_gem_init_i915(int fd, int batch_size)
 {
     struct mos_bufmgr_gem *bufmgr_gem;
@@ -5466,11 +5466,11 @@ int mos_get_param(int fd, int32_t param, uint32_t *param_value)
     return drmIoctl(fd, DRM_IOCTL_I915_GETPARAM, &gp) == 0;
 }
 
-MOS_STATUS HWInfoGetLinuxDrvInfo(int fd, struct LinuxDriverInfo *drvInfo)
+static int mos_get_drvinfo_i915(int fd, struct LinuxDriverInfo *drvInfo)
 {
     if ((fd < 0) || (drvInfo == nullptr))
     {
-        return MOS_STATUS_INVALID_HANDLE;
+        return -EINVAL;
     }
 
     uint32_t retValue = 0;
@@ -5544,6 +5544,19 @@ MOS_STATUS HWInfoGetLinuxDrvInfo(int fd, struct LinuxDriverInfo *drvInfo)
     // will set the slice count in InitMediaSysInfo accordint to Device ID.
     drvInfo->sliceCount = 0;
 
-    return MOS_STATUS_SUCCESS;
+    return 0;
+}
+
+int
+mos_get_drvinfo(int fd, struct LinuxDriverInfo *drvInfo)
+{
+    int device_type = mos_query_device_type(fd);
+
+    if(DEVICE_TYPE_I915 == device_type)
+    {
+        return mos_get_drvinfo_i915(fd, drvInfo);
+    }
+
+    return -ENODEV;
 }
 

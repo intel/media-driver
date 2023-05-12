@@ -610,8 +610,6 @@ MOS_STATUS GpuContextSpecificNext::Init(OsContextNext *osContext,
                           &nengine, sizeof(nengine));
     }
 
-    MOS_OS_CHK_STATUS_RETURN(ReportMemoryInfo(osParameters->bufmgr));
-
     return eStatus;
 }
 

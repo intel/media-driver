@@ -64,7 +64,7 @@ MOS_STATUS MosMockAdaptorSpecific::InitializeSkuWaTable(PMOS_CONTEXT context)
     auto            userSettingPtr = MosInterface::MosGetUserSettingInstance(context);
 
     LinuxDriverInfo drvInfo = {18, 3, 0, 23172, 3, 1, 0, 1, 0, 0, 1, 0};
-    if (HWInfoGetLinuxDrvInfo(context->fd, &drvInfo) != MOS_STATUS_SUCCESS)
+    if (mos_get_drvinfo(context->fd, &drvInfo))
     {
         return MOS_STATUS_INVALID_HANDLE;
     }
