@@ -171,7 +171,6 @@ struct mos_aub_annotation {
 #define BO_ALLOC_FOR_RENDER (1<<0)
 
 #define PAT_INDEX_INVALID ((uint32_t)-1)
-#define PAT_INDEX_NON_COHERENT_UC  2
 
 struct mos_linux_bo *mos_bo_alloc(struct mos_bufmgr *bufmgr, const char *name,
                  unsigned long size, unsigned int alignment, int mem_type, unsigned int pat_index = PAT_INDEX_INVALID, bool cpu_cacheable = true);

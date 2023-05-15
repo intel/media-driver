@@ -1047,17 +1047,12 @@ mos_gem_bo_alloc_internal(struct mos_bufmgr *bufmgr,
     } else {
         bo_size = bucket->size;
     }
-    /* For specific platform with no L4 cache, 
-     * pat_index which is less than PAT_INDEX_NON_COHERENT_UC is the same as PAT_INDEX_NON_COHERENT_UC.
-     * However, from our tests, less than PAT_INDEX_NON_COHERENT_UC has some unexpected issues.
-     * Gmm or i915 may need to handle this issue when doing bo allocation.
-     * Temporarily, hard-code PAT_INDEX_NON_COHERENT_UC when pat index is less than PAT_INDEX_NON_COHERENT_UC for the specific platform.
-     * If new platform open source is enabled and the meaning of pat_index is changed,
-     * this quick enable code may cause issue.
-     */
-    if (pat_index < PAT_INDEX_NON_COHERENT_UC)
+    if (!support_pat_index)
     {
-        pat_index = PAT_INDEX_NON_COHERENT_UC;
+        /* For old kernel without pat index support,
+         * We need to reset pat_index for bo reuse policy
+         */
+        pat_index = PAT_INDEX_INVALID;
     }
     pthread_mutex_lock(&bufmgr_gem->lock);
     /* Get a buffer out of the cache if available */
@@ -1174,7 +1169,6 @@ retry:
                 bo_gem->gem_handle = create.handle;
                 bo_gem->bo.handle = bo_gem->gem_handle;
                 bo_gem->pat_index = pat_index;
-                bo_gem->cpu_cacheable = cpu_cacheable;
                 if (ret != 0)
                 {
                     /* For old kernel without pat_index support,
@@ -1196,7 +1190,6 @@ retry:
                 bo_gem->gem_handle = create.handle;
                 bo_gem->bo.handle = bo_gem->gem_handle;
                 bo_gem->pat_index = PAT_INDEX_INVALID;
-                bo_gem->cpu_cacheable = true;
             }
         }
         if (ret != 0) {
@@ -1238,6 +1231,11 @@ retry:
     bo_gem->has_error = false;
     bo_gem->reusable = true;
     bo_gem->use_48b_address_range = bufmgr_gem->bufmgr.bo_use_48b_address_range ? true : false;
+
+    if (bo_gem->pat_index != PAT_INDEX_INVALID)
+    {
+        bo_gem->cpu_cacheable = cpu_cacheable;
+    }
 
     mos_bo_gem_set_in_aperture_size(bufmgr_gem, bo_gem, alignment);
 
