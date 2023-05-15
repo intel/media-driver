@@ -231,12 +231,22 @@ MOS_STATUS MhwBltInterfaceXe_Hp_Base::AddBlockCopyBlt(
     BLT_TILE_TYPE dstTiledMode = static_cast<BLT_TILE_TYPE>(pFastCopyBltParam->pDstOsResource->pGmmResInfo->GetTileType());
     BLT_TILE_TYPE srcTiledMode = static_cast<BLT_TILE_TYPE>(pFastCopyBltParam->pSrcOsResource->pGmmResInfo->GetTileType());
 
+    PGMM_RESOURCE_INFO  pSrcGmmResInfo = pFastCopyBltParam->pSrcOsResource->pGmmResInfo;
+    PGMM_RESOURCE_INFO  pDstGmmResInfo = pFastCopyBltParam->pDstOsResource->pGmmResInfo;
+    uint32_t sourceResourceWidth       = (uint32_t)pSrcGmmResInfo->GetBaseWidth();
+    uint32_t sourceResourceHeight      = (uint32_t)pSrcGmmResInfo->GetBaseHeight();
+    uint32_t dstResourceWidth          = (uint32_t)pDstGmmResInfo->GetBaseWidth();
+    uint32_t dstResourceHeight         = (uint32_t)pDstGmmResInfo->GetBaseHeight();
+
+    cmd.DW0.InstructionTargetOpcode = 0x41;
     cmd.DW0.ColorDepth = pFastCopyBltParam->dwColorDepth;
     cmd.DW1.DestinationPitch = pFastCopyBltParam->dwDstPitch -1;
     cmd.DW1.DestinationMocSvalue = 
         m_osInterface->pfnGetGmmClientContext(m_osInterface)->CachePolicyGetMemoryObject(nullptr, GMM_RESOURCE_USAGE_BLT_DESTINATION).DwordValue;
 
-    cmd.DW1.DestinationTiling = GetBlockTilingMode(dstTiledMode);
+    cmd.DW1.DestinationControlSurfaceType = 1;// 1 is media; 0 is 3D;
+    cmd.DW1.DestinationTiling             = GetBlockTilingMode(dstTiledMode);
+    cmd.DW8.SourceControlSurfaceType      = 1; // 1 is media; 0 is 3D;
     cmd.DW8.SourceTiling = GetBlockTilingMode(srcTiledMode);
     cmd.DW8.SourceMocs =
         m_osInterface->pfnGetGmmClientContext(m_osInterface)->CachePolicyGetMemoryObject(nullptr, GMM_RESOURCE_USAGE_BLT_SOURCE).DwordValue;
@@ -250,7 +260,7 @@ MOS_STATUS MhwBltInterfaceXe_Hp_Base::AddBlockCopyBlt(
     cmd.DW7.SourceY1CoordinateTop = pFastCopyBltParam->dwSrcTop;
     cmd.DW8.SourcePitch = pFastCopyBltParam->dwSrcPitch -1;
 
-    if (pFastCopyBltParam->pDstOsResource->pGmmResInfo->GetResFlags().Info.NonLocalOnly)
+   if (pFastCopyBltParam->pDstOsResource->pGmmResInfo->GetResFlags().Info.NonLocalOnly)
     {
         cmd.DW6.DestinationTargetMemory =
           mhw_blt_state_xe_hp_base::XY_BLOCK_COPY_BLT_CMD::DESTINATION_TARGET_MEMORY::DESTINATION_TARGET_MEMORY_SYSTEM_MEM;
@@ -261,36 +271,57 @@ MOS_STATUS MhwBltInterfaceXe_Hp_Base::AddBlockCopyBlt(
           mhw_blt_state_xe_hp_base::XY_BLOCK_COPY_BLT_CMD::SOURCE_TARGET_MEMORY::SOURCE_TARGET_MEMORY_SYSTEM_MEM;
     }
 
-    cmd.DW19.SourceSurfaceType =
-      mhw_blt_state_xe_hp_base::XY_BLOCK_COPY_BLT_CMD::SOURCE_SURFACE_TYPE::SOURCE_SURFACE_TYPE_SURFTYPE_2D;
-    cmd.DW19.SourceSurfaceWidth  = pFastCopyBltParam->pSrcOsResource->pGmmResInfo->GetBaseWidth();
-    cmd.DW19.SourceSurfaceHeight = pFastCopyBltParam->pSrcOsResource->pGmmResInfo->GetBaseHeight();
-    cmd.DW20.SourceSurfaceDepth  = pFastCopyBltParam->pSrcOsResource->pGmmResInfo->GetBaseDepth();
-    cmd.DW20.SourceSurfaceQpitch = pFastCopyBltParam->pSrcOsResource->pGmmResInfo->GetQPitch();
-    cmd.DW21.SourceHorizontalAlign = pFastCopyBltParam->pSrcOsResource->pGmmResInfo->GetHAlign();
-    cmd.DW21.SourceVerticalAlign = pFastCopyBltParam->pSrcOsResource->pGmmResInfo->GetVAlign();
+        cmd.DW16.DestinationSurfaceHeight     = dstResourceHeight -1;
+        cmd.DW16.DestinationSurfaceWidth      = dstResourceWidth -1;
+        cmd.DW16.DestinationSurfaceType       = 1; // 0 is 1D, 1 is 2D
+        cmd.DW19.SourceSurfaceHeight          = sourceResourceHeight - 1;
+        cmd.DW19.SourceSurfaceWidth           = sourceResourceWidth - 1;
+        cmd.DW19.SourceSurfaceType            = mhw_blt_state_xe_hp_base::XY_BLOCK_COPY_BLT_CMD::SOURCE_SURFACE_TYPE::SOURCE_SURFACE_TYPE_SURFTYPE_2D;;
 
-    cmd.DW16.DestinationSurfaceType =
-      mhw_blt_state_xe_hp_base::XY_BLOCK_COPY_BLT_CMD::DESTINATION_SURFACE_TYPE::DESTINATION_SURFACE_TYPE_SURFTYPE_2D;
-    cmd.DW16.DestinationSurfaceWidth = pFastCopyBltParam->pDstOsResource->pGmmResInfo->GetBaseWidth();
-    cmd.DW16.DestinationSurfaceHeight = pFastCopyBltParam->pDstOsResource->pGmmResInfo->GetBaseHeight();
-    cmd.DW17.DestinationSurfaceDepth = pFastCopyBltParam->pDstOsResource->pGmmResInfo->GetBaseDepth();
-    cmd.DW17.DestinationSurfaceQpitch = pFastCopyBltParam->pDstOsResource->pGmmResInfo->GetQPitch();
-    cmd.DW18.DestinationHorizontalAlign = pFastCopyBltParam->pDstOsResource->pGmmResInfo->GetHAlign();
-    cmd.DW18.DestinationVerticalAlign = pFastCopyBltParam->pDstOsResource->pGmmResInfo->GetVAlign();
 
-    cmd.DW18.DestinationMipTailStartLOD = pFastCopyBltParam->pDstOsResource->pGmmResInfo->GetMipTailStartLodSurfaceState();
-    cmd.DW21.SourceMipTailStartLOD = pFastCopyBltParam->pSrcOsResource->pGmmResInfo->GetMipTailStartLodSurfaceState();
+        uint32_t srcQPitch = pSrcGmmResInfo->GetQPitch();
+        uint32_t dstQPitch = pDstGmmResInfo->GetQPitch();
+        GMM_RESOURCE_TYPE   dstResType = pDstGmmResInfo->GetResourceType();
+        GMM_RESOURCE_TYPE   srcResType = pSrcGmmResInfo->GetResourceType();
 
-    int rendercomparsion = pFastCopyBltParam->pSrcOsResource->pGmmResInfo->GetResFlags().Info.RenderCompressed;
-    int mediacopression = pFastCopyBltParam->pSrcOsResource->pGmmResInfo->GetResFlags().Info.MediaCompressed;
+        cmd.DW17.DestinationSurfaceQpitch                       = dstQPitch >> 2;
+        cmd.DW20.SourceSurfaceQpitch                            = srcQPitch >> 2;
 
-    int dstrender = pFastCopyBltParam->pDstOsResource->pGmmResInfo->GetResFlags().Info.RenderCompressed;
-    int dstmedia = pFastCopyBltParam->pDstOsResource->pGmmResInfo->GetResFlags().Info.MediaCompressed;
+        cmd.DW18.DestinationHorizontalAlign                     = pDstGmmResInfo->GetVAlign();;
+        cmd.DW18.DestinationVerticalAlign                       = pDstGmmResInfo->GetHAlign();
+        cmd.DW18.DestinationMipTailStartLOD                     = 0xf;
+
+        cmd.DW21.SourceHorizontalAlign                          = pSrcGmmResInfo->GetVAlign();
+        cmd.DW21.SourceVerticalAlign                            = pSrcGmmResInfo->GetHAlign();
+        cmd.DW21.SourceMipTailStartLOD                          = 0xf;
+
+        // mmc
+        MOS_MEMCOMP_STATE srcMmcModel = MOS_MEMCOMP_DISABLED;
+        MOS_MEMCOMP_STATE dstMmcModel = MOS_MEMCOMP_DISABLED;
+        uint32_t srcCompressionFormat = 0;
+        uint32_t dstCompressionFormat = 0;
+        GMM_RESOURCE_FLAG inputFlags  = pSrcGmmResInfo->GetResFlags();
+        GMM_RESOURCE_FLAG outFlags    = pDstGmmResInfo->GetResFlags();
+        MHW_CHK_STATUS(m_osInterface->pfnGetMemoryCompressionMode(m_osInterface, pFastCopyBltParam->pSrcOsResource, (PMOS_MEMCOMP_STATE) & (srcMmcModel)));
+        MHW_CHK_STATUS(m_osInterface->pfnGetMemoryCompressionFormat(m_osInterface, pFastCopyBltParam->pSrcOsResource, &srcCompressionFormat));
+        MHW_CHK_STATUS(m_osInterface->pfnGetMemoryCompressionMode(m_osInterface, pFastCopyBltParam->pDstOsResource, (PMOS_MEMCOMP_STATE) & (dstMmcModel)));
+        MHW_CHK_STATUS(m_osInterface->pfnGetMemoryCompressionFormat(m_osInterface, pFastCopyBltParam->pDstOsResource, &dstCompressionFormat));
+
+        if (dstMmcModel != MOS_MEMCOMP_DISABLED) // will enable RC later
+        {
+            cmd.DW1.DestinationCompressionEnable = 1;
+            cmd.DW14.DestinationCompressionFormat = dstCompressionFormat;
+        }
+
+        if (srcMmcModel != MOS_MEMCOMP_DISABLED)//will enable RC later
+        {
+            cmd.DW8.SourceCompressionEnable = 1;
+            cmd.DW12.SourceCompressionFormat = srcCompressionFormat;
+        }
 
     // add source address
     MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
-    ResourceParams.dwLsbNum        = 12;
+    ResourceParams.dwLsbNum        = 0;
     ResourceParams.dwOffset        = srcOffset;
     ResourceParams.presResource    = pFastCopyBltParam->pSrcOsResource;
     ResourceParams.pdwCmd          = &(cmd.DW9_10.Value[0]);
@@ -304,7 +335,7 @@ MOS_STATUS MhwBltInterfaceXe_Hp_Base::AddBlockCopyBlt(
 
     // add destination address
     MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
-    ResourceParams.dwLsbNum        = 12;
+    ResourceParams.dwLsbNum        = 0;
     ResourceParams.dwOffset        = dstOffset;
     ResourceParams.presResource    = pFastCopyBltParam->pDstOsResource;
     ResourceParams.pdwCmd          = &(cmd.DW4_5.Value[0]);
@@ -317,6 +348,11 @@ MOS_STATUS MhwBltInterfaceXe_Hp_Base::AddBlockCopyBlt(
         &ResourceParams));
 
     m_osInterface->pfnAddCommand(pCmdBuffer, &cmd, cmd.byteSize);
+    MHW_NORMALMESSAGE("Block BLT cmd: width = %d, hieght = %d, ColorDepth = %d, Source Pitch %d, mocs = %d,tiled %d,"
+            "mmc model % d, mmc format % d, dst Pitch %d, mocs = %d,tiled %d, mmc model %d, MMC Format = %d",
+             pFastCopyBltParam->dwDstRight, pFastCopyBltParam->dwDstBottom,
+            cmd.DW0.ColorDepth, cmd.DW8.SourcePitch, cmd.DW8.SourceMocs, cmd.DW8.SourceTiling, srcMmcModel, cmd.DW12.SourceCompressionFormat,
+            cmd.DW1.DestinationPitch, cmd.DW1.DestinationMocSvalue, cmd.DW1.DestinationTiling, dstMmcModel, cmd.DW14.DestinationCompressionFormat);
 
 finish:
     return eStatus;

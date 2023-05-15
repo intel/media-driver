@@ -242,6 +242,12 @@ MOS_STATUS BltState::SetupBltCopyParam(
            pMhwBltParams->dwDstRight   = std::min(inputPitch, outputPitch) / 4;  // Regard as 32 bit per pixel format, i.e. 4 byte per pixel.
            pMhwBltParams->dwColorDepth = 3;  //0:8bit 1:16bit 3:32bit 4:64bit
        }
+       else
+       {
+           // Block copy
+           pMhwBltParams->dwDstRight = std::min(inputPitch, outputPitch) / 4;  // Regard as 32 bit per pixel format, i.e. 4 byte per pixel.
+           pMhwBltParams->dwColorDepth = 2;  //0:8bit 1:16bit 2:32bit
+       }
     }
     else
     {
@@ -262,9 +268,9 @@ MOS_STATUS BltState::SetupBltCopyParam(
     }
     pMhwBltParams->pSrcOsResource = inputSurface;
     pMhwBltParams->pDstOsResource = outputSurface;
-    MCPY_NORMALMESSAGE("BLT params: this %p  format %d, planeNum %d, planeIndex %d, dwColorDepth %d, dwSrcTop %d, dwSrcLeft %d, dwSrcPitch %d,"
-                       "dwDstTop %d, dwDstLeft %d, dwDstRight %d, dwDstBottom %d, dwDstPitch %d",
-                       this, ResDetails.Format, planeNum, planeIndex, pMhwBltParams->dwColorDepth, pMhwBltParams->dwSrcTop, pMhwBltParams->dwSrcLeft,
+    MCPY_NORMALMESSAGE("BLT params: m_blokCopyon = %d, format %d, planeNum %d, planeIndex %d, dwColorDepth %d, dwSrcTop %d, dwSrcLeft %d, dwSrcPitch %d,"
+                       "dwDstTop %d, dwDstLeft %d, dwDstRight %d, dwDstBottom %d, dwDstPitch %d", m_blokCopyon,
+                       ResDetails.Format, planeNum, planeIndex, pMhwBltParams->dwColorDepth, pMhwBltParams->dwSrcTop, pMhwBltParams->dwSrcLeft,
                        pMhwBltParams->dwSrcPitch, pMhwBltParams->dwDstTop, pMhwBltParams->dwDstLeft, pMhwBltParams->dwDstRight, 
                        pMhwBltParams->dwDstBottom, pMhwBltParams->dwDstPitch);
 

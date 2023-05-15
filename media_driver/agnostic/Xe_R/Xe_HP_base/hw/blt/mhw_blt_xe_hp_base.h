@@ -28,6 +28,8 @@
 
 #include "mhw_blt_legacy.h"
 
+#pragma once
+#pragma pack(1)
 class mhw_blt_state_xe_hp_base: public mhw_blt_state
 {
 public:
@@ -176,8 +178,8 @@ public:
         {
             struct
             {
-                uint32_t         SourceClearAddressHigh                           : __CODEGEN_BITFIELD( 0, 24)    ; ///< U25
-                uint32_t         Reserved441                                      : __CODEGEN_BITFIELD(25, 31)    ; ///< U7
+                uint32_t         SourceClearAddressHigh                           : __CODEGEN_BITFIELD( 0, 15)    ; ///< U16
+                uint32_t         Reserved441                                      : __CODEGEN_BITFIELD(16, 31)    ; ///< U16
             };
             uint32_t                     Value;
         } DW13;
@@ -573,6 +575,7 @@ public:
         static const size_t byteSize = 4;
     };
 };
+#pragma pack()
 
 class MhwBltInterfaceXe_Hp_Base: public MhwBltInterface
 {
