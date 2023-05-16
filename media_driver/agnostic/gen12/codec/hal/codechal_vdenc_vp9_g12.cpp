@@ -3473,39 +3473,128 @@ void CodechalVdencVp9StateG12::fill_pad_with_value(PMOS_SURFACE psSurface, uint3
         uint32_t pitch         = psSurface->dwPitch;
         uint32_t UVPlaneOffset = psSurface->UPlaneOffset.iSurfaceOffset;
         uint32_t YPlaneOffset  = psSurface->dwOffset;
+        uint32_t pad_rows = aligned_height - real_height;
+        uint32_t y_plane_size   = pitch * real_height;
+        uint32_t uv_plane_size   = pitch * real_height / 2;
 
         MOS_LOCK_PARAMS lockFlags;
         MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
         lockFlags.WriteOnly = 1;
 
-        uint8_t *src_data   = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, &(psSurface->OsResource), &lockFlags);
-
-        if (!src_data)
+        // padding for the linear format buffer.
+        if (psSurface->OsResource.TileType == MOS_TILE_LINEAR)
         {
-            return;
+            uint8_t *src_data   = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, &(psSurface->OsResource), &lockFlags);
+
+            if (!src_data)
+                return;
+
+            uint8_t *src_data_y     = src_data + YPlaneOffset;
+            uint8_t *src_data_y_end = src_data_y + y_plane_size;
+            for (uint32_t i = 0; i < pad_rows; i++)
+            {
+                MOS_SecureMemcpy(src_data_y_end + i * pitch, pitch, src_data_y_end - pitch, pitch);
+            }
+
+            uint8_t *src_data_uv     = src_data + UVPlaneOffset;
+            uint8_t *src_data_uv_end = src_data_uv + uv_plane_size;
+            for (uint32_t i = 0; i < pad_rows / 2; i++)
+            {
+                MOS_SecureMemcpy(src_data_uv_end + i * pitch, pitch, src_data_uv_end - pitch, pitch);
+            }
+
+            m_osInterface->pfnUnlockResource(m_osInterface, &(psSurface->OsResource));
         }
-
-        uint32_t pad_rows = aligned_height - real_height;
-
-        uint8_t *src_data_y     = src_data + YPlaneOffset;
-        uint32_t y_plane_size   = pitch * real_height;
-        uint8_t *src_data_y_end = src_data_y + y_plane_size;
-        uint32_t y_pitch = pitch;
-        for (uint32_t i = 0; i < pad_rows; i++)
+        else if (psSurface->OsResource.TileType == MOS_TILE_Y)
         {
-            MOS_SecureMemcpy(src_data_y_end + i * y_pitch, y_pitch, src_data_y_end - y_pitch, y_pitch);
-        }
+            // we don't copy out the tiled buffer to linear and padding on the tiled buffer directly.
+            lockFlags.TiledAsTiled = 1;
 
-        uint8_t *src_data_uv     = src_data + UVPlaneOffset;
-        uint32_t uv_plane_size   = pitch * real_height / 2;
-        uint8_t *src_data_uv_end = src_data_uv + uv_plane_size;
-        uint32_t uv_pitch = pitch / 2;
-        for (uint32_t i = 0; i < pad_rows; i++)
-        {
-            MOS_SecureMemcpy(src_data_uv_end + i * uv_pitch, uv_pitch, src_data_uv_end - uv_pitch, uv_pitch);
-        }
+            uint8_t *src_data   = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, &(psSurface->OsResource), &lockFlags);
+            if (!src_data)
+                return;
 
-        m_osInterface->pfnUnlockResource(m_osInterface, &(psSurface->OsResource));
+            uint8_t* padding_data = (uint8_t *)MOS_AllocMemory(pitch);
+
+            int32_t LinearOffset;
+            int32_t TileOffset;
+            int32_t x;
+            int32_t y;
+
+            int32_t swizzleflags = 0; // 0 for MOS_TILE_Y
+
+            // copy out the last Y row data.
+            y = (YPlaneOffset + y_plane_size - pitch) / pitch;
+            for (x = 0, LinearOffset = 0; x < static_cast<int32_t>(pitch); x++, LinearOffset++)
+            {
+                TileOffset = Mos_SwizzleOffsetWrapper(
+                    x,
+                    y,
+                    pitch,
+                    MOS_TILE_Y,
+                    false,
+                    swizzleflags);
+                if (TileOffset < psSurface->OsResource.iSize)
+                    *(padding_data + LinearOffset) = *(src_data + TileOffset);
+            }
+
+            // padding the unaligned region for Y.
+            y = (YPlaneOffset + y_plane_size) / pitch;
+            for (uint32_t i = 0; i < pad_rows; y++, i++)
+            {
+                LinearOffset = 0;
+                for (x = 0; x < static_cast<int32_t>(pitch); x++, LinearOffset++)
+                {
+                    TileOffset = Mos_SwizzleOffsetWrapper(
+                        x,
+                        y,
+                        pitch,
+                        MOS_TILE_Y,
+                        false,
+                        swizzleflags);
+                    if (TileOffset < psSurface->OsResource.iSize)
+                        *(src_data + TileOffset) = *(padding_data + LinearOffset);
+                }
+            }
+
+            // copy out the last UV row data.
+            y = (UVPlaneOffset + uv_plane_size - pitch) / pitch;
+            for (x = 0, LinearOffset = 0; x < static_cast<int32_t>(pitch); x++, LinearOffset++)
+            {
+                TileOffset = Mos_SwizzleOffsetWrapper(
+                    x,
+                    y,
+                    pitch,
+                    MOS_TILE_Y,
+                    false,
+                    swizzleflags);
+                if (TileOffset < psSurface->OsResource.iSize)
+                    *(padding_data + LinearOffset) = *(src_data + TileOffset);
+            }
+
+            // padding the unaligned region for UV.
+            y = (UVPlaneOffset + uv_plane_size) / pitch;
+            for (uint32_t i = 0; i < pad_rows / 2; y++, i++)
+            {
+                LinearOffset = 0;
+                for (x = 0; x < static_cast<int32_t>(pitch); x++, LinearOffset++)
+                {
+                    TileOffset = Mos_SwizzleOffsetWrapper(
+                        x,
+                        y,
+                        pitch,
+                        MOS_TILE_Y,
+                        false,
+                        swizzleflags);
+                    if (TileOffset < psSurface->OsResource.iSize)
+                        *(src_data + TileOffset) = *(padding_data + LinearOffset);
+                }
+            }
+
+            MOS_FreeMemory(padding_data);
+            padding_data = nullptr;
+            m_osInterface->pfnUnlockResource(m_osInterface, &(psSurface->OsResource));
+        }
     }
 }
 

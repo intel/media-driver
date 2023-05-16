@@ -1601,6 +1601,8 @@ MOS_STATUS MosInterface::ConvertResourceFromDdi(
         resource->iWidth   = mediaSurface->iWidth;
         resource->iHeight  = mediaSurface->iHeight;
         resource->iPitch   = mediaSurface->iPitch;
+        // Use surface bo size as resource size since we need real bounds checking when fill padding for the surface.
+        resource->iSize    = mediaSurface->bo->size;
         resource->iCount   = mediaSurface->iRefCount;
         resource->isTiled  = mediaSurface->isTiled;
         resource->TileType = LinuxToMosTileType(mediaSurface->TileType);
@@ -1655,6 +1657,7 @@ MOS_STATUS MosInterface::ConvertResourceFromDdi(
             MOS_OS_ASSERTMESSAGE("MOS: unsupported media format for surface.");
             break;
         }
+        resource->iSize    = mediaBuffer->bo->size;
         resource->iCount   = mediaBuffer->iRefCount;
         resource->isTiled  = 0;
         resource->TileType = LinuxToMosTileType(mediaBuffer->TileType);

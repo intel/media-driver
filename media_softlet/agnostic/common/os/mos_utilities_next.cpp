@@ -710,6 +710,17 @@ __inline int32_t MosUtilities::MosSwizzleOffset(
     return(SwizzledOffset);
 }
 
+int32_t MosUtilities::MosSwizzleOffsetWrapper(
+    int32_t         OffsetX,
+    int32_t         OffsetY,
+    int32_t         Pitch,
+    MOS_TILE_TYPE   TileFormat,
+    int32_t         CsxSwizzle,
+    int32_t         Flags)
+{
+    return Mos_SwizzleOffset(OffsetX, OffsetY, Pitch, TileFormat, CsxSwizzle, Flags);
+}
+
 void MosUtilities::MosSwizzleData(
     uint8_t         *pSrc,
     uint8_t         *pDst,
