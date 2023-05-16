@@ -149,6 +149,8 @@ public:
         return "PAK_PASS" + std::to_string((uint32_t)m_pipeline->GetCurrentPass());
     }
 
+    void fill_pad_with_value(PMOS_SURFACE psSurface, uint32_t real_height, uint32_t aligned_height);
+
     //!
     //! \brief  Add HCP_SURFACE_STATE
     //! \param  [in] cmdBuffer

@@ -774,6 +774,59 @@ MOS_STATUS Vp9VdencPkt::SetHcpSurfaceMMCState()
     return MOS_STATUS_SUCCESS;
 }
 
+void Vp9VdencPkt::fill_pad_with_value(PMOS_SURFACE psSurface, uint32_t real_height, uint32_t aligned_height)
+{
+    ENCODE_CHK_NULL_NO_STATUS_RETURN(psSurface);
+
+    // unaligned surfaces only
+    if (aligned_height <= real_height || aligned_height > psSurface->dwHeight)
+    {
+        return;
+    }
+
+    // avoid DYS frames cases
+    if (m_basicFeature->m_ref.DysRefFrameFlags() != DYS_REF_NONE && m_basicFeature->m_dysVdencMultiPassEnabled)
+    {
+        return;
+    }
+
+    if (psSurface->Format == Format_NV12 || psSurface->Format == Format_P010)
+    {
+        uint32_t pitch         = psSurface->dwPitch;
+        uint32_t UVPlaneOffset = psSurface->UPlaneOffset.iSurfaceOffset;
+        uint32_t YPlaneOffset  = psSurface->dwOffset;
+
+        MOS_LOCK_PARAMS lockFlags;
+        MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
+        lockFlags.WriteOnly = 1;
+
+        uint8_t *src_data = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, &(psSurface->OsResource), &lockFlags);
+        ENCODE_CHK_NULL_NO_STATUS_RETURN(src_data);
+
+        uint32_t pad_rows = aligned_height - real_height;
+
+        uint8_t *src_data_y     = src_data + YPlaneOffset;
+        uint32_t y_plane_size   = pitch * real_height;
+        uint8_t *src_data_y_end = src_data_y + y_plane_size;
+        uint32_t y_pitch        = pitch;
+        for (uint32_t i = 0; i < pad_rows; i++)
+        {
+            MOS_SecureMemcpy(src_data_y_end + i * y_pitch, y_pitch, src_data_y_end - y_pitch, y_pitch);
+        }
+
+        uint8_t *src_data_uv     = src_data + UVPlaneOffset;
+        uint32_t uv_plane_size   = pitch * real_height / 2;
+        uint8_t *src_data_uv_end = src_data_uv + uv_plane_size;
+        uint32_t uv_pitch        = pitch / 2;
+        for (uint32_t i = 0; i < pad_rows; i++)
+        {
+            MOS_SecureMemcpy(src_data_uv_end + i * uv_pitch, uv_pitch, src_data_uv_end - uv_pitch, uv_pitch);
+        }
+
+        m_osInterface->pfnUnlockResource(m_osInterface, &(psSurface->OsResource));
+    }
+}
+
 MOS_STATUS Vp9VdencPkt::SetHcpSurfacesParams(MHW_VDBOX_SURFACE_PARAMS *surfacesParams)
 {
     ENCODE_FUNC_CALL();
@@ -1548,6 +1601,19 @@ MOS_STATUS Vp9VdencPkt::AddAllCmds_HCP_SURFACE_STATE(PMOS_COMMAND_BUFFER cmdBuff
 
     m_curHcpSurfStateId = CODECHAL_HCP_SRC_SURFACE_ID;
     Add_HCP_SURFACE_STATE(cmdBuffer);
+ 
+    auto waTable = m_osInterface == nullptr ? nullptr : m_osInterface->pfnGetWaTable(m_osInterface);
+    if (waTable)
+    {
+        if (MEDIA_IS_WA(waTable, Wa_Vp9UnalignedHeight))
+        {
+            uint32_t real_height    = m_basicFeature->m_oriFrameHeight;
+            uint32_t aligned_height = MOS_ALIGN_CEIL(real_height, CODEC_VP9_MIN_BLOCK_HEIGHT);
+
+            fill_pad_with_value(m_basicFeature->m_rawSurfaceToPak, real_height, aligned_height);
+            fill_pad_with_value(&m_basicFeature->m_reconSurface, real_height, aligned_height);
+        }
+    }
 
     // Last reference picture
     if (m_surfacesParams[CODECHAL_HCP_LAST_SURFACE_ID].psSurface)
