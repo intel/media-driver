@@ -2032,6 +2032,14 @@ public:
         int32_t       extFlags);
 #endif
 
+    static int32_t MosSwizzleOffsetWrapper(
+        int32_t         OffsetX,
+        int32_t         OffsetY,
+        int32_t         Pitch,
+        MOS_TILE_TYPE   TileFormat,
+        int32_t         CsxSwizzle,
+        int32_t         flags);
+
     //!
     //! \brief    Wrapper function for SwizzleOffset
     //! \details  Wrapper function for SwizzleOffset in Mos
@@ -3191,6 +3199,8 @@ do{                                                     \
 #define  Mos_SwizzleData(pSrc, pDst, SrcTiling, DstTiling, iHeight, iPitch, extFlags)   \
     MosUtilities::MosSwizzleData(pSrc, pDst, SrcTiling, DstTiling, iHeight, iPitch, extFlags)
 
+#define Mos_SwizzleOffsetWrapper(OffsetX, OffsetY, Pitch, TileFormat, CsxSwizzle, Flags)   \
+    MosUtilities::MosSwizzleOffsetWrapper(OffsetX, OffsetY, Pitch, TileFormat, CsxSwizzle, Flags)
 //------------------------------------------------------------------------------
 //  trace
 //------------------------------------------------------------------------------
