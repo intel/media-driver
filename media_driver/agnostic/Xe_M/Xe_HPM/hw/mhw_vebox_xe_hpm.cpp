@@ -111,12 +111,12 @@ MOS_STATUS MhwVeboxInterfaceXe_Hpm::DumpDNDIStates(uint8_t *pDnDiSate)
 
     MHW_CHK_NULL(pDnDiSate);
 
-    MHW_VERBOSEMESSAGE("VeboxDndiState");
+    MHW_VERBOSEMESSAGE("VeboxDndiState, DW 34-47 is DI related DW, others is DN.");
     MHW_VERBOSEMESSAGE("DW0:DenoiseMaximumHistory %d, DenoiseStadThreshold %d", pVeboxDndiState->DW0.DenoiseMaximumHistory, pVeboxDndiState->DW0.DenoiseStadThreshold);
     MHW_VERBOSEMESSAGE("DW1:DenoiseAsdThreshold %d, DenoiseHistoryIncrease %d, DenoiseMovingPixelThreshold %d", pVeboxDndiState->DW1.DenoiseAsdThreshold, pVeboxDndiState->DW1.DenoiseHistoryIncrease, pVeboxDndiState->DW1.DenoiseMovingPixelThreshold);
     MHW_VERBOSEMESSAGE("DW2:InitialDenoiseHistory %d, TemporalDifferenceThreshold %d", pVeboxDndiState->DW2.InitialDenoiseHistory, pVeboxDndiState->DW2.TemporalDifferenceThreshold);
     MHW_VERBOSEMESSAGE("DW3:HotPixelCountLuma %d, LowTemporalDifferenceThreshold %d, ProgressiveDn %d, TemporalGneEnable %d", pVeboxDndiState->DW3.HotPixelCountLuma, pVeboxDndiState->DW3.LowTemporalDifferenceThreshold, pVeboxDndiState->DW3.ProgressiveDn, pVeboxDndiState->DW3.TemporalGneEnable);
-    MHW_VERBOSEMESSAGE("DW4:BlockNoiseEstimateNoiseThreshold %d, DenoiseThresholdForSumOfComplexityMeasureLuma %d, DW4.HotPixelThresholdLuma", pVeboxDndiState->DW4.BlockNoiseEstimateNoiseThreshold, pVeboxDndiState->DW4.DenoiseThresholdForSumOfComplexityMeasureLuma, pVeboxDndiState->DW4.HotPixelThresholdLuma);
+    MHW_VERBOSEMESSAGE("DW4:BlockNoiseEstimateNoiseThreshold %d, DenoiseThresholdForSumOfComplexityMeasureLuma %d, DW4.HotPixelThresholdLuma %d", pVeboxDndiState->DW4.BlockNoiseEstimateNoiseThreshold, pVeboxDndiState->DW4.DenoiseThresholdForSumOfComplexityMeasureLuma, pVeboxDndiState->DW4.HotPixelThresholdLuma);
     MHW_VERBOSEMESSAGE("DW5:ChromaDenoiseStadThreshold %d, HotPixelCountChromaU %d, HotPixelThresholdChromaU %d", pVeboxDndiState->DW5.ChromaDenoiseStadThreshold, pVeboxDndiState->DW5.HotPixelCountChromaU, pVeboxDndiState->DW5.HotPixelThresholdChromaU);
     MHW_VERBOSEMESSAGE("DW6:BlockNoiseEstimateEdgeThreshold %d, ChromaDenoiseEnable %d, ChromaTemporalDifferenceThreshold %d", pVeboxDndiState->DW6.BlockNoiseEstimateEdgeThreshold, pVeboxDndiState->DW6.ChromaDenoiseEnable, pVeboxDndiState->DW6.ChromaTemporalDifferenceThreshold);
     MHW_VERBOSEMESSAGE("DW7:ChromaLowTemporalDifferenceThreshold %d, HotPixelCountChromaV %d, HotPixelThresholdChromaV %d", pVeboxDndiState->DW7.ChromaLowTemporalDifferenceThreshold, pVeboxDndiState->DW7.HotPixelCountChromaV, pVeboxDndiState->DW7.HotPixelThresholdChromaV);
