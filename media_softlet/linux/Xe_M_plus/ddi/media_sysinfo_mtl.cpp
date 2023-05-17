@@ -195,3 +195,9 @@ static bool mtlDevice7d45 = DeviceInfoFactory<GfxDeviceInfo>::
 
 static bool mtlDevice7d60 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x7D60, &mtlInfo);
+
+static bool mtlDevice7d57 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x7D57, &mtlInfo);
+    
+static bool mtlDevice7dD7 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x7DD7, &mtlInfo);
