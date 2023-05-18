@@ -33,6 +33,7 @@
 #include "encode_status_report_defs.h"
 #include "hal_oca_interface_next.h"
 #include "mos_os_virtualengine_next.h"
+#include "mos_interface.h"
 
 namespace encode
 {
@@ -242,6 +243,9 @@ MOS_STATUS EncodeScalabilityMultiPipe::Initialize(const MediaScalabilityOption &
 
     //Allocate and init for semaphores
     SCALABILITY_CHK_STATUS_RETURN(AllocateSemaphore());
+
+    //Update encoder scalability status
+    SCALABILITY_CHK_STATUS_RETURN(m_osInterface->pfnSetMultiEngineEnabled(m_osInterface, COMPONENT_Encode, true));
     return eStatus;
 }
 
@@ -290,6 +294,8 @@ MOS_STATUS EncodeScalabilityMultiPipe::Destroy()
     m_osInterface->pfnFreeResource(m_osInterface, &m_resSemaphoreOtherPipesForOne);
 
     m_osInterface->pfnFreeResource(m_osInterface, &m_resDelayMinus);
+
+    SCALABILITY_CHK_STATUS_RETURN(m_osInterface->pfnSetMultiEngineEnabled(m_osInterface, COMPONENT_Encode, false));
 
     return MOS_STATUS_SUCCESS;
 }

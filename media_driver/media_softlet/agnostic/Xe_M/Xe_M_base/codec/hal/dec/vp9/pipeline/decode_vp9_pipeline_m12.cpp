@@ -43,6 +43,7 @@
 #include "decode_cp_bitstream_m12.h"
 #include "decode_marker_packet_g12.h"
 #include "decode_predication_packet_g12.h"
+#include "mos_interface.h"
 
 namespace decode
 {
@@ -149,7 +150,9 @@ MOS_STATUS Vp9PipelineG12::InitContexOption(Vp9BasicFeature &basicFeature)
     scalPars.frameWidth         = basicFeature.m_frameWidthAlignedMinBlk;
     scalPars.frameHeight        = basicFeature.m_frameHeightAlignedMinBlk;
     scalPars.numVdbox           = m_numVdbox;
-    if (m_osInterface->pfnIsMultipleCodecDevicesInUse(m_osInterface))
+    bool isMultiDevices = false, isMultiEngine = false;
+    m_osInterface->pfnGetMultiEngineStatus(m_osInterface, nullptr, COMPONENT_Encode, isMultiDevices, isMultiEngine);
+    if (isMultiDevices && !isMultiEngine)
     {
         scalPars.disableScalability = true;
     }
@@ -195,6 +198,9 @@ MOS_STATUS Vp9PipelineG12::InitContexOption(Vp9BasicFeature &basicFeature)
         scalPars.disableScalability = true;
         scalPars.disableVirtualTile = true;
     }
+
+    if (!scalPars.disableScalability)
+        m_osInterface->pfnSetMultiEngineEnabled(m_osInterface, COMPONENT_Decode, true);
 
     DECODE_CHK_STATUS(m_scalabOption.SetScalabilityOption(&scalPars));
     return MOS_STATUS_SUCCESS;
@@ -273,6 +279,8 @@ MOS_STATUS Vp9PipelineG12::Destroy()
     DECODE_FUNC_CALL();
 
     Uninitialize();
+
+    m_osInterface->pfnSetMultiEngineEnabled(m_osInterface, COMPONENT_Decode, false);
 
     return MOS_STATUS_SUCCESS;
 }

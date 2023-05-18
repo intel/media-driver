@@ -250,6 +250,8 @@ MOS_STATUS Mpeg2PipelineM12::InitContext()
     scalPars.numVdbox = m_numVdbox;
     m_mediaContext->SwitchContext(VdboxDecodeFunc, &scalPars, &m_scalability);
     DECODE_CHK_NULL(m_scalability);
+    if (scalPars.disableScalability)
+        m_osInterface->pfnSetMultiEngineEnabled(m_osInterface, COMPONENT_Decode, false);
 
     return MOS_STATUS_SUCCESS;
 }

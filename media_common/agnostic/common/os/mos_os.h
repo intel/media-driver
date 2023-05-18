@@ -1332,6 +1332,18 @@ typedef struct _MOS_INTERFACE
     bool (*pfnIsMultipleCodecDevicesInUse)(
         PMOS_INTERFACE              pOsInterface);
 
+    MOS_STATUS (*pfnSetMultiEngineEnabled)(
+        PMOS_INTERFACE pOsInterface,
+        MOS_COMPONENT  component,
+        bool           enabled);
+
+    MOS_STATUS (*pfnGetMultiEngineStatus)(
+        PMOS_INTERFACE pOsInterface,
+        PLATFORM      *platform,
+        MOS_COMPONENT  component,
+        bool          &isMultiDevices,
+        bool          &isMultiEngine);
+
     MOS_GPU_NODE(*pfnGetLatestVirtualNode)(
         PMOS_INTERFACE              pOsInterface,
         MOS_COMPONENT               component);

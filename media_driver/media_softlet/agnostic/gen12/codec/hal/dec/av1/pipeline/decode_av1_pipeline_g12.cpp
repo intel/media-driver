@@ -109,6 +109,9 @@ namespace decode
         m_passNum = basicFeature->m_tileCoding.GetNumPass();
         m_scalability->SetPassNumber(m_passNum);
 
+        if (scalPars.disableScalability)
+            m_osInterface->pfnSetMultiEngineEnabled(m_osInterface, COMPONENT_Decode, false);
+
         return MOS_STATUS_SUCCESS;
     }
 

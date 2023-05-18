@@ -6922,6 +6922,28 @@ bool Mos_Specific_pfnIsMultipleCodecDevicesInUse(
     return false;
 }
 
+MOS_STATUS Mos_Specific_pfnSetMultiEngineEnabled(
+    PMOS_INTERFACE pOsInterface,
+    MOS_COMPONENT  component,
+    bool           enabled)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS Mos_Specific_pfnGetMultiEngineStatus(
+    PMOS_INTERFACE pOsInterface,
+    PLATFORM      *platform,
+    MOS_COMPONENT  component,
+    bool          &isMultiDevices,
+    bool          &isMultiEngine)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_GPU_NODE Mos_Specific_pfnGetLatestVirtualNode(
     PMOS_INTERFACE pOsInterface,
     MOS_COMPONENT  component)
@@ -7114,6 +7136,8 @@ MOS_STATUS Mos_Specific_InitInterface(
 
     pOsInterface->pfnIsMismatchOrderProgrammingSupported    = Mos_Specific_IsMismatchOrderProgrammingSupported;
     pOsInterface->pfnIsMultipleCodecDevicesInUse            = Mos_Specific_pfnIsMultipleCodecDevicesInUse;
+    pOsInterface->pfnSetMultiEngineEnabled                  = Mos_Specific_pfnSetMultiEngineEnabled;
+    pOsInterface->pfnGetMultiEngineStatus                   = Mos_Specific_pfnGetMultiEngineStatus;
     pOsInterface->pfnGetLatestVirtualNode                   = Mos_Specific_pfnGetLatestVirtualNode;
     pOsInterface->pfnSetLatestVirtualNode                   = Mos_Specific_pfnSetLatestVirtualNode;
     pOsInterface->pfnGetDecoderVirtualNodePerStream         = Mos_Specific_pfnGetDecoderVirtualNodePerStream;

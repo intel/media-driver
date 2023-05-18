@@ -40,6 +40,7 @@
 #include "decode_hevc_downsampling_packet.h"
 #include "decode_marker_packet_g12.h"
 #include "decode_predication_packet_g12.h"
+#include "mos_interface.h"
 
 namespace decode {
 
@@ -97,10 +98,13 @@ MOS_STATUS HevcPipelineM12::InitContexOption(HevcScalabilityPars &scalPars)
     scalPars.usingHcp           = true;
     scalPars.enableVE           = MOS_VE_SUPPORTED(m_osInterface);
     scalPars.disableScalability = m_hwInterface->IsDisableScalability();
-    if (m_osInterface->pfnIsMultipleCodecDevicesInUse(m_osInterface))
+    bool isMultiDevices = false, isMultiEngine = false;
+    m_osInterface->pfnGetMultiEngineStatus(m_osInterface, nullptr, COMPONENT_Encode, isMultiDevices, isMultiEngine);
+    if (isMultiDevices && !isMultiEngine)
     {
         scalPars.disableScalability = true;
     }
+
 #if (_DEBUG || _RELEASE_INTERNAL)
     if (m_osInterface->bHcpDecScalabilityMode == MOS_SCALABILITY_ENABLE_MODE_FALSE)
     {
@@ -117,6 +121,10 @@ MOS_STATUS HevcPipelineM12::InitContexOption(HevcScalabilityPars &scalPars)
     scalPars.forceMultiPipe =
         ReadUserFeature(m_userSettingPtr, "HCP Decode Always Frame Split", MediaUserSetting::Group::Sequence).Get<bool>();
 #endif
+
+    if (!scalPars.disableScalability)
+        m_osInterface->pfnSetMultiEngineEnabled(m_osInterface, COMPONENT_Decode, true);
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -426,6 +434,8 @@ MOS_STATUS HevcPipelineM12::Destroy()
     DECODE_FUNC_CALL();
     DECODE_CHK_STATUS(m_allocator->Destroy(m_secondLevelBBArray));
     DECODE_CHK_STATUS(Uninitialize());
+
+    m_osInterface->pfnSetMultiEngineEnabled(m_osInterface, COMPONENT_Decode, false);
 
     return MOS_STATUS_SUCCESS;
 }

@@ -2210,6 +2210,19 @@ public:
     //!
     static bool IsMultipleCodecDevicesInUse(PMOS_INTERFACE osInterface);
 
+
+    static MOS_STATUS SetMultiEngineEnabled(
+        PMOS_INTERFACE pOsInterface,
+        MOS_COMPONENT  component,
+        bool           enabled);
+
+    static MOS_STATUS GetMultiEngineStatus(
+        PMOS_INTERFACE pOsInterface,
+        PLATFORM      *platform,
+        MOS_COMPONENT  component,
+        bool          &isMultiDevices,
+        bool          &isMultiEngine);
+
     //!
     //! \brief  get latest virtual node for encoder and decoder
     //!

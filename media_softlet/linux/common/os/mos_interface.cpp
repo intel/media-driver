@@ -3789,3 +3789,21 @@ MOS_TILE_TYPE MosInterface::MapTileType(GMM_RESOURCE_FLAG flags, GMM_TILE_TYPE t
 {
     return MOS_TILE_INVALID;
 }
+
+MOS_STATUS MosInterface::SetMultiEngineEnabled(
+    PMOS_INTERFACE pOsInterface,
+    MOS_COMPONENT  component,
+    bool           enabled)
+{
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MosInterface::GetMultiEngineStatus(
+    PMOS_INTERFACE pOsInterface,
+    PLATFORM      *platform,
+    MOS_COMPONENT  component,
+    bool          &isMultiDevices,
+    bool          &isMultiEngine)
+{
+    return MOS_STATUS_SUCCESS;
+}

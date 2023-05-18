@@ -270,6 +270,9 @@ MOS_STATUS AvcPipelineM12::InitContext()
     }
     DECODE_CHK_NULL(m_scalability);
 
+    if (scalPars.disableScalability)
+        m_osInterface->pfnSetMultiEngineEnabled(m_osInterface, COMPONENT_Decode, false);
+
     return MOS_STATUS_SUCCESS;
 }
 
