@@ -596,6 +596,12 @@ void MosOcaInterfaceSpecific::InitOcaLogSection(MOS_LINUX_BO *bo)
 
 void MosOcaInterfaceSpecific::InitLogSection(MOS_OCA_BUFFER_HANDLE ocaBufHandle, PMOS_RESOURCE resCmdBuf)
 {
+    if (resCmdBuf == nullptr ||
+        resCmdBuf->bo == nullptr ||
+        resCmdBuf->bo->virt == nullptr)
+    {
+        return;
+    }
     MOS_LINUX_BO *boCmdBuf = resCmdBuf->bo;
     if (boCmdBuf->size <= OCA_LOG_SECTION_SIZE_MAX)
     {
