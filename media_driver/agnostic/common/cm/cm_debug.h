@@ -114,6 +114,9 @@
         case MOS_STATUS_NULL_POINTER: \
             cmstatus = CM_NULL_POINTER; \
             break;  \
+        case MOS_STATUS_INVALID_PARAMETER: \
+            cmstatus = CM_INVALID_ARG_VALUE;                                                       \
+            break;  \
         case MOS_STATUS_EXCEED_MAX_BB_SIZE: \
             cmstatus = CM_TOO_MUCH_THREADS; \
             break; \
@@ -196,6 +199,32 @@
     _MOSSTATUS2CM(hr_mos, hr); \
     _CHECK_AND_GOTO_FINISH((hr_mos != MOS_STATUS_SUCCESS), hr, hr, "MOS return error [%d]", hr_mos); \
 }
+
+#define CMSTATUS2MOS(stmt, hr_mos)                         \
+    {                                                      \
+        CM_RETURN_CODE cm_status = (CM_RETURN_CODE)(stmt); \
+        switch ((CM_RETURN_CODE)cm_status)                 \
+        {                                                  \
+        case CM_SUCCESS:                                   \
+            hr_mos = MOS_STATUS_SUCCESS;                   \
+            break;                                         \
+        case CM_NULL_POINTER:                              \
+            hr_mos = MOS_STATUS_NULL_POINTER;              \
+            break;                                         \
+        case CM_TOO_MUCH_THREADS:                          \
+            hr_mos = MOS_STATUS_EXCEED_MAX_BB_SIZE;        \
+            break;                                         \
+        case CM_INVALID_ARG_VALUE:                         \
+            hr_mos = MOS_STATUS_INVALID_PARAMETER;         \
+            break;                                         \
+        case CM_OUT_OF_HOST_MEMORY:                        \
+            hr_mos = MOS_STATUS_NO_SPACE;                  \
+            break;                                         \
+        default:                                           \
+            hr_mos = MOS_STATUS_UNKNOWN;                   \
+            break;                                         \
+        }                                                  \
+    }
 
 /*===================== EU Debugger related stuff ===========================*/
 
