@@ -306,7 +306,20 @@ VAStatus MediaLibvaUtilNext::GenerateGmmParamsForNoneCompressionExternalSurface(
     MosUtilities::MosZeroMemory(&gmmCustomParams, sizeof(gmmCustomParams));
     gmmCustomParams.Type          = RESOURCE_2D;
     gmmCustomParams.Format        = ConvertMediaFmtToGmmFmt(params.format);
-    gmmCustomParams.BaseWidth64   = params.width;
+    if ((params.format == Media_Format_YV12) || \
+        (params.format == Media_Format_I420) || \
+        (params.format == Media_Format_IYUV) || \
+        (params.format == Media_Format_NV12) || \
+        (params.format == Media_Format_P010) || \
+        (params.format == Media_Format_P012) || \
+        (params.format == Media_Format_P016) || \
+        (params.format == Media_Format_NV21)) {
+        // Align width to 2 for specific planar formats to handle
+        // odd dimensions for external non-compressible surfaces
+        gmmCustomParams.BaseWidth64 = MOS_ALIGN_CEIL(params.width, 2);
+    } else {
+        gmmCustomParams.BaseWidth64 = params.width;
+    }
     gmmCustomParams.BaseHeight    = baseHeight;
     gmmCustomParams.Pitch         = params.pitch;
     gmmCustomParams.Size          = mediaSurface->pSurfDesc->uiSize;
