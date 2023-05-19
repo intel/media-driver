@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2022, Intel Corporation
+* Copyright (c) 2019-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -216,7 +216,10 @@ namespace encode{
         ENCODE_FUNC_CALL();
 
         m_prevFrameType  = m_av1PicParams->PicFlags.fields.frame_type;
-        m_basicFeature->m_encodedFrameNum++;
+        if(m_pipeline->IsLastPass() && m_pipeline->IsFirstPipe())
+        {
+            m_basicFeature->m_encodedFrameNum++;
+        }
     }
 
     MOS_STATUS Av1VdencPkt::SetPipeBufAddr(
@@ -594,6 +597,44 @@ namespace encode{
         return MOS_STATUS_SUCCESS;
     }
 
+    MOS_STATUS Av1VdencPkt::ReadPakMmioRegistersAtomic(PMOS_COMMAND_BUFFER cmdBuf)
+    {
+        ENCODE_FUNC_CALL();
+
+        ENCODE_CHK_NULL_RETURN(cmdBuf);
+
+        auto mmioRegs = m_miItf->GetMmioRegisters();
+        auto mmioRegsAvp = m_avpItf->GetMmioRegisters(MHW_VDBOX_NODE_1);
+        ENCODE_CHK_NULL_RETURN(mmioRegs);
+
+        PMOS_RESOURCE bsSizeBuf = m_basicFeature->m_recycleBuf->GetBuffer(PakInfo, 0);
+        ENCODE_CHK_NULL_RETURN(bsSizeBuf);
+        ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnSkipResourceSync(bsSizeBuf));
+
+        // load current tile size to VCS_GPR0_Lo
+        auto &miLoadRegaParams         = m_miItf->MHW_GETPAR_F(MI_LOAD_REGISTER_REG)();
+        miLoadRegaParams               = {};
+        miLoadRegaParams.dwSrcRegister = mmioRegsAvp->avpAv1BitstreamByteCountTileRegOffset;
+        miLoadRegaParams.dwDstRegister = mmioRegs->generalPurposeRegister0LoOffset;
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_REG)(cmdBuf));
+
+        // clear VCS_GPR0_Hi for sanity
+        auto &miLoadRegImmParams         = m_miItf->MHW_GETPAR_F(MI_LOAD_REGISTER_IMM)();
+        miLoadRegImmParams               = {};
+        miLoadRegImmParams.dwData        = 0;
+        miLoadRegImmParams.dwRegister    = mmioRegs->generalPurposeRegister0HiOffset;
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(cmdBuf));
+
+        m_hwInterface->SendMiAtomicDwordIndirectDataCmd(bsSizeBuf, MHW_MI_ATOMIC_ADD, cmdBuf);
+
+        // Make Flush DW call to make sure all previous work is done
+        auto &flushDwParams              = m_miItf->MHW_GETPAR_F(MI_FLUSH_DW)();
+        flushDwParams                    = {};
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(cmdBuf));
+
+        return MOS_STATUS_SUCCESS;
+    }
+
     MOS_STATUS Av1VdencPkt::CalculateCommandSize(uint32_t &commandBufferSize, uint32_t &requestedPatchListSize)
     {
         commandBufferSize = CalculateCommandBufferSize();
@@ -779,29 +820,9 @@ namespace encode{
 
     MHW_SETPAR_DECL_SRC(AVP_PIPE_MODE_SELECT, Av1VdencPkt)
     {
-        if (m_pipeline->GetPipeNum() > 1)
-        {
-            // Running in the multiple VDBOX mode
-            if (m_pipeline->IsFirstPipe())
-            {
-                params.multiEngineMode = MHW_VDBOX_HCP_MULTI_ENGINE_MODE_LEFT;
-            }
-            else if (m_pipeline->IsLastPipe())
-            {
-                params.multiEngineMode = MHW_VDBOX_HCP_MULTI_ENGINE_MODE_RIGHT;
-            }
-            else
-            {
-                params.multiEngineMode = MHW_VDBOX_HCP_MULTI_ENGINE_MODE_MIDDLE;
-            }
-            params.pipeWorkingMode = MHW_VDBOX_HCP_PIPE_WORK_MODE_CODEC_BE;
-        }
-        else
-        {
-            params.multiEngineMode = MHW_VDBOX_HCP_MULTI_ENGINE_MODE_FE_LEGACY;
-            params.pipeWorkingMode = MHW_VDBOX_HCP_PIPE_WORK_MODE_LEGACY;
-        }
-
+        params.multiEngineMode = MHW_VDBOX_HCP_MULTI_ENGINE_MODE_FE_LEGACY;
+        params.pipeWorkingMode = MHW_VDBOX_HCP_PIPE_WORK_MODE_LEGACY;
+        
         return MOS_STATUS_SUCCESS;
     }
 

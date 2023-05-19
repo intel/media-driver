@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2021, Intel Corporation
+* Copyright (c) 2020-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -689,8 +689,12 @@ namespace encode
 
             break;
         }
+        case PAK_INTEGRATE: {
+            // nothing need to be done within brc feature for pak int
+            break;
+        }
         default:
-            ENCODE_ASSERTMESSAGE("AV1 BRC feature supports only BRC_INIT and BRC_UPDATE HUC functions");
+            ENCODE_ASSERTMESSAGE("AV1 BRC feature supports only PAK_INTEGRATE, BRC_INIT and BRC_UPDATE HUC functions");
             return MOS_STATUS_INVALID_PARAMETER;
         }
 

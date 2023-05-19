@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2022, Intel Corporation
+* Copyright (c) 2019-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -86,6 +86,8 @@ MOS_STATUS Av1VdencPipelineXe_M_Base::Prepare(void *params)
 
     auto feature = dynamic_cast<Av1BasicFeature*>(m_featureManager->GetFeature(Av1FeatureIDs::basicFeature));
     ENCODE_CHK_NULL_RETURN(feature);
+
+    feature->m_dualEncEnable = m_dualEncEnable;
 
     uint16_t numTileRows = 0;
     uint16_t numTileColumns = 0;

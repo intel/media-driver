@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -602,6 +602,8 @@ public:
     MHW_SETPAR_DECL_HDR(VDENC_CMD2);
 
     MOS_STATUS GetTileStatsOffset(uint32_t &offset);
+
+    MOS_STATUS GetTileStatusInfo(Av1TileStatusInfo &av1TileStatsOffset, Av1TileStatusInfo &av1StatsSize);
 
     MOS_STATUS GetTileGroupInfo(PCODEC_AV1_ENCODE_TILE_GROUP_PARAMS& tileGroupParams, uint32_t& numTilegroups)
     {

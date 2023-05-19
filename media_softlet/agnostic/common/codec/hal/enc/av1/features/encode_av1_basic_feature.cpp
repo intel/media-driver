@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2021, Intel Corporation
+* Copyright (c) 2019-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -62,6 +62,7 @@ MOS_STATUS Av1BasicFeature::Init(void *setting)
         MediaUserSetting::Group::Sequence,
         m_osInterface->pOsContext);
     m_enableSWStitching = outValue.Get<bool>();
+    m_enableTileStitchByHW = !m_enableSWStitching;
 
     ReadUserSettingForDebug(
         m_userSettingPtr,
@@ -223,6 +224,10 @@ MOS_STATUS Av1BasicFeature::Update(void *params)
     }
 
     ENCODE_CHK_STATUS_RETURN(CheckLrParams(*m_av1PicParams));
+
+    m_enableCDEF = !(IsFrameLossless(*m_av1PicParams) 
+        || m_av1PicParams->PicFlags.fields.allow_intrabc
+        || !(m_av1SeqParams->CodingToolFlags.fields.enable_cdef));
 
     // Update reference frames
     ENCODE_CHK_STATUS_RETURN(m_ref.Update());
@@ -651,6 +656,12 @@ MHW_SETPAR_DECL_SRC(VDENC_PIPE_MODE_SELECT, Av1BasicFeature)
         params.tailPointerReadFrequency = 0x50;
     }
 
+    if (m_dualEncEnable)
+    {
+        params.scalabilityMode = true;
+        params.tileBasedReplayMode = true;
+    }
+
     params.frameStatisticsStreamOut = IsRateControlBrc(m_av1SeqParams->RateControlMethod) || m_adaptiveRounding;
 
     return MOS_STATUS_SUCCESS;
@@ -886,11 +897,8 @@ MHW_SETPAR_DECL_SRC(AVP_PIC_STATE, Av1BasicFeature)
     params.reducedTxSetUsed     = m_av1PicParams->PicFlags.fields.reduced_tx_set_used ? true : false;
     params.txMode               = m_av1PicParams->dwModeControlFlags.fields.tx_mode;
     params.skipModePresent      = m_av1PicParams->dwModeControlFlags.fields.skip_mode_present ? true : false;
-
-    // overridden when in frame-level coded lossless or when intraBC is enabled
-    params.enableCDEF = !(params.codedLossless || m_av1PicParams->PicFlags.fields.allow_intrabc 
-        || !(m_av1SeqParams->CodingToolFlags.fields.enable_cdef));
-
+    params.enableCDEF           = m_enableCDEF;
+    
     for (uint8_t i = 0; i < 7; i++)
         params.globalMotionType[i] = static_cast<uint8_t>(m_av1PicParams->wm[i].wmtype);
 
@@ -944,10 +952,10 @@ MHW_SETPAR_DECL_SRC(AVP_PIC_STATE, Av1BasicFeature)
     params.sbMaxSizeReportMask = false;
     params.sbMaxBitSizeAllowed = 0;
 
-    params.autoBistreamStitchingInHardware = !m_enableSWStitching;
+    params.autoBistreamStitchingInHardware = !m_enableSWStitching && !m_dualEncEnable;
 
     // special fix to avoid zero padding for low resolution/bitrates and restore up to 20% BdRate quality
-    if ((m_av1PicParams->tile_cols * m_av1PicParams->tile_rows == 1) || m_enableSWStitching)
+    if ((m_av1PicParams->tile_cols * m_av1PicParams->tile_rows == 1) || m_dualEncEnable)
     {
         params.minFramSize = 0;
         params.minFramSizeUnits                = 0;

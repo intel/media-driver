@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2022, Intel Corporation
+* Copyright (c) 2019-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -158,6 +158,7 @@ public:
     bool                               m_enableSWStitching = false;                             //!< indicate whether SW bitstream stitching enabled or not
     bool                               m_enableNonDefaultMapping = false;                       //!< indicate whether Non-default mapping enabled or not
     bool                               m_adaptiveRounding   = false;                            //!< whether adaptive rounding will be enabled
+    bool                               m_enableCDEF = false;
 
     enum FlushCmd
     {

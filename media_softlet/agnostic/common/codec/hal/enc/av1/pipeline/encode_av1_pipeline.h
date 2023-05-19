@@ -102,6 +102,8 @@ protected:
         uint32_t                                  index);
 #endif
 
+    bool m_dualEncEnable = false;
+
 MEDIA_CLASS_DEFINE_END(encode__Av1Pipeline)
 };
 

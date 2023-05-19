@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -28,6 +28,7 @@
 #include "encode_av1_vdenc_feature_manager_xe_hpm.h"
 #include "encode_av1_brc_init_packet.h"
 #include "encode_av1_brc_update_packet.h"
+#include "encode_av1_pak_integrate_packet.h"
 #include "codechal_debug.h"
 
 namespace encode {
@@ -48,6 +49,13 @@ MOS_STATUS Av1VdencPipelineXe_Hpm::Init(void *settings)
 
     ENCODE_CHK_STATUS_RETURN(Initialize(settings));
 
+    MediaUserSetting::Value outValue;
+    ReadUserSetting(m_userSettingPtr,
+        outValue,
+        "AV1 Dual Encoder Enable",
+        MediaUserSetting::Group::Sequence);
+    m_dualEncEnable = outValue.Get<bool>();
+
     MediaTask* task = CreateTask(MediaTask::TaskType::cmdTask);
     ENCODE_CHK_NULL_RETURN(task);
 
@@ -62,6 +70,13 @@ MOS_STATUS Av1VdencPipelineXe_Hpm::Init(void *settings)
     Av1VdencPktXe_Hpm *av1Vdencpkt = MOS_New(Av1VdencPktXe_Hpm, this, task, m_hwInterface);
     RegisterPacket(Av1VdencPacket, av1Vdencpkt);
     ENCODE_CHK_STATUS_RETURN(av1Vdencpkt->Init());
+
+    if (m_dualEncEnable)
+    {
+        Av1PakIntegratePkt *av1PakIntPkt = MOS_New(Av1PakIntegratePkt, this, task, m_hwInterface);
+        RegisterPacket(Av1PakIntegrate, av1PakIntPkt);
+        ENCODE_CHK_STATUS_RETURN(av1PakIntPkt->Init());
+    }
 
     Av1BackAnnotationPkt *av1BackAnnotationpkt = MOS_New(Av1BackAnnotationPkt, this, task, m_hwInterface);
     RegisterPacket(Av1BackAnnotation, av1BackAnnotationpkt);

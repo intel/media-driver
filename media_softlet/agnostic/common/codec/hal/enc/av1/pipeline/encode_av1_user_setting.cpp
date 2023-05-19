@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021, Intel Corporation
+* Copyright (c) 2021-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -82,6 +82,12 @@ MOS_STATUS Av1Pipeline::InitUserSetting(MediaUserSettingSharedPtr userSettingPtr
         MediaUserSetting::Group::Sequence,
         (int32_t)0,
         false);
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        "AV1 Dual Encoder Enable",
+        MediaUserSetting::Group::Sequence,
+        (int32_t)0,
+        false);
 #endif
     DeclareUserSettingKey(
         userSettingPtr,
@@ -101,6 +107,7 @@ MOS_STATUS Av1Pipeline::InitUserSetting(MediaUserSettingSharedPtr userSettingPtr
         MediaUserSetting::Group::Sequence,
         (int32_t)0,
         true);
+
     return MOS_STATUS_SUCCESS;
 }
 }  // namespace encode

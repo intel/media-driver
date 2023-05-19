@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -920,7 +920,7 @@ namespace encode
         auto basicFeature = dynamic_cast<Av1BasicFeature *>(m_basicFeature);
         ENCODE_CHK_NULL_RETURN(basicFeature);
 
-        if (basicFeature->m_enableSWStitching)
+        if (basicFeature->m_enableSWStitching || basicFeature->m_dualEncEnable)
         {
             params.pakBaseObjectOffset = MOS_ALIGN_CEIL(m_tileData[m_tileIdx].bitstreamByteOffset * CODECHAL_CACHELINE_SIZE, MOS_PAGE_SIZE);
         }
@@ -1056,6 +1056,16 @@ namespace encode
             });
 #endif  // _MEDIA_RESERVED
 
+        return MOS_STATUS_SUCCESS;
+    }
+
+MOS_STATUS Av1EncodeTile::GetTileStatusInfo(
+        Av1TileStatusInfo &av1TileStatsOffset,
+        Av1TileStatusInfo &av1StatsSize)
+    {
+        av1TileStatsOffset = m_av1TileStatsOffset;
+        av1StatsSize = m_av1StatsSize;
+        
         return MOS_STATUS_SUCCESS;
     }
 

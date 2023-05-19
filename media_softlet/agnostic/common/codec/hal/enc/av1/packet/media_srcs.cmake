@@ -1,4 +1,4 @@
-# Copyright (c) 2022, Intel Corporation
+# Copyright (c) 2022-2023, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -24,6 +24,7 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/encode_back_annotation_packet.cpp
     ${CMAKE_CURRENT_LIST_DIR}/encode_av1_brc_init_packet.cpp
     ${CMAKE_CURRENT_LIST_DIR}/encode_av1_brc_update_packet.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/encode_av1_pak_integrate_packet.cpp
 )
 
 set(TMP_HEADERS_
@@ -31,6 +32,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/encode_back_annotation_packet.h
     ${CMAKE_CURRENT_LIST_DIR}/encode_av1_brc_init_packet.h
     ${CMAKE_CURRENT_LIST_DIR}/encode_av1_brc_update_packet.h
+    ${CMAKE_CURRENT_LIST_DIR}/encode_av1_pak_integrate_packet.h
 )
 
 set(SOFTLET_ENCODE_AV1_HEADERS_

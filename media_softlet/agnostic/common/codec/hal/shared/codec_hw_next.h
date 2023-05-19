@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021, Intel Corporation
+* Copyright (c) 2021-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -657,6 +657,41 @@ public:
         }
 
         return false;
+    }
+
+    //!
+    //! \brief    Send mi atomic dword cmd with indirect data (non-inline) mode
+    //! \details  Send mi atomic dword cmd for sync perpose
+    //!
+    //! \param    [in] resource
+    //!           Reource used in mi atomic dword cmd
+    //! \param    [in] opCode
+    //!           Operation code
+    //! \param    [in,out] cmdBuffer
+    //!           command buffer
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS SendMiAtomicDwordIndirectDataCmd(
+        PMOS_RESOURCE               resource,
+        MHW_COMMON_MI_ATOMIC_OPCODE opCode,
+        PMOS_COMMAND_BUFFER         cmdBuffer)
+    {
+        MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+        CODEC_HW_FUNCTION_ENTER;
+        CODEC_HW_CHK_NULL_RETURN(m_miItf);
+
+        auto &params             = m_miItf->MHW_GETPAR_F(MI_ATOMIC)();
+        params                   = {};
+        params.pOsResource       = resource;
+        params.dwDataSize        = sizeof(uint32_t);
+        params.Operation         = (mhw::mi::MHW_COMMON_MI_ATOMIC_OPCODE) opCode;
+        params.bInlineData       = false;
+        eStatus                  = m_miItf->MHW_ADDCMD_F(MI_ATOMIC)(cmdBuffer);
+
+        return eStatus;
     }
 
     //!
