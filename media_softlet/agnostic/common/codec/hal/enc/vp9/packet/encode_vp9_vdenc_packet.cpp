@@ -1611,7 +1611,6 @@ MOS_STATUS Vp9VdencPkt::AddAllCmds_HCP_SURFACE_STATE(PMOS_COMMAND_BUFFER cmdBuff
             uint32_t aligned_height = MOS_ALIGN_CEIL(real_height, CODEC_VP9_MIN_BLOCK_HEIGHT);
 
             fill_pad_with_value(m_basicFeature->m_rawSurfaceToPak, real_height, aligned_height);
-            fill_pad_with_value(&m_basicFeature->m_reconSurface, real_height, aligned_height);
         }
     }
 

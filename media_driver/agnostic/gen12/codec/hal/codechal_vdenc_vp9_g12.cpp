@@ -3454,18 +3454,10 @@ MOS_STATUS CodechalVdencVp9StateG12::SetPictureStructs()
 
 void CodechalVdencVp9StateG12::fill_pad_with_value(PMOS_SURFACE psSurface, uint32_t real_height, uint32_t aligned_height)
 {
+    CODECHAL_ENCODE_CHK_NULL_NO_STATUS_RETURN(psSurface);
+
     // unaligned surfaces only
-    if (aligned_height <= real_height)
-    {
-        return;
-    }
-
-    if (!psSurface)
-    {
-        return;
-    }
-
-    if (aligned_height > psSurface->dwHeight)
+    if (aligned_height <= real_height || aligned_height > psSurface->dwHeight)
     {
         return;
     }
