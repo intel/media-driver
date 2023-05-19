@@ -2941,6 +2941,10 @@ void MosInterface::SetPerfTag(MOS_STREAM_HANDLE streamState, uint32_t perfTag)
         componentTag = PERFTAG_ENCODE;
         break;
 
+    case COMPONENT_MCPY:
+        componentTag = PERFTAG_VPREP;
+        break;
+
     default:
         componentTag = 0xF000 & perfData->dmaBufID;
         break;
