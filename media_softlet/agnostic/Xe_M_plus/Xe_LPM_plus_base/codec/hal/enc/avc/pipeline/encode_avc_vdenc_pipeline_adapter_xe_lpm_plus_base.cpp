@@ -43,3 +43,11 @@ MOS_STATUS EncodeAvcVdencPipelineAdapterXe_Lpm_Plus_Base::ResolveMetaData(PMOS_R
 
     return m_encoder->ExecuteResolveMetaData(pInput, pOutput);
 }
+
+MOS_STATUS EncodeAvcVdencPipelineAdapterXe_Lpm_Plus_Base::ReportErrorFlag(PMOS_RESOURCE pMetadataBuffer,
+    uint32_t size, uint32_t offset, uint32_t flag)
+{
+    ENCODE_FUNC_CALL();
+
+    return m_encoder->ReportErrorFlag(pMetadataBuffer, size, offset, flag);
+}

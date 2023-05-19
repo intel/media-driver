@@ -308,6 +308,9 @@ public:
 
     MOS_STATUS ExecuteResolveMetaData(PMOS_RESOURCE pInput, PMOS_RESOURCE pOutput);
 
+    MOS_STATUS ReportErrorFlag(PMOS_RESOURCE pMetadataBuffer,
+        uint32_t size, uint32_t offset, uint32_t flag);
+
 #define CODECHAL_ENCODE_RECYCLED_BUFFER_NUM 6
 #define VDENC_BRC_NUM_OF_PASSES 2
 

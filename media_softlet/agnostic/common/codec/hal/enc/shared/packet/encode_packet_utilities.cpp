@@ -101,6 +101,22 @@ namespace encode {
         return eStatus;
     }
 
+    MOS_STATUS PacketUtilities::AddStoreDataImmCmd(PMOS_COMMAND_BUFFER cmdBuf, PMOS_RESOURCE pSrc, uint32_t offset, uint32_t flag)
+    {
+        ENCODE_FUNC_CALL();
+        auto &storeDataParam = m_miItf->MHW_GETPAR_F(MI_STORE_DATA_IMM)();
+        storeDataParam                  = {};
+        storeDataParam.pOsResource      = pSrc;
+        storeDataParam.dwResourceOffset = offset;
+        storeDataParam.dwValue          = flag;
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(cmdBuf));
+
+        auto &flushDwParams                         = m_miItf->MHW_GETPAR_F(MI_FLUSH_DW)();
+        flushDwParams                               = {};
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(cmdBuf));
+        return MOS_STATUS_SUCCESS;
+    }
+
     MOS_STATUS PacketUtilities::SendMarkerCommand(PMOS_COMMAND_BUFFER cmdBuffer, PMOS_RESOURCE presSetMarker)
     {
         ENCODE_FUNC_CALL();

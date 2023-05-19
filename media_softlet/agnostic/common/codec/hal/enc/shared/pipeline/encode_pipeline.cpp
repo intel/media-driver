@@ -318,6 +318,7 @@ MOS_STATUS EncodePipeline::ExecuteActivePackets()
 
 MOS_STATUS EncodePipeline::ExecuteResolveMetaData(PMOS_RESOURCE pInput, PMOS_RESOURCE pOutput)
 {
+    ENCODE_FUNC_CALL();
     MOS_COMMAND_BUFFER cmdBuffer;
     MOS_ZeroMemory(&cmdBuffer, sizeof(cmdBuffer));
 
@@ -331,6 +332,26 @@ MOS_STATUS EncodePipeline::ExecuteResolveMetaData(PMOS_RESOURCE pInput, PMOS_RES
     ENCODE_CHK_STATUS_RETURN(m_scalability->ReturnCmdBuffer(&cmdBuffer));
     ENCODE_CHK_STATUS_RETURN(m_scalability->SubmitCmdBuffer(&cmdBuffer));
 
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS EncodePipeline::ReportErrorFlag(PMOS_RESOURCE pMetadataBuffer,
+    uint32_t size, uint32_t offset, uint32_t flag)
+{
+    ENCODE_FUNC_CALL();
+    MOS_COMMAND_BUFFER cmdBuffer;
+    MOS_ZeroMemory(&cmdBuffer, sizeof(cmdBuffer));
+
+    ENCODE_CHK_NULL_RETURN(m_scalability);
+    ENCODE_CHK_STATUS_RETURN(m_scalability->GetCmdBuffer(&cmdBuffer));
+
+    auto basicFeature = dynamic_cast<EncodeBasicFeature *>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
+    ENCODE_CHK_NULL_RETURN(basicFeature);
+
+    basicFeature->m_metaDataOffset.dwMetaDataSize = size;
+    m_packetUtilities->AddStoreDataImmCmd(&cmdBuffer, pMetadataBuffer, offset, flag);
+    ENCODE_CHK_STATUS_RETURN(m_scalability->ReturnCmdBuffer(&cmdBuffer));
+    ENCODE_CHK_STATUS_RETURN(m_scalability->SubmitCmdBuffer(&cmdBuffer));
     return MOS_STATUS_SUCCESS;
 }
 
