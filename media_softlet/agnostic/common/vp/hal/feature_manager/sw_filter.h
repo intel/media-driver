@@ -1329,10 +1329,18 @@ public:
     virtual MOS_STATUS Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSurf, SwFilterSubPipe &pipe);
     virtual MOS_STATUS SetResourceAssignmentHint(RESOURCE_ASSIGNMENT_HINT &hint)
     {
+        MT_LOG1(MT_VP_FEATURE_GRAPH_SWFILTERSTD, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_STD_OUTPUT_ENABLE, m_Params.bEnableSTD);
+        VP_PUBLIC_NORMALMESSAGE("STD Output Enable: %d", m_Params.bEnableSTD);
         if (m_Params.bEnableSTD)
         {
+            // isSkinScoreDumpNeededForSTDonly for STD output to internal surface and copy to STDParam.
+            // isSkinScoreOutputNeededForSTDOnly for STD output to output surface directly. It set internal
+            // SkinScore surface to VeboxCurrentOutput and external output surface to VeboxSkinScore to
+            // achieve it, instead of setting Output STD Decisions to 1.
             hint.isSkinScoreDumpNeededForSTDonly = !m_Params.STDParam.bOutputSkinScore;
             hint.isSkinScoreOutputNeededForSTDOnly = m_Params.STDParam.bOutputSkinScore;
+            MT_LOG2(MT_VP_FEATURE_GRAPH_SWFILTERSTD, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_STD_OUTPUT_TO_STDPARAM, hint.isSkinScoreDumpNeededForSTDonly, MT_VP_FEATURE_GRAPH_FILTER_STD_OUTPUT_TO_OUTPUT_SURFACE, hint.isSkinScoreOutputNeededForSTDOnly);
+            VP_PUBLIC_NORMALMESSAGE("STD Output isSkinScoreDumpNeededForSTDonly: %d, isSkinScoreOutputNeededForSTDOnly: %d", hint.isSkinScoreDumpNeededForSTDonly, hint.isSkinScoreOutputNeededForSTDOnly);
         }
 
         return MOS_STATUS_SUCCESS;
