@@ -78,10 +78,10 @@
 #define AOMMAX(x, y) (((x) > (y)) ? (x) : (y))
 #define CAT2SHORTS(low, high) (((low) & 0xffff) | (((high) << 16) & 0xffff0000) )
 
-static const uint32_t av1MinTileWidth       = 64;                                      // Min tile width
-static const uint32_t av1MinTileHeight      = 64;                                      // Min tile height
+static const uint32_t av1MinTileWidth       = 64;                                       // Min tile width
+static const uint32_t av1MinTileHeight      = 64;                                       // Min tile height
 static const uint32_t av1MaxTileWidth       = 4096;                                     // Max tile width
-static const uint32_t av1MaxTileHeight      = 2304;                                     // Max tile height
+static const uint32_t av1MaxTileArea        = 4096 * 2304;                              // Max tile height
 static const uint32_t av1SuperBlockWidth    = 64;                                       // Super block width
 static const uint32_t av1SuperBlockHeight   = 64;                                       // Super block height
 static const uint32_t av1MinBlockWidth      = 8;                                        // Min block width

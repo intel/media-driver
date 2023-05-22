@@ -515,43 +515,56 @@ namespace encode
 
     MOS_STATUS Av1EncodeTile::TileSizeCheck(const PCODEC_AV1_ENCODE_PICTURE_PARAMS &av1PicParam)
     {
-        uint16_t sbCols = MOS_ROUNDUP_DIVIDE(av1PicParam->frame_width_minus1 + 1, av1SuperBlockWidth);
-        uint16_t sbRows = MOS_ROUNDUP_DIVIDE(av1PicParam->frame_height_minus1 + 1, av1SuperBlockHeight);
-        uint16_t tileAreaSb = sbCols * sbRows;
+        uint32_t maxTileAreaSb = MOS_ROUNDUP_DIVIDE(av1MaxTileArea, av1SuperBlockWidth * av1SuperBlockHeight);
+        uint32_t sbCols        = MOS_ROUNDUP_DIVIDE(av1PicParam->frame_width_minus1 + 1, av1SuperBlockWidth);
+        uint32_t sbRows        = MOS_ROUNDUP_DIVIDE(av1PicParam->frame_height_minus1 + 1, av1SuperBlockHeight);
 
-        uint16_t maxTileWidthSb  = MOS_ROUNDUP_DIVIDE(av1MaxTileWidth, av1SuperBlockWidth);
-        uint16_t minLog2TileCols = TileLog2(maxTileWidthSb, sbCols);
-        uint16_t maxTileAreaSb   = MOS_ROUNDUP_DIVIDE(av1MaxTileWidth * av1MaxTileHeight, av1SuperBlockWidth * av1SuperBlockHeight);
-        uint16_t minLog2Tiles    = MOS_MAX(minLog2TileCols, TileLog2(maxTileAreaSb, tileAreaSb));
-
+        //Tile Width sum equals image width, no pixel leak
         if (av1PicParam->width_in_sbs_minus_1[0] + 1 == 0)
         {
             return MOS_STATUS_INVALID_PARAMETER;
         }
-
-        uint16_t widestTileSb = av1PicParam->width_in_sbs_minus_1[0] + 1;
-        for (uint8_t i = 1; i < m_numTileColumns; i++)
-        {
-            widestTileSb = MOS_MAX(widestTileSb, (av1PicParam->width_in_sbs_minus_1[i] + 1));
-        }
-
-        if (minLog2Tiles)
-        {
-            tileAreaSb >>= (minLog2Tiles + 1);
-        }
-
-        uint16_t maxTileHeightSb = MOS_MAX(1, tileAreaSb / widestTileSb);
-        for (uint8_t i = 0; i < m_numTileRows; i++)
-        {
-            if ((av1PicParam->height_in_sbs_minus_1[i] + 1) > maxTileHeightSb)
-            {
-                return MOS_STATUS_INVALID_PARAMETER;
-            }
-        }
+        uint32_t curTileWidthSb = av1PicParam->width_in_sbs_minus_1[0] + 1;
+        uint32_t widestTileSb   = av1PicParam->width_in_sbs_minus_1[0] + 1;
+        uint32_t tileWidthSbSum = 0;
 
         for (uint8_t i = 0; i < m_numTileColumns; i++)
         {
-            if ((av1PicParam->width_in_sbs_minus_1[i] + 1) > maxTileWidthSb)
+            curTileWidthSb = av1PicParam->width_in_sbs_minus_1[i] + 1;
+            widestTileSb   = MOS_MAX(widestTileSb, curTileWidthSb);
+            tileWidthSbSum += curTileWidthSb;
+        }
+        if (tileWidthSbSum != sbCols)
+        {
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+
+        //Tile Height sum equals image height, no pixel leak
+        if (av1PicParam->height_in_sbs_minus_1[0] + 1 == 0)
+        {
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+        uint32_t curTileHeightSb = av1PicParam->height_in_sbs_minus_1[0] + 1;
+        uint32_t highestWidthSb  = av1PicParam->height_in_sbs_minus_1[0] + 1;
+        uint32_t tileHeightSbSum = 0;
+
+        for (uint8_t i = 0; i < m_numTileRows; i++)
+        {
+            curTileHeightSb = av1PicParam->height_in_sbs_minus_1[i] + 1;
+            highestWidthSb  = MOS_MAX(1, curTileHeightSb);
+            tileHeightSbSum += curTileHeightSb;
+        }
+        if (tileHeightSbSum != sbRows)
+        {
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+
+        // Max tile check
+
+        for (uint8_t i = 0; i < m_numTileRows; i++)
+        {
+            curTileHeightSb = av1PicParam->height_in_sbs_minus_1[i] + 1;
+            if ((widestTileSb * curTileHeightSb) > maxTileAreaSb)
             {
                 return MOS_STATUS_INVALID_PARAMETER;
             }
