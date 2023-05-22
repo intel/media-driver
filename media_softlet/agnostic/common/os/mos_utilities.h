@@ -51,6 +51,10 @@
 class MediaUserSettingsMgr;
 
 class MosMutex;
+typedef uint64_t REGHANDLE;
+typedef struct _EVENT_DESCRIPTOR EVENT_DESCRIPTOR;
+typedef const EVENT_DESCRIPTOR* PCEVENT_DESCRIPTOR;
+typedef struct _EVENT_DATA_DESCRIPTOR EVENT_DATA_DESCRIPTOR;
 
 namespace CommonLib
 {
@@ -107,6 +111,12 @@ public:
     //!           else MOS_STATUS_SUCCESS
     //!
     static MOS_STATUS MosFlushToFileInCommon(FILE *file);
+
+    static MOS_STATUS MosEventWriteInCommon(
+        REGHANDLE regHandle,
+        PCEVENT_DESCRIPTOR eventDescriptor,
+        uint32_t userDataCount,
+        EVENT_DATA_DESCRIPTOR* userData);
 
     //!
     //! \brief    Get current run time
