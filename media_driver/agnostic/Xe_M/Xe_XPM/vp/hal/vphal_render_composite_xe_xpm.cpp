@@ -188,3 +188,40 @@ MOS_STATUS CompositeStateXe_Xpm::DecompressInterlacedSurf(PVPHAL_SURFACE pSource
     }
     return MOS_STATUS_SUCCESS;
 }
+
+MOS_STATUS CompositeStateXe_Xpm ::SetSamplerFilterMode(
+    PMHW_SAMPLER_STATE_PARAM&       pSamplerStateParams,
+    PRENDERHAL_SURFACE_STATE_ENTRY  pEntry,
+    PVPHAL_RENDERING_DATA_COMPOSITE pRenderData,
+    uint32_t                        uLayerNum,
+    MHW_SAMPLER_FILTER_MODE         SamplerFilterMode,
+    int32_t*                        pSamplerIndex,
+    PVPHAL_SURFACE                  pSource)
+{
+    VPHAL_RENDER_CHK_NULL_RETURN(pEntry);
+    VPHAL_RENDER_CHK_NULL_RETURN(pSamplerIndex);
+    VPHAL_RENDER_CHK_NULL_RETURN(pSamplerStateParams);
+    VPHAL_RENDER_CHK_NULL_RETURN(pRenderData);
+
+    if (pSource == nullptr || uLayerNum < 2)
+    {
+        pSamplerStateParams->Unorm.SamplerFilterMode = SamplerFilterMode;
+        return MOS_STATUS_SUCCESS;
+    }
+
+    if (MHW_SAMPLER_FILTER_BILINEAR == SamplerFilterMode &&
+            VPHAL_SCALING_BILINEAR != pSource->ScalingMode ||
+        MHW_SAMPLER_FILTER_NEAREST == SamplerFilterMode &&
+            VPHAL_SCALING_NEAREST != pSource->ScalingMode)
+    {
+        pSource->ScalingMode                         = (MHW_SAMPLER_FILTER_BILINEAR == SamplerFilterMode) ? VPHAL_SCALING_BILINEAR : VPHAL_SCALING_NEAREST;
+        VPHAL_RENDER_CHK_STATUS_RETURN(GetSamplerIndex(pSource, pEntry, pSamplerIndex, &pSamplerStateParams->SamplerType));
+        pSamplerStateParams                          = &pRenderData->SamplerStateParams[*pSamplerIndex];
+        pSamplerStateParams->SamplerType             = MHW_SAMPLER_TYPE_3D;
+
+        VPHAL_RENDER_NORMALMESSAGE("Updating scaling mode %d and SamplerIndex %d", pSource->ScalingMode, *pSamplerIndex);
+    }
+    pSamplerStateParams->Unorm.SamplerFilterMode = SamplerFilterMode;
+
+    return MOS_STATUS_SUCCESS;
+}
