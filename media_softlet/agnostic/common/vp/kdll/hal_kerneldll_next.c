@@ -963,6 +963,17 @@ void KernelDll_GetCSCMatrix(
         {
             KernelDll_CalcYuvToYuvMatrix(temp, dst, pCSC_Matrix);
         }
+        else if (KernelDll_IsCspace(temp, CSpace_BT2020_RGB))
+        {
+            if (temp == CSpace_BT2020_RGB)  //BT2020_RGB to BT2020_limited_RGB conversions
+            {
+                MOS_SecureMemcpy(pCSC_Matrix, sizeof(g_cCSC_BT2020RGB_BT2020stRGB), (void *)g_cCSC_BT2020RGB_BT2020stRGB, sizeof(g_cCSC_BT2020RGB_BT2020stRGB));
+            }
+            else if (temp == CSpace_BT2020_stRGB)  //BT2020_limited_RGB to BT2020_RGB conversions
+            {
+                MOS_SecureMemcpy(pCSC_Matrix, sizeof(g_cCSC_BT2020stRGB_BT2020RGB), (void *)g_cCSC_BT2020stRGB_BT2020RGB, sizeof(g_cCSC_BT2020stRGB_BT2020RGB));
+            }
+        }
         else
         {
             VP_RENDER_ASSERTMESSAGE("Not supported color space conversion(from %d to %d)", src, dst);

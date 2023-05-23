@@ -178,6 +178,34 @@ const float g_cCSC_stRGB_sRGB[12] =
         -18.630137f  // sB   = C8 * stR + C9 * stG + C10 * stB + C11
 };
 
+//BT2020_RGB to BT2020_limited_RGB conversions
+const float g_cCSC_BT2020RGB_BT2020stRGB[12] =
+    {
+        0.8563050f, 0.000000f, 0.000000f, 64.000000f,  // sR = C0 * R + C1 * G + C2  * B + C3
+        0.000000f,
+        0.8563050f,
+        0.000000f,
+        64.000000f,  // sG = C4 * R + C5 * G + C6  * B + C7
+        0.000000f,
+        0.000000f,
+        0.8563050f,
+        64.000000f  // sB = C8 * R + C9 * G + C10 * B + C11
+};
+
+//BT2020_limited_RGB to BT2020_RGB conversions
+const float g_cCSC_BT2020stRGB_BT2020RGB[12] =
+    {
+        1.1678082f, 0.000000f, 0.000000f, -74.739726f,  // R = C0 * sR + C1 * sG + C2  * sB + C3
+        0.000000f,
+        1.1678082f,
+        0.000000f,
+        -74.739726f,  // G = C4 * sR + C5 * sG + C6  * sB + C7
+        0.000000f,
+        0.000000f,
+        1.1678082f,
+        -74.739726f  // B = C8 * sR + C9 * sG + C10 * sB + C11
+};
+
 const float g_cCSC_Identity[12] =
     {
         1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f};
