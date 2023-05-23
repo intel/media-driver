@@ -32,7 +32,7 @@
 #include "mos_interface.h"
 #include "mos_util_debug.h"
 
-uint32_t GraphicsResourceNext::m_memAllocCounterGfx;
+uint32_t GraphicsResourceNext::m_memAllocCounterGfx = 0;
 
 GraphicsResourceNext::CreateParams::CreateParams(PMOS_ALLOC_GFXRES_PARAMS pParams)
 {
