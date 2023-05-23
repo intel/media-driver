@@ -169,7 +169,7 @@ public:
     inline bool IsDefinitionExist(const std::string &itemName)
     {
         bool ret = false;
-        for (auto defs : m_definitions)
+        for (auto &defs : m_definitions)
         {
             auto it = defs.find(MakeHash(itemName));
             if (it != defs.end())
