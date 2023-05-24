@@ -601,6 +601,16 @@ public:
         GMM_RESOURCE_FORMAT Format          // [in]    resouce format
     );
 
+    int64_t GetTotalSize()
+    {
+        return m_totalSize;
+    }
+
+    int64_t GetPeakSize()
+    {
+        return m_peakSize;
+    }
+
 protected:
     //!
     //! \brief    Set mmc flags to surface
@@ -624,6 +634,8 @@ protected:
     Allocator       *m_allocator    = nullptr;
     MediaMemComp    *m_mmc          = nullptr;
     std::vector<VP_SURFACE *> m_recycler;   // Container for delayed destroyed surface.
+    int64_t         m_totalSize; // current total memory size.
+    int64_t         m_peakSize; // the peak value of memory size.
 
 MEDIA_CLASS_DEFINE_END(vp__VpAllocator)
 };

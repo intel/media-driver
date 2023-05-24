@@ -171,6 +171,11 @@ public:
         return m_userFeatureControl;
     }
 
+    VpAllocator *GetAllocator()
+    {
+        return m_allocator;
+    }
+
     // for debug purpose
 #if (_DEBUG || _RELEASE_INTERNAL)
     //!
