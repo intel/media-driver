@@ -390,6 +390,13 @@ namespace encode
         {
             ENCODE_CHK_STATUS_RETURN(StartStatusReport(statusReportMfx, &cmdBuffer));
         }
+        else{
+            // add perf record for other pipes - first pipe perf record within StartStatusReport
+            MediaPerfProfiler *perfProfiler = MediaPerfProfiler::Instance();
+            ENCODE_CHK_NULL_RETURN(perfProfiler);
+            ENCODE_CHK_STATUS_RETURN(perfProfiler->AddPerfCollectStartCmd(
+                (void *)m_pipeline, m_osInterface, m_miItf, &cmdBuffer));
+        }
 
         ENCODE_CHK_STATUS_RETURN(AddPictureVdencCommands(cmdBuffer));
 
@@ -628,6 +635,13 @@ namespace encode
         if (m_pipeline->IsFirstPipe()) 
         {
             ENCODE_CHK_STATUS_RETURN(EndStatusReport(statusReportMfx, &cmdBuffer));
+        }
+        else{
+            // add perf record for other pipes - first pipe perf record within EndStatusReport
+            MediaPerfProfiler *perfProfiler = MediaPerfProfiler::Instance();
+            ENCODE_CHK_NULL_RETURN(perfProfiler);
+            ENCODE_CHK_STATUS_RETURN(perfProfiler->AddPerfCollectEndCmd(
+                (void *)m_pipeline, m_osInterface, m_miItf, &cmdBuffer));
         }
         auto brcFeature = dynamic_cast<Av1Brc *>(m_featureManager->GetFeature(Av1FeatureIDs::av1BrcFeature));
         ENCODE_CHK_NULL_RETURN(brcFeature);
