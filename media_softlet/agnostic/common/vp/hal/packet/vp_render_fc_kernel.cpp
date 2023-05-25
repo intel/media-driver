@@ -771,20 +771,15 @@ MOS_STATUS VpRenderFcKernel::BuildFilter(
         }
 
         //--------------------------------
-        // Composition path does not support conversion from BT2020 RGB to BT2020 YUV, BT2020->BT601/BT709, BT601/BT709 -> BT2020
+        // Composition path does not support conversions: BT2020->BT601/BT709, BT601/BT709 -> BT2020
         //--------------------------------
-        if (IS_COLOR_SPACE_BT2020_RGB(src->surf->ColorSpace)   &&
-            IS_COLOR_SPACE_BT2020_YUV(compParams->target[0].surf->ColorSpace))  //BT2020 RGB->BT2020 YUV
-        {
-            VP_RENDER_CHK_STATUS_RETURN(MOS_STATUS_UNIMPLEMENTED);
-        }
-        else if (IS_COLOR_SPACE_BT2020(src->surf->ColorSpace) &&
-                 !IS_COLOR_SPACE_BT2020(compParams->target[0].surf->ColorSpace)) //BT2020->BT601/BT709
+        if (IS_COLOR_SPACE_BT2020(src->surf->ColorSpace) &&
+            !IS_COLOR_SPACE_BT2020(compParams->target[0].surf->ColorSpace)) //BT2020->BT601/BT709
         {
             VP_RENDER_CHK_STATUS_RETURN(MOS_STATUS_UNIMPLEMENTED);
         }
         else if (!IS_COLOR_SPACE_BT2020(src->surf->ColorSpace) &&
-                 IS_COLOR_SPACE_BT2020(compParams->target[0].surf->ColorSpace))  //BT601/BT709 -> BT2020
+            IS_COLOR_SPACE_BT2020(compParams->target[0].surf->ColorSpace))  //BT601/BT709 -> BT2020
         {
             VP_RENDER_CHK_STATUS_RETURN(MOS_STATUS_UNIMPLEMENTED);
         }
