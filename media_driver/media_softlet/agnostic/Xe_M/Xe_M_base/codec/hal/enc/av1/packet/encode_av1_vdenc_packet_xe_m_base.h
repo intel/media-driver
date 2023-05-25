@@ -99,7 +99,6 @@ namespace encode
         virtual MOS_STATUS CalculateAvpPictureStateCommandSize(uint32_t * commandsSize, uint32_t * patchListSize) override;
         virtual MOS_STATUS CalculateAvpCommandsSize() override;
 
-        MOS_STATUS ReadAvpStatus(MHW_VDBOX_NODE_IND vdboxIndex, MediaStatusReport *statusReport, MOS_COMMAND_BUFFER &cmdBuffer) override;
         MOS_STATUS RegisterPostCdef();
         MOS_STATUS UpdateUserFeatureKey(PMOS_SURFACE surface);
 

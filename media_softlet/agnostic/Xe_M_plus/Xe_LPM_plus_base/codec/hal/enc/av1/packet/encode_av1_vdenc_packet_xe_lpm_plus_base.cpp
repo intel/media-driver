@@ -767,43 +767,6 @@ void Av1VdencPktXe_Lpm_Plus_Base::UpdateParameters()
     }
 }
 
-MOS_STATUS Av1VdencPktXe_Lpm_Plus_Base::ReadAvpStatus(MHW_VDBOX_NODE_IND vdboxIndex, MediaStatusReport *statusReport, MOS_COMMAND_BUFFER &cmdBuffer)
-{
-    ENCODE_FUNC_CALL();
-    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-
-    CODEC_HW_FUNCTION_ENTER;
-
-    ENCODE_CHK_NULL_RETURN(statusReport);
-    ENCODE_CHK_NULL_RETURN(m_hwInterface);
-
-    auto hw = dynamic_cast<CodechalHwInterfaceXe_Lpm_Plus_Base*>(m_hwInterface);
-    ENCODE_CHK_NULL_RETURN(hw);
-
-    MOS_RESOURCE *osResource    = nullptr;
-    uint32_t      offset        = 0;
-
-    EncodeStatusReadParams params;
-    MOS_ZeroMemory(&params, sizeof(params));
-
-    ENCODE_CHK_STATUS_RETURN(statusReport->GetAddress(encode::statusReportMfxBitstreamByteCountPerFrame, osResource, offset));
-    params.resBitstreamByteCountPerFrame    = osResource;
-    params.bitstreamByteCountPerFrameOffset = offset;
-
-    ENCODE_CHK_STATUS_RETURN(statusReport->GetAddress(encode::statusReportQPStatusCount, osResource, offset));
-    params.resQpStatusCount    = osResource;
-    params.qpStatusCountOffset = offset;
-
-    ENCODE_CHK_STATUS_RETURN(statusReport->GetAddress(encode::statusReportImageStatusMask, osResource, offset));
-    params.resImageStatusMask    = osResource;
-    params.imageStatusMaskOffset = offset;
-
-    ENCODE_CHK_STATUS_RETURN(statusReport->GetAddress(encode::statusReportImageStatusCtrl, osResource, offset));
-    params.resImageStatusCtrl    = osResource;
-    params.imageStatusCtrlOffset = offset;
-
-    return eStatus;
-}
 
 MHW_SETPAR_DECL_SRC(AVP_PIC_STATE, Av1VdencPktXe_Lpm_Plus_Base)
 {

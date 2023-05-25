@@ -101,8 +101,71 @@ namespace encode{
     MOS_STATUS Av1VdencPkt::ReadAvpStatus(MHW_VDBOX_NODE_IND vdboxIndex, MediaStatusReport *statusReport, MOS_COMMAND_BUFFER &cmdBuffer)
     {
         ENCODE_FUNC_CALL();
+        MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
         CODEC_HW_FUNCTION_ENTER;
+
+        ENCODE_CHK_NULL_RETURN(statusReport);
+        ENCODE_CHK_NULL_RETURN(m_hwInterface);
+
+        MOS_RESOURCE *osResource = nullptr;
+        uint32_t      offset     = 0;
+
+        EncodeStatusReadParams params;
+        MOS_ZeroMemory(&params, sizeof(params));
+
+        ENCODE_CHK_STATUS_RETURN(statusReport->GetAddress(encode::statusReportMfxBitstreamByteCountPerFrame, osResource, offset));
+        params.resBitstreamByteCountPerFrame    = osResource;
+        params.bitstreamByteCountPerFrameOffset = offset;
+
+        ENCODE_CHK_STATUS_RETURN(statusReport->GetAddress(encode::statusReportQPStatusCount, osResource, offset));
+        params.resQpStatusCount    = osResource;
+        params.qpStatusCountOffset = offset;
+
+        ENCODE_CHK_STATUS_RETURN(statusReport->GetAddress(encode::statusReportImageStatusMask, osResource, offset));
+        params.resImageStatusMask    = osResource;
+        params.imageStatusMaskOffset = offset;
+
+        ENCODE_CHK_STATUS_RETURN(statusReport->GetAddress(encode::statusReportImageStatusCtrl, osResource, offset));
+        params.resImageStatusCtrl    = osResource;
+        params.imageStatusCtrlOffset = offset;
+
+        CODEC_HW_CHK_COND_RETURN((vdboxIndex > m_hwInterface->GetMaxVdboxIndex()), "ERROR - vdbox index exceed the maximum");
+
+        auto &flushDwParams = m_miItf->MHW_GETPAR_F(MI_FLUSH_DW)();
+        flushDwParams       = {};
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(&cmdBuffer));
+
+        ENCODE_CHK_NULL_RETURN(m_avpItf);
+        auto mmioRegisters = m_avpItf->GetMmioRegisters(vdboxIndex);
+
+        auto &miStoreRegMemParams           = m_miItf->MHW_GETPAR_F(MI_STORE_REGISTER_MEM)();
+        miStoreRegMemParams                 = {};
+        miStoreRegMemParams.presStoreBuffer = params.resBitstreamByteCountPerFrame;
+        miStoreRegMemParams.dwOffset        = params.bitstreamByteCountPerFrameOffset;
+        miStoreRegMemParams.dwRegister      = mmioRegisters->avpAv1BitstreamByteCountTileRegOffset;
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_REGISTER_MEM)(&cmdBuffer));
+
+        miStoreRegMemParams                 = {};
+        miStoreRegMemParams.presStoreBuffer = params.resQpStatusCount;
+        miStoreRegMemParams.dwOffset        = params.qpStatusCountOffset;
+        miStoreRegMemParams.dwRegister      = mmioRegisters->avpAv1QpStatusCountRegOffset;
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_REGISTER_MEM)(&cmdBuffer));
+
+        miStoreRegMemParams                 = {};
+        miStoreRegMemParams.presStoreBuffer = params.resImageStatusMask;
+        miStoreRegMemParams.dwOffset        = params.imageStatusMaskOffset;
+        miStoreRegMemParams.dwRegister      = mmioRegisters->avpAv1ImageStatusMaskRegOffset;
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_REGISTER_MEM)(&cmdBuffer));
+
+        miStoreRegMemParams                 = {};
+        miStoreRegMemParams.presStoreBuffer = params.resImageStatusCtrl;
+        miStoreRegMemParams.dwOffset        = params.imageStatusCtrlOffset;
+        miStoreRegMemParams.dwRegister      = mmioRegisters->avpAv1ImageStatusControlRegOffset;
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_REGISTER_MEM)(&cmdBuffer));
+
+        flushDwParams = {};
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(&cmdBuffer));
 
         return MOS_STATUS_SUCCESS;
     }
