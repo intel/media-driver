@@ -955,7 +955,7 @@ MHW_SETPAR_DECL_SRC(AVP_PIC_STATE, Av1BasicFeature)
     params.autoBistreamStitchingInHardware = !m_enableSWStitching && !m_dualEncEnable;
 
     // special fix to avoid zero padding for low resolution/bitrates and restore up to 20% BdRate quality
-    if ((m_av1PicParams->tile_cols * m_av1PicParams->tile_rows == 1) || m_dualEncEnable)
+    if ((m_av1PicParams->tile_cols * m_av1PicParams->tile_rows == 1) || m_dualEncEnable || m_enableSWStitching)
     {
         params.minFramSize = 0;
         params.minFramSizeUnits                = 0;
