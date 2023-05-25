@@ -1966,7 +1966,7 @@ VAStatus MediaLibvaUtilNext::GetSurfaceModifier(
             if (mediaCtx->m_auxTableMgr && bMmcEnabled)
             {
                 modifier = gmmFlags.Info.MediaCompressed ? I915_FORMAT_MOD_Y_TILED_GEN12_MC_CCS :
--                 (gmmFlags.Info.RenderCompressed ? I915_FORMAT_MOD_Y_TILED_GEN12_RC_CCS : I915_FORMAT_MOD_Y_TILED);
+                    (gmmFlags.Info.RenderCompressed ? I915_FORMAT_MOD_Y_TILED_GEN12_RC_CCS : I915_FORMAT_MOD_Y_TILED);
             }
             else
             {
@@ -1984,7 +1984,7 @@ VAStatus MediaLibvaUtilNext::GetSurfaceModifier(
             if(I915_TILING_Y == mediaSurface->TileType)
             {
                 modifier = gmmFlags.Info.MediaCompressed ? I915_FORMAT_MOD_Y_TILED_GEN12_MC_CCS :
--                 (gmmFlags.Info.RenderCompressed ? I915_FORMAT_MOD_Y_TILED_GEN12_RC_CCS : I915_FORMAT_MOD_Y_TILED);
+                    (gmmFlags.Info.RenderCompressed ? I915_FORMAT_MOD_Y_TILED_GEN12_RC_CCS : I915_FORMAT_MOD_Y_TILED);
             }
             else
             {
