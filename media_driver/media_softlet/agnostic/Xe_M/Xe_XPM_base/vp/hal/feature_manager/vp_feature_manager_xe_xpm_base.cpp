@@ -204,6 +204,10 @@ MOS_STATUS VPFeatureManagerXe_Xpm_Base::CheckFeatures(void * params, bool &bApgF
         {
             VP_PUBLIC_NORMALMESSAGE("If HDR case, still go to APG path, not need change to Composition");
         }
+        else if (IS_COLOR_SPACE_BT2020_YUV(pvpParams->pSrc[0]->ColorSpace) && IS_COLOR_SPACE_BT2020_YUV(pvpParams->pTarget[0]->ColorSpace))
+        {
+            VP_PUBLIC_NORMALMESSAGE("If input color space is BT2020 and output color space is BT2020_FullRange, go to APG path.");
+        }
         else
         {
             VP_PUBLIC_NORMALMESSAGE("DDI choose to use Composition, change to Composition.");

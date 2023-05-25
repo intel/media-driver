@@ -803,7 +803,7 @@ void KernelDll_3x3MatrixProduct(
 | Return    : true if success else false
 \---------------------------------------------------------------------------*/
 bool KernelDll_CalcYuvToYuvMatrix(
-    Kdll_CSpace src,    // [in] RGB Color space
+    Kdll_CSpace src,    // [in] YUV Color space
     Kdll_CSpace dst,    // [in] YUV Color space
     float *     pOutMatrix)  // [out] Conversion matrix (3x4)
 {
@@ -818,6 +818,21 @@ bool KernelDll_CalcYuvToYuvMatrix(
     {
         res = KernelDll_CalcYuvToRgbMatrix(src, CSpace_sRGB, (float *)g_cCSC_BT601_YUV_RGB, fYuvToRgb);
     }
+    else if(IS_COLOR_SPACE_BT2020_YUV(src))
+    {
+        switch (src)
+        {
+            case CSpace_BT2020:
+                res = KernelDll_CalcYuvToRgbMatrix(CSpace_BT2020, CSpace_sRGB, (float *)g_cCSC_BT2020_LimitedYUV_RGB, fYuvToRgb);
+                break;
+            case CSpace_BT2020_FullRange:
+                res = KernelDll_CalcYuvToRgbMatrix(CSpace_BT2020_FullRange, CSpace_sRGB, (float *)g_cCSC_BT2020_YUV_RGB, fYuvToRgb);
+                break;
+            default:
+                res = false;
+                break;
+        }
+    }
     else
     {
         res = KernelDll_CalcYuvToRgbMatrix(src, CSpace_sRGB, (float *)g_cCSC_BT709_YUV_RGB, fYuvToRgb);
@@ -831,6 +846,21 @@ bool KernelDll_CalcYuvToYuvMatrix(
     if (IS_BT601_CSPACE(dst))
     {
         res = KernelDll_CalcRgbToYuvMatrix(CSpace_sRGB, dst, (float *)g_cCSC_BT601_RGB_YUV, fRgbToYuv);
+    }
+    else if (IS_COLOR_SPACE_BT2020_YUV(dst))
+    {
+        switch (dst)
+        {
+            case CSpace_BT2020_FullRange:
+                res = KernelDll_CalcRgbToYuvMatrix(CSpace_sRGB, dst, (float *)g_cCSC_BT2020_RGB_YUV, fRgbToYuv);
+                break;
+            case CSpace_BT2020:
+                res = KernelDll_CalcRgbToYuvMatrix(CSpace_sRGB, dst, (float *)g_cCSC_BT2020_RGB_LimitedYUV, fRgbToYuv);
+                break;
+            default:
+                res = false;
+                break;
+        }
     }
     else
     {
@@ -973,6 +1003,10 @@ void KernelDll_GetCSCMatrix(
             {
                 MOS_SecureMemcpy(pCSC_Matrix, sizeof(g_cCSC_BT2020stRGB_BT2020RGB), (void *)g_cCSC_BT2020stRGB_BT2020RGB, sizeof(g_cCSC_BT2020stRGB_BT2020RGB));
             }
+        }
+        else if (KernelDll_IsCspace(temp, CSpace_BT2020))  // BT2020 limited_YUV to BT2020_FullRange_YUV conversions
+        {
+            KernelDll_CalcYuvToYuvMatrix(temp, dst, pCSC_Matrix);
         }
         else
         {

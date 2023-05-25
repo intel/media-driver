@@ -253,6 +253,22 @@ const float g_cCSC_BT2020_YUV_RGB[9] =
         0.000000f  //B
 };
 
+// BT2020 YUV Limited Range to BT2020 RGB full range conversion matrix
+const float g_cCSC_BT2020_LimitedYUV_RGB[9] =
+{
+    1.164383f,  0.000000f,  1.678680f,    // R
+    1.164383f, -0.187332f, -0.650421f,    // G
+    1.164383f,  2.141769f,  0.000000f     // B
+};
+
+// BT2020 RGB full range to BT2020 YUV Limited Range tconversion matrix
+const float g_cCSC_BT2020_RGB_LimitedYUV[9] =
+{
+    0.225617f,   0.582275f,  0.050934f,  // Y
+    -0.122650f, -0.316559f,  0.439209f,  // U
+    0.439209f,  -0.403885f, -0.035324f   // V
+};
+
 // Layer definition
 typedef enum _KDLL_LAYER
 {
