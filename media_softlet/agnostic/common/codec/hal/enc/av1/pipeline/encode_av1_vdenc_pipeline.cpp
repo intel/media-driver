@@ -179,11 +179,13 @@ MOS_STATUS Av1VdencPipeline::SwitchContext(uint8_t outputChromaFormat, uint16_t 
     {
         m_scalPars->numVdbox = m_numVdbox;
         m_scalPars->forceMultiPipe = true;
+        m_scalPars->allowSwArbitarySplit = true;
     }
     else
     {
         m_scalPars->numVdbox = 1;
         m_scalPars->forceMultiPipe = false;
+        m_scalPars->allowSwArbitarySplit = false;
     }
 
     m_scalPars->outputChromaFormat = outputChromaFormat;
