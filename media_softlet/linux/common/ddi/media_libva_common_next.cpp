@@ -61,11 +61,6 @@ void MediaLibvaCommonNext::MediaSurfaceToMosResource(DDI_MEDIA_SURFACE *mediaSur
     DDI_CHK_NULL(mediaSurface, "nullptr mediaSurface",);
     DDI_CHK_NULL(mosResource,  "nullptr mosResource",);
 
-    if (nullptr == mosResource->bo)
-    {
-        DDI_ASSERTMESSAGE("nullptr mosResource->bo");
-    }
-
     MosInterface::ConvertResourceFromDdi(mediaSurface, mosResource, OS_SPECIFIC_RESOURCE_SURFACE, 0);
 
     Mos_Solo_SetOsResource(mediaSurface->pGmmResourceInfo, mosResource);
