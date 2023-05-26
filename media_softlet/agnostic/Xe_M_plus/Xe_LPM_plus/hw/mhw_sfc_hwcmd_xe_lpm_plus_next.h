@@ -2728,10 +2728,10 @@ public:
 
             DW27.Value                                       = 0x00000000;
 
-            DW28.Value                                       = 0x00001000;
+            DW28.Value                                       = 0x00000000;
             //DW28.SfdLineBufferBaseAddressMemoryCompressionEnable = SFD_LINE_BUFFER_BASE_ADDRESS_MEMORY_COMPRESSION_ENABLE_DISABLE;
             //DW28.SfdLineBufferBaseAddressMemoryCompressionMode = SFD_LINE_BUFFER_BASE_ADDRESS_MEMORY_COMPRESSION_MODE_UNNAMED0;
-            //DW28.SfdLineBufferBaseAddressRowStoreScratchBufferCacheSelect = SFD_LINE_BUFFER_BASE_ADDRESS_ROW_STORE_SCRATCH_BUFFER_CACHE_SELECT_MEDIASTORAGE;
+            //DW28.SfdLineBufferBaseAddressRowStoreScratchBufferCacheSelect = SFD_LINE_BUFFER_BASE_ADDRESS_ROW_STORE_SCRATCH_BUFFER_CACHE_SELECT_LLC;
 
             DW29.Value                                       = 0x00000000;
             //DW29.TiledMode                                   = TILED_MODE_LINEAR;
