@@ -1387,7 +1387,17 @@ VAStatus DdiEncodeAvc::ParsePicParams(
 
     current_pic_parameter_set_id = pic->pic_parameter_set_id;
     current_seq_parameter_set_id = pic->seq_parameter_set_id;
+    //save ucMinimumQP and ucMaximumQP
+    uint8_t ucMinQP = picParams->ucMinimumQP, ucMaxQP = picParams->ucMaximumQP;
     MOS_ZeroMemory(picParams, sizeof(CODEC_AVC_ENCODE_PIC_PARAMS));
+    if(ucMinQP || ucMaxQP)
+    {
+        if (ucMaxQP == 0 && ucMinQP)
+            ucMaxQP = 51;
+        picParams->ucMinimumQP = ucMinQP;
+        picParams->ucMaximumQP = ucMaxQP;
+    }
+
 
     PCODEC_AVC_ENCODE_SEQUENCE_PARAMS seqParams = (PCODEC_AVC_ENCODE_SEQUENCE_PARAMS)((uint8_t *)m_encodeCtx->pSeqParams + pic->seq_parameter_set_id * sizeof(CODEC_AVC_ENCODE_SEQUENCE_PARAMS));
     if ((pic->seq_parameter_set_id >= CODEC_AVC_MAX_SPS_NUM) ||
