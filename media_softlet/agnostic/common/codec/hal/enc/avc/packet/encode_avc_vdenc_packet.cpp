@@ -333,10 +333,11 @@ namespace encode {
 
         if (m_pipeline->GetCurrentPass())
         {
-            if (m_osInterface->bInlineCodecStatusUpdate && brcFeature->IsVdencBrcEnabled())
+            if ((Mos_Solo_Extension((MOS_CONTEXT_HANDLE)m_osInterface->pOsContext) || m_osInterface->bInlineCodecStatusUpdate)
+                && brcFeature->IsVdencBrcEnabled())
             {
-                // inc dwStoreData conditionaly
-                UpdateStatusReportNext(statusReportGlobalCount, &cmdBuffer);
+                // increment dwStoreData conditionaly
+                MediaPacket::UpdateStatusReportNext(statusReportGlobalCount, &cmdBuffer);
             }
 
             // Insert conditional batch buffer end
@@ -527,15 +528,12 @@ namespace encode {
 
         ENCODE_CHK_STATUS_RETURN(EndStatusReport(statusReportMfx, &cmdBuffer));
 
-        if (!m_pipeline->IsSingleTaskPhaseSupported() || m_pipeline->IsLastPass())
+        if (m_pipeline->IsLastPass() && m_pipeline->IsFirstPipe())
         {
-            ENCODE_CHK_STATUS_RETURN(UpdateStatusReportNext(statusReportGlobalCount, &cmdBuffer));
+            // increment dwStoreData conditionaly
+            MediaPacket::UpdateStatusReportNext(statusReportGlobalCount, &cmdBuffer);
 
-            CODECHAL_DEBUG_TOOL(
-                if (m_mmcState)
-                {
-                    m_mmcState->UpdateUserFeatureKey(&(m_basicFeature->m_reconSurface));
-                })
+            CODECHAL_DEBUG_TOOL(m_mmcState->UpdateUserFeatureKey(&(m_basicFeature->m_reconSurface)));
         }
 
         // Reset parameters for next PAK execution
