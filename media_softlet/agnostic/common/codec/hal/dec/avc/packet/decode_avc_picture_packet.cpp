@@ -113,7 +113,7 @@ MOS_STATUS AvcDecodePicPkt::SetRowstoreCachingOffsets()
         rowstoreParams.dwPicWidth = m_avcBasicFeature->m_width;
         rowstoreParams.bMbaff     = m_avcPicParams->seq_fields.mb_adaptive_frame_field_flag;
         rowstoreParams.Mode       = CODECHAL_DECODE_MODE_AVCVLD;
-        rowstoreParams.bIsFrame   = m_avcPicParams->seq_fields.frame_mbs_only_flag;
+        rowstoreParams.bIsFrame   = !m_avcPicParams->pic_fields.field_pic_flag;
         DECODE_CHK_STATUS(m_mfxItf->GetRowstoreCachingAddrs(&rowstoreParams));
     }
 
