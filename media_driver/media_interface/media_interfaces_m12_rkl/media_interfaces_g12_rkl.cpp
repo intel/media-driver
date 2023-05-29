@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2020, Intel Corporation
+* Copyright (c) 2011-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -69,6 +69,10 @@ static bool rklRegisteredRenderHal =
 static bool rklRegisteredDecodeHistogram =
     MediaFactory<uint32_t, DecodeHistogramDevice>::
     Register<DecodeHistogramDeviceG12Tgllp>((uint32_t)IGFX_ROCKETLAKE);
+
+static bool rklRegisteredHwInfo =
+    MediaFactory<uint32_t, MediaInterfacesHwInfoDevice>::
+    Register<MediaInterfacesHwInfoDeviceG12Tgllp>((uint32_t)IGFX_ROCKETLAKE);
 
 MOS_STATUS CMHalInterfacesG12Rkl::Initialize(CM_HAL_STATE *pCmState)
 {
