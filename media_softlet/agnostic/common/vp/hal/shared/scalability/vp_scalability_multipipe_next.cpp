@@ -152,13 +152,15 @@ MOS_STATUS VpScalabilityMultiPipeNext::Initialize(const MediaScalabilityOption &
     veInitParms.ucMaxNumPipesInUse             = vpScalabilityOption->GetMaxMultiPipeNum();
     veInitParms.ucMaxNumOfSdryCmdBufInOneFrame = veInitParms.ucMaxNumPipesInUse;
 
-    SCALABILITY_CHK_NULL_RETURN(m_osInterface->osStreamState);
-    m_osInterface->osStreamState->component = COMPONENT_VPCommon;
-
-    SCALABILITY_CHK_STATUS_RETURN(m_osInterface->pfnVirtualEngineInit(m_osInterface, &m_veHitParams, veInitParms));
-    m_veState = m_osInterface->osStreamState->virtualEngineInterface;
-    SCALABILITY_CHK_NULL_RETURN(m_veState);
-    SCALABILITY_CHK_NULL_RETURN(m_veHitParams);
+    if (m_osInterface->apoMosEnabled)
+    {
+        SCALABILITY_CHK_NULL_RETURN(m_osInterface->osStreamState);
+        m_osInterface->osStreamState->component = COMPONENT_VPCommon;
+        SCALABILITY_CHK_STATUS_RETURN(m_osInterface->pfnVirtualEngineInit(m_osInterface, &m_veHitParams, veInitParms));
+        m_veState = m_osInterface->osStreamState->virtualEngineInterface;
+        SCALABILITY_CHK_NULL_RETURN(m_veState);
+        SCALABILITY_CHK_NULL_RETURN(m_veHitParams);
+    }
 
     m_pipeNum = m_scalabilityOption->GetNumPipe();
     m_pipeIndexForSubmit = m_pipeNum;
