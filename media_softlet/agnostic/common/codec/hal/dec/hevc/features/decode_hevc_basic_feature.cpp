@@ -184,7 +184,7 @@ MOS_STATUS HevcBasicFeature::ErrorDetectAndConceal()
     if (m_hevcPicParams->diff_cu_qp_delta_depth > m_hevcPicParams->log2_diff_max_min_luma_coding_block_size)
     {
         DECODE_ASSERTMESSAGE("diff_cu_qp_delta_depth %d is invalid\n", m_hevcPicParams->diff_cu_qp_delta_depth);
-        return MOS_STATUS_INVALID_PARAMETER;
+        m_hevcPicParams->diff_cu_qp_delta_depth = 0;
     }
 
     // cb_qp_offset range is [-12, 12]
