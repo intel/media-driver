@@ -230,16 +230,28 @@ namespace decode {
                 PCODEC_AVC_SLICE_PARAMS slc = m_avcSliceParams + slcIdx;
                 if(m_avcPicParams->pic_fields.field_pic_flag == 0)
                 {
-                    if (slc->num_ref_idx_l0_active_minus1 > 15 || slc->num_ref_idx_l1_active_minus1 > 15)
+                    if (slc->num_ref_idx_l0_active_minus1 > 15)
                     {
-                        return MOS_STATUS_INVALID_PARAMETER;
+                        slc->num_ref_idx_l0_active_minus1 = 0;
+                        DECODE_ASSERTMESSAGE("Conflict with H264 Spec! num_ref_idx_l0_active_minus1 is out of range");
+                    }
+                    if (slc->num_ref_idx_l1_active_minus1 > 15)
+                    {
+                        slc->num_ref_idx_l1_active_minus1 = 0;
+                        DECODE_ASSERTMESSAGE("Conflict with H264 Spec! num_ref_idx_l1_active_minus1 is out of range");
                     }
                 }
                 else if(m_avcPicParams->pic_fields.field_pic_flag == 1)
                 {
-                    if (slc->num_ref_idx_l0_active_minus1 > 31 || slc->num_ref_idx_l1_active_minus1 > 31)
+                    if (slc->num_ref_idx_l0_active_minus1 > 31)
                     {
-                        return MOS_STATUS_INVALID_PARAMETER;
+                        slc->num_ref_idx_l0_active_minus1 = 0;
+                        DECODE_ASSERTMESSAGE("Conflict with H264 Spec! num_ref_idx_l0_active_minus1 is out of range");
+                    }
+                    if (slc->num_ref_idx_l1_active_minus1 > 31)
+                    {
+                        slc->num_ref_idx_l1_active_minus1 = 0;
+                        DECODE_ASSERTMESSAGE("Conflict with H264 Spec! num_ref_idx_l1_active_minus1 is out of range");
                     }
                 }
             }
