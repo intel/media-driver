@@ -521,6 +521,8 @@ static bool InitAdlsMediaSku(struct GfxDeviceInfo *devInfo,
     }
 
     MEDIA_WR_SKU(skuTable, FtrAV1VLDLSTDecoding, 1);
+    
+    MEDIA_WR_SKU(skuTable, FtrHeight8AlignVE3DLUTDualPipe, 1);
 
     //Disable VP8 for ADLS
     MEDIA_WR_SKU(skuTable, FtrIntelVP8VLDDecoding, 0);
