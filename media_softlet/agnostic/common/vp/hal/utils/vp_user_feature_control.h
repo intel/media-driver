@@ -84,7 +84,8 @@ public:
         return m_ctrlVal.enabledSFCRGBPRGB24Output;
     }
 
-    bool EnableIFNCC() {
+    bool EnableIFNCC() 
+    {
         return m_ctrlVal.enableIFNCC;
     }
 #endif

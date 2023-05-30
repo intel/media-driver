@@ -1981,6 +1981,20 @@ public:
         MOS_STREAM_HANDLE streamState,
         uint32_t instanceIdx);
 
+    //!
+    //! \brief    Set Gpu Virtual Address for Debug
+    //! \details  Manually make page fault
+    //!
+    //! \param    [in] pResource
+    //!           Resource to set Gpu Address
+    //! \param    [in] address
+    //!           Address to set
+    //! \return   MOS_STATUS
+    //!
+    static MOS_STATUS SetGpuVirtualAddress(
+        PMOS_RESOURCE pResource, 
+        uint64_t      address);
+
 #endif // _DEBUG || _RELEASE_INTERNAL
 
     //!

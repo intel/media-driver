@@ -2851,6 +2851,13 @@ uint8_t MosInterface::GetEngineLogicId(
         streamState->virtualEngineInterface->GetEngineLogicId(instanceIdx) : 0;
 }
 
+MOS_STATUS MosInterface::SetGpuVirtualAddress(
+    PMOS_RESOURCE          pResource,
+    uint64_t               address)
+{
+    return MOS_STATUS_SUCCESS;
+}
+
 #endif  // _DEBUG || _RELEASE_INTERNAL
 MOS_STATUS MosInterface::ComposeCommandBufferHeader(
     MOS_STREAM_HANDLE     streamState,

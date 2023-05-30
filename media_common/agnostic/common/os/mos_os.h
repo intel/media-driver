@@ -1683,6 +1683,20 @@ typedef struct _MOS_INTERFACE
     uint8_t (*pfnGetEngineLogicIdByIdx)(
         MOS_STREAM_HANDLE           streamState,
         uint32_t                    instanceIdx);
+
+    //!
+    //! \brief    Set Gpu Virtual Address for Debug
+    //! \details  Manually make page fault
+    //!
+    //! \param    [in] pResource
+    //!           Resource to set Gpu Address
+    //! \param    [in] address
+    //!           Address to set
+    //! \return   MOS_STATUS
+    //!
+    MOS_STATUS (*pfnSetGpuVirtualAddress)(
+        PMOS_RESOURCE               pResource,
+        uint64_t                    address);
 #endif
 
 #if MOS_MEDIASOLO_SUPPORTED
@@ -2543,6 +2557,20 @@ uint8_t Mos_GetVeEngineCount(
 uint8_t Mos_GetEngineLogicId(
     MOS_STREAM_HANDLE       streamState,
     uint32_t                instanceIdx);
+
+//!
+//! \brief    Set Gpu Virtual Address for Debug
+//! \details  Manually make page fault
+//!
+//! \param    [in] pResource
+//!           Resource to set Gpu Address
+//! \param    [in] address
+//!           Address to set
+//! \return   MOS_STATUS
+//!
+MOS_STATUS MOS_SetGpuVirtualAddress(
+    PMOS_RESOURCE pResource, 
+    uint64_t      address);
 
 #endif
 

@@ -670,6 +670,7 @@ MOS_STATUS Mos_InitOsInterface(
 #if (_DEBUG || _RELEASE_INTERNAL)
     pOsInterface->pfnGetVeEngineCount                   = Mos_GetVeEngineCount;
     pOsInterface->pfnGetEngineLogicIdByIdx              = Mos_GetEngineLogicId;
+    pOsInterface->pfnSetGpuVirtualAddress               = MOS_SetGpuVirtualAddress;
 #endif
 
     pOsInterface->Component                 = component;
@@ -1146,6 +1147,14 @@ uint8_t Mos_GetEngineLogicId(
 {
     return MosInterface::GetEngineLogicId(streamState, instanceIdx);
 }
+
+MOS_STATUS MOS_SetGpuVirtualAddress(
+    PMOS_RESOURCE          pResource,
+    uint64_t               address)
+{
+    return MosInterface::SetGpuVirtualAddress(pResource, address);
+}
+
 #endif
 
 void *MosStreamState::pvSoloContext = nullptr; 
