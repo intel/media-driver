@@ -248,16 +248,6 @@ VAStatus DdiEncodeAvc::ParseMiscParamRC(void *data)
         seqParams->MaxBitRate = seqParams->TargetBitRate;
         seqParams->MinBitRate = seqParams->TargetBitRate;
         vuiParam->cbr_flag    = 0x1;
-        if (m_encodeCtx->uiTargetBitRate != seqParams->TargetBitRate)
-        {
-            if (m_encodeCtx->uiTargetBitRate)
-            {
-                seqParams->bResetBRC = 0x1;
-                m_encodeCtx->bNewSeq = true;
-            }
-            m_encodeCtx->uiTargetBitRate = seqParams->TargetBitRate;
-            m_encodeCtx->uiMaxBitRate    = seqParams->TargetBitRate;
-        }
     }
     else if (VA_RC_ICQ == m_encodeCtx->uiRCMethod)
     {
@@ -279,19 +269,12 @@ VAStatus DdiEncodeAvc::ParseMiscParamRC(void *data)
         {
             seqParams->ICQQualityFactor = encMiscParamRC->quality_factor;
         }
-
-        if ((m_encodeCtx->uiTargetBitRate != seqParams->TargetBitRate) ||
-            (m_encodeCtx->uiMaxBitRate != seqParams->MaxBitRate))
-        {
-            if ((m_encodeCtx->uiTargetBitRate != 0) && (m_encodeCtx->uiMaxBitRate != 0))
-            {
-                seqParams->bResetBRC = 0x1;
-                m_encodeCtx->bNewSeq = true;
-            }
-            m_encodeCtx->uiTargetBitRate = seqParams->TargetBitRate;
-            m_encodeCtx->uiMaxBitRate    = seqParams->MaxBitRate;
-        }
     }
+
+    seqParams->bResetBRC = encMiscParamRC->rc_flags.bits.reset;
+    if (seqParams->bResetBRC)
+        m_encodeCtx->bNewSeq = true;
+
     //if RateControl method is VBR/CBR, we can set MBBRC to enable or disable
     if (VA_RC_CQP != m_encodeCtx->uiRCMethod)
     {
