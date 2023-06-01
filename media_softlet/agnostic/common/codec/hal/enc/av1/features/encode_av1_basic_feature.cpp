@@ -1020,7 +1020,6 @@ MHW_SETPAR_DECL_SRC(AVP_INLOOP_FILTER_STATE, Av1BasicFeature)
 MHW_SETPAR_DECL_SRC(AVP_PIPE_BUF_ADDR_STATE, Av1BasicFeature)
 {
     params.bsLineRowstoreBuffer            = m_bitstreamDecoderEncoderLineRowstoreReadWriteBuffer;
-    params.bsTileLineRowstoreBuffer        = m_bitstreamDecoderEncoderTileLineRowstoreReadWriteBuffer;
     params.intraPredLineRowstoreBuffer     = m_resMfdIntraRowStoreScratchBuffer;
     params.intraPredTileLineRowstoreBuffer = m_intraPredictionTileLineRowstoreReadWriteBuffer;
     params.spatialMVLineBuffer             = m_spatialMotionVectorLineReadWriteBuffer;
@@ -1036,18 +1035,6 @@ MHW_SETPAR_DECL_SRC(AVP_PIPE_BUF_ADDR_STATE, Av1BasicFeature)
     params.deblockLineYBuffer              = m_deblockerFilterLineReadWriteYBuffer;
     params.deblockLineUBuffer              = m_deblockerFilterLineReadWriteUBuffer;
     params.deblockLineVBuffer              = m_deblockerFilterLineReadWriteVBuffer;
-    params.deblockTileLineYBuffer          = m_deblockerFilterTileLineReadWriteYBuffer;
-    params.deblockTileLineUBuffer          = m_deblockerFilterTileLineReadWriteUBuffer;
-    params.deblockTileLineVBuffer          = m_deblockerFilterTileLineReadWriteVBuffer;
-    params.deblockTileColumnYBuffer        = m_deblockerFilterTileColumnReadWriteYBuffer;
-    params.deblockTileColumnUBuffer        = m_deblockerFilterTileColumnReadWriteUBuffer;
-    params.deblockTileColumnVBuffer        = m_deblockerFilterTileColumnReadWriteVBuffer;
-    params.cdefLineBuffer                  = m_cdefFilterLineReadWriteBuffer;
-    params.cdefTileLineBuffer              = m_cdefFilterTileLineReadWriteBuffer;
-    params.cdefTileColumnBuffer            = m_cdefFilterTileColumnReadWriteBuffer;
-    params.cdefMetaTileLineBuffer          = m_cdefFilterMetaTileLineReadWriteBuffer;
-    params.cdefMetaTileColumnBuffer        = m_cdefFilterMetaTileColumnReadWriteBuffer;
-    params.cdefTopLeftCornerBuffer         = m_cdefFilterTopLeftCornerReadWriteBuffer;
     params.superResTileColumnYBuffer       = m_superResTileColumnReadWriteYBuffer;
     params.superResTileColumnUBuffer       = m_superResTileColumnReadWriteUBuffer;
     params.superResTileColumnVBuffer       = m_superResTileColumnReadWriteVBuffer;

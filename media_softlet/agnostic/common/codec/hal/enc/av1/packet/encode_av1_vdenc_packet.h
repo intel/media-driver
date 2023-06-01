@@ -311,6 +311,8 @@ protected:
 
     MHW_SETPAR_DECL_HDR(AVP_PIPE_MODE_SELECT);
 
+    MHW_SETPAR_DECL_HDR(AVP_PIPE_BUF_ADDR_STATE);
+
     virtual MOS_STATUS AddAllCmds_AVP_SURFACE_STATE(PMOS_COMMAND_BUFFER cmdBuffer) const;
 
     virtual MOS_STATUS GetVdencStateCommandsDataSize(uint32_t *commandsSize, uint32_t *patchListSize) const;

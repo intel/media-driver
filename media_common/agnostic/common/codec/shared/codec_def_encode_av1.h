@@ -435,6 +435,7 @@ typedef struct _CODEC_AV1_ENCODE_PACKEDHEADER_DATA
 #define MAX_TLEVEL  16
 #define AV1_NUM_OF_REF_LF_DELTAS 8
 #define AV1_NUM_OF_MODE_LF_DELTAS 2
+#define AV1_NUM_OF_DUAL_CTX 2
 struct EncodeAv1Par
 {
 

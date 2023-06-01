@@ -47,6 +47,8 @@ public:
 
     virtual MOS_STATUS Prepare(void *params) override;
 
+    virtual bool IsDualEncEnabled() {return m_dualEncEnable;}
+
     enum Av1PacketIds
     {
         Av1HucBrcInit = CONSTRUCTPACKETID(PACKET_COMPONENT_ENCODE, PACKET_SUBCOMPONENT_AV1, 0),

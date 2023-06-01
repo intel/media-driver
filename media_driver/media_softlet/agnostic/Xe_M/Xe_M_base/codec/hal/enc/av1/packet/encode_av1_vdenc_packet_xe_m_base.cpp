@@ -106,15 +106,6 @@ namespace encode
             m_basicFeature->m_bitstreamDecoderEncoderLineRowstoreReadWriteBuffer = m_allocator->AllocateResource(allocParams, false);
         }
 
-        // Bistream decode Tile Line rowstore buffer
-        if (!m_avpItf->IsBufferRowstoreCacheEnabled(mhw::vdbox::avp::bsdTileLineBuffer))
-        {
-            ENCODE_CHK_STATUS_RETURN(m_avpItf->GetAvpBufSize(mhw::vdbox::avp::bsdTileLineBuffer, &avpBufSizeParam));
-            allocParams.dwBytes                                      = avpBufSizeParam.bufferSize;
-            allocParams.pBufName                                     = "Bitstream Decoder Encoder Tile Line Rowstore Read Write buffer";
-            m_basicFeature->m_bitstreamDecoderEncoderTileLineRowstoreReadWriteBuffer = m_allocator->AllocateResource(allocParams, false);
-        }
-
         // Intra Prediction Tile Line Rowstore Read/Write Buffer
         ENCODE_CHK_STATUS_RETURN(m_avpItf->GetAvpBufSize(mhw::vdbox::avp::intraPredLineBuffer, &avpBufSizeParam));
         allocParams.dwBytes = avpBufSizeParam.bufferSize;
@@ -162,78 +153,6 @@ namespace encode
             allocParams.pBufName = "Deblocker Filter Line Read Write V Buffer";
             m_basicFeature->m_deblockerFilterLineReadWriteVBuffer = m_allocator->AllocateResource(allocParams, false);
         }
-
-        // Deblocker Filter Tile Line Read/Write Y Buffer
-        ENCODE_CHK_STATUS_RETURN(m_avpItf->GetAvpBufSize(mhw::vdbox::avp::deblockTileLineYBuffer, &avpBufSizeParam));
-        allocParams.dwBytes = avpBufSizeParam.bufferSize;
-        allocParams.pBufName = "Deblocker Filter Tile Line Read Write Y Buffer";
-        m_basicFeature->m_deblockerFilterTileLineReadWriteYBuffer = m_allocator->AllocateResource(allocParams, false);
-
-        // Deblocker Filter Tile Line Read/Write U Buffer
-        ENCODE_CHK_STATUS_RETURN(m_avpItf->GetAvpBufSize(mhw::vdbox::avp::deblockTileLineUBuffer, &avpBufSizeParam));
-        allocParams.dwBytes = avpBufSizeParam.bufferSize;
-        allocParams.pBufName = "Deblocker Filter Tile Line Read Write U Buffer";
-        m_basicFeature->m_deblockerFilterTileLineReadWriteUBuffer = m_allocator->AllocateResource(allocParams, false);
-
-        // Deblocker Filter Tile Line Read/Write V Buffer
-        ENCODE_CHK_STATUS_RETURN(m_avpItf->GetAvpBufSize(mhw::vdbox::avp::deblockTileLineVBuffer, &avpBufSizeParam));
-        allocParams.dwBytes = avpBufSizeParam.bufferSize;
-        allocParams.pBufName = "Deblocker Filter Tile Line Read Write V Buffer";
-        m_basicFeature->m_deblockerFilterTileLineReadWriteVBuffer = m_allocator->AllocateResource(allocParams, false);
-
-        // Deblocker Filter Tile Column Read/Write Y Buffer
-        ENCODE_CHK_STATUS_RETURN(m_avpItf->GetAvpBufSize(mhw::vdbox::avp::deblockTileColYBuffer, &avpBufSizeParam));
-        allocParams.dwBytes = avpBufSizeParam.bufferSize;
-        allocParams.pBufName = "Deblocker Filter Tile Column Read Write Y Buffer";
-        m_basicFeature->m_deblockerFilterTileColumnReadWriteYBuffer = m_allocator->AllocateResource(allocParams, false);
-
-        // Deblocker Filter Tile Column Read/Write U Buffer
-        ENCODE_CHK_STATUS_RETURN(m_avpItf->GetAvpBufSize(mhw::vdbox::avp::deblockTileColUBuffer, &avpBufSizeParam));
-        allocParams.dwBytes = avpBufSizeParam.bufferSize;
-        allocParams.pBufName = "Deblocker Filter Tile Column Read Write U Buffer";
-        m_basicFeature->m_deblockerFilterTileColumnReadWriteUBuffer = m_allocator->AllocateResource(allocParams, false);
-
-        // Deblocker Filter Tile Column Read/Write V Buffer
-        ENCODE_CHK_STATUS_RETURN(m_avpItf->GetAvpBufSize(mhw::vdbox::avp::deblockTileColVBuffer, &avpBufSizeParam));
-        allocParams.dwBytes = avpBufSizeParam.bufferSize;
-        allocParams.pBufName = "Deblocker Filter Tile Column Read Write V Buffer";
-        m_basicFeature->m_deblockerFilterTileColumnReadWriteVBuffer = m_allocator->AllocateResource(allocParams, false);
-
-        // CDEF Filter Line Read/Write Buffer
-        ENCODE_CHK_STATUS_RETURN(m_avpItf->GetAvpBufSize(mhw::vdbox::avp::cdefLineBuffer, &avpBufSizeParam));
-        allocParams.dwBytes = avpBufSizeParam.bufferSize;
-        allocParams.pBufName = "CDEF Filter Line Read Write Buffer";
-        m_basicFeature->m_cdefFilterLineReadWriteBuffer = m_allocator->AllocateResource(allocParams, false);
-
-        // CDEF Filter Tile Line Read/Write Buffer
-        ENCODE_CHK_STATUS_RETURN(m_avpItf->GetAvpBufSize(mhw::vdbox::avp::cdefTileLineBuffer, &avpBufSizeParam));
-        allocParams.dwBytes = avpBufSizeParam.bufferSize;
-        allocParams.pBufName = "CDEF Filter Tile Line Read Write Buffer";
-        m_basicFeature->m_cdefFilterTileLineReadWriteBuffer = m_allocator->AllocateResource(allocParams, false);
-
-        // CDEF Filter Tile Column Read/Write Buffer
-        ENCODE_CHK_STATUS_RETURN(m_avpItf->GetAvpBufSize(mhw::vdbox::avp::cdefTileColBuffer, &avpBufSizeParam));
-        allocParams.dwBytes = avpBufSizeParam.bufferSize;
-        allocParams.pBufName = "CDEF Filter Tile Column Read Write Buffer";
-        m_basicFeature->m_cdefFilterTileColumnReadWriteBuffer = m_allocator->AllocateResource(allocParams, false);
-
-        // CDEF Filter Meta Tile Line Read Write Buffer
-        ENCODE_CHK_STATUS_RETURN(m_avpItf->GetAvpBufSize(mhw::vdbox::avp::cdefMetaTileLineBuffer, &avpBufSizeParam));
-        allocParams.dwBytes = avpBufSizeParam.bufferSize;
-        allocParams.pBufName = "CDEF Filter Meta Tile Line Read Write Buffer";
-        m_basicFeature->m_cdefFilterMetaTileLineReadWriteBuffer = m_allocator->AllocateResource(allocParams, false);
-
-        // CDEF Filter Meta Tile Column Read Write Buffer
-        ENCODE_CHK_STATUS_RETURN(m_avpItf->GetAvpBufSize(mhw::vdbox::avp::cdefMetaTileColBuffer, &avpBufSizeParam));
-        allocParams.dwBytes = avpBufSizeParam.bufferSize;
-        allocParams.pBufName = "CDEF Filter Meta Tile Column Read Write Buffer";
-        m_basicFeature->m_cdefFilterMetaTileColumnReadWriteBuffer = m_allocator->AllocateResource(allocParams, false);
-
-        // CDEF Filter Top Left Corner Read Write Buffer
-        ENCODE_CHK_STATUS_RETURN(m_avpItf->GetAvpBufSize(mhw::vdbox::avp::cdefTopLeftCornerBuffer, &avpBufSizeParam));
-        allocParams.dwBytes = avpBufSizeParam.bufferSize;
-        allocParams.pBufName = "CDEF Filter Top Left Corner Read Write Buffer";
-        m_basicFeature->m_cdefFilterTopLeftCornerReadWriteBuffer = m_allocator->AllocateResource(allocParams, false);
 
         // Decoded Frame Status/Error Buffer Base Address
         ENCODE_CHK_STATUS_RETURN(m_avpItf->GetAvpBufSize(mhw::vdbox::avp::frameStatusErrBuffer, &avpBufSizeParam));
@@ -435,10 +354,6 @@ namespace encode
         ENCODE_FUNC_CALL();
 
         RUN_FEATURE_INTERFACE_RETURN(Av1EncodeTile, Av1FeatureIDs::encodeTile, SetCurrentTile, tileRow, tileCol, m_pipeline);
-        if ((m_pipeline->GetPipeNum() > 1) && (tileCol != m_pipeline->GetCurrentPipe()))
-        {
-            return MOS_STATUS_SUCCESS;
-        }
 
         // Begin patching tile level batch cmds
         MOS_COMMAND_BUFFER constructTileBatchBuf = {};
@@ -558,13 +473,16 @@ namespace encode
         // End patching tile level batch cmds
         RUN_FEATURE_INTERFACE_RETURN(Av1EncodeTile, Av1FeatureIDs::encodeTile, EndPatchTileLevelBatch);
 
-        if (m_pipeline->GetPipeNum() > 1)
+        if (tileRowPass != 1)
         {
-            ENCODE_CHK_STATUS_RETURN(ReadPakMmioRegistersAtomic(&cmdBuffer));
-        }
-        else
-        {
-            ENCODE_CHK_STATUS_RETURN(ReadPakMmioRegisters(&cmdBuffer, tileRow == 0 && tileCol == 0));
+            if (m_pipeline->GetPipeNum() > 1)
+            {
+                ENCODE_CHK_STATUS_RETURN(ReadPakMmioRegistersAtomic(&cmdBuffer));
+            }
+            else
+            {
+                ENCODE_CHK_STATUS_RETURN(ReadPakMmioRegisters(&cmdBuffer, tileRow == 0 && tileCol == 0));
+            }
         }
 
         return MOS_STATUS_SUCCESS;
@@ -611,14 +529,54 @@ namespace encode
         uint16_t numTileRows = 1;
         RUN_FEATURE_INTERFACE_RETURN(Av1EncodeTile, Av1FeatureIDs::encodeTile, GetTileRowColumns, numTileRows, numTileColumns);
 
-        for (uint32_t tileRow = 0; tileRow < numTileRows; tileRow++)
+        ENCODE_CHK_NULL_RETURN(m_pipeline);
+        ENCODE_CHK_NULL_RETURN(m_av1PicParams);
+        if (!m_pipeline->IsDualEncEnabled())
         {
-            for (uint32_t tileCol = 0; tileCol < numTileColumns; tileCol++)
+            for (uint32_t tileRow = 0; tileRow < numTileRows; tileRow++)
             {
+                for (uint32_t tileCol = 0; tileCol < numTileColumns; tileCol++)
+                {
+                    ENCODE_CHK_STATUS_RETURN(AddOneTileCommands(
+                        cmdBuffer,
+                        tileRow,
+                        tileCol));
+                }
+            }
+        }
+        else
+        {
+            if(numTileRows != 1)  // dual encode only support column based workload submission
+            {
+                ENCODE_ASSERTMESSAGE("dual encode cannot support multi rows submission yet.");
+                return MOS_STATUS_INVALID_PARAMETER;
+            }
+            uint8_t dummyIdx = 0;
+            RUN_FEATURE_INTERFACE_RETURN(Av1EncodeTile, Av1FeatureIDs::encodeTile, GetDummyIdx, dummyIdx);
+            if (m_pipeline->GetCurrentPipe() == 0)
+            {
+                for (auto i = 0; i < dummyIdx; i++)
+                {
+                    ENCODE_CHK_STATUS_RETURN(AddOneTileCommands(
+                        cmdBuffer,
+                        0,
+                        i));
+                }
                 ENCODE_CHK_STATUS_RETURN(AddOneTileCommands(
                     cmdBuffer,
-                    tileRow,
-                    tileCol));
+                    0,
+                    dummyIdx,
+                    1));
+            }
+            else
+            {
+                for (auto i = dummyIdx; i < numTileColumns; i++)
+                {
+                    ENCODE_CHK_STATUS_RETURN(AddOneTileCommands(
+                        cmdBuffer,
+                        0,
+                        i));
+                }
             }
         }
 

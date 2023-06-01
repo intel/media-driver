@@ -528,6 +528,12 @@ namespace encode
         uint32_t widestTileSb   = av1PicParam->width_in_sbs_minus_1[0] + 1;
         uint32_t tileWidthSbSum = 0;
 
+        if (m_basicFeature->m_dualEncEnable && m_numTileRows != 1)
+        {
+            ENCODE_ASSERTMESSAGE("dual encode cannot support multi rows submission yet.");
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+
         for (uint8_t i = 0; i < m_numTileColumns; i++)
         {
             curTileWidthSb = av1PicParam->width_in_sbs_minus_1[i] + 1;
@@ -567,6 +573,10 @@ namespace encode
             if ((widestTileSb * curTileHeightSb) > maxTileAreaSb)
             {
                 return MOS_STATUS_INVALID_PARAMETER;
+            }
+            if (m_basicFeature->m_dualEncEnable && (av1PicParam->width_in_sbs_minus_1[i] + 1) == 2)
+            {
+                m_firstDummyIdx = i;
             }
         }
 

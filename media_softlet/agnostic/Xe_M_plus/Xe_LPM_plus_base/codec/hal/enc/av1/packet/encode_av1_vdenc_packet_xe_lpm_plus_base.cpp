@@ -125,16 +125,6 @@ MOS_STATUS Av1VdencPktXe_Lpm_Plus_Base::AllocateResources()
         m_basicFeature->m_bitstreamDecoderEncoderLineRowstoreReadWriteBuffer = m_allocator->AllocateResource(allocParams, false);
     }
 
-    // Bistream decode Tile Line rowstore buffer
-    if (!m_avpItf->IsBufferRowstoreCacheEnabled(mhw::vdbox::avp::bsdTileLineBuffer))
-    {
-        ENCODE_CHK_STATUS_RETURN(m_avpItf->GetAvpBufSize(mhw::vdbox::avp::bsdTileLineBuffer, &avpBufSizeParam));
-        allocParams.dwBytes         = avpBufSizeParam.bufferSize;
-        allocParams.pBufName        = "Bitstream Decoder Encoder Tile Line Rowstore Read Write buffer";
-        allocParams.ResUsageType    = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
-        m_basicFeature->m_bitstreamDecoderEncoderTileLineRowstoreReadWriteBuffer = m_allocator->AllocateResource(allocParams, false);
-    }
-
     // Intra Prediction Tile Line Rowstore Read/Write Buffer
     ENCODE_CHK_STATUS_RETURN(m_avpItf->GetAvpBufSize(mhw::vdbox::avp::intraPredLineBuffer, &avpBufSizeParam));
     allocParams.dwBytes         = avpBufSizeParam.bufferSize;
@@ -216,90 +206,6 @@ MOS_STATUS Av1VdencPktXe_Lpm_Plus_Base::AllocateResources()
         allocParams.ResUsageType    = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
         m_basicFeature->m_deblockerFilterLineReadWriteVBuffer = m_allocator->AllocateResource(allocParams, false);
     }
-
-    // Deblocker Filter Tile Line Read/Write Y Buffer
-    ENCODE_CHK_STATUS_RETURN(m_avpItf->GetAvpBufSize(mhw::vdbox::avp::deblockTileLineYBuffer, &avpBufSizeParam));
-    allocParams.dwBytes         = avpBufSizeParam.bufferSize;
-    allocParams.pBufName        = "Deblocker Filter Tile Line Read Write Y Buffer";
-    allocParams.ResUsageType    = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
-    m_basicFeature->m_deblockerFilterTileLineReadWriteYBuffer = m_allocator->AllocateResource(allocParams, false);
-
-    // Deblocker Filter Tile Line Read/Write U Buffer
-    ENCODE_CHK_STATUS_RETURN(m_avpItf->GetAvpBufSize(mhw::vdbox::avp::deblockTileLineUBuffer, &avpBufSizeParam));
-    allocParams.dwBytes         = avpBufSizeParam.bufferSize;
-    allocParams.pBufName        = "Deblocker Filter Tile Line Read Write U Buffer";
-    allocParams.ResUsageType    = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
-    m_basicFeature->m_deblockerFilterTileLineReadWriteUBuffer = m_allocator->AllocateResource(allocParams, false);
-
-    // Deblocker Filter Tile Line Read/Write V Buffer
-    ENCODE_CHK_STATUS_RETURN(m_avpItf->GetAvpBufSize(mhw::vdbox::avp::deblockTileLineVBuffer, &avpBufSizeParam));
-    allocParams.dwBytes         = avpBufSizeParam.bufferSize;
-    allocParams.pBufName        = "Deblocker Filter Tile Line Read Write V Buffer";
-    allocParams.ResUsageType    = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
-    m_basicFeature->m_deblockerFilterTileLineReadWriteVBuffer = m_allocator->AllocateResource(allocParams, false);
-
-    // Deblocker Filter Tile Column Read/Write Y Buffer
-    ENCODE_CHK_STATUS_RETURN(m_avpItf->GetAvpBufSize(mhw::vdbox::avp::deblockTileColYBuffer, &avpBufSizeParam));
-    allocParams.dwBytes         = avpBufSizeParam.bufferSize;
-    allocParams.pBufName        = "Deblocker Filter Tile Column Read Write Y Buffer";
-    allocParams.ResUsageType    = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
-    m_basicFeature->m_deblockerFilterTileColumnReadWriteYBuffer = m_allocator->AllocateResource(allocParams, false);
-
-    // Deblocker Filter Tile Column Read/Write U Buffer
-    ENCODE_CHK_STATUS_RETURN(m_avpItf->GetAvpBufSize(mhw::vdbox::avp::deblockTileColUBuffer, &avpBufSizeParam));
-    allocParams.dwBytes         = avpBufSizeParam.bufferSize;
-    allocParams.pBufName        = "Deblocker Filter Tile Column Read Write U Buffer";
-    allocParams.ResUsageType    = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
-    m_basicFeature->m_deblockerFilterTileColumnReadWriteUBuffer = m_allocator->AllocateResource(allocParams, false);
-
-    // Deblocker Filter Tile Column Read/Write V Buffer
-    ENCODE_CHK_STATUS_RETURN(m_avpItf->GetAvpBufSize(mhw::vdbox::avp::deblockTileColVBuffer, &avpBufSizeParam));
-    allocParams.dwBytes         = avpBufSizeParam.bufferSize;
-    allocParams.pBufName        = "Deblocker Filter Tile Column Read Write V Buffer";
-    allocParams.ResUsageType    = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
-    m_basicFeature->m_deblockerFilterTileColumnReadWriteVBuffer = m_allocator->AllocateResource(allocParams, false);
-
-    // CDEF Filter Line Read/Write Buffer
-    ENCODE_CHK_STATUS_RETURN(m_avpItf->GetAvpBufSize(mhw::vdbox::avp::cdefLineBuffer, &avpBufSizeParam));
-    allocParams.dwBytes         = avpBufSizeParam.bufferSize;
-    allocParams.pBufName        = "CDEF Filter Line Read Write Buffer";
-    allocParams.ResUsageType    = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
-    m_basicFeature->m_cdefFilterLineReadWriteBuffer = m_allocator->AllocateResource(allocParams, false);
-
-    // CDEF Filter Tile Line Read/Write Buffer
-    ENCODE_CHK_STATUS_RETURN(m_avpItf->GetAvpBufSize(mhw::vdbox::avp::cdefTileLineBuffer, &avpBufSizeParam));
-    allocParams.dwBytes         = avpBufSizeParam.bufferSize;
-    allocParams.pBufName        = "CDEF Filter Tile Line Read Write Buffer";
-    allocParams.ResUsageType    = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
-    m_basicFeature->m_cdefFilterTileLineReadWriteBuffer = m_allocator->AllocateResource(allocParams, false);
-
-    // CDEF Filter Tile Column Read/Write Buffer
-    ENCODE_CHK_STATUS_RETURN(m_avpItf->GetAvpBufSize(mhw::vdbox::avp::cdefTileColBuffer, &avpBufSizeParam));
-    allocParams.dwBytes         = avpBufSizeParam.bufferSize;
-    allocParams.pBufName        = "CDEF Filter Tile Column Read Write Buffer";
-    allocParams.ResUsageType    = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
-    m_basicFeature->m_cdefFilterTileColumnReadWriteBuffer = m_allocator->AllocateResource(allocParams, false);
-
-    // CDEF Filter Meta Tile Line Read Write Buffer
-    ENCODE_CHK_STATUS_RETURN(m_avpItf->GetAvpBufSize(mhw::vdbox::avp::cdefMetaTileLineBuffer, &avpBufSizeParam));
-    allocParams.dwBytes         = avpBufSizeParam.bufferSize;
-    allocParams.pBufName        = "CDEF Filter Meta Tile Line Read Write Buffer";
-    allocParams.ResUsageType    = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
-    m_basicFeature->m_cdefFilterMetaTileLineReadWriteBuffer = m_allocator->AllocateResource(allocParams, false);
-
-    // CDEF Filter Meta Tile Column Read Write Buffer
-    ENCODE_CHK_STATUS_RETURN(m_avpItf->GetAvpBufSize(mhw::vdbox::avp::cdefMetaTileColBuffer, &avpBufSizeParam));
-    allocParams.dwBytes         = avpBufSizeParam.bufferSize;
-    allocParams.pBufName        = "CDEF Filter Meta Tile Column Read Write Buffer";
-    allocParams.ResUsageType    = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
-    m_basicFeature->m_cdefFilterMetaTileColumnReadWriteBuffer = m_allocator->AllocateResource(allocParams, false);
-
-    // CDEF Filter Top Left Corner Read Write Buffer
-    ENCODE_CHK_STATUS_RETURN(m_avpItf->GetAvpBufSize(mhw::vdbox::avp::cdefTopLeftCornerBuffer, &avpBufSizeParam));
-    allocParams.dwBytes         = avpBufSizeParam.bufferSize;
-    allocParams.pBufName        = "CDEF Filter Top Left Corner Read Write Buffer";
-    allocParams.ResUsageType    = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
-    m_basicFeature->m_cdefFilterTopLeftCornerReadWriteBuffer = m_allocator->AllocateResource(allocParams, false);
 
     // Super-Res Tile Column Read/Write Y Buffer
     ENCODE_CHK_STATUS_RETURN(m_avpItf->GetAvpBufSize(mhw::vdbox::avp::superResTileColYBuffer, &avpBufSizeParam));

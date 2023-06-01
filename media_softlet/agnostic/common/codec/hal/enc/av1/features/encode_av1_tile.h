@@ -623,6 +623,7 @@ public:
     MOS_STATUS GetTileGroupReportParams(uint32_t idx, const Av1ReportTileGroupParams *&reportTileData);
     MOS_STATUS ReadObuSize(const uint8_t *ObuOffset, uint32_t &size);
     MOS_STATUS GetTileInfo(Av1TileInfo *av1TileInfo) const;
+    MOS_STATUS GetDummyIdx(uint8_t &idx) { idx = m_firstDummyIdx; return MOS_STATUS_SUCCESS;}
 
 protected:
     //!
@@ -709,6 +710,8 @@ protected:
 
     static const uint32_t m_av1VdencStateSize = 1216;    // VDEnc Statistic: 48DWs (3CLs) of HMDC Frame Stats + 256 DWs (16CLs) of Histogram Stats = 1216 bytes
     std::vector<uint8_t>  m_tgHeaderBuf       = {};
+
+    uint8_t               m_firstDummyIdx     = 0;
 
 MEDIA_CLASS_DEFINE_END(encode__Av1EncodeTile)
 };
