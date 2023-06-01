@@ -110,7 +110,7 @@ public:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if support, otherwise return unspoort.
     //!
-    virtual MOS_STATUS CapabilityCheck(MCPY_STATE_PARAMS& mcpySrc, MCPY_STATE_PARAMS& mcpyDst, MCPY_ENGINE_CAPS& caps);
+    virtual MOS_STATUS CapabilityCheck(MCPY_STATE_PARAMS &mcpySrc, MCPY_STATE_PARAMS &mcpyDst, MCPY_ENGINE_CAPS &caps, MCPY_METHOD preferMethod);
 
     //!
     //! \brief    surface copy pre process.
