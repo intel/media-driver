@@ -3780,7 +3780,7 @@ VAStatus MediaLibvaCaps::GetSurfaceModifier(DDI_MEDIA_SURFACE* mediaSurface, uin
             modifier = I915_FORMAT_MOD_X_TILED;
             break;
         case GMM_NOT_TILED:
-            modifier = DRM_FORMAT_MOD_NONE;
+            modifier = DRM_FORMAT_MOD_LINEAR;
             break;
         default:
             //handle other possible tile format
@@ -3791,7 +3791,7 @@ VAStatus MediaLibvaCaps::GetSurfaceModifier(DDI_MEDIA_SURFACE* mediaSurface, uin
             }
             else
             {
-                modifier = DRM_FORMAT_MOD_NONE;
+                modifier = DRM_FORMAT_MOD_LINEAR;
             }
             break;
 
