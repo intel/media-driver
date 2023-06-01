@@ -1007,6 +1007,12 @@ MOS_STATUS AvcEncodeBRC::SetSequenceStructs()
     m_vdencBrcEnabled = IsVdencBrcSupported(seqParams);
     m_rcMode          = m_vdencBrcEnabled ? seqParams->RateControlMethod : 0;
 
+    if (IsRateControlBrc(seqParams->RateControlMethod) && m_vdencBrcEnabled == 0)
+    {
+        // Error propagation
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
     // control MBBRC if the user feature key does not exist
     if (m_vdencBrcEnabled && !m_mbBrcUserFeatureKeyControl)
     {

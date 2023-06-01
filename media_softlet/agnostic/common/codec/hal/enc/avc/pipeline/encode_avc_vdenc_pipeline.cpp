@@ -207,10 +207,12 @@ MOS_STATUS AvcVdencPipeline::ActivateVdencVideoPackets()
     auto brcFeature = dynamic_cast<AvcEncodeBRC*>(m_featureManager->GetFeature(AvcFeatureIDs::avcBrcFeature));
     ENCODE_CHK_NULL_RETURN(brcFeature);
     bool immediateSubmit = !m_singleTaskPhaseSupported;
+    ENCODE_NORMALMESSAGE("immediateSubmit = %d", immediateSubmit);
 
     if (m_preEncEnabled)
     {
         ENCODE_CHK_STATUS_RETURN(ActivatePacket(encodePreEncPacket, immediateSubmit, 0, 0));
+        ENCODE_NORMALMESSAGE("encodePreEncPacket was activated");
         if (m_encodeMode == MediaEncodeMode::MANUAL_RES_PRE_ENC || m_encodeMode == MediaEncodeMode::AUTO_RES_PRE_ENC)
         {
             m_activePacketList.back().immediateSubmit = true;
@@ -220,6 +222,7 @@ MOS_STATUS AvcVdencPipeline::ActivateVdencVideoPackets()
 
     if (brcFeature->IsBRCInitRequired())
     {
+        ENCODE_NORMALMESSAGE("HucBrcInit was activated");
         ENCODE_CHK_STATUS_RETURN(ActivatePacket(HucBrcInit, immediateSubmit, 0, 0));
     }
 
@@ -227,8 +230,10 @@ MOS_STATUS AvcVdencPipeline::ActivateVdencVideoPackets()
     {
         if (brcFeature->IsBRCUpdateRequired())
         {
+            ENCODE_NORMALMESSAGE("HucBrcUpdate was activated");
             ENCODE_CHK_STATUS_RETURN(ActivatePacket(HucBrcUpdate, immediateSubmit, curPass, 0));
         }
+        ENCODE_NORMALMESSAGE("VdencPacket was activated");
         ENCODE_CHK_STATUS_RETURN(ActivatePacket(VdencPacket, immediateSubmit, curPass, 0));
     }
 
