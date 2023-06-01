@@ -2974,6 +2974,10 @@ _Ty* MosUtilities::MosNewUtil(_Types&&... _Args)
     {
         MosAtomicIncrement(m_mosMemAllocCounter);
         MOS_MEMNINJA_ALLOC_MESSAGE(ptr, sizeof(_Ty), functionName, filename, line);
+        MT_LOG2(MT_MOS_ALLOCATE_MEMORY, MT_NORMAL,
+                MT_MEMORY_PTR, (int64_t)(ptr),
+                MT_MEMORY_SIZE, static_cast<int64_t>(sizeof(_Ty)));
+
     }
     else
     {
@@ -3009,6 +3013,9 @@ _Ty* MosUtilities::MosNewArrayUtil(size_t numElements)
     {
         MosAtomicIncrement(m_mosMemAllocCounter);
         MOS_MEMNINJA_ALLOC_MESSAGE(ptr, numElements*sizeof(_Ty), functionName, filename, line);
+        MT_LOG2(MT_MOS_ALLOCATE_MEMORY, MT_NORMAL,
+                MT_MEMORY_PTR, (int64_t)(ptr),
+                MT_MEMORY_SIZE, (static_cast<int64_t>(numElements))*(static_cast<int64_t>(sizeof(_Ty))));
     }
     return ptr;
 }
@@ -3029,6 +3036,8 @@ void MosUtilities::MosDeleteUtil(_Ty& ptr)
     {
         MosAtomicDecrement(m_mosMemAllocCounter);
         MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line);
+        MT_LOG1(MT_MOS_DESTROY_MEMORY, MT_NORMAL,
+                MT_MEMORY_PTR, (int64_t)(ptr));
         delete(ptr);
         ptr = nullptr;
     }
@@ -3050,7 +3059,8 @@ void MosUtilities::MosDeleteArrayUtil(_Ty& ptr)
     {
         MosAtomicDecrement(m_mosMemAllocCounter);
         MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line);
-
+        MT_LOG1(MT_MOS_DESTROY_MEMORY, MT_NORMAL,
+                MT_MEMORY_PTR, (int64_t)(ptr));
         delete[](ptr);
         ptr = nullptr;
     }
@@ -3084,6 +3094,7 @@ void MosUtilities::MosDeleteArrayUtil(_Ty& ptr)
             { \
                 MosUtilities::MosAtomicDecrement(MosUtilities::m_mosMemAllocCounter); \
                 MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line); \
+                MT_LOG1(MT_MOS_DESTROY_MEMORY, MT_NORMAL, MT_MEMORY_PTR, (int64_t)(ptr)); \
                 delete(ptr); \
                 ptr = nullptr; \
             }
@@ -3092,6 +3103,7 @@ void MosUtilities::MosDeleteArrayUtil(_Ty& ptr)
         if (ptr != nullptr) \
             { \
                 MosUtilities::MosAtomicDecrement(MosUtilities::m_mosMemAllocCounter); \
+                MT_LOG1(MT_MOS_DESTROY_MEMORY, MT_NORMAL, MT_MEMORY_PTR, (int64_t)(ptr)); \
                 MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line); \
                 delete(ptr); \
                 ptr = nullptr; \
@@ -3104,6 +3116,7 @@ void MosUtilities::MosDeleteArrayUtil(_Ty& ptr)
         { \
             MosUtilities::MosAtomicDecrement(MosUtilities::m_mosMemAllocCounter); \
             MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line); \
+            MT_LOG1(MT_MOS_DESTROY_MEMORY, MT_NORMAL, MT_MEMORY_PTR, (int64_t)(ptr)); \
             delete[](ptr); \
             ptr = nullptr; \
         }
@@ -3113,6 +3126,7 @@ void MosUtilities::MosDeleteArrayUtil(_Ty& ptr)
         { \
             MosUtilities::MosAtomicDecrement(MosUtilities::m_mosMemAllocCounter); \
             MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line); \
+            MT_LOG1(MT_MOS_DESTROY_MEMORY, MT_NORMAL, MT_MEMORY_PTR, (int64_t)(ptr)); \
             delete[](ptr); \
             ptr = nullptr; \
         }
