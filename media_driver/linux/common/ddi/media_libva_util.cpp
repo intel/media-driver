@@ -1647,6 +1647,7 @@ PDDI_MEDIA_SURFACE_HEAP_ELEMENT DdiMediaUtil_AllocPMediaSurfaceFromHeap(PDDI_MED
             mediaSurfaceHeapElmt                  = &surfaceHeapBase[surfaceHeap->uiAllocatedHeapElements + i];
             mediaSurfaceHeapElmt->pNextFree       = (i == (DDI_MEDIA_HEAP_INCREMENTAL_SIZE - 1))? nullptr : &surfaceHeapBase[surfaceHeap->uiAllocatedHeapElements + i + 1];
             mediaSurfaceHeapElmt->uiVaSurfaceID   = surfaceHeap->uiAllocatedHeapElements + i;
+            mediaSurfaceHeapElmt->pSurface        = nullptr;
         }
         surfaceHeap->uiAllocatedHeapElements     += DDI_MEDIA_HEAP_INCREMENTAL_SIZE;
     }
