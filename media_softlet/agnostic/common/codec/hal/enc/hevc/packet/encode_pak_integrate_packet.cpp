@@ -151,6 +151,9 @@ namespace encode {
 
         auto brcFeature = dynamic_cast<HEVCEncodeBRC *>(m_featureManager->GetFeature(HevcFeatureIDs::hevcBrcFeature));
         ENCODE_CHK_NULL_RETURN(brcFeature);
+
+        ENCODE_CHK_STATUS_RETURN(AddCondBBEndForLastPass(*commandBuffer));
+
         m_vdencHucUsed = brcFeature->IsVdencHucUsed();
 
         bool isTileReplayEnabled = false;
@@ -1063,4 +1066,60 @@ namespace encode {
         return MOS_STATUS_SUCCESS;
     }
 #endif
-}
+
+     MOS_STATUS HevcPakIntegratePkt::AddCondBBEndForLastPass(MOS_COMMAND_BUFFER &cmdBuffer)
+    {
+        ENCODE_FUNC_CALL();
+
+        if (m_pipeline->IsSingleTaskPhaseSupported() || m_pipeline->IsFirstPass() || m_pipeline->GetPassNum() == 1)
+        {
+            return MOS_STATUS_SUCCESS;
+        }
+
+        auto &miConditionalBatchBufferEndParams = m_miItf->MHW_GETPAR_F(MI_CONDITIONAL_BATCH_BUFFER_END)();
+        miConditionalBatchBufferEndParams       = {};
+
+        // VDENC uses HuC FW generated semaphore for conditional 2nd pass
+        miConditionalBatchBufferEndParams.presSemaphoreBuffer =
+            m_basicFeature->m_recycleBuf->GetBuffer(VdencBrcPakMmioBuffer, 0);
+
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_CONDITIONAL_BATCH_BUFFER_END)(&cmdBuffer));
+
+        auto          mmioRegisters = m_hcpItf->GetMmioRegisters(m_vdboxIndex);
+        MOS_RESOURCE *osResource    = nullptr;
+        uint32_t      offset        = 0;
+        m_statusReport->GetAddress(statusReportImageStatusCtrl, osResource, offset);
+        //uint32_t baseOffset = (m_encodeStatusBuf.wCurrIndex * m_encodeStatusBuf.dwReportSize) + sizeof(uint32_t) * 2;  // encodeStatus is offset by 2 DWs in the resource
+
+        // Write back the HCP image control register for RC6 may clean it out
+        auto &registerMemParams           = m_miItf->MHW_GETPAR_F(MI_LOAD_REGISTER_MEM)();
+        registerMemParams                 = {};
+        registerMemParams.presStoreBuffer = osResource;
+        registerMemParams.dwOffset        = offset;
+        registerMemParams.dwRegister      = mmioRegisters->hcpEncImageStatusCtrlRegOffset;
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_MEM)(&cmdBuffer));
+
+        HevcVdencBrcBuffers *vdencBrcBuffers = nullptr;
+        auto                 feature         = dynamic_cast<HEVCEncodeBRC *>(m_featureManager->GetFeature(HevcFeatureIDs::hevcBrcFeature));
+        ENCODE_CHK_NULL_RETURN(feature);
+        vdencBrcBuffers = feature->GetHevcVdencBrcBuffers();
+        ENCODE_CHK_NULL_RETURN(vdencBrcBuffers);
+
+        auto &miStoreRegMemParams           = m_miItf->MHW_GETPAR_F(MI_STORE_REGISTER_MEM)();
+        miStoreRegMemParams                 = {};
+        miStoreRegMemParams.presStoreBuffer = vdencBrcBuffers->resBrcPakStatisticBuffer[vdencBrcBuffers->currBrcPakStasIdxForWrite];
+        miStoreRegMemParams.dwOffset        = CODECHAL_OFFSETOF(CODECHAL_ENCODE_HEVC_PAK_STATS_BUFFER, HCP_IMAGE_STATUS_CONTROL_FOR_LAST_PASS);
+        miStoreRegMemParams.dwRegister      = mmioRegisters->hcpEncImageStatusCtrlRegOffset;
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_REGISTER_MEM)(&cmdBuffer));
+
+        m_statusReport->GetAddress(statusReportImageStatusCtrlOfLastBRCPass, osResource, offset);
+        miStoreRegMemParams                 = {};
+        miStoreRegMemParams.presStoreBuffer = osResource;
+        miStoreRegMemParams.dwOffset        = offset;
+        miStoreRegMemParams.dwRegister      = mmioRegisters->hcpEncImageStatusCtrlRegOffset;
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_REGISTER_MEM)(&cmdBuffer));
+
+        return MOS_STATUS_SUCCESS;
+    }
+
+    }

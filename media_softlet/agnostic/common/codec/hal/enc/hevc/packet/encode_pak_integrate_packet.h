@@ -268,6 +268,9 @@ protected:
     virtual MOS_STATUS DumpInput() override;
     virtual MOS_STATUS DumpOutput() override;
 #endif
+
+    MOS_STATUS AddCondBBEndForLastPass(MOS_COMMAND_BUFFER &cmdBuffer);
+
     static constexpr uint32_t m_vdboxHucPakIntKernelDescriptor = 15;  //!< Huc pak integrate kernel descriptor
 
     EncodeMemComp *m_mmcState = nullptr;

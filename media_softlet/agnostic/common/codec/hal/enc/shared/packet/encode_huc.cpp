@@ -238,7 +238,7 @@ namespace encode
 
 #if _SW_BRC
         HUC_CHK_STATUS_RETURN(InitSwBrc(function));
-        if (m_swBrc && m_swBrc->SwBrcEnabled())
+        if (function != NONE_BRC && m_swBrc && m_swBrc->SwBrcEnabled())
         {
             SETPAR(HUC_DMEM_STATE, m_hucItf);
             SETPAR(HUC_VIRTUAL_ADDR_STATE, m_hucItf);

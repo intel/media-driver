@@ -143,7 +143,7 @@ MOS_STATUS HevcVdencPipelineXe_Lpm_Plus::ActivateVdencVideoPackets()
         ENCODE_CHK_STATUS_RETURN(ActivatePacket(hevcVdencPacketRsvd, true, 0, 0));
     }
 #endif
-
+    SetFrameTrackingForMultiTaskPhase();
     return MOS_STATUS_SUCCESS;
 }
 

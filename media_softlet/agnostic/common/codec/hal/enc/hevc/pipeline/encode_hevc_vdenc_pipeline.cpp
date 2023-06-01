@@ -137,8 +137,6 @@ MOS_STATUS HevcVdencPipeline::ActivateVdencVideoPackets()
         }
     }
 
-    SetFrameTrackingForMultiTaskPhase();
-
     // Last element in m_activePacketList must be immediately submitted
     m_activePacketList.back().immediateSubmit = true;
 
@@ -151,6 +149,8 @@ MOS_STATUS HevcVdencPipeline::ActivateVdencVideoPackets()
         ENCODE_CHK_STATUS_RETURN(ActivatePacket(hevcVdencPacketRsvd, true, 0, 0));
     }
 #endif
+
+    SetFrameTrackingForMultiTaskPhase();
 
     return MOS_STATUS_SUCCESS;
 }
