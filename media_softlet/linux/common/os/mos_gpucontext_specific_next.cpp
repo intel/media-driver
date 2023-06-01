@@ -403,11 +403,11 @@ MOS_STATUS GpuContextSpecificNext::InitVdVeCtx(PMOS_CONTEXT osParameters,
         }
         if (i == *nengine)
         {
-            streamState->bGucSubmission = false;
+            streamState->bParallelSubmission = false;
         }
         else
         {
-            streamState->bGucSubmission = true;
+            streamState->bParallelSubmission = true;
             //create context with different width
             for(i = 1; i < *nengine; i++)
             {
@@ -1505,7 +1505,7 @@ MOS_STATUS GpuContextSpecificNext::SubmitCommandBuffer(
         {
             if (cmdBuffer->iSubmissionType & SUBMISSION_TYPE_MULTI_PIPE_MASK)
             {
-                if (scalaEnabled && !streamState->bGucSubmission)
+                if (scalaEnabled && !streamState->bParallelSubmission)
                 {
                     uint32_t secondaryIndex = 0;
                     it = m_secondaryCmdBufs.begin();
@@ -1529,7 +1529,7 @@ MOS_STATUS GpuContextSpecificNext::SubmitCommandBuffer(
                         it++;
                     }
                 }
-                else if(scalaEnabled && streamState->bGucSubmission)
+                else if(scalaEnabled && streamState->bParallelSubmission)
                 {
                     ret = ParallelSubmitCommands(m_secondaryCmdBufs,
                                          perStreamParameters,

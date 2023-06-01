@@ -202,7 +202,7 @@ MOS_STATUS MosInterface::CreateOsStreamState(
     MOS_OS_CHK_NULL_RETURN(skuTable);
     if (MEDIA_IS_SKU(skuTable, FtrGucSubmission))
     {
-        (*streamState)->bGucSubmission = true;
+        (*streamState)->bParallelSubmission = true;
     }
 
 #if (_DEBUG || _RELEASE_INTERNAL)
@@ -245,7 +245,7 @@ MOS_STATUS MosInterface::CreateOsStreamState(
         regValue,
         __MEDIA_USER_FEATURE_VALUE_ENABLE_GUC_SUBMISSION,
         MediaUserSetting::Group::Device);
-    (*streamState)->bGucSubmission = (*streamState)->bGucSubmission && regValue;
+    (*streamState)->bParallelSubmission = (*streamState)->bParallelSubmission && regValue;
 
     //KMD Virtual Engine DebugOverride
     // 0: not Override

@@ -59,7 +59,7 @@ static MOS_STATUS CodecHalDecodeScalability_CalculateScdryCmdBufIndex_G12(
     {
         *pdwBufIdxPlus1 = pScalabilityState->u8RtCurPipe + 1;
         if(pScalabilityStateBase->pHwInterface->GetOsInterface()->phasedSubmission
-        && !pScalabilityStateBase->pHwInterface->GetOsInterface()->bGucSubmission)
+        && !pScalabilityStateBase->pHwInterface->GetOsInterface()->bParallelSubmission)
         {
             /*  3 tiles 2 pipe for example:
                 cur phase               cur pip
@@ -253,7 +253,7 @@ MOS_STATUS CodecHalDecodeScalability_GetCmdBufferToUse_G12(
 
     if (!CodecHalDecodeScalabilityIsFESeparateSubmission(pScalabilityState) ||
         CodecHalDecodeScalabilityIsBEPhaseG12(pScalabilityState) ||
-        pScalabilityStateBase->pHwInterface->GetOsInterface()->bGucSubmission)
+        pScalabilityStateBase->pHwInterface->GetOsInterface()->bParallelSubmission)
     {
         pScalabilityState->bUseSecdryCmdBuffer = true;
         CODECHAL_DECODE_CHK_STATUS(CodecHalDecodeScalability_GetVESecondaryCmdBuffer_G12(pScalabilityState, pScdryCmdBuf));
@@ -699,7 +699,7 @@ MOS_STATUS CodecHalDecodeScalability_FEBESync_G12(
     //FE& BE0 Sync. to refine (ucNumVdbox > )for GT3
     if (HcpDecPhase == CODECHAL_HCP_DECODE_PHASE_BE0
         && pScalabilityState->pHwInterface->GetMfxInterface()->GetNumVdbox() > 2
-        && !pOsInterface->bGucSubmission)
+        && !pOsInterface->bParallelSubmission)
     {
         if (pScalabilityState->bFESeparateSubmission)
         {
@@ -1018,7 +1018,7 @@ MOS_STATUS CodecHalDecodeScalability_InitializeState_G12(
         pScalabilityState->bFESeparateSubmission = false;
     }
 
-    if(osInterface->bGucSubmission)
+    if(osInterface->bParallelSubmission)
     {
         pScalabilityState->bFESeparateSubmission = false;
     }
@@ -1460,7 +1460,7 @@ MOS_STATUS CodecHalDecodeScalability_AllocateResources_VariableSizes_G12(
     // for multi-pipe scalability mode
     if (pScalabilityState->ucNumVdbox > 2)
     {
-        if (pScalabilityState->bFESeparateSubmission && pOsInterface->bGucSubmission)
+        if (pScalabilityState->bFESeparateSubmission && pOsInterface->bParallelSubmission)
         {
             for (int i = 1; i < CODECHAL_HCP_STREAMOUT_BUFFER_MAX_NUM; i++)
             {
@@ -1980,7 +1980,7 @@ void CodecHalDecodeScalability_DecPhaseToSubmissionType_G12(
                 pCmdBuffer->iSubmissionType |= ((pScalabilityState->u8RtCurPipe - 1) << SUBMISSION_TYPE_MULTI_PIPE_SLAVE_INDEX_SHIFT);
             }
 
-            if (!(pScalabilityState->pHwInterface->GetOsInterface()->bGucSubmission)
+            if (!(pScalabilityState->pHwInterface->GetOsInterface()->bParallelSubmission)
             && (pScalabilityState->u8RtCurPhase == pScalabilityState->u8RtPhaseNum - 1))
             {
                 if (pScalabilityState->u8RtCurPipe == pScalabilityState->u8RtPipeInLastPhase - 1)

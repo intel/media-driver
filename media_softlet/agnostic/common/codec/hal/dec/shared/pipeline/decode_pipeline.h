@@ -231,9 +231,9 @@ public:
     //!
     //! \return   True if guc submission mode, otherwise return false
     //!
-    virtual bool IsGucSubmission()
+    virtual bool IsParallelSubmission()
     {
-        return m_osInterface->bGucSubmission;
+        return m_osInterface->bParallelSubmission;
     }
 
 #ifdef _DECODE_PROCESSING_SUPPORTED

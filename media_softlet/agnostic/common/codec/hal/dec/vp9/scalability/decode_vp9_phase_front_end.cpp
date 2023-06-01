@@ -37,7 +37,7 @@ uint32_t Vp9PhaseFrontEnd::GetCmdBufIndex()
     DECODE_ASSERT(m_scalabOption.GetNumPipe() > 1);
 
     //It is not allowed for guc submission by adding cmd in primaryCmdBuf
-    if (m_scalabOption.IsFESeparateSubmission() && !m_pipeline->IsGucSubmission())
+    if (m_scalabOption.IsFESeparateSubmission() && !m_pipeline->IsParallelSubmission())
     {
         return m_primaryCmdBufIdx;
     }
@@ -70,7 +70,7 @@ uint32_t Vp9PhaseFrontEnd::GetPktId()
 bool Vp9PhaseFrontEnd::ImmediateSubmit()
 {
     DECODE_FUNC_CALL();
-    return (m_scalabOption.IsFESeparateSubmission() && !m_pipeline->IsGucSubmission());
+    return (m_scalabOption.IsFESeparateSubmission() && !m_pipeline->IsParallelSubmission());
 }
 
 bool Vp9PhaseFrontEnd::RequiresContextSwitch()

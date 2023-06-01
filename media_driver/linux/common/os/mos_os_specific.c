@@ -4431,6 +4431,7 @@ MOS_STATUS Mos_Specific_CreateGpuContext(
         createOption->gpuNode = GpuNode;
         if (pOsInterface->apoMosEnabled)
         {
+            MOS_OS_CHK_NULL_RETURN(pOsInterface->osStreamState);
             // Update ctxBasedScheduling from legacy OsInterface
             pOsInterface->osStreamState->ctxBasedScheduling = pOsInterface->ctxBasedScheduling;
             if (pOsContextSpecific->GetGpuContextHandle(mosGpuCxt) == MOS_GPU_CONTEXT_INVALID_HANDLE)
@@ -4452,6 +4453,7 @@ MOS_STATUS Mos_Specific_CreateGpuContext(
                 gpuContextSpecific->SetGpuContext(mosGpuCxt);
 
                 pOsContextSpecific->SetGpuContextHandle(mosGpuCxt, gpuContextSpecific->GetGpuContextHandle());
+                pOsInterface->bParallelSubmission = pOsInterface->osStreamState->bParallelSubmission;
             }
 
             return MOS_STATUS_SUCCESS;
@@ -6809,7 +6811,7 @@ static MOS_STATUS Mos_Specific_InitInterface_Ve(
         MOS_OS_CHK_NULL_RETURN(skuTable);
         if (MEDIA_IS_SKU(skuTable, FtrGucSubmission))
         {
-            osInterface->bGucSubmission = true;
+            osInterface->bParallelSubmission = true;
         }
 
         //Read Scalable/Legacy Decode mode on Gen11+
@@ -6844,7 +6846,7 @@ static MOS_STATUS Mos_Specific_InitInterface_Ve(
             regValue,
             __MEDIA_USER_FEATURE_VALUE_ENABLE_GUC_SUBMISSION,
             MediaUserSetting::Group::Device);
-        osInterface->bGucSubmission = osInterface->bGucSubmission && regValue;
+        osInterface->bParallelSubmission = osInterface->bParallelSubmission && regValue;
 
         // read the "Force VEBOX" user feature key
         // 0: not force

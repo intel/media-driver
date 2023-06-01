@@ -40,7 +40,7 @@ uint32_t HevcPhaseS2L::GetCmdBufIndex()
     }
 
     //It is not allowed for guc submission by adding cmd in primaryCmdBuf
-    if (m_scalabOption.IsFESeparateSubmission() && !m_pipeline->IsGucSubmission())
+    if (m_scalabOption.IsFESeparateSubmission() && !m_pipeline->IsParallelSubmission())
     {
         return m_primaryCmdBufIdx;
     }
@@ -80,7 +80,7 @@ uint32_t HevcPhaseS2L::GetPktId()
 bool HevcPhaseS2L::ImmediateSubmit()
 {
     DECODE_FUNC_CALL();
-    if ((m_scalabOption.GetNumPipe() > 1) && m_pipeline->IsGucSubmission())
+    if ((m_scalabOption.GetNumPipe() > 1) && m_pipeline->IsParallelSubmission())
     {
         return false;
     }

@@ -53,7 +53,7 @@ uint32_t HevcPhaseRealTile::GetCmdBufIndex()
 {
     DECODE_FUNC_CALL();
     DECODE_ASSERT(m_scalabOption.GetNumPipe() > 1);
-    if (!m_pipeline->IsPhasedSubmission() || m_pipeline->IsGucSubmission())
+    if (!m_pipeline->IsPhasedSubmission() || m_pipeline->IsParallelSubmission())
     {
         return m_secondaryCmdBufIdxBase + GetPipe();
     }
