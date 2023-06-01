@@ -1157,12 +1157,12 @@ MOS_STATUS SwFilterPipe::AddRTLog()
     VP_FUNC_CALL();
 
     uint32_t i = 0;
-
+    MT_LOG1(MT_VP_FEATURE_GRAPH_INPUTSWFILTER, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_SWFILTERPIPE_COUNT, (int64_t)m_InputPipes.size());
     for (i = 0; i < m_InputPipes.size(); ++i)
     {
         VP_PUBLIC_CHK_STATUS_RETURN(AddFeatureGraphRTLog(true, i));
     }
-
+    MT_LOG1(MT_VP_FEATURE_GRAPH_OUTPUTSWFILTER, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_SWFILTERPIPE_COUNT, (int64_t)m_OutputPipes.size());
     for (i = 0; i < m_OutputPipes.size(); ++i)
     {
         VP_PUBLIC_CHK_STATUS_RETURN(AddFeatureGraphRTLog(false, i));
