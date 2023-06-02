@@ -242,6 +242,8 @@ protected:
     //!
     MOS_STATUS FreeResources();
 
+    MOS_STATUS AddCondBBEndFor2ndPass(MOS_COMMAND_BUFFER &cmdBuffer);
+
 #if USE_CODECHAL_DEBUG_TOOL
     virtual MOS_STATUS DumpInput() override;
     virtual MOS_STATUS DumpOutput() override;

@@ -154,6 +154,8 @@ namespace encode {
         auto brcFeature = dynamic_cast<Av1Brc *>(m_featureManager->GetFeature(Av1FeatureIDs::av1BrcFeature));
         ENCODE_CHK_NULL_RETURN(brcFeature);
 
+        ENCODE_CHK_STATUS_RETURN(AddCondBBEndFor2ndPass(*commandBuffer))
+
         MediaPerfProfiler *perfProfiler = MediaPerfProfiler::Instance();
         ENCODE_CHK_NULL_RETURN(perfProfiler);
         ENCODE_CHK_STATUS_RETURN(perfProfiler->AddPerfCollectStartCmd(
@@ -640,6 +642,27 @@ namespace encode {
         MOS_SecureMemcpy(hucStitchDataBuf->InputCOM[0].data, sizeof(HucInputCmd), &hucInputCmd, sizeof(HucInputCmd));
 
         m_allocator->UnLock(const_cast<MOS_RESOURCE*>(&m_resHucStitchDataBuffer[m_pipeline->m_currRecycledBufIdx][currPass]));
+
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MOS_STATUS Av1PakIntegratePkt::AddCondBBEndFor2ndPass(MOS_COMMAND_BUFFER &cmdBuffer)
+    {
+        ENCODE_FUNC_CALL();
+
+        if (m_pipeline->IsSingleTaskPhaseSupported() || m_pipeline->IsFirstPass() || m_pipeline->GetPassNum() == 1)
+        {
+            return MOS_STATUS_SUCCESS;
+        }
+
+        auto &miConditionalBatchBufferEndParams = m_miItf->MHW_GETPAR_F(MI_CONDITIONAL_BATCH_BUFFER_END)();
+        miConditionalBatchBufferEndParams       = {};
+
+        // VDENC uses HuC FW generated semaphore for conditional 2nd pass
+        miConditionalBatchBufferEndParams.presSemaphoreBuffer =
+            m_basicFeature->m_recycleBuf->GetBuffer(VdencBrcPakMmioBuffer, 0);
+
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_CONDITIONAL_BATCH_BUFFER_END)(&cmdBuffer));
 
         return MOS_STATUS_SUCCESS;
     }

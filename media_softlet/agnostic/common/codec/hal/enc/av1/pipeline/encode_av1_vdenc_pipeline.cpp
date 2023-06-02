@@ -131,7 +131,8 @@ MOS_STATUS Av1VdencPipeline::ActivateVdencVideoPackets()
 
         for (uint8_t curPipe = 0; curPipe < GetPipeNum(); curPipe++)
         {
-            ENCODE_CHK_STATUS_RETURN(ActivatePacket(Av1VdencPacket, immediateSubmit, curPass, curPipe, GetPipeNum()));
+            // force immediate submit to false irrespective of single/multi task phase at pipe 0 when dual enc enabled
+            ENCODE_CHK_STATUS_RETURN(ActivatePacket(Av1VdencPacket, m_dualEncEnable && curPipe == 0 ? false : immediateSubmit, curPass, curPipe, GetPipeNum()));
         }
 
         if ((basicFeature->m_enableTileStitchByHW || !basicFeature -> m_enableSWStitching || brcFeature->IsBRCEnabled()) && m_dualEncEnable)
