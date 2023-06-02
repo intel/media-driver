@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2022, Intel Corporation
+* Copyright (c) 2020-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -86,7 +86,7 @@ static const uint32_t av1SuperBlockWidth    = 64;                               
 static const uint32_t av1SuperBlockHeight   = 64;                                       // Super block height
 static const uint32_t av1MinBlockWidth      = 8;                                        // Min block width
 static const uint32_t av1MinBlockHeight     = 8;                                        // Min block height
-static const uint32_t av1MaxTileNum         = 512;                                      // Max tile number per frame
+static const uint32_t av1MaxTileNum         = 4096;                                     // Max tile number per frame
 static const uint32_t av1MaxTileGroupNum    = 4096;                                     // Max tile group number per frame
 static const uint32_t av1MaxSegments        = 8;                                        // Max Segment number for one frame
 static const uint32_t av1MaxQindex          = 255;                                      // Max QIndex number
