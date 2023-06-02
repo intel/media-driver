@@ -60,7 +60,7 @@ struct VdencAvcHucBrcUpdateDmem
     uint16_t    UPD_SkipFrameSize_U16;                 // Recording the skip frame size for one frame. =NumMBs * 1, assuming one bit per mb for skip frame.
     uint16_t    UPD_StaticRegionPct_U16;              // One entry, recording the percentage of static region
     uint8_t     UPD_gRateRatioThreshold_U8[7];        // 80,95,99,101,105,125,160
-    uint8_t     UPD_CurrFrameType_U8;                 // I frame: 2; P frame: 0; B frame: 1.
+    uint8_t     UPD_CurrFrameType_U8;                 // Use AvcBrcFrameType enum to specify frame type
     uint8_t     UPD_startGAdjMult_U8[5];              // 1, 1, 3, 2, 1
     uint8_t     UPD_startGAdjDiv_U8[5];               // 40, 5, 5, 3, 1
     uint8_t     UPD_gRateRatioThresholdQP_U8[8];      // 253,254,255,0,1,1,2,3
@@ -122,7 +122,8 @@ struct VdencAvcHucBrcUpdateDmem
     int8_t       UPD_DeltaQpDcOffset;
     uint16_t     UPD_NumSlicesForRounding;
     uint32_t     UPD_UserMaxFramePB;        // In Bytes
-    uint8_t      RSVD2[4];
+    uint8_t      UPD_ExtCurrFrameType;      // correctly calculated FrameType for all cases (including hierarchy golden BGops)
+    uint8_t      RSVD2[3];
 };
 
 struct VdencAvcHucBrcConstantData

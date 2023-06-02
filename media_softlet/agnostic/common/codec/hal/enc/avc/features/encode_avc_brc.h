@@ -40,10 +40,21 @@
 
 namespace encode
 {
+struct VdencAvcHucBrcUpdateDmem;
+
 class AvcEncodeBRC : public MediaFeature,
     public mhw::vdbox::vdenc::Itf::ParSetting,
     public mhw::vdbox::huc::Itf::ParSetting
 {
+    enum AvcBrcFrameType
+    {
+        P_FRAME  = 0,
+        B_FRAME  = 1,
+        I_FRAME  = 2,
+        B1_FRAME = 3,
+        B2_FRAME = 4,
+    };
+
 public:
     AvcEncodeBRC(MediaFeatureManager *featureManager,
                  EncodeAllocator *allocator,
@@ -199,6 +210,8 @@ public:
 
     uint32_t GetVdencOneSliceStateSize();
 
+    bool IsBPyramidWithGoldenBGOP();
+
     MHW_SETPAR_DECL_HDR(VDENC_PIPE_MODE_SELECT);
     MHW_SETPAR_DECL_HDR(HUC_VIRTUAL_ADDR_STATE);
 
@@ -239,6 +252,10 @@ protected:
 
     MOS_STATUS DeltaQPUpdate(uint8_t qpModulationStrength, bool bIsLastPass);
 
+    void SetFrameTypeForUpdate(VdencAvcHucBrcUpdateDmem *dmem, uint16_t currPass);
+
+    void CalculateCurLvlInBGop(uint16_t curFrameIdxInBGop, uint16_t begin, uint16_t end, uint16_t curLvl, uint16_t &curOrder, uint16_t &retLvl);
+
     CodechalHwInterfaceNext    *m_hwInterface    = nullptr;
     EncodeAllocator        *m_allocator      = nullptr;
     AvcBasicFeature        *m_basicFeature   = nullptr;  //!< EncodeBasicFeature
@@ -269,6 +286,8 @@ protected:
     uint32_t m_brcInitPreviousTargetBufFullInBits = 0;  //!< BRC Init Previous Target Buffer Full In Bits
     double   m_dBrcTargetSize                     = 0;  //!< BRC target size.
     uint8_t  m_qpModulationStrength               = 0;  //!< Current QP modulation strength
+
+    uint16_t m_frameIdxInBGop                     = 0;  //!< Current frame index in BGOP in encoding order
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     static const uint32_t m_bufferFulnessDataSize = 600;

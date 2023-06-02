@@ -130,7 +130,7 @@ MHW_SETPAR_DECL_SRC(HUC_IMEM_STATE, AvcHucBrcInitPkt)
 
 MHW_SETPAR_DECL_SRC(HUC_DMEM_STATE, AvcHucBrcInitPkt)
 {
-    SetDmemBuffer();
+    ENCODE_CHK_STATUS_RETURN(SetDmemBuffer());
 
     params.function      = BRC_INIT;
     params.hucDataSource = m_vdencBrcInitDmemBuffer[m_pipeline->m_currRecycledBufIdx];
