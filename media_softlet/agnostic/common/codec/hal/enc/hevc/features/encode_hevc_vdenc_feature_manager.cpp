@@ -280,14 +280,12 @@ MOS_STATUS EncodeHevcVdencFeatureManager::ValidatePassNum(
 
     auto brcFeature = dynamic_cast<HEVCEncodeBRC *>(GetFeature(HevcFeatureIDs::hevcBrcFeature));
 
-#ifdef _ENCODE_RESERVED
     auto basicFeature = dynamic_cast<HevcBasicFeature *>(GetFeature(FeatureIDs::basicFeature));
     ENCODE_CHK_NULL_RETURN(basicFeature);
-    if (basicFeature->m_rsvdState && basicFeature->m_rsvdState->GetFeatureRsvdFlag())
+    if (basicFeature->m_422State && basicFeature->m_422State->GetFeature422Flag())
     {
         hevcPicParams->BRCPrecision = 1;
     }
-#endif
 
     // dynamic slice size control and brc to be added later here
     if (((hevcPicParams->weighted_pred_flag ||

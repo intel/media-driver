@@ -665,7 +665,21 @@ VAStatus MediaLibvaCapsG12::LoadHevcEncLpProfileEntrypoints()
         AddProfileEntry(VAProfileHEVCMain, VAEntrypointEncSliceLP, attributeList,
                 configStartIdx, m_encConfigs.size() - configStartIdx);
     }
-
+    if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeHEVCVdencMain10bit422))
+    {
+        uint32_t configStartIdx = m_encConfigs.size();
+        AddEncConfig(VA_RC_CQP);
+        if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEnableMediaKernels))
+        {
+            for (int32_t j = 3; j < rcModeSize; j++)
+            {
+                AddEncConfig(m_encRcMode[j]);
+                AddEncConfig(m_encRcMode[j] | VA_RC_PARALLEL);
+            }
+        }
+        AddProfileEntry(VAProfileHEVCMain422_10, VAEntrypointEncSliceLP, attributeList,
+                configStartIdx, m_encConfigs.size() - configStartIdx);
+    }
     if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeHEVCVdencMain10))
     {
         uint32_t configStartIdx = m_encConfigs.size();

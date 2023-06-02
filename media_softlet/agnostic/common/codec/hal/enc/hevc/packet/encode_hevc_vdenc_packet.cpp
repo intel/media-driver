@@ -539,9 +539,7 @@ namespace encode
             }
         }
         else if (m_osInterface->bInlineCodecStatusUpdate
-#ifdef _ENCODE_RESERVED
-            && !(m_basicFeature->m_rsvdState && m_basicFeature->m_rsvdState->GetFeatureRsvdFlag())
-#endif
+            && !(m_basicFeature->m_422State && m_basicFeature->m_422State->GetFeature422Flag())
             )
         {
             if (feature->IsBRCEnabled())
@@ -2228,9 +2226,7 @@ namespace encode
         // needs to be enabled for 1st pass in multi-pass case
         // This bit is ignored if PAK only second pass is enabled.
         if ((m_pipeline->GetCurrentPass() == 0) && !m_pipeline->IsLastPass()
-#ifdef _ENCODE_RESERVED
-            || (m_basicFeature->m_rsvdState && m_basicFeature->m_rsvdState->GetFeatureRsvdFlag())
-#endif
+            || (m_basicFeature->m_422State && m_basicFeature->m_422State->GetFeature422Flag())
         )
         {
             params.pakObjCmdStreamOut = true;

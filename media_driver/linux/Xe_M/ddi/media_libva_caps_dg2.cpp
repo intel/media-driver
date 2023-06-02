@@ -178,6 +178,7 @@ std::string MediaLibvaCapsDG2::GetEncodeCodecKey(VAProfile profile, VAEntrypoint
         case VAProfileHEVCMain:
         case VAProfileHEVCMain10:
         case VAProfileHEVCMain12:
+        case VAProfileHEVCMain422_10:
         case VAProfileHEVCMain444:
         case VAProfileHEVCMain444_10:
         case VAProfileHEVCSccMain:
@@ -226,6 +227,7 @@ CODECHAL_MODE MediaLibvaCapsDG2::GetEncodeCodecMode(VAProfile profile, VAEntrypo
         case VAProfileHEVCMain:
         case VAProfileHEVCMain10:
         case VAProfileHEVCMain12:
+        case VAProfileHEVCMain422_10:
         case VAProfileHEVCMain444:
         case VAProfileHEVCMain444_10:
         case VAProfileHEVCSccMain:
@@ -271,6 +273,7 @@ VAStatus MediaLibvaCapsDG2::CheckEncodeResolution(
         case VAProfileHEVCMain:
         case VAProfileHEVCMain10:
         case VAProfileHEVCMain12:
+        case VAProfileHEVCMain422_10:
         case VAProfileHEVCMain444:
         case VAProfileHEVCMain444_10:
         case VAProfileHEVCSccMain:
@@ -338,6 +341,10 @@ VAStatus MediaLibvaCapsDG2::CheckEncRTFormat(
     else if(profile == VAProfileHEVCMain12)
     {
         attrib->value = VA_RT_FORMAT_YUV420_12;
+    }
+    else if(profile == VAProfileHEVCMain422_10)
+    {
+        attrib->value = VA_RT_FORMAT_YUV422 | VA_RT_FORMAT_YUV422_10;
     }
     else if(profile == VAProfileHEVCMain444 || profile == VAProfileHEVCSccMain444)
     {

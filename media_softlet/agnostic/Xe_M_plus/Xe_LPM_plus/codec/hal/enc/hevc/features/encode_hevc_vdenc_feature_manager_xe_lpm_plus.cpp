@@ -46,12 +46,10 @@ MOS_STATUS EncodeHevcVdencFeatureManagerXe_Lpm_Plus::CheckFeatures(void* params)
         static_cast<PCODEC_HEVC_ENCODE_PICTURE_PARAMS>(encodeParams->pPicParams);
     ENCODE_CHK_NULL_RETURN(hevcPicParams);
 
-#ifdef _ENCODE_RESERVED
-    if (m_basicFeature->m_rsvdState)
+    if (m_basicFeature->m_422State)
     {
-        ENCODE_CHK_STATUS_RETURN(m_basicFeature->m_rsvdState->Init(hevcSeqParams, hevcPicParams));
+        ENCODE_CHK_STATUS_RETURN(m_basicFeature->m_422State->Init(hevcSeqParams, hevcPicParams));
     }
-#endif
 
     ENCODE_CHK_STATUS_RETURN(EncodeHevcVdencFeatureManager::CheckFeatures(params));
 

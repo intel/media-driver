@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -37,13 +37,11 @@ namespace encode
 {
 HevcBasicFeature::~HevcBasicFeature()
 {
-#ifdef _ENCODE_RESERVED
-    if (m_rsvdState)
+    if (m_422State)
     {
-        MOS_Delete(m_rsvdState);
-        m_rsvdState = nullptr;
+        MOS_Delete(m_422State);
+        m_422State = nullptr;
     }
-#endif
 }
 
 MOS_STATUS HevcBasicFeature::Init(void *setting)
@@ -109,9 +107,7 @@ MOS_STATUS HevcBasicFeature::Init(void *setting)
 #endif  // _DEBUG || _RELEASE_INTERNAL
     m_hevcRDOQPerfDisabled = outValue.Get<bool>();
 
-#ifdef _ENCODE_RESERVED
-    ENCODE_CHK_STATUS_RETURN(InitRsvdState());
-#endif
+    ENCODE_CHK_STATUS_RETURN(Init422State());
 
     return MOS_STATUS_SUCCESS;
 }
@@ -138,12 +134,11 @@ MOS_STATUS HevcBasicFeature::Update(void *params)
     m_NumNalUnits   = encodeParams->uiNumNalUnits;
     m_bEnableSubPelMode = encodeParams->bEnableSubPelMode;
     m_SubPelMode        = encodeParams->SubPelMode;
-#ifdef _ENCODE_RESERVED
-    if (m_rsvdState && m_rsvdState->GetFeatureRsvdFlag())
+
+    if (m_422State && m_422State->GetFeature422Flag())
     {
-        ENCODE_CHK_STATUS_RETURN(m_rsvdState->UpdateRsvdFormat(m_hevcSeqParams, m_outputChromaFormat, m_reconSurface.Format, m_is10Bit));
+        ENCODE_CHK_STATUS_RETURN(m_422State->Update422Format(m_hevcSeqParams, m_outputChromaFormat, m_reconSurface.Format, m_is10Bit));
     }
-#endif
 
     if (encodeParams->bAcceleratorHeaderPackingCaps)
     {
@@ -473,12 +468,10 @@ MOS_STATUS HevcBasicFeature::UpdateTrackedBufferParameters()
         ENCODE_CHK_STATUS_RETURN(m_trackedBuf->RegisterParam(encode::BufferType::mvTemporalBuffer, allocParams));
     }
 
-#ifdef _ENCODE_RESERVED
-    if (m_rsvdState && m_rsvdState->GetFeatureRsvdFlag())
+    if (m_422State && m_422State->GetFeature422Flag())
     {
-        ENCODE_CHK_STATUS_RETURN(m_rsvdState->RegisterMbCodeBuffer(m_trackedBuf, m_isMbCodeRegistered, m_mbCodeSize));
+        ENCODE_CHK_STATUS_RETURN(m_422State->RegisterMbCodeBuffer(m_trackedBuf, m_isMbCodeRegistered, m_mbCodeSize));
     }
-#endif
 
     ENCODE_CHK_STATUS_RETURN(EncodeBasicFeature::UpdateTrackedBufferParameters());
 
@@ -768,17 +761,15 @@ MOS_STATUS HevcBasicFeature::SetRoundingValues()
     return eStatus;
 }
 
-#ifdef _ENCODE_RESERVED
-MOS_STATUS HevcBasicFeature::InitRsvdState()
+MOS_STATUS HevcBasicFeature::Init422State()
 {
     ENCODE_FUNC_CALL();
 
-    m_rsvdState = MOS_New(HevcBasicFeatureRsvd);
-    ENCODE_CHK_NULL_RETURN(m_rsvdState);
+    m_422State = MOS_New(HevcBasicFeature422);
+    ENCODE_CHK_NULL_RETURN(m_422State);
 
     return MOS_STATUS_SUCCESS;
 }
-#endif
 
 MOS_STATUS HevcBasicFeature::GetSurfaceMmcInfo(PMOS_SURFACE surface, MOS_MEMCOMP_STATE &mmcState, uint32_t &compressionFormat) const
 {
