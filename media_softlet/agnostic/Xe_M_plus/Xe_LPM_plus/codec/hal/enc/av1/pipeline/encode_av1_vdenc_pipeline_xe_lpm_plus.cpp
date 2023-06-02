@@ -56,6 +56,15 @@ MOS_STATUS Av1VdencPipelineXe_LPM_Plus::Init(void *settings)
         EncodePreEncPacket* av1PreEncPkt = MOS_New(EncodePreEncPacket, this, task, m_hwInterface);
         ENCODE_CHK_STATUS_RETURN(RegisterPacket(encodePreEncPacket, av1PreEncPkt));
         ENCODE_CHK_STATUS_RETURN(av1PreEncPkt->Init());
+
+#if USE_CODECHAL_DEBUG_TOOL
+        uint32_t encodeMode = 0;
+        RUN_FEATURE_INTERFACE_RETURN(Av1VdencPreEnc, Av1FeatureIDs::preEncFeature, GetEncodeMode, encodeMode);
+        if (encodeMode == MediaEncodeMode::MANUAL_RES_PRE_ENC || encodeMode == MediaEncodeMode::AUTO_RES_PRE_ENC)
+        {
+            return MOS_STATUS_SUCCESS;
+        }
+#endif
     }
 
     Av1BrcInitPkt *brcInitpkt = MOS_New(Av1BrcInitPkt, this, task, m_hwInterface);
