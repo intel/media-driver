@@ -2304,7 +2304,6 @@ CodechalDebugInterface::CodechalDebugInterface()
         lockFlags.ReadOnly = 1;
         uint8_t *data      = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, resource, &lockFlags);
         MEDIA_DEBUG_CHK_NULL(data);
-        data += offset;
 
         MOS_STATUS status = MOS_STATUS_SUCCESS;
 
