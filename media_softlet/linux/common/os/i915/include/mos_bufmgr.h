@@ -285,6 +285,8 @@ int mos_query_engines(struct mos_bufmgr *bufmgr,
                       unsigned int *nengine,
                       void *ci);
 
+size_t mos_get_engine_class_size(struct mos_bufmgr *bufmgr);
+
 int mos_set_context_param_parallel(struct mos_linux_context *ctx,
                          struct i915_engine_class_instance *ci,
                          unsigned int count);

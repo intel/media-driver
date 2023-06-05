@@ -4648,6 +4648,11 @@ fini:
     return ret;
 }
 
+static size_t mos_bufmgr_get_engine_class_size()
+{
+    return sizeof(struct i915_engine_class_instance);
+}
+
 static int
 mos_bufmgr_query_sys_engines(struct mos_bufmgr *bufmgr, MEDIA_SYSTEM_INFO* gfx_info)
 {
@@ -5207,6 +5212,7 @@ mos_bufmgr_gem_init_i915(int fd, int batch_size)
     bufmgr_gem->bufmgr.set_platform_information = mos_bufmgr_set_platform_information;
     bufmgr_gem->bufmgr.query_engines_count = mos_bufmgr_query_engines_count;
     bufmgr_gem->bufmgr.query_engines = mos_bufmgr_query_engines;
+    bufmgr_gem->bufmgr.get_engine_class_size = mos_bufmgr_get_engine_class_size;
     bufmgr_gem->bufmgr.switch_off_n_bits = mos_bufmgr_switch_off_n_bits;
     bufmgr_gem->bufmgr.hweight8 = mos_bufmgr_hweight8;
     bufmgr_gem->bufmgr.get_ts_frequency = mos_bufmgr_get_ts_frequency;

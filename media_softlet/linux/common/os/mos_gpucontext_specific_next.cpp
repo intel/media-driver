@@ -561,7 +561,8 @@ MOS_STATUS GpuContextSpecificNext::Init(OsContextNext *osContext,
     {
         bool         isEngineSelectEnable = false;
         unsigned int nengine              = 0;
-        struct i915_engine_class_instance *engine_map = nullptr;
+        size_t       engine_class_size    = 0;
+        void         *engine_map          = nullptr;
 
         MOS_TraceEventExt(EVENT_GPU_CONTEXT_CREATE, EVENT_TYPE_START,
                           &gpuNode, sizeof(gpuNode), nullptr, 0);
@@ -573,25 +574,31 @@ MOS_STATUS GpuContextSpecificNext::Init(OsContextNext *osContext,
             MOS_OS_ASSERTMESSAGE("Failed to query engines count.\n");
             return MOS_STATUS_UNKNOWN;
         }
-        engine_map = (struct i915_engine_class_instance *)MOS_AllocAndZeroMemory(nengine * sizeof(struct i915_engine_class_instance));
+        engine_class_size = mos_get_engine_class_size(osParameters->bufmgr);
+        if (!engine_class_size)
+        {
+            MOS_OS_ASSERTMESSAGE("Failed to get engine class instance size.\n");
+            return MOS_STATUS_UNKNOWN;
+        }
+        engine_map = MOS_AllocAndZeroMemory(nengine * engine_class_size);
         MOS_OS_CHK_NULL_RETURN(engine_map);
 
         if (gpuNode == MOS_GPU_NODE_3D)
         {
-            eStatus = Init3DCtx(osParameters, createOption, &nengine, (void *)engine_map);
+            eStatus = Init3DCtx(osParameters, createOption, &nengine, engine_map);
         }
         else if (gpuNode == MOS_GPU_NODE_COMPUTE)
         {
-            eStatus = InitComputeCtx(osParameters, &nengine, (void *)engine_map, gpuNode, &isEngineSelectEnable);
+            eStatus = InitComputeCtx(osParameters, &nengine, engine_map, gpuNode, &isEngineSelectEnable);
         }
         else if (gpuNode == MOS_GPU_NODE_VIDEO || gpuNode == MOS_GPU_NODE_VIDEO2
                 || gpuNode == MOS_GPU_NODE_VE)
         {
-            eStatus = InitVdVeCtx(osParameters, streamState, createOption, &nengine, (void *)engine_map, gpuNode, &isEngineSelectEnable);
+            eStatus = InitVdVeCtx(osParameters, streamState, createOption, &nengine, engine_map, gpuNode, &isEngineSelectEnable);
         }
         else if (gpuNode == MOS_GPU_NODE_BLT)
         {
-            eStatus = InitBltCtx(osParameters, &nengine, (void *)engine_map);
+            eStatus = InitBltCtx(osParameters, &nengine, engine_map);
         }
         else
         {

@@ -1278,6 +1278,26 @@ mos_query_engines(struct mos_bufmgr *bufmgr,
     }
 }
 
+size_t
+mos_get_engine_class_size(struct mos_bufmgr *bufmgr)
+{
+    if(!bufmgr)
+    {
+        MOS_OS_CRITICALMESSAGE("Input null ptr\n");
+        return 0;
+    }
+
+    if (bufmgr->get_engine_class_size)
+    {
+        return bufmgr->get_engine_class_size();
+    }
+    else
+    {
+        MOS_OS_CRITICALMESSAGE("Unsupported\n");
+        return 0;
+    }
+}
+
 int
 mos_query_sys_engines(struct mos_bufmgr *bufmgr, MEDIA_SYSTEM_INFO* gfx_info)
 {
