@@ -1146,6 +1146,15 @@ MOS_STATUS VpResourceManager::AssignExecuteResource(std::vector<FeatureType> &fe
         VP_PUBLIC_CHK_STATUS_RETURN(AssignIntermediaSurface(caps, executedFilters));
         outputSurface  = GetCopyInstOfExtSurface(executedFilters.GetSurface(false, 0));
         VP_PUBLIC_CHK_NULL_RETURN(outputSurface);
+        // RTLog for intermediate surface
+        MT_LOG7(MT_VP_FEATURE_GRAPH_INTERMEIDATE_SURFACE_INFO, MT_NORMAL, MT_VP_FEATURE_GRAPH_SURFACE_WIDTH, outputSurface->osSurface->dwWidth, MT_VP_FEATURE_GRAPH_SURFACE_HEIGHT, outputSurface->osSurface->dwHeight, MT_VP_FEATURE_GRAPH_SURFACE_PITCH, outputSurface->osSurface->dwPitch, MT_VP_FEATURE_GRAPH_SURFACE_RCSRC_LEFT, outputSurface->rcSrc.left, MT_VP_FEATURE_GRAPH_SURFACE_RCSRC_TOP, outputSurface->rcSrc.top, MT_VP_FEATURE_GRAPH_SURFACE_RCSRC_RIGHT, outputSurface->rcSrc.right, MT_VP_FEATURE_GRAPH_SURFACE_RCSRC_BOTTOM, outputSurface->rcSrc.bottom);
+        MT_LOG6(MT_VP_FEATURE_GRAPH_INTERMEIDATE_SURFACE_INFO, MT_NORMAL, MT_VP_FEATURE_GRAPH_SURFACE_COLORSPACE, outputSurface->ColorSpace, MT_VP_FEATURE_GRAPH_SURFACE_FORMAT, outputSurface->osSurface->Format, MT_VP_FEATURE_GRAPH_SURFACE_RCDST_LEFT, outputSurface->rcDst.left, MT_VP_FEATURE_GRAPH_SURFACE_RCDST_TOP, outputSurface->rcDst.top, MT_VP_FEATURE_GRAPH_SURFACE_RCDST_RIGHT, outputSurface->rcDst.right, MT_VP_FEATURE_GRAPH_SURFACE_RCDST_BOTTOM, outputSurface->rcDst.bottom);
+        VP_PUBLIC_NORMALMESSAGE("Feature Graph: Intermediate Surface: dwWidth %d, dwHeight %d, ColorSpace %d, \
+        rcSrc.left %d, rcSrc.top %d, rcSrc.right %d, rcSrc.bottom %d, \
+        rcDst.left %d, rcDst.top %d, rcDst.right %d, rcDst.bottom %d",
+            outputSurface->osSurface->dwWidth, outputSurface->osSurface->dwHeight, outputSurface->osSurface->dwPitch, outputSurface->ColorSpace, outputSurface->osSurface->Format,
+            outputSurface->rcSrc.left, outputSurface->rcSrc.top, outputSurface->rcSrc.right, outputSurface->rcSrc.bottom,
+            outputSurface->rcDst.left, outputSurface->rcDst.top, outputSurface->rcDst.right, outputSurface->rcDst.bottom);
     }
 
     VP_PUBLIC_CHK_STATUS_RETURN(AssignExecuteResource(caps, inputSurfaces, outputSurface,

@@ -431,6 +431,33 @@ MOS_STATUS VpPipeline::ExecuteVpPipeline()
     VP_PUBLIC_CHK_STATUS_RETURN(CreateSwFilterPipe(m_pvpParams, swFilterPipes));
 
     MT_LOG1(MT_VP_FEATURE_GRAPH_CREATESWFILTERPIPE_START, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_SWFILTERPIPE_COUNT, (int64_t)swFilterPipes.size());
+
+    if (params)
+    {
+        // RTLog for input surface
+        for (uint32_t i = 0; i < params->uSrcCount; i++)
+        {
+            MT_LOG7(MT_VP_FEATURE_GRAPH_INPUT_SURFACE_INFO, MT_NORMAL, MT_VP_FEATURE_GRAPH_SURFACE_WIDTH, params->pSrc[i]->dwWidth, MT_VP_FEATURE_GRAPH_SURFACE_HEIGHT, params->pSrc[i]->dwHeight, MT_VP_FEATURE_GRAPH_SURFACE_PITCH, params->pSrc[i]->dwPitch, MT_VP_FEATURE_GRAPH_SURFACE_RCSRC_LEFT, params->pSrc[i]->rcSrc.left, MT_VP_FEATURE_GRAPH_SURFACE_RCSRC_TOP, params->pSrc[i]->rcSrc.top, MT_VP_FEATURE_GRAPH_SURFACE_RCSRC_RIGHT, params->pSrc[i]->rcSrc.right, MT_VP_FEATURE_GRAPH_SURFACE_RCSRC_BOTTOM, params->pSrc[i]->rcSrc.bottom);
+            MT_LOG6(MT_VP_FEATURE_GRAPH_INPUT_SURFACE_INFO, MT_NORMAL, MT_VP_FEATURE_GRAPH_SURFACE_COLORSPACE, params->pSrc[i]->ColorSpace, MT_VP_FEATURE_GRAPH_SURFACE_FORMAT, params->pSrc[i]->Format, MT_VP_FEATURE_GRAPH_SURFACE_RCDST_LEFT, params->pSrc[i]->rcDst.left, MT_VP_FEATURE_GRAPH_SURFACE_RCDST_TOP, params->pSrc[i]->rcDst.top, MT_VP_FEATURE_GRAPH_SURFACE_RCDST_RIGHT, params->pSrc[i]->rcDst.right, MT_VP_FEATURE_GRAPH_SURFACE_RCDST_BOTTOM, params->pSrc[i]->rcDst.bottom);
+            VP_PUBLIC_NORMALMESSAGE("Feature Graph: Input Surface: dwWidth %d, dwHeight %d, dwPitch %d, ColorSpace %d, Format %d, \
+            rcSrc.left %d, rcSrc.top %d, rcSrc.right %d, rcSrc.bottom %d, \
+            rcDst.left %d, rcDst.top %d, rcDst.right %d, rcDst.bottom %d",
+                params->pSrc[i]->dwWidth, params->pSrc[i]->dwHeight, params->pSrc[i]->dwPitch, params->pSrc[i]->ColorSpace, params->pSrc[i]->Format,
+                params->pSrc[i]->rcSrc.left, params->pSrc[i]->rcSrc.top, params->pSrc[i]->rcSrc.right, params->pSrc[i]->rcSrc.bottom,
+                params->pSrc[i]->rcDst.left, params->pSrc[i]->rcDst.top, params->pSrc[i]->rcDst.right, params->pSrc[i]->rcDst.bottom);
+        }
+
+        // RTLog for output surface
+        MT_LOG7(MT_VP_FEATURE_GRAPH_OUTPUT_SURFACE_INFO, MT_NORMAL, MT_VP_FEATURE_GRAPH_SURFACE_WIDTH, params->pTarget[0]->dwWidth, MT_VP_FEATURE_GRAPH_SURFACE_HEIGHT, params->pTarget[0]->dwHeight, MT_VP_FEATURE_GRAPH_SURFACE_PITCH, params->pTarget[0]->dwPitch, MT_VP_FEATURE_GRAPH_SURFACE_RCSRC_LEFT, params->pTarget[0]->rcSrc.left, MT_VP_FEATURE_GRAPH_SURFACE_RCSRC_TOP, params->pTarget[0]->rcSrc.top, MT_VP_FEATURE_GRAPH_SURFACE_RCSRC_RIGHT, params->pTarget[0]->rcSrc.right, MT_VP_FEATURE_GRAPH_SURFACE_RCSRC_BOTTOM, params->pTarget[0]->rcSrc.bottom);
+        MT_LOG6(MT_VP_FEATURE_GRAPH_OUTPUT_SURFACE_INFO, MT_NORMAL, MT_VP_FEATURE_GRAPH_SURFACE_COLORSPACE, params->pTarget[0]->ColorSpace, MT_VP_FEATURE_GRAPH_SURFACE_FORMAT, params->pTarget[0]->Format, MT_VP_FEATURE_GRAPH_SURFACE_RCDST_LEFT, params->pTarget[0]->rcDst.left, MT_VP_FEATURE_GRAPH_SURFACE_RCDST_TOP, params->pTarget[0]->rcDst.top, MT_VP_FEATURE_GRAPH_SURFACE_RCDST_RIGHT, params->pTarget[0]->rcDst.right, MT_VP_FEATURE_GRAPH_SURFACE_RCDST_BOTTOM, params->pTarget[0]->rcDst.bottom);
+        VP_PUBLIC_NORMALMESSAGE("Feature Graph: Output Surface: dwWidth %d, dwHeight %d, dwPitch %d, ColorSpace %d, Format %d, \
+        rcSrc.left %d, rcSrc.top %d, rcSrc.right %d, rcSrc.bottom %d, \
+        rcDst.left %d, rcDst.top %d, rcDst.right %d, rcDst.bottom %d",
+            params->pTarget[0]->dwWidth, params->pTarget[0]->dwHeight, params->pTarget[0]->dwPitch, params->pTarget[0]->ColorSpace, params->pTarget[0]->Format,
+            params->pTarget[0]->rcSrc.left, params->pTarget[0]->rcSrc.top, params->pTarget[0]->rcSrc.right, params->pTarget[0]->rcSrc.bottom,
+            params->pTarget[0]->rcDst.left, params->pTarget[0]->rcDst.top, params->pTarget[0]->rcDst.right, params->pTarget[0]->rcDst.bottom);
+    }
+
     for (uint32_t pipeIdx = 0; pipeIdx < swFilterPipes.size(); pipeIdx++)
     {
         auto &pipe = swFilterPipes[pipeIdx];
