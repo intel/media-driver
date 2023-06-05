@@ -257,7 +257,6 @@ MOS_STATUS AvcEncodeBRC::SetDmemForInit(void *params)
 
     ENCODE_CHK_NULL_RETURN(params);
     auto hucVdencBrcInitDmem =(VdencAvcHucBrcInitDmem*)params;
-    static_assert(sizeof(VdencAvcHucBrcInitDmem) == 192, "VdencAvcHucBrcInitDmem size MUST be equal to 192");
 
     auto setting = static_cast<AvcVdencFeatureSettings *>(m_constSettings);
     ENCODE_CHK_NULL_RETURN(setting);
@@ -325,46 +324,10 @@ MOS_STATUS AvcEncodeBRC::SetDmemForInit(void *params)
     hucVdencBrcInitDmem->INIT_FrameRateD_U32 = 100;
 
     hucVdencBrcInitDmem->INIT_ProfileLevelMaxFrame_U32 = m_basicFeature->GetProfileLevelMaxFrameSize();
-
     if (avcSeqParams->GopRefDist && (avcSeqParams->GopPicSize > 0))
     {
-        uint16_t intraPeriod               = avcSeqParams->GopPicSize - 1;
-        if (intraPeriod % avcSeqParams->GopRefDist != 0)
-        {
-            // Implement original cmodel behavior: use only complete Gop (for intraPeriod=6, GopRefDist=4 => intraPeriod must be 4)
-            intraPeriod -= intraPeriod % avcSeqParams->GopRefDist;
-        }
-
-        hucVdencBrcInitDmem->INIT_GopP_U16 = intraPeriod / avcSeqParams->GopRefDist;
+        hucVdencBrcInitDmem->INIT_GopP_U16 = (avcSeqParams->GopPicSize - 1) / avcSeqParams->GopRefDist;
         hucVdencBrcInitDmem->INIT_GopB_U16 = (avcSeqParams->GopRefDist - 1) * hucVdencBrcInitDmem->INIT_GopP_U16;
-
-        // For now AVC support only GOP4 and GOP8 golden gops
-        if (IsBPyramidWithGoldenBGOP())
-        {
-            auto    dmem     = hucVdencBrcInitDmem;
-            uint8_t BGopSize = (uint8_t)avcSeqParams->GopRefDist;
-
-            dmem->INIT_ExtGopP_U16 = (uint16_t)(intraPeriod / BGopSize);
-            dmem->INIT_ExtGopB_U16 = BGopSize > 1 ? (uint16_t)dmem->INIT_ExtGopP_U16 : 0;
-
-            uint16_t gopB1Multiplicator = (BGopSize > 2 ? 1 : 0) +
-                                          (BGopSize == 4 || BGopSize > 5 ? 1 : 0);
-            uint16_t gopB2Multiplicator = (BGopSize > 3 ? 1 : 0);
-
-            dmem->INIT_ExtGopB1_U16      = dmem->INIT_ExtGopP_U16 * gopB1Multiplicator;
-            dmem->INIT_ExtGopB2_U16      = (intraPeriod - dmem->INIT_ExtGopP_U16 - dmem->INIT_ExtGopB_U16 - dmem->INIT_ExtGopB1_U16) * gopB2Multiplicator;
-            dmem->INIT_ExtMaxBrcLevel_U8 = dmem->INIT_ExtGopB1_U16 == 0 ? 2 :
-                                          (dmem->INIT_ExtGopB2_U16 == 0 ? AvcBrcFrameType::B1_FRAME : AvcBrcFrameType::B2_FRAME);
-            ENCODE_CHK_COND_RETURN(BGopSize != (1 << (dmem->INIT_ExtMaxBrcLevel_U8 - 1)),
-                "'BGopSize' (GopRefDist) must be equal '1 << (dmem->INIT_MaxBrcLevel_U16 - 1)'");
-        }
-        else
-        {
-            hucVdencBrcInitDmem->INIT_ExtGopP_U16 = hucVdencBrcInitDmem->INIT_GopP_U16;
-            hucVdencBrcInitDmem->INIT_ExtGopB_U16 = hucVdencBrcInitDmem->INIT_GopB_U16;
-
-            hucVdencBrcInitDmem->INIT_ExtGopB1_U16 = hucVdencBrcInitDmem->INIT_ExtGopB2_U16 = hucVdencBrcInitDmem->INIT_ExtMaxBrcLevel_U8 = 0;
-        }
     }
 
     if (m_basicFeature->m_minMaxQpControlEnabled)
@@ -550,7 +513,6 @@ MOS_STATUS AvcEncodeBRC::SetDmemForUpdate(void *params, uint16_t currPass, bool 
 
     ENCODE_CHK_NULL_RETURN(params);
     auto hucVdencBrcUpdateDmem =(VdencAvcHucBrcUpdateDmem*)params;
-    static_assert(sizeof(VdencAvcHucBrcUpdateDmem) == 448, "VdencAvcHucBrcUpdateDmem size MUST be equal to 448");
 
     auto setting = static_cast<AvcVdencFeatureSettings *>(m_constSettings);
     ENCODE_CHK_NULL_RETURN(setting);
@@ -614,7 +576,12 @@ MOS_STATUS AvcEncodeBRC::SetDmemForUpdate(void *params, uint16_t currPass, bool 
                          brcSettings.BRC_UPD_global_rate_ratio_threshold, 7 * sizeof(uint8_t));
     }
 
-    SetFrameTypeForUpdate(hucVdencBrcUpdateDmem, currPass);
+    hucVdencBrcUpdateDmem->UPD_CurrFrameType_U8 = (m_basicFeature->m_pictureCodingType + 1) % 3;   // I:2, P:0, B:1
+
+    if (hucVdencBrcUpdateDmem->UPD_CurrFrameType_U8 == 1 && avcPicParams->RefPicFlag == 1)
+    {
+        hucVdencBrcUpdateDmem->UPD_CurrFrameType_U8 = 3;  // separated type for reference B
+    }
 
     MOS_SecureMemcpy(hucVdencBrcUpdateDmem->UPD_startGAdjFrame_U16, 4 * sizeof(uint16_t),
                      brcSettings.BRC_UPD_start_global_adjust_frame, 4 * sizeof(uint16_t));
@@ -1179,31 +1146,6 @@ MOS_STATUS AvcEncodeBRC::DeltaQPUpdate(uint8_t qpModulationStrength, bool bIsLas
     return MOS_STATUS_SUCCESS;
 }
 
-void AvcEncodeBRC::SetFrameTypeForUpdate(VdencAvcHucBrcUpdateDmem *dmem, uint16_t currPass)
-{
-    dmem->UPD_CurrFrameType_U8 = dmem->UPD_ExtCurrFrameType = (m_basicFeature->m_pictureCodingType + 1) % 3;  // I:2, P:0, B:1. Same values in AvcBrcFrameType
-    if (m_basicFeature->m_pictureCodingType == I_TYPE || m_basicFeature->m_pictureCodingType == P_TYPE)
-    {
-        m_frameIdxInBGop = 0;
-    }
-    else if (currPass == 0)
-    {
-        ++m_frameIdxInBGop;
-    }
-
-    //
-    // Calculate correct ExtCurrFrameType only for Golden GOPs
-    //
-    // Calculate B-frame type based on hierarchy level for B-pyramid
-    if (IsBPyramidWithGoldenBGOP() && m_basicFeature->m_pictureCodingType == B_TYPE)
-    {
-        uint16_t curOrder = 0, curLvlInBGop = 0;
-        CalculateCurLvlInBGop(m_frameIdxInBGop, 1, m_basicFeature->m_seqParam->GopRefDist, 0, curOrder, curLvlInBGop);
-
-        dmem->UPD_ExtCurrFrameType = curLvlInBGop == 1 ? AvcBrcFrameType::B1_FRAME : (curLvlInBGop == 2 ? AvcBrcFrameType::B2_FRAME : AvcBrcFrameType::B_FRAME);
-    }
-}
-
 bool AvcEncodeBRC::IsVdencBrcSupported(
     PCODEC_AVC_ENCODE_SEQUENCE_PARAMS avcSeqParams)
 {
@@ -1256,35 +1198,6 @@ uint32_t AvcEncodeBRC::GetVdencOneSliceStateSize()
     return m_mfxItf->MHW_GETSIZE_F(MFX_AVC_SLICE_STATE)() +
            m_vdencItf->MHW_GETSIZE_F(VDENC_AVC_SLICE_STATE)() +
            m_miItf->MHW_GETSIZE_F(MI_BATCH_BUFFER_END)();
-}
-
-bool AvcEncodeBRC::IsBPyramidWithGoldenBGOP()
-{
-    return
-          // Add HierarchicalFlag to condition to not use hierarchy B-Frames when HierarchicalFlag==0
-          // m_basicFeature->m_seqParam->HierarchicalFlag &&
-            (m_basicFeature->m_seqParam->GopRefDist == 2 ||
-             m_basicFeature->m_seqParam->GopRefDist == 4 ||
-             m_basicFeature->m_seqParam->GopRefDist == 8);
-}
-
-void AvcEncodeBRC::CalculateCurLvlInBGop(uint16_t curFrameIdxInBGop, uint16_t begin, uint16_t end, uint16_t curLvl, uint16_t &curOrder, uint16_t &retLvl)
-{
-    curOrder += 1;
-    if (curOrder == curFrameIdxInBGop)
-    {
-        retLvl = curLvl;
-        return;
-    }
-
-    if (end - begin > 1)
-    {
-        uint16_t pivot = (begin + end) >> 1;
-        CalculateCurLvlInBGop(curFrameIdxInBGop, begin, pivot, curLvl + 1, curOrder, retLvl);
-
-        if (pivot + 1 != end)
-            CalculateCurLvlInBGop(curFrameIdxInBGop, pivot + 1, end, curLvl + 1, curOrder, retLvl);
-    }
 }
 
 MHW_SETPAR_DECL_SRC(VDENC_PIPE_MODE_SELECT, AvcEncodeBRC)
