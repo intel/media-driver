@@ -539,6 +539,10 @@ namespace encode
             curTileWidthSb = av1PicParam->width_in_sbs_minus_1[i] + 1;
             widestTileSb   = MOS_MAX(widestTileSb, curTileWidthSb);
             tileWidthSbSum += curTileWidthSb;
+            if (m_basicFeature->m_dualEncEnable && curTileWidthSb == 2)
+            {
+                m_firstDummyIdx = i;
+            }
         }
         if (tileWidthSbSum != sbCols)
         {
@@ -573,10 +577,6 @@ namespace encode
             if ((widestTileSb * curTileHeightSb) > maxTileAreaSb)
             {
                 return MOS_STATUS_INVALID_PARAMETER;
-            }
-            if (m_basicFeature->m_dualEncEnable && (av1PicParam->width_in_sbs_minus_1[i] + 1) == 2)
-            {
-                m_firstDummyIdx = i;
             }
         }
 
