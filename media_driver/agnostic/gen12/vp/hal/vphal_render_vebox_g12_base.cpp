@@ -1927,6 +1927,7 @@ void VPHAL_VEBOX_STATE_G12_BASE::SetupSurfaceStates(
     pVeboxSurfaceStateCmdParams->pSurfSTMM     = &pVeboxState->STMMSurfaces[pRenderData->iCurHistIn];
     pVeboxSurfaceStateCmdParams->pSurfDNOutput = pVeboxState->FFDNSurfaces[pRenderData->iCurDNOut];
     pVeboxSurfaceStateCmdParams->bDIEnable     = bDiVarianceEnable;
+    pVeboxSurfaceStateCmdParams->b3DlutEnable  = pRenderData->bHdr3DLut;
 
 }
 
