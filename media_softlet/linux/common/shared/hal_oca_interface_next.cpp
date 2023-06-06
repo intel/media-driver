@@ -393,6 +393,41 @@ void HalOcaInterfaceNext::DumpVpKernelInfo(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CO
 }
 
 //!
+//! \brief  Add vp kernel info to oca log section.
+//! \param  [in] cmdBuffer
+//!         Command buffer for current BB.
+//! \param  [in] mosContext
+//!         Reference to MOS_CONTEXT.
+//! \param  [in] pControlValues
+//!         Value of user features.
+//! \return void
+//!         No return value. Handle all exception inside the function.
+//!
+void HalOcaInterfaceNext::DumpVpUserFeautreControlInfo(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT_HANDLE mosContext, PMOS_OCA_LOG_USER_FEATURE_CONTROL_INFO pControlValues)
+{
+    MosOcaInterface      *pOcaInterface = &MosOcaInterfaceSpecific::GetInstance();
+    MOS_STATUS            status        = MOS_STATUS_SUCCESS;
+    MOS_OCA_BUFFER_HANDLE hOcaBuf       = 0;
+
+    if (nullptr == pOcaInterface || (hOcaBuf = GetOcaBufferHandle(cmdBuffer, mosContext)) == MOS_OCA_INVALID_BUFFER_HANDLE)
+    {
+        // Will come here for UMD_OCA not being enabled case.
+        return;
+    }
+
+    MOS_OCA_LOG_HEADER header                           = {};
+    header.type                                         = MOS_OCA_LOG_TYPE_VP_USER_FEATURE_CONTROL_INFO;
+    header.headerSize                                   = sizeof(MOS_OCA_LOG_HEADER);
+    header.dataSize                                     = sizeof(MOS_OCA_LOG_USER_FEATURE_CONTROL_INFO);
+
+    status = pOcaInterface->DumpDataBlock(hOcaBuf, (PMOS_CONTEXT)mosContext, (PMOS_OCA_LOG_HEADER)&header, pControlValues);
+    if (MOS_FAILED(status))
+    {
+        OnOcaError(mosContext, status, __FUNCTION__, __LINE__);
+    }
+}
+
+//!
 //! \brief  Add vphal parameters to oca log section.
 //! \param  [in] mosContext
 //!         Reference to MOS_CONTEXT.

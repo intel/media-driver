@@ -2156,6 +2156,11 @@ void VpVeboxCmdPacketLegacy::AddCommonOcaMessage(PMOS_COMMAND_BUFFER pCmdBufferI
 
     // Add vphal param to log.
     HalOcaInterface::DumpVphalParam(*pCmdBufferInUse, (MOS_CONTEXT_HANDLE)pOsContext, pRenderHal->pVphalOcaDumper);
+
+    if (m_vpUserFeatureControl)
+    {
+        HalOcaInterfaceNext::DumpVpUserFeautreControlInfo(*pCmdBufferInUse, pOsContext, m_vpUserFeatureControl->GetOcaFeautreControlInfo());
+    }
 }
 
 
@@ -2706,6 +2711,10 @@ VpVeboxCmdPacketLegacy::VpVeboxCmdPacketLegacy(
     VpCmdPacket(task, hwInterface, allocator, mmc, VP_PIPELINE_PACKET_VEBOX),
     VpVeboxCmdPacketBase(task, hwInterface, allocator, mmc)
 {
+    if (hwInterface)
+    {
+        m_vpUserFeatureControl = hwInterface->m_userFeatureControl;
+    }
 }
 
 VpVeboxCmdPacketLegacy:: ~VpVeboxCmdPacketLegacy()

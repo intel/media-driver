@@ -33,6 +33,7 @@
 #include "vp_vebox_common.h"
 #include "vp_render_sfc_base.h"
 #include "vp_filter.h"
+#include "vp_user_feature_control.h"
 
 namespace vp {
 
@@ -899,6 +900,7 @@ protected:
     bool                        m_useKernelResource        = false;               //!< Use Vebox Kernel Resource 
     uint32_t                    m_inputDepth               = 0;
     std::shared_ptr<mhw::vebox::Itf> m_veboxItf            = nullptr;
+    vp::VpUserFeatureControl   *m_vpUserFeatureControl = nullptr;
 
 MEDIA_CLASS_DEFINE_END(vp__VpVeboxCmdPacketLegacy)
 };

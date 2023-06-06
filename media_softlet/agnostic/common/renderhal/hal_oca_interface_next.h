@@ -217,6 +217,19 @@ public:
     static void DumpVpKernelInfo(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT_HANDLE mosContext, int vpKernelID, int fcKernelCount, int *fcKernelList);
 
     //!
+    //! \brief  Add vp kernel info to oca log section.
+    //! \param  [in] cmdBuffer
+    //!         Command buffer for current BB.
+    //! \param  [in] mosContext
+    //!         Reference to MOS_CONTEXT.
+    //! \param  [in] pControlValues
+    //!         Value of user features.
+    //! \return void
+    //!         No return value. Handle all exception inside the function.
+    //!
+    static void DumpVpUserFeautreControlInfo(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT_HANDLE mosContext, PMOS_OCA_LOG_USER_FEATURE_CONTROL_INFO pControlValues);
+
+    //!
     //! \brief  Add vphal parameters to oca log section.
     //! \param  [in] cmdBuffer
     //!         Command buffer for current BB.

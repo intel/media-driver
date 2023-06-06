@@ -1944,6 +1944,11 @@ void VpVeboxCmdPacket::AddCommonOcaMessage(PMOS_COMMAND_BUFFER pCmdBufferInUse, 
     // Add vphal param to log.
     HalOcaInterfaceNext::DumpVphalParam(*pCmdBufferInUse, pOsContext, pRenderHal->pVphalOcaDumper);
 
+    if (m_vpUserFeatureControl)
+    {
+        HalOcaInterfaceNext::DumpVpUserFeautreControlInfo(*pCmdBufferInUse, pOsContext, m_vpUserFeatureControl->GetOcaFeautreControlInfo());
+    }
+
 }
 
 MOS_STATUS VpVeboxCmdPacket::InitVeboxSurfaceStateCmdParams(

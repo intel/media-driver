@@ -177,6 +177,7 @@ protected:
     VP_SURFACE                        *m_currentSurface  = nullptr;              //!< Current frame
     PVP_RENDER_CACHE_CNTL              m_surfMemCacheCtl = nullptr;              //!< Surface memory cache control
     PRENDERHAL_ENLARGE_PARAMS          m_enlargedStateHeapSetting = nullptr;
+    vp::VpUserFeatureControl          *m_vpUserFeatureControl     = nullptr;
 
 MEDIA_CLASS_DEFINE_END(vp__VpRenderCmdPacket)
 };

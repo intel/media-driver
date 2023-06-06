@@ -80,6 +80,7 @@ VpRenderCmdPacket::VpRenderCmdPacket(MediaTask *task, PVP_MHWINTERFACE hwInterfa
     {
         bool computeContextEnabled = m_hwInterface->m_userFeatureControl->IsComputeContextEnabled();
         m_PacketId = computeContextEnabled ? VP_PIPELINE_PACKET_COMPUTE : VP_PIPELINE_PACKET_RENDER;
+        m_vpUserFeatureControl     = m_hwInterface->m_userFeatureControl;
     }
     else
     {
@@ -994,6 +995,11 @@ void VpRenderCmdPacket::OcaDumpDbgInfo(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEX
     }
     // Add vphal param to log.
     HalOcaInterfaceNext::DumpVphalParam(cmdBuffer, (MOS_CONTEXT_HANDLE)&mosContext, m_renderHal->pVphalOcaDumper);
+
+    if (m_vpUserFeatureControl)
+    {
+        HalOcaInterfaceNext::DumpVpUserFeautreControlInfo(cmdBuffer, &mosContext, m_vpUserFeatureControl->GetOcaFeautreControlInfo());
+    }
 }
 
 MOS_STATUS VpRenderCmdPacket::SetMediaFrameTracking(RENDERHAL_GENERIC_PROLOG_PARAMS &genericPrologParams)

@@ -180,6 +180,8 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
+    virtual PMOS_OCA_LOG_USER_FEATURE_CONTROL_INFO GetOcaFeautreControlInfo();
+
     const void *m_owner = nullptr; // The object who create current instance.
 
 protected:
@@ -189,6 +191,7 @@ protected:
     CONTROL_VALUES m_ctrlValDefault = {};
     CONTROL_VALUES m_ctrlVal        = {};
     MediaUserSettingSharedPtr m_userSettingPtr = nullptr;  //!< usersettingInstance
+    PMOS_OCA_LOG_USER_FEATURE_CONTROL_INFO m_pOcaFeatureControlInfo = nullptr;
 
     MEDIA_CLASS_DEFINE_END(vp__VpUserFeatureControl)
 };
