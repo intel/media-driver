@@ -170,17 +170,13 @@ struct mos_aub_annotation {
 
 #define BO_ALLOC_FOR_RENDER (1<<0)
 
-#define PAT_INDEX_INVALID ((uint32_t)-1)
-
 struct mos_linux_bo *mos_bo_alloc(struct mos_bufmgr *bufmgr, const char *name,
-                 unsigned long size, unsigned int alignment, int mem_type, unsigned int pat_index = PAT_INDEX_INVALID, bool cpu_cacheable = true);
+                 unsigned long size, unsigned int alignment, int mem_type);
 struct mos_linux_bo *mos_bo_alloc_for_render(struct mos_bufmgr *bufmgr,
                         const char *name,
                         unsigned long size,
                         unsigned int alignment,
-                        int mem_type,
-                        unsigned int pat_index = PAT_INDEX_INVALID,
-                        bool cpu_cacheable = true);
+                        int mem_type);
 struct mos_linux_bo *mos_bo_alloc_userptr(struct mos_bufmgr *bufmgr,
                     const char *name,
                     void *addr, uint32_t tiling_mode,
@@ -192,9 +188,7 @@ struct mos_linux_bo *mos_bo_alloc_tiled(struct mos_bufmgr *bufmgr,
                        uint32_t *tiling_mode,
                        unsigned long *pitch,
                        unsigned long flags,
-                       int mem_type,
-                       unsigned int pat_index = PAT_INDEX_INVALID,
-                       bool cpu_cacheable = true);
+                       int mem_type);
 void mos_bo_reference(struct mos_linux_bo *bo);
 void mos_bo_unreference(struct mos_linux_bo *bo);
 int mos_bo_map(struct mos_linux_bo *bo, int write_enable);

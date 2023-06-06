@@ -48,7 +48,7 @@ struct mos_bufmgr {
      * using bo_map() or drm_intel_gem_bo_map_gtt() to be used by the CPU.
      */
     struct mos_linux_bo *(*bo_alloc) (struct mos_bufmgr *bufmgr, const char *name,
-                   unsigned long size, unsigned int alignment, int mem_type, unsigned int pat_index, bool cpu_cacheable);
+                   unsigned long size, unsigned int alignment, int mem_type);
 
     /**
      * Allocate a buffer object, hinting that it will be used as a
@@ -60,9 +60,7 @@ struct mos_bufmgr {
                           const char *name,
                           unsigned long size,
                           unsigned int alignment,
-                          int mem_type,
-                          unsigned int pat_index,
-                          bool cpu_cacheable);
+                          int mem_type);
 
     /**
      * Allocate a buffer object from an existing user accessible
@@ -97,9 +95,7 @@ struct mos_bufmgr {
                      uint32_t *tiling_mode,
                      unsigned long *pitch,
                      unsigned long flags,
-                     int mem_type,
-                     unsigned int pat_index,
-                     bool cpu_cacheable);
+                     int mem_type);
 
     /** Takes a reference on a buffer object */
     void (*bo_reference) (struct mos_linux_bo *bo);

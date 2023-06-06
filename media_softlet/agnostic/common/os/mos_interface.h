@@ -309,21 +309,6 @@ public:
         MOS_STREAM_HANDLE streamState);
 
     //!
-    //! \brief  Get PAT index from gmm
-    //!
-    //! \param  [in] gmmClient
-    //!         GMM client context
-    //! \param  [in] gmmResourceInfo
-    //!         gmm resource info
-    //!
-    //! \return unsigned int
-    //!         Pat index
-    //!
-    static unsigned int GetPATIndexFromGmm(
-        GMM_CLIENT_CONTEXT *gmmClient,
-        GMM_RESOURCE_INFO *gmmResourceInfo);
-
-    //!
     //! \brief    Get current Gpu context priority
     //! \details  Get current Gpu context priority
     //!

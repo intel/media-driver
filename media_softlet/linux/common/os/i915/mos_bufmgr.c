@@ -346,16 +346,6 @@ struct mos_bo_gem {
      * Memory Type on created the surfaces for local/system memory
      */
     int mem_region;
-
-    /**
-     * PAT Index
-     */
-    unsigned int pat_index;
-
-    /**
-     * Is cpu cacheable
-     */
-    bool cpu_cacheable;
 };
 
 struct mos_exec_info {
@@ -1017,14 +1007,11 @@ mos_gem_bo_alloc_internal(struct mos_bufmgr *bufmgr,
                 uint32_t tiling_mode,
                 unsigned long stride,
                 unsigned int alignment,
-                int mem_type,
-                unsigned int pat_index,
-                bool cpu_cacheable)
+                int mem_type)
 {
     struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *) bufmgr;
     struct mos_bo_gem *bo_gem;
     unsigned int page_size = getpagesize();
-    static bool support_pat_index = true;
     int ret;
     struct mos_gem_bo_bucket *bucket;
     bool alloc_from_cache;
@@ -1047,13 +1034,7 @@ mos_gem_bo_alloc_internal(struct mos_bufmgr *bufmgr,
     } else {
         bo_size = bucket->size;
     }
-    if (!support_pat_index)
-    {
-        /* For old kernel without pat index support,
-         * We need to reset pat_index for bo reuse policy
-         */
-        pat_index = PAT_INDEX_INVALID;
-    }
+
     pthread_mutex_lock(&bufmgr_gem->lock);
     /* Get a buffer out of the cache if available */
 retry:
@@ -1094,11 +1075,7 @@ retry:
                                     bucket);
                 goto retry;
             }
-            if (bo_gem->pat_index != pat_index)
-            {
-                mos_gem_bo_free(&bo_gem->bo);
-                goto retry;
-            }
+
             if (mos_gem_bo_set_tiling_internal(&bo_gem->bo,
                                  tiling_mode,
                                  stride)) {
@@ -1121,10 +1098,8 @@ retry:
 
         bo_gem->bo.size = bo_size;
         bo_gem->mem_region = I915_MEMORY_CLASS_SYSTEM;
-        bo_gem->pat_index  = PAT_INDEX_INVALID;
-        bo_gem->cpu_cacheable = true;
 
-        if (bufmgr_gem->has_lmem &&
+        if(bufmgr_gem->has_lmem &&
             (mem_type == MOS_MEMPOOL_VIDEOMEMORY || mem_type == MOS_MEMPOOL_DEVICEMEMORY)) {
             struct drm_i915_gem_memory_class_instance mem_region;
             memclear(mem_region);
@@ -1149,48 +1124,15 @@ retry:
             bo_gem->bo.handle = bo_gem->gem_handle;
             bo_gem->mem_region = I915_MEMORY_CLASS_DEVICE;
         }
-        else
-        {
-            ret = -EINVAL;
-            if (support_pat_index && pat_index != PAT_INDEX_INVALID)
-            {
-                struct drm_i915_gem_create_ext_set_pat set_pat_ext;
-                memclear(set_pat_ext);
-                set_pat_ext.base.name = I915_GEM_CREATE_EXT_SET_PAT;
-                set_pat_ext.pat_index = pat_index;
-
-                struct drm_i915_gem_create_ext create;
-                memclear(create);
-                create.size = bo_size;
-                create.extensions = (uintptr_t)(&set_pat_ext);
-                ret = drmIoctl(bufmgr_gem->fd,
-                        DRM_IOCTL_I915_GEM_CREATE_EXT,
-                        &create);
-                bo_gem->gem_handle = create.handle;
-                bo_gem->bo.handle = bo_gem->gem_handle;
-                bo_gem->pat_index = pat_index;
-                if (ret != 0)
-                {
-                    /* For old kernel without pat_index support,
-                     * DRM_IOCTL_I915_GEM_CREATE_EXT with unknown
-                     * set_pat_ext extension will return -EINVAL
-                     * support_pat_index need to be set false.
-                     */
-                    support_pat_index = false;
-                }
-            }
-            if (ret != 0)
-            {
-                struct drm_i915_gem_create create;
-                memclear(create);
-                create.size = bo_size;
-                ret = drmIoctl(bufmgr_gem->fd,
-                    DRM_IOCTL_I915_GEM_CREATE,
-                    &create);
-                bo_gem->gem_handle = create.handle;
-                bo_gem->bo.handle = bo_gem->gem_handle;
-                bo_gem->pat_index = PAT_INDEX_INVALID;
-            }
+        else {
+            struct drm_i915_gem_create create;
+            memclear(create);
+            create.size = bo_size;
+            ret = drmIoctl(bufmgr_gem->fd,
+                   DRM_IOCTL_I915_GEM_CREATE,
+                   &create);
+            bo_gem->gem_handle = create.handle;
+            bo_gem->bo.handle = bo_gem->gem_handle;
         }
         if (ret != 0) {
             free(bo_gem);
@@ -1232,11 +1174,6 @@ retry:
     bo_gem->reusable = true;
     bo_gem->use_48b_address_range = bufmgr_gem->bufmgr.bo_use_48b_address_range ? true : false;
 
-    if (bo_gem->pat_index != PAT_INDEX_INVALID)
-    {
-        bo_gem->cpu_cacheable = cpu_cacheable;
-    }
-
     mos_bo_gem_set_in_aperture_size(bufmgr_gem, bo_gem, alignment);
 
     if (bufmgr_gem->use_softpin)
@@ -1255,14 +1192,12 @@ mos_gem_bo_alloc_for_render(struct mos_bufmgr *bufmgr,
                   const char *name,
                   unsigned long size,
                   unsigned int alignment,
-                  int mem_type,
-                  unsigned int pat_index,
-                  bool cpu_cacheable)
+                  int mem_type)
 {
     return mos_gem_bo_alloc_internal(bufmgr, name, size,
                            I915_TILING_NONE, 0,
                            BO_ALLOC_FOR_RENDER,
-                           alignment, mem_type, pat_index, cpu_cacheable);
+                           alignment, mem_type);
 }
 
 static struct mos_linux_bo *
@@ -1270,19 +1205,17 @@ mos_gem_bo_alloc(struct mos_bufmgr *bufmgr,
                const char *name,
                unsigned long size,
                unsigned int alignment,
-               int mem_type,
-               unsigned int pat_index,
-               bool cpu_cacheable)
+               int mem_type)
 {
     return mos_gem_bo_alloc_internal(bufmgr, name, size, 0,
-                           I915_TILING_NONE, 0, 0, mem_type, pat_index, cpu_cacheable);
+                           I915_TILING_NONE, 0, 0, mem_type);
 }
 
 static struct mos_linux_bo *
 mos_gem_bo_alloc_tiled(struct mos_bufmgr *bufmgr, const char *name,
                  int x, int y, int cpp, uint32_t *tiling_mode,
                  unsigned long *pitch, unsigned long flags,
-                 int mem_type, unsigned int pat_index, bool cpu_cacheable)
+                 int mem_type)
 {
     struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *)bufmgr;
     unsigned long size, stride;
@@ -1326,7 +1259,7 @@ mos_gem_bo_alloc_tiled(struct mos_bufmgr *bufmgr, const char *name,
         stride = 0;
 
     return mos_gem_bo_alloc_internal(bufmgr, name, size, flags,
-                           tiling, stride, 0, mem_type, pat_index, cpu_cacheable);
+                           tiling, stride, 0, mem_type);
 }
 
 static struct mos_linux_bo *
@@ -1371,12 +1304,10 @@ mos_gem_bo_alloc_userptr(struct mos_bufmgr *bufmgr,
         return nullptr;
     }
 
-    bo_gem->gem_handle    = userptr.handle;
-    bo_gem->bo.handle     = bo_gem->gem_handle;
-    bo_gem->bo.bufmgr     = bufmgr;
-    bo_gem->is_userptr    = true;
-    bo_gem->pat_index     = PAT_INDEX_INVALID;
-    bo_gem->cpu_cacheable = true;
+    bo_gem->gem_handle = userptr.handle;
+    bo_gem->bo.handle = bo_gem->gem_handle;
+    bo_gem->bo.bufmgr    = bufmgr;
+    bo_gem->is_userptr   = true;
 #ifdef __cplusplus
     bo_gem->bo.virt   = addr;
 #else
@@ -1555,8 +1486,6 @@ mos_bufmgr_bo_gem_create_from_name(struct mos_bufmgr *bufmgr,
 #endif
     bo_gem->bo.bufmgr = bufmgr;
     bo_gem->name = name;
-    bo_gem->pat_index = PAT_INDEX_INVALID;
-    bo_gem->cpu_cacheable = true;
     atomic_set(&bo_gem->refcount, 1);
     bo_gem->validate_index = -1;
     bo_gem->gem_handle = open_arg.handle;
@@ -1832,7 +1761,7 @@ map_wc(struct mos_linux_bo *bo)
         }
         else
         {
-            mmap_arg.flags = I915_MMAP_OFFSET_WC;
+           mmap_arg.flags = I915_MMAP_OFFSET_WC;
         }
         ret = drmIoctl(bufmgr_gem->fd,
                    DRM_IOCTL_I915_GEM_MMAP_OFFSET,
@@ -1966,11 +1895,6 @@ drm_export int mos_gem_bo_map(struct mos_linux_bo *bo, int write_enable)
 #endif
         return 0;
     }
-    /* If cpu cacheable is false, it means bo is Non-Coherent. */
-    if (!bo_gem->cpu_cacheable)
-    {
-        return mos_gem_bo_map_wc(bo);
-    }
 
     pthread_mutex_lock(&bufmgr_gem->lock);
 
@@ -1991,7 +1915,7 @@ drm_export int mos_gem_bo_map(struct mos_linux_bo *bo, int write_enable)
             }
             else
             {
-                mmap_arg.flags = I915_MMAP_OFFSET_WB;
+               mmap_arg.flags = I915_MMAP_OFFSET_WB;
             }
             ret = drmIoctl(bufmgr_gem->fd,
                    DRM_IOCTL_I915_GEM_MMAP_OFFSET,
@@ -3521,9 +3445,8 @@ mos_gem_bo_create_from_prime(struct mos_bufmgr *bufmgr, int prime_fd, int size)
     bo_gem->bo.handle = handle;
     bo_gem->bo.bufmgr = bufmgr;
 
-    bo_gem->gem_handle    = handle;
-    bo_gem->pat_index     = PAT_INDEX_INVALID;
-    bo_gem->cpu_cacheable = true;
+    bo_gem->gem_handle = handle;
+
     atomic_set(&bo_gem->refcount, 1);
 
     bo_gem->name = "prime";

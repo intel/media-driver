@@ -74,13 +74,6 @@ MOS_STATUS GraphicsResourceSpecificNext::Allocate(OsContextNext* osContextPtr, C
         return MOS_STATUS_INVALID_HANDLE;
     }
 
-    GMM_CLIENT_CONTEXT    *gmmClientContext = pOsContextSpecific->GetGmmClientContext();
-    if (nullptr == gmmClientContext)
-    {
-        MOS_OS_ASSERTMESSAGE("Get GMM Client Context failed.");
-        return MOS_STATUS_INVALID_HANDLE;
-    }
-
     MOS_STATUS         status          = MOS_STATUS_SUCCESS;
     uint32_t           tileFormatLinux = I915_TILING_NONE;
     uint32_t           alignedHeight   = params.m_height;
@@ -257,9 +250,6 @@ MOS_STATUS GraphicsResourceSpecificNext::Allocate(OsContextNext* osContextPtr, C
     char bufName[m_maxBufNameLength];
     MosUtilities::MosSecureStrcpy(bufName, m_maxBufNameLength, params.m_name.c_str());
 
-    unsigned int patIndex = MosInterface::GetPATIndexFromGmm(gmmClientContext, gmmResourceInfoPtr);
-    bool isCpuCacheable   = gmmResourceInfoPtr->GetResFlags().Info.Cacheable;
-
     MOS_TraceEventExt(EVENT_RESOURCE_ALLOCATE, EVENT_TYPE_START, nullptr, 0, nullptr, 0);
     if (nullptr != params.m_pSystemMemory)
     {
@@ -274,7 +264,7 @@ MOS_STATUS GraphicsResourceSpecificNext::Allocate(OsContextNext* osContextPtr, C
     // Only Linear and Y TILE supported
     else if (tileFormatLinux == I915_TILING_NONE)
     {
-        boPtr = mos_bo_alloc(pOsContextSpecific->m_bufmgr, bufName, bufSize, 4096, mem_type, patIndex, isCpuCacheable);
+        boPtr = mos_bo_alloc(pOsContextSpecific->m_bufmgr, bufName, bufSize, 4096, mem_type);
     }
     else
     {
@@ -286,9 +276,7 @@ MOS_STATUS GraphicsResourceSpecificNext::Allocate(OsContextNext* osContextPtr, C
                         &tileFormatLinux,
                         &linuxPitch,
                         0,
-                        mem_type,
-                        patIndex,
-                        isCpuCacheable);
+                        mem_type);
         bufPitch = (uint32_t)linuxPitch;
     }
 
@@ -640,8 +628,6 @@ MOS_STATUS GraphicsResourceSpecificNext::AllocateExternalResource(
     GMM_RESCREATE_PARAMS gmmParams;
     GMM_RESOURCE_INFO *gmmResourceInfo = nullptr;
     GMM_RESOURCE_TYPE resourceType = RESOURCE_2D;
-    unsigned int patIndex = PAT_INDEX_INVALID;
-    bool isCpuCacheable = true;
 
     MosUtilities::MosZeroMemory(&gmmParams, sizeof(gmmParams));
 
@@ -739,7 +725,6 @@ MOS_STATUS GraphicsResourceSpecificNext::AllocateExternalResource(
     }
     gmmParams.Flags.Info.LocalOnly = MEDIA_IS_SKU(&perStreamParameters->m_skuTable, FtrLocalMemory);
 
-    MOS_OS_CHK_NULL_RETURN(perStreamParameters->pGmmClientContext);
     resource->pGmmResInfo = gmmResourceInfo = perStreamParameters->pGmmClientContext->CreateResInfoObject(&gmmParams);
 
     MOS_OS_CHK_NULL_RETURN(gmmResourceInfo);
@@ -773,13 +758,10 @@ MOS_STATUS GraphicsResourceSpecificNext::AllocateExternalResource(
     iSize   = GFX_ULONG_CAST(gmmResourceInfo->GetSizeSurface());
     iHeight = gmmResourceInfo->GetBaseHeight();
 
-    patIndex = MosInterface::GetPATIndexFromGmm(perStreamParameters->pGmmClientContext, gmmResourceInfo);
-    isCpuCacheable = gmmResourceInfo->GetResFlags().Info.Cacheable;
-
     // Only Linear and Y TILE supported
     if (tileformat_linux == I915_TILING_NONE)
     {
-        bo = mos_bo_alloc(perStreamParameters->bufmgr, bufname, iSize, 4096, MOS_MEMPOOL_VIDEOMEMORY, patIndex, isCpuCacheable);
+        bo = mos_bo_alloc(perStreamParameters->bufmgr, bufname, iSize, 4096, MOS_MEMPOOL_VIDEOMEMORY);
     }
     else
     {
@@ -791,9 +773,7 @@ MOS_STATUS GraphicsResourceSpecificNext::AllocateExternalResource(
                         &tileformat_linux,
                         &ulPitch,
                         0,
-                        MOS_MEMPOOL_VIDEOMEMORY,
-                        patIndex,
-                        isCpuCacheable);
+                        MOS_MEMPOOL_VIDEOMEMORY);
         iPitch = (int32_t)ulPitch;
     }
 

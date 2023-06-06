@@ -734,19 +734,16 @@ VAStatus MediaLibvaUtilNext::CreateInternalSurface(
 
     params.memType = MemoryPolicyManager::UpdateMemoryPolicy(&memPolicyPar);
 
-    unsigned int patIndex = MosInterface::GetPATIndexFromGmm(mediaDrvCtx->pGmmClientContext, gmmResourceInfo);
-    bool isCpuCacheable   = gmmResourceInfo->GetResFlags().Info.Cacheable;
-
     if ( params.tileFormat == I915_TILING_NONE )
     {
-        bo = mos_bo_alloc(mediaDrvCtx->pDrmBufMgr, "MEDIA", gmmSize, 4096, params.memType, patIndex, isCpuCacheable);
+        bo = mos_bo_alloc(mediaDrvCtx->pDrmBufMgr, "MEDIA", gmmSize, 4096, params.memType);
         params.pitch = gmmPitch;
     }
     else
     {
         unsigned long  ulPitch = 0;
         bo = mos_bo_alloc_tiled(mediaDrvCtx->pDrmBufMgr, "MEDIA", gmmPitch, (gmmSize + gmmPitch -1)/gmmPitch, 1, &params.tileFormat, 
-            (unsigned long *)&ulPitch, 0, params.memType, patIndex, isCpuCacheable);
+            (unsigned long *)&ulPitch, 0, params.memType);
         params.pitch = ulPitch;
     }
 
@@ -1661,11 +1658,8 @@ VAStatus MediaLibvaUtilNext::Allocate2DBuffer(
 
     mem_type = MemoryPolicyManager::UpdateMemoryPolicy(&memPolicyPar);
 
-    unsigned int patIndex = MosInterface::GetPATIndexFromGmm(mediaBuffer->pMediaCtx->pGmmClientContext, gmmResourceInfo);
-    bool isCpuCacheable   = gmmResourceInfo->GetResFlags().Info.Cacheable;
-
     MOS_LINUX_BO  *bo;
-    bo = mos_bo_alloc(bufmgr, "Media 2D Buffer", gmmSize, 4096, mem_type, patIndex, isCpuCacheable);
+    bo = mos_bo_alloc(bufmgr, "Media 2D Buffer", gmmSize, 4096, mem_type);
 
     mediaBuffer->bMapped = false;
     if (bo)
@@ -1737,11 +1731,7 @@ VAStatus MediaLibvaUtilNext::AllocateBuffer(
     memPolicyPar.preferredMemType = mediaBuffer->bUseSysGfxMem ? MOS_MEMPOOL_SYSTEMMEMORY : 0;
 
     mem_type = MemoryPolicyManager::UpdateMemoryPolicy(&memPolicyPar);
-
-    unsigned int patIndex = MosInterface::GetPATIndexFromGmm(mediaBuffer->pMediaCtx->pGmmClientContext, mediaBuffer->pGmmResourceInfo);
-    bool isCpuCacheable   = mediaBuffer->pGmmResourceInfo->GetResFlags().Info.Cacheable;
-
-    MOS_LINUX_BO *bo  = mos_bo_alloc(bufmgr, "Media Buffer", size, 4096, mem_type, patIndex, isCpuCacheable);
+    MOS_LINUX_BO *bo  = mos_bo_alloc(bufmgr, "Media Buffer", size, 4096, mem_type);
     mediaBuffer->bMapped = false;
     if (bo)
     {
