@@ -321,6 +321,15 @@ void KernelDll_UpdateCscCoefficients(Kdll_State *pState,
             {
                 csctype = CSC_YUV_RGB;
             }
+            else if (KernelDll_IsCspace(src, CSpace_BT2020_RGB) && KernelDll_IsCspace(dst, CSpace_BT2020_RGB))
+            {
+                csctype = CSC_RGB_RGB;
+
+                // Kernel params didn't support 10bit, it need transformation from 10bit to 8bit.
+                m[3]  = ROUND_FLOAT(m[3], 0.25f);   // 10bit to 8bit (value/4)
+                m[7]  = ROUND_FLOAT(m[7], 0.25f);   // 10bit to 8bit (value/4)
+                m[11] = ROUND_FLOAT(m[11], 0.25f);  // 10bit to 8bit (value/4)
+            }
             else
             {
                 csctype = CSC_YUV_YUV;
@@ -1093,17 +1102,17 @@ bool KernelDll_MapCSCMatrix(
 
     default:
         //CSC_RGB_RGB
-        coeff[2]  = FLOAT_TO_SHORT(matrix[0]);   // M0   --> C2
         coeff[0]  = FLOAT_TO_SHORT(matrix[1]);   // M1   --> C0
         coeff[1]  = FLOAT_TO_SHORT(matrix[2]);   // M2   --> C1
+        coeff[2]  = FLOAT_TO_SHORT(matrix[0]);   // M0   --> C2
         coeff[3]  = FLOAT_TO_SHORT(matrix[3]);   // M3   --> C3
-        coeff[6]  = FLOAT_TO_SHORT(matrix[4]);   // M4   --> C6
         coeff[4]  = FLOAT_TO_SHORT(matrix[5]);   // M5   --> C4
         coeff[5]  = FLOAT_TO_SHORT(matrix[6]);   // M6   --> C5
+        coeff[6]  = FLOAT_TO_SHORT(matrix[4]);   // M4   --> C6
         coeff[7]  = FLOAT_TO_SHORT(matrix[7]);   // M7   --> C7
-        coeff[10] = FLOAT_TO_SHORT(matrix[8]);   // M8   --> C10
         coeff[8]  = FLOAT_TO_SHORT(matrix[9]);   // M9   --> C8
         coeff[9]  = FLOAT_TO_SHORT(matrix[10]);  // M10  --> C9
+        coeff[10] = FLOAT_TO_SHORT(matrix[8]);   // M8   --> C10
         coeff[11] = FLOAT_TO_SHORT(matrix[11]);  // M11  --> C11
         break;
     }
