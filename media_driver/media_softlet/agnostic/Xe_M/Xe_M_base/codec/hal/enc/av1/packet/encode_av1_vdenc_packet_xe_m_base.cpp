@@ -546,6 +546,21 @@ namespace encode
         }
         else
         {
+                uint8_t dummyIdx1 = 0;
+                RUN_FEATURE_INTERFACE_RETURN(Av1EncodeTile, Av1FeatureIDs::encodeTile, GetDummyIdx, dummyIdx1);
+                for (auto i = 0; i < dummyIdx1; i++)
+                {
+                    ENCODE_CHK_STATUS_RETURN(AddOneTileCommands(
+                        cmdBuffer,
+                        0,
+                        i));
+                }
+                ENCODE_CHK_STATUS_RETURN(AddOneTileCommands(
+                    cmdBuffer,
+                    0,
+                    dummyIdx,
+                    1));
+
             if(numTileRows != 1)  // dual encode only support column based workload submission
             {
                 ENCODE_ASSERTMESSAGE("dual encode cannot support multi rows submission yet.");
