@@ -574,13 +574,6 @@ VAStatus DdiEncodeAvc::ParseMiscParamQualityLevel(void *data)
         DDI_CODEC_ASSERTMESSAGE("Quality Level setting from application is not correct, should be in (0,%d].", TARGETUSAGE_BEST_SPEED);
     }
 
-#ifdef _FULL_OPEN_SOURCE
-    if (!GFX_IS_PRODUCT(m_encodeCtx->pMediaCtx->platform, IGFX_ICELAKE_LP) && m_encodeCtx->targetUsage <= 3)
-    {
-        m_encodeCtx->targetUsage = 4;
-    }
-#endif
-
     return VA_STATUS_SUCCESS;
 }
 
