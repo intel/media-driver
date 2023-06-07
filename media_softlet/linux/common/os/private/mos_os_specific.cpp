@@ -2112,7 +2112,6 @@ MOS_STATUS Mos_Specific_CreateGpuContext(
             MOS_OS_CHK_STATUS_RETURN(gpuContextSpecific->Init(gpuContextMgr->GetOsContext(), osInterface->osStreamState, createOption));
             gpuContextSpecific->SetGpuContext(mosGpuCxt);
             osInterface->m_GpuContextHandleMap[mosGpuCxt] = gpuContextSpecific->GetGpuContextHandle();
-            osInterface->bParallelSubmission = osInterface->osStreamState->bParallelSubmission;
         }
 
         return MOS_STATUS_SUCCESS;
