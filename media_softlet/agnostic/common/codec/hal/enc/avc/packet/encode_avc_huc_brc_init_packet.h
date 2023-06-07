@@ -96,7 +96,13 @@ struct VdencAvcHucBrcInitDmem
     uint8_t     INIT_LookaheadDepth_U8;               // Lookahead depth in unit of frames [0, 127]
     uint8_t     INIT_SinglePassOnly;                  // 0: disabled, 1: enabled
     uint8_t     INIT_New_DeltaQP_Adaptation_U8;       // = 1 to enable new delta QP adaption
-    uint8_t     RSVD2[55];                            // must be zero
+    uint8_t     INIT_ExtMaxBrcLevel_U8;               // max hierarchy level of B-frames
+    uint16_t    INIT_ExtGopP_U16;                     // correctly calculated number of P  frames in a GOP
+    uint16_t    INIT_ExtGopB_U16;                     // correctly calculated number of B  frames in a GOP
+    uint16_t    INIT_ExtGopB1_U16;                    // correctly calculated number of B1 frames in a GOP
+    uint16_t    INIT_ExtGopB2_U16;                    // correctly calculated number of B2 frames in a GOP
+
+    uint8_t Rsvd2[46];  //!< reserved for 64 bytes aligned, total structure size 192 bytes
 };
 
 class AvcHucBrcInitPkt : public EncodeHucPkt
