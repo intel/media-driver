@@ -78,8 +78,6 @@ protected:
 
     MOS_STATUS PatchPictureLevelCommands(const uint8_t &packetPhase, MOS_COMMAND_BUFFER &cmdBuffer);
 
-    MOS_STATUS AddPictureVdencCommands(MOS_COMMAND_BUFFER &cmdBuffer);
-
     virtual MOS_STATUS AllocateResources() override;
 
     MOS_STATUS RegisterPostCdef();

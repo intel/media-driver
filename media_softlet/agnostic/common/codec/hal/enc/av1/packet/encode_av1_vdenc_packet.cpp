@@ -82,6 +82,20 @@ namespace encode{
         return MOS_STATUS_SUCCESS;
     }
 
+    MOS_STATUS Av1VdencPkt::AddPictureVdencCommands(MOS_COMMAND_BUFFER &cmdBuffer)
+    {
+        ENCODE_FUNC_CALL();
+
+        SETPAR_AND_ADDCMD(VDENC_CONTROL_STATE, m_vdencItf, &cmdBuffer);
+        SETPAR_AND_ADDCMD(VDENC_PIPE_MODE_SELECT, m_vdencItf, &cmdBuffer);
+        SETPAR_AND_ADDCMD(VDENC_SRC_SURFACE_STATE, m_vdencItf, &cmdBuffer);
+        SETPAR_AND_ADDCMD(VDENC_REF_SURFACE_STATE, m_vdencItf, &cmdBuffer);
+        SETPAR_AND_ADDCMD(VDENC_DS_REF_SURFACE_STATE, m_vdencItf, &cmdBuffer);
+        SETPAR_AND_ADDCMD(VDENC_PIPE_BUF_ADDR_STATE, m_vdencItf, &cmdBuffer);
+
+        return MOS_STATUS_SUCCESS;
+    }
+
     MOS_STATUS Av1VdencPkt::EndStatusReport(uint32_t srType, MOS_COMMAND_BUFFER *cmdBuffer)
     {
         ENCODE_FUNC_CALL();
