@@ -479,32 +479,6 @@ namespace encode
             encodeStatusMfx->lookaheadStatus.targetFrameSize = (uint32_t)((targetFrameSize + (32 * 8)) / (64 * 8));  // Convert bits to bytes. 64 is normalized average frame size used in lookahead analysis kernel
             uint64_t targetBufferFulness = (uint64_t)encodeStatusMfx->lookaheadStatus.targetBufferFulness * m_averageFrameSize;
             encodeStatusMfx->lookaheadStatus.targetBufferFulness = (uint32_t)((targetBufferFulness + 32) / 64);  // 64 is normalized average frame size used in lookahead analysis kernel
-            // Apply rounding error to targetFrameSize to align target buffer fullness between lookahead pass and encode pass
-            if (m_prevTargetFrameSize > 0)
-            {
-                int64_t encTargetBufferFulness = (int64_t)m_targetBufferFulness;
-                encTargetBufferFulness += (int64_t)(m_prevTargetFrameSize << 3) - (int64_t)m_averageFrameSize;
-                m_targetBufferFulness = encTargetBufferFulness < 0 ? 0 : (encTargetBufferFulness > 0xFFFFFFFF ? 0xFFFFFFFF : (uint32_t)encTargetBufferFulness);
-                int32_t deltaBits     = (int32_t)((int64_t)(encodeStatusMfx->lookaheadStatus.targetBufferFulness) + m_bufferFulnessError - (int64_t)(m_targetBufferFulness));
-                deltaBits /= 64;
-                if (deltaBits > 8)
-                {
-                    if ((uint32_t)deltaBits > encodeStatusMfx->lookaheadStatus.targetFrameSize)
-                    {
-                        deltaBits = (int32_t)(encodeStatusMfx->lookaheadStatus.targetFrameSize);
-                    }
-                    encodeStatusMfx->lookaheadStatus.targetFrameSize += (uint32_t)(deltaBits >> 3);
-                }
-                else if (deltaBits < -8)
-                {
-                    if ((-deltaBits) > (int32_t)(encodeStatusMfx->lookaheadStatus.targetFrameSize))
-                    {
-                        deltaBits = -(int32_t)(encodeStatusMfx->lookaheadStatus.targetFrameSize);
-                    }
-                    encodeStatusMfx->lookaheadStatus.targetFrameSize -= (uint32_t)((-deltaBits) >> 3);
-                }
-            }
-            m_prevTargetFrameSize = encodeStatusMfx->lookaheadStatus.targetFrameSize;
 
             if (encodeStatusMfx->lookaheadStatus.miniGopSize == 2)
             {
