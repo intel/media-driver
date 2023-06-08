@@ -223,7 +223,16 @@ VAStatus DdiDecodeJpeg::ParsePicParams(
     for (int32_t i = 0; i < picParam->num_components; i++)
     {
         jpegPicParam->m_componentIdentifier[i] = picParam->components[i].component_id;
-        jpegPicParam->m_quantTableSelector[i]  = picParam->components[i].quantiser_table_selector;
+
+        if (picParam->components[i].quantiser_table_selector >= 4)
+        {
+            DDI_NORMALMESSAGE("Unsupported quantiser table selector in JPEG Picture parameter\n");
+            return VA_STATUS_ERROR_INVALID_PARAMETER;
+        }
+        else
+        {
+            jpegPicParam->m_quantTableSelector[i]  = picParam->components[i].quantiser_table_selector;
+        }
     }
 
     return VA_STATUS_SUCCESS;
