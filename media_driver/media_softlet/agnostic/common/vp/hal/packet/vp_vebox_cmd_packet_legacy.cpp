@@ -64,6 +64,14 @@ void VpVeboxCmdPacketLegacy::SetupSurfaceStates(
     pVeboxSurfaceStateCmdParams->bDIEnable     = m_PacketCaps.bDI;
     pVeboxSurfaceStateCmdParams->b3DlutEnable  = m_PacketCaps.bHDR3DLUT;  // Need to consider cappipe
 
+    if (pVeboxSurfaceStateCmdParams->pSurfOutput &&
+        pVeboxSurfaceStateCmdParams->pSurfOutput->osSurface &&
+        pVeboxSurfaceStateCmdParams->pSurfOutput->osSurface->OsResource.bUncompressedWriteNeeded)
+    {
+        VP_RENDER_NORMALMESSAGE("Force compression as RC for bUncompressedWriteNeeded being true");
+        pVeboxSurfaceStateCmdParams->pSurfOutput->osSurface->CompressionMode = MOS_MMC_RC;
+    }
+
     UpdateCpPrepareResources();
 }
 
