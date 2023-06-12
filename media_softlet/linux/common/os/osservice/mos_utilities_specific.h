@@ -259,6 +259,17 @@ static MOS_STATUS UserFeatureDumpDataToFile(const char *szFileName, MOS_PUF_KEYL
 \---------------------------------------------------------------------------*/
 static void UserFeatureFreeKeyList(MOS_PUF_KEYLIST pKeyList);
 
+#if CUSTOM_CONFIG_PATH
+/*----------------------------------------------------------------------------
+| Name      : CheckEnvVarOverrides
+| Purpose   : Before using feature / feature_next files, check env.
+| Arguments : 
+| Returns   : 
+| Comments  : Checks GFX_FEATURE_FILE and GFX_FEATURE_FILE_NEXT variables.
+\---------------------------------------------------------------------------*/
+static void CheckEnvVarOverrides();
+#endif
+
 private:
 
     /*----------------------------------------------------------------------------
@@ -403,6 +414,7 @@ private:
 
 public:
     static const char*          m_szUserFeatureFile;
+    static const char*          m_szUserFeatureFileNext;
     static MOS_PUF_KEYLIST      m_ufKeyList;
     static int32_t              m_mosTraceFd;
     static uint64_t             m_filterEnv;
