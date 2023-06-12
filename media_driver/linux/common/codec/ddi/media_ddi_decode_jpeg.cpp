@@ -209,7 +209,7 @@ VAStatus DdiDecodeJPEG::ParsePicParams(
         }
         else
         {
-            DDI_NORMALMESSAGE("Unsupported sampling factor in JPEG Picture parameter\n");
+            DDI_NORMALMESSAGE("Unsupported sampling factor in JPEG Picture  parameter\n");
             return VA_STATUS_ERROR_INVALID_PARAMETER;
         }
     }
@@ -219,22 +219,13 @@ VAStatus DdiDecodeJPEG::ParsePicParams(
 
     if (picParam->num_components > jpegNumComponent)
     {
-        DDI_NORMALMESSAGE("Unsupported component num in JPEG Picture parameter\n");
+        DDI_NORMALMESSAGE("Unsupported component num in JPEG Picture  parameter\n");
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
     for (int32_t i = 0; i < picParam->num_components; i++)
     {
         jpegPicParam->m_componentIdentifier[i] = picParam->components[i].component_id;
-
-        if (picParam->components[i].quantiser_table_selector >= 4)
-        {
-            DDI_NORMALMESSAGE("Unsupported quantiser table selector in JPEG Picture parameter\n");
-            return VA_STATUS_ERROR_INVALID_PARAMETER;
-        }
-        else
-        {
-            jpegPicParam->m_quantTableSelector[i]  = picParam->components[i].quantiser_table_selector;
-        }
+        jpegPicParam->m_quantTableSelector[i]  = picParam->components[i].quantiser_table_selector;
     }
 
     return VA_STATUS_SUCCESS;
