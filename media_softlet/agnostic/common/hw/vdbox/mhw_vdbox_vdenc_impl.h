@@ -649,10 +649,11 @@ protected:
                 &resourceParams));
         }
 
+        // SCC will use BwdRef0 as extra slot to store IBC if max fwd ref num is 3.
         typename cmd_t::VDENC_Reference_Picture_CMD *fwdRefs[] =
             {&cmd.FwdRef0, &cmd.FwdRef1, &cmd.FwdRef2, &cmd.BwdRef0};
         uint32_t fwdRefsDwLoaction[] =
-            {_MHW_CMD_DW_LOCATION(FwdRef0), _MHW_CMD_DW_LOCATION(FwdRef1), _MHW_CMD_DW_LOCATION(FwdRef2)};
+            {_MHW_CMD_DW_LOCATION(FwdRef0), _MHW_CMD_DW_LOCATION(FwdRef1), _MHW_CMD_DW_LOCATION(FwdRef2), _MHW_CMD_DW_LOCATION(BwdRef0)};
 
         typename cmd_t::VDENC_Down_Scaled_Reference_Picture_CMD *fwdRefsDsStage1[] =
             {&cmd.DsFwdRef0, &cmd.DsFwdRef1};
