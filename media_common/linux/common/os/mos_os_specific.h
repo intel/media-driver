@@ -31,6 +31,7 @@
 #include "GmmLib.h"
 #include "mos_resource_defs.h"
 #include "mos_os_hw.h"
+#include "mos_utilities.h"
 #ifdef ANDROID
 #include <utils/Log.h>
 #endif
@@ -47,6 +48,120 @@ class GraphicsResourceNext;
 class AuxTableMgr;
 class MosOcaInterface;
 class GraphicsResourceNext;
+
+////////////////////////////////////////////////////////////////////
+extern PerfUtility *g_perfutility;
+
+#define PERF_DECODE "DECODE"
+#define PERF_ENCODE "ENCODE"
+#define PERF_VP "VP"
+#define PERF_CP "CP"
+#define PERF_MOS "MOS"
+
+#define PERF_LEVEL_DDI "DDI"
+#define PERF_LEVEL_HAL "HAL"
+
+#define DECODE_DDI (1)
+#define DECODE_HAL (1 << 1)
+#define ENCODE_DDI (1 << 4)
+#define ENCODE_HAL (1 << 5)
+#define VP_DDI     (1 << 8)
+#define VP_HAL     (1 << 9)
+#define CP_DDI     (1 << 12)
+#define CP_HAL     (1 << 13)
+#define MOS_DDI    (1 << 16)
+#define MOS_HAL    (1 << 17)
+
+#define PERFUTILITY_IS_ENABLED(sCOMP,sLEVEL)                                                              \
+    (((sCOMP == "DECODE" && sLEVEL == "DDI") && (g_perfutility->dwPerfUtilityIsEnabled & DECODE_DDI)) ||  \
+     ((sCOMP == "DECODE" && sLEVEL == "HAL") && (g_perfutility->dwPerfUtilityIsEnabled & DECODE_HAL)) ||  \
+     ((sCOMP == "ENCODE" && sLEVEL == "DDI") && (g_perfutility->dwPerfUtilityIsEnabled & ENCODE_DDI)) ||  \
+     ((sCOMP == "ENCODE" && sLEVEL == "HAL") && (g_perfutility->dwPerfUtilityIsEnabled & ENCODE_HAL)) ||  \
+     ((sCOMP == "VP" && sLEVEL == "DDI") && (g_perfutility->dwPerfUtilityIsEnabled & VP_DDI)) ||          \
+     ((sCOMP == "VP" && sLEVEL == "HAL") && (g_perfutility->dwPerfUtilityIsEnabled & VP_HAL)) ||          \
+     ((sCOMP == "CP" && sLEVEL == "DDI") && (g_perfutility->dwPerfUtilityIsEnabled & CP_DDI)) ||          \
+     ((sCOMP == "CP" && sLEVEL == "HAL") && (g_perfutility->dwPerfUtilityIsEnabled & CP_HAL)) ||          \
+     ((sCOMP == "MOS" && sLEVEL == "DDI") && (g_perfutility->dwPerfUtilityIsEnabled & MOS_DDI)) ||        \
+     ((sCOMP == "MOS" && sLEVEL == "HAL") && (g_perfutility->dwPerfUtilityIsEnabled & MOS_HAL)))
+
+#define PERF_UTILITY_START(TAG,COMP,LEVEL)                                 \
+    do                                                                     \
+    {                                                                      \
+        if (PERFUTILITY_IS_ENABLED((std::string)COMP,(std::string)LEVEL))  \
+        {                                                                  \
+            g_perfutility->startTick(TAG);                                 \
+        }                                                                  \
+    } while(0)
+
+#define PERF_UTILITY_STOP(TAG, COMP, LEVEL)                                \
+    do                                                                     \
+    {                                                                      \
+        if (PERFUTILITY_IS_ENABLED((std::string)COMP,(std::string)LEVEL))  \
+        {                                                                  \
+            g_perfutility->stopTick(TAG);                                  \
+        }                                                                  \
+    } while (0)
+
+static int perf_count_start = 0;
+static int perf_count_stop = 0;
+
+#define PERF_UTILITY_START_ONCE(TAG, COMP,LEVEL)                           \
+    do                                                                     \
+    {                                                                      \
+        if (perf_count_start == 0                                          \
+            && PERFUTILITY_IS_ENABLED((std::string)COMP,(std::string)LEVEL))  \
+        {                                                                  \
+                g_perfutility->startTick(TAG);                             \
+        }                                                                  \
+        perf_count_start++;                                                \
+    } while(0)
+
+#define PERF_UTILITY_STOP_ONCE(TAG, COMP, LEVEL)                           \
+    do                                                                     \
+    {                                                                      \
+        if (perf_count_stop == 0                                           \
+            && PERFUTILITY_IS_ENABLED((std::string)COMP,(std::string)LEVEL))  \
+        {                                                                  \
+            g_perfutility->stopTick(TAG);                                  \
+        }                                                                  \
+        perf_count_stop++;                                                 \
+    } while (0)
+
+#define PERF_UTILITY_AUTO(TAG,COMP,LEVEL) AutoPerfUtility apu(TAG,COMP,LEVEL)
+
+#define PERF_UTILITY_PRINT                         \
+    do                                             \
+    {                                              \
+        if (g_perfutility->dwPerfUtilityIsEnabled && MosUtilities::MosIsProfilerDumpEnabled()) \
+        {                                          \
+            g_perfutility->savePerfData();         \
+        }                                          \
+    } while(0)
+
+class AutoPerfUtility
+{
+public:
+    AutoPerfUtility(std::string tag, std::string comp, std::string level)
+    {
+        if (PERFUTILITY_IS_ENABLED(comp, level))
+        {
+            g_perfutility->startTick(tag);
+            autotag = tag;
+            bEnable = true;
+        }
+    }
+    ~AutoPerfUtility()
+    {
+        if (bEnable)
+        {
+            g_perfutility->stopTick(autotag);
+        }
+    }
+
+private:
+    bool bEnable = false;
+    std::string autotag ="intialized";
+};
 
 ////////////////////////////////////////////////////////////////////
 
