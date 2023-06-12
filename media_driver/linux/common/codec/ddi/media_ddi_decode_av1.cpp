@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2021, Intel Corporation
+* Copyright (c) 2017-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -822,7 +822,11 @@ VAStatus DdiDecodeAV1::CodecHalInit(
     m_codechalSettings->intelEntrypointInUse = false;
 
     //VAProfileAV1Profile0 supports both 420 8bit and 420 10bit
-    m_codechalSettings->lumaChromaDepth = CODECHAL_LUMA_CHROMA_DEPTH_8_BITS | CODECHAL_LUMA_CHROMA_DEPTH_10_BITS;
+    m_codechalSettings->lumaChromaDepth = CODECHAL_LUMA_CHROMA_DEPTH_8_BITS;
+    if (m_destSurface.OsResource.Format == Format_P010)
+    {
+        m_codechalSettings->lumaChromaDepth = CODECHAL_LUMA_CHROMA_DEPTH_10_BITS;
+    }
 
     m_codechalSettings->shortFormatInUse = m_ddiDecodeCtx->bShortFormatInUse;
 

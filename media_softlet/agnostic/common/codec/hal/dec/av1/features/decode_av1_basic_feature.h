@@ -156,7 +156,7 @@ namespace decode
         MOS_STATUS SetSegmentData(CodecAv1PicParams &picParams);
         MOS_STATUS GetDecodeTargetFormat(MOS_FORMAT &format);
         virtual MOS_STATUS CheckProfileAndSubsampling();
-
+        MOS_STATUS CheckBitdepth();
         //!
         //! \brief    Calculate global motion params
         //! \return   MOS_STATUS
