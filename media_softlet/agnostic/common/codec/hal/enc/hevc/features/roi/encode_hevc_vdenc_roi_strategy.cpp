@@ -477,6 +477,12 @@ RoiStrategyFactory::~RoiStrategyFactory()
         MOS_Delete(m_forceQpRoi);
         m_forceQpRoi = nullptr;
     }
+
+    if (m_QPMapROI != nullptr)
+    {
+        MOS_Delete(m_QPMapROI);
+        m_QPMapROI = nullptr;
+    }
 }
 
 }  // namespace encode
