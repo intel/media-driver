@@ -7303,6 +7303,7 @@ MOS_STATUS Mos_Specific_InitInterface(
 
     // enable it on Linux
     pOsInterface->bMediaReset         = true;
+    pOsInterface->bTrinityEnabled     = false;
     pOsInterface->umdMediaResetEnable = true;
 
     pMediaWatchdog = getenv("INTEL_MEDIA_RESET_WATCHDOG");

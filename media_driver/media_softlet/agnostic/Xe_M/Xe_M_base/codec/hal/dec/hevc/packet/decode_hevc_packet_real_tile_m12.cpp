@@ -85,6 +85,13 @@ MOS_STATUS HevcDecodeRealTilePktM12::Submit(
     {
         DECODE_CHK_STATUS(m_miInterface->AddWatchdogTimerStopCmd(cmdBuffer));
         DECODE_CHK_STATUS(scalability->SyncPipe(syncAllPipes, 0, cmdBuffer));
+
+        if (m_osInterface->bTrinityEnabled)
+        {
+            MHW_MI_FLUSH_DW_PARAMS flushDwParams;
+            MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
+            DECODE_CHK_STATUS(m_miInterface->AddMiFlushDwCmd(cmdBuffer, &flushDwParams));
+        }
     }
 
     if (m_hevcPipeline->IsShortFormat())

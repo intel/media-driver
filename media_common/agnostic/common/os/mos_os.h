@@ -666,6 +666,7 @@ typedef struct _MOS_INTERFACE
     // used for media reset enabling/disabling in UMD
     // pls remove it after hw scheduling
     int32_t                         bMediaReset;
+    bool                            bTrinityEnabled;
 
     bool                            umdMediaResetEnable;
 
