@@ -385,11 +385,41 @@ MOS_STATUS Av1VdencPktXe_Lpm_Plus_Base::PatchPictureLevelCommands(const uint8_t 
         ENCODE_CHK_STATUS_RETURN(SendPrologCmds(cmdBuffer));
     }
 
+    if (m_pipeline->GetPipeNum() >= 2)
+    {
+        auto scalability = m_pipeline->GetMediaScalability();
+        if (m_pipeline->IsFirstPass())
+        {
+            ENCODE_CHK_STATUS_RETURN(scalability->ResetSemaphore(syncOnePipeWaitOthers, 0, &cmdBuffer));
+        }
+        ENCODE_CHK_STATUS_RETURN(scalability->SyncPipe(syncOtherPipesForOne, 0, &cmdBuffer));
+    }
+
     ENCODE_CHK_STATUS_RETURN(AddCondBBEndFor2ndPass(cmdBuffer));
+
+    if (m_pipeline->GetPipeNum() >= 2 && m_pipeline->IsFirstPipe())
+    {
+        PMOS_RESOURCE bsSizeBuf = m_basicFeature->m_recycleBuf->GetBuffer(PakInfo, 0);
+        ENCODE_CHK_NULL_RETURN(bsSizeBuf);
+        // clear bitstream size buffer at first tile
+        auto& miStoreDataParams = m_miItf->MHW_GETPAR_F(MI_STORE_DATA_IMM)();
+        miStoreDataParams = {};
+        miStoreDataParams.pOsResource = bsSizeBuf;
+        miStoreDataParams.dwResourceOffset = 0;
+        miStoreDataParams.dwValue = 0;
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(&cmdBuffer));
+    }
 
     if (m_pipeline->IsFirstPipe())
     {
         ENCODE_CHK_STATUS_RETURN(StartStatusReport(statusReportMfx, &cmdBuffer));
+    }
+    else {
+        // add perf record for other pipes - first pipe perf record within StartStatusReport
+        MediaPerfProfiler* perfProfiler = MediaPerfProfiler::Instance();
+        ENCODE_CHK_NULL_RETURN(perfProfiler);
+        ENCODE_CHK_STATUS_RETURN(perfProfiler->AddPerfCollectStartCmd(
+            (void*)m_pipeline, m_osInterface, m_miItf, &cmdBuffer));
     }
 
     ENCODE_CHK_STATUS_RETURN(AddPictureVdencCommands(cmdBuffer));
@@ -418,10 +448,6 @@ MOS_STATUS Av1VdencPktXe_Lpm_Plus_Base::AddOneTileCommands(
     auto eStatus = MOS_STATUS_SUCCESS;
 
     RUN_FEATURE_INTERFACE_RETURN(Av1EncodeTile, Av1FeatureIDs::encodeTile, SetCurrentTile, tileRow, tileCol, m_pipeline);
-    if ((m_pipeline->GetPipeNum() > 1) && (tileCol != m_pipeline->GetCurrentPipe()))
-    {
-        return MOS_STATUS_SUCCESS;
-    }
 
     // Begin patching tile level batch cmds
     MOS_COMMAND_BUFFER constructTileBatchBuf = {};
@@ -541,7 +567,17 @@ MOS_STATUS Av1VdencPktXe_Lpm_Plus_Base::AddOneTileCommands(
     // End patching tile level batch cmds
     RUN_FEATURE_INTERFACE_RETURN(Av1EncodeTile, Av1FeatureIDs::encodeTile, EndPatchTileLevelBatch);
 
-    ENCODE_CHK_STATUS_RETURN(ReadPakMmioRegisters(&cmdBuffer, tileRow == 0 && tileCol == 0));
+    if (tileRowPass != 1) // for dummy tile, donnot calculate tile size into frame size.
+    {
+        if (m_pipeline->GetPipeNum() > 1)
+        {
+            ENCODE_CHK_STATUS_RETURN(ReadPakMmioRegistersAtomic(&cmdBuffer));
+        }
+        else
+        {
+            ENCODE_CHK_STATUS_RETURN(ReadPakMmioRegisters(&cmdBuffer, tileRow == 0 && tileCol == 0));
+        }
+    }
 
     return eStatus;
 }
@@ -590,14 +626,54 @@ MOS_STATUS Av1VdencPktXe_Lpm_Plus_Base::PatchTileLevelCommands(MOS_COMMAND_BUFFE
     uint16_t numTileRows    = 1;
     RUN_FEATURE_INTERFACE_RETURN(Av1EncodeTile, Av1FeatureIDs::encodeTile, GetTileRowColumns, numTileRows, numTileColumns);
 
-    for (uint32_t tileRow = 0; tileRow < numTileRows; tileRow++)
+    ENCODE_CHK_NULL_RETURN(m_pipeline);
+    ENCODE_CHK_NULL_RETURN(m_av1PicParams);
+    if (!m_pipeline->IsDualEncEnabled())
     {
-        for (uint32_t tileCol = 0; tileCol < numTileColumns; tileCol++)
+        for (uint32_t tileRow = 0; tileRow < numTileRows; tileRow++)
         {
+            for (uint32_t tileCol = 0; tileCol < numTileColumns; tileCol++)
+            {
+                ENCODE_CHK_STATUS_RETURN(AddOneTileCommands(
+                    cmdBuffer,
+                    tileRow,
+                    tileCol));
+            }
+        }
+    }
+    else
+    {
+        if (numTileRows != 1)  // dual encode only support column based workload submission
+        {
+            ENCODE_ASSERTMESSAGE("dual encode cannot support multi rows submission yet.");
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+        uint8_t dummyIdx = 0;
+        RUN_FEATURE_INTERFACE_RETURN(Av1EncodeTile, Av1FeatureIDs::encodeTile, GetDummyIdx, dummyIdx);
+        if (m_pipeline->GetCurrentPipe() == 0)
+        {
+            for (auto i = 0; i < dummyIdx; i++)
+            {
+                ENCODE_CHK_STATUS_RETURN(AddOneTileCommands(
+                    cmdBuffer,
+                    0,
+                    i));
+            }
             ENCODE_CHK_STATUS_RETURN(AddOneTileCommands(
                 cmdBuffer,
-                tileRow,
-                tileCol));
+                0,
+                dummyIdx,
+                1));
+        }
+        else
+        {
+            for (auto i = dummyIdx; i < numTileColumns; i++)
+            {
+                ENCODE_CHK_STATUS_RETURN(AddOneTileCommands(
+                    cmdBuffer,
+                    0,
+                    i));
+            }
         }
     }
 
@@ -610,7 +686,17 @@ MOS_STATUS Av1VdencPktXe_Lpm_Plus_Base::PatchTileLevelCommands(MOS_COMMAND_BUFFE
     auto scalability = m_pipeline->GetMediaScalability();
     ENCODE_CHK_STATUS_RETURN(scalability->SyncPipe(syncOnePipeWaitOthers, 0, &cmdBuffer));
 
-    ENCODE_CHK_STATUS_RETURN(EndStatusReport(statusReportMfx, &cmdBuffer));
+    if (m_pipeline->IsFirstPipe())
+    {
+        ENCODE_CHK_STATUS_RETURN(EndStatusReport(statusReportMfx, &cmdBuffer));
+    }
+    else {
+        // add perf record for other pipes - first pipe perf record within EndStatusReport
+        MediaPerfProfiler* perfProfiler = MediaPerfProfiler::Instance();
+        ENCODE_CHK_NULL_RETURN(perfProfiler);
+        ENCODE_CHK_STATUS_RETURN(perfProfiler->AddPerfCollectEndCmd(
+            (void*)m_pipeline, m_osInterface, m_miItf, &cmdBuffer));
+    }
 
     auto brcFeature = dynamic_cast<Av1Brc *>(m_featureManager->GetFeature(Av1FeatureIDs::av1BrcFeature));
     ENCODE_CHK_NULL_RETURN(brcFeature);

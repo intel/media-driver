@@ -31,6 +31,7 @@
 #include "encode_av1_vdenc_packet_xe_lpm_plus.h"
 #include "encode_av1_brc_init_packet.h"
 #include "encode_av1_brc_update_packet.h"
+#include "encode_av1_pak_integrate_packet.h"
 #include "codechal_debug.h"
 #include "encode_av1_vdenc_feature_manager_xe_lpm_plus_base.h"
 #include "encode_preenc_packet.h"
@@ -45,6 +46,13 @@ MOS_STATUS Av1VdencPipelineXe_LPM_Plus::Init(void *settings)
     ENCODE_CHK_NULL_RETURN(settings);
 
     ENCODE_CHK_STATUS_RETURN(Initialize(settings));
+
+    MediaUserSetting::Value outValue;
+    ReadUserSetting(m_userSettingPtr,
+        outValue,
+        "AV1 Dual Encoder Enable",
+        MediaUserSetting::Group::Sequence);
+    m_dualEncEnable = outValue.Get<bool>();
 
     MediaTask *task = CreateTask(MediaTask::TaskType::cmdTask);
     ENCODE_CHK_NULL_RETURN(task);
@@ -82,6 +90,13 @@ MOS_STATUS Av1VdencPipelineXe_LPM_Plus::Init(void *settings)
 #endif  // !(_MEDIA_RESERVED)
     RegisterPacket(Av1VdencPacket, av1Vdencpkt);
     ENCODE_CHK_STATUS_RETURN(av1Vdencpkt->Init());
+
+    if (m_dualEncEnable)
+    {
+        Av1PakIntegratePkt* av1PakIntPkt = MOS_New(Av1PakIntegratePkt, this, task, m_hwInterface);
+        RegisterPacket(Av1PakIntegrate, av1PakIntPkt);
+        ENCODE_CHK_STATUS_RETURN(av1PakIntPkt->Init());
+    }
 
     auto av1BackAnnotationpkt = MOS_New(Av1BackAnnotationPkt, this, task, m_hwInterface);
     RegisterPacket(Av1BackAnnotation, av1BackAnnotationpkt);

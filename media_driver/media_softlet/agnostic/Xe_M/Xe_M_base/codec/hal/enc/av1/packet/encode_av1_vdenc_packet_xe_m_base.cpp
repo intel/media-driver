@@ -459,7 +459,7 @@ namespace encode
         // End patching tile level batch cmds
         RUN_FEATURE_INTERFACE_RETURN(Av1EncodeTile, Av1FeatureIDs::encodeTile, EndPatchTileLevelBatch);
 
-        if (tileRowPass != 1)
+        if (tileRowPass != 1) // for dummy tile, donnot calculate tile size into frame size.
         {
             if (m_pipeline->GetPipeNum() > 1)
             {
