@@ -1003,7 +1003,25 @@ MOS_STATUS MosUtilitiesSpecificNext::UserFeatureDumpDataToFile(const char *szFil
     MOS_PUF_KEYLIST   pKeyTmp;
     int32_t           j;
 
+   // For release version: writes to the file if it exists,
+// skips if it does not exist
+// For other version: always writes to the file
+
+#if(_RELEASE)
+    File = fopen(szFileName, "r");
+    if (File == NULL)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+    else
+    {
+        fclose(File);
+        File = fopen(szFileName, "w+");
+    }
+#else
     File = fopen(szFileName, "w+");
+#endif
+
     if ( !File )
     {
         return MOS_STATUS_USER_FEATURE_KEY_WRITE_FAILED;
@@ -1603,7 +1621,24 @@ MOS_STATUS MosUtilities::MosUninitializeReg(RegBufferMap &regBufferMap)
     std::ofstream regStream;
     try
     {
+// For release version: writes to the file if it exists,
+// skips if it does not exist
+// For other version: always writes to the file
+#if(_RELEASE)
+        std::ifstream regFile(USER_FEATURE_FILE_NEXT);
+        if (regFile.good())
+        {
+            regFile.close();
+            regStream.open(USER_FEATURE_FILE_NEXT, std::ios::out | std::ios::trunc);
+        }
+        else
+        {
+            regFile.close();
+            return status;
+        }
+#else
         regStream.open(USER_FEATURE_FILE_NEXT, std::ios::out | std::ios::trunc);
+#endif
         if (regStream.good())
         {
             for(auto pair: regBufferMap)
