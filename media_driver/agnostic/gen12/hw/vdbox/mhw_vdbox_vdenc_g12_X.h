@@ -1765,7 +1765,7 @@ public:
         }
 
         // VDEnc CQP case ROI settings, BRC ROI will be handled in HuC FW
-        if (!params->bVdencBRCEnabled && avcPicParams->NumROI)
+        if (!params->bVdencBRCEnabled && avcPicParams->NumROI && avcPicParams->bNativeROI)
         {
             MHW_ASSERT(avcPicParams->NumROI < 4);
 
