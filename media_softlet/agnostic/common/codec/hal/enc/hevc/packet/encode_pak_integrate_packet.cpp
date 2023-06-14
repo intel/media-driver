@@ -239,7 +239,7 @@ namespace encode {
         ENCODE_CHK_NULL_RETURN(cmdBuffer);
         auto brcFeature = dynamic_cast<HEVCEncodeBRC *>(m_featureManager->GetFeature(HevcFeatureIDs::hevcBrcFeature));
         ENCODE_CHK_NULL_RETURN(brcFeature);
-        if (m_pipeline->GetPipeNum() <= 1)
+        if (m_pipeline->GetPipeNum() <= 1 && m_pipeline->IsSingleTaskPhaseSupported())
         {
             // single pipe mode can read the info from MMIO register. Otherwise,
             // we have to use the tile size statistic buffer

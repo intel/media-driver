@@ -801,6 +801,25 @@ namespace encode
 
         ENCODE_CHK_STATUS_RETURN(EnsureAllCommandsExecuted(cmdBuffer));
 
+        // read info from MMIO register in VDENC, incase pak int can't get info
+        auto feature = dynamic_cast<HEVCEncodeBRC *>(m_featureManager->GetFeature(HevcFeatureIDs::hevcBrcFeature));
+        ENCODE_CHK_NULL_RETURN(feature);
+        if (m_pipeline->GetPipeNum() <= 1 && !m_pipeline->IsSingleTaskPhaseSupported())
+        {
+            ENCODE_CHK_STATUS_RETURN(ReadHcpStatus(m_vdboxIndex, m_statusReport, cmdBuffer));
+            // BRC PAK statistics different for each pass
+            if (feature->IsBRCEnabled())
+            {
+                uint8_t                     ucPass = (uint8_t)m_pipeline->GetCurrentPass();
+                EncodeReadBrcPakStatsParams readBrcPakStatsParams;
+                MOS_RESOURCE               *osResource = nullptr;
+                uint32_t                    offset     = 0;
+                m_statusReport->GetAddress(statusReportNumberPasses, osResource, offset);
+                RUN_FEATURE_INTERFACE_RETURN(HEVCEncodeBRC, HevcFeatureIDs::hevcBrcFeature, SetReadBrcPakStatsParams, ucPass, offset, osResource, readBrcPakStatsParams);
+                ReadBrcPakStatistics(&cmdBuffer, &readBrcPakStatsParams);
+            }
+        }
+
         // Wait all pipe cmds done for the packet
         auto scalability = m_pipeline->GetMediaScalability();
         ENCODE_CHK_STATUS_RETURN(scalability->SyncPipe(syncOnePipeWaitOthers, 0, &cmdBuffer));
