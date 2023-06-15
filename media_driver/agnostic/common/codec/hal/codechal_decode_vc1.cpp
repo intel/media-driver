@@ -4612,6 +4612,7 @@ MOS_STATUS CodechalDecodeVc1::UpdateVc1KernelState()
     PMHW_KERNEL_STATE                      kernelState = &m_olpKernelState;
 
     decodeKernel = (PCODECHAL_DECODE_VC1_KERNEL_HEADER_CM)kernelState->KernelParams.pBinary;
+    CODECHAL_DECODE_CHK_NULL_RETURN(decodeKernel);
     kernelState->dwKernelBinaryOffset =
         decodeKernel->OLP.KernelStartPointer << MHW_KERNEL_OFFSET_SHIFT;
     m_olpDshSize =
