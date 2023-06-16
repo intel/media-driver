@@ -110,6 +110,11 @@ namespace decode
         m_av1PicParams  = static_cast<CodecAv1PicParams*>(decodeParams->m_picParams);
         DECODE_CHK_NULL(m_av1PicParams);
 
+        if (decodeParams->m_destSurface->OsResource.Format == Format_P010)
+        {
+            m_bitDepth = 10;
+        }
+
         // Do error detection and concealment
         DECODE_CHK_STATUS(ErrorDetectAndConceal());
 
@@ -170,12 +175,28 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
+    MOS_STATUS Av1BasicFeature::CheckBitdepth()
+    {
+        DECODE_FUNC_CALL();
+
+        if ((m_av1PicParams->m_bitDepthIdx == 0 && m_bitDepth != 8) ||
+            (m_av1PicParams->m_bitDepthIdx == 1 && m_bitDepth != 10))
+        {
+            DECODE_ASSERTMESSAGE("Bit depth not align!");
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+
+        return MOS_STATUS_SUCCESS;
+    }
+
     MOS_STATUS Av1BasicFeature::ErrorDetectAndConceal()
     {
         DECODE_FUNC_CALL()
         DECODE_CHK_NULL(m_av1PicParams);
 
         DECODE_CHK_STATUS(CheckProfileAndSubsampling());
+
+        DECODE_CHK_STATUS(CheckBitdepth());
 
         // Frame Width/Frame Height, valid range is [15, 16383]
         if (m_av1PicParams->m_frameWidthMinus1 < 15 || m_av1PicParams->m_frameHeightMinus1 < 15)

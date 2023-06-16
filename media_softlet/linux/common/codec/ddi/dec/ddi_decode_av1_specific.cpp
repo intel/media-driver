@@ -470,6 +470,7 @@ VAStatus DdiDecodeAv1::SetDecodeParams()
     DDI_CODEC_FUNC_ENTER;
 
      DDI_CHK_RET(DdiDecodeBase::SetDecodeParams(),"SetDecodeParams failed!");
+
 #ifdef _DECODE_PROCESSING_SUPPORTED
     // Bridge the SFC input with vdbox output
     if (m_decProcessingType == VA_DEC_PROCESSING)
@@ -814,7 +815,7 @@ VAStatus DdiDecodeAv1::CodecHalInit(
     m_codechalSettings->intelEntrypointInUse = false;
 
     // VAProfileAV1Profile0 supports both 420 8bit and 420 10bit
-    m_codechalSettings->lumaChromaDepth = CODECHAL_LUMA_CHROMA_DEPTH_8_BITS | CODECHAL_LUMA_CHROMA_DEPTH_10_BITS;
+    m_codechalSettings->lumaChromaDepth = CODECHAL_LUMA_CHROMA_DEPTH_8_BITS;
 
     m_codechalSettings->shortFormatInUse = m_decodeCtx->bShortFormatInUse;
 
