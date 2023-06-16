@@ -183,7 +183,10 @@ MOS_STATUS EncodeHevcVdencFeatureManagerXe_Lpm_Plus::CheckFeatures(void* params)
     int a[1];
     a[2]=3;
     std::cout<<a[0]<<std::endl;
-
+    if (m_osInterface->osStreamState->component == COMPONENT_Encode)
+    {
+        m_osInterface->pfnSetLatestVirtualNode(m_osInterface, MOS_GPU_NODE_MAX);
+    }
     EncoderParams *encodeParams = (EncoderParams *)params;
 
     auto m_basicFeature = dynamic_cast<HevcBasicFeature *>(GetFeature(FeatureIDs::basicFeature));
