@@ -224,6 +224,11 @@ MOS_STATUS JpegDecodePicPktXe_M_Base::AddMfxQmCmd(MOS_COMMAND_BUFFER &cmdBuffer)
     {
         // Using scanCount here because the same command is used for JPEG decode and encode
         uint32_t quantTableSelector                                      = m_jpegPicParams->m_quantTableSelector[scanCount];
+        if (quantTableSelector >= JPEG_MAX_NUM_OF_QUANTMATRIX)
+        {
+            MEDIA_ASSERTMESSAGE("Unsupported QuantTableSelector in JPEG Picture parameter.");
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
         qmParams.pJpegQuantMatrix->m_jpegQMTableType[quantTableSelector] = scanCount;
         qmParams.JpegQMTableSelector                                     = quantTableSelector;
         DECODE_CHK_STATUS(m_mfxInterface->AddMfxQmCmd(
