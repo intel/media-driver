@@ -389,6 +389,7 @@ MOS_STATUS VpPipeline::ExecuteVpPipeline()
 
     VP_PUBLIC_CHK_NULL_RETURN(featureManagerNext);
     VP_PUBLIC_CHK_NULL_RETURN(m_pPacketPipeFactory);
+    VP_PUBLIC_CHK_NULL_RETURN(m_osInterface);
 
     if (m_vpPipeContexts.size() < 1 || m_vpPipeContexts[0] == nullptr)
     {
@@ -429,6 +430,9 @@ MOS_STATUS VpPipeline::ExecuteVpPipeline()
     }
 
     VP_PUBLIC_CHK_STATUS_RETURN(CreateSwFilterPipe(m_pvpParams, swFilterPipes));
+
+    // Increment frame ID for performance measurement
+    m_osInterface->pfnIncPerfFrameID(m_osInterface);
 
     MT_LOG1(MT_VP_FEATURE_GRAPH_CREATESWFILTERPIPE_START, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_SWFILTERPIPE_COUNT, (int64_t)swFilterPipes.size());
 
