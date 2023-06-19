@@ -696,7 +696,7 @@ MOS_STATUS AvcEncodeBRC::SetDmemForUpdate(void *params, uint16_t currPass, bool 
         }
     }
 
-    hucVdencBrcUpdateDmem->UPD_SLBB_Size_U16 = (uint16_t)m_hwInterface->m_vdencBrcImgStateBufferSize;
+    hucVdencBrcUpdateDmem->UPD_SLBB_Size_U16 = (uint16_t)MOS_ALIGN_CEIL(m_hwInterface->m_vdencBrcImgStateBufferSize, CODECHAL_CACHELINE_SIZE);
 
     hucVdencBrcUpdateDmem->UPD_WidthInMB_U16  = m_basicFeature->m_picWidthInMb;
     hucVdencBrcUpdateDmem->UPD_HeightInMB_U16 = m_basicFeature->m_picHeightInMb;
