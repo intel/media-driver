@@ -1056,7 +1056,7 @@ namespace decode{
 
         par.refFrameRes[intraFrame]    = CAT2SHORTS(m_av1PicParams->m_frameWidthMinus1, m_av1PicParams->m_frameHeightMinus1);
         par.refScaleFactor[intraFrame] = CAT2SHORTS(m_av1ScalingFactor, m_av1ScalingFactor);
-        par.refOrderHints[intraFrame]  = curRefList->m_orderHint;
+        par.refOrderHints[intraFrame]  = m_av1PicParams->m_seqInfoFlags.m_fields.m_enableOrderHint ? curRefList->m_orderHint : 0;
         par.refFrameIdx[0]             = intraFrame;
         par.refFrameSide               = 0;
         uint32_t horizontalScaleFactor, verticalScaleFactor;
@@ -1079,7 +1079,7 @@ namespace decode{
 
                 par.refFrameRes[i + lastFrame]    = CAT2SHORTS(m_refList[refPicIndex]->m_frameWidth - 1, m_refList[refPicIndex]->m_frameHeight - 1);
                 par.refScaleFactor[i + lastFrame] = CAT2SHORTS(verticalScaleFactor, horizontalScaleFactor);
-                par.refOrderHints[i + lastFrame]  = curRefList->m_refOrderHint[i];
+                par.refOrderHints[i + lastFrame]  = m_av1PicParams->m_seqInfoFlags.m_fields.m_enableOrderHint ? curRefList->m_refOrderHint[i] : 0;
             }
             else
             {
