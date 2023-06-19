@@ -3616,8 +3616,8 @@ MOS_STATUS Mos_Specific_InitInterface(
     osInterface->dwGPUPendingBatch  = 0;
 
     // enable it on Linux
-    osInterface->bMediaReset          = true;
-    osInterface->bTrinityEnabled     = false;
+    osInterface->bMediaReset         = true;
+    osInterface->trinityPath         = TRINITY_DISABLED;
     osInterface->umdMediaResetEnable = true;
 
     pMediaWatchdog = getenv("INTEL_MEDIA_RESET_WATCHDOG");

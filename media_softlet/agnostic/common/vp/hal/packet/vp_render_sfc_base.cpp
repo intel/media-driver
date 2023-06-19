@@ -586,41 +586,6 @@ MOS_STATUS SfcRenderBase::SetupSfcState(PVP_SURFACE targetSurface)
 
     VP_RENDER_CHK_STATUS_RETURN(SetupScalabilityParams());
 
-    // Decompress resource if surfaces need write from a un-align offset
-    if ((targetSurface->osSurface->CompressionMode != MOS_MMC_DISABLED)        &&
-        IsSFCUncompressedWriteNeeded(targetSurface))
-    {
-        MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-        MOS_SURFACE details = {};
-
-        eStatus = m_osInterface->pfnGetResourceInfo(m_osInterface, &targetSurface->osSurface->OsResource, &details);
-
-        if (eStatus != MOS_STATUS_SUCCESS)
-        {
-            VP_RENDER_ASSERTMESSAGE("Get SFC target surface resource info failed.");
-        }
-
-        if (!targetSurface->osSurface->OsResource.bUncompressedWriteNeeded)
-        {
-            eStatus = m_osInterface->pfnDecompResource(m_osInterface, &targetSurface->osSurface->OsResource);
-
-            if (eStatus != MOS_STATUS_SUCCESS)
-            {
-                VP_RENDER_ASSERTMESSAGE("inplace decompression failed for sfc target.");
-            }
-            else
-            {
-                VP_RENDER_NORMALMESSAGE("inplace decompression enabled for sfc target RECT is not compression block align.");
-                targetSurface->osSurface->OsResource.bUncompressedWriteNeeded = 1;
-            }
-        }
-    }
-
-    if (targetSurface->osSurface->OsResource.bUncompressedWriteNeeded)
-    {
-        m_renderData.sfcStateParams->MMCMode = MOS_MMC_RC;
-    }
-
     return eStatus;
 }
 

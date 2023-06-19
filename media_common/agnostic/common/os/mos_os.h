@@ -142,6 +142,13 @@ typedef enum _MOS_SCALABILITY_ENABLE_MODE
     MOS_SCALABILITY_ENABLE_MODE_USER_FORCE = 0x0010
 } MOS_SCALABILITY_ENABLE_MODE;
 
+typedef enum _TRINITY_PATH
+{
+    TRINITY_DISABLED  = 0,
+    TRINITY9_ENABLED  = 1,
+    TRINITY11_ENABLED = 2,
+} TRINITY_PATH;
+
 #if (_DEBUG || _RELEASE_INTERNAL)
 //!
 //! \brief for forcing VDBOX
@@ -666,7 +673,7 @@ typedef struct _MOS_INTERFACE
     // used for media reset enabling/disabling in UMD
     // pls remove it after hw scheduling
     int32_t                         bMediaReset;
-    bool                            bTrinityEnabled;
+    TRINITY_PATH                    trinityPath;
 
     bool                            umdMediaResetEnable;
 
