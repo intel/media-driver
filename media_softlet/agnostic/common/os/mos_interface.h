@@ -2274,7 +2274,7 @@ public:
         GPU_CONTEXT_HANDLE  gpuContextHandle);
 
     static void GetRtLogResourceInfo(
-        MOS_STREAM_HANDLE streamState,
+        PMOS_INTERFACE osInterface,
         PMOS_RESOURCE &osResource,
         uint32_t &size);
 

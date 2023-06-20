@@ -3754,19 +3754,19 @@ MOS_STATUS MosInterface::RegisterBBCompleteNotifyEvent(
 }
 
 void MosInterface::GetRtLogResourceInfo(
-    MOS_STREAM_HANDLE streamState,
+    PMOS_INTERFACE osInterface,
     PMOS_RESOURCE &osResource,
     uint32_t &size)
 {
     osResource = nullptr;
     size = 0;
-    if (streamState && streamState->osDeviceContext)
+    if (osInterface->osStreamState && osInterface->osStreamState->osDeviceContext)
     {
         MosOcaRTLogMgr &ocaRTLogMgr = MosOcaRTLogMgr::GetInstance();
-        GpuContextSpecificNext *gpuContext = dynamic_cast<GpuContextSpecificNext*>(streamState->osDeviceContext->GetGpuContextMgr()->GetGpuContext(streamState->currentGpuContextHandle));
+        GpuContextSpecificNext *gpuContext = dynamic_cast<GpuContextSpecificNext*>(osInterface->osStreamState->osDeviceContext->GetGpuContextMgr()->GetGpuContext(osInterface->osStreamState->currentGpuContextHandle));
         if (gpuContext != nullptr)
         {
-            osResource = gpuContext->GetOcaRTLogResource(streamState->osDeviceContext->GetOcaRTLogResource());
+            osResource = gpuContext->GetOcaRTLogResource(osInterface->osStreamState->osDeviceContext->GetOcaRTLogResource());
             size       = ocaRTLogMgr.GetRtlogHeapSize();
         }
     }

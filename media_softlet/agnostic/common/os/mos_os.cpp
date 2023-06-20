@@ -1121,11 +1121,11 @@ uint64_t Mos_GetResourceHandle(
 }
 
 void Mos_GetRtLogResourceInfo(
-    MOS_STREAM_HANDLE       streamState,
+    PMOS_INTERFACE          osInterface,
     PMOS_RESOURCE           &osResource,
     uint32_t                &size)
 {
-    return MosInterface::GetRtLogResourceInfo(streamState, osResource, size);
+    return MosInterface::GetRtLogResourceInfo(osInterface, osResource, size);
 }
 
 void Mos_ResetMosResource(

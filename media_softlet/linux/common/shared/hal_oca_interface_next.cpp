@@ -541,7 +541,7 @@ void HalOcaInterfaceNext::AddRTLogReource(MOS_COMMAND_BUFFER &cmdBuffer,
     {
         return;
     }
-    osInterface.pfnGetRtLogResourceInfo(osInterface.osStreamState, osResource, size);
+    osInterface.pfnGetRtLogResourceInfo(&osInterface, osResource, size);
     
     MOS_LINUX_BO *bo = cmdBuffer.OsResource.bo;
     if (bo == nullptr ||

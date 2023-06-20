@@ -28,13 +28,9 @@
 #include "oca_rtlog_section_mgr.h"
 #include "mos_context_specific_next.h"
 
-bool MosOcaRTLogMgr::m_enableOcaRTLog = true;
-MosMutex MosOcaRTLogMgr::s_ocaMutex;
-
 /****************************************************************************************************/
 /*                                      MosOcaRTLogMgr                                              */
 /****************************************************************************************************/
-
 MOS_STATUS MosOcaRTLogMgr::RegisterCtx(OsContextNext *osDriverContext, MOS_CONTEXT *osContext)
 {
     MOS_OCA_RTLOG_RES_AND_INTERFACE resInterface = {};
@@ -193,9 +189,4 @@ void MosOcaRTLogMgr::UnRegisterContext(OsContextNext *osDriverContext)
     {
         MOS_OS_NORMALMESSAGE("MosOcaRTLogMgr UnRegisterContext failed!");
     }
-}
-
-int32_t MosOcaRTLogMgr::GetGlobleIndex()
-{
-    return MosUtilities::MosAtomicIncrement(&m_globleIndex);
 }

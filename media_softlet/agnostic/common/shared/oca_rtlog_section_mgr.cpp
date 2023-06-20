@@ -91,16 +91,18 @@ uint8_t *OcaRtLogSectionMgr::InitSectionMgrAndGetAddress()
     uint8_t  *heapAddr     = (uint8_t *)((linearAddress + MOS_PAGE_SIZE - 1) & ADDRESS_PAGE_ALIGNMENT_MASK);
 
     uint32_t offset = 0;
+    uint32_t initeSize = MAX_OCA_RT_SUB_SIZE;
     for (int i = 0; i < MOS_OCA_RTLOG_COMPONENT_MAX; ++i)
     {
-        s_rtLogSectionMgr[i].Init(heapAddr, MAX_OCA_RT_SIZE, MAX_OCA_RT_SUB_SIZE, offset);
+        initeSize = (MOS_OCA_RTLOG_COMPONENT_TPYE)i == MOS_OCA_RTLOG_COMPONENT_COMMON ? MAX_OCA_RT_COMMON_SUB_SIZE : MAX_OCA_RT_SUB_SIZE;
+        s_rtLogSectionMgr[i].Init(heapAddr, MAX_OCA_RT_SIZE, initeSize, offset);
         MOS_OCA_RTLOG_SECTION_HEADER sectionHeader = {};
         sectionHeader.magicNum      = MOS_OCA_RTLOG_MAGIC_NUM;
         sectionHeader.componentType = (MOS_OCA_RTLOG_COMPONENT_TPYE)i;
         sectionHeader.freq          = 0;
         MosUtilities::MosQueryPerformanceFrequency(&sectionHeader.freq);
         s_rtLogSectionMgr[i].InsertUid(sectionHeader);
-        offset += MAX_OCA_RT_SUB_SIZE;
+        offset += ((MOS_OCA_RTLOG_COMPONENT_TPYE)i == MOS_OCA_RTLOG_COMPONENT_COMMON ? MAX_OCA_RT_COMMON_SUB_SIZE : MAX_OCA_RT_SUB_SIZE);
     }
     return heapAddr;
 }
@@ -113,7 +115,7 @@ void OcaRtLogSectionMgr::Init(uint8_t* logSysMem, uint32_t size, uint32_t compon
         m_HeapSize   = size;
         m_Offset     = offset;
         m_HeapHandle = -1;
-        m_EntryCount = (MAX_OCA_RT_SUB_SIZE - sizeof(MOS_OCA_RTLOG_SECTION_HEADER))/ MOS_OCA_RTLOG_ENTRY_SIZE;
+        m_EntryCount = (componentSize - sizeof(MOS_OCA_RTLOG_SECTION_HEADER))/ MOS_OCA_RTLOG_ENTRY_SIZE;
 
         m_IsInitialized = true;
     }

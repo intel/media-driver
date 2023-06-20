@@ -1534,7 +1534,7 @@ typedef struct _MOS_INTERFACE
     //! \return   void
     //!
     void (*pfnGetRtLogResourceInfo)(
-        MOS_STREAM_HANDLE           streamState,
+        PMOS_INTERFACE              osInterface,
         PMOS_RESOURCE               &osResource,
         uint32_t                    &size);
 
@@ -2408,7 +2408,7 @@ uint64_t Mos_GetResourceHandle(
 //! \return   void
 //!
 void Mos_GetRtLogResourceInfo(
-    MOS_STREAM_HANDLE       streamState,
+    PMOS_INTERFACE          osInterface,
     PMOS_RESOURCE           &osResource,
     uint32_t                &size);
 

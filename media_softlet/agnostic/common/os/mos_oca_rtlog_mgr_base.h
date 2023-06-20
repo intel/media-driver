@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022-2023, Intel Corporation
+* Copyright (c) 2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -20,7 +20,7 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file        mos_oca_buffer_mgr.h 
+//! \file        mos_oca_buffer_mgr_base.h 
 //! \brief 
 //!
 //!
@@ -29,33 +29,45 @@
 //! \details  Container class for OCA buffer manager wrapper
 //!
 
-#ifndef __MOS_OCA_RTLOG_MGR_H__
-#define __MOS_OCA_RTLOG_MGR_H__
+#ifndef __MOS_OCA_RTLOG_MGR_BASE_H__
+#define __MOS_OCA_RTLOG_MGR_BASE_H__
 
-#include "mos_oca_rtlog_mgr_base.h"
+#include "mos_oca_rtlog_mgr_defs.h"
+#include "mos_os_specific.h"
+#include "mos_utilities.h"
+#include <vector>
 
-class MosOcaRTLogMgr : public MosOcaRTLogMgrBase
+class OsContextNext;
+class OsContextSpecificNext;
+
+struct MOS_OCA_RTLOG_RES_AND_INTERFACE
 {
-public:
-    static void RegisterContext(OsContextNext *osDriverContext, MOS_CONTEXT *osContext);
-    static void UnRegisterContext(OsContextNext *osDriverContext);
-
-    MosOcaRTLogMgr();
-    MosOcaRTLogMgr(MosOcaRTLogMgr &);
-    virtual ~MosOcaRTLogMgr();
-    MosOcaRTLogMgr &operator=(MosOcaRTLogMgr &);
-    static MosOcaRTLogMgr &GetInstance();
-
-protected:
-    virtual MOS_STATUS RegisterCtx(OsContextNext *osDriverContext, MOS_CONTEXT *osContext);
-    virtual MOS_STATUS UnRegisterCtx(OsContextNext *osDriverContext);
-    virtual MOS_STATUS RegisterRes(OsContextNext *osDriverContext, MOS_OCA_RTLOG_RES_AND_INTERFACE *resInterface, MOS_CONTEXT *osContext);
-    virtual void       UnregisterRes(OsContextNext *osDriverContext);
-    virtual MOS_STATUS MapGfxVa(PMOS_RESOURCE ocaRTLogResource, OsContextNext *osDriverContext);
-
-    std::map<OsContextNext *, MOS_OCA_RTLOG_RES_AND_INTERFACE> m_resMap;
-
-MEDIA_CLASS_DEFINE_END(MosOcaRTLogMgr)
+    PMOS_RESOURCE  ocaRTLogResource = nullptr;
+    PMOS_INTERFACE osInterface      = nullptr;
 };
 
-#endif //__MOS_OCA_RTLOG_MGR_H__
+class MosOcaRTLogMgrBase
+{
+public:
+    bool IsMgrInitialized() { return m_isMgrInitialized; };
+
+    uint32_t GetRtlogHeapSize() { return m_heapSize; };
+
+    static bool IsOcaRTLogEnabled() { return m_enableOcaRTLog; };
+
+protected:
+    int32_t GetGlobleIndex();
+
+    OsContextNext                       *m_osContext = nullptr;
+    int32_t                              m_globleIndex = -1;
+    bool                                 m_isMgrInitialized = false;
+    uint32_t                             m_heapSize = MAX_OCA_RT_SIZE;
+    uint8_t                             *m_heapAddr = nullptr;
+
+    static bool                          m_enableOcaRTLog;
+    static MosMutex                      s_ocaMutex;
+
+MEDIA_CLASS_DEFINE_END(MosOcaRTLogMgrBase)
+};
+
+#endif //__MOS_OCA_RTLOG_MGR_BASE_H__
