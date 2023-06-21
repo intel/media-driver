@@ -55,6 +55,7 @@ typedef struct _DDI_CP_CONTEXT_NEXT
     DdiCpInterfaceNext             *pCpDdiInterface;
     std::shared_ptr<void>           pDrvPrivate;
     std::multimap<uint32_t, void *> mapAttaching;
+    PERF_DATA                       perfData;
 } DDI_CP_CONTEXT_NEXT, *PDDI_CP_CONTEXT_NEXT;
 
 static __inline PDDI_CP_CONTEXT_NEXT GetCpContextNextFromPVOID(void *cpCtx)
