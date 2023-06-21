@@ -944,6 +944,12 @@ MHW_SETPAR_DECL_SRC(AVP_PIC_STATE, Av1BasicFeature)
     params.minFramSizeUnits = 3;
     params.minFramSize      = MOS_ALIGN_CEIL(minFrameBytes, 16) / 16;
 
+    auto waTable = m_osInterface->pfnGetWaTable(m_osInterface);
+    if (MEDIA_IS_WA(waTable, Wa_15013355402))
+    {
+        params.minFramSize = MOS_ALIGN_CEIL(13 * 64, 16) / 16;
+    }
+
     params.bitOffsetForFirstPartitionSize = 0;
 
     params.class0_SSE_Threshold0 = 0;
