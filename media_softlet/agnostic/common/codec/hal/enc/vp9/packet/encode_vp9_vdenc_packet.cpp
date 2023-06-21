@@ -809,16 +809,17 @@ void Vp9VdencPkt::fill_pad_with_value(PMOS_SURFACE psSurface, uint32_t real_heig
         uint32_t y_plane_size   = pitch * real_height;
         uint8_t *src_data_y_end = src_data_y + y_plane_size;
         uint32_t y_pitch        = pitch;
-        for (uint32_t i = 0; i < pad_rows; i++)
+        for (uint32_t i = 0; i < pad_rows; i += 2)
         {
-            MOS_SecureMemcpy(src_data_y_end + i * y_pitch, y_pitch, src_data_y_end - y_pitch, y_pitch);
+            MOS_SecureMemcpy(src_data_y_end + i * y_pitch, y_pitch, src_data_y_end - 2 * y_pitch, y_pitch);
+            MOS_SecureMemcpy(src_data_y_end + (i + 1)* y_pitch, y_pitch, src_data_y_end - y_pitch, y_pitch);
         }
 
         uint8_t *src_data_uv     = src_data + UVPlaneOffset;
         uint32_t uv_plane_size   = pitch * real_height / 2;
         uint8_t *src_data_uv_end = src_data_uv + uv_plane_size;
-        uint32_t uv_pitch        = pitch / 2;
-        for (uint32_t i = 0; i < pad_rows; i++)
+        uint32_t uv_pitch        = pitch;
+        for (uint32_t i = 0; i < pad_rows / 2; i++)
         {
             MOS_SecureMemcpy(src_data_uv_end + i * uv_pitch, uv_pitch, src_data_uv_end - uv_pitch, uv_pitch);
         }
