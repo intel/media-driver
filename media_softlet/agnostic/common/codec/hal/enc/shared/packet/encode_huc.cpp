@@ -412,8 +412,8 @@ namespace encode
         uint32_t size)
     {
         auto virtualAddrParams = m_hucItf->MHW_GETPAR_F(HUC_VIRTUAL_ADDR_STATE)();
-        auto bufferToDump = virtualAddrParams.regionParams[regionNum].presRegion;
-        auto offset       = virtualAddrParams.regionParams[regionNum].dwOffset;
+        auto bufferToDump      = virtualAddrParams.regionParams[regionNum].presRegion;
+        auto offset            = virtualAddrParams.regionParams[regionNum].dwOffset;
 
         CodechalDebugInterface *debugInterface = m_pipeline->GetDebugInterface();
         ENCODE_CHK_NULL_RETURN(debugInterface);
@@ -421,10 +421,12 @@ namespace encode
         if (bufferToDump)
         {
             // Dump the full region when size = 0 or exceed the region size, else dump the size indicated
+            GMM_SIZE_PARAM GmmSizeParam = GMM_MAIN_SURF;
+            uint32_t bufferSize         = (uint32_t)bufferToDump->pGmmResInfo->GetSize(GmmSizeParam);
             ENCODE_CHK_STATUS_RETURN(debugInterface->DumpHucRegion(
                 bufferToDump,
                 offset,
-                size ? size : bufferToDump->iSize,
+                size ? size : bufferSize,
                 regionNum,
                 regionName,
                 inputBuffer,

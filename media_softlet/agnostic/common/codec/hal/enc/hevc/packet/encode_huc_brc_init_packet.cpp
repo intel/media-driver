@@ -289,16 +289,8 @@ namespace encode {
             currentPass,
             hucRegionDumpInit));
 
-        auto vdencBRCHistoryBuffer = m_basicFeature->m_recycleBuf->GetBuffer(VdencBRCHistoryBuffer, 0);
-        ENCODE_CHK_STATUS_RETURN(debugInterface->DumpHucRegion(
-            vdencBRCHistoryBuffer,
-            0,
-            MOS_ALIGN_CEIL(HevcBasicFeature::m_sizeOfHcpPakFrameStats * hevcBasicFeature->m_maxTileNumber, CODECHAL_PAGE_SIZE),
-            0,
-            "_History",
-            true,
-            currentPass,
-            hucRegionDumpInit));
+        ENCODE_CHK_STATUS_RETURN(DumpRegion(0, "_History", true, hucRegionDumpInit));
+
         return MOS_STATUS_SUCCESS;
     }
 #endif

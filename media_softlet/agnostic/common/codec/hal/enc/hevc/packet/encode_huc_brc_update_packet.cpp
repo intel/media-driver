@@ -981,7 +981,7 @@ namespace encode
         }
 
         // Region 0 - History Buffer dump (Input/Output)
-        ENCODE_CHK_STATUS_RETURN(DumpRegion(0, "_History", isInput, hucRegionDumpUpdate, CODECHAL_VDENC_HEVC_BRC_HISTORY_BUF_SIZE));
+        ENCODE_CHK_STATUS_RETURN(DumpRegion(0, "_History", isInput, hucRegionDumpUpdate));
 
         // Region 6 - Data from Pictures for Weighted Prediction (Input/Output)
         ENCODE_CHK_STATUS_RETURN(DumpRegion(6, "_PicsData", isInput, hucRegionDumpUpdate, CODECHAL_PAGE_SIZE * 4));
