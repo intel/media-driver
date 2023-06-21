@@ -48,16 +48,16 @@
 
 struct mos_linux_bo *
 mos_bo_alloc(struct mos_bufmgr *bufmgr, const char *name,
-           unsigned long size, unsigned int alignment, int mem_type)
+           unsigned long size, unsigned int alignment, int mem_type, unsigned int pat_index, bool cpu_cacheable)
 {
-    return bufmgr->bo_alloc(bufmgr, name, size, alignment, mem_type);
+    return bufmgr->bo_alloc(bufmgr, name, size, alignment, mem_type, pat_index, cpu_cacheable);
 }
 
 struct mos_linux_bo *
 mos_bo_alloc_for_render(struct mos_bufmgr *bufmgr, const char *name,
-                  unsigned long size, unsigned int alignment, int mem_type)
+                  unsigned long size, unsigned int alignment, int mem_type, unsigned int pat_index, bool cpu_cacheable)
 {
-    return bufmgr->bo_alloc_for_render(bufmgr, name, size, alignment, mem_type);
+    return bufmgr->bo_alloc_for_render(bufmgr, name, size, alignment, mem_type, pat_index, cpu_cacheable);
 }
 
 struct mos_linux_bo *
@@ -77,10 +77,10 @@ mos_bo_alloc_userptr(struct mos_bufmgr *bufmgr,
 struct mos_linux_bo *
 mos_bo_alloc_tiled(struct mos_bufmgr *bufmgr, const char *name,
                         int x, int y, int cpp, uint32_t *tiling_mode,
-                        unsigned long *pitch, unsigned long flags, int mem_type)
+                        unsigned long *pitch, unsigned long flags, int mem_type, unsigned int pat_index, bool cpu_cacheable)
 {
     return bufmgr->bo_alloc_tiled(bufmgr, name, x, y, cpp,
-                      tiling_mode, pitch, flags, mem_type);
+                      tiling_mode, pitch, flags, mem_type, pat_index, cpu_cacheable);
 }
 
 void

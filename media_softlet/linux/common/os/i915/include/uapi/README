@@ -13,45 +13,55 @@ $ make headers_install INSTALL_HDR_PATH=/path/to/install
 
 The last update was done at the following kernel commit:
 
-commit 1cc064dce4ed0ff111b6d6cb06b3cccf1cba29f5
-Author: Umesh Nerlige Ramappa <umesh.nerlige.ramappa@intel.com>
-Date:   Thu Mar 23 15:58:59 2023 -0700
+commit 81b1b599dfd71c958418dad586fa72c8d30d1065
+Author: Fei Yang <fei.yang@intel.com>
+Date:   Tue Jun 6 12:00:42 2023 +0200
 
-    drm/i915/perf: Add support for OA media units
+    drm/i915: Allow user to set cache at BO creation
 
-    MTL introduces additional OA units dedicated to media use cases. Add
-    support for programming these OA units by passing the media engine class
-    and instance parameters.
+    To comply with the design that buffer objects shall have immutable
+    cache setting through out their life cycle, {set, get}_caching ioctl's
+    are no longer supported from MTL onward. With that change caching
+    policy can only be set at object creation time. The current code
+    applies a default (platform dependent) cache setting for all objects.
+    However this is not optimal for performance tuning. The patch extends
+    the existing gem_create uAPI to let user set PAT index for the object
+    at creation time.
+    The new extension is platform independent, so UMD's can switch to using
+    this extension for older platforms as well, while {set, get}_caching are
+    still supported on these legacy paltforms for compatibility reason.
+    However, since PAT index was not clearly defined for platforms prior to
+    GEN12 (TGL), so we are limiting this externsion to GEN12+ platforms
+    only. See ext_set_pat() in for the implementation details.
 
-    UMD specific changes for GPUvis support:
-    https://patchwork.freedesktop.org/patch/522827/?series=114023
-    https://patchwork.freedesktop.org/patch/522822/?series=114023
-    https://patchwork.freedesktop.org/patch/522826/?series=114023
-    https://patchwork.freedesktop.org/patch/522828/?series=114023
-    https://patchwork.freedesktop.org/patch/522816/?series=114023
-    https://patchwork.freedesktop.org/patch/522825/?series=114023
+    The documentation related to the PAT/MOCS tables is currently available
+    for Tiger Lake here:
+    https://www.intel.com/content/www/us/en/docs/graphics-for-linux/developer-reference/1-0/tiger-lake.html
 
-    v2: (Ashutosh)
-    - check for IP_VER(12, 70) instead of MTL
-    - remove PERF_GROUP_OAG comment in mtl_oa_base
-    - remove oa_buffer.group
-    - use engine->oa_group->type in engine_supports_oa_format
-    - remove fw_domains and use FORCEWAKE_ALL
-    - remove MPES/MPEC comment
-    - s/xehp/mtl/ in b counter validation function name
-    - remove engine_supports_oa in __oa_engine_group
-    - remove warn_ON from __oam_engine_group
-    - refactor oa_init_groups and oa_init_regs
-    - assign g->type correctly
-    - use enum oa_type definition
+    The documentation for other platforms is currently being updated.
 
-    v3: (Ashutosh)
-    - Drop oa_unit_functional as engine_supports_oa is enough
+    BSpec: 45101
 
-    v4:
-    - s/DRM_DEBUG/drm_dbg/
+    Mesa support has been submitted in this merge request:
+    https://gitlab.freedesktop.org/mesa/mesa/-/merge_requests/22878
 
-    Signed-off-by: Umesh Nerlige Ramappa <umesh.nerlige.ramappa@intel.com>
-    Reviewed-by: Ashutosh Dixit <ashutosh.dixit@intel.com>
-    Link: https://patchwork.freedesktop.org/patch/msgid/20230323225901.3743681-10-umesh.nerlige.ramappa@intel.com
+    The media driver supprt has bin submitted in this merge request:
+    https://github.com/intel/media-driver/pull/1680
+
+    The IGT test related to this change is
+    igt@gem_create@create-ext-set-pat
+
+    Signed-off-by: Fei Yang <fei.yang@intel.com>
+    Cc: Chris Wilson <chris.p.wilson@linux.intel.com>
+    Cc: Matt Roper <matthew.d.roper@intel.com>
+    Cc: Andi Shyti <andi.shyti@linux.intel.com>
+    Reviewed-by: Andi Shyti <andi.shyti@linux.intel.com>
+    Acked-by: Jordan Justen <jordan.l.justen@intel.com>
+    Tested-by: Jordan Justen <jordan.l.justen@intel.com>
+    Acked-by: Carl Zhang <carl.zhang@intel.com>
+    Tested-by: Lihao Gu <lihao.gu@intel.com>
+    Signed-off-by: Andi Shyti <andi.shyti@linux.intel.com>
+    Acked-by: Tvrtko Ursulin <tvrtko.ursulin@intel.com>
+    Acked-by: Slawomir Milczarek <slawomir.milczarek@intel.com>
+    Link: https://patchwork.freedesktop.org/patch/msgid/20230606100042.482345-2-andi.shyti@linux.intel.com
 

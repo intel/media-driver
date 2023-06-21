@@ -2640,6 +2640,25 @@ GMM_CLIENT_CONTEXT *MosInterface::GetGmmClientContext(
     return nullptr;
 }
 
+unsigned int MosInterface::GetPATIndexFromGmm(
+    GMM_CLIENT_CONTEXT *gmmClient,
+    GMM_RESOURCE_INFO *gmmResourceInfo)
+{
+    if (gmmClient && gmmResourceInfo)
+    {
+        // GetDriverProtectionBits funtion could hide gmm details info,
+        // and we should use GetDriverProtectionBits to replace CachePolicyGetPATIndex in future.
+        // isCompressionEnable could be false temparaily.
+        bool isCompressionEnable = false;
+        return gmmClient->CachePolicyGetPATIndex(
+                                            gmmResourceInfo,
+                                            gmmResourceInfo->GetCachePolicyUsage(),
+                                            &isCompressionEnable,
+                                            gmmResourceInfo->GetResFlags().Info.Cacheable);
+    }
+    return PAT_INDEX_INVALID;
+}
+
 void MosInterface::GetGpuPriority(MOS_STREAM_HANDLE streamState, int32_t* pPriority)
 {
     MOS_OS_FUNCTION_ENTER;
