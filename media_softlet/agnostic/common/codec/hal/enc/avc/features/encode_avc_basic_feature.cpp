@@ -517,12 +517,6 @@ MOS_STATUS AvcBasicFeature::SetSliceStructs()
         }
         else  // SLICE_STRUCT_ARBITRARYMBSLICE
         {
-            uint8_t ppsIdx          = m_sliceParams->pic_parameter_set_id;
-            uint8_t refPicListIdx   = m_sliceParams[ppsIdx].RefPicList[0][0].FrameIdx;
-            uint8_t refFrameListIdx = m_picParam[ppsIdx].RefFrameList[refPicListIdx].FrameIdx;
-
-            bool dirtyRoiEnabled = (m_pictureCodingType == P_TYPE && m_picParams[ppsIdx]->NumDirtyROI > 0 && m_prevReconFrameIdx == refFrameListIdx);
-
             if ((slcParams->NumMbsForSlice % m_picWidthInMb) ||                                          // If slice is partial MB row,
                 ((sliceCount < m_numSlices - 1) && (numMbsInPrevSlice != slcParams->NumMbsForSlice)) ||  // OR not the last slice and num mbs is not same as prev slice
                 ((sliceCount == m_numSlices - 1) && ((numMbsInPrevSlice < slcParams->NumMbsForSlice))))  // OR it is the last slice and num mbs is not less than prev slice
