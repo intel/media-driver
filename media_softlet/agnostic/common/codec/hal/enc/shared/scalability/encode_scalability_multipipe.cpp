@@ -97,7 +97,7 @@ MOS_STATUS EncodeScalabilityMultiPipe::AllocateSemaphore()
             &m_resSemaphoreOnePipeWait[i],
             &lockFlagsWriteOnly);
         SCALABILITY_CHK_NULL_RETURN(data);
-        *data = 1;
+        *data = 0;
         SCALABILITY_CHK_STATUS_RETURN(m_osInterface->pfnUnlockResource(
             m_osInterface,
             &m_resSemaphoreOnePipeWait[i]));
@@ -680,11 +680,11 @@ MOS_STATUS EncodeScalabilityMultiPipe::ResetSemaphore(uint32_t syncType, uint32_
         }
         break;
     case syncOnePipeWaitOthers:
-        if (!Mos_ResourceIsNull(&m_resSemaphoreOnePipeWait[m_currentPipe]))
+        if (!Mos_ResourceIsNull(&m_resSemaphoreOnePipeWait[semaphoreId]))
         {
             SCALABILITY_CHK_STATUS_RETURN(
                 m_hwInterface->SendMiStoreDataImm(
-                    &m_resSemaphoreOnePipeWait[m_currentPipe],
+                    &m_resSemaphoreOnePipeWait[semaphoreId],
                     0,
                     cmdBuffer));
         }

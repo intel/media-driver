@@ -275,7 +275,7 @@ MOS_STATUS Vp9VdencPktXe_Lpm_Plus_Base::PatchPictureLevelCommands(MOS_COMMAND_BU
         if (m_pipeline->IsFirstPass())
         {
             // Reset multi-pipe sync semaphores
-            ENCODE_CHK_STATUS_RETURN(scalability->ResetSemaphore(syncOnePipeWaitOthers, 0, &cmdBuffer));
+            ENCODE_CHK_STATUS_RETURN(scalability->ResetSemaphore(syncOnePipeWaitOthers, m_pipeline->GetCurrentPipe(), &cmdBuffer));
         }
         if (m_basicFeature->m_hucEnabled)
         {

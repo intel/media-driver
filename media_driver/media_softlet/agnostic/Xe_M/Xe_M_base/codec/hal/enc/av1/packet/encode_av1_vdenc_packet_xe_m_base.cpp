@@ -282,10 +282,7 @@ namespace encode
         if (m_pipeline->GetPipeNum() >= 2)
         {
             auto scalability = m_pipeline->GetMediaScalability();
-            if (m_pipeline->IsFirstPass())
-            {
-                ENCODE_CHK_STATUS_RETURN(scalability->ResetSemaphore(syncOnePipeWaitOthers, 0, &cmdBuffer));
-            }
+
             ENCODE_CHK_STATUS_RETURN(scalability->SyncPipe(syncOtherPipesForOne, 0, &cmdBuffer));
         }
 
@@ -577,6 +574,10 @@ namespace encode
 
         if (m_pipeline->IsFirstPipe()) 
         {
+            for (auto i = 0; i < m_pipeline->GetPipeNum(); ++i)
+            {
+                ENCODE_CHK_STATUS_RETURN(scalability->ResetSemaphore(syncOnePipeWaitOthers, i, &cmdBuffer));
+            }
             ENCODE_CHK_STATUS_RETURN(EndStatusReport(statusReportMfx, &cmdBuffer));
         }
         else{

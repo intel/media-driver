@@ -388,10 +388,7 @@ MOS_STATUS Av1VdencPktXe_Lpm_Plus_Base::PatchPictureLevelCommands(const uint8_t 
     if (m_pipeline->GetPipeNum() >= 2)
     {
         auto scalability = m_pipeline->GetMediaScalability();
-        if (m_pipeline->IsFirstPass())
-        {
-            ENCODE_CHK_STATUS_RETURN(scalability->ResetSemaphore(syncOnePipeWaitOthers, 0, &cmdBuffer));
-        }
+
         ENCODE_CHK_STATUS_RETURN(scalability->SyncPipe(syncOtherPipesForOne, 0, &cmdBuffer));
     }
 
@@ -688,6 +685,10 @@ MOS_STATUS Av1VdencPktXe_Lpm_Plus_Base::PatchTileLevelCommands(MOS_COMMAND_BUFFE
 
     if (m_pipeline->IsFirstPipe())
     {
+        for (auto i = 0; i < m_pipeline->GetPipeNum(); ++i)
+        {
+            ENCODE_CHK_STATUS_RETURN(scalability->ResetSemaphore(syncOnePipeWaitOthers, i, &cmdBuffer));
+        }
         ENCODE_CHK_STATUS_RETURN(EndStatusReport(statusReportMfx, &cmdBuffer));
     }
     else {
