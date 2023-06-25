@@ -298,9 +298,10 @@ bool SfcRenderXe_Xpm_Base::IsOutputChannelSwapNeeded(MOS_FORMAT outputFormat)
 bool SfcRenderXe_Xpm_Base::IsCscNeeded(SFC_CSC_PARAMS &cscParams)
 {
     VP_FUNC_CALL();
-    if (m_bVdboxToSfc && m_videoConfig.codecStandard == CODECHAL_JPEG)
+
+    if (m_bVdboxToSfc && cscParams.inputFormat != cscParams.outputFormat)
     {
-        if (cscParams.inputFormat != cscParams.outputFormat)
+        if (m_videoConfig.codecStandard == CODECHAL_JPEG || cscParams.outputFormat == Format_A8R8G8B8)
         {
             return true;
         }

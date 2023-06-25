@@ -197,10 +197,10 @@ MOS_STATUS SfcRenderBaseLegacy::SetIefStateCscParams(
     {
         psfcStateParams->bCSCEnable = true;
         pIEFStateParams->bCSCEnable = true;
-        if (m_bVdboxToSfc && m_videoConfig.codecStandard == CODECHAL_JPEG)
+        if (m_bVdboxToSfc)
         {
             m_cscInputSwapNeeded = false;
-            if (m_videoConfig.jpeg.jpegChromaType == jpegRGB)
+            if (m_videoConfig.jpeg.jpegChromaType == jpegRGB && m_videoConfig.codecStandard == CODECHAL_JPEG)
             {
                 m_cscCoeff[0] = 1.000000000f;
                 m_cscCoeff[1] = 0.000000000f;
