@@ -84,7 +84,7 @@ MOS_STATUS Av1Pipeline::InitUserSetting(MediaUserSettingSharedPtr userSettingPtr
         false);
     DeclareUserSettingKeyForDebug(
         userSettingPtr,
-        "AV1 Dual Encoder Enable",
+        "AV1 Dual Encoder Force Off",
         MediaUserSetting::Group::Sequence,
         (int32_t)0,
         false);

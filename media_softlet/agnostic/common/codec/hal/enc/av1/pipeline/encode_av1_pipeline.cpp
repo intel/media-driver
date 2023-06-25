@@ -39,6 +39,18 @@ Av1Pipeline::Av1Pipeline(
 MOS_STATUS Av1Pipeline::Initialize(void *settings)
 {
     ENCODE_FUNC_CALL();
+    m_dualEncEnable = ((CodechalSetting *)settings)->isDualEncEnabled;
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    MediaUserSetting::Value outValue;
+    ReadUserSetting(m_userSettingPtr,
+        outValue,
+        "AV1 Dual Encoder Force Off",
+        MediaUserSetting::Group::Sequence);
+
+    m_dualEncEnable &= !outValue.Get<bool>();
+#endif
+
     ENCODE_CHK_STATUS_RETURN(EncodePipeline::Initialize(settings));
 
 #if MHW_HWCMDPARSER_ENABLED

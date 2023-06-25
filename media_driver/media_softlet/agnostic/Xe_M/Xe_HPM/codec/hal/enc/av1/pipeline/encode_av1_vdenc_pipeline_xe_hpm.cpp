@@ -49,13 +49,6 @@ MOS_STATUS Av1VdencPipelineXe_Hpm::Init(void *settings)
 
     ENCODE_CHK_STATUS_RETURN(Initialize(settings));
 
-    MediaUserSetting::Value outValue;
-    ReadUserSetting(m_userSettingPtr,
-        outValue,
-        "AV1 Dual Encoder Enable",
-        MediaUserSetting::Group::Sequence);
-    m_dualEncEnable = outValue.Get<bool>();
-
     MediaTask* task = CreateTask(MediaTask::TaskType::cmdTask);
     ENCODE_CHK_NULL_RETURN(task);
 
