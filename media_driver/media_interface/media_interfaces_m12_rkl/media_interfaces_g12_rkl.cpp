@@ -70,6 +70,10 @@ static bool rklRegisteredDecodeHistogram =
     MediaFactory<uint32_t, DecodeHistogramDevice>::
     Register<DecodeHistogramDeviceG12Tgllp>((uint32_t)IGFX_ROCKETLAKE);
 
+static bool rklRegisteredHwInfo =
+    MediaFactory<uint32_t, MediaInterfacesHwInfoDevice>::
+    Register<MediaInterfacesHwInfoDeviceG12Tgllp>((uint32_t)IGFX_ROCKETLAKE);
+
 MOS_STATUS CMHalInterfacesG12Rkl::Initialize(CM_HAL_STATE *pCmState)
 {
     if (pCmState == nullptr)
