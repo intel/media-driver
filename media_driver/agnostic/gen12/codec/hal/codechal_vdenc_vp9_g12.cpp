@@ -3515,6 +3515,7 @@ void CodechalVdencVp9StateG12::fill_pad_with_value(PMOS_SURFACE psSurface, uint3
                 return;
 
             uint8_t* padding_data = (uint8_t *)MOS_AllocMemory(pitch);
+            CODECHAL_ENCODE_CHK_NULL_NO_STATUS_RETURN(padding_data);
 
             int32_t LinearOffset;
             int32_t TileOffset;
