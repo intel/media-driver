@@ -127,6 +127,24 @@ public:
     static double MosGetTime();
 
     //!
+    //! \brief    Print CPU Allocate Memory
+    //! \details  Print CPU Allocate Memory
+    //! \return   MOS_STATUS
+    //!           Returns one of the MOS_STATUS error codes if failed,
+    //!           else MOS_STATUS_SUCCESS
+    static MOS_STATUS MosPrintCPUAllocateMemory(int32_t event_id, int32_t level, 
+        int32_t param_id_1, int64_t value_1, int32_t param_id_2, int64_t value_2, const char *funName, const char *fileName, int32_t line);
+
+    //!
+    //! \brief    Print CPU Destroy Memory
+    //! \details  Print CPU Destroy Memory
+    //! \return   MOS_STATUS
+    //!           Returns one of the MOS_STATUS error codes if failed,
+    //!           else MOS_STATUS_SUCCESS
+    static MOS_STATUS MosPrintCPUDestroyMemory(int32_t event_id, int32_t level, 
+        int32_t param_id_1, int64_t value_1, const char *funName, const char *fileName, int32_t line);
+
+    //!
     //! \brief    Get current run time
     //! \details  Get current run time in us
     //! \return   double
@@ -2864,6 +2882,7 @@ public:
 
     //Temporarily defined as the reference to compatible with the cases using uf key to enable/disable APG.
     static int32_t                      *m_mosMemAllocCounter;
+    static int32_t                      *m_mosMemAllocIndex;
     static int32_t                      *m_mosMemAllocFakeCounter;
     static int32_t                      *m_mosMemAllocCounterGfx;
 #if (_DEBUG || _RELEASE_INTERNAL)
@@ -2961,6 +2980,15 @@ MEDIA_CLASS_DEFINE_END(MosMutex)
         "filename = \"%s\", line = %d/", MosUtilities::MosGetTime(), (MosUtilities::m_mosMemAllocCounterGfx ? *MosUtilities::m_mosMemAllocCounterGfx : 0), ptr, functionName, filename, line);             \
 
 #if MOS_MESSAGES_ENABLED
+#define PRINT_ALLOCATE_MEMORY(id, lvl, p1, v1, p2, v2, FunName, FileName, Line) MosUtilities::MosPrintCPUAllocateMemory(id, lvl, p1, v1, p2, v2, FunName, FileName, Line)
+#define PRINT_DESTROY_MEMORY(id, lvl, p1, v1, FunName, FileName, Line) MosUtilities::MosPrintCPUDestroyMemory(id, lvl, p1, v1, FunName, FileName, Line)
+#else
+#define PRINT_ALLOCATE_MEMORY(id, lvl, p1, v1, p2, v2, FunName, FileName, Line)
+#define PRINT_DESTROY_MEMORY(id, lvl, p1, v1, FunName, FileName, Line)
+#endif
+
+
+#if MOS_MESSAGES_ENABLED
 template<class _Ty, class... _Types> inline
 _Ty* MosUtilities::MosNewUtil(const char *functionName,
     const char *filename,
@@ -2982,10 +3010,10 @@ _Ty* MosUtilities::MosNewUtil(_Types&&... _Args)
     {
         MosAtomicIncrement(m_mosMemAllocCounter);
         MOS_MEMNINJA_ALLOC_MESSAGE(ptr, sizeof(_Ty), functionName, filename, line);
-        MT_LOG2(MT_MOS_ALLOCATE_MEMORY, MT_NORMAL,
+        PRINT_ALLOCATE_MEMORY(MT_MOS_ALLOCATE_MEMORY, MT_NORMAL,
                 MT_MEMORY_PTR, (int64_t)(ptr),
-                MT_MEMORY_SIZE, static_cast<int64_t>(sizeof(_Ty)));
-
+                MT_MEMORY_SIZE, static_cast<int64_t>(sizeof(_Ty)),
+                functionName, filename, line);
     }
     else
     {
@@ -3021,9 +3049,10 @@ _Ty* MosUtilities::MosNewArrayUtil(size_t numElements)
     {
         MosAtomicIncrement(m_mosMemAllocCounter);
         MOS_MEMNINJA_ALLOC_MESSAGE(ptr, numElements*sizeof(_Ty), functionName, filename, line);
-        MT_LOG2(MT_MOS_ALLOCATE_MEMORY, MT_NORMAL,
+        PRINT_ALLOCATE_MEMORY(MT_MOS_ALLOCATE_MEMORY, MT_NORMAL,
                 MT_MEMORY_PTR, (int64_t)(ptr),
-                MT_MEMORY_SIZE, (static_cast<int64_t>(numElements))*(static_cast<int64_t>(sizeof(_Ty))));
+                MT_MEMORY_SIZE, (static_cast<int64_t>(numElements))*(static_cast<int64_t>(sizeof(_Ty))),
+                functionName, filename, line);
     }
     return ptr;
 }
@@ -3044,8 +3073,9 @@ void MosUtilities::MosDeleteUtil(_Ty& ptr)
     {
         MosAtomicDecrement(m_mosMemAllocCounter);
         MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line);
-        MT_LOG1(MT_MOS_DESTROY_MEMORY, MT_NORMAL,
-                MT_MEMORY_PTR, (int64_t)(ptr));
+        PRINT_DESTROY_MEMORY(MT_MOS_DESTROY_MEMORY, MT_NORMAL,
+                MT_MEMORY_PTR, (int64_t)(ptr),
+                functionName, filename, line);
         delete(ptr);
         ptr = nullptr;
     }
@@ -3067,8 +3097,9 @@ void MosUtilities::MosDeleteArrayUtil(_Ty& ptr)
     {
         MosAtomicDecrement(m_mosMemAllocCounter);
         MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line);
-        MT_LOG1(MT_MOS_DESTROY_MEMORY, MT_NORMAL,
-                MT_MEMORY_PTR, (int64_t)(ptr));
+        PRINT_DESTROY_MEMORY(MT_MOS_DESTROY_MEMORY, MT_NORMAL,
+                MT_MEMORY_PTR, (int64_t)(ptr),
+                functionName, filename, line);
         delete[](ptr);
         ptr = nullptr;
     }
@@ -3102,7 +3133,7 @@ void MosUtilities::MosDeleteArrayUtil(_Ty& ptr)
             { \
                 MosUtilities::MosAtomicDecrement(MosUtilities::m_mosMemAllocCounter); \
                 MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line); \
-                MT_LOG1(MT_MOS_DESTROY_MEMORY, MT_NORMAL, MT_MEMORY_PTR, (int64_t)(ptr)); \
+                PRINT_DESTROY_MEMORY(MT_MOS_DESTROY_MEMORY, MT_NORMAL, MT_MEMORY_PTR, (int64_t)(ptr), functionName, filename, line); \
                 delete(ptr); \
                 ptr = nullptr; \
             }
@@ -3111,7 +3142,6 @@ void MosUtilities::MosDeleteArrayUtil(_Ty& ptr)
         if (ptr != nullptr) \
             { \
                 MosUtilities::MosAtomicDecrement(MosUtilities::m_mosMemAllocCounter); \
-                MT_LOG1(MT_MOS_DESTROY_MEMORY, MT_NORMAL, MT_MEMORY_PTR, (int64_t)(ptr)); \
                 MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line); \
                 delete(ptr); \
                 ptr = nullptr; \
@@ -3124,7 +3154,7 @@ void MosUtilities::MosDeleteArrayUtil(_Ty& ptr)
         { \
             MosUtilities::MosAtomicDecrement(MosUtilities::m_mosMemAllocCounter); \
             MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line); \
-            MT_LOG1(MT_MOS_DESTROY_MEMORY, MT_NORMAL, MT_MEMORY_PTR, (int64_t)(ptr)); \
+            PRINT_DESTROY_MEMORY(MT_MOS_DESTROY_MEMORY, MT_NORMAL, MT_MEMORY_PTR, (int64_t)(ptr), functionName, filename, line); \
             delete[](ptr); \
             ptr = nullptr; \
         }
@@ -3134,7 +3164,6 @@ void MosUtilities::MosDeleteArrayUtil(_Ty& ptr)
         { \
             MosUtilities::MosAtomicDecrement(MosUtilities::m_mosMemAllocCounter); \
             MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line); \
-            MT_LOG1(MT_MOS_DESTROY_MEMORY, MT_NORMAL, MT_MEMORY_PTR, (int64_t)(ptr)); \
             delete[](ptr); \
             ptr = nullptr; \
         }

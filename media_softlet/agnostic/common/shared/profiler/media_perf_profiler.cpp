@@ -141,7 +141,7 @@ MediaPerfProfiler::MediaPerfProfiler()
         // the following 2 lines is to circumvent Memninja counter validation and log parser
         MosUtilities::MosAtomicDecrement(MosUtilities::m_mosMemAllocCounter);
         MOS_MEMNINJA_FREE_MESSAGE(m_mutex, __FUNCTION__, __FILE__, __LINE__);
-        MT_LOG1(MT_MOS_DESTROY_MEMORY, MT_NORMAL, MT_MEMORY_PTR, (int64_t)(m_mutex));
+        PRINT_DESTROY_MEMORY(MT_MOS_DESTROY_MEMORY, MT_NORMAL, MT_MEMORY_PTR, (int64_t)(m_mutex), __FUNCTION__, __FILE__, __LINE__);
     }
     else
     {

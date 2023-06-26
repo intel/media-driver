@@ -412,6 +412,13 @@ MOS_STATUS MosUserSetting::InitMosMessageUserSetting(MediaUserSettingSharedPtr u
 
     DeclareUserSettingKey(
         userSettingPtr,
+        __MOS_USER_FEATURE_KEY_ENABLE_MEMORY_FOOT_PRINT,
+        MediaUserSetting::Group::Device,
+        0,
+        true);
+
+    DeclareUserSettingKey(
+        userSettingPtr,
         __MOS_USER_FEATURE_KEY_MESSAGE_HLT_OUTPUT_DIRECTORY,
         MediaUserSetting::Group::Device,
         "",

@@ -51,11 +51,13 @@ int32_t g_mosMemAllocCounter         = 0;
 int32_t g_mosMemAllocFakeCounter     = 0;
 int32_t g_mosMemAllocCounterGfx      = 0;
 uint8_t g_mosUltFlag                 = 0;
+int32_t g_mosMemAllocIndex           = 0;
 
 int32_t *MosUtilities::m_mosMemAllocCounter       = &g_mosMemAllocCounter;
 int32_t *MosUtilities::m_mosMemAllocFakeCounter   = &g_mosMemAllocFakeCounter;
 int32_t *MosUtilities::m_mosMemAllocCounterGfx    = &g_mosMemAllocCounterGfx;
 uint8_t *MosUtilities::m_mosUltFlag               = &g_mosUltFlag;
+int32_t *MosUtilities::m_mosMemAllocIndex         = &g_mosMemAllocIndex;
 
 const char           *MosUtilitiesSpecificNext::m_szUserFeatureFile     = USER_FEATURE_FILE;
 MOS_PUF_KEYLIST      MosUtilitiesSpecificNext::m_ufKeyList              = nullptr;
@@ -1776,6 +1778,33 @@ MOS_STATUS MosUtilities::MosGetRegValue(
     }
 
     return status;
+}
+
+MOS_STATUS MosUtilities::MosPrintCPUAllocateMemory(int32_t event_id, int32_t level, int32_t param_id_1, int64_t value_1, int32_t param_id_2, int64_t value_2,
+    const char *funName, const char *fileName, int32_t line)
+{
+#if (_RELEASE_INTERNAL)
+    if (MOS_IS_MEMORY_FOOT_PRINT_ENABLED())
+    {
+        MosAtomicIncrement(m_mosMemAllocIndex);
+        MT_LOG3(event_id, level, param_id_1, value_1, MT_MEMORY_INDEX, *MosUtilities::m_mosMemAllocIndex, param_id_2, value_2);
+    }
+
+#endif
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MosUtilities::MosPrintCPUDestroyMemory(int32_t event_id, int32_t level, int32_t param_id_1, int64_t value_1, 
+    const char *funName, const char *fileName, int32_t line)
+{
+#if (_RELEASE_INTERNAL)
+    if (MOS_IS_MEMORY_FOOT_PRINT_ENABLED())
+    {
+        MosAtomicDecrement(m_mosMemAllocIndex);
+        MT_LOG2(event_id, level, param_id_1, value_1, MT_MEMORY_INDEX, *MosUtilities::m_mosMemAllocIndex);
+    }
+#endif
+    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS MosUtilities::MosSetRegValue(

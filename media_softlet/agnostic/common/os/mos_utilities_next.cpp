@@ -218,9 +218,10 @@ void  *MosUtilities::MosAlignedAllocMemory(
     {
         MosAtomicIncrement(m_mosMemAllocCounter);
         MOS_MEMNINJA_ALLOC_MESSAGE(ptr, size, functionName, filename, line);
-                MT_LOG2(MT_MOS_ALLOCATE_MEMORY, MT_NORMAL,
+        PRINT_ALLOCATE_MEMORY(MT_MOS_ALLOCATE_MEMORY, MT_NORMAL,
                 MT_MEMORY_PTR, (int64_t)(ptr),
-                MT_MEMORY_SIZE, static_cast<int64_t>(size));
+                MT_MEMORY_SIZE, static_cast<int64_t>(size), 
+                functionName, filename, line);
     }
 
     return ptr;
@@ -242,8 +243,9 @@ void MosUtilities::MosAlignedFreeMemory(void *ptr)
     {
         MosAtomicDecrement(m_mosMemAllocCounter);
         MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line);
-        MT_LOG1(MT_MOS_DESTROY_MEMORY, MT_NORMAL,
-                MT_MEMORY_PTR, (int64_t)(ptr));        
+        PRINT_DESTROY_MEMORY(MT_MOS_DESTROY_MEMORY, MT_NORMAL,
+                MT_MEMORY_PTR, (int64_t)(ptr),
+                functionName, filename, line);        
         _aligned_free(ptr);
     }
 }
@@ -275,9 +277,10 @@ void *MosUtilities::MosAllocMemory(size_t size)
     {
         MosAtomicIncrement(m_mosMemAllocCounter);
         MOS_MEMNINJA_ALLOC_MESSAGE(ptr, size, functionName, filename, line);
-        MT_LOG2(MT_MOS_ALLOCATE_MEMORY, MT_NORMAL,
+        PRINT_ALLOCATE_MEMORY(MT_MOS_ALLOCATE_MEMORY, MT_NORMAL,
                 MT_MEMORY_PTR, (int64_t)(ptr),
-                MT_MEMORY_SIZE, static_cast<int64_t>(size));
+                MT_MEMORY_SIZE, static_cast<int64_t>(size),
+                functionName, filename, line);
     }
 
     return ptr;
@@ -312,9 +315,10 @@ void *MosUtilities::MosAllocAndZeroMemory(size_t size)
 
         MosAtomicIncrement(m_mosMemAllocCounter);
         MOS_MEMNINJA_ALLOC_MESSAGE(ptr, size, functionName, filename, line);
-        MT_LOG2(MT_MOS_ALLOCATE_MEMORY, MT_NORMAL,
+        PRINT_ALLOCATE_MEMORY(MT_MOS_ALLOCATE_MEMORY, MT_NORMAL,
                 MT_MEMORY_PTR, (int64_t)(ptr),
-                MT_MEMORY_SIZE, static_cast<int64_t>(size));
+                MT_MEMORY_SIZE, static_cast<int64_t>(size),
+                functionName, filename, line);
     }
 
     return ptr;
@@ -354,16 +358,19 @@ void *MosUtilities::MosReallocMemory(
         {
             MosAtomicDecrement(m_mosMemAllocCounter);
             MOS_MEMNINJA_FREE_MESSAGE(oldPtr, functionName, filename, line);
-            MT_LOG1(MT_MOS_DESTROY_MEMORY, MT_NORMAL, MT_MEMORY_PTR, (int64_t)(oldPtr)); 
+            PRINT_DESTROY_MEMORY(MT_MOS_DESTROY_MEMORY, MT_NORMAL,
+                MT_MEMORY_PTR, (int64_t)(oldPtr), 
+                functionName, filename, line); 
         }
 
         if (newPtr != nullptr)
         {
             MosAtomicIncrement(m_mosMemAllocCounter);
             MOS_MEMNINJA_ALLOC_MESSAGE(newPtr, newSize, functionName, filename, line);
-            MT_LOG2(MT_MOS_ALLOCATE_MEMORY, MT_NORMAL,
+            PRINT_ALLOCATE_MEMORY(MT_MOS_ALLOCATE_MEMORY, MT_NORMAL,
                 MT_MEMORY_PTR, (int64_t)(newPtr),
-                MT_MEMORY_SIZE, static_cast<int64_t>(newSize));
+                MT_MEMORY_SIZE, static_cast<int64_t>(newSize),
+                functionName, filename, line);
         }
     }
 
@@ -393,7 +400,9 @@ void MosUtilities::MosFreeMemory(void  *ptr)
     {
         MosAtomicDecrement(m_mosMemAllocCounter);
         MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line);
-        MT_LOG1(MT_MOS_DESTROY_MEMORY, MT_NORMAL, MT_MEMORY_PTR, (int64_t)(ptr)); 
+        PRINT_DESTROY_MEMORY(MT_MOS_DESTROY_MEMORY, MT_NORMAL, 
+            MT_MEMORY_PTR, (int64_t)(ptr), 
+            functionName, filename, line); 
         free(ptr);
     }
 }

@@ -251,6 +251,7 @@ typedef struct _MOS_MESSAGE_PARAMS
     uint32_t                    bEnableMaps;                                    //!< Dump mapped memory regions to trace file
     uint32_t                    bDisableAssert;                                 //!< Disable assert
     uint32_t                    bEnableFlush;                                   //!< Enable flush
+    uint32_t                    bEnableMemoryFootPrint;                        //!< Disable Memory Foot Print
     MOS_COMPONENT_DEBUG_PARAMS  components[MOS_COMPONENT_COUNT];
     char                        g_MosMsgBuffer[MOS_MAX_MSG_BUF_SIZE];           //!< Array for debug message
 } MOS_MESSAGE_PARAMS;
@@ -301,6 +302,13 @@ public:
     //! \return   void
     //!
     static void MosHLTFlush();
+
+    //!
+    //! \brief    Disable Memory Foot Print
+    //! \details  Disable Memory Foot Print
+    //! \return   bool
+    //!
+    static bool EnableMemoryFootPrint();
 
     //!
     //! \brief    Form a string that will prefix MOS's log file name
@@ -593,6 +601,8 @@ MEDIA_CLASS_DEFINE_END(MosUtilDebug)
 // flush hlt message before workload submission
 #define MOS_FLUSH_HLT_MESSAGE MosUtilDebug::MosHLTFlush();
 
+#define MOS_IS_MEMORY_FOOT_PRINT_ENABLED() MosUtilDebug::EnableMemoryFootPrint()
+
 
 //!
 //! \def MOS_DEBUGMESSAGE(_compID, _subCompID, _message, ...)
@@ -836,6 +846,7 @@ MEDIA_CLASS_DEFINE_END(MosUtilDebug)
 #else // !MOS_MESSAGES_ENABLED
 
 #define MOS_FLUSH_HLT_MESSAGE
+#define MOS_IS_MEMORY_FOOT_PRINT_ENABLED() 0
 
 //!
 //! \brief   The two methods below are used only for debug or release internal drivers
