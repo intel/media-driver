@@ -1350,13 +1350,12 @@ protected:
 
         auto MBType = params.pMBParams->MBType;
         
-        #define DO_FIELDS()                                              \
-            DO_FIELD(DW0, MacroblockIntraType, 1);                       \
-            DO_FIELD(DW0, DctType, MBType.m_fieldResidual);              \
-            DO_FIELD(DW0, CodedBlockPattern, params.CodedBlockPattern);  \
-            DO_FIELD(DW1, Horzorigin, params.Horzorigin);                \
-            DO_FIELD(DW1, Vertorigin, params.Vertorigin);                \
-            DO_FIELD(DW0, Lastmbinrow, params.Lastmbinrow);
+        cmd.DW0.MacroblockIntraType = 1;
+        cmd.DW0.DctType             = MBType.m_fieldResidual;
+        cmd.DW0.CodedBlockPattern   = params.CodedBlockPattern;
+        cmd.DW0.Lastmbinrow         = params.Lastmbinrow;
+        cmd.DW1.Horzorigin          = params.Horzorigin;
+        cmd.DW1.Vertorigin          = params.Vertorigin;
 
         if (params.CodingType != I_TYPE)
         {
@@ -1370,18 +1369,12 @@ protected:
             if (MBType.m_intraMb == 0)
             {
                 uint32_t *point = (uint32_t *)(params.sPackedMVs0);
-
-                cmd.DW2.MotionVectorsField0ForwardHorizontalComponent  = *point++;
-                cmd.DW2.MotionVectorsField0ForwardVerticalComponent    = *point++;
-                cmd.DW3.MotionVectorsField0BackwardHorizontalComponent = *point++;
-                cmd.DW3.MotionVectorsField0BackwardVerticalComponent   = *point++;
+                cmd.DW2.Value   = *point++;
+                cmd.DW3.Value   = *point++;
 
                 point = (uint32_t *)(params.sPackedMVs1);
-
-                cmd.DW4.MotionVectorsField1ForwardHorizontalComponent  = *point++;
-                cmd.DW4.MotionVectorsField1ForwardVerticalComponent    = *point++;
-                cmd.DW5.MotionVectorsField1BackwardHorizontalComponent = *point++;
-                cmd.DW5.MotionVectorsField1BackwardVerticalComponent   = *point++;
+                cmd.DW4.Value = *point++;
+                cmd.DW5.Value = *point++;
             }
         }
 

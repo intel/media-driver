@@ -189,9 +189,10 @@ MOS_STATUS Mpeg2DecodeMbPkt::AddCmd_MFD_MPEG2_IT_OBJECT(MHW_BATCH_BUFFER &batchB
         }
     }
 
-    headerPar.DwordLength = (m_mfxItf->MHW_GETSIZE_F(MFD_IT_OBJECT_MPEG2_INLINE_DATA)() +
-                                m_mfxItf->MHW_GETSIZE_F(MFD_IT_OBJECT)()) >> 2;
+    headerPar.DwordLength = ((m_mfxItf->MHW_GETSIZE_F(MFD_IT_OBJECT_MPEG2_INLINE_DATA)() +
+                                m_mfxItf->MHW_GETSIZE_F(MFD_IT_OBJECT)()) >> 2) - 2;
     headerPar.dwDCTLength = dwDCTLength;
+    headerPar.IndirectItCoeffDataStartAddressOffset = mbParams->m_mbDataLoc << 2;
 
     inlinePar.CodingType        = m_mpeg2PicParams->m_pictureCodingType;
     inlinePar.pMBParams         = mbParams;
@@ -222,8 +223,9 @@ MOS_STATUS Mpeg2DecodeMbPkt::AddAllCmdsInsertSkippedMacroblocks(MHW_BATCH_BUFFER
     inlinePar       = {};
     headerPar       = {};
 
-    headerPar.DwordLength = (m_mfxItf->MHW_GETSIZE_F(MFD_IT_OBJECT_MPEG2_INLINE_DATA)() +
-                                m_mfxItf->MHW_GETSIZE_F(MFD_IT_OBJECT)()) >> 2;
+    headerPar.DwordLength = ((m_mfxItf->MHW_GETSIZE_F(MFD_IT_OBJECT_MPEG2_INLINE_DATA)() +
+                                m_mfxItf->MHW_GETSIZE_F(MFD_IT_OBJECT)()) >> 2) - 2;
+
     headerPar.dwDCTLength = 0;
 
     inlinePar.CodingType        = m_mpeg2PicParams->m_pictureCodingType;

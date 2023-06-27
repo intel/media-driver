@@ -57,12 +57,16 @@ MOS_STATUS Mpeg2DecodePkt::Init()
     DECODE_CHK_NULL(m_picturePkt);
     DECODE_CHK_STATUS(m_picturePkt->CalculateCommandSize(m_pictureStatesSize, m_picturePatchListSize));
 
+    uint32_t secondLevelBBSize = 0;
+    uint32_t numMacroblocks    = m_mpeg2BasicFeature->m_picWidthInMb * m_mpeg2BasicFeature->m_picHeightInMb;
+
     if (m_mpeg2BasicFeature->m_mode == CODECHAL_DECODE_MODE_MPEG2VLD)
     {
         subPacket = m_mpeg2Pipeline->GetSubPacket(DecodePacketId(m_mpeg2Pipeline, mpeg2SliceSubPacketId));
         m_slicePkt = dynamic_cast<Mpeg2DecodeSlcPkt*>(subPacket);
         DECODE_CHK_NULL(m_slicePkt);
         DECODE_CHK_STATUS(m_slicePkt->CalculateCommandSize(m_sliceStatesSize, m_slicePatchListSize));
+        secondLevelBBSize = (m_sliceStatesSize * numMacroblocks) + m_hwInterface->m_sizeOfCmdBatchBufferEnd;
     }
     else
     {
@@ -70,12 +74,11 @@ MOS_STATUS Mpeg2DecodePkt::Init()
         m_mbPkt = dynamic_cast<Mpeg2DecodeMbPkt*>(subPacket);
         DECODE_CHK_NULL(m_mbPkt);
         DECODE_CHK_STATUS(m_mbPkt->CalculateCommandSize(m_mbStatesSize, m_mbPatchListSize));
+        secondLevelBBSize = (m_mbStatesSize * numMacroblocks) + m_hwInterface->m_sizeOfCmdBatchBufferEnd;
     }
 
-    uint32_t numMacroblocks = m_mpeg2BasicFeature->m_picWidthInMb * m_mpeg2BasicFeature->m_picHeightInMb;
-    uint32_t size = (m_sliceStatesSize * numMacroblocks) + m_hwInterface->m_sizeOfCmdBatchBufferEnd;
     m_secondLevelBBArray = m_allocator->AllocateBatchBufferArray(
-        size, 1, CODEC_MPEG2_BATCH_BUFFERS_NUM, true, lockableVideoMem);
+        secondLevelBBSize, 1, CODEC_MPEG2_BATCH_BUFFERS_NUM, true, lockableVideoMem);
     DECODE_CHK_NULL(m_secondLevelBBArray);
 
     return MOS_STATUS_SUCCESS;

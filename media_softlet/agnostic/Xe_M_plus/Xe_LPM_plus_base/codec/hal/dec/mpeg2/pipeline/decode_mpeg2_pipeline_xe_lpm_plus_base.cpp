@@ -113,7 +113,7 @@ MOS_STATUS Mpeg2PipelineXe_Lpm_Plus_Base::CreateSubPackets(DecodeSubPacketManage
     DECODE_CHK_STATUS(subPacketManager.Register(
         DecodePacketId(this, mpeg2PictureSubPacketId), *pictureDecodePkt));
 
-    if (codecSettings.mode = CODECHAL_DECODE_MODE_MPEG2VLD)
+    if (codecSettings.mode == CODECHAL_DECODE_MODE_MPEG2VLD)
     {
         Mpeg2DecodeSlcPktXe_Lpm_Plus_Base *sliceDecodePkt = MOS_New(Mpeg2DecodeSlcPktXe_Lpm_Plus_Base, this, m_hwInterface);
         DECODE_CHK_NULL(sliceDecodePkt);

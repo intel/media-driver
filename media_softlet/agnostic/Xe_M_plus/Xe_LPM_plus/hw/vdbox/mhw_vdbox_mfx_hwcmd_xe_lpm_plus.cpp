@@ -644,13 +644,6 @@ Cmd::MFD_IT_OBJECT_CMD::MFD_IT_OBJECT_CMD()
 
     DW6.Value = 0x00000000;
     //DW6.IndirectItDblkControlDataStartAddressOffset  = INDIRECT_IT_DBLK_CONTROL_DATA_START_ADDRESS_OFFSET_UNNAMED0;
-
-    memset(&Mpeg2InlineData, 0, sizeof(Mpeg2InlineData));
-
-    memset(&AvcInlineData, 0, sizeof(AvcInlineData));
-
-    memset(&Vc1InlineData, 0, sizeof(Vc1InlineData));
-
 }
 
 Cmd::MFC_MPEG2_SLICEGROUP_STATE_CMD::MFC_MPEG2_SLICEGROUP_STATE_CMD()
