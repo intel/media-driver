@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2022, Intel Corporation
+* Copyright (c) 2017-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -408,7 +408,8 @@ typedef enum _CODECHAL_STATUS
     *   Only error reporting parameters in the status reporting structure will be valid. This status will be returned if the workload(s) for the picture in question resulted in a HW hang or HW status indicators indicate a failure.
     */
     CODECHAL_STATUS_ERROR       = 2,
-    CODECHAL_STATUS_UNAVAILABLE = 3     //!< Indicates that the entry in the status reporting array was not used
+    CODECHAL_STATUS_UNAVAILABLE = 3,    //!< Indicates that the entry in the status reporting array was not used
+    CODECHAL_STATUS_RESET       = 4     //!< Indicates that Media Reset happend
 } CODECHAL_STATUS, *PCODECHAL_STATUS;
 
 typedef enum _CODECHAL_CHROMA_SITING_TYPE
