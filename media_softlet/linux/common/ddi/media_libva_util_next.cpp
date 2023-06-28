@@ -1965,6 +1965,7 @@ VAStatus MediaLibvaUtilNext::GetSurfaceModifier(
     switch(gmmTileType)
     {
         case GMM_TILED_4:
+        case GMM_TILED_64:
             if(mediaCtx->m_auxTableMgr && bMmcEnabled)
             {
                 modifier = gmmFlags.Info.MediaCompressed ? I915_FORMAT_MOD_4_TILED_MTL_MC_CCS :
