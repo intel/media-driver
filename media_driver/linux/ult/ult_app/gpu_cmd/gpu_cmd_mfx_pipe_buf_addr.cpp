@@ -48,20 +48,3 @@ void GpuCmdMfxPipeBufAddrG9Skl::InitCachePolicy()
     m_pCmd->DW60.Value |= 0;
     m_pCmd->DW64.Value |= 4;
 }
-
-#ifdef IGFX_GEN10_SUPPORTED
-void GpuCmdMfxPipeBufAddrG10::InitCachePolicy()
-{
-    m_pCmd->DW3.Value  |= 8;
-    m_pCmd->DW6.Value  |= 8;
-    m_pCmd->DW9.Value  |= 8;
-    m_pCmd->DW12.Value |= 8;
-    m_pCmd->DW15.Value |= 6;
-    m_pCmd->DW18.Value |= 6;
-    m_pCmd->DW51.Value |= 6;
-    m_pCmd->DW57.Value |= 8;
-    m_pCmd->DW60.Value |= 8;
-    m_pCmd->DW64.Value |= 4;
-    m_pCmd->DW67.Value |= 8;
-}
-#endif // IGFX_GEN10_SUPPORTED

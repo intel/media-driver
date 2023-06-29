@@ -21,9 +21,3 @@
 */
 #include "gpu_cmd_hcp_ind_obj_base_addr.h"
 
-#ifdef IGFX_GEN10_SUPPORTED
-void GpuCmdHcpIndObjBaseAddrG10::InitCachePolicy()
-{
-    m_pCmd->HcpIndirectBitstreamObjectMemoryAddressAttributes.DW0.Value |= 8;
-}
-#endif // IGFX_GEN10_SUPPORTED

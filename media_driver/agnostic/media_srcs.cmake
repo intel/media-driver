@@ -326,10 +326,6 @@ if(GEN9_KBL)
     media_include_subdirectory(gen9_kbl)
 endif()
 
-if(GEN10)
-    media_include_subdirectory(gen10)
-endif()
-
 if(GEN11)
     media_include_subdirectory(gen11)
 endif()

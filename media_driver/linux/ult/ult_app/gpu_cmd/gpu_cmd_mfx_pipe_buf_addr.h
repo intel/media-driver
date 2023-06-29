@@ -25,9 +25,6 @@
 #include "gpu_cmd.h"
 #include "mhw_vdbox_mfx_hwcmd_g9_bxt.h"
 #include "mhw_vdbox_mfx_hwcmd_g9_skl.h"
-#ifdef IGFX_GEN10_SUPPORTED
-#include "mhw_vdbox_mfx_hwcmd_g10_X.h"
-#endif // IGFX_GEN10_SUPPORTED
 
 template<typename _CmdType>
 class GpuCmdMfxPipeBufAddr : public GpuCmd<_CmdType>
@@ -84,27 +81,5 @@ protected:
 
     void InitCachePolicy();
 };
-
-#ifdef IGFX_GEN10_SUPPORTED
-class GpuCmdMfxPipeBufAddrG10 : public GpuCmdMfxPipeBufAddr<mhw_vdbox_mfx_g10_X::MFX_PIPE_BUF_ADDR_STATE_CMD>
-{
-public:
-
-    GpuCmdMfxPipeBufAddrG10()
-    {
-        InitCachePolicy();
-    }
-    
-protected:
-
-    void InitCachePolicy();
-
-    void ValidateCachePolicy(const cmd_t *pCmd) const override
-    {
-        GpuCmdMfxPipeBufAddr::ValidateCachePolicy(pCmd);
-        CacheCheck2(m_pCmd->DW67.Value, pCmd->DW67.Value);
-    }
-};
-#endif // IGFX_GEN10_SUPPORTED
 
 #endif // __GPU_CMD_MFX_PIPE_BUF_ADDR_H__

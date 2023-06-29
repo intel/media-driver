@@ -43,10 +43,6 @@ if(GEN9_KBL)
     media_include_subdirectory(media_interfaces_m9_kbl)
 endif()
 
-if(GEN10_CNL)
-    media_include_subdirectory(media_interfaces_m10_cnl)
-endif()
-
 if(GEN11_ICLLP)
     media_include_subdirectory(media_interfaces_m11_icllp)
 endif()
