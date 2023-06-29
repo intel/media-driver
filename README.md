@@ -17,7 +17,7 @@ You may obtain a copy of the License at [MIT](https://opensource.org/licenses/MI
 For Ubuntu 16.04+
 
 ```
-apt install autoconf libtool libdrm-dev xorg xorg-dev openbox libx11-dev libgl1-mesa-glx libgl1-mesa-dev
+apt install autoconf libtool libdrm-dev xorg xorg-dev openbox libx11-dev libgl1-mesa-glx
 ```
 
 Equivalents for other distributions should work.
