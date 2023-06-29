@@ -43,8 +43,6 @@ jobs:
         sudo apt-get install -y --no-install-recommends \
           cmake \
           libdrm-dev \
-          libegl1-mesa-dev \
-          libgl1-mesa-dev \
           libx11-dev \
           libxext-dev \
           libx11-xcb-dev \
@@ -112,8 +110,6 @@ jobs:
           g++ \
           libtool \
           libdrm-dev \
-          libegl1-mesa-dev \
-          libgl1-mesa-dev \
           libx11-dev \
           libx11-xcb-dev \
           libxcb-dri3-dev \
@@ -179,8 +175,6 @@ jobs:
         sudo apt-get install -y --no-install-recommends \
           cmake \
           libdrm-dev \
-          libegl1-mesa-dev \
-          libgl1-mesa-dev \
           libx11-dev \
           libx11-xcb-dev \
           libxcb-dri3-dev \
@@ -244,8 +238,6 @@ jobs:
         sudo apt-get install -y --no-install-recommends \
           cmake \
           libdrm-dev \
-          libegl1-mesa-dev \
-          libgl1-mesa-dev \
           libx11-dev \
           libx11-xcb-dev \
           libxcb-dri3-dev \
@@ -311,8 +303,6 @@ jobs:
         sudo apt-get install -y --no-install-recommends \
           cmake \
           libdrm-dev \
-          libegl1-mesa-dev \
-          libgl1-mesa-dev \
           libx11-dev \
           libx11-xcb-dev \
           libxcb-dri3-dev \
@@ -378,8 +368,6 @@ jobs:
         sudo apt-get install -y --no-install-recommends \
           cmake \
           libdrm-dev \
-          libegl1-mesa-dev \
-          libgl1-mesa-dev \
           libx11-dev \
           libx11-xcb-dev \
           libxcb-dri3-dev \
@@ -445,8 +433,6 @@ jobs:
         sudo apt-get install -y --no-install-recommends \
           cmake \
           libdrm-dev \
-          libegl1-mesa-dev \
-          libgl1-mesa-dev \
           libx11-dev \
           libx11-xcb-dev \
           libxcb-dri3-dev \
@@ -512,8 +498,6 @@ jobs:
         sudo apt-get install -y --no-install-recommends \
           cmake \
           libdrm-dev \
-          libegl1-mesa-dev \
-          libgl1-mesa-dev \
           libx11-dev \
           libx11-xcb-dev \
           libxcb-dri3-dev \
@@ -579,8 +563,6 @@ jobs:
         sudo apt-get install -y --no-install-recommends \
           cmake \
           libdrm-dev \
-          libegl1-mesa-dev \
-          libgl1-mesa-dev \
           libx11-dev \
           libx11-xcb-dev \
           libxcb-dri3-dev \
@@ -646,8 +628,6 @@ jobs:
         sudo apt-get install -y --no-install-recommends \
           cmake \
           libdrm-dev \
-          libegl1-mesa-dev \
-          libgl1-mesa-dev \
           libx11-dev \
           libx11-xcb-dev \
           libxcb-dri3-dev \
@@ -713,8 +693,6 @@ jobs:
         sudo apt-get install -y --no-install-recommends \
           cmake \
           libdrm-dev \
-          libegl1-mesa-dev \
-          libgl1-mesa-dev \
           libx11-dev \
           libx11-xcb-dev \
           libxcb-dri3-dev \
