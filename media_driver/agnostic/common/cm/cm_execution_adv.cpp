@@ -591,7 +591,7 @@ int CmExecutionAdv::SetSuggestedL3Config(L3_SUGGEST_CONFIG l3SuggestConfig)
             table = m_cmhal->cmHalInterface->m_l3Plane;
             count = m_cmhal->cmHalInterface->m_l3ConfigCount;
             break;
-#if IGFX_GEN9_SUPPORTED || IGFX_GEN10_SUPPORTED
+#if IGFX_GEN9_SUPPORTED
         default:  // gen9
             count = sizeof(SKL_L3_PLANE) / sizeof(L3ConfigRegisterValues);
             table = (L3ConfigRegisterValues *)SKL_L3_PLANE;

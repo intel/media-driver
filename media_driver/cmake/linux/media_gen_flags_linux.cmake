@@ -23,7 +23,6 @@
 # Status:
 #   GEN8:  Done
 #   GEN9:  Done
-#   GEN10: Done (TODO: Gen10-specific code)
 #   GEN11: Done
 #   GEN12: TODO
 option(ENABLE_REQUIRED_GEN_CODE "Make per-Gen options disable only media-kernels (not driver code) if driver code is known to be required for a successful build"
@@ -56,11 +55,6 @@ cmake_dependent_option(GEN9_CML
 cmake_dependent_option(GEN9_CMPV
     "Enabled CMPV support (Gen9)" ON
     "GEN9" OFF)
-
-option(GEN10 "Enable Gen10 support" OFF)
-cmake_dependent_option(GEN10_CNL
-    "Enabled CNL support (Gen10)" ON
-    "GEN10" OFF)
 
 option(GEN11 "Enable Gen11 support" ON)
 cmake_dependent_option(GEN11_ICLLP
@@ -168,14 +162,6 @@ endif()
 
 if(GEN9_CMPV)
     add_definitions(-DIGFX_GEN9_CMPV_SUPPORTED)
-endif()
-
-if(GEN10)
-    add_definitions(-DIGFX_GEN10_SUPPORTED)
-endif()
-
-if(GEN10_CNL)
-    add_definitions(-DIGFX_GEN10_CNL_SUPPORTED)
 endif()
 
 if(GEN11)

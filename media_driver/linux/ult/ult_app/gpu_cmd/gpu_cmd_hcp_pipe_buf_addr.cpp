@@ -21,32 +21,3 @@
 */
 #include "gpu_cmd_hcp_pipe_buf_addr.h"
 
-#ifdef IGFX_GEN10_SUPPORTED
-void GpuCmdHcpPipeBufAddrG10::InitCachePolicy()
-{
-    m_pCmd->DecodedPictureMemoryAddressAttributes.DW0.Value                             |= 8;
-    m_pCmd->DeblockingFilterLineBufferMemoryAddressAttributes.DW0.Value                 |= 6;
-    m_pCmd->DeblockingFilterTileLineBufferMemoryAddressAttributes.DW0.Value             |= 6;
-    m_pCmd->DeblockingFilterTileColumnBufferMemoryAddressAttributes.DW0.Value           |= 6;
-    m_pCmd->MetadataLineBufferMemoryAddressAttributes.DW0.Value                         |= 8;
-    m_pCmd->MetadataTileLineBufferMemoryAddressAttributes.DW0.Value                     |= 8;
-    m_pCmd->MetadataTileColumnBufferMemoryAddressAttributes.DW0.Value                   |= 8;
-    m_pCmd->SaoLineBufferMemoryAddressAttributes.DW0.Value                              |= 8;
-    m_pCmd->SaoTileLineBufferMemoryAddressAttributes.DW0.Value                          |= 8;
-    m_pCmd->SaoTileColumnBufferMemoryAddressAttributes.DW0.Value                        |= 8;
-    m_pCmd->CurrentMotionVectorTemporalBufferMemoryAddressAttributes.DW0.Value          |= 8;
-    m_pCmd->ReferencePictureBaseAddressMemoryAddressAttributes.DW0.Value                |= 6;
-    m_pCmd->OriginalUncompressedPictureSourceMemoryAddressAttributes.DW0.Value          |= 8;
-    m_pCmd->StreamoutDataDestinationMemoryAddressAttributes.DW0.Value                   |= 8;
-    m_pCmd->DecodedPictureStatusErrorBufferBaseAddressMemoryAddressAttributes.DW0.Value |= 8;
-    m_pCmd->LcuIldbStreamoutBufferMemoryAddressAttributes.DW0.Value                     |= 8;
-    m_pCmd->CollocatedMotionVectorTemporalBuffer07MemoryAddressAttributes.DW0.Value     |= 8;
-    m_pCmd->Vp9ProbabilityBufferReadWriteMemoryAddressAttributes.DW0.Value              |= 6;
-    m_pCmd->Vp9SegmentIdBufferReadWriteMemoryAddressAttributes.DW0.Value                |= 6;
-    m_pCmd->Vp9HvdLineRowstoreBufferReadWriteMemoryAddressAttributes.DW0.Value          |= 6;
-    m_pCmd->Vp9HvdTileRowstoreBufferReadWriteMemoryAddressAttributes.DW0.Value          |= 6;
-    m_pCmd->SaoStreamoutDataDestinationBufferReadWriteMemoryAddressAttributes.DW0.Value |= 8;
-    m_pCmd->FrameStatisticsStreamoutDataDestinationBufferAttributesReadWrite.DW0.Value  |= 8;
-    m_pCmd->SseSourcePixelRowstoreBufferAttributesReadWrite.DW0.Value                   |= 6;
-}
-#endif // IGFX_GEN10_SUPPORTED

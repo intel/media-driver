@@ -50,8 +50,6 @@ if (ENABLE_NONFREE_KERNELS)
         ${SOURCES}
         ../../../agnostic/gen9_bxt/hw/vdbox/mhw_vdbox_mfx_hwcmd_g9_bxt.cpp
         ../../../agnostic/gen9_skl/hw/vdbox/mhw_vdbox_mfx_hwcmd_g9_skl.cpp
-        ../../../agnostic/gen10/hw/vdbox/mhw_vdbox_mfx_hwcmd_g10_X.cpp
-        ../../../agnostic/gen10/hw/vdbox/mhw_vdbox_hcp_hwcmd_g10_X.cpp
     )
 else ()
     set(SOURCES
