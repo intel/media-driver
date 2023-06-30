@@ -591,6 +591,7 @@ target_include_directories(${LIB_NAME}_mos_softlet BEFORE PRIVATE
     ${SOFTLET_MOS_PREPEND_INCLUDE_DIRS_}
     ${SOFTLET_MOS_PUBLIC_INCLUDE_DIRS_}
     ${SOFTLET_MOS_EXT_INCLUDE_DIRS_}
+    ${Backtrace_INCLUDE_DIRS}
 )
 ############## MOS LIB END ########################################
 
@@ -672,7 +673,8 @@ if (NOT DEFINED INCLUDED_LIBS OR "${INCLUDED_LIBS}" STREQUAL "")
     endif()
 
     target_compile_options( ${LIB_NAME} PUBLIC ${LIBGMM_CFLAGS_OTHER})
-    target_link_libraries ( ${LIB_NAME} ${LIBGMM_LIBRARIES})
+    target_link_libraries( ${LIB_NAME} ${LIBGMM_LIBRARIES}
+                                       ${Backtrace_LIBRARY})
 
     include(${MEDIA_EXT_CMAKE}/ext/media_feature_include_ext.cmake OPTIONAL)
 
