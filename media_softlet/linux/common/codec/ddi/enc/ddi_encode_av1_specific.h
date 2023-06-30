@@ -335,6 +335,8 @@ private:
     //!
     CODECHAL_MODE GetEncodeCodecMode(VAProfile profile, VAEntrypoint entrypoint) override;
 
+    uint32_t ParseFrameHdrObu();
+
     uint32_t savedTargetBit[ENCODE_AV1_MAX_NUM_TEMPORAL_LAYERS]  = { 0 };
     uint32_t savedFrameRate[ENCODE_AV1_MAX_NUM_TEMPORAL_LAYERS]  = { 0 };
     uint32_t savedMaxBitRate[ENCODE_AV1_MAX_NUM_TEMPORAL_LAYERS] = { 0 };

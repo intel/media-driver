@@ -339,6 +339,15 @@ VAStatus DdiEncodeAV1::EncodeInCodecHal(uint32_t numSlices)
     encodeParams.pSlcHeaderData = (void *)m_encodeCtx->pSliceHeaderData;
     encodeParams.pBSBuffer = m_encodeCtx->pbsBuffer;
 
+
+    PCODEC_AV1_ENCODE_PICTURE_PARAMS av1PicParams = (PCODEC_AV1_ENCODE_PICTURE_PARAMS)(m_encodeCtx->pPicParams);
+    DDI_CODEC_CHK_NULL(av1PicParams, "nullptr av1PicParams", VA_STATUS_ERROR_INVALID_PARAMETER);
+    if(av1PicParams->FrameHdrOBUSizeByteOffset == 0 && av1PicParams->PicFlags.fields.EnableFrameOBU)
+    {
+        // only parse header in this case
+        av1PicParams->FrameHdrOBUSizeByteOffset = ParseFrameHdrObu();
+    }
+
     MOS_STATUS status = m_encodeCtx->pCodecHal->Execute(&encodeParams);
     if (MOS_STATUS_SUCCESS != status)
     {
@@ -732,6 +741,20 @@ VAStatus DdiEncodeAV1::ParsePackedHeaderParams(void *ptr)
     m_encodeCtx->ppNALUnitParams[m_encodeCtx->indexNALUnit]->uiOffset                  = 0; // will be overwritten later.
 
     return VA_STATUS_SUCCESS;
+}
+bool IsOBUFrame(uint8_t data)
+{
+    data = (data >> 3) & 0x0f;
+
+    auto obu_type = (AV1_OBU_TYPE)data;
+    return obu_type == OBU_FRAME;
+}
+
+bool HasOBUExtension(uint8_t data)
+{
+    bool oeh = (data >> 2) & 0x01;
+
+    return oeh;
 }
 
 VAStatus DdiEncodeAV1::ParsePackedHeaderData(void *ptr)
@@ -1147,6 +1170,25 @@ CODECHAL_MODE DdiEncodeAV1::GetEncodeCodecMode(
         DDI_CODEC_ASSERTMESSAGE("Unsuported CODECHAL_MODE");
         return CODECHAL_UNSUPPORTED_MODE;
     }
+}
+
+uint32_t DdiEncodeAV1::ParseFrameHdrObu()
+{
+    uint32_t offset = 0;
+    uint8_t* pos = m_encodeCtx->pbsBuffer->pBase;
+
+    for(uint32_t header_idx = 0; header_idx < m_encodeCtx->indexNALUnit; header_idx++)
+    {
+        uint8_t data = *(m_encodeCtx->pbsBuffer->pBase + m_encodeCtx->ppNALUnitParams[header_idx]->uiOffset);
+
+        if(IsOBUFrame(data))
+        {
+            return m_encodeCtx->ppNALUnitParams[header_idx]->uiOffset + (HasOBUExtension(data)?1:0) + 1;
+        }
+
+    }
+    return 0;
+
 }
 
 }  // namespace encode
