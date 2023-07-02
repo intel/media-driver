@@ -146,6 +146,12 @@ MOS_STATUS Vp9PipelineXe_Lpm_Plus_Base::Execute()
 
 #if (_DEBUG || _RELEASE_INTERNAL)
             DECODE_CHK_STATUS(StatusCheck());
+#ifdef _MMC_SUPPORTED
+            if (m_mmcState != nullptr)
+            {
+                m_mmcState->ReportSurfaceMmcMode(&(m_basicFeature->m_destSurface));
+            }
+#endif
 #endif
             // Only update user features for the first frame.
             if (m_basicFeature->m_frameNum == 0)

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -68,6 +68,19 @@ MOS_STATUS DecodeMemComp::UpdateUserFeatureKey(PMOS_SURFACE surface)
 
     ReportUserSetting(m_userSettingPtr, "Decode RT Compressible", surface->bCompressible, MediaUserSetting::Group::Sequence);
     ReportUserSetting(m_userSettingPtr, "Decode RT Compress Mode", surface->MmcState, MediaUserSetting::Group::Sequence);
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS DecodeMemComp::ReportSurfaceMmcMode(PMOS_SURFACE surface)
+{
+    if (!surface)
+        return MOS_STATUS_NULL_POINTER;
+
+    MOS_MEMCOMP_STATE mmcMode = MOS_MEMCOMP_DISABLED;
+    MediaMemComp::GetSurfaceMmcState(surface, &mmcMode);
+
+    DECODE_NORMALMESSAGE("Decode RT Compress Mode is: %d", mmcMode);
 
     return MOS_STATUS_SUCCESS;
 }

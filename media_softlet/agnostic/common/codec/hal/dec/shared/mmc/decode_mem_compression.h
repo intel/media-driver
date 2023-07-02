@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -62,7 +62,9 @@ public:
     virtual ~DecodeMemComp() {};
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-    MOS_STATUS UpdateUserFeatureKey(PMOS_SURFACE surface);
+    virtual MOS_STATUS UpdateUserFeatureKey(PMOS_SURFACE surface);
+
+    MOS_STATUS ReportSurfaceMmcMode(PMOS_SURFACE surface);
 #endif
 
 protected:

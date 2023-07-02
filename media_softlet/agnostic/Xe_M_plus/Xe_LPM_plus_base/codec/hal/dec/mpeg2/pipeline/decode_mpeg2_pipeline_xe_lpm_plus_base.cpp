@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021, Intel Corporation
+* Copyright (c) 2021-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -217,6 +217,12 @@ MOS_STATUS Mpeg2PipelineXe_Lpm_Plus_Base::Execute()
 
 #if (_DEBUG || _RELEASE_INTERNAL)
             DECODE_CHK_STATUS(StatusCheck());
+#ifdef _MMC_SUPPORTED
+            if (m_mmcState != nullptr)
+            {
+                m_mmcState->ReportSurfaceMmcMode(&(m_basicFeature->m_destSurface));
+            }
+#endif
 #endif
 
             // Only update user features for the first frame.

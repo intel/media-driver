@@ -216,6 +216,12 @@ namespace decode
 
 #if (_DEBUG || _RELEASE_INTERNAL)
                 DECODE_CHK_STATUS(StatusCheck());
+#ifdef _MMC_SUPPORTED
+                if (m_mmcState != nullptr)
+                {
+                    m_mmcState->ReportSurfaceMmcMode(&(basicFeature->m_destSurface));
+                }
+#endif
 #endif
                 // Only update user features for the first frame.
                 if (basicFeature->m_frameNum == 0)
