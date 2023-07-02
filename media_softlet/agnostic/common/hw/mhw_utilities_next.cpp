@@ -290,6 +290,8 @@ MOS_STATUS Mhw_AddResourceToCmd_PatchList(
     // Offset and command LSB parameters
     dwOffset = pParams->dwOffset | ((*pParams->pdwCmd) & ((1 << dwLsbNum) - 1));
 
+    Mhw_SetMocsTableIndex(pOsInterface, pParams->presResource, pParams->mocsParams);
+    
     if (pParams->dwOffsetInSSH > 0)
     {
         // Calculate the patch offset to command buffer
