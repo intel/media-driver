@@ -1046,59 +1046,46 @@ VAStatus DdiDecodeFunctions::StatusReport(
     if (surface->curStatusReportQueryState == DDI_MEDIA_STATUS_REPORT_QUERY_STATE_PENDING) // TODO: Use soltlet class
     {
         uint32_t uNumCompletedReport = decoder->GetCompletedReport();
-        if (uNumCompletedReport != 0)
+        DDI_CODEC_CHK_CONDITION((uNumCompletedReport == 0), "No report available at all", VA_STATUS_ERROR_OPERATION_FAILED);
+
+        for (uint32_t i = 0; i < uNumCompletedReport; i++)
         {
-            DDI_CODEC_CHK_CONDITION((uNumCompletedReport == 0), "No report available at all", VA_STATUS_ERROR_OPERATION_FAILED);
+            DecodeStatusReportData tempNewReport;
+            MOS_ZeroMemory(&tempNewReport, sizeof(CodechalDecodeStatusReport));
+            MOS_STATUS eStatus = decoder->GetStatusReport(&tempNewReport, 1);
+            DDI_CODEC_CHK_CONDITION(MOS_STATUS_SUCCESS != eStatus, "Get status report fail", VA_STATUS_ERROR_OPERATION_FAILED);
 
-            for (uint32_t i = 0; i < uNumCompletedReport; i++)
+            MOS_LINUX_BO *bo = tempNewReport.currDecodedPicRes.bo;
+
+            if ((tempNewReport.codecStatus == CODECHAL_STATUS_SUCCESSFUL) || (tempNewReport.codecStatus == CODECHAL_STATUS_ERROR) || (tempNewReport.codecStatus == CODECHAL_STATUS_INCOMPLETE))
             {
-                DecodeStatusReportData tempNewReport;
-                MOS_ZeroMemory(&tempNewReport, sizeof(CodechalDecodeStatusReport));
-                MOS_STATUS eStatus = decoder->GetStatusReport(&tempNewReport, 1);
-                DDI_CODEC_CHK_CONDITION(MOS_STATUS_SUCCESS != eStatus, "Get status report fail", VA_STATUS_ERROR_OPERATION_FAILED);
+                PDDI_MEDIA_SURFACE_HEAP_ELEMENT mediaSurfaceHeapElmt = (PDDI_MEDIA_SURFACE_HEAP_ELEMENT)mediaCtx->pSurfaceHeap->pHeapBase;
 
-                MOS_LINUX_BO *bo = tempNewReport.currDecodedPicRes.bo;
-
-                if ((tempNewReport.codecStatus == CODECHAL_STATUS_SUCCESSFUL)   ||
-                    (tempNewReport.codecStatus == CODECHAL_STATUS_ERROR)        ||
-                    (tempNewReport.codecStatus == CODECHAL_STATUS_RESET)        ||
-                    (tempNewReport.codecStatus == CODECHAL_STATUS_INCOMPLETE))
+                uint32_t j = 0;
+                for (j = 0; j < mediaCtx->pSurfaceHeap->uiAllocatedHeapElements; j++, mediaSurfaceHeapElmt++)
                 {
-                    PDDI_MEDIA_SURFACE_HEAP_ELEMENT mediaSurfaceHeapElmt = (PDDI_MEDIA_SURFACE_HEAP_ELEMENT)mediaCtx->pSurfaceHeap->pHeapBase;
-
-                    uint32_t j = 0;
-                    for (j = 0; j < mediaCtx->pSurfaceHeap->uiAllocatedHeapElements; j++, mediaSurfaceHeapElmt++)
+                    if (mediaSurfaceHeapElmt != nullptr &&
+                        mediaSurfaceHeapElmt->pSurface != nullptr &&
+                        bo == mediaSurfaceHeapElmt->pSurface->bo)
                     {
-                        if (mediaSurfaceHeapElmt != nullptr &&
-                            mediaSurfaceHeapElmt->pSurface != nullptr &&
-                            bo == mediaSurfaceHeapElmt->pSurface->bo)
-                        {
-                            mediaSurfaceHeapElmt->pSurface->curStatusReport.decode.status = (uint32_t)tempNewReport.codecStatus;
-                            mediaSurfaceHeapElmt->pSurface->curStatusReport.decode.errMbNum = (uint32_t)tempNewReport.numMbsAffected;
-                            mediaSurfaceHeapElmt->pSurface->curStatusReport.decode.crcValue = (uint32_t)tempNewReport.frameCrc;
-                            mediaSurfaceHeapElmt->pSurface->curStatusReportQueryState = DDI_MEDIA_STATUS_REPORT_QUERY_STATE_COMPLETED;
-                            break;
-                        }
-                    }
-
-                    if (j == mediaCtx->pSurfaceHeap->uiAllocatedHeapElements)
-                    {
-                        return VA_STATUS_ERROR_OPERATION_FAILED;
+                        mediaSurfaceHeapElmt->pSurface->curStatusReport.decode.status = (uint32_t)tempNewReport.codecStatus;
+                        mediaSurfaceHeapElmt->pSurface->curStatusReport.decode.errMbNum = (uint32_t)tempNewReport.numMbsAffected;
+                        mediaSurfaceHeapElmt->pSurface->curStatusReport.decode.crcValue = (uint32_t)tempNewReport.frameCrc;
+                        mediaSurfaceHeapElmt->pSurface->curStatusReportQueryState = DDI_MEDIA_STATUS_REPORT_QUERY_STATE_COMPLETED;
+                        break;
                     }
                 }
-                else
+
+                if (j == mediaCtx->pSurfaceHeap->uiAllocatedHeapElements)
                 {
-                    // return failed if queried INCOMPLETE or UNAVAILABLE report.
                     return VA_STATUS_ERROR_OPERATION_FAILED;
                 }
             }
-        }
-        // The surface is not busy in HW, but uNumCompletedReport is 0, treat as engine reset 
-        else
-        {
-            surface->curStatusReport.decode.status == CODECHAL_STATUS_INCOMPLETE;
-            surface->curStatusReportQueryState = DDI_MEDIA_STATUS_REPORT_QUERY_STATE_COMPLETED;
-            DDI_ASSERTMESSAGE("No report available at all! Engine reset may have occured.");
+            else
+            {
+                // return failed if queried INCOMPLETE or UNAVAILABLE report.
+                return VA_STATUS_ERROR_OPERATION_FAILED;
+            }
         }
     }
 
@@ -1119,9 +1106,7 @@ VAStatus DdiDecodeFunctions::StatusReport(
         {
             return VA_STATUS_ERROR_DECODING_ERROR;
         }
-        else if (surface->curStatusReport.decode.status == CODECHAL_STATUS_INCOMPLETE   ||
-                 surface->curStatusReport.decode.status == CODECHAL_STATUS_RESET        ||
-                 surface->curStatusReport.decode.status == CODECHAL_STATUS_UNAVAILABLE)
+        else if (surface->curStatusReport.decode.status == CODECHAL_STATUS_INCOMPLETE || surface->curStatusReport.decode.status == CODECHAL_STATUS_UNAVAILABLE)
         {
             return mediaCtx->bMediaResetEnable ? VA_STATUS_SUCCESS : VA_STATUS_ERROR_HW_BUSY;
         }
@@ -1163,31 +1148,18 @@ VAStatus DdiDecodeFunctions::QuerySurfaceError(
     MosUtilities::MosLockMutex(&mediaCtx->SurfaceMutex);
     if (surface->curStatusReportQueryState == DDI_MEDIA_STATUS_REPORT_QUERY_STATE_COMPLETED)
     {
-        if (errorStatus != -1 && surface->curCtxType == DDI_MEDIA_CONTEXT_TYPE_DECODER)
+        if (errorStatus != -1 && surface->curCtxType == DDI_MEDIA_CONTEXT_TYPE_DECODER &&
+            surface->curStatusReport.decode.status == CODECHAL_STATUS_ERROR)
         {
-            if(surface->curStatusReport.decode.status == CODECHAL_STATUS_ERROR  ||
-               surface->curStatusReport.decode.status == CODECHAL_STATUS_RESET)
-            {
-                surfaceErrors[1].status            = -1;
-                surfaceErrors[0].status            = (surface->curStatusReport.decode.status == CODECHAL_STATUS_RESET) ? VA_STATUS_ERROR_HW_BUSY : 2;
-                surfaceErrors[0].start_mb          = 0;
-                surfaceErrors[0].end_mb            = 0;
-                surfaceErrors[0].num_mb            = surface->curStatusReport.decode.errMbNum;
-                surfaceErrors[0].decode_error_type = VADecodeMBError;
-                *errorInfo = surfaceErrors;
-                MosUtilities::MosUnlockMutex(&mediaCtx->SurfaceMutex);
-                return VA_STATUS_SUCCESS;
-            }
-            else if (surface->curStatusReport.decode.status == CODECHAL_STATUS_INCOMPLETE  ||
-                     surface->curStatusReport.decode.status == CODECHAL_STATUS_UNAVAILABLE)
-            {
-                MOS_ZeroMemory(&surfaceErrors[0], sizeof(VASurfaceDecodeMBErrors));
-                surfaceErrors[1].status            = -1;
-                surfaceErrors[0].status            = VA_STATUS_ERROR_HW_BUSY;
-                *errorInfo                         = surfaceErrors;
-                MosUtilities::MosUnlockMutex(&mediaCtx->SurfaceMutex);
-                return VA_STATUS_SUCCESS;
-            }
+            surfaceErrors[1].status            = -1;
+            surfaceErrors[0].status            = 2;
+            surfaceErrors[0].start_mb          = 0;
+            surfaceErrors[0].end_mb            = 0;
+            surfaceErrors[0].num_mb            = surface->curStatusReport.decode.errMbNum;
+            surfaceErrors[0].decode_error_type = VADecodeMBError;
+            *errorInfo = surfaceErrors;
+            MosUtilities::MosUnlockMutex(&mediaCtx->SurfaceMutex);
+            return VA_STATUS_SUCCESS;
         }
 
         if (errorStatus == -1 && surface->curCtxType == DDI_MEDIA_CONTEXT_TYPE_DECODER)
