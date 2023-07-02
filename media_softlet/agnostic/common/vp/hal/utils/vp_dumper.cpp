@@ -855,10 +855,11 @@ bool VpSurfaceDumper::HasAuxSurf(
 MOS_STATUS VpSurfaceDumper::CopyThenLockResources(
     PMOS_INTERFACE               pOsInterface,
     PVPHAL_SURFACE               pSurface,
+    PVPHAL_SURFACE              &temp2DSurfForCopy,
     bool                         hasAuxSurf,
     bool                         enableAuxDump,
     PMOS_LOCK_PARAMS             pLockFlags,
-    PMOS_RESOURCE                pLockedResource,
+    PMOS_RESOURCE               &pLockedResource,
     VPHAL_SURF_DUMP_SURFACE_DEF *pPlanes,
     uint32_t                    *pdwNumPlanes,
     uint32_t                    *pdwSize,
@@ -868,13 +869,11 @@ MOS_STATUS VpSurfaceDumper::CopyThenLockResources(
 {
     VP_FUNC_CALL();
 
-    MOS_STATUS     eStatus = MOS_STATUS_SUCCESS;
     bool           bAllocated;
-    PVPHAL_SURFACE temp2DSurfForCopy = nullptr;
 
     temp2DSurfForCopy = (PVPHAL_SURFACE)MOS_AllocAndZeroMemory(sizeof(VPHAL_SURFACE));
-    VP_DEBUG_CHK_NULL(temp2DSurfForCopy);
-    VP_RENDER_CHK_STATUS(VpUtils::ReAllocateSurface(
+    VP_DEBUG_CHK_NULL_RETURN(temp2DSurfForCopy);
+    VP_DEBUG_CHK_STATUS_RETURN(VpUtils::ReAllocateSurface(
         pOsInterface,
         temp2DSurfForCopy,
         "Temp2DSurfForSurfDumper",
@@ -896,7 +895,7 @@ MOS_STATUS VpSurfaceDumper::CopyThenLockResources(
         &temp2DSurfForCopy->OsResource,
         false);
 
-    if (pOsInterface->pfnIsAsynDevice(pOsInterface) && pSurface->OsResource.bConvertedFromDDIResource)
+    if (pOsInterface->pfnIsAsynDevice(pOsInterface))
     {
         MOS_LOCK_PARAMS LockFlags;
         char            sPath[MAX_PATH];
@@ -929,7 +928,7 @@ MOS_STATUS VpSurfaceDumper::CopyThenLockResources(
         resDumpAttri.resFreeFlags      = resFreeFlags;
         pOsInterface->resourceDumpAttriArray.push_back(resDumpAttri);
 
-        goto finish;
+        return MOS_STATUS_SUCCESS;
     }
 
     pData = (uint8_t *)pOsInterface->pfnLockResource(
@@ -939,7 +938,7 @@ MOS_STATUS VpSurfaceDumper::CopyThenLockResources(
     pLockedResource = &temp2DSurfForCopy->OsResource;
 
     // get plane definitions
-    VP_DEBUG_CHK_STATUS(GetPlaneDefs(
+    VP_DEBUG_CHK_STATUS_RETURN(GetPlaneDefs(
         temp2DSurfForCopy,
         pPlanes,
         pdwNumPlanes,
@@ -947,22 +946,32 @@ MOS_STATUS VpSurfaceDumper::CopyThenLockResources(
         hasAuxSurf,        //(hasAuxSurf && enableAuxDump),
         !enableAuxDump));  // !(hasAuxSurf && enableAuxDump)));
 
-finish:
-    if (temp2DSurfForCopy)
+    return MOS_STATUS_SUCCESS;
+}
+
+void VpSurfaceDumper::UnlockAndDestroyResource(
+    PMOS_INTERFACE               osInterface,
+    PVPHAL_SURFACE               tempSurf,
+    PMOS_RESOURCE                lockedResource,
+    bool                         bLockSurface)
+{
+    VP_FUNC_CALL();
+
+    if (bLockSurface && lockedResource != nullptr)
+    {
+        osInterface->pfnUnlockResource(osInterface, lockedResource);
+    }
+
+    if (tempSurf && osInterface && !osInterface->pfnIsAsynDevice(osInterface))
     {
         MOS_GFXRES_FREE_FLAGS resFreeFlags = {0};
-        if (!pOsInterface->pfnIsAsynDevice(pOsInterface))
+        if (VpUtils::IsSyncFreeNeededForMMCSurface(tempSurf, osInterface))
         {
-            if (VpUtils::IsSyncFreeNeededForMMCSurface(temp2DSurfForCopy, pOsInterface))
-            {
-                resFreeFlags.SynchronousDestroy = 1;
-            }
-            pOsInterface->pfnFreeResourceWithFlag(pOsInterface, &(temp2DSurfForCopy->OsResource), resFreeFlags.Value);
+            resFreeFlags.SynchronousDestroy = 1;
         }
+        osInterface->pfnFreeResourceWithFlag(osInterface, &tempSurf->OsResource, resFreeFlags.Value);
     }
-    MOS_SafeFreeMemory(temp2DSurfForCopy);
-
-    return eStatus;
+    MOS_SafeFreeMemory(tempSurf);
 }
 
 MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
@@ -977,7 +986,6 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
     VP_FUNC_CALL();
 
     MOS_STATUS                          eStatus;
-    bool                                isSurfaceLocked;
     char                                sPath[MAX_PATH], sOsPath[MAX_PATH];
     uint8_t                             *pDst, *pTmpSrc, *pTmpDst;
     uint32_t                            dwNumPlanes, dwSize, j, i;
@@ -986,14 +994,15 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
     MOS_LOCK_PARAMS                     LockFlags;
     bool                                hasAuxSurf;
     bool                                enableAuxDump;
-    bool                                enablePlaneDump = false;
-    PMOS_RESOURCE                       pLockedResource = nullptr;
+    bool                                enablePlaneDump   = false;
+    PMOS_RESOURCE                       pLockedResource   = nullptr;
+    PVPHAL_SURFACE                      temp2DSurfForCopy = nullptr;
+
     VP_DEBUG_ASSERT(pSurface);
     VP_DEBUG_ASSERT(pOsInterface);
     VP_DEBUG_ASSERT(psPathPrefix);
 
     eStatus         = MOS_STATUS_SUCCESS;
-    isSurfaceLocked = false;
     hasAuxSurf      = false;
     pDst            = nullptr;
     enableAuxDump   = m_dumpSpec.enableAuxDump;
@@ -1052,10 +1061,10 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
             !(pSurface->Format == Format_RGBP || pSurface->Format == Format_BGRP)) ||
             (pOsInterface->pfnIsAsynDevice(pOsInterface) && pSurface->OsResource.bConvertedFromDDIResource))
         {
-            bool isConvertedFromDDIResource = pSurface->OsResource.bConvertedFromDDIResource;
-            CopyThenLockResources(pOsInterface, pSurface, hasAuxSurf, enableAuxDump, &LockFlags, pLockedResource, planes, &dwNumPlanes, &dwSize, pData, psPathPrefix, iCounter);
-            if (pOsInterface->pfnIsAsynDevice(pOsInterface) && isConvertedFromDDIResource)
+            CopyThenLockResources(pOsInterface, pSurface, temp2DSurfForCopy, hasAuxSurf, enableAuxDump, &LockFlags, pLockedResource, planes, &dwNumPlanes, &dwSize, pData, psPathPrefix, iCounter);
+            if (pOsInterface->pfnIsAsynDevice(pOsInterface))
             {
+                UnlockAndDestroyResource(pOsInterface, temp2DSurfForCopy, pLockedResource, true);
                 return eStatus;
             }
         }
@@ -1097,7 +1106,8 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
                 // if lock failed, fallback to DoubleBufferCopy
                 if (nullptr == pData)
                 {
-                    CopyThenLockResources(pOsInterface, pSurface, hasAuxSurf, enableAuxDump, &LockFlags, pLockedResource, planes, &dwNumPlanes, &dwSize, pData);
+                    pLockedResource = nullptr;
+                    CopyThenLockResources(pOsInterface, pSurface, temp2DSurfForCopy, hasAuxSurf, enableAuxDump, &LockFlags, pLockedResource, planes, &dwNumPlanes, &dwSize, pData);
                 }
             }
         }
@@ -1111,7 +1121,6 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
             MediaUserSetting::Group::Device);
 
         VP_DEBUG_ASSERT(eStatus == MOS_STATUS_SUCCESS);
-        isSurfaceLocked = true;
     }
 
     MOS_SecureStringPrint(
@@ -1322,11 +1331,7 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
 finish:
     MOS_SafeFreeMemory(pDst);
 
-    if (isSurfaceLocked && pLockedResource != nullptr)
-    {
-        eStatus = (MOS_STATUS)pOsInterface->pfnUnlockResource(pOsInterface, pLockedResource);
-        VP_DEBUG_ASSERT(eStatus == MOS_STATUS_SUCCESS);
-    }
+    UnlockAndDestroyResource(pOsInterface, temp2DSurfForCopy, pLockedResource, bLockSurface);
 
     return eStatus;
 }
