@@ -527,6 +527,8 @@ namespace encode
 
         MOS_STATUS AddAllCmds_HCP_PAK_INSERT_OBJECT(PMOS_COMMAND_BUFFER cmdBuffer) const;
 
+        MOS_STATUS AddAllCmds_HCP_PAK_INSERT_OBJECT_BRC(PMOS_COMMAND_BUFFER cmdBuffer) const;
+
         MOS_STATUS AddAllCmds_HCP_SURFACE_STATE(PMOS_COMMAND_BUFFER cmdBuffer) const;
 
         MOS_STATUS AddAllCmds_HCP_REF_IDX_STATE(PMOS_COMMAND_BUFFER cmdBuffer) const;

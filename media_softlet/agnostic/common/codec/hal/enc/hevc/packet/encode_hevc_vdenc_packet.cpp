@@ -1341,6 +1341,9 @@ namespace encode
             // 2nd level batch buffer
             PMHW_BATCH_BUFFER secondLevelBatchBufferUsed = vdencBatchBuffer;
             ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_BATCH_BUFFER_START(&cmdBuffer, secondLevelBatchBufferUsed)));
+            ENCODE_CHK_STATUS_RETURN(AddAllCmds_HCP_PAK_INSERT_OBJECT_BRC(&cmdBuffer));
+            secondLevelBatchBufferUsed->dwOffset = m_basicFeature->m_vdencBatchBufferPerSlicePart2Start[currSlcIdx];
+            ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_BATCH_BUFFER_START(&cmdBuffer, secondLevelBatchBufferUsed)));
         }
         else
         {
@@ -1361,6 +1364,81 @@ namespace encode
         SETPAR_AND_ADDCMD(VDENC_WALKER_STATE, m_vdencItf, &cmdBuffer);
         return eStatus;
     }
+
+MOS_STATUS HevcVdencPkt::AddAllCmds_HCP_PAK_INSERT_OBJECT_BRC(PMOS_COMMAND_BUFFER cmdBuffer) const
+{
+    ENCODE_FUNC_CALL();
+
+    ENCODE_CHK_NULL_RETURN(cmdBuffer);
+
+    auto &params = m_hcpItf->MHW_GETPAR_F(HCP_PAK_INSERT_OBJECT)();
+    params       = {};
+
+    PCODECHAL_NAL_UNIT_PARAMS *ppNalUnitParams = (CODECHAL_NAL_UNIT_PARAMS **)m_nalUnitParams;
+
+    auto brcFeature = dynamic_cast<HEVCEncodeBRC *>(m_featureManager->GetFeature(HevcFeatureIDs::hevcBrcFeature));
+    ENCODE_CHK_NULL_RETURN(brcFeature);
+
+    PBSBuffer pBsBuffer = &(m_basicFeature->m_bsBuffer);
+    uint32_t  bitSize   = 0;
+    uint32_t  offSet    = 0;
+
+    if (cmdBuffer == nullptr)
+    {
+        ENCODE_ASSERTMESSAGE("There was no valid buffer to add the HW command to.");
+        return MOS_STATUS_NULL_POINTER;
+    }
+
+    //insert AU, SPS, PSP headers before first slice header
+    if (m_basicFeature->m_curNumSlices == 0)
+    {
+        uint32_t maxBytesInPakInsertObjCmd = ((2 << 11) - 1) * 4;  // 12 bits for Length field in PAK_INSERT_OBJ cmd
+
+        for (auto i = 0; i < HEVC_MAX_NAL_UNIT_TYPE; i++)
+        {
+            uint32_t nalunitPosiSize   = ppNalUnitParams[i]->uiSize;
+            uint32_t nalunitPosiOffset = ppNalUnitParams[i]->uiOffset;
+
+            while (nalunitPosiSize > 0)
+            {
+                bitSize = MOS_MIN(maxBytesInPakInsertObjCmd * 8, nalunitPosiSize * 8);
+                offSet  = nalunitPosiOffset;
+
+                params = {};
+
+                params.dwPadding                 = (MOS_ALIGN_CEIL((bitSize + 7) >> 3, sizeof(uint32_t))) / sizeof(uint32_t);
+                params.bEmulationByteBitsInsert  = ppNalUnitParams[i]->bInsertEmulationBytes;
+                params.uiSkipEmulationCheckCount = ppNalUnitParams[i]->uiSkipEmulationCheckCount;
+                params.dataBitsInLastDw          = bitSize % 32;
+                if (params.dataBitsInLastDw == 0)
+                {
+                    params.dataBitsInLastDw = 32;
+                }
+
+                if (nalunitPosiSize > maxBytesInPakInsertObjCmd)
+                {
+                    nalunitPosiSize -= maxBytesInPakInsertObjCmd;
+                    nalunitPosiOffset += maxBytesInPakInsertObjCmd;
+                }
+                else
+                {
+                    nalunitPosiSize = 0;
+                }
+                m_hcpItf->MHW_ADDCMD_F(HCP_PAK_INSERT_OBJECT)(cmdBuffer);
+                uint32_t byteSize = (bitSize + 7) >> 3;
+                if (byteSize)
+                {
+                    MHW_MI_CHK_NULL(pBsBuffer);
+                    MHW_MI_CHK_NULL(pBsBuffer->pBase);
+                    uint8_t *data = (uint8_t *)(pBsBuffer->pBase + offSet);
+                    MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(m_osInterface, cmdBuffer, nullptr, data, byteSize));
+                }
+            }
+        }
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
 
     MOS_STATUS HevcVdencPkt::AddCondBBEndForLastPass(MOS_COMMAND_BUFFER &cmdBuffer)
     {

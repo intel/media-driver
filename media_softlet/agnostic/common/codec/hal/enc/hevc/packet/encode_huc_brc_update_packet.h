@@ -245,14 +245,14 @@ namespace encode
 
         MOS_STATUS AddAllCmds_HCP_WEIGHTOFFSET_STATE(PMOS_COMMAND_BUFFER cmdBuffer) const;
 
-        MOS_STATUS AddAllCmds_HCP_PAK_INSERT_OBJECT(PMOS_COMMAND_BUFFER cmdBuffer) const;
+        MOS_STATUS AddAllCmds_HCP_PAK_INSERT_OBJECT_SLICE(PMOS_COMMAND_BUFFER cmdBuffer) const;
 
 #if USE_CODECHAL_DEBUG_TOOL
         MOS_STATUS DumpHucBrcUpdate(bool isInput);
 
         virtual MOS_STATUS DumpInput() override;
 #endif
-
+        uint32_t m_alignSize[ENCODE_HEVC_VDENC_NUM_MAX_SLICES] = {0};
         static constexpr uint32_t               m_vdboxHucHevcBrcUpdateKernelDescriptor = 9;//!< Huc HEVC Brc init kernel descriptor
         static constexpr uint32_t               m_vdboxHucHevcBrcLowdelayKernelDescriptor = 10;//!< Huc HEVC Brc low delay kernel descriptor
 
