@@ -484,6 +484,7 @@ MOS_STATUS EncodeScalabilityMultiPipe::ReturnCmdBuffer(PMOS_COMMAND_BUFFER cmdBu
     uint32_t bufIdxPlus1 = m_currentPipe + 1;  //Make CMD buffer one next to one.
     m_secondaryCmdBuffer[bufIdxPlus1 - 1] = *cmdBuffer;  //Need to record the iOffset, ptr and other data of CMD buffer, it's not maintain in the mos.
     m_osInterface->pfnReturnCommandBuffer(m_osInterface, &m_secondaryCmdBuffer[bufIdxPlus1 - 1], bufIdxPlus1);
+    m_primaryCmdBuffer.Attributes.bFrequencyBoost |= cmdBuffer->Attributes.bFrequencyBoost;
     m_osInterface->pfnReturnCommandBuffer(m_osInterface, &m_primaryCmdBuffer, 0);
     return eStatus;
 }
