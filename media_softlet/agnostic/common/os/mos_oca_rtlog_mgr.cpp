@@ -73,6 +73,9 @@ MOS_STATUS MosOcaRTLogMgr::RegisterRes(OsContextNext *osDriverContext, MOS_OCA_R
     sParams.Format                  = Format_Buffer;
     sParams.pBufName                = "OcaRtlog";
     sParams.bIsPersistent           = 1;
+    // Use encode output bitstream to ensure coherency being enabled for CPU catchable surface, which
+    // will be checked during MapGpuVirtualAddress w/ critical message for invalid case.
+    sParams.ResUsageType            = MOS_HW_RESOURCE_USAGE_ENCODE_OUTPUT_BITSTREAM;
     resInterface->ocaRTLogResource  = (PMOS_RESOURCE)MOS_AllocAndZeroMemory(sizeof(MOS_RESOURCE));
     if (nullptr == resInterface->ocaRTLogResource)
     {
