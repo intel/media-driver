@@ -186,7 +186,8 @@ enum SurfaceType
     SurfaceTypeRenderInput,
     SurfaceTypeRenderOutput,
     SurfaceTypeRenderSRInput, //Super Resolution related Surface and Buffer index Reserved
-    SurfaceTypeRenderSRBuffer = SurfaceTypeRenderSRInput + 0x100,
+    SurfaceTypeRenderSRPreCSCInput,
+    SurfaceTypeRenderSRBuffer = SurfaceTypeRenderSRPreCSCInput + 0x100,
     SurfaceTypeRenderSRMax = SurfaceTypeRenderSRBuffer + 0x100,
     SurfaceTypeAggregatedHistogram,
     SurfaceTypeFrameHistogram,
