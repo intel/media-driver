@@ -359,7 +359,8 @@ bool SwFilterDnHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS& params, bool isInpu
     PVP_MHWINTERFACE hwInterface = m_vpInterface.GetHwInterface();
     // secure mode
     if (hwInterface->m_osInterface->osCpInterface &&
-        hwInterface->m_osInterface->osCpInterface->IsHMEnabled())
+        (hwInterface->m_osInterface->osCpInterface->IsHMEnabled() 
+            || hwInterface->m_osInterface->osCpInterface->IsIDMEnabled()))
     {
         VP_PUBLIC_NORMALMESSAGE("Dn is disabled in secure mode.");
         return false;
