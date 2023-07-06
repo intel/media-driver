@@ -1004,6 +1004,10 @@ typedef struct _MOS_INTERFACE
         uint32_t              bpp,
         bool                  bOutputCompressed);
 
+    MOS_STATUS (*pfnVerifyMosSurface) (
+        PMOS_SURFACE mosSurface,
+        bool        &bIsValid);
+
     MOS_STATUS(*pfnGetMosContext) (
         PMOS_INTERFACE        pOsInterface,
         PMOS_CONTEXT*         mosContext);
@@ -2179,6 +2183,19 @@ __inline void Mos_SetVirtualEngineSupported(PMOS_INTERFACE pOsInterface, bool bE
         pOsInterface->bSupportVirtualEngine = bEnabled;
     }
 }
+
+//!
+//! \brief   Check whether the parameter of mos surface is valid for copy
+//!
+//! \param    [in] mosSurface
+//!           Pointer to MosSurface
+//!
+//! \return   bool
+//!           Whether the paramter of mosSurface is valid
+//!
+MOS_STATUS Mos_VerifyMosSurface(
+    PMOS_SURFACE mosSurface,
+    bool        &bIsValid);
 
 //!
 //! \brief    Check virtual engine is supported

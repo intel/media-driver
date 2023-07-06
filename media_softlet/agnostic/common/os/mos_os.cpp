@@ -657,6 +657,7 @@ MOS_STATUS Mos_InitOsInterface(
     pOsInterface->pfnGetResourceHandle                  = Mos_GetResourceHandle;
     pOsInterface->pfnGetRtLogResourceInfo               = Mos_GetRtLogResourceInfo;
     pOsInterface->pfnResetResource                      = Mos_ResetMosResource;
+    pOsInterface->pfnVerifyMosSurface                   = Mos_VerifyMosSurface;
 
     pOsInterface->pfnCreateMhwCpInterface               = Create_MhwCpInterface;
     pOsInterface->pfnDeleteMhwCpInterface               = Delete_MhwCpInterface;
@@ -1118,6 +1119,13 @@ uint64_t Mos_GetResourceHandle(
     PMOS_RESOURCE           osResource)
 {
     return MosInterface::GetResourceHandle(streamState, osResource);
+}
+
+MOS_STATUS Mos_VerifyMosSurface(
+    PMOS_SURFACE            mosSurface,
+    bool&                   bIsValid)
+{
+    return MosInterface::VerifyMosSurface(mosSurface, bIsValid);
 }
 
 void Mos_GetRtLogResourceInfo(

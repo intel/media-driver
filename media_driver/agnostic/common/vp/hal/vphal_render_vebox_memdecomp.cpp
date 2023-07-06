@@ -192,7 +192,9 @@ MOS_STATUS MediaVeboxDecompState::MediaMemoryCopy(
     PMOS_RESOURCE outputResource,
     bool          outputCompressed)
 {
-    MOS_STATUS                          eStatus = MOS_STATUS_SUCCESS;
+    MOS_STATUS eStatus             = MOS_STATUS_SUCCESS;
+    bool       bValidInputSurface  = false;
+    bool       bValidOutputSurface = false;
 
     MHW_FUNCTION_ENTER;
 
@@ -309,6 +311,14 @@ MOS_STATUS MediaVeboxDecompState::MediaMemoryCopy(
     //Get context before proceeding
     auto gpuContext = m_osInterface->CurrentGpuContextOrdinal;
 
+    //Check whether surface is valid, or it will cause page fault
+    m_osInterface->pfnVerifyMosSurface(&sourceSurface, bValidInputSurface);
+    m_osInterface->pfnVerifyMosSurface(&targetSurface, bValidOutputSurface);
+    if (!bValidInputSurface || !bValidOutputSurface)
+    {
+        VPHAL_MEMORY_DECOMP_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+    }
+
     // Sync for Vebox read
     m_osInterface->pfnSyncOnResource(
         m_osInterface,
@@ -342,7 +352,9 @@ MOS_STATUS MediaVeboxDecompState::MediaMemoryCopy2D(
     uint32_t      bpp,
     bool          outputCompressed)
 {
-    MOS_STATUS                          eStatus = MOS_STATUS_SUCCESS;
+    MOS_STATUS eStatus             = MOS_STATUS_SUCCESS;
+    bool       bValidInputSurface  = false;
+    bool       bValidOutputSurface = false;
 
     MHW_FUNCTION_ENTER;
 
@@ -426,6 +438,14 @@ MOS_STATUS MediaVeboxDecompState::MediaMemoryCopy2D(
     sourceSurface.dwHeight = copyHeight;
     targetSurface.dwWidth  = copyWidth / pixelInByte;
     targetSurface.dwHeight = copyHeight;
+
+    //Check whether surface is valid, or it will cause page fault
+    m_osInterface->pfnVerifyMosSurface(&sourceSurface, bValidInputSurface);
+    m_osInterface->pfnVerifyMosSurface(&targetSurface, bValidOutputSurface);
+    if (!bValidInputSurface || !bValidOutputSurface)
+    {
+        VPHAL_MEMORY_DECOMP_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+    }
 
     // Sync for Vebox write
     m_osInterface->pfnSyncOnResource(

@@ -2464,6 +2464,35 @@ MOS_STATUS MosInterface::DoubleBufferCopyResource(
     return status;
 }
 
+MOS_STATUS MosInterface::VerifyMosSurface(
+    PMOS_SURFACE mosSurface,
+    bool        &bIsValid)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    MOS_OS_CHK_NULL_RETURN(mosSurface);
+    MOS_OS_CHK_NULL_RETURN(mosSurface->OsResource.pGmmResInfo);
+
+    if ((mosSurface->dwPitch * mosSurface->dwHeight > mosSurface->OsResource.pGmmResInfo->GetSizeMainSurface() && (mosSurface->Type != MOS_GFXRES_BUFFER)) ||
+        (mosSurface->dwPitch > mosSurface->OsResource.pGmmResInfo->GetSizeMainSurface() && (mosSurface->Type == MOS_GFXRES_BUFFER)) ||
+        mosSurface->dwHeight == 0 ||
+        mosSurface->dwPitch == 0)
+    {
+        bIsValid = false;
+        MOS_OS_ASSERTMESSAGE("Invalid arguments for mos surface copy: dwPitch %lu, dwHeight %lu, gmmMainSurfaceSize %llu, GFXRES Type %d",
+            mosSurface->dwPitch,
+            mosSurface->dwHeight,
+            mosSurface->OsResource.pGmmResInfo->GetSizeMainSurface(),
+            mosSurface->Type);
+    }
+    else
+    {
+        bIsValid = true;
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS MosInterface::MediaCopyResource2D(
     MOS_STREAM_HANDLE   streamState,
     MOS_RESOURCE_HANDLE inputResource,

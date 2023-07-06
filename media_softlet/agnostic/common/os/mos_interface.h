@@ -1690,6 +1690,19 @@ public:
         uint32_t            bpp,
         bool                outputCompressed);
 
+    //!
+    //! \brief   Check whether the parameter of mos surface is valid for copy
+    //!
+    //! \param    [in] mosSurface
+    //!           Pointer to MosSurface
+    //!
+    //! \return   bool
+    //!           Whether the paramter of mosSurface is valid
+    //!
+    static MOS_STATUS VerifyMosSurface(
+        PMOS_SURFACE mosSurface,
+        bool        &bIsValid);
+
     // GPU Status interfaces
     //!
     //! \brief   Get Gpu Status Tag
