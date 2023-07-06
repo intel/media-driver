@@ -196,13 +196,13 @@ namespace encode {
         bool bAllowedPyramid = m_basicFeature->m_hevcSeqParams->GopRefDist != 3;
         uint16_t intraPeriod = m_basicFeature->m_hevcSeqParams->GopPicSize > 4001 ? 4000 : m_basicFeature->m_hevcSeqParams->GopPicSize - 1;
         intraPeriod = ((intraPeriod + m_basicFeature->m_hevcSeqParams->GopRefDist - 1) / m_basicFeature->m_hevcSeqParams->GopRefDist) * m_basicFeature->m_hevcSeqParams->GopRefDist;
-        if (m_basicFeature->m_hevcSeqParams->HierarchicalFlag  && bAllowedPyramid)
+        if (m_basicFeature->m_hevcSeqParams->HierarchicalFlag && bAllowedPyramid)
         {
             hucVdencBrcInitDmem->GopP_U16 = intraPeriod/m_basicFeature->m_hevcSeqParams->GopRefDist;
             hucVdencBrcInitDmem->GopB_U16 = (hucVdencBrcInitDmem->GopP_U16)*(m_basicFeature->m_hevcSeqParams->GopRefDist>1);
             hucVdencBrcInitDmem->GopB1_U16 = hucVdencBrcInitDmem->GopP_U16 * ((m_basicFeature->m_hevcSeqParams->GopRefDist > 2) + (m_basicFeature->m_hevcSeqParams->GopRefDist == 4 || m_basicFeature->m_hevcSeqParams->GopRefDist > 5));
             hucVdencBrcInitDmem->GopB2_U16 = (intraPeriod - hucVdencBrcInitDmem->GopP_U16 - hucVdencBrcInitDmem->GopB_U16 - hucVdencBrcInitDmem->GopB1_U16) * (m_basicFeature->m_hevcSeqParams->GopRefDist > 3);
-            hucVdencBrcInitDmem->MaxBRCLevel_U8 = hucVdencBrcInitDmem->GopB1_U16 == 0 ? HEVC_PYRAMID_LAYER_NUM_2 : (hucVdencBrcInitDmem->GopB2_U16 == 0 ? HEVC_PYRAMID_LAYER_NUM_3 : HEVC_PYRAMID_LAYER_NUM_4);
+            hucVdencBrcInitDmem->MaxBRCLevel_U8      = hucVdencBrcInitDmem->GopB1_U16 == 0 ? HEVC_BRC_FRAME_TYPE_B : (hucVdencBrcInitDmem->GopB2_U16 == 0 ? HEVC_BRC_FRAME_TYPE_B1 : HEVC_BRC_FRAME_TYPE_B2);
             hucVdencBrcInitDmem->BRCPyramidEnable_U8 = 1;
         }
         else //FlatB or LDB
