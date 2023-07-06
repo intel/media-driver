@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2021, Intel Corporation
+* Copyright (c) 2009-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -403,7 +403,10 @@ VAStatus DdiDecode_StatusReport(PDDI_MEDIA_CONTEXT mediaCtx, CodechalDecode *dec
                     bo = (tempNewReport.m_deblockedPicResOlp.bo) ? tempNewReport.m_deblockedPicResOlp.bo : bo;
                 }
 
-                if ((tempNewReport.m_codecStatus == CODECHAL_STATUS_SUCCESSFUL) || (tempNewReport.m_codecStatus == CODECHAL_STATUS_ERROR) || (tempNewReport.m_codecStatus == CODECHAL_STATUS_INCOMPLETE))
+                if ((tempNewReport.m_codecStatus == CODECHAL_STATUS_SUCCESSFUL)     ||
+                    (tempNewReport.m_codecStatus == CODECHAL_STATUS_ERROR)          ||
+                    (tempNewReport.m_codecStatus == CODECHAL_STATUS_INCOMPLETE)     ||
+                    (tempNewReport.m_codecStatus == CODECHAL_STATUS_RESET))
                 {
                     PDDI_MEDIA_SURFACE_HEAP_ELEMENT mediaSurfaceHeapElmt = (PDDI_MEDIA_SURFACE_HEAP_ELEMENT)mediaCtx->pSurfaceHeap->pHeapBase;
 
@@ -451,7 +454,9 @@ VAStatus DdiDecode_StatusReport(PDDI_MEDIA_CONTEXT mediaCtx, CodechalDecode *dec
             {
                 return VA_STATUS_ERROR_DECODING_ERROR;
             }
-            else if (surface->curStatusReport.decode.status == CODECHAL_STATUS_INCOMPLETE || surface->curStatusReport.decode.status == CODECHAL_STATUS_UNAVAILABLE)
+            else if (surface->curStatusReport.decode.status == CODECHAL_STATUS_INCOMPLETE ||
+                     surface->curStatusReport.decode.status == CODECHAL_STATUS_RESET      ||
+                     surface->curStatusReport.decode.status == CODECHAL_STATUS_UNAVAILABLE)
             {
                 return mediaCtx->bMediaResetEnable ? VA_STATUS_SUCCESS : VA_STATUS_ERROR_HW_BUSY;
             }
@@ -474,47 +479,57 @@ VAStatus DdiDecode_StatusReport(PDDI_MEDIA_CONTEXT mediaCtx, DecodePipelineAdapt
     if (surface->curStatusReportQueryState == DDI_MEDIA_STATUS_REPORT_QUERY_STATE_PENDING)
     {
         uint32_t uNumCompletedReport = decoder->GetCompletedReport();
-        DDI_CHK_CONDITION((uNumCompletedReport == 0),
-            "No report available at all", VA_STATUS_ERROR_OPERATION_FAILED);
-
-        for (uint32_t i = 0; i < uNumCompletedReport; i++)
+        if (uNumCompletedReport != 0)
         {
-            decode::DecodeStatusReportData tempNewReport;
-            MOS_ZeroMemory(&tempNewReport, sizeof(CodechalDecodeStatusReport));
-            MOS_STATUS eStatus = decoder->GetStatusReport(&tempNewReport, 1);
-            DDI_CHK_CONDITION(MOS_STATUS_SUCCESS != eStatus, "Get status report fail", VA_STATUS_ERROR_OPERATION_FAILED);
-
-            MOS_LINUX_BO *bo = tempNewReport.currDecodedPicRes.bo;
-
-            if ((tempNewReport.codecStatus == CODECHAL_STATUS_SUCCESSFUL) || (tempNewReport.codecStatus == CODECHAL_STATUS_ERROR) || (tempNewReport.codecStatus == CODECHAL_STATUS_INCOMPLETE))
+            for (uint32_t i = 0; i < uNumCompletedReport; i++)
             {
-                PDDI_MEDIA_SURFACE_HEAP_ELEMENT mediaSurfaceHeapElmt = (PDDI_MEDIA_SURFACE_HEAP_ELEMENT)mediaCtx->pSurfaceHeap->pHeapBase;
+                decode::DecodeStatusReportData tempNewReport;
+                MOS_ZeroMemory(&tempNewReport, sizeof(CodechalDecodeStatusReport));
+                MOS_STATUS eStatus = decoder->GetStatusReport(&tempNewReport, 1);
+                DDI_CHK_CONDITION(MOS_STATUS_SUCCESS != eStatus, "Get status report fail", VA_STATUS_ERROR_OPERATION_FAILED);
 
-                uint32_t j = 0;
-                for (j = 0; j < mediaCtx->pSurfaceHeap->uiAllocatedHeapElements; j++, mediaSurfaceHeapElmt++)
+                MOS_LINUX_BO *bo = tempNewReport.currDecodedPicRes.bo;
+
+                if ((tempNewReport.codecStatus == CODECHAL_STATUS_SUCCESSFUL)   ||
+                    (tempNewReport.codecStatus == CODECHAL_STATUS_ERROR)        ||
+                    (tempNewReport.codecStatus == CODECHAL_STATUS_INCOMPLETE)   ||
+                    (tempNewReport.codecStatus == CODECHAL_STATUS_RESET))
                 {
-                    if (mediaSurfaceHeapElmt != nullptr &&
-                            mediaSurfaceHeapElmt->pSurface != nullptr &&
-                            bo == mediaSurfaceHeapElmt->pSurface->bo)
+                    PDDI_MEDIA_SURFACE_HEAP_ELEMENT mediaSurfaceHeapElmt = (PDDI_MEDIA_SURFACE_HEAP_ELEMENT)mediaCtx->pSurfaceHeap->pHeapBase;
+
+                    uint32_t j = 0;
+                    for (j = 0; j < mediaCtx->pSurfaceHeap->uiAllocatedHeapElements; j++, mediaSurfaceHeapElmt++)
                     {
-                        mediaSurfaceHeapElmt->pSurface->curStatusReport.decode.status = (uint32_t)tempNewReport.codecStatus;
-                        mediaSurfaceHeapElmt->pSurface->curStatusReport.decode.errMbNum = (uint32_t)tempNewReport.numMbsAffected;
-                        mediaSurfaceHeapElmt->pSurface->curStatusReport.decode.crcValue = (uint32_t)tempNewReport.frameCrc;
-                        mediaSurfaceHeapElmt->pSurface->curStatusReportQueryState = DDI_MEDIA_STATUS_REPORT_QUERY_STATE_COMPLETED;
-                        break;
+                        if (mediaSurfaceHeapElmt != nullptr &&
+                                mediaSurfaceHeapElmt->pSurface != nullptr &&
+                                bo == mediaSurfaceHeapElmt->pSurface->bo)
+                        {
+                            mediaSurfaceHeapElmt->pSurface->curStatusReport.decode.status = (uint32_t)tempNewReport.codecStatus;
+                            mediaSurfaceHeapElmt->pSurface->curStatusReport.decode.errMbNum = (uint32_t)tempNewReport.numMbsAffected;
+                            mediaSurfaceHeapElmt->pSurface->curStatusReport.decode.crcValue = (uint32_t)tempNewReport.frameCrc;
+                            mediaSurfaceHeapElmt->pSurface->curStatusReportQueryState = DDI_MEDIA_STATUS_REPORT_QUERY_STATE_COMPLETED;
+                            break;
+                        }
+                    }
+
+                    if (j == mediaCtx->pSurfaceHeap->uiAllocatedHeapElements)
+                    {
+                        return VA_STATUS_ERROR_OPERATION_FAILED;
                     }
                 }
-
-                if (j == mediaCtx->pSurfaceHeap->uiAllocatedHeapElements)
+                else
                 {
+                    // return failed if queried INCOMPLETE or UNAVAILABLE report.
                     return VA_STATUS_ERROR_OPERATION_FAILED;
                 }
             }
-            else
-            {
-                // return failed if queried INCOMPLETE or UNAVAILABLE report.
-                return VA_STATUS_ERROR_OPERATION_FAILED;
-            }
+        }
+        // The surface is not busy in HW, but uNumCompletedReport is 0, treat as engine reset 
+        else
+        {
+            surface->curStatusReport.decode.status == CODECHAL_STATUS_INCOMPLETE;
+            surface->curStatusReportQueryState = DDI_MEDIA_STATUS_REPORT_QUERY_STATE_COMPLETED;
+            DDI_ASSERTMESSAGE("No report available at all! Engine reset may have occured.");
         }
     }
 
@@ -534,7 +549,9 @@ VAStatus DdiDecode_StatusReport(PDDI_MEDIA_CONTEXT mediaCtx, DecodePipelineAdapt
         {
             return VA_STATUS_ERROR_DECODING_ERROR;
         }
-        else if (surface->curStatusReport.decode.status == CODECHAL_STATUS_INCOMPLETE || surface->curStatusReport.decode.status == CODECHAL_STATUS_UNAVAILABLE)
+        else if (surface->curStatusReport.decode.status == CODECHAL_STATUS_INCOMPLETE    ||
+                 surface->curStatusReport.decode.status == CODECHAL_STATUS_RESET         ||
+                 surface->curStatusReport.decode.status == CODECHAL_STATUS_UNAVAILABLE)
         {
             return mediaCtx->bMediaResetEnable ? VA_STATUS_SUCCESS : VA_STATUS_ERROR_HW_BUSY;
         }

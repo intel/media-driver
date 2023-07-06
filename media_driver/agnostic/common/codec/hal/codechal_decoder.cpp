@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2021, Intel Corporation
+* Copyright (c) 2011-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1909,7 +1909,7 @@ MOS_STATUS CodechalDecode::GetStatusReport(
                 {
                     // BB_END data not written. Media reset might have occurred.
                     CODECHAL_DECODE_NORMALMESSAGE("Media reset may have occured.");
-                    codecStatus[j].m_codecStatus = CODECHAL_STATUS_ERROR;
+                    codecStatus[j].m_codecStatus = CODECHAL_STATUS_RESET;
                 }
 
                 if (m_standard == CODECHAL_HEVC)

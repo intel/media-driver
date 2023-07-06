@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2021, Intel Corporation
+* Copyright (c) 2019-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -242,7 +242,7 @@ namespace decode {
         }
         else if (!completed)
         {
-            statusReportData->codecStatus = CODECHAL_STATUS_ERROR;
+            statusReportData->codecStatus = CODECHAL_STATUS_RESET;
             DECODE_ASSERTMESSAGE("Media reset may have occured.");
         }
         else
