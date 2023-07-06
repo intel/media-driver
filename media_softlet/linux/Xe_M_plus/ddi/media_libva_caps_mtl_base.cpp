@@ -34,7 +34,7 @@
 #include "codec_def_encode_av1.h"
 #include "codec_def_common.h"
 #include "media_ddi_decode_const.h"
-#include "media_ddi_decode_const_g12.h"
+#include "media_ddi_decode_const_xe_m_plus.h"
 #include "media_ddi_encode_const.h"
 #include "drm_fourcc.h"
 
@@ -348,7 +348,7 @@ std::string MediaLibvaCapsMtlBase::GetDecodeCodecKey(VAProfile profile)
         case VAProfileHEVCSccMain10:
         case VAProfileHEVCSccMain444:
         case VAProfileHEVCSccMain444_10:
-            return DECODE_ID_HEVC_G12;
+            return DECODE_ID_HEVC_REXT;
         case VAProfileAV1Profile0:
         case VAProfileAV1Profile1:
             return DECODE_ID_AV1;

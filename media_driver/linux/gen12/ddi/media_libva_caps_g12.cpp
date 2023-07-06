@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2021, Intel Corporation
+* Copyright (c) 2018-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -288,7 +288,7 @@ std::string MediaLibvaCapsG12::GetDecodeCodecKey(VAProfile profile)
         case VAProfileHEVCSccMain10:
         case VAProfileHEVCSccMain444:
         case VAProfileHEVCSccMain444_10:
-            return DECODE_ID_HEVC_G12;
+            return DECODE_ID_HEVC_REXT;
         case VAProfileVC1Simple:
         case VAProfileVC1Main:
         case VAProfileVC1Advanced:

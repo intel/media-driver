@@ -26,8 +26,6 @@
 
 #include "media_libva_decoder.h"
 #include "media_libva_util.h"
-
-#include "media_ddi_decode_const_g12.h"
 #include "media_ddi_decode_av1.h"
 #include "mos_solo_generic.h"
 #include "codechal_memdecomp.h"

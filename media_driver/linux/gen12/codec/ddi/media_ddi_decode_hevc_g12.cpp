@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-2020, Intel Corporation
+* Copyright (c) 2015-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1132,4 +1132,4 @@ bool DdiDecodeHEVCG12::IsSccProfile()
 extern template class MediaDdiFactory<DdiMediaDecode, DDI_DECODE_CONFIG_ATTR>;
 
 static bool hevcRegistered =
-    MediaDdiFactory<DdiMediaDecode, DDI_DECODE_CONFIG_ATTR>::RegisterCodec<DdiDecodeHEVCG12>(DECODE_ID_HEVC_G12);
+    MediaDdiFactory<DdiMediaDecode, DDI_DECODE_CONFIG_ATTR>::RegisterCodec<DdiDecodeHEVCG12>(DECODE_ID_HEVC_REXT);
