@@ -392,6 +392,11 @@ public:
     virtual MOS_STATUS FreeScratchSpaceBuffer(
         RENDERHAL_INTERFACE *renderHal) override;
 
+    virtual bool IsL8FormatSupported()
+    {
+        return true;
+    }
+
      MHW_SETPAR_DECL_HDR(STATE_BASE_ADDRESS);
 
      MHW_SETPAR_DECL_HDR(_3DSTATE_CHROMA_KEY);

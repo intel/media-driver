@@ -160,6 +160,10 @@ MOS_STATUS XRenderHal_Interface_Xe_Hpg_Base::SetupSurfaceState(
                                            pSurfaceEntry->iSurfStateID * dwSurfaceSize;   // Offset  to Surface State within the area
 
         // Obtain the Pointer to the Surface state from SSH Buffer
+        if (pSurfaceEntry->dwFormat == MHW_GFX3DSTATE_SURFACEFORMAT_L8_UNORM && !IsL8FormatSupported())
+        {
+            pSurfaceEntry->dwFormat = MHW_GFX3DSTATE_SURFACEFORMAT_R8_UNORM;
+        }
         SurfStateParams.pSurfaceState         = pSurfaceEntry->pSurfaceState;
         SurfStateParams.bUseAdvState          = pSurfaceEntry->bAVS;
         SurfStateParams.dwWidth               = pSurfaceEntry->dwWidth;
