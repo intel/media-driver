@@ -207,17 +207,6 @@ namespace encode
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1VdencPktXe_M_Base::Prepare()
-    {
-        ENCODE_FUNC_CALL();
-
-        Av1VdencPkt::Prepare();
-
-        m_basicFeature->m_ref.SetPostCdefAsEncRef(true);
-
-        return MOS_STATUS_SUCCESS;
-    }
-
     MOS_STATUS Av1VdencPktXe_M_Base::Submit(
         MOS_COMMAND_BUFFER* commandBuffer,
         uint8_t packetPhase)

@@ -62,9 +62,6 @@ namespace encode
 
         virtual ~Av1VdencPktXe_M_Base() {}
 
-        MOS_STATUS Prepare() override;
-
-
         //!
         //! \brief  Add the command sequence into the commandBuffer and
         //!         and return to the caller task

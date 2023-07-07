@@ -773,6 +773,10 @@ MHW_SETPAR_DECL_SRC(VDENC_CMD2, Av1ReferenceFrames)
 
 MHW_SETPAR_DECL_SRC(AVP_PIC_STATE, Av1ReferenceFrames)
 {
+    ENCODE_FUNC_CALL();
+
+    params.postCdefReconPixelStreamoutEn = m_encUsePostCdefAsRef ? true : false;
+
     params.refFrameRes[intraFrame]    = CAT2SHORTS(m_currRefList->m_frameWidth - 1, m_currRefList->m_frameHeight - 1);
     params.refScaleFactor[intraFrame] = CAT2SHORTS(m_av1ScalingFactor, m_av1ScalingFactor);
     params.refOrderHints[intraFrame]  = m_currRefList->m_orderHint;
