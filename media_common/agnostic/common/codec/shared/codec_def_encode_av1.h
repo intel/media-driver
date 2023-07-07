@@ -149,12 +149,19 @@ typedef struct _CODEC_AV1_ENCODE_SEQUENCE_PARAMS
     {
         struct
         {
-            uint32_t    enable_order_hint       : 1;
-            uint32_t    enable_superres         : 1;
-            uint32_t    enable_cdef             : 1;
-            uint32_t    enable_restoration      : 1;
-            uint32_t    enable_warped_motion    : 1;    //[0]
-            uint32_t    Reserved3               : 27;
+            uint32_t    enable_order_hint           : 1;
+            uint32_t    enable_superres             : 1;
+            uint32_t    enable_cdef                 : 1;
+            uint32_t    enable_restoration          : 1;
+            uint32_t    enable_warped_motion        : 1;    //[0]
+            uint32_t    enable_filter_intra         : 1;
+            uint32_t    enable_intra_edge_filter    : 1;
+            uint32_t    enable_interintra_compound  : 1;
+            uint32_t    enable_masked_compound      : 1;
+            uint32_t    enable_dual_filter          : 1;
+            uint32_t    enable_jnt_comp             : 1;
+            uint32_t    enable_ref_frame_mvs        : 1;
+            uint32_t    Reserved3                   : 20;
         } fields;
         uint32_t    value;
     } CodingToolFlags;
