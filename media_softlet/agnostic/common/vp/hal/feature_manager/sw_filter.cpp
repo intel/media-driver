@@ -1443,7 +1443,11 @@ MOS_STATUS SwFilterHdr::HdrIsInputFormatSupported(
         pSrcSurface->Format == Format_NV12 ||
         pSrcSurface->Format == Format_P010 ||
         pSrcSurface->Format == Format_YUY2 ||
-        pSrcSurface->Format == Format_AYUV)
+        pSrcSurface->Format == Format_AYUV ||
+        pSrcSurface->Format == Format_Y410 ||
+        pSrcSurface->Format == Format_Y416 ||
+        pSrcSurface->Format == Format_Y210 ||
+        pSrcSurface->Format == Format_Y216)
     {
         *pbSupported = true;
         goto finish;
