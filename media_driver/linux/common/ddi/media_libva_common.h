@@ -30,11 +30,6 @@
 
 #include <pthread.h>
 
-#include "xf86drm.h"
-#include "drm.h"
-#include "i915_drm.h"
-#include "mos_bufmgr.h"
-
 #include "mos_context_next.h"
 #include "mos_gpucontextmgr_next.h"
 #include "mos_cmdbufmgr_next.h"

@@ -69,6 +69,7 @@
 #include "intel_hwconfig_types.h"
 #include "mos_utilities.h"
 #include "linux_system_info.h"
+#include "mos_os_specific.h"
 
 #ifdef HAVE_VALGRIND
 #include <valgrind.h>

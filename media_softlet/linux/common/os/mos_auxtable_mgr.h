@@ -27,10 +27,7 @@
 #ifndef MOS_AUXTABLE_MGR_H
 #define MOS_AUXTABLE_MGR_H
 
-#include "xf86drm.h"
-#include "drm.h"
-#include "i915_drm.h"
-#include "mos_bufmgr.h"
+#include "mos_bufmgr_api.h"
 #include "mos_os.h"
 
 //!

@@ -30,7 +30,7 @@
 #include "cm_execution_adv.h"
 #include "mos_graphicsresource.h"
 #include "mos_utilities.h"
-#include "mos_bufmgr.h"
+#include "mos_bufmgr_api.h"
 
 #define Y_TILE_WIDTH  128
 #define Y_TILE_HEIGHT 32

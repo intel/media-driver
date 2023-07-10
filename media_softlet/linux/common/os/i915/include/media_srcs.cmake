@@ -25,6 +25,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/libdrm_lists.h
     ${CMAKE_CURRENT_LIST_DIR}/libdrm_macros.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_bufmgr.h
+    ${CMAKE_CURRENT_LIST_DIR}/mos_bufmgr_api.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_bufmgr_priv.h
     ${CMAKE_CURRENT_LIST_DIR}/xf86atomic.h
     ${CMAKE_CURRENT_LIST_DIR}/xf86drm.h

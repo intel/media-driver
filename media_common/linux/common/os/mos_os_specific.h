@@ -27,6 +27,7 @@
 #ifndef __MOS_OS_SPECIFIC_H__
 #define __MOS_OS_SPECIFIC_H__
 #include "mos_defs.h"
+#include "media_fourcc.h"
 #include "media_skuwa_specific.h"
 #include "GmmLib.h"
 #include "mos_resource_defs.h"
@@ -35,10 +36,7 @@
 #ifdef ANDROID
 #include <utils/Log.h>
 #endif
-#include "i915_drm.h"
 #include "mos_bufmgr.h"
-#include "xf86drm.h"
-
 #include <vector>
 
 typedef unsigned int MOS_OS_FORMAT;
@@ -171,10 +169,6 @@ typedef void* HINSTANCE;
     Mos_InitOsInterface(osInterface, osDriverContext, component)
 
 #define Mos_ResourceIsNull(resource)    MosInterface::MosResourceIsNull(resource)
-
-#define MAKEFOURCC(ch0, ch1, ch2, ch3)  \
-    ((uint32_t)(uint8_t)(ch0) | ((uint32_t)(uint8_t)(ch1) << 8) |  \
-    ((uint32_t)(uint8_t)(ch2) << 16) | ((uint32_t)(uint8_t)(ch3) << 24 ))
 
 #define GMM_LIBVA_LINUX 3
 

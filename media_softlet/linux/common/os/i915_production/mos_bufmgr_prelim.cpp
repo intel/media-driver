@@ -63,6 +63,7 @@
 #include "i915_drm.h"
 #include "mos_bufmgr.h"
 #include "mos_bufmgr_priv.h"
+#include "mos_resource_defs.h"
 #include "mos_util_debug.h"
 #include "mos_vma.h"
 #include "intel_hwconfig_types.h"

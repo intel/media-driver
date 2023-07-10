@@ -32,7 +32,8 @@
 #include <va/va_backend.h>
 #include <semaphore.h>
 #include "GmmLib.h"
-#include "mos_bufmgr.h"
+#include "mos_bufmgr_api.h"
+#include "mos_defs_specific.h"
 
 #define DDI_MEDIA_MAX_SURFACE_NUMBER_CONTEXT       127
 #define DDI_MEDIA_MAX_INSTANCE_NUMBER              0x0FFFFFFF

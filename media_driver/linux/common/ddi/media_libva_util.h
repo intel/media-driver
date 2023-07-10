@@ -28,7 +28,7 @@
 
 #include "media_libva_common.h"
 #include "mos_util_debug.h"
-#include "mos_bufmgr.h"
+#include "mos_bufmgr_api.h"
 
 #define DEVICE_NAME "/dev/dri/renderD128"   // For Gen, it is always /dev/dri/renderD128 node
 

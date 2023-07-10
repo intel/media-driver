@@ -28,7 +28,6 @@
 #define __MEDIA_LIBVA_UTIL_NEXT_H__
 
 #include "media_libva_common_next.h"
-#include "mos_bufmgr.h"
 #include "vp_common.h"
 
 #ifdef ANDROID
