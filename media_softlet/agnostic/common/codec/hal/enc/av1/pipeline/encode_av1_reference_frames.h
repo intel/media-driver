@@ -160,6 +160,12 @@ public:
     //!
     void GetFwdBwdRefPicList(CODEC_PICTURE (&refsPicList)[2][15]);
 
+    //! \brief  Get  get current frame display order
+    //! \return int32_t
+    //!         frame display order
+    //!
+    int32_t GetFrameDisplayOrder();
+
     //!
     //! \brief  Get  get the Picture Order Count values of reference pictures 
     //!          corresponding to the entries of RefFrameList[]. 
@@ -255,6 +261,10 @@ protected:
     bool                    m_PFrame   = true;                       //!< P frame flag
     bool                    m_enable_order_hint = false;
     uint8_t                 m_orderHintBitsMinus1 = 0;
+    uint8_t                 m_orderHintCount[ENCODE_AV1_ORDER_HINT_SIZE];
+    int32_t                 m_frameOut = 0;                        //!<frame output number
+    int32_t                 m_prevFrameOffset = 0;
+    int32_t                 m_prevFrameDisplayerOrder = 0;
 
     bool       m_encUsePostCdefAsRef = false;
     BufferType m_encRefBufType       = BufferType::postCdefReconSurface;

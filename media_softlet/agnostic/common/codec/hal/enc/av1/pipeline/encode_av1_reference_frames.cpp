@@ -582,6 +582,26 @@ void Av1ReferenceFrames::GetRefFramePOC(int32_t (&refsPOCList)[15], int32_t cons
     }
 }
 
+int32_t Av1ReferenceFrames::GetFrameDisplayOrder()
+{
+    const auto picParams = m_basicFeature->m_av1PicParams;
+
+    int32_t displayOrder = 0;
+    if (picParams->PicFlags.fields.frame_type == keyFrame)
+    {
+        displayOrder = m_frameOut;
+    }
+    else
+    {
+        auto dist = GetRelativeDist(m_currRefList->m_orderHint, m_prevFrameOffset);
+        displayOrder = m_prevFrameDisplayerOrder + dist;
+    }
+    m_prevFrameOffset = m_currRefList->m_orderHint;
+    m_prevFrameDisplayerOrder = displayOrder;
+    m_frameOut++;
+    return displayOrder;
+}
+
 bool Av1ReferenceFrames::CheckSegmentForPrimeFrame()
 {
     ENCODE_FUNC_CALL();
