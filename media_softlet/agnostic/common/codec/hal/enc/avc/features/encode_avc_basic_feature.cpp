@@ -69,6 +69,9 @@ MOS_STATUS AvcBasicFeature::Init(void *setting)
     m_adaptiveRoundingInterEnable = (outValue.Get<int32_t>()) ? true : false;
 
     m_targetUsageOverride = (uint8_t)0;
+
+    m_brcAdaptiveRegionBoostSupported = true;
+
 #if (_DEBUG || _RELEASE_INTERNAL)
 
     outValue = 0;
@@ -91,13 +94,16 @@ MOS_STATUS AvcBasicFeature::Init(void *setting)
 
     m_perMBStreamOutEnable = (outValue.Get<int32_t>()) ? true : false;
 
+    outValue = 0;
+
     ReadUserSettingForDebug(
         m_userSettingPtr,
         outValue,
         "AVC VDEnc TCBRC ARB Disable",
         MediaUserSetting::Group::Sequence);
 
-    m_brcAdaptiveRegionBoostSupported = (outValue.Get<int32_t>()) ? false : true;
+    m_brcAdaptiveRegionBoostSupported = (outValue.Get<int32_t>()) ? false : m_brcAdaptiveRegionBoostSupported;
+
 #endif  // _DEBUG || _RELEASE_INTERNAL
 
     return MOS_STATUS_SUCCESS;

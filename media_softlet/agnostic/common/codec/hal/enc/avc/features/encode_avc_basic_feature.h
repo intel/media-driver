@@ -233,7 +233,7 @@ public:
 
     // TCBRC related flags
     bool                            m_forcedTCBRC                     = false;  //!< TCBRC forced instead of LowDelayBRC
-    bool                            m_brcAdaptiveRegionBoostSupported = true;   //!< Adaptive Region Boost supported flag
+    bool                            m_brcAdaptiveRegionBoostSupported = false;  //!< Adaptive Region Boost supported flag
     bool                            m_brcAdaptiveRegionBoostEnabled   = false;  //!< Adaptive Region Boost enabled flag
 
 protected:
