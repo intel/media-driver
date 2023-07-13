@@ -68,6 +68,7 @@ public:
     virtual ~Hdr3DLutGeneratorG12();
 
     void Render(const uint32_t maxDLL, const uint32_t maxCLL, const VPHAL_HDR_MODE hdrMode, const PVPHAL_SURFACE p3DLutSurface);
+    bool IsObjectVaild();
 
 private:
     void AllocateResources();
@@ -119,6 +120,7 @@ public:
     {
         return ;
     };
+    bool    IsObjectVaild() { return true; };
 };
 #endif
 #endif // __VPHAL_RENDER_HDR_G12_H__

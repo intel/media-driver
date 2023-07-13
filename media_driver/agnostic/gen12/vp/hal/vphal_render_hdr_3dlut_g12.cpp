@@ -328,6 +328,27 @@ void Hdr3DLutGeneratorG12::AllocateResources()
     return;
 }
 
+bool Hdr3DLutGeneratorG12::IsObjectVaild()
+{
+    if (!m_cmContext)
+    {
+        return false;
+    }
+    if (!m_cmContext->GetCmDevice())
+    {
+        return false;
+    }
+    if (!m_cmContext->GetCmQueue())
+    {
+        return false;
+    }
+    if (!m_cmContext->GetCmVebox())
+    {
+        return false;
+    }
+    return true;
+}
+
 void Hdr3DLutGeneratorG12::FreeResources()
 {
     MOS_Delete(m_hdr3DLutSurface);
