@@ -282,6 +282,7 @@ MOS_STATUS Policy::CreateHwFilter(SwFilterPipe &subSwFilterPipe, HwFilter *&pFil
 
     HW_FILTER_PARAMS param = {};
 
+    MT_LOG1(MT_VP_FEATURE_GRAPH_SETUPEXECUTESWFILTER_START, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_LAYERINDEXES_COUNT, 1);
     MOS_STATUS status = GetHwFilterParam(subSwFilterPipe, param);
 
     if (MOS_FAILED(status))
@@ -301,7 +302,7 @@ MOS_STATUS Policy::CreateHwFilter(SwFilterPipe &subSwFilterPipe, HwFilter *&pFil
         MT_ERR2(MT_VP_HAL_POLICY, MT_ERROR_CODE, MOS_STATUS_UNIMPLEMENTED, MT_CODE_LINE, __LINE__);
         return MOS_STATUS_UNIMPLEMENTED;
     }
-
+    MT_LOG1(MT_VP_FEATURE_GRAPH_SETUPEXECUTESWFILTER_END, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_LAYERINDEXES_COUNT, 1);
     return MOS_STATUS_SUCCESS;
 }
 
@@ -2860,7 +2861,7 @@ MOS_STATUS Policy::BuildExecuteFilter(SwFilterPipe& featurePipe, std::vector<int
     params.Type = EngineTypeInvalid;
     // params.vpExecuteCaps will be assigned in Policy::BuildExecuteHwFilter.
     params.vpExecuteCaps.value = 0;
-    MT_LOG1(MT_VP_FEATURE_GRAPH_SETUPEXECUTESWFILTER_START, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_LAYERINDEXES_COUNT, (int64_t)layerIndexes.size());
+
     VP_PUBLIC_CHK_STATUS_RETURN(SetupExecuteFilter(featurePipe, layerIndexes, caps, params));
 
     // Build Execute surface needed
@@ -2868,18 +2869,18 @@ MOS_STATUS Policy::BuildExecuteFilter(SwFilterPipe& featurePipe, std::vector<int
 
     VP_PUBLIC_CHK_STATUS_RETURN(featurePipe.Update());
     VP_PUBLIC_CHK_STATUS_RETURN(params.executedFilters->Update());
-    if (params.executedFilters)
-    {
-        params.executedFilters->AddRTLog();
-    }
-    MT_LOG1(MT_VP_FEATURE_GRAPH_SETUPEXECUTESWFILTER_END, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_LAYERINDEXES_COUNT, (int64_t)layerIndexes.size());
-    featurePipe.AddRTLog();
+
     if (featurePipe.IsEmpty())
     {
         caps.lastSubmission = true;
     }
 
     VP_PUBLIC_CHK_STATUS_RETURN(BuildExecuteHwFilter(caps, params));
+
+    if (params.executedFilters)
+    {
+        params.executedFilters->AddRTLog();
+    }
 
     return MOS_STATUS_SUCCESS;
 }
