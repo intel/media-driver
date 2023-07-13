@@ -1296,7 +1296,7 @@ VAStatus DdiEncodeAvc::ParseSeqParams(void *ptr)
     seqParams->bit_depth_luma_minus8   = seq->bit_depth_luma_minus8;
     seqParams->bit_depth_chroma_minus8 = seq->bit_depth_chroma_minus8;
 
-    seqParams->GopPicSize = seq->intra_period;
+    seqParams->GopPicSize = seq->intra_period ? seq->intra_period : seq->intra_idr_period;
     seqParams->GopRefDist = seq->ip_period;
     seqParams->RateControlMethod = VARC2HalRC(m_encodeCtx->uiRCMethod);
 
