@@ -37,9 +37,6 @@
 #include "mos_bufmgr_api.h"
 #include "i915_drm.h"
 
-#define mos_safe_free(p)        \
-        if(p) free(p);          \
-
 int mos_set_context_param_parallel(struct mos_linux_context *ctx,
                          struct i915_engine_class_instance *ci,
                          unsigned int count);

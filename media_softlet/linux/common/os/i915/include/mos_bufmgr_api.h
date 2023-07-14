@@ -35,6 +35,13 @@
 
 #define S_SUCCESS 0
 
+#define TILING_NONE  0
+#define TILING_X     1
+#define TILING_Y     2
+
+#define mos_safe_free(p)        \
+        if(p) free(p);          \
+
 #define CHK_CONDITION(condition, _str, _ret)    \
     if (condition) {                            \
         fprintf(stderr, _str);                  \
@@ -46,6 +53,37 @@
 #ifndef MOS_UNUSED
 #define MOS_UNUSED(param) (void)(param)
 #endif
+
+/**
+ * Supported data type:
+ * MOS_USER_FEATURE_VALUE_TYPE_BOOL
+ * MOS_USER_FEATURE_VALUE_TYPE_INT32
+ * MOS_USER_FEATURE_VALUE_TYPE_INT64
+ * MOS_USER_FEATURE_VALUE_TYPE_UINT32
+ * MOS_USER_FEATURE_VALUE_TYPE_UINT64
+ * MOS_USER_FEATURE_VALUE_TYPE_FLOAT
+*/
+#define MOS_READ_ENV_VARIABLE(env_key, data_type, out_value)                               \
+{                                                                                          \
+    MediaUserSetting::Value v(out_value);                                                  \
+    int ret = MosUtilities::MosReadEnvVariable(ENV_VARIABLE_TABLE[env_key], data_type, v); \
+    if(ret == 0)                                                                           \
+    {                                                                                      \
+        if(data_type == MOS_USER_FEATURE_VALUE_TYPE_INT64)                                 \
+            out_value = v.Get<int64_t>();                                                  \
+        else if(data_type == MOS_USER_FEATURE_VALUE_TYPE_UINT64)                           \
+            out_value = v.Get<uint64_t>();                                                 \
+        else if(data_type == MOS_USER_FEATURE_VALUE_TYPE_INT32)                            \
+            out_value = v.Get<int32_t>();                                                  \
+        else if(data_type == MOS_USER_FEATURE_VALUE_TYPE_UINT32)                           \
+            out_value = v.Get<uint32_t>();                                                 \
+        else if(data_type == MOS_USER_FEATURE_VALUE_TYPE_FLOAT)                            \
+            out_value = v.Get<float>();                                                    \
+        else if(data_type == MOS_USER_FEATURE_VALUE_TYPE_BOOL)                             \
+            out_value = v.Get<bool>();                                                     \
+    }                                                                                      \
+}
+
 
 struct mos_linux_bo;
 struct mos_linux_context;
