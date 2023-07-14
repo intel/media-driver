@@ -75,7 +75,7 @@ static const AttribList attribList_VAProfileAV1Profile0_VAEntrypointEncSliceLP_X
    {VAConfigAttribEncAV1Ext1, VAProfileAV1Profile0_VAEntrypointEncSliceLP_encAV1Ext1.value},
    {VAConfigAttribRateControl, VA_RC_CQP | VA_RC_CBR | VA_RC_VBR},
    {VAConfigAttribEncTileSupport, 1},
-   {VAConfigAttribEncMaxRefFrames, CODEC_AV1_NUM_REFL0P_FRAMES | CODEC_AV1_NUM_REFL0B_FRAMES<<8 | CODEC_AV1_NUM_REFL1B_FRAMES<<16},
+   {VAConfigAttribEncMaxRefFrames, CODEC_AV1_NUM_REFL0P_FRAMES | CODEC_AV1_NUM_REFL1B_FRAMES<<16},
    {VAConfigAttribEncJPEG, (JPEG_MAX_QUANT_TABLE << 14)| (JPEG_MAX_NUM_HUFF_TABLE_INDEX << 11)|(1 << 7)|(jpegNumComponent << 4)},
    {VAConfigAttribEncQualityRange, NUM_TARGET_USAGE_MODES - 1},
    {VAConfigAttribEncPackedHeaders, VA_ENC_PACKED_HEADER_PICTURE | VA_ENC_PACKED_HEADER_SEQUENCE | VA_ENC_PACKED_HEADER_SLICE | VA_ENC_PACKED_HEADER_RAW_DATA | VA_ENC_PACKED_HEADER_MISC},

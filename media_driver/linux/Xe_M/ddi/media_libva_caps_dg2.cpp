@@ -49,8 +49,7 @@ VAStatus MediaLibvaCapsDG2::LoadAv1EncProfileEntrypoints()
         (*attributeList)[VAConfigAttribEncDynamicScaling] = 0;
         (*attributeList)[VAConfigAttribEncTileSupport]    = 1;
         (*attributeList)[VAConfigAttribEncDirtyRect]      = 0;
-        (*attributeList)[VAConfigAttribEncMaxRefFrames]   = CODEC_AV1_NUM_REFL0P_FRAMES |
-            CODEC_AV1_NUM_REFL0B_FRAMES<<8 | CODEC_AV1_NUM_REFL1B_FRAMES<<16;
+        (*attributeList)[VAConfigAttribEncMaxRefFrames]   = CODEC_AV1_NUM_REFL0P_FRAMES | CODEC_AV1_NUM_REFL1B_FRAMES<<16;
 
         VAConfigAttrib attrib;
         attrib.type = (VAConfigAttribType) VAConfigAttribEncAV1;
