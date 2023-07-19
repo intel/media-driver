@@ -32,6 +32,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/xf86drmHash.h
     ${CMAKE_CURRENT_LIST_DIR}/xf86drmMode.h
     ${CMAKE_CURRENT_LIST_DIR}/xf86drmRandom.h
+    ${CMAKE_CURRENT_LIST_DIR}/mos_bufmgr_util_debug.h
 )
 
 set(SOFTLET_MOS_COMMON_HEADERS_
