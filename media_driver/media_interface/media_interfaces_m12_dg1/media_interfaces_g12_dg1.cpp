@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2020, Intel Corporation
+* Copyright (c) 2011-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -73,6 +73,10 @@ Register<DecodeHistogramDeviceG12Tgllp>((uint32_t)IGFX_DG1);
 static bool dg1RegisteredRenderHal =
     MediaFactory<uint32_t, RenderHalDevice>::
     Register<RenderHalInterfacesG12Dg1>((uint32_t)IGFX_DG1);
+
+static bool dg1RegisteredHwInfo =
+    MediaFactory<uint32_t, MediaInterfacesHwInfoDevice>::
+    Register<MediaInterfacesHwInfoDeviceG12Tgllp>((uint32_t)IGFX_DG1);
 
 MOS_STATUS RenderHalInterfacesG12Dg1::Initialize()
 {
