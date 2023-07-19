@@ -1040,6 +1040,10 @@ typedef struct _MOS_INTERFACE
         PMOS_INTERFACE              pOsInterface,
         PMOS_RESOURCE               pResource);
 
+    uint64_t (*pfnGetResourceClearAddress)(
+        PMOS_INTERFACE pOsInterface,
+        PMOS_RESOURCE  pResource);
+
     MOS_STATUS (* pfnSetPatchEntry) (
         PMOS_INTERFACE              pOsInterface,
         PMOS_PATCH_ENTRY_PARAMS     pParams);

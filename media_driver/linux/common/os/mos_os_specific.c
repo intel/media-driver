@@ -4272,6 +4272,24 @@ uint64_t Mos_Specific_GetResourceGfxAddress(
 }
 
 //!
+//! \brief    Get Clear Color Address
+//! \details  The clear color address
+//! \param    PMOS_INTERFACE pOsInterface
+//!           [in] OS Interface
+//! \param    PMOS_RESOURCE pResource
+//!           [in] OS resource structure
+//! \return   uint64_t
+//!           The clear color address
+//!
+uint64_t Mos_Specific_GetResourceClearAddress(
+    PMOS_INTERFACE pOsInterface,
+    PMOS_RESOURCE  pResource)
+{
+    uint64_t ui64ClearColorAddress = 0;
+    return ui64ClearColorAddress;
+}
+
+//!
 //! \brief    Resizes the buffer to be used for rendering GPU commands
 //! \details  return true if succeeded - command buffer will be large enough to hold dwMaxSize
 //!           return false if failed or invalid parameters
@@ -7047,6 +7065,7 @@ MOS_STATUS Mos_Specific_InitInterface(
     pOsInterface->pfnResetResourceAllocationIndex           = Mos_Specific_ResetResourceAllocationIndex;
     pOsInterface->pfnGetResourceAllocationIndex             = Mos_Specific_GetResourceAllocationIndex;
     pOsInterface->pfnGetResourceGfxAddress                  = Mos_Specific_GetResourceGfxAddress;
+    pOsInterface->pfnGetResourceClearAddress                = Mos_Specific_GetResourceClearAddress;
     pOsInterface->pfnGetCommandBuffer                       = Mos_Specific_GetCommandBuffer;
     pOsInterface->pfnResetCommandBuffer                     = Mos_Specific_ResetCommandBuffer;
     pOsInterface->pfnReturnCommandBuffer                    = Mos_Specific_ReturnCommandBuffer;
