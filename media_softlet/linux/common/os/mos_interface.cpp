@@ -357,7 +357,7 @@ MOS_STATUS MosInterface::InitStreamParameters(
 
     osDeviceContext = (OsContextSpecificNext *)streamState->osDeviceContext;
     fd              = osDeviceContext->GetFd();
-    if (0 >= fd)
+    if (0 > fd)
     {
         MOS_OS_ASSERTMESSAGE("Invalid fd");
         return MOS_STATUS_INVALID_HANDLE;

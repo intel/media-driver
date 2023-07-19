@@ -420,7 +420,7 @@ MOS_STATUS OsContextSpecific::Init(PMOS_CONTEXT pOsDriverContext)
     {
         if( nullptr == pOsDriverContext         ||
             nullptr == pOsDriverContext->bufmgr ||
-            0 >= pOsDriverContext->fd )
+            0 > pOsDriverContext->fd )
         {
             MOS_OS_ASSERT(false);
             return MOS_STATUS_INVALID_HANDLE;

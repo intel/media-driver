@@ -80,7 +80,7 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
         MosUtilities::MosZeroMemory(&m_gtSystemInfo, sizeof(m_gtSystemInfo));
 
         if( nullptr == osDriverContext  ||
-            0 >= osDriverContext->fd )
+            0 > osDriverContext->fd )
         {
             MOS_OS_ASSERT(false);
             return MOS_STATUS_INVALID_HANDLE;
