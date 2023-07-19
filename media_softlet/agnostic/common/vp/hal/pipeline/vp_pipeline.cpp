@@ -952,7 +952,7 @@ MOS_STATUS VpPipeline::PrepareVpPipelineParams(PVP_PIPELINE_PARAMS params)
 
     if (params->uSrcCount>0)
     {
-        if (params->pSrc[0]->pBwdRef)
+        if (params->pSrc[0]->pBwdRef && params->pSrc[0]->uBwdRefCount > 0)
         {
             MOS_ZeroMemory(&info, sizeof(VPHAL_GET_SURFACE_INFO));
 
