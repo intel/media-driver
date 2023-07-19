@@ -89,7 +89,7 @@ MOS_STATUS VpHdrFilter::CalculateEngineParams(
     else if (vpExecuteCaps.bRender && HDR_STAGE_3DLUT_KERNEL == hdrParams.stage)
     {
         // create a filter Param buffer
-        MOS_ZeroMemory(&m_renderHdr3DLutParams, sizeof(RENDER_HDR_3DLUT_CAL_PARAMS));
+        m_renderHdr3DLutParams                     = {};
         m_renderHdr3DLutParams.maxDisplayLum       = hdrParams.uiMaxDisplayLum;
         m_renderHdr3DLutParams.maxContentLevelLum  = hdrParams.uiMaxContentLevelLum;
         m_renderHdr3DLutParams.hdrMode             = hdrParams.hdrMode;
