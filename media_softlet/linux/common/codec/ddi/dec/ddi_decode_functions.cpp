@@ -794,6 +794,7 @@ VAStatus DdiDecodeFunctions::MapBufferInternal(
                 *pbuf = (void *)((uint8_t*)(bufMgr->Codec_Param.Codec_Param_VP9.pVASliceParaBufVP9) + buf->uiOffset);
                 break;
             case CODECHAL_DECODE_MODE_AV1VLD:
+            case CODECHAL_DECODE_MODE_RESERVED0:
                 *pbuf = (void *)((uint8_t*)(bufMgr->pCodecSlcParamReserved) + buf->uiOffset);
                 break;
             default:
