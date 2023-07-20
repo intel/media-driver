@@ -1031,25 +1031,18 @@ MOS_STATUS VpPipeline::PrepareVpPipelineParams(PVP_PIPELINE_PARAMS params)
 //!
 //! \brief  prepare execution params for vp scalability pipeline
 //! \param  [in] params
-//!         Pointer to VP scalability pipeline params
+//!         src and dst surface's width and height
 //! \return MOS_STATUS
 //!         MOS_STATUS_SUCCESS if success, else fail reason
 //!
-MOS_STATUS VpPipeline::PrepareVpPipelineScalabilityParams(PVP_PIPELINE_PARAMS params)
+MOS_STATUS VpPipeline::PrepareVpPipelineScalabilityParams(uint32_t srcWidth, uint32_t srcHeight, uint32_t dstWidth, uint32_t dstHeight)
 {
     VP_FUNC_CALL();
-    VP_PUBLIC_CHK_NULL_RETURN(params);
-    if (params->pSrc[0] == nullptr)
-    {
-        VP_PUBLIC_NORMALMESSAGE("No input will not need scalability! ");
-        return MOS_STATUS_SUCCESS;
-    }
-
-    VP_PUBLIC_CHK_NULL_RETURN(params->pTarget[0]);
 
     VP_PUBLIC_NORMALMESSAGE("Reset m_numVebox %d -> %d", m_numVebox, m_numVeboxOriginal);
     m_numVebox = m_numVeboxOriginal;
     MT_LOG1(MT_VP_HAL_VEBOXNUM_CHECK, MT_NORMAL, MT_VP_HAL_VEBOX_NUMBER, m_numVebox)
+
     // Disable vesfc scalability when reg key "Enable Vebox Scalability" was set to zero
     if (m_forceMultiplePipe == (MOS_SCALABILITY_ENABLE_MODE_USER_FORCE | MOS_SCALABILITY_ENABLE_MODE_FALSE))
     {
@@ -1057,10 +1050,10 @@ MOS_STATUS VpPipeline::PrepareVpPipelineScalabilityParams(PVP_PIPELINE_PARAMS pa
     }
     else
     {
-        if (((MOS_MIN(params->pSrc[0]->dwWidth, (uint32_t)params->pSrc[0]->rcSrc.right) > m_scalability_threshWidth) &&
-                (MOS_MIN(params->pSrc[0]->dwHeight, (uint32_t)params->pSrc[0]->rcSrc.bottom) > m_scalability_threshHeight)) ||
-            ((MOS_MIN(params->pTarget[0]->dwWidth, (uint32_t)params->pTarget[0]->rcSrc.right) > m_scalability_threshWidth) &&
-                (MOS_MIN(params->pTarget[0]->dwHeight, (uint32_t)params->pTarget[0]->rcSrc.bottom) > m_scalability_threshHeight)))
+        if (((srcWidth > m_scalability_threshWidth) &&
+             (srcHeight > m_scalability_threshHeight)) ||
+            ((dstWidth > m_scalability_threshWidth) &&
+             (dstHeight > m_scalability_threshHeight)))
         {
             // Enable vesfc scalability only with 4k+ clips
         }
@@ -1072,16 +1065,67 @@ MOS_STATUS VpPipeline::PrepareVpPipelineScalabilityParams(PVP_PIPELINE_PARAMS pa
                 m_numVebox = 1;
             }
         }
+    }
 
-        // Disable DN when vesfc scalability was enabled for output mismatch issue
-        if (IsMultiple())
+    return MOS_STATUS_SUCCESS;
+}
+
+//!
+//! \brief  prepare execution params for vp scalability pipeline
+//! \param  [in] params
+//!         Pointer to VP scalability pipeline params
+//! \return MOS_STATUS
+//!         MOS_STATUS_SUCCESS if success, else fail reason
+//!
+MOS_STATUS VpPipeline::PrepareVpPipelineScalabilityParams(VEBOX_SFC_PARAMS* params)
+{
+    VP_FUNC_CALL();
+    VP_PUBLIC_CHK_NULL_RETURN(params);
+    VP_PUBLIC_CHK_NULL_RETURN(params->input.surface);
+    VP_PUBLIC_CHK_NULL_RETURN(params->output.surface);
+    
+    VP_PUBLIC_CHK_STATUS_RETURN(PrepareVpPipelineScalabilityParams(
+        MOS_MIN(params->input.surface->dwWidth, (uint32_t)params->input.rcSrc.right),
+        MOS_MIN(params->input.surface->dwHeight, (uint32_t)params->input.rcSrc.bottom),
+        MOS_MIN(params->output.surface->dwWidth, (uint32_t)params->output.rcDst.right),
+        MOS_MIN(params->output.surface->dwHeight, (uint32_t)params->output.rcDst.bottom)));
+
+    return MOS_STATUS_SUCCESS;
+}
+
+//!
+//! \brief  prepare execution params for vp scalability pipeline
+//! \param  [in] params
+//!         Pointer to VP scalability pipeline params
+//! \return MOS_STATUS
+//!         MOS_STATUS_SUCCESS if success, else fail reason
+//!
+MOS_STATUS VpPipeline::PrepareVpPipelineScalabilityParams(PVP_PIPELINE_PARAMS params)
+{
+    VP_FUNC_CALL();
+    VP_PUBLIC_CHK_NULL_RETURN(params);
+    if (params->pSrc == nullptr || params->pSrc[0] == nullptr)
+    {
+        VP_PUBLIC_NORMALMESSAGE("No input will not need scalability! ");
+        return MOS_STATUS_SUCCESS;
+    }
+
+    VP_PUBLIC_CHK_NULL_RETURN(params->pTarget[0]);
+
+    VP_PUBLIC_CHK_STATUS_RETURN(PrepareVpPipelineScalabilityParams(
+        MOS_MIN(params->pSrc[0]->dwWidth, (uint32_t)params->pSrc[0]->rcSrc.right),
+        MOS_MIN(params->pSrc[0]->dwHeight, (uint32_t)params->pSrc[0]->rcSrc.bottom),
+        MOS_MIN(params->pTarget[0]->dwWidth, (uint32_t)params->pTarget[0]->rcSrc.right),
+        MOS_MIN(params->pTarget[0]->dwHeight, (uint32_t)params->pTarget[0]->rcSrc.bottom)));
+
+    // Disable DN when vesfc scalability was enabled for output mismatch issue
+    if (IsMultiple())
+    {
+        if (params->pSrc[0]->pDenoiseParams)
         {
-            if (params->pSrc[0]->pDenoiseParams)
-            {
-                params->pSrc[0]->pDenoiseParams->bAutoDetect   = false;
-                params->pSrc[0]->pDenoiseParams->bEnableChroma = false;
-                params->pSrc[0]->pDenoiseParams->bEnableLuma   = false;
-            }
+            params->pSrc[0]->pDenoiseParams->bAutoDetect   = false;
+            params->pSrc[0]->pDenoiseParams->bEnableChroma = false;
+            params->pSrc[0]->pDenoiseParams->bEnableLuma   = false;
         }
     }
 
@@ -1128,6 +1172,13 @@ MOS_STATUS VpPipeline::Prepare(void * params)
                 VP_PUBLIC_CHK_STATUS_RETURN(eStatus);
             }
         }
+    }
+    else if (PIPELINE_PARAM_TYPE_MEDIA_SFC_INTERFACE == m_pvpParams.type)
+    {
+        VEBOX_SFC_PARAMS *sfcParams = m_pvpParams.sfcParams;
+        VP_PUBLIC_CHK_NULL_RETURN(sfcParams);
+
+        VP_PUBLIC_CHK_STATUS_RETURN(PrepareVpPipelineScalabilityParams(sfcParams));
     }
 
     return MOS_STATUS_SUCCESS;

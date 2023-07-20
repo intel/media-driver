@@ -210,7 +210,26 @@ protected:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
+    virtual MOS_STATUS PrepareVpPipelineScalabilityParams(VEBOX_SFC_PARAMS* params);
+
+
+    //!
+    //! \brief  prepare execution params for vp scalability pipeline
+    //! \param  [in] params
+    //!         Pointer to VP scalability pipeline params
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
     virtual MOS_STATUS PrepareVpPipelineScalabilityParams(PVP_PIPELINE_PARAMS params);
+
+    //!
+    //! \brief  prepare execution params for vp scalability pipeline
+    //! \param  [in] params
+    //!         src and dst surface's width and height
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS PrepareVpPipelineScalabilityParams(uint32_t srcWidth, uint32_t srcHeight, uint32_t dstWidth, uint32_t dstHeight);
 
     //!
     //! \brief  Execute Vp Pipeline, and generate VP Filters
