@@ -29,6 +29,8 @@
 #include "vphal_debug.h"
 #include "vp_utils.h"
 
+#define DECOMPRESSION_WIDTH_ALIGNMENT_IN_BYTE 32
+
 MediaVeboxDecompState::MediaVeboxDecompState():
     MediaMemDecompBaseState(),
     m_osInterface(nullptr),
@@ -663,7 +665,32 @@ MOS_STATUS MediaVeboxDecompState::GetResourceInfo(PMOS_SURFACE surface)
         &resDetails));
 
     surface->Format                                             = resDetails.Format;
+#if defined(LINUX) && !defined(WDDM_LINUX)
+    if ((surface->Format == Format_NV12 || surface->Format == Format_P010) && surface->OsResource.iWidth & 1 != 0)
+    {
+	uint32_t bitsPerPixel = 8;
+        if (surface->Format == Format_P010)
+        {
+            bitsPerPixel = 16;
+        }
+        uint32_t alignWidth = MOS_ALIGN_CEIL(resDetails.dwWidth, DECOMPRESSION_WIDTH_ALIGNMENT_IN_BYTE*8/bitsPerPixel);
+        if (alignWidth <= resDetails.dwPitch*8/bitsPerPixel)
+        {
+            surface->dwWidth = alignWidth;
+        }
+        else
+        {
+            VPHAL_MEMORY_DECOMP_ASSERTMESSAGE("May got green line corruption.");
+            surface->dwWidth = resDetails.dwWidth;
+        }
+    }
+    else
+    {
+        surface->dwWidth                                        = resDetails.dwWidth;
+    }
+#else
     surface->dwWidth                                            = resDetails.dwWidth;
+#endif
     surface->dwHeight                                           = resDetails.dwHeight;
     surface->dwPitch                                            = resDetails.dwPitch;
     surface->dwDepth                                            = resDetails.dwDepth;

@@ -5192,7 +5192,7 @@ VAStatus SwizzleSurface(PDDI_MEDIA_CONTEXT mediaCtx, PGMM_RESOURCE_INFO pGmmResI
 
     memset(&gmmResCopyBlt, 0x0, sizeof(GMM_RES_COPY_BLT));
     uiPicHeight = pGmmResInfo->GetBaseHeight();
-    uiSize = pGmmResInfo->GetSizeSurface();
+    uiSize = pGmmResInfo->GetSizeMainSurface();
     uiPitch = pGmmResInfo->GetRenderPitch();
     gmmResCopyBlt.Gpu.pData = pLockedAddr;
     gmmResCopyBlt.Sys.pData = pResourceBase;

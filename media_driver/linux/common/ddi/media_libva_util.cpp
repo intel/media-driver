@@ -526,11 +526,11 @@ VAStatus DdiMediaUtil_AllocateSurface(
         uint32_t uiPlanesOrAuxPlanes = mediaSurface->pSurfDesc->uiPlanes;
         if(bMemCompEnable)
         {
-            uiPlanesOrAuxPlanes = mediaSurface->pSurfDesc->uiPlanes/2;
             gmmCustomParams.AuxSurf.BaseAlignment = {0};
-            gmmCustomParams.Size = (uiPlanesOrAuxPlanes == 1) ? mediaSurface->pSurfDesc->uiOffsets[1]:mediaSurface->pSurfDesc->uiOffsets[2];
+            gmmCustomParams.NoOfPlanes = mediaSurface->pSurfDesc->uiPlanes/2;
+            gmmCustomParams.Size = (gmmCustomParams.NoOfPlanes == 1) ? mediaSurface->pSurfDesc->uiOffsets[1]:mediaSurface->pSurfDesc->uiOffsets[2];
         }
-        switch(uiPlanesOrAuxPlanes)
+        switch(gmmCustomParams.NoOfPlanes)
         {
             case 1:
                 gmmCustomParams.PlaneOffset.X[GMM_PLANE_Y] = 0;
