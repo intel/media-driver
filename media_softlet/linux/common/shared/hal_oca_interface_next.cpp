@@ -586,6 +586,10 @@ void HalOcaInterfaceNext::DumpCpParam(MosOcaInterface &ocaInterface, MOS_OCA_BUF
 {
 }
 
+void HalOcaInterfaceNext::DumpCpIoMsg(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT_HANDLE mosContext, void *pCpDumper, int type)
+{
+}
+
 void HalOcaInterfaceNext::OnOcaError(MOS_CONTEXT_HANDLE mosCtx, MOS_STATUS status, const char *functionName, uint32_t lineNumber)
 {
     MosOcaInterfaceSpecific::OnOcaError((PMOS_CONTEXT)mosCtx, status, functionName, lineNumber);
