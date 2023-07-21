@@ -269,6 +269,7 @@ MOS_STATUS MediaSfcRender::Initialize()
     m_vpPlatformInterface->SetMhwVeboxItf(m_veboxItf);
     m_vpPlatformInterface->SetMhwMiItf(m_miItf);
     m_vpMhwinterface->m_vpPlatformInterface = m_vpPlatformInterface;
+    m_vpMhwinterface->m_bIsMediaSfcInterfaceInUse = true;
 
     if (m_mode.veboxSfcEnabled)
     {
