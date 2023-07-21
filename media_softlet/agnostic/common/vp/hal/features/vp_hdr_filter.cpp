@@ -57,6 +57,17 @@ MOS_STATUS VpHdrFilter::Destroy()
     return MOS_STATUS_SUCCESS;
 }
 
+void _RENDER_HDR_3DLUT_CAL_PARAMS::Init()
+{
+    maxDisplayLum      = 0;      
+    maxContentLevelLum = 0;
+    hdrMode            = VPHAL_HDR_MODE_NONE;
+    kernelId           = kernelCombinedFc;
+    threadWidth        = 0;
+    threadHeight       = 0;
+    kernelArgs.clear();
+}
+
 MOS_STATUS VpHdrFilter::SetExecuteEngineCaps(
         SwFilterPipe    *executedPipe,
         VP_EXECUTE_CAPS vpExecuteCaps)
@@ -89,7 +100,7 @@ MOS_STATUS VpHdrFilter::CalculateEngineParams(
     else if (vpExecuteCaps.bRender && HDR_STAGE_3DLUT_KERNEL == hdrParams.stage)
     {
         // create a filter Param buffer
-        m_renderHdr3DLutParams                     = {};
+        m_renderHdr3DLutParams.Init();
         m_renderHdr3DLutParams.maxDisplayLum       = hdrParams.uiMaxDisplayLum;
         m_renderHdr3DLutParams.maxContentLevelLum  = hdrParams.uiMaxContentLevelLum;
         m_renderHdr3DLutParams.hdrMode             = hdrParams.hdrMode;

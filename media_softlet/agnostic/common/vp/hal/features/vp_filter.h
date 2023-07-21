@@ -351,6 +351,7 @@ struct _RENDER_HDR_3DLUT_CAL_PARAMS
     uint32_t                        threadWidth;
     uint32_t                        threadHeight;
     KERNEL_ARGS                     kernelArgs;
+    void                            Init();
 };
 
 using RENDER_HDR_3DLUT_CAL_PARAMS  = _RENDER_HDR_3DLUT_CAL_PARAMS;
