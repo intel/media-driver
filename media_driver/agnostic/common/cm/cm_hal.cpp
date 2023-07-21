@@ -10533,7 +10533,6 @@ MOS_STATUS HalCm_Create(
         mhwInterfaces = MhwInterfaces::CreateFactory(params, state->osInterface);
         if (mhwInterfaces)
         {
-            CM_CHK_NULL_GOTOFINISH_MOSERROR(mhwInterfaces->m_veboxInterface);
             state->veboxInterface = mhwInterfaces->m_veboxInterface;
 
             // MhwInterfaces always create CP and MI interfaces, so we have to delete those we don't need.
@@ -10541,6 +10540,7 @@ MOS_STATUS HalCm_Create(
             state->osInterface->pfnDeleteMhwCpInterface(mhwInterfaces->m_cpInterface);
             mhwInterfaces->m_cpInterface = nullptr;
             MOS_Delete(mhwInterfaces);
+            CM_CHK_NULL_GOTOFINISH_MOSERROR(state->veboxInterface);
         }
         else
         {
