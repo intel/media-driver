@@ -219,6 +219,7 @@ VpUserFeatureControl::VpUserFeatureControl(MOS_INTERFACE &osInterface, VpPlatfor
     if (m_vpPlatformInterface)
     {
         m_ctrlValDefault.eufusionBypassWaEnabled = m_vpPlatformInterface->IsEufusionBypassWaEnabled();
+        m_ctrlValDefault.decompForInterlacedSurfWaEnabled = m_vpPlatformInterface->IsDecompForInterlacedSurfWaEnabled();
     }
     else
     {
@@ -226,6 +227,7 @@ VpUserFeatureControl::VpUserFeatureControl(MOS_INTERFACE &osInterface, VpPlatfor
         VP_PUBLIC_ASSERTMESSAGE("m_vpPlatformInterface == nullptr");
     }
     VP_PUBLIC_NORMALMESSAGE("eufusionBypassWaEnabled %d", m_ctrlValDefault.eufusionBypassWaEnabled);
+    VP_PUBLIC_NORMALMESSAGE("decompForInterlacedSurfWaEnabled %d", m_ctrlValDefault.decompForInterlacedSurfWaEnabled);
 
     MT_LOG3(MT_VP_USERFEATURE_CTRL, MT_NORMAL, MT_VP_UF_CTRL_DISABLE_VEOUT, m_ctrlValDefault.disableVeboxOutput,
         MT_VP_UF_CTRL_DISABLE_SFC, m_ctrlValDefault.disableSfc, MT_VP_UF_CTRL_CCS, m_ctrlValDefault.computeContextEnabled);

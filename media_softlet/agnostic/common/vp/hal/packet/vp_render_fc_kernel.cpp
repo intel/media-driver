@@ -272,24 +272,29 @@ MOS_STATUS VpRenderFcKernel::SetupSurfaceState()
             return MOS_STATUS_INVALID_PARAMETER;
         }
 
-        auto                          decompressionSycSurfaceID = m_surfaceGroup->find(SurfaceTypeDecompressionSync);
-        VP_SURFACE                   *pDecompressionSycSurface = (m_surfaceGroup->end() != decompressionSycSurfaceID) ? decompressionSycSurfaceID->second : nullptr;
-        auto        pSrcID       = m_surfaceGroup->find(SurfaceType(SurfaceTypeFcInputLayer0 + i));
-        VP_SURFACE                   *pSrc         = (m_surfaceGroup->end() != pSrcID) ? pSrcID->second : nullptr;
-        // Interlaced surface in the compression mode needs to decompress
-        if (pDecompressionSycSurface && pSrc && pSrc->SampleType != SAMPLE_PROGRESSIVE && (pSrc->osSurface->CompressionMode == MOS_MMC_MC || pSrc->osSurface->CompressionMode == MOS_MMC_RC))
-        {
-            VP_RENDER_CHK_STATUS_RETURN(m_hwInterface->m_osInterface->pfnSetDecompSyncRes(m_hwInterface->m_osInterface, &pDecompressionSycSurface->osSurface->OsResource))
-            VP_RENDER_CHK_STATUS_RETURN(m_hwInterface->m_osInterface->pfnDecompResource(m_hwInterface->m_osInterface, &pSrc->osSurface->OsResource));
-            VP_RENDER_CHK_STATUS_RETURN(m_hwInterface->m_osInterface->pfnSetDecompSyncRes(m_hwInterface->m_osInterface, nullptr));
-            VP_RENDER_CHK_STATUS_RETURN(m_hwInterface->m_osInterface->pfnRegisterResource(m_hwInterface->m_osInterface, &pDecompressionSycSurface->osSurface->OsResource, true, true));
+        VpUserFeatureControl *userFeatureControl = m_hwInterface->m_userFeatureControl;
 
-            MOS_SURFACE osSurface = {};
-            VP_RENDER_CHK_STATUS_RETURN(m_hwInterface->m_osInterface->pfnGetResourceInfo(m_hwInterface->m_osInterface, &pSrc->osSurface->OsResource, &osSurface));
-            pSrc->osSurface->bIsCompressed     = osSurface.bIsCompressed;
-            pSrc->osSurface->CompressionMode   = osSurface.CompressionMode;
-            pSrc->osSurface->CompressionFormat = osSurface.CompressionFormat;
-            pSrc->osSurface->MmcState          = osSurface.MmcState;
+        if (nullptr != userFeatureControl && userFeatureControl->IsDecompForInterlacedSurfWaEnabled())
+        {
+            auto        decompressionSycSurfaceID = m_surfaceGroup->find(SurfaceTypeDecompressionSync);
+            VP_SURFACE *pDecompressionSycSurface  = (m_surfaceGroup->end() != decompressionSycSurfaceID) ? decompressionSycSurfaceID->second : nullptr;
+            auto        pSrcID                    = m_surfaceGroup->find(SurfaceType(SurfaceTypeFcInputLayer0 + i));
+            VP_SURFACE *pSrc                      = (m_surfaceGroup->end() != pSrcID) ? pSrcID->second : nullptr;
+            // Interlaced surface in the compression mode needs to decompress
+            if (pDecompressionSycSurface && pSrc && pSrc->SampleType != SAMPLE_PROGRESSIVE && (pSrc->osSurface->CompressionMode == MOS_MMC_MC || pSrc->osSurface->CompressionMode == MOS_MMC_RC))
+            {
+                VP_RENDER_CHK_STATUS_RETURN(m_hwInterface->m_osInterface->pfnSetDecompSyncRes(m_hwInterface->m_osInterface, &pDecompressionSycSurface->osSurface->OsResource))
+                VP_RENDER_CHK_STATUS_RETURN(m_hwInterface->m_osInterface->pfnDecompResource(m_hwInterface->m_osInterface, &pSrc->osSurface->OsResource));
+                VP_RENDER_CHK_STATUS_RETURN(m_hwInterface->m_osInterface->pfnSetDecompSyncRes(m_hwInterface->m_osInterface, nullptr));
+                VP_RENDER_CHK_STATUS_RETURN(m_hwInterface->m_osInterface->pfnRegisterResource(m_hwInterface->m_osInterface, &pDecompressionSycSurface->osSurface->OsResource, true, true));
+
+                MOS_SURFACE osSurface = {};
+                VP_RENDER_CHK_STATUS_RETURN(m_hwInterface->m_osInterface->pfnGetResourceInfo(m_hwInterface->m_osInterface, &pSrc->osSurface->OsResource, &osSurface));
+                pSrc->osSurface->bIsCompressed     = osSurface.bIsCompressed;
+                pSrc->osSurface->CompressionMode   = osSurface.CompressionMode;
+                pSrc->osSurface->CompressionFormat = osSurface.CompressionFormat;
+                pSrc->osSurface->MmcState          = osSurface.MmcState;
+            }
         }
 
         surfParam.surfaceOverwriteParams.bindIndex = s_bindingTableIndex[layer->layerID];

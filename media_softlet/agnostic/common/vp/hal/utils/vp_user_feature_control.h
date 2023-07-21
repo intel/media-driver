@@ -66,6 +66,7 @@ public:
         bool               disableAutoMode    = false;
         bool               clearVideoViewMode = false;
         uint32_t           splitFramePortions = 1;
+        bool               decompForInterlacedSurfWaEnabled = false;
     };
 
 #if (_DEBUG || _RELEASE_INTERNAL)
@@ -157,6 +158,11 @@ public:
     bool IsClearVideoViewMode()
     {
         return m_ctrlVal.clearVideoViewMode;
+    }
+
+    bool IsDecompForInterlacedSurfWaEnabled()
+    {
+        return m_ctrlVal.decompForInterlacedSurfWaEnabled;
     }
 
     MOS_STATUS SetClearVideoViewMode(bool mode)
