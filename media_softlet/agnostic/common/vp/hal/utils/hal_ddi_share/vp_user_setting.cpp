@@ -295,6 +295,13 @@ MOS_STATUS VpUserSetting::InitVpUserSetting(MediaUserSettingSharedPtr userSettin
             MediaUserSetting::Group::Sequence,
             0,
             true);
+
+       DeclareUserSettingKey(  // Enable HDR 3DLut table caculate by CPU. 1: enabled, 0: disabled.
+            userSettingPtr,
+            __VPHAL_HDR_3DLUT_CPU_PATH,
+            MediaUserSetting::Group::Sequence,
+            0,
+            true);
 #endif
     }
 
