@@ -208,27 +208,27 @@ MOS_STATUS Mpeg2Pipeline::DumpPicParams(
         return MOS_STATUS_SUCCESS;
     }
 
-    if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrPicParams))
-    {
+    // if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrPicParams))
+    // {
         const char *fileName = m_debugInterface->CreateFileName(
             "_DEC",
             CodechalDbgBufferType::bufPicParams,
             CodechalDbgExtType::txt);
 
-        if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrEnableFastDump))
-        {
-            MediaDebugFastDump::Dump(
-                (uint8_t *)picParams,
-                fileName,
-                sizeof(CodecDecodeMpeg2PicParams),
-                0,
-                MediaDebugSerializer<CodecDecodeMpeg2PicParams>());
-        }
-        else
-        {
+        // if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrEnableFastDump))
+        // {
+        //     MediaDebugFastDump::Dump(
+        //         (uint8_t *)picParams,
+        //         fileName,
+        //         sizeof(CodecDecodeMpeg2PicParams),
+        //         0,
+        //         MediaDebugSerializer<CodecDecodeMpeg2PicParams>());
+        // }
+        // else
+        // {
             DumpDecodeMpeg2PicParams(picParams, fileName);
-        }
-    }
+       // }
+   // }
 
     return MOS_STATUS_SUCCESS;
 }
@@ -244,8 +244,8 @@ MOS_STATUS Mpeg2Pipeline::DumpSliceParams(
         return MOS_STATUS_SUCCESS;
     }
 
-    if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrSlcParams))
-    {
+    // if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrSlcParams))
+    // {
         const char *fileName = m_debugInterface->CreateFileName(
             "_DEC",
             CodechalDbgBufferType::bufSlcParams,
@@ -264,7 +264,7 @@ MOS_STATUS Mpeg2Pipeline::DumpSliceParams(
         {
             DumpDecodeMpeg2SliceParams(sliceParams, numSlices, fileName);
         }
-    }
+   // }
 
     return MOS_STATUS_SUCCESS;
 }
@@ -280,8 +280,8 @@ MOS_STATUS Mpeg2Pipeline::DumpMbParams(
         return MOS_STATUS_SUCCESS;
     }
 
-    if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrMbParams))
-    {
+    // if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrMbParams))
+    // {
         const char *fileName = m_debugInterface->CreateFileName(
             "_DEC",
             CodechalDbgBufferType::bufMbParams,
@@ -300,7 +300,7 @@ MOS_STATUS Mpeg2Pipeline::DumpMbParams(
         {
             DumpDecodeMpeg2MbParams(mbParams, numMbs, fileName);
         }
-    }
+   // }
 
     return MOS_STATUS_SUCCESS;
 }
@@ -315,8 +315,8 @@ MOS_STATUS Mpeg2Pipeline::DumpIQParams(
         return MOS_STATUS_SUCCESS;
     }
 
-    if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrIqParams))
-    {
+    // if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrIqParams))
+    // {
         const char *fileName = m_debugInterface->CreateFileName(
             "_DEC",
             CodechalDbgBufferType::bufIqParams,
@@ -335,7 +335,7 @@ MOS_STATUS Mpeg2Pipeline::DumpIQParams(
         {
             DumpDecodeMpeg2IqParams(iqParams, fileName);
         }
-    }
+   // }
         
     return MOS_STATUS_SUCCESS;
 }

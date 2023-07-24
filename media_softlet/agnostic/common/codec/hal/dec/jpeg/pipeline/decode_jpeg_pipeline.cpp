@@ -103,7 +103,7 @@ MOS_STATUS JpegPipeline::ActivateDecodePackets()
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS JpegPipeline::CreateFeatureManager() 
+MOS_STATUS JpegPipeline::CreateFeatureManager()
 {
     DECODE_FUNC_CALL();
     m_featureManager = MOS_New(DecodeJpegFeatureManager, m_allocator, m_hwInterface, m_osInterface);
@@ -137,27 +137,27 @@ MOS_STATUS JpegPipeline::DumpPicParams(
         return MOS_STATUS_SUCCESS;
     }
 
-    if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrPicParams))
-    {
+    // if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrPicParams))
+    // {
         const char *fileName = m_debugInterface->CreateFileName(
             "_DEC",
             CodechalDbgBufferType::bufPicParams,
             CodechalDbgExtType::txt);
 
-        if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrEnableFastDump))
-        {
-            MediaDebugFastDump::Dump(
-                (uint8_t *)picParams,
-                fileName,
-                sizeof(CodecDecodeJpegPicParams),
-                0,
-                MediaDebugSerializer<CodecDecodeJpegPicParams>());
-        }
-        else
-        {
+        // if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrEnableFastDump))
+        // {
+        //     MediaDebugFastDump::Dump(
+        //         (uint8_t *)picParams,
+        //         fileName,
+        //         sizeof(CodecDecodeJpegPicParams),
+        //         0,
+        //         MediaDebugSerializer<CodecDecodeJpegPicParams>());
+        // }
+        // else
+        //
             DumpDecodeJpegPicParams(picParams, fileName);
-        }
-    }
+        //}
+  //  }
 
     return MOS_STATUS_SUCCESS;
 }
@@ -172,8 +172,8 @@ MOS_STATUS JpegPipeline::DumpScanParams(
         return MOS_STATUS_SUCCESS;
     }
 
-    if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrScanParams))
-    {
+    // if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrScanParams))
+    // {
         const char *fileName = m_debugInterface->CreateFileName(
             "_DEC",
             CodechalDbgBufferType::bufScanParams,
@@ -192,7 +192,7 @@ MOS_STATUS JpegPipeline::DumpScanParams(
         {
             DumpDecodeJpegScanParams(scanParams, fileName);
         }
-    }
+   // }
 
     return MOS_STATUS_SUCCESS;
 }
@@ -207,8 +207,8 @@ MOS_STATUS JpegPipeline::DumpHuffmanTable(
         return MOS_STATUS_SUCCESS;
     }
 
-    if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrHuffmanTbl))
-    {
+    // if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrHuffmanTbl))
+    // {
         const char *fileName = m_debugInterface->CreateFileName(
             "_DEC",
             CodechalDbgBufferType::bufHuffmanTbl,
@@ -227,8 +227,8 @@ MOS_STATUS JpegPipeline::DumpHuffmanTable(
         {
             DumpDecodeJpegHuffmanParams(huffmanTable, fileName);
         }
-    }
-    
+  //  }
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -241,8 +241,8 @@ MOS_STATUS JpegPipeline::DumpIQParams(CodecJpegQuantMatrix *iqParams)
         return MOS_STATUS_SUCCESS;
     }
 
-    if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrIqParams))
-    {
+    // if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrIqParams))
+    // {
         const char *fileName = m_debugInterface->CreateFileName(
             "_DEC",
             CodechalDbgBufferType::bufIqParams,
@@ -261,7 +261,7 @@ MOS_STATUS JpegPipeline::DumpIQParams(CodecJpegQuantMatrix *iqParams)
         {
             DumpDecodeJpegIqParams(iqParams, fileName);
         }
-    }
+   // }
 
     return MOS_STATUS_SUCCESS;
 }

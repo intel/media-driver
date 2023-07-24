@@ -2334,24 +2334,24 @@ CodechalDebugInterface::CodechalDebugInterface()
             return MOS_STATUS_SUCCESS;
         }
 
-        if (attrName)
-        {
-            bool attrEnabled = false;
+        // if (attrName)
+        // {
+        //     bool attrEnabled = false;
 
-            if (mediaState == CODECHAL_NUM_MEDIA_STATES)
-            {
-                attrEnabled = m_configMgr->AttrIsEnabled(attrName);
-            }
-            else
-            {
-                attrEnabled = static_cast<CodecDebugConfigMgr *>(m_configMgr)->AttrIsEnabled(mediaState, attrName);
-            }
+        //     if (mediaState == CODECHAL_NUM_MEDIA_STATES)
+        //     {
+        //         attrEnabled = m_configMgr->AttrIsEnabled(attrName);
+        //     }
+        //     else
+        //     {
+        //         attrEnabled = static_cast<CodecDebugConfigMgr *>(m_configMgr)->AttrIsEnabled(mediaState, attrName);
+        //     }
 
-            if (!attrEnabled)
-            {
-                return MOS_STATUS_SUCCESS;
-            }
-        }
+        //     if (!attrEnabled)
+        //     {
+        //         return MOS_STATUS_SUCCESS;
+        //     }
+        // }
 
         const char *fileName;
         bool        binaryDump = false;
@@ -2363,6 +2363,7 @@ CodechalDebugInterface::CodechalDebugInterface()
         {
             binaryDump = true;
         }
+        
         const char *extType = binaryDump ? MediaDbgExtType::dat : MediaDbgExtType::txt;
 
         if (mediaState == CODECHAL_NUM_MEDIA_STATES)
