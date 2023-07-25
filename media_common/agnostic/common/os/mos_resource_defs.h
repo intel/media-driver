@@ -306,7 +306,6 @@ C_ASSERT(Format_Count == 104); //!< When adding, update assert & vphal_solo_scen
               (format == Format_YVYU) || \
               (format == Format_UYVY) || \
               (format == Format_VYUY) || \
-              (format == Format_AYUV) || \
               (format == Format_Y210) || \
               (format == Format_Y216) || \
               (format == Format_Y410) || \
