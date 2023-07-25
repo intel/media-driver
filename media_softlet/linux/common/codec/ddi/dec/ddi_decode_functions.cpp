@@ -1170,25 +1170,32 @@ VAStatus DdiDecodeFunctions::QuerySurfaceError(
                surface->curStatusReport.decode.status == CODECHAL_STATUS_RESET)
             {
                 surfaceErrors[1].status            = -1;
-                surfaceErrors[0].status            = (surface->curStatusReport.decode.status == CODECHAL_STATUS_RESET) ? VA_STATUS_ERROR_HW_BUSY : 2;
+                surfaceErrors[0].status            = 1;
                 surfaceErrors[0].start_mb          = 0;
                 surfaceErrors[0].end_mb            = 0;
                 surfaceErrors[0].num_mb            = surface->curStatusReport.decode.errMbNum;
+#if VA_CHECK_VERSION(1, 20, 0)
+                surfaceErrors[0].decode_error_type = (surface->curStatusReport.decode.status == CODECHAL_STATUS_RESET) ? VADecodeReset : VADecodeMBError;
+#else
                 surfaceErrors[0].decode_error_type = VADecodeMBError;
+#endif
                 *errorInfo = surfaceErrors;
                 MosUtilities::MosUnlockMutex(&mediaCtx->SurfaceMutex);
                 return VA_STATUS_SUCCESS;
             }
+#if VA_CHECK_VERSION(1, 20, 0)
             else if (surface->curStatusReport.decode.status == CODECHAL_STATUS_INCOMPLETE  ||
                      surface->curStatusReport.decode.status == CODECHAL_STATUS_UNAVAILABLE)
             {
                 MOS_ZeroMemory(&surfaceErrors[0], sizeof(VASurfaceDecodeMBErrors));
                 surfaceErrors[1].status            = -1;
-                surfaceErrors[0].status            = VA_STATUS_ERROR_HW_BUSY;
+                surfaceErrors[0].status            = 1;
+                surfaceErrors[0].decode_error_type = VADecodeReset;
                 *errorInfo                         = surfaceErrors;
                 MosUtilities::MosUnlockMutex(&mediaCtx->SurfaceMutex);
                 return VA_STATUS_SUCCESS;
             }
+#endif
         }
 
         if (errorStatus == -1 && surface->curCtxType == DDI_MEDIA_CONTEXT_TYPE_DECODER)
