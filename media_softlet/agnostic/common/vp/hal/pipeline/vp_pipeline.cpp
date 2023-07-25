@@ -1104,7 +1104,7 @@ MOS_STATUS VpPipeline::PrepareVpPipelineScalabilityParams(PVP_PIPELINE_PARAMS pa
 {
     VP_FUNC_CALL();
     VP_PUBLIC_CHK_NULL_RETURN(params);
-    if (params->pSrc == nullptr || params->pSrc[0] == nullptr)
+    if (params->pSrc[0] == nullptr)
     {
         VP_PUBLIC_NORMALMESSAGE("No input will not need scalability! ");
         return MOS_STATUS_SUCCESS;
