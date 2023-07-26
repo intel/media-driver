@@ -41,7 +41,7 @@
 //! \def MOS_CHK_STATUS_MESSAGE_RETURN_WH_OP(_compID, _subCompID, _stmt, _ptr, _freeFunc, _message, ...)
 //!  Check MOS_STATUS \a _stmt, assert and return an error for failure, and print message, and delete given ptr
 //!
-#define MOS_CHK_STATUS_MESSAGE_RETURN_WH_OP(_compID, _subCompID, _stmt, _ptr, _freeFunc, _message, ...)\
+#define MOS_CHK_STATUS_MESSAGE_RETURN_VALUE_WH_OP(_compID, _subCompID, _stmt, _ptr, _freeFunc, _retVal, _message, ...)\
 {                                                                               \
     MOS_STATUS stmtStatus = (MOS_STATUS)(_stmt);                                \
     if (stmtStatus != MOS_STATUS_SUCCESS)                                       \
@@ -50,7 +50,7 @@
             _freeFunc(_ptr);                                                    \
         MOS_ASSERTMESSAGE(_compID, _subCompID, _message, ##__VA_ARGS__);        \
         MT_ERR3(MT_ERR_MOS_STATUS_CHECK, MT_COMPONENT, _compID, MT_SUB_COMPONENT, _subCompID, MT_ERROR_CODE, stmtStatus); \
-        return stmtStatus;                                                      \
+        return _retVal;                                                         \
     }                                                                           \
 }
 
@@ -115,7 +115,14 @@
 //!  MOS_CHK_STATUS \a _stmt with MOS utility comp/subcomp info
 //!
 #define MOS_DRM_CHK_STATUS_MESSAGE_RETURN_WH_OP(_stmt, _ptr, _freeFunc, _message, ...)                                  \
-    MOS_CHK_STATUS_MESSAGE_RETURN_WH_OP(MOS_COMPONENT_OS, MOS_SUBCOMP_EXT, _stmt, _ptr, _freeFunc, _message, ##__VA_ARGS__)
+    MOS_CHK_STATUS_MESSAGE_RETURN_VALUE_WH_OP(MOS_COMPONENT_OS, MOS_SUBCOMP_EXT, _stmt, _ptr, _freeFunc, _stmt, _message, ##__VA_ARGS__)
+
+//!
+//! \def MOS_DRM_CHK_STATUS_MESSAGE_RETURN_VALUE_WH_OP(_stmt, _ptr, _freeFunc, _retVal, _message, ...)
+//!  MOS_CHK_STATUS \a _stmt with MOS utility comp/subcomp info
+//!
+#define MOS_DRM_CHK_STATUS_MESSAGE_RETURN_VALUE_WH_OP(_stmt, _ptr, _freeFunc, _retVal, _message, ...)                                  \
+    MOS_CHK_STATUS_MESSAGE_RETURN_VALUE_WH_OP(MOS_COMPONENT_OS, MOS_SUBCOMP_EXT, _stmt, _ptr, _freeFunc, _retVal, _message, ##__VA_ARGS__)
 
 //!
 //! \def MOS_DRM_ASSERTMESSAGE(_message, ...)
