@@ -266,7 +266,16 @@ VAStatus DdiDecodeJPEG::ParseHuffmanTbl(
             //the size of jpegHuffTbl->HuffTable[i].DC_BITS is 12 (defined in driver)
             //the size of huffmanTbl->huffman_table[i].num_dc_codes is 16 (defined in libva)
             //it is using the size of "DC_BITS" for solve the overflow
-            MOS_SecureMemcpy(jpegHuffTbl->HuffTable[i].DC_BITS,
+
+            if(i == 1)
+            {
+                memset(jpegHuffTbl->HuffTable[i].DC_BITS,0,sizeof(jpegHuffTbl->HuffTable[i].DC_BITS));
+                memset(jpegHuffTbl->HuffTable[i].DC_HUFFVAL,0,sizeof(jpegHuffTbl->HuffTable[i].DC_HUFFVAL));
+                memset(jpegHuffTbl->HuffTable[i].AC_BITS,0,sizeof(jpegHuffTbl->HuffTable[i].AC_BITS));
+                memset(jpegHuffTbl->HuffTable[i].AC_HUFFVAL,0,sizeof(jpegHuffTbl->HuffTable[i].AC_HUFFVAL));        
+                }
+            else{
+             MOS_SecureMemcpy(jpegHuffTbl->HuffTable[i].DC_BITS,
                 sizeof(jpegHuffTbl->HuffTable[i].DC_BITS),
                 huffmanTbl->huffman_table[i].num_dc_codes,
                 sizeof(jpegHuffTbl->HuffTable[i].DC_BITS));
@@ -282,6 +291,9 @@ VAStatus DdiDecodeJPEG::ParseHuffmanTbl(
                 sizeof(jpegHuffTbl->HuffTable[i].AC_HUFFVAL),
                 huffmanTbl->huffman_table[i].ac_values,
                 sizeof(huffmanTbl->huffman_table[i].ac_values));
+
+            }
+            
         }
     }
 

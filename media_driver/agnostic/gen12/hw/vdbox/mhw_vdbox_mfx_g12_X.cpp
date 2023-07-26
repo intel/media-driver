@@ -789,6 +789,10 @@ MOS_STATUS MhwVdboxMfxInterfaceG12::AddMfxSurfaceCmd(
             MOS_ALIGN_CEIL((params->psSurface->VPlaneOffset.iSurfaceOffset -params->psSurface->dwOffset)/params->psSurface->dwPitch + params->psSurface->RenderOffset.YUV.V.YOffset, uvPlaneAlignment);
     }
 
+    //??for debug 
+cmd.DW3.SurfaceFormat = 0;
+cmd.DW5.YOffsetForVCr = 192;
+
     MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
     return eStatus;
@@ -1971,6 +1975,9 @@ MOS_STATUS MhwVdboxMfxInterfaceG12::AddMfxJpegPicCmd(
             cmd.DW1.Obj1.VerticalUpSamplingEnable = 1;
         }
     }
+//???for debug
+cmd.DW1.Obj1.OutputFormatYuv = MHW_VDBOX_DECODE_JPEG_FORMAT_SEPARATE_PLANE;
+cmd.DW1.Obj1.HorizontalDownSamplingEnable = 0;
 
     cmd.DW2.Obj0.FrameWidthInBlocksMinus1 = params->dwWidthInBlocks;
     cmd.DW2.Obj0.FrameHeightInBlocksMinus1 = params->dwHeightInBlocks;
