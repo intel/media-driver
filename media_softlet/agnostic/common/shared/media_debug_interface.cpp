@@ -60,12 +60,12 @@ MediaDebugInterface::~MediaDebugInterface()
 MOS_STATUS MediaDebugInterface::InitDumpLocation()
 {
     m_crcGoldenRefFileName = m_outputFilePath + std::string("GoldenReference.txt");
-    if (m_configMgr->AttrIsEnabled(MediaDbgAttr::attrDumpToThreadFolder))
-    {
+    // if (m_configMgr->AttrIsEnabled(MediaDbgAttr::attrDumpToThreadFolder))
+    // {
         std::string ThreadSubFolder = "T" + std::to_string(MosUtilities::MosGetCurrentThreadId()) + MOS_DIRECTORY_DELIMITER;
         m_outputFilePath            = m_outputFilePath + ThreadSubFolder;
         MosUtilities::MosCreateDirectory(const_cast<char *>(m_outputFilePath.c_str()));
-    }
+    //}
 
     m_ddiFileName = m_outputFilePath + "ddi.par";
     std::ofstream ofs(m_ddiFileName, std::ios::out);

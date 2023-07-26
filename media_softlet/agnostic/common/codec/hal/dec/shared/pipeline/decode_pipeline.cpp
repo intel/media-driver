@@ -611,8 +611,10 @@ MOS_STATUS DecodePipeline::StatusCheck()
 #endif
 
     CODECHAL_DEBUG_TOOL(DECODE_CHK_STATUS(DelayForDumpOutput()));
-
+    
+MosUtilities::MosSleep(1000);
     uint32_t completedCount = m_statusReport->GetCompletedCount();
+   
     if (completedCount <= m_statusCheckCount)
     {
         DECODE_NORMALMESSAGE("Invalid status check count, completedCount = %d m_statusCheckCount =%d.", completedCount, m_statusCheckCount);
