@@ -1741,7 +1741,7 @@ protected:
             resourceParams.dwOffset        = 0;
             resourceParams.pdwCmd          = (cmd.OriginalUncompressedPictureSourceBufferAddress.DW0_1.Value);
             resourceParams.dwLocationInCmd = _MHW_CMD_DW_LOCATION(OriginalUncompressedPictureSourceBufferAddress);
-            resourceParams.bIsWritable     = true;
+            resourceParams.bIsWritable     = false;
 
             InitMocsParams(resourceParams, &cmd.OriginalUncompressedPictureSourceBufferAddressAttributes.DW0.Value, 1, 6);
 
@@ -1767,7 +1767,7 @@ protected:
             resourceParams.dwOffset        = 0;
             resourceParams.pdwCmd          = (cmd.DownscaledUncompressedPictureSourceBufferAddress.DW0_1.Value);
             resourceParams.dwLocationInCmd = _MHW_CMD_DW_LOCATION(DownscaledUncompressedPictureSourceBufferAddress);
-            resourceParams.bIsWritable     = true;
+            resourceParams.bIsWritable     = false;
 
             InitMocsParams(resourceParams, &cmd.DownscaledUncompressedPictureSourceBufferAddressAttributes.DW0.Value, 1, 6);
 
