@@ -435,7 +435,6 @@ VAStatus DdiEncodeAV1::ParsePicParams(DDI_MEDIA_CONTEXT *mediaCtx, void *ptr)
 
     PCODEC_AV1_ENCODE_PICTURE_PARAMS av1PicParams = (PCODEC_AV1_ENCODE_PICTURE_PARAMS)(m_encodeCtx->pPicParams);
     DDI_CODEC_CHK_NULL(av1PicParams, "nullptr av1PicParams", VA_STATUS_ERROR_INVALID_PARAMETER);
-    MOS_ZeroMemory(av1PicParams, sizeof(CODEC_AV1_ENCODE_PICTURE_PARAMS));
 
     av1PicParams->frame_width_minus1  = picParams->frame_width_minus_1;
     av1PicParams->frame_height_minus1 = picParams->frame_height_minus_1;
