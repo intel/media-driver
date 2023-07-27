@@ -649,7 +649,10 @@ VAStatus MediaLibvaUtilNext::GenerateGmmParamsForInternalSurface(
             }
             // For ARGB surface, always allocate it as tile4.
             // This is a WA for ExportSurfaceHandle because modifer for tile64 isn't defined.
-            if ((params.format == Media_Format_A8R8G8B8 || params.format == Media_Format_B10G10R10A2 || params.format == Media_Format_A8B8G8R8) && !MEDIA_IS_SKU(&mediaDrvCtx->SkuTable, FtrTileY))
+            if ((params.format == Media_Format_A8R8G8B8 || 
+                params.format == Media_Format_B10G10R10A2 || 
+                params.format == Media_Format_A8B8G8R8 ||
+                params.format == Media_Format_X8R8G8B8) && !MEDIA_IS_SKU(&mediaDrvCtx->SkuTable, FtrTileY))
             {
                 gmmParams.Flags.Info.Tile4 = true;
             }
