@@ -168,6 +168,8 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
          -Wno-missing-braces
          -Wno-overloaded-virtual
          -Wbitfield-constant-conversion
+         -Wno-extern-c-compat
+         -Wno-inconsistent-missing-override
         )
     list(REMOVE_ITEM MEDIA_COMPILER_FLAGS_COMMON
          -funswitch-loops
