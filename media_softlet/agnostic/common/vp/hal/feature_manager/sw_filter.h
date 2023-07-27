@@ -1012,6 +1012,7 @@ struct FeatureParamCsc : public FeatureParam
     {
         VPHAL_CSPACE    colorSpace      = CSpace_None;
         uint32_t        chromaSiting    = 0;
+        MOS_TILE_MODE_GMM tileMode      = MOS_TILE_4_GMM;
         bool operator == (const struct CSC_PARAMS &b)
         {
             return colorSpace == b.colorSpace && chromaSiting == b.chromaSiting;

@@ -172,6 +172,8 @@ MOS_STATUS SwFilterCsc::Configure(VP_PIPELINE_PARAMS &params, bool isInputSurf, 
     m_Params.formatOutput           = surfOutput->Format;
     m_Params.input.chromaSiting     = surfInput->ChromaSiting;
     m_Params.output.chromaSiting    = surfOutput->ChromaSiting;
+    m_Params.input.tileMode         = surfInput->TileModeGMM;
+    m_Params.output.tileMode        = surfOutput->TileModeGMM;
     // Alpha should be handled in input pipe to avoid alpha data lost from image.
     m_Params.pAlphaParams           = params.pCompAlpha;
     // formatForCUS will be set on demand in Policy::GetCSCExecutionCapsBT2020ToRGB.
@@ -207,6 +209,8 @@ MOS_STATUS SwFilterCsc::Configure(PVP_SURFACE surfInput, PVP_SURFACE surfOutput,
         m_Params.input.colorSpace = surfInput->ColorSpace;
         m_Params.output.colorSpace = surfInput->ColorSpace;
 
+        m_Params.input.tileMode  = surfInput->osSurface->TileModeGMM;
+        m_Params.output.tileMode = surfOutput->osSurface->TileModeGMM;
         m_Params.formatInput = surfInput->osSurface->Format;
         // formatForCUS will be set on demand in Policy::GetCSCExecutionCapsBT2020ToRGB.
         m_Params.formatforCUS = Format_None;
@@ -226,6 +230,8 @@ MOS_STATUS SwFilterCsc::Configure(PVP_SURFACE surfInput, PVP_SURFACE surfOutput,
         // Skip CSC and only for chroma sitting purpose
         m_Params.input.colorSpace = m_Params.output.colorSpace = surfInput->ColorSpace;
         m_Params.formatInput = m_Params.formatOutput = surfInput->osSurface->Format;
+        m_Params.input.tileMode                      = surfInput->osSurface->TileModeGMM;
+        m_Params.output.tileMode                     = surfOutput->osSurface->TileModeGMM;
         // formatForCUS will be set on demand in Policy::GetCSCExecutionCapsBT2020ToRGB.
         m_Params.formatforCUS                        = Format_None;
         m_Params.input.chromaSiting                  = surfInput->ChromaSiting;
@@ -258,6 +264,8 @@ MOS_STATUS SwFilterCsc::Configure(VEBOX_SFC_PARAMS &params)
     }
     m_Params.input.colorSpace       = params.input.colorSpace;
     m_Params.output.colorSpace      = params.output.colorSpace;
+    m_Params.input.tileMode         = params.input.surface->TileModeGMM;
+    m_Params.output.tileMode        = params.output.surface->TileModeGMM;
     m_Params.pIEFParams             = nullptr;
     m_Params.formatInput            = params.input.surface->Format;
     // formatForCUS will be set on demand in Policy::GetCSCExecutionCapsBT2020ToRGB.

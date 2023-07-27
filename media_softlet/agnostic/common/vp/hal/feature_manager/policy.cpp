@@ -1051,7 +1051,8 @@ MOS_STATUS Policy::GetCSCExecutionCaps(SwFilter* feature)
     // SFC CSC enabling check
     if (!disableSfc                                                    &&
         m_hwCaps.m_sfcHwEntry[cscParams->formatInput].inputSupported   &&
-        m_hwCaps.m_sfcHwEntry[cscParams->formatOutput].outputSupported &&
+        (m_hwCaps.m_sfcHwEntry[cscParams->formatOutput].outputSupported & 
+            VpGetFormatTileSupport(cscParams->output.tileMode))        &&
         m_hwCaps.m_sfcHwEntry[cscParams->formatInput].cscSupported     &&
         isAlphaSettingSupportedBySfc)
     {
