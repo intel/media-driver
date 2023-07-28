@@ -4289,7 +4289,7 @@ MOS_STATUS VpHal_VeboxAllocateTempSurfaces(
     surfaceFormat       = pOutSurface->Format;
     surfaceColorSpace   = pOutSurface->ColorSpace;
 
-    if (IS_YUV_FORMAT(pOutSurface->Format))
+    if (IS_YUV_FORMAT(pOutSurface->Format) || IS_ALPHA_YUV_FORMAT(pOutSurface->Format))
     {
         surfaceFormat       = Format_R10G10B10A2;
         surfaceColorSpace   = (IS_COLOR_SPACE_BT2020(pOutSurface->ColorSpace)) ? CSpace_BT2020_RGB : CSpace_sRGB;
