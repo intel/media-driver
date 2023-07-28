@@ -85,6 +85,12 @@ VAStatus DdiDecodeJpeg::ParseSliceParams(
     int32_t startIdx = m_numScans;
     for (j = 0; j < numSlices; j++)
     {
+        if (j + startIdx >= jpegNumComponent ||
+            slcParam[j].num_components > jpegNumComponent)
+        {
+            return VA_STATUS_ERROR_INVALID_PARAMETER;
+        }
+
         for (i = 0; i < slcParam[j].num_components; i++)
         {
             jpegSliceParam->ScanHeader[j + startIdx].ComponentSelector[i] = slcParam[j].components[i].component_selector;

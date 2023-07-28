@@ -220,13 +220,20 @@ MOS_STATUS JpegDecodePicPktXe_M_Base::AddMfxQmCmd(MOS_COMMAND_BUFFER &cmdBuffer)
 
     MHW_VDBOX_QM_PARAMS qmParams;
     SetMfxQmParams(qmParams);
+
+    if (m_jpegPicParams->m_numCompInFrame > jpegNumComponent)
+    {
+        DECODE_ASSERTMESSAGE("Unsupported Component Number in JPEG Picture parameter.");
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
     for (uint16_t scanCount = 0; scanCount < m_jpegPicParams->m_numCompInFrame; scanCount++)
     {
         // Using scanCount here because the same command is used for JPEG decode and encode
         uint32_t quantTableSelector                                      = m_jpegPicParams->m_quantTableSelector[scanCount];
         if (quantTableSelector >= JPEG_MAX_NUM_OF_QUANTMATRIX)
         {
-            MEDIA_ASSERTMESSAGE("Unsupported QuantTableSelector in JPEG Picture parameter.");
+            DECODE_ASSERTMESSAGE("Unsupported QuantTableSelector in JPEG Picture parameter.");
             return MOS_STATUS_INVALID_PARAMETER;
         }
         qmParams.pJpegQuantMatrix->m_jpegQMTableType[quantTableSelector] = scanCount;
@@ -245,10 +252,22 @@ MOS_STATUS JpegDecodePicPktXe_M_Base::AddMfxJpegHuffTableCmd(MOS_COMMAND_BUFFER 
     uint32_t dcCurHuffTblIndex[2] = {0xff, 0xff};
     uint32_t acCurHuffTblIndex[2] = {0xff, 0xff};
 
+    if (m_jpegBasicFeature->m_jpegScanParams->NumScans > jpegNumComponent)
+    {
+        DECODE_ASSERTMESSAGE("Unsupported Component Number in JPEG Scan parameter.");
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
     for (uint16_t scanCount = 0; scanCount < m_jpegBasicFeature->m_jpegScanParams->NumScans; scanCount++)
     {
         // MFX_JPEG_HUFF_TABLE
         uint16_t numComponents = m_jpegBasicFeature->m_jpegScanParams->ScanHeader[scanCount].NumComponents;
+        if (numComponents > jpegNumComponent)
+        {
+            DECODE_ASSERTMESSAGE("Unsupported Component Number in JPEG Scan parameter.");
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+
         for (uint16_t scanComponent = 0; scanComponent < numComponents; scanComponent++)
         {
             // Determine which huffman table we will be writing to
