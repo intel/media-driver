@@ -68,6 +68,8 @@ namespace encode {
     {
         ENCODE_FUNC_CALL();
 
+        ENCODE_CHK_STATUS_RETURN(m_miItf->SetWatchdogTimerThreshold(m_basicFeature->m_frameWidth, m_basicFeature->m_frameHeight, true));
+
         bool firstTaskInPhase = packetPhase & firstPacket;
         bool requestProlog = false;
         auto brcFeature = dynamic_cast<Av1Brc*>(m_featureManager->GetFeature(Av1FeatureIDs::av1BrcFeature));
