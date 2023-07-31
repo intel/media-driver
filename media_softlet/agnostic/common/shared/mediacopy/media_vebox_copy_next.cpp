@@ -209,7 +209,6 @@ MOS_STATUS VeboxCopyStateNext::CopyMainSurface(PMOS_RESOURCE src, PMOS_RESOURCE 
 
     auto& flushDwParams = m_miItf->MHW_GETPAR_F(MI_FLUSH_DW)();
     flushDwParams = {};
-    flushDwParams.pOsResource = (PMOS_RESOURCE)&veboxHeap->DriverResource;
     VEBOX_COPY_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(&cmdBuffer));
 
     if (!m_osInterface->bEnableKmdMediaFrameTracking && veboxHeap)
