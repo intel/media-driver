@@ -370,6 +370,7 @@ struct _MHW_PAR_T(COMPUTE_WALKER)
     bool                      bGlobalBarrierEnable          = false;   //! Enable Global Barrier (SKL+)
     uint32_t                  dwNumberofThreadsInGPGPUGroup = 0;       //! Number of threads per group
     uint32_t                  dwSharedLocalMemorySize       = 0;       //! Size of SharedLocalMemory (SLM)
+    int32_t                   forcePreferredSLMZero         = 0;       //! force preferredSLM value as 0
     int32_t                   iCrsThdConDataRdLn            = 0;
     PMHW_STATE_HEAP           pGeneralStateHeap             = 0;       //! General state heap in use
     MemoryBlock               *memoryBlock                  = nullptr; //! Memory block associated with the state heap

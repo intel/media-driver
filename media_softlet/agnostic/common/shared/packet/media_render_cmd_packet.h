@@ -84,6 +84,7 @@ typedef struct _KERNEL_WALKER_PARAMS
     bool                                bSyncFlag;
     bool                                isGroupStartInvolvedInGroupSize;    // true if group start need be involved in the group size.
     bool                                calculateBlockXYByAlignedRect;      // true if iBlocksX/iBlocksY is calculated by alignedRect in RenderCmdPacket instead of kernel object.
+    bool                                forcePreferredSLMZero;              // true if preferredSLM need force to 0.
 }KERNEL_WALKER_PARAMS, * PKERNEL_WALKER_PARAMS;
 
 typedef struct _KERNEL_PACKET_RENDER_DATA
