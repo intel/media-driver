@@ -434,11 +434,19 @@ void ConcatenateKernelBinary(char *pKernelName, bool bVerbose)
                     // no data to read - EOF
                     if (dwBytesRead == 0)
                     {
+                        if (iBuffLeft > 4)
+                        {
+                            fprintf(stderr, "Hex file %s is not 32 bytes aligned. Left %d bytes not processed. May have critical issue!!!\n", pKernelName, iBuffLeft);
+                        }
                         iBuffLeft = -1;
                     }
                 }
                 else
                 {
+                    if (iBuffLeft > 4)
+                    {
+                        fprintf(stderr, "Hex file %s is not 32 bytes aligned. Left %d bytes not processed. May have critical issue!!!\n", pKernelName, iBuffLeft);
+                    }
                     iBuffLeft = -1;
                 }
             }
