@@ -27,7 +27,7 @@
 #define __HWINFO_LINUX_H__
 
 #include "mos_defs.h"
-#include "mos_bufmgr.h"
+#include "mos_bufmgr_api.h"
 #include "linux_shadow_skuwa.h"
 #include "igfxfmid.h"
 //------------------------------------------------------------------------------

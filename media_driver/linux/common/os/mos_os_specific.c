@@ -2321,7 +2321,7 @@ MOS_STATUS Mos_Specific_AllocateResource(
     }
 
     caller              = nullptr;
-    tileformat_linux    = I915_TILING_NONE;
+    tileformat_linux    = TILING_NONE;
     iAlignedHeight      = iHeight = pParams->dwHeight;
     eStatus             = MOS_STATUS_SUCCESS;
     resourceType        = RESOURCE_2D;
@@ -2410,7 +2410,7 @@ MOS_STATUS Mos_Specific_AllocateResource(
     switch(tileformat)
     {
         case MOS_TILE_Y:
-            tileformat_linux               = I915_TILING_Y;
+            tileformat_linux               = TILING_Y;
             if (pParams->bIsCompressible                                             && 
                 MEDIA_IS_SKU(&pOsInterface->pOsContext->m_skuTable, FtrE2ECompression) &&
                 MEDIA_IS_SKU(&pOsInterface->pOsContext->m_skuTable, FtrCompressibleSurfaceDefault))
@@ -2440,11 +2440,11 @@ MOS_STATUS Mos_Specific_AllocateResource(
             break;
         case MOS_TILE_X:
             GmmParams.Flags.Info.TiledX    = true;
-            tileformat_linux               = I915_TILING_X;
+            tileformat_linux               = TILING_X;
             break;
         default:
             GmmParams.Flags.Info.Linear    = true;
-            tileformat_linux               = I915_TILING_NONE;
+            tileformat_linux               = TILING_NONE;
     }
     GmmParams.Flags.Info.LocalOnly = MEDIA_IS_SKU(&pOsInterface->pOsContext->m_skuTable, FtrLocalMemory);
 
@@ -2456,19 +2456,19 @@ MOS_STATUS Mos_Specific_AllocateResource(
     {
         case GMM_TILED_X:
             tileformat = MOS_TILE_X;
-            tileformat_linux               = I915_TILING_X;
+            tileformat_linux               = TILING_X;
             break;
         case GMM_TILED_Y:
             tileformat = MOS_TILE_Y;
-            tileformat_linux               = I915_TILING_Y;
+            tileformat_linux               = TILING_Y;
             break;
         case GMM_NOT_TILED:
             tileformat = MOS_TILE_LINEAR;
-            tileformat_linux               = I915_TILING_NONE;
+            tileformat_linux               = TILING_NONE;
             break;
         default:
             tileformat = MOS_TILE_Y;
-            tileformat_linux               = I915_TILING_Y;
+            tileformat_linux               = TILING_Y;
             break;
     }
 
@@ -2493,7 +2493,7 @@ MOS_STATUS Mos_Specific_AllocateResource(
     mem_type = MemoryPolicyManager::UpdateMemoryPolicy(&memPolicyPar);
 
     // Only Linear and Y TILE supported
-    if( tileformat_linux == I915_TILING_NONE )
+    if( tileformat_linux == TILING_NONE )
     {
         bo = mos_bo_alloc(pOsInterface->pOsContext->bufmgr, bufname, iSize, 4096, mem_type);
     }
@@ -7429,11 +7429,11 @@ finish:
 MOS_TILE_TYPE LinuxToMosTileType(uint32_t type)
 {
     switch (type) {
-        case I915_TILING_NONE:
+        case TILING_NONE:
             return MOS_TILE_LINEAR;
-        case I915_TILING_X:
+        case TILING_X:
             return MOS_TILE_X;
-        case I915_TILING_Y:
+        case TILING_Y:
             return MOS_TILE_Y;
         default:
             return MOS_TILE_INVALID;

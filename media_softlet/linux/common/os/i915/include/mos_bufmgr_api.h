@@ -39,6 +39,23 @@
 #define TILING_X     1
 #define TILING_Y     2
 
+#define DRM_ENGINE_CLASS_RENDER         0
+#define DRM_ENGINE_CLASS_COPY           1
+#define DRM_ENGINE_CLASS_VIDEO_DECODE   2
+#define DRM_ENGINE_CLASS_VIDEO_ENHANCE  3
+#define DRM_ENGINE_CLASS_COMPUTE        4
+
+#define DRM_EXEC_DEFAULT                0
+#define DRM_EXEC_RENDER                 1
+#define DRM_EXEC_BSD                    2
+#define DRM_EXEC_BLT                    3
+#define DRM_EXEC_VEBOX                  4
+#define DRM_EXEC_COMPUTE                5
+#define DRM_EXEC_VCS2                   6
+
+#define DRM_CONTEXT_PARAM_PRIORITY      0x6
+#define DRM_CONTEXT_PARAM_RECOVERABLE   0x8
+
 #define mos_safe_free(p)        \
         if(p) free(p);          \
 

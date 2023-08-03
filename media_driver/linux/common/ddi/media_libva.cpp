@@ -2939,7 +2939,7 @@ VAStatus DdiMedia_CreateSurfaces2(
 
                 if( surfIsUserPtr )
                 {
-                    surfDesc->uiTile = I915_TILING_NONE;
+                    surfDesc->uiTile = TILING_NONE;
                     if (surfDesc->ulBuffer % 4096 != 0)
                     {
                         MOS_FreeMemory(surfDesc);
@@ -4763,7 +4763,7 @@ VAStatus DdiMedia_CreateImage(
         MOS_FreeMemory(buf);
         return status;
     }
-    buf->TileType     = I915_TILING_NONE;
+    buf->TileType     = TILING_NONE;
 
     DdiMediaUtil_LockMutex(&mediaCtx->BufferMutex);
     PDDI_MEDIA_BUFFER_HEAP_ELEMENT bufferHeapElement  = DdiMediaUtil_AllocPMediaBufferFromHeap(mediaCtx->pBufferHeap);

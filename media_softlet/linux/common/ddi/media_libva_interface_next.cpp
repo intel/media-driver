@@ -2700,7 +2700,7 @@ VAStatus MediaLibvaInterfaceNext::CreateImage (
         MOS_Delete(buf);
         return status;
     }
-    buf->TileType     = I915_TILING_NONE;
+    buf->TileType     = TILING_NONE;
 
     MosUtilities::MosLockMutex(&mediaCtx->BufferMutex);
     PDDI_MEDIA_BUFFER_HEAP_ELEMENT bufferHeapElement  = MediaLibvaUtilNext::AllocPMediaBufferFromHeap(mediaCtx->pBufferHeap);
@@ -3458,7 +3458,7 @@ VAStatus MediaLibvaInterfaceNext::CreateSurfaces2 (
 
                 if( surfIsUserPtr )
                 {
-                    surfDesc->uiTile = I915_TILING_NONE;
+                    surfDesc->uiTile = TILING_NONE;
                     if (surfDesc->ulBuffer % 4096 != 0)
                     {
                         MOS_FreeMemory(surfDesc);

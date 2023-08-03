@@ -191,7 +191,7 @@ MOS_STATUS HWInfo_GetGfxInfo(int32_t           fd,
 
             if (0 == gfxPlatform->sMediaBlockID.Value)
             {
-                if (mos_query_hw_ip_version(pDrmBufMgr, I915_ENGINE_CLASS_VIDEO, (void *)&(gfxPlatform->sMediaBlockID)))
+                if (mos_query_hw_ip_version(pDrmBufMgr, DRM_ENGINE_CLASS_VIDEO_DECODE, (void *)&(gfxPlatform->sMediaBlockID)))
                 {
                     MOS_OS_ASSERTMESSAGE("Failed to query vdbox engine GmdID\n");
                     return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
@@ -205,7 +205,7 @@ MOS_STATUS HWInfo_GetGfxInfo(int32_t           fd,
 
             if (0 == gfxPlatform->sRenderBlockID.Value)
             {
-                if (mos_query_hw_ip_version(pDrmBufMgr, I915_ENGINE_CLASS_RENDER, (void *)&(gfxPlatform->sRenderBlockID)))
+                if (mos_query_hw_ip_version(pDrmBufMgr, DRM_ENGINE_CLASS_RENDER, (void *)&(gfxPlatform->sRenderBlockID)))
                 {
                     MOS_OS_ASSERTMESSAGE("Failed to query render GmdID\n");
                     return MOS_STATUS_PLATFORM_NOT_SUPPORTED;

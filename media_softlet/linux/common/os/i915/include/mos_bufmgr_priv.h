@@ -83,9 +83,9 @@ struct mos_bufmgr {
      * argument provides a hint about how the object will be used initially.
      *
      * Valid tiling formats are:
-     *  I915_TILING_NONE
-     *  I915_TILING_X
-     *  I915_TILING_Y
+     *  TILING_NONE
+     *  TILING_X
+     *  TILING_Y
      *
      * Note the tiling format may be rejected; callers should check the
      * 'tiling_mode' field on return, as well as the pitch value, which

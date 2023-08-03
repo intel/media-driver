@@ -61,7 +61,7 @@ static int AllocateCb(void *bufMgr, size_t size, size_t alignment, void **bo, vo
     if (userptr == nullptr)
         return -ENOMEM;
 
-    lbo = mos_bo_alloc_userptr(bm, "GmmAuxPageTable", userptr, I915_TILING_NONE, size, size, 0);
+    lbo = mos_bo_alloc_userptr(bm, "GmmAuxPageTable", userptr, TILING_NONE, size, size, 0);
     if (lbo == nullptr)
     {
         MOS_FreeMemory(userptr);

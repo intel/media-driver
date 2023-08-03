@@ -2709,7 +2709,7 @@ void MosInterface::GetGpuPriority(MOS_STREAM_HANDLE streamState, int32_t* pPrior
     }
 
     uint64_t priority = 0;
-    mos_get_context_param(pOsContext->intel_context, 0, I915_CONTEXT_PARAM_PRIORITY, &priority);
+    mos_get_context_param(pOsContext->intel_context, 0, DRM_CONTEXT_PARAM_PRIORITY, &priority);
     *pPriority = (int32_t)priority;
 }
 
@@ -2733,7 +2733,7 @@ void MosInterface::SetGpuPriority(MOS_STREAM_HANDLE streamState, int32_t priorit
         return;
     }
 
-    int32_t ret = mos_set_context_param(pOsContext->intel_context, 0, I915_CONTEXT_PARAM_PRIORITY,(uint64_t)priority);
+    int32_t ret = mos_set_context_param(pOsContext->intel_context, 0, DRM_CONTEXT_PARAM_PRIORITY,(uint64_t)priority);
     if (ret != 0)
     {
         MOS_OS_ASSERTMESSAGE("failed to set the gpu priority, error is %d", ret);

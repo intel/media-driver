@@ -4619,19 +4619,19 @@ VAStatus DdiVpFunctions::PutSurfaceLinuxHW(
     {
         switch (drawableTilingMode)
         {
-            case I915_TILING_Y:
+            case TILING_Y:
                 tileType = MOS_TILE_Y;
                 break;
-            case I915_TILING_X:
+            case TILING_X:
                 tileType = MOS_TILE_X;
                 gmmParams.Flags.Info.TiledX    = true;
                 break;
-            case I915_TILING_NONE:
+            case TILING_NONE:
                tileType = MOS_TILE_LINEAR;
                gmmParams.Flags.Info.Linear    = true;
                break;
             default:
-                drawableTilingMode          = I915_TILING_NONE;
+                drawableTilingMode          = TILING_NONE;
                 tileType = MOS_TILE_LINEAR;
                 gmmParams.Flags.Info.Linear    = true;
                 break;
@@ -4640,7 +4640,7 @@ VAStatus DdiVpFunctions::PutSurfaceLinuxHW(
     }
     else
     {
-        target.OsResource.TileType = (MOS_TILE_TYPE)I915_TILING_NONE;
+        target.OsResource.TileType = (MOS_TILE_TYPE)TILING_NONE;
         tileType = MOS_TILE_LINEAR;
         gmmParams.Flags.Info.Linear    = true;
     }

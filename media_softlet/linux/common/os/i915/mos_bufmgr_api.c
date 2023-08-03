@@ -339,7 +339,7 @@ mos_bo_set_tiling(struct mos_linux_bo *bo, uint32_t * tiling_mode,
         MOS_OS_CRITICALMESSAGE("Unsupported\n");
     }
 
-    *tiling_mode = I915_TILING_NONE;
+    *tiling_mode = TILING_NONE;
     return -EPERM;
 }
 
@@ -362,7 +362,7 @@ mos_bo_get_tiling(struct mos_linux_bo *bo, uint32_t * tiling_mode,
         MOS_OS_CRITICALMESSAGE("Unsupported\n");
     }
 
-    *tiling_mode = I915_TILING_NONE;
+    *tiling_mode = TILING_NONE;
     *swizzle_mode = I915_BIT_6_SWIZZLE_NONE;
     return -EPERM;
 }

@@ -3711,11 +3711,11 @@ MOS_STATUS Mos_Specific_InitInterface(
 MOS_TILE_TYPE LinuxToMosTileType(uint32_t type)
 {
     switch (type) {
-        case I915_TILING_NONE:
+        case TILING_NONE:
             return MOS_TILE_LINEAR;
-        case I915_TILING_X:
+        case TILING_X:
             return MOS_TILE_X;
-        case I915_TILING_Y:
+        case TILING_Y:
             return MOS_TILE_Y;
         default:
             return MOS_TILE_INVALID;

@@ -2696,16 +2696,16 @@ VAStatus MediaLibvaCapsMtlBase::SetExternalSurfaceTileFormat(DDI_MEDIA_SURFACE* 
     switch (mediaSurface->pSurfDesc->modifier)
     {
         case I915_FORMAT_MOD_4_TILED:
-            tileformat = I915_TILING_Y;
+            tileformat = TILING_Y;
             bMemCompEnable = false;
             break;
         case I915_FORMAT_MOD_4_TILED_MTL_RC_CCS_CC:
-            tileformat = I915_TILING_Y;
+            tileformat = TILING_Y;
             bMemCompEnable = true;
             bMemCompRC = true;
             break;
         case I915_FORMAT_MOD_4_TILED_MTL_MC_CCS:
-            tileformat = I915_TILING_Y;
+            tileformat = TILING_Y;
             bMemCompEnable = true;
             bMemCompRC = false;
             break;

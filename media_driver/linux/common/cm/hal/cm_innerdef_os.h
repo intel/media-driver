@@ -39,15 +39,6 @@
 #include <sys/syscall.h>
 #include <unistd.h>
 
-//Require DRM VMAP patch,
-//Referecing:
-//    [Intel-gfx] [PATCH 21/21] drm/i915: Introduce vmap (mapping of user pages into video memory) ioctl
-//    http://lists.freedesktop.org/archives/intel-gfx/2011-April/010241.html
-#if defined(DRM_IOCTL_I915_GEM_USERPTR)
-#define DRMVMAP_FUNCTION_STR        "mos_bo_alloc_userptr"
-#else
-#define DRMVMAP_FUNCTION_STR        "mos_bo_alloc_vmap"  //for usrptr
-#endif
 
 typedef void* UMD_RESOURCE;
 

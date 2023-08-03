@@ -26,7 +26,6 @@
 #include "mos_os.h"
 #include "cm_hal.h"
 #include "cm_def_os.h"
-#include "i915_drm.h"
 #include "cm_execution_adv.h"
 #include "mos_graphicsresource.h"
 #include "mos_utilities.h"
@@ -444,7 +443,7 @@ MOS_STATUS HalCm_AllocateBuffer_Linux(
     MOS_LINUX_BO             *bo = nullptr;
 
     size  = param->size;
-    tileformat = I915_TILING_NONE;
+    tileformat = TILING_NONE;
 
     //-----------------------------------------------
     CM_ASSERT(param->size > 0);
@@ -533,33 +532,13 @@ MOS_STATUS HalCm_AllocateBuffer_Linux(
 
             MosUtilities::MosAtomicIncrement(MosUtilities::m_mosMemAllocCounterGfx);
 
-#if defined(DRM_IOCTL_I915_GEM_USERPTR)
-           bo =  mos_bo_alloc_userptr(osInterface->pOsContext->bufmgr,
+            bo =  mos_bo_alloc_userptr(osInterface->pOsContext->bufmgr,
                                  "CM Buffer UP",
                                  (void *)(param->data),
                                  tileformat,
                                  ROUND_UP_TO(size,MOS_PAGE_SIZE),
                                  ROUND_UP_TO(size,MOS_PAGE_SIZE),
-#if defined(ANDROID)
-                                 I915_USERPTR_UNSYNCHRONIZED
-#else
-                 0
-#endif
-                 );
-#else
-           bo =  mos_bo_alloc_vmap(osInterface->pOsContext->bufmgr,
-                                "CM Buffer UP",
-                                (void *)(param->data),
-                                tileformat,
-                                ROUND_UP_TO(size,MOS_PAGE_SIZE),
-                                ROUND_UP_TO(size,MOS_PAGE_SIZE),
-#if defined(ANDROID)
-                                 I915_USERPTR_UNSYNCHRONIZED
-#else
-                 0
-#endif
-                 );
-#endif
+                                 0);
 
             osResource->bMapped = false;
             if (bo)

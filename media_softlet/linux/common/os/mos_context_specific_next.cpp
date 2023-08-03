@@ -154,7 +154,7 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
 
         uint64_t isRecoverableContextEnabled = 0;
         MOS_LINUX_CONTEXT *intel_context = mos_context_create_ext(m_bufmgr, 0, false);
-        int ret = mos_get_context_param(intel_context, 0, I915_CONTEXT_PARAM_RECOVERABLE, &isRecoverableContextEnabled);
+        int ret = mos_get_context_param(intel_context, 0, DRM_CONTEXT_PARAM_RECOVERABLE, &isRecoverableContextEnabled);
         if (ret == -EINVAL)
         {
             isRecoverableContextEnabled = 1;

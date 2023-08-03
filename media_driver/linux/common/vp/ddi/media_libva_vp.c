@@ -315,13 +315,13 @@ MOS_TILE_TYPE VpGetTileTypeFromMediaTileType(uint32_t mediaTileType)
 
     switch(mediaTileType)
     {
-       case I915_TILING_Y:
+       case TILING_Y:
            tileType = MOS_TILE_Y;
            break;
-       case I915_TILING_X:
+       case TILING_X:
            tileType = MOS_TILE_X;
            break;
-       case I915_TILING_NONE:
+       case TILING_NONE:
            tileType = MOS_TILE_LINEAR;
            break;
         default:
