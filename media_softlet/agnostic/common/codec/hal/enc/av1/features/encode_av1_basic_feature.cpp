@@ -1010,7 +1010,8 @@ MHW_SETPAR_DECL_SRC(AVP_INLOOP_FILTER_STATE, Av1BasicFeature)
         params.LoopRestorationType[1] == 0 &&
         params.LoopRestorationType[2] == 0)
     {
-        params.LoopRestorationSizeLuma = 0;
+        params.LoopRestorationSizeLuma             = 0;
+        params.UseSameLoopRestorationSizeForChroma = false;
     }
     else
     {
