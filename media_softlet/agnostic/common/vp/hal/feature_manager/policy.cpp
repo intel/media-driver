@@ -2239,17 +2239,17 @@ MOS_STATUS Policy::InitExecuteCaps(VP_EXECUTE_CAPS &caps, VP_EngineEntry &engine
             // For vebox/sfc+render case, use 2nd workload (render) to do csc for better performance
             // in most VP common cases, e.g. NV12->RGB, to save the memory bandwidth.
             caps.bForceCscToRender     = true;
-            // not support procamp to render in fc if input is sRGB
-            // if both enable Lumaykey and procamp on the same layer, Lumaykey should be top-priority
-            if (engineCaps.veboxRGBOutputWithoutLumaKey)
+            // Force procamp to render if both enable Lumaykey and procamp on the same layer
+            // Lumaykey should be top-priority
+            if (engineCaps.outputWithLumaKey)
             {
-                caps.bForceProcampToRender = false;
+                caps.bForceProcampToRender = true;
             }
             else
             {
                 // For vebox/sfc+render case, use 2nd workload (render) to do Procamp,
                 // especially for the scenario including Lumakey feature, which will ensure the Procamp can be done after Lumakey.
-                caps.bForceProcampToRender = true;
+                caps.bForceProcampToRender = false;
             }
             // For vebox + render with features, which can be done on both sfc and render, 
             // and sfc is not must have, sfc should not be selected and those features should be done on render.
@@ -2509,22 +2509,16 @@ MOS_STATUS Policy::GetInputPipeEngineCaps(SwFilterPipe& featurePipe, VP_EngineEn
                     engineCapsForVeboxSfc.value |= engineCaps.value;
                     engineCapsForVeboxSfc.nonFcFeatureExists = true;
                     engineCapsForVeboxSfc.nonVeboxFeatureExists |= !engineCaps.VeboxNeeded;
-                    if (engineCaps.bt2020ToRGB)
+
+                    SwFilter *lumakey          = featureSubPipe->GetSwFilter(FeatureTypeLumakey);
+                    if (lumakey && lumakey->GetFilterEngineCaps().bEnabled)
                     {
-                        bool isLumaKeyEnabled = false;
-                        SwFilter *lumakey = featureSubPipe->GetSwFilter(FeatureTypeLumakey);
-                        if (lumakey && lumakey->GetFilterEngineCaps().bEnabled)
-                        {
-                            isLumaKeyEnabled = true;
-                        }
-                        engineCapsForVeboxSfc.veboxRGBOutputWithoutLumaKey = !isLumaKeyEnabled;
+                        engineCapsForVeboxSfc.outputWithLumaKey = true;
+                        VP_PUBLIC_NORMALMESSAGE("outputWithLumaKey flag is set.");
                     }
                     else
                     {
-                        if (!engineCapsForVeboxSfc.veboxRGBOutputWithoutLumaKey)
-                        {
-                            engineCapsForVeboxSfc.veboxRGBOutputWithoutLumaKey = false;
-                        }
+                        engineCapsForVeboxSfc.outputWithLumaKey = false;
                     }
                 }
             }

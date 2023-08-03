@@ -240,7 +240,7 @@ typedef struct _VP_EngineEntry
             uint32_t isOutputPipeNeeded : 1;    // true if the feature is used for parameter calculation.
             uint32_t sfcOnlyFeatureExists : 1;  // The feature exists, which only support sfc.
             uint32_t bTemperalInputInuse : 1;   // true if replace input
-            uint32_t veboxRGBOutputWithoutLumaKey : 1;
+            uint32_t outputWithLumaKey : 1;
         };
         uint32_t value;
     };
