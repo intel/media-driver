@@ -528,8 +528,9 @@ MHW_SETPAR_DECL_SRC(MFD_AVC_DPB_STATE, AvcDecodePicPkt)
         params.refFrameOrder[i] = refFrameOrder[i];
     }
 
-    params.LongtermframeFlag161Bit = longTermFrame;
-    params.usedForRef              = usedForRef;
+    params.NonExistingframeFlag161Bit = nonExistingFrameFlags;
+    params.LongtermframeFlag161Bit    = longTermFrame;
+    params.usedForRef                 = usedForRef;
     return MOS_STATUS_SUCCESS;
 }
 
