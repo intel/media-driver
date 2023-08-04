@@ -420,6 +420,13 @@ struct _MOS_GPUCTX_CREATOPTIONS
         SSEUValue(0),
         isRealTimePriority(0){}
 
+    _MOS_GPUCTX_CREATOPTIONS(_MOS_GPUCTX_CREATOPTIONS* createOption) : CmdBufferNumScale(createOption->CmdBufferNumScale),
+                                 RAMode(createOption->RAMode),
+                                 ProtectMode(createOption->ProtectMode),
+                                 gpuNode(createOption->gpuNode),
+                                 SSEUValue(createOption->SSEUValue),
+                                 isRealTimePriority(createOption->isRealTimePriority) {}
+
     virtual ~_MOS_GPUCTX_CREATOPTIONS(){}
 };
 
@@ -2164,6 +2171,34 @@ struct _MOS_GPUCTX_CREATOPTIONS_ENHANCED : public _MOS_GPUCTX_CREATOPTIONS
         }
 #endif
     }
+
+    _MOS_GPUCTX_CREATOPTIONS_ENHANCED(_MOS_GPUCTX_CREATOPTIONS* createOption)
+        : _MOS_GPUCTX_CREATOPTIONS(createOption)
+    {
+        if (typeid(*createOption) == typeid(_MOS_GPUCTX_CREATOPTIONS_ENHANCED))
+        {
+            Flags     = ((MOS_GPUCTX_CREATOPTIONS_ENHANCED *)createOption)->Flags;
+            LRCACount = ((MOS_GPUCTX_CREATOPTIONS_ENHANCED *)createOption)->LRCACount;
+#if (_DEBUG || _RELEASE_INTERNAL)
+            for (auto i = 0; i < MOS_MAX_ENGINE_INSTANCE_PER_CLASS; i++)
+            {
+                EngineInstance[i] = ((MOS_GPUCTX_CREATOPTIONS_ENHANCED *)createOption)->EngineInstance[i];
+            }
+#endif
+        }
+        else
+        {
+            Flags     = 0;
+            LRCACount = 0;
+#if (_DEBUG || _RELEASE_INTERNAL)
+            for (auto i = 0; i < MOS_MAX_ENGINE_INSTANCE_PER_CLASS; i++)
+            {
+                EngineInstance[i] = 0xff;
+            }
+#endif
+        }
+    }
+    
 };
 
 #define MOS_VE_SUPPORTED(pOsInterface) \
