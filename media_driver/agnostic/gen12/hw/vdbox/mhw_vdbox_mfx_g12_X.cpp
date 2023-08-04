@@ -789,6 +789,12 @@ MOS_STATUS MhwVdboxMfxInterfaceG12::AddMfxSurfaceCmd(
             MOS_ALIGN_CEIL((params->psSurface->VPlaneOffset.iSurfaceOffset -params->psSurface->dwOffset)/params->psSurface->dwPitch + params->psSurface->RenderOffset.YUV.V.YOffset, uvPlaneAlignment);
     }
 
+    if (params->psSurface->TileType == MOS_TILE_LINEAR && (params->psSurface->YoffsetForUplane || params->psSurface->YoffsetForVplane))
+    {
+        cmd.DW4.YOffsetForUCb = params->psSurface->YoffsetForUplane;
+        cmd.DW5.YOffsetForVCr = params->psSurface->YoffsetForVplane;
+    }
+
     MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
     return eStatus;
