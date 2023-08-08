@@ -223,22 +223,17 @@ public:
         }
         else
         {
-            if ((frameWidth * frameHeight) >= (16000 * 16000))
+            if ((frameWidth * frameHeight) >= (7680 * 4320))
             {
-                MediaResetParam.watchdogCountThreshold = MHW_MI_DECODER_16Kx16K_WATCHDOG_THRESHOLD_IN_MS;
+                MediaResetParam.watchdogCountThreshold = MHW_MI_DECODER_8K_WATCHDOG_THRESHOLD_IN_MS;
             }
-            else if ((frameWidth * frameHeight) >= (7680 * 4320))
+            else if ((frameWidth * frameHeight) >= (3840 * 2160))
             {
-                MediaResetParam.watchdogCountThreshold = MHW_MI_DECODER_16K_WATCHDOG_THRESHOLD_IN_MS;
-            }
-            else if (((frameWidth * frameHeight) < (1280 * 720)) && MEDIA_IS_WA(waTable, WaSliceMissingMB))
-            {
-                MediaResetParam.watchdogCountThreshold = MHW_MI_DECODER_720P_WATCHDOG_THRESHOLD_IN_MS;
+                MediaResetParam.watchdogCountThreshold = MHW_MI_DECODER_4K_WATCHDOG_THRESHOLD_IN_MS;
             }
             else
             {
-                // 60ms should be enough for decoder with resolution smaller than 8k
-                MediaResetParam.watchdogCountThreshold = MHW_MI_DEFAULT_WATCHDOG_THRESHOLD_IN_MS;
+                MediaResetParam.watchdogCountThreshold = MHW_MI_DECODER_720P_WATCHDOG_THRESHOLD_IN_MS;
             }
         }
 
