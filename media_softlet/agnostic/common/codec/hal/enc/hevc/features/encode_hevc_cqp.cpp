@@ -125,7 +125,7 @@ void HevcEncodeCqp::UpdateRDOQCfg()
 {
     ENCODE_FUNC_CALL();
 
-    // RDOQ by default enable for all TUs, but disable for SCC palette mode
+    // RDOQ disable for SCC palette mode
     auto hevcFeature = dynamic_cast<HevcBasicFeature *>(m_basicFeature);
     ENCODE_CHK_NULL_NO_STATUS_RETURN(hevcFeature);
 
