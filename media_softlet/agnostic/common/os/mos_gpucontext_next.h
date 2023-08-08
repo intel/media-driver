@@ -51,23 +51,6 @@ public:
     virtual ~GpuContextNext(){}
 
     //!
-    //! \brief    Static entrypoint, get the gpu context object
-    //! \param    [in] gpuNode
-    //!           Gpu node
-    //! \param    [in] cmdBufMgr
-    //!           Command buffer manager
-    //! \param    [in] reusedContext
-    //!           Reused gpu context
-    //! \return   GpuContextNext*
-    //!           the os specific object for gpu context
-    //!
-    static class GpuContextNext* Create(
-        const MOS_GPU_NODE gpuNode,
-        CmdBufMgrNext      *cmdBufMgr,
-        GpuContextNext     *reusedContext,
-        OsContextNext      *osContext = nullptr);
-
-    //!
     //! \brief    Clear gpu context
     //!
     virtual void Clear() = 0;

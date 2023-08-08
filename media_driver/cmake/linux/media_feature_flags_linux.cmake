@@ -182,6 +182,10 @@ if(NOT ENABLE_NONFREE_KERNELS)
     add_definitions(-D_FULL_OPEN_SOURCE)
 endif()
 
+if(ENABLE_NEW_KMD AND NOT ENABLE_PRODUCTION_KMD)
+    add_definitions(-DENABLE_NEW_KMD)
+endif()
+
 add_definitions(-D_MANUAL_SOFTLET_)
 
 include(${MEDIA_EXT_CMAKE}/ext/linux/media_feature_flags_linux_ext.cmake OPTIONAL)

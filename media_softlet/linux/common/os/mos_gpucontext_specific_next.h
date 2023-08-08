@@ -57,6 +57,22 @@ public:
     ~GpuContextSpecificNext();
 
     //!
+    //! \brief    Static entrypoint, get the gpu context object
+    //! \param    [in] gpuNode
+    //!           Gpu node
+    //! \param    [in] cmdBufMgr
+    //!           Command buffer manager
+    //! \param    [in] reusedContext
+    //!           Reused gpu context
+    //! \return   GpuContextNext*
+    //!           the os specific object for gpu context
+    //!
+    static GpuContextNext* Create(
+        const MOS_GPU_NODE gpuNode,
+        CmdBufMgrNext      *cmdBufMgr,
+        GpuContextNext     *reusedContext);
+
+    //!
     //! \brief    Initialize gpu context
     //! \details  Linux specific initialize for gpu context
     //! \param    [in] osContext

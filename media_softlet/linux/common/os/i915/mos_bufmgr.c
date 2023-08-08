@@ -5393,9 +5393,14 @@ exit:
 }
 
 struct mos_bufmgr *
-mos_bufmgr_gem_init(int fd, int batch_size)
+mos_bufmgr_gem_init(int fd, int batch_size, int *device_type)
 {
-    if(DEVICE_TYPE_I915 == mos_query_device_type(fd))
+    int type = mos_query_device_type(fd);
+    if (device_type != nullptr)
+    {
+        *device_type = type;
+    }
+    if(DEVICE_TYPE_I915 == type)
     {
         return mos_bufmgr_gem_init_i915(fd, batch_size);
     }

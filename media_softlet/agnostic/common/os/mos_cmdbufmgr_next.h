@@ -167,6 +167,9 @@ public:
         return m_handle;
     }
 
+    //! \brief   Corresponding os context
+    OsContextNext *m_osContext = nullptr;
+
  protected:
     //!
     //! \brief    Self define compare method as std:sort input 
@@ -207,9 +210,6 @@ public:
 
     //! \brief   Flag to indicate cmd buf mgr initialized or not
     bool m_initialized = false;
-
-    //! \brief   Corresponding os context
-    OsContextNext *m_osContext = nullptr;
 
     //! \brief   cmd buffer handle
     uint64_t       m_handle     = 0;

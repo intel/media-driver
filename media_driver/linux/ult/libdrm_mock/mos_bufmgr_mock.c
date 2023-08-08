@@ -3852,14 +3852,17 @@ static void mos_bufmgr_set_platform_information(struct mos_bufmgr *bufmgr, uint6
  * \param fd File descriptor of the opened DRM device.
  */
 struct mos_bufmgr *
-mos_bufmgr_gem_init(int fd, int batch_size)
+mos_bufmgr_gem_init(int fd, int batch_size, int *device_type)
 {
     struct mos_bufmgr_gem *bufmgr_gem;
     struct drm_i915_gem_get_aperture aperture;
     drm_i915_getparam_t gp;
     int ret, tmp;
     bool exec2 = false;
-
+    if (device_type != nullptr)
+    {
+        *device_type = DEVICE_TYPE_I915;
+    }
     pthread_mutex_lock(&bufmgr_list_mutex);
 
     bufmgr_gem = mos_bufmgr_gem_find(fd);
