@@ -6206,7 +6206,6 @@ MOS_STATUS CodechalVdencAvcState::ExecutePictureLevel()
     reconSurfaceParams.Mode             = m_mode;
     reconSurfaceParams.ucSurfaceStateId = CODECHAL_MFX_REF_SURFACE_ID;
     reconSurfaceParams.psSurface        = &m_reconSurface;
-    m_osInterface->pfnGetResourceInfo(m_osInterface, &m_reconSurface.OsResource, &m_reconSurface);
     CODECHAL_DEBUG_TOOL(m_debugInterface->DumpSurfaceInfo(&m_reconSurface, "ReconSurface"));
 
     // Src surface
@@ -6219,7 +6218,6 @@ MOS_STATUS CodechalVdencAvcState::ExecutePictureLevel()
     surfaceParams.dwActualWidth         = m_avcSeqParam->FrameWidth;
     surfaceParams.bDisplayFormatSwizzle = m_avcPicParam->bDisplayFormatSwizzle;
     surfaceParams.bColorSpaceSelection  = (m_avcSeqParam->InputColorSpace == ECOLORSPACE_P709) ? 1 : 0;
-    m_osInterface->pfnGetResourceInfo(m_osInterface, &m_rawSurfaceToPak->OsResource, m_rawSurfaceToPak);
     CODECHAL_DEBUG_TOOL(m_debugInterface->DumpSurfaceInfo(m_rawSurfaceToPak, "RawSurfaceToPak"));
 
     MHW_VDBOX_PIPE_BUF_ADDR_PARAMS pipeBufAddrParams;
@@ -6245,7 +6243,6 @@ MOS_STATUS CodechalVdencAvcState::ExecutePictureLevel()
     dsSurfaceParams.Mode             = m_mode;
     dsSurfaceParams.ucSurfaceStateId = CODECHAL_MFX_DSRECON_SURFACE_ID;
     dsSurfaceParams.psSurface        = m_trackedBuf->Get4xDsReconSurface(CODEC_CURR_TRACKED_BUFFER);
-    m_osInterface->pfnGetResourceInfo(m_osInterface, &dsSurfaceParams.psSurface->OsResource, dsSurfaceParams.psSurface);
     CODECHAL_DEBUG_TOOL(m_debugInterface->DumpSurfaceInfo(dsSurfaceParams.psSurface, "4xDsReconSurface"));
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxSurfaceCmd(&cmdBuffer, &dsSurfaceParams));
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxPipeBufAddrCmd(&cmdBuffer, &pipeBufAddrParams));

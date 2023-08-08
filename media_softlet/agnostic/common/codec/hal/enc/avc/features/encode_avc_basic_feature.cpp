@@ -1395,7 +1395,8 @@ bool IsVPlanePresent(MOS_FORMAT format)
 
 MHW_SETPAR_DECL_SRC(MFX_SURFACE_STATE, AvcBasicFeature)
 {
-    PMOS_SURFACE psSurface = nullptr;
+    PMOS_SURFACE psSurface        = nullptr;
+    uint32_t     uvPlaneAlignment = 0;
 
     switch (params.surfaceId)
     {
@@ -1403,16 +1404,19 @@ MHW_SETPAR_DECL_SRC(MFX_SURFACE_STATE, AvcBasicFeature)
         psSurface        = const_cast<PMOS_SURFACE>(&m_reconSurface);
         params.height    = psSurface->dwHeight - 1;
         params.width     = psSurface->dwWidth - 1;
+        uvPlaneAlignment = MHW_VDBOX_MFX_RECON_UV_PLANE_ALIGNMENT;
         break;
     case CODECHAL_MFX_SRC_SURFACE_ID:
         psSurface        = m_rawSurfaceToPak;
         params.height    = m_seqParam->FrameHeight - 1;
         params.width     = m_seqParam->FrameWidth - 1;
+        uvPlaneAlignment = MHW_VDBOX_MFX_RAW_UV_PLANE_ALIGNMENT_GEN9;
         break;
     case CODECHAL_MFX_DSRECON_SURFACE_ID:
         psSurface        = m_4xDSSurface;
         params.height    = psSurface->dwHeight - 1;
         params.width     = psSurface->dwWidth - 1;
+        uvPlaneAlignment = MHW_VDBOX_MFX_RECON_UV_PLANE_ALIGNMENT;
         break;
     }
 
@@ -1422,8 +1426,14 @@ MHW_SETPAR_DECL_SRC(MFX_SURFACE_STATE, AvcBasicFeature)
     params.surfacePitch     = psSurface->dwPitch - 1;
     params.interleaveChroma = psSurface->Format == Format_P8 ? 0 : 1;
     params.surfaceFormat    = MosToMediaStateFormat(psSurface->Format);
-    params.yOffsetForUCb    = psSurface->YoffsetForUplane;
-    params.yOffsetForVCr    = psSurface->YoffsetForVplane;
+
+    params.yOffsetForUCb = params.yOffsetForVCr =
+        MOS_ALIGN_CEIL((psSurface->UPlaneOffset.iSurfaceOffset - psSurface->dwOffset)/psSurface->dwPitch + psSurface->RenderOffset.YUV.U.YOffset, uvPlaneAlignment);
+    if (IsVPlanePresent(psSurface->Format))
+    {
+        params.yOffsetForVCr =
+            MOS_ALIGN_CEIL((psSurface->VPlaneOffset.iSurfaceOffset - psSurface->dwOffset)/psSurface->dwPitch + psSurface->RenderOffset.YUV.V.YOffset, uvPlaneAlignment);
+    }
 
 #ifdef _MMC_SUPPORTED
     if (m_mmcState && m_mmcState->IsMmcEnabled())

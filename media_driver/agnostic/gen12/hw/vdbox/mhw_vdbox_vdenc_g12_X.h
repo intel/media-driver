@@ -1411,13 +1411,6 @@ public:
         cmd.Dwords25.DW1.SurfacePitch             = params->psSurface->dwPitch - 1;
         cmd.Dwords25.DW2.YOffsetForUCb = cmd.Dwords25.DW3.YOffsetForVCr =
             MOS_ALIGN_CEIL((params->psSurface->UPlaneOffset.iSurfaceOffset - params->psSurface->dwOffset)/params->psSurface->dwPitch + params->psSurface->RenderOffset.YUV.U.YOffset, MHW_VDBOX_MFX_RAW_UV_PLANE_ALIGNMENT_GEN9);
-
-        if (params->psSurface->TileType == MOS_TILE_LINEAR && (params->psSurface->YoffsetForUplane || params->psSurface->YoffsetForVplane))
-        {
-            cmd.Dwords25.DW2.YOffsetForUCb = params->psSurface->YoffsetForUplane;
-            cmd.Dwords25.DW3.YOffsetForVCr = params->psSurface->YoffsetForVplane;
-        }
-
         cmd.Dwords25.DW1.ChromaDownsampleFilterControl = 7;
 
         MHW_MI_CHK_STATUS(this->m_osInterface->pfnAddCommand(cmdBuffer, &cmd, sizeof(cmd)));
