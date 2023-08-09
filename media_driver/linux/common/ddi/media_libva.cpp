@@ -6994,6 +6994,9 @@ static uint32_t DdiMedia_GetDrmFormatOfSeparatePlane(uint32_t fourcc, int plane)
         case VA_FOURCC_Y800:
         case VA_FOURCC_RGBP:
         case VA_FOURCC_BGRP:
+        case VA_FOURCC_422H:
+        case VA_FOURCC_422V:
+        case VA_FOURCC_444P:
             return DRM_FORMAT_R8;
         case VA_FOURCC_P010:
         case VA_FOURCC_P012:
@@ -7067,6 +7070,9 @@ static uint32_t DdiMedia_GetDrmFormatOfSeparatePlane(uint32_t fourcc, int plane)
         case VA_FOURCC_YV16:
         case VA_FOURCC_RGBP:
         case VA_FOURCC_BGRP:
+        case VA_FOURCC_422H:
+        case VA_FOURCC_422V:
+        case VA_FOURCC_444P:
             return DRM_FORMAT_R8;
         case VA_FOURCC_P010:
         case VA_FOURCC_P012:
