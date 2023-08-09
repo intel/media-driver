@@ -170,6 +170,9 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
          -Wbitfield-constant-conversion
          -Wno-extern-c-compat
          -Wno-inconsistent-missing-override
+         # for verison under clang-17
+         -Wno-ignored-optimization-argument
+         -gdwarf-4
         )
     list(REMOVE_ITEM MEDIA_COMPILER_FLAGS_COMMON
          -funswitch-loops
