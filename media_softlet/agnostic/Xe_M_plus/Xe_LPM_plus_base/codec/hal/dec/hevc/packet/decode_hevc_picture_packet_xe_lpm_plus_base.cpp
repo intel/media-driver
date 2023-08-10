@@ -180,7 +180,7 @@ namespace decode
         DECODE_CHK_STATUS(HevcDecodePicPkt::MHW_SETPAR_F(HCP_PIPE_BUF_ADDR_STATE)(params));
 
 #ifdef _MMC_SUPPORTED
-        HevcDecodeMemCompXe_Lpm_Plus_Base *hevcDecodeMemComp = dynamic_cast<HevcDecodeMemCompXe_Lpm_Plus_Base *>(m_mmcState);
+        HevcDecodeMemComp *hevcDecodeMemComp = dynamic_cast<HevcDecodeMemComp *>(m_mmcState);
         DECODE_CHK_NULL(hevcDecodeMemComp);
         DECODE_CHK_STATUS(hevcDecodeMemComp->CheckReferenceList(*m_hevcBasicFeature, params.PostDeblockSurfMmcState, params.PreDeblockSurfMmcState, params.presReferences));
 #endif
