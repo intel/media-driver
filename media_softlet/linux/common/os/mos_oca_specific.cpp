@@ -146,7 +146,7 @@ void MosOcaInterfaceSpecific::UnlockPendingOcaBuffers(PMOS_CONTEXT mosCtx, struc
     MosOcaAutoLock lock(m_mutexForOcaBufPool);
     if(m_PendingOcaBuffersToUnlock.size() > 1)
     {
-        MOS_OS_ASSERTMESSAGE("size of pending oca buffer > 1");
+        MOS_OS_NORMALMESSAGE("size of pending oca buffer > 1");
     }
     for (auto it = m_PendingOcaBuffersToUnlock.begin();
         it != m_PendingOcaBuffersToUnlock.end(); ++it)
