@@ -941,6 +941,9 @@ struct EncodeStatusReport
 
     FRAME_STATS_INFO *pFrmStatsInfo;
     BLOCK_STATS_INFO *pBlkStatsInfo;
+
+    uint32_t                        reserved[4];            //!< align with apo path hal structure EncodeStatusReportData
+
 };
 
 //!

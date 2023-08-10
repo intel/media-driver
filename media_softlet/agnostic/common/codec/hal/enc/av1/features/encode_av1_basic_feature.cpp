@@ -186,9 +186,10 @@ MOS_STATUS Av1BasicFeature::Update(void *params)
     m_picWidthInSb = m_miCols >> mibSizeLog2;
     m_picHeightInSb = m_miRows >> mibSizeLog2;
 
+    // EnableFrameOBU thread safety
     if (m_av1PicParams->PicFlags.fields.EnableFrameOBU)
     {
-        m_frameHdrOBUSizeByteOffset[m_av1PicParams->CurrOriginalPic.FrameIdx % ASYNC_NUM] = m_av1PicParams->FrameHdrOBUSizeByteOffset;
+        m_frameHdrOBUSizeByteOffset = m_av1PicParams->FrameHdrOBUSizeByteOffset;
     }
 
     // Only for first frame

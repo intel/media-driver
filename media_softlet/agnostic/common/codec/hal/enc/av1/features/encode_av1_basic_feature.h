@@ -169,7 +169,7 @@ public:
 
 #define ASYNC_NUM 32
 
-    uint32_t                           m_frameHdrOBUSizeByteOffset[ASYNC_NUM] = {};  //!< indicate current frame OBUFrame offset
+    uint32_t                           m_frameHdrOBUSizeByteOffset = 0;  //!< indicate current frame OBUFrame offset
     uint16_t                           m_tileGroupHeaderSize = 0;
     uint32_t                           m_encodedFrameNum = 0;                                   //!< Currently encoded frame number
 

@@ -112,6 +112,11 @@ MOS_STATUS Av1VdencPipelineXe_M_Base::Prepare(void *params)
 
     inputParameters.numberTilesInFrame         = numTileRows * numTileColumns;
 
+    inputParameters.av1EnableFrameObu            = feature->m_av1PicParams->PicFlags.fields.EnableFrameOBU;
+    inputParameters.av1FrameHdrOBUSizeByteOffset = feature->m_frameHdrOBUSizeByteOffset;
+    inputParameters.frameWidth                   = feature->m_frameWidth;
+    inputParameters.frameHeight                  = feature->m_frameHeight;
+
     ENCODE_CHK_STATUS_RETURN(m_statusReport->Init(&inputParameters));
 
     return MOS_STATUS_SUCCESS;

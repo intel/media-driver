@@ -222,9 +222,9 @@ namespace encode {
         ENCODE_CHK_NULL_RETURN(tileRecord);
 
         uint32_t obuSizeBytesOffset = 0;
-        if (m_basicFeature->m_av1PicParams->PicFlags.fields.EnableFrameOBU)
+        if (statusReportData->av1EnableFrameOBU)
         {
-            obuSizeBytesOffset = m_basicFeature->m_frameHdrOBUSizeByteOffset[statBufIdx % ASYNC_NUM];
+            obuSizeBytesOffset = statusReportData->av1FrameHdrOBUSizeByteOffset;
         }
         else
         {
@@ -269,7 +269,7 @@ namespace encode {
             streamSizePerTG += payLoadSize;
 
             //needs to decode the size from the one passed by MSDK
-            if (m_basicFeature->m_av1PicParams->PicFlags.fields.EnableFrameOBU)
+            if (statusReportData->av1EnableFrameOBU)
             {
                 uint32_t frameHdrObuSize = tileRecord[0].Length - tileRecord[0].TileSize - obuSizeBytesOffset -
                     m_numBytesOfOBUSize - 1/*tile group OBU header size*/ - tileGroupParams->TileGroupOBUSizeInBytes;

@@ -271,6 +271,12 @@ namespace encode {
 
         FRAME_STATS_INFO *pFrmStatsInfo;
         BLOCK_STATS_INFO *pBlkStatsInfo;
+
+        // Store Data for Av1 Back Annotation
+        uint32_t                        av1FrameHdrOBUSizeByteOffset;
+        uint32_t                        av1EnableFrameOBU;
+        uint32_t                        frameWidth;
+        uint32_t                        frameHeight;
     };
 
     class EncoderStatusReport : public MediaStatusReport

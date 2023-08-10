@@ -145,6 +145,10 @@ struct EncoderStatusParameters
     uint16_t           picWidthInMb;
     uint16_t           frameFieldHeightInMb;
     uint32_t           maxNumSlicesAllowed;
+    uint32_t           av1EnableFrameObu;
+    uint32_t           av1FrameHdrOBUSizeByteOffset;
+    uint32_t           frameWidth;
+    uint32_t           frameHeight;
 };
 
 struct ImageStatusControl
