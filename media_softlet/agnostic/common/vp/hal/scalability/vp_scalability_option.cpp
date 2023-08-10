@@ -33,6 +33,8 @@ namespace vp
 VpScalabilityOption::VpScalabilityOption(const VpScalabilityOption &pOption)
 {
     m_numPipe = pOption.m_numPipe;
+    m_raMode  = pOption.GetRAMode();
+    m_protectMode = pOption.GetProtectMode();
 }
 
 MOS_STATUS VpScalabilityOption::SetScalabilityOption(ScalabilityPars *params)

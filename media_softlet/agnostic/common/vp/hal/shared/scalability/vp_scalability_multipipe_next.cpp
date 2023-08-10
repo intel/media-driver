@@ -178,6 +178,8 @@ MOS_STATUS VpScalabilityMultiPipeNext::Initialize(const MediaScalabilityOption &
     SCALABILITY_CHK_NULL_RETURN(gpuCtxCreateOption);
     gpuCtxCreateOption->LRCACount = vpScalabilityOption->GetLRCACount();
     gpuCtxCreateOption->UsingSFC  = vpScalabilityOption->IsUsingSFC();
+    gpuCtxCreateOption->RAMode    = vpScalabilityOption->GetRAMode();
+    gpuCtxCreateOption->ProtectMode = vpScalabilityOption->GetProtectMode();
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     if (m_osInterface->bEnableDbgOvrdInVE)
