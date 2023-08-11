@@ -54,8 +54,10 @@ FilmGrainGrvPacket::FilmGrainGrvPacket(MediaPipeline *pipeline, MediaTask *task,
         m_vdencInterface = hwInterface->GetVdencInterface();
         m_renderHal      = hwInterface->GetRenderHalInterface();
     }
-
-    m_cpInterface = m_hwInterface->GetCpInterface();
+    if (m_hwInterface != nullptr)
+    {
+        m_cpInterface = m_hwInterface->GetCpInterface();
+    }
 }
 
 MOS_STATUS FilmGrainGrvPacket::Init()

@@ -1370,7 +1370,8 @@ MOS_STATUS Av1DecodeFilmGrainG12::InitScalingFunction(
         int32_t delta_y = pointScaling[point + 1] - pointScaling[point];
         int32_t delta_x = pointValue[point + 1] - pointValue[point];
 
-        int64_t delta = delta_y * ((65536 + (delta_x >> 1)) / delta_x);
+        DECODE_CHK_COND(delta_x == 0, " Value of delta x cannot be zero.");
+        int64_t delta = (int64_t)delta_y * ((65536 + (delta_x >> 1)) / delta_x);
 
         for (auto x = 0; x < delta_x; x++)
         {

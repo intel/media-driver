@@ -35,8 +35,6 @@ namespace decode
         m_allocator = m_pipeline ->GetDecodeAllocator();
         m_decodecp = m_pipeline->GetDecodeCp();
 
-        DECODE_CHK_STATUS(CalculateSliceStateCommandSize());
-
         DECODE_CHK_NULL(m_featureManager);
         DECODE_CHK_NULL(m_hwInterface);
         DECODE_CHK_NULL(m_osInterface);
@@ -45,6 +43,7 @@ namespace decode
         DECODE_CHK_NULL(m_mfxItf);
         DECODE_CHK_NULL(m_vp8BasicFeature);
         DECODE_CHK_NULL(m_allocator);
+        DECODE_CHK_STATUS(CalculateSliceStateCommandSize());
 
         return MOS_STATUS_SUCCESS;
     }

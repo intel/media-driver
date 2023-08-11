@@ -268,7 +268,12 @@ MOS_STATUS Vp9Pipeline::CreatePhase(uint8_t pass, uint8_t pipe, uint8_t activePi
     DECODE_FUNC_CALL();
     T *phase = MOS_New(T, *this, m_scalabOption);
     DECODE_CHK_NULL(phase);
-    DECODE_CHK_STATUS(phase->Initialize(pass, pipe, activePipeNum));
+    MOS_STATUS status = phase->Initialize(pass, pipe, activePipeNum);
+    if (status != MOS_STATUS_SUCCESS)
+    {
+        MOS_Delete(phase);
+        return status;
+    }
     m_phaseList.push_back(phase);
     return MOS_STATUS_SUCCESS;
 }

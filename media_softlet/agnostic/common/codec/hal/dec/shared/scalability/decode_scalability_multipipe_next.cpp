@@ -575,7 +575,7 @@ MOS_STATUS DecodeScalabilityMultiPipeNext::UpdateState(void *statePars)
     SCALABILITY_FUNCTION_ENTER;
 
     StateParams *decodeStatePars = (StateParams *)statePars;
-    if (decodeStatePars->currentPipe < 0 || decodeStatePars->currentPipe >= m_pipeNum)
+    if (decodeStatePars->currentPipe >= m_pipeNum)
     {
         SCALABILITY_ASSERTMESSAGE("UpdateState failed with invalid parameter: currentPipe %d!",
                                   decodeStatePars->currentPipe);

@@ -63,6 +63,7 @@ MOS_STATUS FilmGrainPreSubPipeline::Init(CodechalSetting &settings)
     //Create Packets
     m_filmGrainGrvPkt        = MOS_New(FilmGrainGrvPacket, m_pipeline, m_task, hwInterface);
     Av1PipelineG12 *pipeline = dynamic_cast<Av1PipelineG12 *>(m_pipeline);
+    DECODE_CHK_NULL(pipeline);
     DECODE_CHK_STATUS(RegisterPacket(DecodePacketId(pipeline, av1FilmGrainGrvPacketId), *m_filmGrainGrvPkt));
     DECODE_CHK_STATUS(m_filmGrainGrvPkt->Init());
 
@@ -120,6 +121,7 @@ MOS_STATUS FilmGrainPreSubPipeline::DoFilmGrainGenerateNoise(const CodechalDecod
 MOS_STATUS FilmGrainPreSubPipeline::GetRandomValuesKernel(const CodechalDecodeParams &decodeParams)
 {
     Av1PipelineG12 *pipeline = dynamic_cast<Av1PipelineG12 *>(m_pipeline);
+    DECODE_CHK_NULL(pipeline);
     DECODE_CHK_STATUS(ActivatePacket(DecodePacketId(pipeline, av1FilmGrainGrvPacketId), true, 0, 0));
 
     return MOS_STATUS_SUCCESS;
@@ -128,6 +130,7 @@ MOS_STATUS FilmGrainPreSubPipeline::GetRandomValuesKernel(const CodechalDecodePa
 MOS_STATUS FilmGrainPreSubPipeline::RegressPhase1Kernel(const CodechalDecodeParams &decodeParams)
 {
     Av1PipelineG12 *pipeline = dynamic_cast<Av1PipelineG12 *>(m_pipeline);
+    DECODE_CHK_NULL(pipeline);
     DECODE_CHK_STATUS(ActivatePacket(DecodePacketId(pipeline, av1FilmGrainRp1PacketId), true, 0, 0));
 
     return MOS_STATUS_SUCCESS;
@@ -136,6 +139,7 @@ MOS_STATUS FilmGrainPreSubPipeline::RegressPhase1Kernel(const CodechalDecodePara
 MOS_STATUS FilmGrainPreSubPipeline::RegressPhase2Kernel(const CodechalDecodeParams &decodeParams)
 {
     Av1PipelineG12 *pipeline = dynamic_cast<Av1PipelineG12 *>(m_pipeline);
+    DECODE_CHK_NULL(pipeline);
     DECODE_CHK_STATUS(ActivatePacket(DecodePacketId(pipeline, av1FilmGrainRp2PacketId), true, 0, 0));
 
     return MOS_STATUS_SUCCESS;

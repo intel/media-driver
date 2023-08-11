@@ -64,6 +64,7 @@ MOS_STATUS FilmGrainPostSubPipeline::Init(CodechalSetting &settings)
     //Create Packets
     m_filmGrainAppPkt = MOS_New(FilmGrainAppNoisePkt, m_pipeline, m_task, hwInterface);
     Av1PipelineG12 *pipeline = dynamic_cast<Av1PipelineG12 *>(m_pipeline);
+    DECODE_CHK_NULL(pipeline);
     DECODE_CHK_STATUS(RegisterPacket(DecodePacketId(pipeline, av1FilmGrainAppPacketId), *m_filmGrainAppPkt));
     DECODE_CHK_STATUS(m_filmGrainAppPkt->Init());
 
@@ -99,6 +100,7 @@ MOS_STATUS FilmGrainPostSubPipeline::DoFilmGrainApplyNoise(const CodechalDecodeP
     if (m_filmGrainFeature->m_picParams->m_filmGrainParams.m_filmGrainInfoFlags.m_fields.m_applyGrain)
     {
         Av1PipelineG12 *pipeline = dynamic_cast<Av1PipelineG12 *>(m_pipeline);
+        DECODE_CHK_NULL(pipeline);
         DECODE_CHK_STATUS(ActivatePacket(DecodePacketId(pipeline, av1FilmGrainAppPacketId), true, 0, 0));
         // For film grain frame, apply noise packet should update report global count, so need to set
         // frameTrackingRequested flag to true.

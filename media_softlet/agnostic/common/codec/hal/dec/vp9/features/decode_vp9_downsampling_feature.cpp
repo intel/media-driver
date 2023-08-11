@@ -126,6 +126,7 @@ MOS_STATUS Vp9DownSamplingFeature::UpdateDecodeTarget(MOS_SURFACE &surface)
 MOS_STATUS Vp9DownSamplingFeature::GetDecodeTargetSize(SurfaceWidthT &width, SurfaceHeightT &height)
 {
     Vp9BasicFeature *vp9BasicFeature = dynamic_cast<Vp9BasicFeature *>(m_basicFeature);
+    DECODE_CHK_NULL(vp9BasicFeature);
     width  = (uint32_t)vp9BasicFeature->m_vp9PicParams->FrameWidthMinus1 + 1;
     height = (uint32_t)vp9BasicFeature->m_vp9PicParams->FrameHeightMinus1 + 1;
     return MOS_STATUS_SUCCESS;

@@ -364,9 +364,15 @@ MOS_STATUS HevcDecodeSliceLongG12::ProcessSliceLong(uint8_t *cmdResBase, uint32_
 
     for (int i = 0; i < cmdBufArraySize; i++)
     {
-        CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(
+        eStatus = (MOS_STATUS)m_miInterface->AddMiBatchBufferEnd(
             &cmdBufArray[i],
-            nullptr));
+            nullptr);
+
+        if (eStatus != MOS_STATUS_SUCCESS)
+        {
+            MOS_SafeFreeMemory(cmdBufArray);
+            CODECHAL_DECODE_CHK_STATUS_RETURN(eStatus);
+        }
     }
 
     if (cmdBufArray)

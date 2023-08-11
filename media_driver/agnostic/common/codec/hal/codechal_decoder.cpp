@@ -904,7 +904,7 @@ CodechalDecode::~CodechalDecode()
         }
     }
 
-    if (m_statusQueryReportingEnabled)
+    if (m_statusQueryReportingEnabled && m_osInterface)
     {
         m_osInterface->pfnUnlockResource(
             m_osInterface,
@@ -930,17 +930,20 @@ CodechalDecode::~CodechalDecode()
         MOS_Delete(m_gpuCtxCreatOpt);
     }
 
-    m_osInterface->pfnFreeResource(
-        m_osInterface,
-        &m_predicationBuffer);
+    if (m_osInterface)
+    {
+        m_osInterface->pfnFreeResource(
+            m_osInterface,
+            &m_predicationBuffer);
 
-    m_osInterface->pfnFreeResource(
-        m_osInterface,
-        &m_frameCountTypeBuf);
+        m_osInterface->pfnFreeResource(
+            m_osInterface,
+            &m_frameCountTypeBuf);
 
-    m_osInterface->pfnFreeResource(
-        m_osInterface,
-        &m_crcBuf);
+        m_osInterface->pfnFreeResource(
+            m_osInterface,
+            &m_crcBuf);
+    }
 
     if (m_pCodechalOcaDumper)
     {
@@ -972,7 +975,8 @@ CodechalDecode::~CodechalDecode()
     }
 
     if (m_dummyReferenceStatus == CODECHAL_DUMMY_REFERENCE_ALLOCATED &&
-        !Mos_ResourceIsNull(&m_dummyReference.OsResource))
+        !Mos_ResourceIsNull(&m_dummyReference.OsResource) &&
+        m_osInterface)
     {
         m_osInterface->pfnFreeResource(m_osInterface, &m_dummyReference.OsResource);
     }

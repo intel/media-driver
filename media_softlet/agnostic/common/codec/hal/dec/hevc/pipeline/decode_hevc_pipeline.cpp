@@ -239,7 +239,12 @@ MOS_STATUS HevcPipeline::CreatePhase(uint8_t pass, uint8_t pipe, uint8_t activeP
     DECODE_FUNC_CALL();
     T *phase = MOS_New(T, *this, m_scalabOption);
     DECODE_CHK_NULL(phase);
-    DECODE_CHK_STATUS(phase->Initialize(pass, pipe, activePipeNum));
+    MOS_STATUS estatus = phase->Initialize(pass, pipe, activePipeNum);
+    if (estatus != MOS_STATUS_SUCCESS)
+    {
+        MOS_Delete(phase);
+        return estatus;
+    }
     m_phaseList.push_back(phase);
     return MOS_STATUS_SUCCESS;
 }

@@ -495,7 +495,12 @@ MOS_STATUS DecodeAllocator::Destroy(MOS_SURFACE& surface)
 
     MOS_SURFACE* dup = MOS_New(MOS_SURFACE);
     DECODE_CHK_NULL(dup);
-    DECODE_CHK_STATUS(MOS_SecureMemcpy(dup, sizeof(MOS_SURFACE), &surface, sizeof(MOS_SURFACE)));
+    MOS_STATUS status = MOS_SecureMemcpy(dup, sizeof(MOS_SURFACE), &surface, sizeof(MOS_SURFACE));
+    if (status != MOS_STATUS_SUCCESS)
+    {
+        MOS_Delete(dup);
+        return status;
+    }
 
     //if free the compressed surface, need set the sync dealloc flag as 1 for sync dealloc for aux table update
     MOS_GFXRES_FREE_FLAGS resFreeFlags = {0};
