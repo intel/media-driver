@@ -301,3 +301,38 @@ static struct LinuxDeviceInit mtlDeviceInit =
 
 static bool mtlDeviceRegister = DeviceInfoFactory<LinuxDeviceInit>::
     RegisterDevice(IGFX_METEORLAKE, &mtlDeviceInit);
+
+static bool InitArlMediaSku(struct GfxDeviceInfo *devInfo,
+    MediaFeatureTable *                            skuTable,
+    struct LinuxDriverInfo                        *drvInfo,
+    MediaUserSettingSharedPtr                      userSettingPtr)
+{
+    if (!InitMtlMediaSkuExt(devInfo, skuTable, drvInfo, userSettingPtr))
+    {
+        return false;
+    }
+
+    return true;
+}
+
+static bool InitArlMediaWa(struct GfxDeviceInfo *devInfo,
+    MediaWaTable *                                waTable,
+    struct LinuxDriverInfo *                      drvInfo)
+{
+    if (!InitMtlMediaWaExt(devInfo, waTable, drvInfo))
+    {
+        return false;
+    }
+
+    return true;
+}
+
+static struct LinuxDeviceInit arlDeviceInit =
+{
+    .productFamily    = (uint32_t)IGFX_ARROWLAKE,
+    .InitMediaFeature = InitArlMediaSku,
+    .InitMediaWa      = InitArlMediaWa,
+};
+
+static bool arlDeviceRegister = DeviceInfoFactory<LinuxDeviceInit>::
+    RegisterDevice((uint32_t)IGFX_ARROWLAKE, &arlDeviceInit);

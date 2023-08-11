@@ -1,4 +1,4 @@
-# Copyright (c) 2017, Intel Corporation
+# Copyright (c) 2017-2023, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -119,12 +119,14 @@ cmake_dependent_option(PVC
 
 option(MTL "Enable MTL support" ON)
 
-if(MTL)
+option(ARL "Enable ARL support" ON)
+
+if(MTL OR ARL)
     option(XE_LPM_PLUS_SUPPORT "Enable XE_LPM_PLUS support" ON)
     option(XE_LPG "Enable XE_LPG support" ON)
 endif()
 
-if(MTL)
+if(MTL OR ARL)
     option(Xe_M_plus "Enable Xe_M_plus support" ON)
 endif()
 
@@ -240,6 +242,10 @@ endif()
 
 if(MTL)
     add_definitions(-DIGFX_MTL_SUPPORTED)
+endif()
+
+if(ARL)
+    add_definitions(-DIGFX_ARL_SUPPORTED)
 endif()
 
 include(${MEDIA_EXT_CMAKE}/ext/linux/media_gen_flags_linux_ext.cmake OPTIONAL)

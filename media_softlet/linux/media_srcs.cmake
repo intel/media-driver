@@ -1,4 +1,4 @@
-# Copyright (c) 2019, Intel Corporation
+# Copyright (c) 2019-2023, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -24,6 +24,6 @@ if(XE_LPM_PLUS_SUPPORT)
     media_include_subdirectory(xe_lpm_plus)
 endif()
 
-if(MTL)
+if(MTL OR ARL)
     media_include_subdirectory(Xe_M_plus)
 endif()

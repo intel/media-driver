@@ -70,3 +70,6 @@ VAStatus MediaLibvaCapsMtl::GetDisplayAttributes(
 
 static bool mtlRegistered = MediaLibvaCapsFactory<MediaLibvaCaps, DDI_MEDIA_CONTEXT>::
     RegisterCaps<MediaLibvaCapsMtl>((uint32_t)IGFX_METEORLAKE);
+
+static bool arlRegistered = MediaLibvaCapsFactory<MediaLibvaCaps, DDI_MEDIA_CONTEXT>::
+    RegisterCaps<MediaLibvaCapsMtl>((uint32_t)IGFX_ARROWLAKE);
