@@ -919,6 +919,7 @@ MOS_STATUS RenderCmdPacket::PrepareComputeWalkerParams(KERNEL_WALKER_PARAMS para
     // Indirect Data Length is a multiple of 64 bytes (size of L3 cacheline). Bits [5:0] are zero.
     gpgpuWalker.IndirectDataLength = MOS_ALIGN_CEIL(params.iCurbeLength, 1 << MHW_COMPUTE_INDIRECT_SHIFT);
     gpgpuWalker.BindingTableID     = params.iBindingTable;
+    gpgpuWalker.ForcePreferredSLMZero = params.forcePreferredSLMZero;
 
     return MOS_STATUS_SUCCESS;
 }

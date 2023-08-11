@@ -289,6 +289,7 @@ typedef struct _MHW_GPGPU_WALKER_PARAMS
     uint32_t                   IndirectDataLength;
     uint32_t                   IndirectDataStartAddress;
     uint32_t                   BindingTableID;
+    uint32_t                   ForcePreferredSLMZero;
 } MHW_GPGPU_WALKER_PARAMS, *PMHW_GPGPU_WALKER_PARAMS;
 
 typedef struct _MHW_MEDIA_OBJECT_PARAMS

@@ -1408,12 +1408,48 @@ namespace xe_hpg
                     //!< DWORD 6_7
                     struct
                     {
-                        uint64_t Reserved192 : __CODEGEN_BITFIELD(0, 63);  //!< Reserved
+                        uint64_t PreferredSlmAllocationSizePerSubslice : __CODEGEN_BITFIELD(0, 3);  //!< PREFERRED_SLM_ALLOCATION_SIZE_PER_SUBSLICE
+                        uint64_t Reserved192 : __CODEGEN_BITFIELD(4, 63);  //!< Reserved
                     };
                     uint64_t Value = 0;
                 } DW6_7;
 
                 //! \name Initializations
+
+                //! \brief SHARED_LOCAL_MEMORY_SIZE
+                //! \details
+                //!     This field indicates how much Shared Local Memory the thread group
+                //!     requires.
+                //!     If the barriers are not enabled,HW will enable at least 1 barrier for
+                //!     Mid thread preemption to work.
+                enum SHARED_LOCAL_MEMORY_SIZE
+                {
+                    SHARED_LOCAL_MEMORY_SIZE_SLMENCODES0K   = 0,   //!< No additional details
+                    SHARED_LOCAL_MEMORY_SIZE_SLMENCODES1K   = 1,   //!< No additional details
+                    SHARED_LOCAL_MEMORY_SIZE_SLMENCODES2K   = 2,   //!< No additional details
+                    SHARED_LOCAL_MEMORY_SIZE_SLMENCODES4K   = 3,   //!< No additional details
+                    SHARED_LOCAL_MEMORY_SIZE_SLMENCODES8K   = 4,   //!< No additional details
+                    SHARED_LOCAL_MEMORY_SIZE_SLMENCODES16K  = 5,   //!< No additional details
+                    SHARED_LOCAL_MEMORY_SIZE_SLMENCODES32K  = 6,   //!< No additional details
+                    SHARED_LOCAL_MEMORY_SIZE_SLMENCODES64K  = 7,   //!< No additional details
+                };
+
+                //! \brief PREFERRED_SLM_ALLOCATION_SIZE_PER_SUBSLICE
+                //! \details
+                //!     For products where SLM and Subslice L1 cacheshares a common,
+                //!     re-partitionable RAM, this field indicates the preferred SLM size per
+                //!     Subslice for this dispatch. The SLM size programmed here should be >=
+                //!     the per thread-group SLM size programmed in DW[5][20:16].
+                enum PREFERRED_SLM_ALLOCATION_SIZE_PER_SUBSLICE
+                {
+                    PREFERRED_SLM_ALLOCATION_SIZE_PER_SUBSLICE_SLMENCODESMAX  = 0x0,   //!< No additional details
+                    PREFERRED_SLM_ALLOCATION_SIZE_PER_SUBSLICE_SLMENCODES0K   = 0x8,   //!< No additional details
+                    PREFERRED_SLM_ALLOCATION_SIZE_PER_SUBSLICE_SLMENCODES16K  = 0x9,   //!< No additional details
+                    PREFERRED_SLM_ALLOCATION_SIZE_PER_SUBSLICE_SLMENCODES32K  = 0xa,   //!< No additional details
+                    PREFERRED_SLM_ALLOCATION_SIZE_PER_SUBSLICE_SLMENCODES64K  = 0xb,   //!< No additional details
+                    PREFERRED_SLM_ALLOCATION_SIZE_PER_SUBSLICE_SLMENCODES96K  = 0xc,   //!< No additional details
+                    PREFERRED_SLM_ALLOCATION_SIZE_PER_SUBSLICE_SLMENCODES128K = 0xd,   //!< No additional details
+                };
 
                 //! \brief Explicit member initialization function
                 INTERFACE_DESCRIPTOR_DATA_G12HP_CMD()

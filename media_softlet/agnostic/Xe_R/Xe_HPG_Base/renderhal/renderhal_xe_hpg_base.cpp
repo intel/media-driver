@@ -1138,6 +1138,7 @@ MHW_SETPAR_DECL_SRC(COMPUTE_WALKER, XRenderHal_Interface_Xe_Hpg_Base)
     params.dwNumberofThreadsInGPGPUGroup = m_interfaceDescriptorParams->dwNumberofThreadsInGPGPUGroup;
     params.dwSharedLocalMemorySize = m_interfaceDescriptorParams->dwSharedLocalMemorySize;
     params.IndirectDataStartAddress = m_gpgpuWalkerParams->IndirectDataStartAddress;
+    params.forcePreferredSLMZero = m_gpgpuWalkerParams->ForcePreferredSLMZero;
 
     if (m_gpgpuWalkerParams->ThreadDepth == 0)
     {

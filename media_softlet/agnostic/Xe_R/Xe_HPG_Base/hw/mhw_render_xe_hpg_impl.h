@@ -201,7 +201,16 @@ public:
         cmd.interface_descriptor_data.DW4.BindingTablePointer = MOS_ROUNDUP_SHIFT(params.dwBindingTableOffset, MHW_BINDING_TABLE_ID_SHIFT);
         cmd.interface_descriptor_data.DW5.NumberOfThreadsInGpgpuThreadGroup = params.dwNumberofThreadsInGPGPUGroup;
         cmd.interface_descriptor_data.DW5.SharedLocalMemorySize = params.dwSharedLocalMemorySize;
-
+        if (params.dwSharedLocalMemorySize > 0)
+        {
+            cmd.interface_descriptor_data.DW6_7.PreferredSlmAllocationSizePerSubslice = mhw::render::xe_hpg::Cmd::COMPUTE_WALKER_CMD::INTERFACE_DESCRIPTOR_DATA_G12HP_CMD::PREFERRED_SLM_ALLOCATION_SIZE_PER_SUBSLICE_SLMENCODES96K;
+        }
+        else  // if (params.dwSharedLocalMemorySize == 0)
+        {
+            cmd.interface_descriptor_data.DW6_7.PreferredSlmAllocationSizePerSubslice = params.forcePreferredSLMZero ? 
+                mhw::render::xe_hpg::Cmd::COMPUTE_WALKER_CMD::INTERFACE_DESCRIPTOR_DATA_G12HP_CMD::PREFERRED_SLM_ALLOCATION_SIZE_PER_SUBSLICE_SLMENCODESMAX :
+                mhw::render::xe_hpg::Cmd::COMPUTE_WALKER_CMD::INTERFACE_DESCRIPTOR_DATA_G12HP_CMD::PREFERRED_SLM_ALLOCATION_SIZE_PER_SUBSLICE_SLMENCODES0K;
+        }
         // when Barriers is not 0, the EU fusion will close.
         // Assigns barrier count.
         if (params.bBarrierEnable)
