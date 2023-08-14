@@ -314,7 +314,7 @@ MOS_STATUS FilmGrainRp2Packet::KernelStateSetup()
 
     PRENDERHAL_INTERFACE_LEGACY pRenderHalLegacy = (PRENDERHAL_INTERFACE_LEGACY)m_renderHal;
     // Initialize States
-    MOS_ZeroMemory(m_filter, sizeof(m_filter));
+    MOS_ZeroMemory(m_filter, sizeof(Kdll_FilterEntry));
     MOS_ZeroMemory(&m_renderData.KernelEntry, sizeof(Kdll_CacheEntry));
 
     // Set Kernel Parameter

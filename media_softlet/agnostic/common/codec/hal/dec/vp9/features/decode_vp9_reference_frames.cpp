@@ -263,7 +263,7 @@ namespace decode
         DECODE_CHK_COND(picParams.CurrPic.FrameIdx >= CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP9,
                         "Invalid frame index of current frame");
         m_currRefList = m_vp9RefList[picParams.CurrPic.FrameIdx];
-        MOS_ZeroMemory(m_currRefList, sizeof(m_currRefList));
+        MOS_ZeroMemory(m_currRefList, sizeof(CODEC_REF_LIST));
 
         // Overwrite the actual surface height with the coded height and width of the frame
         // for VP9 since it's possible for a VP9 frame to change size during playback

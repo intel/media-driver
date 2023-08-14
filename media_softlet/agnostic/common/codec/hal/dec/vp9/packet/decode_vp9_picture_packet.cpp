@@ -458,14 +458,7 @@ MHW_SETPAR_DECL_SRC(HCP_SURFACE_STATE, Vp9DecodePicPkt)
         }
     }
 
-    if (m_curHcpSurfStateId == CODECHAL_HCP_SRC_SURFACE_ID)
-    {
-        uvPlaneAlignment = dwUVPlaneAlignment ? dwUVPlaneAlignment : m_rawUVPlaneAlignment;
-    }
-    else
-    {
-        uvPlaneAlignment = dwUVPlaneAlignment ? dwUVPlaneAlignment : m_reconUVPlaneAlignment;
-    }
+    uvPlaneAlignment = dwUVPlaneAlignment;
 
     params.yOffsetForUCbInPixel =
         MOS_ALIGN_CEIL((psSurface->UPlaneOffset.iSurfaceOffset - psSurface->dwOffset) / psSurface->dwPitch + psSurface->RenderOffset.YUV.U.YOffset, uvPlaneAlignment);

@@ -262,7 +262,7 @@ namespace decode
                             picParams.m_picInfoFlags.m_fields.m_largeScaleTile && (picParams.m_currPic.FrameIdx >= CODECHAL_MAX_DPB_NUM_LST_AV1)),
                         "Invalid frame index of current frame");
         m_currRefList = m_refList[picParams.m_currPic.FrameIdx];
-        MOS_ZeroMemory(m_currRefList, sizeof(m_currRefList));
+        MOS_ZeroMemory(m_currRefList, sizeof(CODEC_REF_LIST_AV1));
 
         DECODE_CHK_STATUS(UpdateCurResource(m_currRefList));
         m_currRefList->m_frameWidth     = picParams.m_superResUpscaledWidthMinus1 + 1;  //DPB buffer are always stored in full frame resolution (Super-Res up-scaled resolution)

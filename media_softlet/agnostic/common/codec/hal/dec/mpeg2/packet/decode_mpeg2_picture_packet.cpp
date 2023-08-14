@@ -176,10 +176,6 @@ MHW_SETPAR_DECL_SRC(MFX_SURFACE_STATE, Mpeg2DecodePicPkt)
     {
         uvPlaneAlignment = MHW_VDBOX_MFX_RAW_UV_PLANE_ALIGNMENT_GEN9;
     }
-    else if ((params.surfaceId == CODECHAL_MFX_REF_SURFACE_ID) || params.surfaceId == CODECHAL_MFX_DSRECON_SURFACE_ID)
-    {
-        uvPlaneAlignment = uvPlaneAlignment ? uvPlaneAlignment : MHW_VDBOX_MFX_RECON_UV_PLANE_ALIGNMENT;
-    }
     else
     {
         uvPlaneAlignment = MHW_VDBOX_MFX_UV_PLANE_ALIGNMENT_LEGACY;
