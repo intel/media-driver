@@ -107,32 +107,36 @@ MOS_STATUS VpDebugInterface::DumpVpSurface(
     PVPHAL_SURFACE pSurf,
     uint32_t       uiFrameNumber,
     uint32_t       uiCounter,
-    uint32_t       Location)
+    uint32_t       Location,
+    uint32_t       uiDDI)
 {
     VP_FUNC_CALL();
 
     VP_DEBUG_CHK_NULL_RETURN(m_surfaceDumper)
     return m_surfaceDumper->DumpSurface(
-               pSurf,
-               uiFrameNumber,
-               uiCounter,
-               Location);
+        pSurf,
+        uiFrameNumber,
+        uiCounter,
+        Location,
+        uiDDI);
 }
 
 MOS_STATUS VpDebugInterface::DumpVpSurface(
-    PVP_SURFACE pSurf,
+    PVP_SURFACE    pSurf,
     uint32_t       uiFrameNumber,
     uint32_t       uiCounter,
-    uint32_t       Location)
+    uint32_t       Location,
+    uint32_t       uiDDI)
 {
     VP_FUNC_CALL();
 
     VP_DEBUG_CHK_NULL_RETURN(m_surfaceDumper)
     return m_surfaceDumper->DumpSurface(
-               pSurf,
-               uiFrameNumber,
-               uiCounter,
-               Location);
+        pSurf,
+        uiFrameNumber,
+        uiCounter,
+        Location,
+        uiDDI);
 }
 
 MOS_STATUS VpDebugInterface::DumpVpSurfaceArray(
@@ -140,17 +144,19 @@ MOS_STATUS VpDebugInterface::DumpVpSurfaceArray(
     uint32_t                        uiMaxSurfaces,
     uint32_t                        uiNumSurfaces,
     uint32_t                        uiFrameNumber,
-    uint32_t                        Location)
+    uint32_t                        Location,
+    uint32_t                        uiDDI)
 {
     VP_FUNC_CALL();
 
     VP_DEBUG_CHK_NULL_RETURN(m_surfaceDumper)
     return m_surfaceDumper->DumpSurfaceArray(
-               ppSurfaces,
-               uiMaxSurfaces,
-               uiNumSurfaces,
-               uiFrameNumber,
-               Location);
+        ppSurfaces,
+        uiMaxSurfaces,
+        uiNumSurfaces,
+        uiFrameNumber,
+        Location,
+        uiDDI);
 }
 
 std::string VpDebugInterface::SetOutputPathKey()

@@ -60,19 +60,19 @@
 // Dump macro.  Simply calls the dump function.  defined as null in production
 //------------------------------------------------------------------------------
 #define VP_SURFACE_DUMP(                                       \
-    debuginterface, surf, frameCntr, layerCntr, loc)           \
+    debuginterface, surf, frameCntr, layerCntr, loc, ddi)           \
     if (debuginterface)                                        \
         debuginterface->DumpVpSurface(                         \
-           surf, frameCntr, layerCntr, loc);
+           surf, frameCntr, layerCntr, loc, ddi);
 
 //------------------------------------------------------------------------------
 // Dump array of surfaces
 //------------------------------------------------------------------------------
 #define VP_SURFACE_PTRS_DUMP(                                    \
-    debuginterface, surfs, maxCntr, numCntr, frameCntr, loc)     \
+    debuginterface, surfs, maxCntr, numCntr, frameCntr, loc, ddi)     \
     if (debuginterface)                                          \
         VP_DEBUG_CHK_STATUS(debuginterface->DumpVpSurfaceArray(  \
-            surfs, maxCntr, numCntr, frameCntr, loc));
+            surfs, maxCntr, numCntr, frameCntr, loc, ddi));
 //------------------------------------------------------------------------------
 // Create macro for dumper.  Allocates and initializes.
 //    Potential leak if renderer not destroyed properly. However, cannot add a
@@ -165,6 +165,16 @@ enum VPHAL_SURF_DUMP_LOCATION
     VPHAL_DUMP_TYPE_VEBOX_KERNELHEAP,
     VPHAL_DUMP_TYPE_POST_ALL,
     VPHAL_DUMP_TYPE_INTERNAL
+};
+
+//!
+//! \brief Dump DDI as enum
+//!
+enum VPHAL_SURF_DUMP_DDI
+{
+    VPHAL_SURF_DUMP_DDI_UNKNOWN,
+    VPHAL_SURF_DUMP_DDI_VP_BLT,
+    VPHAL_SURF_DUMP_DDI_CLEAR_VIEW
 };
 
 //!
@@ -321,17 +331,19 @@ public:
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     virtual MOS_STATUS DumpSurface(
-        PVPHAL_SURFACE                  pSurf,
-        uint32_t                        uiFrameNumber,
-        uint32_t                        uiCounter,
-        uint32_t                        Location);
+        PVPHAL_SURFACE pSurf,
+        uint32_t       uiFrameNumber,
+        uint32_t       uiCounter,
+        uint32_t       Location,
+        uint32_t       uiDDI = VPHAL_SURF_DUMP_DDI_UNKNOWN);
 
 
      virtual MOS_STATUS DumpSurface(
-        PVP_SURFACE                  pSurf,
-        uint32_t                        uiFrameNumber,
-        uint32_t                        uiCounter,
-        uint32_t                        Location);
+        PVP_SURFACE pSurf,
+        uint32_t    uiFrameNumber,
+        uint32_t    uiCounter,
+        uint32_t    Location,
+        uint32_t    uiDDI = VPHAL_SURF_DUMP_DDI_UNKNOWN);
 
     // VpHalDbg_SurfaceDumperDumpPtrs
     //!
@@ -351,12 +363,13 @@ public:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    MOS_STATUS DumpSurfaceArray(
-        PVPHAL_SURFACE                  *ppSurfaces,
-        uint32_t                        uiMaxSurfaces,
-        uint32_t                        uiNumSurfaces,
-        uint32_t                        uiFrameNumber,
-        uint32_t                        Location);
+     MOS_STATUS DumpSurfaceArray(
+         PVPHAL_SURFACE *ppSurfaces,
+         uint32_t        uiMaxSurfaces,
+         uint32_t        uiNumSurfaces,
+         uint32_t        uiFrameNumber,
+         uint32_t        Location,
+         uint32_t        uiDDI = VPHAL_SURF_DUMP_DDI_UNKNOWN);
 
     //!
     //! \brief    Query the register to get surface dump specification.
@@ -394,6 +407,19 @@ protected:
         char*                           pcLocString);
 
     //!
+    //! \brief    Convert a DDI to string
+    //! \param    [in] DDI
+    //!           Enum of a DDI
+    //! \param    [out] DDI string
+    //!           Enum type
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS EnumToDdiString(
+        uint32_t                        uiDDI,
+        char*                           pcDdiString);
+
+    //!
     //! \brief    Check if an osResource have aux surf
     //! \param    [in] osResource
     //!           Pointer to MOS Resource
@@ -406,6 +432,7 @@ protected:
     PMOS_INTERFACE              m_osInterface;
     char                        m_dumpPrefix[MAX_PATH];     // Called frequently, so avoid repeated stack resizing with member data
     char                        m_dumpLoc[MAX_PATH];        // to avoid recursive call from diff owner but sharing the same buffer
+    char                        m_dumpDDI[MAX_PATH];        // to avoid recursive call from diff owner but sharing the same buffer
     MediaUserSettingSharedPtr   m_userSettingPtr = nullptr; // userSettingInstance
 
 private:

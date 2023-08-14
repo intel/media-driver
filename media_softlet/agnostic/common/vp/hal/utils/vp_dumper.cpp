@@ -63,6 +63,11 @@
 #define VPHAL_PARAMS_DUMP_START_FRAME_KEY_NAME  "startxmlFrame"
 #define VPHAL_PARAMS_DUMP_END_FRAME_KEY_NAME    "endxmlFrame"
 
+//==<Dump DDI>====================================================
+#define VPHAL_PARAMS_DUMP_DDI_UNKNOWN           "unknown"
+#define VPHAL_PARAMS_DUMP_DDI_VP_BLT            "vpblt"
+#define VPHAL_PARAMS_DUMP_DDI_CLEAR_VIEW        "clearview"
+
 void VpDumperTool::GetOsFilePath(
     const char* pcFilePath,
     char*       pOsFilePath)
@@ -1713,6 +1718,30 @@ finish:
     return eStatus;
 }
 
+MOS_STATUS VpSurfaceDumper::EnumToDdiString(
+    uint32_t                      uiDDI,
+    char*                         pcDdiString)
+{
+    VP_DEBUG_CHK_NULL_RETURN(pcDdiString)
+
+    switch (uiDDI)
+    {
+        case VPHAL_SURF_DUMP_DDI_UNKNOWN:
+            MOS_SecureStringPrint(pcDdiString, MAX_PATH, MAX_PATH, VPHAL_PARAMS_DUMP_DDI_UNKNOWN);
+            break;
+        case VPHAL_SURF_DUMP_DDI_VP_BLT:
+            MOS_SecureStringPrint(pcDdiString, MAX_PATH, MAX_PATH, VPHAL_PARAMS_DUMP_DDI_VP_BLT);
+            break;
+        case VPHAL_SURF_DUMP_DDI_CLEAR_VIEW:
+            MOS_SecureStringPrint(pcDdiString, MAX_PATH, MAX_PATH, VPHAL_PARAMS_DUMP_DDI_CLEAR_VIEW);
+            break;
+        default:
+            VP_DEBUG_ASSERTMESSAGE("Unknown dump DDI \"%d\".", uiDDI);
+            return MOS_STATUS_UNKNOWN;
+    }
+    
+    return MOS_STATUS_SUCCESS;
+}
 
 MOS_STATUS VpSurfaceDumper::SurfTypeStringToEnum(
     char*                         pcSurfType,
@@ -1995,7 +2024,8 @@ MOS_STATUS VpSurfaceDumper::DumpSurface(
     PVPHAL_SURFACE                  pSurf,
     uint32_t                        uiFrameNumber,
     uint32_t                        uiCounter,
-    uint32_t                        Location)
+    uint32_t                        Location,
+    uint32_t                        uiDDI)
 {
     VP_FUNC_CALL();
 
@@ -2069,6 +2099,7 @@ MOS_STATUS VpSurfaceDumper::DumpSurface(
                         loc = osCtx->GetdumpLoc();
                     }
                     VP_DEBUG_CHK_STATUS(EnumToLocString(Location, m_dumpLoc));
+                    VP_DEBUG_CHK_STATUS(EnumToDdiString(uiDDI, m_dumpDDI));
                     if (!isDumpFromDecomp && pSurf->bIsCompressed && loc)
                     {
                         EnumToLocString(Location, loc);
@@ -2076,13 +2107,13 @@ MOS_STATUS VpSurfaceDumper::DumpSurface(
 
                     if (!isDumpFromDecomp || (loc && loc[0] == 0))
                     {
-                        MOS_SecureStringPrint(m_dumpPrefix, MAX_PATH, MAX_PATH, "%s/surfdump_pid%x_ts%llx_loc[%s]_lyr[%d]", pDumpSpec->pcOutputPath, pid, timeStamp, m_dumpLoc, uiCounter);
+                        MOS_SecureStringPrint(m_dumpPrefix, MAX_PATH, MAX_PATH, "%s/surfdump_pid%x_ts%llx_loc[%s]_lyr[%d]_ddi[%s(%d)]", pDumpSpec->pcOutputPath, pid, timeStamp, m_dumpLoc, uiCounter, m_dumpDDI, uiDDI);
                     }
                     else
                     {
                         if (loc)
                         {
-                            MOS_SecureStringPrint(m_dumpPrefix, MAX_PATH, MAX_PATH, "%s/surfdump_pid%x_ts%llx_loc[%s_%s]_lyr[%d]", pDumpSpec->pcOutputPath, pid, timeStamp, loc, m_dumpLoc, uiCounter);
+                            MOS_SecureStringPrint(m_dumpPrefix, MAX_PATH, MAX_PATH, "%s/surfdump_pid%x_ts%llx_loc[%s_%s]_lyr[%d]_ddi[%s(%d)]", pDumpSpec->pcOutputPath, pid, timeStamp, loc, m_dumpLoc, uiCounter, m_dumpDDI, uiDDI);
                         }
                     }
                     DumpSurfaceToFile(
@@ -2121,6 +2152,7 @@ MOS_STATUS VpSurfaceDumper::DumpSurface(
                     loc = osCtx->GetdumpLoc();
                 }
                 VP_DEBUG_CHK_STATUS(EnumToLocString(Location, m_dumpLoc));
+                VP_DEBUG_CHK_STATUS(EnumToDdiString(uiDDI, m_dumpDDI));
                 if (!isDumpFromDecomp && pSurf->bIsCompressed && loc)
                 {
                     EnumToLocString(Location, loc);
@@ -2128,15 +2160,15 @@ MOS_STATUS VpSurfaceDumper::DumpSurface(
 
                 if (!isDumpFromDecomp || (loc && loc[0] == 0))
                 {
-                    MOS_SecureStringPrint(m_dumpPrefix, MAX_PATH, MAX_PATH, "%s/surfdump_pid%x_ts%llx_loc_loc[%s]_lyr[%d]",
-                        pDumpSpec->pcOutputPath, pid, timeStamp, m_dumpLoc, uiCounter);
+                    MOS_SecureStringPrint(m_dumpPrefix, MAX_PATH, MAX_PATH, "%s/surfdump_pid%x_ts%llx_loc_loc[%s]_lyr[%d]_ddi[%s(%d)]", 
+                        pDumpSpec->pcOutputPath, pid, timeStamp, m_dumpLoc, uiCounter, m_dumpDDI, uiDDI);
                 }
                 else
                 {
                     if (loc)
                     {
-                        MOS_SecureStringPrint(m_dumpPrefix, MAX_PATH, MAX_PATH, "%s/surfdump_pid%x_ts%llx_loc_loc[%s_%s]_lyr[%d]",
-                            pDumpSpec->pcOutputPath, pid, timeStamp, loc, m_dumpLoc, uiCounter);
+                        MOS_SecureStringPrint(m_dumpPrefix, MAX_PATH, MAX_PATH, "%s/surfdump_pid%x_ts%llx_loc_loc[%s_%s]_lyr[%d]_ddi[%s(%d)]", 
+                            pDumpSpec->pcOutputPath, pid, timeStamp, loc, m_dumpLoc, uiCounter, m_dumpDDI, uiDDI);
                     }
                 }
 
@@ -2169,10 +2201,11 @@ finish:
 }
 
 MOS_STATUS VpSurfaceDumper::DumpSurface(
-    PVP_SURFACE                  pSurf,
+    PVP_SURFACE                     pSurf,
     uint32_t                        uiFrameNumber,
     uint32_t                        uiCounter,
-    uint32_t                        Location)
+    uint32_t                        Location,
+    uint32_t                        uiDDI)
 {
     VP_FUNC_CALL();
 
@@ -2246,6 +2279,7 @@ MOS_STATUS VpSurfaceDumper::DumpSurface(
                         loc = osCtx->GetdumpLoc();
                     }
                     VP_DEBUG_CHK_STATUS(EnumToLocString(Location, m_dumpLoc));
+                    VP_DEBUG_CHK_STATUS(EnumToDdiString(uiDDI, m_dumpDDI));
                     if (!isDumpFromDecomp && pSurf->osSurface->bIsCompressed && loc)
                     {
                         EnumToLocString(Location, loc);
@@ -2253,13 +2287,13 @@ MOS_STATUS VpSurfaceDumper::DumpSurface(
 
                     if (!isDumpFromDecomp || (loc && loc[0] == 0))
                     {
-                        MOS_SecureStringPrint(m_dumpPrefix, MAX_PATH, MAX_PATH, "%s/surfdump_pid%x_ts%llx_loc[%s]_lyr[%d]", pDumpSpec->pcOutputPath, pid, timeStamp, m_dumpLoc, uiCounter);
+                        MOS_SecureStringPrint(m_dumpPrefix, MAX_PATH, MAX_PATH, "%s/surfdump_pid%x_ts%llx_loc[%s]_lyr[%d]_ddi[%s(%d)]", pDumpSpec->pcOutputPath, pid, timeStamp, m_dumpLoc, uiCounter, m_dumpDDI, uiDDI);
                     }
                     else
                     {
                         if (loc)
                         {
-                            MOS_SecureStringPrint(m_dumpPrefix, MAX_PATH, MAX_PATH, "%s/surfdump_pid%x_ts%llx_loc[%s_%s]_lyr[%d]", pDumpSpec->pcOutputPath, pid, timeStamp, loc, m_dumpLoc, uiCounter);
+                            MOS_SecureStringPrint(m_dumpPrefix, MAX_PATH, MAX_PATH, "%s/surfdump_pid%x_ts%llx_loc[%s_%s]_lyr[%d]_ddi[%s(%d)]", pDumpSpec->pcOutputPath, pid, timeStamp, loc, m_dumpLoc, uiCounter, m_dumpDDI, uiDDI);
                         }
                     }
                     DumpSurfaceToFile(
@@ -2298,6 +2332,7 @@ MOS_STATUS VpSurfaceDumper::DumpSurface(
                     loc = osCtx->GetdumpLoc();
                 }
                 VP_DEBUG_CHK_STATUS(EnumToLocString(Location, m_dumpLoc));
+                VP_DEBUG_CHK_STATUS(EnumToDdiString(uiDDI, m_dumpDDI));
                 if (!isDumpFromDecomp && pSurf->osSurface->bIsCompressed && loc)
                 {
                     EnumToLocString(Location, loc);
@@ -2305,15 +2340,15 @@ MOS_STATUS VpSurfaceDumper::DumpSurface(
 
                 if (!isDumpFromDecomp || (loc && loc[0] == 0))
                 {
-                    MOS_SecureStringPrint(m_dumpPrefix, MAX_PATH, MAX_PATH, "%s/surfdump_pid%x_ts%llx_loc[%s]_lyr[%d]",
-                        pDumpSpec->pcOutputPath, pid, timeStamp, m_dumpLoc, uiCounter);
+                    MOS_SecureStringPrint(m_dumpPrefix, MAX_PATH, MAX_PATH, "%s/surfdump_pid%x_ts%llx_loc[%s]_lyr[%d]_ddi[%s(%d)]",
+                        pDumpSpec->pcOutputPath, pid, timeStamp, m_dumpLoc, uiCounter, m_dumpDDI, uiDDI);
                 }
                 else
                 {
                     if (loc)
                     {
-                        MOS_SecureStringPrint(m_dumpPrefix, MAX_PATH, MAX_PATH, "%s/surfdump_pid%x_ts%llx_loc[%s_%s]_lyr[%d]",
-                            pDumpSpec->pcOutputPath, pid, timeStamp, loc, m_dumpLoc, uiCounter);
+                        MOS_SecureStringPrint(m_dumpPrefix, MAX_PATH, MAX_PATH, "%s/surfdump_pid%x_ts%llx_loc[%s_%s]_lyr[%d]_ddi[%s(%d)]",
+                            pDumpSpec->pcOutputPath, pid, timeStamp, loc, m_dumpLoc, uiCounter, m_dumpDDI, uiDDI);
                     }
                 }
 
@@ -2350,7 +2385,8 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceArray(
     uint32_t                        uiMaxSurfaces,
     uint32_t                        uiNumSurfaces,
     uint32_t                        uiFrameNumber,
-    uint32_t                        Location)
+    uint32_t                        Location,
+    uint32_t                        uiDDI)
 {
     VP_FUNC_CALL();
 
@@ -2375,7 +2411,8 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceArray(
                 ppSurfaces[uiIndex],
                 uiFrameNumber,
                 uiLayer,
-                Location));
+                Location,
+                uiDDI));
 
             uiLayer++;
         }

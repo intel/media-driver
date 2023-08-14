@@ -414,7 +414,8 @@ MOS_STATUS VpPipeline::ExecuteVpPipeline()
                 params->pSrc[uiLayer],
                 m_vpPipeContexts[0]->GetFrameCounter(),
                 uiLayer,
-                VPHAL_DUMP_TYPE_PRE_ALL);
+                VPHAL_DUMP_TYPE_PRE_ALL,
+                VPHAL_SURF_DUMP_DDI_VP_BLT);
         }
 #endif
         // Predication
@@ -582,7 +583,8 @@ MOS_STATUS VpPipeline::UpdateExecuteStatus(uint32_t frameCnt)
             VPHAL_MAX_TARGETS,
             params->uDstCount,
             frameCnt,
-            VPHAL_DUMP_TYPE_POST_ALL);
+            VPHAL_DUMP_TYPE_POST_ALL,
+            params->uSrcCount > 0 ? VPHAL_SURF_DUMP_DDI_VP_BLT : VPHAL_SURF_DUMP_DDI_CLEAR_VIEW);
 
         // Decompre output surface for debug
         bool uiForceDecompressedOutput = false;

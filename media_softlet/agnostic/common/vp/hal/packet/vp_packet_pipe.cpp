@@ -316,10 +316,11 @@ MOS_STATUS PacketPipe::Execute(MediaStatusReport *statusReport, MediaScalability
             if(handle.first && handle.second)
             {
                 VP_SURFACE_DUMP(m_PacketFactory.m_debugInterface,
-                handle.second,
-                0,
-                handle.first,
-                VPHAL_DUMP_TYPE_POST_COMP);
+                    handle.second,
+                    0,
+                    handle.first,
+                    VPHAL_DUMP_TYPE_POST_COMP,
+                    VPHAL_SURF_DUMP_DDI_VP_BLT);
             }
         }
 #endif
