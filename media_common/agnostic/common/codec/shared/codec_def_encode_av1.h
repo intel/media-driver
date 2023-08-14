@@ -96,6 +96,15 @@ typedef enum
     AV1_ENCODED_BIT_DEPTH_10 = 1
 } AV1_ENCODED_BIT_DEPTH;
 
+typedef enum  //VDEnc Frame Types
+{
+    AV1_I_FRAME   = 0,  // I (Intra)
+    AV1_P_FRAME   = 1,  // P (Inter/Pred)
+    AV1_B_FRAME   = 2,  // B (BiPred/Random Access)
+    AV1_GPB_FRAME = 3,  // B (GPB/LowDelay)
+} VDEncFrameType;
+
+
 //DDI version 0.20
 typedef struct _CODEC_AV1_ENCODE_SEQUENCE_PARAMS
 {
