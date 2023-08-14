@@ -56,7 +56,7 @@ extern MOS_STATUS HWInfo_GetGfxInfo(int32_t    fd,
                           MEDIA_SYSTEM_INFO    *gtSystemInfo,
                           MediaUserSettingSharedPtr userSettingPtr);
 
-extern MOS_STATUS HWInfo_GetGmmInfo(int               fd,
+extern MOS_STATUS HWInfo_GetGmmInfo(MOS_BUFMGR        *pDrmBufMgr,
                           SHADOW_MEDIA_FEATURE_TABLE  *shadowSkuTable,
                           SHADOW_MEDIA_WA_TABLE       *shadowWaTable,
                           MEDIA_SYSTEM_INFO           *systemInfo);

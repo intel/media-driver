@@ -1891,7 +1891,7 @@ VAStatus DdiMedia_InitMediaContext (
         GMM_ADAPTER_BDF gmmAdapterBDF;
         memset(&gmmAdapterBDF, 0, sizeof(gmmAdapterBDF));
 
-        eStatus = HWInfo_GetGmmInfo(mediaCtx->fd, &gmmSkuTable, &gmmWaTable, &gmmGtInfo);
+        eStatus = HWInfo_GetGmmInfo(mediaCtx->pDrmBufMgr, &gmmSkuTable, &gmmWaTable, &gmmGtInfo);
         if (MOS_STATUS_SUCCESS != eStatus)
         {
             DDI_ASSERTMESSAGE("Fatal error - unsuccesfull Gmm Sku/Wa/GtSystemInfo initialization");

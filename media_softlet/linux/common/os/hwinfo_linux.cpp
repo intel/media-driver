@@ -66,16 +66,16 @@ MOS_STATUS HWInfo_GetGfxProductFamily(int32_t fd, PRODUCT_FAMILY &eProductFamily
         MOS_OS_ASSERTMESSAGE("Invalid parameter \n");
         return MOS_STATUS_INVALID_PARAMETER;
     }
-    LinuxDriverInfo drvInfo = {18, 3, 0, 23172, 3, 1, 0, 1, 0, 0, 1, 0};
-    if (mos_get_drvinfo(fd, &drvInfo))
+    uint32_t devId = 23172;
+    if (mos_get_device_id(fd, &devId))
     {
         MOS_OS_ASSERTMESSAGE("Failed to get the chipset id\n");
         return MOS_STATUS_INVALID_HANDLE;
     }
-    GfxDeviceInfo *devInfo = getDeviceInfo(drvInfo.devId);
+    GfxDeviceInfo *devInfo = getDeviceInfo(devId);
     if (devInfo == nullptr)
     {
-        MOS_OS_ASSERTMESSAGE("Failed to get the device info for Device id: %x\n", drvInfo.devId);
+        MOS_OS_ASSERTMESSAGE("Failed to get the device info for Device id: %x\n", devId);
         return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
     }
     eProductFamily = (PRODUCT_FAMILY)devInfo->productFamily;
@@ -121,7 +121,7 @@ MOS_STATUS HWInfo_GetGfxInfo(int32_t           fd,
 #endif
 
     LinuxDriverInfo drvInfo = {18, 3, 0, 23172, 3, 1, 0, 1, 0, 0, 1, 0, 0};
-    if (!Mos_Solo_IsEnabled(nullptr) && mos_get_drvinfo(fd, &drvInfo))
+    if (!Mos_Solo_IsEnabled(nullptr) && mos_get_driver_info(pDrmBufMgr, &drvInfo))
     {
         MOS_OS_ASSERTMESSAGE("Failed to get the chipset id\n");
         return MOS_STATUS_INVALID_HANDLE;
@@ -277,12 +277,12 @@ Output:
      SHADOW_MEDIA_WA_TABLE      *shadowWaTable,
      MEDIA_SYSTEM_INFO       *systemInfo
 \*****************************************************************************/
-MOS_STATUS HWInfo_GetGmmInfo(int32_t                 fd,
+MOS_STATUS HWInfo_GetGmmInfo(MOS_BUFMGR              *pDrmBufMgr,
                           SHADOW_MEDIA_FEATURE_TABLE *shadowSkuTable,
                           SHADOW_MEDIA_WA_TABLE      *shadowWaTable,
                           MEDIA_SYSTEM_INFO          *systemInfo)
 {
-    if ((fd < 0) ||
+    if ((pDrmBufMgr == nullptr) ||
         (shadowSkuTable == nullptr) ||
         (shadowWaTable == nullptr) ||
         (systemInfo == nullptr))
@@ -293,7 +293,7 @@ MOS_STATUS HWInfo_GetGmmInfo(int32_t                 fd,
 
     LinuxDriverInfo drvInfo = {18, 3, 0, 23172, 3, 1, 0, 1, 0, 0, 1, 0};
 
-    if (!Mos_Solo_IsEnabled(nullptr) && mos_get_drvinfo(fd, &drvInfo))
+    if (!Mos_Solo_IsEnabled(nullptr) && mos_get_driver_info(pDrmBufMgr, &drvInfo))
     {
         MOS_OS_ASSERTMESSAGE("Failed to get the chipset id\n");
         return MOS_STATUS_INVALID_HANDLE;

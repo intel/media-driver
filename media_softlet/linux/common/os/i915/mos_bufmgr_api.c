@@ -1339,6 +1339,27 @@ mos_query_device_blob(struct mos_bufmgr *bufmgr, MEDIA_SYSTEM_INFO* gfx_info)
     }
 }
 
+
+int
+mos_get_driver_info(struct mos_bufmgr *bufmgr, struct LinuxDriverInfo *drvInfo)
+{
+    if(!bufmgr)
+    {
+        MOS_OS_CRITICALMESSAGE("Input null ptr\n");
+        return -EINVAL;
+    }
+
+    if (bufmgr->get_driver_info)
+    {
+        return bufmgr->get_driver_info(bufmgr, drvInfo);
+    }
+    else
+    {
+        MOS_OS_CRITICALMESSAGE("Unsupported\n");
+        return -EPERM;
+    }
+}
+
 int
 mos_query_hw_ip_version(struct mos_bufmgr *bufmgr, __u16 engine_class, void *ip_ver_info)
 {

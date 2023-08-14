@@ -394,6 +394,8 @@ static bool mos_gem_bo_is_softpin(struct mos_linux_bo *bo);
 static void mos_gem_bo_start_gtt_access(struct mos_linux_bo *bo, int write_enable);
 static void mos_gem_bo_free(struct mos_linux_bo *bo);
 
+static int mos_bufmgr_get_driver_info(struct mos_bufmgr *bufmgr, struct LinuxDriverInfo *drvInfo);
+
 static inline struct mos_bo_gem *to_bo_gem(struct mos_linux_bo *bo)
 {
         return (struct mos_bo_gem *)bo;
@@ -5252,6 +5254,7 @@ mos_bufmgr_gem_init_i915(int fd, int batch_size)
     bufmgr_gem->bufmgr.set_context_param_sseu = mos_bufmgr_set_context_param_sseu;
     bufmgr_gem->bufmgr.query_sys_engines = mos_bufmgr_query_sys_engines;
     bufmgr_gem->bufmgr.query_device_blob = mos_bufmgr_query_device_blob;
+    bufmgr_gem->bufmgr.get_driver_info = mos_bufmgr_get_driver_info;
     bufmgr_gem->bufmgr.query_hw_ip_version = mos_bufmgr_query_hw_ip_version;
     bufmgr_gem->bufmgr.get_platform_information = mos_bufmgr_get_platform_information;
     bufmgr_gem->bufmgr.set_platform_information = mos_bufmgr_set_platform_information;
@@ -5478,13 +5481,18 @@ int mos_get_param(int fd, int32_t param, uint32_t *param_value)
     return drmIoctl(fd, DRM_IOCTL_I915_GETPARAM, &gp) == 0;
 }
 
-static int mos_get_drvinfo_i915(int fd, struct LinuxDriverInfo *drvInfo)
+static int mos_bufmgr_get_driver_info(struct mos_bufmgr *bufmgr, struct LinuxDriverInfo *drvInfo)
 {
-    if ((fd < 0) || (drvInfo == nullptr))
+    if (bufmgr == nullptr || drvInfo == nullptr)
     {
         return -EINVAL;
     }
-
+    struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem*)bufmgr;
+    int fd = bufmgr_gem->fd;
+    if (fd < 0)
+    {
+        return -EINVAL;
+    }
     uint32_t retValue = 0;
 
     drvInfo->hasBsd = 0;
@@ -5558,17 +5566,29 @@ static int mos_get_drvinfo_i915(int fd, struct LinuxDriverInfo *drvInfo)
 
     return 0;
 }
+static int mos_get_dev_id_i915(int fd, uint32_t *device_id)
+{
+    if (nullptr == device_id)
+    {
+        return -EINVAL;
+    }
+    uint32_t retValue = 0;
+    if (mos_get_param(fd, I915_PARAM_CHIPSET_ID, &retValue))
+    {
+        *device_id = retValue;
+    }
 
-int
-mos_get_drvinfo(int fd, struct LinuxDriverInfo *drvInfo)
+    return 0;
+}
+
+int mos_get_device_id(int fd, uint32_t *deviceId)
 {
     int device_type = mos_query_device_type(fd);
 
-    if(DEVICE_TYPE_I915 == device_type)
+    if (DEVICE_TYPE_I915 == device_type)
     {
-        return mos_get_drvinfo_i915(fd, drvInfo);
+        return mos_get_dev_id_i915(fd, deviceId);
     }
 
     return -ENODEV;
 }
-
