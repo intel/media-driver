@@ -54,6 +54,7 @@ MOS_STATUS MediaStatusReport::GetReport(uint16_t requireNum, void *status)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
+    Lock();
     uint32_t completedCount = *m_completedCount;
     uint32_t reportedCount = m_reportedCount;
     uint32_t reportedCountOrigin = m_reportedCount;
@@ -85,6 +86,7 @@ MOS_STATUS MediaStatusReport::GetReport(uint16_t requireNum, void *status)
     }
 
     m_reportedCount = reportedCount;
+    UnLock();
 
     return eStatus;
 }
@@ -101,7 +103,9 @@ MOS_STATUS MediaStatusReport::RegistObserver(MediaStatusReportObserver *observer
         return MOS_STATUS_SUCCESS;
     }
 
+    Lock();
     m_completeObservers.push_back(observer);
+    UnLock();
 
     return eStatus;
 }
@@ -118,7 +122,9 @@ MOS_STATUS MediaStatusReport::UnregistObserver(MediaStatusReportObserver *observ
         return MOS_STATUS_INVALID_PARAMETER;
     }
 
+    Lock();
     m_completeObservers.erase(it);
+    UnLock();
 
     return eStatus;
 }
