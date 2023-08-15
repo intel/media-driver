@@ -183,6 +183,9 @@ protected:
     //!
     MOS_STATUS NotifyObservers(void *mfxStatus, void *rcsStatus, void *statusReport);
 
+    void Lock(){m_lock.lock();};
+    void UnLock(){m_lock.unlock();};
+
     inline uint32_t CounterToIndex(uint32_t counter)
     {
         return counter & (m_statusNum - 1);
@@ -198,6 +201,7 @@ protected:
 
     StatusBufAddr    *m_statusBufAddr        = nullptr;
 
+    std::recursive_mutex                      m_lock;
     std::vector<MediaStatusReportObserver *>  m_completeObservers;
 MEDIA_CLASS_DEFINE_END(MediaStatusReport)
 };
