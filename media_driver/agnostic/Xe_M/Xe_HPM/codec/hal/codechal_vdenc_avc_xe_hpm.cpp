@@ -726,7 +726,8 @@ MOS_STATUS CodechalVdencAvcStateXe_Hpm::SetupThirdRef(
 
     if (!m_vdencStreamInEnabled)  // check to allow streamIn sharing
     {
-        MOS_ZeroMemory(pData, m_picHeightInMb * m_picWidthInMb * CODECHAL_VDENC_STREAMIN_STATE::byteSize);
+        uint32_t picSizeInMb = m_picHeightInMb * m_picWidthInMb;
+        MOS_ZeroMemory(pData, picSizeInMb * CODECHAL_VDENC_STREAMIN_STATE::byteSize);
         m_vdencStreamInEnabled = true;
     }
 

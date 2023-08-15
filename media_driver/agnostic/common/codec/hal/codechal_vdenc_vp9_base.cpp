@@ -6596,8 +6596,9 @@ MOS_STATUS CodechalVdencVp9State::AllocateResources()
             &allocParamsForBuffer2D,
             &m_output16X16InterModes.OsResource));
 
-        uint32_t size = 16 * m_picWidthInMb * m_picHeightInMb * sizeof(uint32_t);
-        allocParamsForBufferLinear.dwBytes = size;
+        uint32_t picSizeInMb                = m_picWidthInMb * m_picHeightInMb;
+        uint32_t size                       = 16 * picSizeInMb * sizeof(uint32_t);
+        allocParamsForBufferLinear.dwBytes  = size;
         allocParamsForBufferLinear.pBufName = "Mode Decision Buffer";
 
         for (auto i = 0; i < 2; i++)

@@ -607,9 +607,10 @@ MOS_STATUS CodechalEncodeVp8::AllocateResources()
             "Per MB Quant Data Buffer"));
 
     ///pred mv data surface
+    uint32_t picSizeInMb = m_picWidthInMb * m_picHeightInMb;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(
         AllocateBuffer(&m_resPredMvDataSurface,
-            4 * m_picWidthInMb * m_picHeightInMb * sizeof(uint32_t),
+            4 * picSizeInMb * sizeof(uint32_t),
             "Per MV data surface"));
 
     //ModeCostUpdate Surface used by P-kernel and MPU kernel

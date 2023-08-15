@@ -4710,7 +4710,8 @@ MOS_STATUS CodechalVdencAvcState::SetupROIStreamIn(
         &lockFlags);
     CODECHAL_ENCODE_CHK_NULL_RETURN(pData);
 
-    MOS_ZeroMemory(pData, m_picHeightInMb * m_picWidthInMb * CODECHAL_VDENC_STREAMIN_STATE::byteSize);
+    uint32_t picSizeInMb = m_picHeightInMb * m_picWidthInMb;
+    MOS_ZeroMemory(pData, picSizeInMb * CODECHAL_VDENC_STREAMIN_STATE::byteSize);
     m_vdencStreamInEnabled = true;
 
     // legacy AVC ROI[n]->VDEnc ROI[n+1], ROI 1 has higher priority than 2 and so on
@@ -4887,7 +4888,8 @@ MOS_STATUS CodechalVdencAvcState::SetupDirtyROI(PMOS_RESOURCE vdencStreamIn)
             &lockFlags);
         CODECHAL_ENCODE_CHK_NULL_RETURN(pData);
 
-        MOS_ZeroMemory(pData, m_picHeightInMb * m_picWidthInMb * CODECHAL_VDENC_STREAMIN_STATE::byteSize);
+        uint32_t picSizeInMb = m_picHeightInMb * m_picWidthInMb;
+        MOS_ZeroMemory(pData, picSizeInMb * CODECHAL_VDENC_STREAMIN_STATE::byteSize);
 
         for (int32_t i = picParams->NumDirtyROI - 1; i >= 0; i--)
         {
@@ -4929,7 +4931,8 @@ MOS_STATUS CodechalVdencAvcState::SetupBrcROIBuffer(PCODEC_AVC_ENCODE_PIC_PARAMS
         &lockFlags);
     CODECHAL_ENCODE_CHK_NULL_RETURN(pData);
 
-    MOS_ZeroMemory(pData, m_picHeightInMb * m_picWidthInMb);
+    uint32_t picSizeInMb = m_picHeightInMb * m_picWidthInMb;
+    MOS_ZeroMemory(pData, picSizeInMb);
 
 
     for (int32_t i = picParams->NumROI - 1; i >= 0; i--)
@@ -4986,7 +4989,8 @@ MOS_STATUS CodechalVdencAvcState::SetupForceSkipStreamIn(PCODEC_AVC_ENCODE_PIC_P
                                                                                                           vdencStreamIn,
                                                                                                           &lockFlags);
     CODECHAL_ENCODE_CHK_NULL_RETURN(pData);
-    MOS_ZeroMemory(pData, m_picHeightInMb * m_picWidthInMb * CODECHAL_VDENC_STREAMIN_STATE::byteSize);
+    uint32_t picSizeInMb = m_picHeightInMb * m_picWidthInMb;
+    MOS_ZeroMemory(pData, picSizeInMb * CODECHAL_VDENC_STREAMIN_STATE::byteSize);
 
     for (uint16_t i = 0; i < m_picHeightInMb * m_picWidthInMb; i++)
     {
@@ -5028,7 +5032,8 @@ MOS_STATUS CodechalVdencAvcState::SetupRegionBoosting(PMOS_RESOURCE vdencStreamI
         vdencStreamIn,
         &lockFlags);
     CODECHAL_ENCODE_CHK_NULL_RETURN(pData);
-    MOS_ZeroMemory(pData, m_picHeightInMb * m_picWidthInMb * CODECHAL_VDENC_STREAMIN_STATE::byteSize);
+    uint32_t picSizeInMb = m_picHeightInMb * m_picWidthInMb;
+    MOS_ZeroMemory(pData, picSizeInMb * CODECHAL_VDENC_STREAMIN_STATE::byteSize);
 
     for (uint16_t y = 0; y < m_picHeightInMb; y++)
     {

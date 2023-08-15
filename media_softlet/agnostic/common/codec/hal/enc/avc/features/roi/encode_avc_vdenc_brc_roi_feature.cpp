@@ -104,7 +104,8 @@ namespace encode
             ROIMapBuffer* pRoiMapBuffer = (ROIMapBuffer*)m_allocator->LockResourceForWrite(pResRoiMapBuffer);
             ENCODE_CHK_NULL_RETURN(pRoiMapBuffer);
 
-            MOS_ZeroMemory(pRoiMapBuffer, m_basicFeature->m_picHeightInMb * m_basicFeature->m_picWidthInMb);
+            uint32_t picSizeInMb = m_basicFeature->m_picHeightInMb * m_basicFeature->m_picWidthInMb;
+            MOS_ZeroMemory(pRoiMapBuffer, picSizeInMb);
             for (int32_t i = m_picParam->NumROI - 1; i >= 0; i--)
             {
                 ENCODE_CHK_STATUS_MESSAGE_RETURN(GetDeltaQPIndex(m_maxNumBrcRoi, m_picParam->ROI[i].PriorityLevelOrDQp, dqpIdx), "dQP index not found");
