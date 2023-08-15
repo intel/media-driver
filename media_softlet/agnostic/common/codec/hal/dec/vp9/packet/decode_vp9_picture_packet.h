@@ -209,8 +209,8 @@ namespace decode
         PMOS_BUFFER m_resCABACSyntaxStreamOutBuffer                = nullptr;  //!< Handle of CABAC syntax stream out buffer
         PMOS_BUFFER m_resCABACStreamOutSizeBuffer                  = nullptr;  //!< Handle of CABAC stream out size buffer
         
-        mutable uint8_t m_curHcpSurfStateId = 0;
-        PMOS_SURFACE    psSurface; // 2D surface parameters
+        mutable uint8_t m_curHcpSurfStateId            = 0;
+        PMOS_SURFACE    psSurface                      = nullptr;; // 2D surface parameters
         static const uint32_t m_vp9ScalingFactor       = (1 << 14);
         static const uint32_t m_rawUVPlaneAlignment    = 4;  //! starting Gen9 the alignment is relaxed to 4x instead of 16x
         static const uint32_t m_reconUVPlaneAlignment  = 8;

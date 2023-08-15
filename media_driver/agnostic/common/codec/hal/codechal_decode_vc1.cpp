@@ -4850,6 +4850,7 @@ CodechalDecodeVc1::CodechalDecodeVc1(
     MOS_ZeroMemory(&m_resBitplaneBuffer, sizeof(m_resBitplaneBuffer));
     MOS_ZeroMemory(&m_resSyncObjectWaContextInUse, sizeof(m_resSyncObjectWaContextInUse));
     MOS_ZeroMemory(&m_resSyncObjectVideoContextInUse, sizeof(m_resSyncObjectVideoContextInUse));
+    MOS_ZeroMemory(m_presReferences, (sizeof(PMOS_RESOURCE) * CODEC_MAX_NUM_REF_FRAME_NON_AVC));
 #if (_DEBUG || _RELEASE_INTERNAL)
     m_reportFrameCrc = true;
 #endif

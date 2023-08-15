@@ -125,7 +125,10 @@ bool DecodeScalabilityOption::IsScalabilityOptionMatched(ScalabilityPars *params
     DecodeScalabilityPars *decPars = (DecodeScalabilityPars *)params;
 
     DecodeScalabilityOption newOption;
-    newOption.SetScalabilityOption(params);
+    if(MOS_STATUS_SUCCESS != newOption.SetScalabilityOption(params))
+    {
+        return false;
+    }
 
     if (m_numPipe              != newOption.GetNumPipe()             ||
         m_usingSFC             != newOption.IsUsingSFC()             ||

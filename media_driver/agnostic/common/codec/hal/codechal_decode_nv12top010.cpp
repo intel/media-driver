@@ -84,7 +84,7 @@ MOS_STATUS CodechalDecodeNV12ToP010::Execute(
     m_cmDevice->CreateSurface2D(srcResource, srcCmSurface2D);
     CODECHAL_DECODE_CHK_NULL_RETURN(srcCmSurface2D);
     CmSurface2D *dstCmSurface2D = nullptr;
-    m_cmDevice->CreateSurface2D(dstResource, dstCmSurface2D);
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_cmDevice->CreateSurface2D(dstResource, dstCmSurface2D));
     CODECHAL_DECODE_CHK_NULL_RETURN(dstCmSurface2D);
 
     uint32_t surfaceWidth, surfaceHeight;
@@ -108,13 +108,13 @@ MOS_STATUS CodechalDecodeNV12ToP010::Execute(
         threadHeight,
         m_cmThreadSpace));
 
-    m_cmKernel->SetThreadCount(threadWidth * threadHeight);
-    m_cmKernel->AssociateThreadSpace(m_cmThreadSpace);
-    m_cmKernel->SetKernelArg(0, sizeof(SurfaceIndex), srcSurfaceIndex);
-    m_cmKernel->SetKernelArg(1, sizeof(SurfaceIndex), dstSurfaceIndex);
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_cmKernel->SetThreadCount(threadWidth * threadHeight));
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_cmKernel->AssociateThreadSpace(m_cmThreadSpace));
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_cmKernel->SetKernelArg(0, sizeof(SurfaceIndex), srcSurfaceIndex));
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_cmKernel->SetKernelArg(1, sizeof(SurfaceIndex), dstSurfaceIndex));
 
-    m_cmTask->AddSync();
-    m_cmTask->AddKernel(m_cmKernel);
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_cmTask->AddSync());
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_cmTask->AddKernel(m_cmKernel));
 
     CmEvent *eventKernel;
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_cmQueue->Enqueue(

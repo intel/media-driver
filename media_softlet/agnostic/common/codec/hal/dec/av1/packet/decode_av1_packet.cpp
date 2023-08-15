@@ -254,7 +254,7 @@ MOS_STATUS Av1DecodePkt::StartStatusReport(uint32_t srType, MOS_COMMAND_BUFFER* 
 {
     DECODE_FUNC_CALL();
 
-    MediaPacket::StartStatusReportNext(srType, cmdBuffer);
+    DECODE_CHK_STATUS(MediaPacket::StartStatusReportNext(srType, cmdBuffer));
 
     SetPerfTag(CODECHAL_DECODE_MODE_AV1VLD, m_av1BasicFeature->m_pictureCodingType);
     MediaPerfProfiler *perfProfiler = MediaPerfProfiler::Instance();
