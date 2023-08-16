@@ -508,7 +508,7 @@ namespace decode
                     DECODE_CHK_STATUS(m_mmcState->GetResourceMmcState(pipeBufAddrPar.presReferences[i], mmcState));
                     params.refsMmcEnable |= (mmcState == MOS_MEMCOMP_RC || mmcState == MOS_MEMCOMP_MC) ? (1 << i) : 0;
                     params.refsMmcType |= (mmcState == MOS_MEMCOMP_RC) ? (1 << i) : 0;
-                    if (mmcState == MOS_MEMCOMP_RC || mmcState == MOS_MEMCOMP_MC)
+                    if (m_mmcState->IsMmcEnabled())
                     {
                         DECODE_CHK_STATUS(m_mmcState->GetResourceMmcFormat(pipeBufAddrPar.presReferences[i], params.dwCompressionFormat));
                     }
@@ -528,7 +528,7 @@ namespace decode
                     DECODE_CHK_STATUS(m_mmcState->GetResourceMmcState(pipeBufAddrPar.presReferences[i], mmcState));
                     params.refsMmcEnable |= (mmcState == MOS_MEMCOMP_RC || mmcState == MOS_MEMCOMP_MC) ? (1 << i) : 0;
                     params.refsMmcType |= (mmcState == MOS_MEMCOMP_RC) ? (1 << i) : 0;
-                    if (mmcState == MOS_MEMCOMP_RC || mmcState == MOS_MEMCOMP_MC)
+                    if (m_mmcState->IsMmcEnabled())
                     {
                         DECODE_CHK_STATUS(m_mmcState->GetResourceMmcFormat(pipeBufAddrPar.presReferences[i], params.dwCompressionFormat));
                     }

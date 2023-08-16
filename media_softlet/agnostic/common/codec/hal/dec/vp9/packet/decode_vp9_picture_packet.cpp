@@ -332,7 +332,7 @@ MOS_STATUS Vp9DecodePicPkt::SetRefMmcStatus(uint8_t surfaceID, PMOS_SURFACE pSur
     DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcState(pSurface, &mmcState));
     m_refsMmcEnable |= (mmcState == MOS_MEMCOMP_RC || mmcState == MOS_MEMCOMP_MC) ? (1 << (surfaceID - 2)) : 0;
     m_refsMmcType |= (mmcState == MOS_MEMCOMP_RC) ? (1 << (surfaceID - 2)) : 0;
-    if (mmcState == MOS_MEMCOMP_RC || mmcState == MOS_MEMCOMP_MC)
+    if (m_mmcState->IsMmcEnabled())
     {
         DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcFormat(pSurface, &m_mmcFormat));
     }
