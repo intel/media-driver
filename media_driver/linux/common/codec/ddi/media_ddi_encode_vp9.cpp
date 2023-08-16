@@ -379,6 +379,7 @@ VAStatus DdiEncodeVp9::ContextInitialize(CodechalSetting *codecHalSettings)
     // Allocate segment params
     m_segParams = (CODEC_VP9_ENCODE_SEGMENT_PARAMS *)MOS_AllocAndZeroMemory(sizeof(CODEC_VP9_ENCODE_SEGMENT_PARAMS) * 8);
     DDI_CHK_NULL(m_segParams, "nullptr m_segParams.", VA_STATUS_ERROR_ALLOCATION_FAILED);
+    m_encodeCtx->pVpxSegParams = (void*)m_segParams;
 
     // Allocate coded buffer status
     m_codedBufStatus = (VACodedBufferVP9Status *)MOS_AllocAndZeroMemory(DDI_ENCODE_MAX_STATUS_REPORT_BUFFER * sizeof(VACodedBufferVP9Status));
