@@ -929,6 +929,14 @@ public:
 
     mhw::vebox::MHW_VEBOX_CHROMA_PARAMS veboxChromaParams = {};
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    virtual MOS_STATUS StallBatchBuffer(
+        PMOS_COMMAND_BUFFER cmdBuffer)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+#endif
+
 protected:
 
     //!

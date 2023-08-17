@@ -97,13 +97,16 @@ VpRenderCmdPacket::~VpRenderCmdPacket()
             MOS_FreeMemAndSetNull(samplerstate.second.Avs.pMhwSamplerAvsTableParam);
         }
     }
+
     MOS_Delete(m_surfMemCacheCtl);
     MOS_Delete(m_enlargedStateHeapSetting);
 }
 
 MOS_STATUS VpRenderCmdPacket::Init()
 {
-    return RenderCmdPacket::Init();
+    VP_RENDER_CHK_STATUS_RETURN(RenderCmdPacket::Init());
+
+    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS VpRenderCmdPacket::LoadKernel()
@@ -1702,6 +1705,10 @@ MOS_STATUS VpRenderCmdPacket::SubmitWithMultiKernel(MOS_COMMAND_BUFFER *commandB
     {
         RENDER_PACKET_CHK_STATUS_RETURN(m_renderHal->pRenderHalPltInterface->AddMediaStateFlush(m_renderHal, commandBuffer, &FlushParam));
     }
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    RENDER_PACKET_CHK_STATUS_RETURN(StallBatchBuffer(commandBuffer));
+#endif
 
     HalOcaInterfaceNext::On1stLevelBBEnd(*commandBuffer, *pOsInterface);
 

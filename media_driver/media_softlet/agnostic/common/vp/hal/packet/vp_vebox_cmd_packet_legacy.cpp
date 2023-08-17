@@ -2102,6 +2102,10 @@ MOS_STATUS VpVeboxCmdPacketLegacy::RenderVeboxCmd(
 
         VP_RENDER_CHK_STATUS_RETURN(pRenderHal->pRenderHalPltInterface->AddPerfCollectEndCmd(pRenderHal, pOsInterface, pCmdBufferInUse));
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+        VP_RENDER_CHK_STATUS_RETURN(StallBatchBuffer(pCmdBufferInUse));
+#endif
+
         HalOcaInterface::On1stLevelBBEnd(*pCmdBufferInUse, *pOsInterface);
 
         if (pOsInterface->bNoParsingAssistanceInKmd)

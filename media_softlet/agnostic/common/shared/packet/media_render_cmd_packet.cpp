@@ -212,6 +212,10 @@ MOS_STATUS RenderCmdPacket::Submit(MOS_COMMAND_BUFFER *commandBuffer, uint8_t pa
         RENDER_PACKET_CHK_STATUS_RETURN(m_renderHal->pRenderHalPltInterface->AddMediaStateFlush(m_renderHal, commandBuffer, &FlushParam));
     }
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    RENDER_PACKET_CHK_STATUS_RETURN(StallBatchBuffer(commandBuffer));
+#endif
+
     HalOcaInterfaceNext::On1stLevelBBEnd(*commandBuffer, *pOsInterface);
 
     if (pBatchBuffer)

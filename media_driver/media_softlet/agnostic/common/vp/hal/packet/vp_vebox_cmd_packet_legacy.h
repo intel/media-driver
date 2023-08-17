@@ -804,6 +804,15 @@ protected:
     MOS_STATUS SetupVebox3DLutForHDR(
         PMHW_VEBOX_STATE_CMD_PARAMS pVeboxStateCmdParams);
 
+protected:
+#if (_DEBUG || _RELEASE_INTERNAL)
+    virtual MOS_STATUS StallBatchBuffer(
+        PMOS_COMMAND_BUFFER cmdBuffer)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+#endif
+
 private:
 
     //!

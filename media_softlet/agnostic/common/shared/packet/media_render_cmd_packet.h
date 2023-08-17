@@ -220,6 +220,14 @@ public:
 
     bool m_isMultiKernelOneMediaState = false;
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    virtual MOS_STATUS StallBatchBuffer(
+        PMOS_COMMAND_BUFFER cmdBuffer)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+#endif
+
 protected:
     // Step5: Load Kernel
     virtual MOS_STATUS LoadKernel();
