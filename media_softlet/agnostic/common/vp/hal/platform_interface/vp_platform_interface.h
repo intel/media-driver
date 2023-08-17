@@ -46,6 +46,7 @@ struct VP_KERNEL_BINARY_ENTRY
     uint32_t              kernelBinSize = 0;
     std::string           postfix       = "";
     DelayLoadedKernelType kernelType    = KernelNone;
+    uint32_t              payloadOffset = 0;
 };
 
 struct VP_KERNEL_BINARY
@@ -147,7 +148,8 @@ public:
     virtual MOS_STATUS InitVpCmKernels(
         const uint32_t*       cisaCode,
         uint32_t              cisaCodeSize,
-        std::string           postfix = "");
+        std::string           postfix = "",
+        uint32_t              payloadOffset = CM_PAYLOAD_OFFSET);
 
     virtual MOS_STATUS InitVpNativeAdvKernels(
         std::string kernelName,
@@ -296,7 +298,8 @@ public:
         const uint32_t       *kernelBin,
         uint32_t              kernelBinSize,
         std::string           postfix         = "",
-        DelayLoadedKernelType delayKernelType = KernelNone);
+        DelayLoadedKernelType delayKernelType = KernelNone,
+        uint32_t              payloadOffset   = CM_PAYLOAD_OFFSET);
 
     virtual void AddVpNativeAdvKernelEntryToList(
                 const uint32_t *kernelBin,

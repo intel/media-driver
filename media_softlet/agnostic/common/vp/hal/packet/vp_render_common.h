@@ -35,6 +35,7 @@ namespace vp
 #define GENX_TGLLP_CISAID                   12
 #define CM_MAX_ARGS_PER_KERNEL              255   // compiler only supports up to 255 arguments
 #define CM_PAYLOAD_OFFSET                   32    // CM Compiler generates offset by 32 bytes. This need to be subtracted from kernel data offset.
+#define CM_PAYLOAD_OFFSET_LARGE             64
 #define CM_MAX_THREAD_PAYLOAD_SIZE          2016  // 63 GRF
 #define CM_KERNEL_BINARY_PADDING_SIZE       128                                 // Padding after kernel binary to WA page fault issue.
 #define SURFACE_MASK                        0x7
