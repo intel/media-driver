@@ -32,14 +32,13 @@
 #include "cm_mem.h"
 #include "cm_kernel_ex.h"
 #include "cm_group_space.h"
-
+#if IGFX_GEN12_SUPPORTED
 #include "mhw_render_g12_X.h"
 #include "mhw_mi_g12_X.h"
-
+#include "cm_hal_g12.h"
+#endif
 #include "mos_solo_generic.h"
 #include "mhw_mmio_g9.h"
-
-#include "cm_hal_g12.h"
 
 MOS_STATUS CmCommandBuffer::AddFrameTracker(MOS_RESOURCE *resource, uint32_t offset, uint32_t tag)
 {

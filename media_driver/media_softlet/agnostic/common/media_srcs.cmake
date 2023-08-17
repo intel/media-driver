@@ -19,5 +19,7 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 media_include_subdirectory(shared)
+if (GEN12)
 media_include_subdirectory(vp)
+endif()
 media_include_subdirectory(codec)

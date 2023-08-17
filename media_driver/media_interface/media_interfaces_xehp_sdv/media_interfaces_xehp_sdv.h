@@ -41,7 +41,9 @@
 #include "media_interfaces_hwinfo_device.h"
 
 #include "mhw_cp_interface.h"
+#if IGFX_GEN12_SUPPORTED
 #include "mhw_mi_g12_X.h"
+#endif
 #include "mhw_render_xe_hp.h"
 #include "mhw_sfc_xe_xpm.h"
 #include "mhw_state_heap_xe_xpm.h"

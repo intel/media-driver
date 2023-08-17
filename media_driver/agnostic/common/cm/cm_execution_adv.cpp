@@ -47,7 +47,9 @@
 #if IGFX_GEN11_SUPPORTED
 #include "cm_hal_g11.h"
 #endif
+#if IGFX_GEN12_SUPPORTED
 #include "cm_hal_g12.h"
+#endif
 
 static bool gGTPinInitialized = false;
 

@@ -60,7 +60,7 @@ if(GEN11)
     media_include_subdirectory(gen11)
 endif()
 
-if(ENABLE_REQUIRED_GEN_CODE OR GEN12)
+if(GEN12)
     media_include_subdirectory(gen12)
 endif()
 

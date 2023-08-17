@@ -19,7 +19,7 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 media_include_subdirectory(common)
-if(ENABLE_REQUIRED_GEN_CODE OR GEN12)
+if(GEN12)
 media_include_subdirectory(gen12)
 media_include_subdirectory(gen12_base)
 media_include_subdirectory(gen12_tgllp)
