@@ -223,8 +223,8 @@ MOS_STATUS Vp9VdencPkt::CalculatePictureStateCommandSize()
 
     uint32_t hucCommandsSize = 0;
     uint32_t hucPatchListSize = 0;
-    m_hwInterface->GetHucStateCommandSize(
-        CODECHAL_ENCODE_MODE_VP9, (uint32_t *)&hucCommandsSize, (uint32_t *)&hucPatchListSize, &stateCmdSizeParams);
+    ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetHucStateCommandSize(
+        CODECHAL_ENCODE_MODE_VP9, (uint32_t *)&hucCommandsSize, (uint32_t *)&hucPatchListSize, &stateCmdSizeParams));
 
     m_defaultPictureStatesSize = hcpCommandsSize + hucCommandsSize + cpCmdsize;
     m_defaultPicturePatchListSize = hcpPatchListSize + hucPatchListSize + cpPatchListSize;

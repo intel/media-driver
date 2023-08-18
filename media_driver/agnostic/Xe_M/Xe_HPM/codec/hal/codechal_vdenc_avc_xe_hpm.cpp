@@ -862,7 +862,7 @@ MOS_STATUS CodechalVdencAvcStateXe_Hpm::AddVdencBrcImgBuffer(
     // Add MI_NOOPs to align to CODECHAL_CACHELINE_SIZE
     uint32_t size = (MOS_ALIGN_CEIL(constructedCmdBuf.iOffset, CODECHAL_CACHELINE_SIZE) - constructedCmdBuf.iOffset) / sizeof(uint32_t);
     for (uint32_t i = 0; i < size; i++)
-        m_miInterface->AddMiNoop(&constructedCmdBuf, nullptr);
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiNoop(&constructedCmdBuf, nullptr));
 
     CODECHAL_ENCODE_AVC_PACK_SLC_HEADER_PARAMS packSlcHeaderParams = {};
     MHW_VDBOX_AVC_SLICE_STATE                  sliceState          = {};

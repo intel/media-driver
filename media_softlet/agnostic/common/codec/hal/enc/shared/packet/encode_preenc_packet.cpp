@@ -45,7 +45,7 @@ namespace encode
         ENCODE_CHK_STATUS_RETURN(CmdPacket::Init());
         m_basicFeature = dynamic_cast<PreEncBasicFeature *>(m_featureManager->GetFeature(FeatureIDs::preEncFeature));
         ENCODE_CHK_NULL_RETURN(m_basicFeature);
-        m_basicFeature->GetEncodeMode(m_encodeMode);
+        ENCODE_CHK_STATUS_RETURN(m_basicFeature->GetEncodeMode(m_encodeMode));
 
 #ifdef _MMC_SUPPORTED
         m_mmcState = m_pipeline->GetMmcState();
@@ -760,7 +760,7 @@ namespace encode
 
         if (m_encodeMode == MediaEncodeMode::MANUAL_RES_PRE_ENC || m_encodeMode == MediaEncodeMode::AUTO_RES_PRE_ENC)
         {
-            MediaPacket::UpdateStatusReportNext(statusReportGlobalCount, &cmdBuffer);
+            ENCODE_CHK_STATUS_RETURN(MediaPacket::UpdateStatusReportNext(statusReportGlobalCount, &cmdBuffer));
         }
 
         return MOS_STATUS_SUCCESS;
@@ -926,8 +926,8 @@ namespace encode
         auto cpInterface = m_hwInterface->GetCpInterface();
         cpInterface->GetCpStateLevelCmdSize(cpCmdsize, cpPatchListSize);
 
-        m_hwInterface->GetHucStateCommandSize(
-                m_basicFeature->m_mode, (uint32_t *)&hucCommandsSize, (uint32_t *)&hucPatchListSize, &stateCmdSizeParams);
+        ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetHucStateCommandSize(
+                m_basicFeature->m_mode, (uint32_t *)&hucCommandsSize, (uint32_t *)&hucPatchListSize, &stateCmdSizeParams));
 
         m_defaultPictureStatesSize    = hcpCommandsSize + hucCommandsSize + (uint32_t)cpCmdsize;
         m_defaultPicturePatchListSize = hcpPatchListSize + hucPatchListSize + (uint32_t)cpPatchListSize;

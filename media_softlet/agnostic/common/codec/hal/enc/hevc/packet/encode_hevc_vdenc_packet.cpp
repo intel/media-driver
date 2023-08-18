@@ -1312,8 +1312,8 @@ namespace encode
         auto cpInterface = m_hwInterface->GetCpInterface();
         cpInterface->GetCpStateLevelCmdSize(cpCmdsize, cpPatchListSize);
 
-        m_hwInterface->GetHucStateCommandSize(
-            m_basicFeature->m_mode, (uint32_t *)&hucCommandsSize, (uint32_t *)&hucPatchListSize, &stateCmdSizeParams);
+        ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetHucStateCommandSize(
+            m_basicFeature->m_mode, (uint32_t *)&hucCommandsSize, (uint32_t *)&hucPatchListSize, &stateCmdSizeParams));
 
         m_defaultPictureStatesSize    = hcpCommandsSize + hucCommandsSize + (uint32_t)cpCmdsize;
         m_defaultPicturePatchListSize = hcpPatchListSize + hucPatchListSize + (uint32_t)cpPatchListSize;

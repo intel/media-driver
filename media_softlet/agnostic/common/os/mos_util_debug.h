@@ -1007,11 +1007,11 @@ MEDIA_CLASS_DEFINE_END(MosUtilDebug)
 //!
 #define MOS_CHK_STATUS_NO_STATUS_RETURN(_compID, _subCompID, _stmt)                         \
 {                                                                                           \
-    eStatus = (MOS_STATUS)(_stmt);                                                          \
-    if (eStatus != MOS_STATUS_SUCCESS)                                                      \
+    MOS_STATUS stmtStatus = (MOS_STATUS)(_stmt);                                                          \
+    if (stmtStatus != MOS_STATUS_SUCCESS)                                                      \
     {                                                                                       \
-        MT_ERR3(MT_ERR_MOS_STATUS_CHECK, MT_COMPONENT, _compID, MT_SUB_COMPONENT, _subCompID, MT_ERROR_CODE, eStatus); \
-        MOS_ASSERTMESSAGE(_compID, _subCompID, "MOS returned error, eStatus = 0x%x", eStatus);\
+        MT_ERR3(MT_ERR_MOS_STATUS_CHECK, MT_COMPONENT, _compID, MT_SUB_COMPONENT, _subCompID, MT_ERROR_CODE, stmtStatus); \
+        MOS_ASSERTMESSAGE(_compID, _subCompID, "MOS returned error, eStatus = 0x%x", stmtStatus);\
         return;                                                                             \
     }                                                                                       \
 }

@@ -337,7 +337,7 @@ namespace encode {
                 && brcFeature->IsVdencBrcEnabled())
             {
                 // increment dwStoreData conditionaly
-                MediaPacket::UpdateStatusReportNext(statusReportGlobalCount, &cmdBuffer);
+                ENCODE_CHK_STATUS_RETURN(MediaPacket::UpdateStatusReportNext(statusReportGlobalCount, &cmdBuffer));
             }
 
             // Insert conditional batch buffer end
@@ -1154,8 +1154,8 @@ namespace encode {
         
         uint32_t hucCommandsSize = 0;
         uint32_t hucPatchListSize = 0;
-        m_hwInterface->GetHucStateCommandSize(
-            CODECHAL_ENCODE_MODE_AVC, (uint32_t *)&hucCommandsSize, (uint32_t *)&hucPatchListSize, &stateCmdSizeParams);
+        ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetHucStateCommandSize(
+            CODECHAL_ENCODE_MODE_AVC, (uint32_t *)&hucCommandsSize, (uint32_t *)&hucPatchListSize, &stateCmdSizeParams));
         m_pictureStatesSize += hucCommandsSize;
         m_picturePatchListSize += hucPatchListSize;
 

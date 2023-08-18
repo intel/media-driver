@@ -64,6 +64,9 @@ enum HuCFunction
 #define ENCODE_CHK_STATUS_RETURN(_stmt)                                               \
     MOS_CHK_STATUS_RETURN(MOS_COMPONENT_CODEC, MOS_CODEC_SUBCOMP_ENCODE, _stmt)
 
+#define ENCODE_CHK_STATUS_NO_STATUS_RETURN(_stmt)                                               \
+    MOS_CHK_STATUS_NO_STATUS_RETURN(MOS_COMPONENT_CODEC, MOS_CODEC_SUBCOMP_ENCODE, _stmt)
+
 #define ENCODE_CHK_COND_RETURN(_stmt, _message)                                               \
     MOS_CHK_COND_RETURN(MOS_COMPONENT_CODEC, MOS_CODEC_SUBCOMP_ENCODE, _stmt, _message)
 

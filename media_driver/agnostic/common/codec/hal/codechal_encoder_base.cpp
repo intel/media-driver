@@ -1150,7 +1150,7 @@ MOS_STATUS CodechalEncoderState::AddKernelMdf(
     CODECHAL_ENCODE_CHK_STATUS_RETURN(task->AddKernel(kernel));
     if (isEnqueue)
     {
-        queue->Enqueue(task, event);
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(queue->Enqueue(task, event));
         task->Reset();
     }
     else

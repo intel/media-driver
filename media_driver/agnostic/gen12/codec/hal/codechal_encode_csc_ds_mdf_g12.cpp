@@ -138,30 +138,30 @@ MOS_STATUS CodechalEncodeCscDsMdfG12::SetupKernelArgsCSC(CmKernel *cmKrnCSCDS, S
 
     CODECHAL_ENCODE_ASSERT(surfaceparams->psInputSurface != nullptr)
 
-    surfaceparams->psInputSurface->GetIndex(pSurfIndex);
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(surfaceparams->psInputSurface->GetIndex(pSurfIndex));
     cmKrnCSCDS->SetKernelArg(idx++, sizeof(SurfaceIndex), pSurfIndex);
 
     if (surfaceparams->psOutputCopiedSurface)
     {
-        surfaceparams->psOutputCopiedSurface->GetIndex(pSurfIndex);
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(surfaceparams->psOutputCopiedSurface->GetIndex(pSurfIndex));
     }
     cmKrnCSCDS->SetKernelArg(idx++, sizeof(SurfaceIndex), pSurfIndex);
 
     if (surfaceparams->psOutput4xDsSurface)
     {
-        surfaceparams->psOutput4xDsSurface->GetIndex(pSurfIndex);
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(surfaceparams->psOutput4xDsSurface->GetIndex(pSurfIndex));
     }
     cmKrnCSCDS->SetKernelArg(idx++, sizeof(SurfaceIndex), pSurfIndex);
 
     if (surfaceparams->presMBVProcStatsBuffer)
     {
-        surfaceparams->presMBVProcStatsBuffer->GetIndex(pSurfIndex);
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(surfaceparams->presMBVProcStatsBuffer->GetIndex(pSurfIndex));
     }
     cmKrnCSCDS->SetKernelArg(idx++, sizeof(SurfaceIndex), pSurfIndex);
 
     if (surfaceparams->psOutput2xDsSurface)
     {
-        surfaceparams->psOutput2xDsSurface->GetIndex(pSurfIndex);
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(surfaceparams->psOutput2xDsSurface->GetIndex(pSurfIndex));
     }
 
     cmKrnCSCDS->SetKernelArg(idx++, sizeof(SurfaceIndex), pSurfIndex);

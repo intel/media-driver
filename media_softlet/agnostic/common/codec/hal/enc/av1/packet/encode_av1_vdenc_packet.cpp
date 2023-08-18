@@ -53,7 +53,7 @@ namespace encode{
 
             par.mode = mhw::vdbox::vdenc::RowStorePar::AV1;
 
-            m_vdencItf->SetRowstoreCachingOffsets(par);
+            ENCODE_CHK_STATUS_NO_STATUS_RETURN(m_vdencItf->SetRowstoreCachingOffsets(par));
         }
         if(m_osInterface)
         {
