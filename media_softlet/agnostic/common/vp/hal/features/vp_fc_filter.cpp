@@ -89,7 +89,9 @@ MOS_STATUS VpFcFilter::InitLayer(VP_FC_LAYER &layer, bool isInputPipe, int index
     auto &surfGroup             = executedPipe.GetSurfacesSetting().surfGroup;
 
     SurfaceType surfId          = isInputPipe ? (SurfaceType)(SurfaceTypeFcInputLayer0 + index) : SurfaceTypeFcTarget0;
-    layer.surf                  = surfGroup.find(surfId)->second;
+    auto        surfHandle = surfGroup.find(surfId);
+    VP_PUBLIC_CHK_NOT_FOUND_RETURN(surfHandle, &surfGroup);
+    layer.surf = surfHandle->second;
 
     VP_PUBLIC_CHK_NULL_RETURN(layer.surf);
 

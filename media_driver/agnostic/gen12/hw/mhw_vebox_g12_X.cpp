@@ -705,11 +705,11 @@ MOS_STATUS MhwVeboxInterfaceG12::setVeboxPrologCmd(
             params                   = {};
             params.dwRegister        = miItf->GetMmioInterfaces(mhw::mi::MHW_MMIO_VE0_AUX_TABLE_BASE_LOW);//mhw::mi::m_mmioVe0AuxTableBaseLow;
             params.dwData            = (auxTableBaseAddr & 0xffffffff);
-            miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(cmdBuffer);
+            MHW_RENDERHAL_CHK_STATUS(miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(cmdBuffer));
 
             params.dwRegister        = miItf->GetMmioInterfaces(mhw::mi::MHW_MMIO_VE0_AUX_TABLE_BASE_HIGH); //mhw::mi::m_mmioVe0AuxTableBaseHigh;
             params.dwData            = ((auxTableBaseAddr >> 32) & 0xffffffff);
-            miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(cmdBuffer);
+            MHW_RENDERHAL_CHK_STATUS(miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(cmdBuffer));
         }
         else
         {

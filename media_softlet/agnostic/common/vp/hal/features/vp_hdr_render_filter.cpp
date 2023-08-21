@@ -119,9 +119,18 @@ MOS_STATUS VpHdrRenderFilter::CalculateEngineParams(
         }
         auto &surfGroup             = m_executedPipe->GetSurfacesSetting().surfGroup;
 
-        SurfaceType surfId          = (SurfaceType)(SurfaceTypeHdrInputLayer0 + i);
-        inputSrc                    = surfGroup.find(surfId)->second;
-
+        SurfaceType surfId         = (SurfaceType)(SurfaceTypeHdrInputLayer0 + i);
+        auto        inputSrcHandle = surfGroup.find(surfId);
+        if (inputSrcHandle == surfGroup.end())
+        {
+            VP_PUBLIC_NORMALMESSAGE("surfId %d not found", surfId);
+            inputSrc = nullptr;
+        }
+        else
+        {
+            inputSrc = inputSrcHandle->second;
+        }
+        
         if (inputSrc == nullptr)
         {
             m_renderHdrParams.InputSrc[i] = false;
@@ -137,8 +146,17 @@ MOS_STATUS VpHdrRenderFilter::CalculateEngineParams(
         auto &surfGroup             = m_executedPipe->GetSurfacesSetting().surfGroup;
 
         SurfaceType surfId          = (SurfaceType)(SurfaceTypeHdrTarget0 + i);
-        targetSrc                   = surfGroup.find(surfId)->second;
-
+        auto        targetSrcHandle = surfGroup.find(surfId);
+        if (targetSrcHandle == surfGroup.end())
+        {
+            VP_PUBLIC_NORMALMESSAGE("surfId %d not found", surfId);
+            targetSrc = nullptr;
+        }
+        else
+        {
+            targetSrc = targetSrcHandle->second;
+        }
+        
         if (targetSrc == nullptr)
         {
             continue;

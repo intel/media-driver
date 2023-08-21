@@ -536,7 +536,7 @@ MOS_STATUS Mhw_SendGenericPrologCmdNext(
             par = {};
             par.dwRegister = MHW__PWR_CLK_STATE_REG;
             par.dwData = params.Data;
-            miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(pCmdBuffer);
+            MHW_CHK_STATUS_RETURN(miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(pCmdBuffer));
         }
     }
     else

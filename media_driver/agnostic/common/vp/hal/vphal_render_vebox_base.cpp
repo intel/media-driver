@@ -169,11 +169,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxSendVecsStatusTag(
     VPHAL_RENDER_CHK_NULL(pCmdBuffer);
     //------------------------------------
 
-#if EMUL
-    // Dummy function for VpSolo, since no sync b/w GPU contexts
-    goto finish;
-#endif
-
+#if !EMUL
     // Get GPU Status buffer
     VPHAL_RENDER_CHK_STATUS(pOsInterface->pfnGetGpuStatusBufferResource(
         pOsInterface, 
@@ -196,6 +192,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxSendVecsStatusTag(
 
     // Increase buffer tag for next usage
     pOsInterface->pfnIncrementGpuStatusTag(pOsInterface, MOS_GPU_CONTEXT_VEBOX);
+#endif
 
 finish:
     return eStatus;
@@ -4436,6 +4433,8 @@ MOS_STATUS VpHal_RndrRenderVebox(
         {
             goto finish;
         }
+
+        VPHAL_RENDER_CHK_NULL(pRenderData);
 
         if (pRenderData->b2PassesCSC)
         {   // First step of two pass CSC in vebox for Linux BT.2020 -> BT.601/709/RGB

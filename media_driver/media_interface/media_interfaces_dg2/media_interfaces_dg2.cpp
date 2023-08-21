@@ -732,12 +732,18 @@ MOS_STATUS CodechalInterfacesXe_Hpm::Initialize(
                 m_codechalDevice = MOS_New(Encode::Av1Vdenc, hwInterface_next, debugInterface);
                 MOS_Delete(hwInterface);
                 hwInterface = nullptr;
-                CODECHAL_PUBLIC_CHK_NULL_RETURN(m_codechalDevice);
-                RETURN_STATUS_WITH_DELETE(MOS_STATUS_SUCCESS);
+                if (m_codechalDevice == nullptr)
+                {
+                    RETURN_STATUS_WITH_DELETE(MOS_STATUS_NULL_POINTER);
+                }
+                else
+                {
+                    RETURN_STATUS_WITH_DELETE(MOS_STATUS_SUCCESS);
+                }                
             }
             else
             {
-                return MOS_STATUS_INVALID_PARAMETER;
+                RETURN_STATUS_WITH_DELETE(MOS_STATUS_INVALID_PARAMETER);
             }
         }
         else
@@ -753,7 +759,7 @@ MOS_STATUS CodechalInterfacesXe_Hpm::Initialize(
                 if (m_codechalDevice == nullptr)
                 {
                     CODECHAL_PUBLIC_ASSERTMESSAGE("Encode state creation failed!");
-                    return MOS_STATUS_INVALID_PARAMETER;
+                    RETURN_STATUS_WITH_DELETE(MOS_STATUS_INVALID_PARAMETER);
                 }
                 RETURN_STATUS_WITH_DELETE(MOS_STATUS_SUCCESS);
             }

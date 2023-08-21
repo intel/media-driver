@@ -1759,7 +1759,7 @@ MOS_STATUS VpVeboxCmdPacketLegacy::SetVeboxSurfaces(
 
     if(m_veboxItf)
     {
-        m_veboxItf->AddVeboxSurfaces(pCmdBufferInUse, pMhwVeboxSurfaceStateCmdParams);
+        VP_RENDER_CHK_STATUS_RETURN(m_veboxItf->AddVeboxSurfaces(pCmdBufferInUse, pMhwVeboxSurfaceStateCmdParams));
     }
     else
     {

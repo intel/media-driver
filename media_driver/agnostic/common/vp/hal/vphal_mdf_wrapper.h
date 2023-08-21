@@ -521,7 +521,11 @@ private:
     // like walking pattern, dependency pattern(scoreboard), etc.
     virtual void SetupThreadSpace(CmThreadSpace *threadSpace, int /*tsWidth*/, int /*tsHeight*/, int /*tsColor*/)
     {
-        threadSpace->SelectMediaWalkingPattern(CM_WALK_VERTICAL);
+        int32_t iStatus = threadSpace->SelectMediaWalkingPattern(CM_WALK_VERTICAL);
+        if (iStatus != CM_SUCCESS)
+        {
+            VPHAL_RENDER_ASSERTMESSAGE("SelectMediaWalkingPattern Returns %d", iStatus);
+        }
     }
 
     // This method will take effect only if this renderer works in batch dispatching mode(multi-kernels in one task).

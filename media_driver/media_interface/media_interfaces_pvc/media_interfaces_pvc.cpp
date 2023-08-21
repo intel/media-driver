@@ -619,7 +619,7 @@ MOS_STATUS CodechalInterfacesXe_Xpm_Plus::Initialize(
                     if (m_codechalDevice == nullptr)
                     {
                         CODECHAL_PUBLIC_ASSERTMESSAGE("Encode state creation failed!");
-                        return MOS_STATUS_INVALID_PARAMETER;
+                        RETRUN_STATUS_WITH_DELETE(MOS_STATUS_INVALID_PARAMETER);
                     }
                     RETRUN_STATUS_WITH_DELETE(MOS_STATUS_SUCCESS);
                 }

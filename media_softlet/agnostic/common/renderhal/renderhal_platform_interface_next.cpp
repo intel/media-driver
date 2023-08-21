@@ -64,7 +64,7 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::AddPipelineSelectCmd(
     auto& par = m_renderItf->MHW_GETPAR_F(PIPELINE_SELECT)();
     par = {};
     par.gpGpuPipe = gpGpuPipe;
-    m_renderItf->MHW_ADDCMD_F(PIPELINE_SELECT)(pCmdBuffer);
+    MHW_CHK_STATUS_RETURN(m_renderItf->MHW_ADDCMD_F(PIPELINE_SELECT)(pCmdBuffer));
 
     return eStatus;
 }
@@ -157,7 +157,7 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::SendChromaKey(
             par.bGenericMediaStateClear       = true;
             par.bIndirectStatePointersDisable = true;
             par.bHdcPipelineFlush             = true;
-            m_miItf->MHW_ADDCMD_F(PIPE_CONTROL)(pCmdBuffer);
+            MHW_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(PIPE_CONTROL)(pCmdBuffer));
         }
     }
 
@@ -242,7 +242,7 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::EnablePreemption(
         par = {};
         par.dwRegister = 0;
         par.dwData     = 0;
-        m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(pCmdBuffer);
+        MHW_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(pCmdBuffer));
     }
 
     return eStatus;
@@ -278,7 +278,7 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::SendPredicationCommand(
 
         auto& parFlush = m_miItf->MHW_GETPAR_F(MI_FLUSH_DW)();
         parFlush = {};
-        m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(pCmdBuffer);
+        MHW_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(pCmdBuffer));
 
         // load presPredication to general purpose register0
         auto& parRegM = m_miItf->MHW_GETPAR_F(MI_LOAD_REGISTER_MEM)();
@@ -286,23 +286,23 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::SendPredicationCommand(
         parRegM.presStoreBuffer   = pRenderHal->PredicationParams.pPredicationResource;
         parRegM.dwOffset          = (uint32_t)pRenderHal->PredicationParams.predicationResOffset;
         parRegM.dwRegister        = mmioRegistersRender->generalPurposeRegister0LoOffset;
-        m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_MEM)(pCmdBuffer);
+        MHW_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_MEM)(pCmdBuffer));
 
         auto& parImm = m_miItf->MHW_GETPAR_F(MI_LOAD_REGISTER_IMM)();
         parImm = {};
         parImm.dwData            = 0;
         parImm.dwRegister        = mmioRegistersRender->generalPurposeRegister0HiOffset;
-        m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(pCmdBuffer);
+        MHW_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(pCmdBuffer));
 
         parImm = {};
         parImm.dwData            = 0;
         parImm.dwRegister        = mmioRegistersRender->generalPurposeRegister4LoOffset;
-        m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(pCmdBuffer);
+        MHW_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(pCmdBuffer));
 
         parImm = {};
         parImm.dwData            = 0;
         parImm.dwRegister        = mmioRegistersRender->generalPurposeRegister4HiOffset;
-        m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(pCmdBuffer);
+        MHW_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(pCmdBuffer));
 
         //perform the add operation
         mhw::mi::MHW_MI_ALU_PARAMS miAluParams[4] = {};
@@ -328,35 +328,35 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::SendPredicationCommand(
         par = {};
         par.pAluPayload    = miAluParams;
         par.dwNumAluParams = 4; // four ALU commands needed for this substract opertaion. see following ALU commands.
-        m_miItf->MHW_ADDCMD_F(MI_MATH)(pCmdBuffer);
+        MHW_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_MATH)(pCmdBuffer));
 
         // if zero, the zero flag will be 0xFFFFFFFF, else zero flag will be 0x0.
         parRegM = {};
         parRegM.presStoreBuffer  = &pRenderHal->PredicationBuffer;
         parRegM.dwOffset         = 0x10;
         parRegM.dwRegister       = mmioRegistersRender->generalPurposeRegister0LoOffset;
-        m_miItf->MHW_ADDCMD_F(MI_STORE_REGISTER_MEM)(pCmdBuffer);
+        MHW_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_REGISTER_MEM)(pCmdBuffer));
 
         // Programming of 4 dummy MI_STORE_DATA_IMM commands prior to programming of MiConditionalBatchBufferEnd
         auto& parData = m_miItf->MHW_GETPAR_F(MI_STORE_DATA_IMM)();
         parData = {};
         parData.pOsResource = &pRenderHal->PredicationBuffer;
         parData.dwValue     = 1;
-        m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(pCmdBuffer);
+        MHW_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(pCmdBuffer));
 
         parData.dwValue = 2;
-        m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(pCmdBuffer);
+        MHW_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(pCmdBuffer));
 
         parData.dwValue = 3;
-        m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(pCmdBuffer);
+        MHW_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(pCmdBuffer));
 
         parData.dwValue = 4;
-        m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(pCmdBuffer);
+        MHW_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(pCmdBuffer));
 
         parFlush = {};
         parFlush.postSyncOperation = 1;
         parFlush.pOsResource       = &pRenderHal->PredicationBuffer;
-        m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(pCmdBuffer);
+        MHW_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(pCmdBuffer));
 
         auto& parBatch = m_miItf->MHW_GETPAR_F(MI_CONDITIONAL_BATCH_BUFFER_END)();
         parBatch = {};
@@ -364,7 +364,7 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::SendPredicationCommand(
         parBatch.dwOffset            = 0x10;
         parBatch.dwValue             = 0;
         parBatch.bDisableCompareMask = true;
-        m_miItf->MHW_ADDCMD_F(MI_CONDITIONAL_BATCH_BUFFER_END)(pCmdBuffer);
+        MHW_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_CONDITIONAL_BATCH_BUFFER_END)(pCmdBuffer));
 
         pRenderHal->PredicationParams.ptempPredicationBuffer = &pRenderHal->PredicationBuffer;
     }
@@ -374,7 +374,7 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::SendPredicationCommand(
 
         auto& parFlush = m_miItf->MHW_GETPAR_F(MI_FLUSH_DW)();
         parFlush = {};
-        m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(pCmdBuffer);
+        MHW_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(pCmdBuffer));
 
         // load presPredication to general purpose register0
         auto& parRegM = m_miItf->MHW_GETPAR_F(MI_LOAD_REGISTER_MEM)();
@@ -382,34 +382,34 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::SendPredicationCommand(
         parRegM.presStoreBuffer = pRenderHal->PredicationParams.pPredicationResource;
         parRegM.dwOffset        = (uint32_t)pRenderHal->PredicationParams.predicationResOffset;
         parRegM.dwRegister      = mmioRegistersRender->generalPurposeRegister0LoOffset;
-        m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_MEM)(pCmdBuffer);
+        MHW_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_MEM)(pCmdBuffer));
 
         // if zero, the zero flag will be 0xFFFFFFFF, else zero flag will be 0x0.
         auto& parStore = m_miItf->MHW_GETPAR_F(MI_STORE_REGISTER_MEM)();
         parStore.presStoreBuffer = &pRenderHal->PredicationBuffer;
         parStore.dwOffset        = 0x10;
         parStore.dwRegister      = mmioRegistersRender->generalPurposeRegister0LoOffset;
-        m_miItf->MHW_ADDCMD_F(MI_STORE_REGISTER_MEM)(pCmdBuffer);
+        MHW_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_REGISTER_MEM)(pCmdBuffer));
 
         // Programming of 4 dummy MI_STORE_DATA_IMM commands prior to programming of MiConditionalBatchBufferEnd
         auto& parData = m_miItf->MHW_GETPAR_F(MI_STORE_DATA_IMM)();
         parData.pOsResource = &pRenderHal->PredicationBuffer;
         parData.dwValue     = 1;
-        m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(pCmdBuffer);
+        MHW_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(pCmdBuffer));
 
         parData.dwValue = 2;
-        m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(pCmdBuffer);
+        MHW_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(pCmdBuffer));
 
         parData.dwValue = 3;
-        m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(pCmdBuffer);
+        MHW_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(pCmdBuffer));
 
         parData.dwValue = 4;
-        m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(pCmdBuffer);
+        MHW_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(pCmdBuffer));
 
         parFlush = {};
         parFlush.postSyncOperation = 1;
         parFlush.pOsResource       = &pRenderHal->PredicationBuffer;
-        m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(pCmdBuffer);
+        MHW_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(pCmdBuffer));
 
         // Skip current frame if presPredication is equal to zero
         auto& parBatch = m_miItf->MHW_GETPAR_F(MI_CONDITIONAL_BATCH_BUFFER_END)();
@@ -418,7 +418,7 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::SendPredicationCommand(
         parBatch.dwOffset            = 0x10;
         parBatch.dwValue             = 0;
         parBatch.bDisableCompareMask = true;
-        m_miItf->MHW_ADDCMD_F(MI_CONDITIONAL_BATCH_BUFFER_END)(pCmdBuffer);
+        MHW_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_CONDITIONAL_BATCH_BUFFER_END)(pCmdBuffer));
     }
 
     return eStatus;
@@ -455,7 +455,7 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::SendMarkerCommand(
         params.dwResourceOffset = 0;
         params.dwPostSyncOp     = MHW_FLUSH_WRITE_TIMESTAMP_REG;
         params.dwFlushMode      = MHW_FLUSH_WRITE_CACHE;
-        m_miItf->MHW_ADDCMD_F(PIPE_CONTROL)(cmdBuffer);
+        MHW_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(PIPE_CONTROL)(cmdBuffer));
     }
     else
     {
@@ -466,7 +466,7 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::SendMarkerCommand(
         parFlush.dwResourceOffset  = 0;
         parFlush.postSyncOperation = MHW_FLUSH_WRITE_TIMESTAMP_REG;
         parFlush.bQWordEnable      = 1;
-        m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(cmdBuffer);
+        MHW_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(cmdBuffer));
     }
 
     return eStatus;
@@ -506,7 +506,7 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::AddMiPipeControl(
     par.bIndirectStatePointersDisable = params->bIndirectStatePointersDisable;
     par.bHdcPipelineFlush = params->bHdcPipelineFlush;
     par.bKernelFenceEnabled = params->bKernelFenceEnabled;
-    m_miItf->MHW_ADDCMD_F(PIPE_CONTROL)(pCmdBuffer);
+    MHW_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(PIPE_CONTROL)(pCmdBuffer));
 
     return eStatus;
 }
@@ -540,7 +540,7 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::AddMiLoadRegisterImmCmd(
     par = {};
     par.dwData     = params->dwData;
     par.dwRegister = params->dwRegister;
-    m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(pCmdBuffer);
+    MHW_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(pCmdBuffer));
 
     // TD_CTL, force thread breakpoint enable
     // Also enable external halt/exceptions, because the source-level debugger
@@ -552,7 +552,7 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::AddMiLoadRegisterImmCmd(
     par = {};
     par.dwData     = params->dwData;
     par.dwRegister = params->dwRegister;
-    m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(pCmdBuffer);
+    MHW_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(pCmdBuffer));
 
     return eStatus;
 }
@@ -764,7 +764,7 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::AddMediaStateFlush(
     params                              = {};
     params.ui8InterfaceDescriptorOffset = flushParam->ui8InterfaceDescriptorOffset;
     params.bFlushToGo                   = flushParam->bFlushToGo;
-    m_miItf->MHW_ADDCMD_F(MEDIA_STATE_FLUSH)(pCmdBuffer);
+    MHW_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MEDIA_STATE_FLUSH)(pCmdBuffer));
 
     return eStatus;
 }

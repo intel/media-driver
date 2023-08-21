@@ -456,13 +456,14 @@ bool SfcRenderXe_Lpm_Plus_Base::IsSFCUncompressedWriteNeeded(PVP_SURFACE targetS
     }
 
     byteInpixel = targetSurface->osSurface->OsResource.pGmmResInfo->GetBitsPerPixel() >> 3;
-#endif // !EMUL
 
     if (byteInpixel == 0)
     {
         VP_RENDER_NORMALMESSAGE("surface format is not a valid format for sfc");
         return false;
     }
+#endif  // !EMUL
+
     uint32_t writeAlignInWidth  = 32 / byteInpixel;
     uint32_t writeAlignInHeight = 8;
     

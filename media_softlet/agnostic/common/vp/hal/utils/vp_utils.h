@@ -106,6 +106,14 @@ using MosFormatArray = std::vector<MOS_FORMAT>;
         return MOS_STATUS_NO_SPACE;                                                               \
     }                                                                                             \
 }
+
+#define VP_PUBLIC_CHK_NOT_FOUND_RETURN(_handle, _group)                         \
+{                                                                               \
+    if (_handle == (_group)->end())                                             \
+    {                                                                           \
+        VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_NULL_POINTER);                   \
+    }                                                                           \
+}
 //------------------------------------------------------------------------------
 // Macros specific to MOS_VP_SUBCOMP_DEBUG sub-comp
 //------------------------------------------------------------------------------
