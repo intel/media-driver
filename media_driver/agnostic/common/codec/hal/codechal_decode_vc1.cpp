@@ -704,13 +704,16 @@ void CodechalDecodeVc1::PackMotionVectors(
         vc1PicParams->picture_fields.is_first_field,
         vc1PicParams->picture_fields.picture_type) ? true : false;
 
-    for (uint8_t i = 0; i < 8;i++)
+    if (packedLumaMvs == nullptr)
     {
-        if (packedLumaMvs + i == nullptr)
-        {
-            CODECHAL_DECODE_ASSERTMESSAGE("ERROR: packedLumaMvs + %d is nullptr",i);
-            return;
-        }  
+        CODECHAL_DECODE_ASSERTMESSAGE("ERROR: packedLumaMvs is nullptr");
+        return;
+    }
+
+    if (packedChromaMv == nullptr)
+    {
+        CODECHAL_DECODE_ASSERTMESSAGE("ERROR: packedChromaMv is nullptr");
+        return;
     }
 
     packedLumaMvs[0] = packedLumaMvs[2] = packedLumaMvs[4] = packedLumaMvs[6] = 0;
