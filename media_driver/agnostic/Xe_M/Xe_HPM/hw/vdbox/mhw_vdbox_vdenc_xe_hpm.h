@@ -2420,6 +2420,7 @@ public:
 
         typename mhw::vdbox::vdenc::xe_hpm::Cmd::VDENC_CMD3_CMD cmd;
         auto paramsXeHpm = dynamic_cast<PMHW_VDBOX_AVC_IMG_PARAMS_XE_HPM>(params);
+        MHW_MI_CHK_NULL(paramsXeHpm);
         auto pictureType = paramsXeHpm->pEncodeAvcPicParams->CodingType - 1;
         auto codingType  = paramsXeHpm->pEncodeAvcPicParams->CodingType;
         auto isIPGOP     = paramsXeHpm->pEncodeAvcSeqParams->GopRefDist == 1;

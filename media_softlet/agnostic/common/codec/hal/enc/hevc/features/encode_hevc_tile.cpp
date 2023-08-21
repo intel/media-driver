@@ -714,8 +714,11 @@ namespace encode
     MHW_SETPAR_DECL_SRC(VDENC_WALKER_STATE, HevcEncodeTile)
     {
         auto picParams     = dynamic_cast<HevcBasicFeature *>(m_basicFeature)->m_hevcPicParams;
+        ENCODE_CHK_NULL_RETURN(picParams);
         auto seqParams     = dynamic_cast<HevcBasicFeature *>(m_basicFeature)->m_hevcSeqParams;
+        ENCODE_CHK_NULL_RETURN(seqParams);
         auto t_sliceParams = dynamic_cast<HevcBasicFeature *>(m_basicFeature)->m_hevcSliceParams;
+        ENCODE_CHK_NULL_RETURN(t_sliceParams);
         CODEC_HEVC_ENCODE_SLICE_PARAMS *sliceParams = (CODEC_HEVC_ENCODE_SLICE_PARAMS *)&t_sliceParams[dynamic_cast<HevcBasicFeature *>(m_basicFeature)->m_curNumSlices];
 
         uint32_t ctbSize     = 1 << (seqParams->log2_max_coding_block_size_minus3 + 3);
@@ -863,8 +866,11 @@ namespace encode
     MHW_SETPAR_DECL_SRC(VDENC_HEVC_VP9_TILE_SLICE_STATE, HevcEncodeTile)
     {
         auto picParams   = dynamic_cast<HevcBasicFeature *>(m_basicFeature)->m_hevcPicParams;
+        ENCODE_CHK_NULL_RETURN(picParams);
         auto seqParams   = dynamic_cast<HevcBasicFeature *>(m_basicFeature)->m_hevcSeqParams;
+        ENCODE_CHK_NULL_RETURN(seqParams);
         auto sliceParams = dynamic_cast<HevcBasicFeature *>(m_basicFeature)->m_hevcSliceParams;
+        ENCODE_CHK_NULL_RETURN(sliceParams);
 
         uint32_t ctbSize          = 1 << (seqParams->log2_max_coding_block_size_minus3 + 3);
         uint32_t widthInPix       = (1 << (seqParams->log2_min_coding_block_size_minus3 + 3)) * (seqParams->wFrameWidthInMinCbMinus1 + 1);

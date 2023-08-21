@@ -219,6 +219,7 @@ MOS_STATUS Vp9VdencPktXe_Lpm_Plus_Base::SetVdencPipeModeSelectParams(MHW_VDBOX_P
     ENCODE_CHK_STATUS_RETURN(Vp9VdencPkt::SetVdencPipeModeSelectParams(vdboxPipeModeSelectParams));
 
     auto pipeModeSelectParams = dynamic_cast<MHW_VDBOX_PIPE_MODE_SELECT_PARAMS *>(&vdboxPipeModeSelectParams);
+    ENCODE_CHK_NULL_RETURN(pipeModeSelectParams);
 
     auto dysRefFrameFlags         = m_basicFeature->m_ref.DysRefFrameFlags();
     auto dysVdencMultiPassEnabled = m_basicFeature->m_dysVdencMultiPassEnabled;

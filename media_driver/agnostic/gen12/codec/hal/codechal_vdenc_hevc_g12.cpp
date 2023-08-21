@@ -2851,6 +2851,7 @@ MOS_STATUS CodechalVdencHevcStateG12::ExecutePictureLevel()
     }
 
     PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G12 pipeModeSelectParams = dynamic_cast<PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G12>(m_vdencInterface->CreateMhwVdboxPipeModeSelectParams());
+    ENCODE_CHK_NULL_RETURN(pipeModeSelectParams);
 
     SetHcpPipeModeSelectParams(*pipeModeSelectParams);
 
@@ -3038,6 +3039,7 @@ MOS_STATUS CodechalVdencHevcStateG12::EncTileLevel()
     }
 
     PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G12 pipeModeSelectParams = dynamic_cast<PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G12>(m_vdencInterface->CreateMhwVdboxPipeModeSelectParams());
+    ENCODE_CHK_NULL_RETURN(pipeModeSelectParams);
 
     SetHcpPipeModeSelectParams(*pipeModeSelectParams);
     SetVdencPipeModeSelectParams(*pipeModeSelectParams);
@@ -3496,6 +3498,7 @@ MOS_STATUS CodechalVdencHevcStateG12::EncWithTileRowLevelBRC()
     }
 
     PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G12 pipeModeSelectParams = dynamic_cast<PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G12>(m_vdencInterface->CreateMhwVdboxPipeModeSelectParams());
+    ENCODE_CHK_NULL_RETURN(pipeModeSelectParams);
 
     SetHcpPipeModeSelectParams(*pipeModeSelectParams);
     SetVdencPipeModeSelectParams(*pipeModeSelectParams);
