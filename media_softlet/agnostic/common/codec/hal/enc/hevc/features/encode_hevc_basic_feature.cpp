@@ -675,7 +675,7 @@ MOS_STATUS HevcBasicFeature::GetRecycleBuffers()
         }
     }
 
-    if (recycleBufferIdx == -1 || recycleBufferIdx >= m_maxSyncDepth)
+    if (recycleBufferIdx == -1)
     {
         return MOS_STATUS_SUCCESS;
     }

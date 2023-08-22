@@ -1190,12 +1190,6 @@ namespace encode
         uint32_t  bitSize   = 0;
         uint32_t  offSet    = 0;
 
-        if (cmdBuffer == nullptr)
-        {
-            ENCODE_ASSERTMESSAGE("There was no valid buffer to add the HW command to.");
-            return MOS_STATUS_NULL_POINTER;
-        }
-
         //insert AU, SPS, PSP headers before first slice header
         uint32_t maxBytesInPakInsertObjCmd = ((2 << 11) - 1) * 4;  // 12 bits for Length field in PAK_INSERT_OBJ cmd
 

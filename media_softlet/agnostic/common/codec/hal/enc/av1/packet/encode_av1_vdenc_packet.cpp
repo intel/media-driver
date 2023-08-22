@@ -245,7 +245,7 @@ namespace encode{
         perfTag.Value             = 0;
         perfTag.Mode              = (uint16_t)m_basicFeature->m_mode & CODECHAL_ENCODE_MODE_BIT_MASK;
         perfTag.CallType          = callType;
-        perfTag.PictureCodingType = picType > 3 ? 0 : picType;
+        perfTag.PictureCodingType = picType;
         m_osInterface->pfnSetPerfTag(m_osInterface, perfTag.Value);
         m_osInterface->pfnIncPerfBufferID(m_osInterface);
     }

@@ -1246,18 +1246,16 @@ namespace encode
                 tcbrcQualityBoostFromScenario = 0;
             }
 
+#if (_DEBUG || _RELEASE_INTERNAL)
             //tcbrc mode override by reg key
             uint8_t tcbrcQualityBoostFromRegkey = 3;
-            auto osInterface = m_hwInterface->GetOsInterface();
-            ENCODE_CHK_NULL_RETURN(osInterface);
-#if (_DEBUG || _RELEASE_INTERNAL)
+
             MediaUserSetting::Value outValue;
             ReadUserSetting(m_userSettingPtr,
                 outValue,
                 "TCBRC Quality Boost Mode",
                 MediaUserSetting::Group::Sequence);
             tcbrcQualityBoostFromRegkey = static_cast<uint8_t>(outValue.Get<int32_t>());
-#endif
             //if FrameSizeBoostForSceneChange is set by regkey, then override it
             if (tcbrcQualityBoostFromRegkey == 0 || tcbrcQualityBoostFromRegkey == 1 || tcbrcQualityBoostFromRegkey == 2)
             {
@@ -1265,6 +1263,7 @@ namespace encode
                 ENCODE_VERBOSEMESSAGE("TCBRC FrameSizeBoostForSceneChange is override by regkey!");
             }
             else
+#endif
             {
                 m_tcbrcQualityBoost = tcbrcQualityBoostFromScenario;
             }

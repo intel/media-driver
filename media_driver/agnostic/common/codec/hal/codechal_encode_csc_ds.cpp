@@ -737,7 +737,7 @@ MOS_STATUS CodechalEncodeCscDs::SetSurfaceParamsDS(KernelParams* params)
     if (preEncParams)
     {
         m_surfaceParamsDS.bPreEncInUse = true;
-        m_surfaceParamsDS.bEnable8x8Statistics = preEncParams ? preEncParams->bEnable8x8Statistics : false;
+        m_surfaceParamsDS.bEnable8x8Statistics = preEncParams->bEnable8x8Statistics;
         if (params->bScalingforRef)
         {
             m_surfaceParamsDS.bMBVProcStatsEnabled = params->bStatsInputProvided;

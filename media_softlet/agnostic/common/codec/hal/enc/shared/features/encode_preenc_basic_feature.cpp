@@ -180,29 +180,13 @@ MOS_STATUS PreEncBasicFeature::Update(void *params)
     ENCODE_CHK_STATUS_RETURN(SetPictureStructs());
     ENCODE_CHK_STATUS_RETURN(SetSliceStructs());
 
-    // Only for first frame
-    uint32_t oriFrameHeight = 0;
-    uint32_t oriFrameWidth  = 0;
     if (m_frameNum == 0)
     {
-        oriFrameHeight      = m_frameHeight;
-        oriFrameWidth       = m_frameWidth;
         m_resolutionChanged = true;
     }
     else
     {
-        // check if there is a dynamic resolution change
-        if ((oriFrameHeight && (oriFrameHeight != m_frameHeight)) ||
-            (oriFrameWidth && (oriFrameWidth != m_frameWidth)))
-        {
-            m_resolutionChanged = true;
-            oriFrameHeight      = m_frameHeight;
-            oriFrameWidth       = m_frameWidth;
-        }
-        else
-        {
-            m_resolutionChanged = false;
-        }
+        m_resolutionChanged = false;
     }
 
     if (m_resolutionChanged)
@@ -879,11 +863,6 @@ MOS_STATUS PreEncBasicFeature::ValidateLowDelayBFrame()
         // backward
         for (int refIdx = 0; (refIdx < 1) && m_lowDelay; refIdx++)
         {
-            if (refIdx >= CODEC_MAX_NUM_REF_FRAME_HEVC)
-            {
-                break;
-            }
-
             CODEC_PICTURE refPic = m_preEncConfig.RefPicList[1][refIdx];
             if (!CodecHal_PictureIsInvalid(refPic) && m_preEncConfig.RefFramePOCList[refPic.FrameIdx] > m_preEncConfig.CurrPicOrderCnt)
             {

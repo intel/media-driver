@@ -57,6 +57,7 @@ MOS_STATUS Vp9Pipeline::ReportUserSettingValue(const std::string &valueName,
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
+#if (_DEBUG || _RELEASE_INTERNAL)
     eStatus = ReportUserSettingForDebug(
         m_userSettingPtr,
         valueName,
@@ -66,11 +67,10 @@ MOS_STATUS Vp9Pipeline::ReportUserSettingValue(const std::string &valueName,
     if (eStatus != MOS_STATUS_SUCCESS)
     {
         // Print out an error message in non-release builds. Do not report an error: execution can continue.
-#if (_DEBUG || _RELEASE_INTERNAL)
         ENCODE_NORMALMESSAGE("Failed to write an user feature key value. Status: ", eStatus);
-#endif
         eStatus = MOS_STATUS_SUCCESS;
     }
+#endif
 
     return eStatus;
 }
@@ -82,6 +82,7 @@ MOS_STATUS Vp9Pipeline::DeclareUserSettingKeyValue(const std::string &valueName,
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
+#if (_DEBUG || _RELEASE_INTERNAL)
     eStatus = DeclareUserSettingKeyForDebug(
         m_userSettingPtr,
         valueName,
@@ -92,14 +93,13 @@ MOS_STATUS Vp9Pipeline::DeclareUserSettingKeyValue(const std::string &valueName,
     if (eStatus != MOS_STATUS_SUCCESS)
     {
         // Print out an error message in non-release builds. Do not report an error: execution can continue.
-#if (_DEBUG || _RELEASE_INTERNAL)
         if (eStatus != MOS_STATUS_FILE_EXISTS)
         {
             ENCODE_NORMALMESSAGE("Failed to declare an user feature key value. Status: ", eStatus);
         }
-#endif
         eStatus = MOS_STATUS_SUCCESS;
     }
+#endif
 
     return eStatus;
 }

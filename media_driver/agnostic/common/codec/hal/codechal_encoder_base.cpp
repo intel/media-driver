@@ -1061,14 +1061,14 @@ MOS_STATUS CodechalEncoderState::Initialize(
     // Set Vdbox index in use
     m_vdboxIndex = (m_videoGpuNode == MOS_GPU_NODE_VIDEO2)? MHW_VDBOX_NODE_2 : MHW_VDBOX_NODE_1;
 
+    if (!m_feiEnable)
+    {
+        eStatus = AllocateMDFResources();
+    }
+
     if (eStatus != MOS_STATUS_SUCCESS)
     {
         Destroy();
-    }
-
-    if (!m_feiEnable)
-    {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(AllocateMDFResources());
     }
 
     return eStatus;

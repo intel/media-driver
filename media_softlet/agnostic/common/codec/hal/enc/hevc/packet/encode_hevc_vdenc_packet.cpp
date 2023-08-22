@@ -1383,12 +1383,6 @@ MOS_STATUS HevcVdencPkt::AddAllCmds_HCP_PAK_INSERT_OBJECT_BRC(PMOS_COMMAND_BUFFE
     uint32_t  bitSize   = 0;
     uint32_t  offSet    = 0;
 
-    if (cmdBuffer == nullptr)
-    {
-        ENCODE_ASSERTMESSAGE("There was no valid buffer to add the HW command to.");
-        return MOS_STATUS_NULL_POINTER;
-    }
-
     //insert AU, SPS, PSP headers before first slice header
     if (m_basicFeature->m_curNumSlices == 0)
     {
@@ -2918,12 +2912,6 @@ MOS_STATUS HevcVdencPkt::AddAllCmds_HCP_PAK_INSERT_OBJECT_BRC(PMOS_COMMAND_BUFFE
             PBSBuffer         pBsBuffer   = &(m_basicFeature->m_bsBuffer);
             uint32_t          bitSize     = 0;
             uint32_t          offSet      = 0;
-
-            if (cmdBuffer == nullptr && batchBuffer == nullptr)
-            {
-                ENCODE_ASSERTMESSAGE("There was no valid buffer to add the HW command to.");
-                return MOS_STATUS_NULL_POINTER;
-            }
 
             //insert AU, SPS, PSP headers before first slice header
             if (m_basicFeature->m_curNumSlices == 0)

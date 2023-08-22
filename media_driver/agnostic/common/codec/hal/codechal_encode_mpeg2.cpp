@@ -1542,12 +1542,6 @@ MOS_STATUS CodechalEncodeMpeg2::AllocateResources()
         m_refList,
         CODECHAL_NUM_UNCOMPRESSED_SURFACE_MPEG2);
 
-    if (eStatus != MOS_STATUS_SUCCESS)
-    {
-        CODECHAL_ENCODE_ASSERTMESSAGE("Failed to allocate PAK resources.");
-        return eStatus;
-    }
-
     if (m_encEnabled)
     {
         eStatus = AllocateEncResources();
@@ -2017,13 +2011,6 @@ MOS_STATUS CodechalEncodeMpeg2::SetSliceGroups()
             // Compare with prev slice to see if curr slice is start of new slice group
             PCODEC_ENCODER_SLCDATA slcDataPrev = slcData - 1;
             CodecEncodeMpeg2SliceParmas *slcParamsPrev = slcParams - 1;
-
-            if (!slcDataPrev || !slcParamsPrev)
-            {
-                eStatus = MOS_STATUS_INVALID_PARAMETER;
-                CODECHAL_ENCODE_ASSERTMESSAGE("Invalid slice pointer.");
-                return eStatus;
-            }
 
             // Start of a new slice group if gap in slices or quantiser_scale_code/IntraSlice changes
             uint32_t mbPrevEnd =
