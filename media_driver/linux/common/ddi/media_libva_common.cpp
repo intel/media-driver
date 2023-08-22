@@ -195,6 +195,17 @@ PDDI_MEDIA_SURFACE DdiMedia_ReplaceSurfaceWithNewFormat(PDDI_MEDIA_SURFACE surfa
     dstSurface->uiLockedBufID = VA_INVALID_ID;
     dstSurface->uiLockedImageID = VA_INVALID_ID;
     dstSurface->pSurfDesc = nullptr;
+
+    // copy for some pointer resource
+    if(dstSurface->pShadowBuffer)
+    {
+        dstSurface->pShadowBuffer = (PDDI_MEDIA_BUFFER)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_BUFFER));
+        MOS_SecureMemcpy(dstSurface->pShadowBuffer, sizeof(DDI_MEDIA_BUFFER), surface->pShadowBuffer, sizeof(DDI_MEDIA_BUFFER));
+        mos_bo_reference(dstSurface->pShadowBuffer->bo);
+        dstSurface->pShadowBuffer->pGmmResourceInfo = (GMM_RESOURCE_INFO *)MOS_AllocAndZeroMemory(sizeof(GMM_RESOURCE_INFO));
+        MOS_SecureMemcpy(dstSurface->pShadowBuffer->pGmmResourceInfo, sizeof(GMM_RESOURCE_INFO), surface->pShadowBuffer->pGmmResourceInfo, sizeof(GMM_RESOURCE_INFO));
+    }
+
     //lock surface heap
     DdiMediaUtil_LockMutex(&mediaCtx->SurfaceMutex);
     uint32_t i;
@@ -214,12 +225,12 @@ PDDI_MEDIA_SURFACE DdiMedia_ReplaceSurfaceWithNewFormat(PDDI_MEDIA_SURFACE surfa
         MOS_FreeMemory(dstSurface);
         return nullptr;
     }
-    //FreeSurface
-    DdiMediaUtil_FreeSurface(surface);
-    MOS_FreeMemory(surface);
     //CreateNewSurface
     DdiMediaUtil_CreateSurface(dstSurface,mediaCtx);
     surfaceElement->pSurface = dstSurface;
+    //FreeSurface
+    DdiMediaUtil_FreeSurface(surface);
+    MOS_FreeMemory(surface);
 
     DdiMediaUtil_UnLockMutex(&mediaCtx->SurfaceMutex);
 
