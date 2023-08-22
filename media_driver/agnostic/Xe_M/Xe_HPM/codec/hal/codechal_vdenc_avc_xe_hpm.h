@@ -128,6 +128,8 @@ public:
         PMOS_COMMAND_BUFFER        cmdBuffer,
         PMHW_VDBOX_AVC_SLICE_STATE params) override;
 
+    MOS_STATUS Execute(void *params) override;
+
 protected:
     struct BrcInitDmem;
     struct BrcUpdateDmem;
@@ -182,12 +184,19 @@ protected:
 
     MOS_STATUS SetupThirdRef(PMOS_RESOURCE vdencStreamIn);
 
+    // Switch GPU context at execute stage
+    MOS_STATUS SwitchContext();
+
+    MOS_STATUS ChangeContext();
+
     uint32_t m_mfxAvcImgStateSize    = 0;
     uint32_t m_vdencCmd3Size         = 0;
     uint32_t m_vdencAvcImgStateSize  = 0;
     uint32_t m_mfxAvcSlcStateSize    = 0;
     uint32_t m_vdencAvcSlcStateSize  = 0;
     uint32_t m_miBatchBufferEndSize  = 0;
+
+    bool m_isContextSwitched         = false;  // used to change virtual node association at execute stage only once
 
     static const uint8_t G0_P_InterRounding[52];
     static const uint8_t G0_P_IntraRounding[52];

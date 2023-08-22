@@ -29,6 +29,7 @@
 
 #include "codechal_vdenc_avc_xe_hpm.h"
 #include "codechal_mmc_encode_avc_xe_hpm.h"
+#include "mos_solo_generic.h"
 
 static const uint32_t TrellisQuantizationRoundingXe_Hpm[NUM_VDENC_TARGET_USAGE_MODES] =
     {
@@ -939,6 +940,85 @@ MOS_STATUS CodechalVdencAvcStateXe_Hpm::AddVdencSliceStateCmd(
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencSliceStateCmd(cmdBuffer, params));
     }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS CodechalVdencAvcStateXe_Hpm::Execute(void *params)
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    PERF_UTILITY_AUTO(__FUNCTION__, PERF_ENCODE, PERF_LEVEL_HAL);
+
+    MOS_TraceEventExt(EVENT_CODECHAL_EXECUTE, EVENT_TYPE_START, &m_codecFunction, sizeof(m_codecFunction), nullptr, 0);
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(Codechal::Execute(params));
+
+    EncoderParams *encodeParams = (EncoderParams *)params;
+    // MSDK event handling
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(Mos_Solo_SetGpuAppTaskEvent(m_osInterface, encodeParams->gpuAppTaskEvent));
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->SetWatchdogTimerThreshold(m_frameWidth, m_frameHeight));
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(SwitchContext());
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(ExecuteEnc(encodeParams));
+
+    MOS_TraceEventExt(EVENT_CODECHAL_EXECUTE, EVENT_TYPE_END, nullptr, 0, nullptr, 0);
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS CodechalVdencAvcStateXe_Hpm::SwitchContext()
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    if (CodecHalUsesVideoEngine(m_codecFunction) && !m_isContextSwitched)
+    {
+        if (MEDIA_IS_SKU(m_skuTable, FtrVcs2) ||
+            (MOS_VE_MULTINODESCALING_SUPPORTED(m_osInterface) && m_numVdbox > 1))
+        {
+            MOS_GPU_NODE encoderNode = m_osInterface->pfnGetLatestVirtualNode(m_osInterface, COMPONENT_Encode);
+            MOS_GPU_NODE decoderNode = m_osInterface->pfnGetLatestVirtualNode(m_osInterface, COMPONENT_Decode);
+            // switch encoder to different virtual node
+            if ((encoderNode == m_videoGpuNode) || (decoderNode == m_videoGpuNode))
+            {
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(ChangeContext());
+            }
+            m_osInterface->pfnSetLatestVirtualNode(m_osInterface, m_videoGpuNode);
+        }
+    }
+    // switch only once
+    m_isContextSwitched = true;
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS CodechalVdencAvcStateXe_Hpm::ChangeContext()
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnDestroyVideoNodeAssociation(
+        m_osInterface,
+        m_videoGpuNode));
+    MOS_GPU_NODE videoGpuNode = (m_videoGpuNode == MOS_GPU_NODE_VIDEO) ? MOS_GPU_NODE_VIDEO2 : MOS_GPU_NODE_VIDEO;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateVideoNodeAssociation(
+        m_osInterface,
+        true,
+        &videoGpuNode));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnDestroyGpuContext(
+        m_osInterface,
+        m_videoContext));
+    MOS_GPU_CONTEXT gpuContext = (videoGpuNode == MOS_GPU_NODE_VIDEO2) && !MOS_VE_MULTINODESCALING_SUPPORTED(m_osInterface) ? MOS_GPU_CONTEXT_VDBOX2_VIDEO3 : MOS_GPU_CONTEXT_VIDEO3;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(
+        m_osInterface,
+        gpuContext,
+        videoGpuNode,
+        m_gpuCtxCreatOpt));
+    m_videoGpuNode = videoGpuNode;
+    m_videoContext = gpuContext;
+    m_osInterface->pfnSetEncodePakContext(m_osInterface, m_videoContext);
+    m_vdboxIndex = (m_videoGpuNode == MOS_GPU_NODE_VIDEO2) ? MHW_VDBOX_NODE_2 : MHW_VDBOX_NODE_1;
 
     return MOS_STATUS_SUCCESS;
 }
