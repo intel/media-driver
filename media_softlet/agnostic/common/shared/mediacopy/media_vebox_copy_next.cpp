@@ -28,6 +28,7 @@
 #include "mhw_vebox_itf.h"
 #include "mos_os_cp_interface_specific.h"
 #include "media_copy_common.h"
+#include "hal_oca_interface_next.h"
 
 #define SURFACE_DW_UY_OFFSET(pSurface) \
     ((pSurface) != nullptr ? ((pSurface)->UPlaneOffset.iSurfaceOffset - (pSurface)->dwOffset) / (pSurface)->dwPitch + (pSurface)->UPlaneOffset.iYOffset : 0)
@@ -185,6 +186,8 @@ MOS_STATUS VeboxCopyStateNext::CopyMainSurface(PMOS_RESOURCE src, PMOS_RESOURCE 
     VEBOX_COPY_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
     VEBOX_COPY_CHK_STATUS_RETURN(InitCommandBuffer(&cmdBuffer));
 
+    HalOcaInterfaceNext::On1stLevelBBStart(cmdBuffer, m_osInterface->pOsContext, m_osInterface->CurrentGpuContextHandle, m_miItf, *m_miItf->GetMmioRegisters());
+
     MediaPerfProfiler* perfProfiler = MediaPerfProfiler::Instance();
     VEBOX_COPY_CHK_NULL_RETURN(perfProfiler);
     VEBOX_COPY_CHK_STATUS_RETURN(perfProfiler->AddPerfCollectStartCmd((void*)this, m_osInterface, m_miItf, &cmdBuffer));
@@ -201,6 +204,8 @@ MOS_STATUS VeboxCopyStateNext::CopyMainSurface(PMOS_RESOURCE src, PMOS_RESOURCE 
     VEBOX_COPY_CHK_STATUS_RETURN(m_veboxItf->AddVeboxSurfaces(
         &cmdBuffer,
         &mhwVeboxSurfaceStateCmdParams));
+
+    HalOcaInterfaceNext::OnDispatch(cmdBuffer, *m_osInterface, m_miItf, *m_miItf->GetMmioRegisters());
 
     //---------------------------------
     // Send CMD: Vebox_Tiling_Convert
@@ -220,6 +225,9 @@ MOS_STATUS VeboxCopyStateNext::CopyMainSurface(PMOS_RESOURCE src, PMOS_RESOURCE 
         VEBOX_COPY_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(&cmdBuffer));
     }
     VEBOX_COPY_CHK_STATUS_RETURN(perfProfiler->AddPerfCollectEndCmd((void*)this, m_osInterface, m_miItf, &cmdBuffer));
+
+    HalOcaInterfaceNext::On1stLevelBBEnd(cmdBuffer, *m_osInterface);
+
     VEBOX_COPY_CHK_STATUS_RETURN(m_miItf->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
 
     // Return unused command buffer space to OS
