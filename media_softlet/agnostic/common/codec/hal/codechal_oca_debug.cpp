@@ -93,10 +93,6 @@ void CodechalOcaDumper::SetAvcDecodeParam(
 
     offset += sizeof(CODECHAL_OCA_DECODE_AVC_PIC_PARAM);
     CODECHAL_OCA_DECODE_AVC_SLICE_PARAM* pSliceParam = (CODECHAL_OCA_DECODE_AVC_SLICE_PARAM *)((char*)m_pOcaDecodeParam + offset);
-    if (nullptr == pPicParam || nullptr == pSliceParam)
-    {
-        return;
-    }
 
     if (picParams)
     {
@@ -163,10 +159,6 @@ void CodechalOcaDumper::SetHevcDecodeParam(
 
     offset += sizeof(CODECHAL_OCA_DECODE_HEVC_PIC_PARAM);
     CODECHAL_OCA_DECODE_HEVC_SLICE_PARAM* pSliceParam = (CODECHAL_OCA_DECODE_HEVC_SLICE_PARAM *)((char*)m_pOcaDecodeParam + offset);
-    if (nullptr == pPicParam || nullptr == pSliceParam)
-    {
-        return;
-    }
 
     if (picParams)
     {
