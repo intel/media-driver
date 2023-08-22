@@ -81,7 +81,7 @@ MOS_STATUS CodechalDecodeNV12ToP010::Execute(
     MOS_TraceEventExt(EVENT_CODEC_NV12ToP010, EVENT_TYPE_START, nullptr, 0, nullptr, 0);
 
     CmSurface2D *srcCmSurface2D = nullptr;
-    m_cmDevice->CreateSurface2D(srcResource, srcCmSurface2D);
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_cmDevice->CreateSurface2D(srcResource, srcCmSurface2D));
     CODECHAL_DECODE_CHK_NULL_RETURN(srcCmSurface2D);
     CmSurface2D *dstCmSurface2D = nullptr;
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_cmDevice->CreateSurface2D(dstResource, dstCmSurface2D));

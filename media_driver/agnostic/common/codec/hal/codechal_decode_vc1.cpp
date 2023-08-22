@@ -4854,6 +4854,7 @@ CodechalDecodeVc1::CodechalDecodeVc1(
     MOS_ZeroMemory(&m_resSyncObjectWaContextInUse, sizeof(m_resSyncObjectWaContextInUse));
     MOS_ZeroMemory(&m_resSyncObjectVideoContextInUse, sizeof(m_resSyncObjectVideoContextInUse));
     MOS_ZeroMemory(m_presReferences, (sizeof(PMOS_RESOURCE) * CODEC_MAX_NUM_REF_FRAME_NON_AVC));
+    MOS_ZeroMemory(m_vc1RefList, (sizeof(PCODEC_REF_LIST) * CODECHAL_NUM_UNCOMPRESSED_SURFACE_VC1));
 #if (_DEBUG || _RELEASE_INTERNAL)
     m_reportFrameCrc = true;
 #endif

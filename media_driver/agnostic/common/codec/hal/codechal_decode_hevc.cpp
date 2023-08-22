@@ -2821,6 +2821,7 @@ CodechalDecodeHevc::CodechalDecodeHevc(
     MOS_ZeroMemory(&m_destSurface,sizeof(m_destSurface));
     MOS_ZeroMemory(&m_currPic,sizeof(m_currPic));
     MOS_ZeroMemory(&m_hevcMvList, CODEC_NUM_HEVC_MV_BUFFERS * sizeof(CODECHAL_DECODE_HEVC_MV_LIST));
+    MOS_ZeroMemory(m_presReferences, sizeof(PMOS_RESOURCE) * CODEC_MAX_NUM_REF_FRAME_HEVC);
 
     m_hcpInUse = true;
 
