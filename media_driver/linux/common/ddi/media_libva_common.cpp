@@ -200,9 +200,11 @@ PDDI_MEDIA_SURFACE DdiMedia_ReplaceSurfaceWithNewFormat(PDDI_MEDIA_SURFACE surfa
     if(dstSurface->pShadowBuffer)
     {
         dstSurface->pShadowBuffer = (PDDI_MEDIA_BUFFER)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_BUFFER));
+        DDI_CHK_NULL(dstSurface->pShadowBuffer, "Failed to allocate shadow buffer", nullptr);
         MOS_SecureMemcpy(dstSurface->pShadowBuffer, sizeof(DDI_MEDIA_BUFFER), surface->pShadowBuffer, sizeof(DDI_MEDIA_BUFFER));
         mos_bo_reference(dstSurface->pShadowBuffer->bo);
         dstSurface->pShadowBuffer->pGmmResourceInfo = (GMM_RESOURCE_INFO *)MOS_AllocAndZeroMemory(sizeof(GMM_RESOURCE_INFO));
+        DDI_CHK_NULL(dstSurface->pShadowBuffer->pGmmResourceInfo, "Failed to allocate gmm resource info", nullptr);
         MOS_SecureMemcpy(dstSurface->pShadowBuffer->pGmmResourceInfo, sizeof(GMM_RESOURCE_INFO), surface->pShadowBuffer->pGmmResourceInfo, sizeof(GMM_RESOURCE_INFO));
     }
 
