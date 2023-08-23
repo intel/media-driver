@@ -491,6 +491,7 @@ PVPHAL_SURFACE VPHAL_VEBOX_STATE::VeboxSetReference(
     PVPHAL_VEBOX_STATE          pVeboxState = this;
     PVPHAL_VEBOX_RENDER_DATA    pRenderData = GetLastExecRenderData();
 
+    VPHAL_RENDER_CHK_NULL_NO_STATUS(pRenderData);
     if (pRenderData->bRefValid)
     {
         // Set the Reference surface
@@ -595,6 +596,7 @@ PVPHAL_SURFACE VPHAL_VEBOX_STATE::VeboxSetReference(
         }
     }
 
+finish:
     return pRefSurface;
 }
 
@@ -619,6 +621,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxSetDiOutput(
     PVPHAL_VEBOX_STATE          pVeboxState = this;
     PVPHAL_VEBOX_RENDER_DATA    pRenderData = GetLastExecRenderData();
 
+    VPHAL_RENDER_CHK_NULL_RETURN(pRenderData);
     if (pRenderData->bDeinterlace)
     {
         if (pVeboxState->m_pVeboxExecState->bDIOutputPair01)
@@ -1110,6 +1113,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxSetFMDParams(
     PVPHAL_VEBOX_RENDER_DATA         pRenderData = GetLastExecRenderData();
     MOS_STATUS                       eStatus = MOS_STATUS_SUCCESS;
 
+    VPHAL_RENDER_CHK_NULL(pRenderData);
     VPHAL_RENDER_CHK_NULL(pLumaParams);
 
 #if VEBOX_AUTO_DENOISE_SUPPORTED
@@ -1153,6 +1157,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxSetDNDIParams(
     PVPHAL_DNUV_PARAMS               pChromaParams;
     PVPHAL_VEBOX_STATE               pVeboxState = this;
     PVPHAL_VEBOX_RENDER_DATA         pRenderData = GetLastExecRenderData();
+    VPHAL_RENDER_CHK_NULL(pRenderData);
 
     eStatus             = MOS_STATUS_SUCCESS;
     pLumaParams         = &lumaParams;     // Params for DI and LumaDN
@@ -2321,6 +2326,7 @@ void VPHAL_VEBOX_STATE::VeboxSetCommonRenderingFlags(
     int32_t                     iSameSampleThreshold;
     PVPHAL_VEBOX_STATE          pVeboxState = this;
     PVPHAL_VEBOX_RENDER_DATA    pRenderData = GetLastExecRenderData();
+    VPHAL_RENDER_CHK_NULL_NO_STATUS_RETURN(pRenderData);
 
     if (IS_VEBOX_EXECUTION_MODE_2(pVeboxState->m_pVeboxExecState))
     {
@@ -2446,6 +2452,7 @@ void VPHAL_VEBOX_STATE::VeboxSetFieldRenderingFlags(
 {
     PVPHAL_VEBOX_RENDER_DATA    pRenderData = GetLastExecRenderData();
 
+    VPHAL_RENDER_CHK_NULL_NO_STATUS_RETURN(pRenderData);
     // No need to check future surface for Mode2 here
     // Because only current frame will change the field setting.
     // And whether current blt are top or bottom field doesn't matter here
@@ -3526,6 +3533,11 @@ PVPHAL_SURFACE VPHAL_VEBOX_STATE::GetOutputSurfForDiSameSampleWithSFC(
     PVPHAL_VEBOX_STATE       pVeboxState    = this;
     PVPHAL_VEBOX_RENDER_DATA pRenderData    = pVeboxState->GetLastExecRenderData();
     PVPHAL_SURFACE           pOutputSurface = pSrcSurface;
+    if (!pRenderData)
+    {
+        VPHAL_RENDER_ASSERTMESSAGE("pRenderData is nullptr!");
+        return nullptr;
+    }
 
     // Update rect sizes in FFDI surface if input surface rect size changes
     if (pSrcSurface->rcSrc.left      != pVeboxState->FFDISurfaces[0]->rcSrc.left     ||

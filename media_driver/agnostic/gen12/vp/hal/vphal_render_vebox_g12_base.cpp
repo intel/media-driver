@@ -543,7 +543,11 @@ bool VPHAL_VEBOX_STATE_G12_BASE::IsFFDISurfNeeded()
 
 bool VPHAL_VEBOX_STATE_G12_BASE::IsFFDNSurfNeeded()
 {
-    return GetLastExecRenderData()->bDenoise ? true : false;
+    PVPHAL_VEBOX_RENDER_DATA pRenderData = GetLastExecRenderData();
+    VPHAL_RENDER_CHK_NULL_NO_STATUS(pRenderData);
+    return pRenderData->bDenoise ? true : false;
+finish:
+    return false;
 }
 
 bool VPHAL_VEBOX_STATE_G12_BASE::IsSTMMSurfNeeded()
@@ -1926,6 +1930,7 @@ void VPHAL_VEBOX_STATE_G12_BASE::SetupSurfaceStates(
     PVPHAL_VEBOX_STATE_G12_BASE pVeboxState = this;
     PVPHAL_VEBOX_RENDER_DATA    pRenderData = GetLastExecRenderData();
 
+    VPHAL_RENDER_CHK_NULL_NO_STATUS_RETURN(pRenderData);
     MOS_ZeroMemory(pVeboxSurfaceStateCmdParams, sizeof(VPHAL_VEBOX_SURFACE_STATE_CMD_PARAMS));
 
     pVeboxSurfaceStateCmdParams->pSurfInput    = pVeboxState->m_currentSurface;
@@ -2782,6 +2787,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::LoadUpdateDenoiseKernelStaticData(
     MOS_STATUS                         eStatus;
     PVPHAL_VEBOX_RENDER_DATA           pRenderData = GetLastExecRenderData();
 
+    VPHAL_RENDER_CHK_NULL(pRenderData);
     VPHAL_RENDER_CHK_NULL(iCurbeOffsetOutDN);
 
     pRenderHal      = m_pRenderHal;
@@ -2984,7 +2990,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::SetupVeboxKernel(
     MOS_STATUS                  eStatus;                                       // Return code
     PVPHAL_VEBOX_STATE_G12_BASE pVeboxState = this;
     PVPHAL_VEBOX_RENDER_DATA    pRenderData = GetLastExecRenderData();
-
+    VPHAL_RENDER_CHK_NULL(pRenderData);
     // Initialize Variables
     eStatus          = MOS_STATUS_SUCCESS;
     pFilter          = &pVeboxState->SearchFilter[0];

@@ -1248,7 +1248,12 @@ public:
 
     virtual bool IsIECPEnabled()
     {
-        return GetLastExecRenderData()->bIECP;
+        PVPHAL_VEBOX_RENDER_DATA pRenderData = GetLastExecRenderData();
+        VPHAL_RENDER_CHK_NULL_NO_STATUS(pRenderData);
+
+        return pRenderData->bIECP;
+    finish:
+        return false;
     }
     virtual bool IsQueryVarianceEnabled() {return false;}
 

@@ -1668,10 +1668,10 @@ bool CompositeState::PreparePhases(
                 // Get resource info (width, height, pitch, tiling, etc)
                 MOS_ZeroMemory(&Info, sizeof(VPHAL_GET_SURFACE_INFO));
 
-                VpHal_GetSurfaceInfo(
+                VPHAL_RENDER_CHK_STATUS(VpHal_GetSurfaceInfo(
                     pOsInterface,
                     &Info,
-                    pIntermediate);
+                    pIntermediate));
             }
         }
 
@@ -1686,6 +1686,7 @@ bool CompositeState::PreparePhases(
         pIntermediate->bIEF              = false;
     }
 
+finish:
     return bMultiplePhases;
 }
 
@@ -4684,6 +4685,7 @@ bool CompositeState::SubmitStates(
         pStatic    = &pRenderingData->Static;
     }
 
+    VPHAL_RENDER_CHK_NULL(pStatic);
     // Get Pointer to Render Target Surface
     pTarget        = pRenderingData->pTarget[0];
 
