@@ -429,91 +429,15 @@ bool Vp9WriteUncompressHeader(struct _DDI_ENCODE_CONTEXT *ddiEncContext,
         vp9_wb_write_bit(wb, 0);
     }
 
+    headerBitoffset->bit_offset_segmentation = wb->bit_offset;
     vp9_wb_write_bit(wb, picParam->PicFlags.fields.segmentation_enabled);
     if (picParam->PicFlags.fields.segmentation_enabled)
     {
-        int i;
-
-#define VP9_MAX_PROB    255
-        vp9_wb_write_bit(wb, picParam->PicFlags.fields.segmentation_update_map);
-        headerBitoffset->bit_offset_segmentation = wb->bit_offset;
-        if (picParam->PicFlags.fields.segmentation_update_map)
-        {
-            /* write the seg_tree_probs */
-            /* segment_tree_probs/segment_pred_probs are not passed.
-             * So the hard-coded prob is writen
-             */
-            for (i = 0; i < 7; i++)
-            {
-                vp9_wb_write_bit(wb, 1);
-                vp9_wb_write_literal(wb, VP9_MAX_PROB, 8);
-            }
-
-            vp9_wb_write_bit(wb, picParam->PicFlags.fields.segmentation_temporal_update);
-            if (picParam->PicFlags.fields.segmentation_temporal_update)
-            {
-                for (i = 0; i < 3; i++)
-                {
-                    vp9_wb_write_bit(wb, 1);
-                    vp9_wb_write_literal(wb, VP9_MAX_PROB, 8);
-                }
-            }
-        }
-
-        /* write the segment_data info */
-        vp9_wb_write_bit(wb, picParam->PicFlags.fields.seg_update_data);
-        if (picParam->PicFlags.fields.seg_update_data)
-        {
-            CODEC_VP9_ENCODE_SEG_PARAMS *seg_data;
-            int seg_delta;
-
-            /* abs_delta should be zero */
-            vp9_wb_write_bit(wb, 0);
-            for (i = 0; i < 8; i++)
-            {
-                seg_data = &segParams->SegData[i];
-
-                /* The segment qindex delta */
-                /* This check is skipped */
-                /* if (seg_data->SegmentQIndexDelta != 0) */
-                if (1)
-                {
-                    vp9_wb_write_bit(wb, 1);
-                    seg_delta = seg_data->SegmentQIndexDelta;
-                    vp9_wb_write_literal(wb, abs(seg_delta), 8);
-                    vp9_wb_write_bit(wb, seg_delta < 0);
-                }
-                else
-                {
-                    vp9_wb_write_bit(wb, 0);
-                }
-
-                /* The segment lf delta */
-                /* if (seg_data->SegmentLFLevelDelta != 0) */
-                if (1)
-                {
-                    vp9_wb_write_bit(wb, 1);
-                    seg_delta = seg_data->SegmentLFLevelDelta;
-                    vp9_wb_write_literal(wb, abs(seg_delta), 6);
-                    vp9_wb_write_bit(wb, seg_delta < 0);
-                }
-                else
-                {
-                    vp9_wb_write_bit(wb, 0);
-                }
-
-                /* segment reference flag */
-                vp9_wb_write_bit(wb, seg_data->SegmentFlags.fields.SegmentReferenceEnabled);
-                if (seg_data->SegmentFlags.fields.SegmentReferenceEnabled)
-                {
-                    vp9_wb_write_literal(wb, seg_data->SegmentFlags.fields.SegmentReference, 2);
-                }
-
-                /* segment skip flag */
-                vp9_wb_write_bit(wb, seg_data->SegmentFlags.fields.SegmentSkipped);
-            }
-        }
+        // Segmentation syntax will be filled by HW, need leave dummy here.
+        vp9_wb_write_bit(wb, 0);
+        vp9_wb_write_bit(wb, 0);
     }
+    headerBitoffset->bit_size_segmentation = wb->bit_offset - headerBitoffset->bit_offset_segmentation;
 
     /* write tile info */
     {
