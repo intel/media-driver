@@ -322,7 +322,7 @@ protected:
     MOS_RESOURCE m_hucPakIntDummyBuffer    = {0};                    //!< HuC PAK Integrateion dummy buffer
     uint32_t     m_hucPakIntDmemBufferSize = sizeof(HucPakIntDmem);  //!< Indicate the size of Dmem buffer of Huc pak integrate kernel
 
-    MOS_RESOURCE     m_resHucStitchDataBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][CODECHAL_ENCODE_VP9_BRC_MAX_NUM_OF_PASSES];
+    MOS_RESOURCE     m_resHucStitchDataBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][CODECHAL_ENCODE_VP9_BRC_MAX_NUM_OF_PASSES] = {};
     MHW_BATCH_BUFFER m_HucStitchCmdBatchBuffer = {};
 
     PMOS_INTERFACE     m_osInterface = nullptr;  //!< Pointer to the os interface

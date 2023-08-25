@@ -34,7 +34,7 @@ MOS_STATUS Vp9PakIntegratePktXe_Lpm_Plus::SetDmemBuffer() const
     ENCODE_FUNC_CALL();
 
     auto currentPass = m_pipeline->GetCurrentPass();
-    if (currentPass < 0 || currentPass >= Vp9EncodeBrc::m_brcMaxNumPasses)
+    if (currentPass >= Vp9EncodeBrc::m_brcMaxNumPasses)
     {
         return MOS_STATUS_INVALID_PARAMETER;
     }

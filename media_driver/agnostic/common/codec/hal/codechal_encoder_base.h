@@ -1564,7 +1564,7 @@ public:
     ScalingBindingTable             m_scaling2xBindingTable = {};                        //!< Scaling 2x Binding Table
     uint32_t                        m_scalingCurbeSize = 0;                               //!< Scaling curbe size
     bool                            m_interlacedFieldDisabled = false;                    //!< interlaced field disabled flag
-    CodechalEncodeBbuf              m_scalingBBUF[CODECHAL_ENCODE_VME_BBUF_NUM];          //!< This Batch Buffer is used for scaling kernel.
+    CodechalEncodeBbuf              m_scalingBBUF[CODECHAL_ENCODE_VME_BBUF_NUM] = {};     //!< This Batch Buffer is used for scaling kernel.
     uint32_t                        m_scaledBottomFieldOffset = 0;                        //!< Scaled Bottom Field Offset
     uint32_t                        m_scaled16xBottomFieldOffset = 0;                     //!< Scaled 16x Bottom Field Offset
     uint32_t                        m_scaled32xBottomFieldOffset = 0;                     //!< Scaled 32x Bottom Field Offset

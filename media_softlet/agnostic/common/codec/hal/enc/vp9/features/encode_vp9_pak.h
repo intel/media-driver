@@ -353,8 +353,8 @@ protected:
     uint16_t m_vdencPictureState2ndLevelBBIndex        = 0;
     uint16_t m_lastVdencPictureState2ndLevelBBIndex    = 0;
 
-    MOS_RESOURCE m_resVdencPictureState2ndLevelBatchBufferRead[3][CODECHAL_VP9_ENCODE_RECYCLED_BUFFER_NUM];
-    MOS_RESOURCE m_resVdencPictureState2ndLevelBatchBufferWrite[CODECHAL_VP9_ENCODE_RECYCLED_BUFFER_NUM];
+    MOS_RESOURCE m_resVdencPictureState2ndLevelBatchBufferRead[3][CODECHAL_VP9_ENCODE_RECYCLED_BUFFER_NUM] = {0};
+    MOS_RESOURCE m_resVdencPictureState2ndLevelBatchBufferWrite[CODECHAL_VP9_ENCODE_RECYCLED_BUFFER_NUM]   = {0};
 
     // Vdenc/Pak resources
     MOS_RESOURCE m_resHucPakInsertUncompressedHeaderReadBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM]  = {0};  //!< Huc VP9 pak insert uncompressed header read buffer

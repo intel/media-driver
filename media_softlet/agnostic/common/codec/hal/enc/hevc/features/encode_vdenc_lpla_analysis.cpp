@@ -794,7 +794,7 @@ namespace encode
         // Setup LAInit DMEM
         auto hucVdencLaInitDmem = (VdencHevcHucLaDmem *)m_allocator->LockResourceForWrite(m_vdencLaInitDmemBuffer);
         ENCODE_CHK_NULL_RETURN(hucVdencLaInitDmem);
-        MOS_ZeroMemory(hucVdencLaInitDmem, sizeof(hucVdencLaInitDmem));
+        MOS_ZeroMemory(hucVdencLaInitDmem, sizeof(VdencHevcHucLaDmem));
 
         uint32_t initVbvFullness = MOS_MIN(m_hevcSeqParams->InitVBVBufferFullnessInBit, m_hevcSeqParams->VBVBufferSizeInBit);
         uint8_t downscaleRatioIndicator = 2;  // 4x downscaling
@@ -851,7 +851,7 @@ namespace encode
         // Setup LAUpdate DMEM
         auto hucVdencLaUpdateDmem = (VdencHevcHucLaDmem *)m_allocator->LockResourceForWrite(m_vdencLaUpdateDmemBuffer[currRecycledBufIdx][curPass]);
         ENCODE_CHK_NULL_RETURN(hucVdencLaUpdateDmem);
-        MOS_ZeroMemory(hucVdencLaUpdateDmem, sizeof(hucVdencLaUpdateDmem));
+        MOS_ZeroMemory(hucVdencLaUpdateDmem, sizeof(VdencHevcHucLaDmem));
 
         hucVdencLaUpdateDmem->lookAheadFunc = 1;
         hucVdencLaUpdateDmem->validStatsRecords = numValidLaRecords;

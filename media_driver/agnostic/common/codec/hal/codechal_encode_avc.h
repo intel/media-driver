@@ -518,7 +518,7 @@ struct CodechalEncodeAvcEnc : public CodechalEncodeAvcBase
     MHW_KERNEL_STATE                            mfeMbEncKernelState;                                             //!< Mfe MbEnc Kernel State.
 
     // Intra Distortion
-    PMHW_KERNEL_STATE                           pIntraDistortionKernelStates;                                   //!< Point to Intra Distortion Kernel States.
+    PMHW_KERNEL_STATE                           pIntraDistortionKernelStates = {};                               //!< Point to Intra Distortion Kernel States.
 
     // WP
     PMHW_KERNEL_STATE                   pWPKernelState;                                                         //!< Point to WP Kernel State.
@@ -607,9 +607,9 @@ struct CodechalEncodeAvcEnc : public CodechalEncodeAvcBase
     uint32_t                            dwBrcConstantSurfaceWidth;                                      //!< Brc Constant Surface Width
     uint32_t                            dwBrcConstantSurfaceHeight;                                     //!< Brc Constant Surface Height
 
-    uint32_t                            dwSlidingWindowSize;                                            //!< Sliding Window Size
-    bool                                bForceToSkipEnable;                                             //!< ForceToSkip Enable Flag
-    bool                                bBRCVarCompuBypass;                                             //!< Bypass variance computation in BRC kernel
+    uint32_t                            dwSlidingWindowSize = 0;                                        //!< Sliding Window Size
+    bool                                bForceToSkipEnable  = false;                                    //!< ForceToSkip Enable Flag
+    bool                                bBRCVarCompuBypass  = false;                                    //!< Bypass variance computation in BRC kernel
 
     static const uint32_t MaxLenSP[NUM_TARGET_USAGE_MODES];
     static const uint32_t EnableAdaptiveSearch[NUM_TARGET_USAGE_MODES];

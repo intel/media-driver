@@ -278,7 +278,7 @@ protected:
     uint32_t      m_vdencHucPakDmemBufferSize = sizeof(HucPakIntegrateDmem);    //!< Indicate the size of Dmem buffer of Huc pak integrate kernel
     PMOS_RESOURCE m_resHucPakStitchDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][CODECHAL_VDENC_BRC_NUM_OF_PASSES] = {};  //!< HuC Pak Integration Dmem data for each pass
 
-    MOS_RESOURCE     m_resHucStitchDataBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][CODECHAL_VDENC_BRC_NUM_OF_PASSES];
+    MOS_RESOURCE     m_resHucStitchDataBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][CODECHAL_VDENC_BRC_NUM_OF_PASSES] = {};
     MHW_BATCH_BUFFER m_HucStitchCmdBatchBuffer = {};
 
     static constexpr const uint32_t m_hwStitchCmdSize = 20 * sizeof(uint32_t);  //!< Cmd size for hw stitch

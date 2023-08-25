@@ -114,7 +114,7 @@ namespace encode
         if (params.function == BRC_UPDATE)
         {
             auto dmem = (VdencAv1HucBrcUpdateDmem*)m_allocator->LockResourceForWrite(params.hucDataSource);
-
+            ENCODE_CHK_NULL_RETURN(dmem);
             dmem->UPD_LA_TargetFULNESS = m_targetBufferFulness;
             dmem->UPD_LALength = m_av1SeqParams->LookaheadDepth;
             dmem->UPD_TR_TargetSize = m_av1PicParams->TargetFrameSize << 3;  // byte to bit

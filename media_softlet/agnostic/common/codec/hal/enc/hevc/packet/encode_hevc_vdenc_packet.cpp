@@ -651,6 +651,7 @@ namespace encode
         PMOS_COMMAND_BUFFER tempCmdBuffer         = &cmdBuffer;
         PMHW_BATCH_BUFFER   tileLevelBatchBuffer  = nullptr;
         auto                eStatus               = MOS_STATUS_SUCCESS;
+        MOS_COMMAND_BUFFER constructTileBatchBuf = {};
 
         RUN_FEATURE_INTERFACE_RETURN(HevcEncodeTile, HevcFeatureIDs::encodeTile, SetCurrentTile, tileRow, tileCol, m_pipeline);
 
@@ -661,8 +662,6 @@ namespace encode
 
         if (!m_osInterface->bUsesPatchList)
         {
-            MOS_COMMAND_BUFFER constructTileBatchBuf = {};
-
             // Begin patching tile level batch cmds
             RUN_FEATURE_INTERFACE_RETURN(HevcEncodeTile, HevcFeatureIDs::encodeTile, BeginPatchTileLevelBatch, tileRowPass, constructTileBatchBuf);
 

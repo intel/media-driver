@@ -175,7 +175,7 @@ public:
 
     Vp9BasicFeature *m_basicFeature = nullptr;  //!< VP9 Basic Feature used in each frame
 
-    MOS_RESOURCE m_resHucDefaultProbBuffer;
+    MOS_RESOURCE m_resHucDefaultProbBuffer = {};
     bool         m_superFrameHucPass = false;  //!< Huc super frame pass enable/disabl flags
 
  MEDIA_CLASS_DEFINE_END(encode__Vp9HpuPkt)

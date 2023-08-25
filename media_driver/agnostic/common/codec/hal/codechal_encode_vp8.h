@@ -1440,8 +1440,8 @@ protected:
     struct CodechalBindingTableVp8Mpu m_mpuBindingTable = {};
 
     // VME Scratch Buffers
-    MOS_RESOURCE m_resVmeKernelDumpBuffer;
-    bool         m_vmeKernelDump;
+    MOS_RESOURCE m_resVmeKernelDumpBuffer = {};
+    bool         m_vmeKernelDump          = false;
 
     //HW pak
     MOS_RESOURCE m_resIntraRowStoreScratchBuffer = {};

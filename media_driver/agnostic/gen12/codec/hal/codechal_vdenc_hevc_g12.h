@@ -2728,7 +2728,7 @@ private:
     PMHW_BATCH_BUFFER           m_TileRowBRCBatchBuffer[CODECHAL_VDENC_BRC_NUM_OF_PASSES];   //!< Tile level batch buffer HUC BRC Update
     uint32_t                    m_numTileRows = 1;                          //!< Total number of tile rows
     uint32_t                    m_numTileRowBRCBatchAllocated = 0;          //!< The number of allocated batch buffer for tile row BRC
-    MOS_RESOURCE                m_resTileRowBRCsyncSemaphore;               //!< HW semaphore buffer for tile row BRC update
+    MOS_RESOURCE                m_resTileRowBRCsyncSemaphore = {};          //!< HW semaphore buffer for tile row BRC update
     bool                        m_RGBEncodingEnable = false;                //!< Enable RGB encoding
     bool                        m_CaptureModeEnable = false;                //!< Enable Capture mode with display
     bool                        m_tcbrcQualityBoost = false;

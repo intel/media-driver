@@ -262,7 +262,7 @@ namespace encode
 
         MOS_RESOURCE                            m_dataFromPicsBuffer = {}; //!< Data Buffer of Current and Reference Pictures for Weighted Prediction
         uint32_t                                m_vdenc2ndLevelBatchBufferSize[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM] = { 0 };
-        MOS_RESOURCE                            m_vdencBrcUpdateDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][VDENC_BRC_NUM_OF_PASSES];  //!< VDEnc BrcUpdate DMEM buffer
+        MOS_RESOURCE                            m_vdencBrcUpdateDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][VDENC_BRC_NUM_OF_PASSES] = { 0 };  //!< VDEnc BrcUpdate DMEM buffer
 
         mutable uint32_t                        m_1stPakInsertObjectCmdSize = 0;                   //!< Size of 1st PAK_INSERT_OBJ cmd
         mutable uint32_t                        m_hcpWeightOffsetStateCmdSize   = 0;               //!< Size of HCP_WEIGHT_OFFSET_STATE cmd

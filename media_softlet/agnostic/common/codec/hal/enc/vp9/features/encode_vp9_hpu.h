@@ -390,11 +390,11 @@ protected:
     Vp9BasicFeature *     m_basicFeature = nullptr;
 
     // HuC Prob resoruces/buffers
-    MOS_RESOURCE m_resProbabilityDeltaBuffer             = {0};                  //!< Probability delta buffer
-    MOS_RESOURCE m_resProbabilityCounterBuffer           = {0};                  //!< Probability counter buffer
-    MOS_RESOURCE m_resHucProbDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][3]; //!< VDENC HuC Prob DMEM buffer
-    MOS_RESOURCE m_resHucProbOutputBuffer                = {0};                  //!< HuC Prob output buffer
-    MOS_RESOURCE m_resProbBuffer[CODEC_VP9_NUM_CONTEXTS] = {0};                  //!< Probability buffer
+    MOS_RESOURCE m_resProbabilityDeltaBuffer             = {0};                        //!< Probability delta buffer
+    MOS_RESOURCE m_resProbabilityCounterBuffer           = {0};                        //!< Probability counter buffer
+    MOS_RESOURCE m_resHucProbDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][3] = {0}; //!< VDENC HuC Prob DMEM buffer
+    MOS_RESOURCE m_resHucProbOutputBuffer                = {0};                        //!< HuC Prob output buffer
+    MOS_RESOURCE m_resProbBuffer[CODEC_VP9_NUM_CONTEXTS] = {0};                        //!< Probability buffer
 
     mutable bool m_isLastPass = false;
 

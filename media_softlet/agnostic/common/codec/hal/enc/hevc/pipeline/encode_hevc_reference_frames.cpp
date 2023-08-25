@@ -617,7 +617,6 @@ MHW_SETPAR_DECL_SRC(HCP_PIPE_BUF_ADDR_STATE, HevcReferenceFrames)
                 //CodecHalGetResourceInfo(m_osInterface, &(m_refList[idx]->sRefReconBuffer));
 
                 uint8_t frameStoreId                            = m_refIdxMapping[i];
-                params.presReferences[frameStoreId] = &(m_refList[idx]->sRefReconBuffer.OsResource);
                 params.presReferences[frameStoreId] = (picParams->bUseRawPicForRef) ? 
                     &(m_refList[idx]->sRefBuffer.OsResource) : &(m_refList[idx]->sRefReconBuffer.OsResource);
 

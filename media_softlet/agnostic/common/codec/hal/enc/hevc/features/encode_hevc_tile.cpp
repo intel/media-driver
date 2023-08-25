@@ -796,7 +796,7 @@ namespace encode
         params.tileSizeStreamoutOffset              = m_curTileCodingParams.TileSizeStreamoutOffset;
         params.vp9ProbabilityCounterStreamoutOffset = 0;
         params.nonFirstPassTile                     = m_curTileCodingParams.bTileReplayEnable && (!m_curTileCodingParams.IsFirstPass);
-        params.bitstreamByteOffsetEnable            = m_curTileCodingParams.bTileReplayEnable && ((m_curTileCodingParams.NumberOfActiveBePipes > 1) ? 1 : 1);
+        params.bitstreamByteOffsetEnable            = m_curTileCodingParams.bTileReplayEnable;
 
         return MOS_STATUS_SUCCESS;
     }

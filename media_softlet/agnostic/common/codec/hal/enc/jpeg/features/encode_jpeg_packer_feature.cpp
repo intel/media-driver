@@ -206,15 +206,7 @@ MOS_STATUS JpegPackerFeature::PackHuffmanTable(
 
     buffer->pBase     = (uint8_t *)huffmanHeader;
     buffer->BitOffset = 0;
-
-    if (basicFeature->m_jpegHuffmanTable->m_huffmanData[tableIndex].m_tableClass == 0)  // DC table
-    {
-        buffer->BufferSize = (2 * sizeof(uint16_t) * 8) + (sizeof(uint8_t) * 8) + (JPEG_NUM_HUFF_TABLE_AC_BITS * 8) + (totalHuffValues * sizeof(uint8_t) * 8);
-    }
-    else
-    {
-        buffer->BufferSize = (2 * sizeof(uint16_t) * 8) + (sizeof(uint8_t) * 8) + (JPEG_NUM_HUFF_TABLE_AC_BITS * 8) + (totalHuffValues * sizeof(uint8_t) * 8);
-    }
+    buffer->BufferSize = (2 * sizeof(uint16_t) * 8) + (sizeof(uint8_t) * 8) + (JPEG_NUM_HUFF_TABLE_AC_BITS * 8) + (totalHuffValues * sizeof(uint8_t) * 8);
 
     return MOS_STATUS_SUCCESS;
 }

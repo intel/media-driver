@@ -237,7 +237,7 @@ namespace encode
 
         MOS_RESOURCE                            m_dataFromPicsBuffer = {}; //!< Data Buffer of Current and Reference Pictures for Weighted Prediction
         uint32_t                                m_vdenc2ndLevelBatchBufferSize[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM] = { 0 };
-        MOS_RESOURCE                            m_vdencBrcUpdateDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][VDENC_BRC_NUM_OF_PASSES];  //!< VDEnc BrcUpdate DMEM buffer
+        MOS_RESOURCE                            m_vdencBrcUpdateDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][VDENC_BRC_NUM_OF_PASSES] = { 0 };  //!< VDEnc BrcUpdate DMEM buffer
 
         uint32_t                                m_miBatchBufferEndCmdSize = 0;                     //!< Size of MI_BATCH_BUFFER_END cmd
         uint32_t                                m_cmd2StartInBytes = 0;

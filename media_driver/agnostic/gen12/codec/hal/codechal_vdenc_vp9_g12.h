@@ -1067,7 +1067,7 @@ public:
     MOS_RESOURCE                                m_vdencTileRowStoreBuffer = {};
 
     bool                                        m_hucPakStitchEnabled = true;
-    MOS_RESOURCE                                m_resHucStitchDataBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][CODECHAL_ENCODE_VP9_BRC_MAX_NUM_OF_PASSES];
+    MOS_RESOURCE                                m_resHucStitchDataBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][CODECHAL_ENCODE_VP9_BRC_MAX_NUM_OF_PASSES] = {};
     MHW_BATCH_BUFFER                            m_HucStitchCmdBatchBuffer = {};
 
     bool                                        m_pakOnlyModeEnabledForLastPass = false;

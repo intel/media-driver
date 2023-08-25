@@ -573,7 +573,7 @@ protected:
     uint32_t m_picturePatchListSize = 0;  //!< Picture patch list size
     uint32_t m_slicePatchListSize   = 0;  //!< Slice patch list size
 
-    MHW_VDBOX_SURFACE_PARAMS m_surfacesParams[CODECHAL_HCP_ALTREF_SURFACE_ID + 1];
+    MHW_VDBOX_SURFACE_PARAMS m_surfacesParams[CODECHAL_HCP_ALTREF_SURFACE_ID + 1] = {0};
 
     // VDENC and PAK data buffers
     bool          m_vdencPakObjCmdStreamOutEnabled   = false;    //!< Pak Obj stream out enable flag

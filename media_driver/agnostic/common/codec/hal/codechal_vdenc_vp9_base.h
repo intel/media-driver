@@ -1714,7 +1714,7 @@ public:
     MOS_SURFACE                                 m_4xMeDistortionBuffer;
 
     // BRC
-    HucBrcBuffers                               m_brcBuffers;
+    HucBrcBuffers                               m_brcBuffers = {};
 
     // DYS
     MHW_KERNEL_STATE                            m_dysKernelState;

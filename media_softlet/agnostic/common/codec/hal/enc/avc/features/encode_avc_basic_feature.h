@@ -160,15 +160,15 @@ public:
     EncodeMemComp *m_mmcState = nullptr;
 
     // Parameters passed from application
-    PCODEC_AVC_ENCODE_PIC_PARAMS                m_picParams[CODEC_AVC_MAX_PPS_NUM];  //!< Pointer to array of picture parameter, could be removed
-    PCODEC_AVC_ENCODE_SEQUENCE_PARAMS           m_seqParams[CODEC_AVC_MAX_SPS_NUM];  //!< Pointer to array of sequence parameter, could be removed
-    PCODEC_AVC_ENCODE_PIC_PARAMS                m_picParam           = nullptr;      //!< Pointer to AVC picture parameter
-    PCODEC_AVC_ENCODE_SEQUENCE_PARAMS           m_seqParam           = nullptr;      //!< Pointer to AVC sequence parameter
-    PCODECHAL_ENCODE_AVC_VUI_PARAMS             m_vuiParams          = nullptr;      //!< Pointer to AVC Uvi parameter
-    PCODEC_AVC_ENCODE_SLICE_PARAMS              m_sliceParams        = nullptr;      //!< Pointer to AVC slice parameter
-    PCODEC_AVC_IQ_MATRIX_PARAMS                 m_iqMatrixParams     = nullptr;      //!< Pointer to IQMaxtrix parameter
-    PCODEC_AVC_ENCODE_IQ_WEIGTHSCALE_LISTS      m_iqWeightScaleLists = nullptr;      //!< Pointer to IQWidght ScaleLists
-    CODEC_AVC_ENCODE_USER_FLAGS                 m_userFlags;                         //!< Encoder user flag settings
+    PCODEC_AVC_ENCODE_PIC_PARAMS                m_picParams[CODEC_AVC_MAX_PPS_NUM] = {};  //!< Pointer to array of picture parameter, could be removed
+    PCODEC_AVC_ENCODE_SEQUENCE_PARAMS           m_seqParams[CODEC_AVC_MAX_SPS_NUM] = {};  //!< Pointer to array of sequence parameter, could be removed
+    PCODEC_AVC_ENCODE_PIC_PARAMS                m_picParam           = nullptr;           //!< Pointer to AVC picture parameter
+    PCODEC_AVC_ENCODE_SEQUENCE_PARAMS           m_seqParam           = nullptr;           //!< Pointer to AVC sequence parameter
+    PCODECHAL_ENCODE_AVC_VUI_PARAMS             m_vuiParams          = nullptr;           //!< Pointer to AVC Uvi parameter
+    PCODEC_AVC_ENCODE_SLICE_PARAMS              m_sliceParams        = nullptr;           //!< Pointer to AVC slice parameter
+    PCODEC_AVC_IQ_MATRIX_PARAMS                 m_iqMatrixParams     = nullptr;           //!< Pointer to IQMaxtrix parameter
+    PCODEC_AVC_ENCODE_IQ_WEIGTHSCALE_LISTS      m_iqWeightScaleLists = nullptr;           //!< Pointer to IQWidght ScaleLists
+    CODEC_AVC_ENCODE_USER_FLAGS                 m_userFlags;                              //!< Encoder user flag settings
 
     std::shared_ptr<AvcReferenceFrames>  m_ref = nullptr;             //! Reference List
 
@@ -178,7 +178,8 @@ public:
     MHW_VDBOX_AVC_SLICE_STATE sliceState{};
 #endif  // USE_CODECHAL_DEBUG_TOOL
 
-    CODECHAL_ENCODE_AVC_NAL_UNIT_TYPE m_nalUnitType;                  //!< Nal unit type
+    CODECHAL_ENCODE_AVC_NAL_UNIT_TYPE m_nalUnitType         = CODECHAL_ENCODE_AVC_NAL_UT_RESERVED;      //!< Nal unit type
+    
     uint16_t                          m_sliceHeight         = 0;      //!< Slice height
     bool                              m_deblockingEnabled   = false;  //!< Enable deblocking flag
     bool                              m_mbaffEnabled        = false;  //!< Enable MBAFF flag

@@ -102,7 +102,7 @@ uint32_t CodechalEncHevcState::GetPicHdrSize()
                     zeroCount = 0;
                 }
 
-                *hdrPtr++;
+                hdrPtr++;
             }
         }
 

@@ -96,9 +96,9 @@ public:
     uint32_t                                    m_appDataSize          = 0;
     bool                                        m_jpegQuantMatrixSent  = false;      //!< bool to tell if quant matrix was sent by the app or not
     bool                                        m_fullHeaderInAppData  = false;
-    uint32_t                                    m_numHuffBuffers;
-    void                                        *m_huffmanTable;
-    void                                        *m_applicationData;                  //!< Pointer to Application data size
+    uint32_t                                    m_numHuffBuffers       = 0;
+    void                                        *m_huffmanTable        = nullptr;
+    void                                        *m_applicationData     = nullptr;    //!< Pointer to Application data size
 
 protected:
 

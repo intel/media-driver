@@ -265,7 +265,7 @@ public:
     MOS_RESOURCE                            m_vdencLaStatsBuffer;                              //!< VDEnc statistics buffer for lookahead
     MOS_RESOURCE                            m_vdencLaDataBuffer;                               //!< lookahead data buffer, output of lookahead analysis
     MOS_RESOURCE                            m_vdencLaInitDmemBuffer = {};                           //!< VDEnc Lookahead Init DMEM buffer
-    MOS_RESOURCE                            m_vdencLaUpdateDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][CODECHAL_LPLA_NUM_OF_PASSES];  //!< VDEnc Lookahead Update DMEM buffer
+    MOS_RESOURCE                            m_vdencLaUpdateDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][CODECHAL_LPLA_NUM_OF_PASSES] = {};  //!< VDEnc Lookahead Update DMEM buffer
     MOS_RESOURCE                            m_vdencLaHistoryBuffer = {};                            //!< VDEnc lookahead history buffer
     bool                                    m_lookaheadPass = false;                           //!< Indicate if current pass is lookahead pass or encode pass
     bool                                    m_lookaheadInit = true;                            //!< Lookahead init flag

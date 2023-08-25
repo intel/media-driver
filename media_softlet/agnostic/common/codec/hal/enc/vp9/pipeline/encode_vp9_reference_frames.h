@@ -283,13 +283,13 @@ protected:
     PMOS_SURFACE m_goldenRefPic = nullptr;
     PMOS_SURFACE m_altRefPic    = nullptr;
 
-    PMOS_SURFACE m_refSurface[maxReferenceIds];
-    PMOS_SURFACE m_refSurfaceNonScaled[maxReferenceIds];
-    PMOS_SURFACE m_dsRefSurface4x[maxReferenceIds];
-    PMOS_SURFACE m_dsRefSurface8x[maxReferenceIds];
+    PMOS_SURFACE m_refSurface[maxReferenceIds]          = {};
+    PMOS_SURFACE m_refSurfaceNonScaled[maxReferenceIds] = {};
+    PMOS_SURFACE m_dsRefSurface4x[maxReferenceIds]      = {};
+    PMOS_SURFACE m_dsRefSurface8x[maxReferenceIds]      = {};
     
     // Dynamic scaling reference surfaces
-    PMOS_SURFACE m_dysRefSurface[maxReferenceIds];
+    PMOS_SURFACE m_dysRefSurface[maxReferenceIds] = {};
 
     mutable bool m_dysEnabled = false;
 MEDIA_CLASS_DEFINE_END(encode__Vp9ReferenceFrames)

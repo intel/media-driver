@@ -3248,7 +3248,7 @@ MOS_STATUS CodechalEncoderState::EndStatusReport(
         }
     }
 
-    MHW_MI_STORE_DATA_PARAMS storeDataParams;
+    MHW_MI_STORE_DATA_PARAMS storeDataParams = {};
     uint32_t offset = 0;
     if (m_osInterface->pfnGetGpuContext(m_osInterface) == m_renderContext)
     {

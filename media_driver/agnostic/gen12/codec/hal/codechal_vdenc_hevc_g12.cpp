@@ -1026,11 +1026,11 @@ MOS_STATUS CodechalVdencHevcStateG12::AllocatePakResources()
     // these 2 buffers are not used so far, but put the correct size calculation here
     // PAK CU Level Streamout Data:   DW57-59 in HCP pipe buffer address command
     // One CU has 16-byte. But, each tile needs to be aliged to the cache line
-    size = MOS_ALIGN_CEIL(frameWidthInCus * frameHeightInCus * 16, CODECHAL_CACHELINE_SIZE);
+    // size = MOS_ALIGN_CEIL(frameWidthInCus * frameHeightInCus * 16, CODECHAL_CACHELINE_SIZE);
 
     // PAK Slice Level Streamut Data. DW60-DW62 in HCP pipe buffer address command
     // one LCU has one cache line. Use CU as LCU during creation
-    size = frameWidthInLcus * frameHeightInLcus * CODECHAL_CACHELINE_SIZE;
+    // size = frameWidthInLcus * frameHeightInLcus * CODECHAL_CACHELINE_SIZE;
 
     // Allocate SSE Source Pixel Row Store Buffer
     m_sizeOfSseSrcPixelRowStoreBufferPerLcu = CODECHAL_CACHELINE_SIZE * (4 + 4) << 1;
@@ -2544,17 +2544,7 @@ MOS_STATUS CodechalVdencHevcStateG12::ExecutePictureLevel()
     // PAK pass type for each pass: VDEnc+PAK vs. PAK-only
     SetPakPassType();
 
-    bool pakOnlyMultipassEnable;
-
-    // "PAK-Only Multi-Pass Enable" will be decided by HUC kernel for BRC
-    if (m_numPipe >= 2)
-    {
-        pakOnlyMultipassEnable = false;
-    }
-    else
-    {
-        pakOnlyMultipassEnable = false;
-    }
+    bool pakOnlyMultipassEnable = false;
 
     bool panicEnabled = (m_brcEnabled) && (m_panicEnable) && (IsLastPass()) && !m_pakOnlyPass;
 
@@ -8100,7 +8090,7 @@ MOS_STATUS CodechalVdencHevcStateG12::HuCLookaheadInit()
     auto dmem = (PCodechalVdencHevcLaDmem)m_osInterface->pfnLockResource(
         m_osInterface, &m_vdencLaInitDmemBuffer, &lockFlagsWriteOnly);
     CODECHAL_ENCODE_CHK_NULL_RETURN(dmem);
-    MOS_ZeroMemory(dmem, sizeof(dmem));
+    MOS_ZeroMemory(dmem, sizeof(CodechalVdencHevcLaDmem));
 
     uint8_t downscaleRatioIndicator = 2; // 4x downscaling
     if (m_hevcPicParams->DownScaleRatio.fields.X16Minus1_X == 15 && m_hevcPicParams->DownScaleRatio.fields.X16Minus1_Y == 15)
@@ -8249,7 +8239,7 @@ MOS_STATUS CodechalVdencHevcStateG12::HuCLookaheadUpdate()
     auto dmem = (PCodechalVdencHevcLaDmem)m_osInterface->pfnLockResource(
         m_osInterface, &m_vdencLaUpdateDmemBuffer[m_currRecycledBufIdx][currentPass], &lockFlagsWriteOnly);
     CODECHAL_ENCODE_CHK_NULL_RETURN(dmem);
-    MOS_ZeroMemory(dmem, sizeof(dmem));
+    MOS_ZeroMemory(dmem, sizeof(CodechalVdencHevcLaDmem));
 
     dmem->lookAheadFunc = 1;
     dmem->validStatsRecords = m_numValidLaRecords;
