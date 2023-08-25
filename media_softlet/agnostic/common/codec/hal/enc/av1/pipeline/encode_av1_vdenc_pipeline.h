@@ -58,6 +58,7 @@ protected:
     virtual MOS_STATUS CreateFeatureManager() override;
     virtual MOS_STATUS SwitchContext(uint8_t outputChromaFormat, uint16_t numTileRows, uint16_t numTileColumns);
     virtual MOS_STATUS InitMmcState() = 0;
+    virtual MOS_STATUS FillStatusReportParameters(EncoderStatusParameters* pPar, EncoderParams* pEncPar);
 
 MEDIA_CLASS_DEFINE_END(encode__Av1VdencPipeline)
 };

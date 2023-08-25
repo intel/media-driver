@@ -70,9 +70,6 @@ MOS_STATUS Av1VdencPipelineXe_Lpm_Plus_Base::Prepare(void *params)
 
     ENCODE_CHK_STATUS_RETURN(Av1VdencPipeline::Prepare(params));
 
-    PCODEC_AV1_ENCODE_PICTURE_PARAMS picParams = static_cast<PCODEC_AV1_ENCODE_PICTURE_PARAMS>(encodeParams->pPicParams);
-    ENCODE_CHK_NULL_RETURN(picParams);
-
     uint16_t numTileRows    = 0;
     uint16_t numTileColumns = 0;
     RUN_FEATURE_INTERFACE_RETURN(Av1EncodeTile, Av1FeatureIDs::encodeTile, GetTileRowColumns, numTileRows, numTileColumns);
@@ -80,25 +77,8 @@ MOS_STATUS Av1VdencPipelineXe_Lpm_Plus_Base::Prepare(void *params)
     ENCODE_CHK_STATUS_RETURN(SwitchContext(feature->m_outputChromaFormat, numTileRows, numTileColumns));
 
     EncoderStatusParameters inputParameters = {};
-    MOS_ZeroMemory(&inputParameters, sizeof(EncoderStatusParameters));
 
-    inputParameters.statusReportFeedbackNumber = picParams->StatusReportFeedbackNumber;
-    inputParameters.codecFunction              = encodeParams->ExecCodecFunction;
-    inputParameters.currRefList                = feature->m_ref.GetCurrRefList();
-    inputParameters.picWidthInMb               = feature->m_picWidthInMb;
-    inputParameters.frameFieldHeightInMb       = feature->m_frameFieldHeightInMb;
-    inputParameters.currOriginalPic            = feature->m_currOriginalPic;
-    inputParameters.pictureCodingType          = feature->m_pictureCodingType;
-    inputParameters.numUsedVdbox               = m_numVdbox;
-    inputParameters.hwWalker                   = false;
-    inputParameters.maxNumSlicesAllowed        = 0;
-
-    inputParameters.numberTilesInFrame = numTileRows * numTileColumns;
-
-    inputParameters.av1EnableFrameObu            = feature->m_av1PicParams->PicFlags.fields.EnableFrameOBU;
-    inputParameters.av1FrameHdrOBUSizeByteOffset = feature->m_frameHdrOBUSizeByteOffset;
-    inputParameters.frameWidth                   = feature->m_frameWidth;
-    inputParameters.frameHeight                  = feature->m_frameHeight;
+    ENCODE_CHK_STATUS_RETURN(FillStatusReportParameters(&inputParameters, encodeParams));
 
     ENCODE_CHK_STATUS_RETURN(m_statusReport->Init(&inputParameters));
 
