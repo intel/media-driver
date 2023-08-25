@@ -881,7 +881,7 @@ MOS_STATUS MhwVeboxInterfaceG10::AddVeboxDiIecp(
         ResourceParams.dwLsbNum        = MHW_VEBOX_DI_IECP_SHIFT;
         ResourceParams.presResource    = pVeboxDiIecpCmdParams->pOsResCurrInput;
         ResourceParams.dwOffset        = pVeboxDiIecpCmdParams->dwCurrInputSurfOffset;
-        ResourceParams.pdwCmd          =  & (cmd.DW2.Value);
+        ResourceParams.pdwCmd          = &(cmd.DW2.Value);
         ResourceParams.dwLocationInCmd = 2;
         ResourceParams.HwCommandType   = MOS_VEBOX_DI_IECP;
 

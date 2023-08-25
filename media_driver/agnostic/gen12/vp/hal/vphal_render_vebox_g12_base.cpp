@@ -517,16 +517,21 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::GetOutputSurfParams(
 bool VPHAL_VEBOX_STATE_G12_BASE::IsDNOnly()
 {
     PVPHAL_VEBOX_RENDER_DATA pRenderData = GetLastExecRenderData();
+    VPHAL_RENDER_CHK_NULL_NO_STATUS(pRenderData);
 
     return pRenderData->bDenoise &&
            (!pRenderData->bDeinterlace) &&
            (!IsQueryVarianceEnabled()) &&
            (!IsIECPEnabled());
+finish:
+    return false;
 }
 
 bool VPHAL_VEBOX_STATE_G12_BASE::IsFFDISurfNeeded()
 {
     PVPHAL_VEBOX_RENDER_DATA pRenderData = GetLastExecRenderData();
+    VPHAL_RENDER_CHK_NULL_NO_STATUS(pRenderData);
+
 
     if (pRenderData->bDeinterlace ||
         IsQueryVarianceEnabled()  ||
@@ -539,6 +544,8 @@ bool VPHAL_VEBOX_STATE_G12_BASE::IsFFDISurfNeeded()
     {
         return false;
     }
+finish:
+    return false;
 }
 
 bool VPHAL_VEBOX_STATE_G12_BASE::IsFFDNSurfNeeded()
@@ -552,8 +559,11 @@ finish:
 
 bool VPHAL_VEBOX_STATE_G12_BASE::IsSTMMSurfNeeded()
 {
-
-    return (GetLastExecRenderData()->bDenoise || GetLastExecRenderData()->bDeinterlace);
+    PVPHAL_VEBOX_RENDER_DATA pRenderData = GetLastExecRenderData();
+    VPHAL_RENDER_CHK_NULL_NO_STATUS(pRenderData);
+    return (pRenderData->bDenoise || pRenderData->bDeinterlace);
+finish:
+    return false;
 }
 
 //!

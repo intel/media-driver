@@ -548,7 +548,7 @@ MOS_STATUS Mhw_SendGenericPrologCmdNext(
         params.pOsResource = pParams->presStoreData;
         params.dwResourceOffset = pParams->dwStoreDataOffset;
         params.dwDataDW1 = pParams->dwStoreDataValue;
-        miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(pCmdBuffer);
+        MHW_CHK_STATUS_RETURN(miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(pCmdBuffer));
     }
 
     MHW_CHK_STATUS_RETURN(miItf->AddProtectedProlog(pCmdBuffer));
