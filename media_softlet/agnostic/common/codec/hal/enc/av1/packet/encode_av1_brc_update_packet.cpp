@@ -30,6 +30,9 @@
 #include "encode_av1_brc.h"
 #include "encode_av1_vdenc_packet.h"
 #include "encode_av1_vdenc_lpla_enc.h"
+#if _MEDIA_RESERVED
+#include "encode_av1_scc.h"
+#endif
 
 namespace encode
 {
@@ -319,6 +322,9 @@ namespace encode
             {
                 RUN_FEATURE_INTERFACE_RETURN(Av1EncodeTile, Av1FeatureIDs::encodeTile, SetCurrentTile, tileRow, tileCol, m_pipeline);
                 RUN_FEATURE_INTERFACE_NO_RETURN(Av1EncodeTile, Av1FeatureIDs::encodeTile, IsFirstTileInGroup, firstTileInGroup, tileGroupIdx);
+#if _MEDIA_RESERVED
+                RUN_FEATURE_INTERFACE_RETURN(Av1Scc, Av1FeatureIDs::av1Scc, UpdateIBCStatusForCurrentTile);
+#endif
                 if (firstTileInGroup)
                 {
                     SETPAR_AND_ADDCMD(AVP_PIC_STATE, m_avpItf, &cmdBuffer);

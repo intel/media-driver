@@ -317,6 +317,12 @@ namespace encode
         if (dmem->UPD_PAKPassNum == 1)
             m_curTargetFullness += m_inputbitsperframe;
 
+        if (picParams->PicFlags.fields.allow_intrabc && AV1_KEY_OR_INRA_FRAME(picParams->PicFlags.fields.frame_type))
+        {
+            dmem->UPD_EnableCDEFUpdate = 0;
+            dmem->UPD_EnableLFUpdate   = 0;
+        }
+
         return MOS_STATUS_SUCCESS;
     }
 
