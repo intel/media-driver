@@ -51,6 +51,8 @@ set(MEDIA_COMPILER_FLAGS_COMMON
     -ffunction-sections
     -Wl,--gc-sections
 
+    # Enable c++14 features
+    -std=c++14
     # -m32 or -m64
     -m${ARCH}
 
