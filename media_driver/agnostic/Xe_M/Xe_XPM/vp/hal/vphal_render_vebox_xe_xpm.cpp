@@ -1047,7 +1047,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_XE_XPM::VeboxRenderVeboxCmd(
             MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
             genericPrologParams.pOsInterface  = pRenderHal->pOsInterface;
             genericPrologParams.pvMiInterface = pRenderHal->pMhwMiInterface;
-            genericPrologParams.bMmcEnabled   = pGenericPrologParams ? pGenericPrologParams->bMmcEnabled : false;
+            genericPrologParams.bMmcEnabled   = pGenericPrologParams->bMmcEnabled;
             MHW_RENDERHAL_CHK_STATUS(Mhw_SendGenericPrologCmd(pCmdBufferInUse, &genericPrologParams));
 
             for (uint32_t tmpIdx = 0; tmpIdx < dwNumofVebox; tmpIdx++)

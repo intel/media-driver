@@ -779,7 +779,7 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::AddMiBatchBufferEnd(
     MHW_RENDERHAL_CHK_NULL_RETURN(m_miItf);
     MHW_RENDERHAL_CHK_NULL_RETURN(pCmdBuffer);
 
-    m_miItf->AddMiBatchBufferEnd(pCmdBuffer, nullptr);
+    MHW_CHK_STATUS_RETURN(m_miItf->AddMiBatchBufferEnd(pCmdBuffer, nullptr));
 
     return eStatus;
 }

@@ -1867,7 +1867,8 @@ MOS_STATUS MhwVeboxInterfaceG12::AddVeboxGamutState(
         pGamutState->DW1.CmW                  = 1023;
         dInverseGamma                         = 1.0;
 
-        for (uint32_t i = 0; i < pVeboxIecpParams->s1DLutParams.LUTSize; i++)
+        uint32_t cnt = MOS_MIN(pVeboxIecpParams->s1DLutParams.LUTSize, 256);
+        for (uint32_t i = 0; i < cnt; i++)
         {
             usGE_Values[i][0] = 257 * i;
             usGE_Values[i][1] =
@@ -2610,6 +2611,7 @@ MOS_STATUS MhwVeboxInterfaceG12::VeboxInterface_BT2020YUVToRGB(
 
     if (pVeboxGamutParams->ColorSpace == MHW_CSpace_BT2020)                   // Limited->Full
     {
+        MHW_CHK_NULL(pVeboxIecpParams);
         if (pVeboxIecpParams->s1DLutParams.bActive)
         {
             // The updated value for TGL VEBOX HDR and Fp16 path 
@@ -2773,7 +2775,7 @@ MOS_STATUS MhwVeboxInterfaceG12::VeboxInterface_H2SManualMode(
     uiOETF[255] = 65535;
 
     // Back end CSC setting, need to convert BT2020 YUV input to RGB before GE
-    VeboxInterface_BT2020YUVToRGB(pVeboxHeap, pVeboxIecpParams, pVeboxGamutParams);
+    MHW_CHK_STATUS(VeboxInterface_BT2020YUVToRGB(pVeboxHeap, pVeboxIecpParams, pVeboxGamutParams));
 
     // Global setting
     pGamutState->DW0.GlobalModeEnable = true;

@@ -3412,6 +3412,7 @@ MOS_STATUS Policy::AddCommonFilters(SwFilterSubPipe &swFilterSubPipe, VP_SURFACE
     VP_PUBLIC_CHK_NULL_RETURN(input);
     VP_PUBLIC_CHK_NULL_RETURN(output);
 
+    MOS_STATUS      status        = MOS_STATUS_SUCCESS;
     FeatureType featureList[] = { FeatureTypeScaling };
     int32_t featureCount = sizeof(featureList) / sizeof(featureList[0]);
     VP_EXECUTE_CAPS caps = {};
@@ -3435,9 +3436,18 @@ MOS_STATUS Policy::AddCommonFilters(SwFilterSubPipe &swFilterSubPipe, VP_SURFACE
         swFilter = handler->CreateSwFilter();
         VP_PUBLIC_CHK_NULL_RETURN(swFilter);
 
-        VP_PUBLIC_CHK_STATUS_RETURN(swFilter->Configure(input, output, caps));
-
-        VP_PUBLIC_CHK_STATUS_RETURN(swFilterSubPipe.AddSwFilterUnordered(swFilter));
+        status = swFilter->Configure(input, output, caps);
+        if (MOS_FAILED(status))
+        {
+            handler->Destory(swFilter);
+            VP_PUBLIC_CHK_STATUS_RETURN(status);
+        }
+        status = swFilterSubPipe.AddSwFilterUnordered(swFilter);
+        if (MOS_FAILED(status))
+        {
+            handler->Destory(swFilter);
+            VP_PUBLIC_CHK_STATUS_RETURN(status);
+        }
     }
 
     return MOS_STATUS_SUCCESS;
@@ -3767,17 +3777,31 @@ MOS_STATUS Policy::AddNewFilterOnVebox(
     {
         SwFilterCsc *csc = (SwFilterCsc *)swfilter;
         FeatureParamCsc cscParams = csc->GetSwFilterParams();
-        VP_PUBLIC_CHK_STATUS_RETURN(GetCscParamsOnCaps(pSurfInput, pSurfOutput, caps, cscParams));
-
-        status = csc->Configure(cscParams);
+        status                    = GetCscParamsOnCaps(pSurfInput, pSurfOutput, caps, cscParams);
+        if (MOS_FAILED(status))
+        {
+            handler->Destory(swfilter);
+            VP_PUBLIC_CHK_STATUS_RETURN(status);
+        }
+        else
+        {
+            status = csc->Configure(cscParams);
+        }
     }
     else if (featureType == FeatureTypeDn)
     {
         SwFilterDenoise *dn        = (SwFilterDenoise *)swfilter;
         FeatureParamDenoise dnParams = dn->GetSwFilterParams();
-        VP_PUBLIC_CHK_STATUS_RETURN(GetDnParamsOnCaps(pSurfInput, pSurfOutput, caps, dnParams));
-
-        status = dn->Configure(dnParams);
+        status                        = GetDnParamsOnCaps(pSurfInput, pSurfOutput, caps, dnParams);
+        if (MOS_FAILED(status))
+        {
+            handler->Destory(swfilter);
+            VP_PUBLIC_CHK_STATUS_RETURN(status);
+        }
+        else
+        {
+            status = dn->Configure(dnParams);
+        }
     }
     else
     {

@@ -2335,6 +2335,7 @@ MOS_STATUS DumpDNDIStates(uint8_t *pDndiSate)
 
         if (pVeboxGamutParams->ColorSpace == MHW_CSpace_BT2020)  // Limited->Full
         {
+            MHW_CHK_NULL_RETURN(pVeboxIecpParams);
             if (pVeboxIecpParams->s1DLutParams.bActive)
             {
                 // The updated value for TGL VEBOX HDR and Fp16 path
@@ -2498,7 +2499,7 @@ MOS_STATUS DumpDNDIStates(uint8_t *pDndiSate)
         uiOETF[255] = 65535;
 
         // Back end CSC setting, need to convert BT2020 YUV input to RGB before GE
-        VeboxInterface_BT2020YUVToRGB(pVeboxHeap, pVeboxIecpParams, pVeboxGamutParams);
+        MHW_CHK_STATUS_RETURN(VeboxInterface_BT2020YUVToRGB(pVeboxHeap, pVeboxIecpParams, pVeboxGamutParams));
 
         // Global setting
         pGamutState->DW0.GlobalModeEnable = true;

@@ -482,7 +482,11 @@ void VPCmRenderer::Render(void *payload)
         kernel = m_cmContext->CloneKernel(kernel);
     }
 
-    kernel->SetThreadCount(tsWidth * tsHeight * tsColor);
+    result = kernel->SetThreadCount(tsWidth * tsHeight * tsColor);
+    if (result != CM_SUCCESS)
+    {
+        VPHAL_RENDER_ASSERTMESSAGE("[%s]: CM Set ThreadCount error: %d\n", mName.c_str(), result);
+    }
    
     if (!CannotAssociateThreadSpace())
     {

@@ -291,14 +291,16 @@ MOS_STATUS VphalSfcStateG12::SetSfcStateParams(
     sfcStateParams->resSfdLineBuffer = Mos_ResourceIsNull(&m_SFDLineBufferSurface.OsResource) ? nullptr : &m_SFDLineBufferSurface.OsResource;
 
     VPHAL_RENDER_CHK_NULL_RETURN(m_sfcInterface);
+    MhwSfcInterfaceG12 *sfcInterface = dynamic_cast<MhwSfcInterfaceG12 *>(m_sfcInterface);
+    VPHAL_RENDER_CHK_NULL_RETURN(sfcInterface);
     // Output centering
     if (!m_disableOutputCentering)
     {
-        dynamic_cast<MhwSfcInterfaceG12 *>(m_sfcInterface)->IsOutPutCenterEnable(true);
+        sfcInterface->IsOutPutCenterEnable(true);
     }
     else
     {
-        dynamic_cast<MhwSfcInterfaceG12 *>(m_sfcInterface)->IsOutPutCenterEnable(false);
+        sfcInterface->IsOutPutCenterEnable(false);
     }
 
     // ARGB8,ABGR10,A16B16G16R16,VYUY and YVYU output format need to enable swap

@@ -48,7 +48,7 @@ const VphalSseuSetting VpHalDefaultSSEUTableG12[baseKernelMaxNumID] =
 class VphalRendererG12 : public VphalRenderer
 {
 public:
-    bool                        bEnableCMFC;                                    //!< Enable CM based FC for GEN12
+    bool                        bEnableCMFC = false;                                    //!< Enable CM based FC for GEN12
     //!
     //! \brief    VphalRendererG8 constructor
     //! \details  Based on the HW and OS info, initialize the renderer interfaces

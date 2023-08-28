@@ -671,6 +671,11 @@ mhw_vebox_xe_xpm::VEBOX_DNDI_STATE_CMD::VEBOX_DNDI_STATE_CMD()
     //DW48.NumInlinerNumeratorThreshold                = NUM_INLINER_NUMERATOR_THRESHOLD_UNNAMED3;
     //DW48.NumInlinerDenominatorThreshold              = NUM_INLINER_DENOMINATOR_THRESHOLD_UNNAMED4;
 
+    DW49.Value                                       = 0x00000000;
+    DW50.Value                                       = 0x00000000;
+    DW51.Value                                       = 0x00000000;
+    DW52.Value                                       = 0x00000000;
+
 }
 
 mhw_vebox_xe_xpm::VEBOX_FRONT_END_CSC_STATE_CMD::VEBOX_FRONT_END_CSC_STATE_CMD()

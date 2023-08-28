@@ -1420,7 +1420,8 @@ MOS_STATUS MhwVeboxInterfaceG11::AddVeboxGamutState(
         {
             pIecpState->CscState.DW0.TransformEnable = true;
 
-            if (pVeboxIecpParams->pfCscCoeff    &&
+            if (pVeboxIecpParams &&
+                pVeboxIecpParams->pfCscCoeff &&
                 pVeboxIecpParams->pfCscInOffset &&
                 pVeboxIecpParams->pfCscOutOffset)
             {

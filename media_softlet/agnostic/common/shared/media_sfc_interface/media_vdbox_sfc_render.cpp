@@ -156,7 +156,7 @@ MOS_STATUS MediaVdboxSfcRender::SetScalingParams(VDBOX_SFC_PARAMS &sfcParam, VP_
 
     m_scalingFilter->Init(sfcParam.videoParams.codecStandard, sfcParam.videoParams.jpeg.jpegChromaType);
     m_scalingFilter->SetExecuteEngineCaps(scalingParams, vpExecuteCaps);
-    m_scalingFilter->CalculateEngineParams();
+    VP_PUBLIC_CHK_STATUS_RETURN(m_scalingFilter->CalculateEngineParams());
 
     return m_sfcRender->SetScalingParams(m_scalingFilter->GetSfcParams());
 }

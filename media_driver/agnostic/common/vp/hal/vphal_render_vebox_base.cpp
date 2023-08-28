@@ -421,6 +421,7 @@ void VPHAL_VEBOX_STATE::VeboxCopySurfaceParams(
 
     pOsInterface = pVeboxState->m_pOsInterface;
 
+    VPHAL_RENDER_CHK_NULL_NO_STATUS(pRenderData);
     VPHAL_RENDER_CHK_NULL_NO_STATUS(pSrcSurface);
     VPHAL_RENDER_CHK_NULL_NO_STATUS(pTempSurface);
     VPHAL_RENDER_CHK_NULL_NO_STATUS(pOutSurface);
@@ -821,6 +822,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxSetPerfTag(
                                 break;
                             case Format_RGB32:
                                 *pPerfTag = VPHAL_NV12_RGB32CP;
+                                break;
                             case Format_A8R8G8B8:
                             case Format_A8B8G8R8:
                             case Format_R10G10B10A2:
@@ -1585,6 +1587,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxUpdateVeboxStates(
     PVPHAL_VEBOX_STATE          pVeboxState = this;
     PVPHAL_VEBOX_RENDER_DATA    pRenderData = GetLastExecRenderData();
 
+    VPHAL_RENDER_CHK_NULL(pRenderData);
     eStatus             = MOS_STATUS_SUCCESS;
     pRenderHal          = pVeboxState->m_pRenderHal;
     pOsInterface        = pVeboxState->m_pOsInterface;
@@ -2291,7 +2294,8 @@ finish:
 MOS_STATUS VPHAL_VEBOX_STATE::VeboxSyncIndirectStateCmd()
 {
 #if VEBOX_AUTO_DENOISE_SUPPORTED
-    if (GetLastExecRenderData()->bAutoDenoise)
+    PVPHAL_VEBOX_RENDER_DATA pRenderData = GetLastExecRenderData();
+    if (pRenderData && pRenderData->bAutoDenoise)
     {
         // Make sure copy kernel and update kernels are finished before submitting
         // VEBOX commands
@@ -3006,6 +3010,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxRenderMode2(
 
     MOS_UNUSED(pOutputSurface);
 
+    VPHAL_RENDER_CHK_NULL(pRenderData);
     VPHAL_RENDER_ASSERT(pVeboxState);
     VPHAL_RENDER_ASSERT(pRenderData);
     VPHAL_RENDER_ASSERT(pSrcSurface);
@@ -3132,6 +3137,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxRenderMode0To2(
 
     MOS_UNUSED(pOutputSurface);
 
+    VPHAL_RENDER_CHK_NULL(pRenderData);
     VPHAL_RENDER_ASSERT(pVeboxState);
     VPHAL_RENDER_ASSERT(pRenderData);
     VPHAL_RENDER_ASSERT(pSrcSurface);

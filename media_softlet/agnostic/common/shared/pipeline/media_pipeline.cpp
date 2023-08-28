@@ -155,7 +155,11 @@ MediaPacket *MediaPipeline::GetOrCreate(uint32_t packetId)
         iter = m_packetList.find(packetId);
         if (iter != m_packetList.end())
         {
-            iter->second->Init();
+            MOS_STATUS status = iter->second->Init();
+            if (MOS_FAILED(status))
+            {
+                MOS_OS_ASSERTMESSAGE("Media packet init failed!");
+            }
             return iter->second;
         }
     }

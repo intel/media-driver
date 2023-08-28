@@ -6525,15 +6525,19 @@ MOS_STATUS CompositeState::RenderPhase(
             case CSpace_BT2020:
                 pSource->ExtendedGamut = false;
                 pSource->ColorSpace    = CSpace_BT2020;
+                break;
             case CSpace_BT2020_FullRange:
                 pSource->ExtendedGamut = false;
                 pSource->ColorSpace    = CSpace_BT2020_FullRange;
+                break;
             case CSpace_BT2020_RGB:
                 pSource->ExtendedGamut = false;
                 pSource->ColorSpace    = CSpace_BT2020_RGB;
+                break;
             case CSpace_BT2020_stRGB:
                 pSource->ExtendedGamut = false;
                 pSource->ColorSpace    = CSpace_BT2020_stRGB;
+                break;
             default:
                 pSource->ExtendedGamut = false;
                 pSource->ColorSpace    = CSpace_sRGB;

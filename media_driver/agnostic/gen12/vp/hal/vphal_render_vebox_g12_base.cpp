@@ -441,6 +441,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::GetFFDISurfParams(
 {
     PVPHAL_VEBOX_RENDER_DATA pRenderData = GetLastExecRenderData();
 
+    VPHAL_RENDER_CHK_NULL_RETURN(pRenderData);
     if (IS_VPHAL_OUTPUT_PIPE_SFC(pRenderData))
     {
         ColorSpace = m_sfcPipeState->GetInputColorSpace();
@@ -483,6 +484,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::GetOutputSurfParams(
     MOS_TILE_TYPE &TileType)
 {
     PVPHAL_VEBOX_RENDER_DATA pRenderData = GetLastExecRenderData();
+    VPHAL_RENDER_CHK_NULL_RETURN(pRenderData);
 
     if (pRenderData->bDeinterlace)
     {
@@ -1230,6 +1232,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::SetupDiIecpStateForOutputSurf(
     pRenderHal      = pVeboxState->m_pRenderHal;
     pVeboxInterface = pVeboxState->m_pVeboxInterface;
 
+    VPHAL_RENDER_CHK_NULL(pRenderData);
     // VEBOX final output surface
     if (IS_VPHAL_OUTPUT_PIPE_VEBOX(pRenderData))
     {
@@ -1688,6 +1691,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::SetDNParams(
     uint32_t                 dwDenoiseFactor;
     PVPHAL_VEBOX_RENDER_DATA pRenderData = GetLastExecRenderData();
 
+    VPHAL_RENDER_CHK_NULL_RETURN(pRenderData);
     VPHAL_RENDER_ASSERT(pSrcSurface);
     VPHAL_RENDER_ASSERT(pLumaParams);
     VPHAL_RENDER_ASSERT(pChromaParams);
@@ -1894,6 +1898,12 @@ PVPHAL_SURFACE VPHAL_VEBOX_STATE_G12_BASE::GetSurfOutput(
     PVPHAL_SURFACE              pSurface    = nullptr;
     PVPHAL_VEBOX_STATE_G12_BASE pVeboxState = this;
     PVPHAL_VEBOX_RENDER_DATA    pRenderData = GetLastExecRenderData();
+
+    if (!pRenderData)
+    {
+        VPHAL_RENDER_ASSERTMESSAGE("pRenderData is null");
+        return nullptr;
+    }
 
     if (IS_VPHAL_OUTPUT_PIPE_VEBOX(pRenderData))                    // Vebox output pipe
     {
@@ -2872,6 +2882,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::SetupSurfaceStatesForDenoise()
     PVPHAL_VEBOX_RENDER_DATA       pRenderData = GetLastExecRenderData();
 
     VPHAL_RENDER_CHK_NULL(pVeboxState);
+    VPHAL_RENDER_CHK_NULL(pRenderData);
     VPHAL_RENDER_CHK_NULL(pVeboxState->m_pRenderHal);
     VPHAL_RENDER_CHK_NULL(pVeboxState->m_pOsInterface);
 

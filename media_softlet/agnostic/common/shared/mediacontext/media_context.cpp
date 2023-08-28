@@ -85,10 +85,17 @@ MediaContext::~MediaContext()
     {
         if (curAttribute.scalabilityState)
         {
-            curAttribute.scalabilityState->Destroy();
+            MOS_STATUS status = curAttribute.scalabilityState->Destroy();
+            if (MOS_FAILED(status))
+            {
+                MOS_OS_ASSERTMESSAGE("scalabilityState destroy fail.");
+            }
             MOS_Delete(curAttribute.scalabilityState);
             // set legacy MOS ve interface to null to be compatible to legacy MOS
-            m_osInterface->pVEInterf = nullptr;
+            if (m_osInterface)
+            {
+                m_osInterface->pVEInterf = nullptr;
+            }
         }
         else
         {
