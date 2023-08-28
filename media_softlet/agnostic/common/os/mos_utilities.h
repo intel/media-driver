@@ -3308,7 +3308,10 @@ inline void MOS_TraceDataDump(
     const void *pBuf,
     uint32_t    dwSize)
 {
-    MosUtilities::MosTraceDataDump(pcName, flags, pBuf, dwSize);
+    if (MosUtilities::TraceKeyEnabled(TR_KEY_DATA_DUMP))
+    {
+        MosUtilities::MosTraceDataDump(pcName, flags, pBuf, dwSize);
+    }
 }
 
 inline void MOS_TraceDataDump(

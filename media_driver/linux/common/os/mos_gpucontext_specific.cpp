@@ -1097,6 +1097,8 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
             return MOS_STATUS_UNKNOWN;
         }
     }
+    // dump before cmd buffer unmap
+    MOS_TraceDumpExt("CmdBuffer", m_gpuContext, cmdBuffer->pCmdBase, cmdBuffer->iOffset);
 
     // Now, we can unmap the video command buffer, since we don't need CPU access anymore.
     MOS_OS_CHK_NULL_RETURN(cmdBuffer->OsResource.pGfxResource);
