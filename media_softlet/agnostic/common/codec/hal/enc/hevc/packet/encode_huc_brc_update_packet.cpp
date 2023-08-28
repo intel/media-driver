@@ -664,7 +664,12 @@ namespace encode
         ENCODE_CHK_NULL_RETURN(brcFeature);
 
         uint16_t perfTag = m_pipeline->IsFirstPass() ? CODECHAL_ENCODE_PERFTAG_CALL_BRC_UPDATE : CODECHAL_ENCODE_PERFTAG_CALL_BRC_UPDATE_SECOND_PASS;
-        SetPerfTag(perfTag, (uint16_t)m_basicFeature->m_mode, m_basicFeature->m_pictureCodingType);
+        uint16_t pictureType = m_basicFeature->m_pictureCodingType;
+        if (m_basicFeature->m_pictureCodingType == B_TYPE && m_basicFeature->m_ref.IsLowDelay())
+        {
+            pictureType = 0;
+        }
+        SetPerfTag(perfTag, (uint16_t)m_basicFeature->m_mode, pictureType);
 
         if (!m_pipeline->IsSingleTaskPhaseSupported() || firstTaskInPhase)
         {

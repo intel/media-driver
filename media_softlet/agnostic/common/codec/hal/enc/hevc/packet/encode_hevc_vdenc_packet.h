@@ -442,7 +442,7 @@ namespace encode
         // Inline functions
         MOS_STATUS ValidateVdboxIdx(const MHW_VDBOX_NODE_IND &vdboxIndex);
 
-        void SetPerfTag(uint16_t type, uint16_t mode, uint16_t picCodingType);
+        void SetPerfTag();
 
         MOS_STATUS SetSemaphoreMem(
             MOS_RESOURCE &      semaphoreMem,

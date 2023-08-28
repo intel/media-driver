@@ -190,7 +190,7 @@ MOS_STATUS HevcVdencPkt422::PatchPictureLevelCommands(const uint8_t &packetPhase
 
     ENCODE_CHK_STATUS_RETURN(m_miItf->SetWatchdogTimerThreshold(m_basicFeature->m_frameWidth, m_basicFeature->m_frameHeight, true));
 
-    SetPerfTag(CODECHAL_ENCODE_PERFTAG_CALL_PAK_ENGINE, (uint16_t)m_basicFeature->m_mode, m_basicFeature->m_pictureCodingType);
+    SetPerfTag();
 
     ENCODE_CHK_STATUS_RETURN(AddForceWakeup(cmdBuffer));
 
