@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021, Intel Corporation
+* Copyright (c) 2021-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -130,6 +130,12 @@ void VpFeatureReport::SetConfigValues(
     // Report In Place Compositon status
     configValues->dwCurrentCompositionMode = m_features.compositionMode;
     configValues->dwCurrentScdMode         = m_features.diScdMode;
+
+    // Report Vebox Scalability
+    configValues->dwCurrentVeboxScalability = m_features.VeboxScalability;
+
+    // Report VP Apogeios
+    configValues->dwCurrentVPApogeios       = m_features.VPApogeios;
 
     VP_PUBLIC_NORMALMESSAGE(
         "VP Feature Report: \

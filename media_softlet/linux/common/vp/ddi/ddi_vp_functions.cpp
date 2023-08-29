@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021-2022, Intel Corporation
+* Copyright (c) 2021-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1530,6 +1530,9 @@ void DdiVpFunctions::VpConfigValuesInit(
     configValues->dwScalerCompressModeReported  = LIBVA_VP_CONFIG_NOT_REPORTED;
     configValues->dwPrimaryCompressibleReported = LIBVA_VP_CONFIG_NOT_REPORTED;
     configValues->dwPrimaryCompressModeReported = LIBVA_VP_CONFIG_NOT_REPORTED;
+
+    configValues->dwReportedVeboxScalability    = LIBVA_VP_CONFIG_NOT_REPORTED;
+    configValues->dwReportedVPApogeios          = LIBVA_VP_CONFIG_NOT_REPORTED;
     return;
 }
 
@@ -1627,6 +1630,29 @@ void DdiVpFunctions::VpFeatureReport(PVP_CONFIG config, PDDI_VP_CONTEXT vpCtx)
 
 #endif
 #endif //(_DEBUG || _RELEASE_INTERNAL)
+
+    if (config->dwCurrentVeboxScalability != config->dwReportedVeboxScalability)
+    {
+        ReportUserSetting(
+            userSettingPtr,
+            __MEDIA_USER_FEATURE_VALUE_ENABLE_VEBOX_SCALABILITY_MODE,
+            config->dwCurrentVeboxScalability,
+            MediaUserSetting::Group::Device);
+
+        config->dwReportedVeboxScalability = config->dwCurrentVeboxScalability;
+    }
+
+    if (config->dwCurrentVPApogeios != config->dwReportedVPApogeios)
+    {
+        ReportUserSetting(
+            userSettingPtr,
+            __MEDIA_USER_FEATURE_VALUE_VPP_APOGEIOS_ENABLE,
+            config->dwCurrentVPApogeios,
+            MediaUserSetting::Group::Sequence);
+
+        config->dwReportedVPApogeios = config->dwCurrentVPApogeios;
+    }
+
     return;
 }
 

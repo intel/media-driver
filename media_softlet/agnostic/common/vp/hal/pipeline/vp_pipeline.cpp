@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2022, Intel Corporation
+* Copyright (c) 2018-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -207,22 +207,7 @@ MOS_STATUS VpPipeline::UserFeatureReport()
 
     MediaPipeline::UserFeatureReport();
 
-    if (m_currentFrameAPGEnabled)
-    {
-        ReportUserSetting(
-            m_userSettingPtr,
-            __MEDIA_USER_FEATURE_VALUE_VPP_APOGEIOS_ENABLE,
-            uint32_t(1),
-            MediaUserSetting::Group::Sequence);
-    }
-    else
-    {
-        ReportUserSetting(
-            m_userSettingPtr,
-            __MEDIA_USER_FEATURE_VALUE_VPP_APOGEIOS_ENABLE,
-            uint32_t(0),
-            MediaUserSetting::Group::Sequence);
-    }
+    m_reporting->GetFeatures().VPApogeios = m_currentFrameAPGEnabled;
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     //INTER_FRAME_MEMORY_NINJA_START_COUNTER will be reported in ReportIFNCC(true) function which runs in VpPipeline::Prepare()

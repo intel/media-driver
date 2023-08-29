@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2021, Intel Corporation
+* Copyright (c) 2009-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -645,6 +645,8 @@ void VpConfigValuesInit(
 #if (_DEBUG || _RELEASE_INTERNAL)
     pConfigValues->dwRTOldCacheSettingReported   = LIBVA_VP_CONFIG_NOT_REPORTED;
 #endif
+    pConfigValues->dwReportedVeboxScalability    = LIBVA_VP_CONFIG_NOT_REPORTED;
+    pConfigValues->dwReportedVPApogeios          = LIBVA_VP_CONFIG_NOT_REPORTED;
 }
 
 void VpFeatureReport(
@@ -715,6 +717,28 @@ void VpFeatureReport(
         MediaUserSetting::Group::Sequence);
 #endif
 #endif //(_DEBUG || _RELEASE_INTERNAL)
+
+    if (pConfig->dwCurrentVeboxScalability != pConfig->dwReportedVeboxScalability)
+    {
+        ReportUserSetting(
+            userSettingPtr,
+            __MEDIA_USER_FEATURE_VALUE_ENABLE_VEBOX_SCALABILITY_MODE,
+            pConfig->dwCurrentVeboxScalability,
+            MediaUserSetting::Group::Device);
+
+        pConfig->dwReportedVeboxScalability = pConfig->dwCurrentVeboxScalability;
+    }
+
+    if (pConfig->dwCurrentVPApogeios != pConfig->dwReportedVPApogeios)
+    {
+        ReportUserSetting(
+            userSettingPtr,
+            __MEDIA_USER_FEATURE_VALUE_VPP_APOGEIOS_ENABLE,
+            pConfig->dwCurrentVPApogeios,
+            MediaUserSetting::Group::Sequence);
+
+        pConfig->dwReportedVPApogeios = pConfig->dwCurrentVPApogeios;
+    }
 }
 
 VAStatus    VpReportFeatureMode(PDDI_VP_CONTEXT pVpCtx)

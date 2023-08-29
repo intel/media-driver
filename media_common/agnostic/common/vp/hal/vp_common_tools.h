@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022, Intel Corporation
+* Copyright (c) 2022-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -169,6 +169,10 @@ typedef struct _VP_CONFIG
     bool       isPacketReusedReported;      // Reported vp packet reused.
     bool       isDnEnabled;                 // true if vp Dn enabled.
     bool       isDnEnabledReported;         // Reported vp Dn reported
+    uint32_t   dwCurrentVeboxScalability;   // Current Vebox Scalability
+    uint32_t   dwReportedVeboxScalability;  // Reported Vebox Scalability
+    uint32_t   dwCurrentVPApogeios;         // Current VP Apogieos
+    uint32_t   dwReportedVPApogeios;        // Reported VP Apogieos
 
     // Configurations for cache control
     uint32_t   dwDndiReferenceBuffer;
@@ -196,6 +200,9 @@ typedef struct _VP_CONFIG
 
     // Optimize Cpu timing for VEBOX/SFC
     bool       bOptimizeCpuTiming;
+
+    // Output Regkey for whitelist
+    bool       bOutputRegkey;
 } VP_CONFIG, *PVP_CONFIG;
 
 //!
