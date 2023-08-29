@@ -592,6 +592,11 @@ namespace encode
             ENCODE_CHK_STATUS_RETURN(MediaPacket::UpdateStatusReportNext(statusReportGlobalCount, &cmdBuffer));
         }
 
+        if (m_pipeline->IsDualEncEnabled())
+        {
+            SETPAR_AND_ADDCMD(VDENC_CONTROL_STATE, m_vdencItf, &cmdBuffer);
+        }
+
         CODECHAL_DEBUG_TOOL(
             if (m_mmcState) {
                 m_mmcState->UpdateUserFeatureKey(&(m_basicFeature->m_reconSurface));
