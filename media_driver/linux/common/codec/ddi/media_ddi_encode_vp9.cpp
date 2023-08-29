@@ -293,6 +293,7 @@ VAStatus DdiEncodeVp9::EncodeInCodecHal(uint32_t numSlices)
         vp9PicParam->BitOffsetForLFRefDelta         = picBitOffset.bit_offset_ref_lf_delta;
         vp9PicParam->BitOffsetForLFModeDelta        = picBitOffset.bit_offset_mode_lf_delta;
         vp9PicParam->BitOffsetForSegmentation       = picBitOffset.bit_offset_segmentation;
+        vp9PicParam->BitSizeForSegmentation         = picBitOffset.bit_size_segmentation;
 
         m_encodeCtx->ppNALUnitParams[0]->uiNalUnitType             = 0x22;
         m_encodeCtx->ppNALUnitParams[0]->bInsertEmulationBytes     = false;
