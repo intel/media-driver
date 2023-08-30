@@ -86,6 +86,7 @@ typedef struct _KERNEL_PARAMS
     KERNEL_ARGS          kernelArgs;
     KERNEL_THREAD_SPACE  kernelThreadSpace;
     bool                 syncFlag;
+    bool                 flushL1;
 } KERNEL_PARAMS;
 
 struct MEDIA_OBJECT_KA2_INLINE_DATA
@@ -502,7 +503,7 @@ public:
 
 protected:
 
-    virtual MOS_STATUS SetWalkerSetting(KERNEL_THREAD_SPACE& threadSpace, bool bSyncFlag);
+    virtual MOS_STATUS SetWalkerSetting(KERNEL_THREAD_SPACE &threadSpace, bool bSyncFlag, bool flushL1 = false);
 
     virtual MOS_STATUS SetKernelArgs(KERNEL_ARGS &kernelArgs, VP_PACKET_SHARED_CONTEXT *sharedContext);
 

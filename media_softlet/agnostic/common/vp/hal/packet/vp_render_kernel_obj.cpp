@@ -107,7 +107,7 @@ void VpRenderKernelObj::OcaDumpKernelInfo(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CON
 }
 
 // Only for Adv kernels.
-MOS_STATUS VpRenderKernelObj::SetWalkerSetting(KERNEL_THREAD_SPACE& threadSpace, bool bSyncFlag)
+MOS_STATUS VpRenderKernelObj::SetWalkerSetting(KERNEL_THREAD_SPACE &threadSpace, bool bSyncFlag, bool flushL1)
 {
     VP_FUNC_CALL();
     VP_RENDER_CHK_STATUS_RETURN(MOS_STATUS_UNIMPLEMENTED);
@@ -139,7 +139,7 @@ MOS_STATUS VpRenderKernelObj::SetKernelConfigs(
 
     VP_RENDER_CHK_STATUS_RETURN(SetSamplerStates(samplerStateGroup));
 
-    VP_RENDER_CHK_STATUS_RETURN(SetWalkerSetting(kernelParams.kernelThreadSpace, kernelParams.syncFlag));
+    VP_RENDER_CHK_STATUS_RETURN(SetWalkerSetting(kernelParams.kernelThreadSpace, kernelParams.syncFlag,kernelParams.flushL1));
 
     return MOS_STATUS_SUCCESS;
 }

@@ -179,6 +179,7 @@ typedef struct _MHW_PIPE_CONTROL_PARAMS
     uint32_t                bInvalidateTextureCache        : 1;
     uint32_t                bGenericMediaStateClear        : 1;
     uint32_t                bIndirectStatePointersDisable  : 1;
+    uint32_t                bUnTypedDataPortCacheFlush     : 1;
     uint32_t                bHdcPipelineFlush              : 1;
     uint32_t                bKernelFenceEnabled            : 1;
     uint32_t                bPPCFlush                      : 1;

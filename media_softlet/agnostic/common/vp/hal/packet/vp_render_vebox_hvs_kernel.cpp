@@ -71,7 +71,7 @@ MOS_STATUS VpRenderHVSKernel::GetWalkerSetting(KERNEL_WALKER_PARAMS &walkerParam
 }
 
 // Only for Adv kernels.
-MOS_STATUS VpRenderHVSKernel::SetWalkerSetting(KERNEL_THREAD_SPACE &threadSpace, bool bSyncFlag)
+MOS_STATUS VpRenderHVSKernel::SetWalkerSetting(KERNEL_THREAD_SPACE &threadSpace, bool bSyncFlag, bool flushL1)
 {
     VP_FUNC_CALL();
     MOS_ZeroMemory(&m_walkerParam, sizeof(KERNEL_WALKER_PARAMS));

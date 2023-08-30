@@ -504,6 +504,7 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::AddMiPipeControl(
     par.bInvalidateTextureCache = params->bInvalidateTextureCache;
     par.bGenericMediaStateClear = params->bGenericMediaStateClear;
     par.bIndirectStatePointersDisable = params->bIndirectStatePointersDisable;
+    par.bUnTypedDataPortCacheFlush = params->bUnTypedDataPortCacheFlush;
     par.bHdcPipelineFlush = params->bHdcPipelineFlush;
     par.bKernelFenceEnabled = params->bKernelFenceEnabled;
     MHW_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(PIPE_CONTROL)(pCmdBuffer));

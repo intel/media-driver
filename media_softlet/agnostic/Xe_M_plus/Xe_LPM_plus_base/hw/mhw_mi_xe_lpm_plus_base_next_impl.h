@@ -662,7 +662,8 @@ public:
                 cmd.DW1.StateCacheInvalidationEnable    = params.bInvalidateStateCache;
                 cmd.DW1.ConstantCacheInvalidationEnable = params.bInvalidateConstantCache;
             }
-
+            cmd.DW0.UnTypedDataPortCacheFlush        = params.bUnTypedDataPortCacheFlush;
+            cmd.DW0.HdcPipelineFlush                 = params.bHdcPipelineFlush;
             cmd.DW1.RenderTargetCacheFlushEnable     = params.bFlushRenderTargetCache;
             cmd.DW1.DcFlushEnable                    = params.bFlushRenderTargetCache;  // same as above
             cmd.DW1.VfCacheInvalidationEnable        = params.bInvalidateVFECache;

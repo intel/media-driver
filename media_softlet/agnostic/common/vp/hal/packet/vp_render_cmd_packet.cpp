@@ -1806,7 +1806,7 @@ MOS_STATUS VpRenderCmdPacket::SendMediaStates(
     MHW_MI_LOAD_REGISTER_IMM_PARAMS loadRegisterImmParams = {};
     PMHW_MI_MMIOREGISTERS           pMmioRegisters        = nullptr;
     MOS_OCA_BUFFER_HANDLE           hOcaBuf               = 0;
-
+    bool                            flushL1               = false;
     //---------------------------------------
     MHW_RENDERHAL_CHK_NULL(pRenderHal);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pStateHeap);
@@ -1901,6 +1901,11 @@ MOS_STATUS VpRenderCmdPacket::SendMediaStates(
             pipeCtlParams.dwFlushMode             = MHW_FLUSH_CUSTOM;
             pipeCtlParams.bInvalidateTextureCache = true;
             pipeCtlParams.bFlushRenderTargetCache = true;
+            if (flushL1)
+            {   //Flush L1 cache after consumer walker when there is a producer-consumer relationship walker.
+                pipeCtlParams.bUnTypedDataPortCacheFlush = true;
+                pipeCtlParams.bHdcPipelineFlush          = true;
+            }
             MHW_RENDERHAL_CHK_STATUS(pRenderHal->pRenderHalPltInterface->AddMiPipeControl(pRenderHal,
                 pCmdBuffer,
                 &pipeCtlParams));
@@ -1941,7 +1946,8 @@ MOS_STATUS VpRenderCmdPacket::SendMediaStates(
                 pCmdBuffer,
                 &m_gpgpuWalkerParams));
 
-             PrintWalkerParas(m_mediaWalkerParams);
+            flushL1 = it->second.walkerParam.bFlushL1;
+            PrintWalkerParas(m_mediaWalkerParams);
         }
         else
         {

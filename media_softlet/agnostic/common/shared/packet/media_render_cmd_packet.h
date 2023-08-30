@@ -88,6 +88,7 @@ typedef struct _KERNEL_WALKER_PARAMS
     RECT                                alignedRect;
     bool                                isVerticalPattern;
     bool                                bSyncFlag;
+    bool                                bFlushL1;
     bool                                isGroupStartInvolvedInGroupSize;    // true if group start need be involved in the group size.
     bool                                calculateBlockXYByAlignedRect;      // true if iBlocksX/iBlocksY is calculated by alignedRect in RenderCmdPacket instead of kernel object.
     bool                                forcePreferredSLMZero;              // true if preferredSLM need force to 0.

@@ -188,6 +188,7 @@ namespace mi
         bool                    bInvalidateTextureCache       = false;
         bool                    bGenericMediaStateClear       = false;
         bool                    bIndirectStatePointersDisable = false;
+        bool                    bUnTypedDataPortCacheFlush    = false;
         bool                    bHdcPipelineFlush             = false;
         bool                    bKernelFenceEnabled           = false;
         bool                    bPPCFlush                     = false;

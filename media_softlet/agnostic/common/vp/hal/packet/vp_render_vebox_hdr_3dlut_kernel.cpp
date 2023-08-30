@@ -461,7 +461,7 @@ MOS_STATUS VpRenderHdr3DLutKernelCM::GetWalkerSetting(KERNEL_WALKER_PARAMS &walk
 }
 
 // Only for Adv kernels.
-MOS_STATUS VpRenderHdr3DLutKernelCM::SetWalkerSetting(KERNEL_THREAD_SPACE &threadSpace, bool bSyncFlag)
+MOS_STATUS VpRenderHdr3DLutKernelCM::SetWalkerSetting(KERNEL_THREAD_SPACE &threadSpace, bool bSyncFlag, bool flushL1)
 {
     VP_FUNC_CALL();
     MOS_ZeroMemory(&m_walkerParam, sizeof(KERNEL_WALKER_PARAMS));
