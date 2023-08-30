@@ -44,7 +44,7 @@ public:
     MosOcaRTLogMgr(MosOcaRTLogMgr &);
     virtual ~MosOcaRTLogMgr();
     MosOcaRTLogMgr &operator=(MosOcaRTLogMgr &);
-    static MosOcaRTLogMgr &GetInstance();
+    static MosOcaRTLogMgr *GetInstance();
 
 protected:
     virtual MOS_STATUS RegisterCtx(OsContextNext *osDriverContext, MOS_CONTEXT *osContext);

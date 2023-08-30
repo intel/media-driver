@@ -53,7 +53,7 @@ public:
 
     uint32_t GetRtlogHeapSize() { return m_heapSize; };
 
-    static bool IsOcaRTLogEnabled() { return m_enableOcaRTLog; };
+    static bool IsOcaRTLogEnabled() { return s_enableOcaRTLog; };
 
 protected:
     int32_t GetGlobleIndex();
@@ -64,8 +64,9 @@ protected:
     uint32_t                             m_heapSize = MAX_OCA_RT_SIZE;
     uint8_t                             *m_heapAddr = nullptr;
 
-    static bool                          m_enableOcaRTLog;
+    static bool                          s_enableOcaRTLog;
     static MosMutex                      s_ocaMutex;
+    static bool                          s_isOcaRtlogMgrDestoryed;
 
 MEDIA_CLASS_DEFINE_END(MosOcaRTLogMgrBase)
 };

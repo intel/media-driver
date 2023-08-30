@@ -28,8 +28,9 @@
 #include "oca_rtlog_section_mgr.h"
 #include "mos_context_specific_next.h"
 
-bool MosOcaRTLogMgrBase::m_enableOcaRTLog = true;
+bool MosOcaRTLogMgrBase::s_enableOcaRTLog = true;
 MosMutex MosOcaRTLogMgrBase::s_ocaMutex;
+bool MosOcaRTLogMgrBase::s_isOcaRtlogMgrDestoryed = false;
 
 /****************************************************************************************************/
 /*                                      MosOcaRTLogMgrBase                                          */

@@ -3813,12 +3813,13 @@ void MosInterface::GetRtLogResourceInfo(
     size = 0;
     if (osInterface->osStreamState && osInterface->osStreamState->osDeviceContext)
     {
-        MosOcaRTLogMgr &ocaRTLogMgr = MosOcaRTLogMgr::GetInstance();
+        MosOcaRTLogMgr *ocaRTLogMgr = MosOcaRTLogMgr::GetInstance();
+        MOS_OS_CHK_NULL_NO_STATUS_RETURN(ocaRTLogMgr);
         GpuContextSpecificNext *gpuContext = dynamic_cast<GpuContextSpecificNext*>(osInterface->osStreamState->osDeviceContext->GetGpuContextMgr()->GetGpuContext(osInterface->osStreamState->currentGpuContextHandle));
         if (gpuContext != nullptr)
         {
             osResource = gpuContext->GetOcaRTLogResource(osInterface->osStreamState->osDeviceContext->GetOcaRTLogResource());
-            size       = ocaRTLogMgr.GetRtlogHeapSize();
+            size       = ocaRTLogMgr->GetRtlogHeapSize();
         }
     }
 }

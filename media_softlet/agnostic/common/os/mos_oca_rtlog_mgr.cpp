@@ -148,6 +148,7 @@ MosOcaRTLogMgr::~MosOcaRTLogMgr()
 {
     m_globleIndex = -1;
     m_isMgrInitialized = false;
+    s_isOcaRtlogMgrDestoryed = true;
 }
 
 
@@ -156,15 +157,15 @@ MosOcaRTLogMgr& MosOcaRTLogMgr::operator= (MosOcaRTLogMgr&)
     return *this;
 }
 
-MosOcaRTLogMgr &MosOcaRTLogMgr::GetInstance()
+MosOcaRTLogMgr *MosOcaRTLogMgr::GetInstance()
 {
     static MosOcaRTLogMgr mgr;
-    return mgr;
+    return &mgr;
 }
 
 void MosOcaRTLogMgr::RegisterContext(OsContextNext *osDriverContext, MOS_CONTEXT *osContext)
 {
-    if (!m_enableOcaRTLog)
+    if (!s_enableOcaRTLog)
     {
         return;
     }
@@ -172,8 +173,8 @@ void MosOcaRTLogMgr::RegisterContext(OsContextNext *osDriverContext, MOS_CONTEXT
     {
         return;
     }
-    MosOcaRTLogMgr &ocaRTLogMgr = GetInstance();
-    MOS_STATUS      status      = ocaRTLogMgr.RegisterCtx(osDriverContext, osContext);
+    MosOcaRTLogMgr *ocaRTLogMgr = GetInstance();
+    MOS_STATUS      status      = ocaRTLogMgr->RegisterCtx(osDriverContext, osContext);
     if (status != MOS_STATUS_SUCCESS)
     {
         MOS_OS_NORMALMESSAGE("MosOcaRTLogMgr RegisterContext failed!");
@@ -182,12 +183,17 @@ void MosOcaRTLogMgr::RegisterContext(OsContextNext *osDriverContext, MOS_CONTEXT
 
 void MosOcaRTLogMgr::UnRegisterContext(OsContextNext *osDriverContext)
 {
-    if (!m_enableOcaRTLog)
+    if (!s_enableOcaRTLog)
     {
         return;
     }
-    MosOcaRTLogMgr &ocaRTLogMgr = GetInstance();
-    MOS_STATUS      status      = ocaRTLogMgr.UnRegisterCtx(osDriverContext);
+    if (s_isOcaRtlogMgrDestoryed)
+    {
+        MOS_OS_NORMALMESSAGE("MosOcaRTLogMgr have be destroyed!");
+        return;
+    }
+    MosOcaRTLogMgr *ocaRTLogMgr = GetInstance();
+    MOS_STATUS      status      = ocaRTLogMgr->UnRegisterCtx(osDriverContext);
     if (status != MOS_STATUS_SUCCESS)
     {
         MOS_OS_NORMALMESSAGE("MosOcaRTLogMgr UnRegisterContext failed!");
