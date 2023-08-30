@@ -82,6 +82,13 @@ bool MosOcaInterfaceSpecific::s_isDestroyed               = false;
 //!
 MOS_OCA_BUFFER_HANDLE MosOcaInterfaceSpecific::LockOcaBufAvailable(PMOS_CONTEXT pMosContext, uint32_t CurrentGpuContextHandle)
 {
+    if (nullptr == m_ocaMutex)
+    {
+        MosOcaInterfaceSpecific::OnOcaError(pMosContext, MOS_STATUS_NULL_POINTER, __FUNCTION__, __LINE__);
+        return MOS_OCA_INVALID_BUFFER_HANDLE;
+    }
+
+    MosOcaAutoLock autoLock(m_ocaMutex);
     for (int i = m_indexOfNextOcaBufContext; i < MAX_NUM_OF_OCA_BUF_CONTEXT; ++i)
     {
         if (m_ocaBufContextList[i].inUse)
@@ -826,6 +833,7 @@ void MosOcaInterfaceSpecific::Uninitialize()
                 m_ocaBufContextList[i].logSection.resInfo.resInfoList = nullptr;
             }
         }
+        m_hOcaMap.clear();
         m_isInitialized = false;
         s_bOcaStatusExistInReg = false;
         s_isDestroyed = false;
@@ -862,3 +870,77 @@ void MosOcaInterfaceSpecific::UninitInterface()
     return;
 }
 
+//!
+//! \brief  Insert OCA buffer handle into m_hOcaMap
+//! \param  [in] key
+//!         The key of m_hOcaMap.
+//! \param  [in] handle
+//!         Oca buffer handle.
+//! \return MOS_STATUS
+//!         Return MOS_STATUS_SUCCESS if insert successfully, otherwise insert failed.
+//!
+MOS_STATUS MosOcaInterfaceSpecific::InsertOcaBufHandleMap(uint32_t *key, MOS_OCA_BUFFER_HANDLE handle)
+{
+    MOS_OS_CHK_NULL_RETURN(m_ocaMutex);
+    MOS_OS_CHK_NULL_RETURN(key);
+
+    MosOcaAutoLock autoLock(m_ocaMutex);
+    auto success = m_hOcaMap.insert(std::make_pair(key, handle));
+    if (!success.second)
+    {
+        // Should never come to here.
+        MOS_OS_ASSERTMESSAGE("OcaBufHandle has already been assigned to current cmdBuffer!");
+        return MOS_STATUS_UNKNOWN;
+    }
+    return MOS_STATUS_SUCCESS;
+}
+
+//!
+//! \brief  Remove OCA buffer handle from m_hOcaMap
+//! \param  [in] key
+//!         The key of m_hOcaMap.
+//! \return MOS_STATUS
+//!         Return MOS_STATUS_SUCCESS if erase successfully, otherwise erase failed.
+//!
+MOS_STATUS MosOcaInterfaceSpecific::RemoveOcaBufHandleFromMap(uint32_t *key)
+{
+    MOS_OS_CHK_NULL_RETURN(m_ocaMutex);
+
+    MosOcaAutoLock autoLock(m_ocaMutex);
+    auto it = m_hOcaMap.find(key);
+    if (it != m_hOcaMap.end())
+    {
+        m_hOcaMap.erase(it);
+    }
+    return MOS_STATUS_SUCCESS;
+}
+
+//!
+//! \brief  Get OCA buffer handle from m_hOcaMap
+//! \param  [in] key
+//!         The key of m_hOcaMap.
+//! \return MOS_OCA_BUFFER_HANDLE
+//!         Return oca buffer handle.
+//!
+MOS_OCA_BUFFER_HANDLE MosOcaInterfaceSpecific::GetOcaBufHandleFromMap(uint32_t *key)
+{
+    if (nullptr == m_ocaMutex)
+    {
+        MOS_OS_ASSERTMESSAGE("m_ocaMutex is nullptr.");
+        return MOS_OCA_INVALID_BUFFER_HANDLE;
+    }
+    MosOcaAutoLock autoLock(m_ocaMutex);
+    auto it = m_hOcaMap.find(key);
+    if (it == m_hOcaMap.end())
+    {
+        // May come here for workloads not enabling UMD_OCA.
+        return MOS_OCA_INVALID_BUFFER_HANDLE;
+    }
+    if (it->second >= MAX_NUM_OF_OCA_BUF_CONTEXT || it->second < 0)
+    {
+        MOS_OS_ASSERTMESSAGE("Get invalid OcaBufHandle: %d!", it->second);
+        return MOS_OCA_INVALID_BUFFER_HANDLE;
+    }
+
+    return it->second;
+}

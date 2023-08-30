@@ -261,6 +261,35 @@ public:
     }
 
     //!
+    //! \brief  Insert OCA buffer handle into m_hOcaMap
+    //! \param  [in] key
+    //!         The key of m_hOcaMap.
+    //! \param  [in] handle
+    //!         Oca buffer handle.
+    //! \return MOS_STATUS
+    //!         Return MOS_STATUS_SUCCESS if insert successfully, otherwise insert failed.
+    //!
+    virtual MOS_STATUS InsertOcaBufHandleMap(uint32_t *key, MOS_OCA_BUFFER_HANDLE handle);
+
+    //!
+    //! \brief  Remove OCA buffer handle from m_hOcaMap
+    //! \param  [in] key
+    //!         The key of m_hOcaMap.
+    //! \return MOS_STATUS
+    //!         Return MOS_STATUS_SUCCESS if erase successfully, otherwise erase failed.
+    //!
+    virtual MOS_STATUS RemoveOcaBufHandleFromMap(uint32_t *key);
+
+    //!
+    //! \brief  Get OCA buffer handle from m_hOcaMap
+    //! \param  [in] key
+    //!         The key of m_hOcaMap.
+    //! \return MOS_OCA_BUFFER_HANDLE
+    //!         Return oca buffer handle.
+    //!
+    virtual MOS_OCA_BUFFER_HANDLE GetOcaBufHandleFromMap(uint32_t *key);
+
+    //!
     //! \brief  Get OCA status
     //! \return MOS_STATUS
     //!         Return oca status
@@ -367,6 +396,8 @@ private:
 
     PMOS_MUTEX                      m_ocaMutex                                      = nullptr;
     PMOS_MUTEX                      m_mutexForOcaBufPool                            = nullptr;
+
+    std::map<uint32_t*, MOS_OCA_BUFFER_HANDLE> m_hOcaMap;    //!< Oca buffer handle map
 
     bool                            m_isOcaEnabled                                  = false;
     bool                            m_isInitialized                                 = false;

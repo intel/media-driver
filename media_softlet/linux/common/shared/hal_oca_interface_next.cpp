@@ -48,8 +48,6 @@
 
 namespace mhw { namespace mi { class Itf; } }
 
-std::map<uint32_t*, MOS_OCA_BUFFER_HANDLE> HalOcaInterfaceNext::s_hOcaMap;
-
 /****************************************************************************************************/
 /*                                      HalOcaInterfaceNextNext                                             */
 /****************************************************************************************************/
@@ -603,24 +601,8 @@ MOS_OCA_BUFFER_HANDLE HalOcaInterfaceNext::GetOcaBufferHandle(MOS_COMMAND_BUFFER
         OnOcaError(mosContext, MOS_STATUS_NULL_POINTER, __FUNCTION__, __LINE__);
         return MOS_OCA_INVALID_BUFFER_HANDLE;
     }
-    PMOS_MUTEX mutex = pOcaInterface->GetMutex();
-    if (mutex == nullptr)
-    {
-        return MOS_OCA_INVALID_BUFFER_HANDLE;
-    }
-    MosOcaAutoLock autoLock(mutex);
-    std::map<uint32_t*, MOS_OCA_BUFFER_HANDLE>::iterator it = s_hOcaMap.find(cmdBuffer.pCmdBase);
-    if (it == s_hOcaMap.end())
-    {
-        // May come here for workloads not enabling UMD_OCA.
-        return MOS_OCA_INVALID_BUFFER_HANDLE;
-    }
-    if (it->second >= MAX_NUM_OF_OCA_BUF_CONTEXT || it->second < 0)
-    {
-        OnOcaError(mosContext, MOS_STATUS_NULL_POINTER, __FUNCTION__, __LINE__);
-        return MOS_OCA_INVALID_BUFFER_HANDLE;
-    }
-    return it->second;
+
+    return pOcaInterface->GetOcaBufHandleFromMap(cmdBuffer.pCmdBase);
 }
 
 void HalOcaInterfaceNext::RemoveOcaBufferHandle(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext)
@@ -631,19 +613,7 @@ void HalOcaInterfaceNext::RemoveOcaBufferHandle(MOS_COMMAND_BUFFER &cmdBuffer, M
         OnOcaError(&mosContext, MOS_STATUS_NULL_POINTER, __FUNCTION__, __LINE__);
         return;
     }
-    PMOS_MUTEX      mutex = pOcaInterface->GetMutex();
-    if (mutex == nullptr)
-    {
-        OnOcaError(&mosContext, MOS_STATUS_INVALID_PARAMETER, __FUNCTION__, __LINE__);
-        return;
-    }
-    MosOcaAutoLock autoLock(mutex);
-    std::map<uint32_t*, MOS_OCA_BUFFER_HANDLE>::iterator it = s_hOcaMap.find(cmdBuffer.pCmdBase);
-    if (it == s_hOcaMap.end())
-    {
-        return;
-    }
-    s_hOcaMap.erase(it);
+    pOcaInterface->RemoveOcaBufHandleFromMap(cmdBuffer.pCmdBase);
 }
 
 //!
@@ -670,12 +640,7 @@ void HalOcaInterfaceNext::On1stLevelBBStart(MOS_COMMAND_BUFFER &cmdBuffer, MOS_C
     {
         return;
     }
-    PMOS_MUTEX mutex = pOcaInterface->GetMutex();
-    if (mutex == nullptr)
-    {
-        OnOcaError(&mosContext, MOS_STATUS_NULL_POINTER, __FUNCTION__, __LINE__);
-        return;
-    }
+
     ocaBufHandle = GetOcaBufferHandle(cmdBuffer, (MOS_CONTEXT_HANDLE)&mosContext);
     if (ocaBufHandle != MOS_OCA_INVALID_BUFFER_HANDLE)
     {
@@ -685,18 +650,15 @@ void HalOcaInterfaceNext::On1stLevelBBStart(MOS_COMMAND_BUFFER &cmdBuffer, MOS_C
     }
     else
     {
-        MosOcaAutoLock autoLock(mutex);
         ocaBufHandle = pOcaInterface->LockOcaBufAvailable(&mosContext, gpuContextHandle);
+
         if (MOS_OCA_INVALID_BUFFER_HANDLE == ocaBufHandle)
         {
             OnOcaError(&mosContext, MOS_STATUS_INVALID_HANDLE, __FUNCTION__, __LINE__);
             return;
         }
-        auto success = s_hOcaMap.insert(std::make_pair(cmdBuffer.pCmdBase, ocaBufHandle));
-        if (!success.second)
+        if (MOS_FAILED(pOcaInterface->InsertOcaBufHandleMap(cmdBuffer.pCmdBase, ocaBufHandle)))
         {
-            // Should never come to here.
-            MOS_OS_ASSERTMESSAGE("ocaBufHandle has already been assigned to current cmdBuffer!");
             OnOcaError(&mosContext, MOS_STATUS_INVALID_HANDLE, __FUNCTION__, __LINE__);
             return;
         }
