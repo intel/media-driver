@@ -4674,6 +4674,9 @@ uint32_t MediaLibvaInterfaceNext::GetDrmFormatOfSeparatePlane(uint32_t fourcc, i
         case VA_FOURCC_I420:
         case VA_FOURCC_YV12:
         case VA_FOURCC_YV16:
+        case VA_FOURCC_422H:
+        case VA_FOURCC_422V:
+        case VA_FOURCC_444P:
         case VA_FOURCC_Y800:
         case VA_FOURCC_RGBP:
         case VA_FOURCC_BGRP:
@@ -4750,6 +4753,9 @@ uint32_t MediaLibvaInterfaceNext::GetDrmFormatOfSeparatePlane(uint32_t fourcc, i
         case VA_FOURCC_YV16:
         case VA_FOURCC_RGBP:
         case VA_FOURCC_BGRP:
+        case VA_FOURCC_422H:
+        case VA_FOURCC_422V:
+        case VA_FOURCC_444P:
             return DRM_FORMAT_R8;
         case VA_FOURCC_P010:
         case VA_FOURCC_P012:
@@ -4774,6 +4780,12 @@ uint32_t MediaLibvaInterfaceNext::GetDrmFormatOfCompositeObject(uint32_t fourcc)
         return DRM_FORMAT_YVU420;
     case VA_FOURCC_YV16:
         return DRM_FORMAT_YVU422;
+    case VA_FOURCC_422H:
+        return DRM_FORMAT_YUV422;
+    case VA_FOURCC_422V:
+        return DRM_FORMAT_YUV422;
+    case VA_FOURCC_444P:
+        return DRM_FORMAT_YUV444;
     case VA_FOURCC_YUY2:
         return DRM_FORMAT_YUYV;
     case VA_FOURCC_YVYU:
