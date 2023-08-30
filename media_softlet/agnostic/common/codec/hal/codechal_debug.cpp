@@ -3409,7 +3409,7 @@ MOS_STATUS CodechalDebugInterface::DumpCmdBuffer(
         MediaDbgBufferType::bufCmd,
         binaryDumpEnabled ? MediaDbgExtType::dat : MediaDbgExtType::txt);
 
-    if (m_configMgr->AttrIsEnabled(CodechalDbgAttr::attrEnableFastDump))
+    if (m_configMgr->AttrIsEnabled(CodechalDbgAttr::attrEnableFastDump) && MediaDebugFastDump::Initiated())
     {
         MediaDebugFastDump::Dump(
             (uint8_t *)cmdBuffer->pCmdBase,

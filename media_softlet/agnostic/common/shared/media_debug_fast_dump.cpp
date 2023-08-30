@@ -57,6 +57,11 @@ void MediaDebugFastDump::DestroyInstance()
     }
 }
 
+bool MediaDebugFastDump::Initiated()
+{
+    return imp != nullptr;
+}
+
 void MediaDebugFastDump::Dump(
     MOS_RESOURCE &res,
     std::string &&name,
