@@ -654,6 +654,7 @@ MOS_STATUS Vp9VdencPkt::SendPrologCmds(MOS_COMMAND_BUFFER &cmdBuffer)
     ENCODE_FUNC_CALL();
 
 #ifdef _MMC_SUPPORTED
+    ENCODE_CHK_NULL_RETURN(m_mmcState);
     ENCODE_CHK_STATUS_RETURN(m_mmcState->SendPrologCmd(&cmdBuffer, false));
 #endif
 

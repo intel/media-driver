@@ -568,7 +568,7 @@ protected:
     {
         _MHW_SETCMD_CALLBASE(VDENC_PIPE_BUF_ADDR_STATE);
 
-        MHW_RESOURCE_PARAMS resourceParams;
+        MHW_RESOURCE_PARAMS resourceParams = {};
 
         if (params.surfaceRaw)
         {

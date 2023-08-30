@@ -124,6 +124,7 @@ namespace encode {
 
     MOS_STATUS AvcVdencPkt::SetRowstoreCachingOffsets()
     {
+        ENCODE_CHK_NULL_RETURN(m_mfxItf);
         // Get row store cache offset as all the needed information is got here
         if (m_mfxItf->IsRowStoreCachingSupported())
         {

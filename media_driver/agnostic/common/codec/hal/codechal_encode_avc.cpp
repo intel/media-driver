@@ -5544,10 +5544,19 @@ MOS_STATUS CodechalEncodeAvcEnc::SetSequenceStructs()
         dwSlidingWindowSize = MOS_MIN((uint32_t)(seqParams->FramesPer100Sec / 100), 60);
     }
 
-    m_maxNumSlicesAllowed = CodecHalAvcEncode_GetMaxNumSlicesAllowed(
-        (CODEC_AVC_PROFILE_IDC)(seqParams->Profile),
-        (CODEC_AVC_LEVEL_IDC)(seqParams->Level),
-        seqParams->FramesPer100Sec);
+    if (seqParams->FramesPer100Sec)
+    {
+        m_maxNumSlicesAllowed = CodecHalAvcEncode_GetMaxNumSlicesAllowed(
+                (CODEC_AVC_PROFILE_IDC)(seqParams->Profile),
+                (CODEC_AVC_LEVEL_IDC)(seqParams->Level),
+                seqParams->FramesPer100Sec);
+    }
+    else
+    {
+        CODECHAL_ENCODE_ASSERTMESSAGE("FramesPer100Sec is zero, cannot get MaxNumSliceAllowed.");
+        eStatus = MOS_STATUS_INVALID_PARAMETER;
+    }
+    
 
     return eStatus;
 }

@@ -3248,10 +3248,6 @@ MOS_STATUS CodechalEncodeAvcBase::SetSliceStructs()
         {
             slcParams->slice_qp_delta = CODECHAL_ENCODE_AVC_MAX_SLICE_QP - (picParams->pic_init_qp_minus26 + 26);
         }
-        else
-        {
-            slcParams->slice_qp_delta = slcParams->slice_qp_delta;
-        }
         slcParams->redundant_pic_cnt                  = 0;
         slcParams->sp_for_switch_flag                 = 0;
         slcParams->slice_qs_delta                     = 0;

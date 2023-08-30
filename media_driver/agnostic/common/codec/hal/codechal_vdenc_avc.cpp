@@ -4093,10 +4093,19 @@ MOS_STATUS CodechalVdencAvcState::SetSequenceStructs()
         m_slidingWindowSize = MOS_MIN((uint32_t)(seqParams->FramesPer100Sec / 100), 60);
     }
 
-    m_maxNumSlicesAllowed = CodecHalAvcEncode_GetMaxNumSlicesAllowed(
-        (CODEC_AVC_PROFILE_IDC)(seqParams->Profile),
-        (CODEC_AVC_LEVEL_IDC)(seqParams->Level),
-        seqParams->FramesPer100Sec);
+    if (seqParams->FramesPer100Sec)
+    {
+        m_maxNumSlicesAllowed = CodecHalAvcEncode_GetMaxNumSlicesAllowed(
+                (CODEC_AVC_PROFILE_IDC)(seqParams->Profile),
+                (CODEC_AVC_LEVEL_IDC)(seqParams->Level),
+                seqParams->FramesPer100Sec);
+    }
+    else
+    {
+        CODECHAL_ENCODE_ASSERTMESSAGE("FramesPer100Sec is zero, cannot get MaxNumSliceAllowed.");
+        eStatus = MOS_STATUS_INVALID_PARAMETER;
+    }
+    
 
     m_lookaheadDepth = seqParams->LookaheadDepth;
     if (m_lookaheadDepth > 0)
@@ -5560,7 +5569,7 @@ MOS_STATUS CodechalVdencAvcState::SetConstDataHuCBrcUpdate()
     // Set VDENC BRC constant buffer, data remains the same till BRC Init is called
     if (m_brcInit)
     {
-        MOS_LOCK_PARAMS lockFlagsWriteOnly;
+        MOS_LOCK_PARAMS lockFlagsWriteOnly = {};
         for (uint8_t picType = 0; picType < CODECHAL_ENCODE_VDENC_BRC_CONST_BUFFER_NUM; picType++)
         {
             auto hucConstData = (uint8_t*)m_osInterface->pfnLockResource(

@@ -4025,6 +4025,7 @@ MOS_STATUS CodechalVdencVp9StateG12::ExecutePictureLevel()
     // set HCP_PIPE_MODE_SELECT values
     PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams = nullptr;
     pipeModeSelectParams = m_vdencInterface->CreateMhwVdboxPipeModeSelectParams();
+    CODECHAL_ENCODE_CHK_NULL_RETURN(pipeModeSelectParams);
 
     SetHcpPipeModeSelectParams(*pipeModeSelectParams);
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpPipeModeSelectCmd(&cmdBuffer, pipeModeSelectParams));

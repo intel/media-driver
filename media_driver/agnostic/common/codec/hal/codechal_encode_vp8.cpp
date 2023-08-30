@@ -3735,11 +3735,11 @@ MOS_STATUS CodechalEncodeVp8::EncodeSliceLevelBrc(PMOS_COMMAND_BUFFER cmdBuffer)
 
 MOS_STATUS CodechalEncodeVp8::ExecuteSliceLevel()
 {
-    MOS_COMMAND_BUFFER                          cmdBuffer;
-    MOS_SYNC_PARAMS                             syncParams;
-    EncodeReadBrcPakStatsParams                 readBrcPakStatsParams;
-    uint32_t                                    *data;
-    MOS_LOCK_PARAMS                             lockFlagsWriteOnly;
+    MOS_COMMAND_BUFFER                          cmdBuffer = {};
+    MOS_SYNC_PARAMS                             syncParams = {};
+    EncodeReadBrcPakStatsParams                 readBrcPakStatsParams = {};
+    uint32_t                                    *data = nullptr;
+    MOS_LOCK_PARAMS                             lockFlagsWriteOnly = {};
     MOS_STATUS                                  status = MOS_STATUS_SUCCESS;
 
     CODECHAL_ENCODE_FUNCTION_ENTER;

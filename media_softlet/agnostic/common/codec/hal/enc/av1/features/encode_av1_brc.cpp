@@ -585,8 +585,7 @@ namespace encode
 
         if (m_rcMode == RATECONTROL_CQL || m_rcMode == RATECONTROL_QVBR)
         {
-            if (m_basicFeature->m_av1SeqParams->ICQQualityFactor < ENCODE_AV1_MIN_ICQ_QUALITYFACTOR ||
-                m_basicFeature->m_av1SeqParams->ICQQualityFactor > ENCODE_AV1_MAX_ICQ_QUALITYFACTOR)
+            if (m_basicFeature->m_av1SeqParams->ICQQualityFactor > ENCODE_AV1_MAX_ICQ_QUALITYFACTOR)
             {
                 ENCODE_ASSERTMESSAGE("Invalid ICQ Quality Factor input (%d)\n", m_basicFeature->m_av1SeqParams->ICQQualityFactor);
                 eStatus = MOS_STATUS_INVALID_PARAMETER;

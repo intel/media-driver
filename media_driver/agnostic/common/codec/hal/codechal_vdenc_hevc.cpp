@@ -811,7 +811,7 @@ MOS_STATUS CodechalVdencHevcState::SetupMbQpStreamIn(PMOS_RESOURCE streamIn)
                                                          streamIn,
                                                          &LockFlags);
     CODECHAL_ENCODE_CHK_NULL_RETURN(dataGfx);
-    MOS_SURFACE surfInfo;
+    MOS_SURFACE surfInfo = {};
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnGetResourceInfo(m_osInterface, streamIn, &surfInfo));
 
     uint32_t uiSize = surfInfo.dwSize;
@@ -861,7 +861,7 @@ MOS_STATUS CodechalVdencHevcState::SetupMbQpStreamIn(PMOS_RESOURCE streamIn)
 
     MOS_SecureMemcpy(pInputData, surfInfo.dwSize, pInputDataGfx, surfInfo.dwSize);
 
-    MHW_VDBOX_VDENC_STREAMIN_STATE_PARAMS streaminDataParams;
+    MHW_VDBOX_VDENC_STREAMIN_STATE_PARAMS streaminDataParams = {};
 
     for (uint32_t h = 0; h < streamInHeight; h++)
     {

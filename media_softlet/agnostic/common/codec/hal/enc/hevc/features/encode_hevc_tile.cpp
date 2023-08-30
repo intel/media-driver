@@ -105,6 +105,11 @@ namespace encode
     {
         ENCODE_FUNC_CALL();
 
+        if (m_basicFeature == nullptr)
+        {
+            ENCODE_ASSERTMESSAGE("Null basic feature, unexpected!");
+            return false;
+        }
         auto hevcSeqParams = dynamic_cast<HevcBasicFeature *>(m_basicFeature)->m_hevcSeqParams;
         if (hevcSeqParams == nullptr)
         {
@@ -136,10 +141,12 @@ namespace encode
         ENCODE_CHK_NULL_RETURN(sliceInTile);
         ENCODE_CHK_NULL_RETURN(lastSliceInTile);
         ENCODE_CHK_NULL_RETURN(m_basicFeature);
+        auto tmpHevcBasicFeature = dynamic_cast<HevcBasicFeature *>(m_basicFeature);
+        ENCODE_CHK_NULL_RETURN(tmpHevcBasicFeature);
 
-        auto hevcPicParams   = dynamic_cast<HevcBasicFeature *>(m_basicFeature)->m_hevcPicParams;
-        auto hevcSeqParams   = dynamic_cast<HevcBasicFeature *>(m_basicFeature)->m_hevcSeqParams;
-        auto hevcSliceParams = dynamic_cast<HevcBasicFeature *>(m_basicFeature)->m_hevcSliceParams;
+        auto hevcPicParams   = tmpHevcBasicFeature->m_hevcPicParams;
+        auto hevcSeqParams   = tmpHevcBasicFeature->m_hevcSeqParams;
+        auto hevcSliceParams = tmpHevcBasicFeature->m_hevcSliceParams;
         ENCODE_CHK_NULL_RETURN(hevcPicParams);
         ENCODE_CHK_NULL_RETURN(hevcSeqParams);
         ENCODE_CHK_NULL_RETURN(hevcSliceParams);

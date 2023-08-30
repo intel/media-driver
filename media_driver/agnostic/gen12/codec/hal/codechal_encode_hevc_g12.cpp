@@ -1908,6 +1908,7 @@ MOS_STATUS CodechalEncHevcStateG12::GetStatusReport(
 
     MOS_LOCK_PARAMS lockFlags;
     MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_osInterface);
     HCPPakHWTileSizeRecord_G12 *tileStatusReport = (HCPPakHWTileSizeRecord_G12 *)m_osInterface->pfnLockResource(
         m_osInterface,
         &tileSizeStatusReport->sResource,
@@ -8141,10 +8142,15 @@ MOS_STATUS CodechalEncHevcStateG12::LoadPakCommandAndCuRecordFromFile()
             m_pakOnlyDataFolder,
             m_frameNum);
 
-        uint32_t sizePicState = CodecHalHevc_GetFileSize(pathOfPicState);
-        if (sizePicState == 0)
+        int32_t tmpSizePicState = CodecHalHevc_GetFileSize(pathOfPicState);
+        uint32_t sizePicState   = 0;
+        if (tmpSizePicState <= 0)
         {
             return MOS_STATUS_INVALID_FILE_SIZE;
+        }
+        else
+        {
+            sizePicState = static_cast<uint32_t>(tmpSizePicState);
         }
 
         data = (uint8_t *)m_osInterface->pfnLockResource(

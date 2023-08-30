@@ -306,6 +306,9 @@ namespace encode {
         EncodeStatusRcs *encodeStatusRcs,
         bool completed)
     {
+        ENCODE_CHK_NULL_RETURN(statusReportData);
+        ENCODE_CHK_NULL_RETURN(encodeStatusRcs);
+
         if (statusReportData->func != CODECHAL_ENCODE_ENC_ID &&
             statusReportData->func != CODECHAL_ENCODE_FEI_ENC_ID &&
             !completed)
