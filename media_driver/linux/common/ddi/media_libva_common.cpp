@@ -183,6 +183,7 @@ PDDI_MEDIA_SURFACE DdiMedia_ReplaceSurfaceWithNewFormat(PDDI_MEDIA_SURFACE surfa
     }
     //create new dst surface and copy the structure
     PDDI_MEDIA_SURFACE dstSurface = (DDI_MEDIA_SURFACE *)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_SURFACE));
+    DDI_CHK_NULL(dstSurface, "nullptr dstSurface", nullptr);
     if (nullptr == surfaceElement)
     {
         MOS_FreeMemory(dstSurface);
@@ -190,7 +191,6 @@ PDDI_MEDIA_SURFACE DdiMedia_ReplaceSurfaceWithNewFormat(PDDI_MEDIA_SURFACE surfa
     }
 
     MOS_SecureMemcpy(dstSurface,sizeof(DDI_MEDIA_SURFACE),surface,sizeof(DDI_MEDIA_SURFACE));
-    DDI_CHK_NULL(dstSurface, "nullptr dstSurface", nullptr);
     dstSurface->format = expectedFormat;
     dstSurface->uiLockedBufID = VA_INVALID_ID;
     dstSurface->uiLockedImageID = VA_INVALID_ID;
@@ -200,11 +200,21 @@ PDDI_MEDIA_SURFACE DdiMedia_ReplaceSurfaceWithNewFormat(PDDI_MEDIA_SURFACE surfa
     if(dstSurface->pShadowBuffer)
     {
         dstSurface->pShadowBuffer = (PDDI_MEDIA_BUFFER)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_BUFFER));
-        DDI_CHK_NULL(dstSurface->pShadowBuffer, "Failed to allocate shadow buffer", nullptr);
+        if (nullptr == dstSurface->pShadowBuffer)
+        {
+            MOS_FreeMemory(dstSurface);
+            return nullptr;
+        }
         MOS_SecureMemcpy(dstSurface->pShadowBuffer, sizeof(DDI_MEDIA_BUFFER), surface->pShadowBuffer, sizeof(DDI_MEDIA_BUFFER));
         mos_bo_reference(dstSurface->pShadowBuffer->bo);
+
         dstSurface->pShadowBuffer->pGmmResourceInfo = (GMM_RESOURCE_INFO *)MOS_AllocAndZeroMemory(sizeof(GMM_RESOURCE_INFO));
-        DDI_CHK_NULL(dstSurface->pShadowBuffer->pGmmResourceInfo, "Failed to allocate gmm resource info", nullptr);
+        if (nullptr == dstSurface->pShadowBuffer->pGmmResourceInfo)
+        {
+            MOS_FreeMemory(dstSurface->pShadowBuffer);
+            MOS_FreeMemory(dstSurface);
+            return nullptr;
+        }
         MOS_SecureMemcpy(dstSurface->pShadowBuffer->pGmmResourceInfo, sizeof(GMM_RESOURCE_INFO), surface->pShadowBuffer->pGmmResourceInfo, sizeof(GMM_RESOURCE_INFO));
     }
 
@@ -224,6 +234,11 @@ PDDI_MEDIA_SURFACE DdiMedia_ReplaceSurfaceWithNewFormat(PDDI_MEDIA_SURFACE surfa
     if(i == surface->pMediaCtx->pSurfaceHeap->uiAllocatedHeapElements)
     {
         DdiMediaUtil_LockMutex(&mediaCtx->SurfaceMutex);
+        if(dstSurface->pShadowBuffer)
+        {
+            MOS_FreeMemory(dstSurface->pShadowBuffer->pGmmResourceInfo);
+            MOS_FreeMemory(dstSurface->pShadowBuffer);
+        }
         MOS_FreeMemory(dstSurface);
         return nullptr;
     }
