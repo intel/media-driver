@@ -267,6 +267,7 @@ MOS_STATUS CodechalVdencVp9StateG12::ExecuteDysPictureLevel()
     // set HCP_PIPE_MODE_SELECT values
     PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams = nullptr;
     pipeModeSelectParams = m_vdencInterface->CreateMhwVdboxPipeModeSelectParams();
+    CODECHAL_ENCODE_CHK_NULL_RETURN(pipeModeSelectParams);
 
     SetHcpPipeModeSelectParams(*pipeModeSelectParams);
 
@@ -276,7 +277,9 @@ MOS_STATUS CodechalVdencVp9StateG12::ExecuteDysPictureLevel()
     pipeModeSelectParams->ChromaType             = m_vp9SeqParams->SeqFlags.fields.EncodedFormat;
     pipeModeSelectParams->bDynamicScalingEnabled = m_dysRefFrameFlags && !m_dysVdencMultiPassEnabled;
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpPipeModeSelectCmd(&cmdBuffer, pipeModeSelectParams));
+    eStatus = m_hcpInterface->AddHcpPipeModeSelectCmd(&cmdBuffer, pipeModeSelectParams);
+    m_vdencInterface->ReleaseMhwVdboxPipeModeSelectParams(pipeModeSelectParams);
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(eStatus);
 
     // set HCP_SURFACE_STATE values
     MHW_VDBOX_SURFACE_PARAMS surfaceParams[CODECHAL_HCP_ALTREF_SURFACE_ID + 1];
@@ -425,6 +428,12 @@ MOS_STATUS CodechalVdencVp9StateG12::ExecuteDysPictureLevel()
     pipeBufAddrParams = CreateHcpPipeBufAddrParams(pipeBufAddrParams);
     if (pipeBufAddrParams)
     {
+        auto delete_func = [&]()
+        {
+            MOS_Delete(pipeBufAddrParams);
+            pipeBufAddrParams = nullptr;
+        };
+
         pipeBufAddrParams->Mode = m_mode;
         pipeBufAddrParams->psPreDeblockSurface = &m_reconSurface;
         pipeBufAddrParams->psPostDeblockSurface = &m_reconSurface;
@@ -446,8 +455,8 @@ MOS_STATUS CodechalVdencVp9StateG12::ExecuteDysPictureLevel()
         pipeBufAddrParams->presCurMvTempBuffer = m_trackedBuf->GetMvTemporalBuffer(m_currMvTemporalBufferIndex);
 
 #ifdef _MMC_SUPPORTED
-        CODECHAL_ENCODE_CHK_NULL_RETURN(m_mmcState);
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SetPipeBufAddr(pipeBufAddrParams));
+        CODECHAL_ENCODE_CHK_NULL_WITH_DESTROY_RETURN(m_mmcState, delete_func);
+        CODECHAL_ENCODE_CHK_STATUS_WITH_DESTROY_RETURN(m_mmcState->SetPipeBufAddr(pipeBufAddrParams), delete_func);
 #endif
 
         //Huc is disabled for ref frame scaling, use input region
@@ -460,7 +469,7 @@ MOS_STATUS CodechalVdencVp9StateG12::ExecuteDysPictureLevel()
         {
             for (auto i = 0; i < 3; i++)
             {
-                CODECHAL_ENCODE_CHK_NULL_RETURN(refSurface[i]);
+                CODECHAL_ENCODE_CHK_NULL_WITH_DESTROY_RETURN(refSurface[i], delete_func);
 
                 pipeBufAddrParams->presReferences[i] = &refSurface[i]->OsResource;
             }
@@ -468,10 +477,10 @@ MOS_STATUS CodechalVdencVp9StateG12::ExecuteDysPictureLevel()
             pipeBufAddrParams->presColMvTempBuffer[0] = m_trackedBuf->GetMvTemporalBuffer(m_currMvTemporalBufferIndex ^ 0x01);
         }
 #ifdef _MMC_SUPPORTED
-        CODECHAL_ENCODE_CHK_NULL_RETURN(m_mmcState);
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SetPipeBufAddr(pipeBufAddrParams));
+        CODECHAL_ENCODE_CHK_NULL_WITH_DESTROY_RETURN(m_mmcState, delete_func);
+        CODECHAL_ENCODE_CHK_STATUS_WITH_DESTROY_RETURN(m_mmcState->SetPipeBufAddr(pipeBufAddrParams), delete_func);
 #endif
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpPipeBufAddrCmd(&cmdBuffer, pipeBufAddrParams));
+        CODECHAL_ENCODE_CHK_STATUS_WITH_DESTROY_RETURN(m_hcpInterface->AddHcpPipeBufAddrCmd(&cmdBuffer, pipeBufAddrParams), delete_func);
 
         MOS_Delete(pipeBufAddrParams);
     }
@@ -4081,27 +4090,37 @@ MOS_STATUS CodechalVdencVp9StateG12::ExecutePictureLevel()
     // set HCP_PIPE_BUF_ADDR_STATE values
     PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS pipeBufAddrParams = nullptr;
     pipeBufAddrParams = CreateHcpPipeBufAddrParams(pipeBufAddrParams);
+
+    auto delete_func = [&]()
+    {
+        if (pipeBufAddrParams)
+        {
+            MOS_Delete(pipeBufAddrParams);
+            pipeBufAddrParams = nullptr;
+        }
+    };
+
     if (pipeBufAddrParams)
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(SetHcpPipeBufAddrParams(*pipeBufAddrParams, refSurface, refSurfaceNonScaled, dsRefSurface4x, dsRefSurface8x));
+        CODECHAL_ENCODE_CHK_STATUS_WITH_DESTROY_RETURN(SetHcpPipeBufAddrParams(*pipeBufAddrParams, refSurface, refSurfaceNonScaled, dsRefSurface4x, dsRefSurface8x), delete_func);
 #ifdef _MMC_SUPPORTED
-        CODECHAL_ENCODE_CHK_NULL_RETURN(m_mmcState);
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SetPipeBufAddr(pipeBufAddrParams));
+        CODECHAL_ENCODE_CHK_NULL_WITH_DESTROY_RETURN(m_mmcState, delete_func);
+        CODECHAL_ENCODE_CHK_STATUS_WITH_DESTROY_RETURN(m_mmcState->SetPipeBufAddr(pipeBufAddrParams), delete_func);
 #endif
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpPipeBufAddrCmd(&cmdBuffer, pipeBufAddrParams));
+        CODECHAL_ENCODE_CHK_STATUS_WITH_DESTROY_RETURN(m_hcpInterface->AddHcpPipeBufAddrCmd(&cmdBuffer, pipeBufAddrParams), delete_func);
     }
 
     // set HCP_IND_OBJ_BASE_ADDR_STATE values
     MHW_VDBOX_IND_OBJ_BASE_ADDR_PARAMS indObjBaseAddrParams;
     SetHcpIndObjBaseAddrParams(indObjBaseAddrParams);
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpIndObjBaseAddrCmd(&cmdBuffer, &indObjBaseAddrParams));
+    CODECHAL_ENCODE_CHK_STATUS_WITH_DESTROY_RETURN(m_hcpInterface->AddHcpIndObjBaseAddrCmd(&cmdBuffer, &indObjBaseAddrParams), delete_func);
 
     // Send VD_CONTROL_STATE Pipe Initialization
     MOS_ZeroMemory(&vdCtrlParam, sizeof(MHW_MI_VD_CONTROL_STATE_PARAMS));
     vdCtrlParam.vdencEnabled = true;
     vdCtrlParam.vdencInitialization = true;
     miInterfaceG12 = static_cast <MhwMiInterfaceG12 *>(m_miInterface);
-    CODECHAL_ENCODE_CHK_STATUS_RETURN((miInterfaceG12)->AddMiVdControlStateCmd(&cmdBuffer, &vdCtrlParam));
+    CODECHAL_ENCODE_CHK_STATUS_WITH_DESTROY_RETURN((miInterfaceG12)->AddMiVdControlStateCmd(&cmdBuffer, &vdCtrlParam), delete_func);
 
     // Change ref surfaces to scaled for VDENC for DYS
     if ((m_dysRefFrameFlags != DYS_REF_NONE) && !m_dysVdencMultiPassEnabled)
@@ -4111,37 +4130,37 @@ MOS_STATUS CodechalVdencVp9StateG12::ExecutePictureLevel()
         surfaceParams[CODECHAL_HCP_ALTREF_SURFACE_ID].psSurface = refSurface[2];
     }
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencPipeModeSelectCmd(&cmdBuffer, pipeModeSelectParams));
+    CODECHAL_ENCODE_CHK_STATUS_WITH_DESTROY_RETURN(m_vdencInterface->AddVdencPipeModeSelectCmd(&cmdBuffer, pipeModeSelectParams), delete_func);
     if (pipeModeSelectParams)
     {
         MOS_Delete(pipeModeSelectParams);
         pipeModeSelectParams = nullptr;
     }
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencSrcSurfaceStateCmd(&cmdBuffer, &surfaceParams[CODECHAL_HCP_SRC_SURFACE_ID]));
+    CODECHAL_ENCODE_CHK_STATUS_WITH_DESTROY_RETURN(m_vdencInterface->AddVdencSrcSurfaceStateCmd(&cmdBuffer, &surfaceParams[CODECHAL_HCP_SRC_SURFACE_ID]), delete_func);
     if (m_pictureCodingType == I_TYPE)
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencRefSurfaceStateCmd(&cmdBuffer, &surfaceParams[CODECHAL_HCP_DECODED_SURFACE_ID]));
+        CODECHAL_ENCODE_CHK_STATUS_WITH_DESTROY_RETURN(m_vdencInterface->AddVdencRefSurfaceStateCmd(&cmdBuffer, &surfaceParams[CODECHAL_HCP_DECODED_SURFACE_ID]), delete_func);
     }
     else
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencRefSurfaceStateCmd(&cmdBuffer, &surfaceParams[CODECHAL_HCP_LAST_SURFACE_ID]));
+        CODECHAL_ENCODE_CHK_STATUS_WITH_DESTROY_RETURN(m_vdencInterface->AddVdencRefSurfaceStateCmd(&cmdBuffer, &surfaceParams[CODECHAL_HCP_LAST_SURFACE_ID]), delete_func);
         if ((m_dysRefFrameFlags != DYS_REF_NONE) && !m_dysVdencMultiPassEnabled)
         {
             if (m_refFrameFlags & 0x02)
             {
-                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencRefSurfaceStateCmd(&cmdBuffer, &surfaceParams[CODECHAL_HCP_GOLDEN_SURFACE_ID]));
+                CODECHAL_ENCODE_CHK_STATUS_WITH_DESTROY_RETURN(m_vdencInterface->AddVdencRefSurfaceStateCmd(&cmdBuffer, &surfaceParams[CODECHAL_HCP_GOLDEN_SURFACE_ID]), delete_func);
             }
             if (m_refFrameFlags & 0x04)
             {
-                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencRefSurfaceStateCmd(&cmdBuffer, &surfaceParams[CODECHAL_HCP_ALTREF_SURFACE_ID]));
+                CODECHAL_ENCODE_CHK_STATUS_WITH_DESTROY_RETURN(m_vdencInterface->AddVdencRefSurfaceStateCmd(&cmdBuffer, &surfaceParams[CODECHAL_HCP_ALTREF_SURFACE_ID]), delete_func);
             }
         }
     }
 
     MHW_VDBOX_SURFACE_PARAMS dsSurfaceParams[2];     // 8x and 4x DS surfaces
     SetHcpDsSurfaceParams(&dsSurfaceParams[0]);
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencDsRefSurfaceStateCmd(&cmdBuffer, &dsSurfaceParams[0], 2));
+    CODECHAL_ENCODE_CHK_STATUS_WITH_DESTROY_RETURN(m_vdencInterface->AddVdencDsRefSurfaceStateCmd(&cmdBuffer, &dsSurfaceParams[0], 2), delete_func);
 
     if (pipeBufAddrParams)
     {
@@ -4153,10 +4172,10 @@ MOS_STATUS CodechalVdencVp9StateG12::ExecutePictureLevel()
         pipeBufAddrParams->isIFrame                                   = (m_vp9PicParams->PicFlags.fields.frame_type == 0);
 
 #ifdef _MMC_SUPPORTED
-        CODECHAL_ENCODE_CHK_NULL_RETURN(m_mmcState);
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SetPipeBufAddr(pipeBufAddrParams));
+        CODECHAL_ENCODE_CHK_NULL_WITH_DESTROY_RETURN(m_mmcState, delete_func);
+        CODECHAL_ENCODE_CHK_STATUS_WITH_DESTROY_RETURN(m_mmcState->SetPipeBufAddr(pipeBufAddrParams), delete_func);
 #endif
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencPipeBufAddrCmd(&cmdBuffer, pipeBufAddrParams));
+        CODECHAL_ENCODE_CHK_STATUS_WITH_DESTROY_RETURN(m_vdencInterface->AddVdencPipeBufAddrCmd(&cmdBuffer, pipeBufAddrParams), delete_func);
         MOS_Delete(pipeBufAddrParams);
         pipeBufAddrParams = nullptr;
     }

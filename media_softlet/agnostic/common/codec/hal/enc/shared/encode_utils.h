@@ -73,6 +73,12 @@ enum HuCFunction
 #define ENCODE_CHK_STATUS_MESSAGE_RETURN(_stmt, _message, ...)                        \
     MOS_CHK_STATUS_MESSAGE_RETURN(MOS_COMPONENT_CODEC, MOS_CODEC_SUBCOMP_ENCODE, _stmt, _message, ##__VA_ARGS__)
 
+#define ENCODE_CHK_NULL_WITH_DESTROY_RETURN_VALUE(_ptr, destroyFunction) \
+    MOS_CHK_COND_WITH_DESTROY_RETURN_VALUE(MOS_COMPONENT_CODEC, MOS_CODEC_SUBCOMP_ENCODE, (nullptr == _ptr), destroyFunction, MOS_STATUS_NULL_POINTER, "error nullptr!")
+
+#define ENCODE_CHK_STATUS_WITH_DESTROY_RETURN_VALUE(_stmt, destroyFunction) \
+    MOS_CHK_COND_WITH_DESTROY_RETURN_VALUE(MOS_COMPONENT_CODEC, MOS_CODEC_SUBCOMP_ENCODE, (MOS_STATUS_SUCCESS != _stmt), destroyFunction, _stmt, "error status!")
+
 namespace encode {
 
 class Trace

@@ -526,12 +526,21 @@ MOS_STATUS Vp9PakIntegratePkt::SetupTilesStatusData(void *mfxStatus, void *statu
 
     uint8_t *bufPtr       = (uint8_t *)MOS_AllocAndZeroMemory(statusReportData->bitstreamSize);
     uint8_t *tempBsBuffer = bufPtr;
-    ENCODE_CHK_NULL_RETURN(tempBsBuffer);
+
+    auto tempTerminateFunc = [&]()
+    {
+        MOS_SafeFreeMemory(tempBsBuffer);
+
+        // Clean-up the tile status report buffer
+        MOS_ZeroMemory(tileStatusReport, sizeof(tileStatusReport[0]) * statusReportData->numberTilesInFrame);
+        m_allocator->UnLock(tileSizeStatusBuffer);
+    };
+    ENCODE_CHK_NULL_WITH_DESTROY_RETURN_VALUE(tempBsBuffer, tempTerminateFunc);
 
     PCODEC_REF_LIST currRefList = (PCODEC_REF_LIST)statusReportData->currRefList;
-    ENCODE_CHK_NULL_RETURN(currRefList);
+    ENCODE_CHK_NULL_WITH_DESTROY_RETURN_VALUE(currRefList, tempTerminateFunc);
     uint8_t *bitstream = (uint8_t *)m_allocator->LockResourceForWrite(&currRefList->resBitstreamBuffer);
-    ENCODE_CHK_NULL_RETURN(bitstream);
+    ENCODE_CHK_NULL_WITH_DESTROY_RETURN_VALUE(bitstream, tempTerminateFunc);
 
     for (uint32_t i = 0; i < statusReportData->numberTilesInFrame; ++i)
     {

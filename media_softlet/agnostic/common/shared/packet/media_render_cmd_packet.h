@@ -57,6 +57,12 @@ class MhwCpInterface;
 #define RENDER_PACKET_ASSERT(_expr) \
     MOS_ASSERT(MOS_COMPONENT_HW, 0, _expr)
 
+#define RENDER_PACKET_CHK_NULL_WITH_DESTROY_RETURN_VALUE(_ptr, destroyFunction) \
+    MOS_CHK_COND_WITH_DESTROY_RETURN_VALUE(MOS_COMPONENT_HW, 0, (nullptr == _ptr), destroyFunction, MOS_STATUS_NULL_POINTER, "error nullptr!")
+
+#define RENDER_PACKET_CHK_STATUS_WITH_DESTROY_RETURN_VALUE(_stmt, destroyFunction) \
+    MOS_CHK_COND_WITH_DESTROY_RETURN_VALUE(MOS_COMPONENT_HW, 0, (MOS_STATUS_SUCCESS != _stmt), destroyFunction, _stmt, "error status!")
+
 //!
 //! \brief Initialize MHW Kernel Param struct for loading Kernel
 //!

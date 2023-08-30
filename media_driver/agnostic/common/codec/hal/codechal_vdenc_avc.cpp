@@ -5137,8 +5137,9 @@ MOS_STATUS CodechalVdencAvcState::HuCBrcInitReset()
     CODECHAL_ENCODE_CHK_NULL_RETURN(pipeModeSelectParams);
 
     pipeModeSelectParams->Mode = m_mode;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hucInterface->AddHucPipeModeSelectCmd(&cmdBuffer, pipeModeSelectParams));
+    eStatus = m_hucInterface->AddHucPipeModeSelectCmd(&cmdBuffer, pipeModeSelectParams);
     m_vdencInterface->ReleaseMhwVdboxPipeModeSelectParams(pipeModeSelectParams);
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(eStatus);
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetDmemHuCBrcInitReset());
 
@@ -5316,8 +5317,9 @@ MOS_STATUS CodechalVdencAvcState::HuCBrcUpdate()
     CODECHAL_ENCODE_CHK_NULL_RETURN(pipeModeSelectParams);
 
     pipeModeSelectParams->Mode = m_mode;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hucInterface->AddHucPipeModeSelectCmd(&cmdBuffer, pipeModeSelectParams));
+    eStatus = m_hucInterface->AddHucPipeModeSelectCmd(&cmdBuffer, pipeModeSelectParams);
     m_vdencInterface->ReleaseMhwVdboxPipeModeSelectParams(pipeModeSelectParams);
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(eStatus);
 
     // DMEM set
     SetDmemHuCBrcUpdate();
@@ -6235,12 +6237,18 @@ MOS_STATUS CodechalVdencAvcState::ExecutePictureLevel()
     PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams = m_vdencInterface->CreateMhwVdboxPipeModeSelectParams();
     CODECHAL_ENCODE_CHK_NULL_RETURN(pipeModeSelectParams);
 
+    auto release_func = [&]()
+    {
+        m_vdencInterface->ReleaseMhwVdboxPipeModeSelectParams(pipeModeSelectParams);
+        pipeModeSelectParams = nullptr;
+    };
+
     SetMfxPipeModeSelectParams(encodePictureLevelParams, *pipeModeSelectParams);
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxPipeModeSelectCmd(&cmdBuffer, pipeModeSelectParams));
+    CODECHAL_ENCODE_CHK_STATUS_WITH_DESTROY_RETURN(m_mfxInterface->AddMfxPipeModeSelectCmd(&cmdBuffer, pipeModeSelectParams), release_func);
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxSurfaceCmd(&cmdBuffer, &reconSurfaceParams));
+    CODECHAL_ENCODE_CHK_STATUS_WITH_DESTROY_RETURN(m_mfxInterface->AddMfxSurfaceCmd(&cmdBuffer, &reconSurfaceParams), release_func);
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxSurfaceCmd(&cmdBuffer, &surfaceParams));
+    CODECHAL_ENCODE_CHK_STATUS_WITH_DESTROY_RETURN(m_mfxInterface->AddMfxSurfaceCmd(&cmdBuffer, &surfaceParams), release_func);
 
     // 4xDS surface
     MHW_VDBOX_SURFACE_PARAMS dsSurfaceParams;
@@ -6249,22 +6257,22 @@ MOS_STATUS CodechalVdencAvcState::ExecutePictureLevel()
     dsSurfaceParams.ucSurfaceStateId = CODECHAL_MFX_DSRECON_SURFACE_ID;
     dsSurfaceParams.psSurface        = m_trackedBuf->Get4xDsReconSurface(CODEC_CURR_TRACKED_BUFFER);
     CODECHAL_DEBUG_TOOL(m_debugInterface->DumpSurfaceInfo(dsSurfaceParams.psSurface, "4xDsReconSurface"));
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxSurfaceCmd(&cmdBuffer, &dsSurfaceParams));
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxPipeBufAddrCmd(&cmdBuffer, &pipeBufAddrParams));
+    CODECHAL_ENCODE_CHK_STATUS_WITH_DESTROY_RETURN(m_mfxInterface->AddMfxSurfaceCmd(&cmdBuffer, &dsSurfaceParams), release_func);
+    CODECHAL_ENCODE_CHK_STATUS_WITH_DESTROY_RETURN(m_mfxInterface->AddMfxPipeBufAddrCmd(&cmdBuffer, &pipeBufAddrParams), release_func);
 
     MHW_VDBOX_IND_OBJ_BASE_ADDR_PARAMS indObjBaseAddrParams;
     SetMfxIndObjBaseAddrStateParams(indObjBaseAddrParams);
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxIndObjBaseAddrCmd(&cmdBuffer, &indObjBaseAddrParams));
+    CODECHAL_ENCODE_CHK_STATUS_WITH_DESTROY_RETURN(m_mfxInterface->AddMfxIndObjBaseAddrCmd(&cmdBuffer, &indObjBaseAddrParams), release_func);
 
     MHW_VDBOX_BSP_BUF_BASE_ADDR_PARAMS bspBufBaseAddrParams;
     SetMfxBspBufBaseAddrStateParams(bspBufBaseAddrParams);
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxBspBufBaseAddrCmd(&cmdBuffer, &bspBufBaseAddrParams));
+    CODECHAL_ENCODE_CHK_STATUS_WITH_DESTROY_RETURN(m_mfxInterface->AddMfxBspBufBaseAddrCmd(&cmdBuffer, &bspBufBaseAddrParams), release_func);
 
     if (m_avcPicParam->StatusReportEnable.fields.FrameStats)
     {
         pipeModeSelectParams->bFrameStatisticsStreamOutEnable = true;
     }
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencPipeModeSelectCmd(&cmdBuffer, pipeModeSelectParams));
+    CODECHAL_ENCODE_CHK_STATUS_WITH_DESTROY_RETURN(m_vdencInterface->AddVdencPipeModeSelectCmd(&cmdBuffer, pipeModeSelectParams), release_func);
     m_vdencInterface->ReleaseMhwVdboxPipeModeSelectParams(pipeModeSelectParams);
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencSrcSurfaceStateCmd(&cmdBuffer, &surfaceParams));
@@ -6550,8 +6558,9 @@ MOS_STATUS CodechalVdencAvcState::ExecuteSliceLevel()
         vdencWalkerStateParams->Mode          = CODECHAL_ENCODE_MODE_AVC;
         vdencWalkerStateParams->pAvcSeqParams = avcSeqParams;
         vdencWalkerStateParams->pAvcSlcParams = avcSlcParams;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencWalkerStateCmd(&cmdBuffer, vdencWalkerStateParams));
+        eStatus = m_vdencInterface->AddVdencWalkerStateCmd(&cmdBuffer, vdencWalkerStateParams);
         MOS_Delete(vdencWalkerStateParams);
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(eStatus);
 
         MOS_ZeroMemory(&vdPipelineFlushParams, sizeof(vdPipelineFlushParams));
         // MFXPipeDone should not be set for tail insertion
@@ -6810,7 +6819,7 @@ MOS_STATUS CodechalVdencAvcState::AddVdencWalkerStateCmd(
     vdencWalkerStateParams->Mode          = CODECHAL_ENCODE_MODE_AVC;
     vdencWalkerStateParams->pAvcSeqParams = avcSeqParams;
     vdencWalkerStateParams->pAvcSlcParams = m_avcSliceParams;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencWalkerStateCmd(cmdBuffer, vdencWalkerStateParams));
+    eStatus = m_vdencInterface->AddVdencWalkerStateCmd(cmdBuffer, vdencWalkerStateParams);
 
     MOS_Delete(vdencWalkerStateParams);
     return eStatus;
