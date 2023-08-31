@@ -94,8 +94,11 @@
 #define CODECHAL_ENCODE_CHK_NULL_WITH_DESTROY_RETURN(_ptr, destroyFunction) \
     MOS_CHK_COND_WITH_DESTROY_RETURN_VALUE(MOS_COMPONENT_CODEC, MOS_CODEC_SUBCOMP_ENCODE, (nullptr == _ptr), destroyFunction, MOS_STATUS_NULL_POINTER, "error nullptr!")
 
-#define CODECHAL_ENCODE_CHK_STATUS_WITH_DESTROY_RETURN(_stmt, destroyFunction) \
-    MOS_CHK_COND_WITH_DESTROY_RETURN_VALUE(MOS_COMPONENT_CODEC, MOS_CODEC_SUBCOMP_ENCODE, (MOS_STATUS_SUCCESS != _stmt), destroyFunction, _stmt, "error status!")
+#define CODECHAL_ENCODE_CHK_STATUS_WITH_DESTROY_RETURN(_stmt, destroyFunction)                                                                                  \
+{                                                                                                                                                               \
+    MOS_STATUS sts = (MOS_STATUS)(_stmt);                                                                                                                       \
+    MOS_CHK_COND_WITH_DESTROY_RETURN_VALUE(MOS_COMPONENT_CODEC, MOS_CODEC_SUBCOMP_ENCODE, (MOS_STATUS_SUCCESS != sts), destroyFunction, sts, "error status!")   \
+}
 
 // User Feature Report Writeout
 #define CodecHalEncode_WriteKey64(key, value, mosCtx)\
