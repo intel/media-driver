@@ -81,7 +81,6 @@ public:
         {
             bComputeContextEnabled = computeContextEnabled ? true : false;
         }
-#endif
 
         if (!MEDIA_IS_SKU(m_skuTable, FtrCCSNode))
         {
@@ -90,9 +89,10 @@ public:
 
         if (bComputeContextEnabled)
         {
-            m_renderGpuContext    = MOS_GPU_CONTEXT_COMPUTE;
-            m_renderGpuNode       = MOS_GPU_NODE_COMPUTE;
+            m_renderGpuContext = MOS_GPU_CONTEXT_COMPUTE;
+            m_renderGpuNode    = MOS_GPU_NODE_COMPUTE;
         }
+#endif
     }
 
     //!

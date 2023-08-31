@@ -2634,6 +2634,9 @@ MOS_STATUS VpVeboxCmdPacketLegacy::SetUpdatedExecuteResource(
 {
     VP_FUNC_CALL();
 
+    VP_RENDER_CHK_NULL_RETURN(inputSurface);
+    VP_RENDER_CHK_NULL_RETURN(outputSurface);
+
     m_allocator->UpdateResourceUsageType(&inputSurface->osSurface->OsResource, MOS_HW_RESOURCE_USAGE_VP_INPUT_PICTURE_FF);
     m_allocator->UpdateResourceUsageType(&outputSurface->osSurface->OsResource, MOS_HW_RESOURCE_USAGE_VP_OUTPUT_PICTURE_FF);
 

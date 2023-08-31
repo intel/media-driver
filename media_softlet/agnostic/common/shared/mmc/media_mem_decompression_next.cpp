@@ -109,8 +109,16 @@ MOS_STATUS MediaMemDeCompNext::MemoryDecompress(PMOS_RESOURCE targetResource)
             {
                 VPHAL_MEMORY_DECOMP_CHK_NULL_RETURN(m_renderMutex);
                 MosUtilities::MosLockMutex(m_renderMutex);
-                VPHAL_MEMORY_DECOMP_CHK_STATUS_RETURN(RenderDecompCMD(&targetSurface));
-                MosUtilities::MosUnlockMutex(m_renderMutex);
+                eStatus = RenderDecompCMD(&targetSurface);
+                if (eStatus != MOS_STATUS_SUCCESS)
+                {
+                    MosUtilities::MosUnlockMutex(m_renderMutex);
+                    VPHAL_MEMORY_DECOMP_CHK_STATUS_RETURN(eStatus);
+                }
+                else
+                {
+                    MosUtilities::MosUnlockMutex(m_renderMutex);
+                }
             }
         }
     }

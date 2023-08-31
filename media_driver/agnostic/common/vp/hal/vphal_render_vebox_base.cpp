@@ -1823,6 +1823,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxSendVeboxCmd_Prepare(
     PVPHAL_VEBOX_STATE                      pVeboxState  = this;
     PVPHAL_VEBOX_RENDER_DATA                pRenderData  = GetLastExecRenderData();
 
+    VPHAL_RENDER_CHK_NULL(pRenderData);
     // Switch GPU context to VEBOX
     VPHAL_RENDER_CHK_STATUS(pOsInterface->pfnSetGpuContext(pOsInterface, MOS_GPU_CONTEXT_VEBOX));
 
@@ -2964,6 +2965,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxCopyAndUpdateVeboxState(
 
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
+    VPHAL_RENDER_CHK_NULL(pRenderData);
     VPHAL_RENDER_ASSERT(pVeboxState);
     VPHAL_RENDER_ASSERT(pRenderData);
     VPHAL_RENDER_ASSERT(pSrcSurface);
@@ -3392,6 +3394,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxRenderMode0(
     PVPHAL_VEBOX_STATE          pVeboxState = this;
     PVPHAL_VEBOX_RENDER_DATA    pRenderData = GetLastExecRenderData();
 
+    VPHAL_RENDER_CHK_NULL(pRenderData);
     VPHAL_RENDER_ASSERT(pVeboxState);
     VPHAL_RENDER_ASSERT(pRenderData);
     VPHAL_RENDER_ASSERT(pSrcSurface);
@@ -3661,6 +3664,8 @@ MOS_STATUS VPHAL_VEBOX_STATE::Render(
     bRender                 = false;
     bDIVeboxBypass          = false;
     pRenderData             = pVeboxState->GetLastExecRenderData();
+
+    VPHAL_RENDER_CHK_NULL(pRenderData);
 
     VPHAL_DBG_STATE_DUMPPER_SET_CURRENT_STAGE(VPHAL_DBG_STAGE_VEBOX);
 
