@@ -589,6 +589,7 @@ MOS_STATUS SwFilterPipe::UpdateFeatures(bool isInputPipe, uint32_t pipeIndex, VP
                 auto handler = m_vpInterface.GetSwFilterHandler(FeatureTypeCsc);
                 VP_PUBLIC_CHK_NULL_RETURN(handler);
                 SwFilterCsc* swfilter = dynamic_cast<SwFilterCsc *>(handler->CreateSwFilter());
+                VP_PUBLIC_CHK_NULL_RETURN(swfilter);
                 swfilter->Configure(inputSurf, outputSurf, *caps);
                 inputPipe->AddSwFilterUnordered(swfilter);
             }

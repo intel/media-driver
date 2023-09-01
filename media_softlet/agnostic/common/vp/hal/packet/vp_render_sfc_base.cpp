@@ -1528,7 +1528,6 @@ MOS_STATUS SfcRenderBase::AddSfcLock(
     VP_RENDER_CHK_NULL_RETURN(m_sfcItf);
 
     auto& params = m_sfcItf->MHW_GETPAR_F(SFC_LOCK)();
-    params = {};
     params = *sfcLockParams;
 
     // Send SFC_LOCK command to acquire SFC pipe for Vebox

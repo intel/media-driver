@@ -2091,10 +2091,10 @@ PRENDERHAL_MEDIA_STATE RenderHal_DSH_AssignDynamicState(
     pCurrentPtr = performanceMemory;
     pCurrentPtr += (sizeof(uint64_t) * 2);
     *((RENDERHAL_COMPONENT *)pCurrentPtr) = componentID;
-    pDynamicState->memoryBlock.AddData(
+    MHW_RENDERHAL_CHK_STATUS(pDynamicState->memoryBlock.AddData(
         performanceMemory, 
         pDynamicState->Performance.dwOffset, 
-        performanceSize);
+        performanceSize));
 
 finish:
 

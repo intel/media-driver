@@ -223,153 +223,113 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_XE_XPM::SetSurfaceStateEntry(
 
     uint32_t TileMode = (pParams->bGMMTileEnabled) ? pParams->TileModeGMM : ((pParams->bTiledSurface) ? ((pParams->bTileWalk == 0) ? 2 /*x-tile*/ : 3 /*y-tile*/) : 0); /*linear*/
 
-    if (pParams->bUseAdvState)
-    {
-        // Obtain the Pointer to the Surface state from SSH Buffer
-        mhw_state_heap_xe_xpm::MEDIA_SURFACE_STATE_CMD* pSurfaceStateAdv =
-            (mhw_state_heap_xe_xpm::MEDIA_SURFACE_STATE_CMD*) pParams->pSurfaceState;
-        MHW_MI_CHK_NULL(pSurfaceStateAdv);
-        // Initialize Surface State
-        *pSurfaceStateAdv = mhw_state_heap_xe_xpm::MEDIA_SURFACE_STATE_CMD();
 
-        pSurfaceStateAdv->DW0.Rotation                        = pParams->RotationMode;
-        pSurfaceStateAdv->DW0.XOffset                         = pParams->iXOffset >> 2;
-        pSurfaceStateAdv->DW0.YOffset                         = pParams->iYOffset >> 2;
-        pSurfaceStateAdv->DW0.CompressionFormat               = pParams->dwCompressionFormat;
-        pSurfaceStateAdv->DW1.Width                           = pParams->dwWidth - 1;
-        pSurfaceStateAdv->DW1.Height                          = pParams->dwHeight - 1;
-        pSurfaceStateAdv->DW1.CrVCbUPixelOffsetVDirection     = pParams->UVPixelOffsetVDirection & 3;
-        pSurfaceStateAdv->DW2.CrVCbUPixelOffsetVDirectionMsb  = pParams->UVPixelOffsetVDirection >> 2;
-        pSurfaceStateAdv->DW2.CrVCbUPixelOffsetUDirection     = pParams->UVPixelOffsetUDirection;
-        pSurfaceStateAdv->DW2.SurfaceFormat                   = pParams->dwFormat;
-        pSurfaceStateAdv->DW2.InterleaveChroma                = pParams->bInterleaveChroma;
-        pSurfaceStateAdv->DW2.SurfacePitch                    = pParams->dwPitch - 1;
-        pSurfaceStateAdv->DW2.HalfPitchForChroma              = pParams->bHalfPitchChroma;
-        pSurfaceStateAdv->DW2.TileMode                        = TileMode;
-        pSurfaceStateAdv->DW2.MemoryCompressionEnable =
-            (pParams->MmcState == MOS_MEMCOMP_RC || pParams->MmcState == MOS_MEMCOMP_MC) ? 1 : 0;
-        pSurfaceStateAdv->DW2.MemoryCompressionType =
-            (pParams->MmcState == MOS_MEMCOMP_RC) ? 1 : 0;
-        pSurfaceStateAdv->DW3.XOffsetForUCb                   = pParams->dwXOffsetForU;
-        pSurfaceStateAdv->DW3.YOffsetForUCb                   = pParams->dwYOffsetForU;
-        pSurfaceStateAdv->DW4.XOffsetForVCr                   = pParams->dwXOffsetForV;
-        pSurfaceStateAdv->DW4.YOffsetForVCr                   = pParams->dwYOffsetForV;
-        pSurfaceStateAdv->DW5.VerticalLineStride              = pParams->bVerticalLineStride;
-        pSurfaceStateAdv->DW5.VerticalLineStrideOffset        = pParams->bVerticalLineStrideOffset;
-        pSurfaceStateAdv->DW5.SurfaceMemoryObjectControlState = pParams->dwCacheabilityControl;
+    // Obtain the Pointer to the Surface state from SSH Buffer
 
-        // Return offset and pointer for patching
-        pParams->pdwCmd          = (uint32_t *)&(pSurfaceStateAdv->DW6.Value);
-        pParams->dwLocationInCmd = 6;
+    mhw_state_heap_xe_xpm::RENDER_SURFACE_STATE_CMD* pSurfaceState = 
+        (mhw_state_heap_xe_xpm::RENDER_SURFACE_STATE_CMD*) pParams->pSurfaceState;
+    MHW_MI_CHK_NULL(pSurfaceState);
+
+    // Initialize Surface State
+    *pSurfaceState = mhw_state_heap_xe_xpm::RENDER_SURFACE_STATE_CMD();
+
+    pSurfaceState->DW0.SurfaceType               = pParams->SurfaceType3D;
+    pSurfaceState->DW0.SurfaceFormat             = pParams->dwFormat;
+    pSurfaceState->DW0.TileMode                  = TileMode;
+    pSurfaceState->DW0.VerticalLineStride        = pParams->bVerticalLineStride;
+    pSurfaceState->DW0.VerticalLineStrideOffset  = pParams->bVerticalLineStrideOffset;
+    pSurfaceState->DW0.SurfaceHorizontalAlignment = 1;
+    pSurfaceState->DW0.SurfaceVerticalAlignment   = 1;
+
+    pSurfaceState->DW1.MemoryObjectControlState  = pParams->dwCacheabilityControl;
+    if (pParams->SurfaceType3D == GFX3DSTATE_SURFACETYPE_BUFFER)
+    {   // Buffer resources - use original width/height/pitch/depth
+        pSurfaceState->DW2.Width                 = pParams->dwWidth;
+        pSurfaceState->DW2.Height                = pParams->dwHeight;
+        pSurfaceState->DW3.SurfacePitch          = pParams->dwPitch;
+        pSurfaceState->DW3.Depth                 = pParams->dwDepth;
     }
-    else // not AVS
+    else
     {
-        // Obtain the Pointer to the Surface state from SSH Buffer
-
-        mhw_state_heap_xe_xpm::RENDER_SURFACE_STATE_CMD* pSurfaceState = 
-            (mhw_state_heap_xe_xpm::RENDER_SURFACE_STATE_CMD*) pParams->pSurfaceState;
-        MHW_MI_CHK_NULL(pSurfaceState);
-
-        // Initialize Surface State
-        *pSurfaceState = mhw_state_heap_xe_xpm::RENDER_SURFACE_STATE_CMD();
-
-        pSurfaceState->DW0.SurfaceType               = pParams->SurfaceType3D;
-        pSurfaceState->DW0.SurfaceFormat             = pParams->dwFormat;
-        pSurfaceState->DW0.TileMode                  = TileMode;
-        pSurfaceState->DW0.VerticalLineStride        = pParams->bVerticalLineStride;
-        pSurfaceState->DW0.VerticalLineStrideOffset  = pParams->bVerticalLineStrideOffset;
-        pSurfaceState->DW0.SurfaceHorizontalAlignment = 1;
-        pSurfaceState->DW0.SurfaceVerticalAlignment   = 1;
-
-        pSurfaceState->DW1.MemoryObjectControlState  = pParams->dwCacheabilityControl;
-        if (pParams->SurfaceType3D == GFX3DSTATE_SURFACETYPE_BUFFER)
-        {   // Buffer resources - use original width/height/pitch/depth
-            pSurfaceState->DW2.Width                 = pParams->dwWidth;
-            pSurfaceState->DW2.Height                = pParams->dwHeight;
-            pSurfaceState->DW3.SurfacePitch          = pParams->dwPitch;
-            pSurfaceState->DW3.Depth                 = pParams->dwDepth;
-        }
-        else
-        {
-            pSurfaceState->DW1.SurfaceQpitch         = pParams->dwQPitch >> 2;
-            pSurfaceState->DW2.Width                 = pParams->dwWidth - 1;
-            pSurfaceState->DW2.Height                = pParams->dwHeight - 1;
-            pSurfaceState->DW3.SurfacePitch          = pParams->dwPitch - 1;
-            pSurfaceState->DW3.Depth                 = pParams->dwDepth - 1;
-        }
-        pSurfaceState->DW4.RenderTargetAndSampleUnormRotation      = pParams->RotationMode;
-        pSurfaceState->DW5.XOffset                          = pParams->iXOffset >> 2;
-        pSurfaceState->DW5.YOffset                          = pParams->iYOffset >> 2;
-        pSurfaceState->DW6.Obj2.SeparateUvPlaneEnable       = pParams->bSeperateUVPlane;
-        pSurfaceState->DW6.Obj2.HalfPitchForChroma          = pParams->bHalfPitchChroma;
-        pSurfaceState->DW6.Obj2.XOffsetForUOrUvPlane        = pParams->dwXOffsetForU;
-        pSurfaceState->DW6.Obj2.YOffsetForUOrUvPlane        = pParams->dwYOffsetForU;
-
-        // Set L1 Cache control
-        pSurfaceState->DW5.L1CachePolicy = pParams->L1CacheConfig;
-
-        // R8B8G8A8 is designed to represent media AYUV format.
-        // But from Gen10+ 3D sampler doesn't support R8B8G8A8 format any more.
-        // Use R8G8B8A8 + Channel Select to fake it.
-        if (pParams->dwFormat == MHW_GFX3DSTATE_SURFACEFORMAT_R8B8G8A8_UNORM)
-        {
-            pSurfaceState->DW0.SurfaceFormat = MHW_GFX3DSTATE_SURFACEFORMAT_R8G8B8A8_UNORM;
-            pSurfaceState->DW7.ShaderChannelSelectAlpha = mhw_state_heap_xe_xpm::RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_ALPHA_ALPHA;
-            pSurfaceState->DW7.ShaderChannelSelectBlue  = mhw_state_heap_xe_xpm::RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_GREEN_GREEN;
-            pSurfaceState->DW7.ShaderChannelSelectGreen = mhw_state_heap_xe_xpm::RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_BLUE_BLUE;
-            pSurfaceState->DW7.ShaderChannelSelectRed   = mhw_state_heap_xe_xpm::RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_RED_RED;
-        }
-        else
-        {
-            pSurfaceState->DW7.ShaderChannelSelectAlpha = mhw_state_heap_xe_xpm::RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_ALPHA_ALPHA;
-            pSurfaceState->DW7.ShaderChannelSelectBlue  = mhw_state_heap_xe_xpm::RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_BLUE_BLUE;
-            pSurfaceState->DW7.ShaderChannelSelectGreen = mhw_state_heap_xe_xpm::RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_GREEN_GREEN;
-            pSurfaceState->DW7.ShaderChannelSelectRed   = mhw_state_heap_xe_xpm::RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_RED_RED;
-        }
-
-        // The OGL border color mode is much simpler to support in HW as no filtering of
-        // missing channels is required. Software will be required to use OGL border color
-        // mode (enabled via Sampler State) and use Shader Channel Selects to force return
-        // of 1.0 on missing channels.
-        if (pParams->bBoardColorOGL)
-        {
-            SetMissingShaderChannels(pSurfaceState, pParams->dwFormat);
-        }
-
-        if (pParams->MmcState == MOS_MEMCOMP_MC)
-        {
-            // Media Compresseion Enable on Current surface
-            pSurfaceState->DW7.MemoryCompressionEnable          = 1;
-            pSurfaceState->DW7.MemoryCompressionMode            = 0;
-            pSurfaceState->DW4.DecompressInL3                   = 1;
-
-            pSurfaceState->DW10_11.Obj1.XOffsetForVPlane        = pParams->dwXOffsetForV;
-            pSurfaceState->DW10_11.Obj0.YOffsetForVPlane        = pParams->dwYOffsetForV;
-            pSurfaceState->DW12.CompressionFormat               = pParams->dwCompressionFormat;
-        }
-        else if(pParams->MmcState == MOS_MEMCOMP_RC)
-        {
-            // Render Compression Enable on Current Surface
-            pSurfaceState->DW7.MemoryCompressionEnable = 0;
-            pSurfaceState->DW7.MemoryCompressionMode   = 0;
-            pSurfaceState->DW4.DecompressInL3          = 0;
-            pSurfaceState->DW6.Obj0.AuxiliarySurfaceMode = mhw_state_heap_xe_xpm::RENDER_SURFACE_STATE_CMD::AUXILIARY_SURFACE_MODE_AUXCCSE;
-            // Disable CC because MEdia didn't have FCC input usage
-            pSurfaceState->DW10_11.Obj0.ClearValueAddressEnable     = 0;
-            pSurfaceState->DW12.CompressionFormat = pParams->dwCompressionFormat;
-        }
-        else
-        {
-            pSurfaceState->DW10_11.Obj1.XOffsetForVPlane = pParams->dwXOffsetForV;
-            pSurfaceState->DW10_11.Obj0.YOffsetForVPlane = pParams->dwYOffsetForV;
-        }
-
-        pSurfaceState->DW8_9.SurfaceBaseAddress             = 0;
-
-        // Return offset and pointer for patching
-        pParams->pdwCmd          = (uint32_t *)&(pSurfaceState->DW8_9.SurfaceBaseAddress);
-        pParams->dwLocationInCmd = 8;
+        pSurfaceState->DW1.SurfaceQpitch         = pParams->dwQPitch >> 2;
+        pSurfaceState->DW2.Width                 = pParams->dwWidth - 1;
+        pSurfaceState->DW2.Height                = pParams->dwHeight - 1;
+        pSurfaceState->DW3.SurfacePitch          = pParams->dwPitch - 1;
+        pSurfaceState->DW3.Depth                 = pParams->dwDepth - 1;
     }
+    pSurfaceState->DW4.RenderTargetAndSampleUnormRotation      = pParams->RotationMode;
+    pSurfaceState->DW5.XOffset                          = pParams->iXOffset >> 2;
+    pSurfaceState->DW5.YOffset                          = pParams->iYOffset >> 2;
+    pSurfaceState->DW6.Obj2.SeparateUvPlaneEnable       = pParams->bSeperateUVPlane;
+    pSurfaceState->DW6.Obj2.HalfPitchForChroma          = pParams->bHalfPitchChroma;
+    pSurfaceState->DW6.Obj2.XOffsetForUOrUvPlane        = pParams->dwXOffsetForU;
+    pSurfaceState->DW6.Obj2.YOffsetForUOrUvPlane        = pParams->dwYOffsetForU;
+
+    // Set L1 Cache control
+    pSurfaceState->DW5.L1CachePolicy = pParams->L1CacheConfig;
+
+    // R8B8G8A8 is designed to represent media AYUV format.
+    // But from Gen10+ 3D sampler doesn't support R8B8G8A8 format any more.
+    // Use R8G8B8A8 + Channel Select to fake it.
+    if (pParams->dwFormat == MHW_GFX3DSTATE_SURFACEFORMAT_R8B8G8A8_UNORM)
+    {
+        pSurfaceState->DW0.SurfaceFormat = MHW_GFX3DSTATE_SURFACEFORMAT_R8G8B8A8_UNORM;
+        pSurfaceState->DW7.ShaderChannelSelectAlpha = mhw_state_heap_xe_xpm::RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_ALPHA_ALPHA;
+        pSurfaceState->DW7.ShaderChannelSelectBlue  = mhw_state_heap_xe_xpm::RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_GREEN_GREEN;
+        pSurfaceState->DW7.ShaderChannelSelectGreen = mhw_state_heap_xe_xpm::RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_BLUE_BLUE;
+        pSurfaceState->DW7.ShaderChannelSelectRed   = mhw_state_heap_xe_xpm::RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_RED_RED;
+    }
+    else
+    {
+        pSurfaceState->DW7.ShaderChannelSelectAlpha = mhw_state_heap_xe_xpm::RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_ALPHA_ALPHA;
+        pSurfaceState->DW7.ShaderChannelSelectBlue  = mhw_state_heap_xe_xpm::RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_BLUE_BLUE;
+        pSurfaceState->DW7.ShaderChannelSelectGreen = mhw_state_heap_xe_xpm::RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_GREEN_GREEN;
+        pSurfaceState->DW7.ShaderChannelSelectRed   = mhw_state_heap_xe_xpm::RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_RED_RED;
+    }
+
+    // The OGL border color mode is much simpler to support in HW as no filtering of
+    // missing channels is required. Software will be required to use OGL border color
+    // mode (enabled via Sampler State) and use Shader Channel Selects to force return
+    // of 1.0 on missing channels.
+    if (pParams->bBoardColorOGL)
+    {
+        SetMissingShaderChannels(pSurfaceState, pParams->dwFormat);
+    }
+
+    if (pParams->MmcState == MOS_MEMCOMP_MC)
+    {
+        // Media Compresseion Enable on Current surface
+        pSurfaceState->DW7.MemoryCompressionEnable          = 1;
+        pSurfaceState->DW7.MemoryCompressionMode            = 0;
+        pSurfaceState->DW4.DecompressInL3                   = 1;
+
+        pSurfaceState->DW10_11.Obj1.XOffsetForVPlane        = pParams->dwXOffsetForV;
+        pSurfaceState->DW10_11.Obj0.YOffsetForVPlane        = pParams->dwYOffsetForV;
+        pSurfaceState->DW12.CompressionFormat               = pParams->dwCompressionFormat;
+    }
+    else if(pParams->MmcState == MOS_MEMCOMP_RC)
+    {
+        // Render Compression Enable on Current Surface
+        pSurfaceState->DW7.MemoryCompressionEnable = 0;
+        pSurfaceState->DW7.MemoryCompressionMode   = 0;
+        pSurfaceState->DW4.DecompressInL3          = 0;
+        pSurfaceState->DW6.Obj0.AuxiliarySurfaceMode = mhw_state_heap_xe_xpm::RENDER_SURFACE_STATE_CMD::AUXILIARY_SURFACE_MODE_AUXCCSE;
+        // Disable CC because MEdia didn't have FCC input usage
+        pSurfaceState->DW10_11.Obj0.ClearValueAddressEnable     = 0;
+        pSurfaceState->DW12.CompressionFormat = pParams->dwCompressionFormat;
+    }
+    else
+    {
+        pSurfaceState->DW10_11.Obj1.XOffsetForVPlane = pParams->dwXOffsetForV;
+        pSurfaceState->DW10_11.Obj0.YOffsetForVPlane = pParams->dwYOffsetForV;
+    }
+
+    pSurfaceState->DW8_9.SurfaceBaseAddress             = 0;
+
+    // Return offset and pointer for patching
+    pParams->pdwCmd          = (uint32_t *)&(pSurfaceState->DW8_9.SurfaceBaseAddress);
+    pParams->dwLocationInCmd = 8;
+
 
     return MOS_STATUS_SUCCESS;
 }

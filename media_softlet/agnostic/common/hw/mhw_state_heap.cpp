@@ -1995,7 +1995,11 @@ PMHW_STATE_HEAP_MEMORY_BLOCK  XMHW_STATE_HEAP_INTERFACE::AllocateDynamicBlockDyn
                     dwExtendSize = MOS_ALIGN_CEIL(dwExtendSize + pParams->dwScratchSpace, dwIncrement);
                     dwExtendSize = MOS_MAX(dwExtendSize, dwMinSize);
 
-                    ExtendStateHeap(StateHeapType, dwExtendSize);
+                    eStatus = ExtendStateHeap(StateHeapType, dwExtendSize);
+                    if (eStatus != MOS_STATUS_SUCCESS)
+                    {
+                        MHW_ASSERTMESSAGE("ExtendStateHeap failed");
+                    }
                 }
                 else
                 {

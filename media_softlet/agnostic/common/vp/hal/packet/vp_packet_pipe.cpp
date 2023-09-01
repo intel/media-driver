@@ -220,7 +220,6 @@ MOS_STATUS PacketPipe::SetOutputPipeMode(EngineType engineType)
     default:
         m_outputPipeMode = VPHAL_OUTPUT_PIPE_MODE_INVALID;
         VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
-        break;
     }
 
     return MOS_STATUS_SUCCESS;

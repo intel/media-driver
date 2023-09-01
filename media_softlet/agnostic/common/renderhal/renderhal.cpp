@@ -6440,7 +6440,7 @@ MOS_STATUS RenderHal_GetSamplerOffsetAndPtr(
     MHW_RENDERHAL_CHK_NULL_RETURN(pSamplerParams);
 
     ElementType = pSamplerParams->ElementType;
-    SamplerType = (pSamplerParams) ? pSamplerParams->SamplerType : MHW_SAMPLER_TYPE_3D;
+    SamplerType = pSamplerParams->SamplerType;
 
     if (SamplerType == MHW_SAMPLER_TYPE_VME)
     {

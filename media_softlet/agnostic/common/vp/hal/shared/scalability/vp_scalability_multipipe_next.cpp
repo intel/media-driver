@@ -627,7 +627,7 @@ MOS_STATUS VpScalabilityMultiPipeNext::UpdateState(void *statePars)
     SCALABILITY_FUNCTION_ENTER;
 
     StateParams *vpStatePars = (StateParams *)statePars;
-    if (vpStatePars->currentPipe < 0 || vpStatePars->currentPipe >= m_pipeNum)
+    if (vpStatePars->currentPipe >= m_pipeNum)
     {
         SCALABILITY_ASSERTMESSAGE("UpdateState failed with invalid parameter: currentPipe %d!",
             vpStatePars->currentPipe);

@@ -88,7 +88,7 @@ MOS_STATUS VpHdrFilter::CalculateEngineParams(
     if (vpExecuteCaps.bVebox)
     {
         // create a filter Param buffer
-        MOS_ZeroMemory(&m_veboxHdrParams, sizeof(PVEBOX_HDR_PARAMS));
+        MOS_ZeroMemory(&m_veboxHdrParams, sizeof(VEBOX_HDR_PARAMS));
         m_veboxHdrParams.uiMaxDisplayLum      = hdrParams.uiMaxDisplayLum;
         m_veboxHdrParams.uiMaxContentLevelLum = hdrParams.uiMaxContentLevelLum;
         m_veboxHdrParams.hdrMode              = hdrParams.hdrMode;

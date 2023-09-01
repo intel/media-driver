@@ -547,7 +547,7 @@ MOS_STATUS BltStateXe_Xpm_Plus::SubmitCMD(
         }
 
         RegisterDwParams.dwData = swctrl.DW0.Value;
-        m_miInterface->AddMiLoadRegisterImmCmd(&cmdBuffer, &RegisterDwParams);
+        BLT_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterImmCmd(&cmdBuffer, &RegisterDwParams));
 
         BLT_CHK_STATUS_RETURN(m_bltInterface->AddFastCopyBlt(
             &cmdBuffer,

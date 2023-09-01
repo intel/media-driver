@@ -2212,12 +2212,6 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxSendVeboxCmd()
     PVPHAL_VEBOX_STATE                      pVeboxState                     = this;
     PVPHAL_VEBOX_RENDER_DATA                pRenderData                     = GetLastExecRenderData();
 
-    if (pVeboxState == nullptr)
-    {
-        VPHAL_RENDER_ASSERTMESSAGE("pVeboxState not available.");
-        return MOS_STATUS_INVALID_PARAMETER;
-    }
-
     pRenderHal              = pVeboxState->m_pRenderHal;
     pOsInterface            = pVeboxState->m_pOsInterface;
     iRemaining              = 0;

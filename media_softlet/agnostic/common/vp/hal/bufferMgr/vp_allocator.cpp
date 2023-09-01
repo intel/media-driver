@@ -1428,7 +1428,7 @@ MOS_STATUS VpAllocator::SetMmcFlags(MOS_SURFACE &osSurface)
 
         osSurface.bCompressible   = true;
         osSurface.bIsCompressed   = true;
-        m_mmc->GetSurfaceMmcFormat(&osSurface, &mmcFormat);
+        VP_PUBLIC_CHK_STATUS_RETURN(m_mmc->GetSurfaceMmcFormat(&osSurface, &mmcFormat));
         osSurface.CompressionFormat = mmcFormat;
     }
     else

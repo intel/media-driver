@@ -256,7 +256,11 @@ MOS_STATUS MemoryBlockManager::RegisterHeap(uint32_t heapId, uint32_t size , boo
         adjacencyListBegin = MOS_New(MemoryBlockInternal);
         HEAP_CHK_NULL(adjacencyListBegin);
         auto block = GetBlockFromPool();
-        HEAP_CHK_NULL(block);
+        if (block == nullptr)
+        {
+            MOS_Delete(adjacencyListBegin);
+            return MOS_STATUS_NULL_POINTER;
+        }
 
         std::shared_ptr<HeapWithAdjacencyBlockList> managedHeap = nullptr;
         managedHeap = MakeShared<HeapWithAdjacencyBlockList>();

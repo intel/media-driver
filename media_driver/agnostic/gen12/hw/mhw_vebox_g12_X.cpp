@@ -3074,17 +3074,6 @@ MOS_STATUS MhwVeboxInterfaceG12::AddVeboxTilingConvert(
         }
 
     }
-    else
-    {
-        // In-Place Resolve
-        surface = inputSurface;
-
-        if (inSurParams->CompressionMode == MOS_MMC_MC)
-        {
-            veboxOutputSurfCtrlBits.DW0.MemoryCompressionEnable = true;
-            veboxOutputSurfCtrlBits.DW0.CompressionType = 1;
-        }
-    }
 
     MOS_ZeroMemory(&ResourceParams, sizeof(MHW_RESOURCE_PARAMS));
     InitMocsParams(ResourceParams, &cmd.DW1_2.Value[0], 1, 6);

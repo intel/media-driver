@@ -233,7 +233,7 @@ public:
 
 protected:
     //! \brief    Hardware node for current gpu context
-    MOS_GPU_NODE m_nodeOrdinal;
+    MOS_GPU_NODE m_nodeOrdinal = {};
 
     //! \brief    Indirect heap size (SSH area in DMA buffer)
     uint32_t m_IndirectHeapSize = 0;

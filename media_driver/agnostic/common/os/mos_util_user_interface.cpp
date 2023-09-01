@@ -89,7 +89,4 @@ PMOS_USER_FEATURE_VALUE MosUtilUserInterface::GetValue(uint32_t keyId)
         m_mosMutex.Unlock();
         return nullptr;
     }
-    m_mosMutex.Unlock();
-
-    return nullptr;
 }

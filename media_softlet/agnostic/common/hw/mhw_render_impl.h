@@ -268,9 +268,9 @@ public:
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(miItf);
         MHW_MI_CHK_NULL(this->m_osItf);
-        MHW_MI_CHK_NULL(skuTable);
 
         skuTable = this->m_osItf->pfnGetSkuTable(this->m_osItf);
+        MHW_MI_CHK_NULL(skuTable);
         if (MEDIA_IS_SKU(skuTable, FtrPerCtxtPreemptionGranularityControl))
         {
             auto& par = miItf->MHW_GETPAR_F(MI_LOAD_REGISTER_IMM)();
@@ -421,7 +421,7 @@ public:
                 this->m_currentCmdBuf,
                 &resourceParams));
 
-            if (params.mocs4DynamicState != 0)
+            if (params.mocs4IndirectObjectBuffer != 0)
             {
                 cmd.DW8_9.IndirectObjectMemoryObjectControlState = params.mocs4IndirectObjectBuffer;
             }

@@ -1856,6 +1856,7 @@ MOS_STATUS Policy::GetHdrExecutionCaps(SwFilter *feature)
     VP_PUBLIC_CHK_NULL_RETURN(m_vpInterface.GetHwInterface()->m_userFeatureControl);
 
     SwFilterHdr *hdrFilter = dynamic_cast<SwFilterHdr *>(feature);
+    VP_PUBLIC_CHK_NULL_RETURN(hdrFilter);
 
     FeatureParamHdr *hdrParams = &hdrFilter->GetSwFilterParams();
 
@@ -3381,7 +3382,11 @@ MOS_STATUS Policy::SetupFilterResource(SwFilterPipe& featurePipe, std::vector<in
 
             // For FC, also reuse first pipe for the composition layer in previous steps.
             auto originInput = featurePipe.GetSurface(true, layerIndexes[0]);
-            VP_PUBLIC_CHK_NULL_RETURN(originInput);
+            if (originInput == nullptr)
+            {
+                m_vpInterface.GetAllocator().DestroyVpSurface(input);
+                VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_NULL_POINTER);
+            }
 
             input->SurfType = originInput->SurfType;
             featurePipe.ReplaceSurface(input, true, layerIndexes[0]);

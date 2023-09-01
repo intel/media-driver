@@ -286,7 +286,7 @@ MOS_STATUS VpResourceManager::OnNewFrameProcessStart(SwFilterPipe &pipe)
     VP_SURFACE *pastSurface   = pipe.GetPastSurface(0);
     VP_SURFACE *futureSurface = pipe.GetFutureSurface(0);
 
-    int32_t currentFrameId = inputSurface ? inputSurface->FrameID : (outputSurface ? outputSurface->FrameID : 0);
+    int32_t currentFrameId = inputSurface ? inputSurface->FrameID : outputSurface->FrameID;
     int32_t pastFrameId = pastSurface ? pastSurface->FrameID : 0;
     int32_t futureFrameId = futureSurface ? futureSurface->FrameID : 0;
 

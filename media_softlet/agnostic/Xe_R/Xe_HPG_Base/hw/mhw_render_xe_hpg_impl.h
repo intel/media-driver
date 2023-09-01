@@ -76,11 +76,6 @@ public:
         if (cacheSettings)
         {
             MHW_RENDER_ENGINE_L3_CACHE_SETTINGS *cacheSettingsHpg = (MHW_RENDER_ENGINE_L3_CACHE_SETTINGS*)cacheSettings;
-            if (cacheSettingsHpg == nullptr)
-            {
-                MHW_ASSERTMESSAGE("Hpg-Specific Params are needed.");
-                return MOS_STATUS_INVALID_PARAMETER;
-            }
             m_l3CacheConfig.dwL3CacheAllocReg_Setting  = cacheSettingsHpg->dwAllocReg;
             m_l3CacheConfig.dwL3CacheTcCntlReg_Setting = cacheSettingsHpg->dwTcCntlReg;
             // update default settings is needed from CM HAL call
