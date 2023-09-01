@@ -80,12 +80,6 @@ VeboxCopyState::~VeboxCopyState()
             m_veboxInterface->DestroyHeap();
             m_veboxInterface = nullptr;
     }
-
-    if (m_mhwInterfaces)
-    {
-        m_mhwInterfaces->Destroy();
-        MOS_Delete(m_mhwInterfaces);
-    }
 }
 
 MOS_STATUS VeboxCopyState::Initialize()

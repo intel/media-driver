@@ -2582,7 +2582,6 @@ bool VPHAL_VEBOX_STATE_G12_BASE::IsNeeded(
     pSrcSurface   = pRenderPassData->pSrcSurface;
 
     VPHAL_RENDER_CHK_NULL(pSrcSurface);
-    VPHAL_RENDER_CHK_NULL(pRenderData);
 
     // Check whether VEBOX is available
     // VTd doesn't support VEBOX
