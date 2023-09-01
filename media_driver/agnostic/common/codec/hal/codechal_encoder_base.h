@@ -1564,7 +1564,7 @@ public:
     // PAK Scratch Buffers
     MOS_RESOURCE                    m_resDeblockingFilterRowStoreScratchBuffer = {};                 //!< Handle of deblock row store surface
     MOS_RESOURCE                    m_resMPCRowStoreScratchBuffer = {};                              //!< Handle of mpc row store surface
-    MOS_RESOURCE                    m_resStreamOutBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM];  //!< Handle of streamout data surface
+    MOS_RESOURCE                    m_resStreamOutBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM] = {};  //!< Handle of streamout data surface
 
     // Scaling
     MHW_KERNEL_STATE                m_scaling4xKernelStates[CODEC_NUM_FIELDS_PER_FRAME];  //!< Scaling 4x Kernel States

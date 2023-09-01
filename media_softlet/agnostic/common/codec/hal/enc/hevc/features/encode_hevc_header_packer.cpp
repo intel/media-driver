@@ -478,6 +478,11 @@ MOS_STATUS HevcHeaderPacker::LoadSliceHeaderParams(CodecEncodeHevcSliceHeaderPar
     m_spsParams.log2_max_pic_order_cnt_lsb_minus4       = pSH->log2_max_pic_order_cnt_lsb_minus4;
     m_sliceParams.pic_order_cnt_lsb                     &= ~(0xFFFFFFFF << (m_spsParams.log2_max_pic_order_cnt_lsb_minus4 + 4));
     m_sliceParams.num_long_term_pics                    = pSH->num_long_term_pics;
+
+    if(m_sliceParams.num_long_term_pics > MAX_NUM_LONG_TERM_PICS) 
+    {
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
     for (int i = 0; i < m_sliceParams.num_long_term_pics; i++)
     {
         m_sliceParams.lt[i].used_by_curr_pic_lt_flag   = pSH->lt[i].used_by_curr_pic_lt_flag;
