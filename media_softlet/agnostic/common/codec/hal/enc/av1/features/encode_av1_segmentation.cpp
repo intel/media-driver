@@ -310,7 +310,7 @@ namespace encode
         const uint32_t segMapPitch  = MOS_ALIGN_CEIL(CurFrameWidth, m_segmentMapBlockSize) / m_segmentMapBlockSize;
         const uint32_t segMapHeight = MOS_ALIGN_CEIL(CurFrameHeight, m_segmentMapBlockSize) / m_segmentMapBlockSize;
 
-        const uint64_t minSegmentMapDataSize = segMapPitch * segMapHeight; // 1 byte per segment Id
+        const uint64_t minSegmentMapDataSize = (uint64_t)segMapPitch * (uint64_t)segMapHeight;  // 1 byte per segment Id
 
         if (m_segmentMapDataSize < minSegmentMapDataSize)
         {

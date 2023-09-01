@@ -399,7 +399,7 @@ protected:
     bool m_vdencBrcEnabled = false;  //!< Vdenc bitrate control enabled flag
 
     // BRC Resources/Buffers
-    HucBrcBuffers m_brcBuffers;
+    HucBrcBuffers m_brcBuffers                  = {};
     uint32_t      m_brcHistoryBufferSize        = 0;    //!< Bitrate control history buffer size
     uint32_t      m_vdencBrcStatsBufferSize     = 0;    //!< VDENC bitrate control buffer size
     MOS_RESOURCE  m_resFrameStatStreamOutBuffer = {0};  //!< Frame statistics stream out buffer

@@ -105,6 +105,10 @@ MOS_STATUS Vp9Segmentation::Update(void *params)
     }
     // Need to index properly when more than one temporal layer is present
     ENCODE_ASSERT(vp9SeqParams->FrameRate[0].uiDenominator > 0);
+    if (vp9SeqParams->FrameRate[0].uiDenominator == 0)
+    {
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
     uint32_t frameRate = vp9SeqParams->FrameRate[0].uiNumerator / vp9SeqParams->FrameRate[0].uiDenominator;
 
     if (!m_mbBrcEnabled)

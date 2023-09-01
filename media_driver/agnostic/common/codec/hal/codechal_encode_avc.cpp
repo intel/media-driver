@@ -5544,19 +5544,14 @@ MOS_STATUS CodechalEncodeAvcEnc::SetSequenceStructs()
         dwSlidingWindowSize = MOS_MIN((uint32_t)(seqParams->FramesPer100Sec / 100), 60);
     }
 
-    if (seqParams->FramesPer100Sec)
+    if (seqParams->FramesPer100Sec == 0)
     {
-        m_maxNumSlicesAllowed = CodecHalAvcEncode_GetMaxNumSlicesAllowed(
-                (CODEC_AVC_PROFILE_IDC)(seqParams->Profile),
-                (CODEC_AVC_LEVEL_IDC)(seqParams->Level),
-                seqParams->FramesPer100Sec);
+        return MOS_STATUS_INVALID_PARAMETER;
     }
-    else
-    {
-        CODECHAL_ENCODE_ASSERTMESSAGE("FramesPer100Sec is zero, cannot get MaxNumSliceAllowed.");
-        eStatus = MOS_STATUS_INVALID_PARAMETER;
-    }
-    
+    m_maxNumSlicesAllowed = CodecHalAvcEncode_GetMaxNumSlicesAllowed(
+        (CODEC_AVC_PROFILE_IDC)(seqParams->Profile),
+        (CODEC_AVC_LEVEL_IDC)(seqParams->Level),
+        seqParams->FramesPer100Sec);
 
     return eStatus;
 }
@@ -5920,6 +5915,10 @@ MOS_STATUS CodechalEncodeAvcEnc::InitializePicture(const EncoderParams& params)
     m_madEnabled = params.bMADEnabled;
 
     m_avcSeqParams[spsidx] = (PCODEC_AVC_ENCODE_SEQUENCE_PARAMS)(params.pSeqParams);
+    if (ppsidx >= CODEC_AVC_MAX_PPS_NUM)
+    {
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
     m_avcPicParams[ppsidx] = (PCODEC_AVC_ENCODE_PIC_PARAMS)(params.pPicParams);
     m_avcQCParams  = (PCODECHAL_ENCODE_AVC_QUALITY_CTRL_PARAMS)params.pAVCQCParams;
     m_avcRoundingParams      = (PCODECHAL_ENCODE_AVC_ROUNDING_PARAMS)params.pAVCRoundingParams;

@@ -772,6 +772,10 @@ MOS_STATUS CodechalVdencAvcStateG12::SetPictureStructs()
             CODECHAL_ENCODE_ASSERTMESSAGE("ROI/DirtyROI disabled for TCBRC\n");
             m_avcPicParam->NumDirtyROI = m_avcPicParam->NumROI = 0;
         }
+        if (m_avcSeqParam->FramesPer100Sec == 0)
+        {
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
         m_avcPicParam->TargetFrameSize = uint32_t(m_avcSeqParam->TargetBitRate * (100. / 8) / m_avcSeqParam->FramesPer100Sec);
     }
 

@@ -5992,8 +5992,12 @@ MOS_STATUS CodechalVdencVp9State::InitializePicture(const EncoderParams& params)
     m_scalingEnabled = m_hmeSupported;
     m_useRawForRef   = m_vp9SeqParams->SeqFlags.fields.bUseRawReconRef;
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(SetStatusReportParams(m_refList[m_currReconstructedPic.FrameIdx]));
-
+    if (m_currReconstructedPic.FrameIdx >= m_numUncompressedSurface)
+    {
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(SetStatusReportParams(m_refList[m_currReconstructedPic.FrameIdx]));
+   
     CODECHAL_DEBUG_TOOL(
         m_debugInterface->m_currPic            = m_vp9PicParams->CurrOriginalPic;
         m_debugInterface->m_bufferDumpFrameNum = m_storeData;

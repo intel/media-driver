@@ -4093,20 +4093,15 @@ MOS_STATUS CodechalVdencAvcState::SetSequenceStructs()
         m_slidingWindowSize = MOS_MIN((uint32_t)(seqParams->FramesPer100Sec / 100), 60);
     }
 
-    if (seqParams->FramesPer100Sec)
+    if (seqParams->FramesPer100Sec == 0)
     {
-        m_maxNumSlicesAllowed = CodecHalAvcEncode_GetMaxNumSlicesAllowed(
-                (CODEC_AVC_PROFILE_IDC)(seqParams->Profile),
-                (CODEC_AVC_LEVEL_IDC)(seqParams->Level),
-                seqParams->FramesPer100Sec);
+        return MOS_STATUS_INVALID_PARAMETER;
     }
-    else
-    {
-        CODECHAL_ENCODE_ASSERTMESSAGE("FramesPer100Sec is zero, cannot get MaxNumSliceAllowed.");
-        eStatus = MOS_STATUS_INVALID_PARAMETER;
-    }
+    m_maxNumSlicesAllowed = CodecHalAvcEncode_GetMaxNumSlicesAllowed(
+        (CODEC_AVC_PROFILE_IDC)(seqParams->Profile),
+        (CODEC_AVC_LEVEL_IDC)(seqParams->Level),
+        seqParams->FramesPer100Sec);
     
-
     m_lookaheadDepth = seqParams->LookaheadDepth;
     if (m_lookaheadDepth > 0)
     {
@@ -4274,7 +4269,7 @@ MOS_STATUS CodechalVdencAvcState::SetPictureStructs()
     if ((m_lookaheadDepth > 0) && (m_prevTargetFrameSize > 0))
     {
         int64_t targetBufferFulness = (int64_t)m_targetBufferFulness;
-        targetBufferFulness += (int64_t)(m_prevTargetFrameSize << 3) - (int64_t)m_averageFrameSize;
+        targetBufferFulness += (((int64_t)m_prevTargetFrameSize) << 3) - (int64_t)m_averageFrameSize;
         m_targetBufferFulness = targetBufferFulness < 0 ?
             0 : (targetBufferFulness > 0xFFFFFFFF ? 0xFFFFFFFF : (uint32_t)targetBufferFulness);
     }

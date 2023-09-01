@@ -440,7 +440,7 @@ MOS_STATUS AvcBasicFeature::SetPictureStructs()
     if ((m_lookaheadDepth > 0) && (m_prevTargetFrameSize > 0))
     {
         int64_t targetBufferFulness = (int64_t)m_targetBufferFulness;
-        targetBufferFulness += (int64_t)(m_prevTargetFrameSize << 3) - (int64_t)m_averageFrameSize;
+        targetBufferFulness += (((int64_t)m_prevTargetFrameSize) << 3) - (int64_t)m_averageFrameSize;
         m_targetBufferFulness = (uint32_t)MOS_CLAMP_MIN_MAX(targetBufferFulness, 0, 0xFFFFFFFF);
     }
     m_prevTargetFrameSize = picParams->TargetFrameSize;

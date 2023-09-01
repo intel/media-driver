@@ -436,6 +436,10 @@ namespace encode
         if (hevcSeqParams->RateControlMethod == RATECONTROL_CBR)
         {
             // Assume max padding num < target frame size derived from target bit rate and frame rate
+            if (hevcSeqParams->FrameRate.Denominator == 0)
+            {
+                return MOS_STATUS_INVALID_PARAMETER;
+            }
             uint32_t actualFrameRate = hevcSeqParams->FrameRate.Numerator / hevcSeqParams->FrameRate.Denominator;
             uint64_t reservedPart    = (uint64_t)hevcSeqParams->TargetBitRate / 8 / (uint64_t)actualFrameRate * 1024;
 

@@ -762,6 +762,7 @@ protected:
 
         MHW_FUNCTION_ENTER;
 
+        MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(m_osInterface);
         MHW_MI_CHK_NULL(hevcSliceState);
 

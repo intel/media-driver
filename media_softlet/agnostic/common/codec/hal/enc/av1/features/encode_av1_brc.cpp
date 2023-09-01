@@ -528,6 +528,10 @@ namespace encode
         MEMCPY_CONST(INIT_InstRateThreshP0, instRateThresholdP);
 #undef MEMCPY_CONST
 
+        if (dmem->INIT_FrameRateM == 0)
+        {
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
         double inputBitsPerFrame = ((double)dmem->INIT_MaxRate * (double)dmem->INIT_FrameRateD) / (double)dmem->INIT_FrameRateM;
         double bpsRatio = inputBitsPerFrame / ((double)dmem->INIT_BufSize / brcSettings.devStdFPS);
         bpsRatio = MOS_CLAMP_MIN_MAX(bpsRatio, brcSettings.bpsRatioLow, brcSettings.bpsRatioHigh);

@@ -2930,7 +2930,7 @@ MOS_STATUS CodechalVdencHevcState::SetPictureStructs()
         if ((m_lookaheadDepth > 0) && (m_prevTargetFrameSize > 0))
         {
             int64_t targetBufferFulness = (int64_t)m_targetBufferFulness;
-            targetBufferFulness += (int64_t)(m_prevTargetFrameSize << 3) - (int64_t)m_averageFrameSize;
+            targetBufferFulness += (((int64_t)m_prevTargetFrameSize) << 3) - (int64_t)m_averageFrameSize;
             m_targetBufferFulness = targetBufferFulness < 0 ? 0 : (targetBufferFulness > 0xFFFFFFFF ? 0xFFFFFFFF : (uint32_t)targetBufferFulness);
         }
 
@@ -3230,7 +3230,7 @@ MOS_STATUS CodechalVdencHevcState::GetStatusReport(
         if (m_prevTargetFrameSize > 0)
         {
             int64_t encTargetBufferFulness = (int64_t)m_targetBufferFulness;
-            encTargetBufferFulness += (int64_t)(m_prevTargetFrameSize << 3) - (int64_t)m_averageFrameSize;
+            encTargetBufferFulness += (((int64_t)m_prevTargetFrameSize) << 3) - (int64_t)m_averageFrameSize;
             m_targetBufferFulness = encTargetBufferFulness < 0 ?
                 0 : (encTargetBufferFulness > 0xFFFFFFFF ? 0xFFFFFFFF : (uint32_t)encTargetBufferFulness);
             int32_t deltaBits = (int32_t)((int64_t)(encodeStatus->lookaheadStatus.targetBufferFulness) + m_bufferFulnessError - (int64_t)(m_targetBufferFulness));

@@ -175,11 +175,11 @@ protected:
     uint16_t                   m_pictureCodingType = 0;                                //!< I, P, or B frame
     CODEC_PIC_ID               m_picIdx[CODEC_AVC_MAX_NUM_REF_FRAME] = {};             //!< Picture index
     PCODEC_REF_LIST            m_refList[CODEC_AVC_NUM_UNCOMPRESSED_SURFACE] = {};     //!< Pointer to reference pictures
-    CODEC_AVC_FRAME_STORE_ID   m_frameStoreID[CODEC_AVC_MAX_NUM_REF_FRAME];            //!< Refer to CODEC_AVC_FRAME_STORE_ID
+    CODEC_AVC_FRAME_STORE_ID   m_frameStoreID[CODEC_AVC_MAX_NUM_REF_FRAME] = {};             //!< Refer to CODEC_AVC_FRAME_STORE_ID
     PCODEC_REF_LIST            m_currRefList = nullptr;                                //!< Current reference list
 
     // B-frame
-    uint32_t                   m_distScaleFactorList0[CODEC_AVC_MAX_NUM_REF_FRAME * 2];    //!< the DistScaleFactor used to derive temporal direct motion vector
+    uint32_t                   m_distScaleFactorList0[CODEC_AVC_MAX_NUM_REF_FRAME * 2] = {};  //!< the DistScaleFactor used to derive temporal direct motion vector
     uint32_t                   m_biWeight = 0;                     //!< Bidirectional Weight
 
     AvcBasicFeature *m_basicFeature = nullptr;  //!<  AVC paramter

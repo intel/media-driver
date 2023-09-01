@@ -998,6 +998,10 @@ MOS_STATUS CodechalEncodeHevcBase::SetPictureStructs()
             }
             for (uint32_t i = 0; i <= numRef; i++)
             {
+                if (i >= CODEC_MAX_NUM_REF_FRAME_HEVC)
+                {
+                    return MOS_STATUS_INVALID_PARAMETER;
+                }
                 CODEC_PICTURE refPic = slcParams->RefPicList[ll][i];
                 if (!CodecHal_PictureIsInvalid(refPic) &&
                     !CodecHal_PictureIsInvalid(m_hevcPicParams->RefFrameList[refPic.FrameIdx]))

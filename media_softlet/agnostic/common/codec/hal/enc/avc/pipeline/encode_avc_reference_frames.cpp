@@ -563,6 +563,10 @@ MHW_SETPAR_DECL_SRC(VDENC_AVC_IMG_STATE, AvcReferenceFrames)
         {
             auto id = slcParams->RefPicList[LIST_1][0].FrameIdx;
             params.longtermReferenceFrameBwdRef0Indicator = (id < CODEC_AVC_MAX_NUM_REF_FRAME) && CodecHal_PictureIsLongTermRef(picParams->RefFrameList[id]);
+            if (id >= CODEC_AVC_MAX_NUM_REF_FRAME)
+            {
+                return MOS_STATUS_INVALID_PARAMETER;
+            }             
             id = m_picIdx[id].ucPicIdx;
             params.bwdRefIdx0ReferencePicture = m_refList[id]->ucFrameId;
             refPoc[1][0] = (uint8_t)m_refList[id]->iFieldOrderCnt[0];
