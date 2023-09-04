@@ -2415,6 +2415,8 @@ public:
     MOS_STATUS DumpPicParams(
         PCODEC_VP9_ENCODE_PIC_PARAMS picParams);
 #endif
+
+    void fill_pad_with_value(PMOS_SURFACE psSurface, uint32_t real_height, uint32_t aligned_height);
 };
 
 #endif  // __CODECHAL_VDENC_VP9_BASE_H__
