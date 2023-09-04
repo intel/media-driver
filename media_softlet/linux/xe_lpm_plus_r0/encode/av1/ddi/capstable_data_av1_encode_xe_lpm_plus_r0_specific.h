@@ -76,13 +76,9 @@ static const AttribList attribList_VAProfileAV1Profile0_VAEntrypointEncSliceLP_X
    {VAConfigAttribRateControl, VA_RC_CQP | VA_RC_CBR | VA_RC_VBR},
    {VAConfigAttribEncTileSupport, 1},
    {VAConfigAttribEncMaxRefFrames, CODEC_AV1_NUM_REFL0P_FRAMES | CODEC_AV1_NUM_REFL1B_FRAMES<<16},
-   {VAConfigAttribEncJPEG, (JPEG_MAX_QUANT_TABLE << 14)| (JPEG_MAX_NUM_HUFF_TABLE_INDEX << 11)|(1 << 7)|(jpegNumComponent << 4)},
    {VAConfigAttribEncQualityRange, NUM_TARGET_USAGE_MODES - 1},
-   {VAConfigAttribEncPackedHeaders, VA_ENC_PACKED_HEADER_PICTURE | VA_ENC_PACKED_HEADER_SEQUENCE | VA_ENC_PACKED_HEADER_SLICE | VA_ENC_PACKED_HEADER_RAW_DATA | VA_ENC_PACKED_HEADER_MISC},
+   {VAConfigAttribEncPackedHeaders, VA_ENC_PACKED_HEADER_PICTURE | VA_ENC_PACKED_HEADER_SEQUENCE | VA_ENC_PACKED_HEADER_RAW_DATA | VA_ENC_PACKED_HEADER_MISC},
    {VAConfigAttribEncInterlaced, VA_ENC_INTERLACED_NONE},
-   //just to match with legacy correct value 0
-   {VAConfigAttribEncMaxSlices, 3},
-   {VAConfigAttribEncSliceStructure, VA_ENC_SLICE_STRUCTURE_EQUAL_ROWS | VA_ENC_SLICE_STRUCTURE_MAX_SLICE_SIZE | VA_ENC_SLICE_STRUCTURE_EQUAL_MULTI_ROWS | VA_ENC_SLICE_STRUCTURE_ARBITRARY_ROWS},
    {VAConfigAttribEncQuantization, 0},
    {VAConfigAttribEncIntraRefresh, 0},
    {VAConfigAttribEncSkipFrame, 0},
@@ -90,7 +86,6 @@ static const AttribList attribList_VAProfileAV1Profile0_VAEntrypointEncSliceLP_X
    {VAConfigAttribProcessingRate, VA_PROCESSING_RATE_ENCODE},
    {VAConfigAttribEncParallelRateControl, 0},
    {VAConfigAttribFEIMVPredictors, 0},
-   {VAConfigAttribCustomRoundingControl, 1},
 };
 
 //!

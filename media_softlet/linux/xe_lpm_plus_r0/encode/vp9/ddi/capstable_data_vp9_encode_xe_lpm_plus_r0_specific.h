@@ -92,19 +92,14 @@ static const AttribList attribList_VAProfileVP9Profile0_VAEntrypointEncSliceLP_X
    {VAConfigAttribEncTileSupport, 1},
    {VAConfigAttribEncDirtyRect, 4},
    {VAConfigAttribEncDynamicScaling, 1},
-   {VAConfigAttribEncJPEG, (JPEG_MAX_QUANT_TABLE << 14)|(JPEG_MAX_NUM_HUFF_TABLE_INDEX << 11)|(1 << 7)|(jpegNumComponent << 4)},
    {VAConfigAttribEncQualityRange, NUM_TARGET_USAGE_MODES - 1},
    {VAConfigAttribEncInterlaced, VA_ENC_INTERLACED_NONE},
    {VAConfigAttribEncQuantization, VA_ENC_QUANTIZATION_NONE},
-   //just to match with legacy correct value 0
-   {VAConfigAttribEncMaxSlices, 3},
-   {VAConfigAttribEncSliceStructure, VA_ENC_SLICE_STRUCTURE_EQUAL_ROWS | VA_ENC_SLICE_STRUCTURE_MAX_SLICE_SIZE | VA_ENC_SLICE_STRUCTURE_EQUAL_MULTI_ROWS | VA_ENC_SLICE_STRUCTURE_ARBITRARY_ROWS},
    {VAConfigAttribEncIntraRefresh, VA_ENC_INTRA_REFRESH_NONE},
    {VAConfigAttribEncSkipFrame, 0},
    {VAConfigAttribEncROI, VP9Common_VAEntrypointEncSliceLP_encROI.value},
    {VAConfigAttribEncParallelRateControl, 0},
    {VAConfigAttribFEIMVPredictors, 0},
-   {VAConfigAttribCustomRoundingControl, 1},
    {VAConfigAttribEncRateControlExt, VP9Common_VAEntrypointEncSliceLP_encRateControlExt.value},
 };
 
@@ -122,19 +117,14 @@ static const AttribList attribList_VAProfileVP9Profile1_VAEntrypointEncSliceLP_X
    {VAConfigAttribEncTileSupport, 1},
    {VAConfigAttribEncDirtyRect, 4},
    {VAConfigAttribEncDynamicScaling, 1},
-   {VAConfigAttribEncJPEG, (JPEG_MAX_QUANT_TABLE << 14)|(JPEG_MAX_NUM_HUFF_TABLE_INDEX << 11)|(1 << 7)|(jpegNumComponent << 4)},
    {VAConfigAttribEncQualityRange, NUM_TARGET_USAGE_MODES - 1},
    {VAConfigAttribEncInterlaced, VA_ENC_INTERLACED_NONE},
    {VAConfigAttribEncQuantization, VA_ENC_QUANTIZATION_NONE},
-   //just to match with legacy correct value 0
-   {VAConfigAttribEncMaxSlices, 3},
-   {VAConfigAttribEncSliceStructure, VA_ENC_SLICE_STRUCTURE_EQUAL_ROWS | VA_ENC_SLICE_STRUCTURE_MAX_SLICE_SIZE | VA_ENC_SLICE_STRUCTURE_EQUAL_MULTI_ROWS | VA_ENC_SLICE_STRUCTURE_ARBITRARY_ROWS},
    {VAConfigAttribEncIntraRefresh, VA_ENC_INTRA_REFRESH_NONE},
    {VAConfigAttribEncSkipFrame, 0},
    {VAConfigAttribEncROI, VP9Common_VAEntrypointEncSliceLP_encROI.value},
    {VAConfigAttribEncParallelRateControl, 0},
    {VAConfigAttribFEIMVPredictors, 0},
-   {VAConfigAttribCustomRoundingControl, 1},
    {VAConfigAttribEncRateControlExt, VP9Common_VAEntrypointEncSliceLP_encRateControlExt.value},
 };
 
@@ -152,19 +142,14 @@ static const AttribList attribList_VAProfileVP9Profile2_VAEntrypointEncSliceLP_X
    {VAConfigAttribEncTileSupport, 1},
    {VAConfigAttribEncDirtyRect, 4},
    {VAConfigAttribEncDynamicScaling, 1},
-   {VAConfigAttribEncJPEG, (JPEG_MAX_QUANT_TABLE << 14)|(JPEG_MAX_NUM_HUFF_TABLE_INDEX << 11)|(1 << 7)|(jpegNumComponent << 4)},
    {VAConfigAttribEncQualityRange, NUM_TARGET_USAGE_MODES - 1},
    {VAConfigAttribEncInterlaced, VA_ENC_INTERLACED_NONE},
    {VAConfigAttribEncQuantization, VA_ENC_QUANTIZATION_NONE},
-   //just to match with legacy correct value 0
-   {VAConfigAttribEncMaxSlices, 3},
-   {VAConfigAttribEncSliceStructure, VA_ENC_SLICE_STRUCTURE_EQUAL_ROWS | VA_ENC_SLICE_STRUCTURE_MAX_SLICE_SIZE | VA_ENC_SLICE_STRUCTURE_EQUAL_MULTI_ROWS | VA_ENC_SLICE_STRUCTURE_ARBITRARY_ROWS},
    {VAConfigAttribEncIntraRefresh, VA_ENC_INTRA_REFRESH_NONE},
    {VAConfigAttribEncSkipFrame, 0},
    {VAConfigAttribEncROI, VP9Common_VAEntrypointEncSliceLP_encROI.value},
    {VAConfigAttribEncParallelRateControl, 0},
    {VAConfigAttribFEIMVPredictors, 0},
-   {VAConfigAttribCustomRoundingControl, 1},
    {VAConfigAttribEncRateControlExt, VP9Common_VAEntrypointEncSliceLP_encRateControlExt.value},
 };
 
@@ -182,19 +167,14 @@ static const AttribList attribList_VAProfileVP9Profile3_VAEntrypointEncSliceLP_X
    {VAConfigAttribEncTileSupport, 1},
    {VAConfigAttribEncDirtyRect, 4},
    {VAConfigAttribEncDynamicScaling, 1},
-   {VAConfigAttribEncJPEG, (JPEG_MAX_QUANT_TABLE << 14)|(JPEG_MAX_NUM_HUFF_TABLE_INDEX << 11)|(1 << 7)|(jpegNumComponent << 4)},
    {VAConfigAttribEncQualityRange, NUM_TARGET_USAGE_MODES - 1},
    {VAConfigAttribEncInterlaced, VA_ENC_INTERLACED_NONE},
    {VAConfigAttribEncQuantization, VA_ENC_QUANTIZATION_NONE},
-   //just to match with legacy correct value 0
-   {VAConfigAttribEncMaxSlices, 3},
-   {VAConfigAttribEncSliceStructure, VA_ENC_SLICE_STRUCTURE_EQUAL_ROWS | VA_ENC_SLICE_STRUCTURE_MAX_SLICE_SIZE | VA_ENC_SLICE_STRUCTURE_EQUAL_MULTI_ROWS | VA_ENC_SLICE_STRUCTURE_ARBITRARY_ROWS},
    {VAConfigAttribEncIntraRefresh, VA_ENC_INTRA_REFRESH_NONE},
    {VAConfigAttribEncSkipFrame, 0},
    {VAConfigAttribEncROI, VP9Common_VAEntrypointEncSliceLP_encROI.value},
    {VAConfigAttribEncParallelRateControl, 0},
    {VAConfigAttribFEIMVPredictors, 0},
-   {VAConfigAttribCustomRoundingControl, 1},
    {VAConfigAttribEncRateControlExt, VP9Common_VAEntrypointEncSliceLP_encRateControlExt.value},
 };
 
