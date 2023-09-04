@@ -246,7 +246,7 @@ MOS_STATUS VpCscFilter::CalculateSfcEngineParams()
         m_sfcCSCParams->iefParams = m_cscParams.pIEFParams;
     }
 
-    m_cscParams.input.colorSpace    = m_cscParams.input.colorSpace;
+    m_sfcCSCParams->inputColorSpace = m_cscParams.input.colorSpace;
 
     // IsDitheringNeeded should be called before input format being updated by GetSfcInputFormat
     m_sfcCSCParams->isDitheringNeeded = IsDitheringNeeded(m_cscParams.formatInput, m_cscParams.formatOutput);

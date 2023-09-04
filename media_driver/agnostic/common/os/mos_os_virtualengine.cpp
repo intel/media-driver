@@ -97,6 +97,7 @@ MOS_STATUS Mos_VirtualEngineInterface_Initialize(
 
     if (pOsInterface->apoMosEnabled)
     {
+        MOS_OS_CHK_NULL(pOsInterface->osStreamState);
         if (pVEInitParms->bScalabilitySupported)
         {
             pVEInterf->veInterface = MOS_New(MosOsVeScalabilitySpecific);
@@ -106,12 +107,13 @@ MOS_STATUS Mos_VirtualEngineInterface_Initialize(
             pVEInterf->veInterface = MOS_New(MosOsVeSinglePipeSpecific);
         }
         MOS_OS_CHK_NULL(pVEInterf->veInterface);
-        MOS_OS_CHK_NULL(pOsInterface->osStreamState);
         pVEInterf->veInterface->Initialize(pOsInterface->osStreamState, pVEInitParms);
         pOsInterface->osStreamState->virtualEngineInterface = pVEInterf->veInterface;
     }
+    return eStatus;
 
 finish:
+    MOS_SafeFreeMemory(pVEInterf);
     return eStatus;
 }
 

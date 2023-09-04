@@ -1002,7 +1002,12 @@ void VphalRenderer::UpdateReport(
     {
         MOS_ZeroMemory(&Info, sizeof(VPHAL_GET_SURFACE_INFO));
 
-        VpHal_GetSurfaceInfo(m_pOsInterface, &Info, pRenderParams->pTarget[0]);
+        MOS_STATUS status = VpHal_GetSurfaceInfo(m_pOsInterface, &Info, pRenderParams->pTarget[0]);
+        if (MOS_STATUS_SUCCESS != status)
+        {
+            VPHAL_PUBLIC_ASSERTMESSAGE("VpHal_GetSurfaceInfo failed!");
+            return;
+        }
         m_reporting->GetFeatures().rtCompressible = true;
         m_reporting->GetFeatures().rtCompressMode = (uint8_t)(pRenderParams->pTarget[0]->CompressionMode);
     }

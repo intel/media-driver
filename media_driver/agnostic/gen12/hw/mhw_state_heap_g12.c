@@ -151,8 +151,8 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G12_X::AddInterfaceDescriptorData(
 
     // need to subtract memory block's offset in current state heap for AddData API
     offset -= pParams->memoryBlock->GetOffset();
-    pParams->memoryBlock->AddData(pInterfaceDescriptor, offset,
-        sizeof(mhw_state_heap_g12_X::INTERFACE_DESCRIPTOR_DATA_CMD));
+    MHW_MI_CHK_STATUS(pParams->memoryBlock->AddData(pInterfaceDescriptor, offset,
+        sizeof(mhw_state_heap_g12_X::INTERFACE_DESCRIPTOR_DATA_CMD)));
 
     MOS_SafeFreeMemory(pInterfaceDescriptor);
 

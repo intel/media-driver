@@ -68,12 +68,6 @@ public:
         m_indexofSfc              = 0;
         m_numofSfc                = 1;
 
-        if (osItf == nullptr)
-        {
-            MHW_ASSERTMESSAGE("Invalid Input Parameter: m_osInterface is nullptr");
-            return;
-        }
-
         // Get Memory control object directly from MOS.
         // If any override is needed, something like pfnOverrideMemoryObjectCtrl() / pfnComposeSurfaceCacheabilityControl()
         // will need to be implemented.

@@ -69,6 +69,12 @@ public:
         m_bYV12iAvsScaling              = true;     // On Gen9+, iAVS scaling can support YV12 input format
         m_bEnableSamplerLumakey         = true;
 
+        if (!peStatus)
+        {
+            VPHAL_PUBLIC_ASSERTMESSAGE("Got null peStatus!");
+            return;
+        }
+
         if (*peStatus != MOS_STATUS_SUCCESS)
         {
             // super class constructor failed, return directly

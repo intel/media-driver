@@ -3107,6 +3107,7 @@ MOS_STATUS Policy::LayerSelectForProcess(std::vector<int> &layerIndexes, SwFilte
     VP_PUBLIC_NORMALMESSAGE("target, gpuVa = 0x%llx", gpuVa);
 
     PolicyFcHandler *fcHandler = dynamic_cast<PolicyFcHandler *>(it->second);
+    VP_PUBLIC_CHK_NULL_RETURN(fcHandler);
     VP_PUBLIC_CHK_STATUS_RETURN(fcHandler->LayerSelectForProcess(layerIndexes, featurePipe, caps));
 
     if (layerIndexes.size() < featurePipe.GetSurfaceCount(true))
