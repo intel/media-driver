@@ -251,7 +251,7 @@ protected:
     MOS_RESOURCE_HANDLE m_statusBufferResource = nullptr;
 
     //! \brief    Track the GPU Context Client Info
-    MOS_GPU_CONTEXT m_gpuContext;
+    MOS_GPU_CONTEXT m_gpuContext = MOS_GPU_CONTEXT_INVALID_HANDLE;
 
     //! \brief    VE attribute buffer
     MOS_CMD_BUF_ATTRI_VE m_bufAttriVe = {};

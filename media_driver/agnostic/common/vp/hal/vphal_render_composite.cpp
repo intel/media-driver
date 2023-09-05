@@ -5867,20 +5867,11 @@ bool CompositeState::RenderBufferMediaWalker(
     else
     {
         // Horizontal and Vertical base on non-rotated in case of dual output
-        if (pRenderingData->bCmFcEnable && pRenderingData->iLayers > 0)
-        {
-            pWalkerStatic->DW69.DestHorizontalBlockOrigin               =
-                (uint16_t)pRenderingData->pTarget[1]->rcDst.left;
-            pWalkerStatic->DW69.DestVerticalBlockOrigin                 =
-                (uint16_t)pRenderingData->pTarget[1]->rcDst.top;
-        }
-        else
-        {
-            pWalkerStatic->DW69.DestHorizontalBlockOrigin               =
-                (uint16_t)pRenderingData->pTarget[1]->rcDst.left;
-            pWalkerStatic->DW69.DestVerticalBlockOrigin                 =
-                 (uint16_t)pRenderingData->pTarget[1]->rcDst.top;
-        }
+        pWalkerStatic->DW69.DestHorizontalBlockOrigin               =
+            (uint16_t)pRenderingData->pTarget[1]->rcDst.left;
+        pWalkerStatic->DW69.DestVerticalBlockOrigin                 =
+            (uint16_t)pRenderingData->pTarget[1]->rcDst.top;
+        
         AlignedRect   = pRenderingData->pTarget[1]->rcDst;
     }
 
