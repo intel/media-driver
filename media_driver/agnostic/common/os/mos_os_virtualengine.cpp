@@ -107,7 +107,7 @@ MOS_STATUS Mos_VirtualEngineInterface_Initialize(
             pVEInterf->veInterface = MOS_New(MosOsVeSinglePipeSpecific);
         }
         MOS_OS_CHK_NULL(pVEInterf->veInterface);
-        pVEInterf->veInterface->Initialize(pOsInterface->osStreamState, pVEInitParms);
+        MOS_OS_CHK_STATUS(pVEInterf->veInterface->Initialize(pOsInterface->osStreamState, pVEInitParms));
         pOsInterface->osStreamState->virtualEngineInterface = pVEInterf->veInterface;
     }
     return eStatus;

@@ -93,7 +93,8 @@ public:
                     // free all allocated surfaces
                     while (i > 0)
                     {
-                        MOS_FreeMemAndSetNull(TempOutputSurfaces[--i]);
+                        --i;
+                        MOS_FreeMemAndSetNull(TempOutputSurfaces[i]);
                     }
                     return MOS_STATUS_NO_SPACE;
                 }

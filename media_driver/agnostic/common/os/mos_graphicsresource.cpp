@@ -116,6 +116,7 @@ MOS_STATUS GraphicsResource::Dump(OsContext* osContextPtr, uint32_t overrideOffs
         if (hFile != nullptr)
         {
             MosUtilities::MosCloseHandle(hFile);
+            hFile = nullptr;
         }
     }
 

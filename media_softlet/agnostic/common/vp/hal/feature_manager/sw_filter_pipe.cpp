@@ -732,7 +732,7 @@ MOS_STATUS SwFilterPipe::AddSwFilterUnordered(SwFilter *swFilter, bool isInputPi
 
     if (nullptr == pSubPipe && !isInputPipe)
     {
-        auto& pipes = isInputPipe ? m_InputPipes : m_OutputPipes;
+        auto& pipes = m_OutputPipes;
         SwFilterSubPipe *pipe = MOS_New(SwFilterSubPipe);
         VP_PUBLIC_CHK_NULL_RETURN(pipe);
         if ((size_t)index <= pipes.size())
