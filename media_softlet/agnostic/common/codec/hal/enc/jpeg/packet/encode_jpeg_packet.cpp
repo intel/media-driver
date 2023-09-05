@@ -687,13 +687,13 @@ namespace encode {
             // Copy over huffman data to the other two data buffers for JPEG picture header
             for (uint32_t i = 0; i < m_numHuffBuffers; i++)
             {
-                m_jpegHuffmanTable->m_huffmanData[i + 2].m_tableClass = m_jpegHuffmanTable->m_huffmanData[i].m_tableClass;
-                m_jpegHuffmanTable->m_huffmanData[i + 2].m_tableID    = m_jpegHuffmanTable->m_huffmanData[i].m_tableID;
-
                 if ((i + 2) >= JPEG_NUM_ENCODE_HUFF_BUFF)
                 {
                     return MOS_STATUS_INVALID_PARAMETER;
                 }
+                m_jpegHuffmanTable->m_huffmanData[i + 2].m_tableClass = m_jpegHuffmanTable->m_huffmanData[i].m_tableClass;
+                m_jpegHuffmanTable->m_huffmanData[i + 2].m_tableID    = m_jpegHuffmanTable->m_huffmanData[i].m_tableID;
+
                 ENCODE_CHK_STATUS_RETURN(MOS_SecureMemcpy(&m_jpegHuffmanTable->m_huffmanData[i + 2].m_bits[0],
                     sizeof(uint8_t) * JPEG_NUM_HUFF_TABLE_AC_BITS,
                     &m_jpegHuffmanTable->m_huffmanData[i].m_bits[0],

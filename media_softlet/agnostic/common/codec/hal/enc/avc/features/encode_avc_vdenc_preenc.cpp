@@ -152,7 +152,7 @@ MOS_STATUS AvcVdencPreEnc::PreparePreEncConfig(void *params)
 
     uint8_t  depth = 0;
     uint32_t poc   = 0;
-    if (m_preEncConfig.GopRefDist = 0)
+    if (m_preEncConfig.GopRefDist == 0)
     {
         return MOS_STATUS_INVALID_PARAMETER;
     }
