@@ -995,7 +995,7 @@ MOS_STATUS XMHW_STATE_HEAP_INTERFACE::InitializeInterface(
     {
         m_ishManager.RegisterOsInterface(m_pOsInterface);
         m_ishManager.SetDefaultBehavior(StateHeapSettings.m_ishBehavior);
-        m_ishManager.SetInitialHeapSize(StateHeapSettings.dwIshSize);
+        MHW_MI_CHK_STATUS(m_ishManager.SetInitialHeapSize(StateHeapSettings.dwIshSize));
         if (StateHeapSettings.m_ishBehavior == HeapManager::Behavior::extend ||
             StateHeapSettings.m_ishBehavior == HeapManager::Behavior::destructiveExtend ||
             StateHeapSettings.m_ishBehavior == HeapManager::Behavior::waitAndExtend)
