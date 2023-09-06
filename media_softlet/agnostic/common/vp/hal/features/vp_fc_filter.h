@@ -71,6 +71,8 @@ protected:
         float &fStepX, float &fStepY);
     MHW_SAMPLER_FILTER_MODE Get3DSamperFilterMode(VPHAL_SCALING_MODE scalingMode);
 
+    MOS_STATUS AdjustParamsBasedOnFcLimit(VP_COMPOSITE_PARAMS &compParams);
+
     SwFilterPipe            *m_executedPipe = nullptr;
     PRENDER_FC_PARAMS       m_renderFcParams = nullptr;
 

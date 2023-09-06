@@ -215,9 +215,44 @@ MOS_STATUS VpFcFilter::InitCompParams(VP_COMPOSITE_PARAMS &compParams, SwFilterP
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS VpFcFilter::AdjustParamsBasedOnFcLimit(VP_COMPOSITE_PARAMS &compParams)
+{
+    //The kernel is using the rectangle data to calculate mask. If the rectangle configuration does not comply to kernel requirement, the mask calculation will be incorrect and will see corruption.
+    if (compParams.pColorFillParams == nullptr &&
+        compParams.sourceCount == 1 &&
+        compParams.targetCount == 1 &&
+        compParams.target[0].surf != nullptr &&
+        compParams.source[0].surf != nullptr)
+    {
+        if (compParams.target[0].surf->rcDst.top <= compParams.source[0].surf->rcDst.top &&
+            compParams.target[0].surf->rcDst.left <= compParams.source[0].surf->rcDst.left &&
+            compParams.target[0].surf->rcDst.right >= compParams.source[0].surf->rcDst.right &&
+            compParams.target[0].surf->rcDst.bottom >= compParams.source[0].surf->rcDst.bottom)
+        {
+            VP_RENDER_NORMALMESSAGE("Render Path : 1 Surface to 1 Surface FC Composition. ColorFill is Disabled. Output Dst is bigger than Input Dst. Will make Output Dst become Input Dst to Avoid FC Corruption. (%d %d %d %d) -> (%d %d %d %d)",
+                compParams.target[0].surf->rcDst.left,
+                compParams.target[0].surf->rcDst.top,
+                compParams.target[0].surf->rcDst.right,
+                compParams.target[0].surf->rcDst.bottom,
+                compParams.source[0].surf->rcDst.left,
+                compParams.source[0].surf->rcDst.top,
+                compParams.source[0].surf->rcDst.right,
+                compParams.source[0].surf->rcDst.bottom);
+            compParams.target[0].surf->rcSrc = compParams.source[0].surf->rcDst;
+            compParams.target[0].surf->rcDst = compParams.source[0].surf->rcDst;
+        }
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+
 MOS_STATUS VpFcFilter::CalculateCompParams(VP_COMPOSITE_PARAMS &compParams)
 {
     int layerCount = 0;
+
+    VP_RENDER_CHK_STATUS_RETURN(AdjustParamsBasedOnFcLimit(compParams));
+
     for (uint32_t i = 0; i < compParams.sourceCount; ++i)
     {
         VP_FC_LAYER *layer = &compParams.source[i];
