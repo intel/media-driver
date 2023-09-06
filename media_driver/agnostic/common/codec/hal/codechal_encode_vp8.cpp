@@ -1287,11 +1287,18 @@ MOS_STATUS CodechalEncodeVp8::SetPictureStructs()
     else
     {
         m_averagePFrameQp     = averageQp;
-        if (m_vp8SeqParams->GopPicSize == 0)
+        if (m_vp8SeqParams->RateControlMethod == RATECONTROL_CQP)
         {
-            return MOS_STATUS_INVALID_PARAMETER;
+            m_pFramePositionInGop = 0;
         }
-        m_pFramePositionInGop = m_vp8SeqParams->RateControlMethod == RATECONTROL_CQP ? 0 : (m_storeData - 1) % m_vp8SeqParams->GopPicSize;
+        else
+        {
+            if (m_vp8SeqParams->GopPicSize == 0)
+            {
+                return MOS_STATUS_INVALID_PARAMETER;
+            }
+            m_pFramePositionInGop = (m_storeData - 1) % m_vp8SeqParams->GopPicSize;
+        }
     }
 
     numRef = 0;
