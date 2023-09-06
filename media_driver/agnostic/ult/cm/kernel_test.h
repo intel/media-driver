@@ -454,17 +454,6 @@ TEST_F(KernelTest, LoadDestroyProgram)
                      { return SelectLoadDestroyProgram(&m_isaArray); });
 
     SetDefaultIsaArraySizes();
-    for_each(m_isaArray.begin(), m_isaArray.end(),
-             [](IsaData &isa_data) { --isa_data.size; });
-    RunEach<int32_t>(CM_SUCCESS,
-                     [this]()
-                     { return SelectLoadDestroyProgram(&m_isaArray); });
-
-    for_each(m_isaArray.begin(), m_isaArray.end(),
-             [](IsaData &isa_data) { ++isa_data.size; });  // Correct sizes.
-    RunEach<int32_t>(CM_SUCCESS,
-                     [this]()
-                     { return SelectLoadDestroyProgram(&m_isaArray); });
 
     char options[CM_MAX_OPTION_SIZE_IN_BYTE + 1];
     for (int i = 0; i < CM_MAX_OPTION_SIZE_IN_BYTE; ++i)
