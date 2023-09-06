@@ -382,7 +382,7 @@ namespace encode
         //! \return MOS_STATUS
         //!         MOS_STATUS_SUCCESS if success, else fail reason
         //!
-        MOS_STATUS EnsureAllCommandsExecuted(MOS_COMMAND_BUFFER &cmdBuffer);
+        virtual MOS_STATUS EnsureAllCommandsExecuted(MOS_COMMAND_BUFFER &cmdBuffer);
 
         virtual MOS_STATUS AddHcpPipeModeSelect(
             MOS_COMMAND_BUFFER &cmdBuffer);
