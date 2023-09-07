@@ -495,10 +495,9 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G12_X::SetSurfaceState(
                 pParams->psSurface->dwPitch : pParams->dwPitchToUse[i];
             if (pParams->psSurface->MmcState == MOS_MEMCOMP_MC)
             {
-                CmdInit.DW7.MemoryCompressionEnable   =
-                (pParams->psSurface->MmcState == MOS_MEMCOMP_RC || pParams->psSurface->MmcState == MOS_MEMCOMP_MC) ? 1 : 0;
+                CmdInit.DW7.MemoryCompressionEnable   = 1;
                 CmdInit.DW7.MemoryCompressionMode     = 0;
-                CmdInit.DW4.DecompressInL3            = (pParams->psSurface->MmcState == MOS_MEMCOMP_MC) ? 1 : 0;
+                CmdInit.DW4.DecompressInL3            = 1;
             }
             else if(pParams->psSurface->MmcState == MOS_MEMCOMP_RC)
             {
