@@ -277,7 +277,7 @@ public:
             par = {};
             par.dwRegister = m_preemptionCntlRegisterOffset;
             par.dwData     = m_preemptionCntlRegisterValue;
-            miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(cmdBuffer);
+            MHW_MI_CHK_STATUS(miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(cmdBuffer));
         }
 
         return eStatus;

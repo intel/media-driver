@@ -152,7 +152,13 @@ MediaScalability *MediaScalabilityFactory<T>::CreateDecodeScalability(T params, 
         if (option != nullptr)
         {
             auto scalabPars = reinterpret_cast<ScalabilityPars *>(params);
-            option->SetScalabilityOption(scalabPars);
+            MOS_STATUS status = option->SetScalabilityOption(scalabPars);
+            if (status != MOS_STATUS_SUCCESS)
+            {
+                SCALABILITY_ASSERTMESSAGE("option->SetScalabilityOption failed w/ status == %d!", status);
+                MOS_Delete(option);
+                return nullptr;
+            }
         }
     }
     else

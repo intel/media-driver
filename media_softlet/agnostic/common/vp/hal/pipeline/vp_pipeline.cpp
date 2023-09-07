@@ -203,11 +203,11 @@ MOS_STATUS VpPipeline::UserFeatureReport()
             }
 #endif
         }
-    }
 
+        m_reporting->GetFeatures().VPApogeios = m_currentFrameAPGEnabled;
+    }
     MediaPipeline::UserFeatureReport();
 
-    m_reporting->GetFeatures().VPApogeios = m_currentFrameAPGEnabled;
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     //INTER_FRAME_MEMORY_NINJA_START_COUNTER will be reported in ReportIFNCC(true) function which runs in VpPipeline::Prepare()

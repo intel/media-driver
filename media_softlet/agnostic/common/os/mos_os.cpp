@@ -914,12 +914,6 @@ MOS_STATUS Mos_CheckVirtualEngineSupported(
             MediaUserSetting::Group::Device);
         osInterface->bSupportVirtualEngine = value ? true : false;
 #endif
-        // force bSupportVirtualEngine to false when virtual engine not enabled by default
-        if ((!veDefaultEnable || !osInterface->veDefaultEnable) &&
-            (eStatus == MOS_STATUS_USER_FEATURE_KEY_OPEN_FAILED))
-        {
-            osInterface->bSupportVirtualEngine = false;
-        }
 
         auto skuTable = osInterface->pfnGetSkuTable(osInterface);
         MOS_OS_CHK_NULL_RETURN(skuTable);
@@ -960,11 +954,6 @@ MOS_STATUS Mos_CheckVirtualEngineSupported(
             MediaUserSetting::Group::Device);
         osInterface->bSupportVirtualEngine = value ? true : false;
 #endif
-        // force bSupportVirtualEngine to false when virtual engine not enabled by default
-        if (!osInterface->veDefaultEnable && (eStatus == MOS_STATUS_USER_FEATURE_KEY_READ_FAILED || eStatus == MOS_STATUS_USER_FEATURE_KEY_OPEN_FAILED))
-        {
-            osInterface->bSupportVirtualEngine = false;
-        }
 
         auto skuTable = osInterface->pfnGetSkuTable(osInterface);
         MOS_OS_CHK_NULL_RETURN(skuTable);
