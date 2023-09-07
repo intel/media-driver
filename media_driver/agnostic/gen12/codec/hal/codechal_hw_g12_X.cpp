@@ -510,12 +510,12 @@ MOS_STATUS CodechalHwInterfaceG12::ReadAvpStatus(MHW_VDBOX_NODE_IND vdboxIndex, 
         storeRegMemParams.presStoreBuffer = params.resBitstreamByteCountPerFrame;
         storeRegMemParams.dwOffset        = params.bitstreamByteCountPerFrameOffset;
         storeRegMemParams.dwRegister      = mmioRegisters->avpAv1BitstreamByteCountTileRegOffset;
-        m_miItf->MHW_ADDCMD_F(MI_STORE_REGISTER_MEM)(cmdBuffer);
+        CODECHAL_HW_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_REGISTER_MEM)(cmdBuffer));
         storeRegMemParams                 = {};
         storeRegMemParams.presStoreBuffer = params.resQpStatusCount;
         storeRegMemParams.dwOffset        = params.qpStatusCountOffset;
         storeRegMemParams.dwRegister      = mmioRegisters->avpAv1QpStatusCountRegOffset;
-        m_miItf->MHW_ADDCMD_F(MI_STORE_REGISTER_MEM)(cmdBuffer);
+        CODECHAL_HW_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_REGISTER_MEM)(cmdBuffer));
     }
     return eStatus;
 }
@@ -560,12 +560,12 @@ MOS_STATUS CodechalHwInterfaceG12::ReadImageStatusForAvp(MHW_VDBOX_NODE_IND vdbo
         storeRegMemParams.presStoreBuffer = params.resImageStatusMask;
         storeRegMemParams.dwOffset        = params.imageStatusMaskOffset;
         storeRegMemParams.dwRegister      = mmioRegisters->avpAv1ImageStatusMaskRegOffset;
-        m_miItf->MHW_ADDCMD_F(MI_STORE_REGISTER_MEM)(cmdBuffer);
+        CODECHAL_HW_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_REGISTER_MEM)(cmdBuffer));
         storeRegMemParams                 = {};
         storeRegMemParams.presStoreBuffer = params.resImageStatusCtrl;
         storeRegMemParams.dwOffset        = params.imageStatusCtrlOffset;
         storeRegMemParams.dwRegister      = mmioRegisters->avpAv1ImageStatusControlRegOffset;
-        m_miItf->MHW_ADDCMD_F(MI_STORE_REGISTER_MEM)(cmdBuffer);
+        CODECHAL_HW_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_REGISTER_MEM)(cmdBuffer));
         auto &parFlush = m_miItf->MHW_GETPAR_F(MI_FLUSH_DW)();
         parFlush       = {};
         CODECHAL_HW_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(cmdBuffer));
