@@ -398,6 +398,7 @@ MOS_STATUS VpPlatformInterface::InitVpCmKernels(
 
     if (!isaFile->readFile())
     {
+        MOS_Delete(isaFile);
         return MOS_STATUS_INVALID_PARAMETER;
     }
 

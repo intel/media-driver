@@ -38,9 +38,16 @@ ISAfile::ISAfile(const ISAfile& other) {
     data = other.data;
     end = other.end;
     size = other.size;
-    char *perror = new char[std::strlen(other.error)];
-    MOS_SecureMemcpy(perror, sizeof(perror), other.error, sizeof(other.error));
-    error = perror;
+    int error_length = std::strlen(other.error);
+    error = new char[error_length + 1];
+    if (nullptr == error)
+    {
+        MOS_OS_ASSERTMESSAGE("create array failed!");
+        return;
+    }
+    char *perror = const_cast<char*>(error);
+    perror[error_length] = '\0';
+    MOS_SecureMemcpy(perror, error_length + 1, other.error, error_length);
     kernel_data_loaded = other.kernel_data_loaded;
     function_data_loaded = other.function_data_loaded;
     errorIndex = other.errorIndex;
@@ -65,9 +72,16 @@ ISAfile& ISAfile::operator= (const ISAfile& other) {
         end = other.end;
         size = other.size;
         delete[] error;
-        char *perror = new char[std::strlen(other.error)];
-        MOS_SecureMemcpy(perror, sizeof perror, other.error, sizeof other.error);
-        error = perror;
+        int   error_length = std::strlen(other.error);
+        error = new char[error_length + 1];
+        if (nullptr == error)
+        {
+            MOS_OS_ASSERTMESSAGE("create array failed!");
+            return *this;
+        }
+        char *perror = const_cast<char *>(error);
+        perror[error_length] = '\0';
+        MOS_SecureMemcpy(perror, error_length + 1, other.error, error_length);
         kernel_data_loaded = other.kernel_data_loaded;
         function_data_loaded = other.function_data_loaded;
         errorIndex = other.errorIndex;
@@ -90,6 +104,11 @@ ISAfile::~ISAfile() {
         delete kb;
     for (FunctionBody *f : function_data)
         delete f;
+    if (error)
+    {
+        delete[] error;
+        error = nullptr;
+    }
 }
 
 bool ISAfile::readFile() {

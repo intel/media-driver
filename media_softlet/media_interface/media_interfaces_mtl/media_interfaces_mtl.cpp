@@ -387,12 +387,6 @@ MOS_STATUS CodechalInterfacesXe_Lpm_Plus::Initialize(
     PCODECHAL_STANDARD_INFO info          = ((PCODECHAL_STANDARD_INFO)standardInfo);
     CODECHAL_FUNCTION       CodecFunction = info->CodecFunction;
 
-    if (mhwInterfaces == nullptr)
-    {
-        CODECHAL_PUBLIC_ASSERTMESSAGE("mhwInterfaces is not valid!");
-        return MOS_STATUS_NO_SPACE;
-    }
-
     bool disableScalability = false;
 #ifdef _VP9_ENCODE_VDENC_SUPPORTED
     if (info->Mode == CODECHAL_ENCODE_MODE_VP9)

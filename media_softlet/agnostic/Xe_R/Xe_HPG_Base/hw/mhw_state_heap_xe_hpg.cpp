@@ -147,7 +147,7 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_XE_HPG::AddInterfaceDescriptorData(
 
     // need to subtract memory block's offset in current state heap for AddData API
     offset -= pParams->memoryBlock->GetOffset();
-    pParams->memoryBlock->AddData(pInterfaceDescriptor, offset, sizeof(mhw_state_heap_xe_hpg::INTERFACE_DESCRIPTOR_DATA_CMD));
+    MHW_MI_CHK_STATUS(pParams->memoryBlock->AddData(pInterfaceDescriptor, offset, sizeof(mhw_state_heap_xe_hpg::INTERFACE_DESCRIPTOR_DATA_CMD)));
 
     MOS_SafeFreeMemory(pInterfaceDescriptor);
 
@@ -506,8 +506,7 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_XE_HPG::SetSurfaceState(
             CmdInit.DW3.SurfacePitch = (pParams->dwPitchToUse[i] == 0) ? pParams->psSurface->dwPitch : pParams->dwPitchToUse[i];
             if (pParams->psSurface->MmcState == MOS_MEMCOMP_MC)
             {
-                CmdInit.DW7.MemoryCompressionEnable =
-                    (pParams->psSurface->MmcState == MOS_MEMCOMP_RC || pParams->psSurface->MmcState == MOS_MEMCOMP_MC) ? 1 : 0;
+                CmdInit.DW7.MemoryCompressionEnable = 1;
                 CmdInit.DW7.MemoryCompressionMode = 0;
                 CmdInit.DW4.DecompressInL3        = (pParams->psSurface->MmcState == MOS_MEMCOMP_MC) ? 1 : 0;
             }

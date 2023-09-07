@@ -1543,8 +1543,10 @@ MOS_STATUS XMHW_STATE_HEAP_INTERFACE::ExtendStateHeapDyn(
         {
             if (m_StateHeapSettings.m_keepIshLocked)
             {
-                if (LockStateHeap(pNewStateHeap) != MOS_STATUS_SUCCESS)
+                eStatus = LockStateHeap(pNewStateHeap);
+                if (eStatus != MOS_STATUS_SUCCESS)
                 {
+                    MHW_ASSERTMESSAGE("fail to lock state heap.");
                     break;
                 }
                 pNewStateHeap->bKeepLocked = true;
@@ -1558,8 +1560,10 @@ MOS_STATUS XMHW_STATE_HEAP_INTERFACE::ExtendStateHeapDyn(
         {
             if (m_StateHeapSettings.m_keepDshLocked)
             {
-                if (LockStateHeap(pNewStateHeap) != MOS_STATUS_SUCCESS)
+                eStatus = LockStateHeap(pNewStateHeap);
+                if (eStatus != MOS_STATUS_SUCCESS)
                 {
+                    MHW_ASSERTMESSAGE("fail to lock state heap.");
                     break;
                 }
                 pNewStateHeap->bKeepLocked = true;

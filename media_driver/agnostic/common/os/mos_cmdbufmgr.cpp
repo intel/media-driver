@@ -76,6 +76,7 @@ MOS_STATUS CmdBufMgr::Initialize(OsContext *osContext, uint32_t cmdBufSize)
             if (eStatus != MOS_STATUS_SUCCESS)
             {
                 MOS_OS_ASSERTMESSAGE("Allocate CmdBuf#%d failed", i);
+                CommandBuffer::DestroyCmdBuf(cmdBuf);
                 return MOS_STATUS_INVALID_HANDLE;
             }
 

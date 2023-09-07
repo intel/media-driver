@@ -47,9 +47,9 @@ namespace vISA
     //!             Pool as VARCHAR_POOL.
     //!
     struct Field {
-        Datatype type;
-        uint8_t countField;
-        uint32_t size;
+        Datatype type = ONE;
+        uint8_t countField = 0;
+        uint32_t size = 0;
         union {
             int8_t number8;
             int16_t number16;
@@ -100,15 +100,15 @@ namespace vISA
     class ISAfile
     {
     private:
-        unsigned version;
-        const uint8_t *data;
-        const uint8_t *end;
-        unsigned size;
-        const char *error;
-        unsigned errorIndex;
-        Header *header;
-        bool kernel_data_loaded;
-        bool function_data_loaded;
+        unsigned version = 0;
+        const uint8_t *data = nullptr;
+        const uint8_t *end = nullptr;
+        unsigned size = 0;
+        const char *error = nullptr;
+        unsigned errorIndex = 0;
+        Header *header = nullptr;
+        bool kernel_data_loaded = false;
+        bool function_data_loaded = false;
         std::vector<KernelBody*> kernel_data;
         std::vector<FunctionBody*> function_data;
 

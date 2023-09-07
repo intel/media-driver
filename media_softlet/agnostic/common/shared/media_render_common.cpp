@@ -85,7 +85,7 @@ static MOS_STATUS InitRenderHalSurface(
 
     pRenderHalSurface->OsSurface.YPlaneOffset = pSurface->YPlaneOffset;
     pRenderHalSurface->OsSurface.UPlaneOffset = pSurface->UPlaneOffset;
-    pRenderHalSurface->OsSurface.UPlaneOffset = pSurface->VPlaneOffset;
+    pRenderHalSurface->OsSurface.VPlaneOffset = pSurface->VPlaneOffset;
     pRenderHalSurface->SurfType = RENDERHAL_SURF_OUT_RENDERTARGET;
 
     MOS_SURFACE    ResDetails = {0};
@@ -157,10 +157,10 @@ MOS_STATUS MediaRenderCommon::Set2DSurfaceForHwAccess(
 
     RENDERHAL_GET_SURFACE_INFO info;
     MOS_ZeroMemory(&info, sizeof(info));
-    RenderHal_GetSurfaceInfo(
+    MHW_CHK_STATUS_RETURN(RenderHal_GetSurfaceInfo(
         pRenderHal->pOsInterface,
         &info,
-        pSurface);
+        pSurface));
 
     pRenderSurface->OsSurface = *pSurface;
     pRenderSurface->rcSrc.bottom       = pSurface->dwHeight;

@@ -50,7 +50,11 @@ MediaPipeline::MediaPipeline(PMOS_INTERFACE osInterface) : m_osInterface(osInter
     }
     else
     {
-        perfProfiler->Initialize((void *)this, m_osInterface);
+        MOS_STATUS status = perfProfiler->Initialize((void *)this, m_osInterface);
+        if (status != MOS_STATUS_SUCCESS)
+        {
+            MOS_OS_ASSERTMESSAGE("Initialize perfProfiler failed!");
+        }
     }
 }
 

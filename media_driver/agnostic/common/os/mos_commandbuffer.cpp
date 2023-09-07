@@ -35,3 +35,11 @@ class CommandBuffer* CommandBuffer::CreateCmdBuf()
     return cmdBuf;
 }
 
+void CommandBuffer::DestroyCmdBuf(CommandBuffer *&cmdBuf)
+{
+    MOS_OS_FUNCTION_ENTER;
+    if (cmdBuf)
+    {
+        MOS_Delete(cmdBuf);
+    }
+}

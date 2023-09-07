@@ -54,6 +54,13 @@ public:
     static class CommandBuffer* CreateCmdBuf();
 
     //!
+    //! \brief    Destroy Os specific command buffer
+    //! \return   CommandBuffer*
+    //!           Os specific command buffer
+    //!
+    static void DestroyCmdBuf(CommandBuffer *&cmdBuf);
+
+    //!
     //! \brief    Allocate graphics resource for current command buffer
     //! \param    [in] osContext
     //!           Related os context
