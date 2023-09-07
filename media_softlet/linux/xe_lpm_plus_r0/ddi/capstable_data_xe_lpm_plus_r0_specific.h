@@ -124,7 +124,7 @@ static const std::map<const uint32_t, const VAImageFormat*> imgtbl_Xe_lpm_plus_r
 static const EntrypointMap entrypointMap_VAProfileHEVCSccMain444_10_Xe_Lpm_plus_r0
 {
 #if defined(_HEVC_ENCODE_VDENC_SUPPORTED)
-    {VAEntrypointEncSliceLP, &entrypointMap_VAProfileHEVCSccMain444_10_Data_Xe_Lpm_plus_r0},
+    {VAEntrypointEncSlice, &entrypointMap_VAProfileHEVCSccMain444_10_Data_Xe_Lpm_plus_r0},
 #endif
 
 #if defined(_HEVC_DECODE_SUPPORTED)
@@ -135,7 +135,7 @@ static const EntrypointMap entrypointMap_VAProfileHEVCSccMain444_10_Xe_Lpm_plus_
 static const EntrypointMap entrypointMap_VAProfileHEVCSccMain444_Xe_Lpm_plus_r0
 {
 #if defined(_HEVC_ENCODE_VDENC_SUPPORTED)
-    {VAEntrypointEncSliceLP, &entrypointMap_VAProfileHEVCSccMain444_Data_Xe_Lpm_plus_r0},
+    {VAEntrypointEncSlice, &entrypointMap_VAProfileHEVCSccMain444_Data_Xe_Lpm_plus_r0},
 #endif
 
 #if defined(_HEVC_DECODE_SUPPORTED)
@@ -146,7 +146,7 @@ static const EntrypointMap entrypointMap_VAProfileHEVCSccMain444_Xe_Lpm_plus_r0
 static const EntrypointMap entrypointMap_VAProfileHEVCSccMain10_Xe_Lpm_plus_r0
 {
 #if defined(_HEVC_ENCODE_VDENC_SUPPORTED)
-    {VAEntrypointEncSliceLP, &entrypointMap_VAProfileHEVCSccMain10_Data_Xe_Lpm_plus_r0},
+    {VAEntrypointEncSlice, &entrypointMap_VAProfileHEVCSccMain10_Data_Xe_Lpm_plus_r0},
 #endif
 
 #if defined(_HEVC_DECODE_SUPPORTED)
@@ -157,7 +157,7 @@ static const EntrypointMap entrypointMap_VAProfileHEVCSccMain10_Xe_Lpm_plus_r0
 static const EntrypointMap entrypointMap_VAProfileHEVCSccMain_Xe_Lpm_plus_r0
 {
 #if defined(_HEVC_ENCODE_VDENC_SUPPORTED)
-    {VAEntrypointEncSliceLP, &entrypointMap_VAProfileHEVCSccMain_Data_Xe_Lpm_plus_r0},
+    {VAEntrypointEncSlice, &entrypointMap_VAProfileHEVCSccMain_Data_Xe_Lpm_plus_r0},
 #endif
 
 #if defined(_HEVC_DECODE_SUPPORTED)
@@ -168,7 +168,7 @@ static const EntrypointMap entrypointMap_VAProfileHEVCSccMain_Xe_Lpm_plus_r0
 static const EntrypointMap entrypointMap_VAProfileHEVCMain444_10_Xe_Lpm_plus_r0
 {
 #if defined(_HEVC_ENCODE_VDENC_SUPPORTED)
-    {VAEntrypointEncSliceLP, &entrypointMap_VAProfileHEVCMain444_10_Data_Xe_Lpm_plus_r0},
+    {VAEntrypointEncSlice, &entrypointMap_VAProfileHEVCMain444_10_Data_Xe_Lpm_plus_r0},
 #endif
 
 #if defined(_HEVC_DECODE_SUPPORTED)
@@ -179,7 +179,7 @@ static const EntrypointMap entrypointMap_VAProfileHEVCMain444_10_Xe_Lpm_plus_r0
 static const EntrypointMap entrypointMap_VAProfileHEVCMain444_Xe_Lpm_plus_r0
 {
 #if defined(_HEVC_ENCODE_VDENC_SUPPORTED)
-    {VAEntrypointEncSliceLP, &entrypointMap_VAProfileHEVCMain444_Data_Xe_Lpm_plus_r0},
+    {VAEntrypointEncSlice, &entrypointMap_VAProfileHEVCMain444_Data_Xe_Lpm_plus_r0},
 #endif
 
 #if defined(_HEVC_DECODE_SUPPORTED)
@@ -190,7 +190,7 @@ static const EntrypointMap entrypointMap_VAProfileHEVCMain444_Xe_Lpm_plus_r0
 static const EntrypointMap entrypointMap_VAProfileHEVCMain10_Xe_Lpm_plus_r0
 {
 #if defined(_HEVC_ENCODE_VDENC_SUPPORTED)
-    {VAEntrypointEncSliceLP, &entrypointMap_VAProfileHEVCMain10_Data_Xe_Lpm_plus_r0},
+    {VAEntrypointEncSlice, &entrypointMap_VAProfileHEVCMain10_Data_Xe_Lpm_plus_r0},
 #endif
 
 #if defined(_HEVC_DECODE_SUPPORTED)
@@ -201,7 +201,7 @@ static const EntrypointMap entrypointMap_VAProfileHEVCMain10_Xe_Lpm_plus_r0
 static const EntrypointMap entrypointMap_VAProfileHEVCMain_Xe_Lpm_plus_r0
 {
 #if defined(_HEVC_ENCODE_VDENC_SUPPORTED)
-    {VAEntrypointEncSliceLP, &entrypointMap_VAProfileHEVCMain_Data_Xe_Lpm_plus_r0},
+    {VAEntrypointEncSlice, &entrypointMap_VAProfileHEVCMain_Data_Xe_Lpm_plus_r0},
 #endif
 
 #if defined(_HEVC_DECODE_SUPPORTED)
@@ -240,7 +240,7 @@ static const EntrypointMap entrypointMap_VAProfileHEVCMain444_12_Xe_Lpm_plus_r0
 static const EntrypointMap entrypointMap_VAProfileH264Main_Xe_Lpm_plus_r0
 {
 #if defined(_AVC_ENCODE_VDENC_SUPPORTED)
-    {VAEntrypointEncSliceLP, &entrypointMap_VAProfileH264Main_Data_Xe_Lpm_plus_r0},
+    {VAEntrypointEncSlice, &entrypointMap_VAProfileH264Main_Data_Xe_Lpm_plus_r0},
 #endif
 
 #if defined(_AVC_DECODE_SUPPORTED)
@@ -251,7 +251,7 @@ static const EntrypointMap entrypointMap_VAProfileH264Main_Xe_Lpm_plus_r0
 static const EntrypointMap entrypointMap_VAProfileH264High_Xe_Lpm_plus_r0
 {
 #if defined(_AVC_ENCODE_VDENC_SUPPORTED)
-    {VAEntrypointEncSliceLP, &entrypointMap_VAProfileH264High_Data_Xe_Lpm_plus_r0},
+    {VAEntrypointEncSlice, &entrypointMap_VAProfileH264High_Data_Xe_Lpm_plus_r0},
 #endif
 
 #if defined(_AVC_DECODE_SUPPORTED)
@@ -262,7 +262,7 @@ static const EntrypointMap entrypointMap_VAProfileH264High_Xe_Lpm_plus_r0
 static const EntrypointMap entrypointMap_VAProfileH264ConstrainedBaseline_Xe_Lpm_plus_r0
 {
 #if defined(_AVC_ENCODE_VDENC_SUPPORTED)
-    {VAEntrypointEncSliceLP, &entrypointMap_VAProfileH264ConstrainedBaseline_Data_Xe_Lpm_plus_r0},
+    {VAEntrypointEncSlice, &entrypointMap_VAProfileH264ConstrainedBaseline_Data_Xe_Lpm_plus_r0},
 #endif
 
 #if defined(_AVC_DECODE_SUPPORTED)
@@ -284,7 +284,7 @@ static const EntrypointMap entrypointMap_VAProfileJPEGBaseline_Xe_Lpm_plus_r0
 static const EntrypointMap entrypointMap_VAProfileAV1Profile0_Xe_Lpm_plus_r0
 {
 #if defined(_AV1_ENCODE_VDENC_SUPPORTED)
-    {VAEntrypointEncSliceLP, &entrypointMap_VAProfileAV1Profile0_Data_Xe_Lpm_plus_r0},
+    {VAEntrypointEncSlice, &entrypointMap_VAProfileAV1Profile0_Data_Xe_Lpm_plus_r0},
 #endif
 #if defined(_AV1_DECODE_SUPPORTED)
     {VAEntrypointVLD, &entrypointMap_VAProfileAV1Profile0Dec_Data_Xe_Lpm_plus_r0},
@@ -294,7 +294,7 @@ static const EntrypointMap entrypointMap_VAProfileAV1Profile0_Xe_Lpm_plus_r0
 static const EntrypointMap entrypointMap_VAProfileVP9Profile0_Xe_Lpm_plus_r0
 {
 #if defined(_VP9_ENCODE_VDENC_SUPPORTED)
-    {VAEntrypointEncSliceLP, &entrypointMap_VAProfileVP9Profile0_Data_Xe_Lpm_plus_r0},
+    {VAEntrypointEncSlice, &entrypointMap_VAProfileVP9Profile0_Data_Xe_Lpm_plus_r0},
 #endif
 
 #if defined(_VP9_DECODE_SUPPORTED)
@@ -305,7 +305,7 @@ static const EntrypointMap entrypointMap_VAProfileVP9Profile0_Xe_Lpm_plus_r0
 static const EntrypointMap entrypointMap_VAProfileVP9Profile1_Xe_Lpm_plus_r0
 {
 #if defined(_VP9_ENCODE_VDENC_SUPPORTED)
-    {VAEntrypointEncSliceLP, &entrypointMap_VAProfileVP9Profile1_Data_Xe_Lpm_plus_r0},
+    {VAEntrypointEncSlice, &entrypointMap_VAProfileVP9Profile1_Data_Xe_Lpm_plus_r0},
 #endif
 
 #if defined(_VP9_DECODE_SUPPORTED)
@@ -316,7 +316,7 @@ static const EntrypointMap entrypointMap_VAProfileVP9Profile1_Xe_Lpm_plus_r0
 static const EntrypointMap entrypointMap_VAProfileVP9Profile2_Xe_Lpm_plus_r0
 {
 #if defined(_VP9_ENCODE_VDENC_SUPPORTED)
-    {VAEntrypointEncSliceLP, &entrypointMap_VAProfileVP9Profile2_Data_Xe_Lpm_plus_r0},
+    {VAEntrypointEncSlice, &entrypointMap_VAProfileVP9Profile2_Data_Xe_Lpm_plus_r0},
 #endif
 
 #if defined(_VP9_DECODE_SUPPORTED)
@@ -327,7 +327,7 @@ static const EntrypointMap entrypointMap_VAProfileVP9Profile2_Xe_Lpm_plus_r0
 static const EntrypointMap entrypointMap_VAProfileVP9Profile3_Xe_Lpm_plus_r0
 {
 #if defined(_VP9_ENCODE_VDENC_SUPPORTED)
-    {VAEntrypointEncSliceLP, &entrypointMap_VAProfileVP9Profile3_Data_Xe_Lpm_plus_r0},
+    {VAEntrypointEncSlice, &entrypointMap_VAProfileVP9Profile3_Data_Xe_Lpm_plus_r0},
 #endif
 
 #if defined(_VP9_DECODE_SUPPORTED)

@@ -1502,10 +1502,10 @@ bool DdiEncodeHevc::IsSccProfile()
            || m_encodeCtx->vaProfile==VAProfileHEVCSccMain444_10);
 }
 
-CODECHAL_FUNCTION DdiEncodeHevc::GetEncodeCodecFunction(VAProfile profile, VAEntrypoint entrypoint)
+CODECHAL_FUNCTION DdiEncodeHevc::GetEncodeCodecFunction(VAProfile profile, VAEntrypoint entrypoint, bool bVDEnc)
 {
     CODECHAL_FUNCTION codecFunction = CODECHAL_FUNCTION_INVALID;
-   if (entrypoint == VAEntrypointEncSliceLP)
+    if (bVDEnc)
     {
         codecFunction = CODECHAL_FUNCTION_ENC_VDENC_PAK;
     }

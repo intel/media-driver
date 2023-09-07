@@ -41,51 +41,51 @@ typedef MediaFactory<ComponentInfo, decode::DdiDecodeBase> DdiDecodeFactory;
 
 static bool RegisteredHevcMain =
     DdiEncodeFactory::
-        Register<encode::DdiEncodeHevc>(ComponentInfo {VAProfileHEVCMain, VAEntrypointEncSliceLP});
+        Register<encode::DdiEncodeHevc>(ComponentInfo {VAProfileHEVCMain, VAEntrypointEncSlice});
 static bool RegisteredHevcMain10 =
     DdiEncodeFactory::
-        Register<encode::DdiEncodeHevc>(ComponentInfo{VAProfileHEVCMain10, VAEntrypointEncSliceLP});
+        Register<encode::DdiEncodeHevc>(ComponentInfo{VAProfileHEVCMain10, VAEntrypointEncSlice});
 static bool RegisteredHevcMain444 =
     DdiEncodeFactory::
-        Register<encode::DdiEncodeHevc>(ComponentInfo{VAProfileHEVCMain444, VAEntrypointEncSliceLP});
+        Register<encode::DdiEncodeHevc>(ComponentInfo{VAProfileHEVCMain444, VAEntrypointEncSlice});
 static bool RegisteredHevcMain444_10 =
     DdiEncodeFactory::
-        Register<encode::DdiEncodeHevc>(ComponentInfo{VAProfileHEVCMain444_10, VAEntrypointEncSliceLP});
+        Register<encode::DdiEncodeHevc>(ComponentInfo{VAProfileHEVCMain444_10, VAEntrypointEncSlice});
 static bool RegisteredHevcSCCMain =
     DdiEncodeFactory::
-        Register<encode::DdiEncodeHevc>(ComponentInfo{VAProfileHEVCSccMain, VAEntrypointEncSliceLP});
+        Register<encode::DdiEncodeHevc>(ComponentInfo{VAProfileHEVCSccMain, VAEntrypointEncSlice});
 static bool RegisteredHevcSCCMain10 =
     DdiEncodeFactory::
-        Register<encode::DdiEncodeHevc>(ComponentInfo{VAProfileHEVCSccMain10, VAEntrypointEncSliceLP});
+        Register<encode::DdiEncodeHevc>(ComponentInfo{VAProfileHEVCSccMain10, VAEntrypointEncSlice});
 static bool RegisteredHevcSCCMain444 =
     DdiEncodeFactory::
-        Register<encode::DdiEncodeHevc>(ComponentInfo{VAProfileHEVCSccMain444, VAEntrypointEncSliceLP});
+        Register<encode::DdiEncodeHevc>(ComponentInfo{VAProfileHEVCSccMain444, VAEntrypointEncSlice});
 static bool RegisteredHevcSCCMain444_10 =
     DdiEncodeFactory::
-        Register<encode::DdiEncodeHevc>(ComponentInfo{VAProfileHEVCSccMain444_10, VAEntrypointEncSliceLP});
+        Register<encode::DdiEncodeHevc>(ComponentInfo{VAProfileHEVCSccMain444_10, VAEntrypointEncSlice});
 #endif // _HEVC_ENCODE_VDENC_SUPPORTED
 
 #if defined (_AV1_ENCODE_VDENC_SUPPORTED)
 #include "ddi_encode_av1_specific.h"
 static bool RegisteredAv1Profile0 =
     DdiEncodeFactory::
-        Register<encode::DdiEncodeAV1>(ComponentInfo {VAProfileAV1Profile0, VAEntrypointEncSliceLP});
+        Register<encode::DdiEncodeAV1>(ComponentInfo {VAProfileAV1Profile0, VAEntrypointEncSlice});
 #endif // _AV1_ENCODE_VDENC_SUPPORTED
 
 #if defined (_VP9_ENCODE_VDENC_SUPPORTED)
 #include "ddi_encode_vp9_specific.h"
 static bool RegisteredVp9Profile0 =
     DdiEncodeFactory::
-        Register<encode::DdiEncodeVp9>(ComponentInfo {VAProfileVP9Profile0, VAEntrypointEncSliceLP});
+        Register<encode::DdiEncodeVp9>(ComponentInfo {VAProfileVP9Profile0, VAEntrypointEncSlice});
 static bool RegisteredVp9Profile1 =
     DdiEncodeFactory::
-        Register<encode::DdiEncodeVp9>(ComponentInfo {VAProfileVP9Profile1, VAEntrypointEncSliceLP});
+        Register<encode::DdiEncodeVp9>(ComponentInfo {VAProfileVP9Profile1, VAEntrypointEncSlice});
 static bool RegisteredVp9Profile2 =
     DdiEncodeFactory::
-        Register<encode::DdiEncodeVp9>(ComponentInfo {VAProfileVP9Profile2, VAEntrypointEncSliceLP});
+        Register<encode::DdiEncodeVp9>(ComponentInfo {VAProfileVP9Profile2, VAEntrypointEncSlice});
 static bool RegisteredVp9Profile3 =
     DdiEncodeFactory::
-        Register<encode::DdiEncodeVp9>(ComponentInfo {VAProfileVP9Profile3, VAEntrypointEncSliceLP});
+        Register<encode::DdiEncodeVp9>(ComponentInfo {VAProfileVP9Profile3, VAEntrypointEncSlice});
 #endif // _VP9_ENCODE_VDENC_SUPPORTED
 
 #if defined (_AVC_ENCODE_VDENC_SUPPORTED)
@@ -93,13 +93,13 @@ static bool RegisteredVp9Profile3 =
 
 static bool RegisteredH264Main =
     DdiEncodeFactory::
-        Register<encode::DdiEncodeAvc>(ComponentInfo {VAProfileH264Main, VAEntrypointEncSliceLP});
+        Register<encode::DdiEncodeAvc>(ComponentInfo {VAProfileH264Main, VAEntrypointEncSlice});
 static bool RegisteredH264High =
     DdiEncodeFactory::
-        Register<encode::DdiEncodeAvc>(ComponentInfo{VAProfileH264High, VAEntrypointEncSliceLP});
+        Register<encode::DdiEncodeAvc>(ComponentInfo{VAProfileH264High, VAEntrypointEncSlice});
 static bool RegisteredH264ConstrainedBaseline =
     DdiEncodeFactory::
-        Register<encode::DdiEncodeAvc>(ComponentInfo{VAProfileH264ConstrainedBaseline, VAEntrypointEncSliceLP});
+        Register<encode::DdiEncodeAvc>(ComponentInfo{VAProfileH264ConstrainedBaseline, VAEntrypointEncSlice});
 #endif // _AVC_ENCODE_VDENC_SUPPORTED
 
 #if defined (_JPEG_ENCODE_SUPPORTED)

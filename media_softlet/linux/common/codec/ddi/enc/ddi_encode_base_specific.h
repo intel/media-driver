@@ -291,7 +291,7 @@ public:
     //!
     //! \return   Codehal function
     //!
-    virtual CODECHAL_FUNCTION GetEncodeCodecFunction(VAProfile profile, VAEntrypoint entrypoint) = 0;
+    virtual CODECHAL_FUNCTION GetEncodeCodecFunction(VAProfile profile, VAEntrypoint entrypoint, bool bVDEnc) = 0;
 
     //!
     //! \brief    Return internal encode mode for given profile and entrypoint

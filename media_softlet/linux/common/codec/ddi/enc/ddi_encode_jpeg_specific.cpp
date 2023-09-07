@@ -756,7 +756,7 @@ uint32_t DdiEncodeJpeg::getQMatrixBufferSize()
     return sizeof(VAQMatrixBufferJPEG);
 }
 
-CODECHAL_FUNCTION DdiEncodeJpeg::GetEncodeCodecFunction(VAProfile profile, VAEntrypoint entrypoint)
+CODECHAL_FUNCTION DdiEncodeJpeg::GetEncodeCodecFunction(VAProfile profile, VAEntrypoint entrypoint, bool bVDEnc)
 {
     CODECHAL_FUNCTION codecFunction = CODECHAL_FUNCTION_INVALID;
     if (profile == VAProfileJPEGBaseline)

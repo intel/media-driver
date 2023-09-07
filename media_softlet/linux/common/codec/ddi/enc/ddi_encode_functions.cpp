@@ -188,16 +188,16 @@ VAStatus DdiEncodeFunctions::CreateContext (
         return vaStatus;
     }
 
+    if (configItem->entrypoint == VAEntrypointEncSliceLP || configItem->entrypoint == VAEntrypointEncSlice)
+    {
+        encCtx->bVdencActive = true;
+    }
+
     encCtx->vaEntrypoint  = configItem->entrypoint;
     encCtx->vaProfile     = configItem->profile;
     encCtx->uiRCMethod    = configItem->componentData.data.rcMode;
     encCtx->wModeType     = ddiEncode->GetEncodeCodecMode(configItem->profile, configItem->entrypoint);
-    encCtx->codecFunction = ddiEncode->GetEncodeCodecFunction(configItem->profile, configItem->entrypoint);
-
-    if (configItem->entrypoint == VAEntrypointEncSliceLP)
-    {
-        encCtx->bVdencActive = true;
-    }
+    encCtx->codecFunction = ddiEncode->GetEncodeCodecFunction(configItem->profile, configItem->entrypoint, encCtx->bVdencActive);
 
     CODECHAL_STANDARD_INFO standardInfo;
     MOS_ZeroMemory(&standardInfo, sizeof(CODECHAL_STANDARD_INFO));

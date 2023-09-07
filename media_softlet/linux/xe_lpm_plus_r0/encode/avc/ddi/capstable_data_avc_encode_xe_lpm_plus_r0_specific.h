@@ -31,18 +31,18 @@
 //!
 //! \brief  Definition for bitset value
 //!
-static const VAConfigAttribValEncROI VAProfileH264ConstrainedBaseline_VAEntrypointEncSliceLP_encROI
+static const VAConfigAttribValEncROI VAProfileH264ConstrainedBaseline_VAEntrypointEncSlice_encROI
 {
     {ENCODE_VDENC_AVC_MAX_ROI_NUMBER_ADV,0,1,0}
 };
 
-static const VAConfigAttribValMaxFrameSize VAProfileH264ConstrainedBaseline_VAEntrypointEncSliceLP_maxFrameSize
+static const VAConfigAttribValMaxFrameSize VAProfileH264ConstrainedBaseline_VAEntrypointEncSlice_maxFrameSize
 {
     {1,1,0}
 };
 
 //! \brief  Definition for ConfigDataList
-static ConfigDataList configDataList_VAProfileH264Main_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0 =
+static ConfigDataList configDataList_VAProfileH264Main_VAEntrypointEncSlice_Xe_Lpm_plus_r0 =
 {
     {VA_RC_CQP, 0},
     {VA_RC_CBR, 0},
@@ -56,7 +56,7 @@ static ConfigDataList configDataList_VAProfileH264Main_VAEntrypointEncSliceLP_Xe
     {VA_RC_VBR | VA_RC_MB, 0},
 };
 
-static ConfigDataList configDataList_VAProfileH264High_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0 =
+static ConfigDataList configDataList_VAProfileH264High_VAEntrypointEncSlice_Xe_Lpm_plus_r0 =
 {
     {VA_RC_CQP, 0},
     {VA_RC_CBR, 0},
@@ -70,7 +70,7 @@ static ConfigDataList configDataList_VAProfileH264High_VAEntrypointEncSliceLP_Xe
     {VA_RC_VBR | VA_RC_MB, 0},
 };
 
-static ConfigDataList configDataList_VAProfileH264ConstrainedBaseline_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0 =
+static ConfigDataList configDataList_VAProfileH264ConstrainedBaseline_VAEntrypointEncSlice_Xe_Lpm_plus_r0 =
 {
     {VA_RC_CQP, 0},
     {VA_RC_CBR, 0},
@@ -88,7 +88,7 @@ static ConfigDataList configDataList_VAProfileH264ConstrainedBaseline_VAEntrypoi
 //!
 //! \brief  Definition for AttribList
 //!
-static const AttribList AttribList_VAProfileH264Main_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0
+static const AttribList AttribList_VAProfileH264Main_VAEntrypointEncSlice_Xe_Lpm_plus_r0
 {
     {VAConfigAttribRTFormat, VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV422 | VA_RT_FORMAT_YUV444 | VA_RT_FORMAT_RGB32},
     {VAConfigAttribEncQualityRange, NUM_TARGET_USAGE_MODES - 1},
@@ -106,10 +106,10 @@ static const AttribList AttribList_VAProfileH264Main_VAEntrypointEncSliceLP_Xe_L
     {VAConfigAttribEncQuantization, VA_ENC_QUANTIZATION_TRELLIS_SUPPORTED},
     {VAConfigAttribEncIntraRefresh, VA_ENC_INTRA_REFRESH_ROLLING_COLUMN | VA_ENC_INTRA_REFRESH_ROLLING_ROW},
     {VAConfigAttribEncSkipFrame, 1},
-    {VAConfigAttribEncROI, VAProfileH264ConstrainedBaseline_VAEntrypointEncSliceLP_encROI.value},
+    {VAConfigAttribEncROI, VAProfileH264ConstrainedBaseline_VAEntrypointEncSlice_encROI.value},
     {VAConfigAttribProcessingRate, VA_PROCESSING_RATE_ENCODE},
     {VAConfigAttribEncDirtyRect, 4},
-    {VAConfigAttribMaxFrameSize, VAProfileH264ConstrainedBaseline_VAEntrypointEncSliceLP_maxFrameSize.value},
+    {VAConfigAttribMaxFrameSize, VAProfileH264ConstrainedBaseline_VAEntrypointEncSlice_maxFrameSize.value},
     {VAConfigAttribMaxPictureWidth, CODEC_4K_MAX_PIC_WIDTH},
     {VAConfigAttribMaxPictureHeight, CODEC_4K_MAX_PIC_HEIGHT},
     {VAConfigAttribCustomRoundingControl, 1},
@@ -121,7 +121,7 @@ static const AttribList AttribList_VAProfileH264Main_VAEntrypointEncSliceLP_Xe_L
                               (jpegNumComponent << 4)) /* max_num_components : 3 */},
 };
 
-static const AttribList AttribList_VAProfileH264High_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0
+static const AttribList AttribList_VAProfileH264High_VAEntrypointEncSlice_Xe_Lpm_plus_r0
 {
     {VAConfigAttribRTFormat, VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV422 | VA_RT_FORMAT_YUV444 | VA_RT_FORMAT_RGB32},
     {VAConfigAttribEncQualityRange, NUM_TARGET_USAGE_MODES - 1},
@@ -139,10 +139,10 @@ static const AttribList AttribList_VAProfileH264High_VAEntrypointEncSliceLP_Xe_L
     {VAConfigAttribEncQuantization, VA_ENC_QUANTIZATION_TRELLIS_SUPPORTED},
     {VAConfigAttribEncIntraRefresh, VA_ENC_INTRA_REFRESH_ROLLING_COLUMN | VA_ENC_INTRA_REFRESH_ROLLING_ROW},
     {VAConfigAttribEncSkipFrame, 1},
-    {VAConfigAttribEncROI, VAProfileH264ConstrainedBaseline_VAEntrypointEncSliceLP_encROI.value},
+    {VAConfigAttribEncROI, VAProfileH264ConstrainedBaseline_VAEntrypointEncSlice_encROI.value},
     {VAConfigAttribProcessingRate, VA_PROCESSING_RATE_ENCODE},
     {VAConfigAttribEncDirtyRect, 4},
-    {VAConfigAttribMaxFrameSize, VAProfileH264ConstrainedBaseline_VAEntrypointEncSliceLP_maxFrameSize.value},
+    {VAConfigAttribMaxFrameSize, VAProfileH264ConstrainedBaseline_VAEntrypointEncSlice_maxFrameSize.value},
     {VAConfigAttribMaxPictureWidth, CODEC_4K_MAX_PIC_WIDTH},
     {VAConfigAttribMaxPictureHeight, CODEC_4K_MAX_PIC_HEIGHT},
     {VAConfigAttribCustomRoundingControl, 1},
@@ -154,7 +154,7 @@ static const AttribList AttribList_VAProfileH264High_VAEntrypointEncSliceLP_Xe_L
                               (jpegNumComponent << 4)) /* max_num_components : 3 */},
 };
 
-static const AttribList AttribList_VAProfileH264ConstrainedBaseline_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0
+static const AttribList AttribList_VAProfileH264ConstrainedBaseline_VAEntrypointEncSlice_Xe_Lpm_plus_r0
 {
     {VAConfigAttribRTFormat, VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV422 | VA_RT_FORMAT_YUV444 | VA_RT_FORMAT_RGB32},
     {VAConfigAttribEncQualityRange, NUM_TARGET_USAGE_MODES - 1},
@@ -172,10 +172,10 @@ static const AttribList AttribList_VAProfileH264ConstrainedBaseline_VAEntrypoint
     {VAConfigAttribEncQuantization, VA_ENC_QUANTIZATION_TRELLIS_SUPPORTED},
     {VAConfigAttribEncIntraRefresh, VA_ENC_INTRA_REFRESH_ROLLING_COLUMN | VA_ENC_INTRA_REFRESH_ROLLING_ROW},
     {VAConfigAttribEncSkipFrame, 1},
-    {VAConfigAttribEncROI, VAProfileH264ConstrainedBaseline_VAEntrypointEncSliceLP_encROI.value},
+    {VAConfigAttribEncROI, VAProfileH264ConstrainedBaseline_VAEntrypointEncSlice_encROI.value},
     {VAConfigAttribProcessingRate, VA_PROCESSING_RATE_ENCODE},
     {VAConfigAttribEncDirtyRect, 4},
-    {VAConfigAttribMaxFrameSize, VAProfileH264ConstrainedBaseline_VAEntrypointEncSliceLP_maxFrameSize.value},
+    {VAConfigAttribMaxFrameSize, VAProfileH264ConstrainedBaseline_VAEntrypointEncSlice_maxFrameSize.value},
     {VAConfigAttribMaxPictureWidth, CODEC_4K_MAX_PIC_WIDTH},
     {VAConfigAttribMaxPictureHeight, CODEC_4K_MAX_PIC_HEIGHT},
     {VAConfigAttribCustomRoundingControl, 1},
@@ -188,7 +188,7 @@ static const AttribList AttribList_VAProfileH264ConstrainedBaseline_VAEntrypoint
 };
 
 //!
-static const ProfileSurfaceAttribInfo surfaceAttribInfo_VAProfileH264Main_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0 =
+static const ProfileSurfaceAttribInfo surfaceAttribInfo_VAProfileH264Main_VAEntrypointEncSlice_Xe_Lpm_plus_r0 =
 {
     {VASurfaceAttribPixelFormat, VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {VA_FOURCC_NV12}}},
     {VASurfaceAttribMaxWidth, VA_SURFACE_ATTRIB_GETTABLE, {VAGenericValueTypeInteger, {CODEC_4K_MAX_PIC_WIDTH}}},
@@ -199,7 +199,7 @@ static const ProfileSurfaceAttribInfo surfaceAttribInfo_VAProfileH264Main_VAEntr
 };
 
 //!
-static const ProfileSurfaceAttribInfo surfaceAttribInfo_VAProfileH264High_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0 =
+static const ProfileSurfaceAttribInfo surfaceAttribInfo_VAProfileH264High_VAEntrypointEncSlice_Xe_Lpm_plus_r0 =
 {
     {VASurfaceAttribPixelFormat, VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {VA_FOURCC_NV12}}},
     {VASurfaceAttribMaxWidth, VA_SURFACE_ATTRIB_GETTABLE, {VAGenericValueTypeInteger, {CODEC_4K_MAX_PIC_WIDTH}}},
@@ -210,7 +210,7 @@ static const ProfileSurfaceAttribInfo surfaceAttribInfo_VAProfileH264High_VAEntr
 };
 
 //!
-static const ProfileSurfaceAttribInfo surfaceAttribInfo_VAProfileH264ConstrainedBaseline_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0 =
+static const ProfileSurfaceAttribInfo surfaceAttribInfo_VAProfileH264ConstrainedBaseline_VAEntrypointEncSlice_Xe_Lpm_plus_r0 =
 {
     {VASurfaceAttribPixelFormat, VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {VA_FOURCC_NV12}}},
     {VASurfaceAttribMaxWidth, VA_SURFACE_ATTRIB_GETTABLE, {VAGenericValueTypeInteger, {CODEC_4K_MAX_PIC_WIDTH}}},
@@ -225,23 +225,23 @@ static const ProfileSurfaceAttribInfo surfaceAttribInfo_VAProfileH264Constrained
 //!
 static const EntrypointData entrypointMap_VAProfileH264Main_Data_Xe_Lpm_plus_r0
 {
-    &AttribList_VAProfileH264Main_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0,
-    &configDataList_VAProfileH264Main_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0,
-    &surfaceAttribInfo_VAProfileH264Main_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0
+    &AttribList_VAProfileH264Main_VAEntrypointEncSlice_Xe_Lpm_plus_r0,
+    &configDataList_VAProfileH264Main_VAEntrypointEncSlice_Xe_Lpm_plus_r0,
+    &surfaceAttribInfo_VAProfileH264Main_VAEntrypointEncSlice_Xe_Lpm_plus_r0
 };
 
 static const EntrypointData entrypointMap_VAProfileH264High_Data_Xe_Lpm_plus_r0
 {
-    &AttribList_VAProfileH264High_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0,
-    &configDataList_VAProfileH264High_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0,
-    &surfaceAttribInfo_VAProfileH264High_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0
+    &AttribList_VAProfileH264High_VAEntrypointEncSlice_Xe_Lpm_plus_r0,
+    &configDataList_VAProfileH264High_VAEntrypointEncSlice_Xe_Lpm_plus_r0,
+    &surfaceAttribInfo_VAProfileH264High_VAEntrypointEncSlice_Xe_Lpm_plus_r0
 };
 
 static const EntrypointData entrypointMap_VAProfileH264ConstrainedBaseline_Data_Xe_Lpm_plus_r0
 {
-    &AttribList_VAProfileH264ConstrainedBaseline_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0,
-    &configDataList_VAProfileH264ConstrainedBaseline_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0,
-    &surfaceAttribInfo_VAProfileH264ConstrainedBaseline_VAEntrypointEncSliceLP_Xe_Lpm_plus_r0
+    &AttribList_VAProfileH264ConstrainedBaseline_VAEntrypointEncSlice_Xe_Lpm_plus_r0,
+    &configDataList_VAProfileH264ConstrainedBaseline_VAEntrypointEncSlice_Xe_Lpm_plus_r0,
+    &surfaceAttribInfo_VAProfileH264ConstrainedBaseline_VAEntrypointEncSlice_Xe_Lpm_plus_r0
 };
 
 #endif

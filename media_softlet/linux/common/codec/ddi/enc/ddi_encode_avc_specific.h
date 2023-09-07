@@ -531,7 +531,7 @@ protected:
     //!
     //! \return   Codehal function
     //!
-    CODECHAL_FUNCTION GetEncodeCodecFunction(VAProfile profile, VAEntrypoint entrypoint) override;
+    CODECHAL_FUNCTION GetEncodeCodecFunction(VAProfile profile, VAEntrypoint entrypoint, bool bVDEnc) override;
     //!
     //! \brief    Return internal encode mode for given profile and entrypoint
     //!
