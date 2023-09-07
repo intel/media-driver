@@ -3639,6 +3639,15 @@ MOS_STATUS Mos_Specific_InitInterface(
     osInterface->trinityPath         = TRINITY_DISABLED;
     osInterface->umdMediaResetEnable = true;
 
+    // disable Media Reset for non-xe platform who has no media reset support on Linux
+    auto skuTable = osInterface->pfnGetSkuTable(osInterface);
+    MOS_OS_CHK_NULL_RETURN(skuTable);
+    if(!MEDIA_IS_SKU(skuTable, FtrSWMediaReset))
+    {
+        osInterface->bMediaReset         = false;
+        osInterface->umdMediaResetEnable = false;
+    }
+
     pMediaWatchdog = getenv("INTEL_MEDIA_RESET_WATCHDOG");
     if (pMediaWatchdog != nullptr)
     {

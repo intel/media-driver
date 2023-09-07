@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2022, Intel Corporation
+* Copyright (c) 2009-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -7336,6 +7336,17 @@ MOS_STATUS Mos_Specific_InitInterface(
         }
     }
 
+    // Check SKU table to detect if simulation environment (HAS) is enabled
+    pSkuTable = pOsInterface->pfnGetSkuTable(pOsInterface);
+    MOS_OS_CHK_NULL(pSkuTable);
+
+    // disable Media Reset for non-xe platform who has no media reset support on Linux
+    if(!MEDIA_IS_SKU(pSkuTable, FtrSWMediaReset))
+    {
+        pOsInterface->bMediaReset         = false;
+        pOsInterface->umdMediaResetEnable = false;
+    }
+
     // initialize MOS_CP interface
     pOsInterface->osCpInterface = Create_MosCpInterface(pOsInterface);
     if (pOsInterface->osCpInterface == nullptr)
@@ -7343,10 +7354,6 @@ MOS_STATUS Mos_Specific_InitInterface(
         MOS_OS_ASSERTMESSAGE("fail to create osCpInterface.");
         return MOS_STATUS_UNKNOWN;
     }
-
-    // Check SKU table to detect if simulation environment (HAS) is enabled
-    pSkuTable = pOsInterface->pfnGetSkuTable(pOsInterface);
-    MOS_OS_CHK_NULL(pSkuTable);
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     // read the "Force VDBOX" user feature key

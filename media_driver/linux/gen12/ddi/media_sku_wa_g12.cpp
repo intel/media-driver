@@ -531,7 +531,6 @@ static bool InitAdlsMediaSku(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_SKU(skuTable, FtrDecodeHEVC422VTScalaDisable, 1);
     MEDIA_WR_SKU(skuTable, FtrE2ECompression, 1);
 
-
     //RPL-S
     if (drvInfo->devId == 0xA780 || 
         drvInfo->devId == 0xA781 || 
@@ -615,6 +614,7 @@ static bool InitAdlpMediaWa(struct GfxDeviceInfo *devInfo,
     //ADL-P not need this
     MEDIA_WR_WA(waTable, Wa_1409820462, 0);
     MEDIA_WR_WA(waTable, WaDisableClearCCS, 1);
+
     return true;
 }
 
