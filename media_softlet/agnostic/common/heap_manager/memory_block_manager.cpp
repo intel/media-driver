@@ -269,6 +269,7 @@ MOS_STATUS MemoryBlockManager::RegisterHeap(uint32_t heapId, uint32_t size , boo
         if (block == nullptr)
         {
             MOS_Delete(adjacencyListBegin);
+            MOS_Delete(heap);
             HEAP_ASSERTMESSAGE("block be null");
             return MOS_STATUS_NULL_POINTER;
         }

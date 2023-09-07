@@ -423,8 +423,8 @@ protected:
     MEDIA_FEATURE_TABLE *m_skuTable = nullptr;
     MhwMiInterface      *m_miInterface = nullptr;
 
-    MHW_RENDER_ENGINE_L3_CACHE_CONFIG   m_l3CacheConfig;
-    MHW_RENDER_ENGINE_CAPS              m_hwCaps;
+    MHW_RENDER_ENGINE_L3_CACHE_CONFIG   m_l3CacheConfig = {};
+    MHW_RENDER_ENGINE_CAPS              m_hwCaps = {};
 
     bool        m_preemptionEnabled = false;
     uint32_t    m_preemptionCntlRegisterOffset = 0;
@@ -451,7 +451,7 @@ protected:
     MOS_STATUS(*AddResourceToCmd) (
         PMOS_INTERFACE                  osInterface,
         PMOS_COMMAND_BUFFER             cmdBuffer,
-        PMHW_RESOURCE_PARAMS            params);
+        PMHW_RESOURCE_PARAMS            params) = nullptr;
 
     //!
     //! \brief    Initializes platform related capabilities for the render engine
