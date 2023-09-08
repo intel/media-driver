@@ -222,6 +222,12 @@ MOS_STATUS VeboxCopyStateNext::CopyMainSurface(PMOS_RESOURCE src, PMOS_RESOURCE 
         flushDwParams.pOsResource = (PMOS_RESOURCE)&veboxHeap->DriverResource;
         flushDwParams.dwResourceOffset = veboxHeap->uiOffsetSync;
         flushDwParams.dwDataDW1 = veboxHeap->dwNextTag;
+
+        auto skuTable = m_osInterface->pfnGetSkuTable(m_osInterface);
+        if (skuTable && MEDIA_IS_SKU(skuTable, FtrEnablePPCFlush))
+        {
+            flushDwParams.bEnablePPCFlush = true;
+        }
         VEBOX_COPY_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(&cmdBuffer));
     }
     VEBOX_COPY_CHK_STATUS_RETURN(perfProfiler->AddPerfCollectEndCmd((void*)this, m_osInterface, m_miItf, &cmdBuffer));
