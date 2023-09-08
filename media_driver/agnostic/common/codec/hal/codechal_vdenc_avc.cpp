@@ -4606,9 +4606,9 @@ MOS_STATUS CodechalVdencAvcState::SFDKernel()
         imageStateParams->pVDEncHmeMvCost = m_vdencHmeMvCostTbl;
         imageStateParams->pVDEncMvCost    = m_vdencMvCostTbl;
 
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->AddVdencSfdImgBuffer(
-            &m_resVdencSfdImageStateReadBuffer, imageStateParams));
+        eStatus = m_hwInterface->AddVdencSfdImgBuffer(&m_resVdencSfdImageStateReadBuffer, imageStateParams);
         MOS_Delete(imageStateParams);
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(eStatus);
 
         CODECHAL_DEBUG_TOOL(
             CODECHAL_ENCODE_CHK_STATUS_RETURN(PopulateEncParam(
@@ -5295,10 +5295,9 @@ MOS_STATUS CodechalVdencAvcState::HuCBrcUpdate()
         }
     }
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(AddVdencBrcImgBuffer(
-        &m_resVdencBrcImageStatesReadBuffer[m_currRecycledBufIdx],
-        imageStateParams));
+    eStatus = AddVdencBrcImgBuffer(&m_resVdencBrcImageStatesReadBuffer[m_currRecycledBufIdx],imageStateParams);
     MOS_Delete(imageStateParams);
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(eStatus);
 
     CODECHAL_DEBUG_TOOL(
         CODECHAL_ENCODE_CHK_STATUS_RETURN(PopulatePakParam(

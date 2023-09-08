@@ -328,7 +328,7 @@ MOS_STATUS EncodeScalabilityMultiPipe::VerifySpaceAvailable(uint32_t requestedSi
     {
         SCALABILITY_CHK_STATUS_RETURN(MediaScalability::VerifySpaceAvailable(
             requestedSize, requestedPatchListSize, bothPatchListAndCmdBufChkSuccess));
-        if (bothPatchListAndCmdBufChkSuccess = true)
+        if (bothPatchListAndCmdBufChkSuccess == true)
         {
             singleTaskPhaseSupportedInPak = m_singleTaskPhaseSupported;
             return eStatus;

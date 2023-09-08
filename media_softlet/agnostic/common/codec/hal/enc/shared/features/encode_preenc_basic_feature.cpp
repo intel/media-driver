@@ -848,11 +848,6 @@ MOS_STATUS PreEncBasicFeature::ValidateLowDelayBFrame()
         // forward
         for (int refIdx = 0; (refIdx < 1) && m_lowDelay; refIdx++)
         {
-            if (refIdx >= CODEC_MAX_NUM_REF_FRAME_HEVC)
-            {
-                break;
-            }
-
             CODEC_PICTURE refPic = m_preEncConfig.RefPicList[0][refIdx];
             if (!CodecHal_PictureIsInvalid(refPic) && m_preEncConfig.RefFramePOCList[refPic.FrameIdx] > m_preEncConfig.CurrPicOrderCnt)
             {
