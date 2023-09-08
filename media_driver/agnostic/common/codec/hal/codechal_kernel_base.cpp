@@ -148,8 +148,8 @@ MOS_STATUS CodechalKernelBase::CreateKernelState(
     CODECHAL_ENCODE_CHK_NULL_RETURN((*kernelState) = MOS_New(MHW_KERNEL_STATE));
     m_kernelStatePool.insert(std::make_pair(kernelIndex, *kernelState));
 
-    CODECHAL_KERNEL_HEADER kernelHeader;
-    uint32_t               kernelSize;
+    CODECHAL_KERNEL_HEADER kernelHeader = {};
+    uint32_t               kernelSize = 0;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_callback(m_kernelBinary, operation, kernelOffset, &kernelHeader, &kernelSize));
 
     (*kernelState)->KernelParams.iBTCount          = GetBTCount();

@@ -52,7 +52,7 @@ CodechalKernelHme::~CodechalKernelHme()
 
 MOS_STATUS CodechalKernelHme::AllocateResources()
 {
-    MOS_ALLOC_GFXRES_PARAMS allocParamsForBuffer2D;
+    MOS_ALLOC_GFXRES_PARAMS allocParamsForBuffer2D = {};
 
     MEDIA_WA_TABLE* waTable = m_osInterface->pfnGetWaTable(m_osInterface);
     uint32_t memType = (MEDIA_IS_WA(waTable, WaForceAllocateLML4)) ? MOS_MEMPOOL_DEVICEMEMORY : 0;

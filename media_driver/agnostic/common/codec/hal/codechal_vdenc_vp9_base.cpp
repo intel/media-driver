@@ -5943,6 +5943,7 @@ MOS_STATUS CodechalVdencVp9State::InitializePicture(const EncoderParams& params)
     // Need to index properly when more than one temporal layer is present.
     CODECHAL_ENCODE_ASSERT(m_vp9SeqParams->FrameRate[0].uiDenominator > 0);
 
+    CODECHAL_ENCODE_CHK_COND_RETURN(m_vp9SeqParams->FrameRate[0].uiDenominator == 0, "uiDenominator cannot be zero.");
     uint32_t frameRate = m_vp9SeqParams->FrameRate[0].uiNumerator / m_vp9SeqParams->FrameRate[0].uiDenominator;
     m_vp9SegmentParams = (PCODEC_VP9_ENCODE_SEGMENT_PARAMS)(params.pSegmentParams);
 

@@ -4855,6 +4855,7 @@ MOS_STATUS CodechalVdencAvcState::SetupDirtyROI(PMOS_RESOURCE vdencStreamIn)
     //Dirty ROI feature just for the previous frame reference
     auto ppsIdx          = m_avcSliceParams->pic_parameter_set_id;
     auto refPicListIdx   = m_avcSliceParams[ppsIdx].RefPicList[0][0].FrameIdx;
+    ENCODE_CHK_COND_RETURN(refPicListIdx >= CODEC_AVC_MAX_NUM_REF_FRAME, "refPicListIdx cannot bigger than 16.");
     auto refFrameListIdx = m_avcPicParam[ppsIdx].RefFrameList[refPicListIdx].FrameIdx;
     if (m_prevReconFrameIdx != refFrameListIdx)
     {
@@ -5577,7 +5578,7 @@ MOS_STATUS CodechalVdencAvcState::SetConstDataHuCBrcUpdate()
 
     if (m_vdencStaticFrame)
     {
-        MOS_LOCK_PARAMS lockFlagsWriteOnly;
+        MOS_LOCK_PARAMS lockFlagsWriteOnly = {};
         auto            hucConstData = (PAVCVdencBRCCostantData)m_osInterface->pfnLockResource(
             m_osInterface, &m_resVdencBrcConstDataBuffer[GetCurrConstDataBufIdx()], &lockFlagsWriteOnly);
         CODECHAL_ENCODE_CHK_NULL_RETURN(hucConstData);

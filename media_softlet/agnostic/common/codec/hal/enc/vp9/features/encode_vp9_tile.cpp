@@ -660,7 +660,9 @@ MHW_SETPAR_DECL_SRC(VDENC_HEVC_VP9_TILE_SLICE_STATE, Vp9EncodeTile)
 {
     ENCODE_FUNC_CALL();
 
-    auto picParams        = dynamic_cast<Vp9BasicFeature *>(m_basicFeature)->m_vp9PicParams;
+    auto vp9BasicFeature = dynamic_cast<Vp9BasicFeature *>(m_basicFeature);
+    ENCODE_CHK_NULL_RETURN(vp9BasicFeature);
+    auto picParams       = vp9BasicFeature->m_vp9PicParams;
     ENCODE_CHK_NULL_RETURN(picParams);
     auto tileCodingParams = m_curTileCodingParams;
     params.ctbSize        = CODEC_VP9_SUPER_BLOCK_WIDTH;
@@ -703,7 +705,9 @@ MHW_SETPAR_DECL_SRC(VDENC_WALKER_STATE, Vp9EncodeTile)
 {
     ENCODE_FUNC_CALL();
 
-    auto picParams        = dynamic_cast<Vp9BasicFeature *>(m_basicFeature)->m_vp9PicParams;
+    auto vp9BasicFeature = dynamic_cast<Vp9BasicFeature *>(m_basicFeature);
+    ENCODE_CHK_NULL_RETURN(vp9BasicFeature);
+    auto picParams = vp9BasicFeature->m_vp9PicParams;
     ENCODE_CHK_NULL_RETURN(picParams);
     auto tileCodingParams = m_curTileCodingParams;
 

@@ -110,7 +110,13 @@ namespace encode
             ENCODE_ASSERTMESSAGE("Null basic feature, unexpected!");
             return false;
         }
-        auto hevcSeqParams = dynamic_cast<HevcBasicFeature *>(m_basicFeature)->m_hevcSeqParams;
+        auto hevcBasicFeature = dynamic_cast<HevcBasicFeature *>(m_basicFeature);
+        if (hevcBasicFeature == nullptr)
+        {
+            ENCODE_ASSERTMESSAGE("Null hevc basic feature, unexpected!");
+            return false;
+        }
+        auto hevcSeqParams = hevcBasicFeature->m_hevcSeqParams;
         if (hevcSeqParams == nullptr)
         {
             ENCODE_ASSERTMESSAGE("Null seq parameters, unexpected!");
@@ -724,11 +730,13 @@ namespace encode
 
     MHW_SETPAR_DECL_SRC(VDENC_WALKER_STATE, HevcEncodeTile)
     {
-        auto picParams     = dynamic_cast<HevcBasicFeature *>(m_basicFeature)->m_hevcPicParams;
+        auto hevcBasicFeature = dynamic_cast<HevcBasicFeature *>(m_basicFeature);
+        ENCODE_CHK_NULL_RETURN(hevcBasicFeature);
+        auto picParams = hevcBasicFeature->m_hevcPicParams;
         ENCODE_CHK_NULL_RETURN(picParams);
-        auto seqParams     = dynamic_cast<HevcBasicFeature *>(m_basicFeature)->m_hevcSeqParams;
+        auto seqParams = hevcBasicFeature->m_hevcSeqParams;
         ENCODE_CHK_NULL_RETURN(seqParams);
-        auto t_sliceParams = dynamic_cast<HevcBasicFeature *>(m_basicFeature)->m_hevcSliceParams;
+        auto t_sliceParams = hevcBasicFeature->m_hevcSliceParams;
         ENCODE_CHK_NULL_RETURN(t_sliceParams);
         CODEC_HEVC_ENCODE_SLICE_PARAMS *sliceParams = (CODEC_HEVC_ENCODE_SLICE_PARAMS *)&t_sliceParams[dynamic_cast<HevcBasicFeature *>(m_basicFeature)->m_curNumSlices];
 
@@ -876,11 +884,13 @@ namespace encode
 
     MHW_SETPAR_DECL_SRC(VDENC_HEVC_VP9_TILE_SLICE_STATE, HevcEncodeTile)
     {
-        auto picParams   = dynamic_cast<HevcBasicFeature *>(m_basicFeature)->m_hevcPicParams;
+        auto hevcBasicFeature = dynamic_cast<HevcBasicFeature *>(m_basicFeature);
+        ENCODE_CHK_NULL_RETURN(hevcBasicFeature);
+        auto picParams = hevcBasicFeature->m_hevcPicParams;
         ENCODE_CHK_NULL_RETURN(picParams);
-        auto seqParams   = dynamic_cast<HevcBasicFeature *>(m_basicFeature)->m_hevcSeqParams;
+        auto seqParams = hevcBasicFeature->m_hevcSeqParams;
         ENCODE_CHK_NULL_RETURN(seqParams);
-        auto sliceParams = dynamic_cast<HevcBasicFeature *>(m_basicFeature)->m_hevcSliceParams;
+        auto sliceParams = hevcBasicFeature->m_hevcSliceParams;
         ENCODE_CHK_NULL_RETURN(sliceParams);
 
         uint32_t ctbSize          = 1 << (seqParams->log2_max_coding_block_size_minus3 + 3);

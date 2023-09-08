@@ -186,6 +186,7 @@ MOS_STATUS AvcVdencPreEnc::PreparePreEncConfig(void *params)
     }
     m_preEncConfig.HierarchLevelPlus1 = depth + 1;
 
+    ENCODE_CHK_COND_RETURN(m_avcSliceParams->slice_type >= 10, "slice_type cannot bigger than 10.");
     m_preEncConfig.SliceType       = (uint8_t)HevcSliceType[m_avcSliceParams->slice_type];
     m_preEncConfig.CurrOriginalPic = m_avcPicParams->CurrOriginalPic;
     m_preEncConfig.UsedAsRef       = m_avcPicParams->RefPicFlag;

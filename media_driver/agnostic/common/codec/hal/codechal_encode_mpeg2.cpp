@@ -1886,6 +1886,7 @@ MOS_STATUS CodechalEncodeMpeg2::SetPictureStructs()
 
     uint8_t currRefIdx = m_picParams->m_currReconstructedPic.FrameIdx;
 
+    ENCODE_CHK_COND_RETURN(currRefIdx >= CODECHAL_NUM_UNCOMPRESSED_SURFACE_MPEG2, "currRefIdx cannot bigger than 128.");
     m_refList[currRefIdx]->sRefRawBuffer = m_rawSurface;
     m_refList[currRefIdx]->sRefReconBuffer = m_reconSurface;
     m_refList[currRefIdx]->resBitstreamBuffer = m_resBitstreamBuffer;
