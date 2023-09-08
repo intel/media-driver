@@ -55,7 +55,6 @@ public:
     //! \param    osInterface
     //!           [in] Pointer to MOS_INTERFACE.
     //!
-    VeboxCopyState(PMOS_INTERFACE     osInterface);
     VeboxCopyState(PMOS_INTERFACE    osInterface, MhwInterfaces* mhwInterfaces);
 
     virtual ~VeboxCopyState();

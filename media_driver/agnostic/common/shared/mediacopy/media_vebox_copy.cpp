@@ -44,23 +44,6 @@
 #define SURFACE_DW_VY_OFFSET(pSurface) \
     ((pSurface) != nullptr ? ((pSurface)->VPlaneOffset.iSurfaceOffset - (pSurface)->dwOffset) / (pSurface)->dwPitch + (pSurface)->VPlaneOffset.iYOffset : 0)
 
-VeboxCopyState::VeboxCopyState(PMOS_INTERFACE osInterface) :
-    m_osInterface(osInterface),
-    m_mhwInterfaces(nullptr),
-    m_miInterface(nullptr),
-    m_veboxInterface(nullptr),
-    m_cpInterface(nullptr)
-{
-    MOS_ZeroMemory(&params, sizeof(params));
-    params.Flags.m_vebox = 1;
-    m_mhwInterfaces = MhwInterfaces::CreateFactory(params, osInterface);
-    if (m_mhwInterfaces != nullptr)
-    {
-        m_veboxInterface = m_mhwInterfaces->m_veboxInterface;
-        m_miInterface = m_mhwInterfaces->m_miInterface;
-    }
-}
-
 VeboxCopyState::VeboxCopyState(PMOS_INTERFACE osInterface, MhwInterfaces* mhwInterfaces) :
     m_osInterface(osInterface),
     m_mhwInterfaces(nullptr),

@@ -82,7 +82,7 @@ public:
             bComputeContextEnabled = computeContextEnabled ? true : false;
         }
 
-        if (!MEDIA_IS_SKU(m_skuTable, FtrCCSNode))
+        if (m_skuTable && !MEDIA_IS_SKU(m_skuTable, FtrCCSNode))
         {
             bComputeContextEnabled = false;
         }
