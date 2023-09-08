@@ -264,7 +264,11 @@ MOS_STATUS MemoryBlockManager::RegisterHeap(uint32_t heapId, uint32_t size , boo
     {
         MemoryBlockInternal *adjacencyListBegin = nullptr;
         adjacencyListBegin = MOS_New(MemoryBlockInternal);
-        HEAP_CHK_NULL(adjacencyListBegin);
+        if (adjacencyListBegin == nullptr)
+        {
+            MOS_Delete(heap);
+            HEAP_CHK_STATUS(MOS_STATUS_NULL_POINTER);
+        }
         auto block = GetBlockFromPool();
         if (block == nullptr)
         {
