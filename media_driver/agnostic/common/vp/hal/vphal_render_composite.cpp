@@ -1448,10 +1448,10 @@ MOS_STATUS CompositeState::IntermediateAllocation(PVPHAL_SURFACE &pIntermediate,
             // Get resource info (width, height, pitch, tiling, etc)
             MOS_ZeroMemory(&Info, sizeof(VPHAL_GET_SURFACE_INFO));
 
-            VpHal_GetSurfaceInfo(
+            VPHAL_RENDER_CHK_STATUS_RETURN(VpHal_GetSurfaceInfo(
                 pOsInterface,
                 &Info,
-                pIntermediate);
+                pIntermediate));
         }
     }
 
