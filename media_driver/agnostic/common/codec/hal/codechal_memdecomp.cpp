@@ -331,10 +331,10 @@ MOS_STATUS MediaMemDecompState::MemoryDecompress(
         {
             uint32_t *kernelBase = nullptr;
             uint32_t  kernelSize = 0;
-            m_osInterface->osCpInterface->GetTK(
+            MHW_CHK_STATUS_RETURN(m_osInterface->osCpInterface->GetTK(
                 &kernelBase,
                 &kernelSize,
-                nullptr);
+                nullptr));
             if (nullptr == kernelBase || 0 == kernelSize)
             {
                 MHW_ASSERT("Could not get TK kernels for MMC!");
