@@ -784,12 +784,12 @@ MOS_STATUS CodechalKernelHmeMdfG12::SetupKernelArgs(CmKernel *cmKrn)
 
     if (m_32xMeInUse)
     {
-        m_HME32xMVSurface->GetIndex(pSurfIndex);
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_HME32xMVSurface->GetIndex(pSurfIndex));
         YuvInfo = &m_HME32xYUVInfo;
     }
     else if (m_16xMeInUse)
     {
-        m_HME16xMVSurface->GetIndex(pSurfIndex);
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_HME16xMVSurface->GetIndex(pSurfIndex));
         YuvInfo = &m_HME16xYUVInfo;
     }
     else
@@ -802,13 +802,13 @@ MOS_STATUS CodechalKernelHmeMdfG12::SetupKernelArgs(CmKernel *cmKrn)
     if (m_16xMeInUse && Is32xMeEnabled())
     {
         // Pass 32x MV to 16x ME operation
-        m_HME32xMVSurface->GetIndex(pSurfIndex);
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_HME32xMVSurface->GetIndex(pSurfIndex));
 
     }
     else if (Is16xMeEnabled() && !m_32xMeInUse)
     {
         // Pass 16x MV to 4x ME
-        m_HME16xMVSurface->GetIndex(pSurfIndex);
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_HME16xMVSurface->GetIndex(pSurfIndex));
     }
     // else pass same surface index as dummy
     cmKrn->SetKernelArg(idx++, sizeof(SurfaceIndex), pSurfIndex);
@@ -816,13 +816,13 @@ MOS_STATUS CodechalKernelHmeMdfG12::SetupKernelArgs(CmKernel *cmKrn)
     // Insert Distortion buffers only for 4xMe case
     if (m_4xMeInUse && m_4xMeDistortionBufferSupported)
     {
-        m_HME4xDistortionSurface->GetIndex(pSurfIndex);
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_HME4xDistortionSurface->GetIndex(pSurfIndex));
     }
     cmKrn->SetKernelArg(idx++, sizeof(SurfaceIndex), pSurfIndex);
 
     if (m_4xMeInUse && !m_surfaceParam.vdencStreamInEnabled)
     {
-        m_surfaceParam.meBrcDistortionSurface->GetIndex(pSurfIndex);
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_surfaceParam.meBrcDistortionSurface->GetIndex(pSurfIndex));
     }
     cmKrn->SetKernelArg(idx++, sizeof(SurfaceIndex), pSurfIndex);
 
@@ -852,7 +852,7 @@ MOS_STATUS CodechalKernelHmeMdfG12::SetupKernelArgs(CmKernel *cmKrn)
 
     if (m_curbeParam.brcEnable && m_4xMeInUse)
     {
-      m_SumMvandDistortionBuffer->GetIndex(pSurfIndex);
+      CODECHAL_ENCODE_CHK_STATUS_RETURN(m_SumMvandDistortionBuffer->GetIndex(pSurfIndex));
     }
     //set surface for Sum MV distortion buffer
     cmKrn->SetKernelArg(idx++, sizeof(SurfaceIndex), pSurfIndex);

@@ -199,10 +199,10 @@ MOS_STATUS CodechalKernelIntraDistMdfG12::SetupKernelArgs()
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetIntraDistCurbe(curbe));
     m_cmKrn->SetKernelArg(idx++, sizeof(curbe), &curbe);
 
-    m_src4xSurface->GetIndex(pSurfIndex);
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_src4xSurface->GetIndex(pSurfIndex));
     m_cmKrn->SetKernelArg(idx++, sizeof(SurfaceIndex), pSurfIndex);
 
-    m_surfaceParam.intraDistSurface->GetIndex(pSurfIndex);
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_surfaceParam.intraDistSurface->GetIndex(pSurfIndex));
     m_cmKrn->SetKernelArg(idx++, sizeof(SurfaceIndex), pSurfIndex);
 
     m_cmKrn->SetKernelArg(idx++, sizeof(SurfaceIndex), m_vmeIdx);

@@ -2210,7 +2210,7 @@ public:
     bool                                        m_forceScalability = false;                     //!< force scalability for resolution < 4K/5K if other checking for scalability passed
 
     // HuC PAK stitch kernel
-    MOS_RESOURCE     m_resHucStitchDataBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][CODECHAL_HEVC_MAX_NUM_BRC_PASSES];  // data buffer for huc input cmd generation
+    MOS_RESOURCE     m_resHucStitchDataBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][CODECHAL_HEVC_MAX_NUM_BRC_PASSES] = {};  // data buffer for huc input cmd generation
     MHW_BATCH_BUFFER m_HucStitchCmdBatchBuffer = {};                                                                        //!< SLB for huc stitch cmd
 
     // virtual engine

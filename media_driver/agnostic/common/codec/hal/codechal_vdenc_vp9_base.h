@@ -1636,8 +1636,8 @@ public:
     PCODEC_VP9_ENCODE_PIC_PARAMS      m_vp9PicParams     = nullptr;  //!< Pointer to picture parameters
     PCODEC_VP9_ENCODE_SEGMENT_PARAMS  m_vp9SegmentParams = nullptr;  //!< Pointer to segment parameters
 
-    CODEC_PIC_ID                                m_picIdx[CODEC_VP9_NUM_REF_FRAMES];
-    PCODEC_REF_LIST                             m_refList[m_numUncompressedSurface];
+    CODEC_PIC_ID                                m_picIdx[CODEC_VP9_NUM_REF_FRAMES] = {};
+    PCODEC_REF_LIST                             m_refList[m_numUncompressedSurface] = {};
     PCODECHAL_NAL_UNIT_PARAMS*                  m_nalUnitParams = nullptr;
     uint32_t                                    m_numNalUnit = 0;
 

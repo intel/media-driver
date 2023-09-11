@@ -222,23 +222,23 @@ public:
     uint32_t                                m_currGopIFramePOC = -1;                           //!< PoC for I frame in current GoP
 
     // BRC
-    HevcVdencBrcBuffers                     m_vdencBrcBuffers;                                 //!< VDEnc Brc buffers
-    MOS_RESOURCE                            m_dataFromPicsBuffer;                              //!< Data Buffer of Current and Reference Pictures for Weighted Prediction
-    MOS_RESOURCE                            m_vdencDeltaQpBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM];                              //!< VDEnc delta QP buffer
-    MOS_RESOURCE                            m_vdencOutputROIStreaminBuffer;                    //!< VDEnc Output ROI Streamin Buffer
-    MOS_RESOURCE                            m_vdencBrcUpdateDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][CODECHAL_VDENC_BRC_NUM_OF_PASSES_FOR_TILE_REPLAY];  //!< VDEnc BrcUpdate DMEM buffer
-    MOS_RESOURCE                            m_vdencBrcInitDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM];                          //!< VDEnc BrcInit DMEM buffer
-    MOS_RESOURCE                            m_vdencBrcConstDataBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM];                         //!< VDEnc brc constant data buffer
-    MOS_RESOURCE                            m_vdencBrcHistoryBuffer;                           //!< VDEnc brc history buffer
-    MOS_RESOURCE                            m_vdencReadBatchBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][CODECHAL_VDENC_BRC_NUM_OF_PASSES];  //!< VDEnc read batch buffer
-    MOS_RESOURCE                            m_vdencGroup3BatchBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][CODECHAL_VDENC_BRC_NUM_OF_PASSES];  //!< VDEnc read batch buffer for Group3
-    MOS_RESOURCE                            m_vdencBrcDbgBuffer;                               //!< VDEnc brc debug buffer
+    HevcVdencBrcBuffers                     m_vdencBrcBuffers = {};                                 //!< VDEnc Brc buffers
+    MOS_RESOURCE                            m_dataFromPicsBuffer = {};                              //!< Data Buffer of Current and Reference Pictures for Weighted Prediction
+    MOS_RESOURCE                            m_vdencDeltaQpBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM] = {};                              //!< VDEnc delta QP buffer
+    MOS_RESOURCE                            m_vdencOutputROIStreaminBuffer = {};                    //!< VDEnc Output ROI Streamin Buffer
+    MOS_RESOURCE                            m_vdencBrcUpdateDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][CODECHAL_VDENC_BRC_NUM_OF_PASSES_FOR_TILE_REPLAY] = {};  //!< VDEnc BrcUpdate DMEM buffer
+    MOS_RESOURCE                            m_vdencBrcInitDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM] = {};                          //!< VDEnc BrcInit DMEM buffer
+    MOS_RESOURCE                            m_vdencBrcConstDataBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM] = {};                         //!< VDEnc brc constant data buffer
+    MOS_RESOURCE                            m_vdencBrcHistoryBuffer = {};                           //!< VDEnc brc history buffer
+    MOS_RESOURCE                            m_vdencReadBatchBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][CODECHAL_VDENC_BRC_NUM_OF_PASSES] = {};  //!< VDEnc read batch buffer
+    MOS_RESOURCE                            m_vdencGroup3BatchBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][CODECHAL_VDENC_BRC_NUM_OF_PASSES] = {};  //!< VDEnc read batch buffer for Group3
+    MOS_RESOURCE                            m_vdencBrcDbgBuffer = {};                               //!< VDEnc brc debug buffer
     uint32_t                                m_deltaQpRoiBufferSize = 0;                            //!< VDEnc DeltaQp for ROI buffer size
     uint32_t                                m_brcRoiBufferSize = 0;                                //!< BRC ROI input buffer size
     MHW_VDBOX_HUC_VIRTUAL_ADDR_PARAMS       m_virtualAddrParams = {};                              //!< BRC virtual address parameter
 
     // Batch Buffer for VDEnc
-    MHW_BATCH_BUFFER                        m_vdenc2ndLevelBatchBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM];  //!< VDEnc 2nd level batch buffer
+    MHW_BATCH_BUFFER                        m_vdenc2ndLevelBatchBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM] = {};  //!< VDEnc 2nd level batch buffer
     uint32_t                                m_vdenc2ndLevelBatchBufferSize[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM] = {0};
     uint32_t                                m_vdencBatchBufferPerSliceVarSize[ENCODE_HEVC_VDENC_NUM_MAX_SLICES] = { 0 };    //!< VDEnc batch buffer slice size array
     uint32_t                                m_1stPakInsertObjectCmdSize = 0;                   //!< Size of 1st PAK_INSERT_OBJ cmd

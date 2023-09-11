@@ -226,10 +226,10 @@ MOS_STATUS CodechalEncodeWPMdfG12::SetupKernelArgs(uint8_t wpKrnIdx)
             (uint8_t *)&curbe,
             sizeof(curbe)));)
 
-    m_wpInputSurface[wpKrnIdx]->GetIndex(pSurfIndex);
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_wpInputSurface[wpKrnIdx]->GetIndex(pSurfIndex));
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmKrn[wpKrnIdx]->SetKernelArg(idx++, sizeof(SurfaceIndex), pSurfIndex));
 
-    m_wpOutputSurface[wpKrnIdx]->GetIndex(pSurfIndex);
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_wpOutputSurface[wpKrnIdx]->GetIndex(pSurfIndex));
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmKrn[wpKrnIdx]->SetKernelArg(idx++, sizeof(SurfaceIndex), pSurfIndex));
 
     return MOS_STATUS_SUCCESS;

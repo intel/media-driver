@@ -722,7 +722,7 @@ MOS_STATUS EncodeScalabilityMultiPipe::UpdateState(void *statePars)
     SCALABILITY_FUNCTION_ENTER;
     MOS_STATUS   eStatus         = MOS_STATUS_SUCCESS;
     StateParams *encodeStatePars = (StateParams *)statePars;
-    if (encodeStatePars->currentPipe < 0 || encodeStatePars->currentPipe >= m_pipeNum)
+    if (encodeStatePars->currentPipe >= m_pipeNum)
     {
         eStatus = MOS_STATUS_INVALID_PARAMETER;
         SCALABILITY_ASSERTMESSAGE("UpdateState failed with invalid parameter:currentPipe!");

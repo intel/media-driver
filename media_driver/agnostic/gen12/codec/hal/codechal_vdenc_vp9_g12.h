@@ -1028,26 +1028,26 @@ public:
     bool                                        m_isTilingSupported = false;
     bool                                        m_enableTileStitchByHW = true;
     bool                                        m_useVirtualEngine = true;
-    MOS_COMMAND_BUFFER                          m_veBatchBuffer[m_numUncompressedSurface][CODECHAL_ENCODE_VP9_MAX_NUM_HCP_PIPE][m_brcMaxNumPasses];
-    MOS_COMMAND_BUFFER                          m_realCmdBuffer;
+    MOS_COMMAND_BUFFER                          m_veBatchBuffer[m_numUncompressedSurface][CODECHAL_ENCODE_VP9_MAX_NUM_HCP_PIPE][m_brcMaxNumPasses] = {};
+    MOS_COMMAND_BUFFER                          m_realCmdBuffer = {};
     uint32_t                                    m_sizeOfVEBatchBuffer = 0;
     uint8_t                                     m_virtualEngineBBIndex = 0;
     uint32_t                                    m_32BlocksRasterized = 0;
-    CODECHAL_ENCODE_BUFFER                      m_tileRecordBuffer[m_numUncompressedSurface];
-    CODECHAL_ENCODE_BUFFER                      m_hcpScalabilitySyncBuffer;
+    CODECHAL_ENCODE_BUFFER                      m_tileRecordBuffer[m_numUncompressedSurface] = {};
+    CODECHAL_ENCODE_BUFFER                      m_hcpScalabilitySyncBuffer = {};
     
     // Stats Integration regions
-    CODECHAL_ENCODE_BUFFER                      m_tileStatsPakIntegrationBuffer[m_numUncompressedSurface];
+    CODECHAL_ENCODE_BUFFER                      m_tileStatsPakIntegrationBuffer[m_numUncompressedSurface] = {};
     uint32_t                                    m_tileStatsPakIntegrationBufferSize = 0;
-    CODECHAL_ENCODE_BUFFER                      m_frameStatsPakIntegrationBuffer;
+    CODECHAL_ENCODE_BUFFER                      m_frameStatsPakIntegrationBuffer = {};
     uint32_t                                    m_frameStatsPakIntegrationBufferSize = 0;
-    MOS_RESOURCE                                m_hucPakIntDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][m_brcMaxNumPasses];
-    MOS_RESOURCE                                m_hucPakIntDummyBuffer;
-    MOS_RESOURCE                                m_hucPakIntBrcDataBuffer;
+    MOS_RESOURCE                                m_hucPakIntDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][m_brcMaxNumPasses] = {};
+    MOS_RESOURCE                                m_hucPakIntDummyBuffer = {};
+    MOS_RESOURCE                                m_hucPakIntBrcDataBuffer = {};
     StatsInfo                                   m_tileStatsOffset = {};  // Page aligned offsets for HuC PAK Integration kernel input
     StatsInfo                                   m_frameStatsOffset = {}; // Page aligned offsets for HuC PAK Integration kernel output
     StatsInfo                                   m_statsSize = {};        // Sizes for the stats for HuC PAK Integration kernel input
-    MHW_VDBOX_HUC_VIRTUAL_ADDR_PARAMS           m_hpuVirtualAddrParams;
+    MHW_VDBOX_HUC_VIRTUAL_ADDR_PARAMS           m_hpuVirtualAddrParams = {};
     // Needed for WA, fix for hang during resolution change
     uint16_t                                    m_picWidthInMinBlk = 0;   //!< Picture Width aligned to minBlock
     uint16_t                                    m_picHeightInMinBlk = 0;  //!< Picture Height aligned to minBlock

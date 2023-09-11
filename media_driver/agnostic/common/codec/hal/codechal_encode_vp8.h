@@ -1410,33 +1410,33 @@ protected:
     uint16_t m_usRepakPassIterVal = 0;  // n th pass when Repak is executed
 
     // MB Enc
-    MHW_KERNEL_STATE                    m_mbEncKernelStates[CODECHAL_ENCODE_VP8_MBENC_IDX_NUM];
+    MHW_KERNEL_STATE                    m_mbEncKernelStates[CODECHAL_ENCODE_VP8_MBENC_IDX_NUM] = {};
     uint32_t                            m_numMbEncEncKrnStates = 0;
     uint32_t                            m_mbEncIFrameDshSize = 0;
-    struct CodechalBindingTableVp8Mbenc m_mbEncBindingTable;
+    struct CodechalBindingTableVp8Mbenc m_mbEncBindingTable = {};
     uint32_t                            m_mbEncBlockBasedSkipEn = 0;
-    MOS_RESOURCE                        m_resRefMbCountSurface;
+    MOS_RESOURCE                        m_resRefMbCountSurface = {};
     MOS_SURFACE                         m_mbModeCostLumaBuffer = {};
     MOS_SURFACE                         m_blockModeCostBuffer = {};
-    MOS_RESOURCE                        m_chromaReconBuffer;  // for fixed function VP8
+    MOS_RESOURCE                        m_chromaReconBuffer = {};  // for fixed function VP8
     MOS_SURFACE                         m_perMbQuantDataBuffer = {};
-    MOS_RESOURCE                        m_resPredMvDataSurface;
-    MOS_RESOURCE                        m_resHistogram;
-    MOS_RESOURCE                        m_resModeCostUpdateSurface;
+    MOS_RESOURCE                        m_resPredMvDataSurface = {};
+    MOS_RESOURCE                        m_resHistogram = {};
+    MOS_RESOURCE                        m_resModeCostUpdateSurface = {};
     // MBRC = 1: internal segment map (sInSegmentMapSurface) is provided from BRC update kernel
     // MBRC = 0: external segment map (sMbSegmentMapSurface) is provided from the app, ignore internal segment map
     MOS_SURFACE m_inSegmentMapSurface = {};
     MOS_SURFACE m_mbSegmentMapSurface = {};  // var of type MOS_SURFACE of Mb segment map surface
 
     // MPU & TPU Buffers
-    struct CodechalVp8MpuTpuBuffers m_mpuTpuBuffers;
+    struct CodechalVp8MpuTpuBuffers m_mpuTpuBuffers = {};
 
     // TPU
-    MHW_KERNEL_STATE                  m_tpuKernelState;
+    MHW_KERNEL_STATE                  m_tpuKernelState = {};
     struct CodechalBindingTableVp8Tpu m_tpuBindingTable = {};
 
     // MPU
-    MHW_KERNEL_STATE                  m_mpuKernelState;
+    MHW_KERNEL_STATE                  m_mpuKernelState = {};
     struct CodechalBindingTableVp8Mpu m_mpuBindingTable = {};
 
     // VME Scratch Buffers

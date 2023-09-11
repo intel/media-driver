@@ -318,7 +318,7 @@ protected:
     static constexpr uint32_t m_pakIntVp9CodecId      = 3;
     static constexpr uint32_t m_hwStitchCmdSize       = 20 * sizeof(uint32_t);  //!< Cmd size for hw stitch
 
-    MOS_RESOURCE m_hucPakIntDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][Vp9EncodeBrc::m_brcMaxNumPasses];  //!< HUC PAK INT DMEM buffers
+    MOS_RESOURCE m_hucPakIntDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][Vp9EncodeBrc::m_brcMaxNumPasses] = {};  //!< HUC PAK INT DMEM buffers
     MOS_RESOURCE m_hucPakIntDummyBuffer    = {0};                    //!< HuC PAK Integrateion dummy buffer
     uint32_t     m_hucPakIntDmemBufferSize = sizeof(HucPakIntDmem);  //!< Indicate the size of Dmem buffer of Huc pak integrate kernel
 

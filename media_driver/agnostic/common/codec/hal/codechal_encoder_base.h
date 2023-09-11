@@ -1533,11 +1533,11 @@ public:
     uint32_t                        m_mvDataSize = 0;               //!< MV data size
     uint32_t                        m_mvBottomFieldOffset = 0;      //!< MV data offset frame/TopField - zero, BottomField - nonzero
     MOS_RESOURCE                    m_resDistortionBuffer = {};          //!< MBEnc Distortion Buffer
-    MOS_RESOURCE                    m_resMadDataBuffer[CODECHAL_ENCODE_MAX_NUM_MAD_BUFFERS]; //!< Buffers to store Mean of Absolute Differences
+    MOS_RESOURCE                    m_resMadDataBuffer[CODECHAL_ENCODE_MAX_NUM_MAD_BUFFERS] = {}; //!< Buffers to store Mean of Absolute Differences
     bool                            m_madEnabled = false;                                    //!< Mad enabled flag
 
     bool                            m_arbitraryNumMbsInSlice = false;                        //!< Flag to indicate if the sliceMapSurface needs to be programmed or not
-    MOS_SURFACE                     m_sliceMapSurface[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM];  //!< Slice map surface
+    MOS_SURFACE                     m_sliceMapSurface[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM] = {};  //!< Slice map surface
     uint32_t                        m_sliceMapBottomFieldOffset = 0;                         //!< Slice map bottom field offset
 
     // VDENC and PAK Data Buffer
@@ -1549,7 +1549,7 @@ public:
     PMOS_RESOURCE                   m_resVdencModeTimerBuffer = nullptr;           //!< Resource of Vdenc mode timer buffer
 
     // VDEnc StreamIn Buffer
-    MOS_RESOURCE                    m_resVdencStreamInBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM];  //!< Resources of Vdenc stream in buffer
+    MOS_RESOURCE                    m_resVdencStreamInBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM] = {};  //!< Resources of Vdenc stream in buffer
 
     // Maximum number of slices allowed by video spec
     uint32_t                        m_maxNumSlicesAllowed = 0;          //!< Max number of slices allowed
