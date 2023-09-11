@@ -403,13 +403,21 @@ MOS_STATUS VpPlatformInterface::InitVpCmKernels(
     }
 
     vISA::Header *header = isaFile->getHeader();
-    VP_PUBLIC_CHK_NULL_RETURN(header);
+    if(!header)
+    {
+        MOS_Delete(isaFile);
+        VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_NULL_POINTER);
+    }
 
     for (uint32_t i = 0; i < header->getNumKernels(); i++)
     {
         vISA::Kernel *kernel = header->getKernelInfo()[i];
 
-        VP_PUBLIC_CHK_NULL_RETURN(kernel);
+        if(!kernel)
+        {
+            MOS_Delete(isaFile);
+            VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_NULL_POINTER);
+        }
 
         if (kernel->getName() == nullptr || kernel->getNameLen() < 1 || kernel->getNameLen() > 256)
         {
@@ -439,7 +447,11 @@ MOS_STATUS VpPlatformInterface::InitVpCmKernels(
         vpKernel.SetKernelBinSize(genBinary->getBinarySize());
 
         vISA::KernelBody *kernelBody = isaFile->getKernelsData().at(i);
-        VP_PUBLIC_CHK_NULL_RETURN(kernelBody);
+        if(!kernelBody)
+        {
+            MOS_Delete(isaFile);
+            VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_NULL_POINTER);
+        }
 
         if (kernelBody->getNumInputs() > CM_MAX_ARGS_PER_KERNEL)
         {
