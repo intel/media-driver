@@ -961,17 +961,22 @@ VAStatus DdiEncodeHevc::Qmatrix(void *ptr)
 
     VAQMatrixBufferHEVC *vaQMatrixHEVC = (VAQMatrixBufferHEVC *)ptr;
 
-    MOS_SecureMemcpy((void *)&QmatrixParams->ucScalingLists0[0][0], sizeof(QmatrixParams->ucScalingLists0),
-        (void *)&vaQMatrixHEVC->scaling_lists_4x4[0][0][0], sizeof(vaQMatrixHEVC->scaling_lists_4x4));
-    MOS_SecureMemcpy((void *)&QmatrixParams->ucScalingLists1[0][0], sizeof(QmatrixParams->ucScalingLists1),
-        (void *)&vaQMatrixHEVC->scaling_lists_8x8[0][0][0], sizeof(vaQMatrixHEVC->scaling_lists_8x8));
-    MOS_SecureMemcpy((void *)&QmatrixParams->ucScalingLists2[0][0], sizeof(QmatrixParams->ucScalingLists2),
-        (void *)&vaQMatrixHEVC->scaling_lists_16x16[0][0][0], sizeof(vaQMatrixHEVC->scaling_lists_16x16));
+    for (uint8_t j = 0; j < 2; j++)
+    {
+        for (uint8_t i = 0; i < 3; i++)
+        {
+            MOS_SecureMemcpy((void *)&QmatrixParams->ucScalingLists0[3 * j + i][0], sizeof(QmatrixParams->ucScalingLists0[3 * j + i]),
+                (void *)&vaQMatrixHEVC->scaling_lists_4x4[i][j][0], sizeof(vaQMatrixHEVC->scaling_lists_4x4[i][j]));
+            MOS_SecureMemcpy((void *)&QmatrixParams->ucScalingLists1[3 * j + i][0], sizeof(QmatrixParams->ucScalingLists1[3 * j + i]),
+                (void *)&vaQMatrixHEVC->scaling_lists_8x8[i][j][0], sizeof(vaQMatrixHEVC->scaling_lists_8x8[i][j]));
+            MOS_SecureMemcpy((void *)&QmatrixParams->ucScalingLists2[3 * j + i][0], sizeof(QmatrixParams->ucScalingLists2[3 * j + i]),
+                (void *)&vaQMatrixHEVC->scaling_lists_16x16[i][j][0], sizeof(vaQMatrixHEVC->scaling_lists_16x16[i][j]));
+            QmatrixParams->ucScalingListDCCoefSizeID2[3 * j + i] = vaQMatrixHEVC->scaling_list_dc_16x16[i][j];
+        }
+    }
+    
     MOS_SecureMemcpy((void *)&QmatrixParams->ucScalingLists3[0][0], sizeof(QmatrixParams->ucScalingLists3),
         (void *)&vaQMatrixHEVC->scaling_lists_32x32[0][0], sizeof(vaQMatrixHEVC->scaling_lists_32x32));
-
-    MOS_SecureMemcpy((void *)&QmatrixParams->ucScalingListDCCoefSizeID2[0], sizeof(QmatrixParams->ucScalingListDCCoefSizeID2),
-        (void *)&vaQMatrixHEVC->scaling_list_dc_16x16[0][0], sizeof(QmatrixParams->ucScalingListDCCoefSizeID2));
     MOS_SecureMemcpy((void *)&QmatrixParams->ucScalingListDCCoefSizeID3[0], sizeof(QmatrixParams->ucScalingListDCCoefSizeID3),
         (void *)&vaQMatrixHEVC->scaling_list_dc_32x32[0], sizeof(QmatrixParams->ucScalingListDCCoefSizeID3));
 
