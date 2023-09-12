@@ -134,7 +134,7 @@ public:
     SwFilterPipeFactory(VpInterface &vpInterface);
     virtual ~SwFilterPipeFactory();
 
-    MOS_STATUS Create(PVP_PIPELINE_PARAMS params, std::vector<SwFilterPipe*> &swFilterPipe);
+    MOS_STATUS Create(PVP_PIPELINE_PARAMS params, std::vector<SwFilterPipe *> &swFilterPipe, VpPipelineParamFactory *pipelineParamFactory);
     MOS_STATUS Create(VEBOX_SFC_PARAMS *params, std::vector<SwFilterPipe*> &swFilterPipe);
 
     // Create empty swFilter

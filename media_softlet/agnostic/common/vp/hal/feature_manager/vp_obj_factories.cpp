@@ -25,7 +25,6 @@
 //! \brief    Factories for vp object creation.
 //!
 #include "vp_obj_factories.h"
-#include "vp_pipeline.h"
 #include "sw_filter_handle.h"
 using namespace vp;
 
@@ -218,11 +217,12 @@ MOS_STATUS SwFilterPipeFactory::Update(VP_PIPELINE_PARAMS &params, int index)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS SwFilterPipeFactory::Create(PVP_PIPELINE_PARAMS params, std::vector<SwFilterPipe*> &swFilterPipe)
+MOS_STATUS SwFilterPipeFactory::Create(PVP_PIPELINE_PARAMS params, std::vector<SwFilterPipe *> &swFilterPipe, VpPipelineParamFactory *pipelineParamFactory)
 {
     VP_FUNC_CALL();
 
     VP_PUBLIC_CHK_NULL_RETURN(params);
+    VP_PUBLIC_CHK_NULL_RETURN(pipelineParamFactory);
     int pipeCnt = GetPipeCountForProcessing(*params);
     if (pipeCnt == 0)
     {
@@ -233,14 +233,17 @@ MOS_STATUS SwFilterPipeFactory::Create(PVP_PIPELINE_PARAMS params, std::vector<S
 
     for (int index = 0; index < pipeCnt; index++)
     {
-        VP_PIPELINE_PARAMS tempParams = *params;
-        VP_PUBLIC_CHK_STATUS_RETURN(Update(tempParams, index));
+        VP_PIPELINE_PARAMS *tempParams = pipelineParamFactory->Clone(params);
+        VP_PUBLIC_CHK_NULL_RETURN(tempParams);
+        VP_PUBLIC_CHK_STATUS_RETURN(Update(*tempParams, index));
 
         SwFilterPipe *pipe = m_allocator.Create();
         VP_PUBLIC_CHK_NULL_RETURN(pipe);
 
         FeatureRule featureRule;
-        MOS_STATUS status = pipe->Initialize(tempParams, featureRule);
+        MOS_STATUS status = pipe->Initialize(*tempParams, featureRule);
+
+        VP_PUBLIC_CHK_STATUS_RETURN(pipelineParamFactory->Destroy(tempParams));
 
         if (MOS_FAILED(status))
         {

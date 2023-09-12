@@ -66,6 +66,57 @@ struct VP_PARAMS
     };
 };
 
+class VpPipelineParamFactory
+{
+public:
+    VpPipelineParamFactory(){};
+    virtual ~VpPipelineParamFactory()
+    {
+        while (!m_Pool.empty())
+        {
+            PVP_PIPELINE_PARAMS param = m_Pool.back();
+            m_Pool.pop_back();
+            MOS_Delete(param);
+        }
+    }
+
+    virtual PVP_PIPELINE_PARAMS Clone(PVP_PIPELINE_PARAMS param)
+    {
+        PVP_PIPELINE_PARAMS paramDst = nullptr;
+
+        if (m_Pool.empty())
+        {
+            paramDst = MOS_New(VP_PIPELINE_PARAMS);
+            *paramDst = *param;
+        }
+        else
+        {
+            paramDst = m_Pool.back();
+            if (paramDst)
+            {
+                m_Pool.pop_back();
+                *paramDst = *param;
+            }
+        }
+        return paramDst;
+    }
+
+    virtual MOS_STATUS Destroy(PVP_PIPELINE_PARAMS &param)
+    {
+        if (param == nullptr)
+        {
+            return MOS_STATUS_SUCCESS;
+        }
+        m_Pool.push_back(param);
+        param = nullptr;
+        return MOS_STATUS_SUCCESS;
+    }
+
+    std::vector<PVP_PIPELINE_PARAMS> m_Pool;
+
+MEDIA_CLASS_DEFINE_END(vp__VpPipelineParamFactory)
+};
+
 class VpPipeline : public MediaPipeline
 {
 public:
@@ -415,6 +466,7 @@ protected:
     VP_SETTINGS           *m_vpSettings = nullptr;
     VpUserFeatureControl  *m_userFeatureControl = nullptr;
     std::vector<VpSinglePipeContext *> m_vpPipeContexts     = {};
+    VpPipelineParamFactory            *m_pipelineParamFactory = nullptr;
 
     MEDIA_CLASS_DEFINE_END(vp__VpPipeline)
 };

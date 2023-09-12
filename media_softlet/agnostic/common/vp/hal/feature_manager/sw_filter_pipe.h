@@ -44,6 +44,7 @@ namespace vp
 #define MAX_LAYER_COUNT VPHAL_MAX_SOURCES
 
 class VpInterface;
+class VpPipelineParamFactory;
 
 struct FeatureSet
 {

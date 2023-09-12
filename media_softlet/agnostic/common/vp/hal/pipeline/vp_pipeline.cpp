@@ -99,6 +99,10 @@ VpPipeline::~VpPipeline()
         MOS_Delete(m_userFeatureControl);
         m_vpMhwInterface.m_userFeatureControl = nullptr;
     }
+    if (m_pipelineParamFactory)
+    {
+        MOS_Delete(m_pipelineParamFactory);
+    }
 }
 
 MOS_STATUS VpPipeline::GetStatusReport(void *status, uint16_t numStatus)
@@ -594,11 +598,10 @@ finish:
 MOS_STATUS VpPipeline::CreateSwFilterPipe(VP_PARAMS &params, std::vector<SwFilterPipe*> &swFilterPipe)
 {
     VP_FUNC_CALL();
-
     switch (m_pvpParams.type)
     {
     case PIPELINE_PARAM_TYPE_LEGACY:
-        VP_PUBLIC_CHK_STATUS_RETURN(m_vpInterface->GetSwFilterPipeFactory().Create(m_pvpParams.renderParams, swFilterPipe));
+        VP_PUBLIC_CHK_STATUS_RETURN(m_vpInterface->GetSwFilterPipeFactory().Create(m_pvpParams.renderParams, swFilterPipe, m_pipelineParamFactory));
         break;
     case PIPELINE_PARAM_TYPE_MEDIA_SFC_INTERFACE:
         VP_PUBLIC_CHK_STATUS_RETURN(m_vpInterface->GetSwFilterPipeFactory().Create(m_pvpParams.sfcParams, swFilterPipe));
@@ -741,6 +744,9 @@ MOS_STATUS VpPipeline::CreateFeatureManager(VpResourceManager *vpResourceManager
     VP_PUBLIC_CHK_NULL_RETURN(m_featureManager);
 
     VP_PUBLIC_CHK_STATUS_RETURN(((VpFeatureManagerNext *)m_featureManager)->Init(nullptr));
+
+    m_pipelineParamFactory = MOS_New(VpPipelineParamFactory);
+    VP_PUBLIC_CHK_NULL_RETURN(m_pipelineParamFactory);
 
     return MOS_STATUS_SUCCESS;
 }
