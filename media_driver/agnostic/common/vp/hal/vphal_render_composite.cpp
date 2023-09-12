@@ -1994,6 +1994,8 @@ MOS_STATUS CompositeState::RenderMultiPhase(
     for (index = 0, phase = 0; (!bLastPhase); phase++)
     {
         bool                   disableAvsSampler = false;
+        // AdjustParamsBasedOnFcLimit must be called before IsDisableAVSSampler in legacy path, or it will miss the AVS WA
+        bool                   adjustParamBasedOnFcLimit = AdjustParamsBasedOnFcLimit(pcRenderParams);
         VPHAL_COMPOSITE_PARAMS  CompositeParams;
         // Prepare compositing structure
         ResetCompParams(&CompositeParams);
@@ -6084,6 +6086,44 @@ bool CompositeState::RenderBufferComputeWalker(
 
     PrintWalkerParas(pWalkerParams);
     return bResult;
+}
+
+//!
+//! \brief    Adjust Params Based On Fc Limit
+//! \param    [in,out] pCompParams
+//!           Pointer to Composite parameters.
+//! \return   bool
+//!
+bool CompositeState::AdjustParamsBasedOnFcLimit(
+    PCVPHAL_RENDER_PARAMS pcRenderParam)
+{
+    //The kernel is using the rectangle data to calculate mask. If the rectangle configuration does not comply to kernel requirement, the mask calculation will be incorrect and will see corruption.
+    if (pcRenderParam->pColorFillParams == nullptr &&
+        pcRenderParam->uSrcCount == 1 &&
+        pcRenderParam->uDstCount == 1 &&
+        pcRenderParam->pSrc[0] != nullptr &&
+        pcRenderParam->pTarget[0] != nullptr)
+    {
+         if (pcRenderParam->pSrc[0]->rcDst.top >= pcRenderParam->pTarget[0]->rcDst.top &&
+             pcRenderParam->pSrc[0]->rcDst.left >= pcRenderParam->pTarget[0]->rcDst.left &&
+             pcRenderParam->pSrc[0]->rcDst.right <= pcRenderParam->pTarget[0]->rcDst.right &&
+             pcRenderParam->pSrc[0]->rcDst.bottom <= pcRenderParam->pTarget[0]->rcDst.bottom)
+         {
+            VPHAL_RENDER_NORMALMESSAGE("Render Path : 1 Surface to 1 Surface FC Composition. ColorFill is Disabled. Output Dst is bigger than Input Dst. Will make Output Dst become Input Dst to Avoid FC Corruption. (%d %d %d %d) -> (%d %d %d %d)",
+                pcRenderParam->pTarget[0]->rcDst.left,
+                pcRenderParam->pTarget[0]->rcDst.top,
+                pcRenderParam->pTarget[0]->rcDst.right,
+                pcRenderParam->pTarget[0]->rcDst.bottom,
+                pcRenderParam->pSrc[0]->rcDst.left,
+                pcRenderParam->pSrc[0]->rcDst.top,
+                pcRenderParam->pSrc[0]->rcDst.right,
+                pcRenderParam->pSrc[0]->rcDst.bottom);
+            pcRenderParam->pTarget[0]->rcSrc = pcRenderParam->pSrc[0]->rcDst;
+            pcRenderParam->pTarget[0]->rcDst = pcRenderParam->pSrc[0]->rcDst;
+            return true;
+         }
+    }
+    return false;
 }
 
 //!

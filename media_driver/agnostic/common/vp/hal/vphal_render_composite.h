@@ -498,6 +498,15 @@ protected:
         bool*                           pbColorfill);
 
     //!
+    //! \brief    Adjust Params Based On Fc Limit
+    //! \param    [in,out] PCVPHAL_RENDER_PARAMS
+    //!           Pointer to pcRenderParam parameters.
+    //! \return   bool
+    //!
+    bool AdjustParamsBasedOnFcLimit(
+        PCVPHAL_RENDER_PARAMS pcRenderParam);
+
+    //!
     //! \brief    Set Sampler AVS parameters
     //! \param    [in] pRenderingData
     //!           pointer to render data
