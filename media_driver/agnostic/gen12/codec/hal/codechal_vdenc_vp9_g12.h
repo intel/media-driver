@@ -1017,7 +1017,7 @@ public:
     // ME CURBE init data for G12 Kernel
     static const uint32_t meCurbeInit[48];
 
-    CODEC_PICTURE m_refPicList0[3];
+    CODEC_PICTURE m_refPicList0[3] = {};
 
     // Virtual engine
     //Scalability

@@ -1380,7 +1380,7 @@ public:
     MOS_RESOURCE                    m_resMbCodeSurface = {};           //!< Pointer to MOS_SURFACE of MbCode surface
     MOS_RESOURCE                    m_resMvDataSurface = {};           //!< Pointer to MOS_SURFACE of MvData surface
     uint32_t                        m_mbDataBufferSize = 0;
-    HwCounter                       m_regHwCount[CODECHAL_ENCODE_STATUS_NUM + 1];    //!< HW count register value
+    HwCounter                       m_regHwCount[CODECHAL_ENCODE_STATUS_NUM + 1] = {};    //!< HW count register value
 
     CODEC_PICTURE                   m_currOriginalPic = {};       //!< Raw.
     CODEC_PICTURE                   m_currReconstructedPic = {};  //!< Recon.
@@ -1498,7 +1498,7 @@ public:
 
     // CmdGen HuC FW for HEVC/VP9 VDEnc
     MOS_RESOURCE                    m_resVdencCmdInitializerDmemBuffer = {};   //!< Resource of vdenc command initializer DMEM buffer
-    MOS_RESOURCE                    m_resVdencCmdInitializerDataBuffer[2];   //!< Resource of vdenc command initializer data buffer
+    MOS_RESOURCE                    m_resVdencCmdInitializerDataBuffer[2] = {};   //!< Resource of vdenc command initializer data buffer
 
     // VDEnc params
     bool                            m_vdencEnabled = false;               //!< Vdenc enabled flag

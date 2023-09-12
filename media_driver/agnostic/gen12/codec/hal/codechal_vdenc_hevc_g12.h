@@ -2187,22 +2187,22 @@ public:
     // Tile level batch buffer
     uint32_t                    m_tileLevelBatchSize = 0;                 //!< Size of the 2rd level batch buffer for each tile
     uint32_t                    m_numTileBatchAllocated = 0;              //!< The number of allocated batch buffer for tiles
-    PMHW_BATCH_BUFFER           m_tileLevelBatchBuffer[CODECHAL_VDENC_BRC_NUM_OF_PASSES];   //!< Tile level batch buffer for each tile
+    PMHW_BATCH_BUFFER           m_tileLevelBatchBuffer[CODECHAL_VDENC_BRC_NUM_OF_PASSES] = {};   //!< Tile level batch buffer for each tile
 
     // scalability
     unsigned char                               m_numPipe            = 1;         //!< Number of pipes
     unsigned char                               m_numPipePre         = 1;         //!< Number of pipes of previous frame
     unsigned char                               m_numPassesInOnePipe = 1;         //!< Number of PAK passes in one pipe
-    CODECHAL_ENCODE_BUFFER                      m_resPakSliceLevelStreamoutData;  //!< Surface for slice level stream out data from PAK
-    CODECHAL_HEVC_VIRTUAL_ENGINE_OVERRIDE       m_kmdVeOveride;                   //!< KMD override virtual engine index
+    CODECHAL_ENCODE_BUFFER                      m_resPakSliceLevelStreamoutData = {};  //!< Surface for slice level stream out data from PAK
+    CODECHAL_HEVC_VIRTUAL_ENGINE_OVERRIDE       m_kmdVeOveride = {};                   //!< KMD override virtual engine index
     uint32_t                                    m_numTiles = 1;                   //!< Number of tiles
     uint32_t                                    m_numLcu = 1;                     //!< LCU number
-    CODECHAL_ENCODE_BUFFER                      m_resHcpScalabilitySyncBuffer;    //!< Hcp sync buffer for scalability
-    CODECHAL_ENCODE_BUFFER                      m_resTileBasedStatisticsBuffer[CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC];
-    CODECHAL_ENCODE_BUFFER                      m_resHuCPakAggregatedFrameStatsBuffer;
-    CODECHAL_ENCODE_BUFFER                      m_tileRecordBuffer[CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC];
-    MOS_RESOURCE                                m_resHucPakStitchDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][CODECHAL_VDENC_BRC_NUM_OF_PASSES];  //!< HuC Pak Integration Dmem data for each pass
-    MOS_RESOURCE                                m_resBrcDataBuffer;                             //!< Resource of bitrate control data buffer
+    CODECHAL_ENCODE_BUFFER                      m_resHcpScalabilitySyncBuffer = {};    //!< Hcp sync buffer for scalability
+    CODECHAL_ENCODE_BUFFER                      m_resTileBasedStatisticsBuffer[CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC] = {};
+    CODECHAL_ENCODE_BUFFER                      m_resHuCPakAggregatedFrameStatsBuffer = {};
+    CODECHAL_ENCODE_BUFFER                      m_tileRecordBuffer[CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC] = {};
+    MOS_RESOURCE                                m_resHucPakStitchDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][CODECHAL_VDENC_BRC_NUM_OF_PASSES] = {};  //!< HuC Pak Integration Dmem data for each pass
+    MOS_RESOURCE                                m_resBrcDataBuffer = {};                             //!< Resource of bitrate control data buffer
     HEVC_TILE_STATS_INFO                        m_hevcTileStatsOffset = {};                     //!< Page aligned offsets used to program HCP / VDEnc pipe and HuC PAK Integration kernel input
     HEVC_TILE_STATS_INFO                        m_hevcFrameStatsOffset = {};                    //!< Page aligned offsets used to program HuC PAK Integration kernel output, HuC BRC kernel input
     HEVC_TILE_STATS_INFO                        m_hevcStatsSize = {};                           //!< HEVC Statistics size
@@ -2725,7 +2725,7 @@ private:
     static const uint32_t       m_NumPassesForTileReplay = 2;               //!< Max number Passes for tile row based BRC
     uint32_t                    m_CurrentPassForTileReplay  = 0;            //!< Current BRC pass number for tile replay
     uint32_t                    m_CurrentPassForOverAll = 0;                //!< Current tile replay pass for overall
-    PMHW_BATCH_BUFFER           m_TileRowBRCBatchBuffer[CODECHAL_VDENC_BRC_NUM_OF_PASSES];   //!< Tile level batch buffer HUC BRC Update
+    PMHW_BATCH_BUFFER           m_TileRowBRCBatchBuffer[CODECHAL_VDENC_BRC_NUM_OF_PASSES] = {};   //!< Tile level batch buffer HUC BRC Update
     uint32_t                    m_numTileRows = 1;                          //!< Total number of tile rows
     uint32_t                    m_numTileRowBRCBatchAllocated = 0;          //!< The number of allocated batch buffer for tile row BRC
     MOS_RESOURCE                m_resTileRowBRCsyncSemaphore = {};          //!< HW semaphore buffer for tile row BRC update
