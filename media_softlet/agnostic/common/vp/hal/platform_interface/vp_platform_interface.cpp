@@ -421,6 +421,7 @@ MOS_STATUS VpPlatformInterface::InitVpCmKernels(
 
         if (kernel->getName() == nullptr || kernel->getNameLen() < 1 || kernel->getNameLen() > 256)
         {
+            MOS_Delete(isaFile);
             VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
         }
 
@@ -455,14 +456,19 @@ MOS_STATUS VpPlatformInterface::InitVpCmKernels(
 
         if (kernelBody->getNumInputs() > CM_MAX_ARGS_PER_KERNEL)
         {
-            return MOS_STATUS_INVALID_PARAMETER;
+            MOS_Delete(isaFile);
+            VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
         }
 
         for (uint32_t j = 0; j < kernelBody->getNumInputs(); j++)
         {
             KRN_ARG          kernelArg = {};
             vISA::InputInfo *inputInfo = kernelBody->getInputInfo()[j];
-            VP_PUBLIC_CHK_NULL_RETURN(inputInfo);
+            if (!inputInfo)
+            {
+                MOS_Delete(isaFile);
+                VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_NULL_POINTER);
+            }
             uint8_t          kind      = inputInfo->getKind();
 
             if (kind == 0x2)  // compiler value for surface
