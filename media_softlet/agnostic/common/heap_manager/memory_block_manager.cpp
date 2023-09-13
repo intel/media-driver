@@ -341,7 +341,7 @@ MOS_STATUS MemoryBlockManager::UnregisterHeap(uint32_t heapId)
                 }
                 else
                 {
-                    HEAP_ASSERTMESSAGE("A block with an invlid heap is in the free list!");
+                    HEAP_ASSERTMESSAGE("A block with an invalid heap is in the free list!");
                     return MOS_STATUS_UNKNOWN;
                 }
                 block = next;

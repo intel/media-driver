@@ -1883,7 +1883,7 @@ MOS_STATUS VpRenderFcKernel::InitColorFillInCurbeData()
             }
             dstCspace = filter[filterSize - 1].cspace;
 
-            if (dstCspace == CSpace_None) // if color space is invlaid return false
+            if (dstCspace == CSpace_None) // if color space is invalid return false
             {
                 VP_RENDER_ASSERTMESSAGE("Failed to assign dst color spcae for iScale case.");
                 return MOS_STATUS_INVALID_PARAMETER;

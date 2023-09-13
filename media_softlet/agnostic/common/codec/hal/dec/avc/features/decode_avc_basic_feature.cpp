@@ -115,7 +115,7 @@ namespace decode {
     MOS_STATUS AvcBasicFeature::ErrorDetectAndConceal()
     {
         /*
-         *Only check the invlid syntax instead of return error to skip decoding since this invalid syntax will not cause critical issue
+         *Only check the invalid syntax instead of return error to skip decoding since this invalid syntax will not cause critical issue
          * */
         DECODE_FUNC_CALL();
         DECODE_CHK_NULL(m_avcPicParams);

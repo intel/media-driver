@@ -457,7 +457,7 @@ bool CompositeStateXe_Xpm_Plus::SubmitStates(
                 }
             }
 
-            if (dst_cspace == CSpace_None) // if color space is invlaid return false
+            if (dst_cspace == CSpace_None) // if color space is invalid return false
             {
                 VPHAL_RENDER_ASSERTMESSAGE("Failed to assign dst color spcae for iScale case.");
                 goto finish;

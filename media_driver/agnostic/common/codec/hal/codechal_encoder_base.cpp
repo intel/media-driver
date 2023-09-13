@@ -4132,7 +4132,7 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
                 m_statusReportDebugInterface->m_bufferDumpFrameNum = encodeStatus->dwStoredData;
             )
 
-            // to be discussed, how to identify whether huc invloved in pipeline
+            // to be discussed, how to identify whether huc involved in pipeline
             if (!m_swBrcMode && m_vdencEnabled && m_vdencBrcEnabled && (m_standard == CODECHAL_HEVC || m_standard == CODECHAL_AVC || m_standard == CODECHAL_VP9))
             {
                 MOS_USER_FEATURE_VALUE_WRITE_DATA userFeatureWriteData;
