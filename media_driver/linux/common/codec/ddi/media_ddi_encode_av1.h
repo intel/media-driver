@@ -312,6 +312,7 @@ private:
     uint32_t savedTargetBit[ENCODE_AV1_MAX_NUM_TEMPORAL_LAYERS]  = { 0 };
     uint32_t savedFrameRate[ENCODE_AV1_MAX_NUM_TEMPORAL_LAYERS]  = { 0 };
     uint32_t savedMaxBitRate[ENCODE_AV1_MAX_NUM_TEMPORAL_LAYERS] = { 0 };
+    uint32_t savedQualityFactor = 0;
 
     uint32_t allocatedTileNum = 0;
     bool m_isSegParamsChanged = false;

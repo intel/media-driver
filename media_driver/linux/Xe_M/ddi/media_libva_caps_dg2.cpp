@@ -88,6 +88,7 @@ VAStatus MediaLibvaCapsDG2::LoadAv1EncProfileEntrypoints()
         AddEncConfig(VA_RC_CQP);
         AddEncConfig(VA_RC_CBR);
         AddEncConfig(VA_RC_VBR);
+        AddEncConfig(VA_RC_ICQ);
         AddProfileEntry(VAProfileAV1Profile0, VAEntrypointEncSliceLP, attributeList,
                 configStartIdx, m_encConfigs.size() - configStartIdx);
     }
@@ -718,7 +719,7 @@ VAStatus MediaLibvaCapsDG2::CreateEncAttributes(
     }
     if (IsAV1Profile(profile))
     {
-        attrib.value = VA_RC_CQP | VA_RC_CBR | VA_RC_VBR;
+        attrib.value = VA_RC_CQP | VA_RC_CBR | VA_RC_VBR | VA_RC_ICQ;
 #if VA_CHECK_VERSION(1, 10, 0)
         attrib.value |= VA_RC_TCBRC;
 #endif
