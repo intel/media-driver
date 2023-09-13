@@ -240,6 +240,8 @@ void CmContext::BatchKernel(CmKernel *kernel, CmThreadSpace *threadSpace, bool b
 
 void CmContext::FlushBatchTask(bool waitForFinish)
 {
+    int result = CM_SUCCESS;
+
     if (mAddedKernels.empty())
     {
         return;
@@ -249,18 +251,30 @@ void CmContext::FlushBatchTask(bool waitForFinish)
 
     for(auto it : mThreadSpacesToPurge)
     {
-        mCmDevice->DestroyThreadSpace(it);
+        result = mCmDevice->DestroyThreadSpace(it);
+        if (result != CM_SUCCESS)
+        {
+            VPHAL_RENDER_ASSERTMESSAGE("CM DestroyThreadSpace Fail %d", result);
+        }
     }
 
     for(auto it : mKernelsToPurge)
     {
-        mCmDevice->DestroyKernel(it);
+        result = mCmDevice->DestroyKernel(it);
+        if (result != CM_SUCCESS)
+        {
+            VPHAL_RENDER_ASSERTMESSAGE("CM DestroyKernel Fail %d", result);
+        }
     }
 
     mThreadSpacesToPurge.clear();
     mKernelsToPurge.clear();
     mAddedKernels.clear();
-    mBatchTask->Reset();
+    result = mBatchTask->Reset();
+    if (result != CM_SUCCESS)
+    {
+        VPHAL_RENDER_ASSERTMESSAGE("CM Batch Task Reset Fail %d", result);
+    }
 }
 
 void CmContext::RunSingleKernel(
@@ -313,7 +327,11 @@ void CmContext::EnqueueTask(CmTask *task, CmThreadSpace *threadSpace, const std:
 
     if (waitForFinish)
     {
-        event->WaitForTaskFinished(-1);
+        result = event->WaitForTaskFinished(-1);
+        if (result != CM_SUCCESS)
+        {
+            VPHAL_RENDER_ASSERTMESSAGE("WaitForTaskFinished Failed %d", result);
+        }
 
 #if (_DEBUG || _RELEASE_INTERNAL)
         result = mCmDevice->FlushPrintBuffer();
@@ -329,20 +347,40 @@ void CmContext::EnqueueTask(CmTask *task, CmThreadSpace *threadSpace, const std:
     {
         mEventListener->OnEventAvailable(event, name);
     }
+    else
+    {
+        if (event != nullptr)
+        {
+            result = mCmQueue->DestroyEvent(event);
+            if (result != CM_SUCCESS)
+            {
+                VPHAL_RENDER_ASSERTMESSAGE("DestroyEvent Failed %d", result);
+            }
+        }
+    }
 }
 
 void CmContext::Destroy()
 {
+    int result = CM_SUCCESS;
     FlushBatchTask(false);
 
     if (mBatchTask)
     {
-        mCmDevice->DestroyTask(mBatchTask);
+        result = mCmDevice->DestroyTask(mBatchTask);
+        if (result != CM_SUCCESS)
+        {
+            VPHAL_RENDER_ASSERTMESSAGE("CM DestroyTask Fail %d", result);
+        }
     }
 
     if (mCmVebox)
     {
-        mCmDevice->DestroyVebox(mCmVebox);
+        result = mCmDevice->DestroyVebox(mCmVebox);
+        if (result != CM_SUCCESS)
+        {
+            VPHAL_RENDER_ASSERTMESSAGE("CM DestroyVebox Fail %d", result);
+        }
     }
 
     if (mCmDevice && m_osInterface)

@@ -244,7 +244,11 @@ public:
             VPHAL_RENDER_ASSERTMESSAGE("Failed to create VpCmSurfaceHolder from VP Surface!\n");
             return;
         }
-        mCmSurface->GetIndex(mSurfaceIndex);
+        result = mCmSurface->GetIndex(mSurfaceIndex);
+        if (result != CM_SUCCESS)
+        {
+            VPHAL_RENDER_ASSERTMESSAGE("Failed to Get Surface Index");
+        }
     }
 
     VpCmSurfaceHolder(int width, int height, int depth, GMM_RESOURCE_FORMAT format, CmContext *cmContext) :
@@ -271,20 +275,33 @@ public:
     {
         VPHAL_RENDER_CHK_NULL_NO_STATUS_RETURN(m_cmContext);
         CmDevice *dev = m_cmContext->GetCmDevice();
+        int result = CM_SUCCESS;
 
         if (mSampler8x8SurfaceIndex)
         {
-            dev->DestroySampler8x8Surface(mSampler8x8SurfaceIndex);
+            result = dev->DestroySampler8x8Surface(mSampler8x8SurfaceIndex);
+            if (result != CM_SUCCESS)
+            {
+                VPHAL_RENDER_ASSERTMESSAGE("Failed to destroy mSampler8x8SurfaceIndex!");
+            }
         }
 
         if (mSamplerSurfaceIndex)
         {
-            dev->DestroySamplerSurface(mSamplerSurfaceIndex);
+            result = dev->DestroySamplerSurface(mSamplerSurfaceIndex);
+            if (result != CM_SUCCESS)
+            {
+                VPHAL_RENDER_ASSERTMESSAGE("Failed to destroy mSamplerSurfaceIndex!");
+            }
         }
 
         if (mCmSurface)
         {
-            dev->DestroySurface(mCmSurface);
+            result = dev->DestroySurface(mCmSurface);
+            if (result != CM_SUCCESS)
+            {
+                VPHAL_RENDER_ASSERTMESSAGE("Failed to destroy mCmSurface!");
+            }
         }
     }
 
@@ -297,7 +314,11 @@ public:
     {
         if (!mSurfaceIndex)
         {
-            mCmSurface->GetIndex(mSurfaceIndex);
+            int result = mCmSurface->GetIndex(mSurfaceIndex);
+            if (result != CM_SUCCESS)
+            {
+                VPHAL_RENDER_ASSERTMESSAGE("Failed to GetCmSurfaceIndex!");
+            }
         }
         return mSurfaceIndex;
     }
