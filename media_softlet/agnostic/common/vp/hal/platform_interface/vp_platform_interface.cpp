@@ -508,7 +508,8 @@ MOS_STATUS VpPlatformInterface::InitVpCmKernels(
                 // IMP_PSEUDO_INPUT = 0x80 is pseudo input. All inputs after this
                 // will be ignored by CMRT without checking and payload copied.
                 // This resizes the argument count to achieve this.
-                return MOS_STATUS_UNIMPLEMENTED;
+                MOS_Delete(isaFile);
+                VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_UNIMPLEMENTED);
             }
 
             kernelArg.uIndex           = j;
