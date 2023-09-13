@@ -48,8 +48,8 @@ MOS_STATUS VpFeatureReuseBase::UpdateFeatureParams(bool reusable, bool &reused, 
 
 MOS_STATUS VpFeatureReuseBase::UpdatePacket(SwFilter *filter, VpCmdPacket *packet)
 {
-    VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
-    return MOS_STATUS_SUCCESS;
+    VP_PUBLIC_ASSERTMESSAGE("UpdatePacket must be overridden in subclass");
+    return MOS_STATUS_INVALID_PARAMETER;
 }
 
 MOS_STATUS VpFeatureReuseBase::CheckTeamsParams(bool reusable, bool &reused, SwFilter *filter, uint32_t index)
