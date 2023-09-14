@@ -246,21 +246,6 @@ public:
     );
 
     //!
-    //! \brief    Force mapping of EncSliceLP to EncSlice after APO enabled
-    //!
-    //! \param    [in] mediaCtx
-    //!          Pointer to ddi media context
-    //! \param    [in] entrypoint
-    //!           VAEntrypoint
-    //!
-    //! \return   VAEntrypoint
-    //!           VAEntrypoint
-    //!
-    static VAEntrypoint MappingVAEntrypoint(
-        PDDI_MEDIA_CONTEXT mediaCtx,
-        VAEntrypoint entrypoint);
-
-    //!
     //! \brief    Query supported entrypoints for a given profile
     //!
     //! \param    [in] ctx

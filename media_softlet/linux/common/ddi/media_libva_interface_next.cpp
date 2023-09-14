@@ -2138,15 +2138,6 @@ VAStatus MediaLibvaInterfaceNext::UnlockSurface(
     return VA_STATUS_SUCCESS;
 }
 
-VAEntrypoint MediaLibvaInterfaceNext::MappingVAEntrypoint(
-    PDDI_MEDIA_CONTEXT mediaCtx,
-    VAEntrypoint entrypoint)
-{
-    if (entrypoint == VAEntrypointEncSliceLP)
-        return VAEntrypointEncSlice;
-    return entrypoint;
-}
-
 VAStatus MediaLibvaInterfaceNext::QueryConfigEntrypoints(
     VADriverContextP ctx,
     VAProfile        profile,
@@ -2224,8 +2215,6 @@ VAStatus MediaLibvaInterfaceNext::CreateConfig(
     PDDI_MEDIA_CONTEXT mediaCtx   = GetMediaContext(ctx);
     DDI_CHK_NULL(mediaCtx, "nullptr mediaCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
 
-    entrypoint = MappingVAEntrypoint(mediaCtx, entrypoint);
-
     CompType componentIndex = MapCompTypeFromEntrypoint(entrypoint);
     DDI_CHK_NULL(mediaCtx->m_compList[componentIndex],  "nullptr complist",  VA_STATUS_ERROR_INVALID_CONTEXT);
 
@@ -2263,8 +2252,6 @@ VAStatus MediaLibvaInterfaceNext::GetConfigAttributes(
     PDDI_MEDIA_CONTEXT mediaCtx = GetMediaContext(ctx);
     DDI_CHK_NULL(mediaCtx,             "nullptr mediaCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
     DDI_CHK_NULL(mediaCtx->m_capsNext, "nullptr m_caps",   VA_STATUS_ERROR_INVALID_PARAMETER);
-
-    entrypoint = MappingVAEntrypoint(mediaCtx, entrypoint);
 
     return mediaCtx->m_capsNext->GetConfigAttributes(profile, entrypoint, attribList, attribsNum);
 }

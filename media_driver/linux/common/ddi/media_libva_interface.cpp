@@ -204,8 +204,6 @@ VAStatus MediaLibvaInterface::CreateConfig(
         if (mediaCtx && !mediaCtx->m_apoDdiEnabled)
         return false;
 
-        entrypoint = MediaLibvaInterfaceNext::MappingVAEntrypoint(mediaCtx, entrypoint);
-
         std::vector<VAEntrypoint> entrypointList(ctx->max_entrypoints);
         int32_t       entrypointNum   = -1;
         VAStatus vaStatus = VA_STATUS_SUCCESS;

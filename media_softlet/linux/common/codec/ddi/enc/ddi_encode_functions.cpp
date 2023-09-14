@@ -188,7 +188,7 @@ VAStatus DdiEncodeFunctions::CreateContext (
         return vaStatus;
     }
 
-    if (configItem->entrypoint == VAEntrypointEncSliceLP || configItem->entrypoint == VAEntrypointEncSlice)
+    if (configItem->entrypoint == VAEntrypointEncSlice)
     {
         encCtx->bVdencActive = true;
     }
