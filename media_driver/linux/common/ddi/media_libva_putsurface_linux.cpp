@@ -494,7 +494,6 @@ VAStatus DdiCodec_PutSurfaceLinuxHW(
            tileType = MOS_TILE_LINEAR;
            gmmParams.Flags.Info.Linear    = true;
            break;
-        target.OsResource.TileType = (MOS_TILE_TYPE)drawable_tiling_mode;
         }
     }
     else
