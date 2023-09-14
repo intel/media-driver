@@ -26,6 +26,7 @@
 #include "encode_av1_vdenc_packet_xe_lpm_plus_base.h"
 #include "mos_solo_generic.h"
 #include "encode_av1_superres.h"
+#include "hal_oca_interface_next.h"
 
 namespace encode
 {
@@ -463,6 +464,7 @@ MOS_STATUS Av1VdencPktXe_Lpm_Plus_Base::AddOneTileCommands(
         ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_BATCH_BUFFER_START)(&cmdBuffer, tileLevelBatchBuffer));
 
         tempCmdBuffer = &constructTileBatchBuf;
+        HalOcaInterfaceNext::OnSubLevelBBStart(cmdBuffer, m_osInterface->pOsContext, &tempCmdBuffer->OsResource, 0, true, 0);
     }
 
     auto brcFeature = dynamic_cast<Av1Brc *>(m_featureManager->GetFeature(Av1FeatureIDs::av1BrcFeature));
@@ -479,6 +481,7 @@ MOS_STATUS Av1VdencPktXe_Lpm_Plus_Base::AddOneTileCommands(
 
     if (brcFeature->IsBRCEnabled())
     {
+        HalOcaInterfaceNext::OnSubLevelBBStart(cmdBuffer, m_osInterface->pOsContext, &vdenc2ndLevelBatchBuffer->OsResource, 0, true, 0);
         bool     firstTileInGroup = false;
         uint32_t tileGroupIdx     = 0;
         RUN_FEATURE_INTERFACE_NO_RETURN(Av1EncodeTile, Av1FeatureIDs::encodeTile, IsFirstTileInGroup, firstTileInGroup, tileGroupIdx);

@@ -35,6 +35,7 @@
 #include "encode_avc_header_packer.h"
 #include "media_perf_profiler.h"
 #include "mos_os_cp_interface_specific.h"
+#include "hal_oca_interface_next.h"
 
 namespace encode {
 
@@ -399,6 +400,7 @@ namespace encode {
             secondLevelBatchBufferUsed->dwOffset = 0;
         }
 
+        HalOcaInterfaceNext::OnSubLevelBBStart(cmdBuffer, m_osInterface->pOsContext, &secondLevelBatchBufferUsed->OsResource, 0, true, 0);
         ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_BATCH_BUFFER_START)(&cmdBuffer, secondLevelBatchBufferUsed));
 
         CODECHAL_DEBUG_TOOL
