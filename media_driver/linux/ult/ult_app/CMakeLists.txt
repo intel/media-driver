@@ -80,7 +80,7 @@ else ()
         add_custom_command(
             TARGET RunULT
             POST_BUILD
-            COMMAND LD_PRELOAD=../libdrm_mock/libdrm_mock.so ./devult ../../../${LIB_NAME}.so
+            COMMAND LD_PRELOAD=${MEDIA_MISC_LIB}:../libdrm_mock/libdrm_mock.so ./devult ../../../${LIB_NAME}.so
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
             COMMENT "Running devult...")
         endif ()
