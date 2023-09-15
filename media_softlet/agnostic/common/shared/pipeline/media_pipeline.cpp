@@ -154,7 +154,11 @@ MediaPacket *MediaPipeline::GetOrCreate(uint32_t packetId)
     auto iterCreator = m_packetCreators.find(packetId);
     if (iterCreator != m_packetCreators.end())
     {
-        RegisterPacket(packetId, iterCreator->second());
+        MOS_STATUS registStatus = RegisterPacket(packetId, iterCreator->second());
+        if (MOS_FAILED(registStatus))
+        {
+            MOS_OS_ASSERTMESSAGE("Media register packets into packet pool failed!");
+        }
 
         iter = m_packetList.find(packetId);
         if (iter != m_packetList.end())

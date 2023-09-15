@@ -587,7 +587,7 @@ void VpRenderKernelObj::DumpSurface(VP_SURFACE* pSurface, PCCHAR fileName)
         sPath,
         MAX_PATH,
         sizeof(sPath),
-        "c:\\dump\\f[%08I64x]_%s_w[%d]_h[%d]_p[%d].%s",
+        "c:\\dump\\f[%08d]_%s_w[%d]_h[%d]_p[%d].%s",
         1,
         fileName,
         pSurface->osSurface->dwWidth,
@@ -621,7 +621,11 @@ void VpRenderKernelObj::DumpSurface(VP_SURFACE* pSurface, PCCHAR fileName)
         MOS_FreeMemory(pDst);
     }
 
-    m_allocator->UnLock(&pSurface->osSurface->OsResource);
+    MOS_STATUS status = m_allocator->UnLock(&pSurface->osSurface->OsResource);
+    if (MOS_FAILED(status))
+    {
+        VP_RENDER_ASSERTMESSAGE("Unlock resource failed!");
+    }
 #endif
 }
 

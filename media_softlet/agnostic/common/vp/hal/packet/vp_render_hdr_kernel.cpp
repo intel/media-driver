@@ -4812,7 +4812,7 @@ void VpRenderHdrKernel::DumpCurbe(void *pCurbe, int32_t iSize)
         CurbeName,
         sizeof(CurbeName),
         sizeof(CurbeName),
-        "c:\\\\dump\\f[%04lu]hdr_Curbe.dat",
+        "c:\\\\dump\\f[%04d]hdr_Curbe.dat",
         1);
     MosUtilities::MosWriteFileFromPtr(
         (const char *)CurbeName,
