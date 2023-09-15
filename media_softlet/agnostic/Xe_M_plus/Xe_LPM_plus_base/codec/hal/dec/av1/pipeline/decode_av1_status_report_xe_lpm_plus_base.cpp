@@ -58,7 +58,7 @@ class DecodeAllocator;
         else if (decodeStatus->m_mmioErrorStatusReg != 0)
         {
             // From HW perspective, expontential golomb error and exit symbol error are real errors
-            if ((decodeStatus->m_mmioErrorStatusReg & 0xc0000000) != 0)
+            if ((decodeStatus->m_mmioErrorStatusReg & 0xc0000000) != 0 && decodeStatus->m_mmioMBCountReg != 0)
             {
                 statusReportData->codecStatus = CODECHAL_STATUS_ERROR;
             }
