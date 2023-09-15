@@ -30,7 +30,6 @@
 #include "mhw_mi_itf.h"
 #include "media_perf_profiler.h"
 #include "codec_hw_next.h"
-#include "hal_oca_interface_next.h"
 
 using namespace mhw::vdbox;
 
@@ -245,7 +244,7 @@ namespace encode
 
         MOS_COMMAND_BUFFER& cmdBuffer = *commandBuffer;
 
-        ENCODE_CHK_STATUS_RETURN(Construct3rdLevelBatch(cmdBuffer));
+        ENCODE_CHK_STATUS_RETURN(Construct3rdLevelBatch());
 
         uint16_t numTileColumns = 1;
         uint16_t numTileRows = 1;
@@ -565,7 +564,7 @@ namespace encode
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS HevcVdencPkt::Construct3rdLevelBatch(MOS_COMMAND_BUFFER &cmdBuffer)
+    MOS_STATUS HevcVdencPkt::Construct3rdLevelBatch()
     {
         ENCODE_FUNC_CALL();
 
@@ -574,8 +573,6 @@ namespace encode
         // Begin patching 3rd level batch cmds
         MOS_COMMAND_BUFFER constructedCmdBuf;
         RUN_FEATURE_INTERFACE_RETURN(HevcEncodeTile, HevcFeatureIDs::encodeTile, BeginPatch3rdLevelBatch, constructedCmdBuf);
-
-        HalOcaInterfaceNext::OnSubLevelBBStart(cmdBuffer, m_osInterface->pOsContext, &constructedCmdBuf.OsResource, 0, true, 0);
 
         SETPAR_AND_ADDCMD(VDENC_CMD1, m_vdencItf, &constructedCmdBuf);
 
@@ -672,7 +669,6 @@ namespace encode
             ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_BATCH_BUFFER_START)(&cmdBuffer, tileLevelBatchBuffer));
 
             tempCmdBuffer = &constructTileBatchBuf;
-            HalOcaInterfaceNext::OnSubLevelBBStart(cmdBuffer, m_osInterface->pOsContext, &tempCmdBuffer->OsResource, 0, true, 0);
         }
 
         // HCP Lock for multiple pipe mode
@@ -761,7 +757,7 @@ namespace encode
         }
 
         // multi tiles cases on Liunx, 3rd level batch buffer is 2nd level.
-        ENCODE_CHK_STATUS_RETURN(Construct3rdLevelBatch(cmdBuffer));
+        ENCODE_CHK_STATUS_RETURN(Construct3rdLevelBatch());
 
         uint16_t numTileColumns = 1;
         uint16_t numTileRows    = 1;

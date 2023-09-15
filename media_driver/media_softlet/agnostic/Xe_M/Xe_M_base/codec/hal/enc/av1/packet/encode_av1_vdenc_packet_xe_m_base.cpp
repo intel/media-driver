@@ -27,7 +27,6 @@
 #include "mos_solo_generic.h"
 #include "mhw_mi_itf.h"
 #include "mhw_vdbox_g12_X.h"
-#include "hal_oca_interface_next.h"
 
 namespace encode
 {
@@ -346,7 +345,6 @@ namespace encode
             ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_BATCH_BUFFER_START)(&cmdBuffer, tileLevelBatchBuffer));
 
             tempCmdBuffer = &constructTileBatchBuf;
-            HalOcaInterfaceNext::OnSubLevelBBStart(cmdBuffer, m_osInterface->pOsContext, &tempCmdBuffer->OsResource, 0, true, 0);
         }
 
         auto brcFeature = dynamic_cast<Av1Brc *>(m_featureManager->GetFeature(Av1FeatureIDs::av1BrcFeature));
@@ -362,7 +360,6 @@ namespace encode
         SETPAR_AND_ADDCMD(AVP_IND_OBJ_BASE_ADDR_STATE, m_avpItf, tempCmdBuffer);
         if (brcFeature->IsBRCEnabled())
         {
-            HalOcaInterfaceNext::OnSubLevelBBStart(cmdBuffer, m_osInterface->pOsContext, &vdenc2ndLevelBatchBuffer->OsResource, 0, true, 0);
             bool firstTileInGroup = false;
             uint32_t tileGroupIdx = 0;
             RUN_FEATURE_INTERFACE_NO_RETURN(Av1EncodeTile, Av1FeatureIDs::encodeTile, IsFirstTileInGroup, firstTileInGroup, tileGroupIdx);

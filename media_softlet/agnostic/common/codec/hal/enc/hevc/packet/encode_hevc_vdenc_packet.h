@@ -394,7 +394,7 @@ namespace encode
         //! \return MOS_STATUS
         //!         MOS_STATUS_SUCCESS if success, else fail reason
         //!
-        MOS_STATUS Construct3rdLevelBatch(MOS_COMMAND_BUFFER &cmdBuffer);
+        MOS_STATUS Construct3rdLevelBatch();
 
         virtual MOS_STATUS AllocateResources();
 
