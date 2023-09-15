@@ -915,6 +915,8 @@ static bool InitDg2MediaWa(struct GfxDeviceInfo *devInfo,
 
     MEDIA_WR_WA(waTable, WaDisableSetObjectCapture, 1);
 
+    MEDIA_WR_WA(waTable, Wa_15013355402, 1);
+
     return true;
 }
 
