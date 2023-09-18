@@ -85,6 +85,11 @@ public:
         return true;
     }
 
+    virtual bool IsLegacyEuCountInUse()
+    {
+        return true;
+    }
+
     virtual MOS_STATUS GetInputFrameWidthHeightAlignUnit(
         PVP_MHWINTERFACE          pvpMhwInterface,
         uint32_t                 &widthAlignUnit,

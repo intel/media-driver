@@ -344,6 +344,11 @@ public:
         return true;
     }
 
+    virtual bool IsLegacyEuCountInUse()
+    {
+        return false;
+    }
+
     bool IsRenderDisabled()
     {
         return m_isRenderDisabled;

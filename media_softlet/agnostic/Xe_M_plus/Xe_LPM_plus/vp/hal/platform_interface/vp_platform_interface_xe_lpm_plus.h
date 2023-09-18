@@ -89,6 +89,11 @@ public:
         return true;
     }
 
+    virtual bool IsLegacyEuCountInUse()
+    {
+        return true;
+    }
+
 protected:
     bool m_disableSfcDithering = false;
 
