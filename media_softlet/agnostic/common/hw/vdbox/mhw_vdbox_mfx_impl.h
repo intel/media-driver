@@ -1249,14 +1249,10 @@ protected:
         }
         else
         {
-            for (auto i = 0, j = 0; i < (CODEC_MAX_NUM_REF_FRAME / 2); i++, j++)
-            {
-                cmd.Viewidlist1616Bits[i] = 0;
-            }
-        }
-        for (auto i = 0, j = 0; i < (CODEC_MAX_NUM_REF_FRAME / 4); i++, j++)
-        {
-            cmd.Vieworderlistl1168Bits[i] = 0;  //FirstEntry
+            // non-MVC usage
+            MOS_ZeroMemory(cmd.Viewidlist1616Bits, sizeof(cmd.Viewidlist1616Bits));
+            MOS_FillMemory(cmd.Vieworderlistl0168Bits, sizeof(cmd.Vieworderlistl0168Bits), 0xF);
+            MOS_FillMemory(cmd.Vieworderlistl1168Bits, sizeof(cmd.Vieworderlistl1168Bits), 0xF);
         }
 
         #define DO_FIELDS()                                                               \
