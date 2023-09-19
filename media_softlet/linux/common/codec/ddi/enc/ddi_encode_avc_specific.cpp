@@ -1189,7 +1189,7 @@ VAStatus DdiEncodeAvc::Qmatrix(void *ptr)
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
 
-    MOS_SecureMemcpy((void *)&m_scalingLists8x8,
+    status = MOS_SecureMemcpy((void *)&m_scalingLists8x8,
         2 * 64 * sizeof(uint8_t),
         (void *)&qm->ScalingList8x8,
         2 * 64 * sizeof(uint8_t));
@@ -1364,9 +1364,10 @@ VAStatus DdiEncodeAvc::ParsePicParams(
 
     if (pic->CurrPic.picture_id != VA_INVALID_SURFACE)
     {
-        RegisterRTSurfaces(&(m_encodeCtx->RTtbl),
-            MediaLibvaCommonNext::GetSurfaceFromVASurfaceID(mediaCtx,
-                pic->CurrPic.picture_id));
+        DDI_CHK_RET(RegisterRTSurfaces(&(m_encodeCtx->RTtbl),
+                        MediaLibvaCommonNext::GetSurfaceFromVASurfaceID(mediaCtx,
+                            pic->CurrPic.picture_id)),
+                    "RegisterRTSurfaces failed!");
     }
 
     // Curr Recon Pic
@@ -2004,17 +2005,18 @@ VAStatus DdiEncodeAvc::ParsePackedHeaderData(void *ptr)
             bsBuffer->BufferSize - bsBuffer->SliceOffset,
             (uint8_t *)(temp_ptr ? temp_ptr : ptr),
             hdrDataSize);
-        if (MOS_STATUS_SUCCESS != status)
-        {
-            DDI_CODEC_ASSERTMESSAGE("DDI:packed slice header size is too large to be supported!");
-            return VA_STATUS_ERROR_INVALID_PARAMETER;
-        }
 
-        if (temp_size && temp_ptr)
+        if (temp_ptr)
         {
             MOS_FreeMemory(temp_ptr);
             temp_size = 0;
             temp_ptr = NULL;
+        }
+
+        if (MOS_STATUS_SUCCESS != status)
+        {
+            DDI_CODEC_ASSERTMESSAGE("DDI:packed slice header size is too large to be supported!");
+            return VA_STATUS_ERROR_INVALID_PARAMETER;
         }
 
         m_encodeCtx->pSliceHeaderData[m_encodeCtx->uiSliceHeaderCnt].SliceOffset = bsBuffer->pCurrent - bsBuffer->pBase;

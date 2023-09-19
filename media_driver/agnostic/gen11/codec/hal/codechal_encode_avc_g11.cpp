@@ -3956,7 +3956,7 @@ CodechalEncodeAvcEncG11::CodechalEncodeAvcEncG11(
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    CODECHAL_ENCODE_ASSERT(m_osInterface);
+    CODECHAL_ENCODE_CHK_NULL_NO_STATUS_RETURN(m_osInterface);
 
     // Virtual Engine is enabled in default.
     Mos_SetVirtualEngineSupported(m_osInterface, true);

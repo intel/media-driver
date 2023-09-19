@@ -7191,6 +7191,7 @@ MOS_STATUS CodechalEncodeAvcEncFeiG8::SetCurbeAvcMbEnc(PCODECHAL_ENCODE_AVC_MBEN
         refWidth  = 64;
         refHeight = 32;
         lenSP     = 32;
+        break;
     case 8:
         // Exhaustive SUs 64x32 window
         refWidth  = 64;

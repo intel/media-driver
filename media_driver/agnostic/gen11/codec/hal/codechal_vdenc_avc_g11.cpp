@@ -1034,8 +1034,9 @@ MOS_STATUS CodechalVdencAvcStateG11::ExecuteSliceLevel()
         vdencWalkerStateParams->Mode = CODECHAL_ENCODE_MODE_AVC;
         vdencWalkerStateParams->pAvcSeqParams = avcSeqParams;
         vdencWalkerStateParams->pAvcSlcParams = avcSlcParams;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencWalkerStateCmd(&cmdBuffer, vdencWalkerStateParams));
+        eStatus = m_vdencInterface->AddVdencWalkerStateCmd(&cmdBuffer, vdencWalkerStateParams);
         MOS_Delete(vdencWalkerStateParams);
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(eStatus);
 
         MOS_ZeroMemory(&vdPipelineFlushParams, sizeof(vdPipelineFlushParams));
         // MFXPipeDone should not be set for tail insertion

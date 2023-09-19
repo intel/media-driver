@@ -921,7 +921,7 @@ VAStatus DdiEncodeBase::CreateBuffer(
         va           = MediaLibvaUtilNext::CreateBuffer(buf, mediaCtx->pDrmBufMgr);
         if (va != VA_STATUS_SUCCESS)
         {
-            MOS_FreeMemory(buf);
+            MOS_Delete(buf);
             return VA_STATUS_ERROR_ALLOCATION_FAILED;
         }
         break;
@@ -952,7 +952,7 @@ VAStatus DdiEncodeBase::CreateBuffer(
         va = MediaLibvaUtilNext::CreateBuffer(buf, mediaCtx->pDrmBufMgr);
         if (va != VA_STATUS_SUCCESS)
         {
-            MOS_FreeMemory(buf);
+            MOS_Delete(buf);
             return VA_STATUS_ERROR_ALLOCATION_FAILED;
         }
         break;
@@ -967,7 +967,7 @@ VAStatus DdiEncodeBase::CreateBuffer(
         va = MediaLibvaUtilNext::CreateBuffer(buf, mediaCtx->pDrmBufMgr);
         if (va != VA_STATUS_SUCCESS)
         {
-            MOS_FreeMemory(buf);
+            MOS_Delete(buf);
             return VA_STATUS_ERROR_ALLOCATION_FAILED;
         }
         break;
@@ -1087,7 +1087,7 @@ VAStatus DdiEncodeBase::CreateBuffer(
         va           = MediaLibvaUtilNext::CreateBuffer(buf, mediaCtx->pDrmBufMgr);
         if (va != VA_STATUS_SUCCESS)
         {
-            MOS_FreeMemory(buf);
+            MOS_Delete(buf);
             return VA_STATUS_ERROR_ALLOCATION_FAILED;
         }
         break;
@@ -1100,7 +1100,7 @@ VAStatus DdiEncodeBase::CreateBuffer(
         va           = MediaLibvaUtilNext::CreateBuffer(buf, mediaCtx->pDrmBufMgr);
         if (va != VA_STATUS_SUCCESS)
         {
-            MOS_FreeMemory(buf);
+            MOS_Delete(buf);
             return VA_STATUS_ERROR_ALLOCATION_FAILED;
         }
         break;
@@ -1140,7 +1140,7 @@ VAStatus DdiEncodeBase::CreateBuffer(
         va = MediaLibvaUtilNext::CreateBuffer(buf, mediaCtx->pDrmBufMgr);
         if (va != VA_STATUS_SUCCESS)
         {
-            MOS_FreeMemory(buf);
+            MOS_Delete(buf);
             return VA_STATUS_ERROR_ALLOCATION_FAILED;
         }
         break;
@@ -1154,7 +1154,7 @@ VAStatus DdiEncodeBase::CreateBuffer(
         va           = MediaLibvaUtilNext::CreateBuffer(buf, mediaCtx->pDrmBufMgr);
         if (va != VA_STATUS_SUCCESS)
         {
-            MOS_FreeMemory(buf);
+            MOS_Delete(buf);
             return VA_STATUS_ERROR_ALLOCATION_FAILED;
         }
         break;
@@ -1168,7 +1168,7 @@ VAStatus DdiEncodeBase::CreateBuffer(
         va           = MediaLibvaUtilNext::CreateBuffer(buf, mediaCtx->pDrmBufMgr);
         if (va != VA_STATUS_SUCCESS)
         {
-            MOS_FreeMemory(buf);
+            MOS_Delete(buf);
             return VA_STATUS_ERROR_ALLOCATION_FAILED;
         }
         break;
@@ -1181,7 +1181,7 @@ VAStatus DdiEncodeBase::CreateBuffer(
         va           = MediaLibvaUtilNext::CreateBuffer(buf, mediaCtx->pDrmBufMgr);
         if (va != VA_STATUS_SUCCESS)
         {
-            MOS_FreeMemory(buf);
+            MOS_Delete(buf);
             return VA_STATUS_ERROR_ALLOCATION_FAILED;
         }
         break;
@@ -1207,7 +1207,7 @@ VAStatus DdiEncodeBase::CreateBuffer(
         va           = MediaLibvaUtilNext::CreateBuffer(buf, mediaCtx->pDrmBufMgr);
         if (va != VA_STATUS_SUCCESS)
         {
-            MOS_FreeMemory(buf);
+            MOS_Delete(buf);
             return VA_STATUS_ERROR_ALLOCATION_FAILED;
         }
 
@@ -1221,7 +1221,7 @@ VAStatus DdiEncodeBase::CreateBuffer(
         va           = MediaLibvaUtilNext::CreateBuffer(buf, mediaCtx->pDrmBufMgr);
         if (va != VA_STATUS_SUCCESS)
         {
-            MOS_FreeMemory(buf);
+            MOS_Delete(buf);
             return VA_STATUS_ERROR_ALLOCATION_FAILED;
         }
         break;
@@ -1235,7 +1235,7 @@ VAStatus DdiEncodeBase::CreateBuffer(
         va           = MediaLibvaUtilNext::CreateBuffer(buf, mediaCtx->pDrmBufMgr);
         if (va != VA_STATUS_SUCCESS)
         {
-            MOS_FreeMemory(buf);
+            MOS_Delete(buf);
             return VA_STATUS_ERROR_ALLOCATION_FAILED;
         }
         break;
@@ -1267,7 +1267,7 @@ VAStatus DdiEncodeBase::CreateBuffer(
         va = m_encodeCtx->pCpDdiInterfaceNext->CreateBuffer(type, buf, size, elementsNum);
         if (va  == VA_STATUS_ERROR_UNSUPPORTED_BUFFERTYPE)
         {
-            MOS_FreeMemory(buf);
+            MOS_Delete(buf);
             DDI_CODEC_ASSERTMESSAGE("DDI: non supported buffer type = %d, size = %d, num = %d", type, size, elementsNum);
             return va;
         }
@@ -1359,8 +1359,11 @@ void DdiEncodeBase::CleanUpBufferandReturn(DDI_MEDIA_BUFFER *buf)
 {
     if (buf)
     {
-        MOS_FreeMemory(buf->pData);
-        MOS_FreeMemory(buf);
+        if (buf->pData)
+        {
+            MOS_DeleteArray(buf->pData);
+        }
+        MOS_Delete(buf);
     }
 }
 

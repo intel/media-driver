@@ -722,6 +722,7 @@ VAStatus DdiEncode_MfeSubmit(
         }
 
         CodechalEncoderState *encoder = dynamic_cast<CodechalEncoderState *>(encodeContext->pCodecHal);
+        DDI_CHK_NULL(encoder, "nullptr encoder", VA_STATUS_ERROR_INVALID_CONTEXT);
 
         encodeMfeContext->mfeEncodeSharedState->encoders.push_back(encoder);
 
@@ -747,6 +748,8 @@ VAStatus DdiEncode_MfeSubmit(
         }
 
         CodechalEncoderState *encoder = dynamic_cast<CodechalEncoderState *>(encodeContext->pCodecHal);
+        DDI_CHK_NULL(encoder, "nullptr encoder", VA_STATUS_ERROR_INVALID_CONTEXT);
+
         status = encoder->Execute(&encodeContext->EncodeParams);
         if (MOS_STATUS_SUCCESS != status)
         {
@@ -781,6 +784,8 @@ VAStatus DdiEncode_SetGpuPriority(
         {
             //Set Gpu priority for CMRT OsInterface
             CmDeviceRTBase *cm_device = dynamic_cast<CmDeviceRTBase *>(encoder->m_cmDev);
+            DDI_CHK_NULL(cm_device, "nullptr cm_device", VA_STATUS_ERROR_INVALID_PARAMETER);
+
             PCM_HAL_STATE cm_hal_state = cm_device->GetHalState();
             if(cm_hal_state->osInterface != nullptr)
                 cm_hal_state->osInterface->pfnSetGpuPriority(cm_hal_state->osInterface, priority);
