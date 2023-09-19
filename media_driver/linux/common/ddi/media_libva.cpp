@@ -2120,7 +2120,7 @@ VAStatus DdiMedia_LoadFuncion (VADriverContextP ctx)
     pVTable->vaDestroyConfig                 = DdiMedia_DestroyConfig;
     pVTable->vaGetConfigAttributes           = DdiMedia_GetConfigAttributes;
 
-    pVTable->vaCreateSurfaces                = nullptr;
+    pVTable->vaCreateSurfaces                = DdiMedia_CreateSurfaces;
     pVTable->vaDestroySurfaces               = DdiMedia_DestroySurfaces;
     pVTable->vaCreateSurfaces2               = DdiMedia_CreateSurfaces2;
 
@@ -2460,6 +2460,56 @@ VAStatus DdiMedia_GetConfigAttributes(
 
     return mediaCtx->m_caps->GetConfigAttributes(
             profile, entrypoint, attrib_list, num_attribs);
+}
+
+VAStatus DdiMedia_CreateSurfaces (
+    VADriverContextP    ctx,
+    int32_t             width,
+    int32_t             height,
+    int32_t             format,
+    int32_t             num_surfaces,
+    VASurfaceID        *surfaces
+)
+{
+    DDI_FUNCTION_ENTER();
+    int32_t event[] = {width, height, format};
+    MOS_TraceEventExt(EVENT_VA_SURFACE, EVENT_TYPE_START, event, sizeof(event), nullptr, 0);
+
+    DDI_CHK_NULL(ctx,               "nullptr ctx",             VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_LARGER(num_surfaces, 0, "Invalid num_surfaces", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(surfaces,          "nullptr surfaces",        VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_LARGER(width,        0, "Invalid width",        VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_LARGER(height,       0, "Invalid height",       VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    PDDI_MEDIA_CONTEXT mediaDrvCtx = DdiMedia_GetMediaContext(ctx);
+    DDI_CHK_NULL(mediaDrvCtx,       "nullptr mediaDrvCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
+
+    if( format != VA_RT_FORMAT_YUV420 ||
+        format != VA_RT_FORMAT_YUV422 ||
+        format != VA_RT_FORMAT_YUV444 ||
+        format != VA_RT_FORMAT_YUV400 ||
+        format != VA_RT_FORMAT_YUV411)
+    {
+        return VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT;
+    }
+
+    DDI_MEDIA_FORMAT mediaFmt = DdiMedia_OsFormatToMediaFormat(VA_FOURCC_NV12,format);
+
+    height = MOS_ALIGN_CEIL(height, 16);
+    for(int32_t i = 0; i < num_surfaces; i++)
+    {
+        VASurfaceID vaSurfaceID = (VASurfaceID)DdiMedia_CreateRenderTarget(mediaDrvCtx, mediaFmt, width, height, nullptr, VA_SURFACE_ATTRIB_USAGE_HINT_GENERIC, MOS_MEMPOOL_VIDEOMEMORY);
+        if (VA_INVALID_ID != vaSurfaceID)
+            surfaces[i] = vaSurfaceID;
+        else
+        {
+            // here to release the successful allocated surfaces?
+            return VA_STATUS_ERROR_ALLOCATION_FAILED;
+        }
+    }
+
+    MOS_TraceEventExt(EVENT_VA_SURFACE, EVENT_TYPE_END, &num_surfaces, sizeof(int32_t), surfaces, num_surfaces*sizeof(VAGenericID));
+    return VA_STATUS_SUCCESS;
 }
 
 VAStatus DdiMedia_DestroySurfaces (
@@ -2878,14 +2928,12 @@ VAStatus DdiMedia_CreateSurfaces2(
                 if (eStatus != MOS_STATUS_SUCCESS)
                 {
                     DDI_VERBOSEMESSAGE("DDI:Failed to copy surface buffer data!");
-                    MOS_FreeMemAndSetNull(surfDesc);
                     return VA_STATUS_ERROR_OPERATION_FAILED;
                 }
                 eStatus = MOS_SecureMemcpy(surfDesc->uiOffsets, sizeof(surfDesc->uiOffsets), externalBufDescripor.offsets, sizeof(externalBufDescripor.offsets));
                 if (eStatus != MOS_STATUS_SUCCESS)
                 {
                     DDI_VERBOSEMESSAGE("DDI:Failed to copy surface buffer data!");
-                    MOS_FreeMemAndSetNull(surfDesc);
                     return VA_STATUS_ERROR_OPERATION_FAILED;
                 }
 
@@ -6877,6 +6925,8 @@ static uint32_t DdiMedia_GetPlaneNum(PDDI_MEDIA_SURFACE mediaSurface, bool hasAu
         case VA_FOURCC_P010:
         case VA_FOURCC_P012:
         case VA_FOURCC_P016:
+            plane_num = hasAuxPlane ? 4 : 2;
+            break;
             plane_num = hasAuxPlane ? 4 : 2;
             break;
         case VA_FOURCC_I420:
