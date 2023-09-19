@@ -118,6 +118,7 @@ MOS_STATUS GraphicsResourceNext::Dump(OsContextNext* osContextPtr, uint32_t over
         if (hFile != nullptr)
         {
             MosUtilities::MosCloseHandle(hFile);
+            hFile = nullptr;
         }
         return eStatus;
     }
@@ -132,6 +133,7 @@ MOS_STATUS GraphicsResourceNext::Dump(OsContextNext* osContextPtr, uint32_t over
         if (hFile != nullptr)
         {
             MosUtilities::MosCloseHandle(hFile);
+            hFile = nullptr;
         }
         return MOS_STATUS_UNKNOWN;
     }
@@ -151,6 +153,7 @@ MOS_STATUS GraphicsResourceNext::Dump(OsContextNext* osContextPtr, uint32_t over
         if (hFile != nullptr)
         {
             MosUtilities::MosCloseHandle(hFile);
+            hFile = nullptr;
         }
     }
 
@@ -163,6 +166,7 @@ MOS_STATUS GraphicsResourceNext::Dump(OsContextNext* osContextPtr, uint32_t over
     if (hFile != nullptr)
     {
         MosUtilities::MosCloseHandle(hFile);
+        hFile = nullptr;
     }
 
     return eStatus;

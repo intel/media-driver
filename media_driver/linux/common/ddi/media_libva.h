@@ -346,34 +346,6 @@ VAStatus DdiMedia_GetConfigAttributes (
 );
 
 //!
-//! \brief  Create surfaces
-//!
-//! \param  [in] ctx
-//!         Pointer to VA driver context
-//! \param  [in] width
-//!         Surface width
-//! \param  [in] height
-//!         Surface height
-//! \param  [in] format
-//!         Surface format
-//! \param  [in] num_surfaces
-//!         Number of surfaces
-//! \param  [out] surfaces
-//!         VA created surfaces
-//!
-//! \return VAStatus
-//!     VA_STATUS_SUCCESS if success, else fail reason
-//!
-VAStatus DdiMedia_CreateSurfaces (
-    VADriverContextP  ctx,
-    int32_t           width,
-    int32_t           height,
-    int32_t           format,
-    int32_t           num_surfaces,
-    VASurfaceID       *surfaces
-);
-
-//!
 //! \brief  Destroy resources associated with surfaces.
 //! \details    Surfaces can only be destroyed after the context associated has been
 //!             destroyed

@@ -125,11 +125,6 @@ MOS_STATUS OsContextSpecific::DestroySemaphore(unsigned int semid)
 {
     int32_t nwait = 0;
 
-    if (semid < 0)
-    {
-        return MOS_STATUS_UNKNOWN;
-    }
-
     nwait = semctl(semid, 0, GETZCNT, 0);
 
     if (nwait > 0)
