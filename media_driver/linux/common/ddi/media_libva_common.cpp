@@ -233,7 +233,7 @@ PDDI_MEDIA_SURFACE DdiMedia_ReplaceSurfaceWithNewFormat(PDDI_MEDIA_SURFACE surfa
     //if cant find
     if(i == surface->pMediaCtx->pSurfaceHeap->uiAllocatedHeapElements)
     {
-        DdiMediaUtil_LockMutex(&mediaCtx->SurfaceMutex);
+        DdiMediaUtil_UnLockMutex(&mediaCtx->SurfaceMutex);
         if(dstSurface->pShadowBuffer)
         {
             MOS_FreeMemory(dstSurface->pShadowBuffer->pGmmResourceInfo);
@@ -435,7 +435,7 @@ int32_t DdiMedia_GetGpuPriority (VADriverContextP ctx, VABufferID *buffers, int3
             if (updateSessionPriority)
             {
                 *updatePriority = true;
-                if(priorityValue >= 0 && priorityValue <= CONTEXT_PRIORITY_MAX)
+                if(priorityValue <= CONTEXT_PRIORITY_MAX)
                 {
                     *priority = priorityValue - CONTEXT_PRIORITY_MAX/2;
                 }
