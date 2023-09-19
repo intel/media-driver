@@ -871,6 +871,7 @@ namespace encode
             RUN_FEATURE_INTERFACE_RETURN(HevcEncodeTile, HevcFeatureIDs::encodeTile, SetCurrentTileFromSliceIndex, slcCount, m_pipeline);
 
             m_basicFeature->m_vdencBatchBufferPerSliceVarSize[slcCount] = 0;
+            m_basicFeature->m_vdencBatchBufferPerSlicePart2Size[slcCount] = 0;
 
             // set HCP_WEIGHTOFFSET_STATE command
             // This slice level command is issued, if the weighted_pred_flag or weighted_bipred_flag equals one.
@@ -923,6 +924,7 @@ namespace encode
                 }
             }
             m_basicFeature->m_vdencBatchBufferPerSliceVarSize[slcCount] += m_alignSize[slcCount];
+            m_basicFeature->m_vdencBatchBufferPerSlicePart2Size[slcCount] = constructedCmdBuf.iOffset - m_basicFeature->m_vdencBatchBufferPerSlicePart2Start[slcCount];
             startLCU += m_basicFeature->m_hevcSliceParams[slcCount].NumLCUsInSlice;
         }
 

@@ -300,8 +300,15 @@ namespace encode
         constructedCmdBuf.pCmdBase = constructedCmdBuf.pCmdPtr = (uint32_t *)batchbufferAddr;
         constructedCmdBuf.iRemaining                           = MOS_ALIGN_CEIL(m_hwInterface->m_vdencReadBatchBufferSize, CODECHAL_PAGE_SIZE);
 
+        auto brcFeature = dynamic_cast<Av1Brc *>(m_featureManager->GetFeature(Av1FeatureIDs::av1BrcFeature));
+        ENCODE_CHK_NULL_RETURN(brcFeature);
+        auto slbData = brcFeature->GetSLBData();
+
         ENCODE_CHK_STATUS_RETURN(AddAllCmds_AVP_PAK_INSERT_OBJECT(&constructedCmdBuf));
         ENCODE_CHK_STATUS_RETURN(AddBBEnd(m_miItf, constructedCmdBuf));
+
+        slbData.pakInsertSlbSize = (uint16_t)constructedCmdBuf.iOffset;
+        RUN_FEATURE_INTERFACE_NO_RETURN(Av1Brc, Av1FeatureIDs::av1BrcFeature, SetSLBData, slbData);
 
         return MOS_STATUS_SUCCESS;
     }

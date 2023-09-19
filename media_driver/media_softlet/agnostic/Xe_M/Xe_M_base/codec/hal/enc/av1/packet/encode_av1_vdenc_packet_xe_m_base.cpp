@@ -27,6 +27,7 @@
 #include "mos_solo_generic.h"
 #include "mhw_mi_itf.h"
 #include "mhw_vdbox_g12_X.h"
+#include "hal_oca_interface_next.h"
 
 namespace encode
 {
@@ -345,6 +346,16 @@ namespace encode
             ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_BATCH_BUFFER_START)(&cmdBuffer, tileLevelBatchBuffer));
 
             tempCmdBuffer = &constructTileBatchBuf;
+            MHW_MI_MMIOREGISTERS mmioRegister;
+            if (m_vdencItf->ConvertToMiRegister(MHW_VDBOX_NODE_1, mmioRegister))
+            {
+                HalOcaInterfaceNext::On1stLevelBBStart(
+                    *tempCmdBuffer,
+                    (MOS_CONTEXT_HANDLE)m_osInterface->pOsContext,
+                    m_osInterface->CurrentGpuContextHandle,
+                    m_miItf,
+                    mmioRegister);
+            }
         }
 
         auto brcFeature = dynamic_cast<Av1Brc *>(m_featureManager->GetFeature(Av1FeatureIDs::av1BrcFeature));
@@ -358,13 +369,20 @@ namespace encode
         ENCODE_CHK_STATUS_RETURN(AddAllCmds_AVP_SURFACE_STATE(tempCmdBuffer));
         SETPAR_AND_ADDCMD(AVP_PIPE_BUF_ADDR_STATE, m_avpItf, tempCmdBuffer);
         SETPAR_AND_ADDCMD(AVP_IND_OBJ_BASE_ADDR_STATE, m_avpItf, tempCmdBuffer);
+        bool firstTileInGroup = false;
         if (brcFeature->IsBRCEnabled())
         {
-            bool firstTileInGroup = false;
             uint32_t tileGroupIdx = 0;
             RUN_FEATURE_INTERFACE_NO_RETURN(Av1EncodeTile, Av1FeatureIDs::encodeTile, IsFirstTileInGroup, firstTileInGroup, tileGroupIdx);
             vdenc2ndLevelBatchBuffer->dwOffset = firstTileInGroup? slbbData.avpPicStateOffset : slbbData.secondAvpPicStateOffset;
             ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_BATCH_BUFFER_START)(tempCmdBuffer, vdenc2ndLevelBatchBuffer));
+            HalOcaInterfaceNext::OnSubLevelBBStart(
+                *tempCmdBuffer,
+                m_osInterface->pOsContext,
+                &vdenc2ndLevelBatchBuffer->OsResource,
+                vdenc2ndLevelBatchBuffer->dwOffset,
+                false,
+                slbbData.slbSize - vdenc2ndLevelBatchBuffer->dwOffset);
         }
         else
         {
@@ -375,6 +393,13 @@ namespace encode
         {
             vdenc2ndLevelBatchBuffer->dwOffset = slbbData.avpSegmentStateOffset;
             ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_BATCH_BUFFER_START)(tempCmdBuffer, vdenc2ndLevelBatchBuffer));
+            HalOcaInterfaceNext::OnSubLevelBBStart(
+                *tempCmdBuffer,
+                m_osInterface->pOsContext,
+                &vdenc2ndLevelBatchBuffer->OsResource,
+                vdenc2ndLevelBatchBuffer->dwOffset,
+                false,
+                slbbData.vdencCmd1Offset - vdenc2ndLevelBatchBuffer->dwOffset);
         }
         else
         {
@@ -390,6 +415,13 @@ namespace encode
         {
             vdenc2ndLevelBatchBuffer->dwOffset = slbbData.vdencCmd1Offset;
             ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_BATCH_BUFFER_START)(tempCmdBuffer, vdenc2ndLevelBatchBuffer));
+            HalOcaInterfaceNext::OnSubLevelBBStart(
+                *tempCmdBuffer,
+                m_osInterface->pOsContext,
+                &vdenc2ndLevelBatchBuffer->OsResource,
+                vdenc2ndLevelBatchBuffer->dwOffset,
+                false,
+                slbbData.vdencCmd2Offset - vdenc2ndLevelBatchBuffer->dwOffset);
         }
         else
         {
@@ -400,6 +432,13 @@ namespace encode
         {
             vdenc2ndLevelBatchBuffer->dwOffset = slbbData.vdencCmd2Offset;
             ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_BATCH_BUFFER_START)(tempCmdBuffer, vdenc2ndLevelBatchBuffer));
+            HalOcaInterfaceNext::OnSubLevelBBStart(
+                *tempCmdBuffer,
+                m_osInterface->pOsContext,
+                &vdenc2ndLevelBatchBuffer->OsResource,
+                vdenc2ndLevelBatchBuffer->dwOffset,
+                false,
+                (firstTileInGroup ? slbbData.avpPicStateOffset : slbbData.secondAvpPicStateOffset) - vdenc2ndLevelBatchBuffer->dwOffset);
         }
         else
         {
@@ -421,6 +460,14 @@ namespace encode
             tileLevelBatchBuffer->iCurrent = constructTileBatchBuf.iOffset;
             tileLevelBatchBuffer->iRemaining = constructTileBatchBuf.iRemaining;
             ENCODE_CHK_STATUS_RETURN(m_miItf->AddMiBatchBufferEnd(nullptr, tileLevelBatchBuffer));
+            HalOcaInterfaceNext::OnSubLevelBBStart(
+                cmdBuffer,
+                m_osInterface->pOsContext,
+                &tempCmdBuffer->OsResource,
+                0,
+                false,
+                tempCmdBuffer->iOffset);
+            HalOcaInterfaceNext::On1stLevelBBEnd(*tempCmdBuffer, *m_osInterface);
         }
 
     #if MHW_HWCMDPARSER_ENABLED
@@ -768,6 +815,14 @@ namespace encode
                         ENCODE_CHK_NULL_RETURN(pakInsertOutputBatchBuffer);
                         // send pak insert obj cmds after back annotation
                         ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_BATCH_BUFFER_START)(cmdBuffer, pakInsertOutputBatchBuffer));
+                        auto slbbData = brcFeature->GetSLBData();
+                        HalOcaInterfaceNext::OnSubLevelBBStart(
+                            *cmdBuffer,
+                            m_osInterface->pOsContext,
+                            &pakInsertOutputBatchBuffer->OsResource,
+                            pakInsertOutputBatchBuffer->dwOffset,
+                            false,
+                            slbbData.pakInsertSlbSize);
                     }
                     else
                     {

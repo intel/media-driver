@@ -132,6 +132,7 @@ public:
     uint32_t m_prevStoreData = -1;  // Change to -1 since FrameIdx starts from 0; Legacy path initialized to be 0 since FrameIdx starts from 1;
     uint32_t m_vdencBatchBufferPerSliceVarSize[ENCODE_HEVC_VDENC_NUM_MAX_SLICES] = { 0 };    //!< VDEnc batch buffer slice size array
     uint32_t m_vdencBatchBufferPerSlicePart2Start[ENCODE_HEVC_VDENC_NUM_MAX_SLICES] = {0};  //!< VDEnc batch buffer slice size array
+    uint32_t m_vdencBatchBufferPerSlicePart2Size[ENCODE_HEVC_VDENC_NUM_MAX_SLICES] = {0};  //!< VDEnc batch buffer slice size array
 
     uint32_t m_picStateCmdStartInBytes = 0;       //!< Offset of PIC_STATE cmd in batch buffer
 

@@ -310,6 +310,7 @@ namespace encode
         MOS_ZeroMemory(&cmdBuffer, sizeof(cmdBuffer));
         cmdBuffer.pCmdBase = cmdBuffer.pCmdPtr = (uint32_t *)data;
         cmdBuffer.iRemaining                   = m_thirdLevelBatchSize;
+        cmdBuffer.OsResource                   = m_currentThirdLevelBatchBuffer->OsResource;
 
         return MOS_STATUS_SUCCESS;
     }
@@ -341,6 +342,7 @@ namespace encode
         MOS_ZeroMemory(&cmdBuffer, sizeof(cmdBuffer));
         cmdBuffer.pCmdBase = cmdBuffer.pCmdPtr = (uint32_t *)data;
         cmdBuffer.iRemaining                   = m_tileLevelBatchSize;
+        cmdBuffer.OsResource                   = m_tileLevelBatchBuffer[m_tileBatchBufferIndex][m_tileRowPass][m_tileIdx].OsResource;
 
         return MOS_STATUS_SUCCESS;
     }

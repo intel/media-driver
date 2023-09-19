@@ -30,6 +30,7 @@
 #include "mhw_mi_itf.h"
 #include "media_perf_profiler.h"
 #include "codec_hw_next.h"
+#include "hal_oca_interface_next.h"
 
 using namespace mhw::vdbox;
 
@@ -669,6 +670,16 @@ namespace encode
             ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_BATCH_BUFFER_START)(&cmdBuffer, tileLevelBatchBuffer));
 
             tempCmdBuffer = &constructTileBatchBuf;
+            MHW_MI_MMIOREGISTERS mmioRegister;
+            if (m_vdencItf->ConvertToMiRegister(MHW_VDBOX_NODE_1, mmioRegister))
+            {
+                HalOcaInterfaceNext::On1stLevelBBStart(
+                    *tempCmdBuffer,
+                    (MOS_CONTEXT_HANDLE)m_osInterface->pOsContext,
+                    m_osInterface->CurrentGpuContextHandle,
+                    m_miItf,
+                    mmioRegister);
+            }
         }
 
         // HCP Lock for multiple pipe mode
@@ -722,6 +733,14 @@ namespace encode
             tileLevelBatchBuffer->iCurrent   = tempCmdBuffer->iOffset;
             tileLevelBatchBuffer->iRemaining = tempCmdBuffer->iRemaining;
             ENCODE_CHK_STATUS_RETURN(m_miItf->AddMiBatchBufferEnd(nullptr, tileLevelBatchBuffer));
+            HalOcaInterfaceNext::OnSubLevelBBStart(
+                cmdBuffer,
+                m_osInterface->pOsContext,
+                &tempCmdBuffer->OsResource,
+                0,
+                false,
+                tempCmdBuffer->iOffset);
+            HalOcaInterfaceNext::On1stLevelBBEnd(*tempCmdBuffer, *m_osInterface);
 
         #if USE_CODECHAL_DEBUG_TOOL
             if (tempCmdBuffer->pCmdPtr && tempCmdBuffer->pCmdBase &&
@@ -852,6 +871,13 @@ namespace encode
         if (brcFeature->IsBRCUpdateRequired())
         {
             ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_BATCH_BUFFER_START(&cmdBuffer, vdenc2ndLevelBatchBuffer)));
+            HalOcaInterfaceNext::OnSubLevelBBStart(
+                cmdBuffer,
+                m_osInterface->pOsContext,
+                &vdenc2ndLevelBatchBuffer->OsResource,
+                vdenc2ndLevelBatchBuffer->dwOffset,
+                false,
+                m_hwInterface->m_vdencBatchBuffer2ndGroupSize);
         }
         // When tile is enabled, below commands are needed for each tile instead of each picture
         else
@@ -893,6 +919,13 @@ namespace encode
         if (brcFeature->IsBRCUpdateRequired())
         {
             ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_BATCH_BUFFER_START(&cmdBuffer, vdenc2ndLevelBatchBuffer)));
+            HalOcaInterfaceNext::OnSubLevelBBStart(
+                cmdBuffer,
+                m_osInterface->pOsContext,
+                &vdenc2ndLevelBatchBuffer->OsResource,
+                vdenc2ndLevelBatchBuffer->dwOffset,
+                false,
+                m_hwInterface->m_vdencBatchBuffer2ndGroupSize);
         }
         // When tile is enabled, below commands are needed for each tile instead of each picture
         else
@@ -901,6 +934,13 @@ namespace encode
             RUN_FEATURE_INTERFACE_RETURN(HevcEncodeTile, HevcFeatureIDs::encodeTile, GetThirdLevelBatchBuffer, thirdLevelBatchBuffer);
             ENCODE_CHK_NULL_RETURN(thirdLevelBatchBuffer);
             ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_BATCH_BUFFER_START(&cmdBuffer, thirdLevelBatchBuffer)));
+            HalOcaInterfaceNext::OnSubLevelBBStart(
+                cmdBuffer,
+                m_osInterface->pOsContext,
+                &thirdLevelBatchBuffer->OsResource,
+                thirdLevelBatchBuffer->dwOffset,
+                false,
+                m_hwInterface->m_vdencBatchBuffer2ndGroupSize);
         }
 
         // Send HEVC_VP9_RDOQ_STATE command
@@ -1339,9 +1379,23 @@ namespace encode
             // 2nd level batch buffer
             PMHW_BATCH_BUFFER secondLevelBatchBufferUsed = vdencBatchBuffer;
             ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_BATCH_BUFFER_START(&cmdBuffer, secondLevelBatchBufferUsed)));
+            HalOcaInterfaceNext::OnSubLevelBBStart(
+                cmdBuffer,
+                m_osInterface->pOsContext,
+                &secondLevelBatchBufferUsed->OsResource,
+                secondLevelBatchBufferUsed->dwOffset,
+                false,
+                m_basicFeature->m_vdencBatchBufferPerSlicePart2Start[currSlcIdx] - secondLevelBatchBufferUsed->dwOffset);
             ENCODE_CHK_STATUS_RETURN(AddAllCmds_HCP_PAK_INSERT_OBJECT_BRC(&cmdBuffer));
             secondLevelBatchBufferUsed->dwOffset = m_basicFeature->m_vdencBatchBufferPerSlicePart2Start[currSlcIdx];
             ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_BATCH_BUFFER_START(&cmdBuffer, secondLevelBatchBufferUsed)));
+            HalOcaInterfaceNext::OnSubLevelBBStart(
+                cmdBuffer,
+                m_osInterface->pOsContext,
+                &secondLevelBatchBufferUsed->OsResource,
+                secondLevelBatchBufferUsed->dwOffset,
+                false,
+                m_basicFeature->m_vdencBatchBufferPerSlicePart2Size[currSlcIdx]);
         }
         else
         {
