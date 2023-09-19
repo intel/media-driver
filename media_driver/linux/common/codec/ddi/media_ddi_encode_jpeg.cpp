@@ -615,6 +615,10 @@ VAStatus DdiEncodeJpeg::DefaultQmatrix()
     uint32_t quality = 0;
     if (picParams->m_quality < 50)
     {
+        if(picParams->m_quality == 0)
+        {
+            return VA_STATUS_ERROR_INVALID_PARAMETER;
+        }
         quality = 5000 / picParams->m_quality;
     }
     else

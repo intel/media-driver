@@ -471,8 +471,8 @@ VAStatus DdiEncodeVp8::ParsePicParams(DDI_MEDIA_CONTEXT *mediaCtx, void *ptr)
     }
 
     // first_ref and second_ref parameters are currently passed through the reserved parameter by the application
-    vp8PicParams->first_ref  = (picParams->ref_flags.bits.reserved >> 18) & 0x3;
-    vp8PicParams->second_ref = (picParams->ref_flags.bits.reserved >> 16) & 0x3;
+    vp8PicParams->first_ref  = picParams->ref_flags.bits.first_ref;
+    vp8PicParams->second_ref = picParams->ref_flags.bits.second_ref;
 #ifdef ANDROID
     vp8PicParams->temporal_id = picParams->ref_flags.bits.temporal_id;
 #endif
@@ -492,7 +492,7 @@ VAStatus DdiEncodeVp8::ParsePicParams(DDI_MEDIA_CONTEXT *mediaCtx, void *ptr)
 
     rtTbl->pCurrentReconTarget = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParams->reconstructed_frame);
     DDI_CHK_NULL(rtTbl->pCurrentReconTarget, "nullptr rtTbl->pCurrentReconTarget", VA_STATUS_ERROR_INVALID_PARAMETER);
-    RegisterRTSurfaces(rtTbl,rtTbl->pCurrentReconTarget);
+    DDI_CHK_RET(RegisterRTSurfaces(rtTbl,rtTbl->pCurrentReconTarget), "register RT surfaces error");
 
     SetupCodecPicture(mediaCtx, rtTbl, &vp8PicParams->CurrReconstructedPic, picParams->reconstructed_frame, false);
     // curr orig pic

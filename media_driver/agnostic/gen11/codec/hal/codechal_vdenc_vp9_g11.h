@@ -950,24 +950,24 @@ public:
     PCODECHAL_ENCODE_SCALABILITY_STATE          m_scalabilityState = nullptr;   //!< Scalability state
 
     // Stats Integration regions
-    CODECHAL_ENCODE_BUFFER                      m_hcpScalabilitySyncBuffer;
-    CODECHAL_ENCODE_BUFFER                      m_tileRecordBuffer[m_numUncompressedSurface];
-    CODECHAL_ENCODE_BUFFER                      m_tileStatsPakIntegrationBuffer[m_numUncompressedSurface];
+    CODECHAL_ENCODE_BUFFER                      m_hcpScalabilitySyncBuffer = {};
+    CODECHAL_ENCODE_BUFFER                      m_tileRecordBuffer[m_numUncompressedSurface] = {};
+    CODECHAL_ENCODE_BUFFER                      m_tileStatsPakIntegrationBuffer[m_numUncompressedSurface] = {};
     uint32_t                                    m_tileStatsPakIntegrationBufferSize = 0;
-    CODECHAL_ENCODE_BUFFER                      m_frameStatsPakIntegrationBuffer;
+    CODECHAL_ENCODE_BUFFER                      m_frameStatsPakIntegrationBuffer = {};
     uint32_t                                    m_frameStatsPakIntegrationBufferSize = 0;
-    MOS_RESOURCE                                m_hucPakIntDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][m_brcMaxNumPasses];
-    MHW_VDBOX_HUC_VIRTUAL_ADDR_PARAMS           m_hpuVirtualAddrParams;
-    MOS_RESOURCE                                m_hucPakIntDummyBuffer;
-    MOS_RESOURCE                                m_hucPakIntBrcDataBuffer;
+    MOS_RESOURCE                                m_hucPakIntDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][m_brcMaxNumPasses] = {};
+    MHW_VDBOX_HUC_VIRTUAL_ADDR_PARAMS           m_hpuVirtualAddrParams = {};
+    MOS_RESOURCE                                m_hucPakIntDummyBuffer = {};
+    MOS_RESOURCE                                m_hucPakIntBrcDataBuffer = {};
     StatsInfo                                   m_tileStatsOffset = {};  // Page aligned offsets for HuC PAK Integration kernel input
     StatsInfo                                   m_frameStatsOffset = {}; // Page aligned offsets for HuC PAK Integration kernel output
     StatsInfo                                   m_statsSize = {};        // Sizes for the stats for HuC PAK Integration kernel input
     // Semaphore memory for synchronizing
-    MOS_RESOURCE                                m_resPipeStartSync;
+    MOS_RESOURCE                                m_resPipeStartSync = {};
     MOS_RESOURCE                                m_resFrameStartSync = {};
-    CODECHAL_ENCODE_BUFFER                      m_stitchWaitSemaphoreMem[m_maxNumPipes];
-    MOS_RESOURCE                                m_resDelayMinus;
+    CODECHAL_ENCODE_BUFFER                      m_stitchWaitSemaphoreMem[m_maxNumPipes] = {};
+    MOS_RESOURCE                                m_resDelayMinus = {};
     uint16_t                                    m_lastVdencPictureState2ndLevelBBIndex = 0;
 
     PMHW_VDBOX_HCP_TILE_CODING_PARAMS_G11 m_tileParams = nullptr;  //!< Pointer to the Tile params

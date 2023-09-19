@@ -200,7 +200,7 @@ MOS_STATUS CodechalEncodeJpegStateG11::ExecuteSliceLevel()
         // set MFC_JPEG_HUFF_TABLE - Convert encoded huffman table to actual table for HW
         // We need a different params struct for JPEG Encode Huffman table because JPEG decode huffman table has Bits and codes,
         // whereas JPEG encode huffman table has huffman code lengths and values
-        MHW_VDBOX_ENCODE_HUFF_TABLE_PARAMS   huffTableParams[JPEG_MAX_NUM_HUFF_TABLE_INDEX];
+        MHW_VDBOX_ENCODE_HUFF_TABLE_PARAMS   huffTableParams[JPEG_MAX_NUM_HUFF_TABLE_INDEX] = {};
         for (uint32_t i = 0; i < m_encodeParams.dwNumHuffBuffers; i++)
         {
             CodechalEncodeJpegHuffTable huffmanTable;// intermediate table for each AC/DC component which will be copied to huffTableParams

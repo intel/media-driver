@@ -6865,7 +6865,6 @@ MOS_STATUS CodechalEncodeVp8G9::SetBrcInitResetCurbe(struct CodechalVp8BrcInitRe
 
     // Profile & level max frame size
     // DW0 is DDI param seq param.
-    cmd.DW0.ProfileLevelMaxFrame = params->pSeqParams->UserMaxFrameSize;
     cmd.DW0.ProfileLevelMaxFrame = params->dwFrameWidth * params->dwFrameHeight;
 
     // Set dynamic thresholds

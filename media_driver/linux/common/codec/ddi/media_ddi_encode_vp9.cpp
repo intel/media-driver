@@ -258,7 +258,11 @@ VAStatus DdiEncodeVp9::EncodeInCodecHal(uint32_t numSlices)
     encodeParams.pSliceParams    = m_encodeCtx->pSliceParams;
     encodeParams.ppNALUnitParams = m_encodeCtx->ppNALUnitParams;
     encodeParams.pSegmentParams  = m_segParams;
-
+    
+    if(seqParams->NumTemporalLayersMinus1 > 7)
+    {
+        return VA_STATUS_ERROR_INVALID_PARAMETER;
+    }
     for (uint32_t i = 0; i < (seqParams->NumTemporalLayersMinus1+1); i++)
     {
         if (savedFrameRate[i] == 0)
