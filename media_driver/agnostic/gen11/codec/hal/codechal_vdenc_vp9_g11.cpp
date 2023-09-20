@@ -4387,6 +4387,14 @@ MOS_STATUS CodechalVdencVp9StateG11::ExecutePictureLevel()
         CODECHAL_ENCODE_CHK_STATUS_WITH_DESTROY_RETURN(m_hcpInterface->AddHcpSurfaceCmd(&cmdBuffer, &surfaceParams[CODECHAL_HCP_LAST_SURFACE_ID]), delete_func);
     }
 
+    if (MEDIA_IS_WA(m_waTable, Wa_Vp9UnalignedHeight))
+    {
+        uint32_t real_height = m_oriFrameHeight;
+        uint32_t aligned_height = MOS_ALIGN_CEIL(real_height, CODEC_VP9_MIN_BLOCK_HEIGHT);
+
+        fill_pad_with_value(m_rawSurfaceToPak, real_height, aligned_height);
+    }
+
     // Golden reference picture
     if (refSurface[1])
     {

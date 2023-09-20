@@ -7967,3 +7967,142 @@ MOS_STATUS CodechalVdencVp9State::DumpSegmentParams(
     return MOS_STATUS_SUCCESS;
 }
 #endif
+
+void CodechalVdencVp9State::fill_pad_with_value(PMOS_SURFACE psSurface, uint32_t real_height, uint32_t aligned_height)
+{
+    CODECHAL_ENCODE_CHK_NULL_NO_STATUS_RETURN(psSurface);
+
+    // unaligned surfaces only
+    if (aligned_height <= real_height || aligned_height > psSurface->dwHeight)
+    {
+        return;
+    }
+
+    // avoid DYS frames cases
+    if (m_dysRefFrameFlags != DYS_REF_NONE && m_dysVdencMultiPassEnabled)
+    {
+        return;
+    }
+
+    if (psSurface->OsResource.TileType == MOS_TILE_INVALID)
+    {
+        return;
+    }
+
+    if (psSurface->Format == Format_NV12 || psSurface->Format == Format_P010)
+    {
+        uint32_t pitch         = psSurface->dwPitch;
+        uint32_t UVPlaneOffset = psSurface->UPlaneOffset.iSurfaceOffset;
+        uint32_t YPlaneOffset  = psSurface->dwOffset;
+        uint32_t pad_rows = aligned_height - real_height;
+        uint32_t y_plane_size   = pitch * real_height;
+        uint32_t uv_plane_size   = pitch * real_height / 2;
+
+        MOS_LOCK_PARAMS lockFlags;
+        MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
+        lockFlags.WriteOnly = 1;
+
+        // padding for the linear format buffer.
+        if (psSurface->OsResource.TileType == MOS_TILE_LINEAR)
+        {
+            uint8_t *src_data = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, &(psSurface->OsResource), &lockFlags);
+            CODECHAL_ENCODE_CHK_NULL_NO_STATUS_RETURN(src_data);
+
+            uint8_t *src_data_y     = src_data + YPlaneOffset;
+            uint8_t *src_data_y_end = src_data_y + y_plane_size;
+            for (uint32_t i = 0; i < pad_rows; i++)
+            {
+                MOS_SecureMemcpy(src_data_y_end + i * pitch, pitch, src_data_y_end - pitch, pitch);
+            }
+
+            uint8_t *src_data_uv     = src_data + UVPlaneOffset;
+            uint8_t *src_data_uv_end = src_data_uv + uv_plane_size;
+            for (uint32_t i = 0; i < pad_rows / 2; i++)
+            {
+                MOS_SecureMemcpy(src_data_uv_end + i * pitch, pitch, src_data_uv_end - pitch, pitch);
+            }
+
+            m_osInterface->pfnUnlockResource(m_osInterface, &(psSurface->OsResource));
+        }
+        else
+        {
+            // we don't copy out the whole tiled buffer to linear and padding on the tiled buffer directly.
+            lockFlags.TiledAsTiled = 1;
+
+            uint8_t *src_data   = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, &(psSurface->OsResource), &lockFlags);
+            CODECHAL_ENCODE_CHK_NULL_NO_STATUS_RETURN(src_data);
+
+            uint8_t* padding_data = (uint8_t *)MOS_AllocMemory(pitch * pad_rows);
+            CODECHAL_ENCODE_CHK_NULL_NO_STATUS_RETURN(padding_data);
+
+            // Copy last Y row data to linear padding data.
+            GMM_RES_COPY_BLT    gmmResCopyBlt  = {0};
+            gmmResCopyBlt.Gpu.pData      = src_data;
+            gmmResCopyBlt.Gpu.OffsetX    = 0;
+            gmmResCopyBlt.Gpu.OffsetY    = (YPlaneOffset + y_plane_size - pitch) / pitch;
+            gmmResCopyBlt.Sys.pData      = padding_data;
+            gmmResCopyBlt.Sys.RowPitch   = pitch;
+            gmmResCopyBlt.Sys.BufferSize = pitch * pad_rows;
+            gmmResCopyBlt.Sys.SlicePitch = pitch;
+            gmmResCopyBlt.Blt.Slices     = 1;
+            gmmResCopyBlt.Blt.Upload     = false;
+            gmmResCopyBlt.Blt.Width      = psSurface->dwWidth;
+            gmmResCopyBlt.Blt.Height     = 1;
+            psSurface->OsResource.pGmmResInfo->CpuBlt(&gmmResCopyBlt);
+            // Fill the remain padding lines with last Y row data.
+            for (uint32_t i = 1; i < pad_rows; i++)
+            {
+                MOS_SecureMemcpy(padding_data + i * pitch, pitch, padding_data, pitch);
+            }
+            // Filling the padding for Y.
+            gmmResCopyBlt.Gpu.pData      = src_data;
+            gmmResCopyBlt.Gpu.OffsetX    = 0;
+            gmmResCopyBlt.Gpu.OffsetY    = (YPlaneOffset + y_plane_size) / pitch;
+            gmmResCopyBlt.Sys.pData      = padding_data;
+            gmmResCopyBlt.Sys.RowPitch   = pitch;
+            gmmResCopyBlt.Sys.BufferSize = pitch * pad_rows;
+            gmmResCopyBlt.Sys.SlicePitch = pitch;
+            gmmResCopyBlt.Blt.Slices     = 1;
+            gmmResCopyBlt.Blt.Upload     = true;
+            gmmResCopyBlt.Blt.Width      = psSurface->dwWidth;
+            gmmResCopyBlt.Blt.Height     = pad_rows;
+            psSurface->OsResource.pGmmResInfo->CpuBlt(&gmmResCopyBlt);
+
+            // Copy last UV row data to linear padding data.
+            gmmResCopyBlt.Gpu.pData      = src_data;
+            gmmResCopyBlt.Gpu.OffsetX    = 0;
+            gmmResCopyBlt.Gpu.OffsetY    = (UVPlaneOffset + uv_plane_size - pitch) / pitch;
+            gmmResCopyBlt.Sys.pData      = padding_data;
+            gmmResCopyBlt.Sys.RowPitch   = pitch;
+            gmmResCopyBlt.Sys.BufferSize = pitch * pad_rows / 2;
+            gmmResCopyBlt.Sys.SlicePitch = pitch;
+            gmmResCopyBlt.Blt.Slices     = 1;
+            gmmResCopyBlt.Blt.Upload     = false;
+            gmmResCopyBlt.Blt.Width      = psSurface->dwWidth;
+            gmmResCopyBlt.Blt.Height     = 1;
+            psSurface->OsResource.pGmmResInfo->CpuBlt(&gmmResCopyBlt);
+            // Fill the remain padding lines with last UV row data.
+            for (uint32_t i = 1; i < pad_rows / 2; i++)
+            {
+                MOS_SecureMemcpy(padding_data + i * pitch, pitch, padding_data, pitch);
+            }
+            // Filling the padding for UV.
+            gmmResCopyBlt.Gpu.pData      = src_data;
+            gmmResCopyBlt.Gpu.OffsetX    = 0;
+            gmmResCopyBlt.Gpu.OffsetY    = (UVPlaneOffset + uv_plane_size) / pitch;
+            gmmResCopyBlt.Sys.pData      = padding_data;
+            gmmResCopyBlt.Sys.RowPitch   = pitch;
+            gmmResCopyBlt.Sys.BufferSize = pitch * pad_rows / 2;
+            gmmResCopyBlt.Sys.SlicePitch = pitch;
+            gmmResCopyBlt.Blt.Slices     = 1;
+            gmmResCopyBlt.Blt.Upload     = true;
+            gmmResCopyBlt.Blt.Width      = psSurface->dwWidth;
+            gmmResCopyBlt.Blt.Height     = pad_rows / 2;
+            psSurface->OsResource.pGmmResInfo->CpuBlt(&gmmResCopyBlt);
+
+            MOS_FreeMemory(padding_data);
+            padding_data = nullptr;
+            m_osInterface->pfnUnlockResource(m_osInterface, &(psSurface->OsResource));
+        }
+    }
+}

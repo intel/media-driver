@@ -228,6 +228,8 @@ static bool InitIclMediaWa(struct GfxDeviceInfo *devInfo,
 
     MEDIA_WR_WA(waTable, WaDisableSetObjectCapture, 0);
 
+    MEDIA_WR_WA(waTable, Wa_Vp9UnalignedHeight, 1);
+
     return true;
 }
 
