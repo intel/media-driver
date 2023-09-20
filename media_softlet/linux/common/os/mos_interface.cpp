@@ -1525,6 +1525,7 @@ MOS_STATUS MosInterface::ConvertResourceFromDdi(
             break;
         case Media_Format_Buffer:
             resource->Format = Format_Any;
+            break;
         case Media_Format_P010:
             resource->Format = Format_P010;
             break;

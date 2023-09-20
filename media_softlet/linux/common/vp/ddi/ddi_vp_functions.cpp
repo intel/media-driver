@@ -1793,6 +1793,7 @@ VAStatus DdiVpFunctions::VpSetRenderTargetParams(
     if(vpHalRenderParams->uDstCount < 1)
     {
         DDI_VP_ASSERTMESSAGE("vpHalRenderParams->uDstCount is lower than 1");
+        return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
     DDI_VP_CHK_NULL(vpHalRenderParams->pTarget, "nullptr vpHalRenderParams->pTarget.", VA_STATUS_ERROR_INVALID_BUFFER);
     vpHalTgtSurf = vpHalRenderParams->pTarget[vpHalRenderParams->uDstCount - 1];
@@ -2590,13 +2591,13 @@ void DdiVpFunctions::VpSetColorSpaceByColorStandard(
             case VAProcColorStandardGenericFilm:
             case VAProcColorStandardXVYCC601:
             case VAProcColorStandardXVYCC709:
-                vpHalSurf->ColorSpace == CSpace_None;
+                vpHalSurf->ColorSpace = CSpace_None;
                 break;
             case VAProcColorStandardExplicit:
                 VpSetColorStandardExplictly(vpHalSurf, colorStandard, colorProperties);
                 break;
             default:
-                vpHalSurf->ColorSpace == CSpace_BT601;
+                vpHalSurf->ColorSpace = CSpace_BT601;
                 break;
             }
     return;

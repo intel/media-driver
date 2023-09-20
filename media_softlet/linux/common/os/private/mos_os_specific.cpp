@@ -811,7 +811,7 @@ MOS_STATUS Mos_Specific_SetGpuContextHandle(
         MOS_OS_ASSERTMESSAGE("gpuContext %x >=   MOS_GPU_CONTEXT_MAX", gpuContext);
         return MOS_STATUS_INVALID_PARAMETER;
     }
-    osInterface->m_GpuContextHandleMap[gpuContext] == gpuContextHandle;
+    osInterface->m_GpuContextHandleMap[gpuContext] = gpuContextHandle;
     return MOS_STATUS_SUCCESS;
 }
 

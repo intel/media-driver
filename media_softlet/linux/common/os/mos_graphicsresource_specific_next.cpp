@@ -68,11 +68,6 @@ MOS_STATUS GraphicsResourceSpecificNext::Allocate(OsContextNext* osContextPtr, C
     }
 
     OsContextSpecificNext *pOsContextSpecific = static_cast<OsContextSpecificNext *>(osContextPtr);
-    if (pOsContextSpecific == nullptr)
-    {
-        MOS_OS_ASSERTMESSAGE("Convert OsContextSpecific failed.");
-        return MOS_STATUS_INVALID_HANDLE;
-    }
 
     GMM_CLIENT_CONTEXT    *gmmClientContext = pOsContextSpecific->GetGmmClientContext();
     if (nullptr == gmmClientContext)

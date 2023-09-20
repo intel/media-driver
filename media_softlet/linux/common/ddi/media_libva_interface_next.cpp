@@ -160,25 +160,9 @@ void MediaLibvaInterfaceNext::MediaMemoryDecompressInternal(
 
     MediaMemDecompBaseState *mediaMemDecompState = static_cast<MediaMemDecompBaseState*>(*mosCtx->ppMediaMemDecompState);
 
-    if (!mediaMemDecompState)
-    {
-        DDI_CHK_NULL(mediaMemDecompState, "nullptr mediaMemDecompState", );
-    }
+    DDI_CHK_NULL(mediaMemDecompState, "nullptr mediaMemDecompState", );
 
-    if (!mediaMemDecompState)
-    {
-        mediaMemDecompState = static_cast<MediaMemDecompBaseState *>(MmdDeviceNext::CreateFactory(mosCtx));
-        *mosCtx->ppMediaMemDecompState = mediaMemDecompState;
-    }
-
-    if (mediaMemDecompState)
-    {
-        mediaMemDecompState->MemoryDecompress(osResource);
-    }
-    else
-    {
-        DDI_ASSERTMESSAGE("Invalid memory decompression state.");
-    }
+    mediaMemDecompState->MemoryDecompress(osResource);
 }
 
 void MediaLibvaInterfaceNext::MediaMemoryCopyInternal(
@@ -195,25 +179,9 @@ void MediaLibvaInterfaceNext::MediaMemoryCopyInternal(
 
     MediaMemDecompBaseState *mediaMemDecompState = static_cast<MediaMemDecompBaseState*>(*mosCtx->ppMediaMemDecompState);
 
-    if (!mediaMemDecompState)
-    {
-        DDI_CHK_NULL(mediaMemDecompState, "nullptr mediaMemDecompState", );
-    }
+    DDI_CHK_NULL(mediaMemDecompState, "nullptr mediaMemDecompState", );
 
-    if (!mediaMemDecompState)
-    {
-        mediaMemDecompState = static_cast<MediaMemDecompBaseState *>(MmdDeviceNext::CreateFactory(mosCtx));
-        *mosCtx->ppMediaMemDecompState = mediaMemDecompState;
-    }
-
-    if (mediaMemDecompState)
-    {
-        mediaMemDecompState->MediaMemoryCopy(inputOsResource, outputOsResource, boutputcompressed);
-    }
-    else
-    {
-        DDI_ASSERTMESSAGE("Invalid memory decompression state.");
-    }
+    mediaMemDecompState->MediaMemoryCopy(inputOsResource, outputOsResource, boutputcompressed);
 }
 
 void MediaLibvaInterfaceNext::MediaMemoryCopy2DInternal(
@@ -235,20 +203,9 @@ void MediaLibvaInterfaceNext::MediaMemoryCopy2DInternal(
 
     MediaMemDecompBaseState *mediaMemDecompState = static_cast<MediaMemDecompBaseState*>(*mosCtx->ppMediaMemDecompState);
 
-    if (!mediaMemDecompState)
-    {
-        DDI_CHK_NULL(mediaMemDecompState, "nullptr mediaMemDecompState", );
-    }
+    DDI_CHK_NULL(mediaMemDecompState, "nullptr mediaMemDecompState", );
 
-    if (!mediaMemDecompState)
-    {
-        mediaMemDecompState = static_cast<MediaMemDecompBaseState *>(MmdDeviceNext::CreateFactory(mosCtx));
-        *mosCtx->ppMediaMemDecompState = mediaMemDecompState;
-    }
-
-    if (mediaMemDecompState)
-    {
-        mediaMemDecompState->MediaMemoryCopy2D(
+    mediaMemDecompState->MediaMemoryCopy2D(
             inputOsResource,
             outputOsResource,
             copyWidth,
@@ -257,11 +214,6 @@ void MediaLibvaInterfaceNext::MediaMemoryCopy2DInternal(
             copyOutputOffset,
             bpp,
             boutputcompressed);
-    }
-    else
-    {
-        DDI_ASSERTMESSAGE("Invalid memory decompression state.");
-    }
 }
 
 VAStatus MediaLibvaInterfaceNext::MediaMemoryTileConvertInternal(
@@ -285,18 +237,7 @@ VAStatus MediaLibvaInterfaceNext::MediaMemoryTileConvertInternal(
 
     MediaMemDecompBaseState *mediaMemDecompState = static_cast<MediaMemDecompBaseState*>(*mosCtx->ppMediaMemDecompState);
 
-    if (!mediaMemDecompState)
-    {
-        DDI_CHK_NULL(mediaMemDecompState, "nullptr mediaMemDecompState", VA_STATUS_ERROR_INVALID_PARAMETER);
-    }
-
-    if (!mediaMemDecompState)
-    {
-        mediaMemDecompState = static_cast<MediaMemDecompBaseState *>(MmdDeviceNext::CreateFactory(mosCtx));
-        *mosCtx->ppMediaMemDecompState = mediaMemDecompState;
-    }
-
-    DDI_CHK_NULL(mediaMemDecompState, "Invalid memory decompression state", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(mediaMemDecompState, "nullptr mediaMemDecompState", VA_STATUS_ERROR_INVALID_PARAMETER);
 
     MOS_STATUS mosStatus = mediaMemDecompState->MediaMemoryTileConvert(
             inputOsResource,
@@ -3160,32 +3101,7 @@ VAStatus MediaLibvaInterfaceNext::CreateSurfaces (
     PDDI_MEDIA_CONTEXT mediaDrvCtx = GetMediaContext(ctx);
     DDI_CHK_NULL(mediaDrvCtx,       "nullptr mediaDrvCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
 
-    if( format != VA_RT_FORMAT_YUV420 ||
-        format != VA_RT_FORMAT_YUV422 ||
-        format != VA_RT_FORMAT_YUV444 ||
-        format != VA_RT_FORMAT_YUV400 ||
-        format != VA_RT_FORMAT_YUV411)
-    {
-        return VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT;
-    }
-
-    DDI_MEDIA_FORMAT mediaFmt = OsFormatToMediaFormat(VA_FOURCC_NV12,format);
-
-    for(int32_t i = 0; i < surfacesNum; i++)
-    {
-        VASurfaceID vaSurfaceID = (VASurfaceID)CreateRenderTarget(mediaDrvCtx, mediaFmt, width, height, nullptr, VA_SURFACE_ATTRIB_USAGE_HINT_GENERIC, MOS_MEMPOOL_VIDEOMEMORY);
-        if (VA_INVALID_ID != vaSurfaceID)
-        {
-            surfaces[i] = vaSurfaceID;
-        }
-        else
-        {
-            return VA_STATUS_ERROR_ALLOCATION_FAILED;
-        }
-    }
-
-    MOS_TraceEventExt(EVENT_VA_SURFACE, EVENT_TYPE_END, &surfacesNum, sizeof(int32_t), surfaces, surfacesNum*sizeof(VAGenericID));
-    return VA_STATUS_SUCCESS;
+    return VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT;
 }
 
 VAStatus MediaLibvaInterfaceNext::DestroySurfaces (
@@ -3446,12 +3362,14 @@ VAStatus MediaLibvaInterfaceNext::CreateSurfaces2 (
                 eStatus = MosUtilities::MosSecureMemcpy(surfDesc->uiPitches, sizeof(surfDesc->uiPitches), externalBufDescripor.pitches, sizeof(externalBufDescripor.pitches));
                 if (eStatus != MOS_STATUS_SUCCESS)
                 {
+                    MOS_FreeMemory(surfDesc);
                     DDI_VERBOSEMESSAGE("DDI:Failed to copy surface buffer data!");
                     return VA_STATUS_ERROR_OPERATION_FAILED;
                 }
                 eStatus = MosUtilities::MosSecureMemcpy(surfDesc->uiOffsets, sizeof(surfDesc->uiOffsets), externalBufDescripor.offsets, sizeof(externalBufDescripor.offsets));
                 if (eStatus != MOS_STATUS_SUCCESS)
                 {
+                    MOS_FreeMemory(surfDesc);
                     DDI_VERBOSEMESSAGE("DDI:Failed to copy surface buffer data!");
                     return VA_STATUS_ERROR_OPERATION_FAILED;
                 }

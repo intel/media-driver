@@ -1494,14 +1494,6 @@ MOS_STATUS GpuContextSpecificNext::SubmitCommandBuffer(
             {
                 execFlag = I915_EXEC_BSD | I915_EXEC_BSD_RING2;
             }
-            else if ((gpuNode == MOS_GPU_NODE_BLT))
-            {
-                execFlag = I915_EXEC_BLT;
-            }
-            else
-            {
-                MOS_OS_ASSERTMESSAGE("Invalid gpuNode.");
-            }
         }
         else
         {

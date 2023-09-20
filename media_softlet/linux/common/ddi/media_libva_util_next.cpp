@@ -2237,6 +2237,7 @@ void MediaLibvaUtilNext::MediaPrintFps()
         {
             pthread_mutex_unlock(&m_fpsMutex);
             DDI_ASSERTMESSAGE("Unable to open fps file.");
+            return;
         }
 
         fwrite(temp, 1, strlen(temp), fp);

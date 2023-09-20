@@ -125,7 +125,7 @@ MOS_OCA_BUFFER_HANDLE MosOcaInterfaceSpecific::LockOcaBufAvailable(PMOS_CONTEXT 
 //!
 MOS_STATUS MosOcaInterfaceSpecific::UnlockOcaBuf(MOS_OCA_BUFFER_HANDLE ocaBufHandle)
 {
-    if (ocaBufHandle >= MAX_NUM_OF_OCA_BUF_CONTEXT || ocaBufHandle < 0)
+    if (ocaBufHandle >= MAX_NUM_OF_OCA_BUF_CONTEXT)
     {
         return MOS_STATUS_INVALID_PARAMETER;
     }
@@ -138,7 +138,7 @@ MOS_STATUS MosOcaInterfaceSpecific::UnlockOcaBuf(MOS_OCA_BUFFER_HANDLE ocaBufHan
 
 MOS_STATUS MosOcaInterfaceSpecific::UnlockOcaBufferWithDelay(MOS_OCA_BUFFER_HANDLE ocaBufHandle)
 {
-    if (ocaBufHandle >= MAX_NUM_OF_OCA_BUF_CONTEXT || ocaBufHandle < 0)
+    if (ocaBufHandle >= MAX_NUM_OF_OCA_BUF_CONTEXT)
     {
         return MOS_STATUS_INVALID_PARAMETER;
     }
@@ -198,7 +198,7 @@ MOS_STATUS MosOcaInterfaceSpecific::On1stLevelBBStart(uint64_t &gpuVaOcaBuffer, 
     }
 
     PMOS_RESOURCE pOsResource = (PMOS_RESOURCE)pMosResource;
-    if (ocaBufHandle >= MAX_NUM_OF_OCA_BUF_CONTEXT || ocaBufHandle < 0)
+    if (ocaBufHandle >= MAX_NUM_OF_OCA_BUF_CONTEXT)
     {
         MosOcaInterfaceSpecific::OnOcaError(pMosContext, MOS_STATUS_INVALID_PARAMETER, __FUNCTION__, __LINE__);
         return MOS_STATUS_INVALID_PARAMETER;
@@ -225,7 +225,7 @@ MOS_STATUS MosOcaInterfaceSpecific::On1stLevelBBEnd(MOS_OCA_BUFFER_HANDLE ocaBuf
     {
         return MOS_STATUS_SUCCESS; 
     }
-    if (ocaBufHandle >= MAX_NUM_OF_OCA_BUF_CONTEXT || ocaBufHandle < 0)
+    if (ocaBufHandle >= MAX_NUM_OF_OCA_BUF_CONTEXT)
     {
         MosOcaInterfaceSpecific::OnOcaError(mosCtx, MOS_STATUS_INVALID_PARAMETER, __FUNCTION__, __LINE__);
         return MOS_STATUS_INVALID_PARAMETER;
@@ -936,7 +936,7 @@ MOS_OCA_BUFFER_HANDLE MosOcaInterfaceSpecific::GetOcaBufHandleFromMap(uint32_t *
         // May come here for workloads not enabling UMD_OCA.
         return MOS_OCA_INVALID_BUFFER_HANDLE;
     }
-    if (it->second >= MAX_NUM_OF_OCA_BUF_CONTEXT || it->second < 0)
+    if (it->second >= MAX_NUM_OF_OCA_BUF_CONTEXT)
     {
         MOS_OS_ASSERTMESSAGE("Get invalid OcaBufHandle: %d!", it->second);
         return MOS_OCA_INVALID_BUFFER_HANDLE;

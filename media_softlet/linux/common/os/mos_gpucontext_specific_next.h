@@ -346,7 +346,7 @@ protected:
 
     //! \brief    Flag to indicate current command buffer flused or not, if not
     //!           re-use it
-    volatile bool m_cmdBufFlushed;
+    volatile bool m_cmdBufFlushed = false;
 
     //! \brief    internal back up for in-use command buffer
     PMOS_COMMAND_BUFFER m_commandBuffer = nullptr;
@@ -384,7 +384,7 @@ protected:
                                                                         //!< false if using MOS_GPUCTX_CREATOPTIONS
     bool                             m_bProtectedContext    = false;    //!< false if clear GEM context is created as protected or not
 
-    MOS_LINUX_CONTEXT*  m_i915Context[MAX_ENGINE_INSTANCE_NUM+1];
+    MOS_LINUX_CONTEXT*  m_i915Context[MAX_ENGINE_INSTANCE_NUM+1] = {};
     uint32_t     m_i915ExecFlag = 0;
     int32_t      m_currCtxPriority = 0;
     bool m_ocaLogSectionSupported = true;

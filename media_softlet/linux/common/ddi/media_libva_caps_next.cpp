@@ -463,13 +463,14 @@ VAStatus MediaLibvaCapsNext::QuerySurfaceAttributes(
         {
             attribs[i].value.value.i = surfaceAttribInfo->at(j).value.value.i;
         }
-        else if(attribs[i].value.type = VAGenericValueTypePointer)
+        else if(attribs[i].value.type == VAGenericValueTypePointer)
         {
             attribs[i].value.value.p = surfaceAttribInfo->at(j).value.value.p;
         }
         else
         {
             DDI_ASSERTMESSAGE("Invalid VAGenericValueType");
+            MOS_FreeMemory(attribs);
             return VA_STATUS_ERROR_UNIMPLEMENTED;
         }
         ++i;
