@@ -1557,11 +1557,17 @@ mos_bufmgr_bo_gem_create_from_name(struct mos_bufmgr *bufmgr,
                DRM_IOCTL_I915_GEM_GET_TILING,
                &get_tiling);
         if (ret != 0) {
+            MOS_DBG("create_from_name: failed to get tiling: %s\n", strerror(errno));
             mos_gem_bo_unreference(&bo_gem->bo);
             pthread_mutex_unlock(&bufmgr_gem->lock);
             return nullptr;
         }
     }
+    else
+    {
+        MOS_DBG("create_from_name: driver ignored to get tiling from kernel\n");
+    }
+
     bo_gem->tiling_mode = get_tiling.tiling_mode;
     bo_gem->swizzle_mode = get_tiling.swizzle_mode;
     /* XXX stride is unknown */
@@ -3556,6 +3562,11 @@ mos_gem_bo_create_from_prime(struct mos_bufmgr *bufmgr, int prime_fd, int size)
             return nullptr;
         }
     }
+    else
+    {
+        MOS_DBG("create_from_prime: driver ignored to get tiling from kernel\n");
+    }
+
     bo_gem->tiling_mode = get_tiling.tiling_mode;
     bo_gem->swizzle_mode = get_tiling.swizzle_mode;
     /* XXX stride is unknown */
