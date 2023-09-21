@@ -1893,12 +1893,6 @@ CmDeviceRTBase::CreateVmeSurfaceG7_5(CmSurface2D* curSurface,
     CmSurface2DRT** forward  = nullptr;
     CmSurface2DRT** backward = nullptr;
 
-    if( ! currentRT )
-    {
-        CM_ASSERTMESSAGE("Error: Pointer to current surface is null.");
-        return CM_INVALID_ARG_VALUE;
-    }
-
     if(forwardSurfaces != nullptr)
     {
         forward = MOS_NewArray( CmSurface2DRT*, forwardSurfaceCount);

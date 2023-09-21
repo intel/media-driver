@@ -904,11 +904,6 @@ CM_RT_API int32_t CmQueueRT::EnqueueWithGroup( CmTask* task, CmEvent* & event, c
     }
 
     CmTaskRT *taskRT = static_cast<CmTaskRT *>(task);
-    if(taskRT == nullptr)
-    {
-        CM_ASSERTMESSAGE("Error: Kernel array is NULL.");
-        return CM_NULL_POINTER;
-    }
     uint32_t count = 0;
     count = taskRT->GetKernelCount();
 

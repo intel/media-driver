@@ -960,11 +960,6 @@ CmSurface* CmKernelRT::GetSurfaceFromSurfaceArray( SurfaceIndex* value, uint32_t
     m_surfaceMgr->GetSurface(surfaceIndex->get_data(), surface);
 
 finish:
-    if(hr != CM_SUCCESS)
-    {
-        surface = nullptr;
-    }
-
     return surface;
 }
 
@@ -1975,11 +1970,6 @@ finish:
                     return CM_OUT_OF_HOST_MEMORY;
                 }
                 CmSafeMemSet((void *)arg.surfIndex, 0, size/sizeof(int32_t) * sizeof(uint16_t));
-                if( surfIndexValue == nullptr )
-                {
-                    CM_ASSERTMESSAGE("Error: Pointer to surface index value is null.");
-                    return CM_NULL_POINTER;
-                }
                 CmSafeMemCopy((void *)arg.surfIndex, surfIndexValue, size / sizeof(int32_t) * sizeof(uint16_t));
             }
 
