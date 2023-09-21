@@ -416,6 +416,7 @@ VAStatus DdiEncodeAV1::ParseSeqParams(void *ptr)
  
     switch ((uint32_t)m_encodeCtx->uiRCMethod)
     {
+    case VA_RC_TCBRC:
     case VA_RC_VBR:
         av1SeqParams->RateControlMethod = (uint8_t)RATECONTROL_VBR;
         break;

@@ -89,6 +89,7 @@ VAStatus MediaLibvaCapsDG2::LoadAv1EncProfileEntrypoints()
         AddEncConfig(VA_RC_CBR);
         AddEncConfig(VA_RC_VBR);
         AddEncConfig(VA_RC_ICQ);
+        AddEncConfig(VA_RC_TCBRC);
         AddProfileEntry(VAProfileAV1Profile0, VAEntrypointEncSliceLP, attributeList,
                 configStartIdx, m_encConfigs.size() - configStartIdx);
     }
