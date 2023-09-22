@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2021, Intel Corporation
+* Copyright (c) 2018-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -99,6 +99,9 @@ struct MetaDataOffset
 
     uint32_t dwMetaDataSize             = 0;
     uint32_t dwMetaDataSubRegionSize    = 0;
+
+    uint32_t dwTilePartitionSize = 0;
+    uint32_t dwPostFeatueSize    = 0;
 };
 
 //!
