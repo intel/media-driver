@@ -490,14 +490,14 @@ MOS_STATUS VpAllocator::DestroyVpSurface(VP_SURFACE* &surface, bool deferredDest
         MT_VP_HAL_SURF_ALLOC_PARAM_SIZE, static_cast<int64_t>(surface->osSurface->OsResource.pGmmResInfo ? surface->osSurface->OsResource.pGmmResInfo->GetSizeAllocation() : 0));
     VP_PUBLIC_NORMALMESSAGE(
         "VP_HAL_DESTROY_SURF. "
-        "VP_HAL_Surface: 0x%x, "
-        "VP_HAL_OsSurface: 0x%x, "
+        "VP_HAL_Surface: %p, "
+        "VP_HAL_OsSurface: %p, "
         "VP_HAL_isResourceOwner: %d, "
-        "VP_HAL_Surface_Handle: 0x%x, "
-        "VP_HAL_Surface_Size: %d",
+        "VP_HAL_Surface_Handle: 0x%llx, "
+        "VP_HAL_Surface_Size: 0x%llx",
         surface,
         surface->osSurface,
-        surface->isResourceOwner,
+        surface->isResourceOwner ? 1 : 0,
         surface->GetAllocationHandle(m_osInterface),
         surface->osSurface->OsResource.pGmmResInfo ? surface->osSurface->OsResource.pGmmResInfo->GetSizeAllocation() : 0);
 
@@ -919,18 +919,18 @@ MOS_STATUS VpAllocator::ReAllocateSurface(
         MT_VP_HAL_SURF_ALLOC_PARAM_NAME, surfaceName ? *((int64_t *)surfaceName) : 0);
     VP_PUBLIC_NORMALMESSAGE(
         "VP_HAL_REALLOC_SURF. "
-        "VP_HAL_Surface: 0x%x, "
-        "VP_HAL_OsSurface: 0x%x, "
+        "VP_HAL_Surface: %p, "
+        "VP_HAL_OsSurface: %p, "
         "VP_HAL_isResourceOwner: %d, "
-        "VP_HAL_Surface_Handle: 0x%x, "
-        "VP_HAL_Surface_Size: %d, "
-        "VP_HAL_Surface_Name: %s ",
+        "VP_HAL_Surface_Handle: 0x%llx, "
+        "VP_HAL_Surface_Size: 0x%llx, "
+        "VP_HAL_Surface_Name: %s",
         surface,
         surface->osSurface,
-        surface->isResourceOwner,
+        surface->isResourceOwner ? 1 : 0,
         surface->GetAllocationHandle(m_osInterface),
         surface->osSurface->OsResource.pGmmResInfo ? surface->osSurface->OsResource.pGmmResInfo->GetSizeAllocation() : 0,
-        surfaceName);
+        surfaceName ? surfaceName : "");
     int64_t currentSize  = static_cast<int64_t>(surface->osSurface->OsResource.pGmmResInfo ? surface->osSurface->OsResource.pGmmResInfo->GetSizeAllocation() : 0);
     m_totalSize          = m_totalSize + currentSize;
     m_peakSize           = m_peakSize > m_totalSize ? m_peakSize : m_totalSize;
