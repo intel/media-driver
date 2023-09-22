@@ -238,7 +238,11 @@ MOS_STATUS SwFilterPipeFactory::Create(PVP_PIPELINE_PARAMS params, std::vector<S
         VP_PUBLIC_CHK_STATUS_RETURN(Update(*tempParams, index));
 
         SwFilterPipe *pipe = m_allocator.Create();
-        VP_PUBLIC_CHK_NULL_RETURN(pipe);
+        if (!pipe)
+        {
+            pipelineParamFactory->Destroy(tempParams);
+            VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_NULL_POINTER);
+        }
 
         FeatureRule featureRule;
         MOS_STATUS status = pipe->Initialize(*tempParams, featureRule);

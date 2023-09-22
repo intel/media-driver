@@ -1878,28 +1878,6 @@ MOS_STATUS Mos_Specific_GetIndirectStatePointer(
     uint32_t offset = 0;
     uint32_t size   = 0;
     return MosInterface::GetIndirectState(osInterface->osStreamState, indirectState, offset, size);
-
-    MOS_OS_CHK_NULL_RETURN(osInterface->pOsContext);
-
-    osContext = osInterface->pOsContext;
-
-    if (osInterface->CurrentGpuContextHandle == MOS_GPU_CONTEXT_INVALID_HANDLE)
-    {
-        MOS_OS_ASSERTMESSAGE("Invalid input parameter gpuContext.");
-        return MOS_STATUS_INVALID_PARAMETER;
-    }
-
-    MOS_OS_GPU_CONTEXT  &osGpuContext = osContext->OsGpuContext[osInterface->CurrentGpuContextOrdinal];
-
-    MOS_OS_CHK_NULL_RETURN(osGpuContext.pCB);
-    MOS_OS_CHK_NULL_RETURN(osGpuContext.pCB->pCmdBase);
-
-    *indirectState =
-        (uint8_t*)osGpuContext.pCB->pCmdBase   +
-        osGpuContext.uiCommandBufferSize    -
-        osContext->uIndirectStateSize;
-
-    return MOS_STATUS_SUCCESS;
 }
 
 //!
