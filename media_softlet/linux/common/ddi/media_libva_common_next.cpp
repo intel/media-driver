@@ -452,7 +452,7 @@ int32_t MediaLibvaCommonNext::GetGpuPriority(
             if (updateSessionPriority)
             {
                 *updatePriority = true;
-                if (priorityValue >= 0 && priorityValue <= CONTEXT_PRIORITY_MAX)
+                if (priorityValue <= CONTEXT_PRIORITY_MAX)
                 {
                     *priority = priorityValue - CONTEXT_PRIORITY_MAX / 2;
                 }
