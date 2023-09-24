@@ -76,7 +76,7 @@ export LIBVA_DRIVER_NAME=iHD
 - BDW (Broadwell)
 - SKL (Skylake)
 - BXTx (BXT: Broxton, APL: Apollo Lake, GLK: Gemini Lake)
-- KBLx (KBL: Kaby Lake, CFL: Coffe Lake, WHL: Whiskey Lake, CML: Comet Lake, AML: Amber Lake)
+- KBLx (KBL: Kaby Lake, CFL: Coffee Lake, WHL: Whiskey Lake, CML: Comet Lake, AML: Amber Lake)
 - ICL (Ice Lake)
 - JSL (Jasper Lake) / EHL (Elkhart Lake)
 - TGLx (TGL: Tiger Lake, RKL: Rocket Lake, ADL-S/P/N: Alder Lake, RPL-S/P: Raptor Lake)
