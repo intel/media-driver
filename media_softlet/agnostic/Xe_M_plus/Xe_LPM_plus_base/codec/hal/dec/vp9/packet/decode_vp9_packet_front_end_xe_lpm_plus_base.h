@@ -41,6 +41,7 @@ public:
         : Vp9DecodeFrontEndPkt(pipeline, task, hwInterface)
     {
         m_hwInterface = dynamic_cast<CodechalHwInterfaceXe_Lpm_Plus_Base *>(hwInterface);
+        DECODE_CHK_NULL_NO_STATUS_RETURN(m_hwInterface);
         m_vdencItf    = std::static_pointer_cast<mhw::vdbox::vdenc::Itf>(m_hwInterface->GetVdencInterfaceNext());
     }
 

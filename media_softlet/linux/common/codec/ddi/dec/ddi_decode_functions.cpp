@@ -1097,7 +1097,7 @@ VAStatus DdiDecodeFunctions::StatusReport(
         // The surface is not busy in HW, but uNumCompletedReport is 0, treat as engine reset 
         else
         {
-            surface->curStatusReport.decode.status == CODECHAL_STATUS_INCOMPLETE;
+            surface->curStatusReport.decode.status = CODECHAL_STATUS_INCOMPLETE;
             surface->curStatusReportQueryState = DDI_MEDIA_STATUS_REPORT_QUERY_STATE_COMPLETED;
             DDI_ASSERTMESSAGE("No report available at all! Engine reset may have occured.");
         }
@@ -1252,7 +1252,7 @@ int32_t DdiDecodeFunctions::GetDisplayInfo(VADriverContextP ctx)
     vsinfo.yres = 0;
 
     fd = open("/dev/graphics/fb0",O_RDONLY);
-    if (fd > 0)
+    if (fd >= 0)
     {
         if (ioctl(fd, FBIOGET_VSCREENINFO, &vsinfo) < 0)
         {

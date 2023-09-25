@@ -242,6 +242,7 @@ MOS_STATUS RenderHal_SetSurfaceStateToken(
 
     SURFACE_STATE_TOKEN_COMMON *pTokenState = (SURFACE_STATE_TOKEN_COMMON*)pSurfaceStateToken;
     PMOS_INTERFACE pOsInterface = pRenderHal->pOsInterface;
+    MHW_MI_CHK_NULL(pOsInterface);
     PMOS_RESOURCE  pOsResource  = &(pParams->pOsSurface->OsResource);
 
     int32_t  iAllocationIndex =  pOsInterface->pfnGetResourceAllocationIndex(pOsInterface, pOsResource);

@@ -6884,7 +6884,6 @@ MOS_STATUS CodechalEncodeAvcEncFeiG8::InitializeState()
     }
 
     bWeightedPredictionSupported = true;
-    m_brcHistoryBufferSize = m_brcHistoryBufferSize;
     dwBrcConstantSurfaceWidth = m_brcConstantSurfaceWidth;
     dwBrcConstantSurfaceHeight = m_brcConstantSurfaceHeight;
 
