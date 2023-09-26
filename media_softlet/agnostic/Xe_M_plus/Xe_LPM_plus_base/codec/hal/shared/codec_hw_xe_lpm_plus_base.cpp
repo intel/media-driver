@@ -300,6 +300,7 @@ MOS_STATUS CodechalHwInterfaceXe_Lpm_Plus_Base::GetHcpPrimitiveCommandSize(
         CODEC_HW_CHK_STATUS_RETURN(m_hcpItf->GetHcpPrimitiveCommandSize(
             mode, &hcpCommandsSize, &hcpPatchListSize, modeSpecific ? true : false));
 
+        CODEC_HW_CHK_NULL_RETURN(m_cpInterface);
         m_cpInterface->GetCpSliceLevelCmdSize(cpCmdsize, cpPatchListSize);
     }
 
