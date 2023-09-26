@@ -262,7 +262,7 @@ private:
 
     //! \brief    Flag to indicate current command buffer flused or not, if not
     //!           re-use it
-    volatile bool m_cmdBufFlushed;
+    volatile bool m_cmdBufFlushed = false;
 
     //! \brief    internal back up for in-use command buffer
     PMOS_COMMAND_BUFFER m_commandBuffer = nullptr;
@@ -292,7 +292,7 @@ private:
     OsContext *m_osContext = nullptr;
 
     MOS_GPUCTX_CREATOPTIONS_ENHANCED *m_createOptionEnhanced = nullptr;
-    MOS_LINUX_CONTEXT*  m_i915Context[MAX_ENGINE_INSTANCE_NUM+1];
+    MOS_LINUX_CONTEXT*  m_i915Context[MAX_ENGINE_INSTANCE_NUM+1] = {};
     uint32_t     m_i915ExecFlag = 0;
 
 #if (_DEBUG || _RELEASE_INTERNAL)
