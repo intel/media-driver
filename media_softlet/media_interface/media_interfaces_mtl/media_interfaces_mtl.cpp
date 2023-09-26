@@ -485,6 +485,7 @@ MOS_STATUS CodechalInterfacesXe_Lpm_Plus::Initialize(
         else
 #endif
         {
+            MOS_Delete(hwInterface);
             CODECHAL_PUBLIC_ASSERTMESSAGE("Decode mode requested invalid!");
             return MOS_STATUS_INVALID_PARAMETER;
         }
@@ -510,6 +511,7 @@ MOS_STATUS CodechalInterfacesXe_Lpm_Plus::Initialize(
                 m_codechalDevice = MOS_New(EncodeAvcVdencPipelineAdapterXe_Lpm_Plus_Base, hwInterface, debugInterface);
                 if (m_codechalDevice == nullptr)
                 {
+                    MOS_Delete(hwInterface);
                     CODECHAL_PUBLIC_ASSERTMESSAGE("Encode state creation failed!");
                     return MOS_STATUS_INVALID_PARAMETER;
                 }
@@ -517,6 +519,7 @@ MOS_STATUS CodechalInterfacesXe_Lpm_Plus::Initialize(
             }
             else
             {
+                MOS_Delete(hwInterface);
                 CODECHAL_PUBLIC_ASSERTMESSAGE("Encode allocation failed, AVC VME Encoder is not supported, please use AVC LowPower Encoder instead!");
                 return MOS_STATUS_INVALID_PARAMETER;
             }
@@ -529,6 +532,7 @@ MOS_STATUS CodechalInterfacesXe_Lpm_Plus::Initialize(
             m_codechalDevice = MOS_New(EncodeVp9VdencPipelineAdapterXe_Lpm_Plus, hwInterface, debugInterface);
             if (m_codechalDevice == nullptr)
             {
+                MOS_Delete(hwInterface);
                 CODECHAL_PUBLIC_ASSERTMESSAGE("Encode state creation failed!");
                 return MOS_STATUS_INVALID_PARAMETER;
             }
@@ -538,6 +542,7 @@ MOS_STATUS CodechalInterfacesXe_Lpm_Plus::Initialize(
 #endif
         if (info->Mode == CODECHAL_ENCODE_MODE_MPEG2)
         {
+            MOS_Delete(hwInterface);
             CODECHAL_PUBLIC_ASSERTMESSAGE("Encode allocation failed, MPEG2 Encoder is not supported!");
             return MOS_STATUS_INVALID_PARAMETER;
         }
@@ -548,6 +553,7 @@ MOS_STATUS CodechalInterfacesXe_Lpm_Plus::Initialize(
             m_codechalDevice = MOS_New(EncodeJpegPipelineAdapterXe_Lpm_Plus_Base, hwInterface, debugInterface);
             if (m_codechalDevice == nullptr)
             {
+                MOS_Delete(hwInterface);
                 CODECHAL_PUBLIC_ASSERTMESSAGE("Encode state creation failed!");
                 return MOS_STATUS_INVALID_PARAMETER;
             }
@@ -566,6 +572,7 @@ MOS_STATUS CodechalInterfacesXe_Lpm_Plus::Initialize(
             }
             else
             {
+                MOS_Delete(hwInterface);
                 return MOS_STATUS_INVALID_PARAMETER;
             }
         }
@@ -579,6 +586,7 @@ MOS_STATUS CodechalInterfacesXe_Lpm_Plus::Initialize(
                 m_codechalDevice = MOS_New(EncodeHevcVdencPipelineAdapterXe_Lpm_Plus, hwInterface, debugInterface);
                 if (m_codechalDevice == nullptr)
                 {
+                    MOS_Delete(hwInterface);
                     CODECHAL_PUBLIC_ASSERTMESSAGE("Encode state creation failed!");
                     return MOS_STATUS_INVALID_PARAMETER;
                 }
@@ -586,6 +594,7 @@ MOS_STATUS CodechalInterfacesXe_Lpm_Plus::Initialize(
             }
             else
             {
+                MOS_Delete(hwInterface);
                 CODECHAL_PUBLIC_ASSERTMESSAGE("Encode allocation failed, HEVC VME Encoder is not supported.");
                 return MOS_STATUS_INVALID_PARAMETER;
             }
@@ -593,6 +602,7 @@ MOS_STATUS CodechalInterfacesXe_Lpm_Plus::Initialize(
         else
 #endif
         {
+            MOS_Delete(hwInterface);
             CODECHAL_PUBLIC_ASSERTMESSAGE("Unsupported encode function requested.");
             return MOS_STATUS_INVALID_PARAMETER;
         }
@@ -600,6 +610,7 @@ MOS_STATUS CodechalInterfacesXe_Lpm_Plus::Initialize(
     else
     {
         CODECHAL_PUBLIC_ASSERTMESSAGE("Unsupported codec function requested.");
+        MOS_Delete(hwInterface);
         return MOS_STATUS_INVALID_PARAMETER;
     }
 

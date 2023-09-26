@@ -1066,13 +1066,6 @@ VAStatus DdiDecodeBase::CreateBuffer(
             buf->format = Media_Format_CPU;
             break;
         case VASubsetsParameterBufferType:
-            // maximum entry point supported should not be more than 440
-            if (numElements > 440)
-            {
-                va = VA_STATUS_ERROR_INVALID_PARAMETER;
-                MOS_FreeMemory(buf);
-                return va;
-            }
             buf->pData  = (uint8_t*)MOS_AllocAndZeroMemory(size * numElements);
             buf->format = Media_Format_CPU;
             break;

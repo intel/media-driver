@@ -686,7 +686,7 @@ MOS_STATUS CodechalCmdInitializerG11::SetCopyDmem()
         m_osInterface, &m_cmdInitializerCopyDmemBuffer[m_encoder->m_currRecycledBufIdx][m_currentPass], &lockFlagsWriteOnly);
     CODECHAL_ENCODE_CHK_NULL_RETURN(hucCmdCopyDmem);
 
-    MOS_ZeroMemory(hucCmdCopyDmem, sizeof(hucCmdCopyDmem));
+    MOS_ZeroMemory(hucCmdCopyDmem, sizeof(HucComDmem));
 
     hucCmdCopyDmem->TotalOutputCommands = 1;
 
