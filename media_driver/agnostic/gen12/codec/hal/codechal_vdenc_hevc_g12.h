@@ -2165,13 +2165,13 @@ public:
         };
     };
 
-    PMHW_VDBOX_HCP_TILE_CODING_PARAMS_G12 m_tileParams[CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC];  //!< Pointer to the Tile params
+    PMHW_VDBOX_HCP_TILE_CODING_PARAMS_G12 m_tileParams[CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC] = {};  //!< Pointer to the Tile params
 
     // GEN12 specific resources
-    MOS_RESOURCE                m_vdencTileRowStoreBuffer;             //!< Tile row store buffer
+    MOS_RESOURCE                m_vdencTileRowStoreBuffer = {};             //!< Tile row store buffer
     MOS_RESOURCE                m_vdencCumulativeCuCountStreamoutSurface = {};             //!< Cumulative CU Count Streamout Surface
     MOS_RESOURCE                m_vdencPaletteModeStreamOutBuffer = {};                    //!< Palette mode stream out buffer
-    MOS_RESOURCE                m_vdencSAORowStoreBuffer;              //!< SAO RowStore buffer
+    MOS_RESOURCE                m_vdencSAORowStoreBuffer = {};              //!< SAO RowStore buffer
     MOS_RESOURCE                m_resHwCountTileReplay = {};                //!< Tile based HW Counter buffer
 
     bool                        m_enableTileStitchByHW = false;        //!< Enable HW to stitch commands in scalable mode

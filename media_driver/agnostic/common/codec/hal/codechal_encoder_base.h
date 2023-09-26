@@ -1337,7 +1337,7 @@ public:
     MEDIA_SYSTEM_INFO               *m_gtSystemInfo = nullptr;                      //!< GT system infomation
     MOS_GPU_NODE                    m_videoGpuNode = MOS_GPU_NODE_MAX;              //!< GPU node of video
     MOS_GPU_CONTEXT                 m_videoContext = MOS_GPU_CONTEXT_INVALID_HANDLE;              //!< GPU context of video
-    MOS_GPU_CONTEXT                 m_videoContextExt[4];                           //!< Extand GPU context
+    MOS_GPU_CONTEXT                 m_videoContextExt[4] = {};                           //!< Extand GPU context
     MOS_GPU_CONTEXT                 m_renderContext = MOS_GPU_CONTEXT_INVALID_HANDLE;             //!< GPU context of render
     bool                            m_pakEnabled = false;                           //!< flag to indicate if PAK is enabled
     bool                            m_encEnabled = false;                           //!< flag to indicate if ENC is enabled
