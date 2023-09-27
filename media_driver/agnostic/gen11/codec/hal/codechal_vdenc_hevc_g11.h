@@ -2086,13 +2086,13 @@ public:
     unsigned char                         m_numPipePre         = 1;         //!< Number of pipes of previous frame
     unsigned char                         m_numPassesInOnePipe = 1;         //!< Number of PAK passes in one pipe
     CODECHAL_ENCODE_BUFFER                m_resPakSliceLevelStreamoutData;  //!< Surface for slice level stream out data from PAK
-    CODECHAL_HEVC_VIRTUAL_ENGINE_OVERRIDE m_kmdVeOveride;                   //!< KMD override virtual engine index
+    CODECHAL_HEVC_VIRTUAL_ENGINE_OVERRIDE m_kmdVeOveride = {};              //!< KMD override virtual engine index
     uint32_t                              m_numTiles = 1;                   //!< Number of tiles
     uint32_t                              m_numLcu = 1;                     //!< LCU number
-    CODECHAL_ENCODE_BUFFER                m_resHcpScalabilitySyncBuffer;    //!< Hcp sync buffer for scalability
-    CODECHAL_ENCODE_BUFFER                m_resTileBasedStatisticsBuffer[CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC];
-    CODECHAL_ENCODE_BUFFER                m_tileRecordBuffer[CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC];
-    CODECHAL_ENCODE_BUFFER                m_resHuCPakAggregatedFrameStatsBuffer;
+    CODECHAL_ENCODE_BUFFER                m_resHcpScalabilitySyncBuffer = {};//!< Hcp sync buffer for scalability
+    CODECHAL_ENCODE_BUFFER                m_resTileBasedStatisticsBuffer[CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC] = {}; 
+    CODECHAL_ENCODE_BUFFER                m_tileRecordBuffer[CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC]             = {}; 
+    CODECHAL_ENCODE_BUFFER                m_resHuCPakAggregatedFrameStatsBuffer                                  = {}; 
     HEVC_TILE_STATS_INFO                  m_hevcTileStatsOffset = {};       //!< Page aligned offsets used to program HCP / VDEnc pipe and HuC PAK Integration kernel input
     HEVC_TILE_STATS_INFO                  m_hevcFrameStatsOffset = {};      //!< Page aligned offsets used to program HuC PAK Integration kernel output, HuC BRC kernel input
     HEVC_TILE_STATS_INFO                  m_hevcStatsSize = {};             //!< HEVC Statistics size
@@ -2100,19 +2100,19 @@ public:
 
     // HuC PAK stitch kernel
     bool                                        m_hucPakStitchEnabled = false;                                  //!< HuC PAK stitch enabled flag
-    MOS_RESOURCE                                m_resHucPakStitchDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][CODECHAL_VDENC_BRC_NUM_OF_PASSES];  //!< HuC Pak Integration Dmem data for each pass
-    MOS_RESOURCE                                m_resBrcDataBuffer;                                             //!< Resource of bitrate control data buffer
+    MOS_RESOURCE m_resHucPakStitchDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][CODECHAL_VDENC_BRC_NUM_OF_PASSES] = {};     //!< HuC Pak Integration Dmem data for each pass
+    MOS_RESOURCE                                m_resBrcDataBuffer = {};                                        //!< Resource of bitrate control data buffer
 
     // virtual engine
-    bool                   m_useVirtualEngine = false;                                                                                                 //!< Virtual engine enable flag
-    MOS_COMMAND_BUFFER     m_veBatchBuffer[CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC][CODECHAL_HEVC_MAX_NUM_HCP_PIPE][CODECHAL_HEVC_MAX_NUM_BRC_PASSES];  //!< Virtual engine batch buffers
-    MOS_COMMAND_BUFFER     m_realCmdBuffer;                                                                                                            //!< Virtual engine command buffer
-    uint32_t               m_sizeOfVeBatchBuffer  = 0;                                                                                                 //!< Virtual engine batch buffer size
-    CODECHAL_ENCODE_BUFFER m_resBrcSemaphoreMem[CODECHAL_HEVC_MAX_NUM_HCP_PIPE];                                                                       //!< BRC HW semaphore
-    CODECHAL_ENCODE_BUFFER m_resVdBoxSemaphoreMem[CODECHAL_HEVC_MAX_NUM_HCP_PIPE];                                                                     //!< VDBox HW semaphore
-    CODECHAL_ENCODE_BUFFER m_resBrcPakSemaphoreMem;                                                                                                    //!< BRC PAK HW semaphore
-    MOS_RESOURCE           m_resPipeStartSemaMem;                                                                                                      //!< HW semaphore for scalability pipe start at the same time
-    MOS_RESOURCE           m_resSyncSemaMem;                                                                                                           //!< HW semaphore for sync
+    bool                   m_useVirtualEngine = false;                                                                                                         //!< Virtual engine enable flag
+    MOS_COMMAND_BUFFER     m_veBatchBuffer[CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC][CODECHAL_HEVC_MAX_NUM_HCP_PIPE][CODECHAL_HEVC_MAX_NUM_BRC_PASSES] = {};     //!< Virtual engine batch buffers
+    MOS_COMMAND_BUFFER     m_realCmdBuffer                                                                                                           = {};     //!< Virtual engine command buffer
+    uint32_t               m_sizeOfVeBatchBuffer                                                                                                     = 0;                                                                                                         //!< Virtual engine batch buffer size
+    CODECHAL_ENCODE_BUFFER m_resBrcSemaphoreMem[CODECHAL_HEVC_MAX_NUM_HCP_PIPE]                                                                      = {};     //!< BRC HW semaphore
+    CODECHAL_ENCODE_BUFFER m_resVdBoxSemaphoreMem[CODECHAL_HEVC_MAX_NUM_HCP_PIPE]                                                                    = {};     //!< VDBox HW semaphore
+    CODECHAL_ENCODE_BUFFER m_resBrcPakSemaphoreMem                                                                                                   = {};     //!< BRC PAK HW semaphore
+    MOS_RESOURCE           m_resPipeStartSemaMem                                                                                                     = {};     //!< HW semaphore for scalability pipe start at the same time
+    MOS_RESOURCE           m_resSyncSemaMem                                                                                                          = {};     //!< HW semaphore for sync
 
     //!
     //! \brief    Constructor

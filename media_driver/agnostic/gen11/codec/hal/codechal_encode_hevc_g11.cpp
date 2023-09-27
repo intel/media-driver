@@ -1623,6 +1623,7 @@ MOS_STATUS CodechalEncHevcStateG11::GetStatusReport(
 
     MOS_LOCK_PARAMS lockFlags;
     MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_osInterface);
     HCPPakHWTileSizeRecord_G11* tileStatusReport = (HCPPakHWTileSizeRecord_G11*)m_osInterface->pfnLockResource(
         m_osInterface,
         &tileSizeStatusReport->sResource,

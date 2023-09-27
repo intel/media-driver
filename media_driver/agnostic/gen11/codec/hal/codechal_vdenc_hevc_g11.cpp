@@ -954,11 +954,11 @@ MOS_STATUS CodechalVdencHevcStateG11::AllocatePakResources()
     // these 2 buffers are not used so far, but put the correct size calculation here
     // PAK CU Level Streamout Data:   DW57-59 in HCP pipe buffer address command
     // One CU has 16-byte. But, each tile needs to be aliged to the cache line
-    size = MOS_ALIGN_CEIL(frameWidthInCus * frameHeightInCus * 16, CODECHAL_CACHELINE_SIZE);
+    //size = MOS_ALIGN_CEIL(frameWidthInCus * frameHeightInCus * 16, CODECHAL_CACHELINE_SIZE);
 
     // PAK Slice Level Streamut Data. DW60-DW62 in HCP pipe buffer address command
     // one LCU has one cache line. Use CU as LCU during creation
-    size = frameWidthInLcus * frameHeightInLcus * CODECHAL_CACHELINE_SIZE;
+    //size = frameWidthInLcus * frameHeightInLcus * CODECHAL_CACHELINE_SIZE;
 
     MOS_ZeroMemory(&allocParamsForBufferLinear, sizeof(MOS_ALLOC_GFXRES_PARAMS));
     allocParamsForBufferLinear.Type = MOS_GFXRES_BUFFER;
@@ -1586,7 +1586,11 @@ MOS_STATUS CodechalVdencHevcStateG11::GetStatusReport(
         m_osInterface,
         &currRefList->resBitstreamBuffer,
         &lockFlags);
-    CODECHAL_ENCODE_CHK_NULL_RETURN(bitstream);
+    if (bitstream == nullptr)
+    {
+        MOS_FreeMemory(tempBsBuffer);
+        return MOS_STATUS_NULL_POINTER;
+    }
 
     for (uint32_t i = 0; i < encodeStatusReport->NumberTilesInFrame; i++)
     {
@@ -2905,7 +2909,7 @@ MOS_STATUS CodechalVdencHevcStateG11::ConstructBatchBufferHuCCQP(PMOS_RESOURCE b
         len, 
         m_picStateCmdStartInBytes);
 
-    GetCommandBuffer(&cmdBuffer);
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(GetCommandBuffer(&cmdBuffer));
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hucCmdInitializer->CmdInitializerExecute(false, batchBuffer, &cmdBuffer));
     ReturnCommandBuffer(&cmdBuffer);
 
@@ -5875,7 +5879,7 @@ MOS_STATUS CodechalVdencHevcStateG11::HuCLookaheadInit()
     auto dmem = (PCodechalVdencHevcLaDmem)m_osInterface->pfnLockResource(
         m_osInterface, &m_vdencLaInitDmemBuffer, &lockFlagsWriteOnly);
     CODECHAL_ENCODE_CHK_NULL_RETURN(dmem);
-    MOS_ZeroMemory(dmem, sizeof(dmem));
+    MOS_ZeroMemory(dmem, sizeof(CodechalVdencHevcLaDmem));
 
     uint8_t downscaleRatioIndicator = 2;  // 4x downscaling
     if (m_hevcPicParams->DownScaleRatio.fields.X16Minus1_X == 15 && m_hevcPicParams->DownScaleRatio.fields.X16Minus1_Y == 15)
@@ -5999,7 +6003,7 @@ MOS_STATUS CodechalVdencHevcStateG11::HuCLookaheadUpdate()
     auto dmem = (PCodechalVdencHevcLaDmem)m_osInterface->pfnLockResource(
         m_osInterface, &m_vdencLaUpdateDmemBuffer[m_currRecycledBufIdx][currentPass], &lockFlagsWriteOnly);
     CODECHAL_ENCODE_CHK_NULL_RETURN(dmem);
-    MOS_ZeroMemory(dmem, sizeof(dmem));
+    MOS_ZeroMemory(dmem, sizeof(CodechalVdencHevcLaDmem));
 
     dmem->lookAheadFunc = 1;
     dmem->validStatsRecords = m_numValidLaRecords;

@@ -999,7 +999,7 @@ namespace encode
             {
                 MOS_RESOURCE* buf = nullptr;
 
-                GetTileBasedStatisticsBuffer(m_prevStatisticsBufIndex, buf);
+                ENCODE_CHK_STATUS_RETURN(GetTileBasedStatisticsBuffer(m_prevStatisticsBufIndex, buf));
                 ENCODE_CHK_NULL_RETURN(buf);
 
                 //will be optimized to avoid perf degradation when async > 1

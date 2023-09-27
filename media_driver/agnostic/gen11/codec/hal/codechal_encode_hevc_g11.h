@@ -1142,13 +1142,13 @@ public:
     static const double m_modeBits[2][46][3];                   //!< Mode bits LUT based on LCUType/Mode/SliceType
     static const double m_modeBitsScale[46][3];                 //!< Mode bits LUT based on [mode][SliceType]
 
-    MOS_SURFACE             m_currPicWithReconBoundaryPix;      //!< Current Picture with Reconstructed boundary pixels
-    MOS_SURFACE             m_lcuLevelInputDataSurface[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM]; //!< In Gen11 Lculevel Data is a 2D surface instead of Buffer
-    MOS_SURFACE             m_intermediateCuRecordSurfaceLcu32; //!< Intermediate CU Record surface for I and B kernel
-    MOS_SURFACE             m_scratchSurface;                   //!< Scratch surface for I-kernel
-    CODECHAL_ENCODE_BUFFER  m_debugSurface[4];                  //!< Debug surface used in MBENC kernels
-    CODECHAL_ENCODE_BUFFER  m_encConstantTableForB;             //!< Enc constant table for B LCU32
-    CODECHAL_ENCODE_BUFFER  m_mvAndDistortionSumSurface;        //!< Mv and Distortion summation surface
+    MOS_SURFACE             m_currPicWithReconBoundaryPix                                   = {};  //!< Current Picture with Reconstructed boundary pixels
+    MOS_SURFACE             m_lcuLevelInputDataSurface[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM] = {};  //!< In Gen11 Lculevel Data is a 2D surface instead of Buffer
+    MOS_SURFACE             m_intermediateCuRecordSurfaceLcu32                              = {};  //!< Intermediate CU Record surface for I and B kernel
+    MOS_SURFACE             m_scratchSurface                                                = {};  //!< Scratch surface for I-kernel
+    CODECHAL_ENCODE_BUFFER  m_debugSurface[4]                                               = {};  //!< Debug surface used in MBENC kernels
+    CODECHAL_ENCODE_BUFFER  m_encConstantTableForB                                          = {};  //!< Enc constant table for B LCU32
+    CODECHAL_ENCODE_BUFFER  m_mvAndDistortionSumSurface                                     = {};  //!< Mv and Distortion summation surface
 
     PMHW_VDBOX_HCP_TILE_CODING_PARAMS_G11 m_tileParams = nullptr;         //!< Pointer to the Tile params
 
@@ -1173,8 +1173,8 @@ public:
     uint16_t                m_lastPictureCodingType = I_TYPE;
     uint8_t*                m_swScoreboard = nullptr;
     bool                    m_useSwInitScoreboard = false;
-    CODECHAL_ENCODE_BUFFER  m_encBCombinedBuffer1[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM];
-    CODECHAL_ENCODE_BUFFER  m_encBCombinedBuffer2[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM];
+    CODECHAL_ENCODE_BUFFER  m_encBCombinedBuffer1[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM] = {};
+    CODECHAL_ENCODE_BUFFER  m_encBCombinedBuffer2[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM] = {};
     PCODECHAL_ENCODE_BUFFER m_brcInputForEncKernelBuffer = nullptr;
     uint8_t                 m_lastRecycledBufIdx = CODECHAL_ENCODE_RECYCLED_BUFFER_NUM - 1;
     uint32_t                m_historyOutBufferSize = 0;
@@ -1193,39 +1193,39 @@ public:
     // scalability
     unsigned char                         m_numPipe            = 1;         //!< Number of pipes
     unsigned char                         m_numPassesInOnePipe = 1;         //!< Number of PAK passes in one pipe
-    CODECHAL_ENCODE_BUFFER                m_resPakSliceLevelStreamoutData;  //!< Surface for slice level stream out data from PAK
-    CODECHAL_HEVC_VIRTUAL_ENGINE_OVERRIDE m_kmdVeOveride;                   //!< KMD override virtual engine index
+    CODECHAL_ENCODE_BUFFER                m_resPakSliceLevelStreamoutData = {};        //!< Surface for slice level stream out data from PAK
+    CODECHAL_HEVC_VIRTUAL_ENGINE_OVERRIDE m_kmdVeOveride                  = {};        //!< KMD override virtual engine index
     uint32_t                              m_numTiles = 1;                   //!< Number of tiles
-    CODECHAL_ENCODE_BUFFER                m_resHcpScalabilitySyncBuffer;    //!< Hcp sync buffer for scalability
-    CODECHAL_ENCODE_BUFFER                m_resTileBasedStatisticsBuffer[CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC];
-    CODECHAL_ENCODE_BUFFER                m_resHuCPakAggregatedFrameStatsBuffer;
-    CODECHAL_ENCODE_BUFFER                m_tileRecordBuffer[CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC];
-    HEVC_TILE_STATS_INFO                  m_hevcTileStatsOffset = {};       //!< Page aligned offsets used to program HCP / VDEnc pipe and HuC PAK Integration kernel input
-    HEVC_TILE_STATS_INFO                  m_hevcFrameStatsOffset = {};      //!< Page aligned offsets used to program HuC PAK Integration kernel output, HuC BRC kernel input
-    HEVC_TILE_STATS_INFO                  m_hevcStatsSize = {};             //!< HEVC Statistics size
+    CODECHAL_ENCODE_BUFFER                m_resHcpScalabilitySyncBuffer   = {};        //!< Hcp sync buffer for scalability
+    CODECHAL_ENCODE_BUFFER                m_resTileBasedStatisticsBuffer[CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC] = {};
+    CODECHAL_ENCODE_BUFFER                m_resHuCPakAggregatedFrameStatsBuffer                                  = {};
+    CODECHAL_ENCODE_BUFFER                m_tileRecordBuffer[CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC]             = {};
+    HEVC_TILE_STATS_INFO                  m_hevcTileStatsOffset                                                  = {};      //!< Page aligned offsets used to program HCP / VDEnc pipe and HuC PAK Integration kernel input
+    HEVC_TILE_STATS_INFO                  m_hevcFrameStatsOffset                                                 = {};      //!< Page aligned offsets used to program HuC PAK Integration kernel output, HuC BRC kernel input
+    HEVC_TILE_STATS_INFO                  m_hevcStatsSize                                                        = {};      //!< HEVC Statistics size
     bool                                  m_enableTestMediaReset = 0;  //!< enable media reset test. driver will send cmd to make hang happens
     bool                                  m_forceScalability = false;  //!< force scalability for resolution < 4K if other checking for scalability passed
 
     // HuC PAK stitch kernel
     bool                                        m_hucPakStitchEnabled = false;                                //!< HuC PAK stitch enabled flag
-    MOS_RESOURCE                                m_resHucPakStitchDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][CODECHAL_DP_MAX_NUM_BRC_PASSES];
-    MOS_RESOURCE                                m_resBrcDataBuffer;                                           //!< Resource of bitrate control data buffer
-    MOS_RESOURCE                                m_resHucStitchDataBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][CODECHAL_HEVC_MAX_NUM_BRC_PASSES];  // data buffer for huc input cmd generation
-    MHW_BATCH_BUFFER                            m_HucStitchCmdBatchBuffer = {};             //!< SLB for huc stitch cmd
+    MOS_RESOURCE                                m_resHucPakStitchDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][CODECHAL_DP_MAX_NUM_BRC_PASSES] = {};
+    MOS_RESOURCE                                m_resBrcDataBuffer                                                                               = {};  //!< Resource of bitrate control data buffer
+    MOS_RESOURCE                                m_resHucStitchDataBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][CODECHAL_HEVC_MAX_NUM_BRC_PASSES]  = {};  // data buffer for huc input cmd generation
+    MHW_BATCH_BUFFER                            m_HucStitchCmdBatchBuffer                                                                        = {};  //!< SLB for huc stitch cmd
 
     // virtual engine
-    bool                   m_useVirtualEngine = false;                                                                                                 //!< Virtual engine enable flag
-    MOS_COMMAND_BUFFER     m_veBatchBuffer[CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC][CODECHAL_HEVC_MAX_NUM_HCP_PIPE][CODECHAL_HEVC_MAX_NUM_BRC_PASSES];  //!< Virtual engine batch buffers
-    MOS_COMMAND_BUFFER     m_realCmdBuffer;                                                                                                            //!< Virtual engine command buffer
-    uint32_t               m_sizeOfVeBatchBuffer  = 0;                                                                                                 //!< Virtual engine batch buffer size
-    unsigned char          m_virtualEngineBbIndex = 0;                                                                                                 //!< Virtual engine batch buffer index
-    CODECHAL_ENCODE_BUFFER m_resBrcSemaphoreMem[CODECHAL_HEVC_MAX_NUM_HCP_PIPE];                                                                       //!< BRC HW semaphore
-    CODECHAL_ENCODE_BUFFER m_resBrcPakSemaphoreMem;                                                                                                    //!< BRC PAK HW semaphore
-    MOS_RESOURCE           m_resPipeStartSemaMem;                                                                                                      //!< HW semaphore for scalability pipe start at the same time
-    MOS_RESOURCE           m_resPipeCompleteSemaMem;                                                                                                   //!< HW semaphore for scalability pipe start at the same time
-    PCODECHAL_ENCODE_SCALABILITY_STATE  m_scalabilityState = nullptr;                                                                                  //!< Scalability state
-    MOS_RESOURCE           m_resDelayMinus = {};
-    uint32_t               m_numDelay = 0;
+    bool                                m_useVirtualEngine = false;                                                                                                         //!< Virtual engine enable flag
+    MOS_COMMAND_BUFFER                  m_veBatchBuffer[CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC][CODECHAL_HEVC_MAX_NUM_HCP_PIPE][CODECHAL_HEVC_MAX_NUM_BRC_PASSES] = {};     //!< Virtual engine batch buffers
+    MOS_COMMAND_BUFFER                  m_realCmdBuffer                                                                                                           = {};     //!< Virtual engine command buffer
+    uint32_t                            m_sizeOfVeBatchBuffer  = 0;                                                                                                         //!< Virtual engine batch buffer size
+    unsigned char                       m_virtualEngineBbIndex = 0;                                                                                                         //!< Virtual engine batch buffer index
+    CODECHAL_ENCODE_BUFFER              m_resBrcSemaphoreMem[CODECHAL_HEVC_MAX_NUM_HCP_PIPE]                                                                      = {};     //!< BRC HW semaphore
+    CODECHAL_ENCODE_BUFFER              m_resBrcPakSemaphoreMem                                                                                                   = {};     //!< BRC PAK HW semaphore
+    MOS_RESOURCE                        m_resPipeStartSemaMem                                                                                                     = {};     //!< HW semaphore for scalability pipe start at the same time
+    MOS_RESOURCE                        m_resPipeCompleteSemaMem                                                                                                  = {};     //!< HW semaphore for scalability pipe start at the same time
+    PCODECHAL_ENCODE_SCALABILITY_STATE  m_scalabilityState = nullptr;                                                                                                       //!< Scalability state
+    MOS_RESOURCE                        m_resDelayMinus                                                                                                           = {};
+    uint32_t                            m_numDelay = 0;
 
     // the following constant integers and tables are from the kernel for score board computation
     static uint32_t const m_ct = 3;

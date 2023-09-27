@@ -247,8 +247,9 @@ VAStatus DdiEncodeHevc::ContextInitialize(
     }
 
     // Allocate SliceParams
+    uint32_t picSizeInMb = m_encodeCtx->wPicHeightInMB * m_encodeCtx->wPicWidthInMB;
     // Supports one LCU per slice, with minimum LCU size of 16x16
-    m_encodeCtx->pSliceParams = (void *)MOS_AllocAndZeroMemory(m_encodeCtx->wPicHeightInMB * m_encodeCtx->wPicWidthInMB * sizeof(CODEC_HEVC_ENCODE_SLICE_PARAMS));
+    m_encodeCtx->pSliceParams = (void *)MOS_AllocAndZeroMemory(picSizeInMb * sizeof(CODEC_HEVC_ENCODE_SLICE_PARAMS));
     DDI_CHK_NULL(m_encodeCtx->pSliceParams, "nullptr m_encodeCtx->pSliceParams.", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
     // Allocate Encode Status Report
@@ -264,14 +265,14 @@ VAStatus DdiEncodeHevc::ContextInitialize(
     DDI_CHK_NULL(m_encodeCtx->pQmatrixParams, "nullptr QMatrixParams", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
     // for slice header from application
-    m_encodeCtx->pSliceHeaderData = (CODEC_ENCODER_SLCDATA *)MOS_AllocAndZeroMemory(m_encodeCtx->wPicHeightInMB * m_encodeCtx->wPicWidthInMB * sizeof(CODEC_ENCODER_SLCDATA));
+    m_encodeCtx->pSliceHeaderData = (CODEC_ENCODER_SLCDATA *)MOS_AllocAndZeroMemory(picSizeInMb * sizeof(CODEC_ENCODER_SLCDATA));
     DDI_CHK_NULL(m_encodeCtx->pSliceHeaderData, "nullptr m_encodeCtx->pSliceHeaderData.", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
     // Create the bit stream buffer to hold the packed headers from application
     m_encodeCtx->pbsBuffer = (BSBuffer *)MOS_AllocAndZeroMemory(sizeof(BSBuffer));
     DDI_CHK_NULL(m_encodeCtx->pbsBuffer, "nullptr m_encodeCtx->pbsBuffer.", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
-    m_encodeCtx->pbsBuffer->BufferSize = m_encodeCtx->wPicHeightInMB * m_encodeCtx->wPicWidthInMB * PACKED_HEADER_SIZE_PER_ROW;
+    m_encodeCtx->pbsBuffer->BufferSize = picSizeInMb * PACKED_HEADER_SIZE_PER_ROW;
     m_encodeCtx->pbsBuffer->pBase      = (uint8_t *)MOS_AllocAndZeroMemory(m_encodeCtx->pbsBuffer->BufferSize);
     DDI_CHK_NULL(m_encodeCtx->pbsBuffer->pBase, "nullptr m_encodeCtx->pbsBuffer->pBase.", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
