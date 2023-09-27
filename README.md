@@ -131,6 +131,7 @@ Media driver supports two build types as below
 - E  - Hardware Encoding, Low Power Encoding(VDEnc/Huc)
 - Es - Hardware(PAK) + Shader(media kernel+VME) Encoding
 
+***Note:*** Low Power Encoding(VAEntrypointEncSliceLP) and Shader Encoding(VAEntrypointEncSlice) are consolidated to the unified interface(VAEntrypointEncSlice) from ***MTL*** platform. It goes through VDEnc/Huc for HW acceleration to unleash GPU resource to customers.
 
 
 For more decoding and encoding features information, please refer to
