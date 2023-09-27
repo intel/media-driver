@@ -52,8 +52,7 @@ CmSSH::CmSSH(CM_HAL_STATE *cmhal, PMOS_COMMAND_BUFFER cmdBuf):
     m_curSsIndex(0),
     m_cmhal(cmhal),
     m_renderhal(nullptr),
-    m_resCount(0),
-    m_occupiedBteIndexes(nullptr)
+    m_resCount(0)
 {
 }
 

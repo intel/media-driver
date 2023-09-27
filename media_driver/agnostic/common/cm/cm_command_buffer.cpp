@@ -429,7 +429,7 @@ MOS_STATUS CmCommandBuffer::AddMediaObjectWalker(CMRT_UMD::CmThreadSpaceRT *thre
     {
         case CM_WALK_DEFAULT:
         case CM_WALK_HORIZONTAL:
-            if (threadSpaceWidth == threadCount && threadSpaceHeight == 1)
+            if (threadSpaceWidth == threadCount && threadSpaceHeight == 1 && maxThreadWidth)
             {
                 mediaWalkerParams.BlockResolution.x = MOS_MIN(threadCount, maxThreadWidth);
                 mediaWalkerParams.BlockResolution.y = 1 + threadCount / maxThreadWidth;

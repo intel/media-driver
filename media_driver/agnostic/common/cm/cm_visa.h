@@ -64,12 +64,12 @@ namespace vISA {
         //!
         //! \brief      Constructor of Field struct.
         //!
-        Field(Datatype t) : type(t), countField(0), number64(0) {}
+        Field(Datatype t) : type(t), countField(0), size(0), number64(0) {}
 
         //!
         //! \brief      Constructor of Field struct.
         //!
-        Field(Datatype t, uint8_t cf) : type(t), countField(cf), number64(0) {}
+        Field(Datatype t, uint8_t cf) : type(t), countField(cf), size(0), number64(0) {}
 
         //!
         //! \brief      Destructor of Field struct.
