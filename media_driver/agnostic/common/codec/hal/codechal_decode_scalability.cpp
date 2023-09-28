@@ -2033,7 +2033,6 @@ MOS_STATUS CodecHalDecodeScalability_InitializeState (
         GpuContext = MOS_VE_MULTINODESCALING_SUPPORTED(osInterface) ? MOS_GPU_CONTEXT_VIDEO4 : GpuContext;
 
         MHW_VDBOX_GPUNODE_LIMIT gpuNodeLimit;
-        MOS_ZeroMemory(&gpuNodeLimit, sizeof(MHW_VDBOX_GPUNODE_LIMIT));
         CODECHAL_DECODE_CHK_STATUS_RETURN(vdboxMfxInterface->FindGpuNodeToUse(
             &gpuNodeLimit));
         MOS_GPU_NODE videoGpuNode = (MOS_GPU_NODE)(gpuNodeLimit.dwGpuNodeToUse);

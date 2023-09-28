@@ -41,7 +41,6 @@ DecodeMemComp::DecodeMemComp(CodechalHwInterfaceNext *hwInterface, PMOS_INTERFAC
     if (hwInterface == nullptr)
     {
         CODEC_HW_ASSERT(hwInterface);
-        return;
     }
     else
     {

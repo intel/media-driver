@@ -6711,10 +6711,10 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::SendAvcMfeMbEncSurfaces(PMOS_COMMAND_BUFFE
         }
     }
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateVmeSurfaceG7_5(cmSurfForVME, &surfArrayL0[0], &surfArrayL1[0], refNum0, refNum1, cmVmeSurfIdx[0 + vmeIdx]));
+    m_cmDev->CreateVmeSurfaceG7_5(cmSurfForVME, &surfArrayL0[0], &surfArrayL1[0], refNum0, refNum1, cmVmeSurfIdx[0 + vmeIdx]);
     cmSurfaces->MBVMEInterPredictionSurfIndex = cmVmeSurfIdx[0 + vmeIdx];
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateVmeSurfaceG7_5(cmSurfForVME, &surfArrayL1[0], &surfArrayL1[0], refNum1, refNum1, cmVmeSurfIdx[1 + vmeIdx]));
+    m_cmDev->CreateVmeSurfaceG7_5(cmSurfForVME, &surfArrayL1[0], &surfArrayL1[0], refNum1, refNum1, cmVmeSurfIdx[1 + vmeIdx]);
     cmSurfaces->MBVMEInterPredictionMRSurfIndex = cmVmeSurfIdx[1 + vmeIdx];
 
     CM_VME_SURFACE_STATE_PARAM vmeDimensionParam;
