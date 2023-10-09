@@ -10545,6 +10545,8 @@ MOS_STATUS HalCm_Create(
         else
         {
             CM_ASSERTMESSAGE("Allocate MhwInterfaces failed");
+            HalCm_Destroy(state);
+            *cmState = nullptr;
             return MOS_STATUS_NO_SPACE;
         }
     }

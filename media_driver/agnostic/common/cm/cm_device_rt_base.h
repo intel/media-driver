@@ -476,7 +476,13 @@ protected:
 
     CmDeviceRTBase(uint32_t DevCreateOption);
 
-    ~CmDeviceRTBase() {};
+    ~CmDeviceRTBase()
+    {
+        if (m_notifierGroup != nullptr)
+        {
+            delete m_notifierGroup;
+        }
+    }
 
     void DestructCommon();
 

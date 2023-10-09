@@ -780,11 +780,17 @@ int CmExecutionAdv::SubmitGpgpuTask(CMRT_UMD::CmQueueRT *queue,
 
     cmdBuf->AddSipState(cmish->GetSipKernelOffset());
 
-    CM_CHK_MOSSTATUS_RETURN(m_cmhal->osInterface->pfnRegisterResource(
+    MOS_STATUS eStatus = m_cmhal->osInterface->pfnRegisterResource(
         m_cmhal->osInterface,
         &m_cmhal->csrResource,
         true,
-        true));
+        true);
+
+    if (eStatus != MOS_STATUS_SUCCESS)
+    {
+        cmdsh->DestroyMediaState(cmMediaState);
+        return eStatus;
+    }
 
     cmdBuf->AddCsrBaseAddress(&m_cmhal->csrResource);
 
