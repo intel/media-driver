@@ -202,6 +202,27 @@ MHW_SETPAR_DECL_SRC(VDENC_AVC_IMG_STATE, AvcVdencStreamInFeature)
     params.mbLevelQpEnable      = m_enabled && picParams->EnableRollingIntraRefresh == ROLLING_I_DISABLED &&
                                    (picParams->NumROI && !picParams->bNativeROI || m_basicFeature->m_mbQpDataEnabled);
 
+    if (m_enabled)
+    {
+        PMOS_INTERFACE osInterface = m_hwInterface->GetOsInterface();
+        ENCODE_CHK_NULL_RETURN(osInterface);
+        MEDIA_WA_TABLE *pWaTable   = osInterface->pfnGetWaTable(osInterface);
+        ENCODE_CHK_NULL_RETURN(pWaTable);
+
+        if (MEDIA_IS_WA(pWaTable, Wa_15013906446))
+        {
+#if _MEDIA_RESERVED
+    params.vdencAvcImgStatePar1 = 0;
+#else
+    params.extSettings.emplace_back(
+        [this](uint32_t *data) {
+            data[2] &= 0xffffff7f;
+            return MOS_STATUS_SUCCESS;
+        });
+#endif  // _MEDIA_RESERVED
+        }
+    }
+
     return MOS_STATUS_SUCCESS;
 }
 
