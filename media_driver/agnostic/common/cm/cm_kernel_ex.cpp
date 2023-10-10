@@ -543,6 +543,7 @@ CmSurfaceState* CmKernelEx::GetSurfaceState(CmSurface *surface, uint32_t index)
                 surfState = MOS_New(CmSurfaceStateVME, cmHalState);
                 if (surfState == nullptr)
                 {
+                    MOS_DeleteArray(vmeValue);
                     return nullptr;
                 }
                 surfState->Initialize((CM_HAL_VME_ARG_VALUE *)vmeValue);
