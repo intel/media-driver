@@ -2917,7 +2917,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::AddHcpEncodeSliceStateCmd(
     cmd.DW3.SliceTemporalMvpEnableFlag  = hevcSliceParams->slice_temporal_mvp_enable_flag;
     cmd.DW3.Sliceqp                     = abs(hevcSliceParams->slice_qp_delta + hevcPicParams->QpY);
     cmd.DW3.SliceCbQpOffset             = hevcSliceParams->slice_cb_qp_offset;
-    cmd.DW3.SliceCbQpOffset             = hevcSliceParams->slice_cr_qp_offset;
+    cmd.DW3.SliceCrQpOffset             = hevcSliceParams->slice_cr_qp_offset;
     cmd.DW3.Intrareffetchdisable        = hevcSliceState->bIntraRefFetchDisable;
 
     cmd.DW4.SliceHeaderDisableDeblockingFilterFlag          = hevcSliceParams->slice_deblocking_filter_disable_flag;

@@ -294,9 +294,11 @@ MOS_STATUS CodechalDecodeHevcG11::SetFrameStates ()
     }
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(CheckAndCopyBitstream());
-
-    PCODEC_REF_LIST destEntry = m_hevcRefList[m_hevcPicParams->CurrPic.FrameIdx];
-    MOS_ZeroMemory(destEntry, sizeof(CODEC_REF_LIST));
+    if (m_hevcPicParams->CurrPic.FrameIdx < CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC)
+    {
+        PCODEC_REF_LIST destEntry = m_hevcRefList[m_hevcPicParams->CurrPic.FrameIdx];
+        MOS_ZeroMemory(destEntry, sizeof(CODEC_REF_LIST));
+    }
 
     if (m_incompletePicture)
     {
@@ -664,6 +666,7 @@ MOS_STATUS CodechalDecodeHevcG11::SetAndPopulateVEHintParams(
     if (static_cast<MhwVdboxMfxInterfaceG11*>(m_mfxInterface)->IsScalabilitySupported() && MOS_VE_SUPPORTED(m_osInterface))
     {
         CODECHAL_DECODE_SCALABILITY_SETHINT_PARMS scalSetParms;
+        MOS_ZeroMemory(&scalSetParms, sizeof(CODECHAL_DECODE_SCALABILITY_SETHINT_PARMS));
         if (!MOS_VE_CTXBASEDSCHEDULING_SUPPORTED(m_osInterface))
         {
             scalSetParms.bNeedSyncWithPrevious       = true;

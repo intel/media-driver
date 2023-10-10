@@ -46,6 +46,7 @@ CodechalHwInterfaceNext::CodechalHwInterfaceNext(
     CODEC_HW_ASSERT(osInterface);
     m_osInterface = osInterface;
 
+    MOS_ZeroMemory(&m_platform, sizeof(PLATFORM));
     m_osInterface->pfnGetPlatform(m_osInterface, &m_platform);
 
     m_skuTable = m_osInterface->pfnGetSkuTable(m_osInterface);

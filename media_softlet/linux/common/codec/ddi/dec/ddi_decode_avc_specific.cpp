@@ -256,7 +256,8 @@ VAStatus DdiDecodeAvc::ParsePicParams(
     for (i = 0; i < CODEC_MAX_NUM_REF_FRAME; i++)
     {     
         // Check the surface id of reference list
-        if (VA_INVALID_ID == m_decodeCtx->RecListSurfaceID[avcPicParams->RefFrameList[i].FrameIdx])
+        if (avcPicParams->RefFrameList[i].FrameIdx < CODEC_AVC_NUM_UNCOMPRESSED_SURFACE && 
+            VA_INVALID_ID == m_decodeCtx->RecListSurfaceID[avcPicParams->RefFrameList[i].FrameIdx])
         {
             // Set invalid flag
             avcPicParams->RefFrameList[i].PicFlags = PICTURE_INVALID;

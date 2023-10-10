@@ -233,13 +233,13 @@ MOS_STATUS CodechalDecodeAvcG11::DecodePrimitiveLevel()
     DecodeProcessingParams *decProcessingParams = (DecodeProcessingParams *)m_decodeParams.m_procParams;
     if (decProcessingParams != nullptr && decProcessingParams->m_isReferenceOnlyPattern)
     {
-        HucCopy(&cmdBuffer, 
-            &m_destSurface.OsResource, 
-            &decProcessingParams->m_outputSurface->OsResource, 
-            decProcessingParams->m_outputSurface->dwSize,
-            m_destSurface.dwOffset,
-            decProcessingParams->m_outputSurface->dwOffset
-        );
+        CODECHAL_DECODE_CHK_STATUS_RETURN(HucCopy(&cmdBuffer, 
+                                            &m_destSurface.OsResource, 
+                                            &decProcessingParams->m_outputSurface->OsResource, 
+                                            decProcessingParams->m_outputSurface->dwSize,
+                                            m_destSurface.dwOffset,
+                                            decProcessingParams->m_outputSurface->dwOffset
+        ));
     }
 #endif
 

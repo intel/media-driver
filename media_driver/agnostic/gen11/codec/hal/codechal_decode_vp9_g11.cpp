@@ -371,6 +371,7 @@ MOS_STATUS CodechalDecodeVp9G11::SetAndPopulateVEHintParams(
     if (static_cast<MhwVdboxMfxInterfaceG11*>(m_mfxInterface)->IsScalabilitySupported() && MOS_VE_SUPPORTED(m_osInterface))
     {
         CODECHAL_DECODE_SCALABILITY_SETHINT_PARMS scalSetParms;
+        MOS_ZeroMemory(&scalSetParms, sizeof(CODECHAL_DECODE_SCALABILITY_SETHINT_PARMS));
         if (!MOS_VE_CTXBASEDSCHEDULING_SUPPORTED(m_osInterface))
         {
             scalSetParms.bNeedSyncWithPrevious       = true;

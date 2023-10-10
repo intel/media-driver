@@ -606,7 +606,6 @@ CodechalHwInterfaceG12::~CodechalHwInterfaceG12()
     if (m_avpInterface)
     {
         MOS_Delete(m_avpInterface);
-        m_avpInterface = nullptr;
     }
 }
 

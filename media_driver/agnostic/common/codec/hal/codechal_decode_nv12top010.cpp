@@ -94,9 +94,9 @@ MOS_STATUS CodechalDecodeNV12ToP010::Execute(
     surfaceRT->GetSurfaceDesc(surfaceWidth, surfaceHeight, format, sizePerPixel);
 
     SurfaceIndex *srcSurfaceIndex;
-    srcCmSurface2D->GetIndex(srcSurfaceIndex);
+    CODECHAL_DECODE_CHK_STATUS_RETURN(srcCmSurface2D->GetIndex(srcSurfaceIndex));
     SurfaceIndex *dstSurfaceIndex;
-    dstCmSurface2D->GetIndex(dstSurfaceIndex);
+    CODECHAL_DECODE_CHK_STATUS_RETURN(dstCmSurface2D->GetIndex(dstSurfaceIndex));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_cmDevice->CreateTask(m_cmTask));
     CODECHAL_DECODE_CHK_NULL_RETURN(m_cmTask);

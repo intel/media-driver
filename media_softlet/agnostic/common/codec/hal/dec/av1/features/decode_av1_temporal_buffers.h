@@ -56,8 +56,8 @@ namespace decode
         inline Av1SharedBuf  *RefSharedBuffer(Av1SharedBuf *sharedBuf);
         inline Av1SharedBuf  *DeRefSharedBuffer(Av1SharedBuf *sharedBuf);
         std::shared_ptr<mhw::vdbox::avp::Itf> m_avpItf = nullptr;
-        int32_t               widthInSb;
-        int32_t               heightInSb;
+        int32_t               widthInSb                = 0;
+        int32_t               heightInSb               = 0;
 
     MEDIA_CLASS_DEFINE_END(decode__Av1TempBufferOpInf)
     };
