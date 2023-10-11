@@ -2011,11 +2011,6 @@ finish:
              ( m_args[ index ].unitKind == ARG_KIND_STATE_BUFFER ) ) && surfIndexValue )
             {
                 CmSafeMemSet((void *)arg.surfIndex, 0, size/sizeof(int32_t) * sizeof(uint16_t));
-                if( surfIndexValue == nullptr )
-                {
-                    CM_ASSERTMESSAGE("Error: Pointer to surface index value is null.");
-                    return CM_NULL_POINTER;
-                }
                 CmSafeMemCopy((void *)arg.surfIndex, surfIndexValue, size/sizeof(int32_t) * sizeof(uint16_t));
             }
 
@@ -2077,11 +2072,6 @@ finish:
                     return CM_OUT_OF_HOST_MEMORY;
                 }
                 CmSafeMemSet((void *)arg.surfIndex, 0, size/sizeof(uint32_t) * sizeof(uint16_t) * m_threadCount);
-                if( surfIndexValue == nullptr )
-                {
-                    CM_ASSERTMESSAGE("Error: Pointer to surface index value is null.");
-                    return CM_NULL_POINTER;
-                }
                 CmSafeMemCopy((void *)(arg.surfIndex + size/sizeof(uint32_t)  * nThreadID), surfIndexValue, size/sizeof(uint32_t) * sizeof(uint16_t));
             }
             m_perThreadArgExists = true;
@@ -2117,11 +2107,6 @@ finish:
                  ( m_args[ index ].unitKind == ARG_KIND_SURFACE_2D_SCOREBOARD) ||
                  ( m_args[ index ].unitKind == ARG_KIND_STATE_BUFFER ) ) && surfIndexValue )
             {
-                if( surfIndexValue == nullptr )
-                {
-                    CM_ASSERTMESSAGE("Error: Pointer to surface index value is null.");
-                    return CM_NULL_POINTER;
-                }
                 CmSafeMemCopy((void *)(arg.surfIndex + size/sizeof(uint32_t)  * nThreadID), surfIndexValue, size/sizeof(uint32_t) * sizeof(uint16_t));
             }
         }
