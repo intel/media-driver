@@ -414,6 +414,7 @@ MOS_STATUS GraphicsResourceSpecificNext::ConvertToMosResource(MOS_RESOURCE* pMos
     pMosResource->Format   = m_format;
     pMosResource->iWidth   = m_width;
     pMosResource->iHeight  = m_height;
+    pMosResource->iSize    = m_size;
     pMosResource->iPitch   = m_pitch;
     pMosResource->iDepth   = m_depth;
     pMosResource->TileType = m_tileType;

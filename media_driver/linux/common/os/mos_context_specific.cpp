@@ -440,8 +440,8 @@ MOS_STATUS OsContextSpecific::Init(PMOS_CONTEXT pOsDriverContext)
             MEDIA_SYSTEM_INFO    gtSystemInfo;
     
             MOS_ZeroMemory(&platformInfo, sizeof(platformInfo));
-            MOS_ZeroMemory(&skuTable, sizeof(skuTable));
-            MOS_ZeroMemory(&waTable, sizeof(waTable));
+            skuTable.reset();
+            waTable.reset();
             MOS_ZeroMemory(&gtSystemInfo, sizeof(gtSystemInfo));
             eStatus = HWInfo_GetGfxInfo(pOsDriverContext->fd, pOsDriverContext->bufmgr, &platformInfo, &skuTable, &waTable, &gtSystemInfo, pOsDriverContext->m_userSettingPtr);
             if (eStatus != MOS_STATUS_SUCCESS)

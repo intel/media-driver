@@ -65,6 +65,7 @@
 
 #define Mos_Solo_SetPlatform(a, b)
 #define Mos_Solo_SetSkuwaTable(a, b, c)
+#define Mos_Solo_SetSkuwaGtInfo(a, b, c, d, e, f)
 
 #endif // MOS_MEDIASOLO_SUPPORTED
 #endif

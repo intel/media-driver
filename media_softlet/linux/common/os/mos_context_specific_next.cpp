@@ -117,6 +117,15 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
             iDeviceId       = osDriverContext->iDeviceId;
         }
 
+        // replace platform/sku/wa/gtsysinfo for os context
+        if (Mos_Solo_IsEnabled(nullptr))
+        {
+            m_skuTable.reset();
+            m_waTable.reset();
+            Mos_Solo_SetPlatform(&m_platformInfo, (PMOS_CONTEXT)osDriverContext);
+            Mos_Solo_SetSkuwaGtInfo((PMOS_CONTEXT)osDriverContext, m_platformInfo, m_skuTable, m_waTable, m_gtSystemInfo, iDeviceId);
+        }
+
         if (eStatus != MOS_STATUS_SUCCESS)
         {
             MOS_OS_ASSERTMESSAGE("Fatal error - unsuccesfull Sku/Wa/GtSystemInfo initialization");
@@ -207,6 +216,14 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
         gmmInitAgrs.pGtSysInfo        = &gmmGtInfo;
         gmmInitAgrs.FileDescriptor    = gmmAdapterBDF.Data;
         gmmInitAgrs.ClientType        = (GMM_CLIENT)GMM_LIBVA_LINUX;
+
+        // replace sku/wa/gtsysinfo for gmm client context
+        if (Mos_Solo_IsEnabled(nullptr))
+        {
+            gmmInitAgrs.pSkuTable         = &m_skuTable;
+            gmmInitAgrs.pWaTable          = &m_waTable;
+            gmmInitAgrs.pGtSysInfo        = &m_gtSystemInfo;
+        }
 
         GMM_STATUS status = InitializeGmm(&gmmInitAgrs, &gmmOutArgs);
         if (status != GMM_SUCCESS)

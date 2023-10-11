@@ -1656,6 +1656,8 @@ MOS_STATUS Mos_Specific_SetGpuContextHandle(
 {
     MOS_OS_FUNCTION_ENTER;
 
+    if (Mos_Solo_IsEnabled(nullptr)) return MOS_STATUS_SUCCESS;
+
     MOS_OS_CHK_NULL_RETURN(pOsInterface);
     MOS_OS_CHK_NULL_RETURN(pOsInterface->osContextPtr);
 
@@ -4693,6 +4695,7 @@ MOS_STATUS Mos_Specific_DestroyGpuContextByHandle(
     PMOS_INTERFACE        pOsInterface,
     GPU_CONTEXT_HANDLE    gpuContextHandle)
 {
+    if (Mos_Solo_IsEnabled(nullptr)) return MOS_STATUS_SUCCESS;
     if (pOsInterface && pOsInterface->apoMosEnabled)
     {
         return MosInterface::DestroyGpuContext(pOsInterface->osStreamState, gpuContextHandle);
