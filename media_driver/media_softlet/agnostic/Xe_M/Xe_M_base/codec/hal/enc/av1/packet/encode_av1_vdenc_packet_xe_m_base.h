@@ -105,8 +105,6 @@ namespace encode
 
         MOS_STATUS AddAllCmds_AVP_SEGMENT_STATE(PMOS_COMMAND_BUFFER cmdBuffer) const;
 
-        MOS_STATUS AddAllCmds_AVP_PAK_INSERT_OBJECT(PMOS_COMMAND_BUFFER cmdBuffer) const;
-
         MOS_STATUS AddAllCmds_AVP_PIPE_MODE_SELECT(PMOS_COMMAND_BUFFER cmdBuffer) const;
 
 #if USE_CODECHAL_DEBUG_TOOL

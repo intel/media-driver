@@ -409,14 +409,14 @@ namespace encode
             uint32_t nalNum = 0;
             for (uint32_t i = 0; i < MAX_NUM_OBU_TYPES && m_basicFeature->m_nalUnitParams[i]->uiSize > 0; i++)
             {
-                nalNum = i;
+                nalNum++;
             }
 
             params.bsBuffer             = &m_basicFeature->m_bsBuffer;
             params.endOfHeaderInsertion = false;
 
             // Support multiple packed header buffer
-            for (uint32_t i = 0; i <= nalNum; i++)
+            for (uint32_t i = 0; i < nalNum; i++)
             {
                 uint32_t nalUnitSize   = m_basicFeature->m_nalUnitParams[i]->uiSize;
                 uint32_t nalUnitOffset = m_basicFeature->m_nalUnitParams[i]->uiOffset;
@@ -427,7 +427,7 @@ namespace encode
                 {
                     params.bitSize    = nalUnitSize * 8;
                     params.offset     = nalUnitOffset;
-                    params.lastHeader = !tgOBUValid && (i == nalNum);
+                    params.lastHeader = !tgOBUValid && (i+1 == nalNum);
 
                     m_avpItf->MHW_ADDCMD_F(AVP_PAK_INSERT_OBJECT)(cmdBuffer);
                     m_osInterface->pfnAddCommand(cmdBuffer, GetExtraData(), GetExtraSize());

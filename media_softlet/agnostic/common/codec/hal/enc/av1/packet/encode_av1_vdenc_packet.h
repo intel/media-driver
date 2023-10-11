@@ -316,6 +316,8 @@ protected:
 
     virtual MOS_STATUS AddAllCmds_AVP_SURFACE_STATE(PMOS_COMMAND_BUFFER cmdBuffer) const;
 
+    virtual MOS_STATUS AddAllCmds_AVP_PAK_INSERT_OBJECT(PMOS_COMMAND_BUFFER cmdBuffer) const;
+
     virtual MOS_STATUS GetVdencStateCommandsDataSize(uint32_t *commandsSize, uint32_t *patchListSize) const;
 
     virtual MOS_STATUS GetVdencPrimitiveCommandsDataSize(uint32_t *commandsSize, uint32_t *patchListSize) const;

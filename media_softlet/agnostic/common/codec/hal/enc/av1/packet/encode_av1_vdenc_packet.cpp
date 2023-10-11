@@ -28,6 +28,7 @@
 #include "encode_status_report_defs.h"
 #include "codec_def_common_av1.h"
 #include "media_perf_profiler.h"
+#include "hal_oca_interface_next.h"
 
 namespace encode{
     Av1VdencPkt::Av1VdencPkt(MediaPipeline* pipeline, MediaTask* task, CodechalHwInterfaceNext* hwInterface) :
@@ -1060,6 +1061,99 @@ namespace encode{
         return MOS_STATUS_SUCCESS;
     }
 
+    MOS_STATUS Av1VdencPkt::AddAllCmds_AVP_PAK_INSERT_OBJECT(PMOS_COMMAND_BUFFER cmdBuffer) const
+    {
+        ENCODE_FUNC_CALL();
+
+        ENCODE_CHK_NULL_RETURN(m_osInterface);
+        ENCODE_CHK_NULL_RETURN(cmdBuffer);
+
+        auto &params = m_avpItf->MHW_GETPAR_F(AVP_PAK_INSERT_OBJECT)();
+        params       = {};
+
+        auto GetExtraData = [&]() { return params.bsBuffer->pBase + params.offset; };
+        auto GetExtraSize = [&]() { return (params.bitSize + 7) >> 3; };
+
+        // First, Send all other OBU bit streams other than tile group OBU when it's first tile in frame
+        uint32_t   tileIdx    = 0;
+        const bool tgOBUValid = m_basicFeature->m_slcData[0].BitSize > 0 ? true : false;
+
+        RUN_FEATURE_INTERFACE_RETURN(Av1EncodeTile, Av1FeatureIDs::encodeTile, GetTileIdx, tileIdx);
+        auto brcFeature = dynamic_cast<Av1Brc *>(m_featureManager->GetFeature(Av1FeatureIDs::av1BrcFeature));
+        ENCODE_CHK_NULL_RETURN(brcFeature);
+        if (tileIdx == 0)
+        {
+            uint32_t nalNum = 0;
+            for (uint8_t i = 0; i < MAX_NUM_OBU_TYPES && m_nalUnitParams[i]->uiSize > 0; i++)
+            {
+                nalNum++;
+            }
+
+            params.bsBuffer             = &m_basicFeature->m_bsBuffer;
+            params.endOfHeaderInsertion = false;
+
+            // Support multiple packed header buffer
+            for (uint32_t i = 0; i < nalNum; i++)
+            {
+                const uint32_t nalUnitSize   = m_nalUnitParams[i]->uiSize;
+                const uint32_t nalUnitOffset = m_nalUnitParams[i]->uiOffset;
+
+                ENCODE_ASSERT(nalUnitSize < CODECHAL_ENCODE_AV1_PAK_INSERT_UNCOMPRESSED_HEADER);
+
+                params.bitSize    = nalUnitSize * 8;
+                params.offset     = nalUnitOffset;
+                params.lastHeader = !tgOBUValid && (i+1 == nalNum);
+
+                if (IsFrameHeader(*(m_basicFeature->m_bsBuffer.pBase + nalUnitOffset)))
+                {
+                    if (brcFeature->IsBRCEnabled())
+                    {
+                        auto pakInsertOutputBatchBuffer = brcFeature->GetPakInsertOutputBatchBuffer(m_pipeline->m_currRecycledBufIdx);
+                        ENCODE_CHK_NULL_RETURN(pakInsertOutputBatchBuffer);
+                        // send pak insert obj cmds after back annotation
+                        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_BATCH_BUFFER_START)(cmdBuffer, pakInsertOutputBatchBuffer));
+                        auto slbbData = brcFeature->GetSLBData();
+                        HalOcaInterfaceNext::OnSubLevelBBStart(
+                            *cmdBuffer,
+                            m_osInterface->pOsContext,
+                            &pakInsertOutputBatchBuffer->OsResource,
+                            pakInsertOutputBatchBuffer->dwOffset,
+                            false,
+                            slbbData.pakInsertSlbSize);
+
+                    }
+                    else
+                    {
+                        m_avpItf->MHW_ADDCMD_F(AVP_PAK_INSERT_OBJECT)(cmdBuffer);
+                        m_osInterface->pfnAddCommand(cmdBuffer, GetExtraData(), GetExtraSize());
+                    }
+                }
+                else
+                {
+                    m_avpItf->MHW_ADDCMD_F(AVP_PAK_INSERT_OBJECT)(cmdBuffer);
+                    m_osInterface->pfnAddCommand(cmdBuffer, GetExtraData(), GetExtraSize());
+                }
+            }
+        }
+
+        // Second, Send tile group OBU when it is first tile in tile group
+        if (tgOBUValid)
+        {
+            ENCODE_CHK_NULL_RETURN(m_featureManager);
+
+            auto tileFeature = dynamic_cast<Av1EncodeTile *>(m_featureManager->GetFeature(Av1FeatureIDs::encodeTile));
+            ENCODE_CHK_NULL_RETURN(tileFeature);
+
+            MHW_CHK_STATUS_RETURN(tileFeature->MHW_SETPAR_F(AVP_PAK_INSERT_OBJECT)(params));
+            if (params.bitSize)
+            {
+                m_avpItf->MHW_ADDCMD_F(AVP_PAK_INSERT_OBJECT)(cmdBuffer);
+                m_osInterface->pfnAddCommand(cmdBuffer, GetExtraData(), GetExtraSize());
+            }
+        }
+
+        return MOS_STATUS_SUCCESS;
+    }
     MOS_STATUS Av1VdencPkt::GetVdencStateCommandsDataSize(uint32_t *commandsSize, uint32_t *patchListSize) const
     {
         uint32_t            maxSize          = 0;
