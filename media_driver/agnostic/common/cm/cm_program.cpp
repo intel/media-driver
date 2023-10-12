@@ -581,7 +581,7 @@ int32_t CmProgramRT::Initialize( void* cisaCode, const uint32_t cisaCodeSize, co
             }
             CmSafeMemSet( errorMsg, 0, CM_JIT_ERROR_MESSAGE_SIZE );
 
-            FINALIZER_INFO *jitProfInfo = (FINALIZER_INFO *)malloc(sizeof(FINALIZER_INFO));
+            FINALIZER_INFO *jitProfInfo = (FINALIZER_INFO *)malloc(CM_JIT_PROF_INFO_SIZE);
             if(jitProfInfo == nullptr)
             {
                 CM_ASSERTMESSAGE("Error: Out of system memory.");
@@ -590,7 +590,7 @@ int32_t CmProgramRT::Initialize( void* cisaCode, const uint32_t cisaCodeSize, co
                 hr = CM_OUT_OF_HOST_MEMORY;
                 goto finish;
             }
-            CmSafeMemSet(jitProfInfo, 0, sizeof(FINALIZER_INFO));
+            CmSafeMemSet( jitProfInfo, 0, CM_JIT_PROF_INFO_SIZE );
 
             void *extra_info = nullptr;
             CmNotifierGroup *notifiers = m_device->GetNotifiers();

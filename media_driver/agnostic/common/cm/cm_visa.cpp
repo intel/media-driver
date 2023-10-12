@@ -39,9 +39,8 @@ ISAfile::ISAfile(const ISAfile& other) {
     data = other.data;
     end = other.end;
     size = other.size;
-    unsigned int error_length = std::strlen(other.error) + 1;
-    char *perror = new char[error_length];
-    MOS_SecureMemcpy(perror, error_length, other.error, error_length);
+    char *perror = new char[std::strlen(other.error)];
+    MOS_SecureMemcpy(perror, sizeof(perror), other.error, sizeof(other.error));
     error = perror;
     kernel_data_loaded = other.kernel_data_loaded;
     function_data_loaded = other.function_data_loaded;
@@ -67,9 +66,8 @@ ISAfile& ISAfile::operator= (const ISAfile& other) {
         end = other.end;
         size = other.size;
         delete[] error;
-        unsigned int error_length = std::strlen(other.error) + 1;
-        char *perror = new char[error_length];
-        MOS_SecureMemcpy(perror, error_length, other.error, error_length);
+        char *perror = new char[std::strlen(other.error)];
+        MOS_SecureMemcpy(perror, sizeof perror, other.error, sizeof other.error);
         error = perror;
         kernel_data_loaded = other.kernel_data_loaded;
         function_data_loaded = other.function_data_loaded;

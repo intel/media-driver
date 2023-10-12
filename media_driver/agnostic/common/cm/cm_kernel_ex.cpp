@@ -585,10 +585,8 @@ CmSurfaceState* CmKernelEx::GetSurfaceState(CmSurface *surface, uint32_t index)
                 }
                 default:
                 {
-                    break;
                 }
             }
-            break;
         }
         case CM_ENUM_CLASS_TYPE_CMSURFACESAMPLER8X8:
         {
