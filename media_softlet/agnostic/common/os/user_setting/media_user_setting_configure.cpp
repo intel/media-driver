@@ -252,6 +252,10 @@ std::string Configure::GetReadPath(
     {
         return def->GetSubPath();
     }
+    else if (option == MEDIA_USER_SETTING_INTERNAL_REPORT)
+    {
+        return m_statedReportPath;
+    }
     else
     {
         return GetExternalPath(option);

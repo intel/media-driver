@@ -36,6 +36,7 @@
 ** |   0   | Reserved for DL, but not used now                               |
 \*--------------------------------------------------------------------------*/
 #define MEDIA_USER_SETTING_INTERNAL             0x1
+#define MEDIA_USER_SETTING_INTERNAL_REPORT      0x4
 
 #define __MEDIA_USER_FEATURE_VALUE_ENABLE_SOFTPIN       "Enable Softpin"
 #define __MEDIA_USER_FEATURE_VALUE_DISABLE_KMD_WATCHDOG "Disable KMD Watchdog"
