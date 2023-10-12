@@ -455,6 +455,13 @@
 #define __MEDIA_USER_FEATURE_VALUE_ENGINE_INSTANCE_VECS              "VECS Instance"
 #define __MEDIA_USER_FEATURE_VALUE_ENGINE_INSTANCE_CCS               "CCS Instance"
 
+// IP alignment support
+#define __MEDIA_USER_FEATURE_VALUE_IP_ALIGNMENT_DECODE_ENABLE        "EnableSyncSubmissionDecode"
+#define __MEDIA_USER_FEATURE_VALUE_IP_ALIGNMENT_ENCODE_ENABLE        "EnableSyncSubmissionEncode"
+#define __MEDIA_USER_FEATURE_VALUE_IP_ALIGNMENT_VPP_ENABLE           "EnableSyncSubmissionVPP"
+#define __MEDIA_USER_FEATURE_VALUE_IP_ALIGNMENT_DECODE_TIMEOUT       "SyncSubmissionTimeOutDecode"
+#define __MEDIA_USER_FEATURE_VALUE_IP_ALIGNMENT_ENCODE_TIMEOUT       "SyncSubmissionTimeOutEncode"
+#define __MEDIA_USER_FEATURE_VALUE_IP_ALIGNMENT_VPP_TIMEOUT          "SyncSubmissionTimeOutVPP"
 
 
 #endif  // __MOS_UTIL_USER_FEATURE_KEYS_H__

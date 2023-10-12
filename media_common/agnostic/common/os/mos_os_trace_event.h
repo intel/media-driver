@@ -394,6 +394,9 @@ typedef enum _MEDIA_EVENT
     EVENT_DECODE_DDI_SETGPUPRIORITYVA,             //! event for Decode DDI SetGpuPriority
     EVENT_DECODE_FEATURE_DECODEMODE_REPORTVA,      //! event for Decode Feature Decode Mode Report
     EVENT_DECODE_INFO_PICTUREVA,                   //! event for Decode Picture Info VA
+    EVENT_DECODE_IP_ALIGNMENT,                     //! event for Decode IP Alignment
+    EVENT_ENCODE_IP_ALIGNMENT,                     //! event for Encode IP Alignment
+    EVENT_VPP_IP_ALIGNMENT,                        //! event for VPP IP Alignment
 } MEDIA_EVENT;
 
 typedef enum _MEDIA_EVENT_TYPE

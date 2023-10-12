@@ -157,6 +157,48 @@ MOS_STATUS MosUserSetting::InitMosCommonUserSetting(MediaUserSettingSharedPtr us
         int32_t(0),
         false);
 
+    DeclareUserSettingKey(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_IP_ALIGNMENT_DECODE_ENABLE,
+        MediaUserSetting::Group::Device,
+        2,
+        false);
+
+    DeclareUserSettingKey(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_IP_ALIGNMENT_ENCODE_ENABLE,
+        MediaUserSetting::Group::Device,
+        2,
+        false);
+
+    DeclareUserSettingKey(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_IP_ALIGNMENT_VPP_ENABLE,
+        MediaUserSetting::Group::Device,
+        2,
+        false);
+
+    DeclareUserSettingKey(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_IP_ALIGNMENT_DECODE_TIMEOUT,
+        MediaUserSetting::Group::Device,
+        20,
+        false);
+
+    DeclareUserSettingKey(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_IP_ALIGNMENT_ENCODE_TIMEOUT,
+        MediaUserSetting::Group::Device,
+        20,
+        false);
+
+    DeclareUserSettingKey(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_IP_ALIGNMENT_VPP_TIMEOUT,
+        MediaUserSetting::Group::Device,
+        20,
+        false);
+
     DeclareUserSettingKey(  //TRUE for Enabling Vebox Scalability. (Default FALSE: disabled")
         userSettingPtr,
         __MEDIA_USER_FEATURE_VALUE_ENABLE_VEBOX_SCALABILITY_MODE,
