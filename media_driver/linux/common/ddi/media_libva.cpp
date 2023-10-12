@@ -5282,7 +5282,12 @@ static VAStatus DdiMedia_CopySurfaceToImage(
         if(image->num_planes > 2)
         {
             uint8_t *vSrc = uSrc + chromaPitch * chromaHeight;
-            uint8_t *vDst = yDst + image->offsets[2];
+
+            // there may be padding between U/V plane
+            // should use pitch * height as offset, not image->offsets[2]
+            // otherwise V plane may down shift.
+            uint8_t *vDst = uDst + imageChromaPitch * imageChromaHeight;
+
             DdiMedia_CopyPlane(vDst, image->pitches[2], vSrc, chromaPitch, imageChromaHeight);
         }
     }
