@@ -109,6 +109,13 @@ MOS_STATUS DecodeDownSamplingFeature::Update(void *params)
     m_scalingMode                  = procParams->m_scalingMode;
     m_isReferenceOnlyPattern       = procParams->m_isReferenceOnlyPattern;
 
+    if (m_isReferenceOnlyPattern)
+    {
+        m_enabled = false;
+        m_inputSurface = procParams->m_inputSurface;
+        return MOS_STATUS_SUCCESS;
+    }
+
     DECODE_CHK_NULL(procParams->m_outputSurface);
     m_outputSurface = *(procParams->m_outputSurface);
     DECODE_CHK_STATUS(m_allocator->GetSurfaceInfo(&m_outputSurface));
