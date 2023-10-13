@@ -1964,6 +1964,12 @@ typedef struct _CM_HAL_STATE
         uint64_t                    kernelId);
 
     uint32_t (*pfnRegisterStream) (PCM_HAL_STATE state);
+
+    void(*pfnUnRegisterStream)
+        (
+        uint32_t streamIndex,
+        PCM_HAL_STATE state);
+
 } CM_HAL_STATE, *PCM_HAL_STATE;
 
 typedef struct _CM_HAL_MI_REG_OFFSETS
@@ -2107,6 +2113,10 @@ MOS_STATUS HalCm_GetGpuTime(
 
 uint32_t HalCm_RegisterStream(
     PCM_HAL_STATE               state);
+
+void HalCm_UnRegisterStream(
+    uint32_t      streamIndex,
+    PCM_HAL_STATE state);
 
 MOS_STATUS HalCm_GetSipBinary(
     PCM_HAL_STATE               state);

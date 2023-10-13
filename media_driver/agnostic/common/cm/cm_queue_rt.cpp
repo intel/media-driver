@@ -121,6 +121,13 @@ int32_t CmQueueRT::Destroy(CmQueueRT* &queue )
 
     queue->DestroyComputeGpuContext();
 
+    PCM_HAL_STATE cmHalState = ((PCM_CONTEXT_DATA)queue->m_device->GetAccelData())->cmHalState;
+    CM_CHK_NULL_RETURN_CMERROR(cmHalState);
+    if (cmHalState->pfnUnRegisterStream != nullptr && queue->m_streamIndex != cmHalState->osInterface->streamIndex)
+    {
+        cmHalState->pfnUnRegisterStream(queue->m_streamIndex, cmHalState);
+    }
+
     CmSafeDelete( queue );
 
     return result;
