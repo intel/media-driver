@@ -889,15 +889,19 @@ namespace encode{
 
     MOS_STATUS Av1VdencPkt::CalculateAvpPictureStateCommandSize(uint32_t * commandsSize, uint32_t * patchListSize)
     {
-        *commandsSize = m_miItf->MHW_GETSIZE_F(MI_FLUSH_DW)() * 10                +  //8 for UpdateStatusReport, 2 for profiler
-                        m_miItf->MHW_GETSIZE_F(MI_STORE_DATA_IMM)() * 10          +  //4 For UpdateStatusReport, 6 for profiler
-                        m_miItf->MHW_GETSIZE_F(MI_STORE_REGISTER_MEM)() * 16      +  //16 for profiler
-                        m_miItf->MHW_GETSIZE_F(MI_ATOMIC)() * 4;                     //For UpdateStatusReport
-
-        *patchListSize = PATCH_LIST_COMMAND(mhw::mi::Itf::MI_FLUSH_DW_CMD) * 10            +
-                         PATCH_LIST_COMMAND(mhw::mi::Itf::MI_STORE_DATA_IMM_CMD) * 10      +
-                         PATCH_LIST_COMMAND(mhw::mi::Itf::MI_STORE_REGISTER_MEM_CMD) * 16  +
-                         PATCH_LIST_COMMAND(mhw::mi::Itf::MI_ATOMIC_CMD) * 4;
+        *commandsSize = m_miItf->MHW_GETSIZE_F(MI_FLUSH_DW)() * 25 +                                           //8 for UpdateStatusReport, 2 for profiler, 15 for metadata
+                        m_miItf->MHW_GETSIZE_F(MI_STORE_DATA_IMM)() * 16 +                                     //4 For UpdateStatusReport, 6 for profiler, 6 for metadata
+                        m_miItf->MHW_GETSIZE_F(MI_STORE_REGISTER_MEM)() * 31 +                                 //16 for profiler 15 for metadata
+                        m_miItf->MHW_GETSIZE_F(MI_LOAD_REGISTER_MEM)() * 15 +                                 //16 for profiler 15 for metadata
+                        m_miItf->MHW_GETSIZE_F(MI_ATOMIC)() * 19 +                                              //For UpdateStatusReport, 15 for metadata
+                        m_miItf->MHW_GETSIZE_F(MI_COPY_MEM_MEM)() * (sizeof(MetadataAV1PostFeature) / 4 + 4);  //for metadata
+                                                                                                                                                                                                    
+        *patchListSize = PATCH_LIST_COMMAND(mhw::mi::Itf::MI_FLUSH_DW_CMD) * 25            +
+                         PATCH_LIST_COMMAND(mhw::mi::Itf::MI_STORE_DATA_IMM_CMD) * 16      +
+                         PATCH_LIST_COMMAND(mhw::mi::Itf::MI_STORE_REGISTER_MEM_CMD) * 31  +
+                         PATCH_LIST_COMMAND(mhw::mi::Itf::MI_LOAD_REGISTER_MEM_CMD) * 15   +
+                         PATCH_LIST_COMMAND(mhw::mi::Itf::MI_ATOMIC_CMD) * 19              +
+                         PATCH_LIST_COMMAND(mhw::mi::Itf::MI_COPY_MEM_MEM_CMD) * (sizeof(MetadataAV1PostFeature) / 4 + 4);
 
         return MOS_STATUS_SUCCESS;
     }
@@ -1482,6 +1486,290 @@ namespace encode{
         ENCODE_CHK_NULL_RETURN(patchListSize);
         *commandsSize  = maxSize;
         *patchListSize = patchListMaxSize;
+
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MOS_STATUS Av1VdencPkt::PrepareHWMetaData(MOS_COMMAND_BUFFER *cmdBuffer)
+    {
+        ENCODE_FUNC_CALL();
+
+        ENCODE_CHK_NULL_RETURN(m_basicFeature);
+        if (!m_basicFeature->m_resMetadataBuffer)
+        {
+            return MOS_STATUS_SUCCESS;
+        }
+
+        AV1MetaDataOffset AV1ResourceOffset = m_basicFeature->m_AV1metaDataOffset;
+        MetaDataOffset    resourceOffset    = m_basicFeature->m_metaDataOffset;
+
+        //ENCODER_OUTPUT_METADATA
+        auto &storeDataParams = m_miItf->MHW_GETPAR_F(MI_STORE_DATA_IMM)();
+        storeDataParams       = {};
+
+        ENCODE_CHK_STATUS_RETURN(PrepareHWMetaDataFromDriver(cmdBuffer, resourceOffset, AV1ResourceOffset));
+        ENCODE_CHK_STATUS_RETURN(PrepareHWMetaDataFromStreamout(cmdBuffer, resourceOffset));
+        ENCODE_CHK_STATUS_RETURN(PrepareHWMetaDataFromRegister(cmdBuffer, resourceOffset));
+
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MOS_STATUS Av1VdencPkt::PrepareHWMetaDataFromStreamout(MOS_COMMAND_BUFFER *cmdBuffer, const MetaDataOffset resourceOffset)
+    {
+        ENCODE_FUNC_CALL();
+
+        auto xCalAtomic = [&](PMOS_RESOURCE presDst, uint32_t dstOffset, PMOS_RESOURCE presSrc, uint32_t srcOffset, mhw::mi::MHW_COMMON_MI_ATOMIC_OPCODE opCode) {
+            auto  mmioRegisters      = m_hwInterface->GetVdencInterfaceNext()->GetMmioRegisters(m_vdboxIndex);
+            auto &miLoadRegMemParams = m_miItf->MHW_GETPAR_F(MI_LOAD_REGISTER_MEM)();
+            auto &flushDwParams      = m_miItf->MHW_GETPAR_F(MI_FLUSH_DW)();
+            auto &atomicParams       = m_miItf->MHW_GETPAR_F(MI_ATOMIC)();
+
+            miLoadRegMemParams = {};
+            flushDwParams      = {};
+            atomicParams       = {};
+
+            miLoadRegMemParams.presStoreBuffer = presSrc;
+            miLoadRegMemParams.dwOffset        = srcOffset;
+            miLoadRegMemParams.dwRegister      = mmioRegisters->generalPurposeRegister0LoOffset;
+            ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_MEM)(cmdBuffer));
+
+            ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(cmdBuffer));
+
+            atomicParams.pOsResource      = presDst;
+            atomicParams.dwResourceOffset = dstOffset;
+            atomicParams.dwDataSize       = sizeof(uint32_t);
+            atomicParams.Operation        = opCode;
+            ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_ATOMIC)(cmdBuffer));
+
+            return MOS_STATUS_SUCCESS;
+        };
+
+        uint32_t tileNum     = 0;
+        auto     tileFeature = dynamic_cast<Av1EncodeTile *>(m_featureManager->GetFeature(Av1FeatureIDs::encodeTile));
+        tileFeature->GetTileNum(tileNum);
+
+        uint32_t      frameSubregionOffset = resourceOffset.dwMetaDataSize;
+        MOS_RESOURCE *tileRecordBuffer     = nullptr;
+        RUN_FEATURE_INTERFACE_RETURN(Av1EncodeTile, Av1FeatureIDs::encodeTile, GetTileRecordBuffer, m_basicFeature->m_currOriginalPic.FrameIdx, tileRecordBuffer);  //curroriginalpic.frameidx
+        ENCODE_CHK_NULL_RETURN(tileRecordBuffer);
+
+        m_basicFeature->m_numSlices = tileNum;
+        auto &miCpyMemMemParams     = m_miItf->MHW_GETPAR_F(MI_COPY_MEM_MEM)();
+        auto &storeDataParams       = m_miItf->MHW_GETPAR_F(MI_STORE_DATA_IMM)();
+        storeDataParams             = {};
+        storeDataParams.pOsResource = m_basicFeature->m_resMetadataBuffer;
+
+        for (uint32_t tileIdx = 0; tileIdx < tileNum; tileIdx++)
+        {
+            uint32_t frameSubregionOffset = resourceOffset.dwMetaDataSize + tileIdx * resourceOffset.dwMetaDataSubRegionSize;
+            miCpyMemMemParams.presSrc     = tileRecordBuffer;
+            miCpyMemMemParams.dwSrcOffset = tileIdx * sizeof(PakHwTileSizeRecord) + 2 * sizeof(uint32_t);  //skip dword0 dword1
+            miCpyMemMemParams.presDst     = m_basicFeature->m_resMetadataBuffer;
+            miCpyMemMemParams.dwDstOffset = frameSubregionOffset + resourceOffset.dwbSize;
+            ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_COPY_MEM_MEM)(cmdBuffer));
+
+            storeDataParams.dwResourceOffset = frameSubregionOffset + resourceOffset.dwbStartOffset;
+            storeDataParams.dwValue          = 0;
+            ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(cmdBuffer));
+
+            storeDataParams.dwResourceOffset = frameSubregionOffset + resourceOffset.dwbHeaderSize;
+            storeDataParams.dwValue          = 0;
+            ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(cmdBuffer));
+
+            //count for fame bytescount
+            ENCODE_CHK_STATUS_RETURN(xCalAtomic(m_basicFeature->m_resMetadataBuffer, resourceOffset.dwEncodedBitstreamWrittenBytesCount, tileRecordBuffer, tileIdx * sizeof(PakHwTileSizeRecord) + 2 * sizeof(uint32_t), mhw::mi::MHW_MI_ATOMIC_ADD));
+        }
+
+        //lcu count Intra/Inter/Skip CU Cnt
+        PMOS_RESOURCE tileStatisticsPakStreamoutBuffer = m_basicFeature->m_tileStatisticsPakStreamoutBuffer;
+        ENCODE_CHK_NULL_RETURN(tileStatisticsPakStreamoutBuffer);
+
+        // LCUSkipIn8x8Unit
+        miCpyMemMemParams.presSrc     = tileStatisticsPakStreamoutBuffer;
+        miCpyMemMemParams.dwSrcOffset = 61 * sizeof(uint32_t);
+        miCpyMemMemParams.presDst     = m_basicFeature->m_resMetadataBuffer;
+        miCpyMemMemParams.dwDstOffset = resourceOffset.dwEncodeStats + resourceOffset.dwSkipCodingUnitsCount;
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_COPY_MEM_MEM)(cmdBuffer));
+
+        // NumCU_IntraDC, NumCU_IntraPlanar, NumCU_IntraAngular
+        miCpyMemMemParams.presSrc     = tileStatisticsPakStreamoutBuffer;
+        miCpyMemMemParams.dwSrcOffset = 24 * sizeof(uint32_t);
+        miCpyMemMemParams.dwDstOffset = resourceOffset.dwEncodeStats + resourceOffset.dwIntraCodingUnitsCount;
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_COPY_MEM_MEM)(cmdBuffer));
+        ENCODE_CHK_STATUS_RETURN(xCalAtomic(m_basicFeature->m_resMetadataBuffer, resourceOffset.dwEncodeStats + resourceOffset.dwIntraCodingUnitsCount, tileStatisticsPakStreamoutBuffer, 25 * sizeof(uint32_t), mhw::mi::MHW_MI_ATOMIC_ADD));
+        ENCODE_CHK_STATUS_RETURN(xCalAtomic(m_basicFeature->m_resMetadataBuffer, resourceOffset.dwEncodeStats + resourceOffset.dwIntraCodingUnitsCount, tileStatisticsPakStreamoutBuffer, 26 * sizeof(uint32_t), mhw::mi::MHW_MI_ATOMIC_ADD));
+        ENCODE_CHK_STATUS_RETURN(xCalAtomic(m_basicFeature->m_resMetadataBuffer, resourceOffset.dwEncodeStats + resourceOffset.dwIntraCodingUnitsCount, tileStatisticsPakStreamoutBuffer, 27 * sizeof(uint32_t), mhw::mi::MHW_MI_ATOMIC_ADD));
+        ENCODE_CHK_STATUS_RETURN(xCalAtomic(m_basicFeature->m_resMetadataBuffer, resourceOffset.dwEncodeStats + resourceOffset.dwIntraCodingUnitsCount, tileStatisticsPakStreamoutBuffer, 28 * sizeof(uint32_t), mhw::mi::MHW_MI_ATOMIC_ADD));
+        ENCODE_CHK_STATUS_RETURN(xCalAtomic(m_basicFeature->m_resMetadataBuffer, resourceOffset.dwEncodeStats + resourceOffset.dwIntraCodingUnitsCount, tileStatisticsPakStreamoutBuffer, 29 * sizeof(uint32_t), mhw::mi::MHW_MI_ATOMIC_ADD));
+        ENCODE_CHK_STATUS_RETURN(xCalAtomic(m_basicFeature->m_resMetadataBuffer, resourceOffset.dwEncodeStats + resourceOffset.dwIntraCodingUnitsCount, tileStatisticsPakStreamoutBuffer, 30 * sizeof(uint32_t), mhw::mi::MHW_MI_ATOMIC_ADD));
+        ENCODE_CHK_STATUS_RETURN(xCalAtomic(m_basicFeature->m_resMetadataBuffer, resourceOffset.dwEncodeStats + resourceOffset.dwIntraCodingUnitsCount, tileStatisticsPakStreamoutBuffer, 31 * sizeof(uint32_t), mhw::mi::MHW_MI_ATOMIC_ADD));
+        ENCODE_CHK_STATUS_RETURN(xCalAtomic(m_basicFeature->m_resMetadataBuffer, resourceOffset.dwEncodeStats + resourceOffset.dwIntraCodingUnitsCount, tileStatisticsPakStreamoutBuffer, 32 * sizeof(uint32_t), mhw::mi::MHW_MI_ATOMIC_ADD));
+        ENCODE_CHK_STATUS_RETURN(xCalAtomic(m_basicFeature->m_resMetadataBuffer, resourceOffset.dwEncodeStats + resourceOffset.dwIntraCodingUnitsCount, tileStatisticsPakStreamoutBuffer, 33 * sizeof(uint32_t), mhw::mi::MHW_MI_ATOMIC_ADD));
+        ENCODE_CHK_STATUS_RETURN(xCalAtomic(m_basicFeature->m_resMetadataBuffer, resourceOffset.dwEncodeStats + resourceOffset.dwIntraCodingUnitsCount, tileStatisticsPakStreamoutBuffer, 34 * sizeof(uint32_t), mhw::mi::MHW_MI_ATOMIC_ADD));
+        ENCODE_CHK_STATUS_RETURN(xCalAtomic(m_basicFeature->m_resMetadataBuffer, resourceOffset.dwEncodeStats + resourceOffset.dwIntraCodingUnitsCount, tileStatisticsPakStreamoutBuffer, 35 * sizeof(uint32_t), mhw::mi::MHW_MI_ATOMIC_ADD));
+        ENCODE_CHK_STATUS_RETURN(xCalAtomic(m_basicFeature->m_resMetadataBuffer, resourceOffset.dwEncodeStats + resourceOffset.dwIntraCodingUnitsCount, tileStatisticsPakStreamoutBuffer, 36 * sizeof(uint32_t), mhw::mi::MHW_MI_ATOMIC_ADD));
+
+        // NumCU_MVdirL0, NumCU_MVdirL1, NumCU_MVdirBi
+        miCpyMemMemParams.presSrc     = tileStatisticsPakStreamoutBuffer;
+        miCpyMemMemParams.dwSrcOffset = 85 * sizeof(uint32_t);
+        miCpyMemMemParams.dwDstOffset = resourceOffset.dwEncodeStats + resourceOffset.dwInterCodingUnitsCount;
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_COPY_MEM_MEM)(cmdBuffer));
+        ENCODE_CHK_STATUS_RETURN(xCalAtomic(m_basicFeature->m_resMetadataBuffer, resourceOffset.dwEncodeStats + resourceOffset.dwInterCodingUnitsCount, tileStatisticsPakStreamoutBuffer, 86 * sizeof(uint32_t), mhw::mi::MHW_MI_ATOMIC_ADD));
+        ENCODE_CHK_STATUS_RETURN(xCalAtomic(m_basicFeature->m_resMetadataBuffer, resourceOffset.dwEncodeStats + resourceOffset.dwInterCodingUnitsCount, tileStatisticsPakStreamoutBuffer, 87 * sizeof(uint32_t), mhw::mi::MHW_MI_ATOMIC_ADD));
+
+        // Average MV_X/MV_Y, report (0,0) as temp solution, later may need kernel involved
+        storeDataParams.dwResourceOffset = resourceOffset.dwEncodeStats + resourceOffset.dwAverageMotionEstimationXDirection;
+        storeDataParams.dwValue          = 0;
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(cmdBuffer));
+
+        storeDataParams.dwResourceOffset = resourceOffset.dwEncodeStats + resourceOffset.dwAverageMotionEstimationYDirection;
+        storeDataParams.dwValue          = 0;
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(cmdBuffer));
+
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MOS_STATUS Av1VdencPkt::PrepareHWMetaDataFromRegister(MOS_COMMAND_BUFFER *cmdBuffer, const MetaDataOffset resourceOffset)
+    {
+        ENCODE_FUNC_CALL();
+
+        //qpy
+        auto  mmioRegisters               = m_avpItf->GetMmioRegisters(m_vdboxIndex);
+        auto &storeRegMemParams           = m_miItf->MHW_GETPAR_F(MI_STORE_REGISTER_MEM)();
+        storeRegMemParams                 = {};
+        storeRegMemParams.presStoreBuffer = m_basicFeature->m_resMetadataBuffer;
+        storeRegMemParams.dwOffset        = resourceOffset.dwEncodeStats + resourceOffset.dwAverageQP;
+        storeRegMemParams.dwRegister      = mmioRegisters->avpAv1QpStatusCountRegOffset;  //This register stores cummulative QP for all SBs
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_REGISTER_MEM)(cmdBuffer));
+
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MOS_STATUS Av1VdencPkt::PrepareHWMetaDataFromDriver(MOS_COMMAND_BUFFER *cmdBuffer, const MetaDataOffset resourceOffset, const AV1MetaDataOffset AV1ResourceOffset)
+    {
+        ENCODE_FUNC_CALL();
+
+        auto &storeDataParams            = m_miItf->MHW_GETPAR_F(MI_STORE_DATA_IMM)();
+        storeDataParams                  = {};
+        storeDataParams.pOsResource      = m_basicFeature->m_resMetadataBuffer;
+        storeDataParams.pOsResource      = m_basicFeature->m_resMetadataBuffer;
+        storeDataParams.dwResourceOffset = resourceOffset.dwEncodeErrorFlags;
+        storeDataParams.dwValue          = 0;
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(cmdBuffer));
+
+        uint32_t tileNum     = 0;
+        auto     tileFeature = dynamic_cast<Av1EncodeTile *>(m_featureManager->GetFeature(Av1FeatureIDs::encodeTile));
+        tileFeature->GetTileNum(tileNum);
+        storeDataParams.dwResourceOffset = resourceOffset.dwWrittenSubregionsCount;
+        storeDataParams.dwValue          = tileNum;  //frame subregion num
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(cmdBuffer));
+
+        PMOS_RESOURCE           previewMetadataBuffer = nullptr;
+        MOS_ALLOC_GFXRES_PARAMS allocParams;
+        MOS_ZeroMemory(&allocParams, sizeof(MOS_ALLOC_GFXRES_PARAMS));
+        allocParams.Type               = MOS_GFXRES_BUFFER;
+        allocParams.TileType           = MOS_TILE_LINEAR;
+        allocParams.Format             = Format_Buffer;
+        allocParams.Flags.bNotLockable = false;
+        allocParams.dwBytes            = sizeof(MetadataAV1PostFeature);
+        allocParams.pBufName           = "feature values for resMetadataBuffer";
+        previewMetadataBuffer          = m_allocator->AllocateResource(allocParams, false);
+
+        MOS_LOCK_PARAMS lockFlags;
+        MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
+        lockFlags.WriteOnly = 1;
+        uint8_t *data       = (uint8_t *)m_osInterface->pfnLockResource(
+            m_osInterface,
+            previewMetadataBuffer,
+            &lockFlags);
+
+        MetadataAV1PostFeature *previewMetadata = reinterpret_cast<MetadataAV1PostFeature *>(data);
+        ENCODE_CHK_NULL_RETURN(previewMetadata);
+
+        uint16_t numTileRows = 0;
+        uint16_t numTileCols = 0;
+        RUN_FEATURE_INTERFACE_RETURN(Av1EncodeTile, Av1FeatureIDs::encodeTile, GetTileRowColumns, numTileRows, numTileCols);
+        previewMetadata->tilePartition.ColCount            = numTileCols;
+        previewMetadata->tilePartition.ContextUpdateTileId = m_basicFeature->m_av1PicParams->context_update_tile_id;
+        previewMetadata->tilePartition.RowCount            = numTileRows;
+        for (int rowIdx = 0; rowIdx < numTileRows; rowIdx++)
+        {
+            previewMetadata->tilePartition.RowHeights[rowIdx] = m_basicFeature->m_av1PicParams->height_in_sbs_minus_1[rowIdx] + 1;
+        }
+        for (int colIdx = 0; colIdx < numTileCols; colIdx++)
+        {
+            previewMetadata->tilePartition.ColWidths[colIdx] = m_basicFeature->m_av1PicParams->width_in_sbs_minus_1[colIdx] + 1;
+        }
+
+        previewMetadata->postFeature.CompoundPredictionType = m_basicFeature->m_av1PicParams->dwModeControlFlags.fields.reference_mode == referenceModeSelect;
+
+        previewMetadata->postFeature.LoopFilter.LoopFilterLevel[0]       = m_basicFeature->m_av1PicParams->filter_level[0];
+        previewMetadata->postFeature.LoopFilter.LoopFilterLevel[1]       = m_basicFeature->m_av1PicParams->filter_level[1];
+        previewMetadata->postFeature.LoopFilter.LoopFilterLevelU         = m_basicFeature->m_av1PicParams->filter_level_u;
+        previewMetadata->postFeature.LoopFilter.LoopFilterLevelV         = m_basicFeature->m_av1PicParams->filter_level_v;
+        previewMetadata->postFeature.LoopFilter.LoopFilterSharpnessLevel = m_basicFeature->m_av1PicParams->cLoopFilterInfoFlags.fields.sharpness_level;
+        previewMetadata->postFeature.LoopFilter.LoopFilterDeltaEnabled   = m_basicFeature->m_av1PicParams->cLoopFilterInfoFlags.fields.mode_ref_delta_enabled;
+        previewMetadata->postFeature.LoopFilter.UpdateRefDelta           = m_basicFeature->m_av1PicParams->cLoopFilterInfoFlags.fields.mode_ref_delta_update;
+        previewMetadata->postFeature.LoopFilter.UpdateModeDelta          = m_basicFeature->m_av1PicParams->cLoopFilterInfoFlags.fields.mode_ref_delta_update;
+        for (int i = 0; i < 8; i++)
+            previewMetadata->postFeature.LoopFilter.RefDeltas[i] = m_basicFeature->m_av1PicParams->ref_deltas[i];
+        for (int i = 0; i < 2; i++)
+            previewMetadata->postFeature.LoopFilter.ModeDeltas[i] = m_basicFeature->m_av1PicParams->mode_deltas[i];
+
+        previewMetadata->postFeature.LoopFilterDelta.DeltaLFPresent = m_basicFeature->m_av1PicParams->dwModeControlFlags.fields.delta_lf_present_flag;
+        previewMetadata->postFeature.LoopFilterDelta.DeltaLFMulti   = m_basicFeature->m_av1PicParams->dwModeControlFlags.fields.delta_lf_multi;
+        previewMetadata->postFeature.LoopFilterDelta.DeltaLFRes     = m_basicFeature->m_av1PicParams->dwModeControlFlags.fields.log2_delta_lf_res;
+
+        previewMetadata->postFeature.Quantization.BaseQIndex   = m_basicFeature->m_av1PicParams->base_qindex;
+        previewMetadata->postFeature.Quantization.QMY          = m_basicFeature->m_av1PicParams->wQMatrixFlags.fields.qm_y;
+        previewMetadata->postFeature.Quantization.QMU          = m_basicFeature->m_av1PicParams->wQMatrixFlags.fields.qm_u;
+        previewMetadata->postFeature.Quantization.QMV          = m_basicFeature->m_av1PicParams->wQMatrixFlags.fields.qm_v;
+        previewMetadata->postFeature.Quantization.UsingQMatrix = m_basicFeature->m_av1PicParams->wQMatrixFlags.fields.using_qmatrix;
+        previewMetadata->postFeature.Quantization.UACDeltaQ    = m_basicFeature->m_av1PicParams->u_ac_delta_q;
+        previewMetadata->postFeature.Quantization.UDCDeltaQ    = m_basicFeature->m_av1PicParams->u_dc_delta_q;
+        previewMetadata->postFeature.Quantization.VACDeltaQ    = m_basicFeature->m_av1PicParams->v_ac_delta_q;
+        previewMetadata->postFeature.Quantization.VDCDeltaQ    = m_basicFeature->m_av1PicParams->v_dc_delta_q;
+        previewMetadata->postFeature.Quantization.YDCDeltaQ    = m_basicFeature->m_av1PicParams->y_dc_delta_q;
+
+        previewMetadata->postFeature.QuantizationDelta.DeltaQPresent = m_basicFeature->m_av1PicParams->dwModeControlFlags.fields.delta_q_present_flag;
+        previewMetadata->postFeature.QuantizationDelta.DeltaQRes     = m_basicFeature->m_av1PicParams->dwModeControlFlags.fields.log2_delta_q_res;
+
+        previewMetadata->postFeature.CDEF.CdefBits          = m_basicFeature->m_av1PicParams->cdef_bits;
+        previewMetadata->postFeature.CDEF.CdefDampingMinus3 = m_basicFeature->m_av1PicParams->cdef_damping_minus_3;
+        for (int i = 0; i < 8; i++)
+        {
+            previewMetadata->postFeature.CDEF.CdefYPriStrength[i]  = m_basicFeature->m_av1PicParams->cdef_y_strengths[i] / 4;
+            previewMetadata->postFeature.CDEF.CdefUVPriStrength[i] = m_basicFeature->m_av1PicParams->cdef_uv_strengths[i] / 4;
+            previewMetadata->postFeature.CDEF.CdefYSecStrength[i]  = m_basicFeature->m_av1PicParams->cdef_y_strengths[i] % 4;
+            previewMetadata->postFeature.CDEF.CdefUVSecStrength[i] = m_basicFeature->m_av1PicParams->cdef_uv_strengths[i] % 4;
+        }
+
+        previewMetadata->postFeature.SegmentationConfig.UpdateMap      = m_basicFeature->m_av1PicParams->stAV1Segments.SegmentFlags.fields.update_map;
+        previewMetadata->postFeature.SegmentationConfig.UpdateData     = m_basicFeature->m_av1PicParams->stAV1Segments.SegmentFlags.fields.update_map;
+        previewMetadata->postFeature.SegmentationConfig.TemporalUpdate = m_av1PicParams->stAV1Segments.SegmentFlags.fields.temporal_update;
+        previewMetadata->postFeature.SegmentationConfig.NumSegments    = m_basicFeature->m_av1PicParams->stAV1Segments.SegmentFlags.fields.SegmentNumber;
+        for (int i = 0; i < 8; i++)
+        {
+            previewMetadata->postFeature.SegmentationConfig.SegmentsData[i].EnabledFeatures = m_basicFeature->m_av1PicParams->stAV1Segments.feature_mask[i];
+            for (int j = 0; j < 8; j++)
+                previewMetadata->postFeature.SegmentationConfig.SegmentsData[i].FeatureValue[j] = m_basicFeature->m_av1PicParams->stAV1Segments.feature_data[i][j];
+        }
+
+        previewMetadata->postFeature.PrimaryRefFrame = m_basicFeature->m_av1PicParams->primary_ref_frame;
+        for (int i = 0; i < 7; i++)
+            previewMetadata->postFeature.ReferenceIndices[i] = m_basicFeature->m_av1PicParams->ref_frame_idx[i];
+
+        ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnUnlockResource(m_osInterface, previewMetadataBuffer));
+
+        auto &miCpyMemMemParams   = m_miItf->MHW_GETPAR_F(MI_COPY_MEM_MEM)();
+        miCpyMemMemParams.presSrc = previewMetadataBuffer;
+        for (uint32_t i = 0; i < allocParams.dwBytes; i += 4)
+        {
+            miCpyMemMemParams.dwSrcOffset = i;
+            miCpyMemMemParams.presDst     = m_basicFeature->m_resMetadataBuffer;
+            miCpyMemMemParams.dwDstOffset = resourceOffset.dwMetaDataSize + tileNum * resourceOffset.dwMetaDataSubRegionSize + i;
+            ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_COPY_MEM_MEM)(cmdBuffer));
+        }
 
         return MOS_STATUS_SUCCESS;
     }

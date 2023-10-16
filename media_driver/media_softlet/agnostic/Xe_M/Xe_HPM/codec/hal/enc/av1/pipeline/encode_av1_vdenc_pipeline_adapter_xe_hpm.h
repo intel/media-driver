@@ -50,6 +50,9 @@ public:
     virtual ~EncodeAv1VdencPipelineAdapterXe_Hpm() {}
 
     virtual MOS_STATUS Allocate(CodechalSetting *codecHalSettings) override;
+
+    virtual MOS_STATUS ResolveMetaData(PMOS_RESOURCE pInput, PMOS_RESOURCE pOutput) override;
+
 MEDIA_CLASS_DEFINE_END(EncodeAv1VdencPipelineAdapterXe_Hpm)
 };
 #endif // !__ENCODE_AV1_VDENC_PIPELINE_ADAPTER_XE_HPM_H__

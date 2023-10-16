@@ -327,7 +327,8 @@ MOS_STATUS EncodePipeline::ExecuteResolveMetaData(PMOS_RESOURCE pInput, PMOS_RES
 
     auto basicFeature = dynamic_cast<EncodeBasicFeature *>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
     ENCODE_CHK_NULL_RETURN(basicFeature);
-    uint32_t bufSize = basicFeature->m_metaDataOffset.dwMetaDataSize + basicFeature->m_numSlices*basicFeature->m_metaDataOffset.dwMetaDataSubRegionSize;
+    uint32_t bufSize = basicFeature->m_metaDataOffset.dwMetaDataSize + basicFeature->m_numSlices * basicFeature->m_metaDataOffset.dwMetaDataSubRegionSize +
+                       basicFeature->m_metaDataOffset.dwTilePartitionSize + basicFeature->m_metaDataOffset.dwPostFeatueSize;
     m_packetUtilities->AddMemCopyCmd(&cmdBuffer, pOutput, pInput, bufSize);
     ENCODE_CHK_STATUS_RETURN(m_scalability->ReturnCmdBuffer(&cmdBuffer));
     ENCODE_CHK_STATUS_RETURN(m_scalability->SubmitCmdBuffer(&cmdBuffer));

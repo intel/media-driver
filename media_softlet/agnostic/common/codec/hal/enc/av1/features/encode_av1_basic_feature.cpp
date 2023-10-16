@@ -110,7 +110,7 @@ MOS_STATUS Av1BasicFeature::Update(void *params)
 
     EncodeBasicFeature::Update(params);
 
-    EncoderParams* encodeParams = (EncoderParams*)params;
+    EncoderParamsAV1 *encodeParams = (EncoderParamsAV1 *)params;
 
     m_av1SeqParams = static_cast<PCODEC_AV1_ENCODE_SEQUENCE_PARAMS>(encodeParams->pSeqParams);
     ENCODE_CHK_NULL_RETURN(m_av1SeqParams);
@@ -125,6 +125,7 @@ MOS_STATUS Av1BasicFeature::Update(void *params)
         ENCODE_ASSERTMESSAGE("The num of OBU header exceeds the max value.");
         return MOS_STATUS_USER_CONTROL_MAX_DATA_SIZE;
     }
+    m_AV1metaDataOffset = encodeParams->AV1metaDataOffset;
 
     m_appHdrSize = m_appHdrSizeExcludeFrameHdr = 0;
     m_targetUsage = m_av1SeqParams->TargetUsage;

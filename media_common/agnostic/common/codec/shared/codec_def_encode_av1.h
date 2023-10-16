@@ -650,6 +650,82 @@ struct EncodeAv1Par
 
 };
 
+struct MetadataAV1PostFeature
+{
+    struct
+    {
+        uint64_t RowCount;
+        uint64_t ColCount;
+        uint64_t RowHeights[64];
+        uint64_t ColWidths[64];
+        uint64_t ContextUpdateTileId;
+    } tilePartition;
+
+    struct
+    {
+        uint64_t CompoundPredictionType;
+        struct
+        {
+            uint64_t LoopFilterLevel[2];
+            uint64_t LoopFilterLevelU;
+            uint64_t LoopFilterLevelV;
+            uint64_t LoopFilterSharpnessLevel;
+            uint64_t LoopFilterDeltaEnabled;
+            uint64_t UpdateRefDelta;
+            int64_t  RefDeltas[8];
+            uint64_t UpdateModeDelta;
+            int64_t  ModeDeltas[2];
+        } LoopFilter;
+        struct
+        {
+            uint64_t DeltaLFPresent;
+            uint64_t DeltaLFMulti;
+            uint64_t DeltaLFRes;
+        } LoopFilterDelta;
+        struct
+        {
+            uint64_t BaseQIndex;
+            int64_t  YDCDeltaQ;
+            int64_t  UDCDeltaQ;
+            int64_t  UACDeltaQ;
+            int64_t  VDCDeltaQ;
+            int64_t  VACDeltaQ;
+            uint64_t UsingQMatrix;
+            uint64_t QMY;
+            uint64_t QMU;
+            uint64_t QMV;
+        } Quantization;
+        struct
+        {
+            uint64_t DeltaQPresent;
+            uint64_t DeltaQRes;
+        } QuantizationDelta;
+        struct
+        {
+            uint64_t CdefBits;
+            uint64_t CdefDampingMinus3;
+            uint64_t CdefYPriStrength[8];
+            uint64_t CdefUVPriStrength[8];
+            uint64_t CdefYSecStrength[8];
+            uint64_t CdefUVSecStrength[8];
+        } CDEF;
+        struct
+        {
+            uint64_t UpdateMap;
+            uint64_t TemporalUpdate;
+            uint64_t UpdateData;
+            uint64_t NumSegments;
+            struct
+            {
+                uint64_t EnabledFeatures;
+                int64_t  FeatureValue[8];
+            } SegmentsData[8];
+        } SegmentationConfig;
+        uint64_t PrimaryRefFrame;
+        uint64_t ReferenceIndices[7];
+    } postFeature;
+};
+
 struct AV1MetaDataOffset
 {
     //tile partition

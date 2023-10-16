@@ -138,6 +138,7 @@ public:
     PCODEC_AV1_ENCODE_PICTURE_PARAMS    m_av1PicParams          = nullptr;                      //!< Pointer to picture parameter
     Av1ReferenceFrames                  m_ref                   = {};                           //!< Reference List
     Av1StreamIn                         m_streamIn              = {};                           //!< Stream In
+    AV1MetaDataOffset                   m_AV1metaDataOffset     = {};                           //!< AV1 Metadata Offset
 
     uint32_t            m_sizeOfSseSrcPixelRowStoreBufferPerLcu = 0;                            //!< Size of SSE row store buffer per LCU
     static constexpr uint32_t  m_vdencBrcStatsBufferSize        = 1216;                         //!< Vdenc bitrate control buffer size

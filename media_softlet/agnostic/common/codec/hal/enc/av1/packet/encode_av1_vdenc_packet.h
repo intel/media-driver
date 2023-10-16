@@ -324,7 +324,15 @@ protected:
 
     virtual MOS_STATUS GetAvpPrimitiveCommandsDataSize(uint32_t *commandsSize, uint32_t *patchListSize) const;
 
-MEDIA_CLASS_DEFINE_END(encode__Av1VdencPkt)
+    virtual MOS_STATUS PrepareHWMetaData(MOS_COMMAND_BUFFER *cmdBuffer);
+
+    virtual MOS_STATUS PrepareHWMetaDataFromStreamout(MOS_COMMAND_BUFFER *cmdBuffer, const MetaDataOffset resourceOffset);
+
+    virtual MOS_STATUS PrepareHWMetaDataFromRegister(MOS_COMMAND_BUFFER *cmdBuffer, const MetaDataOffset resourceOffset);
+
+    virtual MOS_STATUS PrepareHWMetaDataFromDriver(MOS_COMMAND_BUFFER *cmdBuffer, const MetaDataOffset resourceOffset, const AV1MetaDataOffset AV1ResourceOffset);
+
+    MEDIA_CLASS_DEFINE_END(encode__Av1VdencPkt)
 };
 
 }  // namespace encode

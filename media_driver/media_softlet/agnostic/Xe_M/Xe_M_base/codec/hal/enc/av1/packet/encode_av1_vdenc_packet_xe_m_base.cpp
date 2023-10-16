@@ -237,6 +237,8 @@ namespace encode
 
         ENCODE_CHK_STATUS_RETURN(PatchTileLevelCommands(cmdBuffer, packetPhase));
 
+        ENCODE_CHK_STATUS_RETURN(PrepareHWMetaData(&cmdBuffer));
+
         ENCODE_CHK_STATUS_RETURN(Mos_Solo_PostProcessEncode(m_osInterface, &m_basicFeature->m_resBitstreamBuffer, &m_basicFeature->m_reconSurface));
 
     #if MHW_HWCMDPARSER_ENABLED

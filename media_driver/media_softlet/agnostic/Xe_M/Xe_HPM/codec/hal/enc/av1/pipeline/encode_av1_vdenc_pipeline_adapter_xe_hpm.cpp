@@ -42,3 +42,7 @@ MOS_STATUS EncodeAv1VdencPipelineAdapterXe_Hpm::Allocate(CodechalSetting *codecH
 
     return m_encoder->Init(codecHalSettings);
 }
+MOS_STATUS EncodeAv1VdencPipelineAdapterXe_Hpm::ResolveMetaData(PMOS_RESOURCE pInput, PMOS_RESOURCE pOutput)
+{
+    return m_encoder->ExecuteResolveMetaData(pInput, pOutput);
+}
