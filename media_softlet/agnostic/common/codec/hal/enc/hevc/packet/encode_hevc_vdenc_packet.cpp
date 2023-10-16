@@ -1558,8 +1558,7 @@ MOS_STATUS HevcVdencPkt::AddAllCmds_HCP_PAK_INSERT_OBJECT_BRC(PMOS_COMMAND_BUFFE
         #if USE_CODECHAL_DEBUG_TOOL && _ENCODE_RESERVED
         CODECHAL_DEBUG_TOOL(
             CodechalDebugInterface *debugInterface = m_pipeline->GetDebugInterface();
-            ENCODE_CHK_NULL_RETURN(debugInterface);
-            if (debugInterface->DumpIsEnabled(CodechalDbgAttr::attrDumpEncodePar)) {
+            if (debugInterface && debugInterface->DumpIsEnabled(CodechalDbgAttr::attrDumpEncodePar)) {
                 m_hevcParDump->DumpParFile();
             })
         #endif
