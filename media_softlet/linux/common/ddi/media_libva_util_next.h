@@ -250,8 +250,9 @@ private:
     //!     VA_STATUS_SUCCESS if success, else fail reason
     //!
     static VAStatus GenerateGmmParamsForCompressionExternalSurface(
-        GMM_RESCREATE_PARAMS         &gmmParams,
+        GMM_RESCREATE_CUSTOM_PARAMS_2 &gmmParams,
         MEDIA_SURFACE_ALLOCATE_PARAM &params,
+        PDDI_MEDIA_SURFACE           mediaSurface,
         PDDI_MEDIA_CONTEXT           mediaDrvCtx);
 
     //!
