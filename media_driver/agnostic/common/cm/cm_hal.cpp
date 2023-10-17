@@ -5632,7 +5632,7 @@ MOS_STATUS HalCm_FinishStatesForKernel(
                 pipeControlParam.bTlbInvalidate          = false;
                 pipeControlParam.bFlushRenderTargetCache = true;
                 pipeControlParam.bInvalidateTextureCache = true;
-                renderHal->pMhwMiInterface->AddPipeControl(nullptr, batchBuffer, &pipeControlParam);
+                CM_CHK_MOSSTATUS_RETURN(renderHal->pMhwMiInterface->AddPipeControl(nullptr, batchBuffer, &pipeControlParam));
             }
 
             uint8_t *bBuffer = batchBuffer->pData + batchBuffer->iCurrent;

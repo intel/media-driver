@@ -209,7 +209,7 @@ MOS_STATUS CmMediaState::PrepareMemoryBlock(uint32_t size, uint32_t trackerIndex
         blockSizes[0] = size;
     }
 
-    m_heapMgr->AcquireSpace(acquireParams, blocks, spaceNeeded);
+    MHW_RENDERHAL_CHK_STATUS_RETURN(m_heapMgr->AcquireSpace(acquireParams, blocks, spaceNeeded));
 
     if (blocks.empty())
     {
