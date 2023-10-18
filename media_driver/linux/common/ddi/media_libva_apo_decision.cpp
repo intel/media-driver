@@ -40,6 +40,21 @@ bool MediaLibvaApoDecision::InitDdiApoState(int32_t devicefd, MediaUserSettingSh
         return false;
     }
 
+    // if media solo supported, use default path
+    bool mediaSoloEnabled = SetupMediaSoloSwitch();
+    if (mediaSoloEnabled)
+    {
+        if (!apoDdiEnabled)
+        {
+            MOS_OS_CRITICALMESSAGE("DDI is not apo path! Pls use APO DDI!");
+        }
+        if (!apoMosEnabled)
+        {
+            MOS_OS_CRITICALMESSAGE("MOS is not apo path! Pls use APO MOS!");
+        }
+        return apoDdiEnabled && apoMosEnabled;
+    }
+
     PRODUCT_FAMILY eProductFamily = IGFX_UNKNOWN;
     HWInfo_GetGfxProductFamily(devicefd, eProductFamily);
 
@@ -48,11 +63,5 @@ bool MediaLibvaApoDecision::InitDdiApoState(int32_t devicefd, MediaUserSettingSh
         apoDdiEnabled = false;
     }
 
-    // mediaSoloEnabled is not used due to mos context is not ready for solo
-    bool mediaSoloEnabled = SetupMediaSoloSwitch();
-    if (mediaSoloEnabled)
-    {
-        return false;
-    }
     return apoDdiEnabled && apoMosEnabled;
 }
