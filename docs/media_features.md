@@ -3,7 +3,7 @@
 ## Supported Decoding Output Format and Max Resolution
 Note: Before vaapi version(1.9.0), media driver only allow to create 16bit surface for 12bit bitstream decoding, padding bits will be filled with 0 by hardware. After 1.9.0 vaapi version, media driver is supported to create both 12bit and 16bit surface for 12bit bitstream decoding.
 
-| Codec      | Type     | MTL            | DG2/ATSM       | DG1/SG1        | TGLx           | ICL            | KBLx | BXTx | SKL  | BDW  |
+| Codec      | Type     | MTLx            | DG2/ATSM       | DG1/SG1        | TGLx           | ICL            | KBLx | BXTx | SKL  | BDW  |
 |------------|--------- |----------------|----------------|----------------|----------------|----------------|------|------|------|------|
 | AVC        | Output   | NV12           | NV12           | NV12           | NV12           | NV12           | NV12 | NV12 | NV12 | NV12 |
 |            | Max Res. | 4k             | 4k             | 4k             | 4k             | 4k             | 4k   | 4k   | 4k   | 4k   |
@@ -52,7 +52,7 @@ Note: Before vaapi version(1.9.0), media driver only allow to create 16bit surfa
 
 ### Hardware Encoding, Low Power Encoding(VDEnc/Huc)
 
-| Codec      | Type         | MTL                |  DG2/ATSM          | DG1/SG1            | TGLx               | ICL       | KBLx   | BXTx   | SKL    | BDW |
+| Codec      | Type         | MTLx                |  DG2/ATSM          | DG1/SG1            | TGLx               | ICL       | KBLx   | BXTx   | SKL    | BDW |
 |------------|--------------|--------------------|--------------------|--------------------|--------------------|-----------|--------|--------|--------|-----|
 | AVC        | Input        | *More              | *More              | *More              | *More              | *More     | *More  | NV12   | NV12   |     |
 |            | Max Res.     | 4k                 | 4k                 | 4k                 | 4k                 | 4k        | 4k     | 4k     | 4k     |     |
@@ -109,7 +109,7 @@ Note: Before vaapi version(1.9.0), media driver only allow to create 16bit surfa
 |               | Output | Y    | Y    | Y    | Y    | Y    |      | Y    | Y    | Y    | Y     | Y     | Y     | Y         | Y                       |
 | DG2/ATSM      | Input  | Y    | Y    | Y    | Y    | Y    | Y    | Y    | Y    | Y    | Y     | Y     | Y     | Y         | N                       |
 |               | Output | Y    | Y    | Y    | Y    | Y    |      | Y    | Y    | Y    | Y     | Y     | Y     | Y         | Y                       |
-| MTL           | Input  | Y    | Y    | Y    | Y    | Y    | Y    | Y    | Y    | Y    | Y     | Y     | Y     | Y         | N                       |
+| MTLx           | Input  | Y    | Y    | Y    | Y    | Y    | Y    | Y    | Y    | Y    | Y     | Y     | Y     | Y         | N                       |
 |               | Output | Y    | Y    | Y    | Y    | Y    |      | Y    | Y    | Y    | Y     | Y     | Y     | Y         | Y                       |
 
 * \* For SFC path, there are NOT real 16bit, SFC precision is 12bit; For kernel path, we support real 16bit.
