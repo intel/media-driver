@@ -666,7 +666,7 @@ public:
             uint32_t       dest_last_valid_right_tile = m_numofSfc - 1;
             uint32_t       dest_cntX                  = 0;
             double         xLandingpoint;
-            uint32_t       one_by_sf                    = params.dwSourceRegionWidth * 524288 / params.dwScaledRegionWidth;
+            uint32_t       one_by_sf                    = (uint32_t)(((uint64_t)params.dwSourceRegionWidth * 524288L) / params.dwScaledRegionWidth);
             const uint32_t one_by_sf_fraction_precision = 19;
             const uint32_t beta_precision               = 5;
             int32_t        xPhaseShift;
