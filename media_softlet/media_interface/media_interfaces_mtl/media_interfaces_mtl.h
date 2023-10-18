@@ -149,9 +149,6 @@ public:
         PMOS_INTERFACE osInterface,
         MhwInterfacesNext *mhwInterfaces);
 
-    MhwInterfacesNext* CreateMhwInterface(
-        PMOS_INTERFACE osInterface);
-
 MEDIA_CLASS_DEFINE_END(McpyDeviceXe_Lpm_Plus)
 };
 

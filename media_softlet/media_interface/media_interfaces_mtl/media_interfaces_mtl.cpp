@@ -351,19 +351,6 @@ MOS_STATUS McpyDeviceXe_Lpm_Plus::Initialize(
     return MOS_STATUS_SUCCESS;
 }
 
-MhwInterfacesNext* McpyDeviceXe_Lpm_Plus::CreateMhwInterface(
-    PMOS_INTERFACE osInterface)
-{
-    MhwInterfacesNext::CreateParams params;
-    params.Flags.m_vebox = true;
-    params.Flags.m_blt   = true;
-
-    // the destroy of interfaces happens when the mcpy deviced deconstructor funcs
-    MhwInterfacesNext *mhw = MhwInterfacesNext::CreateFactory(params, osInterface);
-
-    return mhw;
-}
-
 static bool mtlRegisteredCodecHal =
     MediaFactory<uint32_t, CodechalDeviceNext>::
         Register<CodechalInterfacesXe_Lpm_Plus>((uint32_t)IGFX_METEORLAKE);

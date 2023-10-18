@@ -442,9 +442,11 @@ MhwInterfacesNext* McpyDeviceNext::CreateMhwInterface(PMOS_INTERFACE osInterface
 {
     MhwInterfacesNext::CreateParams params;
     MOS_ZeroMemory(&params, sizeof(params));
-    params.Flags.m_render    = true;
+    params.Flags.m_render = true;
+    params.Flags.m_vebox  = true;
+    params.Flags.m_blt    = true;
 
-    params.m_heapMode        = (uint8_t)2;
+    // the destroy of interfaces happens when the mcpy deviced deconstructor funcs
     MhwInterfacesNext *mhw = MhwInterfacesNext::CreateFactory(params, osInterface);
 
     return mhw;
