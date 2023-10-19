@@ -244,11 +244,11 @@ public:
         cmd.DW7.SourceY1CoordinateTop         = params.dwSrcTop;
         cmd.DW8.SourcePitch                   = params.dwSrcPitch - 1;
 
-        if (pDstGmmResInfo->GetResFlags().Info.NonLocalOnly)
+        if (!pDstGmmResInfo->GetResFlags().Info.LocalOnly)
         {
             cmd.DW6.DestinationTargetMemory = 1;//DESTINATION_TARGET_MEMORY::DESTINATION_TARGET_MEMORY_SYSTEM_MEM;
         }
-        if (pSrcGmmResInfo->GetResFlags().Info.NonLocalOnly)
+        if (!pSrcGmmResInfo->GetResFlags().Info.LocalOnly)
         {
             cmd.DW11.SourceTargetMemory = 1;// SOURCE_TARGET_MEMORY::SOURCE_TARGET_MEMORY_SYSTEM_MEM;
         }
