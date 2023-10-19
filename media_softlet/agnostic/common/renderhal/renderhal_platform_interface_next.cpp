@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021, Intel Corporation
+* Copyright (c) 2021-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -45,6 +45,11 @@
 #include "renderhal.h"
 #include "vp_utils.h"
 #include "media_perf_profiler.h"
+
+XRenderHal_Platform_Interface_Next::XRenderHal_Platform_Interface_Next()
+{
+    MOS_ZeroMemory(&m_scratchSpaceResource, sizeof(m_scratchSpaceResource));
+}
 
 MOS_STATUS XRenderHal_Platform_Interface_Next::AddPipelineSelectCmd(
     PRENDERHAL_INTERFACE        pRenderHal,
@@ -904,7 +909,596 @@ bool XRenderHal_Platform_Interface_Next::IsComputeContextInUse(PRENDERHAL_INTERF
     return true;
 }
 
+bool XRenderHal_Platform_Interface_Next::IsSampler128ElementsSupported()
+{
+    return true;
+}
+
+bool XRenderHal_Platform_Interface_Next::PerThreadScratchSpaceStart2K(PRENDERHAL_INTERFACE pRenderHal)
+{
+    MHW_RENDERHAL_UNUSED(pRenderHal);
+    return false;
+}
+
+bool XRenderHal_Platform_Interface_Next::PerThreadScratchSpaceStart64Byte(RENDERHAL_INTERFACE *renderHal)
+{
+    MHW_RENDERHAL_UNUSED(renderHal);
+    return true;
+}
+
+uint32_t XRenderHal_Platform_Interface_Next::EncodeSLMSize(uint32_t SLMSize)
+{
+    uint32_t EncodedValue;
+    if (SLMSize <= 2)
+    {
+        EncodedValue = SLMSize;
+    }
+    else 
+    {
+        EncodedValue = 0;
+        do
+        {
+            SLMSize >>= 1;
+            EncodedValue++;
+        } while (SLMSize);
+    }
+    return EncodedValue;
+}
+
+uint8_t XRenderHal_Platform_Interface_Next::SetChromaDirection(
+    PRENDERHAL_INTERFACE pRenderHal,
+    PRENDERHAL_SURFACE   pRenderHalSurface)
+{
+    uint8_t Direction;
+    MHW_RENDERHAL_UNUSED(pRenderHal);
+
+    MHW_RENDERHAL_ASSERT(pRenderHalSurface);
+
+    Direction = 0;
+
+    if (pRenderHalSurface->ChromaSiting & MHW_CHROMA_SITING_HORZ_CENTER)
+    {
+        Direction = CHROMA_SITING_UDIRECTION_CENTER;
+    }
+    else
+    {
+        Direction = CHROMA_SITING_UDIRECTION_LEFT;
+    }
+
+    // Combined U/V direction together in one uint8_t, 1 bit for U direction, 3 bits for V direction.
+    Direction = Direction << 3;
+
+    if (pRenderHalSurface->pDeinterlaceParams || pRenderHalSurface->bQueryVariance)
+    {
+        if ((pRenderHalSurface->SampleType == RENDERHAL_SAMPLE_INTERLEAVED_EVEN_FIRST_BOTTOM_FIELD) ||
+            (pRenderHalSurface->SampleType == RENDERHAL_SAMPLE_INTERLEAVED_ODD_FIRST_BOTTOM_FIELD))
+        {
+            if (pRenderHalSurface->ChromaSiting & MHW_CHROMA_SITING_VERT_TOP)
+            {
+                Direction |= CHROMA_SITING_VDIRECTION_1_2;
+            }
+            else if (pRenderHalSurface->ChromaSiting & MHW_CHROMA_SITING_VERT_BOTTOM)
+            {
+                Direction |= CHROMA_SITING_VDIRECTION_1;
+            }
+            else
+            {
+                Direction |= CHROMA_SITING_VDIRECTION_3_4;
+            }
+        }
+        else if ((pRenderHalSurface->SampleType == RENDERHAL_SAMPLE_INTERLEAVED_EVEN_FIRST_TOP_FIELD) ||
+            (pRenderHalSurface->SampleType == RENDERHAL_SAMPLE_INTERLEAVED_ODD_FIRST_TOP_FIELD))
+        {
+            if (pRenderHalSurface->ChromaSiting & MHW_CHROMA_SITING_VERT_TOP)
+            {
+                Direction |= CHROMA_SITING_VDIRECTION_0;
+            }
+            else if (pRenderHalSurface->ChromaSiting & MHW_CHROMA_SITING_VERT_BOTTOM)
+            {
+                Direction |= CHROMA_SITING_VDIRECTION_1_2;
+            }
+            else
+            {
+                Direction |= CHROMA_SITING_VDIRECTION_1_4;
+            }
+        }
+    }
+    else
+    {
+        if (pRenderHalSurface->ChromaSiting & MHW_CHROMA_SITING_VERT_TOP)
+        {
+            Direction |= CHROMA_SITING_VDIRECTION_0;
+        }
+        else if (pRenderHalSurface->ChromaSiting & MHW_CHROMA_SITING_VERT_BOTTOM)
+        {
+            Direction |= CHROMA_SITING_VDIRECTION_1;
+        }
+        else
+        {
+            Direction |= CHROMA_SITING_VDIRECTION_1_2;
+        }
+    }
+
+    return Direction;
+}
+
+void XRenderHal_Platform_Interface_Next::InitSurfaceTypes(PRENDERHAL_INTERFACE    pRenderHal)
+{
+    MHW_RENDERHAL_CHK_NULL_NO_STATUS_RETURN(pRenderHal);
+    // Set default / advanced surface types
+    pRenderHal->SurfaceTypeDefault            = RENDERHAL_SURFACE_TYPE_G10;
+    pRenderHal->SurfaceTypeAdvanced           = RENDERHAL_SURFACE_TYPE_ADV_G10;
+}
+
+bool XRenderHal_Platform_Interface_Next::IsEnableYV12SinglePass(PRENDERHAL_INTERFACE pRenderHal)
+{
+    MHW_RENDERHAL_UNUSED(pRenderHal);
+    return true;
+}
+
+uint32_t XRenderHal_Platform_Interface_Next::GetSizeSamplerStateAvs(PRENDERHAL_INTERFACE pRenderHal)
+{
+    if (pRenderHal && pRenderHal->pHwSizes)
+    {
+        return 2 * pRenderHal->pHwSizes->dwSizeSamplerStateAvs;  // Kernel using 1,3,5 sampler index for AVS sampler state.
+    }
+    else
+    {
+        MHW_RENDERHAL_ASSERTMESSAGE("Failed to get SizeSamplerStateAvs");
+        return 0;
+    }
+}
+
+MOS_STATUS XRenderHal_Platform_Interface_Next::SetPowerOptionStatus(
+    PRENDERHAL_INTERFACE         pRenderHal,
+    PMOS_COMMAND_BUFFER          pCmdBuffer)
+{
+    PMOS_INTERFACE              pOsInterface;
+    MOS_STATUS                  eStatus;
+    MEDIA_SYSTEM_INFO           *pGtSystemInfo;
+
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pCmdBuffer);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pOsInterface);
+
+    eStatus         = MOS_STATUS_SUCCESS;
+    pOsInterface    = pRenderHal->pOsInterface;
+    pGtSystemInfo   = pOsInterface->pfnGetGtSystemInfo(pOsInterface);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pGtSystemInfo);
+
+    // Check if Slice Shutdown can be enabled
+    if (pRenderHal->bRequestSingleSlice)
+    {
+        pCmdBuffer->Attributes.dwNumRequestedEUSlices = 1;
+    }
+    else if (pRenderHal->bEUSaturationNoSSD)
+    {
+        pCmdBuffer->Attributes.dwNumRequestedEUSlices = 2;
+    }
+
+    if ((pRenderHal->pSkuTable) && (MEDIA_IS_SKU(pRenderHal->pSkuTable, FtrSSEUPowerGating) || MEDIA_IS_SKU(pRenderHal->pSkuTable, FtrSSEUPowerGatingControlByUMD)))
+    {
+        // VP does not request subslice shutdown according to the array VpHalDefaultSSEUTableGxx
+        if (((pRenderHal->PowerOption.nSlice != 0) || (pRenderHal->PowerOption.nSubSlice != 0) || (pRenderHal->PowerOption.nEU != 0)) &&
+            ((pGtSystemInfo->SliceCount != 0) && (pGtSystemInfo->SubSliceCount != 0)))
+        {
+            pCmdBuffer->Attributes.dwNumRequestedEUSlices    = MOS_MIN(pRenderHal->PowerOption.nSlice, pGtSystemInfo->SliceCount);
+            pCmdBuffer->Attributes.dwNumRequestedSubSlices   = MOS_MIN(pRenderHal->PowerOption.nSubSlice, (pGtSystemInfo->SubSliceCount / pGtSystemInfo->SliceCount));
+            pCmdBuffer->Attributes.dwNumRequestedEUs         = MOS_MIN(pRenderHal->PowerOption.nEU, (pGtSystemInfo->EUCount / pGtSystemInfo->SubSliceCount));
+            pCmdBuffer->Attributes.bValidPowerGatingRequest  = true;
+            pCmdBuffer->Attributes.bUmdSSEUEnable            = true;
+        }
+    }
+
+    return eStatus;
+}
+
+MOS_STATUS XRenderHal_Platform_Interface_Next::SetCompositePrologCmd(
+    PRENDERHAL_INTERFACE pRenderHal, 
+    PMOS_COMMAND_BUFFER  pCmdBuffer)
+{
+    MOS_STATUS                            eStatus = MOS_STATUS_SUCCESS;
+    uint64_t                              auxTableBaseAddr = 0;
+
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pCmdBuffer);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pOsInterface);
+    MHW_RENDERHAL_CHK_NULL_RETURN(m_miItf);
+
+    auxTableBaseAddr = pRenderHal->pOsInterface->pfnGetAuxTableBaseAddr(pRenderHal->pOsInterface);
+
+    if (auxTableBaseAddr)
+    {
+        auto& parImm = m_miItf->MHW_GETPAR_F(MI_LOAD_REGISTER_IMM)();
+        parImm = {};
+        parImm.dwRegister = m_miItf->GetMmioInterfaces(mhw::mi::MHW_MMIO_RCS_AUX_TABLE_BASE_LOW);
+        parImm.dwData = (auxTableBaseAddr & 0xffffffff);
+        MHW_MI_CHK_STATUS(m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(pCmdBuffer));
+
+        parImm.dwRegister = m_miItf->GetMmioInterfaces(mhw::mi::MHW_MMIO_RCS_AUX_TABLE_BASE_HIGH);
+        parImm.dwData = ((auxTableBaseAddr >> 32) & 0xffffffff);
+        MHW_MI_CHK_STATUS(m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(pCmdBuffer));
+
+        parImm.dwRegister = m_miItf->GetMmioInterfaces(mhw::mi::MHW_MMIO_CCS0_AUX_TABLE_BASE_LOW);
+        parImm.dwData = (auxTableBaseAddr & 0xffffffff);
+        MHW_MI_CHK_STATUS(m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(pCmdBuffer));
+
+        parImm.dwRegister = m_miItf->GetMmioInterfaces(mhw::mi::MHW_MMIO_CCS0_AUX_TABLE_BASE_HIGH);
+        parImm.dwData = ((auxTableBaseAddr >> 32) & 0xffffffff);
+        MHW_MI_CHK_STATUS(m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(pCmdBuffer));
+    }
+
+    return eStatus;
+}
+
+MOS_STATUS XRenderHal_Platform_Interface_Next::SendComputeWalker(
+    PRENDERHAL_INTERFACE     pRenderHal,
+    PMOS_COMMAND_BUFFER      pCmdBuffer,
+    PMHW_GPGPU_WALKER_PARAMS pGpGpuWalkerParams)
+{
+    VP_FUNC_CALL();
+
+    MOS_STATUS                eStatus = MOS_STATUS_SUCCESS;
+    MHW_ID_ENTRY_PARAMS       mhwIdEntryParams;
+    PRENDERHAL_KRN_ALLOCATION pKernelEntry;
+    PRENDERHAL_MEDIA_STATE    pCurMediaState;
+
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pCmdBuffer);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pGpGpuWalkerParams);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pStateHeap);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pStateHeap->pKernelAllocation);
+
+    MOS_ZeroMemory(&mhwIdEntryParams, sizeof(mhwIdEntryParams));
+
+    pKernelEntry   = &pRenderHal->pStateHeap->pKernelAllocation[pRenderHal->iKernelAllocationID];
+    pCurMediaState = pRenderHal->pStateHeap->pCurMediaState;
+
+    MHW_RENDERHAL_CHK_NULL_RETURN(pKernelEntry);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pCurMediaState);
+
+    mhwIdEntryParams.dwKernelOffset  = pKernelEntry->dwOffset;
+    mhwIdEntryParams.dwSamplerCount  = pKernelEntry->Params.Sampler_Count;
+    mhwIdEntryParams.dwSamplerOffset = pCurMediaState->dwOffset +
+                                       pRenderHal->pStateHeap->dwOffsetSampler +
+                                       pGpGpuWalkerParams->InterfaceDescriptorOffset * pRenderHal->pStateHeap->dwSizeSamplers;
+    mhwIdEntryParams.dwBindingTableOffset          = pGpGpuWalkerParams->BindingTableID * pRenderHal->pStateHeap->iBindingTableSize;
+    mhwIdEntryParams.dwSharedLocalMemorySize       = pGpGpuWalkerParams->SLMSize;
+    mhwIdEntryParams.dwNumberofThreadsInGPGPUGroup = pGpGpuWalkerParams->ThreadWidth * pGpGpuWalkerParams->ThreadHeight;
+    //This only a WA to disable EU fusion for multi-layer blending cases or single layer do colorfill and rotation together.
+    //Need remove it after kernel or compiler fix it.
+    mhwIdEntryParams.bBarrierEnable              = pRenderHal->eufusionBypass ? 1 : 0;
+    pGpGpuWalkerParams->IndirectDataStartAddress = pGpGpuWalkerParams->IndirectDataStartAddress + pRenderHal->pStateHeap->pCurMediaState->dwOffset;
+
+    MHW_RENDERHAL_CHK_NULL_RETURN(m_renderItf);
+    m_gpgpuWalkerParams         = pGpGpuWalkerParams;
+    m_interfaceDescriptorParams = &mhwIdEntryParams;
+    SETPAR_AND_ADDCMD(COMPUTE_WALKER, m_renderItf, pCmdBuffer);
+
+    return eStatus;
+}
+
+MOS_STATUS XRenderHal_Platform_Interface_Next::SendTo3DStateBindingTablePoolAlloc(
+    PRENDERHAL_INTERFACE pRenderHal,
+    PMOS_COMMAND_BUFFER  pCmdBuffer)
+{
+    VP_FUNC_CALL();
+
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pCmdBuffer);
+    MHW_RENDERHAL_CHK_NULL_RETURN(m_renderItf);
+    SETPAR_AND_ADDCMD(_3DSTATE_BINDING_TABLE_POOL_ALLOC, m_renderItf, pCmdBuffer);
+
+    return eStatus;
+}
+
+MOS_STATUS XRenderHal_Platform_Interface_Next::IsRenderHalMMCEnabled(
+    PRENDERHAL_INTERFACE         pRenderHal)
+{
+    VP_FUNC_CALL();
+
+    MOS_STATUS    eStatus     = MOS_STATUS_SUCCESS;
+    bool          isMMCEnabled = false;
+
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
+
+
+#if defined(LINUX) && (!defined(WDDM_LINUX))
+    isMMCEnabled = !MEDIA_IS_WA(pRenderHal->pWaTable, WaDisableVPMmc) || !MEDIA_IS_WA(pRenderHal->pWaTable, WaDisableCodecMmc);
+#else
+    isMMCEnabled = true;  // turn on MMC
+#endif
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    // Read reg key to set MMC for Fast Composition surfaces
+    if (pRenderHal->userSettingPtr != nullptr)
+    {
+        ReadUserSettingForDebug(
+            pRenderHal->userSettingPtr,
+            isMMCEnabled,
+            __MEDIA_USER_FEATURE_ENABLE_RENDER_ENGINE_MMC,
+            MediaUserSetting::Group::Device,
+            isMMCEnabled,
+            true);
+    }
+#endif
+    m_renderHalMMCEnabled    = isMMCEnabled && MEDIA_IS_SKU(pRenderHal->pSkuTable, FtrE2ECompression);
+    pRenderHal->isMMCEnabled = m_renderHalMMCEnabled;
+
+    return eStatus;
+}
+
+MOS_STATUS XRenderHal_Platform_Interface_Next::IsOvrdNeeded(
+    PRENDERHAL_INTERFACE              pRenderHal,
+    PMOS_COMMAND_BUFFER               pCmdBuffer,
+    PRENDERHAL_GENERIC_PROLOG_PARAMS  pGenericPrologParams)
+{
+    PMOS_INTERFACE                        pOsInterface;
+    MOS_STATUS                            eStatus;
+    PMOS_CMD_BUF_ATTRI_VE                 pAttriVe;
+    PRENDERHAL_GENERIC_PROLOG_PARAMS_NEXT pGenericPrologParamsNext;
+    uint8_t                               i;
+
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pCmdBuffer);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pOsInterface);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pRenderHalPltInterface);
+
+    eStatus                 = MOS_STATUS_SUCCESS;
+    pOsInterface            = pRenderHal->pOsInterface;
+    pAttriVe               = (PMOS_CMD_BUF_ATTRI_VE)(pCmdBuffer->Attributes.pAttriVe);
+    pGenericPrologParamsNext = dynamic_cast<PRENDERHAL_GENERIC_PROLOG_PARAMS_NEXT>(pGenericPrologParams);
+
+    // Split Frame
+    if (pOsInterface->VEEnable)
+    {
+#if !EMUL
+        if (pGenericPrologParamsNext)
+#else
+        if (pGenericPrologParamsNext && pAttriVe != nullptr)
+#endif
+        {
+            // Split Frame
+            if (pGenericPrologParamsNext->VEngineHintParams.BatchBufferCount > 1)
+            {
+                pAttriVe->bUseVirtualEngineHint = true;
+                pAttriVe->VEngineHintParams = pGenericPrologParamsNext->VEngineHintParams;
+            }
+        }
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+#if !EMUL
+        if (pOsInterface->bEnableDbgOvrdInVE)
+#else
+        if (pOsInterface->bEnableDbgOvrdInVE && pAttriVe != nullptr)
+#endif
+        {
+            if (pOsInterface->bVeboxScalabilityMode)
+            {
+                pAttriVe->VEngineHintParams.DebugOverride = true;
+#if !EMUL
+                if (pGenericPrologParamsNext)
+#else
+                if (pGenericPrologParamsNext && pAttriVe != nullptr)
+#endif
+                {
+                    pAttriVe->VEngineHintParams.BatchBufferCount = pGenericPrologParamsNext->VEngineHintParams.BatchBufferCount;
+                    for (i = 0; i < pGenericPrologParamsNext->VEngineHintParams.BatchBufferCount; i++)
+                    {
+                        pAttriVe->VEngineHintParams.EngineInstance[i] = i;
+                    }
+                }
+            }
+            else if (pOsInterface->eForceVebox)
+            {
+                pAttriVe->VEngineHintParams.DebugOverride = true;
+                pAttriVe->VEngineHintParams.BatchBufferCount = 1;
+                pAttriVe->VEngineHintParams.EngineInstance[0] = pOsInterface->eForceVebox - 1;
+            }
+        }
+#endif
+    }
+
+    return eStatus;
+}
+
+MOS_STATUS XRenderHal_Platform_Interface_Next::AllocateScratchSpaceBuffer(
+    uint32_t                perThreadScratchSpace,
+    RENDERHAL_INTERFACE     *renderHal)
+{
+    VP_FUNC_CALL();
+
+    if (m_scratchSpaceResource.iSize > 0)
+    {  // Already allocated.
+        return MOS_STATUS_SUCCESS;
+    }
+
+    const MEDIA_SYSTEM_INFO *gt_sys_info = renderHal->pOsInterface
+                                               ->pfnGetGtSystemInfo(renderHal->pOsInterface);
+    uint32_t hw_threads_per_eu     = gt_sys_info->ThreadCount / gt_sys_info->EUCount;
+    uint32_t scratch_space_entries = gt_sys_info->MaxEuPerSubSlice * hw_threads_per_eu * gt_sys_info->MaxSubSlicesSupported;
+    uint32_t scratch_space_size    = scratch_space_entries * perThreadScratchSpace;
+
+    MOS_ALLOC_GFXRES_PARAMS alloc_param;
+    MOS_ZeroMemory(&alloc_param, sizeof(alloc_param));
+    alloc_param.Type          = MOS_GFXRES_SCRATCH;
+    alloc_param.Format        = Format_Buffer;
+    alloc_param.dwBytes       = scratch_space_size;
+    alloc_param.pSystemMemory = nullptr;
+    alloc_param.TileType      = MOS_TILE_LINEAR;
+    alloc_param.pBufName      = "ScratchSpaceBuffer";
+
+    return renderHal->pOsInterface->pfnAllocateResource(
+        renderHal->pOsInterface, &alloc_param, &m_scratchSpaceResource);
+}
+
+MOS_STATUS XRenderHal_Platform_Interface_Next::FreeScratchSpaceBuffer(
+    RENDERHAL_INTERFACE *renderHal)
+{
+    MOS_GFXRES_FREE_FLAGS resFreeFlags = {0};
+
+    resFreeFlags.AssumeNotInUse = 1;
+
+    if (m_scratchSpaceResource.iSize <= 0)
+    {
+        return MOS_STATUS_SUCCESS;  // Scratch space is not allocated. No need to free resources.
+    }
+
+    renderHal->pOsInterface
+            ->pfnFreeResourceWithFlag(renderHal->pOsInterface,
+                                      &m_scratchSpaceResource,
+                                      resFreeFlags.Value);
+    renderHal->pOsInterface
+            ->pfnResetResourceAllocationIndex(renderHal->pOsInterface,
+                                              &m_scratchSpaceResource);
+    return MOS_STATUS_SUCCESS;
+}
+
+bool XRenderHal_Platform_Interface_Next::IsFormatMMCSupported(MOS_FORMAT format)
+{
+    // Check if Sample Format is supported
+    if ((format != Format_YUY2)             &&
+        (format != Format_Y410)             &&
+        (format != Format_Y216)             &&
+        (format != Format_Y210)             &&
+        (format != Format_Y416)             &&
+        (format != Format_P010)             &&
+        (format != Format_P016)             &&
+        (format != Format_AYUV)             &&
+        (format != Format_NV21)             &&
+        (format != Format_NV12)             &&
+        (format != Format_UYVY)             &&
+        (format != Format_YUYV)             &&
+        (format != Format_A8B8G8R8)         &&
+        (format != Format_X8B8G8R8)         &&
+        (format != Format_A8R8G8B8)         &&
+        (format != Format_X8R8G8B8)         &&
+        (format != Format_B10G10R10A2)      &&
+        (format != Format_R10G10B10A2)      &&
+        (format != Format_A16R16G16B16F)    &&
+        (format != Format_A16B16G16R16F)    &&
+        (format != Format_IMC3)             &&
+        (format != Format_444P)             &&
+        (format != Format_422H)             &&
+        (format != Format_422V)             &&
+        (format != Format_411P)             &&
+        (format != Format_411R)             &&
+        (format != Format_444P)             &&
+        (format != Format_RGBP)             &&
+        (format != Format_BGRP)             &&
+        (format != Format_400P)             &&
+        (format != Format_420O)             &&
+        (format != Format_R8UN)             &&
+        (format != Format_A8)               &&
+        (format != Format_R8G8UN))
+    {
+        MHW_RENDERHAL_NORMALMESSAGE("Unsupported Format '0x%08x' for Render MMC.", format);
+        return false;
+    }
+
+    return true;
+}
+
+bool XRenderHal_Platform_Interface_Next::IsL8FormatSupported()
+{
+    return true;
+}
+
 std::shared_ptr<mhw::mi::Itf> XRenderHal_Platform_Interface_Next::GetMhwMiItf()
 {
     return m_miItf;
+}
+
+MHW_SETPAR_DECL_SRC(STATE_BASE_ADDRESS, XRenderHal_Platform_Interface_Next)
+{
+    MHW_STATE_BASE_ADDR_PARAMS* pStateBaseParams = nullptr;
+    MHW_RENDERHAL_CHK_NULL_RETURN(m_renderHal);
+    pStateBaseParams = &m_renderHal->StateBaseAddressParams;
+    MHW_RENDERHAL_CHK_NULL_RETURN(pStateBaseParams);
+
+    params.presGeneralState = pStateBaseParams->presGeneralState;
+    params.dwGeneralStateSize = pStateBaseParams->dwGeneralStateSize;
+    params.presDynamicState = pStateBaseParams->presDynamicState;
+    params.dwDynamicStateSize = pStateBaseParams->dwDynamicStateSize;
+    params.bDynamicStateRenderTarget = pStateBaseParams->bDynamicStateRenderTarget;
+    params.presIndirectObjectBuffer = pStateBaseParams->presIndirectObjectBuffer;
+    params.dwIndirectObjectBufferSize = pStateBaseParams->dwIndirectObjectBufferSize;
+    params.presInstructionBuffer = pStateBaseParams->presInstructionBuffer;
+    params.dwInstructionBufferSize = pStateBaseParams->dwInstructionBufferSize;
+    params.mocs4InstructionCache = pStateBaseParams->mocs4InstructionCache;
+    params.mocs4GeneralState = pStateBaseParams->mocs4GeneralState;
+    params.mocs4DynamicState = pStateBaseParams->mocs4DynamicState;
+    params.mocs4SurfaceState = pStateBaseParams->mocs4SurfaceState;
+    params.mocs4IndirectObjectBuffer = pStateBaseParams->mocs4IndirectObjectBuffer;
+    params.mocs4StatelessDataport = pStateBaseParams->mocs4StatelessDataport;
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MHW_SETPAR_DECL_SRC(_3DSTATE_CHROMA_KEY, XRenderHal_Platform_Interface_Next)
+{
+    MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
+    PMHW_CHROMAKEY_PARAMS       pChromaKeyParams = nullptr;
+    MHW_RENDERHAL_CHK_NULL_RETURN(m_renderHal);
+    pChromaKeyParams = m_renderHal->ChromaKey;
+    MHW_RENDERHAL_CHK_NULL_RETURN(pChromaKeyParams);
+
+    params.dwIndex = pChromaKeyParams->dwIndex;
+    params.dwLow = pChromaKeyParams->dwLow;
+    params.dwHigh = pChromaKeyParams->dwHigh;
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MHW_SETPAR_DECL_SRC(STATE_SIP, XRenderHal_Platform_Interface_Next)
+{
+    MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
+    MHW_SIP_STATE_PARAMS        SipStateParams = {};
+    MHW_RENDERHAL_CHK_NULL_RETURN(m_renderHal);
+    SipStateParams = m_renderHal->SipStateParams;
+
+    params.dwSipBase = SipStateParams.dwSipBase;
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MHW_SETPAR_DECL_SRC(COMPUTE_WALKER, XRenderHal_Platform_Interface_Next)
+{
+    MHW_RENDERHAL_CHK_NULL_RETURN(m_gpgpuWalkerParams);
+    MHW_RENDERHAL_CHK_NULL_RETURN(m_interfaceDescriptorParams);
+
+    params.IndirectDataLength = m_gpgpuWalkerParams->IndirectDataLength;
+    params.IndirectDataStartAddress = m_gpgpuWalkerParams->IndirectDataStartAddress;
+    params.ThreadWidth = m_gpgpuWalkerParams->ThreadWidth;
+    params.ThreadHeight = m_gpgpuWalkerParams->ThreadHeight;
+    params.ThreadDepth = m_gpgpuWalkerParams->ThreadDepth;
+
+    params.GroupWidth = m_gpgpuWalkerParams->GroupWidth;
+    params.GroupHeight = m_gpgpuWalkerParams->GroupHeight;
+    params.GroupDepth = m_gpgpuWalkerParams->GroupDepth;
+    params.GroupStartingX = m_gpgpuWalkerParams->GroupStartingX;
+    params.GroupStartingY = m_gpgpuWalkerParams->GroupStartingY;
+    params.GroupStartingZ = m_gpgpuWalkerParams->GroupStartingZ;
+
+    params.dwKernelOffset = m_interfaceDescriptorParams->dwKernelOffset;
+    params.dwSamplerCount = m_interfaceDescriptorParams->dwSamplerCount;
+    params.dwSamplerOffset = m_interfaceDescriptorParams->dwSamplerOffset;
+    params.dwBindingTableOffset = m_interfaceDescriptorParams->dwBindingTableOffset;;
+    params.bBarrierEnable = m_interfaceDescriptorParams->bBarrierEnable;
+    params.dwNumberofThreadsInGPGPUGroup = m_interfaceDescriptorParams->dwNumberofThreadsInGPGPUGroup;
+    params.dwSharedLocalMemorySize = m_interfaceDescriptorParams->dwSharedLocalMemorySize;
+    params.IndirectDataStartAddress = m_gpgpuWalkerParams->IndirectDataStartAddress;
+    params.forcePreferredSLMZero = m_gpgpuWalkerParams->ForcePreferredSLMZero;
+
+    if (m_gpgpuWalkerParams->ThreadDepth == 0)
+    {
+        params.ThreadDepth = 1;
+    }
+    if (m_gpgpuWalkerParams->GroupDepth == 0)
+    {
+        params.GroupDepth = 1;
+    }
+
+    return MOS_STATUS_SUCCESS;
 }

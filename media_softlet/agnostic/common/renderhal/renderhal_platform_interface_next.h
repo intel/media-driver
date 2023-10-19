@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021, Intel Corporation
+* Copyright (c) 2021-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -54,7 +54,7 @@ typedef struct _RENDERHAL_GENERIC_PROLOG_PARAMS_NEXT : _RENDERHAL_GENERIC_PROLOG
 class XRenderHal_Platform_Interface_Next : public XRenderHal_Platform_Interface, public mhw::render::Itf::ParSetting
 {
 public:
-    XRenderHal_Platform_Interface_Next() {}
+    XRenderHal_Platform_Interface_Next();
     virtual ~XRenderHal_Platform_Interface_Next() {}
 
     MOS_STATUS AddPipelineSelectCmd(
@@ -253,9 +253,211 @@ public:
         PRENDERHAL_INTERFACE         pRenderHal);
 
     bool IsComputeContextInUse(
-         PRENDERHAL_INTERFACE    pRenderHal);
+         PRENDERHAL_INTERFACE    pRenderHal) override;
+
+    //!
+    //! \brief    Check if Sampler128Elements is supported
+    //! \return   true of false
+    //!
+    bool IsSampler128ElementsSupported() override;
+
+    //!
+    //! \brief      Checks how per thread scratch space size bits in VFE state are interpreted by HW
+    //! \details    For BDW GT1/2/3 A0 steppings, per thread scratch space size in VFE state
+    //!             is 11 bits indicating [2k bytes, 2 Mbytes]: 0=2k, 1=4k, 2=8k ... 10=2M
+    //!             BDW+ excluding A0 step is 12 bits indicating [1k bytes, 2 Mbytes]: 0=1k, 1=2k, 2=4k, 3=8k ... 11=2M
+    //! \param      PRENDERHAL_INTERFACE pRenderHal
+    //!             [in]    Pointer to RenderHal interface
+    //! \return     true if BDW A0 stepping, false otherwise
+    //!
+    bool PerThreadScratchSpaceStart2K(PRENDERHAL_INTERFACE pRenderHal) override;
+
+    //!
+    //! \brief      Checks how per thread scratch space size bits in VFE state are interpreted by HW.
+    //! \details    per thread scratch space size can be 2^n (n >= 6) bytes.
+    //! \param      PRENDERHAL_INTERFACE pRenderHal
+    //!             [in]    Pointer to RenderHal interface
+    //! \return     bool.
+    //!
+    bool PerThreadScratchSpaceStart64Byte(RENDERHAL_INTERFACE *renderHal) override;
+
+    //!
+    //! \brief    Encode SLM Size for Interface Descriptor
+    //! \details  Setup SLM size
+    //! \param    uint32_t SLMSize
+    //!           [in] SLM size in 1K
+    //! \return   encoded output
+    //!
+    uint32_t EncodeSLMSize(uint32_t SLMSize) override;
+
+    //!
+    //! \brief    Set Chroma Direction
+    //! \details  Setup Chroma Direction for hpg_base
+    //! \param    PRENDERHAL_INTERFACE pRenderHal
+    //!           [in]  Pointer to Hardware Interface
+    //! \param    PRENDERHAL_SURFACE pRenderHalSurface
+    //!           [in]  Pointer to Render Hal Surface
+    //! \return   uint8_t
+    //!
+    uint8_t SetChromaDirection(
+        PRENDERHAL_INTERFACE pRenderHal,
+        PRENDERHAL_SURFACE   pRenderHalSurface) override;
+
+    //!
+    //! \brief    Initialize the default surface type and advanced surface type  per platform
+    //! \param    PRENDERHAL_INTERFACE    pRenderHal
+    //!           [out] Pointer to PRENDERHAL_INTERFACE
+    //! \return   void
+    //!
+    void InitSurfaceTypes(PRENDERHAL_INTERFACE pRenderHal) override;
+
+    //!
+    //! \brief    Check if YV12 Single Pass is supported
+    //! \param    PRENDERHAL_INTERFACE pRenderHal
+    //!           [in]  Pointer to Hardware Interface
+    //! \return   true of false
+    //!
+    bool IsEnableYV12SinglePass(PRENDERHAL_INTERFACE pRenderHal) override;
+
+    //!
+    //! \brief     Get the Size of AVS Sampler State
+    //! \param    PRENDERHAL_INTERFACE pRenderHal
+    //!           [in]  Pointer to Hardware Interface
+    //! \return   size
+    //!
+    uint32_t GetSizeSamplerStateAvs(PRENDERHAL_INTERFACE pRenderHal) override;
+
+    //!
+    //! \brief    Set Power Option Status
+    //! \param    [in] pRenderHal
+    //!           Pointer to Hardware Interface
+    //! \param    [in,out] pCmdBuffer
+    //!           Pointer to Command Buffer
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS SetPowerOptionStatus(
+        PRENDERHAL_INTERFACE pRenderHal,
+        PMOS_COMMAND_BUFFER  pCmdBuffer) override;
+
+    //!
+    //! \brief    Set Composite Prolog CMD
+    //! \param    [in] pRenderHal
+    //!           Pointer to Hardware Interface
+    //! \param    [in,out] pCmdBuffer
+    //!           Pointer to Command Buffer
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS SetCompositePrologCmd(
+        PRENDERHAL_INTERFACE pRenderHal,
+        PMOS_COMMAND_BUFFER  pCmdBuffer) override;
+
+    //!
+    //! \brief    Send Compute Walker
+    //! \details  Send Compute Walker
+    //! \param    PRENDERHAL_INTERFACE pRenderHal
+    //!           [in] Pointer to Hardware Interface Structure
+    //! \param    PMOS_COMMAND_BUFFER pCmdBuffer
+    //!           [in] Pointer to Command Buffer
+    //! \param    PRENDERHAL_GPGPU_WALKER_PARAMS pGpGpuWalkerParams
+    //!           [in]    Pointer to GPGPU walker parameters
+    //! \return   MOS_STATUS
+    //!
+    MOS_STATUS SendComputeWalker(
+        PRENDERHAL_INTERFACE     pRenderHal,
+        PMOS_COMMAND_BUFFER      pCmdBuffer,
+        PMHW_GPGPU_WALKER_PARAMS pGpGpuWalkerParams) override;
+
+    //!
+    //! \brief    Send To 3DState Binding Table Pool Alloc
+    //! \details  Send To 3DState Binding Table Pool Alloc
+    //! \param    PRENDERHAL_INTERFACE pRenderHal
+    //!           [in] Pointer to RenderHal Interface Structure
+    //! \param    PMOS_COMMAND_BUFFER pCmdBuffer
+    //!           [in] Pointer to Command Buffer
+    //! \return   MOS_STATUS
+    //!
+    MOS_STATUS SendTo3DStateBindingTablePoolAlloc(
+        PRENDERHAL_INTERFACE pRenderHal,
+        PMOS_COMMAND_BUFFER  pCmdBuffer) override;
+
+    //!
+    //! \brief    Get Render Engine MMC Enable/Disable Flag
+    //! \param    [in] pRenderHal
+    //!           Pointer to Hardware Interface
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS IsRenderHalMMCEnabled(
+        PRENDERHAL_INTERFACE pRenderHal) override;
+
+    //!
+    //! \brief    Check if Over ride is needed or not
+    //! \param    [in] pRenderHal
+    //!           Pointer to Hardware Interface
+    //! \param    [in,out] pCmdBuffer
+    //!           Pointer to Command Buffer
+    //! \param    [in] pGenericPrologParam
+    //!           Pointer to MHW generic prolog parameters
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS IsOvrdNeeded(
+        PRENDERHAL_INTERFACE             pRenderHal,
+        PMOS_COMMAND_BUFFER              pCmdBuffer,
+        PRENDERHAL_GENERIC_PROLOG_PARAMS pGenericPrologParams) override;
+
+    //!
+    //! \brief    Allocates scratch space buffer.
+    //! \details  A single scratch space buffer is allocated and used for all threads.
+    //! \param    [in] perThreadScratchSpace
+    //!           scratch space
+    //! \param    [in] renderHal
+    //!           Pointer to Hardware Interface
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS AllocateScratchSpaceBuffer(
+        uint32_t                perThreadScratchSpace,
+        RENDERHAL_INTERFACE     *renderHal) override;
+
+    //!
+    //! \brief    Frees scratch space buffer.
+    //! \details  A single scratch space buffer is allocated and used for all threads.
+    //! \param    [in] renderHal
+    //!           Pointer to Hardware Interface
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS FreeScratchSpaceBuffer(
+        RENDERHAL_INTERFACE *renderHal) override;
+
+    //!
+    //! \brief      Get Surface Compression support caps
+    //! \param      [in] format
+    //!             surface format
+    //! \return     bool
+    //!             true or false
+    //!
+    virtual bool IsFormatMMCSupported(MOS_FORMAT format);
+
+    //!
+    //! \brief      Is L8 format support
+    //! \return     bool
+    //!             true or false
+    //!
+    virtual bool IsL8FormatSupported();
 
     std::shared_ptr<mhw::mi::Itf> GetMhwMiItf();
+
+    MHW_SETPAR_DECL_HDR(STATE_BASE_ADDRESS);
+
+    MHW_SETPAR_DECL_HDR(_3DSTATE_CHROMA_KEY);
+
+    MHW_SETPAR_DECL_HDR(STATE_SIP);
+
+    MHW_SETPAR_DECL_HDR(COMPUTE_WALKER);
 
 protected:
 
@@ -263,6 +465,8 @@ protected:
     MediaFeatureManager               *m_featureManager = nullptr;
     PMHW_GPGPU_WALKER_PARAMS          m_gpgpuWalkerParams = nullptr;
     PMHW_ID_ENTRY_PARAMS              m_interfaceDescriptorParams = nullptr;
+    bool                              m_renderHalMMCEnabled = false;
+    MOS_RESOURCE                      m_scratchSpaceResource;
     std::shared_ptr<mhw::render::Itf> m_renderItf = nullptr;
     std::shared_ptr<mhw::mi::Itf>     m_miItf     = nullptr;
 

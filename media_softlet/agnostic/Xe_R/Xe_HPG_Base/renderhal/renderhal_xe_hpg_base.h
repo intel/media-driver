@@ -1,6 +1,6 @@
 /*===================== begin_copyright_notice ==================================
 
-# Copyright (c) 2021, Intel Corporation
+# Copyright (c) 2021-2023, Intel Corporation
 
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -30,8 +30,6 @@
 #define __RENDERHAL_XE_HPG_BASE_H__
 
 #include "renderhal_platform_interface_next.h"
-#include "mhw_render_itf.h"
-#include "mhw_render_cmdpar.h"
 #include "mhw_render_hwcmd_xe_hpg.h"
 #include "mhw_state_heap_xe_hpg.h"
 
@@ -82,62 +80,6 @@ public:
         PRENDERHAL_OFFSET_OVERRIDE      pOffsetOverride) override;
 
     //!
-    //! \brief    Check if Sampler128Elements is supported
-    //! \return   true of false
-    //!
-    virtual inline bool IsSampler128ElementsSupported() override { return true; }
-
-    //!
-    //! \brief      Checks how per thread scratch space size bits in VFE state are interpreted by HW
-    //! \details    For BDW GT1/2/3 A0 steppings, per thread scratch space size in VFE state
-    //!             is 11 bits indicating [2k bytes, 2 Mbytes]: 0=2k, 1=4k, 2=8k ... 10=2M
-    //!             BDW+ excluding A0 step is 12 bits indicating [1k bytes, 2 Mbytes]: 0=1k, 1=2k, 2=4k, 3=8k ... 11=2M
-    //! \param      PRENDERHAL_INTERFACE pRenderHal
-    //!             [in]    Pointer to RenderHal interface
-    //! \return     true if BDW A0 stepping, false otherwise
-    //!
-    bool PerThreadScratchSpaceStart2K(PRENDERHAL_INTERFACE pRenderHal) override
-    {
-        MOS_UNUSED(pRenderHal);
-        return false;
-    }
-
-    //!
-    //! \brief      Checks how per thread scratch space size bits in VFE state are interpreted by HW.
-    //! \details    per thread scratch space size can be 2^n (n >= 6) bytes.
-    //! \param      PRENDERHAL_INTERFACE pRenderHal
-    //!             [in]    Pointer to RenderHal interface
-    //! \return     bool.
-    //!
-    virtual bool PerThreadScratchSpaceStart64Byte(
-        RENDERHAL_INTERFACE *renderHal) override
-    {
-        return true;
-    }
-
-    //!
-    //! \brief    Encode SLM Size for Interface Descriptor
-    //! \details  Setup SLM size
-    //! \param    uint32_t SLMSize
-    //!           [in] SLM size in 1K
-    //! \return   encoded output
-    //!
-    uint32_t EncodeSLMSize(uint32_t SLMSize) override;
-
-    //!
-    //! \brief    Set Chroma Direction
-    //! \details  Setup Chroma Direction for hpg_base
-    //! \param    PRENDERHAL_INTERFACE pRenderHal
-    //!           [in]  Pointer to Hardware Interface
-    //! \param    PRENDERHAL_SURFACE pRenderHalSurface
-    //!           [in]  Pointer to Render Hal Surface
-    //! \return   uint8_t
-    //!
-    uint8_t SetChromaDirection(
-        PRENDERHAL_INTERFACE pRenderHal,
-        PRENDERHAL_SURFACE   pRenderHalSurface) override;
-
-    //!
     //! \brief    Convert To Nano Seconds
     //! \details  Convert to Nano Seconds
     //! \param    PRENDERHAL_INTERFACE pRenderHal
@@ -161,48 +103,6 @@ public:
     //!
     void InitStateHeapSettings(
         PRENDERHAL_INTERFACE pRenderHal) override;
-
-    //!
-    //! \brief    Initialize the default surface type and advanced surface type  per platform
-    //! \param    PRENDERHAL_INTERFACE    pRenderHal
-    //!           [out] Pointer to PRENDERHAL_INTERFACE
-    //! \return   void
-    //!
-    void InitSurfaceTypes(
-        PRENDERHAL_INTERFACE pRenderHal) override;
-
-    //!
-    //! \brief    Check if YV12 Single Pass is supported
-    //! \param    PRENDERHAL_INTERFACE pRenderHal
-    //!           [in]  Pointer to Hardware Interface
-    //! \return   true of false
-    //!
-    inline bool IsEnableYV12SinglePass(
-        PRENDERHAL_INTERFACE pRenderHal) override
-    {
-        MOS_UNUSED(pRenderHal);
-        return true;
-    }
-
-    //!
-    //! \brief     Get the Size of AVS Sampler State
-    //! \param    PRENDERHAL_INTERFACE pRenderHal
-    //!           [in]  Pointer to Hardware Interface
-    //! \return   size
-    //!
-    inline uint32_t GetSizeSamplerStateAvs(
-        PRENDERHAL_INTERFACE pRenderHal) override
-    {
-        if (pRenderHal && pRenderHal->pHwSizes)
-        {
-            return 2 * pRenderHal->pHwSizes->dwSizeSamplerStateAvs;  // Kernel using 1,3,5 sampler index for AVS sampler state.
-        }
-        else
-        {
-            MHW_RENDERHAL_ASSERTMESSAGE("Failed to get SizeSamplerStateAvs");
-            return 0;
-        }
-    }
 
     //!
     //! \brief    Enables L3 cacheing flag and sets related registers/values
@@ -245,84 +145,6 @@ public:
         m_vfeStateParams.enableSingleSliceDispatchCcsMode = enable;
     };
 
-    //!
-    //! \brief    Set Power Option Status
-    //! \param    [in] pRenderHal
-    //!           Pointer to Hardware Interface
-    //! \param    [in,out] pCmdBuffer
-    //!           Pointer to Command Buffer
-    //! \return   MOS_STATUS
-    //!           MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    virtual MOS_STATUS SetPowerOptionStatus(
-        PRENDERHAL_INTERFACE pRenderHal,
-        PMOS_COMMAND_BUFFER  pCmdBuffer) override;
-
-    //!
-    //! \brief    Set Composite Prolog CMD
-    //! \param    [in] pRenderHal
-    //!           Pointer to Hardware Interface
-    //! \param    [in,out] pCmdBuffer
-    //!           Pointer to Command Buffer
-    //! \return   MOS_STATUS
-    //!           MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    virtual MOS_STATUS SetCompositePrologCmd(
-        PRENDERHAL_INTERFACE pRenderHal,
-        PMOS_COMMAND_BUFFER  pCmdBuffer) override;
-
-    //! \brief    Send Compute Walker
-    //! \details  Send Compute Walker
-    //! \param    PRENDERHAL_INTERFACE pRenderHal
-    //!           [in] Pointer to Hardware Interface Structure
-    //! \param    PMOS_COMMAND_BUFFER pCmdBuffer
-    //!           [in] Pointer to Command Buffer
-    //! \param    PRENDERHAL_GPGPU_WALKER_PARAMS pGpGpuWalkerParams
-    //!           [in]    Pointer to GPGPU walker parameters
-    //! \return   MOS_STATUS
-    virtual MOS_STATUS SendComputeWalker(
-        PRENDERHAL_INTERFACE     pRenderHal,
-        PMOS_COMMAND_BUFFER      pCmdBuffer,
-        PMHW_GPGPU_WALKER_PARAMS pGpGpuWalkerParams) override;
-
-    //! \brief    Send To 3DState Binding Table Pool Alloc
-    //! \details  Send To 3DState Binding Table Pool Alloc
-    //! \param    PRENDERHAL_INTERFACE pRenderHal
-    //!           [in] Pointer to RenderHal Interface Structure
-    //! \param    PMOS_COMMAND_BUFFER pCmdBuffer
-    //!           [in] Pointer to Command Buffer
-    //! \return   MOS_STATUS
-    virtual MOS_STATUS SendTo3DStateBindingTablePoolAlloc(
-        PRENDERHAL_INTERFACE pRenderHal,
-        PMOS_COMMAND_BUFFER  pCmdBuffer) override;
-
-
-    //!
-    //! \brief    Get Render Engine MMC Enable/Disable Flag
-    //! \param    [in] pRenderHal
-    //!           Pointer to Hardware Interface
-    //! \return   MOS_STATUS
-    //!           MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    virtual MOS_STATUS IsRenderHalMMCEnabled(
-        PRENDERHAL_INTERFACE pRenderHal) override;
-
-    //!
-    //! \brief    Check if Over ride is needed or not
-    //! \param    [in] pRenderHal
-    //!           Pointer to Hardware Interface
-    //! \param    [in,out] pCmdBuffer
-    //!           Pointer to Command Buffer
-    //! \param    [in] pGenericPrologParam
-    //!           Pointer to MHW generic prolog parameters
-    //! \return   MOS_STATUS
-    //!           MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    virtual MOS_STATUS IsOvrdNeeded(
-        PRENDERHAL_INTERFACE             pRenderHal,
-        PMOS_COMMAND_BUFFER              pCmdBuffer,
-        PRENDERHAL_GENERIC_PROLOG_PARAMS pGenericPrologParams) override;
-
     //! \brief      Set L3 cache override config parameters
     //! \param      [in] pRenderHal
     //!             Pointer to RenderHal Interface Structure
@@ -355,28 +177,6 @@ public:
     //!             the size of binding table state command
     virtual size_t GetBTStateCmdSize() override { return mhw_state_heap_xe_hpg::BINDING_TABLE_STATE_CMD::byteSize; }
 
-    //! \brief      Get Surface Compression support caps
-    //! \param      [in] format
-    //!             surface format
-    //! \return     bool
-    //!             true or false
-    bool IsFormatMMCSupported(MOS_FORMAT format);
-
-    //! \brief    Check if compute context in use
-    //! \param    PRENDERHAL_INTERFACE    pRenderHal
-    //!           [in]  Pointer to Hardware Interface
-    //! \return   true of false
-    virtual bool IsComputeContextInUse(PRENDERHAL_INTERFACE pRenderHal) override
-    {
-        return true;
-    }
-
-    //! \brief    Allocates scratch space buffer.
-    //! \details  A single scratch space buffer is allocated and used for all threads.
-    virtual MOS_STATUS AllocateScratchSpaceBuffer(
-        uint32_t             perThreadScratchSpace,
-        RENDERHAL_INTERFACE *renderHal) override;
-
     //! \brief    Sets states of scratch space buffer.
     //! \param    Pointer to RENDERHAL_INTERFACE renderHal
     //!           [in] Pointer to render HAL Interface.
@@ -387,25 +187,7 @@ public:
         RENDERHAL_INTERFACE *renderHal,
         uint32_t             indexOfBindingTable);
 
-    //! \brief    Frees scratch space buffer.
-    //! \details  A single scratch space buffer is allocated and used for all threads.
-    virtual MOS_STATUS FreeScratchSpaceBuffer(
-        RENDERHAL_INTERFACE *renderHal) override;
-
-    virtual bool IsL8FormatSupported()
-    {
-        return true;
-    }
-
-     MHW_SETPAR_DECL_HDR(STATE_BASE_ADDRESS);
-
-     MHW_SETPAR_DECL_HDR(_3DSTATE_CHROMA_KEY);
-
-     MHW_SETPAR_DECL_HDR(STATE_SIP);
-
-     MHW_SETPAR_DECL_HDR(CFE_STATE);
-
-     MHW_SETPAR_DECL_HDR(COMPUTE_WALKER);
+    MHW_SETPAR_DECL_HDR(CFE_STATE);
 
 protected:
     XRenderHal_Interface_Xe_Hpg_Base();
@@ -415,10 +197,6 @@ protected:
 
     mhw::render::xe_hpg::Cmd::PALETTE_ENTRY_CMD
         m_paletteData[RENDERHAL_PALETTE_MAX][RENDERHAL_PALETTE_ENTRIES_MAX];
-
-    bool m_renderHalMMCEnabled = false;
-
-    MOS_RESOURCE m_scratchSpaceResource;
 
 MEDIA_CLASS_DEFINE_END(XRenderHal_Interface_Xe_Hpg_Base)
 };
