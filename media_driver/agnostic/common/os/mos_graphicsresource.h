@@ -168,9 +168,9 @@ public:
             m_width           = pParams->dwWidth;
             m_memType         = pParams->dwMemType;
             m_tileModeByForce = pParams->m_tileModeByForce;
-            m_gmmResUsageType = MosInterface::GetGmmResourceUsageType(pParams->ResUsageType);
 
-            if (pParams->ResUsageType >= MOS_HW_RESOURCE_USAGE_MEDIA_BATCH_BUFFERS || pParams->ResUsageType == MOS_CODEC_RESOURCE_USAGE_BEGIN_CODEC)
+            if (pParams->ResUsageType == MOS_CODEC_RESOURCE_USAGE_BEGIN_CODEC ||
+                pParams->ResUsageType == MOS_HW_RESOURCE_DEF_MAX)  // the usage type is invalid, set to default usage.
             {
                 m_mocsMosResUsageType = MOS_MP_RESOURCE_USAGE_DEFAULT;
             }
@@ -178,6 +178,7 @@ public:
             {
                 m_mocsMosResUsageType = pParams->ResUsageType;
             }
+            m_gmmResUsageType = MosInterface::GetGmmResourceUsageType(m_mocsMosResUsageType);
         };
 
         CreateParams()
