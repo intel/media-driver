@@ -1043,7 +1043,6 @@ MHW_SETPAR_DECL_SRC(HEVC_VP9_RDOQ_STATE, PreEncBasicFeature)
             lambdaDouble *= MOS_MAX(1.00, MOS_MIN(1.6, 1.0 + 0.6 / 12.0 * (qpTemp - 10.0)));
             lambdaDouble               = lambdaDouble * 16 + 0.5;
             lambda                     = (uint32_t)floor(lambdaDouble);
-            lambdaDouble               = (lambdaDouble > 65535) ? 65535 : lambdaDouble;
             lambda                     = CodecHal_Clip3(0, 0xffff, lambda);
             params.lambdaTab[1][0][qp] = (uint16_t)lambda;
         }
@@ -1054,7 +1053,6 @@ MHW_SETPAR_DECL_SRC(HEVC_VP9_RDOQ_STATE, PreEncBasicFeature)
             lambdaDouble *= MOS_MAX(0.95, MOS_MIN(1.20, 0.25 / 12.0 * (qpTemp - 10.0) + 0.95));
             lambdaDouble               = lambdaDouble * 16 + 0.5;
             lambda                     = (uint32_t)floor(lambdaDouble);
-            lambdaDouble               = (lambdaDouble > 65535) ? 65535 : lambdaDouble;
             lambda                     = CodecHal_Clip3(0, 0xffff, lambda);
             params.lambdaTab[1][1][qp] = (uint16_t)lambda;
         }

@@ -377,7 +377,6 @@ MOS_STATUS Vp9EncodeTile::SetTileData(void *params)
 
             cuLevelStreamoutOffset    += (m_tileData[idx].tileWidthInMinCbMinus1 + 1) * (m_tileData[idx].tileHeightInMinCbMinus1 + 1);
             sliceSizeStreamoutOffset  += (m_tileData[idx].tileWidthInMinCbMinus1 + 1) * (m_tileData[idx].tileHeightInMinCbMinus1 + 1);
-            sseRowstoreOffset         += (numLcuInTile * basicFeature->m_sizeOfSseSrcPixelRowStoreBufferPerLcu) / CODECHAL_CACHELINE_SIZE;
             bitstreamByteOffset       += bitstreamSizePerTile;
             numLcusInTiles            += numLcuInTile;
 

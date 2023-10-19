@@ -6198,7 +6198,6 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER c
     // FEI distortion surface
     if (feiPicParams->DistortionEnable)
     {
-        size = params->dwFrameWidthInMb * params->dwFrameFieldHeightInMb * 48;
         MOS_ZeroMemory(&surfaceCodecParams, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
         surfaceCodecParams.presBuffer = &(feiPicParams->resDistortion);
         surfaceCodecParams.dwOffset = 0;
@@ -6227,7 +6226,6 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER c
             &surfaceCodecParams,
             kernelState));
 
-        size = params->dwFrameWidthInMb * params->dwFrameFieldHeightInMb + 3;
         MOS_ZeroMemory(&surfaceCodecParams, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
         surfaceCodecParams.presBuffer = &(feiPicParams->resMBQp);
         surfaceCodecParams.dwOffset = 0;
