@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2022, Intel Corporation
+* Copyright (c) 2018-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1386,6 +1386,7 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxDenoiseOutputSurface(VP_EXECUTE_CAP
     bool                            bSurfCompressible   = false;
     MOS_TILE_MODE_GMM               tileModeByForce     = MOS_TILE_UNSET_GMM;
     auto *                          skuTable            = m_osInterface.pfnGetSkuTable(&m_osInterface);
+    auto *                          waTable             = m_osInterface.pfnGetWaTable(&m_osInterface);
     Mos_MemPool                     memTypeSurfVideoMem = MOS_MEMPOOL_VIDEOMEMORY;
     uint32_t                        dwHeight;
     MOS_TILE_TYPE                   TileType;
@@ -1409,7 +1410,8 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxDenoiseOutputSurface(VP_EXECUTE_CAP
     }
 
     allocated = false;
-    if (IS_VP_VEBOX_DN_ONLY(caps))
+
+    if (IS_VP_VEBOX_DN_ONLY(caps) || (skuTable && waTable && MEDIA_IS_SKU(skuTable, FtrE2ECompression) && !MEDIA_IS_SKU(skuTable, FtrFlatPhysCCS) && !MEDIA_IS_WA(waTable, WaAuxTable64KGranular)))
     {
         bSurfCompressible = inputSurface->osSurface->bCompressible;
         surfCompressionMode = inputSurface->osSurface->CompressionMode;
@@ -1462,6 +1464,14 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxDenoiseOutputSurface(VP_EXECUTE_CAP
             tileModeByForce,
             memTypeSurfVideoMem,
             VPP_INTER_RESOURCE_NOTLOCKABLE));
+
+        // DN output surface state should be able to share with vebox input surface state
+        if (m_veboxDenoiseOutput[i]->osSurface &&
+            (m_veboxDenoiseOutput[i]->osSurface->YoffsetForUplane != inputSurface->osSurface->YoffsetForUplane || m_veboxDenoiseOutput[i]->osSurface->YoffsetForVplane != inputSurface->osSurface->YoffsetForVplane))
+        {
+            VP_PUBLIC_ASSERTMESSAGE("Vebox surface state of DN output surface doesn't align with input surface!");
+            VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_UNKNOWN);
+        }
 
         // if allocated, pVeboxState->PastSurface is not valid for DN reference.
         if (allocated)
