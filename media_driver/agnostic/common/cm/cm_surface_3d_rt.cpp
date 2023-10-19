@@ -126,7 +126,7 @@ CM_RT_API int32_t CmSurface3DRT::WriteSurface( const unsigned char* sysMem,
             return CM_INVALID_ARG_VALUE;
     }
 
-    uSizeInBytes = m_width * m_height * m_depth * pixel;
+    uSizeInBytes = (uint64_t)(m_width * m_height * m_depth * pixel);
     if (sysMemSize < uSizeInBytes)
     {
         CM_ASSERTMESSAGE("Error: Invalid copy size.")
@@ -257,7 +257,7 @@ CM_RT_API int32_t CmSurface3DRT::ReadSurface( unsigned char* sysMem, CmEvent* ev
             return CM_INVALID_ARG_VALUE;
     }
 
-    uSizeInBytes = m_width * m_height * m_depth * pixel;
+    uSizeInBytes = (uint64_t)(m_width * m_height * m_depth * pixel);
     if (sysMemSize < uSizeInBytes)
     {
         CM_ASSERTMESSAGE("Error: Invalid copy size.")
