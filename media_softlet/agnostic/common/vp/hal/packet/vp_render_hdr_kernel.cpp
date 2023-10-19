@@ -1379,7 +1379,6 @@ MOS_STATUS VpRenderHdrKernel::VpHal_HdrColorTransfer3dLut(
 {
     VP_FUNC_CALL();
 
-    MOS_STATUS           eStatus = MOS_STATUS_SUCCESS;
     float                PriorCscMatrix[12] = {}, PostCscMatrix[12] = {};
     float                TempMatrix[12] = {};
     double               fTempX = 0, fTempY = 0, fTempZ = 0;
@@ -1452,7 +1451,7 @@ MOS_STATUS VpRenderHdrKernel::VpHal_HdrColorTransfer3dLut(
         else
         {
             VP_RENDER_ASSERTMESSAGE("Invalid Prior CSC parameter.");
-            eStatus = MOS_STATUS_INVALID_PARAMETER;
+            VP_RENDER_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
         }
 
         fTemp1X = fTempX;
@@ -1563,7 +1562,7 @@ MOS_STATUS VpRenderHdrKernel::VpHal_HdrColorTransfer3dLut(
         else
         {
             VP_RENDER_ASSERTMESSAGE("Invalid EOTF setting for tone mapping");
-            eStatus = MOS_STATUS_INVALID_PARAMETER;
+            VP_RENDER_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
         }
 
         CLAMP_MIN_MAX(fTempX, 0.0f, 1.0f);
@@ -1765,7 +1764,7 @@ MOS_STATUS VpRenderHdrKernel::VpHal_HdrColorTransfer3dLut(
         else
         {
             VP_RENDER_ASSERTMESSAGE("Invalid EOTF setting for tone mapping");
-            eStatus = MOS_STATUS_INVALID_PARAMETER;
+            VP_RENDER_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
         }
 
         CLAMP_MIN_MAX(fTempX, 0.0f, 1.0f);
@@ -1804,7 +1803,7 @@ MOS_STATUS VpRenderHdrKernel::VpHal_HdrColorTransfer3dLut(
         else
         {
             VP_RENDER_ASSERTMESSAGE("Color Space Not found.");
-            eStatus = MOS_STATUS_INVALID_PARAMETER;
+            VP_RENDER_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
         }
 
         fTemp1X = fTempX;
@@ -1837,9 +1836,7 @@ MOS_STATUS VpRenderHdrKernel::VpHal_HdrColorTransfer3dLut(
     *puOutputY = (uint16_t)(fTempY * params->f3DLUTNormalizationFactor + 0.5f);
     *puOutputZ = (uint16_t)(fTempZ * params->f3DLUTNormalizationFactor + 0.5f);
 
-    eStatus = MOS_STATUS_SUCCESS;
-
-    return eStatus;
+    return MOS_STATUS_SUCCESS;
 }
 
 //!

@@ -1922,19 +1922,6 @@ PMHW_STATE_HEAP_MEMORY_BLOCK  XMHW_STATE_HEAP_INTERFACE::AllocateDynamicBlockDyn
         do
         {
             // Allocate simple block
-            if (pParams == nullptr)
-            {
-                if (eStatus != MOS_STATUS_SUCCESS && pBlockManager != nullptr)
-                {
-                    // Something went wrong - release blocks if already allocated
-                    for (; pMemoryBlock != nullptr; pMemoryBlock = pAuxBlock)
-                    {
-                        pAuxBlock = pMemoryBlock->pNext;         // Get next block (must be done before Mhw_BlockManager_Free)
-                        pBlockManager->FreeBlock(pMemoryBlock);  // Release block back to "Free" queue
-                    }
-                }
-                return pMemoryBlock;
-            }
             if (pParams->iCount == 1)
             {
                 if (pParams->dwScratchSpace == 0)

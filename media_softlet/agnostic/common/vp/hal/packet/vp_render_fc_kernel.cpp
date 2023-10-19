@@ -1252,7 +1252,7 @@ MOS_STATUS VpRenderFcKernel::GetKernelEntry(Kdll_CacheEntry &entry)
         // CoeffID_0 may not be used if no csc needed for both main video and RT.
         auto matrixId = (uint8_t)DL_CSC_DISABLED == pCscParams->MatrixID[CoeffID_0] ?
             pCscParams->MatrixID[CoeffID_1] : pCscParams->MatrixID[CoeffID_0];
-        if ((uint8_t)DL_CSC_DISABLED != matrixId && matrixId >= 0 && matrixId < DL_CSC_MAX)
+        if ((uint8_t)DL_CSC_DISABLED != matrixId && matrixId < DL_CSC_MAX)
         {
             auto pMatrix    = &pCscParams->Matrix[matrixId];
 

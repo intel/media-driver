@@ -800,7 +800,7 @@ MOS_STATUS VpScalabilityMultiPipeNext::AddMiFlushDwCmd(
         parFlush.pOsResource = semaMem;
         parFlush.dwDataDW1   = semaData + 1;
     }
-    m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(cmdBuffer);
+    VP_RENDER_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(cmdBuffer));
 
     return eStatus;
 }

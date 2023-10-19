@@ -730,9 +730,17 @@ MOS_STATUS VpPipeline::CreateSinglePipeContext()
     VP_FUNC_CALL();
     VpSinglePipeContext *singlePipeCtx = MOS_New(VpSinglePipeContext);
     VP_PUBLIC_CHK_NULL_RETURN(singlePipeCtx);
-    VP_PUBLIC_CHK_STATUS_RETURN(singlePipeCtx->Init(m_osInterface, m_allocator, m_reporting, m_vpMhwInterface.m_vpPlatformInterface, m_pPacketPipeFactory, m_userFeatureControl, m_mediaCopyWrapper));
-    m_vpPipeContexts.push_back(singlePipeCtx);
-    return MOS_STATUS_SUCCESS;
+    MOS_STATUS status = singlePipeCtx->Init(m_osInterface, m_allocator, m_reporting, m_vpMhwInterface.m_vpPlatformInterface, m_pPacketPipeFactory, m_userFeatureControl, m_mediaCopyWrapper);
+    if (MOS_FAILED(status))
+    {
+        MOS_Delete(singlePipeCtx);
+        VP_PUBLIC_CHK_STATUS_RETURN(status);
+    }
+    else
+    {
+        m_vpPipeContexts.push_back(singlePipeCtx);
+    }
+    return status;
 }
 
 MOS_STATUS VpPipeline::CreateFeatureManager(VpResourceManager *vpResourceManager)

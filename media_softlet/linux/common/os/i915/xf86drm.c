@@ -186,7 +186,11 @@ static unsigned long drmGetKeyFromFd(int fd)
     stat_t     st;
 
     st.st_rdev = 0;
-    fstat(fd, &st);
+    int state = fstat(fd, &st);
+    if (state == -1)
+    {
+        drmMsg("fstat execute failed!");
+    }
     return st.st_rdev;
 }
 

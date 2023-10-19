@@ -2096,7 +2096,7 @@ MOS_STATUS VpVeboxCmdPacket::SendVecsStatusTag(
     params.pOsResource       = gpuStatusBuffer;;
     params.dwResourceOffset  = pOsInterface->pfnGetGpuStatusTagOffset(pOsInterface, MOS_GPU_CONTEXT_VEBOX);
     params.dwDataDW1         = pOsInterface->pfnGetGpuStatusTag(pOsInterface, MOS_GPU_CONTEXT_VEBOX);
-    m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(pCmdBuffer);
+    VP_RENDER_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(pCmdBuffer));
 
     // Increase buffer tag for next usage
     pOsInterface->pfnIncrementGpuStatusTag(pOsInterface, MOS_GPU_CONTEXT_VEBOX);
