@@ -404,6 +404,7 @@ void MosUtilities::MosFreeMemory(void  *ptr)
             MT_MEMORY_PTR, (int64_t)(ptr), 
             functionName, filename, line); 
         free(ptr);
+        ptr = nullptr;
     }
 }
 

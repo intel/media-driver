@@ -1467,7 +1467,7 @@ MOS_STATUS CodechalDecodeHevcG12::AddPictureLongFormatCmds(
     // Send VD_CONTROL_STATE Pipe Initialization
     MOS_ZeroMemory(&vdCtrlParam, sizeof(MHW_MI_VD_CONTROL_STATE_PARAMS));
     vdCtrlParam.initialization = true;
-    static_cast<MhwMiInterfaceG12*>(m_miInterface)->AddMiVdControlStateCmd(cmdBufferInUse, &vdCtrlParam);
+    CODECHAL_DECODE_CHK_STATUS_RETURN(static_cast<MhwMiInterfaceG12*>(m_miInterface)->AddMiVdControlStateCmd(cmdBufferInUse, &vdCtrlParam));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpPipeModeSelectCmd(
         cmdBufferInUse,
@@ -1479,7 +1479,7 @@ MOS_STATUS CodechalDecodeHevcG12::AddPictureLongFormatCmds(
         // Send VD_CONTROL_STATE HcpPipeLock
         MOS_ZeroMemory(&vdCtrlParam, sizeof(MHW_MI_VD_CONTROL_STATE_PARAMS));
         vdCtrlParam.scalableModePipeLock = true;
-        static_cast<MhwMiInterfaceG12*>(m_miInterface)->AddMiVdControlStateCmd(cmdBufferInUse, &vdCtrlParam);
+        CODECHAL_DECODE_CHK_STATUS_RETURN(static_cast<MhwMiInterfaceG12 *>(m_miInterface)->AddMiVdControlStateCmd(cmdBufferInUse, &vdCtrlParam));
     }
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
@@ -2089,7 +2089,7 @@ MOS_STATUS CodechalDecodeHevcG12::DecodePrimitiveLevel()
     // Send VD_CONTROL_STATE Memory Implict Flush
     MOS_ZeroMemory(&vdCtrlParam, sizeof(MHW_MI_VD_CONTROL_STATE_PARAMS));
     vdCtrlParam.memoryImplicitFlush = true;
-    static_cast<MhwMiInterfaceG12*>(m_miInterface)->AddMiVdControlStateCmd(cmdBufferInUse, &vdCtrlParam);
+    CODECHAL_DECODE_CHK_STATUS_RETURN(static_cast<MhwMiInterfaceG12 *>(m_miInterface)->AddMiVdControlStateCmd(cmdBufferInUse, &vdCtrlParam));
 
     if (CodecHalDecodeScalabilityIsBEPhaseG12(m_scalabilityState) ||
         m_isRealTile)
