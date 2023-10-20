@@ -2308,6 +2308,7 @@ void BufferCopyThread(void* threadData)
     CmEvent* wait_event = (CmEvent*)(data->wait_event);
     CmEvent* notify_event = (CmEvent*)(data->event);
     CmEventRT* eventRT = dynamic_cast<CmEventRT*>(notify_event);
+    CM_CHK_NULL_RETURN_VOID(eventRT);
     CmEventEx* eex = dynamic_cast<CmEventEx*>(notify_event);
 
     uint32_t offset = data->offset;
@@ -2469,15 +2470,6 @@ int32_t CmQueueRT::EnqueueBufferCopy(CmBuffer* buffer, size_t offset, const unsi
         CM_CHK_CMSTATUS_GOTOFINISH(m_device->CreateTask(task));
         CM_CHK_NULL_GOTOFINISH_CMERROR(task);
         CM_CHK_CMSTATUS_GOTOFINISH(task->AddKernel(kernel));
-
-        if (option & CM_FASTCOPY_OPTION_DISABLE_TURBO_BOOST)
-        {
-            // disable turbo
-            CM_TASK_CONFIG taskConfig;
-            CmSafeMemSet(&taskConfig, 0, sizeof(CM_TASK_CONFIG));
-            taskConfig.turboBoostFlag = CM_TURBO_BOOST_DISABLE;
-            task->SetProperty(taskConfig);
-        }
 
         CM_CHK_CMSTATUS_GOTOFINISH(EnqueueFast(task, event, threadSpace));
     }
