@@ -1824,18 +1824,6 @@ int32_t DdiMediaUtil_OpenGraphicsAdaptor(char *devName)
         return -1;
     }
 
-    if (-1 == stat (devName, &st))
-    {
-        DDI_ASSERTMESSAGE("Cannot identify '%s': %d, %s.", devName, errno, strerror (errno));
-        return -1;
-    }
-
-    if (!S_ISCHR (st.st_mode))
-    {
-        DDI_ASSERTMESSAGE("%s is no device.", devName);
-        return -1;
-    }
-
     hDevice = open (devName, O_RDWR);
     if (-1 == hDevice)
     {
@@ -1843,6 +1831,19 @@ int32_t DdiMediaUtil_OpenGraphicsAdaptor(char *devName)
         return -1;
     }
 
+    if (-1 == fstat (hDevice, &st))
+    {
+        DDI_ASSERTMESSAGE("Cannot identify '%s': %d, %s.", devName, errno, strerror (errno));
+        close(hDevice);
+        return -1;
+    }
+
+    if (!S_ISCHR (st.st_mode))
+    {
+        DDI_ASSERTMESSAGE("%s is no device.", devName);
+        close(hDevice);
+        return -1;
+    }
     return hDevice;
 }
 

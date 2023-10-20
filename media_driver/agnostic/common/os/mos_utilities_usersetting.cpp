@@ -236,6 +236,10 @@ MOS_STATUS MosUtilities::MosGenerateUserFeatureKeyXML(MOS_CONTEXT_HANDLE mosCtx)
     {
         UserFeatureFilter.pcGroup = FilterGroups[uiIndex];
         eStatus = MosWriteOneUserFeatureGroupToXML(UserFeatureFilter);
+        if (eStatus!= MOS_STATUS_SUCCESS)
+        {
+            MOS_OS_ASSERTMESSAGE("Failed to Write One User FeatureGroup To XML");
+        }
     }
 
     // User Feature Key Header End

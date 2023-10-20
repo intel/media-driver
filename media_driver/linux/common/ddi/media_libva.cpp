@@ -5420,7 +5420,15 @@ VAStatus DdiMedia_GetImage(
             return vaStatus;
         }
         vaStatus = DdiMedia_SyncSurface(ctx, target_surface);
+        if (vaStatus != VA_STATUS_SUCCESS)
+        {
+            DDI_ASSERTMESSAGE("VP Sync surface failed.");
+        }
         vaStatus = DdiVp_DestroyContext(ctx, context);
+        if (vaStatus != VA_STATUS_SUCCESS)
+        {
+            DDI_ASSERTMESSAGE("VP Destroy Context failed.");
+        }
         output_surface = target_surface;
     }
 

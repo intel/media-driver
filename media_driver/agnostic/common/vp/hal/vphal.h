@@ -429,6 +429,10 @@ public:
             if (m_veboxItf)
             {
                 eStatus = m_veboxItf->DestroyHeap();
+                if (eStatus != MOS_STATUS_SUCCESS)
+                {
+                    VPHAL_PUBLIC_ASSERTMESSAGE("Failed to destroy Vebox Interface, eStatus:%d.\n", eStatus);
+                }
             }
 
             eStatus = m_veboxInterface->DestroyHeap();

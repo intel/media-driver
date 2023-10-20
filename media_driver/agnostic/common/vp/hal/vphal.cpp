@@ -787,6 +787,11 @@ VphalState::~VphalState()
         if (m_veboxItf)
         {
             eStatus = m_veboxItf->DestroyHeap();
+            if (eStatus != MOS_STATUS_SUCCESS)
+            {
+                VPHAL_PUBLIC_ASSERTMESSAGE("Failed to destroy Vebox Interface, eStatus:%d.\n", eStatus);
+                MT_ERR1(MT_VP_HAL_DESTROY, MT_CODE_LINE, __LINE__);
+            }
         }
 
         eStatus = m_veboxInterface->DestroyHeap();

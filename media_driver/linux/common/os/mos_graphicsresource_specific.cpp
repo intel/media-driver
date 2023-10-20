@@ -76,11 +76,6 @@ MOS_STATUS GraphicsResourceSpecific::Allocate(OsContext* osContextPtr, CreatePar
     }
 
     OsContextSpecific *pOsContextSpecific  = static_cast<OsContextSpecific *>(osContextPtr);
-    if (pOsContextSpecific == nullptr)
-    {
-        MOS_OS_ASSERTMESSAGE("Convert OsContextSpecific failed.");
-        return MOS_STATUS_INVALID_HANDLE;
-    }
 
     MOS_STATUS         status          = MOS_STATUS_SUCCESS;
     uint32_t           tileFormatLinux = TILING_NONE;
