@@ -69,6 +69,7 @@ enum class BufferType
     superResRef8xDsScaled,
     preencRef0,
     preencRef1,
+    AlignedRawSurface,
 };
 
 struct MapBufferResourceType
@@ -231,6 +232,7 @@ protected:
         {BufferType::superResRefScaled,         ResourceType::surfaceResource},
         {BufferType::superResRef4xDsScaled,     ResourceType::surfaceResource},
         {BufferType::superResRef8xDsScaled,     ResourceType::surfaceResource},
+        {BufferType::AlignedRawSurface,         ResourceType::surfaceResource},
     };
 
     uint8_t m_maxSlotCnt        = 0;     //!< max slot count in the tracked buffer

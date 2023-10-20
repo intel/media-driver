@@ -32,6 +32,7 @@
 #include "mhw_vdbox_mfx_itf.h"
 #include "mhw_vdbox_huc_itf.h"
 #include "encode_mem_compression.h"
+#include "media_copy_wrapper.h"
 #include "codechal_debug.h"
 
 namespace encode
@@ -103,8 +104,10 @@ public:
                     CodechalHwInterfaceNext *hwInterface,
                     TrackedBuffer *trackedBuf,
                     RecycleResource *recycleBuf,
+                    MediaCopyWrapper *mediaCopyWrapper,
                     void *constSettings = nullptr) :
-                    EncodeBasicFeature(allocator, hwInterface, trackedBuf, recycleBuf) {m_constSettings = constSettings;}
+                    EncodeBasicFeature(allocator, hwInterface, trackedBuf, recycleBuf),
+                    m_mediaCopyWrapper(mediaCopyWrapper) { m_constSettings = constSettings; }
 
     virtual ~AvcBasicFeature();
 
@@ -246,6 +249,7 @@ protected:
     MOS_STATUS SetSliceStructs();
     void CheckResolutionChange();
     MOS_STATUS PackPictureHeader();
+    bool       InputSurfaceNeedsExtraCopy(const MOS_SURFACE& input);
 
     virtual MOS_STATUS UpdateTrackedBufferParameters() override;
     virtual MOS_STATUS GetTrackedBuffers() override;
@@ -291,6 +295,8 @@ protected:
     CodechalEncodeSeiData m_seiData        = {};       //!< Encode SEI data parameter.
     uint32_t              m_seiDataOffset  = false;    //!< Encode SEI data offset.
     uint8_t *             m_seiParamBuffer = nullptr;  //!< Encode SEI data buffer.
+
+    MediaCopyWrapper *m_mediaCopyWrapper = nullptr;
 
 MEDIA_CLASS_DEFINE_END(encode__AvcBasicFeature)
 };

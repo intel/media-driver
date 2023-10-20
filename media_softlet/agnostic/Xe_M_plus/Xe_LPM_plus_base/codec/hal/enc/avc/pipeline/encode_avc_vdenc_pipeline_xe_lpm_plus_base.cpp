@@ -121,7 +121,7 @@ MOS_STATUS AvcVdencPipelineXe_Lpm_Plus_Base::CreateFeatureManager()
 {
     ENCODE_FUNC_CALL();
 
-    m_featureManager = MOS_New(EncodeAvcVdencFeatureManagerXe_Lpm_Plus_Base, m_allocator, m_hwInterface, m_trackedBuf, m_recycleBuf);
+    m_featureManager = MOS_New(EncodeAvcVdencFeatureManagerXe_Lpm_Plus_Base, m_allocator, m_hwInterface, m_trackedBuf, m_recycleBuf, m_mediaCopyWrapper);
     ENCODE_CHK_NULL_RETURN(m_featureManager);
 
     return MOS_STATUS_SUCCESS;

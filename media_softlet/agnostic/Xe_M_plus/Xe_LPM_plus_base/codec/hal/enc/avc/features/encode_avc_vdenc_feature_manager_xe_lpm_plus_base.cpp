@@ -57,7 +57,7 @@ MOS_STATUS EncodeAvcVdencFeatureManagerXe_Lpm_Plus_Base::CreateFeatures(void *co
     ENCODE_CHK_NULL_RETURN(setting);
     setting->SetOsInterface(m_hwInterface->GetOsInterface());
 
-    EncodeBasicFeature *encBasic = MOS_New(AvcBasicFeatureXe_Lpm_Plus_Base, m_allocator, m_hwInterface, m_trackedBuf, m_recycleResource, constSettings);
+    EncodeBasicFeature *encBasic = MOS_New(AvcBasicFeatureXe_Lpm_Plus_Base, m_allocator, m_hwInterface, m_trackedBuf, m_recycleResource, m_mediaCopyWrapper, constSettings);
     ENCODE_CHK_STATUS_RETURN(RegisterFeatures(AvcFeatureIDs::basicFeature, encBasic, {AvcVdencPipeline::encodePreEncPacket}));
 
     AvcVdencStreamInFeature *streamInFeature = MOS_New(AvcVdencStreamInFeature, this, m_allocator, m_hwInterface, constSettings);

@@ -39,8 +39,9 @@ public:
         EncodeAllocator *allocator,
         CodechalHwInterfaceNext *hwInterface,
         TrackedBuffer       *trackedBuf,
-        RecycleResource     *recycleBuf) :
-        EncodeAvcVdencFeatureManager(allocator, hwInterface, trackedBuf, recycleBuf) {}
+        RecycleResource     *recycleBuf,
+        MediaCopyWrapper    *mediaCopyWrapper) :
+        EncodeAvcVdencFeatureManager(allocator, hwInterface, trackedBuf, recycleBuf, mediaCopyWrapper) {}
 
     virtual ~EncodeAvcVdencFeatureManagerXe_Lpm_Plus_Base() {}
 

@@ -38,8 +38,9 @@ public:
                                     CodechalHwInterfaceNext *hwInterface,
                                     TrackedBuffer *trackedBuf,
                                     RecycleResource *recycleBuf,
+                                    MediaCopyWrapper *mediaCopyWrapper,
                                     void *constSettings = nullptr) :
-                                    AvcBasicFeature(allocator, hwInterface, trackedBuf, recycleBuf, constSettings) {}
+                                    AvcBasicFeature(allocator, hwInterface, trackedBuf, recycleBuf, mediaCopyWrapper, constSettings) {}
 
     virtual ~AvcBasicFeatureXe_Lpm_Plus_Base() {}
 

@@ -34,6 +34,7 @@
 #include "encode_recycle_resource.h"
 #include "encode_tracked_buffer.h"
 #include "codec_def_encode_avc.h"
+#include "media_copy_wrapper.h"
 
 namespace encode
 {
@@ -55,11 +56,13 @@ public:
      EncodeAvcVdencFeatureManager(EncodeAllocator *allocator,
                                   CodechalHwInterfaceNext *hwInterface,
                                   TrackedBuffer       *trackedBuf,
-                                  RecycleResource     *recycleBuf):
+                                  RecycleResource     *recycleBuf,
+                                  MediaCopyWrapper    *mediaCopyWrapper) :
                                   m_allocator(allocator),
                                   m_hwInterface(hwInterface),
                                   m_recycleResource(recycleBuf),
-                                  m_trackedBuf(trackedBuf) {}
+                                  m_trackedBuf(trackedBuf),
+                                  m_mediaCopyWrapper(mediaCopyWrapper) {}
 
     //!
     //! \brief  EncodeAvcVdencFeatureManager deconstructor
@@ -93,6 +96,7 @@ protected:
     CodechalHwInterfaceNext *m_hwInterface = nullptr;
     RecycleResource     *m_recycleResource = nullptr;
     TrackedBuffer       *m_trackedBuf = nullptr;
+    MediaCopyWrapper    *m_mediaCopyWrapper = nullptr;
 
 MEDIA_CLASS_DEFINE_END(encode__EncodeAvcVdencFeatureManager)
 };
