@@ -50,6 +50,21 @@ public:
         return m_mockDevice.ReleaseNewDevice(new_device);
     }//==================================================
 
+    int32_t CheckIsStreamLeaked()
+    {
+        int32_t  initStreams, releaseStreams;
+        initStreams = m_mockDevice.CheckAvaliableStream();
+        CmDevice *new_device      = m_mockDevice.CreateNewDevice();
+        if (nullptr == new_device)
+        {
+            return CM_FAILURE;
+        }
+        int32_t  result = m_mockDevice.ReleaseNewDevice(new_device);
+        releaseStreams =m_mockDevice.CheckAvaliableStream();
+        EXPECT_EQ(initStreams, releaseStreams);
+        return result;
+    }  //==================================================
+
     template<typename T>
     int32_t GetCaps(CM_DEVICE_CAP_NAME cap_name, T *cap_value)
     {
@@ -79,6 +94,13 @@ TEST_F(DeviceTest, NoScratchSpace)
                      [this, option]() { return CreateWithOptions(option); });
     return;
 }//========
+
+TEST_F(DeviceTest, CheckStreamLeak)
+{
+    RunEach<int32_t>(CM_SUCCESS,
+        [this]() { return CheckIsStreamLeaked(); });
+    return;
+}  //========
 
 TEST_F(DeviceTest, QueryGpuPlatform)
 {

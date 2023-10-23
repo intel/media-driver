@@ -108,4 +108,9 @@ int32_t MockDevice::ReleaseNewDevice(CmDevice *device)
     SendRequestMessage(&destroy_param, function_id);
     return destroy_param.return_value;
 }//===================================
+
+int32_t MockDevice::CheckAvaliableStream()
+{
+    return 0;
+}
 }  // namespace

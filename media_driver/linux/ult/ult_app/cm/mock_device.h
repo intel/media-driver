@@ -101,6 +101,8 @@ public:
 
     int32_t ReleaseNewDevice(CmDevice *device);
 
+    int32_t CheckAvaliableStream();
+
 private:
     template<class InputData>
     int32_t SendRequestMessage(InputData *input, uint32_t function_id);
