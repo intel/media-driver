@@ -95,5 +95,6 @@ typedef struct _MOS_OCA_LOG_HEADER_VP_KERNEL_INFO
 typedef struct _MOS_OCA_LOG_USER_FEATURE_CONTROL_INFO
 {
     bool               PFonVpOutput = 0;
+    bool               hwsEnabled   = 0;
 } MOS_OCA_LOG_USER_FEATURE_CONTROL_INFO, *PMOS_OCA_LOG_USER_FEATURE_CONTROL_INFO;
 #endif // #ifndef __MOS_OCA_DEFS_H__
