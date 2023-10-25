@@ -383,6 +383,12 @@ static bool adlsGt1Device4683 = DeviceInfoFactory<GfxDeviceInfo>::
 static bool adlsGt1Device4688 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x4688, &adlsGt1Info);
 
+static bool adlsGt1Device468A = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x468A, &adlsGt1Info);
+
+static bool adlsGt1Device468B = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x468B, &adlsGt1Info);
+
 static bool adlsGt1Device4690 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x4690, &adlsGt1Info);
 
