@@ -3224,6 +3224,7 @@ MOS_STATUS RenderHal_GetSurfaceStateEntries(
     uint16_t                        wVXOffset;
     uint16_t                        wVYOffset;
     bool                            bIsChromaSitEnabled;
+    bool                            bIsTri9YV12;
 
     //------------------------------------------------
     MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
@@ -3246,6 +3247,11 @@ MOS_STATUS RenderHal_GetSurfaceStateEntries(
     *piNumEntries       = -1;
     PlaneDefinition     = RENDERHAL_PLANES_DEFINITION_COUNT;
     bIsChromaSitEnabled = 0;
+
+    // In trinity9, YV12 format will use 3 Planes
+    bIsTri9YV12 = pSurface->Format == Format_YV12 &&
+                  pRenderHal->pOsInterface != nullptr &&
+                  pRenderHal->pOsInterface->trinityPath == TRINITY9_ENABLED;
 
     pRenderHal->bIsAVS  = pParams->bAVS;
 
@@ -3639,6 +3645,7 @@ MOS_STATUS RenderHal_GetSurfaceStateEntries(
                 PlaneDefinition = (pRenderHal->bEnableYV12SinglePass                              &&
                                    !pRenderHalSurface->pDeinterlaceParams                         &&
                                    !pRenderHalSurface->bInterlacedScaling                         &&
+                                   pRenderHal->pOsInterface->trinityPath != TRINITY9_ENABLED      &&
                                    MOS_IS_ALIGNED(pSurface->dwHeight, 4)                          &&
                                    pRenderHalSurface->SurfType != RENDERHAL_SURF_OUT_RENDERTARGET &&
                                    (pSurface->dwHeight * 2 + pSurface->dwHeight / 2) < RENDERHAL_MAX_YV12_PLANE_Y_U_OFFSET_G9)?
@@ -4087,14 +4094,20 @@ MOS_STATUS RenderHal_GetSurfaceStateEntries(
         pSurfaceEntry->dwHeight      = MOS_MAX(1, dwSurfaceHeight);
         pSurfaceEntry->bWidthInDword = bWidthInDword;
 
-        if (pPlane->ui8PlaneID == MHW_U_PLANE ||
-            pPlane->ui8PlaneID == MHW_V_PLANE)
+        if (pPlane->ui8PlaneID == MHW_U_PLANE || pPlane->ui8PlaneID == MHW_V_PLANE)
         {
-            pSurfaceEntry->dwPitch       = dwUVPitch;
+            if (bIsTri9YV12)
+            {
+                pSurfaceEntry->dwPitch = (pPlane->ui8PlaneID == MHW_U_PLANE) ? pSurface->dwUPitch : pSurface->dwVPitch;
+            }
+            else
+            {
+                pSurfaceEntry->dwPitch = dwUVPitch;
+            }
         }
         else
         {
-            pSurfaceEntry->dwPitch       = pSurface->dwPitch;
+            pSurfaceEntry->dwPitch = bIsTri9YV12 ? pSurface->dwYPitch : pSurface->dwPitch;
         }
 
         pSurfaceEntry->dwQPitch          = pSurface->dwQPitch;
