@@ -1517,7 +1517,8 @@ public:
     static MOS_STATUS UpdateResidency(
         MOS_DEVICE_HANDLE device,
         OsSpecificRes     resInfo,
-        uint32_t          index);
+        uint32_t          index,
+        bool              bypassAuxTableUpdate = false);
     
 
     // Memory compression interfaces
