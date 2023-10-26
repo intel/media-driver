@@ -611,9 +611,6 @@ MOS_STATUS VpAllocator::GetSurfaceInfo(VPHAL_SURFACE *surface, VPHAL_GET_SURFACE
     surface->dwWidth         = resDetails.dwWidth;
     surface->dwHeight        = resDetails.dwHeight;
     surface->dwPitch         = resDetails.dwPitch;
-    surface->dwYPitch        = resDetails.dwYPitch;
-    surface->dwUPitch        = resDetails.dwUPitch;
-    surface->dwVPitch        = resDetails.dwVPitch;
     surface->dwSlicePitch    = resDetails.dwSlicePitch;
     surface->dwDepth         = resDetails.dwDepth;
     surface->TileType        = resDetails.TileType;

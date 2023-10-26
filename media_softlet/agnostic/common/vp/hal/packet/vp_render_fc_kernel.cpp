@@ -844,25 +844,17 @@ MOS_STATUS VpRenderFcKernel::BuildFilter(
         // Y_Uoffset(Height*2 + Height/2) of RENDERHAL_PLANES_YV12 define Bitfield_Range(0, 13) on gen9+.
         // The max value is 16383. So use PL3 kernel to avoid out of range when Y_Uoffset is larger than 16383.
         // Use PL3 plane to avoid YV12 blending issue with DI enabled and U channel shift issue with not 4-aligned height
-        if (pFilter->format == Format_YV12)
+        if ((pFilter->format   == Format_YV12)           &&
+            (src->scalingMode != VPHAL_SCALING_AVS)     &&
+            (src->iefEnabled != true)                  &&
+            (src->surf->SurfType != SURF_OUT_RENDERTARGET) &&
+            m_renderHal->bEnableYV12SinglePass          &&
+            !src->diParams                    &&
+            !src->iscalingEnabled                    &&
+            MOS_IS_ALIGNED(src->surf->osSurface->dwHeight, 4)            &&
+            ((src->surf->osSurface->dwHeight * 2 + src->surf->osSurface->dwHeight / 2) < RENDERHAL_MAX_YV12_PLANE_Y_U_OFFSET_G9))
         {
-            if (m_renderHal->pOsInterface != nullptr &&
-                m_renderHal->pOsInterface->trinityPath == TRINITY9_ENABLED)
-            {
-                pFilter->format = Format_PL3;
-            }
-            else if (
-                (src->scalingMode != VPHAL_SCALING_AVS) &&
-                (src->iefEnabled != true) &&
-                (src->surf->SurfType != SURF_OUT_RENDERTARGET) &&
-                m_renderHal->bEnableYV12SinglePass &&
-                !src->diParams &&
-                !src->iscalingEnabled &&
-                MOS_IS_ALIGNED(src->surf->osSurface->dwHeight, 4) &&
-                ((src->surf->osSurface->dwHeight * 2 + src->surf->osSurface->dwHeight / 2) < RENDERHAL_MAX_YV12_PLANE_Y_U_OFFSET_G9))
-            {
-                pFilter->format = Format_YV12_Planar;
-            }
+            pFilter->format = Format_YV12_Planar;
         }
 
         if (pFilter->format == Format_A8R8G8B8 ||
