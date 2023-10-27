@@ -235,32 +235,34 @@ MOS_STATUS HevcVdencPipelineXe_Lpm_Plus_Base::ActivateVdencVideoPackets()
 
     for (uint8_t curPass = 0; curPass < GetPassNum(); curPass++)
     {
-        if (brcFeature->IsBRCUpdateRequired())
-        {
-            ENCODE_CHK_STATUS_RETURN(ActivatePacket(HucBrcUpdate, immediateSubmit, curPass, 0));
-        }
-
-        for (uint8_t curPipe = 0; curPipe < GetPipeNum(); curPipe++)
-        {
-            ENCODE_CHK_STATUS_RETURN(ActivatePacket(hevcVdencPacket, immediateSubmit, curPass, curPipe, GetPipeNum()));
-        }
-
         auto laAnalysisFeature = dynamic_cast<VdencLplaAnalysis *>(m_featureManager->GetFeature(HevcFeatureIDs::vdencLplaAnalysisFeature));
+        if (laAnalysisFeature && !laAnalysisFeature->IsLastPicInStream())
+        {
+            if (brcFeature->IsBRCUpdateRequired())
+            {
+                ENCODE_CHK_STATUS_RETURN(ActivatePacket(HucBrcUpdate, immediateSubmit, curPass, 0));
+            }
+
+            for (uint8_t curPipe = 0; curPipe < GetPipeNum(); curPipe++)
+            {
+                ENCODE_CHK_STATUS_RETURN(ActivatePacket(hevcVdencPacket, immediateSubmit, curPass, curPipe, GetPipeNum()));
+            }
+        }
+       
         if (laAnalysisFeature && laAnalysisFeature->IsLaAnalysisRequired())
         {
-            if (laAnalysisFeature->IsLaInitRequired())
+            if (!laAnalysisFeature->IsLastPicInStream())
             {
-                ENCODE_CHK_STATUS_RETURN(ActivatePacket(HucLaInit, immediateSubmit, 0, 0));
+                if (laAnalysisFeature->IsLaInitRequired())
+                {
+                    ENCODE_CHK_STATUS_RETURN(ActivatePacket(HucLaInit, immediateSubmit, 0, 0));
+                }
+                ENCODE_CHK_STATUS_RETURN(ActivatePacket(HucLaUpdate, immediateSubmit, curPass, 0));
             }
-            ENCODE_CHK_STATUS_RETURN(ActivatePacket(HucLaUpdate, immediateSubmit, curPass, 0));
-
-            if (laAnalysisFeature->IsLastPicInStream())
+            else
             {
                 // Flush the last frames
-                while (!laAnalysisFeature->IsLaRecordsEmpty())
-                {
-                    ENCODE_CHK_STATUS_RETURN(ActivatePacket(HucLaUpdate, immediateSubmit, curPass, 0));
-                }
+                ENCODE_CHK_STATUS_RETURN(ActivatePacket(HucLaUpdate, immediateSubmit, curPass, 0));
             }
         }
 

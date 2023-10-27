@@ -454,7 +454,16 @@ namespace encode
         m_hevcSliceParams = static_cast<PCODEC_HEVC_ENCODE_SLICE_PARAMS>(encodeParams->pSliceParams);
         ENCODE_CHK_STATUS_RETURN(SetupForceIntraStreamIn());
 
-        m_numValidLaRecords++;
+        if (!m_lastPicInStream)
+        {
+            m_numValidLaRecords++;
+        }
+
+        if (m_lastPicInStream && m_bLastPicFlagFirstIn)
+        {
+            m_currLaDataIdx -= 1;
+            m_bLastPicFlagFirstIn = false;
+        }
 
         return eStatus;
     }
@@ -781,7 +790,10 @@ namespace encode
         ENCODE_FUNC_CALL();
         MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
-        m_currLaDataIdx  = (m_currLaDataIdx + 1) % m_numLaDataEntry;
+        if (!m_lastPicInStream)
+        {
+            m_currLaDataIdx = (m_currLaDataIdx + 1) % m_numLaDataEntry;
+        }
 
         return eStatus;
     }
@@ -901,7 +913,8 @@ namespace encode
     {
         ENCODE_FUNC_CALL();
 
-        if (blastPass && m_numValidLaRecords >= m_lookaheadDepth)
+        if ((blastPass && m_numValidLaRecords >= m_lookaheadDepth) ||
+            (m_lastPicInStream && m_numValidLaRecords))
         {
             m_numValidLaRecords--;
             m_lookaheadReport = true;

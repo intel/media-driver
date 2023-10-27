@@ -224,6 +224,13 @@ namespace encode
         params.function = LA_UPDATE;
         RUN_FEATURE_INTERFACE_RETURN(VdencLplaAnalysis, HevcFeatureIDs::vdencLplaAnalysisFeature, SetLaUpdateDmemParameters, 
             params, m_pipeline->m_currRecycledBufIdx, m_pipeline->GetCurrentPass(), m_pipeline->GetPassNum());
+
+        auto laAnalysisFeature = dynamic_cast<VdencLplaAnalysis *>(m_featureManager->GetFeature(HevcFeatureIDs::vdencLplaAnalysisFeature));
+        if (laAnalysisFeature && laAnalysisFeature->IsLastPicInStream())
+        {
+            m_pipeline->m_currRecycledBufIdx =
+                (m_pipeline->m_currRecycledBufIdx + 1) % CODECHAL_ENCODE_RECYCLED_BUFFER_NUM;
+        }
         return MOS_STATUS_SUCCESS;
     }
 

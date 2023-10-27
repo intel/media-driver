@@ -379,6 +379,11 @@ namespace encode {
         // Need add GPU Hang check here
         UpdateCodecStatus(statusReportData, encodeStatusRcs, completed);
 
+        if ((statusReportData->codecStatus == CODECHAL_STATUS_ERROR) && encodeStatusMfx && (encodeStatusMfx->lookaheadStatus.targetFrameSize != 0))
+        {
+            statusReportData->codecStatus = CODECHAL_STATUS_SUCCESSFUL;
+        }
+
         // The frame is completed, notify the observers
         if (statusReportData->codecStatus == CODECHAL_STATUS_SUCCESSFUL)
         {
