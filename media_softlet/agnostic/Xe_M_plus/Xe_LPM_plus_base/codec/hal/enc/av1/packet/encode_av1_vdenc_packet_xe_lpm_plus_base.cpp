@@ -358,6 +358,8 @@ MOS_STATUS Av1VdencPktXe_Lpm_Plus_Base::Submit(
 
     ENCODE_CHK_STATUS_RETURN(PatchTileLevelCommands(cmdBuffer, packetPhase));
 
+    ENCODE_CHK_STATUS_RETURN(PrepareHWMetaData(&cmdBuffer));
+
     ENCODE_CHK_STATUS_RETURN(Mos_Solo_PostProcessEncode(m_osInterface, &m_basicFeature->m_resBitstreamBuffer, &m_basicFeature->m_reconSurface));
 #if USE_CODECHAL_DEBUG_TOOL
     ENCODE_CHK_STATUS_RETURN(DumpStatistics());

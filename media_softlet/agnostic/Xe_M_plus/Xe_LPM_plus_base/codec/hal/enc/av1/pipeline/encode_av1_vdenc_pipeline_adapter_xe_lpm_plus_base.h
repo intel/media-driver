@@ -43,6 +43,8 @@ public:
 
     virtual MOS_STATUS GetStatusReport(void *status, uint16_t numStatus);
 
+    virtual MOS_STATUS ResolveMetaData(PMOS_RESOURCE pInput, PMOS_RESOURCE pOutput) override;
+
     virtual void Destroy();
 
 protected:

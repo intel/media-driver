@@ -72,3 +72,8 @@ void EncodeAv1VdencPipelineAdapterXe_Lpm_Plus_Base::Destroy()
 
     m_encoder->Destroy();
 }
+
+MOS_STATUS EncodeAv1VdencPipelineAdapterXe_Lpm_Plus_Base::ResolveMetaData(PMOS_RESOURCE pInput, PMOS_RESOURCE pOutput)
+{
+    return m_encoder->ExecuteResolveMetaData(pInput, pOutput);
+}
