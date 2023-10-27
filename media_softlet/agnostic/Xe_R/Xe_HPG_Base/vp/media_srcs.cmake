@@ -25,3 +25,5 @@ if(ENABLE_KERNELS)
             media_include_subdirectory(kernel_free)
         endif()
 endif()
+
+media_include_subdirectory(kernel_config)

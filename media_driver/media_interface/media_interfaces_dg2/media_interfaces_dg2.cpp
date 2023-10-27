@@ -41,6 +41,7 @@ unsigned char *pGPUInit_kernel_isa_dg2 = nullptr;
 #endif
 #include "vp_pipeline_adapter_xe_hpm.h"
 #include "vp_platform_interface_xe_hpm.h"
+#include "vp_kernel_config_g12_base.h"
 #include "encode_av1_vdenc_pipeline_adapter_xe_hpm.h"
 
 #if defined(ENABLE_KERNELS)
@@ -164,6 +165,8 @@ MOS_STATUS VphalInterfacesXe_Hpm::CreateVpPlatformInterface(
 void VphalInterfacesXe_Hpm::InitPlatformKernelBinary(
     vp::VpPlatformInterface  *&vpPlatformInterface)
 {
+    static vp::VpKernelConfigG12_Base kernelConfig;
+    vpPlatformInterface->SetKernelConfig(&kernelConfig);
 #if defined(ENABLE_KERNELS)
     vpPlatformInterface->SetVpFCKernelBinary(
                         IGVPKRN_XE_HPG,

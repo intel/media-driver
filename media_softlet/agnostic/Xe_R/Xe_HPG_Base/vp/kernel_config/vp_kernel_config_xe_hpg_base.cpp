@@ -20,27 +20,26 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     vp_kernel_config_m12_base.cpp
+//! \file     vp_kernel_config_xe_hpg_base.cpp
 //! \brief    vp kernel config
 //! \details  vp kernel config
 //!
 
-#include "vp_kernel_config_m12_base.h"
+#include "vp_kernel_config_xe_hpg_base.h"
 #include "vp_utils.h"
-#include "vphal.h"
 
 using namespace vp;
 
-VpKernelConfigM12_Base::VpKernelConfigM12_Base()
+VpKernelConfigXe_Hpg_Base::VpKernelConfigXe_Hpg_Base()
 {
     InitKernelParams();
 }
 
-VpKernelConfigM12_Base::~VpKernelConfigM12_Base()
+VpKernelConfigXe_Hpg_Base::~VpKernelConfigXe_Hpg_Base()
 {
 }
 
-void VpKernelConfigM12_Base::InitKernelParams()
+void VpKernelConfigXe_Hpg_Base::InitKernelParams()
 {
     ///*                                             GRF_Count
     //                                               |  BT_Count
@@ -56,5 +55,5 @@ void VpKernelConfigM12_Base::InitKernelParams()
     ADD_VP_KERNEL_PARAMS(kernelCombinedFc,           7, 40,  3, VP_USE_MEDIA_THREADS_MAX,  0,  6,   VP_COMP_BLOCK_WIDTH,    VP_COMP_BLOCK_HEIGHT,   1,  1);
     ADD_VP_KERNEL_PARAMS(kernelVeboxUpdateDnState,   4, 34,  0, VP_USE_MEDIA_THREADS_MAX,  0,  2,   64,                     8,                      1,  1);
     ADD_VP_KERNEL_PARAMS(kernelHdrMandatory,         8, 40,  4, VP_USE_MEDIA_THREADS_MAX,  0,  8,   16,                     8,                      1,  1);
-    ADD_VP_KERNEL_PARAMS(kernelHdr3DLutCalc,         4, 34,  0, VP_USE_MEDIA_THREADS_MAX,  0, 44,   64,                     8,                      1,  1);
+    ADD_VP_KERNEL_PARAMS(kernelHdr3DLutCalc,         4, 34,  0, VP_USE_MEDIA_THREADS_MAX,  0,  44,  64,                     8,                      1,  1);
 }

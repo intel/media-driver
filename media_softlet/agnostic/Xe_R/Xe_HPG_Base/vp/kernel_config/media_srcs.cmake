@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022, Intel Corporation
+# Copyright (c) 2020-2023, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -19,29 +19,27 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 set(TMP_SOURCES_
-    ${CMAKE_CURRENT_LIST_DIR}/vp_render_sfc_m12.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/vp_kernel_config_xe_hpg_base.cpp
 )
 
 set(TMP_HEADERS_
-    ${CMAKE_CURRENT_LIST_DIR}/vp_render_sfc_m12.h
+    ${CMAKE_CURRENT_LIST_DIR}/vp_kernel_config_xe_hpg_base.h
 )
 
-
-set(VP_SOURCES_
-    ${VP_SOURCES_}
+set(SOFTLET_VP_SOURCES_
+    ${SOFTLET_VP_SOURCES_}
     ${TMP_SOURCES_}
 )
 
-set(VP_HEADERS_
-    ${VP_HEADERS_}
+set(SOFTLET_VP_HEADERS_
+    ${SOFTLET_VP_HEADERS_}
     ${TMP_HEADERS_}
 )
 
-source_group( VpHalNext\\M12 FILES ${TMP_SOURCES_} ${TMP_HEADERS_})
+source_group( "Kernel\\VpKernelConfig" FILES ${TMP_SOURCES_} ${TMP_HEADERS_})
 set(TMP_SOURCES_ "")
 set(TMP_HEADERS_ "")
-
-set(VP_PRIVATE_INCLUDE_DIRS_
-    ${VP_PRIVATE_INCLUDE_DIRS_}
+set(SOFTLET_VP_PRIVATE_INCLUDE_DIRS_
+    ${SOFTLET_VP_PRIVATE_INCLUDE_DIRS_}
     ${CMAKE_CURRENT_LIST_DIR}
 )

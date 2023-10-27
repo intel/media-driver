@@ -113,7 +113,15 @@ VpRenderFcKernel::VpRenderFcKernel(PVP_MHWINTERFACE hwInterface, PVpAllocator al
 
     if (m_renderHal && m_renderHal->pRenderHalPltInterface && m_hwInterface->m_vpPlatformInterface)
     {
-        m_cscCoeffPatchModeEnabled = m_hwInterface->m_vpPlatformInterface->GetKernelConfig().IsFcCscCoeffPatchModeEnabled();
+        VpKernelConfig *vpKernelConfig = m_hwInterface->m_vpPlatformInterface->GetKernelConfig();
+        if (vpKernelConfig == nullptr)
+        {
+            VP_RENDER_ASSERTMESSAGE("vpKernelConfig is nullptr");
+        }
+        else
+        {
+            m_cscCoeffPatchModeEnabled = vpKernelConfig->IsFcCscCoeffPatchModeEnabled();
+        }
 
         if (m_hwInterface->m_osInterface)
         {
@@ -1078,7 +1086,15 @@ MOS_STATUS VpRenderFcKernel::BuildFilter(
         {
             //set first layer's scalingRatio
             CalculateScale(scaleX, scaleY, src->surf->rcSrc, src->surf->rcDst, src->rotation);
-            pFilter->ScalingRatio = m_hwInterface->m_vpPlatformInterface->GetKernelConfig().GetFilterScalingRatio(scaleX, scaleY);
+            VpKernelConfig *vpKernelConfig = m_hwInterface->m_vpPlatformInterface->GetKernelConfig();
+            if (vpKernelConfig == nullptr)
+            {
+                VP_RENDER_ASSERTMESSAGE("vpKernelConfig is nullptr");
+            }
+            else
+            {
+                pFilter->ScalingRatio = vpKernelConfig->GetFilterScalingRatio(scaleX, scaleY);
+            }
         }
 
         // Update filter
@@ -1108,7 +1124,15 @@ MOS_STATUS VpRenderFcKernel::BuildFilter(
 
     //set rendertarget's scalingRatio
     CalculateScale(scaleX, scaleY, target.surf->rcSrc, target.surf->rcDst, target.rotation);
-    pFilter->ScalingRatio = m_hwInterface->m_vpPlatformInterface->GetKernelConfig().GetFilterScalingRatio(scaleX, scaleY);
+    VpKernelConfig *vpKernelConfig = m_hwInterface->m_vpPlatformInterface->GetKernelConfig();
+    if (vpKernelConfig == nullptr)
+    {
+        VP_RENDER_ASSERTMESSAGE("vpKernelConfig is nullptr");
+    }
+    else
+    {
+        pFilter->ScalingRatio = vpKernelConfig->GetFilterScalingRatio(scaleX, scaleY);
+    }
 
     if (compParams->sourceCount > 0                                     &&
        compParams->source[0].surf->osSurface->Format == Format_R5G6B5   &&
@@ -2224,7 +2248,10 @@ MOS_STATUS VpRenderFcKernel::GetCurbeState(void*& curbe, uint32_t& curbeLength)
     VP_FUNC_CALL();
     MT_LOG1(MT_VP_HAL_FC_GET_CURBE_STATE, MT_NORMAL, MT_FUNC_START, 1);
 
-    if (m_hwInterface->m_vpPlatformInterface->GetKernelConfig().IsDpFcKernelEnabled())
+    VpKernelConfig *vpKernelConfig = m_hwInterface->m_vpPlatformInterface->GetKernelConfig();
+    VP_RENDER_CHK_NULL_RETURN(vpKernelConfig);
+
+    if (vpKernelConfig->IsDpFcKernelEnabled())
     {
         VP_RENDER_CHK_STATUS_RETURN(InitFcDpBasedCurbeData());
         // DataPort used FC kernel case

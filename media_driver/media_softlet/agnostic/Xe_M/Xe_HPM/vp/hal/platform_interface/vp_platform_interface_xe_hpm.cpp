@@ -30,7 +30,6 @@
 #include "vp_render_sfc_xe_xpm_base.h"
 #include "vp_render_ief.h"
 #include "vp_render_cmd_packet.h"
-#include "vp_kernel_config_m12_base.h"
 #include "vp_scalability_multipipe.h"
 #include "vp_scalability_singlepipe.h"
 #include "media_interfaces_mcpy.h"
@@ -202,12 +201,6 @@ MOS_STATUS VpPlatformInterfaceXe_Hpm::CreateSfcRender(SfcRenderBase *&sfcRender,
     }
 
     return MOS_STATUS_SUCCESS;
-}
-
-VpKernelConfig &VpPlatformInterfaceXe_Hpm::GetKernelConfig()
-{
-    static VpKernelConfigM12_Base kernelConfig;
-    return kernelConfig;
 }
 
 MOS_STATUS VpPlatformInterfaceXe_Hpm::GetInputFrameWidthHeightAlignUnit(

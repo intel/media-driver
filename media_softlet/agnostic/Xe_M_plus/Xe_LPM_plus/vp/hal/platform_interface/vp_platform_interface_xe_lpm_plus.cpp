@@ -30,7 +30,6 @@
 #include "vp_render_sfc_xe_lpm_plus.h"
 #include "vp_render_ief.h"
 #include "vp_render_cmd_packet.h"
-#include "vp_kernel_config_xe_lpm_plus_base.h"
 #include "vp_scalability_multipipe_next.h"
 #include "vp_scalability_singlepipe_next.h"
 #include "media_interfaces_mcpy_next.h"
@@ -167,12 +166,6 @@ MOS_STATUS VpPlatformInterfacesXe_Lpm_Plus::VeboxQueryStatLayout(VEBOX_STAT_QUER
     }
 
     return eStatus;
-}
-
-VpKernelConfig &VpPlatformInterfacesXe_Lpm_Plus::GetKernelConfig()
-{
-    static VpKernelConfigXe_Lpm_Plus_Base kernelConfig;
-    return kernelConfig;
 }
 
 MOS_STATUS VpPlatformInterfacesXe_Lpm_Plus::ConfigVirtualEngine()

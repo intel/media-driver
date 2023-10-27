@@ -33,7 +33,6 @@
 #include "igvpkrn_g12_tgllp_cmfc.h"
 #include "igvpkrn_g12_tgllp_cmfcpatch.h"
 #endif
-#include "vp_kernel_config_m12_base.h"
 #include "vp_scalability_multipipe.h"
 #include "vp_scalability_singlepipe.h"
 
@@ -212,14 +211,6 @@ MOS_STATUS vp::VpPlatformInterfaceG12Tgllp::VeboxQueryStatLayout(VEBOX_STAT_QUER
     }
 
     return eStatus;
-}
-
-VpKernelConfig &VpPlatformInterfaceG12Tgllp::GetKernelConfig()
-{
-    VP_FUNC_CALL();
-
-    static VpKernelConfigM12_Base kernelConfig;
-    return kernelConfig;
 }
 
 MOS_STATUS VpPlatformInterfaceG12Tgllp::GetInputFrameWidthHeightAlignUnit(

@@ -284,7 +284,16 @@ public:
         return m_miItf;
     }
 
-    virtual VpKernelConfig &GetKernelConfig() = 0;
+    virtual VpKernelConfig* GetKernelConfig()
+    {
+        return m_vpKernelConfig;
+    }
+
+    virtual MOS_STATUS SetKernelConfig(VpKernelConfig* vpKernelConfig)
+    {
+        m_vpKernelConfig = vpKernelConfig;
+        return MOS_STATUS_SUCCESS;
+    }
 
     MOS_STATUS GetKernelParam(VpKernelID kernlId, RENDERHAL_KERNEL_PARAM &param);
 
@@ -359,6 +368,7 @@ public:
 protected:
     PMOS_INTERFACE m_pOsInterface = nullptr;
     VP_KERNEL_BINARY m_vpKernelBinary = {};                 //!< vp kernels
+    VpKernelConfig  *m_vpKernelConfig = nullptr;
     KERNEL_POOL    m_kernelPool;
     void (*m_modifyKdllFunctionPointers)(PKdll_State) = nullptr;
     bool m_sfc2PassScalingEnabled = false;

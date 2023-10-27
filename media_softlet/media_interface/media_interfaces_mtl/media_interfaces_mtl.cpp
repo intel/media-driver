@@ -34,6 +34,7 @@
 
 #include "vp_pipeline_adapter_xe_lpm_plus.h"
 #include "vp_platform_interface_xe_lpm_plus.h"
+#include "vp_kernel_config_xe_hpg_base.h"
 #include "mhw_mi_xe_lpm_plus_base_next_impl.h"
 #include "mhw_blt_xe_lpm_plus_base_next_impl.h"
 #include "mhw_sfc_xe_lpm_plus_base_next_impl.h"
@@ -80,7 +81,6 @@ MOS_STATUS VphalInterfacesXe_Lpm_Plus::Initialize(
         *eStatus = MOS_STATUS_NULL_POINTER;
         return *eStatus;
     }
-
     InitPlatformKernelBinary(vpPlatformInterface);
 
     if (!bInitVphalState)
@@ -133,6 +133,8 @@ MOS_STATUS VphalInterfacesXe_Lpm_Plus::CreateVpPlatformInterface(
 void VphalInterfacesXe_Lpm_Plus::InitPlatformKernelBinary(
     vp::VpPlatformInterface  *&vpPlatformInterface)
 {
+    static vp::VpKernelConfigXe_Hpg_Base kernelConfig;
+    vpPlatformInterface->SetKernelConfig(&kernelConfig);
 #if defined(ENABLE_KERNELS)
     vpPlatformInterface->SetVpFCKernelBinary(
                         IGVPKRN_XE_HPG,

@@ -19,23 +19,24 @@
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 * OTHER DEALINGS IN THE SOFTWARE.
 */
-#ifndef __VP_KERNEL_CONFIG_M12_BASE_H__
-#define __VP_KERNEL_CONFIG_M12_BASE_H__
+#ifndef __VP_KERNEL_CONFIG_XE_HPG_BASE_H__
+#define __VP_KERNEL_CONFIG_XE_HPG_BASE_H__
 
 #include "vp_kernel_config.h"
 #include "media_class_trace.h"
 
 namespace vp {
 
-class VpKernelConfigM12_Base : public VpKernelConfig
+class VpKernelConfigXe_Hpg_Base : public VpKernelConfig
 {
 public:
-    VpKernelConfigM12_Base();
-    virtual ~VpKernelConfigM12_Base();
+    VpKernelConfigXe_Hpg_Base();
+    virtual ~VpKernelConfigXe_Hpg_Base();
 
 private:
     void InitKernelParams();
-MEDIA_CLASS_DEFINE_END(vp__VpKernelConfigM12_Base)
+
+MEDIA_CLASS_DEFINE_END(vp__VpKernelConfigXe_Hpg_Base)
 };
 }
-#endif // __VP_KERNEL_CONFIG_M12_BASE_H__
+#endif // __VP_KERNEL_CONFIG_XE_HPG_BASE_H__

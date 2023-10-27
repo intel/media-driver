@@ -551,7 +551,9 @@ MOS_STATUS VpPlatformInterface::GetKernelParam(VpKernelID kernlId, RENDERHAL_KER
 {
     VP_FUNC_CALL();
 
-    VP_PUBLIC_CHK_STATUS_RETURN(GetKernelConfig().GetKernelParam(kernlId, param));
+    VpKernelConfig *vpKernelConfig = GetKernelConfig();
+    VP_PUBLIC_CHK_NULL_RETURN(vpKernelConfig);
+    VP_PUBLIC_CHK_STATUS_RETURN(vpKernelConfig->GetKernelParam(kernlId, param));
     return MOS_STATUS_SUCCESS;
 }
 

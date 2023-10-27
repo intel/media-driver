@@ -62,7 +62,6 @@ public:
     virtual MOS_STATUS VeboxQueryStatLayout(
         VEBOX_STAT_QUERY_TYPE queryType,
         uint32_t* pQuery);
-    virtual VpKernelConfig &GetKernelConfig();
 
     virtual uint32_t VeboxQueryStaticSurfaceSize()
     {
