@@ -1546,6 +1546,7 @@ namespace encode{
 
         uint32_t tileNum     = 0;
         auto     tileFeature = dynamic_cast<Av1EncodeTile *>(m_featureManager->GetFeature(Av1FeatureIDs::encodeTile));
+        ENCODE_CHK_NULL_RETURN(tileFeature);
         tileFeature->GetTileNum(tileNum);
 
         uint32_t      frameSubregionOffset = resourceOffset.dwMetaDataSize;
@@ -1659,6 +1660,7 @@ namespace encode{
 
         uint32_t tileNum     = 0;
         auto     tileFeature = dynamic_cast<Av1EncodeTile *>(m_featureManager->GetFeature(Av1FeatureIDs::encodeTile));
+        ENCODE_CHK_NULL_RETURN(tileFeature);
         tileFeature->GetTileNum(tileNum);
         storeDataParams.dwResourceOffset = resourceOffset.dwWrittenSubregionsCount;
         storeDataParams.dwValue          = tileNum;  //frame subregion num
