@@ -72,6 +72,8 @@ public:
     {
         return m_featurePool;
     }
+    
+    virtual MOS_STATUS UpdateVpHwCapsBasedOnSku(VP_HW_CAPS &vpHwCaps);
 
 protected:
     virtual MOS_STATUS RegisterFeatures();

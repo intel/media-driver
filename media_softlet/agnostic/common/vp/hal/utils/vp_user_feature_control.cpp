@@ -284,6 +284,13 @@ VpUserFeatureControl::VpUserFeatureControl(MOS_INTERFACE &osInterface, VpPlatfor
         m_ctrlValDefault.splitFramePortions = splitFramePortions;
     }
 
+    //check vebox type 
+    if (skuTable && (MEDIA_IS_SKU(skuTable, FtrVeboxTypeH)))
+    {
+        m_ctrlValDefault.veboxTypeH = true;
+    }
+    VP_PUBLIC_NORMALMESSAGE("veboxTypeH %d", m_ctrlValDefault.veboxTypeH);
+
     m_ctrlVal = m_ctrlValDefault;
 }
 

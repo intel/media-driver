@@ -51,6 +51,7 @@ public:
         bool disableDn                      = false;
         bool cscCosffPatchModeDisabled      = false;
         bool ForceEnableVeboxOutputSurf     = false;
+        bool veboxTypeH                     = false;
 
 #if (_DEBUG || _RELEASE_INTERNAL)
         bool forceDecompressedOutput        = false;
@@ -163,6 +164,11 @@ public:
     bool IsDecompForInterlacedSurfWaEnabled()
     {
         return m_ctrlVal.decompForInterlacedSurfWaEnabled;
+    }
+
+    bool IsVeboxTypeHMode()
+    {
+        return m_ctrlVal.veboxTypeH;
     }
 
     MOS_STATUS SetClearVideoViewMode(bool mode)

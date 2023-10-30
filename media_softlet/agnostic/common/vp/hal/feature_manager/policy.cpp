@@ -50,6 +50,11 @@ Policy::~Policy()
     UnregisterFeatures();
 }
 
+MOS_STATUS Policy::UpdateVpHwCapsBasedOnSku(VP_HW_CAPS &vpHwCaps)
+{
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS Policy::Initialize()
 {
     VP_FUNC_CALL();
@@ -57,6 +62,8 @@ MOS_STATUS Policy::Initialize()
     VpPlatformInterface *vpPlatformInterface = (VpPlatformInterface *)m_vpInterface.GetHwInterface()->m_vpPlatformInterface;
     VP_PUBLIC_CHK_NULL_RETURN(vpPlatformInterface);
     VP_PUBLIC_CHK_STATUS_RETURN(vpPlatformInterface->InitVpHwCaps(m_hwCaps));
+    //update caps
+    UpdateVpHwCapsBasedOnSku(m_hwCaps);
     VP_PUBLIC_CHK_STATUS_RETURN(RegisterFeatures());
     m_initialized = true;
     return MOS_STATUS_SUCCESS;
@@ -943,8 +950,8 @@ MOS_STATUS Policy::GetCSCExecutionCaps(SwFilter* feature)
 
     auto userFeatureControl = m_vpInterface.GetHwInterface()->m_userFeatureControl;
     bool disableVeboxOutput = userFeatureControl->IsVeboxOutputDisabled();
-    bool disableSfc = userFeatureControl->IsSfcDisabled();
-
+    bool disableSfc         = userFeatureControl->IsSfcDisabled();
+    bool veboxTypeH         = userFeatureControl->IsVeboxTypeHMode();
     SwFilterCsc* csc = (SwFilterCsc*)feature;
 
     FeatureParamCsc *cscParams = &csc->GetSwFilterParams();
@@ -952,7 +959,6 @@ MOS_STATUS Policy::GetCSCExecutionCaps(SwFilter* feature)
     MOS_FORMAT midFormat = Format_Any;
 
     VP_EngineEntry *cscEngine = &csc->GetFilterEngineCaps();
-
     // Clean usedForNextPass flag.
     if (cscEngine->usedForNextPass)
     {
@@ -1003,10 +1009,18 @@ MOS_STATUS Policy::GetCSCExecutionCaps(SwFilter* feature)
         {
             VP_PUBLIC_NORMALMESSAGE("BeCsc is needed by Alpha when output from vebox. Keep csc filter.");
             cscEngine->bEnabled             = 1;
-            cscEngine->SfcNeeded            = disableSfc ? 0 : 1;
-            cscEngine->VeboxNeeded          = 1;
+            cscEngine->SfcNeeded            = disableSfc ? 0 : 1; 
             cscEngine->RenderNeeded         = 1;
-            cscEngine->fcSupported          = 1;
+            cscEngine->fcSupported          = 1;         
+            if (veboxTypeH)
+            {
+                cscEngine->VeboxNeeded = 0;
+                VP_PUBLIC_NORMALMESSAGE("Not use vebox to do csc for veboxTypeH.");
+            }
+            else
+            {
+                cscEngine->VeboxNeeded = 1;
+            }
         }
         else
         {
