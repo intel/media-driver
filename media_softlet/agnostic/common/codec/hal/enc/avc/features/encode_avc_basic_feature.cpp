@@ -613,47 +613,6 @@ MOS_STATUS AvcBasicFeature::PackPictureHeader()
     return MOS_STATUS_SUCCESS;
 }
 
-bool AvcBasicFeature::InputSurfaceNeedsExtraCopy(const MOS_SURFACE &input)
-{
-#if _DEBUG || _RELEASE_INTERNAL
-    static int8_t supported = -1;
-
-    if (supported == -1)
-    {
-        MediaUserSetting::Value outValue{};
-
-        ReadUserSettingForDebug(
-            m_userSettingPtr,
-            outValue,
-            "DisableInputSurfaceCopy",
-            MediaUserSetting::Group::Sequence);
-
-        supported = !outValue.Get<bool>();
-    }
-
-    if (!supported)
-    {
-        return false;
-    }
-#endif
-
-    uint32_t alignedSize = 0;
-    switch (input.Format)
-    {
-    case Format_NV12:
-        alignedSize = (m_picWidthInMb * CODECHAL_MACROBLOCK_WIDTH) * (m_picHeightInMb * CODECHAL_MACROBLOCK_HEIGHT) * 3 / 2;
-        break;
-    case Format_A8R8G8B8:
-        alignedSize = (m_picWidthInMb * CODECHAL_MACROBLOCK_WIDTH) * (m_picHeightInMb * CODECHAL_MACROBLOCK_HEIGHT) * 4;
-        break;
-    default:
-        alignedSize = 0;
-        break;
-    }
-
-    return input.dwSize < alignedSize;
-}
-
 MOS_STATUS AvcBasicFeature::UpdateTrackedBufferParameters()
 {
     uint32_t fieldNumMBs = (uint32_t)m_picWidthInMb * ((m_picHeightInMb + 1) >> 1);
