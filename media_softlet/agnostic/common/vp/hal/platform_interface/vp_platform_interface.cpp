@@ -674,3 +674,64 @@ void VpPlatformInterface::DisableRender()
     VP_PUBLIC_NORMALMESSAGE("Disable Render.");
     m_isRenderDisabled = true;
 }
+
+//for L0 use only
+MOS_STATUS VpRenderKernel::SetKernelExeEnv(KRN_EXECUTE_ENV &exeEnv)
+{
+    VP_FUNC_CALL();
+    m_kernelExeEnv = exeEnv;
+    return MOS_STATUS_SUCCESS;
+}
+
+//for L0 use only
+MOS_STATUS VpRenderKernel::AddKernelBti(KRN_BTI &bti)
+{
+    VP_FUNC_CALL();
+    m_kernelBtis.emplace(bti.uIndex, bti.uBTI);
+    return MOS_STATUS_SUCCESS;
+}
+
+//for L0 use only
+MOS_STATUS VpRenderKernel::SetKernelCurbeSize(uint32_t size)
+{
+    VP_FUNC_CALL();
+
+    m_curbeSize = size;
+    return MOS_STATUS_SUCCESS;
+}
+
+//for L0 use only
+void VpPlatformInterface::InitVpDelayedNativeAdvKernel(
+    const uint32_t  *kernelBin,
+    uint32_t         kernelBinSize,
+    KRN_ARG         *kernelArgs,
+    uint32_t         kernelArgSize,
+    uint32_t         kernelCurbeSize,
+    KRN_EXECUTE_ENV &kernelExeEnv,
+    KRN_BTI         *kernelBtis,
+    uint32_t         kernelBtiSize,
+    std::string      kernelName)
+{
+    VP_FUNC_CALL();
+
+    VpRenderKernel vpKernel;
+
+    vpKernel.SetKernelBinPointer((void *)kernelBin);
+    vpKernel.SetKernelName(kernelName);
+    vpKernel.SetKernelBinOffset(0x0);
+    vpKernel.SetKernelBinSize(kernelBinSize);
+    vpKernel.SetKernelExeEnv(kernelExeEnv);
+    vpKernel.SetKernelCurbeSize(kernelCurbeSize);
+
+    for (uint32_t i = 0; i < kernelArgSize; ++i)
+    {
+        vpKernel.AddKernelArg(kernelArgs[i]);
+    }
+
+    for (uint32_t i = 0; i < kernelBtiSize; ++i)
+    {
+        vpKernel.AddKernelBti(kernelBtis[i]);
+    }
+
+    m_kernelPool.insert(std::make_pair(vpKernel.GetKernelName(), vpKernel));
+}

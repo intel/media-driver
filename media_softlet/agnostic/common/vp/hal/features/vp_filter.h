@@ -329,6 +329,7 @@ using VEBOX_CSC_PARAMS      = _VEBOX_CSC_PARAMS;
 using PVEBOX_CSC_PARAMS     = VEBOX_CSC_PARAMS *;
 
 using KERNEL_ARGS = std::vector<KRN_ARG>;
+using KERNEL_BTIS = std::map<uint32_t,uint32_t>;
 
 struct _VEBOX_UPDATE_PARAMS
 {
