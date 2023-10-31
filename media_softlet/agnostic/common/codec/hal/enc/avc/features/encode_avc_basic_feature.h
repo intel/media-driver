@@ -249,7 +249,7 @@ protected:
     MOS_STATUS SetSliceStructs();
     void CheckResolutionChange();
     MOS_STATUS PackPictureHeader();
-    virtual bool InputSurfaceNeedsExtraCopy(const MOS_SURFACE &input) { return false; };
+    bool       InputSurfaceNeedsExtraCopy(const MOS_SURFACE& input);
 
     virtual MOS_STATUS UpdateTrackedBufferParameters() override;
     virtual MOS_STATUS GetTrackedBuffers() override;
