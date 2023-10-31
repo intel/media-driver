@@ -130,6 +130,9 @@ struct VPHAL_SURFACE
     uint32_t                 dwWidth                   = 0;                         //!<  Surface width
     uint32_t                 dwHeight                  = 0;                         //!<  Surface height
     uint32_t                 dwPitch                   = 0;                         //!<  Surface pitch
+    uint32_t                 dwYPitch                  = 0;                         //!<  Surface Y plane pitch
+    uint32_t                 dwUPitch                  = 0;                         //!<  Surface U plane pitch
+    uint32_t                 dwVPitch                  = 0;                         //!<  Surface V plane pitch
     MOS_TILE_TYPE            TileType                  = MOS_TILE_X;                //!<  Tile Type
     MOS_TILE_MODE_GMM        TileModeGMM               = MOS_TILE_LINEAR_GMM;       //!<  Tile Mode from GMM Definition
     bool                     bGMMTileEnabled           = false;                     //!<  GMM Tile Mode Flag

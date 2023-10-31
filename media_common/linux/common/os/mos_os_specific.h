@@ -449,7 +449,10 @@ struct MOS_SURFACE
     uint32_t            dwOffset;                                               // Surface Offset (Y/Base)
     MOS_PLANE_OFFSET    YPlaneOffset;                                           // Y surface plane offset
     MOS_PLANE_OFFSET    UPlaneOffset;                                           // U surface plane offset
-    MOS_PLANE_OFFSET    VPlaneOffset;                                           // V surface plane
+    MOS_PLANE_OFFSET    VPlaneOffset;                                           // V surface plane offset
+    uint32_t            dwYPitch;                                               // Y surface plane pitch
+    uint32_t            dwUPitch;                                               // U surface plane pitch
+    uint32_t            dwVPitch;                                               // V surface plane pitch
 
     union
     {
