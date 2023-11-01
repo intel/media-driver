@@ -3645,7 +3645,7 @@ MOS_STATUS RenderHal_GetSurfaceStateEntries(
                 PlaneDefinition = (pRenderHal->bEnableYV12SinglePass                              &&
                                    !pRenderHalSurface->pDeinterlaceParams                         &&
                                    !pRenderHalSurface->bInterlacedScaling                         &&
-                                   pRenderHal->pOsInterface->trinityPath != TRINITY9_ENABLED      &&
+                                   !bIsTri9YV12                                                   &&
                                    MOS_IS_ALIGNED(pSurface->dwHeight, 4)                          &&
                                    pRenderHalSurface->SurfType != RENDERHAL_SURF_OUT_RENDERTARGET &&
                                    (pSurface->dwHeight * 2 + pSurface->dwHeight / 2) < RENDERHAL_MAX_YV12_PLANE_Y_U_OFFSET_G9)?
