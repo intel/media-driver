@@ -31,6 +31,7 @@
 
 #include <algorithm>
 #include <array>
+#include <atomic>
 #include <cassert>
 #include <chrono>
 #include <condition_variable>
@@ -238,7 +239,7 @@ protected:
         }
         else
         {
-            resSize = sizeY;  // 400 or buffer
+            resSize = sizeY;  // 400, buffer or packed YUV formats like Y210
         }
 
         name = std::regex_replace(
@@ -368,9 +369,14 @@ public:
             if (m_mediaCopyWrapper.MediaCopy(&res, &(*resIt)->res, m_copyMethod()) !=
                 MOS_STATUS_SUCCESS)
             {
+                m_mediaCopyIsGood = false;
                 return m_writeError(
                     name,
                     "input_surface_copy_failed");
+            }
+            else
+            {
+                m_mediaCopyIsGood = true;
             }
 
             (*resIt)->occupied   = true;
@@ -473,6 +479,11 @@ public:
         }
 
         m_condSys.notify_one();
+    }
+
+    bool IsGood() const
+    {
+        return m_mediaCopyIsGood;
     }
 
 protected:
@@ -885,9 +896,14 @@ protected:
             if (m_mediaCopyWrapper.MediaCopy(&res->res, &tmpRes, m_copyMethod()) !=
                 MOS_STATUS_SUCCESS)
             {
+                m_mediaCopyIsGood = false;
                 return m_writeError(
                     res->name,
                     "internal_surface_copy_failed");
+            }
+            else
+            {
+                m_mediaCopyIsGood = true;
             }
 
             pRes = &tmpRes;
@@ -986,10 +1002,11 @@ protected:
     bool m_stopScheduler    = false;
     bool m_stopSchedulerSys = false;
 
-    std::mutex              m_mutex;
-    std::mutex              m_mutexSys;
-    std::condition_variable m_cond;
-    std::condition_variable m_condSys;
+    mutable std::atomic_bool m_mediaCopyIsGood{true};
+    std::mutex               m_mutex;
+    std::mutex               m_mutexSys;
+    std::condition_variable  m_cond;
+    std::condition_variable  m_condSys;
 
     MOS_INTERFACE    &m_osItf;
     MediaCopyWrapper &m_mediaCopyWrapper;

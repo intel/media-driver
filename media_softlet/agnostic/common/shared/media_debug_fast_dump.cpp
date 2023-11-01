@@ -57,9 +57,9 @@ void MediaDebugFastDump::DestroyInstance()
     }
 }
 
-bool MediaDebugFastDump::Initiated()
+bool MediaDebugFastDump::IsGood()
 {
-    return imp != nullptr;
+    return imp != nullptr && imp->IsGood();
 }
 
 void MediaDebugFastDump::Dump(

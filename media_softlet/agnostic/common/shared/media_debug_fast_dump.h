@@ -108,7 +108,7 @@ public:
 
     static void DestroyInstance();
 
-    static bool Initiated();
+    static bool IsGood();
 
     // if file name contains "w[0]_h[0]_p[0]", it will be replaced to "w[RealWidth]_h[RealHeight]_p[RealPitch]" by fast dump
     static void Dump(

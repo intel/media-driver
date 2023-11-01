@@ -1875,34 +1875,7 @@ CodechalDebugInterface::CodechalDebugInterface()
     MOS_ZeroMemory(m_fileName, sizeof(m_fileName));
     MOS_ZeroMemory(m_path, sizeof(m_path));
 
-    m_dumpYUVSurface_fast_dump = [this](
-                           PMOS_SURFACE              surface,
-                           const char               *attrName,
-                           const char               *surfName,
-                           CODECHAL_MEDIA_STATE_TYPE mediaState,
-                           uint32_t                  width_in,
-                           uint32_t                  height_in) {
-        bool     hasAuxSurf   = false;
-        bool     isPlanar     = true;
-        bool     hasRefSurf   = false;
-        uint8_t *surfBaseAddr = nullptr;
-        uint8_t *lockedAddr   = nullptr;
-        if (!DumpIsEnabled(attrName, mediaState))
-        {
-            return MOS_STATUS_SUCCESS;
-        }
-
-        const char *funcName = (m_codecFunction == CODECHAL_FUNCTION_DECODE) ? "_DEC" : (m_codecFunction == CODECHAL_FUNCTION_CENC_DECODE ? "_DEC" : "_ENC");
-        std::string bufName  = std::string(surfName) + "_w[" + std::to_string(surface->dwWidth) + "]_h[" + std::to_string(surface->dwHeight) + "]_p[" + std::to_string(surface->dwPitch) + "]";
-
-        const char *filePath = CreateFileName(funcName, bufName.c_str(), hasAuxSurf ? ".Y" : ".yuv");
-
-    
-        MediaDebugFastDump::Dump(surface->OsResource, filePath);
-        return MOS_STATUS_SUCCESS;
-    };
-
-    m_dumpYUVSurface_legacy_dump = [this](
+    m_dumpYUVSurfaceLegacy = [this](
                            PMOS_SURFACE              surface,
                            const char               *attrName,
                            const char               *surfName,
@@ -2241,83 +2214,40 @@ CodechalDebugInterface::CodechalDebugInterface()
         return MOS_STATUS_SUCCESS;
     };
 
-    m_dumpBuffer_fast_dump = [this](
-                       PMOS_RESOURCE             resource,
-                       const char               *attrName,
-                       const char               *bufferName,
-                       uint32_t                  size,
-                       uint32_t                  offset,
-                       CODECHAL_MEDIA_STATE_TYPE mediaState) {
-        MEDIA_DEBUG_FUNCTION_ENTER;
-
-        MEDIA_DEBUG_CHK_NULL(resource);
-        MEDIA_DEBUG_CHK_NULL(bufferName);
-
-        if (size == 0)
+    m_dumpYUVSurface = [this](
+                                     PMOS_SURFACE              surface,
+                                     const char               *attrName,
+                                     const char               *surfName,
+                                     CODECHAL_MEDIA_STATE_TYPE mediaState,
+                                     uint32_t                  width_in,
+                                     uint32_t                  height_in) {
+        if (!DumpIsEnabled(attrName, mediaState))
         {
             return MOS_STATUS_SUCCESS;
         }
 
-        if (attrName)
+        const char *funcName = (m_codecFunction == CODECHAL_FUNCTION_DECODE) ? "_DEC" : (m_codecFunction == CODECHAL_FUNCTION_CENC_DECODE ? "_DEC" : "_ENC");
+        std::string bufName  = std::string(surfName) + "_w[" + std::to_string(surface->dwWidth) + "]_h[" + std::to_string(surface->dwHeight) + "]_p[" + std::to_string(surface->dwPitch) + "]";
+
+        const char *filePath = CreateFileName(funcName, bufName.c_str(), ".yuv");
+
+        MediaDebugFastDump::Dump(surface->OsResource, filePath);
+
+        if (!MediaDebugFastDump::IsGood())
         {
-            bool attrEnabled = false;
-
-            if (mediaState == CODECHAL_NUM_MEDIA_STATES)
-            {
-                attrEnabled = m_configMgr->AttrIsEnabled(attrName);
-            }
-            else
-            {
-                attrEnabled = static_cast<CodecDebugConfigMgr *>(m_configMgr)->AttrIsEnabled(mediaState, attrName);
-            }
-
-            if (!attrEnabled)
-            {
-                return MOS_STATUS_SUCCESS;
-            }
+            return m_dumpYUVSurfaceLegacy(
+                surface,
+                attrName,
+                surfName,
+                mediaState,
+                width_in,
+                height_in);
         }
 
-        const char *fileName;
-        bool        binaryDump = false;
-        if ((!strcmp(attrName, MediaDbgAttr::attrDecodeBitstream)) ||
-            (!strcmp(attrName, MediaDbgAttr::attrMvData))          ||
-            (!strcmp(attrName, MediaDbgAttr::attrSegId))           ||
-            (!strcmp(attrName, MediaDbgAttr::attrCoefProb))        ||
-            m_configMgr->AttrIsEnabled(MediaDbgAttr::attrDumpBufferInBinary))
-        {
-            binaryDump = true;
-        }
-        const char *extType    = binaryDump ? MediaDbgExtType::dat : MediaDbgExtType::txt;
-
-        if (mediaState == CODECHAL_NUM_MEDIA_STATES)
-        {
-            fileName = CreateFileName(bufferName, attrName, extType);
-        }
-        else
-        {
-            std::string kernelName = static_cast<CodecDebugConfigMgr *>(m_configMgr)->GetMediaStateStr(mediaState);
-            fileName               = CreateFileName(kernelName.c_str(), bufferName, extType);
-        }
-
-        MOS_LOCK_PARAMS lockFlags;
-        MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
-        lockFlags.ReadOnly = 1;
-        uint8_t *data      = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, resource, &lockFlags);
-        MEDIA_DEBUG_CHK_NULL(data);
-
-        MOS_STATUS status = MOS_STATUS_SUCCESS;
-
-        MediaDebugFastDump::Dump(data, fileName, size, offset);
-
-        if (data)
-        {
-            m_osInterface->pfnUnlockResource(m_osInterface, resource);
-        }
-
-        return status;
+        return MOS_STATUS_SUCCESS;
     };
 
-    m_dumpBuffer_legacy_dump = [this](
+    m_dumpBufferLegacy = [this](
                        PMOS_RESOURCE             resource,
                        const char               *attrName,
                        const char               *bufferName,
@@ -2397,6 +2327,88 @@ CodechalDebugInterface::CodechalDebugInterface()
         if (data)
         {
             m_osInterface->pfnUnlockResource(m_osInterface, resource);
+        }
+
+        return status;
+    };
+
+    m_dumpBuffer = [this](
+                                 PMOS_RESOURCE             resource,
+                                 const char               *attrName,
+                                 const char               *bufferName,
+                                 uint32_t                  size,
+                                 uint32_t                  offset,
+                                 CODECHAL_MEDIA_STATE_TYPE mediaState) {
+        MEDIA_DEBUG_FUNCTION_ENTER;
+
+        MEDIA_DEBUG_CHK_NULL(resource);
+        MEDIA_DEBUG_CHK_NULL(bufferName);
+
+        if (size == 0)
+        {
+            return MOS_STATUS_SUCCESS;
+        }
+
+        bool attrEnabled = false;
+        if (mediaState == CODECHAL_NUM_MEDIA_STATES)
+        {
+            attrEnabled = m_configMgr->AttrIsEnabled(attrName);
+        }
+        else
+        {
+            attrEnabled = static_cast<CodecDebugConfigMgr *>(m_configMgr)->AttrIsEnabled(mediaState, attrName);
+        }
+        if (!attrEnabled)
+        {
+            return MOS_STATUS_SUCCESS;
+        }
+
+        const char *fileName;
+        bool        binaryDump = false;
+        if ((!strcmp(attrName, MediaDbgAttr::attrDecodeBitstream)) ||
+            (!strcmp(attrName, MediaDbgAttr::attrMvData)) ||
+            (!strcmp(attrName, MediaDbgAttr::attrSegId)) ||
+            (!strcmp(attrName, MediaDbgAttr::attrCoefProb)) ||
+            m_configMgr->AttrIsEnabled(MediaDbgAttr::attrDumpBufferInBinary))
+        {
+            binaryDump = true;
+        }
+        const char *extType = binaryDump ? MediaDbgExtType::dat : MediaDbgExtType::txt;
+
+        if (mediaState == CODECHAL_NUM_MEDIA_STATES)
+        {
+            fileName = CreateFileName(bufferName, attrName, extType);
+        }
+        else
+        {
+            std::string kernelName = static_cast<CodecDebugConfigMgr *>(m_configMgr)->GetMediaStateStr(mediaState);
+            fileName               = CreateFileName(kernelName.c_str(), bufferName, extType);
+        }
+
+        MOS_LOCK_PARAMS lockFlags;
+        MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
+        lockFlags.ReadOnly = 1;
+        uint8_t *data      = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, resource, &lockFlags);
+        MEDIA_DEBUG_CHK_NULL(data);
+
+        MOS_STATUS status = MOS_STATUS_SUCCESS;
+
+        MediaDebugFastDump::Dump(data, fileName, size, offset);
+
+        if (data)
+        {
+            m_osInterface->pfnUnlockResource(m_osInterface, resource);
+        }
+
+        if (!MediaDebugFastDump::IsGood())
+        {
+            return m_dumpBufferLegacy(
+                resource,
+                attrName,
+                bufferName,
+                size,
+                offset,
+                mediaState);
         }
 
         return status;
@@ -2819,21 +2831,6 @@ MOS_STATUS CodechalDebugInterface::Initialize(
 
     m_osInterface->pfnGetPlatform(m_osInterface, &m_platform);
 
-    if (GFX_IS_FAMILY_EQUAL_OR_ABOVE(m_platform.eProductFamily, 1270) && 
-        GFX_IS_FAMILY_EQUAL_OR_BELOW(m_platform.eProductFamily, 1272) &&
-        DumpIsEnabled(MediaDbgAttr::attrEnableFastDump))
-    {
-        m_dumpYUVSurface = m_dumpYUVSurface_fast_dump;
-
-        m_dumpBuffer = m_dumpBuffer_fast_dump;
-    }
-    else
-    {
-        m_dumpYUVSurface = m_dumpYUVSurface_legacy_dump;
-
-        m_dumpBuffer = m_dumpBuffer_legacy_dump;
-    }
-
 #if (_DEBUG || _RELEASE_INTERNAL)
     {
         MediaUserSetting::Value outValue;
@@ -3254,6 +3251,11 @@ MOS_STATUS CodechalDebugInterface::SetFastDumpConfig(MediaCopyWrapper *mediaCopy
     {
         cfg.allowDataLoss = false;
         cfg.informOnError = false;
+
+        // use VE copy
+        // cfg.weightRenderCopy = 0;
+        // cfg.weightVECopy     = 100;
+        // cfg.weightBLTCopy    = 0;
     }
 
     MediaDebugFastDump::CreateInstance(*m_osInterface, *mediaCopyWrapper, &cfg);
@@ -3409,7 +3411,7 @@ MOS_STATUS CodechalDebugInterface::DumpCmdBuffer(
         MediaDbgBufferType::bufCmd,
         binaryDumpEnabled ? MediaDbgExtType::dat : MediaDbgExtType::txt);
 
-    if (m_configMgr->AttrIsEnabled(CodechalDbgAttr::attrEnableFastDump) && MediaDebugFastDump::Initiated())
+    if (m_configMgr->AttrIsEnabled(CodechalDbgAttr::attrEnableFastDump) && MediaDebugFastDump::IsGood())
     {
         MediaDebugFastDump::Dump(
             (uint8_t *)cmdBuffer->pCmdBase,
