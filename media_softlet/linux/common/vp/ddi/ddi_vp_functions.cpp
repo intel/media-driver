@@ -1073,7 +1073,10 @@ VAStatus DdiVpFunctions::DdiDestroySrcParams(PDDI_VP_CONTEXT vpCtx)
             MOS_Delete(vpCtx->pVpHalRenderParams->pSrc[surfIndex]->pDenoiseParams);
             if (vpCtx->pVpHalRenderParams->pSrc[surfIndex]->pIEFParams)
             {
-                MOS_Delete(vpCtx->pVpHalRenderParams->pSrc[surfIndex]->pIEFParams->pExtParam);
+                if (!vpCtx->pVpHalRenderParams->pSrc[surfIndex]->pIEFParams->pExtParam)
+                {
+                    DDI_VP_ASSERTMESSAGE("vpCtx->pVpHalRenderParams->pSrc[surfIndex]->pIEFParams->pExtParam is nullptr.");
+                }
                 MOS_Delete(vpCtx->pVpHalRenderParams->pSrc[surfIndex]->pIEFParams);
             }
             MOS_Delete(vpCtx->pVpHalRenderParams->pSrc[surfIndex]->pBlendingParams);
@@ -3296,7 +3299,10 @@ VAStatus DdiVpFunctions::DdiClearFilterParamBuffer(
     {
         if (vpCtx->pVpHalRenderParams->pSrc[surfIndex]->pIEFParams)
         {
-            MOS_Delete(vpCtx->pVpHalRenderParams->pSrc[surfIndex]->pIEFParams->pExtParam);
+            if (!vpCtx->pVpHalRenderParams->pSrc[surfIndex]->pIEFParams->pExtParam)
+            {
+                DDI_VP_ASSERTMESSAGE("vpCtx->pVpHalRenderParams->pSrc[surfIndex]->pIEFParams->pExtParam is nullptr.");
+            }
             MOS_Delete(vpCtx->pVpHalRenderParams->pSrc[surfIndex]->pIEFParams);
         }
     }
