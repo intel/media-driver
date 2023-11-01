@@ -908,6 +908,12 @@ public:
             cmd.DW2.ScalableModePipeLock   = params.scalableModePipeLock;
             cmd.DW2.ScalableModePipeUnlock = params.scalableModePipeUnlock;
         }
+        MEDIA_WA_TABLE *pWaTable = this->m_osItf->pfnGetWaTable(this->m_osItf);
+        MHW_MI_CHK_NULL(pWaTable);
+        if (MEDIA_IS_WA(pWaTable, Wa_16021867713))
+        {
+            cmd.DW1.VdboxPipelineArchitectureClockgateDisable = 1;
+        }
 
         return MOS_STATUS_SUCCESS;
     }

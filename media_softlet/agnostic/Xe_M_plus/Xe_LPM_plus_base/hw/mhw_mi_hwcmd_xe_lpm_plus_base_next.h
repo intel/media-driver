@@ -2932,7 +2932,8 @@ namespace xe_lpm_plus_base_next
                 struct
                 {
                     uint32_t PipelineInitialization : __CODEGEN_BITFIELD(0, 0);                       //!< Pipeline Initialization
-                    uint32_t Reserved1 : __CODEGEN_BITFIELD(1, 27);                                   //!< Reserved
+                    uint32_t VdboxPipelineArchitectureClockgateDisable : __CODEGEN_BITFIELD(1, 1);    //!< VDBOX_PIPELINE_ARCHITECTURE_CLOCKGATE_DISABLE
+                    uint32_t Reserved1 : __CODEGEN_BITFIELD(2, 27);                                   //!< Reserved
                     uint32_t MfxDopClockgateControlWithEnableAsDefault : __CODEGEN_BITFIELD(28, 28);  //!< MFX_DOP_CLOCKGATE_CONTROL_WITH_ENABLE_AS_DEFAULT
                     uint32_t HcpDopClockgateControlWithEnableAsDefault : __CODEGEN_BITFIELD(29, 29);  //!< HCP_DOP_CLOCKGATE_CONTROL_WITH_ENABLE_AS_DEFAULT
                     uint32_t Reserved30 : __CODEGEN_BITFIELD(30, 31);                                 //!< Reserved
