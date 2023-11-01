@@ -310,7 +310,8 @@ namespace encode {
         uint32_t numTiles = 1;
         RUN_FEATURE_INTERFACE_RETURN(Av1EncodeTile, Av1FeatureIDs::encodeTile, GetTileNum, numTiles);
 
-        uint16_t numTilesPerPipe = 1;
+        uint16_t numTilesPerPipe     = (uint16_t)(numTiles / m_pipeline->GetPipeNum());
+        uint16_t imbalanceTilesOnVD0 = (uint16_t)(numTiles % m_pipeline->GetPipeNum());
 
         auto brcFeature = dynamic_cast<Av1Brc *>(m_featureManager->GetFeature(Av1FeatureIDs::av1BrcFeature));
         ENCODE_CHK_NULL_RETURN(brcFeature);
@@ -344,18 +345,26 @@ namespace encode {
 
         if (m_pipeline->GetPipeNum() > 1)
         {
-            hucPakStitchDmem->TileSizeRecord_offset[0] = tileRecordOffset; //hevcFrameStatsOffset.tileSizeRecord;
+            // set Pak Int output offset at index 0
+            hucPakStitchDmem->TileSizeRecord_offset[0] = tileRecordOffset;
             hucPakStitchDmem->VDENCSTAT_offset[0]      = brcFeature->IsBRCEnabled() ? av1TileStatsOffset.uiVdencStatistics : 0xFFFFFFFF;
 
-            for (uint32_t i = 0; i < numTiles; i++)
+            // set Pak Int tiles count & input offset for VD0 dedicatedly due to possible extra tile on VD0
+            hucPakStitchDmem->NumTiles[0]  = numTilesPerPipe + imbalanceTilesOnVD0;
+            hucPakStitchDmem->NumSlices[0] = numTilesPerPipe + imbalanceTilesOnVD0; 
+
+            hucPakStitchDmem->TileSizeRecord_offset[1] = tileRecordOffset;
+            hucPakStitchDmem->VDENCSTAT_offset[1]      = av1TileStatsOffset.uiVdencStatistics;
+
+            for (uint32_t i = 1; i < m_pipeline->GetPipeNum(); i++)
             {
                 hucPakStitchDmem->NumTiles[i]  = numTilesPerPipe;
-                hucPakStitchDmem->NumSlices[i] = numTilesPerPipe;  // Assuming 1 slice/ tile. To do: change this later.
+                hucPakStitchDmem->NumSlices[i] = numTilesPerPipe; 
 
                 // Statistics are dumped out at a tile level. Driver shares with kernel starting offset of each pipe statistic.
                 // Offset is calculated by adding size of statistics/pipe to the offset in combined statistics region.
-                hucPakStitchDmem->TileSizeRecord_offset[i + 1] = (i * numTilesPerPipe * CODECHAL_CACHELINE_SIZE) + tileRecordOffset;
-                hucPakStitchDmem->VDENCSTAT_offset[i + 1]      = av1TileStatsOffset.uiVdencStatistics + av1StatsSize.uiVdencStatistics * i * numTilesPerPipe;
+                hucPakStitchDmem->TileSizeRecord_offset[i + 1] = (i * numTilesPerPipe + imbalanceTilesOnVD0) * CODECHAL_CACHELINE_SIZE + tileRecordOffset;
+                hucPakStitchDmem->VDENCSTAT_offset[i + 1]      = (i * numTilesPerPipe + imbalanceTilesOnVD0) * av1StatsSize.uiVdencStatistics + av1TileStatsOffset.uiVdencStatistics;
             }
         }
 
