@@ -123,7 +123,7 @@ MOS_STATUS AvcVdencPipeline::InitUserSetting(MediaUserSettingSharedPtr userSetti
         userSettingPtr,
         "DisableInputSurfaceCopy",
         MediaUserSetting::Group::Sequence,
-        "",
+        false,
         false);
 #endif
     return MOS_STATUS_SUCCESS;

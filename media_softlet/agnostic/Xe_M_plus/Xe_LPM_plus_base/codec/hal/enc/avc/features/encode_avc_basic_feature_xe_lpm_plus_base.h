@@ -44,6 +44,8 @@ public:
 
     virtual ~AvcBasicFeatureXe_Lpm_Plus_Base() {}
 
+    bool InputSurfaceNeedsExtraCopy(const MOS_SURFACE &input) override;
+
     MHW_SETPAR_DECL_HDR(VDENC_PIPE_MODE_SELECT);
 
 MEDIA_CLASS_DEFINE_END(encode__AvcBasicFeatureXe_Lpm_Plus_Base)
