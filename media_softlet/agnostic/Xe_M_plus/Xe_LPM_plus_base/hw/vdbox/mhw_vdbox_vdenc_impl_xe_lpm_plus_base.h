@@ -71,6 +71,7 @@ protected:
 
         {                                                                                                 
             MHW_RESOURCE_PARAMS resourceParams = {};                                                      
+            resourceParams.HwCommandType       = MOS_VDENC_PIPE_BUF_ADDR;
             if (!Mos_ResourceIsNull(params.vdencPipeBufAddrStatePar0))                                    
             {                                                                                             
                 resourceParams.presResource    = params.vdencPipeBufAddrStatePar0;                        
