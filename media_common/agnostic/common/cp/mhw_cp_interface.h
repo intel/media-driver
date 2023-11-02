@@ -73,6 +73,7 @@ typedef struct _MHW_ADD_CP_COPY_PARAMS
     PMOS_RESOURCE presDst;
     uint32_t      size;
     uint64_t      offset;
+    bool          bypass;
 } MHW_ADD_CP_COPY_PARAMS, *PMHW_ADD_CP_COPY_PARAMS;
 
 static void MhwStubMessage()
