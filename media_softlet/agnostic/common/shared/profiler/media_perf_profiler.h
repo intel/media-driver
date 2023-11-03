@@ -95,7 +95,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS Initialize(void* context, MOS_INTERFACE *osInterface);
+    virtual MOS_STATUS Initialize(void* context, MOS_INTERFACE *osInterface);
 
     //!
     //! \brief    Insert start command of storing performance data
@@ -112,7 +112,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS AddPerfCollectStartCmd(
+    virtual MOS_STATUS AddPerfCollectStartCmd(
         void* context,
         MOS_INTERFACE *osInterface,
         std::shared_ptr<mhw::mi::Itf> miItf,
@@ -133,16 +133,11 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS AddPerfCollectEndCmd(
+    virtual MOS_STATUS AddPerfCollectEndCmd(
         void* context,
         MOS_INTERFACE *osInterface,
         std::shared_ptr<mhw::mi::Itf> miItf,
         MOS_COMMAND_BUFFER *cmdBuffer);
-
-    //!
-    //! \brief    Constructor
-    //!
-    MediaPerfProfiler();
 
     //!
     //! \brief    Deconstructor
@@ -150,6 +145,12 @@ public:
     virtual ~MediaPerfProfiler();
 
 private:
+
+    //!
+    //! \brief    Constructor
+    //!
+    MediaPerfProfiler();
+
     //!
     //! \brief    Save data to the buffer which store the performance data
     //!
@@ -478,7 +479,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS AddPerfCollectStartCmd(
+    virtual MOS_STATUS AddPerfCollectStartCmd(
         void* context,
         MOS_INTERFACE *osInterface,
         MhwMiInterface *miInterface,
@@ -499,7 +500,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS AddPerfCollectEndCmd(
+    virtual MOS_STATUS AddPerfCollectEndCmd(
         void* context,
         MOS_INTERFACE *osInterface,
         MhwMiInterface *miInterface,
