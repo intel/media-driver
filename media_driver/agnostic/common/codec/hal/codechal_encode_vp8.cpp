@@ -4015,12 +4015,12 @@ MOS_STATUS CodechalEncodeVp8::ExecuteSliceLevel()
 
 MOS_STATUS CodechalEncodeVp8::ReadImageStatus(PMOS_COMMAND_BUFFER cmdBuffer)
 {
-    MhwMiInterface                      *commonMiInterface;
-    EncodeStatusBuffer                  *encodeStatusBuf;
-    MHW_MI_STORE_REGISTER_MEM_PARAMS    miStoreRegMemParams;
-    MHW_MI_FLUSH_DW_PARAMS              flushDwParams;
-    uint32_t                            baseOffset;
-    MmioRegistersMfx                    *mmioRegisters;
+    MhwMiInterface                      *commonMiInterface   = nullptr;
+    EncodeStatusBuffer                  *encodeStatusBuf     = nullptr;
+    MHW_MI_STORE_REGISTER_MEM_PARAMS     miStoreRegMemParams = {};
+    MHW_MI_FLUSH_DW_PARAMS               flushDwParams       = {};
+    uint32_t                             baseOffset          = 0;
+    MmioRegistersMfx                    *mmioRegisters       = nullptr;
     MOS_STATUS                          status = MOS_STATUS_SUCCESS;
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
