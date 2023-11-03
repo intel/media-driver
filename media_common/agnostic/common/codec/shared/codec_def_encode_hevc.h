@@ -489,7 +489,9 @@ typedef struct _CODEC_HEVC_ENCODE_SEQUENCE_PARAMS
             uint32_t    RGBEncodingEnable                   : 1;
             uint32_t    PrimaryChannelForRGBEncoding        : 2;
             uint32_t    SecondaryChannelForRGBEncoding      : 2;
-            uint32_t                                        : 15;  // [0]
+            uint32_t    RGBInputStudioRange                 : 1;
+            uint32_t    ConvertedYUVStudioRange             : 1;
+            uint32_t                                        : 13;  // [0]
         };
         uint32_t    EncodeTools;
     };

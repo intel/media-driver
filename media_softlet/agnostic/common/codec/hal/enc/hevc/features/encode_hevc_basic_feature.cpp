@@ -800,6 +800,9 @@ MHW_SETPAR_DECL_SRC(VDENC_PIPE_MODE_SELECT, HevcBasicFeature)
     params.chromaType                            = m_hevcSeqParams->chroma_format_idc;
     params.wirelessSessionId                     = 0;
     params.randomAccess                          = !m_ref.IsLowDelay();
+    params.bt2020RGB2YUV                         = m_hevcSeqParams->InputColorSpace == ECOLORSPACE_P2020;
+    params.rgbInputStudioRange                   = params.bt2020RGB2YUV ? m_hevcSeqParams->RGBInputStudioRange : 0;
+    params.convertedYUVStudioRange               = params.bt2020RGB2YUV ? m_hevcSeqParams->ConvertedYUVStudioRange : 0;
 
     if (m_captureModeEnable)
     {

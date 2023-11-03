@@ -167,6 +167,9 @@ struct _MHW_PAR_T(VDENC_PIPE_MODE_SELECT)
     uint8_t wirelessSessionId        = 0;
     uint8_t tailPointerReadFrequency = 0;
     uint8_t streamingBufferConfig    = 0;
+    bool    bt2020RGB2YUV            = 0;
+    uint8_t rgbInputStudioRange      = 0;
+    uint8_t convertedYUVStudioRange  = 0;
     uint8_t VdencPipeModeSelectPar0  = 0;
     uint8_t VdencPipeModeSelectPar1  = 0;
     uint8_t VdencPipeModeSelectPar2  = 0;

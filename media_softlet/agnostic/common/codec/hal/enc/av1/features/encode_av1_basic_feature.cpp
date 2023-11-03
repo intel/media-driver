@@ -651,7 +651,10 @@ MHW_SETPAR_DECL_SRC(VDENC_PIPE_MODE_SELECT, Av1BasicFeature)
     params.streamIn          = false;
     params.randomAccess      = !m_ref.IsLowDelay();
 
-    params.rgbEncodingMode = m_rgbEncodingEnable;
+    params.rgbEncodingMode                       = m_rgbEncodingEnable;
+    params.bt2020RGB2YUV                         = m_av1SeqParams->InputColorSpace == ECOLORSPACE_P2020;
+    params.rgbInputStudioRange                   = params.bt2020RGB2YUV ? m_av1SeqParams->SeqFlags.fields.RGBInputStudioRange : 0;
+    params.convertedYUVStudioRange               = params.bt2020RGB2YUV ? m_av1SeqParams->SeqFlags.fields.ConvertedYUVStudioRange : 0;
     if (m_captureModeEnable)
     {
         params.captureMode = 1;
