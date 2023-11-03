@@ -74,6 +74,7 @@ struct KRN_ARG
     void*                  pData;
     uint32_t               uSize;            // size of arg in byte
     KRN_ARG_KIND           eArgKind;
+    bool                   isOutput;
 };
 
 //for L0 use only
