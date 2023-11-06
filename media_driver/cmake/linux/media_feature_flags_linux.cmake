@@ -182,7 +182,8 @@ if(NOT ENABLE_NONFREE_KERNELS)
     add_definitions(-D_FULL_OPEN_SOURCE)
 endif()
 
-if(ENABLE_NEW_KMD AND NOT ENABLE_PRODUCTION_KMD)
+if(ENABLE_NEW_KMD)
+    message("New XE Kmd support has been enabled")
     add_definitions(-DENABLE_NEW_KMD)
 endif()
 

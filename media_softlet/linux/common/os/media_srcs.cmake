@@ -24,6 +24,13 @@ if(NOT CMAKE_WDDM_LINUX)
 
 media_include_subdirectory(i915)
 
+if(NOT ENABLE_PRODUCTION_KMD)
+    if(ENABLE_NEW_KMD)
+        media_include_subdirectory(xe)
+    endif()
+endif()
+
+
 if(ENABLE_PRODUCTION_KMD)
     media_include_subdirectory(i915_production)
 endif()
