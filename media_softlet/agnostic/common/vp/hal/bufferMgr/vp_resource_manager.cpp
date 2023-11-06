@@ -1411,16 +1411,8 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxDenoiseOutputSurface(VP_EXECUTE_CAP
 
     allocated = false;
 
-    if (IS_VP_VEBOX_DN_ONLY(caps) || (skuTable && waTable && MEDIA_IS_SKU(skuTable, FtrE2ECompression) && !MEDIA_IS_SKU(skuTable, FtrFlatPhysCCS) && !MEDIA_IS_WA(waTable, WaAuxTable64KGranular)))
-    {
-        bSurfCompressible = inputSurface->osSurface->bCompressible;
-        surfCompressionMode = inputSurface->osSurface->CompressionMode;
-    }
-    else
-    {
-        bSurfCompressible = true;
-        surfCompressionMode = MOS_MMC_MC;
-    }
+    bSurfCompressible   = inputSurface->osSurface->bCompressible;
+    surfCompressionMode = inputSurface->osSurface->CompressionMode;
 
     if (caps.bCappipe)
     {
