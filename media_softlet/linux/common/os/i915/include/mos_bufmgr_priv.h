@@ -48,7 +48,7 @@ struct mos_bufmgr {
      * using bo_map() or drm_intel_gem_bo_map_gtt() to be used by the CPU.
      */
     struct mos_linux_bo *(*bo_alloc) (struct mos_bufmgr *bufmgr, const char *name,
-                   unsigned long size, unsigned int alignment, int mem_type, unsigned int pat_index, bool cpu_cacheable);
+                   unsigned long size, unsigned int alignment, int mem_type, unsigned int pat_index, bool cpu_cacheable) = nullptr;
 
     /**
      * Allocate a buffer object, hinting that it will be used as a
@@ -62,7 +62,7 @@ struct mos_bufmgr {
                           unsigned int alignment,
                           int mem_type,
                           unsigned int pat_index,
-                          bool cpu_cacheable);
+                          bool cpu_cacheable) = nullptr;
 
     /**
      * Allocate a buffer object from an existing user accessible
@@ -74,7 +74,7 @@ struct mos_bufmgr {
                       const char *name, void *addr,
                       uint32_t tiling_mode, uint32_t stride,
                       unsigned long size,
-                      unsigned long flags);
+                      unsigned long flags) = nullptr;
 
     /**
      * Allocate a tiled buffer object.
@@ -99,16 +99,16 @@ struct mos_bufmgr {
                      unsigned long flags,
                      int mem_type,
                      unsigned int pat_index,
-                     bool cpu_cacheable);
+                     bool cpu_cacheable) = nullptr;
 
     /** Takes a reference on a buffer object */
-    void (*bo_reference) (struct mos_linux_bo *bo);
+    void (*bo_reference) (struct mos_linux_bo *bo) = nullptr;
 
     /**
      * Releases a reference on a buffer object, freeing the data if
      * no references remain.
      */
-    void (*bo_unreference) (struct mos_linux_bo *bo);
+    void (*bo_unreference) (struct mos_linux_bo *bo) = nullptr;
 
     /**
      * Maps the buffer into userspace.
@@ -117,13 +117,13 @@ struct mos_bufmgr {
      * buffer to complete, first.  The resulting mapping is available at
      * buf->virtual.
      */
-    int (*bo_map) (struct mos_linux_bo *bo, int write_enable);
+    int (*bo_map) (struct mos_linux_bo *bo, int write_enable) = nullptr;
 
     /**
      * Reduces the refcount on the userspace mapping of the buffer
      * object.
      */
-    int (*bo_unmap) (struct mos_linux_bo *bo);
+    int (*bo_unmap) (struct mos_linux_bo *bo) = nullptr;
 
     /**
      * Waits for rendering to an object by the GPU to have completed.
@@ -132,12 +132,12 @@ struct mos_bufmgr {
      * bo_subdata, etc.  It is merely a way for the driver to implement
      * glFinish.
      */
-    void (*bo_wait_rendering) (struct mos_linux_bo *bo);
+    void (*bo_wait_rendering) (struct mos_linux_bo *bo) = nullptr;
 
     /**
      * Tears down the buffer manager instance.
      */
-    void (*destroy) (struct mos_bufmgr *bufmgr);
+    void (*destroy) (struct mos_bufmgr *bufmgr) = nullptr;
 
     /**
      * Indicate if the buffer can be placed anywhere in the full ppgtt
@@ -151,7 +151,7 @@ struct mos_bufmgr {
      * \param bo Buffer to set the use_48b_address_range flag.
      * \param enable The flag value.
      */
-    void (*bo_use_48b_address_range) (struct mos_linux_bo *bo, uint32_t enable);
+    void (*bo_use_48b_address_range) (struct mos_linux_bo *bo, uint32_t enable) = nullptr;
 
     /**
      * Sets buffer total padded size when buffer is used by the GPU.
@@ -168,7 +168,7 @@ struct mos_bufmgr {
      * \param bo Buffer to set total padded size for
      * \param pad_to_size Total size in bytes of object plus padding
      */
-    int (*bo_pad_to_size) (struct mos_linux_bo *bo, uint64_t pad_to_size);
+    int (*bo_pad_to_size) (struct mos_linux_bo *bo, uint64_t pad_to_size) = nullptr;
 
     /**
      * Add relocation entry in reloc_buf, which will be updated with the
@@ -193,18 +193,18 @@ struct mos_bufmgr {
     int (*bo_emit_reloc) (struct mos_linux_bo *bo, uint32_t offset,
                   struct mos_linux_bo *target_bo, uint32_t target_offset,
                   uint32_t read_domains, uint32_t write_domain,
-                  uint64_t presumed_offset);
+                  uint64_t presumed_offset) = nullptr;
 
     /** Executes the command buffer pointed to by bo. */
     int (*bo_exec) (struct mos_linux_bo *bo, int used,
             drm_clip_rect_t *cliprects, int num_cliprects,
-            int DR4);
+            int DR4) = nullptr;
     /** Executes the command buffer pointed to by bo on the selected
      * ring buffer
      */
     int (*bo_mrb_exec) (struct mos_linux_bo *bo, int used,
                 drm_clip_rect_t *cliprects, int num_cliprects,
-                int DR4, unsigned flags);
+                int DR4, unsigned flags) = nullptr;
 
     /**
      * Ask that the buffer be placed in tiling mode
@@ -213,7 +213,7 @@ struct mos_bufmgr {
      * \param tiling_mode desired, and returned tiling mode
      */
     int (*bo_set_tiling) (struct mos_linux_bo *bo, uint32_t * tiling_mode,
-                  uint32_t stride);
+                  uint32_t stride) = nullptr;
 
     /**
      * Get the current tiling (and resulting swizzling) mode for the bo.
@@ -223,13 +223,13 @@ struct mos_bufmgr {
      * \param swizzle_mode returned swizzling mode
      */
     int (*bo_get_tiling) (struct mos_linux_bo *bo, uint32_t * tiling_mode,
-                  uint32_t * swizzle_mode);
+                  uint32_t * swizzle_mode) = nullptr;
 
     /**
      * Softpin the buffer object 
      * \param bo Buffer to set the softpin
      */
-    int (*bo_set_softpin) (struct mos_linux_bo *bo);
+    int (*bo_set_softpin) (struct mos_linux_bo *bo) = nullptr;
 
     /**
      * Add softpin object to softpin target list of the command buffer 
@@ -237,7 +237,7 @@ struct mos_bufmgr {
      * \param target_bo  Softpin target to be added
      * \param write_flag  Whether write flag is needed
      */
-    int (*bo_add_softpin_target) (struct mos_linux_bo *bo, struct mos_linux_bo *target_bo, bool write_flag);
+    int (*bo_add_softpin_target) (struct mos_linux_bo *bo, struct mos_linux_bo *target_bo, bool write_flag) = nullptr;
 
     /**
      * Create a visible name for a buffer which can be used by other apps
@@ -245,13 +245,13 @@ struct mos_bufmgr {
      * \param buf Buffer to create a name for
      * \param name Returned name
      */
-    int (*bo_flink) (struct mos_linux_bo *bo, uint32_t * name);
+    int (*bo_flink) (struct mos_linux_bo *bo, uint32_t * name) = nullptr;
 
     /**
      * Returns 1 if mapping the buffer for write could cause the process
      * to block, due to the object being active in the GPU.
      */
-    int (*bo_busy) (struct mos_linux_bo *bo);
+    int (*bo_busy) (struct mos_linux_bo *bo) = nullptr;
 
     /**
      * Specify the volatility of the buffer.
@@ -265,9 +265,9 @@ struct mos_bufmgr {
      * Returns 1 if the buffer was retained, or 0 if it was discarded whilst
      * marked as I915_MADV_DONTNEED.
      */
-    int (*bo_madvise) (struct mos_linux_bo *bo, int madv);
+    int (*bo_madvise) (struct mos_linux_bo *bo, int madv) = nullptr;
 
-    int (*check_aperture_space) (struct mos_linux_bo ** bo_array, int count);
+    int (*check_aperture_space) (struct mos_linux_bo ** bo_array, int count) = nullptr;
 
     /**
      * Disable buffer reuse for buffers which will be shared in some way,
@@ -276,24 +276,24 @@ struct mos_bufmgr {
      *
      * \param bo Buffer to disable reuse for
      */
-    int (*bo_disable_reuse) (struct mos_linux_bo *bo);
+    int (*bo_disable_reuse) (struct mos_linux_bo *bo) = nullptr;
 
     /**
      * Query whether a buffer is reusable.
      *
      * \param bo Buffer to query
      */
-    int (*bo_is_reusable) (struct mos_linux_bo *bo);
+    int (*bo_is_reusable) (struct mos_linux_bo *bo) = nullptr;
 
     /** Returns true if target_bo is in the relocation tree rooted at bo. */
-    int (*bo_references) (struct mos_linux_bo *bo, struct mos_linux_bo *target_bo);
+    int (*bo_references) (struct mos_linux_bo *bo, struct mos_linux_bo *target_bo) = nullptr;
 
     /**
      * Set async flag for a buffer object.
      *
      * \param bo Buffer to set async
      */
-    void (*set_object_async) (struct mos_linux_bo *bo);
+    void (*set_object_async) (struct mos_linux_bo *bo) = nullptr;
 
     /**
      * Set execution async flag for a buffer object.
@@ -301,14 +301,14 @@ struct mos_bufmgr {
      * \param bo Command buffer
      * \param target_bo Buffer to set async
      */
-    void (*set_exec_object_async) (struct mos_linux_bo *bo, struct mos_linux_bo *target_bo);
+    void (*set_exec_object_async) (struct mos_linux_bo *bo, struct mos_linux_bo *target_bo) = nullptr;
 
      /**
      * Set capture flag for a buffer object.
      *
      * \param bo Buffer to set capture
      */
-    void (*set_object_capture)(struct mos_linux_bo *bo);
+    void (*set_object_capture)(struct mos_linux_bo *bo) = nullptr;
 
     /**
      * Waits on a BO for the given amount of time.
@@ -337,14 +337,14 @@ struct mos_bufmgr {
      * Note that some kernels have broken the inifite wait for negative values
      * promise, upgrade to latest stable kernels if this is the case.
      */
-    int (*bo_wait)(struct mos_linux_bo *bo, int64_t timeout_ns);
+    int (*bo_wait)(struct mos_linux_bo *bo, int64_t timeout_ns) = nullptr;
 
-    void (*bo_clear_relocs)(struct mos_linux_bo *bo, int start);
-    struct mos_linux_context *(*context_create)(struct mos_bufmgr *bufmgr);
+    void (*bo_clear_relocs)(struct mos_linux_bo *bo, int start) = nullptr;
+    struct mos_linux_context *(*context_create)(struct mos_bufmgr *bufmgr) = nullptr;
     struct mos_linux_context *(*context_create_ext)(
                                 struct mos_bufmgr *bufmgr,
                                 __u32 flags,
-                                bool bContextProtected);
+                                bool bContextProtected) = nullptr;
     struct mos_linux_context *(*context_create_shared)(
                                 struct mos_bufmgr *bufmgr,
                                 mos_linux_context* ctx,
@@ -353,92 +353,92 @@ struct mos_bufmgr {
                                 void *engine_map,
                                 uint8_t ctx_width,
                                 uint8_t num_placements,
-                                uint32_t ctx_type);
-    void (*context_destroy)(struct mos_linux_context *ctx);
-    __u32 (*vm_create)(struct mos_bufmgr *bufmgr);
-    void (*vm_destroy)(struct mos_bufmgr *bufmgr, __u32 vm_id);
+                                uint32_t ctx_type) = nullptr;
+    void (*context_destroy)(struct mos_linux_context *ctx) = nullptr;
+    __u32 (*vm_create)(struct mos_bufmgr *bufmgr) = nullptr;
+    void (*vm_destroy)(struct mos_bufmgr *bufmgr, __u32 vm_id) = nullptr;
     int (*bo_context_exec2)(struct mos_linux_bo *bo, int used, struct mos_linux_context *ctx,
                                    struct drm_clip_rect *cliprects, int num_cliprects, int DR4,
-                                   unsigned int flags, int *fence);
+                                   unsigned int flags, int *fence) = nullptr;
     
     int (*bo_context_exec3)(struct mos_linux_bo **bo, int num_bo, struct mos_linux_context *ctx,
                                    struct drm_clip_rect *cliprects, int num_cliprects, int DR4,
-                                   unsigned int flags, int *fence);
-    bool (*bo_is_exec_object_async)(struct mos_linux_bo *bo);
-    bool (*bo_is_softpin)(struct mos_linux_bo *bo);
-    int (*bo_map_gtt)(struct mos_linux_bo *bo);
-    int (*bo_unmap_gtt)(struct mos_linux_bo *bo);
-    int (*bo_map_wc)(struct mos_linux_bo *bo);
-    int (*bo_unmap_wc)(struct mos_linux_bo *bo);
-    int (*bo_map_unsynchronized)(struct mos_linux_bo *bo);
-    void (*bo_start_gtt_access)(struct mos_linux_bo *bo, int write_enable);
-    mos_oca_exec_list_info* (*bo_get_softpin_targets_info)(struct mos_linux_bo *bo, int *count);
+                                   unsigned int flags, int *fence) = nullptr;
+    bool (*bo_is_exec_object_async)(struct mos_linux_bo *bo) = nullptr;
+    bool (*bo_is_softpin)(struct mos_linux_bo *bo) = nullptr;
+    int (*bo_map_gtt)(struct mos_linux_bo *bo) = nullptr;
+    int (*bo_unmap_gtt)(struct mos_linux_bo *bo) = nullptr;
+    int (*bo_map_wc)(struct mos_linux_bo *bo) = nullptr;
+    int (*bo_unmap_wc)(struct mos_linux_bo *bo) = nullptr;
+    int (*bo_map_unsynchronized)(struct mos_linux_bo *bo) = nullptr;
+    void (*bo_start_gtt_access)(struct mos_linux_bo *bo, int write_enable) = nullptr;
+    mos_oca_exec_list_info* (*bo_get_softpin_targets_info)(struct mos_linux_bo *bo, int *count) = nullptr;
     struct mos_linux_bo *(*bo_create_from_name)(struct mos_bufmgr *bufmgr,
                             const char *name,
-                            unsigned int handle);
-    void (*enable_reuse)(struct mos_bufmgr *bufmgr);
-    void (*enable_softpin)(struct mos_bufmgr *bufmgr, bool va1m_align);
-    void (*enable_vmbind)(struct mos_bufmgr *bufmgr);
-    void (*disable_object_capture)(struct mos_bufmgr *bufmgr);
-    int (*get_memory_info)(struct mos_bufmgr *bufmgr, char *info, uint32_t length);
-    int (*get_devid)(struct mos_bufmgr *bufmgr);
+                            unsigned int handle) = nullptr;
+    void (*enable_reuse)(struct mos_bufmgr *bufmgr) = nullptr;
+    void (*enable_softpin)(struct mos_bufmgr *bufmgr, bool va1m_align) = nullptr;
+    void (*enable_vmbind)(struct mos_bufmgr *bufmgr) = nullptr;
+    void (*disable_object_capture)(struct mos_bufmgr *bufmgr) = nullptr;
+    int (*get_memory_info)(struct mos_bufmgr *bufmgr, char *info, uint32_t length) = nullptr;
+    int (*get_devid)(struct mos_bufmgr *bufmgr) = nullptr;
     int (*query_engines_count)(struct mos_bufmgr *bufmgr,
-                          unsigned int *nengine);
+                          unsigned int *nengine) = nullptr;
     
     int (*query_engines)(struct mos_bufmgr *bufmgr,
                           __u16 engine_class,
                           __u64 caps,
                           unsigned int *nengine,
-                          void *ci);
+                          void *ci) = nullptr;
 
-    size_t (*get_engine_class_size)();
+    size_t (*get_engine_class_size)() = nullptr;
 
     int (*set_context_param)(struct mos_linux_context *ctx,
                     uint32_t size,
                     uint64_t param,
-                    uint64_t value);
+                    uint64_t value) = nullptr;
     int (*set_context_param_parallel)(struct mos_linux_context *ctx,
                              struct i915_engine_class_instance *ci,
-                             unsigned int count);
+                             unsigned int count) = nullptr;
     int (*set_context_param_load_balance)(struct mos_linux_context *ctx,
                              struct i915_engine_class_instance *ci,
-                             unsigned int count);
+                             unsigned int count) = nullptr;
     int (*set_context_param_bond)(struct mos_linux_context *ctx,
                             struct i915_engine_class_instance master_ci,
                             struct i915_engine_class_instance *bond_ci,
-                            unsigned int bond_count);
+                            unsigned int bond_count) = nullptr;
     int (*get_context_param)(struct mos_linux_context *ctx,
                                uint32_t size,
                                uint64_t param,
-                               uint64_t *value);
+                               uint64_t *value) = nullptr;
     struct mos_linux_bo *(*bo_create_from_prime)(struct mos_bufmgr *bufmgr,
-                            int prime_fd, int size);
-    int (*bo_export_to_prime)(struct mos_linux_bo *bo, int *prime_fd);
+                            int prime_fd, int size) = nullptr;
+    int (*bo_export_to_prime)(struct mos_linux_bo *bo, int *prime_fd) = nullptr;
     int (*reg_read)(struct mos_bufmgr *bufmgr,
                    uint32_t offset,
-                   uint64_t *result);
+                   uint64_t *result) = nullptr;
     int (*get_reset_stats)(struct mos_linux_context *ctx,
                       uint32_t *reset_count,
                       uint32_t *active,
-                      uint32_t *pending);
+                      uint32_t *pending) = nullptr;
     int (*get_context_param_sseu)(struct mos_linux_context *ctx,
-                    struct drm_i915_gem_context_param_sseu *sseu);
+                    struct drm_i915_gem_context_param_sseu *sseu) = nullptr;
     int (*set_context_param_sseu)(struct mos_linux_context *ctx,
-                    struct drm_i915_gem_context_param_sseu sseu);
-    int (*query_sys_engines)(struct mos_bufmgr *bufmgr, MEDIA_SYSTEM_INFO* gfx_info);
-    int (*query_device_blob)(struct mos_bufmgr *bufmgr, MEDIA_SYSTEM_INFO* gfx_info);
-    int (*get_driver_info)(struct mos_bufmgr *bufmgr, struct LinuxDriverInfo *drvInfo);
-    int (*query_hw_ip_version)(struct mos_bufmgr *bufmgr, __u16 engine_class, void *ip_ver_info);
-    uint64_t (*get_platform_information)(struct mos_bufmgr *bufmgr);
-    void (*set_platform_information)(struct mos_bufmgr *bufmgr, uint64_t p);
-    int (*get_ts_frequency)(struct mos_bufmgr *bufmgr, uint32_t *ts_freq);
-    bool (*has_bsd2)(struct mos_bufmgr *bufmgr);
-    void (*enable_turbo_boost)(struct mos_bufmgr *bufmgr);
-    uint8_t (*switch_off_n_bits)(struct mos_linux_context *ctx, uint8_t in_mask, int n);
-    unsigned int (*hweight8)(struct mos_linux_context *ctx, uint8_t w);
+                    struct drm_i915_gem_context_param_sseu sseu) = nullptr;
+    int (*query_sys_engines)(struct mos_bufmgr *bufmgr, MEDIA_SYSTEM_INFO* gfx_info) = nullptr;
+    int (*query_device_blob)(struct mos_bufmgr *bufmgr, MEDIA_SYSTEM_INFO* gfx_info) = nullptr;
+    int (*get_driver_info)(struct mos_bufmgr *bufmgr, struct LinuxDriverInfo *drvInfo) = nullptr;
+    int (*query_hw_ip_version)(struct mos_bufmgr *bufmgr, __u16 engine_class, void *ip_ver_info) = nullptr;
+    uint64_t (*get_platform_information)(struct mos_bufmgr *bufmgr) = nullptr;
+    void (*set_platform_information)(struct mos_bufmgr *bufmgr, uint64_t p) = nullptr;
+    int (*get_ts_frequency)(struct mos_bufmgr *bufmgr, uint32_t *ts_freq) = nullptr;
+    bool (*has_bsd2)(struct mos_bufmgr *bufmgr) = nullptr;
+    void (*enable_turbo_boost)(struct mos_bufmgr *bufmgr) = nullptr;
+    uint8_t (*switch_off_n_bits)(struct mos_linux_context *ctx, uint8_t in_mask, int n) = nullptr;
+    unsigned int (*hweight8)(struct mos_linux_context *ctx, uint8_t w) = nullptr;
 
     /**< Enables verbose debugging printouts */
-    int debug;
+    int debug = 0;
     uint32_t *get_reserved = nullptr;
     bool     has_full_vd   = true;
     uint64_t platform_information = 0;
