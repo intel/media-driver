@@ -239,6 +239,7 @@ MOS_STATUS VpRenderHdr3DLutKernel::SetupSurfaceState()
 
     PRENDERHAL_INTERFACE renderHal   = m_hwInterface->m_renderHal;
     PMOS_INTERFACE       osInterface = m_hwInterface->m_osInterface;
+    m_surfaceBindingIndex.clear();
 
     KERNEL_SURFACE_STATE_PARAM kernelSurfaceParam            = {};
     // Only need to specify binding index in surface parameters.
@@ -246,10 +247,10 @@ MOS_STATUS VpRenderHdr3DLutKernel::SetupSurfaceState()
     kernelSurfaceParam.surfaceOverwriteParams.bindedKernel   = true;
     kernelSurfaceParam.surfaceOverwriteParams.bufferResource = true;
 
-    kernelSurfaceParam.surfaceOverwriteParams.bindIndex = BI_VEBOX_HDR_3DLUT_3DLUT;
+    UpdateCurbeBindingIndex(SurfaceType3DLut, BI_VEBOX_HDR_3DLUT_3DLUT);
     kernelSurfaceParam.isOutput                         = true;
     m_surfaceState.insert(std::make_pair(SurfaceType3DLut, kernelSurfaceParam));
-    kernelSurfaceParam.surfaceOverwriteParams.bindIndex = BI_VEBOX_HDR_3DLUT_COEF;
+    UpdateCurbeBindingIndex(SurfaceType3DLutCoef, BI_VEBOX_HDR_3DLUT_COEF);
     kernelSurfaceParam.isOutput                         = false;
     m_surfaceState.insert(std::make_pair(SurfaceType3DLutCoef, kernelSurfaceParam));
 
@@ -287,12 +288,19 @@ MOS_STATUS VpRenderHdr3DLutKernel::GetCurbeState(void *&curbe, uint32_t &curbeLe
 {
     VP_FUNC_CALL();
     // init the hdr 3dlut static data
+    auto bindingMap3DLut = GetSurfaceBindingIndex(SurfaceType3DLut);
+    auto bindingMapCoef  = GetSurfaceBindingIndex(SurfaceType3DLutCoef);
+    if (bindingMap3DLut.empty() || bindingMapCoef.empty())
+    {
+        VP_RENDER_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+    }
+
     MOS_ZeroMemory(&m_curbe, sizeof(m_curbe));
     m_curbe.DW00.Thread_Group_X        = LUT65_SEG_SIZE;
     m_curbe.DW01.Thread_Group_Y        = LUT65_SEG_SIZE;
     m_curbe.DW02.Thread_Group_Z        = 1;
-    m_curbe.DW06.hdr3DLutSurface = GetSurfaceBindingIndex(SurfaceType3DLut);
-    m_curbe.DW07.hdrCoefSurface  = GetSurfaceBindingIndex(SurfaceType3DLutCoef);
+    m_curbe.DW06.hdr3DLutSurface       = *bindingMap3DLut.begin();
+    m_curbe.DW07.hdrCoefSurface        = *bindingMapCoef.begin();
     m_curbe.DW08.hdr3DLutSurfaceHeight = LUT65_SEG_SIZE * LUT65_MUL_SIZE;
     m_curbe.DW08.hdr3DLutSurfaceWidth  = LUT65_SEG_SIZE * 2;
 
@@ -530,12 +538,12 @@ MOS_STATUS VpRenderHdr3DLutKernelCM::GetCurbeState(void *&curbe, uint32_t &curbe
         {
             // Resource need be added.
             uint32_t *pSurfaceindex = static_cast<uint32_t *>(arg.pData);
-            auto      it            = m_surfaceBindingIndex.find((SurfaceType)*pSurfaceindex);
-            if (it == m_surfaceBindingIndex.end())
+            auto      bindingMap    = GetSurfaceBindingIndex((SurfaceType)*pSurfaceindex);
+            if (bindingMap.empty())
             {
                 VP_RENDER_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
             }
-            *((uint32_t *)(data + arg.uOffsetInPayload)) = it->second;
+            *((uint32_t *)(data + arg.uOffsetInPayload)) = *bindingMap.begin();
         }
         else if (arg.eArgKind == ARG_KIND_GENERAL)
         {
@@ -560,15 +568,16 @@ MOS_STATUS VpRenderHdr3DLutKernelCM::SetupSurfaceState()
 
     PRENDERHAL_INTERFACE renderHal = m_hwInterface->m_renderHal;
     PMOS_INTERFACE osInterface = m_hwInterface->m_osInterface;
+    m_surfaceBindingIndex.clear();
 
     KERNEL_SURFACE_STATE_PARAM kernelSurfaceParam            = {};
     kernelSurfaceParam.surfaceOverwriteParams.bindedKernel   = true;
     kernelSurfaceParam.surfaceOverwriteParams.bufferResource = true;
 
-    kernelSurfaceParam.surfaceOverwriteParams.bindIndex = BI_VEBOX_HDR_3DLUT_3DLUT_CM;
+    UpdateCurbeBindingIndex(SurfaceType3DLut, BI_VEBOX_HDR_3DLUT_3DLUT_CM);
     kernelSurfaceParam.isOutput                         = true;
     m_surfaceState.insert(std::make_pair(SurfaceType3DLut, kernelSurfaceParam));
-    kernelSurfaceParam.surfaceOverwriteParams.bindIndex = BI_VEBOX_HDR_3DLUT_COEF_CM;
+    UpdateCurbeBindingIndex(SurfaceType3DLutCoef, BI_VEBOX_HDR_3DLUT_COEF_CM);
     kernelSurfaceParam.isOutput                         = false;
     m_surfaceState.insert(std::make_pair(SurfaceType3DLutCoef, kernelSurfaceParam));
     

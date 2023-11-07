@@ -665,6 +665,7 @@ MOS_STATUS VpRenderCmdPacket::SetupSurfaceState()
         {
             KERNEL_SURFACE_STATE_PARAM *kernelSurfaceParam = &surface->second;
             SurfaceType                 type               = surface->first;
+            auto                        bindingMap         = m_kernel->GetSurfaceBindingIndex(type);
 
             RENDERHAL_SURFACE_NEXT renderHalSurface;
             MOS_ZeroMemory(&renderHalSurface, sizeof(RENDERHAL_SURFACE_NEXT));
@@ -741,16 +742,23 @@ MOS_STATUS VpRenderCmdPacket::SetupSurfaceState()
 
             if (kernelSurfaceParam->surfaceOverwriteParams.bindedKernel && !kernelSurfaceParam->surfaceOverwriteParams.bufferResource)
             {
-                VP_RENDER_CHK_STATUS_RETURN(SetSurfaceForHwAccess(
-                    &renderHalSurface.OsSurface,
-                    &renderHalSurface,
-                    &renderSurfaceParams,
-                    kernelSurfaceParam->surfaceOverwriteParams.bindIndex,
-                    bWrite,
-                    kernelSurfaceParam->surfaceEntries,
-                    kernelSurfaceParam->sizeOfSurfaceEntries));
-
-                index = kernelSurfaceParam->surfaceOverwriteParams.bindIndex;
+                if (bindingMap.empty())
+                {
+                    VP_RENDER_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+                }
+                for (uint32_t bti : bindingMap)
+                {
+                    VP_RENDER_CHK_STATUS_RETURN(SetSurfaceForHwAccess(
+                        &renderHalSurface.OsSurface,
+                        &renderHalSurface,
+                        &renderSurfaceParams,
+                        bti,
+                        bWrite,
+                        kernelSurfaceParam->surfaceEntries,
+                        kernelSurfaceParam->sizeOfSurfaceEntries));
+                    index = bti;
+                    VP_RENDER_NORMALMESSAGE("Using Binded Index Surface. KernelID %d, SurfType %d, bti %d", m_kernel->GetKernelId(), type, index);
+                }
             }
             else
             {
@@ -758,12 +766,20 @@ MOS_STATUS VpRenderCmdPacket::SetupSurfaceState()
                      kernelSurfaceParam->surfaceOverwriteParams.bufferResource        &&
                      kernelSurfaceParam->surfaceOverwriteParams.bindedKernel))
                 {
-                    index = SetBufferForHwAccess(
-                        &renderHalSurface.OsSurface,
-                        &renderHalSurface,
-                        &renderSurfaceParams,
-                        kernelSurfaceParam->surfaceOverwriteParams.bindIndex,
-                        bWrite);
+                    if (bindingMap.empty())
+                    {
+                        VP_RENDER_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+                    }
+                    for (uint32_t bti : bindingMap)
+                    {
+                        index = SetBufferForHwAccess(
+                            &renderHalSurface.OsSurface,
+                            &renderHalSurface,
+                            &renderSurfaceParams,
+                            bti,
+                            bWrite);
+                        VP_RENDER_NORMALMESSAGE("Using Binded Index Buffer. KernelID %d, SurfType %d, bti %d", m_kernel->GetKernelId(), type, index);
+                    }
                 }
                 else if ((kernelSurfaceParam->surfaceOverwriteParams.updatedSurfaceParams &&
                      kernelSurfaceParam->surfaceOverwriteParams.bufferResource            &&
@@ -777,18 +793,20 @@ MOS_STATUS VpRenderCmdPacket::SetupSurfaceState()
                         &renderHalSurface,
                         &renderSurfaceParams,
                         bWrite);
+                    VP_RENDER_CHK_STATUS_RETURN(m_kernel->UpdateCurbeBindingIndex(type, index));
+                    VP_RENDER_NORMALMESSAGE("Using UnBinded Index Buffer. KernelID %d, SurfType %d, bti %d", m_kernel->GetKernelId(), type, index);
                 }
                 else
                 {
-                    VP_RENDER_NORMALMESSAGE("If 1D buffer overwrite to 2D for use, it will go SetSurfaceForHwAccess()");
                     index = SetSurfaceForHwAccess(
                         &renderHalSurface.OsSurface,
                         &renderHalSurface,
                         &renderSurfaceParams,
                         bWrite);
+                    VP_RENDER_CHK_STATUS_RETURN(m_kernel->UpdateCurbeBindingIndex(type, index));
+                    VP_RENDER_NORMALMESSAGE("Using UnBinded Index Surface. KernelID %d, SurfType %d, bti %d. If 1D buffer overwrite to 2D for use, it will go SetSurfaceForHwAccess()", m_kernel->GetKernelId(), type, index);
                 }
             }
-            VP_RENDER_CHK_STATUS_RETURN(m_kernel->UpdateCurbeBindingIndex(type, index));
         }
         VP_RENDER_CHK_STATUS_RETURN(m_kernel->UpdateCompParams());
     }

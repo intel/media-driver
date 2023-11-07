@@ -264,6 +264,7 @@ MOS_STATUS VpRenderFcKernel::SetupSurfaceState()
     VP_COMPOSITE_PARAMS &compParams = m_fcParams->compParams;
 
     m_surfaceState.clear();
+    m_surfaceBindingIndex.clear();
 
     for (i = 0; i < compParams.sourceCount; ++i)
     {
@@ -305,7 +306,7 @@ MOS_STATUS VpRenderFcKernel::SetupSurfaceState()
             }
         }
 
-        surfParam.surfaceOverwriteParams.bindIndex = s_bindingTableIndex[layer->layerID];
+        UpdateCurbeBindingIndex(SurfaceType(SurfaceTypeFcInputLayer0 + layer->layerID), s_bindingTableIndex[layer->layerID]);
 
         SetSurfaceParams(surfParam, *layer, false);
         surfParam.surfaceOverwriteParams.renderSurfaceParams.bChromasiting = layer->calculatedParams.chromaSitingEnabled;
@@ -329,7 +330,7 @@ MOS_STATUS VpRenderFcKernel::SetupSurfaceState()
                 surfParamField.surfaceOverwriteParams.renderSurfaceParams.bVertStrideOffs = true;
             }
 
-            surfParamField.surfaceOverwriteParams.bindIndex = s_bindingTableIndexField[layer->layerID];
+            UpdateCurbeBindingIndex(SurfaceType(SurfaceTypeFcInputLayer0Field1Dual + layer->layerID), s_bindingTableIndexField[layer->layerID]);
             m_surfaceState.insert(std::make_pair(SurfaceType(SurfaceTypeFcInputLayer0Field1Dual + layer->layerID), surfParamField));
 
             //update render GMM resource usage type
@@ -367,11 +368,11 @@ MOS_STATUS VpRenderFcKernel::SetupSurfaceState()
         surfParam.surfaceOverwriteParams.bindedKernel = true;
         if (compParams.targetCount > 1 && 0 == i)
         {
-            surfParam.surfaceOverwriteParams.bindIndex = VP_COMP_BTINDEX_RT_SECOND;
+            UpdateCurbeBindingIndex(SurfaceType(SurfaceTypeFcTarget0 + i), VP_COMP_BTINDEX_RT_SECOND);
         }
         else
         {
-            surfParam.surfaceOverwriteParams.bindIndex = VP_COMP_BTINDEX_RENDERTARGET;
+            UpdateCurbeBindingIndex(SurfaceType(SurfaceTypeFcTarget0 + i), VP_COMP_BTINDEX_RENDERTARGET);
         }
 
         SetSurfaceParams(surfParam, compParams.target[i], is32MWColorFillKern);
@@ -401,7 +402,7 @@ MOS_STATUS VpRenderFcKernel::SetupSurfaceState()
         surfParam.surfaceOverwriteParams.updatedSurfaceParams = true;
         // Only need to specify binding index in surface parameters.
         surfParam.surfaceOverwriteParams.bindedKernel = true;
-        surfParam.surfaceOverwriteParams.bindIndex = VP_COMP_BTINDEX_CSC_COEFF;
+        UpdateCurbeBindingIndex(SurfaceTypeFcCscCoeff, VP_COMP_BTINDEX_CSC_COEFF);
 
         surfParam.surfaceOverwriteParams.updatedRenderSurfaces             = true;
         surfParam.surfaceOverwriteParams.renderSurfaceParams.Type          = RENDERHAL_SURFACE_TYPE_G10;
