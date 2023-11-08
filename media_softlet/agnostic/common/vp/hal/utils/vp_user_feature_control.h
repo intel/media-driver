@@ -55,6 +55,7 @@ public:
 
 #if (_DEBUG || _RELEASE_INTERNAL)
         bool forceDecompressedOutput        = false;
+        uint32_t force3DLutInterpolation    = 0;
         uint32_t enabledSFCNv12P010LinearOutput = 0;
         uint32_t enabledSFCRGBPRGB24Output  = 0;
         bool     enableIFNCC                    = false;
@@ -74,6 +75,11 @@ public:
     bool IsForceDecompressedOutput()
     {
         return m_ctrlVal.forceDecompressedOutput;
+    }
+
+    uint32_t Force3DLutInterpolation()
+    {
+        return m_ctrlVal.force3DLutInterpolation;
     }
 
     uint32_t EnabledSFCNv12P010LinearOutput()

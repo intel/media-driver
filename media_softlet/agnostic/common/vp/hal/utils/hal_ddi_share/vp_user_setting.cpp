@@ -205,6 +205,13 @@ MOS_STATUS VpUserSetting::InitVpUserSetting(MediaUserSettingSharedPtr userSettin
             0,
             true);
 
+        DeclareUserSettingKeyForDebug(
+            userSettingPtr,
+            __VPHAL_FORCE_3DLUT_INTERPOLATION,
+            MediaUserSetting::Group::Sequence,
+            0,
+            true);
+
         DeclareUserSettingKeyForDebug(  //Enable 1K 1DLUT
             userSettingPtr,
             __VPHAL_ENABLE_1K_1DLUT,
