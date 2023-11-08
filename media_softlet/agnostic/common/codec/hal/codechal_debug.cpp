@@ -3252,10 +3252,20 @@ MOS_STATUS CodechalDebugInterface::SetFastDumpConfig(MediaCopyWrapper *mediaCopy
         cfg.allowDataLoss = false;
         cfg.informOnError = false;
 
-        // use VE copy
-        // cfg.weightRenderCopy = 0;
-        // cfg.weightVECopy     = 100;
-        // cfg.weightBLTCopy    = 0;
+        MediaUserSetting::Value outValue{};
+        ReadUserSettingForDebug(
+            m_userSettingPtr,
+            outValue,
+            "Enable VECopy For Surface Dump",
+            MediaUserSetting::Group::Sequence);
+
+        if (outValue.Get<bool>())
+        {
+            // use VE copy
+            cfg.weightRenderCopy = 0;
+            cfg.weightVECopy     = 100;
+            cfg.weightBLTCopy    = 0;
+        }
     }
 
     MediaDebugFastDump::CreateInstance(*m_osInterface, *mediaCopyWrapper, &cfg);
