@@ -1632,6 +1632,8 @@ MOS_STATUS CodechalDecode::EndStatusReport(
         sizeof(uint32_t) * 2;
 
     MHW_MI_STORE_REGISTER_MEM_PARAMS regParams;
+    MOS_ZeroMemory(&regParams, sizeof(regParams));
+
     regParams.presStoreBuffer   = &m_decodeStatusBuf.m_statusBuffer;
     regParams.dwOffset          = errStatusOffset;
     regParams.dwRegister        = ((m_standard == CODECHAL_HEVC || m_standard == CODECHAL_VP9) && mmioRegistersHcp) ?
