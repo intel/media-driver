@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -259,6 +259,8 @@ public:
     //!
     //! \param    [in] semaMem
     //!           Reource of Hw semphore
+    //! \param    [in] offset
+    //!           offset of semMem
     //! \param    [in] semaData
     //!           Data of Hw semphore
     //! \param    [in] opCode
@@ -271,6 +273,7 @@ public:
     //!
     virtual MOS_STATUS SendHwSemaphoreWaitCmd(
         PMOS_RESOURCE                             semaMem,
+        uint32_t                                  offset,
         uint32_t                                  semaData,
         MHW_COMMON_MI_SEMAPHORE_COMPARE_OPERATION opCode,
         PMOS_COMMAND_BUFFER                       cmdBuffer);
@@ -281,6 +284,8 @@ public:
     //!
     //! \param    [in] resource
     //!           Reource used in mi atomic dword cmd
+    //! \param    [in] offset
+    //!           offset of resource
     //! \param    [in] immData
     //!           Immediate data
     //! \param    [in] opCode
@@ -293,6 +298,7 @@ public:
     //!
     virtual MOS_STATUS SendMiAtomicDwordCmd(
         PMOS_RESOURCE               resource,
+        uint32_t                    offset,
         uint32_t                    immData,
         MHW_COMMON_MI_ATOMIC_OPCODE opCode,
         PMOS_COMMAND_BUFFER         cmdBuffer);
@@ -322,6 +328,8 @@ public:
     //!
     //! \param    [in] resource
     //!           Reource used in mi store dat dword cmd
+    //! \param    [in] offset
+    //!           offset of semMem
     //! \param    [in,out] cmdBuffer
     //!           command buffer
     //!
@@ -330,6 +338,7 @@ public:
     //!
     virtual MOS_STATUS AddMiStoreDataImmCmd(
         PMOS_RESOURCE               resource,
+        uint32_t                    offset,
         PMOS_COMMAND_BUFFER         cmdBuffer);
 
     static MOS_STATUS CreateMultiPipe(void *hwInterface, MediaContext *mediaContext, uint8_t componentType);
@@ -342,9 +351,10 @@ public:
     static const uint8_t            m_maxCmdBufferSetsNum    = 8;       //!< The max number of command buffer sets
     static const uint32_t           m_CmdBufferSize          = 0x4000;  //!< The command buffer size
 
-    std::vector<std::vector<MOS_RESOURCE>> m_resSemaphoreAllPipes;      //!< The sync semaphore between all pipes
-    std::vector<std::vector<MOS_RESOURCE>> m_resSemaphoreOnePipeWait;   //!< The sync semaphore between main pipe and other pipes
-    uint8_t                                m_semaphoreIndex = 0;        //!< The index for semaphore using by current frame
+    MOS_RESOURCE                    m_resSemaphoreAllPipes    = {};     //!< The sync semaphore between all pipes
+    MOS_RESOURCE                    m_resSemaphoreOnePipeWait = {};     //!< The sync semaphore between main pipe and other pipes
+    uint32_t                        m_semaphoreAllPipesIndex = 0;       //!< The index for semaphore using by current frame
+    uint32_t                        m_semaphoreAllPipesPhase = 0;       //!< The count for semaphore using by current frame
 
     VpPhase                               *m_phase = nullptr;
     std::shared_ptr<mhw::mi::Itf>          m_miItf = nullptr;

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2021, Intel Corporation
+* Copyright (c) 2020-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -163,6 +163,8 @@ MOS_STATUS VpScalabilityMultiPipe::Initialize(const MediaScalabilityOption &opti
 //!
 //! \param    [in] semaMem
 //!           Reource of Hw semphore
+//! \param    [in] offset
+//!           offset of semMem
 //! \param    [in] semaData
 //!           Data of Hw semphore
 //! \param    [in] opCode
@@ -175,6 +177,7 @@ MOS_STATUS VpScalabilityMultiPipe::Initialize(const MediaScalabilityOption &opti
 //!
 MOS_STATUS VpScalabilityMultiPipe::SendHwSemaphoreWaitCmd(
     PMOS_RESOURCE                             semaMem,
+    uint32_t                                  offset,
     uint32_t                                  semaData,
     MHW_COMMON_MI_SEMAPHORE_COMPARE_OPERATION opCode,
     PMOS_COMMAND_BUFFER                       cmdBuffer)
@@ -195,6 +198,7 @@ MOS_STATUS VpScalabilityMultiPipe::SendHwSemaphoreWaitCmd(
         auto &params             = m_miItf->MHW_GETPAR_F(MI_SEMAPHORE_WAIT)();
         params                   = {};
         params.presSemaphoreMem = semaMem;
+        params.dwResourceOffset = offset;
         params.bPollingWaitMode = true;
         params.dwSemaphoreData  = semaData;
         params.CompareOperation = (mhw::mi::MHW_COMMON_MI_SEMAPHORE_COMPARE_OPERATION) opCode;
@@ -204,6 +208,7 @@ MOS_STATUS VpScalabilityMultiPipe::SendHwSemaphoreWaitCmd(
     {
         MOS_ZeroMemory((&miSemaphoreWaitParams), sizeof(miSemaphoreWaitParams));
         miSemaphoreWaitParams.presSemaphoreMem = semaMem;
+        miSemaphoreWaitParams.dwResourceOffset = offset;
         miSemaphoreWaitParams.bPollingWaitMode = true;
         miSemaphoreWaitParams.dwSemaphoreData  = semaData;
         miSemaphoreWaitParams.CompareOperation = opCode;
@@ -220,6 +225,8 @@ finish:
 //!
 //! \param    [in] resource
 //!           Reource used in mi atomic dword cmd
+//! \param    [in] offset
+//!           offset of resource
 //! \param    [in] immData
 //!           Immediate data
 //! \param    [in] opCode
@@ -232,6 +239,7 @@ finish:
 //!
 MOS_STATUS VpScalabilityMultiPipe::SendMiAtomicDwordCmd(
     PMOS_RESOURCE               resource,
+    uint32_t                    offset,
     uint32_t                    immData,
     MHW_COMMON_MI_ATOMIC_OPCODE opCode,
     PMOS_COMMAND_BUFFER         cmdBuffer)
@@ -252,6 +260,7 @@ MOS_STATUS VpScalabilityMultiPipe::SendMiAtomicDwordCmd(
         auto &params             = m_miItf->MHW_GETPAR_F(MI_ATOMIC)();
         params                   = {};
         params.pOsResource       = resource;
+        params.dwResourceOffset  = offset;
         params.dwDataSize        = sizeof(uint32_t);
         params.Operation         = (mhw::mi::MHW_COMMON_MI_ATOMIC_OPCODE) opCode;
         params.bInlineData       = true;
@@ -262,6 +271,7 @@ MOS_STATUS VpScalabilityMultiPipe::SendMiAtomicDwordCmd(
     {
         MOS_ZeroMemory((&atomicParams), sizeof(atomicParams));
         atomicParams.pOsResource       = resource;
+        atomicParams.dwResourceOffset  = offset;
         atomicParams.dwDataSize        = sizeof(uint32_t);
         atomicParams.Operation         = opCode;
         atomicParams.bInlineData       = true;
@@ -335,6 +345,8 @@ MOS_STATUS VpScalabilityMultiPipe::AddMiFlushDwCmd(
 //!
 //! \param    [in] resource
 //!           Reource used in mi store dat dword cmd
+//! \param    [in] offset
+//!           offset of resource
 //! \param    [in,out] cmdBuffer
 //!           command buffer
 //!
@@ -343,6 +355,7 @@ MOS_STATUS VpScalabilityMultiPipe::AddMiFlushDwCmd(
 //!
 MOS_STATUS VpScalabilityMultiPipe::AddMiStoreDataImmCmd(
     PMOS_RESOURCE               resource,
+    uint32_t                    offset,
     PMOS_COMMAND_BUFFER         cmdBuffer)
 {
     VP_FUNC_CALL();
@@ -361,7 +374,7 @@ MOS_STATUS VpScalabilityMultiPipe::AddMiStoreDataImmCmd(
         auto &params             = m_miItf->MHW_GETPAR_F(MI_STORE_DATA_IMM)();
         params                   = {};
         params.pOsResource       = resource;
-        params.dwResourceOffset  = 0;
+        params.dwResourceOffset  = offset;
         params.dwValue           = 0;
         eStatus                  = m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(cmdBuffer);
     }
@@ -369,7 +382,7 @@ MOS_STATUS VpScalabilityMultiPipe::AddMiStoreDataImmCmd(
     {
         MHW_MI_STORE_DATA_PARAMS dataParams = {};
         dataParams.pOsResource      = resource;
-        dataParams.dwResourceOffset = 0;
+        dataParams.dwResourceOffset = offset;
         dataParams.dwValue          = 0;
 
         // Reset current pipe semaphore

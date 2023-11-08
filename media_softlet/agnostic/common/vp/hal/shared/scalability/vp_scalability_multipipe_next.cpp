@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2021, Intel Corporation
+* Copyright (c) 2020-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -31,6 +31,8 @@
 #include "media_status_report.h"
 #include "mhw_utilities.h"
 #include "mhw_mi_cmdpar.h"
+
+#define VP_SEMAPHORE_COUNT 1024
 
 namespace vp
 {
@@ -64,64 +66,30 @@ MOS_STATUS VpScalabilityMultiPipeNext::AllocateSemaphore()
     MOS_LOCK_PARAMS lockFlagsWriteOnly;
     MOS_ZeroMemory(&lockFlagsWriteOnly, sizeof(MOS_LOCK_PARAMS));
     lockFlagsWriteOnly.WriteOnly = 1;
+
     MOS_ALLOC_GFXRES_PARAMS allocParamsForBufferLinear;
     MOS_ZeroMemory(&allocParamsForBufferLinear, sizeof(MOS_ALLOC_GFXRES_PARAMS));
     allocParamsForBufferLinear.TileType = MOS_TILE_LINEAR;
     allocParamsForBufferLinear.Format   = Format_Buffer;
     allocParamsForBufferLinear.Type     = MOS_GFXRES_BUFFER;
-    allocParamsForBufferLinear.dwBytes  = sizeof(uint32_t);
+    allocParamsForBufferLinear.dwBytes  = VP_SEMAPHORE_COUNT * sizeof(uint32_t);
     allocParamsForBufferLinear.pBufName = "Sync All Pipes SemaphoreMemory";
 
-    m_resSemaphoreAllPipes.resize(m_maxCmdBufferSetsNum);
-    for (auto &semaphoreBufferVec : m_resSemaphoreAllPipes)
-    {
-        semaphoreBufferVec.resize(m_scalabilityOption->GetNumPipe());
-        for (auto &semaphoreBuffer : semaphoreBufferVec)
-        {
-            memset(&semaphoreBuffer, 0, sizeof(MOS_RESOURCE));
-            SCALABILITY_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
-                                                      m_osInterface,
-                                                      &allocParamsForBufferLinear,
-                                                      &semaphoreBuffer),
-                "Cannot create HW semaphore for scalability all pipes sync.");
-            uint32_t *data = (uint32_t *)m_osInterface->pfnLockResource(
-                m_osInterface,
-                &semaphoreBuffer,
-                &lockFlagsWriteOnly);
-            SCALABILITY_CHK_NULL_RETURN(data);
-            *data = 0;
-            SCALABILITY_CHK_STATUS_RETURN(m_osInterface->pfnUnlockResource(
-                m_osInterface,
-                &semaphoreBuffer));
-        }
-    }
+    memset(&m_resSemaphoreAllPipes, 0, sizeof(MOS_RESOURCE));
+    SCALABILITY_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
+                                              m_osInterface,
+                                              &allocParamsForBufferLinear,
+                                              &m_resSemaphoreAllPipes),
+        "Cannot create HW semaphore for scalability all pipes sync.");
+    memset(&m_resSemaphoreOnePipeWait, 0, sizeof(MOS_RESOURCE));
+    SCALABILITY_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
+                                              m_osInterface,
+                                              &allocParamsForBufferLinear,
+                                              &m_resSemaphoreOnePipeWait),
+        "Cannot create HW semaphore for scalability one pipe sync.");
 
-    allocParamsForBufferLinear.pBufName = "Sync One Pipe Wait SemaphoreMemory";
-    m_resSemaphoreOnePipeWait.resize(m_maxCmdBufferSetsNum);
-    for (auto &semaphoreBufferVec : m_resSemaphoreOnePipeWait)
-    {
-        semaphoreBufferVec.resize(m_scalabilityOption->GetNumPipe());
-        for (auto &semaphoreBuffer : semaphoreBufferVec)
-        {
-            memset(&semaphoreBuffer, 0, sizeof(MOS_RESOURCE));
-            SCALABILITY_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
-                                                      m_osInterface,
-                                                      &allocParamsForBufferLinear,
-                                                      &semaphoreBuffer),
-                "Cannot create HW semaphore for scalability one pipe sync.");
-            uint32_t *data = (uint32_t *)m_osInterface->pfnLockResource(
-                m_osInterface,
-                &semaphoreBuffer,
-                &lockFlagsWriteOnly);
-            SCALABILITY_CHK_NULL_RETURN(data);
-            *data = 0;
-            SCALABILITY_CHK_STATUS_RETURN(m_osInterface->pfnUnlockResource(
-                m_osInterface,
-                &semaphoreBuffer));
-        }
-    }
-
-    m_semaphoreIndex = 0;
+    m_semaphoreAllPipesIndex = 0;
+    m_semaphoreAllPipesPhase = 0;
 
     return MOS_STATUS_SUCCESS;
 }
@@ -233,20 +201,8 @@ MOS_STATUS VpScalabilityMultiPipeNext::Destroy()
         MOS_Delete(m_scalabilityOption);
     }
 
-    for (auto &semaphoreBufferVec : m_resSemaphoreAllPipes)
-    {
-        for (auto &semaphoreBuffer : semaphoreBufferVec)
-        {
-            m_osInterface->pfnFreeResource(m_osInterface, &semaphoreBuffer);
-        }
-    }
-    for (auto &semaphoreBufferVec : m_resSemaphoreOnePipeWait)
-    {
-        for (auto &semaphoreBuffer : semaphoreBufferVec)
-        {
-            m_osInterface->pfnFreeResource(m_osInterface, &semaphoreBuffer);
-        }
-    }
+    m_osInterface->pfnFreeResource(m_osInterface, &m_resSemaphoreAllPipes);
+    m_osInterface->pfnFreeResource(m_osInterface, &m_resSemaphoreOnePipeWait);
 
     return MOS_STATUS_SUCCESS;
 }
@@ -514,36 +470,71 @@ MOS_STATUS VpScalabilityMultiPipeNext::SyncAllPipes(PMOS_COMMAND_BUFFER cmdBuffe
     SCALABILITY_FUNCTION_ENTER;
     SCALABILITY_CHK_NULL_RETURN(cmdBuffer);
     SCALABILITY_CHK_NULL_RETURN(m_hwInterface);
+    SCALABILITY_ASSERT(m_semaphoreAllPipesIndex < VP_SEMAPHORE_COUNT);
+    SCALABILITY_ASSERT(!Mos_ResourceIsNull(&m_resSemaphoreAllPipes));
 
-    SCALABILITY_ASSERT(m_semaphoreIndex < m_resSemaphoreAllPipes.size());
-    auto &semaphoreBufs = m_resSemaphoreAllPipes[m_semaphoreIndex];
-    SCALABILITY_ASSERT(semaphoreBufs.size() >= m_scalabilityOption->GetNumPipe());
+    if (m_semaphoreAllPipesPhase == 0)
+    {
+        if (m_currentPipe == 0)
+        {
+            char ocaMsg[] = "VEBOX0 SCALABILITY";
+            HalOcaInterfaceNext::TraceMessage(*cmdBuffer, (MOS_CONTEXT_HANDLE)m_osInterface->pOsContext, ocaMsg, sizeof(ocaMsg));
+        }
+        else
+        {
+            char ocaMsg[] = "VEBOX1 SCALABILITY";
+            HalOcaInterfaceNext::TraceMessage(*cmdBuffer, (MOS_CONTEXT_HANDLE)m_osInterface->pOsContext, ocaMsg, sizeof(ocaMsg));
+        }
+
+        for (int32_t i = 0; i < 2 * m_pipeNum; i++)
+        {
+            HalOcaInterfaceNext::OnIndirectState(*cmdBuffer, (MOS_CONTEXT_HANDLE)m_osInterface->pOsContext, &m_resSemaphoreAllPipes, (m_semaphoreAllPipesIndex + i) * sizeof(uint32_t), false, sizeof(uint32_t));
+        }
+    }
+
+    // memset the semaphore to avoid the semaphore was not clear during media reset
+    if ((m_semaphoreAllPipesPhase == 0) && (m_currentPipe == 0))
+    {
+        MOS_LOCK_PARAMS lockFlagsWriteOnly;
+        MOS_ZeroMemory(&lockFlagsWriteOnly, sizeof(MOS_LOCK_PARAMS));
+        lockFlagsWriteOnly.WriteOnly = 1;
+
+        uint32_t *data = (uint32_t *)m_osInterface->pfnLockResource(
+            m_osInterface,
+            &m_resSemaphoreAllPipes,
+            &lockFlagsWriteOnly);
+        SCALABILITY_CHK_NULL_RETURN(data);
+        MOS_ZeroMemory(data + m_semaphoreAllPipesIndex, 2 * m_pipeNum * sizeof(uint32_t));
+        SCALABILITY_CHK_STATUS_RETURN(m_osInterface->pfnUnlockResource(
+            m_osInterface,
+            &m_resSemaphoreAllPipes));
+    }
 
     // Increment all pipe flags
     for (uint32_t i = 0; i < m_pipeNum; i++)
     {
-        if (!Mos_ResourceIsNull(&semaphoreBufs[i]))
+        if (!Mos_ResourceIsNull(&m_resSemaphoreAllPipes))
         {
             SCALABILITY_CHK_STATUS_RETURN(SendMiAtomicDwordCmd(
-                &semaphoreBufs[i], 1, MHW_MI_ATOMIC_INC, cmdBuffer));
+                &m_resSemaphoreAllPipes, (m_semaphoreAllPipesIndex + m_semaphoreAllPipesPhase * m_pipeNum + i) * sizeof(uint32_t), 1, MHW_MI_ATOMIC_INC, cmdBuffer));
         }
     }
 
-    if (!Mos_ResourceIsNull(&semaphoreBufs[m_currentPipe]))
+    if (!Mos_ResourceIsNull(&m_resSemaphoreAllPipes))
     {
         // Waiting current pipe flag euqal to pipe number which means other pipes are executing
         SCALABILITY_CHK_STATUS_RETURN(SendHwSemaphoreWaitCmd(
-            &semaphoreBufs[m_currentPipe], m_pipeNum, MHW_MI_SAD_EQUAL_SDD, cmdBuffer));
+            &m_resSemaphoreAllPipes, (m_semaphoreAllPipesIndex + m_semaphoreAllPipesPhase * m_pipeNum + m_currentPipe) * sizeof(uint32_t), m_pipeNum, MHW_MI_SAD_EQUAL_SDD, cmdBuffer));
 
         // Reset current pipe semaphore
         SCALABILITY_CHK_STATUS_RETURN(AddMiStoreDataImmCmd(
-            &semaphoreBufs[m_currentPipe], cmdBuffer));
+            &m_resSemaphoreAllPipes, (m_semaphoreAllPipesIndex + m_semaphoreAllPipesPhase * m_pipeNum + m_currentPipe) * sizeof(uint32_t), cmdBuffer));
     }
 
-    m_semaphoreIndex += m_initSecondaryCmdBufNum;
-    if (m_semaphoreIndex >= m_maxCmdBufferSetsNum)
+    m_semaphoreAllPipesPhase = 1 - m_semaphoreAllPipesPhase;
+    if ((m_semaphoreAllPipesPhase == 0) && (m_currentPipe == 1))
     {
-        m_semaphoreIndex = 0;
+        m_semaphoreAllPipesIndex = (m_semaphoreAllPipesIndex + 2 * m_pipeNum) % VP_SEMAPHORE_COUNT;
     }
 
     return MOS_STATUS_SUCCESS;
@@ -555,34 +546,32 @@ MOS_STATUS VpScalabilityMultiPipeNext::SyncOnePipeWaitOthers(PMOS_COMMAND_BUFFER
 
     SCALABILITY_FUNCTION_ENTER;
     SCALABILITY_CHK_NULL_RETURN(cmdBuffer);
-
-    SCALABILITY_ASSERT(m_semaphoreIndex < m_resSemaphoreOnePipeWait.size());
-    auto &semaphoreBufs = m_resSemaphoreOnePipeWait[m_semaphoreIndex];
-    SCALABILITY_ASSERT(semaphoreBufs.size() >= m_scalabilityOption->GetNumPipe());
+    SCALABILITY_CHK_NULL_RETURN(m_hwInterface);
+    SCALABILITY_ASSERT(!Mos_ResourceIsNull(&m_resSemaphoreOnePipeWait));
 
     // Send MI_FLUSH command
     SCALABILITY_CHK_STATUS_RETURN(AddMiFlushDwCmd(
-            &semaphoreBufs[m_currentPipe], m_currentPass + 1, cmdBuffer));
+            &m_resSemaphoreOnePipeWait, 0, cmdBuffer));
 
     if (m_currentPipe == pipeIdx)
     {
         // this pipe needs to ensure all other pipes are ready
         for (uint32_t i = 0; i < m_pipeNum; i++)
         {
-            if (!Mos_ResourceIsNull(&semaphoreBufs[i]))
+            if (!Mos_ResourceIsNull(&m_resSemaphoreOnePipeWait))
             {
                 SCALABILITY_CHK_STATUS_RETURN(SendHwSemaphoreWaitCmd(
-                        &semaphoreBufs[i], m_currentPass + 1, MHW_MI_SAD_EQUAL_SDD, cmdBuffer));
+                    &m_resSemaphoreOnePipeWait, i, m_currentPass + 1, MHW_MI_SAD_EQUAL_SDD, cmdBuffer));
             }
         }
 
         // Reset all pipe flags for next frame
         for (uint32_t i = 0; i < m_pipeNum; i++)
         {
-            if (!Mos_ResourceIsNull(&semaphoreBufs[i]))
+            if (!Mos_ResourceIsNull(&m_resSemaphoreOnePipeWait))
             {
                 SCALABILITY_CHK_STATUS_RETURN(SendMiAtomicDwordCmd(
-                    &semaphoreBufs[i], m_currentPass + 1, MHW_MI_ATOMIC_DEC, cmdBuffer));
+                    &m_resSemaphoreOnePipeWait, i, m_currentPass + 1, MHW_MI_ATOMIC_DEC, cmdBuffer));
 
             }
         }
@@ -690,6 +679,8 @@ MOS_STATUS VpScalabilityMultiPipeNext::SendAttrWithFrameTracking(
 //!
 //! \param    [in] semaMem
 //!           Reource of Hw semphore
+//! \param    [in] offset
+//!           offset of semMem
 //! \param    [in] semaData
 //!           Data of Hw semphore
 //! \param    [in] opCode
@@ -702,6 +693,7 @@ MOS_STATUS VpScalabilityMultiPipeNext::SendAttrWithFrameTracking(
 //!
 MOS_STATUS VpScalabilityMultiPipeNext::SendHwSemaphoreWaitCmd(
     PMOS_RESOURCE                             semaMem,
+    uint32_t                                  offset,
     uint32_t                                  semaData,
     MHW_COMMON_MI_SEMAPHORE_COMPARE_OPERATION opCode,
     PMOS_COMMAND_BUFFER                       cmdBuffer)
@@ -716,6 +708,7 @@ MOS_STATUS VpScalabilityMultiPipeNext::SendHwSemaphoreWaitCmd(
     auto &params             = m_miItf->MHW_GETPAR_F(MI_SEMAPHORE_WAIT)();
     params                   = {};
     params.presSemaphoreMem = semaMem;
+    params.dwResourceOffset = offset;
     params.bPollingWaitMode = true;
     params.dwSemaphoreData  = semaData;
     params.CompareOperation = (mhw::mi::MHW_COMMON_MI_SEMAPHORE_COMPARE_OPERATION) opCode;
@@ -730,6 +723,8 @@ MOS_STATUS VpScalabilityMultiPipeNext::SendHwSemaphoreWaitCmd(
 //!
 //! \param    [in] resource
 //!           Reource used in mi atomic dword cmd
+//! \param    [in] offset
+//!           offset of resource
 //! \param    [in] immData
 //!           Immediate data
 //! \param    [in] opCode
@@ -742,6 +737,7 @@ MOS_STATUS VpScalabilityMultiPipeNext::SendHwSemaphoreWaitCmd(
 //!
 MOS_STATUS VpScalabilityMultiPipeNext::SendMiAtomicDwordCmd(
     PMOS_RESOURCE               resource,
+    uint32_t                    offset,
     uint32_t                    immData,
     MHW_COMMON_MI_ATOMIC_OPCODE opCode,
     PMOS_COMMAND_BUFFER         cmdBuffer)
@@ -757,6 +753,7 @@ MOS_STATUS VpScalabilityMultiPipeNext::SendMiAtomicDwordCmd(
     auto &params             = m_miItf->MHW_GETPAR_F(MI_ATOMIC)();
     params                   = {};
     params.pOsResource       = resource;
+    params.dwResourceOffset  = offset;
     params.dwDataSize        = sizeof(uint32_t);
     params.Operation         = (mhw::mi::MHW_COMMON_MI_ATOMIC_OPCODE) opCode;
     params.bInlineData       = true;
@@ -811,6 +808,8 @@ MOS_STATUS VpScalabilityMultiPipeNext::AddMiFlushDwCmd(
 //!
 //! \param    [in] resource
 //!           Reource used in mi store dat dword cmd
+//! \param    [in] offset
+//!           offset of resource
 //! \param    [in,out] cmdBuffer
 //!           command buffer
 //!
@@ -819,6 +818,7 @@ MOS_STATUS VpScalabilityMultiPipeNext::AddMiFlushDwCmd(
 //!
 MOS_STATUS VpScalabilityMultiPipeNext::AddMiStoreDataImmCmd(
     PMOS_RESOURCE               resource,
+    uint32_t                    offset,
     PMOS_COMMAND_BUFFER         cmdBuffer)
 {
     VP_FUNC_CALL();
@@ -832,7 +832,7 @@ MOS_STATUS VpScalabilityMultiPipeNext::AddMiStoreDataImmCmd(
     auto &params             = m_miItf->MHW_GETPAR_F(MI_STORE_DATA_IMM)();
     params                   = {};
     params.pOsResource       = resource;
-    params.dwResourceOffset  = 0;
+    params.dwResourceOffset  = offset;
     params.dwValue           = 0;
     eStatus                  = m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(cmdBuffer);
 

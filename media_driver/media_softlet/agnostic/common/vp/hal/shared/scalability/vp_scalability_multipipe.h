@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2022, Intel Corporation
+* Copyright (c) 2020-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -80,6 +80,8 @@ public:
     //!
     //! \param    [in] semaMem
     //!           Reource of Hw semphore
+    //! \param    [in] offset
+    //!           offset of semMem
     //! \param    [in] semaData
     //!           Data of Hw semphore
     //! \param    [in] opCode
@@ -92,6 +94,7 @@ public:
     //!
     virtual MOS_STATUS SendHwSemaphoreWaitCmd(
         PMOS_RESOURCE                             semaMem,
+        uint32_t                                  offset,
         uint32_t                                  semaData,
         MHW_COMMON_MI_SEMAPHORE_COMPARE_OPERATION opCode,
         PMOS_COMMAND_BUFFER                       cmdBuffer) override;
@@ -102,6 +105,8 @@ public:
     //!
     //! \param    [in] resource
     //!           Reource used in mi atomic dword cmd
+    //! \param    [in] offset
+    //!           offset of resource
     //! \param    [in] immData
     //!           Immediate data
     //! \param    [in] opCode
@@ -114,6 +119,7 @@ public:
     //!
     virtual MOS_STATUS SendMiAtomicDwordCmd(
         PMOS_RESOURCE               resource,
+        uint32_t                    offset,
         uint32_t                    immData,
         MHW_COMMON_MI_ATOMIC_OPCODE opCode,
         PMOS_COMMAND_BUFFER         cmdBuffer) override;
@@ -143,6 +149,8 @@ public:
     //!
     //! \param    [in] resource
     //!           Reource used in mi store dat dword cmd
+    //! \param    [in] offset
+    //!           offset of resource
     //! \param    [in,out] cmdBuffer
     //!           command buffer
     //!
@@ -151,6 +159,7 @@ public:
     //!
     virtual MOS_STATUS AddMiStoreDataImmCmd(
         PMOS_RESOURCE               resource,
+        uint32_t                    offset,
         PMOS_COMMAND_BUFFER         cmdBuffer) override;
 
     //!
