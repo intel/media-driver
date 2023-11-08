@@ -51,20 +51,6 @@ struct mos_bufmgr {
                    unsigned long size, unsigned int alignment, int mem_type, unsigned int pat_index, bool cpu_cacheable) = nullptr;
 
     /**
-     * Allocate a buffer object, hinting that it will be used as a
-     * render target.
-     *
-     * This is otherwise the same as bo_alloc.
-     */
-    struct mos_linux_bo *(*bo_alloc_for_render) (struct mos_bufmgr *bufmgr,
-                          const char *name,
-                          unsigned long size,
-                          unsigned int alignment,
-                          int mem_type,
-                          unsigned int pat_index,
-                          bool cpu_cacheable) = nullptr;
-
-    /**
      * Allocate a buffer object from an existing user accessible
      * address malloc'd with the provided size.
      * Alignment is used when mapping to the gtt.

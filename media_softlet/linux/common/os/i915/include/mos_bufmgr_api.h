@@ -208,13 +208,6 @@ struct mos_linux_bo {
 
 struct mos_linux_bo *mos_bo_alloc(struct mos_bufmgr *bufmgr, const char *name,
                  unsigned long size, unsigned int alignment, int mem_type, unsigned int pat_index = PAT_INDEX_INVALID, bool cpu_cacheable = true);
-struct mos_linux_bo *mos_bo_alloc_for_render(struct mos_bufmgr *bufmgr,
-                        const char *name,
-                        unsigned long size,
-                        unsigned int alignment,
-                        int mem_type,
-                        unsigned int pat_index = PAT_INDEX_INVALID,
-                        bool cpu_cacheable = true);
 struct mos_linux_bo *mos_bo_alloc_userptr(struct mos_bufmgr *bufmgr,
                     const char *name,
                     void *addr, uint32_t tiling_mode,

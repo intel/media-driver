@@ -1049,24 +1049,6 @@ retry:
 }
 
 static struct mos_linux_bo *
-mos_gem_bo_alloc_for_render(struct mos_bufmgr *bufmgr,
-                  const char *name,
-                  unsigned long size,
-                  unsigned int alignment,
-                  int mem_type,
-                  unsigned int pat_index,
-                  bool cpu_cacheable)
-{
-    return mos_gem_bo_alloc_internal(bufmgr, name, size,
-                           I915_TILING_NONE, 0,
-                           BO_ALLOC_FOR_RENDER,
-                           alignment,
-                           mem_type,
-                           pat_index,
-                           cpu_cacheable);
-}
-
-static struct mos_linux_bo *
 mos_gem_bo_alloc(struct mos_bufmgr *bufmgr,
                const char *name,
                unsigned long size,
@@ -3883,8 +3865,6 @@ mos_bufmgr_gem_init(int fd, int batch_size, int *device_type)
     }
 
     bufmgr_gem->bufmgr.bo_alloc = mos_gem_bo_alloc;
-    bufmgr_gem->bufmgr.bo_alloc_for_render =
-        mos_gem_bo_alloc_for_render;
     bufmgr_gem->bufmgr.bo_alloc_tiled = mos_gem_bo_alloc_tiled;
     bufmgr_gem->bufmgr.bo_reference = mos_gem_bo_reference;
     bufmgr_gem->bufmgr.bo_unreference = mos_gem_bo_unreference;

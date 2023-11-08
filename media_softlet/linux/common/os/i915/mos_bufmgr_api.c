@@ -69,27 +69,6 @@ mos_bo_alloc(struct mos_bufmgr *bufmgr, const char *name,
 }
 
 struct mos_linux_bo *
-mos_bo_alloc_for_render(struct mos_bufmgr *bufmgr, const char *name,
-                  unsigned long size, unsigned int alignment, int mem_type, unsigned int pat_index, bool cpu_cacheable)
-{
-    if(!bufmgr)
-    {
-        MOS_OS_CRITICALMESSAGE("Input null ptr\n");
-        return nullptr;
-    }
-
-    if (bufmgr->bo_alloc_for_render)
-    {
-        return bufmgr->bo_alloc_for_render(bufmgr, name, size, alignment, mem_type, pat_index, cpu_cacheable);
-    }
-    else
-    {
-        MOS_OS_CRITICALMESSAGE("Unsupported\n");
-        return nullptr;
-    }
-}
-
-struct mos_linux_bo *
 mos_bo_alloc_userptr(struct mos_bufmgr *bufmgr,
                const char *name, void *addr,
                uint32_t tiling_mode,
