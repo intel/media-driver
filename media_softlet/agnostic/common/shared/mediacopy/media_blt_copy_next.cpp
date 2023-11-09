@@ -31,6 +31,10 @@
 #include "media_blt_copy_next.h"
 #define BIT( n )                            ( 1 << (n) )
 
+#ifdef min
+#undef min
+#endif
+
 //!
 //! \brief    BltStateNext constructor
 //! \details  Initialize the BltStateNext members.

@@ -70,7 +70,7 @@ public:
         {
             std::pair<Iterator, bool> result =
                 creators.insert(std::make_pair(key, Create<C>));
-            sizes.insert(std::make_pair(key, sizeof(C)));
+            sizes.insert(std::make_pair(key, (uint32_t)sizeof(C)));
             placecreators.insert(std::make_pair(key, PlaceCreate<C>));
             return result.second;
         }

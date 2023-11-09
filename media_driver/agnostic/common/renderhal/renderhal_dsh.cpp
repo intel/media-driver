@@ -567,7 +567,7 @@ MOS_STATUS RenderHal_DSH_AllocateStateHeaps(
     PMHW_RENDER_STATE_SIZES      pHwSizes;
     PRENDERHAL_STATE_HEAP        pStateHeap = nullptr;
     MOS_STATUS                   eStatus;
-    int32_t                      iSize;
+    uint32_t                     iSize = 0;
     PRENDERHAL_INTERFACE_LEGACY  pRenderHalLegacy = (PRENDERHAL_INTERFACE_LEGACY)pRenderHal;
     // Initialize locals
     eStatus          = MOS_STATUS_UNKNOWN;
@@ -608,7 +608,7 @@ MOS_STATUS RenderHal_DSH_AllocateStateHeaps(
     // Create pool of media state objects
     iSize = sizeof(RENDERHAL_MEDIA_STATE_LEGACY) + sizeof(RENDERHAL_DYNAMIC_STATE) + 16; // Media state object + Dynamic states object (co-located)
 
-    pStateHeap->pMediaStatesMemPool = MOS_New(MHW_MEMORY_POOL, iSize, sizeof(void *));
+    pStateHeap->pMediaStatesMemPool = MOS_New(MHW_MEMORY_POOL, iSize, (uint32_t)sizeof(void *));
     MHW_RENDERHAL_CHK_NULL(pStateHeap->pMediaStatesMemPool);
 
     MHW_RENDERHAL_CHK_STATUS(RenderHal_DSH_ExtendMediaStatePool(pStateHeap));
@@ -693,8 +693,8 @@ MOS_STATUS RenderHal_DSH_AllocateStateHeaps(
 
     // Reset pool of Kernel allocations objects
     pStateHeap->pKernelAllocMemPool = MOS_New(MHW_MEMORY_POOL,
-                                sizeof(RENDERHAL_KRN_ALLOCATION),
-                                sizeof(void *));
+                                (uint32_t)sizeof(RENDERHAL_KRN_ALLOCATION),
+                                (uint32_t)sizeof(void *));
     MHW_RENDERHAL_CHK_NULL(pStateHeap->pKernelAllocMemPool);
 
     MHW_RENDERHAL_CHK_STATUS(RenderHal_DSH_ExtendKernelAllocPool(pStateHeap));

@@ -35,6 +35,10 @@
 #include "media_perf_profiler.h"
 #define BIT( n )                            ( 1 << (n) )
 
+#ifdef min
+#undef min
+#endif
+
 //!
 //! \brief    BltState constructor
 //! \details  Initialize the BltState members.
