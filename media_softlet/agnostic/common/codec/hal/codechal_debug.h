@@ -359,6 +359,9 @@ protected:
             CODECHAL_MEDIA_STATE_TYPE mediaState)>
         m_dumpBufferLegacy;
 
+private:
+    MOS_STATUS VDBypassCopyResource(PMOS_RESOURCE src, PMOS_RESOURCE dst);
+
 MEDIA_CLASS_DEFINE_END(CodechalDebugInterface)
 };
 #else

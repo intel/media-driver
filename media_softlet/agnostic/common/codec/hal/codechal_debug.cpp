@@ -2305,28 +2305,87 @@ CodechalDebugInterface::CodechalDebugInterface()
             fileName               = CreateFileName(kernelName.c_str(), bufferName, extType);
         }
 
-        MOS_LOCK_PARAMS lockFlags;
-        MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
-        lockFlags.ReadOnly = 1;
-        uint8_t *data      = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, resource, &lockFlags);
-        MEDIA_DEBUG_CHK_NULL(data);
-        data += offset;
-
         MOS_STATUS status = MOS_STATUS_SUCCESS;
-
         
-        if (binaryDump)
+        if ((resource->pGmmResInfo != nullptr) &&
+            (resource->pGmmResInfo->GetResFlags().Info.NotLockable))
         {
-            status = DumpBufferInBinary(data, size);
+            uint8_t                *data            = nullptr;
+            MOS_ALLOC_GFXRES_PARAMS allocParams     = {};
+            allocParams.Type                        = MOS_GFXRES_BUFFER;
+            allocParams.Flags                       = MOS_GFXRES_FLAGS{0, 0, 0, 0, 0};
+            allocParams.dwWidth                     = (uint32_t)resource->pGmmResInfo->GetBaseWidth();
+            allocParams.dwHeight                    = (uint32_t)resource->pGmmResInfo->GetBaseHeight();
+            allocParams.TileType                    = MOS_TILE_LINEAR;
+            allocParams.Format                      = Format_Any;
+
+            PMOS_RESOURCE pReadbackBuffer = (PMOS_RESOURCE)MOS_AllocAndZeroMemory(sizeof(MOS_RESOURCE));
+            CODECHAL_DEBUG_CHK_NULL(pReadbackBuffer);
+
+            status = m_osInterface->pfnAllocateResource(m_osInterface, &allocParams, pReadbackBuffer);
+            if (MOS_FAILED(status))
+            {
+                MOS_FreeMemAndSetNull(pReadbackBuffer);
+            }
+            CODECHAL_DEBUG_CHK_STATUS(status);
+
+            status = VDBypassCopyResource(resource, pReadbackBuffer);
+            if (MOS_FAILED(status))
+            {
+                m_osInterface->pfnFreeResource(m_osInterface, pReadbackBuffer);
+                MOS_FreeMemAndSetNull(pReadbackBuffer);
+            }
+            CODECHAL_DEBUG_CHK_STATUS(status);
+
+            MOS_LOCK_PARAMS lockFlags;
+            MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
+            lockFlags.ReadOnly = 1;
+            data               = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, pReadbackBuffer, &lockFlags);
+            if(data == nullptr)
+            {
+                m_osInterface->pfnFreeResource(m_osInterface, pReadbackBuffer);
+                MOS_FreeMemAndSetNull(pReadbackBuffer);
+            }
+            CODECHAL_DEBUG_CHK_NULL(data);
+
+            data += offset;
+
+            if (binaryDump)
+            {
+                status = DumpBufferInBinary(data, size);
+            }
+            else
+            {
+                status = DumpBufferInHexDwords(data, size);
+            }
+
+            m_osInterface->pfnUnlockResource(m_osInterface, pReadbackBuffer);
+            m_osInterface->pfnFreeResource(m_osInterface, pReadbackBuffer);
+            MOS_FreeMemAndSetNull(pReadbackBuffer);
+            CODECHAL_DEBUG_CHK_STATUS(status);
         }
         else
         {
-            status = DumpBufferInHexDwords(data, size);
-        }
+            MOS_LOCK_PARAMS lockFlags;
+            MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
+            lockFlags.ReadOnly = 1;
+            uint8_t *data      = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, resource, &lockFlags);
+            MEDIA_DEBUG_CHK_NULL(data);
+            data += offset;
 
-        if (data)
-        {
-            m_osInterface->pfnUnlockResource(m_osInterface, resource);
+            if (binaryDump)
+            {
+                status = DumpBufferInBinary(data, size);
+            }
+            else
+            {
+                status = DumpBufferInHexDwords(data, size);
+            }
+
+            if (data)
+            {
+                m_osInterface->pfnUnlockResource(m_osInterface, resource);
+            }
         }
 
         return status;
@@ -2960,6 +3019,58 @@ std::string CodechalDebugInterface::InitDefaultOutput()
 {
     m_outputFilePath.append(MEDIA_DEBUG_CODECHAL_DUMP_OUTPUT_FOLDER);
     return SetOutputPathKey();
+}
+
+MOS_STATUS CodechalDebugInterface::VDBypassCopyResource(PMOS_RESOURCE src, PMOS_RESOURCE dst)
+{
+    CODECHAL_DEBUG_FUNCTION_ENTER;
+    
+    CODECHAL_DEBUG_CHK_NULL(m_osInterface);
+    CODECHAL_DEBUG_CHK_NULL(m_hwInterfaceNext)
+    CODECHAL_DEBUG_CHK_NULL(src);
+    CODECHAL_DEBUG_CHK_NULL(dst);
+
+    MOS_STATUS                       eStatus = MOS_STATUS_SUCCESS;
+    MOS_GPUCTX_CREATOPTIONS_ENHANCED createOption;
+    MOS_COMMAND_BUFFER               cmdBuffer;
+    std::shared_ptr<mhw::mi::Itf>    miInterface    = m_hwInterfaceNext->GetMiInterfaceNext();
+    PMHW_MI_MMIOREGISTERS            pMmioRegisters = miInterface->GetMmioRegisters();
+    MOS_CONTEXT                     *pOsContext     = m_osInterface->pOsContext;
+    MHW_ADD_CP_COPY_PARAMS           cpCopyParams;
+    MHW_MI_FLUSH_DW_PARAMS           FlushDwParams;
+    MhwCpInterface                  *mhwCpInterface = m_hwInterfaceNext->GetCpInterface();
+
+    CODECHAL_DEBUG_CHK_NULL(pMmioRegisters);
+    CODECHAL_DEBUG_CHK_NULL(pOsContext);
+    CODECHAL_DEBUG_CHK_NULL(mhwCpInterface);
+
+    CODECHAL_DEBUG_CHK_STATUS(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
+
+    CODECHAL_DEBUG_CHK_STATUS(miInterface->AddProtectedProlog(&cmdBuffer));
+
+    MOS_ZeroMemory(&cpCopyParams, sizeof(cpCopyParams));
+    uint32_t dwWidth     = (uint32_t)src->pGmmResInfo->GetBaseWidth();
+    uint32_t dwHeight    = (uint32_t)src->pGmmResInfo->GetBaseHeight();
+    cpCopyParams.size    = dwWidth * dwHeight;
+    cpCopyParams.presSrc = src;
+    cpCopyParams.presDst = dst;
+    cpCopyParams.offset  = 0;
+    cpCopyParams.bypass  = true;
+    
+    eStatus = mhwCpInterface->AddCpCopy(m_osInterface, &cmdBuffer, &cpCopyParams);
+
+    auto &flushDwParams = miInterface->MHW_GETPAR_F(MI_FLUSH_DW)();
+    flushDwParams       = {};
+    CODECHAL_DEBUG_CHK_STATUS(miInterface->MHW_ADDCMD_F(MI_FLUSH_DW)(&cmdBuffer));
+
+    auto &batchBufferEndParams = miInterface->MHW_GETPAR_F(MI_BATCH_BUFFER_END)();
+    batchBufferEndParams       = {};
+    CODECHAL_DEBUG_CHK_STATUS(miInterface->MHW_ADDCMD_F(MI_BATCH_BUFFER_END)(&cmdBuffer));
+
+    m_osInterface->pfnReturnCommandBuffer(m_osInterface, &cmdBuffer, 0);
+    m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, false);
+
+    return eStatus;
 }
 
 MOS_STATUS CodechalDebugInterface::DumpHucRegion(
