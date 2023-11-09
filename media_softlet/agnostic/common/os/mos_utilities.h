@@ -1802,7 +1802,7 @@ public:
     //!           Pointer of mutex
     //! \return   MOS_STATUS
     //!
-    static MOS_STATUS MosDestroyMutex(PMOS_MUTEX pMutex);
+    static MOS_STATUS MosDestroyMutex(PMOS_MUTEX &pMutex);
 
     //!
     //! \brief    Lock mutex for context protection across threads
@@ -1848,7 +1848,7 @@ public:
     //! \return   MOS_STATUS
     //!
     static MOS_STATUS MosDestroySemaphore(
-        PMOS_SEMAPHORE              pSemaphore);
+        PMOS_SEMAPHORE              &pSemaphore);
 
     //!
     //! \brief    Wait a semaphore object

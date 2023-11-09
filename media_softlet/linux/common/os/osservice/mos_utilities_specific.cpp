@@ -2183,7 +2183,7 @@ PMOS_MUTEX MosUtilities::MosCreateMutex(uint32_t spinCount)
     return pMutex;
 }
 
-MOS_STATUS MosUtilities::MosDestroyMutex(PMOS_MUTEX pMutex)
+MOS_STATUS MosUtilities::MosDestroyMutex(PMOS_MUTEX &pMutex)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -2193,7 +2193,7 @@ MOS_STATUS MosUtilities::MosDestroyMutex(PMOS_MUTEX pMutex)
         {
             eStatus = MOS_STATUS_UNKNOWN;
         }
-        MOS_FreeMemory(pMutex);
+        MOS_FreeMemAndSetNull(pMutex);
     }
 
     return eStatus;
@@ -2247,10 +2247,9 @@ PMOS_SEMAPHORE MosUtilities::MosCreateSemaphore(
 }
 
 MOS_STATUS MosUtilities::MosDestroySemaphore(
-    PMOS_SEMAPHORE              pSemaphore)
+    PMOS_SEMAPHORE              &pSemaphore)
 {
-    MOS_SafeFreeMemory(pSemaphore);
-
+    MOS_FreeMemAndSetNull(pSemaphore);
     return MOS_STATUS_SUCCESS;
 }
 
