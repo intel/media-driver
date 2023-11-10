@@ -164,8 +164,12 @@ MOS_STATUS VpAllocator::DestroySurface(MOS_SURFACE *surface, MOS_GFXRES_FREE_FLA
 {
     VP_FUNC_CALL();
     VP_PUBLIC_CHK_NULL_RETURN(m_allocator);
-
-    return m_allocator->DestroySurface(surface, flags);
+    MOS_GFXRES_FREE_FLAGS resFreeFlags = {0};
+    if (IsSyncFreeNeededForMMCSurface(surface))
+    {
+        resFreeFlags.SynchronousDestroy = 1;
+    }
+    return m_allocator->DestroySurface(surface, resFreeFlags);
 }
 
 VP_SURFACE* VpAllocator::AllocateVpSurface(MOS_ALLOC_GFXRES_PARAMS &param, bool zeroOnAllocate, VPHAL_CSPACE ColorSpace, uint32_t ChromaSiting)
