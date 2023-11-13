@@ -43,9 +43,6 @@ extern MhwCpInterface* Create_MhwCpInterface(PMOS_INTERFACE osInterface);
 extern void Delete_MhwCpInterface(MhwCpInterface* mhwInterface);
 
 #if !EMUL
-extern CpCopyInterface* Create_CpCopyInterface(MOS_CONTEXT_HANDLE osDriverContext, MOS_STATUS& status);
-extern void Delete_CpCopyInterface(CpCopyInterface* cpCopyInterface);
-
 extern CodechalSecureDecodeInterface* Create_SecureDecodeInterface(CodechalSetting* codechalSettings, CodechalHwInterface* hwInterfaceInput);
 extern void Delete_SecureDecodeInterface(CodechalSecureDecodeInterface* codechalSecureDecodeInterface);
 #endif
@@ -661,10 +658,8 @@ MOS_STATUS Mos_InitOsInterface(
 
     pOsInterface->pfnCreateMhwCpInterface               = Create_MhwCpInterface;
     pOsInterface->pfnDeleteMhwCpInterface               = Delete_MhwCpInterface;
-#if !EMUL
-    pOsInterface->pfnCreateCpCopyInterface              = Create_CpCopyInterface;
-    pOsInterface->pfnDeleteCpCopyInterface              = Delete_CpCopyInterface;
 
+#if !EMUL
     pOsInterface->pfnCreateSecureDecodeInterface        = Create_SecureDecodeInterface;
     pOsInterface->pfnDeleteSecureDecodeInterface        = Delete_SecureDecodeInterface;
 #endif

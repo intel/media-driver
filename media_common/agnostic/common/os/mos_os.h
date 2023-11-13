@@ -580,7 +580,6 @@ namespace CMRT_UMD
 struct _CM_HAL_STATE;
 typedef struct _CM_HAL_STATE *PCM_HAL_STATE;
 class MhwCpInterface;
-class CpCopyInterface;
 class CodechalSecureDecodeInterface;
 class CodechalSetting;
 class CodechalHwInterface;
@@ -1957,10 +1956,6 @@ typedef struct _MOS_INTERFACE
     //!           MhwCpInterface
     //!
     void (*pfnDeleteMhwCpInterface)(MhwCpInterface *mhwCpInterface);
-
-    CpCopyInterface* (*pfnCreateCpCopyInterface)(MOS_CONTEXT_HANDLE osDriverContext, MOS_STATUS &status);
-
-    void (*pfnDeleteCpCopyInterface)(CpCopyInterface *cpCopyInterface);
 
     //!
     //! \brief    Create CodechalSecureDeocde Object

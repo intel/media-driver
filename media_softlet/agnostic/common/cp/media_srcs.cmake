@@ -18,14 +18,9 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-set(TMP_SOURCES_
-    ${CMAKE_CURRENT_LIST_DIR}/cp_copy_interface.cpp
-)
-
 set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/decodecp_interface.h
     ${CMAKE_CURRENT_LIST_DIR}/cp_streamout_interface.h
-    ${CMAKE_CURRENT_LIST_DIR}/cp_copy_interface.h
 )
 
 set(TMP_1_SOURCES_
@@ -33,11 +28,6 @@ set(TMP_1_SOURCES_
 )
 set(TMP_1_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/encodecp.h
-)
-
-set(CP_COMMON_NEXT_SOURCES_
-    ${CP_COMMON_NEXT_SOURCES_}
-    ${TMP_SOURCES_}
 )
 
 set(CP_COMMON_NEXT_HEADERS_
