@@ -411,11 +411,9 @@ VAStatus DdiDecode_StatusReport(PDDI_MEDIA_CONTEXT mediaCtx, CodechalDecode *dec
                     PDDI_MEDIA_SURFACE_HEAP_ELEMENT mediaSurfaceHeapElmt = (PDDI_MEDIA_SURFACE_HEAP_ELEMENT)mediaCtx->pSurfaceHeap->pHeapBase;
 
                     uint32_t j = 0;
-                    for (j = 0; j < mediaCtx->pSurfaceHeap->uiAllocatedHeapElements; j++, mediaSurfaceHeapElmt++)
+                    for (j = 0; j < mediaCtx->pSurfaceHeap->uiAllocatedHeapElements && mediaSurfaceHeapElmt != nullptr; j++, mediaSurfaceHeapElmt++)
                     {
-                        if (mediaSurfaceHeapElmt != nullptr &&
-                                mediaSurfaceHeapElmt->pSurface != nullptr &&
-                                bo == mediaSurfaceHeapElmt->pSurface->bo)
+                        if (mediaSurfaceHeapElmt->pSurface != nullptr && bo == mediaSurfaceHeapElmt->pSurface->bo)
                         {
                             mediaSurfaceHeapElmt->pSurface->curStatusReport.decode.status = (uint32_t)tempNewReport.m_codecStatus;
                             mediaSurfaceHeapElmt->pSurface->curStatusReport.decode.errMbNum = (uint32_t)tempNewReport.m_numMbsAffected;
@@ -498,11 +496,9 @@ VAStatus DdiDecode_StatusReport(PDDI_MEDIA_CONTEXT mediaCtx, DecodePipelineAdapt
                     PDDI_MEDIA_SURFACE_HEAP_ELEMENT mediaSurfaceHeapElmt = (PDDI_MEDIA_SURFACE_HEAP_ELEMENT)mediaCtx->pSurfaceHeap->pHeapBase;
 
                     uint32_t j = 0;
-                    for (j = 0; j < mediaCtx->pSurfaceHeap->uiAllocatedHeapElements; j++, mediaSurfaceHeapElmt++)
+                    for (j = 0; j < mediaCtx->pSurfaceHeap->uiAllocatedHeapElements && mediaSurfaceHeapElmt != nullptr; j++, mediaSurfaceHeapElmt++)
                     {
-                        if (mediaSurfaceHeapElmt != nullptr &&
-                                mediaSurfaceHeapElmt->pSurface != nullptr &&
-                                bo == mediaSurfaceHeapElmt->pSurface->bo)
+                        if (mediaSurfaceHeapElmt->pSurface != nullptr && bo == mediaSurfaceHeapElmt->pSurface->bo)
                         {
                             mediaSurfaceHeapElmt->pSurface->curStatusReport.decode.status = (uint32_t)tempNewReport.codecStatus;
                             mediaSurfaceHeapElmt->pSurface->curStatusReport.decode.errMbNum = (uint32_t)tempNewReport.numMbsAffected;

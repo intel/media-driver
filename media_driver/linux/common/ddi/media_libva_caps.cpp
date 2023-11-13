@@ -3428,8 +3428,8 @@ std::string MediaLibvaCaps::GetEncodeCodecKey(VAProfile profile, VAEntrypoint en
 
 bool MediaLibvaCaps::IsDecConfigId(VAConfigID configId)
 {
-    return ((configId >= DDI_CODEC_GEN_CONFIG_ATTRIBUTES_DEC_BASE) &&
-            (configId < (DDI_CODEC_GEN_CONFIG_ATTRIBUTES_DEC_BASE + m_decConfigs.size())));
+    // configId >= DDI_CODEC_GEN_CONFIG_ATTRIBUTES_DEC_BASE always be true
+    return configId < (DDI_CODEC_GEN_CONFIG_ATTRIBUTES_DEC_BASE + m_decConfigs.size());
 }
 
 bool MediaLibvaCaps::IsEncConfigId(VAConfigID configId)

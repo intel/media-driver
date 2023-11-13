@@ -163,7 +163,13 @@ MOS_STATUS CodechalKernelOlpMdf::Execute(PMOS_SURFACE src, uint16_t *srcMemory_o
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_cmTask->AddKernel(m_cmKernels[0]));
     if (!m_SingleTaskPhase)
     {
-        CODECHAL_DECODE_CHK_STATUS_RETURN(m_cmQueue->EnqueueWithGroup(m_cmTask, event));
+        auto sts = m_cmQueue->EnqueueWithGroup(m_cmTask, event);
+        MOS_STATUS stmtStatus = (MOS_STATUS)(sts);
+        if (stmtStatus != MOS_STATUS_SUCCESS)
+        {
+            event = CM_NO_EVENT;
+            return stmtStatus;
+        }
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmTask->Reset());
     }
 
@@ -174,7 +180,13 @@ MOS_STATUS CodechalKernelOlpMdf::Execute(PMOS_SURFACE src, uint16_t *srcMemory_o
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_cmDevice->CreateThreadGroupSpace(1, 1, threadWidth, threadHeight, m_threadGroupSpaces[1]));
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_cmKernels[1]->AssociateThreadGroupSpace(m_threadGroupSpaces[1]));
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_cmTask->AddKernel(m_cmKernels[1]));
-    CODECHAL_DECODE_CHK_STATUS_RETURN(m_cmQueue->EnqueueWithGroup(m_cmTask, event));
+    auto sts = m_cmQueue->EnqueueWithGroup(m_cmTask, event);
+    MOS_STATUS stmtStatus = (MOS_STATUS)(sts);
+    if (stmtStatus != MOS_STATUS_SUCCESS)
+    {
+        event = CM_NO_EVENT;
+        return stmtStatus;
+    }
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmTask->Reset());
 
     return MOS_STATUS_SUCCESS;
