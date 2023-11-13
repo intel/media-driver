@@ -204,7 +204,8 @@ typedef struct _MHW_VEBOX_3D_LUT
     uint32_t    Lut3dEnable                                 : 1;
     uint32_t    Lut3dSize                                   : 2;
     uint32_t    ChannelMappingSwapForLut3D                  : 1;
-    uint32_t                                                : 26; // Reserved
+    uint32_t    InterpolationMethod                         : 1;
+    uint32_t                                                : 25; // Reserved
 } MHW_VEBOX_3D_LUT, *PMHW_VEBOX_3D_LUT;
 
 //!
@@ -469,6 +470,16 @@ typedef enum _MHW_WB_MODE
 } MHW_WB_MODE;
 
 //!
+//! Structure MHW_3DLUT_INTERPOLATION
+//! \brief 3DLut interpolation method
+//!
+typedef enum _MHW_3DLUT_INTERPOLATION
+{
+    MHW_3DLUT_INTERPOLATION_TRILINEAR            = 0,   //!< 3DLUT Trilinear interpolation method.
+    MHW_3DLUT_INTERPOLATION_TETRAHEDRAL          = 1    //!< 3DLUT Tetrahedral interpolation method.
+} MHW_3DLUT_INTERPOLATION;
+
+//!
 //! Structure MHW_WHITE_BALANCE_PARAMS
 //! \brief White Balance Parameters
 //!
@@ -595,10 +606,11 @@ typedef struct _MHW_CAPPIPE_PARAMS
 //!
 typedef struct _MHW_3DLUT_PARAMS
 {
-    uint32_t bActive;                    //!< Active or not
-    uint32_t LUTSize;                    //!< Size (one dimensions) of the LUT
-    uint32_t LUTLength;                  //!< Length of the LUT, in unit of bit
-    uint8_t *pLUT;                       //!< Pointer to the LUT value
+    uint32_t                bActive;                    //!< Active or not
+    uint32_t                LUTSize;                    //!< Size (one dimensions) of the LUT
+    uint32_t                LUTLength;                  //!< Length of the LUT, in unit of bit
+    uint8_t                 *pLUT;                      //!< Pointer to the LUT value
+    MHW_3DLUT_INTERPOLATION InterpolationMethod;        //!< Vebox 3DLut interpolation method
 } MHW_3DLUT_PARAMS, *PMHW_3DLUT_PARAMS;
 
 //!

@@ -324,6 +324,22 @@ MOS_STATUS VpUserFeatureControl::CreateUserSettingForDebug()
 #endif
 
 #if (_DEBUG || _RELEASE_INTERNAL)
+    uint32_t   force3DLutInterpolation = 0;
+    eRegKeyReadStatus                  = ReadUserSettingForDebug(
+        m_userSettingPtr,
+        force3DLutInterpolation,
+        __VPHAL_FORCE_3DLUT_INTERPOLATION,
+        MediaUserSetting::Group::Sequence);
+    if (MOS_SUCCEEDED(eRegKeyReadStatus))
+    {
+        m_ctrlValDefault.force3DLutInterpolation = force3DLutInterpolation;
+    }
+    else
+    {
+        // Default value
+        m_ctrlValDefault.force3DLutInterpolation = 0;
+    }
+
     //SFC NV12/P010 Linear Output.
     uint32_t enabledSFCNv12P010LinearOutput = 0;
     eRegKeyReadStatus = ReadUserSettingForDebug(

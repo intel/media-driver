@@ -300,6 +300,7 @@ protected:
 #define __VPHAL_RNDR_SCOREBOARD_CONTROL                                 "SCOREBOARD Control"
 #define __VPHAL_RNDR_CMFC_CONTROL                                       "CMFC Control"
 #define __VPHAL_ENABLE_1K_1DLUT                                         "Enable 1K 1DLUT"
+#define __VPHAL_FORCE_3DLUT_INTERPOLATION                               "VPHAL Force 3DLUT Interpolation"
 #define __VPHAL_VEBOX_HDR_MODE                                          "VeboxHDRMode"
 #define __VPHAL_HDR_ENABLE_QUALITY_TUNING                               "VPHAL HDR Enable Quality Tuning"
 #define __VPHAL_HDR_ENABLE_KERNEL_DUMP                                  "VPHAL HDR Enable Kernel Dump"

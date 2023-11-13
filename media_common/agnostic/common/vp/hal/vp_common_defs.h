@@ -516,6 +516,16 @@ typedef enum _VPHAL_COLORPACK
     *PVPHAL_COLORPACK;
 
 //!
+//! \brief VEBOX 3DLut interpolation mode
+//!
+typedef enum _VPHAL_3DLUT_INTERPOLATION
+{
+    VPHAL_3DLUT_INTERPOLATION_DEFAULT      = 0,     //!< Default 3DLUT interpolation method.
+    VPHAL_3DLUT_INTERPOLATION_TRILINEAR    = 1,     //!< 3DLUT trilinear interpolation method.
+    VPHAL_3DLUT_INTERPOLATION_TETRAHEDRAL  = 2      //!< 3DLUT tetrahedral interpolation method.
+} VPHAL_3DLUT_INTERPOLATION;
+
+//!
 //! \brief   Output Pipe Mode enum
 //! \details The output pipe that writes the RenderTarget surface
 //!
@@ -890,6 +900,8 @@ typedef struct _VPHAL_3DLUT_PARAMS
     uint32_t       ChannelMapping     = 0;        // Channel Mapping for the 3DLUT input to 3DLUT output.
     uint16_t       BitDepthPerChannel = 0;        // Bit Depth Per Channel(4 channels for 3DLUT).
     uint16_t       ByteCountPerEntry  = 0;        // Byte Count Per Entry including reserved bytes.
+
+    VPHAL_3DLUT_INTERPOLATION InterpolationMethod = VPHAL_3DLUT_INTERPOLATION_DEFAULT;  // VEBox 3DLut interpolation mode
 } VPHAL_3DLUT_PARAMS, *PVPHAL_3DLUT_PARAMS;
 
 //!
