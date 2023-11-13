@@ -245,7 +245,7 @@ namespace encode
         auto instance = mhw::HwcmdParser::GetInstance();
         if (instance)
         {
-            instance->ParseCmdBuf(cmdBuffer.pCmdBase, cmdBuffer.iOffset / sizeof(uint32_t));
+            instance->ParseCmdBuf(IGFX_UNKNOWN, cmdBuffer.pCmdBase, cmdBuffer.iOffset / sizeof(uint32_t));
         }
     #endif
 #if USE_CODECHAL_DEBUG_TOOL
@@ -476,7 +476,7 @@ namespace encode
         auto instance = mhw::HwcmdParser::GetInstance();
         if (instance)
         {
-            instance->ParseCmdBuf(tempCmdBuffer->pCmdBase, tempCmdBuffer->iOffset / sizeof(uint32_t));
+            instance->ParseCmdBuf(IGFX_UNKNOWN, tempCmdBuffer->pCmdBase, tempCmdBuffer->iOffset / sizeof(uint32_t));
         }
     #endif
 

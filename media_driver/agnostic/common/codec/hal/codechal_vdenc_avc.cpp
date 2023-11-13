@@ -6340,7 +6340,7 @@ MOS_STATUS CodechalVdencAvcState::ExecutePictureLevel()
                 auto instance = mhw::HwcmdParser::GetInstance();
                 if (instance)
                 {
-                    instance->ParseCmdBuf((uint32_t *)(secondLevelBatchBufferUsed->pData),
+                    instance->ParseCmdBuf(IGFX_UNKNOWN, (uint32_t *)(secondLevelBatchBufferUsed->pData),
                         secondLevelBatchBufferUsed->iCurrent / sizeof(uint32_t));
                 }
             #endif
@@ -6684,7 +6684,7 @@ MOS_STATUS CodechalVdencAvcState::ExecuteSliceLevel()
     auto instance = mhw::HwcmdParser::GetInstance();
     if (instance)
     {
-        instance->ParseCmdBuf(cmdBuffer.pCmdBase, cmdBuffer.iOffset / sizeof(uint32_t));
+        instance->ParseCmdBuf(IGFX_UNKNOWN, cmdBuffer.pCmdBase, cmdBuffer.iOffset / sizeof(uint32_t));
     }
 #endif
     m_osInterface->pfnReturnCommandBuffer(m_osInterface, &cmdBuffer, 0);
