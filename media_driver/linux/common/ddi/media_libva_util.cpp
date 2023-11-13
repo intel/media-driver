@@ -685,15 +685,6 @@ VAStatus DdiMediaUtil_AllocateSurface(
                         }
                     }
                 }
-                // There's no VAAPI interface for modifier query yet. As a workaround, always allocate
-                // RGB surface as tile4.
-                if ((format == Media_Format_A8R8G8B8 ||
-                     format == Media_Format_B10G10R10A2 |
-                     format == Media_Format_A8B8G8R8 ||
-                     format == Media_Format_X8R8G8B8) && !MEDIA_IS_SKU(&mediaDrvCtx->SkuTable, FtrTileY))
-                {
-                    gmmParams.Flags.Info.Tile4 = true;
-                }
                 break;
             case TILING_X:
                 gmmParams.Flags.Info.TiledX    = true;
