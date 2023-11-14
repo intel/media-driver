@@ -56,3 +56,8 @@ MOS_STATUS MosMediaCopyBase::MediaCopy(
 
     return MOS_STATUS_SUCCESS;
 }
+
+bool MosMediaCopyBase::IsAILForceOption()
+{
+    return false;
+}

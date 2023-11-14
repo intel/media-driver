@@ -151,6 +151,15 @@ public:
     //!
     virtual MOS_STATUS AuxCopy(PMOS_RESOURCE src, PMOS_RESOURCE dst);
 
+    //!
+    //! \brief    Is AIL force opition.
+    //! \details  Is AIL force opition.
+    //! \return   bool
+    //!           Return true if support, otherwise return false.
+    virtual bool IsAILForceOption()
+    {
+        return false;
+    }
 
 protected:
 

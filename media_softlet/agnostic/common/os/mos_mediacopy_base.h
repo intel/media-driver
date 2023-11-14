@@ -62,6 +62,13 @@ public:
         PMOS_RESOURCE outputResource,
         MCPY_METHOD   preferMethod);
 
+    //!
+    //! \brief    Is AIL force opition.
+    //! \details  Is AIL force opition.
+    //! \return   bool
+    //!           Return true if support, otherwise return false.
+    bool IsAILForceOption();
+
 protected:
     MediaCopyBaseState *m_mediaCopyState = nullptr;
     PMOS_CONTEXT        m_mosContext     = nullptr;

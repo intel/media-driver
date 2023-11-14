@@ -93,6 +93,16 @@ public:
     virtual MOS_STATUS PreCheckCpCopy(
         MCPY_STATE_PARAMS src, MCPY_STATE_PARAMS dest, MCPY_METHOD preferMethod);
 
+    //!
+    //! \brief    Is AIL force opition.
+    //! \details  Is AIL force opition.
+    //! \return   bool
+    //!           Return true if support, otherwise return false.
+    bool IsAILForceOption()
+    {
+        return true;
+    }
+
 protected:
     //!
     //! \brief    use blt engie to do surface copy.
