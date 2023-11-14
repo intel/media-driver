@@ -184,7 +184,7 @@ int32_t CmKernelRT::Create(CmDeviceRT *device,
                            const char *options)
 {
     int32_t result = CM_SUCCESS;
-    CM_HAL_STATE * state = ((PCM_CONTEXT_DATA)device->GetAccelData())->cmHalState;
+    CM_HAL_STATE * state  = device ? ((PCM_CONTEXT_DATA)device->GetAccelData())->cmHalState : nullptr;
 
     if (state && state->advExecutor)
     {

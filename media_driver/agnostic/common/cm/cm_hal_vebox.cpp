@@ -416,11 +416,11 @@ MOS_STATUS HalCm_SetVeboxDiIecpCmdParams(
 
     // Align dwEndingX with surface state
     HalCm_Convert_RENDERHAL_SURFACE_To_MHW_VEBOX_SURFACE(&state->cmVeboxSurfaces[VEBOX_CURRENT_FRAME_INPUT_SURF], &surfInput);
-    state->veboxInterface->VeboxAdjustBoundary(
-        &surfInput,
-        &width,
-        &height,
-        dienable);
+    CM_CHK_MOSSTATUS_RETURN(state->veboxInterface->VeboxAdjustBoundary(
+                            &surfInput,
+                            &width,
+                            &height,
+                            dienable));
 
     veboxDiIecpCmdParams->dwStartingX = 0;
     veboxDiIecpCmdParams->dwEndingX = width - 1;

@@ -245,10 +245,7 @@ void* CmHashTable::Unregister(int32_t UniqID, int32_t CacheID)
     if (wEntry > 0)
     {
         // Detach from hash list
-        if (pPrevEntry)
-            pPrevEntry->wNext = pEntry->wNext;
-        else
-            m_hashTable.wHead[wHash] = pEntry->wNext;
+        m_hashTable.wHead[wHash] = pEntry->wNext;
 
         // Move hash entry to free list
         pEntry->wNext = m_hashTable.wFree;

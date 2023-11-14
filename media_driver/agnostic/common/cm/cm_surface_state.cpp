@@ -1439,7 +1439,7 @@ MOS_STATUS CmSurfaceState2Dor3D::UpdateSurfaceState()
                 }
             }
         }
-        m_renderhal->pMhwStateHeap->SetSurfaceStateEntry(&SurfStateParams);
+        MHW_CHK_STATUS_RETURN(m_renderhal->pMhwStateHeap->SetSurfaceStateEntry(&SurfStateParams));
     }
 
     return MOS_STATUS_SUCCESS;
