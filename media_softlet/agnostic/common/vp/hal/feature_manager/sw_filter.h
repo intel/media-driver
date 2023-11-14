@@ -1671,7 +1671,7 @@ public:
     virtual MOS_STATUS       AddFeatureGraphRTLog()
     {
         MT_LOG4(MT_VP_FEATURE_GRAPH_SWFILTERALPHA, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_CALCULATINGALPHA, m_Params.calculatingAlpha, MT_VP_FEATURE_GRAPH_FILTER_ALPHAMODE,
-                m_Params.compAlpha ? m_Params.compAlpha->AlphaMode : -1, MT_VP_FEATURE_GRAPH_FILTER_FALPHA, m_Params.compAlpha ? (int64_t) m_Params.compAlpha->fAlpha : -1,
+                m_Params.compAlpha ? m_Params.compAlpha->AlphaMode : -1, MT_VP_FEATURE_GRAPH_FILTER_FALPHA, m_Params.compAlpha ? (int64_t) m_Params.compAlpha->fAlpha*1000 : -1,
                 MT_VP_FEATURE_GRAPH_FILTER_FEATURETYPE, GetFeatureType());
         VP_PUBLIC_NORMALMESSAGE("Feature Graph: SwFilterAlpha: calculatingAlpha %d, AlphaMode %d, fAlpha %f, FeatureType %d", m_Params.calculatingAlpha, m_Params.compAlpha ? m_Params.compAlpha->AlphaMode : -1,
                                 m_Params.compAlpha ? m_Params.compAlpha->fAlpha : -1, GetFeatureType());
