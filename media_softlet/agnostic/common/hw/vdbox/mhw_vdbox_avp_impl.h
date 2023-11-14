@@ -870,7 +870,7 @@ protected:
 
 #define DO_FIELDS()                                                                             \
     DO_FIELD(DW1, FrameTileId, params.tileId);                                                  \
-    DO_FIELD(DW1, TgTileNum, params.tileNum);                                                   \
+    DO_FIELD(DW1, TgTileNum, params.tgTileNum);                                                   \
     DO_FIELD(DW1, TileGroupId, params.tileGroupId);                                             \
                                                                                                 \
     DO_FIELD(DW2, TileColumnPositionInSbUnit, params.tileColPositionInSb);                      \

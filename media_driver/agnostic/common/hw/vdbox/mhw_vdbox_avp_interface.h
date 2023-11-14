@@ -35,7 +35,7 @@
 struct MhwVdboxAvpTileCodingParams
 {
     uint16_t                        m_tileId;
-    uint16_t                        m_tileNum;                          //!< Tile ID in its Tile group
+    uint16_t                        m_tgTileNum;  //!< Tile ID in its Tile group
     uint16_t                        m_tileGroupId;
 
     uint16_t                        m_tileColPositionInSb;

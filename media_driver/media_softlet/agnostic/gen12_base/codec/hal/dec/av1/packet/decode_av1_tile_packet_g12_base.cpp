@@ -83,7 +83,7 @@ namespace decode
         if (m_av1PicParams->m_picInfoFlags.m_fields.m_largeScaleTile)
         {
             tileCodingParams.m_tileId                 = srcTileId;
-            tileCodingParams.m_tileNum                = srcTileId;
+            tileCodingParams.m_tgTileNum                = srcTileId;
             tileCodingParams.m_tileGroupId            = 0;
             tileCodingParams.m_tileColPositionInSb    = m_av1BasicFeature->m_tileCoding.m_tileColStartSb[curCol];
             tileCodingParams.m_tileRowPositionInSb    = m_av1BasicFeature->m_tileCoding.m_tileRowStartSb[curRow];
@@ -99,7 +99,7 @@ namespace decode
         else
         {
             tileCodingParams.m_tileId                           = tileIdx;
-            tileCodingParams.m_tileNum                          = m_tileDesc[tileIdx].m_tileNum;
+            tileCodingParams.m_tgTileNum                          = m_tileDesc[tileIdx].m_tileNum;
             tileCodingParams.m_tileGroupId                      = m_tileDesc[tileIdx].m_tileGroupId;
             tileCodingParams.m_tileColPositionInSb              = m_av1BasicFeature->m_tileCoding.m_tileColStartSb[curCol];
             tileCodingParams.m_tileRowPositionInSb              = m_av1BasicFeature->m_tileCoding.m_tileRowStartSb[curRow];

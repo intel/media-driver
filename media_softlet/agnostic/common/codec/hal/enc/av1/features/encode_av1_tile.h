@@ -528,7 +528,7 @@ struct VdencStatistics
 struct Av1TileInfo
 {
     uint16_t tileId      = 0;
-    uint16_t tileNum     = 0;
+    uint16_t tgTileNum   = 0;
     uint16_t tileGroupId = 0;
 
     uint16_t tileColPositionInSb = 0;

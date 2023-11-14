@@ -1777,7 +1777,7 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpDecodeTileCodingCmd(
     uint8_t                 numVdbox = (uint8_t)gtSystemInfo->VDBoxInfo.NumberOfVDBoxEnabled;
 
     cmd.DW1.FrameTileId = params->m_tileId;
-    cmd.DW1.TgTileNum   = params->m_tileNum;
+    cmd.DW1.TgTileNum   = params->m_tgTileNum;
     cmd.DW1.TileGroupId = params->m_tileGroupId;
 
     cmd.DW2.TileColumnPositionInSbUnit  = params->m_tileColPositionInSb;
@@ -1819,7 +1819,7 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpDecodeTileCodingCmdLst(
     uint8_t                 numVdbox = (uint8_t)gtSystemInfo->VDBoxInfo.NumberOfVDBoxEnabled;
 
     cmd.DW1.FrameTileId = params->m_tileId;
-    cmd.DW1.TgTileNum   = params->m_tileNum;
+    cmd.DW1.TgTileNum   = params->m_tgTileNum;
     cmd.DW1.TileGroupId = params->m_tileGroupId;
 
     cmd.DW2.TileColumnPositionInSbUnit  = params->m_tileColPositionInSb;

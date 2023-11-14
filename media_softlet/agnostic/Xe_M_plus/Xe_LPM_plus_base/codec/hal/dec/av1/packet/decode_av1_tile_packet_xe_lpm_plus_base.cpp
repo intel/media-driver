@@ -47,7 +47,7 @@ MOS_STATUS Av1DecodeTilePktXe_Lpm_Plus_Base::AddCmd_AVP_TILE_CODING(MOS_COMMAND_
     if (m_av1PicParams->m_picInfoFlags.m_fields.m_largeScaleTile)
     {
         par.tileId                 = srcTileId;
-        par.tileNum                = srcTileId;
+        par.tgTileNum              = srcTileId;
         par.tileGroupId            = 0;
         par.tileColPositionInSb    = m_av1BasicFeature->m_tileCoding.m_tileColStartSb[curCol];
         par.tileRowPositionInSb    = m_av1BasicFeature->m_tileCoding.m_tileRowStartSb[curRow];
@@ -63,7 +63,7 @@ MOS_STATUS Av1DecodeTilePktXe_Lpm_Plus_Base::AddCmd_AVP_TILE_CODING(MOS_COMMAND_
     else
     {
         par.tileId                 = tileIdx;
-        par.tileNum                = m_tileDesc[tileIdx].m_tileNum;
+        par.tgTileNum              = m_tileDesc[tileIdx].m_tileNum;
         par.tileGroupId            = m_tileDesc[tileIdx].m_tileGroupId;
         par.tileColPositionInSb    = m_av1BasicFeature->m_tileCoding.m_tileColStartSb[curCol];
         par.tileRowPositionInSb    = m_av1BasicFeature->m_tileCoding.m_tileRowStartSb[curRow];
