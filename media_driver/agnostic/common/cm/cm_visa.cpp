@@ -89,6 +89,7 @@ ISAfile& ISAfile::operator= (const ISAfile& other) {
 
 ISAfile::~ISAfile() {
     delete header;
+    delete[] error;
     for (KernelBody *kb : kernel_data)
         delete kb;
     for (FunctionBody *f : function_data)
