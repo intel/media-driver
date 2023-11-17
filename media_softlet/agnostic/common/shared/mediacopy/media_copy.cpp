@@ -405,6 +405,16 @@ MOS_STATUS MediaCopyBaseState::TaskDispatch(MCPY_STATE_PARAMS mcpySrc, MCPY_STAT
                     MCPY_CHK_STATUS_RETURN(eStatus);
                 }
             }
+            if ((mcpyDst.TileMode != MOS_TILE_LINEAR) && (mcpyDst.CompressionMode == MOS_MMC_RC))
+            {
+                MCPY_NORMALMESSAGE("mmc on, mcpyDst.TileMode= %d, mcpyDst.CompressionMode = %d", mcpyDst.TileMode, mcpyDst.CompressionMode);
+                eStatus = m_osInterface->pfnDecompResource(m_osInterface, mcpyDst.OsRes);
+                if (MOS_STATUS_SUCCESS != eStatus)
+                {
+                    MosUtilities::MosUnlockMutex(m_inUseGPUMutex);
+                    MCPY_CHK_STATUS_RETURN(eStatus);
+                }
+            }
             eStatus = MediaBltCopy(mcpySrc.OsRes, mcpyDst.OsRes);
             break;
         case MCPY_ENGINE_RENDER:
