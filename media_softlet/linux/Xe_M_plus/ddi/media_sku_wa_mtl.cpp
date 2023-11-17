@@ -178,6 +178,16 @@ static bool InitMtlMediaSkuExt(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_SKU(skuTable, Ftr10bitDecMemoryCompression, 0);
 
     MEDIA_WR_SKU(skuTable, FtrCCSNode, 1);
+    // get user CCS value from environment variable
+    char *CCS_Env = getenv("FORCE_DISABLE_INTEL_MEDIA_MTL_CCS");
+    if (CCS_Env != nullptr)
+    {
+       uint8_t user_ccs_env_value = (uint8_t)atoi(CCS_Env);
+       if (user_ccs_env_value == 1)
+        {
+           MEDIA_WR_SKU(skuTable, FtrCCSNode, 0);
+       }
+    }
 
     MEDIA_WR_SKU(skuTable, FtrVpP010Output, 1);
     MEDIA_WR_SKU(skuTable, FtrVp10BitSupport, 1);
