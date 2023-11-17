@@ -3611,9 +3611,9 @@ mos_bufmgr_gem_init_xe(int fd, int batch_size)
         __mos_get_default_alignment_xe(&bufmgr_gem->bufmgr, bufmgr_gem->mem_usage);
     }
 
-    if (bufmgr_gem->config != nullptr)
+    if (bufmgr_gem->gt_list != nullptr)
     {
-        bufmgr_gem->number_gt = bufmgr_gem->config->info[XE_QUERY_CONFIG_GT_COUNT];
+        bufmgr_gem->number_gt = bufmgr_gem->gt_list->num_gt;
     }
 
     bufmgr_gem->hw_engines = __mos_query_engines_xe(fd, &bufmgr_gem->number_hw_engines);
