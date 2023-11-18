@@ -594,6 +594,13 @@ bool SfcRenderBaseLegacy::IsSFCUncompressedWriteNeeded(PVP_SURFACE targetSurface
         (targetSurface->rcSrc.left % writeAlignInWidth) ||
         ((targetSurface->rcSrc.right - targetSurface->rcSrc.left) % writeAlignInWidth))
     {
+        // full Frame Write don't need decompression as it will not hit the compressed write limitation
+        if ((targetSurface->rcSrc.bottom - targetSurface->rcSrc.top) == targetSurface->osSurface->dwHeight &&
+            (targetSurface->rcSrc.right - targetSurface->rcSrc.left) == targetSurface->osSurface->dwWidth)
+        {
+            return false;
+        }
+
         VP_RENDER_NORMALMESSAGE(
             "SFC Render Target Uncompressed write needed, \
             targetSurface->rcSrc.top % d, \
