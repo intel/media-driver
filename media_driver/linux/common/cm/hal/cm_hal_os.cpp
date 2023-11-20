@@ -532,13 +532,14 @@ MOS_STATUS HalCm_AllocateBuffer_Linux(
 
             MosUtilities::MosAtomicIncrement(MosUtilities::m_mosMemAllocCounterGfx);
 
-            bo =  mos_bo_alloc_userptr(osInterface->pOsContext->bufmgr,
-                                 "CM Buffer UP",
-                                 (void *)(param->data),
-                                 tileformat,
-                                 ROUND_UP_TO(size,MOS_PAGE_SIZE),
-                                 ROUND_UP_TO(size,MOS_PAGE_SIZE),
-                                 0);
+            struct mos_drm_bo_alloc_userptr alloc_uptr;
+            alloc_uptr.name = "CM Buffer UP";
+            alloc_uptr.addr = (void *)(param->data);
+            alloc_uptr.tiling_mode = tileformat;
+            alloc_uptr.stride = ROUND_UP_TO(size,MOS_PAGE_SIZE);
+            alloc_uptr.size = ROUND_UP_TO(size,MOS_PAGE_SIZE);
+
+            bo =  mos_bo_alloc_userptr(osInterface->pOsContext->bufmgr, &alloc_uptr);
 
             osResource->bMapped = false;
             if (bo)

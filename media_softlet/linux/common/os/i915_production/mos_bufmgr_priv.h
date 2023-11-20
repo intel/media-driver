@@ -47,8 +47,8 @@ struct mos_bufmgr {
      * address space or graphics device aperture.  They must be mapped
      * using bo_map() or drm_intel_gem_bo_map_gtt() to be used by the CPU.
      */
-    struct mos_linux_bo *(*bo_alloc) (struct mos_bufmgr *bufmgr, const char *name,
-                   unsigned long size, unsigned int alignment, int mem_type, unsigned int pat_index, bool cpu_cacheable) = nullptr;
+    struct mos_linux_bo *(*bo_alloc) (struct mos_bufmgr *bufmgr,
+                   struct mos_drm_bo_alloc *alloc) = nullptr;
 
     /**
      * Allocate a buffer object from an existing user accessible
@@ -57,10 +57,7 @@ struct mos_bufmgr {
      * Flags may be I915_VMAP_READ_ONLY or I915_USERPTR_UNSYNCHRONIZED
      */
     struct mos_linux_bo *(*bo_alloc_userptr)(struct mos_bufmgr *bufmgr,
-                      const char *name, void *addr,
-                      uint32_t tiling_mode, uint32_t stride,
-                      unsigned long size,
-                      unsigned long flags) = nullptr;
+                      struct mos_drm_bo_alloc_userptr *alloc_uptr) = nullptr;
 
     /**
      * Allocate a tiled buffer object.
@@ -78,14 +75,7 @@ struct mos_bufmgr {
      * may have been rounded up to accommodate for tiling restrictions.
      */
     struct mos_linux_bo *(*bo_alloc_tiled) (struct mos_bufmgr *bufmgr,
-                     const char *name,
-                     int x, int y, int cpp,
-                     uint32_t *tiling_mode,
-                     unsigned long *pitch,
-                     unsigned long flags,
-                     int mem_type,
-                     unsigned int pat_index,
-                     bool cpu_cacheable) = nullptr;
+                     struct mos_drm_bo_alloc_tiled *alloc_tiled) = nullptr;
 
     /** Takes a reference on a buffer object */
     void (*bo_reference) (struct mos_linux_bo *bo) = nullptr;

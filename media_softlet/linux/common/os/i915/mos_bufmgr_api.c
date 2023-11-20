@@ -48,10 +48,10 @@
  */
 
 struct mos_linux_bo *
-mos_bo_alloc(struct mos_bufmgr *bufmgr, const char *name,
-           unsigned long size, unsigned int alignment, int mem_type, unsigned int pat_index, bool cpu_cacheable)
+mos_bo_alloc(struct mos_bufmgr *bufmgr,
+            struct mos_drm_bo_alloc *alloc)
 {
-    if(!bufmgr)
+    if(!bufmgr || !alloc)
     {
         MOS_OS_CRITICALMESSAGE("Input null ptr\n");
         return nullptr;
@@ -59,7 +59,7 @@ mos_bo_alloc(struct mos_bufmgr *bufmgr, const char *name,
 
     if (bufmgr->bo_alloc)
     {
-        return bufmgr->bo_alloc(bufmgr, name, size, alignment, mem_type, pat_index, cpu_cacheable);
+        return bufmgr->bo_alloc(bufmgr, alloc);
     }
     else
     {
@@ -70,13 +70,9 @@ mos_bo_alloc(struct mos_bufmgr *bufmgr, const char *name,
 
 struct mos_linux_bo *
 mos_bo_alloc_userptr(struct mos_bufmgr *bufmgr,
-               const char *name, void *addr,
-               uint32_t tiling_mode,
-               uint32_t stride,
-               unsigned long size,
-               unsigned long flags)
+               struct mos_drm_bo_alloc_userptr *alloc_uptr)
 {
-    if(!bufmgr)
+    if(!bufmgr || !alloc_uptr)
     {
         MOS_OS_CRITICALMESSAGE("Input null ptr\n");
         return nullptr;
@@ -84,8 +80,7 @@ mos_bo_alloc_userptr(struct mos_bufmgr *bufmgr,
 
     if (bufmgr->bo_alloc_userptr)
     {
-        return bufmgr->bo_alloc_userptr(bufmgr, name, addr, tiling_mode,
-                        stride, size, flags);
+        return bufmgr->bo_alloc_userptr(bufmgr, alloc_uptr);
     }
     else
     {
@@ -95,12 +90,10 @@ mos_bo_alloc_userptr(struct mos_bufmgr *bufmgr,
 }
 
 struct mos_linux_bo *
-mos_bo_alloc_tiled(struct mos_bufmgr *bufmgr, const char *name,
-                        int x, int y, int cpp, uint32_t *tiling_mode,
-                        unsigned long *pitch, unsigned long flags,
-                        int mem_type, unsigned int pat_index, bool cpu_cacheable)
+mos_bo_alloc_tiled(struct mos_bufmgr *bufmgr,
+            struct mos_drm_bo_alloc_tiled *alloc_tiled)
 {
-    if(!bufmgr)
+    if(!bufmgr || !alloc_tiled)
     {
         MOS_OS_CRITICALMESSAGE("Input null ptr\n");
         return nullptr;
@@ -108,8 +101,7 @@ mos_bo_alloc_tiled(struct mos_bufmgr *bufmgr, const char *name,
 
     if (bufmgr->bo_alloc_tiled)
     {
-        return bufmgr->bo_alloc_tiled(bufmgr, name, x, y, cpp,
-                      tiling_mode, pitch, flags, mem_type, pat_index, cpu_cacheable);
+        return bufmgr->bo_alloc_tiled(bufmgr, alloc_tiled);
     }
     else
     {
