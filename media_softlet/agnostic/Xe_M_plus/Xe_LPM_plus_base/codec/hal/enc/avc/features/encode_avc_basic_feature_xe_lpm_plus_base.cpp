@@ -74,14 +74,15 @@ bool AvcBasicFeatureXe_Lpm_Plus_Base::InputSurfaceNeedsExtraCopy(const MOS_SURFA
     }
 
     uint32_t alignedSize = 0;
-    uint32_t pitch       = MOS_MAX((uint32_t)m_picWidthInMb * CODECHAL_MACROBLOCK_WIDTH, (uint32_t)input.dwPitch);
     switch (input.Format)
     {
     case Format_NV12:
-        alignedSize = pitch * (m_picHeightInMb * CODECHAL_MACROBLOCK_HEIGHT) * 3 / 2;
+        alignedSize = MOS_MAX((uint32_t)m_picWidthInMb * CODECHAL_MACROBLOCK_WIDTH, (uint32_t)input.dwPitch) *
+            (m_picHeightInMb * CODECHAL_MACROBLOCK_HEIGHT) * 3 / 2;
         break;
     case Format_A8R8G8B8:
-        alignedSize = pitch * (m_picHeightInMb * CODECHAL_MACROBLOCK_HEIGHT) * 4;
+        alignedSize = MOS_MAX((uint32_t)m_picWidthInMb * CODECHAL_MACROBLOCK_WIDTH * 4, (uint32_t)input.dwPitch) *
+            (m_picHeightInMb * CODECHAL_MACROBLOCK_HEIGHT);
         break;
     default:
         alignedSize = 0;

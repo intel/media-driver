@@ -643,14 +643,13 @@ bool AvcBasicFeature::InputSurfaceNeedsExtraCopy(const MOS_SURFACE &input)
     }
 
     uint32_t alignedSize = 0;
-    uint32_t pitch       = MOS_MAX((uint32_t)m_seqParam->FrameWidth, (uint32_t)input.dwPitch);
     switch (input.Format)
     {
     case Format_NV12:
-        alignedSize = pitch * m_seqParam->FrameHeight * 3 / 2;
+        alignedSize = MOS_MAX((uint32_t)m_seqParam->FrameWidth, (uint32_t)input.dwPitch) * m_seqParam->FrameHeight * 3 / 2;
         break;
     case Format_A8R8G8B8:
-        alignedSize = pitch * m_seqParam->FrameHeight * 4;
+        alignedSize = MOS_MAX((uint32_t)m_seqParam->FrameWidth * 4, (uint32_t)input.dwPitch) * m_seqParam->FrameHeight;
         break;
     default:
         alignedSize = 0;
