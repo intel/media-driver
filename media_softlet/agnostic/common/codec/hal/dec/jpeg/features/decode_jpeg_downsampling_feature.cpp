@@ -103,6 +103,16 @@ MOS_STATUS JpegDownSamplingFeature::Update(void* params)
             DecodeDownSamplingFeature::Update(decodeParams);
         }
     }
+    else
+    {
+        if ((!MEDIA_IS_SKU(m_osInterface->pfnGetSkuTable(m_osInterface), FtrSFCPipe) ||
+            MEDIA_IS_SKU(m_osInterface->pfnGetSkuTable(m_osInterface), FtrDisableVDBox2SFC)) &&
+            m_basicFeature->m_destSurface.Format == Format_A8R8G8B8)
+        {
+            DECODE_ASSERTMESSAGE("Don't support using SFC to convert.");
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+    }
 
     return MOS_STATUS_SUCCESS;
 }
