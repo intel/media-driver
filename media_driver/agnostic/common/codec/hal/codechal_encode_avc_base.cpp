@@ -2250,7 +2250,7 @@ MOS_STATUS CodechalEncodeAvcBase::AllocateEncResources()
     {
         if (m_hmeKernel)
         {
-            m_hmeKernel->AllocateResources();
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hmeKernel->AllocateResources());
         }
         else
         {

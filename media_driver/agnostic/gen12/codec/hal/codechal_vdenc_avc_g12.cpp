@@ -621,7 +621,7 @@ CodechalVdencAvcStateG12::CodechalVdencAvcStateG12(
 
     m_vdencBrcInitDmemBufferSize   = sizeof(BrcInitDmem);
     m_vdencBrcUpdateDmemBufferSize = sizeof(BrcUpdateDmem);
-    m_vdencBrcNumOfSliceOffset = MEDIA_IS_WA(m_waTable, Wa_22010554215) ? 0 : CODECHAL_OFFSETOF(BrcUpdateDmem, NumOfSlice);
+    m_vdencBrcNumOfSliceOffset     = (m_waTable && MEDIA_IS_WA(m_waTable, Wa_22010554215)) ? 0 : CODECHAL_OFFSETOF(BrcUpdateDmem, NumOfSlice);
 
     // One Gen12, avc vdenc ref index need to be one on one mapping
     m_oneOnOneMapping = true;

@@ -180,7 +180,7 @@ MOS_STATUS CodecHalHevcMbencG12::AllocateMeResources()
                 m_mvdistSummationSurfSize,
                 m_brcBuffers.mvAndDistortionSumSurface));
             CmEvent *event = nullptr;
-            m_brcBuffers.mvAndDistortionSumSurface->InitSurface(0, event);
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_brcBuffers.mvAndDistortionSumSurface->InitSurface(0, event));
         }
     }
     return MOS_STATUS_SUCCESS;
