@@ -1179,12 +1179,7 @@ MOS_LINUX_BO* GpuContextSpecificNext::GetNopCommandBuffer(
     }
 
     auto perStreamParameters = (PMOS_CONTEXT)streamState->perStreamParameters;
-    struct mos_drm_bo_alloc alloc;
-    alloc.name = "NOP_CMD_BO";
-    alloc.size = 4096;
-    alloc.alignment = 4096;
-    alloc.ext.mem_type = MOS_MEMPOOL_VIDEOMEMORY;
-    bo = mos_bo_alloc(perStreamParameters->bufmgr, &alloc);
+    bo = mos_bo_alloc(perStreamParameters->bufmgr, "NOP_CMD_BO", 4096, 4096, MOS_MEMPOOL_VIDEOMEMORY);
     if(bo == nullptr)
     {
         return nullptr;

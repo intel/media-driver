@@ -559,16 +559,8 @@ VAStatus MediaLibvaUtilNext::CreateExternalSurface(
             bo = mos_bo_create_from_prime(mediaDrvCtx->pDrmBufMgr, mediaSurface->pSurfDesc->ulBuffer, mediaSurface->pSurfDesc->uiSize);
             break;
         case VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR:
-        {
-            struct mos_drm_bo_alloc_userptr alloc_uptr;
-            alloc_uptr.name = "SysSurface";
-            alloc_uptr.addr = (void *)mediaSurface->pSurfDesc->ulBuffer;
-            alloc_uptr.tiling_mode = mediaSurface->pSurfDesc->uiTile;
-            alloc_uptr.stride = params.pitch;
-            alloc_uptr.size = mediaSurface->pSurfDesc->uiBuffserSize;
-
-            bo = mos_bo_alloc_userptr(mediaDrvCtx->pDrmBufMgr, &alloc_uptr);
-        }
+            bo = mos_bo_alloc_userptr(mediaDrvCtx->pDrmBufMgr, "SysSurface", (void *)mediaSurface->pSurfDesc->ulBuffer, mediaSurface->pSurfDesc->uiTile,
+                                      params.pitch, mediaSurface->pSurfDesc->uiBuffserSize, 0);
             break;
         default:
             DDI_ASSERTMESSAGE("Unsupported external surface memory type.");
@@ -819,31 +811,15 @@ VAStatus MediaLibvaUtilNext::CreateInternalSurface(
 
     if ( params.tileFormat == TILING_NONE )
     {
-        struct mos_drm_bo_alloc alloc;
-        alloc.name = "Media";
-        alloc.size = gmmSize;
-        alloc.alignment = 4096;
-        alloc.ext.tiling_mode = TILING_NONE;
-        alloc.ext.mem_type = params.memType;
-        alloc.ext.pat_index = patIndex;
-        alloc.ext.cpu_cacheable = isCpuCacheable;
-        bo = mos_bo_alloc(mediaDrvCtx->pDrmBufMgr, &alloc);
+        bo = mos_bo_alloc(mediaDrvCtx->pDrmBufMgr, "MEDIA", gmmSize, 4096, params.memType, patIndex, isCpuCacheable);
         params.pitch = gmmPitch;
     }
     else
     {
-        struct mos_drm_bo_alloc_tiled alloc_tiled;
-        alloc_tiled.name = "MEDIA";
-        alloc_tiled.x = gmmPitch;
-        alloc_tiled.y = (gmmSize + gmmPitch -1)/gmmPitch;
-        alloc_tiled.cpp = 1;
-        alloc_tiled.ext.tiling_mode = params.tileFormat;
-        alloc_tiled.ext.mem_type = params.memType;;
-        alloc_tiled.ext.pat_index = patIndex;
-        alloc_tiled.ext.cpu_cacheable = isCpuCacheable;
-
-        bo = mos_bo_alloc_tiled(mediaDrvCtx->pDrmBufMgr, &alloc_tiled);
-        params.pitch = alloc_tiled.pitch;
+        unsigned long  ulPitch = 0;
+        bo = mos_bo_alloc_tiled(mediaDrvCtx->pDrmBufMgr, "MEDIA", gmmPitch, (gmmSize + gmmPitch -1)/gmmPitch, 1, &params.tileFormat, 
+            (unsigned long *)&ulPitch, 0, params.memType, patIndex, isCpuCacheable);
+        params.pitch = ulPitch;
     }
 
     mediaSurface->bMapped = false;
@@ -1761,16 +1737,7 @@ VAStatus MediaLibvaUtilNext::Allocate2DBuffer(
     bool isCpuCacheable   = gmmResourceInfo->GetResFlags().Info.Cacheable;
 
     MOS_LINUX_BO  *bo;
-    struct mos_drm_bo_alloc alloc;
-    alloc.name = "Media 2D Buffer";
-    alloc.size = gmmSize;
-    alloc.alignment = 4096;
-    alloc.ext.tiling_mode = TILING_NONE;
-    alloc.ext.mem_type = mem_type;
-    alloc.ext.pat_index = patIndex;
-    alloc.ext.cpu_cacheable = isCpuCacheable;
-
-    bo = mos_bo_alloc(bufmgr, &alloc);
+    bo = mos_bo_alloc(bufmgr, "Media 2D Buffer", gmmSize, 4096, mem_type, patIndex, isCpuCacheable);
 
     mediaBuffer->bMapped = false;
     if (bo)
@@ -1846,16 +1813,7 @@ VAStatus MediaLibvaUtilNext::AllocateBuffer(
     unsigned int patIndex = MosInterface::GetPATIndexFromGmm(mediaBuffer->pMediaCtx->pGmmClientContext, mediaBuffer->pGmmResourceInfo);
     bool isCpuCacheable   = mediaBuffer->pGmmResourceInfo->GetResFlags().Info.Cacheable;
 
-    struct mos_drm_bo_alloc alloc;
-    alloc.name = "Media Buffer";
-    alloc.size = size;
-    alloc.alignment = 4096;
-    alloc.ext.tiling_mode = TILING_NONE;
-    alloc.ext.mem_type = mem_type;
-    alloc.ext.pat_index = patIndex;
-    alloc.ext.cpu_cacheable = isCpuCacheable;
-
-    MOS_LINUX_BO *bo  = mos_bo_alloc(bufmgr, &alloc);
+    MOS_LINUX_BO *bo  = mos_bo_alloc(bufmgr, "Media Buffer", size, 4096, mem_type, patIndex, isCpuCacheable);
     mediaBuffer->bMapped = false;
     if (bo)
     {

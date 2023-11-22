@@ -219,6 +219,7 @@ MOS_STATUS GraphicsResourceSpecific::Allocate(OsContext* osContextPtr, CreatePar
     uint32_t bufPitch        = GFX_ULONG_CAST(gmmResourceInfoPtr->GetRenderPitch());
     uint32_t bufSize         = GFX_ULONG_CAST(gmmResourceInfoPtr->GetSizeSurface());
     bufHeight                = gmmResourceInfoPtr->GetBaseHeight();
+    unsigned long linuxPitch = 0;
     MOS_LINUX_BO* boPtr      = nullptr;
 
     char bufName[m_maxBufNameLength];
@@ -241,39 +242,32 @@ MOS_STATUS GraphicsResourceSpecific::Allocate(OsContext* osContextPtr, CreatePar
     MOS_TraceEventExt(EVENT_RESOURCE_ALLOCATE, EVENT_TYPE_START, nullptr, 0, nullptr, 0);
     if (nullptr != params.m_pSystemMemory)
     {
-        struct mos_drm_bo_alloc_userptr alloc_uptr;
-        alloc_uptr.name = bufName;
-        alloc_uptr.addr = params.m_pSystemMemory;
-        alloc_uptr.tiling_mode = tileFormatLinux;
-        alloc_uptr.stride = bufPitch;
-        alloc_uptr.size = bufSize;
-
-        boPtr = mos_bo_alloc_userptr(pOsContextSpecific->m_bufmgr, &alloc_uptr);
+        boPtr = mos_bo_alloc_userptr(pOsContextSpecific->m_bufmgr,
+                                      bufName,
+                                      params.m_pSystemMemory,
+                                      tileFormatLinux,
+                                      bufPitch,
+                                      bufSize,
+                                      0);
     }
     // Only Linear and Y TILE supported
     else if (tileFormatLinux == TILING_NONE)
     {
-        struct mos_drm_bo_alloc alloc;
-        alloc.name = bufName;
-        alloc.size = bufSize;
-        alloc.alignment = 4096;
-        alloc.ext.mem_type = mem_type;
-        boPtr = mos_bo_alloc(pOsContextSpecific->m_bufmgr, &alloc);
+        boPtr = mos_bo_alloc(pOsContextSpecific->m_bufmgr, bufName, bufSize, 4096, mem_type);
     }
     else
     {
-        struct mos_drm_bo_alloc_tiled alloc_tiled;
-        alloc_tiled.name = bufName;
-        alloc_tiled.x = bufPitch;
-        alloc_tiled.y = bufSize/bufPitch;
-        alloc_tiled.cpp = 1;
-        alloc_tiled.ext.tiling_mode = tileFormatLinux;
-        alloc_tiled.ext.mem_type = mem_type;
-
         boPtr = mos_bo_alloc_tiled(pOsContextSpecific->m_bufmgr,
-                        &alloc_tiled);
+                        bufName,
+                        bufPitch,
+                        bufSize/bufPitch,
+                        1,
+                        &tileFormatLinux,
+                        &linuxPitch,
+                        0,
+                        mem_type);
 
-        bufPitch = (uint32_t)alloc_tiled.pitch;
+        bufPitch = (uint32_t)linuxPitch;
     }
 
     m_mapped = false;

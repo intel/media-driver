@@ -216,7 +216,6 @@ int32_t Linux_GetCommandBuffer(
 {
     int32_t                bResult  = false;
     MOS_LINUX_BO           *cmd_bo = nullptr;
-    struct mos_drm_bo_alloc alloc;
 
     if ( pOsContext == nullptr ||
          pCmdBuffer == nullptr)
@@ -227,11 +226,7 @@ int32_t Linux_GetCommandBuffer(
     }
 
     // Allocate the command buffer from GEM
-    alloc.name = "MOS CmdBuf";
-    alloc.size = iSize;
-    alloc.alignment = 4096;
-    alloc.ext.mem_type = MOS_MEMPOOL_SYSTEMMEMORY;
-    cmd_bo = mos_bo_alloc(pOsContext->bufmgr, &alloc);     // Align to page boundary
+    cmd_bo = mos_bo_alloc(pOsContext->bufmgr,"MOS CmdBuf",iSize,4096, MOS_MEMPOOL_SYSTEMMEMORY);     // Align to page boundary
     if (cmd_bo == nullptr)
     {
         MOS_OS_ASSERTMESSAGE("Allocation of command buffer failed.");
@@ -875,7 +870,6 @@ MOS_STATUS Linux_InitGPUStatus(
 {
     MOS_LINUX_BO    *bo     = nullptr;
     MOS_STATUS      eStatus = MOS_STATUS_SUCCESS;
-    struct mos_drm_bo_alloc alloc;
 
     if (pOsContext == nullptr)
     {
@@ -894,11 +888,7 @@ MOS_STATUS Linux_InitGPUStatus(
     }
 
     // Allocate the command buffer from GEM
-    alloc.name = "GPU Status Buffer";
-    alloc.size = sizeof(MOS_GPU_STATUS_DATA)  * MOS_GPU_CONTEXT_MAX;
-    alloc.alignment = 4096;
-    alloc.ext.mem_type = MOS_MEMPOOL_SYSTEMMEMORY;
-    bo = mos_bo_alloc(pOsContext->bufmgr, &alloc);     // Align to page boundary
+    bo = mos_bo_alloc(pOsContext->bufmgr,"GPU Status Buffer", sizeof(MOS_GPU_STATUS_DATA)  * MOS_GPU_CONTEXT_MAX, 4096, MOS_MEMPOOL_SYSTEMMEMORY);     // Align to page boundary
     if (bo == nullptr)
     {
         MOS_OS_ASSERTMESSAGE("Allocation of GPU Status Buffer failed.");
@@ -2226,6 +2216,7 @@ MOS_STATUS Mos_Specific_AllocateResource(
     void *               ptr;
     int32_t              iSize = 0;
     int32_t              iPitch = 0;
+    unsigned long        ulPitch = 0;
     MOS_STATUS           eStatus;
     MOS_LINUX_BO *       bo = nullptr;
     MOS_TILE_TYPE        tileformat;
@@ -2506,25 +2497,12 @@ MOS_STATUS Mos_Specific_AllocateResource(
     // Only Linear and Y TILE supported
     if( tileformat_linux == TILING_NONE )
     {
-        struct mos_drm_bo_alloc alloc;
-        alloc.name = bufname;
-        alloc.size = iSize;
-        alloc.alignment = 4096;
-        alloc.ext.mem_type = mem_type;
-        bo = mos_bo_alloc(pOsInterface->pOsContext->bufmgr, &alloc);
+        bo = mos_bo_alloc(pOsInterface->pOsContext->bufmgr, bufname, iSize, 4096, mem_type);
     }
     else
     {
-        struct mos_drm_bo_alloc_tiled alloc_tiled;
-        alloc_tiled.name = bufname;
-        alloc_tiled.x = iPitch;
-        alloc_tiled.y = iSize/iPitch;
-        alloc_tiled.cpp = 1;
-        alloc_tiled.ext.tiling_mode = tileformat_linux;
-        alloc_tiled.ext.mem_type = mem_type;
-
-        bo = mos_bo_alloc_tiled(pOsInterface->pOsContext->bufmgr, &alloc_tiled);
-        iPitch = (int32_t)alloc_tiled.pitch;;
+        bo = mos_bo_alloc_tiled(pOsInterface->pOsContext->bufmgr, bufname, iPitch, iSize/iPitch, 1, &tileformat_linux, &ulPitch, 0, mem_type);
+        iPitch = (int32_t)ulPitch;
     }
 
     pOsResource->bMapped = false;
@@ -4054,12 +4032,7 @@ MOS_LINUX_BO * Mos_GetNopCommandBuffer_Linux(
         return nullptr;
     }
 
-    struct mos_drm_bo_alloc alloc;
-    alloc.name = "NOP_CMD_BO";
-    alloc.size = 4096;
-    alloc.alignment = 4096;
-    alloc.ext.mem_type = MOS_MEMPOOL_SYSTEMMEMORY;
-    bo = mos_bo_alloc(pOsInterface->pOsContext->bufmgr, &alloc);
+    bo = mos_bo_alloc(pOsInterface->pOsContext->bufmgr, "NOP_CMD_BO", 4096, 4096, MOS_MEMPOOL_SYSTEMMEMORY);
     if(bo == nullptr)
     {
         return nullptr;
@@ -4094,12 +4067,7 @@ MOS_LINUX_BO * Mos_GetBadCommandBuffer_Linux(
         return nullptr;
     }
 
-    struct mos_drm_bo_alloc alloc;
-    alloc.name = "BAD_CMD_BO";
-    alloc.size = 4096;
-    alloc.alignment = 4096;
-    alloc.ext.mem_type = MOS_MEMPOOL_SYSTEMMEMORY;
-    bo = mos_bo_alloc(pOsInterface->pOsContext->bufmgr, &alloc);
+    bo = mos_bo_alloc(pOsInterface->pOsContext->bufmgr, "BAD_CMD_BO", 4096, 4096, MOS_MEMPOOL_SYSTEMMEMORY);
     if(bo == nullptr)
     {
         return nullptr;

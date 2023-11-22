@@ -157,12 +157,7 @@ int32_t Linux_GetCommandBuffer(
     }
 
     // Allocate the command buffer from GEM
-    struct mos_drm_bo_alloc alloc;
-    alloc.name = "MOS CmdBuf";
-    alloc.size = size;
-    alloc.alignment = 4096;
-    alloc.ext.mem_type = MOS_MEMPOOL_SYSTEMMEMORY;
-    cmd_bo = mos_bo_alloc(osContext->bufmgr, &alloc);     // Align to page boundary
+    cmd_bo = mos_bo_alloc(osContext->bufmgr,"MOS CmdBuf",size,4096, MOS_MEMPOOL_SYSTEMMEMORY);     // Align to page boundary
     MOS_OS_CHK_NULL_RETURN_VALUE(cmd_bo, false);
 
     //MOS_OS_NORMALMESSAGE("alloc CMB, bo is 0x%x.", cmd_bo);
@@ -447,12 +442,7 @@ MOS_STATUS Linux_InitGPUStatus(
     MOS_OS_CHK_NULL_RETURN(osContext->pGPUStatusBuffer);
 
     // Allocate the command buffer from GEM
-    struct mos_drm_bo_alloc alloc;
-    alloc.name = "GPU Status Buffer";
-    alloc.size = sizeof(MOS_GPU_STATUS_DATA)  * MOS_GPU_CONTEXT_MAX;
-    alloc.alignment = 4096;
-    alloc.ext.mem_type = MOS_MEMPOOL_SYSTEMMEMORY;
-    bo = mos_bo_alloc(osContext->bufmgr, &alloc);     // Align to page boundary
+    bo = mos_bo_alloc(osContext->bufmgr,"GPU Status Buffer", sizeof(MOS_GPU_STATUS_DATA)  * MOS_GPU_CONTEXT_MAX, 4096, MOS_MEMPOOL_SYSTEMMEMORY);     // Align to page boundary
     if (bo == nullptr)
     {
         MOS_OS_ASSERTMESSAGE("Allocation of GPU Status Buffer failed.");
