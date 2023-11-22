@@ -390,9 +390,7 @@ int32_t CmDevice_RT::Create(CmDevice_RT* &device, uint32_t createOption)
     uint32_t count = 0;
 
     if (g_AdapterCount == 0 )
-    {
-        result = GetSupportedAdapters(count);
-    }
+        GetSupportedAdapters(count);
 
     if (g_supportedAdapterCount > 0)
     {

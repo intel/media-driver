@@ -1490,7 +1490,7 @@ MOS_STATUS CmSurfaceStateBuffer::GenerateSurfaceState(CM_HAL_BUFFER_SURFACE_STAT
     // Default tile mode of surface state buffer is linear
     params.bGMMTileEnabled = true;
 
-    m_renderhal->pMhwStateHeap->SetSurfaceStateEntry(&params);
+    MHW_CHK_STATUS_RETURN(m_renderhal->pMhwStateHeap->SetSurfaceStateEntry(&params));
 
     return MOS_STATUS_SUCCESS;
 }

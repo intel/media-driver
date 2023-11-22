@@ -186,13 +186,16 @@ int32_t CmKernelRT::Create(CmDeviceRT *device,
     int32_t result = CM_SUCCESS;
     CM_HAL_STATE * state  = device ? ((PCM_CONTEXT_DATA)device->GetAccelData())->cmHalState : nullptr;
 
-    if (state && state->advExecutor)
+    if (device)
     {
-        kernel = state->advExecutor->CreateKernelRT(device, program, kernelIndex, kernelSeqNum);
-    }
-    else
-    {
-        kernel = new (std::nothrow) CmKernelRT(device, program, kernelIndex, kernelSeqNum);
+        if (state && state->advExecutor)
+        {
+            kernel = state->advExecutor->CreateKernelRT(device, program, kernelIndex, kernelSeqNum);
+        }
+        else
+        {
+            kernel = new (std::nothrow) CmKernelRT(device, program, kernelIndex, kernelSeqNum);
+        }
     }
     
     if( kernel )

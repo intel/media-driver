@@ -825,17 +825,26 @@ MOS_STATUS CmKernelEx::GetSamplerCount(uint32_t *count3D, uint32_t *countAVS)
 
 CmThreadSpaceRT* CmKernelEx::GetThreadSpaceEx()
 {
+    int status = CM_SUCCESS;
     if (m_threadSpace)
     {
         return m_threadSpace;
     }
     if (m_dummyThreadSpace)
     {
-        m_device->DestroyThreadSpace(m_dummyThreadSpace);
+        status = m_device->DestroyThreadSpace(m_dummyThreadSpace);
+        if (status != CM_SUCCESS)
+        {
+            CM_ASSERTMESSAGE("Error: Failed to destroy thread space data.");
+        }
     }
     if (m_threadCount)
     {
-        m_device->CreateThreadSpace(m_threadCount, 1, m_dummyThreadSpace);
+        status = m_device->CreateThreadSpace(m_threadCount, 1, m_dummyThreadSpace);
+        if (status != CM_SUCCESS)
+        {
+            CM_ASSERTMESSAGE("Error: Failed to create thread space data.");
+        }
     }
     return static_cast<CmThreadSpaceRT *>(m_dummyThreadSpace);
 }
