@@ -1021,7 +1021,7 @@ protected:
             resourceParams.dwOffset        = params.cdfTableInitBufferOffset;
             resourceParams.pdwCmd          = (cmd.CdfTablesInitializationBufferAddress.DW0_1.Value);
             resourceParams.dwLocationInCmd = _MHW_CMD_DW_LOCATION(CdfTablesInitializationBufferAddress);
-            resourceParams.bIsWritable     = true;
+            resourceParams.bIsWritable     = false;
 
             InitMocsParams(resourceParams, &cmd.CdfTablesInitializationBufferAddressAttributes.DW0.Value, 1, 6);
 

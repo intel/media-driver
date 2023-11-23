@@ -47,12 +47,6 @@ MOS_STATUS Av1Pipeline::Initialize(void *settings)
 
     HucPacketCreatorBase *hucPktCreator = dynamic_cast<HucPacketCreatorBase *>(this);
     DECODE_CHK_NULL(hucPktCreator);
-    m_cdfCopyPkt = hucPktCreator->CreateHucCopyPkt(this, m_task, m_hwInterface); 
-    DECODE_CHK_NULL(m_cdfCopyPkt);
-    MediaPacket *packet = dynamic_cast<MediaPacket *>(m_cdfCopyPkt);
-    DECODE_CHK_NULL(packet);
-    DECODE_CHK_STATUS(RegisterPacket(DecodePacketId(this, defaultCdfBufCopyPacketId), packet));
-    DECODE_CHK_STATUS(packet->Init());
 
     auto *codecSettings = (CodechalSetting*)settings;
     DECODE_CHK_NULL(codecSettings);
@@ -75,19 +69,6 @@ MOS_STATUS Av1Pipeline::Prepare(void *params)
     DECODE_CHK_NULL(basicFeature);
     DECODE_CHK_STATUS(DecodePipeline::Prepare(params));
 
-    if (basicFeature->m_frameNum == 0)
-    {
-        for (uint8_t i = 0; i < basicFeature->av1DefaultCdfTableNum; i++)
-        {
-            HucCopyPktItf::HucCopyParams copyParams = {};
-            copyParams.srcBuffer  = &(basicFeature->m_tmpCdfBuffers[i]->OsResource);
-            copyParams.srcOffset  = 0;
-            copyParams.destBuffer = &(basicFeature->m_defaultCdfBuffers[i]->OsResource);
-            copyParams.destOffset = 0;
-            copyParams.copyLength = basicFeature->m_cdfMaxNumBytes;
-            m_cdfCopyPkt->PushCopyParams(copyParams);
-        }
-    }
     return MOS_STATUS_SUCCESS;
 }
 
@@ -116,7 +97,6 @@ MOS_STATUS Av1Pipeline::ActivateDecodePackets()
 
     if (m_isFirstTileInFrm)
     {
-        DECODE_CHK_STATUS(ActivatePacket(DecodePacketId(this, defaultCdfBufCopyPacketId), false, 0, 0));
         m_isFirstTileInFrm = false;
     }
 

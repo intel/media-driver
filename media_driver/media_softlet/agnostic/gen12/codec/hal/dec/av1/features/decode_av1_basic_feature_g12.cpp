@@ -35,16 +35,10 @@ namespace decode
     {
         for (uint8_t i = 0; i < av1DefaultCdfTableNum; i++)
         {
-            if (!m_allocator->ResourceIsNull(&m_tmpCdfBuffers[i]->OsResource))
-            {
-                m_allocator->Destroy(m_tmpCdfBuffers[i]);
-            }
-
             if (!m_allocator->ResourceIsNull(&m_defaultCdfBuffers[i]->OsResource))
             {
                 m_allocator->Destroy(m_defaultCdfBuffers[i]);
             }
-
         }
         if (m_usingDummyWl == true)
         {
@@ -954,20 +948,16 @@ namespace decode
         {
             for (uint8_t index = 0; index < av1DefaultCdfTableNum; index++)
             {
-                m_tmpCdfBuffers[index] = m_allocator->AllocateBuffer(
+                m_defaultCdfBuffers[index] = m_allocator->AllocateBuffer(
                     MOS_ALIGN_CEIL(m_cdfMaxNumBytes, CODECHAL_PAGE_SIZE), "TempCdfTableBuffer",
                     resourceInternalRead, lockableVideoMem);
-                DECODE_CHK_NULL(m_tmpCdfBuffers[index]);
+                DECODE_CHK_NULL(m_defaultCdfBuffers[index]);
 
-                auto data = (uint16_t *)m_allocator->LockResourceForWrite(&m_tmpCdfBuffers[index]->OsResource);
+                auto data = (uint16_t *)m_allocator->LockResourceForWrite(&m_defaultCdfBuffers[index]->OsResource);
                 DECODE_CHK_NULL(data);
-
+                
                 // reset all CDF tables to default values
                 DECODE_CHK_STATUS(InitDefaultFrameContextBuffer(data, index));
-                m_defaultCdfBuffers[index] = m_allocator->AllocateBuffer(
-                    MOS_ALIGN_CEIL(m_cdfMaxNumBytes, CODECHAL_PAGE_SIZE), "m_defaultCdfBuffers",
-                    resourceInternalRead, notLockableVideoMem);
-                DECODE_CHK_NULL(m_defaultCdfBuffers[index]);
             }
 
             m_defaultFcInitialized = true;//set only once, won't set again

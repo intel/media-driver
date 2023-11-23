@@ -333,7 +333,7 @@ MOS_STATUS MhwVdboxAvpInterfaceXe_Hpm::AddAvpPipeBufAddrCmd(
         resourceParams.dwOffset = params->m_cdfTableInitializationBufferOffset;
         resourceParams.pdwCmd = (cmd.CdfTablesInitializationBufferAddress.DW0_1.Value);
         resourceParams.dwLocationInCmd = 27;
-        resourceParams.bIsWritable = true;
+        resourceParams.bIsWritable = false;
         InitMocsParams(resourceParams, &cmd.CdfTablesInitializationBufferAddressAttributes.DW0.Value, 1, 6);
         MHW_MI_CHK_STATUS(AddResourceToCmd(
             m_osInterface,
