@@ -305,6 +305,60 @@ typedef struct mos_xe_bo_gem {
      * Boolean of whether this buffer is exported to external
      */
     bool is_exported;
+    /**
+     * @cpu_caching: The CPU caching mode to select for this object. If
+     * mmaping the object the mode selected here will also be used.
+     *
+     * Supported values:
+     *
+     * DRM_XE_GEM_CPU_CACHING_WB: Allocate the pages with write-back
+     * caching.  On iGPU this can't be used for scanout surfaces. Currently
+     * not allowed for objects placed in VRAM.
+     *
+     * DRM_XE_GEM_CPU_CACHING_WC: Allocate the pages as write-combined. This
+     * is uncached. Scanout surfaces should likely use this. All objects
+     * that can be placed in VRAM must use this.
+     */
+    uint16_t cpu_caching;
+
+    /**
+     * @pat_index: The platform defined @pat_index to use for this mapping.
+     * The index basically maps to some predefined memory attributes,
+     * including things like caching, coherency, compression etc.  The exact
+     * meaning of the pat_index is platform specific. When the KMD sets up
+     * the binding the index here is encoded into the ppGTT PTE.
+     *
+     * For coherency the @pat_index needs to be at least 1way coherent when
+     * drm_xe_gem_create.cpu_caching is DRM_XE_GEM_CPU_CACHING_WB. The KMD
+     * will extract the coherency mode from the @pat_index and reject if
+     * there is a mismatch (see note below for pre-MTL platforms).
+     *
+     * Note: On pre-MTL platforms there is only a caching mode and no
+     * explicit coherency mode, but on such hardware there is always a
+     * shared-LLC (or is dgpu) so all GT memory accesses are coherent with
+     * CPU caches even with the caching mode set as uncached.  It's only the
+     * display engine that is incoherent (on dgpu it must be in VRAM which
+     * is always mapped as WC on the CPU). However to keep the uapi somewhat
+     * consistent with newer platforms the KMD groups the different cache
+     * levels into the following coherency buckets on all pre-MTL platforms:
+     *
+     *  ppGTT UC -> COH_NONE
+     *  ppGTT WC -> COH_NONE
+     *  ppGTT WT -> COH_NONE
+     *  ppGTT WB -> COH_AT_LEAST_1WAY
+     *
+     * In practice UC/WC/WT should only ever used for scanout surfaces on
+     * such platforms (or perhaps in general for dma-buf if shared with
+     * another device) since it is only the display engine that is actually
+     * incoherent.  Everything else should typically use WB given that we
+     * have a shared-LLC.  On MTL+ this completely changes and the HW
+     * defines the coherency mode as part of the @pat_index, where
+     * incoherent GT access is possible.
+     *
+     * Note: For userptr and externally imported dma-buf the kernel expects
+     * either 1WAY or 2WAY for the @pat_index.
+     */
+    uint16_t pat_index;
 
     /**
      * For cmd bo, it has an exec bo list which saves all exec bo in it.
@@ -1113,7 +1167,7 @@ __mos_bo_set_offset_xe(MOS_LINUX_BO *bo)
 }
 
 static int __mos_vm_bind_xe(int fd, uint32_t vm_id, uint32_t exec_queue_id, uint32_t bo_handle,
-          uint64_t offset, uint64_t addr, uint64_t size, uint32_t op, uint32_t flags,
+          uint64_t offset, uint64_t addr, uint64_t size, uint16_t pat_index, uint32_t op, uint32_t flags,
           struct drm_xe_sync *sync, uint32_t num_syncs, uint32_t region,
           uint64_t ext)
 {
@@ -1126,6 +1180,7 @@ static int __mos_vm_bind_xe(int fd, uint32_t vm_id, uint32_t exec_queue_id, uint
     bind.exec_queue_id = exec_queue_id;
     bind.num_binds = 1;
     bind.bind.obj = bo_handle;
+    bind.bind.pat_index = pat_index;
     bind.bind.obj_offset = offset;
     bind.bind.range = size;
     bind.bind.addr = addr;
@@ -1146,7 +1201,7 @@ static int __mos_vm_bind_xe(int fd, uint32_t vm_id, uint32_t exec_queue_id, uint
 }
 
 static int mos_xe_vm_bind_sync(int fd, uint32_t vm_id, uint32_t bo, uint64_t offset,
-        uint64_t addr, uint64_t size, uint32_t op, bool is_defer)
+        uint64_t addr, uint64_t size, uint16_t pat_index, uint32_t op, bool is_defer)
 {
     if (is_defer)
     {
@@ -1158,7 +1213,7 @@ static int mos_xe_vm_bind_sync(int fd, uint32_t vm_id, uint32_t bo, uint64_t off
     sync.flags = DRM_XE_SYNC_SYNCOBJ | DRM_XE_SYNC_SIGNAL;
     sync.handle = mos_sync_syncobj_create(fd, 0);
 
-    int ret = __mos_vm_bind_xe(fd, vm_id, 0, bo, offset, addr, size,
+    int ret = __mos_vm_bind_xe(fd, vm_id, 0, bo, offset, addr, size, pat_index,
                 op, XE_VM_BIND_FLAG_ASYNC, &sync, 1, 0, 0);
 
     if (ret)
@@ -1180,10 +1235,10 @@ static int mos_xe_vm_bind_sync(int fd, uint32_t vm_id, uint32_t bo, uint64_t off
 }
 
 static int mos_xe_vm_bind_async(int fd, uint32_t vm_id, uint32_t bo, uint64_t offset,
-        uint64_t addr, uint64_t size, uint32_t op,
+        uint64_t addr, uint64_t size, uint16_t pat_index, uint32_t op,
         struct drm_xe_sync *sync, uint32_t num_syncs)
 {
-    return __mos_vm_bind_xe(fd, vm_id, 0, bo, offset, addr, size,
+    return __mos_vm_bind_xe(fd, vm_id, 0, bo, offset, addr, size, pat_index,
                 op, XE_VM_BIND_FLAG_ASYNC, sync, num_syncs, 0, 0);
 }
 
@@ -1239,6 +1294,11 @@ mos_bo_alloc_xe(struct mos_bufmgr *bufmgr,
     {
         create.flags |= XE_GEM_CREATE_FLAG_DEFER_BACKING;
     }
+
+    /**
+     * Note: current, it only supports WB/ WC while UC and other cache are not allowed.
+     */
+    create.cpu_caching = alloc->ext.cpu_cacheable ? DRM_XE_GEM_CPU_CACHING_WB : DRM_XE_GEM_CPU_CACHING_WC;
     ret = drmIoctl(bufmgr_gem->fd,
         DRM_IOCTL_XE_GEM_CREATE,
         &create);
@@ -1251,6 +1311,11 @@ mos_bo_alloc_xe(struct mos_bufmgr *bufmgr,
     bo_gem->bo.vm_id = INVALID_VM;
     bo_gem->bo.bufmgr = bufmgr;
     bo_gem->bo.align = bo_align;
+    bo_gem->cpu_caching = create.cpu_caching;
+    /**
+     * Note: Better to get a default pat_index to overwite invalid argv. Normally it should not happen.
+     */
+    bo_gem->pat_index = alloc->ext.pat_index == PAT_INDEX_INVALID ? 0 : alloc->ext.pat_index;
 
     if (bufmgr_gem->mem_profiler_fd != -1)
     {
@@ -1274,7 +1339,15 @@ mos_bo_alloc_xe(struct mos_bufmgr *bufmgr,
 
     __mos_bo_set_offset_xe(&bo_gem->bo);
 
-    ret = mos_xe_vm_bind_sync(bufmgr_gem->fd, bufmgr_gem->vm_id, bo_gem->gem_handle, 0, bo_gem->bo.offset64, bo_gem->bo.size, XE_VM_BIND_OP_MAP, bufmgr_gem->is_defer_creation_and_binding);
+    ret = mos_xe_vm_bind_sync(bufmgr_gem->fd,
+                bufmgr_gem->vm_id,
+                bo_gem->gem_handle,
+                0, //addr, used for user_ptr
+                bo_gem->bo.offset64,
+                bo_gem->bo.size,
+                bo_gem->pat_index,
+                XE_VM_BIND_OP_MAP,
+                bufmgr_gem->is_defer_creation_and_binding);
     if (ret)
     {
         MOS_DRM_ASSERTMESSAGE("mos_xe_vm_bind_sync ret: %d", ret);
@@ -1414,6 +1487,7 @@ mos_bo_alloc_userptr_xe(struct mos_bufmgr *bufmgr,
     bo_gem->gem_handle = INVALID_HANDLE;
     bo_gem->bo.handle = INVALID_HANDLE;
     bo_gem->bo.size    = alloc_uptr->size;
+    bo_gem->pat_index = 0; //Currently, there is no cpu_caching and pat_index for user_ptr bo, hard code for it temporarily.
     bo_gem->bo.bufmgr = bufmgr;
     bo_gem->bo.vm_id = INVALID_VM;
     bo_gem->mem_region = MEMZONE_SYS;
@@ -1434,7 +1508,15 @@ mos_bo_alloc_userptr_xe(struct mos_bufmgr *bufmgr,
 
     __mos_bo_set_offset_xe(&bo_gem->bo);
 
-    ret = mos_xe_vm_bind_sync(bufmgr_gem->fd, bufmgr_gem->vm_id, 0, (uint64_t)alloc_uptr->addr, bo_gem->bo.offset64, bo_gem->bo.size, XE_VM_BIND_OP_MAP_USERPTR, bufmgr_gem->is_defer_creation_and_binding);
+    ret = mos_xe_vm_bind_sync(bufmgr_gem->fd,
+                bufmgr_gem->vm_id,
+                0, //handle for bo, not used by user_ptr
+                (uint64_t)alloc_uptr->addr,
+                bo_gem->bo.offset64,
+                bo_gem->bo.size,
+                bo_gem->pat_index,
+                XE_VM_BIND_OP_MAP_USERPTR,
+                bufmgr_gem->is_defer_creation_and_binding);
     if (ret)
     {
         MOS_DRM_ASSERTMESSAGE("mos_xe_vm_bind_userptr_sync ret: %d", ret);
@@ -1513,6 +1595,11 @@ mos_bo_create_from_prime_xe(struct mos_bufmgr *bufmgr, int prime_fd, int size)
         bo_gem->bo.size = size;
 
     bo_gem->bo.handle = handle;
+    /*
+     * Note, currectly there is no cpu_caching and pat_index for external-imported bo, hard code for it.
+     * Need to get the pat_index by the customer_gmminfo with 1way coherency at least later.
+     */
+    bo_gem->pat_index = 0; //Note need to hard code a pat_index with 1way coherency at least
     bo_gem->bo.bufmgr = bufmgr;
 
     bo_gem->gem_handle = handle;
@@ -1526,7 +1613,15 @@ mos_bo_create_from_prime_xe(struct mos_bufmgr *bufmgr, int prime_fd, int size)
 
     __mos_bo_set_offset_xe(&bo_gem->bo);
 
-    ret = mos_xe_vm_bind_sync(bufmgr_gem->fd, bufmgr_gem->vm_id, bo_gem->gem_handle, 0, bo_gem->bo.offset64, bo_gem->bo.size, XE_VM_BIND_OP_MAP, bufmgr_gem->is_defer_creation_and_binding);
+    ret = mos_xe_vm_bind_sync(bufmgr_gem->fd,
+                bufmgr_gem->vm_id,
+                bo_gem->gem_handle,
+                0,
+                bo_gem->bo.offset64,
+                bo_gem->bo.size,
+                bo_gem->pat_index,
+                XE_VM_BIND_OP_MAP,
+                bufmgr_gem->is_defer_creation_and_binding);
     if (ret)
     {
         MOS_DRM_ASSERTMESSAGE("mos_xe_vm_bind_sync ret: %d", ret);
@@ -3091,7 +3186,15 @@ mos_bo_free_xe(struct mos_linux_bo *bo)
 
     if(bo->vm_id != INVALID_VM)
     {
-        ret = mos_xe_vm_bind_sync(bufmgr_gem->fd, bo->vm_id, 0, 0, bo->offset64, bo->size, XE_VM_BIND_OP_UNMAP, bufmgr_gem->is_defer_creation_and_binding);
+        ret = mos_xe_vm_bind_sync(bufmgr_gem->fd,
+                    bo->vm_id,
+                    0,
+                    0,
+                    bo->offset64,
+                    bo->size,
+                    bo_gem->pat_index,
+                    XE_VM_BIND_OP_UNMAP,
+                    bufmgr_gem->is_defer_creation_and_binding);
         if (ret)
         {
             MOS_DRM_ASSERTMESSAGE("mos_gem_bo_free mos_vm_unbind ret error. bo:0x%lx, vm_id:%d\r",
