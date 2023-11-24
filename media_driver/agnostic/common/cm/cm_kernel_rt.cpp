@@ -230,7 +230,8 @@ int32_t CmKernelRT::Create(CmDeviceRT *device,
     }
 
 #if USE_EXTENSION_CODE
-    result = kernel->InitForGTPin(device, program, kernel);
+    if (device)
+        result = kernel->InitForGTPin(device, program, kernel);
 #endif
 
     return result;
