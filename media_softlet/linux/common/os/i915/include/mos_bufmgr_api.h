@@ -205,23 +205,48 @@ struct mos_linux_bo {
 #define BO_ALLOC_FOR_RENDER (1<<0)
 
 #define PAT_INDEX_INVALID ((uint32_t)-1)
+struct mos_drm_bo_alloc_ext{
+    unsigned long flags = 0;
+    uint32_t tiling_mode = TILING_NONE;
+    int mem_type = 0;
+    unsigned int pat_index = PAT_INDEX_INVALID;
+    bool     cpu_cacheable = true;
+};
 
-struct mos_linux_bo *mos_bo_alloc(struct mos_bufmgr *bufmgr, const char *name,
-                 unsigned long size, unsigned int alignment, int mem_type, unsigned int pat_index = PAT_INDEX_INVALID, bool cpu_cacheable = true);
+struct mos_drm_bo_alloc {
+    const char *name = "\0";
+    unsigned long size = 0;
+    unsigned int alignment = 0;
+    unsigned long stride = 0;
+
+    struct mos_drm_bo_alloc_ext ext;
+};
+
+struct mos_drm_bo_alloc_userptr {
+    const char *name = "\0";
+    void *addr = 0;
+    uint32_t tiling_mode = 0;
+    uint32_t stride = 0;
+    unsigned long size = 0;
+    unsigned long flags = 0;
+};
+
+struct mos_drm_bo_alloc_tiled {
+    const char *name = "\0";
+    int x = 0;
+    int y = 0;
+    int cpp = 0;
+    unsigned long pitch = 0;
+
+    struct mos_drm_bo_alloc_ext ext;
+};
+
+struct mos_linux_bo *mos_bo_alloc(struct mos_bufmgr *bufmgr,
+                                struct mos_drm_bo_alloc *alloc);
 struct mos_linux_bo *mos_bo_alloc_userptr(struct mos_bufmgr *bufmgr,
-                    const char *name,
-                    void *addr, uint32_t tiling_mode,
-                    uint32_t stride, unsigned long size,
-                    unsigned long flags);
+                                struct mos_drm_bo_alloc_userptr *alloc_uptr);
 struct mos_linux_bo *mos_bo_alloc_tiled(struct mos_bufmgr *bufmgr,
-                       const char *name,
-                       int x, int y, int cpp,
-                       uint32_t *tiling_mode,
-                       unsigned long *pitch,
-                       unsigned long flags,
-                       int mem_type,
-                       unsigned int pat_index = PAT_INDEX_INVALID,
-                       bool cpu_cacheable = true);
+                                struct mos_drm_bo_alloc_tiled *alloc_tiled);
 void mos_bo_reference(struct mos_linux_bo *bo);
 void mos_bo_unreference(struct mos_linux_bo *bo);
 int mos_bo_map(struct mos_linux_bo *bo, int write_enable);

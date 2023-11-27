@@ -389,14 +389,14 @@ VAStatus DdiMediaUtil_AllocateSurface(
         }
         else if( mediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR )
         {
-            bo = mos_bo_alloc_userptr( mediaDrvCtx->pDrmBufMgr,
-                                          "SysSurface",
-                                          (void *)mediaSurface->pSurfDesc->ulBuffer,
-                                          mediaSurface->pSurfDesc->uiTile,
-                                          pitch,
-                                          mediaSurface->pSurfDesc->uiBuffserSize,
-                                          0
-                                         );
+            struct mos_drm_bo_alloc_userptr alloc_uptr;
+            alloc_uptr.name = "SysSurface";
+            alloc_uptr.addr = (void *)mediaSurface->pSurfDesc->ulBuffer;
+            alloc_uptr.tiling_mode = mediaSurface->pSurfDesc->uiTile;
+            alloc_uptr.stride = pitch;
+            alloc_uptr.size = mediaSurface->pSurfDesc->uiBuffserSize;
+
+            bo = mos_bo_alloc_userptr( mediaDrvCtx->pDrmBufMgr, &alloc_uptr);
 
             if (bo != nullptr)
             {
@@ -744,14 +744,27 @@ VAStatus DdiMediaUtil_AllocateSurface(
 
         if ( tileformat == TILING_NONE )
         {
-            bo = mos_bo_alloc(mediaDrvCtx->pDrmBufMgr, "MEDIA", gmmSize, 4096, mem_type);
+            struct mos_drm_bo_alloc alloc;
+            alloc.name = "MEDIA";
+            alloc.size = gmmSize;
+            alloc.alignment = 4096;
+            alloc.ext.mem_type = mem_type;
+
+            bo = mos_bo_alloc(mediaDrvCtx->pDrmBufMgr, &alloc);
             pitch = gmmPitch;
         }
         else
         {
-            unsigned long  ulPitch = 0;
-            bo = mos_bo_alloc_tiled(mediaDrvCtx->pDrmBufMgr, "MEDIA", gmmPitch, (gmmSize + gmmPitch -1)/gmmPitch, 1, &tileformat, (unsigned long *)&ulPitch, 0, mem_type);
-            pitch = ulPitch;
+            struct mos_drm_bo_alloc_tiled alloc_tiled;
+            alloc_tiled.name = "MEDIA";
+            alloc_tiled.x = gmmPitch;
+            alloc_tiled.y = (gmmSize + gmmPitch -1)/gmmPitch;
+            alloc_tiled.cpp = 1;
+            alloc_tiled.ext.tiling_mode = tileformat;
+            alloc_tiled.ext.mem_type = mem_type;
+
+            bo = mos_bo_alloc_tiled(mediaDrvCtx->pDrmBufMgr, &alloc_tiled);
+            pitch = alloc_tiled.pitch;
         }
 
         mediaSurface->bMapped = false;
@@ -847,7 +860,12 @@ VAStatus DdiMediaUtil_AllocateBuffer(
 
     mem_type = MemoryPolicyManager::UpdateMemoryPolicy(&memPolicyPar);
 
-    MOS_LINUX_BO *bo  = mos_bo_alloc(bufmgr, "Media Buffer", size, 4096, mem_type);
+    struct mos_drm_bo_alloc alloc;
+    alloc.name = "Media Buffer";
+    alloc.size = size;
+    alloc.alignment = 4096;
+    alloc.ext.mem_type = mem_type;
+    MOS_LINUX_BO *bo  = mos_bo_alloc(bufmgr, &alloc);
 
     mediaBuffer->bMapped = false;
     if (bo)
@@ -927,7 +945,7 @@ VAStatus DdiMediaUtil_Allocate2DBuffer(
     {
         DDI_VERBOSEMESSAGE("Gmm Create Resource Failed.");
         hRes = VA_STATUS_ERROR_ALLOCATION_FAILED;
-        goto finish;
+        return hRes;
     }
     uint32_t    gmmPitch;
     uint32_t    gmmSize;
@@ -949,7 +967,12 @@ VAStatus DdiMediaUtil_Allocate2DBuffer(
     mem_type = MemoryPolicyManager::UpdateMemoryPolicy(&memPolicyPar);
 
     MOS_LINUX_BO  *bo;
-    bo = mos_bo_alloc(bufmgr, "Media 2D Buffer", gmmSize, 4096, mem_type);
+    struct mos_drm_bo_alloc alloc;
+    alloc.name = "Media 2D Buffer";
+    alloc.size = gmmSize;
+    alloc.alignment = 4096;
+    alloc.ext.mem_type = mem_type;
+    bo = mos_bo_alloc(bufmgr, &alloc);
 
     mediaBuffer->bMapped = false;
     if (bo)

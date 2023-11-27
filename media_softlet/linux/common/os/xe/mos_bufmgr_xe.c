@@ -1189,19 +1189,12 @@ static int mos_xe_vm_bind_async(int fd, uint32_t vm_id, uint32_t bo, uint64_t of
 
 drm_export struct mos_linux_bo *
 mos_bo_alloc_xe(struct mos_bufmgr *bufmgr,
-               const char *name,
-               unsigned long size,
-               unsigned int alignment,
-               int mem_type,
-               unsigned int pat_index,
-               bool cpu_cacheable)
+               struct mos_drm_bo_alloc *alloc)
 {
-    MOS_UNUSED(pat_index);
-    MOS_UNUSED(cpu_cacheable);
     struct mos_xe_bufmgr_gem *bufmgr_gem = (struct mos_xe_bufmgr_gem *) bufmgr;
     struct mos_xe_bo_gem *bo_gem;
     struct drm_xe_gem_create create;
-    uint32_t bo_align = alignment;
+    uint32_t bo_align = alloc->alignment;
     int ret;
 
     /**
@@ -1219,13 +1212,13 @@ mos_bo_alloc_xe(struct mos_bufmgr *bufmgr,
     atomic_set(&bo_gem->map_count, 0);
     bo_gem->mem_virtual = nullptr;
     bo_gem->mem_region = MEMZONE_SYS;
-    bo_align = MAX(alignment, bufmgr_gem->default_alignment[MOS_XE_MEM_CLASS_SYSMEM]);
+    bo_align = MAX(alloc->alignment, bufmgr_gem->default_alignment[MOS_XE_MEM_CLASS_SYSMEM]);
 
     if(bufmgr_gem->has_vram &&
-            (MOS_MEMPOOL_VIDEOMEMORY == mem_type   || MOS_MEMPOOL_DEVICEMEMORY == mem_type))
+            (MOS_MEMPOOL_VIDEOMEMORY == alloc->ext.mem_type   || MOS_MEMPOOL_DEVICEMEMORY == alloc->ext.mem_type))
     {
         bo_gem->mem_region = MEMZONE_DEVICE;
-        bo_align = MAX(alignment, bufmgr_gem->default_alignment[MOS_XE_MEM_CLASS_VRAM]);
+        bo_align = MAX(alloc->alignment, bufmgr_gem->default_alignment[MOS_XE_MEM_CLASS_VRAM]);
     }
 
     memclear(create);
@@ -1241,7 +1234,7 @@ mos_bo_alloc_xe(struct mos_bufmgr *bufmgr,
 
     //Note: We suggest vm_id=0 here as default, otherwise this bo cannot be exported as prelim fd.
     create.vm_id = 0;
-    create.size = ALIGN(size, bo_align);
+    create.size = ALIGN(alloc->size, bo_align);
     if (bufmgr_gem->is_defer_creation_and_binding)
     {
         create.flags |= XE_GEM_CREATE_FLAG_DEFER_BACKING;
@@ -1261,7 +1254,7 @@ mos_bo_alloc_xe(struct mos_bufmgr *bufmgr,
 
     if (bufmgr_gem->mem_profiler_fd != -1)
     {
-        snprintf(bufmgr_gem->mem_profiler_buffer, MEM_PROFILER_BUFFER_SIZE, "GEM_CREATE, %d, %d, %lu, %d, %s\n", getpid(), bo_gem->bo.handle, bo_gem->bo.size,bo_gem->mem_region, name);
+        snprintf(bufmgr_gem->mem_profiler_buffer, MEM_PROFILER_BUFFER_SIZE, "GEM_CREATE, %d, %d, %lu, %d, %s\n", getpid(), bo_gem->bo.handle, bo_gem->bo.size,bo_gem->mem_region, alloc->name);
         ret = write(bufmgr_gem->mem_profiler_fd, bufmgr_gem->mem_profiler_buffer, strnlen(bufmgr_gem->mem_profiler_buffer, MEM_PROFILER_BUFFER_SIZE));
         if (-1 == ret)
         {
@@ -1273,11 +1266,11 @@ mos_bo_alloc_xe(struct mos_bufmgr *bufmgr,
        list (vma_list), so better set the list head here */
     DRMINITLISTHEAD(&bo_gem->name_list);
 
-    memcpy(bo_gem->name, name, (strlen(name) + 1) > MAX_NAME_SIZE ? MAX_NAME_SIZE : (strlen(name) + 1));
+    memcpy(bo_gem->name, alloc->name, (strlen(alloc->name) + 1) > MAX_NAME_SIZE ? MAX_NAME_SIZE : (strlen(alloc->name) + 1));
     atomic_set(&bo_gem->ref_count, 1);
 
     MOS_DRM_NORMALMESSAGE("buf %d (%s) %ldb, bo:0x%lx",
-        bo_gem->gem_handle, name, size, (uint64_t)&bo_gem->bo);
+        bo_gem->gem_handle, alloc->name, alloc->size, (uint64_t)&bo_gem->bo);
 
     __mos_bo_set_offset_xe(&bo_gem->bo);
 
@@ -1339,10 +1332,8 @@ __mos_bo_tile_pitch_xe(struct mos_xe_bufmgr_gem *bufmgr_gem,
 }
 
 static struct mos_linux_bo *
-mos_bo_alloc_tiled_xe(struct mos_bufmgr *bufmgr, const char *name,
-                 int x, int y, int cpp, uint32_t *tiling_mode,
-                 unsigned long *pitch, unsigned long flags,
-                 int mem_type, unsigned int pat_index, bool cpu_cacheable)
+mos_bo_alloc_tiled_xe(struct mos_bufmgr *bufmgr,
+                 struct mos_drm_bo_alloc_tiled *alloc_tiled)
 {
     struct mos_xe_bufmgr_gem *bufmgr_gem = (struct mos_xe_bufmgr_gem *) bufmgr;
     unsigned long size, stride;
@@ -1351,7 +1342,7 @@ mos_bo_alloc_tiled_xe(struct mos_bufmgr *bufmgr, const char *name,
     uint32_t alignment = bufmgr_gem->default_alignment[MOS_XE_MEM_CLASS_SYSMEM];
 
     if(bufmgr_gem->has_vram &&
-       (MOS_MEMPOOL_VIDEOMEMORY == mem_type   || MOS_MEMPOOL_DEVICEMEMORY == mem_type))
+       (MOS_MEMPOOL_VIDEOMEMORY == alloc_tiled->ext.mem_type   || MOS_MEMPOOL_DEVICEMEMORY == alloc_tiled->ext.mem_type))
     {
         alignment = bufmgr_gem->default_alignment[MOS_XE_MEM_CLASS_VRAM];
     }
@@ -1359,7 +1350,7 @@ mos_bo_alloc_tiled_xe(struct mos_bufmgr *bufmgr, const char *name,
     do {
         unsigned long aligned_y, height_alignment;
 
-        tiling = *tiling_mode;
+        tiling = alloc_tiled->ext.tiling_mode;
 
         /* If we're tiled, our allocations are in 8 or 32-row blocks,
          * so failure to align our height means that we won't allocate
@@ -1372,34 +1363,35 @@ mos_bo_alloc_tiled_xe(struct mos_bufmgr *bufmgr, const char *name,
          * documented on 965, and may be the case on older chipsets
          * too so we try to be careful.
          */
-        aligned_y = y;
+        aligned_y = alloc_tiled->y;
         height_alignment = 2;
 
         if (TILING_X == tiling)
             height_alignment = 8;
         else if (TILING_Y == tiling)
             height_alignment = 32;
-        aligned_y = ALIGN(y, height_alignment);
+        aligned_y = ALIGN(alloc_tiled->y, height_alignment);
 
-        stride = x * cpp;
-        stride = __mos_bo_tile_pitch_xe(bufmgr_gem, stride, tiling_mode);
+        stride = alloc_tiled->x * alloc_tiled->cpp;
+        stride = __mos_bo_tile_pitch_xe(bufmgr_gem, stride, &alloc_tiled->ext.tiling_mode);
         size = stride * aligned_y;
-        size = __mos_bo_tile_size_xe(bufmgr_gem, size, tiling_mode, alignment);
-    } while (*tiling_mode != tiling);
+        size = __mos_bo_tile_size_xe(bufmgr_gem, size, &alloc_tiled->ext.tiling_mode, alignment);
+    } while (alloc_tiled->ext.tiling_mode != tiling);
 
-    *pitch = stride;
+    alloc_tiled->pitch = stride;
 
-    return mos_bo_alloc_xe(bufmgr, name, size, alignment, mem_type, pat_index, cpu_cacheable);
+    struct mos_drm_bo_alloc alloc;
+    alloc.name = alloc_tiled->name;
+    alloc.size = size;
+    alloc.alignment = alignment;
+    alloc.ext = alloc_tiled->ext;
+
+    return mos_bo_alloc_xe(bufmgr, &alloc);
 }
 
 drm_export struct mos_linux_bo *
 mos_bo_alloc_userptr_xe(struct mos_bufmgr *bufmgr,
-                const char *name,
-                void *addr,
-                uint32_t tiling_mode,
-                uint32_t stride,
-                unsigned long size,
-                unsigned long flags)
+                struct mos_drm_bo_alloc_userptr *alloc_uptr)
 {
     struct mos_xe_bufmgr_gem *bufmgr_gem = (struct mos_xe_bufmgr_gem *) bufmgr;
     struct mos_xe_bo_gem *bo_gem;
@@ -1418,31 +1410,31 @@ mos_bo_alloc_userptr_xe(struct mos_bufmgr *bufmgr,
     bo_gem->last_exec_read_exec_queue = INVALID_EXEC_QUEUE_ID;
     bo_gem->last_exec_write_exec_queue = INVALID_EXEC_QUEUE_ID;
     atomic_set(&bo_gem->map_count, 0);
-    bo_gem->mem_virtual = addr;
+    bo_gem->mem_virtual = alloc_uptr->addr;
     bo_gem->gem_handle = INVALID_HANDLE;
     bo_gem->bo.handle = INVALID_HANDLE;
-    bo_gem->bo.size    = size;
+    bo_gem->bo.size    = alloc_uptr->size;
     bo_gem->bo.bufmgr = bufmgr;
     bo_gem->bo.vm_id = INVALID_VM;
     bo_gem->mem_region = MEMZONE_SYS;
 
     /* Save the address provided by user */
 #ifdef __cplusplus
-    bo_gem->bo.virt   = addr;
+    bo_gem->bo.virt   = alloc_uptr->addr;
 #else
-    bo_gem->bo.virtual   = addr;
+    bo_gem->bo.virtual   = alloc_uptr->addr;
 #endif
 
     /* drm_intel_gem_bo_free calls DRMLISTDEL() for an uninitialized
        list (vma_list), so better set the list head here */
     DRMINITLISTHEAD(&bo_gem->name_list);
 
-    memcpy(bo_gem->name, name, (strlen(name) + 1) > MAX_NAME_SIZE ? MAX_NAME_SIZE : (strlen(name) + 1));
+    memcpy(bo_gem->name, alloc_uptr->name, (strlen(alloc_uptr->name) + 1) > MAX_NAME_SIZE ? MAX_NAME_SIZE : (strlen(alloc_uptr->name) + 1));
     atomic_set(&bo_gem->ref_count, 1);
 
     __mos_bo_set_offset_xe(&bo_gem->bo);
 
-    ret = mos_xe_vm_bind_sync(bufmgr_gem->fd, bufmgr_gem->vm_id, 0, (uint64_t)addr, bo_gem->bo.offset64, bo_gem->bo.size, XE_VM_BIND_OP_MAP_USERPTR, bufmgr_gem->is_defer_creation_and_binding);
+    ret = mos_xe_vm_bind_sync(bufmgr_gem->fd, bufmgr_gem->vm_id, 0, (uint64_t)alloc_uptr->addr, bo_gem->bo.offset64, bo_gem->bo.size, XE_VM_BIND_OP_MAP_USERPTR, bufmgr_gem->is_defer_creation_and_binding);
     if (ret)
     {
         MOS_DRM_ASSERTMESSAGE("mos_xe_vm_bind_userptr_sync ret: %d", ret);
@@ -1455,7 +1447,7 @@ mos_bo_alloc_userptr_xe(struct mos_bufmgr *bufmgr,
     }
 
     MOS_DRM_NORMALMESSAGE("mos_bo_alloc_userptr_xe: buf (%s) %ldb, bo:0x%lx",
-        name, size, (uint64_t)&bo_gem->bo);
+        alloc_uptr->name, alloc_uptr->size, (uint64_t)&bo_gem->bo);
 
 
     return &bo_gem->bo;

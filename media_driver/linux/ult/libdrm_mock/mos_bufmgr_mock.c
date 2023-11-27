@@ -873,18 +873,8 @@ mos_gem_bo_vma_free(struct mos_bufmgr *bufmgr,
 
 drm_export struct mos_linux_bo *
 mos_gem_bo_alloc_internal(struct mos_bufmgr *bufmgr,
-                const char *name,
-                unsigned long size,
-                unsigned long flags,
-                uint32_t tiling_mode,
-                unsigned long stride,
-                unsigned int alignment,
-                int mem_type,
-                unsigned int pat_index,
-                bool cpu_cacheable)
+                struct mos_drm_bo_alloc *alloc)
 {
-    MOS_UNUSED(pat_index);
-    MOS_UNUSED(cpu_cacheable);
     struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *) bufmgr;
     struct mos_bo_gem *bo_gem;
     unsigned int page_size = getpagesize();
@@ -894,17 +884,17 @@ mos_gem_bo_alloc_internal(struct mos_bufmgr *bufmgr,
     unsigned long bo_size;
     bool for_render = false;
 
-    if (flags & BO_ALLOC_FOR_RENDER)
+    if (alloc->ext.flags & BO_ALLOC_FOR_RENDER)
         for_render = true;
 
     /* Round the allocated size up to a power of two number of pages. */
-    bucket = mos_gem_bo_bucket_for_size(bufmgr_gem, size);
+    bucket = mos_gem_bo_bucket_for_size(bufmgr_gem, alloc->size);
 
     /* If we don't have caching at this size, don't actually round the
      * allocation up.
      */
     if (bucket == nullptr) {
-        bo_size = size;
+        bo_size = alloc->size;
         if (bo_size < page_size)
             bo_size = page_size;
     } else {
@@ -921,7 +911,7 @@ mos_gem_bo_alloc_internal(struct mos_bufmgr *bufmgr,
         bo_gem->bo.size = bo_size;
         bo_gem->bo.handle = -1;
         bo_gem->bo.bufmgr = bufmgr;
-        bo_gem->bo.align = alignment;
+        bo_gem->bo.align = alloc->alignment;
 #ifdef __cplusplus
             bo_gem->bo.virt = malloc(bo_size);
             bo_gem->mem_virtual = bo_gem->bo.virt;
@@ -950,9 +940,9 @@ retry:
                           bucket->head.prev, head);
             DRMLISTDEL(&bo_gem->head);
             alloc_from_cache = true;
-            bo_gem->bo.align = alignment;
+            bo_gem->bo.align = alloc->alignment;
         } else {
-            assert(alignment == 0);
+            assert(alloc->alignment == 0);
             /* For non-render-target BOs (where we're probably
              * going to map it first thing in order to fill it
              * with data), check if the last BO in the cache is
@@ -978,8 +968,8 @@ retry:
             }
 
             if (mos_gem_bo_set_tiling_internal(&bo_gem->bo,
-                                 tiling_mode,
-                                 stride)) {
+                                 alloc->ext.tiling_mode,
+                                 alloc->stride)) {
                 mos_gem_bo_free(&bo_gem->bo);
                 goto retry;
             }
@@ -1009,7 +999,7 @@ retry:
             return nullptr;
         }
         bo_gem->bo.bufmgr = bufmgr;
-        bo_gem->bo.align = alignment;
+        bo_gem->bo.align = alloc->alignment;
 
         bo_gem->tiling_mode = I915_TILING_NONE;
         bo_gem->swizzle_mode = I915_BIT_6_SWIZZLE_NONE;
@@ -1019,14 +1009,14 @@ retry:
            list (vma_list), so better set the list head here */
         DRMINITLISTHEAD(&bo_gem->name_list);
         if (mos_gem_bo_set_tiling_internal(&bo_gem->bo,
-                             tiling_mode,
-                             stride)) {
+                             alloc->ext.tiling_mode,
+                             alloc->stride)) {
             mos_gem_bo_free(&bo_gem->bo);
             return nullptr;
         }
     }
 
-    bo_gem->name = name;
+    bo_gem->name = alloc->name;
     atomic_set(&bo_gem->refcount, 1);
     bo_gem->validate_index = -1;
     bo_gem->reloc_tree_fences = 0;
@@ -1035,7 +1025,7 @@ retry:
     bo_gem->reusable = true;
     bo_gem->use_48b_address_range = bufmgr_gem->bufmgr.bo_use_48b_address_range ? true : false;
 
-    mos_bo_gem_set_in_aperture_size(bufmgr_gem, bo_gem, alignment);
+    mos_bo_gem_set_in_aperture_size(bufmgr_gem, bo_gem, alloc->alignment);
 
     if (bufmgr_gem->use_softpin)
     {
@@ -1043,29 +1033,24 @@ retry:
     }
 
     MOS_DBG("bo_create: buf %d (%s) %ldb\n",
-        bo_gem->gem_handle, bo_gem->name, size);
+        bo_gem->gem_handle, bo_gem->name, alloc->size);
 
     return &bo_gem->bo;
 }
 
 static struct mos_linux_bo *
 mos_gem_bo_alloc(struct mos_bufmgr *bufmgr,
-               const char *name,
-               unsigned long size,
-               unsigned int alignment,
-               int mem_type,
-               unsigned int pat_index,
-               bool cpu_cacheable)
+               struct mos_drm_bo_alloc *alloc)
 {
-    return mos_gem_bo_alloc_internal(bufmgr, name, size, 0,
-                           I915_TILING_NONE, 0, 0, mem_type, pat_index, cpu_cacheable);
+    alloc->ext.flags = 0;
+    alloc->alignment = 0;
+    alloc->stride = 0;
+    return mos_gem_bo_alloc_internal(bufmgr, alloc);
 }
 
 static struct mos_linux_bo *
-mos_gem_bo_alloc_tiled(struct mos_bufmgr *bufmgr, const char *name,
-                 int x, int y, int cpp, uint32_t *tiling_mode,
-                 unsigned long *pitch, unsigned long flags,
-                 int mem_type, unsigned int pat_index, bool cpu_cacheable)
+mos_gem_bo_alloc_tiled(struct mos_bufmgr *bufmgr,
+            struct mos_drm_bo_alloc_tiled *alloc_tiled)
 {
     struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *)bufmgr;
     unsigned long size, stride;
@@ -1074,7 +1059,7 @@ mos_gem_bo_alloc_tiled(struct mos_bufmgr *bufmgr, const char *name,
     do {
         unsigned long aligned_y, height_alignment;
 
-        tiling = *tiling_mode;
+        tiling = alloc_tiled->ext.tiling_mode;
 
         /* If we're tiled, our allocations are in 8 or 32-row blocks,
          * so failure to align our height means that we won't allocate
@@ -1087,38 +1072,38 @@ mos_gem_bo_alloc_tiled(struct mos_bufmgr *bufmgr, const char *name,
          * documented on 965, and may be the case on older chipsets
          * too so we try to be careful.
          */
-        aligned_y = y;
+        aligned_y = alloc_tiled->y;
         height_alignment = 2;
 
-    if (tiling == I915_TILING_X
+        if (tiling == I915_TILING_X
             || (IS_915(bufmgr_gem->pci_device)
                 && tiling == I915_TILING_Y))
             height_alignment = 8;
         else if (tiling == I915_TILING_Y)
             height_alignment = 32;
-        aligned_y = ALIGN(y, height_alignment);
+        aligned_y = ALIGN(alloc_tiled->y, height_alignment);
 
-        stride = x * cpp;
-        stride = mos_gem_bo_tile_pitch(bufmgr_gem, stride, tiling_mode);
+        stride = alloc_tiled->x * alloc_tiled->cpp;
+        stride = mos_gem_bo_tile_pitch(bufmgr_gem, stride, &alloc_tiled->ext.tiling_mode);
         size = stride * aligned_y;
-        size = mos_gem_bo_tile_size(bufmgr_gem, size, tiling_mode);
-    } while (*tiling_mode != tiling);
-    *pitch = stride;
+        size = mos_gem_bo_tile_size(bufmgr_gem, size, &alloc_tiled->ext.tiling_mode);
+    } while (alloc_tiled->ext.tiling_mode != tiling);
+    alloc_tiled->pitch = stride;
 
     if (tiling == I915_TILING_NONE)
         stride = 0;
-    return mos_gem_bo_alloc_internal(bufmgr, name, size, flags,
-                                               tiling, stride, 0, mem_type, pat_index, cpu_cacheable);
+
+    struct mos_drm_bo_alloc alloc;
+    alloc.name = alloc_tiled->name;
+    alloc.size = size;
+    alloc.stride = stride;
+    alloc.ext = alloc_tiled->ext;
+    return mos_gem_bo_alloc_internal(bufmgr, &alloc);
 }
 
 static struct mos_linux_bo *
 mos_gem_bo_alloc_userptr(struct mos_bufmgr *bufmgr,
-                const char *name,
-                void *addr,
-                uint32_t tiling_mode,
-                uint32_t stride,
-                unsigned long size,
-                unsigned long flags)
+                struct mos_drm_bo_alloc_userptr *alloc_uptr)
 {
     struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *) bufmgr;
     struct mos_bo_gem *bo_gem;
@@ -1128,19 +1113,19 @@ mos_gem_bo_alloc_userptr(struct mos_bufmgr *bufmgr,
     /* Tiling with userptr surfaces is not supported
      * on all hardware so refuse it for time being.
      */
-    if (tiling_mode != I915_TILING_NONE)
+    if (alloc_uptr->tiling_mode != I915_TILING_NONE)
         return nullptr;
 
     bo_gem = (struct mos_bo_gem *)calloc(1, sizeof(*bo_gem));
     if (!bo_gem)
         return nullptr;
 
-    bo_gem->bo.size = size;
+    bo_gem->bo.size = alloc_uptr->size;
 
     memclear(userptr);
-    userptr.user_ptr = (__u64)((unsigned long)addr);
-    userptr.user_size = size;
-    userptr.flags = flags;
+    userptr.user_ptr = (__u64)((unsigned long)alloc_uptr->addr);
+    userptr.user_size = alloc_uptr->size;
+    userptr.flags = alloc_uptr->flags;
 
     ret = drmIoctl(bufmgr_gem->fd,
             DRM_IOCTL_I915_GEM_USERPTR,
@@ -1148,29 +1133,29 @@ mos_gem_bo_alloc_userptr(struct mos_bufmgr *bufmgr,
     if (ret != 0) {
         MOS_DBG("bo_create_userptr: "
             "ioctl failed with user ptr %p size 0x%lx, "
-            "user flags 0x%lx\n", addr, size, flags);
+            "user flags 0x%lx\n", alloc_uptr->addr, alloc_uptr->size, alloc_uptr->flags);
         free(bo_gem);
         return nullptr;
     }
 
-    bo_gem->gem_handle = userptr.handle;
-    bo_gem->bo.handle = bo_gem->gem_handle;
-    bo_gem->bo.bufmgr    = bufmgr;
-    bo_gem->is_userptr   = true;
+    bo_gem->gem_handle    = userptr.handle;
+    bo_gem->bo.handle     = bo_gem->gem_handle;
+    bo_gem->bo.bufmgr     = bufmgr;
+    bo_gem->is_userptr    = true;
 #ifdef __cplusplus
-    bo_gem->bo.virt   = addr;
+    bo_gem->bo.virt   = alloc_uptr->addr;
 #else
-    bo_gem->bo.virtual   = addr;
+    bo_gem->bo.virtual   = alloc_uptr->addr;
 #endif
     /* Save the address provided by user */
-    bo_gem->user_virtual = addr;
+    bo_gem->user_virtual = alloc_uptr->addr;
     bo_gem->tiling_mode  = I915_TILING_NONE;
     bo_gem->swizzle_mode = I915_BIT_6_SWIZZLE_NONE;
     bo_gem->stride       = 0;
 
     DRMINITLISTHEAD(&bo_gem->name_list);
 
-    bo_gem->name = name;
+    bo_gem->name = alloc_uptr->name;
     atomic_set(&bo_gem->refcount, 1);
     bo_gem->validate_index = -1;
     bo_gem->reloc_tree_fences = 0;
@@ -1180,7 +1165,6 @@ mos_gem_bo_alloc_userptr(struct mos_bufmgr *bufmgr,
     bo_gem->use_48b_address_range = bufmgr_gem->bufmgr.bo_use_48b_address_range ? true : false;
 
     mos_bo_gem_set_in_aperture_size(bufmgr_gem, bo_gem, 0);
-
     if (bufmgr_gem->use_softpin)
     {
         mos_bo_set_softpin(&bo_gem->bo);
@@ -1188,8 +1172,8 @@ mos_gem_bo_alloc_userptr(struct mos_bufmgr *bufmgr,
 
     MOS_DBG("bo_create_userptr: "
         "ptr %p buf %d (%s) size %ldb, stride 0x%x, tile mode %d\n",
-        addr, bo_gem->gem_handle, bo_gem->name,
-        size, stride, tiling_mode);
+        alloc_uptr->addr, bo_gem->gem_handle, bo_gem->name,
+        alloc_uptr->size, alloc_uptr->stride, alloc_uptr->tiling_mode);
 
     return &bo_gem->bo;
 }
@@ -1242,20 +1226,14 @@ retry:
 
 static struct mos_linux_bo *
 check_bo_alloc_userptr(struct mos_bufmgr *bufmgr,
-               const char *name,
-               void *addr,
-               uint32_t tiling_mode,
-               uint32_t stride,
-               unsigned long size,
-               unsigned long flags)
+               struct mos_drm_bo_alloc_userptr *alloc_uptr)
 {
     if (has_userptr((struct mos_bufmgr_gem *)bufmgr))
         bufmgr->bo_alloc_userptr = mos_gem_bo_alloc_userptr;
     else
         bufmgr->bo_alloc_userptr = nullptr;
 
-    return mos_bo_alloc_userptr(bufmgr, name, addr,
-                      tiling_mode, stride, size, flags);
+    return mos_bo_alloc_userptr(bufmgr, alloc_uptr);
 }
 
 /**
