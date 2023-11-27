@@ -962,6 +962,8 @@ public:
 
     uint32_t GetSizeofSamplerStateAvs() { return m_HwSizes.dwSizeSamplerStateAvs;};
 
+    int8_t GetDynamicMode() { return m_bDynamicMode; }
+
     //!
     //! \brief    Initializes the MI StateHeap interface
     //! \details  Internal MHW function to initialize all function pointers and some parameters

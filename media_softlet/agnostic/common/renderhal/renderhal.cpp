@@ -1449,8 +1449,15 @@ MOS_STATUS RenderHal_AllocateStateHeaps(
         {
             break;
         }
-    
-         pDshHeap = pRenderHal->pMhwStateHeap->GetDSHPointer();
+        
+        pDshHeap = pRenderHal->pMhwStateHeap->GetDSHPointer();
+        if (pRenderHal->pMhwStateHeap->GetDynamicMode() == MHW_RENDER_HAL_MODE)
+        {
+            while (pDshHeap->pNext != nullptr)
+            {
+                pDshHeap = pDshHeap->pNext;
+            }
+        }
         if (pRenderHal->pMhwStateHeap->LockStateHeap(pDshHeap) != MOS_STATUS_SUCCESS)
         {
             break;
@@ -1461,6 +1468,13 @@ MOS_STATUS RenderHal_AllocateStateHeaps(
         pStateHeap->bGshLocked    = true;
 
         pIshHeap = pRenderHal->pMhwStateHeap->GetISHPointer();
+        if (pRenderHal->pMhwStateHeap->GetDynamicMode() == MHW_RENDER_HAL_MODE)
+        {
+            while (pIshHeap->pNext != nullptr)
+            {
+                pIshHeap = pIshHeap->pNext;
+            }
+        }
         if (pRenderHal->pMhwStateHeap->LockStateHeap(pIshHeap) != MOS_STATUS_SUCCESS)
         {  
             break;
