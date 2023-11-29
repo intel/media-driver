@@ -853,8 +853,6 @@ MOS_STATUS CodechalInterfacesNextXe_Hpm::Initialize(
 
     if (CodecHalIsDecode(CodecFunction))
     {
-        MOS_Delete(hwInterface);
-        mhwInterfaces->SetDestroyState(true);
         CODECHAL_PUBLIC_ASSERTMESSAGE("Decode allocation failed, Decoder with CodechalDeviceNext is not supported!");
         return MOS_STATUS_INVALID_PARAMETER;
  
@@ -875,16 +873,12 @@ MOS_STATUS CodechalInterfacesNextXe_Hpm::Initialize(
             }
             else
             {
-                MOS_Delete(hwInterface);
-                mhwInterfaces->SetDestroyState(true);
                 return MOS_STATUS_INVALID_PARAMETER;
             }
         }
         else
 #endif
         {
-            MOS_Delete(hwInterface);
-            mhwInterfaces->SetDestroyState(true);
             CODECHAL_PUBLIC_ASSERTMESSAGE("Unsupported encode function requested.");
             return MOS_STATUS_INVALID_PARAMETER;
         }
@@ -892,8 +886,6 @@ MOS_STATUS CodechalInterfacesNextXe_Hpm::Initialize(
     }
     else
     {
-        MOS_Delete(hwInterface);
-        mhwInterfaces->SetDestroyState(true);
         CODECHAL_PUBLIC_ASSERTMESSAGE("Unsupported codec function requested.");
         return MOS_STATUS_INVALID_PARAMETER;
     }
