@@ -308,6 +308,17 @@ protected:
         PMOS_SURFACE                  outputSurface,
         uint32_t                      flag);
 
+    //!
+    //! \brief    Block copy buffer
+    //! \details  BLT engine will copy source buffer to destination buffer
+    //! \param    pBltStateParam
+    //!           [in] Pointer to BLT_STATE_PARAM
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    MOS_STATUS BlockCopyBuffer(
+        PBLT_STATE_PARAM pBltStateParam);
+
 public:
     bool               m_blokCopyon       = false;
     PMOS_INTERFACE     m_osInterface      = nullptr;

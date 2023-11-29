@@ -274,6 +274,17 @@ protected:
     virtual MOS_STATUS SubmitCMD(
         PBLT_STATE_PARAM pBltStateParam);
 
+    //!
+    //! \brief    Block copy buffer
+    //! \details  BLT engine will copy source buffer to destination buffer
+    //! \param    pBltStateParam
+    //!           [in] Pointer to BLT_STATE_PARAM
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    MOS_STATUS BlockCopyBuffer(
+        PBLT_STATE_PARAM pBltStateParam);
+
 private:
     bool         initialized = false;
     bool         allocated   = false;

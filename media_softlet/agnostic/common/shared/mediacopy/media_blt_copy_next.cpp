@@ -518,6 +518,95 @@ MOS_STATUS BltStateNext::SetupCtrlSurfCopyBltParam(
 
     return MOS_STATUS_SUCCESS;
 }
+
+//!
+//! \brief    Block copy buffer
+//! \details  BLT engine will copy source buffer to destination buffer
+//! \param    pBltStateParam
+//!           [in] Pointer to BLT_STATE_PARAM
+//! \return   MOS_STATUS
+//!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+//!
+MOS_STATUS BltStateNext::BlockCopyBuffer(PBLT_STATE_PARAM pBltStateParam)
+{
+    PMOS_RESOURCE src = nullptr;
+    PMOS_RESOURCE dst = nullptr;
+    BLT_CHK_NULL_RETURN(pBltStateParam);
+    BLT_CHK_NULL_RETURN(pBltStateParam->pSrcSurface);
+    BLT_CHK_NULL_RETURN(pBltStateParam->pDstSurface);
+    BLT_CHK_NULL_RETURN(pBltStateParam->pSrcSurface->pGmmResInfo);
+    BLT_CHK_NULL_RETURN(pBltStateParam->pDstSurface->pGmmResInfo);
+
+    src = pBltStateParam->pSrcSurface;
+    dst = pBltStateParam->pDstSurface;
+
+    if ((src->pGmmResInfo->GetSizeMainSurface() > MAX_BLT_BLOCK_COPY_WIDTH * MAX_BLT_BLOCK_COPY_WIDTH) &&
+        (dst->pGmmResInfo->GetSizeMainSurface() > MAX_BLT_BLOCK_COPY_WIDTH * MAX_BLT_BLOCK_COPY_WIDTH))
+    {
+        BLT_ASSERTMESSAGE("Buffer size too large");
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    if ((src->pGmmResInfo->GetSizeMainSurface() % 4096 != 0) &&
+        (src->pGmmResInfo->GetSizeMainSurface() % 4096 != 16))
+    {
+        BLT_ASSERTMESSAGE("Src buffer is not aligned to 4K");
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    if ((dst->pGmmResInfo->GetSizeMainSurface() % 4096 != 0) &&
+        (dst->pGmmResInfo->GetSizeMainSurface() % 4096 != 16))
+    {
+        BLT_ASSERTMESSAGE("Dst buffer is not aligned to 4K");
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    GMM_RESOURCE_FORMAT backupSrcFormat = src->pGmmResInfo->GetResourceFormat();
+    GMM_GFX_SIZE_T      backupSrcWidth  = src->pGmmResInfo->GetBaseWidth();
+    uint32_t            backupSrcHeight = src->pGmmResInfo->GetBaseHeight();
+    GMM_RESOURCE_FORMAT backupDstFormat = dst->pGmmResInfo->GetResourceFormat();
+    GMM_GFX_SIZE_T      backupDstWidth  = dst->pGmmResInfo->GetBaseWidth();
+    uint32_t            backupDstHeight = dst->pGmmResInfo->GetBaseHeight();
+
+    uint32_t pitch = 4096;
+    uint32_t size  = static_cast<uint32_t>((std::min)(src->pGmmResInfo->GetSizeMainSurface(), dst->pGmmResInfo->GetSizeMainSurface()));
+    uint32_t height = static_cast<uint32_t>(size / pitch);
+    while (height > MAX_BLT_BLOCK_COPY_WIDTH)
+    {
+        pitch += 4096;
+        height = static_cast<uint32_t>(size / pitch);
+    }
+
+    src->pGmmResInfo->OverrideSurfaceFormat(GMM_FORMAT_R8_UINT);
+    src->pGmmResInfo->OverrideSurfaceType(RESOURCE_2D);
+    src->pGmmResInfo->OverrideBaseWidth(pitch);
+    src->pGmmResInfo->OverrideBaseHeight(height);
+    src->pGmmResInfo->OverridePitch(pitch);
+
+    dst->pGmmResInfo->OverrideSurfaceFormat(GMM_FORMAT_R8_UINT);
+    dst->pGmmResInfo->OverrideSurfaceType(RESOURCE_2D);
+    dst->pGmmResInfo->OverrideBaseWidth(pitch);
+    dst->pGmmResInfo->OverrideBaseHeight(height);
+    dst->pGmmResInfo->OverridePitch(pitch);
+
+    MOS_STATUS status = SubmitCMD(pBltStateParam);
+
+    src->pGmmResInfo->OverrideSurfaceFormat(backupSrcFormat);
+    src->pGmmResInfo->OverrideSurfaceType(RESOURCE_BUFFER);
+    src->pGmmResInfo->OverrideBaseWidth(backupSrcWidth);
+    src->pGmmResInfo->OverrideBaseHeight(backupSrcHeight);
+    src->pGmmResInfo->OverridePitch(backupSrcWidth);
+
+    dst->pGmmResInfo->OverrideSurfaceFormat(backupDstFormat);
+    dst->pGmmResInfo->OverrideSurfaceType(RESOURCE_BUFFER);
+    dst->pGmmResInfo->OverrideBaseWidth(backupDstWidth);
+    dst->pGmmResInfo->OverrideBaseHeight(backupDstHeight);
+    dst->pGmmResInfo->OverridePitch(backupDstWidth);
+
+    BLT_CHK_STATUS_RETURN(status);
+    return MOS_STATUS_SUCCESS;
+}
+
 //!
 //! \brief    Copy main surface
 //! \details  BLT engine will copy source surface to destination surface
@@ -554,6 +643,8 @@ MOS_STATUS BltStateNext::CopyMainSurface(
 
     BLT_CHK_NULL_RETURN(src);
     BLT_CHK_NULL_RETURN(dst);
+    BLT_CHK_NULL_RETURN(src->pGmmResInfo);
+    BLT_CHK_NULL_RETURN(dst->pGmmResInfo);
     MOS_TraceEventExt(EVENT_MEDIA_COPY, EVENT_TYPE_START, nullptr, 0, nullptr, 0);
 
     MOS_ZeroMemory(&BltStateNextParam, sizeof(BLT_STATE_PARAM));
@@ -561,7 +652,20 @@ MOS_STATUS BltStateNext::CopyMainSurface(
     BltStateNextParam.pSrcSurface      = src;
     BltStateNextParam.pDstSurface      = dst;
 
-    BLT_CHK_STATUS_RETURN(SubmitCMD(&BltStateNextParam));
+    // A workaround for oversized buffers.
+    // BLOCK_COPY_BLT can only receive (width-1) of up to 14 bits.
+    // The width of the internal buffer of a staging texture may exceed that limit.
+    if (m_blokCopyon &&
+        (src->pGmmResInfo->GetResourceType() == RESOURCE_BUFFER) &&
+        (dst->pGmmResInfo->GetResourceType() == RESOURCE_BUFFER) &&
+        ((src->pGmmResInfo->GetBaseWidth() > MAX_BLT_BLOCK_COPY_WIDTH) || (dst->pGmmResInfo->GetBaseWidth() > MAX_BLT_BLOCK_COPY_WIDTH)))
+    {
+        BLT_CHK_STATUS_RETURN(BlockCopyBuffer(&BltStateNextParam));
+    }
+    else
+    {
+        BLT_CHK_STATUS_RETURN(SubmitCMD(&BltStateNextParam));
+    }
 
     MOS_TraceEventExt(EVENT_MEDIA_COPY, EVENT_TYPE_END, nullptr, 0, nullptr, 0);
     return MOS_STATUS_SUCCESS;

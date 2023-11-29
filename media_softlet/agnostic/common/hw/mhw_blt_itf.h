@@ -36,6 +36,8 @@
     DEF(XY_FAST_COPY_BLT); \
     DEF(XY_BLOCK_COPY_BLT)
 
+#define MAX_BLT_BLOCK_COPY_WIDTH 0x4000u
+
 namespace mhw
 {
 namespace blt
