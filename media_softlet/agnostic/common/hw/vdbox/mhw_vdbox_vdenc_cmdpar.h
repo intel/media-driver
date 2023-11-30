@@ -565,27 +565,6 @@ struct _MHW_PAR_T(VDENC_CMD2)
     uint32_t intraRefreshBoundary[3]          = {};
     uint8_t  av1RefId[2][4]                   = {{1, 1, 1, 1}, {1, 1, 1, 1}};
     uint8_t  subPelMode                       = 3;
-    bool     vdencCmd2Par113                  = false;
-    uint8_t  vdencCmd2Par114                  = 0;
-    uint8_t  vdencCmd2Par115                  = 0;
-    uint8_t  vdencCmd2Par116                  = 0;
-    uint8_t  vdencCmd2Par117                  = 0;
-    uint8_t  vdencCmd2Par118                  = 0;
-    uint8_t  vdencCmd2Par119                  = 0;
-    uint8_t  vdencCmd2Par120                  = 0;
-    uint8_t  vdencCmd2Par121                  = 0;
-    uint8_t  vdencCmd2Par122                  = 0;
-    uint8_t  vdencCmd2Par123                  = 0;
-    uint8_t  vdencCmd2Par124                  = 0;
-    uint8_t  vdencCmd2Par125                  = 0;
-    uint8_t  vdencCmd2Par126                  = 0;
-    uint8_t  vdencCmd2Par127                  = 0;
-    uint8_t  vdencCmd2Par128                  = 0;
-    uint8_t  vdencCmd2Par129                  = 0;
-    uint8_t  vdencCmd2Par130                  = 0;
-    uint8_t  vdencCmd2Par131                  = 0;
-    uint8_t  vdencCmd2Par132                  = 0;
-    bool     vdencCmd2Par133                  = false;
 
     __MHW_VDBOX_VDENC_WRAPPER(
         std::vector<std::function<MOS_STATUS(uint32_t *)>> extSettings);

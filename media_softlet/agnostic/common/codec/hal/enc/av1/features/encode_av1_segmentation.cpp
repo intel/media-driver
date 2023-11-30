@@ -513,7 +513,15 @@ namespace encode
             // for VP9 VDEnc this is bit used for programming of "segmentation_temporal_update"
             // for AV1 VDEnc this bit indicates negative of "segmentation_update_map"
             params.segmentationTemporal =  m_segmentParams.m_updateMap ? false : true;
-            params.vdencCmd2Par113      =  true;
+#if _MEDIA_RESERVED
+            params.vdencCmd2Par113 = true;
+#else
+            params.extSettings.emplace_back(
+                [this](uint32_t *data) {
+                    data[54] |= 1 << 15;
+                    return MOS_STATUS_SUCCESS;
+                });
+#endif  // _MEDIA_RESERVED
         }
 
         for (auto i = 0; i < av1MaxSegments; i++)
