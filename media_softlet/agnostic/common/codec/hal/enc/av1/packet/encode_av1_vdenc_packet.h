@@ -166,6 +166,14 @@ public:
     }
 
 protected:
+#if USE_CODECHAL_DEBUG_TOOL
+    //!
+    //! \brief  Dump input resources or infomation before submit
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS DumpInput();
+#endif
 
     virtual MOS_STATUS AllocateResources();
 

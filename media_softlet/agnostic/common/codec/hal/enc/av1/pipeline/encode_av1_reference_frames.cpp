@@ -29,6 +29,8 @@
 #include "encode_utils.h"
 #include "encode_av1_reference_frames.h"
 #include "codec_def_encode_av1.h"
+#include "codechal_debug.h"
+#include "encode_av1_vdenc_pipeline.h"
 
 namespace encode
 {
@@ -51,7 +53,71 @@ Av1ReferenceFrames::~Av1ReferenceFrames()
 
     EncodeFreeDataList(m_refList, CODEC_AV1_NUM_UNCOMPRESSED_SURFACE);
 }
+#if USE_CODECHAL_DEBUG_TOOL
+MOS_STATUS Av1ReferenceFrames::DumpInput(Av1VdencPipeline *pipeline)
+{
+    ENCODE_FUNC_CALL();
 
+    CodechalDebugInterface *debugInterface = pipeline->GetDebugInterface();
+    ENCODE_CHK_NULL_RETURN(debugInterface);
+
+    std::stringstream pipeIdxStrStream("");
+    pipeIdxStrStream << "_" << (int)pipeline->GetCurrentPipe();
+    std::string surfacePassName = "Pass" + std::to_string((uint32_t)pipeline->GetCurrentPass());
+    surfacePassName += pipeIdxStrStream.str() + "_input";
+
+    if (m_refFrameFlags == 0)
+    {
+        ENCODE_VERBOSEMESSAGE("Ref list is empty!.Only keyframe is expected.");
+        return MOS_STATUS_SUCCESS;
+    }
+    //Dump surface
+    {
+        std::string reflagName;
+        for (auto i = 0; i < av1NumInterRefFrames; i++)
+        {
+            if (m_refFrameFlags & (AV1_ENCODE_GET_REF_FALG(i)))
+            {
+                switch (i+1) {
+                case lastFrame:
+                    reflagName = "_LastRefSurf";
+                    break;
+                case last2Frame:
+                    reflagName = "_Last2RefSurf";
+                    break;
+                case last3Frame:
+                    reflagName = "_Last3RefSurf";
+                    break;
+                case bwdRefFrame:
+                    reflagName = "_BWDRefSurf";
+                    break;
+                case goldenFrame:
+                    reflagName = "_GoldenRefSurf";
+                    break;
+                case altRef2Frame:
+                    reflagName = "_Alt2RefSurf";
+                    break;
+                case altRefFrame:
+                    reflagName = "_AltRefSurf";
+                    break;
+                default:
+                    reflagName = "";
+                    break;
+                }
+                if (reflagName == "")
+                {
+                    continue;
+                }
+                ENCODE_CHK_STATUS_RETURN(debugInterface->DumpYUVSurface(
+                    m_currRefPic[i],
+                    CodechalDbgAttr::attrReferenceSurfaces,
+                    (surfacePassName + reflagName).data()));
+            }
+        }
+    }
+    return MOS_STATUS_SUCCESS;
+}
+#endif
 static bool MmcEnabled(MOS_MEMCOMP_STATE state)
 {
     return state == MOS_MEMCOMP_RC || state == MOS_MEMCOMP_MC;

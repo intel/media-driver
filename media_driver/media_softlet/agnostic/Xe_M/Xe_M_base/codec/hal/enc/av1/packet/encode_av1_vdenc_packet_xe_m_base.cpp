@@ -250,6 +250,7 @@ namespace encode
     #endif
 #if USE_CODECHAL_DEBUG_TOOL
         ENCODE_CHK_STATUS_RETURN(DumpStatistics());
+        ENCODE_CHK_STATUS_RETURN(Av1VdencPkt::DumpInput());
 #endif  // USE_CODECHAL_DEBUG_TOOL
         return MOS_STATUS_SUCCESS;
     }

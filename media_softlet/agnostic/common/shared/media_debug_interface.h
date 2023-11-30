@@ -126,6 +126,7 @@ public:
     bool              m_swCRC = false;
     uint16_t          m_preIndex                 = 0;
     uint16_t          m_refIndex                 = 0;
+    size_t            m_DumpInputNum             = 0;
     size_t            m_bufferDumpFrameNum       = 0;
     uint32_t          m_decodeSurfDumpFrameNum   = 0;
     uint32_t          m_streamId                 = 0;

@@ -366,6 +366,7 @@ namespace encode
 
     #if USE_CODECHAL_DEBUG_TOOL && _ENCODE_RESERVED
         m_hevcParDump->SetParFile();
+        ENCODE_CHK_STATUS_RETURN(DumpInput());
     #endif
 
         return MOS_STATUS_SUCCESS;
@@ -2668,6 +2669,26 @@ MOS_STATUS HevcVdencPkt::AddAllCmds_HCP_PAK_INSERT_OBJECT_BRC(PMOS_COMMAND_BUFFE
     }
 
 #if USE_CODECHAL_DEBUG_TOOL
+    MOS_STATUS HevcVdencPkt::DumpInput()
+    {
+        ENCODE_FUNC_CALL();
+        ENCODE_CHK_NULL_RETURN(m_pipeline);
+        ENCODE_CHK_NULL_RETURN(m_basicFeature);
+
+        CodechalDebugInterface *debugInterface = m_pipeline->GetDebugInterface();
+        ENCODE_CHK_NULL_RETURN(debugInterface);
+
+        debugInterface->m_DumpInputNum         = m_basicFeature->m_frameNum - 1;
+
+        ENCODE_CHK_NULL_RETURN(m_basicFeature->m_ref.GetCurrRefList());
+        CODEC_REF_LIST currRefList = *((CODEC_REF_LIST *)m_basicFeature->m_ref.GetCurrRefList());
+
+        ENCODE_CHK_STATUS_RETURN(debugInterface->DumpYUVSurface(
+            &currRefList.sRefRawBuffer,
+            CodechalDbgAttr::attrEncodeRawInputSurface,
+            "SrcSurf"))
+        return MOS_STATUS_SUCCESS;
+    }
 
     MOS_STATUS HevcVdencPkt::DumpResources(
         EncodeStatusMfx *       encodeStatusMfx,
@@ -2815,10 +2836,6 @@ MOS_STATUS HevcVdencPkt::AddAllCmds_HCP_PAK_INSERT_OBJECT_BRC(PMOS_COMMAND_BUFFE
         ENCODE_CHK_STATUS_RETURN(debugInterface->DumpBltOutput(
             &currRefList.sRefRawBuffer,
             CodechalDbgAttr::attrDecodeBltOutput));
-        ENCODE_CHK_STATUS_RETURN(debugInterface->DumpYUVSurface(
-            &currRefList.sRefRawBuffer,
-            CodechalDbgAttr::attrEncodeRawInputSurface,
-            "SrcSurf"))
 
         return MOS_STATUS_SUCCESS;
     }

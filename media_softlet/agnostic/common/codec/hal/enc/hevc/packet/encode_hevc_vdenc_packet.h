@@ -220,6 +220,14 @@ namespace encode
         MOS_STATUS PrepareHWMetaData(MOS_COMMAND_BUFFER *cmdBuffer);
 
     protected:
+#if USE_CODECHAL_DEBUG_TOOL
+        //!
+        //! \brief  Dump input resources or infomation before submit
+        //! \return MOS_STATUS
+        //!         MOS_STATUS_SUCCESS if success, else fail reason
+        //!
+        virtual MOS_STATUS DumpInput();
+#endif
         //!
         //! \brief    get  SliceStatesSize and SlicePatchListSize,
         //!

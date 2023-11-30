@@ -37,6 +37,7 @@ namespace encode
 #define AV1_ENCODE_GET_REF_FALG(i) (0x1 << i)
 
 class Av1BasicFeature;
+class Av1VdencPipeline;
 
 class Av1ReferenceFrames : public mhw::vdbox::vdenc::Itf::ParSetting, public mhw::vdbox::avp::Itf::ParSetting
 {
@@ -178,6 +179,13 @@ public:
 
     bool CheckSegmentForPrimeFrame();
     uint8_t RefFrameL0L1(CODEC_Ref_Frame_Ctrl_AV1 const &ref_frame_ctrl) const;
+
+     //!
+    //! \brief  Dump input resources or infomation before submit
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS DumpInput(Av1VdencPipeline *pipeline);
 
     MHW_SETPAR_DECL_HDR(VDENC_PIPE_BUF_ADDR_STATE);
 

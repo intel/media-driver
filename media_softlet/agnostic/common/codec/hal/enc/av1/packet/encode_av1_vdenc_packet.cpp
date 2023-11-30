@@ -448,6 +448,7 @@ namespace encode{
         {
             ENCODE_CHK_NULL_RETURN(m_basicFeature->m_av1SeqParams);
             statusReportData->qpY = (uint8_t)(((uint32_t)encodeStatusMfx->qpStatusCount.avpCumulativeQP) / (frameWidthInSb * frameHeightInSb));
+            ENCODE_VERBOSEMESSAGE("statusReportData->qpY: %d\n", statusReportData->qpY);
         }
 
         CODECHAL_DEBUG_TOOL(
@@ -1777,6 +1778,28 @@ namespace encode{
     }
 
 #if USE_CODECHAL_DEBUG_TOOL
+    MOS_STATUS Av1VdencPkt::DumpInput()
+    {
+        ENCODE_FUNC_CALL();
+        ENCODE_CHK_NULL_RETURN(m_pipeline);
+        ENCODE_CHK_NULL_RETURN(m_basicFeature);
+
+        CodechalDebugInterface *debugInterface = m_pipeline->GetDebugInterface();
+        ENCODE_CHK_NULL_RETURN(debugInterface);
+
+        debugInterface->m_DumpInputNum         = m_basicFeature->m_frameNum - 1;
+
+        ENCODE_CHK_NULL_RETURN(m_basicFeature->m_ref.GetCurrRefList());
+        CODEC_REF_LIST currRefList             = *((CODEC_REF_LIST *)m_basicFeature->m_ref.GetCurrRefList());
+
+        ENCODE_CHK_STATUS_RETURN(debugInterface->DumpYUVSurface(
+            &currRefList.sRefRawBuffer,
+            CodechalDbgAttr::attrEncodeRawInputSurface,
+            "SrcSurf"));
+        ENCODE_CHK_STATUS_RETURN(m_basicFeature->m_ref.DumpInput(m_pipeline));
+
+        return MOS_STATUS_SUCCESS;
+    }
     MOS_STATUS Av1VdencPkt::DumpResources(EncodeStatusMfx *encodeStatusMfx, EncodeStatusReportData *statusReportData)
     {
         ENCODE_FUNC_CALL();
@@ -1794,7 +1817,7 @@ namespace encode{
         currRefList.RefPic         = statusReportData->currOriginalPic;
 
         debugInterface->m_currPic            = statusReportData->currOriginalPic;
-        debugInterface->m_bufferDumpFrameNum = m_basicFeature->m_frameNum - 1;
+        debugInterface->m_bufferDumpFrameNum = m_statusReport->GetReportedCount();
         debugInterface->m_frameType          = encodeStatusMfx->pictureCodingType;
 
         if (m_resVDEncPakObjCmdStreamOutBuffer != nullptr)
@@ -1890,11 +1913,6 @@ namespace encode{
                 m_basicFeature->m_frameWidth,
                 m_basicFeature->m_frameHeight))
         }
-
-        ENCODE_CHK_STATUS_RETURN(debugInterface->DumpYUVSurface(
-            &currRefList.sRefRawBuffer,
-            CodechalDbgAttr::attrEncodeRawInputSurface,
-            "SrcSurf"))
 
         return MOS_STATUS_SUCCESS;
     }
