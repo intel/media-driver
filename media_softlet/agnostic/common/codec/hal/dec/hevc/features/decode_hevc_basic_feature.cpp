@@ -387,6 +387,11 @@ MOS_STATUS HevcBasicFeature::NumEntryPointOffsetsCheck(uint32_t sliceIdx)
     return MOS_STATUS_SUCCESS;
 }
 
+/**
+ * This is potential issue that may cause output corruption with incorrect referece;
+ * And it has error concealment in hcp ref idx state setting by ignoring invalid reference.
+ * We should avoid stopping playback by giving an error return here.
+*/
 MOS_STATUS HevcBasicFeature::ReferenceParamCheck(uint32_t sliceIdx)
 {
     DECODE_FUNC_CALL();
@@ -397,14 +402,14 @@ MOS_STATUS HevcBasicFeature::ReferenceParamCheck(uint32_t sliceIdx)
         if (m_hevcSliceParams[sliceIdx].num_ref_idx_l0_active_minus1 >= CODEC_MAX_NUM_REF_FRAME_HEVC )
         {
             DECODE_ASSERTMESSAGE("num_ref_idx_l0_active_minus1 %d is out of range [0, 14]\n", m_hevcSliceParams[sliceIdx].num_ref_idx_l0_active_minus1);
-            return MOS_STATUS_INVALID_PARAMETER;
+            m_hevcSliceParams[sliceIdx].num_ref_idx_l0_active_minus1 = 0;
         }
         if (decodeHevcBSlice == m_hevcSliceParams[sliceIdx].LongSliceFlags.fields.slice_type)
         {
             if (m_hevcSliceParams[sliceIdx].num_ref_idx_l1_active_minus1 >= CODEC_MAX_NUM_REF_FRAME_HEVC)
             {
                 DECODE_ASSERTMESSAGE("num_ref_idx_l1_active_minus1 %d is out of range [0, 14]\n", m_hevcSliceParams[sliceIdx].num_ref_idx_l1_active_minus1);
-                return MOS_STATUS_INVALID_PARAMETER;
+                m_hevcSliceParams[sliceIdx].num_ref_idx_l1_active_minus1 = 0;
             }
         }
     }
@@ -447,7 +452,6 @@ MOS_STATUS HevcBasicFeature::ReferenceParamCheck(uint32_t sliceIdx)
         {
             DECODE_ASSERTMESSAGE("num_ref_idx_active_minus1[%d] = %d, RefPicList[%d].FrameIdx is all 127\n",
                                  listIdx, num_ref_idx_active_minus1[listIdx], listIdx);
-            return MOS_STATUS_INVALID_PARAMETER;
         }
     }
     return MOS_STATUS_SUCCESS;
