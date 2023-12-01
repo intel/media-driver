@@ -642,8 +642,8 @@ MOS_STATUS HevcBasicFeature::CreateReferenceBeforeLoopFilter()
     }
     else
     {
-        m_allocator->Resize(m_referenceBeforeLoopFilter, m_destSurface.dwWidth, m_destSurface.dwHeight,
-            notLockableVideoMem, false, "Reference before loop filter");
+        DECODE_CHK_STATUS(m_allocator->Resize(m_referenceBeforeLoopFilter, m_destSurface.dwWidth, m_destSurface.dwHeight,
+            notLockableVideoMem, false, "Reference before loop filter"));
     }
     return MOS_STATUS_SUCCESS;
 }
