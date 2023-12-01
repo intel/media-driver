@@ -205,7 +205,8 @@ public:
 
     RenderTargetType GetRenderTargetType()
     {
-        for (auto subpipe : m_InputPipes)
+        std::vector<SwFilterSubPipe *> &pipes = (m_InputPipes.size() == 0) ? m_OutputPipes : m_InputPipes;
+        for (auto subpipe : pipes)
         {
             if (subpipe)
             {
