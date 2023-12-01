@@ -4082,7 +4082,8 @@ MOS_STATUS RenderHal_GetSurfaceStateEntries(
                       PlaneDefinition == RENDERHAL_PLANES_R16_UNORM                       ||
                       PlaneDefinition == RENDERHAL_PLANES_R8                              ||
                       PlaneDefinition == RENDERHAL_PLANES_A8                              ||
-                      PlaneDefinition == RENDERHAL_PLANES_RGB16))
+                      PlaneDefinition == RENDERHAL_PLANES_RGB16                           ||
+                      PlaneDefinition == RENDERHAL_PLANES_BGRP))
             {
                 dwSurfaceWidth = dwSurfaceWidth / OutputSurfaceWidthRatio;
             }
