@@ -161,16 +161,16 @@ MOS_STATUS CodechalKernelOlpMdf::Execute(PMOS_SURFACE src, uint16_t *srcMemory_o
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_cmDevice->CreateThreadGroupSpace(1, 1, threadWidth, threadHeight, m_threadGroupSpaces[0]));
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_cmKernels[0]->AssociateThreadGroupSpace(m_threadGroupSpaces[0]));
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_cmTask->AddKernel(m_cmKernels[0]));
+
+    auto delete_event = [&]()
+    {
+        MOS_Delete(event);
+    };
+
     if (!m_SingleTaskPhase)
     {
-        auto sts = m_cmQueue->EnqueueWithGroup(m_cmTask, event);
-        MOS_STATUS stmtStatus = (MOS_STATUS)(sts);
-        if (stmtStatus != MOS_STATUS_SUCCESS)
-        {
-            event = CM_NO_EVENT;
-            return stmtStatus;
-        }
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmTask->Reset());
+        CODECHAL_ENCODE_CHK_STATUS_WITH_DESTROY_RETURN(m_cmQueue->EnqueueWithGroup(m_cmTask, event), delete_event);
+        CODECHAL_ENCODE_CHK_STATUS_WITH_DESTROY_RETURN(m_cmTask->Reset(), delete_event);
     }
 
     threadWidth  = MOS_ALIGN_CEIL(src->dwWidth, 16) / 16;
@@ -180,14 +180,9 @@ MOS_STATUS CodechalKernelOlpMdf::Execute(PMOS_SURFACE src, uint16_t *srcMemory_o
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_cmDevice->CreateThreadGroupSpace(1, 1, threadWidth, threadHeight, m_threadGroupSpaces[1]));
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_cmKernels[1]->AssociateThreadGroupSpace(m_threadGroupSpaces[1]));
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_cmTask->AddKernel(m_cmKernels[1]));
-    auto sts = m_cmQueue->EnqueueWithGroup(m_cmTask, event);
-    MOS_STATUS stmtStatus = (MOS_STATUS)(sts);
-    if (stmtStatus != MOS_STATUS_SUCCESS)
-    {
-        event = CM_NO_EVENT;
-        return stmtStatus;
-    }
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmTask->Reset());
+    CODECHAL_ENCODE_CHK_STATUS_WITH_DESTROY_RETURN(m_cmQueue->EnqueueWithGroup(m_cmTask, event), delete_event);
+    CODECHAL_ENCODE_CHK_STATUS_WITH_DESTROY_RETURN(m_cmTask->Reset(), delete_event);
+
 
     return MOS_STATUS_SUCCESS;
 }
