@@ -172,6 +172,7 @@ struct _VP_EXECUTE_CAPS
             uint64_t bDnKernelUpdate: 1;
             uint64_t bVeboxSecureCopy : 1;
             uint64_t bHDR3DLUT      : 1;  // Vebox 3DLUT needed
+            uint64_t b1K1DLutInited : 1;
             uint64_t bDV            : 1;
             uint64_t b3DlutOutput   : 1;
             uint64_t bCappipe       : 1;

@@ -1827,6 +1827,10 @@ MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SU
             bAllocated,
             false,
             IsDeferredResourceDestroyNeeded()));
+        if (!bAllocated && !caps.bDV)
+        {
+            caps.b1K1DLutInited = 1;
+        }
     }
     // cappipe
 
