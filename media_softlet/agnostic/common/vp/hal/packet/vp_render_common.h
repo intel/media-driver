@@ -97,6 +97,8 @@ struct KRN_EXECUTE_ENV
     uint32_t uSimdSize;
     uint32_t uSubgroupIndependentForwardProgress;
     uint32_t uEuThreadCount;
+    bool     bHasFenceForImageAccess;
+    bool     bHasSample;
 };
 
 using SurfaceIndex = uint32_t;
