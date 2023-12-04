@@ -31,7 +31,10 @@
 //!
 //! \brief      GSH settings for Xe_hpg_base
 //!
-#define RENDERHAL_SAMPLERS_AVS_HPG_BASE          0
+#define RENDERHAL_SAMPLERS_AVS_HPG_BASE        0
+#define ENLARGE_KERNEL_COUNT_HPG_BASE          RENDERHAL_KERNEL_COUNT * 3
+#define ENLARGE_KERNEL_HEAP_HPG_BASE           RENDERHAL_KERNEL_HEAP * 3
+#define ENLARGE_CURBE_SIZE_HPG_BASE            RENDERHAL_CURBE_SIZE * 16
 
 extern const RENDERHAL_STATE_HEAP_SETTINGS g_cRenderHal_State_Heap_Settings_hpg_base =
 {
@@ -59,6 +62,16 @@ extern const RENDERHAL_STATE_HEAP_SETTINGS g_cRenderHal_State_Heap_Settings_hpg_
     RENDERHAL_SSH_SURFACE_STATES,              //!< iSurfaceStates
     RENDERHAL_SSH_SURFACES_PER_BT,             //!< iSurfacesPerBT
     RENDERHAL_SSH_BINDING_TABLE_ALIGN          //!< iBTAlignment
+};
+
+extern const RENDERHAL_ENLARGE_PARAMS g_cRenderHal_Enlarge_State_Heap_Settings_Adv_hpg_base =
+{
+    RENDERHAL_SSH_BINDING_TABLES_MAX,       //!< iBindingTables
+    RENDERHAL_SSH_SURFACE_STATES_MAX,       //!< iSurfaceStates
+    RENDERHAL_SSH_SURFACES_PER_BT,          //!< iSurfacesPerBT
+    ENLARGE_KERNEL_COUNT_HPG_BASE,          //!< iKernelCount
+    ENLARGE_KERNEL_HEAP_HPG_BASE,           //!< iKernelHeapSize
+    ENLARGE_CURBE_SIZE_HPG_BASE             //!< iCurbeSize
 };
 
 const uint32_t g_cLookup_RotationMode_hpg_base[8] = 
@@ -358,7 +371,8 @@ void XRenderHal_Interface_Xe_Hpg_Base::InitStateHeapSettings(
 {
     MHW_RENDERHAL_CHK_NULL_NO_STATUS_RETURN(pRenderHal);
     // Set State Heap settings for hpg_base
-    pRenderHal->StateHeapSettings = g_cRenderHal_State_Heap_Settings_hpg_base;
+    pRenderHal->StateHeapSettings              = g_cRenderHal_State_Heap_Settings_hpg_base;
+    pRenderHal->enlargeStateHeapSettingsForAdv = g_cRenderHal_Enlarge_State_Heap_Settings_Adv_hpg_base;
 }
 
 //!

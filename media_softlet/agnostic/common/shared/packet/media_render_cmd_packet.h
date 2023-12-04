@@ -28,6 +28,7 @@
 #define __MEDIA_RENDER_CMD_PACKET_H__
 
 #include <stdint.h>
+#include <set>
 #include "hal_kerneldll_next.h"
 #include "media_cmd_packet.h"
 #include "renderhal.h"
@@ -188,6 +189,16 @@ public:
         PRENDERHAL_SURFACE_STATE_ENTRY *surfaceEntries      = nullptr,
         uint32_t *                      numOfSurfaceEntries = nullptr);
 
+    virtual MOS_STATUS SetSurfaceForHwAccess(
+        PMOS_SURFACE                    surface,
+        PRENDERHAL_SURFACE_NEXT         pRenderSurface,
+        PRENDERHAL_SURFACE_STATE_PARAMS pSurfaceParams,
+        std::set<uint32_t>             &bindingIndexes,
+        bool                            bWrite,
+        uint32_t                        capcityOfSurfaceEntries = 0,
+        PRENDERHAL_SURFACE_STATE_ENTRY *surfaceEntries      = nullptr,
+        uint32_t                       *numOfSurfaceEntries = nullptr);
+
     virtual uint32_t SetBufferForHwAccess(
         PMOS_SURFACE                    buffer,
         PRENDERHAL_SURFACE_NEXT         pRenderSurface,
@@ -199,6 +210,13 @@ public:
         PRENDERHAL_SURFACE_NEXT         pRenderSurface,
         PRENDERHAL_SURFACE_STATE_PARAMS pSurfaceParams,
         uint32_t                        bindingIndex,
+        bool                            bWrite);
+    
+    virtual MOS_STATUS SetBufferForHwAccess(
+        PMOS_SURFACE                    buffer,
+        PRENDERHAL_SURFACE_NEXT         pRenderSurface,
+        PRENDERHAL_SURFACE_STATE_PARAMS pSurfaceParams,
+        std::set<uint32_t>             &bindingIndexes,
         bool                            bWrite);
 
     virtual uint32_t SetBufferForHwAccess(

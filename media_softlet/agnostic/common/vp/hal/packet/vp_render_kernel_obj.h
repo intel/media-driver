@@ -70,6 +70,7 @@ typedef struct _KERNEL_SURFACE_STATE_PARAM
     bool                                isOutput;        // true for render target
     PRENDERHAL_SURFACE_STATE_ENTRY      *surfaceEntries;
     uint32_t                            *sizeOfSurfaceEntries;
+    uint32_t                             iCapcityOfSurfaceEntry = 0;
 } KERNEL_SURFACE_STATE_PARAM;
 
 using KERNEL_CONFIGS = std::map<VpKernelID, void *>; // Only for legacy/non-cm kernels

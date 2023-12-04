@@ -1125,8 +1125,11 @@ typedef MhwMiInterface *PMHW_MI_INTERFACE;
 
 typedef struct _RENDERHAL_ENLARGE_PARAMS
 {
+    //for ReAllocateStateHeapsforAdvFeatureWithSshEnlarged and ReAllocateStateHeapsforAdvFeatureWithAllHeapsEnlarged
     int32_t iBindingTables;   // Number of BT per SSH instance
     int32_t iSurfaceStates;   // Number of Surfaces per SSH
+    int32_t  iSurfacesPerBT;   // Size of BT
+    //for ReAllocateStateHeapsforAdvFeatureWithAllHeapsEnlarged only
     int32_t iKernelCount;     // Number of Kernels that can be loaded
     int32_t iKernelHeapSize;  // Size of GSH block for kernels
     int32_t iCurbeSize;       // Size of CURBE area
@@ -1167,6 +1170,7 @@ typedef struct _RENDERHAL_INTERFACE
     PMHW_RENDER_ENGINE_CAPS       pHwCaps;                                      // HW Capabilities
     PMHW_RENDER_STATE_SIZES       pHwSizes;                                     // Sizes of HW commands/states
     RENDERHAL_STATE_HEAP_SETTINGS StateHeapSettings;                            // State Heap Settings
+    RENDERHAL_ENLARGE_PARAMS      enlargeStateHeapSettingsForAdv;               // State Heap Settings for Adv Feature
 
     // MHW parameters
     MHW_STATE_BASE_ADDR_PARAMS   StateBaseAddressParams;
@@ -1291,13 +1295,12 @@ typedef struct _RENDERHAL_INTERFACE
                 PRENDERHAL_INTERFACE            pRenderHal,
                 PRENDERHAL_STATE_HEAP_SETTINGS  pSettings);
 
-    MOS_STATUS (* pfnReAllocateStateHeapsforAdvFeature) (
+    MOS_STATUS (* pfnReAllocateStateHeapsforAdvFeatureWithSshEnlarged)(
                 PRENDERHAL_INTERFACE            pRenderHal,
                 bool                            &bAllocated);
 
-    MOS_STATUS (*pfnReAllocateStateHeapsforAdvFeatureWithSetting)(
+    MOS_STATUS (*pfnReAllocateStateHeapsforAdvFeatureWithAllHeapsEnlarged)(
         PRENDERHAL_INTERFACE                    pRenderHal,
-        PRENDERHAL_ENLARGE_PARAMS               pParams,
         bool                                    &bAllocated);
 
     MOS_STATUS (* pfnFreeStateHeaps) (

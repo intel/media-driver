@@ -37,10 +37,6 @@
 #include "hal_oca_interface_next.h"
 #include "renderhal_platform_interface.h"
 
-#define ENLARGE_KERNEL_COUNT RENDERHAL_KERNEL_COUNT * 3
-#define ENLARGE_KERNEL_HEAP RENDERHAL_KERNEL_HEAP * 3
-#define ENLARGE_CURBE_SIZE RENDERHAL_CURBE_SIZE * 16
-
 namespace vp
 {
 static inline RENDERHAL_SURFACE_TYPE InitRenderHalSurfType(VPHAL_SURFACE_TYPE vpSurfType)
@@ -99,7 +95,6 @@ VpRenderCmdPacket::~VpRenderCmdPacket()
     }
 
     MOS_Delete(m_surfMemCacheCtl);
-    MOS_Delete(m_enlargedStateHeapSetting);
 }
 
 MOS_STATUS VpRenderCmdPacket::Init()
@@ -196,14 +191,14 @@ MOS_STATUS VpRenderCmdPacket::Prepare()
         *m_surfMemCacheCtl,
         m_packetSharedContext));
 
-    if (m_submissionMode == MULTI_KERNELS_WITH_MULTI_MEDIA_STATES)
+    if (m_submissionMode == MULTI_KERNELS_MULTI_MEDIA_STATES || m_submissionMode == SINGLE_KERNEL_ONLY)
     {
         m_kernelRenderData.clear();
 
-        if (m_bindingtableMode == MULTI_KERNELS_WITH_MULTI_BINDINGTABLES)
+        if (m_submissionMode == MULTI_KERNELS_MULTI_MEDIA_STATES)
         {
             bool bAllocated = false;
-            VP_RENDER_CHK_STATUS_RETURN(m_renderHal->pfnReAllocateStateHeapsforAdvFeature(m_renderHal, bAllocated));
+            VP_RENDER_CHK_STATUS_RETURN(m_renderHal->pfnReAllocateStateHeapsforAdvFeatureWithSshEnlarged(m_renderHal, bAllocated));
 
             if (bAllocated && m_renderHal->pStateHeap)
             {
@@ -236,7 +231,7 @@ MOS_STATUS VpRenderCmdPacket::Prepare()
             // reset render Data for current kernel
             MOS_ZeroMemory(&m_renderData, sizeof(KERNEL_PACKET_RENDER_DATA));
 
-            if (m_bindingtableMode == MULTI_KERNELS_WITH_MULTI_BINDINGTABLES)
+            if (m_submissionMode != SINGLE_KERNEL_ONLY)
             {
                 m_isMultiBindingTables = true;
             }
@@ -270,39 +265,27 @@ MOS_STATUS VpRenderCmdPacket::Prepare()
             m_kernelRenderData.insert(std::make_pair(it->first, m_renderData));
         }
     }
-    else if (m_submissionMode == MULTI_KERNELS_WITH_ONE_MEDIA_STATE)
+    else if (m_submissionMode == MULTI_KERNELS_SINGLE_MEDIA_STATE)
     {
-        if (m_bindingtableMode == MULTI_KERNELS_WITH_MULTI_BINDINGTABLES)
+        bool bAllocated = false;
+
+        VP_RENDER_CHK_STATUS_RETURN(m_renderHal->pfnReAllocateStateHeapsforAdvFeatureWithAllHeapsEnlarged(m_renderHal, bAllocated));
+        if (bAllocated && m_renderHal->pStateHeap)
         {
-            bool bAllocated = false;
-            if (m_enlargedStateHeapSetting == nullptr)
-            {
-                m_enlargedStateHeapSetting                 = MOS_New(RENDERHAL_ENLARGE_PARAMS);
-                m_enlargedStateHeapSetting->iBindingTables = RENDERHAL_SSH_BINDING_TABLES_MAX;
-                m_enlargedStateHeapSetting->iSurfaceStates = RENDERHAL_SSH_SURFACE_STATES_MAX;
-                m_enlargedStateHeapSetting->iKernelCount   = ENLARGE_KERNEL_COUNT;
-                m_enlargedStateHeapSetting->iKernelHeapSize = ENLARGE_KERNEL_HEAP;
-                m_enlargedStateHeapSetting->iCurbeSize      = ENLARGE_CURBE_SIZE;
-            }
-
-            VP_RENDER_CHK_STATUS_RETURN(m_renderHal->pfnReAllocateStateHeapsforAdvFeatureWithSetting(m_renderHal, m_enlargedStateHeapSetting, bAllocated));
-            if (bAllocated && m_renderHal->pStateHeap)
-            {
-                MHW_STATE_BASE_ADDR_PARAMS *pStateBaseParams = &m_renderHal->StateBaseAddressParams;
-                pStateBaseParams->presGeneralState           = &m_renderHal->pStateHeap->GshOsResource;
-                pStateBaseParams->dwGeneralStateSize         = m_renderHal->pStateHeap->dwSizeGSH;
-                pStateBaseParams->presDynamicState           = &m_renderHal->pStateHeap->GshOsResource;
-                pStateBaseParams->dwDynamicStateSize         = m_renderHal->pStateHeap->dwSizeGSH;
-                pStateBaseParams->bDynamicStateRenderTarget  = false;
-                pStateBaseParams->presIndirectObjectBuffer   = &m_renderHal->pStateHeap->GshOsResource;
-                pStateBaseParams->dwIndirectObjectBufferSize = m_renderHal->pStateHeap->dwSizeGSH;
-                pStateBaseParams->presInstructionBuffer      = &m_renderHal->pStateHeap->IshOsResource;
-                pStateBaseParams->dwInstructionBufferSize    = m_renderHal->pStateHeap->dwSizeISH;
-            }
-
+            MHW_STATE_BASE_ADDR_PARAMS *pStateBaseParams = &m_renderHal->StateBaseAddressParams;
+            pStateBaseParams->presGeneralState           = &m_renderHal->pStateHeap->GshOsResource;
+            pStateBaseParams->dwGeneralStateSize         = m_renderHal->pStateHeap->dwSizeGSH;
+            pStateBaseParams->presDynamicState           = &m_renderHal->pStateHeap->GshOsResource;
+            pStateBaseParams->dwDynamicStateSize         = m_renderHal->pStateHeap->dwSizeGSH;
+            pStateBaseParams->bDynamicStateRenderTarget  = false;
+            pStateBaseParams->presIndirectObjectBuffer   = &m_renderHal->pStateHeap->GshOsResource;
+            pStateBaseParams->dwIndirectObjectBufferSize = m_renderHal->pStateHeap->dwSizeGSH;
+            pStateBaseParams->presInstructionBuffer      = &m_renderHal->pStateHeap->IshOsResource;
+            pStateBaseParams->dwInstructionBufferSize    = m_renderHal->pStateHeap->dwSizeISH;
         }
+
         MOS_ZeroMemory(&m_renderData, sizeof(KERNEL_PACKET_RENDER_DATA));
-        m_isMultiBindingTables = m_bindingtableMode == MULTI_KERNELS_WITH_MULTI_BINDINGTABLES ? true : false;
+        m_isMultiBindingTables       = true;
         m_isMultiKernelOneMediaState = true;
         VP_RENDER_CHK_STATUS_RETURN(RenderEngineSetup());
 
@@ -412,20 +395,19 @@ MOS_STATUS VpRenderCmdPacket::Submit(MOS_COMMAND_BUFFER *commandBuffer, uint8_t 
         VP_RENDER_ASSERTMESSAGE("No Kernel Object Creation");
         return MOS_STATUS_NULL_POINTER;
     }
-    if (m_submissionMode == MULTI_KERNELS_WITH_MULTI_MEDIA_STATES   &&
-        m_bindingtableMode == MULTI_KERNELS_WITH_MULTI_BINDINGTABLES)
+    if (m_submissionMode == MULTI_KERNELS_MULTI_MEDIA_STATES)
     {
         VP_RENDER_CHK_STATUS_RETURN(SetupMediaWalker());
 
         VP_RENDER_CHK_STATUS_RETURN(SubmitWithMultiKernel(commandBuffer, packetPhase));
     }
-    else if (m_submissionMode == MULTI_KERNELS_WITH_MULTI_MEDIA_STATES)
+    else if (m_submissionMode == SINGLE_KERNEL_ONLY)
     {
         VP_RENDER_CHK_STATUS_RETURN(SetupMediaWalker());
 
         VP_RENDER_CHK_STATUS_RETURN(RenderCmdPacket::Submit(commandBuffer, packetPhase));
     }
-    else if (m_submissionMode == MULTI_KERNELS_WITH_ONE_MEDIA_STATE)
+    else if (m_submissionMode == MULTI_KERNELS_SINGLE_MEDIA_STATE)
     {
         VP_RENDER_CHK_STATUS_RETURN(SubmitWithMultiKernel(commandBuffer, packetPhase));
     }
@@ -746,19 +728,20 @@ MOS_STATUS VpRenderCmdPacket::SetupSurfaceState()
                 {
                     VP_RENDER_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
                 }
-                for (uint32_t bti : bindingMap)
+                VP_RENDER_CHK_STATUS_RETURN(SetSurfaceForHwAccess(
+                    &renderHalSurface.OsSurface,
+                    &renderHalSurface,
+                    &renderSurfaceParams,
+                    bindingMap,
+                    bWrite,
+                    kernelSurfaceParam->iCapcityOfSurfaceEntry,
+                    kernelSurfaceParam->surfaceEntries,
+                    kernelSurfaceParam->sizeOfSurfaceEntries));
+                for (uint32_t const& bti : bindingMap)
                 {
-                    VP_RENDER_CHK_STATUS_RETURN(SetSurfaceForHwAccess(
-                        &renderHalSurface.OsSurface,
-                        &renderHalSurface,
-                        &renderSurfaceParams,
-                        bti,
-                        bWrite,
-                        kernelSurfaceParam->surfaceEntries,
-                        kernelSurfaceParam->sizeOfSurfaceEntries));
-                    index = bti;
-                    VP_RENDER_NORMALMESSAGE("Using Binded Index Surface. KernelID %d, SurfType %d, bti %d", m_kernel->GetKernelId(), type, index);
+                    VP_RENDER_NORMALMESSAGE("Using Binded Index Surface. KernelID %d, SurfType %d, bti %d", m_kernel->GetKernelId(), type, bti);
                 }
+                
             }
             else
             {
@@ -770,15 +753,15 @@ MOS_STATUS VpRenderCmdPacket::SetupSurfaceState()
                     {
                         VP_RENDER_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
                     }
-                    for (uint32_t bti : bindingMap)
+                    VP_RENDER_CHK_STATUS_RETURN(SetBufferForHwAccess(
+                        &renderHalSurface.OsSurface,
+                        &renderHalSurface,
+                        &renderSurfaceParams,
+                        bindingMap,
+                        bWrite));
+                    for (uint32_t const &bti : bindingMap)
                     {
-                        index = SetBufferForHwAccess(
-                            &renderHalSurface.OsSurface,
-                            &renderHalSurface,
-                            &renderSurfaceParams,
-                            bti,
-                            bWrite);
-                        VP_RENDER_NORMALMESSAGE("Using Binded Index Buffer. KernelID %d, SurfType %d, bti %d", m_kernel->GetKernelId(), type, index);
+                        VP_RENDER_NORMALMESSAGE("Using Binded Index Buffer. KernelID %d, SurfType %d, bti %d", m_kernel->GetKernelId(), type, bti);
                     }
                 }
                 else if ((kernelSurfaceParam->surfaceOverwriteParams.updatedSurfaceParams &&
@@ -1947,14 +1930,14 @@ MOS_STATUS VpRenderCmdPacket::SendMediaStates(
 
             MHW_RENDERHAL_CHK_STATUS(PrepareComputeWalkerParams(it->second.walkerParam, m_gpgpuWalkerParams));
 
-            if (m_submissionMode == MULTI_KERNELS_WITH_MULTI_MEDIA_STATES && m_bindingtableMode == MULTI_KERNELS_WITH_MULTI_BINDINGTABLES)
+            if (m_submissionMode == MULTI_KERNELS_MULTI_MEDIA_STATES)
             {
                 pRenderHal->pStateHeap->pCurMediaState = it->second.mediaState;
                 MHW_RENDERHAL_CHK_NULL(pRenderHal->pStateHeap->pCurMediaState);
                 pRenderHal->iKernelAllocationID        = it->second.kernelAllocationID;
                 pRenderHal->pStateHeap->pCurMediaState->bBusy = true;
             }
-            else if (m_submissionMode == MULTI_KERNELS_WITH_ONE_MEDIA_STATE)
+            else if (m_submissionMode == MULTI_KERNELS_SINGLE_MEDIA_STATE)
             {
                 pRenderHal->iKernelAllocationID = it->second.kernelAllocationID;
             }
@@ -2002,9 +1985,8 @@ MOS_STATUS VpRenderCmdPacket::SetFcParams(PRENDER_FC_PARAMS params)
     KERNEL_PARAMS kernelParams = {};
     kernelParams.kernelId      = params->kernelId;
     m_renderKernelParams.push_back(kernelParams);
-    m_bindingtableMode = MULTI_KERNELS_WITH_ONE_BINDINGTABLE;
     m_isMultiBindingTables = false;
-    m_submissionMode       = MULTI_KERNELS_WITH_MULTI_MEDIA_STATES;
+    m_submissionMode       = SINGLE_KERNEL_ONLY;
     return MOS_STATUS_SUCCESS;
 }
 

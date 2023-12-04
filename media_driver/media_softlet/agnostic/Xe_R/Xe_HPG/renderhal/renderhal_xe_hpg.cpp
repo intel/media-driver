@@ -38,6 +38,9 @@
 #include "vp_common.h"
 
 #define RENDERHAL_SAMPLERS_AVS_HPG 0
+#define ENLARGE_KERNEL_COUNT_HPG   RENDERHAL_KERNEL_COUNT * 3
+#define ENLARGE_KERNEL_HEAP_HPG    RENDERHAL_KERNEL_HEAP * 3
+#define ENLARGE_CURBE_SIZE_HPG     RENDERHAL_CURBE_SIZE * 16
 
 extern const RENDERHAL_STATE_HEAP_SETTINGS g_cRenderHal_State_Heap_Settings_xe_hpg =
 {
@@ -65,6 +68,16 @@ extern const RENDERHAL_STATE_HEAP_SETTINGS g_cRenderHal_State_Heap_Settings_xe_h
     RENDERHAL_SSH_SURFACE_STATES,              //!< iSurfaceStates
     RENDERHAL_SSH_SURFACES_PER_BT,             //!< iSurfacesPerBT
     RENDERHAL_SSH_BINDING_TABLE_ALIGN          //!< iBTAlignment
+};
+
+extern const RENDERHAL_ENLARGE_PARAMS g_cRenderHal_Enlarge_State_Heap_Settings_Adv_xe_hpg =
+{
+    RENDERHAL_SSH_BINDING_TABLES_MAX,  //!< iBindingTables
+    RENDERHAL_SSH_SURFACE_STATES_MAX,  //!< iSurfaceStates
+    RENDERHAL_SSH_SURFACES_PER_BT,      //!< iSurfacesPerBT
+    ENLARGE_KERNEL_COUNT_HPG,          //!< iKernelCount
+    ENLARGE_KERNEL_HEAP_HPG,           //!< iKernelHeapSize
+    ENLARGE_CURBE_SIZE_HPG             //!< iCurbeSize
 };
 
 MOS_STATUS XRenderHal_Interface_Xe_Hpg::IsRenderHalMMCEnabled(
@@ -164,5 +177,6 @@ void XRenderHal_Interface_Xe_Hpg::InitStateHeapSettings(
 {
     MHW_RENDERHAL_CHK_NULL_NO_STATUS_RETURN(pRenderHal);
     // Set State Heap settings for xe hpg
-    pRenderHal->StateHeapSettings = g_cRenderHal_State_Heap_Settings_xe_hpg;
+    pRenderHal->StateHeapSettings              = g_cRenderHal_State_Heap_Settings_xe_hpg;
+    pRenderHal->enlargeStateHeapSettingsForAdv = g_cRenderHal_Enlarge_State_Heap_Settings_Adv_xe_hpg;
 }

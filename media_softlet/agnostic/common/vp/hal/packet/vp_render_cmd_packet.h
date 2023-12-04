@@ -168,15 +168,13 @@ protected:
     KERNEL_PARAMS_LIST                 m_renderKernelParams;
     KERNEL_SAMPLER_STATE_GROUP         m_kernelSamplerStateGroup;
 
-    KERNEL_SUBMISSION_MODE             m_submissionMode = MULTI_KERNELS_WITH_MULTI_MEDIA_STATES;
-    KERNEL_BINDINGTABLE_MODE           m_bindingtableMode = MULTI_KERNELS_WITH_ONE_BINDINGTABLE;
-    uint32_t                           m_slmSize        = 0;
-    uint32_t                           m_totalCurbeSize = 0;
+    KERNEL_SUBMISSION_MODE             m_submissionMode   = SINGLE_KERNEL_ONLY;
+    uint32_t                           m_slmSize          = 0;
+    uint32_t                           m_totalCurbeSize   = 0;
     uint32_t                           m_totoalInlineSize = 0;
 
     VP_SURFACE                        *m_currentSurface  = nullptr;              //!< Current frame
     PVP_RENDER_CACHE_CNTL              m_surfMemCacheCtl = nullptr;              //!< Surface memory cache control
-    PRENDERHAL_ENLARGE_PARAMS          m_enlargedStateHeapSetting = nullptr;
     vp::VpUserFeatureControl          *m_vpUserFeatureControl     = nullptr;
 
 MEDIA_CLASS_DEFINE_END(vp__VpRenderCmdPacket)

@@ -242,8 +242,9 @@ MOS_STATUS VpRenderFcKernel::SetSurfaceParams(KERNEL_SURFACE_STATE_PARAM &surfPa
         renderSurfParams.b2PlaneNV12NeededByKernel = true;
     }
 
-    surfParam.surfaceEntries = layer.surfaceEntries;
-    surfParam.sizeOfSurfaceEntries = &layer.numOfSurfaceEntries;
+    surfParam.surfaceEntries         = layer.surfaceEntries;
+    surfParam.iCapcityOfSurfaceEntry = MHW_MAX_SURFACE_PLANES;
+    surfParam.sizeOfSurfaceEntries   = &layer.numOfSurfaceEntries;
 
     VP_RENDER_NORMALMESSAGE("SurfaceTYpe %d, bAVS %d, b2PlaneNV12NeededByKernel %d",
         renderSurfParams.Type,
