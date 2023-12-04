@@ -1056,10 +1056,9 @@ MOS_STATUS VpPipeline::PrepareVpPipelineParams(PVP_PIPELINE_PARAMS params)
 MOS_STATUS VpPipeline::PrepareVpPipelineScalabilityParams(uint32_t srcWidth, uint32_t srcHeight, uint32_t dstWidth, uint32_t dstHeight)
 {
     VP_FUNC_CALL();
-
     VP_PUBLIC_NORMALMESSAGE("Reset m_numVebox %d -> %d", m_numVebox, m_numVeboxOriginal);
     m_numVebox = m_numVeboxOriginal;
-    MT_LOG1(MT_VP_HAL_VEBOXNUM_CHECK, MT_NORMAL, MT_VP_HAL_VEBOX_NUMBER, m_numVebox)
+    MT_LOG1(MT_VP_HAL_VEBOXNUM_RESET, MT_NORMAL, MT_VP_HAL_VEBOX_NUMBER, m_numVebox)
 
     // Disable vesfc scalability when reg key "Enable Vebox Scalability" was set to zero
     if (m_forceMultiplePipe == (MOS_SCALABILITY_ENABLE_MODE_USER_FORCE | MOS_SCALABILITY_ENABLE_MODE_FALSE))

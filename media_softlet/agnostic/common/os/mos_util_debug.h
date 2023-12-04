@@ -1374,12 +1374,12 @@ public:
         m_subCompID(subCompID),
         m_name(name)
     {
-        MOS_VERBOSEMESSAGE(m_compID, m_subCompID, "Enter Function: %s\r\n", m_name);
+        MOS_VERBOSEMESSAGE(m_compID, m_subCompID, "Enter Function:%s\r\n", m_name);
     }
 
     virtual ~FunctionTrace()
     {
-        MOS_VERBOSEMESSAGE(m_compID, m_subCompID, "Exit Function: %s\r\n", m_name);
+        MOS_VERBOSEMESSAGE(m_compID, m_subCompID, "Exit Function:%s\r\n", m_name);
     }
 
 protected:
