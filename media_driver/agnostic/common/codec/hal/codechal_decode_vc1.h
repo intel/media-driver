@@ -742,6 +742,7 @@ protected:
     MOS_RESOURCE                   m_resMfdDeblockingFilterRowStoreScratchBuffer;        //!< Handle of MFD Deblocking Filter Row Store Scratch data surface
     MOS_RESOURCE                   m_resBsdMpcRowStoreScratchBuffer;                     //!< Handle of BSD/MPC Row Store Scratch data surface
     MOS_RESOURCE                   m_resVc1BsdMvData[CODECHAL_DECODE_VC1_DMV_MAX];       //!< Handle of VC1 BSD MV Data
+    uint32_t                       m_numVldSliceRecord = 0;
     PCODECHAL_VC1_VLD_SLICE_RECORD m_vldSliceRecord = nullptr;                           //!< [VLD mode] Slice record
     PCODEC_REF_LIST                m_vc1RefList[CODECHAL_NUM_UNCOMPRESSED_SURFACE_VC1];  //!< VC1 Reference List
     MOS_RESOURCE                   m_resSyncObject;                                      //!< Handle of Sync Object

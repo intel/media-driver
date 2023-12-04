@@ -404,6 +404,10 @@ void MosUtilities::MosFreeMemory(void  *ptr)
             MT_MEMORY_PTR, (int64_t)(ptr), 
             functionName, filename, line); 
         free(ptr);
+        /**
+         * Note: this is bug, ptr from outside will never be set to nullptr here;
+         * So, it must set the ptr to nullptr in caller function to avoid foating pointer.
+         */
         ptr = nullptr;
     }
 }

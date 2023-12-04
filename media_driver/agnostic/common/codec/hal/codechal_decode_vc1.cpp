@@ -2918,9 +2918,6 @@ MOS_STATUS CodechalDecodeVc1::AllocateResources()
         m_vc1RefList,
         CODECHAL_NUM_UNCOMPRESSED_SURFACE_VC1));
 
-    m_vldSliceRecord =
-        (PCODECHAL_VC1_VLD_SLICE_RECORD)MOS_AllocAndZeroMemory(m_picHeightInMb * sizeof(CODECHAL_VC1_VLD_SLICE_RECORD));
-
     // Second level batch buffer for IT mode
     if (m_mode == CODECHAL_DECODE_MODE_VC1IT)
     {
@@ -3041,6 +3038,7 @@ CodechalDecodeVc1::~CodechalDecodeVc1()
     CodecHalFreeDataList(m_vc1RefList, CODECHAL_NUM_UNCOMPRESSED_SURFACE_VC1);
 
     MOS_FreeMemory(m_vldSliceRecord);
+    m_vldSliceRecord = nullptr;
 
     Mhw_FreeBb(m_osInterface, &m_itObjectBatchBuffer, nullptr);
 
@@ -3122,6 +3120,38 @@ MOS_STATUS CodechalDecodeVc1::SetFrameStates()
     if (CodecHalIsDecodeModeVLD(m_mode))
     {
         CODECHAL_DECODE_CHK_NULL_RETURN(m_vc1SliceParams);
+
+        uint32_t numSliceRecord = 0;
+        bool     invalidSliceNum = false;
+
+        numSliceRecord = m_numMacroblocks;
+        if (m_numSlices > m_numMacroblocks)
+        {
+            numSliceRecord = m_numSlices;
+            invalidSliceNum = true;
+        }
+
+        if (numSliceRecord > m_numVldSliceRecord || m_vldSliceRecord == nullptr)
+        {
+            MOS_SafeFreeMemory(m_vldSliceRecord);
+            m_vldSliceRecord =
+                (PCODECHAL_VC1_VLD_SLICE_RECORD)MOS_AllocAndZeroMemory(numSliceRecord * sizeof(CODECHAL_VC1_VLD_SLICE_RECORD));
+            CODECHAL_DECODE_CHK_NULL_RETURN(m_vldSliceRecord);
+            m_numVldSliceRecord = numSliceRecord;
+        }
+        else
+        {
+            MOS_ZeroMemory(m_vldSliceRecord, m_numVldSliceRecord * sizeof(CODECHAL_VC1_VLD_SLICE_RECORD));
+        }
+
+        if (invalidSliceNum)
+        {
+            for (uint32_t i = 0; i < m_numVldSliceRecord; i++)
+            {
+                m_vldSliceRecord[i].dwSkip = true;
+            }
+        }
+
     }
     else if (CodecHalIsDecodeModeIT(m_mode))
     {
