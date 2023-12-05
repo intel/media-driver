@@ -1658,6 +1658,26 @@ public:
         bool                outputCompressed);
 
     //!
+    //! \brief    Use media copy to copy resource
+    //!
+    //! \param    [in] streamState
+    //!           Handle of Os Stream State
+    //! \param    [in] inputResource
+    //!           Source resource.
+    //! \param    [out] outputResource
+    //!           Destination resource.
+    //! \param    [in] preferMethod
+    //!           Preferred copy engine.
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    static MOS_STATUS UnifiedMediaCopyResource(
+        MOS_STREAM_HANDLE   streamState,
+        MOS_RESOURCE_HANDLE inputResource,
+        MOS_RESOURCE_HANDLE outputResource,
+        int                 preferMethod);
+
+    //!
     //! \brief    Copy Resource to Another Buffer
     //! \details  Decompress and Copy Resource to Another 2D Buffer
     //!
@@ -1686,9 +1706,40 @@ public:
         MOS_RESOURCE_HANDLE outputResource,
         uint32_t            copyWidth,
         uint32_t            copyHeight,
+        uint32_t            bpp,
+        bool                outputCompressed);
+
+    //!
+    //! \brief    Copy Mono Resource to Another Buffer
+    //! \details  Decompress and Copy Mono Resource to Another 2D Buffer
+    //!
+    //! \param    [in] streamState
+    //!           Handle of Os Stream State
+    //! \param    inputResource
+    //!           [in] Input Resource object
+    //! \param    outputResource
+    //!           [out] output Resource object
+    //! \param    [in] copyWidth
+    //!           The 2D surface Width
+    //! \param    [in] copyHeight
+    //!           The 2D surface height
+    //! \param    [in] copyInputOffset
+    //!           The offset of copied surface from
+    //! \param    [in] copyOutputOffset
+    //!           The offset of copied to
+    //! \param    [in] outputCompressed
+    //!           True means apply compression on output surface, else output uncompressed surface
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if successful
+    //!
+    static MOS_STATUS MonoSurfaceCopy(
+        MOS_STREAM_HANDLE   streamState,
+        MOS_RESOURCE_HANDLE inputResource,
+        MOS_RESOURCE_HANDLE outputResource,
+        uint32_t            copyWidth,
+        uint32_t            copyHeight,
         uint32_t            copyInputOffset,
         uint32_t            copyOutputOffset,
-        uint32_t            bpp,
         bool                outputCompressed);
 
     //!
