@@ -1645,7 +1645,15 @@ MOS_STATUS CodechalDecodeHevcG12::SendPictureLongFormat()
     CODECHAL_DECODE_CHK_STATUS_RETURN(InitPicLongFormatMhwParams());
 
     CODECHAL_DEBUG_TOOL(
-        for (int32_t n = 0; n < CODECHAL_MAX_CUR_NUM_REF_FRAME_HEVC; n++)
+        uint32_t activeReferenceNumber = 0;
+        for (uint32_t i = 0; i < CODECHAL_MAX_CUR_NUM_REF_FRAME_HEVC; i++) 
+        {
+            if (m_frameUsedAsCurRef[i])
+            {
+                activeReferenceNumber++;
+            }
+        } 
+        for (uint32_t n = 0; n < activeReferenceNumber; n++)
         {
             if (m_picMhwParams.PipeBufAddrParams->presReferences[n])
             {
@@ -1657,11 +1665,11 @@ MOS_STATUS CodechalDecodeHevcG12::SendPictureLongFormat()
                     m_osInterface,
                     &dstSurface));
 
-                m_debugInterface->m_refIndex = (uint16_t)n;
+                std::string refSurfDumpName = "RefSurf_" + std::to_string(n);
                 CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->DumpYUVSurface(
                     &dstSurface,
                     CodechalDbgAttr::attrDecodeReferenceSurfaces,
-                    "RefSurf"));
+                    refSurfDumpName.c_str()));
             }
 
             if (m_picMhwParams.PipeBufAddrParams->presColMvTempBuffer[n])
