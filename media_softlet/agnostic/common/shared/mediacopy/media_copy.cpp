@@ -32,6 +32,16 @@
 #include "mos_utilities.h"
 #include "mos_util_debug.h"
 
+#define BLT_MAX_WIDTH  (1 << 16) - 1
+#define BLT_MAX_HEIGHT (1 << 16) - 1
+#define BLT_MAX_PITCH  (1 << 18) - 1
+
+#define VE_MIN_WIDTH  64
+#define VE_MIN_HEIGHT 32
+
+#define RENDER_MIN_WIDTH  16
+#define RENDER_MIN_HEIGHT 16
+
 MediaCopyBaseState::MediaCopyBaseState():
     m_osInterface(nullptr)
 {
@@ -251,7 +261,7 @@ uint32_t GetMinRequiredSurfaceSizeInBytes(uint32_t pitch, uint32_t height, MOS_F
     return nBytes;
 }
 
-MOS_STATUS CheckResourceSizeValidForCopy(MOS_SURFACE& res)
+MOS_STATUS CheckResourceSizeValidForCopy(MOS_SURFACE &res, MCPY_ENGINE method)
 {
     if (res.TileType != MOS_TILE_LINEAR)
     {
@@ -271,6 +281,44 @@ MOS_STATUS CheckResourceSizeValidForCopy(MOS_SURFACE& res)
 
         return MOS_STATUS_INVALID_PARAMETER;
     }
+    
+    if (method == MCPY_ENGINE_BLT)
+    {
+        if (res.dwPitch > BLT_MAX_PITCH || res.dwHeight > BLT_MAX_HEIGHT || res.dwWidth > BLT_MAX_WIDTH)
+        {
+            MT_ERR3(MT_MEDIA_COPY,
+                MT_SURF_WIDTH, res.dwWidth,
+                MT_SURF_HEIGHT, res.dwHeight,
+                MT_SURF_PITCH, res.dwPitch);
+            MCPY_ASSERTMESSAGE("Surface size overflow! pitch %d, height %d, width %d", res.dwPitch, res.dwHeight, res.dwWidth);
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+    }
+
+    if (method == MCPY_ENGINE_BLT || method == MCPY_ENGINE_RENDER)
+    {
+        if (res.dwHeight < RENDER_MIN_HEIGHT || res.dwWidth < RENDER_MIN_WIDTH)
+        {
+            MT_ERR2(MT_MEDIA_COPY,
+                MT_SURF_WIDTH, res.dwWidth,
+                MT_SURF_HEIGHT, res.dwHeight);
+            MCPY_ASSERTMESSAGE("Surface size not meet min requirement! height %d, width %d", res.dwHeight, res.dwWidth);
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+    }
+
+    if (method == MCPY_ENGINE_VEBOX)
+    {
+        if (res.dwHeight < VE_MIN_HEIGHT || res.dwWidth < VE_MIN_WIDTH)
+        {
+            MT_ERR2(MT_MEDIA_COPY,
+                MT_SURF_WIDTH, res.dwWidth,
+                MT_SURF_HEIGHT, res.dwHeight);
+            MCPY_ASSERTMESSAGE("Surface size not meet min requirement! height %d, width %d", res.dwHeight, res.dwWidth);
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+    }
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -288,55 +336,67 @@ MOS_STATUS MediaCopyBaseState::SurfaceCopy(PMOS_RESOURCE src, PMOS_RESOURCE dst,
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
-    MOS_SURFACE ResDetails;
-    MOS_ZeroMemory(&ResDetails, sizeof(MOS_SURFACE));
-    ResDetails.Format = Format_Invalid;
+    MOS_SURFACE SrcResDetails, DstResDetails;
+    MOS_ZeroMemory(&SrcResDetails, sizeof(MOS_SURFACE));
+    MOS_ZeroMemory(&DstResDetails, sizeof(MOS_SURFACE));
+    SrcResDetails.Format = Format_Invalid;
+    DstResDetails.Format = Format_Invalid;
 
     MCPY_STATE_PARAMS     mcpySrc = {nullptr, MOS_MMC_DISABLED, MOS_TILE_LINEAR, MCPY_CPMODE_CLEAR, false};
     MCPY_STATE_PARAMS     mcpyDst = {nullptr, MOS_MMC_DISABLED, MOS_TILE_LINEAR, MCPY_CPMODE_CLEAR, false};
     MCPY_ENGINE           mcpyEngine = MCPY_ENGINE_BLT;
     MCPY_ENGINE_CAPS      mcpyEngineCaps = {1, 1, 1, 1};
-    MCPY_CHK_STATUS_RETURN(m_osInterface->pfnGetResourceInfo(m_osInterface, src, &ResDetails));
-    MCPY_CHK_STATUS_RETURN(m_osInterface->pfnGetMemoryCompressionMode(m_osInterface, src, (PMOS_MEMCOMP_STATE)&(mcpySrc.CompressionMode)));
-    mcpySrc.CpMode          = src->pGmmResInfo->GetSetCpSurfTag(false, 0)?MCPY_CPMODE_CP:MCPY_CPMODE_CLEAR;
-    mcpySrc.TileMode        = ResDetails.TileType;
-    mcpySrc.OsRes           = src;
-    MCPY_NORMALMESSAGE("input surface's format %d, width %d; hight %d, pitch %d, tiledmode %d, mmc mode %d",
-        ResDetails.Format, ResDetails.dwWidth, ResDetails.dwHeight, ResDetails.dwPitch, mcpySrc.TileMode, mcpySrc.CompressionMode);
-    MT_LOG7(MT_MEDIA_COPY, MT_NORMAL, 
-        MT_SURF_PITCH,          ResDetails.dwPitch, 
-        MT_SURF_HEIGHT,         ResDetails.dwHeight, 
-        MT_SURF_WIDTH,          ResDetails.dwWidth, 
-        MT_SURF_MOS_FORMAT,     ResDetails.Format, 
-        MT_MEDIA_COPY_DATASIZE, ResDetails.dwSize,
-        MT_SURF_TILE_TYPE,      ResDetails.TileType,
-        MT_SURF_COMP_MODE,      mcpySrc.CompressionMode);
-    MCPY_CHK_STATUS_RETURN(CheckResourceSizeValidForCopy(ResDetails));
 
-    MOS_ZeroMemory(&ResDetails, sizeof(MOS_SURFACE));
-    ResDetails.Format = Format_Invalid;
-    MCPY_CHK_STATUS_RETURN(m_osInterface->pfnGetResourceInfo(m_osInterface, dst, &ResDetails));
-    MCPY_CHK_STATUS_RETURN(m_osInterface->pfnGetMemoryCompressionMode(m_osInterface,dst, (PMOS_MEMCOMP_STATE) &(mcpyDst.CompressionMode)));
-    mcpyDst.CpMode          = dst->pGmmResInfo->GetSetCpSurfTag(false, 0)?MCPY_CPMODE_CP:MCPY_CPMODE_CLEAR;
-    mcpyDst.TileMode        = ResDetails.TileType;
-    mcpyDst.OsRes           = dst;
-    MCPY_NORMALMESSAGE("Output surface's format %d, width %d; hight %d, pitch %d, tiledmode %d, mmc mode %d",
-        ResDetails.Format, ResDetails.dwWidth, ResDetails.dwHeight, ResDetails.dwPitch, mcpyDst.TileMode, mcpyDst.CompressionMode);
+    MCPY_CHK_STATUS_RETURN(m_osInterface->pfnGetResourceInfo(m_osInterface, src, &SrcResDetails));
+    MCPY_CHK_STATUS_RETURN(m_osInterface->pfnGetMemoryCompressionMode(m_osInterface, src, (PMOS_MEMCOMP_STATE)&(mcpySrc.CompressionMode)));
+    mcpySrc.CpMode   = src->pGmmResInfo->GetSetCpSurfTag(false, 0)?MCPY_CPMODE_CP:MCPY_CPMODE_CLEAR;
+    mcpySrc.TileMode = SrcResDetails.TileType;
+    mcpySrc.OsRes    = src;
+    MCPY_NORMALMESSAGE("input surface's format %d, width %d; hight %d, pitch %d, tiledmode %d, mmc mode %d",
+        SrcResDetails.Format,
+        SrcResDetails.dwWidth,
+        SrcResDetails.dwHeight,
+        SrcResDetails.dwPitch,
+        mcpySrc.TileMode,
+        mcpySrc.CompressionMode);
     MT_LOG7(MT_MEDIA_COPY, MT_NORMAL, 
-        MT_SURF_PITCH,          ResDetails.dwPitch, 
-        MT_SURF_HEIGHT,         ResDetails.dwHeight, 
-        MT_SURF_WIDTH,          ResDetails.dwWidth, 
-        MT_SURF_MOS_FORMAT,     ResDetails.Format, 
-        MT_MEDIA_COPY_DATASIZE, ResDetails.dwSize,
-        MT_SURF_TILE_TYPE,      ResDetails.TileType,
+        MT_SURF_PITCH,          SrcResDetails.dwPitch,
+        MT_SURF_HEIGHT,         SrcResDetails.dwHeight,
+        MT_SURF_WIDTH,          SrcResDetails.dwWidth,
+        MT_SURF_MOS_FORMAT,     SrcResDetails.Format,
+        MT_MEDIA_COPY_DATASIZE, SrcResDetails.dwSize,
+        MT_SURF_TILE_TYPE,      SrcResDetails.TileType,
+        MT_SURF_COMP_MODE,      mcpySrc.CompressionMode);
+
+    MCPY_CHK_STATUS_RETURN(m_osInterface->pfnGetResourceInfo(m_osInterface, dst, &DstResDetails));
+    MCPY_CHK_STATUS_RETURN(m_osInterface->pfnGetMemoryCompressionMode(m_osInterface,dst, (PMOS_MEMCOMP_STATE) &(mcpyDst.CompressionMode)));
+    mcpyDst.CpMode   = dst->pGmmResInfo->GetSetCpSurfTag(false, 0)?MCPY_CPMODE_CP:MCPY_CPMODE_CLEAR;
+    mcpyDst.TileMode = DstResDetails.TileType;
+    mcpyDst.OsRes    = dst;
+    MCPY_NORMALMESSAGE("Output surface's format %d, width %d; hight %d, pitch %d, tiledmode %d, mmc mode %d",
+        DstResDetails.Format,
+        DstResDetails.dwWidth,
+        DstResDetails.dwHeight,
+        DstResDetails.dwPitch,
+        mcpyDst.TileMode,
+        mcpyDst.CompressionMode);
+    MT_LOG7(MT_MEDIA_COPY, MT_NORMAL, 
+        MT_SURF_PITCH,          DstResDetails.dwPitch,
+        MT_SURF_HEIGHT,         DstResDetails.dwHeight,
+        MT_SURF_WIDTH,          DstResDetails.dwWidth,
+        MT_SURF_MOS_FORMAT,     DstResDetails.Format,
+        MT_MEDIA_COPY_DATASIZE, DstResDetails.dwSize,
+        MT_SURF_TILE_TYPE,      DstResDetails.TileType,
         MT_SURF_COMP_MODE,      mcpyDst.CompressionMode);
-    MCPY_CHK_STATUS_RETURN(CheckResourceSizeValidForCopy(ResDetails));
 
     MCPY_CHK_STATUS_RETURN(PreCheckCpCopy(mcpySrc, mcpyDst, preferMethod));
 
     MCPY_CHK_STATUS_RETURN(CapabilityCheck(mcpySrc, mcpyDst, mcpyEngineCaps, preferMethod));
 
     CopyEnigneSelect(preferMethod, mcpyEngine, mcpyEngineCaps);
+
+    MCPY_CHK_STATUS_RETURN(CheckResourceSizeValidForCopy(SrcResDetails, mcpyEngine));
+    MCPY_CHK_STATUS_RETURN(CheckResourceSizeValidForCopy(DstResDetails, mcpyEngine));
 
     MCPY_CHK_STATUS_RETURN(TaskDispatch(mcpySrc, mcpyDst, mcpyEngine));
 
