@@ -242,11 +242,8 @@ MOS_STATUS JpegPipelineXe_Lpm_Plus_Base::Execute()
                 DECODE_CHK_STATUS(UserFeatureReport());
             }
 
-            if (m_basicFeature->m_secondField || CodecHal_PictureIsFrame(m_basicFeature->m_curRenderPic))
-            {
-                DecodeFrameIndex++;
-                m_basicFeature->m_frameNum = DecodeFrameIndex;
-            }
+            DecodeFrameIndex++;
+            m_basicFeature->m_frameNum = DecodeFrameIndex;
 
             DECODE_CHK_STATUS(m_statusReport->Reset());
         }
