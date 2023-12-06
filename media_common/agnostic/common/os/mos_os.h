@@ -1005,18 +1005,10 @@ typedef struct _MOS_INTERFACE
         PMOS_RESOURCE         pOutputOsResource,
         uint32_t              copyWidth,
         uint32_t              copyHeight,
+        uint32_t              copyInputOffset,
+        uint32_t              copyOutputOffset,
         uint32_t              bpp,
         bool                  bOutputCompressed);
-
-    MOS_STATUS (*pfnMonoSurfaceCopy) (
-        PMOS_INTERFACE pOsInterface,
-        PMOS_RESOURCE  pInputOsResource,
-        PMOS_RESOURCE  pOutputOsResource,
-        uint32_t       copyWidth,
-        uint32_t       copyHeight,
-        uint32_t       copyInputOffset,
-        uint32_t       copyOutputOffset,
-        bool           bOutputCompressed);
 
     MOS_STATUS (*pfnVerifyMosSurface) (
         PMOS_SURFACE mosSurface,

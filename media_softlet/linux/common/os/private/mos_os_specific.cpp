@@ -1510,13 +1510,15 @@ MOS_STATUS Mos_Specific_MediaCopyResource2D(
     PMOS_RESOURCE         outputOsResource,
     uint32_t              copyWidth,
     uint32_t              copyHeight,
+    uint32_t              copyInputOffset,
+    uint32_t              copyOutputOffset,
     uint32_t              bpp,
     bool                  outputCompressed)
 {
     MOS_OS_CHK_NULL_RETURN(osInterface);
 
     return MosInterface::MediaCopyResource2D(osInterface->osStreamState, inputOsResource, outputOsResource,
-        copyWidth, copyHeight, bpp, outputCompressed);
+        copyWidth, copyHeight, copyInputOffset, copyOutputOffset, bpp, outputCompressed);
 }
 
 //!
