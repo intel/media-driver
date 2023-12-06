@@ -125,6 +125,7 @@ inline SurfaceFormat MosFormatToVdencSurfaceReconFormat(MOS_FORMAT format)
         return SurfaceFormat::p010Variant;
     case Format_R10G10B10A2:
         return SurfaceFormat::r10g10b10a2;
+    case Format_Y210:
     case Format_Y216:
         return SurfaceFormat::y216Variant;
     case Format_Y410:

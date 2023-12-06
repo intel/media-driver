@@ -727,7 +727,7 @@ MHW_SETPAR_DECL_SRC(VDENC_REF_SURFACE_STATE, Av1BasicFeature)
         params.uOffset = m_rawSurfaceToPak->dwHeight;
         params.vOffset = m_rawSurfaceToPak->dwHeight << 1;
     }
-    else if (m_reconSurface.Format == Format_Y216 || m_reconSurface.Format == Format_YUY2 || m_reconSurface.Format == Format_YUYV)
+    else if (m_reconSurface.Format == Format_Y216 || m_reconSurface.Format == Format_Y210 || m_reconSurface.Format == Format_YUY2)
     {
         params.uOffset = m_rawSurfaceToPak->dwHeight;
         params.vOffset = m_rawSurfaceToPak->dwHeight;
