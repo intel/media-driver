@@ -996,6 +996,13 @@ MOS_STATUS MosUserSetting::InitUserSettingForDebug(MediaUserSettingSharedPtr use
 
     DeclareUserSettingKeyForDebug(
         userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_MEDIASOLO_LOCK_TILED_AS_TILED,
+        MediaUserSetting::Group::Device,
+        true,
+        true);
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
         __MEDIA_USER_FEATURE_VALUE_MEDIASOLO_ENABLE_MEM_TRACE,
         MediaUserSetting::Group::Device,
         false,

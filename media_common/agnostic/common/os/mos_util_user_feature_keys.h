@@ -106,6 +106,7 @@
 #define __MEDIA_USER_FEATURE_VALUE_MEDIASOLO_PLATFORM                           "MediaSolo Platform"
 #define __MEDIA_USER_FEATURE_VALUE_MEDIASOLO_STEPPING                           "MediaSolo Stepping"
 #define __MEDIA_USER_FEATURE_VALUE_MEDIASOLO_TILE_Y_2_TILE_4_ADAPTER            "MediaSolo Tile Y 2 Tile 4 Adapter"
+#define __MEDIA_USER_FEATURE_VALUE_MEDIASOLO_LOCK_TILED_AS_TILED                "MediaSolo Lock Tiled As Tiled"
 #define __MEDIA_USER_FEATURE_VALUE_MEDIASOLO_ENABLE_MEM_TRACE                   "MediaSolo Enable Mem Trace"
 #define __MEDIA_USER_FEATURE_VALUE_MEDIASOLO_ENABLE_LOCAL_MEM                   "MediaSolo Enable Local Mem"
 #define __MEDIA_USER_FEATURE_VALUE_MEDIASOLO_AUBLOAD_DIRECTORY                  "MediaSolo AubLoad Directory"
