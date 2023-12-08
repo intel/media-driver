@@ -557,7 +557,7 @@ struct CodechalTileInfo
 // The current definition of the first encode mode CODECHAL_ENCODE_MODE_AVC should be used
 // as a base for subsequent encode modes
 #define CODECHAL_ENCODE_MODE_BIT_OFFSET     ((uint32_t)(log((double)CODECHAL_ENCODE_MODE_AVC)/log(2.)))
-#define CODECHAL_ENCODE_MODE_BIT_MASK       (( 1L << CODECHAL_ENCODE_MODE_BIT_OFFSET) - 1 )
+#define CODECHAL_ENCODE_MODE_BIT_MASK       ((( 1L << CODECHAL_ENCODE_MODE_BIT_OFFSET) - 1 ) & 0xF)
 
 template<typename ValueType>
 static ValueType SwapEndianness(ValueType value)
