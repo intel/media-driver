@@ -90,7 +90,8 @@
 #define HUC_UKERNEL_HDR_INFO_REG_OFFSET_NODE_1_INIT_G12                                  0x1C2014
 #define HUC_STATUS_REG_OFFSET_NODE_1_INIT_G12                                            0x1C2000
 #define HUC_STATUS2_REG_OFFSET_NODE_1_INIT_G12                                           0x1C23B0
-
+#define HUC_LOAD_INFO_REG_OFFSET_G12                                                     0xC1DC
+#define HUC_LOAD_INFO_REG_MASK_G12                                                       0x1
 
 //VDBOX MFX register offsets 
 #define GENERAL_PURPOSE_REGISTER0_LO_OFFSET_NODE_1_INIT_G12                              0x1C0600
