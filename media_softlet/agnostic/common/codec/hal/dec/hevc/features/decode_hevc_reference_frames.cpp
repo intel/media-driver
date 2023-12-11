@@ -301,13 +301,7 @@ MOS_STATUS HevcReferenceFrames::UpdateCurRefList(const CODEC_HEVC_PIC_PARAMS & p
 
             if ((refCurrIndex == picParams.CurrPic.FrameIdx) || (refBeforeIndex == picParams.CurrPic.FrameIdx) || (refAfterIndex == picParams.CurrPic.FrameIdx))
             {
-                DECODE_ASSERTMESSAGE("Invalid refFrame index: refCurrIndex: %d, refBeforeIndex: %d, refAfterIndex: %d, currPic frameInx: %d\n",
-                           refCurrIndex, refBeforeIndex, refAfterIndex, picParams.CurrPic.FrameIdx);
-
-                /**
-                 *This is potential issue that may cause output curruption by refering to destsurface; But should avoid stopping playback by giving an error return here.
-                //return MOS_STATUS_INVALID_PARAMETER;
-                 */
+                return MOS_STATUS_INVALID_PARAMETER;
             }
         }
     }
