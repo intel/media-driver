@@ -58,7 +58,8 @@ static ConfigDataList configDataList_VAProfileAV1Profile0_VAEntrypointEncSlice_X
   {VA_RC_CQP, 0}, 
   {VA_RC_CBR, 0}, 
   {VA_RC_VBR, 0},
-  {VA_RC_ICQ, 0}
+  {VA_RC_ICQ, 0},
+  {VA_RC_QVBR, 0}
 }; 
 
 //!
@@ -74,7 +75,7 @@ static const AttribList attribList_VAProfileAV1Profile0_VAEntrypointEncSlice_Xe_
    {VAConfigAttribMaxPictureWidth, CODEC_8K_MAX_PIC_WIDTH},
    {VAConfigAttribMaxPictureHeight, CODEC_8K_MAX_PIC_HEIGHT},
    {VAConfigAttribEncAV1Ext1, VAProfileAV1Profile0_VAEntrypointEncSlice_encAV1Ext1.value},
-   {VAConfigAttribRateControl, VA_RC_CQP | VA_RC_CBR | VA_RC_VBR | VA_RC_ICQ},
+   {VAConfigAttribRateControl, VA_RC_CQP | VA_RC_CBR | VA_RC_VBR | VA_RC_ICQ | VA_RC_QVBR},
    {VAConfigAttribEncTileSupport, 1},
    {VAConfigAttribEncMaxRefFrames, CODEC_AV1_NUM_REFL0P_FRAMES | CODEC_AV1_NUM_REFL1B_FRAMES<<16},
    {VAConfigAttribEncQualityRange, NUM_TARGET_USAGE_MODES - 1},

@@ -377,6 +377,9 @@ namespace encode
         case RATECONTROL_CQL:
             brcFlag = 0x80;
             break;
+        case RATECONTROL_QVBR:
+            brcFlag = 0x80;
+            break;
         default:
             ENCODE_ASSERTMESSAGE("BRC mode not supported!");
             break;
@@ -581,7 +584,7 @@ namespace encode
 
         ENCODE_FUNC_CALL();
         
-        if (m_basicFeature->m_av1SeqParams->RateControlMethod == RATECONTROL_CQL)
+        if (m_basicFeature->m_av1SeqParams->RateControlMethod == RATECONTROL_CQL || m_basicFeature->m_av1SeqParams->RateControlMethod == RATECONTROL_QVBR)
         {
             const uint8_t ICQFactorLookup[52] = { 
                 0,  1,  1,  1,  1,  2,  3,  4,  6,  7,  9,  11, 13, 16, 18, 23,
@@ -592,11 +595,15 @@ namespace encode
             
             uint32_t TargetBitRate                                     = m_basicFeature->m_frameWidth * m_basicFeature->m_frameHeight * 8 / 1000;
             m_basicFeature->m_av1SeqParams->ICQQualityFactor           = ICQFactorLookup[m_basicFeature->m_av1SeqParams->ICQQualityFactor];
-            m_basicFeature->m_av1SeqParams->TargetBitRate[0]           = TargetBitRate;
-            m_basicFeature->m_av1SeqParams->MaxBitRate                 = (TargetBitRate << 4) / 10;
             m_basicFeature->m_av1SeqParams->MinBitRate                 = 0;
             m_basicFeature->m_av1SeqParams->InitVBVBufferFullnessInBit = 8000 * (TargetBitRate << 3) / 10;
             m_basicFeature->m_av1SeqParams->VBVBufferSizeInBit         = 8000 * (TargetBitRate << 1);
+
+            if (m_basicFeature->m_av1SeqParams->RateControlMethod == RATECONTROL_CQL) 
+            {
+                m_basicFeature->m_av1SeqParams->TargetBitRate[0]           = TargetBitRate;
+                m_basicFeature->m_av1SeqParams->MaxBitRate                 = (TargetBitRate << 4) / 10;
+            }
         }
         
         m_brcEnabled = IsRateControlBrc(m_basicFeature->m_av1SeqParams->RateControlMethod);

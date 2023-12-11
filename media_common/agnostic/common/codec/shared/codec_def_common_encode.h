@@ -548,6 +548,7 @@ struct CodechalTileInfo
     (rateControl == RATECONTROL_VBR)                || \
     (rateControl == RATECONTROL_AVBR)               || \
     (rateControl == RATECONTROL_CQL)                || \
+    (rateControl == RATECONTROL_QVBR)               || \
     ((( rateControl == RATECONTROL_VCM)       || \
       ( rateControl == RATECONTROL_ICQ)       || \
       ( rateControl == RATECONTROL_QVBR)      || \

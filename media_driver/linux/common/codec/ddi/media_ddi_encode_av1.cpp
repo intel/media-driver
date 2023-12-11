@@ -426,6 +426,9 @@ VAStatus DdiEncodeAV1::ParseSeqParams(void *ptr)
     case VA_RC_ICQ:
         av1SeqParams->RateControlMethod = (uint8_t)RATECONTROL_CQL;
         break;
+    case VA_RC_QVBR:
+        av1SeqParams->RateControlMethod = (uint8_t)RATECONTROL_QVBR;
+        break;
     default:
         av1SeqParams->RateControlMethod = (uint8_t)RATECONTROL_CBR;
     }
@@ -983,6 +986,22 @@ VAStatus DdiEncodeAV1::ParseMiscParamRC(void *data)
     else if (VA_RC_ICQ == m_encodeCtx->uiRCMethod)
     {   
         seqParams->RateControlMethod = RATECONTROL_CQL;
+        seqParams->ICQQualityFactor = vaEncMiscParamRC->quality_factor;
+        if (savedQualityFactor != seqParams->ICQQualityFactor)
+        {
+            if (savedQualityFactor != 0)
+            {
+                seqParams->SeqFlags.fields.ResetBRC |= 0x01;
+            }
+            savedQualityFactor = seqParams->ICQQualityFactor;
+        }
+    }
+    else if (VA_RC_QVBR == m_encodeCtx->uiRCMethod)
+    {   
+        seqParams->TargetBitRate[temporalId] = bitRate * vaEncMiscParamRC->target_percentage / 100; //VBR target bits;
+        seqParams->MaxBitRate = bitRate;
+        seqParams->MinBitRate = 0;
+        seqParams->RateControlMethod = RATECONTROL_QVBR;
         seqParams->ICQQualityFactor = vaEncMiscParamRC->quality_factor;
         if (savedQualityFactor != seqParams->ICQQualityFactor)
         {
