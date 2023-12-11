@@ -389,9 +389,6 @@ MOS_STATUS Vp9EncodeTile::SetTileData(void *params)
             // DW12
             m_tileData[idx].vp9ProbabilityCounterStreamoutOffset = ((idx * m_probabilityCounterBufferSize) + (CODECHAL_CACHELINE_SIZE - 1)) / CODECHAL_CACHELINE_SIZE;
         }
-        // Same row store buffer for different tile rows
-        saoRowstoreOffset = 0;
-        sseRowstoreOffset = 0;
     }
 
     return eStatus;
