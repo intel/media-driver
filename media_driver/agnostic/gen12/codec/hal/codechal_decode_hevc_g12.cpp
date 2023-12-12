@@ -2105,7 +2105,7 @@ MOS_STATUS CodechalDecodeHevcG12::DecodePrimitiveLevel()
         // Send VD_CONTROL_STATE HCP Pipe Unlock
         MOS_ZeroMemory(&vdCtrlParam, sizeof(MHW_MI_VD_CONTROL_STATE_PARAMS));
         vdCtrlParam.scalableModePipeUnlock = true;
-        static_cast<MhwMiInterfaceG12*>(m_miInterface)->AddMiVdControlStateCmd(cmdBufferInUse, &vdCtrlParam);
+        CODECHAL_DECODE_CHK_STATUS_RETURN(static_cast<MhwMiInterfaceG12 *>(m_miInterface)->AddMiVdControlStateCmd(cmdBufferInUse, &vdCtrlParam));
     }
 
     if (m_isRealTile)
