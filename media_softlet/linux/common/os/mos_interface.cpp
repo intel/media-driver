@@ -2438,6 +2438,20 @@ MOS_STATUS MosInterface::GetMemoryCompressionFormat(
     return eStatus;
 }
 
+MOS_STATUS MosInterface::UnifiedMediaCopyResource(
+    MOS_STREAM_HANDLE   streamState,
+    MOS_RESOURCE_HANDLE inputResource,
+    MOS_RESOURCE_HANDLE outputResource,
+    int                 preferMethod)
+{
+    auto pOsDeviceContext = streamState->osDeviceContext;
+    MOS_OS_CHK_NULL_RETURN(pOsDeviceContext);
+    auto pMosMediaCopy = pOsDeviceContext->GetMosMediaCopy();
+    MOS_OS_CHK_NULL_RETURN(pMosMediaCopy);
+
+    return pMosMediaCopy->MediaCopy(inputResource, outputResource, (MCPY_METHOD)preferMethod);
+}
+
 MOS_STATUS MosInterface::DoubleBufferCopyResource(
     MOS_STREAM_HANDLE   streamState,
     MOS_RESOURCE_HANDLE inputResource,
@@ -2451,15 +2465,29 @@ MOS_STATUS MosInterface::DoubleBufferCopyResource(
     MOS_OS_CHK_NULL_RETURN(outputResource);
     MOS_OS_CHK_NULL_RETURN(streamState);
 
-    if (inputResource && inputResource->bo && inputResource->pGmmResInfo &&
-        outputResource && outputResource->bo && outputResource->pGmmResInfo)
+    MosDecompression *mosDecompression = nullptr;
+    auto lbdMemDecomp = [&]()
     {
-        MosDecompression   *mosDecompression = nullptr;
-        MOS_OS_CHK_STATUS_RETURN(MosInterface::GetMosDecompressionFromStreamState(streamState, mosDecompression));
-        MOS_OS_CHK_NULL_RETURN(mosDecompression);
+        if (inputResource->bo && inputResource->pGmmResInfo &&
+            outputResource->bo && outputResource->pGmmResInfo)
+        {
+            MOS_OS_CHK_STATUS_RETURN(MosInterface::GetMosDecompressionFromStreamState(streamState, mosDecompression));
+            MOS_OS_CHK_NULL_RETURN(mosDecompression);
 
-        // Double Buffer Copy can support any tile status surface with/without compression
-        mosDecompression->MediaMemoryCopy(inputResource, outputResource, outputCompressed);
+            // Double Buffer Copy can support any tile status surface with/without compression
+            return mosDecompression->MediaMemoryCopy(inputResource, outputResource, outputCompressed);
+        }
+        else
+        {
+            return MOS_STATUS_NULL_POINTER;
+        }
+    };
+
+    // If mmd device not registered, use media vebopx copy.
+    if (lbdMemDecomp() != MOS_STATUS_SUCCESS && mosDecompression && !mosDecompression->GetMediaMemDecompState())
+    {
+        MOS_OS_CRITICALMESSAGE("MMD device not registered. Use media copy instead.");
+        status = MosInterface::UnifiedMediaCopyResource(streamState, inputResource, outputResource, MCPY_METHOD_BALANCE);
     }
 
     return status;
@@ -2500,8 +2528,6 @@ MOS_STATUS MosInterface::MediaCopyResource2D(
     MOS_RESOURCE_HANDLE outputResource,
     uint32_t            copyWidth,
     uint32_t            copyHeight,
-    uint32_t            copyInputOffset,
-    uint32_t            copyOutputOffset,
     uint32_t            bpp,
     bool                outputCompressed)
 {
@@ -2512,16 +2538,126 @@ MOS_STATUS MosInterface::MediaCopyResource2D(
     MOS_OS_CHK_NULL_RETURN(outputResource);
     MOS_OS_CHK_NULL_RETURN(streamState);
 
-    if (inputResource && inputResource->bo && inputResource->pGmmResInfo &&
-        outputResource && outputResource->bo && outputResource->pGmmResInfo)
+    MosDecompression *mosDecompression = nullptr;
+    auto lbdMemDecomp = [&]()
     {
-        MosDecompression   *mosDecompression = nullptr;
-        MOS_OS_CHK_STATUS_RETURN(MosInterface::GetMosDecompressionFromStreamState(streamState, mosDecompression));
-        MOS_OS_CHK_NULL_RETURN(mosDecompression);
+        if (inputResource->bo && inputResource->pGmmResInfo &&
+            outputResource->bo && outputResource->pGmmResInfo)
+        {
+            MOS_OS_CHK_STATUS_RETURN(MosInterface::GetMosDecompressionFromStreamState(streamState, mosDecompression));
+            MOS_OS_CHK_NULL_RETURN(mosDecompression);
 
-        // Double Buffer Copy can support any tile status surface with/without compression
-        mosDecompression->MediaMemoryCopy2D(inputResource, outputResource,
-            copyWidth, copyHeight, copyInputOffset, copyOutputOffset, bpp, outputCompressed);
+            // Double Buffer Copy can support any tile status surface with/without compression
+            return mosDecompression->MediaMemoryCopy2D(inputResource, outputResource,
+                copyWidth, copyHeight, 0, 0, bpp, outputCompressed);
+        }
+        else
+        {
+            return MOS_STATUS_NULL_POINTER;
+        }
+    };
+
+    // If mmd device not registered, use media vebopx copy.
+    if (lbdMemDecomp() != MOS_STATUS_SUCCESS && mosDecompression && !mosDecompression->GetMediaMemDecompState())
+    {
+        MOS_OS_CRITICALMESSAGE("MMD device not registered. Use media copy instead.");
+        status = MosInterface::UnifiedMediaCopyResource(streamState, inputResource, outputResource, MCPY_METHOD_BALANCE);
+    }
+
+    return status;
+}
+
+MOS_STATUS MosInterface::MonoSurfaceCopy(
+    MOS_STREAM_HANDLE   streamState,
+    MOS_RESOURCE_HANDLE inputResource,
+    MOS_RESOURCE_HANDLE outputResource,
+    uint32_t            copyWidth,
+    uint32_t            copyHeight,
+    uint32_t            copyInputOffset,
+    uint32_t            copyOutputOffset,
+    bool                outputCompressed)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    MOS_STATUS status = MOS_STATUS_SUCCESS;
+    MOS_OS_CHK_NULL_RETURN(inputResource);
+    MOS_OS_CHK_NULL_RETURN(outputResource);
+    MOS_OS_CHK_NULL_RETURN(streamState);
+
+    MosDecompression *mosDecompression = nullptr;
+    auto lbdMemDecomp = [&]()
+    {
+        if (inputResource->bo && inputResource->pGmmResInfo &&
+            outputResource->bo && outputResource->pGmmResInfo)
+        {
+            MOS_OS_CHK_STATUS_RETURN(MosInterface::GetMosDecompressionFromStreamState(streamState, mosDecompression));
+            MOS_OS_CHK_NULL_RETURN(mosDecompression);
+
+            // Double Buffer Copy can support any tile status surface with/without compression
+            return mosDecompression->MediaMemoryCopy2D(inputResource, outputResource,
+                copyWidth, copyHeight, copyInputOffset, copyOutputOffset, 16, outputCompressed);
+        }
+        else
+        {
+            return MOS_STATUS_NULL_POINTER;
+        }
+    };
+
+    // If mmd device not registered, use media vebopx copy.
+    if (lbdMemDecomp() != MOS_STATUS_SUCCESS && mosDecompression && !mosDecompression->GetMediaMemDecompState())
+    {
+        MOS_OS_CRITICALMESSAGE("MMD device not registered. Use media copy instead.");
+        MOS_SURFACE inputResInfo, outputResInfo;
+        MOS_ZeroMemory(&inputResInfo, sizeof(MOS_SURFACE));
+        MOS_ZeroMemory(&outputResInfo, sizeof(MOS_SURFACE));
+
+        struct BackupResInfo
+        {
+            MOS_FORMAT format;
+            uint32_t   height;
+            uint32_t   width;
+            uint32_t   pitch;
+            uint32_t   offset;
+        };
+
+        inputResInfo.Format = Format_Invalid;
+        MOS_OS_CHK_STATUS_RETURN(MosInterface::GetResourceInfo(streamState, inputResource, inputResInfo));
+        BackupResInfo bkIn = {inputResInfo.Format, inputResInfo.dwHeight, inputResInfo.dwWidth, inputResInfo.dwPitch};
+
+        outputResInfo.Format = Format_Invalid;
+        MOS_OS_CHK_STATUS_RETURN(MosInterface::GetResourceInfo(streamState, outputResource, outputResInfo));
+        BackupResInfo bkOut = {outputResInfo.Format, outputResInfo.dwHeight, outputResInfo.dwWidth, outputResInfo.dwPitch};
+
+        uint32_t   pixelInByte    = 2;
+        MOS_FORMAT overrideFormat = Format_Y16U;
+
+        inputResource->pGmmResInfo->OverrideSurfaceFormat(MosInterface::MosFmtToGmmFmt(overrideFormat));
+        inputResource->pGmmResInfo->OverrideBaseWidth(copyWidth / pixelInByte);
+        inputResource->pGmmResInfo->OverridePitch(copyWidth);
+        inputResource->pGmmResInfo->OverrideBaseHeight(copyHeight);
+        outputResource->pGmmResInfo->OverrideSurfaceFormat(MosInterface::MosFmtToGmmFmt(overrideFormat));
+        outputResource->pGmmResInfo->OverrideBaseWidth(copyWidth / pixelInByte);
+        outputResource->pGmmResInfo->OverridePitch(copyWidth);
+        outputResource->pGmmResInfo->OverrideBaseHeight(copyHeight);
+
+        uint32_t inOffset           = inputResource->dwOffset;
+        uint32_t outOffset          = outputResource->dwOffset;
+        inputResource->dwOffset  = copyInputOffset;
+        outputResource->dwOffset = copyOutputOffset;
+
+        status = MosInterface::UnifiedMediaCopyResource(streamState, inputResource, outputResource, MCPY_METHOD_BALANCE);
+
+        inputResource->pGmmResInfo->OverrideSurfaceFormat(MosInterface::MosFmtToGmmFmt(bkIn.format));
+        inputResource->pGmmResInfo->OverrideBaseWidth(bkIn.width);
+        inputResource->pGmmResInfo->OverrideBaseWidth(bkIn.pitch);
+        inputResource->pGmmResInfo->OverrideBaseHeight(bkIn.height);
+        outputResource->pGmmResInfo->OverrideSurfaceFormat(MosInterface::MosFmtToGmmFmt(bkOut.format));
+        outputResource->pGmmResInfo->OverrideBaseWidth(bkOut.width);
+        outputResource->pGmmResInfo->OverrideBaseWidth(bkOut.pitch);
+        outputResource->pGmmResInfo->OverrideBaseHeight(bkOut.height);
+
+        inputResource->dwOffset  = inOffset;
+        outputResource->dwOffset = outOffset;
     }
 
     return status;

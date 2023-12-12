@@ -144,7 +144,7 @@ namespace decode
                 }
                 else
                 {
-                    m_osInterface->pfnMediaCopyResource2D(
+                    m_osInterface->pfnMonoSurfaceCopy(
                         m_osInterface,
                         &m_basicFeature->m_resMonoPicChromaBuffer->OsResource,
                         &m_basicFeature->m_destSurface.OsResource,
@@ -152,7 +152,6 @@ namespace decode
                         uvblockHeight * 2,
                         0,
                         dstOffset,
-                        16,
                         false);
                 }
             }
@@ -171,7 +170,7 @@ namespace decode
             }
             else
             {
-                m_osInterface->pfnMediaCopyResource2D(
+                m_osInterface->pfnMonoSurfaceCopy(
                     m_osInterface,
                     &m_basicFeature->m_resMonoPicChromaBuffer->OsResource,
                     &m_basicFeature->m_destSurface.OsResource,
@@ -179,7 +178,6 @@ namespace decode
                     uvsize / pitch,
                     0,
                     dstOffset,
-                    16,
                     false);
             }
         }

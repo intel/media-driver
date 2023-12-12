@@ -1979,7 +1979,7 @@ CodechalDebugInterface::CodechalDebugInterface()
 
                 uint32_t bpp = surface->OsResource.pGmmResInfo->GetBitsPerPixel();
 
-                CODECHAL_DEBUG_CHK_STATUS(m_osInterface->pfnMediaCopyResource2D(m_osInterface, &surface->OsResource, &m_temp2DSurfForCopy.OsResource, surface->dwPitch, sizeSrcSurface / (surface->dwPitch), 0, 0, bpp, false));
+                CODECHAL_DEBUG_CHK_STATUS(m_osInterface->pfnMediaCopyResource2D(m_osInterface, &surface->OsResource, &m_temp2DSurfForCopy.OsResource, surface->dwPitch, sizeSrcSurface / (surface->dwPitch), bpp, false));
 
                 lockedAddr = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, &m_temp2DSurfForCopy.OsResource, &lockFlags);
                 CODECHAL_DEBUG_CHK_NULL(lockedAddr);
@@ -2659,7 +2659,7 @@ MOS_STATUS CodechalDebugInterface::DumpRgbDataOnYUVSurface(
 
             uint32_t bpp = surface->OsResource.pGmmResInfo->GetBitsPerPixel();
 
-            CODECHAL_DEBUG_CHK_STATUS(m_osInterface->pfnMediaCopyResource2D(m_osInterface, &surface->OsResource, &m_temp2DSurfForCopy.OsResource, surface->dwPitch, sizeSrcSurface / (surface->dwPitch), 0, 0, bpp, false));
+            CODECHAL_DEBUG_CHK_STATUS(m_osInterface->pfnMediaCopyResource2D(m_osInterface, &surface->OsResource, &m_temp2DSurfForCopy.OsResource, surface->dwPitch, sizeSrcSurface / (surface->dwPitch), bpp, false));
         }
         else
         {
