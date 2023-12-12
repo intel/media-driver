@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2023, Intel Corporation
+* Copyright (c) 2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -29,7 +29,6 @@
 
 #include "decode_huc_s2l_xe_m_base_packet.h"
 #include "codechal_hw_g12_X.h"
-#include "decode_huc_authcheck_packet_m12.h"
 
 namespace decode
 {
@@ -78,14 +77,6 @@ struct HucHevcS2lPicBssM12 : public HucHevcS2lPicBssXe_M_Base
             : HucS2lPktXe_M_Base(pipeline, task, hwInterface)
         {
             m_hwInterface = dynamic_cast<CodechalHwInterfaceG12*>(hwInterface);
-            if (m_hwInterface != nullptr)
-            {
-                MEDIA_WA_TABLE *waTable = m_hwInterface->GetWaTable();
-                if (waTable && MEDIA_IS_WA(waTable, WaCheckHucAuthenticationStatus))
-                {
-                    m_hucAuthPkt = MOS_New(DecodeHucAuthCheckPktM12, pipeline, m_hwInterface);
-                }
-            }
         }
 
         virtual ~HucS2lPktM12() {}
@@ -108,8 +99,6 @@ struct HucHevcS2lPicBssM12 : public HucHevcS2lPicBssXe_M_Base
         //!
         virtual MOS_STATUS Prepare() override;
 
-        PMHW_BATCH_BUFFER GetHucAuthCmdBuffer() { return m_hucAuthPkt ? m_hucAuthPkt->GetSecondLvlBB() : nullptr; };
-
     protected:
         virtual MOS_STATUS AllocateResources() override;
         virtual MOS_STATUS Destroy() override;
@@ -129,8 +118,6 @@ struct HucHevcS2lPicBssM12 : public HucHevcS2lPicBssXe_M_Base
         CodechalHwInterfaceG12 *m_hwInterface = nullptr;
 
         BufferArray *m_s2lDmemBufferArray = nullptr; //!< S2L DMEM buffer array
-
-        DecodeHucAuthCheckPktM12 *m_hucAuthPkt = nullptr;
     MEDIA_CLASS_DEFINE_END(decode__HucS2lPktM12)
     };
 

@@ -283,7 +283,7 @@ protected:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS DumpSecondLevelBatchBuffer();
+    MOS_STATUS DumpSecondLevelBatchBuffer();
 #endif
 
 protected:

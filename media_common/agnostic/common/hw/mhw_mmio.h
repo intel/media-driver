@@ -99,7 +99,6 @@ struct MmioRegistersHuc
     uint32_t                    hucStatusRegOffset = 0;
     uint32_t                    hucUKernelHdrInfoRegOffset = 0;
     uint32_t                    hucStatus2RegOffset = 0;
-    uint32_t                    hucLoadInfoOffset = 0;
 };
 
 //!
