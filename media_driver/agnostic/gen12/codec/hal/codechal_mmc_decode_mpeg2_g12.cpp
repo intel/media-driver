@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2019, Intel Corporation
+* Copyright (c) 2017-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -51,12 +51,14 @@ MOS_STATUS CodechalMmcDecodeMpeg2G12::SetPipeBufAddr(
 
     if (m_mmcEnabled)
     {
+        pipeBufAddrParams->bMmcEnabled = true;
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetMemoryCompressionMode(m_osInterface,
             &m_mpeg2State->m_destSurface.OsResource,
             &pipeBufAddrParams->PreDeblockSurfMmcState));
     }
     else
     {
+        pipeBufAddrParams->bMmcEnabled = false;
         pipeBufAddrParams->PreDeblockSurfMmcState = MOS_MEMCOMP_DISABLED;
     }
 

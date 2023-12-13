@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2019, Intel Corporation
+* Copyright (c) 2017-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -51,6 +51,7 @@ MOS_STATUS CodechalMmcDecodeAvcG12::SetPipeBufAddr(
 
     if (m_mmcEnabled)
     {
+        pipeBufAddrParams->bMmcEnabled = true;
         MOS_MEMCOMP_STATE  mmcState = MOS_MEMCOMP_DISABLED;
 
         CODECHAL_DECODE_CHK_NULL_RETURN(m_avcState);
@@ -66,6 +67,7 @@ MOS_STATUS CodechalMmcDecodeAvcG12::SetPipeBufAddr(
     }
     else
     {
+        pipeBufAddrParams->bMmcEnabled = false;
         pipeBufAddrParams->PreDeblockSurfMmcState = MOS_MEMCOMP_DISABLED;
         pipeBufAddrParams->PostDeblockSurfMmcState = MOS_MEMCOMP_DISABLED;
     }
