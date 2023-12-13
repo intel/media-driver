@@ -1514,36 +1514,9 @@ namespace encode{
 
         return MOS_STATUS_SUCCESS;
     }
-
     MOS_STATUS Av1VdencPkt::PrepareHWMetaDataFromStreamout(MOS_COMMAND_BUFFER *cmdBuffer, const MetaDataOffset resourceOffset)
     {
         ENCODE_FUNC_CALL();
-
-        auto xCalAtomic = [&](PMOS_RESOURCE presDst, uint32_t dstOffset, PMOS_RESOURCE presSrc, uint32_t srcOffset, mhw::mi::MHW_COMMON_MI_ATOMIC_OPCODE opCode) {
-            auto  mmioRegisters      = m_hwInterface->GetVdencInterfaceNext()->GetMmioRegisters(m_vdboxIndex);
-            auto &miLoadRegMemParams = m_miItf->MHW_GETPAR_F(MI_LOAD_REGISTER_MEM)();
-            auto &flushDwParams      = m_miItf->MHW_GETPAR_F(MI_FLUSH_DW)();
-            auto &atomicParams       = m_miItf->MHW_GETPAR_F(MI_ATOMIC)();
-
-            miLoadRegMemParams = {};
-            flushDwParams      = {};
-            atomicParams       = {};
-
-            miLoadRegMemParams.presStoreBuffer = presSrc;
-            miLoadRegMemParams.dwOffset        = srcOffset;
-            miLoadRegMemParams.dwRegister      = mmioRegisters->generalPurposeRegister0LoOffset;
-            ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_MEM)(cmdBuffer));
-
-            ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(cmdBuffer));
-
-            atomicParams.pOsResource      = presDst;
-            atomicParams.dwResourceOffset = dstOffset;
-            atomicParams.dwDataSize       = sizeof(uint32_t);
-            atomicParams.Operation        = opCode;
-            ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_ATOMIC)(cmdBuffer));
-
-            return MOS_STATUS_SUCCESS;
-        };
 
         uint32_t tileNum     = 0;
         auto     tileFeature = dynamic_cast<Av1EncodeTile *>(m_featureManager->GetFeature(Av1FeatureIDs::encodeTile));
@@ -1571,7 +1544,10 @@ namespace encode{
             ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_COPY_MEM_MEM)(cmdBuffer));
 
             storeDataParams.dwResourceOffset = frameSubregionOffset + resourceOffset.dwbStartOffset;
-            storeDataParams.dwValue          = 0;
+            if (tileIdx == tileNum - 1)
+                storeDataParams.dwValue = 0;
+            else
+                storeDataParams.dwValue = TILE_SIZE_BYTES;
             ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(cmdBuffer));
 
             storeDataParams.dwResourceOffset = frameSubregionOffset + resourceOffset.dwbHeaderSize;
@@ -1579,54 +1555,8 @@ namespace encode{
             ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(cmdBuffer));
 
             //count for fame bytescount
-            ENCODE_CHK_STATUS_RETURN(xCalAtomic(m_basicFeature->m_resMetadataBuffer, resourceOffset.dwEncodedBitstreamWrittenBytesCount, tileRecordBuffer, tileIdx * sizeof(PakHwTileSizeRecord) + 2 * sizeof(uint32_t), mhw::mi::MHW_MI_ATOMIC_ADD));
+            ENCODE_CHK_STATUS_RETURN(CalAtomic(m_basicFeature->m_resMetadataBuffer, resourceOffset.dwEncodedBitstreamWrittenBytesCount, tileRecordBuffer, tileIdx * sizeof(PakHwTileSizeRecord) + 2 * sizeof(uint32_t), mhw::mi::MHW_MI_ATOMIC_ADD, cmdBuffer));
         }
-
-        //lcu count Intra/Inter/Skip CU Cnt
-        PMOS_RESOURCE tileStatisticsPakStreamoutBuffer = m_basicFeature->m_tileStatisticsPakStreamoutBuffer;
-        ENCODE_CHK_NULL_RETURN(tileStatisticsPakStreamoutBuffer);
-
-        // LCUSkipIn8x8Unit
-        miCpyMemMemParams.presSrc     = tileStatisticsPakStreamoutBuffer;
-        miCpyMemMemParams.dwSrcOffset = 61 * sizeof(uint32_t);
-        miCpyMemMemParams.presDst     = m_basicFeature->m_resMetadataBuffer;
-        miCpyMemMemParams.dwDstOffset = resourceOffset.dwEncodeStats + resourceOffset.dwSkipCodingUnitsCount;
-        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_COPY_MEM_MEM)(cmdBuffer));
-
-        // NumCU_IntraDC, NumCU_IntraPlanar, NumCU_IntraAngular
-        miCpyMemMemParams.presSrc     = tileStatisticsPakStreamoutBuffer;
-        miCpyMemMemParams.dwSrcOffset = 24 * sizeof(uint32_t);
-        miCpyMemMemParams.dwDstOffset = resourceOffset.dwEncodeStats + resourceOffset.dwIntraCodingUnitsCount;
-        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_COPY_MEM_MEM)(cmdBuffer));
-        ENCODE_CHK_STATUS_RETURN(xCalAtomic(m_basicFeature->m_resMetadataBuffer, resourceOffset.dwEncodeStats + resourceOffset.dwIntraCodingUnitsCount, tileStatisticsPakStreamoutBuffer, 25 * sizeof(uint32_t), mhw::mi::MHW_MI_ATOMIC_ADD));
-        ENCODE_CHK_STATUS_RETURN(xCalAtomic(m_basicFeature->m_resMetadataBuffer, resourceOffset.dwEncodeStats + resourceOffset.dwIntraCodingUnitsCount, tileStatisticsPakStreamoutBuffer, 26 * sizeof(uint32_t), mhw::mi::MHW_MI_ATOMIC_ADD));
-        ENCODE_CHK_STATUS_RETURN(xCalAtomic(m_basicFeature->m_resMetadataBuffer, resourceOffset.dwEncodeStats + resourceOffset.dwIntraCodingUnitsCount, tileStatisticsPakStreamoutBuffer, 27 * sizeof(uint32_t), mhw::mi::MHW_MI_ATOMIC_ADD));
-        ENCODE_CHK_STATUS_RETURN(xCalAtomic(m_basicFeature->m_resMetadataBuffer, resourceOffset.dwEncodeStats + resourceOffset.dwIntraCodingUnitsCount, tileStatisticsPakStreamoutBuffer, 28 * sizeof(uint32_t), mhw::mi::MHW_MI_ATOMIC_ADD));
-        ENCODE_CHK_STATUS_RETURN(xCalAtomic(m_basicFeature->m_resMetadataBuffer, resourceOffset.dwEncodeStats + resourceOffset.dwIntraCodingUnitsCount, tileStatisticsPakStreamoutBuffer, 29 * sizeof(uint32_t), mhw::mi::MHW_MI_ATOMIC_ADD));
-        ENCODE_CHK_STATUS_RETURN(xCalAtomic(m_basicFeature->m_resMetadataBuffer, resourceOffset.dwEncodeStats + resourceOffset.dwIntraCodingUnitsCount, tileStatisticsPakStreamoutBuffer, 30 * sizeof(uint32_t), mhw::mi::MHW_MI_ATOMIC_ADD));
-        ENCODE_CHK_STATUS_RETURN(xCalAtomic(m_basicFeature->m_resMetadataBuffer, resourceOffset.dwEncodeStats + resourceOffset.dwIntraCodingUnitsCount, tileStatisticsPakStreamoutBuffer, 31 * sizeof(uint32_t), mhw::mi::MHW_MI_ATOMIC_ADD));
-        ENCODE_CHK_STATUS_RETURN(xCalAtomic(m_basicFeature->m_resMetadataBuffer, resourceOffset.dwEncodeStats + resourceOffset.dwIntraCodingUnitsCount, tileStatisticsPakStreamoutBuffer, 32 * sizeof(uint32_t), mhw::mi::MHW_MI_ATOMIC_ADD));
-        ENCODE_CHK_STATUS_RETURN(xCalAtomic(m_basicFeature->m_resMetadataBuffer, resourceOffset.dwEncodeStats + resourceOffset.dwIntraCodingUnitsCount, tileStatisticsPakStreamoutBuffer, 33 * sizeof(uint32_t), mhw::mi::MHW_MI_ATOMIC_ADD));
-        ENCODE_CHK_STATUS_RETURN(xCalAtomic(m_basicFeature->m_resMetadataBuffer, resourceOffset.dwEncodeStats + resourceOffset.dwIntraCodingUnitsCount, tileStatisticsPakStreamoutBuffer, 34 * sizeof(uint32_t), mhw::mi::MHW_MI_ATOMIC_ADD));
-        ENCODE_CHK_STATUS_RETURN(xCalAtomic(m_basicFeature->m_resMetadataBuffer, resourceOffset.dwEncodeStats + resourceOffset.dwIntraCodingUnitsCount, tileStatisticsPakStreamoutBuffer, 35 * sizeof(uint32_t), mhw::mi::MHW_MI_ATOMIC_ADD));
-        ENCODE_CHK_STATUS_RETURN(xCalAtomic(m_basicFeature->m_resMetadataBuffer, resourceOffset.dwEncodeStats + resourceOffset.dwIntraCodingUnitsCount, tileStatisticsPakStreamoutBuffer, 36 * sizeof(uint32_t), mhw::mi::MHW_MI_ATOMIC_ADD));
-
-        // NumCU_MVdirL0, NumCU_MVdirL1, NumCU_MVdirBi
-        miCpyMemMemParams.presSrc     = tileStatisticsPakStreamoutBuffer;
-        miCpyMemMemParams.dwSrcOffset = 85 * sizeof(uint32_t);
-        miCpyMemMemParams.dwDstOffset = resourceOffset.dwEncodeStats + resourceOffset.dwInterCodingUnitsCount;
-        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_COPY_MEM_MEM)(cmdBuffer));
-        ENCODE_CHK_STATUS_RETURN(xCalAtomic(m_basicFeature->m_resMetadataBuffer, resourceOffset.dwEncodeStats + resourceOffset.dwInterCodingUnitsCount, tileStatisticsPakStreamoutBuffer, 86 * sizeof(uint32_t), mhw::mi::MHW_MI_ATOMIC_ADD));
-        ENCODE_CHK_STATUS_RETURN(xCalAtomic(m_basicFeature->m_resMetadataBuffer, resourceOffset.dwEncodeStats + resourceOffset.dwInterCodingUnitsCount, tileStatisticsPakStreamoutBuffer, 87 * sizeof(uint32_t), mhw::mi::MHW_MI_ATOMIC_ADD));
-
-        // Average MV_X/MV_Y, report (0,0) as temp solution, later may need kernel involved
-        storeDataParams.dwResourceOffset = resourceOffset.dwEncodeStats + resourceOffset.dwAverageMotionEstimationXDirection;
-        storeDataParams.dwValue          = 0;
-        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(cmdBuffer));
-
-        storeDataParams.dwResourceOffset = resourceOffset.dwEncodeStats + resourceOffset.dwAverageMotionEstimationYDirection;
-        storeDataParams.dwValue          = 0;
-        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(cmdBuffer));
 
         return MOS_STATUS_SUCCESS;
     }
@@ -1637,6 +1567,7 @@ namespace encode{
 
         //qpy
         auto  mmioRegisters               = m_avpItf->GetMmioRegisters(m_vdboxIndex);
+        ENCODE_CHK_NULL_RETURN(mmioRegisters);
         auto &storeRegMemParams           = m_miItf->MHW_GETPAR_F(MI_STORE_REGISTER_MEM)();
         storeRegMemParams                 = {};
         storeRegMemParams.presStoreBuffer = m_basicFeature->m_resMetadataBuffer;
@@ -1773,6 +1704,113 @@ namespace encode{
             miCpyMemMemParams.dwDstOffset = resourceOffset.dwMetaDataSize + tileNum * resourceOffset.dwMetaDataSubRegionSize + i;
             ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_COPY_MEM_MEM)(cmdBuffer));
         }
+
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MOS_STATUS Av1VdencPkt::PrepareHWMetaDataFromStreamoutTileLevel(MOS_COMMAND_BUFFER *cmdBuffer, uint32_t tileCol, uint32_t tileRow) 
+    {
+        ENCODE_FUNC_CALL();
+        ENCODE_CHK_NULL_RETURN(cmdBuffer);
+
+        ENCODE_CHK_NULL_RETURN(m_basicFeature);
+        if (!m_basicFeature->m_resMetadataBuffer)
+        {
+            return MOS_STATUS_SUCCESS;
+        }
+        MetaDataOffset    resourceOffset    = m_basicFeature->m_metaDataOffset;
+
+        //lcu count Intra/Inter/Skip CU Cnt
+        PMOS_RESOURCE tileStatisticsPakStreamoutBuffer = m_basicFeature->m_tileStatisticsPakStreamoutBuffer;
+        ENCODE_CHK_NULL_RETURN(tileStatisticsPakStreamoutBuffer);
+
+        auto &miCpyMemMemParams       = m_miItf->MHW_GETPAR_F(MI_COPY_MEM_MEM)();
+        auto &storeDataParams         = m_miItf->MHW_GETPAR_F(MI_STORE_DATA_IMM)();
+        storeDataParams               = {};
+        storeDataParams.pOsResource   = m_basicFeature->m_resMetadataBuffer;
+
+        if (tileCol == 0 && tileRow == 0)
+        {
+            // LCUSkipIn8x8Unit
+            miCpyMemMemParams.presSrc     = tileStatisticsPakStreamoutBuffer;
+            miCpyMemMemParams.dwSrcOffset = 61 * sizeof(uint32_t);
+            miCpyMemMemParams.presDst     = m_basicFeature->m_resMetadataBuffer;
+            miCpyMemMemParams.dwDstOffset = resourceOffset.dwEncodeStats + resourceOffset.dwSkipCodingUnitsCount;
+            ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_COPY_MEM_MEM)(cmdBuffer));
+
+            // NumCU_IntraDC, NumCU_IntraPlanar, NumCU_IntraAngular
+            miCpyMemMemParams.dwSrcOffset = 24 * sizeof(uint32_t);
+            miCpyMemMemParams.dwDstOffset = resourceOffset.dwEncodeStats + resourceOffset.dwIntraCodingUnitsCount;
+            ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_COPY_MEM_MEM)(cmdBuffer));
+
+            // NumCU_MVdirL0, NumCU_MVdirL1, NumCU_MVdirBi
+            miCpyMemMemParams.dwSrcOffset = 85 * sizeof(uint32_t);
+            miCpyMemMemParams.dwDstOffset = resourceOffset.dwEncodeStats + resourceOffset.dwInterCodingUnitsCount;
+            ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_COPY_MEM_MEM)(cmdBuffer));
+        }
+        else
+        {
+            ENCODE_CHK_STATUS_RETURN(CalAtomic(m_basicFeature->m_resMetadataBuffer, resourceOffset.dwEncodeStats + resourceOffset.dwSkipCodingUnitsCount, tileStatisticsPakStreamoutBuffer, 61 * sizeof(uint32_t), mhw::mi::MHW_MI_ATOMIC_ADD, cmdBuffer));
+            ENCODE_CHK_STATUS_RETURN(CalAtomic(m_basicFeature->m_resMetadataBuffer, resourceOffset.dwEncodeStats + resourceOffset.dwIntraCodingUnitsCount, tileStatisticsPakStreamoutBuffer, 24 * sizeof(uint32_t), mhw::mi::MHW_MI_ATOMIC_ADD, cmdBuffer));
+            ENCODE_CHK_STATUS_RETURN(CalAtomic(m_basicFeature->m_resMetadataBuffer, resourceOffset.dwEncodeStats + resourceOffset.dwInterCodingUnitsCount, tileStatisticsPakStreamoutBuffer, 85 * sizeof(uint32_t), mhw::mi::MHW_MI_ATOMIC_ADD, cmdBuffer));
+        }
+        // NumCU_IntraDC, NumCU_IntraPlanar, NumCU_IntraAngular
+        ENCODE_CHK_STATUS_RETURN(CalAtomic(m_basicFeature->m_resMetadataBuffer, resourceOffset.dwEncodeStats + resourceOffset.dwIntraCodingUnitsCount, tileStatisticsPakStreamoutBuffer, 25 * sizeof(uint32_t), mhw::mi::MHW_MI_ATOMIC_ADD, cmdBuffer));
+        ENCODE_CHK_STATUS_RETURN(CalAtomic(m_basicFeature->m_resMetadataBuffer, resourceOffset.dwEncodeStats + resourceOffset.dwIntraCodingUnitsCount, tileStatisticsPakStreamoutBuffer, 26 * sizeof(uint32_t), mhw::mi::MHW_MI_ATOMIC_ADD, cmdBuffer));
+        ENCODE_CHK_STATUS_RETURN(CalAtomic(m_basicFeature->m_resMetadataBuffer, resourceOffset.dwEncodeStats + resourceOffset.dwIntraCodingUnitsCount, tileStatisticsPakStreamoutBuffer, 27 * sizeof(uint32_t), mhw::mi::MHW_MI_ATOMIC_ADD, cmdBuffer));
+        ENCODE_CHK_STATUS_RETURN(CalAtomic(m_basicFeature->m_resMetadataBuffer, resourceOffset.dwEncodeStats + resourceOffset.dwIntraCodingUnitsCount, tileStatisticsPakStreamoutBuffer, 28 * sizeof(uint32_t), mhw::mi::MHW_MI_ATOMIC_ADD, cmdBuffer));
+        ENCODE_CHK_STATUS_RETURN(CalAtomic(m_basicFeature->m_resMetadataBuffer, resourceOffset.dwEncodeStats + resourceOffset.dwIntraCodingUnitsCount, tileStatisticsPakStreamoutBuffer, 29 * sizeof(uint32_t), mhw::mi::MHW_MI_ATOMIC_ADD, cmdBuffer));
+        ENCODE_CHK_STATUS_RETURN(CalAtomic(m_basicFeature->m_resMetadataBuffer, resourceOffset.dwEncodeStats + resourceOffset.dwIntraCodingUnitsCount, tileStatisticsPakStreamoutBuffer, 30 * sizeof(uint32_t), mhw::mi::MHW_MI_ATOMIC_ADD, cmdBuffer));
+        ENCODE_CHK_STATUS_RETURN(CalAtomic(m_basicFeature->m_resMetadataBuffer, resourceOffset.dwEncodeStats + resourceOffset.dwIntraCodingUnitsCount, tileStatisticsPakStreamoutBuffer, 31 * sizeof(uint32_t), mhw::mi::MHW_MI_ATOMIC_ADD, cmdBuffer));
+        ENCODE_CHK_STATUS_RETURN(CalAtomic(m_basicFeature->m_resMetadataBuffer, resourceOffset.dwEncodeStats + resourceOffset.dwIntraCodingUnitsCount, tileStatisticsPakStreamoutBuffer, 32 * sizeof(uint32_t), mhw::mi::MHW_MI_ATOMIC_ADD, cmdBuffer));
+        ENCODE_CHK_STATUS_RETURN(CalAtomic(m_basicFeature->m_resMetadataBuffer, resourceOffset.dwEncodeStats + resourceOffset.dwIntraCodingUnitsCount, tileStatisticsPakStreamoutBuffer, 33 * sizeof(uint32_t), mhw::mi::MHW_MI_ATOMIC_ADD, cmdBuffer));
+        ENCODE_CHK_STATUS_RETURN(CalAtomic(m_basicFeature->m_resMetadataBuffer, resourceOffset.dwEncodeStats + resourceOffset.dwIntraCodingUnitsCount, tileStatisticsPakStreamoutBuffer, 34 * sizeof(uint32_t), mhw::mi::MHW_MI_ATOMIC_ADD, cmdBuffer));
+        ENCODE_CHK_STATUS_RETURN(CalAtomic(m_basicFeature->m_resMetadataBuffer, resourceOffset.dwEncodeStats + resourceOffset.dwIntraCodingUnitsCount, tileStatisticsPakStreamoutBuffer, 35 * sizeof(uint32_t), mhw::mi::MHW_MI_ATOMIC_ADD, cmdBuffer));
+        ENCODE_CHK_STATUS_RETURN(CalAtomic(m_basicFeature->m_resMetadataBuffer, resourceOffset.dwEncodeStats + resourceOffset.dwIntraCodingUnitsCount, tileStatisticsPakStreamoutBuffer, 36 * sizeof(uint32_t), mhw::mi::MHW_MI_ATOMIC_ADD, cmdBuffer));
+
+        // NumCU_MVdirL0, NumCU_MVdirL1, NumCU_MVdirBi
+        ENCODE_CHK_STATUS_RETURN(CalAtomic(m_basicFeature->m_resMetadataBuffer, resourceOffset.dwEncodeStats + resourceOffset.dwInterCodingUnitsCount, tileStatisticsPakStreamoutBuffer, 86 * sizeof(uint32_t), mhw::mi::MHW_MI_ATOMIC_ADD, cmdBuffer));
+        ENCODE_CHK_STATUS_RETURN(CalAtomic(m_basicFeature->m_resMetadataBuffer, resourceOffset.dwEncodeStats + resourceOffset.dwInterCodingUnitsCount, tileStatisticsPakStreamoutBuffer, 87 * sizeof(uint32_t), mhw::mi::MHW_MI_ATOMIC_ADD, cmdBuffer));
+
+        // Average MV_X/MV_Y, report (0,0) as temp solution, later may need kernel involved
+        storeDataParams.dwResourceOffset = resourceOffset.dwEncodeStats + resourceOffset.dwAverageMotionEstimationXDirection;
+        storeDataParams.dwValue          = 0;
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(cmdBuffer));
+
+        storeDataParams.dwResourceOffset = resourceOffset.dwEncodeStats + resourceOffset.dwAverageMotionEstimationYDirection;
+        storeDataParams.dwValue          = 0;
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(cmdBuffer));
+    
+        return MOS_STATUS_SUCCESS;
+    }
+
+    inline MOS_STATUS Av1VdencPkt::CalAtomic(PMOS_RESOURCE presDst, uint32_t dstOffset, PMOS_RESOURCE presSrc, uint32_t srcOffset, mhw::mi::MHW_COMMON_MI_ATOMIC_OPCODE opCode, MOS_COMMAND_BUFFER *cmdBuffer)
+    {
+        ENCODE_FUNC_CALL();
+        ENCODE_CHK_NULL_RETURN(cmdBuffer);
+
+        auto  mmioRegisters      = m_hwInterface->GetVdencInterfaceNext()->GetMmioRegisters(m_vdboxIndex);
+        ENCODE_CHK_NULL_RETURN(mmioRegisters);
+        auto &miLoadRegMemParams = m_miItf->MHW_GETPAR_F(MI_LOAD_REGISTER_MEM)();
+        auto &flushDwParams      = m_miItf->MHW_GETPAR_F(MI_FLUSH_DW)();
+        auto &atomicParams       = m_miItf->MHW_GETPAR_F(MI_ATOMIC)();
+
+        miLoadRegMemParams = {};
+        flushDwParams      = {};
+        atomicParams       = {};
+
+        miLoadRegMemParams.presStoreBuffer = presSrc;
+        miLoadRegMemParams.dwOffset        = srcOffset;
+        miLoadRegMemParams.dwRegister      = mmioRegisters->generalPurposeRegister0LoOffset;
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_MEM)(cmdBuffer));
+
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(cmdBuffer));
+
+        atomicParams.pOsResource      = presDst;
+        atomicParams.dwResourceOffset = dstOffset;
+        atomicParams.dwDataSize       = sizeof(uint32_t);
+        atomicParams.Operation        = opCode;
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_ATOMIC)(cmdBuffer));
 
         return MOS_STATUS_SUCCESS;
     }

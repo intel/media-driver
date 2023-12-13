@@ -506,7 +506,8 @@ namespace encode
                 ENCODE_CHK_STATUS_RETURN(ReadPakMmioRegisters(&cmdBuffer, tileRow == 0 && tileCol == 0));
             }
         }
-
+        ENCODE_CHK_STATUS_RETURN(PrepareHWMetaDataFromStreamoutTileLevel(&cmdBuffer, tileCol, tileRow));
+        
         return MOS_STATUS_SUCCESS;
     }
 
