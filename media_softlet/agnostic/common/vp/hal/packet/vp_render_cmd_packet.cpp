@@ -282,6 +282,14 @@ MOS_STATUS VpRenderCmdPacket::Prepare()
             pStateBaseParams->dwIndirectObjectBufferSize = m_renderHal->pStateHeap->dwSizeGSH;
             pStateBaseParams->presInstructionBuffer      = &m_renderHal->pStateHeap->IshOsResource;
             pStateBaseParams->dwInstructionBufferSize    = m_renderHal->pStateHeap->dwSizeISH;
+            uint32_t heapMocs                            = m_renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(MOS_HW_RESOURCE_USAGE_VP_INPUT_PICTURE_RENDER,
+                                                             m_renderHal->pOsInterface->pfnGetGmmClientContext(m_renderHal->pOsInterface)).DwordValue;
+            pStateBaseParams->mocs4SurfaceState         = heapMocs;
+            pStateBaseParams->mocs4GeneralState         = heapMocs;
+            pStateBaseParams->mocs4DynamicState         = heapMocs;
+            pStateBaseParams->mocs4InstructionCache     = heapMocs;
+            pStateBaseParams->mocs4IndirectObjectBuffer = heapMocs;
+            pStateBaseParams->mocs4StatelessDataport    = heapMocs;
         }
 
         MOS_ZeroMemory(&m_renderData, sizeof(KERNEL_PACKET_RENDER_DATA));

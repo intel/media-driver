@@ -1502,3 +1502,14 @@ MHW_SETPAR_DECL_SRC(COMPUTE_WALKER, XRenderHal_Platform_Interface_Next)
 
     return MOS_STATUS_SUCCESS;
 }
+
+MHW_SETPAR_DECL_SRC(_3DSTATE_BINDING_TABLE_POOL_ALLOC, XRenderHal_Platform_Interface_Next)
+{
+    MHW_STATE_BASE_ADDR_PARAMS *pStateBaseParams = nullptr;
+    MHW_RENDERHAL_CHK_NULL_RETURN(m_renderHal);
+    pStateBaseParams = &m_renderHal->StateBaseAddressParams;
+    MHW_RENDERHAL_CHK_NULL_RETURN(pStateBaseParams);
+    params.mocs4SurfaceState = pStateBaseParams->mocs4SurfaceState;
+
+    return MOS_STATUS_SUCCESS;
+}

@@ -321,6 +321,7 @@ struct _MHW_PAR_T(GPGPU_CSR_BASE_ADDRESS)
 
 struct _MHW_PAR_T(_3DSTATE_BINDING_TABLE_POOL_ALLOC)
 {
+    uint32_t mocs4SurfaceState = 0;
 };
 
 struct _MHW_PAR_T(CFE_STATE)

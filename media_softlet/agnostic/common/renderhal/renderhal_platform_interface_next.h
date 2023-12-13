@@ -459,6 +459,8 @@ public:
 
     MHW_SETPAR_DECL_HDR(COMPUTE_WALKER);
 
+    MHW_SETPAR_DECL_HDR(_3DSTATE_BINDING_TABLE_POOL_ALLOC);
+
 protected:
 
     PRENDERHAL_INTERFACE              m_renderHal = nullptr;

@@ -530,7 +530,12 @@ public:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resource_params));
-         }
+
+            if (params.mocs4SurfaceState != 0)
+            {
+                cmd.DW1_2.SurfaceObjectControlState = params.mocs4SurfaceState;
+            }
+        }
 
         cmd.DW3.BindingTablePoolBufferSize = indirect_state_size;
 
