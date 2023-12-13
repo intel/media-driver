@@ -306,7 +306,7 @@ MOS_STATUS VeboxCopyStateNext::GetResourceInfo(PMOS_SURFACE surface)
     surface->bGMMTileEnabled                                    = resDetails.bGMMTileEnabled;
     surface->bCompressible                                      = resDetails.bCompressible;
     surface->bIsCompressed                                      = resDetails.bIsCompressed;
-    surface->dwOffset                                           = resDetails.RenderOffset.YUV.Y.BaseOffset + surface->OsResource.dwOffset;
+    surface->dwOffset                                           = resDetails.RenderOffset.YUV.Y.BaseOffset;
     surface->YPlaneOffset.iSurfaceOffset                        = resDetails.RenderOffset.YUV.Y.BaseOffset;
     surface->YPlaneOffset.iXOffset                              = resDetails.RenderOffset.YUV.Y.XOffset;
     surface->YPlaneOffset.iYOffset                              = resDetails.RenderOffset.YUV.Y.YOffset;
@@ -606,8 +606,7 @@ bool VeboxCopyStateNext::IsFormatSupported(PMOS_SURFACE surface)
         surface->Format != Format_A8B8G8R8    &&
         surface->Format != Format_X8R8G8B8    &&
         surface->Format != Format_X8B8G8R8    &&
-        surface->Format != Format_P8 &&
-        surface->Format != Format_Y16U)
+        surface->Format != Format_P8)
     {
         VEBOX_COPY_NORMALMESSAGE("Unsupported Source Format '0x%08x' for VEBOX Decompression.", surface->Format);
         return bRet;
