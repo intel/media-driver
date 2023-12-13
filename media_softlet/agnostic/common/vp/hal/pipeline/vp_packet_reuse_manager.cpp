@@ -827,6 +827,10 @@ MOS_STATUS VpPacketReuseManager::PreparePacketPipeReuse(SwFilterPipe *&swFilterP
                 // unreused feature && nullptr != swfilter
                 m_reusable         = false;
                 isPacketPipeReused = false;
+                if (m_pipeReused)
+                {
+                    m_packetPipeFactory.ReturnPacketPipe(m_pipeReused);
+                }
                 return MOS_STATUS_SUCCESS;
             }
             else

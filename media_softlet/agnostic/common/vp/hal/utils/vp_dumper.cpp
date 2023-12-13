@@ -1240,7 +1240,7 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
     }
 
     VP_DEBUG_CHK_STATUS(MosUtilities::MosWriteFileFromPtr(sOsPath, pDst, dwSize));
-
+    VP_PUBLIC_NORMALMESSAGE("VP surface dump to %s", sOsPath);
 #if !EMUL
     // Dump Aux surface data
     if (hasAuxSurf && enableAuxDump)
@@ -1524,7 +1524,7 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
     }
 
     VP_DEBUG_CHK_STATUS(MosUtilities::MosWriteFileFromPtr(sOsPath, pDst, dwSize));
-
+    VP_PUBLIC_NORMALMESSAGE("VP surface dump to %s", sOsPath);
 finish:
     MOS_SafeFreeMemory(pDst);
 
