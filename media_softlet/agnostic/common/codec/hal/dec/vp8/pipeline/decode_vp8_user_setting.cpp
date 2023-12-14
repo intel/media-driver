@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022, Intel Corporation
+* Copyright (c) 2022-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -37,6 +37,14 @@ MOS_STATUS Vp8Pipeline::InitUserSetting(MediaUserSettingSharedPtr userSettingPtr
         MediaUserSetting::Group::Sequence,
         int32_t(0),
         true);
+#if (_DEBUG || _RELEASE_INTERNAL)
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        "ApogeiosVp8dEnable",
+        MediaUserSetting::Group::Sequence,
+        int32_t(0),
+        true);
+#endif
     return MOS_STATUS_SUCCESS;
 }
 }  // namespace decode

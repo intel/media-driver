@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2022, Intel Corporation
+* Copyright (c) 2009-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -2923,6 +2923,15 @@ MOS_USER_FEATURE_VALUE MosUtilities::m_mosUserFeatureDescFields[__MOS_USER_FEATU
         MOS_USER_FEATURE_VALUE_TYPE_INT32,
         "0",
         "Enable Apogeios jpeg decode path. 1: enable, 0: disable."),
+    MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_APOGEIOS_VP8D_ENABLE_ID,
+        "ApogeiosVp8dEnable",
+        __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+        __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+        "Codec",
+        MOS_USER_FEATURE_TYPE_USER,
+        MOS_USER_FEATURE_VALUE_TYPE_INT32,
+        "0",
+        "Enable Apogeios vp8 decode path. 1: enable, 0: disable."),
     MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_RA_MODE_ENABLE_ID,
         "RA Mode Enable",
         __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
