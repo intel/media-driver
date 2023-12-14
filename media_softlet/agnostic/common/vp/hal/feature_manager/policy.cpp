@@ -393,7 +393,22 @@ MOS_STATUS Policy::GetExecutionCapsForSingleFeature(FeatureType featureType, SwF
     SwFilter* di      = nullptr;
     SwFilter* hdr     = nullptr;
     SwFilter* cgc     = nullptr;
+    SwFilter* scaling = nullptr;
     VPHAL_CSPACE cscInputColorSpaceCheck = CSpace_None;
+
+    auto getDeinterlaceExecutionCaps = [&](SwFilter *_di)
+    {
+        bool forceDIToRender = false;
+        VP_PUBLIC_CHK_NULL_RETURN(_di);
+        scaling = scaling ? scaling : dynamic_cast<SwFilterScaling*>(swFilterPipe.GetSwFilter(FeatureType(FeatureTypeScaling)));
+        if (scaling)
+        {
+            // No need check HDR for DI case.
+            VP_PUBLIC_CHK_STATUS_RETURN(GetScalingExecutionCaps(scaling, false, true));
+            forceDIToRender = scaling->GetFilterEngineCaps().RenderNeeded && scaling->GetFilterEngineCaps().sfcNotSupported;
+        }
+        return GetDeinterlaceExecutionCaps(_di, forceDIToRender);
+    };
 
     if (!feature)
     {
@@ -426,7 +441,7 @@ MOS_STATUS Policy::GetExecutionCapsForSingleFeature(FeatureType featureType, SwF
         }
         else if (di)
         {
-            VP_PUBLIC_CHK_STATUS_RETURN(GetDeinterlaceExecutionCaps(di));
+            VP_PUBLIC_CHK_STATUS_RETURN(getDeinterlaceExecutionCaps(di));
 
             VP_EngineEntry *diEngine = &di->GetFilterEngineCaps();
             if (diEngine->bEnabled && diEngine->VeboxNeeded)
@@ -451,7 +466,8 @@ MOS_STATUS Policy::GetExecutionCapsForSingleFeature(FeatureType featureType, SwF
         }
         else
         {
-            VP_PUBLIC_CHK_STATUS_RETURN(GetScalingExecutionCaps(feature));
+            di = swFilterPipe.GetSwFilter(FeatureTypeDi);
+            VP_PUBLIC_CHK_STATUS_RETURN(GetScalingExecutionCaps(feature, di != nullptr));
         }
         break;
     case FeatureTypeRotMir:
@@ -473,7 +489,7 @@ MOS_STATUS Policy::GetExecutionCapsForSingleFeature(FeatureType featureType, SwF
         VP_PUBLIC_CHK_STATUS_RETURN(GetHdrExecutionCaps(feature));
         break;
     case FeatureTypeDi:
-        VP_PUBLIC_CHK_STATUS_RETURN(GetDeinterlaceExecutionCaps(feature));
+        VP_PUBLIC_CHK_STATUS_RETURN(getDeinterlaceExecutionCaps(feature));
         break;
     case FeatureTypeLumakey:
         VP_PUBLIC_CHK_STATUS_RETURN(GetLumakeyExecutionCaps(feature));
@@ -1099,18 +1115,18 @@ MOS_STATUS Policy::GetCSCExecutionCaps(SwFilter* feature)
 MOS_STATUS Policy::GetScalingExecutionCapsHdr(SwFilter *feature)
 {
     VP_FUNC_CALL();
-    VP_PUBLIC_CHK_STATUS_RETURN(GetScalingExecutionCaps(feature, true));
+    VP_PUBLIC_CHK_STATUS_RETURN(GetScalingExecutionCaps(feature, true, false));
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter *feature)
+MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter *feature, bool isDIEnabled)
 {
     VP_FUNC_CALL();
-    VP_PUBLIC_CHK_STATUS_RETURN(GetScalingExecutionCaps(feature, false));
+    VP_PUBLIC_CHK_STATUS_RETURN(GetScalingExecutionCaps(feature, false, isDIEnabled));
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter *feature, bool isHdrEnabled)
+MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter *feature, bool isHdrEnabled, bool isDIEnabled)
 {
     VP_FUNC_CALL();
 
@@ -1396,15 +1412,25 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter *feature, bool isHdrEnabled)
             {
                 bool sfc2PassScalingNeededX = OUT_OF_BOUNDS(fScaleX, fScaleMin, fScaleMax);
                 bool sfc2PassScalingNeededY = OUT_OF_BOUNDS(fScaleY, fScaleMin, fScaleMax);
+                bool multiPassNeeded= sfc2PassScalingNeededX || sfc2PassScalingNeededY;
 
                 scalingEngine->bEnabled = 1;
-                if (!m_hwCaps.m_rules.isAvsSamplerSupported && scalingParams->isPrimary && isAlphaSettingSupportedBySfc)
+
+                if (multiPassNeeded && isDIEnabled)
+                {
+                    scalingEngine->RenderNeeded = 1;
+                    scalingEngine->fcSupported  = 1;
+                    // Set sfcNotSupported to 1 to avoid SFC being selected without scaling filter.
+                    scalingEngine->sfcNotSupported = 1;
+                    VP_PUBLIC_NORMALMESSAGE("2 pass scaling + DI switch to render path.");
+                }
+                else if (!m_hwCaps.m_rules.isAvsSamplerSupported && scalingParams->isPrimary && isAlphaSettingSupportedBySfc)
                 {
                     // For primary layer, force to use sfc for better quailty.
                     scalingEngine->SfcNeeded = 1;
                     scalingEngine->sfc2PassScalingNeededX = sfc2PassScalingNeededX ? 1 : 0;
                     scalingEngine->sfc2PassScalingNeededY = sfc2PassScalingNeededY ? 1 : 0;
-                    scalingEngine->multiPassNeeded = sfc2PassScalingNeededX || sfc2PassScalingNeededY;
+                    scalingEngine->multiPassNeeded        = multiPassNeeded;
 
                     if (1 == fScaleX && 1 == fScaleY)
                     {
@@ -1638,12 +1664,12 @@ MOS_STATUS Policy::GetDenoiseExecutionCaps(SwFilter* feature)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS Policy::GetDeinterlaceExecutionCaps(SwFilter* feature)
+MOS_STATUS Policy::GetDeinterlaceExecutionCaps(SwFilter* feature, bool forceDIToRender)
 {
     VP_FUNC_CALL();
     VP_PUBLIC_CHK_NULL_RETURN(feature);
 
-    SwFilterDeinterlace* swFilterDi = dynamic_cast<SwFilterDeinterlace*>(feature); 
+    SwFilterDeinterlace *swFilterDi = dynamic_cast<SwFilterDeinterlace*>(feature);
     VP_PUBLIC_CHK_NULL_RETURN(swFilterDi);
     VP_PUBLIC_CHK_NULL_RETURN(m_vpInterface.GetHwInterface());
     VP_PUBLIC_CHK_NULL_RETURN(m_vpInterface.GetHwInterface()->m_userFeatureControl);
@@ -1688,6 +1714,17 @@ MOS_STATUS Policy::GetDeinterlaceExecutionCaps(SwFilter* feature)
         diEngine.RenderNeeded = 0;
         diEngine.fcSupported  = 0;
         diEngine.VeboxNeeded  = 0;
+        PrintFeatureExecutionCaps(__FUNCTION__, diEngine);
+        return MOS_STATUS_SUCCESS;
+    }
+
+    if (forceDIToRender && diParams.diParams)
+    {
+        diEngine.bEnabled             = 1;
+        diEngine.RenderNeeded         = 1;
+        diEngine.fcSupported          = 1;
+        diEngine.VeboxNeeded          = 0;
+        VP_PUBLIC_NORMALMESSAGE("force to render for 2 pass scaling + DI.");
         PrintFeatureExecutionCaps(__FUNCTION__, diEngine);
         return MOS_STATUS_SUCCESS;
     }

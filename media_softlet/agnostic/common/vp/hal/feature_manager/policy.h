@@ -96,8 +96,8 @@ protected:
     MOS_STATUS GetCSCExecutionCapsBT2020ToRGB(SwFilter *cgc, SwFilter *csc);
     MOS_STATUS GetCSCExecutionCaps(SwFilter* feature);
     bool IsSfcSupported(MOS_FORMAT format);
-    MOS_STATUS GetScalingExecutionCaps(SwFilter* feature);
-    MOS_STATUS GetScalingExecutionCaps(SwFilter *feature, bool isHdrEnabled);
+    MOS_STATUS GetScalingExecutionCaps(SwFilter* feature, bool isDIEnabled);
+    MOS_STATUS GetScalingExecutionCaps(SwFilter *feature, bool isHdrEnabled, bool isDIEnabled);
     MOS_STATUS GetScalingExecutionCapsHdr(SwFilter *feature);
     bool IsSfcRotationSupported(FeatureParamRotMir *rotationParams);
     MOS_STATUS GetRotationExecutionCaps(SwFilter* feature);
@@ -107,7 +107,7 @@ protected:
     MOS_STATUS GetProcampExecutionCaps(SwFilter* feature);
     MOS_STATUS GetHdrExecutionCaps(SwFilter *feature);
     MOS_STATUS GetExecutionCaps(SwFilter* feature);
-    MOS_STATUS GetDeinterlaceExecutionCaps(SwFilter* feature);
+    MOS_STATUS GetDeinterlaceExecutionCaps(SwFilter* feature, bool is2PassScalingNeeded);
     MOS_STATUS GetColorFillExecutionCaps(SwFilter* feature);
     MOS_STATUS GetAlphaExecutionCaps(SwFilter* feature);
     MOS_STATUS GetLumakeyExecutionCaps(SwFilter* feature);

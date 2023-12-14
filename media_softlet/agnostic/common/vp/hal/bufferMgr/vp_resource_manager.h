@@ -532,6 +532,7 @@ protected:
     uint32_t    m_imageWidthOfCurrentHistogram               = 0;
     uint32_t    m_imageHeightOfCurrentHistogram              = 0;
     bool        m_isFcIntermediateSurfacePrepared            = false;
+    bool        m_isPastFrameVeboxDiUsed                     = false;
     VP_SURFACE *m_fcIntermediateSurface[VP_NUM_FC_INTERMEDIA_SURFACES] = {}; // Ping-pong surface for multi-layer composition.
     std::vector<VP_SURFACE *> m_intermediaSurfaces;
     std::map<uint64_t, VP_SURFACE *> m_tempSurface; // allocation handle and surface pointer pair.

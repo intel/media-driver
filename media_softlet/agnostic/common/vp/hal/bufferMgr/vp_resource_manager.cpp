@@ -300,7 +300,7 @@ MOS_STATUS VpResourceManager::OnNewFrameProcessStart(SwFilterPipe &pipe)
 
     // Only set sameSamples flag DI enabled frames.
     if (m_pastFrameIds.valid && m_currentFrameIds.pastFrameAvailable &&
-        m_pastFrameIds.diEnabled && m_currentFrameIds.diEnabled)
+        m_pastFrameIds.diEnabled && m_currentFrameIds.diEnabled && m_isPastFrameVeboxDiUsed)
     {
         m_sameSamples   =
                WITHIN_BOUNDS(
@@ -327,7 +327,7 @@ MOS_STATUS VpResourceManager::OnNewFrameProcessStart(SwFilterPipe &pipe)
     }
     // bSameSamples flag also needs to be set for no reference case
     else if (m_pastFrameIds.valid && !m_currentFrameIds.pastFrameAvailable &&
-        m_pastFrameIds.diEnabled && m_currentFrameIds.diEnabled)
+        m_pastFrameIds.diEnabled && m_currentFrameIds.diEnabled && m_isPastFrameVeboxDiUsed)
     {
         m_sameSamples   =
                WITHIN_BOUNDS(
@@ -1138,6 +1138,15 @@ MOS_STATUS VpResourceManager::AssignExecuteResource(std::vector<FeatureType> &fe
     VP_SURFACE                  *outputSurface  = GetCopyInstOfExtSurface(executedFilters.GetSurface(false, 0));
 
     RESOURCE_ASSIGNMENT_HINT    resHint         = {};
+
+    if (caps.bVebox && (caps.bDI || caps.bDiProcess2ndField))
+    {
+        m_isPastFrameVeboxDiUsed = true;
+    }
+    else
+    {
+        m_isPastFrameVeboxDiUsed = false;
+    }
 
     VP_PUBLIC_CHK_STATUS_RETURN(GetResourceHint(featurePool, executedFilters, resHint));
 

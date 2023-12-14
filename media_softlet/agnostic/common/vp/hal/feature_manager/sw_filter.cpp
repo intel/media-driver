@@ -920,6 +920,7 @@ MOS_STATUS SwFilterDeinterlace::Clean()
     VP_FUNC_CALL();
 
     VP_PUBLIC_CHK_STATUS_RETURN(SwFilter::Clean());
+    MOS_ZeroMemory(&m_Params, sizeof(m_Params));
     return MOS_STATUS_SUCCESS;
 }
 
@@ -930,6 +931,8 @@ MOS_STATUS SwFilterDeinterlace::Configure(VP_PIPELINE_PARAMS& params, bool isInp
     PVPHAL_SURFACE surfInput = isInputSurf ? params.pSrc[surfIndex] : params.pSrc[0];
     VP_PUBLIC_CHK_NULL_RETURN(surfInput);
     VP_PUBLIC_CHK_NULL_RETURN(surfInput->pDeinterlaceParams);
+
+    MOS_ZeroMemory(&m_Params, sizeof(m_Params));
 
     m_Params.formatInput          = surfInput->Format;
     m_Params.formatOutput         = surfInput->Format;

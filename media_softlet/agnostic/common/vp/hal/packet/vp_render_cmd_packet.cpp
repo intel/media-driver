@@ -655,7 +655,6 @@ MOS_STATUS VpRenderCmdPacket::SetupSurfaceState()
         {
             KERNEL_SURFACE_STATE_PARAM *kernelSurfaceParam = &surface->second;
             SurfaceType                 type               = surface->first;
-            auto                        bindingMap         = m_kernel->GetSurfaceBindingIndex(type);
 
             RENDERHAL_SURFACE_NEXT renderHalSurface;
             MOS_ZeroMemory(&renderHalSurface, sizeof(RENDERHAL_SURFACE_NEXT));
@@ -732,6 +731,7 @@ MOS_STATUS VpRenderCmdPacket::SetupSurfaceState()
 
             if (kernelSurfaceParam->surfaceOverwriteParams.bindedKernel && !kernelSurfaceParam->surfaceOverwriteParams.bufferResource)
             {
+                auto bindingMap = m_kernel->GetSurfaceBindingIndex(type);
                 if (bindingMap.empty())
                 {
                     VP_RENDER_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
@@ -757,6 +757,7 @@ MOS_STATUS VpRenderCmdPacket::SetupSurfaceState()
                      kernelSurfaceParam->surfaceOverwriteParams.bufferResource        &&
                      kernelSurfaceParam->surfaceOverwriteParams.bindedKernel))
                 {
+                    auto bindingMap = m_kernel->GetSurfaceBindingIndex(type);
                     if (bindingMap.empty())
                     {
                         VP_RENDER_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
