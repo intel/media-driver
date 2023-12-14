@@ -614,6 +614,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::AllocateResources()
     InitValue               = 0;
     // change the init value when null hw is enabled
     VPHAL_RENDER_CHK_NULL(pOsInterface);
+    VPHAL_RENDER_CHK_NULL(pRenderData);
 
     if (pOsInterface->bNullHwIsEnabled)
     {

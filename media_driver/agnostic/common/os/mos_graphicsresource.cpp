@@ -112,7 +112,6 @@ MOS_STATUS GraphicsResource::Dump(OsContext* osContextPtr, uint32_t overrideOffs
         nullptr)) != MOS_STATUS_SUCCESS)
     {
         MOS_OS_ASSERTMESSAGE("Failed to write to file '%s'.", sPath);
-        eStatus = MOS_STATUS_FILE_WRITE_FAILED;
         if (hFile != nullptr)
         {
             MosUtilities::MosCloseHandle(hFile);

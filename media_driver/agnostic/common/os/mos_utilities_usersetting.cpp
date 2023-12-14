@@ -182,8 +182,7 @@ MOS_STATUS MosUtilities::MosWriteOneUserFeatureGroupToXML(MOS_USER_FEATURE_VALUE
         sOutBuf,
         sizeof(sOutBuf),
         sizeof(sOutBuf),
-        "  </Group>\n",
-        UserFeatureFilter.pcGroup);
+        "  </Group>\n");
     eStatus = MosAppendFileFromPtr(
         s_xmlFilePath,
         sOutBuf,
