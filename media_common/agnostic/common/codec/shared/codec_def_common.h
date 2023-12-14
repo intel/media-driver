@@ -186,7 +186,8 @@ enum CODECHAL_MODE
     CODECHAL_DECODE_MODE_VP9VLD             = 12,
     CODECHAL_DECODE_MODE_CENC               = 13,   // Only for getting HuC-based DRM command size. Not an actual mode.
     CODECHAL_DECODE_MODE_RESERVED0          = 14,
-    CODECHAL_DECODE_MODE_END                = 15,
+    CODECHAL_DECODE_MODE_RESERVED1          = 15,
+    CODECHAL_DECODE_MODE_END                = 16,
 
     CODECHAL_ENCODE_MODE_BEGIN              = 32,
     CODECHAL_ENCODE_MODE_AVC                = 32,   // Must be a power of 2 to match perf report expectations
