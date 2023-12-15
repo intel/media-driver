@@ -691,13 +691,6 @@ MOS_STATUS Policy::GetCSCExecutionCapsHdr(SwFilter *HDR, SwFilter *CSC)
         return MOS_STATUS_SUCCESS;
     }
 
-    //HDR CSC processing
-    if (!hdrParams || hdrParams->hdrMode == VPHAL_HDR_MODE_NONE)
-    {
-        VP_PUBLIC_ASSERTMESSAGE("HDR Mode is NONE");
-        VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
-    }
-
     MOS_FORMAT   hdrFormat  = Format_Any;
     VPHAL_CSPACE hdrCSpace  = CSpace_Any;
     hdrCSpace               = IS_COLOR_SPACE_BT2020(cscParams->output.colorSpace) ? CSpace_BT2020_RGB : CSpace_sRGB;

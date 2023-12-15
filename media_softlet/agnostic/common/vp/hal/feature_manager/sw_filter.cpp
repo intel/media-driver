@@ -1300,7 +1300,6 @@ MOS_STATUS SwFilterHdr::Configure(VP_PIPELINE_PARAMS &params, bool isInputSurf, 
 
     VP_PUBLIC_CHK_NULL_RETURN(surfInput);
     VP_PUBLIC_CHK_NULL_RETURN(surfOutput);
-    VP_PUBLIC_CHK_NULL_RETURN(surfInput->pHDRParams);
     VP_PUBLIC_CHK_NULL_RETURN(m_vpInterface.GetHwInterface());
     VP_PUBLIC_CHK_NULL_RETURN(m_vpInterface.GetHwInterface()->m_osInterface);
 
@@ -1310,32 +1309,30 @@ MOS_STATUS SwFilterHdr::Configure(VP_PIPELINE_PARAMS &params, bool isInputSurf, 
     m_Params.heightInput  = surfInput->dwHeight;
 
     // For H2S, it is possible that there is no HDR params for render target.
-    m_Params.uiMaxContentLevelLum = surfInput->pHDRParams->MaxCLL;
+    m_Params.uiMaxContentLevelLum = 4000;
     m_Params.srcColorSpace        = surfInput->ColorSpace;
     m_Params.dstColorSpace        = surfOutput->ColorSpace;
 
-    if (surfInput->pHDRParams->EOTF == VPHAL_HDR_EOTF_SMPTE_ST2084 ||
-       (surfInput->pHDRParams->EOTF == VPHAL_HDR_EOTF_TRADITIONAL_GAMMA_SDR && IS_RGB64_FLOAT_FORMAT(surfInput->Format))) // For FP16 HDR CSC typical usage
+    if (surfInput->pHDRParams)
     {
-        m_Params.hdrMode = VPHAL_HDR_MODE_TONE_MAPPING;
-        if (surfOutput->pHDRParams)
+        m_Params.uiMaxContentLevelLum = surfInput->pHDRParams->MaxCLL;
+        if (surfInput->pHDRParams->EOTF == VPHAL_HDR_EOTF_SMPTE_ST2084 ||
+           (surfInput->pHDRParams->EOTF == VPHAL_HDR_EOTF_TRADITIONAL_GAMMA_SDR && IS_RGB64_FLOAT_FORMAT(surfInput->Format))) // For FP16 HDR CSC typical usage
         {
-            m_Params.uiMaxDisplayLum = surfOutput->pHDRParams->max_display_mastering_luminance;
-            if (surfOutput->pHDRParams->EOTF == VPHAL_HDR_EOTF_SMPTE_ST2084)
+            m_Params.hdrMode = VPHAL_HDR_MODE_TONE_MAPPING;
+            if (surfOutput->pHDRParams)
             {
-                m_Params.hdrMode = VPHAL_HDR_MODE_H2H;
+                m_Params.uiMaxDisplayLum = surfOutput->pHDRParams->max_display_mastering_luminance;
+                if (surfOutput->pHDRParams->EOTF == VPHAL_HDR_EOTF_SMPTE_ST2084)
+                {
+                    m_Params.hdrMode = VPHAL_HDR_MODE_H2H;
+                }
             }
         }
-    }
-    else if (surfInput->pHDRParams->EOTF == VPHAL_HDR_EOTF_TRADITIONAL_GAMMA_SDR && surfOutput->pHDRParams->EOTF == VPHAL_HDR_EOTF_SMPTE_ST2084)
-    {
-        m_Params.hdrMode = VPHAL_HDR_MODE_INVERSE_TONE_MAPPING;
-    }
-
-    if (m_Params.hdrMode == VPHAL_HDR_MODE_NONE)
-    {
-        VP_PUBLIC_ASSERTMESSAGE("HDR Mode is NONE");
-        VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+        else if (surfInput->pHDRParams->EOTF == VPHAL_HDR_EOTF_TRADITIONAL_GAMMA_SDR && surfOutput->pHDRParams->EOTF == VPHAL_HDR_EOTF_SMPTE_ST2084)
+        {
+            m_Params.hdrMode = VPHAL_HDR_MODE_INVERSE_TONE_MAPPING;
+        }
     }
 
     m_Params.pColorFillParams = params.pColorFillParams;
