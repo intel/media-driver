@@ -198,6 +198,15 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_XE_HPG::SetSurfaceStateEntry(
         pSurfaceState->DW3.SurfacePitch  = pParams->dwPitch - 1;
         pSurfaceState->DW3.Depth         = pParams->dwDepth - 1;
     }
+
+    MT_LOG6(MT_VP_MHW_CACHE_MOCS_TABLE, MT_NORMAL, MT_VP_MHW_CACHE_MEMORY_OBJECT_NAME, *((int64_t *)"SurfaceState"),
+                MT_VP_MHW_CACHE_MEMORY_OBJECT_SURFACE_TYPE, pSurfaceState->DW0.SurfaceType, MT_VP_MHW_CACHE_MEMORY_OBJECT_SURFACE_WIDTH, pSurfaceState->DW2.Width,
+                MT_VP_MHW_CACHE_MEMORY_OBJECT_SURFACE_HEIGHT,  pSurfaceState->DW2.Height, MT_VP_MHW_CACHE_MEMORY_OBJECT_SURFACE_FORMAT, pSurfaceState->DW0.SurfaceFormat,
+                MT_VP_MHW_CACHE_MEMORY_OBJECT_CONTROL_STATE, pParams->dwCacheabilityControl);
+    MHW_NORMALMESSAGE("Feature Graph: Cache settings of Render SurfaceState: SurfaceType is %d, Surface width is %d, Surface height is %d,\
+                Surface format is %d, SurfaceMemoryObjectControlState %d, Index to Mocs table %d",pSurfaceState->DW0.SurfaceType, pSurfaceState->DW2.Width,
+               pSurfaceState->DW2.Height, pSurfaceState->DW0.SurfaceFormat, pParams->dwCacheabilityControl, (pParams->dwCacheabilityControl >> 1) & 0x0000003f);
+
     pSurfaceState->DW4.RenderTargetAndSampleUnormRotation = pParams->RotationMode;
     pSurfaceState->DW5.XOffset                            = pParams->iXOffset >> 2;
     pSurfaceState->DW5.YOffset                            = pParams->iYOffset >> 2;
@@ -360,6 +369,16 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_XE_HPG::SetSurfaceState(
                 (pParams->psSurface->MmcState == MOS_MEMCOMP_RC) ? 1 : 0;
 
             CmdInit.DW5.SurfaceMemoryObjectControlState = pParams->dwCacheabilityControl;
+            MT_LOG1(MT_VP_MHW_CACHE_MOCS_TABLE, MT_NORMAL, MT_VP_MHW_CACHE_MEMORY_OBJECT_CONTROL_STATE, pParams->dwCacheabilityControl);
+            MHW_NORMALMESSAGE("Feature Graph: Cache settings of Media SurfaceState %d: MemoryObjectControlState %d, Index to Mocs table %d", i, pParams->dwCacheabilityControl, (pParams->dwCacheabilityControl >> 1) & 0x0000003f);
+
+            MT_LOG6(MT_VP_MHW_CACHE_MOCS_TABLE, MT_NORMAL, MT_VP_MHW_CACHE_MEMORY_OBJECT_NAME, *((int64_t *)"SurfaceState"),
+                MT_VP_MHW_CACHE_MEMORY_OBJECT_SURFACE_TYPE, 0, MT_VP_MHW_CACHE_MEMORY_OBJECT_SURFACE_WIDTH, CmdInit.DW1.Width,
+                MT_VP_MHW_CACHE_MEMORY_OBJECT_SURFACE_HEIGHT,  CmdInit.DW1.Height, MT_VP_MHW_CACHE_MEMORY_OBJECT_SURFACE_FORMAT,  CmdInit.DW2.SurfaceFormat,
+                MT_VP_MHW_CACHE_MEMORY_OBJECT_CONTROL_STATE, pParams->dwCacheabilityControl);
+            MHW_NORMALMESSAGE("Feature Graph: Cache settings of Media SurfaceState %d: SurfaceType is unkown, Surface width is %d, Surface height is %d,\
+                Surface format is %d, SurfaceMemoryObjectControlState %d, Index to Mocs table %d", i, CmdInit.DW1.Width, CmdInit.DW1.Height,
+                CmdInit.DW2.SurfaceFormat, pParams->dwCacheabilityControl, (pParams->dwCacheabilityControl >> 1) & 0x0000003f);
 
             CmdInit.DW5.TiledResourceMode = Mhw_ConvertToTRMode(pParams->psSurface->TileType);
 
@@ -535,6 +554,15 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_XE_HPG::SetSurfaceState(
                 CmdInit.DW5.XOffset           = pParams->dwXOffset[i] >> 2;
                 CmdInit.DW5.YOffset           = pParams->dwYOffset[i] >> 2;
             }
+
+            MT_LOG6(MT_VP_MHW_CACHE_MOCS_TABLE, MT_NORMAL, MT_VP_MHW_CACHE_MEMORY_OBJECT_NAME, *((int64_t *)"SurfaceState"),
+                MT_VP_MHW_CACHE_MEMORY_OBJECT_SURFACE_TYPE, pCmd->DW0.SurfaceType, MT_VP_MHW_CACHE_MEMORY_OBJECT_SURFACE_WIDTH, pCmd->DW2.Width,
+                MT_VP_MHW_CACHE_MEMORY_OBJECT_SURFACE_HEIGHT,  pCmd->DW2.Height, MT_VP_MHW_CACHE_MEMORY_OBJECT_SURFACE_FORMAT,  pCmd->DW0.SurfaceFormat,
+                MT_VP_MHW_CACHE_MEMORY_OBJECT_CONTROL_STATE, pParams->dwCacheabilityControl);
+            MHW_NORMALMESSAGE("Feature Graph: Cache settings of Render SurfaceState %d: SurfaceType is %d, Surface width is %d, Surface height is %d,\
+                Surface format is %d, SurfaceMemoryObjectControlState %d, Index to Mocs table %d", i, pCmd->DW0.SurfaceType, pCmd->DW2.Width, pCmd->DW2.Height,
+                pCmd->DW0.SurfaceFormat, pParams->dwCacheabilityControl, (pParams->dwCacheabilityControl >> 1) & 0x0000003f);
+
             *pCmd = CmdInit;
 
             MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));

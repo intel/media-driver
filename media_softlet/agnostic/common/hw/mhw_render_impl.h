@@ -338,6 +338,11 @@ public:
             {
                 cmd.DW1_2.GeneralStateMemoryObjectControlState = params.mocs4GeneralState;
             }
+            MT_LOG2(MT_VP_MHW_CACHE_MOCS_TABLE, MT_NORMAL, MT_VP_MHW_CACHE_MEMORY_OBJECT_NAME, *((int64_t *)"STATE_BASE_ADDRESS"), MT_VP_MHW_CACHE_MEMORY_OBJECT_CONTROL_STATE, (int64_t)cmd.DW1_2.GeneralStateMemoryObjectControlState);
+            MHW_NORMALMESSAGE(
+                "Feature Graph: Cache settings of DW1_2 GeneralState in STATE_BASE_ADDRESS: SurfaceMemoryObjectControlState %u, Index to Mocs table %u",
+                cmd.DW1_2.GeneralStateMemoryObjectControlState,
+                (cmd.DW1_2.GeneralStateMemoryObjectControlState >> 1) & 0x0000003f);
             cmd.DW12.GeneralStateBufferSize = (params.dwGeneralStateSize + MHW_PAGE_SIZE - 1) / MHW_PAGE_SIZE;
         }
 
@@ -371,6 +376,11 @@ public:
             {
                 cmd.DW4_5.SurfaceStateMemoryObjectControlState = params.mocs4SurfaceState;
             }
+            MT_LOG2(MT_VP_MHW_CACHE_MOCS_TABLE, MT_NORMAL, MT_VP_MHW_CACHE_MEMORY_OBJECT_NAME, *((int64_t *)"STATE_BASE_ADDRESS"), MT_VP_MHW_CACHE_MEMORY_OBJECT_CONTROL_STATE, (int64_t)cmd.DW4_5.SurfaceStateMemoryObjectControlState);
+            MHW_NORMALMESSAGE(
+                "Feature Graph: Cache settings of DW4_5 SurfaceState in STATE_BASE_ADDRESS: SurfaceMemoryObjectControlState %u, Index to Mocs table %u",
+                cmd.DW4_5.SurfaceStateMemoryObjectControlState,
+                (cmd.DW4_5.SurfaceStateMemoryObjectControlState >> 1) & 0x0000003f);
         }
 
         if (!Mos_ResourceIsNull(params.presDynamicState))
@@ -397,6 +407,11 @@ public:
                 cmd.DW6_7.DynamicStateMemoryObjectControlState = params.mocs4DynamicState;
             }
 
+            MT_LOG2(MT_VP_MHW_CACHE_MOCS_TABLE, MT_NORMAL, MT_VP_MHW_CACHE_MEMORY_OBJECT_NAME, *((int64_t *)"STATE_BASE_ADDRESS"), MT_VP_MHW_CACHE_MEMORY_OBJECT_CONTROL_STATE, (int64_t)cmd.DW6_7.DynamicStateMemoryObjectControlState);
+            MHW_NORMALMESSAGE(
+                "Feature Graph: Cache settings of DW6_7 DynamicState in STATE_BASE_ADDRESS: SurfaceMemoryObjectControlState %u, Index to Mocs table %u",
+                cmd.DW6_7.DynamicStateMemoryObjectControlState,
+                (cmd.DW6_7.DynamicStateMemoryObjectControlState >> 1) & 0x0000003f);
             cmd.DW13.DynamicStateBufferSize = (params.dwDynamicStateSize + MHW_PAGE_SIZE - 1) / MHW_PAGE_SIZE;
 
             //Reset isOutput as it should be enabled only for Dynamic State
@@ -425,6 +440,11 @@ public:
             {
                 cmd.DW8_9.IndirectObjectMemoryObjectControlState = params.mocs4IndirectObjectBuffer;
             }
+            MT_LOG2(MT_VP_MHW_CACHE_MOCS_TABLE, MT_NORMAL, MT_VP_MHW_CACHE_MEMORY_OBJECT_NAME, *((int64_t *)"STATE_BASE_ADDRESS"), MT_VP_MHW_CACHE_MEMORY_OBJECT_CONTROL_STATE, (int64_t)cmd.DW8_9.IndirectObjectMemoryObjectControlState);
+            MHW_NORMALMESSAGE(
+                "Feature Graph: Cache settings of DW8_9 IndirectObject in STATE_BASE_ADDRESS: SurfaceMemoryObjectControlState %u, Index to Mocs table %u",
+                cmd.DW8_9.IndirectObjectMemoryObjectControlState,
+                (cmd.DW8_9.IndirectObjectMemoryObjectControlState >> 1) & 0x0000003f);
             cmd.DW14.IndirectObjectBufferSize = (params.dwIndirectObjectBufferSize + MHW_PAGE_SIZE - 1) / MHW_PAGE_SIZE;
         }
 
@@ -451,11 +471,33 @@ public:
             {
                 cmd.DW10_11.InstructionMemoryObjectControlState = params.mocs4InstructionCache;
             }
+            MT_LOG2(MT_VP_MHW_CACHE_MOCS_TABLE, MT_NORMAL, MT_VP_MHW_CACHE_MEMORY_OBJECT_NAME, *((int64_t *)"STATE_BASE_ADDRESS"), MT_VP_MHW_CACHE_MEMORY_OBJECT_CONTROL_STATE, (int64_t)cmd.DW10_11.InstructionMemoryObjectControlState);
+            MHW_NORMALMESSAGE(
+                "Feature Graph: Cache settings of DW10_11 Instruction in STATE_BASE_ADDRESS: SurfaceMemoryObjectControlState %u, Index to Mocs table %u",
+                cmd.DW10_11.InstructionMemoryObjectControlState,
+                (cmd.DW10_11.InstructionMemoryObjectControlState >> 1) & 0x0000003f);
             cmd.DW15.InstructionBufferSize = (params.dwInstructionBufferSize + MHW_PAGE_SIZE - 1) / MHW_PAGE_SIZE;
         }
 
         // stateless dataport access
         cmd.DW3.StatelessDataPortAccessMemoryObjectControlState = params.mocs4StatelessDataport;
+        MT_LOG2(MT_VP_MHW_CACHE_MOCS_TABLE, MT_NORMAL, MT_VP_MHW_CACHE_MEMORY_OBJECT_NAME, *((int64_t *)"STATE_BASE_ADDRESS"), MT_VP_MHW_CACHE_MEMORY_OBJECT_CONTROL_STATE, (int64_t)cmd.DW3.StatelessDataPortAccessMemoryObjectControlState);
+        MHW_NORMALMESSAGE(
+            "Feature Graph: Cache settings of DW3 StatelessDataPortAccess in STATE_BASE_ADDRESS: SurfaceMemoryObjectControlState %u, Index to Mocs table %u",
+            cmd.DW3.StatelessDataPortAccessMemoryObjectControlState,
+            (cmd.DW3.StatelessDataPortAccessMemoryObjectControlState >> 1) & 0x0000003f);
+
+        MT_LOG2(MT_VP_MHW_CACHE_MOCS_TABLE, MT_NORMAL, MT_VP_MHW_CACHE_MEMORY_OBJECT_NAME, *((int64_t *)"STATE_BASE_ADDRESS"), MT_VP_MHW_CACHE_MEMORY_OBJECT_CONTROL_STATE, (int64_t)cmd.DW16_17.BindlessSurfaceStateMemoryObjectControlState);
+        MHW_NORMALMESSAGE(
+            "Feature Graph: Cache settings of DW16_17 BindlessSurfaceState in STATE_BASE_ADDRESS: SurfaceMemoryObjectControlState %u, Index to Mocs table %u",
+            cmd.DW16_17.BindlessSurfaceStateMemoryObjectControlState,
+            (cmd.DW16_17.BindlessSurfaceStateMemoryObjectControlState >> 1) & 0x0000003f);
+
+        MT_LOG2(MT_VP_MHW_CACHE_MOCS_TABLE, MT_NORMAL, MT_VP_MHW_CACHE_MEMORY_OBJECT_NAME, *((int64_t *)"STATE_BASE_ADDRESS"), MT_VP_MHW_CACHE_MEMORY_OBJECT_CONTROL_STATE, (int64_t)cmd.DW19_20.BindlessSamplerStateMemoryObjectControlState);
+        MHW_NORMALMESSAGE(
+            "Feature Graph: Cache settings of DW19_20 BindlessSamplerState in STATE_BASE_ADDRESS: SurfaceMemoryObjectControlState %u, Index to Mocs table %u",
+            cmd.DW19_20.BindlessSamplerStateMemoryObjectControlState,
+            (cmd.DW19_20.BindlessSamplerStateMemoryObjectControlState >> 1) & 0x0000003f);
 
         return MOS_STATUS_SUCCESS;
     }
@@ -530,12 +572,17 @@ public:
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resource_params));
-
             if (params.mocs4SurfaceState != 0)
             {
                 cmd.DW1_2.SurfaceObjectControlState = params.mocs4SurfaceState;
             }
-        }
+
+            MT_LOG2(MT_VP_MHW_CACHE_MOCS_TABLE, MT_NORMAL, MT_VP_MHW_CACHE_MEMORY_OBJECT_NAME, *((int64_t *)"3DSTATE_BINDING_TABLE_POOL_ALLOC"), MT_VP_MHW_CACHE_MEMORY_OBJECT_CONTROL_STATE, (int64_t)cmd.DW1_2.SurfaceObjectControlState);
+            MHW_NORMALMESSAGE(
+                "Feature Graph: Cache settings of StatelessDataPortAccess in STATE_BASE_ADDRESS: SurfaceMemoryObjectControlState %u, Index to Mocs table %u",
+                cmd.DW1_2.SurfaceObjectControlState,
+                (cmd.DW1_2.SurfaceObjectControlState >> 1) & 0x0000003f);
+         }
 
         cmd.DW3.BindingTablePoolBufferSize = indirect_state_size;
 
