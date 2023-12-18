@@ -334,6 +334,18 @@ public:
         {
             MHW_NORMALMESSAGE("Skip calculation since no changes to AVS parameters. srcFormat %d, fScaleX %f, fScaleY %f",
                 srcFormat, fScaleX, fScaleY);
+
+            SetSfcAVSLumaTable(
+                srcFormat,
+                pLumaTable->LumaTable,
+                piYCoefsX,
+                piYCoefsY,
+                bUse8x8Filter);
+
+            SetSfcAVSChromaTable(
+                pChromaTable->ChromaTable,
+                piUVCoefsX,
+                piUVCoefsY);
             return MOS_STATUS_SUCCESS;
         }
 
