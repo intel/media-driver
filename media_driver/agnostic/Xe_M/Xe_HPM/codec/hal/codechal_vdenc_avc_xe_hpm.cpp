@@ -500,8 +500,8 @@ MOS_STATUS CodechalVdencAvcStateXe_Hpm::SetMfxPipeBufAddrStateParams(
     }
 
 #ifdef _MMC_SUPPORTED
-    m_mmcState->SetSurfaceState(param.pDecodedReconParam);
-    m_mmcState->SetSurfaceState(param.pRawSurfParam);
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SetSurfaceState(param.pDecodedReconParam));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SetSurfaceState(param.pRawSurfParam));
 #endif
     return MOS_STATUS_SUCCESS;
 }
