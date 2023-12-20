@@ -40,8 +40,12 @@ media_softlet/agnostic/common/codec/hal/enc/av1             leyu.yao@intel.com c
 media_softlet/agnostic/Xe_M_plus/Xe*/codec/hal/enc/av1      leyu.yao@intel.com chunbo.chen@intel.com
 
 # DDI Reviewers
-media_driver/linux/common/*ddi/                             carl.zhang@intel.com
-media_driver/linux/gen*/ddi/                                carl.zhang@intel.com
+media_driver/linux/common/*ddi/                             carl.zhang@intel.com zhengguo.xu@intel.com jay.yang@intel.com
+media_driver/linux/gen*/ddi/                                carl.zhang@intel.com zhengguo.xu@intel.com jay.yang@intel.com
+media_softlet/linux/common/ddi/                             carl.zhang@intel.com zhengguo.xu@intel.com jay.yang@intel.com
+media_softlet/linux/common/codec/                           carl.zhang@intel.com zhengguo.xu@intel.com jay.yang@intel.com
+media_softlet/linux/xe*/ddi/                                carl.zhang@intel.com zhengguo.xu@intel.com jay.yang@intel.com
+media_softlet/linux/Xe*/ddi/                                carl.zhang@intel.com zhengguo.xu@intel.com jay.yang@intel.com
 
 # Softlet Reviewers
 media_softlet/*                                             yuchen.wang@intel.com
@@ -72,3 +76,6 @@ media_driver/agnostic/common/shared                         jay.yang@intel.com b
 media_driver/linux/common/ddi                               jay.yang@intel.com billy.ye@intel.com carl.zhang@intel.com
 media_driver/linux/common/os                                jay.yang@intel.com billy.ye@intel.com carl.zhang@intel.com
 media_common/linux/common/os                                jay.yang@intel.com billy.ye@intel.com carl.zhang@intel.com
+
+# XE KMD related
+media_softlet/linux/common/os/xe                            zhengguo.xu@intel.com effie.yu@intel.com
