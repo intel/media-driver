@@ -84,7 +84,7 @@ void VpVeboxCmdPacket::UpdateCpPrepareResources()
     VP_FUNC_CALL();
 
     VpVeboxRenderData *pRenderData = GetLastExecRenderData();
-    VP_RENDER_ASSERT(pRenderData);
+    VP_PUBLIC_CHK_NULL_NO_STATUS_RETURN(pRenderData);
     // For 3DLut usage, it update in CpPrepareResources() for kernel usage, should
     // reupdate here. For other feature usage, it already update in vp_pipeline
     if (pRenderData->HDR3DLUT.is3DLutTableUpdatedByKernel == true)
@@ -530,7 +530,7 @@ MOS_STATUS VpVeboxCmdPacket::SetVeboxBeCSCParams(PVEBOX_CSC_PARAMS cscParams)
     VP_RENDER_CHK_NULL_RETURN(cscParams);
 
     VpVeboxRenderData* pRenderData = GetLastExecRenderData();
-    VP_RENDER_ASSERT(pRenderData);
+    VP_RENDER_CHK_NULL_RETURN(pRenderData);
 
     pRenderData->IECP.BeCSC.bBeCSCEnabled = cscParams->bCSCEnabled;
 
@@ -573,7 +573,7 @@ MOS_STATUS VpVeboxCmdPacket::SetVeboxOutputAlphaParams(PVEBOX_CSC_PARAMS cscPara
     VP_RENDER_CHK_NULL_RETURN(cscParams);
 
     VpVeboxRenderData* pRenderData = GetLastExecRenderData();
-    VP_RENDER_ASSERT(pRenderData);
+    VP_RENDER_CHK_NULL_RETURN(pRenderData);
 
     MHW_VEBOX_IECP_PARAMS& veboxIecpParams = pRenderData->GetIECPParams();
 
@@ -654,7 +654,7 @@ MOS_STATUS VpVeboxCmdPacket::SetVeboxChromasitingParams(PVEBOX_CSC_PARAMS cscPar
     VP_RENDER_CHK_NULL_RETURN(cscParams);
 
     VpVeboxRenderData* pRenderData = GetLastExecRenderData();
-    VP_RENDER_ASSERT(pRenderData);
+    VP_RENDER_CHK_NULL_RETURN(pRenderData);
 
     MHW_VEBOX_CHROMA_SAMPLING& veboxChromaSamplingParams = pRenderData->GetChromaSubSamplingParams();
 
@@ -1588,6 +1588,7 @@ MOS_STATUS VpVeboxCmdPacket::PrepareVeboxCmd(
     VP_RENDER_CHK_NULL_RETURN(pOsInterface);
     VP_RENDER_CHK_NULL_RETURN(m_currentSurface);
     VP_RENDER_CHK_NULL_RETURN(m_currentSurface->osSurface);
+    VP_RENDER_CHK_NULL_RETURN(pRenderData);
 
     // Set initial state
     iRemaining = CmdBuffer->iRemaining;
