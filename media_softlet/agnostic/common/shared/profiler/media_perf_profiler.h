@@ -531,6 +531,7 @@ private:
     bool                          m_enableProfilerDump = true;   //!< Indicate whether enable UMD Profiler dump
     std::shared_ptr<mhw::mi::Itf> m_miItf = nullptr;
     int32_t                       m_multiprocesssinglebin = 0;   //!< multi process single binary flag
+    int32_t                       m_mergeheader = 0;            //!< multi header support
     uint32_t*                     m_perfDataCombined = nullptr;  //!< Combined perf data pointer
     uint32_t                      m_perfDataCombinedSize = 0;    //!< Combined perf data size
     uint32_t                      m_perfDataCombinedIndex = 0;   //!< Combined perf data index

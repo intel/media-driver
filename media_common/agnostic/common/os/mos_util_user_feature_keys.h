@@ -429,6 +429,7 @@
 //User feature key for media perf profile
 #define __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_ENABLE              "Perf Profiler Enable"
 #define __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_ENABLE_MUL_PROC     "Perf Profiler Multi Process Support"
+#define __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_ENABLE_MER_HEADER   "Perf Profiler Merge by Header Support"
 #define __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_OUTPUT_FILE_NAME    "Perf Profiler Output File Name"
 #define __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_BUFFER_SIZE_KEY     "Perf Profiler Buffer Size"
 #define __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_MUL_PROC_SINGLE_BIN "Perf Profiler Multi Process Single Binary"

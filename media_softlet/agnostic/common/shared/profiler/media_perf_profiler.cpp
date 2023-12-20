@@ -286,6 +286,14 @@ MOS_STATUS MediaPerfProfiler::Initialize(void* context, MOS_INTERFACE *osInterfa
         m_multiprocess,
         __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_ENABLE_MUL_PROC,
         MediaUserSetting::Group::Device);
+
+    // Read multi header support
+    ReadUserSetting(
+        userSettingPtr,
+        m_mergeheader,
+        __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_ENABLE_MER_HEADER,
+        MediaUserSetting::Group::Device);
+
     // Read memory information register address
     int8_t regIndex = 0;
     for (regIndex = 0; regIndex < 8; regIndex++)
@@ -745,6 +753,22 @@ MOS_STATUS MediaPerfProfiler::SavePerfData(MOS_INTERFACE *osInterface)
                 m_outputFileName.c_str(), pid, pOsContext, localtime.tm_year + 1900, localtime.tm_mon + 1, localtime.tm_mday, localtime.tm_hour, localtime.tm_min, localtime.tm_sec);
 
             MosUtilities::MosWriteFileFromPtr(outputFileName, pData, BASE_OF_NODE(m_perfDataIndexMap[pOsContext]));
+        }
+        else if (m_mergeheader)
+        {
+            NodeHeader *header = reinterpret_cast<NodeHeader *>(pData);
+            char outputFileName[MOS_MAX_PATH_LENGTH + 1];
+            MOS_SecureStringPrint(outputFileName, MOS_MAX_PATH_LENGTH + 1, MOS_MAX_PATH_LENGTH + 1, "%s-header%u.bin", m_outputFileName.c_str(), *reinterpret_cast<uint32_t*>(header));
+            HANDLE hFile = nullptr;
+            if (MosUtilities::MosCreateFile(&hFile, outputFileName, 0) != MOS_STATUS_SUCCESS)
+            {
+                MosUtilities::MosWriteFileFromPtr(outputFileName, pData, BASE_OF_NODE(m_perfDataIndexMap[pOsContext]));
+            }
+            else
+            {
+                MosUtilities::MosCloseHandle(hFile);
+                MosUtilities::MosAppendFileFromPtr(outputFileName, pData + sizeof(NodeHeader), BASE_OF_NODE(m_perfDataIndexMap[pOsContext]) - sizeof(NodeHeader));
+            }
         }
         else
         {
