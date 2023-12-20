@@ -55,37 +55,37 @@ MOS_STATUS Vp9VdencPipelineXe_Lpm_Plus::Init(void *settings)
     Vp9HucBrcInitPkt *brcInitPkt = MOS_New(Vp9HucBrcInitPkt, this, task, m_hwInterface);
     ENCODE_CHK_NULL_RETURN(brcInitPkt);
     ENCODE_CHK_STATUS_RETURN(RegisterPacket(HucBrcInit, brcInitPkt));
-    brcInitPkt->Init();
+    ENCODE_CHK_STATUS_RETURN(brcInitPkt->Init());
 
     Vp9HucBrcUpdatePkt *brcUpdatePkt = MOS_New(Vp9HucBrcUpdatePkt, this, task, m_hwInterface);
     ENCODE_CHK_NULL_RETURN(brcUpdatePkt);
     ENCODE_CHK_STATUS_RETURN(RegisterPacket(HucBrcUpdate, brcUpdatePkt));
-    brcUpdatePkt->Init();
+    ENCODE_CHK_STATUS_RETURN(brcUpdatePkt->Init())
 
     Vp9HpuPkt *hucProbPkt = MOS_New(Vp9HpuPkt, this, task, m_hwInterface);
     ENCODE_CHK_NULL_RETURN(hucProbPkt);
     ENCODE_CHK_STATUS_RETURN(RegisterPacket(Vp9HucProb, hucProbPkt));
-    hucProbPkt->Init();
+    ENCODE_CHK_STATUS_RETURN(hucProbPkt->Init());
 
     Vp9HpuSuperFramePkt *hucSuperFramePkt = MOS_New(Vp9HpuSuperFramePkt, task, hucProbPkt);
     ENCODE_CHK_NULL_RETURN(hucSuperFramePkt);
     ENCODE_CHK_STATUS_RETURN(RegisterPacket(Vp9HucSuperFrame, hucSuperFramePkt));
-    hucSuperFramePkt->Init();
+    ENCODE_CHK_STATUS_RETURN(hucSuperFramePkt->Init());
 
     Vp9DynamicScalPktXe_Lpm_Plus *vp9DynamicScalPkt = MOS_New(Vp9DynamicScalPktXe_Lpm_Plus, this, task, m_hwInterface);
     ENCODE_CHK_NULL_RETURN(vp9DynamicScalPkt);
     ENCODE_CHK_STATUS_RETURN(RegisterPacket(Vp9DynamicScal, vp9DynamicScalPkt));
-    vp9DynamicScalPkt->Init();
+    ENCODE_CHK_STATUS_RETURN(vp9DynamicScalPkt->Init());
 
     Vp9VdencPktXe_Lpm_Plus *vp9VdencPkt = MOS_New(Vp9VdencPktXe_Lpm_Plus, this, task, m_hwInterface);
     ENCODE_CHK_NULL_RETURN(vp9VdencPkt);
     ENCODE_CHK_STATUS_RETURN(RegisterPacket(Vp9VdencPacket, vp9VdencPkt));
-    vp9VdencPkt->Init();
+    ENCODE_CHK_STATUS_RETURN(vp9VdencPkt->Init());
 
     Vp9PakIntegratePktXe_Lpm_Plus *pakIntPkt = MOS_New(Vp9PakIntegratePktXe_Lpm_Plus, this, task, m_hwInterface);
     ENCODE_CHK_NULL_RETURN(pakIntPkt);
     ENCODE_CHK_STATUS_RETURN(RegisterPacket(Vp9PakIntegrate, pakIntPkt));
-    pakIntPkt->Init();
+    ENCODE_CHK_STATUS_RETURN(pakIntPkt->Init());
 
     return MOS_STATUS_SUCCESS;
 }

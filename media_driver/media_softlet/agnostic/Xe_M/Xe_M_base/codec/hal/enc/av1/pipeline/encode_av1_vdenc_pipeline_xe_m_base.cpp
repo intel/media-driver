@@ -51,19 +51,19 @@ MOS_STATUS Av1VdencPipelineXe_M_Base::Init(void *settings)
     ENCODE_CHK_NULL_RETURN(task);
 
     Av1BrcInitPkt* brcInitpkt = MOS_New(Av1BrcInitPkt, this, task, m_hwInterface);
-    RegisterPacket(Av1HucBrcInit, brcInitpkt);
+    ENCODE_CHK_STATUS_RETURN(RegisterPacket(Av1HucBrcInit, brcInitpkt));
     ENCODE_CHK_STATUS_RETURN(brcInitpkt->Init());
 
     Av1BrcUpdatePkt* brcUpdatepkt = MOS_New(Av1BrcUpdatePkt, this, task, m_hwInterface);
-    RegisterPacket(Av1HucBrcUpdate, brcUpdatepkt);
+    ENCODE_CHK_STATUS_RETURN(RegisterPacket(Av1HucBrcUpdate, brcUpdatepkt));
     ENCODE_CHK_STATUS_RETURN(brcUpdatepkt->Init());
 
     Av1VdencPktXe_M_Base *av1Vdencpkt = MOS_New(Av1VdencPktXe_M_Base, this, task, m_hwInterface);
-    RegisterPacket(Av1VdencPacket, av1Vdencpkt);
+    ENCODE_CHK_STATUS_RETURN(RegisterPacket(Av1VdencPacket, av1Vdencpkt));
     ENCODE_CHK_STATUS_RETURN(av1Vdencpkt->Init());
 
     Av1BackAnnotationPkt *av1BackAnnotationpkt = MOS_New(Av1BackAnnotationPkt, this, task, m_hwInterface);
-    RegisterPacket(Av1BackAnnotation, av1BackAnnotationpkt);
+    ENCODE_CHK_STATUS_RETURN(RegisterPacket(Av1BackAnnotation, av1BackAnnotationpkt));
     ENCODE_CHK_STATUS_RETURN(av1BackAnnotationpkt->Init());
 
     return MOS_STATUS_SUCCESS;
