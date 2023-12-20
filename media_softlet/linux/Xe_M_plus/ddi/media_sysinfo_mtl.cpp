@@ -1,6 +1,6 @@
 /*===================== begin_copyright_notice ==================================
 
-Copyright (c) 2022, Intel Corporation
+Copyright (c) 2023, Intel Corporation
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the "Software"),
@@ -219,3 +219,12 @@ static struct GfxDeviceInfo arlInfo = {
 
 static bool arlsDevice7d67 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x7D67, &arlInfo);
+
+static bool arlhDevice7d51 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x7D51, &arlInfo);
+
+static bool arlhDevice7dd1 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x7DD1, &arlInfo);
+
+static bool arlhDevice7d41 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x7D41, &arlInfo);
