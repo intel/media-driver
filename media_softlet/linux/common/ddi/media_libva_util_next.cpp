@@ -540,7 +540,7 @@ VAStatus MediaLibvaUtilNext::CreateExternalSurface(
     uint32_t           swizzle_mode;
     VAStatus           status = VA_STATUS_SUCCESS;
 
-    // Default set as compression not supported, surface compression import only support from Memory Type VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2
+    // Default set as compression not supported, surface compression import only support from Memory Type VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2 or VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_3
     params.bMemCompEnable = false;
     params.bMemCompRC = false;
     params.pitch = mediaSurface->pSurfDesc->uiPitches[0];
@@ -558,6 +558,11 @@ VAStatus MediaLibvaUtilNext::CreateExternalSurface(
         case VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2:
             bo = mos_bo_create_from_prime(mediaDrvCtx->pDrmBufMgr, mediaSurface->pSurfDesc->ulBuffer, mediaSurface->pSurfDesc->uiSize);
             break;
+#if VA_CHECK_VERSION(1, 21, 0)
+        case VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_3:    
+            bo = mos_bo_create_from_prime(mediaDrvCtx->pDrmBufMgr, mediaSurface->pSurfDesc->ulBuffer, mediaSurface->pSurfDesc->uiSize);
+            break;
+#endif
         case VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR:
         {
             struct mos_drm_bo_alloc_userptr alloc_uptr;
@@ -596,6 +601,17 @@ VAStatus MediaLibvaUtilNext::CreateExternalSurface(
                 return status;
             }
             break;
+#if VA_CHECK_VERSION(1, 21, 0)
+        case VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_3:
+            params.pitch = mediaSurface->pSurfDesc->uiPitches[0];
+            status = SetSurfaceParameterFromModifier(params, mediaSurface->pSurfDesc->modifier);
+            if(status != VA_STATUS_SUCCESS)
+            {
+                DDI_ASSERTMESSAGE("Set surface from modifier failed.");
+                return status;
+            }
+            break;
+#endif
         case VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR:
             mos_bo_get_tiling(bo, &params.tileFormat, &swizzle_mode);
             break;
@@ -916,6 +932,9 @@ bool MediaLibvaUtilNext::IsExternalSurface(PDDI_MEDIA_SURFACE surface)
         if (surface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM ||
             surface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME ||
             surface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2 ||
+#if VA_CHECK_VERSION(1, 21, 0)
+            surface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_3 ||
+#endif
             surface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR)
         {
             return true;
