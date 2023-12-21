@@ -157,6 +157,13 @@ protected:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS DumpParams(HevcBasicFeature &basicFeature);
+
+    //! \brief    Dump the second level batch buffer
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS DumpSecondLevelBatchBuffer() override;
 #endif
 
 private:

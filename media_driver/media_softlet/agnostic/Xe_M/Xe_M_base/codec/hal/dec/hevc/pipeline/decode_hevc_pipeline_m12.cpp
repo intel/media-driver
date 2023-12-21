@@ -686,6 +686,32 @@ MOS_STATUS HevcPipelineM12::DumpParams(HevcBasicFeature &basicFeature)
 
     return MOS_STATUS_SUCCESS;
 }
+
+MOS_STATUS HevcPipelineM12::DumpSecondLevelBatchBuffer()
+{
+    DECODE_CHK_STATUS(HevcPipeline::DumpSecondLevelBatchBuffer());
+
+    if (m_basicFeature->m_shortFormatInUse)
+    {
+        // Dump HuC auth chained BB
+        auto hucS2LPkt = dynamic_cast<HucS2lPktM12 *>(GetOrCreate(DecodePacketId(this, hucS2lPacketId)));
+        DECODE_CHK_NULL(hucS2LPkt);
+
+        PMHW_BATCH_BUFFER batchBuffer = hucS2LPkt->GetHucAuthCmdBuffer();
+
+        if (batchBuffer != nullptr)
+        {
+            batchBuffer->iLastCurrent = batchBuffer->iSize * batchBuffer->count;
+            batchBuffer->dwOffset     = 0;
+            DECODE_CHK_STATUS(m_debugInterface->Dump2ndLvlBatch(
+                batchBuffer,
+                CODECHAL_NUM_MEDIA_STATES,
+                "HEVC_DEC_HucAuth"));
+        }
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
 #endif
 
 }

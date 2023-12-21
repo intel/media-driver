@@ -35,6 +35,7 @@ void MhwVdboxHucInterfaceG12::InitMmioRegisters()
     mmioRegisters->hucUKernelHdrInfoRegOffset = HUC_UKERNEL_HDR_INFO_REG_OFFSET_NODE_1_INIT_G12;
     mmioRegisters->hucStatusRegOffset         = HUC_STATUS_REG_OFFSET_NODE_1_INIT_G12;
     mmioRegisters->hucStatus2RegOffset        = HUC_STATUS2_REG_OFFSET_NODE_1_INIT_G12;
+    mmioRegisters->hucLoadInfoOffset          = HUC_LOAD_INFO_REG_OFFSET_G12;
 
     m_mmioRegisters[MHW_VDBOX_NODE_2] = m_mmioRegisters[MHW_VDBOX_NODE_1];
 }

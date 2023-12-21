@@ -235,6 +235,44 @@ MOS_STATUS MhwMiInterfaceG12::AddMiBatchBufferStartCmd(
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS MhwMiInterfaceG12::AddMiBatchBufferStartCmd(
+    PMOS_COMMAND_BUFFER cmdBuffer,
+    PMHW_BATCH_BUFFER   batchBuffer,
+    bool useChainedBB)
+{
+    MHW_FUNCTION_ENTER;
+
+    MHW_MI_CHK_NULL(cmdBuffer);
+    MHW_MI_CHK_NULL(batchBuffer);
+    MHW_MI_CHK_NULL(m_osInterface);
+    bool vcsEngineUsed =
+        MOS_VCS_ENGINE_USED(m_osInterface->pfnGetGpuContext(m_osInterface));
+
+    mhw_mi_g12_X::MI_BATCH_BUFFER_START_CMD cmd;
+    MHW_RESOURCE_PARAMS                     resourceParams;
+    MOS_ZeroMemory(&resourceParams, sizeof(resourceParams));
+    resourceParams.presResource    = &batchBuffer->OsResource;
+    resourceParams.dwOffset        = batchBuffer->dwOffset;
+    resourceParams.pdwCmd          = cmd.DW1_2.Value;
+    resourceParams.dwLocationInCmd = 1;
+    resourceParams.dwLsbNum        = MHW_COMMON_MI_GENERAL_SHIFT;
+    resourceParams.HwCommandType   = vcsEngineUsed ? MOS_MI_BATCH_BUFFER_START : MOS_MI_BATCH_BUFFER_START_RCS;
+
+    MHW_MI_CHK_STATUS(AddResourceToCmd(
+        m_osInterface,
+        cmdBuffer,
+        &resourceParams));
+
+    // Set BB start
+    cmd.DW0.Obj3.SecondLevelBatchBuffer = useChainedBB ? false : true;
+    cmd.DW0.Obj0.AddressSpaceIndicator  = !IsGlobalGttInUse();
+
+    // Send BB start command
+    MHW_MI_CHK_STATUS(m_osInterface->pfnAddCommand(cmdBuffer, &cmd, cmd.byteSize));
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS MhwMiInterfaceG12::AddMiConditionalBatchBufferEndCmd(
     PMOS_COMMAND_BUFFER                             cmdBuffer,
     PMHW_MI_CONDITIONAL_BATCH_BUFFER_END_PARAMS     params)

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -44,11 +44,31 @@ namespace decode {
             DECODE_CHK_NULL(m_s2lDmemBufferArray);
         }
 
+        DECODE_CHK_NULL(m_hwInterface);
+        MEDIA_WA_TABLE *waTable = m_hwInterface->GetWaTable();
+        if (waTable && MEDIA_IS_WA(waTable, WaCheckHucAuthenticationStatus))
+        {
+            m_hucAuthPkt = MOS_New(DecodeHucAuthCheckPktM12, m_hevcPipeline, m_hwInterface);
+        }
+
+        if (m_hucAuthPkt != nullptr)
+        {
+            // allocate resources for huc auth packet
+            DECODE_CHK_STATUS(m_hucAuthPkt->Init());
+        }
+
         return MOS_STATUS_SUCCESS;
     }
 
     MOS_STATUS HucS2lPktM12::Destroy()
     {
+        if (m_hucAuthPkt != nullptr)
+        {
+            // destroy resources allocated in huc auth packet
+            DECODE_CHK_STATUS(m_hucAuthPkt->Destroy());
+            MOS_Delete(m_hucAuthPkt);
+        }
+
         DECODE_CHK_STATUS(m_allocator->Destroy(m_s2lDmemBufferArray));
         DECODE_CHK_STATUS(HucS2lPktXe_M_Base::Destroy());
         return MOS_STATUS_SUCCESS;
@@ -96,6 +116,12 @@ namespace decode {
         PERF_UTILITY_AUTO(__FUNCTION__, PERF_DECODE, PERF_LEVEL_HAL);
 
         DECODE_CHK_NULL(m_hucInterface);
+
+        if (m_hucAuthPkt != nullptr)
+        {
+            // add huc auth check cmds
+            DECODE_CHK_STATUS(m_hucAuthPkt->Execute(cmdBuffer));
+        }
 
         if (prologNeeded)
         {

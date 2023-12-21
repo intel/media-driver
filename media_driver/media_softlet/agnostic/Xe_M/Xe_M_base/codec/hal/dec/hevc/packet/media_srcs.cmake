@@ -1,4 +1,4 @@
-# Copyright (c) 2019-2021, Intel Corporation
+# Copyright (c) 2019-2023, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -29,6 +29,7 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/decode_hevc_packet_front_end_m12.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_hevc_packet_long_m12.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_hevc_packet_real_tile_m12.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/decode_huc_authcheck_packet_m12.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_huc_s2l_xe_m_base_packet.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_hevc_packet_back_end_xe_m_base.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_hevc_packet_front_end_xe_m_base.cpp
@@ -49,6 +50,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/decode_hevc_packet_front_end_m12.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_hevc_packet_long_m12.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_hevc_packet_real_tile_m12.h
+    ${CMAKE_CURRENT_LIST_DIR}/decode_huc_authcheck_packet_m12.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_huc_s2l_xe_m_base_packet.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_hevc_packet_back_end_xe_m_base.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_hevc_packet_front_end_xe_m_base.h
