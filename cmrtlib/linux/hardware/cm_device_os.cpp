@@ -62,7 +62,6 @@ int32_t CmDevice_RT::GetSupportedAdapters(uint32_t &count)
 {
     INSERT_PROFILER_RECORD();
     int32_t result = CM_SUCCESS;
-    uint32_t i = 0;
     uint32_t k = 0;
 
     if (!g_AdapterCount)
@@ -149,7 +148,6 @@ extern "C" CM_RT_API int32_t DestroyCmDevice(CmDevice* &device);
 
 int32_t CmDevice_RT::GetPlatformInfo(uint32_t adapterIndex)
 {
-    uint32_t version = 0;
     CmDevice_RT *pDev = nullptr;
     CmDevice *pCmDev = nullptr;
     // Create a CM Device
@@ -160,7 +158,6 @@ int32_t CmDevice_RT::GetPlatformInfo(uint32_t adapterIndex)
     }
 
     pCmDev = static_cast<CmDevice*>(pDev);
-    uint32_t gpu_platform = 0;
     uint32_t gt_platform = 0;
     CM_PLATFORM_INFO platform_info;
     uint32_t count;
@@ -187,7 +184,7 @@ int32_t CmDevice_RT::QueryAdapterInfo(uint32_t adapterIndex, AdapterInfoType inf
 {
     int32_t result = CM_SUCCESS;
 
-    if (adapterIndex < g_supportedAdapterCount)
+    if ((int32_t)adapterIndex < g_supportedAdapterCount)
     {
         switch (infoName)
         {
@@ -483,18 +480,19 @@ CmDevice_RT::CmDevice_RT(
     m_deviceInUmd(nullptr),
     m_cmCreated(true),
     m_vaDisplay(vaDisplay),
-#ifdef ANDROID
-    m_display(nullptr),
-#endif
     m_drmIndex(0),
     m_fvaCmExtSendReqMsg(nullptr),
+#if !defined(ANDROID)
+    m_driFileDescriptor(0),
+#else
+    m_display(nullptr),
+#endif
     m_gtpinEnabled(false),
     m_gtpinBufferUP0(nullptr),
     m_gtpinBufferUP1(nullptr),
     m_gtpinBufferUP2(nullptr),
     m_createOption(createOption),
-    m_driverStoreEnabled(0),
-    m_driFileDescriptor(0)
+    m_driverStoreEnabled(0)
 {
 
     // New Surface Manager
@@ -811,7 +809,7 @@ int32_t CmDevice_RT::GetLibvaDisplayDrm(VADisplay & vaDisplay)
         return CM_INVALID_LIBVA_INITIALIZE;
     }
 
-    if (m_drmIndex < g_supportedAdapterCount)
+    if ((int32_t)m_drmIndex < g_supportedAdapterCount)
     {
         m_driFileDescriptor = GetRendererFileDescriptor(g_AdapterList[m_drmIndex]->nodes[2]);
     }
