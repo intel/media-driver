@@ -91,8 +91,8 @@ typedef struct MOS_OCA_EXEC_LIST_INFO mos_oca_exec_list_info;
 //mos_xe_mem_class currently used as index of default_alignment
 enum mos_xe_mem_class
 {
-    MOS_XE_MEM_CLASS_SYSMEM = 0,     //For XE_MEM_REGION_CLASS_SYSMEM
-    MOS_XE_MEM_CLASS_VRAM,           //For XE_MEM_REGION_CLASS_VRAM
+    MOS_XE_MEM_CLASS_SYSMEM = 0,     //For DRM_XE_MEM_REGION_CLASS_SYSMEM
+    MOS_XE_MEM_CLASS_VRAM,           //For DRM_XE_MEM_REGION_CLASS_VRAM
     MOS_XE_MEM_CLASS_MAX
 };
 
@@ -200,7 +200,7 @@ typedef struct mos_xe_bufmgr_gem {
     struct drm_xe_query_config *config;
     struct drm_xe_engine_class_instance *hw_engines;
     uint32_t number_hw_engines;
-    struct drm_xe_query_mem_usage *mem_usage;
+    struct drm_xe_query_mem_regions *mem_regions;
     struct drm_xe_query_gt_list *gt_list;
     uint32_t number_gt;
     /** bitmask of all memory regions */
@@ -401,8 +401,8 @@ static uint32_t __mos_query_memory_regions_xe(int fd)
     if(gt_list)
     {
         for (int i = 0; i < gt_list->num_gt; i++) {
-            __memory_regions |= gt_list->gt_list[i].native_mem_regions |
-                gt_list->gt_list[i].slow_mem_regions;
+            __memory_regions |= gt_list->gt_list[i].near_mem_regions |
+                gt_list->gt_list[i].far_mem_regions;
         }
 
         if (!bufmgr_gem)
@@ -424,14 +424,14 @@ static uint32_t __mos_query_memory_regions_xe(int fd)
 }
 
 
-static struct drm_xe_query_mem_usage *
-__mos_query_mem_usage_xe(int fd)
+static struct drm_xe_query_mem_regions *
+__mos_query_mem_regions_xe(int fd)
 {
     int ret = 0;
-    struct drm_xe_query_mem_usage *mem_usage;
+    struct drm_xe_query_mem_regions *mem_regions;
     struct drm_xe_device_query query;
     memclear(query);
-    query.query = DRM_XE_DEVICE_QUERY_MEM_USAGE;
+    query.query = DRM_XE_DEVICE_QUERY_MEM_REGIONS;
 
     ret = drmIoctl(fd, DRM_IOCTL_XE_DEVICE_QUERY,
                 &query);
@@ -440,51 +440,51 @@ __mos_query_mem_usage_xe(int fd)
         return nullptr;
     }
 
-    mem_usage = (drm_xe_query_mem_usage *)malloc(query.size);
-    if (mem_usage != nullptr)
+    mem_regions = (drm_xe_query_mem_regions *)malloc(query.size);
+    if (mem_regions != nullptr)
     {
-        memset(mem_usage, 0, query.size);
+        memset(mem_regions, 0, query.size);
     }
     else
     {
-        MOS_DRM_ASSERTMESSAGE("malloc mem_usage failed");
+        MOS_DRM_ASSERTMESSAGE("malloc mem_regions failed");
         return nullptr;
     }
 
-    query.data = (uintptr_t)(mem_usage);
+    query.data = (uintptr_t)(mem_regions);
     ret = drmIoctl(fd, DRM_IOCTL_XE_DEVICE_QUERY,
                 &query);
-    if (ret || !query.size || 0 == mem_usage->num_regions)
+    if (ret || !query.size || 0 == mem_regions->num_regions)
     {
-        MOS_XE_SAFE_FREE(mem_usage);
+        MOS_XE_SAFE_FREE(mem_regions);
         return nullptr;
     }
 
-    return mem_usage;
+    return mem_regions;
 }
 
 uint8_t __mos_query_vram_region_count_xe(int fd)
 {
-    struct drm_xe_query_mem_usage *mem_usage;
+    struct drm_xe_query_mem_regions *mem_regions;
     uint8_t num_regions = 0;
     uint8_t vram_regions = 0;
     struct mos_xe_bufmgr_gem *bufmgr_gem = mos_bufmgr_gem_find(fd);
 
-    if (bufmgr_gem && bufmgr_gem->mem_usage)
+    if (bufmgr_gem && bufmgr_gem->mem_regions)
     {
-        mem_usage = bufmgr_gem->mem_usage;
+        mem_regions = bufmgr_gem->mem_regions;
     }
     else
     {
-        mem_usage = __mos_query_mem_usage_xe(fd);
+        mem_regions = __mos_query_mem_regions_xe(fd);
     }
 
-    if(mem_usage)
+    if(mem_regions)
     {
-        num_regions = mem_usage->num_regions;
+        num_regions = mem_regions->num_regions;
         for(int i =0; i < num_regions; i++)
         {
-            if(mem_usage->regions[i].mem_class == XE_MEM_REGION_CLASS_VRAM)
+            if(mem_regions->regions[i].mem_class == DRM_XE_MEM_REGION_CLASS_VRAM)
             {
                 vram_regions++;
             }
@@ -492,11 +492,11 @@ uint8_t __mos_query_vram_region_count_xe(int fd)
 
         if (!bufmgr_gem)
         {
-            MOS_XE_SAFE_FREE(mem_usage)
+            MOS_XE_SAFE_FREE(mem_regions)
         }
-        else if (bufmgr_gem && !bufmgr_gem->mem_usage)
+        else if (bufmgr_gem && !bufmgr_gem->mem_regions)
         {
-            bufmgr_gem->mem_usage = mem_usage;
+            bufmgr_gem->mem_regions = mem_regions;
         }
     }
 
@@ -598,20 +598,20 @@ __mos_query_gt_list_xe(int fd)
 }
 
 static int
-__mos_get_default_alignment_xe(struct mos_bufmgr *bufmgr, struct drm_xe_query_mem_usage *mem_usage)
+__mos_get_default_alignment_xe(struct mos_bufmgr *bufmgr, struct drm_xe_query_mem_regions *mem_regions)
 {
     MOS_DRM_CHK_NULL_RETURN_VALUE(bufmgr, -EINVAL);
-    MOS_DRM_CHK_NULL_RETURN_VALUE(mem_usage, -EINVAL);
+    MOS_DRM_CHK_NULL_RETURN_VALUE(mem_regions, -EINVAL);
     struct mos_xe_bufmgr_gem *bufmgr_gem = (struct mos_xe_bufmgr_gem *)bufmgr;
     uint16_t mem_class;
 
-    for (int i = 0; i < mem_usage->num_regions; i++)
+    for (int i = 0; i < mem_regions->num_regions; i++)
     {
-        if (XE_MEM_REGION_CLASS_SYSMEM == mem_usage->regions[i].mem_class)
+        if (DRM_XE_MEM_REGION_CLASS_SYSMEM == mem_regions->regions[i].mem_class)
         {
             mem_class = MOS_XE_MEM_CLASS_SYSMEM;
         }
-        else if (XE_MEM_REGION_CLASS_VRAM == mem_usage->regions[i].mem_class)
+        else if (DRM_XE_MEM_REGION_CLASS_VRAM == mem_regions->regions[i].mem_class)
         {
             mem_class = MOS_XE_MEM_CLASS_VRAM;
         }
@@ -621,9 +621,9 @@ __mos_get_default_alignment_xe(struct mos_bufmgr *bufmgr, struct drm_xe_query_me
             return -EINVAL;
         }
 
-        if (bufmgr_gem->default_alignment[mem_class] < mem_usage->regions[i].min_page_size)
+        if (bufmgr_gem->default_alignment[mem_class] < mem_regions->regions[i].min_page_size)
         {
-            bufmgr_gem->default_alignment[mem_class] = mem_usage->regions[i].min_page_size;
+            bufmgr_gem->default_alignment[mem_class] = mem_regions->regions[i].min_page_size;
         }
     }
 
@@ -704,7 +704,7 @@ __mos_vm_create_xe(struct mos_bufmgr *bufmgr)
     int ret;
 
     memclear(vm);
-    vm.flags = DRM_XE_VM_CREATE_ASYNC_DEFAULT;
+    vm.flags = DRM_XE_VM_CREATE_FLAG_ASYNC_DEFAULT;
     ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_XE_VM_CREATE, &vm);
     if (ret != 0) {
         MOS_DRM_ASSERTMESSAGE("DRM_IOCTL_XE_VM_CREATE failed: %s",
@@ -841,12 +841,12 @@ mos_context_create_shared_xe(
     {
         struct drm_xe_ext_set_property timeslice;
         memclear(timeslice);
-        timeslice.property = XE_EXEC_QUEUE_SET_PROPERTY_TIMESLICE;
+        timeslice.property = DRM_XE_EXEC_QUEUE_SET_PROPERTY_TIMESLICE;
         /**
          * Note, this value indicates to maximum of time slice for WL instead of real waiting time.
          */
         timeslice.value = bufmgr_gem->exec_queue_timeslice;
-        timeslice.base.name = XE_EXEC_QUEUE_EXTENSION_SET_PROPERTY;
+        timeslice.base.name = DRM_XE_EXEC_QUEUE_EXTENSION_SET_PROPERTY;
         create.extensions = (uintptr_t)(&timeslice);
         MOS_DRM_NORMALMESSAGE("WA: exec_queue timeslice set by engine class(%d), value(%d)",
                     engine_class, bufmgr_gem->exec_queue_timeslice);
@@ -1114,8 +1114,7 @@ __mos_bo_set_offset_xe(MOS_LINUX_BO *bo)
 
 static int __mos_vm_bind_xe(int fd, uint32_t vm_id, uint32_t exec_queue_id, uint32_t bo_handle,
           uint64_t offset, uint64_t addr, uint64_t size, uint32_t op, uint32_t flags,
-          struct drm_xe_sync *sync, uint32_t num_syncs, uint32_t region,
-          uint64_t ext)
+          struct drm_xe_sync *sync, uint32_t num_syncs, uint64_t ext)
 {
     int ret;
 
@@ -1131,7 +1130,6 @@ static int __mos_vm_bind_xe(int fd, uint32_t vm_id, uint32_t exec_queue_id, uint
     bind.bind.addr = addr;
     bind.bind.op = op;
     bind.bind.flags = flags;
-    bind.bind.region = region;
     bind.num_syncs = num_syncs;
     bind.syncs = (uintptr_t)sync;
 
@@ -1155,11 +1153,11 @@ static int mos_xe_vm_bind_sync(int fd, uint32_t vm_id, uint32_t bo, uint64_t off
     struct drm_xe_sync sync;
 
     memclear(sync);
-    sync.flags = DRM_XE_SYNC_SYNCOBJ | DRM_XE_SYNC_SIGNAL;
+    sync.flags = DRM_XE_SYNC_FLAG_SYNCOBJ | DRM_XE_SYNC_FLAG_SIGNAL;
     sync.handle = mos_sync_syncobj_create(fd, 0);
 
     int ret = __mos_vm_bind_xe(fd, vm_id, 0, bo, offset, addr, size,
-                op, XE_VM_BIND_FLAG_ASYNC, &sync, 1, 0, 0);
+                op, DRM_XE_VM_BIND_FLAG_ASYNC, &sync, 1,  0);
 
     if (ret)
     {
@@ -1184,7 +1182,7 @@ static int mos_xe_vm_bind_async(int fd, uint32_t vm_id, uint32_t bo, uint64_t of
         struct drm_xe_sync *sync, uint32_t num_syncs)
 {
     return __mos_vm_bind_xe(fd, vm_id, 0, bo, offset, addr, size,
-                op, XE_VM_BIND_FLAG_ASYNC, sync, num_syncs, 0, 0);
+                op, DRM_XE_VM_BIND_FLAG_ASYNC, sync, num_syncs,    0);
 }
 
 drm_export struct mos_linux_bo *
@@ -1237,7 +1235,7 @@ mos_bo_alloc_xe(struct mos_bufmgr *bufmgr,
     create.size = ALIGN(alloc->size, bo_align);
     if (bufmgr_gem->is_defer_creation_and_binding)
     {
-        create.flags |= XE_GEM_CREATE_FLAG_DEFER_BACKING;
+        create.flags |= DRM_XE_GEM_CREATE_FLAG_DEFER_BACKING;
     }
     ret = drmIoctl(bufmgr_gem->fd,
         DRM_IOCTL_XE_GEM_CREATE,
@@ -1274,7 +1272,7 @@ mos_bo_alloc_xe(struct mos_bufmgr *bufmgr,
 
     __mos_bo_set_offset_xe(&bo_gem->bo);
 
-    ret = mos_xe_vm_bind_sync(bufmgr_gem->fd, bufmgr_gem->vm_id, bo_gem->gem_handle, 0, bo_gem->bo.offset64, bo_gem->bo.size, XE_VM_BIND_OP_MAP, bufmgr_gem->is_defer_creation_and_binding);
+    ret = mos_xe_vm_bind_sync(bufmgr_gem->fd, bufmgr_gem->vm_id, bo_gem->gem_handle, 0, bo_gem->bo.offset64, bo_gem->bo.size, DRM_XE_VM_BIND_OP_MAP, bufmgr_gem->is_defer_creation_and_binding);
     if (ret)
     {
         MOS_DRM_ASSERTMESSAGE("mos_xe_vm_bind_sync ret: %d", ret);
@@ -1434,7 +1432,7 @@ mos_bo_alloc_userptr_xe(struct mos_bufmgr *bufmgr,
 
     __mos_bo_set_offset_xe(&bo_gem->bo);
 
-    ret = mos_xe_vm_bind_sync(bufmgr_gem->fd, bufmgr_gem->vm_id, 0, (uint64_t)alloc_uptr->addr, bo_gem->bo.offset64, bo_gem->bo.size, XE_VM_BIND_OP_MAP_USERPTR, bufmgr_gem->is_defer_creation_and_binding);
+    ret = mos_xe_vm_bind_sync(bufmgr_gem->fd, bufmgr_gem->vm_id, 0, (uint64_t)alloc_uptr->addr, bo_gem->bo.offset64, bo_gem->bo.size, DRM_XE_VM_BIND_OP_MAP_USERPTR, bufmgr_gem->is_defer_creation_and_binding);
     if (ret)
     {
         MOS_DRM_ASSERTMESSAGE("mos_xe_vm_bind_userptr_sync ret: %d", ret);
@@ -1526,7 +1524,7 @@ mos_bo_create_from_prime_xe(struct mos_bufmgr *bufmgr, int prime_fd, int size)
 
     __mos_bo_set_offset_xe(&bo_gem->bo);
 
-    ret = mos_xe_vm_bind_sync(bufmgr_gem->fd, bufmgr_gem->vm_id, bo_gem->gem_handle, 0, bo_gem->bo.offset64, bo_gem->bo.size, XE_VM_BIND_OP_MAP, bufmgr_gem->is_defer_creation_and_binding);
+    ret = mos_xe_vm_bind_sync(bufmgr_gem->fd, bufmgr_gem->vm_id, bo_gem->gem_handle, 0, bo_gem->bo.offset64, bo_gem->bo.size, DRM_XE_VM_BIND_OP_MAP, bufmgr_gem->is_defer_creation_and_binding);
     if (ret)
     {
         MOS_DRM_ASSERTMESSAGE("mos_xe_vm_bind_sync ret: %d", ret);
@@ -2390,7 +2388,7 @@ __mos_bo_context_exec_retry_xe(struct mos_bufmgr *bufmgr,
 
     //query ctx property firstly to check if failure is caused by exec_queue ban
     uint64_t property_value = 0;
-    ret = __mos_get_context_property(bufmgr, ctx, XE_EXEC_QUEUE_GET_PROPERTY_BAN, property_value);
+    ret = __mos_get_context_property(bufmgr, ctx, DRM_XE_EXEC_QUEUE_GET_PROPERTY_BAN, property_value);
 
     /**
      * if exec_queue is banned, queried value is 1, otherwise it is zero;
@@ -2635,7 +2633,7 @@ mos_bo_context_exec_xe(struct mos_linux_bo **bo, int num_bo, struct mos_linux_co
     }
     memclear(sync);
     sync.handle = mos_sync_syncobj_create(bufmgr_gem->fd, 0);
-    sync.flags = DRM_XE_SYNC_SYNCOBJ | DRM_XE_SYNC_SIGNAL;
+    sync.flags = DRM_XE_SYNC_FLAG_SYNCOBJ | DRM_XE_SYNC_FLAG_SIGNAL;
 
     memclear(exec);
     exec.extensions = 0;
@@ -2692,7 +2690,7 @@ mos_get_devid_xe(struct mos_bufmgr *bufmgr)
         return devid;
     }
 
-    devid = config->info[XE_QUERY_CONFIG_REV_AND_DEVICE_ID] & 0xffff;
+    devid = config->info[DRM_XE_QUERY_CONFIG_REV_AND_DEVICE_ID] & 0xffff;
 
     return devid;
 }
@@ -3091,7 +3089,7 @@ mos_bo_free_xe(struct mos_linux_bo *bo)
 
     if(bo->vm_id != INVALID_VM)
     {
-        ret = mos_xe_vm_bind_sync(bufmgr_gem->fd, bo->vm_id, 0, 0, bo->offset64, bo->size, XE_VM_BIND_OP_UNMAP, bufmgr_gem->is_defer_creation_and_binding);
+        ret = mos_xe_vm_bind_sync(bufmgr_gem->fd, bo->vm_id, 0, 0, bo->offset64, bo->size, DRM_XE_VM_BIND_OP_UNMAP, bufmgr_gem->is_defer_creation_and_binding);
         if (ret)
         {
             MOS_DRM_ASSERTMESSAGE("mos_gem_bo_free mos_vm_unbind ret error. bo:0x%lx, vm_id:%d\r",
@@ -3182,8 +3180,8 @@ mos_bufmgr_gem_destroy_xe(struct mos_bufmgr *bufmgr)
     MOS_XE_SAFE_FREE(bufmgr_gem->hw_engines);
     bufmgr_gem->hw_engines = nullptr;
 
-    MOS_XE_SAFE_FREE(bufmgr_gem->mem_usage);
-    bufmgr_gem->mem_usage = nullptr;
+    MOS_XE_SAFE_FREE(bufmgr_gem->mem_regions);
+    bufmgr_gem->mem_regions = nullptr;
 
     MOS_XE_SAFE_FREE(bufmgr_gem->gt_list);
     bufmgr_gem->gt_list = nullptr;
@@ -3457,8 +3455,8 @@ mos_get_driver_info_xe(struct mos_bufmgr *bufmgr, struct LinuxDriverInfo *drvInf
         drvInfo->hasProtectedHuc = 1;
     }
 
-    drvInfo->devId = config->info[XE_QUERY_CONFIG_REV_AND_DEVICE_ID] & 0xffff;
-    drvInfo->devRev = config->info[XE_QUERY_CONFIG_REV_AND_DEVICE_ID] >> 16;
+    drvInfo->devId = config->info[DRM_XE_QUERY_CONFIG_REV_AND_DEVICE_ID] & 0xffff;
+    drvInfo->devRev = config->info[DRM_XE_QUERY_CONFIG_REV_AND_DEVICE_ID] >> 16;
 
     return 0;
 }
@@ -3594,13 +3592,13 @@ mos_bufmgr_gem_init_xe(int fd, int batch_size)
     bufmgr_gem->config = __mos_query_config_xe(fd);
     bufmgr_gem->gt_list = __mos_query_gt_list_xe(fd);
     bufmgr_gem->memory_regions = __mos_query_memory_regions_xe(fd);
-    bufmgr_gem->mem_usage = __mos_query_mem_usage_xe(fd);
+    bufmgr_gem->mem_regions = __mos_query_mem_regions_xe(fd);
     bufmgr_gem->has_vram = __mos_has_vram_xe(fd);
     bufmgr_gem->hw_config = __mos_query_hw_config_xe(fd, &bufmgr_gem->config_len);
 
-    if (bufmgr_gem->mem_usage != nullptr)
+    if (bufmgr_gem->mem_regions != nullptr)
     {
-        __mos_get_default_alignment_xe(&bufmgr_gem->bufmgr, bufmgr_gem->mem_usage);
+        __mos_get_default_alignment_xe(&bufmgr_gem->bufmgr, bufmgr_gem->mem_regions);
     }
 
     if (bufmgr_gem->gt_list != nullptr)
@@ -3624,8 +3622,8 @@ mos_bufmgr_gem_init_xe(int fd, int batch_size)
         MOS_XE_SAFE_FREE(bufmgr_gem->config);
         bufmgr_gem->config = nullptr;
 
-        MOS_XE_SAFE_FREE(bufmgr_gem->mem_usage);
-        bufmgr_gem->mem_usage = nullptr;
+        MOS_XE_SAFE_FREE(bufmgr_gem->mem_regions);
+        bufmgr_gem->mem_regions = nullptr;
 
         MOS_XE_SAFE_FREE(bufmgr_gem->gt_list);
         bufmgr_gem->gt_list = nullptr;
@@ -3679,7 +3677,7 @@ int mos_get_dev_id_xe(int fd, uint32_t *device_id)
         mos_bufmgr_gem_unref_xe((struct mos_bufmgr *)bufmgr_gem);
         return -ENODEV;
     }
-    *device_id = config->info[XE_QUERY_CONFIG_REV_AND_DEVICE_ID] & 0xffff;
+    *device_id = config->info[DRM_XE_QUERY_CONFIG_REV_AND_DEVICE_ID] & 0xffff;
 
     mos_bufmgr_gem_unref_xe((struct mos_bufmgr *)bufmgr_gem);
     if (needFreeConfig)
