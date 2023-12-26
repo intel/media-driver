@@ -161,6 +161,8 @@ public:
         return false;
     }
 
+    virtual PMOS_INTERFACE GetMosInterface();
+
 protected:
 
     //!

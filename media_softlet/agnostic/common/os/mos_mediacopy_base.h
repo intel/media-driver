@@ -69,6 +69,9 @@ public:
     //!           Return true if support, otherwise return false.
     bool IsAILForceOption();
 
+    // Get mos interfae
+    virtual PMOS_INTERFACE GetMediaCopyMosInterface();
+
 protected:
     MediaCopyBaseState *m_mediaCopyState = nullptr;
     PMOS_CONTEXT        m_mosContext     = nullptr;

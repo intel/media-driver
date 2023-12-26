@@ -3320,8 +3320,6 @@ MOS_STATUS Mos_Specific_MediaCopyResource2D(
     PMOS_RESOURCE         outputOsResource,
     uint32_t              copyWidth,
     uint32_t              copyHeight,
-    uint32_t              copyInputOffset,
-    uint32_t              copyOutputOffset,
     uint32_t              bpp,
     bool                  bOutputCompressed)
 {
@@ -3337,7 +3335,7 @@ MOS_STATUS Mos_Specific_MediaCopyResource2D(
     if (osInterface->apoMosEnabled)
     {
         return MosInterface::MediaCopyResource2D(osInterface->osStreamState, inputOsResource, outputOsResource,
-            copyWidth, copyHeight, copyInputOffset, copyOutputOffset, bpp, bOutputCompressed);
+            copyWidth, copyHeight, bpp, bOutputCompressed);
     }
 
     pContext = osInterface->pOsContext;
@@ -3346,12 +3344,72 @@ MOS_STATUS Mos_Specific_MediaCopyResource2D(
         outputOsResource && outputOsResource->bo && outputOsResource->pGmmResInfo)
     {
         // Double Buffer Copy can support any tile status surface with/without compression
-        pContext->pfnMediaMemoryCopy2D(pContext, inputOsResource, outputOsResource, copyWidth, copyHeight, copyInputOffset, copyOutputOffset, bpp, bOutputCompressed);
+        pContext->pfnMediaMemoryCopy2D(pContext, inputOsResource, outputOsResource, copyWidth, copyHeight, 0, 0, bpp, bOutputCompressed);
     }
 
     eStatus = MOS_STATUS_SUCCESS;
 
 finish:
+    return eStatus;
+}
+
+//!
+//! \brief    Copy mono picture
+//! \details  This is the copy function dedicated to mono picture copy
+//! \param    PMOS_INTERFACE pOsInterface
+//!           [in] pointer to OS Interface structure
+//! \param    PMOS_RESOURCE inputOsResource
+//!           [in] Input Resource object
+//! \param    PMOS_RESOURCE outputOsResource
+//!           [out] output Resource object
+//! \param    [in] copyWidth
+//!            The 2D surface Width
+//! \param    [in] copyHeight
+//!            The 2D surface height
+//! \param    [in] copyInputOffset
+//!            The offset of copied surface from
+//! \param    [in] copyOutputOffset
+//!            The offset of copied to
+//! \param    [in] bOutputCompressed
+//!            true means apply compression on output surface, else output uncompressed surface
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if successful
+//!
+MOS_STATUS Mos_Specific_MonoSurfaceCopy(
+    PMOS_INTERFACE osInterface,
+    PMOS_RESOURCE  inputOsResource,
+    PMOS_RESOURCE  outputOsResource,
+    uint32_t       copyWidth,
+    uint32_t       copyHeight,
+    uint32_t       copyInputOffset,
+    uint32_t       copyOutputOffset,
+    bool           bOutputCompressed)
+{
+    MOS_STATUS              eStatus = MOS_STATUS_UNKNOWN;
+    MOS_OS_CONTEXT          *pContext = nullptr;
+
+    //---------------------------------------
+    MOS_OS_CHK_NULL_RETURN(osInterface);
+    MOS_OS_CHK_NULL_RETURN(inputOsResource);
+    MOS_OS_CHK_NULL_RETURN(outputOsResource);
+    //---------------------------------------
+    
+    if (osInterface->apoMosEnabled)
+    {
+        return MosInterface::MonoSurfaceCopy(osInterface->osStreamState, inputOsResource, outputOsResource, copyWidth, copyHeight, copyInputOffset, copyOutputOffset, bOutputCompressed);
+    }
+
+    pContext = osInterface->pOsContext;
+
+    if (inputOsResource && inputOsResource->bo && inputOsResource->pGmmResInfo &&
+        outputOsResource && outputOsResource->bo && outputOsResource->pGmmResInfo)
+    {
+        // Double Buffer Copy can support any tile status surface with/without compression
+        pContext->pfnMediaMemoryCopy2D(pContext, inputOsResource, outputOsResource, copyWidth, copyHeight, 0, 0, 16, bOutputCompressed);
+    }
+
+    eStatus = MOS_STATUS_SUCCESS;
+
     return eStatus;
 }
 
@@ -7094,6 +7152,7 @@ MOS_STATUS Mos_Specific_InitInterface(
     pOsInterface->pfnSetDecompSyncRes                       = Mos_Specific_SetDecompSyncRes;
     pOsInterface->pfnDoubleBufferCopyResource               = Mos_Specific_DoubleBufferCopyResource;
     pOsInterface->pfnMediaCopyResource2D                    = Mos_Specific_MediaCopyResource2D;
+    pOsInterface->pfnMonoSurfaceCopy                        = Mos_Specific_MonoSurfaceCopy;
     pOsInterface->pfnGetMosContext                          = Mos_Specific_GetMosContext;
     pOsInterface->pfnUpdateResourceUsageType                = Mos_Specific_UpdateResourceUsageType;
     pOsInterface->pfnRegisterResource                       = Mos_Specific_RegisterResource;

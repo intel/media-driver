@@ -375,6 +375,7 @@ struct _MOS_SPECIFIC_RESOURCE
     MOS_PLANE_OFFSET    YPlaneOffset;       //!< Y surface plane offset
     MOS_PLANE_OFFSET    UPlaneOffset;       //!< U surface plane offset
     MOS_PLANE_OFFSET    VPlaneOffset;       //!< V surface plane offset
+    uint32_t            dwOffsetForMono;    // This filed is used for mono surface only. DO NOT USE IT FOR OTHER USAGE.
 
     //!< to sync render target for multi-threading decoding mode
     struct

@@ -252,6 +252,7 @@ uint32_t GetMinRequiredSurfaceSizeInBytes(uint32_t pitch, uint32_t height, MOS_F
     case Format_P8:
     case Format_L8:
     case Format_A8:
+    case Format_Y16U:
         nBytes = pitch * height;
         break;
     default:
@@ -533,3 +534,7 @@ MOS_STATUS MediaCopyBaseState::AuxCopy(PMOS_RESOURCE src, PMOS_RESOURCE dst)
     return MOS_STATUS_INVALID_HANDLE;
 }
 
+PMOS_INTERFACE MediaCopyBaseState::GetMosInterface()
+{
+    return m_osInterface;
+}

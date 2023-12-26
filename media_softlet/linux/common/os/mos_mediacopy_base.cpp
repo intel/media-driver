@@ -61,3 +61,12 @@ bool MosMediaCopyBase::IsAILForceOption()
 {
     return false;
 }
+
+PMOS_INTERFACE MosMediaCopyBase::GetMediaCopyMosInterface()
+{
+     if (!m_mediaCopyState)
+     {
+        return nullptr;
+     }
+     return m_mediaCopyState->GetMosInterface();
+}
