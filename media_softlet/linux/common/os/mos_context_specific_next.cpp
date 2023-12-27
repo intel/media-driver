@@ -64,6 +64,7 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
     uint32_t      iDeviceId = 0;
     MOS_STATUS    eStatus   = MOS_STATUS_SUCCESS;
     uint32_t      value     = 0;
+    uint32_t      mode      = 0;
     MediaUserSettingSharedPtr   userSettingPtr = nullptr;
 
     MOS_OS_FUNCTION_ENTER;
@@ -89,7 +90,25 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
 
         userSettingPtr = MosInterface::MosGetUserSettingInstance(osDriverContext);
 
-        m_bufmgr = mos_bufmgr_gem_init(m_fd, BATCH_BUFFER_SIZE, &m_deviceType);
+        mode = BATCH_BUFFER_SIZE;
+        ReadUserSetting(
+            userSettingPtr,
+            value,
+            "INTEL MEDIA ALLOC MODE",
+            MediaUserSetting::Group::Device);
+
+        if (value)
+        {
+            mode |= (value & 0x000000ff);
+        }
+        value = 0;
+        /* no need to set batch buffer size after switch to softpin
+         * keep it, just for test during relocation to softpin transition
+         * now , it could be a debug method , but is actually useless
+         * so it is safe to reuse the lowest 8bit to convey addtional information
+         * more suitable solution is deleting it , or add additional parameter*/
+
+        m_bufmgr = mos_bufmgr_gem_init(m_fd, (int)mode, &m_deviceType);
         if (nullptr == m_bufmgr)
         {
             MOS_OS_ASSERTMESSAGE("Not able to allocate buffer manager, fd=0x%d", m_fd);

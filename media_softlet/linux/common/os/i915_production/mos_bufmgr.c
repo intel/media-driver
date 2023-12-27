@@ -5403,6 +5403,7 @@ mos_bufmgr_gem_init_i915(int fd, int batch_size)
      *
      * Every 4 was too few for the blender benchmark.
      */
+    batch_size &= 0xffffff00;
     bufmgr_gem->max_relocs = batch_size / sizeof(uint32_t) / 2 - 2;
 
     DRMINITLISTHEAD(&bufmgr_gem->named);

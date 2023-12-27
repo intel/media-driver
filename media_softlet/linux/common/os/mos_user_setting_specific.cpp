@@ -52,5 +52,12 @@ MOS_STATUS MosUserSetting::InitMosUserSettingSpecific(MediaUserSettingSharedPtr 
         0,
         true); //"Enable VM Bind."
 
+    DeclareUserSettingKey(
+        userSettingPtr,
+        "INTEL MEDIA ALLOC MODE",
+        MediaUserSetting::Group::Device,
+        0,
+        false); //
+
     return MOS_STATUS_SUCCESS;
 }

@@ -138,7 +138,7 @@ struct mos_bufmgr_gem {
     int exec_count;
 
     /** Array of lists of cached gem objects of power-of-two sizes */
-    struct mos_gem_bo_bucket cache_bucket[14 * 4];
+    struct mos_gem_bo_bucket cache_bucket[64];
     int num_buckets;
     time_t time;
 
@@ -3852,9 +3852,9 @@ add_bucket(struct mos_bufmgr_gem *bufmgr_gem, int size)
 }
 
 static void
-init_cache_buckets(struct mos_bufmgr_gem *bufmgr_gem)
+init_cache_buckets(struct mos_bufmgr_gem *bufmgr_gem, uint8_t alloc_mode)
 {
-    unsigned long size, cache_max_size = 64 * 1024 * 1024;
+    unsigned long size, cache_max_size = 64 * 1024 * 1024, unit_size;
 
     /* OK, so power of two buckets was too wasteful of memory.
      * Give 3 other sizes between each power of two, to hopefully
@@ -3864,17 +3864,63 @@ init_cache_buckets(struct mos_bufmgr_gem *bufmgr_gem)
      * width/height alignment and rounding of sizes to pages will
      * get us useful cache hit rates anyway)
      */
-    add_bucket(bufmgr_gem, 4096);
-    add_bucket(bufmgr_gem, 4096 * 2);
-    add_bucket(bufmgr_gem, 4096 * 3);
+    /* alloc_mode 0 is default alloc_mode
+     * alloc_mode 1 rounding up to 64K for all < 1M
+     * alloc_mode 2 rounding up to 2M for size> 1M
+     * alloc_mode 3 rounding up to 2M for size > 1M and 64K for size <= 1M */
+    if( alloc_mode > 3 )
+        alloc_mode = 0;
 
-    /* Initialize the linked lists for BO reuse cache. */
-    for (size = 4 * 4096; size <= cache_max_size; size *= 2) {
-        add_bucket(bufmgr_gem, size);
+    if ( 0 == alloc_mode || 2 == alloc_mode)
+    {
+        // < 1M normal alloc_mode
+        add_bucket(bufmgr_gem, 4096);
+        add_bucket(bufmgr_gem, 4096 * 2);
+        add_bucket(bufmgr_gem, 4096 * 3);
+        /* Initialize the linked lists for BO reuse cache. */
+        for (size = 4 * 4096; size < 1024 * 1024; size *= 2) {
+            add_bucket(bufmgr_gem, size);
+            add_bucket(bufmgr_gem, size + size * 1 / 4);
+            add_bucket(bufmgr_gem, size + size * 2 / 4);
+            add_bucket(bufmgr_gem, size + size * 3 / 4);
+        }
 
-        add_bucket(bufmgr_gem, size + size * 1 / 4);
-        add_bucket(bufmgr_gem, size + size * 2 / 4);
-        add_bucket(bufmgr_gem, size + size * 3 / 4);
+        add_bucket(bufmgr_gem, 1024 * 1024);
+    }
+    if (1 == alloc_mode || 3 == alloc_mode)
+    {
+        // < 1M 64k alignment
+        unit_size = 64 * 1024;
+        for (size = unit_size; size <= 1024 * 1024; size += unit_size)
+        {
+            add_bucket(bufmgr_gem, size);
+        }
+    }
+    if( 0 == alloc_mode || 1 == alloc_mode)
+    {
+       //> 1M is normal alloc_mode
+        add_bucket(bufmgr_gem, 1280 * 1024);
+        add_bucket(bufmgr_gem, 1536 * 1024);
+        add_bucket(bufmgr_gem, 1792 * 1024);
+
+        for (size = 2 * 1024 * 1024; size < cache_max_size; size *= 2) {
+            add_bucket(bufmgr_gem, size);
+            add_bucket(bufmgr_gem, size + size * 1 / 4);
+            add_bucket(bufmgr_gem, size + size * 2 / 4);
+            add_bucket(bufmgr_gem, size + size * 3 / 4);
+        }
+    }
+    if( 2 == alloc_mode || 3 == alloc_mode)
+    {
+       //> 1M rolling to 2M
+       unit_size = 2 * 1024 * 1024;
+       add_bucket(bufmgr_gem, unit_size);
+       add_bucket(bufmgr_gem, 3 * 1024 * 1024);
+
+       for (size = 4 * 1024 * 1024; size <= cache_max_size; size += unit_size)
+       {
+           add_bucket(bufmgr_gem, size);
+       }
     }
 }
 
@@ -5100,6 +5146,7 @@ mos_bufmgr_gem_init_i915(int fd, int batch_size)
     struct drm_i915_gem_get_aperture aperture;
     drm_i915_getparam_t gp;
     int ret, tmp;
+    uint8_t alloc_mode;
     bool exec2 = false;
 
     pthread_mutex_lock(&bufmgr_list_mutex);
@@ -5352,10 +5399,12 @@ mos_bufmgr_gem_init_i915(int fd, int batch_size)
      *
      * Every 4 was too few for the blender benchmark.
      */
+    alloc_mode = (uint8_t)(batch_size & 0xff);
+    batch_size &= 0xffffff00;
     bufmgr_gem->max_relocs = batch_size / sizeof(uint32_t) / 2 - 2;
 
     DRMINITLISTHEAD(&bufmgr_gem->named);
-    init_cache_buckets(bufmgr_gem);
+    init_cache_buckets(bufmgr_gem,alloc_mode);
 
     DRMLISTADD(&bufmgr_gem->managers, &bufmgr_list);
 
