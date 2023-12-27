@@ -399,6 +399,7 @@ MOS_STATUS VpPipeline::ExecuteVpPipeline()
     }
 
     MT_LOG2(MT_VP_FEATURE_GRAPH_EXECUTE_VPPIPELINE_START, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_SWFILTERPIPE_COUNT, (int64_t)swFilterPipes.size(), MT_VP_FEATURE_GRAPH_FILTER_FRAMEID,m_vpPipeContexts[0]->GetFrameCounter());
+    VP_PUBLIC_NORMALMESSAGE("Feature Graph: Execute VP Pipeline Start, swfilter count:%d, frameid:%d", (int64_t)swFilterPipes.size(), m_vpPipeContexts[0]->GetFrameCounter());
 
     if (PIPELINE_PARAM_TYPE_LEGACY == m_pvpParams.type)
     {
@@ -431,6 +432,7 @@ MOS_STATUS VpPipeline::ExecuteVpPipeline()
         {
             MT_LOG3(MT_VP_FEATURE_GRAPH_EXECUTE_VPPIPELINE_END, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_SWFILTERPIPE_COUNT, (int64_t)swFilterPipes.size(),
                     MT_VP_FEATURE_GRAPH_FILTER_FRAMEID, m_vpPipeContexts[0]->GetFrameCounter(), MT_VP_FEATURE_GRAPH_FILTER_PIPELINEBYPASS, isBypassNeeded);
+            VP_PUBLIC_NORMALMESSAGE("Feature Graph: Execute VP Pipeline End, swfilter count:%d, frameid:%d", (int64_t)swFilterPipes.size(), m_vpPipeContexts[0]->GetFrameCounter());
             return MOS_STATUS_SUCCESS;
         }
     }
@@ -444,6 +446,7 @@ MOS_STATUS VpPipeline::ExecuteVpPipeline()
     {
         MT_LOG3(MT_VP_FEATURE_GRAPH_EXECUTE_SINGLE_VPPIPELINE_START, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_SWFILTERPIPE_COUNT, (int64_t)swFilterPipes.size(),
                 MT_VP_FEATURE_GRAPH_FILTER_FRAMEID, m_vpPipeContexts[0]->GetFrameCounter(), MT_VP_FEATURE_GRAPH_FILTER_PIPEID, pipeIdx);
+        VP_PUBLIC_NORMALMESSAGE("Feature Graph: Execute VP Single Pipeline Start, swfilter count:%d, frameid:%d, pipeid:%d", (int64_t)swFilterPipes.size(), m_vpPipeContexts[0]->GetFrameCounter(), pipeIdx);
         auto &pipe = swFilterPipes[pipeIdx];
         if (pipe)
         {
@@ -460,11 +463,13 @@ MOS_STATUS VpPipeline::ExecuteVpPipeline()
 
         VP_PUBLIC_CHK_STATUS_RETURN(ExecuteSingleswFilterPipe(singlePipeCtx, pipe, pPacketPipe, featureManagerNext));
         MT_LOG3(MT_VP_FEATURE_GRAPH_EXECUTE_SINGLE_VPPIPELINE_END, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_SWFILTERPIPE_COUNT, (int64_t)swFilterPipes.size(),
-                MT_VP_FEATURE_GRAPH_FILTER_FRAMEID, m_vpPipeContexts[0]->GetFrameCounter(), MT_VP_FEATURE_GRAPH_FILTER_PIPEID, pipeIdx);
+                MT_VP_FEATURE_GRAPH_FILTER_FRAMEID, m_vpPipeContexts[0]->GetFrameCounter() - 1, MT_VP_FEATURE_GRAPH_FILTER_PIPEID, pipeIdx);
+        VP_PUBLIC_NORMALMESSAGE("Feature Graph: Execute VP Single Pipeline End, swfilter count:%d, frameid:%d, pipeid:%d", (int64_t)swFilterPipes.size(), m_vpPipeContexts[0]->GetFrameCounter() - 1, pipeIdx);
     }
 
     MT_LOG3(MT_VP_FEATURE_GRAPH_EXECUTE_VPPIPELINE_END, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_SWFILTERPIPE_COUNT, (int64_t)swFilterPipes.size(),
-            MT_VP_FEATURE_GRAPH_FILTER_FRAMEID, m_vpPipeContexts[0]->GetFrameCounter(), MT_VP_FEATURE_GRAPH_FILTER_PIPELINEBYPASS, isBypassNeeded);
+            MT_VP_FEATURE_GRAPH_FILTER_FRAMEID, m_vpPipeContexts[0]->GetFrameCounter() - 1, MT_VP_FEATURE_GRAPH_FILTER_PIPELINEBYPASS, isBypassNeeded);
+    VP_PUBLIC_NORMALMESSAGE("Feature Graph: Execute VP Pipeline End, swfilter count:%d, frameid:%d, isBypassNeeded:%d", (int64_t)swFilterPipes.size(), m_vpPipeContexts[0]->GetFrameCounter() - 1, isBypassNeeded);
     return eStatus;
 }
 

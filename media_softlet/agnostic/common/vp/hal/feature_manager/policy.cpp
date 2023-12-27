@@ -290,6 +290,7 @@ MOS_STATUS Policy::CreateHwFilter(SwFilterPipe &subSwFilterPipe, HwFilter *&pFil
     HW_FILTER_PARAMS param = {};
 
     MT_LOG(MT_VP_FEATURE_GRAPH_SETUPEXECUTESWFILTER_START, MT_NORMAL);
+    VP_PUBLIC_NORMALMESSAGE("Feature Graph: Setup ExecutePipe Start");
     MOS_STATUS status = GetHwFilterParam(subSwFilterPipe, param);
 
     if (MOS_FAILED(status))
@@ -310,6 +311,7 @@ MOS_STATUS Policy::CreateHwFilter(SwFilterPipe &subSwFilterPipe, HwFilter *&pFil
         return MOS_STATUS_UNIMPLEMENTED;
     }
     MT_LOG(MT_VP_FEATURE_GRAPH_SETUPEXECUTESWFILTER_END, MT_NORMAL);
+    VP_PUBLIC_NORMALMESSAGE("Feature Graph: Setup ExecutePipe End");
     return MOS_STATUS_SUCCESS;
 }
 
