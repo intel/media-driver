@@ -175,7 +175,7 @@ MOS_STATUS PreEncBasicFeature::Update(void *params)
 
     ENCODE_CHK_STATUS_RETURN(PreparePreEncConfig(params));
 
-    EncodeBasicFeature::Update(params);
+    ENCODE_CHK_STATUS_RETURN(EncodeBasicFeature::Update(params));
 
     ENCODE_CHK_STATUS_RETURN(SetPictureStructs());
     ENCODE_CHK_STATUS_RETURN(SetSliceStructs());
