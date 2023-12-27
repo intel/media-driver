@@ -1030,23 +1030,6 @@ MOS_STATUS CommonSurfaceDumper::DumpSurfaceToFile(
         }
 
         isSurfaceLocked = true;
-
-        // Write error to user feauture key
-        eStatus = ReportUserSettingForDebug(
-            m_userSettingPtr,
-            __COMMON_DBG_SURF_DUMPER_RESOURCE_LOCK,
-            1,
-            MediaUserSetting::Group::Device);
-
-        if (eStatus != MOS_STATUS_SUCCESS)
-        {
-            return(DumpSurfaceToFileEnd(
-                pOsInterface,
-                pDst,
-                isSurfaceLocked,
-                pLockedResource,
-                temp2DSurfForCopy));
-        }
     }
 
     MOS_SecureStringPrint(
