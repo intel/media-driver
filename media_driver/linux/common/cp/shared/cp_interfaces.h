@@ -201,6 +201,7 @@ public:
     //!
     virtual void Delete_DecodeCpInterface(DecodeCpInterface *pInterface) = 0;
 
+    MEDIA_CLASS_DEFINE_END(CpInterfaces)
 };
 
 typedef CpFactoryWithoutArgs<CpInterfaces> CpInterfacesFactory;

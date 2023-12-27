@@ -267,6 +267,7 @@ protected:
 private:
     static std::map<uint32_t, DdiMediaProtected*> _impl;
 
+    MEDIA_CLASS_DEFINE_END(DdiMediaProtected)
 };
 
 typedef CpFactoryWithoutArgs<DdiMediaProtected> DdiProtectedFactory;

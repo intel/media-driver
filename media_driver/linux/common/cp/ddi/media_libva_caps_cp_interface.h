@@ -73,6 +73,7 @@ protected:
         int32_t configIdxStart,
         int32_t configNum);
 
+    MEDIA_CLASS_DEFINE_END(MediaLibvaCapsCpInterface)
 };
 
 //!
