@@ -313,7 +313,7 @@ MOS_STATUS AvcPipelineM12::Prepare(void *params)
             inputParameters.pictureCodingType          = m_basicFeature->m_pictureCodingType;
             inputParameters.currOriginalPic            = m_basicFeature->m_curRenderPic;
             inputParameters.currDecodedPicRes          = m_basicFeature->m_destSurface.OsResource;
-            inputParameters.isSecondField              = m_basicFeature->m_isSecondField;
+            inputParameters.isSecondField              = m_basicFeature->m_secondField;
             inputParameters.numUsedVdbox               = m_numVdbox;
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
