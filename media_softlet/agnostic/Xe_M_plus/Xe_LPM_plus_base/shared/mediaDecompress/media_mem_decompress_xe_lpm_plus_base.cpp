@@ -521,7 +521,7 @@ MOS_STATUS MediaMemDeCompNext_Xe_Lpm_Plus_Base::ReAllocateLinearSurface(PMOS_SUR
 
     // Pre-set to get surface info
     pSurface->Format = format;
-    GetResourceInfo(pSurface);
+    VPHAL_MEMORY_DECOMP_CHK_STATUS_RETURN(GetResourceInfo(pSurface));
     *pbAllocated = true;
 
     return eStatus;

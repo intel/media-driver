@@ -106,12 +106,12 @@ MOS_STATUS VeboxCopyState::CopyMainSurface(PMOS_RESOURCE src, PMOS_RESOURCE dst)
     // Get input resource info
     MOS_ZeroMemory(&inputSurface, sizeof(MOS_SURFACE));
     inputSurface.OsResource = *src;
-    GetResourceInfo(&inputSurface);
+    VEBOX_COPY_CHK_STATUS_RETURN(GetResourceInfo(&inputSurface));
 
     // Get output resource info
     MOS_ZeroMemory(&outputSurface, sizeof(MOS_SURFACE));
     outputSurface.OsResource = *dst;
-    GetResourceInfo(&outputSurface);
+    VEBOX_COPY_CHK_STATUS_RETURN(GetResourceInfo(&outputSurface));
 
     if (!IsFormatSupported(&inputSurface))
     {

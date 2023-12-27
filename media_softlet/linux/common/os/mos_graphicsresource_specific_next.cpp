@@ -940,7 +940,12 @@ void* GraphicsResourceSpecificNext::LockExternalResource(
             resource->pGmmResInfo->IsMediaMemoryCompressed(0)))
         {            
             MosDecompression   *mosDecompression = nullptr;
-            MosInterface::GetMosDecompressionFromStreamState(streamState, mosDecompression);
+            MOS_STATUS status = MosInterface::GetMosDecompressionFromStreamState(streamState, mosDecompression);
+            if (status != MOS_STATUS_SUCCESS)
+            {
+                MOS_OS_ASSERTMESSAGE("Get Mos Decompression From StreamState failed, skip lock");
+                return nullptr;
+            }
             if (nullptr == mosDecompression)
             {
                 MOS_OS_ASSERTMESSAGE("mosDecompression is NULL.");
