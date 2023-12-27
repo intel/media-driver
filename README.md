@@ -92,10 +92,13 @@ Media driver contains three components as below
 - **Video encoding** supports two modes, one calls hardware-based encoder([VDEnc](https://01.org/sites/default/files/documentation/intel-gfx-prm-osrc-kbl-vol08-media_vdbox.pdf)/[Huc](https://01.org/linuxgraphics/downloads/firmware?langredirect=1)) to provide low power encoding, another one is hardware([PAK](https://01.org/sites/default/files/documentation/intel-gfx-prm-osrc-kbl-vol08-media_vdbox.pdf))+shader(media kernel+[VME](https://01.org/sites/default/files/documentation/intel-gfx-prm-osrc-kbl-vol04-configurations.pdf)) based encoding. User could choose the mode through VA-API.
 - **Video processing** supports several popular features by hardware-based video processor([VEBox/SFC](https://01.org/sites/default/files/documentation/intel-gfx-prm-osrc-kbl-vol09-media_vebox.pdf)) and shader(media kernel) based solution together.
 
-Media driver supports two build types as below
-- **Full Feature Build** is default driver build, which supports all feature by hardware accelerator and close source shaders(media kernel binaries). Ubuntu [intel-media-va-driver-non-free](https://packages.ubuntu.com/disco/intel-media-va-driver-non-free) package is generated from this build type.
-- **Free Kernel Build**, enables fully open source shaders(media kernels) and hardware features but the features would be limited. Ubuntu [intel-media-va-driver](https://packages.ubuntu.com/disco/intel-media-va-driver) package is generated from this build type.
+Media driver supports below two builds
+- **Full Feature Build** is ***default*** driver build, which supports all feature by hardware accelerator and close source shaders(media kernel binaries). Most of OSVs(like RHEL/SUSE/fedora) are using this build.
+- **Free Kernel Build**, enables fully open source shaders(media kernels) and hardware features but the features would be limited.
 
+About Ubuntu/Debian OSV, they provide [intel-media-va-driver-non-free](https://packages.ubuntu.com/disco/intel-media-va-driver-non-free) (Full feature build) and [intel-media-va-driver](https://packages.ubuntu.com/disco/intel-media-va-driver) (Free kernel build) two packages. ***Free*** here means open source kernel but not related to fee need to pay. You could refer to [build options](https://github.com/intel/media-driver?tab=readme-ov-file#build-options) for more detail.
+
+If you are looking forward to have a big table to share media component features on these two builds, below tables are good referene for your information.
 
 ### Decoding/Encoding Features
 
@@ -175,23 +178,17 @@ For more feature information, please refer to [Supported video processing csc/sc
 
 ## Build Options
 
-Media-driver supports few build types as described below. You could refer to
+Media-driver supports different build types as described below. You could refer to
 the following settings to enable them.
 - **Full Feature Build**: ENABLE_KERNELS=ON(Default) ENABLE_NONFREE_KERNELS=ON(Default)
 - **Free Kernel Build**: ENABLE_KERNELS=ON ENABLE_NONFREE_KERNELS=OFF
     - If trying to use pre-built open source kernel binaries, please add BUILD_KERNELS=OFF(Default).
     - If trying to rebuild open source kernel from source code, please add BUILD_KERNELS=ON.
 
-Media-driver requires special i915 kernel mode driver (KMD) version to support the following
-new platforms since upstream version of i915 KMD does not fully support them
-(pending patches upstream):
+Media-driver requires special i915 kernel mode driver (KMD) version to support the following platforms since upstream version of i915 KMD does not fully support them(pending patches upstream). To enable these platforms, it requires to specify `ENABLE_PRODUCTION_KMD=ON` (default: `OFF`) build configuration option.
 - DG1/SG1
-- Alchemist(DG2)/ATSM
+- ATSM
 
-By default, media-driver builds against upstream i915 KMD and will miss
-support for the platforms listed above. To enable new platforms which
-require special i915 KMD and specify `ENABLE_PRODUCTION_KMD=ON` (default: `OFF`)
-build configuration option.
 
 ## Known Issues and Limitations
 
