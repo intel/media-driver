@@ -132,7 +132,7 @@ namespace encode
         if (EncodeFullencMember5 > 0 && m_encodeMode == MediaEncodeMode::MANUAL_FULL_ENC)
         {
             allocParams.dwBytes  = EncodeFullencMember5 * sizeof(EncodePreencDef1);
-            allocParams.pBufName = "preencRef1";
+            allocParams.pBufName = "preencRef0";
             allocParams.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_NOCACHE;
             ENCODE_CHK_STATUS_RETURN(m_basicFeature->m_trackedBuf->RegisterParam(encode::BufferType::preencRef0, allocParams));
             allocParams.pBufName = "preencRef1";
@@ -278,32 +278,42 @@ namespace encode
         ENCODE_CHK_NULL_RETURN(av1Feature);
         if (av1Feature->m_pictureCodingType > I_TYPE)
         {
-            void* data0 = m_allocator->LockResourceForWrite(EncodeFullencMember0);
             if (pfile0 == nullptr)
             {
-                MosUtilities::MosSecureFileOpen(&pfile0, filePath0.c_str(), "rb");
+                ENCODE_CHK_STATUS_RETURN(MosUtilities::MosSecureFileOpen(&pfile0, filePath0.c_str(), "rb"));
             }
+            void *data0 = m_allocator->LockResourceForWrite(EncodeFullencMember0);
             if (pfile0 != nullptr)
             {
-                fread(data0, sizeof(EncodePreencDef1), EncodeFullencMember5, pfile0);
+                if (fread(data0, sizeof(EncodePreencDef1), EncodeFullencMember5, pfile0) != EncodeFullencMember5)
+                {
+                    ENCODE_ASSERTMESSAGE("Error of reading file 0");
+                    ENCODE_CHK_STATUS_RETURN(m_allocator->UnLock(EncodeFullencMember0));
+                    return MOS_STATUS_FILE_READ_FAILED;
+                }
             }
-            eStatus = m_allocator->UnLock(EncodeFullencMember0);
+            ENCODE_CHK_STATUS_RETURN(m_allocator->UnLock(EncodeFullencMember0));
         }
         if (av1Feature->m_pictureCodingType != I_TYPE && !av1Feature->m_ref.IsLowDelay())
-        {
-            void* data1 = m_allocator->LockResourceForWrite(EncodeFullencMember1);
+        {          
             if (pfile1 == nullptr)
             {
-                MosUtilities::MosSecureFileOpen(&pfile1, filePath0.c_str(), "rb");
+                ENCODE_CHK_STATUS_RETURN(MosUtilities::MosSecureFileOpen(&pfile1, filePath1.c_str(), "rb"));
             }
+            void *data1 = m_allocator->LockResourceForWrite(EncodeFullencMember1);
             if (pfile1 != nullptr)
             {
-                fread(data1, sizeof(EncodePreencDef1), EncodeFullencMember5, pfile1);
+                if (fread(data1, sizeof(EncodePreencDef1), EncodeFullencMember5, pfile1) != EncodeFullencMember5)
+                {
+                    ENCODE_ASSERTMESSAGE("Error of reading file 1");
+                    ENCODE_CHK_STATUS_RETURN(m_allocator->UnLock(EncodeFullencMember0));
+                    return MOS_STATUS_FILE_READ_FAILED;
+                }
             }
-            eStatus = m_allocator->UnLock(EncodeFullencMember1);
+            ENCODE_CHK_STATUS_RETURN(m_allocator->UnLock(EncodeFullencMember1));
         }
 
-        return eStatus;
+        return MOS_STATUS_SUCCESS;
     }
 #endif
 }  // namespace encode
