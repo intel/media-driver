@@ -743,6 +743,7 @@ protected:
     MOS_RESOURCE                   m_resBsdMpcRowStoreScratchBuffer;                     //!< Handle of BSD/MPC Row Store Scratch data surface
     MOS_RESOURCE                   m_resVc1BsdMvData[CODECHAL_DECODE_VC1_DMV_MAX];       //!< Handle of VC1 BSD MV Data
     PCODECHAL_VC1_VLD_SLICE_RECORD m_vldSliceRecord = nullptr;                           //!< [VLD mode] Slice record
+    uint32_t                       m_numVldSliceRecord = 0;
     PCODEC_REF_LIST                m_vc1RefList[CODECHAL_NUM_UNCOMPRESSED_SURFACE_VC1];  //!< VC1 Reference List
     MOS_RESOURCE                   m_resSyncObject;                                      //!< Handle of Sync Object
     MOS_RESOURCE                   m_resPrivateBistreamBuffer;                           //!< Handle of Private Bistream Buffer
@@ -901,19 +902,19 @@ private:
     void PackMotionVectorsChroma4MvP(uint16_t intraFlags, int16_t *lmv, int16_t *cmv);
 
     //!
-    //! \brief    Find Median for 3 MVs
+    //! \brief    Find Median for 3 Motion Vectors
     //! \param    [in] mv#
     //!           Motion Vectors
     //! \return   int16_t
-    //!           return median for 3 MVs
+    //!           return median for 3 Motion Vectors
     //!
     int16_t PackMotionVectorsMedian3(int16_t mv1, int16_t mv2, int16_t mv3);
     //!
-    //! \brief    Find Median for 4 MVs
+    //! \brief    Find Median for 4 Motion Vectors
     //! \param    [in] mv#
     //!           Motion Vectors
     //! \return   int16_t
-    //!           return median for 4 MVs
+    //!           return median for 4 Motion Vectors
     //!
     int16_t PackMotionVectorsMedian4(int16_t mv1, int16_t mv2, int16_t mv3, int16_t mv4);
 
