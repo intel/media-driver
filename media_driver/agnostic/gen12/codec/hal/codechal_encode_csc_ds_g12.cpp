@@ -858,13 +858,29 @@ MOS_STATUS CodechalEncodeCscDsG12::InitSfcState()
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS CodechalEncodeCscDsG12::SurfaceNeedsExtraCopy()
+{
+    m_needsExtraCopy = true;
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS CodechalEncodeCscDsG12::CheckRawSurfaceAlignment(MOS_SURFACE surface)
 {
+    if (m_cscEnableCopy && m_needsExtraCopy)
+    {
+        if (surface.Format == Format_A8R8G8B8) // not touch NV12 logic.
+        {
+            m_colorRawSurface = cscColorARGB;
+            m_cscRequireCopy = 1;
+        }
+    }
+
     if (m_cscEnableCopy && (surface.dwWidth % m_rawSurfAlignment || surface.dwHeight % m_rawSurfAlignment) &&
         m_colorRawSurface != cscColorNv12TileY)
     {
         m_cscRequireCopy = 1;
     }
+
     return MOS_STATUS_SUCCESS;
 }
 

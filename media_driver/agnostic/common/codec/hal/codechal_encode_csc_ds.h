@@ -496,6 +496,17 @@ public:
     //!
     MOS_STATUS RawSurfaceMediaCopy(MOS_FORMAT format);
 
+    //!
+    //! \brief    Surface Need Extra Copy
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS SurfaceNeedsExtraCopy()
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
 protected:
     //!
     //! \brief    CSC kernel supported color format

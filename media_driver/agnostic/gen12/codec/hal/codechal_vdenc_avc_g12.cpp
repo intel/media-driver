@@ -1569,6 +1569,25 @@ MOS_STATUS CodechalVdencAvcStateG12::InitMmcState()
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS CodechalVdencAvcStateG12::CheckResChangeAndCsc()
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    if (m_cscDsState && m_rawSurface.Format == Format_A8R8G8B8)
+    {
+        uint64_t alignedSize = MOS_MAX((uint64_t)m_picWidthInMb * CODECHAL_MACROBLOCK_WIDTH * 4, (uint64_t)m_rawSurface.dwPitch) *
+                               ((uint64_t)m_picHeightInMb * CODECHAL_MACROBLOCK_HEIGHT);
+
+        if (m_rawSurface.OsResource.iSize < alignedSize)
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cscDsState->SurfaceNeedsExtraCopy());
+        }
+    }
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncoderState::CheckResChangeAndCsc());
+    return MOS_STATUS_SUCCESS;
+}
+
 void CodechalVdencAvcStateG12::SetMfxAvcImgStateParams(MHW_VDBOX_AVC_IMG_PARAMS& param)
 {
     CodechalVdencAvcState::SetMfxAvcImgStateParams(param);

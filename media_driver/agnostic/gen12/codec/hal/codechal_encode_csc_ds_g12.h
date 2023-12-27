@@ -197,6 +197,7 @@ protected:
     virtual MOS_STATUS SetKernelParamsCsc(KernelParams* params) override;
     virtual MOS_STATUS InitKernelStateCsc() override;
     virtual MOS_STATUS CheckRawColorFormat(MOS_FORMAT format, MOS_TILE_TYPE tileType) override;
+    virtual MOS_STATUS SurfaceNeedsExtraCopy() override;
 
 private:
     //!
@@ -367,6 +368,8 @@ private:
     virtual MOS_STATUS SendSurfaceCsc(PMOS_COMMAND_BUFFER cmdBuffer) override;
     virtual MOS_STATUS InitSfcState() override;
     virtual MOS_STATUS CheckRawSurfaceAlignment(MOS_SURFACE surface) override;
+
+    bool m_needsExtraCopy = false;
 };
 
 #endif  // __CodechalEncodeCscDsG12__
