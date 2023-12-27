@@ -37,7 +37,11 @@ CodechalDecodeHistogramVebox::CodechalDecodeHistogramVebox(
     MOS_ZeroMemory(&m_resStatisticsOutput, sizeof(m_resStatisticsOutput));
     MOS_ZeroMemory(&m_outputSurface, sizeof(m_outputSurface));
     // allocate heap
-    m_veboxInterface->CreateHeap();
+    MOS_STATUS status = m_veboxInterface->CreateHeap();
+    if (status != MOS_STATUS_SUCCESS)
+    {
+        CODECHAL_DECODE_ASSERTMESSAGE("Failed to CreateHeap.");
+    }
 
     // create Vebox context
     MOS_GPUCTX_CREATOPTIONS  createOpts;

@@ -623,7 +623,7 @@ MOS_STATUS MediaVeboxDecompState::Initialize(
 
         if (m_veboxInterface->m_veboxHeap == nullptr)
         {
-            m_veboxInterface->CreateHeap();
+            VPHAL_MEMORY_DECOMP_CHK_STATUS_RETURN(m_veboxInterface->CreateHeap());
         }
 
 #if (_DEBUG || _RELEASE_INTERNAL)

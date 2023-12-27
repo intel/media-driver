@@ -75,7 +75,7 @@ MOS_STATUS VeboxCopyState::Initialize()
     {
         if (m_veboxInterface->m_veboxHeap == nullptr)
         {
-            m_veboxInterface->CreateHeap();
+            VEBOX_COPY_CHK_STATUS_RETURN(m_veboxInterface->CreateHeap());
         }
     }
     return MOS_STATUS_SUCCESS;
