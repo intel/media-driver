@@ -98,10 +98,8 @@ MOS_STATUS MediaCopyBaseState::Initialize(PMOS_INTERFACE osInterface)
        m_surfaceDumper = MOS_New(CommonSurfaceDumper, osInterface);
        MOS_OS_CHK_NULL_RETURN(m_surfaceDumper);
     }
-    m_surfaceDumper->GetSurfaceDumpLocation(m_dumpLocation_in, mcpy_in);
-    m_surfaceDumper->GetSurfaceDumpLocation(m_dumpLocation_out, mcpy_out);
-
     MediaUserSettingSharedPtr           userSettingPtr = nullptr;
+
     if (m_osInterface)
     {
         userSettingPtr = m_osInterface->pfnGetUserSettingInstance(m_osInterface);
@@ -112,7 +110,7 @@ MOS_STATUS MediaCopyBaseState::Initialize(PMOS_INTERFACE osInterface)
             MediaUserSetting::Group::Device);
     }
 
-    #endif
+   #endif
     return MOS_STATUS_SUCCESS;
 }
 
@@ -415,6 +413,12 @@ MOS_STATUS MediaCopyBaseState::TaskDispatch(MCPY_STATE_PARAMS mcpySrc, MCPY_STAT
     MOS_SURFACE sourceSurface = {};
     MOS_SURFACE targetSurface = {};
 
+    char  dumpLocation_in[MAX_PATH];
+    char  dumpLocation_out[MAX_PATH];
+
+    MOS_ZeroMemory(dumpLocation_in, MAX_PATH);
+    MOS_ZeroMemory(dumpLocation_out, MAX_PATH);
+
     targetSurface.Format = Format_Invalid;
     targetSurface.OsResource = *mcpyDst.OsRes;
 
@@ -432,13 +436,15 @@ MOS_STATUS MediaCopyBaseState::TaskDispatch(MCPY_STATE_PARAMS mcpySrc, MCPY_STAT
     // Otherwise, the surface may not be dumped
     if (m_surfaceDumper)
     {
-        if ((*m_dumpLocation_in == '\0') || (*m_dumpLocation_in == ' '))
+        m_surfaceDumper->GetSurfaceDumpLocation(dumpLocation_in, mcpy_in);
+
+        if ((*dumpLocation_in == '\0') || (*dumpLocation_in == ' '))
         {
             MCPY_NORMALMESSAGE("Invalid dump location set, the surface will not be dumped");
         }
         else
         {
-            m_surfaceDumper->DumpSurfaceToFile(m_osInterface, &sourceSurface, m_dumpLocation_in, m_surfaceDumper->m_frameNum, true, false, nullptr);
+            m_surfaceDumper->DumpSurfaceToFile(m_osInterface, &sourceSurface, dumpLocation_in, m_surfaceDumper->m_frameNum, true, false, nullptr);
         }
     }
 #endif
@@ -493,13 +499,15 @@ MOS_STATUS MediaCopyBaseState::TaskDispatch(MCPY_STATE_PARAMS mcpySrc, MCPY_STAT
     // Otherwise, the surface may not be dumped
     if (m_surfaceDumper)
     {
-        if ((*m_dumpLocation_out == '\0') || (*m_dumpLocation_out == ' '))
+        m_surfaceDumper->GetSurfaceDumpLocation(dumpLocation_out, mcpy_out);
+
+        if ((*dumpLocation_out == '\0') || (*dumpLocation_out == ' '))
         {
             MCPY_NORMALMESSAGE("Invalid dump location set, the surface will not be dumped");
         }
         else
         {
-            m_surfaceDumper->DumpSurfaceToFile(m_osInterface, &targetSurface, m_dumpLocation_out, m_surfaceDumper->m_frameNum, true, false, nullptr);
+            m_surfaceDumper->DumpSurfaceToFile(m_osInterface, &targetSurface, dumpLocation_out, m_surfaceDumper->m_frameNum, true, false, nullptr);
         }
         m_surfaceDumper->m_frameNum++;
     }
