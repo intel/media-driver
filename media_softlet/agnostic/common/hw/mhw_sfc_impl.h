@@ -329,8 +329,9 @@ public:
 
         // Skip calculation if no changes to AVS parameters
         if (srcFormat == pAvsParams->Format &&
-            fScaleX == pAvsParams->fScaleX &&
-            fScaleY == pAvsParams->fScaleY)
+            fScaleX == pAvsParams->fScaleX  &&
+            fScaleY == pAvsParams->fScaleY  &&
+            bUse8x8Filter == pAvsParams->bUse8x8Filter)
         {
             MHW_NORMALMESSAGE("Skip calculation since no changes to AVS parameters. srcFormat %d, fScaleX %f, fScaleY %f",
                 srcFormat, fScaleX, fScaleY);
