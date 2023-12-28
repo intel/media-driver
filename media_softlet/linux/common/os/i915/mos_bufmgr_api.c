@@ -1204,6 +1204,25 @@ mos_bufmgr_get_devid(struct mos_bufmgr *bufmgr)
     }
 }
 
+void
+mos_bufmgr_realloc_cache(struct mos_bufmgr *bufmgr, uint8_t alloc_mode)
+{
+    if(!bufmgr)
+    {
+        MOS_OS_CRITICALMESSAGE("Input null ptr\n");
+        return;
+    }
+
+    if (bufmgr->realloc_cache)
+    {
+        return bufmgr->realloc_cache(bufmgr, alloc_mode);
+    }
+    else
+    {
+        MOS_OS_CRITICALMESSAGE("Unsupported\n");
+    }
+}
+
 int
 mos_query_engines_count(struct mos_bufmgr *bufmgr,
                       unsigned int *nengine)
