@@ -2429,19 +2429,9 @@ mos_gem_bo_start_gtt_access(struct mos_linux_bo *bo, int write_enable)
 }
 
 static void
-mos_bufmgr_gem_destroy(struct mos_bufmgr *bufmgr)
+mos_bufmgr_cleanup_cache(struct mos_bufmgr_gem *bufmgr_gem)
 {
-    struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *) bufmgr;
-    struct drm_gem_close close_bo;
-    int i, ret;
-
-    free(bufmgr_gem->exec2_objects);
-    free(bufmgr_gem->exec_objects);
-    free(bufmgr_gem->exec_bos);
-    pthread_mutex_destroy(&bufmgr_gem->lock);
-
-    /* Free any cached buffer objects we were going to reuse */
-    for (i = 0; i < bufmgr_gem->num_buckets; i++) {
+    for (int i = 0; i < bufmgr_gem->num_buckets; i++) {
         struct mos_gem_bo_bucket *bucket =
             &bufmgr_gem->cache_bucket[i];
         struct mos_bo_gem *bo_gem;
@@ -2453,7 +2443,25 @@ mos_bufmgr_gem_destroy(struct mos_bufmgr *bufmgr)
 
             mos_gem_bo_free(&bo_gem->bo);
         }
+        bufmgr_gem->cache_bucket[i].size = 0;
     }
+    bufmgr_gem->num_buckets = 0;
+}
+
+static void
+mos_bufmgr_gem_destroy(struct mos_bufmgr *bufmgr)
+{
+    struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *)bufmgr;
+    struct drm_gem_close close_bo;
+    int ret;
+
+    free(bufmgr_gem->exec2_objects);
+    free(bufmgr_gem->exec_objects);
+    free(bufmgr_gem->exec_bos);
+    pthread_mutex_destroy(&bufmgr_gem->lock);
+
+    /* Free any cached buffer objects we were going to reuse */
+    mos_bufmgr_cleanup_cache(bufmgr_gem);
 
     /* Release userptr bo kept hanging around for optimisation. */
     if (bufmgr_gem->userptr_active.ptr) {
@@ -3855,9 +3863,41 @@ add_bucket(struct mos_bufmgr_gem *bufmgr_gem, int size)
 }
 
 static void
-init_cache_buckets(struct mos_bufmgr_gem *bufmgr_gem, uint8_t alloc_mode)
+init_cache_buckets(struct mos_bufmgr_gem *bufmgr_gem)
+{
+    unsigned long size, cache_max_size = 64 * 1024 * 1024;
+
+    /* OK, so power of two buckets was too wasteful of memory.
+     * Give 3 other sizes between each power of two, to hopefully
+     * cover things accurately enough.  (The alternative is
+     * probably to just go for exact matching of sizes, and assume
+     * that for things like composited window resize the tiled
+     * width/height alignment and rounding of sizes to pages will
+     * get us useful cache hit rates anyway)
+     */
+    add_bucket(bufmgr_gem, 4096);
+    add_bucket(bufmgr_gem, 4096 * 2);
+    add_bucket(bufmgr_gem, 4096 * 3);
+
+    /* Initialize the linked lists for BO reuse cache. */
+    for (size = 4 * 4096; size <= cache_max_size; size *= 2) {
+        add_bucket(bufmgr_gem, size);
+
+        add_bucket(bufmgr_gem, size + size * 1 / 4);
+        add_bucket(bufmgr_gem, size + size * 2 / 4);
+        add_bucket(bufmgr_gem, size + size * 3 / 4);
+    }
+}
+
+static void
+mos_gem_realloc_cache(struct mos_bufmgr *bufmgr, uint8_t alloc_mode)
 {
     unsigned long size, cache_max_size = 64 * 1024 * 1024, unit_size;
+    struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *)bufmgr;
+
+    // Clean up the pre-allocated cache before re-allocating according
+    // to alloc_mode
+    mos_bufmgr_cleanup_cache(bufmgr_gem);
 
     /* OK, so power of two buckets was too wasteful of memory.
      * Give 3 other sizes between each power of two, to hopefully
@@ -5221,6 +5261,7 @@ mos_bufmgr_gem_init_i915(int fd, int batch_size)
     bufmgr_gem->bufmgr.disable_object_capture = mos_gem_disable_object_capture;
     bufmgr_gem->bufmgr.get_memory_info = mos_gem_get_memory_info;
     bufmgr_gem->bufmgr.get_devid = mos_gem_get_devid;
+    bufmgr_gem->bufmgr.realloc_cache = mos_gem_realloc_cache;
     bufmgr_gem->bufmgr.set_context_param = mos_gem_set_context_param;
     bufmgr_gem->bufmgr.set_context_param_parallel = mos_gem_set_context_param_parallel;
     bufmgr_gem->bufmgr.set_context_param_load_balance = mos_gem_set_context_param_load_balance;
@@ -5407,7 +5448,7 @@ mos_bufmgr_gem_init_i915(int fd, int batch_size)
     bufmgr_gem->max_relocs = batch_size / sizeof(uint32_t) / 2 - 2;
 
     DRMINITLISTHEAD(&bufmgr_gem->named);
-    init_cache_buckets(bufmgr_gem,alloc_mode);
+    init_cache_buckets(bufmgr_gem);
 
     DRMLISTADD(&bufmgr_gem->managers, &bufmgr_list);
 

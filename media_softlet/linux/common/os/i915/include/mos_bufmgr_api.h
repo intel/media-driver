@@ -299,6 +299,7 @@ void mos_bufmgr_enable_vmbind(struct mos_bufmgr *bufmgr);
 void mos_bufmgr_disable_object_capture(struct mos_bufmgr *bufmgr);
 int mos_bufmgr_get_memory_info(struct mos_bufmgr *bufmgr, char *info, uint32_t length);
 int mos_bufmgr_get_devid(struct mos_bufmgr *bufmgr);
+void mos_bufmgr_realloc_cache(struct mos_bufmgr *bufmgr, uint8_t alloc_mode);
 
 int mos_bo_map_unsynchronized(struct mos_linux_bo *bo);
 int mos_bo_map_gtt(struct mos_linux_bo *bo);
