@@ -1509,15 +1509,14 @@ namespace encode{
         storeDataParams       = {};
 
         ENCODE_CHK_STATUS_RETURN(PrepareHWMetaDataFromDriver(cmdBuffer, resourceOffset, AV1ResourceOffset));
-        ENCODE_CHK_STATUS_RETURN(PrepareHWMetaDataFromStreamout(cmdBuffer, resourceOffset));
+        ENCODE_CHK_STATUS_RETURN(PrepareHWMetaDataFromStreamout(cmdBuffer, resourceOffset, AV1ResourceOffset));
         ENCODE_CHK_STATUS_RETURN(PrepareHWMetaDataFromRegister(cmdBuffer, resourceOffset));
 
         return MOS_STATUS_SUCCESS;
     }
-    MOS_STATUS Av1VdencPkt::PrepareHWMetaDataFromStreamout(MOS_COMMAND_BUFFER *cmdBuffer, const MetaDataOffset resourceOffset)
+    MOS_STATUS Av1VdencPkt::PrepareHWMetaDataFromStreamout(MOS_COMMAND_BUFFER *cmdBuffer, const MetaDataOffset resourceOffset, const AV1MetaDataOffset AV1ResourceOffset)
     {
         ENCODE_FUNC_CALL();
-
         uint32_t tileNum     = 0;
         auto     tileFeature = dynamic_cast<Av1EncodeTile *>(m_featureManager->GetFeature(Av1FeatureIDs::encodeTile));
         ENCODE_CHK_NULL_RETURN(tileFeature);
@@ -1556,6 +1555,40 @@ namespace encode{
 
             //count for fame bytescount
             ENCODE_CHK_STATUS_RETURN(CalAtomic(m_basicFeature->m_resMetadataBuffer, resourceOffset.dwEncodedBitstreamWrittenBytesCount, tileRecordBuffer, tileIdx * sizeof(PakHwTileSizeRecord) + 2 * sizeof(uint32_t), mhw::mi::MHW_MI_ATOMIC_ADD, cmdBuffer));
+        }
+        if (m_basicFeature->m_av1SeqParams->RateControlMethod != RATECONTROL_CQP)
+        {
+            auto brcFeature = dynamic_cast<Av1Brc *>(m_featureManager->GetFeature(Av1FeatureIDs::av1BrcFeature));
+            ENCODE_CHK_NULL_RETURN(brcFeature);
+            auto vdenc2ndLevelBatchBuffer = brcFeature->GetVdenc2ndLevelBatchBuffer(m_pipeline->m_currRecycledBufIdx);
+            auto slbbData                 = brcFeature->GetSLBData();
+            
+            //qp
+            uint32_t qpOffset     = resourceOffset.dwMetaDataSize + tileNum * resourceOffset.dwMetaDataSubRegionSize + resourceOffset.dwTilePartitionSize + AV1ResourceOffset.dwQuantization + AV1ResourceOffset.dwBaseQIndex;
+            uint32_t QPOffsetSLBB = slbbData.secondAvpPicStateOffset + 4 * sizeof(uint32_t);//dword 4
+            ENCODE_CHK_STATUS_RETURN(readBRCMetaDataFromSLBB(cmdBuffer, m_basicFeature->m_resMetadataBuffer, qpOffset, &vdenc2ndLevelBatchBuffer->OsResource, QPOffsetSLBB, 0xFF0000));
+            
+            //loop filter
+            uint32_t loopFilterOffset     = resourceOffset.dwMetaDataSize + tileNum * resourceOffset.dwMetaDataSubRegionSize + resourceOffset.dwTilePartitionSize + AV1ResourceOffset.dwLoopFilter;
+            uint32_t loopFilterOffsetSLBB = slbbData.avpInloopFilterStateOffset + sizeof(uint32_t);  //dword 1 
+            ENCODE_CHK_STATUS_RETURN(readBRCMetaDataFromSLBB(cmdBuffer, m_basicFeature->m_resMetadataBuffer, loopFilterOffset + AV1ResourceOffset.dwLoopFilterLevel, &vdenc2ndLevelBatchBuffer->OsResource, loopFilterOffsetSLBB, 0x3F));
+            ENCODE_CHK_STATUS_RETURN(readBRCMetaDataFromSLBB(cmdBuffer, m_basicFeature->m_resMetadataBuffer, loopFilterOffset + AV1ResourceOffset.dwLoopFilterLevel + sizeof(uint64_t), &vdenc2ndLevelBatchBuffer->OsResource, loopFilterOffsetSLBB, 0xFC0));
+            ENCODE_CHK_STATUS_RETURN(readBRCMetaDataFromSLBB(cmdBuffer, m_basicFeature->m_resMetadataBuffer, loopFilterOffset + AV1ResourceOffset.dwLoopFilterLevelU, &vdenc2ndLevelBatchBuffer->OsResource, loopFilterOffsetSLBB, 0x3F000));
+            ENCODE_CHK_STATUS_RETURN(readBRCMetaDataFromSLBB(cmdBuffer, m_basicFeature->m_resMetadataBuffer, loopFilterOffset + AV1ResourceOffset.dwLoopFilterLevelV, &vdenc2ndLevelBatchBuffer->OsResource, loopFilterOffsetSLBB, 0xFC0000));
+            ENCODE_CHK_STATUS_RETURN(readBRCMetaDataFromSLBB(cmdBuffer, m_basicFeature->m_resMetadataBuffer, loopFilterOffset + AV1ResourceOffset.dwLoopFilterSharpnessLevel, &vdenc2ndLevelBatchBuffer->OsResource, loopFilterOffsetSLBB, 0x7000000));
+
+            //cdef
+            uint32_t CDEFOffset     = resourceOffset.dwMetaDataSize + tileNum * resourceOffset.dwMetaDataSubRegionSize + resourceOffset.dwTilePartitionSize + AV1ResourceOffset.dwCDEF;
+            uint32_t CDEFOffsetSLBB = slbbData.avpInloopFilterStateOffset + 5 * sizeof(uint32_t);  //dword 5 
+            ENCODE_CHK_STATUS_RETURN(readBRCMetaDataFromSLBB(cmdBuffer, m_basicFeature->m_resMetadataBuffer, CDEFOffset + AV1ResourceOffset.dwCdefBits, &vdenc2ndLevelBatchBuffer->OsResource, CDEFOffsetSLBB, 0x30000000));
+            ENCODE_CHK_STATUS_RETURN(readBRCMetaDataFromSLBB(cmdBuffer, m_basicFeature->m_resMetadataBuffer, CDEFOffset + AV1ResourceOffset.dwCdefDampingMinus3, &vdenc2ndLevelBatchBuffer->OsResource, CDEFOffsetSLBB, 0xC0000000));
+            for (uint32_t i = 0; i < 8; i++)
+            {
+                ENCODE_CHK_STATUS_RETURN(readBRCMetaDataFromSLBB(cmdBuffer, m_basicFeature->m_resMetadataBuffer, CDEFOffset + AV1ResourceOffset.dwCdefYPriStrength + i * sizeof(uint64_t), &vdenc2ndLevelBatchBuffer->OsResource, CDEFOffsetSLBB + (i / 4) * sizeof(uint32_t), 0x3c << (i % 4 * 6)));
+                ENCODE_CHK_STATUS_RETURN(readBRCMetaDataFromSLBB(cmdBuffer, m_basicFeature->m_resMetadataBuffer, CDEFOffset + AV1ResourceOffset.dwCdefYSecStrength + i * sizeof(uint64_t), &vdenc2ndLevelBatchBuffer->OsResource, CDEFOffsetSLBB + (i / 4) * sizeof(uint32_t), 0x03 << (i % 4 * 6)));
+                ENCODE_CHK_STATUS_RETURN(readBRCMetaDataFromSLBB(cmdBuffer, m_basicFeature->m_resMetadataBuffer, CDEFOffset + AV1ResourceOffset.dwCdefUVPriStrength + i * sizeof(uint64_t), &vdenc2ndLevelBatchBuffer->OsResource, CDEFOffsetSLBB + (2 + i / 4) * sizeof(uint32_t), 0x3c << (i % 4 * 6))); 
+                ENCODE_CHK_STATUS_RETURN(readBRCMetaDataFromSLBB(cmdBuffer, m_basicFeature->m_resMetadataBuffer, CDEFOffset + AV1ResourceOffset.dwCdefUVSecStrength + i * sizeof(uint64_t), &vdenc2ndLevelBatchBuffer->OsResource, CDEFOffsetSLBB + (2 + i / 4) * sizeof(uint32_t), 0x03 << (i % 4 * 6)));
+            }
         }
 
         return MOS_STATUS_SUCCESS;
@@ -1704,6 +1737,106 @@ namespace encode{
             miCpyMemMemParams.dwDstOffset = resourceOffset.dwMetaDataSize + tileNum * resourceOffset.dwMetaDataSubRegionSize + i;
             ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_COPY_MEM_MEM)(cmdBuffer));
         }
+
+        return MOS_STATUS_SUCCESS;
+    }
+    MOS_STATUS Av1VdencPkt::readBRCMetaDataFromSLBB(MOS_COMMAND_BUFFER *cmdBuffer, PMOS_RESOURCE presDst, uint32_t dstOffset, PMOS_RESOURCE presSrc, uint32_t srcOffset, uint32_t significantBits)
+    {
+        auto &miCpyMemMemParams = m_miItf->MHW_GETPAR_F(MI_COPY_MEM_MEM)();
+        miCpyMemMemParams             = {};
+        
+        miCpyMemMemParams.presSrc     = presSrc;
+        miCpyMemMemParams.dwSrcOffset = srcOffset;
+        miCpyMemMemParams.presDst     = presDst;
+        miCpyMemMemParams.dwDstOffset = dstOffset;
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_COPY_MEM_MEM)(cmdBuffer));
+
+        auto &atomicParams             = m_miItf->MHW_GETPAR_F(MI_ATOMIC)();
+        atomicParams                   = {};
+        atomicParams.pOsResource       = presDst;
+        atomicParams.dwResourceOffset  = dstOffset;
+        atomicParams.dwDataSize        = sizeof(uint32_t);
+        atomicParams.Operation         = mhw::mi::MHW_MI_ATOMIC_AND;
+        atomicParams.bInlineData       = true;
+        atomicParams.dwOperand1Data[0] = significantBits;
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_ATOMIC)(cmdBuffer));
+
+        // load current tile size to VCS_GPR0_Lo
+        auto  mmioRegs                     = m_miItf->GetMmioRegisters();
+        auto &miLoadRegMemParams           = m_miItf->MHW_GETPAR_F(MI_LOAD_REGISTER_MEM)();
+        miLoadRegMemParams                 = {};
+        miLoadRegMemParams.presStoreBuffer = presDst;
+        miLoadRegMemParams.dwOffset        = dstOffset;
+        miLoadRegMemParams.dwRegister      = mmioRegs->generalPurposeRegister0LoOffset;
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_MEM)(cmdBuffer));
+
+
+        uint32_t SHRNum          = static_cast<uint32_t>(log2(significantBits & (significantBits - 1) ^ significantBits));
+        uint32_t miMathCmdNum    = 0;
+        uint32_t SHRbit[6]       = {};
+        auto getSHRbits = [](uint32_t SHRNum, uint32_t &miMathCmdNum, uint32_t *SHRbit) {
+            uint32_t x = SHRNum;
+            uint32_t y = SHRNum;
+            while (x > 0)
+            {
+                x &= (x - 1);
+                SHRbit[miMathCmdNum] = y ^ x;
+                y                    = x;
+                miMathCmdNum++;
+            }
+        };
+        getSHRbits(SHRNum, miMathCmdNum, SHRbit);
+
+        for (uint32_t i = 0; i < miMathCmdNum; i++)
+        {
+            mhw::mi::MHW_MI_ALU_PARAMS aluParams[4] = {};
+            uint32_t                   aluCount     = 0;
+            //load shr bits to register4
+            auto &miLoadRegImmParams      = m_miItf->MHW_GETPAR_F(MI_LOAD_REGISTER_IMM)();
+            miLoadRegImmParams            = {};
+            miLoadRegImmParams.dwData     = SHRbit[i];
+            miLoadRegImmParams.dwRegister = mmioRegs->generalPurposeRegister4LoOffset;
+            ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(cmdBuffer));
+
+            //load1 srca, reg1
+            aluParams[aluCount].AluOpcode = MHW_MI_ALU_LOAD;
+            aluParams[aluCount].Operand1  = MHW_MI_ALU_SRCA;
+            aluParams[aluCount].Operand2  = MHW_MI_ALU_GPREG0;
+            ++aluCount;
+
+            //load2 srcb, reg2
+            aluParams[aluCount].AluOpcode = MHW_MI_ALU_LOAD;
+            aluParams[aluCount].Operand1  = MHW_MI_ALU_SRCB;
+            aluParams[aluCount].Operand2  = MHW_MI_ALU_GPREG4;
+            ++aluCount;
+
+            aluParams[aluCount].AluOpcode = MHW_MI_ALU_SHR;
+            ++aluCount;
+
+            aluParams[aluCount].AluOpcode = MHW_MI_ALU_STORE;
+            aluParams[aluCount].Operand1  = MHW_MI_ALU_GPREG0;
+            aluParams[aluCount].Operand2  = MHW_MI_ALU_ACCU;
+            ++aluCount;
+
+            auto &miMathParams          = m_miItf->MHW_GETPAR_F(MI_MATH)();
+            miMathParams                = {};
+            miMathParams.dwNumAluParams = aluCount;
+            miMathParams.pAluPayload    = aluParams;
+            ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_MATH)(cmdBuffer));
+        }
+
+        //store VCS_GPR0_Lo metadata buffer
+        auto &miStoreRegMemParams           = m_miItf->MHW_GETPAR_F(MI_STORE_REGISTER_MEM)();
+        miStoreRegMemParams                 = {};
+        miStoreRegMemParams.presStoreBuffer = presDst;
+        miStoreRegMemParams.dwOffset        = dstOffset;
+        miStoreRegMemParams.dwRegister      = mmioRegs->generalPurposeRegister0LoOffset;
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_REGISTER_MEM)(cmdBuffer));
+
+        // Make Flush DW call to make sure all previous work is done
+        auto &flushDwParams = m_miItf->MHW_GETPAR_F(MI_FLUSH_DW)();
+        flushDwParams       = {};
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(cmdBuffer));
 
         return MOS_STATUS_SUCCESS;
     }
