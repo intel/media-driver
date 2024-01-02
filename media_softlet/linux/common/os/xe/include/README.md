@@ -13,15 +13,16 @@ $ make headers_install INSTALL_HDR_PATH=/path/to/install
 
 The last update was done at the following kernel commit:
 
-commit eb787b7ded88f3ea20bbbb5929931c3c11887341 (HEAD -> drm-xe-next, origin/drm-xe-next)
-drm/xe/uapi: Be more specific about the vm_bind prefetch region
+commit 0f1d88f2786458a8986920669bd8fb3fec6e618d (HEAD -> drm-xe-next, origin/drm-xe-next)
+drm/xe/uapi: Kill exec_queue_set_property
 
-Let's bring a bit of clarity on this 'region' field that is
-part of vm_bind operation struct. Rename and document to make
-it more than obvious that it is a region instance and not a
-mask and also that it should only be used with the prefetch
-operation itself.
+All the properties should be immutable and set upon exec_queue creation
+using the existent extension. So, let's kill this useless and dangerous
+uapi.
 
+Cc: Francois Dugast <francois.dugast@intel.com>
+Cc: José Roberto de Souza <jose.souza@intel.com>
+Cc: Matthew Brost <matthew.brost@intel.com>
 Signed-off-by: default avatarRodrigo Vivi <rodrigo.vivi@intel.com>
+Reviewed-by: default avatarJosé Roberto de Souza <jose.souza@intel.com>
 Signed-off-by: default avatarFrancois Dugast <francois.dugast@intel.com>
-Reviewed-by: default avatarMatt Roper <matthew.d.roper@intel.com>

@@ -204,12 +204,12 @@ struct mos_linux_bo {
 
 #define BO_ALLOC_FOR_RENDER (1<<0)
 
-#define PAT_INDEX_INVALID ((uint32_t)-1)
+#define PAT_INDEX_INVALID ((uint16_t)-1)
 struct mos_drm_bo_alloc_ext{
     unsigned long flags = 0;
     uint32_t tiling_mode = TILING_NONE;
     int mem_type = 0;
-    unsigned int pat_index = PAT_INDEX_INVALID;
+    uint16_t pat_index = PAT_INDEX_INVALID;
     bool     cpu_cacheable = true;
 };
 
