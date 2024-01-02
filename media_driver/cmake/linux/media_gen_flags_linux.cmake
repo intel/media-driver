@@ -18,16 +18,6 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-# TODO: Remove this option when all Gen options can successfully disable
-#       driver code.
-# Status:
-#   GEN8:  Done
-#   GEN9:  Done
-#   GEN11: Done
-#   GEN12: Done
-option(ENABLE_REQUIRED_GEN_CODE "Make per-Gen options disable only media-kernels (not driver code) if driver code is known to be required for a successful build"
-    ON)
-
 option(GEN8 "Enable Gen8 support" ON)
 cmake_dependent_option(GEN8_BDW
     "Enabled BDW support (Gen8)" ON
