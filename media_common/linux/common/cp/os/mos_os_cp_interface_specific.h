@@ -203,15 +203,6 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS ReadCtrNounceRegister(bool readCtr0, uint32_t *pCounter)
-    {
-        MOS_UNUSED(readCtr0);
-        MOS_UNUSED(pCounter);
-
-        OsStubMessage();
-        return MOS_STATUS_UNIMPLEMENTED;
-    }
-
     void *GetOcaDumper()
     {
         OsStubMessage();

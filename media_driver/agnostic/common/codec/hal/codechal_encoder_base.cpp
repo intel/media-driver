@@ -3973,31 +3973,14 @@ MOS_STATUS CodechalEncoderState::ReadCounterValue(uint16_t index, EncodeStatusRe
 
     if (m_hwInterface->GetCpInterface()->IsHwCounterIncrement(m_osInterface))
     {
-        if(MEDIA_IS_WA(m_waTable, WaReadCtrNounceRegister))
+        if (Mos_ResourceIsNull(&m_resHwCount))
         {
-            //Report counter from register
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(
-                m_osInterface->osCpInterface->ReadCtrNounceRegister(
-                    true,
-                    (uint32_t *)&m_regHwCount[index]));
-            address2Counter = (uint64_t *)&m_regHwCount[index];
-            CODECHAL_ENCODE_NORMALMESSAGE("MMIO returns end ctr is %llx", *address2Counter);
-            CODECHAL_ENCODE_NORMALMESSAGE("bitstream size = %d.", encodeStatusReport->bitstreamSize);
-
-            // Here gets the end counter of current bit stream, which should minus counter increment.
-            *address2Counter = *address2Counter - (((encodeStatusReport->bitstreamSize + 63) >> 6) << 2);
+            CODECHAL_ENCODE_ASSERTMESSAGE("m_resHwCount is not allocated");
+            return MOS_STATUS_NULL_POINTER;
         }
-        else
-        {
-            if (Mos_ResourceIsNull(&m_resHwCount))
-            {
-                CODECHAL_ENCODE_ASSERTMESSAGE("m_resHwCount is not allocated");
-                return MOS_STATUS_NULL_POINTER;
-            }
 
-            //Report HW counter by command output resource
-            address2Counter = (uint64_t *)(((char *)(m_dataHwCount)) + (index * sizeof(HwCounter)));
-        }
+        //Report HW counter by command output resource
+        address2Counter = (uint64_t *)(((char *)(m_dataHwCount)) + (index * sizeof(HwCounter)));
     }
     else
     {
