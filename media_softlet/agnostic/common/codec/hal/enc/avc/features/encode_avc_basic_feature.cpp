@@ -661,6 +661,11 @@ bool AvcBasicFeature::InputSurfaceNeedsExtraCopy(const MOS_SURFACE &input)
 
 MOS_STATUS AvcBasicFeature::UpdateTrackedBufferParameters()
 {
+    ENCODE_FUNC_CALL();
+    ENCODE_CHK_NULL_RETURN(m_trackedBuf);
+
+    ENCODE_CHK_STATUS_RETURN(m_trackedBuf->OnSizeChange());
+
     uint32_t fieldNumMBs = (uint32_t)m_picWidthInMb * ((m_picHeightInMb + 1) >> 1);
 
     m_mbCodeSize = MOS_ALIGN_CEIL(fieldNumMBs * 16 * 4, CODECHAL_PAGE_SIZE) + fieldNumMBs * 16 * 4;
