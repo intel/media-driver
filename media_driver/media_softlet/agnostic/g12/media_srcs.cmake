@@ -20,10 +20,10 @@
 
 media_include_subdirectory(g12_base)
 
-if(ENABLE_REQUIRED_GEN_CODE OR GEN12_TGLLP)
+if(GEN12_TGLLP)
     media_include_subdirectory(g12_0)
 endif()
 
-if(ENABLE_REQUIRED_GEN_CODE OR GEN12_DG1)
+if(GEN12_DG1)
     media_include_subdirectory(g12_1)
 endif()

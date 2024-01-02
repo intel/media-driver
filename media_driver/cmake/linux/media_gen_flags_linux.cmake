@@ -24,7 +24,7 @@
 #   GEN8:  Done
 #   GEN9:  Done
 #   GEN11: Done
-#   GEN12: TODO
+#   GEN12: Done
 option(ENABLE_REQUIRED_GEN_CODE "Make per-Gen options disable only media-kernels (not driver code) if driver code is known to be required for a successful build"
     ON)
 
