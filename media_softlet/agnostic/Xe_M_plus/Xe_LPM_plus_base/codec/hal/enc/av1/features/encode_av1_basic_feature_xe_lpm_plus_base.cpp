@@ -35,7 +35,7 @@ MOS_STATUS Av1BasicFeatureXe_Lpm_Plus_Base::Update(void *params)
 {
     ENCODE_FUNC_CALL();
     ENCODE_CHK_NULL_RETURN(params);
-    Av1BasicFeature::Update(params);
+    ENCODE_CHK_STATUS_RETURN(Av1BasicFeature::Update(params));
 
     Av1SuperRes *superResFeature = dynamic_cast<Av1SuperRes *>(m_featureManager->GetFeature(Av1FeatureIDs::av1SuperRes));
     ENCODE_CHK_NULL_RETURN(superResFeature);

@@ -35,7 +35,7 @@ MOS_STATUS Av1BasicFeatureXe_Hpm::Update(void *params)
     ENCODE_FUNC_CALL();
     ENCODE_CHK_NULL_RETURN(params);
 
-    Av1BasicFeature::Update(params);
+    ENCODE_CHK_STATUS_RETURN(Av1BasicFeature::Update(params));
 
     ENCODE_CHK_STATUS_RETURN(m_ref.SetPostCdefAsEncRef(true));
 
