@@ -80,6 +80,7 @@ using KERNEL_SAMPLER_STATES = std::vector<MHW_SAMPLER_STATE_PARAM>;
 using KERNEL_SAMPLER_INDEX = std::vector<SamplerIndex>;
 using KERNEL_SURFACE_CONFIG = std::map<SurfaceType, KERNEL_SURFACE_STATE_PARAM>;
 using KERNEL_SURFACE_BINDING_INDEX = std::map<SurfaceType, std::set<uint32_t>>;
+using KERNEL_ARG_INDEX_SURFACE_MAP = std::map<uint32_t, SurfaceType>;
 
 typedef struct _KERNEL_PARAMS
 {
