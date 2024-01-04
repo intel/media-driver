@@ -68,6 +68,12 @@ class CodechalSetting;
 #define CODECHAL_PUBLIC_CHK_NULL_NO_STATUS_RETURN(_ptr)                                 \
     MOS_CHK_NULL_NO_STATUS_RETURN(MOS_COMPONENT_CODEC, MOS_CODEC_SUBCOMP_PUBLIC, _ptr)
 
+#define CODECHAL_PUBLIC_CHK_STATUS_WITH_DESTROY_RETURN(_stmt, destroyFunction)                                                                                    \
+    {                                                                                                                                                             \
+        MOS_STATUS sts = (MOS_STATUS)(_stmt);                                                                                                                     \
+        MOS_CHK_COND_WITH_DESTROY_RETURN_VALUE(MOS_COMPONENT_CODEC, MOS_CODEC_SUBCOMP_ENCODE, (MOS_STATUS_SUCCESS != sts), destroyFunction, sts, "error status!") \
+    }
+
 typedef struct CODECHAL_SSEU_SETTING
 {
     uint8_t ui8NumSlices;

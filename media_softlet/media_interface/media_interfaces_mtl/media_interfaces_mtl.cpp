@@ -397,14 +397,12 @@ MOS_STATUS CodechalInterfacesXe_Lpm_Plus::Initialize(
     if (debugInterface == nullptr)
     {
         MOS_Delete(hwInterface);
-        mhwInterfaces->SetDestroyState(true);
         CODECHAL_PUBLIC_ASSERTMESSAGE("debugInterface is not valid!");
         return MOS_STATUS_NO_SPACE;
     }
     if (debugInterface->Initialize(hwInterface, CodecFunction) != MOS_STATUS_SUCCESS)
     {
         MOS_Delete(hwInterface);
-        mhwInterfaces->SetDestroyState(true);
         MOS_Delete(debugInterface);
         CODECHAL_PUBLIC_ASSERTMESSAGE("Debug interface creation failed!");
         return MOS_STATUS_INVALID_PARAMETER;
@@ -412,6 +410,14 @@ MOS_STATUS CodechalInterfacesXe_Lpm_Plus::Initialize(
 #else
     CodechalDebugInterface *debugInterface = nullptr;
 #endif  // USE_CODECHAL_DEBUG_TOOL
+
+    auto release_func = [&]() 
+    {
+        MOS_Delete(hwInterface);
+#if USE_CODECHAL_DEBUG_TOOL
+        MOS_Delete(debugInterface);
+#endif  // USE_CODECHAL_DEBUG_TOOL
+    };
 
     if (CodecHalIsDecode(CodecFunction))
     {
@@ -475,7 +481,7 @@ MOS_STATUS CodechalInterfacesXe_Lpm_Plus::Initialize(
 #endif
         {
             CODECHAL_PUBLIC_ASSERTMESSAGE("Decode mode requested invalid!");
-            return MOS_STATUS_INVALID_PARAMETER;
+            CODECHAL_PUBLIC_CHK_STATUS_WITH_DESTROY_RETURN(MOS_STATUS_INVALID_PARAMETER, release_func);
         }
 
         if (m_codechalDevice == nullptr)
@@ -486,7 +492,7 @@ MOS_STATUS CodechalInterfacesXe_Lpm_Plus::Initialize(
             MOS_Delete(debugInterface);
 #endif
             CODECHAL_PUBLIC_ASSERTMESSAGE("Decoder device creation failed!");
-            return MOS_STATUS_NO_SPACE;
+            CODECHAL_PUBLIC_CHK_STATUS_WITH_DESTROY_RETURN(MOS_STATUS_NO_SPACE, release_func);
         }
     }
     else if (CodecHalIsEncode(CodecFunction))
@@ -500,14 +506,14 @@ MOS_STATUS CodechalInterfacesXe_Lpm_Plus::Initialize(
                 if (m_codechalDevice == nullptr)
                 {
                     CODECHAL_PUBLIC_ASSERTMESSAGE("Encode state creation failed!");
-                    return MOS_STATUS_INVALID_PARAMETER;
+                    CODECHAL_PUBLIC_CHK_STATUS_WITH_DESTROY_RETURN(MOS_STATUS_INVALID_PARAMETER, release_func);
                 }
                 return MOS_STATUS_SUCCESS;
             }
             else
             {
                 CODECHAL_PUBLIC_ASSERTMESSAGE("Encode allocation failed, AVC VME Encoder is not supported, please use AVC LowPower Encoder instead!");
-                return MOS_STATUS_INVALID_PARAMETER;
+                CODECHAL_PUBLIC_CHK_STATUS_WITH_DESTROY_RETURN(MOS_STATUS_INVALID_PARAMETER, release_func);
             }
         }
         else
@@ -519,7 +525,7 @@ MOS_STATUS CodechalInterfacesXe_Lpm_Plus::Initialize(
             if (m_codechalDevice == nullptr)
             {
                 CODECHAL_PUBLIC_ASSERTMESSAGE("Encode state creation failed!");
-                return MOS_STATUS_INVALID_PARAMETER;
+                CODECHAL_PUBLIC_CHK_STATUS_WITH_DESTROY_RETURN(MOS_STATUS_INVALID_PARAMETER, release_func);
             }
             return MOS_STATUS_SUCCESS;
         }
@@ -528,7 +534,7 @@ MOS_STATUS CodechalInterfacesXe_Lpm_Plus::Initialize(
         if (info->Mode == CODECHAL_ENCODE_MODE_MPEG2)
         {
             CODECHAL_PUBLIC_ASSERTMESSAGE("Encode allocation failed, MPEG2 Encoder is not supported!");
-            return MOS_STATUS_INVALID_PARAMETER;
+            CODECHAL_PUBLIC_CHK_STATUS_WITH_DESTROY_RETURN(MOS_STATUS_INVALID_PARAMETER, release_func);
         }
         else
 #ifdef _JPEG_ENCODE_SUPPORTED
@@ -538,7 +544,7 @@ MOS_STATUS CodechalInterfacesXe_Lpm_Plus::Initialize(
             if (m_codechalDevice == nullptr)
             {
                 CODECHAL_PUBLIC_ASSERTMESSAGE("Encode state creation failed!");
-                return MOS_STATUS_INVALID_PARAMETER;
+                CODECHAL_PUBLIC_CHK_STATUS_WITH_DESTROY_RETURN(MOS_STATUS_INVALID_PARAMETER, release_func);
             }
             return MOS_STATUS_SUCCESS;
         }
@@ -550,12 +556,16 @@ MOS_STATUS CodechalInterfacesXe_Lpm_Plus::Initialize(
             if (CodecHalUsesVdencEngine(info->CodecFunction))
             {
                 m_codechalDevice = MOS_New(EncodeAv1VdencPipelineAdapterXe_Lpm_Plus, hwInterface, debugInterface);
-                CODECHAL_PUBLIC_CHK_NULL_RETURN(m_codechalDevice);
+                if (m_codechalDevice == nullptr)
+                {
+                    CODECHAL_PUBLIC_ASSERTMESSAGE("Encode state creation failed!");
+                    CODECHAL_PUBLIC_CHK_STATUS_WITH_DESTROY_RETURN(MOS_STATUS_INVALID_PARAMETER, release_func);
+                }
                 return MOS_STATUS_SUCCESS;
             }
             else
             {
-                return MOS_STATUS_INVALID_PARAMETER;
+                CODECHAL_PUBLIC_CHK_STATUS_WITH_DESTROY_RETURN(MOS_STATUS_INVALID_PARAMETER, release_func);
             }
         }
         else
@@ -569,27 +579,27 @@ MOS_STATUS CodechalInterfacesXe_Lpm_Plus::Initialize(
                 if (m_codechalDevice == nullptr)
                 {
                     CODECHAL_PUBLIC_ASSERTMESSAGE("Encode state creation failed!");
-                    return MOS_STATUS_INVALID_PARAMETER;
+                    CODECHAL_PUBLIC_CHK_STATUS_WITH_DESTROY_RETURN(MOS_STATUS_INVALID_PARAMETER, release_func);
                 }
                 return MOS_STATUS_SUCCESS;
             }
             else
             {
                 CODECHAL_PUBLIC_ASSERTMESSAGE("Encode allocation failed, HEVC VME Encoder is not supported.");
-                return MOS_STATUS_INVALID_PARAMETER;
+                CODECHAL_PUBLIC_CHK_STATUS_WITH_DESTROY_RETURN(MOS_STATUS_INVALID_PARAMETER, release_func);
             }
         }
         else
 #endif
         {
             CODECHAL_PUBLIC_ASSERTMESSAGE("Unsupported encode function requested.");
-            return MOS_STATUS_INVALID_PARAMETER;
+            CODECHAL_PUBLIC_CHK_STATUS_WITH_DESTROY_RETURN(MOS_STATUS_INVALID_PARAMETER, release_func);
         }
     }
     else
     {
         CODECHAL_PUBLIC_ASSERTMESSAGE("Unsupported codec function requested.");
-        return MOS_STATUS_INVALID_PARAMETER;
+        CODECHAL_PUBLIC_CHK_STATUS_WITH_DESTROY_RETURN(MOS_STATUS_INVALID_PARAMETER, release_func);
     }
 
     return MOS_STATUS_SUCCESS;

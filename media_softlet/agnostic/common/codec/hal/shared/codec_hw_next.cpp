@@ -63,6 +63,10 @@ CodechalHwInterfaceNext::CodechalHwInterfaceNext(
     m_cpInterface     = mhwInterfacesNext->m_cpInterface;
     m_veboxInterface  = mhwInterfacesNext->m_veboxInterface;
     m_sfcInterface    = mhwInterfacesNext->m_sfcInterface;
+    //Prevent double free
+    mhwInterfacesNext->m_cpInterface    = nullptr;
+    mhwInterfacesNext->m_veboxInterface = nullptr;
+    mhwInterfacesNext->m_sfcInterface   = nullptr;
 
     m_disableScalability = disableScalability;
     m_userSettingPtr     = osInterface->pfnGetUserSettingInstance(osInterface);
