@@ -2966,14 +2966,17 @@ do_exec2(struct mos_linux_bo *bo, int used, struct mos_linux_context *ctx,
     default:
         return -EINVAL;
     case I915_EXEC_BLT:
+        printf(">>>>>>>>i am do exec2 with lelacy ctx BLT\n");
         if (!bufmgr_gem->has_blt)
             return -EINVAL;
         break;
     case I915_EXEC_BSD:
+        printf(">>>>>>>>i am do exec2 with lelacy ctx BSD\n");
         if (!bufmgr_gem->has_bsd)
             return -EINVAL;
         break;
     case I915_EXEC_VEBOX:
+        printf(">>>>>>>>i am do exec2 with lelacy ctx VE\n");
         if (!bufmgr_gem->has_vebox)
             return -EINVAL;
         break;
@@ -3018,6 +3021,8 @@ do_exec2(struct mos_linux_bo *bo, int used, struct mos_linux_context *ctx,
     if (bufmgr_gem->no_exec)
         goto skip_execution;
 
+    usleep(100000); // delay 100ms before submission
+    printf(">>>>>>>>i am do exec2, ctx id: %d\n", ctx->ctx_id);
     ret = drmIoctl(bufmgr_gem->fd,
                DRM_IOCTL_I915_GEM_EXECBUFFER2_WR,
                &execbuf);
@@ -3233,6 +3238,8 @@ do_exec3(struct mos_linux_bo **bo, int _num_bo, struct mos_linux_context *ctx,
     if (bufmgr_gem->no_exec)
         goto skip_execution;
 
+    usleep(100000); // delay 100ms before submission
+   printf(">>>>>>>>i am do exec3, ctx id: %d\n", ctx->ctx_id);
    ret = drmIoctl(bufmgr_gem->fd,
                DRM_IOCTL_I915_GEM_EXECBUFFER2_WR,
                &execbuf);
@@ -4018,6 +4025,7 @@ mos_gem_context_create(struct mos_bufmgr *bufmgr)
 
     context->ctx_id = create.ctx_id;
     context->bufmgr = bufmgr;
+    printf(">>>>>>>>>i am lagecy ctx: %d\n", context->ctx_id);
 
     ret = mos_gem_ctx_set_user_ctx_params(context);
 
@@ -4344,6 +4352,7 @@ mos_gem_context_create_ext(struct mos_bufmgr *bufmgr, __u32 flags, bool bContext
 
     context->ctx_id = create.ctx_id;
     context->bufmgr = bufmgr;
+    printf(">>>>>>>>>i am lagecy ext ctx: %d\n", context->ctx_id);
 
     ret = mos_gem_ctx_set_user_ctx_params(context);
 
@@ -4759,6 +4768,8 @@ static int mos_gem_set_context_param_parallel(struct mos_linux_context *ctx,
                           size,
                           I915_CONTEXT_PARAM_ENGINES,
                           (uintptr_t)set_engines);
+
+    printf(">>>>>>>>>i am parallel ctx: %d, class:%d (0: render, 1: copy, 2: vd, 3:ve, 4: compute)\n", ctx->ctx_id, ci[0].engine_class);
 fini:
     if (set_engines)
         free(set_engines);
@@ -4808,6 +4819,7 @@ static int mos_gem_set_context_param_load_balance(struct mos_linux_context *ctx,
                           size,
                           I915_CONTEXT_PARAM_ENGINES,
                           (uintptr_t)set_engines);
+    printf(">>>>>>>>>i am load balance ctx: %d, class:%d (0: render, 1: copy, 2: vd, 3:ve, 4: compute)\n", ctx->ctx_id, ci[0].engine_class);
 fini:
     if (set_engines)
         free(set_engines);
@@ -4873,6 +4885,7 @@ static int mos_gem_set_context_param_bond(struct mos_linux_context *ctx,
                           size,
                           I915_CONTEXT_PARAM_ENGINES,
                           (uintptr_t)set_engines);
+    printf(">>>>>>>>>i am bond ext ctx: %d, class:%d (0: render, 1: copy, 2: vd, 3:ve, 4: compute)\n", ctx->ctx_id, master_ci.engine_class);
 fini:
     if (set_engines)
         free(set_engines);
