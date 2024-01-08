@@ -205,6 +205,7 @@ struct VP_POLICY_RULES
 
     bool isAvsSamplerSupported;
     bool isHDR3DLutKernelEnabled;
+    bool is1K1DLutSurfaceInUse;
 };
 
 struct VP_HW_CAPS

@@ -1820,7 +1820,7 @@ MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SU
 
     VP_PUBLIC_CHK_STATUS_RETURN(Allocate3DLut(caps));
 
-    if (caps.bDV || caps.bHDR3DLUT || caps.b3DLutCalc)
+    if (caps.b1K1DLutInUse)
     {
         dwSize = Get1DLutSize();
         VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.ReAllocateSurface(
@@ -2169,7 +2169,7 @@ MOS_STATUS VpResourceManager::AssignVeboxResource(VP_EXECUTE_CAPS& caps, VP_SURF
         surfGroup.insert(std::make_pair(SurfaceTypeHVSTable, m_veboxDnHVSTables));
     }
 
-    if (Vebox1DlutNeeded(caps) || VeboxHdr3DlutNeeded(caps))
+    if (caps.b1K1DLutInUse)
     {
         // Insert DV 1Dlut surface
         surfGroup.insert(std::make_pair(SurfaceType1k1dLut, m_vebox1DLookUpTables));

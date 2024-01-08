@@ -189,8 +189,9 @@ MOS_STATUS VpPlatformInterface::InitPolicyRules(VP_POLICY_RULES &rules)
         rules.sfcMultiPassSupport.scaling.enable = false;
     }
 
-    rules.isAvsSamplerSupported = false;
+    rules.isAvsSamplerSupported   = false;
     rules.isHDR3DLutKernelEnabled = true;
+    rules.is1K1DLutSurfaceInUse   = false;
 
     return MOS_STATUS_SUCCESS;
 }
