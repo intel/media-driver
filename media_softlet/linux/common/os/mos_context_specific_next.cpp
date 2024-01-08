@@ -146,7 +146,12 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
             {
                 mode = (value & 0x000000ff);
             }
-            mos_bufmgr_realloc_cache(m_bufmgr, mode);
+
+            // Realloc cache only if it's not mode 0
+            if (mode)
+            {
+                mos_bufmgr_realloc_cache(m_bufmgr, mode);
+            }
         }
 
         ReadUserSetting(
