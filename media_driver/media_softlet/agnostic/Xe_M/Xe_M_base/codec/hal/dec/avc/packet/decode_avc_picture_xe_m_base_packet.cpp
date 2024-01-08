@@ -434,6 +434,8 @@ namespace decode{
         avcDirectmodeParams.avcRefList              = (void**)refFrames.m_refList;
         avcDirectmodeParams.bPicIdRemappingInUse    = m_avcBasicFeature->m_picIdRemappingInUse;
 
+        CODECHAL_DEBUG_TOOL(DECODE_CHK_STATUS(DumpResources(avcDirectmodeParams, curMvBuffer->size)));
+
         return MOS_STATUS_SUCCESS;
     }
 
@@ -575,6 +577,38 @@ namespace decode{
             m_avcBasicFeature->m_dataOffset,
             CODECHAL_NUM_MEDIA_STATES));
 
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MOS_STATUS AvcDecodePicPktXe_M_Base::DumpResources(MHW_VDBOX_AVC_DIRECTMODE_PARAMS &avcDirectmodeParams, uint32_t mvBufferSize)
+    {
+        DECODE_FUNC_CALL();
+
+        CodechalDebugInterface *debugInterface = m_avcPipeline->GetDebugInterface();
+        for (auto n = 0; n < CODEC_AVC_MAX_NUM_REF_FRAME; n++)
+        {
+            if (m_avcBasicFeature->m_refFrames.m_avcPicIdx[n].bValid)
+            {
+                if (&avcDirectmodeParams.presAvcDmvBuffers[n+1] != nullptr)
+                {
+                    std::string mvBufDumpName = "_DEC_Ref_MV_" + std::to_string(n);
+                    DECODE_CHK_STATUS(debugInterface->DumpBuffer(
+                        &avcDirectmodeParams.presAvcDmvBuffers[n+1],
+                        CodechalDbgAttr::attrMvData,
+                        mvBufDumpName.c_str(),
+                        mvBufferSize));
+                }
+            }
+        }
+
+        if (&avcDirectmodeParams.presAvcDmvBuffers[0] != nullptr)
+        {
+            DECODE_CHK_STATUS(debugInterface->DumpBuffer(
+                &avcDirectmodeParams.presAvcDmvBuffers[0],
+                CodechalDbgAttr::attrMvData,
+                "DEC_Cur_MV_",
+                mvBufferSize));
+        }
         return MOS_STATUS_SUCCESS;
     }
 

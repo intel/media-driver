@@ -1542,7 +1542,7 @@ MOS_STATUS CodechalDecodeAvc::InitPicMhwParams(
                     &dstSurface));
 
                 m_debugInterface->m_refIndex = frameId;
-                std::string refSurfName      = "RefSurf" + std::to_string(static_cast<uint32_t>(m_debugInterface->m_refIndex));
+                std::string refSurfName      = "RefSurf[" + std::to_string(static_cast<uint32_t>(m_debugInterface->m_refIndex)) + "]";
                 CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->DumpYUVSurface(
                     &dstSurface,
                     CodechalDbgAttr::attrDecodeReferenceSurfaces,
@@ -1605,6 +1605,42 @@ MOS_STATUS CodechalDecodeAvc::InitPicMhwParams(
     picMhwParams->AvcDirectmodeParams.avcRefList              = (void**)m_avcRefList;
     picMhwParams->AvcDirectmodeParams.bPicIdRemappingInUse    = m_picIdRemappingInUse;
     picMhwParams->AvcDirectmodeParams.presMvcDummyDmvBuffer   = &(m_resMvcDummyDmvBuffer[(m_avcPicParams->seq_fields.direct_8x8_inference_flag) ? 1 : 0]);
+
+    CODECHAL_DEBUG_TOOL(
+
+        CODEC_REF_LIST * *refList;
+        MHW_MI_CHK_NULL(refList = (CODEC_REF_LIST **)picMhwParams->AvcDirectmodeParams.avcRefList);
+
+        for (auto i = 0; i < CODEC_MAX_NUM_REF_FRAME; i++)
+        {
+            if (picMhwParams->AvcDirectmodeParams.pAvcPicIdx[i].bValid)
+            {
+                uint8_t idx   = picMhwParams->AvcDirectmodeParams.pAvcPicIdx[i].ucPicIdx;
+                uint8_t picID = picMhwParams->AvcDirectmodeParams.bPicIdRemappingInUse ? i : refList[idx]->ucFrameId;
+                uint8_t mvIdx = refList[idx]->ucDMVIdx[0];
+
+                if (&picMhwParams->AvcDirectmodeParams.presAvcDmvBuffers[i] != nullptr)
+                {
+                    // dump Reference mvdata
+                    std::string mvBufDumpName = "_DEC_Ref_MV_" + std::to_string(i);
+                    CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+                        &picMhwParams->AvcDirectmodeParams.presAvcDmvBuffers[mvIdx],
+                        CodechalDbgAttr::attrMvData,
+                        mvBufDumpName.c_str(),
+                        m_avcDmvBufferSize));
+                }
+            }
+        }
+
+        if (&picMhwParams->AvcDirectmodeParams.presAvcDmvBuffers[picMhwParams->AvcDirectmodeParams.ucAvcDmvIdx])
+        {
+            // dump Current mvdata
+            CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+            &picMhwParams->AvcDirectmodeParams.presAvcDmvBuffers[picMhwParams->AvcDirectmodeParams.ucAvcDmvIdx],
+                CodechalDbgAttr::attrMvData,
+                "DEC_Cur_MV_",
+                m_avcDmvBufferSize));
+        });
 
     return eStatus;
 }

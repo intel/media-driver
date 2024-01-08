@@ -491,6 +491,8 @@ MHW_SETPAR_DECL_SRC(MFX_AVC_DIRECTMODE_STATE, AvcDecodePicPkt)
     params.avcRefList              = (void **)refFrames.m_refList;
     params.bPicIdRemappingInUse    = m_avcBasicFeature->m_picIdRemappingInUse;
 
+    CODECHAL_DEBUG_TOOL(DECODE_CHK_STATUS(DumpResources(curMvBuffer->size)));
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -621,13 +623,15 @@ MOS_STATUS AvcDecodePicPkt::AddAllCmds_MFX_QM_STATE(PMOS_COMMAND_BUFFER cmdBuffe
 }
 
 #if USE_CODECHAL_DEBUG_TOOL
-MOS_STATUS AvcDecodePicPkt::DumpResources() const
+MOS_STATUS AvcDecodePicPkt::DumpResources(uint32_t mvBufferSize) const
 {
     DECODE_FUNC_CALL();
 
     CodechalDebugInterface *debugInterface = m_avcPipeline->GetDebugInterface();
 
     auto &par = m_mfxItf->MHW_GETPAR_F(MFX_PIPE_BUF_ADDR_STATE)();
+    auto &mvParam = m_mfxItf->MHW_GETPAR_F(MFX_AVC_DIRECTMODE_STATE)();
+
     for (auto n = 0; n < CODEC_AVC_MAX_NUM_REF_FRAME; n++)
     {
         if (m_avcBasicFeature->m_refFrames.m_avcPicIdx[n].bValid)
@@ -641,7 +645,26 @@ MOS_STATUS AvcDecodePicPkt::DumpResources() const
                 &destSurface,
                 CodechalDbgAttr::attrDecodeReferenceSurfaces,
                 refSurfName.c_str()));
+
+            if (&mvParam.presAvcDmvBuffers[n+1] != nullptr)
+            {
+                std::string mvBufDumpName = "_DEC_Ref_MV_" + std::to_string(n);
+                DECODE_CHK_STATUS(debugInterface->DumpBuffer(
+                    &mvParam.presAvcDmvBuffers[n+1],
+                    CodechalDbgAttr::attrMvData,
+                    mvBufDumpName.c_str(),
+                    mvBufferSize));
+            }
         }
+    }
+
+    if (&mvParam.presAvcDmvBuffers[0] != nullptr)
+    {
+        DECODE_CHK_STATUS(debugInterface->DumpBuffer(
+            &mvParam.presAvcDmvBuffers[0],
+            CodechalDbgAttr::attrMvData,
+            "DEC_Cur_MV_",
+            mvBufferSize));
     }
 
     return MOS_STATUS_SUCCESS;

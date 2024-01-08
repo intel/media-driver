@@ -133,7 +133,7 @@ protected:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS DumpResources() const;
+    MOS_STATUS DumpResources(uint32_t mvBufferSize) const;
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
     DecodeDownSamplingFeature *m_downSamplingFeature = nullptr;

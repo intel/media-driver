@@ -623,7 +623,7 @@ namespace decode
                 refSurface.OsResource = *(pipeBufAddrParams.presReferences[i]);
                 DECODE_CHK_STATUS(CodecUtilities::CodecHalGetResourceInfo(m_osInterface, &refSurface));
 
-                std::string refSurfDumpName = "RefSurf_" + std::to_string(i);
+                std::string refSurfDumpName = "RefSurf[" + std::to_string(i) + "]";
                 DECODE_CHK_STATUS(debugInterface->DumpYUVSurface(
                     &refSurface,
                     CodechalDbgAttr::attrDecodeReferenceSurfaces,

@@ -644,7 +644,7 @@ MOS_STATUS HevcDecodePicPktXe_M_Base::DumpResources(
             refSurface.OsResource = *(pipeBufAddrParams.presReferences[i]);
             DECODE_CHK_STATUS(CodecHalGetResourceInfo(m_osInterface, &refSurface));
 
-            std::string refSurfDumpName = "RefSurf_" + std::to_string(i);
+            std::string refSurfDumpName = "RefSurf[" + std::to_string(i) + "]";
             DECODE_CHK_STATUS(debugInterface->DumpYUVSurface(
                 &refSurface,
                 CodechalDbgAttr::attrDecodeReferenceSurfaces,

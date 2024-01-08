@@ -1665,7 +1665,7 @@ MOS_STATUS CodechalDecodeHevcG12::SendPictureLongFormat()
                     m_osInterface,
                     &dstSurface));
 
-                std::string refSurfDumpName = "RefSurf_" + std::to_string(n);
+                std::string refSurfDumpName = "RefSurf[" + std::to_string(n) + "]";
                 CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->DumpYUVSurface(
                     &dstSurface,
                     CodechalDbgAttr::attrDecodeReferenceSurfaces,

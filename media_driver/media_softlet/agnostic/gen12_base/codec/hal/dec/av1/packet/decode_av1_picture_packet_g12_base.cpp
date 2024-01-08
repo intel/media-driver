@@ -1638,7 +1638,7 @@ namespace decode{
                 MOS_ZeroMemory(&refSurface, sizeof(MOS_SURFACE));
                 refSurface.OsResource = *(pipeBufAddrParams.m_references[n + lastFrame]);
                 DECODE_CHK_STATUS(m_allocator->GetSurfaceInfo(&refSurface));
-                std::string refSurfName = "RefSurf[" + std::to_string(static_cast<uint32_t>(n + lastFrame)) + "]";
+                std::string refSurfName = "RefSurf[" + std::to_string(static_cast<uint32_t>(n)) + "]";
                 DECODE_CHK_STATUS(debugInterface->DumpYUVSurface(
                     &refSurface,
                     CodechalDbgAttr::attrDecodeReferenceSurfaces,

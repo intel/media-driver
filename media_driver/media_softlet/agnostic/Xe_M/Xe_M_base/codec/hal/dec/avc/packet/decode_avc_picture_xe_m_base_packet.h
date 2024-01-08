@@ -144,7 +144,9 @@ namespace decode
         //! \return MOS_STATUS
         //!         MOS_STATUS_SUCCESS if success, else fail reason
         //!
-        MOS_STATUS DumpResources(MHW_VDBOX_PIPE_BUF_ADDR_PARAMS& pipeBufAddrParams);
+        MOS_STATUS DumpResources(MHW_VDBOX_PIPE_BUF_ADDR_PARAMS &pipeBufAddrParams);
+
+        MOS_STATUS DumpResources(MHW_VDBOX_AVC_DIRECTMODE_PARAMS &avcDirectmodeParams, uint32_t mvBufferSize);
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
         DecodeDownSamplingFeature *m_downSamplingFeature = nullptr;
