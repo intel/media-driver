@@ -1003,7 +1003,7 @@ typedef struct _MOS_INTERFACE
         PMOS_INTERFACE        pOsInterface,
         PMOS_RESOURCE         pInputOsResource,
         PMOS_RESOURCE         pOutputOsResource,
-        uint32_t              copyWidth,
+        uint32_t              copyPitch,
         uint32_t              copyHeight,
         uint32_t              bpp,
         bool                  bOutputCompressed);
@@ -1012,7 +1012,7 @@ typedef struct _MOS_INTERFACE
         PMOS_INTERFACE pOsInterface,
         PMOS_RESOURCE  pInputOsResource,
         PMOS_RESOURCE  pOutputOsResource,
-        uint32_t       copyWidth,
+        uint32_t       copyPitch,
         uint32_t       copyHeight,
         uint32_t       copyInputOffset,
         uint32_t       copyOutputOffset,

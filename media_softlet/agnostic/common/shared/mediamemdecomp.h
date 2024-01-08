@@ -100,8 +100,8 @@ public:
     //!            The source surface resource
     //! \param    [out] outputSurface
     //!            The target surface resource will be copied to
-    //! \param    [in] copyWidth
-    //!            The 2D surface Width
+    //! \param    [in] copyPitch
+    //!            The 2D surface pitch
     //! \param    [in] copyHeight
     //!            The 2D surface height
     //! \param    [in] copyInputOffset
@@ -118,7 +118,7 @@ public:
     virtual MOS_STATUS MediaMemoryCopy2D(
         PMOS_RESOURCE inputResource,
         PMOS_RESOURCE outputResource,
-        uint32_t      copyWidth,
+        uint32_t      copyPitch,
         uint32_t      copyHeight,
         uint32_t      copyInputOffset,
         uint32_t      copyOutputOffset,

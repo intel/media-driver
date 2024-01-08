@@ -273,7 +273,7 @@ MOS_STATUS MediaMemDeCompNext::MediaMemoryCopy(PMOS_RESOURCE inputResource, PMOS
     return eStatus;
 }
 
-MOS_STATUS MediaMemDeCompNext::MediaMemoryCopy2D(PMOS_RESOURCE inputResource, PMOS_RESOURCE outputResource, uint32_t copyWidth, uint32_t copyHeight, uint32_t copyInputOffset, uint32_t copyOutputOffset, uint32_t bpp, bool outputCompressed)
+MOS_STATUS MediaMemDeCompNext::MediaMemoryCopy2D(PMOS_RESOURCE inputResource, PMOS_RESOURCE outputResource, uint32_t copyPitch, uint32_t copyHeight, uint32_t copyInputOffset, uint32_t copyOutputOffset, uint32_t bpp, bool outputCompressed)
 {
     MOS_STATUS eStatus             = MOS_STATUS_SUCCESS;
     bool       bValidInputSurface  = false;
@@ -357,9 +357,11 @@ MOS_STATUS MediaMemDeCompNext::MediaMemoryCopy2D(PMOS_RESOURCE inputResource, PM
     sourceSurface.dwOffset = copyInputOffset;
     targetSurface.dwOffset = copyOutputOffset;
 
-    sourceSurface.dwWidth = copyWidth / pixelInByte;
+    sourceSurface.dwWidth = copyPitch / pixelInByte;
+    sourceSurface.dwPitch  = copyPitch;
     sourceSurface.dwHeight = copyHeight;
-    targetSurface.dwWidth = copyWidth / pixelInByte;
+    targetSurface.dwWidth = copyPitch / pixelInByte;
+    targetSurface.dwPitch  = copyPitch;
     targetSurface.dwHeight = copyHeight;
 
     //Check whether surface is valid, or it will cause page fault
