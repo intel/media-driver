@@ -1799,6 +1799,9 @@ VAStatus MediaLibvaCapsMtlBase::AddEncSurfaceAttributes(
         attribList[numAttribs].value.type    = VAGenericValueTypeInteger;
         attribList[numAttribs].flags         = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
         attribList[numAttribs].value.value.i = VA_SURFACE_ATTRIB_MEM_TYPE_VA |
+#if VA_CHECK_VERSION(1, 21, 0)
+                                               VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_3 |
+#endif
                                                VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2;
         numAttribs++;
     }
@@ -1886,12 +1889,18 @@ VAStatus MediaLibvaCapsMtlBase::QuerySurfaceAttributes(
                                    VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM |
                                    VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME |
                                    VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2 |
+#if VA_CHECK_VERSION(1, 21, 0)
+                                   VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_3 |
+#endif
                                    VA_SURFACE_ATTRIB_MEM_TYPE_ANDROID_GRALLOC;
 #else
         attribs[i].value.value.i = VA_SURFACE_ATTRIB_MEM_TYPE_VA |
                                    VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR |
                                    VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM |
                                    VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME |
+#if VA_CHECK_VERSION(1, 21, 0)
+                                   VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_3 |
+#endif
                                    VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2;
 #endif
         i++;
@@ -2206,6 +2215,9 @@ VAStatus MediaLibvaCapsMtlBase::QuerySurfaceAttributes(
         attribs[i].value.type    = VAGenericValueTypeInteger;
         attribs[i].flags         = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
         attribs[i].value.value.i = VA_SURFACE_ATTRIB_MEM_TYPE_VA |
+#if VA_CHECK_VERSION(1, 21, 0)
+                                   VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_3 |
+#endif
                                    VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2;
         i++;
     }
