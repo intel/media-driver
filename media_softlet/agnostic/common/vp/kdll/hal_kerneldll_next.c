@@ -2378,6 +2378,7 @@ bool KernelDll_SetupCSC(
     Kdll_CSC_Matrix  curr_matrix;
     Kdll_CSC_Matrix *matrix   = pCSC->Matrix;    // Color Space conversion matrix
     uint8_t *        matrixID = pCSC->MatrixID;  // CSC coefficient allocation table
+    bool forceToTargetColorSpace = false;
 
     // Clear all CSC matrices
     MOS_ZeroMemory(matrix, sizeof(pCSC->Matrix));
@@ -2395,6 +2396,10 @@ bool KernelDll_SetupCSC(
     //---------------------------------------------------------------//
     for (i = iFilterSize, pFilter = pSearchState->Filter; i > 0; i--, pFilter++)
     {
+        if (pFilter->forceToTargetColorSpace)
+        {
+            forceToTargetColorSpace = true;
+        }
         // Disable Procamp for all layers except Main Video
         // Disable Procamp if source is RGB
         if (pFilter->layer != Layer_MainVideo ||
@@ -2456,44 +2461,51 @@ bool KernelDll_SetupCSC(
     //---------------------------------------------------------------//
     if (sel_cspace == CSpace_Any)
     {
-        int cs;
-        for (cs = (CSpace_Any + 1); cs < CSpace_Count; cs++)
+        if (forceToTargetColorSpace)
         {
-            // Skip color spaces not in use
-            cspace = (VPHAL_CSPACE)cs;
-            if (!cspace_in_use[cspace])
+            sel_cspace = out_cspace;
+        }
+        else
+        {
+            int cs;
+            for (cs = (CSpace_Any + 1); cs < CSpace_Count; cs++)
             {
-                continue;
-            }
-
-            // xvYCC and BT are treated as same for CSC considerations (BT.x to xvYCC.x matrix is I)
-            cspace = KernelDll_TranslateCspace(cspace);
-
-            // Count # of CS conversions and matrices
-            csc_count = 0;
-            for (i = iFilterSize, pFilter = pSearchState->Filter; i > 0; i--, pFilter++)
-            {
-                // Ignore layers where the Color Space may be set in software (colorfill, palletized)
-                if (pFilter->cspace == CSpace_Any)
+                // Skip color spaces not in use
+                cspace = (VPHAL_CSPACE)cs;
+                if (!cspace_in_use[cspace])
                 {
                     continue;
                 }
 
-                // Check if CSC/PA is required
-                if (KernelDll_TranslateCspace(pFilter->cspace) != cspace ||
-                    pFilter->procamp != DL_PROCAMP_DISABLED)
-                {
-                    csc_count++;
-                }
-            }
+                // xvYCC and BT are treated as same for CSC considerations (BT.x to xvYCC.x matrix is I)
+                cspace = KernelDll_TranslateCspace(cspace);
 
-            // Save best choice as requiring minimum number of CSC operations
-            if ((sel_csc_count < 0) ||                              // Initial value
-                (csc_count < sel_csc_count) ||                      // Minimum number of CSC operations
-                (csc_count == sel_csc_count && cs == main_cspace))  // Use main cspace as default if same CSC count
-            {
-                sel_cspace    = cspace;
-                sel_csc_count = csc_count;
+                // Count # of CS conversions and matrices
+                csc_count = 0;
+                for (i = iFilterSize, pFilter = pSearchState->Filter; i > 0; i--, pFilter++)
+                {
+                    // Ignore layers where the Color Space may be set in software (colorfill, palletized)
+                    if (pFilter->cspace == CSpace_Any)
+                    {
+                        continue;
+                    }
+
+                    // Check if CSC/PA is required
+                    if (KernelDll_TranslateCspace(pFilter->cspace) != cspace ||
+                        pFilter->procamp != DL_PROCAMP_DISABLED)
+                    {
+                        csc_count++;
+                    }
+                }
+
+                // Save best choice as requiring minimum number of CSC operations
+                if ((sel_csc_count < 0) ||                              // Initial value
+                    (csc_count < sel_csc_count) ||                      // Minimum number of CSC operations
+                    (csc_count == sel_csc_count && cs == main_cspace))  // Use main cspace as default if same CSC count
+                {
+                    sel_cspace    = cspace;
+                    sel_csc_count = csc_count;
+                }
             }
         }
     }

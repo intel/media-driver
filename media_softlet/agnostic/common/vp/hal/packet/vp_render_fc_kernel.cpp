@@ -775,6 +775,13 @@ MOS_STATUS VpRenderFcKernel::BuildFilter(
 
     for (i = 0; (i < (int)compParams->sourceCount) && (iMaxFilterSize > 0); i++)
     {
+        if (i > 0)
+        {
+            if (!RECT1_CONTAINS_RECT2(compParams->source[0].surf->rcDst, compParams->source[i].surf->rcDst))
+            {
+                pFilter->forceToTargetColorSpace = true;
+            }
+        }
         src = &compParams->source[i];
 
         //--------------------------------

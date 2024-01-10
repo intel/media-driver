@@ -588,6 +588,7 @@ typedef struct tagKdll_FilterEntry
     Kdll_Scalingratio      ScalingRatio;
     Kdll_RenderMethod      RenderMethod;
     Kdll_SetCSCCoeffMethod SetCSCCoeffMode;
+    bool                   forceToTargetColorSpace;
 } Kdll_FilterEntry, *PKdll_FilterEntry;
 
 // Structure that defines a compositing filter

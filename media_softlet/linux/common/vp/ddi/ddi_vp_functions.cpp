@@ -2115,9 +2115,8 @@ VAStatus DdiVpFunctions::SetBackgroundColorfill(
 {
     DDI_VP_FUNC_ENTER;
     DDI_VP_CHK_NULL(vpHalRenderParams, "nullptr vpHalRenderParams.", VA_STATUS_ERROR_INVALID_PARAMETER);
-    DDI_VP_CHK_NULL(vpHalRenderParams->pTarget[0],"nullptr pTarget[0].", VA_STATUS_ERROR_INVALID_PARAMETER);
 
-    if ((outBackGroundcolor >> 24) != 0 || vpHalRenderParams->pTarget[0]->ColorSpace == CSpace_sRGB)
+    if ((outBackGroundcolor >> 24) != 0)
     {
         if (vpHalRenderParams->pColorFillParams == nullptr)
         {
@@ -2126,18 +2125,11 @@ VAStatus DdiVpFunctions::SetBackgroundColorfill(
 
         DDI_VP_CHK_NULL(vpHalRenderParams->pColorFillParams, "nullptr pColorFillParams.", VA_STATUS_ERROR_UNKNOWN);
 
-        if (vpHalRenderParams->pTarget[0]->ColorSpace == CSpace_sRGB && (outBackGroundcolor >> 24) == 0)
-        {
-            // set color space for sRGB output
-            vpHalRenderParams->pColorFillParams->CSpace  = CSpace_sRGB;
-        }
-        else
-        {
-            // set background colorfill option
-            vpHalRenderParams->pColorFillParams->Color   = outBackGroundcolor;
-            vpHalRenderParams->pColorFillParams->bYCbCr  = false;
-            vpHalRenderParams->pColorFillParams->CSpace  = CSpace_sRGB;
-        }
+        // set background colorfill option
+        vpHalRenderParams->pColorFillParams->Color   = outBackGroundcolor;
+        vpHalRenderParams->pColorFillParams->bYCbCr  = false;
+        vpHalRenderParams->pColorFillParams->CSpace  = CSpace_sRGB;
+
     }
     else
     {
