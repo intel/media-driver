@@ -692,6 +692,11 @@ MOS_STATUS VpProcampReuse::UpdatePacket(SwFilter *filter, VpCmdPacket *packet)
 MOS_STATUS VpProcampReuse::UpdateFeatureParams(FeatureParamProcamp &params)
 {
     m_params = params;
+    if (params.procampParams)
+    {
+        m_procampParams        = *params.procampParams;
+        m_params.procampParams = &m_procampParams;
+    }
     return MOS_STATUS_SUCCESS;
 }
 

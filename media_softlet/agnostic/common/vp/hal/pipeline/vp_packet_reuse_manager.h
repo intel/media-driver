@@ -244,7 +244,8 @@ public:
 protected:
     MOS_STATUS UpdateFeatureParams(FeatureParamProcamp &params);
 
-    FeatureParamProcamp m_params = {};
+    FeatureParamProcamp  m_params = {};
+    VPHAL_PROCAMP_PARAMS m_procampParams = {};
 
     MEDIA_CLASS_DEFINE_END(vp__VpProcampReuse)
 };
