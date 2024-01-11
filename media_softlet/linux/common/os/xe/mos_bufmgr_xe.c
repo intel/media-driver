@@ -1462,7 +1462,7 @@ mos_bo_alloc_userptr_xe(struct mos_bufmgr *bufmgr,
     bo_gem->gem_handle = INVALID_HANDLE;
     bo_gem->bo.handle = INVALID_HANDLE;
     bo_gem->bo.size    = alloc_uptr->size;
-    bo_gem->pat_index = 1; //Currently, there is no cpu_caching and pat_index for user_ptr bo, hard code for it temporarily.
+    bo_gem->pat_index = 0; //Currently, there is no cpu_caching and pat_index for user_ptr bo, hard code for it temporarily.
     bo_gem->bo.bufmgr = bufmgr;
     bo_gem->bo.vm_id = INVALID_VM;
     bo_gem->mem_region = MEMZONE_SYS;
