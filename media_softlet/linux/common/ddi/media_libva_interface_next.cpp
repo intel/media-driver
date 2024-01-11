@@ -1894,7 +1894,9 @@ VAStatus MediaLibvaInterfaceNext::PutImage(
         if (srcWidth == destWidth && srcHeight == destHeight &&
             srcWidth == vaimg->width && srcHeight == vaimg->height &&
             srcWidth == mediaSurface->iWidth && srcHeight == mediaSurface->iHeight &&
-            mediaSurface->data_size == vaimg->data_size)
+            mediaSurface->data_size == vaimg->data_size &&
+            (vaimg->num_planes == 1 ||
+            (vaimg->num_planes > 1 && vaimg->offsets[1] == mediaSurface->iPitch * mediaSurface->iHeight)))
         {
             //Copy data from image to surface
             MOS_STATUS eStatus = MOS_SecureMemcpy(surfData, vaimg->data_size, imageData, vaimg->data_size);
