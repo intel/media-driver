@@ -836,18 +836,6 @@ MOS_STATUS BltStateNext::SubmitCMD(
         m_osInterface,
         MOS_GPU_CONTEXT_BLT));
 
-    m_osInterface->pfnSyncOnResource(
-        m_osInterface,
-        pBltStateParam->pSrcSurface,
-        MOS_GPU_CONTEXT_BLT,
-        false);
-
-    m_osInterface->pfnSyncOnResource(
-        m_osInterface,
-        pBltStateParam->pDstSurface,
-        MOS_GPU_CONTEXT_BLT,
-        true);
-
     // Initialize the command buffer struct
     MOS_ZeroMemory(&cmdBuffer, sizeof(MOS_COMMAND_BUFFER));
     BLT_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));

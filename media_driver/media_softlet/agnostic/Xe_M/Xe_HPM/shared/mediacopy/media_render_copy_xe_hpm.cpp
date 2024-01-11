@@ -148,28 +148,6 @@ MOS_STATUS RenderCopy_Xe_Hpm::SubmitCMD( )
     // Register the resource of GSH
     MCPY_CHK_STATUS_RETURN(pRenderHal->pfnReset(pRenderHal));
 
-    // Register the input resource;
-    MCPY_CHK_STATUS_RETURN(pOsInterface->pfnRegisterResource(
-        pOsInterface,
-        (PMOS_RESOURCE)&pRenderCopy->m_Source.OsResource,
-        true,
-        true));
-
-    // Ensure input can be read
-    pOsInterface->pfnSyncOnResource(
-        pOsInterface,
-        &pRenderCopy->m_Source.OsResource,
-        pOsInterface->CurrentGpuContextOrdinal,
-        false);
-
-    // Ensure Output can be read
-    pOsInterface->pfnSyncOnResource(
-        pOsInterface,
-        &pRenderCopy->m_Target.OsResource,
-        pOsInterface->CurrentGpuContextOrdinal,
-        false);
-
-
     // Set copy kernel
     pRenderCopy->SetupKernel(m_currKernelId);
 

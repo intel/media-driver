@@ -191,7 +191,7 @@ MOS_STATUS MhwBltInterfaceXe_Hpc::AddFastCopyBlt(
     ResourceParams.presResource    = pFastCopyBltParam->pSrcOsResource;
     ResourceParams.pdwCmd          = &(cmd.DW8_9.Value[0]);
     ResourceParams.dwLocationInCmd = 8;
-    ResourceParams.bIsWritable     = true;
+    ResourceParams.bIsWritable     = false;
 
     MHW_CHK_STATUS(pfnAddResourceToCmd(
         m_osInterface,

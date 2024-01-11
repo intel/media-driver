@@ -94,7 +94,7 @@ MOS_STATUS MhwBltInterface::AddFastCopyBlt(
     ResourceParams.presResource    = pFastCopyBltParam->pSrcOsResource;
     ResourceParams.pdwCmd          = &(cmd.DW8_9.Value[0]);
     ResourceParams.dwLocationInCmd = 8;
-    ResourceParams.bIsWritable     = true;
+    ResourceParams.bIsWritable     = false;
 
     MHW_CHK_STATUS(pfnAddResourceToCmd(
         m_osInterface,
@@ -161,7 +161,7 @@ MOS_STATUS MhwBltInterface::AddBlockCopyBlt(
     ResourceParams.presResource    = pFastCopyBltParam->pSrcOsResource;
     ResourceParams.pdwCmd          = &(cmd.DW9_10.Value[0]);
     ResourceParams.dwLocationInCmd = 9;
-    ResourceParams.bIsWritable     = true;
+    ResourceParams.bIsWritable     = false;
 
     MHW_CHK_STATUS(pfnAddResourceToCmd(
         m_osInterface,

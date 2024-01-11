@@ -170,7 +170,7 @@ public:
         ResourceParams.presResource    = params.pSrcOsResource;
         ResourceParams.pdwCmd          = &(cmd.DW8_9.Value[0]);
         ResourceParams.dwLocationInCmd = 8;
-        ResourceParams.bIsWritable     = true;
+        ResourceParams.bIsWritable     = false;
 
         MHW_CHK_STATUS_RETURN(AddResourceToCmd(
             this->m_osItf,
