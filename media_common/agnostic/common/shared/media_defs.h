@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022, Intel Corporation
+* Copyright (c) 2022-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -74,6 +74,7 @@ enum CODECHAL_STANDARD
 
     CODECHAL_RESERVED1,
     CODECHAL_RESERVED2,
+    CODECHAL_RESERVED3,
     CODECHAL_STANDARD_MAX
 };
 

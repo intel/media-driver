@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2023, Intel Corporation
+* Copyright (c) 2017-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -187,7 +187,8 @@ enum CODECHAL_MODE
     CODECHAL_DECODE_MODE_CENC               = 13,   // Only for getting HuC-based DRM command size. Not an actual mode.
     CODECHAL_DECODE_MODE_RESERVED0          = 14,
     CODECHAL_DECODE_MODE_RESERVED1          = 15,
-    CODECHAL_DECODE_MODE_END                = 16,
+    CODECHAL_DECODE_MODE_RESERVED2          = 16,
+    CODECHAL_DECODE_MODE_END                = 17,
 
     CODECHAL_ENCODE_MODE_BEGIN              = 32,
     CODECHAL_ENCODE_MODE_AVC                = 32,   // Must be a power of 2 to match perf report expectations
