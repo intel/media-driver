@@ -1268,6 +1268,9 @@ MOS_STATUS CodechalDecode::EndFrame ()
             "Primitive level decoding failed.");
     }
 
+    DecodeFrameIndex++;
+    m_frameNum = DecodeFrameIndex;
+
     m_decodePhantomMbs = false;
 
     return eStatus;
@@ -1554,7 +1557,6 @@ MOS_STATUS CodechalDecode::Execute(void *params)
             }
         }
 #endif
-        m_frameNum++;
     }
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(Mos_Solo_PostProcessDecode(m_osInterface, m_decodeParams.m_destSurface));
