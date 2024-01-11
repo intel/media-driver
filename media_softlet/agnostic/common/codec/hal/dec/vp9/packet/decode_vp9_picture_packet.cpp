@@ -840,29 +840,33 @@ MOS_STATUS Vp9DecodePicPkt::CalculateCommandSize(uint32_t &commandBufferSize, ui
 }
 
 #if USE_CODECHAL_DEBUG_TOOL
-MOS_STATUS Vp9DecodePicPkt::DumpResources(HCP_PIPE_BUF_ADDR_STATE_PAR &params, uint32_t refSize, uint32_t mvSize) const
+MOS_STATUS Vp9DecodePicPkt::DumpResources(HCP_PIPE_BUF_ADDR_STATE_PAR &params, uint32_t refSize, uint32_t mvBufferSize) const
 {
     DECODE_FUNC_CALL();
 
     CodechalDebugInterface *debugInterface = m_pipeline->GetDebugInterface();
     DECODE_CHK_NULL(debugInterface);
-    for (uint16_t n = 0; n < refSize; n++)
-    {
-        if (params.presReferences[n])
-        {
-            MOS_SURFACE refSurface;
-            MOS_ZeroMemory(&refSurface, sizeof(MOS_SURFACE));
-            refSurface.OsResource = *(params.presReferences[n]);
-            DECODE_CHK_STATUS(CodecUtilities::CodecHalGetResourceInfo(
-                m_osInterface,
-                &refSurface));
 
-            debugInterface->m_refIndex = n;
-            std::string refSurfName    = "RefSurf[" + std::to_string(static_cast<uint32_t>(debugInterface->m_refIndex)) + "]";
-            DECODE_CHK_STATUS(debugInterface->DumpYUVSurface(
-                &refSurface,
-                CodechalDbgAttr::attrDecodeReferenceSurfaces,
-                refSurfName.c_str()));
+    if (m_vp9PicParams->PicFlags.fields.frame_type == CODEC_VP9_INTER_FRAME)
+    {
+        for (uint16_t n = 0; n < refSize; n++)
+        {
+            if (params.presReferences[n])
+            {
+                MOS_SURFACE refSurface;
+                MOS_ZeroMemory(&refSurface, sizeof(MOS_SURFACE));
+                refSurface.OsResource = *(params.presReferences[n]);
+                DECODE_CHK_STATUS(CodecUtilities::CodecHalGetResourceInfo(
+                    m_osInterface,
+                    &refSurface));
+
+                debugInterface->m_refIndex = n;
+                std::string refSurfName    = "RefSurf[" + std::to_string(static_cast<uint32_t>(debugInterface->m_refIndex)) + "]";
+                DECODE_CHK_STATUS(debugInterface->DumpYUVSurface(
+                    &refSurface,
+                    CodechalDbgAttr::attrDecodeReferenceSurfaces,
+                    refSurfName.c_str()));
+            }
         }
     }
 
@@ -873,7 +877,7 @@ MOS_STATUS Vp9DecodePicPkt::DumpResources(HCP_PIPE_BUF_ADDR_STATE_PAR &params, u
             params.presColMvTempBuffer[0],
             CodechalDbgAttr::attrMvData,
             "DEC_Col_MV_",
-            mvSize));
+            mvBufferSize));
     };
 
     if (params.presCurMvTempBuffer)
@@ -883,7 +887,7 @@ MOS_STATUS Vp9DecodePicPkt::DumpResources(HCP_PIPE_BUF_ADDR_STATE_PAR &params, u
             params.presCurMvTempBuffer,
             CodechalDbgAttr::attrMvData,
             "DEC_Cur_MV_",
-            mvSize));
+            mvBufferSize));
     };
 
    return MOS_STATUS_SUCCESS;
