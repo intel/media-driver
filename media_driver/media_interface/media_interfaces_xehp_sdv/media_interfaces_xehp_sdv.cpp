@@ -177,6 +177,7 @@ MOS_STATUS MhwInterfacesXehp_Sdv::Initialize(
     // MHW_CP and MHW_MI must always be created
     MOS_STATUS status;
     m_cpInterface = osInterface->pfnCreateMhwCpInterface(osInterface);
+    MHW_MI_CHK_NULL(m_cpInterface);
     m_miInterface = MOS_New(Mi, m_cpInterface, osInterface);
 
     if (params.Flags.m_render)
