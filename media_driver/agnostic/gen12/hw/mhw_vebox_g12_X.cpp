@@ -1989,6 +1989,69 @@ MOS_STATUS MhwVeboxInterfaceG12::AddVeboxHdrState(
         pIecpState->CcmState.DW13.OffsetOutG = 0;
         pIecpState->CcmState.DW14.OffsetOutB = 0;
     }
+    else if (pVeboxIecpParams->bCcmCscEnable)
+    {
+        uint32_t nLutInBitDepth     = 12;
+        uint32_t nLutOutBitDepth    = 32;
+        uint64_t maxValLutIn        = (((uint64_t)1) << nLutInBitDepth) - 1;
+        uint64_t maxValLutOut       = (((uint64_t)1) << nLutOutBitDepth) - 1;
+
+        // HW provides 4K 1DLUT inverse gamma and fill in with identity
+        mhw_vebox_g12_X::VEBOX_HDR_INV_GAMMA_CORRECTION_STATE_CMD* pInverseGamma = pVeboxHdrState->PRGBCorrectedValue;
+        for (uint32_t i = 0; i < 4096; i++)
+        {
+            float x = (float)(i) / maxValLutIn;
+            uint32_t nCorrectedValue = (i < 4095) ? (uint32_t)(x * maxValLutOut + 0.5) : (uint32_t)(maxValLutOut);
+            pInverseGamma[i].DW0.Value = 0;
+            pInverseGamma[i].DW1.InverseRChannelGammaCorrectionValue = nCorrectedValue;
+            pInverseGamma[i].DW2.InverseGChannelGammaCorrectionValue = nCorrectedValue;
+            pInverseGamma[i].DW3.InverseBChannelGammaCorrectionValue = nCorrectedValue;
+        }
+        pVeboxHdrState->DW17440.ToneMappingEnable = false;
+        pIecpState->CcmState.DW0.ColorCorrectionMatrixEnable = false;
+        if ((pVeboxIecpParams->ColorSpace == MHW_CSpace_BT709) ||
+            (pVeboxIecpParams->ColorSpace == MHW_CSpace_BT709_FullRange))
+        {
+            pIecpState->CcmState.DW1.C0 = 0x00009937;
+            pIecpState->CcmState.DW0.C1 = 0x000115f6;
+            pIecpState->CcmState.DW3.C2 = 0;
+            pIecpState->CcmState.DW2.C3 = 0x00009937;
+            pIecpState->CcmState.DW5.C4 = 0x07ffe3f1;
+            pIecpState->CcmState.DW4.C5 = 0x07ffb9e0;
+            pIecpState->CcmState.DW7.C6 = 0x00009937;
+            pIecpState->CcmState.DW6.C7 = 0;
+            pIecpState->CcmState.DW8.C8 = 0x0000ebe6;
+            pIecpState->CcmState.DW9.OffsetInR   = (pVeboxIecpParams->ColorSpace == MHW_CSpace_BT709) ? 0xf8000000 : 0;
+            pIecpState->CcmState.DW10.OffsetInG  = (pVeboxIecpParams->ColorSpace == MHW_CSpace_BT709) ? 0xc0000000 : 0;
+            pIecpState->CcmState.DW11.OffsetInB  = (pVeboxIecpParams->ColorSpace == MHW_CSpace_BT709) ? 0xc0000000 : 0;
+            pIecpState->CcmState.DW12.OffsetOutR = 0;
+            pIecpState->CcmState.DW13.OffsetOutG = 0;
+            pIecpState->CcmState.DW14.OffsetOutB = 0;
+        }
+        else if ((pVeboxIecpParams->ColorSpace == MHW_CSpace_BT2020) ||
+                 (pVeboxIecpParams->ColorSpace == MHW_CSpace_BT2020_FullRange))
+        {
+            pIecpState->CcmState.DW1.C0 = 0x00009937;
+            pIecpState->CcmState.DW0.C1 = 0x000119d4;
+            pIecpState->CcmState.DW3.C2 = 0;
+            pIecpState->CcmState.DW2.C3 = 0x00009937;
+            pIecpState->CcmState.DW5.C4 = 0x07ffe75a;
+            pIecpState->CcmState.DW4.C5 = 0x07ffaa6a;
+            pIecpState->CcmState.DW7.C6 = 0x00009937;
+            pIecpState->CcmState.DW6.C7 = 0;
+            pIecpState->CcmState.DW8.C8 = 0x0000dce4;
+            pIecpState->CcmState.DW9.OffsetInR   = (pVeboxIecpParams->ColorSpace == MHW_CSpace_BT2020) ? 0xf8000000 : 0;
+            pIecpState->CcmState.DW10.OffsetInG  = (pVeboxIecpParams->ColorSpace == MHW_CSpace_BT2020) ? 0xc0000000 : 0;
+            pIecpState->CcmState.DW11.OffsetInB  = (pVeboxIecpParams->ColorSpace == MHW_CSpace_BT2020) ? 0xc0000000 : 0;
+            pIecpState->CcmState.DW12.OffsetOutR = 0;
+            pIecpState->CcmState.DW13.OffsetOutG = 0;
+            pIecpState->CcmState.DW14.OffsetOutB = 0;
+        }
+        else
+        {
+            MHW_ASSERTMESSAGE("Unsupported Input Color Space!");
+        }
+    }
 finish:
     return eStatus;
 }
@@ -2614,7 +2677,7 @@ MOS_STATUS MhwVeboxInterfaceG12::VeboxInterface_BT2020YUVToRGB(
         MHW_CHK_NULL(pVeboxIecpParams);
         if (pVeboxIecpParams->s1DLutParams.bActive)
         {
-            // The updated value for TGL VEBOX HDR and Fp16 path 
+            // The updated value for TGL VEBOX HDR and float 16bit output path 
             pIecpState->CscState.DW0.C0 = 76533;
             pIecpState->CscState.DW1.C1 = 0;
             pIecpState->CscState.DW2.C2 = 110337;

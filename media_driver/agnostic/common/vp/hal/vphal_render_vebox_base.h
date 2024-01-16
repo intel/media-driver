@@ -725,6 +725,7 @@ public:
     bool                                bTopField;
     bool                                bBeCsc;
     bool                                bFeCsc;
+    bool                                bCcmCsc;
     bool                                bVeboxBypass;
     bool                                b60fpsDi;
     bool                                bQueryVariance;

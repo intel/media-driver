@@ -659,6 +659,8 @@ typedef struct _MHW_VEBOX_IECP_PARAMS
 
     // FDFB
     bool                            iecpstateforFDFB;
+    // CSC via CCM for float 16bit output
+    bool                            bCcmCscEnable;
 } MHW_VEBOX_IECP_PARAMS, *PMHW_VEBOX_IECP_PARAMS;
 
 //!
