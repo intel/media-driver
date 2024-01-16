@@ -1,5 +1,5 @@
 /*===================== begin_copyright_notice ==================================
-# Copyright (c) 2020-2022, Intel Corporation
+# Copyright (c) 2020-2024, Intel Corporation
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
 # to deal in the Software without restriction, including without limitation
@@ -101,6 +101,8 @@ CodechalHwInterfaceNextXe_Hpm::CodechalHwInterfaceNextXe_Hpm(
     PrepareCmdSize(codecFunction);
     m_miInterface     = static_cast<MhwInterfacesDg2_Next*>(mhwInterfacesNext)->m_miInterface;
     m_renderInterface = static_cast<MhwInterfacesDg2_Next*>(mhwInterfacesNext)->m_renderInterface;
+    //prevent double free
+    static_cast<MhwInterfacesDg2_Next *>(mhwInterfacesNext)->m_renderInterface = nullptr;
 }
 
 bool CodechalHwInterfaceNextXe_Hpm::UsesRenderEngine(CODECHAL_FUNCTION codecFunction, uint32_t standard)
