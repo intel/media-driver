@@ -2362,6 +2362,8 @@ public:
 
     static uint64_t GetResourceHandle(MOS_STREAM_HANDLE streamState, PMOS_RESOURCE osResource);
 
+    static void SetIsTrinityEnabled(bool bTrinity);
+
 private:
     //!
     //! \brief    Init per stream parameters
@@ -2461,6 +2463,7 @@ private:
     static uint32_t m_mosOsApiFailSimulateHint;
     static uint32_t m_mosOsApiFailSimulateCounter;
 #endif
+    static bool m_bTrinity;
 MEDIA_CLASS_DEFINE_END(MosInterface)
 };
 

@@ -3988,3 +3988,9 @@ MOS_STATUS MosInterface::GetMultiEngineStatus(
 {
     return MOS_STATUS_SUCCESS;
 }
+
+bool MosInterface::m_bTrinity = false;
+void MosInterface::SetIsTrinityEnabled(bool bTrinity)
+{
+    return;
+}
