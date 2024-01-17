@@ -1676,6 +1676,17 @@ MOS_STATUS SwFilterBlending::Configure(VP_PIPELINE_PARAMS& params, bool isInputS
     m_Params.formatOutput   = surfInput->Format;
     m_Params.blendingParams = surfInput->pBlendingParams;
 
+    //Only enable Blend PARTIAL for NV12/YUY2
+    if (m_Params.blendingParams && m_Params.blendingParams->BlendType == BLEND_PARTIAL)
+    {
+        if (m_Params.formatInput != Format_YUY2 &&
+            m_Params.formatInput != Format_NV12)
+        {
+            VP_PUBLIC_NORMALMESSAGE("Force to use Blend Source instead of Blend Partial except for NV12/YUY2");
+            m_Params.blendingParams->BlendType = BLEND_SOURCE;
+        }
+    }
+
     return MOS_STATUS_SUCCESS;
 }
 
