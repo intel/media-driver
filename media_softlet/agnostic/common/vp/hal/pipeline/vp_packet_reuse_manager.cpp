@@ -912,6 +912,12 @@ MOS_STATUS VpPacketReuseManager::PreparePacketPipeReuse(SwFilterPipe *&swFilterP
         auto scalingreuse = m_features.find(FeatureTypeScaling);
         auto cscreuse     = m_features.find(FeatureTypeCsc);
         auto rotreuse     = m_features.find(FeatureTypeRotMir);
+        if (scalingreuse == m_features.end() ||
+            cscreuse == m_features.end()     ||
+            rotreuse == m_features.end())
+        {
+            VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_HANDLE);
+        }
 
         for (index = 0; index < m_pipeReused_TeamsPacket.size(); index++)
         {
