@@ -2078,17 +2078,6 @@ MOS_STATUS CompositeState::RenderMultiPhase(
                 pSrc->ScalingMode = VPHAL_SCALING_BILINEAR;
             }
 
-            //Only enable Blend PARTIAL for NV12/YUY2
-            if (pSrc->pBlendingParams && pSrc->pBlendingParams->BlendType == BLEND_PARTIAL)
-            {
-                if (pSrc->Format != Format_YUY2 &&
-                    pSrc->Format != Format_NV12)
-                {
-                    VPHAL_RENDER_NORMALMESSAGE("Force to use Blend Source instead of Blend Partial except for NV12/YUY2");
-                    pSrc->pBlendingParams->BlendType = BLEND_SOURCE;
-                }
-            }
-
             if (!AddCompLayer(&CompositeParams, pSrc, disableAvsSampler))
             {
                 bLastPhase = false;
