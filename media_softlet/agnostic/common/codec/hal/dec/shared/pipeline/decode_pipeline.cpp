@@ -61,11 +61,6 @@ DecodePipeline::DecodePipeline(
     {
         MOS_OS_ASSERTMESSAGE("Initialize CodechalOcaDumper failed!");
     }
-
-    CODECHAL_DEBUG_TOOL(
-        DECODE_ASSERT(debugInterface != nullptr);
-        m_debugInterface = debugInterface;
-    );
 }
 
 MOS_STATUS DecodePipeline::CreateStatusReport()
