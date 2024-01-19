@@ -3622,6 +3622,10 @@ VAStatus MediaLibvaInterfaceNext::InitSurfaceDescriptorWithoutAuxTableMgr(
 
     if(compositeObject)
     {
+        desc->num_layers = 1;
+        desc->layers[0].drm_format = formats[0];
+        desc->layers[0].num_planes = planesNum;
+
         for (int i = 0; i < planesNum; i++)
         {
             desc->layers[0].object_index[i] = 0;
