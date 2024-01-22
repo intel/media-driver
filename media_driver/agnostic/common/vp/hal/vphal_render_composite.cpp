@@ -2078,6 +2078,19 @@ MOS_STATUS CompositeState::RenderMultiPhase(
                 pSrc->ScalingMode = VPHAL_SCALING_BILINEAR;
             }
 
+            //Skip Blend PARTIAL for alpha input non alpha output
+            if (pSrc->pBlendingParams && pSrc->pBlendingParams->BlendType == BLEND_PARTIAL)
+            {
+                if (pOutput)
+                {
+                    if (IS_ALPHA_FORMAT(pSrc->Format) &&
+                        !IS_ALPHA_FORMAT(pOutput->Format))
+                    {
+                        VP_PUBLIC_NORMALMESSAGE("Force to use Blend Source instead of Blend Partial");
+                        pSrc->pBlendingParams->BlendType = BLEND_SOURCE;
+                    }
+                }
+            }
             if (!AddCompLayer(&CompositeParams, pSrc, disableAvsSampler))
             {
                 bLastPhase = false;
