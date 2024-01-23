@@ -13,16 +13,14 @@ $ make headers_install INSTALL_HDR_PATH=/path/to/install
 
 The last update was done at the following kernel commit:
 
-commit 0f1d88f2786458a8986920669bd8fb3fec6e618d (HEAD -> drm-xe-next, origin/drm-xe-next)
-drm/xe/uapi: Kill exec_queue_set_property
+commit 8ea438d53bbde68d8b0aedd1690f4b1644a1eb5e (HEAD -> drm-xe-next, origin/drm-xe-next)
+drm/xe/uapi: Remove DRM_XE_VM_BIND_FLAG_ASYNC comment left over
+This is a comment left over of commit d3d76739
+("drm/xe/uapi: Remove sync binds").
 
-All the properties should be immutable and set upon exec_queue creation
-using the existent extension. So, let's kill this useless and dangerous
-uapi.
+Fixes: d3d76739
 
-Cc: Francois Dugast <francois.dugast@intel.com>
-Cc: José Roberto de Souza <jose.souza@intel.com>
+ ("drm/xe/uapi: Remove sync binds")
+Reviewed-by: default avatarRodrigo Vivi <rodrigo.vivi@intel.com>
 Cc: Matthew Brost <matthew.brost@intel.com>
-Signed-off-by: default avatarRodrigo Vivi <rodrigo.vivi@intel.com>
-Reviewed-by: default avatarJosé Roberto de Souza <jose.souza@intel.com>
-Signed-off-by: default avatarFrancois Dugast <francois.dugast@intel.com>
+Signed-off-by: default avatarJosé Roberto de Souza <jose.souza@intel.com>

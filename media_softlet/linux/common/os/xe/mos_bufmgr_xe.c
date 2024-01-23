@@ -756,7 +756,6 @@ __mos_vm_create_xe(struct mos_bufmgr *bufmgr)
     int ret;
 
     memclear(vm);
-    vm.flags = DRM_XE_VM_CREATE_FLAG_ASYNC_DEFAULT;
     ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_XE_VM_CREATE, &vm);
     if (ret != 0) {
         MOS_DRM_ASSERTMESSAGE("DRM_IOCTL_XE_VM_CREATE failed: %s",
@@ -1184,8 +1183,7 @@ static int mos_xe_vm_bind_sync(int fd, uint32_t vm_id, uint32_t bo, uint64_t off
     sync.handle = mos_sync_syncobj_create(fd, 0);
 
     int ret = __mos_vm_bind_xe(fd, vm_id, 0, bo, offset, addr, size, pat_index,
-                op, DRM_XE_VM_BIND_FLAG_ASYNC, &sync, 1,  0);
-
+                op, 0, &sync, 1,  0);
     if (ret)
     {
         MOS_DRM_ASSERTMESSAGE("ret:%d, error:%d", ret, -errno);
@@ -1209,7 +1207,7 @@ static int mos_xe_vm_bind_async(int fd, uint32_t vm_id, uint32_t bo, uint64_t of
         struct drm_xe_sync *sync, uint32_t num_syncs)
 {
     return __mos_vm_bind_xe(fd, vm_id, 0, bo, offset, addr, size, pat_index,
-                op, DRM_XE_VM_BIND_FLAG_ASYNC, sync, num_syncs,    0);
+                op, 0, sync, num_syncs,    0);
 }
 
 drm_export struct mos_linux_bo *
