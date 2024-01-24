@@ -6576,7 +6576,7 @@ MOS_STATUS CodechalVdencHevcStateG12::SetGpuCtxCreatOption()
     
     if (!MOS_VE_CTXBASEDSCHEDULING_SUPPORTED(m_osInterface))
     {
-        CodechalEncoderState::SetGpuCtxCreatOption();
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncoderState::SetGpuCtxCreatOption());
     }
     else
     {
@@ -7341,7 +7341,7 @@ MOS_STATUS CodechalVdencHevcStateG12::SetTileData(
             uint32_t tileHeightInLCU = MOS_ROUNDUP_DIVIDE(((tileCodingParams[idx].TileHeightInMinCbMinus1 + 1) << (m_hevcSeqParams->log2_min_coding_block_size_minus3 + 3)), ctbSize);
             uint32_t tileWidthInLCU = MOS_ROUNDUP_DIVIDE(((tileCodingParams[idx].TileWidthInMinCbMinus1 + 1) << (m_hevcSeqParams->log2_min_coding_block_size_minus3 + 3)), ctbSize);
 
-            //StreamIn data is 4 CLs per LCU
+            //StreamIn data is 4 Cachelines per LCU
             tileCodingParams[idx].TileStreaminOffset = 4 * (tileCodingParams[idx].TileStartLCUY * streamInWidthinLCU + tileCodingParams[idx].TileStartLCUX * tileHeightInLCU);
             tileCodingParams[idx].SliceSizeStreamoutOffset = tileStartLCUAddr;
             tileStartLCUAddr += (tileWidthInLCU * tileHeightInLCU);
