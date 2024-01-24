@@ -448,7 +448,24 @@ int32_t Av1ReferenceFrames::GetRelativeDist(int32_t a, int32_t b) const
     diff = (diff & (m - 1)) - (diff & m);
     return diff;
 }
-
+inline void ConsolidateRefFlag(uint8_t &refFlag, const PCODEC_AV1_ENCODE_PICTURE_PARAMS picParams)
+{
+    ENCODE_CHK_NULL_NO_STATUS_RETURN(picParams);
+    //consilidate the reference flag, becasue two reference frame may have the same index
+    for (auto i = 0; i < av1NumInterRefFrames; i++)
+    {
+        auto basedFrameIdx = picParams->RefFrameList[picParams->ref_frame_idx[i]].FrameIdx;
+        for (auto ii = i + 1; ii < av1NumInterRefFrames; ii++)
+        {
+            if ((refFlag & AV1_ENCODE_GET_REF_FALG(i)) &&
+                (basedFrameIdx == picParams->RefFrameList[picParams->ref_frame_idx[ii]].FrameIdx))
+            {
+                // find same frame index for different ref frame type, skip larger ref frame type
+                refFlag &= ~(AV1_ENCODE_GET_REF_FALG(ii));
+            }
+        }
+    }
+}
 MOS_STATUS Av1ReferenceFrames::GetFwdBwdRefNum(uint8_t &fwdRefNum, uint8_t &bwdRefNum) const
 {
     ENCODE_FUNC_CALL();
@@ -463,6 +480,8 @@ MOS_STATUS Av1ReferenceFrames::GetFwdBwdRefNum(uint8_t &fwdRefNum, uint8_t &bwdR
 
     fwdRefNum = 0;
     bwdRefNum = 0;
+
+    ConsolidateRefFlag(ref_frame_ctrl_l0, picParams);
 
     for (auto i = 0; i < av1NumInterRefFrames; i++)
     {
@@ -485,24 +504,7 @@ MOS_STATUS Av1ReferenceFrames::GetFwdBwdRefNum(uint8_t &fwdRefNum, uint8_t &bwdR
     return MOS_STATUS_SUCCESS;
 }
 
-inline void ConsolidateRefFlag(uint8_t& refFlag, const PCODEC_AV1_ENCODE_PICTURE_PARAMS picParams)
-{
-    ENCODE_CHK_NULL_NO_STATUS_RETURN(picParams);
-    //consilidate the reference flag, becasue two reference frame may have the same index
-    for (auto i = 0; i < av1NumInterRefFrames; i++)
-    {
-        auto basedFrameIdx = picParams->RefFrameList[picParams->ref_frame_idx[i]].FrameIdx;
-        for (auto ii = i + 1; ii < av1NumInterRefFrames; ii++)
-        {
-            if ((refFlag & AV1_ENCODE_GET_REF_FALG(i)) &&
-                (basedFrameIdx == picParams->RefFrameList[picParams->ref_frame_idx[ii]].FrameIdx))
-            {
-                // find same frame index for different ref frame type, skip larger ref frame type
-                refFlag &= ~(AV1_ENCODE_GET_REF_FALG(ii));
-            }
-        }
-    }
-}
+
 
 MOS_STATUS Av1ReferenceFrames::SetPostCdefAsEncRef(bool flag)
 {
