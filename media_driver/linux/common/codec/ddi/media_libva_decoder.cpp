@@ -422,11 +422,6 @@ VAStatus DdiDecode_StatusReport(PDDI_MEDIA_CONTEXT mediaCtx, CodechalDecode *dec
                             break;
                         }
                     }
-
-                    if (j == mediaCtx->pSurfaceHeap->uiAllocatedHeapElements)
-                    {
-                        return VA_STATUS_ERROR_OPERATION_FAILED;
-                    }
                 }
                 else
                 {
@@ -506,11 +501,6 @@ VAStatus DdiDecode_StatusReport(PDDI_MEDIA_CONTEXT mediaCtx, DecodePipelineAdapt
                             mediaSurfaceHeapElmt->pSurface->curStatusReportQueryState = DDI_MEDIA_STATUS_REPORT_QUERY_STATE_COMPLETED;
                             break;
                         }
-                    }
-
-                    if (j == mediaCtx->pSurfaceHeap->uiAllocatedHeapElements)
-                    {
-                        return VA_STATUS_ERROR_OPERATION_FAILED;
                     }
                 }
                 else
