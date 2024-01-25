@@ -1151,6 +1151,12 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter *feature, bool isHdrEnabled,
     bool isAlphaSettingSupportedByVebox =
         IsAlphaSettingSupportedByVebox(scalingParams->formatInput, scalingParams->formatOutput, scalingParams->pCompAlpha);
 
+    if (scalingParams->formatOutput == Format_422H)
+    {
+        VP_PUBLIC_ASSERTMESSAGE("Scaling not support 422H format output.");
+        return MOS_STATUS_UNIMPLEMENTED;
+    }
+
     // Clean usedForNextPass flag.
     if (scalingEngine->usedForNextPass)
     {
