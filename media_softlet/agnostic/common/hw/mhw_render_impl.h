@@ -206,6 +206,7 @@ public:
 
     void InitPreemption()
     {
+        MHW_FUNCTION_ENTER;
         MHW_CHK_NULL_NO_STATUS_RETURN(this->m_osItf);
 
         auto skuTable = this->m_osItf->pfnGetSkuTable(this->m_osItf);
@@ -256,11 +257,14 @@ public:
             {
                 m_preemptionCntlRegisterValue = MHW_RENDER_ENGINE_MID_BATCH_PREEMPT_VALUE;
             }
+
+            MHW_NORMALMESSAGE("InitPreemption m_preemptionCntlRegisterValue = %x", m_preemptionCntlRegisterValue);
         }
     }
 
     MOS_STATUS EnablePreemption(PMOS_COMMAND_BUFFER cmdBuffer, std::shared_ptr<mhw::mi::Itf> miItf) override
     {
+        MHW_FUNCTION_ENTER;
         MOS_STATUS eStatus              = MOS_STATUS_SUCCESS;
         MEDIA_FEATURE_TABLE* skuTable   = nullptr;
         MHW_MI_LOAD_REGISTER_IMM_PARAMS loadRegisterParams = {};
@@ -278,6 +282,8 @@ public:
             par.dwRegister = m_preemptionCntlRegisterOffset;
             par.dwData     = m_preemptionCntlRegisterValue;
             MHW_MI_CHK_STATUS(miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(cmdBuffer));
+
+            MHW_NORMALMESSAGE("EnablePreemption Set %x to reg %x", m_preemptionCntlRegisterValue, m_preemptionCntlRegisterOffset);
         }
 
         return eStatus;
