@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2022, Intel Corporation
+* Copyright (c) 2017-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -526,7 +526,6 @@ MOS_STATUS CodechalInterfacesG12Tgllp::Initialize(
     if (hwInterface->m_hwInterfaceNext == nullptr)
     {
         MOS_Delete(hwInterface);
-        mhwInterfaces->SetDestroyState(true);
         CODECHAL_PUBLIC_ASSERTMESSAGE("hwInterfaceNext is not valid!");
         return MOS_STATUS_NO_SPACE;
     }
@@ -539,7 +538,6 @@ MOS_STATUS CodechalInterfacesG12Tgllp::Initialize(
     if (debugInterface == nullptr)
     {
         MOS_Delete(hwInterface);
-        mhwInterfaces->SetDestroyState(true);
         CODECHAL_PUBLIC_ASSERTMESSAGE("debugInterface is not valid!");
         return MOS_STATUS_NO_SPACE;
     }
@@ -554,6 +552,14 @@ MOS_STATUS CodechalInterfacesG12Tgllp::Initialize(
 #else
     CodechalDebugInterface *debugInterface = nullptr;
 #endif // USE_CODECHAL_DEBUG_TOOL
+
+    auto release_func = [&]() 
+    {
+        MOS_Delete(hwInterface);
+#if USE_CODECHAL_DEBUG_TOOL
+        MOS_Delete(debugInterface);
+#endif  // USE_CODECHAL_DEBUG_TOOL
+    };
 
     if (CodecHalIsDecode(CodecFunction))
     {
@@ -625,7 +631,7 @@ MOS_STATUS CodechalInterfacesG12Tgllp::Initialize(
             if (m_codechalDevice == nullptr)
             {
                 CODECHAL_PUBLIC_ASSERTMESSAGE("Failed to create decode device!");
-                return MOS_STATUS_NO_SPACE;
+                CODECHAL_PUBLIC_CHK_STATUS_WITH_DESTROY_RETURN(MOS_STATUS_NO_SPACE, release_func);
             }
  #ifdef _DECODE_PROCESSING_SUPPORTED
 
@@ -639,14 +645,14 @@ MOS_STATUS CodechalInterfacesG12Tgllp::Initialize(
                 if (decoder == nullptr)
                 {
                     CODECHAL_PUBLIC_ASSERTMESSAGE("Failed to create decode device!");
-                    return MOS_STATUS_NO_SPACE;
+                    CODECHAL_PUBLIC_CHK_STATUS_WITH_DESTROY_RETURN(MOS_STATUS_NO_SPACE, release_func);
                 }
                 FieldScalingInterface *fieldScalingInterface =
                     MOS_New(Decode::FieldScaling, hwInterface);
                 if (fieldScalingInterface == nullptr)
                 {
                     CODECHAL_PUBLIC_ASSERTMESSAGE("Failed to create field scaling interface!");
-                    return MOS_STATUS_NO_SPACE;
+                    CODECHAL_PUBLIC_CHK_STATUS_WITH_DESTROY_RETURN(MOS_STATUS_NO_SPACE, release_func);
                 }
                 decoder->m_fieldScalingInterface = fieldScalingInterface;
             }
@@ -758,18 +764,13 @@ MOS_STATUS CodechalInterfacesG12Tgllp::Initialize(
     #endif
         {
             CODECHAL_PUBLIC_ASSERTMESSAGE("Decode mode requested invalid!");
-            return MOS_STATUS_INVALID_PARAMETER;
+            CODECHAL_PUBLIC_CHK_STATUS_WITH_DESTROY_RETURN(MOS_STATUS_INVALID_PARAMETER, release_func);
         }
 
         if (m_codechalDevice == nullptr)
         {
-            MOS_Delete(hwInterface);
-            mhwInterfaces->SetDestroyState(true);
-#if USE_CODECHAL_DEBUG_TOOL
-            MOS_Delete(debugInterface);
-#endif
             CODECHAL_PUBLIC_ASSERTMESSAGE("Decoder device creation failed!");
-            return MOS_STATUS_NO_SPACE;
+            CODECHAL_PUBLIC_CHK_STATUS_WITH_DESTROY_RETURN(MOS_STATUS_NO_SPACE, release_func);
         }
     }
     else if (CodecHalIsEncode(CodecFunction))
@@ -804,7 +805,7 @@ MOS_STATUS CodechalInterfacesG12Tgllp::Initialize(
             if (encoder == nullptr)
             {
                 CODECHAL_PUBLIC_ASSERTMESSAGE("Encode state creation failed!");
-                return MOS_STATUS_INVALID_PARAMETER;
+                CODECHAL_PUBLIC_CHK_STATUS_WITH_DESTROY_RETURN(MOS_STATUS_INVALID_PARAMETER, release_func);
             }
             else
             {
@@ -820,7 +821,7 @@ MOS_STATUS CodechalInterfacesG12Tgllp::Initialize(
             if (encoder == nullptr)
             {
                 CODECHAL_PUBLIC_ASSERTMESSAGE("Encode state creation failed!");
-                return MOS_STATUS_INVALID_PARAMETER;
+                CODECHAL_PUBLIC_CHK_STATUS_WITH_DESTROY_RETURN(MOS_STATUS_INVALID_PARAMETER, release_func);
             }
             else
             {
@@ -837,7 +838,7 @@ MOS_STATUS CodechalInterfacesG12Tgllp::Initialize(
             if (encoder == nullptr)
             {
                 CODECHAL_PUBLIC_ASSERTMESSAGE("Encode allocation failed!");
-                return MOS_STATUS_INVALID_PARAMETER;
+                CODECHAL_PUBLIC_CHK_STATUS_WITH_DESTROY_RETURN(MOS_STATUS_INVALID_PARAMETER, release_func);
             }
             else
             {
@@ -856,7 +857,7 @@ MOS_STATUS CodechalInterfacesG12Tgllp::Initialize(
             if (encoder == nullptr)
             {
                 CODECHAL_PUBLIC_ASSERTMESSAGE("Encode state creation failed!");
-                return MOS_STATUS_INVALID_PARAMETER;
+                CODECHAL_PUBLIC_CHK_STATUS_WITH_DESTROY_RETURN(MOS_STATUS_INVALID_PARAMETER, release_func);
             }
             else
             {
@@ -892,7 +893,7 @@ MOS_STATUS CodechalInterfacesG12Tgllp::Initialize(
             if (encoder == nullptr)
             {
                 CODECHAL_PUBLIC_ASSERTMESSAGE("Encode state creation failed!");
-                return MOS_STATUS_INVALID_PARAMETER;
+                CODECHAL_PUBLIC_CHK_STATUS_WITH_DESTROY_RETURN(MOS_STATUS_INVALID_PARAMETER, release_func);
             }
             else
             {
@@ -906,7 +907,7 @@ MOS_STATUS CodechalInterfacesG12Tgllp::Initialize(
 #endif
         {
             CODECHAL_PUBLIC_ASSERTMESSAGE("Unsupported encode function requested.");
-            return MOS_STATUS_INVALID_PARAMETER;
+            CODECHAL_PUBLIC_CHK_STATUS_WITH_DESTROY_RETURN(MOS_STATUS_INVALID_PARAMETER, release_func);
         }
 #if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
         if (info->Mode != CODECHAL_ENCODE_MODE_JPEG)
@@ -916,7 +917,7 @@ MOS_STATUS CodechalInterfacesG12Tgllp::Initialize(
             {
                 if ((encoder->m_cscDsState = MOS_New(Encode::CscDsMdf, encoder)) == nullptr)
                 {
-                    return MOS_STATUS_INVALID_PARAMETER;
+                    CODECHAL_PUBLIC_CHK_STATUS_WITH_DESTROY_RETURN(MOS_STATUS_INVALID_PARAMETER, release_func);
                 }
             }
             else
@@ -924,7 +925,7 @@ MOS_STATUS CodechalInterfacesG12Tgllp::Initialize(
                 // Create CSC and Downscaling interface
                 if ((encoder->m_cscDsState = MOS_New(Encode::CscDs, encoder)) == nullptr)
                 {
-                    return MOS_STATUS_INVALID_PARAMETER;
+                    CODECHAL_PUBLIC_CHK_STATUS_WITH_DESTROY_RETURN(MOS_STATUS_INVALID_PARAMETER, release_func);
                 }
             }
         }
@@ -933,7 +934,7 @@ MOS_STATUS CodechalInterfacesG12Tgllp::Initialize(
     else
     {
         CODECHAL_PUBLIC_ASSERTMESSAGE("Unsupported codec function requested.");
-        return MOS_STATUS_INVALID_PARAMETER;
+        CODECHAL_PUBLIC_CHK_STATUS_WITH_DESTROY_RETURN(MOS_STATUS_INVALID_PARAMETER, release_func);
     }
 
     return MOS_STATUS_SUCCESS;
