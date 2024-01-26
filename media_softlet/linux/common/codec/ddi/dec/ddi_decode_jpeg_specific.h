@@ -188,6 +188,16 @@ private:
     //!          else fail reason
     VAStatus SetBufferRendered(VABufferID bufferID);
 
+    //! \brief   Check the output format for JPEG decoding
+    //! \details Check whether the output format matches the chromat format.
+    //!
+    //! \param   [in] format
+    //!          MOS_FORMAT
+    //!
+    //! \return  return true if pass the format check.
+    //!          else false
+    bool CheckFormat(MOS_FORMAT format);
+
     void FreeResource();
 
     //! \brief  the internal JPEG bit-stream buffer

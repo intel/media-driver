@@ -510,6 +510,64 @@ VAStatus DdiDecodeJPEG::BeginPicture(
     return vaStatus;
 }
 
+bool DdiDecodeJPEG::CheckFormat(MOS_FORMAT format)
+{
+    bool isSupported = false;
+    CodecDecodeJpegPicParams *jpegPicParam = (CodecDecodeJpegPicParams *)(m_ddiDecodeCtx->DecodeParams.m_picParams);
+    switch (jpegPicParam->m_chromaType)
+    {
+    case jpegYUV400:
+        if (format == Format_400P || format == Format_A8R8G8B8)
+        {
+            isSupported = true;
+        }
+        break;
+    case jpegYUV420:
+        if (format == Format_NV12 || format == Format_YUY2 || format == Format_UYVY || format == Format_IMC3 || format == Format_A8R8G8B8)
+        {
+            isSupported = true;
+        }
+        break;
+    case jpegYUV411:
+        if (format == Format_411P)
+        {
+            isSupported = true;
+        }
+        break;
+    case jpegYUV422H2Y:
+    case jpegYUV422H4Y:
+        if (format == Format_NV12 || format == Format_YUY2 || format == Format_UYVY || format == Format_422H || format == Format_A8R8G8B8)
+        {
+            isSupported = true;
+        }
+        break;
+    case jpegYUV422V2Y:
+    case jpegYUV422V4Y:
+        if (format == Format_NV12 || format == Format_422V || format == Format_A8R8G8B8)
+        {
+            isSupported = true;
+        }
+        break;
+    case jpegYUV444:
+        if (format == Format_444P || format == Format_A8R8G8B8)
+        {
+            isSupported = true;
+        }
+        break;
+    case jpegRGB:
+    case jpegBGR:
+        if (format == Format_RGBP || format == Format_BGRP ||format == Format_A8R8G8B8)
+        {
+            isSupported = true;
+        }
+        break;
+    default:
+        break;
+    }
+
+    return isSupported;
+}
+
 VAStatus DdiDecodeJPEG::InitDecodeParams(
     VADriverContextP ctx,
     VAContextID      context)
@@ -633,6 +691,12 @@ VAStatus DdiDecodeJPEG::SetDecodeParams()
     if(m_ddiDecodeCtx->RTtbl.pCurrentRT != nullptr)
     {
         DdiMedia_MediaSurfaceToMosResource((&(m_ddiDecodeCtx->RTtbl))->pCurrentRT, &(m_destSurface.OsResource));
+    }
+
+    if (!CheckFormat(m_destSurface.OsResource.Format))
+    {
+        DDI_ASSERTMESSAGE("Surface fomrat of decoded surface is inconsistent with Codec bitstream!\n");
+        return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
 
     (&m_ddiDecodeCtx->DecodeParams)->m_destSurface = &m_destSurface;

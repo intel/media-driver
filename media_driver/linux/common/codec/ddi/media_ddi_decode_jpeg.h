@@ -189,6 +189,16 @@ private:
     //!          else fail reason
     VAStatus SetBufferRendered(VABufferID bufferID);
 
+    //! \brief   Check the output format for JPEG decoding
+    //! \details Check whether the output format matches the chromat format.
+    //!
+    //! \param   [in] format
+    //!          MOS_FORMAT
+    //!
+    //! \return  return true if pass the format check.
+    //!          else false
+    bool CheckFormat(MOS_FORMAT format);
+
     //! \brief  the internal JPEG bit-stream buffer
     struct _DDI_MEDIA_BUFFER *m_jpegBitstreamBuf = nullptr;
 
