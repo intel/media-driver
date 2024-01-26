@@ -2444,20 +2444,7 @@ CodechalDebugInterface::CodechalDebugInterface()
             fileName               = CreateFileName(kernelName.c_str(), bufferName, extType);
         }
 
-        MOS_LOCK_PARAMS lockFlags;
-        MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
-        lockFlags.ReadOnly = 1;
-        uint8_t *data      = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, resource, &lockFlags);
-        MEDIA_DEBUG_CHK_NULL(data);
-
-        MOS_STATUS status = MOS_STATUS_SUCCESS;
-
-        MediaDebugFastDump::Dump(data, fileName, size, offset);
-
-        if (data)
-        {
-            m_osInterface->pfnUnlockResource(m_osInterface, resource);
-        }
+        MediaDebugFastDump::Dump(*resource, fileName, size, offset);
 
         if (!MediaDebugFastDump::IsGood())
         {
@@ -2470,7 +2457,7 @@ CodechalDebugInterface::CodechalDebugInterface()
                 mediaState);
         }
 
-        return status;
+        return MOS_STATUS_SUCCESS;
     };
 }
 
