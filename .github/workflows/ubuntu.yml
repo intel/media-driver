@@ -5,6 +5,8 @@ on: [ push, pull_request ]
 env:
   _CFLAGS: -O2 -Wformat -Wformat-security -Wall -Werror -D_FORTIFY_SOURCE=2 -fstack-protector-strong
 
+permissions: read-all
+
 jobs:
   clang14:
     runs-on: ubuntu-20.04
