@@ -3568,10 +3568,6 @@ MOS_STATUS Policy::UpdateExeCaps(SwFilter* feature, VP_EXECUTE_CAPS& caps, Engin
             caps.bDI = 1;
             feature->SetFeatureType(FeatureType(FEATURE_TYPE_EXECUTE(Di, Vebox)));
             break;
-        case FeatureTypeAce:
-            caps.bACE = 1;
-            feature->SetFeatureType(FeatureType(FEATURE_TYPE_EXECUTE(Ace, Vebox)));
-            break;
         case FeatureTypeTcc:
             caps.bTCC = 1;
             feature->SetFeatureType(FeatureType(FEATURE_TYPE_EXECUTE(Tcc, Vebox)));
@@ -3593,14 +3589,6 @@ MOS_STATUS Policy::UpdateExeCaps(SwFilter* feature, VP_EXECUTE_CAPS& caps, Engin
             caps.bHDR3DLUT = 1;
             caps.b3DlutOutput |= 1;
             feature->SetFeatureType(FeatureType(FEATURE_TYPE_EXECUTE(Hdr, Vebox)));
-            break;
-        case FeatureTypeLace:
-            caps.bLACE = 1;
-            feature->SetFeatureType(FeatureType(FEATURE_TYPE_EXECUTE(Lace, Vebox)));
-            break;
-        case FeatureTypeSR:
-            caps.bSR = 1;
-            feature->SetFeatureType(FeatureType(FEATURE_TYPE_EXECUTE(SR, Vebox)));
             break;
         case FeatureTypeCgc:
             caps.bCGC = 1;
@@ -3631,14 +3619,6 @@ MOS_STATUS Policy::UpdateExeCaps(SwFilter* feature, VP_EXECUTE_CAPS& caps, Engin
         case FeatureTypeProcamp:
             caps.bComposite = 1;
             feature->SetFeatureType(FeatureType(FEATURE_TYPE_EXECUTE(Procamp, Render)));
-            break;
-        case FeatureTypeSR:
-            caps.bSR = 1;
-            feature->SetFeatureType(FeatureType(FEATURE_TYPE_EXECUTE(SR, Render)));
-            break;
-        case FeatureTypeLace:
-            caps.bLACE = 1;
-            feature->SetFeatureType(FeatureType(FEATURE_TYPE_EXECUTE(Lace, Render)));
             break;
         case FeatureTypeDi:
             caps.bDI          = 1;
