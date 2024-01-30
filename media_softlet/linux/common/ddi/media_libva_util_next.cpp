@@ -1699,6 +1699,9 @@ VAStatus MediaLibvaUtilNext::SwizzleSurfaceByHW(DDI_MEDIA_SURFACE *surface, bool
 
     DDI_NORMALMESSAGE("Override param: format %d, width %d, height %d, pitch %d", format, width, height, pitch);
 
+    DDI_CHK_NULL(source.pGmmResInfo, "nullptr surface", VA_STATUS_ERROR_INVALID_SURFACE);
+    DDI_CHK_NULL(target.pGmmResInfo, "nullptr surface", VA_STATUS_ERROR_INVALID_SURFACE);
+
     if (isDeSwizzle)
     {
         source.pGmmResInfo->OverrideSurfaceFormat(format);
