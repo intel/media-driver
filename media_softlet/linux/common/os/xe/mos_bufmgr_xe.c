@@ -406,6 +406,8 @@ struct mos_xe_external_bo_info {
     int prime_fd;
 };
 
+#define MOS_UNIMPLEMENT(param)    (void)(param)
+
 static pthread_mutex_t bufmgr_list_mutex = PTHREAD_MUTEX_INITIALIZER;
 static drmMMListHead bufmgr_list = { &bufmgr_list, &bufmgr_list };
 
@@ -565,7 +567,7 @@ bool __mos_has_vram_xe(int fd)
     return __mos_query_vram_region_count_xe(fd) > 0;
 }
 
-int mos_xe_force_gt_reset(int fd, int gt_id)
+int mos_force_gt_reset_xe(int fd, int gt_id)
 {
     char reset_string[128];
 
@@ -1044,7 +1046,7 @@ __mos_context_restore_xe(struct mos_bufmgr *bufmgr,
  * @value indicates to quired value with given property
  */
 static int
-__mos_get_context_property(struct mos_bufmgr *bufmgr,
+__mos_get_context_property_xe(struct mos_bufmgr *bufmgr,
             struct mos_linux_context *ctx,
             uint32_t property,
             uint64_t &value)
@@ -1168,7 +1170,7 @@ static int __mos_vm_bind_xe(int fd, uint32_t vm_id, uint32_t exec_queue_id, uint
     return ret;
 }
 
-static int mos_xe_vm_bind_sync(int fd, uint32_t vm_id, uint32_t bo, uint64_t offset,
+static int mos_vm_bind_sync_xe(int fd, uint32_t vm_id, uint32_t bo, uint64_t offset,
         uint64_t addr, uint64_t size, uint16_t pat_index, uint32_t op, bool is_defer)
 {
     if (is_defer)
@@ -1202,7 +1204,7 @@ static int mos_xe_vm_bind_sync(int fd, uint32_t vm_id, uint32_t bo, uint64_t off
     return ret;
 }
 
-static int mos_xe_vm_bind_async(int fd, uint32_t vm_id, uint32_t bo, uint64_t offset,
+static int mos_vm_bind_async_xe(int fd, uint32_t vm_id, uint32_t bo, uint64_t offset,
         uint64_t addr, uint64_t size, uint16_t pat_index, uint32_t op,
         struct drm_xe_sync *sync, uint32_t num_syncs)
 {
@@ -1312,7 +1314,7 @@ mos_bo_alloc_xe(struct mos_bufmgr *bufmgr,
 
     __mos_bo_set_offset_xe(&bo_gem->bo);
 
-    ret = mos_xe_vm_bind_sync(bufmgr_gem->fd,
+    ret = mos_vm_bind_sync_xe(bufmgr_gem->fd,
                     bufmgr_gem->vm_id,
                     bo_gem->gem_handle,
                     0,
@@ -1323,7 +1325,7 @@ mos_bo_alloc_xe(struct mos_bufmgr *bufmgr,
                     bufmgr_gem->is_defer_creation_and_binding);
     if (ret)
     {
-        MOS_DRM_ASSERTMESSAGE("mos_xe_vm_bind_sync ret: %d", ret);
+        MOS_DRM_ASSERTMESSAGE("mos_vm_bind_sync_xe ret: %d", ret);
         mos_bo_free_xe(&bo_gem->bo);
         return nullptr;
     }
@@ -1481,7 +1483,7 @@ mos_bo_alloc_userptr_xe(struct mos_bufmgr *bufmgr,
 
     __mos_bo_set_offset_xe(&bo_gem->bo);
 
-    ret = mos_xe_vm_bind_sync(bufmgr_gem->fd,
+    ret = mos_vm_bind_sync_xe(bufmgr_gem->fd,
                 bufmgr_gem->vm_id,
                 0,
                 (uint64_t)alloc_uptr->addr,
@@ -1587,7 +1589,7 @@ mos_bo_create_from_prime_xe(struct mos_bufmgr *bufmgr, int prime_fd, int size)
 
     __mos_bo_set_offset_xe(&bo_gem->bo);
 
-    ret = mos_xe_vm_bind_sync(bufmgr_gem->fd,
+    ret = mos_vm_bind_sync_xe(bufmgr_gem->fd,
                 bufmgr_gem->vm_id,
                 bo_gem->gem_handle,
                 0,
@@ -1598,7 +1600,7 @@ mos_bo_create_from_prime_xe(struct mos_bufmgr *bufmgr, int prime_fd, int size)
                 bufmgr_gem->is_defer_creation_and_binding);
     if (ret)
     {
-        MOS_DRM_ASSERTMESSAGE("mos_xe_vm_bind_sync ret: %d", ret);
+        MOS_DRM_ASSERTMESSAGE("mos_vm_bind_sync_xe ret: %d", ret);
         mos_bo_free_xe(&bo_gem->bo);
         return nullptr;
     }
@@ -2459,7 +2461,7 @@ __mos_bo_context_exec_retry_xe(struct mos_bufmgr *bufmgr,
 
     //query ctx property firstly to check if failure is caused by exec_queue ban
     uint64_t property_value = 0;
-    ret = __mos_get_context_property(bufmgr, ctx, DRM_XE_EXEC_QUEUE_GET_PROPERTY_BAN, property_value);
+    ret = __mos_get_context_property_xe(bufmgr, ctx, DRM_XE_EXEC_QUEUE_GET_PROPERTY_BAN, property_value);
 
     /**
      * if exec_queue is banned, queried value is 1, otherwise it is zero;
@@ -3100,9 +3102,7 @@ mos_query_device_blob_xe(struct mos_bufmgr *bufmgr, MEDIA_SYSTEM_INFO* gfx_info)
 static void
 mos_enable_reuse_xe(struct mos_bufmgr *bufmgr)
 {
-    //Note33: define a macro to indicate unimplement func;
-    //#define MOS_XE_UNIMPLEMENT(return) return;
-    return;
+    MOS_UNIMPLEMENT(bufmgr);
 }
 
 static uint64_t
@@ -3122,6 +3122,9 @@ mos_set_platform_information_xe(struct mos_bufmgr *bufmgr, uint64_t p)
 // The function is not supported on KMD
 static int mos_query_hw_ip_version_xe(struct mos_bufmgr *bufmgr, __u16 engine_class, void *ip_ver_info)
 {
+    MOS_UNIMPLEMENT(bufmgr);
+    MOS_UNIMPLEMENT(engine_class);
+    MOS_UNIMPLEMENT(ip_ver_info);
     return 0;
 }
 
@@ -3162,7 +3165,7 @@ mos_bo_free_xe(struct mos_linux_bo *bo)
 
     if(bo->vm_id != INVALID_VM)
     {
-        ret = mos_xe_vm_bind_sync(bufmgr_gem->fd,
+        ret = mos_vm_bind_sync_xe(bufmgr_gem->fd,
                     bo->vm_id,
                     0,
                     0,
@@ -3221,8 +3224,7 @@ mos_bo_free_xe(struct mos_linux_bo *bo)
 static int
 mos_bo_set_softpin_xe(MOS_LINUX_BO *bo)
 {
-    //same as Note33
-    MOS_UNUSED(bo);
+    MOS_UNIMPLEMENT(bo);
     return 0;
 }
 
@@ -3295,19 +3297,17 @@ mo_get_context_param_xe(struct mos_linux_context *ctx,
                 uint64_t param,
                 uint64_t *value)
 {
-    //same as Note33
-    MOS_UNUSED(ctx);
-    MOS_UNUSED(size);
-    MOS_UNUSED(param);
-    MOS_UNUSED(value);
+    MOS_UNIMPLEMENT(ctx);
+    MOS_UNIMPLEMENT(size);
+    MOS_UNIMPLEMENT(param);
+    MOS_UNIMPLEMENT(value);
     return 0;
 }
 
 static void mos_enable_softpin_xe(struct mos_bufmgr *bufmgr, bool va1m_align)
 {
-    //same as Note33
-    MOS_UNUSED(bufmgr);
-    MOS_UNUSED(va1m_align);
+    MOS_UNIMPLEMENT(bufmgr);
+    MOS_UNIMPLEMENT(va1m_align);
 }
 
 static int
@@ -3389,7 +3389,6 @@ mos_bo_get_oca_exec_list_info_xe(struct mos_linux_bo *bo, int *count)
 static bool
 mos_has_bsd2_xe(struct mos_bufmgr *bufmgr)
 {
-    //same as Note33
     MOS_UNUSED(bufmgr);
     return true;
 }
@@ -3397,17 +3396,13 @@ mos_has_bsd2_xe(struct mos_bufmgr *bufmgr)
 static void
 mos_bo_set_object_capture_xe(struct mos_linux_bo *bo)
 {
-    MOS_UNUSED(bo);
-    // Do nothing, because object capture is not supported in xe kmd.
-    MOS_DRM_NORMALMESSAGE("Object capture is not supported in xe kmd");
+    MOS_UNIMPLEMENT(bo);
 }
 
 static void
 mos_bo_set_object_async_xe(struct mos_linux_bo *bo)
 {
-    MOS_UNUSED(bo);
-    // Do nothing, because object capture is not supported in xe kmd.
-    MOS_DRM_NORMALMESSAGE("Object capture is not supported in xe kmd");
+    MOS_UNIMPLEMENT(bo);
 }
 
 static int
