@@ -684,6 +684,20 @@ __mos_get_default_alignment_xe(struct mos_bufmgr *bufmgr, struct drm_xe_query_me
     return 0;
 }
 
+static uint64_t
+mos_get_platform_information_xe(struct mos_bufmgr *bufmgr)
+{
+    MOS_DRM_CHK_NULL_RETURN_VALUE(bufmgr, 0)
+    return bufmgr->platform_information;
+}
+
+static void
+mos_set_platform_information_xe(struct mos_bufmgr *bufmgr, uint64_t p)
+{
+    if(bufmgr)
+        bufmgr->platform_information |= p;
+}
+
 static enum mos_memory_zone
 __mos_bo_memzone_for_address_xe(uint64_t address)
 {
@@ -1472,7 +1486,9 @@ mos_bo_alloc_userptr_xe(struct mos_bufmgr *bufmgr,
     bo_gem->gem_handle = INVALID_HANDLE;
     bo_gem->bo.handle = INVALID_HANDLE;
     bo_gem->bo.size    = alloc_uptr->size;
-    bo_gem->pat_index = 1; //Currently, there is no cpu_caching and pat_index for user_ptr bo, hard code for it temporarily.
+    //Currently, there is no cpu_caching and pat_index for user_ptr bo, hard code for it temporarily.
+    bo_gem->pat_index =
+        mos_get_platform_information_xe(bufmgr) & PLATFORM_INFORMATION_OVERRIDE_UPTR_PAT ? 0 : 1;
     bo_gem->bo.bufmgr = bufmgr;
     bo_gem->bo.vm_id = INVALID_VM;
     bo_gem->mem_region = MEMZONE_SYS;
@@ -3113,20 +3129,6 @@ static void
 mos_enable_reuse_xe(struct mos_bufmgr *bufmgr)
 {
     MOS_UNIMPLEMENT(bufmgr);
-}
-
-static uint64_t
-mos_get_platform_information_xe(struct mos_bufmgr *bufmgr)
-{
-    MOS_DRM_CHK_NULL_RETURN_VALUE(bufmgr, -EINVAL)
-    return bufmgr->platform_information;
-}
-
-static void
-mos_set_platform_information_xe(struct mos_bufmgr *bufmgr, uint64_t p)
-{
-    if(bufmgr)
-        bufmgr->platform_information |= p;
 }
 
 // The function is not supported on KMD
