@@ -1239,31 +1239,32 @@ mos_bo_alloc_xe(struct mos_bufmgr *bufmgr,
     bo_gem->mem_region = MEMZONE_SYS;
     bo_align = MAX(alloc->alignment, bufmgr_gem->default_alignment[MOS_XE_MEM_CLASS_SYSMEM]);
 
-    if (alloc->ext.cpu_cacheable)
-    {
-        /**
-         * It is not allowed for vram bo with WB setting
-         */
-        alloc->ext.cpu_cacheable = false;
-        alloc->ext.pat_index = 13; // Note: hard code here with a default pat index temporarily(WC, uncached)
-    }
-
     if(bufmgr_gem->has_vram &&
-            (MOS_MEMPOOL_VIDEOMEMORY == alloc->ext.mem_type   || MOS_MEMPOOL_DEVICEMEMORY == alloc->ext.mem_type))
+            (MOS_MEMPOOL_VIDEOMEMORY == alloc->ext.mem_type || MOS_MEMPOOL_DEVICEMEMORY == alloc->ext.mem_type))
     {
         bo_gem->mem_region = MEMZONE_DEVICE;
         bo_align = MAX(alloc->alignment, bufmgr_gem->default_alignment[MOS_XE_MEM_CLASS_VRAM]);
+
+        if (alloc->ext.cpu_cacheable)
+        {
+            /**
+             * It is not allowed for vram bo with WB setting
+             */
+            alloc->ext.cpu_cacheable = false;
+            alloc->ext.pat_index = 13; // Note: hard code here with a default pat index temporarily(WC, uncached)
+        }
+
     }
 
     memclear(create);
     if (MEMZONE_DEVICE == bo_gem->mem_region)
     {
         //Note: memory_region is related to gt_id for multi-tiles gpu, take gt_id into consideration in case of multi-tiles
-        create.placement = bufmgr_gem->memory_regions    & (~0x1);
+        create.placement = bufmgr_gem->memory_regions & (~0x1);
     }
     else
     {
-        create.placement = bufmgr_gem->memory_regions    & 0x1;
+        create.placement = bufmgr_gem->memory_regions & 0x1;
     }
 
     //Note: We suggest vm_id=0 here as default, otherwise this bo cannot be exported as prelim fd.
@@ -1291,14 +1292,23 @@ mos_bo_alloc_xe(struct mos_bufmgr *bufmgr,
     bo_gem->bo.vm_id = INVALID_VM;
     bo_gem->bo.bufmgr = bufmgr;
     bo_gem->bo.align = bo_align;
+    bo_gem->cpu_caching = create.cpu_caching;
+    /**
+     * Note: Better to get a default pat_index to overwite invalid argv. Normally it should not happen.
+     */
+    bo_gem->pat_index = alloc->ext.pat_index == PAT_INDEX_INVALID ? 0 : alloc->ext.pat_index;
 
     if (bufmgr_gem->mem_profiler_fd != -1)
     {
-        snprintf(bufmgr_gem->mem_profiler_buffer, MEM_PROFILER_BUFFER_SIZE, "GEM_CREATE, %d, %d, %lu, %d, %s\n", getpid(), bo_gem->bo.handle, bo_gem->bo.size,bo_gem->mem_region, alloc->name);
-        ret = write(bufmgr_gem->mem_profiler_fd, bufmgr_gem->mem_profiler_buffer, strnlen(bufmgr_gem->mem_profiler_buffer, MEM_PROFILER_BUFFER_SIZE));
+        snprintf(bufmgr_gem->mem_profiler_buffer, MEM_PROFILER_BUFFER_SIZE, "GEM_CREATE, %d, %d, %lu, %d, %s\n",
+                    getpid(), bo_gem->bo.handle, bo_gem->bo.size,bo_gem->mem_region, alloc->name);
+        ret = write(bufmgr_gem->mem_profiler_fd,
+                    bufmgr_gem->mem_profiler_buffer,
+                    strnlen(bufmgr_gem->mem_profiler_buffer, MEM_PROFILER_BUFFER_SIZE));
         if (-1 == ret)
         {
-            MOS_DRM_ASSERTMESSAGE("Failed to write to %s: %s", bufmgr_gem->mem_profiler_path, strerror(errno));
+            MOS_DRM_ASSERTMESSAGE("Failed to write to %s: %s",
+                        bufmgr_gem->mem_profiler_path, strerror(errno));
         }
     }
 
