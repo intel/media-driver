@@ -303,6 +303,7 @@ struct _VEBOX_HDR_PARAMS
     VPHAL_CSPACE                    dstColorSpace;
     MOS_FORMAT                      dstFormat;
     HDR_STAGE                       stage;
+    uint32_t                        lutSize;
 };
 
 using SFC_SCALING_PARAMS    = _SFC_SCALING_PARAMS;

@@ -188,6 +188,11 @@ protected:
         return true;
     }
 
+    virtual bool IsHDR33LutSizeSupported()
+    {
+        return m_hwCaps.m_rules.isHDR33LutSizeEnabled;
+    }
+
     std::map<FeatureType, PolicyFeatureHandler*> m_VeboxSfcFeatureHandlers;
     std::map<FeatureType, PolicyFeatureHandler*> m_RenderFeatureHandlers;
     std::vector<FeatureType> m_featurePool;

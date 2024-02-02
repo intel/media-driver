@@ -1055,7 +1055,7 @@ MOS_STATUS VpVeboxCmdPacket::SetHdrParams(PVEBOX_HDR_PARAMS hdrParams)
     pRenderData->HDR3DLUT.uiMaxDisplayLum      = hdrParams->uiMaxDisplayLum;
     pRenderData->HDR3DLUT.uiMaxContentLevelLum = hdrParams->uiMaxContentLevelLum;
     pRenderData->HDR3DLUT.hdrMode              = hdrParams->hdrMode;
-    pRenderData->HDR3DLUT.uiLutSize            = 65;
+    pRenderData->HDR3DLUT.uiLutSize            = hdrParams->lutSize;
 
     VP_RENDER_CHK_STATUS_RETURN(ValidateHDR3DLutParameters(pRenderData->HDR3DLUT.is3DLutTableFilled));
 
@@ -1083,7 +1083,14 @@ MOS_STATUS VpVeboxCmdPacket::SetHdrParams(PVEBOX_HDR_PARAMS hdrParams)
     //Report
     if (m_hwInterface->m_reporting)
     {
-        m_hwInterface->m_reporting->GetFeatures().hdrMode = (pRenderData->HDR3DLUT.hdrMode == VPHAL_HDR_MODE_H2H) ? VPHAL_HDR_MODE_H2H_VEBOX_3DLUT : VPHAL_HDR_MODE_TONE_MAPPING_VEBOX_3DLUT;
+        if (pRenderData->HDR3DLUT.uiLutSize == LUT33_SEG_SIZE)
+        {
+            m_hwInterface->m_reporting->GetFeatures().hdrMode = (pRenderData->HDR3DLUT.hdrMode == VPHAL_HDR_MODE_H2H) ? VPHAL_HDR_MODE_H2H_VEBOX_3DLUT33 : VPHAL_HDR_MODE_TONE_MAPPING_VEBOX_3DLUT33;
+        }
+        else
+        {
+            m_hwInterface->m_reporting->GetFeatures().hdrMode = (pRenderData->HDR3DLUT.hdrMode == VPHAL_HDR_MODE_H2H) ? VPHAL_HDR_MODE_H2H_VEBOX_3DLUT : VPHAL_HDR_MODE_TONE_MAPPING_VEBOX_3DLUT;
+        }
     }
 
     return MOS_STATUS_SUCCESS;
