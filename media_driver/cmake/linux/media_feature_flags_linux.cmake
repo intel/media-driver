@@ -18,6 +18,8 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
+option (ENABLE_NEW_KMD "Enable NEW Linux KMD header files" ON)
+
 # global flag for encode AVC_VME/HEVC_VME/MPEG2/VP8
 bs_set_if_undefined(Encode_VME_Supported "yes")
 # global flag for encode AVC_VDENC/HEVC_VDENC/VP9_VDENC/JPEG
