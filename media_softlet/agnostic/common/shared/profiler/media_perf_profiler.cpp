@@ -61,7 +61,33 @@ struct PerfEntry
     uint32_t    beginRegisterValue[8];      //!< Begin register value
     uint32_t    endRegisterValue[8];        //!< End register value
     uint32_t    beginCpuTime[2];            //!< Begin CPU Time Stamp
-    uint32_t    reserved[14];               //!< Reserved[14]
+    uint32_t    bitstreamSize;              //!< frame level: bitstreamSize
+    uint32_t    SSEY;                       //!< frame level: SSEY 
+    uint32_t    SSEU;                       //!< frame level: SSEU 
+    uint32_t    SSEV;                       //!< frame level: SSEV
+    union
+    {
+        uint32_t DWMeanSsimLayer1_YU;
+        struct
+        {
+            uint32_t MeanSsimLayer1_Y : 12,  // [11:0]
+                DW3_Res_15_12 : 4,           // [15:12]
+                MeanSsimLayer1_U : 12,       // [27:16]
+                DW3_Res_31_18 : 4;           // [31:28]
+        };
+    };
+    union
+    {
+        uint32_t DWMeanSsimLayer1_V;
+        struct
+        {
+            uint32_t MeanSsimLayer1_V : 12,  // [11:0]
+                DW4_Res_15_12 : 4,           // [15:12]
+                MeanSsimLayer1Part_Y : 12,   // [27:16]
+                DW4_Res_31_18 : 4;           // [31:28]
+        };
+    };
+    uint32_t    reserved[8];                //!< Reserved[8]
     uint64_t    beginTimeClockValue;        //!< Begin timestamp
     uint64_t    endTimeClockValue;          //!< End timestamp
 };
@@ -645,6 +671,120 @@ MOS_STATUS MediaPerfProfiler::AddPerfCollectEndCmd(
             cmdBuffer,
             pOsContext,
             offset));
+    }
+
+    return status;
+}
+
+MOS_STATUS MediaPerfProfiler::AddStoreBitstreamSizeCmd(
+    void                           *context,
+    MOS_INTERFACE                  *osInterface,
+    std::shared_ptr<mhw::mi::Itf>& miItf,
+    MOS_COMMAND_BUFFER             *cmdBuffer,
+    uint32_t                       reg)
+{
+    MOS_STATUS status = MOS_STATUS_SUCCESS;
+    
+    if (m_profilerEnabled == 0)
+    {
+        return status;
+    }
+
+    CHK_NULL_RETURN(context);
+    CHK_NULL_RETURN(osInterface);
+    CHK_NULL_RETURN(miItf);
+    CHK_NULL_RETURN(cmdBuffer);
+
+    PMOS_CONTEXT pOsContext = osInterface->pOsContext;
+    CHK_NULL_RETURN(pOsContext);
+
+    uint32_t perfDataIndex = m_contextIndexMap[context];
+
+    CHK_STATUS_RETURN(StoreRegister(
+        osInterface, 
+        miItf, 
+        cmdBuffer, 
+        BASE_OF_NODE(perfDataIndex) + OFFSET_OF(PerfEntry, bitstreamSize), 
+        reg));
+
+    return status;
+}
+    
+MOS_STATUS MediaPerfProfiler::CopyMemData(
+    std::shared_ptr<mhw::mi::Itf>& miItf,
+    PMOS_COMMAND_BUFFER            cmdBuffer,
+    MOS_CONTEXT_HANDLE             pOsContext,
+    PMOS_RESOURCE                  presSrc,
+    uint32_t                       dwSrcOffset,
+    uint32_t                       dwDstOffset)
+{
+    CHK_NULL_RETURN(miItf);
+
+    auto &miCpyMemMemParams = miItf->MHW_GETPAR_F(MI_COPY_MEM_MEM)();
+    miCpyMemMemParams       = {};
+    
+    miCpyMemMemParams.presSrc     = presSrc;
+    miCpyMemMemParams.dwSrcOffset = dwSrcOffset;
+    miCpyMemMemParams.presDst     = m_perfStoreBufferMap[(PMOS_CONTEXT)pOsContext];
+    miCpyMemMemParams.dwDstOffset = dwDstOffset;
+    CHK_STATUS_RETURN(miItf->MHW_ADDCMD_F(MI_COPY_MEM_MEM)(cmdBuffer));
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MediaPerfProfiler::AddCopyQualityMetricCmd(
+    void                           *context,
+    MOS_INTERFACE                  *osInterface,
+    std::shared_ptr<mhw::mi::Itf>& miItf,
+    MOS_COMMAND_BUFFER             *cmdBuffer,
+    UMD_QUALITY_METRIC_ITEM        item,
+    PMOS_RESOURCE                  presSrc,
+    uint32_t                       dwSrcOffset)
+{
+    MOS_STATUS status = MOS_STATUS_SUCCESS;
+    uint32_t   offset = 0;
+
+    if (m_profilerEnabled == 0)
+    {
+        return status;
+    }
+
+    CHK_NULL_RETURN(context);
+    CHK_NULL_RETURN(osInterface);
+    CHK_NULL_RETURN(miItf);
+    CHK_NULL_RETURN(cmdBuffer);
+    CHK_NULL_RETURN(presSrc);
+
+    PMOS_CONTEXT pOsContext = osInterface->pOsContext;
+    CHK_NULL_RETURN(pOsContext);
+
+    uint32_t perfDataIndex = m_contextIndexMap[context];
+
+    switch (item)
+    {
+        case UMD_QUALITY_ITEM_SSEY:
+            offset = BASE_OF_NODE(perfDataIndex) + OFFSET_OF(PerfEntry, SSEY);
+            break;
+        case UMD_QUALITY_ITEM_SSEU:
+            offset = BASE_OF_NODE(perfDataIndex) + OFFSET_OF(PerfEntry, SSEU);
+            break;
+        case UMD_QUALITY_ITEM_SSEV:
+            offset = BASE_OF_NODE(perfDataIndex) + OFFSET_OF(PerfEntry, SSEV);
+            break;
+        case UMD_QUALITY_ITEM_MEAN_SSIM_YU:
+            offset = BASE_OF_NODE(perfDataIndex) + OFFSET_OF(PerfEntry, DWMeanSsimLayer1_YU);
+            break;
+        case UMD_QUALITY_ITEM_MEAN_SSIM_V:
+            offset = BASE_OF_NODE(perfDataIndex) + OFFSET_OF(PerfEntry, DWMeanSsimLayer1_V);
+            break;
+        default:
+            status = MOS_STATUS_INVALID_PARAMETER;
+            break;
+    }
+
+    if (status == MOS_STATUS_SUCCESS)
+    {
+        CHK_STATUS_RETURN(CopyMemData(miItf, cmdBuffer, pOsContext, presSrc, dwSrcOffset, offset));
     }
 
     return status;

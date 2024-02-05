@@ -181,7 +181,7 @@ protected:
         uint32_t            srType,
         MOS_COMMAND_BUFFER *cmdBuffer) override;
 
-    MOS_STATUS EndStatusReport(
+    virtual MOS_STATUS EndStatusReport(
         uint32_t           srType,
         MOS_COMMAND_BUFFER *cmdBuffer) override;
 
