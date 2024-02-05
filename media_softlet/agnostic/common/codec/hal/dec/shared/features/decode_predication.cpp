@@ -38,7 +38,10 @@ DecodePredication::DecodePredication(DecodeAllocator& allocator) :
 
 DecodePredication::~DecodePredication()
 {
-    m_allocator->Destroy(m_predicationBuffer);
+    if (m_allocator)
+    {
+        m_allocator->Destroy(m_predicationBuffer);
+    }
     MOS_Delete(m_resPredication);
 }
 

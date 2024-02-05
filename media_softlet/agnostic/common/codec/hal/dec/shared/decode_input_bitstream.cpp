@@ -39,7 +39,10 @@ DecodeInputBitstream::DecodeInputBitstream(DecodePipeline* pipeline, MediaTask* 
 
 DecodeInputBitstream::~DecodeInputBitstream()
 {
-    m_allocator->Destroy(m_catenatedBuffer);
+    if (m_allocator)
+    {
+        m_allocator->Destroy(m_catenatedBuffer);
+    }
 }
 
 MOS_STATUS DecodeInputBitstream::Init(CodechalSetting& settings)
