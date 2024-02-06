@@ -235,7 +235,6 @@ VAStatus DdiEncodeAvc::ParseMiscParamRC(void *data)
 
     seqParams->TargetBitRate           = encMiscParamRC->bits_per_second;
     vuiParam->bit_rate_value_minus1[0] = MOS_ROUNDUP_SHIFT(encMiscParamRC->bits_per_second, 6 + vuiParam->bit_rate_scale) - 1;
-    seqParams->MBBRC                   = encMiscParamRC->rc_flags.bits.mb_rate_control;
 
     // Assuming picParams are sent before MiscParams
     picParams->ucMinimumQP = encMiscParamRC->min_qp;
@@ -292,11 +291,14 @@ VAStatus DdiEncodeAvc::ParseMiscParamRC(void *data)
             m_encodeCtx->uiMaxBitRate    = seqParams->MaxBitRate;
         }
     }
-    //if RateControl method is VBR/CBR, we can set MBBRC to enable or disable
-    if (VA_RC_CQP != m_encodeCtx->uiRCMethod)
+    //if RateControl method is VBR/CBR and VA_RC_MB bit is set, we can set MBBRC to enable or disable
+    if (VA_RC_CQP != m_encodeCtx->uiRCMethod && (VA_RC_MB & m_encodeCtx->uiRCMethod) && encMiscParamRC->rc_flags.bits.mb_rate_control <= mbBrcDisabled)
     {
-        if (encMiscParamRC->rc_flags.bits.mb_rate_control <= mbBrcDisabled)
-            seqParams->MBBRC = encMiscParamRC->rc_flags.bits.mb_rate_control;
+        seqParams->MBBRC = encMiscParamRC->rc_flags.bits.mb_rate_control;
+    }
+    else
+    {
+        seqParams->MBBRC = mbBrcDisabled;
     }
 
 #ifndef ANDROID

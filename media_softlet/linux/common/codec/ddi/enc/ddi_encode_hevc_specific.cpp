@@ -1109,7 +1109,14 @@ VAStatus DdiEncodeHevc::ParseMiscParams(void *ptr)
         {
             seqParams->TargetBitRate = MOS_ROUNDUP_DIVIDE(vaEncMiscParamRC->bits_per_second, CODECHAL_ENCODE_BRC_KBPS);
         }
-        seqParams->MBBRC         = (vaEncMiscParamRC->rc_flags.bits.mb_rate_control <= mbBrcDisabled) ? vaEncMiscParamRC->rc_flags.bits.mb_rate_control : 0;
+        if (VA_RC_CQP != m_encodeCtx->uiRCMethod && (VA_RC_MB & m_encodeCtx->uiRCMethod) && vaEncMiscParamRC->rc_flags.bits.mb_rate_control <= mbBrcDisabled)
+        {
+            seqParams->MBBRC = vaEncMiscParamRC->rc_flags.bits.mb_rate_control;
+        }
+        else
+        {
+            seqParams->MBBRC = mbBrcDisabled;
+        }        
         //enable parallelBRC for Android and Linux
         seqParams->ParallelBRC = vaEncMiscParamRC->rc_flags.bits.enable_parallel_brc;
 
