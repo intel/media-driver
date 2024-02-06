@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2021, Intel Corporation
+* Copyright (c) 2020-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -59,6 +59,10 @@ MOS_STATUS AvcDownSamplingPkt::InitSfcParams(VDBOX_SFC_PARAMS &sfcParams)
 
     AvcBasicFeature *avcBasicFeature = dynamic_cast<AvcBasicFeature*>(m_basicFeature);
     DECODE_CHK_NULL(avcBasicFeature);
+
+    sfcParams.input.width  = avcBasicFeature->m_width;
+    sfcParams.input.height = avcBasicFeature->m_height;
+
     CODEC_PICTURE curPic = avcBasicFeature->m_avcPicParams->CurrPic;
 
     if (avcBasicFeature->m_avcPicParams->seq_fields.mb_adaptive_frame_field_flag == true)
