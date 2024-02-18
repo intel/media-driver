@@ -370,6 +370,11 @@ struct mos_bufmgr {
 
     size_t (*get_engine_class_size)() = nullptr;
 
+    void (*select_fixed_engine)(struct mos_bufmgr *bufmgr,
+            void *engine_map,
+            uint32_t *nengine,
+            uint32_t fixed_instance_mask) = nullptr;
+
     int (*set_context_param)(struct mos_linux_context *ctx,
                     uint32_t size,
                     uint64_t param,

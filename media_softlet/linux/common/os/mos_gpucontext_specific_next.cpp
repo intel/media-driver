@@ -1988,53 +1988,32 @@ bool GpuContextSpecificNext::SelectEngineInstanceByUser(void *engine_map,
         uint32_t *engineNum, uint32_t userEngineInstance, MOS_GPU_NODE gpuNode)
 {
     uint32_t engineInstance     = 0x0;
-    struct i915_engine_class_instance *engineMap = (struct i915_engine_class_instance *)engine_map;
 
-    if(gpuNode == MOS_GPU_NODE_COMPUTE)
+    if (userEngineInstance && m_osParameters)
     {
-        engineInstance  = (userEngineInstance >> ENGINE_INSTANCE_SELECT_COMPUTE_INSTANCE_SHIFT)
-            & (ENGINE_INSTANCE_SELECT_ENABLE_MASK >> (MAX_ENGINE_INSTANCE_NUM - *engineNum));
-    }
-    else if(gpuNode == MOS_GPU_NODE_VE)
-    {
-        engineInstance  = (userEngineInstance >> ENGINE_INSTANCE_SELECT_VEBOX_INSTANCE_SHIFT)
-            & (ENGINE_INSTANCE_SELECT_ENABLE_MASK >> (MAX_ENGINE_INSTANCE_NUM - *engineNum));
-    }
-    else if(gpuNode == MOS_GPU_NODE_VIDEO || gpuNode == MOS_GPU_NODE_VIDEO2)
-    {
-        engineInstance  = (userEngineInstance >> ENGINE_INSTANCE_SELECT_VDBOX_INSTANCE_SHIFT)
-            & (ENGINE_INSTANCE_SELECT_ENABLE_MASK >> (MAX_ENGINE_INSTANCE_NUM - *engineNum));
-    }
-    else
-    {
-        MOS_OS_NORMALMESSAGE("Invalid gpu node in use.");
-    }
-
-    if(engineInstance)
-    {
-        auto unSelectIndex = 0;
-        for(auto bit = 0; bit < *engineNum; bit++)
+        if(gpuNode == MOS_GPU_NODE_COMPUTE)
         {
-            if(((engineInstance >> bit) & 0x1) && (bit > unSelectIndex))
-            {
-                engineMap[unSelectIndex].engine_class = engineMap[bit].engine_class;
-                engineMap[unSelectIndex].engine_instance = engineMap[bit].engine_instance;
-                engineMap[bit].engine_class = 0;
-                engineMap[bit].engine_instance = 0;
-                unSelectIndex++;
-            }
-            else if(((engineInstance >> bit) & 0x1) && (bit == unSelectIndex))
-            {
-                unSelectIndex++;
-            }
-            else if(!((engineInstance >> bit) & 0x1))
-            {
-                engineMap[bit].engine_class = 0;
-                engineMap[bit].engine_instance = 0;
-            }
+            engineInstance  = (userEngineInstance >> ENGINE_INSTANCE_SELECT_COMPUTE_INSTANCE_SHIFT)
+                & (ENGINE_INSTANCE_SELECT_ENABLE_MASK >> (MAX_ENGINE_INSTANCE_NUM - *engineNum));
         }
-        *engineNum = unSelectIndex;
+        else if(gpuNode == MOS_GPU_NODE_VE)
+        {
+            engineInstance  = (userEngineInstance >> ENGINE_INSTANCE_SELECT_VEBOX_INSTANCE_SHIFT)
+                & (ENGINE_INSTANCE_SELECT_ENABLE_MASK >> (MAX_ENGINE_INSTANCE_NUM - *engineNum));
+        }
+        else if(gpuNode == MOS_GPU_NODE_VIDEO || gpuNode == MOS_GPU_NODE_VIDEO2)
+        {
+            engineInstance  = (userEngineInstance >> ENGINE_INSTANCE_SELECT_VDBOX_INSTANCE_SHIFT)
+                & (ENGINE_INSTANCE_SELECT_ENABLE_MASK >> (MAX_ENGINE_INSTANCE_NUM - *engineNum));
+        }
+        else
+        {
+            MOS_OS_NORMALMESSAGE("Invalid gpu node in use.");
+        }
+
+        mos_select_fixed_engine(m_osParameters->bufmgr, engine_map, engineNum, engineInstance);
     }
+
     return engineInstance;
 }
 #endif

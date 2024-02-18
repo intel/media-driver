@@ -340,6 +340,11 @@ int mos_query_engines(struct mos_bufmgr *bufmgr,
 
 size_t mos_get_engine_class_size(struct mos_bufmgr *bufmgr);
 
+void mos_select_fixed_engine(struct mos_bufmgr *bufmgr,
+            void *engine_map,
+            uint32_t *nengine,
+            uint32_t fixed_instance_mask);
+
 void mos_context_destroy(struct mos_linux_context *ctx);
 
 int

@@ -4746,6 +4746,47 @@ mos_bufmgr_query_sys_engines(struct mos_bufmgr *bufmgr, MEDIA_SYSTEM_INFO* gfx_i
     return 0;
 }
 
+void mos_gem_select_fixed_engine(struct mos_bufmgr *bufmgr,
+            void *engine_map,
+            uint32_t *nengine,
+            uint32_t fixed_instance_mask)
+{
+    MOS_UNUSED(bufmgr);
+#if (DEBUG || _RELEASE_INTERNAL)
+    if (fixed_instance_mask)
+    {
+        struct i915_engine_class_instance *_engine_map = (struct i915_engine_class_instance *)engine_map;
+        auto unselect_index = 0;
+        for(auto bit = 0; bit < *nengine; bit++)
+        {
+            if(((fixed_instance_mask >> bit) & 0x1) && (bit > unselect_index))
+            {
+                _engine_map[unselect_index].engine_class = _engine_map[bit].engine_class;
+                _engine_map[unselect_index].engine_instance = _engine_map[bit].engine_instance;
+                _engine_map[bit].engine_class = 0;
+                _engine_map[bit].engine_instance = 0;
+                unselect_index++;
+            }
+            else if(((fixed_instance_mask >> bit) & 0x1) && (bit == unselect_index))
+            {
+                unselect_index++;
+            }
+            else if(!((fixed_instance_mask >> bit) & 0x1))
+            {
+                _engine_map[bit].engine_class = 0;
+                _engine_map[bit].engine_instance = 0;
+            }
+        }
+        *nengine = unselect_index;
+    }
+#else
+    MOS_UNUSED(engine_map);
+    MOS_UNUSED(nengine);
+    MOS_UNUSED(fixed_instance_mask);
+#endif
+
+}
+
 static int mos_gem_set_context_param_parallel(struct mos_linux_context *ctx,
                      struct i915_engine_class_instance *ci,
                      unsigned int count)
@@ -5233,6 +5274,7 @@ mos_bufmgr_gem_init_i915(int fd, int batch_size)
     bufmgr_gem->bufmgr.query_engines_count = mos_bufmgr_query_engines_count;
     bufmgr_gem->bufmgr.query_engines = mos_bufmgr_query_engines;
     bufmgr_gem->bufmgr.get_engine_class_size = mos_bufmgr_get_engine_class_size;
+    bufmgr_gem->bufmgr.select_fixed_engine = mos_gem_select_fixed_engine;
     bufmgr_gem->bufmgr.switch_off_n_bits = mos_bufmgr_switch_off_n_bits;
     bufmgr_gem->bufmgr.hweight8 = mos_bufmgr_hweight8;
     bufmgr_gem->bufmgr.get_ts_frequency = mos_bufmgr_get_ts_frequency;

@@ -589,20 +589,6 @@ void GpuContextSpecificNextXe::UpdatePriority(int32_t priority)
     //Note: need to implement this bufmgr api to set exec queue property
 }
 
-#if (_DEBUG || _RELEASE_INTERNAL)
-//Note: combind these two functions in both class in furture
-bool GpuContextSpecificNextXe::SelectEngineInstanceByUser(void *engine_map,
-        uint32_t *engineNum, uint32_t userEngineInstance, MOS_GPU_NODE gpuNode)
-{
-    MOS_UNUSED(engine_map);
-    MOS_UNUSED(engineNum);
-    MOS_UNUSED(userEngineInstance);
-    MOS_UNUSED(gpuNode);
-    uint32_t engineInstance     = 0x0;
-    return engineInstance;
-}
-#endif
-
 MOS_STATUS GpuContextSpecificNextXe::ReportEngineInfo(
         void *engine_map,
         int engineNum, bool engineSelectEnable)
