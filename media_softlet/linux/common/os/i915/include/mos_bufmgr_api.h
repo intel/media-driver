@@ -241,6 +241,16 @@ struct mos_drm_bo_alloc_tiled {
     struct mos_drm_bo_alloc_ext ext;
 };
 
+struct mos_drm_uc_version {
+#define UC_TYPE_GUC_SUBMISSION 0
+#define UC_TYPE_HUC            1
+#define UC_TYPE_MAX            2
+#define UC_TYPE_INVALID        (uint16_t)-1
+    uint16_t uc_type;
+    uint32_t major_version;
+    uint32_t minor_version;
+};
+
 struct mos_linux_bo *mos_bo_alloc(struct mos_bufmgr *bufmgr,
                                 struct mos_drm_bo_alloc *alloc);
 struct mos_linux_bo *mos_bo_alloc_userptr(struct mos_bufmgr *bufmgr,
