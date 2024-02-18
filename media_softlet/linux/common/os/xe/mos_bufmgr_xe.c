@@ -201,6 +201,11 @@ typedef struct mos_xe_bufmgr_gem {
     struct drm_xe_query_engines *engines;
     struct drm_xe_query_mem_regions *mem_regions;
     struct drm_xe_query_gt_list *gt_list;
+
+    /**
+     * Note: we agree here that uc_versions[0] for guc version and uc_versions[1] for huc version
+     */
+    struct drm_xe_query_uc_fw_version uc_versions[UC_TYPE_MAX];
     /** bitmask of all memory regions */
     uint64_t memory_regions;
     /** @default_alignment: safe alignment regardless region location */
@@ -682,6 +687,48 @@ __mos_get_default_alignment_xe(struct mos_bufmgr *bufmgr, struct drm_xe_query_me
     }
 
     return 0;
+}
+
+/**
+ * Note: Need to add this func to bufmgr api later
+ */
+static int
+mos_query_uc_version_xe(struct mos_bufmgr *bufmgr, struct mos_drm_uc_version *version)
+{
+    int ret = 0;
+    struct mos_xe_bufmgr_gem *bufmgr_gem = (struct mos_xe_bufmgr_gem *)bufmgr;
+
+    if (bufmgr && version && version->uc_type < UC_TYPE_MAX)
+    {
+        /**
+         * Note: query uc version from kmd if no historic data in bufmgr, otherwise using historic data.
+         */
+        if (bufmgr_gem->uc_versions[version->uc_type].uc_type != version->uc_type)
+        {
+            struct drm_xe_device_query query;
+            memclear(query);
+            query.size = sizeof(struct drm_xe_query_uc_fw_version);
+            query.query = DRM_XE_DEVICE_QUERY_UC_FW_VERSION;
+            memclear(bufmgr_gem->uc_versions[version->uc_type]);
+            bufmgr_gem->uc_versions[version->uc_type].uc_type = version->uc_type;
+            query.data = (uintptr_t)&bufmgr_gem->uc_versions[version->uc_type];
+
+            ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_XE_DEVICE_QUERY,
+                        &query);
+            if (ret)
+            {
+                memclear(bufmgr_gem->uc_versions[version->uc_type]);
+                bufmgr_gem->uc_versions[version->uc_type].uc_type = UC_TYPE_INVALID;
+                MOS_DRM_ASSERTMESSAGE("Failed to query UC version, uc type: %d, errno: %d", version->uc_type, ret);
+                return ret;
+            }
+        }
+
+        version->major_version = bufmgr_gem->uc_versions[version->uc_type].major_ver;
+        version->minor_version = bufmgr_gem->uc_versions[version->uc_type].minor_ver;
+    }
+
+    return ret;
 }
 
 static uint64_t
@@ -3713,6 +3760,9 @@ mos_bufmgr_gem_init_xe(int fd, int batch_size)
             MOS_DRM_ASSERTMESSAGE("Failed to open %s: %s", bufmgr_gem->mem_profiler_path, strerror(errno));
         }
     }
+
+    bufmgr_gem->uc_versions[UC_TYPE_GUC_SUBMISSION].uc_type = UC_TYPE_INVALID;
+    bufmgr_gem->uc_versions[UC_TYPE_HUC].uc_type = UC_TYPE_INVALID;
 
     bufmgr_gem->vm_id = __mos_vm_create_xe(&bufmgr_gem->bufmgr);
     bufmgr_gem->config = __mos_query_config_xe(fd);
