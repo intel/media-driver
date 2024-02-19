@@ -1258,16 +1258,7 @@ mos_bo_alloc_xe(struct mos_bufmgr *bufmgr,
     {
         bo_gem->mem_region = MEMZONE_DEVICE;
         bo_align = MAX(alloc->alignment, bufmgr_gem->default_alignment[MOS_XE_MEM_CLASS_VRAM]);
-
-        if (alloc->ext.cpu_cacheable)
-        {
-            /**
-             * It is not allowed for vram bo with WB setting
-             */
-            alloc->ext.cpu_cacheable = false;
-            alloc->ext.pat_index = 13; // Note: hard code here with a default pat index temporarily(WC, uncached)
-        }
-
+        alloc->ext.cpu_cacheable = false;
     }
 
     memclear(create);
@@ -1486,9 +1477,7 @@ mos_bo_alloc_userptr_xe(struct mos_bufmgr *bufmgr,
     bo_gem->gem_handle = INVALID_HANDLE;
     bo_gem->bo.handle = INVALID_HANDLE;
     bo_gem->bo.size    = alloc_uptr->size;
-    //Currently, there is no cpu_caching and pat_index for user_ptr bo, hard code for it temporarily.
-    bo_gem->pat_index =
-        mos_get_platform_information_xe(bufmgr) & PLATFORM_INFORMATION_OVERRIDE_UPTR_PAT ? 0 : 1;
+    bo_gem->pat_index = alloc_uptr->pat_index == PAT_INDEX_INVALID ? 0 : alloc_uptr->pat_index;
     bo_gem->bo.bufmgr = bufmgr;
     bo_gem->bo.vm_id = INVALID_VM;
     bo_gem->mem_region = MEMZONE_SYS;

@@ -229,6 +229,7 @@ struct mos_drm_bo_alloc_userptr {
     uint32_t stride = 0;
     unsigned long size = 0;
     unsigned long flags = 0;
+    uint16_t pat_index = 0;
 };
 
 struct mos_drm_bo_alloc_tiled {

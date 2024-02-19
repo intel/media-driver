@@ -263,6 +263,7 @@ MOS_STATUS GraphicsResourceSpecificNext::Allocate(OsContextNext* osContextPtr, C
         alloc_uptr.tiling_mode = tileFormatLinux;
         alloc_uptr.stride = bufPitch;
         alloc_uptr.size = bufSize;
+        alloc_uptr.pat_index = patIndex;
 
         boPtr = mos_bo_alloc_userptr(pOsContextSpecific->m_bufmgr, &alloc_uptr);
     }

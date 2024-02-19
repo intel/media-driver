@@ -414,7 +414,7 @@ VAStatus MediaLibvaUtilNext::GenerateGmmParamsForCompressionExternalSurface(
     gmmCustomParams.CpTag         = params.cpTag;
     switch (params.tileFormat)
     {
-        case I915_TILING_Y:
+        case TILING_Y:
             gmmCustomParams.Flags.Info.TiledY = true;
             gmmCustomParams.Flags.Gpu.MMC    = false;
             if (MEDIA_IS_SKU(&mediaDrvCtx->SkuTable, FtrE2ECompression) &&
@@ -456,10 +456,10 @@ VAStatus MediaLibvaUtilNext::GenerateGmmParamsForCompressionExternalSurface(
                 }
             }
             break;
-        case I915_TILING_X:
+        case TILING_X:
             gmmCustomParams.Flags.Info.TiledX = true;
             break;
-        case I915_TILING_NONE:
+        case TILING_NONE:
         default:
             gmmCustomParams.Flags.Info.Linear = true;
     }
@@ -535,6 +535,18 @@ VAStatus MediaLibvaUtilNext::CreateExternalSurface(
     DDI_CHK_NULL(mediaDrvCtx->pDrmBufMgr,        "drm buffer mgr is nullptr",    VA_STATUS_ERROR_INVALID_BUFFER);
     DDI_CHK_NULL(mediaDrvCtx->pGmmClientContext, "gmm context is nullptr",       VA_STATUS_ERROR_INVALID_CONTEXT);
 
+    if ((mediaSurface->pSurfDesc->uiVaMemType != VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM) &&
+        (mediaSurface->pSurfDesc->uiVaMemType != VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME) &&
+        (mediaSurface->pSurfDesc->uiVaMemType != VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2) &&
+#if VA_CHECK_VERSION(1, 21, 0)
+        (mediaSurface->pSurfDesc->uiVaMemType != VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_3) &&
+#endif
+        (mediaSurface->pSurfDesc->uiVaMemType != VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR))
+    {
+        DDI_ASSERTMESSAGE("Unsupported external surface memory type.");
+        return VA_STATUS_ERROR_ALLOCATION_FAILED;
+    }
+
     GMM_RESOURCE_INFO  *gmmResourceInfo = nullptr;
     MOS_LINUX_BO       *bo = nullptr;
     uint32_t           swizzle_mode;
@@ -545,6 +557,56 @@ VAStatus MediaLibvaUtilNext::CreateExternalSurface(
     params.bMemCompRC = false;
     params.pitch = mediaSurface->pSurfDesc->uiPitches[0];
     DDI_CHK_CONDITION(params.pitch == 0, "Invalid pich.", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    // Set cp flag to indicate the secure surface
+    if (mediaSurface->pSurfDesc->uiFlags & VA_SURFACE_EXTBUF_DESC_PROTECTED)
+    {
+        params.cpTag = PROTECTED_SURFACE_TAG;
+    }
+
+    if (VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR == mediaSurface->pSurfDesc->uiVaMemType)
+    {
+        params.tileFormat = TILE_NONE;
+    }
+
+    if (params.bMemCompEnable)
+    {
+        GMM_RESCREATE_CUSTOM_PARAMS_2 gmmParams = {};
+        status = GenerateGmmParamsForCompressionExternalSurface(gmmParams, params, mediaSurface, mediaDrvCtx);
+        if(status != VA_STATUS_SUCCESS)
+        {
+            DDI_ASSERTMESSAGE("Generate gmmParams for compression external surface failed.");
+            return status;
+        }
+
+        if (VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR == mediaSurface->pSurfDesc->uiVaMemType)
+        {
+            gmmParams.Usage = GMM_RESOURCE_USAGE_STAGING;
+            gmmParams.Type = RESOURCE_1D;
+        }
+
+        gmmResourceInfo = mediaDrvCtx->pGmmClientContext->CreateCustomResInfoObject_2(&gmmParams);
+    }
+    else
+    {
+        GMM_RESCREATE_CUSTOM_PARAMS gmmCustomParams = {};
+        status = GenerateGmmParamsForNoneCompressionExternalSurface(gmmCustomParams, params, mediaSurface);
+        if(status != VA_STATUS_SUCCESS)
+        {
+            DDI_ASSERTMESSAGE("Generate gmmParams for none compression external surface failed.");
+            return status;
+        }
+
+        if (VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR == mediaSurface->pSurfDesc->uiVaMemType)
+        {
+            gmmCustomParams.Usage = GMM_RESOURCE_USAGE_STAGING;
+            gmmCustomParams.Type = RESOURCE_1D;
+        }
+
+        gmmResourceInfo = mediaDrvCtx->pGmmClientContext->CreateCustomResInfoObject(&gmmCustomParams);
+    }
+
+    DDI_CHK_NULL(gmmResourceInfo, "Gmm create resource failed", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
     // DRM buffer allocated by Application, No need to re-allocate new DRM buffer
     switch (mediaSurface->pSurfDesc->uiVaMemType)
@@ -565,21 +627,27 @@ VAStatus MediaLibvaUtilNext::CreateExternalSurface(
 #endif
         case VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR:
         {
+            unsigned int patIndex = MosInterface::GetPATIndexFromGmm(mediaDrvCtx->pGmmClientContext, gmmResourceInfo);
+
             struct mos_drm_bo_alloc_userptr alloc_uptr;
             alloc_uptr.name = "SysSurface";
             alloc_uptr.addr = (void *)mediaSurface->pSurfDesc->ulBuffer;
             alloc_uptr.tiling_mode = mediaSurface->pSurfDesc->uiTile;
             alloc_uptr.stride = params.pitch;
             alloc_uptr.size = mediaSurface->pSurfDesc->uiBuffserSize;
+            alloc_uptr.pat_index = patIndex;
 
             bo = mos_bo_alloc_userptr(mediaDrvCtx->pDrmBufMgr, &alloc_uptr);
         }
             break;
-        default:
-            DDI_ASSERTMESSAGE("Unsupported external surface memory type.");
-            return VA_STATUS_ERROR_ALLOCATION_FAILED;
     }
-    DDI_CHK_NULL(bo, "Failed to create drm buffer object according to input buffer descriptor." ,VA_STATUS_ERROR_ALLOCATION_FAILED);
+
+    if (nullptr == bo)
+    {
+        DDI_ASSERTMESSAGE("Failed to create drm buffer object according to input buffer descriptor.");
+        mediaDrvCtx->pGmmClientContext->DestroyResInfoObject(gmmResourceInfo);
+        return VA_STATUS_ERROR_ALLOCATION_FAILED;
+    }
 
     switch(mediaSurface->pSurfDesc->uiVaMemType)
     {
@@ -613,18 +681,11 @@ VAStatus MediaLibvaUtilNext::CreateExternalSurface(
             break;
 #endif
         case VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR:
-            mos_bo_get_tiling(bo, &params.tileFormat, &swizzle_mode);
+            params.tileFormat = TILE_NONE;
             break;
-        default:
-            DDI_ASSERTMESSAGE("Unsupported external surface memory type.");
-            return VA_STATUS_ERROR_ALLOCATION_FAILED;
     }
 
-    // Set cp flag to indicate the secure surface
-    if (mediaSurface->pSurfDesc->uiFlags & VA_SURFACE_EXTBUF_DESC_PROTECTED)
-    {
-        params.cpTag = PROTECTED_SURFACE_TAG;
-    }
+    mediaDrvCtx->pGmmClientContext->DestroyResInfoObject(gmmResourceInfo);
 
     if (params.bMemCompEnable)
     {
