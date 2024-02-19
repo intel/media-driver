@@ -236,10 +236,6 @@
 #define VP_VEBOX_HDR_3DLUT65                                        LUT65_SEG_SIZE *\
                                                                     LUT65_SEG_SIZE *\
                                                                     LUT65_MUL_SIZE * sizeof(int64_t)
-#define VP_VEBOX_HDR_3DLUT33                                        LUT33_SEG_SIZE *             \
-                                                                    LUT33_SEG_SIZE *     \
-                                                                    LUT33_MUL_SIZE * \
-                                                                    sizeof(int64_t)
 #define SHAPE_1K_LOOKUP_SIZE                                        2048 * sizeof(uint32_t)
 //!
 //! \brief Vebox Statistics Surface definition

@@ -206,7 +206,6 @@ struct VP_POLICY_RULES
     bool isAvsSamplerSupported;
     bool isHDR3DLutKernelEnabled;
     bool is1K1DLutSurfaceInUse;
-    bool isHDR33LutSizeEnabled = false;
 };
 
 struct VP_HW_CAPS
