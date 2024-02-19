@@ -226,6 +226,11 @@ MOS_STATUS GpuContextSpecificNextXe::InitBltCtx(PMOS_CONTEXT osParameters,
         return MOS_STATUS_UNKNOWN;
     }
     numPlacement = *nengine;
+    if (numPlacement >= 2)
+    {
+        // only use BCS0. BCS8 is paging copy
+        numPlacement = 1;
+    }
 
     m_i915Context[0] = mos_context_create_shared(osParameters->bufmgr,
                                              nullptr,
