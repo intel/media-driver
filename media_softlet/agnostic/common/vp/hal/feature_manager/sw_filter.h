@@ -35,6 +35,7 @@
 #include "vp_render_common.h"
 #include <vector>
 #include "media_sfc_interface.h"
+#include "surface_type.h"
 
 namespace vp
 {
@@ -54,15 +55,6 @@ class SwFilterSubPipe;
 
 #define FEATURE_TYPE_MASK                   0xffffff00
 #define FEATURE_TYPE_ENGINE_ASSIGNED(feature) (((feature)&FEATURE_TYPE_MASK) != (feature))
-
-#define SURFACETYPE_SIZE32                  31
-#define SURFACETYPE_SIZE16                  15
-#define SURFACETYPE_SIZE5                   4
-#define SURFACETYPE_SIZE10                  9
-
-#define GFSURFACE_COUNT 8
-#define MOTION_CHANNEL 3
-#define MAX_MODELSURFACE_COUNT 85
 
 #define VPHAL_MAX_HDR_INPUT_LAYER           8
 #define VPHAL_MAX_HDR_OUTPUT_LAYER          1
@@ -138,108 +130,6 @@ enum RenderTargetType
     RenderTargetTypeInvalid = 0,
     RenderTargetTypeSurface,
     RenderTargetTypeParameter
-};
-
-enum SurfaceType
-{
-    SurfaceTypeInvalid = 0,
-    SurfaceTypeVeboxInput,
-    SurfaceTypeVeboxPreviousInput,
-    SurfaceTypeDNOutput,
-    SurfaceTypeVeboxCurrentOutput,
-    SurfaceTypeVeboxPreviousOutput,
-    SurfaceTypeScalar,
-    SurfaceTypeSTMMIn,
-    SurfaceTypeSTMMOut,
-    SurfaceTypeACEHistory,
-    SurfaceTypeFMDHistory,
-    SurfaceTypeLaceAceRGBHistogram,
-    SurfaceTypeLaceLut,
-    SurfaceTypeStatistics,
-    SurfaceTypeSkinScore,
-    SurfaceType3DLut,
-    SurfaceType1k1dLut,
-    SurfaceType1dLutHDR,
-    SurfaceTypeAlphaOrVignette,
-    SurfaceTypeVeboxStateHeap_Drv,
-    SurfaceTypeVeboxStateHeap_Knr,
-    SurfaceTypeAutoDNNoiseLevel, // with kernel path needed
-    SurfaceTypeAutoDNSpatialConfig,
-    SurfaceTypeRenderInput,
-    SurfaceTypeRenderOutput,
-    SurfaceTypeAggregatedHistogram,
-    SurfaceTypeFrameHistogram,
-    SurfaceTypeStdStatistics,
-    SurfaceTypePwlfIn,
-    SurfaceTypePwlfOut,
-    SurfaceTypeWeitCoef,
-    SurfaceTypGlobalToneMappingCurveLUT,
-    // FC
-    SurfaceTypeFcInputLayer0,
-    SurfaceTypeFcInputLayer1,
-    SurfaceTypeFcInputLayer2,
-    SurfaceTypeFcInputLayer3,
-    SurfaceTypeFcInputLayer4,
-    SurfaceTypeFcInputLayer5,
-    SurfaceTypeFcInputLayer6,
-    SurfaceTypeFcInputLayer7,
-    SurfaceTypeFcInputLayerMax = SurfaceTypeFcInputLayer7,
-    SurfaceTypeFcInputLayer0Field1Dual,
-    SurfaceTypeFcInputLayer1Field1Dual,
-    SurfaceTypeFcInputLayer2Field1Dual,
-    SurfaceTypeFcInputLayer3Field1Dual,
-    SurfaceTypeFcInputLayer4Field1Dual,
-    SurfaceTypeFcInputLayer5Field1Dual,
-    SurfaceTypeFcInputLayer6Field1Dual,
-    SurfaceTypeFcInputLayer7Field1Dual,
-    SurfaceTypeFcInputLayerMaxField1Dual = SurfaceTypeFcInputLayer7Field1Dual,
-    SurfaceTypeFcTarget0,
-    SurfaceTypeFcTarget1,
-    SurfaceTypeFcCscCoeff,
-    SurfaceTypeDecompressionSync,
-
-    // 3DLut Kernel
-    SurfaceType3DLut2D,
-    SurfaceType3DLutCoef,
-    
-    // HVS Kernel
-    SurfaceTypeHVSTable,
-
-    // HDR Kernel
-    SurfaceTypeHdrInputLayer0,
-    SurfaceTypeHdrInputLayer1,
-    SurfaceTypeHdrInputLayer2,
-    SurfaceTypeHdrInputLayer3,
-    SurfaceTypeHdrInputLayer4,
-    SurfaceTypeHdrInputLayer5,
-    SurfaceTypeHdrInputLayer6,
-    SurfaceTypeHdrInputLayer7,
-    SurfaceTypeHdrInputLayerMax = SurfaceTypeHdrInputLayer7,
-    SurfaceTypeHdrOETF1DLUTSurface0,
-    SurfaceTypeHdrOETF1DLUTSurface1,
-    SurfaceTypeHdrOETF1DLUTSurface2,
-    SurfaceTypeHdrOETF1DLUTSurface3,
-    SurfaceTypeHdrOETF1DLUTSurface4,
-    SurfaceTypeHdrOETF1DLUTSurface5,
-    SurfaceTypeHdrOETF1DLUTSurface6,
-    SurfaceTypeHdrOETF1DLUTSurface7,
-    SurfaceTypeHdrCRI3DLUTSurface0,
-    SurfaceTypeHdrCRI3DLUTSurface1,
-    SurfaceTypeHdrCRI3DLUTSurface2,
-    SurfaceTypeHdrCRI3DLUTSurface3,
-    SurfaceTypeHdrCRI3DLUTSurface4,
-    SurfaceTypeHdrCRI3DLUTSurface5,
-    SurfaceTypeHdrCRI3DLUTSurface6,
-    SurfaceTypeHdrCRI3DLUTSurface7,
-    SurfaceTypeHdrTarget0,
-    SurfaceTypeHdrCoeff,
-    SurfaceTypeHdrAutoModeCoeff,
-    SurfaceTypeHdrAutoModeIirTempSurface,
-    NumberOfSurfaceTypeBase,
-#ifdef _MEDIA_RESERVED
-#include "surface_type_ext.h"
-#endif
-    NumberOfSurfaceType
 };
 
 using  VP_SURFACE_GROUP = std::map<SurfaceType, VP_SURFACE*>;
