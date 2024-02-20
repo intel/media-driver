@@ -163,6 +163,13 @@ public:
 
     virtual PMOS_INTERFACE GetMosInterface();
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    virtual void SetRegkeyReport(bool flag)
+    {
+        m_bRegReport = flag;
+    }
+#endif
+
 protected:
 
     //!
@@ -287,6 +294,9 @@ public:
 
 protected:
     PMOS_MUTEX           m_inUseGPUMutex = nullptr; // Mutex for in-use GPU context
+#if (_DEBUG || _RELEASE_INTERNAL)
+    bool                 m_bRegReport    = true;
+#endif
 MEDIA_CLASS_DEFINE_END(MediaCopyBaseState)
 };
 #endif
