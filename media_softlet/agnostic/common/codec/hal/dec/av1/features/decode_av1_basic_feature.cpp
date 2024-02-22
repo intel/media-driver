@@ -386,7 +386,10 @@ namespace decode
         // LRU Luma Size cannot < Superblock Size. If Superblock Size is 128x128, LRU Luma Size cannot be 64x64.
         if (m_av1PicParams->m_seqInfoFlags.m_fields.m_use128x128Superblock)
         {
-            if (m_av1PicParams->m_loopRestorationFlags.m_fields.m_lrUnitShift == 0)
+            if (m_av1PicParams->m_loopRestorationFlags.m_fields.m_lrUnitShift == 0 &&
+                (m_av1PicParams->m_loopRestorationFlags.m_fields.m_yframeRestorationType ||
+                    m_av1PicParams->m_loopRestorationFlags.m_fields.m_cbframeRestorationType ||
+                    m_av1PicParams->m_loopRestorationFlags.m_fields.m_crframeRestorationType))
             {
                 DECODE_ASSERTMESSAGE("Superblock use Conflict with AV1 Spec!");
                 m_av1PicParams->m_loopRestorationFlags.m_value = 0;
