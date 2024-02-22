@@ -41,6 +41,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/vp_feature_caps.h
     ${CMAKE_CURRENT_LIST_DIR}/sw_filter_handle.h
     ${CMAKE_CURRENT_LIST_DIR}/vp_kernelset.h
+    ${CMAKE_CURRENT_LIST_DIR}/surface_type.h
 )
 
 set(SOFTLET_VP_SOURCES_
