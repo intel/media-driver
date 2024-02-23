@@ -34,8 +34,7 @@
 #include "mos_os_virtualengine_next.h"
 #include "mos_interface.h"
 #include "mos_os_cp_interface_specific.h"
-#ifdef ENABLE_NEW_KMD
-// This header file is in close source temporarily. Could not find this header file in open source repo.
+#ifdef ENABLE_XE_KMD
 #include "mos_gpucontext_specific_next_xe.h"
 #endif
 
@@ -120,7 +119,7 @@ GpuContextNext *GpuContextSpecificNext::Create(
     {
         return MOS_New(GpuContextSpecificNext, gpuNode, cmdBufMgr, reusedContext);
     }
-#ifdef ENABLE_NEW_KMD
+#ifdef ENABLE_XE_KMD
     else if (DEVICE_TYPE_XE == type)
     {
         return MOS_New(GpuContextSpecificNextXe, gpuNode, cmdBufMgr, reusedContext);
