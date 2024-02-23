@@ -440,7 +440,7 @@ protected:
     // If queryAssignment == false, query whether STMM needed to be allocated.
     bool VeboxSTMMNeeded(VP_EXECUTE_CAPS& caps, bool queryAssignment);
     virtual uint32_t GetHistogramSurfaceSize(VP_EXECUTE_CAPS& caps, uint32_t inputWidth, uint32_t inputHeight);
-    virtual uint32_t Get3DLutSize(uint32_t &lutWidth, uint32_t &lutHeight);
+    virtual uint32_t Get3DLutSize(bool is33LutSizeEnabled, uint32_t &lutWidth, uint32_t &lutHeight);
     virtual uint32_t Get1DLutSize();
     virtual Mos_MemPool GetHistStatMemType(VP_EXECUTE_CAPS &caps);
     MOS_STATUS ReAllocateVeboxOutputSurface(VP_EXECUTE_CAPS& caps, VP_SURFACE *inputSurface, VP_SURFACE *outputSurface, bool &allocated);

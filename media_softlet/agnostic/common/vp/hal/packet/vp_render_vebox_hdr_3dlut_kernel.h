@@ -74,7 +74,7 @@ struct VEBOX_HDR_3DLUT_STATIC_DATA
     {
         struct
         {
-            uint32_t Thread_Group_X;  // VDENC OUTPUT  input
+            uint32_t hdr3DLutPrivateBaseUp;  // Offset
         };
 
         uint32_t Value;
@@ -83,7 +83,7 @@ struct VEBOX_HDR_3DLUT_STATIC_DATA
     {
         struct
         {
-            uint32_t Thread_Group_Y;  //  cu count buffer  1d linear  ushort  input
+            uint32_t hdr3DLutPrivateBaseDown;  // Offset
         };
 
         uint32_t Value;
@@ -92,49 +92,19 @@ struct VEBOX_HDR_3DLUT_STATIC_DATA
     {
         struct
         {
-            uint32_t Thread_Group_Z;  //  1D Linear Buffer output
+            uint32_t hdr3DLutSurface;  // HDR 3D Lut Surface
         };
-
         uint32_t Value;
     } DW02;
     union
     {
         struct
         {
-            uint32_t Thread_Group_Start_X;  //  2D Surface  output  float
+            uint32_t hdr3DLutSurfaceOffset;  // HDR 3D Lut Surface Offset
         };
-
         uint32_t Value;
     } DW03;
-    union
-    {
-        struct
-        {
-            uint32_t Thread_Group_Start_Y;  //  2D Surface  output  float
-        };
 
-        uint32_t Value;
-    } DW04;
-    union
-    {
-        struct
-        {
-            uint32_t Thread_Group_Start_Z;  //  2D Surface  output  float
-        };
-
-        uint32_t Value;
-    } DW05;
-    //0 - GRF R1.0
-    union
-    {
-        struct
-        {
-            uint32_t hdr3DLutSurface;  // HDR 3D Lut Surface
-        };
-        uint32_t Value;
-    } DW06;
-
-    //1 - GRF R1.1
     union
     {
         struct
@@ -142,9 +112,15 @@ struct VEBOX_HDR_3DLUT_STATIC_DATA
             uint32_t hdrCoefSurface;  // HDR Coef Surface
         };
         uint32_t Value;
-    } DW07;
-
-    //2 - GRF R1.2
+    } DW04;
+    union
+    {
+        struct
+        {
+            uint32_t hdrCoefSurfaceOffset;  // HDR Coef Surface Offset
+        };
+        uint32_t Value;
+    } DW05;
     union
     {
         struct
@@ -153,29 +129,10 @@ struct VEBOX_HDR_3DLUT_STATIC_DATA
             uint16_t hdr3DLutSurfaceHeight : 16;
         };
         uint32_t Value;
-    } DW08;
+    } DW06;
 
-    //3 - GRF R1.3
-    union
-    {
-        struct
-        {
-            uint32_t hdr3DLutLayoutUP;
-        };
-        uint32_t Value;
-    } DW09;
-
-    //4 - GRF R1.4
-    union
-    {
-        struct
-        {
-            uint32_t hdr3DLutLayoutDown;
-        };
-        uint32_t Value;
-    } DW10;
 };
-C_ASSERT(SIZE32(VEBOX_HDR_3DLUT_STATIC_DATA) == 11);
+C_ASSERT(SIZE32(VEBOX_HDR_3DLUT_STATIC_DATA) == 7);
 
 //!
 //! \brief    Tone Mapping Source Type, Please don't change the Enmu Value.
@@ -239,7 +196,6 @@ public:
     {
         return true;
     }
-
     virtual MOS_STATUS GetWalkerSetting(KERNEL_WALKER_PARAMS &walkerParam, KERNEL_PACKET_RENDER_DATA &renderData) override;
     virtual MOS_STATUS InitCoefSurface(const uint32_t maxDLL, const uint32_t maxCLL, const VPHAL_HDR_MODE hdrMode);
 
@@ -258,6 +214,7 @@ protected:
     uint32_t        m_maxDisplayLum         = 1000;         //!< Maximum Display Luminance
     uint32_t        m_maxContentLevelLum    = 4000;         //!< Maximum Content Level Luminance
     VPHAL_HDR_MODE  m_hdrMode               = VPHAL_HDR_MODE_NONE;
+    uint32_t        m_hdrLutSize            = LUT65_SEG_SIZE;
 
     MEDIA_CLASS_DEFINE_END(vp__VpRenderHdr3DLutKernel)
 };

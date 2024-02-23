@@ -501,7 +501,7 @@ MOS_STATUS SwFilterPipe::ConfigFeaturesToPipe(VP_PIPELINE_PARAMS &params, Featur
             {
                 VP_PUBLIC_CHK_STATUS_RETURN(AddSwFilterUnordered(swFilter, isInputPipe, pipeIndex));
                 MT_LOG4(MT_VP_HAL_SWWFILTER_ADD, MT_NORMAL, MT_VP_HAL_PIPE_ISINPUT, isInputPipe, MT_VP_HAL_PIPE_INDEX, pipeIndex, 
-                    MT_VP_HAL_FEATUERTYPE, swFilter->GetFeatureType(), MT_VP_HAL_ENGINECAPS, swFilter->GetFilterEngineCaps().value);
+                    MT_VP_HAL_FEATUERTYPE, swFilter->GetFeatureType(), MT_VP_HAL_ENGINECAPS, int64_t(swFilter->GetFilterEngineCaps().value));
             }
         }
     }

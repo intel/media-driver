@@ -296,13 +296,10 @@ MOS_STATUS VpRenderHdr3DLutKernel::GetCurbeState(void *&curbe, uint32_t &curbeLe
     }
 
     MOS_ZeroMemory(&m_curbe, sizeof(m_curbe));
-    m_curbe.DW00.Thread_Group_X        = LUT65_SEG_SIZE;
-    m_curbe.DW01.Thread_Group_Y        = LUT65_SEG_SIZE;
-    m_curbe.DW02.Thread_Group_Z        = 1;
-    m_curbe.DW06.hdr3DLutSurface       = *bindingMap3DLut.begin();
-    m_curbe.DW07.hdrCoefSurface        = *bindingMapCoef.begin();
-    m_curbe.DW08.hdr3DLutSurfaceHeight = LUT65_SEG_SIZE * LUT65_MUL_SIZE;
-    m_curbe.DW08.hdr3DLutSurfaceWidth  = LUT65_SEG_SIZE * 2;
+    m_curbe.DW02.hdr3DLutSurface       = *bindingMap3DLut.begin();
+    m_curbe.DW04.hdrCoefSurface        = *bindingMapCoef.begin();
+    m_curbe.DW06.hdr3DLutSurfaceWidth  = m_hdrLutSize;
+    m_curbe.DW06.hdr3DLutSurfaceHeight = m_hdrLutSize;
 
     curbeLength = sizeof(VEBOX_HDR_3DLUT_STATIC_DATA);
     curbe = (uint8_t *) & m_curbe;
@@ -323,7 +320,7 @@ MOS_STATUS VpRenderHdr3DLutKernel::SetKernelConfigs(KERNEL_CONFIGS &kernelConfig
     PRENDER_HDR_3DLUT_CAL_PARAMS params = (PRENDER_HDR_3DLUT_CAL_PARAMS)it->second;
 
     if (m_maxDisplayLum == params->maxDisplayLum && m_maxContentLevelLum == params->maxContentLevelLum &&
-        m_hdrMode == params->hdrMode)
+        m_hdrMode == params->hdrMode && m_hdrLutSize == params->threadWidth)
     {
         // For such case, 3DLut calculation should be skipped in Policy::GetHdrExecutionCaps.
         VP_RENDER_ASSERTMESSAGE("No change in 3D Lut parameters!");
@@ -333,10 +330,12 @@ MOS_STATUS VpRenderHdr3DLutKernel::SetKernelConfigs(KERNEL_CONFIGS &kernelConfig
         m_maxDisplayLum      = params->maxDisplayLum;
         m_maxContentLevelLum = params->maxContentLevelLum;
         m_hdrMode            = params->hdrMode;
-        VP_RENDER_NORMALMESSAGE("Maximum Display Luminance %d, Maximum Content Level Luminance %d, HDR mode %d",
+        m_hdrLutSize         = params->threadWidth;
+        VP_RENDER_NORMALMESSAGE("Maximum Display Luminance %d, Maximum Content Level Luminance %d, HDR mode %d, Lut size %d",
             m_maxDisplayLum,
             m_maxContentLevelLum,
-            m_hdrMode);
+            m_hdrMode,
+            m_hdrLutSize);
     }
 
     return MOS_STATUS_SUCCESS;
@@ -348,19 +347,16 @@ MOS_STATUS VpRenderHdr3DLutKernel::GetWalkerSetting(KERNEL_WALKER_PARAMS &walker
 
     VP_FUNC_CALL();
     RENDERHAL_KERNEL_PARAM kernelSettings;
-    uint32_t               blockWidth  = 16;
-    uint32_t               blockHeight = 8;
 
     VP_RENDER_CHK_STATUS_RETURN(GetKernelSettings(kernelSettings));
     MOS_ZeroMemory(&walkerParam, sizeof(KERNEL_WALKER_PARAMS));
 
     VP_RENDER_CHK_STATUS_RETURN(VpRenderKernelObj::GetWalkerSetting(m_walkerParam, renderData));
-
-    m_walkerParam.iBlocksX          = LUT65_SEG_SIZE;
-    m_walkerParam.iBlocksY          = LUT65_SEG_SIZE;
+    m_walkerParam.iBlocksX = m_hdrLutSize;
+    m_walkerParam.iBlocksY = m_hdrLutSize;
     m_walkerParam.isVerticalPattern = false;
     m_walkerParam.bSyncFlag         = true;
-    walkerParam                     = m_walkerParam;
+    walkerParam = m_walkerParam;
     return MOS_STATUS_SUCCESS;
 }
 

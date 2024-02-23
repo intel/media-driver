@@ -1625,14 +1625,23 @@ MOS_STATUS VpResourceManager::FillLinearBufferWithEncZero(VP_SURFACE *surface, u
     return MOS_STATUS_SUCCESS;
 }
 
-uint32_t VpResourceManager::Get3DLutSize(uint32_t &lutWidth, uint32_t &lutHeight)
+uint32_t VpResourceManager::Get3DLutSize(bool is33LutSizeEnabled, uint32_t &lutWidth, uint32_t &lutHeight)
 {
     VP_FUNC_CALL();
 
-    lutWidth = LUT65_SEG_SIZE * 2;
-    lutHeight = LUT65_SEG_SIZE * LUT65_MUL_SIZE;
-
-    return VP_VEBOX_HDR_3DLUT65;
+    if (is33LutSizeEnabled)
+    {
+        lutWidth  = LUT33_SEG_SIZE * 2;
+        lutHeight = LUT33_SEG_SIZE * LUT33_MUL_SIZE;
+        VP_RENDER_NORMALMESSAGE("3DLut table is used 33 lutsize.");
+        return VP_VEBOX_HDR_3DLUT33;
+    }
+    else
+    {
+        lutWidth = LUT65_SEG_SIZE * 2;
+        lutHeight = LUT65_SEG_SIZE * LUT65_MUL_SIZE;
+        return VP_VEBOX_HDR_3DLUT65;
+    }
 }
 
 uint32_t VpResourceManager::Get1DLutSize()
@@ -1857,7 +1866,7 @@ MOS_STATUS VpResourceManager::Allocate3DLut(VP_EXECUTE_CAPS& caps)
         // HDR
         uint32_t lutWidth = 0;
         uint32_t lutHeight = 0;
-        size = Get3DLutSize(lutWidth, lutHeight);
+        size = Get3DLutSize(caps.bHdr33lutsize, lutWidth, lutHeight);
         VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.ReAllocateSurface(
             m_vebox3DLookUpTables,
             "Vebox3DLutTableSurface",
@@ -1886,11 +1895,23 @@ MOS_STATUS VpResourceManager::AllocateResourceFor3DLutKernel(VP_EXECUTE_CAPS& ca
     uint32_t    lutWidth = 0;
     uint32_t    lutHeight = 0;
 
-    uint32_t sizeOf3DLut = Get3DLutSize(lutWidth, lutHeight);
-    if (VP_VEBOX_HDR_3DLUT65 != sizeOf3DLut)
+    uint32_t sizeOf3DLut = Get3DLutSize(caps.bHdr33lutsize, lutWidth, lutHeight);
+
+    if (caps.bHdr33lutsize)
     {
-        VP_PUBLIC_ASSERTMESSAGE("3DLutSize(%x) != VP_VEBOX_HDR_3DLUT65(%x)", sizeOf3DLut, VP_VEBOX_HDR_3DLUT65);
-        VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+        if (VP_VEBOX_HDR_3DLUT33 != sizeOf3DLut)
+        {
+            VP_PUBLIC_ASSERTMESSAGE("3DLutSize(%x) != VP_VEBOX_HDR_3DLUT33(%x)", sizeOf3DLut, VP_VEBOX_HDR_3DLUT33);
+            VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+        }
+    }
+    else
+    {
+        if (VP_VEBOX_HDR_3DLUT65 != sizeOf3DLut)
+        {
+            VP_PUBLIC_ASSERTMESSAGE("3DLutSize(%x) != VP_VEBOX_HDR_3DLUT65(%x)", sizeOf3DLut, VP_VEBOX_HDR_3DLUT65);
+            VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+        }
     }
 
     VP_PUBLIC_CHK_STATUS_RETURN(Allocate3DLut(caps));

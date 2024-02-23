@@ -870,6 +870,7 @@ struct FeatureParamHdr : public FeatureParam
     HDR_STAGE          stage                                                = HDR_STAGE_DEFAULT;
     uint32_t           widthInput                                           = 0;
     uint32_t           heightInput                                          = 0;
+    uint32_t           lutSize                                              = 0;
     VPHAL_HDR_LUT_MODE lutMode                                              = VPHAL_HDR_LUT_MODE_NONE; //!< LUT Mode
     VPHAL_HDR_LUT_MODE globalLutMode                                        = VPHAL_HDR_LUT_MODE_NONE; //!< Global LUT mode control for debugging purpose
     bool               bGpuGenerate3DLUT                                    = false;               //!< Flag for per frame GPU generation of 3DLUT
