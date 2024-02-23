@@ -87,6 +87,7 @@
 #define __MEDIA_USER_FEATURE_MCPY_MODE                                  "MediaCopy Mode"
 #define __MEDIA_USER_FEATURE_VALUE_VEBOX_SPLIT_RATIO                    "Vebox Split Ratio"
 #define __MEDIA_USER_FEATURE_SET_MCPY_FORCE_MODE                        "MCPY Force Mode"
+#define __MEDIA_USER_FEATURE_ENABLE_VECOPY_SMALL_RESOLUTION             "Enable VE copy small resolution"  // resolution smaller than 64x32
 
 //!
 //! \brief Keys for mmc

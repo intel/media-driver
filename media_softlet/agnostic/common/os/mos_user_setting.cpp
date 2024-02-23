@@ -1449,6 +1449,13 @@ MOS_STATUS MosUserSetting::InitUserSettingForDebug(MediaUserSettingSharedPtr use
 
     DeclareUserSettingKeyForDebug(
         userSettingPtr,
+        __MEDIA_USER_FEATURE_ENABLE_VECOPY_SMALL_RESOLUTION,
+        MediaUserSetting::Group::Device,
+        0,
+        true);
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
         "Bypass Evict",
         MediaUserSetting::Group::Device,
         0,

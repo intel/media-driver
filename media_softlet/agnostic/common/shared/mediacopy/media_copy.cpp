@@ -50,8 +50,6 @@ MediaCopyBaseState::MediaCopyBaseState():
 
 MediaCopyBaseState::~MediaCopyBaseState()
 {
-    MOS_STATUS              eStatus;
-
     if (m_osInterface)
     {
         m_osInterface->pfnDestroy(m_osInterface, false);
@@ -92,7 +90,7 @@ MOS_STATUS MediaCopyBaseState::Initialize(PMOS_INTERFACE osInterface)
     Mos_SetVirtualEngineSupported(m_osInterface, true);
     m_osInterface->pfnVirtualEngineSupported(m_osInterface, true, true);
 
-   #if (_DEBUG || _RELEASE_INTERNAL)
+#if (_DEBUG || _RELEASE_INTERNAL)
     if (m_surfaceDumper == nullptr)
     {
        m_surfaceDumper = MOS_New(CommonSurfaceDumper, osInterface);
@@ -108,9 +106,14 @@ MOS_STATUS MediaCopyBaseState::Initialize(PMOS_INTERFACE osInterface)
             m_MCPYForceMode,
             __MEDIA_USER_FEATURE_SET_MCPY_FORCE_MODE,
             MediaUserSetting::Group::Device);
-    }
 
-   #endif
+        ReadUserSettingForDebug(
+            userSettingPtr,
+            m_enableVeCopySmallRes,
+            __MEDIA_USER_FEATURE_ENABLE_VECOPY_SMALL_RESOLUTION,
+            MediaUserSetting::Group::Device);
+    }
+#endif
     return MOS_STATUS_SUCCESS;
 }
 
@@ -262,7 +265,7 @@ uint32_t GetMinRequiredSurfaceSizeInBytes(uint32_t pitch, uint32_t height, MOS_F
     return nBytes;
 }
 
-MOS_STATUS CheckResourceSizeValidForCopy(MOS_SURFACE &res, MCPY_ENGINE method)
+MOS_STATUS MediaCopyBaseState::CheckResourceSizeValidForCopy(const MOS_SURFACE &res, const MCPY_ENGINE method)
 {
     if (res.TileType != MOS_TILE_LINEAR)
     {
@@ -296,7 +299,7 @@ MOS_STATUS CheckResourceSizeValidForCopy(MOS_SURFACE &res, MCPY_ENGINE method)
         }
     }
 
-    if (method == MCPY_ENGINE_BLT || method == MCPY_ENGINE_RENDER)
+    if (method == MCPY_ENGINE_RENDER)
     {
         if (res.dwHeight < RENDER_MIN_HEIGHT || res.dwWidth < RENDER_MIN_WIDTH)
         {
@@ -310,20 +313,25 @@ MOS_STATUS CheckResourceSizeValidForCopy(MOS_SURFACE &res, MCPY_ENGINE method)
 
     if (method == MCPY_ENGINE_VEBOX)
     {
-        if (res.dwHeight < VE_MIN_HEIGHT || res.dwWidth < VE_MIN_WIDTH)
+#if (_DEBUG || _RELEASE_INTERNAL)
+        if (!m_enableVeCopySmallRes)
+#endif
         {
-            MT_ERR2(MT_MEDIA_COPY,
-                MT_SURF_WIDTH, res.dwWidth,
-                MT_SURF_HEIGHT, res.dwHeight);
-            MCPY_ASSERTMESSAGE("Surface size not meet min requirement! height %d, width %d", res.dwHeight, res.dwWidth);
-            return MOS_STATUS_INVALID_PARAMETER;
+            if (res.dwHeight < VE_MIN_HEIGHT || res.dwWidth < VE_MIN_WIDTH)
+            {
+                MT_ERR2(MT_MEDIA_COPY,
+                    MT_SURF_WIDTH, res.dwWidth,
+                    MT_SURF_HEIGHT, res.dwHeight);
+                MCPY_ASSERTMESSAGE("Surface size not meet min requirement! height %d, width %d", res.dwHeight, res.dwWidth);
+                return MOS_STATUS_INVALID_PARAMETER;
+            }
         }
     }
 
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS ValidateResource(MOS_SURFACE &src, MOS_SURFACE &dst, MCPY_ENGINE method)
+MOS_STATUS MediaCopyBaseState::ValidateResource(const MOS_SURFACE &src, const MOS_SURFACE &dst, MCPY_ENGINE method)
 {
     // For CP buffer copy, CP will handle the overflown size, skip size check
     if (src.OsResource.pGmmResInfo->GetResourceType() == RESOURCE_BUFFER &&
