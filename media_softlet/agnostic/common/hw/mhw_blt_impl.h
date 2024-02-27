@@ -222,14 +222,10 @@ public:
         // mmc
         MOS_MEMCOMP_STATE srcMmcModel          = MOS_MEMCOMP_DISABLED;
         MOS_MEMCOMP_STATE dstMmcModel          = MOS_MEMCOMP_DISABLED;
-        uint32_t          srcCompressionFormat = 0;
-        uint32_t          dstCompressionFormat = 0;
         GMM_RESOURCE_FLAG inputFlags           = pSrcGmmResInfo->GetResFlags();
         GMM_RESOURCE_FLAG outFlags             = pDstGmmResInfo->GetResFlags();
         MCPY_CHK_STATUS_RETURN(this->m_osItf->pfnGetMemoryCompressionMode(this->m_osItf, params.pSrcOsResource, (PMOS_MEMCOMP_STATE) & (srcMmcModel)));
-        MCPY_CHK_STATUS_RETURN(this->m_osItf->pfnGetMemoryCompressionFormat(this->m_osItf, params.pSrcOsResource, &srcCompressionFormat));
         MCPY_CHK_STATUS_RETURN(this->m_osItf->pfnGetMemoryCompressionMode(this->m_osItf, params.pDstOsResource, (PMOS_MEMCOMP_STATE) & (dstMmcModel)));
-        MCPY_CHK_STATUS_RETURN(this->m_osItf->pfnGetMemoryCompressionFormat(this->m_osItf, params.pDstOsResource, &dstCompressionFormat));
         
         uint32_t srcQPitch = pSrcGmmResInfo->GetQPitch();
         uint32_t dstQPitch = pDstGmmResInfo->GetQPitch();
@@ -244,14 +240,6 @@ public:
         cmd.DW1.DestinationMocsValue    =
             this->m_osItf->pfnCachePolicyGetMemoryObject(MOS_GMM_RESOURCE_USAGE_BLT_DESTINATION,
                                                          m_osItf->pfnGetGmmClientContext(m_osItf)).DwordValue;
-
-        if (dstMmcModel != MOS_MEMCOMP_DISABLED && dstMmcModel != MOS_MEMCOMP_RC)
-        {
-            cmd.DW1.DestinationCompressionEnable = 1;
-            // Destination control surface type cannot be media if compression is enabled
-            cmd.DW1.DestinationControlSurfaceType = 0;  // 1 is media; 0 is 3D;
-            cmd.DW14.DestinationCompressionFormat = dstCompressionFormat;
-        }
 
         cmd.DW1.DestinationTiling             = GetFastTilingMode(dstTiledMode);
         cmd.DW8.SourceTiling                  = GetFastTilingMode(srcTiledMode);
@@ -326,10 +314,10 @@ public:
             &ResourceParams));
 
         MCPY_NORMALMESSAGE("Block BLT cmd:dstSampleNum = %d;  width = %d, hieght = %d, ColorDepth = %d, Source Pitch %d, mocs = %d,tiled %d," 
-            "mmc model % d, mmc format % d, dst Pitch %d, mocs = %d,tiled %d, mmc model %d, MMC Format = %d",
+            "mmc model % d, dst Pitch %d, mocs = %d,tiled %d, mmc model %d",
             dstSampleNum, params.dwDstRight, params.dwDstBottom,
-            cmd.DW0.ColorDepth, cmd.DW8.SourcePitch, cmd.DW8.SourceMocs, cmd.DW8.SourceTiling, srcMmcModel, cmd.DW12.SourceCompressionFormat,
-            cmd.DW1.DestinationPitch, cmd.DW1.DestinationMocsValue, cmd.DW1.DestinationTiling, dstMmcModel, cmd.DW14.DestinationCompressionFormat);
+            cmd.DW0.ColorDepth, cmd.DW8.SourcePitch, cmd.DW8.SourceMocs, cmd.DW8.SourceTiling, srcMmcModel,
+            cmd.DW1.DestinationPitch, cmd.DW1.DestinationMocsValue, cmd.DW1.DestinationTiling, dstMmcModel);
 
         return MOS_STATUS_SUCCESS;
     }
