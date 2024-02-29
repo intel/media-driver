@@ -2101,7 +2101,6 @@ MOS_STATUS MosInterface::UpdateResourceUsageType(
     MOS_OS_CHK_NULL_RETURN(pOsResource->pGmmResInfo);
     //---------------------------------
 
-    pOsResource->mocsMosResUsageType = resUsageType;
     pOsResource->pGmmResInfo->OverrideCachePolicyUsage(GetGmmResourceUsageType(resUsageType));
 
     return eStatus;
