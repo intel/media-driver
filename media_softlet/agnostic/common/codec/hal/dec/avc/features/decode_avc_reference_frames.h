@@ -122,6 +122,15 @@ protected:
     MOS_STATUS UpdateCurRefList(const CODEC_AVC_PIC_PARAMS & picParams);
 
     //!
+    //! \brief  Update the reference cache policy
+    //! \param  [in] picParams
+    //!         Picture parameters
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS UpdateRefCachePolicy(const CODEC_AVC_PIC_PARAMS &picParams);
+
+    //!
     //! \brief    Set frame store Id for avc decode.
     //! \details
     //! \param    [in] frameIdx
