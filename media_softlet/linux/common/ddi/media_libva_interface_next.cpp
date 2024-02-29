@@ -5041,6 +5041,11 @@ VAStatus MediaLibvaInterfaceNext::CopyInternal(
     }
 
     DDI_CHK_NULL(mediaCopyState, "Invalid mediaCopy State", VA_STATUS_ERROR_INVALID_PARAMETER);
+    
+#if (_DEBUG || _RELEASE_INTERNAL)
+    // enable reg key report to avoid conflict with media copy cases.
+    mediaCopyState->SetRegkeyReport(true);
+#endif
 
     mosStatus = mediaCopyState->SurfaceCopy(src, dst, (MCPY_METHOD)copy_mode);
     if (mosStatus != MOS_STATUS_SUCCESS)

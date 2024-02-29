@@ -26,6 +26,7 @@
 #include <sys/time.h>
 #include "inttypes.h"
 #include "media_libva_util_next.h"
+#include "media_interfaces_mcpy_next.h"
 #include "mos_utilities.h"
 #include "mos_os.h"
 #include "mos_defs.h"
@@ -1323,7 +1324,6 @@ void* MediaLibvaUtilNext::LockSurface(DDI_MEDIA_SURFACE *surface, uint32_t flag)
 void* MediaLibvaUtilNext::LockSurfaceInternal(DDI_MEDIA_SURFACE  *surface, uint32_t flag)
 {
     int      err      = 0;
-    uint64_t surfSize = 0;
     VAStatus vaStatus = VA_STATUS_SUCCESS;
     DDI_FUNC_ENTER;
 
@@ -1331,95 +1331,93 @@ void* MediaLibvaUtilNext::LockSurfaceInternal(DDI_MEDIA_SURFACE  *surface, uint3
     DDI_CHK_NULL(surface->bo, "nullptr surface->bo", nullptr);
     DDI_CHK_NULL(surface->pMediaCtx, "nullptr surface->pMediaCtx", nullptr);
 
-    if (surface->pMediaCtx->bIsAtomSOC)
+    // non-tield surface
+    if (surface->TileType == TILING_NONE)
     {
-        mos_bo_map_gtt(surface->bo);
+        mos_bo_map(surface->bo, flag & MOS_LOCKFLAG_WRITEONLY);
+        surface->pData     = (uint8_t*)surface->bo->virt;
+        surface->data_size = surface->bo->size;
+        surface->bMapped   = true;
+
+        return surface->pData;
     }
-    else
+
+    auto DoHwSwizzle = [&]()->bool
     {
-        if (surface->TileType == TILING_NONE)
+        if (MEDIA_IS_SKU(&surface->pMediaCtx->SkuTable, FtrUseSwSwizzling))
         {
-            mos_bo_map(surface->bo, flag & MOS_LOCKFLAG_WRITEONLY);
+            return false;
         }
-        else if ((surface->pMediaCtx->m_useSwSwizzling) && !(flag & MOS_LOCKFLAG_NO_SWIZZLE))
+        // RGBP not supported by ve.
+        if (surface->format == Media_Format_RGBP)
         {
-            DDI_CHK_NULL(surface->pGmmResourceInfo, "nullptr surface->pGmmResourceInfo", nullptr);
-
-            surfSize = surface->pGmmResourceInfo->GetSizeMainSurface();
-            DDI_CHK_CONDITION((surface->TileType != TILING_Y), "Unsupported tile type", nullptr);
-            DDI_CHK_CONDITION((surfSize <= 0 || surface->iPitch <= 0), "Invalid surface size or pitch", nullptr);
-
-            if (MEDIA_IS_SKU(&surface->pMediaCtx->SkuTable, FtrLocalMemory))
+            return false;
+        }
+        if (!surface->pShadowBuffer)
+        {
+            vaStatus = CreateShadowResource(surface);
+            if (vaStatus != VA_STATUS_SUCCESS)
             {
-                if (surface->pShadowBuffer == nullptr)
-                {
-                    CreateShadowResource(surface);
-                }
-
-                if (surface->pShadowBuffer != nullptr)
-                {
-                    vaStatus = SwizzleSurfaceByHW(surface);
-                    if (vaStatus == VA_STATUS_SUCCESS)
-                    {
-                        err = mos_bo_map(surface->pShadowBuffer->bo, flag & MOS_LOCKFLAG_WRITEONLY);
-                    }
-
-                    if (vaStatus != VA_STATUS_SUCCESS || err != 0)
-                    {
-                        FreeBuffer(surface->pShadowBuffer);
-                        MOS_Delete(surface->pShadowBuffer);
-                        surface->pShadowBuffer = nullptr;
-                    }
-                }
+                return false;
             }
+        }
 
-            mos_bo_map(surface->bo, flag & MOS_LOCKFLAG_WRITEONLY);
-
-            if (surface->pShadowBuffer == nullptr)
+        vaStatus = SwizzleSurfaceByHW(surface);
+        if (vaStatus == VA_STATUS_SUCCESS)
+        {
+            err = mos_bo_map(surface->pShadowBuffer->bo, flag & MOS_LOCKFLAG_WRITEONLY);
+            if (err == 0)
             {
-                if (surface->pSystemShadow == nullptr)
-                {
-                    surface->pSystemShadow = MOS_NewArray(uint8_t, surface->bo->size);;
-                    DDI_CHK_CONDITION((surface->pSystemShadow == nullptr), "Failed to allocate shadow surface", nullptr);
-                }
-
-                vaStatus = SwizzleSurface(surface->pMediaCtx,
-                                                   surface->pGmmResourceInfo,
-                                                   surface->bo->virt,
-                                                   (MOS_TILE_TYPE)surface->TileType,
-                                                   (uint8_t *)surface->pSystemShadow,
-                                                   false);
-                DDI_CHK_CONDITION((vaStatus != VA_STATUS_SUCCESS), "SwizzleSurface failed", nullptr);
+                surface->pData     = (uint8_t *)surface->pShadowBuffer->bo->virt;
+                return true;
             }
+        }
 
-        }
-        else if (flag & MOS_LOCKFLAG_NO_SWIZZLE)
+        // HW swizzle failed
+        FreeBuffer(surface->pShadowBuffer);
+        MOS_Delete(surface->pShadowBuffer);
+        surface->pShadowBuffer = nullptr;
+        return false;
+    };
+
+    auto DoSwSwizzle = [&]()->bool
+    {
+        mos_bo_map(surface->bo, flag & MOS_LOCKFLAG_WRITEONLY);
+
+        surface->pSystemShadow = MOS_NewArray(uint8_t, surface->bo->size);
+        if (!surface->pSystemShadow)
         {
-            mos_bo_map(surface->bo, flag & MOS_LOCKFLAG_READONLY);
+            return false;
         }
-        else if (flag & MOS_LOCKFLAG_WRITEONLY)
+
+        vaStatus = SwizzleSurface(surface->pMediaCtx,
+                                    surface->pGmmResourceInfo,
+                                    surface->bo->virt,
+                                    (MOS_TILE_TYPE)surface->TileType,
+                                    (uint8_t *)surface->pSystemShadow,
+                                    false);
+        if(vaStatus == VA_STATUS_SUCCESS)
         {
-            mos_bo_map_gtt(surface->bo);
+            surface->pData = surface->pSystemShadow;
+            return true;
         }
-        else
+
+        // SW swizzle failed
+        MOS_DeleteArray(surface->pSystemShadow);
+        surface->pSystemShadow = nullptr;
+        return false;
+    };
+
+    if (!DoHwSwizzle())
+    {
+        if (!DoSwSwizzle())
         {
-            mos_bo_map_unsynchronized(surface->bo);     // only call mmap_gtt ioctl
-            mos_bo_start_gtt_access(surface->bo, 0);    // set to GTT domain,0 means readonly
+            DDI_ASSERTMESSAGE("Swizzle failed!");
+            return nullptr;
         }
     }
+
     surface->uiMapFlag = flag;
-    if (surface->pShadowBuffer)
-    {
-        surface->pData = (uint8_t *)surface->pShadowBuffer->bo->virt;
-    }
-    else if (surface->pSystemShadow)
-    {
-        surface->pData = surface->pSystemShadow;
-    }
-    else
-    {
-        surface->pData = (uint8_t*) surface->bo->virt;
-    }
     surface->data_size = surface->bo->size;
     surface->bMapped   = true;
 
@@ -1454,7 +1452,7 @@ void MediaLibvaUtilNext::UnlockSurface(DDI_MEDIA_SURFACE  *surface)
 
                 mos_bo_unmap(surface->pShadowBuffer->bo);
                 FreeBuffer(surface->pShadowBuffer);
-                MOS_FreeMemory(surface->pShadowBuffer);
+                MOS_Delete(surface->pShadowBuffer);
                 surface->pShadowBuffer = nullptr;
 
                 mos_bo_unmap(surface->bo);
@@ -1518,7 +1516,7 @@ VAStatus MediaLibvaUtilNext::CreateShadowResource(DDI_MEDIA_SURFACE *surface)
     surface->pShadowBuffer->bUseSysGfxMem = true;
     surface->pShadowBuffer->iSize = surface->pGmmResourceInfo->GetSizeSurface();
 
-    vaStatus = AllocateBuffer(Media_Format_Buffer, surface->pShadowBuffer->iSize, surface->pShadowBuffer, surface->pMediaCtx->pDrmBufMgr);
+    vaStatus = AllocateBuffer(Media_Format_Buffer, surface->pShadowBuffer->iSize, surface->pShadowBuffer, surface->pMediaCtx->pDrmBufMgr, true);
 
     if (vaStatus != VA_STATUS_SUCCESS)
     {
@@ -1722,7 +1720,6 @@ VAStatus MediaLibvaUtilNext::SwizzleSurfaceByHW(DDI_MEDIA_SURFACE *surface, bool
 
     if (isDeSwizzle)
     {
-        
         MediaLibvaCommonNext::MediaBufferToMosResource(surface->pShadowBuffer, &source);
         MediaLibvaCommonNext::MediaSurfaceToMosResource(surface, &target);
     }
@@ -1732,16 +1729,79 @@ VAStatus MediaLibvaUtilNext::SwizzleSurfaceByHW(DDI_MEDIA_SURFACE *surface, bool
         MediaLibvaCommonNext::MediaBufferToMosResource(surface->pShadowBuffer, &target);
     }
 
-    return mediaDrvCtx->pfnMediaMemoryTileConvert(
-            &mosCtx,
-            &source,
-            &target,
-            surface->pGmmResourceInfo->GetBaseWidth(),
-            surface->pGmmResourceInfo->GetBaseHeight(),
-            0,
-            0,
-            !isDeSwizzle,
-            false);
+    DDI_NORMALMESSAGE("If mmd device isn't registered, use media blt copy.");
+    MediaCopyBaseState *mediaCopyState = static_cast<MediaCopyBaseState*>(mediaDrvCtx->pMediaCopyState);
+    if (!mediaCopyState)
+    {
+        mediaCopyState = static_cast<MediaCopyBaseState*>(McpyDeviceNext::CreateFactory(&mosCtx));
+        if (!mediaCopyState)
+        {
+            return VA_STATUS_ERROR_UNKNOWN;
+        }
+        mediaDrvCtx->pMediaCopyState = mediaCopyState;
+    }
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    // disable reg key report to avoid conflict with media copy cases.
+    mediaCopyState->SetRegkeyReport(false);
+#endif
+
+    auto format = surface->pGmmResourceInfo->GetResourceFormat();
+    auto width  = surface->pGmmResourceInfo->GetBaseWidth();
+    auto height = surface->pGmmResourceInfo->GetBaseHeight();
+    auto pitch  = surface->pGmmResourceInfo->GetRenderPitch();
+
+    auto uOffsetX = surface->pGmmResourceInfo->GetPlanarXOffset(GMM_PLANE_U);
+    auto uOffsetY = surface->pGmmResourceInfo->GetPlanarYOffset(GMM_PLANE_U);
+    auto vOffsetX = surface->pGmmResourceInfo->GetPlanarXOffset(GMM_PLANE_V);
+    auto vOffsetY = surface->pGmmResourceInfo->GetPlanarYOffset(GMM_PLANE_V);
+
+    DDI_NORMALMESSAGE("Override param: format %d, width %d, height %d, pitch %d", format, width, height, pitch);
+
+    DDI_CHK_NULL(source.pGmmResInfo, "nullptr surface", VA_STATUS_ERROR_INVALID_SURFACE);
+    DDI_CHK_NULL(target.pGmmResInfo, "nullptr surface", VA_STATUS_ERROR_INVALID_SURFACE);
+
+    if (isDeSwizzle)
+    {
+        source.pGmmResInfo->OverrideSurfaceFormat(format);
+        source.pGmmResInfo->OverrideSurfaceType(RESOURCE_2D);
+        source.pGmmResInfo->OverrideBaseWidth(width);
+        source.pGmmResInfo->OverrideBaseHeight(height);
+        source.pGmmResInfo->OverridePitch(pitch);
+
+        source.pGmmResInfo->OverridePlanarXOffset(GMM_PLANE_U, uOffsetX);
+        source.pGmmResInfo->OverridePlanarYOffset(GMM_PLANE_U, uOffsetY);
+        source.pGmmResInfo->OverridePlanarXOffset(GMM_PLANE_V, vOffsetX);
+        source.pGmmResInfo->OverridePlanarYOffset(GMM_PLANE_V, vOffsetY);
+
+        source.Format = target.Format;
+    }
+    else
+    {
+        target.pGmmResInfo->OverrideSurfaceFormat(format);
+        target.pGmmResInfo->OverrideSurfaceType(RESOURCE_2D);
+        target.pGmmResInfo->OverrideBaseWidth(width);
+        target.pGmmResInfo->OverrideBaseHeight(height);
+        target.pGmmResInfo->OverridePitch(pitch);
+
+        target.pGmmResInfo->OverridePlanarXOffset(GMM_PLANE_U, uOffsetX);
+        target.pGmmResInfo->OverridePlanarYOffset(GMM_PLANE_U, uOffsetY);
+        target.pGmmResInfo->OverridePlanarXOffset(GMM_PLANE_V, vOffsetX);
+        target.pGmmResInfo->OverridePlanarYOffset(GMM_PLANE_V, vOffsetY);
+
+        target.Format = source.Format;
+    }
+
+    MOS_STATUS mosSts = mediaCopyState->SurfaceCopy(&source, &target, MCPY_METHOD_BALANCE);
+
+    if (mosSts == MOS_STATUS_SUCCESS)
+    {
+        return VA_STATUS_SUCCESS;
+    }
+    else
+    {
+        return VA_STATUS_ERROR_UNKNOWN;
+    }
 }
 
 VAStatus MediaLibvaUtilNext::CreateBuffer(
@@ -1881,7 +1941,8 @@ VAStatus MediaLibvaUtilNext::AllocateBuffer(
     DDI_MEDIA_FORMAT     format,
     int32_t              size,
     PDDI_MEDIA_BUFFER    mediaBuffer,
-    MOS_BUFMGR           *bufmgr)
+    MOS_BUFMGR           *bufmgr,
+    bool                 isShadowBuffer)
 {
     DDI_FUNC_ENTER;
     DDI_CHK_NULL(mediaBuffer,                               "mediaBuffer is nullptr",                               VA_STATUS_ERROR_INVALID_BUFFER);
@@ -1906,6 +1967,12 @@ VAStatus MediaLibvaUtilNext::AllocateBuffer(
     gmmParams.Flags.Gpu.Video       = true;
     gmmParams.Flags.Info.Linear     = true;
     gmmParams.Flags.Info.LocalOnly  = MEDIA_IS_SKU(&mediaBuffer->pMediaCtx->SkuTable, FtrLocalMemory);
+
+    if (isShadowBuffer)
+    {
+        gmmParams.Flags.Info.Cacheable = true;
+        gmmParams.Usage = GMM_RESOURCE_USAGE_STAGING;
+    }
 
     mediaBuffer->pGmmResourceInfo = mediaBuffer->pMediaCtx->pGmmClientContext->CreateResInfoObject(&gmmParams);
     DDI_CHK_NULL(mediaBuffer->pGmmResourceInfo, "pGmmResourceInfo is nullptr", VA_STATUS_ERROR_INVALID_BUFFER);

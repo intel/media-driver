@@ -450,7 +450,8 @@ private:
         DDI_MEDIA_FORMAT      format,
         int32_t               size,
         PDDI_MEDIA_BUFFER     mediaBuffer,
-        MOS_BUFMGR            *bufmgr);
+        MOS_BUFMGR            *bufmgr,
+        bool                  isShadowBuffer = false);
 
 public:
     //!

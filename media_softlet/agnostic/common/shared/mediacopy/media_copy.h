@@ -163,6 +163,13 @@ public:
 
     virtual PMOS_INTERFACE GetMosInterface();
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    virtual void SetRegkeyReport(bool flag)
+    {
+        m_bRegReport = flag;
+    }
+#endif
+
 protected:
 
     //!
@@ -289,6 +296,7 @@ protected:
     CommonSurfaceDumper *m_surfaceDumper        = nullptr;
     int                  m_MCPYForceMode        = 0;
     bool                 m_enableVeCopySmallRes = false;
+    bool                 m_bRegReport           = true;
 #endif
 MEDIA_CLASS_DEFINE_END(MediaCopyBaseState)
 };
