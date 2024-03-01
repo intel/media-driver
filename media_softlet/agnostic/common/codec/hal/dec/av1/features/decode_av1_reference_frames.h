@@ -186,6 +186,15 @@ public:
     MOS_STATUS             UpdateCurResource(const PCODEC_REF_LIST_AV1 pCurRefList);
 
     //!
+    //! \brief  Update the reference cache policy
+    //! \param  [in] picParams
+    //!         Picture parameters
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS UpdateRefCachePolicy(CodecAv1PicParams &picParams);
+
+    //!
     //! \brief  Error detect and concealment for reference list for picture
     //! \param  [in] picParams
     //!         Picture parameters

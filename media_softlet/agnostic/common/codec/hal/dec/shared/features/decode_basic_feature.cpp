@@ -113,11 +113,12 @@ MOS_STATUS DecodeBasicFeature::Update(void *params)
 
     DECODE_CHK_NULL(decodeParams->m_dataBuffer);
     m_resDataBuffer.OsResource = *(decodeParams->m_dataBuffer);
-    m_allocator->UpdateResoreceUsageType(&m_resDataBuffer.OsResource, resourceInputBitstream);
+    DECODE_CHK_STATUS(m_allocator->UpdateResoreceUsageType(&m_resDataBuffer.OsResource, resourceInputBitstream));
 
     if (decodeParams->m_destSurface != nullptr)
     {
         DECODE_CHK_STATUS(UpdateDestSurface(*decodeParams->m_destSurface));
+        DECODE_CHK_STATUS(m_allocator->UpdateResoreceUsageType(&m_destSurface.OsResource, resourceOutputPicture));
         DECODE_CHK_STATUS(m_allocator->GetSurfaceInfo(&m_destSurface));
     }
     else
