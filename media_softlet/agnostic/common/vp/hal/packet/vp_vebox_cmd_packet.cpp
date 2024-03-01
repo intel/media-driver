@@ -243,6 +243,12 @@ MOS_STATUS VpVeboxCmdPacket::SetupVeboxState(mhw::vebox::VEBOX_STATE_PAR& veboxS
 
     veboxStateCmdParams.bCmBuffer = false;
 
+    MHW_VEBOX_IECP_PARAMS& veboxIecpParams = pRenderData->GetIECPParams();
+    // CCM for CSC needs HDR state
+    pVeboxMode->Hdr1DLutEnable |= veboxIecpParams.bCcmCscEnable;
+    // Only fp16 output needs CCM for CSC
+    pVeboxMode->Fp16ModeEnable |= veboxIecpParams.bCcmCscEnable;
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -558,6 +564,12 @@ MOS_STATUS VpVeboxCmdPacket::SetVeboxBeCSCParams(PVEBOX_CSC_PARAMS cscParams)
         veboxIecpParams.pfCscCoeff     = m_fCscCoeff;
         veboxIecpParams.pfCscInOffset  = m_fCscInOffset;
         veboxIecpParams.pfCscOutOffset = m_fCscOutOffset;
+        if ((cscParams->outputFormat == Format_A16B16G16R16F) || (cscParams->outputFormat == Format_A16R16G16B16F))
+        {
+            // Use CCM to do CSC for FP16 VEBOX output
+            veboxIecpParams.bCSCEnable    = false;
+            veboxIecpParams.bCcmCscEnable = true;
+        }
     }
 
     VP_RENDER_CHK_STATUS_RETURN(SetVeboxOutputAlphaParams(cscParams));
