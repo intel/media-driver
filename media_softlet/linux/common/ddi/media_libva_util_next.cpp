@@ -304,7 +304,6 @@ VAStatus MediaLibvaUtilNext::GenerateGmmParamsForNoneCompressionExternalSurface(
     }
 
     // Create GmmResourceInfo
-    MosUtilities::MosZeroMemory(&gmmCustomParams, sizeof(gmmCustomParams));
     gmmCustomParams.Type          = RESOURCE_2D;
     gmmCustomParams.Format        = ConvertMediaFmtToGmmFmt(params.format);
     if ((params.format == Media_Format_YV12) || \
@@ -393,7 +392,6 @@ VAStatus MediaLibvaUtilNext::GenerateGmmParamsForCompressionExternalSurface(
     DDI_CHK_NULL(mediaSurface->pSurfDesc, "mediaSurface desc is nullptr", VA_STATUS_ERROR_INVALID_BUFFER);
     DDI_CHK_NULL(mediaDrvCtx, "media context is nullptr", VA_STATUS_ERROR_INVALID_CONTEXT);
     // Create GmmResourceInfo
-    MOS_ZeroMemory(&gmmCustomParams, sizeof(gmmCustomParams));
     gmmCustomParams.Type          = RESOURCE_2D;
     gmmCustomParams.Format        = ConvertMediaFmtToGmmFmt(params.format);
     if ((params.format == Media_Format_YV12) || \
@@ -536,18 +534,6 @@ VAStatus MediaLibvaUtilNext::CreateExternalSurface(
     DDI_CHK_NULL(mediaDrvCtx->pDrmBufMgr,        "drm buffer mgr is nullptr",    VA_STATUS_ERROR_INVALID_BUFFER);
     DDI_CHK_NULL(mediaDrvCtx->pGmmClientContext, "gmm context is nullptr",       VA_STATUS_ERROR_INVALID_CONTEXT);
 
-    if ((mediaSurface->pSurfDesc->uiVaMemType != VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM) &&
-        (mediaSurface->pSurfDesc->uiVaMemType != VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME) &&
-        (mediaSurface->pSurfDesc->uiVaMemType != VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2) &&
-#if VA_CHECK_VERSION(1, 21, 0)
-        (mediaSurface->pSurfDesc->uiVaMemType != VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_3) &&
-#endif
-        (mediaSurface->pSurfDesc->uiVaMemType != VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR))
-    {
-        DDI_ASSERTMESSAGE("Unsupported external surface memory type.");
-        return VA_STATUS_ERROR_ALLOCATION_FAILED;
-    }
-
     GMM_RESOURCE_INFO  *gmmResourceInfo = nullptr;
     MOS_LINUX_BO       *bo = nullptr;
     uint32_t           swizzle_mode;
@@ -565,43 +551,64 @@ VAStatus MediaLibvaUtilNext::CreateExternalSurface(
         params.cpTag = PROTECTED_SURFACE_TAG;
     }
 
+    switch(mediaSurface->pSurfDesc->uiVaMemType)
+    {
+        case VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM:
+        case VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME:
+            params.tileFormat = mediaSurface->pSurfDesc->uiFlags & VA_SURFACE_EXTBUF_DESC_ENABLE_TILING ? TILING_Y : TILING_NONE;
+            break;
+        case VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2:
+            params.pitch = mediaSurface->pSurfDesc->uiPitches[0];
+            status = SetSurfaceParameterFromModifier(params, mediaSurface->pSurfDesc->modifier);
+            if(status != VA_STATUS_SUCCESS)
+            {
+                DDI_ASSERTMESSAGE("Set surface from modifier failed.");
+                return status;
+            }
+            break;
+#if VA_CHECK_VERSION(1, 21, 0)
+        case VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_3:
+            params.pitch = mediaSurface->pSurfDesc->uiPitches[0];
+            status = SetSurfaceParameterFromModifier(params, mediaSurface->pSurfDesc->modifier);
+            if(status != VA_STATUS_SUCCESS)
+            {
+                DDI_ASSERTMESSAGE("Set surface from modifier failed.");
+                return status;
+            }
+            break;
+#endif
+        case VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR:
+            params.tileFormat = TILE_NONE;
+            break;
+    }
+
+
+    GMM_RESCREATE_CUSTOM_PARAMS_2 gmmCustomParams;
+    MOS_ZeroMemory(&gmmCustomParams, sizeof(gmmCustomParams));
     if (VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR == mediaSurface->pSurfDesc->uiVaMemType)
     {
-        params.tileFormat = TILE_NONE;
+        gmmCustomParams.Usage = GMM_RESOURCE_USAGE_STAGING;
+        gmmCustomParams.Type = RESOURCE_1D;
     }
 
     if (params.bMemCompEnable)
     {
-        GMM_RESCREATE_CUSTOM_PARAMS_2 gmmParams = {};
-        status = GenerateGmmParamsForCompressionExternalSurface(gmmParams, params, mediaSurface, mediaDrvCtx);
+        status = GenerateGmmParamsForCompressionExternalSurface(gmmCustomParams, params, mediaSurface, mediaDrvCtx);
         if(status != VA_STATUS_SUCCESS)
         {
             DDI_ASSERTMESSAGE("Generate gmmParams for compression external surface failed.");
             return status;
         }
 
-        if (VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR == mediaSurface->pSurfDesc->uiVaMemType)
-        {
-            gmmParams.Usage = GMM_RESOURCE_USAGE_STAGING;
-            gmmParams.Type = RESOURCE_1D;
-        }
-
-        gmmResourceInfo = mediaDrvCtx->pGmmClientContext->CreateCustomResInfoObject_2(&gmmParams);
+        gmmResourceInfo = mediaDrvCtx->pGmmClientContext->CreateCustomResInfoObject_2(&gmmCustomParams);
     }
     else
     {
-        GMM_RESCREATE_CUSTOM_PARAMS gmmCustomParams = {};
         status = GenerateGmmParamsForNoneCompressionExternalSurface(gmmCustomParams, params, mediaSurface);
         if(status != VA_STATUS_SUCCESS)
         {
             DDI_ASSERTMESSAGE("Generate gmmParams for none compression external surface failed.");
             return status;
-        }
-
-        if (VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR == mediaSurface->pSurfDesc->uiVaMemType)
-        {
-            gmmCustomParams.Usage = GMM_RESOURCE_USAGE_STAGING;
-            gmmCustomParams.Type = RESOURCE_1D;
         }
 
         gmmResourceInfo = mediaDrvCtx->pGmmClientContext->CreateCustomResInfoObject(&gmmCustomParams);
@@ -649,69 +656,6 @@ VAStatus MediaLibvaUtilNext::CreateExternalSurface(
         mediaDrvCtx->pGmmClientContext->DestroyResInfoObject(gmmResourceInfo);
         return VA_STATUS_ERROR_ALLOCATION_FAILED;
     }
-
-    switch(mediaSurface->pSurfDesc->uiVaMemType)
-    {
-        case VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM:
-        case VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME:
-            //Overwrite the tile format that matches the exteral buffer
-            mos_bo_get_tiling(bo, &params.tileFormat, &swizzle_mode);
-            if(params.tileFormat == 0)
-            {
-                params.tileFormat = mediaSurface->pSurfDesc->uiFlags & VA_SURFACE_EXTBUF_DESC_ENABLE_TILING ? TILING_Y : TILING_NONE;
-            }
-            break;
-        case VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2:
-            params.pitch = mediaSurface->pSurfDesc->uiPitches[0];
-            status = SetSurfaceParameterFromModifier(params, mediaSurface->pSurfDesc->modifier);
-            if(status != VA_STATUS_SUCCESS)
-            {
-                DDI_ASSERTMESSAGE("Set surface from modifier failed.");
-                return status;
-            }
-            break;
-#if VA_CHECK_VERSION(1, 21, 0)
-        case VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_3:
-            params.pitch = mediaSurface->pSurfDesc->uiPitches[0];
-            status = SetSurfaceParameterFromModifier(params, mediaSurface->pSurfDesc->modifier);
-            if(status != VA_STATUS_SUCCESS)
-            {
-                DDI_ASSERTMESSAGE("Set surface from modifier failed.");
-                return status;
-            }
-            break;
-#endif
-        case VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR:
-            params.tileFormat = TILE_NONE;
-            break;
-    }
-
-    mediaDrvCtx->pGmmClientContext->DestroyResInfoObject(gmmResourceInfo);
-
-    if (params.bMemCompEnable)
-    {
-        GMM_RESCREATE_CUSTOM_PARAMS_2 gmmParams = {};
-        status = GenerateGmmParamsForCompressionExternalSurface(gmmParams, params, mediaSurface, mediaDrvCtx);
-        if(status != VA_STATUS_SUCCESS)
-        {
-            DDI_ASSERTMESSAGE("Generate gmmParams for compression external surface failed.");
-            return status;
-        }
-        gmmResourceInfo = mediaDrvCtx->pGmmClientContext->CreateCustomResInfoObject_2(&gmmParams);
-    }
-    else
-    {
-        GMM_RESCREATE_CUSTOM_PARAMS gmmCustomParams = {};
-        status = GenerateGmmParamsForNoneCompressionExternalSurface(gmmCustomParams, params, mediaSurface);
-        if(status != VA_STATUS_SUCCESS)
-        {
-            DDI_ASSERTMESSAGE("Generate gmmParams for none compression external surface failed.");
-            return status;
-        }
-        gmmResourceInfo = mediaDrvCtx->pGmmClientContext->CreateCustomResInfoObject(&gmmCustomParams);
-    }
-
-    DDI_CHK_NULL(gmmResourceInfo, "Gmm create resource failed", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
     mediaSurface->pGmmResourceInfo = gmmResourceInfo;
     mediaSurface->bMapped          = false;
