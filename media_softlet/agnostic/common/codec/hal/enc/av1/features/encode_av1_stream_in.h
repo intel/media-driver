@@ -250,16 +250,6 @@ public:
     //!
     virtual MOS_STATUS ReturnStreamInBuffer();
 
-    //!
-    //! \brief  Set VDENC pipe buffer address parameter
-    //! \param  [in] pipeBufAddrParams
-    //!         Pointer to MhwVdboxAvpPipeBufAddrParams
-    //! \return  MOS_STATUS
-    //!         MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    virtual MOS_STATUS SetVdencPipeBufAddrParams(
-        MHW_VDBOX_PIPE_BUF_ADDR_PARAMS *pipeBufAddrParams);
-
     MHW_SETPAR_DECL_HDR(VDENC_PIPE_BUF_ADDR_STATE);
     MHW_SETPAR_DECL_HDR(VDENC_CMD2);
 

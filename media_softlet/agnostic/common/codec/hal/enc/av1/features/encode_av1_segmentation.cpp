@@ -105,6 +105,19 @@ namespace encode
 
         m_hasZeroSegmentQIndex = false;
 
+        const auto currRefList = m_basicFeature->m_ref.GetCurrRefList();
+        ENCODE_CHK_NULL_RETURN(currRefList);
+        if (av1PicParams->PicFlags.fields.frame_type == keyFrame)
+        {
+            memset(m_segmenBufferinUse, 0, sizeof(m_segmenBufferinUse));
+            memset(m_ucScalingIdtoSegID, -1, sizeof(m_ucScalingIdtoSegID));
+        }
+        if (!m_basicFeature->m_av1PicParams->PicFlags.fields.DisableFrameRecon && 
+            m_ucScalingIdtoSegID[currRefList->ucScalingIdx] != -1)
+        {
+            m_segmenBufferinUse[m_ucScalingIdtoSegID[currRefList->ucScalingIdx]]--;
+        }
+
         if (m_segmentParams.m_enabled)
         {
             ENCODE_CHK_STATUS_RETURN(SetSegmentIdParams(av1PicParams, &ddiSegments));
@@ -137,17 +150,6 @@ namespace encode
                     ENCODE_ASSERTMESSAGE("Temporal update for segmentation map cannot be applied");
                     return MOS_STATUS_INVALID_PARAMETER;
                 }
-            }
-
-            if (!m_segmentParams.m_updateMap && !m_segmentParams.m_segIdBufStreamOutEnable)
-            {
-                const auto currRefList = m_basicFeature->m_ref.GetCurrRefList();
-                ENCODE_CHK_NULL_RETURN(currRefList);
-
-                const auto primRefList = m_basicFeature->m_ref.GetPrimaryRefList();
-                ENCODE_CHK_NULL_RETURN(primRefList);
-
-                currRefList->m_segIdBufIdx = primRefList->m_segIdBufIdx;
             }
 
             ENCODE_CHK_STATUS_RETURN(CheckQPAndLossless());
@@ -283,6 +285,36 @@ namespace encode
             }
         }
 
+        if (!m_basicFeature->m_av1PicParams->PicFlags.fields.DisableFrameRecon)
+        {
+            const auto currRefList = m_basicFeature->m_ref.GetCurrRefList();
+            ENCODE_CHK_NULL_RETURN(currRefList);
+            if (!m_segmentParams.m_segIdBufStreamOutEnable)
+            {
+                const auto primRefList = m_basicFeature->m_ref.GetPrimaryRefList();
+                ENCODE_CHK_NULL_RETURN(primRefList);
+                currRefList->m_segIdBufIdx = primRefList->m_segIdBufIdx;
+            }
+            else
+            {
+                //the maximum DPB length of AV1 is 8, free IDs will always be found.
+                for (uint8_t i = 0; i < av1TotalRefsPerFrame; i++)
+                {
+                    if (m_segmenBufferinUse[i] == 0)
+                    {
+                        currRefList->m_segIdBufIdx = i;
+                        break;
+                    }
+                }
+            }
+            if (m_segmentMapBuffer[currRefList->m_segIdBufIdx] == nullptr)
+            {
+                ENCODE_CHK_STATUS_RETURN(AllocateSegmentationMapBuffer(currRefList->m_segIdBufIdx));
+            }
+            m_segmenBufferinUse[currRefList->m_segIdBufIdx]++;
+            m_ucScalingIdtoSegID[currRefList->ucScalingIdx] = currRefList->m_segIdBufIdx;
+        }
+
         return MOS_STATUS_SUCCESS;
     }
 
@@ -363,70 +395,41 @@ namespace encode
         return MOS_STATUS_SUCCESS;
     }
 
-    static MOS_STATUS SetSegStreamIn(const Av1BasicFeature& basicFeature
-        , bool temporalUpdate
-        , BufferType type
-        , PMOS_RESOURCE& streamIn)
+    MOS_STATUS Av1Segmentation::AllocateSegmentationMapBuffer(uint8_t segmentBufid) 
     {
-        ENCODE_CHK_NULL_RETURN(basicFeature.m_trackedBuf);
-
-        streamIn = nullptr;
-
-        if (temporalUpdate)
+        if (segmentBufid >= av1TotalRefsPerFrame)
         {
-            // when temporal update enabled, send prime_ref_frame's stream out buffer
-            const auto primRefList = basicFeature.m_ref.GetPrimaryRefList();
-            ENCODE_CHK_NULL_RETURN(primRefList);
-
-            streamIn = basicFeature.m_trackedBuf->GetBuffer(type, primRefList->ucScalingIdx);
+            ENCODE_ASSERTMESSAGE("segment map number exceed.");
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+        if (m_segmentMapBuffer[segmentBufid] != nullptr)
+        {
+            return MOS_STATUS_SUCCESS;
         }
 
-        return MOS_STATUS_SUCCESS;
-    }
+        uint32_t       totalSbPerFrame         = (m_basicFeature->m_picWidthInSb) * (m_basicFeature->m_picHeightInSb);
+        const uint16_t num4x4BlocksIn64x64Sb   = 256;
+        const uint16_t num4x4BlocksIn128x128Sb = 1024;
+        const uint32_t sizeOfSegmentIdMap      = ((m_basicFeature->m_isSb128x128) ? num4x4BlocksIn128x128Sb : num4x4BlocksIn64x64Sb) * totalSbPerFrame;
 
-    static MOS_STATUS SetSegStreamOut(const Av1BasicFeature& basicFeature
-        , BufferType type
-        , PMOS_RESOURCE& streamOut)
-    {
-        const auto currRefList = basicFeature.m_ref.GetCurrRefList();
-        ENCODE_CHK_NULL_RETURN(currRefList);
+        MOS_ALLOC_GFXRES_PARAMS allocParams;
+        MOS_ZeroMemory(&allocParams, sizeof(MOS_ALLOC_GFXRES_PARAMS));
+        allocParams.Type               = MOS_GFXRES_BUFFER;
+        allocParams.TileType           = MOS_TILE_LINEAR;
+        allocParams.Format             = Format_Buffer;
+        allocParams.Flags.bNotLockable = false;
+        allocParams.dwBytes            = sizeOfSegmentIdMap;
+        allocParams.pBufName           = "segmentIdStreamOutBuffer";
+        allocParams.ResUsageType       = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_NOCACHE;
+        m_segmentMapBuffer[segmentBufid] = m_allocator->AllocateResource(allocParams, false);
 
-        // drivtracked buffer (), driver just allocate, no set up
-        streamOut = basicFeature.m_trackedBuf->GetBuffer(type, currRefList->ucScalingIdx);
-
-        return MOS_STATUS_SUCCESS;
-
-    }
-
-    MOS_STATUS Av1Segmentation::SetVdencPipeBufAddrParams(
-        MHW_VDBOX_PIPE_BUF_ADDR_PARAMS *pipeBufAddrParams)
-    {
-        ENCODE_FUNC_CALL();
-
-        ENCODE_CHK_NULL_RETURN(pipeBufAddrParams);
-        ENCODE_CHK_NULL_RETURN(m_basicFeature);
-
-        // N.B. Segmentation map from app (if provided) is sent via presVdencStreamInBuffer
-        //      pipeBufAddrParams->presVdencStreamInBuffer is set by Av1StreamIn::SetVdencImgStateParams
-
-        ENCODE_CHK_STATUS_RETURN(SetSegStreamIn(
-            *m_basicFeature
-            , m_segmentParams.m_temporalUpdate
-            , BufferType::vdencSegIdStreamOutBuffer
-            , pipeBufAddrParams->presSegmentMapStreamIn));
-
-        ENCODE_CHK_STATUS_RETURN(SetSegStreamOut(
-            *m_basicFeature
-            , BufferType::vdencSegIdStreamOutBuffer
-            , pipeBufAddrParams->presSegmentMapStreamOut));
+        ENCODE_CHK_NULL_RETURN(m_segmentMapBuffer[segmentBufid]);
 
         return MOS_STATUS_SUCCESS;
     }
 
     MHW_SETPAR_DECL_SRC(VDENC_PIPE_BUF_ADDR_STATE, Av1Segmentation)
     {
-        ENCODE_CHK_NULL_RETURN(m_basicFeature->m_trackedBuf);
-
         params.segmentMapStreamInBuffer  = nullptr;
         params.segmentMapStreamOutBuffer = nullptr;
 
@@ -436,8 +439,7 @@ namespace encode
             const auto primRefList = m_basicFeature->m_ref.GetPrimaryRefList();
             ENCODE_CHK_NULL_RETURN(primRefList);
 
-            params.segmentMapStreamInBuffer =
-                m_basicFeature->m_trackedBuf->GetBuffer(BufferType::segmentIdStreamOutBuffer, primRefList->m_segIdBufIdx);
+            params.segmentMapStreamInBuffer = m_segmentMapBuffer[primRefList->m_segIdBufIdx];
         }
 
         return MOS_STATUS_SUCCESS;
@@ -450,6 +452,12 @@ namespace encode
             sizeof(params.segmentParams),
             &m_segmentParams,
             sizeof(params.segmentParams));
+
+        if (m_basicFeature->m_av1PicParams->PicFlags.fields.DisableFrameRecon)
+        {
+            params.segmentParams.m_segIdBufStreamOutEnable = false;
+        }
+
 
         return MOS_STATUS_SUCCESS;
     }
@@ -476,26 +484,21 @@ namespace encode
     MHW_SETPAR_DECL_SRC(AVP_PIPE_BUF_ADDR_STATE, Av1Segmentation)
     {
         ENCODE_CHK_NULL_RETURN(m_basicFeature);
-        ENCODE_CHK_NULL_RETURN(m_basicFeature->m_trackedBuf);
 
         if (m_segmentParams.m_segIdBufStreamInEnable)
         {
             const auto primRefList = m_basicFeature->m_ref.GetPrimaryRefList();
             ENCODE_CHK_NULL_RETURN(primRefList);
-
-            params.segmentIdReadBuffer =
-                m_basicFeature->m_trackedBuf->GetBuffer(BufferType::segmentIdStreamOutBuffer, primRefList->m_segIdBufIdx);
+            ENCODE_CHK_NULL_RETURN(m_segmentMapBuffer[primRefList->m_segIdBufIdx]);
+            params.segmentIdReadBuffer = m_segmentMapBuffer[primRefList->m_segIdBufIdx];
         }
 
-        if (m_segmentParams.m_segIdBufStreamOutEnable)
+        if (!m_basicFeature->m_av1PicParams->PicFlags.fields.DisableFrameRecon && m_segmentParams.m_segIdBufStreamOutEnable)
         {
             const auto currRefList = m_basicFeature->m_ref.GetCurrRefList();
             ENCODE_CHK_NULL_RETURN(currRefList);
-
-            params.segmentIdWriteBuffer =
-                m_basicFeature->m_trackedBuf->GetBuffer(BufferType::segmentIdStreamOutBuffer, currRefList->ucScalingIdx);
-
-            currRefList->m_segIdBufIdx = currRefList->ucScalingIdx;
+            ENCODE_CHK_NULL_RETURN(m_segmentMapBuffer[currRefList->m_segIdBufIdx]);
+            params.segmentIdWriteBuffer = m_segmentMapBuffer[currRefList->m_segIdBufIdx];
         }
 
         return MOS_STATUS_SUCCESS;

@@ -309,23 +309,6 @@ namespace encode
         return m_commonPar;
     }
 
-    MOS_STATUS Av1StreamIn::SetVdencPipeBufAddrParams(
-        MHW_VDBOX_PIPE_BUF_ADDR_PARAMS *pipeBufAddrParams)
-    {
-        ENCODE_FUNC_CALL();
-
-        if (m_enabled)
-        {
-            ENCODE_CHK_NULL_RETURN(pipeBufAddrParams);
-            ENCODE_CHK_NULL_RETURN(m_basicFeature);
-            ENCODE_CHK_NULL_RETURN(m_basicFeature->m_trackedBuf);
-
-            pipeBufAddrParams->presVdencStreamInBuffer = m_streamInBuffer;
-        }
-
-        return MOS_STATUS_SUCCESS;
-    }
-
     MHW_SETPAR_DECL_SRC(VDENC_PIPE_BUF_ADDR_STATE, Av1StreamIn)
     {
         if (m_enabled)

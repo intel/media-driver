@@ -56,16 +56,6 @@ public:
     //!
     virtual MOS_STATUS Update(void *params) override;
 
-    //!
-    //! \brief  Set VDENC pipe buffer address parameter
-    //! \param  [in] pipeBufAddrParams
-    //!         Pointer to MhwVdboxAvpPipeBufAddrParams
-    //! \return  MOS_STATUS
-    //!         MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    MOS_STATUS SetVdencPipeBufAddrParams(
-        MHW_VDBOX_PIPE_BUF_ADDR_PARAMS *pipeBufAddrParams);
-
     MHW_SETPAR_DECL_HDR(VDENC_PIPE_BUF_ADDR_STATE);
 
     MHW_SETPAR_DECL_HDR(AVP_PIC_STATE);
@@ -115,6 +105,8 @@ protected:
     //!
     MOS_STATUS FillSegmentationMap(VdencStreamInState* streamInData) const;
 
+    MOS_STATUS AllocateSegmentationMapBuffer(uint8_t segmentBufid);
+
     CodecAv1SegmentsParams m_segmentParams = {};             //!< Segment Params
     uint8_t                m_segmentNum = 0;                 //!< Segment number
 
@@ -129,8 +121,11 @@ protected:
     static constexpr uint8_t m_imgStateImePredictors = 8;    //!< Number of predictors for IME
 
     Av1StreamIn* m_streamIn = nullptr;                       //!< The instance of stream in utility
-
     bool m_hasZeroSegmentQIndex = false;                     //!< Indicates if any of segments has zero qIndex
+    
+    int8_t        m_segmenBufferinUse[av1TotalRefsPerFrame]  = {};          //!< Indicates the num of m_segmentMapBuffer uesed for DPB
+    int8_t        m_ucScalingIdtoSegID[CODEC_NUM_TRACKED_BUFFERS] = {};         //!< Map the ucscaling of DPB to segmentID of segmentMapBuffer,Array length follows ucscaling range
+    PMOS_RESOURCE m_segmentMapBuffer[av1TotalRefsPerFrame]   = {nullptr};   //!< Save the segmentMap of DPB
 
 MEDIA_CLASS_DEFINE_END(encode__Av1Segmentation)
 };

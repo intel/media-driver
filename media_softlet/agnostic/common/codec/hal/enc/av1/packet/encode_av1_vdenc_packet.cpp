@@ -2052,7 +2052,7 @@ namespace encode{
         }
 
         auto streamInBufferSize = (MOS_ALIGN_CEIL(m_basicFeature->m_frameWidth, 64) / 32) * (MOS_ALIGN_CEIL(m_basicFeature->m_frameHeight, 64) / 32) * CODECHAL_CACHELINE_SIZE;
-        PMOS_RESOURCE streamInBuffer = m_basicFeature->m_recycleBuf->GetBuffer(RecycleResId::StreamInBuffer, m_basicFeature->m_frameNum);
+        PMOS_RESOURCE streamInBuffer = m_basicFeature->m_recycleBuf->GetBuffer(RecycleResId::StreamInBuffer, debugInterface->m_bufferDumpFrameNum);
         if (streamInBuffer != nullptr)
         {
             ENCODE_CHK_STATUS_RETURN(debugInterface->DumpBuffer(
