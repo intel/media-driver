@@ -601,6 +601,8 @@ public:
         GMM_RESOURCE_FORMAT Format          // [in]    resouce format
     );
 
+    MOS_HW_RESOURCE_DEF GetResourceCache(uint32_t feature, bool bOut, ENGINE_TYPE engineType, MOS_COMPONENT id = COMPONENT_VPCommon);
+
     int64_t GetTotalSize()
     {
         return m_totalSize;

@@ -1,4 +1,4 @@
-# Copyright (c) 2018 - 2020, Intel Corporation
+# Copyright (c) 2024, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,33 +18,29 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-media_include_subdirectory(bufferMgr)
-media_include_subdirectory(feature_manager)
-media_include_subdirectory(features)
-media_include_subdirectory(mmc)
-media_include_subdirectory(packet)
-media_include_subdirectory(pipeline)
-media_include_subdirectory(scalability)
-media_include_subdirectory(statusreport)
-media_include_subdirectory(utils)
-media_include_subdirectory(platform_interface)
-media_include_subdirectory(shared)
-media_include_subdirectory(cacheSettings)
-
 set(TMP_SOURCES_
-    ${CMAKE_CURRENT_LIST_DIR}/vp_common.c
+    ${CMAKE_CURRENT_LIST_DIR}/vp_common_cache_settings.cpp
 )
 
+set(TMP_HEADERS_
+    ${CMAKE_CURRENT_LIST_DIR}/vp_common_cache_settings.h
+)
 
 set(SOFTLET_VP_SOURCES_
     ${SOFTLET_VP_SOURCES_}
     ${TMP_SOURCES_}
 )
 
-source_group( "VpHalNext" FILES ${TMP_SOURCES_} )
+set(SOFTLET_VP_HEADERS_
+    ${SOFTLET_VP_HEADERS_}
+    ${TMP_HEADERS_}
+)
+
+source_group( VpHalNext\\Shared FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
 set(TMP_SOURCES_ "")
+set(TMP_HEADERS_ "")
+
 set (SOFTLET_VP_PRIVATE_INCLUDE_DIRS_
     ${SOFTLET_VP_PRIVATE_INCLUDE_DIRS_}
     ${CMAKE_CURRENT_LIST_DIR}
 )
-

@@ -1449,3 +1449,18 @@ MOS_STATUS VpAllocator::SetMmcFlags(MOS_SURFACE &osSurface)
 
     return MOS_STATUS_SUCCESS;
 }
+
+MOS_HW_RESOURCE_DEF VpAllocator::GetResourceCache(uint32_t feature, bool bOut, ENGINE_TYPE engineType, MOS_COMPONENT id)
+{
+    VP_FUNC_CALL();
+    MOS_CACHE_ELEMENT element(MOS_CODEC_RESOURCE_USAGE_BEGIN_CODEC, MOS_CODEC_RESOURCE_USAGE_BEGIN_CODEC);
+    bool              res = m_osInterface->pfnGetCacheSetting(id, SUFACE_TYPE_ASSIGNED(feature), bOut, engineType, element, false);
+    if (res == false)
+    {
+        VP_PUBLIC_ASSERTMESSAGE("Resource %u was not found in cache manager, use default usage MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_RENDER!", feature);
+        return MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_RENDER;
+    }
+
+    VP_PUBLIC_NORMALMESSAGE("Resource %u was found in cache manager, use mocs usage %u!", feature, element.mocsUsageType);
+    return element.mocsUsageType;
+}

@@ -658,7 +658,8 @@ MOS_STATUS Mos_InitOsInterface(
 
     pOsInterface->pfnCreateMhwCpInterface               = Create_MhwCpInterface;
     pOsInterface->pfnDeleteMhwCpInterface               = Delete_MhwCpInterface;
-
+    pOsInterface->pfnInsertCacheSetting                 = Mos_InsertCacheSetting;
+    pOsInterface->pfnGetCacheSetting                    = Mos_GetCacheSetting;
 #if !EMUL
     pOsInterface->pfnCreateSecureDecodeInterface        = Create_SecureDecodeInterface;
     pOsInterface->pfnDeleteSecureDecodeInterface        = Delete_SecureDecodeInterface;
@@ -1124,6 +1125,16 @@ void Mos_ResetMosResource(
     PMOS_RESOURCE           resource)
 {
     return MosInterface::MosResetResource(resource);
+}
+
+bool Mos_InsertCacheSetting(CACHE_COMPONENTS id, std::map<uint64_t, MOS_CACHE_ELEMENT> *cacheTablesPtr)
+{
+    return RegisterCacheSettings(id, cacheTablesPtr);
+}
+
+bool Mos_GetCacheSetting(MOS_COMPONENT id, uint32_t feature, bool bOut, ENGINE_TYPE engineType, MOS_CACHE_ELEMENT &element, bool isHeapSurf)
+{
+    return LoadCacheSettings(id, feature, bOut, engineType, element, isHeapSurf);
 }
 
 #if (_DEBUG || _RELEASE_INTERNAL)

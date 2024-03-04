@@ -80,6 +80,8 @@ public:
     //!
     virtual VphalFeatureReport* GetRenderFeatureReport() override;
 
+    virtual MOS_STATUS RegisterCacheSettings() override;
+
 protected:
     virtual bool IsApoEnabled() override
     {

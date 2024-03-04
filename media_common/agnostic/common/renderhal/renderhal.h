@@ -1024,6 +1024,8 @@ typedef struct _RENDERHAL_SURFACE_STATE_PARAMS
     uint32_t                        bBufferUse                : 1;              // Flags for 1D buffer use
     uint32_t                        bSurfaceTypeDefined       : 1;
     uint32_t                                                  : 2;
+    uint32_t                        surfaceType               : 11;
+    MOS_COMPONENT                   Component                 : 4;
     RENDERHAL_MEMORY_OBJECT_CONTROL MemObjCtl;                                  // Caching attributes
 } RENDERHAL_SURFACE_STATE_PARAMS, *PRENDERHAL_SURFACE_STATE_PARAMS;
 

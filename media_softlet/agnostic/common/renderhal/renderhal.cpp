@@ -6431,6 +6431,23 @@ MOS_STATUS RenderHal_SetupSurfaceState(
     MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pRenderHalPltInterface);
     //-----------------------------------------------
 
+    if (pParams->surfaceType)
+    {
+        MOS_CACHE_ELEMENT element(MOS_CODEC_RESOURCE_USAGE_BEGIN_CODEC, MOS_CODEC_RESOURCE_USAGE_BEGIN_CODEC);
+        bool              res = pRenderHal->pOsInterface->pfnGetCacheSetting(pParams->Component, pParams->surfaceType, pParams->isOutput, RENDER_ENGINE, element, false);
+        if (res)
+        {
+            pParams->MemObjCtl = element.mocsUsageType;
+        }
+        else
+        {
+            MHW_RENDERHAL_ASSERTMESSAGE("Not found cache settings!");
+        }
+    }
+    else
+    {
+        MHW_RENDERHAL_NORMALMESSAGE("Not implemented yet! Will use MemObjCtl value %d", pParams->MemObjCtl);
+    }
     MHW_RENDERHAL_CHK_STATUS_RETURN(pRenderHal->pRenderHalPltInterface->SetupSurfaceState(
         pRenderHal, pRenderHalSurface, pParams, piNumEntries, ppSurfaceEntries, pOffsetOverride));
 

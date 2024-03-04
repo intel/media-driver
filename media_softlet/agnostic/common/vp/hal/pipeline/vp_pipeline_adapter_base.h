@@ -105,6 +105,11 @@ public:
     virtual MOS_STATUS Render(
         PCVPHAL_RENDER_PARAMS pcRenderParams) = 0;
 
+    virtual MOS_STATUS RegisterCacheSettings()
+    {
+        return MOS_STATUS_SUCCESS;
+    };
+
     //!
     //! \brief    Get Status Report
     //! \details  Get Status Report, will return back to app indicating if related frame id is done by gpu

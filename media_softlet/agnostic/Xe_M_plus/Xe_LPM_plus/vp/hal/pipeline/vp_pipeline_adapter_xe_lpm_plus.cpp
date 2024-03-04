@@ -21,6 +21,7 @@
 */
 #include "vp_pipeline_adapter_xe_lpm_plus.h"
 #include "vp_platform_interface.h"
+#include "vp_common_cache_settings.h"
 
 VpPipelineAdapterXe_Lpm_Plus::VpPipelineAdapterXe_Lpm_Plus(
     PMOS_INTERFACE              pOsInterface,
@@ -66,6 +67,9 @@ MOS_STATUS VpPipelineAdapterXe_Lpm_Plus::Allocate(
     {
         return status;
     }
+
+    VP_PUBLIC_CHK_STATUS_RETURN(RegisterCacheSettings());
+
     return Init(pVpHalSettings, vpMhwinterface);
 }
 
@@ -97,4 +101,17 @@ MOS_STATUS VpPipelineAdapterXe_Lpm_Plus::Execute(PVP_PIPELINE_PARAMS params)
     VP_FUNC_CALL();
 
     return VpPipelineAdapter::Execute(params, m_vprenderHal);
+}
+
+MOS_STATUS VpPipelineAdapterXe_Lpm_Plus::RegisterCacheSettings()
+{
+    VP_FUNC_CALL();
+    bool res = m_osInterface->pfnInsertCacheSetting(CACHE_COMPONENT_VP, &g_vp_cacheSettings);
+
+    if (res == false)
+    {
+        VP_PUBLIC_ASSERTMESSAGE("CacheTables insert failed");
+        VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_UNIMPLEMENTED);
+    }
+    return MOS_STATUS_SUCCESS;
 }
