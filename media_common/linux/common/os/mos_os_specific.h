@@ -361,7 +361,7 @@ struct _MOS_SPECIFIC_RESOURCE
     MOS_FORMAT          Format;
     int32_t             iCount;
     int32_t             iAllocationIndex[MOS_GPU_CONTEXT_MAX];
-    uint32_t            dwGfxAddress;
+    uint64_t            dwGfxAddress;
     uint8_t             *pData;
     const char          *bufname;
     uint32_t            isTiled;
