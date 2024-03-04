@@ -1770,41 +1770,6 @@ mos_gem_bo_clear_exec_list_xe(struct mos_linux_bo *cmd_bo, int start)
     }
 }
 
-/**
- * Update busy queue and free queue after wait for bo deps.
- * Move all free deps on read/write dep map from busy queue to free queue;
- * Clear all signaled deps in bo read/write dep map.
- */
-static int
-__mos_gem_bo_update_dep_queue_xe(struct mos_linux_bo *bo,
-            std::map<uint32_t, uint64_t> &max_timeline_data)
-{
-    MOS_DRM_CHK_NULL_RETURN_VALUE(bo, -EINVAL)
-
-    mos_xe_bufmgr_gem *bufmgr_gem = (mos_xe_bufmgr_gem *)bo->bufmgr;
-    MOS_DRM_CHK_NULL_RETURN_VALUE(bufmgr_gem, -EINVAL)
-    bufmgr_gem->m_lock.lock();
-    // Use max time line data to update dep queue in every ctx.
-    for(auto it = max_timeline_data.begin(); it != max_timeline_data.end(); it++)
-    {
-        uint32_t exec_queue_id = it->first;
-        if(bufmgr_gem->global_ctx_info.count(exec_queue_id) > 0)
-        {
-            mos_xe_context *ctx = bufmgr_gem->global_ctx_info[exec_queue_id];
-            if(ctx)
-            {
-                mos_sync_update_dep_queue(bufmgr_gem->fd,
-                            ctx->dep_queue_free,
-                            ctx->dep_queue_busy,
-                            ctx->free_dep_tmp_list,
-                            it->second);
-            }
-        }
-    }
-    bufmgr_gem->m_lock.unlock();
-    return MOS_XE_SUCCESS;
-}
-
 int
 __mos_dump_bo_wait_rendering_syncobj_xe(uint32_t bo_handle,
             uint32_t *handles,
@@ -1907,83 +1872,6 @@ __mos_gem_bo_wait_timeline_rendering_with_flags_xe(struct mos_linux_bo *bo,
 }
 
 /**
- * @bo indicates to bo object that need to wait
- * @max_timeline_data max timeline data in every exec_queue context for this bo resource.
- * @timeout_nsec indicates to timeout in nanosecond:
- *     if timeout_nsec > 0, waiting for given time, if timeout, return -ETIME;
- *     if timeout_nsec ==0, check bo busy state, if busy, return -ETIME imediately;
- * @wait_flags indicates wait operation, it supports wait all, wait submit, wait available or wait any;
- *     refer drm syncobj to get more details in drm.h
- * @rw_flags indicates to read/write operation:
- *     if rw_flags & EXEC_OBJECT_WRITE_XE, means bo write. Otherwise it means bo read.
- * @first_signaled indicates to first signaled syncobj handle in the handls array.
- */
-static int
-__mos_gem_bo_wait_rendering_with_flags_xe(struct mos_linux_bo *bo,
-            std::map<uint32_t, uint64_t> &max_timeline_data,
-            int64_t timeout_nsec,
-            uint32_t wait_flags,
-            uint32_t rw_flags,
-            uint32_t *first_signaled)
-{
-    if(mos_sync_get_synchronization_mode() == MOS_SYNC_TIMELINE)
-    {
-        return __mos_gem_bo_wait_timeline_rendering_with_flags_xe(
-                    bo,
-                    timeout_nsec,
-                    wait_flags,
-                    rw_flags,
-                    first_signaled);
-    }
-
-    MOS_DRM_CHK_NULL_RETURN_VALUE(bo, -EINVAL)
-
-    mos_xe_bufmgr_gem *bufmgr_gem = (mos_xe_bufmgr_gem *)bo->bufmgr;
-    MOS_DRM_CHK_NULL_RETURN_VALUE(bufmgr_gem, -EINVAL)
-
-    int ret = MOS_XE_SUCCESS;
-    uint32_t count = 0;
-    mos_xe_bo_gem *bo_gem = (mos_xe_bo_gem *)bo;
-    std::vector<uint32_t> handles;
-    std::set<uint32_t> exec_queue_ids;
-    bufmgr_gem->m_lock.lock();
-    bufmgr_gem->sync_obj_rw_lock.lock_shared();
-    MOS_XE_GET_KEYS_FROM_MAP(bufmgr_gem->global_ctx_info, exec_queue_ids);
-
-    std::vector<struct mos_xe_dep*> used_deps;
-    mos_sync_get_bo_wait_deps(exec_queue_ids,
-                bo_gem->read_deps,
-                bo_gem->write_deps,
-                max_timeline_data,
-                bo_gem->last_exec_write_exec_queue,
-                handles,
-                used_deps,
-                rw_flags);
-    bufmgr_gem->m_lock.unlock();
-    count = handles.size();
-    if(count > 0)
-    {
-        ret = mos_sync_syncobj_wait_err(bufmgr_gem->fd,
-                        handles.data(),
-                        count,
-                        timeout_nsec,
-                        wait_flags,
-                        first_signaled);
-
-        __mos_dump_bo_wait_rendering_syncobj_xe(bo->handle,
-                handles.data(),
-                count,
-                timeout_nsec,
-                wait_flags,
-                rw_flags);
-    }
-    bufmgr_gem->sync_obj_rw_lock.unlock_shared();
-    mos_sync_dec_reference_count_in_deps(used_deps);
-    return ret;
-}
-
-
-/**
  * Check if bo is still busy state.
  *
  * Check if read dep on all exec_queue and write dep on last write exec_queue are signaled.
@@ -2002,8 +1890,9 @@ mos_gem_bo_busy_xe(struct mos_linux_bo *bo)
         int64_t timeout_nsec = 0;
         uint32_t wait_flags = DRM_SYNCOBJ_WAIT_FLAGS_WAIT_ALL;
         uint32_t rw_flags = EXEC_OBJECT_READ_XE | EXEC_OBJECT_WRITE_XE;
-        std::map<uint32_t, uint64_t> max_timeline_data;
-        int ret = __mos_gem_bo_wait_rendering_with_flags_xe(bo, max_timeline_data, timeout_nsec, wait_flags, rw_flags, nullptr);
+
+        int ret =  __mos_gem_bo_wait_timeline_rendering_with_flags_xe(bo, timeout_nsec, wait_flags, rw_flags, nullptr);
+
         if (ret)
         {
             //busy
@@ -2016,7 +1905,6 @@ mos_gem_bo_busy_xe(struct mos_linux_bo *bo)
         else if (MOS_XE_SUCCESS == ret)
         {
             //free
-            __mos_gem_bo_update_dep_queue_xe(bo, max_timeline_data);
             return false;
         }
     }
@@ -2049,16 +1937,12 @@ mos_gem_bo_wait_rendering_xe(struct mos_linux_bo *bo)
         int64_t timeout_nsec = INT64_MAX;
         uint32_t wait_flags = DRM_SYNCOBJ_WAIT_FLAGS_WAIT_ALL;
         uint32_t rw_flags = EXEC_OBJECT_READ_XE | EXEC_OBJECT_WRITE_XE;
-        std::map<uint32_t, uint64_t> max_timeline_data;
-        int ret = __mos_gem_bo_wait_rendering_with_flags_xe(bo, max_timeline_data, timeout_nsec, wait_flags, rw_flags, nullptr);
+
+        int ret =  __mos_gem_bo_wait_timeline_rendering_with_flags_xe(bo, timeout_nsec, wait_flags, rw_flags, nullptr);
 
         if (ret)
         {
             MOS_DRM_ASSERTMESSAGE("bo_wait_rendering_xe ret:%d, error:%d", ret, -errno);
-        }
-        else if (MOS_XE_SUCCESS == ret)
-        {
-            __mos_gem_bo_update_dep_queue_xe(bo, max_timeline_data);
         }
     }
     else if(!bufmgr_gem->is_defer_creation_and_binding)
@@ -2111,13 +1995,10 @@ mos_bo_map_xe(struct mos_linux_bo *bo, int write_enable)
         int64_t timeout_nsec = INT64_MAX;
         uint32_t wait_flags = DRM_SYNCOBJ_WAIT_FLAGS_WAIT_ALL;
         uint32_t rw_flags = write_enable ? EXEC_OBJECT_WRITE_XE : EXEC_OBJECT_READ_XE;
-        std::map<uint32_t, uint64_t> max_timeline_data;
-        ret = __mos_gem_bo_wait_rendering_with_flags_xe(bo, max_timeline_data, timeout_nsec, wait_flags, rw_flags, nullptr);
-        if(ret == MOS_XE_SUCCESS)
-        {
-            __mos_gem_bo_update_dep_queue_xe(bo, max_timeline_data);
-        }
-        else
+
+        ret =  __mos_gem_bo_wait_timeline_rendering_with_flags_xe(bo, timeout_nsec, wait_flags, rw_flags, nullptr);
+
+        if(ret)
         {
             MOS_DRM_ASSERTMESSAGE("bo wait rendering error(%d ns)", -errno);
         }
@@ -2411,55 +2292,18 @@ __mos_context_exec_update_syncs_xe(struct mos_xe_bufmgr_gem *bufmgr_gem,
             else
             {
                 //internal bo
-                ret = mos_sync_update_exec_syncs_from_deps(
+                ret = mos_sync_update_exec_syncs_from_timeline_deps(
                             curr_dummy_exec_queue_id,
                             exec_bo_gem->last_exec_write_exec_queue,
                             exec_flags,
                             exec_queue_ids,
                             exec_bo_gem->read_deps,
                             exec_bo_gem->write_deps,
-                            syncs,
-                            used_internal_deps);
+                            syncs);
             }
         }
     }
     return MOS_XE_SUCCESS;
-}
-
-static struct mos_xe_dep*
-__mos_context_exec_update_syncs_from_queue_xe(struct mos_xe_bufmgr_gem *bufmgr_gem,
-            struct mos_xe_context *ctx,
-            std::vector<struct drm_xe_sync> &syncs)
-{
-    MOS_DRM_CHK_NULL_RETURN_VALUE(bufmgr_gem, nullptr);
-    MOS_DRM_CHK_NULL_RETURN_VALUE(ctx, nullptr);
-    /**
-     * Get a new dep from queue and add it into syncs;
-     * Note, this dep must return back to busy queue after exec submission.
-     */
-    bool need_wait = false;
-    mos_sync_update_free_dep_tmp_list(bufmgr_gem->fd, ctx->free_dep_tmp_list, ctx->dep_queue_free);
-    mos_xe_dep *dep = mos_sync_update_exec_syncs_from_queue(
-                bufmgr_gem->fd,
-                ctx->dep_queue_free,
-                ctx->dep_queue_busy,
-                ctx->free_dep_tmp_list,
-                syncs,
-                need_wait);
-    if (dep && need_wait)
-    {
-        bufmgr_gem->sync_obj_rw_lock.lock();
-        int ret = mos_sync_syncobj_reset(
-                    bufmgr_gem->fd,
-                    &(dep->sync.handle),
-                    1);
-        if(ret)
-        {
-            MOS_DRM_ASSERTMESSAGE("failed to reset syncobj(%d)", dep->sync.handle);
-        }
-        bufmgr_gem->sync_obj_rw_lock.unlock();
-    }
-    return dep;
 }
 
 static int
@@ -2624,7 +2468,12 @@ mos_bo_context_exec_with_sync_xe(struct mos_linux_bo **bo, int num_bo, struct mo
     }
 
     bufmgr_gem->m_lock.lock();
-    struct mos_xe_dep *dep = __mos_context_exec_update_syncs_from_queue_xe(bufmgr_gem, context, syncs);
+    //get available timeline from engine queue and add it into syncs as fence out point.
+    struct mos_xe_dep *dep = mos_sync_update_exec_syncs_from_timeline_queue(
+                                    bufmgr_gem->fd,
+                                    context->dep_queue_busy,
+                                    syncs);
+
     if(dep == nullptr)
     {
         MOS_DRM_ASSERTMESSAGE("Failed to get dep from queue");
@@ -2677,22 +2526,11 @@ mos_bo_context_exec_with_sync_xe(struct mos_linux_bo **bo, int num_bo, struct mo
     //dump bo deps map
     __mos_dump_bo_deps_map_xe(bo, num_bo, exec_list, curr_exec_queue_id, bufmgr_gem->global_ctx_info);
 
-    if(mos_sync_get_synchronization_mode() == MOS_SYNC_SYNCOBJ)
-    {
-        //return back dep to busy queue which is got from queue in previous.
-        mos_sync_return_back_dep(context->dep_queue_busy, dep, context->cur_timeline_index);
-    }
-
-    //dep timeline index has been updated in mos_sync_return_back_dep, then could update read, write dep maps.
+    //update bos' read and write dep with new timeline
     __mos_context_exec_update_bo_deps_xe(bo, num_bo, exec_list, context->dummy_exec_queue_id, dep);
 
-    if(mos_sync_get_synchronization_mode() == MOS_SYNC_TIMELINE)
-    {
-        //Update dep with latest available timeline
-        mos_sync_update_timeline_dep(dep);
-    }
-
-    mos_sync_dec_reference_count_in_deps(used_internal_deps);
+    //Update dep with latest available timeline
+    mos_sync_update_timeline_dep(dep);
 
     bufmgr_gem->sync_obj_rw_lock.unlock_shared();
     bufmgr_gem->m_lock.unlock();
@@ -2704,18 +2542,11 @@ mos_bo_context_exec_with_sync_xe(struct mos_linux_bo **bo, int num_bo, struct mo
 
     if(external_bo_count > 0)
     {
-        if(mos_sync_get_synchronization_mode() == MOS_SYNC_SYNCOBJ)
+        temp_syncobj = mos_sync_syncobj_create(bufmgr_gem->fd, 0);
+        if(temp_syncobj > 0)
         {
-            sync_file_fd = mos_sync_syncobj_handle_to_syncfile_fd(bufmgr_gem->fd, dep->sync.handle);
-        }
-        else if(mos_sync_get_synchronization_mode() == MOS_SYNC_TIMELINE)
-        {
-            temp_syncobj = mos_sync_syncobj_create(bufmgr_gem->fd, 0);
-            if(temp_syncobj > 0)
-            {
-                mos_sync_syncobj_timeline_to_binary(bufmgr_gem->fd, temp_syncobj, dep->sync.handle, curr_timeline, 0);
-                sync_file_fd = mos_sync_syncobj_handle_to_syncfile_fd(bufmgr_gem->fd, temp_syncobj);
-            }
+            mos_sync_syncobj_timeline_to_binary(bufmgr_gem->fd, temp_syncobj, dep->sync.handle, curr_timeline, 0);
+            sync_file_fd = mos_sync_syncobj_handle_to_syncfile_fd(bufmgr_gem->fd, temp_syncobj);
         }
     }
     for(int i = 0; i < external_bo_count; i++)
@@ -3719,10 +3550,7 @@ mos_bufmgr_gem_init_xe(int fd, int batch_size)
 
     if(sync_mode != MOS_SYNC_NONE)
     {
-        if(sync_mode != MOS_SYNC_SYNCOBJ)
-        {
-            sync_mode = MOS_SYNC_TIMELINE; //invalid setting, use default mode
-        }
+        sync_mode = MOS_SYNC_TIMELINE;
         bufmgr_gem->bufmgr.bo_context_exec3 = mos_bo_context_exec_with_sync_xe;
     }
     else

@@ -40,9 +40,9 @@ extern "C" {
 #endif
 
 enum mos_sync_mode {
-    MOS_SYNC_NONE     = 0,
-    MOS_SYNC_SYNCOBJ  = 1,
-    MOS_SYNC_TIMELINE = 2,
+    MOS_SYNC_NONE      = 0,
+    MOS_SYNC_RESERVED  = 1,
+    MOS_SYNC_TIMELINE  = 2,
     MOS_SYNC_MAX,
 };
 
@@ -117,42 +117,19 @@ int mos_sync_syncobj_timeline_to_binary(int fd, uint32_t binary_handle,
         uint64_t point,
         uint32_t flags);
 void mos_sync_update_timeline_dep(struct mos_xe_dep *dep);
-void mos_sync_return_back_dep(std::queue<struct mos_xe_dep*> &queue,
-            struct mos_xe_dep *dep, uint64_t &cur_timeline_index);
-void mos_sync_update_exec_syncs_by_dep(struct mos_xe_dep *dep,
-            uint32_t engine_id,
-            std::set<uint32_t> &engine_ids,
-            uint64_t bo_exec_timeline,
-            std::vector<drm_xe_sync> &syncs,
-            std::vector<mos_xe_dep*> &used_deps,
-            bool &is_busy_dep);
-int mos_sync_update_exec_syncs_from_deps(uint32_t curr_engine,
+int mos_sync_update_exec_syncs_from_timeline_deps(uint32_t curr_engine,
             uint32_t lst_write_engine, uint32_t flags,
             std::set<uint32_t> &engine_ids,
             std::map<uint32_t, struct mos_xe_bo_dep> &read_deps,
             std::map<uint32_t, struct mos_xe_bo_dep> &write_deps,
-            std::vector<drm_xe_sync> &syncs,
-            std::vector<mos_xe_dep*> &used_deps);
+            std::vector<drm_xe_sync> &syncs);
 int mos_sync_update_exec_syncs_from_handle(int fd,
             uint32_t bo_handle, uint32_t flags,
             std::vector<struct drm_xe_sync> &syncs,
             int &out_prime_fd);
-struct mos_xe_dep *mos_sync_update_exec_syncs_from_queue(int fd,
-            std::queue<struct mos_xe_dep*> &queue_free,
+struct mos_xe_dep *mos_sync_update_exec_syncs_from_timeline_queue(int fd,
             std::queue<struct mos_xe_dep*> &queue_busy,
-            std::list<struct mos_xe_dep*> &free_dep_tmp_list,
-            std::vector<struct drm_xe_sync> &syncs,
-            bool &need_wait);
-void mos_sync_update_dep_queue(int fd, std::queue<struct mos_xe_dep*> &queue_free,
-            std::queue<struct mos_xe_dep*> &queue_busy,
-            std::list<struct mos_xe_dep*> &free_dep_tmp_list,
-            uint64_t bo_exec_timeline);
-void mos_sync_update_free_dep_tmp_list(int fd, std::list<struct mos_xe_dep*> &free_dep_tmp_list,
-            std::queue<struct mos_xe_dep*> &queue_free);
-bool mos_sync_is_valid_busy_dep(struct mos_xe_dep *dep,
-            uint32_t engine_id,
-            std::set<uint32_t> &engine_ids,
-            uint64_t bo_exec_timeline);
+            std::vector<struct drm_xe_sync> &syncs);
 int mos_sync_update_bo_deps(uint32_t curr_engine,
             uint32_t flags, mos_xe_dep *dep,
             std::map<uint32_t, struct mos_xe_bo_dep> &read_deps,
@@ -163,18 +140,9 @@ void mos_sync_get_bo_wait_timeline_deps(std::set<uint32_t> &engine_ids,
             std::map<uint32_t, uint64_t> &max_timeline_data,
             uint32_t lst_write_engine,
             uint32_t rw_flags);
-void mos_sync_get_bo_wait_deps(std::set<uint32_t> &engine_ids,
-            std::map<uint32_t, struct mos_xe_bo_dep> &read_deps,
-            std::map<uint32_t, struct mos_xe_bo_dep> &write_deps,
-            std::map<uint32_t, uint64_t> &max_timeline_data,
-            uint32_t lst_write_engine,
-            std::vector<uint32_t> &handles,
-            std::vector<struct mos_xe_dep*> &used_deps,
-            uint32_t rw_flags);
 void mos_sync_clear_dep_queue(int fd, std::queue<struct mos_xe_dep*> &queue);
 void mos_sync_clear_dep_list(int fd, std::list<struct mos_xe_dep*> &temp_list);
 
-void mos_sync_dec_reference_count_in_deps(std::vector<struct mos_xe_dep*> &deps);
 
 #if defined(__cplusplus)
 }
