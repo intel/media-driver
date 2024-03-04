@@ -214,7 +214,7 @@ MOS_STATUS MediaCopyBaseState::CopyEnigneSelect(MCPY_METHOD preferMethod, MCPY_E
     {
         mcpyEngine = MCPY_ENGINE_VEBOX;
     }
-    else if (4 == m_MCPYForceMode)
+    else if (MCPY_METHOD_DEFAULT != m_MCPYForceMode)
     {
         return MOS_STATUS_INVALID_PARAMETER; // bypass copy engine, just let APP handle it.
     }
