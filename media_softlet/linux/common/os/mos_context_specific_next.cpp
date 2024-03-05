@@ -154,13 +154,6 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
             }
         }
 
-        if (m_platformInfo.eProductFamily == IGFX_TIGERLAKE_LP
-            || m_platformInfo.eProductFamily == IGFX_ALDERLAKE_P)
-        {
-            //Note: this is ugly fix to override pat index for uptr on xe drm, and it must be removed when formal fix done.
-            mos_set_platform_information(m_bufmgr, PLATFORM_INFORMATION_OVERRIDE_UPTR_PAT);
-        }
-
         ReadUserSetting(
             userSettingPtr,
             value,
