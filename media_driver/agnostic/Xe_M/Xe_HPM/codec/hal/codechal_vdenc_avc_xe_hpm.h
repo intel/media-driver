@@ -98,6 +98,11 @@ public:
 #endif
     };
 
+    //!
+    //! \brief    Destructor
+    //!
+    virtual ~CodechalVdencAvcStateXe_Hpm();
+
     virtual MOS_STATUS AllocateResources() override;
     virtual MOS_STATUS AllocateMDFResources() override;
 
@@ -118,6 +123,8 @@ public:
     virtual MOS_STATUS ValidateNumReferences(PCODECHAL_ENCODE_AVC_VALIDATE_NUM_REFS_PARAMS params) override;
 
     virtual uint32_t GetCurrConstDataBufIdx() override;
+
+    virtual MOS_STATUS HuCBrcInitReset() override;
 
     virtual MOS_STATUS AddMfxAvcSlice(
         PMOS_COMMAND_BUFFER        cmdBuffer,
@@ -189,6 +196,10 @@ protected:
 
     MOS_STATUS ChangeContext();
 
+    MOS_STATUS CheckHucLoadStatus();
+
+    MOS_STATUS PackHucAuthCmds(MOS_COMMAND_BUFFER &cmdBuffer);
+
     uint32_t m_mfxAvcImgStateSize    = 0;
     uint32_t m_vdencCmd3Size         = 0;
     uint32_t m_vdencAvcImgStateSize  = 0;
@@ -206,6 +217,11 @@ protected:
     static const uint8_t G3_rB_IntraRounding[52];
     static const uint8_t G3_B_InterRounding[52];
     static const uint8_t G3_B_IntraRounding[52];
+
+    //Resources
+    MOS_RESOURCE      m_hucAuthBuf                                      = {};  //!< Huc authentication buffer
+    MHW_BATCH_BUFFER  m_2ndLevelBB[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM] = {};  //!< 2nd level batch buffer
+    PMHW_BATCH_BUFFER m_batchBuf = nullptr;
 
 private:
     static const uint16_t SliceSizeThrsholdsI_Xe_Hpm[52];

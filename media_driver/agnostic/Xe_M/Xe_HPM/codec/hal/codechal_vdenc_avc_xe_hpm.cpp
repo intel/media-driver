@@ -30,6 +30,9 @@
 #include "codechal_vdenc_avc_xe_hpm.h"
 #include "codechal_mmc_encode_avc_xe_hpm.h"
 #include "mos_solo_generic.h"
+#include "mhw_mmio_g12.h"
+#include "mhw_mi_g12_X.h"
+#include "codechal_hw_g12_X.h"
 
 static const uint32_t TrellisQuantizationRoundingXe_Hpm[NUM_VDENC_TARGET_USAGE_MODES] =
     {
@@ -317,6 +320,19 @@ MOS_STATUS CodechalVdencAvcStateXe_Hpm::InitializeState()
     return eStatus;
 }
 
+CodechalVdencAvcStateXe_Hpm::~CodechalVdencAvcStateXe_Hpm()
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    m_osInterface->pfnFreeResource(m_osInterface, &m_hucAuthBuf);
+
+    for (auto j = 0; j < CODECHAL_ENCODE_RECYCLED_BUFFER_NUM; j++)
+    {
+        MOS_STATUS eStatus = Mhw_FreeBb(m_hwInterface->GetOsInterface(), &m_2ndLevelBB[j], nullptr);
+        ENCODE_ASSERT(eStatus == MOS_STATUS_SUCCESS);
+    }
+}
+
 uint16_t CodechalVdencAvcStateXe_Hpm::GetAdaptiveRoundingNumSlices()
 {
     return static_cast<uint16_t>(m_numSlices);
@@ -399,6 +415,41 @@ MOS_STATUS CodechalVdencAvcStateXe_Hpm::AllocateResources()
         }
 
         m_osInterface->pfnUnlockResource(m_osInterface, iBuf);
+    }
+
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    MOS_ALLOC_GFXRES_PARAMS allocParamsForBufferLinear;
+    MOS_ZeroMemory(&allocParamsForBufferLinear, sizeof(MOS_ALLOC_GFXRES_PARAMS));
+    allocParamsForBufferLinear.Type = MOS_GFXRES_BUFFER;
+    allocParamsForBufferLinear.TileType = MOS_TILE_LINEAR;
+    allocParamsForBufferLinear.Format = Format_Buffer;
+
+    // HUC STATUS 2 Buffer for HuC status check in COND_BB_END
+    allocParamsForBufferLinear.dwBytes = sizeof(uint64_t);
+    allocParamsForBufferLinear.pBufName = "Huc authentication status Buffer";
+    allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_NOCACHE;
+    eStatus = (MOS_STATUS)m_osInterface->pfnAllocateResource(
+        m_osInterface,
+        &allocParamsForBufferLinear,
+        &m_hucAuthBuf);
+
+    if (eStatus != MOS_STATUS_SUCCESS)
+    {
+        CODECHAL_ENCODE_ASSERTMESSAGE("Failed to allocate Huc authentication status Buffer.");
+        return eStatus;
+    }
+
+    for (auto j = 0; j < CODECHAL_ENCODE_RECYCLED_BUFFER_NUM; j++)
+    {
+        // second level batch buffer
+        MOS_ZeroMemory(&m_2ndLevelBB[j], sizeof(MHW_BATCH_BUFFER));
+        m_2ndLevelBB[j].bSecondLevel = true;
+        ENCODE_CHK_STATUS_RETURN(Mhw_AllocateBb(
+            m_hwInterface->GetOsInterface(),
+            &m_2ndLevelBB[j],
+            nullptr,
+            CODECHAL_CACHELINE_SIZE));
     }
 
     return MOS_STATUS_SUCCESS;
@@ -810,6 +861,99 @@ uint32_t CodechalVdencAvcStateXe_Hpm::GetCurrConstDataBufIdx()
 {
     return m_avcPicParam->CodingType == B_TYPE && m_avcPicParam->RefPicFlag ? m_avcPicParam->CodingType // refB
                                                                             : m_avcPicParam->CodingType - 1;
+}
+
+MOS_STATUS CodechalVdencAvcStateXe_Hpm::PackHucAuthCmds(MOS_COMMAND_BUFFER &cmdBuffer)
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    // Write HuC Load Info Mask
+    MHW_MI_STORE_DATA_PARAMS storeDataParams;
+    storeDataParams.pOsResource         = &m_hucAuthBuf;
+    storeDataParams.dwResourceOffset    = 0;
+    storeDataParams.dwValue             = HUC_LOAD_INFO_REG_MASK_G12;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(&cmdBuffer, &storeDataParams));
+
+    // Store Huc Auth register
+    MHW_MI_STORE_REGISTER_MEM_PARAMS storeRegParams;
+    MOS_ZeroMemory(&storeRegParams, sizeof(storeRegParams));
+    storeRegParams.presStoreBuffer = &m_hucAuthBuf;
+    storeRegParams.dwOffset        = sizeof(uint32_t);
+    storeRegParams.dwRegister      = m_hucInterface->GetMmioRegisters(MHW_VDBOX_NODE_1)->hucLoadInfoOffset;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(&cmdBuffer, &storeRegParams));
+
+    MHW_MI_FLUSH_DW_PARAMS flushDwParams;
+    MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(&cmdBuffer, &flushDwParams));
+
+    // Check Huc auth: if equals to 0 continue chained BB until reset, otherwise send BB end cmd.
+    uint32_t compareOperation = mhw_mi_g12_X::MI_CONDITIONAL_BATCH_BUFFER_END_CMD::COMPARE_OPERATION_MADEQUALIDD;
+    auto hwInterface = dynamic_cast<CodechalHwInterfaceG12 *>(m_hwInterface);
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(hwInterface->SendCondBbEndCmd(
+        &m_hucAuthBuf, 0, 0, false, true, compareOperation, &cmdBuffer));
+
+    // Chained BB loop
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(static_cast<MhwMiInterfaceG12 *>(m_miInterface)->AddMiBatchBufferStartCmd(&cmdBuffer, m_batchBuf, true));
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS CodechalVdencAvcStateXe_Hpm::CheckHucLoadStatus()
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    MOS_COMMAND_BUFFER cmdBuffer = {};
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
+
+    // add media reset check 100ms, which equals to 1080p WDT threshold
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->SetWatchdogTimerThreshold(1920, 1080, true));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddWatchdogTimerStopCmd(&cmdBuffer));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddWatchdogTimerStartCmd(&cmdBuffer));
+
+    // program 2nd level chained BB for Huc auth
+    m_batchBuf = &m_2ndLevelBB[m_currRecycledBufIdx];
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_batchBuf);
+
+    MOS_LOCK_PARAMS lockFlags;
+    MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
+    lockFlags.WriteOnly = true;
+
+    uint8_t *data = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, &(m_batchBuf->OsResource), &lockFlags);
+    CODECHAL_ENCODE_CHK_NULL_RETURN(data);
+
+    MOS_COMMAND_BUFFER hucAuthCmdBuffer;
+    MOS_ZeroMemory(&hucAuthCmdBuffer, sizeof(hucAuthCmdBuffer));
+    hucAuthCmdBuffer.pCmdBase   = (uint32_t *)data;
+    hucAuthCmdBuffer.pCmdPtr    = hucAuthCmdBuffer.pCmdBase;
+    hucAuthCmdBuffer.iRemaining = m_batchBuf->iSize;
+    hucAuthCmdBuffer.OsResource = m_batchBuf->OsResource;
+    hucAuthCmdBuffer.cmdBuf1stLvl = &cmdBuffer;
+
+    //pak check huc status command
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(PackHucAuthCmds(hucAuthCmdBuffer));
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnUnlockResource(m_osInterface, &(m_batchBuf->OsResource)));
+
+    // BB start for 2nd level BB
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferStartCmd(&cmdBuffer, m_batchBuf));
+
+    m_osInterface->pfnReturnCommandBuffer(m_osInterface, &cmdBuffer, 0);
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS CodechalVdencAvcStateXe_Hpm::HuCBrcInitReset()
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    if (MEDIA_IS_WA(m_waTable, WaCheckHucAuthenticationStatus))
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(CheckHucLoadStatus());
+    }
+    
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalVdencAvcStateG12::HuCBrcInitReset());
+
+    return MOS_STATUS_SUCCESS;
 }
 
 uint32_t CodechalVdencAvcStateXe_Hpm::GetVdencBRCImgStateBufferSize()
