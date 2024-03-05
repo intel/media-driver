@@ -72,6 +72,7 @@ protected:
     virtual MOS_STATUS ActivateVdencTileReplayVideoPackets();
     virtual MOS_STATUS CreateFeatureManager() override;
     virtual MOS_STATUS SwitchContext(uint8_t outputChromaFormat, uint16_t numTileRows, uint16_t numTileColumns, bool enableTileReplay);
+    virtual MOS_STATUS HuCCheckAndInit();
 
 MEDIA_CLASS_DEFINE_END(encode__HevcVdencPipeline)
 };

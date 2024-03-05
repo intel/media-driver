@@ -42,6 +42,7 @@ static constexpr uint32_t MEMORY_ADDRESS_ATTRIBUTES_MOCS_CLEAN_MASK = 0xFFFFFF81
 static constexpr uint32_t HUC_UKERNEL_HDR_INFO_REG_OFFSET_NODE_1_INIT = 0x1C2014;
 static constexpr uint32_t HUC_STATUS_REG_OFFSET_NODE_1_INIT           = 0x1C2000;
 static constexpr uint32_t HUC_STATUS2_REG_OFFSET_NODE_1_INIT          = 0x1C23B0;
+static constexpr uint32_t HUC_LOAD_INFO_REG_OFFSET_NODE_1_INIT        = 0xC1DC;
 
 template <typename cmd_t>
 class Impl : public Itf, public mhw::Impl
@@ -90,6 +91,7 @@ private:
         mmioRegisters->hucUKernelHdrInfoRegOffset = HUC_UKERNEL_HDR_INFO_REG_OFFSET_NODE_1_INIT;
         mmioRegisters->hucStatusRegOffset         = HUC_STATUS_REG_OFFSET_NODE_1_INIT;
         mmioRegisters->hucStatus2RegOffset        = HUC_STATUS2_REG_OFFSET_NODE_1_INIT;
+        mmioRegisters->hucLoadInfoOffset          = HUC_LOAD_INFO_REG_OFFSET_NODE_1_INIT;
 
         m_mmioRegisters[MHW_VDBOX_NODE_2] = m_mmioRegisters[MHW_VDBOX_NODE_1];
     }

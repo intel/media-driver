@@ -56,7 +56,8 @@ public:
         Av1VdencPacket,
         Av1PakIntegrate,
         Av1BackAnnotation,
-        Av1Superres
+        Av1Superres,
+        EncodeCheckHucLoad,
     };
 
 protected:

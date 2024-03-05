@@ -84,6 +84,16 @@ MOS_STATUS HevcVdencPipeline::Prepare(void *params)
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS HevcVdencPipeline::HuCCheckAndInit()
+{
+    ENCODE_FUNC_CALL();
+
+    bool immediateSubmit = !m_singleTaskPhaseSupported;
+    ENCODE_CHK_STATUS_RETURN(ActivatePacket(HucBrcInit, immediateSubmit, 0, 0));
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS HevcVdencPipeline::ActivateVdencVideoPackets()
 {
     ENCODE_FUNC_CALL();
@@ -94,7 +104,7 @@ MOS_STATUS HevcVdencPipeline::ActivateVdencVideoPackets()
 
     if (brcFeature->IsBRCInitRequired())
     {
-        ENCODE_CHK_STATUS_RETURN(ActivatePacket(HucBrcInit, immediateSubmit, 0, 0));
+        ENCODE_CHK_STATUS_RETURN(HuCCheckAndInit());
     }
 
     bool tileEnabled = false;

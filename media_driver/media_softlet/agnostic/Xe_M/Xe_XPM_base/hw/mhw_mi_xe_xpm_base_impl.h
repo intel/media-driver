@@ -693,7 +693,7 @@ public:
             &resourceParams));
 
         // Set BB start
-        cmd.DW0.Obj3.SecondLevelBatchBuffer = true;
+        cmd.DW0.Obj3.SecondLevelBatchBuffer = params.secondLevelBatchBuffer;
         cmd.DW0.Obj0.AddressSpaceIndicator  = !IsGlobalGttInUse();
 
         return MOS_STATUS_SUCCESS;

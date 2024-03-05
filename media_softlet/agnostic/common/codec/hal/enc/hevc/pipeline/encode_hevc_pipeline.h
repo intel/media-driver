@@ -61,6 +61,7 @@ public:
         HucLaInit,
         HucLaUpdate,
         hevcVdencPacket422,
+        EncodeCheckHucLoad,
     };
 
 protected:

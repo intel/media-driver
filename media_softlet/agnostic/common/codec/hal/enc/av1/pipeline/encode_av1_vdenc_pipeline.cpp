@@ -103,6 +103,16 @@ MOS_STATUS Av1VdencPipeline::Prepare(void *params)
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS Av1VdencPipeline::HuCCheckAndInit()
+{
+    ENCODE_FUNC_CALL();
+
+    bool immediateSubmit = !m_singleTaskPhaseSupported;
+    ENCODE_CHK_STATUS_RETURN(ActivatePacket(Av1HucBrcInit, immediateSubmit, 0, 0));
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS Av1VdencPipeline::ActivateVdencVideoPackets()
 {
     ENCODE_FUNC_CALL();
@@ -119,7 +129,7 @@ MOS_STATUS Av1VdencPipeline::ActivateVdencVideoPackets()
 
     if (brcFeature->IsBRCInitRequired())
     {
-        ENCODE_CHK_STATUS_RETURN(ActivatePacket(Av1HucBrcInit, immediateSubmit, 0, 0));
+        ENCODE_CHK_STATUS_RETURN(HuCCheckAndInit());
     }
 
     for (uint8_t curPass = 0; curPass < GetPassNum(); curPass++)

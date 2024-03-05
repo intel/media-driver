@@ -33,6 +33,7 @@
 #include "encode_huc_la_init_packet.h"
 #include "encode_huc_la_update_packet.h"
 #include "encode_hevc_vdenc_422_packet.h"
+#include "encode_check_huc_load_packet.h"
 
 #if _ENCODE_RESERVED
 #include "encode_hevc_vdenc_packet_xe_hpm_ext.h"
@@ -86,6 +87,8 @@ MOS_STATUS HevcVdencPipelineXe_Hpm::Init(void *settings)
 
     RegisterPacket(hevcVdencPacket422, [=]() -> MediaPacket * { return MOS_New(HevcVdencPkt422, this, task, m_hwInterface); });
 
+    RegisterPacket(EncodeCheckHucLoad, [=]() -> MediaPacket * { return MOS_New(EncodeCheckHucLoadPkt, this, task, m_hwInterface); });
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -126,4 +129,24 @@ MOS_STATUS HevcVdencPipelineXe_Hpm::Initialize(void *settings)
 
     return MOS_STATUS_SUCCESS;
 }
+
+
+MOS_STATUS HevcVdencPipelineXe_Hpm::HuCCheckAndInit()
+{
+    ENCODE_FUNC_CALL();
+
+    bool immediateSubmit = !m_singleTaskPhaseSupported;
+
+    ENCODE_CHK_NULL_RETURN(m_hwInterface);
+    MEDIA_WA_TABLE *waTable = m_hwInterface->GetWaTable();
+    if (waTable && MEDIA_IS_WA(waTable, WaCheckHucAuthenticationStatus))
+    {
+        ENCODE_CHK_STATUS_RETURN(ActivatePacket(EncodeCheckHucLoad, immediateSubmit, 0, 0));
+    }
+
+    ENCODE_CHK_STATUS_RETURN(ActivatePacket(HucBrcInit, immediateSubmit, 0, 0));
+
+    return MOS_STATUS_SUCCESS;
+}
+
 }
