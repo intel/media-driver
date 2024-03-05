@@ -7762,7 +7762,7 @@ MOS_STATUS CodechalEncodeVp8G9::SetMeCurbe(struct CodechalVp8MeCurbeParams* para
 
     cmd.DW6.MEModes           = meMode;
     cmd.DW6.SuperCombineDist = (params->ucKernelMode == encodeNormalMode) ? 5 : ((params->ucKernelMode == encodePerformanceMode) ? 0 : 1);
-    cmd.DW6.MaxVmvR           = 0x7fc; /* For VP8, Luma MVs  in the range -2046 to +2046 (1/8 pel) */
+    cmd.DW6.MaxVmvR           = 0x7fc; /* For VP8, Luma motion vectors  in the range -2046 to +2046 (1/8 pel) */
 
     cmd.DW13.NumRefIdxL0MinusOne      = VP8_NUM_REFS_G9[params->pPicParams->ref_frame_ctrl] - 1;
     cmd.DW13.NumRefIdxL1MinusOne      = 0;

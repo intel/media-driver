@@ -272,7 +272,7 @@ inline HME( vector<uchar, CURBEDATA_SIZE> CURBEData,
             * The position of the MV of the last MB (in the vertical direction) should be
             * at read_y_pos = (picture_heightMB << prevMVReadPosFactor)
             * which means our input surface must have at least (picture_heightMB << prevMVReadPosFactor)
-            * MVs in each column. Each thread write 4 MV in a column so we have to round this number
+            * motion vectors in each column. Each thread write 4 MV in a column so we have to round this number
             * to the next multiplication of 4
             */
             uint subMB_offset_dscaled_pic = (( (picture_heightMB << prevMVReadPosFactor) + 3 ) & ~0x3);

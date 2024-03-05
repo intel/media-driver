@@ -894,7 +894,7 @@ VAStatus DdiEncodeBase::CreateBuffer(
     if ((m_encodeCtx->codecFunction == CODECHAL_FUNCTION_FEI_ENC) && (nullptr != data) &&
         ((VAEncFEIMVBufferType == type) || (VAEncFEIMBCodeBufferType == type) || (VAEncFEIDistortionBufferType == type) ||  (VAEncFEICURecordBufferType == type)))
     {
-        DDI_ASSERTMESSAGE("DDI:can not initialize the MVs, CURecord, MBcode and Distortion buffer for FEI ENC only!");
+        DDI_ASSERTMESSAGE("DDI:can not initialize the Motion vectors, CURecord, MBcode and Distortion buffer for FEI ENC only!");
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
 

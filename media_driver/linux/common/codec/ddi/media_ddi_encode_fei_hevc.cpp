@@ -219,8 +219,8 @@ VAStatus DdiEncodeHevcFei::ResetAtFrameLevel()
     feiPicParams->NumMVPredictorsL1       = 0;     // number of MV Predictors L1 provided, max is 2
     feiPicParams->SearchPath              = 0;     // search path, default is 0, 0 and 2 mean full search, 1 means diamond search
     feiPicParams->LenSP                   = 57;    // max number of SUs per reference which is evaluated by the predetermined SUs, range is [1, 63]
-    feiPicParams->MultiPredL0             = 0;     // 000: no neighbor MVs will be used as predictor for L0, 001: spatial MVs, 010 temporal MVs, others: reserved.
-    feiPicParams->MultiPredL1             = 0;     // 000: no neighbor MVs will be used as predictor for L1, 001: spatial MVs, 010 temporal MVs, others: reserved.
+    feiPicParams->MultiPredL0             = 0;     // 000: no neighbor Motion Vectors will be used as predictor for L0, 001: spatial Motion Vectors, 010 temporal Motion Vectors, others: reserved.
+    feiPicParams->MultiPredL1             = 0;     // 000: no neighbor Motion Vectors will be used as predictor for L1, 001: spatial Motion Vectors, 010 temporal Motion Vectors, others: reserved.
     feiPicParams->SubPelMode              = 3;     // half/quater pixels mode, 00b integer mode search, 01b half mode search, 11b quater mode search
     feiPicParams->AdaptiveSearch          = true;  // whether adaptive searching is enabled for IME
     feiPicParams->MVPredictorInput        = 0;     // 000: disable MV Predictor input, 001: enabled per 16x16 block,

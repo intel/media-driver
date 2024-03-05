@@ -2222,7 +2222,7 @@ public:
         //!     in IVB:GT2:A0)
         enum MBMVFORMATFLAG
         {
-            MBMVFORMATFLAG_IGNORE                                            = 0, //!< HW PAK ignore MvFormat in the MB data.  When bit 12 == 0, all MBs use packed MV formatWhen bit 12 == 1, each MB data must use unpacked MV format, 8MV when there is no minor MV involved, and 32MV if there are some minor MVs.
+            MBMVFORMATFLAG_IGNORE                                            = 0, //!< HW PAK ignore MvFormat in the MB data.  When bit 12 == 0, all MBs use packed MV formatWhen bit 12 == 1, each MB data must use unpacked MV format, 8MV when there is no minor MV involved, and 32MV if there are some minor motion vector.
             MBMVFORMATFLAG_FOLLOW                                            = 1, //!< HW PAK will follow MvFormat value set within each MB data.
         };
 
@@ -4912,7 +4912,7 @@ public:
                 uint32_t                 Motion4Mv : __CODEGEN_BITFIELD(19, 19); //!< MOTION4MV
                 uint32_t                 Overlaptransform : __CODEGEN_BITFIELD(20, 20); //!< OVERLAPTRANSFORM
                 uint32_t                 DctType : __CODEGEN_BITFIELD(21, 21); //!< DCT_TYPE
-                uint32_t                 Mvswitch : __CODEGEN_BITFIELD(22, 22); //!< MvSwitch
+                uint32_t                 Mvswitch : __CODEGEN_BITFIELD(22, 22); 
                 uint32_t                 Reserved23 : __CODEGEN_BITFIELD(23, 23); //!< Reserved
                 uint32_t                 MotionType : __CODEGEN_BITFIELD(24, 25); //!< Motion Type
                 uint32_t                 Mvfieldselectchroma : __CODEGEN_BITFIELD(26, 26); //!< MvFieldSelectChroma
@@ -6082,7 +6082,7 @@ public:
         enum FOURMVSWITCH_FOUR_MOTION_VECTOR_SWITCH
         {
             FOURMVSWITCH_FOUR_MOTION_VECTOR_SWITCH_DISABLE                   = 0, //!< only 1-MV
-            FOURMVSWITCH_FOUR_MOTION_VECTOR_SWITCH_ENABLE                    = 1, //!< 1, 2, or 4 MVs
+            FOURMVSWITCH_FOUR_MOTION_VECTOR_SWITCH_ENABLE                    = 1, //!< 1, 2, or 4 motion vector
         };
 
         //! \brief UNIFIEDMVMODE_UNIFIED_MOTION_VECTOR_MODE
@@ -6649,7 +6649,7 @@ public:
     //!     a multi-slices picture.   There is only one DMV buffer for read (when
     //!     processing a B-picture) and one for write (when processing a P-Picture).
     //!      Each DMV record is 64 bits per MB, to store the top and bottom field
-    //!     MVs (32-bit MVx,y each).
+    //!     Motion Vector (32-bit MVx,y each).
     //!     
     struct MFX_VC1_DIRECTMODE_STATE_CMD
     {

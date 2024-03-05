@@ -99,9 +99,9 @@ const uint8_t DefaultMbskipProbs[3] = {
 const uint8_t DefaultInterModeProbs[7][3] = {
     { 2, 173, 34 },  // 0 = both zero mv
     { 7, 145, 85 },  // 1 = one zero mv + one a predicted mv
-    { 7, 166, 63 },  // 2 = two predicted mvs
+    { 7, 166, 63 },  // 2 = two predicted motion vectors
     { 7, 94, 66 },  // 3 = one predicted/zero and one new mv
-    { 8, 64, 46 },  // 4 = two new mvs
+    { 8, 64, 46 },  // 4 = two new motion vectors
     { 17, 81, 31 },  // 5 = one intra neighbour + x
     { 25, 29, 30 },  // 6 = two intra neighbours
 };
