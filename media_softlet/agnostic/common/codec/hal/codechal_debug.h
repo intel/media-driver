@@ -361,6 +361,18 @@ protected:
 
 private:
     MOS_STATUS VDBypassCopyResource(PMOS_RESOURCE src, PMOS_RESOURCE dst);
+    MOS_STATUS AllocateLinearResource(
+        MOS_GFXRES_TYPE eType,
+        uint32_t        dwWidth,
+        uint32_t        dwHeight,
+        MOS_FORMAT      eFormat,
+        PMOS_RESOURCE   pResource,
+        bool            bSystemMem = false,
+        bool            bLockable = false) const;
+    MOS_STATUS FillResourceMemory(
+        MOS_RESOURCE &sResource,
+        uint32_t      uiSize,
+        uint8_t       ucValue);
 
 MEDIA_CLASS_DEFINE_END(CodechalDebugInterface)
 };
