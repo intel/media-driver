@@ -631,6 +631,7 @@ public:
                                             bTopField      = false;
                                             bBeCsc         = false;
                                             bFeCsc         = false;
+                                            bCcmCsc        = false;
                                             bVeboxBypass   = false;
                                             b60fpsDi       = false;
                                             bQueryVariance = false;
