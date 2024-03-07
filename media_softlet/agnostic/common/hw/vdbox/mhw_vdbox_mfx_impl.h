@@ -135,6 +135,14 @@ public:
                                            m_osItf->pfnCachePolicyGetMemoryObject(
                                                       MOS_CODEC_RESOURCE_USAGE_REFERENCE_PICTURE_CODEC,
                                                       m_osItf->pfnGetGmmClientContext(m_osItf)).DwordValue;
+        m_referncePictureMemoryObjectControlStateCtrlDecode.Value =
+                                           m_osItf->pfnCachePolicyGetMemoryObject(
+                                                      MOS_HW_RESOURCE_USAGE_DECODE_INPUT_REFERENCE,
+                                                      m_osItf->pfnGetGmmClientContext(m_osItf)).DwordValue;
+        m_referncePictureMemoryObjectControlStateCtrlEncode.Value =
+                                           m_osItf->pfnCachePolicyGetMemoryObject(
+                                                      MOS_HW_RESOURCE_USAGE_ENCODE_INPUT_RECON,
+                                                      m_osItf->pfnGetGmmClientContext(m_osItf)).DwordValue;
         m_macroblockIldbStreamoutBufferCtrl.Value = 
                                            m_osItf->pfnCachePolicyGetMemoryObject(
                                                       MOS_CODEC_RESOURCE_USAGE_MACROBLOCK_ILDB_STREAM_OUT_BUFFER_CODEC,
@@ -378,6 +386,8 @@ public:
     MHW_MEMORY_OBJECT_CONTROL_PARAMS m_intraRowStoreScratchBufferMemoryCtrl;
     MHW_MEMORY_OBJECT_CONTROL_PARAMS m_deblockingFilterRowStoreScratchMemoryCtrl;
     MHW_MEMORY_OBJECT_CONTROL_PARAMS m_referncePictureMemoryObjectControlStateCtrl;
+    MHW_MEMORY_OBJECT_CONTROL_PARAMS m_referncePictureMemoryObjectControlStateCtrlDecode;
+    MHW_MEMORY_OBJECT_CONTROL_PARAMS m_referncePictureMemoryObjectControlStateCtrlEncode;
     MHW_MEMORY_OBJECT_CONTROL_PARAMS m_macroblockIldbStreamoutBufferCtrl;
     MHW_MEMORY_OBJECT_CONTROL_PARAMS m_secondMacroblockIldbStreamoutBufferCtrl;
     MHW_MEMORY_OBJECT_CONTROL_PARAMS m_slicesizeStreamoutDataDestinationCtrl;

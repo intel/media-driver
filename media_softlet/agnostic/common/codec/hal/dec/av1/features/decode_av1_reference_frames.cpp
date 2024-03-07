@@ -77,6 +77,8 @@ namespace decode
             DECODE_CHK_STATUS(UpdateCurRefList(picParams));
         }
 
+        DECODE_CHK_STATUS(UpdateRefCachePolicy(picParams));
+
         return MOS_STATUS_SUCCESS;
     }
 
@@ -284,6 +286,31 @@ namespace decode
                 {
                     uint8_t frameIdx = picParams.m_refFrameMap[index].FrameIdx;
                     m_currRefList->m_refOrderHint[i] = m_refList[frameIdx]->m_orderHint;
+                }
+            }
+        }
+
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MOS_STATUS Av1ReferenceFrames::UpdateRefCachePolicy(CodecAv1PicParams &picParams)
+    {
+        DECODE_FUNC_CALL();
+        MOS_STATUS sts = MOS_STATUS_SUCCESS;
+
+        Av1ReferenceFrames &refFrames = m_basicFeature->m_refFrames;
+        if (picParams.m_picInfoFlags.m_fields.m_frameType != keyFrame)
+        {
+            const std::vector<uint8_t> &activeRefList = refFrames.GetActiveReferenceList(
+                picParams, m_basicFeature->m_av1TileParams[m_basicFeature->m_tileCoding.m_curTile]);
+
+            for (uint8_t i = 0; i < activeRefList.size(); i++)
+            {
+                uint8_t frameIdx = activeRefList[i];
+                sts              = m_allocator->UpdateResoreceUsageType(refFrames.GetReferenceByFrameIndex(frameIdx), resourceInputReference);
+                if (sts != MOS_STATUS_SUCCESS)
+                {
+                    DECODE_NORMALMESSAGE("GetReferenceByFrameIndex invalid\n");
                 }
             }
         }
