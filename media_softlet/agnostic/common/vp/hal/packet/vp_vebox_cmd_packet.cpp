@@ -3065,6 +3065,8 @@ MOS_STATUS VpVeboxCmdPacket::VeboxSetPerfTagNv12()
                     case Format_Y8:
                     case Format_Y16S:
                     case Format_Y16U:
+                    case Format_A16B16G16R16F:
+                    case Format_A16R16G16B16F:
                         *pPerfTag = VPHAL_NONE;
                         break;
                     default:
@@ -3112,6 +3114,8 @@ MOS_STATUS VpVeboxCmdPacket::VeboxSetPerfTagNv12()
                     case Format_Y8:
                     case Format_Y16S:
                     case Format_Y16U:
+                    case Format_A16B16G16R16F:
+                    case Format_A16R16G16B16F:
                         *pPerfTag = VPHAL_NONE;
                         break;
                     default:
@@ -3204,6 +3208,8 @@ MOS_STATUS VpVeboxCmdPacket::VeboxSetPerfTagPaFormat()
                     case Format_Y8:
                     case Format_Y16S:
                     case Format_Y16U:
+                    case Format_A16B16G16R16F:
+                    case Format_A16R16G16B16F:
                         *pPerfTag = VPHAL_NONE;
                         break;
                     default:
@@ -3251,6 +3257,8 @@ MOS_STATUS VpVeboxCmdPacket::VeboxSetPerfTagPaFormat()
                     case Format_Y8:
                     case Format_Y16S:
                     case Format_Y16U:
+                    case Format_A16B16G16R16F:
+                    case Format_A16R16G16B16F:
                         *pPerfTag = VPHAL_NONE;
                         break;
                     default:
