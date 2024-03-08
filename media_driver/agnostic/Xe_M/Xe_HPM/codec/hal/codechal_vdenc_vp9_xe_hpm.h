@@ -50,12 +50,13 @@ public:
     //!
     //! \brief    Destructor
     //!
-    virtual ~CodechalVdencVp9StateXe_Xpm() {}
+    virtual ~CodechalVdencVp9StateXe_Xpm();
 
     virtual MOS_STATUS SetTileCommands(
         PMOS_COMMAND_BUFFER cmdBuffer) override; // override this function to add new cmd
 
     MOS_STATUS SetSequenceStructs() override;
+    MOS_STATUS HuCBrcInitReset() override;
 
     //!
     //! \struct HucPakStitchDmemEncXehp
@@ -118,6 +119,14 @@ public:
 
     MOS_STATUS ConstructPicStateBatchBuf(
         PMOS_RESOURCE picStateBuffer) override;
+
+    MOS_STATUS CheckHucLoadStatus();
+    MOS_STATUS PackHucAuthCmds(MOS_COMMAND_BUFFER &cmdBuffer);
+
+    //Resources
+    MOS_RESOURCE      m_hucAuthBuf                                      = {};  //!< Huc authentication buffer
+    MHW_BATCH_BUFFER  m_2ndLevelBB[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM] = {};  //!< 2nd level batch buffer
+    PMHW_BATCH_BUFFER m_batchBuf = nullptr;
 };
 
 #endif  // __CODECHAL_VDENC_VP9_XE_XPM_H__
