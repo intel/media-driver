@@ -161,6 +161,8 @@ public:
     bool                               m_adaptiveRounding   = false;                            //!< whether adaptive rounding will be enabled
     bool                               m_enableCDEF = false;
 
+    uint32_t                           m_vdencTileSliceStart[av1MaxTileNum] = { 0 };           //!< VDEnc TILE_SLICE buffer offset array for every tile
+
     enum FlushCmd
     {
         waitVdenc = 0,
