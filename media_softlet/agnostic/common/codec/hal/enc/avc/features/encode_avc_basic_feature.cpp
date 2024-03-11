@@ -670,7 +670,10 @@ MOS_STATUS AvcBasicFeature::UpdateTrackedBufferParameters()
 
     m_mbCodeSize = MOS_ALIGN_CEIL(fieldNumMBs * 16 * 4, CODECHAL_PAGE_SIZE) + fieldNumMBs * 16 * 4;
     m_mvDataSize = 0;
-    m_colocatedMVBufferSize = (((uint32_t)m_picHeightInMb * m_picWidthInMb + 1) >> 1) * CODECHAL_CACHELINE_SIZE; // Cacheline per 2 MBs
+
+    uint32_t widthInMbRoundUp  = (m_frameWidth + 31) >> 4;
+    uint32_t heightInMbRoundUp = (m_frameHeight + 15) >> 4;
+    m_colocatedMVBufferSize    = widthInMbRoundUp * heightInMbRoundUp * CODECHAL_CACHELINE_SIZE / 2; // Cacheline per 2 MBs
 
     MOS_ALLOC_GFXRES_PARAMS allocParams;
     MOS_ZeroMemory(&allocParams, sizeof(MOS_ALLOC_GFXRES_PARAMS));
