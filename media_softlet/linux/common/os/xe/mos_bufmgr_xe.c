@@ -419,7 +419,7 @@ static drmMMListHead bufmgr_list = { &bufmgr_list, &bufmgr_list };
 static struct drm_xe_query_gt_list *__mos_query_gt_list_xe(int fd);
 static void mos_bo_free_xe(struct mos_linux_bo *bo);
 static int mos_query_engines_count_xe(struct mos_bufmgr *bufmgr, unsigned int *nengine);
-int mos_query_engines_class_xe(struct mos_bufmgr *bufmgr,
+int mos_query_engines_xe(struct mos_bufmgr *bufmgr,
                       __u16 engine_class,
                       __u64 caps,
                       unsigned int *nengine,
@@ -1064,7 +1064,7 @@ __mos_context_restore_xe(struct mos_bufmgr *bufmgr,
     MOS_DRM_CHK_STATUS_MESSAGE_RETURN(ret,
                 "query engine count of restore failed, return error(%d)", ret)
     struct drm_xe_engine_class_instance engine_map[nengine];
-    ret = mos_query_engines_class_xe(bufmgr,
+    ret = mos_query_engines_xe(bufmgr,
                 context->engine_class,
                 context->engine_caps,
                 &nengine,
@@ -2716,11 +2716,7 @@ mos_query_engines_count_xe(struct mos_bufmgr *bufmgr, unsigned int *nengine)
     if (nullptr == bufmgr_gem->engines)
     {
         bufmgr_gem->engines = __mos_query_engines_xe(bufmgr_gem->fd);
-        if (nullptr == bufmgr_gem->engines)
-        {
-            MOS_DRM_ASSERTMESSAGE("__mos_query_engines_xe failed");
-            return -ENODEV;
-        }
+        MOS_DRM_CHK_NULL_RETURN_VALUE(bufmgr_gem->engines, -ENODEV);
     }
 
     *nengine = bufmgr_gem->engines->num_engines;
@@ -2729,7 +2725,7 @@ mos_query_engines_count_xe(struct mos_bufmgr *bufmgr, unsigned int *nengine)
 }
 
 int
-mos_query_engines_class_xe(struct mos_bufmgr *bufmgr,
+mos_query_engines_xe(struct mos_bufmgr *bufmgr,
                       __u16 engine_class,
                       __u64 caps,
                       unsigned int *nengine,
@@ -2745,10 +2741,7 @@ mos_query_engines_class_xe(struct mos_bufmgr *bufmgr,
     if (nullptr == bufmgr_gem->engines)
     {
         bufmgr_gem->engines = __mos_query_engines_xe(bufmgr_gem->fd);
-        if (nullptr == bufmgr_gem->engines)
-        {
-            return -ENODEV;
-        }
+        MOS_DRM_CHK_NULL_RETURN_VALUE(bufmgr_gem->engines, -ENODEV);
     }
 
     engines = bufmgr_gem->engines;
@@ -2787,81 +2780,53 @@ mos_get_engine_class_size_xe()
     return sizeof(struct drm_xe_engine_class_instance);
 }
 
-//Note31: remove this code and restore it to previous version in HwInfoLinux.cpp
 static int
-mos_query_sys_engines_xe(struct mos_bufmgr *bufmgr, MEDIA_SYSTEM_INFO* gfx_info)
+mos_query_sysinfo_xe(struct mos_bufmgr *bufmgr, MEDIA_SYSTEM_INFO* gfx_info)
 {
+    MOS_DRM_CHK_NULL_RETURN_VALUE(bufmgr, -EINVAL);
+    MOS_DRM_CHK_NULL_RETURN_VALUE(gfx_info, -EINVAL);
+
     struct mos_xe_bufmgr_gem *bufmgr_gem = (struct mos_xe_bufmgr_gem *)bufmgr;
     int ret;
-
-    if (nullptr == gfx_info)
-    {
-        return -EINVAL;
-    }
 
     if (nullptr == bufmgr_gem->engines)
     {
         bufmgr_gem->engines = __mos_query_engines_xe(bufmgr_gem->fd);
-        if (nullptr == bufmgr_gem->engines)
-        {
-            MOS_DRM_ASSERTMESSAGE("__mos_query_engines_xe failed");
-            return -ENODEV;
-        }
+        MOS_DRM_CHK_NULL_RETURN_VALUE(bufmgr_gem->engines, -ENODEV);
     }
 
-    if (0 == gfx_info->VDBoxInfo.NumberOfVDBoxEnabled)
+    if (0 == gfx_info->VDBoxInfo.NumberOfVDBoxEnabled
+                || 0 == gfx_info->VEBoxInfo.NumberOfVEBoxEnabled)
     {
-        unsigned int nengine = bufmgr_gem->engines->num_engines;
-        struct drm_xe_engine_class_instance *uengines = nullptr;
-        uengines = (struct drm_xe_engine_class_instance *)MOS_AllocAndZeroMemory(nengine * sizeof(struct drm_xe_engine_class_instance));
-        if (nullptr == uengines)
+        unsigned int num_vd = 0;
+        unsigned int num_ve = 0;
+
+        for (unsigned int i = 0; i < bufmgr_gem->engines->num_engines; i++)
         {
-            return -ENOMEM;
-        }
-        ret = mos_query_engines_class_xe(bufmgr, DRM_XE_ENGINE_CLASS_VIDEO_DECODE, 0, &nengine, (void *)uengines);
-        if (ret)
-        {
-            MOS_DRM_ASSERTMESSAGE("Failed to query vdbox engine");
-            MOS_SafeFreeMemory(uengines);
-            return -ENODEV;
-        }
-        else
-        {
-            MOS_OS_ASSERT(nengine <= bufmgr_gem->engines->num_engines);
-            gfx_info->VDBoxInfo.NumberOfVDBoxEnabled = nengine;
+            if (0 == gfx_info->VDBoxInfo.NumberOfVDBoxEnabled
+                        && bufmgr_gem->engines->engines[i].instance.engine_class == DRM_XE_ENGINE_CLASS_VIDEO_DECODE)
+            {
+                gfx_info->VDBoxInfo.Instances.VDBoxEnableMask |=
+                    1 << bufmgr_gem->engines->engines[i].instance.engine_instance;
+                num_vd++;
+            }
+
+            if (0 == gfx_info->VEBoxInfo.NumberOfVEBoxEnabled
+                        && bufmgr_gem->engines->engines[i].instance.engine_class == DRM_XE_ENGINE_CLASS_VIDEO_ENHANCE)
+            {
+                num_ve++;
+            }
         }
 
-        for (int i=0; i<nengine; i++)
+        if (num_vd > 0)
         {
-            gfx_info->VDBoxInfo.Instances.VDBoxEnableMask |= 1<<uengines[i].engine_instance;
+            gfx_info->VDBoxInfo.NumberOfVDBoxEnabled = num_vd;
         }
 
-        MOS_SafeFreeMemory(uengines);
-    }
-
-    if (0 == gfx_info->VEBoxInfo.NumberOfVEBoxEnabled)
-    {
-        unsigned int nengine = bufmgr_gem->engines->num_engines;
-        struct drm_xe_engine_class_instance *uengines = nullptr;
-        uengines = (struct drm_xe_engine_class_instance *)MOS_AllocAndZeroMemory(nengine * sizeof(struct drm_xe_engine_class_instance));
-        if (nullptr == uengines)
+        if (num_vd > 0)
         {
-            return -ENOMEM;
+            gfx_info->VEBoxInfo.NumberOfVEBoxEnabled = num_ve;
         }
-        ret = mos_query_engines_class_xe(bufmgr, DRM_XE_ENGINE_CLASS_VIDEO_ENHANCE, 0, &nengine, (void *)uengines);
-        if (ret)
-        {
-            MOS_DRM_ASSERTMESSAGE("Failed to query vebox engine");
-            MOS_SafeFreeMemory(uengines);
-            return -ENODEV;
-        }
-        else
-        {
-            MOS_OS_ASSERT(nengine <= bufmgr_gem->engines->num_engines);
-            gfx_info->VEBoxInfo.NumberOfVEBoxEnabled = nengine;
-        }
-
-        MOS_SafeFreeMemory(uengines);
     }
 
     return 0;
@@ -3524,9 +3489,9 @@ mos_bufmgr_gem_init_xe(int fd, int batch_size)
     bufmgr_gem->bufmgr.bo_export_to_prime = mos_bo_export_to_prime_xe;
     bufmgr_gem->bufmgr.get_devid = mos_get_devid_xe;
     bufmgr_gem->bufmgr.query_engines_count = mos_query_engines_count_xe;
-    bufmgr_gem->bufmgr.query_engines = mos_query_engines_class_xe;
+    bufmgr_gem->bufmgr.query_engines = mos_query_engines_xe;
     bufmgr_gem->bufmgr.get_engine_class_size = mos_get_engine_class_size_xe;
-    bufmgr_gem->bufmgr.query_sys_engines = mos_query_sys_engines_xe;
+    bufmgr_gem->bufmgr.query_sys_engines = mos_query_sysinfo_xe;
     bufmgr_gem->bufmgr.select_fixed_engine = mos_select_fixed_engine_xe;
     bufmgr_gem->bufmgr.query_device_blob = mos_query_device_blob_xe;
     bufmgr_gem->bufmgr.get_driver_info = mos_get_driver_info_xe;
