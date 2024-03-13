@@ -7783,6 +7783,11 @@ MOS_STATUS CodechalVdencHevcStateG12::SendPrologWithFrameTracking(
 
     CODECHAL_ENCODE_CHK_NULL_RETURN(cmdBuffer);
 
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_hevcSeqParams);
+
+    // Set flag bIsMdfLoad in remote gaming scenario to boost GPU frequency for low latency
+    cmdBuffer->Attributes.bFrequencyBoost = (m_hevcSeqParams->ScenarioInfo == ESCENARIO_REMOTEGAMING);
+
     MOS_GPU_CONTEXT gpuContext = m_osInterface->pfnGetGpuContext(m_osInterface);
 
     if (UseRenderCommandBuffer())
