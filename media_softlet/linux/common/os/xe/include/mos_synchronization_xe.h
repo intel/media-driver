@@ -39,13 +39,6 @@
 extern "C" {
 #endif
 
-enum mos_sync_mode {
-    MOS_SYNC_NONE      = 0,
-    MOS_SYNC_RESERVED  = 1,
-    MOS_SYNC_TIMELINE  = 2,
-    MOS_SYNC_MAX,
-};
-
 struct mos_xe_dep {
     /**
      * Maximun count of dependency;
@@ -96,9 +89,6 @@ struct mos_xe_bo_dep
      */
     uint64_t exec_timeline_index;
 };
-
-void mos_sync_set_synchronization_mode(uint32_t mode);
-uint32_t mos_sync_get_synchronization_mode();
 
 int mos_sync_syncobj_create(int fd, uint32_t flags);
 int mos_sync_syncobj_destroy(int fd, uint32_t handle);

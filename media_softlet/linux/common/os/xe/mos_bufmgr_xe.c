@@ -218,9 +218,6 @@ typedef struct mos_xe_bufmgr_gem {
      */
     bool is_disable_synchronization;
 
-    // Note: this is for test_va_api case because of high cost of sync vm bind and bo creation during initialization
-    bool is_defer_creation_and_binding;
-
     /** indicate to exec_queue property of timeslice */
 #define EXEC_QUEUE_TIMESLICE_DEFAULT    -1
 #define EXEC_QUEUE_TIMESLICE_MAX        100000 //100ms
@@ -1232,12 +1229,8 @@ static int __mos_vm_bind_xe(int fd, uint32_t vm_id, uint32_t exec_queue_id, uint
 }
 
 static int mos_vm_bind_sync_xe(int fd, uint32_t vm_id, uint32_t bo, uint64_t offset,
-        uint64_t addr, uint64_t size, uint16_t pat_index, uint32_t op, bool is_defer)
+        uint64_t addr, uint64_t size, uint16_t pat_index, uint32_t op)
 {
-    if (is_defer)
-    {
-        return 0;
-    }
     struct drm_xe_sync sync;
 
     memclear(sync);
@@ -1322,10 +1315,6 @@ mos_bo_alloc_xe(struct mos_bufmgr *bufmgr,
     //Note: We suggest vm_id=0 here as default, otherwise this bo cannot be exported as prelim fd.
     create.vm_id = 0;
     create.size = ALIGN(alloc->size, bo_align);
-    if (bufmgr_gem->is_defer_creation_and_binding)
-    {
-        create.flags |= DRM_XE_GEM_CREATE_FLAG_DEFER_BACKING;
-    }
 
     /**
      * Note: current, it only supports WB/ WC while UC and other cache are not allowed.
@@ -1383,8 +1372,7 @@ mos_bo_alloc_xe(struct mos_bufmgr *bufmgr,
                     bo_gem->bo.offset64,
                     bo_gem->bo.size,
                     bo_gem->pat_index,
-                    DRM_XE_VM_BIND_OP_MAP,
-                    bufmgr_gem->is_defer_creation_and_binding);
+                    DRM_XE_VM_BIND_OP_MAP);
     if (ret)
     {
         MOS_DRM_ASSERTMESSAGE("mos_vm_bind_sync_xe ret: %d", ret);
@@ -1552,8 +1540,7 @@ mos_bo_alloc_userptr_xe(struct mos_bufmgr *bufmgr,
                 bo_gem->bo.offset64,
                 bo_gem->bo.size,
                 bo_gem->pat_index,
-                DRM_XE_VM_BIND_OP_MAP_USERPTR,
-                bufmgr_gem->is_defer_creation_and_binding);
+                DRM_XE_VM_BIND_OP_MAP_USERPTR);
 
     if (ret)
     {
@@ -1658,8 +1645,7 @@ mos_bo_create_from_prime_xe(struct mos_bufmgr *bufmgr, int prime_fd, int size)
                 bo_gem->bo.offset64,
                 bo_gem->bo.size,
                 bo_gem->pat_index,
-                DRM_XE_VM_BIND_OP_MAP,
-                bufmgr_gem->is_defer_creation_and_binding);
+                DRM_XE_VM_BIND_OP_MAP);
     if (ret)
     {
         MOS_DRM_ASSERTMESSAGE("mos_vm_bind_sync_xe ret: %d", ret);
@@ -1885,34 +1871,27 @@ mos_gem_bo_busy_xe(struct mos_linux_bo *bo)
     mos_xe_bufmgr_gem *bufmgr_gem = (mos_xe_bufmgr_gem *)bo->bufmgr;
     MOS_DRM_CHK_NULL_RETURN_VALUE(bufmgr_gem, -EINVAL)
 
-    if(mos_sync_get_synchronization_mode() != MOS_SYNC_NONE)
-    {
-        int64_t timeout_nsec = 0;
-        uint32_t wait_flags = DRM_SYNCOBJ_WAIT_FLAGS_WAIT_ALL;
-        uint32_t rw_flags = EXEC_OBJECT_READ_XE | EXEC_OBJECT_WRITE_XE;
+    int64_t timeout_nsec = 0;
+    uint32_t wait_flags = DRM_SYNCOBJ_WAIT_FLAGS_WAIT_ALL;
+    uint32_t rw_flags = EXEC_OBJECT_READ_XE | EXEC_OBJECT_WRITE_XE;
 
-        int ret =  __mos_gem_bo_wait_timeline_rendering_with_flags_xe(bo, timeout_nsec, wait_flags, rw_flags, nullptr);
+    int ret =  __mos_gem_bo_wait_timeline_rendering_with_flags_xe(bo, timeout_nsec, wait_flags, rw_flags, nullptr);
 
-        if (ret)
-        {
-            //busy
-            if (errno != ETIME)
-            {
-                MOS_DRM_ASSERTMESSAGE("bo_busy_xe ret:%d, error:%d", ret, -errno);
-            }
-            return true;
-        }
-        else if (MOS_XE_SUCCESS == ret)
-        {
-            //free
-            return false;
-        }
-    }
-    else if (!bufmgr_gem->is_defer_creation_and_binding)
+    if (ret)
     {
-        //Note: hard code here for non-synchronization and remove after switch done.
-        usleep(5000);
+        //busy
+        if (errno != ETIME)
+        {
+            MOS_DRM_ASSERTMESSAGE("bo_busy_xe ret:%d, error:%d", ret, -errno);
+        }
+        return true;
     }
+    else if (MOS_XE_SUCCESS == ret)
+    {
+        //free
+        return false;
+    }
+
     return false;
 }
 
@@ -1932,23 +1911,15 @@ mos_gem_bo_wait_rendering_xe(struct mos_linux_bo *bo)
     }
     mos_xe_bufmgr_gem *bufmgr_gem = (mos_xe_bufmgr_gem *)bo->bufmgr;
 
-    if(mos_sync_get_synchronization_mode() != MOS_SYNC_NONE)
-    {
-        int64_t timeout_nsec = INT64_MAX;
-        uint32_t wait_flags = DRM_SYNCOBJ_WAIT_FLAGS_WAIT_ALL;
-        uint32_t rw_flags = EXEC_OBJECT_READ_XE | EXEC_OBJECT_WRITE_XE;
+    int64_t timeout_nsec = INT64_MAX;
+    uint32_t wait_flags = DRM_SYNCOBJ_WAIT_FLAGS_WAIT_ALL;
+    uint32_t rw_flags = EXEC_OBJECT_READ_XE | EXEC_OBJECT_WRITE_XE;
 
-        int ret =  __mos_gem_bo_wait_timeline_rendering_with_flags_xe(bo, timeout_nsec, wait_flags, rw_flags, nullptr);
+    int ret =  __mos_gem_bo_wait_timeline_rendering_with_flags_xe(bo, timeout_nsec, wait_flags, rw_flags, nullptr);
 
-        if (ret)
-        {
-            MOS_DRM_ASSERTMESSAGE("bo_wait_rendering_xe ret:%d, error:%d", ret, -errno);
-        }
-    }
-    else if(!bufmgr_gem->is_defer_creation_and_binding)
+    if (ret)
     {
-        //Note: hard code here for non-synchronization and remove after switch done.
-        usleep(5000);
+        MOS_DRM_ASSERTMESSAGE("bo_wait_rendering_xe ret:%d, error:%d", ret, -errno);
     }
 }
 
@@ -1990,23 +1961,15 @@ mos_bo_map_xe(struct mos_linux_bo *bo, int write_enable)
     struct mos_xe_bo_gem *bo_gem = (struct mos_xe_bo_gem *) bo;
     int ret;
 
-    if(mos_sync_get_synchronization_mode() != MOS_SYNC_NONE)
-    {
-        int64_t timeout_nsec = INT64_MAX;
-        uint32_t wait_flags = DRM_SYNCOBJ_WAIT_FLAGS_WAIT_ALL;
-        uint32_t rw_flags = write_enable ? EXEC_OBJECT_WRITE_XE : EXEC_OBJECT_READ_XE;
+    int64_t timeout_nsec = INT64_MAX;
+    uint32_t wait_flags = DRM_SYNCOBJ_WAIT_FLAGS_WAIT_ALL;
+    uint32_t rw_flags = write_enable ? EXEC_OBJECT_WRITE_XE : EXEC_OBJECT_READ_XE;
 
-        ret =  __mos_gem_bo_wait_timeline_rendering_with_flags_xe(bo, timeout_nsec, wait_flags, rw_flags, nullptr);
+    ret =  __mos_gem_bo_wait_timeline_rendering_with_flags_xe(bo, timeout_nsec, wait_flags, rw_flags, nullptr);
 
-        if(ret)
-        {
-            MOS_DRM_ASSERTMESSAGE("bo wait rendering error(%d ns)", -errno);
-        }
-    }
-    else if (!bufmgr_gem->is_defer_creation_and_binding)
+    if(ret)
     {
-        //Note: hard code here for non-synchronization and remove after switch done.
-        usleep(5000);
+        MOS_DRM_ASSERTMESSAGE("bo wait rendering error(%d ns)", -errno);
     }
 
     if (bo_gem->is_userptr)
@@ -2575,59 +2538,6 @@ mos_bo_context_exec_with_sync_xe(struct mos_linux_bo **bo, int num_bo, struct mo
     return ret;
 }
 
-static int
-mos_bo_context_exec_xe(struct mos_linux_bo **bo, int num_bo, struct mos_linux_context *ctx,
-                               struct drm_clip_rect *cliprects, int num_cliprects, int DR4,
-                               unsigned int flags, int *fence)
-{
-    if((nullptr == bo) || (nullptr == ctx) || num_bo <= 0)
-    {
-        return -EINVAL;
-    }
-
-    struct mos_xe_bufmgr_gem *bufmgr_gem = (struct mos_xe_bufmgr_gem *) bo[0]->bufmgr;
-    struct mos_xe_context *context = (struct mos_xe_context *) ctx;
-    struct drm_xe_sync sync;
-    struct drm_xe_exec exec;
-    int ret = 0;
-    uint64_t batch_addrs[num_bo];
-
-    for(int i = 0; i < num_bo; i++)
-    {
-        MOS_DRM_CHK_NULL_RETURN_VALUE(bo[i], -EINVAL)
-        batch_addrs[i] = bo[i]->offset64;
-    }
-    memclear(sync);
-    sync.handle = mos_sync_syncobj_create(bufmgr_gem->fd, 0);
-    sync.flags = DRM_XE_SYNC_FLAG_SIGNAL;
-    sync.type = DRM_XE_SYNC_TYPE_SYNCOBJ;
-
-    memclear(exec);
-    exec.extensions = 0;
-    exec.exec_queue_id = ctx->ctx_id;
-    exec.num_syncs = 1;
-    exec.syncs = (uint64_t)&sync;
-    exec.address = (num_bo == 1 ? batch_addrs[0] : (uint64_t)batch_addrs);
-    exec.num_batch_buffer = num_bo;
-    ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_XE_EXEC, &exec);
-    if (ret)
-    {
-        MOS_DRM_ASSERTMESSAGE("error:%d", -errno);
-        mos_sync_syncobj_destroy(bufmgr_gem->fd, sync.handle);
-        return ret;
-    }
-
-    ret = mos_sync_syncobj_wait_err(bufmgr_gem->fd, &sync.handle, 1, INT64_MAX, 0, NULL);
-    if (ret)
-    {
-        MOS_DRM_ASSERTMESSAGE("syncobj_wait error:%d", -errno);
-    }
-
-    mos_sync_syncobj_destroy(bufmgr_gem->fd, sync.handle);
-
-    return ret;
-}
-
 /**
  * Get the DEVICE ID for the device.  This can be overridden by setting the
  * INTEL_DEVID_OVERRIDE environment variable to the desired ID.
@@ -3063,8 +2973,7 @@ mos_bo_free_xe(struct mos_linux_bo *bo)
                     bo->offset64,
                     bo->size,
                     bo_gem->pat_index,
-                    DRM_XE_VM_BIND_OP_UNMAP,
-                    bufmgr_gem->is_defer_creation_and_binding);
+                    DRM_XE_VM_BIND_OP_UNMAP);
         if (ret)
         {
             MOS_DRM_ASSERTMESSAGE("mos_gem_bo_free mos_vm_unbind ret error. bo:0x%lx, vm_id:%d\r",
@@ -3449,7 +3358,6 @@ mos_bufmgr_gem_init_xe(int fd, int batch_size)
 
     struct mos_xe_bufmgr_gem *bufmgr_gem;
     int ret, tmp;
-    int32_t sync_mode = MOS_SYNC_TIMELINE; //current default mode
 
     pthread_mutex_lock(&bufmgr_list_mutex);
 
@@ -3511,21 +3419,7 @@ mos_bufmgr_gem_init_xe(int fd, int batch_size)
     bufmgr_gem->bufmgr.set_object_capture = mos_bo_set_object_capture_xe;
     bufmgr_gem->bufmgr.set_object_async = mos_bo_set_object_async_xe;
 
-    MOS_READ_ENV_VARIABLE(INTEL_SYNCHRONIZATION_MODE, MOS_USER_FEATURE_VALUE_TYPE_INT32, sync_mode);
-
-    if(sync_mode != MOS_SYNC_NONE)
-    {
-        sync_mode = MOS_SYNC_TIMELINE;
-        bufmgr_gem->bufmgr.bo_context_exec3 = mos_bo_context_exec_with_sync_xe;
-    }
-    else
-    {
-        bufmgr_gem->bufmgr.bo_context_exec3 = mos_bo_context_exec_xe;
-    }
-    mos_sync_set_synchronization_mode(sync_mode);
-    MOS_DRM_NORMALMESSAGE("exec with synchronization mode: %d", sync_mode);
-    bufmgr_gem->is_defer_creation_and_binding = false;
-    MOS_READ_ENV_VARIABLE(INTEL_DEFER_CREATION_AND_BINDING, MOS_USER_FEATURE_VALUE_TYPE_BOOL, bufmgr_gem->is_defer_creation_and_binding);
+    bufmgr_gem->bufmgr.bo_context_exec3 = mos_bo_context_exec_with_sync_xe;
 
     bufmgr_gem->exec_queue_timeslice = EXEC_QUEUE_TIMESLICE_DEFAULT;
     MOS_READ_ENV_VARIABLE(INTEL_ENGINE_TIMESLICE, MOS_USER_FEATURE_VALUE_TYPE_INT32, bufmgr_gem->exec_queue_timeslice);

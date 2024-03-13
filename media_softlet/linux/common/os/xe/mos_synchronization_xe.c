@@ -36,22 +36,6 @@
 #include "mos_bufmgr_util_debug.h"
 
 /**
- * This is global synchronizarion mode for media umd, umd should alway select
- * a sync mode when init bufmgr
- */
-static uint32_t SYNCHRONIZATION_MODE;
-
-void mos_sync_set_synchronization_mode(uint32_t mode)
-{
-    SYNCHRONIZATION_MODE = mode;
-}
-
-uint32_t mos_sync_get_synchronization_mode()
-{
-    return SYNCHRONIZATION_MODE;
-}
-
-/**
  * @flags indicates to create opration:
  * If flags=0(recommended), it will create a syncobj with not signaled.
  * If flags=DRM_SYNCOBJ_CREATE_SIGNALED, it will create a syncobj with signaled state.
