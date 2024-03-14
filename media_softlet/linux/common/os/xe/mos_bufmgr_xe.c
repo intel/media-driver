@@ -98,32 +98,18 @@ enum mos_xe_mem_class
 
 struct mos_xe_context {
     struct mos_linux_context ctx;
-    /**
-     *1.If dep_queue_free not empty, then pop() it to use as fence out with status=STATUS_DEP_BUSY set and
-     *  add it into exec syncs array then push() it to dep_queue_busy after exec submission and update it into bo read and write deps.
-     *2.If dep_queue_busy.size() achieves maximun size of MAX_DEPS_SIZE, pop() it to use as fence out with status=STATUS_DEP_BUSY set
-     *  and reset(wait) it before adding into exec syncs array.
-     *  Otherwise, create new dep with STATUS_DEP_BUSY set and add it into exec syncs array.
-     *3.If one dep in the dep_queue_busy is confirmed as signaled by any caller, then umd could move all ones whose
-     *  timeline_index ahead of its from busy queue to free queue with status=STATUS_DEP_FREE set.
-     */
-    std::queue<struct mos_xe_dep*> dep_queue_free;
-    std::queue<struct mos_xe_dep*> dep_queue_busy;
 
     /**
-     * Free dep list in which free deps have not been reseted and could not reuse directly.
+     * Always keep the latest avaiable timeline index for
+     * such execution's fence out point.
      */
-    std::list<struct mos_xe_dep*> free_dep_tmp_list;
+    struct mos_xe_dep* timeline_dep;
 
     /**
      * The UMD's dummy exec_queue id for exec_queue ctx.
      */
     uint32_t dummy_exec_queue_id;
 
-    /**
-     * Indicates to current timeline index in the queue.
-     */
-    uint64_t cur_timeline_index;
     /**
      * Indicate to the ctx width.
      */
@@ -947,10 +933,10 @@ mos_context_create_shared_xe(
     context->engine_class = ((struct drm_xe_engine_class_instance *)engine_map)[0].engine_class;
     context->is_protected = bContextProtected;
     context->flags = flags;
-    context->cur_timeline_index = 0;
     context->ctx.bufmgr = bufmgr;
     context->ctx.vm_id = bufmgr_gem->vm_id;
     context->reset_count = 0;
+    context->timeline_dep = nullptr;
 
     bufmgr_gem->m_lock.lock();
     context->dummy_exec_queue_id = ++dummy_exec_queue_id;
@@ -974,10 +960,10 @@ mos_context_create_xe(struct mos_bufmgr *bufmgr)
 
     context->ctx.ctx_id = INVALID_EXEC_QUEUE_ID;
     context->ctx_width = 0;
-    context->cur_timeline_index = 0;
     context->ctx.bufmgr = bufmgr;
     context->ctx.vm_id = bufmgr_gem->vm_id;
     context->reset_count = 0;
+    context->timeline_dep = nullptr;
     context->dummy_exec_queue_id = INVALID_EXEC_QUEUE_ID;
     return &context->ctx;
 }
@@ -1012,9 +998,8 @@ mos_context_destroy_xe(struct mos_linux_context *ctx)
     int ret;
     bufmgr_gem->m_lock.lock();
     bufmgr_gem->sync_obj_rw_lock.lock();
-    mos_sync_clear_dep_queue(bufmgr_gem->fd, context->dep_queue_busy);
-    mos_sync_clear_dep_queue(bufmgr_gem->fd, context->dep_queue_free);
-    mos_sync_clear_dep_list(bufmgr_gem->fd, context->free_dep_tmp_list);
+    mos_sync_destroy_timeline_dep(bufmgr_gem->fd, context->timeline_dep);
+    context->timeline_dep = nullptr;
     bufmgr_gem->global_ctx_info.erase(context->dummy_exec_queue_id);
     bufmgr_gem->sync_obj_rw_lock.unlock();
     bufmgr_gem->m_lock.unlock();
@@ -2184,7 +2169,6 @@ __mos_context_exec_update_syncs_xe(struct mos_xe_bufmgr_gem *bufmgr_gem,
             struct mos_xe_context *ctx,
             std::vector<mos_xe_exec_bo> &exec_list,
             std::vector<struct drm_xe_sync> &syncs,
-            std::vector<mos_xe_dep*> &used_internal_deps,
             std::vector<struct mos_xe_external_bo_info> &external_bos)
 {
     MOS_DRM_CHK_NULL_RETURN_VALUE(ctx, -EINVAL);
@@ -2377,11 +2361,11 @@ __mos_bo_context_exec_retry_xe(struct mos_bufmgr *bufmgr,
  *     b) if flags & WRITE: get read_deps[all_exec_queue exclude ctx->dummy_exec_queue_id] & STATUS_DEP_BUSY
  *        and write_deps[last_write_exec_queue != ctx->dummy_exec_queue_id] & STATUS_DEP_BUSY;
  *  2. Export a syncobj from external bo as dep and add it indo syncs array.
- *  3. Get a new dep from the dep_queue_free and dep_queue_busy, and add it to syncs array;
- *      Note: if the new dep comes from dep_queue_busy, exec must wait and reset it.
+ *  3. Initial a new timeline dep object for exec queue if it doesn't have and add it to syncs array, otherwise add timeline
+ *     dep from context->timeline_dep directly while it has latest avaiable timeline point in it;
  *  4. Exec submittion with batches and syncs.
  *  5. Update read_deps[ctx->dummy_exec_queue_id] and write_deps[ctx->dummy_exec_queue_id] with the new deps from the dep_queue;
- *  6. Return back the dep to dep_queue_busy.
+ *  6. Update timeline dep's timeline index to be latest avaiable one for currect exec queue.
  *  7. Import syncobj from batch bo for each external bo's DMA buffer for external process to wait media process on demand.
  *  8. Close syncobj handle and syncobj fd for external bo to avoid leak.
  * GPU->CPU(optional):
@@ -2420,7 +2404,6 @@ mos_bo_context_exec_with_sync_xe(struct mos_linux_bo **bo, int num_bo, struct mo
     uint32_t curr_exec_queue_id = context->ctx.ctx_id;
     std::vector<struct mos_xe_external_bo_info> external_bos;
     std::vector<struct drm_xe_sync> syncs;
-    std::vector<mos_xe_dep*> used_internal_deps;
     uint64_t curr_timeline = 0;
     int ret = 0;
 
@@ -2431,18 +2414,26 @@ mos_bo_context_exec_with_sync_xe(struct mos_linux_bo **bo, int num_bo, struct mo
     }
 
     bufmgr_gem->m_lock.lock();
-    //get available timeline from engine queue and add it into syncs as fence out point.
-    struct mos_xe_dep *dep = mos_sync_update_exec_syncs_from_timeline_queue(
-                                    bufmgr_gem->fd,
-                                    context->dep_queue_busy,
-                                    syncs);
 
-    if(dep == nullptr)
+    if (context->timeline_dep == nullptr)
     {
-        MOS_DRM_ASSERTMESSAGE("Failed to get dep from queue");
-        bufmgr_gem->m_lock.unlock();
-        return -EINVAL;
+        context->timeline_dep = mos_sync_create_timeline_dep(bufmgr_gem->fd);
+
+        if (context->timeline_dep == nullptr)
+        {
+            MOS_DRM_ASSERTMESSAGE("Failed to initial context timeline dep");
+            bufmgr_gem->m_lock.unlock();
+            return -ENOMEM;
+        }
     }
+
+    struct mos_xe_dep *dep = context->timeline_dep;
+    //add latest avaiable timeline point(dep) into syncs as fence out point.
+    mos_sync_update_exec_syncs_from_timeline_dep(
+                          bufmgr_gem->fd,
+                          dep,
+                          syncs);
+
     bufmgr_gem->sync_obj_rw_lock.lock_shared();
     //update exec syncs array by external and interbal bo dep
     __mos_context_exec_update_syncs_xe(
@@ -2452,7 +2443,6 @@ mos_bo_context_exec_with_sync_xe(struct mos_linux_bo **bo, int num_bo, struct mo
                 context,
                 exec_list,
                 syncs,
-                used_internal_deps,
                 external_bos);
 
     //exec submit

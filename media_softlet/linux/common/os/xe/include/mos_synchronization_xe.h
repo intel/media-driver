@@ -117,8 +117,9 @@ int mos_sync_update_exec_syncs_from_handle(int fd,
             uint32_t bo_handle, uint32_t flags,
             std::vector<struct drm_xe_sync> &syncs,
             int &out_prime_fd);
-struct mos_xe_dep *mos_sync_update_exec_syncs_from_timeline_queue(int fd,
-            std::queue<struct mos_xe_dep*> &queue_busy,
+struct mos_xe_dep *mos_sync_create_timeline_dep(int fd);
+void mos_sync_update_exec_syncs_from_timeline_dep(int fd,
+            struct mos_xe_dep *dep,
             std::vector<struct drm_xe_sync> &syncs);
 int mos_sync_update_bo_deps(uint32_t curr_engine,
             uint32_t flags, mos_xe_dep *dep,
@@ -130,8 +131,7 @@ void mos_sync_get_bo_wait_timeline_deps(std::set<uint32_t> &engine_ids,
             std::map<uint32_t, uint64_t> &max_timeline_data,
             uint32_t lst_write_engine,
             uint32_t rw_flags);
-void mos_sync_clear_dep_queue(int fd, std::queue<struct mos_xe_dep*> &queue);
-void mos_sync_clear_dep_list(int fd, std::list<struct mos_xe_dep*> &temp_list);
+void mos_sync_destroy_timeline_dep(int fd, struct mos_xe_dep *dep);
 
 
 #if defined(__cplusplus)
