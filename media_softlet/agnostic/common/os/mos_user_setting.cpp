@@ -182,21 +182,21 @@ MOS_STATUS MosUserSetting::InitMosCommonUserSetting(MediaUserSettingSharedPtr us
         userSettingPtr,
         __MEDIA_USER_FEATURE_VALUE_IP_ALIGNMENT_DECODE_TIMEOUT,
         MediaUserSetting::Group::Device,
-        20,
+        12,
         false);
 
     DeclareUserSettingKey(
         userSettingPtr,
         __MEDIA_USER_FEATURE_VALUE_IP_ALIGNMENT_ENCODE_TIMEOUT,
         MediaUserSetting::Group::Device,
-        20,
+        12,
         false);
 
     DeclareUserSettingKey(
         userSettingPtr,
         __MEDIA_USER_FEATURE_VALUE_IP_ALIGNMENT_VPP_TIMEOUT,
         MediaUserSetting::Group::Device,
-        20,
+        12,
         false);
 
     DeclareUserSettingKey(  //TRUE for Enabling Vebox Scalability. (Default FALSE: disabled")
