@@ -137,7 +137,7 @@ void HevcEncodeCqp::UpdateRDOQCfg()
     m_rdoqIntraTuThreshold = 0;
     if (m_rdoqEnable)
     {
-        if (2 == m_basicFeature->m_targetUsage || 4 == m_basicFeature->m_targetUsage)
+        if (1 == m_basicFeature->m_targetUsage || 2 == m_basicFeature->m_targetUsage || 4 == m_basicFeature->m_targetUsage || 6 == m_basicFeature->m_targetUsage)
         {
             m_rdoqIntraTuThreshold = 0xffff;
         }
