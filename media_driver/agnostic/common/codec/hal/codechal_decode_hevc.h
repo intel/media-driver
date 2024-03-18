@@ -494,6 +494,8 @@ public:
     MOS_STATUS DumpIQParams(
         PCODECHAL_HEVC_IQ_MATRIX_PARAMS matrixData);
 
+    MOS_STATUS DumpHucS2l(PMHW_VDBOX_HUC_DMEM_STATE_PARAMS hucDmemStateParams);
+
 #endif
 
     static const uint32_t  m_hucS2lKernelId = 1;             //!< VDBox Huc decode S2L kernel descriptoer

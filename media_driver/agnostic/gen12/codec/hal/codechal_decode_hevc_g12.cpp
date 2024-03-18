@@ -2189,10 +2189,19 @@ MOS_STATUS CodechalDecodeHevcG12::DecodePrimitiveLevel()
             }
             else
             {
+                std::string packetName = "";
+                if (m_shortFormatInUse)
+                {
+                    packetName = "_S2L_DECODE_PASS0__0";
+                }
+                else
+                {
+                    packetName = "_DEC";
+                }
                 CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->DumpCmdBuffer(
                     &primCmdBuffer,
                     CODECHAL_NUM_MEDIA_STATES,
-                    "_DEC"));
+                    packetName.c_str()));
             }
         });
 

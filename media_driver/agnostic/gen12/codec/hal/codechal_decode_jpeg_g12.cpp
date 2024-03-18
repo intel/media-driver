@@ -511,7 +511,7 @@ MOS_STATUS CodechalDecodeJpegG12::DecodePrimitiveLevel()
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->DumpCmdBuffer(
             &cmdBuffer,
             CODECHAL_NUM_MEDIA_STATES,
-            "_DEC"));
+            "_JPEG_DECODE_0"));
     )
 
     if (m_copiedDataBufferInUse)

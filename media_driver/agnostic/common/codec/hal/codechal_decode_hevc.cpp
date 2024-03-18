@@ -1599,6 +1599,9 @@ MOS_STATUS CodechalDecodeHevc::AddPictureS2LCmds(
         cmdBufferInUse,
         &hucDmemStateParams));
 
+    CODECHAL_DEBUG_TOOL(
+        CODECHAL_DECODE_CHK_STATUS_RETURN(DumpHucS2l(&hucDmemStateParams));)
+
     return eStatus;
 }
 
@@ -3233,6 +3236,21 @@ MOS_STATUS CodechalDecodeHevc::DumpIQParams(
     std::ofstream ofs(fileName, std::ios::out);
     ofs << oss.str();
     ofs.close();
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS CodechalDecodeHevc::DumpHucS2l(PMHW_VDBOX_HUC_DMEM_STATE_PARAMS hucDmemStateParams)
+{
+    CODECHAL_DEBUG_FUNCTION_ENTER;
+
+    CODECHAL_DEBUG_CHK_NULL(m_debugInterface);
+
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->DumpHucDmem(
+        hucDmemStateParams->presHucDataSource,
+        m_dmemTransferSize,
+        0,
+        hucRegionDumpDefault));
 
     return MOS_STATUS_SUCCESS;
 }

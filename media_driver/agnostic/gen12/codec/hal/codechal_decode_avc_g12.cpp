@@ -452,7 +452,7 @@ MOS_STATUS CodechalDecodeAvcG12::DecodePrimitiveLevel()
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->DumpCmdBuffer(
             &cmdBuffer,
             CODECHAL_NUM_MEDIA_STATES,
-            "_DEC"));
+            "_AVC_DECODE_0"));
 
     //CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHal_DbgReplaceAllCommands(
     //    m_debugInterface,

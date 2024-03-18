@@ -405,6 +405,9 @@ protected:
 
     MOS_STATUS DumpDecodeSegmentParams(
         PCODEC_VP9_SEGMENT_PARAMS segmentParams);
+
+    MOS_STATUS DumpDecodeSliceParams(
+        CODEC_VP9_SLICE_PARAMS *slcParams);
 #endif
 };
 

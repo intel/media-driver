@@ -3792,7 +3792,7 @@ MOS_STATUS CodechalDebugInterface::Dump2ndLvlBatch(
         }
         CODECHAL_DEBUG_CHK_NULL(data);
 
-        if (DumpIsEnabled(MediaDbgAttr::attrEnableFastDump))
+        if (DumpIsEnabled(MediaDbgAttr::attrEnableFastDump) && MediaDebugFastDump::IsGood())
         {
             MediaDebugFastDump::Dump(
                 data + batchBuffer->dwOffset,
@@ -3823,7 +3823,7 @@ MOS_STATUS CodechalDebugInterface::Dump2ndLvlBatch(
 
         batchBuffer->pData += batchBuffer->dwOffset;
 
-        if (DumpIsEnabled(MediaDbgAttr::attrEnableFastDump))
+        if (DumpIsEnabled(MediaDbgAttr::attrEnableFastDump) && MediaDebugFastDump::IsGood())
         {
             MediaDebugFastDump::Dump(
                 batchBuffer->pData,

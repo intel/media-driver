@@ -1296,6 +1296,9 @@ MOS_STATUS CodechalDecodeVp9::SetFrameStates ()
         CODECHAL_DECODE_CHK_STATUS_RETURN(DumpDecodePicParams(
             m_vp9PicParams));
 
+        CODECHAL_DECODE_CHK_STATUS_RETURN(DumpDecodeSliceParams(
+            m_vp9SliceParams));
+
         if (m_vp9SegmentParams) {
             CODECHAL_DECODE_CHK_STATUS_RETURN(DumpDecodeSegmentParams(
                 m_vp9SegmentParams));
@@ -2145,6 +2148,28 @@ MOS_STATUS CodechalDecodeVp9::DumpDecodePicParams(
     std::ofstream ofs(fileName, std::ios::out);
     ofs << oss.str();
     ofs.close();
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS CodechalDecodeVp9::DumpDecodeSliceParams(CODEC_VP9_SLICE_PARAMS *slcParams)
+{
+    CODECHAL_DEBUG_FUNCTION_ENTER;
+
+    if (slcParams == nullptr)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrSlcParams))
+    {
+        const char *fileName = m_debugInterface->CreateFileName(
+            "_DEC",
+            CodechalDbgBufferType::bufSlcParams,
+            CodechalDbgExtType::txt);
+
+        DumpDecodeVp9SliceParams(slcParams, fileName);
+    }
 
     return MOS_STATUS_SUCCESS;
 }
