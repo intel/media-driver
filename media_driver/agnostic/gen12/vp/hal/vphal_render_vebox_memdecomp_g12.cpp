@@ -430,7 +430,7 @@ MOS_STATUS MediaVeboxDecompStateG12::VeboxSendVeboxTileConvertCMD(
     ResourceParams.bIsWritable     = true;
     ResourceParams.dwOffset        =
         (outputSurface != nullptr ? outputSurface->dwOffset : inputSurface->dwOffset) + veboxOutputSurfCtrlBits.DW0.Value;
-    m_veboxInterface->pfnAddResourceToCmd(m_osInterface, cmdBuffer, &ResourceParams);
+    VPHAL_MEMORY_DECOMP_CHK_STATUS_RETURN(m_veboxInterface->pfnAddResourceToCmd(m_osInterface, cmdBuffer, &ResourceParams));
 
     m_osInterface->pfnAddCommand(cmdBuffer, &cmd, cmd.byteSize);
 
