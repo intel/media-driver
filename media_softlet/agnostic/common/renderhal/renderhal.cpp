@@ -6437,7 +6437,10 @@ MOS_STATUS RenderHal_SetupSurfaceState(
         bool              res = pRenderHal->pOsInterface->pfnGetCacheSetting(pParams->Component, pParams->surfaceType, pParams->isOutput, RENDER_ENGINE, element, false);
         if (res)
         {
-            pParams->MemObjCtl = element.mocsUsageType;
+            pParams->MemObjCtl = (pRenderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
+                                                            element.mocsUsageType,
+                                                            pRenderHal->pOsInterface->pfnGetGmmClientContext(pRenderHal->pOsInterface)))
+                                                            .DwordValue;
         }
         else
         {
