@@ -301,6 +301,10 @@ namespace encode {
         ENCODE_FUNC_CALL();
         ENCODE_CHK_NULL_RETURN(m_basicFeature);
         ENCODE_CHK_NULL_RETURN(m_basicFeature->m_trackedBuf);
+        ENCODE_CHK_NULL_RETURN(m_seqParam);
+
+        // Set flag bIsMdfLoad in remote gaming scenario to boost GPU frequency for low latency
+        cmdBuffer.Attributes.bFrequencyBoost = (m_seqParam->ScenarioInfo == ESCENARIO_REMOTEGAMING);
 
         ENCODE_CHK_STATUS_RETURN(m_miItf->SetWatchdogTimerThreshold(m_basicFeature->m_frameWidth, m_basicFeature->m_frameHeight, true));
 
@@ -1422,9 +1426,6 @@ namespace encode {
         MOS_COMMAND_BUFFER &cmdBuffer)
     {
         ENCODE_FUNC_CALL();
-
-        // Set flag bIsMdfLoad in remote gaming scenario to boost GPU frequency for low latency
-        cmdBuffer.Attributes.bFrequencyBoost = (m_seqParam->ScenarioInfo == ESCENARIO_REMOTEGAMING);
 
         auto packetUtilities = m_pipeline->GetPacketUtilities();
         ENCODE_CHK_NULL_RETURN(packetUtilities);
