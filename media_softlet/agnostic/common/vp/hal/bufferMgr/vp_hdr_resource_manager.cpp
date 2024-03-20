@@ -43,7 +43,7 @@ VphdrResourceManager::~VphdrResourceManager()
 }
 
 MOS_STATUS VphdrResourceManager::AssignRenderResource(VP_EXECUTE_CAPS &caps, std::vector<VP_SURFACE *> &inputSurfaces, VP_SURFACE *outputSurface, RESOURCE_ASSIGNMENT_HINT resHint,
-    VP_SURFACE_SETTING &surfSetting, SwFilterPipe &executedFilters, MOS_INTERFACE osInterface, VphalFeatureReport &reporting, bool deferredDestroyed)
+    VP_SURFACE_SETTING &surfSetting, SwFilterPipe &executedFilters, MOS_INTERFACE &osInterface, VphalFeatureReport &reporting, bool deferredDestroyed)
 {
     VP_FUNC_CALL();
 
