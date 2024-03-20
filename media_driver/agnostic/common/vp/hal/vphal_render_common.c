@@ -1712,7 +1712,6 @@ MOS_STATUS VpHal_RndrUpdateStatusTableAfterSubmit(
             pStatusTable->uiCurrent = uiLast;
         }
     }
-
     pStatusEntry                    = &pStatusTable->aTableEntries[pStatusTable->uiCurrent];
     pStatusEntry->StatusFeedBackID  = dwStatusFeedBackID;
     pStatusEntry->GpuContextOrdinal = eMosGpuContext;
@@ -1720,6 +1719,11 @@ MOS_STATUS VpHal_RndrUpdateStatusTableAfterSubmit(
     pStatusEntry->dwTag             = dwLastTag;
     pStatusEntry->dwStatus          = (eLastStatus == MOS_STATUS_SUCCESS)? VPREP_NOTREADY : VPREP_ERROR;
     pStatusTable->uiCurrent         = (pStatusTable->uiCurrent + 1) & (VPHAL_STATUS_TABLE_MAX_SIZE - 1);
+
+    if (pStatusTable->uiCurrent == pStatusTable->uiHead)
+    {
+        pStatusTable->uiHead = (pStatusTable->uiHead + 1) & (VPHAL_STATUS_TABLE_MAX_SIZE - 1);
+    }
 
     // CM may use a different streamIndex, record it here
     if (pStatusTableUpdateParams->bUpdateStreamIndex)

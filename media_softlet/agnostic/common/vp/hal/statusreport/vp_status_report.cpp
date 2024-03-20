@@ -96,6 +96,10 @@ MOS_STATUS VPStatusReport::UpdateStatusTableAfterSubmit(
     pStatusEntry->dwTag             = dwLastTag;
     pStatusEntry->dwStatus          = (eLastStatus == MOS_STATUS_SUCCESS)? VPREP_NOTREADY : VPREP_ERROR;
     pStatusTable->uiCurrent         = (pStatusTable->uiCurrent + 1) & (VPHAL_STATUS_TABLE_MAX_SIZE - 1);
+    if (pStatusTable->uiCurrent == pStatusTable->uiHead)
+    {
+        pStatusTable->uiHead = (pStatusTable->uiHead + 1) & (VPHAL_STATUS_TABLE_MAX_SIZE - 1);
+    }
 
 finish:
     return eStatus;

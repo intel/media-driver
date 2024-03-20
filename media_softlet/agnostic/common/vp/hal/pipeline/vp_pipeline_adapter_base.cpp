@@ -225,7 +225,14 @@ MOS_STATUS VpPipelineAdapterBase::GetStatusReport(
     pStatusTable = &m_statusTable;
     uiNewHead    = pStatusTable->uiHead;  // uiNewHead start from previous head value
     // entry length from head to tail
-    uiTableLen = (pStatusTable->uiCurrent - pStatusTable->uiHead) & (VPHAL_STATUS_TABLE_MAX_SIZE - 1);
+    if (pStatusTable->uiCurrent < pStatusTable->uiHead)
+    {
+        uiTableLen = pStatusTable->uiCurrent + VPHAL_STATUS_TABLE_MAX_SIZE - pStatusTable->uiHead;
+    }
+    else
+    {
+        uiTableLen = pStatusTable->uiCurrent - pStatusTable->uiHead;
+    }
 
     // step 1 - update pStatusEntry from driver if command associated with the dwTag is done by gpu
     for (i = 0; i < wStatusNum && i < uiTableLen; i++)
@@ -326,7 +333,15 @@ MOS_STATUS VpPipelineAdapterBase::GetStatusReportEntryLength(
     pStatusTable = &m_statusTable;
 
     // entry length from head to tail
-    *puiLength = (pStatusTable->uiCurrent - pStatusTable->uiHead) & (VPHAL_STATUS_TABLE_MAX_SIZE - 1);
+    if (pStatusTable->uiCurrent < pStatusTable->uiHead)
+    {
+        *puiLength = pStatusTable->uiCurrent + VPHAL_STATUS_TABLE_MAX_SIZE - pStatusTable->uiHead;
+    }
+    else
+    {
+        *puiLength = pStatusTable->uiCurrent - pStatusTable->uiHead;
+    }
+    
 finish:
 #else
     MOS_UNUSED(puiLength);
