@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2021, Intel Corporation
+* Copyright (c) 2018-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -277,6 +277,8 @@ namespace encode {
         uint32_t                        av1EnableFrameOBU;
         uint32_t                        frameWidth;
         uint32_t                        frameHeight;
+
+        uint32_t                        MSE[3];
     };
 
     class EncoderStatusReport : public MediaStatusReport

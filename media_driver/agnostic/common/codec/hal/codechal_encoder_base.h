@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2023, Intel Corporation
+* Copyright (c) 2017-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -953,6 +953,7 @@ struct EncodeStatusReport
 
     uint32_t                        reserved[4];            //!< align with apo path hal structure EncodeStatusReportData
 
+    uint32_t                        MSE[3];
 };
 
 //!

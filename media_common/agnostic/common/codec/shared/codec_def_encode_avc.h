@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2022, Intel Corporation
+* Copyright (c) 2017-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1067,6 +1067,17 @@ typedef struct _CODEC_AVC_ENCODE_PIC_PARAMS
         uint16_t value;
     } StatusReportEnable;
 
+    /*! \brief quality information report enable flags.
+    */
+    union
+    {
+        struct
+        {
+            uint8_t enable_frame : 1;
+            uint8_t reserved : 7;
+        } fields;
+        uint8_t value;
+    } QualityInfoSupportFlags;
 } CODEC_AVC_ENCODE_PIC_PARAMS, *PCODEC_AVC_ENCODE_PIC_PARAMS;
 
 /*! \brief Slice-level parameters of a compressed picture for AVC encoding.

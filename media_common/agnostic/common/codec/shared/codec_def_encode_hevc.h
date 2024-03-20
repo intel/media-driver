@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2016-2018, Intel Corporation
+* Copyright (c) 2016-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -966,6 +966,18 @@ typedef struct _CODEC_HEVC_ENCODE_PICTURE_PARAMS
         } fields;
         uint16_t value;
     } StatusReportEnable;
+
+    /*! \brief quality information report enable flags.
+    */
+    union
+    {
+        struct
+        {
+            uint8_t enable_frame : 1;
+            uint8_t reserved : 7;
+        } fields;
+        uint8_t value;
+    } QualityInfoSupportFlags;
 } CODEC_HEVC_ENCODE_PICTURE_PARAMS, *PCODEC_HEVC_ENCODE_PICTURE_PARAMS;
 
 /*! \brief Slice-level parameters of a compressed picture for HEVC encoding.

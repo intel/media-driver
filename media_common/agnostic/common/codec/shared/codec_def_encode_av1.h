@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2023, Intel Corporation
+* Copyright (c) 2019-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -481,7 +481,19 @@ typedef struct _CODEC_AV1_ENCODE_PICTURE_PARAMS
     uint32_t    InputType;
     uint32_t    TargetFrameSize;
     uint8_t     QpModulationStrength;
-    uint8_t     reserved8b[3];
+
+    /*! \brief quality information report enable flags.
+    */
+    union
+    {
+        struct
+        {
+            uint8_t enable_frame : 1;
+            uint8_t reserved     : 7;
+        } fields;
+        uint8_t value;
+    } QualityInfoSupportFlags;
+    uint8_t     reserved8b[2];
     uint32_t    Reserved10[14];
 } CODEC_AV1_ENCODE_PICTURE_PARAMS, *PCODEC_AV1_ENCODE_PICTURE_PARAMS;
 
