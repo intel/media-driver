@@ -2032,37 +2032,40 @@ VAStatus DdiMedia_InitMediaContext (
     }
 
     //Caps need platform and sku table, especially in MediaLibvaCapsCp::IsDecEncryptionSupported
-    mediaCtx->m_caps = MediaLibvaCaps::CreateMediaLibvaCaps(mediaCtx);
-    if (!mediaCtx->m_caps)
-    {
-        DDI_ASSERTMESSAGE("Caps create failed. Not supported GFX device.");
-        DestroyMediaContextMutex(mediaCtx);
-        FreeForMediaContext(mediaCtx);
-        return VA_STATUS_ERROR_ALLOCATION_FAILED;
-    }
-
-    if (mediaCtx->m_caps->Init() != VA_STATUS_SUCCESS)
-    {
-        DDI_ASSERTMESSAGE("Caps init failed. Not supported GFX device.");
-        DdiMedia_CleanUp(mediaCtx);
-        DestroyMediaContextMutex(mediaCtx);
-        FreeForMediaContext(mediaCtx);
-        return VA_STATUS_ERROR_ALLOCATION_FAILED;
-    }
-    ctx->max_image_formats = mediaCtx->m_caps->GetImageFormatsMaxNum();
-
 #ifdef _MANUAL_SOFTLET_
     apoDdiEnabled = MediaLibvaApoDecision::InitDdiApoState(devicefd, mediaCtx->m_userSettingPtr);
-    if(apoDdiEnabled)
+    mediaCtx->m_apoDdiEnabled = apoDdiEnabled;
+    if(mediaCtx->m_apoDdiEnabled)
     {
         if (DdiMedia__InitializeSoftlet(mediaCtx, apoDdiEnabled) != VA_STATUS_SUCCESS)
         {
             DDI_ASSERTMESSAGE("Softlet initialize failed");
             return VA_STATUS_ERROR_ALLOCATION_FAILED;
         }
+        ctx->max_image_formats = mediaCtx->m_capsNext->GetImageFormatsMaxNum();
     }
-    mediaCtx->m_apoDdiEnabled = apoDdiEnabled;
+    else
 #endif
+    {
+        mediaCtx->m_caps = MediaLibvaCaps::CreateMediaLibvaCaps(mediaCtx);
+        if (!mediaCtx->m_caps)
+        {
+            DDI_ASSERTMESSAGE("Caps create failed. Not supported GFX device.");
+            DestroyMediaContextMutex(mediaCtx);
+            FreeForMediaContext(mediaCtx);
+            return VA_STATUS_ERROR_ALLOCATION_FAILED;
+        }
+
+        if (mediaCtx->m_caps->Init() != VA_STATUS_SUCCESS)
+        {
+            DDI_ASSERTMESSAGE("Caps init failed. Not supported GFX device.");
+            DdiMedia_CleanUp(mediaCtx);
+            DestroyMediaContextMutex(mediaCtx);
+            FreeForMediaContext(mediaCtx);
+            return VA_STATUS_ERROR_ALLOCATION_FAILED;
+        }
+        ctx->max_image_formats = mediaCtx->m_caps->GetImageFormatsMaxNum();
+    }
 
 #if !defined(ANDROID) && defined(X11_FOUND)
     DdiMediaUtil_InitMutex(&mediaCtx->PutSurfaceRenderMutex);
