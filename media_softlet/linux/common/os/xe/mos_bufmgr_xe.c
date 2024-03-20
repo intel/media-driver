@@ -2112,6 +2112,9 @@ mos_bo_unmap_wc_xe(struct mos_linux_bo *bo)
     return mos_bo_unmap_xe(bo);
 }
 
+/**
+ * Note: to refine timeline dep dump
+ */
 int __mos_dump_syncs_array_xe(struct drm_xe_sync *syncs,
             uint32_t count,
             mos_xe_dep *dep)
@@ -2126,8 +2129,8 @@ int __mos_dump_syncs_array_xe(struct drm_xe_sync *syncs,
         offset += MOS_SecureStringPrint(log_msg + offset, MOS_MAX_MSG_BUF_SIZE,
                     MOS_MAX_MSG_BUF_SIZE - offset,
                     "\n\t\t\tdump fence out syncobj: handle = %d, flags = %d",
-                    dep->sync.handle, dep->sync.flags);
-        if (count > 0)
+                    dep->syncobj_handle, DRM_XE_SYNC_FLAG_SIGNAL);
+        if(count > 0)
         {
             offset += MOS_SecureStringPrint(log_msg + offset, MOS_MAX_MSG_BUF_SIZE,
                     MOS_MAX_MSG_BUF_SIZE - offset,
@@ -2199,11 +2202,9 @@ __mos_dump_bo_deps_map_xe(struct mos_linux_bo **bo,
                         {
                             offset += MOS_SecureStringPrint(log_msg + offset, MOS_MAX_MSG_BUF_SIZE,
                                             MOS_MAX_MSG_BUF_SIZE - offset,
-                                            "\n\t\t\t-read deps: execed_exec_queue_id=%d, dep_status=%d, syncobj_handle=%d, sync_flags=%d",
+                                            "\n\t\t\t-read deps: execed_exec_queue_id=%d, syncobj_handle=%d",
                                             it->first,
-                                            it->second.dep ? it->second.dep->status : -1,
-                                            it->second.dep ? it->second.dep->sync.handle : INVALID_HANDLE,
-                                            it->second.dep ? it->second.dep->sync.flags : -1);
+                                            it->second.dep ? it->second.dep->syncobj_handle : INVALID_HANDLE);
                         }
                         it++;
                     }
@@ -2215,11 +2216,9 @@ __mos_dump_bo_deps_map_xe(struct mos_linux_bo **bo,
                         {
                             offset += MOS_SecureStringPrint(log_msg + offset, MOS_MAX_MSG_BUF_SIZE,
                                             MOS_MAX_MSG_BUF_SIZE - offset,
-                                            "\n\t\t\t-write deps: execed_exec_queue_id=%d, dep_status=%d, syncobj_handle=%d, sync_flags=%d",
+                                            "\n\t\t\t-write deps: execed_exec_queue_id=%d, syncobj_handle=%d",
                                             it->first,
-                                            it->second.dep ? it->second.dep->status : -1,
-                                            it->second.dep ? it->second.dep->sync.handle : INVALID_HANDLE,
-                                            it->second.dep ? it->second.dep->sync.flags : -1);
+                                            it->second.dep ? it->second.dep->syncobj_handle : INVALID_HANDLE);
                         }
                         it++;
                     }
@@ -2543,7 +2542,7 @@ mos_bo_context_exec_with_sync_xe(struct mos_linux_bo **bo, int num_bo, struct mo
             ret = __mos_bo_context_exec_retry_xe(&bufmgr_gem->bufmgr, ctx, exec, curr_exec_queue_id);
         }
     }
-    curr_timeline = dep->sync.timeline_value;
+    curr_timeline = dep->timeline_index;
 
     //dump fence in and fence out info
     __mos_dump_syncs_array_xe(syncs_array, sync_count, dep);
@@ -2569,7 +2568,7 @@ mos_bo_context_exec_with_sync_xe(struct mos_linux_bo **bo, int num_bo, struct mo
         temp_syncobj = mos_sync_syncobj_create(bufmgr_gem->fd, 0);
         if (temp_syncobj > 0)
         {
-            mos_sync_syncobj_timeline_to_binary(bufmgr_gem->fd, temp_syncobj, dep->sync.handle, curr_timeline, 0);
+            mos_sync_syncobj_timeline_to_binary(bufmgr_gem->fd, temp_syncobj, dep->syncobj_handle, curr_timeline, 0);
             sync_file_fd = mos_sync_syncobj_handle_to_syncfile_fd(bufmgr_gem->fd, temp_syncobj);
         }
     }

@@ -41,51 +41,24 @@ extern "C" {
 
 struct mos_xe_dep {
     /**
-     * Maximun count of dependency;
+     * Indicate to the handle for timeline syncobj.
      */
-#define MAX_DEPS_SIZE 32
-
-    struct drm_xe_sync sync;
+    uint32_t syncobj_handle;
     /**
-     * Indicate dep is free status
-     */
-#define STATUS_DEP_FREE    1
-    /**
-     * Indicate dep is busy status
-     */
-#define STATUS_DEP_BUSY   2
-    /**
-     * Save dep status;
-     * If the dep is getting from the queue and waiting to add into exec syncs array, it should be set as STATUS_DEP_BUSY
-     * If the dep is signaled and moved to free queue, it should be set as STATUS_DEP_FREE
-     */
-    uint8_t status;
-
-    /**
-     * Indicate to the timeline index in the busy queue.
+     * Indicate to latest avaiable timeline value(index) for fence out point.
      */
     uint64_t timeline_index;
-
-    /**
-     * Sync obj needs to be used in DRM_IOCTL_XE_EXEC and DRM_IOCTL_SYNCOBJ_WAIT.
-     * If ref_count != 0, it means this sync obj is still being used in DRM_IOCTL_XE_EXEC or DRM_IOCTL_SYNCOBJ_WAIT.
-     * Should protect this sync obj by sync_obj_rw_lock when resetting or destroying this sync obj which is being used.
-     * If ref_count == 0, we could reset or destroy this sync obj without sync_obj_rw_lock protection.
-     */
-    atomic_t ref_count;
 };
 
 struct mos_xe_bo_dep
 {
     /**
-     * Indicate to reusable dep in the ctx queue
+     * Indicate to reusable dep in the ctx queue.
      */
     struct mos_xe_dep *dep;
 
     /**
-     * Save timeline_index of this bo
-     * If bo's timeline_index does't equal to busy dep's timeline_index,
-     * It means this busy dep is finished for this bo and reused by other bo.
+     * Indicate to the timeline point that bo execution on certain exec queue.
      */
     uint64_t exec_timeline_index;
 };

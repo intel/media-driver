@@ -438,8 +438,18 @@ struct mos_xe_dep *mos_sync_create_timeline_dep(int fd)
     //create new one
     dep = (struct mos_xe_dep *)calloc(1, sizeof(struct mos_xe_dep));
     MOS_DRM_CHK_NULL_RETURN_VALUE(dep, nullptr);
-    dep->sync.handle = mos_sync_syncobj_create(fd, 0);
-    dep->timeline_index = 1;
+    int handle = mos_sync_syncobj_create(fd, 0);
+
+    if (handle > 0)
+    {
+        dep->syncobj_handle = handle;
+        dep->timeline_index = 1;
+    }
+    else
+    {
+        MOS_XE_SAFE_FREE(dep)
+        return nullptr;
+    }
 
     return dep;
 }
@@ -468,7 +478,7 @@ void mos_sync_destroy_timeline_dep(int fd, struct mos_xe_dep* dep)
 {
     if (dep)
     {
-        mos_sync_syncobj_destroy(fd, dep->sync.handle);
+        mos_sync_syncobj_destroy(fd, dep->syncobj_handle);
         MOS_XE_SAFE_FREE(dep)
     }
 }
@@ -502,11 +512,11 @@ int mos_sync_update_exec_syncs_from_timeline_deps(uint32_t curr_engine,
         if (write_deps.count(lst_write_engine) > 0
                 && engine_ids.count(lst_write_engine) > 0)
         {
-            if(write_deps[lst_write_engine].dep)
+            if (write_deps[lst_write_engine].dep)
             {
                 drm_xe_sync sync;
                 memclear(sync);
-                sync.handle = write_deps[lst_write_engine].dep->sync.handle;
+                sync.handle = write_deps[lst_write_engine].dep->syncobj_handle;
                 sync.type = DRM_XE_SYNC_TYPE_TIMELINE_SYNCOBJ;
                 sync.timeline_value = write_deps[lst_write_engine].exec_timeline_index;
                 syncs.push_back(sync);
@@ -524,11 +534,11 @@ int mos_sync_update_exec_syncs_from_timeline_deps(uint32_t curr_engine,
             if (engine_id != curr_engine
                     && engine_ids.count(engine_id) > 0)
             {
-                if(it->second.dep)
+                if (it->second.dep)
                 {
                     drm_xe_sync sync;
                     memclear(sync);
-                    sync.handle = it->second.dep->sync.handle;
+                    sync.handle = it->second.dep->syncobj_handle;
                     sync.type = DRM_XE_SYNC_TYPE_TIMELINE_SYNCOBJ;
                     sync.timeline_value = it->second.exec_timeline_index;
                     syncs.push_back(sync);
@@ -591,7 +601,7 @@ void mos_sync_update_exec_syncs_from_timeline_dep(int fd,
         drm_xe_sync sync;
         memclear(sync);
         //must set DRM_XE_SYNC_FLAG_SIGNAL for timeline fence out syncobj.
-        sync.handle = dep->sync.handle;
+        sync.handle = dep->syncobj_handle;
         sync.timeline_value = dep->timeline_index;
         sync.flags = DRM_XE_SYNC_FLAG_SIGNAL;
         sync.type = DRM_XE_SYNC_TYPE_TIMELINE_SYNCOBJ;
@@ -661,7 +671,7 @@ void mos_sync_get_bo_wait_timeline_deps(std::set<uint32_t> &engine_ids,
             if (it->second.dep && engine_ids.count(engine_id) > 0)
             {
                 // Save the max timeline data
-                max_timeline_data[it->second.dep->sync.handle] = bo_exec_timeline;
+                max_timeline_data[it->second.dep->syncobj_handle] = bo_exec_timeline;
             }
         }
     }
@@ -671,7 +681,7 @@ void mos_sync_get_bo_wait_timeline_deps(std::set<uint32_t> &engine_ids,
         && write_deps.count(lst_write_engine) > 0
        && write_deps[lst_write_engine].dep)
     {
-        uint32_t syncobj_handle = write_deps[lst_write_engine].dep->sync.handle;
+        uint32_t syncobj_handle = write_deps[lst_write_engine].dep->syncobj_handle;
         uint64_t bo_exec_timeline = write_deps[lst_write_engine].exec_timeline_index;
         if (max_timeline_data.count(syncobj_handle) == 0
                 || max_timeline_data[syncobj_handle] < bo_exec_timeline)
