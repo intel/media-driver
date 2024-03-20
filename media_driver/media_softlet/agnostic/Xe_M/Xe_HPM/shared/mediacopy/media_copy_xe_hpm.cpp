@@ -245,3 +245,13 @@ MOS_STATUS MediaCopyState_Xe_Hpm::PreCheckCpCopy(
 
     return MOS_STATUS_SUCCESS;
 }
+
+MOS_STATUS MediaCopyState_Xe_Hpm::CopyEnigneSelect(MCPY_METHOD &preferMethod, MCPY_ENGINE &mcpyEngine, MCPY_ENGINE_CAPS &caps)
+{
+    if (preferMethod == MCPY_METHOD_DEFAULT)
+    {
+        preferMethod = MCPY_METHOD_PERFORMANCE;
+    }
+    MediaCopyBaseState::CopyEnigneSelect(preferMethod, mcpyEngine, caps);
+    return MOS_STATUS_SUCCESS;
+}

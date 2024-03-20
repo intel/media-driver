@@ -140,7 +140,30 @@ protected:
     //!
     virtual MOS_STATUS MediaVeboxCopy(PMOS_RESOURCE src, PMOS_RESOURCE dst);
 
+    //!
+    //! \brief    vebox format support.
+    //! \details  surface format support.
+    //! \param    src
+    //!           [in] Pointer to source surface
+    //! \param    dst
+    //!           [in] Pointer to destination surface
+    //! \return   bool
+    //!           Return true if support, otherwise return false.
+    //!
     virtual bool IsVeboxCopySupported(PMOS_RESOURCE src, PMOS_RESOURCE dst);
+    //!
+    //! \brief    select copy enigne
+    //! \details  media copy select copy enigne.
+    //! \param    preferMethod
+    //!           [in] copy method
+    //! \param    mcpyEngine
+    //!           [in] copy engine
+    //! \param    caps
+    //!           [in] reference of featue supported engine
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if support, otherwise return unspoort.
+    //!
+    virtual MOS_STATUS CopyEnigneSelect(MCPY_METHOD &preferMethod, MCPY_ENGINE &mcpyEngine, MCPY_ENGINE_CAPS &caps);
 
 protected:
     MhwInterfaces      *m_mhwInterfacesXeHpm  = nullptr;

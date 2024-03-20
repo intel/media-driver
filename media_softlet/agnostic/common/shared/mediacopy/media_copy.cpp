@@ -183,19 +183,19 @@ MOS_STATUS MediaCopyBaseState::PreCheckCpCopy(
 //! \return   MOS_STATUS
 //!           Return MOS_STATUS_SUCCESS if support, otherwise return unspoort.
 //!
-MOS_STATUS MediaCopyBaseState::CopyEnigneSelect(MCPY_METHOD preferMethod, MCPY_ENGINE& mcpyEngine, MCPY_ENGINE_CAPS& caps)
+MOS_STATUS MediaCopyBaseState::CopyEnigneSelect(MCPY_METHOD& preferMethod, MCPY_ENGINE& mcpyEngine, MCPY_ENGINE_CAPS& caps)
 {
     // driver should make sure there is at least one he can process copy even customer choice doesn't match caps.
     switch (preferMethod)
     {
         case MCPY_METHOD_PERFORMANCE:
-        case MCPY_METHOD_DEFAULT:
             mcpyEngine = caps.engineRender?MCPY_ENGINE_RENDER:(caps.engineBlt ? MCPY_ENGINE_BLT : MCPY_ENGINE_VEBOX);
             break;
         case MCPY_METHOD_BALANCE:
             mcpyEngine = caps.engineVebox?MCPY_ENGINE_VEBOX:(caps.engineBlt?MCPY_ENGINE_BLT:MCPY_ENGINE_RENDER);
             break;
         case MCPY_METHOD_POWERSAVING:
+        case MCPY_METHOD_DEFAULT:
             mcpyEngine = caps.engineBlt?MCPY_ENGINE_BLT:(caps.engineVebox?MCPY_ENGINE_VEBOX:MCPY_ENGINE_RENDER);
             break;
         default:

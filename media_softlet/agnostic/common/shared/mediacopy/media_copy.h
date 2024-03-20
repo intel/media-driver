@@ -242,7 +242,7 @@ protected:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if support, otherwise return unspoort.
     //!
-    virtual MOS_STATUS CopyEnigneSelect(MCPY_METHOD preferMethod, MCPY_ENGINE &mcpyEngine, MCPY_ENGINE_CAPS &caps);
+    virtual MOS_STATUS CopyEnigneSelect(MCPY_METHOD& preferMethod, MCPY_ENGINE &mcpyEngine, MCPY_ENGINE_CAPS &caps);
 
     //!
     //! \brief    use blt engie to do surface copy.

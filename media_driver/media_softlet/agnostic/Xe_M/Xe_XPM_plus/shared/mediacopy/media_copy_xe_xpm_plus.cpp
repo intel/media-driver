@@ -226,7 +226,7 @@ MOS_STATUS MediaCopyStateXe_Xpm_Plus::CapabilityCheck(MCPY_STATE_PARAMS& mcpySrc
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS MediaCopyStateXe_Xpm_Plus::CopyEnigneSelect(MCPY_METHOD preferMethod, MCPY_ENGINE& mcpyEngine, MCPY_ENGINE_CAPS& caps)
+MOS_STATUS MediaCopyStateXe_Xpm_Plus::CopyEnigneSelect(MCPY_METHOD& preferMethod, MCPY_ENGINE& mcpyEngine, MCPY_ENGINE_CAPS& caps)
 {
     // assume perf render > vebox > blt. blt data should be measured.
     // driver should make sure there is at least one he can process copy even customer choice doesn't match caps.
