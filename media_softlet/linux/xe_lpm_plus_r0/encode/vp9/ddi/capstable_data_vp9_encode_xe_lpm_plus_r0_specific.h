@@ -236,8 +236,6 @@ static ProfileSurfaceAttribInfo surfaceAttribInfo_VAProfileVP9Profile2_VAEntrypo
 static ProfileSurfaceAttribInfo surfaceAttribInfo_VAProfileVP9Profile3_VAEntrypointEncSlice_Xe_Lpm_plus_r0 =
 { 
   {VASurfaceAttribPixelFormat, VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {VA_FOURCC_Y410}}}, 
-  {VASurfaceAttribPixelFormat, VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {VA_FOURCC_ARGB}}}, 
-  {VASurfaceAttribPixelFormat, VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {VA_FOURCC_ABGR}}}, 
   {VASurfaceAttribMaxWidth, VA_SURFACE_ATTRIB_GETTABLE, {VAGenericValueTypeInteger, {8192}}}, 
   {VASurfaceAttribMaxHeight, VA_SURFACE_ATTRIB_GETTABLE, {VAGenericValueTypeInteger, {8192}}}, 
   {VASurfaceAttribMinWidth, VA_SURFACE_ATTRIB_GETTABLE, {VAGenericValueTypeInteger, {128}}}, 
