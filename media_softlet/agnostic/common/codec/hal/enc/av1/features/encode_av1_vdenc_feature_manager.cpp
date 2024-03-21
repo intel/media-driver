@@ -56,6 +56,7 @@ MOS_STATUS EncodeAv1VdencFeatureManager::CheckFeatures(void *params)
 
     if (encodeParams->bNewSeq)
     {
+        m_ddiTargetUsage = av1SeqParams->TargetUsage;
         ENCODE_CHK_STATUS_RETURN(MapTargetUsage(av1SeqParams->TargetUsage));
         m_targetUsage = av1SeqParams->TargetUsage;
     }

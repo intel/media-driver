@@ -65,6 +65,7 @@ MOS_STATUS EncodeVp9VdencFeatureManager::CheckFeatures(void *params)
         ENCODE_CHK_NULL_RETURN(basicFeature);
         basicFeature->m_oriTargetUsage = seqParams->TargetUsage;
 
+        m_ddiTargetUsage = seqParams->TargetUsage;
         ENCODE_CHK_STATUS_RETURN(MapTargetUsage(seqParams->TargetUsage));
         m_targetUsage = seqParams->TargetUsage;
     }

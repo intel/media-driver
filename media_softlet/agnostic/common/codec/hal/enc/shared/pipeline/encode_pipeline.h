@@ -285,6 +285,16 @@ public:
     }
 
     //!
+    //! \brief    Help function to get ddi target usage
+    //!
+    //! \return   DDI Target Usage
+    //!
+    virtual uint8_t GetDDITU()
+    {
+        return m_featureManager->GetDDITargetUsage();
+    }
+
+    //!
     //! \brief    Help function to get pass number
     //!
     //! \return   Pass number

@@ -211,6 +211,12 @@ MOS_STATUS EncodePipeline::InitUserSetting(MediaUserSettingSharedPtr userSetting
         MediaUserSetting::Group::Sequence,
         int32_t(1),
         true);
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        "Media Encode DDI TargetUsage",
+        MediaUserSetting::Group::Sequence,
+        int32_t(0),
+        true);
 #endif
 
 #if _MEDIA_RESERVED

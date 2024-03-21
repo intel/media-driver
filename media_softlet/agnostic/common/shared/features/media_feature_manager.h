@@ -261,6 +261,13 @@ public:
     //!
     virtual MOS_STATUS CheckFeatures(void *params) { return MOS_STATUS_SUCCESS; };
 
+    //!
+    //! \brief  Get DDI Target Usage
+    //! \return uint8_t
+    //!         return the DDI target usage.
+    //!
+    uint8_t GetDDITargetUsage(){return m_ddiTargetUsage;}
+
 protected:
 
     //!
@@ -290,6 +297,7 @@ protected:
     std::map<int, std::vector<int>> m_packetIdList;  // map feature ID to a vector of packet ID
     std::map<int, LIST_TYPE> m_packetIdListTypes;  // map feature ID to a flag, indicates whether packet ID vector is a block list or an allow list
     MediaFeatureConstSettings *m_featureConstSettings = nullptr;
+    uint8_t m_ddiTargetUsage = 0; // for user input setting report
     uint8_t m_targetUsage = 0;
     uint8_t m_passNum = 1;
     // Media user setting instance

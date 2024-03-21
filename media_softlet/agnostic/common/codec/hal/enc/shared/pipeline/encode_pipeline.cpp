@@ -187,6 +187,12 @@ MOS_STATUS EncodePipeline::UserFeatureReport()
         "Media Encode Used VDBOX Number",
         GetPipeNum(),
         MediaUserSetting::Group::Sequence);
+
+    ReportUserSettingForDebug(
+        m_userSettingPtr,
+        "Media Encode DDI TargetUsage",
+        GetDDITU(),
+        MediaUserSetting::Group::Sequence);
 #endif // _DEBUG || _RELEASE_INTERNAL
 
     return MOS_STATUS_SUCCESS;
