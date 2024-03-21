@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2023, Intel Corporation
+* Copyright (c) 2020-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -75,12 +75,29 @@ MOS_STATUS VpScalabilityMultiPipeNext::AllocateSemaphore()
     allocParamsForBufferLinear.dwBytes  = VP_SEMAPHORE_COUNT * sizeof(uint32_t);
     allocParamsForBufferLinear.pBufName = "Sync All Pipes SemaphoreMemory";
 
-    memset(&m_resSemaphoreAllPipes, 0, sizeof(MOS_RESOURCE));
-    SCALABILITY_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
-                                              m_osInterface,
-                                              &allocParamsForBufferLinear,
-                                              &m_resSemaphoreAllPipes),
-        "Cannot create HW semaphore for scalability all pipes sync.");
+    for (uint32_t i = 0; i < 2; i++)
+    {
+        memset(&m_resSemaphoreAllPipes[i], 0, sizeof(MOS_RESOURCE));
+        SCALABILITY_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
+                                                  m_osInterface,
+                                                  &allocParamsForBufferLinear,
+                                                  &m_resSemaphoreAllPipes[i]),
+            "Cannot create HW semaphore for scalability all pipes sync.");
+
+        MOS_LOCK_PARAMS lockFlagsWriteOnly;
+        MOS_ZeroMemory(&lockFlagsWriteOnly, sizeof(MOS_LOCK_PARAMS));
+        lockFlagsWriteOnly.WriteOnly = 1;
+
+        uint32_t *data = (uint32_t *)m_osInterface->pfnLockResource(
+            m_osInterface,
+            &m_resSemaphoreAllPipes[i],
+            &lockFlagsWriteOnly);
+        SCALABILITY_CHK_NULL_RETURN(data);
+        MOS_ZeroMemory(data, VP_SEMAPHORE_COUNT * sizeof(uint32_t));
+        SCALABILITY_CHK_STATUS_RETURN(m_osInterface->pfnUnlockResource(
+            m_osInterface,
+            &m_resSemaphoreAllPipes[i]));
+    }
     memset(&m_resSemaphoreOnePipeWait, 0, sizeof(MOS_RESOURCE));
     SCALABILITY_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
                                               m_osInterface,
@@ -201,7 +218,8 @@ MOS_STATUS VpScalabilityMultiPipeNext::Destroy()
         MOS_Delete(m_scalabilityOption);
     }
 
-    m_osInterface->pfnFreeResource(m_osInterface, &m_resSemaphoreAllPipes);
+    m_osInterface->pfnFreeResource(m_osInterface, &m_resSemaphoreAllPipes[0]);
+    m_osInterface->pfnFreeResource(m_osInterface, &m_resSemaphoreAllPipes[1]);
     m_osInterface->pfnFreeResource(m_osInterface, &m_resSemaphoreOnePipeWait);
 
     return MOS_STATUS_SUCCESS;
@@ -470,30 +488,41 @@ MOS_STATUS VpScalabilityMultiPipeNext::SyncAllPipes(PMOS_COMMAND_BUFFER cmdBuffe
     SCALABILITY_FUNCTION_ENTER;
     SCALABILITY_CHK_NULL_RETURN(cmdBuffer);
     SCALABILITY_CHK_NULL_RETURN(m_hwInterface);
-    SCALABILITY_ASSERT(m_semaphoreAllPipesIndex < VP_SEMAPHORE_COUNT);
-    SCALABILITY_ASSERT(!Mos_ResourceIsNull(&m_resSemaphoreAllPipes));
+    SCALABILITY_ASSERT(m_semaphoreAllPipesIndex < VP_SEMAPHORE_COUNT * 2);
+    SCALABILITY_ASSERT(!Mos_ResourceIsNull(&m_resSemaphoreAllPipes[0]));
+    SCALABILITY_ASSERT(!Mos_ResourceIsNull(&m_resSemaphoreAllPipes[1]));
+
+    // use two Semaphore Buffer repeatly to avoid waiting for lock, use the first Semaphore Buffer when m_semaphoreAllPipesIndex < VP_SEMAPHORE_COUNT.
+    // when the m_semaphoreAllPipesIndex >= VP_SEMAPHORE_COUNT, switch to the second Semaphore Buffer
+    uint32_t semaphoreIndex = (m_semaphoreAllPipesIndex >= VP_SEMAPHORE_COUNT) ? 1 : 0;
 
     if (m_semaphoreAllPipesPhase == 0)
     {
         if (m_currentPipe == 0)
         {
-            char ocaMsg[] = "VEBOX0 SCALABILITY";
-            HalOcaInterfaceNext::TraceMessage(*cmdBuffer, (MOS_CONTEXT_HANDLE)m_osInterface->pOsContext, ocaMsg, sizeof(ocaMsg));
+            std::stringstream ss;
+            ss << "VEBOX0 SCALABILITY. semaphoreIndex 0x" << std::hex << semaphoreIndex << " m_semaphoreAllPipesIndex 0x"
+                << std::hex  << m_semaphoreAllPipesIndex ;
+            std::string ocaMsg = ss.str();
+            HalOcaInterfaceNext::TraceMessage(*cmdBuffer, (MOS_CONTEXT_HANDLE)m_osInterface->pOsContext, ocaMsg.c_str(), ocaMsg.length());
         }
         else
         {
-            char ocaMsg[] = "VEBOX1 SCALABILITY";
-            HalOcaInterfaceNext::TraceMessage(*cmdBuffer, (MOS_CONTEXT_HANDLE)m_osInterface->pOsContext, ocaMsg, sizeof(ocaMsg));
+            std::stringstream ss;
+            ss << "VEBOX1 SCALABILITY. semaphoreIndex 0x" << std::hex << semaphoreIndex << " m_semaphoreAllPipesIndex 0x"
+                << std::hex  << m_semaphoreAllPipesIndex ;
+            std::string ocaMsg = ss.str();
+            HalOcaInterfaceNext::TraceMessage(*cmdBuffer, (MOS_CONTEXT_HANDLE)m_osInterface->pOsContext, ocaMsg.c_str(), ocaMsg.length());
         }
 
         for (int32_t i = 0; i < 2 * m_pipeNum; i++)
         {
-            HalOcaInterfaceNext::OnIndirectState(*cmdBuffer, (MOS_CONTEXT_HANDLE)m_osInterface->pOsContext, &m_resSemaphoreAllPipes, (m_semaphoreAllPipesIndex + i) * sizeof(uint32_t), false, sizeof(uint32_t));
+            HalOcaInterfaceNext::OnIndirectState(*cmdBuffer, (MOS_CONTEXT_HANDLE)m_osInterface->pOsContext, &m_resSemaphoreAllPipes[semaphoreIndex], (m_semaphoreAllPipesIndex % VP_SEMAPHORE_COUNT + i) * sizeof(uint32_t), false, sizeof(uint32_t));
         }
     }
 
     // memset the semaphore to avoid the semaphore was not clear during media reset
-    if ((m_semaphoreAllPipesPhase == 0) && (m_currentPipe == 0))
+    if ((m_semaphoreAllPipesPhase == 0) && (m_currentPipe == 0) && (m_semaphoreAllPipesIndex % VP_SEMAPHORE_COUNT == 0))
     {
         MOS_LOCK_PARAMS lockFlagsWriteOnly;
         MOS_ZeroMemory(&lockFlagsWriteOnly, sizeof(MOS_LOCK_PARAMS));
@@ -501,40 +530,40 @@ MOS_STATUS VpScalabilityMultiPipeNext::SyncAllPipes(PMOS_COMMAND_BUFFER cmdBuffe
 
         uint32_t *data = (uint32_t *)m_osInterface->pfnLockResource(
             m_osInterface,
-            &m_resSemaphoreAllPipes,
+            &m_resSemaphoreAllPipes[semaphoreIndex],
             &lockFlagsWriteOnly);
         SCALABILITY_CHK_NULL_RETURN(data);
-        MOS_ZeroMemory(data + m_semaphoreAllPipesIndex, 2 * m_pipeNum * sizeof(uint32_t));
+        MOS_ZeroMemory(data, VP_SEMAPHORE_COUNT * sizeof(uint32_t));
         SCALABILITY_CHK_STATUS_RETURN(m_osInterface->pfnUnlockResource(
             m_osInterface,
-            &m_resSemaphoreAllPipes));
+            &m_resSemaphoreAllPipes[semaphoreIndex]));
     }
 
     // Increment all pipe flags
     for (uint32_t i = 0; i < m_pipeNum; i++)
     {
-        if (!Mos_ResourceIsNull(&m_resSemaphoreAllPipes))
+        if (!Mos_ResourceIsNull(&m_resSemaphoreAllPipes[semaphoreIndex]))
         {
             SCALABILITY_CHK_STATUS_RETURN(SendMiAtomicDwordCmd(
-                &m_resSemaphoreAllPipes, (m_semaphoreAllPipesIndex + m_semaphoreAllPipesPhase * m_pipeNum + i) * sizeof(uint32_t), 1, MHW_MI_ATOMIC_INC, cmdBuffer));
+                &m_resSemaphoreAllPipes[semaphoreIndex], (m_semaphoreAllPipesIndex % VP_SEMAPHORE_COUNT + m_semaphoreAllPipesPhase * m_pipeNum + i) * sizeof(uint32_t), 1, MHW_MI_ATOMIC_INC, cmdBuffer));
         }
     }
 
-    if (!Mos_ResourceIsNull(&m_resSemaphoreAllPipes))
+    if (!Mos_ResourceIsNull(&m_resSemaphoreAllPipes[semaphoreIndex]))
     {
         // Waiting current pipe flag euqal to pipe number which means other pipes are executing
         SCALABILITY_CHK_STATUS_RETURN(SendHwSemaphoreWaitCmd(
-            &m_resSemaphoreAllPipes, (m_semaphoreAllPipesIndex + m_semaphoreAllPipesPhase * m_pipeNum + m_currentPipe) * sizeof(uint32_t), m_pipeNum, MHW_MI_SAD_EQUAL_SDD, cmdBuffer));
+            &m_resSemaphoreAllPipes[semaphoreIndex], (m_semaphoreAllPipesIndex % VP_SEMAPHORE_COUNT + m_semaphoreAllPipesPhase * m_pipeNum + m_currentPipe) * sizeof(uint32_t), m_pipeNum, MHW_MI_SAD_EQUAL_SDD, cmdBuffer));
 
         // Reset current pipe semaphore
         SCALABILITY_CHK_STATUS_RETURN(AddMiStoreDataImmCmd(
-            &m_resSemaphoreAllPipes, (m_semaphoreAllPipesIndex + m_semaphoreAllPipesPhase * m_pipeNum + m_currentPipe) * sizeof(uint32_t), cmdBuffer));
+            &m_resSemaphoreAllPipes[semaphoreIndex], (m_semaphoreAllPipesIndex % VP_SEMAPHORE_COUNT + m_semaphoreAllPipesPhase * m_pipeNum + m_currentPipe) * sizeof(uint32_t), cmdBuffer));
     }
 
     m_semaphoreAllPipesPhase = 1 - m_semaphoreAllPipesPhase;
     if ((m_semaphoreAllPipesPhase == 0) && (m_currentPipe == 1))
     {
-        m_semaphoreAllPipesIndex = (m_semaphoreAllPipesIndex + 2 * m_pipeNum) % VP_SEMAPHORE_COUNT;
+        m_semaphoreAllPipesIndex = (m_semaphoreAllPipesIndex + 2 * m_pipeNum) % (VP_SEMAPHORE_COUNT * 2);
     }
 
     return MOS_STATUS_SUCCESS;

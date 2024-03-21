@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2023, Intel Corporation
+* Copyright (c) 2020-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -348,10 +348,10 @@ public:
     std::vector<MOS_COMMAND_BUFFER> m_secondaryCmdBuffers;              //!< The secondary command buffer
     std::vector<bool>               m_secondaryCmdBuffersReturned;      //!< The secondary command buffer returned
     static const uint8_t            m_initSecondaryCmdBufNum = 4;       //!< The initial secondary command buffer size
-    static const uint8_t            m_maxCmdBufferSetsNum    = 8;       //!< The max number of command buffer sets
+    static const uint8_t            m_maxCmdBufferSetsNum    = 16;       //!< The max number of command buffer sets
     static const uint32_t           m_CmdBufferSize          = 0x4000;  //!< The command buffer size
 
-    MOS_RESOURCE                    m_resSemaphoreAllPipes    = {};     //!< The sync semaphore between all pipes
+    MOS_RESOURCE                    m_resSemaphoreAllPipes[2] = {};     //!< The sync semaphore between all pipes
     MOS_RESOURCE                    m_resSemaphoreOnePipeWait = {};     //!< The sync semaphore between main pipe and other pipes
     uint32_t                        m_semaphoreAllPipesIndex = 0;       //!< The index for semaphore using by current frame
     uint32_t                        m_semaphoreAllPipesPhase = 0;       //!< The count for semaphore using by current frame
