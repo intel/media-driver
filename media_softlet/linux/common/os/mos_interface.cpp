@@ -1886,6 +1886,17 @@ MOS_STATUS MosInterface::GetResourceInfo(
     details.bIsCompressed   = gmmResourceInfo->IsMediaMemoryCompressed(0);
     details.CompressionMode = (MOS_RESOURCE_MMC_MODE)gmmResourceInfo->GetMmcMode(0);
 
+    auto skuTable = MosInterface::GetSkuTable(streamState);
+    if(skuTable && MEDIA_IS_SKU(skuTable, FtrNewCompression))
+    {
+        if (gmmResourceInfo->GetResFlags().Info.MediaCompressed == 1)
+        {
+            details.CompressionMode = MOS_MMC_MC;
+            details.bIsCompressed = 1;
+            details.bCompressible = (details.CompressionMode != MOS_MMC_DISABLED) ? true : false;
+        }
+    }
+
     if (0 == details.dwPitch)
     {
         MOS_OS_ASSERTMESSAGE("Pitch from GmmResource is 0, unexpected.");
@@ -2318,6 +2329,23 @@ MOS_STATUS MosInterface::GetMemoryCompressionMode(
     // Get Gmm resource info
     gmmResourceInfo = (GMM_RESOURCE_INFO *)resource->pGmmResInfo;
     MOS_OS_CHK_NULL_RETURN(gmmResourceInfo);
+    auto skuTable = GetSkuTable(streamState);
+    MOS_OS_CHK_NULL_RETURN(MosInterface::GetGmmClientContext(streamState));
+    MOS_OS_CHK_NULL_RETURN(skuTable);
+
+    if (MEDIA_IS_SKU(skuTable, FtrNewCompression))
+    {
+        // reusing MC to mark all media engins to turn on compression
+        if (resource->pGmmResInfo->GetResFlags().Info.MediaCompressed == 1)
+        {
+            resMmcMode = MOS_MEMCOMP_MC;
+        }
+        else
+        {
+            resMmcMode = MOS_MEMCOMP_DISABLED;
+        }
+        return MOS_STATUS_SUCCESS;
+    }
 
     flags = resource->pGmmResInfo->GetResFlags();
 
@@ -2351,9 +2379,6 @@ MOS_STATUS MosInterface::GetMemoryCompressionMode(
     uint32_t          MmcFormat = 0;
     GMM_RESOURCE_FORMAT gmmResFmt;
     gmmResFmt = gmmResourceInfo->GetResourceFormat();
-    auto skuTable = GetSkuTable(streamState);
-    MOS_OS_CHK_NULL_RETURN(MosInterface::GetGmmClientContext(streamState));
-    MOS_OS_CHK_NULL_RETURN(skuTable);
 
     if (resMmcMode == MOS_MEMCOMP_MC)
     {
@@ -2816,10 +2841,53 @@ unsigned int MosInterface::GetPATIndexFromGmm(
 {
     if (gmmClient && gmmResourceInfo)
     {
+        auto IsFormatSupportCompression = [=]()->bool
+        {
+            // formats support compression match to copy supported formats except RGBP&BGRP
+            switch(GmmFmtToMosFmt(gmmResourceInfo->GetResourceFormat()))
+            {
+            case Format_NV12:
+            case Format_YV12:
+            case Format_I420:
+            case Format_P010:
+            case Format_Y410:
+            case Format_Y416:
+            case Format_Y210:
+            case Format_Y216:
+            case Format_YUY2:
+            case Format_R5G6B5:
+            case Format_R8G8B8:
+            case Format_A8R8G8B8:
+            case Format_A8B8G8R8:
+            case Format_X8R8G8B8:
+            case Format_X8B8G8R8:
+            case Format_AYUV:
+            case Format_R10G10B10A2:
+            case Format_B10G10R10A2:
+            case Format_P8:
+            case Format_L8:
+            case Format_A8:
+            case Format_Y16U:
+                return true;
+            case Format_P016:
+                // For P016 format we use SW swizzle because of history with reason (some hard code plane offset calculation in vaGetImage/vaPutImage).
+                return false;
+            default:
+                return false;
+            }
+        };
         // GetDriverProtectionBits funtion could hide gmm details info,
         // and we should use GetDriverProtectionBits to replace CachePolicyGetPATIndex in future.
         // isCompressionEnable could be false temparaily.
         bool isCompressionEnable = false;
+        if (gmmResourceInfo->GetResFlags().Info.MediaCompressed     &&
+            IsFormatSupportCompression()                            &&
+            gmmResourceInfo->GetResFlags().Info.Tile4 == 1          &&
+            gmmResourceInfo->GetBaseWidth() > 64                    &&
+            gmmResourceInfo->GetBaseHeight() > 64)
+        {
+            isCompressionEnable = true;
+        }
         return gmmClient->CachePolicyGetPATIndex(
                                             gmmResourceInfo,
                                             gmmResourceInfo->GetCachePolicyUsage(),
