@@ -48,6 +48,8 @@ public:
         return RenderCmdPacket::Destroy();
     }
 
+    MOS_STATUS SetEuThreadSchedulingMode(uint32_t mode);
+
     virtual MOS_STATUS Submit(MOS_COMMAND_BUFFER* commandBuffer, uint8_t packetPhase = otherPacket) override;
 
     virtual MOS_STATUS SubmitWithMultiKernel(MOS_COMMAND_BUFFER* commandBuffer, uint8_t packetPhase = otherPacket);

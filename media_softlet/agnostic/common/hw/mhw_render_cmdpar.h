@@ -382,6 +382,7 @@ struct _MHW_PAR_T(COMPUTE_WALKER)
 struct _MHW_PAR_T(STATE_COMPUTE_MODE)
 {
     bool enableLargeGrf = false;
+    uint32_t forceEuThreadSchedulingMode = 0;
 };
 
 }  // namespace render

@@ -114,6 +114,14 @@ MOS_STATUS VpRenderKernelObj::SetWalkerSetting(KERNEL_THREAD_SPACE &threadSpace,
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS VpRenderKernelObj::SetTuningFlag(PKERNEL_TUNING_PARAMS tuningParams)
+{
+    VP_FUNC_CALL();
+    m_kernelTuningParams = tuningParams;
+    return MOS_STATUS_SUCCESS;
+}
+
+
 MOS_STATUS VpRenderKernelObj::SetKernelArgs(KERNEL_ARGS &kernelArgs, VP_PACKET_SHARED_CONTEXT *sharedContext)
 {
     VP_FUNC_CALL();
@@ -140,6 +148,8 @@ MOS_STATUS VpRenderKernelObj::SetKernelConfigs(
     VP_RENDER_CHK_STATUS_RETURN(SetSamplerStates(samplerStateGroup));
 
     VP_RENDER_CHK_STATUS_RETURN(SetWalkerSetting(kernelParams.kernelThreadSpace, kernelParams.syncFlag,kernelParams.flushL1));
+
+    VP_RENDER_CHK_STATUS_RETURN(SetTuningFlag(&kernelParams.kernelTuningParams));
 
     return MOS_STATUS_SUCCESS;
 }
