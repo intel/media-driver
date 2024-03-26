@@ -1364,15 +1364,19 @@ mos_gem_bo_free(struct mos_linux_bo *bo)
     }
 
     if (bo_gem->mem_virtual) {
-        VG(VALGRIND_FREELIKE_BLOCK(bo_gem->mem_virtual, 0));
+        VG(VALGRIND_MAKE_MEM_NOACCESS(bo_gem->mem_virtual, 0));
         drm_munmap(bo_gem->mem_virtual, bo_gem->bo.size);
+        bo_gem->mem_virtual = nullptr;
     }
     if (bo_gem->gtt_virtual) {
+        VG(VALGRIND_MAKE_MEM_NOACCESS(bo_gem->gtt_virtual, 0));
         drm_munmap(bo_gem->gtt_virtual, bo_gem->bo.size);
+        bo_gem->gtt_virtual = nullptr;
     }
     if (bo_gem->mem_wc_virtual) {
-        VG(VALGRIND_FREELIKE_BLOCK(bo_gem->mem_wc_virtual, 0));
+        VG(VALGRIND_MAKE_MEM_NOACCESS(bo_gem->mem_wc_virtual, 0));
         drm_munmap(bo_gem->mem_wc_virtual, bo_gem->bo.size);
+        bo_gem->mem_wc_virtual = nullptr;
     }
 
     /* Close this object */

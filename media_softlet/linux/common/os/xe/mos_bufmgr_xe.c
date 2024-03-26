@@ -825,7 +825,7 @@ static void
 __mos_bo_mark_mmaps_incoherent_xe(struct mos_linux_bo *bo)
 {
 #if HAVE_VALGRIND
-    struct mos_bo_gem *bo_gem = (struct mos_bo_gem *) bo;
+    struct mos_xe_bo_gem *bo_gem = (struct mos_xe_bo_gem *) bo;
 
     if (bo_gem->mem_virtual)
         VALGRIND_MAKE_MEM_NOACCESS(bo_gem->mem_virtual, bo->size);
@@ -3019,8 +3019,9 @@ mos_bo_free_xe(struct mos_linux_bo *bo)
     {
         if (bo_gem->mem_virtual)
         {
-            VG(VALGRIND_FREELIKE_BLOCK(bo_gem->mem_virtual, 0));
+            VG(VALGRIND_MAKE_MEM_NOACCESS(bo_gem->mem_virtual, 0));
             drm_munmap(bo_gem->mem_virtual, bo_gem->bo.size);
+            bo_gem->mem_virtual = nullptr;
         }
     }
 
