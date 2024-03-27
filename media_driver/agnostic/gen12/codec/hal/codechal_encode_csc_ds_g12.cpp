@@ -96,6 +96,7 @@ MOS_STATUS CodechalEncodeCscDsG12::CheckRawColorFormat(MOS_FORMAT format, MOS_TI
         m_cscRequireConvTo8bPlanar = (uint8_t)HCP_CHROMA_FORMAT_YUV422 == m_outputChromaFormat;
         break;
     case Format_A8R8G8B8:
+    case Format_X8R8G8B8:
         m_colorRawSurface = cscColorARGB;
         m_cscUsingSfc = IsSfcEnabled() ? 1 : 0;
         m_cscRequireColor = 1;
