@@ -47,7 +47,40 @@
 #include <X11/Xutil.h>
 #endif
 
+#if defined(__linux__)
 #include <linux/fb.h>
+#define DEFAULT_FBDEV "/dev/graphics/fb0"
+#elif defined(__DragonFly__) || defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__sun)
+#include <sys/fbio.h>
+# if defined(__sun)
+#define DEFAULT_FBDEV "/dev/fb"
+# else
+#define DEFAULT_FBDEV "/dev/ttyv0"
+# endif
+#define FBIOGET_VSCREENINFO FBIOGTYPE
+#define fb_var_screeninfo fbtype
+#define xres fb_width
+#define yres fb_height
+#elif defined(__NetBSD__) || defined(__OpenBSD__)
+#include <dev/wscons/wsconsio.h>
+# if defined(__OpenBSD__)
+#define DEFAULT_FBDEV "/dev/ttyC0"
+# else
+#define DEFAULT_FBDEV "/dev/ttyE0"
+# endif
+#define FBIOGET_VSCREENINFO WSDISPLAYIO_GINFO
+#define fb_var_screeninfo wsdisplay_fbinfo
+#define xres width
+#define yres height
+#else
+#warning "Cannot query framebuffer properties on this platform."
+#define DEFAULT_FBDEV "/dev/fb0"
+#define FBIOGET_VSCREENINFO 0
+struct fb_var_screeninfo {
+    uint32_t xres;
+    uint32_t yres;
+};
+#endif
 
 typedef MediaDdiFactory<DdiMediaDecode, DDI_DECODE_CONFIG_ATTR> DdiDecodeFactory;
 
@@ -64,8 +97,8 @@ static int32_t DdiDecode_GetDisplayInfo(VADriverContextP ctx)
     vsinfo.xres                           = 0;
     vsinfo.yres                           = 0;
 
-    fd = open("/dev/graphics/fb0",O_RDONLY);
-    if(fd >= 0)
+    fd = open(DEFAULT_FBDEV,O_RDONLY);
+    if(fd > 0)
     {
         if(ioctl(fd, FBIOGET_VSCREENINFO, &vsinfo) < 0)
         {
