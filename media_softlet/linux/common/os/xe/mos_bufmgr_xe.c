@@ -143,6 +143,23 @@ struct mos_xe_context {
     uint32_t reset_count;
 };
 
+typedef struct mos_xe_device {
+    /**
+     * Note: we agree that hw_config[0] points to the number of hw config in total
+     * And hw config data starts from hw_config[1]
+     */
+    uint32_t *hw_config = nullptr;
+    struct drm_xe_query_config *config = nullptr;
+    struct drm_xe_query_engines *engines = nullptr;
+    struct drm_xe_query_mem_regions *mem_regions = nullptr;
+    struct drm_xe_query_gt_list *gt_list = nullptr;
+
+    /**
+     * Note: we agree here that uc_versions[0] for guc version and uc_versions[1] for huc version
+     */
+    struct drm_xe_query_uc_fw_version uc_versions[UC_TYPE_MAX];
+} mos_xe_device;
+
 typedef struct mos_xe_bufmgr_gem {
     struct mos_bufmgr bufmgr;
 
@@ -165,7 +182,6 @@ typedef struct mos_xe_bufmgr_gem {
     int mem_profiler_fd;
 
     uint32_t gt_id;
-    bool     has_vram;
 
     /**
      * This RW lock is used for avoid reading or writing the same sync obj in KMD.
@@ -181,23 +197,19 @@ typedef struct mos_xe_bufmgr_gem {
 
     uint32_t vm_id;
 
-    uint32_t *hw_config;
-    uint32_t config_len;
-    struct drm_xe_query_config *config;
-    struct drm_xe_query_engines *engines;
-    struct drm_xe_query_mem_regions *mem_regions;
-    struct drm_xe_query_gt_list *gt_list;
-
     /**
-     * Note: we agree here that uc_versions[0] for guc version and uc_versions[1] for huc version
+     * Everything queried from kmd that indicates to hw infomation.
      */
-    struct drm_xe_query_uc_fw_version uc_versions[UC_TYPE_MAX];
+    struct mos_xe_device xe_device;
+
+    //Note: DON't put these fields in xe_device
+    bool     has_vram;
+    uint8_t  va_bits;
     /** bitmask of all memory regions */
-    uint64_t memory_regions;
+    uint64_t mem_regions_mask;
     /** @default_alignment: safe alignment regardless region location */
     uint32_t default_alignment[MOS_XE_MEM_CLASS_MAX] = {PAGE_SIZE_4K, PAGE_SIZE_4K};
-    /** @va_bits: Maximum bits of a virtual address */
-    uint8_t va_bits;
+    //End of Note
 
     /**
      * Indicates whether gpu-gpu and cpu-gpu synchronization is disabled.
@@ -401,7 +413,6 @@ struct mos_xe_external_bo_info {
 static pthread_mutex_t bufmgr_list_mutex = PTHREAD_MUTEX_INITIALIZER;
 static drmMMListHead bufmgr_list = { &bufmgr_list, &bufmgr_list };
 
-static struct drm_xe_query_gt_list *__mos_query_gt_list_xe(int fd);
 static void mos_bo_free_xe(struct mos_linux_bo *bo);
 static int mos_query_engines_count_xe(struct mos_bufmgr *bufmgr, unsigned int *nengine);
 int mos_query_engines_xe(struct mos_bufmgr *bufmgr,
@@ -426,48 +437,68 @@ mos_bufmgr_gem_find(int fd)
     return nullptr;
 }
 
-static uint32_t __mos_query_memory_regions_xe(int fd)
+#define MOS_DRM_CHK_XE_DEV(xe_dev, info, query_func, retval)                 \
+    MOS_DRM_CHK_NULL_RETURN_VALUE(xe_dev, retval);                           \
+    if (xe_dev->info == nullptr)                                             \
+    {                                                                        \
+        xe_dev->info = query_func(fd);                                       \
+        MOS_DRM_CHK_NULL_RETURN_VALUE(xe_dev->info, retval);                 \
+    }
+
+static struct drm_xe_query_gt_list *
+__mos_query_gt_list_xe(int fd)
 {
     int ret = 0;
-    uint64_t __memory_regions = 0;
     struct drm_xe_query_gt_list *gt_list;
-    struct mos_xe_bufmgr_gem *bufmgr_gem = mos_bufmgr_gem_find(fd);
+    struct drm_xe_device_query query;
+    memclear(query);
+    query.query = DRM_XE_DEVICE_QUERY_GT_LIST;
 
-    if (bufmgr_gem && bufmgr_gem->gt_list)
+    ret = drmIoctl(fd, DRM_IOCTL_XE_DEVICE_QUERY,
+                &query);
+    if (ret || !query.size)
     {
-        gt_list = bufmgr_gem->gt_list;
-    }
-    else
-    {
-        gt_list = __mos_query_gt_list_xe(fd);
-    }
-
-    if (gt_list)
-    {
-        for (int i = 0; i < gt_list->num_gt; i++)
-        {
-            __memory_regions |= gt_list->gt_list[i].near_mem_regions |
-                gt_list->gt_list[i].far_mem_regions;
-        }
-
-        if (!bufmgr_gem)
-        {
-            MOS_XE_SAFE_FREE(gt_list)
-        }
-        else if (!bufmgr_gem->gt_list)
-        {
-            bufmgr_gem->gt_list = gt_list;
-        }
+        return nullptr;
     }
 
-    if (bufmgr_gem)
+    gt_list = (drm_xe_query_gt_list *)calloc(1, query.size);
+    MOS_DRM_CHK_NULL_RETURN_VALUE(gt_list, nullptr);
+
+    query.data = (uintptr_t)(gt_list);
+    ret = drmIoctl(fd, DRM_IOCTL_XE_DEVICE_QUERY,
+                &query);
+    if (ret || !query.size || 0 == gt_list->num_gt)
     {
-        atomic_dec(&bufmgr_gem->ref_count, 1);
+        MOS_XE_SAFE_FREE(gt_list);
+        return nullptr;
     }
+
+    return gt_list;
+}
+
+static uint32_t __mos_query_mem_regions_instance_mask_xe(struct mos_bufmgr *bufmgr)
+{
+    MOS_DRM_CHK_NULL_RETURN_VALUE(bufmgr, 0)
+    struct mos_xe_bufmgr_gem *bufmgr_gem = (struct mos_xe_bufmgr_gem *)bufmgr;
+    struct mos_xe_device *dev = &bufmgr_gem->xe_device;
+    int fd = bufmgr_gem->fd;
+    uint64_t __memory_regions = 0;
+
+    MOS_DRM_CHK_XE_DEV(dev, gt_list, __mos_query_gt_list_xe, 0)
+
+    struct drm_xe_query_gt_list *gt_list = dev->gt_list;
+    for (int i = 0; i < gt_list->num_gt; i++) {
+        /**
+         * Note: __memory_regions is the mem region instance mask on all tiles and gts
+         */
+        __memory_regions |= gt_list->gt_list[i].near_mem_regions |
+            gt_list->gt_list[i].far_mem_regions;
+    }
+
+    bufmgr_gem->mem_regions_mask = __memory_regions;
 
     return __memory_regions;
 }
-
 
 static struct drm_xe_query_mem_regions *
 __mos_query_mem_regions_xe(int fd)
@@ -478,22 +509,15 @@ __mos_query_mem_regions_xe(int fd)
     memclear(query);
     query.query = DRM_XE_DEVICE_QUERY_MEM_REGIONS;
 
-    ret = drmIoctl(fd, DRM_IOCTL_XE_DEVICE_QUERY, &query);
+    ret = drmIoctl(fd, DRM_IOCTL_XE_DEVICE_QUERY,
+                &query);
     if (ret || !query.size)
     {
         return nullptr;
     }
 
-    mem_regions = (drm_xe_query_mem_regions *)malloc(query.size);
-    if (mem_regions != nullptr)
-    {
-        memset(mem_regions, 0, query.size);
-    }
-    else
-    {
-        MOS_DRM_ASSERTMESSAGE("malloc mem_regions failed");
-        return nullptr;
-    }
+    mem_regions = (drm_xe_query_mem_regions *)calloc(1, query.size);
+    MOS_DRM_CHK_NULL_RETURN_VALUE(mem_regions, nullptr);
 
     query.data = (uintptr_t)(mem_regions);
     ret = drmIoctl(fd, DRM_IOCTL_XE_DEVICE_QUERY, &query);
@@ -506,46 +530,19 @@ __mos_query_mem_regions_xe(int fd)
     return mem_regions;
 }
 
-uint8_t __mos_query_vram_region_count_xe(int fd)
+uint8_t __mos_query_vram_region_count_xe(struct mos_xe_device *dev, int fd)
 {
-    struct drm_xe_query_mem_regions *mem_regions;
-    uint8_t num_regions = 0;
     uint8_t vram_regions = 0;
-    struct mos_xe_bufmgr_gem *bufmgr_gem = mos_bufmgr_gem_find(fd);
 
-    if (bufmgr_gem && bufmgr_gem->mem_regions)
-    {
-        mem_regions = bufmgr_gem->mem_regions;
-    }
-    else
-    {
-        mem_regions = __mos_query_mem_regions_xe(fd);
-    }
+    MOS_DRM_CHK_XE_DEV(dev, mem_regions, __mos_query_mem_regions_xe, 0)
 
-    if (mem_regions)
+    struct drm_xe_query_mem_regions *mem_regions = dev->mem_regions;
+    for (int i =0; i < mem_regions->num_mem_regions; i++)
     {
-        num_regions = mem_regions->num_mem_regions;
-        for (int i =0; i < num_regions; i++)
+        if (mem_regions->mem_regions[i].mem_class == DRM_XE_MEM_REGION_CLASS_VRAM)
         {
-            if (DRM_XE_MEM_REGION_CLASS_VRAM == mem_regions->mem_regions[i].mem_class)
-            {
-                vram_regions++;
-            }
+            vram_regions++;
         }
-
-        if (!bufmgr_gem)
-        {
-            MOS_XE_SAFE_FREE(mem_regions)
-        }
-        else if (!bufmgr_gem->mem_regions)
-        {
-            bufmgr_gem->mem_regions = mem_regions;
-        }
-    }
-
-    if (bufmgr_gem)
-    {
-        atomic_dec(&bufmgr_gem->ref_count, 1);
     }
 
     return vram_regions;
@@ -596,49 +593,15 @@ __mos_query_config_xe(int fd)
     return config;
 }
 
-static struct drm_xe_query_gt_list *
-__mos_query_gt_list_xe(int fd)
-{
-    int ret = 0;
-    struct drm_xe_query_gt_list *gt_list;
-    struct drm_xe_device_query query;
-    memclear(query);
-    query.query = DRM_XE_DEVICE_QUERY_GT_LIST;
-
-    ret = drmIoctl(fd, DRM_IOCTL_XE_DEVICE_QUERY, &query);
-    if (ret || !query.size)
-    {
-        return nullptr;
-    }
-
-    gt_list = (drm_xe_query_gt_list *)malloc(query.size);
-    if (gt_list != nullptr)
-    {
-        memset(gt_list, 0, query.size);
-    }
-    else
-    {
-        MOS_DRM_ASSERTMESSAGE("malloc gt_list failed");
-        return nullptr;
-    }
-
-    query.data = (uintptr_t)(gt_list);
-    ret = drmIoctl(fd, DRM_IOCTL_XE_DEVICE_QUERY, &query);
-    if (ret || !query.size || 0 == gt_list->num_gt)
-    {
-        MOS_XE_SAFE_FREE(gt_list);
-        return nullptr;
-    }
-
-    return gt_list;
-}
-
 static int
-__mos_get_default_alignment_xe(struct mos_bufmgr *bufmgr, struct drm_xe_query_mem_regions *mem_regions)
+__mos_get_default_alignment_xe(struct mos_bufmgr *bufmgr)
 {
-    MOS_DRM_CHK_NULL_RETURN_VALUE(bufmgr, -EINVAL);
-    MOS_DRM_CHK_NULL_RETURN_VALUE(mem_regions, -EINVAL);
+    MOS_DRM_CHK_NULL_RETURN_VALUE(bufmgr, -EINVAL)
     struct mos_xe_bufmgr_gem *bufmgr_gem = (struct mos_xe_bufmgr_gem *)bufmgr;
+    struct mos_xe_device *dev = &bufmgr_gem->xe_device;
+    int fd = bufmgr_gem->fd;
+    MOS_DRM_CHK_XE_DEV(dev, mem_regions, __mos_query_mem_regions_xe, -ENODEV)
+    struct drm_xe_query_mem_regions *mem_regions = dev->mem_regions;
     uint16_t mem_class;
 
     for (int i = 0; i < mem_regions->num_mem_regions; i++)
@@ -666,7 +629,6 @@ __mos_get_default_alignment_xe(struct mos_bufmgr *bufmgr, struct drm_xe_query_me
     return 0;
 }
 
-
 /**
  * Note: Need to add this func to bufmgr api later
  */
@@ -675,111 +637,67 @@ mos_query_uc_version_xe(struct mos_bufmgr *bufmgr, struct mos_drm_uc_version *ve
 {
     int ret = 0;
     struct mos_xe_bufmgr_gem *bufmgr_gem = (struct mos_xe_bufmgr_gem *)bufmgr;
+    int fd = bufmgr_gem->fd;
+    struct mos_xe_device *dev = &bufmgr_gem->xe_device;
 
     if (bufmgr && version && version->uc_type < UC_TYPE_MAX)
     {
         /**
          * Note: query uc version from kmd if no historic data in bufmgr, otherwise using historic data.
          */
-        if (bufmgr_gem->uc_versions[version->uc_type].uc_type != version->uc_type)
+        if (dev->uc_versions[version->uc_type].uc_type != version->uc_type)
         {
             struct drm_xe_device_query query;
             memclear(query);
             query.size = sizeof(struct drm_xe_query_uc_fw_version);
             query.query = DRM_XE_DEVICE_QUERY_UC_FW_VERSION;
-            memclear(bufmgr_gem->uc_versions[version->uc_type]);
-            bufmgr_gem->uc_versions[version->uc_type].uc_type = version->uc_type;
-            query.data = (uintptr_t)&bufmgr_gem->uc_versions[version->uc_type];
+            memclear(dev->uc_versions[version->uc_type]);
+            dev->uc_versions[version->uc_type].uc_type = version->uc_type;
+            query.data = (uintptr_t)&dev->uc_versions[version->uc_type];
 
             ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_XE_DEVICE_QUERY,
                         &query);
             if (ret)
             {
-                memclear(bufmgr_gem->uc_versions[version->uc_type]);
-                bufmgr_gem->uc_versions[version->uc_type].uc_type = UC_TYPE_INVALID;
+                memclear(dev->uc_versions[version->uc_type]);
+                dev->uc_versions[version->uc_type].uc_type = UC_TYPE_INVALID;
                 MOS_DRM_ASSERTMESSAGE("Failed to query UC version, uc type: %d, errno: %d", version->uc_type, ret);
                 return ret;
             }
         }
 
-        version->major_version = bufmgr_gem->uc_versions[version->uc_type].major_ver;
-        version->minor_version = bufmgr_gem->uc_versions[version->uc_type].minor_ver;
+        version->major_version = dev->uc_versions[version->uc_type].major_ver;
+        version->minor_version = dev->uc_versions[version->uc_type].minor_ver;
     }
 
     return ret;
 }
 
-bool __mos_has_vram_xe(int fd)
+bool __mos_has_vram_xe(struct mos_bufmgr *bufmgr)
 {
-    struct drm_xe_query_config *config = nullptr;
-    bool has_vram = false;
-    struct mos_xe_bufmgr_gem *bufmgr_gem = mos_bufmgr_gem_find(fd);
-
-    if (bufmgr_gem && bufmgr_gem->config)
-    {
-        config = bufmgr_gem->config;
-    }
-    else
-    {
-        config = __mos_query_config_xe(fd);
-    }
-
-    if (config)
-    {
-        has_vram = ((config->info[DRM_XE_QUERY_CONFIG_FLAGS] & DRM_XE_QUERY_CONFIG_FLAG_HAS_VRAM) > 0);
-
-        if (!bufmgr_gem)
-        {
-            MOS_XE_SAFE_FREE(config)
-        }
-        else if (!bufmgr_gem->config)
-        {
-            bufmgr_gem->config = config;
-        }
-    }
-
-    if (bufmgr_gem)
-    {
-        atomic_dec(&bufmgr_gem->ref_count, 1);
-    }
-
+    MOS_DRM_CHK_NULL_RETURN_VALUE(bufmgr, 0)
+    struct mos_xe_bufmgr_gem *bufmgr_gem = (struct mos_xe_bufmgr_gem *)bufmgr;
+    struct mos_xe_device *dev = &bufmgr_gem->xe_device;
+    int fd = bufmgr_gem->fd;
+    MOS_DRM_CHK_XE_DEV(dev, config, __mos_query_config_xe, 0)
+    struct drm_xe_query_config *config = dev->config;
+    bool has_vram = ((config->info[DRM_XE_QUERY_CONFIG_FLAGS] & DRM_XE_QUERY_CONFIG_FLAG_HAS_VRAM) > 0);
+    bufmgr_gem->has_vram = has_vram;
     return has_vram;
 }
 
-uint8_t __mos_query_va_bits_xe(int fd)
+uint8_t __mos_query_va_bits_xe(struct mos_bufmgr *bufmgr)
 {
-    struct drm_xe_query_config *config = nullptr;
-    uint8_t va_bits = 0;
-    struct mos_xe_bufmgr_gem *bufmgr_gem = mos_bufmgr_gem_find(fd);
-
-    if (bufmgr_gem && bufmgr_gem->config)
-    {
-        config = bufmgr_gem->config;
-    }
-    else
-    {
-        config = __mos_query_config_xe(fd);
-    }
-
-    if (config)
-    {
-        va_bits = config->info[DRM_XE_QUERY_CONFIG_VA_BITS] & 0xff;
-
-        if (!bufmgr_gem)
-        {
-            MOS_XE_SAFE_FREE(config)
-        }
-        else if (!bufmgr_gem->config)
-        {
-            bufmgr_gem->config = config;
-        }
-    }
-
-    if (bufmgr_gem)
-    {
-        atomic_dec(&bufmgr_gem->ref_count, 1);
-    }
-
+    uint8_t va_bits = 48;
+    MOS_DRM_CHK_NULL_RETURN_VALUE(bufmgr, va_bits)
+    struct mos_xe_bufmgr_gem *bufmgr_gem = (struct mos_xe_bufmgr_gem *)bufmgr;
+    struct mos_xe_device *dev = &bufmgr_gem->xe_device;
+    int fd = bufmgr_gem->fd;
+    bufmgr_gem->va_bits = va_bits;
+    MOS_DRM_CHK_XE_DEV(dev, config, __mos_query_config_xe, va_bits)
+    struct drm_xe_query_config *config = dev->config;
+    va_bits = config->info[DRM_XE_QUERY_CONFIG_VA_BITS] & 0xff;
+    bufmgr_gem->va_bits = va_bits;
     return va_bits;
 }
 
@@ -1361,11 +1279,11 @@ mos_bo_alloc_xe(struct mos_bufmgr *bufmgr,
     if (MEMZONE_DEVICE == bo_gem->mem_region)
     {
         //Note: memory_region is related to gt_id for multi-tiles gpu, take gt_id into consideration in case of multi-tiles
-        create.placement = bufmgr_gem->memory_regions & (~0x1);
+        create.placement = bufmgr_gem->mem_regions_mask & (~0x1);
     }
     else
     {
-        create.placement = bufmgr_gem->memory_regions & 0x1;
+        create.placement = bufmgr_gem->mem_regions_mask & 0x1;
     }
 
     //Note: We suggest vm_id=0 here as default, otherwise this bo cannot be exported as prelim fd.
@@ -2605,31 +2523,14 @@ mos_bo_context_exec_with_sync_xe(struct mos_linux_bo **bo, int num_bo, struct mo
 static int
 mos_get_devid_xe(struct mos_bufmgr *bufmgr)
 {
-    if (nullptr == bufmgr)
-    {
-        MOS_DRM_ASSERTMESSAGE("bufmgr is nullptr");
-        return 0;
-    }
     struct mos_xe_bufmgr_gem *bufmgr_gem = (struct mos_xe_bufmgr_gem *)bufmgr;
-    struct drm_xe_query_config *config;
-    int devid = 0;
+    int fd = bufmgr_gem->fd;
+    struct mos_xe_device *dev = &bufmgr_gem->xe_device;
 
-    if (nullptr == bufmgr_gem->config)
-    {
-        bufmgr_gem->config = __mos_query_config_xe(bufmgr_gem->fd);
-    }
+    MOS_DRM_CHK_XE_DEV(dev, config, __mos_query_config_xe, 0)
+    struct drm_xe_query_config *config = dev->config;
 
-    config = bufmgr_gem->config;
-
-    if (nullptr == config)
-    {
-        MOS_DRM_ASSERTMESSAGE("Get config failed");
-        return devid;
-    }
-
-    devid = config->info[DRM_XE_QUERY_CONFIG_REV_AND_DEVICE_ID] & 0xffff;
-
-    return devid;
+    return (config->info[DRM_XE_QUERY_CONFIG_REV_AND_DEVICE_ID] & 0xffff);
 }
 
 static struct drm_xe_query_engines *
@@ -2657,14 +2558,9 @@ __mos_query_engines_xe(int fd)
         return nullptr;
     }
 
-    engines = (drm_xe_query_engines *)malloc(query.size);
-    if (nullptr == engines)
-    {
-        MOS_DRM_ASSERTMESSAGE("malloc engines failed");
-        return nullptr;
-    }
+    engines = (drm_xe_query_engines *)calloc(1, query.size);
+    MOS_DRM_CHK_NULL_RETURN_VALUE(engines, nullptr)
 
-    memset(engines, 0, query.size);
     query.data = (uintptr_t)engines;
     ret = drmIoctl(fd, DRM_IOCTL_XE_DEVICE_QUERY, &query);
     if (ret || !query.size)
@@ -2680,18 +2576,15 @@ __mos_query_engines_xe(int fd)
 static int
 mos_query_engines_count_xe(struct mos_bufmgr *bufmgr, unsigned int *nengine)
 {
-    struct mos_xe_bufmgr_gem *bufmgr_gem = (struct mos_xe_bufmgr_gem *)bufmgr;
     MOS_DRM_CHK_NULL_RETURN_VALUE(nengine, -EINVAL);
+    struct mos_xe_bufmgr_gem *bufmgr_gem = (struct mos_xe_bufmgr_gem *)bufmgr;
+    int fd = bufmgr_gem->fd;
+    struct mos_xe_device *dev = &bufmgr_gem->xe_device;
 
-    if (nullptr == bufmgr_gem->engines)
-    {
-        bufmgr_gem->engines = __mos_query_engines_xe(bufmgr_gem->fd);
-        MOS_DRM_CHK_NULL_RETURN_VALUE(bufmgr_gem->engines, -ENODEV);
-    }
+    MOS_DRM_CHK_XE_DEV(dev, engines, __mos_query_engines_xe, -ENODEV)
+    *nengine = dev->engines->num_engines;
 
-    *nengine = bufmgr_gem->engines->num_engines;
-
-    return 0;
+    return MOS_XE_SUCCESS;
 }
 
 int
@@ -2701,20 +2594,16 @@ mos_query_engines_xe(struct mos_bufmgr *bufmgr,
                       unsigned int *nengine,
                       void *engine_map)
 {
-    struct mos_xe_bufmgr_gem *bufmgr_gem = (struct mos_xe_bufmgr_gem *)bufmgr;
-    struct drm_xe_engine_class_instance *ci = (struct drm_xe_engine_class_instance *)engine_map;
-    struct drm_xe_query_engines *engines;
-
     MOS_DRM_CHK_NULL_RETURN_VALUE(nengine, -EINVAL);
     MOS_DRM_CHK_NULL_RETURN_VALUE(engine_map, -EINVAL);
 
-    if (nullptr == bufmgr_gem->engines)
-    {
-        bufmgr_gem->engines = __mos_query_engines_xe(bufmgr_gem->fd);
-        MOS_DRM_CHK_NULL_RETURN_VALUE(bufmgr_gem->engines, -ENODEV);
-    }
+    struct mos_xe_bufmgr_gem *bufmgr_gem = (struct mos_xe_bufmgr_gem *)bufmgr;
+    struct drm_xe_engine_class_instance *ci = (struct drm_xe_engine_class_instance *)engine_map;
+    int fd = bufmgr_gem->fd;
+    struct mos_xe_device *dev = &bufmgr_gem->xe_device;
 
-    engines = bufmgr_gem->engines;
+    MOS_DRM_CHK_XE_DEV(dev, engines, __mos_query_engines_xe, -ENODEV)
+    struct drm_xe_query_engines *engines = dev->engines;
 
     int i, num;
     struct drm_xe_engine *engine;
@@ -2757,13 +2646,11 @@ mos_query_sysinfo_xe(struct mos_bufmgr *bufmgr, MEDIA_SYSTEM_INFO* gfx_info)
     MOS_DRM_CHK_NULL_RETURN_VALUE(gfx_info, -EINVAL);
 
     struct mos_xe_bufmgr_gem *bufmgr_gem = (struct mos_xe_bufmgr_gem *)bufmgr;
+    int fd = bufmgr_gem->fd;
+    struct mos_xe_device *dev = &bufmgr_gem->xe_device;
     int ret;
 
-    if (nullptr == bufmgr_gem->engines)
-    {
-        bufmgr_gem->engines = __mos_query_engines_xe(bufmgr_gem->fd);
-        MOS_DRM_CHK_NULL_RETURN_VALUE(bufmgr_gem->engines, -ENODEV);
-    }
+    MOS_DRM_CHK_XE_DEV(dev, engines, __mos_query_engines_xe, -ENODEV)
 
     if (0 == gfx_info->VDBoxInfo.NumberOfVDBoxEnabled
                 || 0 == gfx_info->VEBoxInfo.NumberOfVEBoxEnabled)
@@ -2771,18 +2658,18 @@ mos_query_sysinfo_xe(struct mos_bufmgr *bufmgr, MEDIA_SYSTEM_INFO* gfx_info)
         unsigned int num_vd = 0;
         unsigned int num_ve = 0;
 
-        for (unsigned int i = 0; i < bufmgr_gem->engines->num_engines; i++)
+        for (unsigned int i = 0; i < dev->engines->num_engines; i++)
         {
             if (0 == gfx_info->VDBoxInfo.NumberOfVDBoxEnabled
-                        && bufmgr_gem->engines->engines[i].instance.engine_class == DRM_XE_ENGINE_CLASS_VIDEO_DECODE)
+                        && dev->engines->engines[i].instance.engine_class == DRM_XE_ENGINE_CLASS_VIDEO_DECODE)
             {
                 gfx_info->VDBoxInfo.Instances.VDBoxEnableMask |=
-                    1 << bufmgr_gem->engines->engines[i].instance.engine_instance;
+                    1 << dev->engines->engines[i].instance.engine_instance;
                 num_vd++;
             }
 
             if (0 == gfx_info->VEBoxInfo.NumberOfVEBoxEnabled
-                        && bufmgr_gem->engines->engines[i].instance.engine_class == DRM_XE_ENGINE_CLASS_VIDEO_ENHANCE)
+                        && dev->engines->engines[i].instance.engine_class == DRM_XE_ENGINE_CLASS_VIDEO_ENHANCE)
             {
                 num_ve++;
             }
@@ -2850,18 +2737,16 @@ void mos_select_fixed_engine_xe(struct mos_bufmgr *bufmgr,
 }
 
 static uint32_t *
-__mos_query_hw_config_xe(int fd, uint32_t* config_len)
+__mos_query_hw_config_xe(int fd)
 {
     struct drm_xe_device_query query;
     uint32_t *hw_config;
     int ret;
 
-    if (fd < 0 || nullptr == config_len)
+    if (fd < 0)
     {
         return nullptr;
     }
-
-    *config_len = 0;
 
     memclear(query);
     query.query = DRM_XE_DEVICE_QUERY_HWCONFIG;
@@ -2873,16 +2758,10 @@ __mos_query_hw_config_xe(int fd, uint32_t* config_len)
         return nullptr;
     }
 
-    hw_config = (uint32_t *)malloc(query.size);
-    if (hw_config == nullptr)
-    {
-        MOS_DRM_ASSERTMESSAGE("malloc hw_config failed");
-        return nullptr;
-    }
+    hw_config = (uint32_t *)calloc(1, query.size + sizeof(uint32_t));
+    MOS_DRM_CHK_NULL_RETURN_VALUE(hw_config, nullptr)
 
-    memset(hw_config, 0, query.size);
-
-    query.data = (uintptr_t)hw_config;
+    query.data = (uintptr_t)&hw_config[1];
     ret = drmIoctl(fd, DRM_IOCTL_XE_DEVICE_QUERY, &query);
     if (ret != 0 || query.size <= 0)
     {
@@ -2891,37 +2770,27 @@ __mos_query_hw_config_xe(int fd, uint32_t* config_len)
         return nullptr;
     }
 
-    *config_len = query.size / sizeof(uint32_t);
+    hw_config[0] = query.size / sizeof(uint32_t);
 
     return hw_config;
 }
 
-
 static int
 mos_query_device_blob_xe(struct mos_bufmgr *bufmgr, MEDIA_SYSTEM_INFO* gfx_info)
 {
+    MOS_DRM_CHK_NULL_RETURN_VALUE(gfx_info, -EINVAL)
+
     struct mos_xe_bufmgr_gem *bufmgr_gem = (struct mos_xe_bufmgr_gem *)bufmgr;
-    struct drm_xe_device_query query;
-    uint32_t *hwconfig;
+    int fd = bufmgr_gem->fd;
+    struct mos_xe_device *dev = &bufmgr_gem->xe_device;
 
-    if (nullptr == gfx_info)
-    {
-        return -EINVAL;
-    }
+    MOS_DRM_CHK_XE_DEV(dev, hw_config, __mos_query_hw_config_xe, -ENODEV)
 
-    if (nullptr == bufmgr_gem->hw_config)
-    {
-        bufmgr_gem->hw_config = __mos_query_hw_config_xe(bufmgr_gem->fd, &bufmgr_gem->config_len);
-        if (nullptr == bufmgr_gem->hw_config)
-        {
-            return -ENODEV;
-        }
-    }
-
-    hwconfig = bufmgr_gem->hw_config;
+    uint32_t *hwconfig = &dev->hw_config[1];
+    uint32_t num_config = dev->hw_config[0];
 
     int i = 0;
-    while (i < bufmgr_gem->config_len) {
+    while (i < num_config) {
         /* Attribute ID starts with 1 */
         assert(hwconfig[i] > 0);
 
@@ -3096,6 +2965,7 @@ mos_bufmgr_gem_destroy_xe(struct mos_bufmgr *bufmgr)
         return;
 
     struct mos_xe_bufmgr_gem *bufmgr_gem = (struct mos_xe_bufmgr_gem *) bufmgr;
+    struct mos_xe_device *dev = &bufmgr_gem->xe_device;
     int i, ret;
 
     /* Release userptr bo kept hanging around for optimisation. */
@@ -3115,20 +2985,20 @@ mos_bufmgr_gem_destroy_xe(struct mos_bufmgr *bufmgr)
         close(bufmgr_gem->mem_profiler_fd);
     }
 
-    MOS_XE_SAFE_FREE(bufmgr_gem->hw_config)
-    bufmgr_gem->hw_config = nullptr;
+    MOS_XE_SAFE_FREE(dev->hw_config);
+    dev->hw_config = nullptr;
 
-    MOS_XE_SAFE_FREE(bufmgr_gem->config);
-    bufmgr_gem->config = nullptr;
+    MOS_XE_SAFE_FREE(dev->config);
+    dev->config = nullptr;
 
-    MOS_XE_SAFE_FREE(bufmgr_gem->engines);
-    bufmgr_gem->engines = nullptr;
+    MOS_XE_SAFE_FREE(dev->engines);
+    dev->engines = nullptr;
 
-    MOS_XE_SAFE_FREE(bufmgr_gem->mem_regions);
-    bufmgr_gem->mem_regions = nullptr;
+    MOS_XE_SAFE_FREE(dev->mem_regions);
+    dev->mem_regions = nullptr;
 
-    MOS_XE_SAFE_FREE(bufmgr_gem->gt_list);
-    bufmgr_gem->gt_list = nullptr;
+    MOS_XE_SAFE_FREE(dev->gt_list);
+    dev->gt_list = nullptr;
 
     MOS_Delete(bufmgr_gem);
 }
@@ -3269,16 +3139,13 @@ mos_bo_set_object_async_xe(struct mos_linux_bo *bo)
 static int
 mos_get_driver_info_xe(struct mos_bufmgr *bufmgr, struct LinuxDriverInfo *drvInfo)
 {
-    if (nullptr == bufmgr || nullptr == drvInfo)
-    {
-        return -EINVAL;
-    }
-    uint32_t *hw_config = nullptr;
+    MOS_DRM_CHK_NULL_RETURN_VALUE(drvInfo, -EINVAL)
+    struct mos_xe_bufmgr_gem *bufmgr_gem = (struct mos_xe_bufmgr_gem *)bufmgr;
+    struct mos_xe_device *dev = &bufmgr_gem->xe_device;
+    int fd = bufmgr_gem->fd;
+
     uint32_t MaxEuPerSubSlice = 0;
     int i = 0;
-    struct drm_xe_query_engines *engines = nullptr;
-    struct drm_xe_query_config *config = nullptr;
-    struct mos_xe_bufmgr_gem *bufmgr_gem = (struct mos_xe_bufmgr_gem *)bufmgr;
     drvInfo->hasBsd = 1;
     drvInfo->hasBsd2 = 1;
     drvInfo->hasVebox = 1;
@@ -3286,15 +3153,14 @@ mos_get_driver_info_xe(struct mos_bufmgr *bufmgr, struct LinuxDriverInfo *drvInf
     //For XE driver always has ppgtt
     drvInfo->hasPpgtt = 1;
 
-    // Step1: Get hw_config
-    if (nullptr == bufmgr_gem->hw_config)
-    {
-        bufmgr_gem->hw_config = __mos_query_hw_config_xe(bufmgr_gem->fd, &bufmgr_gem->config_len);
-    }
-    hw_config = bufmgr_gem->hw_config;
+    //query blob
+    MOS_DRM_CHK_XE_DEV(dev, hw_config, __mos_query_hw_config_xe, -ENODEV)
+    uint32_t *hw_config = &dev->hw_config[1];
+    uint32_t num_config = dev->hw_config[0];
+
     if (hw_config)
     {
-        while (i < bufmgr_gem->config_len)
+        while (i < num_config)
         {
             /* Attribute ID starts with 1 */
             assert(hw_config[i] > 0);
@@ -3334,58 +3200,37 @@ mos_get_driver_info_xe(struct mos_bufmgr *bufmgr, struct LinuxDriverInfo *drvInf
         drvInfo->sliceCount = 1;
     }
 
-    // Step2: engines
-    if (nullptr == bufmgr_gem->engines)
-    {
-        bufmgr_gem->engines = __mos_query_engines_xe(bufmgr_gem->fd);
-        if (nullptr == bufmgr_gem->engines)
-        {
-            MOS_DRM_ASSERTMESSAGE("get engines failed");
-            return -ENODEV;
-        }
-    }
-
-    engines = bufmgr_gem->engines;
-    int engine_class_num;
-    for (i = 0, engine_class_num = 0; i < engines->num_engines; i++)
+    // query engines info
+    MOS_DRM_CHK_XE_DEV(dev, engines, __mos_query_engines_xe, -ENODEV)
+    struct drm_xe_query_engines *engines = dev->engines;
+    int num_vd = 0;
+    int num_ve = 0;
+    for (i = 0; i < engines->num_engines; i++)
     {
         if (DRM_XE_ENGINE_CLASS_VIDEO_DECODE == engines->engines[i].instance.engine_class)
         {
-            engine_class_num++;
+            num_vd++;
+        }
+        else if (DRM_XE_ENGINE_CLASS_VIDEO_ENHANCE == engines->engines[i].instance.engine_class)
+        {
+            num_ve++;
         }
     }
-    if (engine_class_num >= 1)
+
+    if (num_vd >= 1)
     {
         drvInfo->hasBsd = 1;
     }
-    if (engine_class_num >= 2)
+
+    if (num_vd >= 2)
     {
         drvInfo->hasBsd2 = 1;
     }
 
-    for (i = 0, engine_class_num = 0; i < engines->num_engines; i++)
-    {
-        if (DRM_XE_ENGINE_CLASS_VIDEO_DECODE == engines->engines[i].instance.engine_class)
-        {
-            engine_class_num++;
-        }
-    }
-    if (engine_class_num  >= 1)
+    if (num_ve  >= 1)
     {
         drvInfo->hasVebox = 1;
     }
-
-    // Step3: Get config
-    if (nullptr == bufmgr_gem->config)
-    {
-        bufmgr_gem->config = __mos_query_config_xe(bufmgr_gem->fd);
-        if (nullptr == bufmgr_gem->config)
-        {
-            MOS_DRM_ASSERTMESSAGE("get config failed");
-            return -ENODEV;
-        }
-    }
-    config = bufmgr_gem->config;
 
     drvInfo->hasHuc = 1;
     if (1 == drvInfo->hasHuc)
@@ -3393,10 +3238,13 @@ mos_get_driver_info_xe(struct mos_bufmgr *bufmgr, struct LinuxDriverInfo *drvInf
         drvInfo->hasProtectedHuc = 1;
     }
 
+    // query config
+    MOS_DRM_CHK_XE_DEV(dev, config, __mos_query_config_xe, -ENODEV)
+    struct drm_xe_query_config *config = dev->config;
     drvInfo->devId = config->info[DRM_XE_QUERY_CONFIG_REV_AND_DEVICE_ID] & 0xffff;
     drvInfo->devRev = config->info[DRM_XE_QUERY_CONFIG_REV_AND_DEVICE_ID] >> 16;
 
-    return 0;
+    return MOS_XE_SUCCESS;
 }
 
 /**
@@ -3419,6 +3267,7 @@ mos_bufmgr_gem_init_xe(int fd, int batch_size)
 
     struct mos_xe_bufmgr_gem *bufmgr_gem;
     int ret, tmp;
+    struct mos_xe_device *dev = nullptr;
 
     pthread_mutex_lock(&bufmgr_list_mutex);
 
@@ -3431,6 +3280,8 @@ mos_bufmgr_gem_init_xe(int fd, int batch_size)
         goto exit;
 
     bufmgr_gem->bufmgr = {};
+    bufmgr_gem->xe_device = {};
+    dev = &bufmgr_gem->xe_device;
 
     bufmgr_gem->fd = fd;
     bufmgr_gem->vm_id = INVALID_VM;
@@ -3508,48 +3359,13 @@ mos_bufmgr_gem_init_xe(int fd, int batch_size)
         }
     }
 
-    bufmgr_gem->uc_versions[UC_TYPE_GUC_SUBMISSION].uc_type = UC_TYPE_INVALID;
-    bufmgr_gem->uc_versions[UC_TYPE_HUC].uc_type = UC_TYPE_INVALID;
+    dev->uc_versions[UC_TYPE_GUC_SUBMISSION].uc_type = UC_TYPE_INVALID;
+    dev->uc_versions[UC_TYPE_HUC].uc_type = UC_TYPE_INVALID;
 
     bufmgr_gem->vm_id = __mos_vm_create_xe(&bufmgr_gem->bufmgr);
-    bufmgr_gem->config = __mos_query_config_xe(fd);
-    bufmgr_gem->gt_list = __mos_query_gt_list_xe(fd);
-    bufmgr_gem->memory_regions = __mos_query_memory_regions_xe(fd);
-    bufmgr_gem->mem_regions = __mos_query_mem_regions_xe(fd);
-    bufmgr_gem->has_vram = __mos_has_vram_xe(fd);
-    bufmgr_gem->hw_config = __mos_query_hw_config_xe(fd, &bufmgr_gem->config_len);
-    bufmgr_gem->va_bits = __mos_query_va_bits_xe(fd);
-
-    if (bufmgr_gem->mem_regions != nullptr)
-    {
-        __mos_get_default_alignment_xe(&bufmgr_gem->bufmgr, bufmgr_gem->mem_regions);
-    }
-
-    bufmgr_gem->engines = __mos_query_engines_xe(fd);
-    if (nullptr == bufmgr_gem->engines)
-    {
-        MOS_DRM_ASSERTMESSAGE("Failed to query engines");
-
-        if (bufmgr_gem->mem_profiler_fd != -1)
-        {
-            close(bufmgr_gem->mem_profiler_fd);
-        }
-
-        MOS_XE_SAFE_FREE(bufmgr_gem->hw_config)
-        bufmgr_gem->hw_config = nullptr;
-
-        MOS_XE_SAFE_FREE(bufmgr_gem->config);
-        bufmgr_gem->config = nullptr;
-
-        MOS_XE_SAFE_FREE(bufmgr_gem->mem_regions);
-        bufmgr_gem->mem_regions = nullptr;
-
-        MOS_XE_SAFE_FREE(bufmgr_gem->gt_list);
-        bufmgr_gem->gt_list = nullptr;
-
-        MOS_Delete(bufmgr_gem);
-        goto exit;
-    }
+    __mos_query_mem_regions_instance_mask_xe(&bufmgr_gem->bufmgr);
+    __mos_has_vram_xe(&bufmgr_gem->bufmgr);
+    __mos_get_default_alignment_xe(&bufmgr_gem->bufmgr);
 
     DRMLISTADD(&bufmgr_gem->managers, &bufmgr_list);
     DRMINITLISTHEAD(&bufmgr_gem->named);
@@ -3570,38 +3386,11 @@ int mos_get_dev_id_xe(int fd, uint32_t *device_id)
     {
         return -EINVAL;
     }
-    struct drm_xe_query_config *config = nullptr;
-    bool needFreeConfig = false;
-    pthread_mutex_lock(&bufmgr_list_mutex);
-    struct mos_xe_bufmgr_gem *bufmgr_gem = mos_bufmgr_gem_find(fd);
-    pthread_mutex_unlock(&bufmgr_list_mutex);
-    if (bufmgr_gem != nullptr)
-    {
-        if (nullptr == bufmgr_gem->config)
-        {
-            bufmgr_gem->config = __mos_query_config_xe(fd);
-        }
-        config = bufmgr_gem->config;
-        needFreeConfig = false;
-    }
-    else
-    {
-        config = __mos_query_config_xe(fd);
-        needFreeConfig = true;
-    }
+    struct drm_xe_query_config *config = __mos_query_config_xe(fd);
+    MOS_DRM_CHK_NULL_RETURN_VALUE(config, -ENODEV)
 
-    if (nullptr == config)
-    {
-        MOS_DRM_ASSERTMESSAGE("get config failed\n");
-        mos_bufmgr_gem_unref_xe((struct mos_bufmgr *)bufmgr_gem);
-        return -ENODEV;
-    }
     *device_id = config->info[DRM_XE_QUERY_CONFIG_REV_AND_DEVICE_ID] & 0xffff;
+    MOS_XE_SAFE_FREE(config);
 
-    mos_bufmgr_gem_unref_xe((struct mos_bufmgr *)bufmgr_gem);
-    if (needFreeConfig)
-    {
-        MOS_XE_SAFE_FREE(config);
-    }
-    return 0;
+    return MOS_XE_SUCCESS;
 }
