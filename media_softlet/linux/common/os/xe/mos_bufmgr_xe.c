@@ -1732,9 +1732,13 @@ mos_gem_bo_clear_exec_list_xe(struct mos_linux_bo *cmd_bo, int start)
     }
 }
 
+/**
+ * This is to dump all pending execution timeline done on such bo
+ */
 int
-__mos_dump_bo_wait_rendering_syncobj_xe(uint32_t bo_handle,
+__mos_dump_bo_wait_rendering_timeline_xe(uint32_t bo_handle,
             uint32_t *handles,
+            uint64_t *points,
             uint32_t count,
             int64_t timeout_nsec,
             uint32_t wait_flags,
@@ -1748,18 +1752,19 @@ __mos_dump_bo_wait_rendering_syncobj_xe(uint32_t bo_handle,
         int offset = 0;
         offset += MOS_SecureStringPrint(log_msg + offset, MOS_MAX_MSG_BUF_SIZE,
                             MOS_MAX_MSG_BUF_SIZE - offset,
-                            "\n\t\t\tdump bo(handle=%d) wait rendering syncobj:",
-                            bo_handle);
+                            "\n\t\t\tdump bo wait rendering: bo handle = %d, timeout_nsec = %ld, wait_flags = %d, rw_flags = %d",
+                            bo_handle,
+                            timeout_nsec,
+                            wait_flags,
+                            rw_flags);
 
         for (int i = 0; i < count; i++)
         {
             offset += MOS_SecureStringPrint(log_msg + offset, MOS_MAX_MSG_BUF_SIZE,
                             MOS_MAX_MSG_BUF_SIZE - offset,
-                            "\n\t\t\t-syncobj handle = %d, timeout_nsec = %ld, wait_flags = %d, rw_flags = %d",
+                            "\n\t\t\t-syncobj handle = %d, timeline = %ld",
                             handles[i],
-                            timeout_nsec,
-                            wait_flags,
-                            rw_flags);
+                            points[i]);
         }
 
         offset > MOS_MAX_MSG_BUF_SIZE ?
@@ -1827,6 +1832,14 @@ __mos_gem_bo_wait_timeline_rendering_with_flags_xe(struct mos_linux_bo *bo,
                         timeout_nsec,
                         wait_flags,
                         first_signaled);
+
+        __mos_dump_bo_wait_rendering_timeline_xe(bo_gem->gem_handle,
+                        handles.data(),
+                        points.data(),
+                        count,
+                        timeout_nsec,
+                        wait_flags,
+                        rw_flags);
     }
     bufmgr_gem->sync_obj_rw_lock.unlock_shared();
 
@@ -2031,7 +2044,9 @@ mos_bo_unmap_wc_xe(struct mos_linux_bo *bo)
 }
 
 /**
- * Note: to refine timeline dep dump
+ *This aims to dump the sync info on such execution.
+ *@syncs contains fence in from bo who has dependency on
+ *currect execution and a fence out in @dep from current execution.
  */
 int __mos_dump_syncs_array_xe(struct drm_xe_sync *syncs,
             uint32_t count,
@@ -2046,9 +2061,9 @@ int __mos_dump_syncs_array_xe(struct drm_xe_sync *syncs,
         int offset = 0;
         offset += MOS_SecureStringPrint(log_msg + offset, MOS_MAX_MSG_BUF_SIZE,
                     MOS_MAX_MSG_BUF_SIZE - offset,
-                    "\n\t\t\tdump fence out syncobj: handle = %d, flags = %d",
-                    dep->syncobj_handle, DRM_XE_SYNC_FLAG_SIGNAL);
-        if(count > 0)
+                    "\n\t\t\tdump fence out syncobj: handle = %d, timeline = %ld",
+                    dep->timeline_index);
+        if (count > 0)
         {
             offset += MOS_SecureStringPrint(log_msg + offset, MOS_MAX_MSG_BUF_SIZE,
                     MOS_MAX_MSG_BUF_SIZE - offset,
@@ -2057,10 +2072,14 @@ int __mos_dump_syncs_array_xe(struct drm_xe_sync *syncs,
         }
         for (int i = 0; i < count; i++)
         {
+            /**
+             * Note: we assume all are timeline sync here, and change later when any other
+             * types sync in use.
+             */
             offset += MOS_SecureStringPrint(log_msg + offset, MOS_MAX_MSG_BUF_SIZE,
                     MOS_MAX_MSG_BUF_SIZE - offset,
-                    "\n\t\t\t-syncobj_handle = %d, flags=%d",
-                    syncs[i].handle, syncs[i].flags);
+                    "\n\t\t\t-syncobj_handle = %d, timeline = %ld, sync type = %d, sync flags = %d",
+                    syncs[i].handle, syncs[i].timeline_value, syncs[i].type, syncs[i].flags);
         }
         offset > MOS_MAX_MSG_BUF_SIZE ?
             MOS_DRM_NORMALMESSAGE("imcomplete dump since log msg buffer overwrite %s", log_msg) : MOS_DRM_NORMALMESSAGE("%s", log_msg);
@@ -2069,6 +2088,10 @@ int __mos_dump_syncs_array_xe(struct drm_xe_sync *syncs,
     return MOS_XE_SUCCESS;
 }
 
+/**
+ * This is to dump timeline for each exec bo on such execution,
+ * pair of execed_queue_id & timeline_value will be dumped.
+ */
 int
 __mos_dump_bo_deps_map_xe(struct mos_linux_bo **bo,
             int num_bo,
@@ -2120,9 +2143,10 @@ __mos_dump_bo_deps_map_xe(struct mos_linux_bo **bo,
                         {
                             offset += MOS_SecureStringPrint(log_msg + offset, MOS_MAX_MSG_BUF_SIZE,
                                             MOS_MAX_MSG_BUF_SIZE - offset,
-                                            "\n\t\t\t-read deps: execed_exec_queue_id=%d, syncobj_handle=%d",
+                                            "\n\t\t\t-read deps: execed_exec_queue_id=%d, syncobj_handle=%d", "timeline = %ld",
                                             it->first,
-                                            it->second.dep ? it->second.dep->syncobj_handle : INVALID_HANDLE);
+                                            it->second.dep ? it->second.dep->syncobj_handle : INVALID_HANDLE,
+                                            it->second.dep ? it->second.exec_timeline_index : INVALID_HANDLE);
                         }
                         it++;
                     }
@@ -2134,9 +2158,10 @@ __mos_dump_bo_deps_map_xe(struct mos_linux_bo **bo,
                         {
                             offset += MOS_SecureStringPrint(log_msg + offset, MOS_MAX_MSG_BUF_SIZE,
                                             MOS_MAX_MSG_BUF_SIZE - offset,
-                                            "\n\t\t\t-write deps: execed_exec_queue_id=%d, syncobj_handle=%d",
+                                            "\n\t\t\t-write deps: execed_exec_queue_id=%d, syncobj_handle=%d", "timeline = %ld",
                                             it->first,
-                                            it->second.dep ? it->second.dep->syncobj_handle : INVALID_HANDLE);
+                                            it->second.dep ? it->second.dep->syncobj_handle : INVALID_HANDLE,
+                                            it->second.dep ? it->second.exec_timeline_index : INVALID_HANDLE);
                         }
                         it++;
                     }
@@ -2436,6 +2461,12 @@ mos_bo_context_exec_with_sync_xe(struct mos_linux_bo **bo, int num_bo, struct mo
     //exec submit
     uint32_t sync_count = syncs.size();
     struct drm_xe_sync *syncs_array = syncs.data();
+
+    //dump bo deps map
+    __mos_dump_bo_deps_map_xe(bo, num_bo, exec_list, curr_exec_queue_id, bufmgr_gem->global_ctx_info);
+    //dump fence in and fence out info
+    __mos_dump_syncs_array_xe(syncs_array, sync_count, dep);
+
     struct drm_xe_exec exec;
     memclear(exec);
     exec.extensions = 0;
@@ -2461,11 +2492,6 @@ mos_bo_context_exec_with_sync_xe(struct mos_linux_bo **bo, int num_bo, struct mo
         }
     }
     curr_timeline = dep->timeline_index;
-
-    //dump fence in and fence out info
-    __mos_dump_syncs_array_xe(syncs_array, sync_count, dep);
-    //dump bo deps map
-    __mos_dump_bo_deps_map_xe(bo, num_bo, exec_list, curr_exec_queue_id, bufmgr_gem->global_ctx_info);
 
     //update bos' read and write dep with new timeline
     __mos_context_exec_update_bo_deps_xe(bo, num_bo, exec_list, context->dummy_exec_queue_id, dep);
