@@ -1935,6 +1935,15 @@ MOS_STATUS VpRenderCmdPacket::SendMediaStates(
             pipeCtlParams.dwFlushMode             = MHW_FLUSH_CUSTOM;
             pipeCtlParams.bInvalidateTextureCache = true;
             pipeCtlParams.bFlushRenderTargetCache = true;
+
+            if (it->second.walkerParam.pipeControlParams.bUpdateNeeded)
+            {
+                pipeCtlParams.bHdcPipelineFlush = it->second.walkerParam.pipeControlParams.bEnableDataPortFlush;
+                pipeCtlParams.bUnTypedDataPortCacheFlush = it->second.walkerParam.pipeControlParams.bUnTypedDataPortCacheFlush;
+                pipeCtlParams.bFlushRenderTargetCache = it->second.walkerParam.pipeControlParams.bFlushRenderTargetCache;
+                pipeCtlParams.bInvalidateTextureCache = it->second.walkerParam.pipeControlParams.bInvalidateTextureCache;
+            }
+
             if (flushL1)
             {   //Flush L1 cache after consumer walker when there is a producer-consumer relationship walker.
                 pipeCtlParams.bUnTypedDataPortCacheFlush = true;

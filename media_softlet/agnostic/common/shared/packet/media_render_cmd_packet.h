@@ -80,6 +80,15 @@ class MhwCpInterface;
         (MhwKernelParam).iKCID    = (_pKernelEntry)->iKCID;                         \
     } while(0)
 
+typedef struct _PIPECONTRL_PARAMS
+{
+    bool bUpdateNeeded;
+    bool bEnableDataPortFlush;
+    bool bUnTypedDataPortCacheFlush;
+    bool bFlushRenderTargetCache;
+    bool bInvalidateTextureCache;
+} PIPECONTRL_PARAMS, *PPIPECONTRL_PARAMS;
+
 typedef struct _KERNEL_WALKER_PARAMS
 {
     int32_t                             iBindingTable;
@@ -90,6 +99,7 @@ typedef struct _KERNEL_WALKER_PARAMS
     int32_t                             iBlocksX;
     int32_t                             iBlocksY;
     RECT                                alignedRect;
+    PIPECONTRL_PARAMS                   pipeControlParams;
     bool                                isVerticalPattern;
     bool                                bSyncFlag;
     bool                                bFlushL1;
