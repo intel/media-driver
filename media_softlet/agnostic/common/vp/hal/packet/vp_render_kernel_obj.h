@@ -78,6 +78,12 @@ typedef struct _KERNEL_TUNING_PARAMS
     uint32_t euThreadSchedulingMode;
 } KERNEL_TUNING_PARAMS, *PKERNEL_TUNING_PARAMS;
 
+typedef struct _SURFACE_PARAMS
+{
+    SurfaceType surfType;
+    bool        isOutput;
+} SURFACE_PARAMS, *PSURFACE_PARAMS;
+
 using KERNEL_CONFIGS = std::map<VpKernelID, void *>; // Only for legacy/non-cm kernels
 using KERNEL_ARGS = std::vector<KRN_ARG>;
 using KERNEL_SAMPLER_STATE_GROUP = std::map<SamplerIndex, MHW_SAMPLER_STATE_PARAM>;
@@ -85,7 +91,7 @@ using KERNEL_SAMPLER_STATES = std::vector<MHW_SAMPLER_STATE_PARAM>;
 using KERNEL_SAMPLER_INDEX = std::vector<SamplerIndex>;
 using KERNEL_SURFACE_CONFIG = std::map<SurfaceType, KERNEL_SURFACE_STATE_PARAM>;
 using KERNEL_SURFACE_BINDING_INDEX = std::map<SurfaceType, std::set<uint32_t>>;
-using KERNEL_ARG_INDEX_SURFACE_MAP = std::map<uint32_t, SurfaceType>;
+using KERNEL_ARG_INDEX_SURFACE_MAP = std::map<uint32_t, SURFACE_PARAMS>;
 
 typedef struct _KERNEL_PARAMS
 {

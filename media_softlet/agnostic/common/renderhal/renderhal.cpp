@@ -5589,6 +5589,27 @@ MOS_STATUS RenderHal_SetupBufferSurfaceState(
     RcsSurfaceParams.psSurface             = &pRenderHalSurface->OsSurface;
     RcsSurfaceParams.dwOffsetInSSH         = pSurfaceEntry->dwSurfStateOffset;
     RcsSurfaceParams.dwCacheabilityControl = pRenderHal->pfnGetSurfaceMemoryObjectControl(pRenderHal, pParams);
+    if (pParams->surfaceType)
+    {
+        MOS_CACHE_ELEMENT element(MOS_CODEC_RESOURCE_USAGE_BEGIN_CODEC, MOS_CODEC_RESOURCE_USAGE_BEGIN_CODEC);
+        bool              res = pRenderHal->pOsInterface->pfnGetCacheSetting(pParams->Component, pParams->surfaceType, pParams->isOutput, RENDER_ENGINE, element, false);
+        if (res)
+        {
+            RcsSurfaceParams.dwCacheabilityControl = (pRenderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
+                                      element.mocsUsageType,
+                                      pRenderHal->pOsInterface->pfnGetGmmClientContext(pRenderHal->pOsInterface)))
+                                     .DwordValue;
+        }
+        else
+        {
+            MHW_RENDERHAL_ASSERTMESSAGE("Not found cache settings!");
+        }
+    }
+    else
+    {
+        MHW_RENDERHAL_NORMALMESSAGE("Not implemented yet! Will use MemObjCtl value %d", pParams->MemObjCtl);
+    }
+
     RcsSurfaceParams.bIsWritable           = pParams->isOutput;
     RcsSurfaceParams.bRenderTarget         = pParams->isOutput;
 
