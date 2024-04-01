@@ -459,7 +459,8 @@ MOS_STATUS MediaCopyBaseState::TaskDispatch(MCPY_STATE_PARAMS mcpySrc, MCPY_STAT
 
     // Set the dump location like "dumpLocation before MCPY=path_to_dump_folder" in user feature configure file
     // Otherwise, the surface may not be dumped
-    if (m_surfaceDumper)
+    // Only dump linear surface
+    if (m_surfaceDumper && mcpySrc.TileMode == MOS_TILE_LINEAR)
     {
         m_surfaceDumper->GetSurfaceDumpLocation(dumpLocation_in, mcpy_in);
 
@@ -525,7 +526,8 @@ MOS_STATUS MediaCopyBaseState::TaskDispatch(MCPY_STATE_PARAMS mcpySrc, MCPY_STAT
 
     // Set the dump location like "dumpLocation after MCPY=path_to_dump_folder" in user feature configure file
     // Otherwise, the surface may not be dumped
-    if (m_surfaceDumper)
+    // Only dump linear surface
+    if (m_surfaceDumper && mcpyDst.TileMode == MOS_TILE_LINEAR)
     {
         m_surfaceDumper->GetSurfaceDumpLocation(dumpLocation_out, mcpy_out);
 
