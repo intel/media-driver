@@ -889,6 +889,7 @@ MOS_STATUS CodechalVdencAvcStateXe_Hpm::PackHucAuthCmds(MOS_COMMAND_BUFFER &cmdB
     // Check Huc auth: if equals to 0 continue chained BB until reset, otherwise send BB end cmd.
     uint32_t compareOperation = mhw_mi_g12_X::MI_CONDITIONAL_BATCH_BUFFER_END_CMD::COMPARE_OPERATION_MADEQUALIDD;
     auto hwInterface = dynamic_cast<CodechalHwInterfaceG12 *>(m_hwInterface);
+    CODECHAL_ENCODE_CHK_NULL_RETURN(hwInterface);
     CODECHAL_ENCODE_CHK_STATUS_RETURN(hwInterface->SendCondBbEndCmd(
         &m_hucAuthBuf, 0, 0, false, true, compareOperation, &cmdBuffer));
 
