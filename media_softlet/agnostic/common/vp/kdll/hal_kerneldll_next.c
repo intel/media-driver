@@ -2594,6 +2594,7 @@ bool KernelDll_SetupCSC(
                 // Exceeded number of CSC matrices allowed
                 if (matrix_count == DL_CSC_MAX)
                 {
+                    VP_RENDER_ASSERTMESSAGE("CSC matrix count %d exceeded number of CSC matrices allowed!", matrix_count);
                     return false;
                 }
 
@@ -2689,7 +2690,8 @@ static uint8_t *KernelDll_GetPatchData(
                 }
                 else
                 {
-                    VP_RENDER_NORMALMESSAGE("Patch CSC coefficient exceed limitation");
+                    VP_RENDER_ASSERTMESSAGE("Patch CSC coefficient number %d exceed limitation %d!", pSearchState->CscParams.PatchMatrixNum, DL_CSC_MAX);
+                    return nullptr;
                 }
             }
 
@@ -2698,7 +2700,7 @@ static uint8_t *KernelDll_GetPatchData(
     }
     else
     {
-        VP_RENDER_NORMALMESSAGE("Invalid patch kind %d.", iPatchKind);
+        VP_RENDER_ASSERTMESSAGE("Invalid patch kind %d.", iPatchKind);
     }
 
     return nullptr;
