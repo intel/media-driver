@@ -610,8 +610,8 @@ mos_add_validate_buffer2(struct mos_linux_bo *bo, int need_fence)
         flags |= EXEC_OBJECT_PINNED;
     if (bo_gem->exec_async)
         flags |= EXEC_OBJECT_ASYNC;
-    if (bo_gem->exec_capture)
-        flags |= EXEC_OBJECT_CAPTURE;
+    //if (bo_gem->exec_capture)
+    //    flags |= EXEC_OBJECT_CAPTURE;
 
     if (bo_gem->validate_index != -1) {
         bufmgr_gem->exec2_objects[bo_gem->validate_index].flags |= flags;
@@ -2540,8 +2540,8 @@ do_bo_emit_reloc(struct mos_linux_bo *bo, uint32_t offset,
         flags |= EXEC_OBJECT_SUPPORTS_48B_ADDRESS;
     if (target_bo_gem->exec_async)
         flags |= EXEC_OBJECT_ASYNC;
-    if (target_bo_gem->exec_capture)
-        flags |= EXEC_OBJECT_CAPTURE;
+    //if (target_bo_gem->exec_capture)
+    //    flags |= EXEC_OBJECT_CAPTURE;
 
     if (target_bo != bo)
         mos_gem_bo_reference(target_bo);
@@ -2660,8 +2660,8 @@ mos_gem_bo_add_softpin_target(struct mos_linux_bo *bo, struct mos_linux_bo *targ
         flags |= EXEC_OBJECT_SUPPORTS_48B_ADDRESS;
     if (target_bo_gem->exec_async)
         flags |= EXEC_OBJECT_ASYNC;
-    if (target_bo_gem->exec_capture)
-        flags |= EXEC_OBJECT_CAPTURE;
+    //if (target_bo_gem->exec_capture)
+    //    flags |= EXEC_OBJECT_CAPTURE;
     if (write_flag)
         flags |= EXEC_OBJECT_WRITE;
 
@@ -2708,8 +2708,8 @@ mos_bufmgr_bo_get_softpin_targets_info(struct mos_linux_bo *bo, int *count)
             info[counter].size     = target->bo->size;
             info[counter].offset64 = target->bo->offset64;
 
-            if (!bufmgr_gem->object_capture_disabled)
-                target->flags   |= EXEC_OBJECT_CAPTURE;
+            //if (!bufmgr_gem->object_capture_disabled)
+            //    target->flags   |= EXEC_OBJECT_CAPTURE;
 
             info[counter].flags    = target->flags;
             info[counter].mem_region = target_gem->mem_region;
@@ -2729,8 +2729,8 @@ mos_bufmgr_bo_get_softpin_targets_info(struct mos_linux_bo *bo, int *count)
         bb_flags |= EXEC_OBJECT_PINNED;
     if (bo_gem->exec_async)
         bb_flags |= EXEC_OBJECT_ASYNC;
-    if (bo_gem->exec_capture)
-        bb_flags |= EXEC_OBJECT_CAPTURE;
+    //if (bo_gem->exec_capture)
+    //    bb_flags |= EXEC_OBJECT_CAPTURE;
 
     info[counter].handle   = bo->handle;
     info[counter].size     = bo->size;
