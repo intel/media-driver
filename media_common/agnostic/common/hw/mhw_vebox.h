@@ -238,6 +238,7 @@ typedef struct _MHW_VEBOX_STATE_CMD_PARAMS
     MHW_MEMORY_OBJECT_CONTROL_PARAMS    LaceLookUpTablesSurfCtrl;
     MHW_MEMORY_OBJECT_CONTROL_PARAMS    Vebox3DLookUpTablesSurfCtrl;
     bool                                bNoUseVeboxHeap;
+    bool                                isTlbPrefetchDisable;
 } MHW_VEBOX_STATE_CMD_PARAMS, *PMHW_VEBOX_STATE_CMD_PARAMS;
 
 //!

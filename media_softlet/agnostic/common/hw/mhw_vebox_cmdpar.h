@@ -564,6 +564,7 @@ struct _MHW_PAR_T(VEBOX_STATE)
     MHW_MEMORY_OBJECT_CONTROL_PARAMS LaceLookUpTablesSurfCtrl    = {};
     MHW_MEMORY_OBJECT_CONTROL_PARAMS Vebox3DLookUpTablesSurfCtrl = {};
     bool                             bNoUseVeboxHeap             = false;
+    bool                             isTlbPrefetchDisable        = false;
     bool                             bCmBuffer                   = false;
 };
 
