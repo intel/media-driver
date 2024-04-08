@@ -940,6 +940,16 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
+    MOS_STATUS AddEOTFState(void *&surface, PMHW_1DLUT_PARAMS p1DLutParams) override
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MOS_STATUS AddFP16State(PMHW_FP16_PARAMS pFP16Params) override
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
     _MHW_SETCMD_OVERRIDE_DECL(VEBOX_SURFACE_STATE)
     {
         _MHW_SETCMD_CALLBASE(VEBOX_SURFACE_STATE);

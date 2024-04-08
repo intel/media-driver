@@ -1092,6 +1092,14 @@ MOS_STATUS VpVeboxCmdPacket::SetHdrParams(PVEBOX_HDR_PARAMS hdrParams)
     MHW_VEBOX_IECP_PARAMS &mhwVeboxIecpParams = pRenderData->GetIECPParams();
     mhwVeboxIecpParams.s3DLutParams.bActive   = true;
 
+    if (hdrParams->isFp16Enable)
+    {
+        // When FP16 enable, it doesn't need Pre CSC, so set GammaCorr and H2S false.
+        mhwVeboxGamutParams.bGammaCorr          = false;
+        mhwVeboxGamutParams.bH2S                = false;
+        mhwVeboxIecpParams.fp16Params.isActive  = true;
+    }
+
     //Report
     if (m_hwInterface->m_reporting)
     {

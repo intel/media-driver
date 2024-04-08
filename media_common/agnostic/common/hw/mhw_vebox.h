@@ -208,6 +208,18 @@ typedef struct _MHW_VEBOX_3D_LUT
     uint32_t                                                : 25; // Reserved
 } MHW_VEBOX_3D_LUT, *PMHW_VEBOX_3D_LUT;
 
+typedef struct _MHW_VEBOX_FP16_INPUT
+{
+    uint32_t GamutExpansionPosition                         : 1;
+    uint32_t EotfPrecision                                  : 1;
+    uint32_t BypassCcm                                      : 1;
+    uint32_t BypassOetf                                     : 1;
+    uint32_t VeboxFp16InputEnable                           : 1;
+    uint32_t RgbSwapForFp16Input                            : 1;
+    uint32_t HdrGainFactor                                  : 8;
+    uint32_t                                                : 18;  // Reserved
+} MHW_VEBOX_FP16_INPUT, *PMHW_VEBOX_FP16_INPUT;
+
 //!
 //! \brief  Structure to handle VEBOX_STATE_CMD Command
 //!
@@ -216,6 +228,7 @@ typedef struct _MHW_VEBOX_STATE_CMD_PARAMS
     MHW_VEBOX_MODE                      VeboxMode;
     MHW_VEBOX_CHROMA_SAMPLING           ChromaSampling;
     MHW_VEBOX_3D_LUT                    LUT3D;
+    MHW_VEBOX_FP16_INPUT                FP16Input;
     bool                                bUseVeboxHeapKernelResource;
     PMOS_RESOURCE                       pLaceLookUpTables;
     PMOS_RESOURCE                       pVeboxParamSurf;
@@ -626,6 +639,17 @@ typedef struct _MHW_1DLUT_PARAMS
 } MHW_1DLUT_PARAMS, *PMHW_1DLUT_PARAMS;
 
 //!
+//! Structure MHW_3DLUT_PARAMS
+//! \details No pre-si version for MHW_VEBOX_IECP_PARAMS, just leave it now and handle it later
+//!
+typedef struct _MHW_FP16_PARAMS
+{
+    uint32_t                isActive       = false;              //!< Active or not
+    uint32_t                OETFLutY[256]  = {};
+    uint32_t                OETFLutX[256]  = {};
+} MHW_FP16_PARAMS, *PMHW_FP16_PARAMS;
+
+//!
 //! \brief  VEBOX IECP parameters
 //!
 typedef struct _MHW_VEBOX_IECP_PARAMS
@@ -650,6 +674,7 @@ typedef struct _MHW_VEBOX_IECP_PARAMS
 
     MHW_3DLUT_PARAMS                s3DLutParams;
     MHW_1DLUT_PARAMS                s1DLutParams;
+    MHW_FP16_PARAMS                 fp16Params;
 
     // Front End CSC params
     bool                            bFeCSCEnable;                               // Enable Front End CSC transform

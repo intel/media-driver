@@ -554,6 +554,7 @@ struct _MHW_PAR_T(VEBOX_STATE)
     MHW_VEBOX_MODE                   VeboxMode                   = {};
     MHW_VEBOX_CHROMA_SAMPLING        ChromaSampling              = {};
     MHW_VEBOX_3D_LUT                 LUT3D                       = {};
+    MHW_VEBOX_FP16_INPUT             FP16Input                   = {};
     bool                             bUseVeboxHeapKernelResource = false;
     PMOS_RESOURCE                    pLaceLookUpTables           = nullptr;
     PMOS_RESOURCE                    pVeboxParamSurf             = nullptr;
