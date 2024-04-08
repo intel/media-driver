@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2022, Intel Corporation
+* Copyright (c) 2018-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -81,7 +81,7 @@ namespace vp {
 #define VP_VEBOX_CHROMA_DOWNSAMPLING_422_TYPE2_VERT_OFFSET           0
 #define VP_VEBOX_CHROMA_DOWNSAMPLING_422_TYPE3_VERT_OFFSET           0
 
-MOS_FORMAT GetSfcInputFormat(VP_EXECUTE_CAPS &executeCaps, MOS_FORMAT inputFormat, VPHAL_CSPACE colorSpaceOutput);
+MOS_FORMAT GetSfcInputFormat(VP_EXECUTE_CAPS &executeCaps, MOS_FORMAT inputFormat, VPHAL_CSPACE colorSpaceOutput, MOS_FORMAT outputFormat);
 bool IsBeCscNeededForAlphaFill(MOS_FORMAT formatInput, MOS_FORMAT formatOutput, PVPHAL_ALPHA_PARAMS compAlpha);
 
 VpCscFilter::VpCscFilter(PVP_MHWINTERFACE vpMhwInterface) :
@@ -161,13 +161,20 @@ MOS_STATUS VpCscFilter::CalculateEngineParams()
     return MOS_STATUS_SUCCESS;
 }
 
-VPHAL_CSPACE GetSfcInputColorSpace(VP_EXECUTE_CAPS &executeCaps, VPHAL_CSPACE inputColorSpace, VPHAL_CSPACE colorSpaceOutput)
+VPHAL_CSPACE GetSfcInputColorSpace(VP_EXECUTE_CAPS &executeCaps, VPHAL_CSPACE inputColorSpace, VPHAL_CSPACE colorSpaceOutput, MOS_FORMAT outputFormat)
 {
     VP_FUNC_CALL();
 
     if (executeCaps.b3DlutOutput)
     {
-        return IS_COLOR_SPACE_BT2020(colorSpaceOutput) ? CSpace_BT2020_RGB : CSpace_sRGB;
+        if (IS_RGB64_FLOAT_FORMAT(outputFormat)) // SFC output FP16, BT2020->BT709
+        {
+            return CSpace_BT2020_RGB;
+        }
+        else
+        {
+            return IS_COLOR_SPACE_BT2020(colorSpaceOutput) ? CSpace_BT2020_RGB : CSpace_sRGB;
+        }
     }
 
     // return sRGB as colorspace as Vebox will do Bt202 to sRGB Gamut switch
@@ -251,19 +258,20 @@ MOS_STATUS VpCscFilter::CalculateSfcEngineParams()
     // IsDitheringNeeded should be called before input format being updated by GetSfcInputFormat
     m_sfcCSCParams->isDitheringNeeded = IsDitheringNeeded(m_cscParams.formatInput, m_cscParams.formatOutput);
 
-    m_sfcCSCParams->inputColorSpace = GetSfcInputColorSpace(m_executeCaps, m_cscParams.input.colorSpace, m_cscParams.output.colorSpace);
+    m_sfcCSCParams->inputColorSpace = GetSfcInputColorSpace(m_executeCaps, m_cscParams.input.colorSpace, m_cscParams.output.colorSpace, m_cscParams.formatOutput);
 
-    m_cscParams.formatInput         = GetSfcInputFormat(m_executeCaps, m_cscParams.formatInput, m_cscParams.output.colorSpace);
+    m_cscParams.formatInput         = GetSfcInputFormat(m_executeCaps, m_cscParams.formatInput, m_cscParams.output.colorSpace, m_cscParams.formatOutput);
     m_sfcCSCParams->inputFormat     = m_cscParams.formatInput;
     m_sfcCSCParams->outputFormat    = m_cscParams.formatOutput;
+    m_sfcCSCParams->isFullRgbG10P709 = m_cscParams.isFullRgbG10P709;
 
     // No need to check m_cscParams.pAlphaParams as CalculateVeboxEngineParams does, as alpha is done by scaling filter on SFC.
-    if (m_sfcCSCParams->inputColorSpace != m_cscParams.output.colorSpace)
+    if (m_sfcCSCParams->inputColorSpace != m_cscParams.output.colorSpace && !(IS_RGB64_FLOAT_FORMAT(m_sfcCSCParams->outputFormat) && m_sfcCSCParams->isFullRgbG10P709))
     {
         m_sfcCSCParams->bCSCEnabled = true;
     }
 
-    if (IS_RGB_CSPACE(m_sfcCSCParams->inputColorSpace))
+    if (IS_RGB_CSPACE(m_sfcCSCParams->inputColorSpace) || IS_COLOR_SPACE_BT2020_RGB(m_sfcCSCParams->inputColorSpace))
     {
         m_sfcCSCParams->isInputColorSpaceRGB = true;
     }

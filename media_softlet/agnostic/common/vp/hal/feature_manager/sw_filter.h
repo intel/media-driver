@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2022, Intel Corporation
+* Copyright (c) 2019-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -406,6 +406,7 @@ struct FeatureParamCsc : public FeatureParam
     PVPHAL_ALPHA_PARAMS pAlphaParams    = nullptr;
     MOS_FORMAT          formatforCUS    = Format_None;            //!< Only valid when formatforCUS != Format_None for Chromaupsampling. To be cleared in SwFilterCsc::Configure
     FeatureParamCsc     *next           = nullptr;                //!< pointe to new/next generated CSC params
+    bool                isFullRgbG10P709 = false;                  //!< whether output colorspace is DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709
 };
 
 class SwFilterCsc : public SwFilter

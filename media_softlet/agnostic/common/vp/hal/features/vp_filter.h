@@ -1,5 +1,5 @@
 ﻿/*
-* Copyright (c) 2018-2022, Intel Corporation
+* Copyright (c) 2018-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -178,6 +178,7 @@ struct _SFC_CSC_PARAMS
     uint32_t                        sfcSrcChromaSiting;                          // SFC Source Chroma Siting location
     uint32_t                        chromaDownSamplingVerticalCoef;              // Chroma DownSampling Vertical Coeff
     uint32_t                        chromaDownSamplingHorizontalCoef;            // Chroma DownSampling Horizontal Coeff
+    bool                            isFullRgbG10P709;                            // Whether output colorspace is DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709
 };
 
 struct _SFC_ROT_MIR_PARAMS

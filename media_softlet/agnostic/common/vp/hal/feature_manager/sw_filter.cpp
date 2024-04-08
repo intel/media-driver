@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2021, Intel Corporation
+* Copyright (c) 2019-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -174,6 +174,7 @@ MOS_STATUS SwFilterCsc::Configure(VP_PIPELINE_PARAMS &params, bool isInputSurf, 
     m_Params.output.chromaSiting    = surfOutput->ChromaSiting;
     m_Params.input.tileMode         = surfInput->TileModeGMM;
     m_Params.output.tileMode        = surfOutput->TileModeGMM;
+    m_Params.isFullRgbG10P709       = surfOutput->pGamutParams ? surfOutput->pGamutParams->GammaValue == GAMMA_1P0 : 0 && surfOutput->ColorSpace == CSpace_sRGB && IS_RGB64_FLOAT_FORMAT(surfOutput->Format);
     // Alpha should be handled in input pipe to avoid alpha data lost from image.
     m_Params.pAlphaParams           = params.pCompAlpha;
     // formatForCUS will be set on demand in Policy::GetCSCExecutionCapsBT2020ToRGB.

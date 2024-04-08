@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022, Intel Corporation
+* Copyright (c) 2022-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -188,6 +188,8 @@ struct VPHAL_SURFACE
 
     // 3DLUT parameters
     PVPHAL_3DLUT_PARAMS p3DLutParams = nullptr;  //!< 3DLut Mapping Params
+
+    PVPHAL_GAMUT_PARAMS pGamutParams       = nullptr;  //!< Gamut Compression & Expansion
 };
 
 //!

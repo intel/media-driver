@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2023, Intel Corporation
+* Copyright (c) 2018-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1257,7 +1257,7 @@ MOS_STATUS GetVeboxOutputParams(VP_EXECUTE_CAPS &executeCaps, MOS_FORMAT inputFo
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_FORMAT GetSfcInputFormat(VP_EXECUTE_CAPS &executeCaps, MOS_FORMAT inputFormat, VPHAL_CSPACE colorSpaceOutput)
+MOS_FORMAT GetSfcInputFormat(VP_EXECUTE_CAPS &executeCaps, MOS_FORMAT inputFormat, VPHAL_CSPACE colorSpaceOutput, MOS_FORMAT outputFormat)
 {
     VP_FUNC_CALL();
 
@@ -1267,7 +1267,14 @@ MOS_FORMAT GetSfcInputFormat(VP_EXECUTE_CAPS &executeCaps, MOS_FORMAT inputForma
     // Then Check IECP, since IECP is done after DI, and the vebox downsampling not affect the vebox input.
     if (executeCaps.b3DlutOutput)
     {
-        return IS_COLOR_SPACE_BT2020(colorSpaceOutput) ? Format_R10G10B10A2 : Format_A8B8G8R8;
+        if (IS_RGB64_FLOAT_FORMAT(outputFormat))    // SFC output FP16, YUV->ABGR16
+        {
+            return Format_A16B16G16R16;
+        }
+        else
+        {
+            return IS_COLOR_SPACE_BT2020(colorSpaceOutput) ? Format_R10G10B10A2 : Format_A8B8G8R8;
+        }
     }
     else if (executeCaps.bIECP && executeCaps.bCGC && executeCaps.bBt2020ToRGB)
     {

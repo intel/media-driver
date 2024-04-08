@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2021, Intel Corporation
+* Copyright (c) 2020-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -722,7 +722,7 @@ bool SwFilterHdrHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS &params, bool isInp
 
     bFP16Format = bFP16Format || (pRenderTarget->Format == Format_A16B16G16R16F) || (pRenderTarget->Format == Format_A16R16G16B16F);
 
-    if (bFP16Format)
+    if (bFP16Format && !pSrc->p3DLutParams)
     {
         // Check if input/output gamma is same(TBD)
         // Check if input/output color space is same

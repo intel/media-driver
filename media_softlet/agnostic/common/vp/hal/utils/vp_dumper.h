@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2023, Intel Corporation
+* Copyright (c) 2018-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -672,6 +672,7 @@ private:
     //!
     const char * GetSurfaceTypeStr(VPHAL_SURFACE_TYPE surface_type);
 
+    const char *GetGammaValueTypeStr(VPHAL_GAMMA_VALUE gamma_value);
     //!
     //! \brief    Gets Debug Sample Type String
     //! \param    [in] sample type

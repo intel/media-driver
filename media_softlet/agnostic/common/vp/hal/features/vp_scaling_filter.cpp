@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2023, Intel Corporation
+* Copyright (c) 2018-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -37,7 +37,7 @@ using namespace vp;
 
 namespace vp
 {
-MOS_FORMAT GetSfcInputFormat(VP_EXECUTE_CAPS &executeCaps, MOS_FORMAT inputFormat, VPHAL_CSPACE colorSpaceOutput);
+MOS_FORMAT GetSfcInputFormat(VP_EXECUTE_CAPS &executeCaps, MOS_FORMAT inputFormat, VPHAL_CSPACE colorSpaceOutput, MOS_FORMAT outputFormat);
 };
 
 VpScalingFilter::VpScalingFilter(
@@ -510,7 +510,8 @@ MOS_STATUS VpScalingFilter::CalculateEngineParams()
 
         m_scalingParams.formatInput             = GetSfcInputFormat(m_executeCaps,
                                                                     m_scalingParams.formatInput,
-                                                                    m_scalingParams.csc.colorSpaceOutput);
+                                                                    m_scalingParams.csc.colorSpaceOutput,
+                                                                    m_scalingParams.formatOutput);
         m_sfcScalingParams->inputFrameFormat    = m_scalingParams.formatInput;
         m_sfcScalingParams->dwInputFrameHeight  = dwSurfaceHeight;
         m_sfcScalingParams->dwInputFrameWidth   = dwSurfaceWidth;
