@@ -87,6 +87,16 @@ namespace encode
         MHW_BATCH_BUFFER   m_2ndLevelBB[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM] = {};      //!< 2nd level batch buffer
         PMHW_BATCH_BUFFER  m_batchBuf           = nullptr;
 
+        enum COMPARE_OPERATION
+        {
+            COMPARE_OPERATION_MADGREATERTHANIDD        = 0, //!< If Indirect fetched data is greater than inline data then continue.
+            COMPARE_OPERATION_MADGREATERTHANOREQUALIDD = 1, //!< If Indirect fetched data is greater than or equal to inline data then continue.
+            COMPARE_OPERATION_MADLESSTHANIDD           = 2, //!< If Indirect fetched data is less than inline data then continue.
+            COMPARE_OPERATION_MADLESSTHANOREQUALIDD    = 3, //!< If Indirect fetched data is less than or equal to inline data then continue.
+            COMPARE_OPERATION_MADEQUALIDD              = 4, //!< If Indirect fetched data is equal to inline data then continue.
+            COMPARE_OPERATION_MADNOTEQUALIDD           = 5, //!< If Indirect fetched data is not equal to inline data then continue.
+        };
+
 MEDIA_CLASS_DEFINE_END(encode__CheckHucLoadPkt)
     };
 }  // namespace decode

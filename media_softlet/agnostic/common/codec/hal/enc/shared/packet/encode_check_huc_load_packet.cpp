@@ -25,7 +25,6 @@
 //!
 
 #include "encode_check_huc_load_packet.h"
-#include "mhw_mi_hwcmd_xe_lpm_plus_base_next.h"
 
 namespace encode
 {
@@ -196,7 +195,7 @@ namespace encode
         conditionalBatchBufferEndParams.bDisableCompareMask            = false;
         conditionalBatchBufferEndParams.dwParamsType                   = mhw::mi::MHW_MI_ENHANCED_CONDITIONAL_BATCH_BUFFER_END_PARAMS::ENHANCED_PARAMS;
         conditionalBatchBufferEndParams.enableEndCurrentBatchBuffLevel = true;
-        conditionalBatchBufferEndParams.compareOperation               = mhw::mi::xe_lpm_plus_base_next::Cmd::MI_CONDITIONAL_BATCH_BUFFER_END_CMD::COMPARE_OPERATION_MADEQUALIDD;
+        conditionalBatchBufferEndParams.compareOperation               = COMPARE_OPERATION_MADEQUALIDD;
         ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_CONDITIONAL_BATCH_BUFFER_END)(&cmdBuffer));
 
         // Chained BB loop
