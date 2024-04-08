@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2023, Intel Corporation
+* Copyright (c) 2018-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -359,6 +359,14 @@ MOS_STATUS VpPipeline::Init(void *mhwInterface)
         VP_PUBLIC_NORMALMESSAGE("Create GpuContext for Compute/Render (PacketId: %d).", packetId);
         VP_PUBLIC_CHK_STATUS_RETURN(PacketPipe::SwitchContext(packetId, m_scalability,
             m_mediaContext, MOS_VE_SUPPORTED(m_osInterface), m_numVebox));
+
+        // create SinglePipe GpuContext for multi Vebox system to avoid first frame long latency issue
+        if (m_numVebox > 1 && !(m_vpSettings && m_vpSettings->clearVideoViewMode))
+        {
+            VP_PUBLIC_NORMALMESSAGE("Create Single Pipe GpuContext for Vebox.");
+            VP_PUBLIC_CHK_STATUS_RETURN(PacketPipe::SwitchContext(VP_PIPELINE_PACKET_VEBOX, m_scalability,
+                m_mediaContext, MOS_VE_SUPPORTED(m_osInterface), 1));
+        }
     }
 
     return MOS_STATUS_SUCCESS;
