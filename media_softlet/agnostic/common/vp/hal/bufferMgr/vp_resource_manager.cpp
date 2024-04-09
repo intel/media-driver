@@ -1333,17 +1333,8 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxOutputSurface(VP_EXECUTE_CAPS& caps
         enableVeboxOutputSurf = m_vpUserFeatureControl->IsVeboxOutputSurfEnabled();
     }
 
-    if (enableVeboxOutputSurf || IS_VP_VEBOX_DN_ONLY(caps))
-    {
-        bSurfCompressible   = inputSurface->osSurface->bCompressible;
-        surfCompressionMode = inputSurface->osSurface->CompressionMode;
-    }
-    else
-    {
-        bSurfCompressible   = true;
-        surfCompressionMode = MOS_MMC_MC;
-
-    }
+    bSurfCompressible   = inputSurface->osSurface->bCompressible;
+    surfCompressionMode = inputSurface->osSurface->CompressionMode;
 
     if (m_currentFrameIds.pastFrameAvailable && m_currentFrameIds.futureFrameAvailable)
     {
