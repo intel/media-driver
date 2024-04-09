@@ -41,14 +41,6 @@ GraphicsResourceSpecific::~GraphicsResourceSpecific()
     MOS_OS_FUNCTION_ENTER;
 }
 
-MOS_STATUS GraphicsResourceSpecific::SetSyncTag(OsContext* osContextPtr, SyncParams& params, uint32_t streamIndex)
-{
-    MOS_UNUSED(osContextPtr);
-    MOS_UNUSED(params);
-    MOS_UNUSED(streamIndex);
-    return MOS_STATUS_SUCCESS;
-}
-
 bool GraphicsResourceSpecific::ResourceIsNull()
 {
     return ((m_bo == nullptr)
