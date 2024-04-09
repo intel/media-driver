@@ -34,6 +34,8 @@
 #include "GmmLib.h"
 #include "mos_bufmgr_api.h"
 #include "mos_defs_specific.h"
+//#include <mutex>
+#include <shared_mutex>
 
 #define DDI_MEDIA_MAX_SURFACE_NUMBER_CONTEXT       127
 #define DDI_MEDIA_MAX_INSTANCE_NUMBER              0x0FFFFFFF
@@ -327,6 +329,7 @@ typedef struct _DDI_MEDIA_HEAP
     uint32_t           uiHeapElementSize;
     uint32_t           uiAllocatedHeapElements;
     void               *pFirstFreeHeapElement;
+    std::shared_timed_mutex lock;
 }DDI_MEDIA_HEAP, *PDDI_MEDIA_HEAP;
 
 #ifndef ANDROID
