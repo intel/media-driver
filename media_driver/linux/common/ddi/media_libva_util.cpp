@@ -1660,12 +1660,14 @@ PDDI_MEDIA_SURFACE_HEAP_ELEMENT DdiMediaUtil_AllocPMediaSurfaceFromHeap(PDDI_MED
 
     PDDI_MEDIA_SURFACE_HEAP_ELEMENT  mediaSurfaceHeapElmt = nullptr;
 
+    surfaceHeap->lock.lock();
     if (nullptr == surfaceHeap->pFirstFreeHeapElement)
     {
         void *newHeapBase = MOS_ReallocMemory(surfaceHeap->pHeapBase, (surfaceHeap->uiAllocatedHeapElements + DDI_MEDIA_HEAP_INCREMENTAL_SIZE) * sizeof(DDI_MEDIA_SURFACE_HEAP_ELEMENT));
 
         if (nullptr == newHeapBase)
         {
+            surfaceHeap->lock.unlock();
             DDI_ASSERTMESSAGE("DDI: realloc failed.");
             return nullptr;
         }
@@ -1684,6 +1686,7 @@ PDDI_MEDIA_SURFACE_HEAP_ELEMENT DdiMediaUtil_AllocPMediaSurfaceFromHeap(PDDI_MED
 
     mediaSurfaceHeapElmt                          = (PDDI_MEDIA_SURFACE_HEAP_ELEMENT)surfaceHeap->pFirstFreeHeapElement;
     surfaceHeap->pFirstFreeHeapElement            = mediaSurfaceHeapElmt->pNextFree;
+    surfaceHeap->lock.unlock();
 
     return mediaSurfaceHeapElmt;
 }
@@ -1697,12 +1700,14 @@ void DdiMediaUtil_ReleasePMediaSurfaceFromHeap(PDDI_MEDIA_HEAP surfaceHeap, uint
     PDDI_MEDIA_SURFACE_HEAP_ELEMENT mediaSurfaceHeapBase                   = (PDDI_MEDIA_SURFACE_HEAP_ELEMENT)surfaceHeap->pHeapBase;
     DDI_CHK_NULL(mediaSurfaceHeapBase, "nullptr mediaSurfaceHeapBase", );
 
+    surfaceHeap->lock.lock();
     PDDI_MEDIA_SURFACE_HEAP_ELEMENT mediaSurfaceHeapElmt                   = &mediaSurfaceHeapBase[vaSurfaceID];
     DDI_CHK_NULL(mediaSurfaceHeapElmt->pSurface, "surface is already released", );
     void *firstFree                         = surfaceHeap->pFirstFreeHeapElement;
     surfaceHeap->pFirstFreeHeapElement     = (void*)mediaSurfaceHeapElmt;
     mediaSurfaceHeapElmt->pNextFree        = (PDDI_MEDIA_SURFACE_HEAP_ELEMENT)firstFree;
     mediaSurfaceHeapElmt->pSurface         = nullptr;
+    surfaceHeap->lock.unlock();
 }
 
 
@@ -1711,6 +1716,7 @@ PDDI_MEDIA_BUFFER_HEAP_ELEMENT DdiMediaUtil_AllocPMediaBufferFromHeap(PDDI_MEDIA
     DDI_CHK_NULL(bufferHeap, "nullptr bufferHeap", nullptr);
 
     PDDI_MEDIA_BUFFER_HEAP_ELEMENT  mediaBufferHeapElmt = nullptr;
+    bufferHeap->lock.lock();
     if (nullptr == bufferHeap->pFirstFreeHeapElement)
     {
         void *newHeapBase = MOS_ReallocMemory(bufferHeap->pHeapBase, (bufferHeap->uiAllocatedHeapElements + DDI_MEDIA_HEAP_INCREMENTAL_SIZE) * sizeof(DDI_MEDIA_BUFFER_HEAP_ELEMENT));
@@ -1733,6 +1739,7 @@ PDDI_MEDIA_BUFFER_HEAP_ELEMENT DdiMediaUtil_AllocPMediaBufferFromHeap(PDDI_MEDIA
 
     mediaBufferHeapElmt                       = (PDDI_MEDIA_BUFFER_HEAP_ELEMENT)bufferHeap->pFirstFreeHeapElement;
     bufferHeap->pFirstFreeHeapElement         = mediaBufferHeapElmt->pNextFree;
+    bufferHeap->lock.unlock();
     return mediaBufferHeapElmt;
 }
 
@@ -1742,6 +1749,7 @@ void DdiMediaUtil_ReleasePMediaBufferFromHeap(PDDI_MEDIA_HEAP bufferHeap, uint32
     DDI_CHK_NULL(bufferHeap, "nullptr bufferHeap", );
 
     DDI_CHK_LESS(vaBufferID, bufferHeap->uiAllocatedHeapElements, "invalid buffer id", );
+    bufferHeap->lock.lock();
     PDDI_MEDIA_BUFFER_HEAP_ELEMENT mediaBufferHeapBase                    = (PDDI_MEDIA_BUFFER_HEAP_ELEMENT)bufferHeap->pHeapBase;
     PDDI_MEDIA_BUFFER_HEAP_ELEMENT mediaBufferHeapElmt                    = &mediaBufferHeapBase[vaBufferID];
     DDI_CHK_NULL(mediaBufferHeapElmt->pBuffer, "buffer is already released", );
@@ -1749,6 +1757,7 @@ void DdiMediaUtil_ReleasePMediaBufferFromHeap(PDDI_MEDIA_HEAP bufferHeap, uint32
     bufferHeap->pFirstFreeHeapElement      = (void*)mediaBufferHeapElmt;
     mediaBufferHeapElmt->pNextFree         = (PDDI_MEDIA_BUFFER_HEAP_ELEMENT)firstFree;
     mediaBufferHeapElmt->pBuffer           = nullptr;
+    bufferHeap->lock.unlock();
 }
 
 PDDI_MEDIA_IMAGE_HEAP_ELEMENT DdiMediaUtil_AllocPVAImageFromHeap(PDDI_MEDIA_HEAP imageHeap)
