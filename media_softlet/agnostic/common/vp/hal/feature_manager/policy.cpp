@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2024, Intel Corporation
+* Copyright (c) 2019-2023, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -695,16 +695,8 @@ MOS_STATUS Policy::GetCSCExecutionCapsHdr(SwFilter *HDR, SwFilter *CSC)
 
     MOS_FORMAT   hdrFormat  = Format_Any;
     VPHAL_CSPACE hdrCSpace  = CSpace_Any;
-    if (cscParams->isFullRgbG10P709 && IS_RGB64_FLOAT_FORMAT(cscParams->formatOutput))
-    {
-        hdrCSpace = CSpace_BT2020_RGB;
-        hdrFormat = Format_A16B16G16R16;
-    }
-    else
-    {
-        hdrCSpace = IS_COLOR_SPACE_BT2020(cscParams->output.colorSpace) ? CSpace_BT2020_RGB : CSpace_sRGB;
-        hdrFormat = IS_COLOR_SPACE_BT2020(cscParams->output.colorSpace) ? Format_R10G10B10A2 : Format_A8R8G8B8;
-    }
+    hdrCSpace               = IS_COLOR_SPACE_BT2020(cscParams->output.colorSpace) ? CSpace_BT2020_RGB : CSpace_sRGB;
+    hdrFormat               = IS_COLOR_SPACE_BT2020(cscParams->output.colorSpace) ? Format_R10G10B10A2 : Format_A8R8G8B8;
     VP_PUBLIC_CHK_STATUS_RETURN(Update3DLutoutputColorAndFormat(cscParams, hdrParams, hdrFormat, hdrCSpace));
 
     if (m_hwCaps.m_sfcHwEntry[hdrFormat].inputSupported &&
