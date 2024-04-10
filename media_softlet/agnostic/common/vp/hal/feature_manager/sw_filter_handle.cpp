@@ -691,6 +691,7 @@ bool SwFilterHdrHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS &params, bool isInp
     // if  target surf is invalid, return false;
     PVPHAL_SURFACE pSrc            = params.pSrc[0];
     PVPHAL_SURFACE pRenderTarget   = params.pTarget[0];
+    auto           userFeatureControl = m_vpInterface.GetHwInterface()->m_userFeatureControl;
     if (!pSrc || !pRenderTarget)
     {
         return false;
@@ -702,6 +703,11 @@ bool SwFilterHdrHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS &params, bool isInp
     bool bFP16Format         = false;
     // Not all FP16 input / output need HDR processing, e.g, FP16 by pass, FP16 csc etc.
     bool bFP16HdrProcessing  = false;
+    bool isExternal3DLutEnabled     = false;
+    if (pSrc->p3DLutParams && userFeatureControl->IsExternal3DLutSupport())
+    {
+        isExternal3DLutEnabled = true;
+    }
     // Need to use HDR to process BT601/BT709->BT2020
     if (IS_COLOR_SPACE_BT2020(pRenderTarget->ColorSpace) &&
         !IS_COLOR_SPACE_BT2020(pSrc->ColorSpace))
@@ -747,7 +753,7 @@ bool SwFilterHdrHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS &params, bool isInp
 
     // Temorary solution for menu/FBI not show up : route all S2S uage to HDR kernel path, need to consider RenderBlockedFromCp
 
-    return (bBt2020Output || bToneMapping || bMultiLayerBt2020 || bFP16HdrProcessing);
+    return (bBt2020Output || bToneMapping || bMultiLayerBt2020 || bFP16HdrProcessing || isExternal3DLutEnabled);
 }
 
 SwFilter *SwFilterHdrHandler::CreateSwFilter()

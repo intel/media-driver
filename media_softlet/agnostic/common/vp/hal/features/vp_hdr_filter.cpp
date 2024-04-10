@@ -98,6 +98,7 @@ MOS_STATUS VpHdrFilter::CalculateEngineParams(
         m_veboxHdrParams.stage                = hdrParams.stage;
         m_veboxHdrParams.lutSize              = hdrParams.lutSize;
         m_veboxHdrParams.isFp16Enable         = (hdrParams.formatInput == Format_A16B16G16R16F) ? true : false;
+        m_veboxHdrParams.external3DLutParams  = hdrParams.external3DLutParams;
     }
     else if (vpExecuteCaps.bRender && HDR_STAGE_3DLUT_KERNEL == hdrParams.stage)
     {

@@ -817,6 +817,7 @@ enum HDR_STAGE
     HDR_STAGE_3DLUT_KERNEL,
     HDR_STAGE_VEBOX_3DLUT_UPDATE,
     HDR_STAGE_VEBOX_3DLUT_NO_UPDATE,
+    HDR_STAGE_VEBOX_EXTERNAL_3DLUT,
 };
 
 //!
@@ -883,6 +884,7 @@ struct FeatureParamHdr : public FeatureParam
 
     HDR_PARAMS srcHDRParams    = {};
     HDR_PARAMS targetHDRParams = {};
+    PVPHAL_3DLUT_PARAMS external3DLutParams = nullptr;
 };
 
 class SwFilterHdr : public SwFilter

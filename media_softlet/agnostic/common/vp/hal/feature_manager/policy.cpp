@@ -1975,8 +1975,23 @@ MOS_STATUS Policy::GetHdrExecutionCaps(SwFilter *feature)
     }
 
     pHDREngine->is1K1DLutSurfaceInUse = m_hwCaps.m_rules.is1K1DLutSurfaceInUse;
-
-    if (Is3DLutKernelSupported())
+    if (hdrParams->external3DLutParams && userFeatureControl->IsExternal3DLutSupport())
+    {
+        hdrParams->stage        = HDR_STAGE_VEBOX_EXTERNAL_3DLUT;
+        pHDREngine->bEnabled    = 1;
+        pHDREngine->VeboxNeeded = 1;
+        if (hdrParams->formatOutput == Format_A8B8G8R8 || hdrParams->formatOutput == Format_A8R8G8B8)
+        {
+            pHDREngine->VeboxARGBOut = 1;
+        }
+        else if (hdrParams->formatOutput == Format_B10G10R10A2 || hdrParams->formatOutput == Format_R10G10B10A2)
+        {
+            pHDREngine->VeboxARGB10bitOutput = 1;
+        }
+        VP_PUBLIC_NORMALMESSAGE("3DLUT table setup by API, use HDR_STAGE_VEBOX_EXTERNAL_3DLUT.");
+        return MOS_STATUS_SUCCESS;
+    }
+    else if (Is3DLutKernelSupported())
     {
         if (hdrParams->uiMaxContentLevelLum != m_savedMaxCLL || hdrParams->uiMaxDisplayLum != m_savedMaxDLL ||
             hdrParams->hdrMode != m_savedHdrMode)

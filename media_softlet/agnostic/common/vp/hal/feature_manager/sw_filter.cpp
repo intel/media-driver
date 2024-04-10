@@ -1307,6 +1307,10 @@ MOS_STATUS SwFilterHdr::Configure(VP_PIPELINE_PARAMS &params, bool isInputSurf, 
     m_Params.formatOutput = surfOutput->Format;
     m_Params.widthInput   = surfInput->dwWidth;
     m_Params.heightInput  = surfInput->dwHeight;
+    if (surfInput->p3DLutParams)
+    {
+        m_Params.external3DLutParams = surfInput->p3DLutParams;
+    }
 
     // For H2S, it is possible that there is no HDR params for render target.
     m_Params.uiMaxContentLevelLum = 4000;

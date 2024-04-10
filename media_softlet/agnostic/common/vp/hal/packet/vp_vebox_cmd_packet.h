@@ -1124,6 +1124,8 @@ protected:
     void    UpdateCpPrepareResources();
     virtual MOS_STATUS SetupVebox3DLutForHDR(
         mhw::vebox::VEBOX_STATE_PAR &veboxStateCmdParams);
+    virtual MOS_STATUS SetupVeboxExternal3DLutforHDR(
+        mhw::vebox::VEBOX_STATE_PAR &veboxStateCmdParams);
 
 private:
 
