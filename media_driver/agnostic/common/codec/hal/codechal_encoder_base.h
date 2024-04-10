@@ -1892,7 +1892,7 @@ public:
     //!
     virtual MOS_STATUS SubmitCommandBuffer(
         PMOS_COMMAND_BUFFER cmdBuffer,
-        int32_t             nullRendering);
+        bool             bNullRendering);
 
     //!
     //! \brief  Check Supported Format

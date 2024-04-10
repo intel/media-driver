@@ -4564,7 +4564,7 @@ MOS_STATUS CodechalEncoderState::UserFeatureKeyReport()
 
 MOS_STATUS CodechalEncoderState::SubmitCommandBuffer(
     PMOS_COMMAND_BUFFER cmdBuffer,
-    int32_t         nullRendering)
+    bool         bNullRendering)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -4573,7 +4573,7 @@ MOS_STATUS CodechalEncoderState::SubmitCommandBuffer(
     CODECHAL_ENCODE_CHK_NULL_RETURN(cmdBuffer);
 
     HalOcaInterface::On1stLevelBBEnd(*cmdBuffer, *m_osInterface);
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, cmdBuffer, nullRendering));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, cmdBuffer, bNullRendering));
     return eStatus;
 }
 

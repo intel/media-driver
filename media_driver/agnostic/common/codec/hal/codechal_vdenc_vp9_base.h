@@ -2403,7 +2403,7 @@ public:
 
     virtual MOS_STATUS SubmitCommandBuffer(
         PMOS_COMMAND_BUFFER cmdBuffer,
-        bool nullRendering);
+        bool bNullRendering);
 
 #if USE_CODECHAL_DEBUG_TOOL
     MOS_STATUS DumpSegmentParams(

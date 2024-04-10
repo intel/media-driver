@@ -4669,7 +4669,7 @@ MOS_STATUS CodechalVdencVp9State::ReturnCommandBuffer(
 
 MOS_STATUS CodechalVdencVp9State::SubmitCommandBuffer(
     PMOS_COMMAND_BUFFER cmdBuffer,
-    bool nullRendering)
+    bool bNullRendering)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -4677,7 +4677,7 @@ MOS_STATUS CodechalVdencVp9State::SubmitCommandBuffer(
 
     CODECHAL_ENCODE_CHK_NULL_RETURN(cmdBuffer);
    
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, cmdBuffer, nullRendering));   
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, cmdBuffer, bNullRendering));
 
     return eStatus;
 }

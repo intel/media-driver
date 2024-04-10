@@ -97,7 +97,7 @@ class CodechalVdencAvcStateG12 : public CodechalVdencAvcState
 
     MOS_STATUS SubmitCommandBuffer(
         PMOS_COMMAND_BUFFER cmdBuffer,
-        int32_t             nullRendering) override;
+        bool             bNullRendering) override;
 
     MOS_STATUS InitKernelStateSFD() override;
 

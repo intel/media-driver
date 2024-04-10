@@ -2270,7 +2270,7 @@ public:
 
     MOS_STATUS SubmitCommandBuffer(
         PMOS_COMMAND_BUFFER cmdBuffer,
-        bool  nullRendering);
+        bool  bNullRendering);
 
     MOS_STATUS SendPrologWithFrameTracking(
         PMOS_COMMAND_BUFFER         cmdBuffer,

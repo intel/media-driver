@@ -104,7 +104,7 @@ public:
 
     MOS_STATUS SubmitCommandBuffer(
         PMOS_COMMAND_BUFFER cmdBuffer,
-        int32_t  nullRendering) override;
+        bool  bNullRendering) override;
 
 protected:
     MOS_STATUS EncodeMeKernel() override;

@@ -1095,7 +1095,7 @@ public:
     //!
     virtual MOS_STATUS SubmitCommandBuffer(
         PMOS_COMMAND_BUFFER cmdBuffer,
-        bool                nullRendering);
+        bool                bNullRendering);
 
     //!
     //! \brief    Help function to verify command buffer size

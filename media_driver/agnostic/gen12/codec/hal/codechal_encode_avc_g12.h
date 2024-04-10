@@ -106,7 +106,7 @@ class CodechalEncodeAvcEncG12 : public CodechalEncodeAvcEnc
 
     MOS_STATUS SubmitCommandBuffer(
         PMOS_COMMAND_BUFFER cmdBuffer,
-        int32_t  nullRendering) override;
+        bool  bNullRendering) override;
 
     MOS_STATUS ExecuteKernelFunctions() override;
 

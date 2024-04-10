@@ -73,7 +73,7 @@ public:
 
     MOS_STATUS SubmitCommandBuffer(
         PMOS_COMMAND_BUFFER cmdBuffer,
-        int32_t             bNullRendering) override;
+        bool             bNullRendering) override;
 
     //!
     //! \brief    Set And Populate VE Hint parameters

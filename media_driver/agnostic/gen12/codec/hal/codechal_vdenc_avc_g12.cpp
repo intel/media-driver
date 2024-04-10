@@ -970,7 +970,7 @@ MOS_STATUS CodechalVdencAvcStateG12::AddMiStoreForHWOutputToHucDmem(PMOS_COMMAND
 
 MOS_STATUS CodechalVdencAvcStateG12::SubmitCommandBuffer(
     PMOS_COMMAND_BUFFER cmdBuffer,
-    int32_t             nullRendering)
+    bool             bNullRendering)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -980,7 +980,7 @@ MOS_STATUS CodechalVdencAvcStateG12::SubmitCommandBuffer(
 
     HalOcaInterface::On1stLevelBBEnd(*cmdBuffer, *m_osInterface);
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetAndPopulateVEHintParams(cmdBuffer));
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, cmdBuffer, nullRendering));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, cmdBuffer, bNullRendering));
     return eStatus;
 }
 

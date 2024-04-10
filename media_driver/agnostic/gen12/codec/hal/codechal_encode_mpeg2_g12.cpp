@@ -1110,7 +1110,7 @@ MOS_STATUS CodechalEncodeMpeg2G12::SetAndPopulateVEHintParams(
 
 MOS_STATUS CodechalEncodeMpeg2G12::SubmitCommandBuffer(
     PMOS_COMMAND_BUFFER cmdBuffer,
-    int32_t             bNullRendering)
+    bool             bNullRendering)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 

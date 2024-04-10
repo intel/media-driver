@@ -9790,7 +9790,7 @@ MOS_STATUS CodechalEncHevcStateG12::ReturnCommandBuffer(PMOS_COMMAND_BUFFER cmdB
 
 MOS_STATUS CodechalEncHevcStateG12::SubmitCommandBuffer(
     PMOS_COMMAND_BUFFER cmdBuffer,
-    bool                nullRendering)
+    bool                bNullRendering)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -9806,7 +9806,7 @@ MOS_STATUS CodechalEncHevcStateG12::SubmitCommandBuffer(
             CODECHAL_ENCODE_CHK_STATUS_RETURN(SetAndPopulateVEHintParams(cmdBuffer));
         }
 
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, cmdBuffer, nullRendering));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, cmdBuffer, bNullRendering));
         return eStatus;
     }
 
@@ -9848,7 +9848,7 @@ MOS_STATUS CodechalEncHevcStateG12::SubmitCommandBuffer(
     if (eStatus == MOS_STATUS_SUCCESS)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SetAndPopulateVEHintParams(&m_realCmdBuffer));
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &m_realCmdBuffer, nullRendering));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &m_realCmdBuffer, bNullRendering));
     }
 
     return eStatus;

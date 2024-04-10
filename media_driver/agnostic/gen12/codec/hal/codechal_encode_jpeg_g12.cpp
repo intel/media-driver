@@ -122,7 +122,7 @@ MOS_STATUS CodechalEncodeJpegStateG12::UserFeatureKeyReport()
 
 MOS_STATUS CodechalEncodeJpegStateG12::SubmitCommandBuffer(
     PMOS_COMMAND_BUFFER cmdBuffer,
-    int32_t             bNullRendering)
+    bool             bNullRendering)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 

@@ -2413,7 +2413,7 @@ public:
 
     MOS_STATUS SubmitCommandBuffer(
         PMOS_COMMAND_BUFFER cmdBuffer,
-        bool  nullRendering) override;
+        bool  bNullRendering) override;
 
     MOS_STATUS SendPrologWithFrameTracking(
         PMOS_COMMAND_BUFFER         cmdBuffer,
