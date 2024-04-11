@@ -1490,6 +1490,13 @@ void CodechalVdencHevcState::SetVdencPipeBufAddrParams(
     MHW_VDBOX_PIPE_BUF_ADDR_PARAMS& pipeBufAddrParams)
 {
     pipeBufAddrParams = {};
+
+    //set MMC flag
+    if (m_mmcState->IsMmcEnabled())
+    {
+        pipeBufAddrParams.bMmcEnabled = true;
+    }
+
     pipeBufAddrParams.Mode = CODECHAL_ENCODE_MODE_HEVC;
     pipeBufAddrParams.psRawSurface = m_rawSurfaceToPak;
     pipeBufAddrParams.ps4xDsSurface = m_trackedBuf->Get4xDsReconSurface(CODEC_CURR_TRACKED_BUFFER);

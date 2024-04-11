@@ -904,8 +904,24 @@ public:
                     break;
                 }
 
-                mmcMode = (params->PostDeblockSurfMmcState != MOS_MEMCOMP_DISABLED) ?
-                    params->PostDeblockSurfMmcState : params->PreDeblockSurfMmcState;
+                if (params->Mode == CODECHAL_ENCODE_MODE_HEVC)
+                {
+                    if (params->bMmcEnabled)
+                    {
+                        MHW_MI_CHK_STATUS(this->m_osInterface->pfnGetMemoryCompressionMode(
+                        this->m_osInterface, params->presVdencReferences[refIdx], &mmcMode));
+                    }
+                    else
+                    {
+                        mmcMode = MOS_MEMCOMP_DISABLED;
+                    }
+                }
+                else
+                {
+                    mmcMode = (params->PostDeblockSurfMmcState != MOS_MEMCOMP_DISABLED) ?
+                        params->PostDeblockSurfMmcState : params->PreDeblockSurfMmcState;                    
+                } 
+
                 switch (refIdx)
                 {
                 case 0:
@@ -1117,8 +1133,23 @@ public:
                 resourceParams.bIsWritable = false;
                 resourceParams.pdwCmd = (uint32_t*)&(cmd.BwdRef0.LowerAddress);
 
-                mmcMode = (params->PostDeblockSurfMmcState != MOS_MEMCOMP_DISABLED) ?
-                    params->PostDeblockSurfMmcState : params->PreDeblockSurfMmcState;
+                if (params->Mode == CODECHAL_ENCODE_MODE_HEVC)
+                {
+                    if (params->bMmcEnabled)
+                    {
+                        MHW_MI_CHK_STATUS(this->m_osInterface->pfnGetMemoryCompressionMode(
+                        this->m_osInterface, params->presVdencReferences[refIdx], &mmcMode));
+                    }
+                    else
+                    {
+                        mmcMode = MOS_MEMCOMP_DISABLED;
+                    }
+                }
+                else
+                {
+                    mmcMode = (params->PostDeblockSurfMmcState != MOS_MEMCOMP_DISABLED) ?
+                        params->PostDeblockSurfMmcState : params->PreDeblockSurfMmcState;                    
+                } 
 
                 cmd.BwdRef0.PictureFields.DW0.MemoryCompressionEnable = MmcEnable(mmcMode) ? 1 : 0;
                 cmd.BwdRef0.PictureFields.DW0.CompressionType         = MmcIsRc(mmcMode) ? 1 : 0;

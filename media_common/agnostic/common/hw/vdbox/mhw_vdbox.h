@@ -294,6 +294,8 @@ typedef struct _MHW_VDBOX_SURFACE_PARAMS
     MOS_MEMCOMP_STATE           mmcState;
     uint8_t                     mmcSkipMask;
     uint32_t                    dwCompressionFormat;
+    uint8_t                     refsMmcEnable;
+    uint8_t                     refsMmcType;
 } MHW_VDBOX_SURFACE_PARAMS, *PMHW_VDBOX_SURFACE_PARAMS;
 
 struct MHW_VDBOX_PIPE_BUF_ADDR_PARAMS

@@ -1721,8 +1721,16 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpEncodeSurfaceStateCmd(
         cmd->DW3.YOffsetForVCr = params->dwReconSurfHeight;
     }
 
-    cmd->DW4.MemoryCompressionEnable = MmcEnable(params->mmcState) ? ((~params->mmcSkipMask) & 0xff) : 0;
-    cmd->DW4.CompressionType         = MmcIsRc(params->mmcState) ? 0xff : 0;
+    if (params->ucSurfaceStateId == CODECHAL_HCP_REF_SURFACE_ID && params->Mode == CODECHAL_ENCODE_MODE_HEVC)
+    {
+        cmd->DW4.MemoryCompressionEnable = params->refsMmcEnable ? ((~params->mmcSkipMask) & 0xff) : 0;
+        cmd->DW4.CompressionType = params->refsMmcType;
+    }
+    else
+    {
+        cmd->DW4.MemoryCompressionEnable = MmcEnable(params->mmcState) ? ((~params->mmcSkipMask) & 0xff) : 0;
+        cmd->DW4.CompressionType         = MmcIsRc(params->mmcState) ? 0xff : 0;
+    }
 
     return eStatus;
 }

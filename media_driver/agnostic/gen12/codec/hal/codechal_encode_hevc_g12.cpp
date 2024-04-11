@@ -144,8 +144,40 @@ MOS_STATUS CodechalEncHevcStateG12::AddHcpSurfaceStateCmds(MOS_COMMAND_BUFFER *c
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpSurfaceCmd(cmdBuffer, &reconSurfaceParams));
 
     // Add the surface state for reference picture, GEN12 HW change
-    reconSurfaceParams.ucSurfaceStateId = CODECHAL_HCP_REF_SURFACE_ID;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpSurfaceCmd(cmdBuffer, &reconSurfaceParams));
+    MHW_VDBOX_SURFACE_PARAMS refSurfaceParams;
+    SetHcpRefSurfaceParams(refSurfaceParams);
+
+    if (m_mmcState->IsMmcEnabled())
+    {
+        refSurfaceParams.refsMmcEnable       = 0;
+        refSurfaceParams.refsMmcType         = 0;
+        refSurfaceParams.dwCompressionFormat = 0;
+
+        //add for B frame support
+        if (m_pictureCodingType != I_TYPE)
+        {
+            for (uint8_t i = 0; i < CODEC_MAX_NUM_REF_FRAME_HEVC; i++)
+            {
+                if (i < CODEC_MAX_NUM_REF_FRAME_HEVC &&
+                    m_picIdx[i].bValid && m_currUsedRefPic[i])
+                {
+                    uint8_t idx          = m_picIdx[i].ucPicIdx;
+                    uint8_t frameStoreId = m_refIdxMapping[i];
+
+                    MOS_MEMCOMP_STATE mmcState = MOS_MEMCOMP_DISABLED;
+                    ENCODE_CHK_STATUS_RETURN(m_mmcState->GetSurfaceMmcState(const_cast<PMOS_SURFACE>(&m_refList[idx]->sRefReconBuffer), &mmcState));
+                    refSurfaceParams.refsMmcEnable |= (mmcState == MOS_MEMCOMP_RC || mmcState == MOS_MEMCOMP_MC) ? (1 << frameStoreId) : 0;
+                    refSurfaceParams.refsMmcType |= (mmcState == MOS_MEMCOMP_RC) ? (1 << frameStoreId) : 0;
+                    if (mmcState == MOS_MEMCOMP_RC || mmcState == MOS_MEMCOMP_MC)
+                    {
+                        ENCODE_CHK_STATUS_RETURN(m_mmcState->GetSurfaceMmcFormat(const_cast<PMOS_SURFACE>(&m_refList[idx]->sRefReconBuffer), &refSurfaceParams.dwCompressionFormat));
+                    }
+                }
+            }
+        }
+    }
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpSurfaceCmd(cmdBuffer, &refSurfaceParams));
 
     return eStatus;
 }

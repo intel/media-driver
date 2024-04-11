@@ -1608,7 +1608,17 @@ public:
     //!
     //! \return   void
     //!
-    virtual void SetHcpReconSurfaceParams(MHW_VDBOX_SURFACE_PARAMS& reconSurfaceParams);
+    virtual void SetHcpReconSurfaceParams(MHW_VDBOX_SURFACE_PARAMS &reconSurfaceParams);
+
+    //!
+    //! \brief    Set HCP_SURFACE_PARAMS for reference picture
+    //!
+    //! \param    [in, out] refSurfaceParams
+    //!           HCP_SURFACE_PARAMS for reference picture
+    //!
+    //! \return   void
+    //!
+    virtual void SetHcpRefSurfaceParams(MHW_VDBOX_SURFACE_PARAMS &refSurfaceParams);
 
     //!
     //! \brief    Set HCP_PIPE_BUF_ADDR parameters

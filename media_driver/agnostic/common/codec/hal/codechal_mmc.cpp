@@ -97,6 +97,55 @@ MOS_STATUS CodecHalMmcState::GetSurfaceMmcState(PMOS_SURFACE surface)
     return eStatus;
 }
 
+MOS_STATUS CodecHalMmcState::GetSurfaceMmcState(PMOS_SURFACE surface,MOS_MEMCOMP_STATE *mmcState)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODECHAL_HW_FUNCTION_ENTER;
+
+    MOS_CHK_NULL_RETURN(MOS_COMPONENT_MMC, MOS_MMC_SUBCOMP_SELF, surface);
+    MOS_CHK_NULL_RETURN(MOS_COMPONENT_MMC, MOS_MMC_SUBCOMP_SELF, mmcState);
+    MOS_CHK_NULL_RETURN(MOS_COMPONENT_MMC, MOS_MMC_SUBCOMP_SELF, m_osInterface);    
+
+    if (m_mmcEnabled)
+    {
+        CODECHAL_HW_CHK_STATUS_RETURN(m_osInterface->pfnGetMemoryCompressionMode(
+            m_osInterface,
+            &surface->OsResource,
+            (PMOS_MEMCOMP_STATE)&surface->CompressionMode));
+        *mmcState = (MOS_MEMCOMP_STATE)surface->CompressionMode;
+    }
+    else
+    {
+        *mmcState = MOS_MEMCOMP_DISABLED;
+    }
+
+    return eStatus;
+}
+
+ MOS_STATUS CodecHalMmcState::GetSurfaceMmcFormat(
+    PMOS_SURFACE surface,
+    uint32_t    *mmcFormat)
+{
+    MOS_STATUS status = MOS_STATUS_SUCCESS;
+
+    MOS_CHK_NULL_RETURN(MOS_COMPONENT_MMC, MOS_MMC_SUBCOMP_SELF, surface);
+    MOS_CHK_NULL_RETURN(MOS_COMPONENT_MMC, MOS_MMC_SUBCOMP_SELF, mmcFormat);
+    MOS_CHK_NULL_RETURN(MOS_COMPONENT_MMC, MOS_MMC_SUBCOMP_SELF, m_osInterface);
+
+    if (m_mmcEnabled)
+    {
+        status = m_osInterface->pfnGetMemoryCompressionFormat(m_osInterface, &surface->OsResource, mmcFormat);
+    } 
+    else
+    {
+        *mmcFormat = 0;
+    }
+
+    return status;
+}     
+     
+
 MOS_STATUS CodecHalMmcState::
 DisableSurfaceMmcState(PMOS_SURFACE surface)
 {

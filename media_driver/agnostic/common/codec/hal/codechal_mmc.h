@@ -77,6 +77,30 @@ public:
     MOS_STATUS GetSurfaceMmcState(PMOS_SURFACE surface);
 
     //!
+    //! \brief    Get surface memory compression state
+    //! \param    [out] surface
+    //!           Pointer to PMOS_SURFACE
+    //! \param    [in, out] mmcState
+    //!           Pointer to MOS_MEMCOMP_STATE
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!    
+    MOS_STATUS GetSurfaceMmcState(PMOS_SURFACE surface, MOS_MEMCOMP_STATE *mmcState);
+
+    //!
+    //! \brief    Get surface memory compression state
+    //! \param    [out] surface
+    //!           Pointer to PMOS_SURFACE
+    //! \param    [in, out] mmcFormat
+    //!           Pointer to MMC Format
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS GetSurfaceMmcFormat(PMOS_SURFACE surface, uint32_t *mmcFormat);
+
+    //!
     //! \brief    Disable surface memory compression state
     //! \param    [in,out] surface
     //!           Pointer to PMOS_SURFACE

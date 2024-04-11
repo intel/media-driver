@@ -2423,6 +2423,22 @@ void CodechalEncodeHevcBase::SetHcpReconSurfaceParams(MHW_VDBOX_SURFACE_PARAMS& 
 #endif
 }
 
+void CodechalEncodeHevcBase::SetHcpRefSurfaceParams(MHW_VDBOX_SURFACE_PARAMS &refSurfaceParams)
+{
+    MOS_ZeroMemory(&refSurfaceParams, sizeof(refSurfaceParams));
+    refSurfaceParams.Mode                     = m_mode;
+    refSurfaceParams.psSurface                = &m_reconSurface;
+    refSurfaceParams.ucSurfaceStateId         = CODECHAL_HCP_REF_SURFACE_ID;
+    refSurfaceParams.ucBitDepthLumaMinus8     = m_hevcSeqParams->bit_depth_luma_minus8;
+    refSurfaceParams.ucBitDepthChromaMinus8   = m_hevcSeqParams->bit_depth_chroma_minus8;
+    refSurfaceParams.ChromaType               = m_outputChromaFormat;
+    refSurfaceParams.dwActualHeight           = ((m_hevcSeqParams->wFrameHeightInMinCbMinus1 + 1) << (m_hevcSeqParams->log2_min_coding_block_size_minus3 + 3));
+    refSurfaceParams.dwReconSurfHeight        = m_rawSurfaceToPak->dwHeight;
+#ifdef _MMC_SUPPORTED
+    m_mmcState->SetSurfaceState(&refSurfaceParams);
+#endif
+}
+
 void CodechalEncodeHevcBase::SetHcpPipeBufAddrParams(MHW_VDBOX_PIPE_BUF_ADDR_PARAMS& pipeBufAddrParams)
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
