@@ -212,6 +212,28 @@ MOS_STATUS AvcBasicFeature::Update(void *params)
         m_perMBStreamOutEnable = true;
     }
 
+#if MHW_HWCMDPARSER_ENABLED
+    char frameType = '\0';
+    switch (m_picParam->CodingType)
+    {
+    case I_TYPE:
+        frameType = 'I';
+        break;
+    case P_TYPE:
+        frameType = 'P';
+        break;
+    case B_TYPE:
+        frameType = (m_picParam->RefPicFlag) ? 'B' : 'b';
+        break;
+    }
+
+    auto instance = mhw::HwcmdParser::GetInstance();
+    if (instance)
+    {
+        instance->Update(frameType, (void *)m_featureManager);
+    }
+#endif
+
     return MOS_STATUS_SUCCESS;
 }
 
