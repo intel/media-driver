@@ -145,7 +145,7 @@ MOS_STATUS Av1BasicFeature::Update(void *params)
         m_appHdrSize += m_nalUnitParams[i]->uiSize;
         if (IsFrameHeader(*(m_bsBuffer.pBase + m_nalUnitParams[i]->uiOffset)))
         {
-            continue;
+            break;
         }
         m_appHdrSizeExcludeFrameHdr += m_nalUnitParams[i]->uiSize;
     }
