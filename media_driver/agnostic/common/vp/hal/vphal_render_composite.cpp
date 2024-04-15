@@ -1611,7 +1611,7 @@ bool CompositeState::PreparePhases(
     if (bMultiplePhases)
     {
         pOsInterface  = m_pOsInterface;
-        pIntermediate = &m_Intermediate;
+        pIntermediate = m_Intermediate;
         PVPHAL_SURFACE &p = pIntermediate;
         // Allocate/Reallocate temporary output
         IntermediateAllocation(p,
@@ -1620,7 +1620,7 @@ bool CompositeState::PreparePhases(
             dwTempHeight,
             pTarget);
 
-        pIntermediate = &m_Intermediate1;
+        pIntermediate = m_Intermediate1;
         // Allocate/Reallocate temporary output
         IntermediateAllocation(p,
             pOsInterface,
@@ -1723,8 +1723,18 @@ void CompositeState::ResetCompParams(
 //!
 MOS_STATUS CompositeState::GetIntermediateOutput(PVPHAL_SURFACE &output)
 {
-    output = &m_Intermediate;
+    output = m_Intermediate;
     return MOS_STATUS_SUCCESS;
+}
+
+PVPHAL_SURFACE CompositeState::GetIntermediateSurface()
+{
+    return &m_IntermediateSurface;
+}
+
+PVPHAL_SURFACE CompositeState::GetIntermediate1Surface()
+{
+    return &m_IntermediateSurface1;
 }
 
 //!
@@ -2315,7 +2325,8 @@ MOS_STATUS CompositeState::Render(
     pOsInterface = m_pOsInterface;
     pRenderHal   = m_pRenderHal;
     pPerfData    = GetPerfData();
-
+    m_Intermediate  = GetIntermediateSurface();
+    m_Intermediate1 = GetIntermediate1Surface();
     // Reset compositing sources
     iSources  = 0;
     iProcamp  = 0;
@@ -2497,7 +2508,7 @@ MOS_STATUS CompositeState::Render(
     }
     else
     {
-        pOutput = &m_Intermediate;
+        pOutput = m_Intermediate;
         pOutput->ColorSpace = ColorSpace;
         m_Intermediate2.ColorSpace = ColorSpace;
 
@@ -2505,13 +2516,13 @@ MOS_STATUS CompositeState::Render(
         if (KernelDll_IsCspace(ColorSpace, CSpace_RGB))
         {
             pOutput->Format = Format_A8R8G8B8;
-            m_Intermediate1.Format = Format_A8R8G8B8;
+            m_Intermediate1->Format = Format_A8R8G8B8;
             m_Intermediate2.Format = Format_A8R8G8B8;
         }
         else
         {
             pOutput->Format = Format_AYUV;
-            m_Intermediate1.Format = Format_AYUV;
+            m_Intermediate1->Format = Format_AYUV;
             m_Intermediate2.Format = Format_AYUV;
         }
     }
@@ -7460,13 +7471,16 @@ void CompositeState::Destroy()
 
     if (pOsInterface)
     {
-        pOsInterface->pfnFreeResource(
-            pOsInterface,
-            &m_Intermediate.OsResource);
+        if (m_Intermediate)
+        {
+            pOsInterface->pfnFreeResource(
+                pOsInterface,
+                &m_Intermediate->OsResource);
 
-        pOsInterface->pfnFreeResource(
-            pOsInterface,
-            &m_Intermediate1.OsResource);
+            pOsInterface->pfnFreeResource(
+                pOsInterface,
+                &m_Intermediate1->OsResource);
+        }
 
         pOsInterface->pfnFreeResource(
             pOsInterface,
@@ -7542,8 +7556,8 @@ CompositeState::CompositeState(
     MOS_ZeroMemory(&m_SearchFilter, sizeof(m_SearchFilter));
     MOS_ZeroMemory(&m_KernelSearch, sizeof(m_KernelSearch));
     MOS_ZeroMemory(&m_KernelParams, sizeof(m_KernelParams));
-    MOS_ZeroMemory(&m_Intermediate, sizeof(m_Intermediate));
-    MOS_ZeroMemory(&m_Intermediate1, sizeof(m_Intermediate1));
+    MOS_ZeroMemory(&m_IntermediateSurface, sizeof(m_IntermediateSurface));
+    MOS_ZeroMemory(&m_IntermediateSurface1, sizeof(m_IntermediateSurface1));
     MOS_ZeroMemory(&m_Intermediate2, sizeof(m_Intermediate2));
     MOS_ZeroMemory(&m_CmfcCoeff, sizeof(m_CmfcCoeff));
     MOS_ZeroMemory(&m_RenderHalCmfcCoeff, sizeof(m_RenderHalCmfcCoeff));
@@ -7580,8 +7594,11 @@ CompositeState::CompositeState(
 
     VPHAL_RENDER_CHK_NULL(pOsInterface);
     // Reset Intermediate output surface (multiple phase)
-    pOsInterface->pfnResetResourceAllocationIndex(pOsInterface, &m_Intermediate.OsResource);
-    pOsInterface->pfnResetResourceAllocationIndex(pOsInterface, &m_Intermediate1.OsResource);
+    if (m_Intermediate)
+    {
+        pOsInterface->pfnResetResourceAllocationIndex(pOsInterface, &m_Intermediate->OsResource);
+        pOsInterface->pfnResetResourceAllocationIndex(pOsInterface, &m_Intermediate1->OsResource);
+    }
 
     ReadUserSetting(
         m_userSettingPtr,

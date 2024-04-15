@@ -1158,6 +1158,8 @@ private:
     //!
     virtual MOS_STATUS GetIntermediateOutput(PVPHAL_SURFACE &output);
 
+    virtual PVPHAL_SURFACE GetIntermediateSurface();
+    virtual PVPHAL_SURFACE GetIntermediate1Surface();
     // Procamp
     int32_t                         m_iMaxProcampEntries;
     int32_t                         m_iProcampVersion;
@@ -1224,8 +1226,10 @@ protected:
 
     static const int                AVS_CACHE_SIZE = 4;           //!< AVS coefficients cache size
     AvsCoeffsCache<AVS_CACHE_SIZE>  m_AvsCoeffsCache;             //!< AVS coefficients calculation is expensive, add cache to mitigate
-    VPHAL_SURFACE                   m_Intermediate  = {};         //!< Intermediate surface (multiple phase / constriction support)
-    VPHAL_SURFACE                   m_Intermediate1 = {};         //!< Intermediate surface (multiple phase / constriction support)
+    VPHAL_SURFACE                   m_IntermediateSurface  = {};  //!< Intermediate surface (multiple phase / constriction support)
+    VPHAL_SURFACE                   m_IntermediateSurface1 = {};  //!< Intermediate surface (multiple phase / constriction support)
+    VPHAL_SURFACE                   *m_Intermediate  = nullptr;   //!< Intermediate surface (multiple phase / constriction support)
+    VPHAL_SURFACE                   *m_Intermediate1 = nullptr;   //!< Intermediate surface (multiple phase / constriction support)
     VPHAL_SURFACE                   m_Intermediate2 = {};         //!< Rotation output intermediate surface
     
     VPHAL_SURFACE                   m_AuxiliarySyncSurface = {};  //!< This Auxiliary surface is used to sync engine workload

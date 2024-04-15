@@ -126,13 +126,13 @@ MOS_STATUS CompositeStateXe_Xpm ::UpdateInlineDataStatus(
 //!
 MOS_STATUS CompositeStateXe_Xpm::GetIntermediateOutput(PVPHAL_SURFACE &output)
 {
-    if (output == &m_Intermediate)
+    if (output == m_Intermediate)
     {
-        output = &m_Intermediate1;
+        output = m_Intermediate1;
     }
     else
     {
-        output = &m_Intermediate;
+        output = m_Intermediate;
     }
     return MOS_STATUS_SUCCESS;
 }
