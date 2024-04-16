@@ -1619,28 +1619,23 @@ MOS_STATUS CodechalDecodeAvc::InitPicMhwParams(
                 uint8_t picID = picMhwParams->AvcDirectmodeParams.bPicIdRemappingInUse ? i : refList[idx]->ucFrameId;
                 uint8_t mvIdx = refList[idx]->ucDMVIdx[0];
 
-                if (&picMhwParams->AvcDirectmodeParams.presAvcDmvBuffers[i] != nullptr)
-                {
-                    // dump Reference mvdata
-                    std::string mvBufDumpName = "_DEC_Ref_MV_" + std::to_string(i);
-                    CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
-                        &picMhwParams->AvcDirectmodeParams.presAvcDmvBuffers[mvIdx],
-                        CodechalDbgAttr::attrMvData,
-                        mvBufDumpName.c_str(),
-                        m_avcDmvBufferSize));
-                }
+                // dump Reference mvdata
+                std::string mvBufDumpName = "_DEC_Ref_MV_" + std::to_string(i);
+                CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+                    &picMhwParams->AvcDirectmodeParams.presAvcDmvBuffers[mvIdx],
+                    CodechalDbgAttr::attrMvData,
+                    mvBufDumpName.c_str(),
+                    m_avcDmvBufferSize));
             }
         }
 
-        if (&picMhwParams->AvcDirectmodeParams.presAvcDmvBuffers[picMhwParams->AvcDirectmodeParams.ucAvcDmvIdx])
-        {
-            // dump Current mvdata
-            CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
-            &picMhwParams->AvcDirectmodeParams.presAvcDmvBuffers[picMhwParams->AvcDirectmodeParams.ucAvcDmvIdx],
-                CodechalDbgAttr::attrMvData,
-                "DEC_Cur_MV_",
-                m_avcDmvBufferSize));
-        });
+        // dump Current mvdata
+        CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+        &picMhwParams->AvcDirectmodeParams.presAvcDmvBuffers[picMhwParams->AvcDirectmodeParams.ucAvcDmvIdx],
+            CodechalDbgAttr::attrMvData,
+            "DEC_Cur_MV_",
+            m_avcDmvBufferSize));
+        );
 
     return eStatus;
 }
