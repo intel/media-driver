@@ -589,26 +589,20 @@ namespace decode{
         {
             if (m_avcBasicFeature->m_refFrames.m_avcPicIdx[n].bValid)
             {
-                if (&avcDirectmodeParams.presAvcDmvBuffers[n+1] != nullptr)
-                {
-                    std::string mvBufDumpName = "_DEC_Ref_MV_" + std::to_string(n);
-                    DECODE_CHK_STATUS(debugInterface->DumpBuffer(
-                        &avcDirectmodeParams.presAvcDmvBuffers[n+1],
-                        CodechalDbgAttr::attrMvData,
-                        mvBufDumpName.c_str(),
-                        mvBufferSize));
-                }
+                std::string mvBufDumpName = "_DEC_Ref_MV_" + std::to_string(n);
+                DECODE_CHK_STATUS(debugInterface->DumpBuffer(
+                    &avcDirectmodeParams.presAvcDmvBuffers[n+1],
+                    CodechalDbgAttr::attrMvData,
+                    mvBufDumpName.c_str(),
+                    mvBufferSize));
             }
         }
 
-        if (&avcDirectmodeParams.presAvcDmvBuffers[0] != nullptr)
-        {
-            DECODE_CHK_STATUS(debugInterface->DumpBuffer(
-                &avcDirectmodeParams.presAvcDmvBuffers[0],
-                CodechalDbgAttr::attrMvData,
-                "DEC_Cur_MV_",
-                mvBufferSize));
-        }
+        DECODE_CHK_STATUS(debugInterface->DumpBuffer(
+            &avcDirectmodeParams.presAvcDmvBuffers[0],
+            CodechalDbgAttr::attrMvData,
+            "DEC_Cur_MV_",
+            mvBufferSize));
         return MOS_STATUS_SUCCESS;
     }
 

@@ -646,26 +646,20 @@ MOS_STATUS AvcDecodePicPkt::DumpResources(uint32_t mvBufferSize) const
                 CodechalDbgAttr::attrDecodeReferenceSurfaces,
                 refSurfName.c_str()));
 
-            if (&mvParam.presAvcDmvBuffers[n+1] != nullptr)
-            {
-                std::string mvBufDumpName = "_DEC_Ref_MV_" + std::to_string(n);
-                DECODE_CHK_STATUS(debugInterface->DumpBuffer(
-                    &mvParam.presAvcDmvBuffers[n+1],
-                    CodechalDbgAttr::attrMvData,
-                    mvBufDumpName.c_str(),
-                    mvBufferSize));
-            }
+            std::string mvBufDumpName = "_DEC_Ref_MV_" + std::to_string(n);
+            DECODE_CHK_STATUS(debugInterface->DumpBuffer(
+                &mvParam.presAvcDmvBuffers[n+1],
+                CodechalDbgAttr::attrMvData,
+                mvBufDumpName.c_str(),
+                mvBufferSize));
         }
     }
 
-    if (&mvParam.presAvcDmvBuffers[0] != nullptr)
-    {
-        DECODE_CHK_STATUS(debugInterface->DumpBuffer(
-            &mvParam.presAvcDmvBuffers[0],
-            CodechalDbgAttr::attrMvData,
-            "DEC_Cur_MV_",
-            mvBufferSize));
-    }
+    DECODE_CHK_STATUS(debugInterface->DumpBuffer(
+        &mvParam.presAvcDmvBuffers[0],
+        CodechalDbgAttr::attrMvData,
+        "DEC_Cur_MV_",
+        mvBufferSize));
 
     return MOS_STATUS_SUCCESS;
 }
