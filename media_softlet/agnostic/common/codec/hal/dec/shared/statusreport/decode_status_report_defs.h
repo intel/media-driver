@@ -119,6 +119,9 @@ struct DecodeStatusParameters
     MOS_SURFACE       *sfcOutputSurface;
     MOS_RESOURCE      *histogramOutputBuf;
     MOS_RESOURCE      *fgOutputPicRes;
+    MOS_RESOURCE      *streamInBufRes;
+    MOS_RESOURCE      *streamOutBufRes;
+    uint32_t           streamSize;
 #endif
 };
 

@@ -32,6 +32,8 @@
 #include "decode_sub_pipeline.h"
 #include "codec_def_decode.h"
 #include "media_feature_manager.h"
+#include "decode_status_report.h"
+#include "codechal_debug.h"
 
 namespace decode
 {
@@ -75,6 +77,27 @@ public:
     //!         Return the media function
     //!
     MediaFunction GetMediaFunction() { return VdboxDecodeWaFunc;}
+
+    
+#if USE_CODECHAL_DEBUG_TOOL
+    //!
+    //! \brief  Dump Output
+    //! \param  [in] reportData
+    //!         Decode status report data
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS DumpOutput(const DecodeStatusReportData& reportData) {return MOS_STATUS_SUCCESS;}
+    
+    //!
+    //! \brief  InitStatusReportParam
+    //! \param  [in] inputParameters
+    //!         Decode status report parameters
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS InitStatusReportParam(DecodeStatusParameters &inputParameters) {return MOS_STATUS_SUCCESS;}
+#endif
 protected:
     //!
     //! \brief  Initialize scalability parameters

@@ -414,15 +414,20 @@ MOS_STATUS DecodePipeline::DumpDownSamplingParams(DecodeDownSamplingFeature &dow
 }
 #endif
 
-MOS_STATUS DecodePipeline::DumpBitstream(PMOS_RESOURCE pBitstream, uint32_t size, uint32_t offset)
+MOS_STATUS DecodePipeline::DumpBitstream(PMOS_RESOURCE pBitstream, uint32_t size, uint32_t offset, const char* attrName)
 {
     DECODE_FUNC_CALL();
 
     DECODE_CHK_NULL(pBitstream);
 
+    if(attrName == nullptr)
+    {
+        attrName = CodechalDbgAttr::attrDecodeBitstream;
+    }
+
     DECODE_CHK_STATUS(m_debugInterface->DumpBuffer(
         pBitstream, 
-        CodechalDbgAttr::attrDecodeBitstream,
+        attrName,
         "_DEC", 
         size, 
         offset, 
@@ -490,6 +495,11 @@ MOS_STATUS DecodePipeline::DumpOutput(const DecodeStatusReportData& reportData)
 
         DECODE_CHK_STATUS(m_debugInterface->DumpYUVSurface(
             &dstSurface, CodechalDbgAttr::attrDecodeOutputSurface, "DstSurf"));
+    }
+
+    if(m_streamout != nullptr)
+    {
+        m_streamout->DumpOutput(reportData);
     }
 
 #ifdef _DECODE_PROCESSING_SUPPORTED

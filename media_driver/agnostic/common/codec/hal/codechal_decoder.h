@@ -173,10 +173,16 @@ struct CodechalDecodeStatusReport
     PMOS_RESOURCE           m_currHistogramOutBuf = nullptr;
     //! \brief Applies when debug dumps are enabled, pointer to AV1 film grain output resource for the picture associated with this status report
     PMOS_RESOURCE           m_currFgOutputPicRes = nullptr;
-    //! \brief Applies when debug dumps are enabled, stream out buffer
+    //! \brief Applies when debug dumps are enabled, stream out buffer (legacy)
     PMOS_RESOURCE           m_streamOutBuf = nullptr;
-    //! \brief Applies when debug dumps are enabled, index of the streamout buffer
+    //! \brief Applies when debug dumps are enabled, index of the streamout buffer (legacy)
     uint32_t                m_streamoutIdx = 0;
+    //! \brief Applies when debug dumps are enabled, stream in buffer
+    MOS_RESOURCE            m_streamInBufRes = {0};
+    //! \brief Applies when debug dumps are enabled, stream out buffer
+    MOS_RESOURCE            m_streamOutBufRes = {0};
+    //! \brief Applies when debug dumps are enabled, stream size
+    uint32_t                m_streamSize = 0;
     //! \brief Applies when debug dumps are enabled, indicates whether or not this is the final field in the frame.
     bool                    m_secondField = false;
     //! \brief Applies to VC1 only, indicates whether or not the frame required OLP.

@@ -71,10 +71,16 @@ namespace decode {
         PMOS_RESOURCE           currHistogramOutBuf = nullptr;
         //! \brief Applies when debug dumps are enabled, pointer to AV1 film grain output resource for the picture associated with this status report
         PMOS_RESOURCE           currFgOutputPicRes = nullptr;
-        //! \brief Applies when debug dumps are enabled, stream out buffer
+        //! \brief Applies when debug dumps are enabled, stream out buffer (legacy)
         PMOS_RESOURCE           streamOutBuf = nullptr;
-        //! \brief Applies when debug dumps are enabled, index of the streamout buffer
+        //! \brief Applies when debug dumps are enabled, index of the streamout buffer (legacy)
         uint32_t                streamoutIdx = 0;
+        //! \brief Applies when debug dumps are enabled, stream in buffer
+        MOS_RESOURCE            streamInBufRes = { 0 };
+        //! \brief Applies when debug dumps are enabled, stream out buffer
+        MOS_RESOURCE            streamOutBufRes = { 0 };
+        //! \brief Applies when debug dumps are enabled, stream size
+        uint32_t                streamSize = 0;
         //! \brief Applies when debug dumps are enabled, indicates whether or not this is the final field in the frame.
         bool                    secondField = false;
         //! \brief Applies to VC1 only, indicates whether or not the frame required OLP.

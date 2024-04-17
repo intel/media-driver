@@ -118,6 +118,25 @@ namespace decode {
             m_statusReportData[submitIndex].frameType            = inputParameters->pictureCodingType;
             m_statusReportData[submitIndex].secondField          = inputParameters->isSecondField;
             m_statusReportData[submitIndex].currFgOutputPicRes   = inputParameters->fgOutputPicRes;
+            m_statusReportData[submitIndex].streamSize           = inputParameters->streamSize;
+
+            if (inputParameters->streamOutBufRes != nullptr)  
+            {  
+                m_statusReportData[submitIndex].streamOutBufRes = *(inputParameters->streamOutBufRes);  
+            }  
+            else
+            {
+                m_statusReportData[submitIndex].streamOutBufRes = {0};
+            }
+
+            if (inputParameters->streamInBufRes != nullptr)  
+            {  
+                m_statusReportData[submitIndex].streamInBufRes = *(inputParameters->streamInBufRes);
+            }  
+            else
+            {
+                m_statusReportData[submitIndex].streamInBufRes = {0};
+            }
 #endif
         }
 

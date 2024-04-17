@@ -152,6 +152,13 @@ namespace decode
                 inputParameters.currDecodedPicRes          = basicFeature->m_destSurface.OsResource;
                 inputParameters.numUsedVdbox               = m_numVdbox;
 
+                CODECHAL_DEBUG_TOOL(
+                    if (m_streamout != nullptr)  
+                    {  
+                        DECODE_CHK_STATUS(m_streamout->InitStatusReportParam(inputParameters));  
+                    }  
+                );
+
 #if (_DEBUG || _RELEASE_INTERNAL)
                 auto filmGrainFeature = dynamic_cast<Av1DecodeFilmGrainG12*>(m_featureManager->GetFeature(
                         Av1FeatureIDs::av1SwFilmGrain));

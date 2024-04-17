@@ -346,6 +346,14 @@ MOS_STATUS HevcPipelineM12::Prepare(void *params)
             inputParameters.numUsedVdbox               = m_numVdbox;
             inputParameters.numSlices                  = m_basicFeature->m_numSlices;
             inputParameters.currDecodedPicRes          = m_basicFeature->m_destSurface.OsResource;
+
+            CODECHAL_DEBUG_TOOL(
+                if (m_streamout != nullptr)  
+                {  
+                    DECODE_CHK_STATUS(m_streamout->InitStatusReportParam(inputParameters));  
+                }  
+            );
+
 #if (_DEBUG || _RELEASE_INTERNAL)
 #ifdef _DECODE_PROCESSING_SUPPORTED
             DecodeDownSamplingFeature* downSamplingFeature = dynamic_cast<DecodeDownSamplingFeature*>(

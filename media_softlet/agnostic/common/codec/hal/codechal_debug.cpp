@@ -2289,6 +2289,8 @@ CodechalDebugInterface::CodechalDebugInterface()
         const char *fileName;
         bool        binaryDump = false;
         if ((!strcmp(attrName, MediaDbgAttr::attrDecodeBitstream)) ||
+            (!strcmp(attrName, MediaDbgAttr::attrStreamIn)) ||
+            (!strcmp(attrName, MediaDbgAttr::attrStreamOut)) ||
             (!strcmp(attrName, MediaDbgAttr::attrMvData)) ||
             (!strcmp(attrName, MediaDbgAttr::attrSegId)) ||
             (!strcmp(attrName, MediaDbgAttr::attrCoefProb)) ||
@@ -2419,6 +2421,8 @@ CodechalDebugInterface::CodechalDebugInterface()
         const char *fileName;
         bool        binaryDump = false;
         if ((!strcmp(attrName, MediaDbgAttr::attrDecodeBitstream)) ||
+            (!strcmp(attrName, MediaDbgAttr::attrStreamIn)) ||
+            (!strcmp(attrName, MediaDbgAttr::attrStreamOut)) ||
             (!strcmp(attrName, MediaDbgAttr::attrMvData)) ||
             (!strcmp(attrName, MediaDbgAttr::attrSegId)) ||
             (!strcmp(attrName, MediaDbgAttr::attrCoefProb)) ||
