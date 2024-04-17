@@ -2212,7 +2212,8 @@ MOS_STATUS MosInterface::ResourceSyncCallback(
     SYNC_HAZARD         hazardType,
     GPU_CONTEXT_HANDLE  busyCtx,
     GPU_CONTEXT_HANDLE  requestorCtx,
-    OS_HANDLE           osHandle)
+    OS_HANDLE           osHandle,
+    SYNC_FENCE_INFO_TRINITY *fenceInfoTrinity)
 {
     MOS_OS_FUNCTION_ENTER;
 

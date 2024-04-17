@@ -55,6 +55,7 @@
 class GpuContextSpecificNext;
 struct _MOS_VIRTUALENGINE_SET_PARAMS;
 struct _MOS_VIRTUALENGINE_INIT_PARAMS;
+struct SYNC_FENCE_INFO_TRINITY;
 
 typedef struct _MOS_VIRTUALENGINE_SET_PARAMS  MOS_VIRTUALENGINE_SET_PARAMS, *PMOS_VIRTUALENGINE_SET_PARAMS;
 typedef struct _MOS_VIRTUALENGINE_INIT_PARAMS MOS_VIRTUALENGINE_INIT_PARAMS, *PMOS_VIRTUALENGINE_INIT_PARAMS;
@@ -1411,18 +1412,21 @@ public:
     //!           GPU Context handle of current GPU which requesting to use the resoure and find the hazard to wait the busy context.
     //! \param    [in] osRequestorHandle
     //!           OS runtime handle of requestor context
+    //! \param    [in,out] fenceInfoTrinity
+    //!           if need to sync, it is fence handle and fence value
     //!
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    static MOS_STATUS ResourceSyncCallback(    
+    static MOS_STATUS ResourceSyncCallback(
         OsSpecificRes          resource,
         MOS_DEVICE_HANDLE      deviceContext,
         uint32_t               index,
         SYNC_HAZARD            hazardType,
         GPU_CONTEXT_HANDLE     busyCtx,
         GPU_CONTEXT_HANDLE     requestorCtx,
-        OS_HANDLE              osRequestorHandle);
+        OS_HANDLE              osRequestorHandle,
+        SYNC_FENCE_INFO_TRINITY *fenceInfoTrinity);
 
     //!
     //! \brief    Lock Sync Callback between Media and 3D
