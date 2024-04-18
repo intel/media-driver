@@ -39,7 +39,7 @@ namespace encode
 //!
 //! \detail   This class is an implementation for AVC native and non-native ROI 
 //!           in both ForceQP and DeltaQP modes and Dirty ROI.
-class AvcVdencBrcRoiFeature : public AvcVdencRoiInterface
+class AvcVdencBrcRoiFeature : public AvcVdencRoiInterface, public mhw::vdbox::vdenc::Itf::ParSetting
 {
 public:
     //!
@@ -63,6 +63,8 @@ public:
     virtual ~AvcVdencBrcRoiFeature() {}
 
     virtual MOS_STATUS Update(void* params) override;
+
+    MHW_SETPAR_DECL_HDR(VDENC_AVC_IMG_STATE);
 
 protected:
 
