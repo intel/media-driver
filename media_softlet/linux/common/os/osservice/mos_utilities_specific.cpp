@@ -1554,6 +1554,9 @@ MOS_STATUS MosUtilities::MosInitializeReg(RegBufferMap &regBufferMap)
             std::string id       = "";
 
             static const char *disableReportRegKeyList[] = {
+#if (_DEBUG || _RELEASE_INTERNAL)
+                __MEDIA_USER_FEATURE_VALUE_ENABLE_MEDIA_CCS,
+#endif
                 "INTEL MEDIA ALLOC MODE"
             };
             static const uint32_t disableReportRegKeyListCount = sizeof(disableReportRegKeyList) / sizeof(disableReportRegKeyList[0]);

@@ -177,7 +177,22 @@ static bool InitMtlMediaSkuExt(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_SKU(skuTable, FtrHcpDecMemoryCompression, 0);
     MEDIA_WR_SKU(skuTable, Ftr10bitDecMemoryCompression, 0);
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    uint32_t value = 0;
+    ReadUserSettingForDebug(
+        userSettingPtr,
+        value,
+        __MEDIA_USER_FEATURE_VALUE_ENABLE_MEDIA_CCS,
+        MediaUserSetting::Group::Device);
+
+    /* MEDIA_CSS default value is 1 */
+    if (value > 1)
+        value = 1;
+
+    MEDIA_WR_SKU(skuTable, FtrCCSNode, (uint8_t)value);
+#else
     MEDIA_WR_SKU(skuTable, FtrCCSNode, 1);
+#endif
 
     MEDIA_WR_SKU(skuTable, FtrVpP010Output, 1);
     MEDIA_WR_SKU(skuTable, FtrVp10BitSupport, 1);

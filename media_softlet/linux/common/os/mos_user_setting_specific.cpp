@@ -59,5 +59,14 @@ MOS_STATUS MosUserSetting::InitMosUserSettingSpecific(MediaUserSettingSharedPtr 
         0,
         false); //
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_ENABLE_MEDIA_CCS,
+        MediaUserSetting::Group::Device,
+        1,
+        false); //
+#endif
+
     return MOS_STATUS_SUCCESS;
 }
