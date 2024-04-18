@@ -309,11 +309,13 @@ static uint32_t DdiMedia_CreateRenderTarget(
         return VA_INVALID_ID;
     }
 
+    surfaceElement->lock.lock();
     surfaceElement->pSurface = (DDI_MEDIA_SURFACE *)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_SURFACE));
     if (nullptr == surfaceElement->pSurface)
     {
         DdiMediaUtil_ReleasePMediaSurfaceFromHeap(mediaDrvCtx->pSurfaceHeap, surfaceElement->uiVaSurfaceID);
         //DdiMediaUtil_UnLockMutex(&mediaDrvCtx->SurfaceMutex);
+        surfaceElement->lock.unlock();
         return VA_INVALID_ID;
     }
 
@@ -332,11 +334,13 @@ static uint32_t DdiMedia_CreateRenderTarget(
         MOS_FreeMemory(surfaceElement->pSurface);
         DdiMediaUtil_ReleasePMediaSurfaceFromHeap(mediaDrvCtx->pSurfaceHeap, surfaceElement->uiVaSurfaceID);
         //DdiMediaUtil_UnLockMutex(&mediaDrvCtx->SurfaceMutex);
+        surfaceElement->lock.unlock();
         return VA_INVALID_ID;
     }
 
     mediaDrvCtx->uiNumSurfaces++;
     uint32_t surfaceID = surfaceElement->uiVaSurfaceID;
+    surfaceElement->lock.unlock();
     //DdiMediaUtil_UnLockMutex(&mediaDrvCtx->SurfaceMutex);
     return surfaceID;
 }
@@ -1342,9 +1346,9 @@ VAStatus DdiMedia_MediaMemoryDecompress(PDDI_MEDIA_CONTEXT mediaCtx, DDI_MEDIA_S
             //DdiMediaUtil_LockMutex(&mediaCtx->SurfaceMutex);
             //DdiMediaUtil_LockMutex(&mediaCtx->MemDecompMutex);
 
+            //Note: find surfaceElement from pSurface and surfaceElement->lock.lock_shared();
             DdiMedia_MediaSurfaceToMosResource(mediaSurface, &surface);
             DdiMedia_MediaMemoryDecompressInternal(&mosCtx, &surface);
-
             //DdiMediaUtil_UnLockMutex(&mediaCtx->MemDecompMutex);
             //DdiMediaUtil_UnLockMutex(&mediaCtx->SurfaceMutex);
 
@@ -2520,7 +2524,9 @@ VAStatus DdiMedia_DestroySurfaces (
     for(int32_t i = 0; i < num_surfaces; i++)
     {
         DDI_CHK_LESS((uint32_t)surfaces[i], mediaCtx->pSurfaceHeap->uiAllocatedHeapElements, "Invalid surfaces", VA_STATUS_ERROR_INVALID_SURFACE);
-        surface = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, surfaces[i]);
+        PDDI_MEDIA_SURFACE_HEAP_ELEMENT surfaceElement = DdiMedia_GetSurfaceElementFromVASurfaceID (mediaCtx, surfaces[i]);
+        DDI_CHK_NULL(surfaceElement, "nullptr surfaceElement", VA_STATUS_ERROR_INVALID_SURFACE);
+        surface = surfaceElement->pSurface;
         DDI_CHK_NULL(surface, "nullptr surface", VA_STATUS_ERROR_INVALID_SURFACE);
         if(surface->pCurrentFrameSemaphore)
         {
@@ -2557,10 +2563,12 @@ VAStatus DdiMedia_DestroySurfaces (
         }
 
         //DdiMediaUtil_LockMutex(&mediaCtx->SurfaceMutex);
+        surfaceElement->lock.lock();
         DdiMediaUtil_FreeSurface(surface);
         MOS_FreeMemory(surface);
         DdiMediaUtil_ReleasePMediaSurfaceFromHeap(mediaCtx->pSurfaceHeap, (uint32_t)surfaces[i]);
         mediaCtx->uiNumSurfaces--;
+        surfaceElement->lock.unlock();
         //DdiMediaUtil_UnLockMutex(&mediaCtx->SurfaceMutex);
     }
 
@@ -3960,16 +3968,20 @@ VAStatus DdiMedia_BeginPicture (
     uint32_t event[] = {(uint32_t)context, ctxType, (uint32_t)render_target};
     MOS_TraceEventExt(EVENT_VA_PICTURE, EVENT_TYPE_START, event, sizeof(event), nullptr, 0);
 
-    PDDI_MEDIA_SURFACE surface = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, render_target);
+    PDDI_MEDIA_SURFACE_HEAP_ELEMENT surfaceElement = DdiMedia_GetSurfaceElementFromVASurfaceID (mediaCtx, render_target);
+    DDI_CHK_NULL(surfaceElement, "nullptr surfaceElement", VA_STATUS_ERROR_INVALID_SURFACE);
+    PDDI_MEDIA_SURFACE surface = surfaceElement->pSurface;
     DDI_CHK_NULL(surface, "nullptr surface", VA_STATUS_ERROR_INVALID_SURFACE);
 
     //DdiMediaUtil_LockMutex(&mediaCtx->SurfaceMutex);
+    surfaceElement->lock.lock();
     surface->curCtxType = ctxType;
     surface->curStatusReportQueryState = DDI_MEDIA_STATUS_REPORT_QUERY_STATE_PENDING;
     if(ctxType == DDI_MEDIA_CONTEXT_TYPE_VP)
     {
         surface->curStatusReport.vpp.status = VPREP_NOTAVAILABLE;
     }
+    surfaceElement->lock.unlock();
     //DdiMediaUtil_UnLockMutex(&mediaCtx->SurfaceMutex);
 
     switch (ctxType)
@@ -4078,7 +4090,10 @@ static VAStatus DdiMedia_StatusCheck (
     PDDI_DECODE_CONTEXT decCtx = (PDDI_DECODE_CONTEXT)surface->pDecCtx;
     if (decCtx && surface->curCtxType == DDI_MEDIA_CONTEXT_TYPE_DECODER)
     {
+        PDDI_MEDIA_SURFACE_HEAP_ELEMENT surfaceElement = DdiMedia_GetSurfaceElementFromVASurfaceID (mediaCtx, surface_id);
+        DDI_CHK_NULL(surfaceElement , "nullptr surfaceElement", VA_STATUS_ERROR_INVALID_SURFACE);
         //DdiMediaUtil_LockGuard guard(&mediaCtx->SurfaceMutex);
+        DdiMediaUtil_LockGuard2 guard(&surfaceElement->lock);
 
         Codechal *codecHal = decCtx->pCodecHal;
         //return success just avoid vaDestroyContext is ahead of vaSyncSurface
@@ -4407,7 +4422,9 @@ VAStatus DdiMedia_QuerySurfaceError(
     PDDI_MEDIA_CONTEXT mediaCtx = DdiMedia_GetMediaContext(ctx);
     DDI_CHK_NULL( mediaCtx, "nullptr mediaCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
 
-    DDI_MEDIA_SURFACE *surface = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, render_target);
+    PDDI_MEDIA_SURFACE_HEAP_ELEMENT surfaceElement = DdiMedia_GetSurfaceElementFromVASurfaceID (mediaCtx, render_target);
+    DDI_CHK_NULL(surfaceElement, "nullptr surfaceElement", VA_STATUS_ERROR_INVALID_SURFACE);
+    DDI_MEDIA_SURFACE *surface = surfaceElement->pSurface;
     DDI_CHK_NULL(surface, "nullptr surface", VA_STATUS_ERROR_INVALID_SURFACE);
 
     PDDI_DECODE_CONTEXT decCtx = (PDDI_DECODE_CONTEXT)surface->pDecCtx;
@@ -4419,6 +4436,7 @@ VAStatus DdiMedia_QuerySurfaceError(
     VAStatus vaStatus = VA_STATUS_SUCCESS;
 
     //DdiMediaUtil_LockMutex(&mediaCtx->SurfaceMutex);
+    surfaceElement->lock.lock_shared();
     if (surface->curStatusReportQueryState == DDI_MEDIA_STATUS_REPORT_QUERY_STATE_COMPLETED)
     {
         if (error_status != -1 && surface->curCtxType == DDI_MEDIA_CONTEXT_TYPE_DECODER)
@@ -4437,6 +4455,7 @@ VAStatus DdiMedia_QuerySurfaceError(
                 surfaceErrors[0].decode_error_type = VADecodeMBError;
 #endif
                 *error_info = surfaceErrors;
+                surfaceElement->lock.unlock_shared();
                 //DdiMediaUtil_UnLockMutex(&mediaCtx->SurfaceMutex);
                 return VA_STATUS_SUCCESS;
             }
@@ -4449,6 +4468,7 @@ VAStatus DdiMedia_QuerySurfaceError(
                 surfaceErrors[0].status            = 1;
                 surfaceErrors[0].decode_error_type = VADecodeReset;
                 *error_info                        = surfaceErrors;
+                surfaceElement->lock.unlock_shared();
                 //DdiMediaUtil_UnLockMutex(&mediaCtx->SurfaceMutex);
                 return VA_STATUS_SUCCESS;
             }
@@ -4477,6 +4497,7 @@ VAStatus DdiMedia_QuerySurfaceError(
                 }
             }
 
+            surfaceElement->lock.unlock_shared();
             //DdiMediaUtil_UnLockMutex(&mediaCtx->SurfaceMutex);
             return vaStatus;
         }
@@ -4484,12 +4505,14 @@ VAStatus DdiMedia_QuerySurfaceError(
         if (surface->curCtxType == DDI_MEDIA_CONTEXT_TYPE_VP &&
             surface->curStatusReport.vpp.status == CODECHAL_STATUS_ERROR)
         {
+            surfaceElement->lock.unlock_shared();
             //DdiMediaUtil_UnLockMutex(&mediaCtx->SurfaceMutex);
             return VA_STATUS_SUCCESS;
         }
     }
 
     surfaceErrors[0].status = -1;
+    surfaceElement->lock.unlock_shared();
     //DdiMediaUtil_UnLockMutex(&mediaCtx->SurfaceMutex);
     return VA_STATUS_SUCCESS;
 }

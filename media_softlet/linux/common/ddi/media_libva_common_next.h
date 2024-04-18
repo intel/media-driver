@@ -298,6 +298,7 @@ typedef struct _DDI_MEDIA_SURFACE_HEAP_ELEMENT
     PDDI_MEDIA_SURFACE                      pSurface;
     uint32_t                                uiVaSurfaceID;
     struct _DDI_MEDIA_SURFACE_HEAP_ELEMENT *pNextFree;
+    std::shared_timed_mutex                 lock;
 }DDI_MEDIA_SURFACE_HEAP_ELEMENT, *PDDI_MEDIA_SURFACE_HEAP_ELEMENT;
 
 typedef struct _DDI_MEDIA_BUFFER_HEAP_ELEMENT
@@ -307,6 +308,7 @@ typedef struct _DDI_MEDIA_BUFFER_HEAP_ELEMENT
     uint32_t                                uiCtxType;
     uint32_t                                uiVaBufferID;
     struct _DDI_MEDIA_BUFFER_HEAP_ELEMENT  *pNextFree;
+    std::shared_timed_mutex                 lock;
 }DDI_MEDIA_BUFFER_HEAP_ELEMENT, *PDDI_MEDIA_BUFFER_HEAP_ELEMENT;
 
 typedef struct _DDI_MEDIA_IMAGE_HEAP_ELEMENT

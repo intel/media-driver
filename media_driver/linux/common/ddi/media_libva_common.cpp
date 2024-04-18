@@ -130,7 +130,7 @@ void* DdiMedia_GetContextFromContextID (VADriverContextP ctx, VAContextID vaCtxI
 
 }
 
-DDI_MEDIA_SURFACE* DdiMedia_GetSurfaceFromVASurfaceID (PDDI_MEDIA_CONTEXT mediaCtx, VASurfaceID surfaceID)
+PDDI_MEDIA_SURFACE_HEAP_ELEMENT DdiMedia_GetSurfaceElementFromVASurfaceID (PDDI_MEDIA_CONTEXT mediaCtx, VASurfaceID surfaceID)
 {
     uint32_t                         i = 0;
     PDDI_MEDIA_SURFACE_HEAP_ELEMENT  surfaceElement = nullptr;
@@ -147,10 +147,20 @@ DDI_MEDIA_SURFACE* DdiMedia_GetSurfaceFromVASurfaceID (PDDI_MEDIA_CONTEXT mediaC
         //DdiMediaUtil_LockMutex(&mediaCtx->SurfaceMutex);
         surfaceElement  = (PDDI_MEDIA_SURFACE_HEAP_ELEMENT)mediaCtx->pSurfaceHeap->pHeapBase;
         surfaceElement += i;
-        surface         = surfaceElement->pSurface;
         mediaCtx->pSurfaceHeap->lock.unlock_shared();
         //DdiMediaUtil_UnLockMutex(&mediaCtx->SurfaceMutex);
     }
+
+    return surfaceElement;
+}
+
+DDI_MEDIA_SURFACE* DdiMedia_GetSurfaceFromVASurfaceID (PDDI_MEDIA_CONTEXT mediaCtx, VASurfaceID surfaceID)
+{
+    PDDI_MEDIA_SURFACE_HEAP_ELEMENT  surfaceElement = nullptr;
+    PDDI_MEDIA_SURFACE               surface = nullptr;
+
+    surfaceElement = DdiMedia_GetSurfaceElementFromVASurfaceID(mediaCtx, surfaceID);
+    surface = surfaceElement != nullptr ? surfaceElement->pSurface : nullptr;
 
     return surface;
 }
@@ -159,15 +169,18 @@ VASurfaceID DdiMedia_GetVASurfaceIDFromSurface(PDDI_MEDIA_SURFACE surface)
 {
     DDI_CHK_NULL(surface, "nullptr surface", VA_INVALID_SURFACE);
 
+    surface->pMediaCtx->pSurfaceHeap->lock.lock_shared();
     PDDI_MEDIA_SURFACE_HEAP_ELEMENT  surfaceElement = (PDDI_MEDIA_SURFACE_HEAP_ELEMENT)surface->pMediaCtx->pSurfaceHeap->pHeapBase;
     for(uint32_t i = 0; i < surface->pMediaCtx->pSurfaceHeap->uiAllocatedHeapElements; i ++)
     {
         if(surface == surfaceElement->pSurface)
         {
+            surface->pMediaCtx->pSurfaceHeap->lock.unlock_shared();
             return surfaceElement->uiVaSurfaceID;
         }
         surfaceElement ++;
     }
+    surface->pMediaCtx->pSurfaceHeap->lock.unlock_shared();
     return VA_INVALID_SURFACE;
 }
 
