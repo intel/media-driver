@@ -380,11 +380,10 @@ PDDI_MEDIA_SURFACE DdiMedia_ReplaceSurfaceWithVariant(PDDI_MEDIA_SURFACE surface
     return dstSurface;
 }
 
-DDI_MEDIA_BUFFER* DdiMedia_GetBufferFromVABufferID (PDDI_MEDIA_CONTEXT mediaCtx, VABufferID bufferID)
+PDDI_MEDIA_BUFFER_HEAP_ELEMENT DdiMedia_GetBufferElementFromVABufferID (PDDI_MEDIA_CONTEXT mediaCtx, VABufferID bufferID)
 {
     uint32_t                       i = 0;
     PDDI_MEDIA_BUFFER_HEAP_ELEMENT bufHeapElement = nullptr;
-    PDDI_MEDIA_BUFFER              buf = nullptr;
 
     i                = (uint32_t)bufferID;
     DDI_CHK_LESS(i, mediaCtx->pBufferHeap->uiAllocatedHeapElements, "invalid buffer id", nullptr);
@@ -392,9 +391,20 @@ DDI_MEDIA_BUFFER* DdiMedia_GetBufferFromVABufferID (PDDI_MEDIA_CONTEXT mediaCtx,
     mediaCtx->pBufferHeap->lock.lock_shared();
     bufHeapElement  = (PDDI_MEDIA_BUFFER_HEAP_ELEMENT)mediaCtx->pBufferHeap->pHeapBase;
     bufHeapElement += i;
-    buf             = bufHeapElement->pBuffer;
     mediaCtx->pBufferHeap->lock.unlock_shared();
     //DdiMediaUtil_UnLockMutex(&mediaCtx->BufferMutex);
+
+    return bufHeapElement;
+}
+
+
+DDI_MEDIA_BUFFER* DdiMedia_GetBufferFromVABufferID (PDDI_MEDIA_CONTEXT mediaCtx, VABufferID bufferID)
+{
+    PDDI_MEDIA_BUFFER_HEAP_ELEMENT bufHeapElement = nullptr;
+    PDDI_MEDIA_BUFFER              buf = nullptr;
+
+    bufHeapElement  = DdiMedia_GetBufferElementFromVABufferID(mediaCtx, bufferID);
+    buf             = bufHeapElement != nullptr? bufHeapElement->pBuffer : nullptr;
 
     return buf;
 }
