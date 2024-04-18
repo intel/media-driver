@@ -45,3 +45,5 @@ set (SOFTLET_MOS_PREPEND_INCLUDE_DIRS_
     ${CMAKE_CURRENT_LIST_DIR}
     ${SOFTLET_MOS_PREPEND_INCLUDE_DIRS_}
 )
+
+media_add_curr_to_include_path()

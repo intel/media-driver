@@ -50,3 +50,5 @@ set(SOFTLET_DECODE_COMMON_PRIVATE_INCLUDE_DIRS_
 )
 
 
+
+media_add_curr_to_include_path()

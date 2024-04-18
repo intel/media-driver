@@ -111,3 +111,5 @@ endif()
 source_group( "mos_softlet" FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
 
 endif() # CMAKE_WDDM_LINUX
+
+media_add_curr_to_include_path()

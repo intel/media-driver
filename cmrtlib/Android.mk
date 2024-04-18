@@ -27,10 +27,28 @@ $(info value of CMRT_ARCH is: $(CMRT_ARCH))
 include $(CLEAR_VARS)
 
 LOCAL_SRC_FILES := \
-@LOCAL_SRC_FILES
+    agnostic/hardware/cm_device.cpp \
+    agnostic/hardware/cm_device_export.cpp \
+    agnostic/hardware/cm_kernel_debugger.cpp \
+    agnostic/hardware/cm_perf_statistics.cpp \
+    agnostic/hardware/cm_queue.cpp \
+    agnostic/hardware/cm_surface_manager.cpp \
+    agnostic/hardware/cm_timer.cpp \
+    agnostic/share/cm_avs_state_msg_ex.cpp \
+    agnostic/share/cm_printf_host.cpp \
+    agnostic/share/cm_rt_helpers.cpp \
+    linux/hardware/cm_device_export_os.cpp \
+    linux/hardware/cm_device_os.cpp \
+    linux/hardware/cm_surface_manager_os.cpp \
+    linux/hardware/cm_timer_os.cpp \
+    linux/share/cm_performance.cpp \
 
 LOCAL_C_INCLUDES += \
-@LOCAL_C_INCLUDES
+    $(LOCAL_PATH)/proprietary/share \
+    $(LOCAL_PATH)/agnostic/share \
+    $(LOCAL_PATH)/agnostic/hardware \
+    $(LOCAL_PATH)/linux/share \
+    $(LOCAL_PATH)/linux/hardware
 
 LOCAL_CFLAGS += \
     -Wno-error \
@@ -39,7 +57,11 @@ LOCAL_CFLAGS += \
     -Wno-unused-private-field \
     -Wno-non-virtual-dtor \
     -DANDROID=1 \
-@LOCAL_CFLAGS
+    -DCM_RT_EXPORTS \
+    -DISTDLIB_UMD \
+    -DVPHAL \
+    -D__CT__ \
+    -Digfxcmrt_EXPORTS
 
 ifeq ($(CMRT_BUILD_TYPE), debug)
     LOCAL_CFLAGS += \

@@ -493,8 +493,10 @@ CmDevice_RT::CmDevice_RT(
     m_gtpinBufferUP1(nullptr),
     m_gtpinBufferUP2(nullptr),
     m_createOption(createOption),
-    m_driverStoreEnabled(0),
-    m_driFileDescriptor(0)
+#if !defined(ANDROID)
+    m_driFileDescriptor(0),
+#endif
+    m_driverStoreEnabled(0)
 {
 
     // New Surface Manager
