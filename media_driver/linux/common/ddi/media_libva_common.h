@@ -218,6 +218,19 @@ PDDI_MEDIA_SURFACE DdiMedia_ReplaceSurfaceWithVariant(PDDI_MEDIA_SURFACE surface
 VASurfaceID DdiMedia_GetVASurfaceIDFromSurface(PDDI_MEDIA_SURFACE surface);
 
 //!
+//! \brief  Get buffer element from VA buffer ID
+//!
+//! \param  [in] mediaCtx
+//!     Pointer to ddi media context
+//! \param  [in] bufferID
+//!     VA buffer ID
+//!
+//! \return PDDI_MEDIA_BUFFER_HEAP_ELEMENT
+//!     Pointer to ddi media buffer element
+//!
+PDDI_MEDIA_BUFFER_HEAP_ELEMENT DdiMedia_GetBufferElementFromVABufferID (PDDI_MEDIA_CONTEXT mediaCtx, VABufferID bufferID);
+
+//!
 //! \brief  Get buffer from VA buffer ID
 //!
 //! \param  [in] mediaCtx
