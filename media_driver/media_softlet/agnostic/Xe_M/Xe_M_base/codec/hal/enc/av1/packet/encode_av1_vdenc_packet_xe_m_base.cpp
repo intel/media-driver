@@ -311,16 +311,6 @@ namespace encode
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1VdencPktXe_M_Base::Construct3rdLevelBatch()
-    {
-        MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-
-        //To be added. When BRC is enabled, some of the commands
-        //will be added into 3rd level batch
-
-        return eStatus;
-    }
-
     MOS_STATUS Av1VdencPktXe_M_Base::AddOneTileCommands(
         MOS_COMMAND_BUFFER &cmdBuffer,
         uint32_t tileRow,
@@ -524,24 +514,6 @@ namespace encode
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1VdencPktXe_M_Base::UpdateUserFeatureKey(PMOS_SURFACE surface)
-    {
-        if (m_userFeatureUpdated_post_cdef)
-        {
-            return MOS_STATUS_SUCCESS;
-        }
-        m_userFeatureUpdated_post_cdef = true;
-        ReportUserSetting(m_userSettingPtr,
-            "AV1 Post CDEF Recon Compressible",
-            surface->bCompressible,
-            MediaUserSetting::Group::Sequence);
-        ReportUserSetting(m_userSettingPtr ,
-            "AV1 Post CDEF Recon Compress Mode",
-            surface->MmcState,
-            MediaUserSetting::Group::Sequence);
-        return MOS_STATUS_SUCCESS;
-    }
-
     MOS_STATUS Av1VdencPktXe_M_Base::PatchTileLevelCommands(MOS_COMMAND_BUFFER &cmdBuffer, uint8_t packetPhase)
     {
         ENCODE_FUNC_CALL();
@@ -660,44 +632,6 @@ namespace encode
         CODECHAL_DEBUG_TOOL(
             if (m_mmcState) { UpdateUserFeatureKey(postCdefSurface);})
         UpdateParameters();
-
-        return MOS_STATUS_SUCCESS;
-    }
-
-    void Av1VdencPktXe_M_Base::UpdateParameters()
-    {
-        ENCODE_FUNC_CALL();
-
-        Av1VdencPkt::UpdateParameters();
-
-        if (!m_pipeline->IsSingleTaskPhaseSupported())
-        {
-            m_osInterface->pfnResetPerfBufferID(m_osInterface);
-        }
-
-        //TBD
-    }
-
-    MHW_SETPAR_DECL_SRC(AVP_IND_OBJ_BASE_ADDR_STATE, Av1VdencPktXe_M_Base)
-    {
-        params.mvObjectOffset = m_mvOffset;
-        params.mvObjectSize   = m_basicFeature->m_mbCodeSize - m_mvOffset;
-
-        return MOS_STATUS_SUCCESS;
-    }
-
-    MHW_SETPAR_DECL_SRC(AVP_PIC_STATE, Av1VdencPktXe_M_Base)
-    {
-        params.notFirstPass = !m_pipeline->IsFirstPass();
-
-        return MOS_STATUS_SUCCESS;
-    }
-
-    MHW_SETPAR_DECL_SRC(AVP_TILE_CODING, Av1VdencPktXe_M_Base)
-    {
-        uint32_t tileIdx = 0;
-        RUN_FEATURE_INTERFACE_RETURN(Av1EncodeTile, Av1FeatureIDs::encodeTile, GetTileIdx, tileIdx);
-        params.disableFrameContextUpdateFlag = m_av1PicParams->PicFlags.fields.disable_frame_end_update_cdf || (tileIdx != m_av1PicParams->context_update_tile_id);
 
         return MOS_STATUS_SUCCESS;
     }

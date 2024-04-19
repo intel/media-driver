@@ -70,10 +70,6 @@ protected:
 
     virtual MOS_STATUS AddCommandsExt(MOS_COMMAND_BUFFER& cmdBuffer) { return MOS_STATUS_SUCCESS; };
 
-    MOS_STATUS Construct3rdLevelBatch();
-
-    void UpdateParameters() override;
-
     MOS_STATUS EnsureAllCommandsExecuted(MOS_COMMAND_BUFFER &cmdBuffer);
 
     MOS_STATUS PatchPictureLevelCommands(const uint8_t &packetPhase, MOS_COMMAND_BUFFER &cmdBuffer);
@@ -81,14 +77,6 @@ protected:
     virtual MOS_STATUS AllocateResources() override;
 
     MOS_STATUS RegisterPostCdef();
-
-    MOS_STATUS UpdateUserFeatureKey(PMOS_SURFACE surface);
-
-    MHW_SETPAR_DECL_HDR(AVP_PIC_STATE);
-
-    MHW_SETPAR_DECL_HDR(AVP_IND_OBJ_BASE_ADDR_STATE);
-
-    MHW_SETPAR_DECL_HDR(AVP_TILE_CODING);
 
     MOS_STATUS AddAllCmds_AVP_PIPE_MODE_SELECT(PMOS_COMMAND_BUFFER cmdBuffer) const;
 
@@ -98,7 +86,6 @@ protected:
     virtual MOS_STATUS DumpStatistics();
 #endif  // USE_CODECHAL_DEBUG_TOOL
 
-    bool                   m_userFeatureUpdated_post_cdef                  = false;    //!< Inidate if mmc user feature key for post cdef is updated
     uint16_t               m_tileColStartSb[64]                            = {};       //!< tile column start SB
     uint16_t               m_tileRowStartSb[64]                            = {};       //!< tile row start SB
 

@@ -192,6 +192,10 @@ protected:
 
     MOS_STATUS AddCondBBEndFor2ndPass(MOS_COMMAND_BUFFER &cmdBuffer);
 
+    virtual MOS_STATUS Construct3rdLevelBatch();
+
+    virtual MOS_STATUS UpdateUserFeatureKey(PMOS_SURFACE surface);
+
     virtual MOS_STATUS UpdateStatusReport(uint32_t srType, MOS_COMMAND_BUFFER *cmdBuffer) override;
 
     //!
@@ -275,6 +279,7 @@ protected:
 
     AtomicScratchBufferAv1 m_atomicScratchBuf = {};  //!< Stores atomic operands and result
 
+    bool m_userFeatureUpdated_post_cdef                 = false;    //!< Inidate if mmc user feature key for post cdef is updated
     bool m_vdencPakObjCmdStreamOutEnabled               = false;    //!< Pakobj stream out enable flag
     PMOS_RESOURCE m_resCumulativeCuCountStreamoutBuffer = nullptr;  //!< Cumulative CU count stream out buffer
     PMOS_RESOURCE m_vdencIntraRowStoreScratch           = nullptr;
@@ -321,6 +326,12 @@ protected:
     MHW_SETPAR_DECL_HDR(AVP_PIPE_MODE_SELECT);
 
     MHW_SETPAR_DECL_HDR(AVP_PIPE_BUF_ADDR_STATE);
+
+    MHW_SETPAR_DECL_HDR(AVP_IND_OBJ_BASE_ADDR_STATE);
+
+    MHW_SETPAR_DECL_HDR(AVP_PIC_STATE);
+
+    MHW_SETPAR_DECL_HDR(AVP_TILE_CODING);
 
     virtual MOS_STATUS AddAllCmds_AVP_SURFACE_STATE(PMOS_COMMAND_BUFFER cmdBuffer) const;
 

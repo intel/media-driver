@@ -82,10 +82,6 @@ namespace encode
             uint32_t            tileCol,
             uint32_t            tileRowPass = 0);
 
-        MOS_STATUS Construct3rdLevelBatch();
-
-        void UpdateParameters() override;
-
         MOS_STATUS EnsureAllCommandsExecuted(MOS_COMMAND_BUFFER &cmdBuffer);
         MOS_STATUS PatchPictureLevelCommands(const uint8_t &packetPhase, MOS_COMMAND_BUFFER  &cmdBuffer);
 
@@ -95,13 +91,6 @@ namespace encode
         virtual MOS_STATUS CalculateAvpCommandsSize() override;
 
         MOS_STATUS RegisterPostCdef();
-        MOS_STATUS UpdateUserFeatureKey(PMOS_SURFACE surface);
-
-        MHW_SETPAR_DECL_HDR(AVP_IND_OBJ_BASE_ADDR_STATE);
-
-        MHW_SETPAR_DECL_HDR(AVP_PIC_STATE);
-
-        MHW_SETPAR_DECL_HDR(AVP_TILE_CODING);
 
         MOS_STATUS AddAllCmds_AVP_SEGMENT_STATE(PMOS_COMMAND_BUFFER cmdBuffer) const;
 
@@ -110,8 +99,6 @@ namespace encode
 #if USE_CODECHAL_DEBUG_TOOL
         MOS_STATUS DumpStatistics();
 #endif  // USE_CODECHAL_DEBUG_TOOL
-
-        bool  m_userFeatureUpdated_post_cdef = false;  //!< Inidate if mmc user feature key for post cdef is updated
 
     private:
         uint16_t m_tileColStartSb[64];  //!< tile column start SB
