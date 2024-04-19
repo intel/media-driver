@@ -162,43 +162,4 @@ namespace encode
 
         return MOS_STATUS_SUCCESS;
     }
-
-    MHW_SETPAR_DECL_SRC(VDENC_AVC_IMG_STATE, AvcVdencBrcRoiFeature)
-    {
-        ENCODE_FUNC_CALL();
-        ENCODE_CHK_NULL_RETURN(m_brcFeature);
-
-        if (!m_brcFeature->IsVdencBrcEnabled())
-        {
-            return MOS_STATUS_SUCCESS;
-        }
-
-        ENCODE_CHK_NULL_RETURN(m_picParam);      
-        // Set BRC ROI only if native ROI is enabled
-        if (m_picParam->NumROI && m_picParam->bNativeROI)
-        {
-            int8_t priorityLevelOrDQp[ENCODE_VDENC_AVC_MAX_ROI_NUMBER_ADV] = {0};
-
-            for (uint8_t i = 0; i < m_picParam->NumROI; i++)
-            {
-
-                // clip delta qp roi to VDEnc supported range
-                if (m_picParam->ROIDistinctDeltaQp[i] == 0)
-                {
-                    break;
-                }
-                priorityLevelOrDQp[i] = (char)CodecHal_Clip3(
-                    ENCODE_VDENC_AVC_MIN_ROI_DELTA_QP_G9, ENCODE_VDENC_AVC_MAX_ROI_DELTA_QP_G9, m_picParam->ROIDistinctDeltaQp[i]);
-            }
-
-            params.roiEnable = true;
-
-            // Zone0 is reserved for non-ROI region
-            params.roiQpAdjustmentForZone1 = priorityLevelOrDQp[0];
-            params.roiQpAdjustmentForZone2 = priorityLevelOrDQp[1];
-            params.roiQpAdjustmentForZone3 = priorityLevelOrDQp[2];
-        }
-
-        return MOS_STATUS_SUCCESS;
-    }
 }
