@@ -1160,6 +1160,7 @@ private:
 
     virtual PVPHAL_SURFACE GetIntermediateSurface();
     virtual PVPHAL_SURFACE GetIntermediate1Surface();
+    virtual PVPHAL_SURFACE GetIntermediate2Surface();
     // Procamp
     int32_t                         m_iMaxProcampEntries;
     int32_t                         m_iProcampVersion;
@@ -1230,7 +1231,8 @@ protected:
     VPHAL_SURFACE                   m_IntermediateSurface1 = {};  //!< Intermediate surface (multiple phase / constriction support)
     VPHAL_SURFACE                   *m_Intermediate  = nullptr;   //!< Intermediate surface (multiple phase / constriction support)
     VPHAL_SURFACE                   *m_Intermediate1 = nullptr;   //!< Intermediate surface (multiple phase / constriction support)
-    VPHAL_SURFACE                   m_Intermediate2 = {};         //!< Rotation output intermediate surface
+    VPHAL_SURFACE                   *m_Intermediate2 = nullptr;   //!< Rotation output intermediate surface
+    VPHAL_SURFACE                   m_IntermediateSurface2 = {};  //!< Rotation output intermediate surface
     
     VPHAL_SURFACE                   m_AuxiliarySyncSurface = {};  //!< This Auxiliary surface is used to sync engine workload
 
