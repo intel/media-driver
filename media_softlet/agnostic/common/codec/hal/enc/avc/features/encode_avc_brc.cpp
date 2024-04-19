@@ -225,7 +225,7 @@ MOS_STATUS AvcEncodeBRC::AllocateResources()
     allocParamsForBufferLinear.dwBytes = sizeof(VdencBrcPakMmio);
     allocParamsForBufferLinear.pBufName = "VDENC BRC PAK MMIO Buffer";
     allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
-    m_basicFeature->m_recycleBuf->RegisterResource(VdencBrcPakMmioBuffer, allocParamsForBufferLinear, 1);
+    ENCODE_CHK_STATUS_RETURN(m_basicFeature->m_recycleBuf->RegisterResource(VdencBrcPakMmioBuffer, allocParamsForBufferLinear, 1));
 
     // Debug buffer
     allocParamsForBufferLinear.dwBytes  = MOS_ALIGN_CEIL(brcSettings.vdencBrcDbgBufferSize, CODECHAL_PAGE_SIZE);
