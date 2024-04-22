@@ -2762,6 +2762,10 @@ void mos_select_fixed_engine_xe(struct mos_bufmgr *bufmgr,
 
 }
 
+
+/**
+ * Note: xe kmd doesn't support query blob before dg2.
+ */
 static uint32_t *
 __mos_query_hw_config_xe(int fd)
 {
@@ -3179,13 +3183,20 @@ mos_get_driver_info_xe(struct mos_bufmgr *bufmgr, struct LinuxDriverInfo *drvInf
     //For XE driver always has ppgtt
     drvInfo->hasPpgtt = 1;
 
-    //query blob
-    MOS_DRM_CHK_XE_DEV(dev, hw_config, __mos_query_hw_config_xe, -ENODEV)
-    uint32_t *hw_config = &dev->hw_config[1];
-    uint32_t num_config = dev->hw_config[0];
-
-    if (hw_config)
+    /**
+     * query blob
+     * Note: xe kmd doesn't support query blob before dg2, so don't check null and return here.
+     */
+    if (dev->hw_config == nullptr)
     {
+        dev->hw_config = __mos_query_hw_config_xe(fd);
+    }
+
+    if (dev->hw_config)
+    {
+        uint32_t *hw_config = &dev->hw_config[1];
+        uint32_t num_config = dev->hw_config[0];
+
         while (i < num_config)
         {
             /* Attribute ID starts with 1 */
