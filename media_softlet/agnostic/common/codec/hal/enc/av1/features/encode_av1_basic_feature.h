@@ -158,7 +158,8 @@ public:
     bool                               m_enableSWBackAnnotation = true;                        //!< indicate whether SW back annotation enabled or not
     bool                               m_enableSWStitching = false;                             //!< indicate whether SW bitstream stitching enabled or not
     bool                               m_enableNonDefaultMapping = false;                       //!< indicate whether Non-default mapping enabled or not
-    bool                               m_adaptiveRounding   = false;                            //!< whether adaptive rounding will be enabled
+
+    RoundingMethod                     m_roundingMethod = fixedRounding;
     bool                               m_enableCDEF = false;
 
     uint32_t                           m_vdencTileSliceStart[av1MaxTileNum] = { 0 };           //!< VDEnc TILE_SLICE buffer offset array for every tile

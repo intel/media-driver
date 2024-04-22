@@ -989,7 +989,7 @@ namespace encode
         ENCODE_CHK_NULL_RETURN(av1Seqparams);
 
         // for BRC, adaptive rounding is done in HuC, so we can skip it here.
-        if (av1BasicFeature->m_adaptiveRounding && !IsRateControlBrc(av1Seqparams->RateControlMethod))
+        if (av1BasicFeature->m_roundingMethod == RoundingMethod::adaptiveRounding && !IsRateControlBrc(av1Seqparams->RateControlMethod))
         {
             uint32_t frameSizeIn8x8Units1 = ((av1BasicFeature->m_oriFrameWidth + 63) >> 6) * ((av1BasicFeature->m_oriFrameHeight + 63) >> 6);
             uint32_t frameSizeIn8x8Units2 = ((av1BasicFeature->m_oriFrameWidth + 7) >> 3) * ((av1BasicFeature->m_oriFrameHeight + 7) >> 3);
@@ -1032,52 +1032,57 @@ namespace encode
                 av1BasicFeature->m_par65Intra = 5;
             }
         }
-        else
+        else if (av1BasicFeature->m_roundingMethod == RoundingMethod::fixedRounding)
         {
             av1BasicFeature->m_par65Inter = 2;
             av1BasicFeature->m_par65Intra = 6;
         }
 
-#if _MEDIA_RESERVED
-        for (auto i = 0; i < 3; i++)
+        if (av1BasicFeature->m_roundingMethod == RoundingMethod::adaptiveRounding
+            || av1BasicFeature->m_roundingMethod == RoundingMethod::fixedRounding)
         {
-            params.vdencCmd2Par65[i][0][0] = av1BasicFeature->m_par65Intra;
-            params.vdencCmd2Par65[i][0][1] = av1BasicFeature->m_par65Intra;
-            params.vdencCmd2Par65[i][1][0] = av1BasicFeature->m_par65Inter;
-            params.vdencCmd2Par65[i][1][1] = av1BasicFeature->m_par65Inter;
-            params.vdencCmd2Par65[i][2][0] = av1BasicFeature->m_par65Inter;
-            params.vdencCmd2Par65[i][2][1] = av1BasicFeature->m_par65Inter;
-        }
+#if _MEDIA_RESERVED
+            for (auto i = 0; i < 3; i++)
+            {
+                params.vdencCmd2Par65[i][0][0] = av1BasicFeature->m_par65Intra;
+                params.vdencCmd2Par65[i][0][1] = av1BasicFeature->m_par65Intra;
+                params.vdencCmd2Par65[i][1][0] = av1BasicFeature->m_par65Inter;
+                params.vdencCmd2Par65[i][1][1] = av1BasicFeature->m_par65Inter;
+                params.vdencCmd2Par65[i][2][0] = av1BasicFeature->m_par65Inter;
+                params.vdencCmd2Par65[i][2][1] = av1BasicFeature->m_par65Inter;
+            }
 #else
-        params.extSettings.emplace_back(
-            [av1BasicFeature](uint32_t *data) {
-                uint8_t tmp0 = av1BasicFeature->m_par65Intra & 0xf;
-                uint8_t tmp1 = av1BasicFeature->m_par65Inter & 0xf;
+            params.extSettings.emplace_back(
+                [av1BasicFeature](uint32_t *data) {
+                    uint8_t tmp0 = av1BasicFeature->m_par65Intra & 0xf;
+                    uint8_t tmp1 = av1BasicFeature->m_par65Inter & 0xf;
 
-                data[32] |= (tmp1 << 16);
-                data[32] |= (tmp1 << 20);
-                data[32] |= (tmp0 << 24);
-                data[32] |= (tmp0 << 28);
+                    data[32] |= (tmp1 << 16);
+                    data[32] |= (tmp1 << 20);
+                    data[32] |= (tmp0 << 24);
+                    data[32] |= (tmp0 << 28);
 
-                data[33] |= tmp1;
-                data[33] |= (tmp1 << 4);
-                data[33] |= (tmp1 << 8);
-                data[33] |= (tmp1 << 12);
-                data[33] |= (tmp0 << 16);
-                data[33] |= (tmp0 << 20);
-                data[33] |= (tmp1 << 24);
-                data[33] |= (tmp1 << 28);
+                    data[33] |= tmp1;
+                    data[33] |= (tmp1 << 4);
+                    data[33] |= (tmp1 << 8);
+                    data[33] |= (tmp1 << 12);
+                    data[33] |= (tmp0 << 16);
+                    data[33] |= (tmp0 << 20);
+                    data[33] |= (tmp1 << 24);
+                    data[33] |= (tmp1 << 28);
 
-                data[34] |= tmp1;
-                data[34] |= (tmp1 << 4);
-                data[34] |= (tmp0 << 8);
-                data[34] |= (tmp0 << 12);
-                data[34] |= (tmp1 << 16);
-                data[34] |= (tmp1 << 20);
+                    data[34] |= tmp1;
+                    data[34] |= (tmp1 << 4);
+                    data[34] |= (tmp0 << 8);
+                    data[34] |= (tmp0 << 12);
+                    data[34] |= (tmp1 << 16);
+                    data[34] |= (tmp1 << 20);
 
-                return MOS_STATUS_SUCCESS;
-            });
-#endif  // _MEDIA_RESERVED
+                    return MOS_STATUS_SUCCESS;
+                });
+#endif  // _MEDIA_RESERVED  
+        }
+
 
         return MOS_STATUS_SUCCESS;
     }

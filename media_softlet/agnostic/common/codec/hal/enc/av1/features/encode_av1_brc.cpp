@@ -205,7 +205,7 @@ namespace encode
         dmem->UPD_CurWidth  = (uint16_t)m_basicFeature->m_oriFrameWidth;
         dmem->UPD_CurHeight = (uint16_t)m_basicFeature->m_oriFrameHeight;
         dmem->UPD_Asyn = 0;
-        dmem->UPD_EnableAdaptiveRounding = m_basicFeature->m_adaptiveRounding;
+        dmem->UPD_EnableAdaptiveRounding = (m_basicFeature->m_roundingMethod == RoundingMethod::adaptiveRounding);
 
         if (seqParams->GopRefDist == 8)
             dmem->UPD_MaxBRCLevel = 3;

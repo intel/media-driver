@@ -812,4 +812,10 @@ struct EncoderParamsAV1 : EncoderParams
     AV1MetaDataOffset AV1metaDataOffset  = {};       //!< [AV1] AV1 Specific metadata offset
 };
 
+enum RoundingMethod
+{
+    fixedRounding = 0,
+    adaptiveRounding,
+    lookUpTableRounding
+};
 #endif  // __CODEC_DEF_ENCODE_AV1_H__
