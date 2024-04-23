@@ -1146,7 +1146,7 @@ protected:
     DO_FIELD(DW6, TileStreaminOffset, params.tileStreamInOffset);                                                         \
                                                                                                                           \
     DO_FIELD(DW7, RowStoreOffsetEnable, cmd.DW4.TileStartCtbY == 0 ? params.tileEnable : 0);                              \
-    DO_FIELD(DW7, TileRowstoreOffset, cmd.DW4.TileStartCtbY == 0 ? cmd.DW4.TileStartCtbX / 32 : 0);                       \
+    DO_FIELD(DW7, TileRowstoreOffset, params.tileRowstoreOffset);                                                         \
                                                                                                                           \
     DO_FIELD(DW8, TileStreamoutOffsetEnable, params.tileEnable);                                                          \
     DO_FIELD(DW8, TileStreamoutOffset, params.tileId * 19);                                                               \

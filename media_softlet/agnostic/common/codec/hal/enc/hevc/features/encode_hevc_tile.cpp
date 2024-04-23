@@ -939,6 +939,7 @@ namespace encode
             }
 
             params.tileLCUStreamOutOffset = tileLCUStreamOutByteOffset;
+            params.tileRowstoreOffset     = (params.tileStartLCUY == 0) ? (params.tileStartLCUX * params.ctbSize) / 32 : 0;
         }
 
         return MOS_STATUS_SUCCESS;

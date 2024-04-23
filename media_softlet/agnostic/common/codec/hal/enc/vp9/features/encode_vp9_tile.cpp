@@ -681,6 +681,7 @@ MHW_SETPAR_DECL_SRC(VDENC_HEVC_VP9_TILE_SLICE_STATE, Vp9EncodeTile)
         params.tileEnable              = 1;
         params.tileStreamInOffset      = tileCodingParams.TileStreaminOffset;
         params.tileLCUStreamOutOffset  = tileCodingParams.TileLCUStreamOutOffset;
+        params.tileRowstoreOffset      = (params.tileStartLCUY == 0) ? (params.tileStartLCUX * params.ctbSize) / 32 : 0;
 
         params.VdencHEVCVP9TileSlicePar18 = 0;
         params.VdencHEVCVP9TileSlicePar19 = tileCodingParams.CumulativeCUTileOffset;

@@ -892,6 +892,7 @@ namespace encode
         params.tileLCUStreamOutOffset = m_curTileCodingParams.TileLCUStreamOutOffset;
         params.VdencHEVCVP9TileSlicePar18 = true;
         params.VdencHEVCVP9TileSlicePar19 = m_curTileCodingParams.CumulativeCUTileOffset;
+        params.tileRowstoreOffset = 0;
 
         return MOS_STATUS_SUCCESS;
     }
