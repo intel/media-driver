@@ -86,6 +86,14 @@ enum MHW_WALKER_MODE
     MHW_WALKER_MODE_OCT      = 8     // may apply in future Gen media architectures
 };
 
+enum MHW_EMIT_LOCAL_MODE
+{
+    MHW_EMIT_LOCAL_NONE = 0,
+    MHW_EMIT_LOCAL_X    = 1,
+    MHW_EMIT_LOCAL_XY   = 3,
+    MHW_EMIT_LOCAL_XYZ  = 7
+};
+
 struct MHW_RENDER_ENGINE_CAPS
 {
     uint32_t               dwMaxUnormSamplers              = 0;                    // Max UNORM Sampler States supported
@@ -377,6 +385,12 @@ struct _MHW_PAR_T(COMPUTE_WALKER)
     MemoryBlock               *memoryBlock                  = nullptr; //! Memory block associated with the state heap
     MOS_RESOURCE              *postsyncResource             = nullptr;
     uint32_t                  resourceOffset                = 0;
+    bool                      isEmitInlineParameter         = false;
+    uint32_t                  inlineDataLength              = 0;
+    uint8_t                   *inlineData                   = nullptr;
+    bool                      isGenerateLocalId             = false;
+    MHW_EMIT_LOCAL_MODE       emitLocal                     = MHW_EMIT_LOCAL_NONE;
+    
 };
 
 struct _MHW_PAR_T(STATE_COMPUTE_MODE)

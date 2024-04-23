@@ -719,8 +719,8 @@ void VpPlatformInterface::InitVpDelayedNativeAdvKernel(
 
     vpKernel.SetKernelBinPointer((void *)kernelBin);
     vpKernel.SetKernelName(kernelName);
-    vpKernel.SetKernelBinOffset(0x0);
-    vpKernel.SetKernelBinSize(kernelBinSize);
+    vpKernel.SetKernelBinOffset(kernelExeEnv.uOffsetToSkipPerThreadDataLoad);
+    vpKernel.SetKernelBinSize(kernelBinSize - kernelExeEnv.uOffsetToSkipPerThreadDataLoad);
     vpKernel.SetKernelExeEnv(kernelExeEnv);
     vpKernel.SetKernelCurbeSize(kernelCurbeSize);
 

@@ -106,6 +106,18 @@ typedef struct _KERNEL_WALKER_PARAMS
     bool                                isGroupStartInvolvedInGroupSize;    // true if group start need be involved in the group size.
     bool                                calculateBlockXYByAlignedRect;      // true if iBlocksX/iBlocksY is calculated by alignedRect in RenderCmdPacket instead of kernel object.
     bool                                forcePreferredSLMZero;              // true if preferredSLM need force to 0.
+
+    bool                                isEmitInlineParameter;
+    uint32_t                            inlineDataLength;
+    uint8_t*                            inlineData;
+
+    uint32_t                            threadWidth;
+    uint32_t                            threadHeight;
+    uint32_t                            threadDepth;
+
+    bool                                isGenerateLocalID;
+    MHW_EMIT_LOCAL_MODE                 emitLocal;
+    
 }KERNEL_WALKER_PARAMS, * PKERNEL_WALKER_PARAMS;
 
 typedef struct _KERNEL_PACKET_RENDER_DATA

@@ -41,6 +41,8 @@
 #define MHW_RENDER_ENGINE_INTERFACE_DESCRIPTOR_ENTRIES_MAX  64
 #define MHW_RENDER_ENGINE_EU_INDEX_MAX                      12
 #define MHW_RENDER_ENGINE_SIZE_REGISTERS_PER_THREAD         0x1800
+#define MHW_RENDER_ENGINE_NUMBER_OF_THREAD_UNIT             32
+#define MHW_RENDER_ENGINE_MAX_NUMBER_OF_THREAD              (1024 / MHW_RENDER_ENGINE_NUMBER_OF_THREAD_UNIT)
 
 #define MHW_MAX_DEPENDENCY_COUNT                    8
 
@@ -96,6 +98,14 @@ typedef enum _MHW_WALKER_MODE
     MHW_WALKER_MODE_HEX     = 6,    // applies in BDW GT2 which has 2 slices and 3 sampler/VME per slice
     MHW_WALKER_MODE_OCT     = 8     // may apply in future Gen media architectures
 } MHW_WALKER_MODE;
+
+typedef enum _MHW_EMIT_LOCAL_MODE
+{
+    MHW_EMIT_LOCAL_NONE = 0,
+    MHW_EMIT_LOCAL_X    = 1,
+    MHW_EMIT_LOCAL_XY   = 3,
+    MHW_EMIT_LOCAL_XYZ  = 7
+} MHW_EMIT_LOCAL_MODE;
 
 //!
 //! \brief  Structure to capture HW capabilities
@@ -290,6 +300,14 @@ typedef struct _MHW_GPGPU_WALKER_PARAMS
     uint32_t                   IndirectDataStartAddress;
     uint32_t                   BindingTableID;
     uint32_t                   ForcePreferredSLMZero;
+
+    bool                       isEmitInlineParameter;
+    uint32_t                   inlineDataLength;
+    uint8_t*                   inlineData;
+
+    bool                       isGenerateLocalID;
+    MHW_EMIT_LOCAL_MODE        emitLocal;
+    
 } MHW_GPGPU_WALKER_PARAMS, *PMHW_GPGPU_WALKER_PARAMS;
 
 typedef struct _MHW_MEDIA_OBJECT_PARAMS

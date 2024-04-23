@@ -353,6 +353,7 @@ public:
     {
         VP_PUBLIC_CHK_STATUS_RETURN(GetCurbeState(curbe, curbeLength));
         VP_PUBLIC_CHK_STATUS_RETURN(GetAlignedLength(curbeLength, curbeLengthAligned, kernelParam, dwBlockAlign));
+        PrintCurbe(static_cast<uint8_t *>(curbe), curbeLength);
         return MOS_STATUS_SUCCESS;
     }
 
@@ -401,6 +402,8 @@ public:
     }
 
     virtual void DumpSurface(VP_SURFACE *pSurface,PCCHAR fileName);
+
+    virtual void PrintCurbe(uint8_t *pCurbe, uint32_t curbeLength);
 
     // Kernel Common configs
     virtual MOS_STATUS GetKernelSettings(RENDERHAL_KERNEL_PARAM &settsings)
@@ -488,6 +491,11 @@ public:
         return m_isAdvKernel;
     }
 
+    bool UseIndependentSamplerGroup()
+    {
+        return m_useIndependentSamplerGroup;
+    }
+
     virtual MOS_STATUS SetSamplerStates(KERNEL_SAMPLER_STATE_GROUP& samplerStateGroup);
 
     virtual MOS_STATUS UpdateCompParams()
@@ -566,6 +574,7 @@ protected:
     PKERNEL_TUNING_PARAMS                                   m_kernelTuningParams = nullptr;
 
     bool                                                    m_isAdvKernel = false;      // true mean multi kernel can be submitted in one workload.
+    bool                                                    m_useIndependentSamplerGroup = false; //true means multi kernels has their own stand alone sampler states group. only can be true when m_isAdvKernel is true.
 
     std::shared_ptr<mhw::vebox::Itf>                        m_veboxItf = nullptr;
 

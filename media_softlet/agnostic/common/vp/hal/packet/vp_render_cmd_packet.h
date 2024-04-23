@@ -72,6 +72,7 @@ public:
     virtual MOS_STATUS DumpOutput() override;
 
     void PrintWalkerParas(MHW_WALKER_PARAMS &WalkerParams);
+    void PrintWalkerParas(MHW_GPGPU_WALKER_PARAMS &WalkerParams);
 
     virtual MOS_STATUS SetHdrParams(PRENDER_HDR_PARAMS params);
     virtual bool IsRenderUncompressedWriteNeeded(PVP_SURFACE VpSurface);

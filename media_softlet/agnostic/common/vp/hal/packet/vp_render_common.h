@@ -64,7 +64,10 @@ enum KRN_ARG_KIND
     ARG_KIND_IMPLICIT_LOCALID       = 0x10,
     ARG_KIND_GENERAL_DEPVEC         = 0x20,
     ARG_KIND_SURFACE_2D_SCOREBOARD  = 0x2A,
-    ARG_KIND_GENERAL_DEPCNT         = 0x30
+    ARG_KIND_GENERAL_DEPCNT         = 0x30,
+
+    //For L0 used only
+    ARG_KIND_INLINE                 = 0xa00
 };
 
 struct KRN_ARG
@@ -99,6 +102,9 @@ struct KRN_EXECUTE_ENV
     uint32_t uEuThreadCount;
     bool     bHasFenceForImageAccess;
     bool     bHasSample;
+    bool     bHas4GBBuffers;
+    uint8_t  uiWorkGroupWalkOrderDimensions[3];
+    uint64_t uiPrivateSize;
 };
 
 using SurfaceIndex = uint32_t;

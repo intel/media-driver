@@ -24,6 +24,7 @@
 //! \brief    vp render kernel base object.
 //! \details  vp render kernel base object will provided interface where sub kernels processing ways
 //!
+#include <iomanip>
 #include "vp_render_kernel_obj.h"
 #include "vp_dumper.h"
 #include "hal_oca_interface_next.h"
@@ -145,7 +146,11 @@ MOS_STATUS VpRenderKernelObj::SetKernelConfigs(
 
     VP_RENDER_CHK_STATUS_RETURN(SetProcessSurfaceGroup(surfaces));
 
-    VP_RENDER_CHK_STATUS_RETURN(SetSamplerStates(samplerStateGroup));
+    // when UseIndependentSamplerGroup is true, each kernel will set their own sampler state group in VpRenderCmdPacket::SetupSamplerStates()
+    if (!UseIndependentSamplerGroup())
+    {
+        VP_RENDER_CHK_STATUS_RETURN(SetSamplerStates(samplerStateGroup));
+    }
 
     VP_RENDER_CHK_STATUS_RETURN(SetWalkerSetting(kernelParams.kernelThreadSpace, kernelParams.syncFlag,kernelParams.flushL1));
 
@@ -545,6 +550,33 @@ finish:
     return eStatus;
 }
 
+void VpRenderKernelObj::PrintCurbe(uint8_t* pCurbe, uint32_t curbeLength)
+{
+#if (_DEBUG || _RELEASE_INTERNAL)
+    std::string curbeString = "";
+    if (curbeLength > 0 && pCurbe != nullptr)
+    {
+        for (uint32_t i = 0; i < curbeLength; ++i)
+        {
+            uint8_t           iData = pCurbe[i];
+            std::stringstream hex;
+            if (i % 8 == 0)
+            {
+                hex << "offset " << std::setw(3) << std::setfill('0') << i << ": ";
+            }
+            hex << "0x" << std::hex << std::setfill('0') << std::setw(2) << static_cast<int>(iData) << " ";
+            curbeString += hex.str();
+            if (i % 8 == 7)
+            {
+                curbeString += "\n";
+            }
+        }
+    }
+    VP_RENDER_VERBOSEMESSAGE("Curbe Data Length = %d, Content = \n%s",
+        curbeLength,
+        curbeString.c_str());
+#endif
+}
 
 void VpRenderKernelObj::DumpSurface(VP_SURFACE* pSurface, PCCHAR fileName)
 {

@@ -1155,7 +1155,20 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::SendComputeWalker(
                                        pGpGpuWalkerParams->InterfaceDescriptorOffset * pRenderHal->pStateHeap->dwSizeSamplers;
     mhwIdEntryParams.dwBindingTableOffset          = pGpGpuWalkerParams->BindingTableID * pRenderHal->pStateHeap->iBindingTableSize;
     mhwIdEntryParams.dwSharedLocalMemorySize       = pGpGpuWalkerParams->SLMSize;
-    mhwIdEntryParams.dwNumberofThreadsInGPGPUGroup = pGpGpuWalkerParams->ThreadWidth * pGpGpuWalkerParams->ThreadHeight;
+    if (pGpGpuWalkerParams->isGenerateLocalID && pGpGpuWalkerParams->emitLocal != MHW_EMIT_LOCAL_NONE)
+    {
+        //When COMPUTE_WALKER Emit Local ID is enabled, thread group number need to divide MHW_RENDER_ENGINE_NUMBER_OF_THREAD_UNIT
+        mhwIdEntryParams.dwNumberofThreadsInGPGPUGroup = pGpGpuWalkerParams->ThreadWidth * pGpGpuWalkerParams->ThreadHeight / MHW_RENDER_ENGINE_NUMBER_OF_THREAD_UNIT;
+        if (mhwIdEntryParams.dwNumberofThreadsInGPGPUGroup > MHW_RENDER_ENGINE_MAX_NUMBER_OF_THREAD)
+        {
+            MHW_RENDERHAL_ASSERTMESSAGE("Number of Threads In GpGpuGroup %d Exceeds the Max Number %d", mhwIdEntryParams.dwNumberofThreadsInGPGPUGroup, MHW_RENDER_ENGINE_MAX_NUMBER_OF_THREAD);
+            MHW_RENDERHAL_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+        }
+    }
+    else
+    {
+        mhwIdEntryParams.dwNumberofThreadsInGPGPUGroup = pGpGpuWalkerParams->ThreadWidth * pGpGpuWalkerParams->ThreadHeight;
+    }
     //This only a WA to disable EU fusion for multi-layer blending cases or single layer do colorfill and rotation together.
     //Need remove it after kernel or compiler fix it.
     mhwIdEntryParams.bBarrierEnable              = pRenderHal->eufusionBypass ? 1 : 0;
@@ -1490,6 +1503,16 @@ MHW_SETPAR_DECL_SRC(COMPUTE_WALKER, XRenderHal_Platform_Interface_Next)
     {
         params.GroupDepth = 1;
     }
+
+    params.isEmitInlineParameter = m_gpgpuWalkerParams->isEmitInlineParameter;
+    if (m_gpgpuWalkerParams->inlineDataLength > 0 && m_gpgpuWalkerParams->inlineData)
+    {
+        params.inlineDataLength = m_gpgpuWalkerParams->inlineDataLength;
+        params.inlineData       = m_gpgpuWalkerParams->inlineData;
+    }
+
+    params.isGenerateLocalId = m_gpgpuWalkerParams->isGenerateLocalID;
+    params.emitLocal         = mhw::render::MHW_EMIT_LOCAL_MODE(m_gpgpuWalkerParams->emitLocal);
 
     return MOS_STATUS_SUCCESS;
 }
