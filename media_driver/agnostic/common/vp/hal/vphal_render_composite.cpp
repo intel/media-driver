@@ -1944,8 +1944,11 @@ bool CompositeState::AddCompTarget(
     PVPHAL_COMPOSITE_PARAMS     pComposite,
     PVPHAL_SURFACE              pTarget)
 {
-    bool    bResult;
-
+    bool    bResult = false;
+    if (nullptr == pTarget)
+    {
+        return bResult;
+    }
     // Set render target
     pComposite->Target[0] = *pTarget;
 
