@@ -504,7 +504,7 @@ MOS_STATUS HevcPipeline::DumpSliceParams(
             if (shortFormatInUse)
             {
                 PCODEC_HEVC_SF_SLICE_PARAMS slcParamsSF =
-                    (PCODEC_HEVC_SF_SLICE_PARAMS)MOS_AllocMemory(sizeof(PCODEC_HEVC_SF_SLICE_PARAMS) * numSlices);
+                    (PCODEC_HEVC_SF_SLICE_PARAMS)MOS_AllocMemory(sizeof(CODEC_HEVC_SF_SLICE_PARAMS) * numSlices);
 
                 for (uint16_t i = 0; i < numSlices; i++)
                 {
