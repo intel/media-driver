@@ -405,6 +405,11 @@ public:
 
     void DisableRender();
 
+    virtual int GetModelConfig(int eu, int width, int height)
+    {
+        return 0;
+    };
+
 protected:
     PMOS_INTERFACE m_pOsInterface = nullptr;
     VP_KERNEL_BINARY m_vpKernelBinary = {};                 //!< vp kernels
