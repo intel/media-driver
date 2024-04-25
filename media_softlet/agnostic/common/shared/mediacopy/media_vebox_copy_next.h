@@ -94,7 +94,7 @@ public:
     //!           Pointer to Output Surface parameters
     //! \return   true if supported, else false.
     //!
-    bool IsFormatSupported(PMOS_RESOURCE surface);
+    virtual bool IsFormatSupported(PMOS_RESOURCE surface);
 
     //!
     //! \brief    Setup Vebox_Surface_State Command parameter
