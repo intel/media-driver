@@ -57,6 +57,7 @@ typedef enum _PerfGPUNode
     PERF_GPU_NODE_BLT    = 2,
     PERF_GPU_NODE_VE     = 3,
     PERF_GPU_NODE_VIDEO2 = 4,
+    PERF_GPU_NODE_TEE    = 6,
     PERF_GPU_NODE_UNKNOW = 0xFF
 }PerfGPUNode;
 
