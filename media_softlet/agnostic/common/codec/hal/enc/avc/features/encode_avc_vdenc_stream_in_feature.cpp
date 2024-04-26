@@ -84,12 +84,14 @@ MOS_STATUS AvcVdencStreamInFeature::Update(void* setting)
         allocParams.Type = MOS_GFXRES_BUFFER;
         allocParams.TileType = MOS_TILE_LINEAR;
         allocParams.Format = Format_Buffer;
-        allocParams.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_WRITE;
+        allocParams.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
+        allocParams.bIsPersistent = true;
+        allocParams.dwMemType = MOS_MEMPOOL_VIDEOMEMORY;
 
         m_widthInMb = m_basicFeature->m_picWidthInMb;
         m_heightInMb = m_basicFeature->m_picHeightInMb;
 
-        allocParams.dwBytes = m_widthInMb * m_heightInMb * AvcVdencStreamInState::byteSize;
+        allocParams.dwBytes = MOS_ALIGN_CEIL(m_widthInMb * m_heightInMb * AvcVdencStreamInState::byteSize, CODECHAL_CACHELINE_SIZE);
         allocParams.pBufName = "AVC VDEnc StreamIn Data Buffer";
 
         ENCODE_CHK_STATUS_RETURN(m_basicFeature->m_recycleBuf->RegisterResource(RecycleResId::StreamInBuffer, allocParams));

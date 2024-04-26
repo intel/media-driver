@@ -56,9 +56,11 @@ namespace encode
             allocParams.Type = MOS_GFXRES_BUFFER;
             allocParams.TileType = MOS_TILE_LINEAR;
             allocParams.Format = Format_Buffer;
-            allocParams.dwBytes = m_basicFeature->m_picWidthInMb * m_basicFeature->m_picHeightInMb;
+            allocParams.dwBytes = MOS_ALIGN_CEIL(m_basicFeature->m_picWidthInMb * m_basicFeature->m_picHeightInMb, CODECHAL_CACHELINE_SIZE);
             allocParams.pBufName = "VDENC BRC ROI Map Buffer";
-            allocParams.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_WRITE;
+            allocParams.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
+            allocParams.bIsPersistent = true;
+            allocParams.dwMemType = MOS_MEMPOOL_VIDEOMEMORY;
             ENCODE_CHK_STATUS_RETURN(m_basicFeature->m_recycleBuf->RegisterResource(RecycleResId::HucRoiMapBuffer, allocParams));
         }
 
