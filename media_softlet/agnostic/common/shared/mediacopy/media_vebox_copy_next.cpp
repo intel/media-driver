@@ -121,7 +121,7 @@ MOS_STATUS VeboxCopyStateNext::CopyMainSurface(PMOS_RESOURCE src, PMOS_RESOURCE 
     outputSurface.OsResource = *dst;
     GetResourceInfo(&outputSurface);
 
-    if (!IsFormatSupported(&inputSurface))
+    if (!IsVeCopySupportedFormat(&inputSurface))
     {
         VEBOX_COPY_ASSERTMESSAGE("UnSupported Format.");
         return MOS_STATUS_UNIMPLEMENTED;
@@ -239,7 +239,7 @@ MOS_STATUS VeboxCopyStateNext::CopyMainSurface(PMOS_RESOURCE src, PMOS_RESOURCE 
     return eStatus;
 }
 
-bool VeboxCopyStateNext::IsFormatSupported(PMOS_RESOURCE surface)
+bool VeboxCopyStateNext::IsSurfaceSupported(PMOS_RESOURCE surface)
 {
     bool supported = false;
     MOS_SURFACE inputSurface;
@@ -254,7 +254,7 @@ bool VeboxCopyStateNext::IsFormatSupported(PMOS_RESOURCE surface)
     inputSurface.OsResource = *surface;
     GetResourceInfo(&inputSurface);
 
-    supported = IsFormatSupported(&inputSurface);
+    supported = IsVeCopySupportedFormat(&inputSurface);
 
     if (inputSurface.TileType == MOS_TILE_LINEAR &&
         (inputSurface.dwPitch % 64))
@@ -537,7 +537,7 @@ MOS_STATUS VeboxCopyStateNext::InitCommandBuffer(PMOS_COMMAND_BUFFER cmdBuffer)
     return eStatus;
 }
 
-bool VeboxCopyStateNext::IsFormatSupported(PMOS_SURFACE surface)
+bool VeboxCopyStateNext::IsVeCopySupportedFormat(PMOS_SURFACE surface)
 {
     bool    bRet = false;
 

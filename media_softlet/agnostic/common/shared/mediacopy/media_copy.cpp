@@ -124,7 +124,12 @@ MOS_STATUS MediaCopyBaseState::Initialize(PMOS_INTERFACE osInterface)
 //! \return   MOS_STATUS
 //!           Return MOS_STATUS_SUCCESS if support, otherwise return unspoort.
 //!
-MOS_STATUS MediaCopyBaseState::CapabilityCheck(MCPY_STATE_PARAMS &mcpySrc, MCPY_STATE_PARAMS &mcpyDst, MCPY_ENGINE_CAPS &caps, MCPY_METHOD preferMethod)
+MOS_STATUS MediaCopyBaseState::CapabilityCheck(
+    MOS_FORMAT         format,
+    MCPY_STATE_PARAMS &mcpySrc,
+    MCPY_STATE_PARAMS &mcpyDst,
+    MCPY_ENGINE_CAPS  &caps,
+    MCPY_METHOD        preferMethod)
 {
     // derivate class specific check. include HW engine avaliable check.
     MCPY_CHK_STATUS_RETURN(FeatureSupport(mcpySrc.OsRes, mcpyDst.OsRes, mcpySrc, mcpyDst, caps));
@@ -143,6 +148,11 @@ MOS_STATUS MediaCopyBaseState::CapabilityCheck(MCPY_STATE_PARAMS &mcpySrc, MCPY_
         mcpySrc.bAuxSuface)
     {
         caps.engineVebox = false;
+        // temp solution for FP16 enabling on new platform
+        if (format == Format_A16B16G16R16F || format == Format_A16R16G16B16F)
+        {
+            return MOS_STATUS_UNIMPLEMENTED;
+        }
     }
 
     // Eu cap check.
@@ -256,6 +266,8 @@ uint32_t GetMinRequiredSurfaceSizeInBytes(uint32_t pitch, uint32_t height, MOS_F
     case Format_L8:
     case Format_A8:
     case Format_Y16U:
+    case Format_A16B16G16R16F:
+    case Format_A16R16G16B16F:
         nBytes = pitch * height;
         break;
     default:
@@ -418,7 +430,9 @@ MOS_STATUS MediaCopyBaseState::SurfaceCopy(PMOS_RESOURCE src, PMOS_RESOURCE dst,
 
     MCPY_CHK_STATUS_RETURN(PreCheckCpCopy(mcpySrc, mcpyDst, preferMethod));
 
-    MCPY_CHK_STATUS_RETURN(CapabilityCheck(mcpySrc, mcpyDst, mcpyEngineCaps, preferMethod));
+    MCPY_CHK_STATUS_RETURN(CapabilityCheck(SrcResDetails.Format,
+        mcpySrc, mcpyDst,
+        mcpyEngineCaps, preferMethod));
 
     CopyEnigneSelect(preferMethod, mcpyEngine, mcpyEngineCaps);
 
