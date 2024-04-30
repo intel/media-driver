@@ -485,3 +485,10 @@ static bool dg2Gt4Device56C1 = DeviceInfoFactory<GfxDeviceInfo>::
 
 static bool dg2Gt4Device56C2 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x56C2, &dg2Gt4Info);
+
+static bool dg2Gt4Device56BE = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x56BE, &dg2Gt4Info);
+
+static bool dg2Gt4Device56BF = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x56BF, &dg2Gt4Info);
+
