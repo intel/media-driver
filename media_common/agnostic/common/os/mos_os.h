@@ -251,6 +251,7 @@ typedef enum _MOS_VEBOX_NODE_IND
 typedef int32_t MOS_SUBMISSION_TYPE;
 
 #define EXTRA_PADDING_NEEDED                            4096
+#define MEDIA_CMF_UNCOMPRESSED_WRITE                    0xC
 
 //!
 //! \brief Structure to command buffer
@@ -514,6 +515,8 @@ struct MosStreamState
 
     bool mediaReset                             = false;    //!< Flag to indicate media reset is enabled
 
+    bool forceMediaCompressedWrite              = false;    //!< Flag to force media compressed write
+
     bool simIsActive                            = false;    //!< Flag to indicate if Simulation is enabled
     MOS_NULL_RENDERING_FLAGS nullHwAccelerationEnable = {}; //!< To indicate which components to enable Null HW support
 
@@ -683,6 +686,8 @@ typedef struct _MOS_INTERFACE
     TRINITY_PATH                    trinityPath;
 
     bool                            umdMediaResetEnable;
+
+    bool                            forceMediaCompressedWrite;
 
 #if MOS_MEDIASOLO_SUPPORTED
     // MediaSolo related

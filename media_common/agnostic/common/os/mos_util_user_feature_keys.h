@@ -77,6 +77,7 @@
 
 #define __MEDIA_USER_FEATURE_VALUE_MEDIA_RESET_ENABLE                   "Media Reset"
 #define __MEDIA_USER_FEATURE_VALUE_FORCE_RESET_THRESHOLD                "Force media reset threshold"
+#define __MEDIA_USER_FEATURE_VALUE_FORCE_MEDIA_COMPRESSED_WRITE         "Force Media Compressed Write"
 
 //!
 //! \brief Keys for media

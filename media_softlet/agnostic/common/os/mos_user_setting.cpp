@@ -921,6 +921,13 @@ MOS_STATUS MosUserSetting::InitUserSettingForDebug(MediaUserSettingSharedPtr use
 
     DeclareUserSettingKeyForDebug(
         userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_FORCE_MEDIA_COMPRESSED_WRITE,
+        MediaUserSetting::Group::Device,
+        0,
+        true); //"If enabled, then to disable Unifined CMF."
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
         __MEDIA_USER_FEATURE_VALUE_FORCE_RESET_THRESHOLD,
         MediaUserSetting::Group::Device,
         0,

@@ -598,9 +598,16 @@ MOS_STATUS VpRenderFcKernel::InitRenderHalSurface(
 
     VP_RENDER_CHK_STATUS_RETURN(osInterface->pfnGetMemoryCompressionMode(osInterface,
         &src->surf->osSurface->OsResource, &renderHalSurface->OsSurface.MmcState));
-
-    VP_RENDER_CHK_STATUS_RETURN(osInterface->pfnGetMemoryCompressionFormat(osInterface,
-        &src->surf->osSurface->OsResource, &renderHalSurface->OsSurface.CompressionFormat));
+    
+    if (m_hwInterface->m_waTable && MEDIA_IS_WA(m_hwInterface->m_waTable, Wa_16023363837))
+    {
+        VP_RENDER_CHK_STATUS_RETURN(InitRenderHalSurfaceCMF(src->surf->osSurface, renderHalSurface));
+    }
+    else
+    {
+        VP_RENDER_CHK_STATUS_RETURN(osInterface->pfnGetMemoryCompressionFormat(osInterface,
+            &src->surf->osSurface->OsResource, &renderHalSurface->OsSurface.CompressionFormat));
+    }
 
     renderHalSurface->rcSrc                        = src->surf->rcSrc;
     renderHalSurface->rcDst                        = src->surf->rcDst;

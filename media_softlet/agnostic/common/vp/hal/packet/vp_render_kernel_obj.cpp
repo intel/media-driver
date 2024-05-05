@@ -107,6 +107,34 @@ void VpRenderKernelObj::OcaDumpKernelInfo(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CON
     HalOcaInterfaceNext::DumpVpKernelInfo(cmdBuffer, (MOS_CONTEXT_HANDLE)&mosContext, m_kernelId, 0, nullptr);
 }
 
+MOS_STATUS VpRenderKernelObj::InitRenderHalSurfaceCMF(MOS_SURFACE* src, PRENDERHAL_SURFACE renderHalSurface)
+{
+    PMOS_INTERFACE        osInterface = m_hwInterface->m_osInterface;
+    VP_RENDER_CHK_NULL_RETURN(osInterface);
+#if !EMUL
+    PGMM_RESOURCE_INFO pGmmResourceInfo;
+    pGmmResourceInfo = (GMM_RESOURCE_INFO *)src->OsResource.pGmmResInfo;
+    MOS_OS_CHK_NULL_RETURN(pGmmResourceInfo);
+
+    GMM_RESOURCE_FORMAT gmmResFmt;
+    gmmResFmt = pGmmResourceInfo->GetResourceFormat();
+    uint32_t          MmcFormat = 0;
+
+    MmcFormat = static_cast<uint32_t>(osInterface->pfnGetGmmClientContext(osInterface)->GetMediaSurfaceStateCompressionFormat(gmmResFmt));
+
+    if (MmcFormat > 0x1F)
+    {
+        MOS_OS_ASSERTMESSAGE("Get a incorrect Compression format(%d) from GMM", MmcFormat);
+    }
+    else
+    {
+        renderHalSurface->OsSurface.CompressionFormat = MmcFormat;
+        MOS_OS_VERBOSEMESSAGE("Render Enigien compression format %d", MmcFormat);
+    }
+#endif
+    return MOS_STATUS_SUCCESS;
+}
+
 // Only for Adv kernels.
 MOS_STATUS VpRenderKernelObj::SetWalkerSetting(KERNEL_THREAD_SPACE &threadSpace, bool bSyncFlag, bool flushL1)
 {
