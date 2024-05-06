@@ -83,7 +83,6 @@ namespace encode
             uint32_t            tileRowPass = 0);
 
         MOS_STATUS EnsureAllCommandsExecuted(MOS_COMMAND_BUFFER &cmdBuffer);
-        MOS_STATUS PatchPictureLevelCommands(const uint8_t &packetPhase, MOS_COMMAND_BUFFER  &cmdBuffer);
 
         virtual MOS_STATUS AllocateResources() override;
 
@@ -91,14 +90,6 @@ namespace encode
         virtual MOS_STATUS CalculateAvpCommandsSize() override;
 
         MOS_STATUS RegisterPostCdef();
-
-        MOS_STATUS AddAllCmds_AVP_SEGMENT_STATE(PMOS_COMMAND_BUFFER cmdBuffer) const;
-
-        MOS_STATUS AddAllCmds_AVP_PIPE_MODE_SELECT(PMOS_COMMAND_BUFFER cmdBuffer) const;
-
-#if USE_CODECHAL_DEBUG_TOOL
-        MOS_STATUS DumpStatistics();
-#endif  // USE_CODECHAL_DEBUG_TOOL
 
     private:
         uint16_t m_tileColStartSb[64];  //!< tile column start SB
