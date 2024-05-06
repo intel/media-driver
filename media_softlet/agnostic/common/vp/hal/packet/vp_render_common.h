@@ -44,6 +44,8 @@ struct KERNEL_THREAD_SPACE
 {
     uint32_t uWidth;
     uint32_t uHeight;
+    uint32_t uLocalWidth;
+    uint32_t uLocalHeight;
 };
 
 // Need to consistant with compiler

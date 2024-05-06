@@ -65,6 +65,8 @@ public:
 
     virtual MOS_STATUS SetFcParams(PRENDER_FC_PARAMS params);
 
+    virtual MOS_STATUS SetL0FcParams(PRENDER_L0_FC_PARAMS params);
+
     virtual MOS_STATUS SetHdr3DLutParams(PRENDER_HDR_3DLUT_CAL_PARAMS params);
 
     virtual MOS_STATUS SetDnHVSParams(PRENDER_DN_HVS_CAL_PARAMS params);

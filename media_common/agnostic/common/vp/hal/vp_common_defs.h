@@ -184,6 +184,8 @@ enum VpKernelID
     // mediacopy-render copy
     kernelRenderCopy,
 
+    kernelFcDScale444,
+
     baseKernelMaxNumID
 };
 

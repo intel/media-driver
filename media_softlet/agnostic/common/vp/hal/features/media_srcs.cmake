@@ -1,4 +1,4 @@
-# Copyright (c) 2019-2022, Intel Corporation
+# Copyright (c) 2019-2024, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,6 +18,8 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
+media_include_subdirectory(kernel_args)
+
 set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/vp_csc_filter.cpp
     ${CMAKE_CURRENT_LIST_DIR}/vp_filter.cpp
@@ -32,6 +34,7 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/vp_di_filter.cpp
     ${CMAKE_CURRENT_LIST_DIR}/vp_fc_filter.cpp
     ${CMAKE_CURRENT_LIST_DIR}/vp_cgc_filter.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/vp_l0_fc_filter.cpp
 )
 
 set(TMP_HEADERS_
@@ -48,6 +51,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/vp_di_filter.h
     ${CMAKE_CURRENT_LIST_DIR}/vp_fc_filter.h
     ${CMAKE_CURRENT_LIST_DIR}/vp_cgc_filter.h
+    ${CMAKE_CURRENT_LIST_DIR}/vp_l0_fc_filter.h
 )
 
 set(SOFTLET_VP_SOURCES_

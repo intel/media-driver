@@ -192,45 +192,7 @@ MOS_STATUS Policy::RegisterFeatures()
     VP_PUBLIC_CHK_NULL_RETURN(p);
     m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeDiFmdOnRender, p));
 
-    p = MOS_New(PolicyFcHandler, m_hwCaps);
-    VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeFcOnRender, p));
-
-    p = MOS_New(PolicyFcFeatureHandler, m_hwCaps);
-    VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeLumakeyOnRender, p));
-
-    p = MOS_New(PolicyFcFeatureHandler, m_hwCaps);
-    VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeBlendingOnRender, p));
-
-    p = MOS_New(PolicyFcFeatureHandler, m_hwCaps);
-    VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeColorFillOnRender, p));
-
-    p = MOS_New(PolicyFcFeatureHandler, m_hwCaps);
-    VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeAlphaOnRender, p));
-
-    p = MOS_New(PolicyFcFeatureHandler, m_hwCaps);
-    VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeCscOnRender, p));
-
-    p = MOS_New(PolicyFcFeatureHandler, m_hwCaps);
-    VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeScalingOnRender, p));
-
-    p = MOS_New(PolicyFcFeatureHandler, m_hwCaps);
-    VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeRotMirOnRender, p));
-
-    p = MOS_New(PolicyFcFeatureHandler, m_hwCaps);
-    VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeDiOnRender, p));
-
-    p = MOS_New(PolicyFcFeatureHandler, m_hwCaps);
-    VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeProcampOnRender, p));
+    VP_PUBLIC_CHK_STATUS_RETURN(RegisterFcFeatures());
 
     p = MOS_New(PolicyVeboxCgcHandler, m_hwCaps);
     VP_PUBLIC_CHK_NULL_RETURN(p);
@@ -273,6 +235,51 @@ void Policy::UnregisterFeatures()
     }
 
     m_featurePool.clear();
+}
+
+MOS_STATUS Policy::RegisterFcFeatures()
+{
+    PolicyFeatureHandler *p = MOS_New(PolicyFcHandler, m_hwCaps);
+    VP_PUBLIC_CHK_NULL_RETURN(p);
+    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeFcOnRender, p));
+
+    p = MOS_New(PolicyFcFeatureHandler, m_hwCaps);
+    VP_PUBLIC_CHK_NULL_RETURN(p);
+    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeLumakeyOnRender, p));
+
+    p = MOS_New(PolicyFcFeatureHandler, m_hwCaps);
+    VP_PUBLIC_CHK_NULL_RETURN(p);
+    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeBlendingOnRender, p));
+
+    p = MOS_New(PolicyFcFeatureHandler, m_hwCaps);
+    VP_PUBLIC_CHK_NULL_RETURN(p);
+    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeColorFillOnRender, p));
+
+    p = MOS_New(PolicyFcFeatureHandler, m_hwCaps);
+    VP_PUBLIC_CHK_NULL_RETURN(p);
+    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeAlphaOnRender, p));
+
+    p = MOS_New(PolicyFcFeatureHandler, m_hwCaps);
+    VP_PUBLIC_CHK_NULL_RETURN(p);
+    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeCscOnRender, p));
+
+    p = MOS_New(PolicyFcFeatureHandler, m_hwCaps);
+    VP_PUBLIC_CHK_NULL_RETURN(p);
+    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeScalingOnRender, p));
+
+    p = MOS_New(PolicyFcFeatureHandler, m_hwCaps);
+    VP_PUBLIC_CHK_NULL_RETURN(p);
+    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeRotMirOnRender, p));
+
+    p = MOS_New(PolicyFcFeatureHandler, m_hwCaps);
+    VP_PUBLIC_CHK_NULL_RETURN(p);
+    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeDiOnRender, p));
+
+    p = MOS_New(PolicyFcFeatureHandler, m_hwCaps);
+    VP_PUBLIC_CHK_NULL_RETURN(p);
+    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeProcampOnRender, p));
+
+    return MOS_STATUS_SUCCESS;
 }
 
 /*                                    Enable SwFilterPipe                                           */

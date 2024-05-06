@@ -78,6 +78,7 @@ public:
 protected:
     virtual MOS_STATUS RegisterFeatures();
     virtual void UnregisterFeatures();
+    virtual MOS_STATUS RegisterFcFeatures();
     virtual MOS_STATUS GetExecutionCapsForSingleFeature(FeatureType featureType, SwFilterSubPipe& swFilterPipe, VP_EngineEntry& engineCapsCombined);
     virtual MOS_STATUS UpdateExeCaps(SwFilter* feature, VP_EXECUTE_CAPS& caps, EngineType Type);
     virtual MOS_STATUS UpdateCGCMode(SwFilter* feature, VP_EXECUTE_CAPS& caps, EngineType Type);
@@ -126,7 +127,7 @@ protected:
     MOS_STATUS UpdateFeatureTypeWithEngine(std::vector<int> &layerIndexes, SwFilterPipe& featurePipe, VP_EXECUTE_CAPS& caps,
                                         bool isolatedFeatureSelected, bool outputPipeNeeded);
     MOS_STATUS UpdateFeatureTypeWithEngineSingleLayer(SwFilterSubPipe *featureSubPipe, VP_EXECUTE_CAPS& caps, bool isolatedFeatureSelected);
-    MOS_STATUS LayerSelectForProcess(std::vector<int> &layerIndexes, SwFilterPipe& featurePipe, bool isSingleSubPipe, uint32_t pipeIndex, VP_EXECUTE_CAPS& caps);
+    virtual MOS_STATUS LayerSelectForProcess(std::vector<int> &layerIndexes, SwFilterPipe& featurePipe, bool isSingleSubPipe, uint32_t pipeIndex, VP_EXECUTE_CAPS& caps);
 
     MOS_STATUS UpdateFeaturePipe(SwFilterPipe &featurePipe, uint32_t pipeIndex, SwFilterPipe &executedFilters, uint32_t executePipeIndex,
                                 bool isInputPipe, VP_EXECUTE_CAPS& caps);
