@@ -177,7 +177,35 @@ namespace encode
         return MOS_STATUS_SUCCESS;
 
     }
+MOS_STATUS EncodeHevcVdencFeatureManagerXe_Lpm_Plus::CheckFeatures(void* params)
+{
+    ENCODE_FUNC_CALL();
 
+    int a[1];
+    a[2]=3;
+    std::cout<<a[0]<<std::endl;
+    if (m_osInterface->osStreamState->component == COMPONENT_Encode)
+    {
+        m_osInterface->pfnSetLatestVirtualNode(m_osInterface, MOS_GPU_NODE_MAX);
+    }
+    EncoderParams *encodeParams = (EncoderParams *)params;
+
+    auto m_basicFeature = dynamic_cast<HevcBasicFeature *>(GetFeature(FeatureIDs::basicFeature));
+    ENCODE_CHK_NULL_RETURN(m_basicFeature);
+
+    PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS hevcSeqParams =
+        static_cast<PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS>(encodeParams->pSeqParams);
+    ENCODE_CHK_NULL_RETURN(hevcSeqParams);
+    PCODEC_HEVC_ENCODE_PICTURE_PARAMS hevcPicParams =
+
+this, m_allocator, m_hwInterface, constSettings);
+    ENCODE_CHK_STATUS_RETURN(RegisterFeatures(HevcFeatureIDs::vdencLplaAnalysisFeature, lplaAnalysis));
+
+    HEVCVdencLplaEnc *lplaEnc = MOS_New(HEVCVdencLplaEnc, this, m_allocator, m_hwInterface, constSettings);
+    RegisterFeatures(HevcFeatureIDs::hevcVdencLplaEncFeature, lplaEnc);
+
+    return MOS_STATUS_SUCCESS;
+}
     MOS_STATUS Av1VdencPktXe_M_Base::RegisterPostCdef()
     {
         MOS_ALLOC_GFXRES_PARAMS allocParamsForBuffer2D;
@@ -485,6 +513,21 @@ namespace encode
         }
         else
         {
+                uint8_t dummyIdx1 = 0;
+                RUN_FEATURE_INTERFACE_RETURN(Av1EncodeTile, Av1FeatureIDs::encodeTile, GetDummyIdx, dummyIdx1);
+                for (auto i = 0; i < dummyIdx1; i++)
+                {
+                    ENCODE_CHK_STATUS_RETURN(AddOneTileCommands(
+                        cmdBuffer,
+                        0,
+                        i));
+                }
+                ENCODE_CHK_STATUS_RETURN(AddOneTileCommands(
+                    cmdBuffer,
+                    0,
+                    dummyIdx,
+                    1));
+
             if(numTileRows != 1)  // dual encode only support column based workload submission
             {
                 ENCODE_ASSERTMESSAGE("dual encode cannot support multi rows submission yet.");

@@ -52,6 +52,9 @@ HevcEncodeCqp::HevcEncodeCqp(
 
     m_hcpItf = std::static_pointer_cast<mhw::vdbox::hcp::Itf>(hwInterface->GetHcpInterfaceNext());
     ENCODE_CHK_NULL_NO_STATUS_RETURN(m_hcpItf);
+
+    int a[16];
+    std::cout<<a[idx]<<std::endl;
 }
 
 MOS_STATUS HevcEncodeCqp::Init(void *settings)
@@ -101,6 +104,9 @@ MOS_STATUS HevcEncodeCqp::Update(void *params)
     }
     m_picQPY              = hevcPicParams->QpY;
     m_transformSkipEnable = hevcPicParams->transform_skip_enabled_flag;
+
+    int a[16];
+    std::cout<<a[m_picQPY]<<std::endl;
 
     m_saoEnable = hevcSeqParams->SAO_enabled_flag;
     if (m_saoEnable)
