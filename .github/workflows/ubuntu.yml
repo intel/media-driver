@@ -16,16 +16,16 @@ jobs:
       ASM: /usr/bin/clang-14
     steps:
     - name: checkout media-driver
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         path: media
     - name: checkout libva
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         repository: intel/libva
         path: libva
     - name: checkout gmmlib
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         repository: intel/gmmlib
         path: gmmlib
@@ -89,16 +89,16 @@ jobs:
       ASM: /usr/bin/gcc-11
     steps:
     - name: checkout media-driver
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         path: media
     - name: checkout libva
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         repository: intel/libva
         path: libva
     - name: checkout gmmlib
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         repository: intel/gmmlib
         path: gmmlib
@@ -158,16 +158,16 @@ jobs:
       ASM: /usr/bin/gcc-10
     steps:
     - name: checkout media-driver
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         path: media
     - name: checkout libva
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         repository: intel/libva
         path: libva
     - name: checkout gmmlib
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         repository: intel/gmmlib
         path: gmmlib
@@ -221,16 +221,16 @@ jobs:
       ASM: /usr/bin/gcc-10
     steps:
     - name: checkout media-driver
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         path: media
     - name: checkout libva
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         repository: intel/libva
         path: libva
     - name: checkout gmmlib
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         repository: intel/gmmlib
         path: gmmlib
@@ -286,16 +286,16 @@ jobs:
       ASM: /usr/bin/gcc-10
     steps:
     - name: checkout media-driver
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         path: media
     - name: checkout libva
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         repository: intel/libva
         path: libva
     - name: checkout gmmlib
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         repository: intel/gmmlib
         path: gmmlib
@@ -351,16 +351,16 @@ jobs:
       ASM: /usr/bin/gcc-10
     steps:
     - name: checkout media-driver
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         path: media
     - name: checkout libva
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         repository: intel/libva
         path: libva
     - name: checkout gmmlib
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         repository: intel/gmmlib
         path: gmmlib
@@ -416,16 +416,16 @@ jobs:
       ASM: /usr/bin/gcc-10
     steps:
     - name: checkout media-driver
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         path: media
     - name: checkout libva
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         repository: intel/libva
         path: libva
     - name: checkout gmmlib
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         repository: intel/gmmlib
         path: gmmlib
@@ -481,16 +481,16 @@ jobs:
       ASM: /usr/bin/gcc-10
     steps:
     - name: checkout media-driver
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         path: media
     - name: checkout libva
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         repository: intel/libva
         path: libva
     - name: checkout gmmlib
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         repository: intel/gmmlib
         path: gmmlib
@@ -546,16 +546,16 @@ jobs:
       ASM: /usr/bin/gcc-10
     steps:
     - name: checkout media-driver
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         path: media
     - name: checkout libva
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         repository: intel/libva
         path: libva
     - name: checkout gmmlib
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         repository: intel/gmmlib
         path: gmmlib
@@ -611,16 +611,16 @@ jobs:
       ASM: /usr/bin/gcc-10
     steps:
     - name: checkout media-driver
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         path: media
     - name: checkout libva
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         repository: intel/libva
         path: libva
     - name: checkout gmmlib
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         repository: intel/gmmlib
         path: gmmlib
@@ -676,16 +676,16 @@ jobs:
       ASM: /usr/bin/gcc-10
     steps:
     - name: checkout media-driver
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         path: media
     - name: checkout libva
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         repository: intel/libva
         path: libva
     - name: checkout gmmlib
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         repository: intel/gmmlib
         path: gmmlib
@@ -741,16 +741,16 @@ jobs:
       ASM: /usr/bin/gcc-10
     steps:
     - name: checkout media-driver
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         path: media
     - name: checkout libva
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         repository: intel/libva
         path: libva
     - name: checkout gmmlib
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         repository: intel/gmmlib
         path: gmmlib
@@ -806,16 +806,16 @@ jobs:
       ASM: /usr/bin/gcc-10
     steps:
     - name: checkout media-driver
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         path: media
     - name: checkout libva
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         repository: intel/libva
         path: libva
     - name: checkout gmmlib
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         repository: intel/gmmlib
         path: gmmlib
