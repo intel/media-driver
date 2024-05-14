@@ -157,7 +157,7 @@ bool MediaCopyStateXe_Xpm_Base::IsVeboxCopySupported(PMOS_RESOURCE src, PMOS_RES
 
     if (m_veboxCopyState)
     {
-        supported = m_veboxCopyState->IsFormatSupported(src) && m_veboxCopyState->IsFormatSupported(dst);
+        supported = m_veboxCopyState->IsSurfaceSupported(src) && m_veboxCopyState->IsSurfaceSupported(dst);
     }
 
     if (src->TileType == MOS_TILE_LINEAR &&
