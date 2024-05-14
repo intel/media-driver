@@ -1166,7 +1166,7 @@ MOS_STATUS VpVeboxCmdPacket::SetHdrParams(PVEBOX_HDR_PARAMS hdrParams)
         mhwVeboxIecpParams.fp16Params.isActive  = true;
     }
 
-    if (hdrParams->stage = HDR_STAGE_VEBOX_EXTERNAL_3DLUT)
+    if (hdrParams->stage == HDR_STAGE_VEBOX_EXTERNAL_3DLUT)
     {
         if (hdrParams->external3DLutParams)
         {
