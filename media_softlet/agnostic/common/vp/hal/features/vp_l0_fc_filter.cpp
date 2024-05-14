@@ -119,17 +119,30 @@ MOS_STATUS VpL0FcFilter::AddScalingKrn(SwFilterScaling *scaling, SurfaceType inp
     VP_PUBLIC_CHK_NULL_RETURN(m_pvpMhwInterface);
     VP_PUBLIC_CHK_NULL_RETURN(m_pvpMhwInterface->m_vpPlatformInterface);
     VP_PUBLIC_CHK_NULL_RETURN(scaling);
+    RECT srcRect = scaling->GetSwFilterParams().input.rcSrc;
+    RECT trgRect = scaling->GetSwFilterParams().input.rcDst;
 
     if (scaling->GetSwFilterParams().interlacedScalingType != ISCALING_NONE ||
         !IS_ALPHA_FORMAT_RGB8(scaling->GetSwFilterParams().formatInput) ||
-        !IS_ALPHA_FORMAT_RGB8(scaling->GetSwFilterParams().formatOutput))
+        !IS_ALPHA_FORMAT_RGB8(scaling->GetSwFilterParams().formatOutput) ||
+        srcRect.left != 0 ||
+        srcRect.top  != 0 ||
+        trgRect.left != 0 ||
+        trgRect.top  != 0)
     {
         //L0 FC only support RGB32 right now
+        //L0 FC only support no left/top cropping now
         VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
     }
 
+    
+    uint32_t    inputWidth   = MOS_MIN(scaling->GetSwFilterParams().input.dwWidth, static_cast<uint32_t>(srcRect.right - srcRect.left));
+    uint32_t    inputHeight  = MOS_MIN(scaling->GetSwFilterParams().input.dwHeight, static_cast<uint32_t>(srcRect.bottom - srcRect.top));
     uint32_t    targetWidth  = scaling->GetSwFilterParams().output.dwWidth;
     uint32_t    targetHeight = scaling->GetSwFilterParams().output.dwHeight;
+    uint32_t    bitNumber    = 8;
+    float       shift[2]     = {VP_HW_LINEAR_SHIFT, VP_HW_LINEAR_SHIFT};
+    float       offset[2]    = {VP_SAMPLER_BIAS, VP_SAMPLER_BIAS};
     uint32_t    localWidth   = 32;
     uint32_t    localHeight  = 32;
     uint32_t    localDepth   = 1;
@@ -180,6 +193,26 @@ MOS_STATUS VpL0FcFilter::AddScalingKrn(SwFilterScaling *scaling, SurfaceType inp
         case FC_SCALE_PA_444D_OUTPUT_IMAGE_WIDTH:
             VP_PUBLIC_CHK_NULL_RETURN(krnArg.pData);
             *(uint32_t *)krnArg.pData = targetWidth;
+            break;
+        case FC_SCALE_PA_444D_INPUT_IMAGE_WIDTH:
+            VP_PUBLIC_CHK_NULL_RETURN(krnArg.pData);
+            *(uint32_t *)krnArg.pData = inputWidth;
+            break;
+        case FC_SCALE_PA_444D_INPUT_IMAGE_HEIGHT:
+            VP_PUBLIC_CHK_NULL_RETURN(krnArg.pData);
+            *(uint32_t *)krnArg.pData = inputHeight;
+            break;
+        case FC_SCALE_PA_444D_BITNUM:
+            VP_PUBLIC_CHK_NULL_RETURN(krnArg.pData);
+            *(uint32_t *)krnArg.pData = bitNumber;
+            break;
+        case FC_SCALE_PA_444D_SHIFT:
+            VP_PUBLIC_CHK_NULL_RETURN(krnArg.pData);
+            MOS_SecureMemcpy(krnArg.pData, krnArg.uSize, shift, sizeof(shift));
+            break;
+        case FC_SCALE_PA_444D_OFFSET:
+            VP_PUBLIC_CHK_NULL_RETURN(krnArg.pData);
+            MOS_SecureMemcpy(krnArg.pData, krnArg.uSize, offset, sizeof(offset));
             break;
         case FC_SCALE_PA_444D_INPUTIMAGESMPL:
             krnArg.uOffsetInPayload = kernelArg.uOffsetInPayload;
