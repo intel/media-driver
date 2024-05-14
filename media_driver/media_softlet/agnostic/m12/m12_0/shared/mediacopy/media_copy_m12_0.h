@@ -119,6 +119,7 @@ protected:
     virtual MOS_STATUS MediaVeboxCopy(PMOS_RESOURCE src, PMOS_RESOURCE dst);
 
     virtual bool IsVeboxCopySupported(PMOS_RESOURCE src, PMOS_RESOURCE dst);
+    virtual MOS_STATUS TaskDispatch(MCPY_STATE_PARAMS mcpySrc, MCPY_STATE_PARAMS mcpyDst, MCPY_ENGINE mcpyEngine);
 
     MhwInterfaces   *m_mhwInterfaces  = nullptr;
     BltState        *m_bltState       = nullptr;

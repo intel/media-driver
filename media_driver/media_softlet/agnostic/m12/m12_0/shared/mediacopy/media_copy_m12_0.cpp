@@ -168,3 +168,59 @@ MOS_STATUS MediaCopyStateM12_0::MediaRenderCopy(PMOS_RESOURCE src, PMOS_RESOURCE
     return MOS_STATUS_UNIMPLEMENTED;
 }
 
+MOS_STATUS MediaCopyStateM12_0::TaskDispatch(MCPY_STATE_PARAMS mcpySrc, MCPY_STATE_PARAMS mcpyDst, MCPY_ENGINE mcpyEngine)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+    MosUtilities::MosLockMutex(m_inUseGPUMutex);
+    switch (mcpyEngine)
+    {
+    case MCPY_ENGINE_VEBOX:
+        eStatus = MediaVeboxCopy(mcpySrc.OsRes, mcpyDst.OsRes);
+        break;
+    case MCPY_ENGINE_BLT:
+        if ((mcpySrc.TileMode != MOS_TILE_LINEAR) && (mcpySrc.CompressionMode != MOS_MMC_DISABLED))
+        {
+            MCPY_NORMALMESSAGE("mmc on, mcpySrc.TileMode= %d, mcpySrc.CompressionMode = %d", mcpySrc.TileMode, mcpySrc.CompressionMode);
+            eStatus = m_osInterface->pfnDecompResource(m_osInterface, mcpySrc.OsRes);
+            if (MOS_STATUS_SUCCESS != eStatus)
+            {
+                MosUtilities::MosUnlockMutex(m_inUseGPUMutex);
+                MCPY_CHK_STATUS_RETURN(eStatus);
+            }
+        }
+        if ((mcpyDst.TileMode != MOS_TILE_LINEAR) && (mcpyDst.CompressionMode == MOS_MMC_RC))
+        {
+            MCPY_NORMALMESSAGE("mmc on, mcpyDst.TileMode= %d, mcpyDst.CompressionMode = %d", mcpyDst.TileMode, mcpyDst.CompressionMode);
+            eStatus = m_osInterface->pfnDecompResource(m_osInterface, mcpyDst.OsRes);
+            if (MOS_STATUS_SUCCESS != eStatus)
+            {
+                MosUtilities::MosUnlockMutex(m_inUseGPUMutex);
+                MCPY_CHK_STATUS_RETURN(eStatus);
+            }
+        }
+        eStatus = MediaBltCopy(mcpySrc.OsRes, mcpyDst.OsRes);
+        break;
+    case MCPY_ENGINE_RENDER:
+        eStatus = MediaRenderCopy(mcpySrc.OsRes, mcpyDst.OsRes);
+        break;
+    default:
+        break;
+    }
+    MosUtilities::MosUnlockMutex(m_inUseGPUMutex);
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (m_bRegReport)
+    {
+        std::string               copyEngine     = mcpyEngine ? (mcpyEngine == MCPY_ENGINE_BLT ? "BLT" : "Render") : "VeBox";
+        MediaUserSettingSharedPtr userSettingPtr = m_osInterface->pfnGetUserSettingInstance(m_osInterface);
+        ReportUserSettingForDebug(
+            userSettingPtr,
+            __MEDIA_USER_FEATURE_MCPY_MODE,
+            copyEngine,
+            MediaUserSetting::Group::Device);
+    }
+#endif
+    MCPY_NORMALMESSAGE("Media Copy works on %s Engine", mcpyEngine ? (mcpyEngine == MCPY_ENGINE_BLT ? "BLT" : "Render") : "VeBox");
+
+    return eStatus;
+}

@@ -307,6 +307,12 @@ public:
         return eStatus;
     }
 
+     virtual MOS_STATUS AddBLTMMIOPrologCmd(
+        PMOS_COMMAND_BUFFER cmdBuffer) override
+    { 
+        return MOS_STATUS_SUCCESS;
+    }
+
 protected:
     using base_t = Itf;
 

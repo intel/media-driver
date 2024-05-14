@@ -237,7 +237,8 @@ MOS_STATUS BltState::SetupBltCopyParam(
     {
         pMhwBltParams->dwColorDepth = GetFastCopyColorDepth(outputSurface->pGmmResInfo->GetResourceFormat(), BytesPerTexel);
     }
-
+    pMhwBltParams->dwPlaneIndex = planeIndex;
+    pMhwBltParams->dwPlaneNum   = planeNum;
     if( 1 == planeNum )
     {// handle as whole memory
        pMhwBltParams->dwDstBottom = std::min(inputHeight, outputHeight);

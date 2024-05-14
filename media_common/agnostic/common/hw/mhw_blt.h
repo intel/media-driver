@@ -43,6 +43,8 @@ typedef struct _MHW_FAST_COPY_BLT_PARAM
     uint32_t        dwDstBottom;
     uint32_t        dwDstLeft;
     uint32_t        dwDstRight;
+    uint32_t        dwPlaneIndex;
+    uint32_t        dwPlaneNum;
     PMOS_RESOURCE   pSrcOsResource;
     PMOS_RESOURCE   pDstOsResource;
 }MHW_FAST_COPY_BLT_PARAM, *PMHW_FAST_COPY_BLT_PARAM;

@@ -140,6 +140,12 @@ public:
         case MHW_MMIO_CCS0_AUX_TABLE_INVALIDATE:
             mmioRegisters = M_MMIO_CCS0_AUX_TABLE_INVALIDATE;
             break;
+        case MHW_MMIO_BLT_AUX_TABLE_BASE_LOW:
+            mmioRegisters = M_MMIO_BLT_AUX_TABLE_BASE_LOW;
+            break;
+        case MHW_MMIO_BLT_AUX_TABLE_BASE_HIGH:
+            mmioRegisters = M_MMIO_BLT_AUX_TABLE_BASE_HIGH;
+            break;
         default:
             MHW_ASSERTMESSAGE("Invalid mmio data provided");;
             break;
@@ -1026,7 +1032,35 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
-MEDIA_CLASS_DEFINE_END(mhw__mi__xe_lpm_plus_base_next__Impl)
+    MOS_STATUS AddBLTMMIOPrologCmd(
+        PMOS_COMMAND_BUFFER cmdBuffer) override
+    {
+        MOS_STATUS eStatus          = MOS_STATUS_SUCCESS;
+        uint64_t   auxTableBaseAddr = 0;
+
+        MHW_CHK_NULL_RETURN(cmdBuffer);
+        MHW_CHK_NULL_RETURN(this->m_osItf);
+
+        auxTableBaseAddr = this->m_osItf->pfnGetAuxTableBaseAddr(this->m_osItf);
+
+        if (auxTableBaseAddr)
+        {
+            auto &par      = MHW_GETPAR_F(MI_LOAD_REGISTER_IMM)();
+            par            = {};
+            par.dwData     = (auxTableBaseAddr & 0xffffffff);
+            par.dwRegister = GetMmioInterfaces(mhw::mi::MHW_MMIO_BLT_AUX_TABLE_BASE_LOW);
+            MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)
+            (cmdBuffer);
+
+            par.dwData     = ((auxTableBaseAddr >> 32) & 0xffffffff);
+            par.dwRegister = GetMmioInterfaces(mhw::mi::MHW_MMIO_BLT_AUX_TABLE_BASE_HIGH);
+            MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)
+            (cmdBuffer);
+        }
+
+        return eStatus;
+    }
+    MEDIA_CLASS_DEFINE_END(mhw__mi__xe_lpm_plus_base_next__Impl)
 };
 
 }  // namespace xe_lpm_plus_base

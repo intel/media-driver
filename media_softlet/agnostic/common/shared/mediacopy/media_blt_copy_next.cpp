@@ -758,7 +758,8 @@ MOS_STATUS BltStateNext::SetupBltCopyParam(
     {
         pMhwBltParams->dwColorDepth = GetFastCopyColorDepth(outputSurface->pGmmResInfo->GetResourceFormat(), BytesPerTexel);
     }
-
+    pMhwBltParams->dwPlaneIndex = planeIndex;
+    pMhwBltParams->dwPlaneNum   = planeNum;
     if( 1 == planeNum )
     {// handle as whole memory
        pMhwBltParams->dwDstBottom = std::min(inputHeight, outputHeight);
@@ -885,6 +886,7 @@ MOS_STATUS BltStateNext::SubmitCMD(
 
         if (m_blokCopyon)
         {
+            BLT_CHK_STATUS_RETURN(m_miItf->AddBLTMMIOPrologCmd(&cmdBuffer));
             BLT_CHK_STATUS_RETURN(m_bltItf->AddBlockCopyBlt(
                 &cmdBuffer,
                 &fastCopyBltParam,

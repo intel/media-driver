@@ -64,6 +64,8 @@ struct _MHW_PAR_T(XY_BLOCK_COPY_BLT)
     uint32_t      dwDstRight;
     uint32_t      dwSrcOffset;
     uint32_t      dwDstOffset;
+    uint32_t      dwPlaneIndex;
+    uint32_t      dwPlaneNum;
     PMOS_RESOURCE pSrcOsResource;
     PMOS_RESOURCE pDstOsResource;
 };

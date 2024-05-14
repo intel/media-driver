@@ -210,4 +210,8 @@
 
 #define M_CCS_HW_FRONT_END_MMIO_MASK                                                     0x7FF
 
+//Bilitter engine
+#define M_MMIO_BLT_AUX_TABLE_BASE_LOW 0x4240
+#define M_MMIO_BLT_AUX_TABLE_BASE_HIGH 0x4244
+
 #endif   //__MHW_MMIO_XE_LPM_PLUS_H__

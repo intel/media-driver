@@ -315,8 +315,27 @@ MOS_STATUS MhwBltInterfaceXe_Hp_Base::AddBlockCopyBlt(
 
         if (srcMmcModel != MOS_MEMCOMP_DISABLED)//will enable RC later
         {
-            cmd.DW8.SourceCompressionEnable = 1;
-            cmd.DW12.SourceCompressionFormat = srcCompressionFormat;
+            cmd.DW8.SourceCompressionEnable    = 1;
+            cmd.DW12.SourceCompressionFormat   = srcCompressionFormat;
+            cmd.DW8.SourceAuxiliarysurfacemode =
+                mhw_blt_state_xe_hp_base::XY_BLOCK_COPY_BLT_CMD::SOURCE_AUXILIARY_SURFACE_MODE_AUX_CCS_E;
+            if (srcMmcModel == MOS_MEMCOMP_MC)
+            {   // 1 is MC; 0 is RC;
+                cmd.DW8.SourceControlSurfaceType =
+                    mhw_blt_state_xe_hp_base::XY_BLOCK_COPY_BLT_CMD::SOURCE_CONTROL_SURFACE_TYPE_MEDIA_CONTROL_SURFACE; 
+                if (pFastCopyBltParam->dwPlaneNum >= 2)
+                {
+                    // luma/chroma is represented by the MSB of the 5 bit format and used only for media decompression.
+                    if (pFastCopyBltParam->dwPlaneIndex == 0)  // first plane
+                    {
+                        cmd.DW12.SourceCompressionFormat = srcCompressionFormat & 0x0F;
+                    }
+                    else  // second or third
+                    {
+                        cmd.DW12.SourceCompressionFormat = srcCompressionFormat | 0x10;
+                    }
+                }
+            }
         }
 
     // add source address

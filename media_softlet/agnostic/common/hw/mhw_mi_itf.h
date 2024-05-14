@@ -109,6 +109,8 @@ public:
 
     virtual MOS_STATUS AddVeboxMMIOPrologCmd(PMOS_COMMAND_BUFFER CmdBuffer) = 0;
 
+    virtual MOS_STATUS AddBLTMMIOPrologCmd(PMOS_COMMAND_BUFFER cmdBuffer) = 0;
+
     _MI_CMD_DEF(_MHW_CMD_ALL_DEF_FOR_ITF);
 MEDIA_CLASS_DEFINE_END(mhw__mi__Itf)
 };

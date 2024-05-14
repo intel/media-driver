@@ -84,6 +84,8 @@ public:
         par.dwDstRight      = pBlockCopyBltParam->dwDstRight;
         par.dwSrcOffset     = srcOffset;
         par.dwDstOffset     = dstOffset;
+        par.dwPlaneIndex    = pBlockCopyBltParam->dwPlaneIndex;
+        par.dwPlaneNum      = pBlockCopyBltParam->dwPlaneNum;
         par.pSrcOsResource  = pBlockCopyBltParam->pSrcOsResource;
         par.pDstOsResource  = pBlockCopyBltParam->pDstOsResource;
 
