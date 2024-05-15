@@ -327,6 +327,9 @@ protected:
 #define __MEDIA_USER_FEATURE_VALUE_INTER_FRAME_MEMORY_NINJA_START_COUNTER "InterFrameNinjaStartCounter"
 #define __MEDIA_USER_FEATURE_VALUE_INTER_FRAME_MEMORY_NINJA_END_COUNTER "InterFrameNinjaEndCounter"
 #define __MEDIA_USER_FEATURE_VALUE_ENABLE_IFNCC                         "EnableIFNCC"
+// For L0 3DLut
+#define __MEDIA_USER_FEATURE_VALUE_ENABLE_VP_L0_3DLUT                   "Enable L0 3DLUT"
+#define __MEDIA_USER_FEATURE_VALUE_VP_L0_3DLUT_ENABLED                  "L0 3DLUT Enabled"
 #endif  //(_DEBUG || _RELEASE_INTERNAL)
 
 class VpUtils

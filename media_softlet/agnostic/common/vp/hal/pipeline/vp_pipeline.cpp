@@ -218,6 +218,15 @@ MOS_STATUS VpPipeline::UserFeatureReport()
             {
                 m_reporting->GetFeatures().rtOldCacheSetting = (uint8_t)(m_vpMhwInterface.m_renderHal->oldCacheSettingForTargetSurface);
             }
+            if (m_reporting->GetFeatures().isL03DLut)
+            {
+                VP_PUBLIC_NORMALMESSAGE("VP L0 3DLut Enabled");
+                ReportUserSettingForDebug(
+                    m_userSettingPtr,
+                    __MEDIA_USER_FEATURE_VALUE_VP_L0_3DLUT_ENABLED,
+                    1,
+                    MediaUserSetting::Group::Sequence);
+            }
 #endif
         }
 

@@ -357,6 +357,8 @@ struct _RENDER_HDR_3DLUT_CAL_PARAMS
     VpKernelID                      kernelId;
     uint32_t                        threadWidth;
     uint32_t                        threadHeight;
+    uint32_t                        localWidth;
+    uint32_t                        localHeight;
     KERNEL_ARGS                     kernelArgs;
     void                            Init();
 };

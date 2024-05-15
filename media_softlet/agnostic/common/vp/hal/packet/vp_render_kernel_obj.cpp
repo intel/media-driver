@@ -222,11 +222,43 @@ MOS_STATUS VpRenderKernelObj::CpPrepareResources()
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS VpRenderKernelObj::SetupStatelessBuffer()
+{
+    m_statelessArray.clear();
+    VP_RENDER_NORMALMESSAGE("Not prepare stateless buffer in kernel %d.", m_kernelId);
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpRenderKernelObj::SetupStatelessBufferResource(SurfaceType surf)
+{
+    VP_RENDER_CHK_NULL_RETURN(m_surfaceGroup);
+    VP_RENDER_CHK_NULL_RETURN(m_hwInterface);
+    if (surf != SurfaceTypeInvalid)
+    {
+        PMOS_INTERFACE osInterface = m_hwInterface->m_osInterface;
+        VP_RENDER_CHK_NULL_RETURN(osInterface);
+        auto           it          = m_surfaceGroup->find(surf);
+        VP_SURFACE    *curSurf     = (m_surfaceGroup->end() != it) ? it->second : nullptr;
+        VP_RENDER_CHK_NULL_RETURN(curSurf);
+        uint64_t ui64GfxAddress = osInterface->pfnGetResourceGfxAddress(osInterface, &curSurf->osSurface->OsResource);
+
+        VP_RENDER_CHK_STATUS_RETURN(osInterface->pfnRegisterResource(
+            osInterface,
+            &curSurf->osSurface->OsResource,
+            false,
+            true));
+        m_statelessArray.insert(std::make_pair(surf, ui64GfxAddress));
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS VpRenderKernelObj::SetProcessSurfaceGroup(VP_SURFACE_GROUP &surfaces)
 {
     m_surfaceGroup = &surfaces;
     VP_RENDER_CHK_STATUS_RETURN(SetupSurfaceState());
     VP_RENDER_CHK_STATUS_RETURN(CpPrepareResources());
+    VP_RENDER_CHK_STATUS_RETURN(SetupStatelessBuffer());
     return MOS_STATUS_SUCCESS;
 }
 

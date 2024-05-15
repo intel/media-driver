@@ -72,6 +72,7 @@ public:
         uint8_t                       rtCacheSetting      = 0;                            //!< Render Target cache usage
 #if (_DEBUG || _RELEASE_INTERNAL)
         uint8_t                       rtOldCacheSetting   = 0;                            //!< Render Target old cache usage
+        bool                          isL03DLut           = false;
 #endif
         bool                          VeboxScalability    = false;                        //!< Vebox Scalability flag
         bool                          VPApogeios          = false;                        //!< VP Apogeios flag

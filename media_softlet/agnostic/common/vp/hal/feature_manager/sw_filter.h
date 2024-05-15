@@ -882,6 +882,7 @@ struct FeatureParamHdr : public FeatureParam
     uint32_t                uiSplitFramePortions                 = 1;                     //!< Split Frame flag
     bool                    bForceSplitFrame                     = false;
     bool                    bNeed3DSampler                       = false;                 //!< indicate whether 3D should neede by force considering AVS removal etc.
+    bool                    isL0KernelEnabled                    = false;
 
     HDR_PARAMS srcHDRParams    = {};
     HDR_PARAMS targetHDRParams = {};

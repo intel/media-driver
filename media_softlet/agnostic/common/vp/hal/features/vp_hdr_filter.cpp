@@ -28,6 +28,7 @@
 #include "hw_filter.h"
 #include "sw_filter_pipe.h"
 #include "vp_render_cmd_packet.h"
+#include "igvp3dlut_args.h"
 
 namespace vp
 {
@@ -53,7 +54,11 @@ MOS_STATUS VpHdrFilter::Prepare()
 MOS_STATUS VpHdrFilter::Destroy()
 {
     VP_FUNC_CALL();
-
+    for (auto &handle : m_renderHdr3DLutL0Params)
+    {
+        KRN_ARG &krnArg = handle.second;
+        MOS_FreeMemAndSetNull(krnArg.pData);
+    }
     return MOS_STATUS_SUCCESS;
 }
 
@@ -107,35 +112,116 @@ MOS_STATUS VpHdrFilter::CalculateEngineParams(
         m_renderHdr3DLutParams.maxDisplayLum       = hdrParams.uiMaxDisplayLum;
         m_renderHdr3DLutParams.maxContentLevelLum  = hdrParams.uiMaxContentLevelLum;
         m_renderHdr3DLutParams.hdrMode             = hdrParams.hdrMode;
-        m_renderHdr3DLutParams.kernelId            = (VpKernelID)kernelHdr3DLutCalc;
 
         m_renderHdr3DLutParams.threadWidth  = hdrParams.lutSize;
         m_renderHdr3DLutParams.threadHeight = hdrParams.lutSize;
 
-        KRN_ARG krnArg  = {};
-        krnArg.uIndex   = 0;
-        krnArg.eArgKind = ARG_KIND_SURFACE;
-        krnArg.uSize    = 4;
-        krnArg.pData    = &m_surfType3DLut;
-        m_renderHdr3DLutParams.kernelArgs.push_back(krnArg);
+        if (hdrParams.isL0KernelEnabled == false)
+        {
+            KRN_ARG krnArg  = {};
+            krnArg.uIndex   = 0;
+            krnArg.eArgKind = ARG_KIND_SURFACE;
+            krnArg.uSize    = 4;
+            krnArg.pData    = &m_surfType3DLut;
+            m_renderHdr3DLutParams.kernelArgs.push_back(krnArg);
 
-        krnArg.uIndex   = 1;
-        krnArg.eArgKind = ARG_KIND_SURFACE;
-        krnArg.uSize    = 4;
-        krnArg.pData    = &m_surfType3DLutCoef;
-        m_renderHdr3DLutParams.kernelArgs.push_back(krnArg);
+            krnArg.uIndex   = 1;
+            krnArg.eArgKind = ARG_KIND_SURFACE;
+            krnArg.uSize    = 4;
+            krnArg.pData    = &m_surfType3DLutCoef;
+            m_renderHdr3DLutParams.kernelArgs.push_back(krnArg);
 
-        krnArg.uIndex   = 2;
-        krnArg.eArgKind = ARG_KIND_GENERAL;
-        krnArg.uSize    = 2;
-        krnArg.pData    = &m_3DLutSurfaceWidth;
-        m_renderHdr3DLutParams.kernelArgs.push_back(krnArg);
+            krnArg.uIndex   = 2;
+            krnArg.eArgKind = ARG_KIND_GENERAL;
+            krnArg.uSize    = 2;
+            krnArg.pData    = &m_3DLutSurfaceWidth;
+            m_renderHdr3DLutParams.kernelArgs.push_back(krnArg);
 
-        krnArg.uIndex   = 3;
-        krnArg.eArgKind = ARG_KIND_GENERAL;
-        krnArg.uSize    = 2;
-        krnArg.pData    = &m_3DLutSurfaceHeight;
-        m_renderHdr3DLutParams.kernelArgs.push_back(krnArg);
+            krnArg.uIndex                   = 3;
+            krnArg.eArgKind                 = ARG_KIND_GENERAL;
+            krnArg.uSize                    = 2;
+            krnArg.pData                    = &m_3DLutSurfaceHeight;
+            m_renderHdr3DLutParams.kernelId = (VpKernelID)kernelHdr3DLutCalc;
+            m_renderHdr3DLutParams.kernelArgs.push_back(krnArg);
+        }
+        else
+        {
+            VP_PUBLIC_CHK_NULL_RETURN(m_pvpMhwInterface);
+            VP_PUBLIC_CHK_NULL_RETURN(m_pvpMhwInterface->m_vpPlatformInterface);
+
+            auto handle = m_pvpMhwInterface->m_vpPlatformInterface->GetKernelPool().find("fillLutTable_3dlut");
+            VP_PUBLIC_CHK_NOT_FOUND_RETURN(handle, &m_pvpMhwInterface->m_vpPlatformInterface->GetKernelPool());
+            KERNEL_ARGS kernelArgs             = handle->second.GetKernelArgs();
+            uint32_t    localWidth             = 128;
+            uint32_t    localHeight            = 1;
+            uint32_t    localDepth             = 1;
+            m_renderHdr3DLutParams.localWidth  = localWidth;
+            m_renderHdr3DLutParams.localHeight = localHeight;
+            m_renderHdr3DLutParams.kernelId    = (VpKernelID)kernelHdr3DLutCalcL0;
+
+            //step 1: setting curbe arguments
+            for (auto const &kernelArg : kernelArgs)
+            {
+                uint32_t uIndex    = kernelArg.uIndex;
+                auto     argHandle = m_renderHdr3DLutL0Params.find(uIndex);
+                if (argHandle == m_renderHdr3DLutL0Params.end())
+                {
+                    KRN_ARG krnArg = {};
+                    argHandle      = m_renderHdr3DLutL0Params.insert(std::make_pair(uIndex, krnArg)).first;
+                    VP_PUBLIC_CHK_NOT_FOUND_RETURN(argHandle, &m_renderHdr3DLutL0Params);
+                }
+                KRN_ARG &krnArg = argHandle->second;
+                krnArg.uIndex   = uIndex;
+                bool bInit      = true;
+                if (krnArg.pData == nullptr)
+                {
+                    if (kernelArg.uSize > 0)
+                    {
+                        krnArg.uSize = kernelArg.uSize;
+                        krnArg.pData = MOS_AllocAndZeroMemory(kernelArg.uSize);
+                    }
+                }
+                else
+                {
+                    VP_PUBLIC_CHK_VALUE_RETURN(krnArg.uSize, kernelArg.uSize);
+                    MOS_ZeroMemory(krnArg.pData, krnArg.uSize);
+                }
+                uint16_t mulSize = hdrParams.lutSize == 65 ? 128 : 64;
+                krnArg.eArgKind  = kernelArg.eArgKind;
+                switch (krnArg.uIndex)
+                {
+                case LUT_FILLLUTTABLE_IOLUTINDEX:
+                    VP_PUBLIC_CHK_NULL_RETURN(krnArg.pData);
+                    *(uint32_t *)krnArg.pData = SurfaceType3DLut;
+                    break;
+                case LUT_FILLLUTTABLE_ICOEFINDEX:
+                    VP_PUBLIC_CHK_NULL_RETURN(krnArg.pData);
+                    *(uint32_t *)krnArg.pData = SurfaceType3DLutCoef;
+                    break;
+                case LUT_FILLLUTTABLE_LUTSIZE:
+                    VP_PUBLIC_CHK_NULL_RETURN(krnArg.pData);
+                    MOS_SecureMemcpy(krnArg.pData, kernelArg.uSize, &hdrParams.lutSize, sizeof(uint16_t));
+                    break;
+                case LUT_FILLLUTTABLE_MULSIZE:
+                    VP_PUBLIC_CHK_NULL_RETURN(krnArg.pData);
+                    MOS_SecureMemcpy(krnArg.pData, kernelArg.uSize, &mulSize, sizeof(uint16_t));
+                    break;
+                case LUT_FILLLUTTABLE_LOCAL_SIZE:
+                    VP_PUBLIC_CHK_NULL_RETURN(krnArg.pData);
+                    static_cast<uint32_t *>(krnArg.pData)[0] = localWidth;
+                    static_cast<uint32_t *>(krnArg.pData)[1] = localHeight;
+                    static_cast<uint32_t *>(krnArg.pData)[2] = localDepth;
+                    break;
+                default:
+                    bInit = false;
+                    break;
+                }
+                if (bInit)
+                {
+                    m_renderHdr3DLutParams.kernelArgs.push_back(krnArg);
+                }
+            }
+        }
     }
     else
     {

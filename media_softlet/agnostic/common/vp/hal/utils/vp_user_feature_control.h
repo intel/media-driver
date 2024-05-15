@@ -59,6 +59,7 @@ public:
         uint32_t enabledSFCNv12P010LinearOutput = 0;
         uint32_t enabledSFCRGBPRGB24Output  = 0;
         bool     enableIFNCC                    = false;
+        bool     bEnableL03DLut                 = false;
 #endif
         bool disablePacketReuse             = false;
         bool enablePacketReuseTeamsAlways   = false;
@@ -96,6 +97,11 @@ public:
     bool EnableIFNCC() 
     {
         return m_ctrlVal.enableIFNCC;
+    }
+
+    bool EnableL03DLut()
+    {
+        return m_ctrlVal.bEnableL03DLut;
     }
 #endif
 

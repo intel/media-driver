@@ -829,6 +829,12 @@ MOS_STATUS VpRenderCmdPacket::SetupSurfaceState()
         }
         VP_RENDER_CHK_STATUS_RETURN(m_kernel->UpdateCompParams());
     }
+    else
+    {
+        // Reset status
+        m_renderHal->bCmfcCoeffUpdate  = false;
+        m_renderHal->pCmfcCoeffSurface = nullptr;
+    }
 
     return MOS_STATUS_SUCCESS;
 }
@@ -2116,6 +2122,8 @@ MOS_STATUS VpRenderCmdPacket::SetHdr3DLutParams(
     // kernel.GetKernelArgs().
     kernelParams.kernelThreadSpace.uWidth = params->threadWidth;
     kernelParams.kernelThreadSpace.uHeight = params->threadHeight;
+    kernelParams.kernelThreadSpace.uLocalWidth = params->localWidth;
+    kernelParams.kernelThreadSpace.uLocalHeight = params->localHeight;
     kernelParams.kernelArgs = params->kernelArgs;
     kernelParams.syncFlag = true;
     m_renderKernelParams.push_back(kernelParams);

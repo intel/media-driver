@@ -72,6 +72,14 @@ enum KRN_ARG_KIND
     ARG_KIND_INLINE                 = 0xa00
 };
 
+enum KRN_ARG_ADDRESSMODE
+{
+    AddressingModeStateful = 0,
+    AddressingModeStateless,
+    AddressingModeBindless,
+    AddressIngModeMax
+};
+
 struct KRN_ARG
 {
     uint32_t               uIndex;
@@ -80,6 +88,7 @@ struct KRN_ARG
     uint32_t               uSize;            // size of arg in byte
     KRN_ARG_KIND           eArgKind;
     bool                   isOutput;
+    KRN_ARG_ADDRESSMODE    addressMode;
 };
 
 //for L0 use only

@@ -92,6 +92,7 @@ using KERNEL_SAMPLER_INDEX = std::vector<SamplerIndex>;
 using KERNEL_SURFACE_CONFIG = std::map<SurfaceType, KERNEL_SURFACE_STATE_PARAM>;
 using KERNEL_SURFACE_BINDING_INDEX = std::map<SurfaceType, std::set<uint32_t>>;
 using KERNEL_ARG_INDEX_SURFACE_MAP = std::map<uint32_t, SURFACE_PARAMS>;
+using KERNEL_STATELESS_BUFF_CONFIG = std::map<SurfaceType, uint64_t>;
 
 typedef struct _KERNEL_PARAMS
 {
@@ -545,6 +546,10 @@ protected:
 
     virtual MOS_STATUS CpPrepareResources();
 
+    virtual MOS_STATUS SetupStatelessBuffer();
+
+    virtual MOS_STATUS SetupStatelessBufferResource(SurfaceType surf);
+
     virtual MOS_STATUS GetCurbeState(void *&curbe, uint32_t &curbeLength) = 0;
 
     virtual MOS_STATUS GetAlignedLength(uint32_t &curbeLength, uint32_t &curbeLengthAligned, RENDERHAL_KERNEL_PARAM kernelParam, uint32_t dwBlockAlign)
@@ -563,7 +568,7 @@ protected:
     KERNEL_SURFACE_BINDING_INDEX                            m_surfaceBindingIndex;      // store the binding index for processed surface
     PVpAllocator                                            m_allocator = nullptr;
     MediaUserSettingSharedPtr                               m_userSettingPtr = nullptr;  // usersettingInstance
-
+    KERNEL_STATELESS_BUFF_CONFIG                            m_statelessArray;
     // kernel attribute 
     std::string                                             m_kernelName = "";
     void *                                                  m_kernelBinary = nullptr;
