@@ -896,6 +896,13 @@ MOS_STATUS PolicySfcScalingHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFi
         params2ndPass.input.rcSrc = params1stPass.input.rcDst;
         params2ndPass.input.rcMaxSrc = params2ndPass.input.rcSrc;
 
+        if (params2ndPass.interlacedScalingType != ISCALING_NONE)
+        {
+            params2ndPass.input.dwHeight = params2ndPass.input.dwHeight / 2;
+            params2ndPass.input.rcSrc.bottom = params2ndPass.input.rcSrc.bottom / 2;
+            params2ndPass.input.rcMaxSrc.bottom = params2ndPass.input.rcMaxSrc.bottom / 2;
+        }
+
         // Set engine caps for filter in 2nd pass.
         filter2ndPass->SetFeatureType(FeatureTypeScaling);
         filter2ndPass->GetFilterEngineCaps().value = 0;
