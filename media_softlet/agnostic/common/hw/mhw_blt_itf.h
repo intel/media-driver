@@ -63,12 +63,6 @@ public:
             uint32_t                 srcOffset,
             uint32_t                 dstOffset) = 0;
     
-    virtual MOS_STATUS AddFastCopyBlt(
-            PMOS_COMMAND_BUFFER      pCmdBuffer,
-            PMHW_FAST_COPY_BLT_PARAM pFastCopyBltParam,
-            uint32_t                 srcOffset,
-            uint32_t                 dstOffset) = 0;
-    
     _BLT_CMD_DEF(_MHW_CMD_ALL_DEF_FOR_ITF);
 MEDIA_CLASS_DEFINE_END(mhw__blt__Itf)
 };

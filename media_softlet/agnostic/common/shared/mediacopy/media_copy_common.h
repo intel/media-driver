@@ -50,6 +50,17 @@
 #define RENDER_COPY                         0x701
 #define BLT_COPY                            0x702
 
+#define SINGLE_PLANE                        0x1
+#define TWO_PLANES                          0x2
+#define THREE_PLANES                        0x3
+
+typedef enum YUVANDRGB_PLANE_INDEX_ENUM
+{
+    MCPY_PLANE_Y  = 0,
+    MCPY_PLANE_U  = 1,
+    MCPY_PLANE_V  = 2,
+} YUVANDRGB_PLANE_INDEX;
+
 //!
 //! \brief  Enum for CCS read/write flag
 //!

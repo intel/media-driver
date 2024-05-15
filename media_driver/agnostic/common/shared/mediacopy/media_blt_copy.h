@@ -105,8 +105,8 @@ public:
     //!           [in] Pointer to input surface
     //! \param    outputSurface
     //!           [in] Pointer to output surface
-    //! \param    plane index
-    //!           [in] plan index, e.g Y plane index 0, UV plane index 1.
+    //! \param    planeIndex
+    //!           [in] Pointer to YUV(RGB) plane index
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
@@ -147,10 +147,10 @@ public:
     //!
     //! \brief    Get Block copy color depth.
     //! \details  get different format's color depth.
-    //! \param    surface 
-    //!           [in] input or output surface.
-    //! \return   MOS_STATUS
-    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //! \param    Gmm format and bits perf block
+    //!           [in] Gmm format, Bits per Block;
+    //! \return   color depth
+    //!           Return color depth
     //!
     uint32_t GetBlkCopyColorDepth(
         GMM_RESOURCE_FORMAT dstFormat,

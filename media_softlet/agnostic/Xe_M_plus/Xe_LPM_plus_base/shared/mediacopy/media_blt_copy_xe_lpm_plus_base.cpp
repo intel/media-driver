@@ -65,7 +65,6 @@ MOS_STATUS BltStateXe_Lpm_Plus_Base::Initialize()
 {
     BltStateNext::Initialize();
     initialized = true;
-    m_blokCopyon = true;
     return MOS_STATUS_SUCCESS;
 }
 
