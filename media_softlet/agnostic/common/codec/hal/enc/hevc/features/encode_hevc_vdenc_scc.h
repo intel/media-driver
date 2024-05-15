@@ -97,6 +97,8 @@ namespace encode
         //!
         bool IsSCCEnabled() { return m_enableSCC; }
 
+        virtual bool IsCompressFlagNeeded() { return true; }
+
         MHW_SETPAR_DECL_HDR(VDENC_PIPE_MODE_SELECT);
 
         MHW_SETPAR_DECL_HDR(VDENC_PIPE_BUF_ADDR_STATE);

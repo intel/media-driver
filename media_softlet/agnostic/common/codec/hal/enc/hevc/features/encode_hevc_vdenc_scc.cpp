@@ -174,7 +174,7 @@ namespace encode
             return eStatus;
         }
 
-        if (m_mmcEnabled)
+        if (m_mmcEnabled && IsCompressFlagNeeded())
         {
             allocParamsForBuffer2D.bIsCompressible = true;
             allocParamsForBuffer2D.CompressionMode = MOS_MMC_MC;
