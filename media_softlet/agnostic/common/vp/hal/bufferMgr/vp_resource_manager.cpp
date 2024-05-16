@@ -802,13 +802,6 @@ MOS_STATUS VpResourceManager::GetIntermediaOutputSurfaceParams(VP_EXECUTE_CAPS& 
         params.rcSrc = scaling->GetSwFilterParams().output.rcSrc;
         params.rcDst = scaling->GetSwFilterParams().output.rcDst;
         params.rcMaxSrc = scaling->GetSwFilterParams().output.rcMaxSrc;
-
-        if (scaling->GetSwFilterParams().interlacedScalingType != ISCALING_NONE)
-        {
-            params.height = scaling->GetSwFilterParams().output.dwHeight / 2;
-            params.rcDst.bottom = params.rcDst.bottom / 2;
-            params.rcMaxSrc.bottom = params.rcMaxSrc.bottom / 2;
-        }
     }
     else
     {
