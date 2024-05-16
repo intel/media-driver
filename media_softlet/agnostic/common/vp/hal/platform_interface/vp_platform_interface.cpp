@@ -546,6 +546,12 @@ VpPlatformInterface::~VpPlatformInterface()
     {
         m_vpDelayLoadedNativeFunctionSet.clear();
     }
+
+    if (m_frameTracker)
+    {
+        MOS_Delete(m_frameTracker);
+    }
+
 }
 
 MOS_STATUS VpPlatformInterface::GetKernelParam(VpKernelID kernlId, RENDERHAL_KERNEL_PARAM &param)

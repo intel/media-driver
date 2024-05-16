@@ -453,7 +453,7 @@ MOS_STATUS VpPipeline::ExecuteVpPipeline()
             return MOS_STATUS_SUCCESS;
         }
     }
-
+    VP_PUBLIC_CHK_STATUS_RETURN(UpdateFrameTracker());
     VP_PUBLIC_CHK_STATUS_RETURN(CreateSwFilterPipe(m_pvpParams, swFilterPipes));
 
     // Increment frame ID for performance measurement
@@ -651,6 +651,15 @@ MOS_STATUS VpPipeline::CreateSwFilterPipe(VP_PARAMS &params, std::vector<SwFilte
         return MOS_STATUS_NULL_POINTER;
     }
 
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpPipeline::UpdateFrameTracker()
+{
+    VP_FUNC_CALL();
+
+    VP_PUBLIC_CHK_NULL_RETURN(m_vpMhwInterface.m_vpPlatformInterface);
+    VP_PUBLIC_CHK_STATUS_RETURN(m_vpMhwInterface.m_vpPlatformInterface->InitFrameTracker());
     return MOS_STATUS_SUCCESS;
 }
 

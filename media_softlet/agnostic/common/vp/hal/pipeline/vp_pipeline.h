@@ -366,6 +366,8 @@ protected:
         return MOS_STATUS_SUCCESS;
     }
 
+    virtual MOS_STATUS UpdateFrameTracker();
+
 #if (_DEBUG || _RELEASE_INTERNAL)
     //!
     //! \brief  Report INTER_FRAME_MEMORY_NINJA_START_COUNTER and INTER_FRAME_MEMORY_NINJA_END_COUNTER
