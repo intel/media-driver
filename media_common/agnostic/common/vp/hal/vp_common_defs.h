@@ -934,6 +934,14 @@ typedef struct _VPHAL_NLAS_PARAMS
     float fNonLinearCrop;
 } VPHAL_NLAS_PARAMS, *PVPHAL_NLAS_PARAMS;
 
+typedef struct _VPHAL_VIDEO_COLOR_RGBA
+{
+    float R;
+    float G;
+    float B;
+    float A;
+} VPHAL_VIDEO_COLOR_RGBA;
+
 //!
 //! Structure VPHAL_COLORFILL_PARAMS
 //! \brief ColorFill parameters
@@ -942,6 +950,7 @@ typedef struct _VPHAL_COLORFILL_PARAMS
 {
     bool         bYCbCr                 = false;
     uint32_t     Color                  = 0;
+    VPHAL_VIDEO_COLOR_RGBA Color1       = {};
     VPHAL_CSPACE CSpace                 = CSpace_None;
     bool         bDisableColorfillinSFC = false;
     bool         bOnePixelBiasinSFC     = false;

@@ -204,6 +204,40 @@ protected:
         return tileMode;
     }
 
+    static uint16_t Fp32_to_Fp16(float value)
+    {
+        //FP32 sign 1 bit, exponent 8 bits, fraction 23 bits
+        //FP16 sign 1 bit, exponent 5 bits, fraction 10 bits
+        uint32_t bits     = *((uint32_t *)&value);
+        uint16_t sign     = (bits >> 31) & 0x1;
+        uint16_t exponent = (bits >> 23) & 0xFF;
+        uint32_t fraction = bits & 0x7FFFFF;
+        int16_t  exp_fp16;
+        if (exponent == 0xFF)
+        {
+            exp_fp16 = 0x1F;
+        }
+        else if (exponent == 0)
+        {
+            exp_fp16 = 0;
+        }
+        else
+        {
+            exp_fp16 = exponent - 127 + 15;
+        }
+        uint16_t fraction_fp16 = (fraction + 0x1000) >> 13;
+        uint16_t result        = (sign << 15) | (exp_fp16 << 10) | fraction_fp16;
+        if (0 == sign)
+        {
+            result = MOS_MIN(result, 0x7bff);  //Infinity:0x7c00
+        }
+        else
+        {
+            result = MOS_MIN(result, 0xfbff);  //-Infinity:0xfc00
+        }
+        return result;
+    }
+
     Impl(PMOS_INTERFACE osItf)
     {
         MHW_FUNCTION_ENTER;
