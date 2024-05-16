@@ -188,7 +188,7 @@ MOS_STATUS SwFilterCsc::Configure(VP_PIPELINE_PARAMS &params, bool isInputSurf, 
 namespace vp
 {
 MOS_STATUS GetVeboxOutputParams(VP_EXECUTE_CAPS &executeCaps, MOS_FORMAT inputFormat, MOS_TILE_TYPE inputTileType, MOS_FORMAT outputFormat,
-                                MOS_FORMAT &veboxOutputFormat, MOS_TILE_TYPE &veboxOutputTileType);
+                                MOS_FORMAT &veboxOutputFormat, MOS_TILE_TYPE &veboxOutputTileType, VPHAL_CSPACE colorSpaceOutput);
 }
 
 MOS_STATUS SwFilterCsc::Configure(PVP_SURFACE surfInput, PVP_SURFACE surfOutput, VP_EXECUTE_CAPS caps)
@@ -206,7 +206,7 @@ MOS_STATUS SwFilterCsc::Configure(PVP_SURFACE surfInput, PVP_SURFACE surfOutput,
         MOS_TILE_TYPE   veboxOutputTileType = surfInput->osSurface->TileType;
 
         GetVeboxOutputParams(caps, surfInput->osSurface->Format, surfInput->osSurface->TileType,
-                            surfOutput->osSurface->Format, veboxOutputFormat, veboxOutputTileType);
+                            surfOutput->osSurface->Format, veboxOutputFormat, veboxOutputTileType, surfOutput->ColorSpace);
         m_Params.input.colorSpace = surfInput->ColorSpace;
         m_Params.output.colorSpace = surfInput->ColorSpace;
 

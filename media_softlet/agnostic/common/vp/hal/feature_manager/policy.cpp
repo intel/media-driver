@@ -3914,7 +3914,7 @@ MOS_STATUS Policy::AddNewFilterOnVebox(
     return status;
 }
 
-MOS_STATUS GetVeboxOutputParams(VP_EXECUTE_CAPS &executeCaps, MOS_FORMAT inputFormat, MOS_TILE_TYPE inputTileType, MOS_FORMAT outputFormat, MOS_FORMAT &veboxOutputFormat, MOS_TILE_TYPE &veboxOutputTileType);
+MOS_STATUS GetVeboxOutputParams(VP_EXECUTE_CAPS &executeCaps, MOS_FORMAT inputFormat, MOS_TILE_TYPE inputTileType, MOS_FORMAT outputFormat, MOS_FORMAT &veboxOutputFormat, MOS_TILE_TYPE &veboxOutputTileType, VPHAL_CSPACE colorSpaceOutput);
 
 MOS_STATUS Policy::GetCscParamsOnCaps(PVP_SURFACE surfInput, PVP_SURFACE surfOutput, VP_EXECUTE_CAPS &caps, FeatureParamCsc &cscParams)
 {
@@ -3940,7 +3940,7 @@ MOS_STATUS Policy::GetCscParamsOnCaps(PVP_SURFACE surfInput, PVP_SURFACE surfOut
         MOS_FORMAT    veboxOutputFormat   = surfInput->osSurface->Format;
         MOS_TILE_TYPE veboxOutputTileType = surfInput->osSurface->TileType;
 
-        GetVeboxOutputParams(caps, surfInput->osSurface->Format, surfInput->osSurface->TileType, surfOutput->osSurface->Format, veboxOutputFormat, veboxOutputTileType);
+        GetVeboxOutputParams(caps, surfInput->osSurface->Format, surfInput->osSurface->TileType, surfOutput->osSurface->Format, veboxOutputFormat, veboxOutputTileType, surfOutput->ColorSpace);
         cscParams.input.colorSpace = surfInput->ColorSpace;
         cscParams.output.colorSpace = surfInput->ColorSpace;
 
