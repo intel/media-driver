@@ -75,14 +75,13 @@ namespace encode
             uint8_t packetPhase = otherPacket) override;
 
     protected:
-        MOS_STATUS PatchTileLevelCommands(MOS_COMMAND_BUFFER &cmdBuffer, uint8_t packetPhase);
         MOS_STATUS AddOneTileCommands(
             MOS_COMMAND_BUFFER  &cmdBuffer,
             uint32_t            tileRow,
             uint32_t            tileCol,
-            uint32_t            tileRowPass = 0);
+            uint32_t            tileRowPass = 0) override;
 
-        MOS_STATUS EnsureAllCommandsExecuted(MOS_COMMAND_BUFFER &cmdBuffer);
+        MOS_STATUS EnsureAllCommandsExecuted(MOS_COMMAND_BUFFER &cmdBuffer) override;
 
         virtual MOS_STATUS AllocateResources() override;
 

@@ -41,7 +41,8 @@ MOS_STATUS Av1BasicFeatureXe_Lpm_Plus_Base::Update(void *params)
     ENCODE_CHK_NULL_RETURN(superResFeature);
     if (superResFeature->IsEnabled())
     {
-        m_rawSurfaceToEnc = superResFeature->GetRawSurfaceToEnc();
+        m_rawSurfaceToEnc          = superResFeature->GetRawSurfaceToEnc();
+        m_postCdefReconSurfaceFlag = true;
     }
 
     return MOS_STATUS_SUCCESS;

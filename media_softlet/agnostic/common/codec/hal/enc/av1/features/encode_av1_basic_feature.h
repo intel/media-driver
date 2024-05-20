@@ -161,6 +161,7 @@ public:
 
     RoundingMethod                     m_roundingMethod = fixedRounding;
     bool                               m_enableCDEF = false;
+    bool                               m_postCdefReconSurfaceFlag = false;
 
     uint32_t                           m_vdencTileSliceStart[av1MaxTileNum] = { 0 };           //!< VDEnc TILE_SLICE buffer offset array for every tile
 

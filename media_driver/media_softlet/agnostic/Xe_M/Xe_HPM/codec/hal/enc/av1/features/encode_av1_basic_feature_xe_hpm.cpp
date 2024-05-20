@@ -39,6 +39,8 @@ MOS_STATUS Av1BasicFeatureXe_Hpm::Update(void *params)
 
     ENCODE_CHK_STATUS_RETURN(m_ref.SetPostCdefAsEncRef(true));
 
+    m_postCdefReconSurfaceFlag = true;
+
     return MOS_STATUS_SUCCESS;
 
 }

@@ -191,6 +191,16 @@ protected:
         MHW_VDBOX_NODE_IND vdboxIndex,
         MediaStatusReport  *statusReport,
         MOS_COMMAND_BUFFER &cmdBuffer);
+    
+    virtual MOS_STATUS AddOneTileCommands(
+        MOS_COMMAND_BUFFER  &cmdBuffer,
+        uint32_t            tileRow,
+        uint32_t            tileCol,
+        uint32_t            tileRowPass = 0) = 0;
+
+    virtual MOS_STATUS EnsureAllCommandsExecuted(MOS_COMMAND_BUFFER &cmdBuffer) = 0;
+
+    virtual MOS_STATUS PatchTileLevelCommands(MOS_COMMAND_BUFFER &cmdBuffer, uint8_t packetPhase);
 
     MOS_STATUS AddCondBBEndFor2ndPass(MOS_COMMAND_BUFFER &cmdBuffer);
 
