@@ -2137,6 +2137,9 @@ VAStatus DdiMedia_LoadFuncion (VADriverContextP ctx)
     pVTable->vaBeginPicture                  = DdiMedia_BeginPicture;
     pVTable->vaRenderPicture                 = DdiMedia_RenderPicture;
     pVTable->vaEndPicture                    = DdiMedia_EndPicture;
+//todo: #if VA_CHECK_VERSION(1, 9, 0)
+    pVTable->vaEndPicture2                   = DdiMedia_EndPicture2;
+//#endif
     pVTable->vaSyncSurface                   = DdiMedia_SyncSurface;
 #if VA_CHECK_VERSION(1, 9, 0)
     pVTable->vaSyncSurface2                  = DdiMedia_SyncSurface2;
@@ -4055,6 +4058,54 @@ VAStatus DdiMedia_EndPicture (
 
     return vaStatus;
 }
+
+//#if VA_CHECK_VERSION(1, 9, 0) //todo: check correct version
+VAStatus DdiMedia_EndPicture2 (
+    VADriverContextP    ctx,
+    VAContextID         context,
+    int32_t            *fences,
+    int32_t            count
+)
+{
+    DDI_FUNCTION_ENTER();
+
+    DDI_CHK_NULL(ctx, "nullptr ctx", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(fences, "nullptr fences", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    uint32_t ctxType = DDI_MEDIA_CONTEXT_TYPE_NONE;
+    void     *ctxPtr = DdiMedia_GetContextFromContextID(ctx, context, &ctxType);
+    VAStatus  vaStatus = VA_STATUS_SUCCESS;
+
+    //todo: DdiMediaUtil_LockMutex(mediaCtx->SyncFenceMutex);
+    //todo: vaStatus  = DdiMedia_SetSyncFences(ctx, context, fences, count);
+    //todo: add fences[1...count] into bufmgr->fences[...]
+
+    switch (ctxType)
+    {
+        case DDI_MEDIA_CONTEXT_TYPE_DECODER:
+            vaStatus = DdiDecode_EndPicture(ctx, context);
+            break;
+        case DDI_MEDIA_CONTEXT_TYPE_ENCODER:
+            vaStatus = DdiEncode_EndPicture(ctx, context);
+            break;
+        case DDI_MEDIA_CONTEXT_TYPE_VP:
+            vaStatus = DdiVp_EndPicture(ctx, context);
+            break;
+        default:
+            DDI_ASSERTMESSAGE("DDI: unsupported context in DdiCodec_EndPicture.");
+            vaStatus = VA_STATUS_ERROR_INVALID_CONTEXT;
+    }
+
+    //todo: vaStatus  = DdiMedia_GetSyncFenceOut(ctx, context, &fences[0]);
+    //todo: get fence out from bufmgr->fence[0]
+    //todo: DdiMediaUtil_UnLockMutex(mediaCtx->SyncFenceMutex);
+
+    MOS_TraceEventExt(EVENT_VA_PICTURE, EVENT_TYPE_END, &context, sizeof(context), &vaStatus, sizeof(vaStatus));
+    PERF_UTILITY_STOP_ONCE("First Frame Time", PERF_MOS, PERF_LEVEL_DDI);
+
+    return vaStatus;
+}
+//#endif
 
 static VAStatus DdiMedia_StatusCheck (
     PDDI_MEDIA_CONTEXT mediaCtx,
