@@ -1427,6 +1427,9 @@ static VAStatus DdiMedia_HeapInitialize(
     DdiMediaUtil_InitMutex(&mediaCtx->ProtMutex);
     DdiMediaUtil_InitMutex(&mediaCtx->CmMutex);
     DdiMediaUtil_InitMutex(&mediaCtx->MfeMutex);
+//todo: #if VA_CHECK_VERSION(1, 9, 0)
+    DdiMediaUtil_InitMutex(&mediaCtx->SyncFenceMutex);
+//#endif
 
     return VA_STATUS_SUCCESS;
 }
@@ -1481,6 +1484,9 @@ static VAStatus DdiMedia_HeapDestroy(
     DdiMediaUtil_DestroyMutex(&mediaCtx->ProtMutex);
     DdiMediaUtil_DestroyMutex(&mediaCtx->CmMutex);
     DdiMediaUtil_DestroyMutex(&mediaCtx->MfeMutex);
+//todo: #if VA_CHECK_VERSION(1, 9, 0)
+    DdiMediaUtil_DestroyMutex(&mediaCtx->SyncFenceMutex);
+//#endif
 
     //resource checking
     if (mediaCtx->uiNumSurfaces != 0)
@@ -1558,6 +1564,9 @@ void DestroyMediaContextMutex(PDDI_MEDIA_CONTEXT mediaCtx)
     DdiMediaUtil_DestroyMutex(&mediaCtx->VpMutex);
     DdiMediaUtil_DestroyMutex(&mediaCtx->CmMutex);
     DdiMediaUtil_DestroyMutex(&mediaCtx->MfeMutex);
+//todo: #if VA_CHECK_VERSION(1, 9, 0)
+    DdiMediaUtil_DestroyMutex(&mediaCtx->SyncFenceMutex);
+//#endif
 #if !defined(ANDROID) && defined(X11_FOUND)
     DdiMediaUtil_DestroyMutex(&mediaCtx->PutSurfaceRenderMutex);
     DdiMediaUtil_DestroyMutex(&mediaCtx->PutSurfaceSwapBufferMutex);
@@ -4074,9 +4083,10 @@ VAStatus DdiMedia_EndPicture2 (
 
     uint32_t ctxType = DDI_MEDIA_CONTEXT_TYPE_NONE;
     void     *ctxPtr = DdiMedia_GetContextFromContextID(ctx, context, &ctxType);
+    PDDI_MEDIA_CONTEXT mediaCtx  = DdiMedia_GetMediaContext(ctx);
     VAStatus  vaStatus = VA_STATUS_SUCCESS;
 
-    //todo: DdiMediaUtil_LockMutex(mediaCtx->SyncFenceMutex);
+    DdiMediaUtil_LockMutex(&mediaCtx->SyncFenceMutex);
     //todo: vaStatus  = DdiMedia_SetSyncFences(ctx, context, fences, count);
     //todo: add fences[1...count] into bufmgr->fences[...]
 
@@ -4098,7 +4108,7 @@ VAStatus DdiMedia_EndPicture2 (
 
     //todo: vaStatus  = DdiMedia_GetSyncFenceOut(ctx, context, &fences[0]);
     //todo: get fence out from bufmgr->fence[0]
-    //todo: DdiMediaUtil_UnLockMutex(mediaCtx->SyncFenceMutex);
+    DdiMediaUtil_UnLockMutex(&mediaCtx->SyncFenceMutex);
 
     MOS_TraceEventExt(EVENT_VA_PICTURE, EVENT_TYPE_END, &context, sizeof(context), &vaStatus, sizeof(vaStatus));
     PERF_UTILITY_STOP_ONCE("First Frame Time", PERF_MOS, PERF_LEVEL_DDI);
