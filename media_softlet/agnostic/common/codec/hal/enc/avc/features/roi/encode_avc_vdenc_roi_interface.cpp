@@ -171,11 +171,16 @@ bool AvcVdencRoiInterface::ProcessRoiDeltaQp()
     m_picParam->NumROIDistinctDeltaQp = (int8_t)numQp;
     
     int32_t lastROIIdx = MOS_CLAMP_MIN_MAX(numQp - 1, 0, m_maxNumRoi - 1);
+
+#if _MEDIA_RESERVED
+    return (!(numQp > m_maxNumNativeRoi || m_picParam->ROIDistinctDeltaQp[0] < -8 || m_picParam->ROIDistinctDeltaQp[lastROIIdx] > 7));
+#else
     bool bIsNativeROI = (!(numQp > m_maxNumNativeRoi || m_picParam->ROIDistinctDeltaQp[0] < -8 || m_picParam->ROIDistinctDeltaQp[lastROIIdx] > 7));
     bool bIsNativeROIAllowed = !m_brcFeature->IsVdencBrcEnabled() || m_brcFeature->IsMbBrcEnabled(); // BRC native ROI require MBBRC on
 
     // return whether is native ROI or not
     return bIsNativeROI && bIsNativeROIAllowed;
+#endif  // _MEDIA_RESERVED
 }
 
 MOS_STATUS AvcVdencRoiInterface::SetupROI()
