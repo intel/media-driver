@@ -4087,7 +4087,7 @@ VAStatus DdiMedia_EndPicture2 (
     VAStatus  vaStatus = VA_STATUS_SUCCESS;
 
     DdiMediaUtil_LockMutex(&mediaCtx->SyncFenceMutex);
-    //todo: vaStatus  = DdiMedia_SetSyncFences(ctx, context, fences, count);
+    vaStatus  = DdiMedia_SetSyncFences(ctx, context, fences, count);
     //todo: add fences[1...count] into bufmgr->fences[...]
 
     switch (ctxType)
@@ -4106,7 +4106,7 @@ VAStatus DdiMedia_EndPicture2 (
             vaStatus = VA_STATUS_ERROR_INVALID_CONTEXT;
     }
 
-    //todo: vaStatus  = DdiMedia_GetSyncFenceOut(ctx, context, &fences[0]);
+    vaStatus  = DdiMedia_GetSyncFenceOut(ctx, context, &fences[0]);
     //todo: get fence out from bufmgr->fence[0]
     DdiMediaUtil_UnLockMutex(&mediaCtx->SyncFenceMutex);
 

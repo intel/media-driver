@@ -475,3 +475,21 @@ void MovePriorityBufferIdToEnd (VABufferID *buffers, int32_t priorityIndexInBuf,
     }
 }
 
+VAStatus DdiMedia_SetSyncFences(VADriverContextP ctx, VAContextID context, int32_t *fences, int32_t count)
+{
+    VAStatus vaStatus = VA_STATUS_SUCCESS;
+    //todo: get bufmgr
+    //todo: struct mos_exec_fences exec_fences = {.fences = fences, .count = count};
+    //todo: int ret = mos_bufmgr_set_fences(bufmgr, &exec_fences);
+
+    return vaStatus;
+}
+
+VAStatus DdiMedia_GetSyncFenceOut(VADriverContextP ctx, VAContextID context, int32_t *fence_out)
+{
+    VAStatus vaStatus = VA_STATUS_SUCCESS;
+    //todo: get bufmgr
+    //todo: int ret = mos_bufmgr_get_fence(bufmgr, fence_out);
+
+    return vaStatus;
+}
