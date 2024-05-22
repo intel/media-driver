@@ -330,6 +330,7 @@ namespace encode
         bool firstTileInGroup = false;
         uint32_t tileGroupIdx = 0;
         RUN_FEATURE_INTERFACE_RETURN(Av1EncodeTile, Av1FeatureIDs::encodeTile, GetTileRowColumns, numTileRows, numTileColumns);
+        slbData.tileNum = numTileRows * numTileColumns;
 
         for (uint32_t tileRow = 0; tileRow < numTileRows; tileRow++)
         {
@@ -376,7 +377,6 @@ namespace encode
         uint16_t numTileColumns = 1;
         uint16_t numTileRows = 1;
         RUN_FEATURE_INTERFACE_RETURN(Av1EncodeTile, Av1FeatureIDs::encodeTile, GetTileRowColumns, numTileRows, numTileColumns);
-        slbData.tileNum = numTileRows * numTileColumns;
 
         auto& par = m_vdencItf->MHW_GETPAR_F(VDENC_HEVC_VP9_TILE_SLICE_STATE)();
         par = {};
