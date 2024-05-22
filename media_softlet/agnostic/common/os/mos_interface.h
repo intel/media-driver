@@ -483,6 +483,13 @@ public:
     //!
     //! \brief    Dump Indirect state in Command Buffer
     //!
+    static MOS_STATUS DumpIndirectStates(
+        MOS_STREAM_HANDLE streamState,
+        const char        *filePathPrefix,
+        std::time_t       currentTime);
+    //!
+    //! \brief    Dump Indirect state in Command Buffer
+    //!
     //! \param    [in] streamState
     //!           Handle of Os Stream State
     //! \param    [in] cmdBuffer
@@ -495,7 +502,7 @@ public:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    static MOS_STATUS DumpIndirectState(
+    static MOS_STATUS DumpBindingTable(
         MOS_STREAM_HANDLE     streamState,
         COMMAND_BUFFER_HANDLE cmdBuffer,
         MOS_GPU_NODE          gpuNode,
