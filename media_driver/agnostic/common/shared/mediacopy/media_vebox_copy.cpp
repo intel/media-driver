@@ -113,7 +113,7 @@ MOS_STATUS VeboxCopyState::CopyMainSurface(PMOS_RESOURCE src, PMOS_RESOURCE dst)
     outputSurface.OsResource = *dst;
     VEBOX_COPY_CHK_STATUS_RETURN(GetResourceInfo(&outputSurface));
 
-    // For RGB10/BGR10/A8, use other format instead. No need to check format again.
+    // For RGB10/BGR10/Y210/Y410/A8, use other format instead. No need to check format again.
     AdjustSurfaceFormat(inputSurface);
 
     veboxInterface = m_veboxInterface;
@@ -557,9 +557,12 @@ bool VeboxCopyState::IsVeCopySupportedFormat(MOS_FORMAT format)
 void VeboxCopyState::AdjustSurfaceFormat(MOS_SURFACE &surface)
 {
     if (surface.Format == Format_R10G10B10A2 ||
-        surface.Format == Format_B10G10R10A2)
+        surface.Format == Format_B10G10R10A2 ||
+        surface.Format == Format_Y410        ||
+        surface.Format == Format_Y210)
     {
         // RGB10 not supported without IECP. Re-map RGB10/RGB10 as AYUV
+        // Y410/Y210 has HW issue. Remap to AYUV.
         surface.Format = Format_AYUV;
     }
     else if (surface.Format == Format_A8)
