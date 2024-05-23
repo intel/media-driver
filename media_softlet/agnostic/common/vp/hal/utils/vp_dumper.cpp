@@ -876,6 +876,14 @@ MOS_STATUS VpSurfaceDumper::CopyThenLockResources(
 
     bool           bAllocated;
 
+    Mos_MemPool memType = MOS_MEMPOOL_SYSTEMMEMORY;
+#if !EMUL
+    if (pSurface->OsResource.pGmmResInfo->GetSetCpSurfTag(false, 0) != 0)
+    {
+        memType = MOS_MEMPOOL_VIDEOMEMORY;
+    }
+#endif
+
     temp2DSurfForCopy = (PVPHAL_SURFACE)MOS_AllocAndZeroMemory(sizeof(VPHAL_SURFACE));
     VP_DEBUG_CHK_NULL_RETURN(temp2DSurfForCopy);
     VP_DEBUG_CHK_STATUS_RETURN(VpUtils::ReAllocateSurface(
@@ -892,7 +900,7 @@ MOS_STATUS VpSurfaceDumper::CopyThenLockResources(
         &bAllocated,
         MOS_HW_RESOURCE_DEF_MAX,
         MOS_TILE_UNSET_GMM,
-        MOS_MEMPOOL_SYSTEMMEMORY));
+        memType));
 
     pOsInterface->pfnDoubleBufferCopyResource(
         pOsInterface,
