@@ -925,7 +925,7 @@ uint32_t BltStateNext::GetBlkCopyColorDepth(
     uint32_t BitsPerPixel = BLT_BITS_PER_BYTE;
     if (dstFormat == GMM_FORMAT_YUY2_2x1 || dstFormat == GMM_FORMAT_Y216_TYPE || dstFormat == GMM_FORMAT_Y210)
     {// GMM_FORMAT_YUY2_2x1 32bpe 2x1 pixel blocks instead of 16bpp 1x1 block
-     // GMM_FORMAT_Y216_TYPE 64bpe pixel blocks instead of 32bpp block.
+     // GMM_FORMAT_Y216_TYPE/Y210 64bpe pixel blocks instead of 32bpp block.
          BitsPerPixel = BitsPerBlock / 2;
     }
     else
@@ -941,7 +941,7 @@ uint32_t BltStateNext::GetBlkCopyColorDepth(
            case GMM_FORMAT_B5G5R5A1_UNORM:
                return mhw_blt_state::XY_BLOCK_COPY_BLT_CMD::COLOR_DEPTH_32BITCOLOR;
            default:
-               return mhw_blt_state::XY_BLOCK_COPY_BLT_CMD::COLOR_DEPTH_16BITCOLOR;;
+               return mhw_blt_state::XY_BLOCK_COPY_BLT_CMD::COLOR_DEPTH_16BITCOLOR;
          }
      case 32:
          return mhw_blt_state::XY_BLOCK_COPY_BLT_CMD::COLOR_DEPTH_32BITCOLOR;
