@@ -187,7 +187,7 @@ MOS_STATUS VpScalingFilter::SetColorFillParams()
         if (IS_RGB_CSPACE(m_scalingParams.pColorFillParams->CSpace) && (IS_RGB64_FLOAT_FORMAT(m_scalingParams.formatOutput)))
         {
             // Swap the channel here because HW only natively supports XBGR output
-            if (m_scalingParams.formatOutput == Format_A16R16G16B16F)
+            if (m_scalingParams.formatOutput == Format_A16B16G16R16F)
             {
                 m_sfcScalingParams->sfcColorfillParams.fColorFillYRPixel = m_scalingParams.pColorFillParams->Color1.B;
                 m_sfcScalingParams->sfcColorfillParams.fColorFillUGPixel = m_scalingParams.pColorFillParams->Color1.G;
@@ -263,8 +263,8 @@ MOS_STATUS VpScalingFilter::SetYUVRGBPixel()
         if ((m_scalingParams.formatOutput == Format_A8R8G8B8)       ||
             (m_scalingParams.formatOutput == Format_X8R8G8B8)       ||
             (m_scalingParams.formatOutput == Format_R10G10B10A2)    ||
-            (m_scalingParams.formatOutput == Format_A16R16G16B16)   ||
-            (m_scalingParams.formatOutput == Format_A16R16G16B16F))
+            (m_scalingParams.formatOutput == Format_A16B16G16R16)   ||
+            (m_scalingParams.formatOutput == Format_A16B16G16R16F))
         {
             m_sfcScalingParams->sfcColorfillParams.fColorFillYRPixel = (float)m_colorFillColorDst.B / 255.0F;
             m_sfcScalingParams->sfcColorfillParams.fColorFillUGPixel = (float)m_colorFillColorDst.G / 255.0F;
