@@ -930,6 +930,7 @@ public:
     uint32_t curNoiseLevelV_Temporal      = 0;  //!< Temporal Noise Level for V
     bool     m_bTgneEnable                = true;
     bool     m_bTgneValid                 = false;
+    bool     m_bFallback                  = false;
 
     mhw::vebox::MHW_VEBOX_CHROMA_PARAMS veboxChromaParams = {};
 
