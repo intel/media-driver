@@ -82,7 +82,7 @@ export LIBVA_DRIVER_NAME=iHD
 - TGLx (TGL: Tiger Lake, RKL: Rocket Lake, ADL-S/P/N: Alder Lake, RPL-S/P: Raptor Lake)
 - DG1/SG1
 - Alchemist(DG2)/ATSM
-- MTLx (MTL: Meteor Lake, ARL-S: Arrow Lake)
+- MTLx (MTL: Meteor Lake, ARL-S/H: Arrow Lake)
 
 
 ## Components and Features
