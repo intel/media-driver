@@ -140,6 +140,8 @@ struct mos_bufmgr_gem {
     int exec_size;
     int exec_count;
 
+    struct mos_exec_fences exec_fences;
+
     /** Array of lists of cached gem objects of power-of-two sizes */
     struct mos_gem_bo_bucket cache_bucket[64];
     int num_buckets;
@@ -5221,6 +5223,61 @@ mos_bufmgr_enable_turbo_boost(struct mos_bufmgr *bufmgr)
                       DRM_IOCTL_I915_GEM_CONTEXT_SETPARAM, &ctxParam );
 }
 
+int
+mos_bufmgr_set_fences(struct mos_bufmgr *bufmgr, struct mos_exec_fences *exec_fences)
+{
+    if (!bufmgr || !exec_fences || exec_fences->count > FENCES_MAX)
+    {
+        return -EINVAL;
+    }
+
+    struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *)bufmgr;
+
+    if (bufmgr_gem->exec_fences.fences == nullptr)
+    {
+        //fences[0] reserved for fence out
+        bufmgr_gem->exec_fences.fences = (int32_t *)malloc((FENCES_MAX + 1) * sizeof(int32_t));
+
+        if (bufmgr_gem->exec_fences.fences == nullptr)
+        {
+            return -ENOMEM;
+        }
+
+        bufmgr_gem->exec_fences.count = 0;
+    }
+
+    if (exec_fences->count > 0)
+    {
+        memcpy(bufmgr_gem->exec_fences.fences, exec_fences->fences, (exec_fences->count + 1) * sizeof(int32_t));
+        bufmgr_gem->exec_fences.fences[0] = 0;
+        bufmgr_gem->exec_fences.count = exec_fences->count;
+    }
+
+    return 0;
+}
+
+int
+mos_bufmgr_get_fence(struct mos_bufmgr *bufmgr, int32_t *fence_out)
+{
+    if (!bufmgr || !fence_out)
+    {
+        return -EINVAL;
+    }
+
+    struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *)bufmgr;
+
+    if (bufmgr_gem->exec_fences.fences)
+    {
+        *fence_out = bufmgr_gem->exec_fences.fences[0];
+    }
+    else
+    {
+        *fence_out = 0;
+    }
+
+    return 0;
+}
+
 /**
  * Initializes the GEM buffer manager, which uses the kernel to allocate, map,
  * and manage map buffer objections.
@@ -5333,6 +5390,8 @@ mos_bufmgr_gem_init_i915(int fd, int batch_size)
     bufmgr_gem->bufmgr.get_ts_frequency = mos_bufmgr_get_ts_frequency;
     bufmgr_gem->bufmgr.has_bsd2 = mos_bufmgr_has_bsd2;
     bufmgr_gem->bufmgr.enable_turbo_boost = mos_bufmgr_enable_turbo_boost;
+    bufmgr_gem->bufmgr.set_fences = mos_bufmgr_set_fences;
+    bufmgr_gem->bufmgr.get_fence = mos_bufmgr_get_fence;
 
     bufmgr_gem->mem_profiler_path = getenv("MEDIA_MEMORY_PROFILER_LOG");
     if (bufmgr_gem->mem_profiler_path != nullptr)

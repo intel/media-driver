@@ -254,6 +254,7 @@ struct mos_drm_uc_version {
 
 struct mos_exec_fences
 {
+#define FENCES_MAX  10
     int32_t *fences;
     int32_t count;
 };

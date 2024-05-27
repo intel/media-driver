@@ -1232,16 +1232,15 @@ mos_set_fences(struct mos_bufmgr *bufmgr, struct mos_exec_fences *exec_fences)
         return -EINVAL;
     }
 
-    return 0;
-    //todo: add func pointer to bufmgr
-    //if (bufmgr->set_fences)
-    //{
-    //    return bufmgr->set_fences(bufmgr, exec_fences);
-    //}
-    //else
-    //{
-    //    MOS_OS_CRITICALMESSAGE("Unsupported\n");
-    //}
+    if (bufmgr->set_fences)
+    {
+        return bufmgr->set_fences(bufmgr, exec_fences);
+    }
+    else
+    {
+        MOS_OS_CRITICALMESSAGE("Unsupported\n");
+        return -EPERM;
+    }
 
 }
 
@@ -1254,16 +1253,15 @@ mos_get_fence(struct mos_bufmgr *bufmgr, int32_t *fence_out)
         return -EINVAL;
     }
 
-    return 0;
-    //todo: add func pointer to bufmgr
-    //if (bufmgr->get_fence)
-    //{
-    //    return bufmgr->get_fence(bufmgr, fence_out);
-    //}
-    //else
-    //{
-    //    MOS_OS_CRITICALMESSAGE("Unsupported\n");
-    //}
+    if (bufmgr->get_fence)
+    {
+        return bufmgr->get_fence(bufmgr, fence_out);
+    }
+    else
+    {
+        MOS_OS_CRITICALMESSAGE("Unsupported\n");
+        return -EPERM;
+    }
 
 }
 
