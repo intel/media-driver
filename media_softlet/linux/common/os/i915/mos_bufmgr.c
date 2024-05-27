@@ -2461,9 +2461,10 @@ mos_bufmgr_gem_destroy(struct mos_bufmgr *bufmgr)
     struct drm_gem_close close_bo;
     int ret;
 
-    free(bufmgr_gem->exec2_objects);
-    free(bufmgr_gem->exec_objects);
-    free(bufmgr_gem->exec_bos);
+    mos_safe_free(bufmgr_gem->exec2_objects);
+    mos_safe_free(bufmgr_gem->exec_objects);
+    mos_safe_free(bufmgr_gem->exec_bos);
+    mos_safe_free(bufmgr_gem->exec_fences.fences);
     pthread_mutex_destroy(&bufmgr_gem->lock);
 
     /* Free any cached buffer objects we were going to reuse */
@@ -2964,6 +2965,79 @@ mos_update_buffer_offsets2 (struct mos_bufmgr_gem *bufmgr_gem, mos_linux_context
     }
 }
 
+//todo: to move synchronization_xe.h to os common instead of xe specific
+#include "mos_synchronization_xe.h"
+
+int
+__add_eb_fence_array(struct mos_bufmgr_gem *bufmgr_gem,
+            struct drm_i915_gem_execbuffer2 *eb,
+            unsigned int flags)
+{
+#define SCALABILITY_ON (I915_EXEC_FENCE_OUT | I915_EXEC_FENCE_IN | I915_EXEC_FENCE_SUBMIT)
+
+    //Ignore multi batch submission for scalability to simplify logic
+    //todo: check has_fence_array from params
+    if (!(flags & SCALABILITY_ON)
+                && bufmgr_gem->exec_fences.fences)
+    {
+        int32_t fence_count = bufmgr_gem->exec_fences.count;
+        int32_t *exec_fences = bufmgr_gem->exec_fences.fences;
+
+        if (fence_count > 0)
+        {
+            struct drm_i915_gem_exec_fence *fences
+                = (struct drm_i915_gem_exec_fence *)malloc(fence_count * sizeof(struct drm_i915_gem_exec_fence));
+            if (fences == nullptr)
+            {
+                return -ENOMEM;
+            }
+            for (int32_t i = 0; i < fence_count; i++)
+            {
+                fences[i].handle = mos_sync_syncfile_fd_to_syncobj_handle(bufmgr_gem->fd, exec_fences[i + 1]);
+                fences[i].flags = I915_EXEC_FENCE_WAIT;
+            }
+
+            eb->num_cliprects = fence_count;
+            eb->cliprects_ptr = (uintptr_t)fences;
+            eb->flags |= I915_EXEC_FENCE_ARRAY;
+        }
+
+        eb->rsvd2 = -1;
+        eb->flags |= I915_EXEC_FENCE_OUT; //todo: to verify rsvd2 >> 32 still has fence out
+        return 0;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+void
+__clear_eb_fence_array(struct mos_bufmgr_gem *bufmgr_gem,
+            struct drm_i915_gem_execbuffer2 *eb)
+{
+    if (eb->cliprects_ptr
+                && eb->flags & I915_EXEC_FENCE_ARRAY)
+    {
+        struct drm_i915_gem_exec_fence *fences = (drm_i915_gem_exec_fence *)eb->cliprects_ptr;
+
+        for (int32_t i = 0; i < eb->num_cliprects; i++)
+        {
+            mos_sync_syncobj_destroy(bufmgr_gem->fd, fences[i].handle);
+        }
+
+        mos_safe_free(fences);
+        eb->cliprects_ptr = (uintptr_t)nullptr;
+    }
+
+    if (bufmgr_gem->exec_fences.fences
+                && eb->flags & I915_EXEC_FENCE_OUT)
+    {
+        bufmgr_gem->exec_fences.fences[0] = eb->rsvd2 >> 32;
+    }
+
+}
+
 drm_export int
 do_exec2(struct mos_linux_bo *bo, int used, struct mos_linux_context *ctx,
      drm_clip_rect_t *cliprects, int num_cliprects, int DR4,
@@ -3035,6 +3109,8 @@ do_exec2(struct mos_linux_bo *bo, int used, struct mos_linux_context *ctx,
     if (bufmgr_gem->no_exec)
         goto skip_execution;
 
+    __add_eb_fence_array(bufmgr_gem, &execbuf, flags);
+
     ret = drmIoctl(bufmgr_gem->fd,
                DRM_IOCTL_I915_GEM_EXECBUFFER2_WR,
                &execbuf);
@@ -3060,6 +3136,8 @@ do_exec2(struct mos_linux_bo *bo, int used, struct mos_linux_context *ctx,
     {
         *fence = execbuf.rsvd2 >> 32;
     }
+
+    __clear_eb_fence_array(bufmgr_gem, &execbuf);
 
 skip_execution:
     if (bufmgr_gem->bufmgr.debug)
