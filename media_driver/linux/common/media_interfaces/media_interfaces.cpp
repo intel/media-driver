@@ -375,10 +375,16 @@ void* MmdDevice::CreateFactory(
     {
         MMD_FAILURE();
     }
+
+    // transfer ownership of osinterface. No need to delete osinterface from this point.
     device->Initialize(osInterface, mhwInterfaces);
     if (device->m_mmdDevice == nullptr)
     {
-        MMD_FAILURE();
+        mhwInterfaces->Destroy();
+        // no need to delete osinterface becauses it's already deleted in device->Initialize
+        MOS_Delete(mhwInterfaces);
+        MOS_Delete(device);
+        return nullptr;
     }
 
     void *mmdDevice = device->m_mmdDevice;

@@ -277,35 +277,38 @@ MOS_STATUS MmdDeviceXe_Hpm::Initialize(
     PMOS_INTERFACE osInterface,
     MhwInterfaces *mhwInterfaces)
 {
-#define MMD_FAILURE()                                       \
-{                                                           \
-    if (device != nullptr)                                  \
-    {                                                       \
-        MOS_Delete(device);                                 \
-    }                                                       \
-    return MOS_STATUS_NO_SPACE;                             \
-}
     MHW_FUNCTION_ENTER;
 
+    if (mhwInterfaces->m_miInterface == nullptr || mhwInterfaces->m_veboxInterface == nullptr)
+    {
+        if (osInterface != nullptr)
+        {
+            if (osInterface->pfnDestroy)
+            {
+                osInterface->pfnDestroy(osInterface, false);
+            }
+            MOS_FreeMemory(osInterface);
+        }
+        return MOS_STATUS_NULL_POINTER;
+    }
+
     Mmd *device = nullptr;
-
-    if (mhwInterfaces->m_miInterface == nullptr)
-    {
-        MMD_FAILURE();
-    }
-
-    if (mhwInterfaces->m_veboxInterface == nullptr)
-    {
-        MMD_FAILURE();
-    }
-
     device = MOS_New(Mmd);
 
     if (device == nullptr)
     {
-        MMD_FAILURE();
+        if (osInterface != nullptr)
+        {
+            if (osInterface->pfnDestroy)
+            {
+                osInterface->pfnDestroy(osInterface, false);
+            }
+            MOS_FreeMemory(osInterface);
+        }
+        return MOS_STATUS_NO_SPACE;
     }
 
+    // transfer ownership of osinterface to device. device will have exclusive ownership of osinterface and free it.
     if (device->Initialize(
         osInterface,
         mhwInterfaces->m_cpInterface,
@@ -317,7 +320,8 @@ MOS_STATUS MmdDeviceXe_Hpm::Initialize(
         mhwInterfaces->m_cpInterface = nullptr;
         mhwInterfaces->m_miInterface = nullptr;
         mhwInterfaces->m_veboxInterface = nullptr;
-        MMD_FAILURE();
+        MOS_Delete(device);
+        return MOS_STATUS_UNKNOWN;
     }
 
     m_mmdDevice = device;
