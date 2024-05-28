@@ -1195,8 +1195,8 @@ static int __mos_vm_bind_xe(int fd, uint32_t vm_id, uint32_t exec_queue_id, uint
     ret = drmIoctl(fd, DRM_IOCTL_XE_VM_BIND, &bind);
     if (ret)
     {
-        MOS_DRM_ASSERTMESSAGE("Failed to bind vm, vm_id:%d, exec_queue_id:%d, op:0x%x, flags:0x%x, bo_handle:%d, offset:%lx, addr:0x%lx, size:%ld, errno(%d)",
-            vm_id, exec_queue_id, op, bo_handle, offset, addr, size, -errno);
+        MOS_DRM_ASSERTMESSAGE("Failed to bind vm, vm_id:%d, exec_queue_id:%d, op:0x%x, flags:0x%x, bo_handle:%d, offset:%lx, addr:0x%lx, size:%ld, pat_index:%d, errno(%d)",
+            vm_id, exec_queue_id, op, flags, bo_handle, offset, addr, size, pat_index, -errno);
     }
 
     return ret;
