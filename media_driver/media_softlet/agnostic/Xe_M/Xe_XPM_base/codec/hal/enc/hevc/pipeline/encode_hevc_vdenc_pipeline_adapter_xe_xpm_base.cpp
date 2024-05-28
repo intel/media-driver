@@ -70,6 +70,14 @@ MOS_STATUS EncodeHevcVdencPipelineAdapterXe_Xpm_Base::ResolveMetaData(PMOS_RESOU
     return m_encoder->ExecuteResolveMetaData(pInput, pOutput);
 }
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+MOS_STATUS EncodeHevcVdencPipelineAdapterXe_Xpm_Base::Reformat()
+{
+    m_encoder->PrepareReformat();
+    return m_encoder->Reformat();
+}
+#endif
+
 void EncodeHevcVdencPipelineAdapterXe_Xpm_Base::Destroy()
 {
     ENCODE_FUNC_CALL();

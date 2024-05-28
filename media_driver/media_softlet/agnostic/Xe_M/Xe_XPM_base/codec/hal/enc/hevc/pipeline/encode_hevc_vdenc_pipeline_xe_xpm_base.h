@@ -51,6 +51,10 @@ public:
 
     virtual MOS_STATUS Prepare(void *params) override;
 
+    virtual MOS_STATUS Reformat();
+
+    virtual MOS_STATUS PrepareReformat();
+
     virtual MOS_STATUS Execute() override;
 
     virtual MOS_STATUS GetStatusReport(void *status, uint16_t numStatus) override;

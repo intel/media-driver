@@ -165,6 +165,12 @@ MOS_STATUS Codechal::EndFrame()
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS Codechal::Reformat()
+{
+    CODECHAL_PUBLIC_FUNCTION_ENTER;
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS Codechal::Execute(void *params)
 {
     CODECHAL_PUBLIC_FUNCTION_ENTER;

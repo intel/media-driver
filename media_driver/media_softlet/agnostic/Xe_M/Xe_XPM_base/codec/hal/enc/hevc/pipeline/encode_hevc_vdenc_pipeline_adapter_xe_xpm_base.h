@@ -44,6 +44,10 @@ public:
 
     virtual MOS_STATUS Execute(void *params) override;
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    virtual MOS_STATUS Reformat() override;
+#endif
+
     virtual MOS_STATUS GetStatusReport(void *status, uint16_t numStatus) override;
 
     virtual MOS_STATUS ResolveMetaData(PMOS_RESOURCE pInput, PMOS_RESOURCE pOutput) override;

@@ -270,6 +270,8 @@ public:
     //!
     virtual MOS_STATUS EndFrame();
 
+    virtual MOS_STATUS Reformat();
+
     //!
     //! \brief    Performs the operation requested by the codec function.
     //! \param    [in] params

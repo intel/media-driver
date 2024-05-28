@@ -289,4 +289,16 @@ MOS_STATUS HevcVdencPipelineXe_Xpm_Base::CreateFeatureManager()
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS HevcVdencPipelineXe_Xpm_Base::Reformat()
+{
+    ENCODE_FUNC_CALL();
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS HevcVdencPipelineXe_Xpm_Base::PrepareReformat()
+{
+    ENCODE_FUNC_CALL();
+    return MOS_STATUS_SUCCESS;
+}
+
 }
