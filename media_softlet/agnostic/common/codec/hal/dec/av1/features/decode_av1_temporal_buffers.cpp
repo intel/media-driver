@@ -220,7 +220,7 @@ namespace decode
     {
         DECODE_FUNC_CALL();
 
-        if (buffer != nullptr)
+        if (buffer != nullptr && m_allocator != nullptr)
         {
             m_allocator->Destroy(buffer->mvBuf);
 

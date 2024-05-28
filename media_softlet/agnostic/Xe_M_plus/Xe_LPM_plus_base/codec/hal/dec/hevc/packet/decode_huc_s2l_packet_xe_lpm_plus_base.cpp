@@ -51,7 +51,10 @@ namespace decode
 
     MOS_STATUS HucS2lPktXe_Lpm_Plus_Base::Destroy()
     {
-        DECODE_CHK_STATUS(m_allocator->Destroy(m_s2lDmemBufferArray));
+        if (m_allocator != nullptr)
+        {
+            DECODE_CHK_STATUS(m_allocator->Destroy(m_s2lDmemBufferArray));
+        }
 
         DECODE_CHK_STATUS(HucS2lPkt::Destroy());
         return MOS_STATUS_SUCCESS;

@@ -64,17 +64,20 @@ Vp9BasicFeature::Vp9BasicFeature(DecodeAllocator *allocator, void *hwInterface, 
 
 Vp9BasicFeature::~Vp9BasicFeature()
 {
-    for (uint8_t i = 0; i < CODEC_VP9_NUM_CONTEXTS + 1; i++)
+    if (m_allocator != nullptr)
     {
-        if (!m_allocator->ResourceIsNull(&m_resVp9ProbBuffer[i]->OsResource))
+        for (uint8_t i = 0; i < CODEC_VP9_NUM_CONTEXTS + 1; i++)
         {
-            m_allocator->Destroy(m_resVp9ProbBuffer[i]);
+            if (!m_allocator->ResourceIsNull(&m_resVp9ProbBuffer[i]->OsResource))
+            {
+                m_allocator->Destroy(m_resVp9ProbBuffer[i]);
+            }
         }
-    }
 
-    if (!m_allocator->ResourceIsNull(&m_resVp9SegmentIdBuffer->OsResource))
-    {
-        m_allocator->Destroy(m_resVp9SegmentIdBuffer);
+        if (!m_allocator->ResourceIsNull(&m_resVp9SegmentIdBuffer->OsResource))
+        {
+            m_allocator->Destroy(m_resVp9SegmentIdBuffer);
+        }
     }
 }
 

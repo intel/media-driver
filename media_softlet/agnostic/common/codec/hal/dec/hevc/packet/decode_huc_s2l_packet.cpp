@@ -84,7 +84,10 @@ namespace decode {
     {
         DECODE_FUNC_CALL();
 
-        DECODE_CHK_STATUS(m_allocator->Destroy(m_s2lControlTempMVRegionBuffer));
+        if (m_allocator != nullptr)
+        {
+            DECODE_CHK_STATUS(m_allocator->Destroy(m_s2lControlTempMVRegionBuffer));
+        }
 
         return MOS_STATUS_SUCCESS;
     }

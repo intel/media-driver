@@ -70,7 +70,11 @@ MOS_STATUS AvcMvBufferOpInf::Resize(MOS_BUFFER* &buffer)
 void AvcMvBufferOpInf::Destroy(MOS_BUFFER* &buffer)
 {
     DECODE_FUNC_CALL();
-    m_allocator->Destroy(buffer);
+
+    if (m_allocator != nullptr)
+    {
+        m_allocator->Destroy(buffer);
+    }
 }
 
 }  // namespace decode

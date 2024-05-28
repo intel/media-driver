@@ -157,7 +157,10 @@ private:
             {
                 continue;
             }
-            DECODE_CHK_STATUS(m_allocator->Destroy(resource));
+            if (m_allocator != nullptr)
+            {
+                DECODE_CHK_STATUS(m_allocator->Destroy(resource));
+            }
         }
 
         m_resourceQueue.clear();

@@ -51,7 +51,7 @@ DecodeBasicFeature::DecodeBasicFeature(
 
 DecodeBasicFeature::~DecodeBasicFeature()
 {
-    if (m_dummyReferenceStatus == CODECHAL_DUMMY_REFERENCE_ALLOCATED)
+    if (m_allocator != nullptr && m_dummyReferenceStatus == CODECHAL_DUMMY_REFERENCE_ALLOCATED)
     {
         m_allocator->Destroy(m_dummyReference);
     }

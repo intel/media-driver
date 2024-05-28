@@ -32,20 +32,23 @@ namespace decode
 {
     Av1BasicFeature::~Av1BasicFeature()
     {
-        for (uint8_t i = 0; i < av1DefaultCdfTableNum; i++)
+        if (m_allocator)
         {
-            if (!m_allocator->ResourceIsNull(&m_defaultCdfBuffers[i]->OsResource))
+            for (uint8_t i = 0; i < av1DefaultCdfTableNum; i++)
             {
-                m_allocator->Destroy(m_defaultCdfBuffers[i]);
+                if (!m_allocator->ResourceIsNull(&m_defaultCdfBuffers[i]->OsResource))
+                {
+                    m_allocator->Destroy(m_defaultCdfBuffers[i]);
+                }
             }
-        }
-        if (m_usingDummyWl == true)
-        {
-            m_allocator->Destroy(m_destSurfaceForDummyWL);
-        }
-        if (m_fgInternalSurf != nullptr && !m_allocator->ResourceIsNull(&m_fgInternalSurf->OsResource))
-        {
-            m_allocator->Destroy(m_fgInternalSurf);
+            if (m_usingDummyWl == true)
+            {
+                m_allocator->Destroy(m_destSurfaceForDummyWL);
+            }
+            if (m_fgInternalSurf != nullptr && !m_allocator->ResourceIsNull(&m_fgInternalSurf->OsResource))
+            {
+                m_allocator->Destroy(m_fgInternalSurf);
+            }
         }
     }
 

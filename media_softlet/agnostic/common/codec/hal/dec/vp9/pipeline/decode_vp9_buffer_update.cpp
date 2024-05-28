@@ -42,7 +42,10 @@ DecodeVp9BufferUpdate::DecodeVp9BufferUpdate(Vp9Pipeline *pipeline, MediaTask *t
 
 DecodeVp9BufferUpdate::~DecodeVp9BufferUpdate()
 {
-    m_allocator->Destroy(m_segmentInitBuffer);
+    if (m_allocator != nullptr)
+    {
+        m_allocator->Destroy(m_segmentInitBuffer);
+    }
 }
 
 MOS_STATUS DecodeVp9BufferUpdate::Init(CodechalSetting &settings)

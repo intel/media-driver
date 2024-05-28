@@ -48,15 +48,18 @@ public:
     {
         DECODE_FUNC_CALL();
 
-        for (auto& surface : m_activeSurfaces)
+        if (m_allocator != nullptr)
         {
-            m_allocator->Destroy(surface.second);
-        }
-        m_activeSurfaces.clear();
+            for (auto &surface : m_activeSurfaces)
+            {
+                m_allocator->Destroy(surface.second);
+            }
+            m_activeSurfaces.clear();
 
-        for (auto& surface : m_aviableSurfaces)
-        {
-            m_allocator->Destroy(surface);
+            for (auto &surface : m_aviableSurfaces)
+            {
+                m_allocator->Destroy(surface);
+            }
         }
         m_aviableSurfaces.clear();
     }

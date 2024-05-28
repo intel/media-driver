@@ -43,18 +43,21 @@ DecodeDownSamplingFeature::DecodeDownSamplingFeature(
 
 DecodeDownSamplingFeature::~DecodeDownSamplingFeature()
 {
-    for (auto i = 0; i < DecodeBasicFeature::m_maxFrameIndex; i++)
+    if (m_allocator != nullptr)
     {
-        MOS_BUFFER *histogramBuffer = m_histogramBufferList[i];
-        if (histogramBuffer == nullptr ||
-            m_allocator->ResourceIsNull(&histogramBuffer->OsResource))
+        for (auto i = 0; i < DecodeBasicFeature::m_maxFrameIndex; i++)
         {
-            continue;
-        }
-        MOS_STATUS eStatus = m_allocator->Destroy(m_histogramBuffer);
-        if (eStatus != MOS_STATUS_SUCCESS)
-        {
-            DECODE_ASSERTMESSAGE("Failed to free histogram internal buffer!");
+            MOS_BUFFER *histogramBuffer = m_histogramBufferList[i];
+            if (histogramBuffer == nullptr ||
+                m_allocator->ResourceIsNull(&histogramBuffer->OsResource))
+            {
+                continue;
+            }
+            MOS_STATUS eStatus = m_allocator->Destroy(m_histogramBuffer);
+            if (eStatus != MOS_STATUS_SUCCESS)
+            {
+                DECODE_ASSERTMESSAGE("Failed to free histogram internal buffer!");
+            }
         }
     }
 }

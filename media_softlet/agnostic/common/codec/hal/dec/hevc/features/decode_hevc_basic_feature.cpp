@@ -52,7 +52,10 @@ MOS_STATUS HevcBasicFeature::Init(void *setting)
 
 HevcBasicFeature::~HevcBasicFeature()
 {
-    m_allocator->Destroy(m_referenceBeforeLoopFilter);
+    if (m_allocator != nullptr)
+    {
+        m_allocator->Destroy(m_referenceBeforeLoopFilter);
+    }
 }
 
 MOS_STATUS HevcBasicFeature::Update(void *params)

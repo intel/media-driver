@@ -32,7 +32,7 @@ namespace decode {
 
     AvcBasicFeature::~AvcBasicFeature()
     {
-        if (m_resMonoPicChromaBuffer != nullptr)
+        if (m_allocator != nullptr && m_resMonoPicChromaBuffer != nullptr)
         {
             m_allocator->Destroy(m_resMonoPicChromaBuffer);
         }

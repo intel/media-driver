@@ -33,12 +33,15 @@ namespace decode{
 
 Mpeg2BasicFeature::~Mpeg2BasicFeature()
 {
-    if (m_resMpeg2DummyBistream != nullptr)
+    if (m_allocator != nullptr)
     {
-        m_allocator->Destroy(m_resMpeg2DummyBistream);
-    }
+        if (m_resMpeg2DummyBistream != nullptr)
+        {
+            m_allocator->Destroy(m_resMpeg2DummyBistream);
+        }
 
-    m_allocator->Destroy(m_copiedDataBufArray);
+        m_allocator->Destroy(m_copiedDataBufArray);
+    }
 }
 
 MOS_STATUS Mpeg2BasicFeature::Init(void *setting)

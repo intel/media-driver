@@ -52,14 +52,17 @@ MOS_STATUS HucVp9ProbUpdatePkt::AllocateResources()
 
 HucVp9ProbUpdatePkt::~HucVp9ProbUpdatePkt()
 {
-    if (m_probUpdateDmemBufferArray)
+    if (m_allocator != nullptr)
     {
-        m_allocator->Destroy(m_probUpdateDmemBufferArray);
-    }
+        if (m_probUpdateDmemBufferArray)
+        {
+            m_allocator->Destroy(m_probUpdateDmemBufferArray);
+        }
 
-    if (m_interProbSaveBuffer)
-    {
-        m_allocator->Destroy(m_interProbSaveBuffer);
+        if (m_interProbSaveBuffer)
+        {
+            m_allocator->Destroy(m_interProbSaveBuffer);
+        }
     }
 }
 

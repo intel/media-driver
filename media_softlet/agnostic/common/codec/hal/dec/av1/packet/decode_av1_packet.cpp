@@ -80,8 +80,10 @@ MOS_STATUS Av1DecodePkt::Prepare()
 MOS_STATUS Av1DecodePkt::Destroy()
 {
     m_statusReport->UnregistObserver(this);
-
-    DECODE_CHK_STATUS(m_allocator->Destroy(m_secondLevelBBArray));
+    if (m_allocator != nullptr)
+    {
+        DECODE_CHK_STATUS(m_allocator->Destroy(m_secondLevelBBArray));
+    }
 
     return MOS_STATUS_SUCCESS;
 }
