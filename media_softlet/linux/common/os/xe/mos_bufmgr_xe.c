@@ -1188,7 +1188,7 @@ static int __mos_vm_bind_xe(int fd, uint32_t vm_id, uint32_t exec_queue_id, uint
     bind.bind.pat_index = pat_index;
     bind.bind.addr = addr;
     bind.bind.op = op;
-    bind.bind.flags = flags;
+    bind.bind.flags = (flags | DRM_XE_VM_BIND_FLAG_DUMPABLE);
     bind.num_syncs = num_syncs;
     bind.syncs = (uintptr_t)sync;
 
