@@ -304,6 +304,8 @@ protected:
     int                  m_MCPYForceMode        = 0;
     bool                 m_enableVeCopySmallRes = false;
     bool                 m_bRegReport           = true;
+    char                 m_dumpLocation_in[MAX_PATH]  = {};
+    char                 m_dumpLocation_out[MAX_PATH] = {};
 #endif
 MEDIA_CLASS_DEFINE_END(MediaCopyBaseState)
 };

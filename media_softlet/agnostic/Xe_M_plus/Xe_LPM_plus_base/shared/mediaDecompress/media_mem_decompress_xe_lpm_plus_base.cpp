@@ -218,12 +218,14 @@ MOS_STATUS MediaMemDeCompNext_Xe_Lpm_Plus_Base::IsVeboxDecompressionEnabled()
         customValue,
         true);
 
+#if (LINUX || _DEBUG || _RELEASE_INTERNAL)
     // Read multi processes single binary flag
     ReadUserSetting(
         m_userSettingPtr,
         m_multiprocesssinglebin,
         __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_MUL_PROC_SINGLE_BIN,
         MediaUserSetting::Group::Device);
+#endif
 
     return eStatus;
 }
