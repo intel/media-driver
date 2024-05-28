@@ -723,7 +723,57 @@ MOS_STATUS MosInterface::AddCommand(
 }
 
 #if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
-MOS_STATUS MosInterface::DumpIndirectState(
+MOS_STATUS MosInterface::DumpIndirectStates(MOS_STREAM_HANDLE streamState, const char *filePathPrefix, std::time_t currentTime)
+{
+    MOS_OS_CHK_NULL_RETURN(streamState);
+    MOS_STATUS     eStatus                 = MOS_STATUS_SUCCESS;
+    auto           &inDirectStateInfoArray = streamState->indirectStateInfo;
+    const uint32_t SIZE_OF_ONE_WORD        = 9;
+
+    for (auto &lastElement : inDirectStateInfoArray)
+    {
+        if (lastElement.indirectState == nullptr)
+        {
+            MOS_OS_NORMALMESSAGE("IndirectState pointer is nullptr");
+            continue;
+        }
+        uint32_t         *data             = (uint32_t *)lastElement.indirectState;
+        uint32_t          dwordCount       = lastElement.stateSize / 4;
+        uint32_t          dwBytesWritten   = 0;
+        uint32_t          dwSizeToAllocate = 0;
+        char             *outputBuffer     = nullptr;
+        std::stringstream fileName;
+
+        dwSizeToAllocate = dwordCount * (SIZE_OF_ONE_WORD + 1);               // Add 1 byte for the space following each Dword.
+        outputBuffer     = (char *)MOS_AllocAndZeroMemory(dwSizeToAllocate);  // Alloc output buffer.
+        if (outputBuffer == nullptr)
+        {
+            MOS_OS_NORMALMESSAGE("Alloc outputBuffer failed");
+            inDirectStateInfoArray.clear();
+            return MOS_STATUS_SUCCESS;
+        }
+        for (uint32_t i = 0; i < dwordCount; ++i)
+        {
+            dwBytesWritten += MosUtilities::MosSecureStringPrint(
+                outputBuffer + dwBytesWritten,
+                SIZE_OF_ONE_WORD + 1,
+                SIZE_OF_ONE_WORD + 1,
+                "%.8x ",
+                data[i]);
+        }
+        fileName << filePathPrefix << "_" << std::hex << *lastElement.gfxAddressBottom << "_" << *lastElement.gfxAddressTop << "_" << lastElement.stateName << ".txt";
+        eStatus = MosUtilities::MosAppendFileFromPtr((const char *)fileName.str().c_str(), outputBuffer, dwBytesWritten);
+        if (eStatus != MOS_STATUS_SUCCESS)
+        {
+            MOS_OS_NORMALMESSAGE("DumpIndirectStates %s failed", fileName.str().c_str());
+        }
+        MOS_FreeMemory(outputBuffer);
+    }
+    inDirectStateInfoArray.clear();
+    return eStatus;
+}
+
+MOS_STATUS MosInterface::DumpBindingTable(
     MOS_STREAM_HANDLE     streamState,
     COMMAND_BUFFER_HANDLE cmdBuffer,
     MOS_GPU_NODE          gpuNode,
@@ -791,6 +841,7 @@ MOS_STATUS MosInterface::DumpCommandBuffer(
     // Maximum length of engine name is 6
     char sEngName[6];
     size_t nSizeFileNamePrefix   = 0;
+    std::time_t currentTime      = std::time(nullptr);
 
     MOS_OS_CHK_NULL_RETURN(streamState);
     MOS_OS_CHK_NULL_RETURN(cmdBuffer);
@@ -846,12 +897,13 @@ MOS_STATUS MosInterface::DumpCommandBuffer(
             sFileName + nSizeFileNamePrefix,
             sizeof(sFileName) - nSizeFileNamePrefix,
             sizeof(sFileName) - nSizeFileNamePrefix,
-            "%c%s%c%s_%d.txt",
+            "%c%s%c%s_%d_%d.txt",
             MOS_DIR_SEPERATOR,
             MOS_COMMAND_BUFFER_OUT_DIR,
             MOS_DIR_SEPERATOR,
             MOS_COMMAND_BUFFER_OUT_FILE,
-            dwCommandBufferNumber);
+            dwCommandBufferNumber,
+            currentTime);
 
         // Write the output buffer to file.
         if((eStatus = MosUtilities::MosWriteFileFromPtr((const char *)sFileName, pOutputBuffer, dwBytesWritten)) != MOS_STATUS_SUCCESS)
@@ -906,10 +958,15 @@ MOS_STATUS MosInterface::DumpCommandBuffer(
             MOS_FreeMemory(pOutputBuffer);
             MOS_OS_CHK_STATUS_RETURN(eStatus);
         }
-        if((eStatus = DumpIndirectState(streamState, cmdBuffer, gpuNode, sFileName)) != MOS_STATUS_SUCCESS)
+        if ((eStatus = DumpBindingTable(streamState, cmdBuffer, gpuNode, sFileName)) != MOS_STATUS_SUCCESS)
         {
             MOS_FreeMemory(pOutputBuffer);
-            MOS_OS_CHK_STATUS_RETURN(eStatus);
+            return eStatus;
+        }
+        if ((eStatus = DumpIndirectStates(streamState, sFileName, currentTime)) != MOS_STATUS_SUCCESS)
+        {
+            MOS_FreeMemory(pOutputBuffer);
+            return eStatus;
         }
     }
 

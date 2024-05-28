@@ -461,6 +461,29 @@ MOS_STATUS Mos_GetPlatformName(
     return MOS_STATUS_SUCCESS;
 }
 
+void Mos_AddIndirectState(
+    PMOS_INTERFACE      pOsInterface,
+    uint32_t            stateSize,
+    uint32_t            *pIndirectState,
+    uint32_t            *gfxAddressBottom,
+    uint32_t            *gfxAddressTop,
+    const char          *stateName)
+{
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(pOsInterface);
+    if (pOsInterface->apoMosEnabled)
+    {
+        MOS_OS_CHK_NULL_NO_STATUS_RETURN(pOsInterface->osStreamState);
+        INDIRECT_STATE_INFO stateinfoarray = {};
+        stateinfoarray.stateSize           = stateSize;
+        stateinfoarray.indirectState       = pIndirectState;
+        stateinfoarray.gfxAddressBottom    = gfxAddressBottom;
+        stateinfoarray.gfxAddressTop       = gfxAddressTop;
+        stateinfoarray.stateName           = stateName;
+        pOsInterface->osStreamState->indirectStateInfo.push_back(stateinfoarray);
+    }
+    return;
+}
+
 //!
 //! \brief    Dump command buffers
 //! \details  This function dumps the command buffer just before rendering it to the GPU.
@@ -648,6 +671,7 @@ MOS_STATUS Mos_DumpCommandBufferInit(
 
     // Setup member function and variable.
     pOsInterface->pfnDumpCommandBuffer  = Mos_DumpCommandBuffer;
+    pOsInterface->pfnAddIndirectState   = Mos_AddIndirectState;
 
     // Check if command buffer dump was enabled in user feature.
     ReadUserSetting(

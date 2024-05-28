@@ -484,6 +484,18 @@ class CmdBufMgrNext;
 class MosCpInterface;
 class MosDecompression;
 
+//!
+//! \brief Structure to Unified  InDirectState Dump Info
+//!
+struct INDIRECT_STATE_INFO
+{
+    uint32_t        stateSize              = 0;        //size of indirectstate
+    uint32_t        *indirectState         = nullptr;  //indirectstate address
+    uint32_t        *gfxAddressBottom      = nullptr;  //indirect gfx address bottom
+    uint32_t        *gfxAddressTop         = nullptr;  //indirect gfx address top
+    const char      *stateName             = "";
+};
+
 struct MosStreamState
 {
     OsDeviceContext     *osDeviceContext        = nullptr;
@@ -537,6 +549,7 @@ struct MosStreamState
     bool  dumpCommandBufferToFile               = false;    //!< Indicates that the command buffer should be dumped to a file
     bool  dumpCommandBufferAsMessages           = false;    //!< Indicates that the command buffer should be dumped via MOS normal messages
     char  sDirName[MOS_MAX_HLT_FILENAME_LEN]    = {0};      //!< Dump Directory name - maximum 260 bytes length
+    std::vector<INDIRECT_STATE_INFO> indirectStateInfo                     = {};
 #endif // MOS_COMMAND_BUFFER_DUMP_SUPPORTED
 
 #if _DEBUG || _RELEASE_INTERNAL
@@ -932,6 +945,14 @@ typedef struct _MOS_INTERFACE
     MOS_STATUS (* pfnDumpCommandBuffer) (
         PMOS_INTERFACE              pOsInterface,
         PMOS_COMMAND_BUFFER         pCmdBuffer);
+
+    void (* pfnAddIndirectState) (
+        PMOS_INTERFACE      pOsInterface,
+        uint32_t            indirectStateSize,
+        uint32_t            *pIndirectState,
+        uint32_t            *gfxAddressBottom,
+        uint32_t            *gfxAddressTop,
+        const char          *stateName);
 
     #define pfnFreeResource(pOsInterface, pResource) \
        pfnFreeResource(pOsInterface, __FUNCTION__, __FILE__, __LINE__, pResource)

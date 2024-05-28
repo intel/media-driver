@@ -3363,6 +3363,7 @@ MOS_STATUS DumpDNDIStates(uint8_t *pDndiSate)
         uint32_t                               uiInstanceBaseAddr = 0;
         MHW_RESOURCE_PARAMS                    ResourceParams = {};
         MOS_ALLOC_GFXRES_PARAMS                AllocParamsForBufferLinear = {};
+        uint32_t                               *pIndirectState            = nullptr;
 
         MHW_CHK_NULL_RETURN(this->m_osItf);
         MHW_CHK_NULL_RETURN(this->m_osItf->pOsContext);
@@ -3411,7 +3412,19 @@ MOS_STATUS DumpDNDIStates(uint8_t *pDndiSate)
                 pOsInterface,
                 this->m_currentCmdBuf,
                 &ResourceParams));
-
+#if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
+            if (*ResourceParams.pdwCmd != 0 || *(ResourceParams.pdwCmd + 1) != 0)
+            {
+                // add DNDI indirect state dump
+                pIndirectState = (uint32_t *)(pVeboxHeap->pLockedDriverResourceMem + ResourceParams.dwOffset);
+                pOsInterface->pfnAddIndirectState(pOsInterface,
+                    sizeof(mhw::vebox::xe_lpm_plus_next::Cmd::VEBOX_DNDI_STATE_CMD),
+                    pIndirectState,
+                    ResourceParams.pdwCmd,
+                    ResourceParams.pdwCmd + 1,
+                    "VEBOX_DNDI_STATE_CMD");
+            }
+#endif
             HalOcaInterfaceNext::OnIndirectState(*this->m_currentCmdBuf, (MOS_CONTEXT_HANDLE)pOsContext, ResourceParams.presResource, ResourceParams.dwOffset, false, m_veboxSettings.uiDndiStateSize);
 
             MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
@@ -3434,7 +3447,19 @@ MOS_STATUS DumpDNDIStates(uint8_t *pDndiSate)
                 pOsInterface,
                 this->m_currentCmdBuf,
                 &ResourceParams));
-
+#if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
+            if (*ResourceParams.pdwCmd != 0 || *(ResourceParams.pdwCmd + 1) != 0)
+            {
+                // add IECP indirect state dump
+                pIndirectState = (uint32_t *)(pVeboxHeap->pLockedDriverResourceMem + ResourceParams.dwOffset);
+                pOsInterface->pfnAddIndirectState(pOsInterface,
+                    sizeof(mhw::vebox::xe_lpm_plus_next::Cmd::VEBOX_IECP_STATE_CMD),
+                    pIndirectState,
+                    ResourceParams.pdwCmd,
+                    ResourceParams.pdwCmd + 1,
+                    "VEBOX_IECP_STATE_CMD");
+            }
+#endif
             HalOcaInterfaceNext::OnIndirectState(*this->m_currentCmdBuf, (MOS_CONTEXT_HANDLE)pOsContext, ResourceParams.presResource, ResourceParams.dwOffset, false, m_veboxSettings.uiIecpStateSize);
 
             // Gamut Expansion, HDR and Forward Gamma Correction are mutually exclusive.
@@ -3461,7 +3486,19 @@ MOS_STATUS DumpDNDIStates(uint8_t *pDndiSate)
                     pOsInterface,
                     this->m_currentCmdBuf,
                     &ResourceParams));
-
+#if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
+                if (*ResourceParams.pdwCmd != 0 || *(ResourceParams.pdwCmd + 1) != 0)
+                {
+                    // add HDR indirect state dump
+                    pIndirectState = (uint32_t *)(pVeboxHeap->pLockedDriverResourceMem + ResourceParams.dwOffset);
+                    pOsInterface->pfnAddIndirectState(pOsInterface,
+                        sizeof(mhw::vebox::xe_lpm_plus_next::Cmd::VEBOX_HDR_STATE_CMD),
+                        pIndirectState,
+                        ResourceParams.pdwCmd,
+                        ResourceParams.pdwCmd + 1,
+                        "VEBOX_HDR_STATE_CMD");
+                }
+#endif
                 HalOcaInterfaceNext::OnIndirectState(*this->m_currentCmdBuf, (MOS_CONTEXT_HANDLE)pOsContext, ResourceParams.presResource, ResourceParams.dwOffset, false, m_veboxSettings.uiHdrStateSize);
             }
             else
@@ -3487,6 +3524,19 @@ MOS_STATUS DumpDNDIStates(uint8_t *pDndiSate)
                     pOsInterface,
                     this->m_currentCmdBuf,
                     &ResourceParams));
+#if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
+                if (*ResourceParams.pdwCmd != 0 || *(ResourceParams.pdwCmd + 1) != 0)
+                {
+                    // add Gamut Expansion Gamma Correctionindirect state dump
+                    pIndirectState = (uint32_t *)(pVeboxHeap->pLockedDriverResourceMem + ResourceParams.dwOffset);
+                    pOsInterface->pfnAddIndirectState(pOsInterface,
+                        sizeof(mhw::vebox::xe_lpm_plus_next::Cmd::Gamut_Expansion_Gamma_Correction_CMD),
+                        pIndirectState,
+                        ResourceParams.pdwCmd,
+                        ResourceParams.pdwCmd + 1,
+                        "Gamut_Expansion_Gamma_Correction_CMD");
+                }
+#endif
 
                 HalOcaInterfaceNext::OnIndirectState(*this->m_currentCmdBuf, (MOS_CONTEXT_HANDLE)pOsContext, ResourceParams.presResource, ResourceParams.dwOffset, false, m_veboxSettings.uiGamutStateSize);
             }
@@ -3511,7 +3561,19 @@ MOS_STATUS DumpDNDIStates(uint8_t *pDndiSate)
                 pOsInterface,
                 this->m_currentCmdBuf,
                 &ResourceParams));
-
+#if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
+            if (*ResourceParams.pdwCmd != 0 || *(ResourceParams.pdwCmd + 1) != 0)
+            {
+                // add Vertex Table state dump
+                pIndirectState = (uint32_t *)(pVeboxHeap->pLockedDriverResourceMem + ResourceParams.dwOffset);
+                pOsInterface->pfnAddIndirectState(pOsInterface,
+                    sizeof(mhw::vebox::xe_lpm_plus_next::Cmd::VEBOX_VERTEX_TABLE_CMD),
+                    pIndirectState,
+                    ResourceParams.pdwCmd,
+                    ResourceParams.pdwCmd + 1,
+                    "VEBOX_VERTEX_TABLE_CMD");
+            }
+#endif
             HalOcaInterfaceNext::OnIndirectState(*this->m_currentCmdBuf, (MOS_CONTEXT_HANDLE)pOsContext, ResourceParams.presResource, ResourceParams.dwOffset, false, m_veboxSettings.uiVertexTableSize);
 
             MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
@@ -3535,7 +3597,19 @@ MOS_STATUS DumpDNDIStates(uint8_t *pDndiSate)
                 pOsInterface,
                 this->m_currentCmdBuf,
                 &ResourceParams));
-
+#if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
+            if (*ResourceParams.pdwCmd != 0 || *(ResourceParams.pdwCmd + 1) != 0)
+            {
+                // add CAPTURE PIPE STATE CMD state dump
+                pIndirectState = (uint32_t *)(pVeboxHeap->pLockedDriverResourceMem + ResourceParams.dwOffset);
+                pOsInterface->pfnAddIndirectState(pOsInterface,
+                    sizeof(mhw::vebox::xe_lpm_plus_next::Cmd::VEBOX_CAPTURE_PIPE_STATE_CMD),
+                    pIndirectState,
+                    ResourceParams.pdwCmd,
+                    ResourceParams.pdwCmd + 1,
+                    "VEBOX_CAPTURE_PIPE_STATE_CMD");
+            }
+#endif
             HalOcaInterfaceNext::OnIndirectState(*this->m_currentCmdBuf, (MOS_CONTEXT_HANDLE)pOsContext, ResourceParams.presResource, ResourceParams.dwOffset, false, m_veboxSettings.uiCapturePipeStateSize);
 
             if (params.pLaceLookUpTables)
@@ -3574,6 +3648,19 @@ MOS_STATUS DumpDNDIStates(uint8_t *pDndiSate)
                 pOsInterface,
                 this->m_currentCmdBuf,
                 &ResourceParams));
+#if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
+            if (*ResourceParams.pdwCmd != 0 || *(ResourceParams.pdwCmd + 1) != 0)
+            {
+                // add Gamma Correction state dump
+                pIndirectState = (uint32_t *)(pVeboxHeap->pLockedDriverResourceMem + ResourceParams.dwOffset);
+                pOsInterface->pfnAddIndirectState(pOsInterface,
+                    sizeof(PMHW_FORWARD_GAMMA_SEG),
+                    pIndirectState,
+                    ResourceParams.pdwCmd,
+                    ResourceParams.pdwCmd + 1,
+                    "PMHW_FORWARD_GAMMA_SEG");
+            }
+#endif
 
             HalOcaInterfaceNext::OnIndirectState(*this->m_currentCmdBuf, (MOS_CONTEXT_HANDLE)pOsContext, ResourceParams.presResource, ResourceParams.dwOffset, false, m_veboxSettings.uiGammaCorrectionStateSize);
 
