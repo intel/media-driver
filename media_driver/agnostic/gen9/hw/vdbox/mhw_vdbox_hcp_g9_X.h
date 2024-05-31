@@ -120,7 +120,7 @@ protected:
     //!
     //! \brief  Constructor
     //!
-    MhwVdboxHcpInterfaceG9<THcpCmds>(
+    MhwVdboxHcpInterfaceG9(
         PMOS_INTERFACE osInterface,
         MhwMiInterface *miInterface,
         MhwCpInterface *cpInterface,
