@@ -134,11 +134,13 @@ protected:
 
     //!
     //! Is ve copy supported format
-    //! \param    [in/out]     surface
-    //!           Pointer to Output Surface parameters
+    //! \param    [in/out] surface mos format
+    //!
     //! \return   true if supported, else false.
     //!
-    virtual bool IsVeCopySupportedFormat(PMOS_SURFACE surface);
+    virtual bool IsVeCopySupportedFormat(MOS_FORMAT format);
+    
+    virtual void AdjustSurfaceFormat(MOS_SURFACE &surface);
 
 protected:
     PMOS_INTERFACE      m_osInterface   = nullptr;

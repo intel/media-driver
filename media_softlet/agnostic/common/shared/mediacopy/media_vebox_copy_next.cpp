@@ -121,11 +121,8 @@ MOS_STATUS VeboxCopyStateNext::CopyMainSurface(PMOS_RESOURCE src, PMOS_RESOURCE 
     outputSurface.OsResource = *dst;
     GetResourceInfo(&outputSurface);
 
-    if (!IsVeCopySupportedFormat(&inputSurface))
-    {
-        VEBOX_COPY_ASSERTMESSAGE("UnSupported Format.");
-        return MOS_STATUS_UNIMPLEMENTED;
-    }
+    // For RGB10/BGR10/Y210/Y410/A8, use other format instead. No need to check format again.
+    AdjustSurfaceFormat(inputSurface);
 
     MHW_VEBOX_GPUNODE_LIMIT     GpuNodeLimit;
     MOS_GPU_NODE                VeboxGpuNode;
@@ -254,7 +251,7 @@ bool VeboxCopyStateNext::IsSurfaceSupported(PMOS_RESOURCE surface)
     inputSurface.OsResource = *surface;
     GetResourceInfo(&inputSurface);
 
-    supported = IsVeCopySupportedFormat(&inputSurface);
+    supported = IsVeCopySupportedFormat(inputSurface.Format);
 
     if (inputSurface.TileType == MOS_TILE_LINEAR &&
         (inputSurface.dwPitch % 64))
@@ -537,69 +534,54 @@ MOS_STATUS VeboxCopyStateNext::InitCommandBuffer(PMOS_COMMAND_BUFFER cmdBuffer)
     return eStatus;
 }
 
-bool VeboxCopyStateNext::IsVeCopySupportedFormat(PMOS_SURFACE surface)
+bool VeboxCopyStateNext::IsVeCopySupportedFormat(MOS_FORMAT format)
 {
-    bool    bRet = false;
+    if (format == Format_R10G10B10A2 ||
+        format == Format_B10G10R10A2 ||
+        format == Format_A8R8G8B8 ||
+        format == Format_A8B8G8R8 ||
+        format == Format_X8R8G8B8 ||
+        format == Format_X8B8G8R8 ||
+        IS_RGB64_FLOAT_FORMAT(format) ||
 
-    if (surface->Format == Format_R10G10B10A2 ||
-        surface->Format == Format_B10G10R10A2 ||
-        surface->Format == Format_Y410 ||
-        surface->Format == Format_Y210)
+        format == Format_AYUV ||
+        format == Format_Y410 ||
+        format == Format_Y416 ||
+        format == Format_Y210 ||
+        format == Format_Y216 ||
+        format == Format_YUY2 ||
+        format == Format_NV12 ||
+        format == Format_P010 ||
+        format == Format_P016 ||
+
+        format == Format_A8 ||
+        format == Format_Y8 ||
+        format == Format_L8 ||
+        format == Format_P8 ||
+        format == Format_Y16U)
     {
-        // Re-map RGB10/RGB10/Y410/Y210 as AYUV
-        surface->Format = Format_AYUV;
+        return true;
     }
-
-    if (surface->Format == Format_A8 ||
-        surface->Format == Format_Y8 ||
-        surface->Format == Format_L8 ||
-        surface->Format == Format_P8 ||
-        surface->Format == Format_STMM)
+    else
     {
-        surface->Format = Format_P8;
+        VEBOX_COPY_NORMALMESSAGE("Unsupported format '0x%08x' for VEBOX copy.", format);
+        return false;
     }
+}
 
-    if (surface->Format == Format_IMC3 ||
-        surface->Format == Format_444P ||
-        surface->Format == Format_422H ||
-        surface->Format == Format_422V ||
-        surface->Format == Format_411P ||
-        surface->Format == Format_411R ||
-        surface->Format == Format_444P ||
-        surface->Format == Format_RGBP ||
-        surface->Format == Format_BGRP ||
-        surface->Format == Format_400P ||
-        surface->Format == Format_420O ||
-        surface->Format == Format_Buffer)
+void VeboxCopyStateNext::AdjustSurfaceFormat(MOS_SURFACE &surface)
+{
+    if (surface.Format == Format_R10G10B10A2 ||
+        surface.Format == Format_B10G10R10A2 ||
+        surface.Format == Format_Y410        ||
+        surface.Format == Format_Y210)
     {
-        surface->Format   = Format_P8;
-        surface->dwHeight = surface->dwSize / surface->dwPitch;
+        // RGB10 not supported without IECP. Re-map RGB10/RGB10 as AYUV
+        // Y410/Y210 has HW issue. Remap to AYUV.
+        surface.Format = Format_AYUV;
     }
-
-    if (IS_RGB64_FLOAT_FORMAT(surface->Format))
+    else if (surface.Format == Format_A8)
     {
-        surface->Format = Format_Y416;
+        surface.Format = Format_P8;
     }
-
-    // Check if Sample Format is supported for decompression
-    if (surface->Format != Format_NV12        &&
-        surface->Format != Format_AYUV        &&
-        surface->Format != Format_Y416        &&
-        surface->Format != Format_P010        &&
-        surface->Format != Format_P016        &&
-        !IS_PA_FORMAT(surface->Format)        &&
-        surface->Format != Format_A8R8G8B8    &&
-        surface->Format != Format_A8B8G8R8    &&
-        surface->Format != Format_X8R8G8B8    &&
-        surface->Format != Format_X8B8G8R8    &&
-        surface->Format != Format_P8          &&
-        surface->Format != Format_Y16U)
-    {
-        VEBOX_COPY_NORMALMESSAGE("Unsupported Source Format '0x%08x' for VEBOX Decompression.", surface->Format);
-        return bRet;
-    }
-
-    bRet = true;
-
-    return bRet;
 }
