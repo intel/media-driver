@@ -86,7 +86,7 @@ protected:
     //!
     //! \brief  Constructor
     //!
-    MhwVdboxMfxInterfaceG9<TMfxCmds>(
+    MhwVdboxMfxInterfaceG9(
         PMOS_INTERFACE osInterface,
         MhwMiInterface *miInterface,
         MhwCpInterface *cpInterface,

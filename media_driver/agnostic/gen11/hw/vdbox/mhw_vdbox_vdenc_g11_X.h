@@ -210,7 +210,7 @@ public:
     //!
     //! \brief  Constructor
     //!
-    MhwVdboxVdencInterfaceG11<TVdencCmds>(PMOS_INTERFACE osInterface) : MhwVdboxVdencInterfaceGeneric<TVdencCmds>(osInterface)
+    MhwVdboxVdencInterfaceG11(PMOS_INTERFACE osInterface) : MhwVdboxVdencInterfaceGeneric<TVdencCmds>(osInterface)
     {
         MHW_FUNCTION_ENTER;
 

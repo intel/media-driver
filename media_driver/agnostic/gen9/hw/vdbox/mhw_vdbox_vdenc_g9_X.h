@@ -51,7 +51,7 @@ protected:
     //!
     //! \brief  Constructor
     //!
-    MhwVdboxVdencInterfaceG9<TVdencCmds>(PMOS_INTERFACE osInterface) : MhwVdboxVdencInterfaceGeneric<TVdencCmds>(osInterface)
+    MhwVdboxVdencInterfaceG9(PMOS_INTERFACE osInterface) : MhwVdboxVdencInterfaceGeneric<TVdencCmds>(osInterface)
     {
         MHW_FUNCTION_ENTER;
 
