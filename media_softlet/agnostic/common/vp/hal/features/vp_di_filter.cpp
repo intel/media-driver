@@ -61,11 +61,6 @@ MOS_STATUS VpDiFilter::Destroy()
         MOS_FreeMemAndSetNull(m_pVeboxDiParams);
     }
 
-    if (m_pRenderDiFmdParams)
-    {
-        MOS_FreeMemAndSetNull(m_pRenderDiFmdParams);
-    }
-
     return MOS_STATUS_SUCCESS;
 }
 
@@ -113,26 +108,6 @@ MOS_STATUS VpDiFilter::CalculateEngineParams()
             m_pVeboxDiParams->enableFMD         = m_diParams.diParams->bEnableFMD;
             m_pVeboxDiParams->bSCDEnabled       = m_diParams.diParams->bSCDEnable;
         }
-    }
-    else if (m_executeCaps.bRender)
-    {
-        // create a filter Param buffer
-        if (!m_pRenderDiFmdParams)
-        {
-            m_pRenderDiFmdParams = (PRENDER_DI_FMD_PARAMS)MOS_AllocAndZeroMemory(sizeof(RENDER_DI_FMD_PARAMS));
-
-            if (m_pRenderDiFmdParams == nullptr)
-            {
-                VP_PUBLIC_ASSERTMESSAGE("Render FMD Pamas buffer allocate failed, return nullpointer");
-                return MOS_STATUS_NO_SPACE;
-            }
-        }
-        else
-        {
-            MOS_ZeroMemory(m_pRenderDiFmdParams, sizeof(RENDER_DI_FMD_PARAMS));
-        }
-
-        m_pRenderDiFmdParams->bEnableDiFmd                    = true;
     }
     else
     {
@@ -220,41 +195,21 @@ bool VpDiParameter::SetPacketParam(VpCmdPacket *pPacket)
 {
     VP_FUNC_CALL();
 
-    if (!m_diFilter.GetExecuteCaps().bDIFmdKernel)
+    VEBOX_DI_PARAMS *params = m_diFilter.GetVeboxParams();
+    if (nullptr == params)
     {
-        VEBOX_DI_PARAMS *params = m_diFilter.GetVeboxParams();
-        if (nullptr == params)
-        {
-            VP_PUBLIC_ASSERTMESSAGE("Failed to get vebox di params");
-            return false;
-        }
-
-        VpVeboxCmdPacketBase *packet = dynamic_cast<VpVeboxCmdPacketBase *>(pPacket);
-        if (packet)
-        {
-            return MOS_SUCCEEDED(packet->SetDiParams(params));
-        }
-
-        VP_PUBLIC_ASSERTMESSAGE("Invalid packet for vebox di");
+        VP_PUBLIC_ASSERTMESSAGE("Failed to get vebox di params");
         return false;
     }
-    else
+
+    VpVeboxCmdPacketBase *packet = dynamic_cast<VpVeboxCmdPacketBase *>(pPacket);
+    if (packet)
     {
-        VpRenderCmdPacket *pRenderPacket = dynamic_cast<VpRenderCmdPacket *>(pPacket);
-        if (nullptr == pRenderPacket)
-        {
-            return false;
-        }
-
-        RENDER_DI_FMD_PARAMS *pParams = m_diFilter.GetRenderParams();
-
-        if (nullptr == pParams)
-        {
-            return false;
-        }
-
-        return MOS_SUCCEEDED(pRenderPacket->SetDiFmdParams(pParams));
+        return MOS_SUCCEEDED(packet->SetDiParams(params));
     }
+
+    VP_PUBLIC_ASSERTMESSAGE("Invalid packet for vebox di");
+    return false;
 }
 
 MOS_STATUS VpDiParameter::Initialize(HW_FILTER_DI_PARAM &params)
@@ -299,14 +254,7 @@ HwFilterParameter* PolicyDiHandler::CreateHwFilterParam(VP_EXECUTE_CAPS vpExecut
             return nullptr;
         }
 
-        if (vpExecuteCaps.bRender)
-        {
-            swFilter = dynamic_cast<SwFilterDeinterlace *>(swFilterPipe.GetSwFilter(true, 0, FeatureTypeDiFmdOnRender));
-        }
-        else
-        {
-            swFilter = dynamic_cast<SwFilterDeinterlace *>(swFilterPipe.GetSwFilter(true, 0, FeatureTypeDiOnVebox));
-        }
+        swFilter = dynamic_cast<SwFilterDeinterlace *>(swFilterPipe.GetSwFilter(true, 0, FeatureTypeDiOnVebox));
 
         if (nullptr == swFilter)
         {
@@ -344,44 +292,4 @@ HwFilterParameter* PolicyDiHandler::CreateHwFilterParam(VP_EXECUTE_CAPS vpExecut
     {
         return nullptr;
     }
-}
-
-MOS_STATUS PolicyDiHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFilter &feature, SwFilterPipe &featurePipe, SwFilterPipe &executePipe, bool isInputPipe, int index)
-{
-    VP_FUNC_CALL();
-
-    SwFilterDeinterlace *featureDi = dynamic_cast<SwFilterDeinterlace *>(&feature);
-    VP_PUBLIC_CHK_NULL_RETURN(featureDi);
-
-    if (featureDi->GetSwFilterParams().bFmdExtraVariance && !featureDi->GetSwFilterParams().bFmdKernelEnable)
-    {
-        SwFilterDeinterlace *filter2ndPass = featureDi;
-        SwFilterDeinterlace *filter1ndPass = (SwFilterDeinterlace *)feature.Clone();
-
-        VP_PUBLIC_CHK_NULL_RETURN(filter1ndPass);
-        VP_PUBLIC_CHK_NULL_RETURN(filter2ndPass);
-
-        filter1ndPass->GetFilterEngineCaps() = filter2ndPass->GetFilterEngineCaps();
-        filter1ndPass->SetFeatureType(filter2ndPass->GetFeatureType());
-
-        FeatureParamDeinterlace &params2ndPass = filter2ndPass->GetSwFilterParams();
-        FeatureParamDeinterlace &params1stPass = filter1ndPass->GetSwFilterParams();
-        params2ndPass.bFmdKernelEnable         = true;
-
-        // Clear engine caps for filter in 2nd pass.
-        filter2ndPass->SetFeatureType(FeatureTypeDi);
-        filter2ndPass->SetRenderTargetType(RenderTargetTypeParameter);
-        filter2ndPass->GetFilterEngineCaps().value = 0;
-        filter2ndPass->GetFilterEngineCaps().bEnabled     = 1;
-        filter2ndPass->GetFilterEngineCaps().RenderNeeded = 1;
-        filter2ndPass->GetFilterEngineCaps().isolated     = 1;
-
-        executePipe.AddSwFilterUnordered(filter1ndPass, isInputPipe, index);
-    }
-    else
-    {
-        return PolicyFeatureHandler::UpdateFeaturePipe(caps, feature, featurePipe, executePipe, isInputPipe, index);
-    }
-
-    return MOS_STATUS_SUCCESS;
 }

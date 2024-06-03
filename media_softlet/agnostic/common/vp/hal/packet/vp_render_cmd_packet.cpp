@@ -2061,13 +2061,6 @@ finish:
     return eStatus;
 }
 
-MOS_STATUS VpRenderCmdPacket::SetDiFmdParams(PRENDER_DI_FMD_PARAMS params)
-{
-    VP_FUNC_CALL();
-
-    return MOS_STATUS_SUCCESS;
-}
-
 MOS_STATUS VpRenderCmdPacket::SetFcParams(PRENDER_FC_PARAMS params)
 {
     VP_FUNC_CALL();

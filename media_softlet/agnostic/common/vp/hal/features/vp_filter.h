@@ -450,18 +450,6 @@ struct CHROMA_LAYER_PARAMS
     uint32_t                                          uThreadHeight;
 };
 
-struct _RENDER_DI_FMD_PARAMS
-{
-    bool                  bEnableDiFmd;
-    uint32_t              uKernelID;
-    uint32_t              dwVeboxPerBlockStatisticsHeight;
-    uint32_t              dwVeboxPerBlockStatisticsWidth;
-    VpKernelID            kernelId;
-};
-
-using RENDER_DI_FMD_PARAMS  = _RENDER_DI_FMD_PARAMS;
-using PRENDER_DI_FMD_PARAMS = RENDER_DI_FMD_PARAMS *;
-
 struct _RENDER_FC_PARAMS
 {
     VpKernelID              kernelId;

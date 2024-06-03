@@ -84,7 +84,6 @@ enum FeatureType
     FeatureTypeDi                   = 0x500,
     FeatureTypeDiOnVebox            = FeatureTypeDi | FEATURE_TYPE_ENGINE_BITS_VEBOX,
     FeatureTypeDiOnRender           = FeatureTypeDi | FEATURE_TYPE_ENGINE_BITS_RENDER,
-    FeatureTypeDiFmdOnRender        = FeatureTypeDi | FEATURE_TYPE_ENGINE_BITS_RENDER | FEATURE_TYPE_ENGINE_BITS_SUB_STEP,
     FeatureTypeSte                  = 0x600,
     FeatureTypeSteOnVebox           = FeatureTypeSte | FEATURE_TYPE_ENGINE_BITS_VEBOX,
     FeatureTypeVeboxUpdate          = 0x700,
@@ -652,7 +651,6 @@ struct FeatureParamDeinterlace : public FeatureParam
     bool                    bHDContent           = false;
     PVPHAL_DI_PARAMS        diParams             = nullptr;
     bool                    bFmdExtraVariance    = false;     //!< Check if extra FMD variances need to be calculated
-    bool                    bFmdKernelEnable     = false;     //!< FMD kernel path enabled
     bool                    bQueryVarianceEnable = false;     //!< Query variance enabled
     uint32_t                heightInput          = 0;
     RECT                    rcSrc                = {0, 0, 0, 0};
@@ -677,10 +675,10 @@ public:
     }
     virtual MOS_STATUS AddFeatureGraphRTLog()
     {
-        MT_LOG5(MT_VP_FEATURE_GRAPH_SWFILTERDEINTERLACE, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_SAMPLETYPEINPUT, m_Params.sampleTypeInput, MT_VP_FEATURE_GRAPH_FILTER_FMDKERNELENABLE, m_Params.bFmdKernelEnable,
-                MT_VP_FEATURE_GRAPH_FILTER_SINGLEFIELD, m_Params.diParams ? m_Params.diParams->bSingleField : -1, MT_VP_FEATURE_GRAPH_FILTER_DIMODE, m_Params.diParams ? m_Params.diParams->DIMode : -1,
-                MT_VP_FEATURE_GRAPH_FILTER_FEATURETYPE, GetFeatureType());
-        VP_PUBLIC_NORMALMESSAGE("Feature Graph: SwFilterDeinterlace: sampleTypeInput %d, bFmdKernelEnable %d, bSingleField %d, DIMode %d, FeatureType %d", m_Params.sampleTypeInput, m_Params.bFmdKernelEnable,
+        MT_LOG4(MT_VP_FEATURE_GRAPH_SWFILTERDEINTERLACE, MT_NORMAL, MT_VP_FEATURE_GRAPH_FILTER_SAMPLETYPEINPUT, m_Params.sampleTypeInput,
+                 MT_VP_FEATURE_GRAPH_FILTER_SINGLEFIELD, m_Params.diParams ? m_Params.diParams->bSingleField : -1, MT_VP_FEATURE_GRAPH_FILTER_DIMODE, m_Params.diParams ? m_Params.diParams->DIMode : -1,
+                 MT_VP_FEATURE_GRAPH_FILTER_FEATURETYPE, GetFeatureType());
+        VP_PUBLIC_NORMALMESSAGE("Feature Graph: SwFilterDeinterlace: sampleTypeInput %d, bSingleField %d, DIMode %d, FeatureType %d", m_Params.sampleTypeInput,
                                 m_Params.diParams ? m_Params.diParams->bSingleField : -1, m_Params.diParams ? m_Params.diParams->DIMode : -1, GetFeatureType());
         return MOS_STATUS_SUCCESS;
     }

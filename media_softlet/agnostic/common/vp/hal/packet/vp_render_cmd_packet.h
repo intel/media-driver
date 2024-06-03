@@ -61,8 +61,6 @@ public:
         VP_SURFACE_SETTING& surfSetting,
         VP_EXECUTE_CAPS packetCaps) override;
 
-    virtual MOS_STATUS SetDiFmdParams(PRENDER_DI_FMD_PARAMS params);
-
     virtual MOS_STATUS SetFcParams(PRENDER_FC_PARAMS params);
 
     virtual MOS_STATUS SetL0FcParams(PRENDER_L0_FC_PARAMS params);

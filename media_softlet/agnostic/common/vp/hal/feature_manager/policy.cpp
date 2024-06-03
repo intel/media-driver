@@ -188,10 +188,6 @@ MOS_STATUS Policy::RegisterFeatures()
     VP_PUBLIC_CHK_NULL_RETURN(p);
     m_VeboxSfcFeatureHandlers.insert(std::make_pair(FeatureTypeAlphaOnSfc, p));
 
-    p = MOS_New(PolicyDiHandler, m_hwCaps);
-    VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeDiFmdOnRender, p));
-
     VP_PUBLIC_CHK_STATUS_RETURN(RegisterFcFeatures());
 
     p = MOS_New(PolicyVeboxCgcHandler, m_hwCaps);
@@ -1745,23 +1741,11 @@ MOS_STATUS Policy::GetDeinterlaceExecutionCaps(SwFilter* feature, bool forceDITo
         return MOS_STATUS_SUCCESS;
     }
 
-    if (m_vpInterface.GetResourceManager()->IsRefValid() &&
-        diParams.diParams && diParams.diParams->bEnableFMD)
-    {
-        diParams.bFmdExtraVariance = true;
-    }
-
     if (m_vpInterface.GetResourceManager()->IsRefValid()    &&
         m_vpInterface.GetResourceManager()->IsSameSamples())
     {
         diEngine.bypassVeboxFeatures    = 1;
         diEngine.diProcess2ndField      = 1;
-    }
-    else if (diParams.bFmdExtraVariance && diParams.bFmdKernelEnable)
-    {
-        diEngine.bEnabled     = 1;
-        diEngine.RenderNeeded = 1;
-        diEngine.isolated     = 1;
     }
     else
     {
@@ -3669,15 +3653,7 @@ MOS_STATUS Policy::UpdateExeCaps(SwFilter* feature, VP_EXECUTE_CAPS& caps, Engin
             break;
         case FeatureTypeDi:
             caps.bDI          = 1;
-            if (feature->GetFilterEngineCaps().isolated)
-            {
-                caps.bDIFmdKernel = 1;
-                feature->SetFeatureType(FeatureType(FEATURE_TYPE_EXECUTE(DiFmd, Render)));
-            }
-            else
-            {
-                feature->SetFeatureType(FeatureType(FEATURE_TYPE_EXECUTE(Di, Render)));
-            }
+            feature->SetFeatureType(FeatureType(FEATURE_TYPE_EXECUTE(Di, Render)));
             break;
         case FeatureTypeLumakey:
             caps.bComposite = 1;
