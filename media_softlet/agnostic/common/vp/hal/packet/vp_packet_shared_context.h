@@ -32,6 +32,8 @@ struct VP_PACKET_SHARED_CONTEXT
     {
         bool     bTgneFirstFrame            = true;
         bool     bTgneEnable                = false;
+        bool     previousFallback           = false;
+        uint32_t tgneFrame                  = 0;
         uint32_t lumaStadTh                 = 3200;
         uint32_t chromaStadTh               = 1600;
         uint32_t dw4X4TGNEThCnt             = 576;
@@ -40,6 +42,7 @@ struct VP_PACKET_SHARED_CONTEXT
         uint32_t globalNoiseLevel_Temporal  = 0;  //!< Global Temporal Noise Level for Y
         uint32_t globalNoiseLevelU_Temporal = 0;  //!< Global Temporal Noise Level for U
         uint32_t globalNoiseLevelV_Temporal = 0;  //!< Global Temporal Noise Level for V
+        uint32_t globalNoiseLevel_Spatial   = 0;  //!< Global Spatial Noise Level for Y
         uint32_t globalNoiseLevelU_Spatial  = 0;  //!< Global Spatial Noise Level for U
         uint32_t globalNoiseLevelV_Spatial  = 0;  //!< Global Spatial Noise Level for V
     } tgneParams;
