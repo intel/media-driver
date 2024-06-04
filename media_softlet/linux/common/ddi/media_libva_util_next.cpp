@@ -849,6 +849,9 @@ VAStatus MediaLibvaUtilNext::CreateInternalSurface(
         alloc.ext.mem_type = params.memType;
         alloc.ext.pat_index = patIndex;
         alloc.ext.cpu_cacheable = isCpuCacheable;
+        if (VA_SURFACE_ATTRIB_USAGE_HINT_SCANOUT & mediaSurface->surfaceUsageHint)
+            alloc.ext.use_scanout = true;
+
         bo = mos_bo_alloc(mediaDrvCtx->pDrmBufMgr, &alloc);
         params.pitch = gmmPitch;
     }
@@ -863,6 +866,8 @@ VAStatus MediaLibvaUtilNext::CreateInternalSurface(
         alloc_tiled.ext.mem_type = params.memType;;
         alloc_tiled.ext.pat_index = patIndex;
         alloc_tiled.ext.cpu_cacheable = isCpuCacheable;
+        if (VA_SURFACE_ATTRIB_USAGE_HINT_SCANOUT & mediaSurface->surfaceUsageHint)
+            alloc_tiled.ext.use_scanout = true;
 
         bo = mos_bo_alloc_tiled(mediaDrvCtx->pDrmBufMgr, &alloc_tiled);
         params.pitch = alloc_tiled.pitch;

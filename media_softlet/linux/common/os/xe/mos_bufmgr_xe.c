@@ -1295,6 +1295,9 @@ mos_bo_alloc_xe(struct mos_bufmgr *bufmgr,
      */
     create.cpu_caching = alloc->ext.cpu_cacheable ? DRM_XE_GEM_CPU_CACHING_WB : DRM_XE_GEM_CPU_CACHING_WC;
 
+    if (alloc->ext.use_scanout)
+        create.flags |= DRM_XE_GEM_CREATE_FLAG_SCANOUT;
+
     ret = drmIoctl(bufmgr_gem->fd,
         DRM_IOCTL_XE_GEM_CREATE,
         &create);

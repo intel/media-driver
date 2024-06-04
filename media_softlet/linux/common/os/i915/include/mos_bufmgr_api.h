@@ -211,6 +211,7 @@ struct mos_drm_bo_alloc_ext{
     int mem_type = 0;
     uint16_t pat_index = PAT_INDEX_INVALID;
     bool     cpu_cacheable = true;
+    bool     use_scanout = false;
 };
 
 struct mos_drm_bo_alloc {
