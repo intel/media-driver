@@ -634,6 +634,7 @@ MOS_STATUS VpScalingFilter::CalculateEngineParams()
         m_sfcScalingParams->interlacedScalingType = m_scalingParams.interlacedScalingType;
         m_sfcScalingParams->srcSampleType         = m_scalingParams.input.sampleType;
         m_sfcScalingParams->dstSampleType         = m_scalingParams.output.sampleType;
+        m_sfcScalingParams->isDemosaicNeeded      = m_executeCaps.bDemosaicInUse;
 
         VP_RENDER_CHK_STATUS_RETURN(SetColorFillParams());
     }

@@ -690,6 +690,7 @@ MOS_STATUS SfcRenderBaseLegacy::SetScalingParams(PSFC_SCALING_PARAMS scalingPara
     m_renderDataLegacy.sfcStateParams->fColorFillUGPixel = scalingParams->sfcColorfillParams.fColorFillUGPixel;
     m_renderDataLegacy.sfcStateParams->fColorFillVBPixel = scalingParams->sfcColorfillParams.fColorFillVBPixel;
     m_renderDataLegacy.sfcStateParams->fColorFillYRPixel = scalingParams->sfcColorfillParams.fColorFillYRPixel;
+    m_renderDataLegacy.sfcStateParams->isDemosaicEnabled = scalingParams->isDemosaicNeeded;
 
     // SfcInputFormat should be initialized during SetCscParams if SfcInputFormat not being Format_Any.
     if (Format_Any == m_renderDataLegacy.SfcInputFormat)
@@ -747,6 +748,7 @@ MOS_STATUS SfcRenderBaseLegacy::SetCSCParams(PSFC_CSC_PARAMS cscParams)
 
     m_renderDataLegacy.sfcStateParams->bRGBASwapEnable  = IsOutputChannelSwapNeeded(cscParams->outputFormat);
     m_renderDataLegacy.sfcStateParams->bInputColorSpace = cscParams->isInputColorSpaceRGB;
+    m_renderDataLegacy.sfcStateParams->isDemosaicEnabled = cscParams->isDemosaicNeeded;
 
     // Chromasitting config
     // VEBOX use polyphase coefficients for 1x scaling for better quality,
@@ -879,7 +881,14 @@ MOS_STATUS SfcRenderBaseLegacy::SetSfcStateInputOrderingMode(
     }
     else if (MhwSfcInterface::SFC_PIPE_MODE_VEBOX == m_pipeMode)
     {
-        sfcStateParams->dwVDVEInputOrderingMode = MEDIASTATE_SFC_INPUT_ORDERING_VE_4x8;
+        if (m_renderDataLegacy.sfcStateParams && m_renderDataLegacy.sfcStateParams->isDemosaicEnabled)
+        {
+            sfcStateParams->dwVDVEInputOrderingMode = MEDIASTATE_SFC_INPUT_ORDERING_VE_4x4;
+        }
+        else
+        {
+            sfcStateParams->dwVDVEInputOrderingMode = MEDIASTATE_SFC_INPUT_ORDERING_VE_4x8;
+        }
     }
     else if (MEDIASTATE_SFC_PIPE_VE_TO_SFC_INTEGRAL == m_pipeMode)
     {

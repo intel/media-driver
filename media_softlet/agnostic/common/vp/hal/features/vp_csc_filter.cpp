@@ -82,6 +82,7 @@ namespace vp {
 #define VP_VEBOX_CHROMA_DOWNSAMPLING_422_TYPE3_VERT_OFFSET           0
 
 MOS_FORMAT GetSfcInputFormat(VP_EXECUTE_CAPS &executeCaps, MOS_FORMAT inputFormat, VPHAL_CSPACE colorSpaceOutput, MOS_FORMAT outputFormat);
+VPHAL_CSPACE GetDemosaicOutputColorSpace(VPHAL_CSPACE colorSpace);
 bool IsBeCscNeededForAlphaFill(MOS_FORMAT formatInput, MOS_FORMAT formatOutput, PVPHAL_ALPHA_PARAMS compAlpha);
 
 VpCscFilter::VpCscFilter(PVP_MHWINTERFACE vpMhwInterface) :
@@ -182,6 +183,11 @@ VPHAL_CSPACE GetSfcInputColorSpace(VP_EXECUTE_CAPS &executeCaps, VPHAL_CSPACE in
     {
         return CSpace_sRGB;
     }
+
+    if (executeCaps.bDemosaicInUse)
+    {
+        return GetDemosaicOutputColorSpace(colorSpaceOutput);
+    }
     return inputColorSpace;
 }
 
@@ -264,6 +270,7 @@ MOS_STATUS VpCscFilter::CalculateSfcEngineParams()
     m_sfcCSCParams->inputFormat     = m_cscParams.formatInput;
     m_sfcCSCParams->outputFormat    = m_cscParams.formatOutput;
     m_sfcCSCParams->isFullRgbG10P709 = m_cscParams.isFullRgbG10P709;
+    m_sfcCSCParams->isDemosaicNeeded = m_executeCaps.bDemosaicInUse;
 
     // No need to check m_cscParams.pAlphaParams as CalculateVeboxEngineParams does, as alpha is done by scaling filter on SFC.
     if (m_sfcCSCParams->inputColorSpace != m_cscParams.output.colorSpace && !(IS_RGB64_FLOAT_FORMAT(m_sfcCSCParams->outputFormat) && m_sfcCSCParams->isFullRgbG10P709))

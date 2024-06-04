@@ -282,6 +282,7 @@ typedef struct _MHW_SFC_STATE_PARAMS
     uint16_t                        wOutputSurfaceUYOffset;                     // Output Frame offset (page internal U offset for Y axis)
     uint16_t                        wOutputSurfaceVXOffset;                     // Output Frame offset (page internal V offset for X axis)
     uint16_t                        wOutputSurfaceVYOffset;                     // Output Frame offset (page internal V offset for Y axis)
+    bool                            isDemosaicEnabled         = false;          //!< Enable Demosaic
 
 } MHW_SFC_STATE_PARAMS, *PMHW_SFC_STATE_PARAMS;
 

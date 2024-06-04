@@ -663,6 +663,7 @@ MOS_STATUS SfcRenderBase::SetScalingParams(PSFC_SCALING_PARAMS scalingParams)
     m_renderData.sfcStateParams->fColorFillUGPixel = scalingParams->sfcColorfillParams.fColorFillUGPixel;
     m_renderData.sfcStateParams->fColorFillVBPixel = scalingParams->sfcColorfillParams.fColorFillVBPixel;
     m_renderData.sfcStateParams->fColorFillYRPixel = scalingParams->sfcColorfillParams.fColorFillYRPixel;
+    m_renderData.sfcStateParams->isDemosaicEnabled = scalingParams->isDemosaicNeeded;
 
     // SfcInputFormat should be initialized during SetCscParams if SfcInputFormat not being Format_Any.
     if (Format_Any == m_renderData.SfcInputFormat)
@@ -845,6 +846,7 @@ MOS_STATUS SfcRenderBase::SetCSCParams(PSFC_CSC_PARAMS cscParams)
     m_renderData.sfcStateParams->bRGBASwapEnable = IsOutputChannelSwapNeeded(cscParams->outputFormat);
     m_renderData.sfcStateParams->bInputColorSpace = cscParams->isInputColorSpaceRGB;
     m_renderData.sfcStateParams->isFullRgbG10P709 = cscParams->isFullRgbG10P709;
+    m_renderData.sfcStateParams->isDemosaicEnabled = cscParams->isDemosaicNeeded;
 
     // Dithering parameter
     if (cscParams->isDitheringNeeded && !m_disableSfcDithering)
@@ -992,7 +994,14 @@ MOS_STATUS SfcRenderBase::SetSfcStateInputOrderingMode(
     }
     else if (mhw::sfc::SFC_PIPE_MODE_VEBOX == m_pipeMode)
     {
-        sfcStateParams->dwVDVEInputOrderingMode = MEDIASTATE_SFC_INPUT_ORDERING_VE_4x8;
+        if (m_renderData.sfcStateParams && m_renderData.sfcStateParams->isDemosaicEnabled)
+        {
+            sfcStateParams->dwVDVEInputOrderingMode = MEDIASTATE_SFC_INPUT_ORDERING_VE_4x4;
+        }
+        else
+        {
+            sfcStateParams->dwVDVEInputOrderingMode = MEDIASTATE_SFC_INPUT_ORDERING_VE_4x8;
+        }
     }
     else if (MEDIASTATE_SFC_PIPE_VE_TO_SFC_INTEGRAL == m_pipeMode)
     {

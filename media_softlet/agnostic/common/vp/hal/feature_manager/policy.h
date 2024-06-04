@@ -95,7 +95,7 @@ protected:
     MOS_STATUS GetCSCExecutionCapsHdr(SwFilter *hdr, SwFilter *csc);
     MOS_STATUS GetCSCExecutionCapsDi(SwFilter* feature);
     MOS_STATUS GetCSCExecutionCapsBT2020ToRGB(SwFilter *cgc, SwFilter *csc);
-    MOS_STATUS GetCSCExecutionCaps(SwFilter* feature);
+    MOS_STATUS GetCSCExecutionCaps(SwFilter* feature, bool isCamPipeWithBayerInput);
     bool IsSfcSupported(MOS_FORMAT format);
     MOS_STATUS GetScalingExecutionCaps(SwFilter* feature, bool isDIEnabled);
     MOS_STATUS GetScalingExecutionCaps(SwFilter *feature, bool isHdrEnabled, bool isDIEnabled);
@@ -140,6 +140,7 @@ protected:
     MOS_STATUS SetupExecuteFilter(SwFilterPipe& featurePipe, std::vector<int> &layerIndexes, VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS& params);
     MOS_STATUS SetupFilterResource(SwFilterPipe& featurePipe, std::vector<int> &layerIndexes, VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS& params);
 
+    bool IsDemosaicValidOutputFormat(MOS_FORMAT format);
     bool IsAlphaSettingSupportedBySfc(MOS_FORMAT formatInput, MOS_FORMAT formatOutput, PVPHAL_ALPHA_PARAMS compAlpha);
     bool IsAlphaSettingSupportedByVebox(MOS_FORMAT formatInput, MOS_FORMAT formatOutput, PVPHAL_ALPHA_PARAMS compAlpha);
     bool IsIsolateFeatureOutputPipeNeeded(SwFilterSubPipe *featureSubPipe, SwFilter *swFilter);

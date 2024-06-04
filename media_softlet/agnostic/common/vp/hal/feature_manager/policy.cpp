@@ -455,12 +455,12 @@ MOS_STATUS Policy::GetExecutionCapsForSingleFeature(FeatureType featureType, SwF
             }
             else
             {
-                VP_PUBLIC_CHK_STATUS_RETURN(GetCSCExecutionCaps(feature));
+                VP_PUBLIC_CHK_STATUS_RETURN(GetCSCExecutionCaps(feature, false));
             }
         }
         else
         {
-            VP_PUBLIC_CHK_STATUS_RETURN(GetCSCExecutionCaps(feature));
+            VP_PUBLIC_CHK_STATUS_RETURN(GetCSCExecutionCaps(feature, false));
         }
         break;
     case FeatureTypeScaling:
@@ -749,7 +749,7 @@ MOS_STATUS Policy::GetCSCExecutionCapsDi(SwFilter* feature)
     auto userFeatureControl = m_vpInterface.GetHwInterface()->m_userFeatureControl;
     bool disableSfc         = userFeatureControl->IsSfcDisabled();
 
-    VP_PUBLIC_CHK_STATUS_RETURN(GetCSCExecutionCaps(feature));
+    VP_PUBLIC_CHK_STATUS_RETURN(GetCSCExecutionCaps(feature, false));
 
     VP_EngineEntry *cscEngine = &csc->GetFilterEngineCaps();
     VP_PUBLIC_CHK_NULL_RETURN(cscEngine);
@@ -843,6 +843,11 @@ MOS_STATUS Policy::GetCSCExecutionCapsBT2020ToRGB(SwFilter *cgc, SwFilter *csc)
 
     PrintFeatureExecutionCaps(__FUNCTION__, *cscEngine);
     return MOS_STATUS_SUCCESS;
+}
+
+bool Policy::IsDemosaicValidOutputFormat(MOS_FORMAT format)
+{
+    return (format == Format_R10G10B10A2 || format == Format_A8R8G8B8);
 }
 
 bool IsBeCscNeededForAlphaFill(MOS_FORMAT formatInput, MOS_FORMAT formatOutput, PVPHAL_ALPHA_PARAMS compAlpha)
@@ -963,7 +968,7 @@ bool Policy::IsAlphaSettingSupportedByVebox(MOS_FORMAT formatInput, MOS_FORMAT f
     }
 }
 
-MOS_STATUS Policy::GetCSCExecutionCaps(SwFilter* feature)
+MOS_STATUS Policy::GetCSCExecutionCaps(SwFilter* feature, bool isCamPipeWithBayerInput)
 {
     VP_FUNC_CALL();
     VP_PUBLIC_CHK_NULL_RETURN(feature);
@@ -1105,7 +1110,8 @@ MOS_STATUS Policy::GetCSCExecutionCaps(SwFilter* feature)
     {
         if (!cscParams->pIEFParams                                                            &&
             m_hwCaps.m_veboxHwEntry[cscParams->formatInput].inputSupported                    &&
-            m_hwCaps.m_veboxHwEntry[cscParams->formatOutput].outputSupported                  &&
+            (m_hwCaps.m_veboxHwEntry[cscParams->formatOutput].outputSupported ||
+            (isCamPipeWithBayerInput && IsDemosaicValidOutputFormat(cscParams->formatOutput))) &&
             m_hwCaps.m_veboxHwEntry[cscParams->formatInput].iecp                              &&
             m_hwCaps.m_veboxHwEntry[cscParams->formatInput].backEndCscSupported               &&
             isAlphaSettingSupportedByVebox)
@@ -2316,6 +2322,8 @@ MOS_STATUS Policy::InitExecuteCaps(VP_EXECUTE_CAPS &caps, VP_EngineEntry &engine
         caps.bDiProcess2ndField = engineCaps.diProcess2ndField;
         caps.bTemperalInputInuse = engineCaps.bTemperalInputInuse;
         caps.b1K1DLutInUse       = engineCaps.is1K1DLutSurfaceInUse;
+        caps.bDemosaicInUse      = engineCaps.isBayerInputInUse;
+        
         if (engineCaps.fcOnlyFeatureExists)
         {
             // For vebox/sfc+render case, use 2nd workload (render) to do csc for better performance

@@ -195,6 +195,7 @@ struct _MHW_PAR_T(SFC_STATE)
     PMHW_SFC_OUT_SURFACE_PARAMS             pOutSurface = nullptr;
     uint32_t      av1TileRowNumber                               = 0;
     uint32_t      av1TileColumnNumber                            = 0;
+    bool          isDemosaicEnabled                              = false;  //!< Enable Demosaic
 };
 
 struct _MHW_PAR_T(SFC_AVS_STATE)

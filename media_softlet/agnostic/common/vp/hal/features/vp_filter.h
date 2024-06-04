@@ -161,6 +161,7 @@ struct _SFC_SCALING_PARAMS
     uint32_t                        interlacedScalingType;
     VPHAL_SAMPLE_TYPE               srcSampleType;
     VPHAL_SAMPLE_TYPE               dstSampleType;
+    bool                            isDemosaicNeeded;                           // 0: demosaic is not needed; 1: demosaic is needed
 };
 
 struct _SFC_CSC_PARAMS
@@ -179,6 +180,7 @@ struct _SFC_CSC_PARAMS
     uint32_t                        chromaDownSamplingVerticalCoef;              // Chroma DownSampling Vertical Coeff
     uint32_t                        chromaDownSamplingHorizontalCoef;            // Chroma DownSampling Horizontal Coeff
     bool                            isFullRgbG10P709;                            // Whether output colorspace is DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709
+    bool                            isDemosaicNeeded;                            // 0: demosaic is not needed; 1: demosaic is needed       
 };
 
 struct _SFC_ROT_MIR_PARAMS

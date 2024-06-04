@@ -1221,6 +1221,16 @@ MOS_STATUS VpResourceManager::AssignExecuteResource(VP_EXECUTE_CAPS& caps, std::
     return MOS_STATUS_SUCCESS;
 }
 
+VPHAL_CSPACE GetDemosaicOutputColorSpace(VPHAL_CSPACE colorSpace)
+{
+    return IS_COLOR_SPACE_BT2020(colorSpace) ? CSpace_BT2020_RGB : CSpace_sRGB;
+}
+
+MOS_FORMAT GetDemosaicOutputFormat(VPHAL_CSPACE colorSpace)
+{
+    return IS_COLOR_SPACE_BT2020(colorSpace) ? Format_R10G10B10A2 : Format_A8B8G8R8;
+}
+
 MOS_STATUS GetVeboxOutputParams(VP_EXECUTE_CAPS &executeCaps, MOS_FORMAT inputFormat, MOS_TILE_TYPE inputTileType, MOS_FORMAT outputFormat,
                                 MOS_FORMAT &veboxOutputFormat, MOS_TILE_TYPE &veboxOutputTileType, VPHAL_CSPACE colorSpaceOutput)
 {
@@ -1267,6 +1277,11 @@ MOS_STATUS GetVeboxOutputParams(VP_EXECUTE_CAPS &executeCaps, MOS_FORMAT inputFo
         veboxOutputFormat = Format_AYUV;
         veboxOutputTileType = inputTileType;
     }
+    else if (executeCaps.bDemosaicInUse)
+    {
+        veboxOutputFormat = GetDemosaicOutputFormat(colorSpaceOutput);
+        veboxOutputTileType = inputTileType;
+    }
     else
     {
         veboxOutputFormat = inputFormat;
@@ -1275,6 +1290,7 @@ MOS_STATUS GetVeboxOutputParams(VP_EXECUTE_CAPS &executeCaps, MOS_FORMAT inputFo
 
     return MOS_STATUS_SUCCESS;
 }
+
 
 MOS_FORMAT GetSfcInputFormat(VP_EXECUTE_CAPS &executeCaps, MOS_FORMAT inputFormat, VPHAL_CSPACE colorSpaceOutput, MOS_FORMAT outputFormat)
 {
@@ -1313,6 +1329,10 @@ MOS_FORMAT GetSfcInputFormat(VP_EXECUTE_CAPS &executeCaps, MOS_FORMAT inputForma
         // For executeCaps.bDiProcess2ndField, no DI enabled in vebox, so no need
         // set to YUY2 here.
         return Format_YUY2;
+    }
+    else if (executeCaps.bDemosaicInUse)
+    {
+        return GetDemosaicOutputFormat(colorSpaceOutput);
     }
 
     return inputFormat;

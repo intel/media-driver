@@ -182,6 +182,7 @@ struct _VP_EXECUTE_CAPS
             uint64_t bColorBalance  : 1;
             uint64_t b1K1DLutInUse  : 1;
             uint64_t bCcmCsc        : 1;
+            uint64_t bDemosaicInUse : 1;
 
             // SFC features
             uint64_t bSfcCsc        : 1;   // Sfc Csc enabled
@@ -222,6 +223,7 @@ typedef struct _VP_EngineEntry
             uint64_t bt2020ToRGB : 1;           // true if bt2020 to rgb
             uint64_t is1K1DLutSurfaceInUse : 1;  // 1K1DLut surface in use
             uint64_t isHdr33LutSizeEnabled : 1;
+            uint64_t isBayerInputInUse : 1;
 
             // set by GetXxxPipeEnginCaps
             uint64_t bypassIfVeboxSfcInUse : 1;  // Bypass the feature if vebox or sfc in use. In such case, VeboxNeeded and
