@@ -3063,12 +3063,18 @@ MOS_STATUS VpVeboxCmdPacket::VeboxSetPerfTag()
             break;
 
         CASE_RGB32_FORMAT:
+            *pPerfTag = VPHAL_VEBOX_RGB32;
+            break;
+
         case Format_AYUV:
+            *pPerfTag = VPHAL_VEBOX_AYUV;
+            break;
+
         case Format_A16B16G16R16:
         case Format_A16R16G16B16:
         case Format_A16B16G16R16F:
         case Format_A16R16G16B16F:
-            *pPerfTag = VPHAL_NONE;
+            *pPerfTag = VPHAL_VEBOX_RGB64;
             break;
 
         default:
