@@ -36,6 +36,7 @@ set(MEDIA_COMPILER_FLAGS_COMMON
     -Werror=format-security
     -Werror=non-virtual-dtor
     -Werror=return-type
+    -Wno-overloaded-virtual
 
     # General optimization options
     -finline-functions
