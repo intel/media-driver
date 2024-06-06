@@ -373,7 +373,13 @@ namespace encode {
             secondLevelBatchBufferUsed = &(m_batchBufferForVdencImgStat[m_pipeline->m_currRecycledBufIdx]);
 
             // CQP case, driver programs the 2nd Level BB
-            ENCODE_CHK_STATUS_RETURN(Mhw_LockBb(m_osInterface, secondLevelBatchBufferUsed));
+            MOS_STATUS status = Mhw_LockBb(m_osInterface, secondLevelBatchBufferUsed);
+            if (status != MOS_STATUS_SUCCESS)
+            {
+                ENCODE_NORMALMESSAGE("ERROR - Recycled buffer index exceed the maximum");
+                SETPAR_AND_ADDCMD(MI_BATCH_BUFFER_END, m_miItf, &cmdBuffer);
+                return status;
+            }
 
             SETPAR_AND_ADDCMD(MFX_AVC_IMG_STATE, m_mfxItf, nullptr, secondLevelBatchBufferUsed);
             SETPAR_AND_ADDCMD(VDENC_CMD3, m_vdencItf, nullptr, secondLevelBatchBufferUsed);
