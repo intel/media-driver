@@ -529,6 +529,8 @@ static bool InitAdlsMediaSku(struct GfxDeviceInfo *devInfo,
 
     // Disable HEVC 422 Virtual Tile Scalability
     MEDIA_WR_SKU(skuTable, FtrDecodeHEVC422VTScalaDisable, 1);
+
+    MEDIA_WR_SKU(skuTable, FtrVirtualTileScalabilityDisable, 1);
     MEDIA_WR_SKU(skuTable, FtrE2ECompression, 1);
 
     //RPL-S
@@ -598,6 +600,7 @@ static bool InitAdlpMediaSku(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_SKU(skuTable, FtrAV1VLDLSTDecoding, 1);
     MEDIA_WR_SKU(skuTable, FtrGucSubmission, 1);
     MEDIA_WR_SKU(skuTable, FtrDecodeHEVC422VTScalaDisable, 1);
+    MEDIA_WR_SKU(skuTable, FtrVirtualTileScalabilityDisable, 1);
 
     return true;
 }

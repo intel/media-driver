@@ -516,6 +516,7 @@ MOS_STATUS CodecHalDecodeScalability_InitScalableParams_G12(
         bCanEnableRealTile = bCanEnableRealTile && pInitParams->bIsTileEnabled && (pInitParams->u8NumTileColumns > 1) &&
             (pInitParams->u8NumTileColumns <= u8MaxTileColumn) && (pInitParams->u8NumTileRows <= HEVC_NUM_MAX_TILE_ROW) &&
             pInitParams->bHasSubsetParams;
+        
         if (bCanEnableRealTile)
         {
             pScalabilityState->bIsRtMode = true;
@@ -1587,6 +1588,11 @@ bool CodecHalDecodeScalability_DecideEnableScala_G12(
     else if (bCanEnableRealTile && (!pOsInterface->osCpInterface->IsCpEnabled() || pOsInterface->bCanEnableSecureRt))
     {
         bEnableScala = true;
+    }
+    else if(MEDIA_IS_SKU(pScalState->pHwInterface->GetSkuTable(), FtrVirtualTileScalabilityDisable))
+    {
+        bEnableScala = false;
+        CODECHAL_DECODE_NORMALMESSAGE(" Disable VT Scalability according to platform SKU");
     }
     else
     {
