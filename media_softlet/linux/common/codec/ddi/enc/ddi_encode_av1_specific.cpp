@@ -1175,6 +1175,7 @@ CODECHAL_MODE DdiEncodeAV1::GetEncodeCodecMode(
     switch (profile)
     {
     case VAProfileAV1Profile0:
+    case VAProfileAV1Profile1:
         return CODECHAL_ENCODE_MODE_AV1;
     default:
         DDI_CODEC_ASSERTMESSAGE("Unsuported CODECHAL_MODE");
