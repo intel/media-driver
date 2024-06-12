@@ -39,7 +39,7 @@
         auto instance = mhw::HwcmdParser::GetInstance();
         if (instance && instance->ParseFieldsLayoutEn())
         {
-#define DO_FIELD(dw, field, value) MHW_HWCMDPARSER_PARSEFIELDLAYOUT(dw, field)
+#define DO_FIELD(dw, field, value) MHW_HWCMDPARSER_PARSEFIELDLAYOUT(instance, dw, field)
 #if defined(DO_FIELDS) && !defined(DISABLE_DO_FIELDS)
             DO_FIELDS();
 #endif  // defined(DO_FIELDS) && !defined(DISABLE_DO_FIELDS)
