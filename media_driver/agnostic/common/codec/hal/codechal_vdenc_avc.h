@@ -1301,7 +1301,13 @@ MOS_STATUS CodechalVdencAvcState::SetDmemHuCBrcInitResetImpl(CODECHAL_VDENC_AVC_
         avcSeqParams, this, &profileLevelMaxFrame));
 
     hucVDEncBrcInitDmem->INIT_ProfileLevelMaxFrame_U32 = profileLevelMaxFrame;
-    if (avcSeqParams->GopRefDist && (avcSeqParams->GopPicSize > 0))
+
+    if (avcSeqParams->GopRefDist >= avcSeqParams->GopPicSize && avcSeqParams->GopPicSize > 1)
+    {
+        hucVDEncBrcInitDmem->INIT_GopP_U16 = 1;
+        hucVDEncBrcInitDmem->INIT_GopB_U16 = avcSeqParams->GopPicSize - 2;
+    }
+    else if (avcSeqParams->GopRefDist && (avcSeqParams->GopPicSize > 0))
     {
         // Their ratio is used in BRC kernel to detect mini GOP structure. Have to be multiple.
         hucVDEncBrcInitDmem->INIT_GopP_U16 = (avcSeqParams->GopPicSize - 1) / avcSeqParams->GopRefDist;

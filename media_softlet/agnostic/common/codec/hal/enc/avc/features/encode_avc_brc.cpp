@@ -338,8 +338,12 @@ MOS_STATUS AvcEncodeBRC::SetDmemForInit(void *params)
         hucVdencBrcInitDmem->INIT_GopP_U16 = intraPeriod / avcSeqParams->GopRefDist;
         hucVdencBrcInitDmem->INIT_GopB_U16 = (avcSeqParams->GopRefDist - 1) * hucVdencBrcInitDmem->INIT_GopP_U16;
 
-        // For now AVC support only GOP4 and GOP8 golden gops
-        if (IsBPyramidWithGoldenBGOP())
+        if (avcSeqParams->GopRefDist >= avcSeqParams->GopPicSize && avcSeqParams->GopPicSize > 1)
+        {
+            hucVdencBrcInitDmem->INIT_ExtGopP_U16 = 1;
+            hucVdencBrcInitDmem->INIT_ExtGopB_U16 = avcSeqParams->GopPicSize - 2;
+        }
+        else if (IsBPyramidWithGoldenBGOP()) // For now AVC support only GOP4 and GOP8 golden gops
         {
             auto    dmem     = hucVdencBrcInitDmem;
             uint8_t BGopSize = (uint8_t)avcSeqParams->GopRefDist;
