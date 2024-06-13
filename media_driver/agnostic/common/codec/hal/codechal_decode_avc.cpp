@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2020, Intel Corporation
+* Copyright (c) 2011-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -311,12 +311,26 @@ MOS_STATUS CodechalDecodeAvc::AllocateInvalidRefBuffer()
     {
         CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(m_osInterface, &m_destSurface));
 
+        MOS_MEMCOMP_STATE mmcMode = MOS_MEMCOMP_DISABLED;
+#ifdef _MMC_SUPPORTED
+        if(m_mmc != nullptr && m_mmc->IsMmcEnabled())
+        {
+            CODECHAL_DECODE_CHK_STATUS_RETURN(
+            m_osInterface->pfnGetMemoryCompressionMode(
+                m_osInterface,
+                &m_destSurface.OsResource,
+                &mmcMode));
+        }
+#endif
+
         MOS_SURFACE surface;
         CODECHAL_DECODE_CHK_STATUS_MESSAGE_RETURN(AllocateSurface(
                                                       &surface,
                                                       m_destSurface.dwPitch,
                                                       m_destSurface.dwHeight,
-                                                      "InvalidRefBuffer"),
+                                                      "InvalidRefBuffer",
+                                                      Format_NV12,
+                                                      mmcMode != MOS_MEMCOMP_DISABLED ? true : false),
             "Failed to allocate invalid reference buffer.");
         m_resInvalidRefBuffer = surface.OsResource;
 
