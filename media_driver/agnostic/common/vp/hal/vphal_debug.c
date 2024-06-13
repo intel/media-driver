@@ -3654,6 +3654,8 @@ const char * VphalDumperTool::GetFormatStr(MOS_FORMAT format)
         case Format_Y410        : return _T("y410");
         case Format_P210        : return _T("p210");
         case Format_P216        : return _T("p216");
+        case Format_A16B16G16R16F : return _T("abgr16_float");
+        case Format_A16R16G16B16F : return _T("argb16_float");
         default                 : return _T("Err");
     }
 
