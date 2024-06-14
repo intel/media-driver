@@ -33,6 +33,7 @@
 #include "mos_util_debug.h"
 #include "mos_utilities.h"
 #include "media_perf_profiler.h"
+#include "mos_os_cp_interface_specific.h"
 
 #define MAX_BLT_BLOCK_COPY_WIDTH 0x4000u
 
@@ -625,7 +626,16 @@ MOS_STATUS BltState_Xe_Hpm::SubmitCMD(
     PMHW_BLT_INTERFACE_XE_HP     pbltInterface = dynamic_cast<PMHW_BLT_INTERFACE_XE_HP>(m_bltInterface);
 
     BLT_CHK_NULL_RETURN(pbltInterface);
-
+    BLT_CHK_NULL_RETURN(pBltStateParam);
+    BLT_CHK_NULL_RETURN(m_osInterface);
+    // need consolidate both input/output surface information to decide cp context.
+    PMOS_RESOURCE surfaceArray[2];
+    surfaceArray[0] = pBltStateParam->pSrcSurface;
+    surfaceArray[1] = pBltStateParam->pDstSurface;
+    if (m_osInterface->osCpInterface)
+    {
+        m_osInterface->osCpInterface->PrepareResources((void **)&surfaceArray, sizeof(surfaceArray) / sizeof(PMOS_RESOURCE), nullptr, 0);
+    }
     // no gpucontext will be created if the gpu context has been created before.
     BLT_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(
         m_osInterface,

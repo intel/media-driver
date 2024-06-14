@@ -29,6 +29,7 @@
 #include <algorithm>
 #include "media_perf_profiler.h"
 #include "media_blt_copy_next.h"
+#include "mos_os_cp_interface_specific.h"
 #define BIT( n )                            ( 1 << (n) )
 
 #ifdef min
@@ -798,7 +799,16 @@ MOS_STATUS BltStateNext::SubmitCMD(
 
     BLT_CHK_NULL_RETURN(m_miItf);
     BLT_CHK_NULL_RETURN(m_bltItf);
-
+    BLT_CHK_NULL_RETURN(pBltStateParam);
+    BLT_CHK_NULL_RETURN(m_osInterface);
+    // need consolidate both input/output surface information to decide cp context.
+    PMOS_RESOURCE surfaceArray[2];
+    surfaceArray[0] = pBltStateParam->pSrcSurface;
+    surfaceArray[1] = pBltStateParam->pDstSurface;
+    if (m_osInterface->osCpInterface)
+    {
+        m_osInterface->osCpInterface->PrepareResources((void **)&surfaceArray, sizeof(surfaceArray) / sizeof(PMOS_RESOURCE), nullptr, 0);
+    }
     // no gpucontext will be created if the gpu context has been created before.
     BLT_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(
         m_osInterface,
