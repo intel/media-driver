@@ -130,7 +130,7 @@ VAStatus DdiEncodeAV1::ContextInitialize(
     DDI_CHK_NULL(m_encodeCtx->pEncodeStatusReport, "nullptr m_encodeCtx->pEncodeStatusReport.", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
     //Allocate Slice Header Data
-    m_encodeCtx->pSliceHeaderData = (CODEC_ENCODER_SLCDATA *)MOS_AllocAndZeroMemory(MAX_NUM_OBU_TYPES * sizeof(CODEC_ENCODER_SLCDATA));
+    m_encodeCtx->pSliceHeaderData = (CODEC_ENCODER_SLCDATA *)MOS_AllocAndZeroMemory(ENCODE_VDENC_AV1_MAX_TILE_GROUP_NUM * sizeof(CODEC_ENCODER_SLCDATA));
     DDI_CHK_NULL(m_encodeCtx->pSliceHeaderData, "nullptr m_encodeCtx->pSliceHeaderData.", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
     // Create the bit stream buffer to hold the packed headers from application
