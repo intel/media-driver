@@ -2218,7 +2218,7 @@ __mos_context_exec_update_syncs_xe(struct mos_xe_bufmgr_gem *bufmgr_gem,
                 MOS_DRM_ASSERTMESSAGE("Invalid op flags(0x0) for exec bo(handle=%d)", exec_bo_gem->bo.handle);
             }
 
-            if (exec_bo_gem->is_imported || exec_bo_gem->is_exported)
+            if (exec_bo_gem->is_imported)
             {
                 //external bo, need to export its syncobj everytime.
                 int prime_fd = INVALID_HANDLE;
@@ -2504,7 +2504,7 @@ mos_bo_context_exec_with_sync_xe(struct mos_linux_bo **bo, int num_bo, struct mo
 
     //import batch syncobj or its point for external bos and close syncobj created for external bo before.
     uint32_t external_bo_count = external_bos.size();
-    int sync_file_fd = INVALID_HANDLE;
+    int syncfile_fd = INVALID_HANDLE;
     int temp_syncobj = INVALID_HANDLE;
 
     if (external_bo_count > 0)
@@ -2512,16 +2512,24 @@ mos_bo_context_exec_with_sync_xe(struct mos_linux_bo **bo, int num_bo, struct mo
         temp_syncobj = mos_sync_syncobj_create(bufmgr_gem->fd, 0);
         if (temp_syncobj > 0)
         {
-            mos_sync_syncobj_timeline_to_binary(bufmgr_gem->fd, temp_syncobj, dep->syncobj_handle, curr_timeline, 0);
-            sync_file_fd = mos_sync_syncobj_handle_to_syncfile_fd(bufmgr_gem->fd, temp_syncobj);
+            if (mos_sync_syncobj_timeline_to_binary(bufmgr_gem->fd, temp_syncobj, dep->syncobj_handle, curr_timeline, 0))
+            {
+                MOS_DRM_ASSERTMESSAGE("Failed to transfer timeline syncobj(errno:%d): exec_queue_id = %d, timeline syncobj = %d, timeline = %ld\n",
+                       -errno, curr_exec_queue_id, dep->syncobj_handle, curr_timeline);
+            }
+            syncfile_fd = mos_sync_syncobj_handle_to_syncfile_fd(bufmgr_gem->fd, temp_syncobj);
         }
     }
     for (int i = 0; i < external_bo_count; i++)
     {
         //import syncobj for external bos
-        if (sync_file_fd >= 0)
+        if (syncfile_fd >= 0)
         {
-            mos_sync_import_syncfile_to_external_bo(bufmgr_gem->fd, external_bos[i].prime_fd, sync_file_fd);
+            if (mos_sync_import_syncfile_to_external_bo(bufmgr_gem->fd, external_bos[i].prime_fd, syncfile_fd))
+            {
+                MOS_DRM_ASSERTMESSAGE("Failed to import syncfile to external bo(errno:%d): exec_queue_id = %d, external bo prime fd = %d, syncfile fd = %d\n",
+                       -errno, curr_exec_queue_id, external_bos[i].prime_fd, syncfile_fd);
+            }
         }
         if (external_bos[i].prime_fd != INVALID_HANDLE)
         {
@@ -2529,9 +2537,9 @@ mos_bo_context_exec_with_sync_xe(struct mos_linux_bo **bo, int num_bo, struct mo
         }
         mos_sync_syncobj_destroy(bufmgr_gem->fd, external_bos[i].syncobj_handle);
     }
-    if (sync_file_fd >= 0)
+    if (syncfile_fd >= 0)
     {
-        close(sync_file_fd);
+        close(syncfile_fd);
     }
     if (temp_syncobj > 0)
     {
