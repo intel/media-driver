@@ -67,9 +67,11 @@ MOS_STATUS VpUtils::ReAllocateSurface(
         goto finish;
     }
 
-    if (osInterface->bOptimizeCpuTiming &&
-        (defaultResType == MOS_GFXRES_BUFFER) &&
-        (surface->dwWidth >= dwWidth))
+    // reuse the allocated buffer if the allocated size was larger than request size when OptimizeCpuTiming is enabled
+    if (osInterface->bOptimizeCpuTiming                             &&
+        !Mos_ResourceIsNull(&surface->OsResource)                   &&
+        (Format_Buffer                        == format)            &&
+        (surface->dwWidth * surface->dwHeight >= dwWidth * dwHeight))
     {
         goto finish;
     }

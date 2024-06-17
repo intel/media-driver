@@ -423,6 +423,8 @@ MOS_STATUS VpPipeline::ExecuteVpPipeline()
     {
         params = m_pvpParams.renderParams;
         VP_PUBLIC_CHK_NULL_RETURN(params);
+        // Get the OptimizeCpuTiming flag from params
+        m_osInterface->bOptimizeCpuTiming = params->bOptimizeCpuTiming;
         // Set Pipeline status Table
         m_statusReport->SetPipeStatusReportParams(params, m_vpMhwInterface.m_statusTable);
 

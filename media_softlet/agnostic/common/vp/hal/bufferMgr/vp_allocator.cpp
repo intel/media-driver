@@ -852,6 +852,17 @@ MOS_STATUS VpAllocator::ReAllocateSurface(
         return eStatus;
     }
 
+    // reuse the allocated buffer if the allocated size was larger than request size when OptimizeCpuTiming is enabled
+    if (m_osInterface->bOptimizeCpuTiming                               &&
+        surface                                                         &&
+        surface->osSurface                                              &&
+        (!Mos_ResourceIsNull(&surface->osSurface->OsResource))          &&
+        (Format_Buffer                                == format)        &&
+        (surface->bufferWidth * surface->bufferHeight >= width * height))
+    {
+        return eStatus;
+    }
+
     if (surface && nullptr == surface->osSurface)
     {
         // VP_SURFACE should always be allocated by interface in VpAllocator,
@@ -984,6 +995,15 @@ MOS_STATUS VpAllocator::ReAllocateSurface(
         (surface->bCompressible == compressible) &&
         (surface->CompressionMode == compressionMode) &&
         (surface->TileType == defaultTileType))
+    {
+        return eStatus;
+    }
+
+    // reuse the allocated buffer if the allocated size was larger than request size when OptimizeCpuTiming is enabled
+    if (m_osInterface->bOptimizeCpuTiming                       &&
+        (!Mos_ResourceIsNull(&surface->OsResource))           &&
+        (Format_Buffer                        == format)        &&
+        (surface->dwWidth * surface->dwHeight >= width * height))
     {
         return eStatus;
     }
