@@ -727,13 +727,13 @@ MHW_SETPAR_DECL_SRC(VDENC_REF_SURFACE_STATE, Av1BasicFeature)
         {
             params.pitch = m_reconSurface.dwPitch / 4;
         }
-        params.uOffset = m_rawSurfaceToPak->dwHeight;
-        params.vOffset = m_rawSurfaceToPak->dwHeight << 1;
+        params.uOffset = MOS_ALIGN_CEIL(m_rawSurfaceToPak->dwHeight, 8);
+        params.vOffset = MOS_ALIGN_CEIL(m_rawSurfaceToPak->dwHeight, 8) << 1;
     }
     else if (m_reconSurface.Format == Format_Y216 || m_reconSurface.Format == Format_Y210 || m_reconSurface.Format == Format_YUY2)
     {
-        params.uOffset = m_rawSurfaceToPak->dwHeight;
-        params.vOffset = m_rawSurfaceToPak->dwHeight;
+        params.uOffset = MOS_ALIGN_CEIL(m_rawSurfaceToPak->dwHeight, 8);
+        params.vOffset = MOS_ALIGN_CEIL(m_rawSurfaceToPak->dwHeight, 8);
     }
 
     return MOS_STATUS_SUCCESS;
