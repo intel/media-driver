@@ -36,7 +36,15 @@
 #include "mos_os.h"
 #include "media_libva_common.h"
 #include <sys/types.h>
+#if defined(__linux__)
 #include <sys/syscall.h>
+#elif defined(__DragonFly__) || defined(__FreeBSD__)
+#include <pthread_np.h>
+#elif defined(__NetBSD__)
+#include <lwp.h>
+#elif defined(__sun)
+#include <thread.h>
+#endif
 #include <unistd.h>
 
 
@@ -86,5 +94,18 @@ inline void GetLocalTime(PSYSTEMTIME psystime)
 #endif
 
 #define CmGetCurProcessId() getpid()
+#if defined(__linux__)
 #define CmGetCurThreadId()  syscall(SYS_gettid)
+#elif defined(__DragonFly__) || defined(__FreeBSD__)
+#define CmGetCurThreadId()  pthread_getthreadid_np()
+#elif defined(__NetBSD__)
+#define CmGetCurThreadId()  _lwp_self()
+#elif defined(__OpenBSD__)
+#define CmGetCurThreadId()  getthrid()
+#elif defined(__sun)
+#define CmGetCurThreadId()  thr_self()
+#else
+#warning "Cannot get kernel thread identifier on this platform."
+#define CmGetCurThreadId()  (uintptr_t)pthread_self()
+#endif
 
