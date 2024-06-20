@@ -2695,6 +2695,11 @@ void CompositeState::SetScalingMode(
         pSource->ScalingMode = VPHAL_SCALING_BILINEAR;
     }
 
+    if (pSource->rcDst.top > 0)
+    {
+        pSource->ScalingMode = VPHAL_SCALING_BILINEAR;
+    }
+
 }
 
 //!
