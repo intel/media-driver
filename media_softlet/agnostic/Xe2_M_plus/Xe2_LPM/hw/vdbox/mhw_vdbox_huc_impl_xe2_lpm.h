@@ -1,4 +1,5 @@
-# Copyright (c) 2021-2024, Intel Corporation
+/*
+# Copyright (c) 2024, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -17,11 +18,43 @@
 # OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
+*/
+//!
+//! \file     mhw_vdbox_huc_impl_xe2_lpm.h
+//! \brief    MHW VDBOX HUC interface common base for Xe_LPM_plus
+//! \details
+//!
 
-option(MTL "Enable MTL support" ON)
+#ifndef __MHW_VDBOX_HUC_IMPL_XE2_LPM_H__
+#define __MHW_VDBOX_HUC_IMPL_XE2_LPM_H__
 
-option(ARL "Enable ARL support" ON)
+#include "mhw_vdbox_huc_impl.h"
+#include "mhw_vdbox_huc_hwcmd_xe2_lpm.h"
 
-option(LNL "Enable ARL support" ON)
+namespace mhw
+{
+namespace vdbox
+{
+namespace huc
+{
+namespace xe2_lpm_base
+{
+namespace xe2_lpm
+{
+class Impl : public huc::Impl<Cmd>
+{
+protected:
+    using cmd_t  = Cmd;
+    using base_t = huc::Impl<cmd_t>;
 
-include(${MEDIA_SOFTLET_EXT_CMAKE}/linux/media_gen_flags_linux_ext.cmake OPTIONAL)
+public:
+    Impl(PMOS_INTERFACE osItf, MhwCpInterface *cpItf) : base_t(osItf, cpItf){};
+MEDIA_CLASS_DEFINE_END(mhw__vdbox__huc__xe2_lpm_base__xe2_lpm__Impl)
+};
+}  // namespace xe2_lpm
+}  // namespace xe2_lpm_base
+}  // namespace huc
+}  // namespace vdbox
+}  // namespace mhw
+
+#endif  // __MHW_VDBOX_HUC_IMPL_XE2_LPM_H__

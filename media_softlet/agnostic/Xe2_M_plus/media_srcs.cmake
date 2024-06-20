@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2024, Intel Corporation
+# Copyright (c) 2022, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,10 +18,7 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-option(MTL "Enable MTL support" ON)
-
-option(ARL "Enable ARL support" ON)
-
-option(LNL "Enable ARL support" ON)
-
-include(${MEDIA_SOFTLET_EXT_CMAKE}/linux/media_gen_flags_linux_ext.cmake OPTIONAL)
+if(Xe2_M_plus)
+    media_include_subdirectory(Xe2_LPM_base)
+    media_include_subdirectory(Xe2_LPM)
+endif()

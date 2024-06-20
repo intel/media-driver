@@ -1,4 +1,5 @@
-# Copyright (c) 2021-2024, Intel Corporation
+/*
+# Copyright (c) 2024, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -17,11 +18,45 @@
 # OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
+*/
+//!
+//! \file     mhw_vdbox_vvcp_impl_xe2_lpm_base.h
+//! \brief    MHW VDBOX VVCP interface common base for Xe2_LPM+ platforms
+//! \details
+//!
 
-option(MTL "Enable MTL support" ON)
+#ifndef __MHW_VDBOX_VVCP_IMPL_XE2_LPM_BASE_H__
+#define __MHW_VDBOX_VVCP_IMPL_XE2_LPM_BASE_H__
 
-option(ARL "Enable ARL support" ON)
+#include "mhw_vdbox_vvcp_impl.h"
 
-option(LNL "Enable ARL support" ON)
+namespace mhw
+{
+namespace vdbox
+{
+namespace vvcp
+{
+namespace xe2_lpm_base
+{
 
-include(${MEDIA_SOFTLET_EXT_CMAKE}/linux/media_gen_flags_linux_ext.cmake OPTIONAL)
+template <typename cmd_t>
+class BaseImpl : public vvcp::Impl<cmd_t>
+{
+protected:
+    using base_t = vvcp::Impl<cmd_t>;
+    BaseImpl(PMOS_INTERFACE osItf, MhwCpInterface *cpItf) : base_t(osItf, cpItf){};
+
+public:
+    uint32_t GetMocsValue(MOS_HW_RESOURCE_DEF hwResType) override
+    {
+        return this->m_cacheabilitySettings[hwResType].Gen12_7.Index;
+    }
+MEDIA_CLASS_DEFINE_END(mhw__vdbox__vvcp__xe2_lpm_base__BaseImpl)
+};
+
+}  // namespace xe2_lpm_base
+}  // namespace vvcp
+}  // namespace vdbox
+}  // namespace mhw
+
+#endif  // __MHW_VDBOX_VVCP_IMPL_XE2_LPM_BASE_H__

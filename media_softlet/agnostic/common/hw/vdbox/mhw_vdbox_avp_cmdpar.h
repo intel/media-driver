@@ -252,6 +252,7 @@ struct _MHW_PAR_T(AVP_PIC_STATE)
 
     bool     allowScreenContentTools             = false;
     bool     allowIntraBC                        = false;
+    bool     avpPicStatePar0                     = false;
 
     __MHW_VDBOX_AVP_WRAPPER_EXT(AVP_PIC_STATE_CMDPAR_EXT);
 };
