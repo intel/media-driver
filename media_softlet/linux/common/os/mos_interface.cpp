@@ -1944,7 +1944,7 @@ MOS_STATUS MosInterface::GetResourceInfo(
     details.CompressionMode = (MOS_RESOURCE_MMC_MODE)gmmResourceInfo->GetMmcMode(0);
 
     auto skuTable = MosInterface::GetSkuTable(streamState);
-    if(skuTable && MEDIA_IS_SKU(skuTable, FtrNewCompression))
+    if(skuTable && MEDIA_IS_SKU(skuTable, FtrXe2Compression))
     {
         if (gmmResourceInfo->GetResFlags().Info.MediaCompressed == 1)
         {
@@ -2391,7 +2391,7 @@ MOS_STATUS MosInterface::GetMemoryCompressionMode(
     MOS_OS_CHK_NULL_RETURN(MosInterface::GetGmmClientContext(streamState));
     MOS_OS_CHK_NULL_RETURN(skuTable);
 
-    if (MEDIA_IS_SKU(skuTable, FtrNewCompression))
+    if (MEDIA_IS_SKU(skuTable, FtrXe2Compression))
     {
         // reusing MC to mark all media engins to turn on compression
         if (resource->pGmmResInfo->GetResFlags().Info.MediaCompressed == 1)
