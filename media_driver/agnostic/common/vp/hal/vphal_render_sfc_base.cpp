@@ -1182,6 +1182,49 @@ MOS_STATUS VphalSfcState::SetSfcStateParams(
 
     SetSfcStateInputOrderingMode(pRenderData, pSfcStateParams);
 
+    if (pSrcSurface->rcDst.top < 0 || pSrcSurface->rcDst.left < 0)
+    {
+        VPHAL_RENDER_NORMALMESSAGE("negtive value on rcDst top or left, top: %d, left: %d.", pSrcSurface->rcDst.top, pSrcSurface->rcDst.left);
+        if (pSrcSurface->rcDst.top < 0)
+        {
+            pSrcSurface->rcDst.top = 0;
+            if (m_renderData.SfcRotation == VPHAL_ROTATION_IDENTITY ||
+                m_renderData.SfcRotation == VPHAL_ROTATION_180 ||
+                m_renderData.SfcRotation == VPHAL_MIRROR_HORIZONTAL ||
+                m_renderData.SfcRotation == VPHAL_MIRROR_VERTICAL)
+            {
+                uint32_t newDstHight   = pSrcSurface->rcDst.bottom;
+                uint32_t newSrcHight   = MOS_UF_ROUND(newDstHight / m_renderData.fScaleY);
+                pSrcSurface->rcSrc.top = pSrcSurface->rcSrc.bottom - newSrcHight;
+            }
+            else
+            {
+                uint32_t newDstHight    = pSrcSurface->rcDst.bottom;
+                uint32_t newSrcWidth    = MOS_UF_ROUND(newDstHight / m_renderData.fScaleY);
+                pSrcSurface->rcSrc.left = pSrcSurface->rcSrc.right - newSrcWidth;
+            }
+        }
+        if (pSrcSurface->rcDst.left < 0)
+        {
+            pSrcSurface->rcDst.left = 0;
+            if (m_renderData.SfcRotation == VPHAL_ROTATION_IDENTITY ||
+                m_renderData.SfcRotation == VPHAL_ROTATION_180 ||
+                m_renderData.SfcRotation == VPHAL_MIRROR_HORIZONTAL ||
+                m_renderData.SfcRotation == VPHAL_MIRROR_VERTICAL)
+            {
+                uint32_t newDstWidth    = pSrcSurface->rcDst.right;
+                uint32_t newSrcWidth    = MOS_UF_ROUND(newDstWidth / m_renderData.fScaleX);
+                pSrcSurface->rcSrc.left = pSrcSurface->rcSrc.right - newSrcWidth;
+            }
+            else
+            {
+                uint32_t newDstWidth   = pSrcSurface->rcDst.right;
+                uint32_t newSrcHight   = MOS_UF_ROUND(newDstWidth / m_renderData.fScaleX);
+                pSrcSurface->rcSrc.top = pSrcSurface->rcSrc.bottom - newSrcHight;
+            }
+        }
+    }
+
     pSfcStateParams->OutputFrameFormat = pOutSurface->Format;
 
     pSfcStateParams->fChromaSubSamplingXSiteOffset = 0.0F;
