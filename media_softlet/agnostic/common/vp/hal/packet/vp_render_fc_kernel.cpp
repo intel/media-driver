@@ -1899,6 +1899,14 @@ MOS_STATUS VpRenderFcKernel::InitFcCurbeData()
                 (uint16_t)compParams.target[0].surf->rcDst.top;
     }
 
+    if (!MOS_IS_ALIGNED(m_curbeData.DW69.DestHorizontalBlockOrigin, 4) || !MOS_IS_ALIGNED(m_curbeData.DW69.DestVerticalBlockOrigin, 4))
+    {
+        VP_RENDER_NORMALMESSAGE("Block_start_x or Block_start_y is not DW align, Block_start_x = %d, Block_start_y = %d",
+            m_curbeData.DW69.DestHorizontalBlockOrigin,
+            m_curbeData.DW69.DestVerticalBlockOrigin);
+    }
+
+
     PrintCurbeData(m_curbeData);
     return MOS_STATUS_SUCCESS;
 }
