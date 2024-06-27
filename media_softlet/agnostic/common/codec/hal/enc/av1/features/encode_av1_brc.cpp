@@ -574,7 +574,10 @@ namespace encode
 
         dmem->INIT_SLIDINGWINDOW_ENABLE = seqParams->SlidingWindowSize != 0;
         dmem->INIT_SLIDINGWINDOW_SIZE = (uint8_t)seqParams->SlidingWindowSize;
-
+        if (dmem->INIT_SLIDINGWINDOW_ENABLE && seqParams->TargetBitRate[0] > 0)
+        {
+            dmem->INIT_OvershootCBR_pct = (uint16_t)(seqParams->MaxBitRatePerSlidingWindow * 100 / seqParams->TargetBitRate[0]);
+        }
         return MOS_STATUS_SUCCESS;
     }
 
