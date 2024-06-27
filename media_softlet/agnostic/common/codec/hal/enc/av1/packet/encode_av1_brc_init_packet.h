@@ -64,7 +64,8 @@ namespace encode
         uint16_t     INIT_OvershootCBR_pct;      // default: 115, CBR overshoot percentage
         uint16_t     INIT_GopB1;                  // number of B1 frames in the GOP
         uint16_t     INIT_GopB2;                  // number of B2 frames in the GOP
-        uint16_t     RSVD16[8];                 // mbz
+        uint16_t     INIT_GopB3;                  // number of B3 frames in the GOP
+        uint16_t     RSVD16[7];                   // mbz
 
         int8_t       INIT_InstRateThreshP0[4];   // instant rate threshold for P frame, 4 elements
         int8_t       Reserved2[4];               // mbz

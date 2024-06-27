@@ -207,7 +207,9 @@ namespace encode
         dmem->UPD_Asyn = 0;
         dmem->UPD_EnableAdaptiveRounding = (m_basicFeature->m_roundingMethod == RoundingMethod::adaptiveRounding);
 
-        if (seqParams->GopRefDist == 8)
+        if (seqParams->GopRefDist == 16 && m_rcMode == RATECONTROL_CQL)
+            dmem->UPD_MaxBRCLevel = 4;
+        else if (seqParams->GopRefDist == 8)
             dmem->UPD_MaxBRCLevel = 3;
         else if (seqParams->GopRefDist == 4)
             dmem->UPD_MaxBRCLevel = 2;
@@ -230,7 +232,8 @@ namespace encode
                     {1, AV1_BRC_FRAME_TYPE_P_OR_LB},
                     {2, AV1_BRC_FRAME_TYPE_B},
                     {3, AV1_BRC_FRAME_TYPE_B1},
-                    {4, AV1_BRC_FRAME_TYPE_B2}};
+                    {4, AV1_BRC_FRAME_TYPE_B2},
+                    {5, AV1_BRC_FRAME_TYPE_B3}};
                 dmem->UPD_CurrFrameType = hierchLevelPlus1_to_brclevel.count(picParams->HierarchLevelPlus1) ? hierchLevelPlus1_to_brclevel[picParams->HierarchLevelPlus1] : AV1_BRC_FRAME_TYPE_INVALID;
                 //Invalid HierarchLevelPlus1 or LBD frames at level 3 eror check.
                 if ((dmem->UPD_CurrFrameType == AV1_BRC_FRAME_TYPE_INVALID) ||
@@ -504,6 +507,11 @@ namespace encode
                 dmem->INIT_GopB  = intraPeriod / BGOPSize;
                 dmem->INIT_GopB1 = (dmem->INIT_GopP + dmem->INIT_GopB == intraPeriod)? 0 : dmem->INIT_GopP * 2;
                 dmem->INIT_GopB2 = intraPeriod - dmem->INIT_GopP - dmem->INIT_GopB - dmem->INIT_GopB1;
+                if (m_rcMode == RATECONTROL_CQL && seqParams->GopRefDist == 16)
+                {
+                    dmem->INIT_GopB2 = (dmem->INIT_GopP + dmem->INIT_GopB + dmem->INIT_GopB1 == intraPeriod) ? 0 : dmem->INIT_GopB1 * 2;
+                    dmem->INIT_GopB3 = intraPeriod - dmem->INIT_GopP - dmem->INIT_GopB - dmem->INIT_GopB1 - dmem->INIT_GopB2;
+                }
             }
             else
             {
