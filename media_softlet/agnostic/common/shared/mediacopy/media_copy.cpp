@@ -399,13 +399,14 @@ MOS_STATUS MediaCopyBaseState::SurfaceCopy(PMOS_RESOURCE src, PMOS_RESOURCE dst,
     mcpySrc.CpMode   = src->pGmmResInfo->GetSetCpSurfTag(false, 0)?MCPY_CPMODE_CP:MCPY_CPMODE_CLEAR;
     mcpySrc.TileMode = SrcResDetails.TileType;
     mcpySrc.OsRes    = src;
-    MCPY_NORMALMESSAGE("input surface's format %d, width %d; hight %d, pitch %d, tiledmode %d, mmc mode %d",
+    MCPY_NORMALMESSAGE("input surface's format %d, width %d; hight %d, pitch %d, tiledmode %d, mmc mode %d, preferMethod %d",
         SrcResDetails.Format,
         SrcResDetails.dwWidth,
         SrcResDetails.dwHeight,
         SrcResDetails.dwPitch,
         mcpySrc.TileMode,
-        mcpySrc.CompressionMode);
+        mcpySrc.CompressionMode,
+        preferMethod);
     MT_LOG7(MT_MEDIA_COPY, MT_NORMAL, 
         MT_SURF_PITCH,          SrcResDetails.dwPitch,
         MT_SURF_HEIGHT,         SrcResDetails.dwHeight,

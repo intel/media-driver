@@ -187,6 +187,16 @@ public:
     //!
     int GetPlaneNum(MOS_FORMAT format);
 
+    //!
+    //! \brief    SetPrologParamsforCmdbuffer
+    //! \details  Set PrologParams for Cmdbuffer
+    //! \param    PMOS_COMMAND_BUFFER
+    //!           [in] Pointer to PMOS_COMMAND_BUFFER
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    MOS_STATUS SetPrologParamsforCmdbuffer(PMOS_COMMAND_BUFFER cmdBuffer);
+
 public:
     bool           m_blokCopyon       = false;
     PMOS_INTERFACE m_osInterface      = nullptr;

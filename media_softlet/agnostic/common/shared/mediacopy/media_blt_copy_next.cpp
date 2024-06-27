@@ -30,6 +30,7 @@
 #include "media_perf_profiler.h"
 #include "media_blt_copy_next.h"
 #include "mos_os_cp_interface_specific.h"
+#include "renderhal.h"
 #define BIT( n )                            ( 1 << (n) )
 
 #ifdef min
@@ -825,6 +826,7 @@ MOS_STATUS BltStateNext::SubmitCMD(
     // Initialize the command buffer struct
     MOS_ZeroMemory(&cmdBuffer, sizeof(MOS_COMMAND_BUFFER));
     BLT_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
+    BLT_CHK_STATUS_RETURN(SetPrologParamsforCmdbuffer(&cmdBuffer));
 
     MOS_SURFACE       srcResDetails;
     MOS_SURFACE       dstResDetails;
@@ -1013,3 +1015,53 @@ int BltStateNext::GetPlaneNum(MOS_FORMAT format)
     }
    return planeNum;
  }
+
+MOS_STATUS BltStateNext::SetPrologParamsforCmdbuffer(PMOS_COMMAND_BUFFER cmdBuffer)
+{
+   PMOS_INTERFACE                  pOsInterface;
+   MOS_STATUS                      eStatus = MOS_STATUS_SUCCESS;
+   uint32_t                        iRemaining;
+   RENDERHAL_GENERIC_PROLOG_PARAMS GenericPrologParams = {};
+   PMOS_RESOURCE                   gpuStatusBuffer     = nullptr;
+
+   //---------------------------------------------
+   BLT_CHK_NULL_RETURN(cmdBuffer);
+   BLT_CHK_NULL_RETURN(m_osInterface);
+   //---------------------------------------------
+
+   eStatus      = MOS_STATUS_SUCCESS;
+   pOsInterface = m_osInterface;
+
+
+   MOS_GPU_CONTEXT gpuContext = m_osInterface->pfnGetGpuContext(m_osInterface);
+
+#ifndef EMUL
+   if (pOsInterface->bEnableKmdMediaFrameTracking)
+   {
+           // Get GPU Status buffer
+           BLT_CHK_STATUS_RETURN(pOsInterface->pfnGetGpuStatusBufferResource(pOsInterface, gpuStatusBuffer));
+           BLT_CHK_NULL_RETURN(gpuStatusBuffer);
+           // Register the buffer
+           BLT_CHK_STATUS_RETURN(pOsInterface->pfnRegisterResource(pOsInterface, gpuStatusBuffer, true, true));
+
+           GenericPrologParams.bEnableMediaFrameTracking      = true;
+           GenericPrologParams.presMediaFrameTrackingSurface  = gpuStatusBuffer;
+           GenericPrologParams.dwMediaFrameTrackingTag        = pOsInterface->pfnGetGpuStatusTag(pOsInterface, pOsInterface->CurrentGpuContextOrdinal);
+           GenericPrologParams.dwMediaFrameTrackingAddrOffset = pOsInterface->pfnGetGpuStatusTagOffset(pOsInterface, pOsInterface->CurrentGpuContextOrdinal);
+
+           // Increment GPU Status Tag
+           pOsInterface->pfnIncrementGpuStatusTag(pOsInterface, pOsInterface->CurrentGpuContextOrdinal);
+   }
+#endif
+
+   if (GenericPrologParams.bEnableMediaFrameTracking)
+   {
+           BLT_CHK_NULL_RETURN(GenericPrologParams.presMediaFrameTrackingSurface);
+           cmdBuffer->Attributes.bEnableMediaFrameTracking      = GenericPrologParams.bEnableMediaFrameTracking;
+           cmdBuffer->Attributes.dwMediaFrameTrackingTag        = GenericPrologParams.dwMediaFrameTrackingTag;
+           cmdBuffer->Attributes.dwMediaFrameTrackingAddrOffset = GenericPrologParams.dwMediaFrameTrackingAddrOffset;
+           cmdBuffer->Attributes.resMediaFrameTrackingSurface   = GenericPrologParams.presMediaFrameTrackingSurface;
+   }
+
+   return eStatus;
+}

@@ -652,6 +652,7 @@ MOS_STATUS BltState_Xe_Hpm::SubmitCMD(
     // Initialize the command buffer struct
     MOS_ZeroMemory(&cmdBuffer, sizeof(MOS_COMMAND_BUFFER));
     BLT_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
+    BLT_CHK_STATUS_RETURN(SetPrologParamsforCmdbuffer(&cmdBuffer));
 
     MOS_SURFACE       srcResDetails;
     MOS_SURFACE       dstResDetails;

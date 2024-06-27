@@ -308,7 +308,17 @@ protected:
     MOS_STATUS BlockCopyBuffer(
         PBLT_STATE_PARAM pBltStateParam);
 
-public:
+    //!
+    //! \brief    SetPrologParamsforCmdbuffer
+    //! \details  Set PrologParams for Cmdbuffer
+    //! \param    PMOS_COMMAND_BUFFER
+    //!           [in] Pointer to PMOS_COMMAND_BUFFER
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    MOS_STATUS SetPrologParamsforCmdbuffer(PMOS_COMMAND_BUFFER cmdBuffer);
+
+ public:
     PMOS_INTERFACE     m_osInterface      = nullptr;
     MhwInterfacesNext *m_mhwInterfaces    = nullptr;
     MhwCpInterface    *m_cpInterface      = nullptr;
