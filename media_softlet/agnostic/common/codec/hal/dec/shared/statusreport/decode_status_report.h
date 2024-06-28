@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2023, Intel Corporation
+* Copyright (c) 2019-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -164,10 +164,16 @@ namespace decode {
         virtual MOS_STATUS SetStatus(void *report, uint32_t index, bool outOfRange = false) override;
 
         //!
+        //! \brief  Set size for Mfx status buffer.
+        //! \return void
+        //!
+        virtual void SetSizeForStatusBuf();
+
+        //!
         //! \brief  Set offsets for Mfx status buffer.
         //! \return void
         //!
-        void SetOffsetsForStatusBuf();
+        virtual void SetOffsetsForStatusBuf();
 
         //!
         //! \brief  Update the status result of current report.
@@ -193,8 +199,8 @@ namespace decode {
         DecodeStatusReportData m_statusReportData[m_statusNum] = {};
 
         const uint32_t         m_completedCountSize = sizeof(uint32_t) * 2;
-        const uint32_t         m_statusBufSizeMfx   = MOS_ALIGN_CEIL(sizeof(DecodeStatusMfx), sizeof(uint64_t));
-        const uint32_t         m_statusBufSizeRcs   = MOS_ALIGN_CEIL(sizeof(DecodeStatusRcs), sizeof(uint64_t));
+        uint32_t               m_statusBufSizeMfx   = 0;
+        uint32_t               m_statusBufSizeRcs   = 0;
 
         PMOS_BUFFER            m_statusBufMfx = nullptr;
         PMOS_BUFFER            m_statusBufRcs = nullptr;
