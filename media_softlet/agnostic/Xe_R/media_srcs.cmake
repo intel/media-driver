@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Intel Corporation
+# Copyright (c) 2024, Intel Corporation
 
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -24,6 +24,10 @@
 if(XE_HPG OR XE_LPG)
     media_include_subdirectory(Xe_HPG_Base)
     media_include_subdirectory(Xe_HPG)
+endif()
+
+if(XE2_HPG)
+    media_include_subdirectory(Xe2_HPG)
 endif()
 
 set(MEDIA_BIN_HEADERS_

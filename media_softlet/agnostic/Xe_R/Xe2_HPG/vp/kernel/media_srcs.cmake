@@ -18,7 +18,50 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-if(Xe2_M_plus)
-    media_include_subdirectory(Xe2_LPM_base)
-    media_include_subdirectory(Xe2_LPM)
-endif()
+media_include_subdirectory(cmfcpatch)
+
+
+set(TMP_SOURCES_
+    ${CMAKE_CURRENT_LIST_DIR}/igvpkrn_xe2_hpg.c
+    ${CMAKE_CURRENT_LIST_DIR}/igvpkrn_l0_xe2_hpg.c
+)
+
+
+set(TMP_HEADERS_
+    ${CMAKE_CURRENT_LIST_DIR}/igvpkrn_xe2_hpg.h
+    ${CMAKE_CURRENT_LIST_DIR}/igvpkrn_l0_xe2_hpg.h
+)
+
+set(SOFTLET_VP_SOURCES_
+    ${SOFTLET_VP_SOURCES_}
+    ${TMP_SOURCES_}
+)
+
+set(SOFTLET_VP_HEADERS_
+    ${SOFTLET_VP_HEADERS_}
+    ${TMP_HEADERS_}
+)
+
+set(MEDIA_BIN_SOURCES_
+    ${MEDIA_BIN_SOURCES_}
+    ${TMP_SOURCES_}
+)
+
+set(MEDIA_BIN_HEADERS_
+    ${MEDIA_BIN_HEADERS_}
+    ${TMP_HEADERS_}
+)
+
+source_group( "Kernel\\VpKernel" FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
+set(TMP_SOURCES_ "")
+set(TMP_HEADERS_ "")
+
+set(SOFTLET_VP_PRIVATE_INCLUDE_DIRS_
+    ${SOFTLET_VP_PRIVATE_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)
+
+set(MEDIA_BIN_INCLUDE_DIR
+    ${MEDIA_BIN_INCLUDE_DIR}
+    ${CMAKE_CURRENT_LIST_DIR}
+)

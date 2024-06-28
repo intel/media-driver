@@ -18,7 +18,30 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-if(Xe2_M_plus)
-    media_include_subdirectory(Xe2_LPM_base)
-    media_include_subdirectory(Xe2_LPM)
-endif()
+set(TMP_SOURCES_
+    ${CMAKE_CURRENT_LIST_DIR}/vp_feature_manager_xe2_lpm.cpp
+)
+
+set(TMP_HEADERS_
+    ${CMAKE_CURRENT_LIST_DIR}/vp_feature_manager_xe2_lpm.h
+    ${CMAKE_CURRENT_LIST_DIR}/vp_feature_caps_xe2_lpm.h
+)
+
+
+set(SOFTLET_VP_SOURCES_
+    ${SOFTLET_VP_SOURCES_}
+    ${TMP_SOURCES_}
+)
+
+set(SOFTLET_VP_HEADERS_
+    ${SOFTLET_VP_HEADERS_}
+    ${TMP_HEADERS_}
+)
+
+source_group( VpHalNext\\Xe2_LPM\\FeatureManager FILES ${TMP_SOURCES_} ${TMP_HEADERS_})
+set(TMP_SOURCES_ "")
+set(TMP_HEADERS_ "")
+set(SOFTLET_VP_PRIVATE_INCLUDE_DIRS_
+    ${SOFTLET_VP_PRIVATE_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)

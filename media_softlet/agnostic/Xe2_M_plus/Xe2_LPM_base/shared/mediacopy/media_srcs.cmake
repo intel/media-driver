@@ -18,7 +18,34 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-if(Xe2_M_plus)
-    media_include_subdirectory(Xe2_LPM_base)
-    media_include_subdirectory(Xe2_LPM)
-endif()
+set(TMP_SOURCES_
+    ${CMAKE_CURRENT_LIST_DIR}/media_copy_xe2_lpm.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/media_vebox_copy_xe2_lpm.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/media_render_copy_xe2_lpm.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/media_blt_copy_xe2_lpm.cpp
+)
+
+
+set(TMP_HEADERS_
+    ${CMAKE_CURRENT_LIST_DIR}/media_copy_xe2_lpm.h
+    ${CMAKE_CURRENT_LIST_DIR}/media_vebox_copy_xe2_lpm.h
+    ${CMAKE_CURRENT_LIST_DIR}/media_render_copy_xe2_lpm.h
+    ${CMAKE_CURRENT_LIST_DIR}/media_blt_copy_xe2_lpm.h
+)
+
+set(SOFTLET_COMMON_SOURCES_
+    ${SOFTLET_COMMON_SOURCES_}
+    ${TMP_SOURCES_}
+)
+
+set(SOFTLET_COMMON_HEADERS_
+    ${SOFTLET_COMMON_HEADERS_}
+    ${TMP_HEADERS_}
+)
+
+source_group( "SharedNext\\Xe_LPM_plus_base\\shared\\MediaCopy" FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
+
+set(SOFTLET_COMMON_PRIVATE_INCLUDE_DIRS_
+    ${SOFTLET_COMMON_PRIVATE_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)
