@@ -696,10 +696,7 @@ MOS_STATUS BltStateNext::SetupBltCopyParam(
     BLT_CHK_NULL_RETURN(pMhwBltParams);
     BLT_CHK_NULL_RETURN(inputSurface);
     BLT_CHK_NULL_RETURN(outputSurface);
-    BLT_CHK_NULL_RETURN(outputSurface->pGmmResInfo);
-    BLT_CHK_NULL_RETURN(inputSurface->pGmmResInfo);
 
-    PGMM_RESOURCE_INFO TiledRsInfo   = nullptr;
     MOS_SURFACE       ResDetails;
     MOS_ZeroMemory(&ResDetails, sizeof(MOS_SURFACE));
     MOS_ZeroMemory(pMhwBltParams, sizeof(MHW_FAST_COPY_BLT_PARAM));
@@ -713,12 +710,10 @@ MOS_STATUS BltStateNext::SetupBltCopyParam(
     if (inputSurface->TileType != MOS_TILE_LINEAR)
     { //for tiled surfaces, pitch is expressed in DWORDs
         pMhwBltParams->dwSrcPitch = ResDetails.dwPitch / 4;
-        TiledRsInfo               = inputSurface->pGmmResInfo;
     }
     else
     {
         pMhwBltParams->dwSrcPitch = ResDetails.dwPitch;
-        TiledRsInfo               = outputSurface->pGmmResInfo;
     }
     
     pMhwBltParams->dwSrcTop    = ResDetails.RenderOffset.YUV.Y.YOffset;
@@ -747,8 +742,31 @@ MOS_STATUS BltStateNext::SetupBltCopyParam(
     pMhwBltParams->dwPlaneIndex = planeIndex;
     pMhwBltParams->dwPlaneNum   = planeNum;
 
-    uint32_t BitsPerBlock = TiledRsInfo->GetBitsPerPixel();  // using Bit.
-    pMhwBltParams->dwColorDepth = GetBlkCopyColorDepth(TiledRsInfo->GetResourceFormat(), BitsPerBlock);
+    // some upper layer has overwrite the format, so need get orignal BitsPerBlock
+    BLT_CHK_NULL_RETURN(inputSurface->pGmmResInfo);
+    BLT_CHK_NULL_RETURN(outputSurface->pGmmResInfo);
+    uint32_t inputBitsPerPixel  = inputSurface->pGmmResInfo->GetBitsPerPixel();
+    uint32_t outputBitsPerPixel = outputSurface->pGmmResInfo->GetBitsPerPixel();
+    uint32_t BitsPerPixel = 8;
+    if (inputSurface->TileType != MOS_TILE_LINEAR)
+    {
+        BitsPerPixel = inputBitsPerPixel;
+    }
+    else if (outputSurface->TileType != MOS_TILE_LINEAR)
+    {
+        BitsPerPixel = outputBitsPerPixel;
+    }
+    else
+    {
+        // both input and output are linear surfaces.
+        // upper layer overwrite the format from buffer to 2D surfaces. Then the BitsPerPixel may different.
+        BitsPerPixel = inputBitsPerPixel >= outputBitsPerPixel ? inputBitsPerPixel : outputBitsPerPixel;
+    }
+    MCPY_NORMALMESSAGE("input BitsPerBlock %d, output BitsPerBlock %d, the vid mem BitsPerBlock %d",
+        inputBitsPerPixel,
+        outputBitsPerPixel,
+        BitsPerPixel);
+    pMhwBltParams->dwColorDepth = GetBlkCopyColorDepth(outputSurface->pGmmResInfo->GetResourceFormat(), BitsPerPixel);
     pMhwBltParams->dwDstRight   = std::min(inputWidth, outputWidth);
     pMhwBltParams->dwDstBottom  = std::min(inputHeight, outputHeight);
 
@@ -932,19 +950,13 @@ MOS_STATUS BltStateNext::SubmitCMD(
 
 uint32_t BltStateNext::GetBlkCopyColorDepth(
     GMM_RESOURCE_FORMAT dstFormat,
-    uint32_t            BitsPerBlock)
+    uint32_t            BitsPerPixel)
 {
-    uint32_t BitsPerPixel = BLT_BITS_PER_BYTE;
     if (dstFormat == GMM_FORMAT_YUY2_2x1 || dstFormat == GMM_FORMAT_Y216_TYPE || dstFormat == GMM_FORMAT_Y210)
     {// GMM_FORMAT_YUY2_2x1 32bpe 2x1 pixel blocks instead of 16bpp 1x1 block
      // GMM_FORMAT_Y216_TYPE/Y210 64bpe pixel blocks instead of 32bpp block.
-         BitsPerPixel = BitsPerBlock / 2;
+         BitsPerPixel = BitsPerPixel / 2;
     }
-    else
-    {
-         BitsPerPixel = BitsPerBlock;
-    }
-
     switch (BitsPerPixel)
     {
      case 16:

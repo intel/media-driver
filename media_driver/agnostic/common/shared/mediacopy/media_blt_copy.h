@@ -45,7 +45,6 @@ class MhwMiInterface;
 #define BLT_CHK_NULL(_ptr)                  MOS_CHK_NULL(MOS_COMPONENT_MCPY, MOS_MCPY_SUBCOMP_BLT, _ptr)
 #define BLT_CHK_NULL_RETURN(_ptr)           MOS_CHK_NULL_RETURN(MOS_COMPONENT_MCPY, MOS_MCPY_SUBCOMP_BLT, _ptr)
 #define BLT_ASSERTMESSAGE(_message, ...)    MOS_ASSERTMESSAGE(MOS_COMPONENT_MCPY, MOS_MCPY_SUBCOMP_BLT, _message, ##__VA_ARGS__)
-#define BLT_BITS_PER_BYTE                   8
 
 class BltState
 {
@@ -147,26 +146,26 @@ public:
     //!
     //! \brief    Get Block copy color depth.
     //! \details  get different format's color depth.
-    //! \param    Gmm format and bits perf block
-    //!           [in] Gmm format, Bits per Block;
+    //! \param    Gmm format and bits per Pixel
+    //!           [in] Gmm format, Bits per Pixel;
     //! \return   color depth
     //!           Return color depth
     //!
     uint32_t GetBlkCopyColorDepth(
         GMM_RESOURCE_FORMAT dstFormat,
-        uint32_t            BytesPerTexel);
+        uint32_t            BitsPerPixel);
 
-        //!
+    //!
     //! \brief    Get Fast copy color depth.
     //! \details  get different format's color depth.
-    //! \param    surface
-    //!           [in] input or output surface.
+    //! \param    Gmm format and bits per Pixel
+    //!           [in] Gmm format, Bits per Pixel;
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     uint32_t GetFastCopyColorDepth(
         GMM_RESOURCE_FORMAT dstFormat,
-        uint32_t            BytesPerTexel);
+        uint32_t            BitsPerPixel);
     //!
     //! \brief    Get plane's byte per texel
     //! \details  Get plane's byte per texel

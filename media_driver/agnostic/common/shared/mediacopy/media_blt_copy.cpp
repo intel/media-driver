@@ -176,11 +176,7 @@ MOS_STATUS BltState::SetupBltCopyParam(
     BLT_CHK_NULL_RETURN(pMhwBltParams);
     BLT_CHK_NULL_RETURN(inputSurface);
     BLT_CHK_NULL_RETURN(outputSurface);
-    BLT_CHK_NULL_RETURN(outputSurface->pGmmResInfo);
-    BLT_CHK_NULL_RETURN(inputSurface->pGmmResInfo);
 
-    PGMM_RESOURCE_INFO TiledRsInfo  = nullptr;
-    uint32_t          BytesPerTexel = 1;
     MOS_SURFACE       ResDetails;
     MOS_ZeroMemory(&ResDetails, sizeof(MOS_SURFACE));
     MOS_ZeroMemory(pMhwBltParams, sizeof(MHW_FAST_COPY_BLT_PARAM));
@@ -194,12 +190,10 @@ MOS_STATUS BltState::SetupBltCopyParam(
     if (inputSurface->TileType != MOS_TILE_LINEAR)
     { ///for tiled surfaces, pitch is expressed in DWORDs
         pMhwBltParams->dwSrcPitch = ResDetails.dwPitch / 4;
-        TiledRsInfo               = inputSurface->pGmmResInfo;
     }
     else
     {
         pMhwBltParams->dwSrcPitch = ResDetails.dwPitch;
-        TiledRsInfo               = outputSurface->pGmmResInfo;
     }
     
     pMhwBltParams->dwSrcTop    = ResDetails.RenderOffset.YUV.Y.YOffset;
@@ -226,15 +220,39 @@ MOS_STATUS BltState::SetupBltCopyParam(
 
     int planeNum = GetPlaneNum(ResDetails.Format);
     pMhwBltParams->dwDstBottom = std::min(inputHeight, outputHeight);
-    BytesPerTexel = TiledRsInfo->GetBitsPerPixel() / 8;  // using Bytes.
 
-    if (true == m_blokCopyon)
+    // some upper layer has overwrite the format, so need get orignal BitsPerBlock
+    BLT_CHK_NULL_RETURN(inputSurface->pGmmResInfo);
+    BLT_CHK_NULL_RETURN(outputSurface->pGmmResInfo);
+    uint32_t inputBitsPerPixel  = inputSurface->pGmmResInfo->GetBitsPerPixel();
+    uint32_t outputBitsPerPixel = outputSurface->pGmmResInfo->GetBitsPerPixel();
+    uint32_t BitsPerPixel       = 8;
+    if (inputSurface->TileType != MOS_TILE_LINEAR)
     {
-        pMhwBltParams->dwColorDepth = GetBlkCopyColorDepth(outputSurface->pGmmResInfo->GetResourceFormat(), BytesPerTexel);
+        BitsPerPixel = inputBitsPerPixel;
+    }
+    else if (outputSurface->TileType != MOS_TILE_LINEAR)
+    {
+        BitsPerPixel = outputBitsPerPixel;
     }
     else
     {
-        pMhwBltParams->dwColorDepth = GetFastCopyColorDepth(outputSurface->pGmmResInfo->GetResourceFormat(), BytesPerTexel);
+        // both input and output are linear surfaces.
+        // upper layer overwrite the format from buffer to 2D surfaces. Then the BitsPerPixel may different.
+        BitsPerPixel = inputBitsPerPixel >= outputBitsPerPixel ? inputBitsPerPixel : outputBitsPerPixel;
+    }
+    MCPY_NORMALMESSAGE("input BitsPerBlock %d, output BitsPerBlock %d, the vid mem BitsPerBlock %d",
+        inputBitsPerPixel,
+        outputBitsPerPixel,
+        BitsPerPixel);
+
+    if (true == m_blokCopyon)
+    {
+        pMhwBltParams->dwColorDepth = GetBlkCopyColorDepth(outputSurface->pGmmResInfo->GetResourceFormat(), BitsPerPixel);
+    }
+    else
+    {
+        pMhwBltParams->dwColorDepth = GetFastCopyColorDepth(outputSurface->pGmmResInfo->GetResourceFormat(), BitsPerPixel);
     }
     pMhwBltParams->dwPlaneIndex = planeIndex;
     pMhwBltParams->dwPlaneNum   = planeNum;
@@ -415,15 +433,13 @@ MOS_STATUS BltState::SubmitCMD(
 
 uint32_t BltState::GetBlkCopyColorDepth(
     GMM_RESOURCE_FORMAT dstFormat,
-    uint32_t            BytesPerTexel)
+    uint32_t            BitsPerPixel)
 {
-    uint32_t BitsPerPixel = BytesPerTexel * BLT_BITS_PER_BYTE;
     if (dstFormat == GMM_FORMAT_YUY2_2x1 || dstFormat == GMM_FORMAT_Y216_TYPE || dstFormat == GMM_FORMAT_Y210)
     {   // GMM_FORMAT_YUY2_2x1 32bpe 2x1 pixel blocks instead of 16bpp 1x1 block
         // GMM_FORMAT_Y216_TYPE/Y210 64bpe pixel blocks instead of 32bpp block.
          BitsPerPixel = BitsPerPixel / 2;
     }
-
     switch (BitsPerPixel)
     {
     case 16:
@@ -450,11 +466,9 @@ uint32_t BltState::GetBlkCopyColorDepth(
 }
 uint32_t BltState::GetFastCopyColorDepth(
      GMM_RESOURCE_FORMAT dstFormat,
-     uint32_t            BytesPerTexel)
+    uint32_t             BitsPerBlock)
  {
-     uint32_t bitsPerTexel = BytesPerTexel * BLT_BITS_PER_BYTE;
-
-     switch (bitsPerTexel)
+     switch (BitsPerBlock)
      {
      case 8:
          return mhw_blt_state::XY_FAST_COPY_BLT_CMD::COLOR_DEPTH_8BITCOLOR;

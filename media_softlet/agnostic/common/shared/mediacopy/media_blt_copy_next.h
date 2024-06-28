@@ -119,14 +119,14 @@ public:
     //!
     //! \brief    Get Block copy color depth.
     //! \details  get different format's color depth.
-    //! \param    Gmm format and bits perf block
-    //!           [in] Gmm format, Bits per Block;
+    //! \param    Gmm format and bits per Pixel
+    //!           [in] Gmm format, Bits per Pixel;
     //! \return   color depth
     //!           Return color depth
     //!
     uint32_t GetBlkCopyColorDepth(
         GMM_RESOURCE_FORMAT dstFormat,
-        uint32_t            BitsPerBlock);
+        uint32_t            Pixel);
 
     //!
     //! \brief    Get plane's byte per texel
