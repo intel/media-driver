@@ -1200,7 +1200,7 @@ MOS_STATUS VphalSfcState::SetSfcStateParams(
             else
             {
                 uint32_t newDstHight    = pSrcSurface->rcDst.bottom;
-                uint32_t newSrcWidth    = MOS_UF_ROUND(newDstHight / m_renderData.fScaleY);
+                uint32_t newSrcWidth    = MOS_UF_ROUND(newDstHight / m_renderData.fScaleX);
                 pSrcSurface->rcSrc.left = pSrcSurface->rcSrc.right - newSrcWidth;
             }
         }
@@ -1219,7 +1219,7 @@ MOS_STATUS VphalSfcState::SetSfcStateParams(
             else
             {
                 uint32_t newDstWidth   = pSrcSurface->rcDst.right;
-                uint32_t newSrcHight   = MOS_UF_ROUND(newDstWidth / m_renderData.fScaleX);
+                uint32_t newSrcHight   = MOS_UF_ROUND(newDstWidth / m_renderData.fScaleY);
                 pSrcSurface->rcSrc.top = pSrcSurface->rcSrc.bottom - newSrcHight;
             }
         }
