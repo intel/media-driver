@@ -75,43 +75,10 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_XE2_HPG::InitHwSizes()
 MOS_STATUS MHW_STATE_HEAP_INTERFACE_XE2_HPG::SetInterfaceDescriptorEntry(
     PMHW_ID_ENTRY_PARAMS      pParams)
 {
-    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-
     MHW_FUNCTION_ENTER;
-
-    //------------------------------------
-    MHW_MI_CHK_NULL(pParams);
-    //------------------------------------
-
-    // Ensures that the Media ID base is correct
-    MHW_ASSERT(MOS_IS_ALIGNED(pParams->dwMediaIdOffset, m_wIdAlignment));
-
-    uint8_t    *pStateHeapBase;
-    if (pParams->pGeneralStateHeap)
-    {
-        pStateHeapBase = (uint8_t*)pParams->pGeneralStateHeap->pvLockedHeap;
-    }
-    else
-    {
-        pStateHeapBase = (uint8_t*)(GetDSHPointer()->pvLockedHeap);
-    }
-
-    mhw_state_heap_xe2_hpg::INTERFACE_DESCRIPTOR_DATA_CMD *pInterfaceDescriptor;
-    pInterfaceDescriptor  = (mhw_state_heap_xe2_hpg::INTERFACE_DESCRIPTOR_DATA_CMD *)
-        (pStateHeapBase +               // State Heap Base
-            pParams->dwMediaIdOffset +     // Offset to first Media ID
-            pParams->iMediaId * m_wSizeOfInterfaceDescriptor); // Offset to current ID
-    MHW_MI_CHK_NULL(pInterfaceDescriptor);
-    *pInterfaceDescriptor = mhw_state_heap_xe2_hpg::INTERFACE_DESCRIPTOR_DATA_CMD();
-
-    pInterfaceDescriptor->DW0.KernelStartPointer                 = pParams->dwKernelOffset >> MHW_KERNEL_OFFSET_SHIFT;
-    pInterfaceDescriptor->DW3.SamplerStatePointer                = pParams->dwSamplerOffset >> MHW_SAMPLER_SHIFT;
-    pInterfaceDescriptor->DW3.SamplerCount                       = pParams->dwSamplerCount;
-    pInterfaceDescriptor->DW4.BindingTablePointer                = MOS_ROUNDUP_SHIFT(pParams->dwBindingTableOffset, MHW_BINDING_TABLE_ID_SHIFT);
-    pInterfaceDescriptor->DW5.NumberOfThreadsInGpgpuThreadGroup  = pParams->dwNumberofThreadsInGPGPUGroup;
-    pInterfaceDescriptor->DW5.SharedLocalMemorySize              = pParams->dwSharedLocalMemorySize;
-
-    return eStatus;
+    // Remove setting Descriptor in stateheap.
+    // Command will be set in compute walker.
+    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS MHW_STATE_HEAP_INTERFACE_XE2_HPG::AddInterfaceDescriptorData(
