@@ -546,6 +546,7 @@ VAStatus DdiEncodeAV1::ParsePicParams(DDI_MEDIA_CONTEXT *mediaCtx, void *ptr)
     av1PicParams->PicFlags.fields.LongTermReference            = picParams->picture_flags.bits.long_term_reference;
     av1PicParams->PicFlags.fields.DisableFrameRecon            = picParams->picture_flags.bits.disable_frame_recon;
     av1PicParams->PicFlags.fields.PaletteModeEnable            = picParams->picture_flags.bits.palette_mode_enable;
+    av1PicParams->PicFlags.fields.allow_intrabc                = picParams->picture_flags.bits.allow_intrabc;
     av1PicParams->PicFlags.fields.SegIdBlockSize               = picParams->seg_id_block_size;
 
 #if VA_CHECK_VERSION(1, 16, 0)
