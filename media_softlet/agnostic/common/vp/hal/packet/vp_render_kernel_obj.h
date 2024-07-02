@@ -82,6 +82,7 @@ typedef struct _SURFACE_PARAMS
 {
     SurfaceType surfType;
     bool        isOutput;
+    bool        needVerticalStirde;
 } SURFACE_PARAMS, *PSURFACE_PARAMS;
 
 using KERNEL_CONFIGS = std::map<VpKernelID, void *>; // Only for legacy/non-cm kernels
@@ -96,12 +97,13 @@ using KERNEL_STATELESS_BUFF_CONFIG = std::map<SurfaceType, uint64_t>;
 
 typedef struct _KERNEL_PARAMS
 {
-    VpKernelID           kernelId;
-    KERNEL_ARGS          kernelArgs;
-    KERNEL_THREAD_SPACE  kernelThreadSpace;
-    bool                 syncFlag;
-    bool                 flushL1;
-    KERNEL_TUNING_PARAMS kernelTuningParams;
+    VpKernelID                   kernelId;
+    KERNEL_ARGS                  kernelArgs;
+    KERNEL_THREAD_SPACE          kernelThreadSpace;
+    bool                         syncFlag;
+    bool                         flushL1;
+    KERNEL_TUNING_PARAMS         kernelTuningParams;
+    KERNEL_ARG_INDEX_SURFACE_MAP kernelStatefulSurfaces;
 } KERNEL_PARAMS;
 
 struct MEDIA_OBJECT_KA2_INLINE_DATA
@@ -537,6 +539,8 @@ protected:
     virtual MOS_STATUS SetWalkerSetting(KERNEL_THREAD_SPACE &threadSpace, bool bSyncFlag, bool flushL1 = false);
 
     virtual MOS_STATUS SetKernelArgs(KERNEL_ARGS &kernelArgs, VP_PACKET_SHARED_CONTEXT *sharedContext);
+
+    virtual MOS_STATUS SetKernelStatefulSurfaces(KERNEL_ARG_INDEX_SURFACE_MAP &statefulSurfaces);
 
     virtual MOS_STATUS SetupSurfaceState() = 0;
 

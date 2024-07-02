@@ -1114,6 +1114,9 @@ MOS_STATUS RenderCmdPacket::PrepareComputeWalkerParams(KERNEL_WALKER_PARAMS para
 
     gpgpuWalker.isGenerateLocalID = params.isGenerateLocalID;
     gpgpuWalker.emitLocal         = params.emitLocal;
+
+    gpgpuWalker.SLMSize           = params.slmSize;
+    gpgpuWalker.hasBarrier        = params.hasBarrier;
     
     return MOS_STATUS_SUCCESS;
 }

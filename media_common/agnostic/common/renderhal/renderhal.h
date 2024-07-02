@@ -1023,7 +1023,8 @@ typedef struct _RENDERHAL_SURFACE_STATE_PARAMS
     uint32_t                        bVmeUse                   : 1;              // Flag for VME use
     uint32_t                        bBufferUse                : 1;              // Flags for 1D buffer use
     uint32_t                        bSurfaceTypeDefined       : 1;
-    uint32_t                                                  : 2;
+    uint32_t                                                  : 1;
+    uint32_t                        forceCommonSurfaceMessage : 1;
     uint32_t                        surfaceType               : 11;
     MOS_COMPONENT                   Component                 : 4;
     RENDERHAL_MEMORY_OBJECT_CONTROL MemObjCtl;                                  // Caching attributes
@@ -1377,6 +1378,12 @@ typedef struct _RENDERHAL_INTERFACE
     uint32_t (* pfnGetSurfaceMemoryObjectControl) (
                 PRENDERHAL_INTERFACE            pRenderHal,
                 PRENDERHAL_SURFACE_STATE_PARAMS pParams);
+
+    MOS_STATUS (*pfnGetPlaneDefinitionForCommonMessage) (
+                PRENDERHAL_INTERFACE            pRenderHal,
+                MOS_FORMAT                      format,
+                bool                            isRenderTarget,
+                RENDERHAL_PLANE_DEFINITION      &planeDefinition);
 
     //---------------------------
     // State Setup - HW + OS Specific

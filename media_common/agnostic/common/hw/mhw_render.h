@@ -307,6 +307,8 @@ typedef struct _MHW_GPGPU_WALKER_PARAMS
 
     bool                       isGenerateLocalID;
     MHW_EMIT_LOCAL_MODE        emitLocal;
+
+    bool                       hasBarrier;
     
 } MHW_GPGPU_WALKER_PARAMS, *PMHW_GPGPU_WALKER_PARAMS;
 

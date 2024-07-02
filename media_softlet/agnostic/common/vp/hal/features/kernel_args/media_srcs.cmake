@@ -23,7 +23,6 @@ set(TMP_SOURCES_
 )
 
 set(TMP_HEADERS_
-    ${CMAKE_CURRENT_LIST_DIR}/igvpfc_scale_args.h
     ${CMAKE_CURRENT_LIST_DIR}/igvp3dlut_args.h
 )
 

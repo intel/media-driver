@@ -285,10 +285,24 @@ public:
     //! \brief    Encode SLM Size for Interface Descriptor
     //! \details  Setup SLM size
     //! \param    uint32_t SLMSize
-    //!           [in] SLM size in 1K
+    //!           [in] SLM size
     //! \return   encoded output
     //!
     uint32_t EncodeSLMSize(uint32_t SLMSize) override;
+
+    //!
+    //! \brief    Calculate Preferred Slm Allocation Size for Interface Descriptor
+    //! \details  Setup Preferred Slm Allocation Size size
+    //! \param    PRENDERHAL_INTERFACE pRenderHal
+    //!           [in]    Pointer to RenderHal interface
+    //! \param    uint32_t SLMSize
+    //!           [in] SLM size
+    //! \return   Preferred Slm Allocation Size
+    //!
+    virtual uint32_t CalculatePreferredSlmAllocationSizeFromSlmSize(
+        RENDERHAL_INTERFACE *renderHal, 
+        uint32_t             slmSize, 
+        uint32_t             numberOfThreadsPerThreadGroup);
 
     //!
     //! \brief    Set Chroma Direction

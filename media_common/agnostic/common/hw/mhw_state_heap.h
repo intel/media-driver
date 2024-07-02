@@ -451,6 +451,7 @@ typedef struct _MHW_ID_ENTRY_PARAMS
     int32_t             iCrsThdConDataRdLn;             //!
     PMHW_STATE_HEAP     pGeneralStateHeap;              //! General state heap in use
     MemoryBlock         *memoryBlock;                   //! Memory block associated with the state heap
+    uint32_t            preferredSlmAllocationSize;     //! SLM Allocation Size for per SubSlice
 } MHW_ID_ENTRY_PARAMS, *PMHW_ID_ENTRY_PARAMS;
 
 typedef struct _MHW_PLANE_SETTING

@@ -390,6 +390,7 @@ struct _MHW_PAR_T(COMPUTE_WALKER)
     uint8_t                   *inlineData                   = nullptr;
     bool                      isGenerateLocalId             = false;
     MHW_EMIT_LOCAL_MODE       emitLocal                     = MHW_EMIT_LOCAL_NONE;
+    uint32_t                  preferredSlmAllocationSize    = 0;
     
 };
 

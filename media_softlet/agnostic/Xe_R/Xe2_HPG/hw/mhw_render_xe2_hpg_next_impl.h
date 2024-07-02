@@ -194,6 +194,8 @@ public:
         cmd.InterfaceDescriptor.DW5.NumberOfThreadsInGpgpuThreadGroup = params.dwNumberofThreadsInGPGPUGroup;
         cmd.InterfaceDescriptor.DW5.SharedLocalMemorySize             = params.dwSharedLocalMemorySize;
 
+        cmd.InterfaceDescriptor.DW7.PreferredSlmAllocationSizePerSubslice = params.preferredSlmAllocationSize;
+
         // when Barriers is not 0, the EU fusion will close.
         // Assigns barrier count.
         if (params.bBarrierEnable)

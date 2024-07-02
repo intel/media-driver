@@ -30,7 +30,6 @@
 #include "vp_render_vebox_hdr_3dlut_kernel.h"
 #include "vp_render_vebox_hvs_kernel.h"
 #include "vp_render_hdr_kernel.h"
-#include "vp_render_l0_fc_kernel.h"
 #include "vp_render_vebox_hdr_3dlut_l0_kernel.h"
 
 using namespace vp;
@@ -151,10 +150,6 @@ MOS_STATUS VpKernelSet::CreateSingleKernelObject(
         break;
     case kernelHdrMandatory:
         kernel = (VpRenderKernelObj *)MOS_New(VpRenderHdrKernel, m_hwInterface, m_allocator);
-        VP_RENDER_CHK_NULL_RETURN(kernel);
-        break;
-    case kernelFcDScale444:
-        kernel = (VpRenderKernelObj *)MOS_New(VpRenderL0FcKernel, m_hwInterface, kernelId, kernelIndex, m_allocator);
         VP_RENDER_CHK_NULL_RETURN(kernel);
         break;
     default:

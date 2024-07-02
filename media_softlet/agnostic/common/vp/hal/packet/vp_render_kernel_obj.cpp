@@ -158,6 +158,12 @@ MOS_STATUS VpRenderKernelObj::SetKernelArgs(KERNEL_ARGS &kernelArgs, VP_PACKET_S
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS VpRenderKernelObj::SetKernelStatefulSurfaces(KERNEL_ARG_INDEX_SURFACE_MAP& statefulSurfaces)
+{
+    VP_FUNC_CALL();
+    return MOS_STATUS_SUCCESS;
+}
+
 // Only for Adv kernels.
 MOS_STATUS VpRenderKernelObj::SetKernelConfigs(
     KERNEL_PARAMS& kernelParams,
@@ -171,6 +177,8 @@ MOS_STATUS VpRenderKernelObj::SetKernelConfigs(
     VP_RENDER_CHK_STATUS_RETURN(SetKernelConfigs(kernelConfigs));
 
     VP_RENDER_CHK_STATUS_RETURN(SetKernelArgs(kernelParams.kernelArgs, sharedContext));
+
+    VP_RENDER_CHK_STATUS_RETURN(SetKernelStatefulSurfaces(kernelParams.kernelStatefulSurfaces));
 
     VP_RENDER_CHK_STATUS_RETURN(SetProcessSurfaceGroup(surfaces));
 

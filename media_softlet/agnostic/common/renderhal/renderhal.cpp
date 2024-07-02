@@ -4016,6 +4016,12 @@ MOS_STATUS RenderHal_GetSurfaceStateEntries(
         }
     }
 
+    if (pParams->forceCommonSurfaceMessage)
+    {
+        MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pfnGetPlaneDefinitionForCommonMessage);
+        MHW_RENDERHAL_CHK_STATUS_RETURN(pRenderHal->pfnGetPlaneDefinitionForCommonMessage(pRenderHal, pSurface->Format, pRenderHalSurface->SurfType == RENDERHAL_SURF_OUT_RENDERTARGET, PlaneDefinition));
+    }
+
     // Get plane definitions
     MHW_RENDERHAL_ASSERT(PlaneDefinition < RENDERHAL_PLANES_DEFINITION_COUNT);
     *piNumEntries   = pRenderHal->pPlaneDefinitions[PlaneDefinition].dwNumPlanes;
@@ -4061,7 +4067,14 @@ MOS_STATUS RenderHal_GetSurfaceStateEntries(
         // Adjust the width
         if (bWidthInDword)
         {
-            if (PlaneDefinition == RENDERHAL_PLANES_R32G32B32A32F)
+            if (pParams->forceCommonSurfaceMessage &&
+                (PlaneDefinition == RENDERHAL_PLANES_R8 ||
+                 PlaneDefinition == RENDERHAL_PLANES_R16_UNORM))
+            {
+                //For packed 422 formats, single channel format is used for writing, so the width need to be double.
+                dwSurfaceWidth = dwSurfaceWidth << 1;
+            }
+            else if (PlaneDefinition == RENDERHAL_PLANES_R32G32B32A32F)
             {
                 dwSurfaceWidth = dwSurfaceWidth << 2;
             }
@@ -4135,7 +4148,7 @@ MOS_STATUS RenderHal_GetSurfaceStateEntries(
 
         pSurfaceEntry->YUVPlane          = pPlane->ui8PlaneID;
         pSurfaceEntry->bAVS              = pPlane->bAdvanced;
-        pSurfaceEntry->isOutput     = pParams->isOutput;
+        pSurfaceEntry->isOutput          = pParams->isOutput;
         pSurfaceEntry->bVertStride       = pParams->bVertStride;
         pSurfaceEntry->bVertStrideOffs   = pParams->bVertStrideOffs;
         pSurfaceEntry->bTiledSurface     = (pSurface->TileType != MOS_TILE_LINEAR)
@@ -4159,6 +4172,89 @@ MOS_STATUS RenderHal_GetSurfaceStateEntries(
     eStatus = MOS_STATUS_SUCCESS;
 
     return eStatus;
+}
+
+//!
+//! \brief    Get Plane Definition For L0 FC
+//! \details  Get Specific Plane Definition for L0 FC usage
+//! \param    PRENDERHAL_INTERFACE pRenderHal
+//!           [in] Pointer to Hardware Interface Structure
+//! \param    MOS_FORMAT format
+//!           [in] surface format
+//! \param    bool isRenderTaget
+//!           [in] the surface type is RENDERHAL_SURF_OUT_RENDERTARGET
+//! \param    RENDERHAL_PLANE_DEFINITION &planeDefinition
+//!           [out] Plane Definition
+//! \return   MOS_STATUS
+//!           Error code if invalid parameters, MOS_STATUS_SUCCESS otherwise
+//!
+MOS_STATUS RenderHal_GetPlaneDefinitionForCommonMessage(
+    PRENDERHAL_INTERFACE        pRenderHal,
+    MOS_FORMAT                  format,
+    bool                        isRenderTarget,
+    RENDERHAL_PLANE_DEFINITION& planeDefinition)
+{
+    switch (format)
+    {
+    case Format_A8R8G8B8:
+    case Format_X8R8G8B8:
+    case Format_A16R16G16B16:
+    case Format_R10G10B10A2:
+    case Format_AYUV:
+    case Format_A16R16G16B16F:
+    case Format_A8B8G8R8:
+    case Format_X8B8G8R8:
+    case Format_A16B16G16R16:
+    case Format_B10G10R10A2:
+    case Format_A16B16G16R16F:
+    case Format_Y410:
+    case Format_NV12:
+    case Format_P010:
+    case Format_P016:
+    case Format_P210:
+    case Format_P216:
+        //already handled rightly in normal non-adv GetPlaneDefinition
+        break;
+    case Format_400P:
+        planeDefinition = RENDERHAL_PLANES_R8;
+        break;
+    case Format_YUY2:
+    case Format_YUYV:
+    case Format_YVYU:
+    case Format_UYVY:
+    case Format_VYUY:
+        if (isRenderTarget)
+        {
+            //For writing, packed 422 formats use R8 to write each channel separately
+            planeDefinition = RENDERHAL_PLANES_R8;
+        }
+        else
+        {
+            //For reading, packed 422 formats use R8G8 for Y and A8R8G8B8 for UV
+            planeDefinition = RENDERHAL_PLANES_YUY2_2PLANES;
+        }
+        break;
+    case Format_Y210:
+    case Format_Y216:
+        if (isRenderTarget)
+        {
+            //For writing, packed 422 formats use R16 to write each channel separately
+            planeDefinition = RENDERHAL_PLANES_R16_UNORM;
+        }
+        else
+        {
+            //For reading, packed 422 formats use RG16 for Y and ARGB16 for UV
+            planeDefinition = RENDERHAL_PLANES_Y210;
+        }
+        break;
+    case Format_Y416:
+        planeDefinition = RENDERHAL_PLANES_A16B16G16R16;
+        break;
+    default:
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    return MOS_STATUS_SUCCESS;
 }
 
 //!
@@ -7073,6 +7169,8 @@ MOS_STATUS RenderHal_InitInterface(
     pRenderHal->pfnSetSurfaceStateToken       = RenderHal_SetSurfaceStateToken;
     pRenderHal->pfnSetSurfaceStateBuffer      = RenderHal_SetSurfaceStateBuffer;
     pRenderHal->pfnCalculateYOffset           = RenderHal_CalculateYOffset;
+
+    pRenderHal->pfnGetPlaneDefinitionForCommonMessage = RenderHal_GetPlaneDefinitionForCommonMessage;
 
     // Media states management functions
     pRenderHal->pfnAllocateBB                 = RenderHal_AllocateBB;

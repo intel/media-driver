@@ -117,6 +117,9 @@ typedef struct _KERNEL_WALKER_PARAMS
 
     bool                                isGenerateLocalID;
     MHW_EMIT_LOCAL_MODE                 emitLocal;
+
+    bool                                hasBarrier;
+    uint32_t                            slmSize;
     
 }KERNEL_WALKER_PARAMS, * PKERNEL_WALKER_PARAMS;
 

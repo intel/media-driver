@@ -116,6 +116,7 @@ struct KRN_EXECUTE_ENV
     bool     bHas4GBBuffers;
     uint8_t  uiWorkGroupWalkOrderDimensions[3];
     uint64_t uiPrivateSize;
+    uint32_t uiSlmSize;
 };
 
 using SurfaceIndex = uint32_t;
