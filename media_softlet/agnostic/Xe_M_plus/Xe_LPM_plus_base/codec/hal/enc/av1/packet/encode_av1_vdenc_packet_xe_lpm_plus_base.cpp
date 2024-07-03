@@ -331,43 +331,6 @@ MOS_STATUS Av1VdencPktXe_Lpm_Plus_Base::RegisterPostCdef()
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS Av1VdencPktXe_Lpm_Plus_Base::Submit(
-    MOS_COMMAND_BUFFER *commandBuffer,
-    uint8_t             packetPhase)
-{
-    ENCODE_FUNC_CALL();
-
-    MOS_COMMAND_BUFFER &cmdBuffer = *commandBuffer;
-    ENCODE_CHK_STATUS_RETURN(Mos_Solo_PreProcessEncode(m_osInterface, &m_basicFeature->m_resBitstreamBuffer, &m_basicFeature->m_reconSurface));
-
-    // Ensure the input is ready to be read.
-    // Currently, mos RegisterResource has sync limitation for Raw resource.
-    // Temporaly, call Resource Wait to do the sync explicitly.
-    // TODO, Refine it when MOS refactor ready.
-    MOS_SYNC_PARAMS syncParams;
-    syncParams                  = g_cInitSyncParams;
-    syncParams.GpuContext       = m_osInterface->pfnGetGpuContext(m_osInterface);
-    syncParams.presSyncResource = &m_basicFeature->m_rawSurface.OsResource;
-    syncParams.bReadOnly        = true;
-    ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnResourceWait(m_osInterface, &syncParams));
-    m_osInterface->pfnSetResourceSyncTag(m_osInterface, &syncParams);
-
-    ENCODE_CHK_STATUS_RETURN(RegisterPostCdef());
-
-    ENCODE_CHK_STATUS_RETURN(PatchPictureLevelCommands(packetPhase, cmdBuffer));
-
-    ENCODE_CHK_STATUS_RETURN(PatchTileLevelCommands(cmdBuffer, packetPhase));
-
-    ENCODE_CHK_STATUS_RETURN(PrepareHWMetaData(&cmdBuffer));
-
-    ENCODE_CHK_STATUS_RETURN(Mos_Solo_PostProcessEncode(m_osInterface, &m_basicFeature->m_resBitstreamBuffer, &m_basicFeature->m_reconSurface));
-#if USE_CODECHAL_DEBUG_TOOL
-    ENCODE_CHK_STATUS_RETURN(DumpStatistics());
-    ENCODE_CHK_STATUS_RETURN(Av1VdencPkt::DumpInput());
-#endif  // USE_CODECHAL_DEBUG_TOOL
-    return MOS_STATUS_SUCCESS;
-}
-
 MOS_STATUS Av1VdencPktXe_Lpm_Plus_Base::AddOneTileCommands(
     MOS_COMMAND_BUFFER &cmdBuffer,
     uint32_t            tileRow,

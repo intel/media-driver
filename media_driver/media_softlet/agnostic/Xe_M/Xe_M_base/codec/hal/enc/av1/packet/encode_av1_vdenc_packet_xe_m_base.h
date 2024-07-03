@@ -62,18 +62,6 @@ namespace encode
 
         virtual ~Av1VdencPktXe_M_Base() {}
 
-        //!
-        //! \brief  Add the command sequence into the commandBuffer and
-        //!         and return to the caller task
-        //! \param  [in] commandBuffer
-        //!         Pointer to the command buffer which is allocated by caller
-        //! \return MOS_STATUS
-        //!         MOS_STATUS_SUCCESS if success, else fail reason
-        //!
-        virtual MOS_STATUS Submit(
-            MOS_COMMAND_BUFFER* commandBuffer,
-            uint8_t packetPhase = otherPacket) override;
-
     protected:
         MOS_STATUS AddOneTileCommands(
             MOS_COMMAND_BUFFER  &cmdBuffer,
@@ -88,7 +76,7 @@ namespace encode
         virtual MOS_STATUS CalculateAvpPictureStateCommandSize(uint32_t * commandsSize, uint32_t * patchListSize) override;
         virtual MOS_STATUS CalculateAvpCommandsSize() override;
 
-        MOS_STATUS RegisterPostCdef();
+        MOS_STATUS RegisterPostCdef() override;
 
     private:
         uint16_t m_tileColStartSb[64];  //!< tile column start SB

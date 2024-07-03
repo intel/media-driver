@@ -47,18 +47,6 @@ public:
 
     MOS_STATUS Init() override;
 
-    //!
-    //! \brief  Add the command sequence into the commandBuffer and
-    //!         and return to the caller task
-    //! \param  [in] commandBuffer
-    //!         Pointer to the command buffer which is allocated by caller
-    //! \return MOS_STATUS
-    //!         MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    MOS_STATUS Submit(
-        MOS_COMMAND_BUFFER *commandBuffer,
-        uint8_t             packetPhase = otherPacket) override;
-
 protected:
     virtual MOS_STATUS AddOneTileCommands(
         MOS_COMMAND_BUFFER &cmdBuffer,
@@ -72,7 +60,7 @@ protected:
 
     virtual MOS_STATUS AllocateResources() override;
 
-    MOS_STATUS RegisterPostCdef();
+    MOS_STATUS RegisterPostCdef() override;
 
     uint16_t               m_tileColStartSb[64]                            = {};       //!< tile column start SB
     uint16_t               m_tileRowStartSb[64]                            = {};       //!< tile row start SB

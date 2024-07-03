@@ -117,10 +117,7 @@ public:
     //!
     MOS_STATUS Destroy() override;
 
-    virtual MOS_STATUS Submit(MOS_COMMAND_BUFFER *commandBuffer, uint8_t packetPhase = otherPacket) override
-    {
-        return MOS_STATUS_SUCCESS;
-    }
+    virtual MOS_STATUS Submit(MOS_COMMAND_BUFFER *commandBuffer, uint8_t packetPhase = otherPacket) override;
 
     //!
     //! \brief  One frame is completed
@@ -199,6 +196,8 @@ protected:
         uint32_t            tileRowPass = 0) = 0;
 
     virtual MOS_STATUS EnsureAllCommandsExecuted(MOS_COMMAND_BUFFER &cmdBuffer) = 0;
+
+    virtual MOS_STATUS RegisterPostCdef() = 0;
 
     virtual MOS_STATUS PatchTileLevelCommands(MOS_COMMAND_BUFFER &cmdBuffer, uint8_t packetPhase);
 
