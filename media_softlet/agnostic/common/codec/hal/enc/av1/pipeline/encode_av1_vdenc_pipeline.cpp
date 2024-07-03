@@ -28,6 +28,8 @@
 #include "encode_utils.h"
 #include "encode_av1_tile.h"
 #include "encode_av1_basic_feature.h"
+#include "encode_av1_vdenc_preenc.h"
+#include "codechal_debug.h"
 
 namespace encode {
 
@@ -126,6 +128,20 @@ MOS_STATUS Av1VdencPipeline::ActivateVdencVideoPackets()
 
     auto brcFeature = dynamic_cast<Av1Brc*>(m_featureManager->GetFeature(Av1FeatureIDs::av1BrcFeature));
     ENCODE_CHK_NULL_RETURN(brcFeature);
+
+    if (m_preEncEnabled)
+    {
+        ENCODE_CHK_STATUS_RETURN(ActivatePacket(encodePreEncPacket, immediateSubmit, 0, 0));
+#if USE_CODECHAL_DEBUG_TOOL
+        uint32_t encodeMode = 0; 
+        RUN_FEATURE_INTERFACE_RETURN(Av1VdencPreEnc, FeatureIDs::preEncFeature, GetEncodeMode, encodeMode);
+        if (encodeMode == MediaEncodeMode::MANUAL_RES_PRE_ENC || encodeMode == MediaEncodeMode::AUTO_RES_PRE_ENC)
+        {
+            m_activePacketList.back().immediateSubmit = true;
+            return MOS_STATUS_SUCCESS;
+        }
+#endif
+    }
 
     if (brcFeature->IsBRCInitRequired())
     {

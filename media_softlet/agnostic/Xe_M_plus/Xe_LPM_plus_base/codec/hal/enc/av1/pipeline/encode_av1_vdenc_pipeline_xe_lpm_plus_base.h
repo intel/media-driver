@@ -61,7 +61,6 @@ protected:
     std::shared_ptr<MediaSfcInterface> m_sfcItf = nullptr;
 
     virtual MOS_STATUS CreateFeatureManager() override;
-    virtual MOS_STATUS ActivateVdencVideoPackets() override;
     virtual MOS_STATUS ResetParams();
     virtual MOS_STATUS UserFeatureReport() override;
 

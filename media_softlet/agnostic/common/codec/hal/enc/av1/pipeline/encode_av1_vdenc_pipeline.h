@@ -61,6 +61,8 @@ protected:
     virtual MOS_STATUS FillStatusReportParameters(EncoderStatusParameters* pPar, EncoderParams* pEncPar);
     virtual MOS_STATUS HuCCheckAndInit();
 
+    bool m_preEncEnabled = false;
+
 MEDIA_CLASS_DEFINE_END(encode__Av1VdencPipeline)
 };
 

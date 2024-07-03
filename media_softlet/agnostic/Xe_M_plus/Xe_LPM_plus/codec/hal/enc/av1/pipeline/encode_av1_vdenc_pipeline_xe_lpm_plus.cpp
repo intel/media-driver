@@ -50,9 +50,8 @@ MOS_STATUS Av1VdencPipelineXe_LPM_Plus::Init(void *settings)
     MediaTask *task = CreateTask(MediaTask::TaskType::cmdTask);
     ENCODE_CHK_NULL_RETURN(task);
 
-    bool preEncEnabled = false;
-    RUN_FEATURE_INTERFACE_RETURN(Av1VdencPreEnc, Av1FeatureIDs::preEncFeature, IsEnabled, preEncEnabled);
-    if (preEncEnabled)
+    RUN_FEATURE_INTERFACE_RETURN(Av1VdencPreEnc, Av1FeatureIDs::preEncFeature, IsEnabled, m_preEncEnabled);
+    if (m_preEncEnabled)
     {
         EncodePreEncPacket* av1PreEncPkt = MOS_New(EncodePreEncPacket, this, task, m_hwInterface);
         ENCODE_CHK_STATUS_RETURN(RegisterPacket(encodePreEncPacket, av1PreEncPkt));
