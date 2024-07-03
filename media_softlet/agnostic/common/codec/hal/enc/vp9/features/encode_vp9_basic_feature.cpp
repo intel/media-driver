@@ -795,6 +795,14 @@ MHW_SETPAR_DECL_SRC(VDENC_SRC_SURFACE_STATE, Vp9BasicFeature)
     params.height = MOS_ALIGN_CEIL(m_oriFrameHeight, CODEC_VP9_MIN_BLOCK_HEIGHT);
     params.displayFormatSwizzle = m_vp9SeqParams->SeqFlags.fields.DisplayFormatSwizzle;
 
+    auto waTable = m_osInterface == nullptr ? nullptr : m_osInterface->pfnGetWaTable(m_osInterface);
+    if (waTable)
+    {
+        if (!MEDIA_IS_WA(waTable, Wa_Vp9UnalignedHeight))
+        {
+            params.height = m_oriFrameHeight;
+        }
+    }
     // DW2..5 - DW1
 
     params.tileType             = m_rawSurfaceToPak->TileType;
