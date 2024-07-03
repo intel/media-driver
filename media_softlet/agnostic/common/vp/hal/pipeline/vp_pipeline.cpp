@@ -394,6 +394,71 @@ bool VpPipeline::IsVeboxSfcFormatSupported(MOS_FORMAT formatInput, MOS_FORMAT fo
     return featureManagerNext->IsVeboxSfcFormatSupported(formatInput, formatOutput);
 }
 
+MOS_STATUS VpPipeline::UpdateRectForNegtiveDstTopLeft(PVP_PIPELINE_PARAMS params)
+{
+    VP_FUNC_CALL();
+
+    for (uint32_t index = 0; (index < params->uSrcCount) && (index < VPHAL_MAX_SOURCES); index++)
+    {
+        PVPHAL_SURFACE pcSrc = params->pSrc[index];
+
+        if (pcSrc)
+        {
+            if (pcSrc->rcDst.top < 0 || pcSrc->rcDst.left < 0)
+            {
+                VP_PUBLIC_NORMALMESSAGE("negtive value on rcDst top or left, top: %d, left: %d.", pcSrc->rcDst.top, pcSrc->rcDst.left);
+                bool isVerticalRotation = VpUtils::IsVerticalRotation(pcSrc->Rotation);
+
+                uint32_t srcHeight = pcSrc->rcSrc.bottom - pcSrc->rcSrc.top;
+                uint32_t srcWidth  = pcSrc->rcSrc.right - pcSrc->rcSrc.left;
+                uint32_t dstHeight = pcSrc->rcDst.bottom - pcSrc->rcDst.top;
+                uint32_t dstWidth  = pcSrc->rcDst.right - pcSrc->rcDst.left;
+
+                float fScaleX = isVerticalRotation ? (float)dstHeight / (float)srcWidth : (float)dstWidth / (float)srcWidth;
+                float fScaleY = isVerticalRotation ? (float)dstWidth / (float)srcHeight : (float)dstHeight / (float)srcHeight;
+
+                if (pcSrc->rcDst.top < 0)
+                {
+                    pcSrc->rcDst.top = 0;
+
+                    if (isVerticalRotation)
+                    {
+                        uint32_t newDstHight = pcSrc->rcDst.bottom;
+                        uint32_t newSrcWidth = MOS_UF_ROUND(newDstHight / fScaleX);
+                        pcSrc->rcSrc.left    = pcSrc->rcSrc.right - newSrcWidth;
+                    }
+                    else
+                    {
+                        uint32_t newDstHight = pcSrc->rcDst.bottom;
+                        uint32_t newSrcHight = MOS_UF_ROUND(newDstHight / fScaleY);
+                        pcSrc->rcSrc.top     = pcSrc->rcSrc.bottom - newSrcHight;
+                    }
+                }
+                if (pcSrc->rcDst.left < 0)
+                {
+                    pcSrc->rcDst.left = 0;
+                    if (isVerticalRotation)
+                    {
+                        uint32_t newDstWidth = pcSrc->rcDst.right;
+                        uint32_t newSrcHight = MOS_UF_ROUND(newDstWidth / fScaleY);
+                        pcSrc->rcSrc.top     = pcSrc->rcSrc.bottom - newSrcHight;
+                    }
+                    else
+                    {
+                        uint32_t newDstWidth = pcSrc->rcDst.right;
+                        uint32_t newSrcWidth = MOS_UF_ROUND(newDstWidth / fScaleX);
+                        pcSrc->rcSrc.left    = pcSrc->rcSrc.right - newSrcWidth;
+                    }
+                }
+                VP_PUBLIC_NORMALMESSAGE("updated source rectangle region: [%d,%d,%d,%d].", pcSrc->rcSrc.left, pcSrc->rcSrc.top, pcSrc->rcSrc.right, pcSrc->rcSrc.bottom);
+                VP_PUBLIC_NORMALMESSAGE("updated destination rectangle region: [%d,%d,%d,%d].", pcSrc->rcDst.left, pcSrc->rcDst.top, pcSrc->rcDst.right, pcSrc->rcDst.bottom);
+            }
+        }
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS VpPipeline::ExecuteVpPipeline()
 {
     VP_FUNC_CALL();
@@ -443,6 +508,7 @@ MOS_STATUS VpPipeline::ExecuteVpPipeline()
                 VPHAL_SURF_DUMP_DDI_VP_BLT);
         }
 #endif
+        UpdateRectForNegtiveDstTopLeft(params);
         // Predication
         SetPredicationParams(params);
 

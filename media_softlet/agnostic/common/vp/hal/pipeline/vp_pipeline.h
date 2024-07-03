@@ -436,6 +436,7 @@ protected:
     MOS_STATUS UpdateVeboxNumberforScalability();
 
     MOS_STATUS ExecuteSingleswFilterPipe(VpSinglePipeContext *singlePipeCtx, SwFilterPipe *&pipe, PacketPipe *pPacketPipe, VpFeatureManagerNext *featureManagerNext);
+    MOS_STATUS UpdateRectForNegtiveDstTopLeft(PVP_PIPELINE_PARAMS params);
 
 protected:
     VP_PARAMS              m_pvpParams              = {};   //!< vp Pipeline params
