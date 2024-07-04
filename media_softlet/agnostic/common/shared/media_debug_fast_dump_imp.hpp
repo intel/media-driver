@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022-2023, Intel Corporation
+* Copyright (c) 2022-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -78,7 +78,7 @@ protected:
             serializer;
     };
 
-    struct Res final : public ResBase
+    struct ResGfx final : public ResBase
     {
     public:
         static void SetOsInterface(PMOS_INTERFACE itf)
@@ -90,7 +90,7 @@ protected:
         static PMOS_INTERFACE osItf;
 
     public:
-        ~Res()
+        ~ResGfx()
         {
             if (Mos_ResourceIsNull(&res) == false)
             {
@@ -273,29 +273,29 @@ public:
 
         LaunchScheduler();
 
-        Res::SetOsInterface(&osItf);
+        ResGfx::SetOsInterface(&osItf);
     }
 
     ~MediaDebugFastDumpImp()
     {
         {
-            std::lock_guard<std::mutex> lk(m_mutex);
-            m_stopScheduler = true;
+            std::lock_guard<std::mutex> lk(m_gfxMemAsyncData.mutex);
+            m_gfxMemAsyncData.stopScheduler = true;
         }
-        if (m_scheduler.joinable())
+        if (m_gfxMemAsyncData.scheduler.joinable())
         {
-            m_cond.notify_one();
-            m_scheduler.join();
+            m_gfxMemAsyncData.cond.notify_one();
+            m_gfxMemAsyncData.scheduler.join();
         }
 
         {
-            std::lock_guard<std::mutex> lk(m_mutexSys);
-            m_stopSchedulerSys = true;
+            std::lock_guard<std::mutex> lk(m_sysMemAsyncData.mutex);
+            m_sysMemAsyncData.stopScheduler = true;
         }
-        if (m_schedulerSys.joinable())
+        if (m_sysMemAsyncData.scheduler.joinable())
         {
-            m_condSys.notify_one();
-            m_schedulerSys.join();
+            m_sysMemAsyncData.cond.notify_one();
+            m_sysMemAsyncData.scheduler.join();
         }
     }
 
@@ -323,9 +323,9 @@ public:
 
         // prepare resource pool and resource queue
         {
-            std::unique_lock<std::mutex> lk(m_mutex);
+            std::unique_lock<std::mutex> lk(m_gfxMemAsyncData.mutex);
 
-            auto &resArray = m_resPool[resInfo];
+            auto &resArray = m_gfxMemAsyncData.resPool[resInfo];
 
             using CR = std::remove_reference<decltype(resArray)>::type::const_reference;
 
@@ -338,7 +338,7 @@ public:
 
             if (resIt == resArray.end())
             {
-                auto tmpRes = std::make_shared<Res>();
+                auto tmpRes = std::make_shared<ResGfx>();
                 if (m_allocate(resInfo, tmpRes->res) > 0)
                 {
                     resArray.emplace_back(std::move(tmpRes));
@@ -346,7 +346,7 @@ public:
                 }
                 else if (!m_allowDataLoss && !resArray.empty())
                 {
-                    m_cond.wait(
+                    m_gfxMemAsyncData.cond.wait(
                         lk,
                         [&] {
                             resIt = std::find_if(
@@ -385,10 +385,10 @@ public:
             (*resIt)->offset     = offset;
             (*resIt)->name       = std::move(name);
             (*resIt)->serializer = std::move(serializer);
-            m_resQueue.emplace(*resIt);
+            m_gfxMemAsyncData.resQueue.emplace(*resIt);
         }
 
-        m_cond.notify_one();
+        m_gfxMemAsyncData.cond.notify_one();
     }
 
     void operator()(
@@ -421,9 +421,9 @@ public:
 
         // prepare resource pool and resource queue
         {
-            std::unique_lock<std::mutex> lk(m_mutexSys);
+            std::unique_lock<std::mutex> lk(m_sysMemAsyncData.mutex);
 
-            auto &resArray = m_resPoolSys[dumpSize];
+            auto &resArray = m_sysMemAsyncData.resPool[dumpSize];
 
             using CR = std::remove_reference<decltype(resArray)>::type::const_reference;
 
@@ -444,7 +444,7 @@ public:
                 }
                 else if (!m_allowDataLoss && !resArray.empty())
                 {
-                    m_condSys.wait(
+                    m_sysMemAsyncData.cond.wait(
                         lk,
                         [&] {
                             resIt = std::find_if(
@@ -475,10 +475,10 @@ public:
             (*resIt)->offset     = 0;
             (*resIt)->name       = std::move(name);
             (*resIt)->serializer = std::move(serializer);
-            m_resQueueSys.emplace(*resIt);
+            m_sysMemAsyncData.resQueue.emplace(*resIt);
         }
 
-        m_condSys.notify_one();
+        m_sysMemAsyncData.cond.notify_one();
     }
 
     bool IsGood() const
@@ -742,67 +742,67 @@ protected:
 
     void LaunchScheduler()
     {
-        m_scheduler = std::thread(
+        m_gfxMemAsyncData.scheduler = std::thread(
             [this] {
                 std::future<void> future;
                 while (true)
                 {
-                    std::unique_lock<std::mutex> lk(m_mutex);
-                    m_cond.wait(
+                    std::unique_lock<std::mutex> lk(m_gfxMemAsyncData.mutex);
+                    m_gfxMemAsyncData.cond.wait(
                         lk,
                         [this] {
-                            return (m_ready4Dump && !m_resQueue.empty()) || m_stopScheduler;
+                            return (m_gfxMemAsyncData.ready4Dump && !m_gfxMemAsyncData.resQueue.empty()) || m_gfxMemAsyncData.stopScheduler;
                         });
-                    if (m_stopScheduler)
+                    if (m_gfxMemAsyncData.stopScheduler)
                     {
                         break;
                     }
-                    auto qf      = m_resQueue.front();
-                    m_ready4Dump = false;
+                    auto qf                      = m_gfxMemAsyncData.resQueue.front();
+                    m_gfxMemAsyncData.ready4Dump = false;
                     lk.unlock();
                     future = std::async(
                         std::launch::async,
                         [this, qf] {
                             DoDump(qf);
                             {
-                                std::lock_guard<std::mutex> lk(m_mutex);
-                                m_resQueue.front()->occupied = false;
-                                m_resQueue.pop();
-                                m_ready4Dump = true;
+                                std::lock_guard<std::mutex> lk(m_gfxMemAsyncData.mutex);
+                                m_gfxMemAsyncData.resQueue.front()->occupied = false;
+                                m_gfxMemAsyncData.resQueue.pop();
+                                m_gfxMemAsyncData.ready4Dump = true;
                             }
-                            m_cond.notify_all();
+                            m_gfxMemAsyncData.cond.notify_all();
                         });
                 }
                 if (future.valid())
                 {
                     future.wait();
                 }
-                std::lock_guard<std::mutex> lk(m_mutex);
-                while (!m_resQueue.empty())
+                std::lock_guard<std::mutex> lk(m_gfxMemAsyncData.mutex);
+                while (!m_gfxMemAsyncData.resQueue.empty())
                 {
-                    DoDump(m_resQueue.front());
-                    m_resQueue.front()->occupied = false;
-                    m_resQueue.pop();
+                    DoDump(m_gfxMemAsyncData.resQueue.front());
+                    m_gfxMemAsyncData.resQueue.front()->occupied = false;
+                    m_gfxMemAsyncData.resQueue.pop();
                 }
             });
 
-        m_schedulerSys = std::thread(
+        m_sysMemAsyncData.scheduler = std::thread(
             [this] {
                 std::future<void> future;
                 while (true)
                 {
-                    std::unique_lock<std::mutex> lk(m_mutexSys);
-                    m_condSys.wait(
+                    std::unique_lock<std::mutex> lk(m_sysMemAsyncData.mutex);
+                    m_sysMemAsyncData.cond.wait(
                         lk,
                         [this] {
-                            return (m_ready4DumpSys && !m_resQueueSys.empty()) || m_stopSchedulerSys;
+                            return (m_sysMemAsyncData.ready4Dump && !m_sysMemAsyncData.resQueue.empty()) || m_sysMemAsyncData.stopScheduler;
                         });
-                    if (m_stopSchedulerSys)
+                    if (m_sysMemAsyncData.stopScheduler)
                     {
                         break;
                     }
-                    auto qf         = m_resQueueSys.front();
-                    m_ready4DumpSys = false;
+                    auto qf                      = m_sysMemAsyncData.resQueue.front();
+                    m_sysMemAsyncData.ready4Dump = false;
                     lk.unlock();
                     future = std::async(
                         std::launch::async,
@@ -813,29 +813,29 @@ protected:
                                 qf->size,
                                 std::move(qf->serializer));
                             {
-                                std::lock_guard<std::mutex> lk(m_mutexSys);
-                                m_resQueueSys.front()->occupied = false;
-                                m_resQueueSys.pop();
-                                m_ready4DumpSys = true;
+                                std::lock_guard<std::mutex> lk(m_sysMemAsyncData.mutex);
+                                m_sysMemAsyncData.resQueue.front()->occupied = false;
+                                m_sysMemAsyncData.resQueue.pop();
+                                m_sysMemAsyncData.ready4Dump = true;
                             }
-                            m_condSys.notify_all();
+                            m_sysMemAsyncData.cond.notify_all();
                         });
                 }
                 if (future.valid())
                 {
                     future.wait();
                 }
-                std::lock_guard<std::mutex> lk(m_mutexSys);
-                while (!m_resQueueSys.empty())
+                std::lock_guard<std::mutex> lk(m_sysMemAsyncData.mutex);
+                while (!m_sysMemAsyncData.resQueue.empty())
                 {
-                    auto qf = m_resQueueSys.front();
+                    auto qf = m_sysMemAsyncData.resQueue.front();
                     m_write(
                         std::move(qf->name),
                         qf->res + qf->offset,
                         qf->size,
                         std::move(qf->serializer));
                     qf->occupied = false;
-                    m_resQueueSys.pop();
+                    m_sysMemAsyncData.resQueue.pop();
                 }
             });
     }
@@ -863,7 +863,7 @@ protected:
         return ret;
     }
 
-    void DoDump(std::shared_ptr<Res> res) const
+    void DoDump(std::shared_ptr<ResGfx> res) const
     {
         MOS_LOCK_PARAMS lockFlags{};
         lockFlags.ReadOnly     = 1;
@@ -943,34 +943,43 @@ protected:
     }
 
 protected:
+    template <typename RES>
+    struct CommonAsyncData
+    {
+        std::thread             scheduler;
+        std::mutex              mutex;
+        std::condition_variable cond;
+        std::queue<
+            std::shared_ptr<RES>>
+             resQueue;
+        bool ready4Dump    = true;
+        bool stopScheduler = false;
+    };
+
+    struct GfxMemAsyncData : CommonAsyncData<ResGfx>
+    {
+        std::map<
+            ResInfo,
+            std::vector<std::shared_ptr<ResGfx>>,
+            ResInfoCmp>
+            resPool;
+    };
+
+    struct SysMemAsyncData : CommonAsyncData<ResSys>
+    {
+        std::map<
+            size_t,
+            std::vector<std::shared_ptr<ResSys>>>
+            resPool;
+    };
+
+protected:
     bool m_allowDataLoss = true;
 
     std::array<
         MemMng,
         2>
         m_memMng;
-
-    std::thread m_scheduler;
-    std::thread m_schedulerSys;
-
-    std::map<
-        ResInfo,
-        std::vector<std::shared_ptr<Res>>,
-        ResInfoCmp>
-        m_resPool;  // synchronization needed
-
-    std::map<
-        size_t,
-        std::vector<std::shared_ptr<ResSys>>>
-        m_resPoolSys;  // synchronization needed
-
-    std::queue<
-        std::shared_ptr<Res>>
-        m_resQueue;  // synchronization needed
-
-    std::queue<
-        std::shared_ptr<ResSys>>
-        m_resQueueSys;  // synchronization needed
 
     std::function<
         bool()>
@@ -996,24 +1005,17 @@ protected:
         void(const std::string &, const std::string &)>
         m_writeError;
 
-    // threads intercommunication flags, synchronization needed
-    bool m_ready4Dump       = true;
-    bool m_ready4DumpSys    = true;
-    bool m_stopScheduler    = false;
-    bool m_stopSchedulerSys = false;
-
     mutable std::atomic_bool m_mediaCopyIsGood{true};
-    std::mutex               m_mutex;
-    std::mutex               m_mutexSys;
-    std::condition_variable  m_cond;
-    std::condition_variable  m_condSys;
 
     MOS_INTERFACE    &m_osItf;
     MediaCopyWrapper &m_mediaCopyWrapper;
 
+    GfxMemAsyncData m_gfxMemAsyncData;
+    SysMemAsyncData m_sysMemAsyncData;
+
     MEDIA_CLASS_DEFINE_END(MediaDebugFastDumpImp)
 };
 
-PMOS_INTERFACE MediaDebugFastDumpImp::Res::osItf = nullptr;
+PMOS_INTERFACE MediaDebugFastDumpImp::ResGfx::osItf = nullptr;
 
 #endif  // USE_MEDIA_DEBUG_TOOL
