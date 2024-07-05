@@ -48,19 +48,8 @@ public:
 
     virtual MOS_STATUS Init(void *settings) override;
 
-    virtual MOS_STATUS Prepare(void *params) override;
-
-    virtual MOS_STATUS Execute() override;
-
-    virtual MOS_STATUS GetStatusReport(void *status, uint16_t numStatus) override;
-
-    virtual MOS_STATUS Destroy() override;
-
     virtual MOS_STATUS InitMmcState() override;
 
-protected:
-    virtual MOS_STATUS ResetParams();
-    virtual MOS_STATUS UserFeatureReport() override;
 MEDIA_CLASS_DEFINE_END(encode__Av1VdencPipelineXe_M_Base)
 };
 

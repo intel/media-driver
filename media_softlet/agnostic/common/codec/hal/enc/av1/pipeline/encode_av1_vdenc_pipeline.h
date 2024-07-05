@@ -49,10 +49,12 @@ public:
     virtual ~Av1VdencPipeline() {}
 
     virtual MOS_STATUS Prepare(void *params) override;
+    virtual MOS_STATUS Execute() override;
+    virtual MOS_STATUS GetStatusReport(void *status, uint16_t numStatus) override;
+    virtual MOS_STATUS Destroy() override;
 
 protected:
     virtual MOS_STATUS Initialize(void *settings) override;
-    virtual MOS_STATUS Uninitialize() override;
     virtual MOS_STATUS UserFeatureReport() override;
     virtual MOS_STATUS ActivateVdencVideoPackets();
     virtual MOS_STATUS CreateFeatureManager() override;
@@ -60,6 +62,7 @@ protected:
     virtual MOS_STATUS InitMmcState() = 0;
     virtual MOS_STATUS FillStatusReportParameters(EncoderStatusParameters* pPar, EncoderParams* pEncPar);
     virtual MOS_STATUS HuCCheckAndInit();
+    virtual MOS_STATUS ResetParams();
 
     bool m_preEncEnabled = false;
 
