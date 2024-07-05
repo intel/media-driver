@@ -54,6 +54,7 @@ else()
 endif()
 
 # features are always able to open
+bs_set_if_undefined(VVC_Decode_Supported "yes")
 bs_set_if_undefined(AV1_Decode_Supported "yes")
 bs_set_if_undefined(AVC_Decode_Supported "yes")
 bs_set_if_undefined(HEVC_Decode_Supported "yes")
@@ -143,6 +144,10 @@ endif()
 
 if(${AV1_Decode_Supported} STREQUAL "yes")
     add_definitions(-D_AV1_DECODE_SUPPORTED)
+endif()
+
+if(${VVC_Decode_Supported} STREQUAL "yes")
+    add_definitions(-D_VVC_DECODE_SUPPORTED)
 endif()
 
 if(${CMRT_HEVC_ENC_FEI_Supported} STREQUAL "yes")

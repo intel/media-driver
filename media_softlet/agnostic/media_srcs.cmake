@@ -23,7 +23,7 @@ media_include_subdirectory(Xe_R)
 if(Xe_M_plus)
     media_include_subdirectory(Xe_M_plus)
 endif()
-if(Xe2_M_plus)
+if(LNL)
     media_include_subdirectory(Xe2_M_plus)
 endif()
 

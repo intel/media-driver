@@ -114,6 +114,13 @@ static const char *attrSfcHistogram           = "SfcHistogram";
 static const char *attrFilmGrain              = "FilmGrain";
 static const char *attrQualityReport          = "QualityReport";
 
+static const char *attrAlfData                = "AlfData";
+static const char *attrLmcsData               = "LmcsData";
+static const char *attrTileParams             = "TileParams";
+static const char *attrSubpicParams           = "SubpicParams";
+static const char *attrSliceStruct            = "SliceStruct";
+static const char *attrRplStruct              = "RplStruct";
+
 // MD5 attributes
 static const char *attrMD5HashEnable    = "MD5HasEnable";
 static const char *attrMD5FlushInterval = "MD5FlushInterval";
@@ -190,6 +197,12 @@ static const char *bufDecProcParams = "DecProcParams";
 static const char *bufHucRegion     = "HucRegion";
 static const char *bufHucDmem       = "HucDmem";
 static const char *bufEncodePar     = "EncodePar";
+static const char *bufAlfData       = "AlfData";
+static const char *bufLmcsData      = "LmcsData";
+static const char *bufTileParams    = "TileParams";
+static const char *bufSubpicParams  = "SubpicParams";
+static const char *bufSliceStruct   = "SliceStruct";
+static const char *bufRplStruct     = "RplStruct";
 };  // namespace MediaDbgBufferType
 
 //------------------------------------------------------------------------------

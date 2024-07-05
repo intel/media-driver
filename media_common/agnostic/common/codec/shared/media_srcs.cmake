@@ -21,7 +21,9 @@
 set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/codec_def_common_encode.h
     ${CMAKE_CURRENT_LIST_DIR}/codec_def_common_av1.h
+    ${CMAKE_CURRENT_LIST_DIR}/codec_def_common_vvc.h
     ${CMAKE_CURRENT_LIST_DIR}/codec_def_decode_av1.h
+    ${CMAKE_CURRENT_LIST_DIR}/codec_def_decode_vvc.h
 )
 
 set(TMP_2_HEADERS_

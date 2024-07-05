@@ -29,7 +29,6 @@
 #define __MHW_VDBOX_AVP_IMPL_XE2_LPM_BASE_H__
 
 #include "mhw_vdbox_avp_impl.h"
-#include "mhw_vdbox_vdenc_hwcmd_xe2_lpm.h"
 #include "mhw_sfc_hwcmd_xe2_lpm_base_next.h"
 #include "mhw_mi_hwcmd_xe2_lpm_base_next.h"
 #include "mhw_mi_itf.h"
@@ -57,7 +56,7 @@ public:
         uint32_t patchListMaxSize = 0;
 
         maxSize =
-            mhw::vdbox::vdenc::xe2_lpm_base::xe2_lpm::Cmd::VD_PIPELINE_FLUSH_CMD::byteSize +
+            8 +
             mhw::mi::xe2_lpm_base_next::Cmd::MI_FLUSH_DW_CMD::byteSize +
             cmd_t::AVP_PIPE_MODE_SELECT_CMD::byteSize +
             cmd_t::AVP_SURFACE_STATE_CMD::byteSize * 11 +

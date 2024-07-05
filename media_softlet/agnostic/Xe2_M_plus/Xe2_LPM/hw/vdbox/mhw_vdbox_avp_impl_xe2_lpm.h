@@ -54,12 +54,18 @@ public:
     {
         _MHW_SETCMD_CALLBASE(AVP_PIC_STATE);
 
-#define DO_FIELDS()                                                       \
+#ifdef _MEDIA_RESERVED
+    #define DO_FIELDS()                                                   \
     DO_FIELD(DW64, Reserved2048, params.avpPicStatePar0);                 \
     DO_FIELD(DW51, RhoDomainStreamoutEnableFlag, params.rhoDomainEnable); \
-    DO_FIELD(DW75, RhoDomainQp, params.rhoDomainQP)
+    DO_FIELD(DW75, RhoDomainQp, params.rhoDomainQP);                      
+    #include "mhw_hwcmd_process_cmdfields.h"   
+#else
+    #define DO_FIELDS()       \
 
-#include "mhw_hwcmd_process_cmdfields.h"
+    #include "mhw_hwcmd_process_cmdfields.h"                      
+#endif   
+
     }
 
     _MHW_SETCMD_OVERRIDE_DECL(AVP_PIPE_BUF_ADDR_STATE)

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021, Intel Corporation
+* Copyright (c) 2021-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -28,6 +28,42 @@
 
 #include "decode_huc_packet_creator_base.h"
 
+#define DECALRE_HUC_KERNEL(hucName, platform)                                                                                    \
+    using hucName##platform##CreatorFunc = std::function<CmdPacket *(MediaPipeline *, MediaTask *, CodechalHwInterfaceNext *)>;  \
+                                                                                                                                 \
+public:                                                                                                                          \
+    static bool Set##hucName##platform##CreatorFunc(hucName##platform##CreatorFunc creatorEntry, bool forceOverwrite)            \
+    {                                                                                                                            \
+        hucName##platform##CreatorFunc &entry = Get##hucName##platform##CreatorFunc();                                           \
+        if (forceOverwrite || !entry)                                                                                            \
+        {                                                                                                                        \
+            entry = creatorEntry;                                                                                                \
+        }                                                                                                                        \
+        return true;                                                                                                             \
+    }                                                                                                                            \
+                                                                                                                                 \
+    CmdPacket *Create##hucName##platform##Packet(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterfaceNext *hwInterface) \
+    {                                                                                                                            \
+        auto createFunc = Get##hucName##platform##CreatorFunc();                                                                 \
+        return createFunc(pipeline, task, hwInterface);                                                                          \
+    }                                                                                                                            \
+                                                                                                                                 \
+private:                                                                                                                         \
+    static hucName##platform##CreatorFunc &Get##hucName##platform##CreatorFunc()                                                 \
+    {                                                                                                                            \
+        static hucName##platform##CreatorFunc m_##hucName##platform##HucPktCreatorFunc;                                          \
+        return m_##hucName##platform##HucPktCreatorFunc;                                                                         \
+    }
+
+#define CREATE_HUC_PACKET(hucName, platform, pipeline, task, hwInterface) Create##hucName##platform##Packet(pipeline, task, hwInterface)
+
+#define REGISTER_HUC_PACKET(hucName, platform, hucPacket, forceOverWrite)                                                                  \
+    static CmdPacket *Create##hucName##platform##hucPacket(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterfaceNext *hwInterface) \
+    {                                                                                                                                      \
+        CmdPacket *hucName##platform##Pkt = MOS_New(hucPacket, pipeline, task, hwInterface);                                               \
+        return hucName##platform##Pkt;                                                                                                     \
+    }                                                                                                                                      \
+    static bool volatile hucPacket##platform##packetCreatorFlag = HucPacketCreator::Set##hucName##platform##CreatorFunc(Create##hucName##platform##hucPacket, forceOverWrite);
 
 namespace decode
 {
@@ -48,6 +84,8 @@ public:
         MediaPipeline       *pipeline,
         MediaTask           *task,
         CodechalHwInterfaceNext *hwInterface) override;
+    
+    DECALRE_HUC_KERNEL(VvcS2L, Xe2Lpm)
 
 MEDIA_CLASS_DEFINE_END(decode__HucPacketCreator)
 };

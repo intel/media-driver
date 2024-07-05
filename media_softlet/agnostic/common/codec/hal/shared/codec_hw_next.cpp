@@ -26,6 +26,7 @@
 #include "codec_hw_next.h"
 #include "codechal_setting.h"
 #include "mos_os_cp_interface_specific.h"
+#include "mhw_vdbox_vvcp_itf.h"
 
 CodechalHwInterfaceNext::CodechalHwInterfaceNext(
     PMOS_INTERFACE     osInterface,
@@ -42,6 +43,7 @@ CodechalHwInterfaceNext::CodechalHwInterfaceNext(
     m_hcpItf   = mhwInterfacesNext->m_hcpItf;
     m_mfxItf   = mhwInterfacesNext->m_mfxItf;
     m_renderItf = mhwInterfacesNext->m_renderItf;
+    m_vvcpItf  = mhwInterfacesNext->m_vvcpItf;
 
     CODEC_HW_ASSERT(osInterface);
     m_osInterface = osInterface;
@@ -395,6 +397,10 @@ MOS_STATUS CodechalHwInterfaceNext::SetCacheabilitySettings(
     {
         CODEC_HW_CHK_STATUS_RETURN(m_vdencItf->SetCacheabilitySettings(cacheabilitySettings));
     }
+    if (m_vvcpItf != nullptr)
+    {
+        CODEC_HW_CHK_STATUS_RETURN(m_vvcpItf->SetCacheabilitySettings(cacheabilitySettings));
+    }
 
     return eStatus;
 }
@@ -633,6 +639,90 @@ MOS_STATUS CodechalHwInterfaceNext::GetHcpPrimitiveCommandSize(
     *patchListSize = hcpPatchListSize + cpPatchListSize;
 
     return eStatus;
+}
+
+MOS_STATUS CodechalHwInterfaceNext::GetVvcpStateCommandSize(
+    uint32_t                        mode,
+    uint32_t                       *commandsSize,
+    uint32_t                       *patchListSize,
+    PMHW_VDBOX_STATE_CMDSIZE_PARAMS params)
+{
+    CODEC_HW_FUNCTION_ENTER;
+
+    //calculate VVCP related commands size
+    uint32_t vvcpCommandsSize  = 0;
+    uint32_t vvcpPatchListSize = 0;
+    uint32_t cpCmdsize         = 0;
+    uint32_t cpPatchListSize   = 0;
+
+    if (m_vvcpItf)
+    {
+        CODEC_HW_CHK_STATUS_RETURN(m_vvcpItf->GetVvcpStateCmdSize(
+             (uint32_t *)&vvcpCommandsSize,
+             (uint32_t *)&vvcpPatchListSize,
+             params));
+    }
+
+    if (m_cpInterface)
+    {
+        m_cpInterface->GetCpStateLevelCmdSize(cpCmdsize, cpPatchListSize);
+    }
+
+    //Calc final command size
+    *commandsSize  = vvcpCommandsSize + cpCmdsize;
+    *patchListSize = vvcpPatchListSize + cpPatchListSize;
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS CodechalHwInterfaceNext::GetVvcpSliceLvlCmdSize(uint32_t *sliceLvlCmdSize)
+{
+    CODEC_HW_FUNCTION_ENTER;
+    if (m_vvcpItf)
+    {
+        CODEC_HW_CHK_STATUS_RETURN(m_vvcpItf->GetVvcpSliceLvlCmdSize(sliceLvlCmdSize));
+    }
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS CodechalHwInterfaceNext::GetVvcpPrimitiveCommandSize(
+    uint32_t  mode,
+    uint32_t *sliceCommandsSize,
+    uint32_t *slicePatchListSize,
+    uint32_t *tileCommandsSize,
+    uint32_t *tilePatchListSize)
+{
+    CODEC_HW_FUNCTION_ENTER;
+
+    //calculate VVCP related commands size
+    uint32_t vvcpSliceCommandsSize  = 0;
+    uint32_t vvcpSlicePatchListSize = 0;
+    uint32_t vvcpTileCommandsSize   = 0;
+    uint32_t vvcpTilePatchListSize  = 0;
+    uint32_t cpCmdsize              = 0;
+    uint32_t cpPatchListSize        = 0;
+
+    if (m_vvcpItf)
+    {
+        CODEC_HW_CHK_STATUS_RETURN(m_vvcpItf->GetVvcpPrimitiveCmdSize(
+            (uint32_t *)&vvcpSliceCommandsSize,
+            (uint32_t *)&vvcpSlicePatchListSize,
+            (uint32_t *)&vvcpTileCommandsSize,
+            (uint32_t *)&vvcpTilePatchListSize));
+    }
+
+    if (m_cpInterface)
+    {
+        m_cpInterface->GetCpSliceLevelCmdSize(cpCmdsize, cpPatchListSize);
+    }
+
+    //Calc final command size
+    *sliceCommandsSize  = vvcpSliceCommandsSize + cpCmdsize;
+    *slicePatchListSize = vvcpSlicePatchListSize + cpPatchListSize;
+    *tileCommandsSize   = vvcpTileCommandsSize;
+    *tilePatchListSize  = vvcpTilePatchListSize;
+
+    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS CodechalHwInterfaceNext::AddHucDummyStreamOut(
@@ -1007,6 +1097,11 @@ MOS_STATUS CodechalHwInterfaceNext::SetRowstoreCachingOffsets(
         rowstoreParamsAVP.bitDepthMinus8 = rowstoreParams->ucBitDepthMinus8;
         rowstoreParamsAVP.chromaFormat   = rowstoreParams->ucChromaFormat;
         CODEC_HW_CHK_STATUS_RETURN(m_avpItf->GetRowstoreCachingAddrs(rowstoreParamsAVP));
+    }
+
+    if (m_vvcpItf != nullptr)
+    {
+        CODEC_HW_CHK_STATUS_RETURN(m_vvcpItf->GetRowstoreCachingAddrs(rowstoreParams));
     }
 
     return eStatus;

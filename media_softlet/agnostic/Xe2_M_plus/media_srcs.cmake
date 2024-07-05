@@ -18,7 +18,7 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-if(Xe2_M_plus)
-    media_include_subdirectory(Xe2_LPM_base)
+media_include_subdirectory(Xe2_LPM_base)
+if(LNL)
     media_include_subdirectory(Xe2_LPM)
 endif()

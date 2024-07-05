@@ -30,7 +30,6 @@
 
 #include "mhw_vdbox_vvcp_impl_xe2_lpm_base.h"
 #include "mhw_mi_hwcmd_xe2_lpm_base_next.h"
-#include "mhw_vdbox_vdenc_hwcmd_xe2_lpm.h"
 #include "mhw_vdbox_vvcp_hwcmd_xe2_lpm_X.h"
 
 namespace mhw
@@ -137,7 +136,7 @@ public:
                 mhw::mi::xe2_lpm_base_next::Cmd::MFX_WAIT_CMD::byteSize * 2 +
                 mhw::mi::xe2_lpm_base_next::Cmd::MI_BATCH_BUFFER_END_CMD::byteSize +
                 mhw::mi::xe2_lpm_base_next::Cmd::MI_BATCH_BUFFER_START_CMD::byteSize +
-                mhw::vdbox::vdenc::xe2_lpm_base::xe2_lpm::Cmd::VD_PIPELINE_FLUSH_CMD::byteSize;
+                8;//VD_PIPELINE_FLUSH_CMD::byteSize is 8
 
             patchListMaxSize =
                 PATCH_LIST_COMMAND(mhw::vdbox::vvcp::VVCP_SLICE_STATE_CMD) +

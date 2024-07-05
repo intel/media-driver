@@ -34,6 +34,7 @@
 #include "media_sfc_interface.h"
 #include "renderhal.h"
 #include "codechal_setting.h"
+#include "mhw_vdbox_vvcp_itf.h"
 
 #define HUC_DMEM_OFFSET_RTOS_GEMS 0x2000
 //------------------------------------------------------------------------------
@@ -280,6 +281,17 @@ public:
     }
 
     //!
+    //! \brief    Get vvcp interface
+    //! \details  Get vvcp interface in codechal hw interface next
+    //!
+    //! \return    pointer to new VVCP interface
+    //!
+    inline std::shared_ptr<mhw::vdbox::vvcp::Itf> GetVvcpInterfaceNext()
+    {
+        return m_vvcpItf;
+    }
+
+    //!
     //! \brief    Get Os interface
     //! \details  Get Os interface in codechal hw interface
     //!
@@ -495,6 +507,51 @@ public:
         uint32_t *commandsSize,
         uint32_t *patchListSize,
         bool      modeSpecific);
+
+    //!
+    //! \brief    Calculates the maximum size for VVCP picture level commands
+    //! \details  Client facing function to calculate the maximum size for VVCP picture level commands
+    //! \param    [in] mode
+    //!           Indicate the codec mode
+    //! \param    [out] commandsSize
+    //!           The maximum command buffer size
+    //! \param    [out] patchListSize
+    //!           The maximum command patch list size
+    //! \param    [in] params
+    //!           Indicate the command size parameters
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS GetVvcpStateCommandSize(
+        uint32_t                        mode,
+        uint32_t                       *commandsSize,
+        uint32_t                       *patchListSize,
+        PMHW_VDBOX_STATE_CMDSIZE_PARAMS params);
+
+    //!
+    //! \brief    Calculates the size for VVCP slice level commands
+    //! \details  Client facing function to calculate the maximum size for VVCP picture level commands
+    //! \param    [in] mode
+    //!           Indicate the codec mode
+    //! \param    [out] sliceCommandsSize
+    //!           The maximum command buffer size for slice
+    //! \param    [out] slicePatchListSize
+    //!           The maximum command patch list size for slice
+    //! \param    [out] tileCommandsSize
+    //!           The maximum command buffer size for tile
+    //! \param    [out] tilePatchListSize
+    //!           The maximum command patch list size for tile
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS GetVvcpPrimitiveCommandSize(
+        uint32_t  mode,
+        uint32_t *sliceCommandsSize,
+        uint32_t *slicePatchListSize,
+        uint32_t *tileCommandsSize,
+        uint32_t *tilePatchListSize);
+
+    MOS_STATUS GetVvcpSliceLvlCmdSize(uint32_t *sliceLvlCmdSize);
 
     //!
     //! \brief    Add Huc stream out copy cmds
@@ -943,7 +1000,7 @@ protected:
     std::shared_ptr<mhw::vdbox::mfx::Itf>    m_mfxItf   = nullptr;      //!< Pointer to Mhw mfx interface
     std::shared_ptr<mhw::render::Itf>        m_renderItf   = nullptr;      //!< Pointer to render interface
     std::shared_ptr<MediaSfcInterface>       m_mediaSfcItf = nullptr;      //!< Pointer to Media sfc interface
-
+    std::shared_ptr<mhw::vdbox::vvcp::Itf>   m_vvcpItf     = nullptr;
     // States
     PMOS_INTERFACE       m_osInterface;  //!< Pointer to OS interface
 

@@ -32,7 +32,6 @@
 #include "mhw_mi_hwcmd_xe2_lpm_base_next.h"
 #include "mhw_sfc_hwcmd_xe2_lpm_base_next.h"
 #include "mhw_vdbox_xe2_lpm_base.h"
-#include "mhw_vdbox_vdenc_hwcmd_xe2_lpm.h"
 
 namespace mhw
 {
@@ -76,7 +75,7 @@ public:
         if (standard == CODECHAL_HEVC)
         {
             maxSize =
-                mhw::vdbox::vdenc::xe2_lpm_base::xe2_lpm::Cmd::VD_PIPELINE_FLUSH_CMD::byteSize +
+                8 +
                 mhw::mi::xe2_lpm_base_next::Cmd::MI_FLUSH_DW_CMD::byteSize +
                 cmd_t::HCP_PIPE_MODE_SELECT_CMD::byteSize +
                 cmd_t::HCP_SURFACE_STATE_CMD::byteSize +
@@ -221,7 +220,7 @@ public:
         else if (standard == CODECHAL_VP9) // VP9 Clear Decode
         {
             maxSize =
-                mhw::vdbox::vdenc::xe2_lpm_base::xe2_lpm::Cmd::VD_PIPELINE_FLUSH_CMD::byteSize +
+                8 +
                 mhw::mi::xe2_lpm_base_next::Cmd::MI_FLUSH_DW_CMD::byteSize +
                 cmd_t::HCP_PIPE_MODE_SELECT_CMD::byteSize +
                 cmd_t::HCP_SURFACE_STATE_CMD::byteSize * 4 +
