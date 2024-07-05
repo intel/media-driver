@@ -1406,6 +1406,8 @@ public:
     uint32_t                        m_frameHeight = 0;            //!< Frame height in luma samples
     uint32_t                        m_frameFieldHeight = 0;       //!< Frame height in luma samples
     uint32_t                        m_oriFrameHeight = 0;         //!< Original frame height
+    uint16_t                        m_frame_crop_bottom_offset = 0;       //!< frame_crop_bottom_offset
+    uint16_t                        m_frame_mbs_only_flag      = 0;         //!< frame_mbs_only_flag
     uint32_t                        m_oriFrameWidth = 0;          //!< Original frame width
     uint32_t                        m_createWidth = 0;            //!< Max Frame Width for resolution reset
     uint32_t                        m_createHeight = 0;           //!< Max Frame Height for resolution reset

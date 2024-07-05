@@ -586,12 +586,18 @@ void AvcBasicFeature::CheckResolutionChange()
 
     uint32_t frameWidth = m_seqParam->FrameWidth;
     uint32_t frameHeight = m_seqParam->FrameHeight;
+    uint16_t frame_crop_bottom_offset = m_seqParam->frame_crop_bottom_offset;
+    uint16_t frame_mbs_only_flag      = m_seqParam->frame_mbs_only_flag;
+    uint16_t frame_cropping_flag      = m_seqParam->frame_cropping_flag;
 
     // Only for first frame
     if (m_frameNum == 0)
     {
         m_oriFrameHeight = frameHeight;
         m_oriFrameWidth = frameWidth;
+        m_frame_crop_bottom_offset = frame_crop_bottom_offset;
+        m_frame_mbs_only_flag        = frame_mbs_only_flag;
+        m_frame_cropping_flag      = frame_cropping_flag;
         m_resolutionChanged = true;
     }
     else
@@ -603,6 +609,9 @@ void AvcBasicFeature::CheckResolutionChange()
             m_resolutionChanged = true;
             m_oriFrameHeight = frameHeight;
             m_oriFrameWidth = frameWidth;
+            m_frame_crop_bottom_offset = frame_crop_bottom_offset;
+            m_frame_mbs_only_flag      = frame_mbs_only_flag;
+            m_frame_cropping_flag      = frame_cropping_flag;
         }
         else
         {

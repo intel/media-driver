@@ -98,6 +98,9 @@ public:
     uint32_t                    m_frameFieldHeight = 0;       //!< Frame height in luma samples
     uint32_t                    m_oriFrameHeight = 0;         //!< Original frame height
     uint32_t                    m_oriFrameWidth = 0;          //!< Original frame width
+    uint16_t                    m_frame_crop_bottom_offset = 0;                       //!< frame_crop_bottom_offset
+    uint16_t                    m_frame_mbs_only_flag      = 0;                       //!< frame_mbs_only_flag
+    uint16_t                    m_frame_cropping_flag    = 0;                         //!< frame_cropping_flag
     uint16_t                    m_picWidthInMb = 0;           //!< Picture Width in MB width count
     uint16_t                    m_picHeightInMb = 0;          //!< Picture Height in MB height count
     uint16_t                    m_frameFieldHeightInMb = 0;   //!< Frame/field Height in MB

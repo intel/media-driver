@@ -45,6 +45,8 @@
 #endif
 #include "hal_oca_interface.h"
 
+#define CODEC_AVC_MIN_BLOCK_HEIGHT 16
+
 enum SfdBindingTableOffset
 {
     sfdVdencInputImageState = 0,
@@ -794,6 +796,419 @@ MOS_STATUS CodechalVdencAvcStateG12::SetPictureStructs()
     }
 
     return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS CodechalVdencAvcStateG12::ExecutePictureLevel()
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+#if MHW_HWCMDPARSER_ENABLED
+    char frameType = '\0';
+    switch (m_avcPicParam->CodingType)
+    {
+    case I_TYPE:
+        frameType = 'I';
+        break;
+    case P_TYPE:
+        frameType = 'P';
+        break;
+    case B_TYPE:
+        frameType = m_avcPicParam->RefPicFlag ? 'B' : 'b';
+        break;
+    }
+
+    auto instance = mhw::HwcmdParser::GetInstance();
+    if (instance)
+    {
+        instance->Update(frameType, nullptr);
+    }
+#endif
+
+    MHW_BATCH_BUFFER batchBuffer;
+    MOS_ZeroMemory(&batchBuffer, sizeof(batchBuffer));
+    batchBuffer.dwOffset     = m_currPass * BRC_IMG_STATE_SIZE_PER_PASS;
+    batchBuffer.bSecondLevel = true;
+
+    CODECHAL_ENCODE_AVC_GENERIC_PICTURE_LEVEL_PARAMS encodePictureLevelParams;
+    MOS_ZeroMemory(&encodePictureLevelParams, sizeof(encodePictureLevelParams));
+    encodePictureLevelParams.psPreDeblockSurface  = &m_reconSurface;
+    encodePictureLevelParams.psPostDeblockSurface = &m_reconSurface;
+    encodePictureLevelParams.bBrcEnabled          = false;
+    encodePictureLevelParams.pImgStateBatchBuffer = &batchBuffer;
+
+    bool suppressReconPic =
+        ((!m_refList[m_currReconstructedPic.FrameIdx]->bUsedAsRef) && m_suppressReconPicSupported);
+    encodePictureLevelParams.bDeblockerStreamOutEnable = 0;
+    encodePictureLevelParams.bPreDeblockOutEnable      = !m_deblockingEnabled && !suppressReconPic;
+    encodePictureLevelParams.bPostDeblockOutEnable     = m_deblockingEnabled && !suppressReconPic;
+    encodePictureLevelParams.bPerMBStreamOutEnable     = m_perMBStreamOutEnable;
+    if (!m_staticFrameDetectionInUse)
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(LoadCosts(m_avcPicParam->CodingType,
+            m_avcPicParam->QpY + m_avcSliceParams->slice_qp_delta));
+
+        m_vdencHmeMvCostTbl = m_vdEncHmeMvCost;
+        m_vdencModeCostTbl  = m_vdEncModeCost;
+        m_vdencMvCostTbl    = m_vdEncMvCost;
+    }
+
+    // VDEnc HuC BRC
+    if (m_vdencBrcEnabled)
+    {
+        PerfTagSetting perfTag;
+        perfTag.Value             = 0;
+        perfTag.Mode              = (uint16_t)m_mode & CODECHAL_ENCODE_MODE_BIT_MASK;
+        perfTag.CallType          = CODECHAL_ENCODE_PERFTAG_CALL_BRC_INIT_RESET;
+        perfTag.PictureCodingType = m_pictureCodingType;
+        m_osInterface->pfnSetPerfTag(m_osInterface, perfTag.Value);
+
+        SetBufferToStorePakStatistics();
+
+        // Invoke BRC init/reset FW
+        if (m_brcInit || m_brcReset)
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(HuCBrcInitReset());
+        }
+
+        perfTag.CallType = m_currPass == 0 ? CODECHAL_ENCODE_PERFTAG_CALL_BRC_UPDATE : CODECHAL_ENCODE_PERFTAG_CALL_BRC_UPDATE_SECOND_PASS;
+        m_osInterface->pfnSetPerfTag(m_osInterface, perfTag.Value);
+
+        // Invoke BRC update FW
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(HuCBrcUpdate());
+        m_brcInit = m_brcReset = false;
+    }
+
+    PerfTagSetting perfTag;
+    perfTag.Value             = 0;
+    perfTag.Mode              = (uint16_t)m_mode & CODECHAL_ENCODE_MODE_BIT_MASK;
+    perfTag.CallType          = m_currPass == 0 ? CODECHAL_ENCODE_PERFTAG_CALL_PAK_ENGINE : CODECHAL_ENCODE_PERFTAG_CALL_PAK_ENGINE_SECOND_PASS;
+    perfTag.PictureCodingType = m_pictureCodingType;
+    m_osInterface->pfnSetPerfTag(m_osInterface, perfTag.Value);
+
+    MOS_COMMAND_BUFFER cmdBuffer;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
+
+    // PAK cmd buffer header insertion for 1) non STF 2) STF (except VDEnc BRC case inserted in HuC cmd buffer)
+    if (!m_singleTaskPhaseSupported || (m_firstTaskInPhase && (!m_vdencBrcEnabled)))
+    {
+        bool requestFrameTracking = false;
+
+        m_hwInterface->m_numRequestedEuSlices = ((m_frameHeight * m_frameWidth) >= m_ssdResolutionThreshold &&
+                                                    m_targetUsage <= m_ssdTargetUsageThreshold)
+                                                    ? m_sliceShutdownRequestState
+                                                    : m_sliceShutdownDefaultState;
+
+        MHW_MI_MMIOREGISTERS mmioRegister;
+        bool validMmio = m_mfxInterface->ConvertToMiRegister(m_vdboxIndex, mmioRegister);
+
+        // Send command buffer header at the beginning (OS dependent)
+        // frame tracking tag is only added in the last command buffer header
+        requestFrameTracking = m_singleTaskPhaseSupported ? m_firstTaskInPhase : m_lastTaskInPhase;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(&cmdBuffer, requestFrameTracking, validMmio ? &mmioRegister : nullptr));
+
+        m_hwInterface->m_numRequestedEuSlices = CODECHAL_SLICE_SHUTDOWN_DEFAULT;
+    }
+
+    // Set TBL distribution to VMC = 240 for VDEnc performance
+    if (MEDIA_IS_WA(m_waTable, WaTlbAllocationForAvcVdenc) &&
+        (!m_singleTaskPhaseSupported || !m_currPass))
+    {
+        TLBAllocationParams tlbAllocationParams;
+        tlbAllocationParams.presTlbMmioBuffer     = &m_vdencTlbMmioBuffer;
+        tlbAllocationParams.dwMmioMfxLra0Override = m_mmioMfxLra0Override;
+        tlbAllocationParams.dwMmioMfxLra1Override = m_mmioMfxLra1Override;
+        tlbAllocationParams.dwMmioMfxLra2Override = m_mmioMfxLra2Override;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(SetTLBAllocation(&cmdBuffer, &tlbAllocationParams));
+    }
+
+    MHW_MI_CONDITIONAL_BATCH_BUFFER_END_PARAMS miConditionalBatchBufferEndParams;
+    if (m_vdencBrcEnabled && !m_swBrcMode)
+    {
+        // Insert conditional batch buffer end for HuC valid IMEM loaded check
+        MOS_ZeroMemory(&miConditionalBatchBufferEndParams, sizeof(MHW_MI_CONDITIONAL_BATCH_BUFFER_END_PARAMS));
+        miConditionalBatchBufferEndParams.presSemaphoreBuffer = &m_resHucStatus2Buffer;
+
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(
+            m_miInterface->AddMiConditionalBatchBufferEndCmd(
+                &cmdBuffer,
+                &miConditionalBatchBufferEndParams));
+    }
+
+    if (m_currPass)
+    {
+        if (m_inlineEncodeStatusUpdate && m_vdencBrcEnabled)
+        {
+            // inc dwStoreData conditionaly
+            UpdateEncodeStatus(&cmdBuffer, false);
+        }
+
+        // Insert conditional batch buffer end
+        MOS_ZeroMemory(&miConditionalBatchBufferEndParams, sizeof(MHW_MI_CONDITIONAL_BATCH_BUFFER_END_PARAMS));
+
+        if (!m_vdencBrcEnabled)
+        {
+            miConditionalBatchBufferEndParams.presSemaphoreBuffer = &m_encodeStatusBuf.resStatusBuffer;
+            miConditionalBatchBufferEndParams.dwOffset =
+                (m_encodeStatusBuf.wCurrIndex * m_encodeStatusBuf.dwReportSize) +
+                m_encodeStatusBuf.dwImageStatusMaskOffset + (sizeof(uint32_t) * 2);
+        }
+        else
+        {
+            // VDENC uses HuC BRC FW generated semaphore for conditional 2nd pass
+            miConditionalBatchBufferEndParams.presSemaphoreBuffer = &m_resPakMmioBuffer;
+        }
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiConditionalBatchBufferEndCmd(
+            &cmdBuffer,
+            &miConditionalBatchBufferEndParams));
+    }
+
+    if (!m_currPass && m_osInterface->bTagResourceSync)
+    {
+        // This is a short term solution to solve the sync tag issue: the sync tag write for PAK is inserted at the end of 2nd pass PAK BB
+        // which may be skipped in multi-pass PAK enabled case. The idea here is to insert the previous frame's tag at the beginning
+        // of the BB and keep the current frame's tag at the end of the BB. There will be a delay for tag update but it should be fine
+        // as long as Dec/VP/Enc won't depend on this PAK so soon.
+        PMOS_RESOURCE globalGpuContextSyncTagBuffer = nullptr;
+        CODECHAL_HW_CHK_STATUS_RETURN(m_osInterface->pfnGetGpuStatusBufferResource(
+            m_osInterface,
+            globalGpuContextSyncTagBuffer));
+        CODECHAL_ENCODE_CHK_NULL_RETURN(globalGpuContextSyncTagBuffer);
+
+        uint32_t                 value = m_osInterface->pfnGetGpuStatusTag(m_osInterface, m_osInterface->CurrentGpuContextOrdinal);
+        MHW_MI_STORE_DATA_PARAMS params;
+        params.pOsResource      = globalGpuContextSyncTagBuffer;
+        params.dwResourceOffset = m_osInterface->pfnGetGpuStatusTagOffset(m_osInterface, m_osInterface->CurrentGpuContextOrdinal);
+        params.dwValue          = (value > 0) ? (value - 1) : 0;
+        CODECHAL_HW_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(&cmdBuffer, &params));
+    }
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(StartStatusReport(&cmdBuffer, CODECHAL_NUM_MEDIA_STATES));
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencControlStateCmd(&cmdBuffer));
+
+    // set MFX_SURFACE_STATE values
+    // Ref surface
+    MHW_VDBOX_SURFACE_PARAMS reconSurfaceParams;
+    MOS_ZeroMemory(&reconSurfaceParams, sizeof(reconSurfaceParams));
+    reconSurfaceParams.Mode             = m_mode;
+    reconSurfaceParams.ucSurfaceStateId = CODECHAL_MFX_REF_SURFACE_ID;
+    reconSurfaceParams.psSurface        = &m_reconSurface;
+    CODECHAL_DEBUG_TOOL(m_debugInterface->DumpSurfaceInfo(&m_reconSurface, "ReconSurface"));
+
+    // Src surface
+    MHW_VDBOX_SURFACE_PARAMS surfaceParams;
+    MOS_ZeroMemory(&surfaceParams, sizeof(surfaceParams));
+    surfaceParams.Mode                  = m_mode;
+    surfaceParams.ucSurfaceStateId      = CODECHAL_MFX_SRC_SURFACE_ID;
+    surfaceParams.psSurface             = m_rawSurfaceToPak;
+    surfaceParams.dwActualHeight        = m_avcSeqParam->FrameHeight;
+    surfaceParams.dwActualWidth         = m_avcSeqParam->FrameWidth;
+    surfaceParams.bDisplayFormatSwizzle = m_avcPicParam->bDisplayFormatSwizzle;
+    surfaceParams.bColorSpaceSelection  = (m_avcSeqParam->InputColorSpace == ECOLORSPACE_P709) ? 1 : 0;
+    CODECHAL_DEBUG_TOOL(m_debugInterface->DumpSurfaceInfo(m_rawSurfaceToPak, "RawSurfaceToPak"));
+
+    MHW_VDBOX_PIPE_BUF_ADDR_PARAMS pipeBufAddrParams;
+    pipeBufAddrParams.pRawSurfParam      = &surfaceParams;
+    pipeBufAddrParams.pDecodedReconParam = &reconSurfaceParams;
+    SetMfxPipeBufAddrStateParams(encodePictureLevelParams, pipeBufAddrParams);
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_mmcState);
+    m_mmcState->SetPipeBufAddr(&pipeBufAddrParams, &cmdBuffer);
+
+    PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams = m_vdencInterface->CreateMhwVdboxPipeModeSelectParams();
+    CODECHAL_ENCODE_CHK_NULL_RETURN(pipeModeSelectParams);
+
+    //add fill_pad_with_value
+    if (MEDIA_IS_WA(m_waTable, Wa_AvcUnalignedHeight))
+    {
+        if (m_avcSeqParam->frame_cropping_flag)
+        {
+            m_frame_crop_bottom_offset = m_avcSeqParam->frame_crop_bottom_offset;
+            m_frame_mbs_only_flag      = m_avcSeqParam->frame_mbs_only_flag;
+            uint32_t crop_unit_y    = 2 * (2 - m_frame_mbs_only_flag);
+            uint32_t real_height    = m_oriFrameHeight - (m_frame_crop_bottom_offset * crop_unit_y);
+            uint32_t aligned_height = MOS_ALIGN_CEIL(real_height, CODEC_AVC_MIN_BLOCK_HEIGHT);
+            fill_pad_with_value(m_rawSurfaceToPak, real_height, aligned_height);
+        }
+    }
+
+    auto release_func = [&]()
+    {
+        m_vdencInterface->ReleaseMhwVdboxPipeModeSelectParams(pipeModeSelectParams);
+        pipeModeSelectParams = nullptr;
+    };
+
+    SetMfxPipeModeSelectParams(encodePictureLevelParams, *pipeModeSelectParams);
+    CODECHAL_ENCODE_CHK_STATUS_WITH_DESTROY_RETURN(m_mfxInterface->AddMfxPipeModeSelectCmd(&cmdBuffer, pipeModeSelectParams), release_func);
+
+    CODECHAL_ENCODE_CHK_STATUS_WITH_DESTROY_RETURN(m_mfxInterface->AddMfxSurfaceCmd(&cmdBuffer, &reconSurfaceParams), release_func);
+
+    CODECHAL_ENCODE_CHK_STATUS_WITH_DESTROY_RETURN(m_mfxInterface->AddMfxSurfaceCmd(&cmdBuffer, &surfaceParams), release_func);
+
+    // 4xDS surface
+    MHW_VDBOX_SURFACE_PARAMS dsSurfaceParams;
+    MOS_ZeroMemory(&dsSurfaceParams, sizeof(dsSurfaceParams));
+    dsSurfaceParams.Mode             = m_mode;
+    dsSurfaceParams.ucSurfaceStateId = CODECHAL_MFX_DSRECON_SURFACE_ID;
+    dsSurfaceParams.psSurface        = m_trackedBuf->Get4xDsReconSurface(CODEC_CURR_TRACKED_BUFFER);
+    CODECHAL_DEBUG_TOOL(m_debugInterface->DumpSurfaceInfo(dsSurfaceParams.psSurface, "4xDsReconSurface"));
+    CODECHAL_ENCODE_CHK_STATUS_WITH_DESTROY_RETURN(m_mfxInterface->AddMfxSurfaceCmd(&cmdBuffer, &dsSurfaceParams), release_func);
+    CODECHAL_ENCODE_CHK_STATUS_WITH_DESTROY_RETURN(m_mfxInterface->AddMfxPipeBufAddrCmd(&cmdBuffer, &pipeBufAddrParams), release_func);
+
+    MHW_VDBOX_IND_OBJ_BASE_ADDR_PARAMS indObjBaseAddrParams;
+    SetMfxIndObjBaseAddrStateParams(indObjBaseAddrParams);
+    CODECHAL_ENCODE_CHK_STATUS_WITH_DESTROY_RETURN(m_mfxInterface->AddMfxIndObjBaseAddrCmd(&cmdBuffer, &indObjBaseAddrParams), release_func);
+
+    MHW_VDBOX_BSP_BUF_BASE_ADDR_PARAMS bspBufBaseAddrParams;
+    SetMfxBspBufBaseAddrStateParams(bspBufBaseAddrParams);
+    CODECHAL_ENCODE_CHK_STATUS_WITH_DESTROY_RETURN(m_mfxInterface->AddMfxBspBufBaseAddrCmd(&cmdBuffer, &bspBufBaseAddrParams), release_func);
+
+    if (m_avcPicParam->StatusReportEnable.fields.FrameStats)
+    {
+        pipeModeSelectParams->bFrameStatisticsStreamOutEnable = true;
+    }
+    CODECHAL_ENCODE_CHK_STATUS_WITH_DESTROY_RETURN(m_vdencInterface->AddVdencPipeModeSelectCmd(&cmdBuffer, pipeModeSelectParams), release_func);
+    m_vdencInterface->ReleaseMhwVdboxPipeModeSelectParams(pipeModeSelectParams);
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencSrcSurfaceStateCmd(&cmdBuffer, &surfaceParams));
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencRefSurfaceStateCmd(&cmdBuffer, &reconSurfaceParams));
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencDsRefSurfaceStateCmd(&cmdBuffer, &dsSurfaceParams, 1));
+
+    // PerfMode is enabled only on BXT, KBL+, replace all 4x Ds refs with the 1st L0 ref
+    if (m_vdencInterface->IsPerfModeSupported() && m_perfModeEnabled[m_avcSeqParam->TargetUsage] &&
+        pipeBufAddrParams.dwNumRefIdxL0ActiveMinus1 == 0)
+    {
+        pipeBufAddrParams.dwNumRefIdxL0ActiveMinus1 = 1;
+        pipeBufAddrParams.presVdencReferences[1]    = nullptr;
+        pipeBufAddrParams.presVdenc4xDsSurface[1]   = pipeBufAddrParams.presVdenc4xDsSurface[0];
+    }
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencPipeBufAddrCmd(&cmdBuffer, &pipeBufAddrParams));
+
+    MHW_VDBOX_VDENC_CQPT_STATE_PARAMS vdencCQPTStateParams;
+    SetVdencCqptStateParams(vdencCQPTStateParams);
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencConstQPStateCmd(&cmdBuffer, &vdencCQPTStateParams));
+
+    if (encodePictureLevelParams.bBrcEnabled && m_avcSeqParam->RateControlMethod != RATECONTROL_ICQ)
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferStartCmd(
+            &cmdBuffer,
+            encodePictureLevelParams.pImgStateBatchBuffer));
+    }
+    else
+    {
+        //Set MFX_AVC_IMG_STATE command
+        PMHW_VDBOX_AVC_IMG_PARAMS imageStateParams = CreateMhwVdboxAvcImgParams();
+        CODECHAL_ENCODE_CHK_NULL_RETURN(imageStateParams);
+        SetMfxAvcImgStateParams(*imageStateParams);
+
+        PMHW_BATCH_BUFFER secondLevelBatchBufferUsed = nullptr;
+
+        // VDENC CQP case
+        if (!m_vdencBrcEnabled)
+        {
+            // VDENC case uses multiple buffers for concurrency between SFD and VDENC
+            secondLevelBatchBufferUsed = &(m_batchBufferForVdencImgStat[m_currRecycledBufIdx]);
+
+            if (!m_staticFrameDetectionInUse)
+            {
+                // CQP case, driver programs the 2nd Level BB
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(Mhw_LockBb(m_osInterface, secondLevelBatchBufferUsed));
+
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxAvcImgCmd(nullptr, secondLevelBatchBufferUsed, imageStateParams));
+
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencAvcCostStateCmd(nullptr, secondLevelBatchBufferUsed, imageStateParams));
+
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencCmd3Cmd(nullptr, secondLevelBatchBufferUsed, imageStateParams));
+
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencImgStateCmd(nullptr, secondLevelBatchBufferUsed, imageStateParams));
+
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(nullptr, secondLevelBatchBufferUsed));
+
+            #if MHW_HWCMDPARSER_ENABLED
+                auto instance = mhw::HwcmdParser::GetInstance();
+                if (instance)
+                {
+                    instance->ParseCmdBuf(IGFX_UNKNOWN, (uint32_t *)(secondLevelBatchBufferUsed->pData),
+                        secondLevelBatchBufferUsed->iCurrent / sizeof(uint32_t));
+                }
+            #endif
+
+                CODECHAL_DEBUG_TOOL(
+                    CODECHAL_ENCODE_CHK_STATUS_RETURN(PopulatePakParam(
+                        nullptr,
+                        secondLevelBatchBufferUsed));
+
+                    CODECHAL_ENCODE_CHK_STATUS_RETURN(PopulateEncParam(
+                        0,
+                        nullptr));
+
+                    CODECHAL_ENCODE_CHK_STATUS_RETURN(DumpEncodeImgStats(nullptr));)
+
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(Mhw_UnlockBb(m_osInterface, secondLevelBatchBufferUsed, true));
+            }
+            else
+            {
+                // SFD enabled, SFD kernel updates VDENC IMG STATE
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxAvcImgCmd(&cmdBuffer, nullptr, imageStateParams));
+//#if (_DEBUG || _RELEASE_INTERNAL)
+                //secondLevelBatchBufferUsed->iLastCurrent = CODECHAL_ENCODE_VDENC_IMG_STATE_CMD_SIZE + CODECHAL_ENCODE_MI_BATCH_BUFFER_END_CMD_SIZE;
+//#endif
+                CODECHAL_DEBUG_TOOL(
+                    CODECHAL_ENCODE_CHK_STATUS_RETURN(PopulatePakParam(
+                        &cmdBuffer,
+                        nullptr));
+                    CODECHAL_ENCODE_CHK_STATUS_RETURN(DumpEncodeImgStats(&cmdBuffer));)
+            }
+        }
+        else
+        {
+            // current location to add cmds in 2nd level batch buffer
+            m_batchBufferForVdencImgStat[0].iCurrent = 0;
+            // reset starting location (offset) executing 2nd level batch buffer for each frame & each pass
+            m_batchBufferForVdencImgStat[0].dwOffset = 0;
+            secondLevelBatchBufferUsed = &(m_batchBufferForVdencImgStat[0]);
+        }
+        MOS_Delete(imageStateParams);
+
+        HalOcaInterface::OnSubLevelBBStart(cmdBuffer, (MOS_CONTEXT_HANDLE)m_osInterface->pOsContext, &secondLevelBatchBufferUsed->OsResource, 0, true, 0);
+
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferStartCmd(&cmdBuffer, secondLevelBatchBufferUsed));
+
+        CODECHAL_DEBUG_TOOL(
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->Dump2ndLvlBatch(
+                secondLevelBatchBufferUsed,
+                CODECHAL_MEDIA_STATE_ENC_NORMAL,
+                nullptr));)
+    }
+
+    MHW_VDBOX_QM_PARAMS qmParams;
+    MHW_VDBOX_QM_PARAMS fqmParams;
+    SetMfxQmStateParams(qmParams, fqmParams);
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxQmCmd(&cmdBuffer, &qmParams));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxFqmCmd(&cmdBuffer, &fqmParams));
+
+    if (m_pictureCodingType == B_TYPE)
+    {
+        // Add AVC Direct Mode command
+        MHW_VDBOX_AVC_DIRECTMODE_PARAMS directmodeParams;
+        MOS_ZeroMemory(&directmodeParams, sizeof(directmodeParams));
+        directmodeParams.CurrPic = m_avcPicParam->CurrReconstructedPic;
+        directmodeParams.isEncode = true;
+        directmodeParams.uiUsedForReferenceFlags = 0xFFFFFFFF;
+        directmodeParams.pAvcPicIdx = &(m_picIdx[0]);
+        directmodeParams.avcRefList = (void**)m_refList;
+        directmodeParams.bPicIdRemappingInUse = false;
+        directmodeParams.bDisableDmvBuffers = true;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxAvcDirectmodeCmd(&cmdBuffer, &directmodeParams));
+    }
+
+    m_osInterface->pfnReturnCommandBuffer(m_osInterface, &cmdBuffer, 0);
+
+    return eStatus;
 }
 
 MOS_STATUS CodechalVdencAvcStateG12::SetAndPopulateVEHintParams(

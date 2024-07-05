@@ -50,6 +50,8 @@ public:
 
     virtual ~AvcVdencPkt();
 
+    void fill_pad_with_value(PMOS_SURFACE psSurface, uint32_t real_height, uint32_t aligned_height) const;
+
     //!
     //! \brief  Initialize the media packet, allocate required resources
     //! \return MOS_STATUS

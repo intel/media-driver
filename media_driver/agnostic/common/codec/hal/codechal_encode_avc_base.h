@@ -1921,5 +1921,7 @@ protected:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS SetFrameStoreIds(uint8_t frameIdx);
+
+    void fill_pad_with_value(PMOS_SURFACE psSurface, uint32_t real_height, uint32_t aligned_height);
 };
 #endif // __CODECHAL_ENCODE_AVC_BASE_H__

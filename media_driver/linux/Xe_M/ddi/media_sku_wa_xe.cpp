@@ -443,6 +443,7 @@ static bool InitTglMediaWaExt(struct GfxDeviceInfo *devInfo,
     }
 
     MEDIA_WR_WA(waTable, WaEnableVPPCopy, 1);
+    MEDIA_WR_WA(waTable, Wa_AvcUnalignedHeight, 1);
     return true;
 }
 
