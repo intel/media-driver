@@ -468,5 +468,7 @@
 #define __MEDIA_USER_FEATURE_VALUE_IP_ALIGNMENT_ENCODE_TIMEOUT       "SyncSubmissionTimeOutEncode"
 #define __MEDIA_USER_FEATURE_VALUE_IP_ALIGNMENT_VPP_TIMEOUT          "SyncSubmissionTimeOutVPP"
 
+// Native Fence Mode
+#define __MEDIA_USER_FEATURE_VALUE_MEDIA_NATIVE_FENCE_MODE           "Native Fence Mode"
 
 #endif  // __MOS_UTIL_USER_FEATURE_KEYS_H__

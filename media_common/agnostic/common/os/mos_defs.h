@@ -527,6 +527,13 @@ namespace MediaUserSetting {
     class Value;
 };
 
+typedef enum _NATIVE_FENCE_MODE
+{
+    NATIVE_FENCE_MODE_DISABLE         = 0,
+    NATIVE_FENCE_MODE_GPU_SYNC_BY_API = 1,
+    NATIVE_FENCE_MODE_GPU_SYNC_BY_CMD = 2
+} NATIVE_FENCE_MODE;
+
 using MediaUserSettingSharedPtr = std::shared_ptr<MediaUserSetting::MediaUserSetting>;
 
 const unsigned int BITS_PER_BYTE = 8;

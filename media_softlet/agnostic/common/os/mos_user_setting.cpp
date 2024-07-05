@@ -434,6 +434,13 @@ MOS_STATUS MosUserSetting::InitMosCommonUserSetting(MediaUserSettingSharedPtr us
         1,
         true); //"Enable texture pooling in media driver."
 
+    DeclareUserSettingKey(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_MEDIA_NATIVE_FENCE_MODE,
+        MediaUserSetting::Group::Device,
+        0,
+        true);
+
     return MOS_STATUS_SUCCESS;
 }
 
