@@ -1,4 +1,4 @@
-# Copyright (c) 2019-2023, Intel Corporation
+# Copyright (c) 2022, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,17 +18,27 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-media_include_subdirectory(common)
-if(XE_LPM_PLUS_SUPPORT)
-    media_include_subdirectory(xe_lpm_plus_r0)
-    media_include_subdirectory(xe_lpm_plus)
+if(${AV1_Decode_Supported} STREQUAL "yes")
+    media_include_subdirectory(av1)
 endif()
-
-if(MTL OR ARL)
-    media_include_subdirectory(Xe_M_plus)
+if(${AVC_Decode_Supported} STREQUAL "yes")
+    media_include_subdirectory(avc)
 endif()
-
-if(XE2_LPM_SUPPORT)
-media_include_subdirectory(xe2_lpm)
-media_include_subdirectory(xe2_lpm_r0)
+if(${JPEG_Decode_Supported} STREQUAL "yes")
+    media_include_subdirectory(jpeg)
+endif()
+if(${HEVC_Decode_Supported} STREQUAL "yes")
+    media_include_subdirectory(hevc)
+endif()
+if(${MPEG2_Decode_Supported} STREQUAL "yes")
+    media_include_subdirectory(mpeg2)
+endif()
+if(${VP8_Decode_Supported} STREQUAL "yes")
+    media_include_subdirectory(vp8)
+endif()
+if(${VP9_Decode_Supported} STREQUAL "yes")
+    media_include_subdirectory(vp9)
+endif()
+if(${VVC_Decode_Supported} STREQUAL "yes")
+    media_include_subdirectory(vvc)
 endif()
