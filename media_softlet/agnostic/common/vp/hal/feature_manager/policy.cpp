@@ -986,6 +986,8 @@ MOS_STATUS Policy::GetCSCExecutionCaps(SwFilter* feature, bool isCamPipeWithBaye
     MOS_FORMAT midFormat = Format_Any;
 
     VP_EngineEntry *cscEngine = &csc->GetFilterEngineCaps();
+
+    cscEngine->isBayerInputInUse = false;
     // Clean usedForNextPass flag.
     if (cscEngine->usedForNextPass)
     {
