@@ -242,6 +242,13 @@ struct mos_drm_bo_alloc_tiled {
     struct mos_drm_bo_alloc_ext ext;
 };
 
+struct mos_drm_bo_alloc_prime {
+    const char *name = "\0";
+    int      prime_fd;
+    int      size;
+    uint16_t pat_index;
+};
+
 struct mos_drm_uc_version {
 #define UC_TYPE_GUC_SUBMISSION 0
 #define UC_TYPE_HUC            1
@@ -370,7 +377,7 @@ mos_bo_context_exec3(struct mos_linux_bo **bo, int num_bo, struct mos_linux_cont
 
 int mos_bo_export_to_prime(struct mos_linux_bo *bo, int *prime_fd);
 struct mos_linux_bo *mos_bo_create_from_prime(struct mos_bufmgr *bufmgr,
-                        int prime_fd, int size);
+                        struct mos_drm_bo_alloc_prime *alloc_prime);
 
 int mos_reg_read(struct mos_bufmgr *bufmgr,
                uint32_t offset,

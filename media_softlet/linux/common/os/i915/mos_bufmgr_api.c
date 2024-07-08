@@ -907,9 +907,9 @@ mos_bo_export_to_prime(struct mos_linux_bo *bo, int *prime_fd)
 
 struct mos_linux_bo *
 mos_bo_create_from_prime(struct mos_bufmgr *bufmgr,
-                        int prime_fd, int size)
+                        struct mos_drm_bo_alloc_prime *alloc_prime)
 {
-    if(!bufmgr)
+    if(!bufmgr || !alloc_prime)
     {
         MOS_OS_CRITICALMESSAGE("Input null ptr\n");
         return nullptr;
@@ -917,7 +917,7 @@ mos_bo_create_from_prime(struct mos_bufmgr *bufmgr,
 
     if (bufmgr->bo_create_from_prime)
     {
-        return bufmgr->bo_create_from_prime(bufmgr, prime_fd, size);
+        return bufmgr->bo_create_from_prime(bufmgr, alloc_prime);
     }
     else
     {

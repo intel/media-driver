@@ -351,7 +351,12 @@ VAStatus DdiMediaUtil_AllocateSurface(
             }
             else
             {
-                bo = mos_bo_create_from_prime(mediaDrvCtx->pDrmBufMgr, mediaSurface->pSurfDesc->ulBuffer, mediaSurface->pSurfDesc->uiSize);
+                struct mos_drm_bo_alloc_prime alloc_prime;
+                alloc_prime.name = "prime";
+                alloc_prime.prime_fd = mediaSurface->pSurfDesc->ulBuffer;
+                alloc_prime.size = mediaSurface->pSurfDesc->uiSize;
+                //alloc_prime->pat_index = xxx; //get pat_index from gmm
+                bo = mos_bo_create_from_prime(mediaDrvCtx->pDrmBufMgr, &alloc_prime);
             }
 
             if (bo != nullptr)
@@ -376,7 +381,12 @@ VAStatus DdiMediaUtil_AllocateSurface(
 #endif
                 mediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2)
         {
-            bo = mos_bo_create_from_prime(mediaDrvCtx->pDrmBufMgr, mediaSurface->pSurfDesc->ulBuffer, mediaSurface->pSurfDesc->uiSize);
+            struct mos_drm_bo_alloc_prime alloc_prime;
+            alloc_prime.name = "prime";
+            alloc_prime.prime_fd = mediaSurface->pSurfDesc->ulBuffer;
+            alloc_prime.size = mediaSurface->pSurfDesc->uiSize;
+            //alloc_prime->pat_index = xxx; //get pat_index from gmm
+            bo = mos_bo_create_from_prime(mediaDrvCtx->pDrmBufMgr, &alloc_prime);
             if( bo != nullptr )
             {
                 pitch = mediaSurface->pSurfDesc->uiPitches[0];

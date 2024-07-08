@@ -394,7 +394,7 @@ struct mos_bufmgr {
                                uint64_t param,
                                uint64_t *value) = nullptr;
     struct mos_linux_bo *(*bo_create_from_prime)(struct mos_bufmgr *bufmgr,
-                            int prime_fd, int size) = nullptr;
+                            struct mos_drm_bo_alloc_prime *alloc_prime) = nullptr;
     int (*bo_export_to_prime)(struct mos_linux_bo *bo, int *prime_fd) = nullptr;
     int (*reg_read)(struct mos_bufmgr *bufmgr,
                    uint32_t offset,

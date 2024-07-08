@@ -623,16 +623,19 @@ VAStatus MediaLibvaUtilNext::CreateExternalSurface(
             bo = mos_bo_create_from_name(mediaDrvCtx->pDrmBufMgr, "MEDIA", mediaSurface->pSurfDesc->ulBuffer);
             break;
         case VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME:
-            bo = mos_bo_create_from_prime(mediaDrvCtx->pDrmBufMgr, mediaSurface->pSurfDesc->ulBuffer, mediaSurface->pSurfDesc->uiSize);
-            break;
         case VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2:
-            bo = mos_bo_create_from_prime(mediaDrvCtx->pDrmBufMgr, mediaSurface->pSurfDesc->ulBuffer, mediaSurface->pSurfDesc->uiSize);
-            break;
 #if VA_CHECK_VERSION(1, 21, 0)
-        case VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_3:    
-            bo = mos_bo_create_from_prime(mediaDrvCtx->pDrmBufMgr, mediaSurface->pSurfDesc->ulBuffer, mediaSurface->pSurfDesc->uiSize);
-            break;
+        case VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_3:
 #endif
+        {
+            struct mos_drm_bo_alloc_prime alloc_prime;
+            alloc_prime.name = "prime";
+            alloc_prime.prime_fd = mediaSurface->pSurfDesc->ulBuffer;
+            alloc_prime.size = mediaSurface->pSurfDesc->uiSize;
+            //alloc_prime->pat_index = xxx; // get pat_index from gmm
+            bo = mos_bo_create_from_prime(mediaDrvCtx->pDrmBufMgr, &alloc_prime);
+        }
+            break;
         case VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR:
         {
             unsigned int patIndex = MosInterface::GetPATIndexFromGmm(mediaDrvCtx->pGmmClientContext, gmmResourceInfo);

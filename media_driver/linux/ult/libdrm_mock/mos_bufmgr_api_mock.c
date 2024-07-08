@@ -435,9 +435,9 @@ mos_get_context_param(struct mos_linux_context *ctx,
 
 struct mos_linux_bo *
 mos_bo_create_from_prime(struct mos_bufmgr *bufmgr,
-                        int prime_fd, int size)
+                        struct mos_drm_bo_alloc_prime *alloc_prime)
 {
-    return bufmgr->bo_create_from_prime(bufmgr, prime_fd, size);
+    return bufmgr->bo_create_from_prime(bufmgr, alloc_prime);
 }
 
 int
