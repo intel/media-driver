@@ -206,5 +206,6 @@ MOS_STATUS VpPlatformInterfacsXe2_Lpm::InitPolicyRules(VP_POLICY_RULES &rules)
     VP_PUBLIC_CHK_STATUS_RETURN(VpPlatformInterface::InitPolicyRules(rules));
 
     rules.isHDR33LutSizeEnabled = true;
+    rules.is1K1DLutSurfaceInUse = true;
     return MOS_STATUS_SUCCESS;
 }

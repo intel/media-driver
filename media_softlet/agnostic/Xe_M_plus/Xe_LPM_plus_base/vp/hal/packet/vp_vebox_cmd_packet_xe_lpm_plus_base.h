@@ -114,6 +114,8 @@ public:
         uint32_t *            pQuery) override;
 
     virtual MOS_STATUS InitSurfMemCacheControl(VP_EXECUTE_CAPS packetCaps) override;
+    virtual MOS_STATUS SetupVebox3DLutForHDR(
+        mhw::vebox::VEBOX_STATE_PAR &veboxStateCmdParams) override;
 
 protected:
     VpVeboxCmdPacketXe_Lpm_Plus_Base(MediaTask *task, PVP_MHWINTERFACE hwInterface, PVpAllocator &allocator, VPMediaMemComp *mmc);
