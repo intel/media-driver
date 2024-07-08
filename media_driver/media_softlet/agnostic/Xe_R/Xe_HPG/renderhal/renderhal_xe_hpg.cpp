@@ -67,7 +67,8 @@ extern const RENDERHAL_STATE_HEAP_SETTINGS g_cRenderHal_State_Heap_Settings_xe_h
     RENDERHAL_SSH_BINDING_TABLES,              //!< iBindingTables
     RENDERHAL_SSH_SURFACE_STATES,              //!< iSurfaceStates
     RENDERHAL_SSH_SURFACES_PER_BT,             //!< iSurfacesPerBT
-    RENDERHAL_SSH_BINDING_TABLE_ALIGN          //!< iBTAlignment
+    RENDERHAL_SSH_BINDING_TABLE_ALIGN,         //!< iBTAlignment
+    MOS_CODEC_RESOURCE_USAGE_BEGIN_CODEC       //!< heapUsageType
 };
 
 extern const RENDERHAL_ENLARGE_PARAMS g_cRenderHal_Enlarge_State_Heap_Settings_Adv_xe_hpg =

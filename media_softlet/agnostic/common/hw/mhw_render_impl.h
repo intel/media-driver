@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021, Intel Corporation
+* Copyright (c) 2021-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -70,6 +70,11 @@ public:
     MHW_RENDER_ENGINE_L3_CACHE_CONFIG* GetL3CacheConfig() override
     { 
         return &m_l3CacheConfig;
+    }
+
+    MOS_STATUS SetupInlineData() override
+    {
+        return MOS_STATUS_SUCCESS;
     }
 
 protected:
@@ -317,193 +322,196 @@ public:
     {
         _MHW_SETCMD_CALLBASE(STATE_BASE_ADDRESS);
 
-        MHW_RESOURCE_PARAMS resourceParams = {};
-
-        resourceParams.dwLsbNum      = MHW_RENDER_ENGINE_STATE_BASE_ADDRESS_SHIFT;
-        resourceParams.HwCommandType = MOS_STATE_BASE_ADDR;
-
-        if (!Mos_ResourceIsNull(params.presGeneralState))
+        if (params.addressDis == false)
         {
-            cmd.DW1_2.GeneralStateBaseAddressModifyEnable   = true;
-            cmd.DW12.GeneralStateBufferSizeModifyEnable     = true;
-            resourceParams.presResource                     = params.presGeneralState;
-            resourceParams.dwOffset                         = 0;
-            resourceParams.pdwCmd                           = cmd.DW1_2.Value;
-            resourceParams.dwLocationInCmd                  = _MHW_CMD_DW_LOCATION(DW1_2.Value);
+            MHW_RESOURCE_PARAMS resourceParams = {};
 
-            // upper bound of the allocated resource will not be set
-            resourceParams.dwUpperBoundLocationOffsetFromCmd = 0;
+            resourceParams.dwLsbNum      = MHW_RENDER_ENGINE_STATE_BASE_ADDRESS_SHIFT;
+            resourceParams.HwCommandType = MOS_STATE_BASE_ADDR;
 
-            InitMocsParams(resourceParams, &cmd.DW1_2.Value[0], 5, 10);
-            MHW_MI_CHK_STATUS(AddResourceToCmd(
-                this->m_osItf,
-                this->m_currentCmdBuf,
-                &resourceParams));
-
-            if (params.mocs4GeneralState != 0)
+            if (!Mos_ResourceIsNull(params.presGeneralState))
             {
-                cmd.DW1_2.GeneralStateMemoryObjectControlState = params.mocs4GeneralState;
-            }
-            MT_LOG2(MT_VP_MHW_CACHE_MOCS_TABLE, MT_NORMAL, MT_VP_MHW_CACHE_MEMORY_OBJECT_NAME, *((int64_t *)"STATE_BASE_ADDRESS"), MT_VP_MHW_CACHE_MEMORY_OBJECT_CONTROL_STATE, (int64_t)cmd.DW1_2.GeneralStateMemoryObjectControlState);
-            MHW_NORMALMESSAGE(
-                "Feature Graph: Cache settings of DW1_2 GeneralState in STATE_BASE_ADDRESS: SurfaceMemoryObjectControlState %u, Index to Mocs table %u",
-                cmd.DW1_2.GeneralStateMemoryObjectControlState,
-                (cmd.DW1_2.GeneralStateMemoryObjectControlState >> 1) & 0x0000003f);
-            cmd.DW12.GeneralStateBufferSize = (params.dwGeneralStateSize + MHW_PAGE_SIZE - 1) / MHW_PAGE_SIZE;
-        }
+                cmd.DW1_2.GeneralStateBaseAddressModifyEnable = true;
+                cmd.DW12.GeneralStateBufferSizeModifyEnable   = true;
+                resourceParams.presResource                   = params.presGeneralState;
+                resourceParams.dwOffset                       = 0;
+                resourceParams.pdwCmd                         = cmd.DW1_2.Value;
+                resourceParams.dwLocationInCmd                = _MHW_CMD_DW_LOCATION(DW1_2.Value);
 
-        if (this->m_osItf->bNoParsingAssistanceInKmd && !Mos_ResourceIsNull(&(this->m_currentCmdBuf->OsResource)))
-        {
-            uint32_t indirectStateOffset, indirectStateSize;
-            MHW_MI_CHK_STATUS(this->m_osItf->pfnGetIndirectState(this->m_osItf, &indirectStateOffset, &indirectStateSize));
+                // upper bound of the allocated resource will not be set
+                resourceParams.dwUpperBoundLocationOffsetFromCmd = 0;
 
-            // When KMD parsing assistance is not used,
-            // UMD is required to set up the SSH
-            // in the STATE_BASE_ADDRESS command.
-            // All addresses used in the STATE_BASE_ADDRESS
-            // command need to have the modify
-            // bit associated with it set to 1.
-            cmd.DW4_5.SurfaceStateBaseAddressModifyEnable  = true;
-            resourceParams.presResource                    = &(this->m_currentCmdBuf->OsResource);
-            resourceParams.dwOffset                        = indirectStateOffset;
-            resourceParams.pdwCmd                          = cmd.DW4_5.Value;
-            resourceParams.dwLocationInCmd                 = _MHW_CMD_DW_LOCATION(DW4_5.Value);
+                InitMocsParams(resourceParams, &cmd.DW1_2.Value[0], 5, 10);
+                MHW_MI_CHK_STATUS(AddResourceToCmd(
+                    this->m_osItf,
+                    this->m_currentCmdBuf,
+                    &resourceParams));
 
-            // upper bound of the allocated resource will not be set
-            resourceParams.dwUpperBoundLocationOffsetFromCmd = 0;
-
-            InitMocsParams(resourceParams, &cmd.DW4_5.Value[0], 5, 10);
-            MHW_MI_CHK_STATUS(AddResourceToCmd(
-                this->m_osItf,
-                this->m_currentCmdBuf,
-                &resourceParams));
-
-            if (params.mocs4SurfaceState != 0)
-            {
-                cmd.DW4_5.SurfaceStateMemoryObjectControlState = params.mocs4SurfaceState;
-            }
-            MT_LOG2(MT_VP_MHW_CACHE_MOCS_TABLE, MT_NORMAL, MT_VP_MHW_CACHE_MEMORY_OBJECT_NAME, *((int64_t *)"STATE_BASE_ADDRESS"), MT_VP_MHW_CACHE_MEMORY_OBJECT_CONTROL_STATE, (int64_t)cmd.DW4_5.SurfaceStateMemoryObjectControlState);
-            MHW_NORMALMESSAGE(
-                "Feature Graph: Cache settings of DW4_5 SurfaceState in STATE_BASE_ADDRESS: SurfaceMemoryObjectControlState %u, Index to Mocs table %u",
-                cmd.DW4_5.SurfaceStateMemoryObjectControlState,
-                (cmd.DW4_5.SurfaceStateMemoryObjectControlState >> 1) & 0x0000003f);
-        }
-
-        if (!Mos_ResourceIsNull(params.presDynamicState))
-        {
-            cmd.DW6_7.DynamicStateBaseAddressModifyEnable  = true;
-            cmd.DW13.DynamicStateBufferSizeModifyEnable    = true;
-            resourceParams.presResource                     = params.presDynamicState;
-            resourceParams.dwOffset                         = 0;
-            resourceParams.pdwCmd                           = cmd.DW6_7.Value;
-            resourceParams.dwLocationInCmd                  = _MHW_CMD_DW_LOCATION(DW6_7.Value);
-            resourceParams.bIsWritable                      = params.bDynamicStateRenderTarget;
-
-            // upper bound of the allocated resource will not be set
-            resourceParams.dwUpperBoundLocationOffsetFromCmd = 0;
-
-            InitMocsParams(resourceParams, &cmd.DW6_7.Value[0], 5, 10);
-            MHW_MI_CHK_STATUS(AddResourceToCmd(
-                this->m_osItf,
-                this->m_currentCmdBuf,
-                &resourceParams));
-
-            if (params.mocs4DynamicState != 0)
-            {
-                cmd.DW6_7.DynamicStateMemoryObjectControlState = params.mocs4DynamicState;
+                if (params.mocs4GeneralState != 0)
+                {
+                    cmd.DW1_2.GeneralStateMemoryObjectControlState = params.mocs4GeneralState;
+                }
+                MT_LOG2(MT_VP_MHW_CACHE_MOCS_TABLE, MT_NORMAL, MT_VP_MHW_CACHE_MEMORY_OBJECT_NAME, *((int64_t *)"STATE_BASE_ADDRESS"), MT_VP_MHW_CACHE_MEMORY_OBJECT_CONTROL_STATE, (int64_t)cmd.DW1_2.GeneralStateMemoryObjectControlState);
+                MHW_NORMALMESSAGE(
+                    "Feature Graph: Cache settings of DW1_2 GeneralState in STATE_BASE_ADDRESS: SurfaceMemoryObjectControlState %u, Index to Mocs table %u",
+                    cmd.DW1_2.GeneralStateMemoryObjectControlState,
+                    (cmd.DW1_2.GeneralStateMemoryObjectControlState >> 1) & 0x0000003f);
+                cmd.DW12.GeneralStateBufferSize = (params.dwGeneralStateSize + MHW_PAGE_SIZE - 1) / MHW_PAGE_SIZE;
             }
 
-            MT_LOG2(MT_VP_MHW_CACHE_MOCS_TABLE, MT_NORMAL, MT_VP_MHW_CACHE_MEMORY_OBJECT_NAME, *((int64_t *)"STATE_BASE_ADDRESS"), MT_VP_MHW_CACHE_MEMORY_OBJECT_CONTROL_STATE, (int64_t)cmd.DW6_7.DynamicStateMemoryObjectControlState);
-            MHW_NORMALMESSAGE(
-                "Feature Graph: Cache settings of DW6_7 DynamicState in STATE_BASE_ADDRESS: SurfaceMemoryObjectControlState %u, Index to Mocs table %u",
-                cmd.DW6_7.DynamicStateMemoryObjectControlState,
-                (cmd.DW6_7.DynamicStateMemoryObjectControlState >> 1) & 0x0000003f);
-            cmd.DW13.DynamicStateBufferSize = (params.dwDynamicStateSize + MHW_PAGE_SIZE - 1) / MHW_PAGE_SIZE;
-
-            //Reset isOutput as it should be enabled only for Dynamic State
-            resourceParams.bIsWritable = false;
-        }
-
-        if (!Mos_ResourceIsNull(params.presIndirectObjectBuffer))
-        {
-            cmd.DW8_9.IndirectObjectBaseAddressModifyEnable   = true;
-            cmd.DW14.IndirectObjectBufferSizeModifyEnable     = true;
-            resourceParams.presResource                       = params.presIndirectObjectBuffer;
-            resourceParams.dwOffset                           = 0;
-            resourceParams.pdwCmd                             = cmd.DW8_9.Value;
-            resourceParams.dwLocationInCmd                    = _MHW_CMD_DW_LOCATION(DW8_9.Value);
-
-            // upper bound of the allocated resource will not be set
-            resourceParams.dwUpperBoundLocationOffsetFromCmd = 0;
-
-            InitMocsParams(resourceParams, &cmd.DW8_9.Value[0], 5, 10);
-            MHW_MI_CHK_STATUS(AddResourceToCmd(
-                this->m_osItf,
-                this->m_currentCmdBuf,
-                &resourceParams));
-
-            if (params.mocs4IndirectObjectBuffer != 0)
+            if (this->m_osItf->bNoParsingAssistanceInKmd && !Mos_ResourceIsNull(&(this->m_currentCmdBuf->OsResource)))
             {
-                cmd.DW8_9.IndirectObjectMemoryObjectControlState = params.mocs4IndirectObjectBuffer;
+                uint32_t indirectStateOffset, indirectStateSize;
+                MHW_MI_CHK_STATUS(this->m_osItf->pfnGetIndirectState(this->m_osItf, &indirectStateOffset, &indirectStateSize));
+
+                // When KMD parsing assistance is not used,
+                // UMD is required to set up the SSH
+                // in the STATE_BASE_ADDRESS command.
+                // All addresses used in the STATE_BASE_ADDRESS
+                // command need to have the modify
+                // bit associated with it set to 1.
+                cmd.DW4_5.SurfaceStateBaseAddressModifyEnable = true;
+                resourceParams.presResource                   = &(this->m_currentCmdBuf->OsResource);
+                resourceParams.dwOffset                       = indirectStateOffset;
+                resourceParams.pdwCmd                         = cmd.DW4_5.Value;
+                resourceParams.dwLocationInCmd                = _MHW_CMD_DW_LOCATION(DW4_5.Value);
+
+                // upper bound of the allocated resource will not be set
+                resourceParams.dwUpperBoundLocationOffsetFromCmd = 0;
+
+                InitMocsParams(resourceParams, &cmd.DW4_5.Value[0], 5, 10);
+                MHW_MI_CHK_STATUS(AddResourceToCmd(
+                    this->m_osItf,
+                    this->m_currentCmdBuf,
+                    &resourceParams));
+
+                if (params.mocs4SurfaceState != 0)
+                {
+                    cmd.DW4_5.SurfaceStateMemoryObjectControlState = params.mocs4SurfaceState;
+                }
+                MT_LOG2(MT_VP_MHW_CACHE_MOCS_TABLE, MT_NORMAL, MT_VP_MHW_CACHE_MEMORY_OBJECT_NAME, *((int64_t *)"STATE_BASE_ADDRESS"), MT_VP_MHW_CACHE_MEMORY_OBJECT_CONTROL_STATE, (int64_t)cmd.DW4_5.SurfaceStateMemoryObjectControlState);
+                MHW_NORMALMESSAGE(
+                    "Feature Graph: Cache settings of DW4_5 SurfaceState in STATE_BASE_ADDRESS: SurfaceMemoryObjectControlState %u, Index to Mocs table %u",
+                    cmd.DW4_5.SurfaceStateMemoryObjectControlState,
+                    (cmd.DW4_5.SurfaceStateMemoryObjectControlState >> 1) & 0x0000003f);
             }
-            MT_LOG2(MT_VP_MHW_CACHE_MOCS_TABLE, MT_NORMAL, MT_VP_MHW_CACHE_MEMORY_OBJECT_NAME, *((int64_t *)"STATE_BASE_ADDRESS"), MT_VP_MHW_CACHE_MEMORY_OBJECT_CONTROL_STATE, (int64_t)cmd.DW8_9.IndirectObjectMemoryObjectControlState);
-            MHW_NORMALMESSAGE(
-                "Feature Graph: Cache settings of DW8_9 IndirectObject in STATE_BASE_ADDRESS: SurfaceMemoryObjectControlState %u, Index to Mocs table %u",
-                cmd.DW8_9.IndirectObjectMemoryObjectControlState,
-                (cmd.DW8_9.IndirectObjectMemoryObjectControlState >> 1) & 0x0000003f);
-            cmd.DW14.IndirectObjectBufferSize = (params.dwIndirectObjectBufferSize + MHW_PAGE_SIZE - 1) / MHW_PAGE_SIZE;
-        }
 
-        if (!Mos_ResourceIsNull(params.presInstructionBuffer))
-        {
-            cmd.DW10_11.InstructionBaseAddressModifyEnable   = true;
-            cmd.DW15.InstructionBufferSizeModifyEnable       = true;
-            resourceParams.presResource                      = params.presInstructionBuffer;
-            resourceParams.dwOffset                          = 0;
-            resourceParams.pdwCmd                            = cmd.DW10_11.Value;
-            resourceParams.dwLocationInCmd                   = _MHW_CMD_DW_LOCATION(DW10_11.Value);
-
-            // upper bound of the allocated resource will not be set
-            resourceParams.dwUpperBoundLocationOffsetFromCmd = 0;
-
-            InitMocsParams(resourceParams, &cmd.DW10_11.Value[0], 5, 10);
-
-            MHW_MI_CHK_STATUS(AddResourceToCmd(
-                this->m_osItf,
-                this->m_currentCmdBuf,
-                &resourceParams));
-
-            if (params.mocs4InstructionCache != 0)
+            if (!Mos_ResourceIsNull(params.presDynamicState))
             {
-                cmd.DW10_11.InstructionMemoryObjectControlState = params.mocs4InstructionCache;
+                cmd.DW6_7.DynamicStateBaseAddressModifyEnable = true;
+                cmd.DW13.DynamicStateBufferSizeModifyEnable   = true;
+                resourceParams.presResource                   = params.presDynamicState;
+                resourceParams.dwOffset                       = 0;
+                resourceParams.pdwCmd                         = cmd.DW6_7.Value;
+                resourceParams.dwLocationInCmd                = _MHW_CMD_DW_LOCATION(DW6_7.Value);
+                resourceParams.bIsWritable                    = params.bDynamicStateRenderTarget;
+
+                // upper bound of the allocated resource will not be set
+                resourceParams.dwUpperBoundLocationOffsetFromCmd = 0;
+
+                InitMocsParams(resourceParams, &cmd.DW6_7.Value[0], 5, 10);
+                MHW_MI_CHK_STATUS(AddResourceToCmd(
+                    this->m_osItf,
+                    this->m_currentCmdBuf,
+                    &resourceParams));
+
+                if (params.mocs4DynamicState != 0)
+                {
+                    cmd.DW6_7.DynamicStateMemoryObjectControlState = params.mocs4DynamicState;
+                }
+
+                MT_LOG2(MT_VP_MHW_CACHE_MOCS_TABLE, MT_NORMAL, MT_VP_MHW_CACHE_MEMORY_OBJECT_NAME, *((int64_t *)"STATE_BASE_ADDRESS"), MT_VP_MHW_CACHE_MEMORY_OBJECT_CONTROL_STATE, (int64_t)cmd.DW6_7.DynamicStateMemoryObjectControlState);
+                MHW_NORMALMESSAGE(
+                    "Feature Graph: Cache settings of DW6_7 DynamicState in STATE_BASE_ADDRESS: SurfaceMemoryObjectControlState %u, Index to Mocs table %u",
+                    cmd.DW6_7.DynamicStateMemoryObjectControlState,
+                    (cmd.DW6_7.DynamicStateMemoryObjectControlState >> 1) & 0x0000003f);
+                cmd.DW13.DynamicStateBufferSize = (params.dwDynamicStateSize + MHW_PAGE_SIZE - 1) / MHW_PAGE_SIZE;
+
+                //Reset isOutput as it should be enabled only for Dynamic State
+                resourceParams.bIsWritable = false;
             }
-            MT_LOG2(MT_VP_MHW_CACHE_MOCS_TABLE, MT_NORMAL, MT_VP_MHW_CACHE_MEMORY_OBJECT_NAME, *((int64_t *)"STATE_BASE_ADDRESS"), MT_VP_MHW_CACHE_MEMORY_OBJECT_CONTROL_STATE, (int64_t)cmd.DW10_11.InstructionMemoryObjectControlState);
+
+            if (!Mos_ResourceIsNull(params.presIndirectObjectBuffer))
+            {
+                cmd.DW8_9.IndirectObjectBaseAddressModifyEnable = true;
+                cmd.DW14.IndirectObjectBufferSizeModifyEnable   = true;
+                resourceParams.presResource                     = params.presIndirectObjectBuffer;
+                resourceParams.dwOffset                         = 0;
+                resourceParams.pdwCmd                           = cmd.DW8_9.Value;
+                resourceParams.dwLocationInCmd                  = _MHW_CMD_DW_LOCATION(DW8_9.Value);
+
+                // upper bound of the allocated resource will not be set
+                resourceParams.dwUpperBoundLocationOffsetFromCmd = 0;
+
+                InitMocsParams(resourceParams, &cmd.DW8_9.Value[0], 5, 10);
+                MHW_MI_CHK_STATUS(AddResourceToCmd(
+                    this->m_osItf,
+                    this->m_currentCmdBuf,
+                    &resourceParams));
+
+                if (params.mocs4IndirectObjectBuffer != 0)
+                {
+                    cmd.DW8_9.IndirectObjectMemoryObjectControlState = params.mocs4IndirectObjectBuffer;
+                }
+                MT_LOG2(MT_VP_MHW_CACHE_MOCS_TABLE, MT_NORMAL, MT_VP_MHW_CACHE_MEMORY_OBJECT_NAME, *((int64_t *)"STATE_BASE_ADDRESS"), MT_VP_MHW_CACHE_MEMORY_OBJECT_CONTROL_STATE, (int64_t)cmd.DW8_9.IndirectObjectMemoryObjectControlState);
+                MHW_NORMALMESSAGE(
+                    "Feature Graph: Cache settings of DW8_9 IndirectObject in STATE_BASE_ADDRESS: SurfaceMemoryObjectControlState %u, Index to Mocs table %u",
+                    cmd.DW8_9.IndirectObjectMemoryObjectControlState,
+                    (cmd.DW8_9.IndirectObjectMemoryObjectControlState >> 1) & 0x0000003f);
+                cmd.DW14.IndirectObjectBufferSize = (params.dwIndirectObjectBufferSize + MHW_PAGE_SIZE - 1) / MHW_PAGE_SIZE;
+            }
+
+            if (!Mos_ResourceIsNull(params.presInstructionBuffer))
+            {
+                cmd.DW10_11.InstructionBaseAddressModifyEnable = true;
+                cmd.DW15.InstructionBufferSizeModifyEnable     = true;
+                resourceParams.presResource                    = params.presInstructionBuffer;
+                resourceParams.dwOffset                        = 0;
+                resourceParams.pdwCmd                          = cmd.DW10_11.Value;
+                resourceParams.dwLocationInCmd                 = _MHW_CMD_DW_LOCATION(DW10_11.Value);
+
+                // upper bound of the allocated resource will not be set
+                resourceParams.dwUpperBoundLocationOffsetFromCmd = 0;
+
+                InitMocsParams(resourceParams, &cmd.DW10_11.Value[0], 5, 10);
+
+                MHW_MI_CHK_STATUS(AddResourceToCmd(
+                    this->m_osItf,
+                    this->m_currentCmdBuf,
+                    &resourceParams));
+
+                if (params.mocs4InstructionCache != 0)
+                {
+                    cmd.DW10_11.InstructionMemoryObjectControlState = params.mocs4InstructionCache;
+                }
+                MT_LOG2(MT_VP_MHW_CACHE_MOCS_TABLE, MT_NORMAL, MT_VP_MHW_CACHE_MEMORY_OBJECT_NAME, *((int64_t *)"STATE_BASE_ADDRESS"), MT_VP_MHW_CACHE_MEMORY_OBJECT_CONTROL_STATE, (int64_t)cmd.DW10_11.InstructionMemoryObjectControlState);
+                MHW_NORMALMESSAGE(
+                    "Feature Graph: Cache settings of DW10_11 Instruction in STATE_BASE_ADDRESS: SurfaceMemoryObjectControlState %u, Index to Mocs table %u",
+                    cmd.DW10_11.InstructionMemoryObjectControlState,
+                    (cmd.DW10_11.InstructionMemoryObjectControlState >> 1) & 0x0000003f);
+                cmd.DW15.InstructionBufferSize = (params.dwInstructionBufferSize + MHW_PAGE_SIZE - 1) / MHW_PAGE_SIZE;
+            }
+
+            // stateless dataport access
+            cmd.DW3.StatelessDataPortAccessMemoryObjectControlState = params.mocs4StatelessDataport;
+            MT_LOG2(MT_VP_MHW_CACHE_MOCS_TABLE, MT_NORMAL, MT_VP_MHW_CACHE_MEMORY_OBJECT_NAME, *((int64_t *)"STATE_BASE_ADDRESS"), MT_VP_MHW_CACHE_MEMORY_OBJECT_CONTROL_STATE, (int64_t)cmd.DW3.StatelessDataPortAccessMemoryObjectControlState);
             MHW_NORMALMESSAGE(
-                "Feature Graph: Cache settings of DW10_11 Instruction in STATE_BASE_ADDRESS: SurfaceMemoryObjectControlState %u, Index to Mocs table %u",
-                cmd.DW10_11.InstructionMemoryObjectControlState,
-                (cmd.DW10_11.InstructionMemoryObjectControlState >> 1) & 0x0000003f);
-            cmd.DW15.InstructionBufferSize = (params.dwInstructionBufferSize + MHW_PAGE_SIZE - 1) / MHW_PAGE_SIZE;
+                "Feature Graph: Cache settings of DW3 StatelessDataPortAccess in STATE_BASE_ADDRESS: SurfaceMemoryObjectControlState %u, Index to Mocs table %u",
+                cmd.DW3.StatelessDataPortAccessMemoryObjectControlState,
+                (cmd.DW3.StatelessDataPortAccessMemoryObjectControlState >> 1) & 0x0000003f);
+
+            MT_LOG2(MT_VP_MHW_CACHE_MOCS_TABLE, MT_NORMAL, MT_VP_MHW_CACHE_MEMORY_OBJECT_NAME, *((int64_t *)"STATE_BASE_ADDRESS"), MT_VP_MHW_CACHE_MEMORY_OBJECT_CONTROL_STATE, (int64_t)cmd.DW16_17.BindlessSurfaceStateMemoryObjectControlState);
+            MHW_NORMALMESSAGE(
+                "Feature Graph: Cache settings of DW16_17 BindlessSurfaceState in STATE_BASE_ADDRESS: SurfaceMemoryObjectControlState %u, Index to Mocs table %u",
+                cmd.DW16_17.BindlessSurfaceStateMemoryObjectControlState,
+                (cmd.DW16_17.BindlessSurfaceStateMemoryObjectControlState >> 1) & 0x0000003f);
+
+            MT_LOG2(MT_VP_MHW_CACHE_MOCS_TABLE, MT_NORMAL, MT_VP_MHW_CACHE_MEMORY_OBJECT_NAME, *((int64_t *)"STATE_BASE_ADDRESS"), MT_VP_MHW_CACHE_MEMORY_OBJECT_CONTROL_STATE, (int64_t)cmd.DW19_20.BindlessSamplerStateMemoryObjectControlState);
+            MHW_NORMALMESSAGE(
+                "Feature Graph: Cache settings of DW19_20 BindlessSamplerState in STATE_BASE_ADDRESS: SurfaceMemoryObjectControlState %u, Index to Mocs table %u",
+                cmd.DW19_20.BindlessSamplerStateMemoryObjectControlState,
+                (cmd.DW19_20.BindlessSamplerStateMemoryObjectControlState >> 1) & 0x0000003f);
         }
-
-        // stateless dataport access
-        cmd.DW3.StatelessDataPortAccessMemoryObjectControlState = params.mocs4StatelessDataport;
-        MT_LOG2(MT_VP_MHW_CACHE_MOCS_TABLE, MT_NORMAL, MT_VP_MHW_CACHE_MEMORY_OBJECT_NAME, *((int64_t *)"STATE_BASE_ADDRESS"), MT_VP_MHW_CACHE_MEMORY_OBJECT_CONTROL_STATE, (int64_t)cmd.DW3.StatelessDataPortAccessMemoryObjectControlState);
-        MHW_NORMALMESSAGE(
-            "Feature Graph: Cache settings of DW3 StatelessDataPortAccess in STATE_BASE_ADDRESS: SurfaceMemoryObjectControlState %u, Index to Mocs table %u",
-            cmd.DW3.StatelessDataPortAccessMemoryObjectControlState,
-            (cmd.DW3.StatelessDataPortAccessMemoryObjectControlState >> 1) & 0x0000003f);
-
-        MT_LOG2(MT_VP_MHW_CACHE_MOCS_TABLE, MT_NORMAL, MT_VP_MHW_CACHE_MEMORY_OBJECT_NAME, *((int64_t *)"STATE_BASE_ADDRESS"), MT_VP_MHW_CACHE_MEMORY_OBJECT_CONTROL_STATE, (int64_t)cmd.DW16_17.BindlessSurfaceStateMemoryObjectControlState);
-        MHW_NORMALMESSAGE(
-            "Feature Graph: Cache settings of DW16_17 BindlessSurfaceState in STATE_BASE_ADDRESS: SurfaceMemoryObjectControlState %u, Index to Mocs table %u",
-            cmd.DW16_17.BindlessSurfaceStateMemoryObjectControlState,
-            (cmd.DW16_17.BindlessSurfaceStateMemoryObjectControlState >> 1) & 0x0000003f);
-
-        MT_LOG2(MT_VP_MHW_CACHE_MOCS_TABLE, MT_NORMAL, MT_VP_MHW_CACHE_MEMORY_OBJECT_NAME, *((int64_t *)"STATE_BASE_ADDRESS"), MT_VP_MHW_CACHE_MEMORY_OBJECT_CONTROL_STATE, (int64_t)cmd.DW19_20.BindlessSamplerStateMemoryObjectControlState);
-        MHW_NORMALMESSAGE(
-            "Feature Graph: Cache settings of DW19_20 BindlessSamplerState in STATE_BASE_ADDRESS: SurfaceMemoryObjectControlState %u, Index to Mocs table %u",
-            cmd.DW19_20.BindlessSamplerStateMemoryObjectControlState,
-            (cmd.DW19_20.BindlessSamplerStateMemoryObjectControlState >> 1) & 0x0000003f);
 
         return MOS_STATUS_SUCCESS;
     }

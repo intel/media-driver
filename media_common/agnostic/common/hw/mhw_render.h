@@ -77,6 +77,7 @@ typedef struct _MHW_RENDER_ENGINE_L3_CACHE_CONFIG
 
 typedef enum _MHW_RENDER_ENGINE_ADDRESS_SHIFT
 {
+    MHW_RENDER_ENGINE_KERNEL_POINTER_SHIFT = 6,
     MHW_RENDER_ENGINE_STATE_BASE_ADDRESS_SHIFT  = 12
 } MHW_RENDER_ENGINE_ADDRESS_SHIFT;
 
@@ -146,6 +147,7 @@ typedef struct _MHW_STATE_BASE_ADDR_PARAMS
     uint32_t                mocs4IndirectObjectBuffer;
     uint32_t                mocs4StatelessDataport;
     uint32_t                l1CacheConfig;
+    bool                    addressDis;
 } MHW_STATE_BASE_ADDR_PARAMS, *PMHW_STATE_BASE_ADDR_PARAMS;
 
 typedef struct _MHW_VFE_SCOREBOARD_DELTA
@@ -309,7 +311,8 @@ typedef struct _MHW_GPGPU_WALKER_PARAMS
     MHW_EMIT_LOCAL_MODE        emitLocal;
 
     bool                       hasBarrier;
-    
+    PMHW_INLINE_DATA_PARAMS    inlineDataParamBase;
+
 } MHW_GPGPU_WALKER_PARAMS, *PMHW_GPGPU_WALKER_PARAMS;
 
 typedef struct _MHW_MEDIA_OBJECT_PARAMS

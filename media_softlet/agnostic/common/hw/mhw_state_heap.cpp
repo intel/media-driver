@@ -1652,6 +1652,7 @@ MOS_STATUS XMHW_STATE_HEAP_INTERFACE::ExtendStateHeapSta(
         AllocParams.Format   = Format_Buffer;
         AllocParams.dwBytes  = pNewStateHeap->dwSize;
         AllocParams.pBufName = "StateHeap";
+        AllocParams.ResUsageType = m_StateHeapSettings.m_heapUsageType;
 
         if (MEDIA_IS_SKU(skuTable, FtrLimitedLMemBar))
         {

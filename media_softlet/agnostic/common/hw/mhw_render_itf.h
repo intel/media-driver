@@ -82,6 +82,8 @@ public:
 
     virtual MHW_RENDER_ENGINE_L3_CACHE_CONFIG* GetL3CacheConfig() = 0;
 
+    virtual MOS_STATUS SetupInlineData() = 0;
+
     _RENDER_CMD_DEF(_MHW_CMD_ALL_DEF_FOR_ITF);
 MEDIA_CLASS_DEFINE_END(mhw__render__Itf)
 };

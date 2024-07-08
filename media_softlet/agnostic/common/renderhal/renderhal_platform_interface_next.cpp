@@ -1507,6 +1507,7 @@ MHW_SETPAR_DECL_SRC(STATE_BASE_ADDRESS, XRenderHal_Platform_Interface_Next)
     params.mocs4SurfaceState = pStateBaseParams->mocs4SurfaceState;
     params.mocs4IndirectObjectBuffer = pStateBaseParams->mocs4IndirectObjectBuffer;
     params.mocs4StatelessDataport = pStateBaseParams->mocs4StatelessDataport;
+    params.addressDis                 = m_renderHal->isBindlessHeapInUse;
 
     return MOS_STATUS_SUCCESS;
 }

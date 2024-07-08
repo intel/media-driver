@@ -80,6 +80,15 @@ enum KRN_ARG_ADDRESSMODE
     AddressIngModeMax
 };
 
+enum IMPLICIT_ARG_TYPE
+{
+    ValueType = 0,
+    IndirectDataPtr,
+    ScratchPtr,
+    SamplerStateBasePtr,
+    SurfaceStateBasePtr
+};
+
 struct KRN_ARG
 {
     uint32_t               uIndex;
@@ -89,6 +98,7 @@ struct KRN_ARG
     KRN_ARG_KIND           eArgKind;
     bool                   isOutput;
     KRN_ARG_ADDRESSMODE    addressMode;
+    IMPLICIT_ARG_TYPE      implicitArgType;
 };
 
 //for L0 use only

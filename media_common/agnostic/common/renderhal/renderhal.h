@@ -841,6 +841,7 @@ typedef struct _RENDERHAL_STATE_HEAP_SETTINGS
     int32_t             iSurfaceStates;                                         // Number of Surfaces per SSH
     int32_t             iSurfacesPerBT;                                         // Number of Surfaces per BT
     int32_t             iBTAlignment;                                           // BT Alignment size
+    MOS_HW_RESOURCE_DEF heapUsageType;
 } RENDERHAL_STATE_HEAP_SETTINGS, *PRENDERHAL_STATE_HEAP_SETTINGS;
 
 typedef struct _RENDERHAL_STATE_HEAP
@@ -1197,6 +1198,7 @@ typedef struct _RENDERHAL_INTERFACE
     bool                        bEnableGpgpuMidBatchPreEmption;                 // Middle Batch Buffer Preemption
     bool                        bEnableGpgpuMidThreadPreEmption;                // Middle Thread Preemption
     bool                        bComputeContextInUse;                           // Compute Context use for media
+    bool                        isBindlessHeapInUse;                            // Bindless Heap Mode use
 
     uint32_t                    dwMaskCrsThdConDataRdLn;                        // Unifies pfnSetupInterfaceDescriptor for g75,g8,...
     uint32_t                    dwMinNumberThreadsInGroup;                      // Unifies pfnSetupInterfaceDescriptor for g75,g8,...
@@ -1459,6 +1461,13 @@ typedef struct _RENDERHAL_INTERFACE
                 int32_t                     iMediaID,
                 PMHW_SAMPLER_STATE_PARAM    pSamplerParams,
                 int32_t                     iSamplers);
+
+    MOS_STATUS (*pfnSetAndGetSamplerStates) (
+                PRENDERHAL_INTERFACE     pRenderHal,
+                int32_t                  iMediaID,
+                PMHW_SAMPLER_STATE_PARAM pSamplerParams,
+                int32_t                  iSamplers,
+                std::map<uint32_t, uint32_t> &samplerMap);
 
     int32_t (* pfnAllocateMediaID) (
                 PRENDERHAL_INTERFACE        pRenderHal,

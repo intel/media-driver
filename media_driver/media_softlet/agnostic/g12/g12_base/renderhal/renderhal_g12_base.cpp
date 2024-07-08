@@ -71,7 +71,8 @@ extern const RENDERHAL_STATE_HEAP_SETTINGS g_cRenderHal_State_Heap_Settings_g12 
     RENDERHAL_SSH_BINDING_TABLES,              //!< iBindingTables
     RENDERHAL_SSH_SURFACE_STATES,              //!< iSurfaceStates
     RENDERHAL_SSH_SURFACES_PER_BT,             //!< iSurfacesPerBT
-    RENDERHAL_SSH_BINDING_TABLE_ALIGN          //!< iBTAlignment
+    RENDERHAL_SSH_BINDING_TABLE_ALIGN,         //!< iBTAlignment
+    MOS_CODEC_RESOURCE_USAGE_BEGIN_CODEC       //!< heapUsageType
 };
 
 const uint32_t g_cLookup_RotationMode_g12[8] = 

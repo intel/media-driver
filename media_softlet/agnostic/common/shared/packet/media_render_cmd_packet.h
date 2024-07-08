@@ -120,7 +120,8 @@ typedef struct _KERNEL_WALKER_PARAMS
 
     bool                                hasBarrier;
     uint32_t                            slmSize;
-    
+    MHW_INLINE_DATA_PARAMS              inlineDataParams[MAX_INLINE_DATA_PARAMS];
+    uint32_t                            inlineDataParamNum;
 }KERNEL_WALKER_PARAMS, * PKERNEL_WALKER_PARAMS;
 
 typedef struct _KERNEL_PACKET_RENDER_DATA
@@ -197,6 +198,13 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
+    virtual uint32_t SetSurfaceForHwAccess(
+        PMOS_SURFACE                    surface,
+        PRENDERHAL_SURFACE_NEXT         pRenderSurface,
+        PRENDERHAL_SURFACE_STATE_PARAMS pSurfaceParams,
+        bool                            bWrite,
+        std::set<uint32_t>             &stateOffsets);
+
     // Step3: RSS Setup, return index insert in binding table
     virtual uint32_t SetSurfaceForHwAccess(
         PMOS_SURFACE                    surface,
@@ -220,6 +228,7 @@ public:
         PRENDERHAL_SURFACE_STATE_PARAMS pSurfaceParams,
         std::set<uint32_t>             &bindingIndexes,
         bool                            bWrite,
+        std::set<uint32_t>             &stateOffsets,
         uint32_t                        capcityOfSurfaceEntries = 0,
         PRENDERHAL_SURFACE_STATE_ENTRY *surfaceEntries      = nullptr,
         uint32_t                       *numOfSurfaceEntries = nullptr);
@@ -228,7 +237,8 @@ public:
         PMOS_SURFACE                    buffer,
         PRENDERHAL_SURFACE_NEXT         pRenderSurface,
         PRENDERHAL_SURFACE_STATE_PARAMS pSurfaceParams,
-        bool                            bWrite);
+        bool                            bWrite,
+        std::set<uint32_t>             &stateOffsets);
 
     virtual uint32_t SetBufferForHwAccess(
         PMOS_SURFACE                    buffer,
@@ -242,7 +252,8 @@ public:
         PRENDERHAL_SURFACE_NEXT         pRenderSurface,
         PRENDERHAL_SURFACE_STATE_PARAMS pSurfaceParams,
         std::set<uint32_t>             &bindingIndexes,
-        bool                            bWrite);
+        bool                            bWrite,
+        std::set<uint32_t>             &stateOffsets);
 
     virtual uint32_t SetBufferForHwAccess(
         MOS_BUFFER                      buffer,

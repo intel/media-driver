@@ -1440,6 +1440,7 @@ MOS_STATUS RenderHal_AllocateStateHeaps(
         MhwStateHeapSettings.dwDshSize     = pStateHeap->dwSizeGSH;
         MhwStateHeapSettings.dwIshSize     = pStateHeap->dwSizeISH;
         MhwStateHeapSettings.dwNumSyncTags = pStateHeap->dwSizeSync;
+        MhwStateHeapSettings.m_heapUsageType = pSettings->heapUsageType;
 
         if (pRenderHal->pRenderHalPltInterface->AllocateHeaps(pRenderHal, MhwStateHeapSettings) != MOS_STATUS_SUCCESS)
         {
@@ -6458,33 +6459,32 @@ MOS_STATUS RenderHal_SetSamplerStates(
     MHW_RENDERHAL_ASSERT( iSamplers <= pRenderHal->StateHeapSettings.iSamplers );
     MHW_RENDERHAL_ASSERT((iMediaID >= 0) && (iMediaID < pRenderHal->StateHeapSettings.iMediaIDs));
     //-----------------------------------------------
-
-    pStateHeap    = pRenderHal->pStateHeap;
-    pMediaState   = pRenderHal->pStateHeap->pCurMediaState;
+    pStateHeap  = pRenderHal->pStateHeap;
+    pMediaState = pRenderHal->pStateHeap->pCurMediaState;
 
     // Offset/Pointer to Samplers
     iOffsetSampler   = pMediaState->dwOffset +                      // Offset to media state
                        pStateHeap->dwOffsetSampler +                // Offset to sampler area
-                       iMediaID * pStateHeap->dwSizeSamplers;        // Samplers for media ID
+                       iMediaID * pStateHeap->dwSizeSamplers;       // Samplers for media ID
     pPtrSampler      = pStateHeap->pGshBuffer + iOffsetSampler;     // Pointer to Samplers
 
     iOffsetSampler   = pMediaState->dwOffset +                      // Offset to media state
                        pStateHeap->dwOffsetSamplerAVS +             // Offset to sampler area
-                       iMediaID * pStateHeap->dwSizeSamplers;     // Samplers for media ID
+                       iMediaID * pStateHeap->dwSizeSamplers;       // Samplers for media ID
     pPtrSamplerAvs   = pStateHeap->pGshBuffer + iOffsetSampler;     // Pointer to AVS Samplers
 
     // Setup sampler states
-    pSamplerStateParams = pSamplerParams; // Pointer to First Sampler State in array
-    for (i = 0; i < iSamplers; i++, pSamplerStateParams++,
-         pPtrSampler += pRenderHal->pHwSizes->dwSizeSamplerState)
+    pSamplerStateParams = pSamplerParams;  // Pointer to First Sampler State in array
+    for (i = 0; i < iSamplers; i++, pSamplerStateParams++, 
+        pPtrSampler += pRenderHal->pHwSizes->dwSizeSamplerState)
     {
         PrintSamplerParams(i, pSamplerStateParams);
         if (pSamplerStateParams->bInUse)
         {
             MHW_RENDERHAL_CHK_STATUS_RETURN(pRenderHal->pOsInterface->pfnSetCmdBufferDebugInfo(
                 pRenderHal->pOsInterface,
-                true,  //bSamplerState
-                false, //bSurfaceState
+                true,    //bSamplerState
+                false,   //bSurfaceState
                 i,
                 pSamplerStateParams->SamplerType));
 
@@ -6517,6 +6517,115 @@ MOS_STATUS RenderHal_SetSamplerStates(
 }
 
 //!
+//! \brief      Sets Sampler States for Gen8
+//! \details    Initialize and set sampler states
+//! \param      PRENDERHAL_INTERFACE pRenderHal
+//!             [in]    Pointer to HW interface
+//! \param      int32_t iMediaID
+//!             [in]    Media Interface Descriptor ID
+//! \param      PRENDERHAL_SAMPLER_STATE_PARAMS pSamplerParams
+//!             [in]    Pointer to sampler state parameters
+//! \param      int32_t iSamplers
+//!             [in]    Number of samplers
+//! \return     MOS_STATUS MOS_STATUS_SUCCESS if success, otherwise MOS_STATUS_UNKNOWN
+//!
+MOS_STATUS RenderHal_SetAndGetSamplerStates(
+    PRENDERHAL_INTERFACE     pRenderHal,
+    int32_t                  iMediaID,
+    PMHW_SAMPLER_STATE_PARAM pSamplerParams,
+    int32_t                  iSamplers,
+    std::map<uint32_t, uint32_t> &samplerMap)
+{
+    MOS_STATUS               eStatus;
+    PRENDERHAL_STATE_HEAP    pStateHeap;
+    PMHW_SAMPLER_STATE_PARAM pSamplerStateParams;
+    PRENDERHAL_MEDIA_STATE   pMediaState;
+    int32_t                  iOffsetSampler;
+    uint8_t                 *pPtrSampler;
+    int32_t                  i;
+    uint32_t                 stateOffsets = 0;
+
+    eStatus = MOS_STATUS_UNKNOWN;
+
+    //-----------------------------------------------
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pSamplerParams);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pStateHeap);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pStateHeap->pCurMediaState);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pHwSizes);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pMhwStateHeap);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pStateHeap->pGshBuffer);
+    MHW_RENDERHAL_ASSERT(iSamplers <= pRenderHal->StateHeapSettings.iSamplers);
+    MHW_RENDERHAL_ASSERT((iMediaID >= 0) && (iMediaID < pRenderHal->StateHeapSettings.iMediaIDs));
+    //-----------------------------------------------
+
+
+    if (pRenderHal->isBindlessHeapInUse == false)
+    {
+        return RenderHal_SetSamplerStates(pRenderHal, iMediaID, pSamplerParams, iSamplers);
+    }
+    else
+    {
+        pStateHeap  = pRenderHal->pStateHeap;
+        pMediaState = pRenderHal->pStateHeap->pCurMediaState;
+
+        // Offset/Pointer to Samplers
+        iOffsetSampler = pMediaState->dwOffset +                 // Offset to media state
+                         pStateHeap->dwOffsetSampler +           // Offset to sampler area
+                         iMediaID * pStateHeap->dwSizeSamplers;  // Samplers for media ID
+
+        pPtrSampler = pStateHeap->pGshBuffer + iOffsetSampler;  // Pointer to Samplers
+
+        // Setup sampler states
+        pSamplerStateParams = pSamplerParams;  // Pointer to First Sampler State in array
+        if (samplerMap.size() != 0)
+        {
+            MHW_RENDERHAL_ASSERTMESSAGE("samplerMap is not empty!");
+            samplerMap.clear();
+        }
+        for (i = 0; i < iSamplers; i++, pSamplerStateParams++, pPtrSampler += pRenderHal->pHwSizes->dwSizeSamplerState)
+        {
+            PrintSamplerParams(i, pSamplerStateParams);
+            if (pSamplerStateParams->bInUse)
+            {
+                MHW_RENDERHAL_CHK_STATUS_RETURN(pRenderHal->pOsInterface->pfnSetCmdBufferDebugInfo(
+                    pRenderHal->pOsInterface,
+                    true,   //bSamplerState
+                    false,  //bSurfaceState
+                    i,
+                    pSamplerStateParams->SamplerType));
+
+                switch (pSamplerStateParams->SamplerType)
+                {
+                case MHW_SAMPLER_TYPE_3D:
+                    stateOffsets = iOffsetSampler + i * pRenderHal->pHwSizes->dwSizeSamplerState;
+                    eStatus      = pRenderHal->pMhwStateHeap->SetSamplerState(pPtrSampler, pSamplerStateParams);
+                    break;
+                default:
+                    eStatus = MOS_STATUS_INVALID_PARAMETER;
+                    MHW_RENDERHAL_ASSERTMESSAGE("Unknown Sampler Type.");
+                    break;
+                }
+
+                samplerMap.insert(std::make_pair(i, stateOffsets));
+
+                if (MOS_FAILED(eStatus))
+                {
+                    MHW_RENDERHAL_ASSERTMESSAGE("Failed to setup Sampler");
+                    return eStatus;
+                }
+            }
+        }
+
+        eStatus = MOS_STATUS_SUCCESS;
+
+        return eStatus;
+
+    }
+
+}
+
+    //!
 //! \brief    Setup Surface State
 //! \details  Setup Surface States
 //! \param    PRENDERHAL_INTERFACE pRenderHal
@@ -7227,6 +7336,7 @@ MOS_STATUS RenderHal_InitInterface(
     // Other states
     pRenderHal->pfnSetVfeStateParams          = RenderHal_SetVfeStateParams;
     pRenderHal->pfnSetSamplerStates           = RenderHal_SetSamplerStates;
+    pRenderHal->pfnSetAndGetSamplerStates     = RenderHal_SetAndGetSamplerStates;
 
     pRenderHal->pfnIs2PlaneNV12Needed         = RenderHal_Is2PlaneNV12Needed;
 
@@ -7246,6 +7356,7 @@ MOS_STATUS RenderHal_InitInterface(
     pRenderHal->bEnableYV12SinglePass         = pRenderHal->pRenderHalPltInterface->IsEnableYV12SinglePass(pRenderHal);
     pRenderHal->dwSamplerAvsIncrement         = pRenderHal->pRenderHalPltInterface->GetSizeSamplerStateAvs(pRenderHal);
     pRenderHal->bComputeContextInUse          = pRenderHal->pRenderHalPltInterface->IsComputeContextInUse(pRenderHal);
+    pRenderHal->isBindlessHeapInUse           = pRenderHal->pRenderHalPltInterface->IsBindlessHeapInUse(pRenderHal);
 
     pRenderHal->dwMaskCrsThdConDataRdLn       = (uint32_t) -1;
     pRenderHal->dwMinNumberThreadsInGroup     = 1;

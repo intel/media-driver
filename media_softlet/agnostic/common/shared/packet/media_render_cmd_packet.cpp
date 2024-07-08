@@ -375,7 +375,11 @@ MOS_STATUS RenderCmdPacket::SetPowerMode(uint32_t KernelID)
     return eStatus;
 }
 
-uint32_t RenderCmdPacket::SetSurfaceForHwAccess(PMOS_SURFACE surface, PRENDERHAL_SURFACE_NEXT pRenderSurface, PRENDERHAL_SURFACE_STATE_PARAMS pSurfaceParams, bool bWrite)
+uint32_t RenderCmdPacket::SetSurfaceForHwAccess(
+    PMOS_SURFACE                    surface,
+    PRENDERHAL_SURFACE_NEXT         pRenderSurface,
+    PRENDERHAL_SURFACE_STATE_PARAMS pSurfaceParams,
+    bool                            bWrite)
 {
     PMOS_INTERFACE                 pOsInterface;
     PRENDERHAL_SURFACE_STATE_ENTRY pSurfaceEntries[MHW_MAX_SURFACE_PLANES];
@@ -466,6 +470,118 @@ uint32_t RenderCmdPacket::SetSurfaceForHwAccess(PMOS_SURFACE surface, PRENDERHAL
             pSurfaceEntries[i]));
 
         pRenderSurface->Index = m_renderData.bindingTableEntry;
+    }
+
+    return iBTEntry;
+}
+
+
+uint32_t RenderCmdPacket::SetSurfaceForHwAccess(
+    PMOS_SURFACE                    surface,
+    PRENDERHAL_SURFACE_NEXT         pRenderSurface,
+    PRENDERHAL_SURFACE_STATE_PARAMS pSurfaceParams,
+    bool                            bWrite,
+    std::set<uint32_t>             &stateOffsets)
+{
+    PMOS_INTERFACE                 pOsInterface;
+    PRENDERHAL_SURFACE_STATE_ENTRY pSurfaceEntries[MHW_MAX_SURFACE_PLANES];
+    int32_t                        iSurfaceEntries;
+    int32_t                        i;
+    MOS_STATUS                     eStatus;
+    RENDERHAL_SURFACE_STATE_PARAMS surfaceParams;
+
+    // Initialize Variables
+    eStatus      = MOS_STATUS_SUCCESS;
+    pOsInterface = m_osInterface;
+
+    RENDER_PACKET_CHK_NULL_RETURN(pRenderSurface);
+    RENDER_PACKET_CHK_NULL_RETURN(pOsInterface);
+
+    // Register surfaces for rendering (GfxAddress/Allocation index)
+    // Register resource
+    RENDER_PACKET_CHK_STATUS_RETURN(m_osInterface->pfnRegisterResource(
+        m_osInterface,
+        &surface->OsResource,
+        bWrite,
+        true));
+
+    if (!pSurfaceParams)
+    {
+        MOS_ZeroMemory(&surfaceParams, sizeof(RENDERHAL_SURFACE_STATE_PARAMS));
+
+        //set mem object control for cache
+        surfaceParams.MemObjCtl = (m_renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
+                                       MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_RENDER,
+                                       m_renderHal->pOsInterface->pfnGetGmmClientContext(m_renderHal->pOsInterface))).DwordValue;
+
+        pSurfaceParams = &surfaceParams;
+    }
+
+    if (pSurfaceParams->bAVS)
+    {
+        pSurfaceParams->Type = m_renderHal->SurfaceTypeAdvanced;
+    }
+    else
+    {
+        pSurfaceParams->Type = m_renderHal->SurfaceTypeDefault;
+    }
+
+    RENDER_PACKET_CHK_STATUS_RETURN(InitRenderHalSurface(
+        *surface,
+        pRenderSurface));
+
+    if (bWrite)
+    {
+        pRenderSurface->SurfType = RENDERHAL_SURF_OUT_RENDERTARGET;
+    }
+
+    // Setup surface states-----------------------------------------------------
+    RENDER_PACKET_CHK_STATUS_RETURN(m_renderHal->pfnSetupSurfaceState(
+        m_renderHal,
+        pRenderSurface,
+        pSurfaceParams,
+        &iSurfaceEntries,  // for most cases, surface entry should only take 1 entry, need align with kerenl design
+        pSurfaceEntries,
+        nullptr));
+
+    if (!m_isLargeSurfaceStateNeeded)
+    {
+        if (m_renderData.bindingTableEntry > 15)
+        {
+            RENDER_PACKET_ASSERTMESSAGE("input surface support up to 16 RSS");
+            m_renderData.bindingTableEntry = 0;
+        }
+    }
+    else
+    {
+        if (m_renderData.bindingTableEntry > 255)
+        {
+            RENDER_PACKET_ASSERTMESSAGE("input surface support up to 256 RSS");
+            m_renderData.bindingTableEntry = 0;
+        }
+    }
+
+    uint32_t iBTEntry = m_renderData.bindingTableEntry;
+    if (m_renderHal->isBindlessHeapInUse == false)
+    {
+        // Bind surface states------------------------------------------------------
+        for (i = 0; i < iSurfaceEntries; i++, m_renderData.bindingTableEntry++)
+        {
+            RENDER_PACKET_CHK_STATUS_RETURN(m_renderHal->pfnBindSurfaceState(
+                m_renderHal,
+                m_renderData.bindingTable,
+                m_renderData.bindingTableEntry,
+                pSurfaceEntries[i]));
+
+            pRenderSurface->Index = m_renderData.bindingTableEntry;
+        }
+    }
+    else
+    {
+        for (i = 0; i < iSurfaceEntries; i++)
+        {
+            stateOffsets.insert(pSurfaceEntries[i]->dwSurfStateOffset);
+        }
     }
 
     return iBTEntry;
@@ -578,6 +694,7 @@ MOS_STATUS RenderCmdPacket::SetSurfaceForHwAccess(
     PRENDERHAL_SURFACE_STATE_PARAMS pSurfaceParams,
     std::set<uint32_t>             &bindingIndexes,
     bool                            bWrite,
+    std::set<uint32_t>             &stateOffsets,
     uint32_t                        capcityOfSurfaceEntries,
     PRENDERHAL_SURFACE_STATE_ENTRY *surfaceEntries,
     uint32_t                       *numOfSurfaceEntries)
@@ -656,19 +773,29 @@ MOS_STATUS RenderCmdPacket::SetSurfaceForHwAccess(
         }
     }
 
-    for (uint32_t const &bindingIndex : bindingIndexes)
+    if (m_renderHal->isBindlessHeapInUse == false)
     {
-        uint32_t iBTEntry = bindingIndex;
-        // Bind surface states------------------------------------------------------
-        for (i = 0; i < iSurfaceEntries; i++, iBTEntry++)
+        for (uint32_t const &bindingIndex : bindingIndexes)
         {
-            RENDER_PACKET_CHK_STATUS_RETURN(m_renderHal->pfnBindSurfaceState(
-                m_renderHal,
-                m_renderData.bindingTable,
-                iBTEntry,
-                pSurfaceEntries[i]));
+            uint32_t iBTEntry = bindingIndex;
+            // Bind surface states------------------------------------------------------
+            for (i = 0; i < iSurfaceEntries; i++, iBTEntry++)
+            {
+                RENDER_PACKET_CHK_STATUS_RETURN(m_renderHal->pfnBindSurfaceState(
+                    m_renderHal,
+                    m_renderData.bindingTable,
+                    iBTEntry,
+                    pSurfaceEntries[i]));
 
-            pRenderSurface->Index = iBTEntry;
+                pRenderSurface->Index = iBTEntry;
+            }
+        }
+    }
+    else
+    {
+        for (i = 0; i < iSurfaceEntries; i++)
+        {
+            stateOffsets.insert(pSurfaceEntries[i]->dwSurfStateOffset);
         }
     }
 
@@ -681,7 +808,12 @@ MOS_STATUS RenderCmdPacket::SetSurfaceForHwAccess(
 }
 
 
-uint32_t RenderCmdPacket::SetBufferForHwAccess(PMOS_SURFACE buffer, PRENDERHAL_SURFACE_NEXT pRenderSurface, PRENDERHAL_SURFACE_STATE_PARAMS pSurfaceParams, bool bWrite)
+uint32_t RenderCmdPacket::SetBufferForHwAccess(
+    PMOS_SURFACE                    buffer,
+    PRENDERHAL_SURFACE_NEXT         pRenderSurface,
+    PRENDERHAL_SURFACE_STATE_PARAMS pSurfaceParams,
+    bool                            bWrite,
+    std::set<uint32_t>             &stateOffsets)
 {
     RENDERHAL_SURFACE              RenderHalSurface;
     RENDERHAL_SURFACE_STATE_PARAMS SurfaceParam;
@@ -722,16 +854,23 @@ uint32_t RenderCmdPacket::SetBufferForHwAccess(PMOS_SURFACE buffer, PRENDERHAL_S
         pSurfaceParams,
         &pSurfaceEntry));
 
-    // Bind surface state-------------------------------------------------------
-    RENDER_PACKET_CHK_STATUS_RETURN(m_renderHal->pfnBindSurfaceState(
-        m_renderHal,
-        m_renderData.bindingTable,
-        m_renderData.bindingTableEntry,
-        pSurfaceEntry));
+    if (m_renderHal->isBindlessHeapInUse == false)
+    {
+        // Bind surface state-------------------------------------------------------
+        RENDER_PACKET_CHK_STATUS_RETURN(m_renderHal->pfnBindSurfaceState(
+            m_renderHal,
+            m_renderData.bindingTable,
+            m_renderData.bindingTableEntry,
+            pSurfaceEntry));
 
-    pRenderSurface->Index = m_renderData.bindingTableEntry;
+        pRenderSurface->Index = m_renderData.bindingTableEntry;
 
-    m_renderData.bindingTableEntry++;
+        m_renderData.bindingTableEntry++;
+    }
+    else
+    {
+        stateOffsets.insert(pSurfaceEntry->dwSurfStateOffset);
+    }
     return pRenderSurface->Index;
 }
 
@@ -796,7 +935,8 @@ MOS_STATUS RenderCmdPacket::SetBufferForHwAccess(
     PRENDERHAL_SURFACE_NEXT         pRenderSurface,
     PRENDERHAL_SURFACE_STATE_PARAMS pSurfaceParams,
     std::set<uint32_t>             &bindingIndexes,
-    bool                            bWrite)
+    bool                            bWrite,
+    std::set<uint32_t>             &stateOffsets)
 {
     RENDERHAL_SURFACE              RenderHalSurface = {};
     RENDERHAL_SURFACE_STATE_PARAMS SurfaceParam     = {};
@@ -841,17 +981,24 @@ MOS_STATUS RenderCmdPacket::SetBufferForHwAccess(
         pSurfaceParams,
         &pSurfaceEntry));
 
-    for (uint32_t const &bindingIndex : bindingIndexes)
+    if (m_renderHal->isBindlessHeapInUse == false)
     {
-        uint32_t iBTEntry = bindingIndex;
-        // Bind surface state-------------------------------------------------------
-        RENDER_PACKET_CHK_STATUS_RETURN(m_renderHal->pfnBindSurfaceState(
-            m_renderHal,
-            m_renderData.bindingTable,
-            iBTEntry,
-            pSurfaceEntry));
+        for (uint32_t const &bindingIndex : bindingIndexes)
+        {
+            uint32_t iBTEntry = bindingIndex;
+            // Bind surface state-------------------------------------------------------
+            RENDER_PACKET_CHK_STATUS_RETURN(m_renderHal->pfnBindSurfaceState(
+                m_renderHal,
+                m_renderData.bindingTable,
+                iBTEntry,
+                pSurfaceEntry));
 
-        pRenderSurface->Index = bindingIndex;
+            pRenderSurface->Index = bindingIndex;
+        }
+    }
+    else
+    {
+        stateOffsets.insert(pSurfaceEntry->dwSurfStateOffset);
     }
 
     return eStatus;
@@ -1117,7 +1264,8 @@ MOS_STATUS RenderCmdPacket::PrepareComputeWalkerParams(KERNEL_WALKER_PARAMS para
 
     gpgpuWalker.SLMSize           = params.slmSize;
     gpgpuWalker.hasBarrier        = params.hasBarrier;
-    
+    gpgpuWalker.inlineDataParamBase   = params.inlineDataParams;
+
     return MOS_STATUS_SUCCESS;
 }
 
