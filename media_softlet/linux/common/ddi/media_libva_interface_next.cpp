@@ -3987,8 +3987,8 @@ VAStatus MediaLibvaInterfaceNext::GenerateVaImgFromMediaFormat(
         vaimg->offsets[2]               = vaimg->offsets[1] + vaimg->pitches[1] * MOS_ALIGN_CEIL(mediaSurface->iHeight, 2) / 2;
         break;
     case Media_Format_A8B8G8R8:
-    case Media_Format_R8G8B8A8:
     case Media_Format_A8R8G8B8:
+    case Media_Format_R8G8B8A8:
         vaimg->format.bits_per_pixel    = 32;
         vaimg->format.alpha_mask        = RGB_8BIT_ALPHAMASK;
         vaimg->num_planes               = 1;
@@ -4446,34 +4446,11 @@ DDI_MEDIA_FORMAT MediaLibvaInterfaceNext::OsFormatToMediaFormat(int32_t fourcc, 
         case VA_FOURCC_X2B10G10R10:
             return Media_Format_R10G10B10X2;
         case VA_FOURCC_BGRA:
-        case VA_FOURCC_ARGB:
-#ifdef VA_RT_FORMAT_RGB32_10BPP
-            if(VA_RT_FORMAT_RGB32_10BPP == rtformatType)
-            {
-                return Media_Format_B10G10R10A2;
-            }
-#endif
             return Media_Format_A8R8G8B8;
         case VA_FOURCC_RGBA:
-#ifdef VA_RT_FORMAT_RGB32_10BPP
-            if(VA_RT_FORMAT_RGB32_10BPP == rtformatType)
-            {
-                return Media_Format_R10G10B10A2;
-            }
-#endif
-            return Media_Format_R8G8B8A8;
-        case VA_FOURCC_ABGR:
-#ifdef VA_RT_FORMAT_RGB32_10BPP
-            if(VA_RT_FORMAT_RGB32_10BPP == rtformatType)
-            {
-                return Media_Format_R10G10B10A2;
-            }
-#endif
             return Media_Format_A8B8G8R8;
         case VA_FOURCC_BGRX:
-        case VA_FOURCC_XRGB:
             return Media_Format_X8R8G8B8;
-        case VA_FOURCC_XBGR:
         case VA_FOURCC_RGBX:
             return Media_Format_X8B8G8R8;
         case VA_FOURCC_R5G6B5:

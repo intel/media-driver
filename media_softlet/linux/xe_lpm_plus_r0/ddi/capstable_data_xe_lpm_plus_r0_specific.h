@@ -76,13 +76,9 @@ const PlatformInfo plt_Xe_Lpm_plus_r0 = {IP_VERSION_XE_LPM_PLUS, 0};
 static const std::map<const uint32_t, const VAImageFormat*> imgtbl_Xe_lpm_plus_r0
 {
     {VA_FOURCC_BGRA, &formatBGRA},
-    {VA_FOURCC_ARGB, &formatARGB},
     {VA_FOURCC_RGBA, &formatRGBA},
-    {VA_FOURCC_ABGR, &formatABGR},
     {VA_FOURCC_BGRX, &formatBGRX},
-    {VA_FOURCC_XRGB, &formatXRGB},
     {VA_FOURCC_RGBX, &formatRGBX},
-    {VA_FOURCC_XBGR, &formatXBGR},
     {VA_FOURCC_A2R10G10B10, &formatA2R10G10B10},
     {VA_FOURCC_A2B10G10R10, &formatA2B10G10R10},
     {VA_FOURCC_X2R10G10B10, &formatX2R10G10B10},

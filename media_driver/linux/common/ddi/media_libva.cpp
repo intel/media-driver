@@ -525,34 +525,11 @@ DDI_MEDIA_FORMAT DdiMedia_OsFormatToMediaFormat(int32_t fourcc, int32_t rtformat
         case VA_FOURCC_X2B10G10R10:
             return Media_Format_R10G10B10X2;
         case VA_FOURCC_BGRA:
-        case VA_FOURCC_ARGB:
-#ifdef VA_RT_FORMAT_RGB32_10BPP
-            if(VA_RT_FORMAT_RGB32_10BPP == rtformatType)
-            {
-                return Media_Format_B10G10R10A2;
-            }
-#endif
             return Media_Format_A8R8G8B8;
         case VA_FOURCC_RGBA:
-#ifdef VA_RT_FORMAT_RGB32_10BPP
-            if(VA_RT_FORMAT_RGB32_10BPP == rtformatType)
-            {
-                return Media_Format_R10G10B10A2;
-            }
-#endif
-            return Media_Format_R8G8B8A8;
-        case VA_FOURCC_ABGR:
-#ifdef VA_RT_FORMAT_RGB32_10BPP
-            if(VA_RT_FORMAT_RGB32_10BPP == rtformatType)
-            {
-                return Media_Format_R10G10B10A2;
-            }
-#endif
             return Media_Format_A8B8G8R8;
         case VA_FOURCC_BGRX:
-        case VA_FOURCC_XRGB:
             return Media_Format_X8R8G8B8;
-        case VA_FOURCC_XBGR:
         case VA_FOURCC_RGBX:
             return Media_Format_X8B8G8R8;
         case VA_FOURCC_R5G6B5:
