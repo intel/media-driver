@@ -240,7 +240,7 @@ MOS_STATUS VpRenderHdr3DLutKernel::SetupSurfaceState()
     PRENDERHAL_INTERFACE renderHal   = m_hwInterface->m_renderHal;
     PMOS_INTERFACE       osInterface = m_hwInterface->m_osInterface;
     m_surfaceBindingIndex.clear();
-
+    m_surfaceState.clear();
     KERNEL_SURFACE_STATE_PARAM kernelSurfaceParam            = {};
     // Only need to specify binding index in surface parameters.
     kernelSurfaceParam.surfaceOverwriteParams.updatedSurfaceParams = true; 

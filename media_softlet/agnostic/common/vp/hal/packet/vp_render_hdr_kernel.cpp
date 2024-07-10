@@ -3412,7 +3412,7 @@ MOS_STATUS VpRenderHdrKernel::SetupSurfaceState()
     VP_RENDER_CHK_NULL_RETURN(m_hwInterface->m_renderHal);
     renderHal = m_hwInterface->m_renderHal;
     m_surfaceBindingIndex.clear();
-
+    m_surfaceState.clear();
     UpdatePerLayerPipelineStates(&dwUpdateMask);
 
     for (i = 0; i < m_hdrParams->uSourceCount && i < VPHAL_MAX_HDR_INPUT_LAYER; i++)

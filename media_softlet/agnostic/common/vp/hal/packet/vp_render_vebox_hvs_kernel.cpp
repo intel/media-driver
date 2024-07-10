@@ -306,7 +306,7 @@ MOS_STATUS VpRenderHVSKernel::SetupSurfaceState()
     PRENDERHAL_INTERFACE renderHal = m_hwInterface->m_renderHal;
     PMOS_INTERFACE osInterface = m_hwInterface->m_osInterface;
     m_surfaceBindingIndex.clear();
-
+    m_surfaceState.clear();
     for (auto arg : m_kernelArgs)
     {
         VP_RENDER_CHK_NULL_RETURN(arg.pData);
