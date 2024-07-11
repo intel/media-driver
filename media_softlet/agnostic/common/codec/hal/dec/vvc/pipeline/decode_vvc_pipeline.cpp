@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021-2023, Intel Corporation
+* Copyright (c) 2021-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -354,9 +354,11 @@ namespace decode
         uint32_t vvcpTilePatchListSize  = 0;
 
         DECODE_CHK_NULL(m_hwInterface);
-        DECODE_CHK_STATUS(dynamic_cast<CodechalHwInterfaceNext *>(m_hwInterface)->GetVvcpPrimitiveCommandSize(
+        CodechalHwInterfaceNext *hwInterface = dynamic_cast<CodechalHwInterfaceNext *>(m_hwInterface);
+        DECODE_CHK_NULL(hwInterface);
+        DECODE_CHK_STATUS(hwInterface->GetVvcpPrimitiveCommandSize(
             basicFeature.m_mode, &vvcpSliceCommandsSize, &vvcpSlicePatchListSize, &vvcpTileCommandsSize, &vvcpTilePatchListSize));
-        DECODE_CHK_STATUS(dynamic_cast<CodechalHwInterfaceNext *>(m_hwInterface)->GetVvcpSliceLvlCmdSize(&vvcpSliceCommandsSize));
+        DECODE_CHK_STATUS(hwInterface->GetVvcpSliceLvlCmdSize(&vvcpSliceCommandsSize));
         uint32_t size     = MOS_ALIGN_CEIL(vvcpSliceCommandsSize, 64) * basicFeature.m_numSlices;
         m_sliceLvlBufSize = MOS_ALIGN_CEIL(vvcpSliceCommandsSize, 64);
 

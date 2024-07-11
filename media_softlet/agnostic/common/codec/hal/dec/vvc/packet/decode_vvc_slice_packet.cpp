@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021-2023, Intel Corporation
+* Copyright (c) 2021-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -497,7 +497,7 @@ namespace decode
 
         // L0
         DECODE_CHK_STATUS(SetRefIdxStateParams());
-        m_vvcpItf->MHW_ADDCMD_F(VVCP_REF_IDX_STATE)(&cmdBuffer);
+        DECODE_CHK_STATUS(m_vvcpItf->MHW_ADDCMD_F(VVCP_REF_IDX_STATE)(&cmdBuffer));
 
         // L1
         if (m_vvcpItf->IsVvcBSlice(m_curSliceParams->m_shSliceType))
@@ -507,7 +507,7 @@ namespace decode
             params.listIdx       = 1;
             params.numRefForList = m_curSliceParams->m_numRefIdxActive[1];
 
-            m_vvcpItf->MHW_ADDCMD_F(VVCP_REF_IDX_STATE)(&cmdBuffer);
+            DECODE_CHK_STATUS(m_vvcpItf->MHW_ADDCMD_F(VVCP_REF_IDX_STATE)(&cmdBuffer));
         }
 
         return MOS_STATUS_SUCCESS;
@@ -530,12 +530,12 @@ namespace decode
             auto &params = m_vvcpItf->MHW_GETPAR_F(VVCP_WEIGHTOFFSET_STATE)();
             params = {};
             params.wpInfo = &m_curSliceParams->m_wpInfo;
-            m_vvcpItf->MHW_ADDCMD_F(VVCP_WEIGHTOFFSET_STATE)(&cmdBuffer);
+            DECODE_CHK_STATUS(m_vvcpItf->MHW_ADDCMD_F(VVCP_WEIGHTOFFSET_STATE)(&cmdBuffer));
 
             if (weightedBiPred)
             {
                 params.listIdx = 1;
-                m_vvcpItf->MHW_ADDCMD_F(VVCP_WEIGHTOFFSET_STATE)(&cmdBuffer);
+                DECODE_CHK_STATUS(m_vvcpItf->MHW_ADDCMD_F(VVCP_WEIGHTOFFSET_STATE)(&cmdBuffer));
             }
         }
         return MOS_STATUS_SUCCESS;

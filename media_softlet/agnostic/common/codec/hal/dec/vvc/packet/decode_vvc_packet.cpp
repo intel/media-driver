@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021-2023, Intel Corporation
+* Copyright (c) 2021-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -170,7 +170,7 @@ MOS_STATUS VvcDecodePkt::VdPipelineFlush(MOS_COMMAND_BUFFER & cmdBuffer)
     par.vvcpPipelineCommandFlush   = true;
     par.vvcpPipelineDone           = true;
 #endif
-    m_vdencItf->MHW_ADDCMD_F(VD_PIPELINE_FLUSH)(&cmdBuffer);
+    DECODE_CHK_STATUS(m_vdencItf->MHW_ADDCMD_F(VD_PIPELINE_FLUSH)(&cmdBuffer));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -514,7 +514,7 @@ MOS_STATUS VvcDecodePkt::VdMemoryFlush(MOS_COMMAND_BUFFER& cmdBuffer)
 
     par.memoryImplicitFlush = true;
 
-    m_vvcpItf->MHW_ADDCMD_F(VVCP_VD_CONTROL_STATE)(&cmdBuffer);
+    DECODE_CHK_STATUS(m_vvcpItf->MHW_ADDCMD_F(VVCP_VD_CONTROL_STATE)(&cmdBuffer));
 
     return MOS_STATUS_SUCCESS;
 }

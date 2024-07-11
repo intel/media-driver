@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022-2023, Intel Corporation
+* Copyright (c) 2022-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -949,7 +949,7 @@ namespace decode
         auto &par            = m_hucItf->MHW_GETPAR_F(HUC_IMEM_STATE)();
         par                  = {};
         par.kernelDescriptor = m_vdboxHucVvcS2lKernelDescriptor;
-        m_hucItf->MHW_ADDCMD_F(HUC_IMEM_STATE)(&cmdBuffer);
+        DECODE_CHK_STATUS(m_hucItf->MHW_ADDCMD_F(HUC_IMEM_STATE)(&cmdBuffer));
 
         auto &mfxWaitParams               = m_miItf->MHW_GETPAR_F(MFX_WAIT)();
         mfxWaitParams                     = {};
@@ -971,7 +971,7 @@ namespace decode
         auto &par            = m_hucItf->MHW_GETPAR_F(HUC_PIPE_MODE_SELECT)();
         par                  = {};
         par.streamOutEnabled = false;
-        m_hucItf->MHW_ADDCMD_F(HUC_PIPE_MODE_SELECT)(&cmdBuffer);
+        DECODE_CHK_STATUS(m_hucItf->MHW_ADDCMD_F(HUC_PIPE_MODE_SELECT)(&cmdBuffer));
 
         mfxWaitParams                     = {};
         mfxWaitParams.iStallVdboxPipeline = true;
@@ -1052,7 +1052,7 @@ namespace decode
         par.StartCodeByte1                 = 0;
         par.StartCodeByte2                 = 1;
 
-        m_hucItf->MHW_ADDCMD_F(HUC_STREAM_OBJECT)(&cmdBuffer);
+        DECODE_CHK_STATUS(m_hucItf->MHW_ADDCMD_F(HUC_STREAM_OBJECT)(&cmdBuffer));
 
         return MOS_STATUS_SUCCESS;
     }
@@ -1063,7 +1063,7 @@ namespace decode
         auto &par            = m_hucItf->MHW_GETPAR_F(HUC_START)();
         par                  = {};
         par.lastStreamObject = laststreamobject;
-        m_hucItf->MHW_ADDCMD_F(HUC_START)(&cmdBuffer);
+        DECODE_CHK_STATUS(m_hucItf->MHW_ADDCMD_F(HUC_START)(&cmdBuffer));
 
         return MOS_STATUS_SUCCESS;
     }
