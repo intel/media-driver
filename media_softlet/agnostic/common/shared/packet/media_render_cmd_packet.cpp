@@ -1264,8 +1264,8 @@ MOS_STATUS RenderCmdPacket::PrepareComputeWalkerParams(KERNEL_WALKER_PARAMS para
 
     gpgpuWalker.SLMSize           = params.slmSize;
     gpgpuWalker.hasBarrier        = params.hasBarrier;
-    gpgpuWalker.inlineDataParamBase   = params.inlineDataParams;
-
+    gpgpuWalker.inlineDataParamBase   = params.inlineDataParamBase;
+    gpgpuWalker.inlineDataParamSize = params.inlineDataParamSize;
     return MOS_STATUS_SUCCESS;
 }
 

@@ -65,6 +65,7 @@ struct MHW_HEAPS_RESOURCE
 {
     PMOS_RESOURCE          presInstructionBuffer = nullptr;
     PMHW_INLINE_DATA_PARAMS inlineDataParamsBase   = nullptr;
+    uint32_t                inlineDataParamSize   = 0;
 };
 
 enum MHW_VFE_SLICE_DISABLE

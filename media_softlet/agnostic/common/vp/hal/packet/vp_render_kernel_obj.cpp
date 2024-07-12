@@ -740,7 +740,7 @@ void VpRenderKernelObj::DumpSurface(VP_SURFACE* pSurface, PCCHAR fileName)
 #endif
 }
 
-MOS_STATUS VpRenderKernelObj::SetInlineDataParameter(KERNEL_WALKER_PARAMS &walkerParam, KRN_ARG args, RENDERHAL_INTERFACE *renderhal)
+MOS_STATUS VpRenderKernelObj::SetInlineDataParameter(KRN_ARG args, RENDERHAL_INTERFACE *renderhal)
 {
     VP_FUNC_CALL();
     MHW_INLINE_DATA_PARAMS inlineDataPar = {};
@@ -762,15 +762,10 @@ MOS_STATUS VpRenderKernelObj::SetInlineDataParameter(KERNEL_WALKER_PARAMS &walke
     {
         inlineDataPar.isPtrType = false;
     }
-    if (walkerParam.inlineDataParamNum < MAX_INLINE_DATA_PARAMS)
-    {
-        walkerParam.inlineDataParams[walkerParam.inlineDataParamNum] = inlineDataPar;
-        walkerParam.inlineDataParamNum++;
-    }
-    else
-    {
-        VP_RENDER_ASSERTMESSAGE("Exceed max inline data params!");
-    }
+
+    // walkerParam.inlineDataParamBase will add m_inlineDataParams.data() in each kernel
+    // walkerParam.inlineDataParamSize will add m_inlineDataParams.size() in each kernel
+    m_inlineDataParams.push_back(inlineDataPar);
 
     return MOS_STATUS_SUCCESS;
 }

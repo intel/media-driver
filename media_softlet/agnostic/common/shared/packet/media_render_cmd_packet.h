@@ -120,8 +120,8 @@ typedef struct _KERNEL_WALKER_PARAMS
 
     bool                                hasBarrier;
     uint32_t                            slmSize;
-    MHW_INLINE_DATA_PARAMS              inlineDataParams[MAX_INLINE_DATA_PARAMS];
-    uint32_t                            inlineDataParamNum;
+    PMHW_INLINE_DATA_PARAMS             inlineDataParamBase;
+    uint32_t                            inlineDataParamSize;
 }KERNEL_WALKER_PARAMS, * PKERNEL_WALKER_PARAMS;
 
 typedef struct _KERNEL_PACKET_RENDER_DATA

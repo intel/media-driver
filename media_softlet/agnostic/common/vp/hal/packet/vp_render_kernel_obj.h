@@ -537,7 +537,7 @@ public:
 
     virtual MOS_STATUS InitRenderHalSurfaceCMF(MOS_SURFACE* src, PRENDERHAL_SURFACE renderHalSurface);
 
-    virtual MOS_STATUS SetInlineDataParameter(KERNEL_WALKER_PARAMS &walkerParam, KRN_ARG args, RENDERHAL_INTERFACE *renderhal);
+    virtual MOS_STATUS SetInlineDataParameter(KRN_ARG args, RENDERHAL_INTERFACE *renderhal);
 
     virtual MOS_STATUS UpdateBindlessSurfaceResource(SurfaceType surf, std::set<uint32_t> surfStateOffset)
     {
@@ -617,6 +617,7 @@ protected:
     bool                                                    m_useIndependentSamplerGroup = false; //true means multi kernels has their own stand alone sampler states group. only can be true when m_isAdvKernel is true.
 
     std::shared_ptr<mhw::vebox::Itf>                        m_veboxItf = nullptr;
+    std ::vector<MHW_INLINE_DATA_PARAMS>                    m_inlineDataParams = {};
 
 MEDIA_CLASS_DEFINE_END(vp__VpRenderKernelObj)
 };

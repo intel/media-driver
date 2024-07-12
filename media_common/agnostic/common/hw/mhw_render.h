@@ -312,6 +312,7 @@ typedef struct _MHW_GPGPU_WALKER_PARAMS
 
     bool                       hasBarrier;
     PMHW_INLINE_DATA_PARAMS    inlineDataParamBase;
+    uint32_t                   inlineDataParamSize;
 
 } MHW_GPGPU_WALKER_PARAMS, *PMHW_GPGPU_WALKER_PARAMS;
 
