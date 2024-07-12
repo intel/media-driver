@@ -119,7 +119,7 @@ endif()
 option(LNL "Enable LNL support" ON)
 
 if(LNL)
-    option(XE2_LPM_PLUS_SUPPORT "Enable XE2_LPM_PLUS support" ON)
+    option(XE2_LPM_SUPPORT "Enable XE2_LPM support" ON)
     option(XE2_HPG "Enable XE2_HPG support" ON)
 endif()
 

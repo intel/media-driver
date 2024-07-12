@@ -26,9 +26,10 @@
 #ifndef __CAPSTABLE_DATA_VVC_DECODE_XE2_LPM_R0_SPECIFIC_H__
 #define __CAPSTABLE_DATA_VVC_DECODE_XE2_LPM_R0_SPECIFIC_H__
 
+#include <va/va.h>
+#include <va/va_dec_vvc.h>
 #include "capstable_data_xe2_lpm_r0_specific.h"
 #include "codec_def_common.h"
-#include "va_dec_vvc_private.h"
 #include "codec_def_decode_vvc.h"
 
 #ifndef VA_CENC_TYPE_NONE

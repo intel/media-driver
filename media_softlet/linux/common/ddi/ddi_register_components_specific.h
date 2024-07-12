@@ -173,6 +173,14 @@ static bool RegisteredAv1Profile0VLD =
         Register<decode::DdiDecodeAv1>(ComponentInfo {VAProfileAV1Profile0, VAEntrypointVLD});
 #endif // _AV1_DECODE_SUPPORTED
 
+#if defined (_VVC_DECODE_SUPPORTED)
+#include "ddi_decode_vvc_specific.h"
+
+static bool RegisteredVAProfileVVCMain10 =
+    DdiDecodeFactory::
+        Register<decode::DdiDecodeVvc>(ComponentInfo {(VAProfile)VAProfileVVCMain10, VAEntrypointVLD});
+#endif
+
 #if defined (_JPEG_DECODE_SUPPORTED)
 #include "ddi_decode_jpeg_specific.h"
 

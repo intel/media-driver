@@ -166,7 +166,7 @@ static struct GfxDeviceInfo lnlInfo = {
     .productFamily = IGFX_LUNARLAKE,
     .displayFamily = IGFX_UNKNOWN_CORE,
     .renderFamily  = IGFX_XE2_HPG_CORE,
-    .mediaFamily   = IGFX_XE2_LPM,
+    .mediaFamily   = IGFX_UNKNOWN_CORE,
     .eGTType       = GTTYPE_GT2,
     .L3CacheSizeInKb = 0,
     .L3BankCount   = 0,
@@ -190,3 +190,6 @@ static bool lnlDevice64a0 = DeviceInfoFactory<GfxDeviceInfo>::
 
 static bool lnlDevice64B0 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x64B0, &lnlInfo);
+
+static bool lnlDevice6420 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x6420, &lnlInfo);

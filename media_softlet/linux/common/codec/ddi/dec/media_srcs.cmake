@@ -107,6 +107,17 @@ if(${AV1_Decode_Supported} STREQUAL "yes")
     )
 endif()
 
+if(${VVC_Decode_Supported} STREQUAL "yes")
+    set(TMP_SOURCES_
+        ${TMP_SOURCES_}
+        ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_vvc_specific.cpp
+    )
+    set(TMP_HEADERS_
+        ${TMP_HEADERS_}
+        ${CMAKE_CURRENT_LIST_DIR}/ddi_decode_vvc_specific.h
+    )
+endif()
+
 set(SOFTLET_DDI_SOURCES_
     ${SOFTLET_DDI_SOURCES_}
     ${TMP_SOURCES_}

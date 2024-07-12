@@ -19,6 +19,6 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 media_include_subdirectory(Xe2_LPM_base)
-if(LNL)
+if(XE2_LPM_SUPPORT)
     media_include_subdirectory(Xe2_LPM)
 endif()
