@@ -468,6 +468,12 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
+    MOS_STATUS SetAlphaFromStateSelect(
+        PMHW_VEBOX_IECP_PARAMS pVeboxIecpParams) override
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
     MOS_STATUS SetVeboxLaceColorParams(
         MHW_LACE_COLOR_CORRECTION *pLaceColorParams) override
     {
@@ -936,11 +942,6 @@ public:
     }
 
     MOS_STATUS Add1DLutState(void *&surface, PMHW_1DLUT_PARAMS p1DLutParams) override
-    {
-        return MOS_STATUS_SUCCESS;
-    }
-
-    MOS_STATUS AddEOTFState(void *&surface, PMHW_1DLUT_PARAMS p1DLutParams) override
     {
         return MOS_STATUS_SUCCESS;
     }

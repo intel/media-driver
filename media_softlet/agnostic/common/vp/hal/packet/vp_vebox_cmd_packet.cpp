@@ -223,9 +223,13 @@ MOS_STATUS VpVeboxCmdPacket::SetupVebox3DLutForHDR(mhw::vebox::VEBOX_STATE_PAR &
     pVeboxMode                         = &veboxStateCmdParams.VeboxMode;
     pLUT3D                             = &veboxStateCmdParams.LUT3D;
     p1DLutParams                       = &(pRenderData->GetIECPParams().s1DLutParams);
+
+    VP_RENDER_CHK_NULL_RETURN(pVeboxMode);
+    VP_RENDER_CHK_NULL_RETURN(p1DLutParams);
+    VP_RENDER_CHK_NULL_RETURN(pLUT3D);
+
     pLUT3D->ArbitrationPriorityControl = 0;
     pLUT3D->Lut3dEnable                = true;
-
     // Config 3DLut size to 65 for HDR10 usage.
     pLUT3D->Lut3dSize = 2;
     if (pRenderData->HDR3DLUT.uiLutSize == 33)
@@ -249,6 +253,18 @@ MOS_STATUS VpVeboxCmdPacket::SetupVebox3DLutForHDR(mhw::vebox::VEBOX_STATE_PAR &
 
     veboxStateCmdParams.pVebox3DLookUpTables = &surf3DLut->osSurface->OsResource;
 
+    VP_RENDER_CHK_STATUS_RETURN(SetupHDRUnifiedForHDR(veboxStateCmdParams));
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpVeboxCmdPacket::SetupHDRUnifiedForHDR(mhw::vebox::VEBOX_STATE_PAR &veboxStateCmdParams)
+{
+    PMHW_VEBOX_MODE    pVeboxMode   = nullptr;
+
+    pVeboxMode   = &veboxStateCmdParams.VeboxMode;
+ 
+    pVeboxMode->Hdr1K1DLut = true;
     return MOS_STATUS_SUCCESS;
 }
 
@@ -283,12 +299,16 @@ MOS_STATUS VpVeboxCmdPacket::SetupVeboxState(mhw::vebox::VEBOX_STATE_PAR& veboxS
     VP_FUNC_CALL();
 
     PMHW_VEBOX_MODE         pVeboxMode   = nullptr;
+    PMHW_FP16_PARAMS        fp16Params = nullptr;
 
     pVeboxMode = &veboxStateCmdParams.VeboxMode;
     VP_RENDER_CHK_NULL_RETURN(pVeboxMode);
 
     VpVeboxRenderData* pRenderData = GetLastExecRenderData();
     VP_RENDER_CHK_NULL_RETURN(pRenderData);
+
+    fp16Params = &(pRenderData->GetIECPParams().fp16Params);
+    VP_RENDER_CHK_NULL_RETURN(fp16Params);
 
     MOS_ZeroMemory(&veboxStateCmdParams, sizeof(veboxStateCmdParams));
 
@@ -337,6 +357,11 @@ MOS_STATUS VpVeboxCmdPacket::SetupVeboxState(mhw::vebox::VEBOX_STATE_PAR& veboxS
 
     VP_RENDER_CHK_STATUS_RETURN(SetupHDRLuts(veboxStateCmdParams));
     VP_RENDER_CHK_STATUS_RETURN(SetupDNTableForHVS(veboxStateCmdParams));
+
+    if (fp16Params->isActive == 1)
+    {
+        VP_RENDER_CHK_STATUS_RETURN(SetupVeboxFP16State(veboxStateCmdParams));
+    }
 
     veboxStateCmdParams.bCmBuffer = false;
 

@@ -1126,6 +1126,14 @@ protected:
     virtual MOS_STATUS Add1DLutState(PVP_SURFACE &surface, PMHW_1DLUT_PARAMS p1DLutParams);
     virtual MOS_STATUS SetupVebox3DLutForHDR(
         mhw::vebox::VEBOX_STATE_PAR &veboxStateCmdParams);
+    virtual MOS_STATUS SetupVeboxFP16State(mhw::vebox::VEBOX_STATE_PAR &veboxStateCmdParams)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    virtual MOS_STATUS SetupHDRUnifiedForHDR(
+        mhw::vebox::VEBOX_STATE_PAR &veboxStateCmdParams);
+
     virtual MOS_STATUS SetupVeboxExternal3DLutforHDR(
         mhw::vebox::VEBOX_STATE_PAR &veboxStateCmdParams);
 

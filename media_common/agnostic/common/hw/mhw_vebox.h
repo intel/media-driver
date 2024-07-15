@@ -176,7 +176,11 @@ typedef struct _MHW_VEBOX_MODE
     uint32_t    Hdr1DLutEnable                      : 1;
     uint32_t    Fp16ModeEnable                      : 1;
     uint32_t    Hdr1K1DLut                          : 1;
-    uint32_t                                        : 7; // Reserved
+    uint32_t    GamutExpansionPosition              : 1;
+    uint32_t    EotfPrecision                       : 1;
+    uint32_t    BypassCcm                           : 1;
+    uint32_t    BypassOetf                          : 1;
+    uint32_t                                        : 3; // Reserved
 } MHW_VEBOX_MODE, *PMHW_VEBOX_MODE;
 
 typedef enum _MHW_VEBOX_ADDRESS_SHIFT
@@ -210,14 +214,10 @@ typedef struct _MHW_VEBOX_3D_LUT
 
 typedef struct _MHW_VEBOX_FP16_INPUT
 {
-    uint32_t GamutExpansionPosition                         : 1;
-    uint32_t EotfPrecision                                  : 1;
-    uint32_t BypassCcm                                      : 1;
-    uint32_t BypassOetf                                     : 1;
     uint32_t VeboxFp16InputEnable                           : 1;
     uint32_t RgbSwapForFp16Input                            : 1;
     uint32_t HdrGainFactor                                  : 8;
-    uint32_t                                                : 18;  // Reserved
+    uint32_t                                                : 22;  // Reserved
 } MHW_VEBOX_FP16_INPUT, *PMHW_VEBOX_FP16_INPUT;
 
 //!
