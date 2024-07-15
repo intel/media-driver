@@ -21,12 +21,12 @@
 set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/renderhal.cpp
     ${CMAKE_CURRENT_LIST_DIR}/renderhal_platform_interface_next.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/surface_state_heap_mgr.cpp
 )
 
 set(TMP_HEADERS
     ${CMAKE_CURRENT_LIST_DIR}/renderhal_platform_interface_next.h
     ${CMAKE_CURRENT_LIST_DIR}/hal_oca_interface_next.h
-
 )
 
 

@@ -38,6 +38,7 @@
 #include "media_perf_profiler.h"
 #include "frame_tracker.h"
 #include "media_common_defs.h"
+#include "surface_state_heap_mgr.h"
 
 class XRenderHal_Platform_Interface;
 
@@ -966,7 +967,7 @@ typedef struct _RENDERHAL_STATE_HEAP
     RENDERHAL_KRN_ALLOC_LIST       KernelAllocationPool;                        // Pool of kernel allocation objects
     RENDERHAL_KRN_ALLOC_LIST       KernelsSubmitted;                            // Kernel submission list
     RENDERHAL_KRN_ALLOC_LIST       KernelsAllocated;                            // kernel allocation list (kernels in ISH not currently being executed)
-
+    SurfaceStateHeapManager       *surfaceStateMgr;                             // Surface state manager
 } RENDERHAL_STATE_HEAP, *PRENDERHAL_STATE_HEAP;
 
 typedef struct _RENDERHAL_DYNAMIC_MEDIA_STATE_PARAMS
@@ -1370,6 +1371,13 @@ typedef struct _RENDERHAL_INTERFACE
     MOS_STATUS (* pfnAssignBindingTable) (
                 PRENDERHAL_INTERFACE            pRenderHal,
                 int32_t                         *piBindingTable);
+
+    MOS_STATUS (* pfnAssignBindlessSurfaceStates) (
+                PRENDERHAL_INTERFACE            pRenderHal);
+
+    MOS_STATUS (*pfnSendBindlessSurfaceStates) (
+                PRENDERHAL_INTERFACE            pRenderHal,
+                bool                            bNeedNullPatch);
 
     MOS_STATUS (* pfnBindSurfaceState) (
                 PRENDERHAL_INTERFACE            pRenderHal,

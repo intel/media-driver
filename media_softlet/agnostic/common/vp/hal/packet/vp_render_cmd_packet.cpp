@@ -214,30 +214,9 @@ MOS_STATUS VpRenderCmdPacket::Prepare()
         *m_surfMemCacheCtl,
         m_packetSharedContext));
 
-    if (m_submissionMode == MULTI_KERNELS_MULTI_MEDIA_STATES || m_submissionMode == SINGLE_KERNEL_ONLY)
+    if (m_submissionMode == SINGLE_KERNEL_ONLY)
     {
         m_kernelRenderData.clear();
-
-        if (m_submissionMode == MULTI_KERNELS_MULTI_MEDIA_STATES)
-        {
-            bool bAllocated = false;
-            VP_RENDER_CHK_STATUS_RETURN(m_renderHal->pfnReAllocateStateHeapsforAdvFeatureWithSshEnlarged(m_renderHal, bAllocated));
-
-            if (bAllocated && m_renderHal->pStateHeap)
-            {
-                MHW_STATE_BASE_ADDR_PARAMS *pStateBaseParams = &m_renderHal->StateBaseAddressParams;
-
-                pStateBaseParams->presGeneralState           = &m_renderHal->pStateHeap->GshOsResource;
-                pStateBaseParams->dwGeneralStateSize         = m_renderHal->pStateHeap->dwSizeGSH;
-                pStateBaseParams->presDynamicState           = &m_renderHal->pStateHeap->GshOsResource;
-                pStateBaseParams->dwDynamicStateSize         = m_renderHal->pStateHeap->dwSizeGSH;
-                pStateBaseParams->bDynamicStateRenderTarget  = false;
-                pStateBaseParams->presIndirectObjectBuffer   = &m_renderHal->pStateHeap->GshOsResource;
-                pStateBaseParams->dwIndirectObjectBufferSize = m_renderHal->pStateHeap->dwSizeGSH;
-                pStateBaseParams->presInstructionBuffer      = &m_renderHal->pStateHeap->IshOsResource;
-                pStateBaseParams->dwInstructionBufferSize    = m_renderHal->pStateHeap->dwSizeISH;
-            }
-        }
 
         VP_RENDER_CHK_NULL_RETURN(m_renderHal->pStateHeap);
 
@@ -432,13 +411,8 @@ MOS_STATUS VpRenderCmdPacket::Submit(MOS_COMMAND_BUFFER *commandBuffer, uint8_t 
         VP_RENDER_ASSERTMESSAGE("No Kernel Object Creation");
         return MOS_STATUS_NULL_POINTER;
     }
-    if (m_submissionMode == MULTI_KERNELS_MULTI_MEDIA_STATES)
-    {
-        VP_RENDER_CHK_STATUS_RETURN(SetupMediaWalker());
 
-        VP_RENDER_CHK_STATUS_RETURN(SubmitWithMultiKernel(commandBuffer, packetPhase));
-    }
-    else if (m_submissionMode == SINGLE_KERNEL_ONLY)
+    if (m_submissionMode == SINGLE_KERNEL_ONLY)
     {
         VP_RENDER_CHK_STATUS_RETURN(SetupMediaWalker());
 
@@ -2038,14 +2012,7 @@ MOS_STATUS VpRenderCmdPacket::SendMediaStates(
 
             MHW_RENDERHAL_CHK_STATUS(PrepareComputeWalkerParams(it->second.walkerParam, m_gpgpuWalkerParams));
 
-            if (m_submissionMode == MULTI_KERNELS_MULTI_MEDIA_STATES)
-            {
-                pRenderHal->pStateHeap->pCurMediaState = it->second.mediaState;
-                MHW_RENDERHAL_CHK_NULL(pRenderHal->pStateHeap->pCurMediaState);
-                pRenderHal->iKernelAllocationID        = it->second.kernelAllocationID;
-                pRenderHal->pStateHeap->pCurMediaState->bBusy = true;
-            }
-            else if (m_submissionMode == MULTI_KERNELS_SINGLE_MEDIA_STATE)
+            if (m_submissionMode == MULTI_KERNELS_SINGLE_MEDIA_STATE)
             {
                 pRenderHal->iKernelAllocationID = it->second.kernelAllocationID;
             }

@@ -176,6 +176,13 @@ MOS_STATUS RenderHal_SendSurfaces_PatchList(
     pOsInterface        = pRenderHal->pOsInterface;
     iSurfacesPerBT      = pRenderHal->StateHeapSettings.iSurfacesPerBT;
 
+    if (pRenderHal->isBindlessHeapInUse)
+    {
+        bool bNeedNullPatch = MEDIA_IS_SKU(pOsInterface->pfnGetSkuTable(pOsInterface), FtrMediaPatchless);
+        MHW_RENDERHAL_CHK_STATUS_RETURN(pRenderHal->pfnSendBindlessSurfaceStates(pRenderHal, bNeedNullPatch));
+        return MOS_STATUS_SUCCESS;
+    }
+
     // Get offset and size of indirect state in command buffer
     MHW_RENDERHAL_CHK_STATUS(pOsInterface->pfnGetIndirectState(pOsInterface, &IndirectStateBase, &IndirectStateSize));
     pIndirectState = (uint8_t*)pCmdBuffer->pCmdBase + IndirectStateBase;
