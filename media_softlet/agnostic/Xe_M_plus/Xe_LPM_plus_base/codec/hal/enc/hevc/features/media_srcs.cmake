@@ -20,8 +20,6 @@
 
 #encode
 
-media_include_subdirectory(preenc)
-
 if("${HEVC_Encode_VDEnc_Supported}" STREQUAL "yes")
 set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/encode_hevc_vdenc_feature_manager_xe_lpm_plus_base.cpp
