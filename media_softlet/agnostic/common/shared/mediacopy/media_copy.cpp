@@ -399,13 +399,14 @@ MOS_STATUS MediaCopyBaseState::SurfaceCopy(PMOS_RESOURCE src, PMOS_RESOURCE dst,
     mcpySrc.CpMode   = src->pGmmResInfo->GetSetCpSurfTag(false, 0)?MCPY_CPMODE_CP:MCPY_CPMODE_CLEAR;
     mcpySrc.TileMode = SrcResDetails.TileType;
     mcpySrc.OsRes    = src;
-    MCPY_NORMALMESSAGE("input surface's format %d, width %d; hight %d, pitch %d, tiledmode %d, mmc mode %d, ResType %d, preferMethod %d",
+    MCPY_NORMALMESSAGE("input surface's format %d, width %d; hight %d, pitch %d, tiledmode %d, mmc mode %d, cp mode %d, ResType %d, preferMethod %d",
         SrcResDetails.Format,
         SrcResDetails.dwWidth,
         SrcResDetails.dwHeight,
         SrcResDetails.dwPitch,
         mcpySrc.TileMode,
         mcpySrc.CompressionMode,
+        mcpySrc.CpMode,
         src->pGmmResInfo->GetResourceType(),
         preferMethod);
     MT_LOG7(MT_MEDIA_COPY, MT_NORMAL, 
@@ -422,13 +423,14 @@ MOS_STATUS MediaCopyBaseState::SurfaceCopy(PMOS_RESOURCE src, PMOS_RESOURCE dst,
     mcpyDst.CpMode   = dst->pGmmResInfo->GetSetCpSurfTag(false, 0)?MCPY_CPMODE_CP:MCPY_CPMODE_CLEAR;
     mcpyDst.TileMode = DstResDetails.TileType;
     mcpyDst.OsRes    = dst;
-    MCPY_NORMALMESSAGE("Output surface's format %d, width %d; hight %d, pitch %d, tiledmode %d, mmc mode %d, ResType %d",
+    MCPY_NORMALMESSAGE("Output surface's format %d, width %d; hight %d, pitch %d, tiledmode %d, mmc mode %d,cp mode %d, ResType %d",
         DstResDetails.Format,
         DstResDetails.dwWidth,
         DstResDetails.dwHeight,
         DstResDetails.dwPitch,
         mcpyDst.TileMode,
         mcpyDst.CompressionMode,
+        mcpyDst.CpMode,
         dst->pGmmResInfo->GetResourceType());
     MT_LOG7(MT_MEDIA_COPY, MT_NORMAL, 
         MT_SURF_PITCH,          DstResDetails.dwPitch,
