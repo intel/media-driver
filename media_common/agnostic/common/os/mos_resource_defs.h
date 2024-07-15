@@ -160,8 +160,8 @@ typedef enum _MOS_FORMAT
 
     Format_L16         ,
     Format_D16         ,
-    Format_R10G10B10A2 ,
-    Format_B10G10R10A2 ,
+    Format_R10G10B10A2 ,          //Memory layout: [A(2) | B(10) | G(10) | R(10)], where A is the highest order bits
+    Format_B10G10R10A2 ,          //Memory layout: [A(2) | R(10) | G(10) | B(10)], where A is the highest order bits
 
     Format_P016        ,
     Format_P010        ,

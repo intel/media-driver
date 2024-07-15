@@ -1818,10 +1818,11 @@ void VpRenderCmdPacket::PrintWalkerParas(MHW_GPGPU_WALKER_PARAMS& WalkerParams)
         WalkerParams.GroupStartingY,
         WalkerParams.GroupStartingZ,
         WalkerParams.SLMSize);
-    VP_RENDER_VERBOSEMESSAGE("GpGPU WalkerParams: GenerateLocalId %d, EmitLocal %d, EmitInlineParameter %d",
+    VP_RENDER_VERBOSEMESSAGE("GpGPU WalkerParams: GenerateLocalId %d, EmitLocal %d, EmitInlineParameter %d, HasBarrier %d",
         WalkerParams.isGenerateLocalID,
         WalkerParams.emitLocal,
-        WalkerParams.isEmitInlineParameter);
+        WalkerParams.isEmitInlineParameter,
+        WalkerParams.hasBarrier);
     VP_RENDER_VERBOSEMESSAGE("GpGPU WalkerParams: InlineDataLength = %d, InlineData = %s",
         WalkerParams.inlineDataLength,
         inlineData.c_str());
