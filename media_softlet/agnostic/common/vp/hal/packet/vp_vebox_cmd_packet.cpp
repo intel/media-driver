@@ -1060,7 +1060,7 @@ MOS_STATUS VpVeboxCmdPacket::SetSteParams(
 MOS_STATUS VpVeboxCmdPacket::UpdateCscParams(FeatureParamCsc &params)
 {
     VP_FUNC_CALL();
-    // Scaing only can be apply to SFC path
+    // Csc only can be apply to SFC path
     if (m_PacketCaps.bSfcCsc)
     {
         VP_PUBLIC_CHK_STATUS_RETURN(m_sfcRender->UpdateCscParams(params));
@@ -1076,10 +1076,9 @@ MOS_STATUS VpVeboxCmdPacket::UpdateDenoiseParams(FeatureParamDenoise &params)
     VpVeboxRenderData *pRenderData = GetLastExecRenderData();
     VP_RENDER_CHK_NULL_RETURN(pRenderData);
 
-    // ConfigureTccParams() just includes logic that both used in SetTccParams and UpdateTccParams.
+    // ConfigureDenoiseParams() just includes logic that both used in SetDenoiseParams and UpdateDenoiseParams..
     VP_PUBLIC_CHK_STATUS_RETURN(ConfigureDenoiseParams(pRenderData, params.denoiseParams.fDenoiseFactor));
 
-    // bDNDITopFirst in DNDI parameters need be configured during UpdateDIParams after DI parameter packet reusing being enabled.
     return MOS_STATUS_SUCCESS;
 }
 
