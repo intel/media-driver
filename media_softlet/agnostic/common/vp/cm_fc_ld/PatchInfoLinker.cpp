@@ -300,6 +300,7 @@ unsigned PatchInfoLinker::writeNOP(unsigned N) {
   case cm::patch::PP_TGL:
   case cm::patch::PP_DG2:
   case cm::patch::PP_PVC:
+  case cm::patch::PP_ELF:
     regular_nop = 0x00000060U;
     compact_nop = 0x20000060U;
     break;
@@ -377,6 +378,26 @@ unsigned PatchInfoLinker::writeEOT() {
           sync0Ptr = (uint8_t*)& r127_1_sync0;
           sync0Ptr[1] |= (uint8_t)r127Token;
       }
+      mov0 = 0x7f050aa0800c0961ULL;
+      mov1 = 0x0000000000100004ULL;
+      snd0 = 0x00000004800c0931ULL;
+      snd1 = 0x0000000030207f0cULL;
+  }
+    break;
+  case cm::patch::PP_ELF:
+  {
+      if (hasR127Token)
+      {
+          r127_sync0 = 0x0001000000008001ULL;
+          r127_sync1 = 0x0000000000000000ULL;
+          r127_1_sync0 = 0x000100000000A001ULL;
+          r127_1_sync1 = 0x0000000000000000ULL;
+          uint8_t* sync0Ptr = (uint8_t*)&r127_sync0;
+          sync0Ptr[1] |= (uint8_t)r127Token;
+          sync0Ptr = (uint8_t*)&r127_1_sync0;
+          sync0Ptr[1] |= (uint8_t)r127Token;
+      }
+
       mov0 = 0x7f050aa0800c0961ULL;
       mov1 = 0x0000000000100004ULL;
       snd0 = 0x00000004800c0931ULL;

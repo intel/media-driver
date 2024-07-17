@@ -61,6 +61,7 @@ enum {
   PP_TGL  = 13, ///< TigerLake LP
   PP_DG2    = 14,
   PP_PVC    = 15,
+  PP_ELF    = 16,
 };
 
 /// Patch info header.
@@ -92,6 +93,7 @@ struct PInfoHdr {
     case PP_TGL:
     case PP_DG2:
     case PP_PVC:
+    case PP_ELF:
       return true;
     default: break;
     }
