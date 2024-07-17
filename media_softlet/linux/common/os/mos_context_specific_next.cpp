@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2022, Intel Corporation
+* Copyright (c) 2019-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -47,6 +47,7 @@
 #include "mos_gpucontextmgr_next.h"
 #include "mos_cmdbufmgr_next.h"
 #include "mos_oca_rtlog_mgr.h"
+#include "mos_oca_interface_specific.h"
 #define BATCH_BUFFER_SIZE 0x80000
 
 OsContextSpecificNext::OsContextSpecificNext()
@@ -75,6 +76,7 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
 
     if (GetOsContextValid() == false)
     {
+        uint32_t commandBufferSize = 0;
         m_skuTable.reset();
         m_waTable.reset();
         MosUtilities::MosZeroMemory(&m_platformInfo, sizeof(m_platformInfo));
@@ -291,9 +293,18 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
 
         SetOsContextValid(true);
         // Prepare the command buffer manager
+        if (m_ocaLogSectionSupported)
+        {
+            // increase size for oca log section
+            commandBufferSize = MosOcaInterfaceSpecific::IncreaseSize(COMMAND_BUFFER_SIZE);
+        }
+        else
+        {
+            commandBufferSize = COMMAND_BUFFER_SIZE;
+        }
         m_cmdBufMgr = CmdBufMgrNext::GetObject();
         MOS_OS_CHK_NULL_RETURN(m_cmdBufMgr);
-        MOS_OS_CHK_STATUS_RETURN(m_cmdBufMgr->Initialize(this, COMMAND_BUFFER_SIZE/2));
+        MOS_OS_CHK_STATUS_RETURN(m_cmdBufMgr->Initialize(this, commandBufferSize));
 
         // Prepare the gpu Context manager
         m_gpuContextMgr = GpuContextMgrNext::GetObject(this);

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2021, Intel Corporation
+* Copyright (c) 2019-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -541,6 +541,7 @@ MOS_STATUS GpuContextSpecificNext::Init(OsContextNext *osContext,
 
     MosUtilities::MosUnlockMutex(m_cmdBufPoolMutex);
 
+    m_ocaLogSectionSupported = osContext->m_ocaLogSectionSupported;
     if (m_ocaLogSectionSupported)
     {
         // increase size for oca log section
