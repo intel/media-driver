@@ -106,7 +106,7 @@ MOS_STATUS Av1DecodeTilePktXe2_Lpm_Base::AddCmd_AVP_TILE_CODING(MOS_COMMAND_BUFF
     }
 #endif
 
-    m_avpItf->MHW_ADDCMD_F(AVP_TILE_CODING)(&cmdBuffer);
+    DECODE_CHK_STATUS(m_avpItf->MHW_ADDCMD_F(AVP_TILE_CODING)(&cmdBuffer));
 
     return MOS_STATUS_SUCCESS;
 }

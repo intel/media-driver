@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021-2023, Intel Corporation
+* Copyright (c) 2021-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -660,7 +660,7 @@ namespace decode{
         for (uint8_t i = 0; i < av1MaxSegments; i++)
         {
             par.currentSegmentId = i;
-            m_avpItf->MHW_ADDCMD_F(AVP_SEGMENT_STATE)(&cmdBuffer);
+            DECODE_CHK_STATUS(m_avpItf->MHW_ADDCMD_F(AVP_SEGMENT_STATE)(&cmdBuffer));
 
             if (m_av1PicParams->m_av1SegData.m_enabled == 0)
             {

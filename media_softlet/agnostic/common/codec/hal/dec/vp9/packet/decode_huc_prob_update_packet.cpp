@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021-2022, Intel Corporation
+* Copyright (c) 2021-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -222,7 +222,7 @@ MOS_STATUS HucVp9ProbUpdatePkt::AddCmd_HUC_IMEM_STATE(MOS_COMMAND_BUFFER &cmdBuf
     auto &par = m_hucItf->MHW_GETPAR_F(HUC_IMEM_STATE)();
     par                  = {};
     par.kernelDescriptor = m_vdboxHucVp9ProbUpdateKernelDescriptor;
-    m_hucItf->MHW_ADDCMD_F(HUC_IMEM_STATE)(&cmdBuffer);
+    DECODE_CHK_STATUS(m_hucItf->MHW_ADDCMD_F(HUC_IMEM_STATE)(&cmdBuffer));
     auto &mfxWaitParams               = m_miItf->MHW_GETPAR_F(MFX_WAIT)();
     mfxWaitParams                     = {};
     mfxWaitParams.iStallVdboxPipeline = true;
@@ -243,7 +243,7 @@ MOS_STATUS HucVp9ProbUpdatePkt::AddCmd_HUC_PIPE_MODE_SELECT(MOS_COMMAND_BUFFER &
     par                            = {};
     par.mediaSoftResetCounterValue = 2400;
     par.streamOutEnabled           = false;
-    m_hucItf->MHW_ADDCMD_F(HUC_PIPE_MODE_SELECT)(&cmdBuffer);
+    DECODE_CHK_STATUS(m_hucItf->MHW_ADDCMD_F(HUC_PIPE_MODE_SELECT)(&cmdBuffer));
 
     mfxWaitParams                     = {};
     mfxWaitParams.iStallVdboxPipeline = true;

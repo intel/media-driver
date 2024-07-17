@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021-2022, Intel Corporation
+* Copyright (c) 2021-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -201,8 +201,8 @@ MOS_STATUS Mpeg2DecodeMbPkt::AddCmd_MFD_MPEG2_IT_OBJECT(MHW_BATCH_BUFFER &batchB
     inlinePar.Vertorigin        = mbParams->m_mbAddr / m_mpeg2BasicFeature->m_picWidthInMb;
     inlinePar.Lastmbinrow       = (inlinePar.Horzorigin == (m_mpeg2BasicFeature->m_picWidthInMb - 1));
 
-    m_mfxItf->MHW_ADDCMD_F(MFD_IT_OBJECT)(nullptr, &batchBuffer);
-    m_mfxItf->MHW_ADDCMD_F(MFD_IT_OBJECT_MPEG2_INLINE_DATA)(nullptr, &batchBuffer);
+    DECODE_CHK_STATUS(m_mfxItf->MHW_ADDCMD_F(MFD_IT_OBJECT)(nullptr, &batchBuffer));
+    DECODE_CHK_STATUS(m_mfxItf->MHW_ADDCMD_F(MFD_IT_OBJECT_MPEG2_INLINE_DATA)(nullptr, &batchBuffer));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -243,8 +243,8 @@ MOS_STATUS Mpeg2DecodeMbPkt::AddAllCmdsInsertSkippedMacroblocks(MHW_BATCH_BUFFER
         inlinePar.Vertorigin        = mbParams->m_mbAddr / m_mpeg2BasicFeature->m_picWidthInMb;
         inlinePar.Lastmbinrow       = (inlinePar.Horzorigin == (m_mpeg2BasicFeature->m_picWidthInMb - 1));
 
-        m_mfxItf->MHW_ADDCMD_F(MFD_IT_OBJECT)(nullptr, &batchBuffer);
-        m_mfxItf->MHW_ADDCMD_F(MFD_IT_OBJECT_MPEG2_INLINE_DATA)(nullptr, &batchBuffer);
+        DECODE_CHK_STATUS(m_mfxItf->MHW_ADDCMD_F(MFD_IT_OBJECT)(nullptr, &batchBuffer));
+        DECODE_CHK_STATUS(m_mfxItf->MHW_ADDCMD_F(MFD_IT_OBJECT_MPEG2_INLINE_DATA)(nullptr, &batchBuffer));
     }
 
     return MOS_STATUS_SUCCESS;

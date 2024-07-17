@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021-2022, Intel Corporation
+* Copyright (c) 2021-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -360,7 +360,7 @@ MOS_STATUS JpegDecodePicPkt::AddAllCmds_MFX_QM_STATE(PMOS_COMMAND_BUFFER cmdBuff
             }
         }
 
-        m_mfxItf->MHW_ADDCMD_F(MFX_QM_STATE)(cmdBuffer);
+        DECODE_CHK_STATUS(m_mfxItf->MHW_ADDCMD_F(MFX_QM_STATE)(cmdBuffer));
     }
 
     return MOS_STATUS_SUCCESS;
@@ -426,7 +426,7 @@ MOS_STATUS JpegDecodePicPkt::AddAllCmds_MFX_JPEG_HUFF_TABLE_STATE(PMOS_COMMAND_B
                 params.pACValues = &m_jpegBasicFeature->m_jpegHuffmanTable->HuffTable[acTableSelector].AC_HUFFVAL[0];
                 params.pDCValues = &m_jpegBasicFeature->m_jpegHuffmanTable->HuffTable[dcTableSelector].DC_HUFFVAL[0];
 
-                m_mfxItf->MHW_ADDCMD_F(MFX_JPEG_HUFF_TABLE_STATE)(cmdBuffer);
+                DECODE_CHK_STATUS(m_mfxItf->MHW_ADDCMD_F(MFX_JPEG_HUFF_TABLE_STATE)(cmdBuffer));
 
                 // Set the current huffman table indices for the next scan
                 dcCurHuffTblIndex[huffTableID] = dcTableSelector;
@@ -478,7 +478,7 @@ MOS_STATUS JpegDecodePicPkt::AddAllCmds_MFD_JPEG_BSD_OBJECT(PMOS_COMMAND_BUFFER 
             params.scanComponent |= (1 << scanComponentIndex);
         }
 
-        m_mfxItf->MHW_ADDCMD_F(MFD_JPEG_BSD_OBJECT)(cmdBuffer);
+        DECODE_CHK_STATUS(m_mfxItf->MHW_ADDCMD_F(MFD_JPEG_BSD_OBJECT)(cmdBuffer));
     }
     return MOS_STATUS_SUCCESS;
 }

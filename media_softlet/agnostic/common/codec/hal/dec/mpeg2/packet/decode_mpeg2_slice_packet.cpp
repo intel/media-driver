@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021-2022, Intel Corporation
+* Copyright (c) 2021-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -104,7 +104,7 @@ MOS_STATUS Mpeg2DecodeSlcPkt::AddCmd_MFD_MPEG2_BSD_OBJECT(MHW_BATCH_BUFFER &batc
     par.presDataBuffer    = &m_mpeg2BasicFeature->m_resDataBuffer.OsResource;
     par.dwDataStartOffset = slc->m_sliceDataOffset + offset;
 
-    m_mfxItf->MHW_ADDCMD_F(MFD_MPEG2_BSD_OBJECT)(nullptr, &batchBuffer);
+    DECODE_CHK_STATUS(m_mfxItf->MHW_ADDCMD_F(MFD_MPEG2_BSD_OBJECT)(nullptr, &batchBuffer));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -164,7 +164,7 @@ MOS_STATUS Mpeg2DecodeSlcPkt::AddAllCmdsInsertDummySlice(MHW_BATCH_BUFFER &batch
             par.NextSliceVerticalPosition   = (startMB + par.MacroblockCount) / m_mpeg2BasicFeature->m_picWidthInMb;
         }
 
-        m_mfxItf->MHW_ADDCMD_F(MFD_MPEG2_BSD_OBJECT)(nullptr, &batchBuffer);
+        DECODE_CHK_STATUS(m_mfxItf->MHW_ADDCMD_F(MFD_MPEG2_BSD_OBJECT)(nullptr, &batchBuffer));
 
         startMB++;
     }

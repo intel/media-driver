@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022, Intel Corporation
+* Copyright (c) 2022-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -134,7 +134,7 @@ namespace decode
                 params.predictorPaletteEntries[2][yentryIdx + 1] = m_hevcSccPicParams->PredictorPaletteEntries[2][yentryIdx + 1];
             }
 
-            m_hcpItf->MHW_ADDCMD_F(HCP_PALETTE_INITIALIZER_STATE)(&cmdBuffer);
+            DECODE_CHK_STATUS(m_hcpItf->MHW_ADDCMD_F(HCP_PALETTE_INITIALIZER_STATE)(&cmdBuffer));
         }
 
         return MOS_STATUS_SUCCESS;

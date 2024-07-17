@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021, Intel Corporation
+* Copyright (c) 2021-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -253,7 +253,7 @@ namespace decode
 
         m_av1BasicFeature->m_frameCompletedFlag = par.lastTileOfFrame;
 
-        m_avpItf->MHW_ADDCMD_F(AVP_TILE_CODING)(&cmdBuffer);
+        DECODE_CHK_STATUS(m_avpItf->MHW_ADDCMD_F(AVP_TILE_CODING)(&cmdBuffer));
 
         return MOS_STATUS_SUCCESS;
     }
@@ -269,7 +269,7 @@ namespace decode
         par.bsdDataLength = m_tileDesc[tileIdx].m_size;
         par.bsdDataStartOffset =m_tileDesc[tileIdx].m_offset;
 
-        m_avpItf->MHW_ADDCMD_F(AVP_BSD_OBJECT)(&cmdBuffer);
+        DECODE_CHK_STATUS(m_avpItf->MHW_ADDCMD_F(AVP_BSD_OBJECT)(&cmdBuffer));
 
         return MOS_STATUS_SUCCESS;
     }

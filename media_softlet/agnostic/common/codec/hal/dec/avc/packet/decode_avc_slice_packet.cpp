@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021-2023, Intel Corporation
+* Copyright (c) 2021-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -195,7 +195,7 @@ MOS_STATUS AvcDecodeSlcPkt::SetAndAddAvcSliceState(MOS_COMMAND_BUFFER &cmdBuffer
         }
     }
 
-    m_mfxItf->MHW_ADDCMD_F(MFX_AVC_SLICE_STATE)(&cmdBuffer);
+    DECODE_CHK_STATUS(m_mfxItf->MHW_ADDCMD_F(MFX_AVC_SLICE_STATE)(&cmdBuffer));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -426,7 +426,7 @@ MOS_STATUS AvcDecodeSlcPkt::AddCmd_AVC_SLICE_Addr(MOS_COMMAND_BUFFER &cmdBuffer,
     parSliceAddr.avcSliceParams       = parSlice.avcSliceParams;
     if (!parSlice.isLastSlice)
     {
-        m_mfxItf->MHW_ADDCMD_F(MFD_AVC_SLICEADDR)(&cmdBuffer);
+        DECODE_CHK_STATUS(m_mfxItf->MHW_ADDCMD_F(MFD_AVC_SLICEADDR)(&cmdBuffer));
     }
     return MOS_STATUS_SUCCESS;
 }

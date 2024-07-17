@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2021, Intel Corporation
+* Copyright (c) 2020-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -106,7 +106,7 @@ MOS_STATUS Av1DecodeTilePktXe_Lpm_Plus_Base::AddCmd_AVP_TILE_CODING(MOS_COMMAND_
     }
 #endif
 
-    m_avpItf->MHW_ADDCMD_F(AVP_TILE_CODING)(&cmdBuffer);
+    DECODE_CHK_STATUS(m_avpItf->MHW_ADDCMD_F(AVP_TILE_CODING)(&cmdBuffer));
 
     return MOS_STATUS_SUCCESS;
 }

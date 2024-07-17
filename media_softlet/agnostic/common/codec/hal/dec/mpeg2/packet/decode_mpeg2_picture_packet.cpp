@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021-2022, Intel Corporation
+* Copyright (c) 2021-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -366,7 +366,7 @@ MOS_STATUS Mpeg2DecodePicPkt::AddAllCmds_MFX_QM_STATE(MOS_COMMAND_BUFFER &cmdBuf
         }
     }
 
-    m_mfxItf->MHW_ADDCMD_F(MFX_QM_STATE)(&cmdBuffer);
+    DECODE_CHK_STATUS(m_mfxItf->MHW_ADDCMD_F(MFX_QM_STATE)(&cmdBuffer));
 
     params.qmType = m_mpeg2BasicFeature->Mpeg2QmTypes::mpeg2QmNonIntra;
     if (pMpeg2IqMatrix->m_loadNonIntraQuantiserMatrix)
@@ -385,7 +385,7 @@ MOS_STATUS Mpeg2DecodePicPkt::AddAllCmds_MFX_QM_STATE(MOS_COMMAND_BUFFER &cmdBuf
         }
     }
 
-    m_mfxItf->MHW_ADDCMD_F(MFX_QM_STATE)(&cmdBuffer);
+    DECODE_CHK_STATUS(m_mfxItf->MHW_ADDCMD_F(MFX_QM_STATE)(&cmdBuffer));
 
     return MOS_STATUS_SUCCESS;
 }
