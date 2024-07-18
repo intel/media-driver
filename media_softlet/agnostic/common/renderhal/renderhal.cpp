@@ -1430,8 +1430,25 @@ MOS_STATUS RenderHal_AllocateStateHeaps(
         if (!pStateHeap->surfaceStateMgr)
         {
             pStateHeap->surfaceStateMgr = MOS_New(SurfaceStateHeapManager, pRenderHal->pOsInterface);
-            MHW_RENDERHAL_CHK_NULL_RETURN(pStateHeap->surfaceStateMgr);
-            MHW_RENDERHAL_CHK_STATUS_RETURN(pStateHeap->surfaceStateMgr->CreateHeap(pRenderHal->pRenderHalPltInterface->GetSurfaceStateCmdSize()));
+            if (pStateHeap->surfaceStateMgr == nullptr)
+            {
+                MHW_RENDERHAL_ASSERTMESSAGE("Fail to Allocate SSH manager.");
+                // Free State Heap control structure
+                MOS_AlignedFreeMemory(pStateHeap);
+                pRenderHal->pStateHeap = nullptr;
+                return MOS_STATUS_NULL_POINTER;
+            }
+
+            eStatus                          = pStateHeap->surfaceStateMgr->CreateHeap(pRenderHal->pRenderHalPltInterface->GetSurfaceStateCmdSize());
+            if (eStatus != MOS_STATUS_SUCCESS)
+            {
+                MHW_RENDERHAL_ASSERTMESSAGE("Fail to Allocate SSH manager.");
+                MHW_RENDERHAL_CHK_STATUS_RETURN(pStateHeap->surfaceStateMgr->DestroyHeap());
+                // Free State Heap control structure
+                MOS_AlignedFreeMemory(pStateHeap);
+                pRenderHal->pStateHeap = nullptr;
+                return eStatus;
+            }
             pStateHeap->iCurrentSurfaceState = pStateHeap->surfaceStateMgr->m_surfStateHeap->uiCurState;
         }
     }

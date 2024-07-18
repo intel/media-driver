@@ -99,10 +99,6 @@ MOS_STATUS SurfaceStateHeapManager::CreateHeap(size_t surfStateSize)
         (uint32_t *)(m_surfStateHeap->pLockedOsResourceMem +
                      m_surfStateHeap->uiOffsetSync);
 
-    if (eStatus != MOS_STATUS_SUCCESS)
-    {
-        DestroyHeap();
-    }
     return eStatus;
 }
 
