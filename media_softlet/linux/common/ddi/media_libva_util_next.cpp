@@ -537,6 +537,7 @@ VAStatus MediaLibvaUtilNext::CreateExternalSurface(
     GMM_RESOURCE_INFO  *gmmResourceInfo = nullptr;
     MOS_LINUX_BO       *bo = nullptr;
     uint32_t           swizzle_mode;
+    unsigned int       patIndex = PAT_INDEX_INVALID;
     VAStatus           status = VA_STATUS_SUCCESS;
 
     // Default set as compression not supported, surface compression import only support from Memory Type VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2 or VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_3
@@ -616,6 +617,8 @@ VAStatus MediaLibvaUtilNext::CreateExternalSurface(
 
     DDI_CHK_NULL(gmmResourceInfo, "Gmm create resource failed", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
+    patIndex = MosInterface::GetPATIndexFromGmm(mediaDrvCtx->pGmmClientContext, gmmResourceInfo);
+
     // DRM buffer allocated by Application, No need to re-allocate new DRM buffer
     switch (mediaSurface->pSurfDesc->uiVaMemType)
     {
@@ -632,14 +635,13 @@ VAStatus MediaLibvaUtilNext::CreateExternalSurface(
             alloc_prime.name = "prime";
             alloc_prime.prime_fd = mediaSurface->pSurfDesc->ulBuffer;
             alloc_prime.size = mediaSurface->pSurfDesc->uiSize;
-            //alloc_prime->pat_index = xxx; // get pat_index from gmm
+            alloc_prime.pat_index = patIndex;
+
             bo = mos_bo_create_from_prime(mediaDrvCtx->pDrmBufMgr, &alloc_prime);
         }
             break;
         case VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR:
         {
-            unsigned int patIndex = MosInterface::GetPATIndexFromGmm(mediaDrvCtx->pGmmClientContext, gmmResourceInfo);
-
             struct mos_drm_bo_alloc_userptr alloc_uptr;
             alloc_uptr.name = "SysSurface";
             alloc_uptr.addr = (void *)mediaSurface->pSurfDesc->ulBuffer;

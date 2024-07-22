@@ -355,7 +355,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
                 alloc_prime.name = "prime";
                 alloc_prime.prime_fd = mediaSurface->pSurfDesc->ulBuffer;
                 alloc_prime.size = mediaSurface->pSurfDesc->uiSize;
-                //alloc_prime->pat_index = xxx; //get pat_index from gmm
+                alloc_prime.pat_index = PAT_INDEX_INVALID; //Setting with default pat index 0 in legacy ddi
                 bo = mos_bo_create_from_prime(mediaDrvCtx->pDrmBufMgr, &alloc_prime);
             }
 
@@ -385,7 +385,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
             alloc_prime.name = "prime";
             alloc_prime.prime_fd = mediaSurface->pSurfDesc->ulBuffer;
             alloc_prime.size = mediaSurface->pSurfDesc->uiSize;
-            //alloc_prime->pat_index = xxx; //get pat_index from gmm
+            alloc_prime.pat_index = PAT_INDEX_INVALID; //Setting with default pat index 0 in legacy ddi
             bo = mos_bo_create_from_prime(mediaDrvCtx->pDrmBufMgr, &alloc_prime);
             if( bo != nullptr )
             {

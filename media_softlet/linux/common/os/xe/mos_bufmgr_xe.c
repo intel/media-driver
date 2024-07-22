@@ -1543,6 +1543,7 @@ mos_bo_create_from_prime_xe(struct mos_bufmgr *bufmgr, struct mos_drm_bo_alloc_p
     struct mos_xe_bo_gem *bo_gem;
     int prime_fd = alloc_prime->prime_fd;
     int size = alloc_prime->size;
+    uint16_t pat_index = alloc_prime->pat_index;
     drmMMListHead *list;
 
     bufmgr_gem->m_lock.lock();
@@ -1599,10 +1600,9 @@ mos_bo_create_from_prime_xe(struct mos_bufmgr *bufmgr, struct mos_drm_bo_alloc_p
 
     bo_gem->bo.handle = handle;
     /*
-     * Note, currectly there is no cpu_caching and pat_index for external-imported bo, hard code for it.
-     * Need to get the pat_index by the customer_gmminfo with 1way coherency at least later.
+     * Note: Need to get the pat_index by the customer_gmminfo with 1way coherency at least.
      */
-    bo_gem->pat_index = 1; //Note need to hard code a pat_index with 1way coherency at least
+    bo_gem->pat_index = pat_index == PAT_INDEX_INVALID ? 0 : pat_index;
     bo_gem->bo.bufmgr = bufmgr;
 
     bo_gem->gem_handle = handle;
