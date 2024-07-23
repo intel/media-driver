@@ -1294,6 +1294,7 @@ mos_bo_alloc_xe(struct mos_bufmgr *bufmgr,
      * Note: current, it only supports WB/ WC while UC and other cache are not allowed.
      */
     create.cpu_caching = alloc->ext.cpu_cacheable ? DRM_XE_GEM_CPU_CACHING_WB : DRM_XE_GEM_CPU_CACHING_WC;
+    printf("just print \n");
 
     ret = drmIoctl(bufmgr_gem->fd,
         DRM_IOCTL_XE_GEM_CREATE,
