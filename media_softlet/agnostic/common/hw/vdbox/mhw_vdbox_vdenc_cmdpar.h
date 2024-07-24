@@ -182,6 +182,8 @@ struct _MHW_PAR_T(VDENC_PIPE_MODE_SELECT)
     bool    VdencPipeModeSelectPar9  = false;
     uint8_t VdencPipeModeSelectPar10 = 0;
     uint8_t VdencPipeModeSelectPar11 = 0;
+    uint8_t VdencPipeModeSelectPar12 = 0;
+    uint8_t VdencPipeModeSelectPar13 = 0;
 };
 
 struct _MHW_PAR_T(VDENC_SRC_SURFACE_STATE)
@@ -273,6 +275,7 @@ struct _MHW_PAR_T(VDENC_PIPE_BUF_ADDR_STATE)
     PMOS_RESOURCE     colocatedMvWriteBuffer            = nullptr;
     PMOS_RESOURCE     vdencPipeBufAddrStatePar0         = nullptr;
     PMOS_RESOURCE     vdencPipeBufAddrStatePar1         = nullptr;
+    PMOS_RESOURCE     vdencPipeBufAddrStatePar2         = nullptr;
 };
 
 struct _MHW_PAR_T(VDENC_WEIGHTSOFFSETS_STATE)
