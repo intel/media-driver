@@ -39,6 +39,7 @@
 #include "mhw_mi_g12_X.h"
 #include "mhw_render_g12_X.h"
 #include "codechal_mmc_encode_vp9_g12.h"
+#include "codechal_hw_g12_X.h"
 
 #define MAXPATH 512
 
@@ -5735,11 +5736,17 @@ MOS_STATUS CodechalVdencVp9StateG12::HuCBrcInitReset()
     // Store HUC_STATUS2 register bit 6 before HUC_Start command
     // This bit will be cleared by HW at the end of a HUC workload
     // (HUC_Start command with last start bit set).
-    CODECHAL_DEBUG_TOOL(
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(StoreHuCStatus2Register(&cmdBuffer));
-    )
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(StoreHuCStatus2Register(&cmdBuffer));
 
+    // HuC Status 2 report in Status Report
     CODECHAL_ENCODE_CHK_STATUS_RETURN(StoreHuCStatus2Report(&cmdBuffer));
+
+    // Check HuC_STATUS2 bit6, if bit6 > 0 HW continue execution following cmd, otherwise it send a COND BB END cmd.
+    uint32_t compareOperation = mhw_mi_g12_X::MI_CONDITIONAL_BATCH_BUFFER_END_CMD::COMPARE_OPERATION_MADGREATERTHANIDD;
+    auto hwInterface = dynamic_cast<CodechalHwInterfaceG12 *>(m_hwInterface);
+    CODECHAL_ENCODE_CHK_NULL_RETURN(hwInterface);
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(hwInterface->SendCondBbEndCmd(
+        &m_resHucStatus2Buffer, 0, 0, false, false, compareOperation, &cmdBuffer));
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hucInterface->AddHucStartCmd(&cmdBuffer, true));
 
