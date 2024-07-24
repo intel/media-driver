@@ -47,9 +47,9 @@
 
 #include "mhw_vdbox_huc_impl_xe2_lpm.h"
 
-#ifdef _MEDIA_RESERVED
 #include "mhw_vdbox_vdenc_impl_xe2_lpm.h"
 
+#ifdef _MEDIA_RESERVED
 #include "codec_hw_xe2_lpm_base.h"
 #endif
 

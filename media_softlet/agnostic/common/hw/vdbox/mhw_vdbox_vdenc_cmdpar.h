@@ -340,17 +340,22 @@ struct _MHW_PAR_T(VDENC_WALKER_STATE)
 
 struct _MHW_PAR_T(VD_PIPELINE_FLUSH)
 {
-    bool waitDoneHEVC           = false;
-    bool waitDoneVDENC          = false;
-    bool waitDoneMFL            = false;
-    bool waitDoneMFX            = false;
-    bool waitDoneVDCmdMsgParser = false;
-    bool flushHEVC              = false;
-    bool flushVDENC             = false;
-    bool flushMFL               = false;
-    bool flushMFX               = false;
-    bool waitDoneAV1            = false;
-    bool flushAV1               = false;
+    bool waitDoneHEVC             = false;
+    bool waitDoneVDENC            = false;
+    bool waitDoneMFL              = false;
+    bool waitDoneMFX              = false;
+    bool waitDoneVDCmdMsgParser   = false;
+    bool flushHEVC                = false;
+    bool flushVDENC               = false;
+    bool flushMFL                 = false;
+    bool flushMFX                 = false;
+    bool waitDoneAV1              = false;
+    bool flushAV1                 = false;
+    bool waitDoneVDAQM            = false;
+    bool flushVDAQM               = false;
+    bool vvcpPipelineDone         = false;
+    bool vvcpPipelineCommandFlush = false;
+
     __MHW_VDBOX_VDENC_WRAPPER_EXT(VD_PIPELINE_FLUSH_CMDPAR_EXT);
 };
 

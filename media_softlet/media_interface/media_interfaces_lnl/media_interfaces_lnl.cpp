@@ -230,13 +230,11 @@ MOS_STATUS MhwInterfacesLnl_Next::Initialize(
         auto ptr = std::make_shared<mhw::vdbox::huc::xe2_lpm_base::xe2_lpm::Impl>(osInterface, m_cpInterface);
         m_hucItf = std::static_pointer_cast<mhw::vdbox::huc::Itf>(ptr);
     }
-#ifdef _MEDIA_RESERVED
     if (params.Flags.m_vdboxAll || params.Flags.m_vdenc)
     {
         auto ptr = std::make_shared<mhw::vdbox::vdenc::xe2_lpm_base::xe2_lpm::Impl>(osInterface);
         m_vdencItf = std::static_pointer_cast<mhw::vdbox::vdenc::Itf>(ptr);
     }
-#endif
     if (params.Flags.m_blt)
     {
         auto bltptr = std::make_shared<mhw::blt::xe2_lpm::Impl>(osInterface);
