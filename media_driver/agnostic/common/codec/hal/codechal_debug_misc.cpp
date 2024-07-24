@@ -65,9 +65,11 @@ MOS_STATUS CodechalDebugInterface::Initialize(
 
     MediaDebugInterface::InitDumpLocation();
 
-    m_dumpYUVSurface = m_dumpYUVSurfaceLegacy;
-
-    m_dumpBuffer = m_dumpBufferLegacy;
+    if (m_hwInterface->GetPlatform().eProductFamily < IGFX_DG2)
+    {
+        m_dumpYUVSurface = m_dumpYUVSurfaceLegacy;
+        m_dumpBuffer     = m_dumpBufferLegacy;
+    }
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     {
