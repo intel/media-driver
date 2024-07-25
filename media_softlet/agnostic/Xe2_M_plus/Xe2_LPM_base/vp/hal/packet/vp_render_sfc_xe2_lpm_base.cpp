@@ -58,8 +58,14 @@ MOS_STATUS SfcRenderXe2_Lpm_Base::SetupSfcState(
 
     //Set SFD Line Buffer
     VP_RENDER_CHK_NULL_RETURN(m_renderData.sfcStateParams);
-
-    VP_RENDER_CHK_STATUS_RETURN(SetLineBuffer(m_renderData.sfcStateParams->resSfdLineBuffer, m_SFDLineBufferSurfaceArray[m_scalabilityParams.curPipe]));
+    if (m_renderData.b1stPassOfSfc2PassScaling)
+    {
+        VP_RENDER_CHK_STATUS_RETURN(SetLineBuffer(m_renderData.sfcStateParams->resSfdLineBuffer, m_SFDLineBufferSurfaceArrayfor1stPassofSfc2Pass[m_scalabilityParams.curPipe]));
+    }
+    else
+    {
+        VP_RENDER_CHK_STATUS_RETURN(SetLineBuffer(m_renderData.sfcStateParams->resSfdLineBuffer, m_SFDLineBufferSurfaceArray[m_scalabilityParams.curPipe]));
+    }
     VP_RENDER_CHK_STATUS_RETURN(SetLineBuffer(m_renderData.sfcStateParams->resAvsLineTileBuffer, m_AVSLineTileBufferSurface));
     VP_RENDER_CHK_STATUS_RETURN(SetLineBuffer(m_renderData.sfcStateParams->resIefLineTileBuffer, m_IEFLineTileBufferSurface));
     VP_RENDER_CHK_STATUS_RETURN(SetLineBuffer(m_renderData.sfcStateParams->resSfdLineTileBuffer, m_SFDLineTileBufferSurface));

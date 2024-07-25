@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2018-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -80,6 +80,7 @@ typedef struct _VPHAL_SFC_RENDER_DATA
     PVP_SURFACE                         pSfcPipeOutSurface;                     //!< SFC Pipe output surface
 
     bool                                bForcePolyPhaseCoefs;                   //!< SFC AVS force polyphase coef
+    bool                                b1stPassOfSfc2PassScaling;              //!< 1st Pass of Sfc 2Pass Scaling
 
 } VP_SFC_RENDER_DATA, *PVP_SFC_RENDER_DATA;
 
@@ -110,6 +111,7 @@ typedef struct _VPHAL_SFC_RENDER_DATA_LEGACY
     PVP_SURFACE                         pSfcPipeOutSurface;                     //!< SFC Pipe output surface
 
     bool                                bForcePolyPhaseCoefs;                   //!< SFC AVS force polyphase coef
+    bool                                b1stPassOfSfc2PassScaling;              //!< 1st Pass of Sfc 2Pass Scaling
 
 } VP_SFC_RENDER_DATA_LEGACY, * PVP_SFC_RENDER_DATA_LEGACY;
 

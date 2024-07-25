@@ -162,6 +162,7 @@ struct _SFC_SCALING_PARAMS
     VPHAL_SAMPLE_TYPE               srcSampleType;
     VPHAL_SAMPLE_TYPE               dstSampleType;
     bool                            isDemosaicNeeded;                           // 0: demosaic is not needed; 1: demosaic is needed
+    bool                            b1stPassOfSfc2PassScaling;                  // 1st Pass of Sfc 2Pass Scaling
 };
 
 struct _SFC_CSC_PARAMS

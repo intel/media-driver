@@ -637,6 +637,8 @@ MOS_STATUS VpScalingFilter::CalculateEngineParams()
         m_sfcScalingParams->isDemosaicNeeded      = m_executeCaps.bDemosaicInUse;
 
         VP_RENDER_CHK_STATUS_RETURN(SetColorFillParams());
+
+        m_sfcScalingParams->b1stPassOfSfc2PassScaling = m_executeCaps.b1stPassOfSfc2PassScaling;
     }
     // Need add support for Render engine
     else
